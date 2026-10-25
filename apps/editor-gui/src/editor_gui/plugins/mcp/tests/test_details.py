@@ -263,9 +263,14 @@ async def test_descriptions_and_numbers_of_topology_and_groups(tmp_path: Path) -
         ga = await _data(client, "project_get_group_address", group_address_id=ga_id)
         assert ga["description"] == "Hall light"
 
+        building = (await _data(client, "project_spaces"))["items"][0]["id"]
         space_id = (
             await _data(
-                client, "project_create_space", space_type="Room", name="Kitchen"
+                client,
+                "project_create_space",
+                space_type="Room",
+                name="Kitchen",
+                parent_id=building,
             )
         )["space_id"]
         await _data(

@@ -508,15 +508,6 @@ msgstr "此项目中没有建筑/房间"
 msgid "+ Function"
 msgstr "+ 功能"
 
-msgid "+ Space"
-msgstr "+ 空间"
-
-msgid "+ Sub-space"
-msgstr "+ 子空间"
-
-msgid "New Space"
-msgstr "新空间"
-
 msgid "Name"
 msgstr "名称"
 
@@ -573,9 +564,6 @@ msgstr "走廊"
 
 msgid "Stairway"
 msgstr "楼梯"
-
-msgid "Distribution Board"
-msgstr "配电箱"
 
 msgid "New Function"
 msgstr "新功能"
@@ -2553,3 +2541,117 @@ msgstr "将设备添加到工程作业"
 
 msgid "Remove device from trade"
 msgstr "从工程作业中移除设备"
+
+msgid "Trades"
+msgstr "工程作业"
+
+msgid "Building Parts…"
+msgstr "建筑局部…"
+
+msgid "Floors…"
+msgstr "楼层…"
+
+msgid "Stairways…"
+msgstr "楼梯…"
+
+msgid "Rooms…"
+msgstr "房间…"
+
+msgid "Corridors…"
+msgstr "走廊…"
+
+msgid "Cabinets…"
+msgstr "控制室…"
+
+msgid "Devices…"
+msgstr "设备…"
+
+msgid "Functions…"
+msgstr "功能…"
+
+msgid "Trades…"
+msgstr "工程作业…"
+
+msgid "Add Buildings…"
+msgstr "添加建筑…"
+
+msgid "Add Trades…"
+msgstr "添加工程作业…"
+
+msgid "Add Buildings"
+msgstr "添加建筑"
+
+msgid "Add Building Parts"
+msgstr "添加建筑局部"
+
+msgid "Add Floors"
+msgstr "添加楼层"
+
+msgid "Add Rooms"
+msgstr "添加房间"
+
+msgid "Add Corridors"
+msgstr "添加走廊"
+
+msgid "Add Stairways"
+msgstr "添加楼梯"
+
+msgid "Add Cabinets"
+msgstr "添加控制室"
+
+msgid "Add Trades"
+msgstr "添加工程作业"
+
+msgid "Add Devices"
+msgstr "添加设备"
+
+msgid "Count"
+msgstr "计数"
+
+msgid "to \"{name}\""
+msgstr "到\"{name}\""
+
+msgid "Cabinet"
+msgstr "控制室"
+
+msgid "New building"
+msgstr "新建建筑"
+
+msgid "New building part"
+msgstr "新建建筑局部"
+
+msgid "New floor"
+msgstr "新建楼层"
+
+msgid "New room"
+msgstr "新建房间"
+
+msgid "New corridor"
+msgstr "新建走廊"
+
+msgid "New stairway"
+msgstr "新建楼梯"
+
+msgid "New cabinet"
+msgstr "新建控制室"
+
+msgid "New trade"
+msgstr "新建工程作业"
+
+msgid "A building part of this type cannot be added here."
+msgstr "这种类型的一个楼宇部分在这儿不能被添加."
+
+msgid "A building part of this type cannot be added here.\nCabinets can be added inside of rooms, corridors, or stairways only. If applicable the corridors have to be moved into the corresponding building parts."
+msgstr "无法在此添加该类楼宇部件。\n橱柜仅可在房间，走廊或楼梯上添加。若适用，走廊必须转移至对应的楼宇部件中."
+
+msgid "The target is a child building part."
+msgstr "目标是子楼宇部分."
+
+msgid "Devices can only be added to stairways, rooms, corridors and cabinets."
+msgstr "设备只能添加到楼梯、房间、走廊和橱柜中。"
+
+msgid "Remove from Trade"
+msgstr "从工程作业中移除"
+
+msgid "Trade"
+msgstr "工程作业"

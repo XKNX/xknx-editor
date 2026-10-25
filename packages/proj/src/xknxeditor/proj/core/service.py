@@ -118,7 +118,6 @@ from xknxeditor.proj.core.events import (
     SetSpaceDefaultLine,
     SetSpaceDescription,
     SetSpaceNumber,
-    SetSpaceType,
     SetSpaceUsage,
     SetTopologyAddress,
     SetTopologyDescription,
@@ -177,6 +176,7 @@ from xknxeditor.proj.core.project_secrets import (
     recrypt,
 )
 from xknxeditor.proj.core.skeleton import seed_new_project
+from xknxeditor.proj.core.space_rules import SpaceRuleError, check_child, holds_devices
 from xknxeditor.proj.db import make_engine, url_for
 from xknxeditor.proj.models import (
     COMPLETION_STATUSES,
@@ -1038,6 +1038,12 @@ class ProjectService:
         state = self._state(project_id)
         if address is not None:
             self._check_unique_address(state, segment_id, address)
+        if space_id is not None:
+            space = state.session.get(Space, space_id)
+            if space is None:
+                raise KeyError(f"No space with id {space_id}")
+            if not holds_devices(space.space_type):
+                raise SpaceRuleError("no_devices")
         entries = [_empty_additional_entry() for _ in range(additional_addresses)]
         if entries:
             segment = state.session.get(Segment, segment_id)
@@ -1655,6 +1661,10 @@ class ProjectService:
         appended after the existing ones; returns the new id."""
         state = self._state(project_id)
         inst = self._installation(state, installation)
+        parent = state.session.get(Space, parent_id) if parent_id is not None else None
+        if parent_id is not None and parent is None:
+            raise KeyError(f"No space with id {parent_id}")
+        check_child(parent.space_type if parent is not None else None, space_type)
         highest = (
             state.session.query(func.max(Space.order))
             .filter(Space.installation_id == inst.id, Space.parent_id == parent_id)
@@ -1736,29 +1746,32 @@ class ProjectService:
             SetSpaceDescription(space_id=space_id, description=description)
         )
 
-    def set_space_type(self, project_id: str, space_id: int, space_type: str) -> None:
-        self._state(project_id).store.append(
-            SetSpaceType(space_id=space_id, space_type=space_type)
-        )
-
     def move_space(
         self, project_id: str, space_id: int, new_parent_id: int | None
     ) -> None:
-        """Re-parent a space. Rejects a move that would create a cycle (making a space its own
-        ancestor). ``new_parent_id`` ``None`` moves the space to the top level."""
+        """Put a space below another one (``new_parent_id`` None: at the top level). Raises
+        ``SpaceRuleError`` for a target that cannot hold its type (see
+        :func:`.space_rules.check_child`) or that is the space itself or below it, ``KeyError``
+        for an unknown space."""
         state = self._state(project_id)
-        if new_parent_id is not None:
-            if new_parent_id == space_id:
-                raise ValueError("cannot move a space into itself")
-            ancestor = state.session.get(Space, new_parent_id)
-            while ancestor is not None:
-                if ancestor.id == space_id:
-                    raise ValueError("cannot move a space into its own descendant")
-                ancestor = (
-                    state.session.get(Space, ancestor.parent_id)
-                    if ancestor.parent_id is not None
-                    else None
-                )
+        space = state.session.get(Space, space_id)
+        target = (
+            state.session.get(Space, new_parent_id)
+            if new_parent_id is not None
+            else None
+        )
+        if space is None or (new_parent_id is not None and target is None):
+            raise KeyError(
+                f"No space with id {space_id if space is None else new_parent_id}"
+            )
+        ancestor = target
+        while ancestor is not None:
+            if ancestor.id == space_id:
+                raise SpaceRuleError("target_is_child")
+            ancestor = ancestor.parent
+        check_child(target.space_type if target is not None else None, space.space_type)
+        if space.parent_id == new_parent_id:
+            return
         state.store.append(MoveSpace(space_id=space_id, new_parent_id=new_parent_id))
 
     def remove_space(self, project_id: str, space_id: int) -> None:
@@ -1920,10 +1933,17 @@ class ProjectService:
     def set_device_space(
         self, project_id: str, device_id: int, space_id: int | None
     ) -> None:
-        """Assign a device to a space (room), or unassign it (``space_id`` ``None``)."""
-        self._state(project_id).store.append(
-            SetDeviceSpace(device_id=device_id, space_id=space_id)
-        )
+        """Assign a device to a space (a stairway, room, corridor or cabinet), or unassign it
+        (``space_id`` ``None``). Raises ``SpaceRuleError`` for a space that holds no devices,
+        ``KeyError`` for an unknown space."""
+        state = self._state(project_id)
+        if space_id is not None:
+            space = state.session.get(Space, space_id)
+            if space is None:
+                raise KeyError(f"No space with id {space_id}")
+            if not holds_devices(space.space_type):
+                raise SpaceRuleError("no_devices")
+        state.store.append(SetDeviceSpace(device_id=device_id, space_id=space_id))
 
     def set_device_commissioning(
         self,
@@ -3880,17 +3900,27 @@ class ProjectService:
         self, project_id: str, installation: int
     ) -> list[SpaceDeviceInfo]:
         """Devices in the installation that are not placed in any space (``space_id IS NULL``)."""
+        return self.space_devices(project_id, installation, unassigned_only=True)
+
+    def space_devices(
+        self, project_id: str, installation: int, *, unassigned_only: bool = False
+    ) -> list[SpaceDeviceInfo]:
+        """The installation's devices in address order, as the Buildings view lists them;
+        only those placed in no space with ``unassigned_only``."""
         state = self._state(project_id)
         inst = self._installation(state, installation)
-        devices = (
+        query = (
             state.session.query(Device)
             .join(Segment, Device.segment_id == Segment.id)
             .join(Line, Segment.line_id == Line.id)
             .join(Area, Line.area_id == Area.id)
-            .filter(Area.installation_id == inst.id, Device.space_id.is_(None))
-            .all()
+            .filter(Area.installation_id == inst.id)
         )
-        return [self._space_device_info(d) for d in sorted(devices, key=_address_order)]
+        if unassigned_only:
+            query = query.filter(Device.space_id.is_(None))
+        return [
+            self._space_device_info(d) for d in sorted(query.all(), key=_address_order)
+        ]
 
     def coupler_pass_through(
         self, project_id: str, coupler_address: int

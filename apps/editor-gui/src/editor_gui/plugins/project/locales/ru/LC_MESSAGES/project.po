@@ -508,15 +508,6 @@ msgstr "В этом проекте нет зданий/комнат"
 msgid "+ Function"
 msgstr "+ Функция"
 
-msgid "+ Space"
-msgstr "+ Зона"
-
-msgid "+ Sub-space"
-msgstr "+ Подзона"
-
-msgid "New Space"
-msgstr "Новая зона"
-
 msgid "Name"
 msgstr "Имя"
 
@@ -573,9 +564,6 @@ msgstr "Коридор"
 
 msgid "Stairway"
 msgstr "Лестница"
-
-msgid "Distribution Board"
-msgstr "Распределительный щит"
 
 msgid "New Function"
 msgstr "Новая функция"
@@ -2553,3 +2541,117 @@ msgstr "Добавить устройство в систему"
 
 msgid "Remove device from trade"
 msgstr "Удалить устройство из системы"
+
+msgid "Trades"
+msgstr "Системы"
+
+msgid "Building Parts…"
+msgstr "Части здания…"
+
+msgid "Floors…"
+msgstr "Этажи…"
+
+msgid "Stairways…"
+msgstr "Лестницы…"
+
+msgid "Rooms…"
+msgstr "Комнаты…"
+
+msgid "Corridors…"
+msgstr "Коридоры…"
+
+msgid "Cabinets…"
+msgstr "Шкафы…"
+
+msgid "Devices…"
+msgstr "Устройства…"
+
+msgid "Functions…"
+msgstr "Функции…"
+
+msgid "Trades…"
+msgstr "Системы…"
+
+msgid "Add Buildings…"
+msgstr "Добавить сдания…"
+
+msgid "Add Trades…"
+msgstr "Добавить системы…"
+
+msgid "Add Buildings"
+msgstr "Добавить сдания"
+
+msgid "Add Building Parts"
+msgstr "Добавить части здания"
+
+msgid "Add Floors"
+msgstr "Добавить этажи"
+
+msgid "Add Rooms"
+msgstr "Добавить комнаты"
+
+msgid "Add Corridors"
+msgstr "Добавить коридоры"
+
+msgid "Add Stairways"
+msgstr "Добавить лестницы"
+
+msgid "Add Cabinets"
+msgstr "Добавить шкафы"
+
+msgid "Add Trades"
+msgstr "Добавить системы"
+
+msgid "Add Devices"
+msgstr "Добавить устройства"
+
+msgid "Count"
+msgstr "Рассчитывать"
+
+msgid "to \"{name}\""
+msgstr "к \"{name}\""
+
+msgid "Cabinet"
+msgstr "Шкаф"
+
+msgid "New building"
+msgstr "Новое здание"
+
+msgid "New building part"
+msgstr "Новая часть здания"
+
+msgid "New floor"
+msgstr "Новый этаж"
+
+msgid "New room"
+msgstr "Новая комната"
+
+msgid "New corridor"
+msgstr "Новый коридор"
+
+msgid "New stairway"
+msgstr "Новая лестница"
+
+msgid "New cabinet"
+msgstr "Новый шкаф"
+
+msgid "New trade"
+msgstr "Новая система"
+
+msgid "A building part of this type cannot be added here."
+msgstr "Часть здания данного типа не может быть здесь добавлена."
+
+msgid "A building part of this type cannot be added here.\nCabinets can be added inside of rooms, corridors, or stairways only. If applicable the corridors have to be moved into the corresponding building parts."
+msgstr "Здесь нельзя добавить строительный элемент этого типа.\nШкафы можно добавлять только в комнатах, коридорах или лестницах. При необходимости коридоры должны быть перемещены в соответствующие строительные элементы."
+
+msgid "The target is a child building part."
+msgstr "Цель - дочерняя часть здания."
+
+msgid "Devices can only be added to stairways, rooms, corridors and cabinets."
+msgstr "Устройства можно добавлять только на лестницы, в комнаты, коридоры и шкафы."
+
+msgid "Remove from Trade"
+msgstr "Удалить из системы"
+
+msgid "Trade"
+msgstr "Система"

@@ -508,15 +508,6 @@ msgstr "Bu projede bina/oda yok"
 msgid "+ Function"
 msgstr "+ Fonksiyon"
 
-msgid "+ Space"
-msgstr "+ Mekan"
-
-msgid "+ Sub-space"
-msgstr "+ Alt Mekan"
-
-msgid "New Space"
-msgstr "Yeni Mekan"
-
 msgid "Name"
 msgstr "Ad"
 
@@ -573,9 +564,6 @@ msgstr "Koridor"
 
 msgid "Stairway"
 msgstr "Merdiven"
-
-msgid "Distribution Board"
-msgstr "Dağıtım Panosu"
 
 msgid "New Function"
 msgstr "Yeni Fonksiyon"
@@ -2553,3 +2541,117 @@ msgstr "Cihazı ticarete ekle"
 
 msgid "Remove device from trade"
 msgstr "Cihazı ticaretten kaldır"
+
+msgid "Trades"
+msgstr "Ticaretler"
+
+msgid "Building Parts…"
+msgstr "Bina Bölümleri…"
+
+msgid "Floors…"
+msgstr "Katlar…"
+
+msgid "Stairways…"
+msgstr "Merdiven…"
+
+msgid "Rooms…"
+msgstr "Odalar…"
+
+msgid "Corridors…"
+msgstr "Koridorlar…"
+
+msgid "Cabinets…"
+msgstr "Panolar…"
+
+msgid "Devices…"
+msgstr "Cihazlar…"
+
+msgid "Functions…"
+msgstr "Fonksiyonlar…"
+
+msgid "Trades…"
+msgstr "Ticaretler…"
+
+msgid "Add Buildings…"
+msgstr "Binalar Ekle…"
+
+msgid "Add Trades…"
+msgstr "Tüm Ticariler…"
+
+msgid "Add Buildings"
+msgstr "Binalar Ekle"
+
+msgid "Add Building Parts"
+msgstr "Bina Bölümleri Ekle"
+
+msgid "Add Floors"
+msgstr "Kat Ekle"
+
+msgid "Add Rooms"
+msgstr "Oda Ekle"
+
+msgid "Add Corridors"
+msgstr "Koridorlar Ekle"
+
+msgid "Add Stairways"
+msgstr "Merdiven Ekle"
+
+msgid "Add Cabinets"
+msgstr "Pano Ekle"
+
+msgid "Add Trades"
+msgstr "Tüm Ticariler"
+
+msgid "Add Devices"
+msgstr "Cihaz ekle"
+
+msgid "Count"
+msgstr "Miktar"
+
+msgid "to \"{name}\""
+msgstr "\"{name}\" a kadar"
+
+msgid "Cabinet"
+msgstr "Pano"
+
+msgid "New building"
+msgstr "Yeni bina"
+
+msgid "New building part"
+msgstr "Yeni bina bölümü"
+
+msgid "New floor"
+msgstr "Yeni kat"
+
+msgid "New room"
+msgstr "Yeni oda"
+
+msgid "New corridor"
+msgstr "Yeni koridor"
+
+msgid "New stairway"
+msgstr "Yeni merdiven"
+
+msgid "New cabinet"
+msgstr "Yeni pano"
+
+msgid "New trade"
+msgstr "Yeni ticaret"
+
+msgid "A building part of this type cannot be added here."
+msgstr "Bu tip bina bölümü buraya eklenemez."
+
+msgid "A building part of this type cannot be added here.\nCabinets can be added inside of rooms, corridors, or stairways only. If applicable the corridors have to be moved into the corresponding building parts."
+msgstr "Bu türde bir bina parçası buraya eklenemez.\nKabinler odaların, koridorların içerisine veya yalnızca merdivenlere eklenebilir. Varsa şayet koridorlar ilgili bina parçalarına taşınmalıdır."
+
+msgid "The target is a child building part."
+msgstr "Hedef bina bölümünün çocuğudur."
+
+msgid "Devices can only be added to stairways, rooms, corridors and cabinets."
+msgstr "Cihazlar yalnızca merdivenlere, odalara, koridorlara ve kabinlere eklenebilir."
+
+msgid "Remove from Trade"
+msgstr "Ticaretten kaldır"
+
+msgid "Trade"
+msgstr "Ticaret"

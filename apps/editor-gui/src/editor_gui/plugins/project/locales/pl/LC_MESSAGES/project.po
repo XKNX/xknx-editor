@@ -508,15 +508,6 @@ msgstr "Brak budynków/pokoi w tym projekcie"
 msgid "+ Function"
 msgstr "+ Funkcja"
 
-msgid "+ Space"
-msgstr "+ Przestrzeń"
-
-msgid "+ Sub-space"
-msgstr "+ Podprzestrzeń"
-
-msgid "New Space"
-msgstr "Nowa przestrzeń"
-
 msgid "Name"
 msgstr "Nazwa"
 
@@ -573,9 +564,6 @@ msgstr "Korytarz"
 
 msgid "Stairway"
 msgstr "Schody"
-
-msgid "Distribution Board"
-msgstr "Tablica rozdzielcza"
 
 msgid "New Function"
 msgstr "Nowa funkcja"
@@ -2553,3 +2541,117 @@ msgstr "Dodaj urządzenie do zakładu"
 
 msgid "Remove device from trade"
 msgstr "Usuń urządzenie z zakładu"
+
+msgid "Trades"
+msgstr "Zakład"
+
+msgid "Building Parts…"
+msgstr "Części budynku…"
+
+msgid "Floors…"
+msgstr "Piętra…"
+
+msgid "Stairways…"
+msgstr "Schody…"
+
+msgid "Rooms…"
+msgstr "Pokoje…"
+
+msgid "Corridors…"
+msgstr "Korytarze…"
+
+msgid "Cabinets…"
+msgstr "Rozdzielnice…"
+
+msgid "Devices…"
+msgstr "Urządzenia…"
+
+msgid "Functions…"
+msgstr "Funkcje…"
+
+msgid "Trades…"
+msgstr "Zakład…"
+
+msgid "Add Buildings…"
+msgstr "Dodaj budynki…"
+
+msgid "Add Trades…"
+msgstr "Dodaj zakład…"
+
+msgid "Add Buildings"
+msgstr "Dodaj budynki"
+
+msgid "Add Building Parts"
+msgstr "Dodaj części budynku"
+
+msgid "Add Floors"
+msgstr "Dodaj piętro"
+
+msgid "Add Rooms"
+msgstr "Dodaj pokoje"
+
+msgid "Add Corridors"
+msgstr "Dodaj korytarze"
+
+msgid "Add Stairways"
+msgstr "Dodaj schody"
+
+msgid "Add Cabinets"
+msgstr "Dodaj rozdzielnice"
+
+msgid "Add Trades"
+msgstr "Dodaj zakład"
+
+msgid "Add Devices"
+msgstr "Dodaj urządzenia"
+
+msgid "Count"
+msgstr "Licznik"
+
+msgid "to \"{name}\""
+msgstr "do \"{name}\""
+
+msgid "Cabinet"
+msgstr "Rozdzielnica"
+
+msgid "New building"
+msgstr "Nowy budynek"
+
+msgid "New building part"
+msgstr "Nowa część budynku"
+
+msgid "New floor"
+msgstr "Nowe piętro"
+
+msgid "New room"
+msgstr "Nowy pokój"
+
+msgid "New corridor"
+msgstr "Nowy korytarz"
+
+msgid "New stairway"
+msgstr "Nowe klatki schodowe"
+
+msgid "New cabinet"
+msgstr "Nowa rozdzielnica"
+
+msgid "New trade"
+msgstr "Nowy zakład"
+
+msgid "A building part of this type cannot be added here."
+msgstr "Cześć budynku tego typu nie może tutaj zostać dodana."
+
+msgid "A building part of this type cannot be added here.\nCabinets can be added inside of rooms, corridors, or stairways only. If applicable the corridors have to be moved into the corresponding building parts."
+msgstr "Nie można tutaj dodać części budynku takiego typu.\nSzafki można dodawać wyłącznie do wnętrz pokojów, korytarzy i klatek schodowych. Jeśli to możliwe, korytarze należy przesunąć do odpowiednich części budynku."
+
+msgid "The target is a child building part."
+msgstr "Obiekt docelowy jest częścią budynku."
+
+msgid "Devices can only be added to stairways, rooms, corridors and cabinets."
+msgstr "Urządzenia można dodawać tylko do klatek schodowych, pomieszczeń, korytarzy i szafek."
+
+msgid "Remove from Trade"
+msgstr "Usuń z zakładu"
+
+msgid "Trade"
+msgstr "Zakład"

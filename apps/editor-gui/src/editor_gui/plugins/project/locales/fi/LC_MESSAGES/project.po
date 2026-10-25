@@ -508,15 +508,6 @@ msgstr "Tässä projektissa ei ole rakennuksia/huoneita"
 msgid "+ Function"
 msgstr "+ Toiminto"
 
-msgid "+ Space"
-msgstr "+ Tila"
-
-msgid "+ Sub-space"
-msgstr "+ Alitila"
-
-msgid "New Space"
-msgstr "Uusi tila"
-
 msgid "Name"
 msgstr "Nimi"
 
@@ -573,9 +564,6 @@ msgstr "Käytävä"
 
 msgid "Stairway"
 msgstr "Portaat"
-
-msgid "Distribution Board"
-msgstr "Sähkökeskus"
 
 msgid "New Function"
 msgstr "Uusi toiminto"
@@ -2553,3 +2541,117 @@ msgstr "Lisää laite vaihtoon"
 
 msgid "Remove device from trade"
 msgstr "Poista laite vaihdosta"
+
+msgid "Trades"
+msgstr "Vaihdot"
+
+msgid "Building Parts…"
+msgstr "Rakennuksen Osat…"
+
+msgid "Floors…"
+msgstr "Kerrokset…"
+
+msgid "Stairways…"
+msgstr "Portaikot…"
+
+msgid "Rooms…"
+msgstr "Huoneet…"
+
+msgid "Corridors…"
+msgstr "Käytävät…"
+
+msgid "Cabinets…"
+msgstr "Keskukset…"
+
+msgid "Devices…"
+msgstr "Laitteet…"
+
+msgid "Functions…"
+msgstr "Tehtävät…"
+
+msgid "Trades…"
+msgstr "Vaihdot…"
+
+msgid "Add Buildings…"
+msgstr "Lisää Rakennukset…"
+
+msgid "Add Trades…"
+msgstr "Lisää Vaihdot…"
+
+msgid "Add Buildings"
+msgstr "Lisää Rakennukset"
+
+msgid "Add Building Parts"
+msgstr "Lisää Rakennuksen Osat"
+
+msgid "Add Floors"
+msgstr "Lisää Kerroksia"
+
+msgid "Add Rooms"
+msgstr "Lisää Huoneet"
+
+msgid "Add Corridors"
+msgstr "Lisää Käytävät"
+
+msgid "Add Stairways"
+msgstr "Lisää Portaikot"
+
+msgid "Add Cabinets"
+msgstr "Lisää Keskukset"
+
+msgid "Add Trades"
+msgstr "Lisää Vaihdot"
+
+msgid "Add Devices"
+msgstr "Lisää Laitteita"
+
+msgid "Count"
+msgstr "Lukumäärä"
+
+msgid "to \"{name}\""
+msgstr "kohteeseen \"{name}\""
+
+msgid "Cabinet"
+msgstr "Keskus"
+
+msgid "New building"
+msgstr "Uusi rakennus"
+
+msgid "New building part"
+msgstr "Uusi rakennusosa"
+
+msgid "New floor"
+msgstr "Uusi kerros"
+
+msgid "New room"
+msgstr "Uusi huone"
+
+msgid "New corridor"
+msgstr "Uusi käytävä"
+
+msgid "New stairway"
+msgstr "Uusi portaikko"
+
+msgid "New cabinet"
+msgstr "Uusi keskus"
+
+msgid "New trade"
+msgstr "Uusi vaihto"
+
+msgid "A building part of this type cannot be added here."
+msgstr "Tämän tyyppistä rakennuksen osaa ei voida lisätä tänne."
+
+msgid "A building part of this type cannot be added here.\nCabinets can be added inside of rooms, corridors, or stairways only. If applicable the corridors have to be moved into the corresponding building parts."
+msgstr "Tämän tyypin rakennuksen osaa ei voi lisätä tähän.\nKeskukset voidaan lisätä vain huoneen sisälle, käytävälle ja portaikoon. Tarvittaessa käytävät on siirrettävä vastaaviin rakennuksen osiin."
+
+msgid "The target is a child building part."
+msgstr "Kohde on alarakennuksen osa."
+
+msgid "Devices can only be added to stairways, rooms, corridors and cabinets."
+msgstr "Laitteita voi lisätä vain portaikkoihin, huoneisiin, käytäville ja keskuksiin."
+
+msgid "Remove from Trade"
+msgstr "Poista vaihdosta"
+
+msgid "Trade"
+msgstr "Vaihto"

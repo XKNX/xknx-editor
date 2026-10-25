@@ -12,6 +12,7 @@ from editor_gui.plugins.catalog.ui import CatalogPanel
 from editor_gui.plugins.project.medium_text import medium_error_text
 from editor_gui.plugins.project.service import DeviceProduct
 from xknxeditor.proj.core.medium import MediumError
+from xknxeditor.proj.core.space_rules import holds_devices
 
 if TYPE_CHECKING:
     from editor_gui.plugins.catalog.online_catalog import OnlineCatalogItem
@@ -197,7 +198,8 @@ class CatalogPlugin:
 
     def _space_options(self) -> list[tuple[int, str]]:
         """Flattened (space_id, "Building / Floor / Room") pairs for the Add-device room picker,
-        in tree order. Empty when no project is open or the project has no spaces."""
+        in tree order: the spaces that hold devices (stairways, rooms, corridors, cabinets).
+        Empty when no project is open or the project has no such space."""
         if not self._api.project.is_open:
             return []
         out: list[tuple[int, str]] = []
@@ -205,7 +207,8 @@ class CatalogPlugin:
         def walk(spaces: list[Any], trail: list[str]) -> None:
             for space in spaces:
                 here = [*trail, space.name or space.space_type or "?"]
-                out.append((space.id, " / ".join(here)))
+                if holds_devices(space.space_type):
+                    out.append((space.id, " / ".join(here)))
                 walk(space.children, here)
 
         walk(self._api.project.get_space_tree(), [])

@@ -76,7 +76,9 @@ def _wire_channel(
 
 def test_candidate_detected_and_accepted_single_undo(tmp_path: Path) -> None:
     svc, pid = _mk(tmp_path)
-    room = svc.create_space(pid, 0, "Room", "Kitchen")
+    room = svc.create_space(
+        pid, 0, "Room", "Kitchen", parent_id=svc.space_tree(pid, 0)[0].id
+    )
     sw = svc.create_group_address(pid, 0, parse_ga("1/0/1", _STYLE), "Light Kitchen")
     st = svc.create_group_address(
         pid, 0, parse_ga("1/0/2", _STYLE), "Light Kitchen Status"
@@ -109,7 +111,9 @@ def test_candidate_detected_and_accepted_single_undo(tmp_path: Path) -> None:
 
 def test_blind_and_dim_candidates(tmp_path: Path) -> None:
     svc, pid = _mk(tmp_path)
-    room = svc.create_space(pid, 0, "Room", "Living")
+    room = svc.create_space(
+        pid, 0, "Room", "Living", parent_id=svc.space_tree(pid, 0)[0].id
+    )
     up = svc.create_group_address(pid, 0, parse_ga("2/0/1", _STYLE), "Blind")
     svc.create_group_address(pid, 0, parse_ga("2/0/2", _STYLE), "Dim")
     _wire_channel(svc, pid, [(up, "DPST-1-8")], channel="CH-1", place_in=room)
@@ -130,7 +134,9 @@ def test_central_ga_is_dropped_and_not_used_as_name(tmp_path: Path) -> None:
     """A GA linked across many devices (time/date/day-night) must not pollute a load's address set
     nor become its name; the load's own sending GA names the function."""
     svc, pid = _mk(tmp_path)
-    room = svc.create_space(pid, 0, "Room", "Hall")
+    room = svc.create_space(
+        pid, 0, "Room", "Hall", parent_id=svc.space_tree(pid, 0)[0].id
+    )
     clock = svc.create_group_address(pid, 0, parse_ga("1/3/0", _STYLE), "Uhrzeit")
     light = svc.create_group_address(pid, 0, parse_ga("2/1/1", _STYLE), "Light Hall")
     # Device under test: sends on the switch, also receives the central clock.
@@ -149,7 +155,9 @@ def test_central_ga_is_dropped_and_not_used_as_name(tmp_path: Path) -> None:
 
 def test_channel_independent_objects_yield_no_candidate(tmp_path: Path) -> None:
     svc, pid = _mk(tmp_path)
-    room = svc.create_space(pid, 0, "Room", "Hall")
+    room = svc.create_space(
+        pid, 0, "Room", "Hall", parent_id=svc.space_tree(pid, 0)[0].id
+    )
     sw = svc.create_group_address(pid, 0, parse_ga("1/0/1", _STYLE), "Light")
     _wire_channel(svc, pid, [(sw, "DPST-1-1")], channel=None, place_in=room)
     assert svc.function_candidates(pid, 0) == []

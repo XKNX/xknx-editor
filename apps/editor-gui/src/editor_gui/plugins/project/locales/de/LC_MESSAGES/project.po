@@ -945,12 +945,6 @@ msgstr "kein Fehler gemeldet"
 msgid "(Top Level)"
 msgstr "(oberste Ebene)"
 
-msgid "+ Space"
-msgstr "+ Bereich"
-
-msgid "+ Sub-space"
-msgstr "+ Unterbereich"
-
 msgid "Assign a Device to This Space"
 msgstr "Ein Gerät diesem Bereich zuordnen"
 
@@ -969,17 +963,11 @@ msgstr "Flur"
 msgid "Delete this space and everything in it? Devices are only unassigned, not deleted."
 msgstr "Diesen Bereich und seinen gesamten Inhalt löschen? Geräte werden nur entfernt, nicht gelöscht."
 
-msgid "Distribution Board"
-msgstr "Verteiler"
-
 msgid "Floor"
 msgstr "Stockwerk"
 
 msgid "Move to"
 msgstr "Verschieben nach"
-
-msgid "New Space"
-msgstr "Neuer Bereich"
 
 msgid "No unassigned devices"
 msgstr "Keine nicht zugeordneten Geräte"
@@ -2738,3 +2726,117 @@ msgstr "Gerät zum Gewerk hinzufügen"
 
 msgid "Remove device from trade"
 msgstr "Gerät aus dem Gewerk entfernen"
+
+msgid "Trades"
+msgstr "Gewerke"
+
+msgid "Building Parts…"
+msgstr "Gebäudeteile…"
+
+msgid "Floors…"
+msgstr "Etagen…"
+
+msgid "Stairways…"
+msgstr "Treppenhäuser…"
+
+msgid "Rooms…"
+msgstr "Räume…"
+
+msgid "Corridors…"
+msgstr "Flure…"
+
+msgid "Cabinets…"
+msgstr "Schaltschränke…"
+
+msgid "Devices…"
+msgstr "Geräte…"
+
+msgid "Functions…"
+msgstr "Funktionen…"
+
+msgid "Trades…"
+msgstr "Gewerke…"
+
+msgid "Add Buildings…"
+msgstr "Gebäude hinzufügen…"
+
+msgid "Add Trades…"
+msgstr "Gewerke hinzufügen…"
+
+msgid "Add Buildings"
+msgstr "Gebäude hinzufügen"
+
+msgid "Add Building Parts"
+msgstr "Gebäudeteile hinzufügen"
+
+msgid "Add Floors"
+msgstr "Etagen hinzufügen"
+
+msgid "Add Rooms"
+msgstr "Räume hinzufügen"
+
+msgid "Add Corridors"
+msgstr "Flure hinzufügen"
+
+msgid "Add Stairways"
+msgstr "Treppenhäuser hinzufügen"
+
+msgid "Add Cabinets"
+msgstr "Schaltschränke hinzufügen"
+
+msgid "Add Trades"
+msgstr "Gewerke hinzufügen"
+
+msgid "Add Devices"
+msgstr "Geräte hinzufügen"
+
+msgid "Count"
+msgstr "Anzahl"
+
+msgid "to \"{name}\""
+msgstr "nach \"{name}\""
+
+msgid "Cabinet"
+msgstr "Schaltschrank"
+
+msgid "New building"
+msgstr "Neues Gebäude"
+
+msgid "New building part"
+msgstr "Neues Gebäudeteil"
+
+msgid "New floor"
+msgstr "Neue Etage"
+
+msgid "New room"
+msgstr "Neuer Raum"
+
+msgid "New corridor"
+msgstr "Neuer Flur"
+
+msgid "New stairway"
+msgstr "Neues Treppenhaus"
+
+msgid "New cabinet"
+msgstr "Schaltschrank"
+
+msgid "New trade"
+msgstr "Neues Gewerk"
+
+msgid "A building part of this type cannot be added here."
+msgstr "Ein Gebäudeteil dieses Typs kann hier nicht hinzugefügt werden."
+
+msgid "A building part of this type cannot be added here.\nCabinets can be added inside of rooms, corridors, or stairways only. If applicable the corridors have to be moved into the corresponding building parts."
+msgstr "Ein Gebäudeteil dieses Typs kann hier nicht hinzugefügt werden.\nSchaltschränke können nur innerhalb von Räumen, Fluren oder Treppenhäusern eingefügt werden. Gegebenenfalls müssen Schaltschränke in die passenden Gebäudeteile verschoben werden."
+
+msgid "The target is a child building part."
+msgstr "Das Ziel ist ein untergeordneter Gebäudeteil."
+
+msgid "Devices can only be added to stairways, rooms, corridors and cabinets."
+msgstr "Geräte können nur zu Treppenhäusern, Räumen, Fluren und Schaltschränken hinzugefügt werden."
+
+msgid "Remove from Trade"
+msgstr "Aus dem Gewerk entfernen"
+
+msgid "Trade"
+msgstr "Gewerk"

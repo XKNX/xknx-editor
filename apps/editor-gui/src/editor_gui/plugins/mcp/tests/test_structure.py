@@ -80,8 +80,15 @@ async def test_building_functions_and_their_group_addresses(tmp_path: Path) -> N
     mcp, _project = _build(tmp_path)
     async with Client(mcp) as client:
         await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
+        building = (await _data(client, "project_spaces"))["items"][0]["id"]
         space_id = (
-            await _data(client, "project_create_space", space_type="Room", name="Hall")
+            await _data(
+                client,
+                "project_create_space",
+                space_type="Room",
+                name="Hall",
+                parent_id=building,
+            )
         )["space_id"]
         created = await _data(
             client, "project_create_function", space_id=space_id, name="Ceiling light"

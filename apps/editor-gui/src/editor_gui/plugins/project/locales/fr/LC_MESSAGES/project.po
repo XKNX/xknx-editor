@@ -508,15 +508,6 @@ msgstr "Aucun bâtiment/aucune pièce dans ce projet"
 msgid "+ Function"
 msgstr "+ Fonction"
 
-msgid "+ Space"
-msgstr "+ Espace"
-
-msgid "+ Sub-space"
-msgstr "+ Sous-espace"
-
-msgid "New Space"
-msgstr "Nouvel espace"
-
 msgid "Name"
 msgstr "Nom"
 
@@ -573,9 +564,6 @@ msgstr "Couloir"
 
 msgid "Stairway"
 msgstr "Escalier"
-
-msgid "Distribution Board"
-msgstr "Tableau de distribution"
 
 msgid "New Function"
 msgstr "Nouvelle fonction"
@@ -2553,3 +2541,117 @@ msgstr "Ajouter le produit au métier"
 
 msgid "Remove device from trade"
 msgstr "Retirer le produit du métier"
+
+msgid "Trades"
+msgstr "Métiers"
+
+msgid "Building Parts…"
+msgstr "Parties de Bâtiment…"
+
+msgid "Floors…"
+msgstr "Etages…"
+
+msgid "Stairways…"
+msgstr "Escalier…"
+
+msgid "Rooms…"
+msgstr "Pièces…"
+
+msgid "Corridors…"
+msgstr "Couloir…"
+
+msgid "Cabinets…"
+msgstr "Armoires…"
+
+msgid "Devices…"
+msgstr "Participants…"
+
+msgid "Functions…"
+msgstr "Fonctions…"
+
+msgid "Trades…"
+msgstr "Métiers…"
+
+msgid "Add Buildings…"
+msgstr "Ajouter bâtiments…"
+
+msgid "Add Trades…"
+msgstr "Ajouter Métiers…"
+
+msgid "Add Buildings"
+msgstr "Ajouter bâtiments"
+
+msgid "Add Building Parts"
+msgstr "Ajouter parties de bâtiment"
+
+msgid "Add Floors"
+msgstr "Ajouter étages"
+
+msgid "Add Rooms"
+msgstr "Ajouter pièces"
+
+msgid "Add Corridors"
+msgstr "Ajouter corridors"
+
+msgid "Add Stairways"
+msgstr "Ajoute escaliers"
+
+msgid "Add Cabinets"
+msgstr "Ajouter armoires"
+
+msgid "Add Trades"
+msgstr "Ajouter Métiers"
+
+msgid "Add Devices"
+msgstr "Ajouter participants"
+
+msgid "Count"
+msgstr "Total"
+
+msgid "to \"{name}\""
+msgstr "vers \"{name}\""
+
+msgid "Cabinet"
+msgstr "Armoire"
+
+msgid "New building"
+msgstr "Nouveau bâtiment"
+
+msgid "New building part"
+msgstr "Nouvelle partie de bâtiment"
+
+msgid "New floor"
+msgstr "Nouvel étage"
+
+msgid "New room"
+msgstr "Nouvelle pièce"
+
+msgid "New corridor"
+msgstr "Nouveau corridor"
+
+msgid "New stairway"
+msgstr "Nouvel escalier"
+
+msgid "New cabinet"
+msgstr "Nouvelle armoire"
+
+msgid "New trade"
+msgstr "Nouveau métier"
+
+msgid "A building part of this type cannot be added here."
+msgstr "Une partie de bâtiment de ce type ne peut pas être ajoutée ici."
+
+msgid "A building part of this type cannot be added here.\nCabinets can be added inside of rooms, corridors, or stairways only. If applicable the corridors have to be moved into the corresponding building parts."
+msgstr "Une partie du bâtiment de ce type ne peut pas être ajoutée ici.\nLes armoires peuvent être ajoutées à l'intérieur des pièces, des couloirs ou des escaliers uniquement. Le cas échéant les couloirs doivent être déplacés dans les parties correspondantes du bâtiment."
+
+msgid "The target is a child building part."
+msgstr "La cible est une partie \"enfant\" de bâtiment."
+
+msgid "Devices can only be added to stairways, rooms, corridors and cabinets."
+msgstr "Les produits ne peuvent être ajoutés qu'aux escaliers, pièces, couloirs et armoires."
+
+msgid "Remove from Trade"
+msgstr "Retirer du métier"
+
+msgid "Trade"
+msgstr "Métier"

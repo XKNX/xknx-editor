@@ -508,15 +508,6 @@ msgstr "V tomto projektu nejsou žádné budovy/místnosti"
 msgid "+ Function"
 msgstr "+ Funkce"
 
-msgid "+ Space"
-msgstr "+ Prostor"
-
-msgid "+ Sub-space"
-msgstr "+ Podprostor"
-
-msgid "New Space"
-msgstr "Nový prostor"
-
 msgid "Name"
 msgstr "Název"
 
@@ -573,9 +564,6 @@ msgstr "Chodba"
 
 msgid "Stairway"
 msgstr "Schodiště"
-
-msgid "Distribution Board"
-msgstr "Rozvaděč"
 
 msgid "New Function"
 msgstr "Nová funkce"
@@ -2553,3 +2541,117 @@ msgstr "Přidat zařízení do činnosti"
 
 msgid "Remove device from trade"
 msgstr "Odebrat zařízení z činnosti"
+
+msgid "Trades"
+msgstr "Činnosti"
+
+msgid "Building Parts…"
+msgstr "Části budovy…"
+
+msgid "Floors…"
+msgstr "Podlaží…"
+
+msgid "Stairways…"
+msgstr "Schodiště…"
+
+msgid "Rooms…"
+msgstr "Místnosti…"
+
+msgid "Corridors…"
+msgstr "Chodby…"
+
+msgid "Cabinets…"
+msgstr "Rozvaděče…"
+
+msgid "Devices…"
+msgstr "Přístroje…"
+
+msgid "Functions…"
+msgstr "Funkce…"
+
+msgid "Trades…"
+msgstr "Činnosti…"
+
+msgid "Add Buildings…"
+msgstr "Vložit budovy…"
+
+msgid "Add Trades…"
+msgstr "Vložit činnosti…"
+
+msgid "Add Buildings"
+msgstr "Vložit budovy"
+
+msgid "Add Building Parts"
+msgstr "Vložit část budovy"
+
+msgid "Add Floors"
+msgstr "Přidat podlaží"
+
+msgid "Add Rooms"
+msgstr "Vložit místnosti"
+
+msgid "Add Corridors"
+msgstr "Vložit chodby"
+
+msgid "Add Stairways"
+msgstr "Vložit schodiště"
+
+msgid "Add Cabinets"
+msgstr "Přidat rozvaděč"
+
+msgid "Add Trades"
+msgstr "Vložit činnosti"
+
+msgid "Add Devices"
+msgstr "Vložit přístroje"
+
+msgid "Count"
+msgstr "Počet"
+
+msgid "to \"{name}\""
+msgstr "do \"{name}\""
+
+msgid "Cabinet"
+msgstr "Rozvaděč"
+
+msgid "New building"
+msgstr "Nová budova"
+
+msgid "New building part"
+msgstr "Nová část budovy"
+
+msgid "New floor"
+msgstr "Nové podlaží"
+
+msgid "New room"
+msgstr "Nová místnost"
+
+msgid "New corridor"
+msgstr "Nová chodba"
+
+msgid "New stairway"
+msgstr "Nové schodiště"
+
+msgid "New cabinet"
+msgstr "Nový rozvaděč"
+
+msgid "New trade"
+msgstr "Nová činnost"
+
+msgid "A building part of this type cannot be added here."
+msgstr "Zde nelze vložit část budovy tohoto typu."
+
+msgid "A building part of this type cannot be added here.\nCabinets can be added inside of rooms, corridors, or stairways only. If applicable the corridors have to be moved into the corresponding building parts."
+msgstr "Část budovy tohoto typu sem nelze přiřadit.\nRozvaděče mohou být přidány pouze do místností, na chodby nebo na schodiště. V případě možnosti mohou být chodby přemístěny do odpovídajících částí budovy."
+
+msgid "The target is a child building part."
+msgstr "Cílem je dílčí část budovy."
+
+msgid "Devices can only be added to stairways, rooms, corridors and cabinets."
+msgstr "Zařízení lze přidat pouze do schodišť, místností, chodeb a rozvaděčů."
+
+msgid "Remove from Trade"
+msgstr "Odebrat z činnosti"
+
+msgid "Trade"
+msgstr "Činnost"

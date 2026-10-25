@@ -7,6 +7,12 @@ from typing import TYPE_CHECKING, Any
 from imgui_bundle import imgui
 
 from editor_gui.plugins.project.element_status import usage_options
+from editor_gui.plugins.project.space_text import (
+    add_item_text,
+    add_title,
+    default_name,
+    space_type_name,
+)
 from editor_gui.plugins.project.strings import S
 from editor_gui.plugins.project.ui._filter import filter_box
 from editor_gui.plugins.project.ui.config_dialog import DeviceConfigDialog
@@ -18,12 +24,14 @@ from editor_gui.widgets.description import render_description, render_device_mar
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
 from editor_gui.widgets.dpi import px, px_vec2
 from editor_gui.widgets.tree import leaf_rows, tree_node
+from xknxeditor.proj.core.space_rules import ROOM, child_types, holds_devices
 
 if TYPE_CHECKING:
     from xknxeditor.proj.core.service import (
         FunctionInfo,
         SpaceDeviceInfo,
         SpaceInfo,
+        TradeInfo,
     )
 
 
@@ -53,50 +61,27 @@ def _function_type_label(code: str) -> str:
     return code or S.SPACES_FN_TYPE_CUSTOM
 
 
-def _space_type_presets() -> list[tuple[str, str]]:
-    """(label, KNX SpaceType code) for the type picker. Codes are the common, non-deprecated
-    values from the KNX project schema (SpaceType_t)."""
-    return [
-        (S.SPACES_TYPE_BUILDING, "Building"),
-        (S.SPACES_TYPE_BUILDINGPART, "BuildingPart"),
-        (S.SPACES_TYPE_FLOOR, "Floor"),
-        (S.SPACES_TYPE_ROOM, "Room"),
-        (S.SPACES_TYPE_CORRIDOR, "Corridor"),
-        (S.SPACES_TYPE_STAIRWAY, "Stairway"),
-        (S.SPACES_TYPE_DISTRIBUTION, "DistributionBoard"),
-    ]
-
-
-def space_type_label(code: str) -> str:
-    """The name of the space type ``code`` (e.g. "Floor"), translated; an unknown code itself."""
-    for label, c in _space_type_presets():
-        if c == code:
-            return label
-    return code
-
-
 def space_label(space: "SpaceInfo") -> str:
     """A space as the tree lists it: its name, then its number in brackets."""
-    label = space.name or space_type_label(space.space_type) or "?"
+    label = space.name or space_type_name(space.space_type) or "?"
     if space.number:
         label = f"{label} ({space.number})"
     return label
 
 
-def _default_child_type_index(parent_type: str | None) -> int:
-    """Sensible default type for a new child, given its parent's type (index into the presets):
-    a building holds floors, a floor holds rooms, everything else defaults to a room."""
-    codes = [c for _, c in _space_type_presets()]
-    target = {"Building": "Floor", "BuildingPart": "Room", "Floor": "Room"}.get(
-        parent_type or "", "Room"
-    )
-    return codes.index(target) if target in codes else codes.index("Room")
+# The type the "Add" dialog adds when it adds trades.
+_TRADE = "Trade"
 
 
 # Dialog ids: the translated title plus a stable per-target id (open_popup and begin_dialog
 # must be passed the same string).
-def _new_space_dialog(key: str) -> str:
-    return f"{S.SPACES_SPACE_NEW_TITLE}###newspace_{key}"
+def _add_dialog(key: str) -> str:
+    """The "Add …" dialog of the target ``key`` ("root", "trades", a space or a trade)."""
+    return f"###add_{key}"
+
+
+def _trade_devices_dialog(trade_id: int) -> str:
+    return f"{S.TRADES_ADD_DEVICES_TITLE}###tradedev{trade_id}"
 
 
 def _delete_space_dialog(space_id: int) -> str:
@@ -134,10 +119,9 @@ class SpacesPanel:
         on_create_space: Callable[[int | None, str, str, str], object] | None = None,
         get_selected_space_id: Callable[[], int | None] | None = None,
         on_select_space: Callable[[int], None] | None = None,
-        on_set_space_type: Callable[[int, str], None] | None = None,
-        on_move_space: Callable[[int, int | None], None] | None = None,
+        on_move_space: Callable[[int, int | None], str | None] | None = None,
         on_remove_space: Callable[[int], None] | None = None,
-        on_set_device_space: Callable[[int, int | None], None] | None = None,
+        on_set_device_space: Callable[[int, int | None], str | None] | None = None,
         get_unassigned_devices: "Callable[[], list[SpaceDeviceInfo]] | None" = None,
         on_copy_config: Callable[[int], None] | None = None,
         on_paste_config: Callable[[int, bool, bool], None] | None = None,
@@ -148,7 +132,35 @@ class SpacesPanel:
         on_compare: Callable[[int], None] | None = None,
         on_select_element: Callable[[str, int], None] = lambda _k, _i: None,
         get_selected_node_id: Callable[[], int | None] | None = None,
+        get_trade_tree: "Callable[[], list[TradeInfo]]" = list,
+        on_create_trade: Callable[[int | None, str], object] | None = None,
+        on_move_trade: Callable[[int, int | None], None] | None = None,
+        on_remove_trade: Callable[[int], None] | None = None,
+        on_add_trade_device: Callable[[int, int], None] | None = None,
+        on_remove_trade_device: Callable[[int, int], None] | None = None,
+        get_space_devices: "Callable[[], list[SpaceDeviceInfo]]" = list,
+        notify: Callable[[str], None] = lambda _t: None,
     ) -> None:
+        """``notify`` shows the reason an edit was refused."""
+        self._get_trade_tree = get_trade_tree
+        self._on_create_trade = on_create_trade
+        self._on_move_trade = on_move_trade
+        self._on_remove_trade = on_remove_trade
+        self._on_add_trade_device = on_add_trade_device
+        self._on_remove_trade_device = on_remove_trade_device
+        self._get_space_devices = get_space_devices
+        self._notify = notify
+        # The trade selected in this tree (highlighted), until a space, function or device is.
+        self._selected_trade: int | None = None
+        # The "Add …" dialog: the type it adds (a space type or a trade), where, how many, the
+        # name (empty: the default one) and a room's use (index into usage_options()).
+        self._add_type = ""
+        self._add_parent: int | None = None
+        self._add_parent_name = ""
+        self._add_count = 1
+        self._add_name = ""
+        self._add_usage = 0
+        self._trade_device_filter = ""
         # Selecting a function (its comment shows in the Comment tab).
         self._on_select_element = on_select_element
         # The function selected in this tree: highlighted instead of the space until a space or a
@@ -166,7 +178,6 @@ class SpacesPanel:
         self._on_create_space = on_create_space
         self._get_selected_space_id = get_selected_space_id
         self._on_select_space = on_select_space
-        self._on_set_space_type = on_set_space_type
         self._on_move_space = on_move_space
         self._on_remove_space = on_remove_space
         self._on_set_device_space = on_set_device_space
@@ -196,10 +207,7 @@ class SpacesPanel:
         self._addga_fn: int | None = None
         self._addga_role = ""
         self._addga_filter = ""
-        # "New space" + "rename space" + "assign device" dialog state (shared; one popup at a time).
-        self._new_space_name = ""
-        self._new_space_type = 0  # index into _space_type_presets()
-        self._new_space_usage = 0  # index into usage_options(): "-"
+        # "Assign device" dialog state.
         self._assign_filter = ""
         # A popup requested from inside a context menu must be opened one scope up, not inside the
         # context-menu popup: imgui.open_popup() and begin_popup() only match when called in the
@@ -210,26 +218,42 @@ class SpacesPanel:
 
     def render(self) -> None:
         tree = self._get_space_tree()
-        if self._on_create_space is not None:
-            if imgui.small_button(S.SPACES_ADD_SPACE):
-                self._new_space_name = ""
-                self._new_space_type = 0  # top-level default: Building
-                self._new_space_usage = 0
-                imgui.open_popup(_new_space_dialog("root"))
-            self._render_new_space_popup(None, _new_space_dialog("root"))
-        if not tree:
-            imgui.text_disabled(S.SPACES_EMPTY)
-            self._render_unassigned_section()
-            return
         self._filter_text = filter_box(
             "##spaces_filter", S.SPACES_FILTER_HINT, self._filter_text
         )
         flt = self._filter_text.strip().lower()
         fill_content_background()
-        for space in tree:
-            self._render_space(space, flt)
+        # "Buildings" holds the buildings, "Trades" the trades: both open by default.
+        flags = imgui.TreeNodeFlags_.default_open
+        buildings_open = tree_node(f"{S.SPACES_ROOT_BUILDINGS}##spaces_root", flags)
+        if self._on_create_space is not None and imgui.begin_popup_context_item(
+            "##spaces_root_ctx"
+        ):
+            if imgui.menu_item(S.SPACES_ADD_BUILDINGS, "", False)[0]:
+                self._start_add(child_types(None)[0], None, S.SPACES_ROOT_BUILDINGS)
+                self._pending_popup_id = _add_dialog("root")
+            imgui.end_popup()
+        self._open_if_pending(_add_dialog("root"))
+        self._render_add_popup(_add_dialog("root"))
+        if buildings_open:
+            if not tree:
+                imgui.text_disabled(S.SPACES_EMPTY)
+            for space in tree:
+                self._render_space(space, flt)
+            imgui.tree_pop()
+        self._render_trades(flt)
         self._render_unassigned_section()
         self._config_dialog.render()
+
+    def _start_add(self, add_type: str, parent: int | None, parent_name: str) -> None:
+        """Prepare the "Add …" dialog for ``add_type`` (a space type or ``_TRADE``) below
+        ``parent``."""
+        self._add_type = add_type
+        self._add_parent = parent
+        self._add_parent_name = parent_name
+        self._add_count = 1
+        self._add_name = ""
+        self._add_usage = 0
 
     def _render_space(self, space: "SpaceInfo", flt: str = "") -> None:
         if flt and not self._space_has_match(space, flt):
@@ -258,17 +282,21 @@ class SpacesPanel:
             and not imgui.is_item_toggled_open()
         ):
             self._selected_function = None
+            self._selected_trade = None
             self._on_select_space(space.id)
         # The context menu and the space's own popups must run whether the node is expanded or not
         # (a collapsed node can still be moved/deleted), so render them before the return.
         self._render_space_context_menu(space)
         # A short description shows inline; a longer one shows while its icon is hovered.
         render_description(space.description)
-        self._open_if_pending(_new_space_dialog(str(space.id)))
-        self._render_new_space_popup(space.id, _new_space_dialog(str(space.id)))
+        self._open_if_pending(_add_dialog(f"sp{space.id}"))
+        self._render_add_popup(_add_dialog(f"sp{space.id}"))
         self._open_if_pending(_delete_space_dialog(space.id))
         self._render_space_delete_confirm(space.id)
+        self._open_if_pending(_assign_device_dialog(space.id))
         self._render_assign_device_popup(space.id)
+        self._open_if_pending(_new_function_dialog(space.id))
+        self._render_new_function_popup(space.id)
         if not open_node:
             return
         for child in space.children:
@@ -280,20 +308,29 @@ class SpacesPanel:
         for function in space.functions:
             if self_match or self._function_matches(function, flt):
                 self._render_function(function)
-        if self._on_set_device_space is not None and imgui.small_button(
-            f"{S.SPACES_ASSIGN_DEVICE}##assign{space.id}"
+        devices_here = holds_devices(space.space_type)
+        if (
+            devices_here
+            and self._on_set_device_space is not None
+            and imgui.small_button(f"{S.SPACES_ASSIGN_DEVICE}##assign{space.id}")
         ):
-            self._assign_filter = ""
+            self._start_assign_device()
             imgui.open_popup(_assign_device_dialog(space.id))
         if self._on_create_function is not None:
-            imgui.same_line()
+            if devices_here and self._on_set_device_space is not None:
+                imgui.same_line()
             if imgui.small_button(f"{S.SPACES_ADD_FUNCTION}##addfn{space.id}"):
-                self._new_fn_space = space.id
-                self._new_fn_name = ""
-                self._new_fn_type = _DEFAULT_FUNCTION_TYPE
+                self._start_new_function(space.id)
                 imgui.open_popup(_new_function_dialog(space.id))
-            self._render_new_function_popup(space.id)
         imgui.tree_pop()
+
+    def _start_assign_device(self) -> None:
+        self._assign_filter = ""
+
+    def _start_new_function(self, space_id: int) -> None:
+        self._new_fn_space = space_id
+        self._new_fn_name = ""
+        self._new_fn_type = _DEFAULT_FUNCTION_TYPE
 
     def _open_if_pending(self, popup_id: str) -> None:
         """Open ``popup_id`` here if a context menu requested it. Called at the tree scope, the
@@ -303,38 +340,25 @@ class SpacesPanel:
             imgui.open_popup(popup_id)
 
     def _render_space_context_menu(self, space: "SpaceInfo") -> None:
-        editing = (
-            self._on_create_space,
-            self._on_set_space_type,
-            self._on_move_space,
-            self._on_remove_space,
-        )
+        editing = (self._on_create_space, self._on_move_space, self._on_remove_space)
         if all(callback is None for callback in editing):  # editing disabled -> no menu
             return
         if not imgui.begin_popup_context_item(f"##spctx{space.id}"):
             return
-        if (
-            self._on_create_space is not None
-            and imgui.menu_item(S.SPACES_ADD_SUBSPACE, "", False)[0]
-        ):
-            self._new_space_name = ""
-            self._new_space_type = _default_child_type_index(space.space_type)
-            self._new_space_usage = 0
-            self._pending_popup_id = _new_space_dialog(str(space.id))
-        if self._on_set_space_type is not None and imgui.begin_menu(S.SPACES_TYPE):
-            for label, code in _space_type_presets():
-                if imgui.menu_item(label, "", space.space_type == code)[0]:
-                    self._on_set_space_type(space.id, code)
-            imgui.end_menu()
+        self._render_add_menu(space)
         if self._on_move_space is not None and imgui.begin_menu(S.SPACES_MOVE_TO):
-            if imgui.menu_item(S.SPACES_MOVE_ROOT, "", False)[0]:
-                self._on_move_space(space.id, None)
-            imgui.separator()
-            for target, depth in self._move_targets(space.id):
+            # Only where its type may go: a building to the top level, the others below the
+            # types that hold them.
+            if (
+                space.space_type in child_types(None)
+                and imgui.menu_item(S.SPACES_MOVE_ROOT, "", False)[0]
+            ):
+                self._report(self._on_move_space(space.id, None))
+            for target, depth in self._move_targets(space.id, space.space_type):
                 indent = "  " * depth
-                label = f"{indent}{target.name or target.space_type or '?'}"
+                label = f"{indent}{space_label(target)}"
                 if imgui.menu_item(f"{label}##mv{space.id}_{target.id}", "", False)[0]:
-                    self._on_move_space(space.id, target.id)
+                    self._report(self._on_move_space(space.id, target.id))
             imgui.end_menu()
         if (
             self._on_remove_space is not None
@@ -343,51 +367,94 @@ class SpacesPanel:
             self._pending_popup_id = _delete_space_dialog(space.id)
         imgui.end_popup()
 
-    def _move_targets(self, moving_id: int) -> "list[tuple[SpaceInfo, int]]":
+    def _render_add_menu(self, space: "SpaceInfo") -> None:
+        """The "Add" submenu of a space: the types it holds, then devices (when it holds
+        them) and functions."""
+        if not imgui.begin_menu(S.SPACES_ADD_MENU):
+            return
+        if self._on_create_space is not None:
+            for space_type in child_types(space.space_type):
+                if imgui.menu_item(add_item_text(space_type), "", False)[0]:
+                    self._start_add(space_type, space.id, space_label(space))
+                    self._pending_popup_id = _add_dialog(f"sp{space.id}")
+        if (
+            holds_devices(space.space_type)
+            and self._on_set_device_space is not None
+            and imgui.menu_item(S.SPACES_ADD_DEVICES, "", False)[0]
+        ):
+            self._start_assign_device()
+            self._pending_popup_id = _assign_device_dialog(space.id)
+        if (
+            self._on_create_function is not None
+            and imgui.menu_item(S.SPACES_ADD_FUNCTIONS, "", False)[0]
+        ):
+            self._start_new_function(space.id)
+            self._pending_popup_id = _new_function_dialog(space.id)
+        imgui.end_menu()
+
+    def _report(self, reason: str | None) -> None:
+        """Show the reason an edit was refused."""
+        if reason:
+            self._notify(reason)
+
+    def _move_targets(
+        self, moving_id: int, space_type: str | None = None
+    ) -> "list[tuple[SpaceInfo, int]]":
         """Flattened (space, depth) candidates to move ``moving_id`` under, excluding the space
-        itself and its descendants (which would form a cycle)."""
+        itself and its descendants (which would form a cycle); with ``space_type`` only those
+        that hold its type, without it only those that hold devices."""
         out: list[tuple[SpaceInfo, int]] = []
+
+        def fits(target: "SpaceInfo") -> bool:
+            if space_type is None:
+                return holds_devices(target.space_type)
+            return space_type in child_types(target.space_type)
 
         def walk(spaces: "list[SpaceInfo]", depth: int, blocked: bool) -> None:
             for s in spaces:
                 skip = blocked or s.id == moving_id
-                if not skip:
+                if not skip and fits(s):
                     out.append((s, depth))
                 walk(s.children, depth + 1, skip)
 
         walk(self._get_space_tree(), 0, False)
         return out
 
-    def _render_new_space_popup(self, parent_id: int | None, popup_id: str) -> None:
-        if self._on_create_space is None or not begin_dialog(popup_id):
+    def _render_add_popup(self, popup_id: str) -> None:
+        """The "Add …" dialog: how many to add (Count), their name (empty: the default one)
+        and a room's use; they go below the target named under the title."""
+        trade = self._add_type == _TRADE
+        title = S.TRADES_TITLE if trade else add_title(self._add_type or ROOM)
+        if not begin_dialog(f"{title}{popup_id}"):
             return
+        imgui.text_disabled(S.SPACES_ADD_TO.format(name=self._add_parent_name))
         imgui.set_next_item_width(px(220.0))
-        _, self._new_space_name = imgui.input_text(
-            S.SPACES_SPACE_NAME, self._new_space_name
-        )
-        presets = _space_type_presets()
+        _, self._add_count = imgui.input_int(S.SPACES_COUNT, self._add_count)
+        self._add_count = max(1, min(self._add_count, 100))
+        fallback = S.TRADES_DEFAULT if trade else default_name(self._add_type)
         imgui.set_next_item_width(px(220.0))
-        _, self._new_space_type = combo(
-            S.SPACES_SPACE_TYPE, self._new_space_type, [label for label, _ in presets]
+        _, self._add_name = imgui.input_text_with_hint(
+            S.SPACES_SPACE_NAME, fallback, self._add_name
         )
-        _, code = presets[self._new_space_type]
         uses = usage_options()
-        if code == "Room":
+        if self._add_type == ROOM:
             # A room's use, "-" (none) by default.
             imgui.set_next_item_width(px(220.0))
-            _, self._new_space_usage = combo(
+            _, self._add_usage = combo(
                 S.SPACE_USE,
-                self._new_space_usage,
+                self._add_usage,
                 [text for _usage, text in uses],
                 _USAGE_ROWS,
             )
-        can_create = bool(self._new_space_name.strip())
-        clicked = dialog_buttons(
-            S.SPACES_SPACE_CREATE, S.ML_CANCEL, enabled=[can_create, True]
-        )
+        clicked = dialog_buttons(S.SPACES_SPACE_CREATE, S.ML_CANCEL)
         if clicked == 0:
-            usage = uses[self._new_space_usage][0] if code == "Room" else ""
-            self._on_create_space(parent_id, code, self._new_space_name.strip(), usage)
+            name = self._add_name.strip() or fallback
+            for _ in range(self._add_count):
+                if trade and self._on_create_trade is not None:
+                    self._on_create_trade(self._add_parent, name)
+                elif not trade and self._on_create_space is not None:
+                    usage = uses[self._add_usage][0] if self._add_type == ROOM else ""
+                    self._on_create_space(self._add_parent, self._add_type, name, usage)
             imgui.close_current_popup()
         elif clicked == 1:
             imgui.close_current_popup()
@@ -427,7 +494,7 @@ class SpacesPanel:
                 if imgui.selectable(
                     f"{label}##assignpick{space_id}_{device.id}", False
                 )[0]:
-                    self._on_set_device_space(device.id, space_id)
+                    self._report(self._on_set_device_space(device.id, space_id))
                     imgui.close_current_popup()
         imgui.end_child()
         if dialog_buttons(S.ML_CANCEL) == 0:
@@ -448,9 +515,8 @@ class SpacesPanel:
 
     def _render_unassigned_devices(self, devices: list["SpaceDeviceInfo"]) -> None:
         assert self._on_set_device_space is not None
-        targets = self._move_targets(
-            -1
-        )  # -1: no space excluded -> every space is a target
+        # -1: no space excluded; every space that holds devices is a target.
+        targets = self._move_targets(-1)
         for device in devices:
             # A selectable (not plain text) so the device opens in the editor on click, exactly
             # like a device shown inside a room.
@@ -463,11 +529,11 @@ class SpacesPanel:
             if imgui.begin_popup(f"##uassignto{device.id}"):
                 for target, depth in targets:
                     indent = "  " * depth
-                    label = f"{indent}{target.name or target.space_type or '?'}"
+                    label = f"{indent}{space_label(target)}"
                     if imgui.menu_item(
                         f"{label}##uto{device.id}_{target.id}", "", False
                     )[0]:
-                        self._on_set_device_space(device.id, target.id)
+                        self._report(self._on_set_device_space(device.id, target.id))
                         imgui.close_current_popup()
                 imgui.end_popup()
 
@@ -532,7 +598,10 @@ class SpacesPanel:
         return any(self._space_has_match(child, flt) for child in space.children)
 
     def _render_device(
-        self, device: "SpaceDeviceInfo", space_id: int | None = None
+        self,
+        device: "SpaceDeviceInfo",
+        space_id: int | None = None,
+        trade_id: int | None = None,
     ) -> None:
         detail = device.description
         leaf = self._device_label(device)
@@ -540,24 +609,36 @@ class SpacesPanel:
             self._get_selected_node_id is not None
             and self._get_selected_node_id() == device.id
         )
+        # The same device can be in a space and in trades: the ids stay apart per place.
+        where = f"t{trade_id}" if trade_id is not None else ""
         # allow_overlap: the "Without space" section draws an "Assign device" button via
         # same_line() over this full-width selectable. Without the flag the selectable (submitted
         # first) claims the click and the button never fires.
         if imgui.selectable(
-            f"{leaf}##spdev{device.id}",
+            f"{leaf}##spdev{where}{device.id}",
             selected,
             imgui.SelectableFlags_.allow_overlap,
         )[0]:
             self._selected_function = None
+            self._selected_trade = None
             self._on_select_device_id(device.id)
         hovered = imgui.is_item_hovered()  # capture before the context menu below
         has_menu = (
             bool(device.individual_address)
             or (space_id is not None and self._on_set_device_space is not None)
+            or (trade_id is not None and self._on_remove_trade_device is not None)
             or self._on_copy_config is not None
             or self._on_compare is not None
         )
-        if has_menu and imgui.begin_popup_context_item(f"##spdev_ctx_{device.id}"):
+        if has_menu and imgui.begin_popup_context_item(
+            f"##spdev_ctx_{where}{device.id}"
+        ):
+            if (
+                trade_id is not None
+                and self._on_remove_trade_device is not None
+                and imgui.menu_item(S.TRADES_REMOVE_DEVICE, "", False)[0]
+            ):
+                self._on_remove_trade_device(trade_id, device.id)
             if (
                 device.individual_address
                 and imgui.menu_item(S.CONTEXT_COPY_ADDRESS, "", False)[0]
@@ -583,7 +664,7 @@ class SpacesPanel:
                 and self._on_set_device_space is not None
                 and imgui.menu_item(S.SPACES_UNASSIGN, "", False)[0]
             ):
-                self._on_set_device_space(device.id, None)
+                self._report(self._on_set_device_space(device.id, None))
             if self._on_device_info is not None:
                 render_read_device_item(
                     device.id, bool(device.individual_address), self._on_device_info
@@ -611,6 +692,141 @@ class SpacesPanel:
             if parts:
                 imgui.set_tooltip("\n".join(parts))
 
+    # -- trades -----------------------------------------------------------------------------
+
+    def _render_trades(self, flt: str) -> None:
+        """The "Trades" root: the trades, each with its sub-trades and devices."""
+        trades = self._get_trade_tree()
+        open_root = tree_node(
+            f"{S.SPACES_ROOT_TRADES}##trades_root", imgui.TreeNodeFlags_.default_open
+        )
+        if self._on_create_trade is not None and imgui.begin_popup_context_item(
+            "##trades_root_ctx"
+        ):
+            if imgui.menu_item(S.TRADES_ADD, "", False)[0]:
+                self._start_add(_TRADE, None, S.SPACES_ROOT_TRADES)
+                self._pending_popup_id = _add_dialog("trades")
+            imgui.end_popup()
+        self._open_if_pending(_add_dialog("trades"))
+        self._render_add_popup(_add_dialog("trades"))
+        if not open_root:
+            return
+        for trade in trades:
+            self._render_trade(trade, flt)
+        imgui.tree_pop()
+
+    def _trade_has_match(self, trade: "TradeInfo", flt: str) -> bool:
+        return (
+            flt in trade.name.lower()
+            or any(self._device_matches(d.device, flt) for d in trade.devices)
+            or any(self._trade_has_match(child, flt) for child in trade.children)
+        )
+
+    def _render_trade(self, trade: "TradeInfo", flt: str) -> None:
+        if flt and not self._trade_has_match(trade, flt):
+            return
+        if flt:
+            imgui.set_next_item_open(True, imgui.Cond_.always)
+        # A click selects the trade (its details show in place of the device's), the arrow and
+        # a double click open it.
+        flags = (
+            imgui.TreeNodeFlags_.open_on_arrow
+            | imgui.TreeNodeFlags_.open_on_double_click
+        )
+        if self._selected_trade == trade.id:
+            flags |= imgui.TreeNodeFlags_.selected
+        label = f"{trade.number} {trade.name}".strip() or S.TRADES_DEFAULT
+        open_node = tree_node(f"{label}##trade{trade.id}", flags)
+        if imgui.is_item_clicked() and not imgui.is_item_toggled_open():
+            self._selected_function = None
+            self._selected_trade = trade.id
+            self._on_select_element("trade", trade.id)
+        self._render_trade_context_menu(trade, label)
+        render_description(trade.description)
+        self._open_if_pending(_add_dialog(f"tr{trade.id}"))
+        self._render_add_popup(_add_dialog(f"tr{trade.id}"))
+        self._open_if_pending(_trade_devices_dialog(trade.id))
+        self._render_trade_devices_popup(trade)
+        if not open_node:
+            return
+        for child in trade.children:
+            self._render_trade(child, flt)
+        with leaf_rows():
+            for link in trade.devices:
+                if not flt or self._device_matches(link.device, flt):
+                    self._render_device(link.device, trade_id=trade.id)
+        imgui.tree_pop()
+
+    def _render_trade_context_menu(self, trade: "TradeInfo", label: str) -> None:
+        if self._on_create_trade is None or not imgui.begin_popup_context_item(
+            f"##tradectx{trade.id}"
+        ):
+            return
+        if imgui.begin_menu(S.SPACES_ADD_MENU):
+            if imgui.menu_item(S.TRADES_ADD_TRADES, "", False)[0]:
+                self._start_add(_TRADE, trade.id, label)
+                self._pending_popup_id = _add_dialog(f"tr{trade.id}")
+            if (
+                self._on_add_trade_device is not None
+                and imgui.menu_item(S.SPACES_ADD_DEVICES, "", False)[0]
+            ):
+                self._trade_device_filter = ""
+                self._pending_popup_id = _trade_devices_dialog(trade.id)
+            imgui.end_menu()
+        if self._on_move_trade is not None and imgui.begin_menu(S.SPACES_MOVE_TO):
+            if imgui.menu_item(S.SPACES_MOVE_ROOT, "", False)[0]:
+                self._on_move_trade(trade.id, None)
+            for target, depth in self._trade_targets(trade.id):
+                text = f"{'  ' * depth}{target.name}##mvtr{trade.id}_{target.id}"
+                if imgui.menu_item(text, "", False)[0]:
+                    self._on_move_trade(trade.id, target.id)
+            imgui.end_menu()
+        if (
+            self._on_remove_trade is not None
+            and imgui.menu_item(S.SPACES_DELETE, "", False)[0]
+        ):
+            self._on_remove_trade(trade.id)
+        imgui.end_popup()
+
+    def _trade_targets(self, moving_id: int) -> "list[tuple[TradeInfo, int]]":
+        """The trades ``moving_id`` can go below: all but itself and the trades below it."""
+        out: list[tuple[TradeInfo, int]] = []
+
+        def walk(trades: "list[TradeInfo]", depth: int) -> None:
+            for trade in trades:
+                if trade.id == moving_id:
+                    continue
+                out.append((trade, depth))
+                walk(trade.children, depth + 1)
+
+        walk(self._get_trade_tree(), 0)
+        return out
+
+    def _render_trade_devices_popup(self, trade: "TradeInfo") -> None:
+        """ "Add Devices" of a trade: the project's devices not in it yet; a click adds one."""
+        if self._on_add_trade_device is None or not begin_dialog(
+            _trade_devices_dialog(trade.id)
+        ):
+            return
+        self._trade_device_filter = filter_box(
+            f"##tradedevflt{trade.id}", S.SPACES_FILTER_HINT, self._trade_device_filter
+        )
+        needle = self._trade_device_filter.strip().lower()
+        inside = {link.device.id for link in trade.devices}
+        if imgui.begin_child("##tradedevlist", px_vec2(320.0, 260.0)):
+            for device in self._get_space_devices():
+                label = self._device_label(device)
+                if device.id in inside or (needle and needle not in label.lower()):
+                    continue
+                if imgui.selectable(f"{label}##tradepick{trade.id}_{device.id}", False)[
+                    0
+                ]:
+                    self._on_add_trade_device(trade.id, device.id)
+        imgui.end_child()
+        if dialog_buttons(S.ML_CANCEL) == 0:
+            imgui.close_current_popup()
+        end_dialog()
+
     def _render_function(self, function: "FunctionInfo") -> None:
         label = function.name or function.usage_text or function.function_type
         type_label = _function_type_label(function.function_type)
@@ -624,6 +840,7 @@ class SpacesPanel:
         open_node = tree_node(f"ƒ {label}  [{type_label}]##fn{function.id}", flags)
         if imgui.is_item_clicked() and not imgui.is_item_toggled_open():
             self._selected_function = function.id
+            self._selected_trade = None
             self._on_select_element("function", function.id)
         editable = self._on_rename_function is not None
         if editable and imgui.begin_popup_context_item(f"##fnctx{function.id}"):

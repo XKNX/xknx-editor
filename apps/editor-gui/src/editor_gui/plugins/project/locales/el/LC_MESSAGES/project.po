@@ -508,15 +508,6 @@ msgstr "Δεν υπάρχουν κτίρια/δωμάτια σε αυτό το �
 msgid "+ Function"
 msgstr "+ Λειτουργία"
 
-msgid "+ Space"
-msgstr "+ Χώρος"
-
-msgid "+ Sub-space"
-msgstr "+ Υποχώρος"
-
-msgid "New Space"
-msgstr "Νέος Χώρος"
-
 msgid "Name"
 msgstr "Όνομα"
 
@@ -573,9 +564,6 @@ msgstr "Διάδρομος"
 
 msgid "Stairway"
 msgstr "Σκάλα"
-
-msgid "Distribution Board"
-msgstr "Πίνακας Διανομής"
 
 msgid "New Function"
 msgstr "Νέα Λειτουργία"
@@ -2553,3 +2541,117 @@ msgstr "Προσθήκη συσκευής στη λειτουργία"
 
 msgid "Remove device from trade"
 msgstr "Αφαίρεση συσκευής από τη λειτουργία"
+
+msgid "Trades"
+msgstr "Λειτουργίες"
+
+msgid "Building Parts…"
+msgstr "Τμήματα Κτιρίου…"
+
+msgid "Floors…"
+msgstr "Όροφοι…"
+
+msgid "Stairways…"
+msgstr "Σκάλες…"
+
+msgid "Rooms…"
+msgstr "Δωμάτια…"
+
+msgid "Corridors…"
+msgstr "Διάδρομοι…"
+
+msgid "Cabinets…"
+msgstr "Πίνακες…"
+
+msgid "Devices…"
+msgstr "Συσκευές…"
+
+msgid "Functions…"
+msgstr "Λειτουργίες…"
+
+msgid "Trades…"
+msgstr "Λειτουργίες…"
+
+msgid "Add Buildings…"
+msgstr "Προσθήκη Κτιρίων…"
+
+msgid "Add Trades…"
+msgstr "Προσθήκη Λειτουργιών…"
+
+msgid "Add Buildings"
+msgstr "Προσθήκη Κτιρίων"
+
+msgid "Add Building Parts"
+msgstr "Προσθήκη Τμημάτων Κτιρίου"
+
+msgid "Add Floors"
+msgstr "Προσθήκη Ορόφων"
+
+msgid "Add Rooms"
+msgstr "Προσθήκη Δωματίων"
+
+msgid "Add Corridors"
+msgstr "Προσθήκη Διαδρόμων"
+
+msgid "Add Stairways"
+msgstr "Προσθέστε Σκαλών"
+
+msgid "Add Cabinets"
+msgstr "Προσθήκη Πινάκων"
+
+msgid "Add Trades"
+msgstr "Προσθήκη Λειτουργιών"
+
+msgid "Add Devices"
+msgstr "Προσθήκη Συσκευών"
+
+msgid "Count"
+msgstr "Μετρητής"
+
+msgid "to \"{name}\""
+msgstr "σε \"{name}\""
+
+msgid "Cabinet"
+msgstr "Πίνακας"
+
+msgid "New building"
+msgstr "Νέο κτίριο"
+
+msgid "New building part"
+msgstr "Νέο μέρος κτιρίου"
+
+msgid "New floor"
+msgstr "Νέος όροφος"
+
+msgid "New room"
+msgstr "Νέο δωμάτιο"
+
+msgid "New corridor"
+msgstr "Νέος διάδρομος"
+
+msgid "New stairway"
+msgstr "Νέα σκάλα"
+
+msgid "New cabinet"
+msgstr "Νέος πίνακας"
+
+msgid "New trade"
+msgstr "Νέα λειτουργία"
+
+msgid "A building part of this type cannot be added here."
+msgstr "Ένα τμήμα κτιρίου αυτού του τύπου δε μπορεί να προστεθεί εδώ."
+
+msgid "A building part of this type cannot be added here.\nCabinets can be added inside of rooms, corridors, or stairways only. If applicable the corridors have to be moved into the corresponding building parts."
+msgstr "Δεν είναι δυνατό να προσθέσετε ενα τμήμα κτιρίου αυτού του τύπου εδώ.\nΟι πίνακες μπορούν να τοποθετηθούν μόνο μέσα σε δωμάτια, διαδρόμους ή σε σκάλες. Αν είναι εφικτό οι διάδρομοι πρέπει να μετακινηθούν στα αντίστοιχα τμήματα κτιρίου."
+
+msgid "The target is a child building part."
+msgstr "Ο προορισμός είναι ένα γονικό τμήμα κτιρίου."
+
+msgid "Devices can only be added to stairways, rooms, corridors and cabinets."
+msgstr "Οι συσκευές μπορούν να προστεθούν μόνο σε σκάλες, δωμάτια, διαδρόμους και πίνακες."
+
+msgid "Remove from Trade"
+msgstr "Αφαίρεση από τη λειτουργία"
+
+msgid "Trade"
+msgstr "Λειτουργία"

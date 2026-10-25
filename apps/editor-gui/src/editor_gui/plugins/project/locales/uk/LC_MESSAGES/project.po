@@ -508,15 +508,6 @@ msgstr "У цьому проєкті немає будівель/кімнат"
 msgid "+ Function"
 msgstr "+ Функція"
 
-msgid "+ Space"
-msgstr "+ Простір"
-
-msgid "+ Sub-space"
-msgstr "+ Підпростір"
-
-msgid "New Space"
-msgstr "Новий простір"
-
 msgid "Name"
 msgstr "Ім'я"
 
@@ -573,9 +564,6 @@ msgstr "Коридор"
 
 msgid "Stairway"
 msgstr "Сходи"
-
-msgid "Distribution Board"
-msgstr "Розподільний щит"
 
 msgid "New Function"
 msgstr "Нова функція"
@@ -2553,3 +2541,117 @@ msgstr "Додати пристрій до добірки пристроїв"
 
 msgid "Remove device from trade"
 msgstr "Вилучити пристрій із добірки пристроїв"
+
+msgid "Trades"
+msgstr "Добірки пристроїв"
+
+msgid "Building Parts…"
+msgstr "Частини будівлі…"
+
+msgid "Floors…"
+msgstr "Поверхи…"
+
+msgid "Stairways…"
+msgstr "Сходи…"
+
+msgid "Rooms…"
+msgstr "Кімнати…"
+
+msgid "Corridors…"
+msgstr "Коридори…"
+
+msgid "Cabinets…"
+msgstr "Розподільчі щити…"
+
+msgid "Devices…"
+msgstr "Пристрої…"
+
+msgid "Functions…"
+msgstr "Функції…"
+
+msgid "Trades…"
+msgstr "Добірки пристроїв…"
+
+msgid "Add Buildings…"
+msgstr "Додати будівлі…"
+
+msgid "Add Trades…"
+msgstr "Додати Добірки пристроїв…"
+
+msgid "Add Buildings"
+msgstr "Додати будівлі"
+
+msgid "Add Building Parts"
+msgstr "Додати частини будівлі"
+
+msgid "Add Floors"
+msgstr "Додати поверхи"
+
+msgid "Add Rooms"
+msgstr "Додати кімнати"
+
+msgid "Add Corridors"
+msgstr "Додати коридори"
+
+msgid "Add Stairways"
+msgstr "Додати сходи"
+
+msgid "Add Cabinets"
+msgstr "Додати щити"
+
+msgid "Add Trades"
+msgstr "Додати Добірки пристроїв"
+
+msgid "Add Devices"
+msgstr "Додати пристрої"
+
+msgid "Count"
+msgstr "Кількість"
+
+msgid "to \"{name}\""
+msgstr "до \"{name}\""
+
+msgid "Cabinet"
+msgstr "Щит"
+
+msgid "New building"
+msgstr "Нова будівля"
+
+msgid "New building part"
+msgstr "Нова частина будівлі"
+
+msgid "New floor"
+msgstr "Новий поверх"
+
+msgid "New room"
+msgstr "Нова кімната"
+
+msgid "New corridor"
+msgstr "Новий коридор"
+
+msgid "New stairway"
+msgstr "Нові сходи"
+
+msgid "New cabinet"
+msgstr "Нова розподільча шафа"
+
+msgid "New trade"
+msgstr "Нова функція"
+
+msgid "A building part of this type cannot be added here."
+msgstr "Частину будівлі такого типу в цьому місці додати неможливо."
+
+msgid "A building part of this type cannot be added here.\nCabinets can be added inside of rooms, corridors, or stairways only. If applicable the corridors have to be moved into the corresponding building parts."
+msgstr "Тут не можна додати частину будівлі цього типу. \nЩит може бути додано тільки всередині кімнат, коридорів або сходів. При необхідності коридори повинні бути переміщені у відповідні частини будівлі."
+
+msgid "The target is a child building part."
+msgstr "Мета - дочірня частина будівлі."
+
+msgid "Devices can only be added to stairways, rooms, corridors and cabinets."
+msgstr "Пристрої можна додавати лише до сходів, кімнат, коридорів і щитів."
+
+msgid "Remove from Trade"
+msgstr "Вилучити з добірки пристроїв"
+
+msgid "Trade"
+msgstr "Добірка пристроїв"

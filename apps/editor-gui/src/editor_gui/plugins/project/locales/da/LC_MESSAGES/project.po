@@ -508,15 +508,6 @@ msgstr "Ingen bygninger/rum i dette projekt"
 msgid "+ Function"
 msgstr "+ Funktion"
 
-msgid "+ Space"
-msgstr "+ Placering"
-
-msgid "+ Sub-space"
-msgstr "+ Underplacering"
-
-msgid "New Space"
-msgstr "Ny placering"
-
 msgid "Name"
 msgstr "Navn"
 
@@ -573,9 +564,6 @@ msgstr "Gang"
 
 msgid "Stairway"
 msgstr "Trappe"
-
-msgid "Distribution Board"
-msgstr "Fordelingstavle"
 
 msgid "New Function"
 msgstr "Ny funktion"
@@ -2553,3 +2541,117 @@ msgstr "Tilføj enhed til trade"
 
 msgid "Remove device from trade"
 msgstr "Fjern enhed fra trade"
+
+msgid "Trades"
+msgstr "Trades"
+
+msgid "Building Parts…"
+msgstr "Bygningsafsnit…"
+
+msgid "Floors…"
+msgstr "Etager…"
+
+msgid "Stairways…"
+msgstr "Trapper…"
+
+msgid "Rooms…"
+msgstr "Rum…"
+
+msgid "Corridors…"
+msgstr "Korridorer…"
+
+msgid "Cabinets…"
+msgstr "Tavler…"
+
+msgid "Devices…"
+msgstr "Enheder…"
+
+msgid "Functions…"
+msgstr "Funktioner…"
+
+msgid "Trades…"
+msgstr "Trades…"
+
+msgid "Add Buildings…"
+msgstr "Tilføj bygninger…"
+
+msgid "Add Trades…"
+msgstr "Tilføj trades…"
+
+msgid "Add Buildings"
+msgstr "Tilføj bygninger"
+
+msgid "Add Building Parts"
+msgstr "Tilføj bygningsafsnit"
+
+msgid "Add Floors"
+msgstr "Tilføj etage"
+
+msgid "Add Rooms"
+msgstr "Tilføj rum"
+
+msgid "Add Corridors"
+msgstr "Tilføj korridorer"
+
+msgid "Add Stairways"
+msgstr "Tilføj trapper"
+
+msgid "Add Cabinets"
+msgstr "Tilføj tavler"
+
+msgid "Add Trades"
+msgstr "Tilføj trades"
+
+msgid "Add Devices"
+msgstr "Tilføj enheder"
+
+msgid "Count"
+msgstr "Antal"
+
+msgid "to \"{name}\""
+msgstr "til \"{name}\""
+
+msgid "Cabinet"
+msgstr "Tavle"
+
+msgid "New building"
+msgstr "Ny bygning"
+
+msgid "New building part"
+msgstr "Nyt bygningsafsnit"
+
+msgid "New floor"
+msgstr "Ny etage"
+
+msgid "New room"
+msgstr "Nyt rum"
+
+msgid "New corridor"
+msgstr "Ny korridor"
+
+msgid "New stairway"
+msgstr "Ny trappe"
+
+msgid "New cabinet"
+msgstr "Ny tavle"
+
+msgid "New trade"
+msgstr "Ny trade"
+
+msgid "A building part of this type cannot be added here."
+msgstr "Du kan ikke tilføje et bygningsafsnit af denne type her."
+
+msgid "A building part of this type cannot be added here.\nCabinets can be added inside of rooms, corridors, or stairways only. If applicable the corridors have to be moved into the corresponding building parts."
+msgstr "Her kan der ikke tilføjes et bygningsafsnit af denne type.\nDer kan kun tilføjes tavler inde i rum, korridorer og trapper. Korridorerne skal om nødvendigt flyttes til de tilsvarende bygningsafsnit."
+
+msgid "The target is a child building part."
+msgstr "Målet er et underordnet bygningsafsnit."
+
+msgid "Devices can only be added to stairways, rooms, corridors and cabinets."
+msgstr "Enheder kan kun tilføjes til trapper, rum, korridorer og tavler."
+
+msgid "Remove from Trade"
+msgstr "Fjern fra trade"
+
+msgid "Trade"
+msgstr "Trade"

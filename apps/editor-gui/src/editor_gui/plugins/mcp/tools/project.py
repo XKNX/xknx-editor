@@ -31,6 +31,7 @@ from editor_gui.device_plugins import parameters_in_plugin
 from editor_gui.plugins.mcp.context import McpContext, make_tool, require_project
 from editor_gui.plugins.project.element_status import usage_label, usage_options
 from editor_gui.plugins.project.service import DeviceProduct
+from editor_gui.plugins.project.space_text import space_error_text
 from editor_gui.plugins.project.space_usages import SPACE_USAGES
 from editor_gui.settings import config_dir
 from xknxeditor.proj.core.medium import (
@@ -40,6 +41,7 @@ from xknxeditor.proj.core.medium import (
     has_domain_address,
     medium_name,
 )
+from xknxeditor.proj.core.space_rules import SpaceRuleError
 
 # A device whose parameters only the manufacturer's plugin dialog sets.
 PLUGIN_PARAMETERS_ERROR = (
@@ -2004,14 +2006,19 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         space_id: int | None = None,
     ) -> dict[str, Any]:
         """Place a device in a room/space, or remove it from any space with space_id=null. Use a
-        space ``id`` from project_spaces; identify the device by ``node_id`` OR ``device_address``
+        space ``id`` from project_spaces: a Stairway, Room, Corridor or DistributionBoard (the
+        other types hold no devices). Identify the device by ``node_id`` OR ``device_address``
         (an individual address like "1.0.30"), pass exactly one. Undoable project edit. Returns
         {node_id, space_id}."""
         require_project(ctx)
 
         def _set() -> dict[str, Any]:
             device = _require_device(node_id, device_address)
-            project.set_device_space(device.node_id, space_id)
+            if space_id is not None and project.find_space(space_id) is None:
+                raise ToolError(f"no space with id {space_id}")
+            reason = project.set_device_space(device.node_id, space_id)
+            if reason:
+                raise ToolError(reason)
             return {"node_id": device.node_id, "space_id": space_id}
 
         return ctx.run_locked(_set)
@@ -2113,10 +2120,14 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         space_type: str, name: str, parent_id: int | None = None, usage: str = ""
     ) -> dict[str, Any]:
         """Create a building/location space. ``space_type`` is one of Building, BuildingPart, Floor,
-        Room, Corridor, Stairway, DistributionBoard. ``parent_id`` is a parent space ``id`` from
-        project_spaces (null = top level). A Room can get its ``usage`` (its "Use", an id from
-        project_list_space_usages; "" for none). Undoable project edit. Returns {space_id,
-        parent_id, space_type, name}."""
+        Room, Corridor, Stairway, DistributionBoard (shown as "Cabinet"). ``parent_id`` is a
+        parent space ``id`` from project_spaces (null = top level). Where a type may go: the top
+        level holds Buildings only; a Building or BuildingPart holds BuildingPart, Floor,
+        Stairway, Room and Corridor; a Floor holds BuildingPart, Room and Corridor; a Stairway,
+        Room or Corridor holds DistributionBoard; a DistributionBoard nothing. Only a Stairway,
+        Room, Corridor or DistributionBoard holds devices. A type never changes. A Room can get
+        its ``usage`` (its "Use", an id from project_list_space_usages; "" for none). Undoable
+        project edit. Returns {space_id, parent_id, space_type, name}."""
         require_project(ctx)
         if usage and (space_type != "Room" or usage not in SPACE_USAGES):
             raise ToolError(
@@ -2124,7 +2135,12 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             )
 
         def _create() -> dict[str, Any]:
-            sid = project.create_space(parent_id, space_type, name, usage)
+            if parent_id is not None and project.find_space(parent_id) is None:
+                raise ToolError(f"no space with id {parent_id}")
+            try:
+                sid = project.create_space(parent_id, space_type, name, usage)
+            except SpaceRuleError as error:
+                raise ToolError(space_error_text(error)) from error
             if sid is None:
                 raise ToolError("could not create space (no project open)")
             return {
@@ -2228,24 +2244,26 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         return {"space_id": space_id, "name": name}
 
     @tool("write")
-    def project_set_space_type(space_id: int, space_type: str) -> dict[str, Any]:
-        """Set a space's type (Building, BuildingPart, Floor, Room, Corridor, Stairway,
-        DistributionBoard). ``id`` from project_spaces. Undoable project edit. Returns
-        {space_id, space_type}."""
-        require_project(ctx)
-        ctx.run_locked(lambda: project.set_space_type(space_id, space_type))
-        return {"space_id": space_id, "space_type": space_type}
-
-    @tool("write")
     def project_move_space(
         space_id: int, new_parent_id: int | None = None
     ) -> dict[str, Any]:
-        """Move a space under a different parent space, or to the top level with new_parent_id=null.
-        Both ``id`` values come from project_spaces. Undoable project edit. Returns
-        {space_id, new_parent_id}."""
+        """Move a space (with what is below it) under a different parent space, or to the top
+        level with new_parent_id=null. Both ``id`` values come from project_spaces. The rules of
+        project_create_space apply (only a Building at the top level, a DistributionBoard only
+        in a Stairway, Room or Corridor, …); a space cannot go below itself, and its type never
+        changes. Undoable project edit. Returns {space_id, new_parent_id}."""
         require_project(ctx)
-        ctx.run_locked(lambda: project.move_space(space_id, new_parent_id))
-        return {"space_id": space_id, "new_parent_id": new_parent_id}
+
+        def _move() -> dict[str, Any]:
+            for sid in (space_id, new_parent_id):
+                if sid is not None and project.find_space(sid) is None:
+                    raise ToolError(f"no space with id {sid}")
+            reason = project.move_space(space_id, new_parent_id)
+            if reason:
+                raise ToolError(reason)
+            return {"space_id": space_id, "new_parent_id": new_parent_id}
+
+        return ctx.run_locked(_move)
 
     @tool("destructive")
     def project_remove_space(space_id: int) -> dict[str, Any]:

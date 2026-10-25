@@ -375,6 +375,10 @@ class ProjectStrings:
         return _("Function")
 
     @property
+    def PANEL_TRADE(self) -> str:
+        return _("Trade")
+
+    @property
     def GROUP_MAIN_NUMBER_INVALID(self) -> str:
         return _("The main group is a number from 0 to 31.")
 
@@ -1178,24 +1182,8 @@ class ProjectStrings:
         return _("+ Function")
 
     @property
-    def SPACES_ADD_SPACE(self) -> str:
-        return _("+ Space")
-
-    @property
-    def SPACES_ADD_SUBSPACE(self) -> str:
-        return _("+ Sub-space")
-
-    @property
-    def SPACES_SPACE_NEW_TITLE(self) -> str:
-        return _("New Space")
-
-    @property
     def SPACES_SPACE_NAME(self) -> str:
         return _("Name")
-
-    @property
-    def SPACES_SPACE_TYPE(self) -> str:
-        return _("Type")
 
     @property
     def SPACES_SPACE_CREATE(self) -> str:
@@ -1208,10 +1196,6 @@ class ProjectStrings:
     @property
     def SPACES_DELETE_TITLE(self) -> str:
         return _("Delete Space")
-
-    @property
-    def SPACES_TYPE(self) -> str:
-        return _("Type")
 
     @property
     def SPACES_MOVE_TO(self) -> str:
@@ -1273,7 +1257,167 @@ class ProjectStrings:
 
     @property
     def SPACES_TYPE_DISTRIBUTION(self) -> str:
-        return _("Distribution Board")
+        # The DistributionBoard type.
+        return _("Cabinet")
+
+    @property
+    def SPACES_ROOT_BUILDINGS(self) -> str:
+        return _("Buildings")
+
+    @property
+    def SPACES_ROOT_TRADES(self) -> str:
+        return _("Trades")
+
+    @property
+    def SPACES_ADD_MENU(self) -> str:
+        return _("Add")
+
+    @property
+    def SPACES_ADD_BUILDINGS(self) -> str:
+        return _("Add Buildings…")
+
+    @property
+    def SPACES_ADD_BUILDING_PARTS(self) -> str:
+        return _("Building Parts…")
+
+    @property
+    def SPACES_ADD_FLOORS(self) -> str:
+        return _("Floors…")
+
+    @property
+    def SPACES_ADD_STAIRWAYS(self) -> str:
+        return _("Stairways…")
+
+    @property
+    def SPACES_ADD_ROOMS(self) -> str:
+        return _("Rooms…")
+
+    @property
+    def SPACES_ADD_CORRIDORS(self) -> str:
+        return _("Corridors…")
+
+    @property
+    def SPACES_ADD_CABINETS(self) -> str:
+        return _("Cabinets…")
+
+    @property
+    def SPACES_ADD_DEVICES(self) -> str:
+        return _("Devices…")
+
+    @property
+    def SPACES_ADD_FUNCTIONS(self) -> str:
+        return _("Functions…")
+
+    @property
+    def SPACES_TITLE_BUILDINGS(self) -> str:
+        return _("Add Buildings")
+
+    @property
+    def SPACES_TITLE_BUILDING_PARTS(self) -> str:
+        return _("Add Building Parts")
+
+    @property
+    def SPACES_TITLE_FLOORS(self) -> str:
+        return _("Add Floors")
+
+    @property
+    def SPACES_TITLE_STAIRWAYS(self) -> str:
+        return _("Add Stairways")
+
+    @property
+    def SPACES_TITLE_ROOMS(self) -> str:
+        return _("Add Rooms")
+
+    @property
+    def SPACES_TITLE_CORRIDORS(self) -> str:
+        return _("Add Corridors")
+
+    @property
+    def SPACES_TITLE_CABINETS(self) -> str:
+        return _("Add Cabinets")
+
+    @property
+    def SPACES_COUNT(self) -> str:
+        return _("Count")
+
+    @property
+    def SPACES_ADD_TO(self) -> str:
+        # Below the title of an "Add" dialog: where the new ones go.
+        return _('to "{name}"')
+
+    @property
+    def SPACES_DEFAULT_BUILDING(self) -> str:
+        return _("New building")
+
+    @property
+    def SPACES_DEFAULT_BUILDING_PART(self) -> str:
+        return _("New building part")
+
+    @property
+    def SPACES_DEFAULT_FLOOR(self) -> str:
+        return _("New floor")
+
+    @property
+    def SPACES_DEFAULT_STAIRWAY(self) -> str:
+        return _("New stairway")
+
+    @property
+    def SPACES_DEFAULT_ROOM(self) -> str:
+        return _("New room")
+
+    @property
+    def SPACES_DEFAULT_CORRIDOR(self) -> str:
+        return _("New corridor")
+
+    @property
+    def SPACES_DEFAULT_CABINET(self) -> str:
+        return _("New cabinet")
+
+    @property
+    def SPACE_ERROR_TYPE_NOT_HERE(self) -> str:
+        return _("A building part of this type cannot be added here.")
+
+    @property
+    def SPACE_ERROR_CABINET_NOT_HERE(self) -> str:
+        return _(
+            "A building part of this type cannot be added here.\nCabinets can be added "
+            "inside of rooms, corridors, or stairways only. If applicable the corridors have "
+            "to be moved into the corresponding building parts."
+        )
+
+    @property
+    def SPACE_ERROR_TARGET_IS_CHILD(self) -> str:
+        return _("The target is a child building part.")
+
+    @property
+    def SPACE_ERROR_NO_DEVICES(self) -> str:
+        return _(
+            "Devices can only be added to stairways, rooms, corridors and cabinets."
+        )
+
+    @property
+    def TRADES_ADD(self) -> str:
+        return _("Add Trades…")
+
+    @property
+    def TRADES_ADD_TRADES(self) -> str:
+        return _("Trades…")
+
+    @property
+    def TRADES_TITLE(self) -> str:
+        return _("Add Trades")
+
+    @property
+    def TRADES_DEFAULT(self) -> str:
+        return _("New trade")
+
+    @property
+    def TRADES_ADD_DEVICES_TITLE(self) -> str:
+        return _("Add Devices")
+
+    @property
+    def TRADES_REMOVE_DEVICE(self) -> str:
+        return _("Remove from Trade")
 
     @property
     def SPACES_FN_NEW_TITLE(self) -> str:

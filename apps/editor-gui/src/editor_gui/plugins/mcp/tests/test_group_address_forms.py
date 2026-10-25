@@ -104,8 +104,15 @@ async def test_group_address_tools_take_the_printed_address(tmp_path: Path) -> N
         )
         assert (secured["id"], secured["secured"]) == (ga_id, False)
 
+        building = (await _data(client, "project_spaces"))["items"][0]["id"]
         space_id = (
-            await _data(client, "project_create_space", space_type="Room", name="Hall")
+            await _data(
+                client,
+                "project_create_space",
+                space_type="Room",
+                name="Hall",
+                parent_id=building,
+            )
         )["space_id"]
         function_id = (
             await _data(

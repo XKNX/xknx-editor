@@ -508,15 +508,6 @@ msgstr "Nessun edificio/stanza in questo progetto"
 msgid "+ Function"
 msgstr "+ Funzione"
 
-msgid "+ Space"
-msgstr "+ Spazio"
-
-msgid "+ Sub-space"
-msgstr "+ Sottospazio"
-
-msgid "New Space"
-msgstr "Nuovo spazio"
-
 msgid "Name"
 msgstr "Nome"
 
@@ -573,9 +564,6 @@ msgstr "Corridoio"
 
 msgid "Stairway"
 msgstr "Scala"
-
-msgid "Distribution Board"
-msgstr "Quadro di distribuzione"
 
 msgid "New Function"
 msgstr "Nuova funzione"
@@ -2553,3 +2541,117 @@ msgstr "Aggiungi dispositivo al settore"
 
 msgid "Remove device from trade"
 msgstr "Rimuovi dispositivo dal settore"
+
+msgid "Trades"
+msgstr "Settori"
+
+msgid "Building Parts…"
+msgstr "Parti Edificio…"
+
+msgid "Floors…"
+msgstr "Piani…"
+
+msgid "Stairways…"
+msgstr "Scale…"
+
+msgid "Rooms…"
+msgstr "Locali…"
+
+msgid "Corridors…"
+msgstr "Corridoi…"
+
+msgid "Cabinets…"
+msgstr "Quadri elettrici…"
+
+msgid "Devices…"
+msgstr "Dispositivi…"
+
+msgid "Functions…"
+msgstr "Funzioni…"
+
+msgid "Trades…"
+msgstr "Settori…"
+
+msgid "Add Buildings…"
+msgstr "Aggiungi Edifici…"
+
+msgid "Add Trades…"
+msgstr "Aggiungi Settori…"
+
+msgid "Add Buildings"
+msgstr "Aggiungi Edifici"
+
+msgid "Add Building Parts"
+msgstr "Aggiungi Parti Edificio"
+
+msgid "Add Floors"
+msgstr "Aggiungi Piani"
+
+msgid "Add Rooms"
+msgstr "Aggiungi Locali"
+
+msgid "Add Corridors"
+msgstr "Aggiungi Corridoi"
+
+msgid "Add Stairways"
+msgstr "Aggiungi Scale"
+
+msgid "Add Cabinets"
+msgstr "Aggiungi Quadri Elettrici"
+
+msgid "Add Trades"
+msgstr "Aggiungi Settori"
+
+msgid "Add Devices"
+msgstr "Aggiungi Dispositivi"
+
+msgid "Count"
+msgstr "Numero"
+
+msgid "to \"{name}\""
+msgstr "a \"{name}\""
+
+msgid "Cabinet"
+msgstr "Quadro elettrico"
+
+msgid "New building"
+msgstr "Nuovo edificio"
+
+msgid "New building part"
+msgstr "Nuova parte edificio"
+
+msgid "New floor"
+msgstr "Nuovo piano"
+
+msgid "New room"
+msgstr "Nuova stanza"
+
+msgid "New corridor"
+msgstr "Nuovo corridoio"
+
+msgid "New stairway"
+msgstr "Nuova scala"
+
+msgid "New cabinet"
+msgstr "Nuovo quadro"
+
+msgid "New trade"
+msgstr "Nuovo settore"
+
+msgid "A building part of this type cannot be added here."
+msgstr "Una parte di edificio di questo tipo non può essere aggiunta qui."
+
+msgid "A building part of this type cannot be added here.\nCabinets can be added inside of rooms, corridors, or stairways only. If applicable the corridors have to be moved into the corresponding building parts."
+msgstr "Una parte di edificio di questo tipo non può essere aggiunta qui.\nI quadri possono essere aggiunti solo dentro i locali, i corridoi o le scale. Se fattibile i corridoi devono essere spostati nelle corrispondenti parti di edificio."
+
+msgid "The target is a child building part."
+msgstr "La destinazione è una sotto parte di edificio."
+
+msgid "Devices can only be added to stairways, rooms, corridors and cabinets."
+msgstr "I dispositivi possono essere aggiunti solo a scale, locali, corridoi e quadri."
+
+msgid "Remove from Trade"
+msgstr "Rimuovi dal settore"
+
+msgid "Trade"
+msgstr "Settore"

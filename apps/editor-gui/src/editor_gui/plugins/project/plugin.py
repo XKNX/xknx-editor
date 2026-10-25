@@ -394,6 +394,9 @@ class ProjectPlugin:
             ],
             on_set_dpt=api.project.set_element_dpt,
             on_set_domain_address=api.project.set_element_domain_address,
+            on_set_number=lambda trade_id, number: api.project.set_trade_field(
+                trade_id, "number", number
+            ),
             dpt_names=lambda: cached_master_names(api.connection.master),
         )
         self._space_details = SpaceDetailsPanel(
@@ -424,7 +427,6 @@ class ProjectPlugin:
             on_create_space=api.project.create_space,
             get_selected_space_id=lambda: api.project.selected_space_id,
             on_select_space=self._select_space,
-            on_set_space_type=api.project.set_space_type,
             on_move_space=api.project.move_space,
             on_remove_space=api.project.remove_space,
             on_set_device_space=api.project.set_device_space,
@@ -436,9 +438,18 @@ class ProjectPlugin:
             count_paste_targets=self._count_paste_targets,
             on_device_info=self._open_read_dialog,
             on_compare=self._open_compare,
-            # A function's details (name, description, status) show in the Device tab.
+            # A function's and a trade's details (name, description, status) show in the Device
+            # tab.
             on_select_element=api.project.select_element,
             get_selected_node_id=self._selected_node_id,
+            get_trade_tree=api.project.get_trade_tree,
+            on_create_trade=api.project.create_trade,
+            on_move_trade=api.project.move_trade,
+            on_remove_trade=api.project.remove_trade,
+            on_add_trade_device=api.project.add_trade_device,
+            on_remove_trade_device=api.project.remove_trade_device,
+            get_space_devices=api.project.get_space_devices,
+            notify=api.notify if api.notify is not None else lambda _t: None,
         )
 
         self._project_info_panel = ProjectInfoPanel(

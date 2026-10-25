@@ -508,15 +508,6 @@ msgstr "このプロジェクトには構造／部屋がありません"
 msgid "+ Function"
 msgstr "+ 機能"
 
-msgid "+ Space"
-msgstr "+ スペース"
-
-msgid "+ Sub-space"
-msgstr "+ サブスペース"
-
-msgid "New Space"
-msgstr "新しいスペース"
-
 msgid "Name"
 msgstr "名前"
 
@@ -573,9 +564,6 @@ msgstr "廊下"
 
 msgid "Stairway"
 msgstr "階段"
-
-msgid "Distribution Board"
-msgstr "配電盤"
 
 msgid "New Function"
 msgstr "新しい機能"
@@ -2553,3 +2541,117 @@ msgstr "デバイスをトレードに追加"
 
 msgid "Remove device from trade"
 msgstr "デバイスをトレードから削除"
+
+msgid "Trades"
+msgstr "トレード"
+
+msgid "Building Parts…"
+msgstr "構造の一部…"
+
+msgid "Floors…"
+msgstr "フロア…"
+
+msgid "Stairways…"
+msgstr "階段…"
+
+msgid "Rooms…"
+msgstr "スペース…"
+
+msgid "Corridors…"
+msgstr "廊下…"
+
+msgid "Cabinets…"
+msgstr "キャビネット…"
+
+msgid "Devices…"
+msgstr "デバイス…"
+
+msgid "Functions…"
+msgstr "機能…"
+
+msgid "Trades…"
+msgstr "トレード…"
+
+msgid "Add Buildings…"
+msgstr "構造を追加する…"
+
+msgid "Add Trades…"
+msgstr "トレードを追加する…"
+
+msgid "Add Buildings"
+msgstr "構造を追加する"
+
+msgid "Add Building Parts"
+msgstr "構造の一部を追加する"
+
+msgid "Add Floors"
+msgstr "フロアを追加する"
+
+msgid "Add Rooms"
+msgstr "スペースを追加する"
+
+msgid "Add Corridors"
+msgstr "廊下を追加する"
+
+msgid "Add Stairways"
+msgstr "階段を追加する"
+
+msgid "Add Cabinets"
+msgstr "キャビネットを追加する"
+
+msgid "Add Trades"
+msgstr "トレードを追加する"
+
+msgid "Add Devices"
+msgstr "デバイスを追加する"
+
+msgid "Count"
+msgstr "数"
+
+msgid "to \"{name}\""
+msgstr "\"{name}\"に"
+
+msgid "Cabinet"
+msgstr "キャビネット"
+
+msgid "New building"
+msgstr "新しい構造"
+
+msgid "New building part"
+msgstr "新しい構造の一部"
+
+msgid "New floor"
+msgstr "新しいフロア"
+
+msgid "New room"
+msgstr "新しいスペース"
+
+msgid "New corridor"
+msgstr "新しい廊下"
+
+msgid "New stairway"
+msgstr "新しい階段"
+
+msgid "New cabinet"
+msgstr "新しいキャビネット"
+
+msgid "New trade"
+msgstr "新しいトレード"
+
+msgid "A building part of this type cannot be added here."
+msgstr "ここにはこのタイプの構造の一部は追加できません."
+
+msgid "A building part of this type cannot be added here.\nCabinets can be added inside of rooms, corridors, or stairways only. If applicable the corridors have to be moved into the corresponding building parts."
+msgstr "このタイプの構造の一部をここに追加する事はできません。キャビネットは部屋の中、廊下、階段にのみ追加することができます。適用できる廊下は、対応する構造の一部に移動させる必要があります."
+
+msgid "The target is a child building part."
+msgstr "ターゲットは子構造の一部です."
+
+msgid "Devices can only be added to stairways, rooms, corridors and cabinets."
+msgstr "デバイスは階段、部屋、廊下、キャビネットにのみ追加できます。"
+
+msgid "Remove from Trade"
+msgstr "トレードから削除"
+
+msgid "Trade"
+msgstr "トレード"

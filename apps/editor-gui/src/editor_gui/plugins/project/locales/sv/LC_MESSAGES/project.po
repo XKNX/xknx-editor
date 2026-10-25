@@ -508,15 +508,6 @@ msgstr "Inga byggnader/rum i det här projektet"
 msgid "+ Function"
 msgstr "+ Funktion"
 
-msgid "+ Space"
-msgstr "+ Utrymme"
-
-msgid "+ Sub-space"
-msgstr "+ Delutrymme"
-
-msgid "New Space"
-msgstr "Nytt utrymme"
-
 msgid "Name"
 msgstr "Namn"
 
@@ -573,9 +564,6 @@ msgstr "Korridor"
 
 msgid "Stairway"
 msgstr "Trappuppgång"
-
-msgid "Distribution Board"
-msgstr "Fördelningscentral"
 
 msgid "New Function"
 msgstr "Ny funktion"
@@ -2553,3 +2541,117 @@ msgstr "Lägg till enhet i anläggningsfunktion"
 
 msgid "Remove device from trade"
 msgstr "Ta bort enhet från anläggningsfunktion"
+
+msgid "Trades"
+msgstr "Anläggningsfunktioner"
+
+msgid "Building Parts…"
+msgstr "Byggnadsdelar…"
+
+msgid "Floors…"
+msgstr "Våningar…"
+
+msgid "Stairways…"
+msgstr "Trappuppgångar…"
+
+msgid "Rooms…"
+msgstr "Rum…"
+
+msgid "Corridors…"
+msgstr "Korridorer…"
+
+msgid "Cabinets…"
+msgstr "Centraler…"
+
+msgid "Devices…"
+msgstr "Apparater…"
+
+msgid "Functions…"
+msgstr "Funktioner…"
+
+msgid "Trades…"
+msgstr "Anläggningsfunktioner…"
+
+msgid "Add Buildings…"
+msgstr "Lägg till Byggnader…"
+
+msgid "Add Trades…"
+msgstr "Lägg till Anläggningsfunktioner…"
+
+msgid "Add Buildings"
+msgstr "Lägg till Byggnader"
+
+msgid "Add Building Parts"
+msgstr "Lägg till Byggnadsdelar"
+
+msgid "Add Floors"
+msgstr "Lägg till Våningar"
+
+msgid "Add Rooms"
+msgstr "Lägg till Rum"
+
+msgid "Add Corridors"
+msgstr "Lägg till Korridorer"
+
+msgid "Add Stairways"
+msgstr "Lägg till Trappuppgångar"
+
+msgid "Add Cabinets"
+msgstr "Lägg till Centraler"
+
+msgid "Add Trades"
+msgstr "Lägg till Anläggningsfunktioner"
+
+msgid "Add Devices"
+msgstr "Lägg till Apparater"
+
+msgid "Count"
+msgstr "Antal"
+
+msgid "to \"{name}\""
+msgstr "till \"{name}\""
+
+msgid "Cabinet"
+msgstr "Central"
+
+msgid "New building"
+msgstr "Ny byggnad"
+
+msgid "New building part"
+msgstr "Ny byggnadsdel"
+
+msgid "New floor"
+msgstr "Ny våning"
+
+msgid "New room"
+msgstr "Nytt rum"
+
+msgid "New corridor"
+msgstr "Ny korridor"
+
+msgid "New stairway"
+msgstr "Ny trappuppgång"
+
+msgid "New cabinet"
+msgstr "Ny central"
+
+msgid "New trade"
+msgstr "Ny anläggningsfunktion"
+
+msgid "A building part of this type cannot be added here."
+msgstr "En byggnadsdel av denna typ kan inte läggas till här."
+
+msgid "A building part of this type cannot be added here.\nCabinets can be added inside of rooms, corridors, or stairways only. If applicable the corridors have to be moved into the corresponding building parts."
+msgstr "En byggnadsdel av denna typen kan inte läggas till här.\nCentraler kan endast läggas till rum, korridorer eller trappuppgångar.Om tillämpligt måste korridorerna flyttas till motsvarande byggnadsdelar."
+
+msgid "The target is a child building part."
+msgstr "Målet är en underliggande byggnadsdel."
+
+msgid "Devices can only be added to stairways, rooms, corridors and cabinets."
+msgstr "Enheter kan bara läggas till i trappuppgångar, rum, korridorer och centraler."
+
+msgid "Remove from Trade"
+msgstr "Ta bort från anläggningsfunktion"
+
+msgid "Trade"
+msgstr "Anläggningsfunktion"

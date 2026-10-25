@@ -66,7 +66,9 @@ def test_export_import_round_trip(tmp_path: Path) -> None:
 
     # Build a location tree via the public API so the export's Locations round-trip is covered:
     # a room holding the device and a function referencing the group address.
-    room_id = svc.create_space(pid, 0, "Room", "Room 1")
+    room_id = svc.create_space(
+        pid, 0, "Room", "Room 1", parent_id=svc.space_tree(pid, 0)[0].id
+    )
     svc.set_device_space(pid, device_id, room_id)
     fn_id = svc.create_function(pid, room_id, "FT-1", "Light")
     svc.add_function_group_address(pid, fn_id, ga_id, role="role")
@@ -1109,7 +1111,9 @@ def test_export_summary_reports_counts_and_signing(tmp_path: Path) -> None:
         co.id for d in svc.devices(pid) if d.id == device_id for co in d.com_objects
     )
     svc.link_com_object(pid, co_id, ga_id, sending=True)
-    floor_id = svc.create_space(pid, 0, "Floor", "EG")
+    floor_id = svc.create_space(
+        pid, 0, "Floor", "EG", parent_id=svc.space_tree(pid, 0)[0].id
+    )
     room_id = svc.create_space(pid, 0, "Room", "Wohnzimmer", parent_id=floor_id)
     svc.create_function(pid, room_id, "FT-1", "Light")
     svc.close(pid)

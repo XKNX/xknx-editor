@@ -132,6 +132,16 @@ async def test_a_device_added_to_a_space_goes_on_its_current_line(
         room = (await _data(client, "project_spaces"))["items"][0]["children"][0]
         assert [d["node_id"] for d in room["devices"]] == [device["node_id"]]
 
+        # A room without a Current Line of its own takes the building's (line 1.1).
+        kitchen = (
+            await _data(
+                client,
+                "project_create_space",
+                space_type="Room",
+                name="Kitchen",
+                parent_id=spaces["building"],
+            )
+        )["space_id"]
         batch = await _data(
             client,
             "project_batch",
@@ -140,7 +150,7 @@ async def test_a_device_added_to_a_space_goes_on_its_current_line(
                     "op": "add_device",
                     "params": {
                         "product_ref_id": product["product_ref_id"],
-                        "space_id": spaces["building"],
+                        "space_id": kitchen,
                     },
                 }
             ],
@@ -148,6 +158,15 @@ async def test_a_device_added_to_a_space_goes_on_its_current_line(
         node_id = batch["results"][0]["result"]["node_id"]
         added = await _data(client, "project_get_device", node_id=node_id)
         assert added["individual_address"].startswith("1.1.")
+        # A building holds no devices.
+        with pytest.raises(Exception, match="stairways, rooms, corridors and cabinets"):
+            await client.call_tool(
+                "project_add_device",
+                {
+                    "product_ref_id": product["product_ref_id"],
+                    "space_id": spaces["building"],
+                },
+            )
         with pytest.raises(Exception, match="no space with id 999"):
             await client.call_tool(
                 "project_add_device",

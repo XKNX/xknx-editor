@@ -483,12 +483,6 @@ msgstr "{ready} gereed · {amb} dubbelzinnig · {bad} incompatibel · {none} gee
 msgid "(Top Level)"
 msgstr "(bovenste niveau)"
 
-msgid "+ Space"
-msgstr "+ Ruimte"
-
-msgid "+ Sub-space"
-msgstr "+ Subruimte"
-
 msgid "Assign a Device to This Space"
 msgstr "Een apparaat aan deze ruimte toewijzen"
 
@@ -507,17 +501,11 @@ msgstr "Gang"
 msgid "Delete this space and everything in it? Devices are only unassigned, not deleted."
 msgstr "Deze ruimte en alles erin verwijderen? Apparaten worden alleen ontkoppeld, niet verwijderd."
 
-msgid "Distribution Board"
-msgstr "Verdeelkast"
-
 msgid "Floor"
 msgstr "Verdieping"
 
 msgid "Move to"
 msgstr "Verplaatsen naar"
-
-msgid "New Space"
-msgstr "Nieuwe ruimte"
 
 msgid "No unassigned devices"
 msgstr "Geen niet-toegewezen apparaten"
@@ -2591,3 +2579,117 @@ msgstr "Apparaat aan technisch gebouw toevoegen"
 
 msgid "Remove device from trade"
 msgstr "Apparaat uit technisch gebouw verwijderen"
+
+msgid "Trades"
+msgstr "Technische gebouwen"
+
+msgid "Building Parts…"
+msgstr "Gebouwengedeeltes…"
+
+msgid "Floors…"
+msgstr "Verdiepingen…"
+
+msgid "Stairways…"
+msgstr "Trappen…"
+
+msgid "Rooms…"
+msgstr "Kamers…"
+
+msgid "Corridors…"
+msgstr "Gangen…"
+
+msgid "Cabinets…"
+msgstr "Schakelkasten…"
+
+msgid "Devices…"
+msgstr "Apparaten…"
+
+msgid "Functions…"
+msgstr "Functies…"
+
+msgid "Trades…"
+msgstr "Technische gebouwen…"
+
+msgid "Add Buildings…"
+msgstr "Voeg Gebouwen toe…"
+
+msgid "Add Trades…"
+msgstr "Voeg Technische Gebouwen toe…"
+
+msgid "Add Buildings"
+msgstr "Voeg Gebouwen toe"
+
+msgid "Add Building Parts"
+msgstr "Voeg Gebouwonderdelen toe"
+
+msgid "Add Floors"
+msgstr "Voeg Verdiepingen toe"
+
+msgid "Add Rooms"
+msgstr "Voeg Kamers toe"
+
+msgid "Add Corridors"
+msgstr "Voeg Gangen toe"
+
+msgid "Add Stairways"
+msgstr "Voeg Trappen toe"
+
+msgid "Add Cabinets"
+msgstr "Voeg Schakelkasten toe"
+
+msgid "Add Trades"
+msgstr "Voeg Technische Gebouwen toe"
+
+msgid "Add Devices"
+msgstr "Voeg Apparaten toe"
+
+msgid "Count"
+msgstr "Aantal"
+
+msgid "to \"{name}\""
+msgstr "naar \"{name}\""
+
+msgid "Cabinet"
+msgstr "Kabinet"
+
+msgid "New building"
+msgstr "Nieuw gebouw"
+
+msgid "New building part"
+msgstr "Nieuw gebouwengedeelte"
+
+msgid "New floor"
+msgstr "Nieuwe verdieping"
+
+msgid "New room"
+msgstr "Nieuwe kamer"
+
+msgid "New corridor"
+msgstr "Nieuwe gang"
+
+msgid "New stairway"
+msgstr "Nieuwe trap"
+
+msgid "New cabinet"
+msgstr "Nieuw schakelkast"
+
+msgid "New trade"
+msgstr "Nieuw technisch gebouw"
+
+msgid "A building part of this type cannot be added here."
+msgstr "Een gebouwenonderdeel van dit type kan hier niet worden toegevoegd."
+
+msgid "A building part of this type cannot be added here.\nCabinets can be added inside of rooms, corridors, or stairways only. If applicable the corridors have to be moved into the corresponding building parts."
+msgstr "Een gebouwenonderdeel van deze soort kan hier niet worden toegevoegd.\nVerdeelborden kunnen enkel in ruimten, gangen of hallen worden geplaatst. Indien mogelijk moeten de gangen verplaatst worden naar de overeenstemmende gebouwenonderdelen."
+
+msgid "The target is a child building part."
+msgstr "Het doel is een onderliggend gebouwenonderdeel."
+
+msgid "Devices can only be added to stairways, rooms, corridors and cabinets."
+msgstr "Apparaten kunnen alleen aan trappenhuizen, ruimten, gangen en verdeelborden worden toegevoegd."
+
+msgid "Remove from Trade"
+msgstr "Verwijderen uit technisch gebouw"
+
+msgid "Trade"
+msgstr "Technisch Gebouw"

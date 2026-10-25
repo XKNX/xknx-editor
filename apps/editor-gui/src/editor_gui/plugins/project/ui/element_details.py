@@ -75,11 +75,15 @@ class ElementDetailsPanel:
         on_set_domain_address: Callable[[str, int, str | None], str | None] = (
             lambda _k, _i, _t: None
         ),
+        on_set_number: Callable[[int, str], None] = lambda _i, _n: None,
     ) -> None:
         """``dpt_names`` are the names of the data point types by token, from the master data
         ({} without it: the type is then entered as its token). ``on_set_domain_address`` sets
-        the domain address as entered, or generates a new one for None."""
+        the domain address as entered, or generates a new one for None. ``on_set_number`` sets
+        a trade's number."""
         self._on_set_domain_address = on_set_domain_address
+        self._on_set_number = on_set_number
+        self._number = ""
         self._on_rename = on_rename
         self._on_set_description = on_set_description
         self._on_set_address = on_set_address
@@ -122,8 +126,10 @@ class ElementDetailsPanel:
             self._dpt_error = ""
             self._domain = details.domain_address
             self._domain_error = ""
+            self._number = details.number or ""
         label_width = label_column_width(
             S.CONFIGURE_NAME,
+            S.SPACE_NUMBER,
             S.CONFIGURE_DESCRIPTION,
             S.GA_ADDRESS,
             S.STATUS,
@@ -152,6 +158,9 @@ class ElementDetailsPanel:
         if details.has_address:
             self._row(S.GA_ADDRESS)
             self._address_field(details)
+        if details.number is not None:
+            self._row(S.SPACE_NUMBER)
+            self._number_field(details, details.number)
         if details.medium is not None:
             self._row(S.MEDIUM)
             self._medium_field(details, details.medium)
@@ -177,6 +186,15 @@ class ElementDetailsPanel:
             self._row(S.GA_DATA_TYPE)
             self._dpt_field(details, details.datapoint_type)
         imgui.end_table()
+
+    def _number_field(self, details: ElementDetails, number: str) -> None:
+        """A trade's number, a free text."""
+        imgui.set_next_item_width(-1)
+        _, self._number = imgui.input_text("##element_number", self._number)
+        if imgui.is_item_deactivated_after_edit() and self._number != number:
+            self._on_set_number(details.element_id, self._number.strip())
+        if not imgui.is_item_active() and self._number != number:
+            self._number = number
 
     def _domain_field(self, details: ElementDetails) -> None:
         """The domain address of an RF, PL or IoT line or segment, entered as it is shown, and

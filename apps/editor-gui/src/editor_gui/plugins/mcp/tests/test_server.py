@@ -1818,9 +1818,14 @@ async def test_rename_group_ranges_functions_and_device_descriptions(
         assert padded["name"] == "Licht EG"
 
         # Functions: the id comes from project_spaces.
+        building = (await _data(client, "project_spaces"))["items"][0]["id"]
         room = (
             await _data(
-                client, "project_create_space", space_type="Room", name="Wohnen"
+                client,
+                "project_create_space",
+                space_type="Room",
+                name="Wohnen",
+                parent_id=building,
             )
         )["space_id"]
         function = project.create_function(room, "FT-1", "Wohenn Deckenlicht")

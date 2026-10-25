@@ -40,6 +40,7 @@ from editor_gui.device_snapshot import (
 from editor_gui.dpt import dpt_from_token, lookup_or_make_dpt
 from editor_gui.plugins.project.element_status import status_label, usage_label
 from editor_gui.plugins.project.medium_text import medium_error_text
+from editor_gui.plugins.project.space_text import space_error_text
 from editor_gui.plugins.project.strings import S
 from editor_gui.plugins.project.ui.history import HistoryEntry
 from editor_gui.settings import config_dir
@@ -84,6 +85,7 @@ from xknxeditor.proj.core.medium import (
 from xknxeditor.proj.core.project_secrets import check_project_password
 from xknxeditor.proj.core.rich_text import parse_rich_text, plain_text
 from xknxeditor.proj.core.service import DEFAULT_MULTICAST_ADDRESS
+from xknxeditor.proj.core.space_rules import SpaceRuleError
 
 if TYPE_CHECKING:
     from editor_gui.plugins.base import Logger
@@ -5591,7 +5593,8 @@ class ProjectService:
     def create_space(
         self, parent_id: int | None, space_type: str, name: str, usage: str = ""
     ) -> int | None:
-        """A new space; a room with its ``usage`` (a SpaceUsage id, "" for none)."""
+        """A new space; a room with its ``usage`` (a SpaceUsage id, "" for none). Raises
+        ``SpaceRuleError`` when its parent cannot hold its type (see ``space_rules``)."""
         if self._pid is None:
             return None
         sid = self._svc.create_space(
@@ -6176,17 +6179,17 @@ class ProjectService:
         self._svc.set_space_default_line(self._pid, space_id, line_id)
         self._bump(structural=False)
 
-    def set_space_type(self, space_id: int, space_type: str) -> None:
+    def move_space(self, space_id: int, new_parent_id: int | None) -> str | None:
+        """Put a space below another one (None: at the top level); undoable. The reason it
+        cannot go there, or None."""
         if self._pid is None:
-            return
-        self._svc.set_space_type(self._pid, space_id, space_type)
+            return None
+        try:
+            self._svc.move_space(self._pid, space_id, new_parent_id)
+        except SpaceRuleError as error:
+            return space_error_text(error)
         self._bump(structural=False)
-
-    def move_space(self, space_id: int, new_parent_id: int | None) -> None:
-        if self._pid is None:
-            return
-        self._svc.move_space(self._pid, space_id, new_parent_id)
-        self._bump(structural=False)
+        return None
 
     def remove_space(self, space_id: int) -> None:
         if self._pid is None:
@@ -6195,6 +6198,15 @@ class ProjectService:
         self._bump(structural=False)
 
     # --- trades ---------------------------------------------------------------------------
+
+    @io_guarded(list)
+    @revision_cached
+    def get_space_devices(self) -> "list[SpaceDeviceInfo]":
+        """Every device of the project, as the Buildings view lists them (to put into a
+        trade)."""
+        if self._pid is None:
+            return []
+        return self._svc.space_devices(self._pid, _INSTALLATION)
 
     @io_guarded(list)
     @revision_cached
@@ -6262,11 +6274,17 @@ class ProjectService:
         self._svc.remove_trade_device(self._pid, trade_id, node_id)
         self._bump(structural=False)
 
-    def set_device_space(self, device_id: int, space_id: int | None) -> None:
+    def set_device_space(self, device_id: int, space_id: int | None) -> str | None:
+        """Put a device into a space (None: into none); undoable. The reason it cannot go
+        there (a space that holds no devices), or None."""
         if self._pid is None:
-            return
-        self._svc.set_device_space(self._pid, device_id, space_id)
+            return None
+        try:
+            self._svc.set_device_space(self._pid, device_id, space_id)
+        except SpaceRuleError as error:
+            return space_error_text(error)
         self._bump(structural=False)
+        return None
 
     def undo(self) -> bool:
         if self._pid is None:

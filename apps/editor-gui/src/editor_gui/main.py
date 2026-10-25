@@ -83,8 +83,8 @@ from editor_gui.plugins.mcp import McpServerPlugin
 from editor_gui.plugins.monitor import MonitorPlugin
 from editor_gui.plugins.project import ProjectPlugin, ProjectService
 from editor_gui.plugins.project.knxproj_manufacturer import collect_manufacturer_bundle
+from editor_gui.plugins.project.space_text import space_type_name
 from editor_gui.plugins.project.strings import S as PROJECT_S
-from editor_gui.plugins.project.ui.spaces import space_type_label
 from editor_gui.plugins.recover import RecoverPlugin
 from editor_gui.plugins.signing import SigningPlugin
 from editor_gui.plugins.timeline import TimelinePlugin
@@ -3397,7 +3397,7 @@ class KnxGuiApp:
         space = self._project_plugin.selected_space()
         element = self._project_plugin.selected_element() if space is None else None
         if space is not None:
-            title = space_type_label(space.space_type) or _DOCK_LABELS["device"]()
+            title = space_type_name(space.space_type) or _DOCK_LABELS["device"]()
         elif element is not None:
             title = _ELEMENT_TITLES[element.title_kind]()
         else:
@@ -5909,6 +5909,7 @@ _ELEMENT_TITLES: "dict[str, Callable[[], str]]" = {
     "group_range": lambda: PROJECT_S.PANEL_GROUP_RANGE,
     "group_address": lambda: PROJECT_S.PANEL_GROUP_ADDRESS,
     "function": lambda: PROJECT_S.PANEL_FUNCTION,
+    "trade": lambda: PROJECT_S.PANEL_TRADE,
 }
 
 # Initial tab order per dock space, by stable panel name (order only matters within each space).
