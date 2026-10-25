@@ -1485,8 +1485,10 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         """Read a project device. Identify it by ``node_id`` OR ``device_address`` (an individual
         address like "1.0.30"); pass exactly one. Returns {node_id, name, individual_address,
         description}, plus {product_ref_id, hardware2program_ref_id, order_number, hardware_name,
-        product_name, manufacturer_name, additional_addresses} when catalog metadata is available.
-        individual_address is null when unset. additional_addresses lists the device's additional
+        product_name, manufacturer_name, additional_addresses, last_modified, last_downloaded} when
+        catalog metadata is available. individual_address is null when unset. last_modified (its
+        configuration last changed) and last_downloaded are UTC times as the project stores them
+        ("2026-01-24T11:38:26.8111136Z"), null for never. additional_addresses lists the device's additional
         individual addresses (the tunnelling addresses of an IP interface) as {index, address, name,
         description}; index is 1-based (the AddressIndex of a tunnelling interface), address an
         "a.l.d" string or null for an entry without one."""
@@ -1507,6 +1509,8 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                         _additional_address_dict(entry)
                         for entry in info.additional_addresses
                     ],
+                    "last_modified": info.last_modified,
+                    "last_downloaded": info.last_download,
                 }
             return data
 

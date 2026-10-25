@@ -2526,3 +2526,6 @@ msgstr "Доменный адрес подлиний IoT должен быть �
 
 msgid "Each line in a project must have a unique domain address."
 msgstr "Каждая линия проекта должна иметь уникальный доменный адрес."
+
+msgid "Last Downloaded"
+msgstr "Последняя загрузка"

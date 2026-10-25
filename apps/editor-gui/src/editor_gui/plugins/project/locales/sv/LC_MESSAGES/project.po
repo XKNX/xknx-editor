@@ -2526,3 +2526,6 @@ msgstr "Domänadressen för underlinjer med IoT måste vara den samma som domän
 
 msgid "Each line in a project must have a unique domain address."
 msgstr "Varje linje i ett projekt måste ha en unik domänadress."
+
+msgid "Last Downloaded"
+msgstr "Senast programmerad"

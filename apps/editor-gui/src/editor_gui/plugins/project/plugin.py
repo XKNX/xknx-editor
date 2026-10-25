@@ -7,7 +7,6 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, cast
 
-from imgui_bundle import imgui
 from xknx.telegram.apci import GroupValueRead, GroupValueWrite
 
 from editor_gui.device_info import (
@@ -77,7 +76,6 @@ from editor_gui.plugins.project.ui.siemens_dali import SiemensDaliPanel
 from editor_gui.plugins.project.ui.space_details import SpaceDetailsPanel
 from editor_gui.plugins.project.ui.tools import apply_name_swap, shifted_ia
 from editor_gui.widgets import ButtonActions
-from editor_gui.widgets.dialog import begin_tool_window
 from editor_gui.widgets.dpt_value import GroupValueBus
 from editor_gui.widgets.icons import (
     Icon,
@@ -245,7 +243,7 @@ class ProjectPlugin:
             ),
             get_revision=lambda: api.project.revision,
         )
-        self._compare_open = False
+        self._focus_tools = False
 
         group_bus = GroupValueBus(
             connected=lambda: api.connection.xknx is not None,
@@ -492,6 +490,7 @@ class ProjectPlugin:
             get_group_address_style=lambda: api.project.group_address_style,
             on_shift_group_addresses=self.tools_shift_group_addresses,
             on_diff_projects=self.tools_diff_projects,
+            compare=self._compare_panel,
         )
 
         self._panels = [
@@ -1183,21 +1182,15 @@ class ProjectPlugin:
         self._read_device_dialog.open(node_id, label)
 
     def _open_compare(self, node_id: int) -> None:
-        """Open the compare-devices window, seeded with ``node_id`` as device A."""
-        self._compare_panel.set_primary(node_id)
-        self._compare_open = True
+        """Show "Compare Devices" in the Tools panel, with ``node_id`` as the first device."""
+        self._tools_panel.open_compare(node_id)
+        self._focus_tools = True
 
-    def render_compare_window(self) -> None:
-        """The floating "Compare Devices" window; dispatched from the app overlay pass."""
-        if not self._compare_open:
-            return
-        expanded, open_state = begin_tool_window(
-            S.COMPARE_TITLE, True, width=80 * 16, height=40 * 16
-        )
-        self._compare_open = bool(open_state)
-        if expanded:
-            self._compare_panel.render()
-        imgui.end()
+    def take_focus_tools(self) -> bool:
+        """Whether the Tools panel was asked for since the last call (the app brings it to the
+        front)."""
+        asked, self._focus_tools = self._focus_tools, False
+        return asked
 
     def _format_group_address(self, address: int) -> str:
         from xknxeditor.proj.core.addressing import format_ga
@@ -2717,7 +2710,6 @@ class ProjectPlugin:
         self._button_runner.render()
         self._memory_preview.render()
         self._preflight_result.render()
-        self.render_compare_window()
 
     def on_load(self) -> None:
         pass

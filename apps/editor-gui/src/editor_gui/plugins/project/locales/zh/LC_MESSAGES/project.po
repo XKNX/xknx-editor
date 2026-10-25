@@ -2526,3 +2526,6 @@ msgstr "IoT支线的域地址必须等于干线的域地址。"
 
 msgid "Each line in a project must have a unique domain address."
 msgstr "一个项目中的每一条线路必须有唯一的域地址."
+
+msgid "Last Downloaded"
+msgstr "最后下载的"

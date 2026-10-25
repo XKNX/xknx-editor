@@ -1,3 +1,4 @@
+import datetime
 import threading
 from collections.abc import Callable
 from contextlib import nullcontext
@@ -231,6 +232,27 @@ def direct_program_request(
     if use_serial_number and serial_owner is not None:
         return None
     return ProgramRequest(scope=scope, use_serial_number=use_serial_number)
+
+
+def timestamp_text(stamp: str | None) -> str:
+    """A time the project stores (UTC, "2026-01-24T11:38:26.8111136Z") as shown: in local time to
+    the minute, "2026-01-24 12:38"; "-" for none or one that cannot be read."""
+    if not stamp:
+        return "-"
+    # Seven digits of fraction are more than fromisoformat reads; the minute is enough.
+    whole = stamp.strip().removesuffix("Z").partition(".")[0]
+    try:
+        moment = datetime.datetime.fromisoformat(whole)
+    except ValueError:
+        return "-"
+    if moment.tzinfo is None:
+        moment = moment.replace(tzinfo=datetime.UTC)
+    return moment.astimezone().strftime("%Y-%m-%d %H:%M")
+
+
+def _timestamp_field(stamp: str | None) -> None:
+    imgui.align_text_to_frame_padding()
+    imgui.text_unformatted(timestamp_text(stamp))
 
 
 def _render_loading_application() -> None:
@@ -725,6 +747,12 @@ class ConfigurePanel:
         status = self._get_status(device) if self._get_status is not None else None
         if status is not None:
             fields.append((S.STATUS, lambda: self._status_input(device, status)))
+        info = self._get_device_info(device.node_id)
+        for label, stamp in (
+            (S.CONFIGURE_LAST_MODIFIED, info.last_modified if info else None),
+            (S.CONFIGURE_LAST_DOWNLOADED, info.last_download if info else None),
+        ):
+            fields.append((label, lambda stamp=stamp: _timestamp_field(stamp)))
         # The secure-commissioning and routing-blocking fields need the parsed application. Only
         # read them once it is loaded: for a snapshot device _ready() starts the background load
         # and returns False, so these fields appear when it is ready instead of parsing the whole

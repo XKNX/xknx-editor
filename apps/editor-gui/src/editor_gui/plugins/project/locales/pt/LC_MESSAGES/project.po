@@ -2526,3 +2526,6 @@ msgstr "Endereço do domínio das sublinhas IoT deve ser igual ao endereço do d
 
 msgid "Each line in a project must have a unique domain address."
 msgstr "Cada linha de um projeto deve ter um endereço de domínio único."
+
+msgid "Last Downloaded"
+msgstr "Último Download"

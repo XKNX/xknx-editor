@@ -2526,3 +2526,6 @@ msgstr "IoTサブラインのドメインアドレスは、メインラインの
 
 msgid "Each line in a project must have a unique domain address."
 msgstr "プロジェクトの各ラインは一意的なドメイン・アドレスを持つ必要があります."
+
+msgid "Last Downloaded"
+msgstr "最終ダウンロード日"

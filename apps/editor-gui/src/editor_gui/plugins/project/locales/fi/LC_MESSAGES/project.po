@@ -2526,3 +2526,6 @@ msgstr "IoT alalinjojen domain-osoitteen tulee olla sama kuin päälinjan."
 
 msgid "Each line in a project must have a unique domain address."
 msgstr "Projektin jokaisella linjalla tulee olla yksilöllinen domain-osoite."
+
+msgid "Last Downloaded"
+msgstr "Viimeisin Lataus"

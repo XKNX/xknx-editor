@@ -2526,3 +2526,6 @@ msgstr "DomainAddress dílčích linií IoT musí odpovídat DomainAddress hlavn
 
 msgid "Each line in a project must have a unique domain address."
 msgstr "Každá linie v projektu musí mít jedinečnou doménovou adresu."
+
+msgid "Last Downloaded"
+msgstr "Naposledy staženo"

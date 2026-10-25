@@ -2526,3 +2526,6 @@ msgstr "Domeneadressen til IoT-underlinjer må være lik domeneadressen til hove
 
 msgid "Each line in a project must have a unique domain address."
 msgstr "Hver linje i et prosjekt må ha en unik domene-adresse."
+
+msgid "Last Downloaded"
+msgstr "Siste nedlastet"

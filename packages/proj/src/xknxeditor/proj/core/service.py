@@ -442,6 +442,8 @@ class DeviceInfo:
     parameters_loaded: bool
     # The additional individual addresses (tunnelling addresses of an IP interface), in order.
     additional_addresses: tuple[AdditionalAddressInfo, ...] = ()
+    # When its configuration last changed (UTC, as the project stores it), None for never.
+    last_modified: str | None = None
 
 
 @dataclass(frozen=True)
@@ -3582,6 +3584,7 @@ class ProjectService:
             medium_config_loaded=device.medium_config_loaded,
             parameters_loaded=device.parameters_loaded,
             additional_addresses=tuple(self._additional_infos(device)),
+            last_modified=device.last_modified,
         )
 
     def com_object_links(self, project_id: str, com_object_id: int) -> list[LinkInfo]:

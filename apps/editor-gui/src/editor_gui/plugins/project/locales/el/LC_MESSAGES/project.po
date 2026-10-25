@@ -2526,3 +2526,6 @@ msgstr "Η Διεύθυνση Τομέα των υπογραμμών IoT πρέ�
 
 msgid "Each line in a project must have a unique domain address."
 msgstr "Κάθε γραμμή σε ένα έργο πρέπει να έχει μια μοναδική Διεύθυνση Τομέα."
+
+msgid "Last Downloaded"
+msgstr "Τελευταία φόρτιση"

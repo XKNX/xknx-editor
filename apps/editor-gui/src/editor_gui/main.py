@@ -4732,6 +4732,15 @@ class KnxGuiApp:
             hello_imgui.get_runner_params().docking_params.focus_dockable_window(
                 f"{_DOCK_LABELS['group_addresses']()}###group_addresses"
             )
+        if self._project_plugin.take_focus_tools():
+            # "Compare with…" from a device's context menu: the Tools panel, shown again when it
+            # was closed, in front of the other tabs of its dock.
+            for (
+                window
+            ) in hello_imgui.get_runner_params().docking_params.dockable_windows:
+                if _dock_window_name(window) == "tools":
+                    window.is_visible = True
+                    window.focus_window_at_next_frame = True
         if self._recover_plugin.take_focus_request():
             # Shown again when it was closed, and in front of the other tabs of its dock.
             for (

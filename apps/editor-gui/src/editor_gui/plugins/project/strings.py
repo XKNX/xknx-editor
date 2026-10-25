@@ -1875,6 +1875,14 @@ class ProjectStrings:
         return _("Serial Number")
 
     @property
+    def CONFIGURE_LAST_MODIFIED(self) -> str:
+        return _("Last Modified")
+
+    @property
+    def CONFIGURE_LAST_DOWNLOADED(self) -> str:
+        return _("Last Downloaded")
+
+    @property
     def SERIAL_NUMBER_INVALID(self) -> str:
         return _(
             "Enter the serial number as 12 hexadecimal digits, e.g. 0083:7AA2039C."

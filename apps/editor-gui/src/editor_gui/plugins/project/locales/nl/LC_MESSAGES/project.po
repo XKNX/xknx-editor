@@ -2564,3 +2564,6 @@ msgstr "Het domeinadres van IoT-sublijnen moet gelijk zijn aan het domeinadres v
 
 msgid "Each line in a project must have a unique domain address."
 msgstr "Elke lijn in een project moet een uniek DomeinAdres hebben."
+
+msgid "Last Downloaded"
+msgstr "Laatste Gedownload"

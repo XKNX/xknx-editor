@@ -2526,3 +2526,6 @@ msgstr "IoT alt linyelerinin Etki Alanı Adresi, ana linyenin Etki Alanı Adresi
 
 msgid "Each line in a project must have a unique domain address."
 msgstr "Projedeki her linyenin tek EtkiAlanAdresi olmalıdır."
+
+msgid "Last Downloaded"
+msgstr "Son Yüklenen"
