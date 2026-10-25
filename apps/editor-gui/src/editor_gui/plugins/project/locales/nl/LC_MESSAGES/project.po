@@ -2747,3 +2747,12 @@ msgstr "Apparaten in programmeermodus"
 
 msgid "Connecting"
 msgstr "Wordt verbonden"
+
+msgid "Move middle group"
+msgstr "Middengroep verplaatsen"
+
+msgid "The group has no free group address."
+msgstr "De groep heeft geen vrij groepsadres."
+
+msgid "The main group has no free middle group."
+msgstr "De hoofdgroep heeft geen vrije middengroep."

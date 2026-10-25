@@ -17,6 +17,7 @@ from editor_gui.device import com_object_display_name
 from editor_gui.plugins.project.strings import S
 from editor_gui.plugins.project.ui._filter import filter_box
 from editor_gui.plugins.project.ui.group_value import GroupValueActions
+from editor_gui.plugins.project.ui.move_menu import render_move_menu
 from editor_gui.widgets.backgrounds import child_background, content_background
 from editor_gui.widgets.description import secure_icon, secure_icon_width
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
@@ -37,6 +38,13 @@ if TYPE_CHECKING:
 # Accent colour for the last value a group address was seen carrying on the bus, as (on dark
 # themes, on light themes).
 _LIVE_COLOR = (imgui.ImVec4(0.45, 0.7, 0.9, 1.0), imgui.ImVec4(0.1, 0.38, 0.7, 1.0))
+
+
+def _range_text(node: "GroupRangeInfo") -> str:
+    """A group as a "Move to" target: its number and name ("1/2  Lights")."""
+    base = node.name or f"[{node.id}]"
+    shown = f"{node.address}  {base}" if node.address else base
+    return f"{shown}##mvgr{node.id}"
 
 
 class GroupAddressesPanel:
@@ -60,7 +68,16 @@ class GroupAddressesPanel:
         on_export: Callable[[], None] | None = None,
         get_latest_value: Callable[[str, str | None], tuple[str, str, float] | None]
         | None = None,
+        on_move_ga: Callable[[int, int], str | None] | None = None,
+        on_move_range: Callable[[int, int], str | None] | None = None,
+        notify: Callable[[str], None] = lambda _text: None,
     ) -> None:
+        """``on_move_ga`` puts a group address into another group, ``on_move_range`` a middle
+        group below another main group ("Move to"); both give the reason it cannot be, which
+        ``notify`` shows."""
+        self._on_move_ga = on_move_ga
+        self._on_move_range = on_move_range
+        self._notify = notify
         self._get_range_tree = get_range_tree
         # Selecting a group range or address (its comment shows in the Comment tab).
         self._on_select_element = on_select_element
@@ -402,6 +419,7 @@ class GroupAddressesPanel:
             self._open_rename_ga = True
         if imgui.menu_item(S.CONTEXT_COPY_ADDRESS, "", False)[0]:
             imgui.set_clipboard_text(getattr(ga, "text", "") or "")
+        self._render_move_ga_menu(ga.id)  # type: ignore[attr-defined]
         if self._group_value is not None:
             imgui.separator()
             self._group_value.render_menu_items(
@@ -415,6 +433,44 @@ class GroupAddressesPanel:
             if self._selected_ga_id == ga.id:  # type: ignore[attr-defined]
                 self._selected_ga_id = None
         imgui.end_popup()
+
+    def _render_move_ga_menu(self, ga_id: int) -> None:
+        """ "Move to" of a group address: the groups that hold group addresses (the middle
+        groups, or the main groups of the two-level style), its own grayed out."""
+        if self._on_move_ga is None or not self._folders_enabled():
+            return
+        tree = self._get_range_tree()
+        groups = (
+            [m for main in tree for m in main.children]
+            if self._middle_enabled()
+            else list(tree)
+        )
+        current = next(
+            (g.id for g in groups if any(a.id == ga_id for a in g.group_addresses)),
+            None,
+        )
+        chosen = render_move_menu([(_range_text(g), g.id) for g in groups], current)
+        if chosen is not None and chosen[0] is not None:
+            self._report(self._on_move_ga(ga_id, chosen[0]))
+
+    def _render_move_range_menu(self, range_id: int) -> None:
+        """ "Move to" of a middle group: the main groups, its own grayed out."""
+        if self._on_move_range is None or not self._middle_enabled():
+            return
+        tree = self._get_range_tree()
+        current = next(
+            (main.id for main in tree if any(m.id == range_id for m in main.children)),
+            None,
+        )
+        if current is None:
+            return
+        chosen = render_move_menu([(_range_text(m), m.id) for m in tree], current)
+        if chosen is not None:
+            self._report(self._on_move_range(range_id, chosen[0]))
+
+    def _report(self, reason: str | None) -> None:
+        if reason:
+            self._notify(reason)
 
     def _folders_enabled(self) -> bool:
         """Folders (group ranges) only exist in the level-based styles, not Free."""
@@ -477,6 +533,8 @@ class GroupAddressesPanel:
             self._popup_range_id = node.id
             self._popup_range_name = node.name
             self._open_rename_range = True
+        if not is_root:
+            self._render_move_range_menu(node.id)
         if self._on_remove_range is not None:
             imgui.separator()
             if imgui.menu_item(S.CONTEXT_DELETE, "", False)[0]:

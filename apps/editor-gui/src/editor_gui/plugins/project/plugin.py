@@ -388,6 +388,9 @@ class ProjectPlugin:
             on_import=api.project.import_group_addresses,
             on_export=export_group_addresses,
             get_latest_value=get_latest_value,
+            on_move_ga=api.project.move_group_address,
+            on_move_range=api.project.move_group_range,
+            notify=lambda text: api.notify(text) if api.notify is not None else None,
         )
 
         self._element_details = ElementDetailsPanel(
@@ -619,6 +622,7 @@ class ProjectPlugin:
                 name=ln.name,
                 segments=[Segment(id=s.id, name=s.name) for s in ln.segments],
                 medium_type=ln.medium_type,
+                main_segment_id=ln.main_segment_id,
             )
             for ln in self._api.project.get_lines(area_id)
         ]

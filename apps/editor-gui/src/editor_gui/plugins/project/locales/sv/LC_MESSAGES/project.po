@@ -2709,3 +2709,12 @@ msgstr "Apparater i programmeringsläge"
 
 msgid "Connecting"
 msgstr "Ansluter"
+
+msgid "Move middle group"
+msgstr "Flytta mellangrupp"
+
+msgid "The group has no free group address."
+msgstr "Gruppen har ingen ledig gruppadress."
+
+msgid "The main group has no free middle group."
+msgstr "Huvudgruppen har ingen ledig mellangrupp."

@@ -1,5 +1,6 @@
 from collections.abc import Callable
 from dataclasses import dataclass, field
+from typing import cast
 
 from imgui_bundle import imgui
 
@@ -7,6 +8,7 @@ from editor_gui.device import Device, UnloadedDevice, address_order, device_labe
 from editor_gui.plugins.project.strings import S
 from editor_gui.plugins.project.ui._filter import filter_box
 from editor_gui.plugins.project.ui.config_dialog import DeviceConfigDialog
+from editor_gui.plugins.project.ui.move_menu import render_move_menu
 from editor_gui.widgets.backgrounds import fill_content_background
 from editor_gui.widgets.description import render_device_marks
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
@@ -48,6 +50,8 @@ class Line:
     name: str
     segments: list[Segment] = field(default_factory=list[Segment])
     medium_type: str = MEDIUM_TP
+    # The line's own segment (its devices not on a sub-segment); None when unknown.
+    main_segment_id: int | None = None
 
 
 def _split_line(
@@ -439,6 +443,7 @@ class DevicesPanel:
                 and imgui.menu_item(S.CONTEXT_COPY_ADDRESS, "", False)[0]
             ):
                 imgui.set_clipboard_text(device.individual_address)
+            self._render_move_device_menu(device)
             if imgui.menu_item(S.CONTEXT_DELETE, "", False)[0]:
                 self._delete_target_device = device
                 self._open_delete_device_popup = True
@@ -501,11 +506,44 @@ class DevicesPanel:
                 and imgui.menu_item(S.CONTEXT_COMPARE_DEVICE, "", False)[0]
             ):
                 self._on_compare(device.node_id)
+            self._render_move_device_menu(device)
             imgui.separator()
             if imgui.menu_item(S.CONTEXT_DELETE, "", False)[0]:
                 self._delete_target_device = device
                 self._open_delete_device_popup = True
             imgui.end_popup()
+
+    def _render_move_device_menu(self, device: TreeDevice) -> None:
+        """ "Move to" of a device: every line (as its main segment) and sub-segment, the one it
+        is on grayed out. A device keeps its address within its line and gets the lowest free
+        one of another line."""
+        segment_of = self._get_device_segments()
+        own = segment_of.get(device.node_id)
+        targets: list[tuple[str, int]] = []
+        for area in self._get_areas():
+            for line in sorted(self._get_lines(area.id), key=lambda ln: ln.number):
+                if line.main_segment_id is None:
+                    continue
+                label = (
+                    self._format_area_label(area, line)
+                    if line.number == 0
+                    else self._format_line_label(area, line)
+                )
+                targets.append(
+                    (f"{label}##mvdev{line.main_segment_id}", line.main_segment_id)
+                )
+                targets.extend(
+                    (
+                        f"  {self._format_segment_label(area, line, s)}##mvdev{s.id}",
+                        s.id,
+                    )
+                    for s in line.segments
+                )
+        chosen = render_move_menu(targets, own if own is not None else -1)
+        if chosen is not None:
+            self._on_move_device_to_segment(
+                cast(Device, device), Segment(chosen[0], "")
+            )
 
     def _render_delete_device_popup(self) -> None:
         if begin_dialog(S.DEVICE_DELETE_TITLE, width=420.0):

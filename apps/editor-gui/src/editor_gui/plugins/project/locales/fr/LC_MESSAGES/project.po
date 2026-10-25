@@ -2709,3 +2709,12 @@ msgstr "Participants en mode programmation"
 
 msgid "Connecting"
 msgstr "Connexion"
+
+msgid "Move middle group"
+msgstr "Déplacer le groupe intermédiaire"
+
+msgid "The group has no free group address."
+msgstr "Le groupe n'a pas d'adresse de groupe libre."
+
+msgid "The main group has no free middle group."
+msgstr "Le groupe principal n'a pas de groupe intermédiaire libre."

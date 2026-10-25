@@ -75,6 +75,7 @@ from xknxeditor.proj.core.events import (
     ImportGroupAddresses,
     LinkComObject,
     MoveDevice,
+    MoveGroupRange,
     MoveSpace,
     MoveTrade,
     RemoveArea,
@@ -3409,6 +3410,76 @@ class ProjectService:
         if any(s.range_start <= end and start <= s.range_end for s in siblings):
             raise ValueError(f"group {number} is in use")
         state.store.append(SetGroupRangeAddress(range_id=range_id, offset=offset))
+
+    def move_group_range(
+        self, project_id: str, range_id: int, main_group_id: int
+    ) -> None:
+        """Put a middle group below another main group (three-level style), with its group
+        addresses: it keeps its number when that is free there, else it gets the lowest free
+        one. Undoable.
+
+        Raises ``ValueError`` when it is no middle group, the target no main group, or no middle
+        group is free there; ``KeyError`` for an unknown range."""
+        state = self._state(project_id)
+        group_range = state.session.get(GroupRange, range_id)
+        target = state.session.get(GroupRange, main_group_id)
+        if group_range is None or target is None:
+            raise KeyError(f"No group range {range_id} or {main_group_id}")
+        if self._style(state) is not GroupAddressStyle.THREE_LEVEL:
+            raise ValueError("only the three-level style has middle groups")
+        if group_range.parent is None or target.parent is not None:
+            raise ValueError("only a middle group goes below a main group")
+        if group_range.parent_id == target.id:
+            return
+        used = {(child.range_start >> 8) & 7 for child in target.children}
+        own = (group_range.range_start >> 8) & 7
+        free = [own] if own not in used else [n for n in range(8) if n not in used]
+        if not free:
+            raise ValueError("the main group has no free middle group")
+        start = (target.range_start & ~0x7FF) | (free[0] << 8)
+        state.store.append(
+            MoveGroupRange(
+                range_id=range_id,
+                new_parent_id=target.id,
+                offset=start - group_range.range_start,
+            )
+        )
+
+    def move_group_address(
+        self, project_id: str, group_address_id: int, range_id: int
+    ) -> None:
+        """Put a group address into another group (a middle group, or a main group in the
+        two-level style): it keeps its number within the group when that is free there, else it
+        gets the lowest free one; its links move with it. Undoable.
+
+        Raises ``ValueError`` when the group holds no group addresses or has none free;
+        ``KeyError`` for an unknown group address or range."""
+        state = self._state(project_id)
+        ga = state.session.get(GroupAddress, group_address_id)
+        target = state.session.get(GroupRange, range_id)
+        if ga is None or target is None:
+            raise KeyError(f"No group address {group_address_id} or range {range_id}")
+        style = self._style(state)
+        holds = (
+            style is GroupAddressStyle.THREE_LEVEL and target.parent is not None
+        ) or (style is GroupAddressStyle.TWO_LEVEL and target.parent is None)
+        if not holds:
+            raise ValueError("this group holds no group addresses")
+        if ga.group_range_id == target.id:
+            return
+        used = {
+            address
+            for (address,) in state.session.query(GroupAddress.address)
+            .join(GroupRange, GroupAddress.group_range_id == GroupRange.id)
+            .filter(GroupRange.installation_id == target.installation_id)
+        }
+        own = target.range_start + (ga.address - ga.group_range.range_start)
+        candidates = [own] if target.range_start <= own <= target.range_end else []
+        candidates += range(max(target.range_start, 1), target.range_end + 1)
+        address = next((a for a in candidates if a not in used), None)
+        if address is None:
+            raise ValueError("the group has no free group address")
+        self.set_group_address_address(project_id, group_address_id, address)
 
     def comment(
         self, project_id: str, kind: str, element_id: int, field: str = "comment"

@@ -2709,3 +2709,12 @@ msgstr "Enheter i programmeringsmodus"
 
 msgid "Connecting"
 msgstr "Kobler til"
+
+msgid "Move middle group"
+msgstr "Flytt mellomgruppe"
+
+msgid "The group has no free group address."
+msgstr "Gruppen har ingen ledig gruppeadresse."
+
+msgid "The main group has no free middle group."
+msgstr "Hovedgruppen har ingen ledig mellomgruppe."

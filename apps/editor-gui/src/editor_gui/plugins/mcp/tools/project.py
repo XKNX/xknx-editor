@@ -3213,6 +3213,58 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         return ctx.run_locked(_set)
 
+    @tool("write")
+    def project_move_group_address(
+        group_range_id: int,
+        group_address_id: int | None = None,
+        group_address: str | None = None,
+    ) -> dict[str, Any]:
+        """Move a group address into another group, as its "Move to" does: ``group_range_id`` is
+        a middle group (a main group in the two-level style; ids from
+        project_list_group_ranges). It keeps its number within the group when that is free
+        there, else it gets the lowest free one; its links move with it and the linked devices
+        need a download of their group communication. Identify the group address by
+        ``group_address_id`` OR ``group_address`` (a printed address like "10/1/2"). Undoable
+        with project_undo. Returns the fields project_list_group_addresses lists, with the new
+        address."""
+        require_project(ctx)
+
+        def _move() -> dict[str, Any]:
+            ga_id = _require_group_address_id(group_address_id, group_address)
+            reason = project.move_group_address(ga_id, group_range_id)
+            if reason:
+                raise ToolError(reason)
+            g = project.get_group_address(ga_id)
+            if g is None:
+                raise ToolError(f"no group address with id {ga_id}")
+            return _ga_dict(g)
+
+        return ctx.run_locked(_move)
+
+    @tool("write")
+    def project_move_group_range(
+        group_range_id: int, main_group_id: int
+    ) -> dict[str, Any]:
+        """Move a middle group with its group addresses below another main group, as its "Move
+        to" does (three-level style; ids from project_list_group_ranges). It keeps its number
+        when that is free there, else it gets the lowest free one; its group addresses change
+        with it and the linked devices need a download of their group communication. Undoable
+        with project_undo. Returns the moved group as project_list_group_ranges lists it."""
+        require_project(ctx)
+
+        def _move() -> dict[str, Any]:
+            reason = project.move_group_range(group_range_id, main_group_id)
+            if reason:
+                raise ToolError(reason)
+            found = next(
+                (r for r in _group_ranges() if r["id"] == group_range_id), None
+            )
+            if found is None:
+                raise ToolError(f"no group range with id {group_range_id}")
+            return found
+
+        return ctx.run_locked(_move)
+
     @tool("destructive")
     def project_remove_group_address(
         group_address_id: int | None = None, group_address: str | None = None

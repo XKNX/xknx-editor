@@ -2894,3 +2894,12 @@ msgstr "Geräte im Programmiermodus"
 
 msgid "Connecting"
 msgstr "Wird verbunden"
+
+msgid "Move middle group"
+msgstr "Mittelgruppe verschieben"
+
+msgid "The group has no free group address."
+msgstr "Die Gruppe hat keine freie Gruppenadresse."
+
+msgid "The main group has no free middle group."
+msgstr "Die Hauptgruppe hat keine freie Mittelgruppe."

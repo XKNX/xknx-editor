@@ -2709,3 +2709,12 @@ msgstr "Ohjelmointitilassa olevat laitteet"
 
 msgid "Connecting"
 msgstr "Yhdistetään"
+
+msgid "Move middle group"
+msgstr "Siirrä keskiryhmä"
+
+msgid "The group has no free group address."
+msgstr "Ryhmässä ei ole vapaata ryhmäosoitetta."
+
+msgid "The main group has no free middle group."
+msgstr "Pääryhmässä ei ole vapaata keskiryhmää."

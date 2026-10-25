@@ -2833,25 +2833,12 @@ class SetGroupRangeAddress(Event):
     # Devices whose group communication was loaded before (the addresses are in their tables).
     cleared: dict[str, bool] = field(default_factory=dict[str, bool])
 
-    def _shift(self, session: Session, offset: int) -> set[int]:
-        group_range = session.get(GroupRange, self.range_id)
-        if group_range is None:
-            return set()
-        devices: set[int] = set()
-        for node in _range_subtree(group_range):
-            node.range_start += offset
-            node.range_end += offset
-            for ga in node.group_addresses:
-                ga.address += offset
-                devices |= _devices_on(session, ga.id)
-        return devices
-
     def apply(self, session: Session) -> None:
-        devices = self._shift(session, self.offset)
+        devices = _shift_group_range(session, self.range_id, self.offset)
         self.cleared = _clear_communication_loaded(session, devices)
 
     def revert(self, session: Session) -> None:
-        self._shift(session, -self.offset)
+        _shift_group_range(session, self.range_id, -self.offset)
         _restore_communication_loaded(session, self.cleared)
 
     def to_dict(self) -> dict[str, Any]:
@@ -2863,6 +2850,72 @@ class SetGroupRangeAddress(Event):
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> SetGroupRangeAddress:
+        return cls(**data)
+
+
+def _shift_group_range(session: Session, range_id: int, offset: int) -> set[int]:
+    """Move a group range, the ranges below it and their group addresses by ``offset``; the
+    devices linked to those group addresses."""
+    group_range = session.get(GroupRange, range_id)
+    if group_range is None:
+        return set()
+    devices: set[int] = set()
+    for node in _range_subtree(group_range):
+        node.range_start += offset
+        node.range_end += offset
+        for ga in node.group_addresses:
+            ga.address += offset
+            devices |= _devices_on(session, ga.id)
+    return devices
+
+
+@_register
+@dataclass
+class MoveGroupRange(Event):
+    """Put a middle group below another main group: it, the ranges below it and all their group
+    addresses move by ``offset`` (in raw address units), and the devices linked to them get their
+    group communication marked as not loaded, as for a renumbered group."""
+
+    event_type: ClassVar[str] = "MoveGroupRange"
+
+    range_id: int
+    new_parent_id: int
+    offset: int
+    old_parent_id: int | None = None
+    cleared: dict[str, bool] = field(default_factory=dict[str, bool])
+
+    def _reparent(self, session: Session, parent_id: int | None) -> None:
+        group_range = session.get(GroupRange, self.range_id)
+        if group_range is not None:
+            group_range.parent = (
+                session.get(GroupRange, parent_id) if parent_id is not None else None
+            )
+
+    def apply(self, session: Session) -> None:
+        group_range = session.get(GroupRange, self.range_id)
+        if group_range is None:
+            return
+        self.old_parent_id = group_range.parent_id
+        self._reparent(session, self.new_parent_id)
+        devices = _shift_group_range(session, self.range_id, self.offset)
+        self.cleared = _clear_communication_loaded(session, devices)
+
+    def revert(self, session: Session) -> None:
+        _shift_group_range(session, self.range_id, -self.offset)
+        self._reparent(session, self.old_parent_id)
+        _restore_communication_loaded(session, self.cleared)
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "range_id": self.range_id,
+            "new_parent_id": self.new_parent_id,
+            "offset": self.offset,
+            "old_parent_id": self.old_parent_id,
+            "cleared": self.cleared,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> MoveGroupRange:
         return cls(**data)
 
 

@@ -2709,3 +2709,12 @@ msgstr "Устройства в режиме программирования"
 
 msgid "Connecting"
 msgstr "Подключение"
+
+msgid "Move middle group"
+msgstr "Переместить среднюю группу"
+
+msgid "The group has no free group address."
+msgstr "В группе нет свободного группового адреса."
+
+msgid "The main group has no free middle group."
+msgstr "В главной группе нет свободной средней группы."

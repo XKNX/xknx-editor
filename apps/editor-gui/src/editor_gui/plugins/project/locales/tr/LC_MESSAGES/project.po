@@ -2709,3 +2709,12 @@ msgstr "Programlama Modundaki Cihazlar"
 
 msgid "Connecting"
 msgstr "Bağlanıyor"
+
+msgid "Move middle group"
+msgstr "Orta grubu taşı"
+
+msgid "The group has no free group address."
+msgstr "Grupta boş grup adresi yok."
+
+msgid "The main group has no free middle group."
+msgstr "Ana grupta boş orta grup yok."

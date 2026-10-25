@@ -574,6 +574,7 @@ _HISTORY_LABELS: dict[str, Callable[[dict[str, Any]], str]] = {
         else S.HISTORY_EV_SET_GROUP_RANGE_DESCRIPTION
     ),
     "SetGroupRangeAddress": lambda d: S.HISTORY_EV_SET_GROUP_RANGE_ADDRESS,
+    "MoveGroupRange": lambda d: S.HISTORY_EV_MOVE_GROUP_RANGE,
     "SetComment": lambda d: (
         S.HISTORY_EV_SET_INSTALLATION_HINTS
         if d.get("field") == "installation_hints"
@@ -5415,6 +5416,38 @@ class ProjectService:
             return False
         self._bump(structural=True)
         return True
+
+    def move_group_address(self, ga_id: int, range_id: int) -> str | None:
+        """Put a group address into another group ("Move to"): it keeps its number within the
+        group when free, else gets the lowest free one; undoable. The reason it cannot be, or
+        None."""
+        if self._pid is None:
+            return None
+        try:
+            self._svc.move_group_address(self._pid, ga_id, range_id)
+        except KeyError as exc:
+            return str(exc.args[0])
+        except ValueError as exc:
+            # The menu offers only groups that hold group addresses; others come from MCP.
+            return S.GA_MOVE_NO_FREE if "no free" in str(exc) else str(exc)
+        self._bump()
+        return None
+
+    def move_group_range(self, range_id: int, main_group_id: int) -> str | None:
+        """Put a middle group with its group addresses below another main group ("Move to"):
+        it keeps its number when free, else gets the lowest free one; undoable. The reason it
+        cannot be, or None."""
+        if self._pid is None:
+            return None
+        try:
+            self._svc.move_group_range(self._pid, range_id, main_group_id)
+        except KeyError as exc:
+            return str(exc.args[0])
+        except ValueError as exc:
+            # The menu offers only main groups for middle groups; others come from MCP.
+            return S.GROUP_MOVE_NO_FREE if "no free" in str(exc) else str(exc)
+        self._bump()
+        return None
 
     def set_group_address_dpt(self, ga_id: int, dpt: str | None) -> None:
         if self._pid is None:

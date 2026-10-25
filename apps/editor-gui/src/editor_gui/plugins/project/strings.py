@@ -488,6 +488,18 @@ class ProjectStrings:
         return _("Set group range address")
 
     @property
+    def HISTORY_EV_MOVE_GROUP_RANGE(self) -> str:
+        return _("Move middle group")
+
+    @property
+    def GA_MOVE_NO_FREE(self) -> str:
+        return _("The group has no free group address.")
+
+    @property
+    def GROUP_MOVE_NO_FREE(self) -> str:
+        return _("The main group has no free middle group.")
+
+    @property
     def COMMENT_INSTALLATION_HINTS(self) -> str:
         return _("Installation Hints")
 

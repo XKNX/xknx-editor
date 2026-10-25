@@ -2709,3 +2709,12 @@ msgstr "Συσκευές σε Κατάσταση Προγραμματισμού"
 
 msgid "Connecting"
 msgstr "Σύνδεση"
+
+msgid "Move middle group"
+msgstr "Μετακίνηση μεσαίας ομάδας"
+
+msgid "The group has no free group address."
+msgstr "Η ομάδα δεν έχει ελεύθερη διεύθυνση ομάδας."
+
+msgid "The main group has no free middle group."
+msgstr "Η κύρια ομάδα δεν έχει ελεύθερη μεσαία ομάδα."

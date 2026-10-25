@@ -17,6 +17,7 @@ from editor_gui.plugins.project.strings import S
 from editor_gui.plugins.project.ui._filter import filter_box
 from editor_gui.plugins.project.ui.config_dialog import DeviceConfigDialog
 from editor_gui.plugins.project.ui.devices import render_read_device_item
+from editor_gui.plugins.project.ui.move_menu import render_move_menu
 from editor_gui.plugins.project.ui.status_field import USAGE_ROWS as _USAGE_ROWS
 from editor_gui.widgets.backgrounds import fill_content_background
 from editor_gui.widgets.combo import combo
@@ -93,24 +94,6 @@ def _parent_id(
         return None
 
     return walk(tree, None)
-
-
-def _render_move_menu(
-    targets: list[tuple[str, int | None]], parent: int | None
-) -> tuple[int | None] | None:
-    """The "Move to" submenu: each target (its menu text and id, None for the top level),
-    the one it is in already (``parent``) grayed out. Not shown when no other target is
-    left. The target chosen (in a tuple, as None is the top level), or None."""
-    if all(target == parent for _text, target in targets):
-        return None
-    if not imgui.begin_menu(S.SPACES_MOVE_TO):
-        return None
-    chosen: tuple[int | None] | None = None
-    for text, target in targets:
-        if imgui.menu_item(text, "", False, target != parent)[0]:
-            chosen = (target,)
-    imgui.end_menu()
-    return chosen
 
 
 def _add_dialog(key: str) -> str:
@@ -391,11 +374,14 @@ class SpacesPanel:
             if space.space_type in child_types(None):
                 targets.append((S.SPACES_MOVE_ROOT, None))
             targets.extend(
-                (f"{'  ' * depth}{space_label(target)}##mv{space.id}_{target.id}", target.id)
+                (
+                    f"{'  ' * depth}{space_label(target)}##mv{space.id}_{target.id}",
+                    target.id,
+                )
                 for target, depth in self._move_targets(space.id, space.space_type)
             )
             parent = _parent_id(self._get_space_tree(), space.id)
-            chosen = _render_move_menu(targets, parent)
+            chosen = render_move_menu(targets, parent)
             if chosen is not None:
                 self._report(self._on_move_space(space.id, chosen[0]))
         if (
@@ -818,7 +804,7 @@ class SpacesPanel:
                 for target, depth in self._trade_targets(trade.id)
             )
             parent = _parent_id(self._get_trade_tree(), trade.id)
-            chosen = _render_move_menu(targets, parent)
+            chosen = render_move_menu(targets, parent)
             if chosen is not None:
                 self._on_move_trade(trade.id, chosen[0])
         if (

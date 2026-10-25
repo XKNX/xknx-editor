@@ -2709,3 +2709,12 @@ msgstr "Dispositivos em Modo de Programação"
 
 msgid "Connecting"
 msgstr "A ligar"
+
+msgid "Move middle group"
+msgstr "Mover grupo intermédio"
+
+msgid "The group has no free group address."
+msgstr "O grupo não tem nenhum endereço de grupo livre."
+
+msgid "The main group has no free middle group."
+msgstr "O grupo principal não tem nenhum grupo intermédio livre."

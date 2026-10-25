@@ -2709,3 +2709,12 @@ msgstr "处于编程模式的设备"
 
 msgid "Connecting"
 msgstr "正在连接"
+
+msgid "Move middle group"
+msgstr "移动中间组"
+
+msgid "The group has no free group address."
+msgstr "该组没有空闲的组地址。"
+
+msgid "The main group has no free middle group."
+msgstr "该主组没有空闲的中间组。"

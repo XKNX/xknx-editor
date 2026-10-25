@@ -2709,3 +2709,12 @@ msgstr "プログラミング・モードのデバイス"
 
 msgid "Connecting"
 msgstr "接続中"
+
+msgid "Move middle group"
+msgstr "中間グループを移動"
+
+msgid "The group has no free group address."
+msgstr "このグループには空いているグループアドレスがありません。"
+
+msgid "The main group has no free middle group."
+msgstr "このメイングループには空いている中間グループがありません。"
