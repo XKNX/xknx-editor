@@ -2918,3 +2918,9 @@ msgstr "Nieuwe middengroep"
 
 msgid "New group address"
 msgstr "Nieuw groepsadres"
+
+msgid "Cut"
+msgstr "Knippen"
+
+msgid "What was cut cannot be moved there."
+msgstr "Wat geknipt is, kan daar niet naartoe worden verplaatst."

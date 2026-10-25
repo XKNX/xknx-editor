@@ -2880,3 +2880,9 @@ msgstr "Новая средняя группа"
 
 msgid "New group address"
 msgstr "Новый групповой адрес"
+
+msgid "Cut"
+msgstr "Вырезать"
+
+msgid "What was cut cannot be moved there."
+msgstr "Вырезанное нельзя переместить туда."

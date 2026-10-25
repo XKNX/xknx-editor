@@ -6865,6 +6865,99 @@ class ProjectService:
         self._log.info("pasted", kind=kind, sources=len(ids), copies=len(created))
         return created
 
+    def move_pasted(
+        self, kind: PasteKind, ids: list[int], target: PasteTarget
+    ) -> str | None:
+        """Paste what "Cut" took: move the elements ``ids`` of ``kind`` to ``target`` as their
+        "Move to" or a drop does, all in one undo step; the reason it cannot be (what moved
+        before stays moved), or None."""
+        if self._pid is None:
+            return None
+        with self.one_undo_step():
+            for ident in ids:
+                reason = self._move_to(kind, ident, target)
+                if reason:
+                    return reason
+        return None
+
+    def _move_to(self, kind: PasteKind, ident: int, target: PasteTarget) -> str | None:
+        """Move one element (see :meth:`move_pasted`)."""
+        place = target.element_id
+        try:
+            if kind == "device":
+                return self._move_device_to(ident, target)
+            if kind == "space" and target.kind == "space":
+                return self.move_space(ident, place)
+            if kind == "trade" and target.kind == "trade":
+                self.move_trade(ident, place)
+                return None
+            if kind == "function" and target.kind == "space" and place is not None:
+                self.move_function(ident, place)
+                return None
+            if kind == "line" and target.kind == "area" and place is not None:
+                return self.move_line(ident, place)
+            if kind == "segment" and place is not None:
+                line = self._line_of_target(target)
+                if line is not None:
+                    return self.move_segment(ident, line)
+            if kind == "group_address" and target.kind == "group_range" and place:
+                return self.move_group_address(ident, place)
+            if kind == "group_range" and target.kind == "group_range" and place:
+                return self.move_group_range(ident, place)
+        except MediumError as error:
+            return medium_error_text(error)
+        except ValueError as error:
+            return str(error)
+        return S.PASTE_CANNOT_MOVE
+
+    def _line_of_target(self, target: PasteTarget) -> int | None:
+        """The line a segment pasted on ``target`` goes to: the line itself, a segment's line,
+        an area's main line."""
+        if target.element_id is None:
+            return None
+        if target.kind == "line":
+            return target.element_id
+        if target.kind == "segment":
+            segment = self.find_segment(target.element_id)
+            if segment is not None:
+                return segment.line_id
+            line = next(
+                (
+                    ln
+                    for lines in (self._lines_cache or {}).values()
+                    for ln in lines
+                    if ln.main_segment_id == target.element_id
+                ),
+                None,
+            )
+            return line.id if line is not None else None
+        if target.kind == "area":
+            main = self._main_line(target.element_id)
+            return main.id if main is not None else None
+        return None
+
+    def _move_device_to(self, node_id: int, target: PasteTarget) -> str | None:
+        """A cut device pasted on ``target``: onto a segment, into a building part, or into a
+        trade (out of the trades it was in)."""
+        place = target.element_id
+        if target.kind == "segment" and place is not None:
+            self.move_device_to_segment(node_id, place)
+            return None
+        if target.kind == "space":
+            return self.set_device_space(node_id, place)
+        if target.kind == "trade" and place is not None:
+            stack = list(self.get_trade_tree())
+            while stack:
+                trade = stack.pop()
+                stack.extend(trade.children)
+                if trade.id != place and any(
+                    d.device.id == node_id for d in trade.devices
+                ):
+                    self.remove_trade_device(trade.id, node_id)
+            self.add_trade_device(place, node_id)
+            return None
+        return S.PASTE_CANNOT_MOVE
+
     def paste_names(self, kind: PasteKind, ids: list[int]) -> list[str]:
         """The names of the elements a paste copies, as the Paste Special dialog lists them."""
         paster = self._paster()

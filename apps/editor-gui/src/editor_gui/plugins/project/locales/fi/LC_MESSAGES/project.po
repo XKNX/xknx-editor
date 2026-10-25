@@ -2880,3 +2880,9 @@ msgstr "Uusi keskiryhmä"
 
 msgid "New group address"
 msgstr "Uusi ryhmäosoite"
+
+msgid "Cut"
+msgstr "Leikkaa"
+
+msgid "What was cut cannot be moved there."
+msgstr "Leikattua ei voi siirtää sinne."

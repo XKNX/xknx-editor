@@ -2880,3 +2880,9 @@ msgstr "Nouveau groupe médian"
 
 msgid "New group address"
 msgstr "Nouvelle adresse de groupe"
+
+msgid "Cut"
+msgstr "Couper"
+
+msgid "What was cut cannot be moved there."
+msgstr "L'élément coupé ne peut pas être déplacé ici."

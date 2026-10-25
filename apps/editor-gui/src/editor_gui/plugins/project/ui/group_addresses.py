@@ -30,6 +30,7 @@ from editor_gui.plugins.project.ui.group_value import GroupValueActions
 from editor_gui.plugins.project.ui.move_menu import render_move_menu
 from editor_gui.plugins.project.ui.paste_special import (
     PasteSpecialDialog,
+    ShortcutRow,
     render_copy_item,
 )
 from editor_gui.plugins.project.ui.tree_drag import Dragged, drag_source, drop_target
@@ -106,6 +107,8 @@ class GroupAddressesPanel:
         self._one_undo_step = one_undo_step
         # The "Add …" dialog of main groups, middle groups and group addresses.
         self._adder = AddDialog("group_addresses")
+        # The selected row as Ctrl+C/X/V take it, found each frame.
+        self._shortcut_row: ShortcutRow | None = None
         self._paste_dialog = paste_dialog
         self._on_move_ga = on_move_ga
         self._on_move_range = on_move_range
@@ -226,8 +229,11 @@ class GroupAddressesPanel:
             if imgui.begin_popup_context_window("##ga_tree_ctx"):
                 self._render_create_menu_items()
                 imgui.end_popup()
+            self._shortcut_row = None
             for node in tree:
                 self._render_range(node, flt, is_root=True)
+            if self._paste_dialog is not None:
+                self._paste_dialog.handle_shortcuts(self._shortcut_row)
         imgui.end_child()
         # Reveal is a one-frame action: ancestors were force-opened and the GA scrolled into view.
         self._reveal_ga_id = None
@@ -335,6 +341,12 @@ class GroupAddressesPanel:
         )
         if node.id == self._selected_range_id:
             flags |= imgui.TreeNodeFlags_.selected
+            self._shortcut_row = ShortcutRow(
+                Dragged("group_range", (node.id,)),
+                lambda c: self._range_copy_target(node, is_root, c),
+                # A main group stays where it is.
+                movable=not is_root,
+            )
         open_node = tree_node(label, flags)
         if imgui.is_item_clicked() and not imgui.is_item_toggled_open():
             self._selected_range_id = node.id
@@ -436,6 +448,15 @@ class GroupAddressesPanel:
             if flt and not self._ga_matches(ga, flt):
                 continue
             selected = ga.id == self._selected_ga_id and self._selected_range_id is None
+            if selected:
+                self._shortcut_row = ShortcutRow(
+                    Dragged("group_address", (ga.id,)),
+                    lambda c, group=node: (
+                        PasteTarget("group_range", group.id)
+                        if c.kind == "group_address"
+                        else None
+                    ),
+                )
             name = f"{ga.text}  {ga.name}"
             # Full-width row so the whole line is the click / right-click target and the name stays
             # fully visible; the last value seen on the bus is drawn after it (dimmed accent) and
@@ -614,7 +635,8 @@ class GroupAddressesPanel:
             self._render_move_range_menu(node.id)
         if self._paste_dialog is not None:
             imgui.separator()
-            render_copy_item(Dragged("group_range", (node.id,)))
+            # A main group cannot be moved: no "Cut".
+            render_copy_item(Dragged("group_range", (node.id,)), movable=not is_root)
             self._paste_dialog.render_paste_items(
                 lambda c: self._range_copy_target(node, is_root, c)
             )

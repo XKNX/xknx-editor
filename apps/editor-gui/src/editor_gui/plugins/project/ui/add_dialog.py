@@ -261,7 +261,8 @@ class AddDialog:
             if imgui.button("-##remove", imgui.ImVec2(remove_width, 0.0)):
                 removed = index
             imgui.end_disabled()
-            if imgui.is_item_hovered(imgui.HoveredFlags_.allow_when_disabled):
+            # A disabled button tells nothing.
+            if imgui.is_item_hovered():
                 imgui.set_tooltip(S.ADD_REMOVE_ROW)
             imgui.pop_id()
         if removed is not None:

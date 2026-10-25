@@ -2880,3 +2880,9 @@ msgstr "Yeni orta grup"
 
 msgid "New group address"
 msgstr "Yeni grup adresi"
+
+msgid "Cut"
+msgstr "Kes"
+
+msgid "What was cut cannot be moved there."
+msgstr "Kesilen öğe oraya taşınamaz."

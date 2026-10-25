@@ -4,11 +4,15 @@ its defaults every time.
 
 The trees' context menus copy and paste too: "Copy" puts an element on the clipboard (one for all
 trees), "Paste" makes a copy of it where the menu was opened, "Paste Special…" asks how first.
+"Cut" puts it on the clipboard to be moved: the next "Paste" moves it there (no "Paste
+Special…" then), and the clipboard is empty again. The keyboard does the same on the element
+selected in a tree: Ctrl+C, Ctrl+X and Ctrl+V (Cmd on a Mac).
 """
 
 from __future__ import annotations
 
 from collections.abc import Callable
+from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 from imgui_bundle import imgui
@@ -44,20 +48,50 @@ _DEFAULT_RANGE = {
 
 
 class _Clipboard:
-    """What "Copy" in a tree's context menu copied last."""
+    """What "Copy" or "Cut" in a tree's context menu took last, and whether it was cut."""
 
     copied: Dragged | None = None
+    cut = False
 
 
-def render_copy_item(copied: Dragged) -> None:
-    """The "Copy" item of a tree row's context menu; ``copied`` is what it copies."""
+def _take(copied: Dragged, *, cut: bool) -> None:
+    _Clipboard.copied = copied
+    _Clipboard.cut = cut
+
+
+def render_copy_item(copied: Dragged, *, movable: bool = True) -> None:
+    """The "Copy" and "Cut" items of a tree row's context menu; ``copied`` is what they take.
+    ``movable`` False: it cannot be moved (a main group), so no "Cut"."""
     if imgui.menu_item(S.CONTEXT_COPY, "", False)[0]:
-        _Clipboard.copied = copied
+        _take(copied, cut=False)
+    if movable and imgui.menu_item(S.CONTEXT_CUT, "", False)[0]:
+        _take(copied, cut=True)
 
 
 def copied() -> Dragged | None:
-    """What "Copy" copied last, None before."""
+    """What "Copy" or "Cut" took last, None before (and after the paste of a cut one)."""
     return _Clipboard.copied
+
+
+def is_cut() -> bool:
+    """Whether what is on the clipboard was cut (a paste moves it)."""
+    return _Clipboard.copied is not None and _Clipboard.cut
+
+
+@dataclass(frozen=True)
+class ShortcutRow:
+    """The element selected in a tree, as the keyboard copies and pastes it: what Ctrl+C and
+    Ctrl+X take (None: nothing), where Ctrl+V pastes (as its "Paste" item) and whether it can
+    be moved (Ctrl+X)."""
+
+    copied: Dragged | None
+    target_for: Callable[[Dragged], PasteTarget | None]
+    movable: bool = True
+
+
+def _chord(key: imgui.Key) -> int:
+    """Ctrl with ``key``; imgui gives Cmd on a Mac as Ctrl."""
+    return int(imgui.Key.mod_ctrl) | int(key)
 
 
 def _flat(ranges: list[GroupRangeInfo]) -> list[GroupRangeInfo]:
@@ -89,12 +123,17 @@ class PasteSpecialDialog:
             [PasteKind, list[int], PasteTarget, PasteOptions], str | None
         ],
         notify: Callable[[str], None] = lambda _text: None,
+        on_move: Callable[[PasteKind, list[int], PasteTarget], str | None]
+        | None = None,
     ) -> None:
+        """``on_move`` moves what was cut to where it is pasted, giving the reason it cannot
+        (no "Cut" without it)."""
         self._title = f"{S.PASTE_TITLE}###paste_{dialog_id}"
         self._group_style = group_style
         self._group_ranges = group_ranges
         self._names = names
         self._on_paste = on_paste
+        self._on_move = on_move
         self._notify = notify
         self._pending: tuple[PasteKind, list[int], PasteTarget] | None = None
         self._open = False
@@ -125,20 +164,56 @@ class PasteSpecialDialog:
         self, target_for: Callable[[Dragged], PasteTarget | None]
     ) -> None:
         """The "Paste" and "Paste Special…" items of a tree row's context menu: what "Copy"
-        copied goes where ``target_for`` says (None: not here, the items are disabled)."""
+        copied goes where ``target_for`` says (None: not here, the items are disabled); what
+        "Cut" took moves there."""
         clip = _Clipboard.copied
         target = target_for(clip) if clip is not None else None
         enabled = clip is not None and target is not None
         paste = imgui.menu_item(S.CONTEXT_PASTE, "", False, enabled)[0]
-        special = imgui.menu_item(S.CONTEXT_PASTE_SPECIAL, "", False, enabled)[0]
+        special = imgui.menu_item(
+            S.CONTEXT_PASTE_SPECIAL, "", False, enabled and not is_cut()
+        )[0]
+        if paste:
+            self.paste(target_for)
+        if special and clip is not None and target is not None:
+            self.open(clip.kind, list(clip.ids), target)
+
+    def paste(self, target_for: Callable[[Dragged], PasteTarget | None]) -> None:
+        """Paste what is on the clipboard where ``target_for`` says: a copy of what was copied,
+        what was cut moved there (and taken off the clipboard). Nothing when it does not go
+        there."""
+        clip = _Clipboard.copied
+        target = target_for(clip) if clip is not None else None
         if clip is None or target is None:
             return
-        if paste:
+        if is_cut():
+            if self._on_move is None:
+                return
+            error = self._on_move(clip.kind, list(clip.ids), target)
+            if not error:
+                _Clipboard.copied = None
+                _Clipboard.cut = False
+        else:
             error = self._on_paste(clip.kind, list(clip.ids), target, PasteOptions())
-            if error:
-                self._notify(error)
-        if special:
-            self.open(clip.kind, list(clip.ids), target)
+        if error:
+            self._notify(error)
+
+    def handle_shortcuts(self, row: ShortcutRow | None) -> None:
+        """Ctrl+C, Ctrl+X and Ctrl+V on the element selected in the tree (``row``), while the
+        tree has the keyboard and no text is typed. Called inside the tree's window."""
+        if row is None or imgui.get_io().want_text_input:
+            return
+        if row.copied is not None and imgui.shortcut(_chord(imgui.Key.c)):
+            _take(row.copied, cut=False)
+        if (
+            row.copied is not None
+            and row.movable
+            and self._on_move is not None
+            and imgui.shortcut(_chord(imgui.Key.x))
+        ):
+            _take(row.copied, cut=True)
+        if imgui.shortcut(_chord(imgui.Key.v)):
+            self.paste(row.target_for)
 
     def options(self) -> PasteOptions:
         """The options chosen."""

@@ -234,7 +234,8 @@ class GroupObjectsTable:
                 if imgui.button(paste):
                     self._paste_to_checked(device, com_objects)
                 imgui.end_disabled()
-                if imgui.is_item_hovered(imgui.HoveredFlags_.allow_when_disabled):
+                # A disabled button tells nothing.
+                if imgui.is_item_hovered():
                     imgui.set_tooltip(S.GROUP_OBJECTS_PASTE_LINKS_HINT)
                 same_line_if_fits(checkbox_width(S.GROUP_OBJECTS_PASTE_MERGE))
                 _, self._paste_merge = checkbox(

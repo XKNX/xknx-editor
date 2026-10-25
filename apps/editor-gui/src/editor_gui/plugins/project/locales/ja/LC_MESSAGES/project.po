@@ -2880,3 +2880,9 @@ msgstr "新しいミドルグループ"
 
 msgid "New group address"
 msgstr "新しいグループアドレス"
+
+msgid "Cut"
+msgstr "切り取り"
+
+msgid "What was cut cannot be moved there."
+msgstr "切り取ったものはそこへ移動できません。"

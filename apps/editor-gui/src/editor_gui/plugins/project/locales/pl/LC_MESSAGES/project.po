@@ -2880,3 +2880,9 @@ msgstr "Nowa grupa pośrednia"
 
 msgid "New group address"
 msgstr "Nowy adres grupowy"
+
+msgid "Cut"
+msgstr "Wytnij"
+
+msgid "What was cut cannot be moved there."
+msgstr "Wyciętego elementu nie można tam przenieść."

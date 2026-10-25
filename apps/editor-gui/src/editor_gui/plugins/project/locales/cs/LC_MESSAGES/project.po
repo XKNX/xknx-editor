@@ -2880,3 +2880,9 @@ msgstr "Nová střední skupina"
 
 msgid "New group address"
 msgstr "Nová skupinová adresa"
+
+msgid "Cut"
+msgstr "Vyjmout"
+
+msgid "What was cut cannot be moved there."
+msgstr "Vyjmutý prvek sem nelze přesunout."

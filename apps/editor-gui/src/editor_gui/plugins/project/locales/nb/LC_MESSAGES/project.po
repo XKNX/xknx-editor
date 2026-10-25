@@ -2880,3 +2880,9 @@ msgstr "Ny mellomgruppe"
 
 msgid "New group address"
 msgstr "Ny gruppeadresse"
+
+msgid "Cut"
+msgstr "Klipp ut"
+
+msgid "What was cut cannot be moved there."
+msgstr "Det som ble klippet ut, kan ikke flyttes dit."

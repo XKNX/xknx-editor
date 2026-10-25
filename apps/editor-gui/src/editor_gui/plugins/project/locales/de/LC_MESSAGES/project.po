@@ -3065,3 +3065,9 @@ msgstr "Neue Mittelgruppe"
 
 msgid "New group address"
 msgstr "Neue Gruppenadresse"
+
+msgid "Cut"
+msgstr "Ausschneiden"
+
+msgid "What was cut cannot be moved there."
+msgstr "Das Ausgeschnittene kann nicht dorthin verschoben werden."

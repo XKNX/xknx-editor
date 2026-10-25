@@ -23,6 +23,7 @@ from editor_gui.plugins.project.ui.config_dialog import DeviceConfigDialog
 from editor_gui.plugins.project.ui.move_menu import render_move_menu
 from editor_gui.plugins.project.ui.paste_special import (
     PasteSpecialDialog,
+    ShortcutRow,
     render_copy_item,
 )
 from editor_gui.plugins.project.ui.tree_drag import Dragged, drag_source, drop_target
@@ -209,6 +210,9 @@ class TopologyPanel:
         self._on_create_line = on_create_line
         self._on_remove_line = on_remove_line
         self._filter_text: str = ""
+        # The selected row as Ctrl+C/X/V take it, and the devices selected, found each frame.
+        self._shortcut_row: ShortcutRow | None = None
+        self._selected_devices: set[int] = set()
 
         self._delete_target_device: TreeDevice | None = None
         self._open_delete_device_popup: bool = False
@@ -226,7 +230,10 @@ class TopologyPanel:
         )
         flt = self._filter_text.strip().lower()
         begin_tree_area("##topology_tree")
+        self._shortcut_row = None
         self._render_tree(devices, areas, device_tree, unassigned_devices, flt)
+        if self._paste_dialog is not None:
+            self._paste_dialog.handle_shortcuts(self._shortcut_row)
         imgui.end_child()
 
     def _render_tree(
@@ -272,6 +279,7 @@ class TopologyPanel:
         target = self._get_selected_topology()
         if target is not None:
             selected_ids = set[int]()
+        self._selected_devices = selected_ids
 
         def _leaf(device: TreeDevice) -> int:
             flags = leaf_flags
@@ -326,6 +334,13 @@ class TopologyPanel:
                 area_flags |= imgui.TreeNodeFlags_.leaf
             if target == (kind, area.id):
                 area_flags |= imgui.TreeNodeFlags_.selected
+                if main is not None:
+                    self._shortcut_row = ShortcutRow(
+                        None,
+                        lambda c, a=area, m=main: self._line_copy_target(
+                            a, m, c, area_node=True
+                        ),
+                    )
             if flt:
                 imgui.set_next_item_open(True, imgui.Cond_.always)
             # The context menu belongs to the node whether it is open or closed.
@@ -386,6 +401,10 @@ class TopologyPanel:
             flags |= imgui.TreeNodeFlags_.leaf
         if self._get_selected_topology() == ("line", line.id):
             flags |= imgui.TreeNodeFlags_.selected
+            self._shortcut_row = ShortcutRow(
+                Dragged("line", (line.id,)),
+                lambda c: self._line_copy_target(area, line, c),
+            )
         if self._filter_text.strip():
             imgui.set_next_item_open(True, imgui.Cond_.always)
         label = self._format_line_label(area, line)
@@ -443,6 +462,12 @@ class TopologyPanel:
             flags |= imgui.TreeNodeFlags_.leaf
         if self._get_selected_topology() == ("segment", segment.id):
             flags |= imgui.TreeNodeFlags_.selected
+            self._shortcut_row = ShortcutRow(
+                Dragged("segment", (segment.id,)),
+                lambda c: (
+                    PasteTarget("segment", segment.id) if c.kind == "device" else None
+                ),
+            )
         if self._filter_text.strip():
             imgui.set_next_item_open(True, imgui.Cond_.always)
         label = self._format_segment_label(area, line, segment)
@@ -490,6 +515,16 @@ class TopologyPanel:
             imgui.set_tooltip(S.DEVICE_PRODUCT_DATA_MISSING)
             return
         tree_node(self._device_label(device), leaf(device))
+        if device.node_id in self._selected_devices and self._shortcut_row is None:
+            segment = self._get_device_segments().get(device.node_id)
+            self._shortcut_row = ShortcutRow(
+                self._dragged_devices(device),
+                lambda c: (
+                    PasteTarget("segment", segment)
+                    if c.kind == "device" and segment is not None
+                    else None
+                ),
+            )
         if imgui.is_item_clicked():
             self._handle_device_click(device, ordered_ids)
         self._render_device_context_menu(device)

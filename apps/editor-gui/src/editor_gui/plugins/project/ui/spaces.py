@@ -28,6 +28,7 @@ from editor_gui.plugins.project.ui.config_dialog import DeviceConfigDialog
 from editor_gui.plugins.project.ui.move_menu import render_move_menu
 from editor_gui.plugins.project.ui.paste_special import (
     PasteSpecialDialog,
+    ShortcutRow,
     render_copy_item,
 )
 from editor_gui.plugins.project.ui.topology import render_read_device_item
@@ -206,6 +207,8 @@ class SpacesPanel:
         self._selected_trade: int | None = None
         # The "Add …" dialog of building parts and trades.
         self._adder = AddDialog("buildings")
+        # The selected row as Ctrl+C/X/V take it, found each frame.
+        self._shortcut_row: ShortcutRow | None = None
         self._trade_device_filter = ""
         # Selecting a function (its comment shows in the Comment tab).
         self._on_select_element = on_select_element
@@ -267,7 +270,10 @@ class SpacesPanel:
         )
         flt = self._filter_text.strip().lower()
         begin_tree_area("##spaces_tree")
+        self._shortcut_row = None
         self._render_tree(tree, flt)
+        if self._paste_dialog is not None:
+            self._paste_dialog.handle_shortcuts(self._shortcut_row)
         imgui.end_child()
         self._config_dialog.render()
         self._adder.render()
@@ -483,6 +489,10 @@ class SpacesPanel:
         )
         if space.id == selected and self._selected_function is None:
             flags |= imgui.TreeNodeFlags_.selected
+            self._shortcut_row = ShortcutRow(
+                Dragged("space", (space.id,)),
+                lambda c: self._space_copy_target(space, c),
+            )
         open_node = tree_node(f"{space_label(space)}##sp{space.id}", flags)
         if (
             self._on_select_space is not None
@@ -861,6 +871,11 @@ class SpacesPanel:
         )
         # The same device can be in a space and in trades: the ids stay apart per place.
         where = f"t{trade_id}" if trade_id is not None else ""
+        if selected and self._shortcut_row is None:
+            self._shortcut_row = ShortcutRow(
+                Dragged("device", (device.id,)),
+                lambda c: self._beside_device_target(space_id, trade_id, c),
+            )
         # allow_overlap: the "Without space" section draws an "Assign device" button via
         # same_line() over this full-width selectable. Without the flag the selectable (submitted
         # first) claims the click and the button never fires.
@@ -997,6 +1012,10 @@ class SpacesPanel:
         )
         if self._selected_trade == trade.id:
             flags |= imgui.TreeNodeFlags_.selected
+            self._shortcut_row = ShortcutRow(
+                Dragged("trade", (trade.id,)),
+                lambda c: self._trade_copy_target(trade, c),
+            )
         label = f"{trade.number} {trade.name}".strip() or S.TRADES_DEFAULT
         open_node = tree_node(f"{label}##trade{trade.id}", flags)
         if imgui.is_item_clicked() and not imgui.is_item_toggled_open():
@@ -1172,6 +1191,10 @@ class SpacesPanel:
         )
         if self._selected_function == function.id:
             flags |= imgui.TreeNodeFlags_.selected
+            self._shortcut_row = ShortcutRow(
+                Dragged("function", (function.id,)),
+                lambda c: self._beside_device_target(space_id, None, c),
+            )
         open_node = tree_node(f"ƒ {label}  [{type_label}]##fn{function.id}", flags)
         if imgui.is_item_clicked() and not imgui.is_item_toggled_open():
             self._selected_function = function.id

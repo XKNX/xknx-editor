@@ -2880,3 +2880,9 @@ msgstr "新中间组"
 
 msgid "New group address"
 msgstr "新组地址"
+
+msgid "Cut"
+msgstr "剪切"
+
+msgid "What was cut cannot be moved there."
+msgstr "剪切的内容无法移动到该处。"

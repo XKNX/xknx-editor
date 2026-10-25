@@ -2020,6 +2020,7 @@ class ProjectPlugin:
             names=project.paste_names,
             on_paste=self._paste,
             notify=self._report,
+            on_move=project.move_pasted,
         )
 
     def _paste(

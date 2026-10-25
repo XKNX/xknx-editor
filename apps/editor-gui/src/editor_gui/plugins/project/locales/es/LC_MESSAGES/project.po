@@ -2880,3 +2880,9 @@ msgstr "Nuevo grupo intermedio"
 
 msgid "New group address"
 msgstr "Nueva dirección de grupo"
+
+msgid "Cut"
+msgstr "Cortar"
+
+msgid "What was cut cannot be moved there."
+msgstr "Lo cortado no se puede mover ahí."

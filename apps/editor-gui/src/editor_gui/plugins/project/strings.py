@@ -552,6 +552,14 @@ class ProjectStrings:
         return _("Copy")
 
     @property
+    def CONTEXT_CUT(self) -> str:
+        return _("Cut")
+
+    @property
+    def PASTE_CANNOT_MOVE(self) -> str:
+        return _("What was cut cannot be moved there.")
+
+    @property
     def CONTEXT_PASTE(self) -> str:
         return _("Paste")
 

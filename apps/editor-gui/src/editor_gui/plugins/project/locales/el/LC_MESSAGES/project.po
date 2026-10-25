@@ -2880,3 +2880,9 @@ msgstr "Νέα μεσαία ομάδα"
 
 msgid "New group address"
 msgstr "Νέα διεύθυνση ομάδας"
+
+msgid "Cut"
+msgstr "Αποκοπή"
+
+msgid "What was cut cannot be moved there."
+msgstr "Αυτό που αποκόπηκε δεν μπορεί να μετακινηθεί εκεί."
