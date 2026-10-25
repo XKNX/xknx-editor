@@ -3,7 +3,7 @@ import contextlib
 import math
 import threading
 import time
-from collections.abc import Callable, Coroutine
+from collections.abc import Callable, Coroutine, Iterable
 from concurrent.futures import Future
 from enum import Enum
 from typing import TYPE_CHECKING, Any
@@ -92,6 +92,27 @@ class ConnectionState(Enum):
     CONNECTED = "connected"
     DISCONNECTING = "disconnecting"
     ERROR = "error"
+
+
+def scan_addresses(adapters: Iterable[Any] | None = None) -> list[str]:
+    """The local IPv4 addresses a gateway search goes out from: those of every network adapter
+    (``ifaddr`` adapters), but loopback and link-local (169.254.x.x) ones, behind which no
+    KNXnet/IP interface answers."""
+    if adapters is None:
+        import ifaddr
+
+        adapters = ifaddr.get_adapters()
+    found: list[str] = []
+    for adapter in adapters:
+        for ip in adapter.ips:
+            address = ip.ip
+            if (
+                isinstance(address, str)
+                and not address.startswith(("127.", "169.254."))
+                and address not in found
+            ):
+                found.append(address)
+    return found
 
 
 def split_endpoint(address: str) -> tuple[str, int]:
@@ -1065,9 +1086,26 @@ class ConnectionPlugin:
     async def _scan_async(self, auto_connect: bool = False) -> None:
         try:
             xknx = XKNX()
-            scanner = GatewayScanner(xknx, timeout_in_seconds=3.0)
-            self._gateways = await scanner.scan()
-            self._log.info("gateway scan complete", found=len(self._gateways))
+            # A search from every local address: the one the system routes multicast through
+            # alone may be a virtual network (WSL, Hyper-V, VPN) without any interface.
+            addresses = scan_addresses()
+            scans = [
+                GatewayScanner(xknx, local_ip=address, timeout_in_seconds=3.0).scan()
+                for address in addresses
+            ] or [GatewayScanner(xknx, timeout_in_seconds=3.0).scan()]
+            found: dict[tuple[str, int], GatewayDescriptor] = {}
+            for result in await asyncio.gather(*scans, return_exceptions=True):
+                if isinstance(result, BaseException):
+                    self._log.debug("gateway search failed", error=str(result))
+                    continue
+                for gateway in result:
+                    found.setdefault((gateway.ip_addr, gateway.port), gateway)
+            self._gateways = list(found.values())
+            self._log.info(
+                "gateway scan complete",
+                found=len(self._gateways),
+                addresses=",".join(addresses),
+            )
             for g in self._gateways:
                 self._log.debug(
                     "gateway found",
