@@ -88,3 +88,27 @@ def test_letters_centred_and_the_underline_below_its_letter(
     assert (x0, x1) == (round(x + glyph.x0), round(x + glyph.x1))
     assert all(v == int(v) for v in (x0, y0, x1, y1))
     assert y1 - y0 >= 1
+
+
+@pytest.mark.usefixtures("context")
+def test_the_title_ends_where_the_buttons_end(monkeypatch: pytest.MonkeyPatch) -> None:
+    bottoms: dict[str, float] = {}
+    button, text = imgui.button, imgui.text_disabled
+
+    def press(label: str, size: imgui.ImVec2) -> bool:
+        pressed = button(label, size)
+        bottoms["button"] = imgui.get_item_rect_max().y
+        return pressed
+
+    def title(label: str) -> None:
+        text(label)
+        bottoms["title"] = imgui.get_item_rect_max().y
+
+    monkeypatch.setattr(rich_text_edit.imgui, "button", press)
+    monkeypatch.setattr(rich_text_edit.imgui, "text_disabled", title)
+    imgui.new_frame()
+    imgui.begin("Field")
+    RichTextEdit("comment").render(("device", 1, "comment"), "", 100.0, "Comment")
+    imgui.end()
+    imgui.end_frame()
+    assert bottoms["title"] == pytest.approx(bottoms["button"])

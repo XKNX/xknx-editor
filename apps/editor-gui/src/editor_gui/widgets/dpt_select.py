@@ -67,18 +67,50 @@ def _cached_choices(names: Mapping[str, str]) -> list[DptChoice]:
     return _cached[1]
 
 
+# The rows the list shows at once; how far subtypes are indented (at 100 % scaling).
+_ROWS = 15
+_INDENT = 16.0
+
+
+def _popup_size(choices: list[DptChoice]) -> imgui.ImVec2:
+    """The size of the open drop-down: as wide as the drop-down or its widest type, whichever
+    is wider, and high enough for the filter and :data:`_ROWS` rows. Fixed, so that it keeps
+    its size while the list is filtered."""
+    style = imgui.get_style()
+    widest = max(
+        (
+            imgui.calc_text_size(c.label).x + (px(_INDENT) if c.subtype else 0.0)
+            for c in choices
+        ),
+        default=0.0,
+    )
+    width = max(
+        imgui.calc_item_width(),
+        widest
+        + 2 * (style.window_padding.x + style.frame_padding.x)
+        + style.scrollbar_size,
+    )
+    height = (
+        imgui.get_frame_height_with_spacing()
+        + _ROWS * imgui.get_text_line_height_with_spacing()
+        + 2 * style.window_padding.y
+    )
+    return imgui.ImVec2(width, height)
+
+
 def dpt_combo(
     widget_id: str, token: str | None, names: Mapping[str, str], filter_hint: str
 ) -> tuple[bool, str]:
-    """A drop-down of all data point types; returns ``(changed, token)`` with ``""`` for none."""
+    """A drop-down of all data point types; returns ``(changed, token)`` with ``""`` for none.
+    A filter above the list narrows it."""
     current = token or ""
     changed = False
-    if begin_combo(
-        f"##{widget_id}",
-        dpt_choice_label(current, names),
-        imgui.ComboFlags_.height_largest,
-    ):
-        if imgui.is_window_appearing():
+    choices = _cached_choices(names)
+    size = _popup_size(choices)
+    imgui.set_next_window_size_constraints(size, size)
+    if begin_combo(f"##{widget_id}", dpt_choice_label(current, names)):
+        appearing = imgui.is_window_appearing()
+        if appearing:
             _filters[widget_id] = ""
             imgui.set_keyboard_focus_here()
         imgui.set_next_item_width(-1)
@@ -87,19 +119,23 @@ def dpt_combo(
         )
         _filters[widget_id] = text
         needle = text.strip().lower()
-        if not needle and imgui.selectable("-", not current)[0]:
-            current, changed = "", True
-        for choice in _cached_choices(names):
-            if needle and needle not in choice.label.lower():
-                continue
-            selected = choice.token == current
-            if choice.subtype:
-                imgui.indent(px(16.0))
-            if imgui.selectable(f"{choice.label}##{choice.token}", selected)[0]:
-                current, changed = choice.token, True
-            if choice.subtype:
-                imgui.unindent(px(16.0))
-            if selected and imgui.is_window_appearing():
-                imgui.set_scroll_here_y()
+        # The list scrolls below the filter, which stays in place.
+        if imgui.begin_child(f"##{widget_id}_list"):
+            if not needle and imgui.selectable("-", not current)[0]:
+                current, changed = "", True
+            for choice in choices:
+                if needle and needle not in choice.label.lower():
+                    continue
+                selected = choice.token == current
+                if choice.subtype:
+                    imgui.indent(px(_INDENT))
+                if imgui.selectable(f"{choice.label}##{choice.token}", selected)[0]:
+                    current, changed = choice.token, True
+                    imgui.close_current_popup()
+                if choice.subtype:
+                    imgui.unindent(px(_INDENT))
+                if selected and appearing:
+                    imgui.set_scroll_here_y()
+        imgui.end_child()
         imgui.end_combo()
     return changed, current

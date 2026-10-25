@@ -396,3 +396,46 @@ def test_copy_and_paste_by_the_context_menus(
     clicks.items.add(S.CONTEXT_PASTE)
     _frames(panel, 2)
     assert len(dialog.pasted) == 1
+
+
+@pytest.mark.usefixtures("context")
+def test_paste_on_a_group_address_goes_into_its_group(
+    project: ProjectService, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    light = project.create_group_address("1/1/5", "Light")
+    other = project.create_group_address("1/2/7", "Other")
+    assert light is not None and other is not None
+    panel = GroupAddressesPanel(
+        get_range_tree=project.get_group_range_tree,
+        get_assignments_for_ga=project.get_assignments_for_ga,
+        get_devices=lambda: [],
+        on_create_ga=lambda _a, _n: None,
+        on_rename_ga=lambda _i, _n: None,
+        on_remove_ga=lambda _i: None,
+        on_create_range=project.create_group_range,
+        group_style=lambda: project.group_address_style,
+        on_move_ga=project.move_group_address,
+        on_move_range=project.move_group_range,
+    )
+    dialog = _Opened(project)
+    panel._paste_dialog = dialog  # pyright: ignore[reportPrivateUsage]
+    clicks = Clicks(monkeypatch, group_addresses)
+    (main,) = project.get_group_range_tree()
+    for node in (main, *main.children):
+        clicks.open.add(f"{node.address}  {node.name or f'[{node.id}]'}##gr{node.id}")
+    _frames(panel, 2)
+    clicks.context = f"##ga_ctx_{light}"
+    clicks.items.add(S.CONTEXT_COPY)
+    _frames(panel, 2)
+    clicks.context = f"##ga_ctx_{other}"
+    clicks.items.add(S.CONTEXT_PASTE)
+    _frames(panel, 2)
+    middle_2 = next(c for c in main.children if c.address == "1/2")
+    assert dialog.pasted == [
+        (
+            "group_address",
+            [light],
+            PasteTarget("group_range", middle_2.id),
+            PasteOptions(),
+        )
+    ]

@@ -133,9 +133,15 @@ class RichTextEdit:
         self._last_frame = imgui.get_frame_count()
 
         imgui.begin_group()
-        # The buttons belong to the field (the group): a click on them keeps it focused.
-        imgui.align_text_to_frame_padding()
+        # The buttons belong to the field (the group): a click on them keeps it focused. The
+        # title ends where they end, as near to the field as they are (in a group, so that the
+        # row starts at its top, not where the lowered title does).
+        imgui.begin_group()
+        imgui.set_cursor_pos_y(
+            imgui.get_cursor_pos_y() + 2.0 * imgui.get_style().frame_padding.y
+        )
         imgui.text_disabled(title)
+        imgui.end_group()
         imgui.same_line()
         self._buttons()
         border = self._focused

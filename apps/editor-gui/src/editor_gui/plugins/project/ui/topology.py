@@ -550,7 +550,17 @@ class TopologyPanel:
                 self._on_compare(device.node_id)
             self._render_move_device_menu(device)
             if self._paste_dialog is not None:
+                imgui.separator()
                 render_copy_item(self._dragged_devices(device))
+                # Devices pasted on a device go to its segment.
+                segment = self._get_device_segments().get(device.node_id)
+                self._paste_dialog.render_paste_items(
+                    lambda c: (
+                        PasteTarget("segment", segment)
+                        if c.kind == "device" and segment is not None
+                        else None
+                    )
+                )
             imgui.separator()
             if imgui.menu_item(S.CONTEXT_DELETE, "", False)[0]:
                 self._delete_target_device = device

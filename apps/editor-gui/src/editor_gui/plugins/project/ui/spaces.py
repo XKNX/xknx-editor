@@ -384,6 +384,19 @@ class SpacesPanel:
             return target
         return None
 
+    def _beside_device_target(
+        self, space_id: int | None, trade_id: int | None, copied: Dragged
+    ) -> PasteTarget | None:
+        """Where copies of ``copied`` go when pasted on a device or function in the space
+        ``space_id`` or the trade ``trade_id``: there, when they may go there."""
+        if space_id is not None:
+            space = _find_node(self._get_space_tree(), space_id)
+            return self._space_copy_target(space, copied) if space else None
+        if trade_id is not None:
+            trade = _find_node(self._get_trade_tree(), trade_id)
+            return self._trade_copy_target(trade, copied) if trade else None
+        return None
+
     def _render_paste_items(
         self, target_for: Callable[[Dragged], PasteTarget | None]
     ) -> None:
@@ -822,6 +835,11 @@ class SpacesPanel:
         if has_menu and context_menu(f"##spdev_ctx_{where}{device.id}"):
             if self._paste_dialog is not None:
                 render_copy_item(Dragged("device", (device.id,)))
+                # What is pasted on a device goes where the device is.
+                self._paste_dialog.render_paste_items(
+                    lambda c: self._beside_device_target(space_id, trade_id, c)
+                )
+                imgui.separator()
             if (
                 trade_id is not None
                 and self._on_remove_trade_device is not None
@@ -1127,6 +1145,10 @@ class SpacesPanel:
                     self._on_move_function(function.id, chosen[0])
             if self._paste_dialog is not None:
                 render_copy_item(Dragged("function", (function.id,)))
+                # What is pasted on a function goes into its building part.
+                self._paste_dialog.render_paste_items(
+                    lambda c: self._beside_device_target(space_id, None, c)
+                )
             if (
                 self._on_remove_function is not None
                 and imgui.menu_item(S.SPACES_FN_DELETE, "", False)[0]

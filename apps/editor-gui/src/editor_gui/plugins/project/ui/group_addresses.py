@@ -462,7 +462,7 @@ class GroupAddressesPanel:
             if ga.id == self._reveal_ga_id:
                 imgui.set_scroll_here_y()
             # Context menu while the selectable is still the last item, so it binds to the row.
-            self._render_ga_context_menu(ga)
+            self._render_ga_context_menu(ga, node)
             if self._on_move_ga is not None and self._folders_enabled():
                 drag_source(Dragged("group_address", (ga.id,)), name)
             end = row_x + imgui.calc_text_size(name).x
@@ -502,7 +502,9 @@ class GroupAddressesPanel:
             return True
         return any(self._range_contains_ga(child, ga_id) for child in node.children)
 
-    def _render_ga_context_menu(self, ga: object) -> None:
+    def _render_ga_context_menu(self, ga: object, group: "GroupRangeInfo") -> None:
+        """The menu of a group address in ``group``: what is pasted on it goes into its
+        group."""
         # ga is a core GroupAddressInfo (id, text, name, datapoint_type, …).
         if not context_menu(f"##ga_ctx_{ga.id}"):  # type: ignore[attr-defined]
             return
@@ -514,7 +516,15 @@ class GroupAddressesPanel:
             imgui.set_clipboard_text(getattr(ga, "text", "") or "")
         self._render_move_ga_menu(ga.id)  # type: ignore[attr-defined]
         if self._paste_dialog is not None:
+            imgui.separator()
             render_copy_item(Dragged("group_address", (ga.id,)))  # type: ignore[attr-defined]
+            self._paste_dialog.render_paste_items(
+                lambda c: (
+                    PasteTarget("group_range", group.id)
+                    if c.kind == "group_address"
+                    else None
+                )
+            )
         if self._group_value is not None:
             imgui.separator()
             self._group_value.render_menu_items(
