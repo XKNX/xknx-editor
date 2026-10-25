@@ -285,6 +285,8 @@ class AddDevice(Event):
     additional_addresses: list[dict[str, Any]] = field(
         default_factory=list[dict[str, Any]]
     )
+    # The space the device is added to, None for none.
+    space_id: int | None = None
     device_id: int | None = None
     parameter_ids: list[int] = field(default_factory=list[int])
     com_object_ids: list[int] = field(default_factory=list[int])
@@ -293,6 +295,7 @@ class AddDevice(Event):
     def apply(self, session: Session) -> None:
         device = Device(
             segment_id=self.segment_id,
+            space_id=self.space_id,
             address=self.address,
             name=self.name,
             product_ref_id=self.product_ref_id,
@@ -353,6 +356,7 @@ class AddDevice(Event):
             "manufacturer_name": self.manufacturer_name,
             "tool_key": self.tool_key,
             "additional_addresses": self.additional_addresses,
+            "space_id": self.space_id,
             "device_id": self.device_id,
             "parameter_ids": self.parameter_ids,
             "com_object_ids": self.com_object_ids,
@@ -2009,16 +2013,63 @@ class RemoveDevice(_SubtreeDelete):
     _model: ClassVar[type[Base]] = Device
 
 
+@dataclass
+class _LinesDelete(_SubtreeDelete):
+    """A delete of lines: the spaces whose Current Line is one of them lose it, and get it back
+    on revert."""
+
+    space_lines: dict[int, int] = field(default_factory=dict[int, int])
+
+    def apply(self, session: Session) -> None:
+        obj = session.get(self._model, self.target_id)
+        if obj is None:
+            return
+        lines = obj.lines if isinstance(obj, Area) else [cast(Line, obj)]
+        line_ids = {line.id for line in lines}
+        spaces = (
+            session.query(Space).filter(Space.default_line_id.in_(line_ids)).all()
+            if line_ids
+            else []
+        )
+        self.space_lines = {
+            space.id: space.default_line_id
+            for space in spaces
+            if space.default_line_id is not None
+        }
+        for space in spaces:
+            space.default_line_id = None
+        session.flush()
+        super().apply(session)
+
+    def revert(self, session: Session) -> None:
+        super().revert(session)
+        for space_id, line_id in self.space_lines.items():
+            space = session.get(Space, space_id)
+            if space is not None:
+                space.default_line_id = line_id
+
+    def to_dict(self) -> dict[str, Any]:
+        return {**super().to_dict(), "space_lines": self.space_lines}
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> _LinesDelete:
+        payload = dict(data)
+        # JSON object keys are strings; space ids must round-trip back to int.
+        raw: dict[Any, int] = payload.get("space_lines") or {}
+        payload["space_lines"] = {int(k): v for k, v in raw.items()}
+        return cls(**payload)
+
+
 @_register
 @dataclass
-class RemoveArea(_SubtreeDelete):
+class RemoveArea(_LinesDelete):
     event_type: ClassVar[str] = "RemoveArea"
     _model: ClassVar[type[Base]] = Area
 
 
 @_register
 @dataclass
-class RemoveLine(_SubtreeDelete):
+class RemoveLine(_LinesDelete):
     event_type: ClassVar[str] = "RemoveLine"
     _model: ClassVar[type[Base]] = Line
 
@@ -3149,6 +3200,43 @@ class SetSpaceUsage(Event):
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> SetSpaceUsage:
+        return cls(**data)
+
+
+@_register
+@dataclass
+class SetSpaceDefaultLine(Event):
+    """Set a space's "Current Line" (``@DefaultLine``), or clear it with ``line_id`` None."""
+
+    event_type: ClassVar[str] = "SetSpaceDefaultLine"
+
+    space_id: int
+    line_id: int | None
+    old_line_id: int | None = None
+    applied: bool = False
+
+    def apply(self, session: Session) -> None:
+        space = session.get(Space, self.space_id)
+        if space is not None:
+            self.old_line_id = space.default_line_id
+            self.applied = True
+            space.default_line_id = self.line_id
+
+    def revert(self, session: Session) -> None:
+        space = session.get(Space, self.space_id)
+        if space is not None and self.applied:
+            space.default_line_id = self.old_line_id
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "space_id": self.space_id,
+            "line_id": self.line_id,
+            "old_line_id": self.old_line_id,
+            "applied": self.applied,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> SetSpaceDefaultLine:
         return cls(**data)
 
 

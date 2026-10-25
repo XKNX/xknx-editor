@@ -2337,3 +2337,12 @@ msgstr "Aseta tilaksi {status}"
 
 msgid "Set function description"
 msgstr "Aseta toiminnon kuvaus"
+
+msgid "Current Line"
+msgstr "Nykyinen Linja"
+
+msgid "{line} (inherits from {space})"
+msgstr "{line} (periytyy kohteesta {space})"
+
+msgid "Set current line"
+msgstr "Aseta nykyinen linja"

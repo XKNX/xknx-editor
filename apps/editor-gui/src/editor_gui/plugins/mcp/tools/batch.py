@@ -130,12 +130,16 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         app = ctx.api.catalog.get_application(product.application_id)
         if app is None:
             raise ValueError(f"application for {p['product_ref_id']!r} not in catalog")
+        space_id = p.get("space_id")
+        if space_id is not None and project.find_space(space_id) is None:
+            raise ValueError(f"no space with id {space_id}")
         node_id = project.add_device(
             product_ref_id=product.product_ref_id,
             hardware2program_ref_id=product.hardware2program_ref_id,
             name=p.get("name") or "",
             app=app,
             product=DeviceProduct.of(product),
+            space_id=space_id,
         )
         return {"node_id": node_id}
 
@@ -413,7 +417,8 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         "10/1/2"). Pass exactly one of each pair. Below "device" / "ga" stand for either form.
 
         Supported ops with required params (optional params in brackets) and success result fields:
-        - add_device: product_ref_id [name] -> {node_id}; uses the first matching catalog product.
+        - add_device: product_ref_id [name, space_id] -> {node_id}; uses the first matching
+          catalog product; with space_id it is added to that space, on its Current Line.
         - rename_device: device, [name] [description] (at least one) -> {node_id}.
         - set_individual_address: device, address -> {node_id, address}.
         - set_parameter: device, (parameter_ref_id | label [subtree_id tree_token] [value_label]),

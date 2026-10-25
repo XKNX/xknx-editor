@@ -2337,3 +2337,12 @@ msgstr "Nastavit stav na {status}"
 
 msgid "Set function description"
 msgstr "Nastavit popis funkce"
+
+msgid "Current Line"
+msgstr "Aktuální linie"
+
+msgid "{line} (inherits from {space})"
+msgstr "{line} (získá data z {space})"
+
+msgid "Set current line"
+msgstr "Nastavit aktuální linii"

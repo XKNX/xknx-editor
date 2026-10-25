@@ -695,9 +695,12 @@ class Space(_SourceIdentity, Base):
     completion_status: Mapped[str] = mapped_column(
         String, nullable=False, default=UNDEFINED_STATUS
     )
-    # Non-displayed Space attributes xknxproject drops, round-tripped verbatim (``@DefaultLine`` id,
-    # ``@Context``). Empty when the source had none.
-    default_line: Mapped[str] = mapped_column(String, nullable=False, default="")
+    # The space's "Current Line" (``@DefaultLine``): a device added to the space, or to a space below
+    # it that has none of its own, is placed on this line. None when the space has none.
+    default_line_id: Mapped[int | None] = mapped_column(
+        ForeignKey("lines.id"), index=True
+    )
+    # The ``@Context`` xknxproject drops, round-tripped verbatim. Empty when the source had none.
     context: Mapped[str] = mapped_column(String, nullable=False, default="")
     order: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
 
@@ -712,6 +715,7 @@ class Space(_SourceIdentity, Base):
     functions: Mapped[list["Function"]] = relationship(
         back_populates="space", cascade="all, delete-orphan"
     )
+    default_line: Mapped["Line | None"] = relationship()
 
 
 class Function(_SourceIdentity, Base):

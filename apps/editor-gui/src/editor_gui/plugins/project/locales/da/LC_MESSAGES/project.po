@@ -2337,3 +2337,12 @@ msgstr "Angiv status til {status}"
 
 msgid "Set function description"
 msgstr "Angiv funktionsbeskrivelse"
+
+msgid "Current Line"
+msgstr "Aktuel linje"
+
+msgid "{line} (inherits from {space})"
+msgstr "{line} (nedarves fra {space})"
+
+msgid "Set current line"
+msgstr "Angiv aktuel linje"

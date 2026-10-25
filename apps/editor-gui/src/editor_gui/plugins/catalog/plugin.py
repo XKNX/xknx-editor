@@ -103,7 +103,8 @@ class CatalogPlugin:
         *,
         secure_commissioning: bool | None = None,
     ) -> None:
-        # A new device has no name of its own; it shows its product's name until renamed.
+        # A new device has no name of its own; it shows its product's name until renamed. Added to
+        # a space, it goes on the space's Current Line.
         device_id = self._api.project.add_device(
             product_ref_id=product.product_ref_id,
             hardware2program_ref_id=product.hardware2program_ref_id,
@@ -111,10 +112,9 @@ class CatalogPlugin:
             app=app,
             product=DeviceProduct.of(product),
             secure_commissioning=secure_commissioning,
+            space_id=space_id,
         )
         if device_id:
-            if space_id is not None:
-                self._api.project.set_device_space(device_id, space_id)
             ask = self._api.ask_device_certificate
             if ask is not None and self._api.project.secure_commissioning_of(device_id):
                 ask(device_id)

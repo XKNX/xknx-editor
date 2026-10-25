@@ -82,7 +82,37 @@ def ensure_sqlite_writable(path: Path) -> None:
 # Bump when adding a non-additive migration below. Additive column adds are handled generically and
 # do not require a bump. Stamped into the file's ``PRAGMA user_version`` so future migrations can
 # branch on the version a file was last written with.
-SCHEMA_VERSION = 3
+SCHEMA_VERSION = 4
+
+
+def _link_space_lines(conn: Any) -> int:
+    """Version 4: a space's Current Line, kept as the line's raw ``@Id`` (``default_line``),
+    becomes a reference to the line's row (``default_line_id``), and the raw column goes. An id of
+    a line the project no longer has is dropped. Returns how many spaces got their line."""
+    columns = {row[1] for row in conn.execute(text('PRAGMA table_info("spaces")'))}
+    if "default_line" not in columns:
+        return 0
+    lines: dict[str, int] = {
+        source_id: line_id
+        for line_id, source_id in conn.execute(
+            text("SELECT id, source_id FROM lines WHERE source_id != ''")
+        )
+    }
+    linked = 0
+    rows = conn.execute(
+        text("SELECT id, default_line FROM spaces WHERE default_line != ''")
+    ).all()
+    for space_id, raw in rows:
+        line_id = lines.get(raw)
+        if line_id is None:
+            continue
+        conn.execute(
+            text("UPDATE spaces SET default_line_id = :line WHERE id = :id"),
+            {"line": line_id, "id": space_id},
+        )
+        linked += 1
+    conn.execute(text('ALTER TABLE "spaces" DROP COLUMN "default_line"'))
+    return linked
 
 
 def _move_completion_status(conn: Any) -> int:
@@ -293,6 +323,10 @@ def _migrate(engine: Engine) -> None:
             moved = _move_completion_status(conn)
             if moved:
                 logger.info("moved the completion status of %d rows", moved)
+        if (current or 0) < 4 and {"spaces", "lines"} <= tables:
+            linked = _link_space_lines(conn)
+            if linked:
+                logger.info("linked the current line of %d spaces", linked)
         if added or current != SCHEMA_VERSION:
             conn.execute(text(f"PRAGMA user_version = {SCHEMA_VERSION}"))
             logger.debug(

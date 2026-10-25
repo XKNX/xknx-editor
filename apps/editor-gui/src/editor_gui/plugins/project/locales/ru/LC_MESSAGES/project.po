@@ -2337,3 +2337,12 @@ msgstr "Задать статус «{status}»"
 
 msgid "Set function description"
 msgstr "Задать описание функции"
+
+msgid "Current Line"
+msgstr "Текущая линия"
+
+msgid "{line} (inherits from {space})"
+msgstr "{line} (наследует от {space})"
+
+msgid "Set current line"
+msgstr "Задать текущую линию"

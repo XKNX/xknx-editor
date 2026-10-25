@@ -419,21 +419,22 @@ def test_new_copy_uses_free_id_and_tagged_name(tmp_path: Path) -> None:
     assert store_pid_exists(store_root, PID)
 
 
-def test_new_copy_remaps_default_line_pid(tmp_path: Path) -> None:
+def test_a_space_s_default_line_is_the_store_s_id_of_its_line(tmp_path: Path) -> None:
     with _session() as session:
         project, inst = _project(session)
-        # A building whose DefaultLine references the source project id.
         building = next(s for s in inst.spaces if s.space_type == "Building")
-        building.default_line = f"{PID}-0_L-3"
+        building.default_line = next(a for a in inst.areas if a.address == 1).lines[0]
         new_pid = "P-0001"
         built = write_project_store(
             tmp_path / new_pid, project, inst, INSTALLER_GUID, pid=new_pid
         )
     sp = ET.fromstring(built.streams["B"].decode("utf-8-sig")).find("Sp")
     assert sp is not None
-    assert (
-        sp.get("DefaultLine") == f"{new_pid}-0_L-3"
-    )  # remapped, not dangling at the old pid
+    area = ET.fromstring(built.streams[f"{new_pid}-0_A-2"].decode("utf-8-sig"))
+    line = area.find("Line")
+    assert line is not None
+    assert line.get("Id", "").startswith(f"{new_pid}-0_L-")
+    assert sp.get("DefaultLine") == line.get("Id")
 
 
 def test_new_copy_refuses_to_clobber_taken_slot(tmp_path: Path) -> None:

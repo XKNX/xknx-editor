@@ -2337,3 +2337,12 @@ msgstr "状態を{status}に設定"
 
 msgid "Set function description"
 msgstr "機能の説明を設定"
+
+msgid "Current Line"
+msgstr "現在のライン"
+
+msgid "{line} (inherits from {space})"
+msgstr "{line} (継承元: {space})"
+
+msgid "Set current line"
+msgstr "現在のラインを設定"

@@ -2337,3 +2337,12 @@ msgstr "Durumu {status} olarak belirle"
 
 msgid "Set function description"
 msgstr "Fonksiyon tanımını belirle"
+
+msgid "Current Line"
+msgstr "Geçerli Linye"
+
+msgid "{line} (inherits from {space})"
+msgstr "{line} ({space} öğesinden devralınır)"
+
+msgid "Set current line"
+msgstr "Geçerli linyeyi belirle"

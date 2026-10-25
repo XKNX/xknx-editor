@@ -1736,6 +1736,8 @@ def _build_topology(
             )
             area.lines.append(line)
             area_lines[xline.address] = line
+            if line_id:
+                state.line_by_identifier[line_id] = line
             _build_line_segments(line, xarea.address, xline, state)
     if dropped_lines:
         state.extras.losses.append(
@@ -2228,8 +2230,8 @@ def _build_space(
         description=getattr(xspace, "description", "") or "",
         comment=state.extras.space_comment.get(xspace.identifier, ""),
         completion_status=_status(state, xspace.identifier),
-        default_line=state.extras.space_extra.get(xspace.identifier, {}).get(
-            "DefaultLine", ""
+        default_line=state.line_by_identifier.get(
+            state.extras.space_extra.get(xspace.identifier, {}).get("DefaultLine", "")
         ),
         context=state.extras.space_extra.get(xspace.identifier, {}).get("Context", ""),
         order=order,
@@ -2303,6 +2305,8 @@ class _ImportState:
         self.group_addresses: dict[str, GroupAddress] = {}
         self.device_by_ia: dict[str, Device] = {}
         self.device_by_identifier: dict[str, Device] = {}
+        # Line @Id -> its row, for the spaces' Current Line.
+        self.line_by_identifier: dict[str, Line] = {}
         # Per-device BinaryData / module Arguments captured from the raw project XML.
         self.extras: _RawExtras = extras or _RawExtras()
         # Devices xknxproject parsed but that failed to build (see _append_device); surfaced in the

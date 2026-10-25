@@ -3292,6 +3292,18 @@ class ProjectStrings:
         return _("Use")
 
     @property
+    def CURRENT_LINE(self) -> str:
+        return _("Current Line")
+
+    @property
+    def CURRENT_LINE_NONE(self) -> str:
+        return _("None")
+
+    @property
+    def CURRENT_LINE_INHERITED(self) -> str:
+        return _("{line} (inherits from {space})")
+
+    @property
     def STATUS(self) -> str:
         return _("Status")
 
@@ -3566,6 +3578,10 @@ class ProjectStrings:
     @property
     def HISTORY_EV_SET_SPACE_USE(self) -> str:
         return _("Set room use")
+
+    @property
+    def HISTORY_EV_SET_CURRENT_LINE(self) -> str:
+        return _("Set current line")
 
     @property
     def HISTORY_EV_SET_FUNCTION_DESCRIPTION(self) -> str:

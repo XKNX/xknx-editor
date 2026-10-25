@@ -101,6 +101,7 @@ from xknxeditor.proj.core.events import (
     SetGroupRangeAddress,
     SetParameter,
     SetProjectName,
+    SetSpaceDefaultLine,
     SetSpaceDescription,
     SetSpaceNumber,
     SetSpaceType,
@@ -282,6 +283,17 @@ class SpaceInfo:
     functions: list[FunctionInfo]
     # The room's use: a SpaceUsage id of the master data (``SU-4``), "" for none.
     usage: str = ""
+    # The space's own Current Line, None for none (see ``ProjectService.current_line``).
+    default_line_id: int | None = None
+
+
+@dataclass(frozen=True)
+class CurrentLine:
+    """The Current Line of a space: the line, and the space that sets it (the space itself or
+    one above it)."""
+
+    line_id: int
+    space_id: int
 
 
 @dataclass(frozen=True)
@@ -683,8 +695,9 @@ class ProjectService:
         manufacturer_name: str = "",
         secure_commissioning: bool = False,
         additional_addresses: int = 0,
+        space_id: int | None = None,
     ) -> int:
-        """Add a device. ``product_ref_id`` names the catalog product; ``hardware2program_ref_id`` is
+        """Add a device, to the space ``space_id`` when given. ``product_ref_id`` names the catalog product; ``hardware2program_ref_id`` is
         the loaded program the application resolves through. Being ref-only, this package never
         reads the catalog, so the caller expands the application and supplies ``parameters``
         (``(ref_id, value)``), ``com_objects`` (``(ref_id, channel_id)``), ``module_instances``
@@ -731,6 +744,7 @@ class ProjectService:
             manufacturer_name=manufacturer_name,
             tool_key=tool_key,
             additional_addresses=entries,
+            space_id=space_id,
         )
         state.store.append(event)
         assert event.device_id is not None
@@ -1283,6 +1297,44 @@ class ProjectService:
         self._state(project_id).store.append(
             SetSpaceUsage(space_id=space_id, usage=usage, usage_text=usage_text)
         )
+
+    def set_space_default_line(
+        self, project_id: str, space_id: int, line_id: int | None
+    ) -> None:
+        """Set a space's Current Line, or clear it with ``line_id`` None. Raises ``ValueError``
+        for an unknown space, or a line that is not in the space's installation."""
+        state = self._state(project_id)
+        space = state.session.get(Space, space_id)
+        if space is None:
+            raise ValueError(f"unknown space {space_id}")
+        if line_id is not None:
+            line = state.session.get(Line, line_id)
+            if line is None or line.area.installation_id != space.installation_id:
+                raise ValueError(f"unknown line {line_id}")
+        if space.default_line_id == line_id:
+            return
+        state.store.append(SetSpaceDefaultLine(space_id=space_id, line_id=line_id))
+
+    def current_line(self, project_id: str, space_id: int) -> CurrentLine | None:
+        """The Current Line of a space: its own, else that of the nearest space above it that has
+        one; None when none has. ``CurrentLine.space_id`` is the space that sets it."""
+        space = self._state(project_id).session.get(Space, space_id)
+        while space is not None:
+            if space.default_line_id is not None:
+                return CurrentLine(line_id=space.default_line_id, space_id=space.id)
+            space = space.parent
+        return None
+
+    def current_line_segment(self, project_id: str, space_id: int) -> int | None:
+        """The main segment of the space's Current Line (see :meth:`current_line`), where a device
+        added to the space is placed; None when the space has no Current Line."""
+        current = self.current_line(project_id, space_id)
+        if current is None:
+            return None
+        line = self._state(project_id).session.get(Line, current.line_id)
+        if line is None or not line.segments:
+            return None
+        return min(line.segments, key=lambda s: (s.number, s.id)).id
 
     def set_space_description(
         self, project_id: str, space_id: int, description: str
@@ -3458,6 +3510,7 @@ class ProjectService:
                 for fn in sorted(space.functions, key=lambda f: (f.order, f.id))
             ],
             usage=space.usage,
+            default_line_id=space.default_line_id,
         )
 
     def _space_device_info(self, device: Device) -> SpaceDeviceInfo:

@@ -1342,6 +1342,8 @@ class _Writer:
         self._default_line_id: str | None = (
             None  # Installation DefaultLine (line holding devices)
         )
+        # Line row id -> its exported @Id, for the spaces' DefaultLine.
+        self._line_ids: dict[int, str] = {}
         # Topology shape differs by schema: project/22 and /23 nest devices under a
         # <Segment> that carries MediumTypeRefId; project/14 and /20 put devices directly
         # under <Line> with MediumTypeRefId on the line. Emitting the wrong shape makes the
@@ -1696,6 +1698,7 @@ class _Writer:
             )
             for line in sorted(area.lines, key=lambda x: x.address):
                 line_id = f"{pid}-0_{self._ids.id('L', line, line.source_id)}"
+                self._line_ids[line.id] = line_id
                 if line.source_id:
                     exported_lines[_local_id(line.source_id)] = line_id
                 medium = line.segments[0].medium_type if line.segments else "MT-0"
@@ -1907,7 +1910,7 @@ class _Writer:
             Description=space.description or None,
             Comment=space.comment or None,
             CompletionStatus=_status(space.completion_status),
-            DefaultLine=space.default_line or None,
+            DefaultLine=self._line_ids.get(space.default_line_id or 0),
             Context=space.context or None,
             Puid=self._ids.puid(space, space.puid),
         )

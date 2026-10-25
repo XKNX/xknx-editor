@@ -2375,3 +2375,12 @@ msgstr "Status instellen op {status}"
 
 msgid "Set function description"
 msgstr "Functiebeschrijving instellen"
+
+msgid "Current Line"
+msgstr "Huidige Lijn"
+
+msgid "{line} (inherits from {space})"
+msgstr "{line} (erft van {space})"
+
+msgid "Set current line"
+msgstr "Huidige lijn instellen"

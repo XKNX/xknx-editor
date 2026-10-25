@@ -2337,3 +2337,12 @@ msgstr "Ορισμός κατάστασης σε {status}"
 
 msgid "Set function description"
 msgstr "Ορισμός περιγραφής λειτουργίας"
+
+msgid "Current Line"
+msgstr "Τρέχουσα Γραμμή"
+
+msgid "{line} (inherits from {space})"
+msgstr "{line} (προέρχεται από {space})"
+
+msgid "Set current line"
+msgstr "Ορισμός τρέχουσας γραμμής"

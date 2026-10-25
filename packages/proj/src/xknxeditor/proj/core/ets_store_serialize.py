@@ -198,15 +198,11 @@ class _StoreBuilder:
     def _s(self, kind: str, oid: int) -> int:
         return self._idseq[(kind, oid)]
 
-    def _remap_pid(self, ref: str) -> str:
-        """Rewrite the leading ``P-XXXX`` of a stored ref to this store's id.
-
-        Element ids we emit are prefixed with ``self._pid``; a ref captured on import (e.g. a
-        ``DefaultLine``) carries the source project's id, which differs when writing a copy under a
-        new id and would otherwise dangle. Empty/foreign refs are returned unchanged."""
-        if not ref:
-            return ref
-        return re.sub(r"^P-[0-9A-Fa-f]+(?=-0_)", self._pid, ref)
+    def _line_ref(self, line_id: int | None) -> str | None:
+        """The id this store gives the line ``line_id``; None for no line."""
+        if line_id is None or ("L", line_id) not in self._idseq:
+            return None
+        return f"{self._pid}-0_L-{self._s('L', line_id)}"
 
     # -- Streams ---------------------------------------------------------------------------
 
@@ -339,7 +335,7 @@ class _StoreBuilder:
             Usage=space.usage or None,
             Description=space.description or None,
             Comment=space.comment or None,
-            DefaultLine=self._remap_pid(space.default_line) or None,
+            DefaultLine=self._line_ref(space.default_line_id),
             Context=space.context or None,
             Puid=self._p("SP", space.id),
         )

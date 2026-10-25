@@ -2337,3 +2337,12 @@ msgstr "Establecer estado en {status}"
 
 msgid "Set function description"
 msgstr "Establecer descripción de la función"
+
+msgid "Current Line"
+msgstr "Línea Actual"
+
+msgid "{line} (inherits from {space})"
+msgstr "{line} (hereda de {space})"
+
+msgid "Set current line"
+msgstr "Establecer línea actual"

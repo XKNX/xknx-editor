@@ -551,6 +551,7 @@ _HISTORY_LABELS: dict[str, Callable[[dict[str, Any]], str]] = {
         status=status_label(str(d.get("status", "")))
     ),
     "SetSpaceUsage": lambda d: S.HISTORY_EV_SET_SPACE_USE,
+    "SetSpaceDefaultLine": lambda d: S.HISTORY_EV_SET_CURRENT_LINE,
     "SetFunctionDescription": lambda d: S.HISTORY_EV_SET_FUNCTION_DESCRIPTION,
     "CreateFunction": lambda d: S.HISTORY_EV_CREATE_FUNCTION.format(
         name=_quoted(d, "name")
@@ -4005,6 +4006,7 @@ class ProjectService:
         product: DeviceProduct | None = None,
         secure_commissioning: bool | None = None,
         with_additional_addresses: bool = True,
+        space_id: int | None = None,
     ) -> int | None:
         """Add a device. A device that supports KNX Data Secure is commissioned securely by
         default when the project has a password (``secure_commissioning`` ``None``); ``True``
@@ -4012,7 +4014,8 @@ class ProjectService:
         ``False`` adds it commissioned in the clear. The device gets the additional individual
         addresses its application has (its tunnelling addresses), the highest free ones of the
         line, unless ``with_additional_addresses`` is off; when the line has too few free, it is
-        added without them."""
+        added without them. A device added to the space ``space_id`` goes on the space's Current
+        Line when no ``segment_id`` is given, in the same undo step."""
         if self._pid is None:
             return None
         if not app.program.is_secure_enabled:
@@ -4020,6 +4023,8 @@ class ProjectService:
         elif secure_commissioning is None:
             secure_commissioning = self.project_password is not None
         product = product or DeviceProduct()
+        if segment_id is None and space_id is not None:
+            segment_id = self._svc.current_line_segment(self._pid, space_id)
         if segment_id is None:
             segment_id = self._default_device_segment_id()
         if address is None:
@@ -4056,6 +4061,7 @@ class ProjectService:
                 manufacturer_name=product.manufacturer_name,
                 secure_commissioning=secure_commissioning,
                 additional_addresses=additional,
+                space_id=space_id,
             )
 
         additional = (
@@ -5505,6 +5511,43 @@ class ProjectService:
         self._svc.set_space_usage(
             self._pid, space_id, usage, usage_label(usage) if usage else ""
         )
+        self._bump(structural=False)
+
+    def current_line(self, space_id: int) -> "tuple[int, SpaceInfo] | None":
+        """The Current Line of a space: the line's id and the space that sets it, the space itself
+        or the nearest one above it that has one; None when none has."""
+
+        def path(spaces: "list[SpaceInfo]") -> "list[SpaceInfo] | None":
+            for space in spaces:
+                if space.id == space_id:
+                    return [space]
+                below = path(space.children)
+                if below is not None:
+                    return [space, *below]
+            return None
+
+        for space in reversed(path(self.get_space_tree()) or []):
+            if space.default_line_id is not None:
+                return space.default_line_id, space
+        return None
+
+    def line_choices(self) -> list[tuple[int, str]]:
+        """Every line of the topology as its id and its text ("1.1 Name"), in address order."""
+        return [
+            (
+                line.id,
+                f"{area.area_number}.{line.line_number} {line.name}".rstrip(),
+            )
+            for area in sorted(self.get_areas(), key=lambda a: a.area_number)
+            for line in sorted(self.get_lines(area.id), key=lambda ln: ln.line_number)
+        ]
+
+    def set_space_default_line(self, space_id: int, line_id: int | None) -> None:
+        """Set a space's own Current Line, or clear it with ``line_id`` None; undoable."""
+        space = self.find_space(space_id)
+        if self._pid is None or space is None or space.default_line_id == line_id:
+            return
+        self._svc.set_space_default_line(self._pid, space_id, line_id)
         self._bump(structural=False)
 
     def set_space_type(self, space_id: int, space_type: str) -> None:

@@ -154,8 +154,8 @@ def _function_dict(f: Any) -> dict[str, Any]:
 
 def _space_dict(s: Any) -> dict[str, Any]:
     """Recursively serialize a building/location tree node (space -> children/devices/functions).
-    Empty optional fields (number, usage, usage_text, description) and empty device/function/
-    children lists are omitted to keep the tree compact."""
+    Empty optional fields (number, usage, usage_text, description, current_line_id) and empty
+    device/function/children lists are omitted to keep the tree compact."""
     return _prune(
         {
             "id": s.id,
@@ -167,6 +167,8 @@ def _space_dict(s: Any) -> dict[str, Any]:
             if s.usage
             else s.usage_text,
             "description": s.description,
+            # The space's own Current Line (see project_get_current_line).
+            "current_line_id": s.default_line_id,
             "devices": [_space_device_dict(d) for d in s.devices],
             "functions": [_function_dict(f) for f in s.functions],
             "children": [_space_dict(c) for c in s.children],
@@ -2094,6 +2096,56 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         return ctx.run_locked(_set)
 
+    def _current_line(space_id: int) -> dict[str, Any]:
+        if project.find_space(space_id) is None:
+            raise ToolError(f"no space with id {space_id}")
+        current = project.current_line(space_id)
+        if current is None:
+            return {
+                "space_id": space_id,
+                "line_id": None,
+                "line": None,
+                "set_by_space_id": None,
+            }
+        line_id, setter = current
+        return {
+            "space_id": space_id,
+            "line_id": line_id,
+            "line": dict(project.line_choices()).get(line_id),
+            "set_by_space_id": setter.id,
+        }
+
+    @tool("read")
+    def project_get_current_line(space_id: int) -> dict[str, Any]:
+        """The "Current Line" of a space (``id`` from project_spaces): the line a device added to
+        the space (project_add_device with space_id) is placed on. It is the space's own, else that
+        of the nearest space above it that has one. Returns {space_id, line_id, line,
+        set_by_space_id}: ``line`` is the line's address and name ("1.1 Name"),
+        ``set_by_space_id`` the space that sets it (``space_id`` itself for its own); all null
+        when no space sets one."""
+        require_project(ctx)
+        return ctx.run_locked(lambda: _current_line(space_id))
+
+    @tool("write")
+    def project_set_current_line(
+        space_id: int, line_id: int | None = None
+    ) -> dict[str, Any]:
+        """Set the "Current Line" of a space (``id`` from project_spaces) to the line ``line_id``
+        (a line's id from project_topology), or clear the space's own with null, so it takes the
+        one of the spaces above it again. Undoable project edit. Returns the same as
+        project_get_current_line."""
+        require_project(ctx)
+
+        def _set() -> dict[str, Any]:
+            if project.find_space(space_id) is None:
+                raise ToolError(f"no space with id {space_id}")
+            if line_id is not None and line_id not in dict(project.line_choices()):
+                raise ToolError(f"no line with id {line_id}; see project_topology")
+            project.set_space_default_line(space_id, line_id)
+            return _current_line(space_id)
+
+        return ctx.run_locked(_set)
+
     @tool("write")
     def project_rename_space(space_id: int, name: str) -> dict[str, Any]:
         """Rename a space (``id`` from project_spaces). Undoable project edit. Returns
@@ -2137,10 +2189,14 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         product_ref_id: str,
         name: str | None = None,
         hardware2program_ref_id: str | None = None,
+        space_id: int | None = None,
     ) -> dict[str, Any]:
         """Add a device to the project using product_ref_id from catalog_list_products.
         Optional hardware2program_ref_id from the same catalog listing selects its application;
-        omitting it selects the newest catalog version. Undoable with project_undo; commissioning
+        omitting it selects the newest catalog version. With ``space_id`` (an ``id`` from
+        project_spaces) the device is added to that space and placed on its Current Line (see
+        project_get_current_line) with the next free address; otherwise, and when the space has
+        no Current Line, it goes on the first TP line. Undoable with project_undo; commissioning
         hardware requires separate connection tools.
 
         Returns {node_id, name, individual_address, description}, or only {node_id} if the created
@@ -2148,6 +2204,8 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         require_project(ctx)
 
         def _add() -> dict[str, Any]:
+            if space_id is not None and project.find_space(space_id) is None:
+                raise ToolError(f"no space with id {space_id}")
             product = max(
                 (
                     p
@@ -2178,6 +2236,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                 name=name or "",
                 app=app,
                 product=DeviceProduct.of(product),
+                space_id=space_id,
             )
             if device_id is None:
                 raise ToolError("add_device did not return a device id")

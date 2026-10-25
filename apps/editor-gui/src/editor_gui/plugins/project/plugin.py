@@ -384,6 +384,9 @@ class ProjectPlugin:
             on_set_status=lambda space_id, status: api.project.set_completion_status(
                 "space", space_id, status
             ),
+            line_choices=api.project.line_choices,
+            get_current_line=api.project.current_line,
+            on_set_current_line=api.project.set_space_default_line,
         )
         self._spaces_panel = SpacesPanel(
             get_space_tree=api.project.get_space_tree,

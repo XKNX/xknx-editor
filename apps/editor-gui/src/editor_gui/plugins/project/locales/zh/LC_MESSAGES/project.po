@@ -2337,3 +2337,12 @@ msgstr "将状态设置为{status}"
 
 msgid "Set function description"
 msgstr "设置功能说明"
+
+msgid "Current Line"
+msgstr "当前支线"
+
+msgid "{line} (inherits from {space})"
+msgstr "{line}（继承自 {space}）"
+
+msgid "Set current line"
+msgstr "设置当前支线"

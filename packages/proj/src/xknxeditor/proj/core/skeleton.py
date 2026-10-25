@@ -7,7 +7,8 @@ group-address tree.
 The topology follows the KNX standard for a fresh project: an IP backbone (Area 0 / Line 0, ``0.0``),
 plus Area 1 with an IP main line (``1.0``) and a TP line (``1.1``) where end devices belong. New
 devices default onto the TP line ``1.1`` (KNX best practice: backbone and main line carry only
-couplers, not end devices). The building tree starts with one ``Building`` named after the project.
+couplers, not end devices). The building tree starts with one ``Building`` named after the project,
+with ``1.1`` as its Current Line.
 """
 
 from uuid import uuid4
@@ -60,6 +61,7 @@ def seed_new_project(
         )
     )
     # Area 1: IP main line (1.0) for line couplers, plus a TP line (1.1) that hosts end devices.
+    tp_line = Line(address=1, segments=[Segment(number=0, medium_type=MEDIUM_TP)])
     installation.areas.append(
         Area(
             address=1,
@@ -68,16 +70,14 @@ def seed_new_project(
                     address=0,
                     segments=[Segment(number=0, medium_type=MEDIUM_IP)],
                 ),
-                Line(
-                    address=1,
-                    segments=[Segment(number=0, medium_type=MEDIUM_TP)],
-                ),
+                tp_line,
             ],
         )
     )
-    # A default building (named after the project file) so the building tree is not empty.
+    # A default building (named after the project file) so the building tree is not empty. Its
+    # Current Line is the TP line, so devices added to the building land there.
     installation.spaces.append(
-        Space(space_type="Building", name=building_name, order=0)
+        Space(space_type="Building", name=building_name, order=0, default_line=tp_line)
     )
     session.add(installation)
     session.commit()

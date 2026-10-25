@@ -1,4 +1,5 @@
-"""The drop-downs for an element's "Status" and a room's "Use", filling the width of their cell."""
+"""The drop-downs for an element's "Status", a room's "Use" and a space's "Current Line", filling
+the width of their cell."""
 
 from __future__ import annotations
 
@@ -10,7 +11,7 @@ from editor_gui.plugins.project.element_status import (
     usage_label,
     usage_options,
 )
-from editor_gui.widgets.combo import combo
+from editor_gui.widgets.combo import begin_combo, combo
 
 # Rows the "Use" list shows before it scrolls (it has 28 entries).
 USAGE_ROWS = 16
@@ -51,3 +52,27 @@ def usage_combo(label: str, current: str, current_text: str = "") -> str | None:
         usage_label(current, current_text),
         USAGE_ROWS,
     )
+
+
+def line_combo(
+    label: str,
+    own: int | None,
+    preview: str,
+    choices: list[tuple[int, str]],
+    none_text: str,
+) -> tuple[bool, int | None]:
+    """The "Current Line" drop-down: ``none_text`` for none, then each line of ``choices`` (its
+    id and text), with the space's ``own`` line marked; ``preview`` is shown while it is closed.
+    Returns whether another choice was made, and the line chosen (None for none)."""
+    chosen: tuple[bool, int | None] = (False, own)
+    imgui.set_next_item_width(-1)
+    if begin_combo(label, preview):
+        options: list[tuple[int | None, str]] = [(None, none_text), *choices]
+        for line_id, text in options:
+            selected = line_id == own
+            if imgui.selectable(f"{text}##{line_id}", selected)[0] and not selected:
+                chosen = (True, line_id)
+            if selected:
+                imgui.set_item_default_focus()
+        imgui.end_combo()
+    return chosen
