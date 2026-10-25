@@ -401,6 +401,12 @@ class CatalogService:
         hardware = self._service.get_hardware(hardware_id)
         return bool(hardware is not None and hardware.is_ip_enabled)
 
+    @io_guarded(lambda: None)
+    def ip_config(self, hardware2program_id: str) -> str | None:
+        """Who sets the IP configuration of a product's application: "Tool" or "Custom"
+        (``IPConfig``); ``None`` when the catalog lacks it."""
+        return self._service.get_ip_config(hardware2program_id)
+
     @io_guarded(lambda: set[str]())
     def coupler_capabilities(self, hardware2program_id: str) -> set[str]:
         """The coupler capabilities of a hardware program (e.g. ``SecurityProxy``)."""

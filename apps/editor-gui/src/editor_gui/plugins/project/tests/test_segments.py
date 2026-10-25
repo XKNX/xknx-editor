@@ -388,6 +388,60 @@ def test_the_tree_shows_the_backbone_the_areas_and_the_segments() -> None:
     assert panel._format_area_label(Area(2, 2, ""), main) == "2.0 TP main line"
 
 
+@pytest.mark.usefixtures("context")
+def test_segments_are_added_and_deleted_from_the_tree(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from editor_gui.plugins.project.strings import S
+    from editor_gui.plugins.project.ui import devices as devices_ui
+
+    from ._clicks import Clicks
+
+    clicks = Clicks(monkeypatch, devices_ui)
+    line = Line(1, 1, 1, "L", [Segment(5, "Garden")])
+    main = Line(3, 1, 0, "")
+    added: list[int] = []
+    removed: list[int] = []
+    panel = DevicesPanel(
+        get_devices=list,
+        get_areas=lambda: [Area(1, 1, "Hauptlinie")],
+        get_lines=lambda _area_id: [main, line],
+        on_select_device=lambda _d: None,
+        on_move_device=lambda _d, _a, _l: None,
+        on_create_area=lambda _n, _s: None,
+        on_remove_area=lambda _a: None,
+        on_rename_area=lambda _a, _n: None,
+        on_create_line=lambda _a, _n, _s: None,
+        on_remove_line=lambda _l: None,
+        on_rename_line=lambda _l, _n: None,
+        on_add_segment=lambda ln: added.append(ln.id),
+        on_remove_segment=lambda s: removed.append(s.id),
+        get_unloaded_devices=list,
+        get_device_segments=dict,
+    )
+    clicks.open.add("1.0 Hauptlinie##area_1")
+
+    def frames() -> None:
+        for _frame in range(2):
+            imgui.new_frame()
+            imgui.begin("Devices")
+            panel.render()
+            imgui.end()
+            imgui.end_frame()
+
+    frames()
+    # "Add Segment" of an area adds to its main line, of a line to that line.
+    for context in ("##area_ctx_1", "##line_ctx_1"):
+        clicks.context = context
+        clicks.items.add(S.CONTEXT_ADD_SEGMENT)
+        frames()
+    assert added == [3, 1]
+    clicks.context = "##segment_ctx_5"
+    clicks.items.add(S.CONTEXT_DELETE)
+    frames()
+    assert removed == [5]
+
+
 def test_lines_and_segments_show_their_devices_and_bus_current(
     project: ProjectService, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -448,6 +502,38 @@ def test_couplers_are_checked_where_they_go(
     project.check_device_medium(
         "H-router", main.main_segment_id, "Router", check_couplers=False
     )
+
+
+def test_ip_router_needs_the_ip_configuration_by_the_tool(
+    project: ProjectService, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # A KNXnet/IP router is an IP coupler whose IP configuration the tool sets; one whose
+    # application sets it itself ("Custom") is checked as a coupler only.
+    catalog = project._catalog
+    monkeypatch.setattr(catalog, "program_media", lambda _p: ({"MT-0", "MT-5"}, True))
+    monkeypatch.setattr(
+        catalog, "program_roles", lambda ids: dict.fromkeys(ids, (True, "MV-091A"))
+    )
+    monkeypatch.setattr(catalog, "coupler_capabilities", lambda _p: set[str]())
+    ip_enabled = [True]
+    monkeypatch.setattr(catalog, "hardware_is_ip_enabled", lambda _p: ip_enabled[0])
+    ip_config: list[str | None] = ["Tool"]
+    monkeypatch.setattr(catalog, "ip_config", lambda _p: ip_config[0])
+    checked: list[bool] = []
+    monkeypatch.setattr(
+        project._svc,
+        "check_coupler",
+        lambda _pid, _segment, device, *_a, **_k: checked.append(device.ip_router),
+    )
+    line = project.find_line(_line_1_1(project))
+    assert line is not None and line.main_segment_id is not None
+    for config in ("Tool", None, "Custom"):
+        ip_config[0] = config
+        project.check_device_medium("H-router", line.main_segment_id, "Router")
+    ip_enabled[0] = False
+    ip_config[0] = "Tool"
+    project.check_device_medium("H-router", line.main_segment_id, "Router")
+    assert checked == [True, True, False, False]
 
 
 def test_bus_current_texts() -> None:

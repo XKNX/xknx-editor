@@ -95,3 +95,31 @@ def test_factory_image_from_the_hardware_program(tmp_path: Path) -> None:
 
     stored.unlink()
     assert service.get_factory_image(program) is None
+
+
+def test_ip_config_of_the_application(tmp_path: Path) -> None:
+    import re
+    import zipfile
+
+    service = CatalogService(tmp_path / "cat.xknxcatalog")
+    service.import_knxprod(_FIXTURE.read_bytes())
+    product = service.list_products()[0]
+    program = product.hardware2program_ref_id
+    assert program is not None
+    # Without the attribute the tool sets the IP configuration.
+    assert service.get_ip_config(program) == "Tool"
+    assert service.get_ip_config("M-0000_H-unknown_HP-0000-00-0000") is None
+
+    source = service.get_program_source(program)
+    assert source is not None
+    stored = Path(source[0])
+    with zipfile.ZipFile(stored) as archive:
+        entries = {name: archive.read(name) for name in archive.namelist()}
+    name = next(n for n in entries if n.endswith(f"{product.application_id}.xml"))
+    entries[name] = re.sub(
+        rb"(<ApplicationProgram\b)", rb'\1 IPConfig="Custom"', entries[name], count=1
+    )
+    with zipfile.ZipFile(stored, "w") as archive:
+        for entry, data in entries.items():
+            archive.writestr(entry, data)
+    assert service.get_ip_config(program) == "Custom"

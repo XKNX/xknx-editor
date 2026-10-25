@@ -46,7 +46,8 @@ class CouplerDevice:
     """What the catalog tells about a device that is put somewhere: the media of its hardware
     program, its application's mask version, whether its hardware is a coupler, whether it is
     a segment coupler (``SegmentCoupler`` capability) and whether it is an IP router (an IP
-    device whose hardware is a coupler)."""
+    device whose hardware is a coupler and whose IP configuration the tool sets, ``IPConfig``
+    "Tool")."""
 
     media: frozenset[str]
     mask: str

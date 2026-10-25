@@ -15,6 +15,7 @@ from xknxeditor.catalog.core.applications import (
     get_application_detail_by_id,
     get_application_source,
     get_application_xml,
+    get_ip_config,
     get_replaces_versions,
     list_applications,
     load_application_program,
@@ -241,6 +242,12 @@ class CatalogService:
         """The application versions the program's application can update."""
         with Session(self._engine) as db:
             return get_replaces_versions(db, program_id)
+
+    def get_ip_config(self, program_id: str) -> str | None:
+        """Who sets the IP configuration of the program's application: "Tool" or "Custom"
+        (``IPConfig``); ``None`` when the catalog lacks it."""
+        with Session(self._engine) as db:
+            return get_ip_config(db, program_id)
 
     def get_program_application_id(self, program_id: str) -> str | None:
         """The application id a hardware program loads, or ``None``."""

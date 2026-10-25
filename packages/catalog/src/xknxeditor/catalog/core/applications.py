@@ -89,18 +89,32 @@ def get_application_xml(db: Session, program_id: str) -> tuple[bytes, str] | Non
         return xml_bytes, manufacturer_id
 
 
-def get_replaces_versions(db: Session, program_id: str) -> list[int]:
-    """The ``ReplacesVersions`` of the application a program loads (empty when unknown)."""
+def _application_attributes(db: Session, program_id: str) -> dict[str, str] | None:
+    """The attributes of the ``ApplicationProgram`` element a program loads, read without
+    parsing the rest of its XML; ``None`` when unknown."""
     source = get_application_xml(db, program_id)
     if source is None:
-        return []
+        return None
     from io import BytesIO
     from xml.etree.ElementTree import iterparse
 
     for _, element in iterparse(BytesIO(source[0]), events=("start",)):
         if element.tag.rsplit("}", 1)[-1] == "ApplicationProgram":
-            return [int(v) for v in (element.get("ReplacesVersions") or "").split()]
-    return []
+            return dict(element.attrib)
+    return None
+
+
+def get_replaces_versions(db: Session, program_id: str) -> list[int]:
+    """The ``ReplacesVersions`` of the application a program loads (empty when unknown)."""
+    attributes = _application_attributes(db, program_id) or {}
+    return [int(v) for v in attributes.get("ReplacesVersions", "").split()]
+
+
+def get_ip_config(db: Session, program_id: str) -> str | None:
+    """Who sets the IP configuration of the device the program loads (``IPConfig``): "Tool"
+    (the default) or "Custom" (the application itself); ``None`` when unknown."""
+    attributes = _application_attributes(db, program_id)
+    return None if attributes is None else attributes.get("IPConfig", "Tool")
 
 
 def get_application_detail(

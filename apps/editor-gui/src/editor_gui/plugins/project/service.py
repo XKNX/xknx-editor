@@ -5252,7 +5252,8 @@ class ProjectService:
                     is_coupler=is_coupler,
                     segment_coupler="SegmentCoupler" in capabilities,
                     ip_router=is_coupler
-                    and self._catalog.hardware_is_ip_enabled(hardware2program_ref_id),
+                    and self._catalog.hardware_is_ip_enabled(hardware2program_ref_id)
+                    and self._catalog.ip_config(hardware2program_ref_id) != "Custom",
                 )
                 _couplers, ip_routers = self._device_roles()
                 self._svc.check_coupler(
