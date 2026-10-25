@@ -17,6 +17,18 @@ from xknxeditor.proj.core.ga_export import (
 
 _XML = """﻿<?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <GroupAddress-Export xmlns="http://knx.org/xml/ga-export/01">
+  <!--GroupRange:-->
+  <!--  @Name: The name of the group range (1 to 255 characters)-->
+  <!--  @RangeStart: The inclusive start address of the range as specified in free group address style-->
+  <!--  @RangeEnd: The inclusive end address of the range as specified in free group address style-->
+  <!--  @Description: The group ranges' description if available-->
+  <!--GroupAddress:-->
+  <!--  @Name: The name of the group range (1 to 255 characters)-->
+  <!--  @Address: The address as specified either in three-level (1/2/3 or two-level (1/3) or numeric (12345) or hexadecimal ($1Fa3 or 0x1fa3) group address value-->
+  <!--  @Central: True if the group address has the Central flag set-->
+  <!--  @Unfiltered: True if the group address has the Unfiltered flag set-->
+  <!--  @Description: The group addresses' description if available-->
+  <!--  @DTPs: The Data Point Types associated with the group address if available, comma separated, e.g. '1.001, 1.002'-->
   <GroupRange Name="Zentral" RangeStart="1" RangeEnd="2047">
     <GroupRange Name="Szenen" RangeStart="1" RangeEnd="255">
       <GroupAddress Name="Diagnose" Address="0/0/1" DPTs="DPST-5-5" />

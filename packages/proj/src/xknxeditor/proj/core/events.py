@@ -3824,16 +3824,17 @@ class ImportGroupAddresses(Event):
     """Import group address folders and group addresses as one undoable step.
 
     ``ranges`` are ``[range_start, range_end, name, parent_start]`` in parent-first order
-    (``parent_start`` ``None`` for a top level folder); an existing folder with the same window
-    under the same parent is renamed when the import has a name for it, else a new one is made.
+    (``parent_start`` ``None`` for a top level folder), optionally with a fifth entry, the folder's
+    Security (``None`` keeps it); an existing folder with the same window under the same parent is
+    renamed when the import has a name for it, else a new one is made.
     ``addresses`` are dicts with ``address`` and the fields of :data:`_IMPORT_FIELDS` that the
     import sets (missing or ``None`` = keep). A new address goes into the smallest folder that
     contains it; an existing one keeps its folder and gets the given fields.
 
     Filled on apply so revert/redo restore exactly: ``range_ids`` (id per entry of ``ranges``,
-    ``created_ranges`` marks the new ones), ``renamed`` (``[range_id, old_name]``), ``ga_ids`` (id per
-    address, ``created_gas`` marks the new ones) and ``old_values`` (previous values of updated
-    addresses)."""
+    ``created_ranges`` marks the new ones), ``renamed`` (``[range_id, old_name]``),
+    ``resecured`` (``[range_id, old_security]``), ``ga_ids`` (id per address, ``created_gas``
+    marks the new ones) and ``old_values`` (previous values of updated addresses)."""
 
     event_type: ClassVar[str] = "ImportGroupAddresses"
 
@@ -3847,11 +3848,13 @@ class ImportGroupAddresses(Event):
     created_gas: list[bool] = field(default_factory=list[bool])
     old_values: list[dict[str, Any]] = field(default_factory=list[dict[str, Any]])
     label: str | None = None
+    resecured: list[list[Any]] = field(default_factory=list[list[Any]])
 
     def apply(self, session: Session) -> None:
         reuse_ranges = list(self.range_ids)
         reuse_gas = list(self.ga_ids)
         self.range_ids, self.created_ranges, self.renamed = [], [], []
+        self.resecured = []
         self.ga_ids, self.created_gas, self.old_values = [], [], []
 
         by_start: dict[tuple[int | None, int], GroupRange] = {
@@ -3861,13 +3864,20 @@ class ImportGroupAddresses(Event):
             )
         }
         ids_by_start: dict[int, int] = {}
-        for index, (start, end, name, parent_start) in enumerate(self.ranges):
+        for index, entry in enumerate(self.ranges):
+            start, end, name, parent_start = entry[:4]
+            security: str | None = entry[4] if len(entry) > 4 else None
             parent_id = None if parent_start is None else ids_by_start.get(parent_start)
             existing = by_start.get((parent_id, start))
             if existing is not None and existing.range_end == end:
                 if name and existing.name != name:
                     self.renamed.append([existing.id, existing.name])
                     existing.name = name
+                if security is not None and (existing.security_mode or "Auto") != (
+                    security
+                ):
+                    self.resecured.append([existing.id, existing.security_mode])
+                    existing.security_mode = security
                 group_range, created = existing, False
             else:
                 group_range = GroupRange(
@@ -3876,6 +3886,7 @@ class ImportGroupAddresses(Event):
                     range_start=start,
                     range_end=end,
                     name=name,
+                    security_mode=security,
                 )
                 if index < len(reuse_ranges):
                     group_range.id = reuse_ranges[index]
@@ -3957,6 +3968,9 @@ class ImportGroupAddresses(Event):
         for range_id, old_name in reversed(self.renamed):
             if (group_range := session.get(GroupRange, range_id)) is not None:
                 group_range.name = old_name
+        for range_id, old_security in reversed(self.resecured):
+            if (group_range := session.get(GroupRange, range_id)) is not None:
+                group_range.security_mode = old_security
 
     @property
     def added(self) -> int:
@@ -3981,6 +3995,7 @@ class ImportGroupAddresses(Event):
             "ga_ids": self.ga_ids,
             "created_gas": self.created_gas,
             "old_values": self.old_values,
+            "resecured": self.resecured,
         }
         if self.label is not None:
             data["label"] = self.label

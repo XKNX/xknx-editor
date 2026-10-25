@@ -1002,13 +1002,15 @@ class ProjectService:
         ranges: list[list[Any]] = []
 
         def add_range(gr: GaRange, parent_start: int | None) -> None:
-            ranges.append([gr.range_start, gr.range_end, gr.name, parent_start])
+            ranges.append(
+                [gr.range_start, gr.range_end, gr.name, parent_start, gr.security]
+            )
             for child in gr.children:
                 add_range(child, gr.range_start)
 
         for gr in export.ranges:
             add_range(gr, None)
-        windows = [(start, end) for start, end, _name, _parent in ranges] + [
+        windows = [(entry[0], entry[1]) for entry in ranges] + [
             (start, end)
             for start, end in state.session.query(
                 GroupRange.range_start, GroupRange.range_end
