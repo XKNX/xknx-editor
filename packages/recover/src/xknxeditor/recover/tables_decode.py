@@ -32,7 +32,8 @@ class DecodedGroupObject:
     write: bool
     transmit: bool
     update: bool
-    read_on_init: bool
+    # ``None`` from a memory-mapped record, whose bit 5 is the segment selector.
+    read_on_init: bool | None
     size_code: int
     object_size: str | None
 
@@ -70,7 +71,9 @@ def decode_flag_byte(value: int) -> tuple[str, bool, bool, bool, bool, bool, boo
     )
 
 
-def _group_object(number: int, flags: int, size: int) -> DecodedGroupObject:
+def _group_object(
+    number: int, flags: int, size: int, *, system_b: bool
+) -> DecodedGroupObject:
     priority, communication, read, write, transmit, update, read_on_init = (
         decode_flag_byte(flags)
     )
@@ -83,7 +86,7 @@ def _group_object(number: int, flags: int, size: int) -> DecodedGroupObject:
         write=write,
         transmit=transmit,
         update=update,
-        read_on_init=read_on_init,
+        read_on_init=read_on_init if system_b else None,
         size_code=size_code,
         object_size=object_size_name(size_code),
     )
@@ -170,7 +173,9 @@ def decode_com_object_table(
     number = 0
     while header_size + number * record_size + 2 <= len(data):
         offset = header_size + number * record_size
-        result[number] = _group_object(number, data[offset], data[offset + 1])
+        result[number] = _group_object(
+            number, data[offset], data[offset + 1], system_b=False
+        )
         number += 1
     return result
 
@@ -263,5 +268,5 @@ def decode_group_object_records_b(
         if flags == 0 and size == 0:
             continue
         number = first_number + position
-        result[number] = _group_object(number, flags, size)
+        result[number] = _group_object(number, flags, size, system_b=True)
     return result

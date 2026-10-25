@@ -362,7 +362,8 @@ class PreflightClassification:
     """A pre-flight's changed bytes split into config / default / runtime (see the category
     constants). Only ``config_bytes`` is an intended configuration change; the rest is benign.
     ``config_locations`` counts the memory segments carrying a configured byte plus every changed
-    property write (property writes are always configured values)."""
+    property write (property writes are configured values, except the procedure's own steps, which
+    count as device-managed)."""
 
     config_bytes: int
     default_bytes: int
@@ -393,8 +394,12 @@ def classify_preflight(
         runtime += r
         if c:
             config_locations += 1
-    config += sum(p.changed_bytes for p in report.changed_properties)
-    config_locations += len(report.changed_properties)
+    for prop in report.changed_properties:
+        if prop.procedure_step:
+            runtime += prop.changed_bytes
+        else:
+            config += prop.changed_bytes
+            config_locations += 1
     return PreflightClassification(config, default, runtime, config_locations)
 
 

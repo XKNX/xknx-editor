@@ -6,6 +6,7 @@ from collections.abc import Iterable
 
 from editor_gui.device import Device
 from xknxeditor.download.errors import CompareMismatch
+from xknxeditor.download.merge import iter_load_controls
 from xknxeditor.namespaces.intermediate.ld_ctrl_compare_prop_t import LdCtrlCompareProp
 
 
@@ -21,7 +22,8 @@ def compare_mismatch(error: BaseException | None) -> CompareMismatch | None:
 def matching_devices(
     mismatch: CompareMismatch, devices: Iterable[Device]
 ) -> list[Device]:
-    """Devices whose application accepts the value the device reported."""
+    """Devices whose application accepts the value the device reported (in any branch of a
+    ``choose`` too: which one runs depends on the device's parameters)."""
     found: list[Device] = []
     for device in devices:
         app = getattr(device, "app", None)
@@ -31,7 +33,7 @@ def matching_devices(
         if any(
             _accepts(control, mismatch)
             for procedure in procedures.load_procedure
-            for control in procedure.choice
+            for control in iter_load_controls(procedure.choice)
         ):
             found.append(device)
     return found

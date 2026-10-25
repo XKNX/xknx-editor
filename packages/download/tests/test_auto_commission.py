@@ -62,7 +62,7 @@ async def _run(
         return args[3]
 
     async def same_scope(*args: Any) -> Any:
-        return args[5]
+        return dl._ScopeCheck(args[5])  # pyright: ignore[reportPrivateUsage]
 
     monkeypatch.setattr(dl, "_device_present", fake_present)
     monkeypatch.setattr(commissioning, "program_individual_address", fake_program)

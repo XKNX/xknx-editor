@@ -83,7 +83,12 @@ def seeded_application(
     program.application_version = 0x10
     if program.static.options is not None:
         program.static.options.prefer_partial_download_if_application_loaded = False
-    app = cast(Application, SimpleNamespace(program=program, manufacturer_id="M-00FA"))
+    app = cast(
+        Application,
+        SimpleNamespace(
+            program=program, manufacturer_id="M-00FA", load_procedures=None
+        ),
+    )
     ui = cast(
         DynamicUI,
         SimpleNamespace(

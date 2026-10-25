@@ -15,6 +15,10 @@ from editor_gui.plugins.project.program_queue import (
 )
 from xknxeditor.download.errors import CompareMismatch, PartialDownloadError
 from xknxeditor.download.scope import DownloadScope
+from xknxeditor.namespaces.intermediate.ld_ctrl_base_choose_t import (
+    LdCtrlBaseChoose,
+    LdCtrlBaseChooseWhen,
+)
 from xknxeditor.namespaces.intermediate.ld_ctrl_compare_prop_t import LdCtrlCompareProp
 
 _READ = bytes.fromhex("000000140001")
@@ -31,7 +35,7 @@ def _mismatch() -> CompareMismatch:
     )
 
 
-def _device(node_id: int, *controls: LdCtrlCompareProp) -> Device:
+def _device(node_id: int, *controls: object) -> Device:
     procedures = SimpleNamespace(
         load_procedure=[SimpleNamespace(choice=list(controls))]
     )
@@ -64,6 +68,23 @@ def test_device_whose_application_accepts_the_reported_value() -> None:
     assert matching_devices(
         _mismatch(), [interface, other, by_type, unmasked, unloaded]
     ) == [interface, by_type]
+
+
+def test_a_check_in_any_branch_of_a_choose_counts() -> None:
+    # Which branch runs depends on the device's parameters, so each one may be the check.
+    chosen = _device(
+        8,
+        LdCtrlBaseChoose(
+            param_ref_id="P",
+            when=[
+                LdCtrlBaseChooseWhen(test="0", choice=[_hardware("00000025")]),
+                LdCtrlBaseChooseWhen(
+                    default=True, choice=[_hardware("000000140000", "FFFFFFFF0000")]
+                ),
+            ],
+        ),
+    )
+    assert matching_devices(_mismatch(), [chosen]) == [chosen]
 
 
 def test_mismatch_is_found_behind_a_wrapping_error() -> None:

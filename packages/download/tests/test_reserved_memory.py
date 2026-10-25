@@ -29,7 +29,12 @@ def _memory(mask_version: str, address: int, size: int) -> MemorySegment:
     program.static.code.relative_segment = []
     program.mask_version = mask_version
     parameter_mask = bytes(size - 1) + b"\xff"
-    app = cast(Application, SimpleNamespace(program=program, manufacturer_id="M-00FA"))
+    app = cast(
+        Application,
+        SimpleNamespace(
+            program=program, manufacturer_id="M-00FA", load_procedures=None
+        ),
+    )
     ui = cast(
         DynamicUI,
         SimpleNamespace(

@@ -34,7 +34,7 @@ from editor_gui.widgets.dpi import px
 from editor_gui.widgets.tables import begin_data_table, data_table_headers
 
 if TYPE_CHECKING:
-    from xknxeditor.download.preflight import PreflightReport, SegmentDiff
+    from xknxeditor.download.preflight import PreflightReport, PropertyDiff, SegmentDiff
 
 _GREEN = imgui.ImVec4(0.4, 0.85, 0.45, 1.0)
 _ORANGE = imgui.ImVec4(0.95, 0.75, 0.2, 1.0)
@@ -259,9 +259,16 @@ class PreflightResultWindow:
                 len(prop.planned),
                 prop.changed,
                 prop.changed_bytes,
-                category=_CAT_CONFIG if prop.changed else _CAT_MATCH,
+                category=self._property_category(prop),
             )
         imgui.end_table()
+
+    @staticmethod
+    def _property_category(prop: PropertyDiff) -> str:
+        """A property write is a configured value, unless it is a step of the procedure."""
+        if not prop.changed:
+            return _CAT_MATCH
+        return _CAT_RUNTIME if prop.procedure_step else _CAT_CONFIG
 
     def _segment_category(self, segment: SegmentDiff) -> str:
         """The segment's overall category, taking the most actionable of its bytes."""

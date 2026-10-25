@@ -105,6 +105,15 @@ def test_com_object_table_round_trip() -> None:
     assert obj.object_size == "1 Byte"
 
 
+def test_read_on_init_only_from_a_system_b_record() -> None:
+    # Bit 5 of a memory-mapped record is the segment selector, not read-on-init.
+    seed = bytes([0x01, 0x07, 0x00, 0x07, 0x88]) + bytes([0xF7, 0x00, 0x08, 0x02])
+    assert decode_com_object_table(seed)[0].read_on_init is None
+    records = decode_group_object_records_b(1, bytes([0xF7, 0x00, 0xD7, 0x00]))
+    assert records[1].read_on_init is True
+    assert records[2].read_on_init is False
+
+
 def test_group_address_table_b_round_trip() -> None:
     gas = [0x0B00, 0x0B01, 0x114A]
     data = build_group_address_table_b(gas)

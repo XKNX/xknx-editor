@@ -12,15 +12,19 @@ An application declares one of three load procedure styles:
 The default procedures live per mask version in the master data
 (``MaskVersion`` -> configuration data -> ``Procedures``), keyed by procedure
 type (``Load`` for a download, ``Unload`` for removal).
+
+A ``choose`` in a procedure selects its controls by a parameter of the device: it is replaced
+by the controls of the branches the parameter's value selects (see :func:`_expand`).
 """
 
 from __future__ import annotations
 
 import logging
-from collections.abc import Sequence
+from collections.abc import Iterator, Mapping, Sequence
 from dataclasses import replace
 from typing import TYPE_CHECKING
 
+from xknxeditor.namespaces.intermediate.ld_ctrl_base_choose_t import LdCtrlBaseChoose
 from xknxeditor.namespaces.intermediate.ld_ctrl_base_t import LdCtrlBase
 from xknxeditor.namespaces.intermediate.ld_ctrl_merge_t import LdCtrlMerge
 from xknxeditor.namespaces.intermediate.ld_ctrl_proc_type_t import LdCtrlProcType
@@ -30,6 +34,7 @@ from xknxeditor.namespaces.intermediate.mask_version_t_management_model import (
 )
 from xknxeditor.namespaces.intermediate.procedure_type_t import ProcedureType
 from xknxeditor.namespaces.intermediate.resource_access_t import ResourceAccess
+from xknxeditor.prod.parser_v2.nodes.choose import satisfies
 
 from .errors import UnsupportedProcedureError
 from .scope import (
@@ -57,6 +62,7 @@ def resolve_download_controls(
     scope: DownloadScope = DownloadScope.FULL,
     access: ResourceAccess = ResourceAccess.REMOTE,
     has_application_program2: bool = False,
+    parameter_values: Mapping[str, str] | None = None,
 ) -> list[object]:
     """Return the flat, ordered list of Load Controls to run for a download.
 
@@ -64,9 +70,13 @@ def resolve_download_controls(
     configuration is rejected before any device access.
     ``has_application_program2`` describes the programs supplied by the caller,
     not whether the mask optionally supports a second application.
+    ``parameter_values`` holds the values of the device's active parameters that a ``choose``
+    in the procedure tests (see :func:`procedure_parameter_refs`); a ``choose`` on a parameter
+    missing there selects no controls.
     """
     style = application.load_procedure_style
     load_procedures = application.load_procedures
+    values = parameter_values or {}
 
     # An application ships only its Load procedure (ProductProcedure) or Load
     # fragments (MergedProcedure). The Unload procedure always comes from the
@@ -77,7 +87,7 @@ def resolve_download_controls(
         and style == LoadProcedureStyle.PRODUCT_PROCEDURE
     ):
         return _finalize_controls(
-            _flatten(load_procedures),
+            _flatten(load_procedures, values),
             master_data,
             application.program.mask_version,
             scope,
@@ -105,8 +115,8 @@ def resolve_download_controls(
     controls = [
         c
         for c in _splice(
-            [c for c in default.choice if control_applies(c, scope)],
-            _fragments_by_merge_id(load_procedures),
+            [c for c in _expand(default.choice, values) if control_applies(c, scope)],
+            _fragments_by_merge_id(load_procedures, values),
         )
         if control_applies(c, scope)
     ]
@@ -165,18 +175,20 @@ def _second_program_control(control: object) -> bool:
     )
 
 
-def _flatten(load_procedures: LoadProcedures | None) -> list[object]:
+def _flatten(
+    load_procedures: LoadProcedures | None, values: Mapping[str, str]
+) -> list[object]:
     """Concatenate the controls of every application load procedure."""
     if load_procedures is None:
         raise UnsupportedProcedureError("application has no load procedure")
     controls: list[object] = []
     for procedure in load_procedures.load_procedure:
-        controls.extend(procedure.choice)
+        controls.extend(_expand(procedure.choice, values))
     return controls
 
 
 def _fragments_by_merge_id(
-    load_procedures: LoadProcedures | None,
+    load_procedures: LoadProcedures | None, values: Mapping[str, str]
 ) -> dict[int, list[object]]:
     """Group application procedure fragments by their merge id."""
     fragments: dict[int, list[object]] = {}
@@ -186,9 +198,59 @@ def _fragments_by_merge_id(
         if procedure.merge_id is None:
             continue
         fragments.setdefault(procedure.merge_id, []).extend(
-            _explicit(c) for c in procedure.choice
+            _explicit(c) for c in _expand(procedure.choice, values)
         )
     return fragments
+
+
+def _expand(controls: Sequence[object], values: Mapping[str, str]) -> list[object]:
+    """``controls`` with each ``choose`` replaced by the controls of the branches it selects:
+    every ``when`` whose test the parameter's value satisfies, in their order, else the
+    default ``when``. A ``choose`` on a parameter without a value (inactive) selects nothing,
+    not even its default. The selected controls are expanded in turn (a nested ``choose``)."""
+    result: list[object] = []
+    for control in controls:
+        if not isinstance(control, LdCtrlBaseChoose):
+            result.append(control)
+            continue
+        value = values.get(control.param_ref_id)
+        if value is None:
+            continue
+        selected = [
+            when
+            for when in control.when
+            if when.test is not None and satisfies(when.test, value)
+        ] or [when for when in control.when if when.default]
+        for when in selected:
+            result.extend(_expand(when.choice, values))
+    return result
+
+
+def iter_load_controls(controls: Sequence[object]) -> Iterator[object]:
+    """Every control in ``controls``, those of every branch of a ``choose`` included."""
+    for control in controls:
+        if isinstance(control, LdCtrlBaseChoose):
+            for when in control.when:
+                yield from iter_load_controls(when.choice)
+        else:
+            yield control
+
+
+def procedure_parameter_refs(application: Application) -> frozenset[str]:
+    """The parameter refs a ``choose`` in the application's load procedures tests."""
+    refs: set[str] = set()
+
+    def collect(controls: Sequence[object]) -> None:
+        for control in controls:
+            if isinstance(control, LdCtrlBaseChoose):
+                refs.add(control.param_ref_id)
+                for when in control.when:
+                    collect(when.choice)
+
+    procedures = application.load_procedures
+    for procedure in procedures.load_procedure if procedures is not None else ():
+        collect(procedure.choice)
+    return frozenset(refs)
 
 
 def _splice(

@@ -117,9 +117,13 @@ async def test_preflight_retries_with_smaller_blocks_within_the_interface(
     async def same_image(*args: object) -> object:
         return args[3]
 
+    async def same_scope(*args: Any) -> object:
+        return download_module._ScopeCheck(args[5])  # pyright: ignore[reportPrivateUsage]
+
     monkeypatch.setattr(download_module, "LoadProcedureRunner", _Runner)
     monkeypatch.setattr(download_module, "_connection_manager", lambda *a: _Manager())
     monkeypatch.setattr(download_module, "_device_association_format", same_image)
+    monkeypatch.setattr(download_module, "_partial_scope", same_scope)
     monkeypatch.setattr(download_module, "_resolve_controls", lambda *a: [])
     monkeypatch.setattr(download_module, "_object_types", lambda *a: {})
     monkeypatch.setattr(download_module, "_authorize_levels", lambda *a: 0)

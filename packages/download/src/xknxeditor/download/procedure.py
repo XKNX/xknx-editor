@@ -398,6 +398,7 @@ class LoadProcedureRunner:
         authorize_levels: int = 0,
         memory_service_count: int | None = None,
         property_services: bool = True,
+        application_loaded: bool = False,
     ) -> None:
         """Initialize the runner.
 
@@ -416,12 +417,17 @@ class LoadProcedureRunner:
         when ``negotiate_apdu`` is set the device's maximum APDU length is read
         once and used for the rest of the run (chunked writes then use larger
         telegrams). Both are skipped for a fixed ``programmer``.
+
+        ``application_loaded`` runs a full procedure on a device that already has
+        the application loaded (``PreferPartialDownloadIfApplicationLoaded``): the
+        segments' code seed is not written, only the tables and the parameters.
         """
         if programmer is None and connection_manager is None:
             raise DownloadError("provide a programmer or a connection manager")
         self.application = application
         self.image = image
         self.scope = scope
+        self.application_loaded = application_loaded
         self._object_types = dict(object_types or {})
         self._active_control: object | None = None
         # LoadImageProp fills missing runtime-image data; later CompareProp
@@ -477,7 +483,9 @@ class LoadProcedureRunner:
         self._controls = (
             list(controls)
             if controls is not None
-            else resolve_download_controls(application, scope=scope)
+            else resolve_download_controls(
+                application, scope=scope, parameter_values=image.procedure_parameters
+            )
         )
         # Position of the control currently being executed, for diagnostics.
         self._position: tuple[int, int] | None = None
@@ -491,6 +499,8 @@ class LoadProcedureRunner:
         # The factory image segments a Master Reset left in place (see _register_factory):
         # _FACTORY_TABLE for the group object table, _FACTORY_OTHER for the rest.
         self._factory_registered: set[str] = set()
+        # The properties a preflight previews as procedure steps (see _procedure_steps).
+        self._procedure_steps: set[_PropertyKey] = set()
 
     async def run(self, progress: Callable[[int, int], None] | None = None) -> None:
         """Execute the Load Procedure, honouring the selected download scope.
@@ -624,6 +634,7 @@ class LoadProcedureRunner:
         self._property_captures.clear()
         self._memory_captures.clear()
         self._factory_registered.clear()
+        self._procedure_steps = _procedure_steps(in_scope)
         self._enable_segment_write = True
         self._enable_verify_on_write_direct = True
         self._error_mappings.clear()
@@ -664,10 +675,7 @@ class LoadProcedureRunner:
         include_initialized: bool | None = None,
     ) -> list[tuple[int, bytes]] | None:
         if include_initialized is None:
-            include_initialized = self.scope in (
-                DownloadScope.FULL,
-                DownloadScope.APPLICATION,
-            )
+            include_initialized = self._writes_seed()
         runs = self.image.masked_writes(
             address,
             size,
@@ -1013,14 +1021,29 @@ class LoadProcedureRunner:
         can then leave a reallocated segment empty or stale, so an AbsSegment
         write flushes the full code seed even outside a full or application
         download. MV-2705 is property-mapped M112 and publishes no memory
-        load-control address, so this returns false. It still packs its
-        association table (``AssociationTable_M112``). MV-2705, System B and
+        load-control address, so this returns false. With dynamic table
+        management it still packs its association table
+        (``AssociationTable_M112``). MV-2705, System B and
         BCU2 keep the scope-based rule (:meth:`_memory_runs`'s default): only a
         full/application download writes the seed, a parameter download touches
         only the changed bytes.
         """
         resources = bundled_mask_resources(self.application.program.mask_version)
         return resources is not None and resources.memory_mapped_lsm() is not None
+
+    def _writes_seed(self, *, segment: bool = False) -> bool:
+        """Whether memory writes carry the code seed (the segments' initialized bytes).
+
+        A full or application download writes it, an AbsSegment of a memory-mapped
+        mask (``segment``) in any scope (see :meth:`_memory_mapped_mask`). With
+        ``application_loaded`` the device holds the seed already: only the tables
+        and the parameters are written.
+        """
+        if self.application_loaded:
+            return False
+        if segment and self._memory_mapped_mask():
+            return True
+        return self.scope in (DownloadScope.FULL, DownloadScope.APPLICATION)
 
     def _memory_lsm(self, index: int) -> tuple[int, int | None] | None:
         """Return ``(control_address, status_address)`` for a memory-mapped LSM.
@@ -1477,8 +1500,7 @@ class LoadProcedureRunner:
             runs = DownloadImage(memory, ()).masked_writes(
                 control.offset,
                 control.size,
-                include_initialized=self.scope
-                in (DownloadScope.FULL, DownloadScope.APPLICATION),
+                include_initialized=self._writes_seed(),
             )
             return self._overlay_memory_capture(
                 index, control.offset, control.size, runs
@@ -1520,8 +1542,7 @@ class LoadProcedureRunner:
         runs = self.image.masked_writes(
             control.offset,
             control.size,
-            include_initialized=self.scope
-            in (DownloadScope.FULL, DownloadScope.APPLICATION),
+            include_initialized=self._writes_seed(),
         )
         return self._overlay_memory_capture(index, control.offset, control.size, runs)
 
@@ -2572,10 +2593,12 @@ class LoadProcedureRunner:
         # stale segment after AllocAbsDataSeg, so flush the full seed there even
         # outside a full/application download. Other masks keep the scope-based
         # default (see :meth:`_memory_runs`), or a parameter download would cost
-        # as much bus time as a full one on a large application.
-        include_initialized = True if self._memory_mapped_mask() else None
+        # as much bus time as a full one on a large application. A device that
+        # has the application loaded keeps its seed (see :meth:`_writes_seed`).
         runs = (
-            self._memory_runs(address, size, include_initialized=include_initialized)
+            self._memory_runs(
+                address, size, include_initialized=self._writes_seed(segment=True)
+            )
             if self._enable_segment_write
             else []
         )
@@ -2675,7 +2698,7 @@ class LoadProcedureRunner:
                     size,
                     segments,
                     missing_ok=True,
-                    include_initialized=True if self._memory_mapped_mask() else None,
+                    include_initialized=self._writes_seed(segment=True),
                 )
             return
         if isinstance(control, LdCtrlWriteProp):
@@ -2692,6 +2715,7 @@ class LoadProcedureRunner:
                 planned,
                 properties,
                 covered=covered,
+                procedure_step=_property_key(control) in self._procedure_steps,
             )
             return
         if isinstance(control, LdCtrlCompareMem):
@@ -2858,9 +2882,11 @@ class LoadProcedureRunner:
         properties: list[PropertyDiff],
         *,
         covered: bytes | None = None,
+        procedure_step: bool = False,
     ) -> None:
         """Read the current property value and record a diff against ``planned``, of which
-        only the ``covered`` bits are written (``None``: all)."""
+        only the ``covered`` bits are written (``None``: all); ``procedure_step`` marks it as a
+        step of the procedure (see :attr:`PropertyDiff.procedure_step`)."""
         current = await self._read_property_elements(
             object_index, property_id, count, start_element, planned
         )
@@ -2882,6 +2908,7 @@ class LoadProcedureRunner:
                 current=current,
                 planned=bytes(planned),
                 object_type=target[0] if target is not None else None,
+                procedure_step=procedure_step,
             )
         )
 
@@ -2932,6 +2959,33 @@ class LoadProcedureRunner:
                 )
             )
         return bytes(current)
+
+
+# A property as a load control addresses it: object index, object type, occurrence, PID and
+# start element.
+_PropertyKey = tuple[int | None, int | None, int, int, int]
+
+
+def _property_key(control: LdCtrlWriteProp) -> _PropertyKey:
+    return (
+        control.obj_idx,
+        control.obj_type,
+        control.occurrence,
+        control.prop_id,
+        control.start_element,
+    )
+
+
+def _procedure_steps(controls: Sequence[object]) -> set[_PropertyKey]:
+    """The properties ``controls`` write more than once with different inline data: steps of
+    the procedure (a download handshake such as ``01`` at the start and ``02`` before the
+    restart), not a setting the device keeps. Parameters give every write of a property the
+    same value, so only inline data can differ."""
+    values: dict[_PropertyKey, set[bytes]] = {}
+    for control in controls:
+        if isinstance(control, LdCtrlWriteProp) and control.inline_data is not None:
+            values.setdefault(_property_key(control), set()).add(control.inline_data)
+    return {key for key, data in values.items() if len(data) > 1}
 
 
 def _leave_factory_runs(

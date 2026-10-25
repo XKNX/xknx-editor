@@ -186,6 +186,37 @@ def test_apply_to_project_writes_links_flags_and_params(application) -> None:  #
     assert (ref_id, "write", True) in project.flags
 
 
+def test_apply_keeps_read_on_init_a_table_does_not_hold() -> None:
+    project = _FakeProject(refs=["O-1_R"])
+    service = RecoverService(_FakeAPI(project))  # type: ignore[arg-type]
+    group_object = DecodedGroupObject(
+        number=1,
+        priority="Low",
+        communication=True,
+        read=False,
+        write=True,
+        transmit=True,
+        update=True,
+        read_on_init=None,  # a memory-mapped record
+        size_code=0,
+        object_size="1 Bit",
+    )
+    recovered = RecoveredDevice(
+        address="1.1.28",
+        application_id="A-1",
+        device_address=0x111C,
+        group_addresses=[],
+        links=[],
+        group_objects={1: group_object},
+        parameters=RecoveredParameters(values={}, unknown=[]),
+    )
+
+    service._apply_flags(project.devices[0], recovered, {1: "O-1_R"})  # pyright: ignore[reportPrivateUsage]
+
+    assert ("O-1_R", "update", True) in project.flags
+    assert all(flag != "read_on_init" for _, flag, _ in project.flags)
+
+
 def test_apply_skips_device_already_in_project(application) -> None:  # type: ignore[no-untyped-def]
     recovered = RecoveredDevice(
         address="1.1.5",

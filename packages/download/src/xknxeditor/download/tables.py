@@ -117,6 +117,10 @@ _SIZE_CODE: dict[str, int] = {
 
 # Communication flag byte bit layout (bits 0-1 priority, then enables).
 _PRIORITY_BITS: dict[str, int] = {"System": 0, "High": 1, "Alert": 2, "Low": 3}
+# Bit 5 of the flag byte: "value read on initialisation" in a System B descriptor, but
+# the segment selector of the value's data pointer in a memory-mapped record (BCU1,
+# BCU2, M112; KNX Standard v3.0.0, 3/5/1 4.18.3.1.2.1). That one belongs to the product.
+SEGMENT_SELECTOR_BIT = 0x20
 
 
 def com_object_flag_byte(
@@ -129,7 +133,11 @@ def com_object_flag_byte(
     update: bool,
     read_on_init: bool,
 ) -> int:
-    """Encode a com object's flags into the descriptor flag byte."""
+    """Encode a com object's flags into the descriptor flag byte.
+
+    ``read_on_init`` is bit 5 of a System B descriptor; a memory-mapped record keeps its
+    own bit 5 (:data:`SEGMENT_SELECTOR_BIT`) instead.
+    """
     value = _PRIORITY_BITS.get(priority, 3)
     if communication:
         value |= 0x04
@@ -207,9 +215,11 @@ def build_com_object_table(
         _require_octet(descriptor.flags, "com object flags")
         _require_octet(descriptor.size, "com object size code")
         # Read-modify-write per the Group Object Table descriptor: the flag byte keeps
-        # bit 5 (value-read-on-init) from the seed, and the size byte keeps its
+        # bit 5 (the segment selector) from the seed, and the size byte keeps its
         # top two bits (the size code occupies only the low six bits).
-        data[offset] = (data[offset] & 0x20) | descriptor.flags
+        data[offset] = (data[offset] & SEGMENT_SELECTOR_BIT) | (
+            descriptor.flags & ~SEGMENT_SELECTOR_BIT
+        )
         data[offset + 1] = (data[offset + 1] & 0xC0) | (descriptor.size & 0x3F)
         mask[offset] = 0xFF
         mask[offset + 1] = 0xFF
