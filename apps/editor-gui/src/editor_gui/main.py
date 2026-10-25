@@ -99,8 +99,7 @@ from editor_gui.theme import (
     apply_style,
     apply_theme,
     system_theme,
-    theme_name,
-    themes,
+    theme_menu_groups,
 )
 from editor_gui.update_check import (
     ReleaseAsset,
@@ -5336,14 +5335,14 @@ class KnxGuiApp:
     def _render_theme_menu(self, tweaked_theme: hello_imgui.ImGuiTweakedTheme) -> None:
         if not imgui.begin_menu(S.MENU_THEME):
             return
+        for group in theme_menu_groups():
+            for label, theme in group:
+                if imgui.menu_item(label, "", tweaked_theme.theme == theme)[0]:
+                    tweaked_theme.theme = theme
+                    apply_theme(tweaked_theme)
+            imgui.separator()
         if imgui.menu_item(S.MENU_THEME_CUSTOMIZE, "", False)[0]:
             self._theme_window.open = True
-        imgui.separator()
-        for theme in themes():
-            selected = tweaked_theme.theme == theme
-            if imgui.menu_item(theme_name(theme), "", selected)[0]:
-                tweaked_theme.theme = theme
-                apply_theme(tweaked_theme)
         imgui.end_menu()
 
     def _refresh_dock_titles(self) -> None:

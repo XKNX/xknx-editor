@@ -940,6 +940,12 @@ msgstr "Die Passwörter stimmen nicht überein."
 msgid "Protecting the project with the password…"
 msgstr "Projekt wird mit dem Passwort geschützt…"
 
+msgid "Light Theme"
+msgstr "Helles Design"
+
+msgid "Dark Theme"
+msgstr "Dunkles Design"
+
 msgid "Customize Theme…"
 msgstr "Design anpassen…"
 

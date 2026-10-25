@@ -676,6 +676,12 @@ msgstr " (hvilemodus)"
 msgid "Theme"
 msgstr "Tema"
 
+msgid "Light Theme"
+msgstr "Lyst tema"
+
+msgid "Dark Theme"
+msgstr "Mørkt tema"
+
 msgid "Customize Theme…"
 msgstr "Tilpass tema…"
 

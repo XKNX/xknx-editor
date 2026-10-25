@@ -676,6 +676,12 @@ msgstr " (joutokäynti)"
 msgid "Theme"
 msgstr "Teema"
 
+msgid "Light Theme"
+msgstr "Vaalea teema"
+
+msgid "Dark Theme"
+msgstr "Tumma teema"
+
 msgid "Customize Theme…"
 msgstr "Mukauta teemaa…"
 

@@ -676,6 +676,12 @@ msgstr " (veille)"
 msgid "Theme"
 msgstr "Thème"
 
+msgid "Light Theme"
+msgstr "Thème clair"
+
+msgid "Dark Theme"
+msgstr "Thème sombre"
+
 msgid "Customize Theme…"
 msgstr "Personnaliser le thème…"
 

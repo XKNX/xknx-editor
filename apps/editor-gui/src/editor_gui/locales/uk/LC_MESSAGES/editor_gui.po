@@ -676,6 +676,12 @@ msgstr " (простій)"
 msgid "Theme"
 msgstr "Тема"
 
+msgid "Light Theme"
+msgstr "Світла тема"
+
+msgid "Dark Theme"
+msgstr "Темна тема"
+
 msgid "Customize Theme…"
 msgstr "Налаштувати тему…"
 

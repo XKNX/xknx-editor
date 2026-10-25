@@ -676,6 +676,12 @@ msgstr " (Boşta)"
 msgid "Theme"
 msgstr "Tema"
 
+msgid "Light Theme"
+msgstr "Açık Tema"
+
+msgid "Dark Theme"
+msgstr "Koyu Tema"
+
 msgid "Customize Theme…"
 msgstr "Temayı Özelleştir…"
 

@@ -676,6 +676,12 @@ msgstr " （空闲）"
 msgid "Theme"
 msgstr "主题"
 
+msgid "Light Theme"
+msgstr "浅色主题"
+
+msgid "Dark Theme"
+msgstr "深色主题"
+
 msgid "Customize Theme…"
 msgstr "自定义主题…"
 

@@ -676,6 +676,12 @@ msgstr " (viloläge)"
 msgid "Theme"
 msgstr "Tema"
 
+msgid "Light Theme"
+msgstr "Ljust tema"
+
+msgid "Dark Theme"
+msgstr "Mörkt tema"
+
 msgid "Customize Theme…"
 msgstr "Anpassa tema…"
 

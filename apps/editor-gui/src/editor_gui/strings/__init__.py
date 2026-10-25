@@ -1154,6 +1154,14 @@ class MenuStrings:
         return _("Theme")
 
     @property
+    def MENU_THEME_LIGHT(self) -> str:
+        return _("Light Theme")
+
+    @property
+    def MENU_THEME_DARK(self) -> str:
+        return _("Dark Theme")
+
+    @property
     def MENU_THEME_CUSTOMIZE(self) -> str:
         return _("Customize Theme…")
 

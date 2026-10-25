@@ -676,6 +676,12 @@ msgstr " (Αδράνεια)"
 msgid "Theme"
 msgstr "Θέμα"
 
+msgid "Light Theme"
+msgstr "Φωτεινό Θέμα"
+
+msgid "Dark Theme"
+msgstr "Σκοτεινό Θέμα"
+
 msgid "Customize Theme…"
 msgstr "Προσαρμογή Θέματος…"
 

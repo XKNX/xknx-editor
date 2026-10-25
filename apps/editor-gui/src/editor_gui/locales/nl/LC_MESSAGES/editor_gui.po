@@ -849,6 +849,12 @@ msgstr "De wachtwoorden komen niet overeen."
 msgid "Protecting the project with the password…"
 msgstr "Project wordt met het wachtwoord beveiligd…"
 
+msgid "Light Theme"
+msgstr "Licht thema"
+
+msgid "Dark Theme"
+msgstr "Donker thema"
+
 msgid "Customize Theme…"
 msgstr "Thema aanpassen…"
 

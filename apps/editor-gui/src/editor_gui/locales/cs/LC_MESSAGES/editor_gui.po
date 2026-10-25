@@ -676,6 +676,12 @@ msgstr " (nečinnost)"
 msgid "Theme"
 msgstr "Motiv"
 
+msgid "Light Theme"
+msgstr "Světlý motiv"
+
+msgid "Dark Theme"
+msgstr "Tmavý motiv"
+
 msgid "Customize Theme…"
 msgstr "Přizpůsobit motiv…"
 

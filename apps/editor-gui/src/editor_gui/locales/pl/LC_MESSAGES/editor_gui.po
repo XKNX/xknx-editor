@@ -676,6 +676,12 @@ msgstr " (bezczynność)"
 msgid "Theme"
 msgstr "Motyw"
 
+msgid "Light Theme"
+msgstr "Jasny motyw"
+
+msgid "Dark Theme"
+msgstr "Ciemny motyw"
+
 msgid "Customize Theme…"
 msgstr "Dostosuj motyw…"
 

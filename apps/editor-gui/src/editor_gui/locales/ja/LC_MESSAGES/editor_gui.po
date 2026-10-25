@@ -676,6 +676,12 @@ msgstr " （アイドリング）"
 msgid "Theme"
 msgstr "テーマ"
 
+msgid "Light Theme"
+msgstr "ライトテーマ"
+
+msgid "Dark Theme"
+msgstr "ダークテーマ"
+
 msgid "Customize Theme…"
 msgstr "テーマのカスタマイズ…"
 

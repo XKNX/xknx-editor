@@ -52,6 +52,12 @@ _COLOR_WORDS = {
 _COLOR_STATES = {"Hovered", "Active", "Collapsed", "Selected", "Dimmed"}
 
 
+# The light and the dark theme: first in the Theme menu, and the one for the system's preference
+# when no theme was chosen yet.
+LIGHT_THEME = hello_imgui.ImGuiTheme_.microsoft_style
+DARK_THEME = hello_imgui.ImGuiTheme_.darcula_darker
+
+
 def themes() -> list[hello_imgui.ImGuiTheme_]:
     return [
         hello_imgui.ImGuiTheme_(i) for i in range(int(hello_imgui.ImGuiTheme_.count))
@@ -59,19 +65,31 @@ def themes() -> list[hello_imgui.ImGuiTheme_]:
 
 
 def system_theme() -> hello_imgui.ImGuiTheme_:
-    """The theme to start with when none was chosen yet: Microsoft Style when the system prefers
-    light apps, Darcula (Darker) when it prefers dark ones or does not tell."""
+    """The theme to start with when none was chosen yet: the light theme when the system prefers
+    light apps, the dark theme when it prefers dark ones or does not tell."""
     try:
         light = darkdetect.isLight()
     except Exception:
         light = None
     if light:
-        return hello_imgui.ImGuiTheme_.microsoft_style
-    return hello_imgui.ImGuiTheme_.darcula_darker
+        return LIGHT_THEME
+    return DARK_THEME
 
 
 def theme_name(theme: hello_imgui.ImGuiTheme_) -> str:
     return _THEME_NAMES.get(theme) or hello_imgui.imgui_theme_name(theme)
+
+
+def theme_menu_groups() -> list[list[tuple[str, hello_imgui.ImGuiTheme_]]]:
+    """The themes of the Theme menu with their labels, in the groups between its separators: the
+    light and the dark theme ("Light Theme - Microsoft Style"), then the others."""
+    return [
+        [
+            (f"{S.MENU_THEME_LIGHT} - {theme_name(LIGHT_THEME)}", LIGHT_THEME),
+            (f"{S.MENU_THEME_DARK} - {theme_name(DARK_THEME)}", DARK_THEME),
+        ],
+        [(theme_name(t), t) for t in themes() if t not in (LIGHT_THEME, DARK_THEME)],
+    ]
 
 
 def color_name(name: str) -> str:

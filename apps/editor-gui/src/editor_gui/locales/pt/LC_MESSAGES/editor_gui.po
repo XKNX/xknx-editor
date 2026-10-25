@@ -676,6 +676,12 @@ msgstr " (Inativo)"
 msgid "Theme"
 msgstr "Tema"
 
+msgid "Light Theme"
+msgstr "Tema Claro"
+
+msgid "Dark Theme"
+msgstr "Tema Escuro"
+
 msgid "Customize Theme…"
 msgstr "Personalizar Tema…"
 
