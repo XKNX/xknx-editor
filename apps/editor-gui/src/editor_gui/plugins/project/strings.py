@@ -508,7 +508,7 @@ class ProjectStrings:
         return _("Select an element in a tree to see its comment.")
 
     @property
-    def PANEL_DEVICES(self) -> str:
+    def PANEL_TOPOLOGY(self) -> str:
         return _("Topology")
 
     @property

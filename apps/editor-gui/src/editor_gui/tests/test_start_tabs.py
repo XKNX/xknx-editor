@@ -17,7 +17,7 @@ def test_each_section_starts_on_its_first_tab() -> None:
     app = SimpleNamespace(
         get_all_panels=lambda: [
             _panel("buildings", "LeftSpace"),
-            _panel("devices", "LeftSpace"),
+            _panel("topology", "LeftSpace"),
             _panel("editor", "MainDockSpace"),
             _panel("monitor", "BottomSpace"),
             _panel("timeline", "BottomSpace"),

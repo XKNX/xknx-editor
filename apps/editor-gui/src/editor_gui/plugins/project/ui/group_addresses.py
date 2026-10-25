@@ -2,7 +2,7 @@
 
 Shows, for the selected group address, the device com-objects assigned to it, and lets the user
 create / rename / delete group addresses and groups (context menus + modals, mirroring the
-Devices panel); a secured group address, and a group whose Security is on, shows the KNX Data
+Topology panel); a secured group address, and a group whose Security is on, shows the KNX Data
 Secure shield. Address, data type and security are changed in the details."""
 
 from collections.abc import Callable
@@ -709,7 +709,7 @@ class GroupAddressesPanel:
         names: dict[int, tuple[str, str, int, tuple[int, int]]] = {}
         for index, device in enumerate(devices):
             # Imported devices are often unnamed; fall back to the product name (as the
-            # Devices tree does), and prefix the individual address for context.
+            # Topology tree does), and prefix the individual address for context.
             primary = device.display_name or "?"
             ia = device.individual_address
             label = f"{ia}  {primary}" if ia else primary

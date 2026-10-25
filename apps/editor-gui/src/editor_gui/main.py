@@ -71,6 +71,7 @@ from editor_gui.myknx_oauth import (
 )
 from editor_gui.os_open import open_url
 from editor_gui.plugins.base import API_VERSION, Logger, PanelDefinition, PluginAPI
+from editor_gui.plugins.bus_diagram import BusDiagramPlugin
 from editor_gui.plugins.catalog import CatalogPlugin, CatalogService
 from editor_gui.plugins.cockpit import CockpitPlugin
 from editor_gui.plugins.connection import ConnectionPlugin
@@ -89,7 +90,6 @@ from editor_gui.plugins.project.ui.program_queue import bus_operation_text
 from editor_gui.plugins.recover import RecoverPlugin
 from editor_gui.plugins.signing import SigningPlugin
 from editor_gui.plugins.timeline import TimelinePlugin
-from editor_gui.plugins.topology import TopologyPlugin
 from editor_gui.portal_save import PortalSaveDialog
 from editor_gui.ports import PortInUseError
 from editor_gui.settings import config_dir, load_settings, save_settings
@@ -725,7 +725,7 @@ class KnxGuiApp:
         self._recover_plugin = RecoverPlugin(self._plugin_api)
         self._health_plugin = HealthPlugin(self._plugin_api)
         self._cockpit_plugin = CockpitPlugin(self._plugin_api)
-        self._topology_plugin = TopologyPlugin(self._plugin_api)
+        self._bus_diagram_plugin = BusDiagramPlugin(self._plugin_api)
         self._timeline_plugin = TimelinePlugin(
             self._plugin_api,
             get_telegrams=lambda: self._monitor_plugin.service.telegrams(limit=4000),
@@ -805,7 +805,7 @@ class KnxGuiApp:
             self._recover_plugin,
             self._project_plugin,
             self._cockpit_plugin,
-            self._topology_plugin,
+            self._bus_diagram_plugin,
             self._timeline_plugin,
             self._health_plugin,
             self._logger_plugin,
@@ -3395,7 +3395,7 @@ class KnxGuiApp:
         self._run_bg(S.PROGRESS_LOAD_KNXPROD, worker)
 
     def _sync_device_section(self) -> None:
-        """While a space is selected in the Buildings tree, an area or a line in the Devices tree,
+        """While a space is selected in the Buildings tree, an area or a line in the Topology tree,
         or a group range or group address, the Device tab shows it, titled with its type
         (Building, Floor, …, Area, Line, Main Group, …), and the Manufacturer tab is hidden and
         left out of the menus; selecting a device again restores both."""
@@ -4735,7 +4735,7 @@ class KnxGuiApp:
             if web.active_hub is None:
                 _log_gl_renderer(self._log)
         self._theme_window.render()
-        # Bring the Editor tab to the front when another view (Device Overview, Topology, Health)
+        # Bring the Editor tab to the front when another view (Device Overview, Bus Diagram, Health)
         # selected a device. Consumed here (a per-frame global callback) rather than in the Editor
         # panel itself, because a background dock tab is not rendered and would never see the flag.
         # Use hello_imgui's docking API (focus_window_at_next_frame) — calling imgui.set_window_focus
@@ -5607,7 +5607,7 @@ class KnxGuiApp:
 
 
 # Bumped whenever the default docking layout changes, so a stored layout is replaced once.
-_LAYOUT_VERSION = 17
+_LAYOUT_VERSION = 18
 
 
 _SECTIONS = ("RightSpace", "DeviceSpace", "LeftSpace", "BottomSpace")
@@ -5823,7 +5823,9 @@ def _keep_window_sections(params: hello_imgui.DockingParams) -> None:
 
 
 def _apply_new_layout_once(docking_params: hello_imgui.DockingParams) -> None:
-    """Replace a stored layout from an older version with the current default layout."""
+    """Replace a stored layout from an older version with the current default layout. The usual
+    layout a smaller one of the browser UI remembered (by panel names that may have changed) goes
+    with it."""
     data = load_settings("app")
     if data.get("layout_version") == _LAYOUT_VERSION:
         return
@@ -5831,6 +5833,7 @@ def _apply_new_layout_once(docking_params: hello_imgui.DockingParams) -> None:
         hello_imgui.DockingLayoutCondition.application_start
     )
     data["layout_version"] = _LAYOUT_VERSION
+    data.pop("wide_layout", None)
     save_settings("app", data)
 
 
@@ -5839,6 +5842,7 @@ def _apply_new_layout_once(docking_params: hello_imgui.DockingParams) -> None:
 # the visible title follows the UI language. This lets _refresh_dock_titles() re-translate tab titles
 # live on a language change without recreating windows (see _render_language_menu).
 def _dock_label_getters() -> "dict[str, Callable[[], str]]":
+    from editor_gui.plugins.bus_diagram.strings import S as _bus_diagram
     from editor_gui.plugins.catalog.strings import S as _cat
     from editor_gui.plugins.cockpit.strings import S as _cockpit
     from editor_gui.plugins.health.strings import S as _health
@@ -5847,10 +5851,9 @@ def _dock_label_getters() -> "dict[str, Callable[[], str]]":
     from editor_gui.plugins.project.strings import S as _proj
     from editor_gui.plugins.recover.strings import S as _recover
     from editor_gui.plugins.timeline.strings import S as _timeline
-    from editor_gui.plugins.topology.strings import S as _topology
 
     return {
-        "devices": lambda: _proj.PANEL_DEVICES,
+        "topology": lambda: _proj.PANEL_TOPOLOGY,
         "buildings": lambda: _proj.PANEL_BUILDINGS,
         "group_addresses": lambda: _proj.PANEL_GROUP_ADDRESSES,
         "editor": lambda: _proj.PANEL_EDITOR,
@@ -5864,7 +5867,7 @@ def _dock_label_getters() -> "dict[str, Callable[[], str]]":
         "project_log": lambda: _proj.PANEL_PROJECT_LOG,
         "operations": lambda: _proj.PANEL_OPERATIONS,
         "catalog": lambda: _cat.PANEL_CATALOG,
-        "topology": lambda: _topology.PANEL_TOPOLOGY,
+        "bus_diagram": lambda: _bus_diagram.PANEL_BUS_DIAGRAM,
         "monitor": lambda: _monitor.PANEL_MONITOR,
         "logger": lambda: _logger.PANEL_LOGGER,
         "health": lambda: _health.PANEL_HEALTH,
@@ -5894,7 +5897,7 @@ _ELEMENT_TITLES: "dict[str, Callable[[], str]]" = {
 # Initial tab order per dock space, by stable panel name (order only matters within each space).
 _DOCK_TAB_ORDER = [
     "buildings",
-    "devices",
+    "topology",
     "group_addresses",
     "catalog",
     "editor",
@@ -5908,7 +5911,7 @@ _DOCK_TAB_ORDER = [
     "mass_linker",
     "tools",
     "ki",
-    "topology",
+    "bus_diagram",
     "recover",
     # Bottom bus/log group, then the project info and log.
     "monitor",

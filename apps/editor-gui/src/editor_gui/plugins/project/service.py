@@ -1170,7 +1170,7 @@ class ProjectService:
         # A space selected in the Buildings tree: its details replace the device's until a device
         # is selected again.
         self._selected_space_id: int | None = None
-        # An area or a line selected in the Devices tree, or a group range or group address in the
+        # An area or a line selected in the Topology tree, or a group range or group address in the
         # Group Addresses tree: (kind, id). Its details replace the device's until a device or a
         # space is selected.
         self._selected_element: tuple[str, int] | None = None

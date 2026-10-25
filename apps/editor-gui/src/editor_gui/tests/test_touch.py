@@ -4,9 +4,12 @@ from __future__ import annotations
 
 from typing import Any
 
+import pytest
 from imgui_bundle import hello_imgui
 
+from editor_gui import main
 from editor_gui.main import (
+    _apply_new_layout_once,  # pyright: ignore[reportPrivateUsage]
     _restore_wide_layout,  # pyright: ignore[reportPrivateUsage]
     compact_docking_splits,
     compact_section,
@@ -286,3 +289,26 @@ def test_usual_layout_restored_before_imgui_runs() -> None:
     )
     assert params.dockable_windows[0].dock_space_name == "DeviceSpace"
     assert {s.new_dock for s in params.docking_splits} >= {"DeviceSpace", "BottomSpace"}
+
+
+def test_new_layout_forgets_the_remembered_usual_layout(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A new default layout also drops the usual layout a smaller one remembered: its panel names
+    are those of the older version (the Topology tree would take the Bus Diagram's place)."""
+    stored: dict[str, Any] = {
+        "layout_version": main._LAYOUT_VERSION - 1,  # pyright: ignore[reportPrivateUsage]
+        "wide_layout": {"docks": {"topology": "MainDockSpace"}},
+        "locale": "de",
+    }
+    saved: list[dict[str, Any]] = []
+    monkeypatch.setattr(main, "load_settings", lambda _name: dict(stored))
+    monkeypatch.setattr(main, "save_settings", lambda _name, data: saved.append(data))
+    params = hello_imgui.DockingParams()
+    _apply_new_layout_once(params)
+    assert saved == [
+        {"layout_version": main._LAYOUT_VERSION, "locale": "de"}  # pyright: ignore[reportPrivateUsage]
+    ]
+    assert (
+        params.layout_condition == hello_imgui.DockingLayoutCondition.application_start
+    )

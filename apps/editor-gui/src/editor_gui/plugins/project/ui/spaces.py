@@ -16,9 +16,9 @@ from editor_gui.plugins.project.space_text import (
 from editor_gui.plugins.project.strings import S
 from editor_gui.plugins.project.ui._filter import filter_box
 from editor_gui.plugins.project.ui.config_dialog import DeviceConfigDialog
-from editor_gui.plugins.project.ui.devices import render_read_device_item
 from editor_gui.plugins.project.ui.move_menu import render_move_menu
 from editor_gui.plugins.project.ui.status_field import USAGE_ROWS as _USAGE_ROWS
+from editor_gui.plugins.project.ui.topology import render_read_device_item
 from editor_gui.widgets.combo import combo
 from editor_gui.widgets.description import render_description, render_device_marks
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog

@@ -15,10 +15,10 @@ from editor_gui.plugins.catalog.service import CatalogService
 from editor_gui.plugins.logger.service import LogService
 from editor_gui.plugins.project.service import ProjectService
 from editor_gui.plugins.project.strings import S
-from editor_gui.plugins.project.ui import devices as devices_ui
 from editor_gui.plugins.project.ui import group_addresses
-from editor_gui.plugins.project.ui.devices import Area, DevicesPanel, Line, Segment
+from editor_gui.plugins.project.ui import topology as topology_ui
 from editor_gui.plugins.project.ui.group_addresses import GroupAddressesPanel
+from editor_gui.plugins.project.ui.topology import Area, Line, Segment, TopologyPanel
 
 from ._clicks import Clicks
 
@@ -111,7 +111,7 @@ def test_group_addresses_and_middle_groups_move(
 def test_a_device_moves_to_another_line_or_segment(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    clicks = Clicks(monkeypatch, devices_ui)
+    clicks = Clicks(monkeypatch, topology_ui)
     main = Line(3, 1, 0, "", main_segment_id=30)
     line = Line(1, 1, 1, "Office", [Segment(5, "Garden")], main_segment_id=10)
     moves: list[int] = []
@@ -127,7 +127,7 @@ def test_a_device_moves_to_another_line_or_segment(
     from editor_gui.device import UnloadedDevice
 
     device = UnloadedDevice(7, "", "Product", "1.1.5", None)
-    panel = DevicesPanel(
+    panel = TopologyPanel(
         get_devices=list,
         get_areas=lambda: [Area(1, 1, "Hauptlinie")],
         get_lines=lambda _area_id: [line, main],

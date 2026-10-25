@@ -1,5 +1,5 @@
 """Shared options dialog for transferring a device configuration (parameters + group-address
-links), used by both the Devices tree and the Buildings tree."""
+links), used by both the Topology tree and the Buildings tree."""
 
 from __future__ import annotations
 

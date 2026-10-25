@@ -8,7 +8,7 @@ from typing import Any
 
 from editor_gui.plugins.project.medium_text import medium_error_text
 from editor_gui.plugins.project.plugin import ProjectPlugin
-from editor_gui.plugins.project.ui.devices import Line, Segment
+from editor_gui.plugins.project.ui.topology import Line, Segment
 from xknxeditor.proj.core.medium import MediumError
 
 

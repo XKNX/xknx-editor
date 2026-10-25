@@ -40,7 +40,6 @@ from editor_gui.plugins.project.service import (
 from editor_gui.plugins.project.strings import S
 from editor_gui.plugins.project.ui import (
     ConfigurePanel,
-    DevicesPanel,
     GroupAddressesPanel,
     HistoryPanel,
     MassLinkerPanel,
@@ -48,6 +47,7 @@ from editor_gui.plugins.project.ui import (
     ProjectLogPanel,
     SpacesPanel,
     ToolsPanel,
+    TopologyPanel,
 )
 from editor_gui.plugins.project.ui.comment import CommentPanel
 from editor_gui.plugins.project.ui.dali_commissioning import DaliCommissioningPanel
@@ -56,7 +56,6 @@ from editor_gui.plugins.project.ui.device_certificate import (
     DeviceCertificateDialog,
 )
 from editor_gui.plugins.project.ui.device_compare import DeviceComparePanel
-from editor_gui.plugins.project.ui.devices import Area, Line, Segment
 from editor_gui.plugins.project.ui.element_details import ElementDetailsPanel
 from editor_gui.plugins.project.ui.group_value import GroupValueActions
 from editor_gui.plugins.project.ui.memory_preview import MemoryPreviewWindow
@@ -75,6 +74,7 @@ from editor_gui.plugins.project.ui.secure_commissioning import SecureCommissioni
 from editor_gui.plugins.project.ui.siemens_dali import SiemensDaliPanel
 from editor_gui.plugins.project.ui.space_details import SpaceDetailsPanel
 from editor_gui.plugins.project.ui.tools import apply_name_swap, shifted_ia
+from editor_gui.plugins.project.ui.topology import Area, Line, Segment
 from editor_gui.widgets import ButtonActions
 from editor_gui.widgets.dpt_value import GroupValueBus
 from editor_gui.widgets.icons import (
@@ -216,7 +216,7 @@ class ProjectPlugin:
         # Copied device configuration (params + GA links) for "Paste configuration".
         self._device_config_clipboard: DeviceConfigClipboard | None = None
 
-        self._devices_panel = DevicesPanel(
+        self._topology_panel = TopologyPanel(
             get_devices=lambda: api.project.devices,
             get_areas=self._get_areas,
             get_lines=self._get_lines,
@@ -530,10 +530,10 @@ class ProjectPlugin:
 
         self._panels = [
             PanelDefinition(
-                name="devices",
-                label=S.PANEL_DEVICES,
+                name="topology",
+                label=S.PANEL_TOPOLOGY,
                 dock="LeftSpace",
-                render=self._devices_panel.render,
+                render=self._topology_panel.render,
             ),
             PanelDefinition(
                 name="buildings",

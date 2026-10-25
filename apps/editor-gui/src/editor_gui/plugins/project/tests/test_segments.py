@@ -1,6 +1,6 @@
 """Segments and the media of lines and segments as the editor shows and changes them: the
 details of a line and a segment, the reasons a medium cannot change, the check of a device's
-medium, and a line's devices split onto its segments in the Devices tree."""
+medium, and a line's devices split onto its segments in the Topology tree."""
 
 from __future__ import annotations
 
@@ -26,16 +26,16 @@ from editor_gui.plugins.project.service import (
     format_domain_address,
     interface_bus_access,
 )
-from editor_gui.plugins.project.ui.devices import (
-    Area,
-    DevicesPanel,
-    Line,
-    Segment,
-    _split_line,
-)
 from editor_gui.plugins.project.ui.element_details import (
     ElementDetailsPanel,
     latency_options,
+)
+from editor_gui.plugins.project.ui.topology import (
+    Area,
+    Line,
+    Segment,
+    TopologyPanel,
+    _split_line,
 )
 from editor_gui.strings import get_locale, set_locale
 from xknxeditor.catalog import ProductSummary
@@ -356,7 +356,7 @@ def test_the_tree_shows_the_backbone_the_areas_and_the_segments() -> None:
     main = Line(3, 1, 0, "")
     lines = {0: [backbone], 1: [main, line]}
     devices = [_device(1, "1.1.1"), _device(2, "1.1.2"), _device(3, "1.0.1")]
-    panel = DevicesPanel(
+    panel = TopologyPanel(
         get_devices=list,
         get_areas=lambda: [Area(0, 0, ""), Area(1, 1, "Hauptlinie")],
         get_lines=lambda area_id: lines[area_id],
@@ -374,7 +374,7 @@ def test_the_tree_shows_the_backbone_the_areas_and_the_segments() -> None:
     )
     for _frame in range(2):
         imgui.new_frame()
-        imgui.begin("Devices")
+        imgui.begin("Topology")
         panel.render()
         imgui.end()
         imgui.end_frame()
@@ -393,16 +393,16 @@ def test_segments_are_added_and_deleted_from_the_tree(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     from editor_gui.plugins.project.strings import S
-    from editor_gui.plugins.project.ui import devices as devices_ui
+    from editor_gui.plugins.project.ui import topology as topology_ui
 
     from ._clicks import Clicks
 
-    clicks = Clicks(monkeypatch, devices_ui)
+    clicks = Clicks(monkeypatch, topology_ui)
     line = Line(1, 1, 1, "L", [Segment(5, "Garden")])
     main = Line(3, 1, 0, "")
     added: list[int] = []
     removed: list[int] = []
-    panel = DevicesPanel(
+    panel = TopologyPanel(
         get_devices=list,
         get_areas=lambda: [Area(1, 1, "Hauptlinie")],
         get_lines=lambda _area_id: [main, line],
