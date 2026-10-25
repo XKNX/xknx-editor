@@ -16,7 +16,11 @@ async def test_trades_are_created_changed_moved_and_removed(tmp_path: Path) -> N
         await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
         assert await _data(client, "project_trades") == {"items": [], "count": 0}
         light = await _data(client, "project_create_trade", name="Lighting")
-        assert light == {"id": light["id"], "name": "Lighting"}
+        assert light == {
+            "id": light["id"],
+            "name": "Lighting",
+            "trade_ids": [light["id"]],
+        }
         heat = await _data(client, "project_create_trade", name="Heating")
         inside = await _data(
             client, "project_create_trade", name="Inside", parent_id=light["id"]
@@ -106,3 +110,37 @@ async def test_devices_go_into_trades(tmp_path: Path) -> None:
             member=False,
         )
         assert "devices" not in without
+
+
+async def test_several_spaces_and_trades_at_once_with_default_names(
+    tmp_path: Path,
+) -> None:
+    mcp, _project = _build(tmp_path)
+    async with Client(mcp) as client:
+        await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
+        building = (await _data(client, "project_spaces"))["items"][0]["id"]
+        rooms = await _data(
+            client,
+            "project_create_space",
+            space_type="Room",
+            parent_id=building,
+            count=3,
+        )
+        assert rooms["name"] == "New room" and len(rooms["space_ids"]) == 3
+        assert rooms["space_id"] == rooms["space_ids"][0]
+        tree = (await _data(client, "project_spaces"))["items"][0]
+        assert [c["name"] for c in tree["children"]] == ["New room"] * 3
+        trades = await _data(client, "project_create_trade", count=2)
+        assert trades["name"] == "New trade" and len(trades["trade_ids"]) == 2
+        listed = (await _data(client, "project_trades"))["items"]
+        assert [t["name"] for t in listed] == ["New trade", "New trade"]
+        # Each one is an undo step, as in the dialog.
+        await _data(client, "project_undo")
+        assert len((await _data(client, "project_trades"))["items"]) == 1
+        for tool, args in (
+            ("project_create_space", {"space_type": "Room", "parent_id": building}),
+            ("project_create_trade", {}),
+        ):
+            for count in (0, 101):
+                with pytest.raises(Exception, match="count must be 1 to 100"):
+                    await client.call_tool(tool, {**args, "count": count})

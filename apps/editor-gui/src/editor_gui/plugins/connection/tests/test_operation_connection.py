@@ -4,8 +4,9 @@ selects a connection ("Select Connection"), or cancels the operation."""
 
 from __future__ import annotations
 
+import asyncio
 from collections.abc import Callable, Coroutine, Iterator
-from concurrent.futures import CancelledError, Future
+from concurrent.futures import CancelledError, Future, ThreadPoolExecutor
 from types import SimpleNamespace
 from typing import Any, cast
 
@@ -242,6 +243,60 @@ def test_the_bus_connection_is_opened_and_closed_for_the_operations() -> None:
         "10.0.0.1",
         ConnectionType.ROUTING,
     )
+
+
+def test_the_connection_opens_and_closes_on_the_bus() -> None:
+    """What the connection does in the background: once open, the waiting operations go on;
+    once closed, the connection the user chose in the Gateway menu returns."""
+    plugin = _plugin((_BUS, "IP-Interface"))
+    calls: list[str] = []
+
+    async def connect(reopen: bool = False) -> None:
+        calls.append("connect")
+        plugin._state = ConnectionState.CONNECTED
+
+    async def disconnect(reopen: bool = False) -> None:
+        calls.append("disconnect")
+        plugin._state = ConnectionState.DISCONNECTED
+
+    plugin._connect_async = connect
+    plugin._disconnect_async = disconnect
+    pending = plugin.open_for_operation()
+    asyncio.run(plugin._connect_for_operation_async())
+    assert pending.done() and plugin.opened_for_operations
+    assert plugin._controller_ip == "192.168.16.88"
+    plugin.release_operation()
+    asyncio.run(plugin._close_for_operations())
+    assert calls == ["connect", "disconnect"]
+    assert (plugin._controller_ip, plugin._connection_type) == (
+        "10.0.0.1",
+        ConnectionType.ROUTING,
+    )
+    assert not plugin.opened_for_operations
+
+
+def test_the_main_thread_runs_what_the_connection_hands_over() -> None:
+    plugin = _plugin(None)
+    ran: list[str] = []
+    plugin.on_main_thread(lambda: ran.append("at once"))
+    with ThreadPoolExecutor(max_workers=1) as main_thread:
+        plugin._api.main_thread = main_thread
+        plugin.on_main_thread(lambda: ran.append("handed over"))
+    assert ran == ["at once", "handed over"]
+
+
+def test_the_plugin_is_the_connector_of_the_operations() -> None:
+    plugin = _plugin(None)
+    connector = plugin_module._OperationConnector(plugin)  # pyright: ignore[reportPrivateUsage]
+    pending = connector.open()
+    assert plugin._operation_users == 1 and plugin._select_open
+    assert not connector.opened_for_operations()
+    ran: list[int] = []
+    connector.submit(lambda: ran.append(1))
+    assert ran == [1]
+    plugin._cancel_select_connection()
+    connector.release()
+    assert pending.cancelled() and plugin._operation_users == 0
 
 
 def test_without_a_bus_connection_the_user_selects_one() -> None:

@@ -31,8 +31,9 @@ from editor_gui.device_plugins import parameters_in_plugin
 from editor_gui.plugins.mcp.context import McpContext, make_tool, require_project
 from editor_gui.plugins.project.element_status import usage_label, usage_options
 from editor_gui.plugins.project.service import DeviceProduct
-from editor_gui.plugins.project.space_text import space_error_text
+from editor_gui.plugins.project.space_text import default_name, space_error_text
 from editor_gui.plugins.project.space_usages import SPACE_USAGES
+from editor_gui.plugins.project.strings import S as PROJECT_S
 from editor_gui.settings import config_dir
 from xknxeditor.proj.core.medium import (
     MEDIUM_NAMES,
@@ -58,6 +59,8 @@ if TYPE_CHECKING:
 
 # Slow, file/parse-heavy operations get a generous main-thread budget (they briefly hold the frame).
 _SLOW = 300.0
+# The most spaces or trades one add creates, as the Add dialog's Count allows.
+_MAX_ADD_COUNT = 100
 
 # The com-object flags a client may override (also the schema enum for project_set_com_object_flag).
 Flag = Literal["communication", "read", "write", "transmit", "update", "read_on_init"]
@@ -2192,37 +2195,51 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     @tool("write")
     def project_create_space(
-        space_type: str, name: str, parent_id: int | None = None, usage: str = ""
+        space_type: str,
+        name: str = "",
+        parent_id: int | None = None,
+        usage: str = "",
+        count: int = 1,
     ) -> dict[str, Any]:
-        """Create a building/location space. ``space_type`` is one of Building, BuildingPart, Floor,
-        Room, Corridor, Stairway, DistributionBoard (shown as "Cabinet"). ``parent_id`` is a
-        parent space ``id`` from project_spaces (null = top level). Where a type may go: the top
-        level holds Buildings only; a Building or BuildingPart holds BuildingPart, Floor,
-        Stairway, Room and Corridor; a Floor holds BuildingPart, Room and Corridor; a Stairway,
-        Room or Corridor holds DistributionBoard; a DistributionBoard nothing. Only a Stairway,
-        Room, Corridor or DistributionBoard holds devices. A type never changes. A Room can get
-        its ``usage`` (its "Use", an id from project_list_space_usages; "" for none). Undoable
-        project edit. Returns {space_id, parent_id, space_type, name}."""
+        """Create a building/location space, or ``count`` of them (1 to 100) as the Add dialog
+        does. ``space_type`` is one of Building, BuildingPart, Floor, Room, Corridor, Stairway,
+        DistributionBoard (shown as "Cabinet"). Without a ``name`` a space gets the editor's
+        default name of its type ("New room" in English). ``parent_id`` is a parent space ``id``
+        from project_spaces (null = top level). Where a type may go: the top level holds
+        Buildings only; a Building or BuildingPart holds BuildingPart, Floor, Stairway, Room and
+        Corridor; a Floor holds BuildingPart, Room and Corridor; a Stairway, Room or Corridor
+        holds DistributionBoard; a DistributionBoard nothing. Only a Stairway, Room, Corridor or
+        DistributionBoard holds devices. A type never changes. A Room can get its ``usage`` (its
+        "Use", an id from project_list_space_usages; "" for none). Each space is an undo step
+        (project_undo). Returns {space_id, space_ids, parent_id, space_type, name}: space_id is
+        the first new space, space_ids all of them."""
         require_project(ctx)
         if usage and (space_type != "Room" or usage not in SPACE_USAGES):
             raise ToolError(
                 "usage is for a Room only and must be an id from project_list_space_usages"
             )
+        if not 1 <= count <= _MAX_ADD_COUNT:
+            raise ToolError(f"count must be 1 to {_MAX_ADD_COUNT}")
+        title = name.strip() or default_name(space_type)
 
         def _create() -> dict[str, Any]:
             if parent_id is not None and project.find_space(parent_id) is None:
                 raise ToolError(f"no space with id {parent_id}")
+            ids: list[int] = []
             try:
-                sid = project.create_space(parent_id, space_type, name, usage)
+                for _ in range(count):
+                    sid = project.create_space(parent_id, space_type, title, usage)
+                    if sid is None:
+                        raise ToolError("could not create space (no project open)")
+                    ids.append(sid)
             except SpaceRuleError as error:
                 raise ToolError(space_error_text(error)) from error
-            if sid is None:
-                raise ToolError("could not create space (no project open)")
             return {
-                "space_id": sid,
+                "space_id": ids[0],
+                "space_ids": ids,
                 "parent_id": parent_id,
                 "space_type": space_type,
-                "name": name,
+                "name": title,
             }
 
         return ctx.run_locked(_create)
@@ -2377,18 +2394,28 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         return ctx.run_locked(_read)
 
     @tool("write")
-    def project_create_trade(name: str, parent_id: int | None = None) -> dict[str, Any]:
+    def project_create_trade(
+        name: str = "", parent_id: int | None = None, count: int = 1
+    ) -> dict[str, Any]:
         """Create a trade below the trade ``parent_id`` (id from project_trades), or at the top
-        level without one; it comes after its siblings. Undoable with project_undo. Returns the
-        new trade as project_trades lists it."""
+        level without one, or ``count`` of them (1 to 100) as the Add dialog does; they come
+        after their siblings. Without a ``name`` a trade gets the editor's default name ("New
+        trade" in English). Each trade is an undo step (project_undo). Returns the first new
+        trade as project_trades lists it, with ``trade_ids``: all of them."""
         require_project(ctx)
+        if not 1 <= count <= _MAX_ADD_COUNT:
+            raise ToolError(f"count must be 1 to {_MAX_ADD_COUNT}")
+        title = name.strip() or PROJECT_S.TRADES_DEFAULT
 
         def _create() -> dict[str, Any]:
             if parent_id is not None:
                 _require_trade(parent_id)
-            trade_id = project.create_trade(parent_id, name)
-            assert trade_id is not None
-            return _trade_result(trade_id)
+            ids: list[int] = []
+            for _ in range(count):
+                trade_id = project.create_trade(parent_id, title)
+                assert trade_id is not None
+                ids.append(trade_id)
+            return {**_trade_result(ids[0]), "trade_ids": ids}
 
         return ctx.run_locked(_create)
 

@@ -442,6 +442,98 @@ def test_segments_are_added_and_deleted_from_the_tree(
     assert removed == [5]
 
 
+@pytest.mark.usefixtures("context")
+def test_the_tree_selects_filters_takes_drops_and_compares(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from editor_gui.device import Device
+    from editor_gui.plugins.project.strings import S
+    from editor_gui.plugins.project.ui import topology as topology_ui
+
+    from ._clicks import Clicks
+
+    clicks = Clicks(monkeypatch, topology_ui)
+    backbone = Line(2, 0, 0, "", medium_type="MT-5", main_segment_id=20)
+    main = Line(3, 1, 0, "", main_segment_id=30)
+    line = Line(
+        1, 1, 1, "L", [Segment(5, "Garden"), Segment(6, "")], main_segment_id=10
+    )
+    lines = {0: [backbone], 1: [main, line]}
+    dimmer = Device(7, "Dimmer", None, "1.1.5")
+    selected: list[tuple[str, int]] = []
+    dropped: list[tuple[int, int]] = []
+    compared: list[int] = []
+    areas_added: list[int] = []
+    panel = TopologyPanel(
+        get_devices=lambda: [dimmer],
+        get_areas=lambda: [Area(0, 0, ""), Area(1, 1, "Hauptlinie")],
+        get_lines=lambda area_id: lines[area_id],
+        on_select_device=lambda _d: None,
+        on_move_device=lambda _d, _a, _l: None,
+        on_create_area=lambda number, _s: areas_added.append(number),
+        on_remove_area=lambda _a: None,
+        on_rename_area=lambda _a, _n: None,
+        on_create_line=lambda _a, _n, _s: None,
+        on_remove_line=lambda _l: None,
+        on_rename_line=lambda _l, _n: None,
+        on_compare=compared.append,
+        on_select_element=lambda kind, i: selected.append((kind, i)),
+        get_selected_topology=lambda: ("segment", 5),
+        get_device_segments=lambda: {7: 5},
+        on_move_device_to_segment=lambda d, s: dropped.append((d.node_id, s.id)),
+    )
+
+    def frames(count: int = 2) -> None:
+        for _frame in range(count):
+            imgui.new_frame()
+            imgui.begin("Topology")
+            panel.render()
+            imgui.end()
+            imgui.end_frame()
+
+    frames()
+    # A click on a node selects its area, line or segment.
+    monkeypatch.setattr(imgui, "is_item_clicked", lambda *_a: True)
+    monkeypatch.setattr(imgui, "is_item_toggled_open", lambda: False)
+    frames(1)
+    assert {("area", 1), ("line", 1), ("segment", 5)} <= set(selected)
+    monkeypatch.undo()
+    clicks = Clicks(monkeypatch, topology_ui)
+    # A device dropped on a segment moves there (the drop lands on the segment's row).
+    panel._dragging_device = dimmer
+    last: list[str] = [""]
+    real_tree_node = topology_ui.tree_node
+
+    def tree_node(label: str, *args: object) -> bool:
+        last[0] = label
+        return real_tree_node(label, *args)
+
+    monkeypatch.setattr(topology_ui, "tree_node", tree_node)
+    monkeypatch.setattr(
+        imgui, "begin_drag_drop_target", lambda: "##segment_5" in last[0]
+    )
+    monkeypatch.setattr(imgui, "accept_drag_drop_payload_py_id", lambda _t: 7)
+    monkeypatch.setattr(imgui, "end_drag_drop_target", lambda: None)
+    frames(1)
+    assert dropped[0] == (7, 5)
+    monkeypatch.undo()
+    clicks = Clicks(monkeypatch, topology_ui)
+    # Filtering hides the segments without a match and opens the rest.
+    panel._filter_text = "dimmer"
+    frames()
+    panel._filter_text = ""
+    clicks.context = "##dev_ctx_7"
+    clicks.items.add(S.CONTEXT_COMPARE_DEVICE)
+    frames()
+    assert compared == [7]
+    # The backbone adds areas, the next free number proposed.
+    clicks.context = "##area_ctx_0"
+    clicks.items.add(S.CONTEXT_ADD_AREA)
+    frames()
+    assert panel._popup_area_number == 2
+    assert areas_added == []
+
+
 def test_lines_and_segments_show_their_devices_and_bus_current(
     project: ProjectService, monkeypatch: pytest.MonkeyPatch
 ) -> None:
