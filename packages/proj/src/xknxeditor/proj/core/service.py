@@ -4118,6 +4118,13 @@ class ProjectService:
     def cursor(self, project_id: str) -> int:
         return self._state(project_id).store.cursor
 
+    def group_since(
+        self, project_id: str, start: int, label: str | None = None
+    ) -> None:
+        """Make the edits after the history position ``start`` (a :meth:`cursor`) one undo step,
+        ``label`` naming it (see :meth:`.EventStore.group_since`)."""
+        self._state(project_id).store.group_since(start, label)
+
     def jump_to(self, project_id: str, event_id: int) -> None:
         self._state(project_id).store.jump_to(event_id)
 

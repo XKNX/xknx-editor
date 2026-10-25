@@ -12,7 +12,7 @@ from typing import Any
 from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
-from xknxeditor.proj.core.events import Event, deserialize_event
+from xknxeditor.proj.core.events import CompositeEvent, Event, deserialize_event
 from xknxeditor.proj.core.modified import stamp_modified
 from xknxeditor.proj.models import Event as EventModel
 
@@ -70,6 +70,40 @@ class EventStore:
 
         self._cursor = model.id
         return event
+
+    def group_since(self, start: int, label: str | None = None) -> None:
+        """Make the events appended after the cursor ``start`` one undo step (one composite
+        event, ``label`` naming it in the history). They are applied already, with the state
+        their undo needs, so nothing is applied again. Fewer than two leave the history as it
+        is; so does a ``start`` the history moved below since (undone events)."""
+        models = (
+            self._session.execute(
+                select(EventModel)
+                .where(EventModel.id > start)
+                .order_by(EventModel.id.asc())
+            )
+            .scalars()
+            .all()
+        )
+        if len(models) < 2 or any(model.reverted for model in models):
+            return
+        events = [deserialize_event(model.type, model.data) for model in models]
+        composite = CompositeEvent(events=events, label=label)
+        try:
+            for model in models:
+                self._session.delete(model)
+            grouped = EventModel(
+                type=composite.event_type,
+                data=composite.to_dict(),
+                timestamp=models[-1].timestamp,
+                reverted=False,
+            )
+            self._session.add(grouped)
+            self._session.commit()
+        except Exception:
+            self._session.rollback()
+            raise
+        self._cursor = grouped.id
 
     def undo(self) -> bool:
         if not self.can_undo():

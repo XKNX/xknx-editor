@@ -6,6 +6,7 @@ Topology panel); a secured group address, and a group whose Security is on, show
 Secure shield. Address, data type and security are changed in the details."""
 
 from collections.abc import Callable
+from contextlib import AbstractContextManager, nullcontext
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -71,10 +72,12 @@ class GroupAddressesPanel:
         on_move_ga: Callable[[int, int], str | None] | None = None,
         on_move_range: Callable[[int, int], str | None] | None = None,
         notify: Callable[[str], None] = lambda _text: None,
+        one_undo_step: Callable[[], AbstractContextManager[None]] = nullcontext,
     ) -> None:
         """``on_move_ga`` puts a group address into another group, ``on_move_range`` a middle
         group below another main group ("Move to"); both give the reason it cannot be, which
-        ``notify`` shows."""
+        ``notify`` shows. ``one_undo_step`` makes the edits of one drop one undo step."""
+        self._one_undo_step = one_undo_step
         self._on_move_ga = on_move_ga
         self._on_move_range = on_move_range
         self._notify = notify
@@ -366,13 +369,14 @@ class GroupAddressesPanel:
         drop = drop_target(accepts)
         if drop is None:
             return
-        for ident in drop.dragged.ids:
-            if drop.dragged.kind == "group_address":
-                assert self._on_move_ga is not None
-                self._report(self._on_move_ga(ident, node.id))
-            else:
-                assert self._on_move_range is not None
-                self._report(self._on_move_range(ident, node.id))
+        with self._one_undo_step():
+            for ident in drop.dragged.ids:
+                if drop.dragged.kind == "group_address":
+                    assert self._on_move_ga is not None
+                    self._report(self._on_move_ga(ident, node.id))
+                else:
+                    assert self._on_move_range is not None
+                    self._report(self._on_move_range(ident, node.id))
 
     def _render_group_addresses(self, node: "GroupRangeInfo", flt: str) -> None:
         spacing = imgui.get_style().item_spacing.x

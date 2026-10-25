@@ -2,6 +2,7 @@
 
 import base64
 import binascii
+import contextlib
 import datetime
 import hashlib
 import io
@@ -13,7 +14,7 @@ import threading
 import time
 import xml.etree.ElementTree as ET
 import zipfile
-from collections.abc import Callable, Collection
+from collections.abc import Callable, Collection, Generator
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal, cast
@@ -6741,6 +6742,21 @@ class ProjectService:
     @io_guarded(lambda: 0)
     def cursor(self) -> int:
         return self._svc.cursor(self._pid) if self._pid is not None else 0
+
+    @contextlib.contextmanager
+    def one_undo_step(self, label: str | None = None) -> Generator[None]:
+        """The edits made inside as one undo step (``label`` naming it in the history), as one
+        drop of several elements is."""
+        if self._pid is None:
+            yield
+            return
+        pid, start = self._pid, self._svc.cursor(self._pid)
+        try:
+            yield
+        finally:
+            if self._pid == pid:
+                self._svc.group_since(pid, start, label)
+                self._bump()
 
     def jump_to(self, event_id: int) -> None:
         if self._pid is None:

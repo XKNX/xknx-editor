@@ -1,4 +1,5 @@
 from collections.abc import Callable
+from contextlib import AbstractContextManager, nullcontext
 from dataclasses import dataclass, field
 from typing import cast
 
@@ -105,10 +106,13 @@ class TopologyPanel:
         ),
         on_move_line: Callable[[int, int], None] = lambda _l, _a: None,
         on_move_segment: Callable[[int, int], None] = lambda _s, _l: None,
+        one_undo_step: Callable[[], AbstractContextManager[None]] = nullcontext,
     ) -> None:
         """``on_move_line`` puts a sub line (id) into an area (id), ``on_move_segment`` a
-        sub-segment (id) onto a line (id)."""
+        sub-segment (id) onto a line (id); ``one_undo_step`` makes the edits of one drop one
+        undo step."""
         self._get_devices = get_devices
+        self._one_undo_step = one_undo_step
         self._on_move_line = on_move_line
         self._on_move_segment = on_move_segment
         # A line's sub-segments show as nodes before its main segment's devices, each with its
@@ -923,15 +927,16 @@ class TopologyPanel:
         drop = drop_target(accepts)
         if drop is None:
             return
-        if drop.dragged.kind != "device":
+        with self._one_undo_step():
+            if drop.dragged.kind != "device":
+                for ident in drop.dragged.ids:
+                    move_other(drop.dragged, ident)
+                return
+            devices = {d.node_id: d for d in self._get_devices()}
             for ident in drop.dragged.ids:
-                move_other(drop.dragged, ident)
-            return
-        devices = {d.node_id: d for d in self._get_devices()}
-        for ident in drop.dragged.ids:
-            device = devices.get(ident)
-            if device is not None and segment_of.get(ident) != segment_id:
-                move(device)
+                device = devices.get(ident)
+                if device is not None and segment_of.get(ident) != segment_id:
+                    move(device)
 
 
 def render_read_device_item(

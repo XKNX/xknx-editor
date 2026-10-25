@@ -2,6 +2,7 @@
 devices placed in each space and the functions assigned to it."""
 
 from collections.abc import Callable, Sequence
+from contextlib import AbstractContextManager, nullcontext
 from typing import TYPE_CHECKING, Any
 
 from imgui_bundle import imgui
@@ -172,8 +173,11 @@ class SpacesPanel:
         on_remove_trade_device: Callable[[int, int], None] | None = None,
         get_space_devices: "Callable[[], list[SpaceDeviceInfo]]" = list,
         notify: Callable[[str], None] = lambda _t: None,
+        one_undo_step: Callable[[], AbstractContextManager[None]] = nullcontext,
     ) -> None:
-        """``notify`` shows the reason an edit was refused."""
+        """``notify`` shows the reason an edit was refused; ``one_undo_step`` makes the edits of
+        one drop one undo step."""
+        self._one_undo_step = one_undo_step
         self._get_trade_tree = get_trade_tree
         self._on_create_trade = on_create_trade
         self._on_move_trade = on_move_trade
@@ -312,13 +316,14 @@ class SpacesPanel:
         if drop is None:
             return
         target = space.id if space is not None else None
-        for ident in drop.dragged.ids:
-            if drop.dragged.kind == "space":
-                assert self._on_move_space is not None
-                self._report(self._on_move_space(ident, target))
-            else:
-                assert self._on_set_device_space is not None
-                self._report(self._on_set_device_space(ident, target))
+        with self._one_undo_step():
+            for ident in drop.dragged.ids:
+                if drop.dragged.kind == "space":
+                    assert self._on_move_space is not None
+                    self._report(self._on_move_space(ident, target))
+                else:
+                    assert self._on_set_device_space is not None
+                    self._report(self._on_set_device_space(ident, target))
 
     def _space_may_go(
         self, tree: "list[SpaceInfo]", moving_id: int, target: "SpaceInfo | None"
@@ -919,13 +924,14 @@ class SpacesPanel:
         drop = drop_target(accepts)
         if drop is None:
             return
-        for ident in drop.dragged.ids:
-            if drop.dragged.kind == "trade":
-                assert self._on_move_trade is not None
-                self._on_move_trade(ident, trade.id if trade is not None else None)
-            else:
-                assert self._on_add_trade_device is not None and trade is not None
-                self._on_add_trade_device(trade.id, ident)
+        with self._one_undo_step():
+            for ident in drop.dragged.ids:
+                if drop.dragged.kind == "trade":
+                    assert self._on_move_trade is not None
+                    self._on_move_trade(ident, trade.id if trade is not None else None)
+                else:
+                    assert self._on_add_trade_device is not None and trade is not None
+                    self._on_add_trade_device(trade.id, ident)
 
     def _trade_targets(self, moving_id: int) -> "list[tuple[TradeInfo, int]]":
         """The trades ``moving_id`` can go below: all but itself and the trades below it."""

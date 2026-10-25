@@ -360,3 +360,28 @@ def test_a_group_address_is_dragged_with_the_mouse(
     _frames(panel, 2)
     moved = project.element_details("group_address", light)
     assert moved is not None and moved.address == "2/1/0"
+
+
+@pytest.mark.usefixtures("context")
+def test_several_devices_dropped_together_are_one_undo_step(
+    project: ProjectService, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    building = project.get_space_tree()[0].id
+    floor = project.create_space(building, "Floor", "Ground")
+    room = project.create_space(floor, "Room", "Kitchen") if floor else None
+    assert room is not None
+    devices = (_device(project, 7), _device(project, 8))
+    panel = _buildings(project, [])
+    panel._one_undo_step = project.one_undo_step  # pyright: ignore[reportPrivateUsage]
+    _frames(panel, 2)
+    offered = drop_on(monkeypatch, spaces, f"##sp{room}", Dragged("device", devices))
+    _frames(panel)
+    assert offered == [True]
+
+    def placed() -> list[int]:
+        found = project.find_space(room)
+        return sorted(d.id for d in found.devices) if found is not None else []
+
+    assert placed() == sorted(devices)
+    project.undo()
+    assert placed() == []

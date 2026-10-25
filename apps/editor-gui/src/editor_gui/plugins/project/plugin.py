@@ -252,6 +252,7 @@ class ProjectPlugin:
             on_move_segment=lambda segment, line: self._report(
                 api.project.move_segment(segment, line)
             ),
+            one_undo_step=api.project.one_undo_step,
         )
         self._compare_panel = DeviceComparePanel(
             get_devices=lambda: api.project.devices,
@@ -399,6 +400,7 @@ class ProjectPlugin:
             on_move_ga=api.project.move_group_address,
             on_move_range=api.project.move_group_range,
             notify=lambda text: api.notify(text) if api.notify is not None else None,
+            one_undo_step=api.project.one_undo_step,
         )
 
         self._element_details = ElementDetailsPanel(
@@ -480,6 +482,7 @@ class ProjectPlugin:
             on_remove_trade_device=api.project.remove_trade_device,
             get_space_devices=api.project.get_space_devices,
             notify=api.notify if api.notify is not None else lambda _t: None,
+            one_undo_step=api.project.one_undo_step,
         )
 
         self._project_info_panel = ProjectInfoPanel(
