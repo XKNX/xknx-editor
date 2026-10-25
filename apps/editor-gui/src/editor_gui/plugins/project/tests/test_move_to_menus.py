@@ -156,3 +156,60 @@ def test_a_device_moves_to_another_line_or_segment(
         ("1.1 Office", False),
         ("  1.1 Garden", True),
     ]
+
+
+@pytest.mark.usefixtures("context")
+def test_a_device_moves_to_another_room_or_trade(
+    project: ProjectService, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from editor_gui.plugins.project.ui import spaces
+
+    from .test_buildings_actions import _device
+    from .test_buildings_view import _panel
+
+    building = project.get_space_tree()[0]
+    floor = project.create_space(building.id, "Floor", "Ground")
+    assert floor is not None
+    kitchen = project.create_space(floor, "Room", "Kitchen")
+    hall = project.create_space(floor, "Room", "Hall")
+    assert kitchen is not None and hall is not None
+    device = _device(project, 7)
+    project.set_device_space(device, kitchen)
+    panel = _panel(project, [])
+    clicks = Clicks(monkeypatch, spaces)
+    clicks.open.update(
+        {
+            f"{building.name}##sp{building.id}",
+            f"Ground##sp{floor}",
+            f"Kitchen##sp{kitchen}",
+        }
+    )
+    _frames(panel)
+    # The floor holds no devices: grayed out, nothing moves.
+    clicks.context = f"##spdev_ctx_{device}"
+    clicks.menus.add(S.SPACES_MOVE_TO)
+    clicks.items.add(f"  Ground##mvdev{floor}")
+    _frames(panel)
+    assert [d.id for d in project.find_space(kitchen).devices] == [device]  # type: ignore[union-attr]
+    clicks.items.clear()
+    clicks.context = f"##spdev_ctx_{device}"
+    clicks.menus.add(S.SPACES_MOVE_TO)
+    clicks.items.add(f"    Hall##mvdev{hall}")
+    _frames(panel)
+    assert [d.id for d in project.find_space(hall).devices] == [device]  # type: ignore[union-attr]
+
+    # From one trade into another.
+    light = project.create_trade(None, "Lighting")
+    heat = project.create_trade(None, "Heating")
+    assert light is not None and heat is not None
+    project.add_trade_device(light, device)
+    clicks.open.add(f"Lighting##trade{light}")
+    _frames(panel)
+    clicks.context = f"##spdev_ctx_t{light}{device}"
+    clicks.menus.add(S.SPACES_MOVE_TO)
+    clicks.items.add(f"Heating##mvdtr{heat}")
+    _frames(panel)
+    trades = {
+        t.id: [link.device.id for link in t.devices] for t in project.get_trade_tree()
+    }
+    assert trades == {light: [], heat: [device]}

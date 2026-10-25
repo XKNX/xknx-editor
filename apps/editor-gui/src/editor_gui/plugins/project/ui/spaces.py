@@ -608,6 +608,46 @@ class SpacesPanel:
         walk(self._get_space_tree(), 0, False)
         return out
 
+    def _render_move_device_menu(
+        self, device_id: int, space_id: int | None, trade_id: int | None
+    ) -> None:
+        """ "Move to" of a device: from a trade into another trade, else (from a building part
+        or "Without space") into a building part that holds devices; the others show grayed
+        out, for the tree around them."""
+        if trade_id is not None:
+            if self._on_add_trade_device is None:
+                return
+            trades: list[tuple[str, int]] = []
+
+            def walk(nodes: "list[TradeInfo]", depth: int) -> None:
+                for trade in nodes:
+                    label = f"{trade.number} {trade.name}".strip() or S.TRADES_DEFAULT
+                    trades.append((f"{'  ' * depth}{label}##mvdtr{trade.id}", trade.id))
+                    walk(trade.children, depth + 1)
+
+            walk(self._get_trade_tree(), 0)
+            chosen_trade = render_move_menu(trades, trade_id)
+            if chosen_trade is not None:
+                self._on_add_trade_device(chosen_trade[0], device_id)
+            return
+        if self._on_set_device_space is None:
+            return
+        spaces = self._all_spaces()
+        chosen = render_move_menu(
+            [
+                (f"{'  ' * depth}{space_label(space)}##mvdev{space.id}", space.id)
+                for space, depth in spaces
+            ],
+            space_id,
+            {
+                space.id
+                for space, _depth in spaces
+                if not holds_devices(space.space_type)
+            },
+        )
+        if chosen is not None:
+            self._report(self._on_set_device_space(device_id, chosen[0]))
+
     def _all_spaces(self) -> "list[tuple[SpaceInfo, int]]":
         """Every space with its depth, in tree order."""
         out: list[tuple[SpaceInfo, int]] = []
@@ -840,6 +880,7 @@ class SpacesPanel:
                     lambda c: self._beside_device_target(space_id, trade_id, c)
                 )
                 imgui.separator()
+            self._render_move_device_menu(device.id, space_id, trade_id)
             if (
                 trade_id is not None
                 and self._on_remove_trade_device is not None
