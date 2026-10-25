@@ -1291,12 +1291,6 @@ msgstr "Vil du slette denne mappe og alle gruppeadresser i den? Dette kan fortry
 msgid "Rename Group Address"
 msgstr "Omdøb gruppeadresse"
 
-msgid "Change Address…"
-msgstr "Skift adresse…"
-
-msgid "New group address (links are kept):"
-msgstr "Ny gruppeadresse (sammenkædninger bevares):"
-
 msgid "Invalid address or already in use."
 msgstr "Ugyldig adresse, eller den er allerede i brug."
 
@@ -1312,14 +1306,8 @@ msgstr "En sikret gruppeadresse kan kun sammenkædes med enheder, der idriftsæt
 msgid "Not every device linked to this group address is commissioned securely, so it cannot be secured."
 msgstr "Ikke alle enheder, der er sammenkædet med denne gruppeadresse, idriftsættes sikkert, så den kan ikke sikres."
 
-msgid "Set Datapoint Type"
-msgstr "Angiv datapunkttype"
-
 msgid "Address"
 msgstr "Adresse"
-
-msgid "Datapoint type (e.g. DPST-1-1); empty to clear"
-msgstr "Datapunkttype (f.eks. DPST-1-1); tom for at rydde"
 
 msgid "Project: {name}"
 msgstr "Projekt: {name}"
@@ -2364,12 +2352,6 @@ msgstr "Omdøb segment til {name}"
 
 msgid "Set medium to {medium}"
 msgstr "Angiv medie til {medium}"
-
-msgid "Forced On"
-msgstr "Tvunget til"
-
-msgid "Forced Off"
-msgstr "Tvunget fra"
 
 msgid "Forced on"
 msgstr "Tvunget til"

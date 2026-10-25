@@ -1291,12 +1291,6 @@ msgstr "Eliminare questa cartella e tutti gli indirizzi di gruppo che contiene? 
 msgid "Rename Group Address"
 msgstr "Rinomina indirizzo di gruppo"
 
-msgid "Change Address…"
-msgstr "Cambia indirizzo…"
-
-msgid "New group address (links are kept):"
-msgstr "Nuovo indirizzo di gruppo (i collegamenti vengono mantenuti):"
-
 msgid "Invalid address or already in use."
 msgstr "Indirizzo non valido o già in uso."
 
@@ -1312,14 +1306,8 @@ msgstr "Un indirizzo di gruppo in sicurezza può essere collegato solo a disposi
 msgid "Not every device linked to this group address is commissioned securely, so it cannot be secured."
 msgstr "Non tutti i dispositivi collegati a questo indirizzo di gruppo sono messi in servizio in modo sicuro, quindi non può essere messo in sicurezza."
 
-msgid "Set Datapoint Type"
-msgstr "Imposta tipo Datapoint"
-
 msgid "Address"
 msgstr "Indirizzo"
-
-msgid "Datapoint type (e.g. DPST-1-1); empty to clear"
-msgstr "Tipo Datapoint (ad es. DPST-1-1); vuoto per cancellare"
 
 msgid "Project: {name}"
 msgstr "Progetto: {name}"
@@ -2364,12 +2352,6 @@ msgstr "Rinomina segmento in {name}"
 
 msgid "Set medium to {medium}"
 msgstr "Imposta rete su {medium}"
-
-msgid "Forced On"
-msgstr "Forzato Acceso"
-
-msgid "Forced Off"
-msgstr "Forzato Spento"
 
 msgid "Forced on"
 msgstr "Forzato acceso"

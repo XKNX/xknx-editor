@@ -2542,14 +2542,6 @@ class ProjectStrings:
         return _("Rename Group Address")
 
     @property
-    def GA_RENUMBER(self) -> str:
-        return _("Change Address…")
-
-    @property
-    def GA_RENUMBER_PROMPT(self) -> str:
-        return _("New group address (links are kept):")
-
-    @property
     def GA_RENUMBER_FAILED(self) -> str:
         return _("Invalid address or already in use.")
 
@@ -2560,15 +2552,6 @@ class ProjectStrings:
     @property
     def GA_SECURITY_AUTO(self) -> str:
         return _("Automatic")
-
-    @property
-    def GA_SECURITY_FORCED_ON(self) -> str:
-        # A group address's or group's Security forced on, in a menu.
-        return _("Forced On")
-
-    @property
-    def GA_SECURITY_FORCED_OFF(self) -> str:
-        return _("Forced Off")
 
     @property
     def SECURITY_FORCED_ON(self) -> str:
@@ -2609,16 +2592,12 @@ class ProjectStrings:
         )
 
     @property
-    def GA_SET_DPT(self) -> str:
-        return _("Set Datapoint Type")
+    def GA_DATA_TYPE(self) -> str:
+        return _("Data Type")
 
     @property
     def GA_ADDRESS(self) -> str:
         return _("Address")
-
-    @property
-    def GA_DPT_HINT(self) -> str:
-        return _("Datapoint type (e.g. DPST-1-1); empty to clear")
 
     @property
     def STATUS_PROJECT(self) -> str:

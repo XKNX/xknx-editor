@@ -1291,12 +1291,6 @@ msgstr "Odstranit tuto složku a všechny skupinové adresy v ní? Tuto akci lze
 msgid "Rename Group Address"
 msgstr "Přejmenovat skupinovou adresu"
 
-msgid "Change Address…"
-msgstr "Změnit adresu…"
-
-msgid "New group address (links are kept):"
-msgstr "Nová skupinová adresa (propojení zůstanou zachována):"
-
 msgid "Invalid address or already in use."
 msgstr "Neplatná adresa nebo už je použita."
 
@@ -1312,14 +1306,8 @@ msgstr "Zabezpečenou skupinovou adresu lze propojit jen se zařízeními, kter�
 msgid "Not every device linked to this group address is commissioned securely, so it cannot be secured."
 msgstr "Ne všechna zařízení propojená s touto skupinovou adresou jsou uváděna do provozu zabezpečeně, proto ji nelze zabezpečit."
 
-msgid "Set Datapoint Type"
-msgstr "Nastavit typ datového bodu"
-
 msgid "Address"
 msgstr "Adresa"
-
-msgid "Datapoint type (e.g. DPST-1-1); empty to clear"
-msgstr "Typ datového bodu (např. DPST-1-1); prázdné pro vymazání"
 
 msgid "Project: {name}"
 msgstr "Projekt: {name}"
@@ -2364,12 +2352,6 @@ msgstr "Přejmenovat segment na {name}"
 
 msgid "Set medium to {medium}"
 msgstr "Nastavit médium na {medium}"
-
-msgid "Forced On"
-msgstr "Vynuceně zapnuto"
-
-msgid "Forced Off"
-msgstr "Vynuceně vypnuto"
 
 msgid "Forced on"
 msgstr "Vynuceně zapnuto"

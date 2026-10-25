@@ -1291,12 +1291,6 @@ msgstr "Apagar esta pasta e todos os endereços de grupo que contém? Esta açã
 msgid "Rename Group Address"
 msgstr "Renomear Endereço de Grupo"
 
-msgid "Change Address…"
-msgstr "Alterar Endereço…"
-
-msgid "New group address (links are kept):"
-msgstr "Novo endereço de grupo (as vinculações são mantidas):"
-
 msgid "Invalid address or already in use."
 msgstr "Endereço inválido ou já em uso."
 
@@ -1312,14 +1306,8 @@ msgstr "Um endereço de grupo protegido só pode ser vinculado a dispositivos co
 msgid "Not every device linked to this group address is commissioned securely, so it cannot be secured."
 msgstr "Nem todos os dispositivos vinculados a este endereço de grupo são comissionados de forma segura, pelo que não pode ser protegido."
 
-msgid "Set Datapoint Type"
-msgstr "Definir Tipo de Datapoint"
-
 msgid "Address"
 msgstr "Endereço"
-
-msgid "Datapoint type (e.g. DPST-1-1); empty to clear"
-msgstr "Tipo de datapoint (p. ex. DPST-1-1); vazio para limpar"
 
 msgid "Project: {name}"
 msgstr "Projeto: {name}"
@@ -2364,12 +2352,6 @@ msgstr "Renomear segmento para {name}"
 
 msgid "Set medium to {medium}"
 msgstr "Definir meio como {medium}"
-
-msgid "Forced On"
-msgstr "Forçado a Ligar"
-
-msgid "Forced Off"
-msgstr "Forçado a Desligar"
 
 msgid "Forced on"
 msgstr "Forçado a ligar"

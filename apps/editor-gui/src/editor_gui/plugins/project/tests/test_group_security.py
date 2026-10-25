@@ -13,9 +13,14 @@ from editor_gui.plugins.base import Logger
 from editor_gui.plugins.catalog.service import CatalogService
 from editor_gui.plugins.logger.service import LogService
 from editor_gui.plugins.project.service import ProjectService
+from editor_gui.plugins.project.ui import group_addresses
 from editor_gui.plugins.project.ui.element_details import (
     ElementDetailsPanel,
     security_options,
+)
+from editor_gui.plugins.project.ui.group_addresses import (
+    GroupAddressesPanel,
+    _forced_on,
 )
 
 
@@ -119,3 +124,82 @@ def test_the_details_render_central_and_security(project: ProjectService) -> Non
             panel.render(details)
             imgui.end()
             imgui.end_frame()
+
+
+@pytest.mark.usefixtures("context")
+def test_secured_groups_and_addresses_show_the_shield(
+    project: ProjectService, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    main, _middle, ga = _groups(project)
+    project.set_project_password("geheim")
+    assert project.set_element_security("group_range", main, "On") is None
+    tree = project.get_group_range_tree()
+    assert _forced_on(tree[0]) and _forced_on(tree[0].children[0])
+    assert tree[0].children[0].group_addresses[0].data_secure
+    shields: list[float | None] = []
+    monkeypatch.setattr(
+        group_addresses,
+        "secure_icon",
+        lambda *, x=None: shields.append(x) or False,
+    )
+    panel = GroupAddressesPanel(
+        get_range_tree=project.get_group_range_tree,
+        get_assignments_for_ga=project.get_assignments_for_ga,
+        get_devices=lambda: [],
+        on_create_ga=lambda _a, _n: None,
+        on_rename_ga=lambda _i, _n: None,
+        on_remove_ga=lambda _i: None,
+        take_requested_ga=lambda: ga,
+    )
+    imgui.new_frame()
+    imgui.begin("Group Addresses")
+    panel.render()
+    imgui.end()
+    imgui.end_frame()
+    # The main group, the middle group and the group address, opened to reveal it.
+    assert len(shields) == 3
+    assert project.set_element_security("group_range", main, "Auto") is None
+    assert not _forced_on(project.get_group_range_tree()[0])
+
+
+def test_a_group_address_has_a_data_type(project: ProjectService) -> None:
+    _main, _middle, ga = _groups(project)
+    details = project.element_details("group_address", ga)
+    assert details is not None and details.datapoint_type == ""
+    assert project.set_element_dpt(ga, "16.001") is None
+    details = project.element_details("group_address", ga)
+    assert details is not None and details.datapoint_type == "DPST-16-1"
+    assert project.set_element_dpt(ga, "nonsense") is not None
+    assert project.set_element_dpt(ga, "") is None
+    details = project.element_details("group_address", ga)
+    assert details is not None and details.datapoint_type == ""
+    # Only a group address has one.
+    range_details = project.element_details("group_range", _main)
+    assert range_details is not None and range_details.datapoint_type is None
+
+
+@pytest.mark.usefixtures("context")
+@pytest.mark.parametrize(
+    "names", [{}, {"DPT-16": "Character string", "DPST-16-1": "ISO 8859-1"}]
+)
+def test_the_details_render_the_data_type(
+    project: ProjectService, names: dict[str, str]
+) -> None:
+    _main, _middle, ga = _groups(project)
+    project.set_element_dpt(ga, "DPST-16-1")
+    panel = ElementDetailsPanel(
+        on_rename=project.rename_element,
+        on_set_description=project.set_element_description,
+        on_set_address=project.set_element_address,
+        on_set_dpt=project.set_element_dpt,
+        dpt_names=lambda: names,
+    )
+    details = project.element_details("group_address", ga)
+    assert details is not None
+    for _frame in range(2):
+        imgui.new_frame()
+        imgui.begin("Details")
+        panel.render(details)
+        imgui.end()
+        imgui.end_frame()
+    assert panel._dpt == "DPST-16-1"

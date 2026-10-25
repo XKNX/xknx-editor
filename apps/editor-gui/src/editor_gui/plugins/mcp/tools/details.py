@@ -221,6 +221,8 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             )
         if details.central is not None:
             result["central"] = details.central
+        if details.datapoint_type is not None:
+            result["datapoint_type"] = details.datapoint_type or None
         return result
 
     @tool("read")
@@ -282,7 +284,9 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         project_set_status); medium (TP, PL, RF, IP or IoT) is a line's or a segment's (see
         project_set_medium), domain_address an RF or PL one's. A group address and a group have
         security (their own mode: Auto, On or Off) and security_forced_by (the group above that
-        overrides it, {group_range_id, name, mode} or null); a group address also central."""
+        overrides it, {group_range_id, name, mode} or null); a group address also central and
+        datapoint_type (its "Data Type" as a DPST token, null for none; see
+        project_set_group_address_dpt)."""
         require_project(ctx)
         return ctx.run_locked(lambda: _element_dict(kind, element_id))
 

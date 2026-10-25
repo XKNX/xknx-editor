@@ -1,10 +1,11 @@
 """Group Addresses view: the named range tree (main/middle/...) down to group addresses.
 
 Shows, for the selected group address, the device com-objects assigned to it, and lets the user
-create / rename / delete group addresses and set their datapoint type (context menus + modals,
-mirroring the Devices panel)."""
+create / rename / delete group addresses and groups (context menus + modals, mirroring the
+Devices panel); a secured group address, and a group whose Security is on, shows the KNX Data
+Secure shield. Address, data type and security are changed in the details."""
 
-from collections.abc import Callable, Mapping
+from collections.abc import Callable
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -17,9 +18,9 @@ from editor_gui.plugins.project.strings import S
 from editor_gui.plugins.project.ui._filter import filter_box
 from editor_gui.plugins.project.ui.group_value import GroupValueActions
 from editor_gui.widgets.backgrounds import child_background, content_background
+from editor_gui.widgets.description import secure_icon, secure_icon_width
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
 from editor_gui.widgets.dpi import px
-from editor_gui.widgets.dpt_select import dpt_combo
 from editor_gui.widgets.dpt_value import GroupValueBus
 from editor_gui.widgets.tables import begin_data_table, table_header_menu
 from editor_gui.widgets.text_util import text_clipped_tooltip
@@ -46,10 +47,7 @@ class GroupAddressesPanel:
         get_devices: "Callable[[], list[Device]]",
         on_create_ga: Callable[[str, str], None],
         on_rename_ga: Callable[[int, str], None],
-        on_set_ga_dpt: Callable[[int, str], None],
         on_remove_ga: Callable[[int], None],
-        on_set_ga_address: Callable[[int, str], bool] | None = None,
-        on_set_ga_security: Callable[[int, str], bool] | None = None,
         take_requested_ga: Callable[[], int | None] | None = None,
         on_create_range: Callable[[int | None, str], object] | None = None,
         on_rename_range: Callable[[int, str], None] | None = None,
@@ -73,10 +71,7 @@ class GroupAddressesPanel:
         self._get_devices = get_devices
         self._on_create_ga = on_create_ga
         self._on_rename_ga = on_rename_ga
-        self._on_set_ga_dpt = on_set_ga_dpt
-        self._on_set_ga_security = on_set_ga_security
         self._on_remove_ga = on_remove_ga
-        self._on_set_ga_address = on_set_ga_address
         self._on_create_range = on_create_range
         self._on_rename_range = on_rename_range
         self._on_remove_range = on_remove_range
@@ -108,13 +103,8 @@ class GroupAddressesPanel:
         self._popup_ga_id: int = 0
         self._popup_address: str = ""
         self._popup_name: str = ""
-        self._popup_dpt: str = ""
-        self._popup_dpt_error: str = ""
         self._open_new_ga = False
         self._open_rename_ga = False
-        self._open_renumber_ga = False
-        self._renumber_error = ""
-        self._open_set_dpt = False
         self._group_value = (
             GroupValueActions(bus, "ga_write_value") if bus is not None else None
         )
@@ -170,12 +160,6 @@ class GroupAddressesPanel:
         if self._open_rename_ga:
             imgui.open_popup(S.GA_RENAME)
             self._open_rename_ga = False
-        if self._open_renumber_ga:
-            imgui.open_popup(S.GA_RENUMBER)
-            self._open_renumber_ga = False
-        if self._open_set_dpt:
-            imgui.open_popup(S.GA_SET_DPT)
-            self._open_set_dpt = False
         if self._open_new_range:
             imgui.open_popup(S.GA_FOLDER_NEW)
             self._open_new_range = False
@@ -187,8 +171,6 @@ class GroupAddressesPanel:
             self._open_delete_range = False
         self._render_new_ga_popup()
         self._render_rename_popup()
-        self._render_renumber_popup()
-        self._render_dpt_popup()
         if self._group_value is not None:
             self._group_value.render()
         self._render_new_range_popup()
@@ -329,6 +311,14 @@ class GroupAddressesPanel:
             self._selected_range_id = node.id
             self._on_select_element("group_range", node.id)
         self._render_range_context_menu(node, is_root)
+        if _forced_on(node):
+            # The KNX Data Secure shield after a group whose Security is on.
+            secure_icon(
+                x=imgui.get_item_rect_min().x
+                + imgui.get_tree_node_to_label_spacing()
+                + imgui.calc_text_size(shown).x
+                + imgui.get_style().item_spacing.x
+            )
         if not open_node:
             return
         for child in node.children:
@@ -365,6 +355,12 @@ class GroupAddressesPanel:
                 imgui.set_scroll_here_y()
             # Context menu while the selectable is still the last item, so it binds to the row.
             self._render_ga_context_menu(ga)
+            end = row_x + imgui.calc_text_size(name).x
+            if ga.data_secure:
+                # The KNX Data Secure shield right after the name, as after a secure device.
+                left = imgui.get_item_rect_min().x - row_x
+                secure_icon(x=left + end + spacing)
+                end += spacing + secure_icon_width()
             live = (
                 self._get_latest_value(ga.text, ga.datapoint_type)
                 if self._get_latest_value is not None
@@ -373,9 +369,7 @@ class GroupAddressesPanel:
             value_text, value_time = (live[0], live[1]) if live else ("", "")
             if value_text:
                 imgui.same_line()
-                imgui.set_cursor_pos_x(
-                    row_x + imgui.calc_text_size(name).x + spacing * 3.0
-                )
+                imgui.set_cursor_pos_x(end + spacing * 3.0)
                 imgui.text_colored(themed(*_LIVE_COLOR), value_text)
                 if imgui.is_item_hovered():
                     imgui.set_tooltip(
@@ -406,29 +400,6 @@ class GroupAddressesPanel:
             self._popup_ga_id = ga.id  # type: ignore[attr-defined]
             self._popup_name = ga.name  # type: ignore[attr-defined]
             self._open_rename_ga = True
-        if (
-            self._on_set_ga_address is not None
-            and imgui.menu_item(S.GA_RENUMBER, "", False)[0]
-        ):
-            self._popup_ga_id = ga.id  # type: ignore[attr-defined]
-            self._popup_address = getattr(ga, "text", "") or ""
-            self._renumber_error = ""
-            self._open_renumber_ga = True
-        if imgui.menu_item(S.GA_SET_DPT, "", False)[0]:
-            self._popup_ga_id = ga.id  # type: ignore[attr-defined]
-            self._popup_dpt = ga.datapoint_type or ""  # type: ignore[attr-defined]
-            self._popup_dpt_error = ""
-            self._open_set_dpt = True
-        if self._on_set_ga_security is not None and imgui.begin_menu(S.GA_SECURITY):
-            current = getattr(ga, "security_mode", None) or "Auto"  # type: ignore[attr-defined]
-            for mode, label in (
-                ("Auto", S.GA_SECURITY_AUTO),
-                ("On", S.GA_SECURITY_FORCED_ON),
-                ("Off", S.GA_SECURITY_FORCED_OFF),
-            ):
-                if imgui.menu_item(label, "", current == mode)[0]:
-                    self._on_set_ga_security(ga.id, mode)  # type: ignore[attr-defined]
-            imgui.end_menu()
         if imgui.menu_item(S.CONTEXT_COPY_ADDRESS, "", False)[0]:
             imgui.set_clipboard_text(getattr(ga, "text", "") or "")
         if self._group_value is not None:
@@ -600,72 +571,6 @@ class GroupAddressesPanel:
             imgui.close_current_popup()
         end_dialog()
 
-    def _render_renumber_popup(self) -> None:
-        if not begin_dialog(S.GA_RENUMBER):
-            return
-        imgui.text(S.GA_RENUMBER_PROMPT)
-        imgui.set_next_item_width(px(220.0))
-        submitted, self._popup_address = imgui.input_text(
-            "##ga_renumber",
-            self._popup_address,
-            imgui.InputTextFlags_.enter_returns_true,
-        )
-        if self._renumber_error:
-            imgui.text_colored(imgui.ImVec4(0.9, 0.4, 0.4, 1.0), self._renumber_error)
-        clicked = dialog_buttons(S.BTN_OK, S.BTN_CANCEL)
-        if (clicked == 0 or submitted) and self._on_set_ga_address is not None:
-            if self._on_set_ga_address(self._popup_ga_id, self._popup_address.strip()):
-                self._renumber_error = ""
-                # Refresh the cached selection heading so it shows the new address, not the old one,
-                # until the next (re)selection re-derives it from the rebuilt tree.
-                if self._selected_ga_id == self._popup_ga_id:
-                    name = (
-                        self._selected_ga_text.split("  ", 1)[1]
-                        if "  " in self._selected_ga_text
-                        else ""
-                    )
-                    self._selected_ga_text = f"{self._popup_address.strip()}  {name}"
-                imgui.close_current_popup()
-            else:
-                self._renumber_error = S.GA_RENUMBER_FAILED
-        if clicked == 1:
-            self._renumber_error = ""
-            imgui.close_current_popup()
-        end_dialog()
-
-    def _render_dpt_popup(self) -> None:
-        names: Mapping[str, str] = self._bus.names() if self._bus is not None else {}
-        if not begin_dialog(S.GA_SET_DPT, width=420.0 if names else None):
-            return
-        if names:
-            imgui.text_disabled(S.GA_WRITE_DPT)
-            imgui.set_next_item_width(-1)
-            _, self._popup_dpt = dpt_combo(
-                "ga_dpt", self._popup_dpt, names, S.ML_FILTER_HINT
-            )
-        else:
-            # Without master data there is nothing to choose from; enter the token.
-            imgui.text_disabled(S.GA_DPT_HINT)
-            imgui.set_next_item_width(px(220.0))
-            _, self._popup_dpt = imgui.input_text_with_hint(
-                "##ga_dpt", "DPST-1-1", self._popup_dpt
-            )
-        if self._popup_dpt_error:
-            imgui.text_colored(imgui.ImVec4(0.9, 0.3, 0.3, 1.0), self._popup_dpt_error)
-        clicked = dialog_buttons(S.BTN_OK, S.BTN_CANCEL)
-        if clicked == 0:
-            try:
-                self._on_set_ga_dpt(self._popup_ga_id, self._popup_dpt.strip())
-            except ValueError as e:
-                self._popup_dpt_error = str(e)
-            else:
-                self._popup_dpt_error = ""
-                imgui.close_current_popup()
-        if clicked == 1:
-            self._popup_dpt_error = ""
-            imgui.close_current_popup()
-        end_dialog()
-
     def _render_assignments(self) -> None:
         if self._selected_ga_id is None:
             imgui.text_disabled(S.GA_ASSIGNED_OBJECTS)
@@ -764,6 +669,12 @@ class GroupAddressesPanel:
         self._com_names_cache = names
         self._com_names_key = id(devices)
         return names
+
+
+def _forced_on(node: "GroupRangeInfo") -> bool:
+    """Whether a group's Security is on: its own, or that of a group above it that forces one."""
+    forced = node.forced_by
+    return (forced.mode if forced is not None else node.security_mode) == "On"
 
 
 def _style_text(style: "GroupAddressStyle") -> str:

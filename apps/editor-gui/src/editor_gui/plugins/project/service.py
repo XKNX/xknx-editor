@@ -659,6 +659,8 @@ class ElementDetails:
     security: str | None = None
     forced_by: "ForcedSecurity | None" = None
     central: bool | None = None
+    # A group address's data point type ("DPST-16-1", "" for none); None for other elements.
+    datapoint_type: str | None = None
     # The backbone's IP routing: network latency (ms), multicast address, its security ("Auto",
     # "On" or "Off"), and its bus connection: the ``Parameter`` of its ``<BusAccess>`` ("" for
     # "Automatic") and as shown.
@@ -5314,6 +5316,15 @@ class ProjectService:
         self._svc.set_group_address_datapoint_type(self._pid, ga_id, dpt or None)
         self._bump(structural=False)
 
+    def set_element_dpt(self, ga_id: int, dpt: str) -> str | None:
+        """Set a group address's data point type ("" for none); the reason it cannot be, or
+        None."""
+        try:
+            self.set_group_address_dpt(ga_id, dpt.strip())
+        except ValueError as exc:
+            return str(exc)
+        return None
+
     def set_group_address_security(self, ga_id: int, mode: str) -> None:
         """Set a group address's Security mode (``"Auto"``/``"On"``/``"Off"``). ``"On"`` secures it
         (a key is generated, so the project needs a password), ``"Off"`` does not, and ``"Auto"``
@@ -5812,6 +5823,7 @@ class ProjectService:
                 security=ga.security_mode or "Auto",
                 forced_by=ga.forced_by,
                 central=ga.central,
+                datapoint_type=ga.datapoint_type or "",
             )
         if kind == "group_range":
             found = _find_range(self.get_group_range_tree(), element_id, 0)

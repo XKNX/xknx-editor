@@ -1291,12 +1291,6 @@ msgstr "¿Eliminar esta carpeta y todas las direcciones de grupo que contiene? E
 msgid "Rename Group Address"
 msgstr "Renombrar Dirección de Grupo"
 
-msgid "Change Address…"
-msgstr "Cambiar Dirección…"
-
-msgid "New group address (links are kept):"
-msgstr "Nueva dirección de grupo (los enlaces se conservan):"
-
 msgid "Invalid address or already in use."
 msgstr "Dirección no válida o ya en uso."
 
@@ -1312,14 +1306,8 @@ msgstr "Una dirección de grupo asegurada solo puede enlazarse a dispositivos pu
 msgid "Not every device linked to this group address is commissioned securely, so it cannot be secured."
 msgstr "No todos los dispositivos enlazados a esta dirección de grupo están puestos en marcha de forma segura, por lo que no puede asegurarse."
 
-msgid "Set Datapoint Type"
-msgstr "Establecer Tipo de Punto de Datos"
-
 msgid "Address"
 msgstr "Dirección"
-
-msgid "Datapoint type (e.g. DPST-1-1); empty to clear"
-msgstr "Tipo de punto de datos (p. ej. DPST-1-1); vacío para borrar"
 
 msgid "Project: {name}"
 msgstr "Proyecto: {name}"
@@ -2364,12 +2352,6 @@ msgstr "Renombrar segmento a {name}"
 
 msgid "Set medium to {medium}"
 msgstr "Establecer medio en {medium}"
-
-msgid "Forced On"
-msgstr "Encendido Forzado"
-
-msgid "Forced Off"
-msgstr "Apagado Forzado"
 
 msgid "Forced on"
 msgstr "Encendido forzado"

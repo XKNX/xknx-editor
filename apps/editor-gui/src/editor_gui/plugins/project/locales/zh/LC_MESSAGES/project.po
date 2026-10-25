@@ -1291,12 +1291,6 @@ msgstr "删除此文件夹及其中的所有组地址？此操作可以撤消。
 msgid "Rename Group Address"
 msgstr "重命名组地址"
 
-msgid "Change Address…"
-msgstr "更改地址…"
-
-msgid "New group address (links are kept):"
-msgstr "新的组地址（保留链接）："
-
 msgid "Invalid address or already in use."
 msgstr "地址无效或已被使用。"
 
@@ -1312,14 +1306,8 @@ msgstr "安全组地址只能链接到以安全方式调试的设备。"
 msgid "Not every device linked to this group address is commissioned securely, so it cannot be secured."
 msgstr "并非所有链接到此组地址的设备都以安全方式调试，因此无法将其设为安全。"
 
-msgid "Set Datapoint Type"
-msgstr "设置数据点类型"
-
 msgid "Address"
 msgstr "地址"
-
-msgid "Datapoint type (e.g. DPST-1-1); empty to clear"
-msgstr "数据点类型（例如 DPST-1-1）；留空以清除"
 
 msgid "Project: {name}"
 msgstr "项目：{name}"
@@ -2364,12 +2352,6 @@ msgstr "将段重命名为 {name}"
 
 msgid "Set medium to {medium}"
 msgstr "将介质设置为 {medium}"
-
-msgid "Forced On"
-msgstr "强制开"
-
-msgid "Forced Off"
-msgstr "强制关闭"
 
 msgid "Forced on"
 msgstr "强制开"

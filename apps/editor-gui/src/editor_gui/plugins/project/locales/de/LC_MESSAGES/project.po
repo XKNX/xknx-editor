@@ -377,14 +377,8 @@ msgstr "Neue Gruppenadresse"
 msgid "Rename Group Address"
 msgstr "Gruppenadresse umbenennen"
 
-msgid "Set Datapoint Type"
-msgstr "Datenpunkttyp festlegen"
-
 msgid "Address"
 msgstr "Adresse"
-
-msgid "Datapoint type (e.g. DPST-1-1); empty to clear"
-msgstr "Datenpunkttyp (z. B. DPST-1-1); leer zum Löschen"
 
 msgid "Project: {name}"
 msgstr "Projekt: {name}"
@@ -1424,9 +1418,6 @@ msgstr "Basiert auf OpenKNXproducer"
 msgid "CSV"
 msgstr "CSV"
 
-msgid "Change Address…"
-msgstr "Adresse ändern…"
-
 msgid "Channels ({count})"
 msgstr "Kanäle ({count})"
 
@@ -1538,9 +1529,6 @@ msgstr "MAC-Adresse"
 
 msgid "Margin Top / Left (mm)"
 msgstr "Rand oben / links (mm)"
-
-msgid "New group address (links are kept):"
-msgstr "Neue Gruppenadresse (Verbindungen bleiben erhalten):"
 
 msgid "No .NET runtime found (install the .NET SDK, or run on Windows with ETS)."
 msgstr "Keine .NET-Laufzeitumgebung gefunden (installieren Sie das .NET SDK oder starten Sie unter Windows mit ETS)."
@@ -2549,12 +2537,6 @@ msgstr "Segment in {name} umbenennen"
 
 msgid "Set medium to {medium}"
 msgstr "Medientyp auf {medium} festlegen"
-
-msgid "Forced On"
-msgstr "Erzwungen an"
-
-msgid "Forced Off"
-msgstr "Erzwungen aus"
 
 msgid "Forced on"
 msgstr "Erzwungen an"

@@ -2896,8 +2896,8 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         group_address_id: int | None = None,
         group_address: str | None = None,
     ) -> dict[str, Any]:
-        """Set a group address' KNX Data Secure mode (its "Security"): "On" (Forced On: secured,
-        generates a key; every linked device must be commissioned securely), "Off" (Forced Off:
+        """Set a group address' KNX Data Secure mode (its "Security"): "On" (Forced on: secured,
+        generates a key; every linked device must be commissioned securely), "Off" (Forced off:
         not secured), or "Auto" (Automatic: secured while every linked device is commissioned
         securely). A main or middle group forcing On or Off overrides it (see
         project_set_group_range_security); the mode set here then counts once no group does. A
@@ -2930,7 +2930,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         group_range_id: int, mode: Literal["Auto", "On", "Off"]
     ) -> dict[str, Any]:
         """Set the "Security" of a main or middle group (id from project_list_group_ranges):
-        "On" (Forced On) secures and "Off" (Forced Off) unsecures every group address and group
+        "On" (Forced on) secures and "Off" (Forced off) unsecures every group address and group
         below it, whatever their own mode; the nearest forcing group above an address decides.
         "Auto" (Automatic) gives them back their own modes, which stay stored meanwhile. "On"
         needs every device linked below it commissioned securely, and a password-protected

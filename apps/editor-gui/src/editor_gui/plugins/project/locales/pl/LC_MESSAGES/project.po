@@ -1291,12 +1291,6 @@ msgstr "Usunąć ten folder i wszystkie zawarte w nim adresy grupowe? Tę operac
 msgid "Rename Group Address"
 msgstr "Zmień nazwę adresu grupowego"
 
-msgid "Change Address…"
-msgstr "Zmień adres…"
-
-msgid "New group address (links are kept):"
-msgstr "Nowy adres grupowy (powiązania zostaną zachowane):"
-
 msgid "Invalid address or already in use."
 msgstr "Nieprawidłowy adres lub adres jest już używany."
 
@@ -1312,14 +1306,8 @@ msgstr "Zabezpieczony adres grupowy można połączyć tylko z urządzeniami uru
 msgid "Not every device linked to this group address is commissioned securely, so it cannot be secured."
 msgstr "Nie wszystkie urządzenia połączone z tym adresem grupowym są uruchamiane w trybie bezpiecznym, więc nie można go zabezpieczyć."
 
-msgid "Set Datapoint Type"
-msgstr "Ustaw typ punktu danych"
-
 msgid "Address"
 msgstr "Adres"
-
-msgid "Datapoint type (e.g. DPST-1-1); empty to clear"
-msgstr "Typ punktu danych (np. DPST-1-1); puste, aby wyczyścić"
 
 msgid "Project: {name}"
 msgstr "Projekt: {name}"
@@ -2364,12 +2352,6 @@ msgstr "Zmień nazwę segmentu na {name}"
 
 msgid "Set medium to {medium}"
 msgstr "Ustaw medium na {medium}"
-
-msgid "Forced On"
-msgstr "Wymuszone Włączenie"
-
-msgid "Forced Off"
-msgstr "Wymuszone Wyłączenie"
 
 msgid "Forced on"
 msgstr "Wymuszone włączenie"

@@ -955,9 +955,6 @@ msgstr "Kan niet worden uitgevoerd: geen KNX-verbinding. Maak verbinding met een
 msgid "Cannot run: the project was changed since it was opened. This test compares the generated image against the device's programmed state, which only matches the project as it was opened. Undo your changes in this session to test."
 msgstr "Kan niet worden uitgevoerd: het project is gewijzigd sinds het werd geopend. Deze test vergelijkt het gegenereerde geheugenbeeld met de geprogrammeerde toestand van het apparaat, die alleen overeenkomt met het project zoals het werd geopend. Maak je wijzigingen in deze sessie ongedaan om te testen."
 
-msgid "Change Address…"
-msgstr "Adres wijzigen…"
-
 msgid "Changed"
 msgstr "Gewijzigd"
 
@@ -1005,9 +1002,6 @@ msgstr "DALI (bus)"
 
 msgid "DPT"
 msgstr "DPT"
-
-msgid "Datapoint type (e.g. DPST-1-1); empty to clear"
-msgstr "Datapunttype (bijv. DPST-1-1); leeg om te wissen"
 
 msgid "Date"
 msgstr "Datum"
@@ -1232,9 +1226,6 @@ msgstr "Geheugenvoorbeeld"
 msgid "New Group Address"
 msgstr "Nieuw groepsadres"
 
-msgid "New group address (links are kept):"
-msgstr "Nieuw groepsadres (koppelingen blijven behouden):"
-
 msgid "No .NET runtime found (install the .NET SDK, or run on Windows with ETS)."
 msgstr "Geen .NET-runtime gevonden (installeer de .NET SDK, of voer het uit op Windows met ETS)."
 
@@ -1348,9 +1339,6 @@ msgstr "Alles selecteren"
 
 msgid "Select at least one field."
 msgstr "Selecteer minstens één veld."
-
-msgid "Set Datapoint Type"
-msgstr "Datapunttype instellen"
 
 msgid "Set an individual address and connect to the bus first"
 msgstr "Stel eerst een individueel adres in en maak verbinding met de bus"
@@ -2402,12 +2390,6 @@ msgstr "Segment hernoemen naar {name}"
 
 msgid "Set medium to {medium}"
 msgstr "Medium instellen op {medium}"
-
-msgid "Forced On"
-msgstr "Verplicht Ingeschakeld"
-
-msgid "Forced Off"
-msgstr "Verplicht Uitgeschakeld"
 
 msgid "Forced on"
 msgstr "Verplicht ingeschakeld"

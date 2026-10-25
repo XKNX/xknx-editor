@@ -1291,12 +1291,6 @@ msgstr "Bu klasör ve içindeki tüm grup adresleri silinsin mi? Bu işlem geri 
 msgid "Rename Group Address"
 msgstr "Grup Adresini Yeniden Adlandır"
 
-msgid "Change Address…"
-msgstr "Adresi Değiştir…"
-
-msgid "New group address (links are kept):"
-msgstr "Yeni grup adresi (bağlantılar korunur):"
-
 msgid "Invalid address or already in use."
 msgstr "Geçersiz adres veya zaten kullanılıyor."
 
@@ -1312,14 +1306,8 @@ msgstr "Güvenli bir grup adresi yalnızca güvenli şekilde devreye alınan cih
 msgid "Not every device linked to this group address is commissioned securely, so it cannot be secured."
 msgstr "Bu grup adresine bağlı cihazların tümü güvenli şekilde devreye alınmıyor; bu nedenle grup adresi güvenli yapılamaz."
 
-msgid "Set Datapoint Type"
-msgstr "Veri Tipini Belirle"
-
 msgid "Address"
 msgstr "Adres"
-
-msgid "Datapoint type (e.g. DPST-1-1); empty to clear"
-msgstr "Veri tipi (ör. DPST-1-1); temizlemek için boş bırakın"
 
 msgid "Project: {name}"
 msgstr "Proje: {name}"
@@ -2364,12 +2352,6 @@ msgstr "Segmenti yeniden adlandır: {name}"
 
 msgid "Set medium to {medium}"
 msgstr "Ortamı {medium} olarak belirle"
-
-msgid "Forced On"
-msgstr "Zorla Açma"
-
-msgid "Forced Off"
-msgstr "Zorla Kapatma"
 
 msgid "Forced on"
 msgstr "Zorla açma"

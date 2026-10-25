@@ -1291,12 +1291,6 @@ msgstr "Poistetaanko tämä kansio ja kaikki sen ryhmäosoitteet? Tämän voi ku
 msgid "Rename Group Address"
 msgstr "Nimeä ryhmäosoite uudelleen"
 
-msgid "Change Address…"
-msgstr "Muuta osoitetta…"
-
-msgid "New group address (links are kept):"
-msgstr "Uusi ryhmäosoite (linkit säilyvät):"
-
 msgid "Invalid address or already in use."
 msgstr "Virheellinen osoite tai jo käytössä."
 
@@ -1312,14 +1306,8 @@ msgstr "Suojatun ryhmäosoitteen voi linkittää vain laitteisiin, jotka otetaan
 msgid "Not every device linked to this group address is commissioned securely, so it cannot be secured."
 msgstr "Kaikkia tähän ryhmäosoitteeseen linkitettyjä laitteita ei oteta käyttöön suojatusti, joten sitä ei voi suojata."
 
-msgid "Set Datapoint Type"
-msgstr "Aseta tietopisteen tyyppi"
-
 msgid "Address"
 msgstr "Osoite"
-
-msgid "Datapoint type (e.g. DPST-1-1); empty to clear"
-msgstr "Tietopisteen tyyppi (esim. DPST-1-1); tyhjä poistaa"
 
 msgid "Project: {name}"
 msgstr "Projekti: {name}"
@@ -2364,12 +2352,6 @@ msgstr "Nimeä segmentti uudelleen: {name}"
 
 msgid "Set medium to {medium}"
 msgstr "Aseta mediaksi {medium}"
-
-msgid "Forced On"
-msgstr "Pakotettu päälle"
-
-msgid "Forced Off"
-msgstr "Pakotettu pois päältä"
 
 msgid "Forced on"
 msgstr "Pakotettu päälle"

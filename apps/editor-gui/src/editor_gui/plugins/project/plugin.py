@@ -361,10 +361,7 @@ class ProjectPlugin:
             get_devices=lambda: api.project.devices,
             on_create_ga=self._on_create_ga,
             on_rename_ga=api.project.rename_group_address,
-            on_set_ga_dpt=api.project.set_group_address_dpt,
-            on_set_ga_security=self._set_ga_security,
             on_remove_ga=api.project.remove_group_address,
-            on_set_ga_address=api.project.set_group_address_address,
             take_requested_ga=api.project.take_requested_group_address,
             on_create_range=api.project.create_group_range,
             on_rename_range=api.project.rename_group_range,
@@ -397,6 +394,8 @@ class ProjectPlugin:
                 )
                 for name, host, port, address in get_interfaces()
             ],
+            on_set_dpt=api.project.set_element_dpt,
+            dpt_names=lambda: cached_master_names(api.connection.master),
         )
         self._space_details = SpaceDetailsPanel(
             on_rename=api.project.rename_space,
@@ -2239,24 +2238,6 @@ class ProjectPlugin:
             self._set_serial_number(device, fdsk.serial_number)
         self._certificate_device = None
         return None
-
-    def _set_ga_security(self, ga_id: int, mode: str) -> bool:
-        """Set a group address's Security mode; ``False`` (and a toast) when a password is needed
-        or a linked device is not commissioned securely."""
-        from xknxeditor.proj import GroupAddressSecurityError, ProjectPasswordRequired
-
-        try:
-            self._api.project.set_group_address_security(ga_id, mode)
-        except ProjectPasswordRequired:
-            self._api.log.error(S.SECURE_DOWNLOAD_PASSWORD_REQUIRED, plugin="project")
-            return False
-        except GroupAddressSecurityError:
-            self._api.log.error(
-                S.GA_SECURE_ON_REFUSED if mode == "On" else S.GA_SECURE_REQUIRED,
-                plugin="project",
-            )
-            return False
-        return True
 
     def _project_serial(self, node_id: int) -> bytes | None:
         info = self._api.project.get_device_info(node_id)

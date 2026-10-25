@@ -5,7 +5,7 @@ when its field is left or its choice is made."""
 
 from __future__ import annotations
 
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from typing import TYPE_CHECKING
 
 from imgui_bundle import imgui
@@ -23,6 +23,7 @@ from editor_gui.plugins.project.ui.status_field import (
 )
 from editor_gui.widgets.checkbox import checkbox
 from editor_gui.widgets.dpi import label_column_width
+from editor_gui.widgets.dpt_select import dpt_combo
 
 if TYPE_CHECKING:
     from editor_gui.plugins.project.service import ElementDetails
@@ -68,7 +69,11 @@ class ElementDetailsPanel:
         on_set_backbone_security: Callable[[str], str | None] = lambda _m: None,
         on_set_bus_connection: Callable[[str], None] = lambda _p: None,
         found_interfaces: Callable[[], list[tuple[str, str]]] = list,
+        on_set_dpt: Callable[[int, str], str | None] = lambda _i, _d: None,
+        dpt_names: Callable[[], Mapping[str, str]] = dict,
     ) -> None:
+        """``dpt_names`` are the names of the data point types by token, from the master data
+        ({} without it: the type is then entered as its token)."""
         self._on_rename = on_rename
         self._on_set_description = on_set_description
         self._on_set_address = on_set_address
@@ -80,7 +85,11 @@ class ElementDetailsPanel:
         self._on_set_backbone_security = on_set_backbone_security
         self._on_set_bus_connection = on_set_bus_connection
         self._found_interfaces = found_interfaces
+        self._on_set_dpt = on_set_dpt
+        self._dpt_names = dpt_names
         self._key: tuple[str, int] | None = None
+        self._dpt = ""
+        self._dpt_error = ""
         self._name = ""
         self._description = ""
         self._address = ""
@@ -101,6 +110,8 @@ class ElementDetailsPanel:
             self._security_error = ""
             self._multicast = details.multicast_address
             self._routing_error = ""
+            self._dpt = details.datapoint_type or ""
+            self._dpt_error = ""
         label_width = label_column_width(
             S.CONFIGURE_NAME,
             S.CONFIGURE_DESCRIPTION,
@@ -110,6 +121,7 @@ class ElementDetailsPanel:
             S.DOMAIN_ADDRESS,
             S.GA_CENTRAL,
             S.GA_SECURITY,
+            S.GA_DATA_TYPE,
             S.BACKBONE_MEDIUM,
             S.NETWORK_LATENCY,
             S.MULTICAST_ADDRESS,
@@ -151,7 +163,34 @@ class ElementDetailsPanel:
         if details.security is not None:
             self._row(S.GA_SECURITY)
             self._security_field(details, details.security)
+        if details.datapoint_type is not None:
+            self._row(S.GA_DATA_TYPE)
+            self._dpt_field(details, details.datapoint_type)
         imgui.end_table()
+
+    def _dpt_field(self, details: ElementDetails, token: str) -> None:
+        """A group address's data point type: chosen from the master data's, or without it
+        entered as its token; the reason a type is refused shows below it."""
+        names = self._dpt_names()
+        imgui.set_next_item_width(-1)
+        if names:
+            changed, chosen = dpt_combo("element_dpt", token, names, S.ML_FILTER_HINT)
+            if changed and chosen != token:
+                self._dpt_error = self._on_set_dpt(details.element_id, chosen) or ""
+        else:
+            _, self._dpt = imgui.input_text_with_hint(
+                "##element_dpt", "DPST-1-1", self._dpt
+            )
+            if imgui.is_item_deactivated_after_edit() and self._dpt.strip() != token:
+                self._dpt_error = (
+                    self._on_set_dpt(details.element_id, self._dpt.strip()) or ""
+                )
+            if not imgui.is_item_active() and not self._dpt_error:
+                self._dpt = token
+        if self._dpt_error:
+            imgui.push_text_wrap_pos(0.0)
+            imgui.text_colored(_ERROR_COLOR, self._dpt_error)
+            imgui.pop_text_wrap_pos()
 
     def _backbone_rows(self, details: ElementDetails, latency: int) -> None:
         """The backbone: description, status, its medium (IP or TP), the network latency, the

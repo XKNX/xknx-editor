@@ -1291,12 +1291,6 @@ msgstr "Να διαγραφεί αυτός ο φάκελος και κάθε δ�
 msgid "Rename Group Address"
 msgstr "Μετονομασία Διεύθυνσης Ομάδας"
 
-msgid "Change Address…"
-msgstr "Αλλαγή Διεύθυνσης…"
-
-msgid "New group address (links are kept):"
-msgstr "Νέα διεύθυνση ομάδας (οι συνδέσεις διατηρούνται):"
-
 msgid "Invalid address or already in use."
 msgstr "Μη έγκυρη διεύθυνση ή χρησιμοποιείται ήδη."
 
@@ -1312,14 +1306,8 @@ msgstr "Μια ασφαλής διεύθυνση ομάδας μπορεί να 
 msgid "Not every device linked to this group address is commissioned securely, so it cannot be secured."
 msgstr "Δεν τίθενται όλες οι συσκευές που είναι συνδεδεμένες με αυτήν τη διεύθυνση ομάδας σε λειτουργία με ασφάλεια, επομένως δεν μπορεί να γίνει ασφαλής."
 
-msgid "Set Datapoint Type"
-msgstr "Ορισμός Τύπου Datapoint"
-
 msgid "Address"
 msgstr "Διεύθυνση"
-
-msgid "Datapoint type (e.g. DPST-1-1); empty to clear"
-msgstr "Τύπος datapoint (π.χ. DPST-1-1)· κενό για διαγραφή"
 
 msgid "Project: {name}"
 msgstr "Έργο: {name}"
@@ -2364,12 +2352,6 @@ msgstr "Μετονομασία τμήματος σε {name}"
 
 msgid "Set medium to {medium}"
 msgstr "Ορισμός μέσου σε {medium}"
-
-msgid "Forced On"
-msgstr "Υποχρ. ενεργοποιημένη"
-
-msgid "Forced Off"
-msgstr "Υποχρ. απενεργοποιημένη"
 
 msgid "Forced on"
 msgstr "Υποχρ. ενεργοποιημένη"

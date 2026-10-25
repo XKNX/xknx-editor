@@ -1291,12 +1291,6 @@ msgstr "Удалить эту папку и все групповые адрес
 msgid "Rename Group Address"
 msgstr "Переименовать групповой адрес"
 
-msgid "Change Address…"
-msgstr "Изменить адрес…"
-
-msgid "New group address (links are kept):"
-msgstr "Новый групповой адрес (связи сохраняются):"
-
 msgid "Invalid address or already in use."
 msgstr "Недопустимый адрес или он уже используется."
 
@@ -1312,14 +1306,8 @@ msgstr "Защищённый групповой адрес можно связа
 msgid "Not every device linked to this group address is commissioned securely, so it cannot be secured."
 msgstr "Не все устройства, связанные с этим групповым адресом, вводятся в эксплуатацию с защитой, поэтому его нельзя защитить."
 
-msgid "Set Datapoint Type"
-msgstr "Задать тип данных"
-
 msgid "Address"
 msgstr "Адрес"
-
-msgid "Datapoint type (e.g. DPST-1-1); empty to clear"
-msgstr "Тип данных (напр. DPST-1-1); пусто — очистить"
 
 msgid "Project: {name}"
 msgstr "Проект: {name}"
@@ -2364,12 +2352,6 @@ msgstr "Переименовать сегмент в {name}"
 
 msgid "Set medium to {medium}"
 msgstr "Задать носитель {medium}"
-
-msgid "Forced On"
-msgstr "Принудительное включение"
-
-msgid "Forced Off"
-msgstr "Принудительное выключение"
 
 msgid "Forced on"
 msgstr "Принудительное включение"
