@@ -199,3 +199,32 @@ def test_a_running_operation_waiting_for_its_connection_shows_connecting() -> No
     # A waiting one is still waiting for its turn.
     item.state = OperationState.WAITING
     assert state_text(item, connecting=True) == S.OPERATION_WAITING
+
+
+@pytest.mark.usefixtures("context")
+def test_an_operation_waiting_for_its_connection_shows_no_bus_progress() -> None:
+    from editor_gui.plugins.project.program_queue import OperationState, QueueItem
+
+    item = QueueItem(node_id=1, address="1.1.5", name="Dimmer", scope=None)
+    item.state = OperationState.RUNNING
+    reads: list[int] = []
+    connecting = [True]
+
+    def progress() -> tuple[int, int]:
+        reads.append(1)
+        return (3, 20)
+
+    panel = ProgramQueuePanel(
+        get_active=lambda: [item],
+        get_history=lambda: [],
+        get_progress=progress,
+        on_cancel=lambda _item: None,
+        on_cancel_all=lambda: None,
+        on_clear_history=lambda: None,
+        is_connecting=lambda _item: connecting[0],
+    )
+    _frames(panel, 2)
+    assert reads == []
+    connecting[0] = False
+    _frames(panel, 2)
+    assert reads
