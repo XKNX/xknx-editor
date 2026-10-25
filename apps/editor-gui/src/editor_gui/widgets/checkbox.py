@@ -30,3 +30,14 @@ def radio_button(label: str, active: bool, *, centred: bool = False) -> bool:
     pressed = imgui.radio_button(label, active)
     imgui.pop_style_var()
     return pressed
+
+
+def radio_beside_field(label: str, active: bool) -> bool:
+    """A radio button followed on its row by a full-height field (an input, a drop-down): both
+    centred on the row, the field drawn next. Whether it was clicked."""
+    # In a group, so that the row starts at its top, not where the lowered radio button does.
+    imgui.begin_group()
+    pressed = radio_button(label, active, centred=True)
+    imgui.end_group()
+    imgui.same_line()
+    return pressed

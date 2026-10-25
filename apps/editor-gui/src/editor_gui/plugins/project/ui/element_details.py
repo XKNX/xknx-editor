@@ -166,12 +166,6 @@ class ElementDetailsPanel:
         if details.has_address:
             self._row(S.GA_ADDRESS)
             self._address_field(details)
-        if details.medium is not None:
-            self._row(S.MEDIUM)
-            self._medium_field(details, details.medium)
-            if has_domain_address(details.medium):
-                self._row(S.DOMAIN_ADDRESS)
-                self._domain_field(details)
         self._row(S.CONFIGURE_DESCRIPTION)
         self._description_field(details)
         if details.number is not None:
@@ -182,6 +176,13 @@ class ElementDetailsPanel:
             chosen = status_combo("##element_status", details.status)
             if chosen is not None:
                 self._on_set_status(details.kind, details.element_id, chosen)
+        # The medium below the status, as on the backbone.
+        if details.medium is not None:
+            self._row(S.MEDIUM)
+            self._medium_field(details, details.medium)
+            if has_domain_address(details.medium):
+                self._row(S.DOMAIN_ADDRESS)
+                self._domain_field(details)
         if details.central is not None:
             self._row(S.GA_CENTRAL)
             changed, central = checkbox("##element_central", details.central)

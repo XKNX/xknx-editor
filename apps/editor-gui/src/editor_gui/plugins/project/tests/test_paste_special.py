@@ -138,14 +138,15 @@ def test_the_choices_reach_the_paste(
     dialog.open("device", [device], target)
     chosen = {S.PASTE_GA_NEW_MIDDLE, S.PASTE_APPEND}
     shown: list[str] = []
-    real_radio = paste_special.radio_button
+    for name in ("radio_button", "radio_beside_field"):
+        real = getattr(paste_special, name)
 
-    def radio_button(label: str, active: bool, **kwargs: Any) -> bool:
-        shown.append(label.split("##")[0])
-        real_radio(label, active, **kwargs)
-        return label.split("##")[0] in chosen
+        def radio(label: str, active: bool, _real: Any = real, **kwargs: Any) -> bool:
+            shown.append(label.split("##")[0])
+            _real(label, active, **kwargs)
+            return label.split("##")[0] in chosen
 
-    monkeypatch.setattr(paste_special, "radio_button", radio_button)
+        monkeypatch.setattr(paste_special, name, radio)
     clicks = Clicks(monkeypatch, paste_special)
     _frames(dialog, 2)
     assert shown[:3] == [S.PASTE_GA_DONT_COPY, S.PASTE_GA_KEEP, S.PASTE_GA_NEW_MIDDLE]

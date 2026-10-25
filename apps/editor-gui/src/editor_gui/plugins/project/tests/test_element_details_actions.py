@@ -207,6 +207,31 @@ def test_a_line_with_its_medium_and_domain_address(
 
 
 @pytest.mark.usefixtures("context")
+def test_the_medium_shows_below_the_status(
+    project: ProjectService, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    area = next(a for a in project.get_areas() if a.area_number == 1)
+    line = next(ln for ln in project.get_lines(area.id) if ln.line_number == 1)
+    segment = project.add_segment(line.id)
+    assert segment is not None
+    panel = _panel(project)
+    rows: list[str] = []
+    real_row = panel._row  # pyright: ignore[reportPrivateUsage]
+
+    def row(label: str) -> None:
+        rows.append(label)
+        real_row(label)
+
+    monkeypatch.setattr(panel, "_row", row)
+    for kind, element_id in (("line", line.id), ("segment", segment)):
+        rows.clear()
+        _show(panel, _details(project, kind, element_id), 1)
+        assert rows.index(element_details.S.MEDIUM) == (
+            rows.index(element_details.S.STATUS) + 1
+        ), kind
+
+
+@pytest.mark.usefixtures("context")
 def test_a_trade_number_and_a_group_address(
     project: ProjectService, monkeypatch: pytest.MonkeyPatch
 ) -> None:

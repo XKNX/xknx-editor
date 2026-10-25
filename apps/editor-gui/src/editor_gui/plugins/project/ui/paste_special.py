@@ -16,7 +16,7 @@ from imgui_bundle import imgui
 from editor_gui.plugins.project.paste import PasteKind, PasteTarget
 from editor_gui.plugins.project.strings import S
 from editor_gui.plugins.project.ui.tree_drag import Dragged
-from editor_gui.widgets.checkbox import radio_button
+from editor_gui.widgets.checkbox import radio_beside_field, radio_button
 from editor_gui.widgets.combo import combo
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
 from editor_gui.widgets.dpi import px
@@ -228,9 +228,8 @@ class PasteSpecialDialog:
             GroupAddressStyle.TWO_LEVEL: S.PASTE_GA_NEW_MAIN,
         }.get(style, S.PASTE_GA_NEW_RANGE)
         creating = self._behaviour is GroupAddressCopy.CREATE_NEW
-        if radio_button(f"{label}##new", creating, centred=True):
+        if radio_beside_field(f"{label}##new", creating):
             self._behaviour = GroupAddressCopy.CREATE_NEW
-        imgui.same_line()
         imgui.begin_disabled(not creating)
         if style is GroupAddressStyle.FREE:
             ranges = _flat(self._group_ranges())
@@ -265,9 +264,8 @@ class PasteSpecialDialog:
             (Allocation.OFFSET, S.PASTE_OFFSET),
         ):
             chosen = self._allocation is allocation
-            if radio_button(f"{label}##alloc", chosen, centred=True):
+            if radio_beside_field(f"{label}##alloc", chosen):
                 self._allocation = allocation
-            imgui.same_line()
             imgui.begin_disabled(not chosen)
             imgui.set_next_item_width(px(120.0))
             if allocation is Allocation.START_WITH:
