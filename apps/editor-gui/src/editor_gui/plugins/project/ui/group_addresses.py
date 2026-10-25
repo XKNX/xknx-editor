@@ -20,7 +20,10 @@ from editor_gui.plugins.project.strings import S
 from editor_gui.plugins.project.ui._filter import filter_box
 from editor_gui.plugins.project.ui.group_value import GroupValueActions
 from editor_gui.plugins.project.ui.move_menu import render_move_menu
-from editor_gui.plugins.project.ui.paste_special import PasteSpecialDialog
+from editor_gui.plugins.project.ui.paste_special import (
+    PasteSpecialDialog,
+    render_copy_item,
+)
 from editor_gui.plugins.project.ui.tree_drag import Dragged, drag_source, drop_target
 from editor_gui.widgets.description import secure_icon, secure_icon_width
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
@@ -390,18 +393,7 @@ class GroupAddressesPanel:
             )
 
         def copy_target(dragged: Dragged) -> PasteTarget | None:
-            if self._paste_dialog is None:
-                return None
-            if dragged.kind == "group_address":
-                return PasteTarget("group_range", node.id) if holds_addresses else None
-            if dragged.kind != "group_range" or not is_root:
-                return None
-            mains = self._main_groups()
-            if mains.issuperset(dragged.ids):
-                return PasteTarget("group_range", None)
-            if middle and mains.isdisjoint(dragged.ids):
-                return PasteTarget("group_range", node.id)
-            return None
+            return self._range_copy_target(node, is_root, dragged)
 
         drop = drop_target(accepts, lambda dragged: copy_target(dragged) is not None)
         if drop is None:
@@ -419,6 +411,29 @@ class GroupAddressesPanel:
                 else:
                     assert self._on_move_range is not None
                     self._report(self._on_move_range(ident, node.id))
+
+    def _range_copy_target(
+        self, node: "GroupRangeInfo", is_root: bool, copied: Dragged
+    ) -> PasteTarget | None:
+        """Where copies of ``copied`` go when pasted on the group ``node`` (a main group with
+        ``is_root``): group addresses into it when it holds group addresses (also their own),
+        middle groups into a main group, main groups to the top; None for anything else."""
+        if self._paste_dialog is None:
+            return None
+        middle = self._middle_enabled()
+        if copied.kind == "group_address":
+            holds_addresses = self._folders_enabled() and (
+                not is_root if middle else is_root
+            )
+            return PasteTarget("group_range", node.id) if holds_addresses else None
+        if copied.kind != "group_range" or not is_root:
+            return None
+        mains = self._main_groups()
+        if mains.issuperset(copied.ids):
+            return PasteTarget("group_range", None)
+        if middle and mains.isdisjoint(copied.ids):
+            return PasteTarget("group_range", node.id)
+        return None
 
     def _render_group_addresses(self, node: "GroupRangeInfo", flt: str) -> None:
         spacing = imgui.get_style().item_spacing.x
@@ -498,6 +513,8 @@ class GroupAddressesPanel:
         if imgui.menu_item(S.CONTEXT_COPY_ADDRESS, "", False)[0]:
             imgui.set_clipboard_text(getattr(ga, "text", "") or "")
         self._render_move_ga_menu(ga.id)  # type: ignore[attr-defined]
+        if self._paste_dialog is not None:
+            render_copy_item(Dragged("group_address", (ga.id,)))  # type: ignore[attr-defined]
         if self._group_value is not None:
             imgui.separator()
             self._group_value.render_menu_items(
@@ -617,6 +634,12 @@ class GroupAddressesPanel:
             self._open_rename_range = True
         if not is_root:
             self._render_move_range_menu(node.id)
+        if self._paste_dialog is not None:
+            imgui.separator()
+            render_copy_item(Dragged("group_range", (node.id,)))
+            self._paste_dialog.render_paste_items(
+                lambda c: self._range_copy_target(node, is_root, c)
+            )
         if self._on_remove_range is not None:
             imgui.separator()
             if imgui.menu_item(S.CONTEXT_DELETE, "", False)[0]:

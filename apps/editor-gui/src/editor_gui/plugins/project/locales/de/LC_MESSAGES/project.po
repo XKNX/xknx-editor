@@ -3020,3 +3020,6 @@ msgstr "{count} Linien nach '{target}' kopiert."
 
 msgid "Copied {count} segments to '{target}'."
 msgstr "{count} Segmente nach '{target}' kopiert."
+
+msgid "Paste Special…"
+msgstr "Inhalte einfügen…"

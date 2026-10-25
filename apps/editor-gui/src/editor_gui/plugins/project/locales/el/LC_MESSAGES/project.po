@@ -2835,3 +2835,6 @@ msgstr "{count} γραμμές αντιγράφηκαν στο '{target}'."
 
 msgid "Copied {count} segments to '{target}'."
 msgstr "{count} τμήματα αντιγράφηκαν στο '{target}'."
+
+msgid "Paste Special…"
+msgstr "Ειδική επικόλληση…"

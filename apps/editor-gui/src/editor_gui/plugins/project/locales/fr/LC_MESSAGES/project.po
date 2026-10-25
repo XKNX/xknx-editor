@@ -2835,3 +2835,6 @@ msgstr "{count} lignes copiées vers '{target}'."
 
 msgid "Copied {count} segments to '{target}'."
 msgstr "{count} segments copiés vers '{target}'."
+
+msgid "Paste Special…"
+msgstr "Collage spécial…"

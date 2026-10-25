@@ -11,7 +11,10 @@ from editor_gui.plugins.project.strings import S
 from editor_gui.plugins.project.ui._filter import filter_box
 from editor_gui.plugins.project.ui.config_dialog import DeviceConfigDialog
 from editor_gui.plugins.project.ui.move_menu import render_move_menu
-from editor_gui.plugins.project.ui.paste_special import PasteSpecialDialog
+from editor_gui.plugins.project.ui.paste_special import (
+    PasteSpecialDialog,
+    render_copy_item,
+)
 from editor_gui.plugins.project.ui.tree_drag import Dragged, drag_source, drop_target
 from editor_gui.widgets.description import render_device_marks
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
@@ -424,6 +427,13 @@ class TopologyPanel:
             self._select_element("segment", segment.id)
         if context_menu(f"##segment_ctx_{segment.id}"):
             self._render_move_segment_menu(segment, line)
+            if self._paste_dialog is not None:
+                render_copy_item(Dragged("segment", (segment.id,)))
+            self._render_paste_items(
+                lambda c: (
+                    PasteTarget("segment", segment.id) if c.kind == "device" else None
+                )
+            )
             imgui.separator()
             if imgui.menu_item(S.CONTEXT_DELETE, "", False)[0]:
                 self._on_remove_segment(segment)
@@ -539,6 +549,8 @@ class TopologyPanel:
             ):
                 self._on_compare(device.node_id)
             self._render_move_device_menu(device)
+            if self._paste_dialog is not None:
+                render_copy_item(self._dragged_devices(device))
             imgui.separator()
             if imgui.menu_item(S.CONTEXT_DELETE, "", False)[0]:
                 self._delete_target_device = device
@@ -655,6 +667,10 @@ class TopologyPanel:
                 self._popup_target_area = area
                 self._popup_name = area.name
                 self._open_rename_popup = True
+            if main is not None:
+                self._render_paste_items(
+                    lambda c: self._line_copy_target(area, main, c, area_node=True)
+                )
             imgui.separator()
             if imgui.menu_item(S.CONTEXT_DELETE, "", False)[0]:
                 self._on_remove_area(area)
@@ -669,6 +685,9 @@ class TopologyPanel:
                 self._popup_name = line.name
                 self._open_rename_popup = True
             self._render_move_line_menu(area, line)
+            if self._paste_dialog is not None and line.number != 0:
+                render_copy_item(Dragged("line", (line.id,)))
+            self._render_paste_items(lambda c: self._line_copy_target(area, line, c))
             imgui.separator()
             if imgui.menu_item(S.CONTEXT_DELETE, "", False)[0]:
                 self._on_remove_line(line)
@@ -863,16 +882,49 @@ class TopologyPanel:
 
     def _render_device_drag_source(self, device: Device) -> None:
         """A device is dragged, together with the other selected ones when it is selected."""
+        dragged = self._dragged_devices(device)
+        text = device.display_name
+        if len(dragged.ids) > 1:
+            text = S.DRAG_DEVICES.format(count=len(dragged.ids))
+        drag_source(dragged, text)
+
+    def _dragged_devices(self, device: Device) -> Dragged:
+        """The device, or all selected devices when it is one of several selected."""
         selected = set(self._get_selected_node_ids())
         ids = (
             tuple(sorted(selected))
             if device.node_id in selected and len(selected) > 1
             else (device.node_id,)
         )
-        text = device.display_name
-        if len(ids) > 1:
-            text = S.DRAG_DEVICES.format(count=len(ids))
-        drag_source(Dragged("device", ids), text)
+        return Dragged("device", ids)
+
+    def _line_copy_target(
+        self, area: Area, line: Line, copied: Dragged, *, area_node: bool = False
+    ) -> PasteTarget | None:
+        """Where copies of ``copied`` go when pasted on the line: devices onto its main
+        segment, segments onto the line, sub lines into the area when it is the area's node
+        (a main line is not copied); None for anything else."""
+        if self._paste_dialog is None:
+            return None
+        if copied.kind == "device" and line.main_segment_id is not None:
+            return PasteTarget("segment", line.main_segment_id)
+        if copied.kind == "segment":
+            return PasteTarget("line", line.id)
+        if (
+            copied.kind == "line"
+            and area_node
+            and self._main_lines().isdisjoint(copied.ids)
+        ):
+            return PasteTarget("area", area.id)
+        return None
+
+    def _render_paste_items(
+        self, target_for: Callable[[Dragged], PasteTarget | None]
+    ) -> None:
+        """ "Paste" and "Paste Special…" in a context menu, with a separator above."""
+        if self._paste_dialog is not None:
+            imgui.separator()
+            self._paste_dialog.render_paste_items(target_for)
 
     def _render_line_drop_target(
         self, area: Area, line: Line, *, area_node: bool = False
@@ -892,16 +944,7 @@ class TopologyPanel:
             return False
 
         def copy_target(dragged: Dragged) -> PasteTarget | None:
-            if dragged.kind == "segment":
-                return PasteTarget("line", line.id)
-            # Sub lines only: a main line is not copied.
-            if (
-                dragged.kind == "line"
-                and area_node
-                and self._main_lines().isdisjoint(dragged.ids)
-            ):
-                return PasteTarget("area", area.id)
-            return None
+            return self._line_copy_target(area, line, dragged, area_node=area_node)
 
         self._drop_devices(
             line.main_segment_id,

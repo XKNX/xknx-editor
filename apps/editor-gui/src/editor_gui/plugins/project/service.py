@@ -544,6 +544,8 @@ _HISTORY_LABELS: dict[str, Callable[[dict[str, Any]], str]] = {
     "RemoveGroupAddress": lambda d: S.HISTORY_EV_REMOVE_GA,
     "RemoveFunction": lambda d: S.HISTORY_EV_REMOVE_FUNCTION,
     "MoveFunction": lambda d: S.HISTORY_EV_MOVE_FUNCTION,
+    # Only inside a paste, the step the history names after the paste.
+    "SetFields": lambda d: S.HISTORY_EV_CHANGE,
     "RemoveFunctionGroupAddress": lambda d: S.HISTORY_EV_REMOVE_FUNCTION_GA,
     "RemoveSpace": lambda d: S.HISTORY_EV_REMOVE_SPACE,
     "RemoveGroupRange": lambda d: S.HISTORY_EV_REMOVE_GROUP_RANGE,

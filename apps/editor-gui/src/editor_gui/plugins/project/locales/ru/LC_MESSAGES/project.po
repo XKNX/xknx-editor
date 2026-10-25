@@ -2835,3 +2835,6 @@ msgstr "Скопировано линий: {count} в '{target}'."
 
 msgid "Copied {count} segments to '{target}'."
 msgstr "Скопировано сегментов: {count} в '{target}'."
+
+msgid "Paste Special…"
+msgstr "Специальная вставка…"

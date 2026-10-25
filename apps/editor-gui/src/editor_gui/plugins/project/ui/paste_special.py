@@ -1,6 +1,10 @@
 """The Paste Special dialog a drop with Ctrl held opens: how many copies, what they link (the same
 group addresses, new ones in a group, or none) and where new group addresses go. It starts with
-its defaults every time."""
+its defaults every time.
+
+The trees' context menus copy and paste too: "Copy" puts an element on the clipboard (one for all
+trees), "Paste" makes a copy of it where the menu was opened, "Paste Special…" asks how first.
+"""
 
 from __future__ import annotations
 
@@ -11,6 +15,7 @@ from imgui_bundle import imgui
 
 from editor_gui.plugins.project.paste import PasteKind, PasteTarget
 from editor_gui.plugins.project.strings import S
+from editor_gui.plugins.project.ui.tree_drag import Dragged
 from editor_gui.widgets.checkbox import radio_button
 from editor_gui.widgets.combo import combo
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
@@ -36,6 +41,23 @@ _DEFAULT_RANGE = {
     GroupAddressStyle.THREE_LEVEL: "0/0",
     GroupAddressStyle.TWO_LEVEL: "0",
 }
+
+
+class _Clipboard:
+    """What "Copy" in a tree's context menu copied last."""
+
+    copied: Dragged | None = None
+
+
+def render_copy_item(copied: Dragged) -> None:
+    """The "Copy" item of a tree row's context menu; ``copied`` is what it copies."""
+    if imgui.menu_item(S.CONTEXT_COPY, "", False)[0]:
+        _Clipboard.copied = copied
+
+
+def copied() -> Dragged | None:
+    """What "Copy" copied last, None before."""
+    return _Clipboard.copied
 
 
 def _flat(ranges: list[GroupRangeInfo]) -> list[GroupRangeInfo]:
@@ -98,6 +120,25 @@ class PasteSpecialDialog:
         self._allocation = Allocation.FILL_UP
         self._start_with = 1
         self._offset = 0
+
+    def render_paste_items(
+        self, target_for: Callable[[Dragged], PasteTarget | None]
+    ) -> None:
+        """The "Paste" and "Paste Special…" items of a tree row's context menu: what "Copy"
+        copied goes where ``target_for`` says (None: not here, the items are disabled)."""
+        clip = _Clipboard.copied
+        target = target_for(clip) if clip is not None else None
+        enabled = clip is not None and target is not None
+        paste = imgui.menu_item(S.CONTEXT_PASTE, "", False, enabled)[0]
+        special = imgui.menu_item(S.CONTEXT_PASTE_SPECIAL, "", False, enabled)[0]
+        if clip is None or target is None:
+            return
+        if paste:
+            error = self._on_paste(clip.kind, list(clip.ids), target, PasteOptions())
+            if error:
+                self._notify(error)
+        if special:
+            self.open(clip.kind, list(clip.ids), target)
 
     def options(self) -> PasteOptions:
         """The options chosen."""

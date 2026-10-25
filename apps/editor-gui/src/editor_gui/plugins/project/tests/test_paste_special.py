@@ -65,12 +65,20 @@ class _Opened(PasteSpecialDialog):
     """The dialog of a panel, recording what it was opened for."""
 
     def __init__(self, project: ProjectService) -> None:
+        self.pasted: list[Pasted] = []
+
+        def on_paste(
+            kind: PasteKind, ids: list[int], target: PasteTarget, options: PasteOptions
+        ) -> str | None:
+            self.pasted.append((kind, ids, target, options))
+            return None
+
         super().__init__(
             "test",
             group_style=lambda: project.group_address_style,
             group_ranges=project.get_group_range_tree,
             names=project.paste_names,
-            on_paste=lambda *_a: None,
+            on_paste=on_paste,
         )
         self.asked: list[tuple[PasteKind, list[int], PasteTarget]] = []
 
@@ -345,3 +353,45 @@ def test_topology_takes_copies_of_devices_segments_and_sub_lines(
         if target is not None:
             assert dialog.asked.pop() == (dragged.kind, list(dragged.ids), target)
         monkeypatch.undo()
+
+
+@pytest.mark.usefixtures("context")
+def test_copy_and_paste_by_the_context_menus(
+    project: ProjectService, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    building = project.get_space_tree()[0].id
+    ground = project.create_space(building, "Floor", "Ground")
+    assert ground is not None
+    room = project.create_space(ground, "Room", "Kitchen")
+    assert room is not None
+    panel = _buildings(project, [])
+    panel._on_move_space = project.move_space  # pyright: ignore[reportPrivateUsage]
+    dialog = _Opened(project)
+    panel._paste_dialog = dialog  # pyright: ignore[reportPrivateUsage]
+    clicks = Clicks(monkeypatch, spaces)
+    _frames(panel, 2)
+    # Nothing copied yet: the room's Paste does nothing.
+    clicks.context = f"##spctx{room}"
+    clicks.items.add(S.CONTEXT_PASTE)
+    _frames(panel, 2)
+    assert dialog.pasted == []
+    clicks.items.clear()
+    clicks.context = f"##spctx{room}"
+    clicks.items.add(S.CONTEXT_COPY)
+    _frames(panel, 2)
+    # Pasted on its floor: a copy with the defaults; Paste Special… asks first.
+    clicks.context = f"##spctx{ground}"
+    clicks.items.add(S.CONTEXT_PASTE)
+    _frames(panel, 2)
+    assert dialog.pasted == [
+        ("space", [room], PasteTarget("space", ground), PasteOptions())
+    ]
+    clicks.context = f"##spctx{ground}"
+    clicks.items.add(S.CONTEXT_PASTE_SPECIAL)
+    _frames(panel, 2)
+    assert dialog.asked == [("space", [room], PasteTarget("space", ground))]
+    # A room does not go to the top: the root's Paste is off.
+    clicks.context = "##spaces_root_ctx"
+    clicks.items.add(S.CONTEXT_PASTE)
+    _frames(panel, 2)
+    assert len(dialog.pasted) == 1

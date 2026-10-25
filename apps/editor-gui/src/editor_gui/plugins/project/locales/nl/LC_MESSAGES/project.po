@@ -2873,3 +2873,6 @@ msgstr "{count} lijnen gekopieerd naar '{target}'."
 
 msgid "Copied {count} segments to '{target}'."
 msgstr "{count} segmenten gekopieerd naar '{target}'."
+
+msgid "Paste Special…"
+msgstr "Plakken speciaal…"

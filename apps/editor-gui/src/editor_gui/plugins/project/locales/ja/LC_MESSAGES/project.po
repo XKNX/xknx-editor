@@ -2835,3 +2835,6 @@ msgstr "{count} 本のラインを '{target}' にコピーしました。"
 
 msgid "Copied {count} segments to '{target}'."
 msgstr "{count} 個のセグメントを '{target}' にコピーしました。"
+
+msgid "Paste Special…"
+msgstr "形式を選択して貼り付け…"

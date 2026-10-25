@@ -2835,3 +2835,6 @@ msgstr "{count} linjaa kopioitu kohteeseen '{target}'."
 
 msgid "Copied {count} segments to '{target}'."
 msgstr "{count} segmenttiä kopioitu kohteeseen '{target}'."
+
+msgid "Paste Special…"
+msgstr "Liitä määräten…"

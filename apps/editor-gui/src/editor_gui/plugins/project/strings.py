@@ -548,6 +548,18 @@ class ProjectStrings:
         return _("Paste Special")
 
     @property
+    def CONTEXT_COPY(self) -> str:
+        return _("Copy")
+
+    @property
+    def CONTEXT_PASTE(self) -> str:
+        return _("Paste")
+
+    @property
+    def CONTEXT_PASTE_SPECIAL(self) -> str:
+        return _("Paste Special…")
+
+    @property
     def PASTE_COUNT(self) -> str:
         return _("Number of Items")
 

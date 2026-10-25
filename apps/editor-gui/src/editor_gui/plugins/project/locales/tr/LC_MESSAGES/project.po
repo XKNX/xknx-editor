@@ -2835,3 +2835,6 @@ msgstr "{count} hat '{target}' konumuna kopyalandı."
 
 msgid "Copied {count} segments to '{target}'."
 msgstr "{count} segment '{target}' konumuna kopyalandı."
+
+msgid "Paste Special…"
+msgstr "Özel Yapıştır…"

@@ -2835,3 +2835,6 @@ msgstr "已将 {count} 条线路复制到“{target}”。"
 
 msgid "Copied {count} segments to '{target}'."
 msgstr "已将 {count} 个网段复制到“{target}”。"
+
+msgid "Paste Special…"
+msgstr "选择性粘贴…"

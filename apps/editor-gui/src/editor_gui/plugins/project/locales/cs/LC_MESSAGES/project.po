@@ -2835,3 +2835,6 @@ msgstr "{count} linií zkopírováno do '{target}'."
 
 msgid "Copied {count} segments to '{target}'."
 msgstr "{count} segmentů zkopírováno do '{target}'."
+
+msgid "Paste Special…"
+msgstr "Vložit jinak…"

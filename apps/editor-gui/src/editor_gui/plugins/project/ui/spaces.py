@@ -19,7 +19,10 @@ from editor_gui.plugins.project.strings import S
 from editor_gui.plugins.project.ui._filter import filter_box
 from editor_gui.plugins.project.ui.config_dialog import DeviceConfigDialog
 from editor_gui.plugins.project.ui.move_menu import render_move_menu
-from editor_gui.plugins.project.ui.paste_special import PasteSpecialDialog
+from editor_gui.plugins.project.ui.paste_special import (
+    PasteSpecialDialog,
+    render_copy_item,
+)
 from editor_gui.plugins.project.ui.status_field import USAGE_ROWS as _USAGE_ROWS
 from editor_gui.plugins.project.ui.topology import render_read_device_item
 from editor_gui.plugins.project.ui.tree_drag import Dragged, drag_source, drop_target
@@ -286,6 +289,7 @@ class SpacesPanel:
             if imgui.menu_item(S.SPACES_ADD_BUILDINGS, "", False)[0]:
                 self._start_add(child_types(None)[0], None, S.SPACES_ROOT_BUILDINGS)
                 self._pending_popup_id = _add_dialog("root")
+            self._render_paste_items(lambda c: self._space_copy_target(None, c))
             imgui.end_popup()
         self._drop_on_space(None)
         self._open_if_pending(_add_dialog("root"))
@@ -328,26 +332,9 @@ class SpacesPanel:
                 and not here.issuperset(dragged.ids)
             )
 
-        def accepts_copy(dragged: Dragged) -> bool:
-            if self._paste_dialog is None:
-                return False
-            if dragged.kind == "space":
-                parent_type = space.space_type if space is not None else None
-                return all(
-                    (copied := _find_node(tree, ident)) is not None
-                    and copied.space_type in child_types(parent_type)
-                    and (space is None or _find_node([copied], space.id) is None)
-                    for ident in dragged.ids
-                )
-            if dragged.kind == "function":
-                return space is not None
-            return (
-                dragged.kind == "device"
-                and space is not None
-                and holds_devices(space.space_type)
-            )
-
-        drop = drop_target(accepts, accepts_copy)
+        drop = drop_target(
+            accepts, lambda dragged: self._space_copy_target(space, dragged) is not None
+        )
         if drop is None:
             return
         target = space.id if space is not None else None
@@ -368,6 +355,42 @@ class SpacesPanel:
                 else:
                     assert self._on_set_device_space is not None
                     self._report(self._on_set_device_space(ident, target))
+
+    def _space_copy_target(
+        self, space: "SpaceInfo | None", copied: Dragged
+    ) -> PasteTarget | None:
+        """Where copies of ``copied`` go when pasted on the space (``None``: the "Buildings"
+        root); None when they may not go there: a building part only where its type may go
+        (not into itself), a function into any building part, a device into one that holds
+        devices."""
+        if self._paste_dialog is None:
+            return None
+        target = PasteTarget("space", space.id if space is not None else None)
+        if copied.kind == "space":
+            tree = self._get_space_tree()
+            parent_type = space.space_type if space is not None else None
+            fits = all(
+                (node := _find_node(tree, ident)) is not None
+                and node.space_type in child_types(parent_type)
+                and (space is None or _find_node([node], space.id) is None)
+                for ident in copied.ids
+            )
+            return target if fits else None
+        if space is None:
+            return None
+        if copied.kind == "function" or (
+            copied.kind == "device" and holds_devices(space.space_type)
+        ):
+            return target
+        return None
+
+    def _render_paste_items(
+        self, target_for: Callable[[Dragged], PasteTarget | None]
+    ) -> None:
+        """ "Paste" and "Paste Special…" in a context menu, with a separator above."""
+        if self._paste_dialog is not None:
+            imgui.separator()
+            self._paste_dialog.render_paste_items(target_for)
 
     def _space_may_go(
         self, tree: "list[SpaceInfo]", moving_id: int, target: "SpaceInfo | None"
@@ -505,6 +528,13 @@ class SpacesPanel:
             chosen = render_move_menu(targets, parent)
             if chosen is not None:
                 self._report(self._on_move_space(space.id, chosen[0]))
+        if self._paste_dialog is not None:
+            imgui.separator()
+            render_copy_item(Dragged("space", (space.id,)))
+            self._paste_dialog.render_paste_items(
+                lambda c: self._space_copy_target(space, c)
+            )
+            imgui.separator()
         if (
             self._on_remove_space is not None
             and imgui.menu_item(S.SPACES_DELETE, "", False)[0]
@@ -787,8 +817,11 @@ class SpacesPanel:
             or (trade_id is not None and self._on_remove_trade_device is not None)
             or self._on_copy_config is not None
             or self._on_compare is not None
+            or self._paste_dialog is not None
         )
         if has_menu and context_menu(f"##spdev_ctx_{where}{device.id}"):
+            if self._paste_dialog is not None:
+                render_copy_item(Dragged("device", (device.id,)))
             if (
                 trade_id is not None
                 and self._on_remove_trade_device is not None
@@ -860,6 +893,7 @@ class SpacesPanel:
             if imgui.menu_item(S.TRADES_ADD, "", False)[0]:
                 self._start_add(_TRADE, None, S.SPACES_ROOT_TRADES)
                 self._pending_popup_id = _add_dialog("trades")
+            self._render_paste_items(lambda c: self._trade_copy_target(None, c))
             imgui.end_popup()
         self._drop_on_trade(None)
         self._open_if_pending(_add_dialog("trades"))
@@ -939,12 +973,38 @@ class SpacesPanel:
             chosen = render_move_menu(targets, parent)
             if chosen is not None:
                 self._on_move_trade(trade.id, chosen[0])
+        if self._paste_dialog is not None:
+            imgui.separator()
+            render_copy_item(Dragged("trade", (trade.id,)))
+            self._paste_dialog.render_paste_items(
+                lambda c: self._trade_copy_target(trade, c)
+            )
+            imgui.separator()
         if (
             self._on_remove_trade is not None
             and imgui.menu_item(S.SPACES_DELETE, "", False)[0]
         ):
             self._on_remove_trade(trade.id)
         imgui.end_popup()
+
+    def _trade_copy_target(
+        self, trade: "TradeInfo | None", copied: Dragged
+    ) -> PasteTarget | None:
+        """Where copies of ``copied`` go when pasted on the trade (``None``: the "Trades"
+        root); None when they may not go there: a trade anywhere but into itself or a trade
+        below it, a device into a trade."""
+        if self._paste_dialog is None:
+            return None
+        target = PasteTarget("trade", trade.id if trade is not None else None)
+        if copied.kind == "trade":
+            trades = self._get_trade_tree()
+            fits = trade is None or all(
+                (node := _find_node(trades, ident)) is not None
+                and _find_node([node], trade.id) is None
+                for ident in copied.ids
+            )
+            return target if fits else None
+        return target if copied.kind == "device" and trade is not None else None
 
     def _drop_on_trade(self, trade: "TradeInfo | None") -> None:
         """The trade just drawn (``None``: the "Trades" root) as a place to drop on: the trades
@@ -971,19 +1031,9 @@ class SpacesPanel:
                 dragged.ids
             )
 
-        def accepts_copy(dragged: Dragged) -> bool:
-            if self._paste_dialog is None:
-                return False
-            if dragged.kind == "trade":
-                # Anywhere but into itself or a trade below it.
-                return trade is None or all(
-                    (copied := _find_node(trades, ident)) is not None
-                    and _find_node([copied], trade.id) is None
-                    for ident in dragged.ids
-                )
-            return dragged.kind == "device" and trade is not None
-
-        drop = drop_target(accepts, accepts_copy)
+        drop = drop_target(
+            accepts, lambda dragged: self._trade_copy_target(trade, dragged) is not None
+        )
         if drop is None:
             return
         if drop.copy:
@@ -1075,6 +1125,8 @@ class SpacesPanel:
                 chosen = render_move_menu(targets, space_id)
                 if chosen is not None:
                     self._on_move_function(function.id, chosen[0])
+            if self._paste_dialog is not None:
+                render_copy_item(Dragged("function", (function.id,)))
             if (
                 self._on_remove_function is not None
                 and imgui.menu_item(S.SPACES_FN_DELETE, "", False)[0]
