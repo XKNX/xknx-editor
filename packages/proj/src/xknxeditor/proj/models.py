@@ -311,8 +311,10 @@ class Device(_SourcePuid, Base):
     __tablename__ = "devices"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    segment_id: Mapped[int] = mapped_column(
-        ForeignKey("segments.id"), nullable=False, index=True
+    # None for a device on no line (unassigned, "Unlink" in the topology): it has no individual
+    # address then.
+    segment_id: Mapped[int | None] = mapped_column(
+        ForeignKey("segments.id"), nullable=True, index=True
     )
     address: Mapped[int | None] = mapped_column(Integer)
     name: Mapped[str] = mapped_column(Text, nullable=False, default="")
@@ -386,7 +388,7 @@ class Device(_SourcePuid, Base):
         Boolean, nullable=False, default=False
     )
 
-    segment: Mapped["Segment"] = relationship(back_populates="devices")
+    segment: Mapped["Segment | None"] = relationship(back_populates="devices")
     space: Mapped["Space | None"] = relationship(back_populates="devices")
     module_instances: Mapped[list["ModuleInstance"]] = relationship(
         back_populates="device", cascade="all, delete-orphan"

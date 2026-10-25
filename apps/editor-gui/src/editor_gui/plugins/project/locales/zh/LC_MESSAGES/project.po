@@ -2844,3 +2844,9 @@ msgstr "删除此行"
 
 msgid "Generate Addresses"
 msgstr "生成地址"
+
+msgid "Unlink device"
+msgstr "取消设备链接"
+
+msgid "The device is on no line: put it on a line first."
+msgstr "设备不在任何线路上：请先将其放到一条线路上。"

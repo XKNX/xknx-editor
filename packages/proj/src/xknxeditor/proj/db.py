@@ -82,7 +82,38 @@ def ensure_sqlite_writable(path: Path) -> None:
 # Bump when adding a non-additive migration below. Additive column adds are handled generically and
 # do not require a bump. Stamped into the file's ``PRAGMA user_version`` so future migrations can
 # branch on the version a file was last written with.
-SCHEMA_VERSION = 4
+SCHEMA_VERSION = 5
+
+
+def _devices_off_lines(conn: Any) -> bool:
+    """Version 5: a device may be on no line (unassigned), so ``devices.segment_id`` loses its
+    NOT NULL. SQLite cannot drop a NOT NULL with ALTER TABLE; its documented way for removing
+    one is editing the table's stored ``CREATE TABLE`` text (``writable_schema``), which leaves
+    every row as it is. Returns whether it was changed."""
+    sql = conn.execute(
+        text("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'devices'")
+    ).scalar()
+    if not isinstance(sql, str):
+        return False
+    lines = sql.split("\n")
+    changed = False
+    for index, line in enumerate(lines):
+        if line.strip().startswith("segment_id ") and "NOT NULL" in line:
+            lines[index] = line.replace(" NOT NULL", "")
+            changed = True
+    if not changed:
+        return False
+    version = conn.execute(text("PRAGMA schema_version")).scalar()
+    conn.execute(text("PRAGMA writable_schema = ON"))
+    conn.execute(
+        text(
+            "UPDATE sqlite_master SET sql = :sql WHERE type = 'table' AND name = 'devices'"
+        ),
+        {"sql": "\n".join(lines)},
+    )
+    conn.execute(text(f"PRAGMA schema_version = {int(version or 0) + 1}"))
+    conn.execute(text("PRAGMA writable_schema = OFF"))
+    return True
 
 
 def _link_space_lines(conn: Any) -> int:
@@ -327,6 +358,8 @@ def _migrate(engine: Engine) -> None:
             linked = _link_space_lines(conn)
             if linked:
                 logger.info("linked the current line of %d spaces", linked)
+        if (current or 0) < 5 and "devices" in tables and _devices_off_lines(conn):
+            logger.info("devices may be on no line now")
         if added or current != SCHEMA_VERSION:
             conn.execute(text(f"PRAGMA user_version = {SCHEMA_VERSION}"))
             logger.debug(

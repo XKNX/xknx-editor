@@ -468,7 +468,8 @@ class SetSegmentMedium(Event):
 class AddDevice(Event):
     event_type: ClassVar[str] = "AddDevice"
 
-    segment_id: int
+    # None for a device on no line.
+    segment_id: int | None
     address: int | None
     name: str
     product_ref_id: str
@@ -3128,27 +3129,31 @@ class SetCompletionStatus(Event):
 @_register
 @dataclass
 class MoveDevice(Event):
-    """Relocate a device to a different segment and/or set a new individual-address octet."""
+    """Relocate a device to a different segment and/or set a new individual-address octet;
+    ``segment_id`` None takes it off every line (unassigned)."""
 
     event_type: ClassVar[str] = "MoveDevice"
 
     device_id: int
-    segment_id: int
+    segment_id: int | None
     address: int | None
     old_segment_id: int | None = None
     old_address: int | None = None
+    # Whether apply recorded the old place (the old segment may be None: on no line).
+    captured: bool = False
 
     def apply(self, session: Session) -> None:
         device = session.get(Device, self.device_id)
         if device is not None:
             self.old_segment_id = device.segment_id
             self.old_address = device.address
+            self.captured = True
             device.segment_id = self.segment_id
             device.address = self.address
 
     def revert(self, session: Session) -> None:
         device = session.get(Device, self.device_id)
-        if device is not None and self.old_segment_id is not None:
+        if device is not None and (self.captured or self.old_segment_id is not None):
             device.segment_id = self.old_segment_id
             device.address = self.old_address
 
@@ -3159,6 +3164,7 @@ class MoveDevice(Event):
             "address": self.address,
             "old_segment_id": self.old_segment_id,
             "old_address": self.old_address,
+            "captured": self.captured,
         }
 
     @classmethod

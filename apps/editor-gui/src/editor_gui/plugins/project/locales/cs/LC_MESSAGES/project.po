@@ -2844,3 +2844,9 @@ msgstr "Odebrat tento řádek"
 
 msgid "Generate Addresses"
 msgstr "Generovat adresy"
+
+msgid "Unlink device"
+msgstr "Odpojit zařízení"
+
+msgid "The device is on no line: put it on a line first."
+msgstr "Zařízení není na žádné linii: nejprve ho umístěte na linii."

@@ -2882,3 +2882,9 @@ msgstr "Deze rij verwijderen"
 
 msgid "Generate Addresses"
 msgstr "Adressen genereren"
+
+msgid "Unlink device"
+msgstr "Apparaat ontkoppelen"
+
+msgid "The device is on no line: put it on a line first."
+msgstr "Het apparaat staat op geen enkele lijn: zet het eerst op een lijn."

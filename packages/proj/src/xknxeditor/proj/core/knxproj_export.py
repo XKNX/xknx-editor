@@ -38,8 +38,8 @@ round-trip merges or drops:
   xknxproject flattens every ``<Installation>/Topology`` into one areas list, discarding the
   installation boundary, so true per-installation separation is unrecoverable. Import merges the
   topology by address (no duplicate rows); a line that would collide is dropped and counted.
-- **Unassigned devices** (``<Topology>/<UnassignedDevices>``): every device is modelled under a
-  Segment → Line → Area. A device not placed in any line has no home in the model and is dropped.
+- **Unassigned devices** (``<Topology>/<UnassignedDevices>``): the devices the editor has on no
+  line are written there; those of an imported project are kept verbatim (not editable).
 - **IP interface/routing device config** and **``Function`` ``@Number``/``@Implements``**: rarely set
   outside specialised projects; not modelled.
 - **Multi-segment lines in a project/14+20 export**: import now keeps one
@@ -1162,9 +1162,25 @@ def _local_id(source_id: str) -> str:
     return source_id
 
 
+def _loose_devices(installation: Installation) -> list[Device]:
+    """The devices on no line (unassigned in the editor), by id. A project has one installation,
+    whose devices they are."""
+    session = object_session(installation)
+    if session is None:
+        return []
+    return (
+        session.query(Device)
+        .filter(Device.segment_id.is_(None))
+        .order_by(Device.id)
+        .all()
+    )
+
+
 def _reserve_source_identities(ids: _ExportIds, installation: Installation) -> None:
     """Reserve the imported ids and Puids of ``installation``'s elements (see :class:`_ExportIds`),
     including those of the unassigned devices, which are written verbatim."""
+    for device in _loose_devices(installation):
+        ids.reserve("DI", device, device.source_id, device.puid)
     for raw in installation.unassigned_devices_xml or []:
         try:
             element = ET.fromstring(raw)
@@ -1217,6 +1233,8 @@ def _assign_ids(
                     di_id[device.id] = (
                         f"{pid}-0_{ids.id('DI', device, device.source_id)}"
                     )
+    for device in _loose_devices(installation):
+        di_id[device.id] = f"{pid}-0_{ids.id('DI', device, device.source_id)}"
     return ga_link_id, di_id
 
 
@@ -1264,6 +1282,9 @@ class _SourceRefs:
                     for device in segment.devices:
                         if device.source_id and device.id in di_id:
                             refs.device[device.source_id] = di_id[device.id]
+        for device in _loose_devices(installation):
+            if device.source_id and device.id in di_id:
+                refs.device[device.source_id] = di_id[device.id]
         for unassigned in _unassigned_device_ids(installation):
             refs.device.setdefault(unassigned, unassigned)
         return refs
@@ -1808,7 +1829,7 @@ class _Writer:
 
         # <UnassignedDevices> (schema order: last child of <Topology>, after all <Area>). Devices not
         # placed on a line, captured verbatim on import and re-grafted here so they round-trip.
-        self._build_unassigned_devices(topo, installation)
+        self._build_unassigned_devices(topo, installation, di_id, ga_link_id)
 
         self._build_locations(inst, installation, pid, di_id, ga_link_id)
 
@@ -2267,23 +2288,31 @@ class _Writer:
         return el
 
     def _build_unassigned_devices(
-        self, topo: ET.Element, installation: Installation
+        self,
+        topo: ET.Element,
+        installation: Installation,
+        di_id: dict[int, str],
+        ga_link_id: dict[int, str],
     ) -> None:
-        """Re-emit the installation's captured ``<UnassignedDevices>`` under ``topo`` (last child of
-        ``<Topology>``). Each stored string is a namespace-stripped ``<DeviceInstance>`` subtree,
-        re-grafted in the target namespace. Skipped when there are none.
+        """``<UnassignedDevices>`` under ``topo`` (last child of ``<Topology>``): the devices on no
+        line, then the captured ones of the import. Each stored string is a namespace-stripped
+        ``<DeviceInstance>`` subtree, re-grafted in the target namespace. Skipped when there are
+        none.
 
         The captured subtrees carry project/20+ elements (e.g. GroupObjectTree, IPConfig), so they
         are only emitted for schemas that define them; for project/14 the container is skipped rather
         than writing XML the importer would reject."""
-        stored = installation.unassigned_devices_xml
-        if not stored:
+        stored = installation.unassigned_devices_xml or []
+        loose = _loose_devices(installation)
+        if not stored and not loose:
             return
         schema = self._ns.rsplit("/", 1)[-1]
         if not (schema.isdigit() and int(schema) >= 20):
             logger.debug("schema %s has no UnassignedDevices; skipping", schema)
             return
         container = self._el(topo, "UnassignedDevices")
+        for device in loose:
+            self._build_device(container, device, di_id[device.id], ga_link_id)
         for raw in stored:
             try:
                 src = ET.fromstring(raw)

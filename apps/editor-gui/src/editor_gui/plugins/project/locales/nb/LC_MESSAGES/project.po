@@ -2844,3 +2844,9 @@ msgstr "Fjern denne raden"
 
 msgid "Generate Addresses"
 msgstr "Generer adresser"
+
+msgid "Unlink device"
+msgstr "Fjern link til enhet"
+
+msgid "The device is on no line: put it on a line first."
+msgstr "Enheten er ikke på noen linje: plasser den på en linje først."

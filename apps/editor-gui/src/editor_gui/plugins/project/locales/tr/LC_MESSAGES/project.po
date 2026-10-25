@@ -2844,3 +2844,9 @@ msgstr "Bu satırı kaldır"
 
 msgid "Generate Addresses"
 msgstr "Adresleri Oluştur"
+
+msgid "Unlink device"
+msgstr "Cihazın ilişkisini kaldır"
+
+msgid "The device is on no line: put it on a line first."
+msgstr "Cihaz hiçbir hatta değil: önce bir hatta yerleştirin."

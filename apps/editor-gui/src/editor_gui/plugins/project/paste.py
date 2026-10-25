@@ -55,10 +55,10 @@ PasteKind = Literal[
 ]
 TargetKind = Literal["space", "trade", "segment", "line", "area", "group_range"]
 
-# Makes a device like ``source`` in the segment, with the device number (None: none), in the
-# building part; returns its id, None when its application is not known. Raises ``MediumError``
-# when the segment's medium does not suit it.
-CopyDevice = Callable[[Device, int, int | None, int | None], int | None]
+# Makes a device like ``source`` in the segment (None: on no line), with the device number (None:
+# none), in the building part; returns its id, None when its application is not known. Raises
+# ``MediumError`` when the segment's medium does not suit it.
+CopyDevice = Callable[[Device, int | None, int | None, int | None], int | None]
 
 # The fields a copy takes over from its source, per kind.
 _DEVICE_FIELDS = (
@@ -456,20 +456,13 @@ class Paster:
         space_id: int | None,
         links: _Links,
     ) -> int | None:
-        """A copy of ``source`` in the segment with the number (none: in the source's own
-        segment without an individual address, also when the segment's medium does not suit
-        it), with its fields, group objects and links."""
+        """A copy of ``source`` in the segment with the number (segment None: on no line, also
+        when the segment's medium does not suit it), with its fields, group objects and
+        links."""
         try:
-            new_id = (
-                self._copy_device(source, segment_id, number, space_id)
-                if segment_id is not None
-                else None
-            )
+            new_id = self._copy_device(source, segment_id, number, space_id)
         except MediumError:
-            new_id = None
-            segment_id = None
-        if segment_id is None:
-            new_id = self._copy_device(source, source.segment_id, None, space_id)
+            new_id = self._copy_device(source, None, None, space_id)
         if new_id is None:
             return None
         copy = self.row(Device, new_id)
@@ -951,7 +944,7 @@ class _Links:
 
 def _device_order(device: Device) -> tuple[bool, int, int, int, int]:
     """Devices by individual address (those without one last, by id)."""
-    if device.address is None:
+    if device.address is None or device.segment is None:
         return (True, 0, 0, 0, device.id)
     line = device.segment.line
     return (False, line.area.address, line.address, device.address, device.id)

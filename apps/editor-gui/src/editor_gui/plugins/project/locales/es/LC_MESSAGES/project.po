@@ -2844,3 +2844,9 @@ msgstr "Quitar esta fila"
 
 msgid "Generate Addresses"
 msgstr "Generar Direcciones"
+
+msgid "Unlink device"
+msgstr "Desenlazar dispositivo"
+
+msgid "The device is on no line: put it on a line first."
+msgstr "El dispositivo no está en ninguna línea: colóquelo primero en una línea."

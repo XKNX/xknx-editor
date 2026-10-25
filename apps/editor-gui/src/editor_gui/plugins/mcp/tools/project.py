@@ -1583,12 +1583,14 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         supply, when the product gives none; "-" when it needs no estimate on its line). additional_addresses lists the device's additional
         individual addresses (the tunnelling addresses of an IP interface) as {index, address, name,
         description}; index is 1-based (the AddressIndex of a tunnelling interface), address an
-        "a.l.d" string or null for an entry without one."""
+        "a.l.d" string or null for an entry without one. segment_id is the segment the device is
+        on (see project_topology), null for a device on no line (project_unlink_device)."""
 
         def _read() -> dict[str, Any]:
             device = _require_device(node_id, device_address)
             info = project.get_device_info(device.node_id)
             data = _device_dict(device)
+            data["segment_id"] = project.device_segments().get(device.node_id)
             if info is not None:
                 data |= {
                     "product_ref_id": info.product_ref_id,
@@ -3038,6 +3040,28 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             return _device_dict(_require_device(device.node_id))
 
         return ctx.run_locked(_move)
+
+    @tool("write")
+    def project_unlink_device(
+        node_id: int | None = None, device_address: str | None = None
+    ) -> dict[str, Any]:
+        """Take a device off its line, as "Unlink" in the topology does: it is on no line and has
+        no individual address then (its additional addresses lose theirs too); the topology lists
+        it under "Unassigned". Identify it by ``node_id`` OR ``device_address`` (an individual
+        address like "1.0.30"). A device already on no line stays as it is. To put it on a line
+        again, use project_move_device_to_segment or project_set_individual_address. Undoable
+        with project_undo (one step). Returns {node_id, name, individual_address, description,
+        segment_id}."""
+        require_project(ctx)
+
+        def _unlink() -> dict[str, Any]:
+            device = _require_device(node_id, device_address)
+            project.unlink_device(device.node_id)
+            data = _device_dict(_require_device(device.node_id))
+            data["segment_id"] = project.device_segments().get(device.node_id)
+            return data
+
+        return ctx.run_locked(_unlink)
 
     @tool("write")
     def project_move_line(line_id: int, area_id: int) -> dict[str, Any]:

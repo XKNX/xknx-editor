@@ -2844,3 +2844,9 @@ msgstr "Αφαίρεση αυτής της γραμμής"
 
 msgid "Generate Addresses"
 msgstr "Δημιουργία Διευθύνσεων"
+
+msgid "Unlink device"
+msgstr "Αποσύνδεση συσκευής"
+
+msgid "The device is on no line: put it on a line first."
+msgstr "Η συσκευή δεν βρίσκεται σε καμία γραμμή: τοποθετήστε την πρώτα σε μια γραμμή."

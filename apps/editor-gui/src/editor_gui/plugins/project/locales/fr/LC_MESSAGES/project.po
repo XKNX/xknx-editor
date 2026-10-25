@@ -2844,3 +2844,9 @@ msgstr "Supprimer cette ligne"
 
 msgid "Generate Addresses"
 msgstr "Générer les adresses"
+
+msgid "Unlink device"
+msgstr "Délier le participant"
+
+msgid "The device is on no line: put it on a line first."
+msgstr "Le participant n'est sur aucune ligne : placez-le d'abord sur une ligne."

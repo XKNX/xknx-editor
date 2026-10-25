@@ -466,6 +466,8 @@ def additional_address_error_text(exc: AdditionalAddressError) -> str:
         return S.ADDITIONAL_ADDRESS_OTHER_LINE.format(line=exc.address)
     if exc.kind == AdditionalAddressError.IN_USE:
         return S.ADDITIONAL_ADDRESS_IN_USE.format(address=exc.address)
+    if exc.kind == AdditionalAddressError.NO_LINE:
+        return S.ADDITIONAL_ADDRESS_NO_LINE
     return S.ADDITIONAL_ADDRESS_INVALID
 
 
@@ -526,7 +528,11 @@ _HISTORY_LABELS: dict[str, Callable[[dict[str, Any]], str]] = {
     "SetDeviceName": lambda d: S.HISTORY_EV_RENAME_DEVICE.format(
         name=_quoted(d, "name")
     ),
-    "MoveDevice": lambda d: S.HISTORY_EV_MOVE_DEVICE,
+    "MoveDevice": lambda d: (
+        S.HISTORY_EV_UNLINK_DEVICE
+        if d.get("segment_id") is None
+        else S.HISTORY_EV_MOVE_DEVICE
+    ),
     "SetDeviceAdditionalAddresses": lambda d: str(
         d.get("label") or S.HISTORY_ADDITIONAL_ADDRESSES
     ),
@@ -3691,6 +3697,7 @@ class ProjectService:
         )
         if (
             row is None
+            or row.segment is None
             or not row.hardware2program_ref_id
             or not self._catalog.hardware_is_ip_enabled(row.hardware2program_ref_id)
         ):
@@ -3733,6 +3740,7 @@ class ProjectService:
         )
         if (
             row is None
+            or row.segment is None
             or not row.hardware2program_ref_id
             or not self._catalog.hardware_is_ip_enabled(row.hardware2program_ref_id)
         ):
@@ -4337,6 +4345,7 @@ class ProjectService:
         with_additional_addresses: bool = True,
         space_id: int | None = None,
         no_address: bool = False,
+        unassigned: bool = False,
     ) -> int | None:
         """Add a device. A device that supports KNX Data Secure is commissioned securely by
         default when the project has a password (``secure_commissioning`` ``None``); ``True``
@@ -4346,8 +4355,9 @@ class ProjectService:
         line, unless ``with_additional_addresses`` is off; when the line has too few free, it is
         added without them. A device added to the space ``space_id`` goes on the space's Current
         Line when no ``segment_id`` is given, in the same undo step. Without ``address`` it gets
-        the next free one of the line, none with ``no_address``. Raises ``MediumError`` when
-        the device's hardware does not support the medium of the segment."""
+        the next free one of the line, none with ``no_address``; ``unassigned`` adds it on no
+        line. Raises ``MediumError`` when the device's hardware does not support the medium of
+        the segment."""
         if self._pid is None:
             return None
         if not app.program.is_secure_enabled:
@@ -4355,16 +4365,19 @@ class ProjectService:
         elif secure_commissioning is None:
             secure_commissioning = self.project_password is not None
         product = product or DeviceProduct()
-        if segment_id is None and space_id is not None:
-            segment_id = self._svc.current_line_segment(self._pid, space_id)
-        if segment_id is None:
-            segment_id = self._default_device_segment_id()
-        self.check_device_medium(
-            hardware2program_ref_id,
-            segment_id,
-            name or product.product_name or app.name,
-        )
-        if address is None and not no_address:
+        if unassigned:
+            segment_id, address, no_address = None, None, True
+        else:
+            if segment_id is None and space_id is not None:
+                segment_id = self._svc.current_line_segment(self._pid, space_id)
+            if segment_id is None:
+                segment_id = self._default_device_segment_id()
+            self.check_device_medium(
+                hardware2program_ref_id,
+                segment_id,
+                name or product.product_name or app.name,
+            )
+        if address is None and not no_address and segment_id is not None:
             # Assign the next free individual address on the target line (standard behaviour), instead of
             # leaving the device address-less. Editable afterwards in Configure. If the line is full,
             # fall back to no address rather than failing the add.
@@ -5546,6 +5559,14 @@ class ProjectService:
             device_label(device) if device is not None else address,
             check_couplers=False,
         )
+
+    def unlink_device(self, node_id: int) -> None:
+        """Take a device off its line ("Unlink"): it is on no line then, without an individual
+        address. Undoable; nothing for a device on no line."""
+        if self._pid is None:
+            return
+        self._svc.unlink_device(self._pid, node_id, couplers=self._line_couplers())
+        self._bump()
 
     def move_device_to_segment(self, node_id: int, segment_id: int) -> None:
         """Move a device to a segment: within its line it keeps its address, into another line
@@ -6822,12 +6843,13 @@ class ProjectService:
     def _paste_device(
         self,
         source: "DeviceRow",
-        segment_id: int,
+        segment_id: int | None,
         number: int | None,
         space_id: int | None,
     ) -> int | None:
         """A device like ``source`` (its product, application and parameter values) in the
-        segment with the device number (None: none), in the building part ``space_id``."""
+        segment (None: on no line) with the device number (None: none), in the building part
+        ``space_id``."""
         if self._pid is None:
             return None
         app = self._resolve_app(
@@ -6844,6 +6866,7 @@ class ProjectService:
             segment_id=segment_id,
             address=number,
             no_address=number is None,
+            unassigned=segment_id is None,
             parameters=[(p.ref_id, p.value) for p in source.parameters],
             product=DeviceProduct(
                 product_name=source.product_name,

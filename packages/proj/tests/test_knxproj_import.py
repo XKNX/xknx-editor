@@ -841,7 +841,7 @@ def test_devices_without_address_are_read_with_their_configuration() -> None:
 
     topology = ET.fromstring(_CONFIGURED_WITHOUT_ADDRESS)
     found: set[str] = set()
-    with knxproj_import._read_devices_without_address(found):
+    with knxproj_import._read_devices_without_address(found, set()):
         (area,) = _TopologyLoader(cast("Any", SimpleNamespace(schema_version=23))).load(
             topology
         )
@@ -884,6 +884,38 @@ def test_parse_falls_back_without_them_when_they_fail(
                 raise ValueError("application of the unaddressed device")
 
     monkeypatch.setattr(knxproj_import, "XMLParser", _Parser)
-    _parser, found = knxproj_import._parse_project(object(), None)
+    _parser, read = knxproj_import._parse_project(object(), None)
     assert attempts == [0, 1]
-    assert found == set()
+    assert read.found == set()
+
+
+def test_devices_on_no_line_are_read_with_their_configuration() -> None:
+    from xknxproject.loader.project_loader import (
+        _TopologyLoader,  # pyright: ignore[reportPrivateUsage]
+    )
+
+    topology = ET.fromstring(
+        _CONFIGURED_WITHOUT_ADDRESS.replace(
+            "</Line></Area></Topology>",
+            "</Line></Area><UnassignedDevices>"
+            '<DeviceInstance Id="P-1_DI-9" ProductRefId="M-1_H-1_P-1" '
+            'Hardware2ProgramRefId="M-1_H-1_HP-1">'
+            '<ParameterInstanceRefs><ParameterInstanceRef RefId="P-1_R-2" Value="3" />'
+            "</ParameterInstanceRefs></DeviceInstance>"
+            "</UnassignedDevices></Topology>",
+        )
+    )
+    found: set[str] = set()
+    unassigned: set[str] = set()
+    with knxproj_import._read_devices_without_address(found, unassigned):
+        areas = _TopologyLoader(cast("Any", SimpleNamespace(schema_version=23))).load(
+            topology
+        )
+    # Read on a placeholder line of a placeholder area, which the import leaves out.
+    assert unassigned == {"P-1_DI-9"}
+    assert found == {"P-1_DI-3", "P-1_DI-9"}
+    placeholder = next(
+        a for a in areas if a.address == knxproj_import._PLACEHOLDER_AREA
+    )
+    (device,) = placeholder.lines[0].devices
+    assert device.parameter_instance_refs["P-1_R-2"].value == "3"

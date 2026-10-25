@@ -264,3 +264,39 @@ async def test_devices_move_onto_segments_of_their_medium(tmp_path: Path) -> Non
             node_id=device["node_id"],
         )
         assert back["individual_address"] == address
+
+
+@pytest.mark.skipif(not _FIXTURE.exists(), reason="knxprod fixture missing")
+async def test_a_device_is_unlinked_from_its_line_and_put_back(tmp_path: Path) -> None:
+    mcp, _project_service = _build(tmp_path)
+    async with Client(mcp) as client:
+        await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
+        await _data(client, "catalog_import_knxprod", path=str(_FIXTURE))
+        product = (await _data(client, "catalog_list_products"))["items"][0]
+        device = await _data(
+            client, "project_add_device", product_ref_id=product["product_ref_id"]
+        )
+        address = device["individual_address"]
+        line = await _line(client, "1.1")
+        read = await _data(client, "project_get_device", device_address=address)
+        assert read["segment_id"] == line["main_segment_id"]
+
+        unlinked = await _data(client, "project_unlink_device", device_address=address)
+        assert (unlinked["individual_address"], unlinked["segment_id"]) == (None, None)
+        read = await _data(client, "project_get_device", node_id=device["node_id"])
+        assert (read["individual_address"], read["segment_id"]) == (None, None)
+        # Unlinking again changes nothing.
+        again = await _data(client, "project_unlink_device", node_id=device["node_id"])
+        assert again == unlinked
+
+        await _data(client, "project_undo")
+        read = await _data(client, "project_get_device", node_id=device["node_id"])
+        assert read["individual_address"] == address
+        await _data(client, "project_redo")
+        back = await _data(
+            client,
+            "project_move_device_to_segment",
+            segment_id=line["main_segment_id"],
+            node_id=device["node_id"],
+        )
+        assert back["individual_address"].startswith("1.1.")

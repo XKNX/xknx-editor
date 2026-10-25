@@ -4125,6 +4125,10 @@ class ProjectStrings:
         return _("The individual address {address} is already used in this line.")
 
     @property
+    def ADDITIONAL_ADDRESS_NO_LINE(self) -> str:
+        return _("The device is on no line: put it on a line first.")
+
+    @property
     def HISTORY_ADDITIONAL_ADDRESS_CHANGED(self) -> str:
         return _("Changed additional address of device '{0}' from '{1}' to '{2}'.")
 
@@ -4243,6 +4247,15 @@ class ProjectStrings:
     @property
     def HISTORY_EV_MOVE_DEVICE(self) -> str:
         return _("Move device")
+
+    @property
+    def HISTORY_EV_UNLINK_DEVICE(self) -> str:
+        return _("Unlink device")
+
+    @property
+    def CONTEXT_UNLINK_LINE(self) -> str:
+        # Takes a device off its line in the topology.
+        return _("Unlink")
 
     @property
     def HISTORY_EV_SET_FLAG(self) -> str:

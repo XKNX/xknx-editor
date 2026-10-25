@@ -45,6 +45,7 @@ from xknxproject.models.knxproject import DPTType
 from xknxproject.models.models import (
     ComObjectInstanceRef,
     DeviceInstance,
+    XMLArea,
     XMLGroupRange,
     XMLLine,
     XMLSpace,
@@ -497,8 +498,14 @@ class _RawExtras:
         # DeviceInstance @Id -> the device's <IPConfig> attributes (IP interface/router config).
         self.ip_config: dict[str, dict[str, str]] = {}
         # <Topology>/<UnassignedDevices> devices as namespace-stripped <DeviceInstance> XML strings,
-        # in document order (empty when the source had no such container).
+        # in document order (empty when the source had no such container); only those xknxproject
+        # could not read once parsing is done (see _keep_unread_unassigned).
         self.unassigned_devices: list[str] = []
+        # The DeviceInstance @Ids of the devices on no line xknxproject read: devices on no line.
+        self.unassigned_ids: set[str] = set()
+        # DeviceInstance @Id -> the placeholder address a device without one was read with (the
+        # building parts name their devices by it).
+        self.placeholder_addresses: dict[str, str] = {}
         # The project folder's other files as a ZIP blob (see _capture_project_files).
         self.project_files: bytes | None = None
         # The <Installation> @Name (xknxproject surfaces only the project name, not the installation's).
@@ -612,19 +619,26 @@ class _RawExtras:
 # Placeholder addresses of the devices without one while xknxproject reads them, far outside the
 # range of real device addresses.
 _PLACEHOLDER_ADDRESS = 1_000_000
+# The placeholder area the devices on no line are read in (removed again after reading).
+_PLACEHOLDER_AREA = 1_000_000
 _placeholder_lock = threading.Lock()
 
 
 @contextmanager
-def _read_devices_without_address(found: set[str]) -> Generator[None]:
+def _read_devices_without_address(
+    found: set[str], unassigned: set[str]
+) -> Generator[None]:
     """Let xknxproject read the devices without an individual address like the others (it skips
     them, with their parameters, group objects and module instances): each one has a placeholder
-    address while it is read, and its id is added to ``found``."""
+    address while it is read, and its id is added to ``found``. The devices on no line
+    (``<UnassignedDevices>``) are read so too, on a placeholder line of a placeholder area
+    (:data:`_PLACEHOLDER_AREA`); their ids go to ``unassigned`` as well."""
     from xknxproject.loader.project_loader import (
         _TopologyLoader,  # pyright: ignore[reportPrivateUsage]
     )
 
     original = _TopologyLoader._create_device  # pyright: ignore[reportPrivateUsage]
+    original_load = _TopologyLoader.load
 
     def create(
         self: _TopologyLoader, device_element: ET.Element, line: XMLLine
@@ -640,24 +654,59 @@ def _read_devices_without_address(found: set[str]) -> Generator[None]:
             found.add(device.identifier)
         return device
 
+    def load(self: _TopologyLoader, topology_element: ET.Element) -> list[XMLArea]:
+        areas = original_load(self, topology_element)
+        container = topology_element.find("{*}UnassignedDevices")
+        if container is None:
+            return areas
+        area = XMLArea(_PLACEHOLDER_AREA, "", None, [])
+        line = XMLLine(0, None, "", "", [], area)
+        area.lines.append(line)
+        for element in container.findall("{*}DeviceInstance"):
+            if element.get("Address") is not None:
+                continue
+            device = create(self, element, line)
+            if device is not None:
+                line.devices.append(device)
+                unassigned.add(device.identifier)
+        if line.devices:
+            areas.append(area)
+        return areas
+
     with _placeholder_lock:
         _TopologyLoader._create_device = create  # pyright: ignore[reportPrivateUsage]
+        _TopologyLoader.load = load
         try:
             yield
         finally:
             _TopologyLoader._create_device = original  # pyright: ignore[reportPrivateUsage]
+            _TopologyLoader.load = original_load
 
 
-def _parse_project(contents: Any, language: str | None) -> tuple[XMLParser, set[str]]:
-    """Parse with xknxproject, the devices without an individual address included (their ids are
-    returned); when that fails, without them, which then come from the raw XML only."""
-    found: set[str] = set()
+@dataclass
+class _WithoutAddress:
+    """What :func:`_parse_project` read of the devices without an individual address: their ids
+    (``found``), those of them on no line (``unassigned``) and the placeholder address each was
+    read with, by id (the building parts name their devices by it)."""
+
+    found: set[str] = field(default_factory=set[str])
+    unassigned: set[str] = field(default_factory=set[str])
+    placeholders: dict[str, str] = field(default_factory=dict[str, str])
+
+
+def _parse_project(
+    contents: Any, language: str | None
+) -> tuple[XMLParser, _WithoutAddress]:
+    """Parse with xknxproject, the devices without an individual address and those on no line
+    included (see :class:`_WithoutAddress`); when that fails, without them, which then come from
+    the raw XML only."""
+    read = _WithoutAddress()
     parser = XMLParser(contents)
     try:
-        with _read_devices_without_address(found):
+        with _read_devices_without_address(read.found, read.unassigned):
             parser.parse(language)
     except Exception as e:
-        if not found:
+        if not read.found:
             raise
         logger.warning(
             "could not read the devices without individual address, imported without their "
@@ -667,13 +716,15 @@ def _parse_project(contents: Any, language: str | None) -> tuple[XMLParser, set[
         )
         parser = XMLParser(contents)
         parser.parse(language)
-        return parser, set()
+        return parser, _WithoutAddress()
+    parser.areas = [a for a in parser.areas if a.address != _PLACEHOLDER_AREA]
     for device in parser.devices:
-        if device.identifier in found:
+        if device.identifier in read.found:
+            read.placeholders[device.identifier] = device.individual_address
             unaddressed = cast("Any", device)
             unaddressed.address = None
             unaddressed.individual_address = ""
-    return parser, found
+    return parser, read
 
 
 def _parse(
@@ -681,7 +732,8 @@ def _parse(
 ) -> tuple[XMLParser, _RawExtras]:
     with extract(Path(source), password) as contents:
         # populates parser.* ; the returned dict drops the ref ids we need
-        parser, read_without_address = _parse_project(contents, language)
+        parser, without_address = _parse_project(contents, language)
+        read_without_address = without_address.found
         # xknxproject exposes neither per-device <BinaryData> (where DCAs persist state, e.g. the MDT
         # DALI "DaliGC16-Backup-Store") nor the <ModuleInstances> Arguments/RepeatIndex needed to
         # re-emit module-based devices on export, so read both from the raw installation XML while the
@@ -718,6 +770,11 @@ def _parse(
                 lambda: _name_addressless_devices(contents, parser, extras),
                 None,
             )
+        # The devices on no line xknxproject read are devices on no line now; only those it could
+        # not read stay captured verbatim.
+        extras.unassigned_ids = without_address.unassigned
+        extras.placeholder_addresses = without_address.placeholders
+        _keep_unread_unassigned(extras)
     logger.info(
         "parsed knxproj '%s': %d devices, %d group addresses, %d w/ binary data, %d w/ modules, %d traces",
         parser.project_info.name,
@@ -1250,6 +1307,23 @@ def _read_named_subtree(device: ET.Element, localname: str) -> str:
     return ""
 
 
+def _keep_unread_unassigned(extras: _RawExtras) -> None:
+    """Keep only the devices on no line xknxproject could not read as captured XML (the others
+    are imported as devices on no line), and count only those in the import notes."""
+    kept: list[str] = []
+    for raw in extras.unassigned_devices:
+        try:
+            identifier = ET.fromstring(raw).get("Id", "")
+        except ET.ParseError:
+            identifier = ""
+        if identifier not in extras.unassigned_ids:
+            kept.append(raw)
+    extras.unassigned_devices = kept
+    extras.losses = [
+        loss for loss in extras.losses if loss.code != UNASSIGNED_DEVICES
+    ] + ([ImportLoss(UNASSIGNED_DEVICES, len(kept), detail="")] if kept else [])
+
+
 def _read_unassigned_devices(root: ET.Element) -> list[str]:
     """The ``<Topology>/<UnassignedDevices>`` devices as namespace-stripped ``<DeviceInstance>`` XML
     strings, in document order (empty when there is no such container).
@@ -1630,7 +1704,20 @@ def _build(
     state = _ImportState(extras)
     logger.debug("build: topology (%d areas)", len(parser.areas))
     _build_topology(installation, parser, state)
-    # <UnassignedDevices> devices (not placed on any line): kept verbatim as opaque provenance.
+    # <UnassignedDevices>: the devices xknxproject read are devices on no line; any it could not
+    # read stay verbatim as opaque provenance.
+    for xdevice in parser.devices:
+        if xdevice.identifier in extras.unassigned_ids:
+            try:
+                session.add(_build_device(xdevice, state))
+            except Exception as e:  # a malformed device must not abort the import
+                state.skipped_devices += 1
+                logger.warning(
+                    "skipping malformed unassigned device %s: %s: %s",
+                    xdevice.identifier,
+                    type(e).__name__,
+                    e,
+                )
     installation.unassigned_devices_xml = extras.unassigned_devices or None
     areas = len(installation.areas)
     lines = sum(len(a.lines) for a in installation.areas)
@@ -1956,6 +2043,9 @@ def _build_device(
         ],
     )
     state.register_device(xdevice.individual_address, xdevice.identifier, device)
+    # A device read with a placeholder address is named by it in the building parts.
+    if placeholder := state.extras.placeholder_addresses.get(xdevice.identifier):
+        state.device_by_ia[placeholder] = device
     return device
 
 

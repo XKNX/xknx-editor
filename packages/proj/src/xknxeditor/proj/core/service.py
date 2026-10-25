@@ -390,11 +390,11 @@ class TradeInfo:
 
 @dataclass(frozen=True)
 class DevicePlacement:
-    """A device's segment and line, its device number (None for none) and its hardware program
-    (``hardware2program_ref_id``, None for none)."""
+    """A device's segment and line (both None on no line), its device number (None for none)
+    and its hardware program (``hardware2program_ref_id``, None for none)."""
 
-    segment_id: int
-    line_id: int
+    segment_id: int | None
+    line_id: int | None
     address: int | None
     hardware2program_ref_id: str | None
 
@@ -646,8 +646,9 @@ def _main_segment(line: Line) -> Segment:
 
 
 def _address_order(device: Device) -> tuple[int, int, int, int, int]:
-    """Numeric individual-address order; devices without an address come last by id."""
-    if device.address is None:
+    """Numeric individual-address order; devices without an address (or on no line) come last
+    by id."""
+    if device.address is None or device.segment is None:
         return (1, 0, 0, 0, device.id)
     line = device.segment.line
     return (0, line.area.address, line.address, device.address, device.id)
@@ -727,18 +728,29 @@ class AdditionalAddressError(ValueError):
     """An additional individual address that cannot be set or assigned. ``kind`` says why:
     :attr:`NOT_ENOUGH` (the line has too few free device numbers), :attr:`INVALID` (not a device
     number from 1 to 255), :attr:`OTHER_LINE` (outside the device's line, ``address`` is that
-    line ``a.l``) or :attr:`IN_USE` (a device or another additional address of the line has it,
-    ``address`` is the ``a.l.d`` concerned)."""
+    line ``a.l``), :attr:`IN_USE` (a device or another additional address of the line has it,
+    ``address`` is the ``a.l.d`` concerned) or :attr:`NO_LINE` (the device is on no line)."""
 
     NOT_ENOUGH = "not_enough"
     INVALID = "invalid"
     OTHER_LINE = "other_line"
     IN_USE = "in_use"
+    NO_LINE = "no_line"
 
     def __init__(self, kind: str, message: str, address: str = "") -> None:
         super().__init__(message)
         self.kind = kind
         self.address = address
+
+
+def _device_line(device: Device) -> Line:
+    """The line of the device; raises :class:`AdditionalAddressError` (``NO_LINE``) when it is
+    on none."""
+    if device.segment is None:
+        raise AdditionalAddressError(
+            AdditionalAddressError.NO_LINE, "The device is on no line."
+        )
+    return device.segment.line
 
 
 def _empty_additional_entry() -> dict[str, Any]:
@@ -965,14 +977,17 @@ class ProjectService:
     ) -> tuple[float | None, bool]:
         """A device's own bus current as its details show it (see
         :func:`.bus_load.shown_current`): its hardware's, else the estimate; None for neither.
-        Raises ``KeyError`` for an unknown device."""
+        A device on no line is estimated as on TP. Raises ``KeyError`` for an unknown device."""
         device = self._state(project_id).session.get(Device, device_id)
         if device is None:
             raise KeyError(f"No device with id {device_id}")
         segment = device.segment
-        estimate = needs_estimate(
-            hardware, segment.medium_type, _main_segment(segment.line).medium_type
-        )
+        if segment is None:
+            estimate = needs_estimate(hardware, MEDIUM_TP, MEDIUM_TP)
+        else:
+            estimate = needs_estimate(
+                hardware, segment.medium_type, _main_segment(segment.line).medium_type
+            )
         return shown_current(hardware, estimate=estimate)
 
     def add_segment(
@@ -1008,9 +1023,13 @@ class ProjectService:
         return event.segment_id
 
     def device_segments(self, project_id: str) -> dict[int, int]:
-        """Every device's segment: ``device id -> segment id``."""
+        """Every device's segment: ``device id -> segment id`` (not the devices on no line)."""
         session = self._state(project_id).session
-        return dict(session.query(Device.id, Device.segment_id).all())
+        return {
+            device_id: segment_id
+            for device_id, segment_id in session.query(Device.id, Device.segment_id)
+            if segment_id is not None
+        }
 
     def device_programs(self, project_id: str) -> dict[int, str]:
         """Every device's hardware program: ``device id -> hardware2program ref id`` (devices
@@ -1032,7 +1051,7 @@ class ProjectService:
             raise KeyError(f"No device with id {device_id}")
         return DevicePlacement(
             segment_id=device.segment_id,
-            line_id=device.segment.line_id,
+            line_id=device.segment.line_id if device.segment is not None else None,
             address=device.address,
             hardware2program_ref_id=device.hardware2program_ref_id,
         )
@@ -1162,7 +1181,7 @@ class ProjectService:
     def add_device(
         self,
         project_id: str,
-        segment_id: int,
+        segment_id: int | None,
         product_ref_id: str,
         *,
         address: int | None = None,
@@ -1180,7 +1199,8 @@ class ProjectService:
         additional_addresses: int = 0,
         space_id: int | None = None,
     ) -> int:
-        """Add a device, to the space ``space_id`` when given. ``product_ref_id`` names the catalog product; ``hardware2program_ref_id`` is
+        """Add a device, to the space ``space_id`` when given, on no line (and without an
+        individual address) for ``segment_id`` None. ``product_ref_id`` names the catalog product; ``hardware2program_ref_id`` is
         the loaded program the application resolves through. Being ref-only, this package never
         reads the catalog, so the caller expands the application and supplies ``parameters``
         (``(ref_id, value)``), ``com_objects`` (``(ref_id, channel_id)``), ``module_instances``
@@ -1191,7 +1211,9 @@ class ProjectService:
         :meth:`assign_additional_addresses` picks, in the same undo step; too few free numbers in
         the line raise :class:`AdditionalAddressError`."""
         state = self._state(project_id)
-        if address is not None:
+        if segment_id is None:
+            address = None
+        elif address is not None:
             self._check_unique_address(state, segment_id, address)
         if space_id is not None:
             space = state.session.get(Space, space_id)
@@ -1200,7 +1222,7 @@ class ProjectService:
             if not holds_devices(space.space_type):
                 raise SpaceRuleError("no_devices")
         entries = [_empty_additional_entry() for _ in range(additional_addresses)]
-        if entries:
+        if entries and segment_id is not None:
             segment = state.session.get(Segment, segment_id)
             if segment is None:
                 raise KeyError(f"No segment with id {segment_id}")
@@ -2639,7 +2661,7 @@ class ProjectService:
         )
         senders: dict[int, int] = {}
         for device, com_object_id in rows:
-            if device.address is None:
+            if device.address is None or device.segment is None:
                 continue
             if can_send is not None and not can_send(com_object_id):
                 continue
@@ -2667,7 +2689,7 @@ class ProjectService:
         )
         senders: set[int] = set()
         for device, com_object_id in rows:
-            if device.address is None:
+            if device.address is None or device.segment is None:
                 continue
             if can_send is not None and not can_send(com_object_id):
                 continue
@@ -2742,7 +2764,7 @@ class ProjectService:
         while len(entries) < (count or 0):
             entries.append(_empty_additional_entry())
         _fill_additional_entries(
-            entries, self._line_numbers_in_use(state, device.segment.line_id)
+            entries, self._line_numbers_in_use(state, _device_line(device).id)
         )
         if entries != before:
             state.store.append(
@@ -2768,7 +2790,7 @@ class ProjectService:
         device or another additional address of the line uses (the device's own included)."""
         state = self._state(project_id)
         device = self._require_device(state, device_id)
-        line = device.segment.line
+        line = _device_line(device)
         number = self._additional_number(line, address)
         entries = self._entries_up_to(device, index)
         entry = entries[index - 1]
@@ -2805,7 +2827,7 @@ class ProjectService:
         :class:`AdditionalAddressError` like :meth:`set_additional_address` for a number outside
         1-255 or another line (whether the address is free is not checked)."""
         state = self._state(project_id)
-        line = self._require_device(state, device_id).segment.line
+        line = _device_line(self._require_device(state, device_id))
         number = self._additional_number(line, address)
         if number is None:
             return None
@@ -3279,7 +3301,7 @@ class ProjectService:
                 .all()
             )
             for other, com_object_id in rows:
-                if other.address is None:
+                if other.address is None or other.segment is None:
                     continue
                 if can_send is not None and not can_send(com_object_id):
                     continue
@@ -3397,7 +3419,11 @@ class ProjectService:
                     ),
                     no_partner,
                 )
-                if partner is None or partner.address is None:
+                if (
+                    partner is None
+                    or partner.address is None
+                    or partner.segment is None
+                ):
                     continue
                 value = link_key
                 if value and state.cipher is not None:
@@ -3953,10 +3979,11 @@ class ProjectService:
         if len(entries) >= count:
             return None
         added = [_empty_additional_entry() for _ in range(count - len(entries))]
-        with contextlib.suppress(AdditionalAddressError):
-            _fill_additional_entries(
-                added, self._line_numbers_in_use(state, device.segment.line_id)
-            )
+        if device.segment is not None:
+            with contextlib.suppress(AdditionalAddressError):
+                _fill_additional_entries(
+                    added, self._line_numbers_in_use(state, device.segment.line_id)
+                )
         return SetDeviceAdditionalAddresses(
             device_id=device_id, entries=entries + added
         )
@@ -3983,7 +4010,9 @@ class ProjectService:
         device = state.session.get(Device, device_id)
         target = state.session.get(Segment, segment_id)
         if device is not None and target is not None:
-            other_line = device.segment.line_id != target.line_id
+            other_line = (
+                device.segment is None or device.segment.line_id != target.line_id
+            )
             if device.additional_addresses and other_line:
                 entries = additional_address_entries(device)
                 for entry in entries:
@@ -3999,6 +4028,31 @@ class ProjectService:
                 )
             if other_line or device.address != address:
                 events.extend(_address_change_events([device], couplers))
+        state.store.append(events[0] if len(events) == 1 else CompositeEvent(events))
+
+    def unlink_device(
+        self, project_id: str, device_id: int, *, couplers: Collection[int] = ()
+    ) -> None:
+        """Take a device off its line ("Unlink" in the topology): it is on no line then and has
+        no individual address, nor addresses for its additional addresses (the entries stay).
+        One undo step; its individual address is no longer the downloaded one (see
+        :meth:`_address_change_events`). Nothing happens for a device on no line. Raises
+        ``KeyError`` for an unknown device."""
+        state = self._state(project_id)
+        device = self._require_device(state, device_id)
+        if device.segment_id is None:
+            return
+        events: list[Event] = [
+            MoveDevice(device_id=device_id, segment_id=None, address=None)
+        ]
+        if device.additional_addresses:
+            entries = additional_address_entries(device)
+            for entry in entries:
+                entry["address"] = None
+            events.append(
+                SetDeviceAdditionalAddresses(device_id=device_id, entries=entries)
+            )
+        events.extend(_address_change_events([device], couplers))
         state.store.append(events[0] if len(events) == 1 else CompositeEvent(events))
 
     def move_line(
@@ -4655,7 +4709,11 @@ class ProjectService:
         if device is None:
             raise KeyError(f"No device with id {device_id}")
         area_no, line_no, octet = parse_ia(address)
-        installation_id = device.segment.line.area.installation_id
+        installation_id = (
+            device.segment.line.area.installation_id
+            if device.segment is not None
+            else self._installation(state, 0).id
+        )
         line = (
             state.session.query(Line)
             .join(Area, Line.area_id == Area.id)
@@ -4670,7 +4728,7 @@ class ProjectService:
             raise KeyError(f"No line {area_no}.{line_no} in this installation")
         segment = (
             device.segment
-            if device.segment.line_id == line.id
+            if device.segment is not None and device.segment.line_id == line.id
             else self._first_segment(state, line)
         )
         self.move_device(project_id, device_id, segment.id, octet, couplers=couplers)
@@ -4822,7 +4880,7 @@ class ProjectService:
         return GroupAddressStyle(style)
 
     def _compose_ia(self, device: Device) -> str | None:
-        if device.address is None:
+        if device.address is None or device.segment is None:
             return None
         line = device.segment.line
         return format_ia(line.area.address, line.address, device.address)
@@ -4836,12 +4894,12 @@ class ProjectService:
 
     @staticmethod
     def _additional_infos(device: Device) -> list[AdditionalAddressInfo]:
-        line = device.segment.line
+        line = device.segment.line if device.segment is not None else None
         return [
             AdditionalAddressInfo(
                 index=index,
                 address=format_ia(line.area.address, line.address, row.address)
-                if row.address is not None
+                if row.address is not None and line is not None
                 else None,
                 octet=row.address,
                 name=row.name,

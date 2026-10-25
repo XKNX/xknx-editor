@@ -38,6 +38,17 @@ def _address_order(device: TreeDevice) -> tuple[tuple[int, int, int], int]:
     return (address_order(device.individual_address), device.node_id)
 
 
+def _line_of_address(address: str | None) -> tuple[int, int] | None:
+    """The area and line numbers an ``a.l.d`` individual address names, None for none."""
+    parts = (address or "").split(".")
+    if len(parts) < 3:
+        return None
+    try:
+        return int(parts[0]), int(parts[1])
+    except ValueError:
+        return None
+
+
 @dataclass
 class Area:
     id: int
@@ -118,14 +129,16 @@ class TopologyPanel:
         on_move_segment: Callable[[int, int], None] = lambda _s, _l: None,
         one_undo_step: Callable[[], AbstractContextManager[None]] = nullcontext,
         paste_dialog: PasteSpecialDialog | None = None,
+        on_unlink_device: Callable[[int], None] | None = None,
     ) -> None:
         """``on_move_line`` puts a sub line (id) into an area (id), ``on_move_segment`` a
         sub-segment (id) onto a line (id); ``one_undo_step`` makes the edits of one drop one
         undo step; ``paste_dialog`` asks how to copy what is dropped with Ctrl held (no copies
-        without it)."""
+        without it); ``on_unlink_device`` takes a device (by id) off its line ("Unlink")."""
         self._get_devices = get_devices
         self._one_undo_step = one_undo_step
         self._paste_dialog = paste_dialog
+        self._on_unlink_device = on_unlink_device
         self._on_move_line = on_move_line
         self._on_move_segment = on_move_segment
         # A line's sub-segments show as nodes before its main segment's devices, each with its
@@ -183,14 +196,14 @@ class TopologyPanel:
             key=_address_order,
         )
         areas = self._get_areas()
-        device_tree = self._build_device_tree(devices)
+        device_tree, unassigned_devices = self._device_lines(devices, areas)
 
         self._filter_text = filter_box(
             "##device_filter", S.DEVICE_FILTER_HINT, self._filter_text
         )
         flt = self._filter_text.strip().lower()
         begin_tree_area("##topology_tree")
-        self._render_tree(devices, areas, device_tree, flt)
+        self._render_tree(devices, areas, device_tree, unassigned_devices, flt)
         imgui.end_child()
 
     def _render_tree(
@@ -198,9 +211,11 @@ class TopologyPanel:
         devices: list[TreeDevice],
         areas: list[Area],
         device_tree: dict[int, dict[int, list[TreeDevice]]],
+        unassigned_devices: list[TreeDevice],
         flt: str,
     ) -> None:
-        """The topology below the filter box, with its menus and dialogs."""
+        """The topology below the filter box, with its menus and dialogs; the devices on no
+        line (``unassigned_devices``) at the end."""
         if not areas and not devices:
             imgui.text_disabled(S.DEVICE_EMPTY_HINT)
 
@@ -279,7 +294,7 @@ class TopologyPanel:
                 for _d in [*(d for _s, ds in _segments for d in ds), *_main]:
                     if isinstance(_d, Device):
                         ordered_ids.append(_d.node_id)
-        for _d in self._get_unassigned_devices(devices, areas):
+        for _d in unassigned_devices:
             if isinstance(_d, Device) and (not flt or self._device_matches(_d, flt)):
                 ordered_ids.append(_d.node_id)
 
@@ -324,7 +339,7 @@ class TopologyPanel:
                         )
                 imgui.tree_pop()
 
-        unassigned = self._get_unassigned_devices(devices, areas)
+        unassigned = unassigned_devices
         if flt:
             unassigned = [d for d in unassigned if self._device_matches(d, flt)]
         if unassigned:
@@ -486,10 +501,22 @@ class TopologyPanel:
             ):
                 imgui.set_clipboard_text(device.individual_address)
             self._render_move_device_menu(device)
+            self._render_unlink_item((device.node_id,))
             if imgui.menu_item(S.CONTEXT_DELETE, "", False)[0]:
                 self._delete_target_device = device
                 self._open_delete_device_popup = True
             imgui.end_popup()
+
+    def _render_unlink_item(self, node_ids: tuple[int, ...]) -> None:
+        """ "Unlink" of devices on a line: they are on no line then (one undo step)."""
+        if self._on_unlink_device is None:
+            return
+        segment_of = self._get_device_segments()
+        on_line = [n for n in node_ids if n in segment_of]
+        if on_line and imgui.menu_item(S.CONTEXT_UNLINK_LINE, "", False)[0]:
+            with self._one_undo_step():
+                for node_id in on_line:
+                    self._on_unlink_device(node_id)
 
     def _select_element(self, kind: str, element_id: int) -> None:
         self._on_select_element(kind, element_id)
@@ -549,6 +576,7 @@ class TopologyPanel:
             ):
                 self._on_compare(device.node_id)
             self._render_move_device_menu(device)
+            self._render_unlink_item(self._dragged_devices(device).ids)
             if self._paste_dialog is not None:
                 imgui.separator()
                 render_copy_item(self._dragged_devices(device))
@@ -842,53 +870,37 @@ class TopologyPanel:
             return 1
         return max(ln.number for ln in lines) + 1
 
-    def _build_device_tree(
-        self, devices: list[TreeDevice]
-    ) -> dict[int, dict[int, list[TreeDevice]]]:
-        tree: dict[int, dict[int, list[TreeDevice]]] = {}
-        for device in devices:
-            if not device.individual_address:
-                continue
-            parts = device.individual_address.split(".")
-            if len(parts) < 3:
-                continue
-            try:
-                area, line = int(parts[0]), int(parts[1])
-            except ValueError:
-                continue
-            if area not in tree:
-                tree[area] = {}
-            if line not in tree[area]:
-                tree[area][line] = []
-            tree[area][line].append(device)
-        return tree
-
-    def _get_unassigned_devices(
+    def _device_lines(
         self, devices: list[TreeDevice], areas: list[Area]
-    ) -> list[TreeDevice]:
-        area_numbers = {a.number for a in areas}
-        area_lines: dict[int, set[int]] = {}
+    ) -> tuple[dict[int, dict[int, list[TreeDevice]]], list[TreeDevice]]:
+        """The devices by area and line number, and those on no line ("Unassigned"). A device
+        is on the line of its segment, else (its segment not known) on the line its individual
+        address names; one on neither is on no line."""
+        lines_of: dict[int, set[int]] = {}
+        place: dict[int, tuple[int, int]] = {}
         for area in areas:
-            lines = self._get_lines(area.id)
-            area_lines[area.number] = {ln.number for ln in lines}
-
+            for line in self._get_lines(area.id):
+                lines_of.setdefault(area.number, set()).add(line.number)
+                for segment_id in (
+                    line.main_segment_id,
+                    *(s.id for s in line.segments),
+                ):
+                    if segment_id is not None:
+                        place[segment_id] = (area.number, line.number)
+        segment_of = self._get_device_segments()
+        tree: dict[int, dict[int, list[TreeDevice]]] = {}
         unassigned: list[TreeDevice] = []
         for device in devices:
-            if not device.individual_address:
+            where = place.get(segment_of.get(device.node_id, -1))
+            if where is None:
+                where = _line_of_address(device.individual_address)
+                if where is not None and where[1] not in lines_of.get(where[0], set()):
+                    where = None
+            if where is None:
                 unassigned.append(device)
                 continue
-            parts = device.individual_address.split(".")
-            if len(parts) < 3:
-                unassigned.append(device)
-                continue
-            try:
-                area, line = int(parts[0]), int(parts[1])
-            except ValueError:
-                unassigned.append(device)
-                continue
-            if area not in area_numbers or line not in area_lines.get(area, set()):
-                unassigned.append(device)
-        return unassigned
+            tree.setdefault(where[0], {}).setdefault(where[1], []).append(device)
+        return tree, unassigned
 
     def _render_device_drag_source(self, device: Device) -> None:
         """A device is dragged, together with the other selected ones when it is selected."""

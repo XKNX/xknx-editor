@@ -2844,3 +2844,9 @@ msgstr "Poista tämä rivi"
 
 msgid "Generate Addresses"
 msgstr "Luo osoitteet"
+
+msgid "Unlink device"
+msgstr "Poista laitteen linkitys"
+
+msgid "The device is on no line: put it on a line first."
+msgstr "Laite ei ole millään linjalla: sijoita se ensin linjalle."

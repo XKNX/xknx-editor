@@ -3029,3 +3029,9 @@ msgstr "Diese Zeile entfernen"
 
 msgid "Generate Addresses"
 msgstr "Adressen erzeugen"
+
+msgid "Unlink device"
+msgstr "Gerät trennen"
+
+msgid "The device is on no line: put it on a line first."
+msgstr "Das Gerät ist auf keiner Linie: zuerst auf eine Linie legen."

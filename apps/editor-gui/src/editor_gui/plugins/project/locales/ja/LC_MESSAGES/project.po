@@ -2844,3 +2844,9 @@ msgstr "この行を削除"
 
 msgid "Generate Addresses"
 msgstr "アドレスの生成"
+
+msgid "Unlink device"
+msgstr "デバイスのリンクを外す"
+
+msgid "The device is on no line: put it on a line first."
+msgstr "デバイスはどのラインにもありません。先にラインに配置してください。"

@@ -254,6 +254,7 @@ class ProjectPlugin:
             on_add_segment=self._on_add_segment,
             on_remove_segment=self._on_remove_segment,
             on_move_device_to_segment=self._on_move_device_to_segment,
+            on_unlink_device=api.project.unlink_device,
             on_move_line=lambda line, area: self._report(
                 api.project.move_line(line, area)
             ),
