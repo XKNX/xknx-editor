@@ -172,8 +172,6 @@ def test_building_parts_move_and_are_deleted(
         clicks, panel, f"##spctx{room}", S.SPACES_MOVE_TO, f"  EG##mv{room}_{floor}"
     )
     assert _names(project)[0] == ("p", [("EG", [("Kitchen", [], [])], [])], [])
-    # … and the garage, a building, may go to the top level (it is there already: no change).
-    _choose(clicks, panel, f"##spctx{other}", S.SPACES_MOVE_TO, S.SPACES_MOVE_ROOT)
     assert [s.name for s in project.get_space_tree()] == ["p", "Garage"]
     # Deleting asks first.
     _choose(clicks, panel, f"##spctx{other}", S.SPACES_DELETE)
@@ -296,3 +294,53 @@ def test_the_filter_shows_what_matches(project: ProjectService, context: None) -
     for text in ("kitch", "light", "nothing"):
         panel._filter_text = text  # pyright: ignore[reportPrivateUsage]
         _frames(panel, 2)
+
+
+def test_move_to_grays_out_where_it_is_and_hides_without_another_place(
+    project: ProjectService, clicks: Clicks, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    building = project.get_space_tree()[0].id
+    floor = project.create_space(building, "Floor", "EG")
+    room = project.create_space(floor, "Room", "Kitchen")
+    assert floor is not None and room is not None
+    shown: list[tuple[str, bool]] = []
+    menus: list[str] = []
+    real_item = imgui.menu_item
+    real_begin = imgui.begin_menu
+
+    def menu_item(label: str, *args: object) -> object:
+        if "##mv" in label or label == S.SPACES_MOVE_ROOT:
+            shown.append((label.split("##")[0].strip(), bool(args[2])))
+        return real_item(label, *args)  # type: ignore[arg-type]
+
+    def begin_menu(label: str, *args: object) -> bool:
+        menus.append(label)
+        return real_begin(label, *args)  # type: ignore[arg-type]
+
+    monkeypatch.setattr(imgui, "menu_item", menu_item)
+    monkeypatch.setattr(imgui, "begin_menu", begin_menu)
+    clicks2 = Clicks(monkeypatch, spaces)
+    panel = _panel(project, [])
+    _frames(panel)
+    # The room is on the floor: the floor is grayed out, the building can be chosen.
+    clicks2.context = f"##spctx{room}"
+    clicks2.menus.add(S.SPACES_MOVE_TO)
+    _frames(panel, 1)
+    assert ("p", True) in shown and ("EG", False) in shown
+    # The only building, at the top level already: no "Move to" at all.
+    menus.clear()
+    clicks2.context = f"##spctx{building}"
+    _frames(panel, 1)
+    assert S.SPACES_ADD_MENU in menus and S.SPACES_MOVE_TO not in menus
+    # A sub-trade can go to the top level; the trade it is in is grayed out.
+    light = project.create_trade(None, "Lighting")
+    assert light is not None
+    inner = project.create_trade(light, "Inside")
+    assert inner is not None
+    shown.clear()
+    clicks2.open.add(f"Lighting##trade{light}")
+    _frames(panel)
+    clicks2.context = f"##tradectx{inner}"
+    clicks2.menus.add(S.SPACES_MOVE_TO)
+    _frames(panel, 1)
+    assert shown == [(S.SPACES_MOVE_ROOT, True), ("Lighting", False)]

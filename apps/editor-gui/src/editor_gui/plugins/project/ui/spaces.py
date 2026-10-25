@@ -1,7 +1,7 @@
 """Buildings view: the imported location tree (building -> floor -> room -> ...) with the
 devices placed in each space and the functions assigned to it."""
 
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from typing import TYPE_CHECKING, Any
 
 from imgui_bundle import imgui
@@ -75,6 +75,44 @@ _TRADE = "Trade"
 
 # Dialog ids: the translated title plus a stable per-target id (open_popup and begin_dialog
 # must be passed the same string).
+def _parent_id(
+    tree: "Sequence[SpaceInfo] | Sequence[TradeInfo]", node_id: int
+) -> int | None:
+    """The id of the node ``node_id`` is below in ``tree`` (spaces or trades); None at the top
+    level (or when it is not in the tree)."""
+
+    def walk(
+        nodes: "Sequence[SpaceInfo] | Sequence[TradeInfo]", parent: int | None
+    ) -> int | None:
+        for node in nodes:
+            if node.id == node_id:
+                return parent
+            found = walk(node.children, node.id)
+            if found is not None:
+                return found
+        return None
+
+    return walk(tree, None)
+
+
+def _render_move_menu(
+    targets: list[tuple[str, int | None]], parent: int | None
+) -> tuple[int | None] | None:
+    """The "Move to" submenu: each target (its menu text and id, None for the top level),
+    the one it is in already (``parent``) grayed out. Not shown when no other target is
+    left. The target chosen (in a tuple, as None is the top level), or None."""
+    if all(target == parent for _text, target in targets):
+        return None
+    if not imgui.begin_menu(S.SPACES_MOVE_TO):
+        return None
+    chosen: tuple[int | None] | None = None
+    for text, target in targets:
+        if imgui.menu_item(text, "", False, target != parent)[0]:
+            chosen = (target,)
+    imgui.end_menu()
+    return chosen
+
+
 def _add_dialog(key: str) -> str:
     """The "Add …" dialog of the target ``key`` ("root", "trades", a space or a trade)."""
     return f"###add_{key}"
@@ -346,20 +384,20 @@ class SpacesPanel:
         if not imgui.begin_popup_context_item(f"##spctx{space.id}"):
             return
         self._render_add_menu(space)
-        if self._on_move_space is not None and imgui.begin_menu(S.SPACES_MOVE_TO):
+        if self._on_move_space is not None:
             # Only where its type may go: a building to the top level, the others below the
             # types that hold them.
-            if (
-                space.space_type in child_types(None)
-                and imgui.menu_item(S.SPACES_MOVE_ROOT, "", False)[0]
-            ):
-                self._report(self._on_move_space(space.id, None))
-            for target, depth in self._move_targets(space.id, space.space_type):
-                indent = "  " * depth
-                label = f"{indent}{space_label(target)}"
-                if imgui.menu_item(f"{label}##mv{space.id}_{target.id}", "", False)[0]:
-                    self._report(self._on_move_space(space.id, target.id))
-            imgui.end_menu()
+            targets: list[tuple[str, int | None]] = []
+            if space.space_type in child_types(None):
+                targets.append((S.SPACES_MOVE_ROOT, None))
+            targets.extend(
+                (f"{'  ' * depth}{space_label(target)}##mv{space.id}_{target.id}", target.id)
+                for target, depth in self._move_targets(space.id, space.space_type)
+            )
+            parent = _parent_id(self._get_space_tree(), space.id)
+            chosen = _render_move_menu(targets, parent)
+            if chosen is not None:
+                self._report(self._on_move_space(space.id, chosen[0]))
         if (
             self._on_remove_space is not None
             and imgui.menu_item(S.SPACES_DELETE, "", False)[0]
@@ -773,14 +811,16 @@ class SpacesPanel:
                 self._trade_device_filter = ""
                 self._pending_popup_id = _trade_devices_dialog(trade.id)
             imgui.end_menu()
-        if self._on_move_trade is not None and imgui.begin_menu(S.SPACES_MOVE_TO):
-            if imgui.menu_item(S.SPACES_MOVE_ROOT, "", False)[0]:
-                self._on_move_trade(trade.id, None)
-            for target, depth in self._trade_targets(trade.id):
-                text = f"{'  ' * depth}{target.name}##mvtr{trade.id}_{target.id}"
-                if imgui.menu_item(text, "", False)[0]:
-                    self._on_move_trade(trade.id, target.id)
-            imgui.end_menu()
+        if self._on_move_trade is not None:
+            targets: list[tuple[str, int | None]] = [(S.SPACES_MOVE_ROOT, None)]
+            targets.extend(
+                (f"{'  ' * depth}{target.name}##mvtr{trade.id}_{target.id}", target.id)
+                for target, depth in self._trade_targets(trade.id)
+            )
+            parent = _parent_id(self._get_trade_tree(), trade.id)
+            chosen = _render_move_menu(targets, parent)
+            if chosen is not None:
+                self._on_move_trade(trade.id, chosen[0])
         if (
             self._on_remove_trade is not None
             and imgui.menu_item(S.SPACES_DELETE, "", False)[0]
