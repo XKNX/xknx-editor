@@ -254,7 +254,6 @@ def test_group_addresses_take_copies_also_in_their_own_group(
         get_assignments_for_ga=project.get_assignments_for_ga,
         get_devices=lambda: [],
         on_create_ga=lambda _a, _n: None,
-        on_rename_ga=lambda _i, _n: None,
         on_remove_ga=lambda _i: None,
         on_create_range=project.create_group_range,
         group_style=lambda: project.group_address_style,
@@ -333,10 +332,8 @@ def test_topology_takes_copies_of_devices_segments_and_sub_lines(
         on_move_device=lambda _d, _a, _l: None,
         on_create_area=lambda _n, _s, _m: None,
         on_remove_area=lambda _a: None,
-        on_rename_area=lambda _a, _n: None,
         on_create_line=lambda _a, _n, _s, _m: None,
         on_remove_line=lambda _l: None,
-        on_rename_line=lambda _l, _n: None,
         paste_dialog=dialog,
     )
     _frames(panel, 2)
@@ -410,7 +407,6 @@ def test_paste_on_a_group_address_goes_into_its_group(
         get_assignments_for_ga=project.get_assignments_for_ga,
         get_devices=lambda: [],
         on_create_ga=lambda _a, _n: None,
-        on_rename_ga=lambda _i, _n: None,
         on_remove_ga=lambda _i: None,
         on_create_range=project.create_group_range,
         group_style=lambda: project.group_address_style,

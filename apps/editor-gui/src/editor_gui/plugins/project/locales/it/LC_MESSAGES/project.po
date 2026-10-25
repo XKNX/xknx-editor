@@ -565,12 +565,6 @@ msgstr "Scala"
 msgid "New Function"
 msgstr "Nuova funzione"
 
-msgid "Rename"
-msgstr "Rinomina"
-
-msgid "Rename Function"
-msgstr "Rinomina funzione"
-
 msgid "Assign Group Address"
 msgstr "Assegna indirizzo di gruppo"
 
@@ -1252,32 +1246,11 @@ msgstr "Copia log"
 msgid "New Group Address"
 msgstr "Nuovo indirizzo di gruppo"
 
-msgid "New Main Group"
-msgstr "Nuovo gruppo principale"
-
-msgid "New Middle Group"
-msgstr "Nuovo gruppo intermedio"
-
-msgid "New Folder"
-msgstr "Nuova cartella"
-
-msgid "Rename Folder"
-msgstr "Rinomina cartella"
-
 msgid "Delete Folder"
 msgstr "Elimina cartella"
 
-msgid "Main group name (the next free number is assigned automatically)"
-msgstr "Nome del gruppo principale (il successivo numero libero viene assegnato automaticamente)"
-
-msgid "Middle group name (the next free number is assigned automatically)"
-msgstr "Nome del gruppo intermedio (il successivo numero libero viene assegnato automaticamente)"
-
 msgid "Delete this folder and every group address in it? This can be undone."
 msgstr "Eliminare questa cartella e tutti gli indirizzi di gruppo che contiene? L'operazione può essere annullata."
-
-msgid "Rename Group Address"
-msgstr "Rinomina indirizzo di gruppo"
 
 msgid "Invalid address or already in use."
 msgstr "Indirizzo non valido o già in uso."
@@ -2886,3 +2859,24 @@ msgstr "{count} gruppi intermedi aggiunti a '{target}'."
 
 msgid "Added {count} group addresses to '{target}'."
 msgstr "{count} indirizzi di gruppo aggiunti a '{target}'."
+
+msgid "Add Main Groups…"
+msgstr "Aggiungi Gruppi Principali…"
+
+msgid "Add Middle Groups…"
+msgstr "Aggiungi Gruppi Intermedi…"
+
+msgid "Add Main Groups"
+msgstr "Aggiungi Gruppi Principali"
+
+msgid "Add Middle Groups"
+msgstr "Aggiungi Gruppi Intermedi"
+
+msgid "New main group"
+msgstr "Nuovo gruppo principale"
+
+msgid "New middle group"
+msgstr "Nuovo gruppo intermedio"
+
+msgid "New group address"
+msgstr "Nuovo indirizzo di gruppo"

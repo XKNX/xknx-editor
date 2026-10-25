@@ -78,6 +78,44 @@ def one_row(choice: AddChoice | None = None, start_with: int = 1) -> AddRequest:
     )
 
 
+def start_add(
+    open_dialog: Callable[[], bool],
+    on_add: Callable[[AddRequest], None],
+    notify: Callable[[str], None],
+    choice: AddChoice | None = None,
+) -> None:
+    """What an "Add" item does: open the dialog (``open_dialog``, False when there is no
+    room left, which is told), or on a Shift+click add one with the defaults right away."""
+    if imgui.get_io().key_shift:
+        on_add(one_row(choice))
+    elif not open_dialog():
+        notify(S.ADD_LIMIT_REACHED)
+
+
+def add_rows(
+    request: AddRequest,
+    several: str,
+    target: str,
+    add: Callable[[AddRow], str | None],
+    undo_step: UndoStep,
+    notify: Callable[[str], None],
+) -> None:
+    """Add the rows of ``request`` top to bottom (``add`` adds one element of a row and gives
+    the reason it cannot), one undo step each, ``several`` (with ``{count}`` and
+    ``{target}``) naming one of several elements. A row stops at its first element that cannot
+    be added, telling why, and the next row goes on."""
+    for row in request.rows:
+        label = (
+            several.format(count=row.count, target=target) if row.count > 1 else None
+        )
+        with undo_step(label):
+            for _ in range(row.count):
+                reason = add(row)
+                if reason:
+                    notify(reason)
+                    break
+
+
 class AddDialog:
     """The dialog (see the module) of one tree panel; ``dialog_id`` keeps it apart from the
     others. ``on_add`` adds what was asked for."""

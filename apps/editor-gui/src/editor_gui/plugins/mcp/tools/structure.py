@@ -5,12 +5,14 @@ the device tree's context menu, the Buildings view and the group address folders
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, Literal
 
 from fastmcp.exceptions import ToolError
 
 from editor_gui.plugins.mcp.context import McpContext, make_tool, require_project
 from editor_gui.plugins.mcp.tools.project import (
+    NumberAllocation,
     require_device,
     require_group_address_id,
 )
@@ -21,18 +23,46 @@ from editor_gui.plugins.project.paste import (
     TargetKind,
     paste_error_text,
 )
-from xknxeditor.proj.core.paste import Allocation, GroupAddressCopy, PasteOptions
+from editor_gui.plugins.project.strings import S as PROJECT_S
+from xknxeditor.proj.core.paste import (
+    AddressPool,
+    Allocation,
+    GroupAddressCopy,
+    PasteOptions,
+    group_base,
+)
 
 if TYPE_CHECKING:
     from fastmcp import FastMCP
 
     from editor_gui.plugins.project.service import ProjectService
+    from xknxeditor.proj.core.service import GroupRangeInfo
 
 # The function types the Buildings view offers (KNX FunctionType codes): custom, switchable light,
 # dimmable light, sun protection, heating (switching), heating (continuous), socket.
 FunctionType = Literal["FT-0", "FT-1", "FT-6", "FT-7", "FT-8", "FT-9", "FT-10"]
 
 _MAX_COPIES = 100
+
+
+@dataclass(frozen=True)
+class _FoundGroup:
+    """A group of the group address tree and the id of the main group it is in (None: it is
+    a main group)."""
+
+    node: GroupRangeInfo
+    parent_id: int | None
+
+
+def _group_range(project: ProjectService, range_id: int) -> _FoundGroup | None:
+    """The group ``range_id`` of the group address tree, None for none."""
+    for main in project.get_group_range_tree():
+        if main.id == range_id:
+            return _FoundGroup(main, None)
+        for middle in main.children:
+            if middle.id == range_id:
+                return _FoundGroup(middle, main.id)
+    return None
 
 
 def _functions(project: ProjectService) -> dict[int, Any]:
@@ -391,36 +421,152 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     @tool("write")
     def project_create_group_range(
-        name: str, parent_id: int | None = None
+        name: str = "",
+        parent_id: int | None = None,
+        number: int | None = None,
+        count: int = 1,
+        allocation: NumberAllocation = "fill_up",
+        start_with: int = 0,
     ) -> dict[str, Any]:
-        """Add a group address folder: a main group, or a middle group in the main group
-        ``parent_id`` (a group range id, see project_get_element), with the next free number.
-        Undoable with project_undo. Returns {group_range_id, type, address, name}."""
+        """Add a group address folder: a main group (0-31, at most 32), or a middle group (0-7,
+        at most 8) in the main group ``parent_id`` (a group range id, see project_get_element),
+        or ``count`` of them (1 to 100, one undo step) as the Add dialog does. Without a
+        ``name`` it is called "New main group" / "New middle group" (in the editor's language).
+        ``number`` asks for that number (count 1 only); without it the numbers are given as
+        "Generate Addresses" does: ``allocation`` "fill_up" takes the lowest free one, "append"
+        the one after the highest (then the lowest free), "start_with" the first free from
+        ``start_with`` on. Undoable with project_undo. Returns {group_range_id,
+        group_range_ids, type, address, name} of the first one."""
         require_project(ctx)
+        if not 1 <= count <= _MAX_COPIES:
+            raise ToolError(f"count must be 1 to {_MAX_COPIES}")
+        if number is not None and count != 1:
+            raise ToolError("pass a number only with count 1")
 
         def _create() -> dict[str, Any]:
-            if (
-                parent_id is not None
-                and project.element_details("group_range", parent_id) is None
-            ):
-                raise ToolError(f"no group range with id {parent_id}")
-            range_id = project.create_group_range(parent_id, name)
-            if range_id is None:
-                raise ToolError(
-                    "no folder can be added there (the group address style has none, or all "
-                    "numbers are used)"
+            if parent_id is None:
+                used = {
+                    node.range_start >> 11 for node in project.get_group_range_tree()
+                }
+                highest, default = 31, PROJECT_S.GA_DEFAULT_MAIN_GROUP
+                several = PROJECT_S.HISTORY_EV_ADDED_MAIN_GROUPS
+                target = PROJECT_S.PANEL_GROUP_ADDRESSES
+            else:
+                parent = next(
+                    (n for n in project.get_group_range_tree() if n.id == parent_id),
+                    None,
                 )
-            details = project.element_details("group_range", range_id)
+                if parent is None:
+                    raise ToolError(f"no group range with id {parent_id} (a main group)")
+                used = {(child.range_start >> 8) & 7 for child in parent.children}
+                highest, default = 7, PROJECT_S.GA_DEFAULT_MIDDLE_GROUP
+                several = PROJECT_S.HISTORY_EV_ADDED_MIDDLE_GROUPS
+                target = f"{parent.address} {parent.name}".strip()
+            pool = AddressPool(
+                0,
+                highest,
+                used,
+                Allocation(allocation),
+                start_with=start_with,
+                skip_zero=False,
+            )
+            title = name.strip() or default
+            ids: list[int] = []
+            label = several.format(count=count, target=target) if count > 1 else None
+            with project.one_undo_step(label):
+                for _ in range(count):
+                    wanted = number if number is not None else pool.take()
+                    range_id = (
+                        project.create_group_range(parent_id, title, wanted)
+                        if wanted is not None
+                        else None
+                    )
+                    if range_id is None:
+                        raise ToolError(
+                            "no folder can be added there (the group address style has "
+                            "none, or the number is used or all numbers are)"
+                        )
+                    ids.append(range_id)
+            details = project.element_details("group_range", ids[0])
             return {
-                "group_range_id": range_id,
+                "group_range_id": ids[0],
+                "group_range_ids": ids,
                 "type": details.title_kind if details is not None else "",
                 "address": (
                     f"{details.prefix}{details.address}" if details is not None else ""
                 ),
-                "name": name,
+                "name": title,
             }
 
         return ctx.run_locked(_create)
+
+    @tool("write")
+    def project_add_group_addresses(
+        group_range_id: int,
+        count: int = 1,
+        name: str = "",
+        allocation: NumberAllocation = "fill_up",
+        start_with: int = 0,
+    ) -> dict[str, Any]:
+        """Add ``count`` group addresses (1 to 100, one undo step) to a middle group (a main
+        group in two-level style; ``group_range_id`` from project_get_element or the group
+        tree), as its "Add Group Addresses" dialog does. Without a ``name`` they are called
+        "New group address" (in the editor's language). ``allocation`` "fill_up" takes the
+        lowest free address of the group, "append" the one after the highest, "start_with" the
+        first free from ``start_with`` on, counted within the group (10 in 1/2 is 1/2/10); the
+        address 0/0/0 is never given. Undoable with project_undo. Returns {group_address_ids,
+        addresses}: the printed addresses."""
+        require_project(ctx)
+        if not 1 <= count <= _MAX_COPIES:
+            raise ToolError(f"count must be 1 to {_MAX_COPIES}")
+
+        def _add() -> dict[str, Any]:
+            from xknxeditor.proj.core.addressing import GroupAddressStyle, format_ga
+
+            style = project.group_address_style
+            if style is GroupAddressStyle.FREE:
+                raise ToolError("the free group address style has no such groups")
+            group = _group_range(project, group_range_id)
+            if group is None or (
+                style is GroupAddressStyle.THREE_LEVEL and group.parent_id is None
+            ):
+                raise ToolError(
+                    f"no group with id {group_range_id} that holds group addresses"
+                )
+            node = group.node
+            pool = AddressPool(
+                node.range_start,
+                node.range_end,
+                (ga.address for ga in node.group_addresses),
+                Allocation(allocation),
+                start_with=start_with,
+                base=group_base(node.range_start, style),
+            )
+            title = name.strip() or PROJECT_S.GA_DEFAULT_GROUP_ADDRESS
+            target = f"{node.address} {node.name}".strip()
+            label = (
+                PROJECT_S.HISTORY_EV_ADDED_GROUP_ADDRESSES.format(
+                    count=count, target=target
+                )
+                if count > 1
+                else None
+            )
+            ids: list[int] = []
+            addresses: list[str] = []
+            with project.one_undo_step(label):
+                for _ in range(count):
+                    address = pool.take()
+                    if address is None:
+                        raise ToolError(PROJECT_S.ADD_LIMIT_REACHED)
+                    text = format_ga(address, style)
+                    ga_id = project.create_group_address(text, title)
+                    if ga_id is None:
+                        raise ToolError(f"could not create group address {text}")
+                    ids.append(ga_id)
+                    addresses.append(text)
+            return {"group_address_ids": ids, "addresses": addresses}
+
+        return ctx.run_locked(_add)
 
     @tool("destructive")
     def project_remove_group_range(group_range_id: int) -> dict[str, Any]:

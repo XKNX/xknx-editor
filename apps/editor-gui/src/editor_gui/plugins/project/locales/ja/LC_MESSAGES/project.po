@@ -565,12 +565,6 @@ msgstr "階段"
 msgid "New Function"
 msgstr "新しい機能"
 
-msgid "Rename"
-msgstr "名前を変更"
-
-msgid "Rename Function"
-msgstr "機能の名前を変更"
-
 msgid "Assign Group Address"
 msgstr "グループ・アドレスを割り当て"
 
@@ -1252,32 +1246,11 @@ msgstr "ログをコピー"
 msgid "New Group Address"
 msgstr "新しいグループ・アドレス"
 
-msgid "New Main Group"
-msgstr "新しいメイン・グループ"
-
-msgid "New Middle Group"
-msgstr "新しいミドル・グループ"
-
-msgid "New Folder"
-msgstr "新しいフォルダー"
-
-msgid "Rename Folder"
-msgstr "フォルダー名を変更"
-
 msgid "Delete Folder"
 msgstr "フォルダーを削除"
 
-msgid "Main group name (the next free number is assigned automatically)"
-msgstr "メイン・グループ名（次の空き番号が自動的に割り当てられます）"
-
-msgid "Middle group name (the next free number is assigned automatically)"
-msgstr "ミドル・グループ名（次の空き番号が自動的に割り当てられます）"
-
 msgid "Delete this folder and every group address in it? This can be undone."
 msgstr "このフォルダーとその中のすべてのグループ・アドレスを削除しますか？この操作は元に戻せます。"
-
-msgid "Rename Group Address"
-msgstr "グループ・アドレスの名前を変更"
 
 msgid "Invalid address or already in use."
 msgstr "無効なアドレスか、すでに使用されています。"
@@ -2886,3 +2859,24 @@ msgstr "{count} 個のミドルグループを '{target}' に追加しました�
 
 msgid "Added {count} group addresses to '{target}'."
 msgstr "{count} 個のグループアドレスを '{target}' に追加しました。"
+
+msgid "Add Main Groups…"
+msgstr "メイングループを追加…"
+
+msgid "Add Middle Groups…"
+msgstr "ミドルグループを追加…"
+
+msgid "Add Main Groups"
+msgstr "メイングループを追加"
+
+msgid "Add Middle Groups"
+msgstr "ミドルグループを追加"
+
+msgid "New main group"
+msgstr "新しいメイングループ"
+
+msgid "New middle group"
+msgstr "新しいミドルグループ"
+
+msgid "New group address"
+msgstr "新しいグループアドレス"

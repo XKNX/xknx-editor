@@ -565,12 +565,6 @@ msgstr "楼梯"
 msgid "New Function"
 msgstr "新功能"
 
-msgid "Rename"
-msgstr "重命名"
-
-msgid "Rename Function"
-msgstr "重命名功能"
-
 msgid "Assign Group Address"
 msgstr "分配组地址"
 
@@ -1252,32 +1246,11 @@ msgstr "复制日志"
 msgid "New Group Address"
 msgstr "新建组地址"
 
-msgid "New Main Group"
-msgstr "新建主组"
-
-msgid "New Middle Group"
-msgstr "新建中间组"
-
-msgid "New Folder"
-msgstr "新文件夹"
-
-msgid "Rename Folder"
-msgstr "重命名文件夹"
-
 msgid "Delete Folder"
 msgstr "删除文件夹"
 
-msgid "Main group name (the next free number is assigned automatically)"
-msgstr "主组名称（自动分配下一个空闲编号）"
-
-msgid "Middle group name (the next free number is assigned automatically)"
-msgstr "中间组名称（自动分配下一个空闲编号）"
-
 msgid "Delete this folder and every group address in it? This can be undone."
 msgstr "删除此文件夹及其中的所有组地址？此操作可以撤消。"
-
-msgid "Rename Group Address"
-msgstr "重命名组地址"
 
 msgid "Invalid address or already in use."
 msgstr "地址无效或已被使用。"
@@ -2886,3 +2859,24 @@ msgstr "已向“{target}”添加 {count} 个中间组。"
 
 msgid "Added {count} group addresses to '{target}'."
 msgstr "已向“{target}”添加 {count} 个组地址。"
+
+msgid "Add Main Groups…"
+msgstr "添加主组…"
+
+msgid "Add Middle Groups…"
+msgstr "添加中间组…"
+
+msgid "Add Main Groups"
+msgstr "添加主组"
+
+msgid "Add Middle Groups"
+msgstr "添加中间组"
+
+msgid "New main group"
+msgstr "新主组"
+
+msgid "New middle group"
+msgstr "新中间组"
+
+msgid "New group address"
+msgstr "新组地址"

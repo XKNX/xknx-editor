@@ -332,9 +332,6 @@ msgstr "Räume, Geräte, Funktionen filtern…"
 msgid "Unassigned ({count})"
 msgstr "Nicht zugewiesen ({count})"
 
-msgid "Rename"
-msgstr "Umbenennen"
-
 msgid "Delete"
 msgstr "Löschen"
 
@@ -361,9 +358,6 @@ msgstr "Abbrechen"
 
 msgid "New Group Address"
 msgstr "Neue Gruppenadresse"
-
-msgid "Rename Group Address"
-msgstr "Gruppenadresse umbenennen"
 
 msgid "Address"
 msgstr "Adresse"
@@ -969,26 +963,8 @@ msgstr "Treppenhaus"
 msgid "Without Space"
 msgstr "Ohne Bereich"
 
-msgid "New Main Group"
-msgstr "Neue Hauptgruppe"
-
-msgid "New Middle Group"
-msgstr "Neue Mittelgruppe"
-
-msgid "New Folder"
-msgstr "Neuer Ordner"
-
-msgid "Rename Folder"
-msgstr "Ordner umbenennen"
-
 msgid "Delete Folder"
 msgstr "Ordner löschen"
-
-msgid "Main group name (the next free number is assigned automatically)"
-msgstr "Name der Hauptgruppe (die nächste freie Nummer wird automatisch vergeben)"
-
-msgid "Middle group name (the next free number is assigned automatically)"
-msgstr "Name der Mittelgruppe (die nächste freie Nummer wird automatisch vergeben)"
 
 msgid "Delete this folder and every group address in it? This can be undone."
 msgstr "Diesen Ordner und alle enthaltenen Gruppenadressen löschen? Kann rückgängig gemacht werden."
@@ -1294,9 +1270,6 @@ msgstr "Applikationsprogramm wird geändert…"
 
 msgid "Delete Space"
 msgstr "Bereich löschen"
-
-msgid "Rename Function"
-msgstr "Funktion umbenennen"
 
 msgid "Load Reference File"
 msgstr "Referenzdatei laden"
@@ -3071,3 +3044,24 @@ msgstr "{count} Mittelgruppen in '{target}' eingefügt."
 
 msgid "Added {count} group addresses to '{target}'."
 msgstr "{count} Gruppenadressen in '{target}' eingefügt."
+
+msgid "Add Main Groups…"
+msgstr "Hauptgruppen hinzufügen…"
+
+msgid "Add Middle Groups…"
+msgstr "Mittelgruppen hinzufügen…"
+
+msgid "Add Main Groups"
+msgstr "Hauptgruppen hinzufügen"
+
+msgid "Add Middle Groups"
+msgstr "Mittelgruppen hinzufügen"
+
+msgid "New main group"
+msgstr "Neue Hauptgruppe"
+
+msgid "New middle group"
+msgstr "Neue Mittelgruppe"
+
+msgid "New group address"
+msgstr "Neue Gruppenadresse"

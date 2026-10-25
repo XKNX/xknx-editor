@@ -565,12 +565,6 @@ msgstr "Лестница"
 msgid "New Function"
 msgstr "Новая функция"
 
-msgid "Rename"
-msgstr "Переименовать"
-
-msgid "Rename Function"
-msgstr "Переименовать функцию"
-
 msgid "Assign Group Address"
 msgstr "Назначить групповой адрес"
 
@@ -1252,32 +1246,11 @@ msgstr "Копировать журнал"
 msgid "New Group Address"
 msgstr "Новый групповой адрес"
 
-msgid "New Main Group"
-msgstr "Новая главная группа"
-
-msgid "New Middle Group"
-msgstr "Новая средняя группа"
-
-msgid "New Folder"
-msgstr "Новая папка"
-
-msgid "Rename Folder"
-msgstr "Переименовать папку"
-
 msgid "Delete Folder"
 msgstr "Удалить папку"
 
-msgid "Main group name (the next free number is assigned automatically)"
-msgstr "Имя главной группы (следующий свободный номер назначается автоматически)"
-
-msgid "Middle group name (the next free number is assigned automatically)"
-msgstr "Имя средней группы (следующий свободный номер назначается автоматически)"
-
 msgid "Delete this folder and every group address in it? This can be undone."
 msgstr "Удалить эту папку и все групповые адреса в ней? Это действие можно отменить."
-
-msgid "Rename Group Address"
-msgstr "Переименовать групповой адрес"
 
 msgid "Invalid address or already in use."
 msgstr "Недопустимый адрес или он уже используется."
@@ -2886,3 +2859,24 @@ msgstr "Добавлено средних групп: {count} в '{target}'."
 
 msgid "Added {count} group addresses to '{target}'."
 msgstr "Добавлено групповых адресов: {count} в '{target}'."
+
+msgid "Add Main Groups…"
+msgstr "Добавить главные группы…"
+
+msgid "Add Middle Groups…"
+msgstr "Добавить средние группы…"
+
+msgid "Add Main Groups"
+msgstr "Добавить главные группы"
+
+msgid "Add Middle Groups"
+msgstr "Добавить средние группы"
+
+msgid "New main group"
+msgstr "Новая главная группа"
+
+msgid "New middle group"
+msgstr "Новая средняя группа"
+
+msgid "New group address"
+msgstr "Новый групповой адрес"

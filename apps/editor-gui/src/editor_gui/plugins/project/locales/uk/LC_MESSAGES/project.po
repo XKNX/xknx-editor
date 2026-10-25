@@ -565,12 +565,6 @@ msgstr "Сходи"
 msgid "New Function"
 msgstr "Нова функція"
 
-msgid "Rename"
-msgstr "Перейменувати"
-
-msgid "Rename Function"
-msgstr "Перейменувати функцію"
-
 msgid "Assign Group Address"
 msgstr "Призначити групову адресу"
 
@@ -1252,32 +1246,11 @@ msgstr "Копіювати журнал"
 msgid "New Group Address"
 msgstr "Нова групова адреса"
 
-msgid "New Main Group"
-msgstr "Нова головна група"
-
-msgid "New Middle Group"
-msgstr "Нова середня група"
-
-msgid "New Folder"
-msgstr "Нова папка"
-
-msgid "Rename Folder"
-msgstr "Перейменувати папку"
-
 msgid "Delete Folder"
 msgstr "Видалити папку"
 
-msgid "Main group name (the next free number is assigned automatically)"
-msgstr "Ім'я головної групи (наступний вільний номер призначається автоматично)"
-
-msgid "Middle group name (the next free number is assigned automatically)"
-msgstr "Ім'я середньої групи (наступний вільний номер призначається автоматично)"
-
 msgid "Delete this folder and every group address in it? This can be undone."
 msgstr "Видалити цю папку та всі групові адреси в ній? Цю дію можна скасувати."
-
-msgid "Rename Group Address"
-msgstr "Перейменувати групову адресу"
 
 msgid "Invalid address or already in use."
 msgstr "Неприпустима адреса або вона вже використовується."
@@ -2886,3 +2859,24 @@ msgstr "Додано середніх груп: {count} до '{target}'."
 
 msgid "Added {count} group addresses to '{target}'."
 msgstr "Додано групових адрес: {count} до '{target}'."
+
+msgid "Add Main Groups…"
+msgstr "Додати головні групи…"
+
+msgid "Add Middle Groups…"
+msgstr "Додати середні групи…"
+
+msgid "Add Main Groups"
+msgstr "Додати головні групи"
+
+msgid "Add Middle Groups"
+msgstr "Додати середні групи"
+
+msgid "New main group"
+msgstr "Нова головна група"
+
+msgid "New middle group"
+msgstr "Нова середня група"
+
+msgid "New group address"
+msgstr "Нова групова адреса"

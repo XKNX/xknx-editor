@@ -565,12 +565,6 @@ msgstr "Trappuppgång"
 msgid "New Function"
 msgstr "Ny funktion"
 
-msgid "Rename"
-msgstr "Byt namn"
-
-msgid "Rename Function"
-msgstr "Byt namn på funktion"
-
 msgid "Assign Group Address"
 msgstr "Tilldela gruppadress"
 
@@ -1252,32 +1246,11 @@ msgstr "Kopiera logg"
 msgid "New Group Address"
 msgstr "Ny gruppadress"
 
-msgid "New Main Group"
-msgstr "Ny huvudgrupp"
-
-msgid "New Middle Group"
-msgstr "Ny mellangrupp"
-
-msgid "New Folder"
-msgstr "Ny mapp"
-
-msgid "Rename Folder"
-msgstr "Byt namn på mapp"
-
 msgid "Delete Folder"
 msgstr "Ta bort mapp"
 
-msgid "Main group name (the next free number is assigned automatically)"
-msgstr "Huvudgruppens namn (nästa lediga nummer tilldelas automatiskt)"
-
-msgid "Middle group name (the next free number is assigned automatically)"
-msgstr "Mellangruppens namn (nästa lediga nummer tilldelas automatiskt)"
-
 msgid "Delete this folder and every group address in it? This can be undone."
 msgstr "Ta bort den här mappen och alla gruppadresser i den? Detta kan ångras."
-
-msgid "Rename Group Address"
-msgstr "Byt namn på gruppadress"
 
 msgid "Invalid address or already in use."
 msgstr "Ogiltig adress eller används redan."
@@ -2886,3 +2859,24 @@ msgstr "{count} mellangrupper tillagda i '{target}'."
 
 msgid "Added {count} group addresses to '{target}'."
 msgstr "{count} gruppadresser tillagda i '{target}'."
+
+msgid "Add Main Groups…"
+msgstr "Lägg till huvudgrupper…"
+
+msgid "Add Middle Groups…"
+msgstr "Lägg till mellangrupper…"
+
+msgid "Add Main Groups"
+msgstr "Lägg till huvudgrupper"
+
+msgid "Add Middle Groups"
+msgstr "Lägg till mellangrupper"
+
+msgid "New main group"
+msgstr "Ny huvudgrupp"
+
+msgid "New middle group"
+msgstr "Ny mellangrupp"
+
+msgid "New group address"
+msgstr "Ny gruppadress"

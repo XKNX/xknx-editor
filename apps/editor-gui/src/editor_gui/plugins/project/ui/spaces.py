@@ -140,10 +140,6 @@ def _new_function_dialog(space_id: int) -> str:
     return f"{S.SPACES_FN_NEW_TITLE}###newfn{space_id}"
 
 
-def _rename_function_dialog(function_id: int) -> str:
-    return f"{S.SPACES_FN_RENAME_TITLE}###renfn{function_id}"
-
-
 def _add_function_ga_dialog(function_id: int) -> str:
     return f"{S.SPACES_FN_ADD_GA}###addfnga{function_id}"
 
@@ -156,7 +152,6 @@ class SpacesPanel:
         on_create_function: Callable[[int, str, str], object] | None = None,
         on_remove_function: Callable[[int], None] | None = None,
         on_move_function: Callable[[int, int], None] | None = None,
-        on_rename_function: Callable[[int, str], None] | None = None,
         on_set_function_type: Callable[[int, str], None] | None = None,
         on_add_function_ga: Callable[[int, int, str], object] | None = None,
         on_remove_function_ga: Callable[[int], None] | None = None,
@@ -222,7 +217,6 @@ class SpacesPanel:
         self._on_create_function = on_create_function
         self._on_remove_function = on_remove_function
         self._on_move_function = on_move_function
-        self._on_rename_function = on_rename_function
         self._on_set_function_type = on_set_function_type
         self._on_add_function_ga = on_add_function_ga
         self._on_remove_function_ga = on_remove_function_ga
@@ -253,9 +247,7 @@ class SpacesPanel:
         self._new_fn_type = (
             _DEFAULT_FUNCTION_TYPE  # index into _function_type_presets()
         )
-        # "Rename function" + "assign group address" dialog state.
-        self._rename_fn: int | None = None
-        self._rename_buf = ""
+        # "Assign group address" dialog state.
         self._addga_fn: int | None = None
         self._addga_role = ""
         self._addga_filter = ""
@@ -1185,12 +1177,12 @@ class SpacesPanel:
             self._selected_function = function.id
             self._selected_trade = None
             self._on_select_element("function", function.id)
-        editable = self._on_rename_function is not None
+        editable = (
+            self._on_move_function is not None
+            or self._on_remove_function is not None
+            or self._paste_dialog is not None
+        )
         if editable and context_menu(f"##fnctx{function.id}"):
-            if imgui.menu_item(S.SPACES_FN_RENAME, "", False)[0]:
-                self._rename_fn = function.id
-                self._rename_buf = function.name
-                self._pending_popup_id = _rename_function_dialog(function.id)
             if self._on_move_function is not None:
                 # Into any other space.
                 targets = [
@@ -1217,8 +1209,6 @@ class SpacesPanel:
             imgui.end_popup()
         if self._on_move_function is not None:
             drag_source(Dragged("function", (function.id,)), label)
-        self._open_if_pending(_rename_function_dialog(function.id))
-        self._render_rename_popup(function.id)
         if not open_node:
             return
         for ref in function.group_addresses:
@@ -1236,19 +1226,6 @@ class SpacesPanel:
                 imgui.open_popup(_add_function_ga_dialog(function.id))
             self._render_addga_popup(function.id)
         imgui.tree_pop()
-
-    def _render_rename_popup(self, function_id: int) -> None:
-        if not begin_dialog(_rename_function_dialog(function_id)):
-            return
-        imgui.set_next_item_width(px(240.0))
-        _, self._rename_buf = imgui.input_text(S.SPACES_FN_NAME, self._rename_buf)
-        clicked = dialog_buttons(S.SPACES_FN_RENAME, S.ML_CANCEL)
-        if clicked == 0 and self._on_rename_function is not None:
-            self._on_rename_function(function_id, self._rename_buf.strip())
-            imgui.close_current_popup()
-        elif clicked == 1:
-            imgui.close_current_popup()
-        end_dialog()
 
     def _render_addga_popup(self, function_id: int) -> None:
         if not begin_dialog(_add_function_ga_dialog(function_id)):

@@ -565,12 +565,6 @@ msgstr "Merdiven"
 msgid "New Function"
 msgstr "Yeni Fonksiyon"
 
-msgid "Rename"
-msgstr "Yeniden adlandır"
-
-msgid "Rename Function"
-msgstr "Fonksiyonu Yeniden Adlandır"
-
 msgid "Assign Group Address"
 msgstr "Grup Adresi Ata"
 
@@ -1252,32 +1246,11 @@ msgstr "Günlüğü Kopyala"
 msgid "New Group Address"
 msgstr "Yeni Grup Adresi"
 
-msgid "New Main Group"
-msgstr "Yeni Ana Grup"
-
-msgid "New Middle Group"
-msgstr "Yeni Orta Grup"
-
-msgid "New Folder"
-msgstr "Yeni Klasör"
-
-msgid "Rename Folder"
-msgstr "Klasörü Yeniden Adlandır"
-
 msgid "Delete Folder"
 msgstr "Klasörü Sil"
 
-msgid "Main group name (the next free number is assigned automatically)"
-msgstr "Ana grup adı (sonraki boş numara otomatik atanır)"
-
-msgid "Middle group name (the next free number is assigned automatically)"
-msgstr "Orta grup adı (sonraki boş numara otomatik atanır)"
-
 msgid "Delete this folder and every group address in it? This can be undone."
 msgstr "Bu klasör ve içindeki tüm grup adresleri silinsin mi? Bu işlem geri alınabilir."
-
-msgid "Rename Group Address"
-msgstr "Grup Adresini Yeniden Adlandır"
 
 msgid "Invalid address or already in use."
 msgstr "Geçersiz adres veya zaten kullanılıyor."
@@ -2886,3 +2859,24 @@ msgstr "{count} orta grup '{target}' konumuna eklendi."
 
 msgid "Added {count} group addresses to '{target}'."
 msgstr "{count} grup adresi '{target}' konumuna eklendi."
+
+msgid "Add Main Groups…"
+msgstr "Ana Grup Ekle…"
+
+msgid "Add Middle Groups…"
+msgstr "Orta Grup Ekle…"
+
+msgid "Add Main Groups"
+msgstr "Ana Grup Ekle"
+
+msgid "Add Middle Groups"
+msgstr "Orta Grup Ekle"
+
+msgid "New main group"
+msgstr "Yeni ana grup"
+
+msgid "New middle group"
+msgstr "Yeni orta grup"
+
+msgid "New group address"
+msgstr "Yeni grup adresi"

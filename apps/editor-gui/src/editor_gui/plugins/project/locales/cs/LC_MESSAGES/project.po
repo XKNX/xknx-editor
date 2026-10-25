@@ -565,12 +565,6 @@ msgstr "Schodiště"
 msgid "New Function"
 msgstr "Nová funkce"
 
-msgid "Rename"
-msgstr "Přejmenovat"
-
-msgid "Rename Function"
-msgstr "Přejmenovat funkci"
-
 msgid "Assign Group Address"
 msgstr "Přiřadit skupinovou adresu"
 
@@ -1252,32 +1246,11 @@ msgstr "Kopírovat protokol"
 msgid "New Group Address"
 msgstr "Nová skupinová adresa"
 
-msgid "New Main Group"
-msgstr "Nová hlavní skupina"
-
-msgid "New Middle Group"
-msgstr "Nová střední skupina"
-
-msgid "New Folder"
-msgstr "Nová složka"
-
-msgid "Rename Folder"
-msgstr "Přejmenovat složku"
-
 msgid "Delete Folder"
 msgstr "Odstranit složku"
 
-msgid "Main group name (the next free number is assigned automatically)"
-msgstr "Název hlavní skupiny (další volné číslo se přidělí automaticky)"
-
-msgid "Middle group name (the next free number is assigned automatically)"
-msgstr "Název střední skupiny (další volné číslo se přidělí automaticky)"
-
 msgid "Delete this folder and every group address in it? This can be undone."
 msgstr "Odstranit tuto složku a všechny skupinové adresy v ní? Tuto akci lze vrátit zpět."
-
-msgid "Rename Group Address"
-msgstr "Přejmenovat skupinovou adresu"
 
 msgid "Invalid address or already in use."
 msgstr "Neplatná adresa nebo už je použita."
@@ -2886,3 +2859,24 @@ msgstr "{count} středních skupin přidáno do '{target}'."
 
 msgid "Added {count} group addresses to '{target}'."
 msgstr "{count} skupinových adres přidáno do '{target}'."
+
+msgid "Add Main Groups…"
+msgstr "Přidat hlavní skupiny…"
+
+msgid "Add Middle Groups…"
+msgstr "Přidat střední skupiny…"
+
+msgid "Add Main Groups"
+msgstr "Přidat hlavní skupiny"
+
+msgid "Add Middle Groups"
+msgstr "Přidat střední skupiny"
+
+msgid "New main group"
+msgstr "Nová hlavní skupina"
+
+msgid "New middle group"
+msgstr "Nová střední skupina"
+
+msgid "New group address"
+msgstr "Nová skupinová adresa"

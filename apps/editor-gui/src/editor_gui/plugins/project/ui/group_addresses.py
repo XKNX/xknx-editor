@@ -6,7 +6,6 @@ Topology panel); a secured group address, and a group whose Security is on, show
 Secure shield. Address, data type and security are changed in the details."""
 
 from collections.abc import Callable
-from contextlib import AbstractContextManager, nullcontext
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -18,6 +17,15 @@ from editor_gui.device import com_object_display_name
 from editor_gui.plugins.project.paste import PasteTarget
 from editor_gui.plugins.project.strings import S
 from editor_gui.plugins.project.ui._filter import filter_box
+from editor_gui.plugins.project.ui.add_dialog import (
+    AddDialog,
+    AddRequest,
+    AddRow,
+    UndoStep,
+    add_rows,
+    no_undo_step,
+    start_add,
+)
 from editor_gui.plugins.project.ui.group_value import GroupValueActions
 from editor_gui.plugins.project.ui.move_menu import render_move_menu
 from editor_gui.plugins.project.ui.paste_special import (
@@ -37,6 +45,7 @@ from editor_gui.widgets.tree import (
     leaf_rows,
     tree_node,
 )
+from xknxeditor.proj.core.paste import AddressPool
 from xknxeditor.proj.core.rich_text import parse_rich_text, plain_text
 
 if TYPE_CHECKING:
@@ -45,6 +54,10 @@ if TYPE_CHECKING:
     from xknxeditor.proj.core.addressing import GroupAddressStyle
     from xknxeditor.proj.core.service import GroupRangeInfo
 
+
+# The most main groups (0 to 31) and middle groups of a main group (0 to 7).
+_MAIN_GROUPS = 32
+_MIDDLE_GROUPS = 8
 
 # Accent colour for the last value a group address was seen carrying on the bus, as (on dark
 # themes, on light themes).
@@ -65,11 +78,9 @@ class GroupAddressesPanel:
         get_assignments_for_ga: "Callable[[int], list[Assignment]]",
         get_devices: "Callable[[], list[Device]]",
         on_create_ga: Callable[[str, str], None],
-        on_rename_ga: Callable[[int, str], None],
         on_remove_ga: Callable[[int], None],
         take_requested_ga: Callable[[], int | None] | None = None,
-        on_create_range: Callable[[int | None, str], object] | None = None,
-        on_rename_range: Callable[[int, str], None] | None = None,
+        on_create_range: Callable[[int | None, str, int | None], object] | None = None,
         on_remove_range: Callable[[int], None] | None = None,
         group_style: "Callable[[], GroupAddressStyle] | None" = None,
         on_select_device_id: Callable[[int], None] | None = None,
@@ -82,15 +93,19 @@ class GroupAddressesPanel:
         on_move_ga: Callable[[int, int], str | None] | None = None,
         on_move_range: Callable[[int, int], str | None] | None = None,
         notify: Callable[[str], None] = lambda _text: None,
-        one_undo_step: Callable[[], AbstractContextManager[None]] = nullcontext,
+        one_undo_step: UndoStep = no_undo_step,
         paste_dialog: PasteSpecialDialog | None = None,
     ) -> None:
-        """``on_move_ga`` puts a group address into another group, ``on_move_range`` a middle
+        """``on_create_range`` adds a main group (parent None) or a middle group below a main
+        group, with a name and a number (None: the next free one), giving its id or None.
+        ``on_move_ga`` puts a group address into another group, ``on_move_range`` a middle
         group below another main group ("Move to"); both give the reason it cannot be, which
         ``notify`` shows. ``one_undo_step`` makes the edits of one drop one undo step;
         ``paste_dialog`` asks how to copy what is dropped with Ctrl held (no copies without
         it)."""
         self._one_undo_step = one_undo_step
+        # The "Add …" dialog of main groups, middle groups and group addresses.
+        self._adder = AddDialog("group_addresses")
         self._paste_dialog = paste_dialog
         self._on_move_ga = on_move_ga
         self._on_move_range = on_move_range
@@ -104,10 +119,8 @@ class GroupAddressesPanel:
         self._get_assignments_for_ga = get_assignments_for_ga
         self._get_devices = get_devices
         self._on_create_ga = on_create_ga
-        self._on_rename_ga = on_rename_ga
         self._on_remove_ga = on_remove_ga
         self._on_create_range = on_create_range
-        self._on_rename_range = on_rename_range
         self._on_remove_range = on_remove_range
         self._group_style = group_style
         self._on_select_device_id = on_select_device_id
@@ -134,20 +147,14 @@ class GroupAddressesPanel:
         self._selected_ga_description: str = ""
         self._selected_ga_comment: str = ""
         # Modal state.
-        self._popup_ga_id: int = 0
         self._popup_address: str = ""
         self._popup_name: str = ""
         self._open_new_ga = False
-        self._open_rename_ga = False
         self._group_value = (
             GroupValueActions(bus, "ga_write_value") if bus is not None else None
         )
         # Group-range (folder) modal state.
         self._popup_range_id: int = 0
-        self._popup_range_parent: int | None = None
-        self._popup_range_name: str = ""
-        self._open_new_range = False
-        self._open_rename_range = False
         self._open_delete_range = False
 
     def render(self) -> None:
@@ -175,10 +182,8 @@ class GroupAddressesPanel:
             self._open_new_ga = True
         if self._folders_enabled():
             imgui.same_line()
-            if imgui.small_button(S.GA_NEW_MAIN):
-                self._popup_range_parent = None
-                self._popup_range_name = ""
-                self._open_new_range = True
+            if imgui.small_button(S.GA_ADD_MAIN_GROUPS):
+                self._start_add_main_groups(tree)
         if self._on_export is not None:
             imgui.same_line()
             if imgui.small_button(S.GA_EXPORT_BUTTON):
@@ -191,24 +196,13 @@ class GroupAddressesPanel:
         if self._open_new_ga:
             imgui.open_popup(S.GA_NEW)
             self._open_new_ga = False
-        if self._open_rename_ga:
-            imgui.open_popup(S.GA_RENAME)
-            self._open_rename_ga = False
-        if self._open_new_range:
-            imgui.open_popup(S.GA_FOLDER_NEW)
-            self._open_new_range = False
-        if self._open_rename_range:
-            imgui.open_popup(S.GA_FOLDER_RENAME)
-            self._open_rename_range = False
         if self._open_delete_range:
             imgui.open_popup(S.GA_FOLDER_DELETE)
             self._open_delete_range = False
         self._render_new_ga_popup()
-        self._render_rename_popup()
         if self._group_value is not None:
             self._group_value.render()
-        self._render_new_range_popup()
-        self._render_rename_range_popup()
+        self._adder.render()
         self._render_delete_range_popup()
         if self._paste_dialog is not None:
             self._paste_dialog.render()
@@ -247,10 +241,11 @@ class GroupAddressesPanel:
             self._popup_address = ""
             self._popup_name = ""
             self._open_new_ga = True
-        if self._folders_enabled() and imgui.menu_item(S.GA_NEW_MAIN, "", False)[0]:
-            self._popup_range_parent = None
-            self._popup_range_name = ""
-            self._open_new_range = True
+        if (
+            self._folders_enabled()
+            and imgui.menu_item(S.GA_ADD_MAIN_GROUPS, "", False)[0]
+        ):
+            self._start_add_main_groups(self._get_range_tree())
         if self._on_export is not None or self._on_import is not None:
             imgui.separator()
         if (
@@ -508,10 +503,6 @@ class GroupAddressesPanel:
         # ga is a core GroupAddressInfo (id, text, name, datapoint_type, …).
         if not context_menu(f"##ga_ctx_{ga.id}"):  # type: ignore[attr-defined]
             return
-        if imgui.menu_item(S.CONTEXT_RENAME, "", False)[0]:
-            self._popup_ga_id = ga.id  # type: ignore[attr-defined]
-            self._popup_name = ga.name  # type: ignore[attr-defined]
-            self._open_rename_ga = True
         if imgui.menu_item(S.CONTEXT_COPY_ADDRESS, "", False)[0]:
             imgui.set_clipboard_text(getattr(ga, "text", "") or "")
         self._render_move_ga_menu(ga.id)  # type: ignore[attr-defined]
@@ -601,47 +592,24 @@ class GroupAddressesPanel:
             and self._group_style() is GroupAddressStyle.THREE_LEVEL
         )
 
-    def _next_free_text(self, node: "GroupRangeInfo") -> str:
-        """The lowest unused address in ``node``'s window, formatted; empty when it is full."""
-        from xknxeditor.proj.core.addressing import GroupAddressStyle, format_ga
-
-        used = {ga.address for ga in node.group_addresses}
-        style = (
-            self._group_style()
-            if self._group_style is not None
-            else GroupAddressStyle.THREE_LEVEL
-        )
-        for address in range(max(1, node.range_start), node.range_end + 1):
-            if address not in used:
-                return format_ga(address, style)
-        return ""
-
     def _render_range_context_menu(self, node: "GroupRangeInfo", is_root: bool) -> None:
-        if self._on_rename_range is None:  # folder editing disabled
-            return
+        if self._on_create_range is None and self._on_remove_range is None:
+            return  # folder editing disabled
         if not context_menu(f"##gr_ctx_{node.id}"):
             return
         # Group addresses live in middle groups (ThreeLevel) or main groups (TwoLevel).
         if (
             not (is_root and self._middle_enabled())
-            and imgui.menu_item(S.GA_NEW, "", False)[0]
+            and imgui.menu_item(S.GA_ADD_GROUP_ADDRESSES, "", False)[0]
         ):
-            self._popup_address = self._next_free_text(node)
-            self._popup_name = ""
-            self._open_new_ga = True
+            self._start_add_group_addresses(node)
         # A middle group can only be added under a top-level (main) group, ThreeLevel only.
         if (
             is_root
             and self._middle_enabled()
-            and imgui.menu_item(S.GA_NEW_MIDDLE, "", False)[0]
+            and imgui.menu_item(S.GA_ADD_MIDDLE_GROUPS, "", False)[0]
         ):
-            self._popup_range_parent = node.id
-            self._popup_range_name = ""
-            self._open_new_range = True
-        if imgui.menu_item(S.CONTEXT_RENAME, "", False)[0]:
-            self._popup_range_id = node.id
-            self._popup_range_name = node.name
-            self._open_rename_range = True
+            self._start_add_middle_groups(node)
         if not is_root:
             self._render_move_range_menu(node.id)
         if self._paste_dialog is not None:
@@ -657,46 +625,170 @@ class GroupAddressesPanel:
                 self._open_delete_range = True
         imgui.end_popup()
 
-    def _render_new_range_popup(self) -> None:
+    def _style(self) -> "GroupAddressStyle":
+        from xknxeditor.proj.core.addressing import GroupAddressStyle
+
+        if self._group_style is None:
+            return GroupAddressStyle.THREE_LEVEL
+        return self._group_style()
+
+    def _start_add_main_groups(self, tree: "list[GroupRangeInfo]") -> None:
+        """ "Add Main Groups": numbers 0 to 31, at most 32 main groups."""
+        target = S.PANEL_GROUP_ADDRESSES
+
+        def add(request: AddRequest) -> None:
+            used = {node.range_start >> 11 for node in self._get_range_tree()}
+            self._add_groups(
+                request, None, used, 31, S.GA_DEFAULT_MAIN_GROUP, target, main=True
+            )
+
+        start_add(
+            lambda: self._adder.open(
+                S.GA_TITLE_MAIN_GROUPS,
+                target,
+                add,
+                default_name=S.GA_DEFAULT_MAIN_GROUP,
+                numbered=True,
+                start_minimum=0,
+                start_maximum=31,
+                limit=_MAIN_GROUPS - len(tree),
+            ),
+            add,
+            self._notify,
+        )
+
+    def _start_add_middle_groups(self, node: "GroupRangeInfo") -> None:
+        """ "Add Middle Groups" below a main group: numbers 0 to 7, at most 8."""
+        target = f"{node.address} {node.name}".strip()
+
+        def add(request: AddRequest) -> None:
+            main = next((n for n in self._get_range_tree() if n.id == node.id), node)
+            used = {(child.range_start >> 8) & 7 for child in main.children}
+            self._add_groups(
+                request, node.id, used, 7, S.GA_DEFAULT_MIDDLE_GROUP, target, main=False
+            )
+
+        start_add(
+            lambda: self._adder.open(
+                S.GA_TITLE_MIDDLE_GROUPS,
+                target,
+                add,
+                default_name=S.GA_DEFAULT_MIDDLE_GROUP,
+                numbered=True,
+                start_minimum=0,
+                start_maximum=7,
+                limit=_MIDDLE_GROUPS - len(node.children),
+            ),
+            add,
+            self._notify,
+        )
+
+    def _add_groups(
+        self,
+        request: AddRequest,
+        parent: int | None,
+        used: set[int],
+        highest: int,
+        default: str,
+        target: str,
+        *,
+        main: bool,
+    ) -> None:
         if self._on_create_range is None:
             return
-        if not begin_dialog(S.GA_FOLDER_NEW):
-            return
-        imgui.text_disabled(
-            S.GA_FOLDER_MAIN_HINT
-            if self._popup_range_parent is None
-            else S.GA_FOLDER_MIDDLE_HINT
+        create = self._on_create_range
+        pool = AddressPool(
+            0,
+            highest,
+            used,
+            request.allocation,
+            start_with=request.start_with,
+            skip_zero=False,
         )
-        imgui.set_next_item_width(px(220.0))
-        _, self._popup_range_name = imgui.input_text(
-            "##gr_new_name", self._popup_range_name
-        )
-        clicked = dialog_buttons(S.BTN_OK, S.BTN_CANCEL)
-        if clicked == 0:
-            self._on_create_range(
-                self._popup_range_parent, self._popup_range_name.strip()
-            )
-            imgui.close_current_popup()
-        if clicked == 1:
-            imgui.close_current_popup()
-        end_dialog()
 
-    def _render_rename_range_popup(self) -> None:
-        if self._on_rename_range is None:
-            return
-        if not begin_dialog(S.GA_FOLDER_RENAME):
-            return
-        imgui.set_next_item_width(px(220.0))
-        _, self._popup_range_name = imgui.input_text(
-            "##gr_rename", self._popup_range_name
+        def add(row: AddRow) -> str | None:
+            number = pool.take()
+            if number is None:
+                return S.ADD_LIMIT_REACHED
+            created = create(parent, row.name.strip() or default, number)
+            return None if created is not None else S.ADD_LIMIT_REACHED
+
+        add_rows(
+            request,
+            S.HISTORY_EV_ADDED_MAIN_GROUPS
+            if main
+            else S.HISTORY_EV_ADDED_MIDDLE_GROUPS,
+            target,
+            add,
+            self._one_undo_step,
+            self._notify,
         )
-        clicked = dialog_buttons(S.BTN_OK, S.BTN_CANCEL)
-        if clicked == 0:
-            self._on_rename_range(self._popup_range_id, self._popup_range_name.strip())
-            imgui.close_current_popup()
-        if clicked == 1:
-            imgui.close_current_popup()
-        end_dialog()
+
+    def _start_add_group_addresses(self, node: "GroupRangeInfo") -> None:
+        """ "Add Group Addresses" to a middle group (a main group in two-level style): "Start
+        with" is the address within the group."""
+        from xknxeditor.proj.core.addressing import format_ga
+        from xknxeditor.proj.core.paste import group_base
+
+        style = self._style()
+        base = group_base(node.range_start, style)
+        target = f"{node.address} {node.name}".strip()
+
+        def add(request: AddRequest) -> None:
+            group = self._find_range(node.id) or node
+            pool = AddressPool(
+                group.range_start,
+                group.range_end,
+                (ga.address for ga in group.group_addresses),
+                request.allocation,
+                start_with=request.start_with,
+                base=base,
+            )
+
+            def add_one(row: AddRow) -> str | None:
+                address = pool.take()
+                if address is None:
+                    return S.ADD_LIMIT_REACHED
+                self._on_create_ga(
+                    format_ga(address, style),
+                    row.name.strip() or S.GA_DEFAULT_GROUP_ADDRESS,
+                )
+                return None
+
+            add_rows(
+                request,
+                S.HISTORY_EV_ADDED_GROUP_ADDRESSES,
+                target,
+                add_one,
+                self._one_undo_step,
+                self._notify,
+            )
+
+        size = node.range_end - node.range_start + 1
+        start_add(
+            lambda: self._adder.open(
+                S.GA_TITLE_GROUP_ADDRESSES,
+                target,
+                add,
+                default_name=S.GA_DEFAULT_GROUP_ADDRESS,
+                numbered=True,
+                start_minimum=0,
+                start_maximum=node.range_end - base,
+                limit=size - len(node.group_addresses),
+            ),
+            add,
+            self._notify,
+        )
+
+    def _find_range(self, range_id: int) -> "GroupRangeInfo | None":
+        """The group ``range_id`` as the tree shows it now."""
+        stack = list(self._get_range_tree())
+        while stack:
+            node = stack.pop()
+            if node.id == range_id:
+                return node
+            stack.extend(node.children)
+        return None
 
     def _render_delete_range_popup(self) -> None:
         if self._on_remove_range is None:
@@ -726,19 +818,6 @@ class GroupAddressesPanel:
         clicked = dialog_buttons(S.BTN_OK, S.BTN_CANCEL)
         if clicked == 0 and self._popup_address.strip():
             self._on_create_ga(self._popup_address.strip(), self._popup_name)
-            imgui.close_current_popup()
-        if clicked == 1:
-            imgui.close_current_popup()
-        end_dialog()
-
-    def _render_rename_popup(self) -> None:
-        if not begin_dialog(S.GA_RENAME):
-            return
-        imgui.set_next_item_width(px(220.0))
-        _, self._popup_name = imgui.input_text("##ga_rename", self._popup_name)
-        clicked = dialog_buttons(S.BTN_OK, S.BTN_CANCEL)
-        if clicked == 0:
-            self._on_rename_ga(self._popup_ga_id, self._popup_name)
             imgui.close_current_popup()
         if clicked == 1:
             imgui.close_current_popup()

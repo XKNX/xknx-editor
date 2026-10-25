@@ -232,10 +232,8 @@ class ProjectPlugin:
             on_move_device=self._on_move_device,
             on_create_area=self._on_create_area,
             on_remove_area=self._on_remove_area,
-            on_rename_area=self._on_rename_area,
             on_create_line=self._on_create_line,
             on_remove_line=self._on_remove_line,
-            on_rename_line=self._on_rename_line,
             get_selected_node_id=self._selected_node_id,
             on_select_devices=self._on_select_devices,
             get_selected_node_ids=lambda: api.project.selected_node_ids,
@@ -397,11 +395,9 @@ class ProjectPlugin:
             get_assignments_for_ga=api.project.get_assignments_for_ga,
             get_devices=lambda: api.project.devices,
             on_create_ga=self._on_create_ga,
-            on_rename_ga=api.project.rename_group_address,
             on_remove_ga=api.project.remove_group_address,
             take_requested_ga=api.project.take_requested_group_address,
             on_create_range=api.project.create_group_range,
-            on_rename_range=api.project.rename_group_range,
             on_remove_range=api.project.remove_group_range,
             group_style=lambda: api.project.group_address_style,
             on_select_device_id=self._select_device_by_id,
@@ -465,7 +461,6 @@ class ProjectPlugin:
             on_create_function=api.project.create_function,
             on_remove_function=api.project.remove_function,
             on_move_function=api.project.move_function,
-            on_rename_function=api.project.rename_function,
             on_set_function_type=api.project.set_function_type,
             on_add_function_ga=api.project.add_function_group_address,
             on_remove_function_ga=api.project.remove_function_group_address,
@@ -771,10 +766,6 @@ class ProjectPlugin:
     def _on_remove_area(self, area: Area) -> None:
         self._api.project.remove_area(area.id, area.number, area.name)
 
-    def _on_rename_area(self, area: Area, new_name: str) -> None:
-        if area.name != new_name:
-            self._api.project.rename_area(area.id, area.name, new_name)
-
     def _on_create_line(
         self, area_id: int, line_number: int, name: str, medium: str
     ) -> str | None:
@@ -789,10 +780,6 @@ class ProjectPlugin:
 
     def _on_remove_line(self, line: Line) -> None:
         self._api.project.remove_line(line.id, line.area_id, line.number, line.name)
-
-    def _on_rename_line(self, line: Line, new_name: str) -> None:
-        if line.name != new_name:
-            self._api.project.rename_line(line.id, line.name, new_name)
 
     def _on_move_device(
         self, device: "Device", area_number: int, line_number: int

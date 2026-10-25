@@ -5853,12 +5853,17 @@ class ProjectService:
         self._svc.remove_group_address(self._pid, ga_id)
         self._bump(structural=False)
 
-    def create_group_range(self, parent_id: int | None, name: str) -> int | None:
+    def create_group_range(
+        self, parent_id: int | None, name: str, number: int | None = None
+    ) -> int | None:
         """Create an empty group-range folder (main group when ``parent_id`` is ``None``, else a
-        middle group under it). Returns ``None`` when the style has no such folder or it is full."""
+        middle group under it), numbered ``number`` (None: the next free one). Returns ``None``
+        when the style has no such folder, it is full or ``number`` is taken."""
         if self._pid is None:
             return None
-        rid = self._svc.create_group_range(self._pid, _INSTALLATION, parent_id, name)
+        rid = self._svc.create_group_range(
+            self._pid, _INSTALLATION, parent_id, name, number
+        )
         self._bump(structural=False)
         return rid
 

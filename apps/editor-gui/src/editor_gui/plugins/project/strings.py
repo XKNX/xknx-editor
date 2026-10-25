@@ -1703,14 +1703,6 @@ class ProjectStrings:
         return _("Create")
 
     @property
-    def SPACES_FN_RENAME(self) -> str:
-        return _("Rename")
-
-    @property
-    def SPACES_FN_RENAME_TITLE(self) -> str:
-        return _("Rename Function")
-
-    @property
     def SPACES_FN_DELETE(self) -> str:
         return _("Delete")
 
@@ -2871,10 +2863,6 @@ class ProjectStrings:
         return _("Added {count} group addresses to '{target}'.")
 
     @property
-    def CONTEXT_RENAME(self) -> str:
-        return _("Rename")
-
-    @property
     def CONTEXT_DELETE(self) -> str:
         return _("Delete")
 
@@ -2994,10 +2982,6 @@ class ProjectStrings:
         )
 
     @property
-    def POPUP_RENAME(self) -> str:
-        return _("Rename")
-
-    @property
     def POPUP_NAME(self) -> str:
         return _("Name")
 
@@ -3030,42 +3014,51 @@ class ProjectStrings:
         return _("New Group Address")
 
     @property
-    def GA_NEW_MAIN(self) -> str:
-        return _("New Main Group")
+    def GA_ADD_MAIN_GROUPS(self) -> str:
+        return _("Add Main Groups…")
 
     @property
-    def GA_NEW_MIDDLE(self) -> str:
-        return _("New Middle Group")
+    def GA_ADD_MIDDLE_GROUPS(self) -> str:
+        return _("Add Middle Groups…")
 
     @property
-    def GA_FOLDER_NEW(self) -> str:
-        return _("New Folder")
+    def GA_ADD_GROUP_ADDRESSES(self) -> str:
+        return _("Add Group Addresses…")
 
     @property
-    def GA_FOLDER_RENAME(self) -> str:
-        return _("Rename Folder")
+    def GA_TITLE_MAIN_GROUPS(self) -> str:
+        return _("Add Main Groups")
+
+    @property
+    def GA_TITLE_MIDDLE_GROUPS(self) -> str:
+        return _("Add Middle Groups")
+
+    @property
+    def GA_TITLE_GROUP_ADDRESSES(self) -> str:
+        return _("Add Group Addresses")
+
+    @property
+    def GA_DEFAULT_MAIN_GROUP(self) -> str:
+        # The name a new main group gets when none is entered.
+        return _("New main group")
+
+    @property
+    def GA_DEFAULT_MIDDLE_GROUP(self) -> str:
+        return _("New middle group")
+
+    @property
+    def GA_DEFAULT_GROUP_ADDRESS(self) -> str:
+        return _("New group address")
 
     @property
     def GA_FOLDER_DELETE(self) -> str:
         return _("Delete Folder")
 
     @property
-    def GA_FOLDER_MAIN_HINT(self) -> str:
-        return _("Main group name (the next free number is assigned automatically)")
-
-    @property
-    def GA_FOLDER_MIDDLE_HINT(self) -> str:
-        return _("Middle group name (the next free number is assigned automatically)")
-
-    @property
     def GA_FOLDER_DELETE_CONFIRM(self) -> str:
         return _(
             "Delete this folder and every group address in it? This can be undone."
         )
-
-    @property
-    def GA_RENAME(self) -> str:
-        return _("Rename Group Address")
 
     @property
     def GA_RENUMBER_FAILED(self) -> str:

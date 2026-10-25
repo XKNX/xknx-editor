@@ -565,12 +565,6 @@ msgstr "Portaat"
 msgid "New Function"
 msgstr "Uusi toiminto"
 
-msgid "Rename"
-msgstr "Nimeä uudelleen"
-
-msgid "Rename Function"
-msgstr "Nimeä toiminto uudelleen"
-
 msgid "Assign Group Address"
 msgstr "Kohdista ryhmäosoite"
 
@@ -1252,32 +1246,11 @@ msgstr "Kopioi loki"
 msgid "New Group Address"
 msgstr "Uusi ryhmäosoite"
 
-msgid "New Main Group"
-msgstr "Uusi pääryhmä"
-
-msgid "New Middle Group"
-msgstr "Uusi keskiryhmä"
-
-msgid "New Folder"
-msgstr "Uusi kansio"
-
-msgid "Rename Folder"
-msgstr "Nimeä kansio uudelleen"
-
 msgid "Delete Folder"
 msgstr "Poista kansio"
 
-msgid "Main group name (the next free number is assigned automatically)"
-msgstr "Pääryhmän nimi (seuraava vapaa numero annetaan automaattisesti)"
-
-msgid "Middle group name (the next free number is assigned automatically)"
-msgstr "Keskiryhmän nimi (seuraava vapaa numero annetaan automaattisesti)"
-
 msgid "Delete this folder and every group address in it? This can be undone."
 msgstr "Poistetaanko tämä kansio ja kaikki sen ryhmäosoitteet? Tämän voi kumota."
-
-msgid "Rename Group Address"
-msgstr "Nimeä ryhmäosoite uudelleen"
 
 msgid "Invalid address or already in use."
 msgstr "Virheellinen osoite tai jo käytössä."
@@ -2886,3 +2859,24 @@ msgstr "{count} väliryhmää lisätty kohteeseen '{target}'."
 
 msgid "Added {count} group addresses to '{target}'."
 msgstr "{count} ryhmäosoitetta lisätty kohteeseen '{target}'."
+
+msgid "Add Main Groups…"
+msgstr "Lisää Pääryhmiä…"
+
+msgid "Add Middle Groups…"
+msgstr "Lisää Keskiryhmiä…"
+
+msgid "Add Main Groups"
+msgstr "Lisää Pääryhmiä"
+
+msgid "Add Middle Groups"
+msgstr "Lisää Keskiryhmiä"
+
+msgid "New main group"
+msgstr "Uusi pääryhmä"
+
+msgid "New middle group"
+msgstr "Uusi keskiryhmä"
+
+msgid "New group address"
+msgstr "Uusi ryhmäosoite"

@@ -52,9 +52,6 @@ msgstr "Com Vlaggen ({count})"
 msgid "Unassigned ({count})"
 msgstr "Niet toegewezen ({count})"
 
-msgid "Rename"
-msgstr "Hernoemen"
-
 msgid "Delete"
 msgstr "Verwijderen"
 
@@ -507,26 +504,8 @@ msgstr "Trappenhuis"
 msgid "Without Space"
 msgstr "Zonder ruimte"
 
-msgid "New Main Group"
-msgstr "Nieuwe hoofdgroep"
-
-msgid "New Middle Group"
-msgstr "Nieuwe middengroep"
-
-msgid "New Folder"
-msgstr "Nieuwe map"
-
-msgid "Rename Folder"
-msgstr "Map hernoemen"
-
 msgid "Delete Folder"
 msgstr "Map verwijderen"
-
-msgid "Main group name (the next free number is assigned automatically)"
-msgstr "Naam van de hoofdgroep (het volgende vrije nummer wordt automatisch toegewezen)"
-
-msgid "Middle group name (the next free number is assigned automatically)"
-msgstr "Naam van de middengroep (het volgende vrije nummer wordt automatisch toegewezen)"
 
 msgid "Delete this folder and every group address in it? This can be undone."
 msgstr "Deze map en alle groepsadressen erin verwijderen? Dit kan ongedaan worden gemaakt."
@@ -852,9 +831,6 @@ msgstr "Applicatieprogramma wordt gewijzigd…"
 
 msgid "Delete Space"
 msgstr "Ruimte verwijderen"
-
-msgid "Rename Function"
-msgstr "Functie hernoemen"
 
 msgid "Load Reference File"
 msgstr "Referentiebestand laden"
@@ -1297,9 +1273,6 @@ msgstr "Van apparaat lezen"
 
 msgid "Read-only test: checks that the download function generates the same image as what is already programmed on the device. Nothing is written to the device."
 msgstr "Alleen-lezen test: controleert of de downloadfunctie hetzelfde geheugenbeeld genereert als wat al op het apparaat is geprogrammeerd. Er wordt niets naar het apparaat geschreven."
-
-msgid "Rename Group Address"
-msgstr "Groepsadres hernoemen"
 
 msgid "Renumber group addresses by adding an offset to their raw value, e.g. to open gaps. Group object links move with each address. Nothing is written if any move would collide or leave the valid range."
 msgstr "Groepsadressen hernummeren door een verschuiving op te tellen bij hun ruwe waarde, bijv. om ruimte te maken. Koppelingen van groepsobjecten gaan met elk adres mee. Er wordt niets geschreven als een verschuiving zou botsen of buiten het geldige bereik zou vallen."
@@ -2924,3 +2897,24 @@ msgstr "{count} middengroepen toegevoegd aan '{target}'."
 
 msgid "Added {count} group addresses to '{target}'."
 msgstr "{count} groepsadressen toegevoegd aan '{target}'."
+
+msgid "Add Main Groups…"
+msgstr "Hoofdgroepen Toevoegen…"
+
+msgid "Add Middle Groups…"
+msgstr "Middengroepen Toevoegen…"
+
+msgid "Add Main Groups"
+msgstr "Hoofdgroepen Toevoegen"
+
+msgid "Add Middle Groups"
+msgstr "Middengroepen Toevoegen"
+
+msgid "New main group"
+msgstr "Nieuwe hoofdgroep"
+
+msgid "New middle group"
+msgstr "Nieuwe middengroep"
+
+msgid "New group address"
+msgstr "Nieuw groepsadres"

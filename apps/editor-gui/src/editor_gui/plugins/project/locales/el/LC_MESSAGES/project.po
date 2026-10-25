@@ -565,12 +565,6 @@ msgstr "Σκάλα"
 msgid "New Function"
 msgstr "Νέα Λειτουργία"
 
-msgid "Rename"
-msgstr "Μετονομασία"
-
-msgid "Rename Function"
-msgstr "Μετονομασία Λειτουργίας"
-
 msgid "Assign Group Address"
 msgstr "Ανάθεση Διεύθυνσης Ομάδας"
 
@@ -1252,32 +1246,11 @@ msgstr "Αντιγραφή Καταγραφής"
 msgid "New Group Address"
 msgstr "Νέα Διεύθυνση Ομάδας"
 
-msgid "New Main Group"
-msgstr "Νέα Κύρια Ομάδα"
-
-msgid "New Middle Group"
-msgstr "Νέα Μεσαία Ομάδα"
-
-msgid "New Folder"
-msgstr "Νέος Φάκελος"
-
-msgid "Rename Folder"
-msgstr "Μετονομασία Φακέλου"
-
 msgid "Delete Folder"
 msgstr "Διαγραφή Φακέλου"
 
-msgid "Main group name (the next free number is assigned automatically)"
-msgstr "Όνομα κύριας ομάδας (ο επόμενος ελεύθερος αριθμός ανατίθεται αυτόματα)"
-
-msgid "Middle group name (the next free number is assigned automatically)"
-msgstr "Όνομα μεσαίας ομάδας (ο επόμενος ελεύθερος αριθμός ανατίθεται αυτόματα)"
-
 msgid "Delete this folder and every group address in it? This can be undone."
 msgstr "Να διαγραφεί αυτός ο φάκελος και κάθε διεύθυνση ομάδας που περιέχει; Η ενέργεια μπορεί να αναιρεθεί."
-
-msgid "Rename Group Address"
-msgstr "Μετονομασία Διεύθυνσης Ομάδας"
 
 msgid "Invalid address or already in use."
 msgstr "Μη έγκυρη διεύθυνση ή χρησιμοποιείται ήδη."
@@ -2886,3 +2859,24 @@ msgstr "Προστέθηκαν {count} μεσαίες ομάδες στο '{targ
 
 msgid "Added {count} group addresses to '{target}'."
 msgstr "Προστέθηκαν {count} διευθύνσεις ομάδας στο '{target}'."
+
+msgid "Add Main Groups…"
+msgstr "Προσθήκη Κύριων Ομάδων…"
+
+msgid "Add Middle Groups…"
+msgstr "Προσθήκη Μεσαίων Ομάδων…"
+
+msgid "Add Main Groups"
+msgstr "Προσθήκη Κύριων Ομάδων"
+
+msgid "Add Middle Groups"
+msgstr "Προσθήκη Μεσαίων Ομάδων"
+
+msgid "New main group"
+msgstr "Νέα κύρια ομάδα"
+
+msgid "New middle group"
+msgstr "Νέα μεσαία ομάδα"
+
+msgid "New group address"
+msgstr "Νέα διεύθυνση ομάδας"

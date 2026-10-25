@@ -565,12 +565,6 @@ msgstr "Trappe"
 msgid "New Function"
 msgstr "Ny funktion"
 
-msgid "Rename"
-msgstr "Omdøb"
-
-msgid "Rename Function"
-msgstr "Omdøb funktion"
-
 msgid "Assign Group Address"
 msgstr "Tildel gruppeadresse"
 
@@ -1252,32 +1246,11 @@ msgstr "Kopier log"
 msgid "New Group Address"
 msgstr "Ny gruppeadresse"
 
-msgid "New Main Group"
-msgstr "Ny hovedgruppe"
-
-msgid "New Middle Group"
-msgstr "Ny mellemgruppe"
-
-msgid "New Folder"
-msgstr "Ny mappe"
-
-msgid "Rename Folder"
-msgstr "Omdøb mappe"
-
 msgid "Delete Folder"
 msgstr "Slet mappe"
 
-msgid "Main group name (the next free number is assigned automatically)"
-msgstr "Navn på hovedgruppe (det næste ledige nummer tildeles automatisk)"
-
-msgid "Middle group name (the next free number is assigned automatically)"
-msgstr "Navn på mellemgruppe (det næste ledige nummer tildeles automatisk)"
-
 msgid "Delete this folder and every group address in it? This can be undone."
 msgstr "Vil du slette denne mappe og alle gruppeadresser i den? Dette kan fortrydes."
-
-msgid "Rename Group Address"
-msgstr "Omdøb gruppeadresse"
 
 msgid "Invalid address or already in use."
 msgstr "Ugyldig adresse, eller den er allerede i brug."
@@ -2886,3 +2859,24 @@ msgstr "{count} mellemgrupper tilføjet til '{target}'."
 
 msgid "Added {count} group addresses to '{target}'."
 msgstr "{count} gruppeadresser tilføjet til '{target}'."
+
+msgid "Add Main Groups…"
+msgstr "Tilføj hovedgrupper…"
+
+msgid "Add Middle Groups…"
+msgstr "Tilføj mellemgrupper…"
+
+msgid "Add Main Groups"
+msgstr "Tilføj hovedgrupper"
+
+msgid "Add Middle Groups"
+msgstr "Tilføj mellemgrupper"
+
+msgid "New main group"
+msgstr "Ny hovedgruppe"
+
+msgid "New middle group"
+msgstr "Ny mellemgruppe"
+
+msgid "New group address"
+msgstr "Ny gruppeadresse"

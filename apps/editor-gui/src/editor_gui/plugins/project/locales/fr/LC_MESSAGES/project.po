@@ -565,12 +565,6 @@ msgstr "Escalier"
 msgid "New Function"
 msgstr "Nouvelle fonction"
 
-msgid "Rename"
-msgstr "Renommer"
-
-msgid "Rename Function"
-msgstr "Renommer la fonction"
-
 msgid "Assign Group Address"
 msgstr "Affecter une adresse de groupe"
 
@@ -1252,32 +1246,11 @@ msgstr "Copier le journal"
 msgid "New Group Address"
 msgstr "Nouvelle adresse de groupe"
 
-msgid "New Main Group"
-msgstr "Nouveau groupe principal"
-
-msgid "New Middle Group"
-msgstr "Nouveau groupe médian"
-
-msgid "New Folder"
-msgstr "Nouveau répertoire"
-
-msgid "Rename Folder"
-msgstr "Renommer le répertoire"
-
 msgid "Delete Folder"
 msgstr "Supprimer le répertoire"
 
-msgid "Main group name (the next free number is assigned automatically)"
-msgstr "Nom du groupe principal (le prochain numéro libre est attribué automatiquement)"
-
-msgid "Middle group name (the next free number is assigned automatically)"
-msgstr "Nom du groupe médian (le prochain numéro libre est attribué automatiquement)"
-
 msgid "Delete this folder and every group address in it? This can be undone."
 msgstr "Supprimer ce répertoire et toutes les adresses de groupe qu'il contient ? Cette action peut être annulée."
-
-msgid "Rename Group Address"
-msgstr "Renommer l'adresse de groupe"
 
 msgid "Invalid address or already in use."
 msgstr "Adresse invalide ou déjà utilisée."
@@ -2886,3 +2859,24 @@ msgstr "{count} groupes intermédiaires ajoutés à '{target}'."
 
 msgid "Added {count} group addresses to '{target}'."
 msgstr "{count} adresses de groupe ajoutées à '{target}'."
+
+msgid "Add Main Groups…"
+msgstr "Ajouter des groupes principaux…"
+
+msgid "Add Middle Groups…"
+msgstr "Ajouter des groupes médians…"
+
+msgid "Add Main Groups"
+msgstr "Ajouter des groupes principaux"
+
+msgid "Add Middle Groups"
+msgstr "Ajouter des groupes médians"
+
+msgid "New main group"
+msgstr "Nouveau groupe principal"
+
+msgid "New middle group"
+msgstr "Nouveau groupe médian"
+
+msgid "New group address"
+msgstr "Nouvelle adresse de groupe"

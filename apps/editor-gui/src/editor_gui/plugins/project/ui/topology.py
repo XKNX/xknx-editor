@@ -15,8 +15,9 @@ from editor_gui.plugins.project.ui.add_dialog import (
     AddRequest,
     AddRow,
     UndoStep,
+    add_rows,
     no_undo_step,
-    one_row,
+    start_add,
 )
 from editor_gui.plugins.project.ui.config_dialog import DeviceConfigDialog
 from editor_gui.plugins.project.ui.move_menu import render_move_menu
@@ -27,7 +28,6 @@ from editor_gui.plugins.project.ui.paste_special import (
 from editor_gui.plugins.project.ui.tree_drag import Dragged, drag_source, drop_target
 from editor_gui.widgets.description import render_device_marks
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
-from editor_gui.widgets.dpi import label_column_width, px
 from editor_gui.widgets.tree import (
     begin_tree_area,
     context_menu,
@@ -121,10 +121,8 @@ class TopologyPanel:
         on_move_device: Callable[[Device, int, int], None],
         on_create_area: Callable[[int, str, str], str | None],
         on_remove_area: Callable[[Area], None],
-        on_rename_area: Callable[[Area, str], None],
         on_create_line: Callable[[int, int, str, str], str | None],
         on_remove_line: Callable[[Line], None],
-        on_rename_line: Callable[[Line, str], None],
         get_selected_node_id: Callable[[], int | None] = lambda: None,
         on_select_devices: Callable[[Device, list[int]], None] | None = None,
         get_selected_node_ids: Callable[[], set[int]] = lambda: set(),
@@ -208,16 +206,10 @@ class TopologyPanel:
         self._on_move_device = on_move_device
         self._on_create_area = on_create_area
         self._on_remove_area = on_remove_area
-        self._on_rename_area = on_rename_area
         self._on_create_line = on_create_line
         self._on_remove_line = on_remove_line
-        self._on_rename_line = on_rename_line
         self._filter_text: str = ""
 
-        self._popup_name: str = ""
-        self._popup_target_area: Area | None = None
-        self._popup_target_line: Line | None = None
-        self._open_rename_popup: bool = False
         self._delete_target_device: TreeDevice | None = None
         self._open_delete_device_popup: bool = False
 
@@ -256,15 +248,11 @@ class TopologyPanel:
                 imgui.end_menu()
             imgui.end_popup()
 
-        if self._open_rename_popup:
-            imgui.open_popup(S.POPUP_RENAME)
-            self._open_rename_popup = False
         if self._open_delete_device_popup:
             imgui.open_popup(S.DEVICE_DELETE_TITLE)
             self._open_delete_device_popup = False
 
         self._adder.render()
-        self._render_rename_popup()
         self._render_delete_device_popup()
         self._config_dialog.render()
         if self._paste_dialog is not None:
@@ -711,10 +699,6 @@ class TopologyPanel:
             if imgui.begin_menu(S.SPACES_ADD_MENU):
                 self._render_add_items(area, lines, main)
                 imgui.end_menu()
-            if imgui.menu_item(S.CONTEXT_RENAME, "", False)[0]:
-                self._popup_target_area = area
-                self._popup_name = area.name
-                self._open_rename_popup = True
             if main is not None:
                 self._render_paste_items(
                     lambda c: self._line_copy_target(area, main, c, area_node=True)
@@ -728,10 +712,6 @@ class TopologyPanel:
         if context_menu(f"##line_ctx_{line.id}"):
             if imgui.menu_item(S.TOPOLOGY_ADD_SEGMENTS_ITEM, "", False)[0]:
                 self._start_add_segments(area, line)
-            if imgui.menu_item(S.CONTEXT_RENAME, "", False)[0]:
-                self._popup_target_line = line
-                self._popup_name = line.name
-                self._open_rename_popup = True
             self._render_move_line_menu(area, line)
             if self._paste_dialog is not None and line.number != 0:
                 render_copy_item(Dragged("line", (line.id,)))
@@ -801,12 +781,7 @@ class TopologyPanel:
         choice: AddChoice,
         open_dialog: Callable[[], bool],
     ) -> None:
-        """Open the "Add" dialog (``open_dialog``), or add one with the defaults right away on
-        a Shift+click; with no room left, tell so."""
-        if imgui.get_io().key_shift:
-            on_add(one_row(choice))
-        elif not open_dialog():
-            self._notify(S.ADD_LIMIT_REACHED)
+        start_add(open_dialog, on_add, self._notify, choice)
 
     @staticmethod
     def _medium_choice(media: list[str], default: str) -> AddChoice:
@@ -944,47 +919,11 @@ class TopologyPanel:
     def _add_rows(
         self,
         request: AddRequest,
-        label: str,
+        several: str,
         target: str,
         add: Callable[[AddRow], str | None],
     ) -> None:
-        """Add the rows of ``request`` top to bottom, one undo step each (``label`` naming
-        one of several); a row stops at its first element that cannot be added, telling why,
-        and the next row goes on."""
-        for row in request.rows:
-            text = (
-                label.format(count=row.count, target=target) if row.count > 1 else None
-            )
-            with self._one_undo_step(text):
-                for _ in range(row.count):
-                    reason = add(row)
-                    if reason:
-                        self._notify(reason)
-                        break
-
-    def _render_rename_popup(self) -> None:
-        if begin_dialog(S.POPUP_RENAME):
-            imgui.text(S.POPUP_NAME)
-            imgui.same_line(label_column_width(S.POPUP_NAME, minimum=80))
-            if imgui.is_window_appearing():
-                imgui.set_keyboard_focus_here()
-            imgui.set_next_item_width(px(150))
-            _, self._popup_name = imgui.input_text("##rename_name", self._popup_name)
-
-            clicked = dialog_buttons(S.BTN_OK, S.BTN_CANCEL)
-            if clicked == 0:
-                if self._popup_target_area:
-                    self._on_rename_area(self._popup_target_area, self._popup_name)
-                    self._popup_target_area = None
-                elif self._popup_target_line:
-                    self._on_rename_line(self._popup_target_line, self._popup_name)
-                    self._popup_target_line = None
-                imgui.close_current_popup()
-            elif clicked == 1:
-                self._popup_target_area = None
-                self._popup_target_line = None
-                imgui.close_current_popup()
-            end_dialog()
+        add_rows(request, several, target, add, self._one_undo_step, self._notify)
 
     def _device_lines(
         self, devices: list[TreeDevice], areas: list[Area]

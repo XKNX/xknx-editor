@@ -12,6 +12,7 @@ import pytest
 from fastmcp import Client
 
 from editor_gui.plugins.mcp.server import build_server
+from editor_gui.plugins.project.strings import S as PROJECT_S
 from xknxeditor.dali import DaliBusState
 from xknxeditor.dali.model import GROUP_SINGLE, EcgState, GroupState
 
@@ -479,3 +480,57 @@ async def test_a_function_moves_into_another_space(tmp_path: Path) -> None:
             await client.call_tool(
                 "project_move_function", {"function_id": function_id, "space_id": 999}
             )
+
+
+async def test_groups_and_group_addresses_are_added_as_the_add_dialog_does(
+    tmp_path: Path,
+) -> None:
+    mcp, project = _build(tmp_path)
+    async with Client(mcp) as client:
+        await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
+        mains = await _data(
+            client,
+            "project_create_group_range",
+            count=2,
+            allocation="start_with",
+            start_with=20,
+        )
+        assert [
+            project.element_details("group_range", i).address  # type: ignore[union-attr]
+            for i in mains["group_range_ids"]
+        ] == ["20", "21"]
+        assert mains["name"] == PROJECT_S.GA_DEFAULT_MAIN_GROUP
+        middle = await _data(
+            client,
+            "project_create_group_range",
+            parent_id=mains["group_range_id"],
+            number=3,
+            name="Blinds",
+        )
+        assert middle["address"] == "20/3"
+        added = await _data(
+            client,
+            "project_add_group_addresses",
+            group_range_id=middle["group_range_id"],
+            count=3,
+            allocation="start_with",
+            start_with=10,
+        )
+        assert added["addresses"] == ["20/3/10", "20/3/11", "20/3/12"]
+        await _data(client, "project_undo")
+        listed = (await _data(client, "project_list_group_addresses"))["items"]
+        assert "20/3/10" not in {ga["address"] for ga in listed}
+        # A main group holds middle groups in three-level style, not group addresses.
+        await _error(
+            client,
+            "project_add_group_addresses",
+            "holds group addresses",
+            group_range_id=mains["group_range_id"],
+        )
+        await _error(
+            client,
+            "project_create_group_range",
+            "count 1",
+            number=4,
+            count=2,
+        )
