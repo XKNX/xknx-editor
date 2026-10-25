@@ -3166,6 +3166,90 @@ class MoveDevice(Event):
         return cls(**data)
 
 
+@_register
+@dataclass
+class MoveLine(Event):
+    """Put a line into another area with the line number ``address``; its devices' individual
+    addresses follow."""
+
+    event_type: ClassVar[str] = "MoveLine"
+
+    line_id: int
+    area_id: int
+    address: int
+    old_area_id: int | None = None
+    old_address: int | None = None
+
+    def apply(self, session: Session) -> None:
+        line = session.get(Line, self.line_id)
+        if line is not None:
+            self.old_area_id = line.area_id
+            self.old_address = line.address
+            line.area_id = self.area_id
+            line.address = self.address
+
+    def revert(self, session: Session) -> None:
+        line = session.get(Line, self.line_id)
+        if line is not None and self.old_area_id is not None:
+            line.area_id = self.old_area_id
+            line.address = cast(int, self.old_address)
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "line_id": self.line_id,
+            "area_id": self.area_id,
+            "address": self.address,
+            "old_area_id": self.old_area_id,
+            "old_address": self.old_address,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> MoveLine:
+        return cls(**data)
+
+
+@_register
+@dataclass
+class MoveSegment(Event):
+    """Put a sub-segment onto another line as its segment number ``number``; its devices go
+    along."""
+
+    event_type: ClassVar[str] = "MoveSegment"
+
+    segment_id: int
+    line_id: int
+    number: int
+    old_line_id: int | None = None
+    old_number: int | None = None
+
+    def apply(self, session: Session) -> None:
+        segment = session.get(Segment, self.segment_id)
+        if segment is not None:
+            self.old_line_id = segment.line_id
+            self.old_number = segment.number
+            segment.line_id = self.line_id
+            segment.number = self.number
+
+    def revert(self, session: Session) -> None:
+        segment = session.get(Segment, self.segment_id)
+        if segment is not None and self.old_line_id is not None:
+            segment.line_id = self.old_line_id
+            segment.number = cast(int, self.old_number)
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "segment_id": self.segment_id,
+            "line_id": self.line_id,
+            "number": self.number,
+            "old_line_id": self.old_line_id,
+            "old_number": self.old_number,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> MoveSegment:
+        return cls(**data)
+
+
 # --- subtree snapshot/restore helpers -------------------------------------------------
 
 # Every mapped model, keyed by class name, for snapshot/restore. Derived from the SQLAlchemy

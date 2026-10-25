@@ -37,9 +37,12 @@ from editor_gui.plugins.project.ui.topology import (
     TopologyPanel,
     _split_line,
 )
+from editor_gui.plugins.project.ui.tree_drag import Dragged
 from editor_gui.strings import get_locale, set_locale
 from xknxeditor.catalog import ProductSummary
 from xknxeditor.proj.core.medium import MEDIUM_RF, MEDIUM_TP, MediumError
+
+from ._drops import drop_on
 
 
 @pytest.fixture
@@ -499,23 +502,18 @@ def test_the_tree_selects_filters_takes_drops_and_compares(
     assert {("area", 1), ("line", 1), ("segment", 5)} <= set(selected)
     monkeypatch.undo()
     clicks = Clicks(monkeypatch, topology_ui)
-    # A device dropped on a segment moves there (the drop lands on the segment's row).
-    panel._dragging_device = dimmer
-    last: list[str] = [""]
-    real_tree_node = topology_ui.tree_node
-
-    def tree_node(label: str, *args: object) -> bool:
-        last[0] = label
-        return real_tree_node(label, *args)
-
-    monkeypatch.setattr(topology_ui, "tree_node", tree_node)
-    monkeypatch.setattr(
-        imgui, "begin_drag_drop_target", lambda: "##segment_5" in last[0]
+    # A device dropped on another segment moves there; the segment it is on does not take it.
+    offered = drop_on(
+        monkeypatch, topology_ui, "##segment_6", Dragged("device", (dimmer.node_id,))
     )
-    monkeypatch.setattr(imgui, "accept_drag_drop_payload_py_id", lambda _t: 7)
-    monkeypatch.setattr(imgui, "end_drag_drop_target", lambda: None)
     frames(1)
-    assert dropped[0] == (7, 5)
+    assert dropped == [(7, 6)] and offered[0]
+    monkeypatch.undo()
+    offered = drop_on(
+        monkeypatch, topology_ui, "##segment_5", Dragged("device", (dimmer.node_id,))
+    )
+    frames(1)
+    assert dropped == [(7, 6)] and offered == [False]
     monkeypatch.undo()
     clicks = Clicks(monkeypatch, topology_ui)
     # Filtering hides the segments without a match and opens the rest.

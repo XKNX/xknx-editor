@@ -87,12 +87,47 @@ def begin_tree_area(str_id: str, height: float = 0.0) -> bool:
     ``height``), scrolling sideways too when names are wider than the panel (a phone). End it
     with ``imgui.end_child()`` whatever this returns."""
     with child_background(content_background()):
-        return imgui.begin_child(
+        opened = imgui.begin_child(
             str_id,
             imgui.ImVec2(0.0, height),
             0,
             imgui.WindowFlags_.horizontal_scrollbar,
         )
+    if opened:
+        _scroll_while_dragging()
+    return opened
+
+
+# While something is dragged, the area scrolls when the pointer is this close to its top or bottom
+# (rows, at most a third of the area), the faster the closer, up to this many rows per second.
+_DRAG_EDGE_ROWS = 1.5
+_DRAG_SCROLL_ROWS = 20.0
+
+
+def _scroll_while_dragging() -> None:
+    """Scroll the tree area being drawn while a drag nears its top or bottom, so that every row
+    can be reached as a place to drop on."""
+    if imgui.get_drag_drop_payload_py_id() is None:  # pyright: ignore[reportUnnecessaryComparison]
+        return
+    window = internal.get_current_window()
+    low, high = window.inner_rect.min, window.inner_rect.max
+    mouse = imgui.get_io().mouse_pos
+    if not low.x <= mouse.x <= high.x or not low.y <= mouse.y <= high.y:
+        return
+    row = imgui.get_frame_height_with_spacing()
+    edge = min(row * _DRAG_EDGE_ROWS, (high.y - low.y) / 3)
+    if edge <= 0:
+        return
+    if mouse.y < low.y + edge:
+        closeness = (low.y + edge - mouse.y) / edge
+    elif mouse.y > high.y - edge:
+        closeness = -(mouse.y - (high.y - edge)) / edge
+    else:
+        return
+    step = closeness * row * _DRAG_SCROLL_ROWS * imgui.get_io().delta_time
+    imgui.set_scroll_y(
+        min(max(imgui.get_scroll_y() - step, 0.0), imgui.get_scroll_max_y())
+    )
 
 
 @contextmanager

@@ -2733,3 +2733,24 @@ msgstr "В группе нет свободного группового адр�
 
 msgid "The main group has no free middle group."
 msgstr "В главной группе нет свободной средней группы."
+
+msgid "{count} devices"
+msgstr "Устройств: {count}"
+
+msgid "The main segment cannot be moved."
+msgstr "Главный сегмент нельзя переместить."
+
+msgid "The maximum number of lines has been reached."
+msgstr "Достигнуто максимальное количество линий."
+
+msgid "The line is already assigned to an area."
+msgstr "Линия уже назначена области."
+
+msgid "The main line cannot be moved."
+msgstr "Главную линию нельзя переместить."
+
+msgid "Move line"
+msgstr "Переместить линию"
+
+msgid "Move segment"
+msgstr "Переместить сегмент"

@@ -599,6 +599,8 @@ _HISTORY_LABELS: dict[str, Callable[[dict[str, Any]], str]] = {
         else S.HISTORY_EV_SET_TRADE_DESCRIPTION
     ),
     "MoveTrade": lambda d: S.HISTORY_EV_MOVE_TRADE,
+    "MoveLine": lambda d: S.HISTORY_EV_MOVE_LINE,
+    "MoveSegment": lambda d: S.HISTORY_EV_MOVE_SEGMENT,
     "RemoveTrade": lambda d: S.HISTORY_EV_REMOVE_TRADE,
     "AddTradeDevice": lambda d: S.HISTORY_EV_ADD_TRADE_DEVICE,
     "RemoveTradeDevice": lambda d: S.HISTORY_EV_REMOVE_TRADE_DEVICE,
@@ -5365,6 +5367,91 @@ class ProjectService:
                         return segment.medium_type, False
         return None
 
+    def _coupler_device(
+        self, hardware2program_ref_id: str | None
+    ) -> CouplerDevice | None:
+        """What the coupler rules need of a device's hardware program; None for a device that
+        is neither a coupler nor a KNXnet/IP router (or one the catalog lacks)."""
+        if not hardware2program_ref_id:
+            return None
+        profile = self._catalog.program_media(hardware2program_ref_id)
+        roles = self._catalog.program_roles([hardware2program_ref_id]).get(
+            hardware2program_ref_id
+        )
+        if profile is None or roles is None:
+            return None
+        is_coupler, mask = roles
+        if not is_coupler and mask not in IP_ROUTER_MASKS:
+            return None
+        capabilities = self._catalog.coupler_capabilities(hardware2program_ref_id)
+        return CouplerDevice(
+            media=frozenset(profile[0]),
+            mask=mask,
+            is_coupler=is_coupler,
+            segment_coupler="SegmentCoupler" in capabilities,
+            ip_router=is_coupler
+            and self._catalog.hardware_is_ip_enabled(hardware2program_ref_id)
+            and self._catalog.ip_config(hardware2program_ref_id) != "Custom",
+        )
+
+    def _coupler_of(
+        self, node_id: int, hardware2program_ref_id: str | None
+    ) -> tuple[CouplerDevice, str] | None:
+        """A device's coupler data and name for the coupler rules (see ``CouplerOf``)."""
+        device = self._coupler_device(hardware2program_ref_id)
+        if device is None:
+            return None
+        found = self.find_device_by_node_id(node_id)
+        return device, device_label(found) if found is not None else str(node_id)
+
+    def move_line(self, line_id: int, area_id: int) -> str | None:
+        """Put a sub line into another area ("Move to"), one undo step: it keeps its number when
+        that is free there, else gets the lowest free one; its devices keep their device
+        numbers. The reason it cannot be, or None."""
+        if self._pid is None:
+            return None
+        _couplers, ip_routers = self._device_roles()
+        try:
+            self._svc.move_line(
+                self._pid,
+                line_id,
+                area_id,
+                coupler_of=self._coupler_of,
+                ip_routers=ip_routers,
+                line_names=self._line_names(),
+            )
+        except MediumError as error:
+            return medium_error_text(error)
+        except KeyError as error:
+            return str(error.args[0])
+        self._bump()
+        return None
+
+    def move_segment(self, segment_id: int, line_id: int) -> str | None:
+        """Put a sub-segment onto another line ("Move to"), one undo step: it gets the line's
+        lowest free segment number, its devices keep their numbers unless one is taken there.
+        The reason it cannot be, or None."""
+        if self._pid is None:
+            return None
+        _couplers, ip_routers = self._device_roles()
+        try:
+            self._svc.move_segment(
+                self._pid,
+                segment_id,
+                line_id,
+                coupler_of=self._coupler_of,
+                ip_routers=ip_routers,
+                line_names=self._line_names(),
+            )
+        except MediumError as error:
+            return medium_error_text(error)
+        except AdditionalAddressError as error:
+            return additional_address_error_text(error)
+        except KeyError as error:
+            return str(error.args[0])
+        self._bump()
+        return None
+
     def check_device_medium(
         self,
         hardware2program_ref_id: str | None,
@@ -5387,34 +5474,20 @@ class ProjectService:
             return
         media, coupler = profile
         medium, main = target
-        roles = self._catalog.program_roles([hardware2program_ref_id]).get(
-            hardware2program_ref_id
+        device = (
+            self._coupler_device(hardware2program_ref_id) if check_couplers else None
         )
-        if check_couplers and roles is not None and self._pid is not None:
-            is_coupler, mask = roles
-            if is_coupler or mask in IP_ROUTER_MASKS:
-                capabilities = self._catalog.coupler_capabilities(
-                    hardware2program_ref_id
-                )
-                device = CouplerDevice(
-                    media=frozenset(media),
-                    mask=mask,
-                    is_coupler=is_coupler,
-                    segment_coupler="SegmentCoupler" in capabilities,
-                    ip_router=is_coupler
-                    and self._catalog.hardware_is_ip_enabled(hardware2program_ref_id)
-                    and self._catalog.ip_config(hardware2program_ref_id) != "Custom",
-                )
-                _couplers, ip_routers = self._device_roles()
-                self._svc.check_coupler(
-                    self._pid,
-                    segment_id,
-                    device,
-                    label,
-                    ip_routers=ip_routers,
-                    moving=moving,
-                    line_names=self._line_names(),
-                )
+        if device is not None and self._pid is not None:
+            _couplers, ip_routers = self._device_roles()
+            self._svc.check_coupler(
+                self._pid,
+                segment_id,
+                device,
+                label,
+                ip_routers=ip_routers,
+                moving=moving,
+                line_names=self._line_names(),
+            )
         if coupler or not media or device_fits(medium, media):
             return
         raise MediumError(

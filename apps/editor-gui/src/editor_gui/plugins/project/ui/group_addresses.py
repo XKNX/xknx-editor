@@ -18,6 +18,7 @@ from editor_gui.plugins.project.strings import S
 from editor_gui.plugins.project.ui._filter import filter_box
 from editor_gui.plugins.project.ui.group_value import GroupValueActions
 from editor_gui.plugins.project.ui.move_menu import render_move_menu
+from editor_gui.plugins.project.ui.tree_drag import Dragged, drag_source, drop_target
 from editor_gui.widgets.description import secure_icon, secure_icon_width
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
 from editor_gui.widgets.dpi import px
@@ -325,6 +326,7 @@ class GroupAddressesPanel:
             self._selected_range_id = node.id
             self._on_select_element("group_range", node.id)
         self._render_range_context_menu(node, is_root)
+        self._drag_and_drop_range(node, is_root, shown)
         if _forced_on(node):
             # The KNX Data Secure shield after a group whose Security is on.
             secure_icon(
@@ -340,6 +342,37 @@ class GroupAddressesPanel:
         with leaf_rows():
             self._render_group_addresses(node, flt)
         imgui.tree_pop()
+
+    def _drag_and_drop_range(
+        self, node: "GroupRangeInfo", is_root: bool, shown: str
+    ) -> None:
+        """Drag and drop as "Move to" does: a middle group onto another main group, a group
+        address onto another group that holds group addresses."""
+        middle = self._middle_enabled()
+        if self._on_move_range is not None and middle and not is_root:
+            drag_source(Dragged("group_range", (node.id,)), shown)
+        holds_addresses = self._folders_enabled() and (
+            not is_root if middle else is_root
+        )
+        inside = {ga.id for ga in node.group_addresses} | {c.id for c in node.children}
+
+        def accepts(dragged: Dragged) -> bool:
+            if inside.issuperset(dragged.ids):
+                return False
+            if dragged.kind == "group_address":
+                return holds_addresses and self._on_move_ga is not None
+            return dragged.kind == "group_range" and middle and is_root
+
+        drop = drop_target(accepts)
+        if drop is None:
+            return
+        for ident in drop.dragged.ids:
+            if drop.dragged.kind == "group_address":
+                assert self._on_move_ga is not None
+                self._report(self._on_move_ga(ident, node.id))
+            else:
+                assert self._on_move_range is not None
+                self._report(self._on_move_range(ident, node.id))
 
     def _render_group_addresses(self, node: "GroupRangeInfo", flt: str) -> None:
         spacing = imgui.get_style().item_spacing.x
@@ -369,6 +402,8 @@ class GroupAddressesPanel:
                 imgui.set_scroll_here_y()
             # Context menu while the selectable is still the last item, so it binds to the row.
             self._render_ga_context_menu(ga)
+            if self._on_move_ga is not None and self._folders_enabled():
+                drag_source(Dragged("group_address", (ga.id,)), name)
             end = row_x + imgui.calc_text_size(name).x
             if ga.data_secure:
                 # The KNX Data Secure shield right after the name, as after a secure device.

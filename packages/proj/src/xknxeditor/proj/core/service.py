@@ -15,9 +15,9 @@ import datetime
 import ipaddress
 import secrets
 from collections.abc import Callable, Collection, Mapping, Sequence
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 from uuid import uuid4
 from xml.etree import ElementTree as ET
 
@@ -76,6 +76,8 @@ from xknxeditor.proj.core.events import (
     LinkComObject,
     MoveDevice,
     MoveGroupRange,
+    MoveLine,
+    MoveSegment,
     MoveSpace,
     MoveTrade,
     RemoveArea,
@@ -169,6 +171,7 @@ from xknxeditor.proj.core.ip_settings import (
     parse_ipv4,
 )
 from xknxeditor.proj.core.medium import (
+    MAX_LINES,
     MAX_SEGMENTS,
     MEDIUM_IP,
     MEDIUM_NAMES,
@@ -176,8 +179,10 @@ from xknxeditor.proj.core.medium import (
     LineView,
     MediumError,
     SegmentView,
+    check_line_move,
     check_medium_change,
     check_new_sub_segment,
+    check_segment_move,
     domain_address_changes,
     domain_addresses,
     new_domain_address,
@@ -581,6 +586,23 @@ def _new_line_medium(
         return MEDIUM_TP, None
     segment = _main_segment(main)
     return segment.medium_type, segment.domain_address
+
+
+# A device's coupler data and name for the coupler rules, by its id and hardware program; None
+# for a device that is no coupler.
+CouplerOf = Callable[[int, str | None], "tuple[CouplerDevice, str] | None"]
+
+
+def _moved_line_domain(
+    medium: str, target_main: SegmentView | None, used: set[int]
+) -> int | None:
+    """The domain address of the main segment of a line moved into an area: none on TP or IP,
+    the one of the area's main line when it has the same medium, else a new one."""
+    if medium in (MEDIUM_TP, MEDIUM_IP):
+        return None
+    if target_main is not None and target_main.medium == medium:
+        return target_main.domain_address
+    return new_domain_address(medium, used)
 
 
 def _main_segment(line: Line) -> Segment:
@@ -3845,6 +3867,181 @@ class ProjectService:
                     SetDeviceAdditionalAddresses(device_id=device_id, entries=entries),
                 ]
             )
+        )
+
+    def move_line(
+        self,
+        project_id: str,
+        line_id: int,
+        area_id: int,
+        *,
+        coupler_of: CouplerOf | None = None,
+        ip_routers: Collection[int] = (),
+        line_names: Mapping[int, str] | None = None,
+    ) -> int:
+        """Put a sub line into another area, one undo step. It keeps its number when that is
+        free there, else gets the lowest free one; its devices keep their device numbers. Its
+        main segment takes the domain address of the area's main line when it has its medium,
+        none on TP or IP, else a new one. The couplers on the line (``coupler_of``: a device's
+        coupler data and name, None for no coupler) are checked where they end up. Returns the
+        line's number. Raises ``MediumError`` for a move the rules refuse, ``KeyError`` for an
+        unknown line or area."""
+        state = self._state(project_id)
+        line = state.session.get(Line, line_id)
+        area = state.session.get(Area, area_id)
+        if line is None or area is None:
+            raise KeyError(f"No line {line_id} or area {area_id}")
+        lines = _line_views(area.installation, line_names)
+        view = next(v for v in lines if v.id == line_id)
+        target_lines = [v for v in lines if v.area == area.address]
+        check_line_move(view, target_lines, area.address)
+        used = {v.address for v in target_lines}
+        number = (
+            line.address
+            if line.address not in used
+            else min(n for n in range(1, MAX_LINES) if n not in used)
+        )
+        moved = replace(view, area=area.address, address=number)
+        after = [moved if v.id == line_id else v for v in lines]
+        if coupler_of is not None:
+            for segment in line.segments:
+                for device in segment.devices:
+                    self._check_moved_coupler(
+                        after, segment.id, device, coupler_of, ip_routers
+                    )
+        events: list[Event] = [
+            MoveLine(line_id=line_id, area_id=area_id, address=number)
+        ]
+        main = _main_segment(line)
+        target_main = next((v for v in target_lines if v.address == 0), None)
+        domain = _moved_line_domain(
+            main.medium_type,
+            target_main.main if target_main is not None else None,
+            {
+                s.domain_address
+                for v in lines
+                for s in v.segments
+                if s.domain_address is not None and s.id != main.id
+            },
+        )
+        if domain != main.domain_address:
+            events.append(
+                SetSegmentDomainAddress(segment_id=main.id, domain_address=domain)
+            )
+        state.store.append(events[0] if len(events) == 1 else CompositeEvent(events))
+        return number
+
+    def move_segment(
+        self,
+        project_id: str,
+        segment_id: int,
+        line_id: int,
+        *,
+        coupler_of: CouplerOf | None = None,
+        ip_routers: Collection[int] = (),
+        line_names: Mapping[int, str] | None = None,
+    ) -> int:
+        """Put a sub-segment onto another line, one undo step; it gets the line's lowest free
+        segment number. Its devices keep their device numbers unless one of them is taken in
+        the line: then each whose number is taken gets the line's lowest free one (none when
+        no number is left). Devices with additional addresses get them again in the line. The
+        segment couplers on it (``coupler_of``) are checked where they end up. Returns the
+        segment's number; nothing changes when it is on the line already. Raises
+        ``MediumError`` for a move the rules refuse, :class:`AdditionalAddressError` when the
+        line has too few free numbers for additional addresses, ``KeyError`` for an unknown
+        segment or line."""
+        state = self._state(project_id)
+        segment = state.session.get(Segment, segment_id)
+        line = state.session.get(Line, line_id)
+        if segment is None or line is None:
+            raise KeyError(f"No segment {segment_id} or line {line_id}")
+        lines = _line_views(line.area.installation, line_names)
+        source = next(v for v in lines if v.id == segment.line_id)
+        target = next(v for v in lines if v.id == line_id)
+        view = next(s for s in source.segments if s.id == segment_id)
+        is_main = view.number == source.main.number
+        if segment.line_id == line_id and not is_main:
+            return segment.number
+        check_segment_move(view, is_main, target)
+        taken_numbers = {s.number for s in target.segments}
+        number = min(n for n in range(1, MAX_SEGMENTS) if n not in taken_numbers)
+        moved = replace(view, number=number)
+        after = [
+            replace(v, segments=(*v.segments, moved))
+            if v.id == line_id
+            else replace(v, segments=tuple(s for s in v.segments if s.id != segment_id))
+            if v.id == source.id
+            else v
+            for v in lines
+        ]
+        devices = sorted(
+            segment.devices, key=lambda d: (d.address is None, d.address, d.id)
+        )
+        if coupler_of is not None:
+            for device in devices:
+                self._check_moved_coupler(
+                    after, segment_id, device, coupler_of, ip_routers
+                )
+        events: list[Event] = [
+            MoveSegment(segment_id=segment_id, line_id=line_id, number=number)
+        ]
+        taken = {n for s in target.segments for _id, n in s.devices if n is not None}
+        numbers = [d.address for d in devices]
+        used = self._line_numbers_in_use(state, line_id) | {
+            n for n in numbers if n is not None and n not in taken
+        }
+        renumber = (
+            bool(taken)
+            and any(n in taken for n in numbers if n is not None)
+            and len(numbers) == len(set(numbers))
+        )
+        for device in devices:
+            if device.address is None:
+                continue
+            if renumber and device.address in taken:
+                new = next((n for n in range(1, 256) if n not in used), None)
+                if new is not None:
+                    used.add(new)
+                events.append(
+                    MoveDevice(device_id=device.id, segment_id=segment_id, address=new)
+                )
+            else:
+                taken.add(device.address)
+        for device in devices:
+            if not device.additional_addresses:
+                continue
+            entries = additional_address_entries(device)
+            for entry in entries:
+                entry["address"] = None
+            _fill_additional_entries(entries, used)
+            used.update(cast(int, entry["address"]) for entry in entries)
+            events.append(
+                SetDeviceAdditionalAddresses(device_id=device.id, entries=entries)
+            )
+        state.store.append(events[0] if len(events) == 1 else CompositeEvent(events))
+        return number
+
+    def _check_moved_coupler(
+        self,
+        lines: Sequence[LineView],
+        segment_id: int,
+        device: Device,
+        coupler_of: CouplerOf,
+        ip_routers: Collection[int],
+    ) -> None:
+        """Raise a ``MediumError`` when ``device`` is a coupler that may not be on the segment
+        ``segment_id`` of the topology ``lines`` (as it is after a move)."""
+        found = coupler_of(device.id, device.hardware2program_ref_id)
+        if found is None:
+            return
+        coupler, label = found
+        check_coupler(
+            lines,
+            segment_id,
+            coupler,
+            label,
+            ip_routers=ip_routers,
+            moving={device.id},
         )
 
     # --- undo / redo / history --------------------------------------------

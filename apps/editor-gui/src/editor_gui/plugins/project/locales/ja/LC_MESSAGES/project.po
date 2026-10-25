@@ -2733,3 +2733,24 @@ msgstr "このグループには空いているグループアドレスがあり
 
 msgid "The main group has no free middle group."
 msgstr "このメイングループには空いている中間グループがありません。"
+
+msgid "{count} devices"
+msgstr "{count} 台のデバイス"
+
+msgid "The main segment cannot be moved."
+msgstr "メインセグメントは移動できません。"
+
+msgid "The maximum number of lines has been reached."
+msgstr "ラインの最大数に達しました。"
+
+msgid "The line is already assigned to an area."
+msgstr "このラインは既にエリアに割り当てられています。"
+
+msgid "The main line cannot be moved."
+msgstr "メインラインは移動できません。"
+
+msgid "Move line"
+msgstr "ラインを移動"
+
+msgid "Move segment"
+msgstr "セグメントを移動"

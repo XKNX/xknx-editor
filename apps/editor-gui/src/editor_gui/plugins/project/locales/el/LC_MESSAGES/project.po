@@ -2733,3 +2733,24 @@ msgstr "Η ομάδα δεν έχει ελεύθερη διεύθυνση ομά
 
 msgid "The main group has no free middle group."
 msgstr "Η κύρια ομάδα δεν έχει ελεύθερη μεσαία ομάδα."
+
+msgid "{count} devices"
+msgstr "{count} συσκευές"
+
+msgid "The main segment cannot be moved."
+msgstr "Το κύριο τμήμα δεν μπορεί να μετακινηθεί."
+
+msgid "The maximum number of lines has been reached."
+msgstr "Έχει επιτευχθεί ο μέγιστος αριθμός γραμμών."
+
+msgid "The line is already assigned to an area."
+msgstr "Η γραμμή έχει ήδη αντιστοιχιστεί σε περιοχή."
+
+msgid "The main line cannot be moved."
+msgstr "Η κύρια γραμμή δεν μπορεί να μετακινηθεί."
+
+msgid "Move line"
+msgstr "Μετακίνηση γραμμής"
+
+msgid "Move segment"
+msgstr "Μετακίνηση τμήματος"

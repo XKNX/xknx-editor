@@ -246,6 +246,12 @@ class ProjectPlugin:
             on_add_segment=self._on_add_segment,
             on_remove_segment=self._on_remove_segment,
             on_move_device_to_segment=self._on_move_device_to_segment,
+            on_move_line=lambda line, area: self._report(
+                api.project.move_line(line, area)
+            ),
+            on_move_segment=lambda segment, line: self._report(
+                api.project.move_segment(segment, line)
+            ),
         )
         self._compare_panel = DeviceComparePanel(
             get_devices=lambda: api.project.devices,
@@ -1965,6 +1971,11 @@ class ProjectPlugin:
         )
         if self._api.notify is not None:
             self._api.notify(medium_error_text(error))
+
+    def _report(self, reason: str | None) -> None:
+        """Tell the user why an edit was refused (``reason``; None: it was not)."""
+        if reason and self._api.notify is not None:
+            self._api.notify(reason)
 
     def _handle_name_change(self, device: "Device", new_name: str) -> None:
         old_name = device.name

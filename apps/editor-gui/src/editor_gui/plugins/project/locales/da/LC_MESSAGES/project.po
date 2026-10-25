@@ -2733,3 +2733,24 @@ msgstr "Gruppen har ingen ledig gruppeadresse."
 
 msgid "The main group has no free middle group."
 msgstr "Hovedgruppen har ingen ledig mellemgruppe."
+
+msgid "{count} devices"
+msgstr "{count} enheder"
+
+msgid "The main segment cannot be moved."
+msgstr "Hovedsegmentet kan ikke flyttes."
+
+msgid "The maximum number of lines has been reached."
+msgstr "Det maksimale antal linjer er nået."
+
+msgid "The line is already assigned to an area."
+msgstr "Linjen er allerede tildelt et område."
+
+msgid "The main line cannot be moved."
+msgstr "Hovedlinjen kan ikke flyttes."
+
+msgid "Move line"
+msgstr "Flyt linje"
+
+msgid "Move segment"
+msgstr "Flyt segment"

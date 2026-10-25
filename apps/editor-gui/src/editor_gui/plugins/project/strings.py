@@ -412,6 +412,22 @@ class ProjectStrings:
         return _("The main segment cannot be deleted.")
 
     @property
+    def MEDIUM_ERROR_MAIN_SEGMENT_MOVE(self) -> str:
+        return _("The main segment cannot be moved.")
+
+    @property
+    def MEDIUM_ERROR_TOO_MANY_LINES(self) -> str:
+        return _("The maximum number of lines has been reached.")
+
+    @property
+    def MEDIUM_ERROR_LINE_IN_AREA(self) -> str:
+        return _("The line is already assigned to an area.")
+
+    @property
+    def MEDIUM_ERROR_MAIN_LINE_MOVE(self) -> str:
+        return _("The main line cannot be moved.")
+
+    @property
     def MEDIUM_ERROR_DEVICE_LINE(self) -> str:
         return _("Device '{device}' is incompatible with line's medium type.")
 
@@ -492,6 +508,14 @@ class ProjectStrings:
         return _("Move middle group")
 
     @property
+    def HISTORY_EV_MOVE_LINE(self) -> str:
+        return _("Move line")
+
+    @property
+    def HISTORY_EV_MOVE_SEGMENT(self) -> str:
+        return _("Move segment")
+
+    @property
     def GA_MOVE_NO_FREE(self) -> str:
         return _("The group has no free group address.")
 
@@ -510,6 +534,10 @@ class ProjectStrings:
     @property
     def PANEL_TOPOLOGY(self) -> str:
         return _("Topology")
+
+    @property
+    def DRAG_DEVICES(self) -> str:
+        return _("{count} devices")
 
     @property
     def PANEL_CONFIGURE(self) -> str:

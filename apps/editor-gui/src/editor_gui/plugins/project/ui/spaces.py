@@ -19,6 +19,7 @@ from editor_gui.plugins.project.ui.config_dialog import DeviceConfigDialog
 from editor_gui.plugins.project.ui.move_menu import render_move_menu
 from editor_gui.plugins.project.ui.status_field import USAGE_ROWS as _USAGE_ROWS
 from editor_gui.plugins.project.ui.topology import render_read_device_item
+from editor_gui.plugins.project.ui.tree_drag import Dragged, drag_source, drop_target
 from editor_gui.widgets.combo import combo
 from editor_gui.widgets.description import render_description, render_device_marks
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
@@ -93,6 +94,17 @@ def _parent_id(
         return None
 
     return walk(tree, None)
+
+
+def _find_node(tree: "Sequence[SpaceInfo] | Sequence[TradeInfo]", node_id: int) -> Any:
+    """The space or trade ``node_id`` in ``tree``, None when it is not there."""
+    for node in tree:
+        if node.id == node_id:
+            return node
+        found = _find_node(node.children, node_id)
+        if found is not None:
+            return found
+    return None
 
 
 def _add_dialog(key: str) -> str:
@@ -259,6 +271,7 @@ class SpacesPanel:
                 self._start_add(child_types(None)[0], None, S.SPACES_ROOT_BUILDINGS)
                 self._pending_popup_id = _add_dialog("root")
             imgui.end_popup()
+        self._drop_on_space(None)
         self._open_if_pending(_add_dialog("root"))
         self._render_add_popup(_add_dialog("root"))
         if buildings_open:
@@ -269,6 +282,60 @@ class SpacesPanel:
             imgui.tree_pop()
         self._render_trades(flt)
         self._render_unassigned_section()
+
+    def _drag_and_drop_space(self, space: "SpaceInfo") -> None:
+        """A space is dragged where its "Move to" puts it; devices are dropped on it."""
+        if self._on_move_space is not None:
+            drag_source(Dragged("space", (space.id,)), space_label(space))
+        self._drop_on_space(space)
+
+    def _drop_on_space(self, space: "SpaceInfo | None") -> None:
+        """The space just drawn (``None``: the "Buildings" root) as a place to drop on: the
+        spaces that may go below it, and devices when it holds them."""
+        tree = self._get_space_tree()
+
+        def accepts(dragged: Dragged) -> bool:
+            if dragged.kind == "space":
+                return self._on_move_space is not None and all(
+                    self._space_may_go(tree, moving, space) for moving in dragged.ids
+                )
+            if dragged.kind != "device" or space is None:
+                return False
+            here = {device.id for device in space.devices}
+            return (
+                self._on_set_device_space is not None
+                and holds_devices(space.space_type)
+                and not here.issuperset(dragged.ids)
+            )
+
+        drop = drop_target(accepts)
+        if drop is None:
+            return
+        target = space.id if space is not None else None
+        for ident in drop.dragged.ids:
+            if drop.dragged.kind == "space":
+                assert self._on_move_space is not None
+                self._report(self._on_move_space(ident, target))
+            else:
+                assert self._on_set_device_space is not None
+                self._report(self._on_set_device_space(ident, target))
+
+    def _space_may_go(
+        self, tree: "list[SpaceInfo]", moving_id: int, target: "SpaceInfo | None"
+    ) -> bool:
+        """Whether the space ``moving_id`` may go below ``target`` (``None``: the top level),
+        as "Move to" offers it: where its type may go, not below itself, not where it is."""
+        moving = _find_node(tree, moving_id)
+        if moving is None or _parent_id(tree, moving_id) == (
+            target.id if target is not None else None
+        ):
+            return False
+        if target is None:
+            return moving.space_type in child_types(None)
+        return any(
+            candidate.id == target.id
+            for candidate, _depth in self._move_targets(moving_id, moving.space_type)
+        )
 
     def _start_add(self, add_type: str, parent: int | None, parent_name: str) -> None:
         """Prepare the "Add …" dialog for ``add_type`` (a space type or ``_TRADE``) below
@@ -312,6 +379,7 @@ class SpacesPanel:
         # The context menu and the space's own popups must run whether the node is expanded or not
         # (a collapsed node can still be moved/deleted), so render them before the return.
         self._render_space_context_menu(space)
+        self._drag_and_drop_space(space)
         # A short description shows inline; a longer one shows while its icon is hovered.
         render_description(space.description)
         self._open_if_pending(_add_dialog(f"sp{space.id}"))
@@ -651,6 +719,7 @@ class SpacesPanel:
             self._selected_trade = None
             self._on_select_device_id(device.id)
         hovered = imgui.is_item_hovered()  # capture before the context menu below
+        drag_source(Dragged("device", (device.id,)), leaf)
         has_menu = (
             bool(device.individual_address)
             or (space_id is not None and self._on_set_device_space is not None)
@@ -735,6 +804,7 @@ class SpacesPanel:
                 self._start_add(_TRADE, None, S.SPACES_ROOT_TRADES)
                 self._pending_popup_id = _add_dialog("trades")
             imgui.end_popup()
+        self._drop_on_trade(None)
         self._open_if_pending(_add_dialog("trades"))
         self._render_add_popup(_add_dialog("trades"))
         if not open_root:
@@ -770,6 +840,9 @@ class SpacesPanel:
             self._selected_trade = trade.id
             self._on_select_element("trade", trade.id)
         self._render_trade_context_menu(trade, label)
+        if self._on_move_trade is not None:
+            drag_source(Dragged("trade", (trade.id,)), label)
+        self._drop_on_trade(trade)
         render_description(trade.description)
         self._open_if_pending(_add_dialog(f"tr{trade.id}"))
         self._render_add_popup(_add_dialog(f"tr{trade.id}"))
@@ -817,6 +890,42 @@ class SpacesPanel:
         ):
             self._on_remove_trade(trade.id)
         imgui.end_popup()
+
+    def _drop_on_trade(self, trade: "TradeInfo | None") -> None:
+        """The trade just drawn (``None``: the "Trades" root) as a place to drop on: the trades
+        that may go below it, and devices (a device leaves the trade it was in)."""
+        trades = self._get_trade_tree()
+
+        def accepts(dragged: Dragged) -> bool:
+            if dragged.kind == "trade":
+                target = trade.id if trade is not None else None
+                return self._on_move_trade is not None and all(
+                    _parent_id(trades, moving) != target
+                    and (
+                        trade is None
+                        or any(
+                            t.id == trade.id for t, _d in self._trade_targets(moving)
+                        )
+                    )
+                    for moving in dragged.ids
+                )
+            if dragged.kind != "device" or trade is None:
+                return False
+            here = {link.device.id for link in trade.devices}
+            return self._on_add_trade_device is not None and not here.issuperset(
+                dragged.ids
+            )
+
+        drop = drop_target(accepts)
+        if drop is None:
+            return
+        for ident in drop.dragged.ids:
+            if drop.dragged.kind == "trade":
+                assert self._on_move_trade is not None
+                self._on_move_trade(ident, trade.id if trade is not None else None)
+            else:
+                assert self._on_add_trade_device is not None and trade is not None
+                self._on_add_trade_device(trade.id, ident)
 
     def _trade_targets(self, moving_id: int) -> "list[tuple[TradeInfo, int]]":
         """The trades ``moving_id`` can go below: all but itself and the trades below it."""

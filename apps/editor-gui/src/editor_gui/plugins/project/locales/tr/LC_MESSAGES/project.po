@@ -2733,3 +2733,24 @@ msgstr "Grupta boş grup adresi yok."
 
 msgid "The main group has no free middle group."
 msgstr "Ana grupta boş orta grup yok."
+
+msgid "{count} devices"
+msgstr "{count} cihaz"
+
+msgid "The main segment cannot be moved."
+msgstr "Ana segment taşınamaz."
+
+msgid "The maximum number of lines has been reached."
+msgstr "Azami hat sayısına ulaşıldı."
+
+msgid "The line is already assigned to an area."
+msgstr "Hat zaten bir alana atanmış."
+
+msgid "The main line cannot be moved."
+msgstr "Ana hat taşınamaz."
+
+msgid "Move line"
+msgstr "Hattı taşı"
+
+msgid "Move segment"
+msgstr "Segmenti taşı"

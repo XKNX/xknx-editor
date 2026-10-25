@@ -3039,6 +3039,62 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         return ctx.run_locked(_move)
 
+    @tool("write")
+    def project_move_line(line_id: int, area_id: int) -> dict[str, Any]:
+        """Move a sub line (``id`` from project_topology; not a main line x.0) into another area
+        (an area's ``id``), as its "Move to" does. It keeps its line number when that is free
+        there, else gets the lowest free one; its devices keep their device numbers, so their
+        individual addresses change with it (program them afterwards). An RF, PL or IoT main
+        line takes only lines of its medium, an IP or IoT line needs an IP main line (or IP
+        backbone in area 0); an area has at most 16 lines. Its main segment takes the domain
+        address of the area's main line when it has the same medium, else gets a new one (none
+        on TP or IP). Couplers on it are checked where they end up. Undoable with project_undo
+        (one step). Returns the line as project_topology lists it, with ``area_id`` and its
+        ``address`` ("area.line")."""
+        require_project(ctx)
+
+        def _move() -> dict[str, Any]:
+            reason = project.move_line(line_id, area_id)
+            if reason:
+                raise ToolError(reason)
+            return _moved_line(line_id)
+
+        return ctx.run_locked(_move)
+
+    @tool("write")
+    def project_move_segment(segment_id: int, line_id: int) -> dict[str, Any]:
+        """Move a sub-segment (``id`` from project_topology's ``segments``; not a main segment)
+        onto another line (a line's ``id``, a main line x.0 or the backbone included), as its
+        "Move to" does. It gets the line's lowest free segment number. Its devices keep their
+        device numbers unless one of them is taken in that line: then each whose number is
+        taken gets the line's lowest free one (none when the line is full); devices with
+        additional addresses get them again there. The line must allow the segment's medium (TP
+        or RF below TP, TP, RF or IoT below IP, nothing below RF, PL or IoT) and hold at most
+        128 segments; segment couplers on it are checked where they end up. Nothing changes on
+        its own line. Undoable with project_undo (one step). Returns the target line as
+        project_topology lists it, with ``area_id`` and its ``address``."""
+        require_project(ctx)
+
+        def _move() -> dict[str, Any]:
+            reason = project.move_segment(segment_id, line_id)
+            if reason:
+                raise ToolError(reason)
+            return _moved_line(line_id)
+
+        return ctx.run_locked(_move)
+
+    def _moved_line(line_id: int) -> dict[str, Any]:
+        line = project.find_line(line_id)
+        if line is None:
+            raise ToolError(f"no line with id {line_id}")
+        area = next((a for a in project.get_areas() if a.id == line.area_id), None)
+        number = area.area_number if area is not None else "?"
+        return {
+            **_line_entry(line),
+            "area_id": line.area_id,
+            "address": f"{number}.{line.line_number}",
+        }
+
     # --- group address mutations ------------------------------------------
 
     @tool("write")

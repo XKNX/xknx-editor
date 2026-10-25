@@ -2918,3 +2918,24 @@ msgstr "Die Gruppe hat keine freie Gruppenadresse."
 
 msgid "The main group has no free middle group."
 msgstr "Die Hauptgruppe hat keine freie Mittelgruppe."
+
+msgid "{count} devices"
+msgstr "{count} Geräte"
+
+msgid "The main segment cannot be moved."
+msgstr "Das Hauptsegment kann nicht verschoben werden."
+
+msgid "The maximum number of lines has been reached."
+msgstr "Die maximale Anzahl an Linien ist erreicht."
+
+msgid "The line is already assigned to an area."
+msgstr "Die Linie ist bereits einem Bereich zugeordnet."
+
+msgid "The main line cannot be moved."
+msgstr "Die Hauptlinie kann nicht verschoben werden."
+
+msgid "Move line"
+msgstr "Linie verschieben"
+
+msgid "Move segment"
+msgstr "Segment verschieben"

@@ -2771,3 +2771,24 @@ msgstr "De groep heeft geen vrij groepsadres."
 
 msgid "The main group has no free middle group."
 msgstr "De hoofdgroep heeft geen vrije middengroep."
+
+msgid "{count} devices"
+msgstr "{count} apparaten"
+
+msgid "The main segment cannot be moved."
+msgstr "Het hoofdsegment kan niet worden verplaatst."
+
+msgid "The maximum number of lines has been reached."
+msgstr "Het maximale aantal lijnen is bereikt."
+
+msgid "The line is already assigned to an area."
+msgstr "De lijn is al aan een bereik toegewezen."
+
+msgid "The main line cannot be moved."
+msgstr "De hoofdlijn kan niet worden verplaatst."
+
+msgid "Move line"
+msgstr "Lijn verplaatsen"
+
+msgid "Move segment"
+msgstr "Segment verplaatsen"

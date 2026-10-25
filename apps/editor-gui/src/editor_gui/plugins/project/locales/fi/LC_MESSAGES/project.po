@@ -2733,3 +2733,24 @@ msgstr "Ryhmässä ei ole vapaata ryhmäosoitetta."
 
 msgid "The main group has no free middle group."
 msgstr "Pääryhmässä ei ole vapaata keskiryhmää."
+
+msgid "{count} devices"
+msgstr "{count} laitetta"
+
+msgid "The main segment cannot be moved."
+msgstr "Pääsegmenttiä ei voi siirtää."
+
+msgid "The maximum number of lines has been reached."
+msgstr "Linjojen enimmäismäärä on saavutettu."
+
+msgid "The line is already assigned to an area."
+msgstr "Linja on jo määritetty alueelle."
+
+msgid "The main line cannot be moved."
+msgstr "Päälinjaa ei voi siirtää."
+
+msgid "Move line"
+msgstr "Siirrä linja"
+
+msgid "Move segment"
+msgstr "Siirrä segmentti"

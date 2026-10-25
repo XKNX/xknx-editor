@@ -33,6 +33,8 @@ SEGMENT_MEDIA = (MEDIUM_TP, MEDIUM_RF, MEDIUM_IOT)
 BACKBONE_MEDIA = (MEDIUM_IP, MEDIUM_TP)
 # The most segments a line can have, its main segment included.
 MAX_SEGMENTS = 128
+# The most lines an area can have, its main line included (line numbers 0 to 15).
+MAX_LINES = 16
 # The mask versions of KNXnet/IP routers: couplers whose medium above is IP.
 IP_ROUTER_MASKS = frozenset({"MV-091A", "MV-6900"})
 # The media with a domain address, and its bits; a PL one is 1 to 255.
@@ -162,6 +164,10 @@ MEDIUM_ERRORS: dict[str, str] = {
     "rf_domain_unique": "Each line in a project must have a unique domain address.",
     "too_many_segments": "The maximum number of segments has been reached.",
     "main_segment": "The main segment cannot be deleted.",
+    "main_segment_move": "The main segment cannot be moved.",
+    "too_many_lines": "The maximum number of lines has been reached.",
+    "line_in_area": "The line is already assigned to an area.",
+    "main_line_move": "The main line cannot be moved.",
     "device_line_medium": "Device '{device}' is incompatible with line's medium type.",
     "device_segment_medium": "Device '{device}' is incompatible with segment's medium type.",
     "unknown_medium": "Unknown medium '{medium}'.",
@@ -279,6 +285,60 @@ def check_new_sub_segment(main: str, medium: str) -> None:
     if medium == MEDIUM_PL:
         raise MediumError("pl_sub_segment")
     raise MediumError("below_tp" if main == MEDIUM_TP else "below_ip")
+
+
+def check_line_move(
+    line: LineView, target_lines: Sequence[LineView], target_area: int
+) -> None:
+    """Raise a ``MediumError`` unless the sub line ``line`` may move into the area
+    ``target_area`` whose lines are ``target_lines``: room for one more line, another area, and
+    a medium that fits the area's main line."""
+    if line.address == 0:
+        raise MediumError("main_line_move")
+    if len(target_lines) + 1 > MAX_LINES:
+        raise MediumError("too_many_lines")
+    if line.area == target_area:
+        raise MediumError("line_in_area")
+    main = next((ln for ln in target_lines if ln.address == 0), None)
+    if main is None:
+        return
+    medium, above = line.main.medium, main.main.medium
+    text = f"{main.area}.{main.address} {main.name}".strip()
+    for only, reason in (
+        (MEDIUM_RF, "rf_main_line"),
+        (MEDIUM_PL, "pl_main_line"),
+        (MEDIUM_IOT, "iot_main_line"),
+    ):
+        if above == only and medium != only:
+            raise MediumError(reason, line=text)
+    ip_or_iot = (MEDIUM_IP, MEDIUM_IOT)
+    if medium in ip_or_iot and above not in ip_or_iot:
+        raise MediumError(
+            "ip_needs_ip_backbone" if target_area == 0 else "ip_needs_ip_main_line"
+        )
+
+
+def check_segment_move(segment: SegmentView, is_main: bool, target: LineView) -> None:
+    """Raise a ``MediumError`` unless the segment may move onto the line ``target``: room for
+    one more segment, not a main segment, and a medium the line allows below its main segment
+    (TP or RF below TP, TP, RF or IoT below IP, nothing below RF, PL or IoT)."""
+    if len(target.segments) + 1 > MAX_SEGMENTS:
+        raise MediumError("too_many_segments")
+    if is_main:
+        raise MediumError("main_segment_move")
+    medium, main = segment.medium, target.main.medium
+    if medium == MEDIUM_PL:
+        raise MediumError("pl_sub_segment")
+    if main == MEDIUM_RF:
+        raise MediumError("rf_no_sub_segments")
+    if main == MEDIUM_IOT:
+        raise MediumError("iot_no_sub_segments")
+    if main == MEDIUM_PL:
+        raise MediumError("pl_no_sub_segments")
+    if main == MEDIUM_TP and medium in (MEDIUM_IP, MEDIUM_IOT):
+        raise MediumError("below_tp")
+    if main == MEDIUM_IP and medium == MEDIUM_IP:
+        raise MediumError("below_ip")
 
 
 def check_medium_change(

@@ -2733,3 +2733,24 @@ msgstr "该组没有空闲的组地址。"
 
 msgid "The main group has no free middle group."
 msgstr "该主组没有空闲的中间组。"
+
+msgid "{count} devices"
+msgstr "{count} 个设备"
+
+msgid "The main segment cannot be moved."
+msgstr "主网段无法移动。"
+
+msgid "The maximum number of lines has been reached."
+msgstr "已达到线路的最大数量。"
+
+msgid "The line is already assigned to an area."
+msgstr "该线路已分配给某个区域。"
+
+msgid "The main line cannot be moved."
+msgstr "主线路无法移动。"
+
+msgid "Move line"
+msgstr "移动线路"
+
+msgid "Move segment"
+msgstr "移动网段"

@@ -9,6 +9,7 @@ from editor_gui.plugins.project.strings import S
 from editor_gui.plugins.project.ui._filter import filter_box
 from editor_gui.plugins.project.ui.config_dialog import DeviceConfigDialog
 from editor_gui.plugins.project.ui.move_menu import render_move_menu
+from editor_gui.plugins.project.ui.tree_drag import Dragged, drag_source, drop_target
 from editor_gui.widgets.description import render_device_marks
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
 from editor_gui.widgets.dpi import label_column_width, px
@@ -102,8 +103,14 @@ class TopologyPanel:
         on_move_device_to_segment: Callable[[Device, Segment], None] = (
             lambda _d, _s: None
         ),
+        on_move_line: Callable[[int, int], None] = lambda _l, _a: None,
+        on_move_segment: Callable[[int, int], None] = lambda _s, _l: None,
     ) -> None:
+        """``on_move_line`` puts a sub line (id) into an area (id), ``on_move_segment`` a
+        sub-segment (id) onto a line (id)."""
         self._get_devices = get_devices
+        self._on_move_line = on_move_line
+        self._on_move_segment = on_move_segment
         # A line's sub-segments show as nodes before its main segment's devices, each with its
         # own devices (``get_device_segments``: node id -> segment id).
         self._get_device_segments = get_device_segments
@@ -139,7 +146,6 @@ class TopologyPanel:
         self._on_create_line = on_create_line
         self._on_remove_line = on_remove_line
         self._on_rename_line = on_rename_line
-        self._dragging_device: Device | None = None
         self._filter_text: str = ""
 
         self._popup_area_number: int = 0
@@ -286,7 +292,7 @@ class TopologyPanel:
                 self._select_element(kind, area.id)
             self._render_area_context_menu(area, [line for line, _f in lines], main)
             if main is not None:
-                self._render_line_drop_target(area, main)
+                self._render_line_drop_target(area, main, area_node=True)
             if area_open:
                 for line, found in lines:
                     if line.number == 0:
@@ -343,7 +349,8 @@ class TopologyPanel:
         opened = tree_node(f"{label}##line_{line.id}", flags)
         if imgui.is_item_clicked() and not imgui.is_item_toggled_open():
             self._select_element("line", line.id)
-        self._render_line_context_menu(line)
+        self._render_line_context_menu(area, line)
+        drag_source(Dragged("line", (line.id,)), label)
         self._render_line_drop_target(area, line)
         if opened:
             self._render_line_content(
@@ -400,15 +407,15 @@ class TopologyPanel:
         if imgui.is_item_clicked() and not imgui.is_item_toggled_open():
             self._select_element("segment", segment.id)
         if imgui.begin_popup_context_item(f"##segment_ctx_{segment.id}"):
+            self._render_move_segment_menu(segment, line)
+            imgui.separator()
             if imgui.menu_item(S.CONTEXT_DELETE, "", False)[0]:
                 self._on_remove_segment(segment)
             imgui.end_popup()
-        if imgui.begin_drag_drop_target():
-            payload = imgui.accept_drag_drop_payload_py_id("DEVICE")
-            if payload is not None and self._dragging_device is not None:
-                self._on_move_device_to_segment(self._dragging_device, segment)
-                self._dragging_device = None
-            imgui.end_drag_drop_target()
+        drag_source(Dragged("segment", (segment.id,)), label)
+        self._drop_devices(
+            segment.id, lambda device: self._on_move_device_to_segment(device, segment)
+        )
         if opened:
             with leaf_rows(nodes=True):
                 for device in devices:
@@ -637,7 +644,7 @@ class TopologyPanel:
                 self._on_remove_area(area)
             imgui.end_popup()
 
-    def _render_line_context_menu(self, line: Line) -> None:
+    def _render_line_context_menu(self, area: Area, line: Line) -> None:
         if imgui.begin_popup_context_item(f"##line_ctx_{line.id}"):
             if imgui.menu_item(S.CONTEXT_ADD_SEGMENT, "", False)[0]:
                 self._on_add_segment(line)
@@ -645,10 +652,41 @@ class TopologyPanel:
                 self._popup_target_line = line
                 self._popup_name = line.name
                 self._open_rename_popup = True
+            self._render_move_line_menu(area, line)
             imgui.separator()
             if imgui.menu_item(S.CONTEXT_DELETE, "", False)[0]:
                 self._on_remove_line(line)
             imgui.end_popup()
+
+    def _render_move_line_menu(self, area: Area, line: Line) -> None:
+        """ "Move to" of a sub line: every area (by its main line), its own grayed out. It
+        keeps its number when free there, else gets the lowest free one."""
+        targets: list[tuple[str, int]] = []
+        for target in self._get_areas():
+            main = next(
+                (ln for ln in self._get_lines(target.id) if ln.number == 0), None
+            )
+            label = self._format_area_label(target, main)
+            targets.append((f"{label}##mvline{line.id}_{target.id}", target.id))
+        chosen = render_move_menu(targets, area.id)
+        if chosen is not None:
+            self._on_move_line(line.id, chosen[0])
+
+    def _render_move_segment_menu(self, segment: Segment, line: Line) -> None:
+        """ "Move to" of a sub-segment: every line (main lines by their area), its own grayed
+        out. It gets the line's lowest free segment number."""
+        targets: list[tuple[str, int]] = []
+        for area in self._get_areas():
+            for target in sorted(self._get_lines(area.id), key=lambda ln: ln.number):
+                label = (
+                    self._format_area_label(area, target)
+                    if target.number == 0
+                    else self._format_line_label(area, target)
+                )
+                targets.append((f"{label}##mvseg{segment.id}_{target.id}", target.id))
+        chosen = render_move_menu(targets, line.id)
+        if chosen is not None:
+            self._on_move_segment(segment.id, chosen[0])
 
     def _render_new_area_popup(self) -> None:
         if begin_dialog(S.POPUP_NEW_AREA):
@@ -808,19 +846,92 @@ class TopologyPanel:
         return unassigned
 
     def _render_device_drag_source(self, device: Device) -> None:
-        if imgui.begin_drag_drop_source():
-            self._dragging_device = device
-            imgui.set_drag_drop_payload_py_id("DEVICE", device.node_id)
-            imgui.text(device.display_name)
-            imgui.end_drag_drop_source()
+        """A device is dragged, together with the other selected ones when it is selected."""
+        selected = set(self._get_selected_node_ids())
+        ids = (
+            tuple(sorted(selected))
+            if device.node_id in selected and len(selected) > 1
+            else (device.node_id,)
+        )
+        text = device.display_name
+        if len(ids) > 1:
+            text = S.DRAG_DEVICES.format(count=len(ids))
+        drag_source(Dragged("device", ids), text)
 
-    def _render_line_drop_target(self, area: Area, line: Line) -> None:
-        if imgui.begin_drag_drop_target():
-            payload = imgui.accept_drag_drop_payload_py_id("DEVICE")
-            if payload is not None and self._dragging_device is not None:
-                self._on_move_device(self._dragging_device, area.number, line.number)
-                self._dragging_device = None
-            imgui.end_drag_drop_target()
+    def _render_line_drop_target(
+        self, area: Area, line: Line, *, area_node: bool = False
+    ) -> None:
+        """A line as a place to drop on: devices go onto its main segment, sub-segments onto the
+        line; an area's node (its main line) also takes the lines of other areas."""
+
+        def accepts(dragged: Dragged) -> bool:
+            if dragged.kind == "segment":
+                line_of = self._line_of_segments()
+                return any(line_of.get(ident) != line.id for ident in dragged.ids)
+            if dragged.kind == "line":
+                area_of = self._area_of_lines()
+                return area_node and any(
+                    area_of.get(ident) != area.id for ident in dragged.ids
+                )
+            return False
+
+        self._drop_devices(
+            line.main_segment_id,
+            lambda device: self._on_move_device(device, area.number, line.number),
+            accepts,
+            lambda dragged, ident: (
+                self._on_move_segment(ident, line.id)
+                if dragged.kind == "segment"
+                else self._on_move_line(ident, area.id)
+            ),
+        )
+
+    def _line_of_segments(self) -> dict[int, int]:
+        """The line of each sub-segment, by segment id."""
+        return {
+            segment.id: line.id
+            for area in self._get_areas()
+            for line in self._get_lines(area.id)
+            for segment in line.segments
+        }
+
+    def _area_of_lines(self) -> dict[int, int]:
+        """The area of each line, by line id."""
+        return {
+            line.id: area.id
+            for area in self._get_areas()
+            for line in self._get_lines(area.id)
+        }
+
+    def _drop_devices(
+        self,
+        segment_id: int | None,
+        move: Callable[[Device], None],
+        accepts_other: Callable[[Dragged], bool] = lambda _d: False,
+        move_other: Callable[[Dragged, int], None] = lambda _d, _i: None,
+    ) -> None:
+        """The line or segment just drawn (``segment_id``) as a place to drop devices on, from
+        this tree or the Buildings tree; they move there as with "Move to". ``accepts_other``
+        and ``move_other`` take other dragged elements (lines, segments) there."""
+        segment_of = self._get_device_segments()
+
+        def accepts(dragged: Dragged) -> bool:
+            if dragged.kind != "device":
+                return accepts_other(dragged)
+            return any(segment_of.get(ident) != segment_id for ident in dragged.ids)
+
+        drop = drop_target(accepts)
+        if drop is None:
+            return
+        if drop.dragged.kind != "device":
+            for ident in drop.dragged.ids:
+                move_other(drop.dragged, ident)
+            return
+        devices = {d.node_id: d for d in self._get_devices()}
+        for ident in drop.dragged.ids:
+            device = devices.get(ident)
+            if device is not None and segment_of.get(ident) != segment_id:
+                move(device)
 
 
 def render_read_device_item(
