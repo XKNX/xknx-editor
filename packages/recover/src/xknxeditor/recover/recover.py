@@ -19,6 +19,10 @@ from xknx.exceptions import ManagementConnectionError, XKNXException
 from xknx.telegram import IndividualAddress
 
 from xknxeditor.download import DeviceProgrammer
+from xknxeditor.download.programmer import (
+    DEFAULT_MAX_APDU_LENGTH,
+    MAX_COMMUNICATION_APDU_LENGTH,
+)
 from xknxeditor.download.session import connect
 
 from .dossier import DeviceDossier, read_dossier
@@ -213,12 +217,25 @@ async def identify_device_at(
             await xknx.management.disconnect(target)
 
 
+def _negotiated_apdu_length(device_max: int, interface_max: int | None) -> int:
+    """The APDU length to read with: the device's maximum within the interface's.
+
+    Never below the default every device supports, and never above what an interface
+    passes on, as for a download (``xknxeditor.download.download._apdu_settings``).
+    """
+    ceiling = MAX_COMMUNICATION_APDU_LENGTH
+    if interface_max is not None:
+        ceiling = min(ceiling, interface_max)
+    return max(DEFAULT_MAX_APDU_LENGTH, min(device_max, ceiling))
+
+
 async def recover_device_at(
     xknx: XKNX,
     address: IndividualAddressableType,
     application: Application,
     *,
     negotiate_apdu: bool = True,
+    interface_max_apdu_length: int | None = None,
     progress: Callable[[str], None] | None = None,
     attempts: int = 3,
     retry_delay: float = 1.5,
@@ -226,30 +243,47 @@ async def recover_device_at(
     """Open a connection to ``address``, recover the device, and close it again.
 
     ``xknx`` has to be started. When ``negotiate_apdu`` is set the device's maximum
-    APDU length is read first so reads use larger, fewer telegrams. ``progress``
-    reports the current read stage. Read-only.
+    APDU length is read first so reads use larger, fewer telegrams, capped at
+    ``interface_max_apdu_length`` (the connecting interface's maximum) as a download
+    is. ``progress`` reports the current read stage. Read-only.
 
     A transient transport failure (the KNXnet/IP tunnel dropping the point-to-point
     connection under sustained load - a ``DisconnectRequest``, a missing ACK, or a
     timeout that a table read did not tolerate) reconnects and retries the whole
     device up to ``attempts`` times, so one bus hiccup does not fail a device on a
     large scan. The last error is raised if every attempt fails.
+
+    A failure while reading with a negotiated length above the default drops to the
+    default 15-octet APDU for the remaining attempts: a device can report a long
+    maximum that the path to it does not carry (a tunnelling v1 interface reports no
+    maximum of its own, and a coupler may pass only standard frames), and it then
+    disconnects on every long read, so retrying at the same length never succeeds.
     """
     target = IndividualAddress(address)
     last_exc: Exception | None = None
+    fall_back_to_default = False
     for attempt in range(max(attempts, 1)):
         connection = None
+        programmer: DeviceProgrammer | None = None
         try:
             connection = await connect(xknx, target)
             programmer = DeviceProgrammer(connection)
-            if negotiate_apdu:
+            if negotiate_apdu and not fall_back_to_default:
                 with contextlib.suppress(XKNXException):
-                    programmer.max_apdu_length = await programmer.read_max_apdu_length()
+                    programmer.max_apdu_length = _negotiated_apdu_length(
+                        await programmer.read_max_apdu_length(),
+                        interface_max_apdu_length,
+                    )
             return await recover_device(
                 programmer, application, address=str(target), progress=progress
             )
         except (ManagementConnectionError, XKNXException) as exc:
             last_exc = exc  # transport hiccup: reconnect and retry
+            if (
+                programmer is not None
+                and programmer.max_apdu_length > DEFAULT_MAX_APDU_LENGTH
+            ):
+                fall_back_to_default = True
         finally:
             if connection is not None:
                 with contextlib.suppress(ManagementConnectionError, XKNXException):

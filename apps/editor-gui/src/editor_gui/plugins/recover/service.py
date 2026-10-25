@@ -272,6 +272,7 @@ class RecoverService:
                     xknx,
                     entry.address,
                     entry.application,
+                    interface_max_apdu_length=self._api.connection.interface_max_apdu_length,
                     progress=self._on_recover_stage,
                 )
                 entry.state = S.STATE_RECOVERED
