@@ -2661,3 +2661,42 @@ msgstr "设备数"
 
 msgid "Unlink"
 msgstr "取消链接"
+
+msgid "An IP router requires an IP backbone line."
+msgstr "一个IP路由器需要一个IP主干线."
+
+msgid "The operation could not be executed, because a coupler needs a main line."
+msgstr "不能执行该操作，因为一个耦合器需要一条主干线."
+
+msgid "The operation could not be executed, because an area coupler requires a backbone line."
+msgstr "不能执行该操作，因为区域耦合器要求有一条主干线."
+
+msgid "The operation could not be executed, because this coupler needs a main line with the medium type '{medium}' ."
+msgstr "不能执行该操作，因为该耦合器需要一条媒介类型{medium}的主干线 ."
+
+msgid "The operation could not be executed, because only one IP router is allowed as a world coupler."
+msgstr "不能执行该操作，因为只有一个IP路由器被允许作为一个世界耦合器."
+
+msgid "The operation could not be executed, because only IP router area allowed as a world coupler."
+msgstr "不能执行该操作，因为只有IP路由器允许作为一个世界耦合器."
+
+msgid "The backbone line contains a world coupler. It is not possible to use an IP router below another IP router."
+msgstr "骨干网线路中含一个通用耦合器。在其他IP路由器下无法使用IP路由器."
+
+msgid "It is not possible to use a world coupler, when there are already IP routers in the project."
+msgstr "当项目中已经有IP路由器时，不能使用全局耦合器。"
+
+msgid "A world coupler can only be used, when the medium type of the backbone is TP."
+msgstr "主干网线路介质类型为TP时，仅可用通用耦合器."
+
+msgid "The coupler does not support segment coupling, so the sub-segment must be of the same KNX medium type as the main segment."
+msgstr "耦合器不支持分段耦合，因此子段必须与主段拥有相同的KNX介质类型。"
+
+msgid "The operation could not be executed, because this device couples medium '{above}' (above) to medium '{below}' (below), but the segment above is '{segment}'."
+msgstr "无法执行操作，因为此设备耦合了介质'{above}' (上) 和介质'{below}'(下)，但上面的段是'{segment}'。"
+
+msgid "The operation could not be executed, because medium type of coupler device matches only sub segment, but maximum amount of segments reached."
+msgstr "操作无法执行，因为耦合器设备的介质类型仅匹配子段，但达到了最大的段的数量。"
+
+msgid "The operation could not be executed, because this device couples medium '{above}' (above) to medium '{below}' (below), but the medium type of the lower segment is '{segment}'."
+msgstr "操作无法执行，因为此设备耦合了介质'{above}' (上) 和介质'{below}'(下)，但下面的段的介质类型是'{segment}'。"

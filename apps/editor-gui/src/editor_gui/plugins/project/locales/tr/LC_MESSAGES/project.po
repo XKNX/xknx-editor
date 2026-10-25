@@ -2661,3 +2661,42 @@ msgstr "Cihaz sayısı"
 
 msgid "Unlink"
 msgstr "İlişkiyi kaldır"
+
+msgid "An IP router requires an IP backbone line."
+msgstr "Bir IP yönlendiriciye  IP omurga hattı gereklidir."
+
+msgid "The operation could not be executed, because a coupler needs a main line."
+msgstr "İşlem yürütülemedi, çünkü bir kalper için ana linye gereklidir."
+
+msgid "The operation could not be executed, because an area coupler requires a backbone line."
+msgstr "İşlem yürütülemedi, çünkü alan kapleri omurga linyesi gerektirir."
+
+msgid "The operation could not be executed, because this coupler needs a main line with the medium type '{medium}' ."
+msgstr "İşlem yürütülemedi, çünkü  '{medium}' ortam tipi olan kapler gerekmekte ."
+
+msgid "The operation could not be executed, because only one IP router is allowed as a world coupler."
+msgstr "İşlem yürütülemedi, çünkü evrensel kapler için yalnızca bir IP router olabilir."
+
+msgid "The operation could not be executed, because only IP router area allowed as a world coupler."
+msgstr "İşlem yürütülemedi, çünkü yalnız IP router alanı evrensel kapler olabilir."
+
+msgid "The backbone line contains a world coupler. It is not possible to use an IP router below another IP router."
+msgstr "Omurga linyesi bir dünya bağlaştırıcısı içeriyor. Bir IP yönlendiricisini başka bir IP yönlendiricisinin altında kullanmak mümkün değil."
+
+msgid "It is not possible to use a world coupler, when there are already IP routers in the project."
+msgstr "Projede halihazırda IP yönlendiricileri varken bir dünya(world) bağlayıcısı kullanmak mümkün değildir."
+
+msgid "A world coupler can only be used, when the medium type of the backbone is TP."
+msgstr "Dünya bağlayıcısı yalnızca omurganın ortam tipi TP olduğunda kullanılabilir."
+
+msgid "The coupler does not support segment coupling, so the sub-segment must be of the same KNX medium type as the main segment."
+msgstr "Bağlayıcılar segment bağlantısını desteklemez, bu nedenle alt segment ana segment ile aynı KNX ortam tipinde olmalıdır."
+
+msgid "The operation could not be executed, because this device couples medium '{above}' (above) to medium '{below}' (below), but the segment above is '{segment}'."
+msgstr "İşlem gerçekleştirilemedi, bu cihaz '{above}' ortamı (yukarıda) ile ortam '{below}' (aşağıda) arasında bağlantı sağlamaktadır, ancak yukarıdaki segment '{segment}''dir."
+
+msgid "The operation could not be executed, because medium type of coupler device matches only sub segment, but maximum amount of segments reached."
+msgstr "Bağlayıcının ortam tipi alt segmentler ile eşleşiyor ancak maksimum segment sayısına ulaşıldığı için işlem gerçekleştirilimiyor."
+
+msgid "The operation could not be executed, because this device couples medium '{above}' (above) to medium '{below}' (below), but the medium type of the lower segment is '{segment}'."
+msgstr "İşlem gerçekleştirilemedi, bu cihaz ortam '{above}' (yukarıda) ile ortam '{below}' (aşağıda) arasında bağlantı sağlamaktadır ancak alt segmentin ortam tipi '{segment}'."

@@ -2661,3 +2661,42 @@ msgstr "Ilość urządzeń"
 
 msgid "Unlink"
 msgstr "Usuń"
+
+msgid "An IP router requires an IP backbone line."
+msgstr "Ruter IP wymaga ustawienia linii obszarowej jako linii IP."
+
+msgid "The operation could not be executed, because a coupler needs a main line."
+msgstr "Operacja nie może być wykonana ponieważ sprzęgło potrzebuje linię główną."
+
+msgid "The operation could not be executed, because an area coupler requires a backbone line."
+msgstr "Operacja nie może być wykonana, ponieważ sprzęgło obszarowe wymaga linii obszarowej."
+
+msgid "The operation could not be executed, because this coupler needs a main line with the medium type '{medium}' ."
+msgstr "Operacja nie może być wykonana, ponieważ sprzęgło wymaga linii głównej z medium typu '{medium}' ."
+
+msgid "The operation could not be executed, because only one IP router is allowed as a world coupler."
+msgstr "Operacja nie może być wykonana, ponieważ tylko jeden ruter IP jest dozwolony jako światowe sprzęgło."
+
+msgid "The operation could not be executed, because only IP router area allowed as a world coupler."
+msgstr "Operacja nie może być wykonana, ponieważ tylko ruter IP jest dozwolony jako światowe sprzęgło."
+
+msgid "The backbone line contains a world coupler. It is not possible to use an IP router below another IP router."
+msgstr "W linii szkieletowej znajduje się sprzęgło globalne. Nie można używać routera IP poniżej innego routera IP."
+
+msgid "It is not possible to use a world coupler, when there are already IP routers in the project."
+msgstr "Nie jest możliwe użycie sprzęgła globalnego (\"światowego\"), gdy w projekcie są już routery IP."
+
+msgid "A world coupler can only be used, when the medium type of the backbone is TP."
+msgstr "Sprzęgła globalnego można używać tylko wtedy, gdy typ medium transmisyjnego szkieletu to TP."
+
+msgid "The coupler does not support segment coupling, so the sub-segment must be of the same KNX medium type as the main segment."
+msgstr "Sprzęgło nie obsługuje rozszerzania segmentowego, więc podsegment musi być tego samego typu medium KNX co segment główny."
+
+msgid "The operation could not be executed, because this device couples medium '{above}' (above) to medium '{below}' (below), but the segment above is '{segment}'."
+msgstr "Operacja nie mogła zostać wykonana, ponieważ to urządzenie łączy medium '{above}' (linia nadrzędna) z medium '{below}' (linia podrzędna), a ustawione medium linii nadrzędnej to '{segment}'."
+
+msgid "The operation could not be executed, because medium type of coupler device matches only sub segment, but maximum amount of segments reached."
+msgstr "Operacja nie mogła zostać wykonana, ponieważ medium sprzęgła odpowiada tylko podsegmentowi, ale osiągnięto maksymalną ilość segmentów."
+
+msgid "The operation could not be executed, because this device couples medium '{above}' (above) to medium '{below}' (below), but the medium type of the lower segment is '{segment}'."
+msgstr "Operacja nie mogła zostać wykonana, ponieważ to urządzenie łączy medium '{above}' (linia nadrzędna) z medium '{below}' (linia podrzędna), a ustawione medium linii podrzędnej to '{segment}'."

@@ -165,6 +165,55 @@ MEDIUM_ERRORS: dict[str, str] = {
     "device_line_medium": "Device '{device}' is incompatible with line's medium type.",
     "device_segment_medium": "Device '{device}' is incompatible with segment's medium type.",
     "unknown_medium": "Unknown medium '{medium}'.",
+    # Where a coupler may go (see .coupler_rules).
+    "ip_router_backbone": "An IP router requires an IP backbone line.",
+    "coupler_main_line": (
+        "The operation could not be executed, because a coupler needs a main line."
+    ),
+    "area_coupler_backbone": (
+        "The operation could not be executed, because an area coupler requires a backbone "
+        "line."
+    ),
+    "coupler_main_line_medium": (
+        "The operation could not be executed, because this coupler needs a main line with "
+        "the medium type '{medium}' ."
+    ),
+    "one_world_coupler": (
+        "The operation could not be executed, because only one IP router is allowed as a "
+        "world coupler."
+    ),
+    "world_coupler_ip_router": (
+        "The operation could not be executed, because only IP router area allowed as a "
+        "world coupler."
+    ),
+    "world_coupler_present": (
+        "The backbone line contains a world coupler. It is not possible to use an IP router "
+        "below another IP router."
+    ),
+    "world_coupler_ip_routers": (
+        "It is not possible to use a world coupler, when there are already IP routers in "
+        "the project."
+    ),
+    "world_coupler_tp_backbone": (
+        "A world coupler can only be used, when the medium type of the backbone is TP."
+    ),
+    "coupler_no_segments": (
+        "The coupler does not support segment coupling, so the sub-segment must be of the "
+        "same KNX medium type as the main segment."
+    ),
+    "coupler_media_above": (
+        "The operation could not be executed, because this device couples medium '{above}' "
+        "(above) to medium '{below}' (below), but the segment above is '{segment}'."
+    ),
+    "coupler_segments_full": (
+        "The operation could not be executed, because medium type of coupler device matches "
+        "only sub segment, but maximum amount of segments reached."
+    ),
+    "coupler_media_below": (
+        "The operation could not be executed, because this device couples medium '{above}' "
+        "(above) to medium '{below}' (below), but the medium type of the lower segment is "
+        "'{segment}'."
+    ),
 }
 
 

@@ -2661,3 +2661,42 @@ msgstr "Количество устройств"
 
 msgid "Unlink"
 msgstr "Разъединить"
+
+msgid "An IP router requires an IP backbone line."
+msgstr "IP-маршрутизатор требует IP-магистрали."
+
+msgid "The operation could not be executed, because a coupler needs a main line."
+msgstr "Операция не может быть выполнена, поскольку соединяющее устройство должно быть на основной линии."
+
+msgid "The operation could not be executed, because an area coupler requires a backbone line."
+msgstr "Эта операция не может быть выполнена, поскольку область с соединяющим устройством требует магистральной линии."
+
+msgid "The operation could not be executed, because this coupler needs a main line with the medium type '{medium}' ."
+msgstr "Операция не может быть выполнена, поскольку на основную линию с типом среды '{medium}' необходимо соединяющее устройство ."
+
+msgid "The operation could not be executed, because only one IP router is allowed as a world coupler."
+msgstr "Эта операция не может быть выполнена, поскольку только один IP маршрутизатор определен как соединяющее устройство."
+
+msgid "The operation could not be executed, because only IP router area allowed as a world coupler."
+msgstr "Операция не может быть совершена, поскольку требует наличия IP роутера."
+
+msgid "The backbone line contains a world coupler. It is not possible to use an IP router below another IP router."
+msgstr "В магистральной линии есть мировой соединитель. Невозможно использовать IP-маршрутизатор ниже другого IP-маршрутизатора."
+
+msgid "It is not possible to use a world coupler, when there are already IP routers in the project."
+msgstr "Невозможно использовать мировой соединитель, если в проекте уже есть IP-маршрутизаторы."
+
+msgid "A world coupler can only be used, when the medium type of the backbone is TP."
+msgstr "Универсальный соединитель уровня может использоваться только в том случае, если типом магистральной среды является TP."
+
+msgid "The coupler does not support segment coupling, so the sub-segment must be of the same KNX medium type as the main segment."
+msgstr "Устройство сопряжения не поддерживает соединение сегментов, поэтому подсегмент должен быть того же типа среды KNX, что и основной сегмент."
+
+msgid "The operation could not be executed, because this device couples medium '{above}' (above) to medium '{below}' (below), but the segment above is '{segment}'."
+msgstr "Операция не может быть выполнена, потому что это устройство связывает средний '{above}' (вверху) со средним '{below}' (внизу), но сегмент вверху - '{segment}'."
+
+msgid "The operation could not be executed, because medium type of coupler device matches only sub segment, but maximum amount of segments reached."
+msgstr "Операция не может быть выполнена, поскольку средний тип устройства сопряжения соответствует только подсегменту, но достигнуто максимальное количество сегментов."
+
+msgid "The operation could not be executed, because this device couples medium '{above}' (above) to medium '{below}' (below), but the medium type of the lower segment is '{segment}'."
+msgstr "Операция не может быть выполнена, потому что это устройство связывает средний '{above}' (вверху) со средним '{below}' (внизу), но средний тип нижнего сегмента - '{segment}'."

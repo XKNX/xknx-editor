@@ -2661,3 +2661,42 @@ msgstr "Laitteiden määrä"
 
 msgid "Unlink"
 msgstr "Poista linkitys"
+
+msgid "An IP router requires an IP backbone line."
+msgstr "IP-reititin, tarvitsee IP-runkoverkkolinjan."
+
+msgid "The operation could not be executed, because a coupler needs a main line."
+msgstr "Toimintoa ei voitu suorittaa, koska yhdistin vaatii päälinjan."
+
+msgid "The operation could not be executed, because an area coupler requires a backbone line."
+msgstr "Toimintoa ei voitu suorittaa, koska alueyhdistin vaati runkolinjan."
+
+msgid "The operation could not be executed, because this coupler needs a main line with the medium type '{medium}' ."
+msgstr "Toimintoa ei voitu suorittaa, koska tämä yhdistin vaatii päälinjan mediatyypillä '{medium}' ."
+
+msgid "The operation could not be executed, because only one IP router is allowed as a world coupler."
+msgstr "Toimintoa ei voitu suorittaa, koska vain IP-reititin on sallittu maailman yhdistimeksi."
+
+msgid "The operation could not be executed, because only IP router area allowed as a world coupler."
+msgstr "Toimintoa ei voitu suorittaa, koska vain IP-reititinalue on sallittu maailman yhdistimeksi."
+
+msgid "The backbone line contains a world coupler. It is not possible to use an IP router below another IP router."
+msgstr "Runkoverkkolinja sisältää maailmaliittimen. IP-reititintä ei voi käyttää toisen IP-reitittimen alla."
+
+msgid "It is not possible to use a world coupler, when there are already IP routers in the project."
+msgstr "IP-verkkoyhdistintä ei ole mahdollista käyttää, kun projektissa on jo IP-reitittimiä."
+
+msgid "A world coupler can only be used, when the medium type of the backbone is TP."
+msgstr "Vain yleiskäyttöistä yhdistintä voidaan käyttää, kun runkolinjan media on TP."
+
+msgid "The coupler does not support segment coupling, so the sub-segment must be of the same KNX medium type as the main segment."
+msgstr "Yhdistin ei tue segmenttikytkentää, joten alisegmentin on oltava samaa KNX-mediatyyppiä kuin pääsegmentti."
+
+msgid "The operation could not be executed, because this device couples medium '{above}' (above) to medium '{below}' (below), but the segment above is '{segment}'."
+msgstr "Toimintoa ei voitu suorittaa, koska tämä laite kytkee median '{above}' (yllä) mediaan '{below}' (alla), mutta yllä oleva segmentti on '{segment}'."
+
+msgid "The operation could not be executed, because medium type of coupler device matches only sub segment, but maximum amount of segments reached."
+msgstr "Toimintoa ei voitu suorittaa, koska liitäntälaitteen mediatyyppi\\n vastaa vain alisegmenttiä, mutta segmenttien enimmäismäärä saavutettiin."
+
+msgid "The operation could not be executed, because this device couples medium '{above}' (above) to medium '{below}' (below), but the medium type of the lower segment is '{segment}'."
+msgstr "Toimenpidettä ei voitu suorittaa, koska tämä laite yhdistää median '{above}' (yllä) mediaan '{below}' (alla), mutta alemman segmentin mediatyyppi on '{segment}'."

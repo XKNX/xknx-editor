@@ -2661,3 +2661,42 @@ msgstr "デバイス数"
 
 msgid "Unlink"
 msgstr "リンクを外す"
+
+msgid "An IP router requires an IP backbone line."
+msgstr "IPルーターはIPバックボーン・ラインを必要とします."
+
+msgid "The operation could not be executed, because a coupler needs a main line."
+msgstr "カプラーにはメイン・アドレスが必要なため、オペレーションは実行できませんでした."
+
+msgid "The operation could not be executed, because an area coupler requires a backbone line."
+msgstr "エリア・カプラーがバックボーン・ラインを必要としている為、オペレーションは実行できませんでした."
+
+msgid "The operation could not be executed, because this coupler needs a main line with the medium type '{medium}' ."
+msgstr "このカプラーにはミディアム・タイプ'{medium}'を持つメイン・ラインが必要な為、オペレーションは実行できませんでした ."
+
+msgid "The operation could not be executed, because only one IP router is allowed as a world coupler."
+msgstr "ワールド・カプラーとしてはIPルーターは１つのみ許可されている為、オペレーションは実行できませんでした."
+
+msgid "The operation could not be executed, because only IP router area allowed as a world coupler."
+msgstr "IPルーターのみワールド・カプラーとして許可されている為、オペレーションは実行できませんでした."
+
+msgid "The backbone line contains a world coupler. It is not possible to use an IP router below another IP router."
+msgstr "バックボーンラインは、ワールドカップラーを含みます下記のIPルーターを別のIPルーター下で使うことはできません."
+
+msgid "It is not possible to use a world coupler, when there are already IP routers in the project."
+msgstr "プロジェクトにIPルータがすでに存在する場合、ワールドカプラを使用することはできません。"
+
+msgid "A world coupler can only be used, when the medium type of the backbone is TP."
+msgstr "ワールドカップラーは、バックボーンのミディアムタイプがTPであるときにのみ使用できます."
+
+msgid "The coupler does not support segment coupling, so the sub-segment must be of the same KNX medium type as the main segment."
+msgstr "カプラはセグメントのカップリングをサポートしていないため、サブセグメントはメインセグメントと同じ KNX ミディアムタイプである必要があります。"
+
+msgid "The operation could not be executed, because this device couples medium '{above}' (above) to medium '{below}' (below), but the segment above is '{segment}'."
+msgstr "この操作は完了できません。このデバイスは(上に)メディア '{above}' と接続し、(下に)メディア '{below}' と接続するものですが、上に接続するメディアは '{segment}' です。"
+
+msgid "The operation could not be executed, because medium type of coupler device matches only sub segment, but maximum amount of segments reached."
+msgstr "このミディアムタイプのカプラ デバイスはサブセグメントのみに一致しますが、セグメントの最大数に達したため、操作を実行できませんでした。"
+
+msgid "The operation could not be executed, because this device couples medium '{above}' (above) to medium '{below}' (below), but the medium type of the lower segment is '{segment}'."
+msgstr "この操作は完了できません。このデバイスは(上に) メディア '{above}' と接続し、(下に) メディア '{below}' と接続するものですが、下に接続するメディアタイプは '{segment}' です。"

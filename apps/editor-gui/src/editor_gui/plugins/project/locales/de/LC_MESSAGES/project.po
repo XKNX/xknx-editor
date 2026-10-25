@@ -2846,3 +2846,42 @@ msgstr "Anzahl Geräte"
 
 msgid "Unlink"
 msgstr "Trennen"
+
+msgid "An IP router requires an IP backbone line."
+msgstr "Ein IP Router erfordert eine IP Backbone Linie."
+
+msgid "The operation could not be executed, because a coupler needs a main line."
+msgstr "Die Operation konnte nicht ausgeführt werden, da ein Linienkoppler eine Hauptlinie benötigt."
+
+msgid "The operation could not be executed, because an area coupler requires a backbone line."
+msgstr "Die Operation konnte nicht ausgeführt werden, da ein Bereichskoppler eine Backbone-Linie benötigt."
+
+msgid "The operation could not be executed, because this coupler needs a main line with the medium type '{medium}' ."
+msgstr "Die Operation konnte nicht ausgeführt werden, da der Linienkoppler eine Hauptlinie mit dem Medientyp '{medium}' benötigt."
+
+msgid "The operation could not be executed, because only one IP router is allowed as a world coupler."
+msgstr "Die Operation konnte nicht ausgeführt werden, weil nur ein IP-Router als Weltenkoppler erlaubt ist."
+
+msgid "The operation could not be executed, because only IP router area allowed as a world coupler."
+msgstr "Die Operation konnte nicht ausgeführt werden, weil nur IP-Router als Weltenkoppler erlaubt sind."
+
+msgid "The backbone line contains a world coupler. It is not possible to use an IP router below another IP router."
+msgstr "Die Backbone - Linie enhält einen Weltenkoppler. Es ist nicht möglich unterhalb eines IP Routers einen weiteren IP Router zu nutzen."
+
+msgid "It is not possible to use a world coupler, when there are already IP routers in the project."
+msgstr "Es ist nicht möglich einen Weltenkoppler zu nutzen, wenn im Projekt schon IP Router existieren."
+
+msgid "A world coupler can only be used, when the medium type of the backbone is TP."
+msgstr "Ein Weltenkoppler kann nur benutzt werden, wenn der Medientyp des Backbones TP ist."
+
+msgid "The coupler does not support segment coupling, so the sub-segment must be of the same KNX medium type as the main segment."
+msgstr "Der Koppler unterstützt kein Koppeln von Segmenten. In diesen Fällen muss der Medientyp des Hauptsegmentes dem des Sub-Segmentes entsprechen, damit dieser Koppler eingefügt werden darf."
+
+msgid "The operation could not be executed, because this device couples medium '{above}' (above) to medium '{below}' (below), but the segment above is '{segment}'."
+msgstr "Die Operation konnte nicht ausgeführt werden, da der Koppler Medien '{above}' (oben) zu Medien '{below}' (unten) verbindet, aber die obere Linie vom Medientyp '{segment}' ist."
+
+msgid "The operation could not be executed, because medium type of coupler device matches only sub segment, but maximum amount of segments reached."
+msgstr "Die Operation konnte nicht ausgeführt werden, weil der Medientyp des Kopplers nur mit einem Untersegment übereinstimmt, aber die maximale Anzahl von Segmenten erreicht ist."
+
+msgid "The operation could not be executed, because this device couples medium '{above}' (above) to medium '{below}' (below), but the medium type of the lower segment is '{segment}'."
+msgstr "Die Operation konnte nicht ausgeführt werden, da der Koppler Medien '{above}' (oben) zu Medien '{below}' (unten) verbindet, aber das untere Segment vom Medientyp '{segment}' ist."

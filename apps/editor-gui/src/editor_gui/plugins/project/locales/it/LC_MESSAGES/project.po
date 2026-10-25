@@ -2661,3 +2661,42 @@ msgstr "Numero di dispositivi"
 
 msgid "Unlink"
 msgstr "Scollega"
+
+msgid "An IP router requires an IP backbone line."
+msgstr "Un IP router richiede una linea dorsale IP."
+
+msgid "The operation could not be executed, because a coupler needs a main line."
+msgstr "L'operazione non può essere eseguita perchè un accoppiatore ha bisogno di una linea principale."
+
+msgid "The operation could not be executed, because an area coupler requires a backbone line."
+msgstr "L'operazione non può essere eseguita perchè un accoppiatore di area richiede una linea dorsale."
+
+msgid "The operation could not be executed, because this coupler needs a main line with the medium type '{medium}' ."
+msgstr "L'operazione non può essere eseguita perchè questo accoppiatore necessita di una linea principale con il tipo di rete  '{medium}' ."
+
+msgid "The operation could not be executed, because only one IP router is allowed as a world coupler."
+msgstr "L'operazione non può essere eseguita perchè solo un IP router è consentito come accoppiatore universale."
+
+msgid "The operation could not be executed, because only IP router area allowed as a world coupler."
+msgstr "L'operazione non può essere eseguita perchè solo un IP router è ammesso come accoppiatore universale."
+
+msgid "The backbone line contains a world coupler. It is not possible to use an IP router below another IP router."
+msgstr "La linea backbone contiene un accoppiatore universale. Impossibile utilizzare un router IP sotto un altro router IP."
+
+msgid "It is not possible to use a world coupler, when there are already IP routers in the project."
+msgstr "Non è possibile utilizzare un accoppiatore globale, quando ci sono già IP routers nel progetto."
+
+msgid "A world coupler can only be used, when the medium type of the backbone is TP."
+msgstr "Si può utilizzare soltanto un accoppiatore universale, quando il tipo di mezzo trasmissivo della dorsale è TP."
+
+msgid "The coupler does not support segment coupling, so the sub-segment must be of the same KNX medium type as the main segment."
+msgstr "L'accoppiatore non supporta l'accoppiamento tra segmenti, quindi il sotto-settore deve essere dello stesso tipo di mezzo trasmissivo KNX del segmento principale."
+
+msgid "The operation could not be executed, because this device couples medium '{above}' (above) to medium '{below}' (below), but the segment above is '{segment}'."
+msgstr "L'operazione non può essere eseguita, perché questo dispositivo accoppia il mezzo trasmissivo '{above}' (sopra) al mezzo '{below}' (sotto), ma il segmento sopra è '{segment}'."
+
+msgid "The operation could not be executed, because medium type of coupler device matches only sub segment, but maximum amount of segments reached."
+msgstr "L'operazione non può essere eseguita, perché il tipo di mezzo trasmissivo del dispositivo di accoppiamento corrisponde solo al sotto-segmento, ma il massimo numero di segmenti e' stato raggiunto."
+
+msgid "The operation could not be executed, because this device couples medium '{above}' (above) to medium '{below}' (below), but the medium type of the lower segment is '{segment}'."
+msgstr "L'operazione non può essere eseguita, perché questo dispositivo accoppia il mezzo trasmissivo '{above}' (sopra) al mezzo '{below}' (sotto), ma il segmento sotto è '{segment}'."

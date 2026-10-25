@@ -48,6 +48,7 @@ from xknxeditor.proj.core.compact import (
     analyse_compaction,
     compact_project,
 )
+from xknxeditor.proj.core.coupler_rules import CouplerDevice, check_coupler
 from xknxeditor.proj.core.dpt import normalize_datapoint_type
 from xknxeditor.proj.core.event_store import EventStore, HistoryEntry
 from xknxeditor.proj.core.events import (
@@ -864,6 +865,35 @@ class ProjectService:
                 estimated=main_load.estimated,
             )
         return lines, segments
+
+    def check_coupler(
+        self,
+        project_id: str,
+        segment_id: int,
+        device: CouplerDevice,
+        label: str,
+        *,
+        ip_routers: Collection[int] = (),
+        moving: Collection[int] = (),
+        count: int = 1,
+        line_names: Mapping[int, str] | None = None,
+    ) -> None:
+        """Raise a ``MediumError`` unless the coupler or KNXnet/IP router ``device`` (named
+        ``label``) may go to the segment (see :func:`.coupler_rules.check_coupler`). Raises
+        ``KeyError`` for an unknown segment."""
+        segment = self._state(project_id).session.get(Segment, segment_id)
+        if segment is None:
+            raise KeyError(f"No segment with id {segment_id}")
+        lines = _line_views(segment.line.area.installation, line_names)
+        check_coupler(
+            lines,
+            segment_id,
+            device,
+            label,
+            ip_routers=ip_routers,
+            moving=moving,
+            count=count,
+        )
 
     def device_bus_current(
         self, project_id: str, device_id: int, hardware: Hardware | None

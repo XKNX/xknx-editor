@@ -2661,3 +2661,42 @@ msgstr "Antal apparater"
 
 msgid "Unlink"
 msgstr "Ta bort förbindelse"
+
+msgid "An IP router requires an IP backbone line."
+msgstr "En IP-router kräver en IP-backbone-linje."
+
+msgid "The operation could not be executed, because a coupler needs a main line."
+msgstr "Operationen kunde inte utföras eftersom en kopplare behöver en huvudlinje."
+
+msgid "The operation could not be executed, because an area coupler requires a backbone line."
+msgstr "Operationen kunde inte utföras eftersom en områdeskopplare kräver en backbone-linje."
+
+msgid "The operation could not be executed, because this coupler needs a main line with the medium type '{medium}' ."
+msgstr "Operationen kunde inte utföras eftersom denna kopplare behöver en huvudlinje med mediumtypen '{medium}' ."
+
+msgid "The operation could not be executed, because only one IP router is allowed as a world coupler."
+msgstr "Operationen kunde inte utföras eftersom endast en IP-router är tillåten som världskopplare."
+
+msgid "The operation could not be executed, because only IP router area allowed as a world coupler."
+msgstr "Operationen kunde inte utföras eftersom endast IP-routerområde tillåts som världskopplare."
+
+msgid "The backbone line contains a world coupler. It is not possible to use an IP router below another IP router."
+msgstr "Områdeslinjen innehåller en världskopplare. Det går inte att använda en IP-router under en annan IP-router."
+
+msgid "It is not possible to use a world coupler, when there are already IP routers in the project."
+msgstr "Det är inte möjligt att använda en IP-nätverkskopplare, när det redan är IP-kopplare i projektet."
+
+msgid "A world coupler can only be used, when the medium type of the backbone is TP."
+msgstr "En nätverkskopplare kan bara användas då mediumtyp för backbone är TP."
+
+msgid "The coupler does not support segment coupling, so the sub-segment must be of the same KNX medium type as the main segment."
+msgstr "Kopplaren stödjer inte segmentkoppling, så undersegmentet måste vara av samma KNX mediumtyp som huvudsegmentet."
+
+msgid "The operation could not be executed, because this device couples medium '{above}' (above) to medium '{below}' (below), but the segment above is '{segment}'."
+msgstr "Åtgärden kunde inte utföras, eftersom denna apparat ansluter medium '{above}' (ovan) till medium '{below}' (nedan), men segmentet ovan är '{segment}'."
+
+msgid "The operation could not be executed, because medium type of coupler device matches only sub segment, but maximum amount of segments reached."
+msgstr "Åtgärden kunde inte utföras, eftersom mediumtypen för anslutande apparat bara matchar undersegment, men maximalt antal av segment har uppnåtts."
+
+msgid "The operation could not be executed, because this device couples medium '{above}' (above) to medium '{below}' (below), but the medium type of the lower segment is '{segment}'."
+msgstr "Åtgärden kunde inte utföras, eftersom denna apparat kopplar medium '{above}' (ovan) till medium '{below}' (nedan) men mediumtypen i det lägre segmentet är '{segment}'."

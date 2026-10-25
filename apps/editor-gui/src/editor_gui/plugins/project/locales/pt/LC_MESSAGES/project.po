@@ -2661,3 +2661,42 @@ msgstr "Número de dipositivos"
 
 msgid "Unlink"
 msgstr "Desprogramar"
+
+msgid "An IP router requires an IP backbone line."
+msgstr "Um roteador IP requer uma linha de domínio IP."
+
+msgid "The operation could not be executed, because a coupler needs a main line."
+msgstr "A operação não pôde ser executada, porque um acoplador precisa de uma linha principal."
+
+msgid "The operation could not be executed, because an area coupler requires a backbone line."
+msgstr "A operação não pôde ser executada, porque um acoplador de área requer uma linha de backbone."
+
+msgid "The operation could not be executed, because this coupler needs a main line with the medium type '{medium}' ."
+msgstr "A operação não pôde ser executada, porque este acoplador precisa de uma linha principal com o tipo de meio '{medium}' ."
+
+msgid "The operation could not be executed, because only one IP router is allowed as a world coupler."
+msgstr "A operação não pôde ser executada, porque apenas um roteador IP é permitido como um acoplador global."
+
+msgid "The operation could not be executed, because only IP router area allowed as a world coupler."
+msgstr "A operação não pôde ser executada, pois somente o roteadorde area IP é permitido como um acoplador global."
+
+msgid "The backbone line contains a world coupler. It is not possible to use an IP router below another IP router."
+msgstr "A linha de backbone contém um acoplador mundial. Não é possível utilizar um router de IP por baixo de outro router de IP."
+
+msgid "It is not possible to use a world coupler, when there are already IP routers in the project."
+msgstr "Não é possível usar um acoplador, quando já existem roteadores IP no projeto."
+
+msgid "A world coupler can only be used, when the medium type of the backbone is TP."
+msgstr "Um acoplador de linha universal somente pode ser usado quando o tipo de meio físico do backbone é TP."
+
+msgid "The coupler does not support segment coupling, so the sub-segment must be of the same KNX medium type as the main segment."
+msgstr "O acoplador não suporta acoplamento de segmento, portanto, o subsegmento deve ser do mesmo tipo de meio físico que o segmento principal."
+
+msgid "The operation could not be executed, because this device couples medium '{above}' (above) to medium '{below}' (below), but the segment above is '{segment}'."
+msgstr "A operação não pôde ser executada porque este dispositivo acopla o meio '{above}' (acima) à mídia '{below}' (abaixo), mas o segmento acima é '{segment}'."
+
+msgid "The operation could not be executed, because medium type of coupler device matches only sub segment, but maximum amount of segments reached."
+msgstr "A operação não pôde ser executada porque o tipo médio de dispositivo acoplador corresponde apenas ao subsegmento, mas a quantidade máxima de segmentos alcançada."
+
+msgid "The operation could not be executed, because this device couples medium '{above}' (above) to medium '{below}' (below), but the medium type of the lower segment is '{segment}'."
+msgstr "A operação não pôde ser executada porque este dispositivo acopla o meio físico '{above}' (acima) ao meio físico '{below}' (abaixo), mas o tipo de meio físico do segmento inferior é '{segment}'."

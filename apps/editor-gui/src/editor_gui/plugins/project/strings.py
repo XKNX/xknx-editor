@@ -277,6 +277,95 @@ class ProjectStrings:
         return _("The maximum number of segments has been reached.")
 
     @property
+    def MEDIUM_ERROR_IP_ROUTER_BACKBONE(self) -> str:
+        return _("An IP router requires an IP backbone line.")
+
+    @property
+    def MEDIUM_ERROR_COUPLER_MAIN_LINE(self) -> str:
+        return _(
+            "The operation could not be executed, because a coupler needs a main line."
+        )
+
+    @property
+    def MEDIUM_ERROR_AREA_COUPLER_BACKBONE(self) -> str:
+        return _(
+            "The operation could not be executed, because an area coupler requires a "
+            "backbone line."
+        )
+
+    @property
+    def MEDIUM_ERROR_COUPLER_MAIN_LINE_MEDIUM(self) -> str:
+        return _(
+            "The operation could not be executed, because this coupler needs a main line "
+            "with the medium type '{medium}' ."
+        )
+
+    @property
+    def MEDIUM_ERROR_ONE_WORLD_COUPLER(self) -> str:
+        return _(
+            "The operation could not be executed, because only one IP router is allowed "
+            "as a world coupler."
+        )
+
+    @property
+    def MEDIUM_ERROR_WORLD_COUPLER_IP_ROUTER(self) -> str:
+        return _(
+            "The operation could not be executed, because only IP router area allowed as "
+            "a world coupler."
+        )
+
+    @property
+    def MEDIUM_ERROR_WORLD_COUPLER_PRESENT(self) -> str:
+        return _(
+            "The backbone line contains a world coupler. It is not possible to use an IP "
+            "router below another IP router."
+        )
+
+    @property
+    def MEDIUM_ERROR_WORLD_COUPLER_IP_ROUTERS(self) -> str:
+        return _(
+            "It is not possible to use a world coupler, when there are already IP routers"
+            " in the project."
+        )
+
+    @property
+    def MEDIUM_ERROR_WORLD_COUPLER_TP_BACKBONE(self) -> str:
+        return _(
+            "A world coupler can only be used, when the medium type of the backbone is "
+            "TP."
+        )
+
+    @property
+    def MEDIUM_ERROR_COUPLER_NO_SEGMENTS(self) -> str:
+        return _(
+            "The coupler does not support segment coupling, so the sub-segment must be of"
+            " the same KNX medium type as the main segment."
+        )
+
+    @property
+    def MEDIUM_ERROR_COUPLER_MEDIA_ABOVE(self) -> str:
+        return _(
+            "The operation could not be executed, because this device couples medium "
+            "'{above}' (above) to medium '{below}' (below), but the segment above is "
+            "'{segment}'."
+        )
+
+    @property
+    def MEDIUM_ERROR_COUPLER_SEGMENTS_FULL(self) -> str:
+        return _(
+            "The operation could not be executed, because medium type of coupler device "
+            "matches only sub segment, but maximum amount of segments reached."
+        )
+
+    @property
+    def MEDIUM_ERROR_COUPLER_MEDIA_BELOW(self) -> str:
+        return _(
+            "The operation could not be executed, because this device couples medium "
+            "'{above}' (above) to medium '{below}' (below), but the medium type of the "
+            "lower segment is '{segment}'."
+        )
+
+    @property
     def MEDIUM_ERROR_DOMAIN_INVALID(self) -> str:
         return _("The given domain address is invalid.")
 

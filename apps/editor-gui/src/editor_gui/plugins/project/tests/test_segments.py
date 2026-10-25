@@ -420,6 +420,36 @@ def test_lines_and_segments_show_their_devices_and_bus_current(
     assert project.device_bus_current_text(999) == "-"
 
 
+def test_couplers_are_checked_where_they_go(
+    project: ProjectService, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    catalog = project._catalog
+    monkeypatch.setattr(catalog, "program_media", lambda _p: ({"MT-0", "MT-5"}, True))
+    monkeypatch.setattr(
+        catalog, "program_roles", lambda ids: dict.fromkeys(ids, (True, "MV-091A"))
+    )
+    monkeypatch.setattr(catalog, "coupler_capabilities", lambda _p: set[str]())
+    monkeypatch.setattr(catalog, "hardware_is_ip_enabled", lambda _p: True)
+    line = project.find_line(_line_1_1(project))
+    assert line is not None and line.main_segment_id is not None
+    # An IP router couples the IP main line 1.0 to the TP line 1.1 ...
+    project.check_device_medium("H-router", line.main_segment_id, "Router")
+    # ... but does not go onto the IP backbone itself.
+    backbone = next(a for a in project.get_areas() if a.area_number == 0)
+    main = project._main_line(backbone.id)
+    assert main is not None and main.main_segment_id is not None
+    with pytest.raises(MediumError) as error:
+        project.check_device_medium("H-router", main.main_segment_id, "Router")
+    assert error.value.reason == "world_coupler_tp_backbone"
+    assert medium_error_text(error.value) == (
+        "A world coupler can only be used, when the medium type of the backbone is TP."
+    )
+    # An individual address does not check couplers.
+    project.check_device_medium(
+        "H-router", main.main_segment_id, "Router", check_couplers=False
+    )
+
+
 def test_bus_current_texts() -> None:
     product = ProductSummary("P", "H", "Name", None, None, "M-1", None)
     assert bus_current_text(None, "(estimated)") == "-"

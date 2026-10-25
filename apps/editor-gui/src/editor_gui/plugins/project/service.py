@@ -11,7 +11,7 @@ import threading
 import time
 import xml.etree.ElementTree as ET
 import zipfile
-from collections.abc import Callable
+from collections.abc import Callable, Collection
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal, cast
@@ -71,6 +71,7 @@ from xknxeditor.proj.core.addressing import (
     parse_ia,
 )
 from xknxeditor.proj.core.bus_load import BusLoad, Hardware
+from xknxeditor.proj.core.coupler_rules import CouplerDevice
 from xknxeditor.proj.core.dpt import normalize_datapoint_type
 from xknxeditor.proj.core.ga_export import write_ga_csv as _write_ga_csv
 from xknxeditor.proj.core.identity import qualified_com_object_ref
@@ -5215,11 +5216,19 @@ class ProjectService:
         return None
 
     def check_device_medium(
-        self, hardware2program_ref_id: str | None, segment_id: int, label: str
+        self,
+        hardware2program_ref_id: str | None,
+        segment_id: int,
+        label: str,
+        *,
+        moving: Collection[int] = (),
+        check_couplers: bool = True,
     ) -> None:
-        """Raise a ``MediumError`` naming the device ``label`` when its hardware does not support
-        the medium of the segment. Couplers are not checked, nor a device whose hardware the
-        catalog lacks or lists without media."""
+        """Raise a ``MediumError`` naming the device ``label`` when it may not go to the segment:
+        a coupler or KNXnet/IP router by the rules of ``coupler_rules`` (unless not
+        ``check_couplers``; ``moving`` are the devices being moved there), any other device when
+        its hardware does not support the segment's medium. A device whose hardware the catalog
+        lacks or lists without media is not checked."""
         if not hardware2program_ref_id:
             return
         profile = self._catalog.program_media(hardware2program_ref_id)
@@ -5228,6 +5237,33 @@ class ProjectService:
             return
         media, coupler = profile
         medium, main = target
+        roles = self._catalog.program_roles([hardware2program_ref_id]).get(
+            hardware2program_ref_id
+        )
+        if check_couplers and roles is not None and self._pid is not None:
+            is_coupler, mask = roles
+            if is_coupler or mask in IP_ROUTER_MASKS:
+                capabilities = self._catalog.coupler_capabilities(
+                    hardware2program_ref_id
+                )
+                device = CouplerDevice(
+                    media=frozenset(media),
+                    mask=mask,
+                    is_coupler=is_coupler,
+                    segment_coupler="SegmentCoupler" in capabilities,
+                    ip_router=is_coupler
+                    and self._catalog.hardware_is_ip_enabled(hardware2program_ref_id),
+                )
+                _couplers, ip_routers = self._device_roles()
+                self._svc.check_coupler(
+                    self._pid,
+                    segment_id,
+                    device,
+                    label,
+                    ip_routers=ip_routers,
+                    moving=moving,
+                    line_names=self._line_names(),
+                )
         if coupler or not media or device_fits(medium, media):
             return
         raise MediumError(
@@ -5258,6 +5294,7 @@ class ProjectService:
             placement.hardware2program_ref_id,
             line.main_segment_id,
             device_label(device) if device is not None else address,
+            check_couplers=False,
         )
 
     def move_device_to_segment(self, node_id: int, segment_id: int) -> None:
@@ -5271,7 +5308,9 @@ class ProjectService:
             return
         device = self.find_device_by_node_id(node_id)
         label = device_label(device) if device is not None else str(node_id)
-        self.check_device_medium(placement.hardware2program_ref_id, segment_id, label)
+        self.check_device_medium(
+            placement.hardware2program_ref_id, segment_id, label, moving={node_id}
+        )
         target_line = next(
             (
                 line

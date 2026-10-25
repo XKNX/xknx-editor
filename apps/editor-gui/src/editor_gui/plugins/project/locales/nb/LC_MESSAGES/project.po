@@ -2661,3 +2661,42 @@ msgstr "Antall deltagere"
 
 msgid "Unlink"
 msgstr "Fjern link"
+
+msgid "An IP router requires an IP backbone line."
+msgstr "En IP router krever at det er IP backbone."
+
+msgid "The operation could not be executed, because a coupler needs a main line."
+msgstr "Operasjonen kunne ikke utføres, fordi en kobler trenger en hovedlinje."
+
+msgid "The operation could not be executed, because an area coupler requires a backbone line."
+msgstr "Operasjonen kunne ikke utføres, forde en linjekobler krever en backbone linje."
+
+msgid "The operation could not be executed, because this coupler needs a main line with the medium type '{medium}' ."
+msgstr "Operasjonen kunne ikke utføres, fordi denne kobleren trenger en hovedlinje med mediumtypen '{medium}' ."
+
+msgid "The operation could not be executed, because only one IP router is allowed as a world coupler."
+msgstr "Operasjonen kan ikke utføres, fordi bare en IP-ruter tillates som en verdenskobler."
+
+msgid "The operation could not be executed, because only IP router area allowed as a world coupler."
+msgstr "Operasjonen kan ikke utføres, fordi bare IP-ruter området tillates som en verdenskobler."
+
+msgid "The backbone line contains a world coupler. It is not possible to use an IP router below another IP router."
+msgstr "Nettstammelinjen inneholder en verdenskobler. Det er ikke mulig å bruke en IP-ruter under en annen IP-ruter."
+
+msgid "It is not possible to use a world coupler, when there are already IP routers in the project."
+msgstr "Det er ikke mulig å bruke en global kobling når det allerede finnes IP-rutere i prosjektet."
+
+msgid "A world coupler can only be used, when the medium type of the backbone is TP."
+msgstr "En verdenskobler kan bare brukes når nettstammens mediumtype er TP."
+
+msgid "The coupler does not support segment coupling, so the sub-segment must be of the same KNX medium type as the main segment."
+msgstr "Koblingen støtter ikke segmentkoplingen, slik at undersegmentet må være av samme KNX-medium som hovedsegmentet."
+
+msgid "The operation could not be executed, because this device couples medium '{above}' (above) to medium '{below}' (below), but the segment above is '{segment}'."
+msgstr "Operasjonen kunne ikke kjøres, fordi denne enheten har medium '{above}' (høyere) til medium '{below}' (under), men segmentet over er '{segment}'."
+
+msgid "The operation could not be executed, because medium type of coupler device matches only sub segment, but maximum amount of segments reached."
+msgstr "Operasjonen kunne ikke utføres fordi type koblinger som samsvarer med bare deling, men maksimalt antall segmenter som ble nådd."
+
+msgid "The operation could not be executed, because this device couples medium '{above}' (above) to medium '{below}' (below), but the medium type of the lower segment is '{segment}'."
+msgstr "Operasjonen kunne ikke utføres, fordi denne enheten har medium '{above}' (høyere) til medium '{below}' (under), men middels typen av det nedre segmentet er '{segment}'."

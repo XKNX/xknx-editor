@@ -2661,3 +2661,42 @@ msgstr "Nombre de Participants"
 
 msgid "Unlink"
 msgstr "Délier"
+
+msgid "An IP router requires an IP backbone line."
+msgstr "Un routeur IP requiert une ligne réseau IP."
+
+msgid "The operation could not be executed, because a coupler needs a main line."
+msgstr "L'opération n'a pas pu être exécutée, car un coupleur a besoin d'une ligne principale."
+
+msgid "The operation could not be executed, because an area coupler requires a backbone line."
+msgstr "L'opération n'a pas pu être exécutée, car un coupleur de zone nécessite une ligne réseau."
+
+msgid "The operation could not be executed, because this coupler needs a main line with the medium type '{medium}' ."
+msgstr "L'opération n'a pas pu être exécutée, car ce coupleur a besoin d'une ligne principale avec le type de média '{medium}' ."
+
+msgid "The operation could not be executed, because only one IP router is allowed as a world coupler."
+msgstr "L'opération n'a pas pu être exécutée, car un seul routeur IP est autorisé en tant que coupleur de monde."
+
+msgid "The operation could not be executed, because only IP router area allowed as a world coupler."
+msgstr "L'opération n'a pas pu être exécutée, car seul un routeur IP de zone est autorisé en tant que coupleur de monde."
+
+msgid "The backbone line contains a world coupler. It is not possible to use an IP router below another IP router."
+msgstr "La ligne du réseau fédérateur contient un coupleur mondial. Il n’est pas possible d’utiliser un routeur IP sous un autre routeur IP."
+
+msgid "It is not possible to use a world coupler, when there are already IP routers in the project."
+msgstr "Il n'est pas possible d'utiliser une interface IP, alors qu'il y a déjà des routeurs IP dans le projet."
+
+msgid "A world coupler can only be used, when the medium type of the backbone is TP."
+msgstr "Il est uniquement possible d’utiliser un coupleur mondial lorsque le média de la ligne réseau est TP."
+
+msgid "The coupler does not support segment coupling, so the sub-segment must be of the same KNX medium type as the main segment."
+msgstr "Le coupler ne supporte pas le couplage de segments, donc le sous-segment doit être du même type de média KNX que le segment principal."
+
+msgid "The operation could not be executed, because this device couples medium '{above}' (above) to medium '{below}' (below), but the segment above is '{segment}'."
+msgstr "L'opération n'a pas pu être exécutée, car cet appareil couple le média '{above}' (ci-dessus) au média '{below}' (ci-dessous), mais le segment ci-dessus est '{segment}'."
+
+msgid "The operation could not be executed, because medium type of coupler device matches only sub segment, but maximum amount of segments reached."
+msgstr "L'opération n'a pas pu être exécutée, car le type de média ne correspond qu'à un sous-segment, mais la quantité maximale de segments atteints."
+
+msgid "The operation could not be executed, because this device couples medium '{above}' (above) to medium '{below}' (below), but the medium type of the lower segment is '{segment}'."
+msgstr "L'opération n'a pas pu être exécutée, car ce participant couple le média '{above}' (ci-dessus) au média '{below}' (ci-dessous), mais le segment ci-dessous est '{segment}'."

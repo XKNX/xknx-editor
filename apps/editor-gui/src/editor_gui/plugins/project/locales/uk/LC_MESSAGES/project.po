@@ -2661,3 +2661,42 @@ msgstr "Кількість пристроїв"
 
 msgid "Unlink"
 msgstr "Від'єднати"
+
+msgid "An IP router requires an IP backbone line."
+msgstr "IP-роутер потребує магістральну IP лінію."
+
+msgid "The operation could not be executed, because a coupler needs a main line."
+msgstr "Операція не може бути виконана, тому що з'єднувач потребує головну лінію."
+
+msgid "The operation could not be executed, because an area coupler requires a backbone line."
+msgstr "Операція не може бути виконана, тому що з'єднувачу областей потрібна магістральна лінія."
+
+msgid "The operation could not be executed, because this coupler needs a main line with the medium type '{medium}' ."
+msgstr "Операція не може бути виконана, тому що з'єднувач потребує головну лінію з типом середовища передачі даних '{medium}'."
+
+msgid "The operation could not be executed, because only one IP router is allowed as a world coupler."
+msgstr "Операція не може бути виконана, оскільки тільки один IP роутер дозволено використовувати для зв'язку між інсталяціями (різними проєктами)."
+
+msgid "The operation could not be executed, because only IP router area allowed as a world coupler."
+msgstr "Операція не може бути виконана, оскільки тільки один IP роутер областей дозволено використовувати для зв'язку між інсталяціями (різними проєктами)."
+
+msgid "The backbone line contains a world coupler. It is not possible to use an IP router below another IP router."
+msgstr "Магістральна лінія містить з'єднувач інсталяцій (проєктів). Неможливо використати IP-роутер під іншим IP-роутером."
+
+msgid "It is not possible to use a world coupler, when there are already IP routers in the project."
+msgstr "Неможливо використовувати з'єднувач інсталяцій (проєктів), коли в проєкті вже є IP-роутер."
+
+msgid "A world coupler can only be used, when the medium type of the backbone is TP."
+msgstr "З'єднувач середовищ передачі даних може використовуватися лише в тому випадку, коли магістральна лінія є TP."
+
+msgid "The coupler does not support segment coupling, so the sub-segment must be of the same KNX medium type as the main segment."
+msgstr "З'єднувач не підтримує з'єднання сегментів, тому підсегмент має бути того ж KNX середовища передачі даних, що і головний сегмент."
+
+msgid "The operation could not be executed, because this device couples medium '{above}' (above) to medium '{below}' (below), but the segment above is '{segment}'."
+msgstr "Операція не може бути виконана, тому що цей пристрій з'єднує середовище '{above}' (зверху) з середовищем '{below}' (внизу), але сегмент зверху є '{segment}'."
+
+msgid "The operation could not be executed, because medium type of coupler device matches only sub segment, but maximum amount of segments reached."
+msgstr "Операція не може бути виконана, оскільки тип середовища передачі даних з'єднувача збігається тільки з підсегментом, але досягнута максимальна кількість сегментів."
+
+msgid "The operation could not be executed, because this device couples medium '{above}' (above) to medium '{below}' (below), but the medium type of the lower segment is '{segment}'."
+msgstr "Операція не може бути виконана, тому що цей пристрій з'єднує середовище '{above}' (зверху) з середовищем '{below}' (внизу), але тип середовища передачі даних нижнього сегмента є '{segment}'."

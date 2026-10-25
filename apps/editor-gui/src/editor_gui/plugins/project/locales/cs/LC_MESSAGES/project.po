@@ -2661,3 +2661,42 @@ msgstr "Počet zařízení"
 
 msgid "Unlink"
 msgstr "Odpojit"
+
+msgid "An IP router requires an IP backbone line."
+msgstr "IP router vyžaduje IP páteřní linii."
+
+msgid "The operation could not be executed, because a coupler needs a main line."
+msgstr "Operaci nelze uskutečnit, protože spojka vyžaduje hlavní linii."
+
+msgid "The operation could not be executed, because an area coupler requires a backbone line."
+msgstr "Operaci nelze uskutečnit, protože oblastní spojka vyžaduje páteřní linii."
+
+msgid "The operation could not be executed, because this coupler needs a main line with the medium type '{medium}' ."
+msgstr "Operaci nelze uskutečnit, protože tato spojka vyžaduje hlavní linii s typem média '{medium}' ."
+
+msgid "The operation could not be executed, because only one IP router is allowed as a world coupler."
+msgstr "Operaci nelze uskutečnit, protože jen jeden IP router je přípustný jako světová spojka."
+
+msgid "The operation could not be executed, because only IP router area allowed as a world coupler."
+msgstr "Operaci nelze uskutečnit, protože pouze oblastní IP router je povolen jako světová spojka."
+
+msgid "The backbone line contains a world coupler. It is not possible to use an IP router below another IP router."
+msgstr "Páteřní linie obsahuje celosvětovou spojku. Není možné použít IP router pod jiným IP routerem."
+
+msgid "It is not possible to use a world coupler, when there are already IP routers in the project."
+msgstr "Není možné používat světovou spojku, když už v projektu jsou IP směrovače."
+
+msgid "A world coupler can only be used, when the medium type of the backbone is TP."
+msgstr "Celosvětovou spojku lze použít, pouze pokud je typ média páteře TP."
+
+msgid "The coupler does not support segment coupling, so the sub-segment must be of the same KNX medium type as the main segment."
+msgstr "Spojka nepodporuje spojování segmentů, takže podsegment musí být na stejném typu média KNX jako hlavní segment."
+
+msgid "The operation could not be executed, because this device couples medium '{above}' (above) to medium '{below}' (below), but the segment above is '{segment}'."
+msgstr "Operaci nebylo možno provést, protože toto zařízení napojuje médium '{above}' (výše) na médium '{below}' (níže), avšak segment výše je '{segment}'."
+
+msgid "The operation could not be executed, because medium type of coupler device matches only sub segment, but maximum amount of segments reached."
+msgstr "Operaci nebylo možno provést, protože typ média zařízení spojky odpovídá jen podsegmentu, ale bylo dosaženo maximálního počtu segmentů."
+
+msgid "The operation could not be executed, because this device couples medium '{above}' (above) to medium '{below}' (below), but the medium type of the lower segment is '{segment}'."
+msgstr "Operaci nelze provést, protože toto zařízení napojuje médium '{above}' (výše) k médiu '{below}' (níže), avšak typ média dolního segmentu je '{segment}'."

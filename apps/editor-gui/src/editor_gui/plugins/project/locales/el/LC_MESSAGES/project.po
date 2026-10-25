@@ -2661,3 +2661,42 @@ msgstr "Αριθμός συσκευών"
 
 msgid "Unlink"
 msgstr "Αποσύνδεση"
+
+msgid "An IP router requires an IP backbone line."
+msgstr "Ένας δρομολογητής IP απαιτεί μια κεντρική (backbone) γραμμή."
+
+msgid "The operation could not be executed, because a coupler needs a main line."
+msgstr "Η λειτουργία δε μπόρεσε να εκτελεστεί, διότι ο προσαρμοστής χρειάζεται μία κύρια γραμμή."
+
+msgid "The operation could not be executed, because an area coupler requires a backbone line."
+msgstr "Η λειτουργία δε μπόρεσε να εκτελεστεί, διότι ένας προσαρμοστής περιοχής απαιτεί μία κεντρική γραμμή."
+
+msgid "The operation could not be executed, because this coupler needs a main line with the medium type '{medium}' ."
+msgstr "Η λειτουργία δε μπόρεσε να εκτελεστεί, διότι ο προσαρμοστής χρειάζεται μία κύρια γραμμή με τύπο μέσου '{medium}' ."
+
+msgid "The operation could not be executed, because only one IP router is allowed as a world coupler."
+msgstr "Η λειτουργία δε μπόρεσε να εκτελεστεί, διότι μόνο ένας δρομολογητής IP επιτρέπεται ως υπερπροσαρμοστής."
+
+msgid "The operation could not be executed, because only IP router area allowed as a world coupler."
+msgstr "Η λειτουργία δε μπόρεσε να εκτελεστεί, διότι μόνο ένας δρομολογητής IP επιτρέπεται ως υπερπροσαρμοστής."
+
+msgid "The backbone line contains a world coupler. It is not possible to use an IP router below another IP router."
+msgstr "Η κεντρική γραμμή περιέχει έναν παγκόσμιο προσαρμοστή. Δεν είναι δυνατό να χρησιμοποιήσετε έναν IP router κάτω από ένα άλλο IP router."
+
+msgid "It is not possible to use a world coupler, when there are already IP routers in the project."
+msgstr "Δεν είναι δυνατόν να χρησιμοποιήσετε έναν παγκόσμιο προσαρμοστή, όταν υπάρχουν ήδη δρομολογητές IP στο έργο."
+
+msgid "A world coupler can only be used, when the medium type of the backbone is TP."
+msgstr "Ένας παγκόσμιος προσαρμοστής μπορεί να χρησιμοποιηθεί μόνο όταν ο τύπος μέσου της κεντρικής γραμμής είναι TP."
+
+msgid "The coupler does not support segment coupling, so the sub-segment must be of the same KNX medium type as the main segment."
+msgstr "Ο προσαρμοστής δεν υποστηρίζει σύζευξη τμημάτων, οπότε το υποτμήμα πρέπει να είναι του ίδιου τύπου μέσου KNX με το κύριο τμήμα."
+
+msgid "The operation could not be executed, because this device couples medium '{above}' (above) to medium '{below}' (below), but the segment above is '{segment}'."
+msgstr "Η λειτουργία δεν μπόρεσε να εκτελεστεί, επειδή αυτή η συσκευή συνδέει το μέσο '{above}' (επάνω) στο μέσο '{below}' (κάτω), αλλά το παραπάνω τμήμα είναι '{segment}'."
+
+msgid "The operation could not be executed, because medium type of coupler device matches only sub segment, but maximum amount of segments reached."
+msgstr "Η λειτουργία δεν μπόρεσε να εκτελεστεί, επειδή ο τύπος μέσου του προσαρμοστή ταιριάζει μόνο στο υποτμήμα, αλλά έχει επιτευχθεί ο μέγιστος αριθμός τμημάτων."
+
+msgid "The operation could not be executed, because this device couples medium '{above}' (above) to medium '{below}' (below), but the medium type of the lower segment is '{segment}'."
+msgstr "Η λειτουργία δεν μπόρεσε να εκτελεστεί, επειδή αυτή η συσκευή συνδέει το μέσο '{above}' (επάνω) στο μέσο '{below}' (κάτω), αλλά ο τύπος μέσου του παρακάτω τμήματος είναι '{segment}'."
