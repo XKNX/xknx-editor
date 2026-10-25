@@ -1162,18 +1162,6 @@ msgstr "Filtrera gruppadresser (adress, namn)…"
 msgid "Filter rooms, devices, functions…"
 msgstr "Filtrera rum, apparater, funktioner…"
 
-msgid "Area {area}"
-msgstr "Område {area}"
-
-msgid "{name} (Area {area})"
-msgstr "{name} (område {area})"
-
-msgid "Line {area}.{line}"
-msgstr "Linje {area}.{line}"
-
-msgid "{name} (Line {area}.{line})"
-msgstr "{name} (linje {area}.{line})"
-
 msgid "Unassigned ({count})"
 msgstr "Ej tilldelade ({count})"
 
@@ -1317,12 +1305,6 @@ msgstr "Säkerhet"
 
 msgid "Automatic"
 msgstr "Automatisk"
-
-msgid "Secured"
-msgstr "Säkrad"
-
-msgid "Not Secured"
-msgstr "Inte säkrad"
 
 msgid "A secured group address can only be linked to devices that are commissioned securely."
 msgstr "En säkrad gruppadress kan bara förbindas med apparater som tas i drift säkert."
@@ -1770,9 +1752,6 @@ msgstr "Ett lösenord måste ha 1 till 20 Latin-1-tecken."
 
 msgid "Close"
 msgstr "Stäng"
-
-msgid "IP Backbone Security"
-msgstr "IP-backbone-säkerhet"
 
 msgid "Device Certificates"
 msgstr "Apparatcertifikat"
@@ -2362,17 +2341,8 @@ msgstr "segment"
 msgid "The medium of a segment can only change while it holds no device."
 msgstr "Mediumtypen för ett segment kan endast ändras om det inte innehåller några apparater."
 
-msgid "A sub-segment is not allowed below a main segment of KNX medium type {medium}."
-msgstr "Ett undersegment tillåts inte under ett huvudsegment med KNX mediumtyp {medium}."
-
 msgid "The medium type of the segment '{segment}' cannot be changed to IoT, because its parent line '{line}' is not of medium type IP."
 msgstr "Mediumtypen för segment '{segment}' kan inte ändras till IoT eftersom dess överordnade linje '{line}' inte är av mediumtyp IP."
-
-msgid "A sub-segment of KNX medium type {medium} is not allowed."
-msgstr "Ett undersegment med KNX mediumtyp {medium} tillåts inte."
-
-msgid "The medium type of the line '{line}' can no longer be changed to {medium}, because it already contains segments that are not allowed below it."
-msgstr "Mediumtypen för linjen '{line}' kan inte längre ändras till {medium} eftersom den redan innehåller segment som inte är tillåtna under den."
 
 msgid "The maximum number of segments has been reached."
 msgstr "Det maximala antalet segment har uppnåtts."
@@ -2385,12 +2355,6 @@ msgstr "Apparat '{device}' är inkompatibel med linjens mediumtyp."
 
 msgid "Device '{device}' is incompatible with segment's medium type."
 msgstr "Apparat '{device}' är inkompatibel med segmentets medietyp."
-
-msgid "Segment {area}.{line}"
-msgstr "Segment {area}.{line}"
-
-msgid "{name} (Segment {area}.{line})"
-msgstr "{name} (segment {area}.{line})"
 
 msgid "Add Segment"
 msgstr "Lägg till segment"
@@ -2430,3 +2394,129 @@ msgstr "Markera gruppadress som central"
 
 msgid "Remove central mark from group address"
 msgstr "Ta bort central-markering från gruppadress"
+
+msgid "Topology"
+msgstr "Topologi"
+
+msgid "{medium} backbone line"
+msgstr "{medium} backbone-linje"
+
+msgid "{medium} main line"
+msgstr "{medium} huvudlinje"
+
+msgid "Backbone"
+msgstr "Områdeslinje"
+
+msgid "Backbone Medium"
+msgstr "Backbone-medium"
+
+msgid "Network Latency"
+msgstr "Nätverkslatens"
+
+msgid "LAN (< 400ms)"
+msgstr "LAN (< 400ms)"
+
+msgid "WLAN (< 1s)"
+msgstr "WLAN (< 1s)"
+
+msgid "WAN (< 2s)"
+msgstr "WAN (< 2 s)"
+
+msgid "Mobile (< 4s)"
+msgstr "Mobil (< 4s)"
+
+msgid "Satellite (< 8s)"
+msgstr "Satellit (< 8s)"
+
+msgid "The network latency must be a number of milliseconds from 1 to 65535."
+msgstr "Nätverkslatensen måste vara ett antal millisekunder från 1 till 65535."
+
+msgid "Multicast Address"
+msgstr "Multicast-adress"
+
+msgid "Enter a multicast address from 224.0.0.0 to 239.255.255.255."
+msgstr "Ange en multicast-adress från 224.0.0.0 till 239.255.255.255."
+
+msgid "Bus Connection"
+msgstr "Bussanslutning"
+
+msgid "Set IP routing of the backbone"
+msgstr "Ange IP-routning för områdeslinjen"
+
+msgid "As long as a coupler exists at a sub line or sub segment, a change of the medium type is not possible."
+msgstr "Så länge en kopplare finns på en underlinje eller undersegment är en ändring av mediumtyp inte möjlig."
+
+msgid "A main line of a project cannot have medium type RF."
+msgstr "En huvudlinje i ett projekt kan inte ha mediumtyp RF."
+
+msgid "The operation could not be executed, because as medium type of the backbone only IP and TP are allowed."
+msgstr "Åtgärden kan inte utföras, eftersom endast IP och TP tillåst som mediumtyp för områdeslinjen."
+
+msgid "A sub-segment of KNX medium type IP or PL is not allowed."
+msgstr "Ett undersegment med KNX mediumtyp IP eller PL tillåts inte."
+
+msgid "The medium type of the main line '{line}' can no longer be changed to PL, because it already contains lines or segments that are not allowed in PL main lines."
+msgstr "Mediumtypen för huvudlinjen '{line}' kan inte längre ändras till PL eftersom den redan innehåller linjer eller segment som inte är tillåtet för PL huvudlinjer."
+
+msgid "The medium type of the main line '{line}' cannot be changed to IoT, because the backbone line '{backbone}' is not of medium type IP."
+msgstr "Mediumtypen för huvudlinjen '{line}' kan inte ändras till IoT eftersom områdeslinjen '{backbone}' inte är av mediumtyp IP."
+
+msgid "The medium type of the main line '{line}' can no longer be changed to IoT, because it already contains lines or segments that are not allowed in IoT main lines."
+msgstr "Mediumtypen för huvudlinjen '{line}' kan inte längre ändras till IoT eftersom den redan innehåller linjer eller segment som inte är tillåtet för IoT huvudlinjer."
+
+msgid "The medium type of the line '{line}' cannot be changed, because it already contains lines or segments that require an IoT or IP main line."
+msgstr "Mediumtypen för huvudlinjen '{line}' kan inte ändras eftersom den redan innehåller linjer eller segment som kräver en huvudlinje med IoT eller IP."
+
+msgid "A sub-segment is not allowed below a main segment of KNX medium type RF."
+msgstr "Ett undersegment tillåts inte under ett huvudsegment med KNX mediumtyp RF."
+
+msgid "A sub-segment is not allowed below a main segment of KNX medium type PL."
+msgstr "Ett undersegment tillåts inte under ett huvudsegment med KNX mediumtyp PL."
+
+msgid "A sub-segment of KNX medium type IoT is not allowed below a main segment of the same type."
+msgstr "Ett undersegment för KNX mediumtyp IoT är inte tillåtet under ett huvudsegment med samma typ."
+
+msgid "The operation could not be executed, because a RF main line '{line}' requires all other lines in the area to be RF lines as well."
+msgstr "Operationen kunde inte utföras eftersom en RF-huvudlinje {line} kräver att alla andra linjer på området också är RF-linjer."
+
+msgid "The operation could not be executed, because a PL main line '{line}' requires all other lines in the area to be PL lines as well."
+msgstr "Operationen kunde inte utföras eftersom en PL-huvudlinje {line} kräver att alla andra linjer på området också är PL-linjer."
+
+msgid "The operation could not be executed, because a IoT main line '{line}' requires all other lines in the area to be IoT lines as well."
+msgstr "Operationen kunde inte utföras eftersom en IoT huvudlinje '{line}' kräver att alla andra linjer i området också är IoT-linjer."
+
+msgid "The medium type of the line '{line}' cannot be changed to IoT, because its main line '{main}' is not of medium type IP."
+msgstr "Mediumtypen för linje '{line}' kan inte ändras till IoT eftersom dess överordnade linje '{main}' inte är av mediumtyp IP."
+
+msgid "The medium type of the line '{line}' can no longer be changed to IoT, because it already contains segments that are not allowed in IoT lines."
+msgstr "Mediumtypen för linjen '{line}' kan inte längre ändras till IoT eftersom den redan innehåller segment som inte är tillåtet för IoT-linjer."
+
+msgid "The operation could not be executed, because the line is the IP backbone line and the project contains KNXnet/IP routers. KNXnet/IP routers require an IP backbone line."
+msgstr "Operationen kunde inte utföras eftersom linjen är IP-backbone-linjen och projektet innehåller KNXnet/IP-routrar. KNXnet/IP-routrar kräver en IP-backbone-linje."
+
+msgid "The operation could not be executed, because the line is the IP main line and the project contains KNXnet/IP routers. KNXnet/IP routers require an IP main line."
+msgstr "Operationen kunde inte utföras eftersom linjen är IP-huvudlinjen och projektet innehåller KNXnet/IP-routrar. KNXnet/IP-routrar kräver en IP-huvudlinje."
+
+msgid "The operation could not be executed, because the line is the IP backbone line and the project contains IoT or IP lines."
+msgstr "Operationen kunde inte utföras eftersom linjen är IP-backbone-linjen och projektet innehåller IP-linjer."
+
+msgid "The operation could not be executed, because the medium type of the line can only be set to IP if an IP main line exists."
+msgstr "Operationen kunde inte utföras eftersom linjens mediumtyp endast kan sättas till IP om en IP-huvudlinje finns."
+
+msgid "The operation could not be executed, because the medium type of the line can only be set to IP if an IP backbone line exists."
+msgstr "Operationen kunde inte utföras eftersom mediumtypen för linjen endast kan sättas till IP om en IP-backbone-linje finns."
+
+msgid "The operation could not be executed, because below a TP main segment only segments of KNX medium type TP, RF or PL can exist."
+msgstr "Åtgärden kunde inte genomföras eftersom det under ett TP-huvudsegment endast kan finnas segment av KNX medietyp TP, RF eller PL."
+
+msgid "Below a main segment of KNX medium type IP only segments of medium type TP or RF can exist."
+msgstr "Under ett huvudsegment för en KNX IP-mediumtyp kan endast segment med mediumtyp TP eller RF finnas."
+
+msgid "A sub-segment of KNX medium type PL is not allowed below a main segment."
+msgstr "Ett undersegment för KNX PL-mediumtyp inte tillåts under ett huvudsegment."
+
+msgid "Set bus connection of the backbone"
+msgstr "Ange bussanslutning för områdeslinjen"
+
+msgid "Set domain address"
+msgstr "Ange domänadress"

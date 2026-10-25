@@ -20,7 +20,8 @@ from editor_gui.plugins.mcp.tools.project import (
     require_device,
     require_group_address_id,
 )
-from xknxeditor.proj.core.medium import medium_name
+from editor_gui.plugins.project.service import interface_bus_access
+from xknxeditor.proj.core.medium import MEDIUM_NAMES, medium_name
 from xknxeditor.proj.core.rich_text import (
     RichText,
     Span,
@@ -69,6 +70,10 @@ Status = Literal[
     "Locked",
 ]
 Priority = Literal["Low", "High", "Alert"]
+BackboneMedium = Literal["IP", "TP"]
+# The network latencies of the backbone's IP routing, in milliseconds.
+Latency = Literal[400, 1000, 2000, 4000, 8000]
+_MEDIA: dict[str, str] = {name: medium for medium, name in MEDIUM_NAMES.items()}
 
 _FORMATS = ("bold", "italic", "underline")
 
@@ -326,6 +331,103 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                 "element_id": target,
                 "status": project.completion_status(kind, target),
             }
+
+        return ctx.run_locked(_set)
+
+    def _interfaces() -> list[dict[str, str]]:
+        return [
+            {
+                "parameter": interface_bus_access(g.name, g.ip_addr, g.port),
+                "text": f"{g.name} ({g.ip_addr}:{g.port} Udp - "
+                f"{g.individual_address or ''})".replace(" - )", ")"),
+            }
+            for g in ctx.connection_plugin.gateways
+            if g.supports_tunnelling
+        ]
+
+    def _backbone_dict() -> dict[str, Any]:
+        area = next((a for a in project.get_areas() if a.area_number == 0), None)
+        details = project.element_details("backbone", area.id) if area else None
+        if area is None or details is None:
+            raise ToolError("the project has no backbone (area 0)")
+        return {
+            "area_id": area.id,
+            "name": details.name,
+            "description": details.description,
+            "status": details.status,
+            "medium": medium_name(details.medium) if details.medium else None,
+            "latency_ms": details.latency,
+            "multicast_address": details.multicast_address,
+            "security": details.backbone_security,
+            "bus_connection": (
+                {"parameter": details.bus_access, "text": details.bus_connection}
+                if details.bus_access
+                else None
+            ),
+            "found_interfaces": _interfaces(),
+        }
+
+    @tool("read")
+    def project_get_backbone() -> dict[str, Any]:
+        """Read the backbone (area 0 with its line 0.0) as its details show it. Returns
+        {area_id, name, description, status, medium (IP or TP), latency_ms (the network latency:
+        400 LAN, 1000 WLAN, 2000 WAN, 4000 Mobile, 8000 Satellite), multicast_address (of the IP
+        routing), security (of the IP routing: Auto, On or Off), bus_connection ({parameter,
+        text} of the connection kept with the backbone, null for Automatic), found_interfaces
+        ([{parameter, text}] of the KNXnet/IP interfaces found on the network)}. Name,
+        description and status change with project_rename_area, project_set_description and
+        project_set_status (kind area)."""
+        require_project(ctx)
+        return ctx.run_locked(_backbone_dict)
+
+    @tool("write")
+    def project_set_backbone(
+        medium: BackboneMedium | None = None,
+        latency_ms: Latency | None = None,
+        multicast_address: str | None = None,
+        security: Literal["Auto", "On", "Off"] | None = None,
+        bus_connection: str | None = None,
+    ) -> dict[str, Any]:
+        """Change the backbone as its details do; pass only what changes. ``medium`` IP or TP
+        (the rules of project_set_medium apply); ``latency_ms`` the network latency (400 LAN,
+        1000 WLAN, 2000 WAN, 4000 Mobile, 8000 Satellite); ``multicast_address`` of the IP
+        routing (224.0.0.0 to 239.255.255.255); ``security`` of the IP routing (On needs a
+        project password: it creates the backbone key); ``bus_connection`` "" for Automatic, or
+        the parameter of one of project_get_backbone's found_interfaces or of its current
+        bus_connection. Each change is an undo step (project_undo), except the security. Returns
+        what project_get_backbone returns."""
+        require_project(ctx)
+
+        def _set() -> dict[str, Any]:
+            backbone = _backbone_dict()
+            if medium is not None:
+                error = project.set_element_medium(
+                    "backbone", backbone["area_id"], _MEDIA[medium]
+                )
+                if error:
+                    raise ToolError(error)
+            if latency_ms is not None or multicast_address is not None:
+                error = project.set_ip_routing(
+                    latency=latency_ms, multicast_address=multicast_address
+                )
+                if error:
+                    raise ToolError(error)
+            if security is not None:
+                error = project.set_element_backbone_security(security)
+                if error:
+                    raise ToolError(error)
+            if bus_connection is not None:
+                known = {i["parameter"] for i in backbone["found_interfaces"]}
+                current = backbone["bus_connection"]
+                if current is not None:
+                    known.add(current["parameter"])
+                if bus_connection and bus_connection not in known:
+                    raise ToolError(
+                        'bus_connection must be "" (Automatic) or a parameter from '
+                        "project_get_backbone"
+                    )
+                project.set_backbone_bus_connection(bus_connection)
+            return _backbone_dict()
 
         return ctx.run_locked(_set)
 

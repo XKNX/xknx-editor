@@ -11,7 +11,7 @@ _ = create_translator("topology", _locale_dir)
 class TopologyStrings:
     @property
     def PANEL_TOPOLOGY(self) -> str:
-        return _("Topology")
+        return _("Bus Diagram")
 
     @property
     def TOPOLOGY_EMPTY(self) -> str:

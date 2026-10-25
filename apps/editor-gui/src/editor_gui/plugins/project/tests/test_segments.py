@@ -19,7 +19,12 @@ from editor_gui.plugins.project.medium_text import (
     medium_error_text,
     segment_media,
 )
-from editor_gui.plugins.project.service import ProjectService, format_domain_address
+from editor_gui.plugins.project.service import (
+    ProjectService,
+    format_bus_access,
+    format_domain_address,
+    interface_bus_access,
+)
 from editor_gui.plugins.project.ui.devices import (
     Area,
     DevicesPanel,
@@ -27,6 +32,7 @@ from editor_gui.plugins.project.ui.devices import (
     Segment,
     _split_line,
 )
+from editor_gui.plugins.project.ui.element_details import latency_options
 from editor_gui.strings import get_locale, set_locale
 from xknxeditor.proj.core.medium import MEDIUM_RF, MEDIUM_TP, MediumError
 
@@ -116,9 +122,19 @@ def test_a_medium_the_rules_refuse_tells_why(
     line_id = _line_1_1(project)
     project.add_segment(line_id)
     reason = project.set_element_medium("line", line_id, MEDIUM_RF)
-    assert reason is not None
-    assert reason.startswith("Der Medientyp der Linie")
-    assert "RF" in reason
+    assert reason == (
+        "Unter einem Hauptsegment mit dem Medientyp RF sind keine Segmente erlaubt."
+    )
+    # An unnamed main line is called as the tree shows it.
+    main = next(
+        line.id
+        for area in project.get_areas()
+        if area.area_number == 1
+        for line in project.get_lines(area.id)
+        if line.line_number == 0
+    )
+    reason = project.set_element_medium("line", main, "MT-1")
+    assert reason is not None and "'IP Hauptlinie'" in reason
     error = MediumError("device_segment_medium", device="Taster")
     assert medium_error_text(error) == (
         "Das Gerät 'Taster' ist nicht kompatibel zu dem Medientyp des Segmentes."
@@ -162,6 +178,92 @@ def test_a_device_fits_the_media_of_its_hardware(
     assert error.value.reason == "device_line_medium"
 
 
+def test_couplers_and_ip_routers_come_from_the_catalog(
+    project: ProjectService, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    area = next(a for a in project.get_areas() if a.area_number == 1)
+    main = next(ln for ln in project.get_lines(area.id) if ln.line_number == 0)
+    line_id = _line_1_1(project)
+    line = project.find_line(line_id)
+    assert line is not None and line.main_segment_id is not None
+    pid = project._pid
+    assert pid is not None
+    router = project._svc.add_device(
+        pid, line.main_segment_id, "P-R", address=0, hardware2program_ref_id="R"
+    )
+    project._bump()
+    roles = {"R": (True, "MV-091A")}
+    monkeypatch.setattr(project._catalog, "program_roles", lambda ids: roles)
+    assert project._device_roles() == ({router}, {router})
+    # A coupler below keeps the medium of the main line.
+    reason = project.set_element_medium("line", main.id, MEDIUM_TP)
+    assert reason is not None and "coupler" in reason
+    # A KNXnet/IP router (at device number 0) in the area keeps it IP.
+    roles["R"] = (False, "MV-091A")
+    assert project._device_roles() == (set(), {router})
+    reason = project.set_element_medium("line", main.id, MEDIUM_TP)
+    assert reason is not None and "KNXnet/IP" in reason
+    monkeypatch.setattr(project._catalog, "program_roles", lambda ids: {})
+    assert project._device_roles() == (set(), set())
+    assert project.set_element_medium("line", main.id, MEDIUM_TP) is None
+
+
+def test_the_backbone_details(project: ProjectService) -> None:
+    backbone = next(a for a in project.get_areas() if a.area_number == 0)
+    details = project.element_details("backbone", backbone.id)
+    assert details is not None
+    assert (details.medium, details.latency, details.multicast_address) == (
+        "MT-5",
+        2000,
+        "224.0.23.12",
+    )
+    assert (details.backbone_security, details.bus_access) == ("Auto", "")
+    assert project.set_ip_routing(latency=400) is None
+    assert project.set_ip_routing(multicast_address="10.0.0.1") is not None
+    assert project.set_ip_routing(multicast_address="239.0.0.9") is None
+    parameter = interface_bus_access("IP-Interface", "192.168.16.88", 3671)
+    project.set_backbone_bus_connection(parameter)
+    details = project.element_details("backbone", backbone.id)
+    assert details is not None
+    assert (details.latency, details.multicast_address) == (400, "239.0.0.9")
+    assert details.bus_access == parameter
+    assert details.bus_connection == "IP-Interface (192.168.16.88:3671 Udp)"
+    assert project.history()[0].display_text == "Set bus connection of the backbone"
+    assert project.history()[1].display_text == "Set IP routing of the backbone"
+    project.set_backbone_bus_connection("")
+    details = project.element_details("backbone", backbone.id)
+    assert details is not None and details.bus_access == ""
+    # The backbone offers IP and TP; TP refused while an IP main line is below it.
+    reason = project.set_element_medium("backbone", backbone.id, MEDIUM_TP)
+    assert reason is not None
+
+
+def test_bus_connections_as_shown() -> None:
+    assert format_bus_access(None) == ""
+    assert (
+        format_bus_access(
+            {
+                "Name": "",
+                "Parameter": "Type=IpTunneling;HostAddress=192.168.16.104;"
+                'ProtocolType=Udp;Name="IP Tunneling UDP"',
+            }
+        )
+        == "IP Tunneling UDP (192.168.16.104:3671 Udp)"
+    )
+    assert format_bus_access({"Name": "USB", "Parameter": "Type=Usb"}) == "USB"
+    assert interface_bus_access("X", "10.0.0.1", 3700) == (
+        'Type=IpTunneling;HostAddress=10.0.0.1;Port=3700;ProtocolType=Udp;Name="X"'
+    )
+    assert latency_options()[0] == (400, "LAN (< 400ms)")
+    assert [value for value, _text in latency_options()] == [
+        400,
+        1000,
+        2000,
+        4000,
+        8000,
+    ]
+
+
 def _device(node_id: int, address: str) -> UnloadedDevice:
     return UnloadedDevice(node_id, "", "Product", address, None)
 
@@ -189,13 +291,16 @@ def context() -> Iterator[None]:
 
 
 @pytest.mark.usefixtures("context")
-def test_the_tree_shows_the_segments() -> None:
+def test_the_tree_shows_the_backbone_the_areas_and_the_segments() -> None:
     line = Line(1, 1, 1, "L", [Segment(5, "Garden"), Segment(6, "")])
-    devices = [_device(1, "1.1.1"), _device(2, "1.1.2")]
+    backbone = Line(2, 0, 0, "", medium_type="MT-5")
+    main = Line(3, 1, 0, "")
+    lines = {0: [backbone], 1: [main, line]}
+    devices = [_device(1, "1.1.1"), _device(2, "1.1.2"), _device(3, "1.0.1")]
     panel = DevicesPanel(
         get_devices=list,
-        get_areas=lambda: [Area(1, 1, "A")],
-        get_lines=lambda _a: [line],
+        get_areas=lambda: [Area(0, 0, ""), Area(1, 1, "Hauptlinie")],
+        get_lines=lambda area_id: lines[area_id],
         on_select_device=lambda _d: None,
         on_move_device=lambda _d, _a, _l: None,
         on_create_area=lambda _n, _s: None,
@@ -214,9 +319,11 @@ def test_the_tree_shows_the_segments() -> None:
         panel.render()
         imgui.end()
         imgui.end_frame()
-    assert panel._format_segment_label(Area(1, 1, "A"), line, line.segments[0]) == (
-        "Garden (Segment 1.1)"
-    )
-    assert panel._format_segment_label(Area(1, 1, "A"), line, line.segments[1]) == (
-        "Segment 1.1"
-    )
+    area = Area(1, 1, "A")
+    assert panel._format_segment_label(area, line, line.segments[0]) == "1.1 Garden"
+    assert panel._format_segment_label(area, line, line.segments[1]) == "1.1"
+    assert panel._format_line_label(area, line) == "1.1 L"
+    # An area shows as its main line; one without a name is called after its medium.
+    assert panel._format_area_label(Area(0, 0, ""), backbone) == "0.0 IP backbone line"
+    assert panel._format_area_label(Area(1, 1, "Hauptlinie"), main) == "1.0 Hauptlinie"
+    assert panel._format_area_label(Area(2, 2, ""), main) == "2.0 TP main line"

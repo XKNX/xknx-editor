@@ -7,8 +7,8 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-msgid "Topology"
-msgstr "拓扑"
+msgid "Bus Diagram"
+msgstr "总线图"
 
 msgid "No project open"
 msgstr "未打开项目"

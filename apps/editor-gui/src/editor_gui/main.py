@@ -734,6 +734,16 @@ class KnxGuiApp:
             get_selected_node_ids=lambda: [],
             export_group_addresses=self._export_ga_export,
             get_latest_value=self._monitor_plugin.service.latest_text,
+            get_interfaces=lambda: [
+                (
+                    g.name,
+                    g.ip_addr,
+                    g.port,
+                    str(g.individual_address) if g.individual_address else "",
+                )
+                for g in self._connection_plugin.gateways
+                if g.supports_tunnelling
+            ],
         )
         self._project_plugin.show_context_help = bool(
             load_settings("app").get("show_context_help", True)
@@ -5884,6 +5894,7 @@ _ELEMENT_TITLES: "dict[str, Callable[[], str]]" = {
     "area": lambda: PROJECT_S.PANEL_AREA,
     "line": lambda: PROJECT_S.PANEL_LINE,
     "segment": lambda: PROJECT_S.PANEL_SEGMENT,
+    "backbone": lambda: PROJECT_S.PANEL_BACKBONE,
     "main_group": lambda: PROJECT_S.PANEL_MAIN_GROUP,
     "middle_group": lambda: PROJECT_S.PANEL_MIDDLE_GROUP,
     "group_range": lambda: PROJECT_S.PANEL_GROUP_RANGE,

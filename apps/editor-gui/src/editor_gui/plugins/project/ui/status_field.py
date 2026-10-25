@@ -62,6 +62,31 @@ def usage_combo(label: str, current: str, current_text: str = "") -> str | None:
     )
 
 
+def bus_connection_combo(
+    label: str,
+    current: str,
+    preview: str,
+    stored: list[tuple[str, str]],
+    found: list[tuple[str, str]],
+) -> str | None:
+    """The "Bus Connection" drop-down: ``stored`` first ("Automatic" and the connection kept with
+    the line), then below a separator the interfaces ``found`` on the network, each as (value,
+    text); ``preview`` is shown while it is closed. The value chosen, or None while it stays."""
+    chosen: str | None = None
+    imgui.set_next_item_width(-1)
+    if begin_combo(label, preview):
+        for index, (value, text) in enumerate([*stored, *found]):
+            if index == len(stored):
+                imgui.separator()
+            selected = value == current
+            if imgui.selectable(f"{text}##{index}", selected)[0] and not selected:
+                chosen = value
+            if selected:
+                imgui.set_item_default_focus()
+        imgui.end_combo()
+    return chosen
+
+
 def line_combo(
     label: str,
     own: int | None,

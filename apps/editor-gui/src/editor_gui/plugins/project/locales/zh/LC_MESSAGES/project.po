@@ -1162,18 +1162,6 @@ msgstr "过滤组地址（地址、名称）…"
 msgid "Filter rooms, devices, functions…"
 msgstr "过滤房间、设备、功能…"
 
-msgid "Area {area}"
-msgstr "区域 {area}"
-
-msgid "{name} (Area {area})"
-msgstr "{name}（区域 {area}）"
-
-msgid "Line {area}.{line}"
-msgstr "支线 {area}.{line}"
-
-msgid "{name} (Line {area}.{line})"
-msgstr "{name}（支线 {area}.{line}）"
-
 msgid "Unassigned ({count})"
 msgstr "未分配（{count}）"
 
@@ -1317,12 +1305,6 @@ msgstr "安全性"
 
 msgid "Automatic"
 msgstr "自动"
-
-msgid "Secured"
-msgstr "安全"
-
-msgid "Not Secured"
-msgstr "非安全"
 
 msgid "A secured group address can only be linked to devices that are commissioned securely."
 msgstr "安全组地址只能链接到以安全方式调试的设备。"
@@ -1770,9 +1752,6 @@ msgstr "密码需要 1 到 20 个 Latin-1 字符。"
 
 msgid "Close"
 msgstr "关闭"
-
-msgid "IP Backbone Security"
-msgstr "IP 主干安全"
 
 msgid "Device Certificates"
 msgstr "设备证书"
@@ -2362,17 +2341,8 @@ msgstr "段"
 msgid "The medium of a segment can only change while it holds no device."
 msgstr "只能更改不包含任何设备的段的介质类型。"
 
-msgid "A sub-segment is not allowed below a main segment of KNX medium type {medium}."
-msgstr "子段不允许放在KNX介质类型为 {medium} 的主段下面。"
-
 msgid "The medium type of the segment '{segment}' cannot be changed to IoT, because its parent line '{line}' is not of medium type IP."
 msgstr "段“{segment}”的介质类型无法更改为 IoT，因为其父线路“{line}”不是IP介质类型。"
-
-msgid "A sub-segment of KNX medium type {medium} is not allowed."
-msgstr "不允许 KNX 介质类型为 {medium} 的子段。"
-
-msgid "The medium type of the line '{line}' can no longer be changed to {medium}, because it already contains segments that are not allowed below it."
-msgstr "线路“{line}”的介质类型无法再更改为 {medium}，因为它已经包含其下不允许的段。"
 
 msgid "The maximum number of segments has been reached."
 msgstr "已达到段数的最大值。"
@@ -2385,12 +2355,6 @@ msgstr "设备 '{device}'和线路的介质类型不兼容。"
 
 msgid "Device '{device}' is incompatible with segment's medium type."
 msgstr "设备 '{device}'和段的介质类型不兼容。"
-
-msgid "Segment {area}.{line}"
-msgstr "段 {area}.{line}"
-
-msgid "{name} (Segment {area}.{line})"
-msgstr "{name}（段 {area}.{line}）"
 
 msgid "Add Segment"
 msgstr "添加段"
@@ -2430,3 +2394,129 @@ msgstr "将组地址标记为中央"
 
 msgid "Remove central mark from group address"
 msgstr "取消组地址的中央标记"
+
+msgid "Topology"
+msgstr "拓扑"
+
+msgid "{medium} backbone line"
+msgstr "{medium} 干线"
+
+msgid "{medium} main line"
+msgstr "{medium} 主线路"
+
+msgid "Backbone"
+msgstr "主干"
+
+msgid "Backbone Medium"
+msgstr "主干线媒介"
+
+msgid "Network Latency"
+msgstr "网络延迟"
+
+msgid "LAN (< 400ms)"
+msgstr "LAN (< 400ms)"
+
+msgid "WLAN (< 1s)"
+msgstr "WLAN (< 1s)"
+
+msgid "WAN (< 2s)"
+msgstr "WAN (< 2秒)"
+
+msgid "Mobile (< 4s)"
+msgstr "移动 (< 4s)"
+
+msgid "Satellite (< 8s)"
+msgstr "卫星(< 8s)"
+
+msgid "The network latency must be a number of milliseconds from 1 to 65535."
+msgstr "网络延迟必须是 1 到 65535 之间的毫秒数。"
+
+msgid "Multicast Address"
+msgstr "组播地址"
+
+msgid "Enter a multicast address from 224.0.0.0 to 239.255.255.255."
+msgstr "请输入 224.0.0.0 到 239.255.255.255 之间的组播地址。"
+
+msgid "Bus Connection"
+msgstr "总线连接"
+
+msgid "Set IP routing of the backbone"
+msgstr "设置主干的 IP 路由"
+
+msgid "As long as a coupler exists at a sub line or sub segment, a change of the medium type is not possible."
+msgstr "只要子线或子段存在耦合器，就不可能改变介质类型。"
+
+msgid "A main line of a project cannot have medium type RF."
+msgstr "项目的主线不能有RF类型介质。"
+
+msgid "The operation could not be executed, because as medium type of the backbone only IP and TP are allowed."
+msgstr "操作无法执行，因为作为主干的介质类型，只允许IP和TP。"
+
+msgid "A sub-segment of KNX medium type IP or PL is not allowed."
+msgstr "不允许 KNX 介质类型为 IP 或 PL 的子段。"
+
+msgid "The medium type of the main line '{line}' can no longer be changed to PL, because it already contains lines or segments that are not allowed in PL main lines."
+msgstr "主线“{line}”的介质类型无法再更改为 PL，因为它已经包含 PL 主线中不允许的线路或段。"
+
+msgid "The medium type of the main line '{line}' cannot be changed to IoT, because the backbone line '{backbone}' is not of medium type IP."
+msgstr "主线“{line}”的介质类型无法更改为 IoT，因为骨干线“{backbone}”不是IP介质类型。"
+
+msgid "The medium type of the main line '{line}' can no longer be changed to IoT, because it already contains lines or segments that are not allowed in IoT main lines."
+msgstr "主线“{line}”的介质类型无法再更改为 IoT，因为它已包含 IoT 主线中不允许的线路或段。"
+
+msgid "The medium type of the line '{line}' cannot be changed, because it already contains lines or segments that require an IoT or IP main line."
+msgstr "主线“{line}”的介质类型无法更改，因为它已经包含需要IoT或IP主线的线路或段。"
+
+msgid "A sub-segment is not allowed below a main segment of KNX medium type RF."
+msgstr "子段不允许放在KNX介质类型为无线的主段下面。"
+
+msgid "A sub-segment is not allowed below a main segment of KNX medium type PL."
+msgstr "子段不允许放在KNX介质类型为电力线的主段下面。"
+
+msgid "A sub-segment of KNX medium type IoT is not allowed below a main segment of the same type."
+msgstr "KNX IoT介质类型的子段不允许在同类型的主段下面。"
+
+msgid "The operation could not be executed, because a RF main line '{line}' requires all other lines in the area to be RF lines as well."
+msgstr "无法执行操作， 因为RF 主线“{line}”要求该地区所有其他线也是RF 线。"
+
+msgid "The operation could not be executed, because a PL main line '{line}' requires all other lines in the area to be PL lines as well."
+msgstr "无法执行操作， 因为一个 PL 主行'{line}' 要求该区域的所有其他线也是PL 线。"
+
+msgid "The operation could not be executed, because a IoT main line '{line}' requires all other lines in the area to be IoT lines as well."
+msgstr "该操作无法执行，因为 IoT 主线“{line}”要求该区域中的所有其他线路也都是 IoT 线路。"
+
+msgid "The medium type of the line '{line}' cannot be changed to IoT, because its main line '{main}' is not of medium type IP."
+msgstr "线路“{line}”的介质类型无法更改为 IoT，因为其主线路“{main}”不是 IP介质类型。"
+
+msgid "The medium type of the line '{line}' can no longer be changed to IoT, because it already contains segments that are not allowed in IoT lines."
+msgstr "线路“{line}”的介质类型无法再更改为 IoT，因为它已经包含 IoT 线路中不允许的段。"
+
+msgid "The operation could not be executed, because the line is the IP backbone line and the project contains KNXnet/IP routers. KNXnet/IP routers require an IP backbone line."
+msgstr "该操作不能被执行，因为该支线是IP主干线并且项目含有KNXnet/IP路由器。KNXnet/IP路由器需要一个IP主干线."
+
+msgid "The operation could not be executed, because the line is the IP main line and the project contains KNXnet/IP routers. KNXnet/IP routers require an IP main line."
+msgstr "不能执行该操作，因为该支线是IP主线并且项目含有KNXnet/IP路由器。KNXnet/IP路由器需要一条IP主线."
+
+msgid "The operation could not be executed, because the line is the IP backbone line and the project contains IoT or IP lines."
+msgstr "该操作无法执行，因为线路是 IP 主干线路，而项目包含 IoT 或 IP 线路。"
+
+msgid "The operation could not be executed, because the medium type of the line can only be set to IP if an IP main line exists."
+msgstr "不能执行该操作，因为如果一个IP主干线存在，该支线的媒质类型只能被设置到IP."
+
+msgid "The operation could not be executed, because the medium type of the line can only be set to IP if an IP backbone line exists."
+msgstr "不能执行该操作，因为如果一个IP主干线存在，线路的媒介类型只能设置成IP."
+
+msgid "The operation could not be executed, because below a TP main segment only segments of KNX medium type TP, RF or PL can exist."
+msgstr "操作无法执行，因为在TP主段下，只能存在KNX介质类型为TP、RF或PL的段。"
+
+msgid "Below a main segment of KNX medium type IP only segments of medium type TP or RF can exist."
+msgstr "在 KNX 介质类型IP 的主段下，只能存在介质类型为TP或RF的段。"
+
+msgid "A sub-segment of KNX medium type PL is not allowed below a main segment."
+msgstr "KNX介质类型为电力线的子段不允许放在一个主段下面。"
+
+msgid "Set bus connection of the backbone"
+msgstr "设置主干的总线连接"
+
+msgid "Set domain address"
+msgstr "设置域地址"

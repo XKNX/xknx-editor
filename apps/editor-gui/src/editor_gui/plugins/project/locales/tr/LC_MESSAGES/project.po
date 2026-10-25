@@ -1162,18 +1162,6 @@ msgstr "Grup adreslerini filtrele (adres, ad)…"
 msgid "Filter rooms, devices, functions…"
 msgstr "Odaları, cihazları, fonksiyonları filtrele…"
 
-msgid "Area {area}"
-msgstr "Alan {area}"
-
-msgid "{name} (Area {area})"
-msgstr "{name} (Alan {area})"
-
-msgid "Line {area}.{line}"
-msgstr "Linye {area}.{line}"
-
-msgid "{name} (Line {area}.{line})"
-msgstr "{name} (Linye {area}.{line})"
-
 msgid "Unassigned ({count})"
 msgstr "Atanmamış ({count})"
 
@@ -1317,12 +1305,6 @@ msgstr "Güvenlik"
 
 msgid "Automatic"
 msgstr "Otomatik"
-
-msgid "Secured"
-msgstr "Güvenli"
-
-msgid "Not Secured"
-msgstr "Güvenli Değil"
 
 msgid "A secured group address can only be linked to devices that are commissioned securely."
 msgstr "Güvenli bir grup adresi yalnızca güvenli şekilde devreye alınan cihazlara bağlanabilir."
@@ -1770,9 +1752,6 @@ msgstr "Parola 1 ile 20 arasında Latin-1 karakterinden oluşmalıdır."
 
 msgid "Close"
 msgstr "Kapat"
-
-msgid "IP Backbone Security"
-msgstr "IP Omurga Güvenliği"
 
 msgid "Device Certificates"
 msgstr "Cihaz Sertifikaları"
@@ -2362,17 +2341,8 @@ msgstr "segment"
 msgid "The medium of a segment can only change while it holds no device."
 msgstr "Bir segmentin ortam tipi yalnızca herhangi bir cihaz içermiyorsa değiştirilebilir."
 
-msgid "A sub-segment is not allowed below a main segment of KNX medium type {medium}."
-msgstr "KNX ortam tipi {medium} olan bir ana segmentin altında bir alt segmente izin verilmez."
-
 msgid "The medium type of the segment '{segment}' cannot be changed to IoT, because its parent line '{line}' is not of medium type IP."
 msgstr "'{segment}' segmentinin ortam tipi IoT olarak değiştirilemez çünkü üst linyesi '{line}' ortam tipi IP'ye sahip değildir."
-
-msgid "A sub-segment of KNX medium type {medium} is not allowed."
-msgstr "KNX {medium} ortam tipinde bir alt segmente izin verilmez."
-
-msgid "The medium type of the line '{line}' can no longer be changed to {medium}, because it already contains segments that are not allowed below it."
-msgstr "'{line}' linyesinin ortam tipi artık {medium} olarak değiştirilemez çünkü halihazırda altında izin verilmeyen segmentler içermektedir."
 
 msgid "The maximum number of segments has been reached."
 msgstr "Maksimum segment sayısına ulaşıldı."
@@ -2385,12 +2355,6 @@ msgstr "'{device}' cihazı linyenin ortam tipi ile uyumlu değil."
 
 msgid "Device '{device}' is incompatible with segment's medium type."
 msgstr "'{device}' cihazı, segmentin ortam türüyle uyumlu değildir."
-
-msgid "Segment {area}.{line}"
-msgstr "Segment {area}.{line}"
-
-msgid "{name} (Segment {area}.{line})"
-msgstr "{name} (Segment {area}.{line})"
 
 msgid "Add Segment"
 msgstr "Segment Ekle"
@@ -2430,3 +2394,129 @@ msgstr "Grup adresini merkezi olarak işaretle"
 
 msgid "Remove central mark from group address"
 msgstr "Grup adresinden merkezi işaretini kaldır"
+
+msgid "Topology"
+msgstr "Topoloji"
+
+msgid "{medium} backbone line"
+msgstr "{medium} omurga linyesi"
+
+msgid "{medium} main line"
+msgstr "{medium} ana linye"
+
+msgid "Backbone"
+msgstr "Omurga"
+
+msgid "Backbone Medium"
+msgstr "Omurga Ortamı"
+
+msgid "Network Latency"
+msgstr "Ağ Gecikmesi"
+
+msgid "LAN (< 400ms)"
+msgstr "LAN (< 400 ms)"
+
+msgid "WLAN (< 1s)"
+msgstr "WLAN (< 1 s)"
+
+msgid "WAN (< 2s)"
+msgstr "WAN (< 2s)"
+
+msgid "Mobile (< 4s)"
+msgstr "Hareketli (< 4s)"
+
+msgid "Satellite (< 8s)"
+msgstr "Uydu (< 8s)"
+
+msgid "The network latency must be a number of milliseconds from 1 to 65535."
+msgstr "Ağ gecikmesi 1 ile 65535 arasında bir milisaniye sayısı olmalıdır."
+
+msgid "Multicast Address"
+msgstr "Multicast Adresi"
+
+msgid "Enter a multicast address from 224.0.0.0 to 239.255.255.255."
+msgstr "224.0.0.0 ile 239.255.255.255 arasında bir multicast adresi girin."
+
+msgid "Bus Connection"
+msgstr "Bus Bağlantısı"
+
+msgid "Set IP routing of the backbone"
+msgstr "Omurganın IP yönlendirmesini belirle"
+
+msgid "As long as a coupler exists at a sub line or sub segment, a change of the medium type is not possible."
+msgstr "Bir alt linye veya alt segmentte bir bağlayıcı bulunduğu sürece, ortam tipinin değiştirilmesi mümkün değildir."
+
+msgid "A main line of a project cannot have medium type RF."
+msgstr "Bir projenin ana linyesi RF medya tipine sahip olamaz."
+
+msgid "The operation could not be executed, because as medium type of the backbone only IP and TP are allowed."
+msgstr "Omurganın ortam tipi olarak sadece IP ve TP'ye izin verildiğinden işlem yürütülemedi."
+
+msgid "A sub-segment of KNX medium type IP or PL is not allowed."
+msgstr "KNX IP veya PL ortam tiplerinde bir alt segmente izin verilmez."
+
+msgid "The medium type of the main line '{line}' can no longer be changed to PL, because it already contains lines or segments that are not allowed in PL main lines."
+msgstr "'{line}' ana linyesinin ortam tipi artık PL olarak değiştirilemez çünkü zaten PL ana şinyelerinde izin verilmeyen linyeler veya segmentler içeriyor."
+
+msgid "The medium type of the main line '{line}' cannot be changed to IoT, because the backbone line '{backbone}' is not of medium type IP."
+msgstr "'{line}' ana linyesinin ortam tipi IoT olarak değiştirilemez çünkü '{backbone}' omurga linyesi ortam tipi IP'ye sahip değildir."
+
+msgid "The medium type of the main line '{line}' can no longer be changed to IoT, because it already contains lines or segments that are not allowed in IoT main lines."
+msgstr "'{line}' ana linyesinin ortam tipi artık IoT olarak değiştirilemez çünkü halihazırda IoT ana linyelerinde izin verilmeyen linyeler veya segmentler içeriyor."
+
+msgid "The medium type of the line '{line}' cannot be changed, because it already contains lines or segments that require an IoT or IP main line."
+msgstr "'{line}' ana linyesinin ortam tipi değiştirilemez çünkü zaten IoT veya IP ana linye gerektiren linyeler veya segmentler içeriyor."
+
+msgid "A sub-segment is not allowed below a main segment of KNX medium type RF."
+msgstr "KNX ortam tipi RF olan bir ana segmentin altında bir alt segmente izin verilmez."
+
+msgid "A sub-segment is not allowed below a main segment of KNX medium type PL."
+msgstr "KNX ortam tipi PL olan bir ana segmentin altında bir alt segmente izin verilmez."
+
+msgid "A sub-segment of KNX medium type IoT is not allowed below a main segment of the same type."
+msgstr "Aynı türden bir ana segmentin altında KNX IoT ortamının bir alt segmentine izin verilmez."
+
+msgid "The operation could not be executed, because a RF main line '{line}' requires all other lines in the area to be RF lines as well."
+msgstr "İşlem gerçekleştirilemedi çünkü bir RF ana linyesi {line}, alandaki diğer tüm linyelerinde RF linyesi olmasını gerektiriyor."
+
+msgid "The operation could not be executed, because a PL main line '{line}' requires all other lines in the area to be PL lines as well."
+msgstr "İşlem yürütülemedi, çünkü bir PL ana linyesi {line} alandaki diğer tüm linyelerin de PL linyesi olmasını gerektiriyor."
+
+msgid "The operation could not be executed, because a IoT main line '{line}' requires all other lines in the area to be IoT lines as well."
+msgstr "IoT ana linyesi '{line}', bölgedeki diğer tüm linyelerin de IoT linyesi olmasını gerektirdiğinden işlem yürütülemedi."
+
+msgid "The medium type of the line '{line}' cannot be changed to IoT, because its main line '{main}' is not of medium type IP."
+msgstr "'{line}' satırının ortam tipi IoT olarak değiştirilemez çünkü '{main}' ana linyesi ortam tipi IP'ye sahip değildir."
+
+msgid "The medium type of the line '{line}' can no longer be changed to IoT, because it already contains segments that are not allowed in IoT lines."
+msgstr "'{line}' linyesinin ortam tipi artık IoT olarak değiştirilemez çünkü zaten IoT linyelerinde izin verilmeyen segmentler içeriyor."
+
+msgid "The operation could not be executed, because the line is the IP backbone line and the project contains KNXnet/IP routers. KNXnet/IP routers require an IP backbone line."
+msgstr "İşlem yürütülemedi, çünkü linye IP omurga hattı ve projede   KNXnet/IP yönlendiriciler var. KNXnet/IP yönlendiriciler için IP omurga hattı gereklidir."
+
+msgid "The operation could not be executed, because the line is the IP main line and the project contains KNXnet/IP routers. KNXnet/IP routers require an IP main line."
+msgstr "İşlem yürütülemedi, çünkü  linye IP ana linyesi ve projede KNXnet/IP yönlendiriciler mevcut. KNXnet/IP yönlendiriciler IP ana linyesi gerektirir."
+
+msgid "The operation could not be executed, because the line is the IP backbone line and the project contains IoT or IP lines."
+msgstr "Linye IP omurga linyesi olduğundan ve proje IoT veya IP linyeleri içerdiğinden işlem gerçekleştirilemedi."
+
+msgid "The operation could not be executed, because the medium type of the line can only be set to IP if an IP main line exists."
+msgstr "İşlem yürütülemedi, çünkü ancak IP ana linyesi mevcut ise linye tipi IP olarak ayarlanabilir."
+
+msgid "The operation could not be executed, because the medium type of the line can only be set to IP if an IP backbone line exists."
+msgstr "İşlem yürütülemedi, çünkü IP omurga bulunuyor ise, ortam tipi yalnızca IP olabilir."
+
+msgid "The operation could not be executed, because below a TP main segment only segments of KNX medium type TP, RF or PL can exist."
+msgstr "İşlem yürütülemedi, çünkü bir TP ana segmentinin altında sadece KNX orta tip TP, RF veya PL segmentleri bulunabilir."
+
+msgid "Below a main segment of KNX medium type IP only segments of medium type TP or RF can exist."
+msgstr "KNX ortam tipi IP olan bir ana segmentin altında sadece ortam tipi TP veya RF olan segmentler bulunabilir."
+
+msgid "A sub-segment of KNX medium type PL is not allowed below a main segment."
+msgstr "Ana segmentin altında bir KNX PL alt segmentine izin verilmez."
+
+msgid "Set bus connection of the backbone"
+msgstr "Omurganın bus bağlantısını belirle"
+
+msgid "Set domain address"
+msgstr "Domain adresini belirle"

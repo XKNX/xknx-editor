@@ -1,7 +1,7 @@
-"""The details of an area, a line or a segment selected in the Devices tree, of a group range or
-group address in the Group Addresses tree, or of a function in the Buildings tree, shown in place
-of the device's: its name, address, medium, description and status, each saved when its field is
-left or its choice is made."""
+"""The details of the backbone, an area, a line or a segment selected in the Topology tree, of a
+group range or group address in the Group Addresses tree, or of a function in the Buildings tree,
+shown in place of the device's: its name, address, medium, description and status, each saved
+when its field is left or its choice is made."""
 
 from __future__ import annotations
 
@@ -10,15 +10,35 @@ from typing import TYPE_CHECKING
 
 from imgui_bundle import imgui
 
-from editor_gui.plugins.project.medium_text import line_media, segment_media
+from editor_gui.plugins.project.medium_text import (
+    backbone_media,
+    line_media,
+    segment_media,
+)
 from editor_gui.plugins.project.strings import S
-from editor_gui.plugins.project.ui.status_field import choice_combo, status_combo
+from editor_gui.plugins.project.ui.status_field import (
+    bus_connection_combo,
+    choice_combo,
+    status_combo,
+)
+from editor_gui.widgets.checkbox import checkbox
 from editor_gui.widgets.dpi import label_column_width
 
 if TYPE_CHECKING:
     from editor_gui.plugins.project.service import ElementDetails
 
 _ERROR_COLOR = imgui.ImVec4(0.9, 0.4, 0.4, 1.0)
+
+
+def latency_options() -> list[tuple[int, str]]:
+    """The choices of the network latency (milliseconds, text)."""
+    return [
+        (400, S.LATENCY_LAN),
+        (1000, S.LATENCY_WLAN),
+        (2000, S.LATENCY_WAN),
+        (4000, S.LATENCY_MOBILE),
+        (8000, S.LATENCY_SATELLITE),
+    ]
 
 
 def security_options() -> list[tuple[str, str]]:
@@ -42,6 +62,12 @@ class ElementDetailsPanel:
             lambda _k, _i, _m: None
         ),
         on_set_central: Callable[[int, bool], None] = lambda _i, _c: None,
+        on_set_ip_routing: Callable[[int | None, str | None], str | None] = (
+            lambda _l, _m: None
+        ),
+        on_set_backbone_security: Callable[[str], str | None] = lambda _m: None,
+        on_set_bus_connection: Callable[[str], None] = lambda _p: None,
+        found_interfaces: Callable[[], list[tuple[str, str]]] = list,
     ) -> None:
         self._on_rename = on_rename
         self._on_set_description = on_set_description
@@ -50,6 +76,10 @@ class ElementDetailsPanel:
         self._on_set_medium = on_set_medium
         self._on_set_security = on_set_security
         self._on_set_central = on_set_central
+        self._on_set_ip_routing = on_set_ip_routing
+        self._on_set_backbone_security = on_set_backbone_security
+        self._on_set_bus_connection = on_set_bus_connection
+        self._found_interfaces = found_interfaces
         self._key: tuple[str, int] | None = None
         self._name = ""
         self._description = ""
@@ -57,6 +87,8 @@ class ElementDetailsPanel:
         self._error = ""
         self._medium_error = ""
         self._security_error = ""
+        self._multicast = ""
+        self._routing_error = ""
 
     def render(self, details: ElementDetails) -> None:
         if self._key != (details.kind, details.element_id):
@@ -67,6 +99,8 @@ class ElementDetailsPanel:
             self._error = ""
             self._medium_error = ""
             self._security_error = ""
+            self._multicast = details.multicast_address
+            self._routing_error = ""
         label_width = label_column_width(
             S.CONFIGURE_NAME,
             S.CONFIGURE_DESCRIPTION,
@@ -76,6 +110,10 @@ class ElementDetailsPanel:
             S.DOMAIN_ADDRESS,
             S.GA_CENTRAL,
             S.GA_SECURITY,
+            S.BACKBONE_MEDIUM,
+            S.NETWORK_LATENCY,
+            S.MULTICAST_ADDRESS,
+            S.BUS_CONNECTION,
         )
         if not imgui.begin_table("##element_details", 2):
             return
@@ -85,6 +123,10 @@ class ElementDetailsPanel:
         imgui.table_setup_column("##field", imgui.TableColumnFlags_.width_stretch)
         self._row(S.CONFIGURE_NAME)
         self._name_field(details)
+        if details.latency is not None:
+            self._backbone_rows(details, details.latency)
+            imgui.end_table()
+            return
         if details.has_address:
             self._row(S.GA_ADDRESS)
             self._address_field(details)
@@ -103,13 +145,81 @@ class ElementDetailsPanel:
                 self._on_set_status(details.kind, details.element_id, chosen)
         if details.central is not None:
             self._row(S.GA_CENTRAL)
-            changed, central = imgui.checkbox("##element_central", details.central)
+            changed, central = checkbox("##element_central", details.central)
             if changed:
                 self._on_set_central(details.element_id, central)
         if details.security is not None:
             self._row(S.GA_SECURITY)
             self._security_field(details, details.security)
         imgui.end_table()
+
+    def _backbone_rows(self, details: ElementDetails, latency: int) -> None:
+        """The backbone: description, status, its medium (IP or TP), the network latency, the
+        multicast address and the security of the IP routing, and the bus connection."""
+        self._row(S.CONFIGURE_DESCRIPTION)
+        self._description_field(details)
+        if details.status is not None:
+            self._row(S.STATUS)
+            chosen = status_combo("##element_status", details.status)
+            if chosen is not None:
+                self._on_set_status(details.kind, details.element_id, chosen)
+        if details.medium is not None:
+            self._row(S.BACKBONE_MEDIUM)
+            self._medium_field(details, details.medium)
+        self._row(S.NETWORK_LATENCY)
+        chosen = choice_combo(
+            "##latency",
+            [(str(value), text) for value, text in latency_options()],
+            str(latency),
+        )
+        if chosen is not None:
+            self._routing_error = self._on_set_ip_routing(int(chosen), None) or ""
+        self._row(S.MULTICAST_ADDRESS)
+        imgui.set_next_item_width(-1)
+        _, self._multicast = imgui.input_text("##multicast", self._multicast)
+        if (
+            imgui.is_item_deactivated_after_edit()
+            and self._multicast.strip() != details.multicast_address
+        ):
+            self._routing_error = (
+                self._on_set_ip_routing(None, self._multicast.strip()) or ""
+            )
+        if not imgui.is_item_active() and not self._routing_error:
+            self._multicast = details.multicast_address
+        if self._routing_error:
+            imgui.push_text_wrap_pos(0.0)
+            imgui.text_colored(_ERROR_COLOR, self._routing_error)
+            imgui.pop_text_wrap_pos()
+        self._row(S.GA_SECURITY)
+        chosen = choice_combo(
+            "##backbone_security",
+            security_options(),
+            details.backbone_security or "Auto",
+        )
+        if chosen is not None:
+            self._security_error = self._on_set_backbone_security(chosen) or ""
+        if self._security_error:
+            imgui.push_text_wrap_pos(0.0)
+            imgui.text_colored(_ERROR_COLOR, self._security_error)
+            imgui.pop_text_wrap_pos()
+        self._row(S.BUS_CONNECTION)
+        stored = [("", S.BUS_CONNECTION_AUTOMATIC)]
+        if details.bus_access:
+            stored.append((details.bus_access, details.bus_connection))
+        found = [
+            (value, text)
+            for value, text in self._found_interfaces()
+            if value != details.bus_access
+        ]
+        chosen = bus_connection_combo(
+            "##bus_connection",
+            details.bus_access,
+            details.bus_connection or S.BUS_CONNECTION_AUTOMATIC,
+            stored,
+            found,
+        )
+        if chosen is not None:
+            self._on_set_bus_connection(chosen)
 
     def _security_field(self, details: ElementDetails, security: str) -> None:
         """The element's own Security; below it, the group above that overrides it, and the
@@ -178,7 +288,13 @@ class ElementDetailsPanel:
     def _medium_field(self, details: ElementDetails, medium: str) -> None:
         """A line offers every medium, a segment those of a sub-segment; a change the media do
         not allow shows its reason below, until another choice."""
-        options = line_media() if details.kind == "line" else segment_media()
+        options = (
+            segment_media()
+            if details.kind == "segment"
+            else backbone_media()
+            if details.kind == "backbone"
+            else line_media()
+        )
         chosen = choice_combo("##element_medium", options, medium)
         if chosen is not None:
             self._medium_error = (

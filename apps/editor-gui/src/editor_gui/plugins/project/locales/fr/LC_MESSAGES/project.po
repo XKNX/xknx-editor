@@ -1162,18 +1162,6 @@ msgstr "Filtrer les adresses de groupe (adresse, nom)…"
 msgid "Filter rooms, devices, functions…"
 msgstr "Filtrer les pièces, participants, fonctions…"
 
-msgid "Area {area}"
-msgstr "Zone {area}"
-
-msgid "{name} (Area {area})"
-msgstr "{name} (zone {area})"
-
-msgid "Line {area}.{line}"
-msgstr "Ligne {area}.{line}"
-
-msgid "{name} (Line {area}.{line})"
-msgstr "{name} (ligne {area}.{line})"
-
 msgid "Unassigned ({count})"
 msgstr "Non affectés ({count})"
 
@@ -1317,12 +1305,6 @@ msgstr "Sécurité"
 
 msgid "Automatic"
 msgstr "Automatique"
-
-msgid "Secured"
-msgstr "Sécurisé"
-
-msgid "Not Secured"
-msgstr "Non sécurisé"
 
 msgid "A secured group address can only be linked to devices that are commissioned securely."
 msgstr "Une adresse de groupe sécurisée ne peut être liée qu'à des participants mis en service de manière sécurisée."
@@ -1770,9 +1752,6 @@ msgstr "Un mot de passe doit comporter de 1 à 20 caractères Latin-1."
 
 msgid "Close"
 msgstr "Fermer"
-
-msgid "IP Backbone Security"
-msgstr "Sécurité de la ligne réseau IP"
 
 msgid "Device Certificates"
 msgstr "Certificats des participants"
@@ -2362,17 +2341,8 @@ msgstr "segment"
 msgid "The medium of a segment can only change while it holds no device."
 msgstr "Le type de média d'un segment ne peut être changé que s'il ne contient aucun participant."
 
-msgid "A sub-segment is not allowed below a main segment of KNX medium type {medium}."
-msgstr "Un sous-segment n'est pas autorisé en dessous d'un segment principal de type KNX {medium}."
-
 msgid "The medium type of the segment '{segment}' cannot be changed to IoT, because its parent line '{line}' is not of medium type IP."
 msgstr "Le type de média du segment « {segment} » ne peut pas être changé en IoT, parce que la ligne parente '{line}' n'est pas un média de type IP."
-
-msgid "A sub-segment of KNX medium type {medium} is not allowed."
-msgstr "Un sous-segment de type KNX {medium} n'est pas autorisé."
-
-msgid "The medium type of the line '{line}' can no longer be changed to {medium}, because it already contains segments that are not allowed below it."
-msgstr "Le type de média de la ligne « {line} » ne peut plus être changé en {medium}, parce qu'elle contient déjà des segments qui ne sont pas autorisés en dessous."
 
 msgid "The maximum number of segments has been reached."
 msgstr "Le nombre maximum de segments a été atteint."
@@ -2385,12 +2355,6 @@ msgstr "Le participant '{device}' est incompatible avec le type de média de la 
 
 msgid "Device '{device}' is incompatible with segment's medium type."
 msgstr "Le participant '{device}' est incompatible avec le type de média du segment."
-
-msgid "Segment {area}.{line}"
-msgstr "Segment {area}.{line}"
-
-msgid "{name} (Segment {area}.{line})"
-msgstr "{name} (segment {area}.{line})"
 
 msgid "Add Segment"
 msgstr "Ajouter un segment"
@@ -2430,3 +2394,129 @@ msgstr "Marquer l'adresse de groupe comme centrale"
 
 msgid "Remove central mark from group address"
 msgstr "Retirer la marque centrale de l'adresse de groupe"
+
+msgid "Topology"
+msgstr "Topologie"
+
+msgid "{medium} backbone line"
+msgstr "ligne réseau {medium}"
+
+msgid "{medium} main line"
+msgstr "ligne principale {medium}"
+
+msgid "Backbone"
+msgstr "Ligne Réseau"
+
+msgid "Backbone Medium"
+msgstr "Media de la Ligne Réseau"
+
+msgid "Network Latency"
+msgstr "Latence réseau"
+
+msgid "LAN (< 400ms)"
+msgstr "Réseau local (< 400 millisecondes)"
+
+msgid "WLAN (< 1s)"
+msgstr "WLAN (< 1s)"
+
+msgid "WAN (< 2s)"
+msgstr "Réseau étendu (< 2 secondes)"
+
+msgid "Mobile (< 4s)"
+msgstr "Mobile (< 4s)"
+
+msgid "Satellite (< 8s)"
+msgstr "Satellite (< 8s)"
+
+msgid "The network latency must be a number of milliseconds from 1 to 65535."
+msgstr "La latence réseau doit être un nombre de millisecondes de 1 à 65535."
+
+msgid "Multicast Address"
+msgstr "Adresse multicast"
+
+msgid "Enter a multicast address from 224.0.0.0 to 239.255.255.255."
+msgstr "Saisissez une adresse multicast de 224.0.0.0 à 239.255.255.255."
+
+msgid "Bus Connection"
+msgstr "Connexion Bus"
+
+msgid "Set IP routing of the backbone"
+msgstr "Définir le routage IP de la ligne réseau"
+
+msgid "As long as a coupler exists at a sub line or sub segment, a change of the medium type is not possible."
+msgstr "Tant qu'un coupleur existe dans une sous-ligne ou un sous-segment, un changement de type média n'est pas possible."
+
+msgid "A main line of a project cannot have medium type RF."
+msgstr "Une ligne principale d'un projet ne peut pas avoir de média de type RF."
+
+msgid "The operation could not be executed, because as medium type of the backbone only IP and TP are allowed."
+msgstr "L'opération n'a pas pu être exécutée, car dans la ligne réseau, seules IP et TP sont autorisés."
+
+msgid "A sub-segment of KNX medium type IP or PL is not allowed."
+msgstr "Un sous-segment de type KNX IP ou PL n'est pas autorisé."
+
+msgid "The medium type of the main line '{line}' can no longer be changed to PL, because it already contains lines or segments that are not allowed in PL main lines."
+msgstr "Le type de média de la ligne principale «{line}» ne peut plus être changé en PL, parce qu'il contient déjà des lignes ou des segments qui ne sont pas autorisés dans les lignes principales de PL."
+
+msgid "The medium type of the main line '{line}' cannot be changed to IoT, because the backbone line '{backbone}' is not of medium type IP."
+msgstr "Le type de média de la ligne principale «{line}» ne peut pas être changé en IoT, parce que la ligne réseau '{backbone}' n'est pas de type media IP."
+
+msgid "The medium type of the main line '{line}' can no longer be changed to IoT, because it already contains lines or segments that are not allowed in IoT main lines."
+msgstr "Le type de média de la ligne principale «{line}» ne peut plus être changé en IoT, parce qu'elle contient déjà des lignes ou des segments qui ne sont pas autorisés dans les lignes principales d'IoT."
+
+msgid "The medium type of the line '{line}' cannot be changed, because it already contains lines or segments that require an IoT or IP main line."
+msgstr "Le type de média de la ligne principale '{line}' ne peut pas être modifié, parce qu'il contient déjà des lignes ou des segments qui nécessitent IoT ou IP comme ligne principale."
+
+msgid "A sub-segment is not allowed below a main segment of KNX medium type RF."
+msgstr "Un sous-segment n'est pas autorisé en dessous d'un segment principal de type KNX RF."
+
+msgid "A sub-segment is not allowed below a main segment of KNX medium type PL."
+msgstr "Un sous-segment n'est pas autorisé en dessous d'un segment principal de type KNX PL."
+
+msgid "A sub-segment of KNX medium type IoT is not allowed below a main segment of the same type."
+msgstr "Un sous-segment de média du type IoT KNX n'est pas autorisé en dessous d'un segment principal du même type."
+
+msgid "The operation could not be executed, because a RF main line '{line}' requires all other lines in the area to be RF lines as well."
+msgstr "L'opération n'a pas pu être exécutée, parce qu'une ligne principale RF '{line}' requiert que toutes les autres lignes de la zone soient également des lignes RF."
+
+msgid "The operation could not be executed, because a PL main line '{line}' requires all other lines in the area to be PL lines as well."
+msgstr "L'opération n'a pas pu être exécutée, parce qu'une ligne principale PL '{line}' requiert que toutes les autres lignes de la zone soient également des lignes PL."
+
+msgid "The operation could not be executed, because a IoT main line '{line}' requires all other lines in the area to be IoT lines as well."
+msgstr "L'opération n'a pas pu être exécutée, parce qu'une ligne principale IoT «{line}» requiert que toutes les autres lignes de la zone soient également des lignes IoT."
+
+msgid "The medium type of the line '{line}' cannot be changed to IoT, because its main line '{main}' is not of medium type IP."
+msgstr "Le type média de la ligne «{line}» ne peut pas être changé en IoT, parce que sa ligne principale «{main}» n'est pas de type media IP."
+
+msgid "The medium type of the line '{line}' can no longer be changed to IoT, because it already contains segments that are not allowed in IoT lines."
+msgstr "Le type de média de la ligne «{line}» ne peut plus être changé en IoT, car il contient déjà des segments qui ne sont pas autorisés dans les lignes IoT."
+
+msgid "The operation could not be executed, because the line is the IP backbone line and the project contains KNXnet/IP routers. KNXnet/IP routers require an IP backbone line."
+msgstr "L'opération n'a pas pu être exécutée, parce que la ligne est la ligne réseau IP et le projet contient des routeurs KNXnet / IP. Les routeurs KNXnet / IP nécessitent une ligne réseau IP."
+
+msgid "The operation could not be executed, because the line is the IP main line and the project contains KNXnet/IP routers. KNXnet/IP routers require an IP main line."
+msgstr "L'opération n'a pas pu être exécutée, car la ligne est la ligne IP principale et le projet contient des routeurs KNXnet / IP.  Les routeurs KNXnet / IP ont besoin d'une ligne IP principale."
+
+msgid "The operation could not be executed, because the line is the IP backbone line and the project contains IoT or IP lines."
+msgstr "L'opération n'a pas pu être exécutée, parce que la ligne est la ligne réseau IP et le projet contient des lignes IOT ou IP."
+
+msgid "The operation could not be executed, because the medium type of the line can only be set to IP if an IP main line exists."
+msgstr "L'opération n'a pu être exécutée car le type de  ligne ne peut qu'être mis sur IP si seulement une ligne IP principale existe."
+
+msgid "The operation could not be executed, because the medium type of the line can only be set to IP if an IP backbone line exists."
+msgstr "L'opération n'a pas pu être exécutée, parce que le type de support de la ligne ne peut être réglé en tant qu'IP si une ligne réseau IP existe."
+
+msgid "The operation could not be executed, because below a TP main segment only segments of KNX medium type TP, RF or PL can exist."
+msgstr "L'opération n'a pas pu être exécutée, car en dessous d'un segment principal TP seuls des segments de type KNX TP, RF ou PL peuvent êtres utilisé."
+
+msgid "Below a main segment of KNX medium type IP only segments of medium type TP or RF can exist."
+msgstr "En dessous d'un segment principal de KNX IP seuls des segments de type TP ou RF peuvent être utilisés."
+
+msgid "A sub-segment of KNX medium type PL is not allowed below a main segment."
+msgstr "Un sous-segment de type KNX PL n'est pas autorisé en dessous d'un segment principal."
+
+msgid "Set bus connection of the backbone"
+msgstr "Définir la connexion bus de la ligne réseau"
+
+msgid "Set domain address"
+msgstr "Définir l'adresse de domaine"

@@ -1162,18 +1162,6 @@ msgstr "Φιλτράρισμα διευθύνσεων ομάδων (διεύθυ
 msgid "Filter rooms, devices, functions…"
 msgstr "Φιλτράρισμα δωματίων, συσκευών, λειτουργιών…"
 
-msgid "Area {area}"
-msgstr "Περιοχή {area}"
-
-msgid "{name} (Area {area})"
-msgstr "{name} (Περιοχή {area})"
-
-msgid "Line {area}.{line}"
-msgstr "Γραμμή {area}.{line}"
-
-msgid "{name} (Line {area}.{line})"
-msgstr "{name} (Γραμμή {area}.{line})"
-
 msgid "Unassigned ({count})"
 msgstr "Μη ανατεθειμένα ({count})"
 
@@ -1317,12 +1305,6 @@ msgstr "Ασφάλεια"
 
 msgid "Automatic"
 msgstr "Αυτόματη"
-
-msgid "Secured"
-msgstr "Ασφαλές"
-
-msgid "Not Secured"
-msgstr "Μη Ασφαλές"
 
 msgid "A secured group address can only be linked to devices that are commissioned securely."
 msgstr "Μια ασφαλής διεύθυνση ομάδας μπορεί να συνδεθεί μόνο με συσκευές που τίθενται σε λειτουργία με ασφάλεια."
@@ -1770,9 +1752,6 @@ msgstr "Ο κωδικός χρειάζεται 1 έως 20 χαρακτήρες 
 
 msgid "Close"
 msgstr "Κλείσιμο"
-
-msgid "IP Backbone Security"
-msgstr "Ασφάλεια Κεντρικής Γραμμής IP"
 
 msgid "Device Certificates"
 msgstr "Πιστοποιητικά Συσκευών"
@@ -2362,17 +2341,8 @@ msgstr "τμήμα"
 msgid "The medium of a segment can only change while it holds no device."
 msgstr "Ο τύπος μέσου ενός τμήματος μπορεί να αλλάξει μόνο εάν δεν περιέχει καμία συσκευή."
 
-msgid "A sub-segment is not allowed below a main segment of KNX medium type {medium}."
-msgstr "Δεν επιτρέπεται ένα υποτμήμα κάτω από ένα κύριο τμήμα τύπου μέσου KNX {medium}."
-
 msgid "The medium type of the segment '{segment}' cannot be changed to IoT, because its parent line '{line}' is not of medium type IP."
 msgstr "Ο τύπος μέσου του τμήματος '{segment}' δεν μπορεί να αλλάξει σε IoT, επειδή η γονική του γραμμή '{line}' δεν έχει τύπο μέσου IP."
-
-msgid "A sub-segment of KNX medium type {medium} is not allowed."
-msgstr "Δεν επιτρέπεται ένα υποτμήμα του τύπου μέσου KNX {medium}."
-
-msgid "The medium type of the line '{line}' can no longer be changed to {medium}, because it already contains segments that are not allowed below it."
-msgstr "Ο τύπος μέσου της γραμμής '{line}' δεν μπορεί πλέον να αλλάξει σε {medium}, επειδή περιέχει ήδη τμήματα που δεν επιτρέπονται κάτω από αυτόν."
 
 msgid "The maximum number of segments has been reached."
 msgstr "Ο μέγιστος αριθμός τμημάτων έχει επιτευχθεί."
@@ -2385,12 +2355,6 @@ msgstr "Η συσκευή '{device}' δεν είναι συμβατή με το�
 
 msgid "Device '{device}' is incompatible with segment's medium type."
 msgstr "Η συσκευή '{device}' δεν είναι συμβατή με τον τύπο μέσου του τμήματος."
-
-msgid "Segment {area}.{line}"
-msgstr "Τμήμα {area}.{line}"
-
-msgid "{name} (Segment {area}.{line})"
-msgstr "{name} (Τμήμα {area}.{line})"
 
 msgid "Add Segment"
 msgstr "Προσθήκη Τμήματος"
@@ -2430,3 +2394,129 @@ msgstr "Σήμανση διεύθυνσης ομάδας ως κεντρικής
 
 msgid "Remove central mark from group address"
 msgstr "Κατάργηση σήμανσης κεντρικής από διεύθυνση ομάδας"
+
+msgid "Topology"
+msgstr "Τοπολογία"
+
+msgid "{medium} backbone line"
+msgstr "{medium} κεντρική γραμμή"
+
+msgid "{medium} main line"
+msgstr "{medium} κύρια γραμμή"
+
+msgid "Backbone"
+msgstr "Κεντρική"
+
+msgid "Backbone Medium"
+msgstr "Μέσο Κεντρικής Γραμμής"
+
+msgid "Network Latency"
+msgstr "Καθυστέρηση Δικτύου"
+
+msgid "LAN (< 400ms)"
+msgstr "LAN (< 400ms)"
+
+msgid "WLAN (< 1s)"
+msgstr "WLAN (< 1 δευτ)"
+
+msgid "WAN (< 2s)"
+msgstr "WAN (< 2 δευτ)"
+
+msgid "Mobile (< 4s)"
+msgstr "Φορητό (< 4s)"
+
+msgid "Satellite (< 8s)"
+msgstr "Δορυφόρος (< 8δ)"
+
+msgid "The network latency must be a number of milliseconds from 1 to 65535."
+msgstr "Η καθυστέρηση δικτύου πρέπει να είναι αριθμός χιλιοστών του δευτερολέπτου από 1 έως 65535."
+
+msgid "Multicast Address"
+msgstr "Διεύθυνση Multicast"
+
+msgid "Enter a multicast address from 224.0.0.0 to 239.255.255.255."
+msgstr "Εισαγάγετε μια διεύθυνση multicast από 224.0.0.0 έως 239.255.255.255."
+
+msgid "Bus Connection"
+msgstr "Σύνδεση Bus"
+
+msgid "Set IP routing of the backbone"
+msgstr "Ορισμός δρομολόγησης IP της κεντρικής"
+
+msgid "As long as a coupler exists at a sub line or sub segment, a change of the medium type is not possible."
+msgstr "Εφόσον υπάρχει ένας προσαρμοστής σε μία γραμμή ή υποτμήμα, δεν είναι δυνατή η αλλαγή του τύπου μέσου."
+
+msgid "A main line of a project cannot have medium type RF."
+msgstr "Η κύρια γραμμή ενός έργου δε μπορεί να έχει τύπο μέσου RF."
+
+msgid "The operation could not be executed, because as medium type of the backbone only IP and TP are allowed."
+msgstr "Η λειτουργία δεν μπορούσε να εκτελεστεί, επειδή ως τύπος μέσου της κεντρικής γραμμής επιτρέπονται μόνο IP και TP."
+
+msgid "A sub-segment of KNX medium type IP or PL is not allowed."
+msgstr "Δεν επιτρέπεται ένα υποτμήμα του τύπου μέσου KNX IP ή PL."
+
+msgid "The medium type of the main line '{line}' can no longer be changed to PL, because it already contains lines or segments that are not allowed in PL main lines."
+msgstr "Ο τύπος μέσου της κύριας γραμμής '{line}' δεν μπορεί πλέον να αλλάξει σε PL, επειδή περιέχει ήδη γραμμές ή τμήματα που δεν επιτρέπονται στις κύριες γραμμές PL."
+
+msgid "The medium type of the main line '{line}' cannot be changed to IoT, because the backbone line '{backbone}' is not of medium type IP."
+msgstr "Ο τύπος μέσου της κύριας γραμμής \"{line}\" δεν μπορεί να αλλάξει σε IoT, επειδή η κεντρική γραμμή \"{backbone}\" δεν είναι τύπου μέσου IP."
+
+msgid "The medium type of the main line '{line}' can no longer be changed to IoT, because it already contains lines or segments that are not allowed in IoT main lines."
+msgstr "Ο τύπος μέσου της κύριας γραμμής '{line}' δεν μπορεί πλέον να αλλάξει σε IoT, επειδή περιέχει ήδη γραμμές ή τμήματα που δεν επιτρέπονται σε κύριες γραμμές IoT."
+
+msgid "The medium type of the line '{line}' cannot be changed, because it already contains lines or segments that require an IoT or IP main line."
+msgstr "Ο τύπος μέσου της κύριας γραμμής \"{line}\" δεν μπορεί να αλλάξει, επειδή περιέχει ήδη γραμμές ή τμήματα που απαιτούν κύρια γραμμή IoT ή IP."
+
+msgid "A sub-segment is not allowed below a main segment of KNX medium type RF."
+msgstr "Δεν επιτρέπεται ένα υποτμήμα κάτω από ένα κύριο τμήμα τύπου μέσου KNX RF."
+
+msgid "A sub-segment is not allowed below a main segment of KNX medium type PL."
+msgstr "Δεν επιτρέπεται ένα υποτμήμα κάτω από ένα κύριο τμήμα τύπου μέσου KNX PL."
+
+msgid "A sub-segment of KNX medium type IoT is not allowed below a main segment of the same type."
+msgstr "Δεν επιτρέπεται ένα υποτμήμα του τύπου μέσου KNX IoT κάτω από ένα κύριο τμήμα του ίδιου τύπου."
+
+msgid "The operation could not be executed, because a RF main line '{line}' requires all other lines in the area to be RF lines as well."
+msgstr "Η λειτουργία δε μπόρεσε να εκτελεστεί, διότι μία κύρια γραμμή RF '{line}' απαιτεί όλες οι άλλες γραμμές στην περιοχή να είναι επίσης RF."
+
+msgid "The operation could not be executed, because a PL main line '{line}' requires all other lines in the area to be PL lines as well."
+msgstr "Η λειτουργία δε μπόρεσε να εκτελεστεί, διότι μία κύρια γραμμή PL '{line}' απαιτεί όλες οι άλλες γραμμές στην περιοχή να είναι επίσης PL."
+
+msgid "The operation could not be executed, because a IoT main line '{line}' requires all other lines in the area to be IoT lines as well."
+msgstr "Η λειτουργία δε μπόρεσε να εκτελεστεί, διότι μία κύρια γραμμή IoT '{line}' απαιτεί όλες οι άλλες γραμμές στην περιοχή να είναι επίσης IoT."
+
+msgid "The medium type of the line '{line}' cannot be changed to IoT, because its main line '{main}' is not of medium type IP."
+msgstr "Ο τύπος μέσου της γραμμής \"{line}\" δεν μπορεί να αλλάξει σε IoT, επειδή η κύρια γραμμή του \"{main}\" δεν είναι τύπου IP."
+
+msgid "The medium type of the line '{line}' can no longer be changed to IoT, because it already contains segments that are not allowed in IoT lines."
+msgstr "Ο τύπος μέσου της γραμμής '{line}' δεν μπορεί πλέον να αλλάξει σε IoT, επειδή περιέχει ήδη τμήματα που δεν επιτρέπονται σε γραμμές IoT."
+
+msgid "The operation could not be executed, because the line is the IP backbone line and the project contains KNXnet/IP routers. KNXnet/IP routers require an IP backbone line."
+msgstr "Η λειτουργία δε μπόρεσε να εκτελεστεί, επειδή η γραμμή είναι κεντρική (backbone) γραμμή IP και το έργο περιέχει KNXnet/IP δρομολογητές. Οι KNXnet/IP δρομολογητές απαιτούν μια κεντρική (backbone) γραμμή IP."
+
+msgid "The operation could not be executed, because the line is the IP main line and the project contains KNXnet/IP routers. KNXnet/IP routers require an IP main line."
+msgstr "Η λειτουργία δε μπόρεσε να εκτελεστεί, επειδή η γραμμή είναι κύρια γραμμή IP και το έργο περιέχει δρομολογητές KNXnet/IP. Οι δρομολογητές KNXnet/IP απαιτούν μια κύρια γραμμή IP."
+
+msgid "The operation could not be executed, because the line is the IP backbone line and the project contains IoT or IP lines."
+msgstr "Η λειτουργία δε μπόρεσε να εκτελεστεί, διότι η γραμμή είναι η κεντρική γραμμή IP και το έργο περιέχει γραμμές IoT ή IP."
+
+msgid "The operation could not be executed, because the medium type of the line can only be set to IP if an IP main line exists."
+msgstr "Η λειτουργία δε μπόρεσε να εκτελεστεί, επειδή ο τύπος του μέσου της γραμμής μπορεί να τεθεί μόνο σε IP αν υπάρχει μια κύρια γραμμή IP."
+
+msgid "The operation could not be executed, because the medium type of the line can only be set to IP if an IP backbone line exists."
+msgstr "Η λειτουργία δε μπόρεσε να εκτελεστεί, διότι ο τύπος μέσου της γραμμής μπορεί να τεθεί μόνο σε IP αν υπάρχει μία κεντρική γραμμή IP."
+
+msgid "The operation could not be executed, because below a TP main segment only segments of KNX medium type TP, RF or PL can exist."
+msgstr "Η λειτουργία δεν μπόρεσε να εκτελεστεί, επειδή κάτω από ένα κύριο τμήμα TP μπορούν να υπάρχουν μόνο τμήματα του τύπου μέσου KNX TP, RF ή PL."
+
+msgid "Below a main segment of KNX medium type IP only segments of medium type TP or RF can exist."
+msgstr "Κάτω από ένα κύριο τμήμα του τύπου μέσου KNX IP μπορούν να υπάρχουν μόνο τμήματα τύπου μέσου KNX IP."
+
+msgid "A sub-segment of KNX medium type PL is not allowed below a main segment."
+msgstr "Δεν επιτρέπεται ένα υποτμήμα του τύπου μέσου KNX PL κάτω από ένα κύριο τμήμα."
+
+msgid "Set bus connection of the backbone"
+msgstr "Ορισμός σύνδεσης bus της κεντρικής"
+
+msgid "Set domain address"
+msgstr "Ορισμός διεύθυνσης τομέα"

@@ -32,6 +32,60 @@ class ProjectStrings:
         return _("Segment")
 
     @property
+    def PANEL_BACKBONE(self) -> str:
+        return _("Backbone")
+
+    @property
+    def BACKBONE_MEDIUM(self) -> str:
+        return _("Backbone Medium")
+
+    @property
+    def NETWORK_LATENCY(self) -> str:
+        return _("Network Latency")
+
+    @property
+    def LATENCY_LAN(self) -> str:
+        return _("LAN (< 400ms)")
+
+    @property
+    def LATENCY_WLAN(self) -> str:
+        return _("WLAN (< 1s)")
+
+    @property
+    def LATENCY_WAN(self) -> str:
+        return _("WAN (< 2s)")
+
+    @property
+    def LATENCY_MOBILE(self) -> str:
+        return _("Mobile (< 4s)")
+
+    @property
+    def LATENCY_SATELLITE(self) -> str:
+        return _("Satellite (< 8s)")
+
+    @property
+    def LATENCY_INVALID(self) -> str:
+        return _(
+            "The network latency must be a number of milliseconds from 1 to 65535."
+        )
+
+    @property
+    def MULTICAST_ADDRESS(self) -> str:
+        return _("Multicast Address")
+
+    @property
+    def MULTICAST_ADDRESS_INVALID(self) -> str:
+        return _("Enter a multicast address from 224.0.0.0 to 239.255.255.255.")
+
+    @property
+    def BUS_CONNECTION(self) -> str:
+        return _("Bus Connection")
+
+    @property
+    def BUS_CONNECTION_AUTOMATIC(self) -> str:
+        return _("Automatic")
+
+    @property
     def MEDIUM(self) -> str:
         return _("Medium")
 
@@ -49,27 +103,173 @@ class ProjectStrings:
         return _("The medium of a segment can only change while it holds no device.")
 
     @property
-    def MEDIUM_ERROR_NO_SUB_SEGMENTS(self) -> str:
+    def MEDIUM_ERROR_COUPLER_BELOW(self) -> str:
         return _(
-            "A sub-segment is not allowed below a main segment of KNX medium type {medium}."
+            "As long as a coupler exists at a sub line or sub segment, a change of the"
+            " medium type is not possible."
         )
+
+    @property
+    def MEDIUM_ERROR_MAIN_LINE_RF(self) -> str:
+        return _("A main line of a project cannot have medium type RF.")
+
+    @property
+    def MEDIUM_ERROR_BACKBONE_IP_OR_TP(self) -> str:
+        return _(
+            "The operation could not be executed, because as medium type of the backbone"
+            " only IP and TP are allowed."
+        )
+
+    @property
+    def MEDIUM_ERROR_SUB_SEGMENT_IP_OR_PL(self) -> str:
+        return _("A sub-segment of KNX medium type IP or PL is not allowed.")
 
     @property
     def MEDIUM_ERROR_SUB_SEGMENT_IOT(self) -> str:
         return _(
-            "The medium type of the segment '{segment}' cannot be changed to IoT, because its "
-            "parent line '{line}' is not of medium type IP."
+            "The medium type of the segment '{segment}' cannot be changed to IoT,"
+            " because its parent line '{line}' is not of medium type IP."
         )
 
     @property
-    def MEDIUM_ERROR_SUB_SEGMENT_MEDIUM(self) -> str:
-        return _("A sub-segment of KNX medium type {medium} is not allowed.")
+    def MEDIUM_ERROR_MAIN_LINE_PL_BELOW(self) -> str:
+        return _(
+            "The medium type of the main line '{line}' can no longer be changed to PL,"
+            " because it already contains lines or segments that are not allowed in PL"
+            " main lines."
+        )
 
     @property
-    def MEDIUM_ERROR_LINE_HAS_SUB_SEGMENTS(self) -> str:
+    def MEDIUM_ERROR_MAIN_LINE_IOT_BACKBONE(self) -> str:
         return _(
-            "The medium type of the line '{line}' can no longer be changed to {medium}, "
-            "because it already contains segments that are not allowed below it."
+            "The medium type of the main line '{line}' cannot be changed to IoT, because"
+            " the backbone line '{backbone}' is not of medium type IP."
+        )
+
+    @property
+    def MEDIUM_ERROR_MAIN_LINE_IOT_BELOW(self) -> str:
+        return _(
+            "The medium type of the main line '{line}' can no longer be changed to IoT,"
+            " because it already contains lines or segments that are not allowed in IoT"
+            " main lines."
+        )
+
+    @property
+    def MEDIUM_ERROR_IOT_BELOW(self) -> str:
+        return _(
+            "The medium type of the line '{line}' cannot be changed, because it already"
+            " contains lines or segments that require an IoT or IP main line."
+        )
+
+    @property
+    def MEDIUM_ERROR_RF_NO_SUB_SEGMENTS(self) -> str:
+        return _(
+            "A sub-segment is not allowed below a main segment of KNX medium type RF."
+        )
+
+    @property
+    def MEDIUM_ERROR_PL_NO_SUB_SEGMENTS(self) -> str:
+        return _(
+            "A sub-segment is not allowed below a main segment of KNX medium type PL."
+        )
+
+    @property
+    def MEDIUM_ERROR_IOT_NO_SUB_SEGMENTS(self) -> str:
+        return _(
+            "A sub-segment of KNX medium type IoT is not allowed below a main segment of"
+            " the same type."
+        )
+
+    @property
+    def MEDIUM_ERROR_RF_MAIN_LINE(self) -> str:
+        return _(
+            "The operation could not be executed, because a RF main line '{line}'"
+            " requires all other lines in the area to be RF lines as well."
+        )
+
+    @property
+    def MEDIUM_ERROR_PL_MAIN_LINE(self) -> str:
+        return _(
+            "The operation could not be executed, because a PL main line '{line}'"
+            " requires all other lines in the area to be PL lines as well."
+        )
+
+    @property
+    def MEDIUM_ERROR_IOT_MAIN_LINE(self) -> str:
+        return _(
+            "The operation could not be executed, because a IoT main line '{line}'"
+            " requires all other lines in the area to be IoT lines as well."
+        )
+
+    @property
+    def MEDIUM_ERROR_SUB_LINE_IOT(self) -> str:
+        return _(
+            "The medium type of the line '{line}' cannot be changed to IoT, because its"
+            " main line '{main}' is not of medium type IP."
+        )
+
+    @property
+    def MEDIUM_ERROR_SUB_LINE_IOT_BELOW(self) -> str:
+        return _(
+            "The medium type of the line '{line}' can no longer be changed to IoT,"
+            " because it already contains segments that are not allowed in IoT lines."
+        )
+
+    @property
+    def MEDIUM_ERROR_IP_BACKBONE_ROUTERS(self) -> str:
+        return _(
+            "The operation could not be executed, because the line is the IP backbone"
+            " line and the project contains KNXnet/IP routers. KNXnet/IP routers require"
+            " an IP backbone line."
+        )
+
+    @property
+    def MEDIUM_ERROR_IP_MAIN_LINE_ROUTERS(self) -> str:
+        return _(
+            "The operation could not be executed, because the line is the IP main line"
+            " and the project contains KNXnet/IP routers. KNXnet/IP routers require an"
+            " IP main line."
+        )
+
+    @property
+    def MEDIUM_ERROR_IP_BACKBONE_IP_LINES(self) -> str:
+        return _(
+            "The operation could not be executed, because the line is the IP backbone"
+            " line and the project contains IoT or IP lines."
+        )
+
+    @property
+    def MEDIUM_ERROR_IP_NEEDS_IP_MAIN_LINE(self) -> str:
+        return _(
+            "The operation could not be executed, because the medium type of the line"
+            " can only be set to IP if an IP main line exists."
+        )
+
+    @property
+    def MEDIUM_ERROR_IP_NEEDS_IP_BACKBONE(self) -> str:
+        return _(
+            "The operation could not be executed, because the medium type of the line"
+            " can only be set to IP if an IP backbone line exists."
+        )
+
+    @property
+    def MEDIUM_ERROR_BELOW_TP(self) -> str:
+        return _(
+            "The operation could not be executed, because below a TP main segment only"
+            " segments of KNX medium type TP, RF or PL can exist."
+        )
+
+    @property
+    def MEDIUM_ERROR_BELOW_IP(self) -> str:
+        return _(
+            "Below a main segment of KNX medium type IP only segments of medium type TP"
+            " or RF can exist."
+        )
+
+    @property
+    def MEDIUM_ERROR_PL_SUB_SEGMENT(self) -> str:
+        return _(
+            "A sub-segment of KNX medium type PL is not allowed below a main segment."
         )
 
     @property
@@ -162,7 +362,7 @@ class ProjectStrings:
 
     @property
     def PANEL_DEVICES(self) -> str:
-        return _("Devices")
+        return _("Topology")
 
     @property
     def PANEL_CONFIGURE(self) -> str:
@@ -2107,28 +2307,14 @@ class ProjectStrings:
         return _("Filter rooms, devices, functions…")
 
     @property
-    def DEVICE_AREA(self) -> str:
-        return _("Area {area}")
+    def BACKBONE_LINE_NAME(self) -> str:
+        # The name a backbone line without one is shown with ("IP backbone line").
+        return _("{medium} backbone line")
 
     @property
-    def DEVICE_AREA_NAMED(self) -> str:
-        return _("{name} (Area {area})")
-
-    @property
-    def DEVICE_LINE(self) -> str:
-        return _("Line {area}.{line}")
-
-    @property
-    def DEVICE_LINE_NAMED(self) -> str:
-        return _("{name} (Line {area}.{line})")
-
-    @property
-    def DEVICE_SEGMENT(self) -> str:
-        return _("Segment {area}.{line}")
-
-    @property
-    def DEVICE_SEGMENT_NAMED(self) -> str:
-        return _("{name} (Segment {area}.{line})")
+    def MAIN_LINE_NAME(self) -> str:
+        # The name a main line without one is shown with ("TP main line").
+        return _("{medium} main line")
 
     @property
     def DEVICE_UNASSIGNED(self) -> str:
@@ -2374,14 +2560,6 @@ class ProjectStrings:
     @property
     def GA_SECURITY_AUTO(self) -> str:
         return _("Automatic")
-
-    @property
-    def GA_SECURITY_ON(self) -> str:
-        return _("Secured")
-
-    @property
-    def GA_SECURITY_OFF(self) -> str:
-        return _("Not Secured")
 
     @property
     def GA_SECURITY_FORCED_ON(self) -> str:
@@ -3118,10 +3296,6 @@ class ProjectStrings:
         return _("Close")
 
     @property
-    def PROJECT_INFO_BACKBONE_SECURITY(self) -> str:
-        return _("IP Backbone Security")
-
-    @property
     def PROJECT_INFO_CERTIFICATES(self) -> str:
         return _("Device Certificates")
 
@@ -3526,12 +3700,24 @@ class ProjectStrings:
         return _("Add segment")
 
     @property
+    def HISTORY_EV_SET_IP_ROUTING(self) -> str:
+        return _("Set IP routing of the backbone")
+
+    @property
+    def HISTORY_EV_SET_BUS_CONNECTION(self) -> str:
+        return _("Set bus connection of the backbone")
+
+    @property
     def HISTORY_EV_RENAME_SEGMENT(self) -> str:
         return _("Rename segment to {name}")
 
     @property
     def HISTORY_EV_SET_MEDIUM(self) -> str:
         return _("Set medium to {medium}")
+
+    @property
+    def HISTORY_EV_SET_DOMAIN_ADDRESS(self) -> str:
+        return _("Set domain address")
 
     @property
     def HISTORY_EV_CREATE_GA(self) -> str:

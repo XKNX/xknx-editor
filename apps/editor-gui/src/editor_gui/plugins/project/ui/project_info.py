@@ -9,7 +9,6 @@ from imgui_bundle import imgui
 from editor_gui.plugins.project.strings import S
 from editor_gui.plugins.project.ui.status_field import status_combo
 from editor_gui.strings import S as APP_S
-from editor_gui.widgets.combo import begin_combo
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
 from editor_gui.widgets.dpi import px
 from editor_gui.widgets.flow import button_width, same_line_if_fits
@@ -38,8 +37,6 @@ class ProjectInfoPanel:
         on_rename: Callable[[str], None] | None = None,
         on_set_password: Callable[[str | None], None] | None = None,
         needs_password: Callable[[], bool] = lambda: False,
-        get_backbone_security: Callable[[], str | None] | None = None,
-        on_backbone_security: Callable[[str | None], str | None] | None = None,
         get_certificates: Callable[[], list[tuple[bytes, str]]] | None = None,
         on_remove_certificate: Callable[[bytes], None] | None = None,
         on_add_certificate: Callable[[], None] | None = None,
@@ -56,13 +53,10 @@ class ProjectInfoPanel:
         self._name_editing = False
         self._password_dialog_open = False
         self._password_form = NewPasswordForm()
-        self._get_backbone_security = get_backbone_security
-        self._on_backbone_security = on_backbone_security
         self._get_certificates = get_certificates
         self._on_remove_certificate = on_remove_certificate
         self._on_add_certificate = on_add_certificate
         self._certificates_open = False
-        self._security_error = ""
 
     def render(self) -> None:
         info = self._get_project_info()
@@ -92,7 +86,6 @@ class ProjectInfoPanel:
         self._render_name(info)
         self._render_status()
         self._render_password(info)
-        self._render_backbone_security()
         self._render_certificates_row()
         for label, value in rows:
             imgui.table_next_row()
@@ -101,8 +94,6 @@ class ProjectInfoPanel:
             imgui.table_set_column_index(1)
             imgui.text_wrapped(value or "-")
         imgui.end_table()
-        if self._security_error:
-            imgui.text_colored(imgui.ImVec4(1.0, 0.42, 0.42, 1.0), self._security_error)
         self._render_password_dialog()
         self._render_certificates_dialog()
 
@@ -137,31 +128,6 @@ class ProjectInfoPanel:
         chosen = status_combo("##project_status", status)
         if chosen is not None:
             self._on_set_status(chosen)
-
-    def _render_backbone_security(self) -> None:
-        """The installation's KNX IP Secure routing (Automatic/Secured/Not secured)."""
-        if self._get_backbone_security is None or self._on_backbone_security is None:
-            return
-        imgui.table_next_row()
-        imgui.table_set_column_index(0)
-        imgui.align_text_to_frame_padding()
-        imgui.text_disabled(S.PROJECT_INFO_BACKBONE_SECURITY)
-        imgui.table_set_column_index(1)
-        current = self._get_backbone_security()
-        choices: list[tuple[str | None, str]] = [
-            (None, S.GA_SECURITY_AUTO),
-            ("On", S.GA_SECURITY_ON),
-            ("Off", S.GA_SECURITY_OFF),
-        ]
-        label = next(
-            (text for mode, text in choices if mode == current), S.GA_SECURITY_AUTO
-        )
-        imgui.set_next_item_width(px(200.0))
-        if begin_combo("##backbone_security", label):
-            for mode, text in choices:
-                if imgui.selectable(text, mode == current)[0] and mode != current:
-                    self._security_error = self._on_backbone_security(mode) or ""
-            imgui.end_combo()
 
     def _render_certificates_row(self) -> None:
         """The number of device certificates, with the dialog that manages them."""

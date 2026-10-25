@@ -36,6 +36,7 @@ from editor_gui.plugins.project.service import (
     DeviceConfigClipboard,
     ElementDetails,
     additional_address_error_text,
+    interface_bus_access,
 )
 from editor_gui.plugins.project.strings import S
 from editor_gui.plugins.project.ui import (
@@ -142,7 +143,10 @@ class ProjectPlugin:
         export_group_addresses: Callable[[], None] | None = None,
         get_latest_value: Callable[[str, str | None], tuple[str, str, float] | None]
         | None = None,
+        get_interfaces: Callable[[], list[tuple[str, str, int, str]]] = list,
     ) -> None:
+        """``get_interfaces`` lists the KNXnet/IP interfaces found on the network, each as
+        (name, IP address, port, individual address)."""
         self._api = api
         self._get_selected_node_ids = get_selected_node_ids
         api.project.set_logger(Logger(api.log, "project"))
@@ -381,6 +385,18 @@ class ProjectPlugin:
             on_set_medium=api.project.set_element_medium,
             on_set_security=api.project.set_element_security,
             on_set_central=api.project.set_group_address_central,
+            on_set_ip_routing=lambda latency, address: api.project.set_ip_routing(
+                latency=latency, multicast_address=address
+            ),
+            on_set_backbone_security=api.project.set_element_backbone_security,
+            on_set_bus_connection=api.project.set_backbone_bus_connection,
+            found_interfaces=lambda: [
+                (
+                    interface_bus_access(name, host, port),
+                    f"{name} ({host}:{port} Udp - {address})".replace(" - )", ")"),
+                )
+                for name, host, port, address in get_interfaces()
+            ],
         )
         self._space_details = SpaceDetailsPanel(
             on_rename=api.project.rename_space,
@@ -432,8 +448,6 @@ class ProjectPlugin:
             on_rename=api.project.set_project_name,
             on_set_password=api.project.set_project_password,
             needs_password=api.project.project_needs_password,
-            get_backbone_security=api.project.backbone_security,
-            on_backbone_security=self._set_backbone_security,
             get_certificates=api.project.device_certificate_list,
             on_remove_certificate=api.project.remove_device_certificate,
             on_add_certificate=self._add_project_certificate,
@@ -575,6 +589,7 @@ class ProjectPlugin:
                 number=ln.line_number,
                 name=ln.name,
                 segments=[Segment(id=s.id, name=s.name) for s in ln.segments],
+                medium_type=ln.medium_type,
             )
             for ln in self._api.project.get_lines(area_id)
         ]
@@ -2087,16 +2102,6 @@ class ProjectPlugin:
         data = load_settings(_SECURITY_SETTINGS)
         data["ask_certificate_on_add"] = not dont_ask
         save_settings(_SECURITY_SETTINGS, data)
-
-    def _set_backbone_security(self, mode: str | None) -> str | None:
-        """The installation's KNX IP Secure routing; the message to show when refused."""
-        from xknxeditor.proj import ProjectPasswordRequired
-
-        try:
-            self._api.project.set_backbone_security(mode)
-        except ProjectPasswordRequired:
-            return S.SECURE_DOWNLOAD_PASSWORD_REQUIRED
-        return None
 
     def _add_project_certificate(self) -> None:
         """ "Add Device Certificate…" from the project's certificate list (no device chosen)."""

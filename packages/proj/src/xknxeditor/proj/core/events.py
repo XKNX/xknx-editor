@@ -258,6 +258,134 @@ class CreateSegment(Event):
 
 @_register
 @dataclass
+class SetSegmentDomainAddress(Event):
+    """A segment's domain address (None for none)."""
+
+    event_type: ClassVar[str] = "SetSegmentDomainAddress"
+
+    segment_id: int
+    domain_address: int | None
+    old_domain_address: int | None = None
+    captured: bool = False
+
+    def apply(self, session: Session) -> None:
+        segment = session.get(Segment, self.segment_id)
+        if segment is not None:
+            self.old_domain_address = segment.domain_address
+            self.captured = True
+            segment.domain_address = self.domain_address
+
+    def revert(self, session: Session) -> None:
+        segment = session.get(Segment, self.segment_id)
+        if segment is not None and self.captured:
+            segment.domain_address = self.old_domain_address
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "segment_id": self.segment_id,
+            "domain_address": self.domain_address,
+            "old_domain_address": self.old_domain_address,
+            "captured": self.captured,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> SetSegmentDomainAddress:
+        return cls(**data)
+
+
+@_register
+@dataclass
+class SetSegmentBusAccess(Event):
+    """A segment's bus connection: the ``<BusAccess>`` attributes (``Name``, ``Parameter``), None
+    for "Automatic"."""
+
+    event_type: ClassVar[str] = "SetSegmentBusAccess"
+
+    segment_id: int
+    bus_access: dict[str, str] | None
+    old_bus_access: dict[str, str] | None = None
+    captured: bool = False
+
+    def apply(self, session: Session) -> None:
+        segment = session.get(Segment, self.segment_id)
+        if segment is not None:
+            self.old_bus_access = segment.bus_access
+            self.captured = True
+            segment.bus_access = self.bus_access
+
+    def revert(self, session: Session) -> None:
+        segment = session.get(Segment, self.segment_id)
+        if segment is not None and self.captured:
+            segment.bus_access = self.old_bus_access
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "segment_id": self.segment_id,
+            "bus_access": self.bus_access,
+            "old_bus_access": self.old_bus_access,
+            "captured": self.captured,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> SetSegmentBusAccess:
+        return cls(**data)
+
+
+@_register
+@dataclass
+class SetInstallationAttribute(Event):
+    """Set one attribute of the installation (``IPRoutingLatencyTolerance``, ...), or remove it
+    with ``value`` None."""
+
+    event_type: ClassVar[str] = "SetInstallationAttribute"
+
+    installation_id: int
+    name: str
+    value: str | None
+    old_value: str | None = None
+    captured: bool = False
+
+    def apply(self, session: Session) -> None:
+        installation = session.get(Installation, self.installation_id)
+        if installation is None:
+            return
+        attributes = dict(installation.extra_attributes or {})
+        self.old_value = attributes.get(self.name)
+        self.captured = True
+        _set_attribute(attributes, self.name, self.value)
+        installation.extra_attributes = attributes or None
+
+    def revert(self, session: Session) -> None:
+        installation = session.get(Installation, self.installation_id)
+        if installation is None or not self.captured:
+            return
+        attributes = dict(installation.extra_attributes or {})
+        _set_attribute(attributes, self.name, self.old_value)
+        installation.extra_attributes = attributes or None
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "installation_id": self.installation_id,
+            "name": self.name,
+            "value": self.value,
+            "old_value": self.old_value,
+            "captured": self.captured,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> SetInstallationAttribute:
+        return cls(**data)
+
+
+def _set_attribute(attributes: dict[str, str], name: str, value: str | None) -> None:
+    if value is None:
+        attributes.pop(name, None)
+    else:
+        attributes[name] = value
+
+
+@_register
+@dataclass
 class RenameSegment(Event):
     event_type: ClassVar[str] = "RenameSegment"
 

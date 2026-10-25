@@ -12,8 +12,9 @@ import base64
 import binascii
 import contextlib
 import datetime
+import ipaddress
 import secrets
-from collections.abc import Callable, Mapping, Sequence
+from collections.abc import Callable, Collection, Mapping, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -102,8 +103,11 @@ from xknxeditor.proj.core.events import (
     SetGroupDescription,
     SetGroupRangeAddress,
     SetGroupRangeSecurity,
+    SetInstallationAttribute,
     SetParameter,
     SetProjectName,
+    SetSegmentBusAccess,
+    SetSegmentDomainAddress,
     SetSegmentMedium,
     SetSpaceDefaultLine,
     SetSpaceDescription,
@@ -143,13 +147,15 @@ from xknxeditor.proj.core.ga_security import (
 )
 from xknxeditor.proj.core.medium import (
     MAX_SEGMENTS,
+    MEDIUM_IP,
     MEDIUM_NAMES,
     MEDIUM_TP,
+    LineView,
     MediumError,
-    check_sub_segment,
-    medium_name,
-    needs_domain_address,
-    new_domain_address,
+    SegmentView,
+    check_medium_change,
+    check_new_sub_segment,
+    domain_addresses,
     sub_segment_media,
 )
 from xknxeditor.proj.core.product_prune import ProgressCallback
@@ -187,6 +193,8 @@ from xknxeditor.proj.models import (
 # (time, date, day/night, weather) rather than part of a single load, and is excluded from function
 # suggestions. Real loads are linked by only a handful of devices (actuator + a sensor or two).
 _CENTRAL_GA_MIN_DEVICES = 4
+# The KNXnet/IP routing multicast address a backbone has unless it sets another.
+DEFAULT_MULTICAST_ADDRESS = "224.0.23.12"
 
 
 @dataclass
@@ -466,6 +474,36 @@ def _forced_by(group_range: GroupRange | None) -> ForcedSecurity | None:
     return ForcedSecurity(forcing.id, forcing.name, forcing.security_mode)
 
 
+def _line_views(
+    installation: Installation, line_names: Mapping[int, str] | None = None
+) -> list[LineView]:
+    """The installation's lines as the medium rules see them; a line without a name of its own
+    is called as ``line_names`` (by line id) shows it."""
+    names = line_names or {}
+    return [
+        LineView(
+            id=line.id,
+            area=area.address,
+            address=line.address,
+            name=line.name or names.get(line.id, ""),
+            segments=tuple(
+                SegmentView(
+                    id=s.id,
+                    number=s.number,
+                    medium=s.medium_type,
+                    name=s.name,
+                    domain_address=s.domain_address,
+                    devices=tuple((d.id, d.address) for d in s.devices),
+                )
+                for s in sorted(line.segments, key=lambda s: (s.number, s.id))
+            ),
+        )
+        for area in installation.areas
+        for line in area.lines
+        if line.segments
+    ]
+
+
 def _main_segment(line: Line) -> Segment:
     """A line's main segment: its lowest numbered one."""
     return min(line.segments, key=lambda s: (s.number, s.id))
@@ -736,7 +774,7 @@ class ProjectService:
         main = _main_segment(line).medium_type
         if medium_type is None:
             medium_type = main if main in sub_segment_media(main) else MEDIUM_TP
-        check_sub_segment(main, medium_type, name, line.name)
+        check_new_sub_segment(main, medium_type)
         if len(line.segments) >= MAX_SEGMENTS:
             raise MediumError("too_many_segments")
         number = max(s.number for s in line.segments) + 1
@@ -751,6 +789,18 @@ class ProjectService:
         """Every device's segment: ``device id -> segment id``."""
         session = self._state(project_id).session
         return dict(session.query(Device.id, Device.segment_id).all())
+
+    def device_programs(self, project_id: str) -> dict[int, str]:
+        """Every device's hardware program: ``device id -> hardware2program ref id`` (devices
+        without one are left out)."""
+        session = self._state(project_id).session
+        return {
+            device_id: program
+            for device_id, program in session.query(
+                Device.id, Device.hardware2program_ref_id
+            ).all()
+            if program
+        }
 
     def device_placement(self, project_id: str, device_id: int) -> DevicePlacement:
         """Where a device is, and its hardware program. Raises ``KeyError`` for an unknown
@@ -771,11 +821,22 @@ class ProjectService:
         )
 
     def set_segment_medium(
-        self, project_id: str, segment_id: int, medium_type: str
+        self,
+        project_id: str,
+        segment_id: int,
+        medium_type: str,
+        *,
+        couplers: Collection[int] = (),
+        ip_routers: Collection[int] = (),
+        line_names: Mapping[int, str] | None = None,
     ) -> None:
-        """Change a segment's medium; the main segment's is the line's. An RF or PL segment gets
-        a domain address no other segment has. Raises ``MediumError`` when the segment holds
-        devices or the media of the line do not allow it, ``KeyError`` for an unknown segment."""
+        """Change a segment's medium; the main segment's is the line's. The rules of
+        :func:`.medium.check_medium_change` decide, with the devices that are couplers and
+        KNXnet/IP routers (``couplers``, ``ip_routers``: device ids, from the catalog); their
+        reasons call a line without a name as ``line_names`` (by line id) does. The domain
+        addresses change with it (:func:`.medium.domain_addresses`), and a backbone that
+        becomes IP no longer forces its security on; all in one undo step. Raises
+        ``MediumError`` when the rules refuse it, ``KeyError`` for an unknown segment."""
         state = self._state(project_id)
         segment = state.session.get(Segment, segment_id)
         if segment is None:
@@ -784,42 +845,61 @@ class ProjectService:
             raise MediumError("unknown_medium", medium=medium_type)
         if segment.medium_type == medium_type:
             return
-        if segment.devices:
-            raise MediumError("segment_has_devices")
-        line = segment.line
-        main = _main_segment(line)
-        if segment.id == main.id:
-            allowed = sub_segment_media(medium_type)
-            if any(
-                s.medium_type not in allowed for s in line.segments if s.id != main.id
-            ):
-                raise MediumError(
-                    "line_has_sub_segments",
-                    line=line.name,
-                    medium=medium_name(medium_type),
-                )
-        else:
-            check_sub_segment(main.medium_type, medium_type, segment.name, line.name)
-        domain: int | None = None
-        if needs_domain_address(medium_type):
-            used = {
-                s.domain_address
-                for s in state.session.query(Segment)
-                if s.domain_address is not None and s.id != segment.id
-            }
-            domain = new_domain_address(medium_type, used)
-        state.store.append(
+        installation = segment.line.area.installation
+        lines = _line_views(installation, line_names)
+        check_medium_change(lines, segment_id, medium_type, couplers, ip_routers)
+        domains = domain_addresses(lines, segment_id, medium_type)
+        events: list[Event] = [
             SetSegmentMedium(
-                segment_id=segment_id, medium_type=medium_type, domain_address=domain
+                segment_id=segment_id,
+                medium_type=medium_type,
+                domain_address=domains.pop(segment_id, None),
+            ),
+            *(
+                SetSegmentDomainAddress(segment_id=other, domain_address=address)
+                for other, address in domains.items()
+            ),
+        ]
+        line = segment.line
+        attributes = installation.extra_attributes or {}
+        if (
+            line.area.address == 0
+            and line.address == 0
+            and segment.id == _main_segment(line).id
+            and medium_type == MEDIUM_IP
+            and attributes.get("IPRoutingBackboneSecurity") == "On"
+        ):
+            events.append(
+                SetInstallationAttribute(
+                    installation_id=installation.id,
+                    name="IPRoutingBackboneSecurity",
+                    value=None,
+                )
             )
-        )
+        state.store.append(events[0] if len(events) == 1 else CompositeEvent(events))
 
-    def set_line_medium(self, project_id: str, line_id: int, medium_type: str) -> None:
+    def set_line_medium(
+        self,
+        project_id: str,
+        line_id: int,
+        medium_type: str,
+        *,
+        couplers: Collection[int] = (),
+        ip_routers: Collection[int] = (),
+        line_names: Mapping[int, str] | None = None,
+    ) -> None:
         """Change a line's medium: its main segment's (see :meth:`set_segment_medium`)."""
         line = self._state(project_id).session.get(Line, line_id)
         if line is None or not line.segments:
             raise KeyError(f"No line with id {line_id}")
-        self.set_segment_medium(project_id, _main_segment(line).id, medium_type)
+        self.set_segment_medium(
+            project_id,
+            _main_segment(line).id,
+            medium_type,
+            couplers=couplers,
+            ip_routers=ip_routers,
+            line_names=line_names,
+        )
 
     def add_device(
         self,
@@ -1775,6 +1855,70 @@ class ProjectService:
         """The installation's attributes kept from the import (e.g. its IP routing settings)."""
         installation = self._state(project_id).session.query(Installation).first()
         return dict(installation.extra_attributes or {}) if installation else {}
+
+    def set_ip_routing(
+        self,
+        project_id: str,
+        *,
+        latency: int | None = None,
+        multicast_address: str | None = None,
+    ) -> None:
+        """Set the IP routing of the installation's backbone: the network ``latency`` tolerance
+        (milliseconds, ``IPRoutingLatencyTolerance``) and the routing ``multicast_address``
+        (``IPRoutingMulticastAddress``, a multicast IPv4 address). Each is an undo step; the
+        default multicast address is stored as no address. Raises ``ValueError`` for a latency
+        that is not positive or an address that is not a multicast one."""
+        state = self._state(project_id)
+        installation = state.session.query(Installation).first()
+        if installation is None:
+            raise KeyError("The project has no installation")
+        attributes = installation.extra_attributes or {}
+        changes: list[tuple[str, str | None]] = []
+        if latency is not None:
+            if not 0 < latency <= 0xFFFF:
+                raise ValueError(f"Invalid network latency {latency}")
+            changes.append(("IPRoutingLatencyTolerance", str(latency)))
+        if multicast_address is not None:
+            try:
+                parsed = ipaddress.IPv4Address(multicast_address.strip())
+            except ValueError as exc:
+                raise ValueError(
+                    f"Invalid multicast address {multicast_address!r}"
+                ) from exc
+            if not parsed.is_multicast:
+                raise ValueError(f"Invalid multicast address {multicast_address!r}")
+            value = str(parsed)
+            changes.append(
+                (
+                    "IPRoutingMulticastAddress",
+                    None if value == DEFAULT_MULTICAST_ADDRESS else value,
+                )
+            )
+        for name, value in changes:
+            if attributes.get(name) != value:
+                state.store.append(
+                    SetInstallationAttribute(
+                        installation_id=installation.id, name=name, value=value
+                    )
+                )
+
+    def set_segment_bus_access(
+        self, project_id: str, segment_id: int, parameter: str | None
+    ) -> None:
+        """Set the bus connection of a segment (the main segment's is its line's): the
+        ``Parameter`` of its ``<BusAccess>`` ("Type=IpTunneling;HostAddress=…"), None for
+        "Automatic". One undo step; nothing when it does not change. Raises ``KeyError`` for an
+        unknown segment."""
+        state = self._state(project_id)
+        segment = state.session.get(Segment, segment_id)
+        if segment is None:
+            raise KeyError(f"No segment with id {segment_id}")
+        bus_access = None if not parameter else {"Name": "", "Parameter": parameter}
+        if (segment.bus_access or None) == bus_access:
+            return
+        state.store.append(
+            SetSegmentBusAccess(segment_id=segment_id, bus_access=bus_access)
+        )
 
     def backbone_security(self, project_id: str) -> str | None:
         """The installation's KNX IP Secure routing setting (``@IPRoutingBackboneSecurity``:

@@ -12,6 +12,7 @@ from editor_gui.widgets.description import render_device_marks
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
 from editor_gui.widgets.dpi import label_column_width, px
 from editor_gui.widgets.tree import leaf_rows, tree_node
+from xknxeditor.proj.core.medium import MEDIUM_TP, medium_name
 
 TreeDevice = Device | UnloadedDevice
 
@@ -46,6 +47,7 @@ class Line:
     number: int
     name: str
     segments: list[Segment] = field(default_factory=list[Segment])
+    medium_type: str = MEDIUM_TP
 
 
 def _split_line(
@@ -215,35 +217,40 @@ class DevicesPanel:
                 flags = flags | imgui.TreeNodeFlags_.selected
             return flags
 
-        # Flat device order as rendered (areas -> lines -> segments' devices, the main segment's
-        # devices, then unassigned) for Shift-range.
+        # Each area shows as its main line ("1.0 …", the backbone "0.0 …" first): its sub-lines,
+        # then the main line's sub-segments and devices. Flat device order as rendered (then the
+        # unassigned ones) for Shift-range.
         segment_of = self._get_device_segments()
+
+        def line_devices(area: Area, line: Line) -> list[TreeDevice]:
+            found = device_tree.get(area.number, {}).get(line.number, [])
+            return [d for d in found if self._device_matches(d, flt)] if flt else found
+
+        def shown(area: Area) -> list[tuple[Line, list[TreeDevice]]]:
+            """The area's lines as they show: the sub-lines, then the main line."""
+            lines = self._get_lines(area.id)
+            ordered = [ln for ln in lines if ln.number != 0] + [
+                ln for ln in lines if ln.number == 0
+            ]
+            return [(line, line_devices(area, line)) for line in ordered]
+
         ordered_ids: list[int] = []
         for _area in areas:
-            for _line in self._get_lines(_area.id):
-                _segments, _main = _split_line(
-                    _line,
-                    device_tree.get(_area.number, {}).get(_line.number, []),
-                    segment_of,
-                )
+            for _line, _devices in shown(_area):
+                _segments, _main = _split_line(_line, _devices, segment_of)
                 for _d in [*(d for _s, ds in _segments for d in ds), *_main]:
-                    if isinstance(_d, Device) and (
-                        not flt or self._device_matches(_d, flt)
-                    ):
+                    if isinstance(_d, Device):
                         ordered_ids.append(_d.node_id)
         for _d in self._get_unassigned_devices(devices, areas):
             if isinstance(_d, Device) and (not flt or self._device_matches(_d, flt)):
                 ordered_ids.append(_d.node_id)
 
         for area in areas:
-            lines = self._get_lines(area.id)
-            if flt and not any(
-                self._device_matches(device, flt)
-                for line in lines
-                for device in device_tree.get(area.number, {}).get(line.number, [])
-            ):
+            lines = shown(area)
+            if flt and not any(found for _line, found in lines):
                 continue  # while filtering, hide areas with no matching device
-            area_label = self._format_area_label(area)
+            main = next((line for line, _found in lines if line.number == 0), None)
+            kind = "backbone" if area.number == 0 else "area"
             # A click selects the area, the arrow and a double click open it.
             area_flags = (
                 imgui.TreeNodeFlags_.default_open
@@ -251,54 +258,32 @@ class DevicesPanel:
                 | imgui.TreeNodeFlags_.open_on_arrow
                 | imgui.TreeNodeFlags_.open_on_double_click
             )
-            if target == ("area", area.id):
+            if not any(
+                line.number != 0 or found or line.segments for line, found in lines
+            ):
+                area_flags |= imgui.TreeNodeFlags_.leaf
+            if target == (kind, area.id):
                 area_flags |= imgui.TreeNodeFlags_.selected
             if flt:
                 imgui.set_next_item_open(True, imgui.Cond_.always)
             # The context menu belongs to the node whether it is open or closed.
-            area_open = tree_node(f"{area_label}##area_{area.id}", area_flags)
+            label = self._format_area_label(area, main)
+            area_open = tree_node(f"{label}##area_{area.id}", area_flags)
             if imgui.is_item_clicked() and not imgui.is_item_toggled_open():
-                self._select_element("area", area.id)
-            self._render_area_context_menu(area, lines)
+                self._select_element(kind, area.id)
+            self._render_area_context_menu(area, [line for line, _f in lines], main)
+            if main is not None:
+                self._render_line_drop_target(area, main)
             if area_open:
-                for line in lines:
-                    line_devices = device_tree.get(area.number, {}).get(line.number, [])
-                    if flt:
-                        line_devices = [
-                            d for d in line_devices if self._device_matches(d, flt)
-                        ]
-                        if not line_devices:
-                            continue  # hide lines with no match while filtering
-                    line_label = self._format_line_label(area, line)
-                    line_flags = (
-                        imgui.TreeNodeFlags_.default_open
-                        | imgui.TreeNodeFlags_.span_avail_width
-                        | imgui.TreeNodeFlags_.open_on_arrow
-                        | imgui.TreeNodeFlags_.open_on_double_click
-                    )
-                    if target == ("line", line.id):
-                        line_flags |= imgui.TreeNodeFlags_.selected
-                    if flt:
-                        imgui.set_next_item_open(True, imgui.Cond_.always)
-                    line_open = tree_node(f"{line_label}##line_{line.id}", line_flags)
-                    if imgui.is_item_clicked() and not imgui.is_item_toggled_open():
-                        self._select_element("line", line.id)
-                    self._render_line_context_menu(line)
-                    self._render_line_drop_target(area, line)
-                    if line_open:
-                        segments, main_devices = _split_line(
-                            line, line_devices, segment_of
+                for line, found in lines:
+                    if line.number == 0:
+                        self._render_line_content(
+                            area, line, found, segment_of, _leaf, ordered_ids
                         )
-                        for segment, segment_devices in segments:
-                            if flt and not segment_devices:
-                                continue  # hide segments with no match while filtering
-                            self._render_segment(
-                                area, line, segment, segment_devices, _leaf, ordered_ids
-                            )
-                        with leaf_rows(nodes=True):
-                            for device in main_devices:
-                                self._render_device_node(device, _leaf, ordered_ids)
-                        imgui.tree_pop()
+                    elif found or not flt:
+                        self._render_line(
+                            area, line, found, segment_of, _leaf, ordered_ids
+                        )
                 imgui.tree_pop()
 
         unassigned = self._get_unassigned_devices(devices, areas)
@@ -318,6 +303,61 @@ class DevicesPanel:
                     for device in unassigned:
                         self._render_device_node(device, _leaf, ordered_ids)
                 imgui.tree_pop()
+
+    def _render_line(
+        self,
+        area: Area,
+        line: Line,
+        devices: list[TreeDevice],
+        segment_of: dict[int, int],
+        leaf: Callable[[TreeDevice], int],
+        ordered_ids: list[int],
+    ) -> None:
+        """A sub-line's node with its sub-segments and devices below it."""
+        flags = (
+            imgui.TreeNodeFlags_.default_open
+            | imgui.TreeNodeFlags_.span_avail_width
+            | imgui.TreeNodeFlags_.open_on_arrow
+            | imgui.TreeNodeFlags_.open_on_double_click
+        )
+        if not devices and not line.segments:
+            flags |= imgui.TreeNodeFlags_.leaf
+        if self._get_selected_topology() == ("line", line.id):
+            flags |= imgui.TreeNodeFlags_.selected
+        if self._filter_text.strip():
+            imgui.set_next_item_open(True, imgui.Cond_.always)
+        label = self._format_line_label(area, line)
+        opened = tree_node(f"{label}##line_{line.id}", flags)
+        if imgui.is_item_clicked() and not imgui.is_item_toggled_open():
+            self._select_element("line", line.id)
+        self._render_line_context_menu(line)
+        self._render_line_drop_target(area, line)
+        if opened:
+            self._render_line_content(
+                area, line, devices, segment_of, leaf, ordered_ids
+            )
+            imgui.tree_pop()
+
+    def _render_line_content(
+        self,
+        area: Area,
+        line: Line,
+        devices: list[TreeDevice],
+        segment_of: dict[int, int],
+        leaf: Callable[[TreeDevice], int],
+        ordered_ids: list[int],
+    ) -> None:
+        """A line's sub-segments, then the devices of its main segment."""
+        segments, main_devices = _split_line(line, devices, segment_of)
+        for segment, segment_devices in segments:
+            if self._filter_text.strip() and not segment_devices:
+                continue  # hide segments with no match while filtering
+            self._render_segment(
+                area, line, segment, segment_devices, leaf, ordered_ids
+            )
+        with leaf_rows(nodes=True):
+            for device in main_devices:
+                self._render_device_node(device, leaf, ordered_ids)
 
     def _render_segment(
         self,
@@ -504,29 +544,39 @@ class DevicesPanel:
         # Imported devices are often unnamed; fall back to the product/application name.
         return f"{device_label(device)}##dev{device.node_id}"
 
-    def _format_area_label(self, area: Area) -> str:
-        if area.name:
-            return S.DEVICE_AREA_NAMED.format(name=area.name, area=area.number)
-        return S.DEVICE_AREA.format(area=area.number)
+    @staticmethod
+    def _format_area_label(area: Area, main: Line | None) -> str:
+        """An area as its main line: "1.0 Name"; one without a name is called after its medium
+        ("0.0 IP backbone line", "1.0 TP main line")."""
+        name = area.name
+        if not name:
+            medium = medium_name(main.medium_type) if main is not None else ""
+            text = S.BACKBONE_LINE_NAME if area.number == 0 else S.MAIN_LINE_NAME
+            name = text.format(medium=medium).strip()
+        return f"{area.number}.0 {name}"
 
-    def _format_line_label(self, area: Area, line: Line) -> str:
-        if line.name:
-            return S.DEVICE_LINE_NAMED.format(
-                name=line.name, area=area.number, line=line.number
-            )
-        return S.DEVICE_LINE.format(area=area.number, line=line.number)
+    @staticmethod
+    def _format_line_label(area: Area, line: Line) -> str:
+        return f"{area.number}.{line.number} {line.name}".rstrip()
 
     @staticmethod
     def _format_segment_label(area: Area, line: Line, segment: Segment) -> str:
-        if segment.name:
-            return S.DEVICE_SEGMENT_NAMED.format(
-                name=segment.name, area=area.number, line=line.number
-            )
-        return S.DEVICE_SEGMENT.format(area=area.number, line=line.number)
+        return f"{area.number}.{line.number} {segment.name}".rstrip()
 
-    def _render_area_context_menu(self, area: Area, lines: list[Line]) -> None:
+    def _render_area_context_menu(
+        self, area: Area, lines: list[Line], main: Line | None
+    ) -> None:
         if imgui.begin_popup_context_item(f"##area_ctx_{area.id}"):
-            if imgui.menu_item(S.CONTEXT_ADD_LINE, "", False)[0]:
+            if area.number == 0 and imgui.menu_item(S.CONTEXT_ADD_AREA, "", False)[0]:
+                self._popup_area_number = self._next_area_number(self._get_areas())
+                self._popup_name = ""
+                self._open_new_area_popup = True
+            if (
+                main is not None
+                and imgui.menu_item(S.CONTEXT_ADD_SEGMENT, "", False)[0]
+            ):
+                self._on_add_segment(main)
+            if area.number != 0 and imgui.menu_item(S.CONTEXT_ADD_LINE, "", False)[0]:
                 self._popup_target_area = area
                 self._popup_line_number = self._next_line_number(lines)
                 self._popup_name = ""

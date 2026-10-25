@@ -189,6 +189,24 @@ class CatalogService:
             coupler = bool(program.hardware.is_coupler)
         return media, coupler or bool(self.coupler_capabilities(program_id))
 
+    def program_roles(self, program_ids: Sequence[str]) -> dict[str, tuple[bool, str]]:
+        """For each hardware program the catalog has: whether its hardware is a coupler and
+        the mask version of its application ("" for none)."""
+        from xknxeditor.catalog.models import HardwareProgram
+
+        roles: dict[str, tuple[bool, str]] = {}
+        with Session(self._engine) as db:
+            for program_id in set(program_ids):
+                program = db.get(HardwareProgram, program_id)
+                if program is None:
+                    continue
+                application = program.application
+                roles[program_id] = (
+                    bool(program.hardware.is_coupler),
+                    (application.mask_version or "") if application else "",
+                )
+        return roles
+
     def get_application_xml(self, program_id: str) -> tuple[bytes, str] | None:
         with Session(self._engine) as db:
             return get_application_xml(db, program_id)

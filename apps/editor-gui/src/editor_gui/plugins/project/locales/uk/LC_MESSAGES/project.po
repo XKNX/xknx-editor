@@ -1162,18 +1162,6 @@ msgstr "Фільтрувати групові адреси (адреса, ім'�
 msgid "Filter rooms, devices, functions…"
 msgstr "Фільтрувати кімнати, пристрої, функції…"
 
-msgid "Area {area}"
-msgstr "Область {area}"
-
-msgid "{name} (Area {area})"
-msgstr "{name} (область {area})"
-
-msgid "Line {area}.{line}"
-msgstr "Лінія {area}.{line}"
-
-msgid "{name} (Line {area}.{line})"
-msgstr "{name} (лінія {area}.{line})"
-
 msgid "Unassigned ({count})"
 msgstr "Не призначено ({count})"
 
@@ -1317,12 +1305,6 @@ msgstr "Захист (Security)"
 
 msgid "Automatic"
 msgstr "Автоматично"
-
-msgid "Secured"
-msgstr "Захищений"
-
-msgid "Not Secured"
-msgstr "Не захищений"
 
 msgid "A secured group address can only be linked to devices that are commissioned securely."
 msgstr "Захищену групову адресу можна зв'язати лише з пристроями, для яких виконується захищене налагодження."
@@ -1770,9 +1752,6 @@ msgstr "Пароль має містити від 1 до 20 символів Lat
 
 msgid "Close"
 msgstr "Закрити"
-
-msgid "IP Backbone Security"
-msgstr "Захист IP-магістралі"
 
 msgid "Device Certificates"
 msgstr "Сертифікати пристроїв"
@@ -2362,17 +2341,8 @@ msgstr "сегмент"
 msgid "The medium of a segment can only change while it holds no device."
 msgstr "Тип середовища передачі даних сегменту можна змінити, лише якщо в ньому нема жодного пристрою."
 
-msgid "A sub-segment is not allowed below a main segment of KNX medium type {medium}."
-msgstr "Нижче головного сегменту середовища передачі даних типу {medium} підсегмент не дозволяється."
-
 msgid "The medium type of the segment '{segment}' cannot be changed to IoT, because its parent line '{line}' is not of medium type IP."
 msgstr "Тип середовища передачі даних сегменту '{segment}' не можна змінити на IoT, тому що його батьківська лінія '{line}' не є типу IP."
-
-msgid "A sub-segment of KNX medium type {medium} is not allowed."
-msgstr "Підсегменти типу середовища передачі даних KNX {medium} не дозволяються."
-
-msgid "The medium type of the line '{line}' can no longer be changed to {medium}, because it already contains segments that are not allowed below it."
-msgstr "Тип середовища передачі даних лінії '{line}' більше не можна змінити на {medium}, оскільки вона вже містить сегменти, які під ним не дозволені."
 
 msgid "The maximum number of segments has been reached."
 msgstr "Досягнуто максимальну кількість сегментів."
@@ -2385,12 +2355,6 @@ msgstr "Пристрій '{device}' несумісний із типом сер�
 
 msgid "Device '{device}' is incompatible with segment's medium type."
 msgstr "Пристрій '{device}' несумісний із типом середовища передачі даних сегменту."
-
-msgid "Segment {area}.{line}"
-msgstr "Сегмент {area}.{line}"
-
-msgid "{name} (Segment {area}.{line})"
-msgstr "{name} (сегмент {area}.{line})"
 
 msgid "Add Segment"
 msgstr "Додати сегмент"
@@ -2430,3 +2394,129 @@ msgstr "Позначити групову адресу як центральну
 
 msgid "Remove central mark from group address"
 msgstr "Зняти позначку центральної з групової адреси"
+
+msgid "Topology"
+msgstr "Топологія"
+
+msgid "{medium} backbone line"
+msgstr "магістральна лінія {medium}"
+
+msgid "{medium} main line"
+msgstr "головна лінія {medium}"
+
+msgid "Backbone"
+msgstr "Магістраль"
+
+msgid "Backbone Medium"
+msgstr "Середовище магістральної лінії"
+
+msgid "Network Latency"
+msgstr "Затримка мережі"
+
+msgid "LAN (< 400ms)"
+msgstr "LAN (< 400ms)"
+
+msgid "WLAN (< 1s)"
+msgstr "WLAN (< 1s)"
+
+msgid "WAN (< 2s)"
+msgstr "WAN (< 2s)"
+
+msgid "Mobile (< 4s)"
+msgstr "Мобільна (< 4s)"
+
+msgid "Satellite (< 8s)"
+msgstr "Супутник (< 8s)"
+
+msgid "The network latency must be a number of milliseconds from 1 to 65535."
+msgstr "Затримка мережі має бути кількістю мілісекунд від 1 до 65535."
+
+msgid "Multicast Address"
+msgstr "Мультикаст адреса"
+
+msgid "Enter a multicast address from 224.0.0.0 to 239.255.255.255."
+msgstr "Введіть мультикаст адресу від 224.0.0.0 до 239.255.255.255."
+
+msgid "Bus Connection"
+msgstr "З'єднання з шиною"
+
+msgid "Set IP routing of the backbone"
+msgstr "Задати IP-маршрутизацію магістралі"
+
+msgid "As long as a coupler exists at a sub line or sub segment, a change of the medium type is not possible."
+msgstr "Доки на підлінії чи підсегменті є з'єднувач, зміна типу середовища передачі даних неможлива."
+
+msgid "A main line of a project cannot have medium type RF."
+msgstr "Головна лінія проєкту не може бути RF."
+
+msgid "The operation could not be executed, because as medium type of the backbone only IP and TP are allowed."
+msgstr "Операцію неможливо виконати, оскільки в якості магістральної лінії дозволені тільки варіанти з середовищами передачі даних IP або TP."
+
+msgid "A sub-segment of KNX medium type IP or PL is not allowed."
+msgstr "Підсегменти типів середовищ передачі даних KNX IP або PL не дозволяються."
+
+msgid "The medium type of the main line '{line}' can no longer be changed to PL, because it already contains lines or segments that are not allowed in PL main lines."
+msgstr "Тип середовища передачі даних головної лінії області '{line}' більше не можна змінити на PL, оскільки вона вже містить сегменти або лінії, які не дозволені в головних лініях PL."
+
+msgid "The medium type of the main line '{line}' cannot be changed to IoT, because the backbone line '{backbone}' is not of medium type IP."
+msgstr "Тип середовища передачі даних головної лінії області '{line}' не можна змінити на IoT тому, що її магістральна лінія '{backbone}' не є типу IP."
+
+msgid "The medium type of the main line '{line}' can no longer be changed to IoT, because it already contains lines or segments that are not allowed in IoT main lines."
+msgstr "Тип середовища передачі даних головної лінії області '{line}' більше не можна змінити на IoT, оскільки вона вже містить сегменти або лінії, які не дозволені в головних лініях IoT."
+
+msgid "The medium type of the line '{line}' cannot be changed, because it already contains lines or segments that require an IoT or IP main line."
+msgstr "Тип середовища передачі даних головної лінії області '{line}' не можна змінити, оскільки вона вже містить сегменти або лінії, які потребують головну лінію області IoT або IP."
+
+msgid "A sub-segment is not allowed below a main segment of KNX medium type RF."
+msgstr "Нижче головного сегменту середовища передачі даних типу RF підсегмент не дозволяється."
+
+msgid "A sub-segment is not allowed below a main segment of KNX medium type PL."
+msgstr "Нижче головного сегменту середовища передачі даних типу PL підсегмент не дозволяється."
+
+msgid "A sub-segment of KNX medium type IoT is not allowed below a main segment of the same type."
+msgstr "Підсегмент середовища передачі даних KNX типу IoT нижче головного сегменту того ж типу не дозволяється."
+
+msgid "The operation could not be executed, because a RF main line '{line}' requires all other lines in the area to be RF lines as well."
+msgstr "Операція не може бути виконана, тому що головна лінія RF {line} вимагає, щоб і всі інші лінії області були лініями RF."
+
+msgid "The operation could not be executed, because a PL main line '{line}' requires all other lines in the area to be PL lines as well."
+msgstr "Операція не може бути виконана, тому що головна лінія PL {line} вимагає, щоб і всі інші лінії області були також лініями PL."
+
+msgid "The operation could not be executed, because a IoT main line '{line}' requires all other lines in the area to be IoT lines as well."
+msgstr "Операція не може бути виконана, тому що головна лінія IoT '{line}' вимагає, щоб і всі інші лінії в цій області були також лініями IoT."
+
+msgid "The medium type of the line '{line}' cannot be changed to IoT, because its main line '{main}' is not of medium type IP."
+msgstr "Тип середовища передачі даних лінії '{line}' не можна змінити на IoT тому, що головна лінія області '{main}' не є типу IP."
+
+msgid "The medium type of the line '{line}' can no longer be changed to IoT, because it already contains segments that are not allowed in IoT lines."
+msgstr "Тип середовища передачі даних лінії '{line}' більше не можна змінити на IoT, оскільки вона вже містить сегменти, які не дозволені в лініях IoT."
+
+msgid "The operation could not be executed, because the line is the IP backbone line and the project contains KNXnet/IP routers. KNXnet/IP routers require an IP backbone line."
+msgstr "Операція не може бути виконана, тому що лінія є магістральною IP лінією і проєкт містить KNXnet/IP роутери. KNXnet/IP роутери потребують наявності магістральної IP лінії."
+
+msgid "The operation could not be executed, because the line is the IP main line and the project contains KNXnet/IP routers. KNXnet/IP routers require an IP main line."
+msgstr "Операція не може бути виконана, тому що лінія є головною IP лінією і проєкт містить KNXnet/IP роутери. KNXnet/IP роутери потребують наявності головної IP лінії."
+
+msgid "The operation could not be executed, because the line is the IP backbone line and the project contains IoT or IP lines."
+msgstr "Операцію не вдалося виконати, оскільки лінія є магістральною лінією IP, а проєкт містить лінії IoT або IP."
+
+msgid "The operation could not be executed, because the medium type of the line can only be set to IP if an IP main line exists."
+msgstr "Неможливо виконати операцію, оскільки тип середовища передачі даних лінії може бути встановлений тільки як IP, якщо існує головна IP лінія."
+
+msgid "The operation could not be executed, because the medium type of the line can only be set to IP if an IP backbone line exists."
+msgstr "Неможливо виконати операцію, оскільки тип середовища передачі даних лінії може бути встановлений тільки як IP, якщо існує магістральна IP лінія."
+
+msgid "The operation could not be executed, because below a TP main segment only segments of KNX medium type TP, RF or PL can exist."
+msgstr "Операцію неможливо виконати, оскільки нижче головного сегменту TP можуть бути присутні тільки KNX сегменти типів TP, RF чи PL."
+
+msgid "Below a main segment of KNX medium type IP only segments of medium type TP or RF can exist."
+msgstr "Нижче головного сегменту KNX з середовищем передачі даних типу IP можуть бути присутні тільки сегменти типів TP чи RF."
+
+msgid "A sub-segment of KNX medium type PL is not allowed below a main segment."
+msgstr "Підсегмент середовища передачі даних KNX PL нижче головного сегменту не дозволяється."
+
+msgid "Set bus connection of the backbone"
+msgstr "Задати з'єднання з шиною магістралі"
+
+msgid "Set domain address"
+msgstr "Задати адресу домену"

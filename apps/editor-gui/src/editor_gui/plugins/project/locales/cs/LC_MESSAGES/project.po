@@ -1162,18 +1162,6 @@ msgstr "Filtrovat skupinové adresy (adresa, název)…"
 msgid "Filter rooms, devices, functions…"
 msgstr "Filtrovat místnosti, zařízení, funkce…"
 
-msgid "Area {area}"
-msgstr "Oblast {area}"
-
-msgid "{name} (Area {area})"
-msgstr "{name} (oblast {area})"
-
-msgid "Line {area}.{line}"
-msgstr "Linie {area}.{line}"
-
-msgid "{name} (Line {area}.{line})"
-msgstr "{name} (linie {area}.{line})"
-
 msgid "Unassigned ({count})"
 msgstr "Nepřiřazeno ({count})"
 
@@ -1317,12 +1305,6 @@ msgstr "Zabezpečení"
 
 msgid "Automatic"
 msgstr "Automaticky"
-
-msgid "Secured"
-msgstr "Zabezpečeno"
-
-msgid "Not Secured"
-msgstr "Nezabezpečeno"
 
 msgid "A secured group address can only be linked to devices that are commissioned securely."
 msgstr "Zabezpečenou skupinovou adresu lze propojit jen se zařízeními, která jsou uváděna do provozu zabezpečeně."
@@ -1770,9 +1752,6 @@ msgstr "Heslo musí mít 1 až 20 znaků Latin-1."
 
 msgid "Close"
 msgstr "Zavřít"
-
-msgid "IP Backbone Security"
-msgstr "Zabezpečení páteře IP"
 
 msgid "Device Certificates"
 msgstr "Certifikáty zařízení"
@@ -2362,17 +2341,8 @@ msgstr "segment"
 msgid "The medium of a segment can only change while it holds no device."
 msgstr "Typ média segmentu lze změnit jen tehdy, jestliže neobsahuje žádné zařízení."
 
-msgid "A sub-segment is not allowed below a main segment of KNX medium type {medium}."
-msgstr "Podsegment není dovolen pod hlavním segmentem média KNX typu {medium}."
-
 msgid "The medium type of the segment '{segment}' cannot be changed to IoT, because its parent line '{line}' is not of medium type IP."
 msgstr "Typ média segmentu „{segment}“ nelze změnit na IoT, protože nadřazená linie „{line}“ není médium typu IP."
-
-msgid "A sub-segment of KNX medium type {medium} is not allowed."
-msgstr "Podsegment KNX typu {medium} není povolen."
-
-msgid "The medium type of the line '{line}' can no longer be changed to {medium}, because it already contains segments that are not allowed below it."
-msgstr "Typ média linie „{line}“ již nelze změnit na {medium}, protože již obsahuje segmenty, které pod ním nejsou povoleny."
 
 msgid "The maximum number of segments has been reached."
 msgstr "Bylo dosaženo maximálního počtu segmentů."
@@ -2385,12 +2355,6 @@ msgstr "Přístroj '{device}' není kompatibilní s typem média na linii."
 
 msgid "Device '{device}' is incompatible with segment's medium type."
 msgstr "Zařízení '{device}' je nekompatibilní s typem médií segmentu."
-
-msgid "Segment {area}.{line}"
-msgstr "Segment {area}.{line}"
-
-msgid "{name} (Segment {area}.{line})"
-msgstr "{name} (segment {area}.{line})"
 
 msgid "Add Segment"
 msgstr "Přidat segment"
@@ -2430,3 +2394,129 @@ msgstr "Označit skupinovou adresu jako centrální"
 
 msgid "Remove central mark from group address"
 msgstr "Odebrat označení centrální ze skupinové adresy"
+
+msgid "Topology"
+msgstr "Topologie"
+
+msgid "{medium} backbone line"
+msgstr "{medium} páteřní linka"
+
+msgid "{medium} main line"
+msgstr "{medium} hlavní linie"
+
+msgid "Backbone"
+msgstr "Páteř"
+
+msgid "Backbone Medium"
+msgstr "Médium páteřní linie"
+
+msgid "Network Latency"
+msgstr "Doba odezvy sítě"
+
+msgid "LAN (< 400ms)"
+msgstr "LAN (< 400 ms)"
+
+msgid "WLAN (< 1s)"
+msgstr "WLAN (< 1 s)"
+
+msgid "WAN (< 2s)"
+msgstr "WAN (< 2 s)"
+
+msgid "Mobile (< 4s)"
+msgstr "Mobil (< 4s)"
+
+msgid "Satellite (< 8s)"
+msgstr "Satelit (< 8s)"
+
+msgid "The network latency must be a number of milliseconds from 1 to 65535."
+msgstr "Doba odezvy sítě musí být počet milisekund od 1 do 65535."
+
+msgid "Multicast Address"
+msgstr "Adresa multicast"
+
+msgid "Enter a multicast address from 224.0.0.0 to 239.255.255.255."
+msgstr "Zadejte adresu multicast od 224.0.0.0 do 239.255.255.255."
+
+msgid "Bus Connection"
+msgstr "Spojení se sběrnicí"
+
+msgid "Set IP routing of the backbone"
+msgstr "Nastavit IP směrování páteře"
+
+msgid "As long as a coupler exists at a sub line or sub segment, a change of the medium type is not possible."
+msgstr "Dokud v podlince nebo v podsegmentu existuje spojka, není změna typu média možná."
+
+msgid "A main line of a project cannot have medium type RF."
+msgstr "Hlavní linie v projektu nemůže obsahovat médium typu RF."
+
+msgid "The operation could not be executed, because as medium type of the backbone only IP and TP are allowed."
+msgstr "Operaci nebylo možno provést, protože jako typ média páteře jsou povoleny jen IP a TP."
+
+msgid "A sub-segment of KNX medium type IP or PL is not allowed."
+msgstr "Podsegment KNX typu IP nebo PL není povolen."
+
+msgid "The medium type of the main line '{line}' can no longer be changed to PL, because it already contains lines or segments that are not allowed in PL main lines."
+msgstr "Typ média hlavní linie „{line}“ již nelze změnit na PL, protože již obsahuje linie nebo segmenty, které nejsou povoleny v hlavních liniích PL."
+
+msgid "The medium type of the main line '{line}' cannot be changed to IoT, because the backbone line '{backbone}' is not of medium type IP."
+msgstr "Typ média hlavní linie „{line}“ nelze změnit na IoT, protože páteřní linie „{backbone}“ není médium typu IP."
+
+msgid "The medium type of the main line '{line}' can no longer be changed to IoT, because it already contains lines or segments that are not allowed in IoT main lines."
+msgstr "Typ média hlavní linie „{line}“ již nelze změnit na IoT, protože již obsahuje linie nebo segmenty, které nejsou povoleny v hlavních liniích IoT."
+
+msgid "The medium type of the line '{line}' cannot be changed, because it already contains lines or segments that require an IoT or IP main line."
+msgstr "Typ média hlavní linie „{line}“ již nelze změnit, protože již obsahuje linie nebo segmenty, které vyžadují hlavní linii IoT nebo IP."
+
+msgid "A sub-segment is not allowed below a main segment of KNX medium type RF."
+msgstr "Podsegment není dovolen pod hlavním segmentem média KNX typu RF."
+
+msgid "A sub-segment is not allowed below a main segment of KNX medium type PL."
+msgstr "Podsegment není povolen pod hlavním segmentem média KNX typu PL."
+
+msgid "A sub-segment of KNX medium type IoT is not allowed below a main segment of the same type."
+msgstr "Dílčí segment média KNX typu IoT není povolen pod hlavním segmentem stejného typu."
+
+msgid "The operation could not be executed, because a RF main line '{line}' requires all other lines in the area to be RF lines as well."
+msgstr "Operaci nelze spustit, protože hlavní linie RF „{line}“vyžaduje, aby i všechny ostatní linie v oblasti byly liniemi RF."
+
+msgid "The operation could not be executed, because a PL main line '{line}' requires all other lines in the area to be PL lines as well."
+msgstr "Operaci nelze uskutečnit, protože PL hlavní linie '{line}' vyžaduje, aby všechny ostatní linie v oblasti byly rovněž PL liniemi."
+
+msgid "The operation could not be executed, because a IoT main line '{line}' requires all other lines in the area to be IoT lines as well."
+msgstr "Operaci nelze spustit, protože hlavní linie IoT „{line}“ vyžaduje, aby i všechny ostatní linie v oblasti byly liniemi IoT."
+
+msgid "The medium type of the line '{line}' cannot be changed to IoT, because its main line '{main}' is not of medium type IP."
+msgstr "Typ média linie „{line}“ nelze změnit na IoT, protože hlavní linie „{main}“ není médium typu IP."
+
+msgid "The medium type of the line '{line}' can no longer be changed to IoT, because it already contains segments that are not allowed in IoT lines."
+msgstr "Typ média linie „{line}“ již nelze změnit na IoT, protože již obsahuje segmenty, které nejsou povoleny v liniích IoT."
+
+msgid "The operation could not be executed, because the line is the IP backbone line and the project contains KNXnet/IP routers. KNXnet/IP routers require an IP backbone line."
+msgstr "Operaci není možné uskutečnit, protože linie je IP páteřní linií a projekt obsahuje  KNXnet/IP routery. KNXnet/IP routery vyžadují IP páteřní linii."
+
+msgid "The operation could not be executed, because the line is the IP main line and the project contains KNXnet/IP routers. KNXnet/IP routers require an IP main line."
+msgstr "Operaci není možné uskutečnit, protože linie je IP hlavní linií a  projekt obsahuje KNXnet/IP routery. KNXnet/IP routery vyžadují IP hlavní linii."
+
+msgid "The operation could not be executed, because the line is the IP backbone line and the project contains IoT or IP lines."
+msgstr "Operaci nelze uskutečnit, protože páteřní linie je IP a projekt obsahuje IoT nebo IP linie."
+
+msgid "The operation could not be executed, because the medium type of the line can only be set to IP if an IP main line exists."
+msgstr "Operace nemůže být vykonána, protože typ média linie může být nastaven pouze na IP, když existuje IP hlavní linie."
+
+msgid "The operation could not be executed, because the medium type of the line can only be set to IP if an IP backbone line exists."
+msgstr "Operaci nelze uskutečnit, protože typ média na linii lze nastavit pouze na IP jestliže existuje IP páteřní linie."
+
+msgid "The operation could not be executed, because below a TP main segment only segments of KNX medium type TP, RF or PL can exist."
+msgstr "Operaci nebylo možno provést, protože pod hlavním segmentem TP mohou existovat jen segmenty média KNx typu TP, RF nebo PL."
+
+msgid "Below a main segment of KNX medium type IP only segments of medium type TP or RF can exist."
+msgstr "Pod hlavním segmentem média KNX typu IP mohou existovat jen segmenty média typu TP nebo RF."
+
+msgid "A sub-segment of KNX medium type PL is not allowed below a main segment."
+msgstr "Podsegment média KNX typu PL není pod hlavním segmentem dovolen."
+
+msgid "Set bus connection of the backbone"
+msgstr "Nastavit spojení se sběrnicí páteře"
+
+msgid "Set domain address"
+msgstr "Nastavit adresu domény"

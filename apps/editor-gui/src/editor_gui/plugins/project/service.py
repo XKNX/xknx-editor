@@ -73,6 +73,7 @@ from xknxeditor.proj.core.ga_export import write_ga_csv as _write_ga_csv
 from xknxeditor.proj.core.identity import qualified_com_object_ref
 from xknxeditor.proj.core.ip_secure import PASSWORD_ACCESS_TYPES
 from xknxeditor.proj.core.medium import (
+    IP_ROUTER_MASKS,
     MEDIUM_RF,
     MEDIUM_TP,
     MediumError,
@@ -81,6 +82,7 @@ from xknxeditor.proj.core.medium import (
 )
 from xknxeditor.proj.core.project_secrets import check_project_password
 from xknxeditor.proj.core.rich_text import parse_rich_text, plain_text
+from xknxeditor.proj.core.service import DEFAULT_MULTICAST_ADDRESS
 
 if TYPE_CHECKING:
     from editor_gui.plugins.base import Logger
@@ -574,6 +576,9 @@ _HISTORY_LABELS: dict[str, Callable[[dict[str, Any]], str]] = {
     ),
     "SetSpaceUsage": lambda d: S.HISTORY_EV_SET_SPACE_USE,
     "SetSpaceDefaultLine": lambda d: S.HISTORY_EV_SET_CURRENT_LINE,
+    "SetInstallationAttribute": lambda d: S.HISTORY_EV_SET_IP_ROUTING,
+    "SetSegmentBusAccess": lambda d: S.HISTORY_EV_SET_BUS_CONNECTION,
+    "SetSegmentDomainAddress": lambda d: S.HISTORY_EV_SET_DOMAIN_ADDRESS,
     "RenameSegment": lambda d: S.HISTORY_EV_RENAME_SEGMENT.format(
         name=_quoted(d, "name")
     ),
@@ -654,6 +659,54 @@ class ElementDetails:
     security: str | None = None
     forced_by: "ForcedSecurity | None" = None
     central: bool | None = None
+    # The backbone's IP routing: network latency (ms), multicast address, its security ("Auto",
+    # "On" or "Off"), and its bus connection: the ``Parameter`` of its ``<BusAccess>`` ("" for
+    # "Automatic") and as shown.
+    latency: int | None = None
+    multicast_address: str = ""
+    backbone_security: str | None = None
+    bus_access: str = ""
+    bus_connection: str = ""
+
+
+def format_bus_access(bus_access: dict[str, str] | None) -> str:
+    """A bus connection kept with a segment, as shown: its name and where it connects to
+    ("IP Tunneling (192.168.16.103:3671 Tcp)"); "" for none."""
+    if not bus_access:
+        return ""
+    fields: dict[str, str] = {}
+    for part in bus_access.get("Parameter", "").split(";"):
+        key, _, value = part.partition("=")
+        if key.strip():
+            fields[key.strip()] = value.strip().strip('"')
+    name = fields.get("Name") or bus_access.get("Name", "") or fields.get("Type", "")
+    host = fields.get("HostAddress", "")
+    if not host:
+        return name
+    where = f"{host}:{fields.get('Port') or 3671}"
+    protocol = fields.get("ProtocolType", "")
+    return f"{name} ({where} {protocol})".replace(" )", ")")
+
+
+def interface_bus_access(name: str, host: str, port: int) -> str:
+    """The ``Parameter`` of the ``<BusAccess>`` of a KNXnet/IP interface tunnelled to over UDP."""
+    where = host if port == 3671 else f"{host};Port={port}"
+    return f'Type=IpTunneling;HostAddress={where};ProtocolType=Udp;Name="{name}"'
+
+
+def line_display_name(area_number: int, line: "_Line") -> str:
+    """A line's name; a backbone or main line without one is called after its medium ("IP
+    backbone line", "TP main line")."""
+    if line.name or line.line_number != 0:
+        return line.name
+    text = S.BACKBONE_LINE_NAME if area_number == 0 else S.MAIN_LINE_NAME
+    return text.format(medium=medium_name(line.medium_type)).strip()
+
+
+def _stored_kind(kind: str) -> str:
+    """The kind the project stores an element's status, comment and description under: the
+    backbone is area 0."""
+    return "area" if kind == "backbone" else kind
 
 
 def format_domain_address(medium: str, address: int | None) -> str:
@@ -705,6 +758,7 @@ def _line_of(line: Any) -> "_Line":
         description=line.description,
         medium_type=ordered[0].medium_type if ordered else MEDIUM_TP,
         domain_address=ordered[0].domain_address if ordered else None,
+        bus_access=ordered[0].bus_access if ordered else None,
         segments=[
             _Segment(
                 id=s.id,
@@ -739,9 +793,10 @@ class _Line:
     line_number: int
     name: str
     description: str = ""
-    # Its main segment's medium and domain address, the line's.
+    # Its main segment's medium, domain address and bus connection, the line's.
     medium_type: str = MEDIUM_TP
     domain_address: int | None = None
+    bus_access: dict[str, str] | None = None
     # Its sub-segments, in their order (the main segment is not among them).
     segments: list[_Segment] = field(default_factory=list[_Segment])
     main_segment_id: int | None = None
@@ -5029,8 +5084,37 @@ class ProjectService:
         line = self.find_line(line_id)
         if self._pid is None or line is None or line.medium_type == medium_type:
             return
-        self._svc.set_line_medium(self._pid, line_id, medium_type)
+        couplers, ip_routers = self._device_roles()
+        self._svc.set_line_medium(
+            self._pid,
+            line_id,
+            medium_type,
+            couplers=couplers,
+            ip_routers=ip_routers,
+            line_names=self._line_names(),
+        )
         self._bump()
+
+    def _device_roles(self) -> tuple[set[int], set[int]]:
+        """The devices whose hardware is a coupler, and those that are KNXnet/IP routers (by
+        their application's mask version), as the catalog knows them."""
+        programs = self._svc.device_programs(cast(str, self._pid))
+        roles = self._catalog.program_roles(sorted(set(programs.values())))
+        couplers = {d for d, p in programs.items() if p in roles and roles[p][0]}
+        ip_routers = {
+            d
+            for d, p in programs.items()
+            if p in roles and roles[p][1] in IP_ROUTER_MASKS
+        }
+        return couplers, ip_routers
+
+    def _line_names(self) -> dict[int, str]:
+        """Every line's name as the tree shows it ("IP main line" for an unnamed main line)."""
+        return {
+            line.id: line_display_name(area.area_number, line)
+            for area in self.get_areas()
+            for line in self.get_lines(area.id)
+        }
 
     def set_segment_medium(self, segment_id: int, medium_type: str) -> None:
         """Change a sub-segment's medium; undoable. Raises ``MediumError`` when it holds devices
@@ -5038,7 +5122,15 @@ class ProjectService:
         segment = self.find_segment(segment_id)
         if self._pid is None or segment is None or segment.medium_type == medium_type:
             return
-        self._svc.set_segment_medium(self._pid, segment_id, medium_type)
+        couplers, ip_routers = self._device_roles()
+        self._svc.set_segment_medium(
+            self._pid,
+            segment_id,
+            medium_type,
+            couplers=couplers,
+            ip_routers=ip_routers,
+            line_names=self._line_names(),
+        )
         self._bump()
 
     def segment_medium(self, segment_id: int) -> tuple[str, bool] | None:
@@ -5523,20 +5615,25 @@ class ProjectService:
 
     @property
     def selected_topology(self) -> tuple[str, int] | None:
-        """The selected element if it is an area, a line or a segment."""
+        """The selected element if it is the backbone, an area, a line or a segment."""
         element = self._selected_element
         return (
             element
-            if element is not None and element[0] in ("area", "line", "segment")
+            if element is not None
+            and element[0] in ("backbone", "area", "line", "segment")
             else None
         )
 
     def select_element(self, kind: str, element_id: int) -> None:
         """An area, line, group range or group address was selected: its details show in place of
-        the device's, its comment in the Comment tab."""
+        the device's, its comment in the Comment tab. The backbone is area 0 ("backbone")."""
         self._selected_element = (kind, element_id)
         self._selected_space_id = None
-        self._comment_target = (kind, element_id)
+        self._comment_target = (_stored_kind(kind), element_id)
+
+    def _main_line(self, area_id: int) -> _Line | None:
+        """The main line (address 0) of the area ``area_id``."""
+        return next((ln for ln in self.get_lines(area_id) if ln.line_number == 0), None)
 
     def find_topology(self, kind: str, element_id: int) -> "_Area | _Line | None":
         """The area or line ``element_id``; None when it does not exist (any more)."""
@@ -5552,6 +5649,75 @@ class ProjectService:
             ),
             None,
         )
+
+    def _backbone_details(self, area_id: int) -> "ElementDetails | None":
+        """The backbone (area 0 with its line 0.0) and the IP routing of the installation."""
+        area = self.find_topology("area", area_id)
+        if self._pid is None or not isinstance(area, _Area) or area.area_number != 0:
+            return None
+        main = self._main_line(area_id)
+        attributes = self._svc.installation_attributes(self._pid)
+        return ElementDetails(
+            "backbone",
+            area_id,
+            "backbone",
+            area.name,
+            area.description,
+            "",
+            "",
+            status=self.completion_status("area", area_id),
+            has_address=False,
+            medium=main.medium_type if main is not None else None,
+            latency=_int_or(attributes.get("IPRoutingLatencyTolerance"), 2000),
+            multicast_address=attributes.get("IPRoutingMulticastAddress")
+            or DEFAULT_MULTICAST_ADDRESS,
+            backbone_security=attributes.get("IPRoutingBackboneSecurity") or "Auto",
+            bus_access=((main.bus_access or {}).get("Parameter", "") if main else ""),
+            bus_connection=format_bus_access(main.bus_access if main else None),
+        )
+
+    def set_backbone_bus_connection(self, parameter: str) -> None:
+        """Set the backbone's bus connection: the ``Parameter`` of its ``<BusAccess>``, "" for
+        "Automatic"; undoable."""
+        area = next((a for a in self.get_areas() if a.area_number == 0), None)
+        main = self._main_line(area.id) if area is not None else None
+        if self._pid is None or main is None or main.main_segment_id is None:
+            return
+        self._svc.set_segment_bus_access(
+            self._pid, main.main_segment_id, parameter or None
+        )
+        self._bump(structural=False)
+
+    def set_element_backbone_security(self, mode: str) -> str | None:
+        """Set the security of the backbone's IP routing ("Auto", "On" or "Off"); the reason it
+        cannot be, or None."""
+        from xknxeditor.proj import ProjectPasswordRequired
+
+        try:
+            self.set_backbone_security(None if mode == "Auto" else mode)
+        except ProjectPasswordRequired:
+            return S.SECURE_DOWNLOAD_PASSWORD_REQUIRED
+        return None
+
+    def set_ip_routing(
+        self, *, latency: int | None = None, multicast_address: str | None = None
+    ) -> str | None:
+        """Set the backbone's network latency (ms) or routing multicast address; the reason it
+        cannot be, or None."""
+        if self._pid is None:
+            return None
+        try:
+            self._svc.set_ip_routing(
+                self._pid, latency=latency, multicast_address=multicast_address
+            )
+        except ValueError:
+            return (
+                S.MULTICAST_ADDRESS_INVALID
+                if multicast_address is not None
+                else S.LATENCY_INVALID
+            )
+        self._bump(structural=False)
+        return None
 
     def element_details(self, kind: str, element_id: int) -> "ElementDetails | None":
         """What the details of an area, line, segment, group range, group address or building
@@ -5575,10 +5741,13 @@ class ProjectService:
                     segment.medium_type, segment.domain_address
                 ),
             )
+        if kind == "backbone":
+            return self._backbone_details(element_id)
         if kind in ("area", "line"):
             element = self.find_topology(kind, element_id)
             status = self.completion_status(kind, element_id)
             if isinstance(element, _Area):
+                main = self._main_line(element.id)
                 return ElementDetails(
                     kind,
                     element_id,
@@ -5588,6 +5757,12 @@ class ProjectService:
                     "",
                     str(element.area_number),
                     status=status,
+                    medium=main.medium_type if main is not None else None,
+                    domain_address=format_domain_address(
+                        main.medium_type, main.domain_address
+                    )
+                    if main is not None
+                    else "",
                 )
             if isinstance(element, _Line):
                 area = self.find_topology("area", element.area_id)
@@ -5675,7 +5850,7 @@ class ProjectService:
         details = self.element_details(kind, element_id)
         if details is None or details.name == name:
             return
-        if kind == "area":
+        if kind in ("area", "backbone"):
             self.rename_area(element_id, details.name, name)
         elif kind == "line":
             self.rename_line(element_id, details.name, name)
@@ -5691,8 +5866,8 @@ class ProjectService:
     def set_element_description(
         self, kind: str, element_id: int, description: str
     ) -> None:
-        if kind in ("area", "line"):
-            self.set_topology_description(kind, element_id, description)
+        if kind in ("area", "line", "backbone"):
+            self.set_topology_description(_stored_kind(kind), element_id, description)
             return
         details = self.element_details(kind, element_id)
         if self._pid is None or details is None or details.description == description:
@@ -5708,9 +5883,14 @@ class ProjectService:
     def set_element_medium(
         self, kind: str, element_id: int, medium_type: str
     ) -> str | None:
-        """Change the medium of a line or a segment; the reason it cannot be, or None."""
+        """Change the medium of a line or a segment, of an area's main line (the backbone's
+        for the backbone); the reason it cannot be, or None."""
         try:
-            if kind == "line":
+            if kind in ("area", "backbone"):
+                main = self._main_line(element_id)
+                if main is not None:
+                    self.set_line_medium(main.id, medium_type)
+            elif kind == "line":
                 self.set_line_medium(element_id, medium_type)
             elif kind == "segment":
                 self.set_segment_medium(element_id, medium_type)
@@ -5817,9 +5997,11 @@ class ProjectService:
 
     def completion_status(self, kind: str, element_id: int) -> str | None:
         """The "Status" of the project (``kind`` "project"), an area, a line, a device (its
-        database id), a space or a function; None when it does not exist (any more)."""
+        database id), a space or a function; None when it does not exist (any more). The
+        backbone's is area 0's."""
         if self._pid is None:
             return None
+        kind = _stored_kind(kind)
         key = (kind, element_id)
         cached = self._status_cache.get(key)
         if cached is not None and cached[0] == self._version:
@@ -5830,6 +6012,7 @@ class ProjectService:
 
     def set_completion_status(self, kind: str, element_id: int, status: str) -> None:
         """Set an element's "Status" (one of ``COMPLETION_STATUSES``); undoable."""
+        kind = _stored_kind(kind)
         if self._pid is None or self.completion_status(kind, element_id) in (
             None,
             status,
@@ -5908,11 +6091,12 @@ class ProjectService:
         return None
 
     def line_choices(self) -> list[tuple[int, str]]:
-        """Every line of the topology as its id and its text ("1.1 Name"), in address order."""
+        """Every line of the topology as its id and its text ("1.1 Name"), in address order; a
+        backbone or main line without a name is called after its medium ("1.0 TP main line")."""
         return [
             (
                 line.id,
-                f"{area.area_number}.{line.line_number} {line.name}".rstrip(),
+                f"{area.area_number}.{line.line_number} {line_display_name(area.area_number, line)}".rstrip(),
             )
             for area in sorted(self.get_areas(), key=lambda a: a.area_number)
             for line in sorted(self.get_lines(area.id), key=lambda ln: ln.line_number)

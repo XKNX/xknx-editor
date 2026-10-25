@@ -412,6 +412,14 @@ class CatalogService:
         catalog lacks the program."""
         return self._service.program_media(hardware2program_id)
 
+    @io_guarded(dict)
+    def program_roles(
+        self, hardware2program_ids: list[str]
+    ) -> dict[str, tuple[bool, str]]:
+        """Per hardware program the catalog has: whether its hardware is a coupler, and the
+        mask version of its application."""
+        return self._service.program_roles(hardware2program_ids)
+
     @io_guarded(lambda: False)
     def has_application(self, application_id: str) -> bool:
         """Whether a hardware program in the catalog loads ``application_id``."""

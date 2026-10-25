@@ -3,12 +3,15 @@
 from __future__ import annotations
 
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Any
 
 import pytest
 from fastmcp import Client
 
-from .test_server import _FIXTURE, _build, _data
+from editor_gui.plugins.mcp.server import build_server
+
+from .test_server import _FIXTURE, _build, _build_ctx, _data
 
 
 async def _line(client: Client, address: str) -> dict[str, Any]:
@@ -77,18 +80,25 @@ async def test_the_medium_follows_the_rules(tmp_path: Path) -> None:
     async with Client(mcp) as client:
         await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
         main = await _line(client, "1.0")
+        with pytest.raises(Exception, match="'IP main line' can no longer be changed"):
+            await client.call_tool(
+                "project_set_medium", {"line_id": main["id"], "medium": "PL"}
+            )
+        line = await _line(client, "1.1")
         changed = await _data(
-            client, "project_set_medium", line_id=main["id"], medium="PL"
+            client, "project_set_medium", line_id=line["id"], medium="PL"
         )
         assert changed == {
             "kind": "line",
-            "element_id": main["id"],
+            "element_id": line["id"],
             "medium": "PL",
             "domain_address": "1",
         }
-        line = await _line(client, "1.1")
+        with pytest.raises(Exception, match="medium type PL"):
+            await client.call_tool("project_add_segment", {"line_id": line["id"]})
+        await _data(client, "project_set_medium", line_id=line["id"], medium="TP")
         segment = await _data(client, "project_add_segment", line_id=line["id"])
-        with pytest.raises(Exception, match="no longer be changed to RF"):
+        with pytest.raises(Exception, match="not allowed below a main segment"):
             await client.call_tool(
                 "project_set_medium", {"line_id": line["id"], "medium": "RF"}
             )
@@ -105,6 +115,72 @@ async def test_the_medium_follows_the_rules(tmp_path: Path) -> None:
             await client.call_tool(
                 "project_set_medium", {"segment_id": 999, "medium": "TP"}
             )
+
+
+async def test_the_backbone(tmp_path: Path) -> None:
+    ctx = _build_ctx(tmp_path)
+    ctx.connection_plugin.gateways = [  # type: ignore[misc]
+        SimpleNamespace(
+            name="IP-Interface",
+            ip_addr="192.168.16.88",
+            port=3671,
+            individual_address="1.0.58",
+            supports_tunnelling=True,
+        ),
+        SimpleNamespace(
+            name="Router only",
+            ip_addr="192.168.16.89",
+            port=3671,
+            individual_address="1.0.59",
+            supports_tunnelling=False,
+        ),
+    ]
+    async with Client(build_server(ctx)) as client:
+        await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
+        backbone = await _data(client, "project_get_backbone")
+        interface = {
+            "parameter": "Type=IpTunneling;HostAddress=192.168.16.88;ProtocolType=Udp;"
+            'Name="IP-Interface"',
+            "text": "IP-Interface (192.168.16.88:3671 Udp - 1.0.58)",
+        }
+        assert {k: v for k, v in backbone.items() if k != "area_id"} == {
+            "name": "",
+            "description": "",
+            "status": "Undefined",
+            "medium": "IP",
+            "latency_ms": 2000,
+            "multicast_address": "224.0.23.12",
+            "security": "Auto",
+            "bus_connection": None,
+            "found_interfaces": [interface],
+        }
+        changed = await _data(
+            client,
+            "project_set_backbone",
+            latency_ms=1000,
+            multicast_address="239.0.0.1",
+            security="Off",
+            bus_connection=interface["parameter"],
+        )
+        assert (changed["latency_ms"], changed["multicast_address"]) == (
+            1000,
+            "239.0.0.1",
+        )
+        assert changed["security"] == "Off"
+        assert changed["bus_connection"] == {
+            "parameter": interface["parameter"],
+            "text": "IP-Interface (192.168.16.88:3671 Udp)",
+        }
+        with pytest.raises(Exception, match="bus_connection must be"):
+            await client.call_tool("project_set_backbone", {"bus_connection": "x"})
+        with pytest.raises(Exception, match="multicast address"):
+            await client.call_tool(
+                "project_set_backbone", {"multicast_address": "10.0.0.1"}
+            )
+        with pytest.raises(Exception, match=r"KNXnet/IP|IoT or IP lines"):
+            await client.call_tool("project_set_backbone", {"medium": "TP"})
+        cleared = await _data(client, "project_set_backbone", bus_connection="")
+        assert cleared["bus_connection"] is None
 
 
 @pytest.mark.skipif(not _FIXTURE.exists(), reason="knxprod fixture missing")

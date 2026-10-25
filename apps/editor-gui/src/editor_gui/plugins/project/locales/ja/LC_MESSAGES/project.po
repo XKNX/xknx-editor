@@ -1162,18 +1162,6 @@ msgstr "グループ・アドレスをフィルター（アドレス、名前）
 msgid "Filter rooms, devices, functions…"
 msgstr "部屋、デバイス、機能をフィルター…"
 
-msgid "Area {area}"
-msgstr "エリア {area}"
-
-msgid "{name} (Area {area})"
-msgstr "{name}（エリア {area}）"
-
-msgid "Line {area}.{line}"
-msgstr "ライン {area}.{line}"
-
-msgid "{name} (Line {area}.{line})"
-msgstr "{name}（ライン {area}.{line}）"
-
 msgid "Unassigned ({count})"
 msgstr "未割り当て（{count}）"
 
@@ -1317,12 +1305,6 @@ msgstr "セキュリティ"
 
 msgid "Automatic"
 msgstr "自動"
-
-msgid "Secured"
-msgstr "安全"
-
-msgid "Not Secured"
-msgstr "安全でない"
 
 msgid "A secured group address can only be linked to devices that are commissioned securely."
 msgstr "安全なグループ・アドレスは、安全にコミッショニングされたデバイスにのみリンクできます。"
@@ -1770,9 +1752,6 @@ msgstr "パスワードは1～20文字のLatin-1文字で指定してくださ�
 
 msgid "Close"
 msgstr "閉じる"
-
-msgid "IP Backbone Security"
-msgstr "IPバックボーン・セキュリティ"
 
 msgid "Device Certificates"
 msgstr "デバイス証明書"
@@ -2362,17 +2341,8 @@ msgstr "セグメント"
 msgid "The medium of a segment can only change while it holds no device."
 msgstr "セグメントのメディアタイプは、デバイスが含まれていない場合にのみ変更できます。"
 
-msgid "A sub-segment is not allowed below a main segment of KNX medium type {medium}."
-msgstr "KNX ミディアムタイプ {medium} のメインセグメントの下に、サブセグメントは許可されません。"
-
 msgid "The medium type of the segment '{segment}' cannot be changed to IoT, because its parent line '{line}' is not of medium type IP."
 msgstr "セグメント '{segment}' のメディアタイプはIoTに変更できません。親のライン '{line}' がIPのメディアタイプではないためです。"
-
-msgid "A sub-segment of KNX medium type {medium} is not allowed."
-msgstr "KNXメディアタイプ{medium}のサブセグメントは許可されません。"
-
-msgid "The medium type of the line '{line}' can no longer be changed to {medium}, because it already contains segments that are not allowed below it."
-msgstr "ライン '{line}' のメディアタイプは{medium}に変更できません。その下で許可されないセグメントがすでに含まれているためです。"
 
 msgid "The maximum number of segments has been reached."
 msgstr "セグメントの最大数に達しました。"
@@ -2385,12 +2355,6 @@ msgstr "デバイス'{device}'はラインのミディアム・タイプとは�
 
 msgid "Device '{device}' is incompatible with segment's medium type."
 msgstr "デバイス'{device}'はセグメントのミディアタイプと互換性がありません。"
-
-msgid "Segment {area}.{line}"
-msgstr "セグメント {area}.{line}"
-
-msgid "{name} (Segment {area}.{line})"
-msgstr "{name}（セグメント {area}.{line}）"
 
 msgid "Add Segment"
 msgstr "セグメントを追加"
@@ -2430,3 +2394,129 @@ msgstr "グループ・アドレスをセントラルに設定"
 
 msgid "Remove central mark from group address"
 msgstr "グループ・アドレスのセントラル設定を解除"
+
+msgid "Topology"
+msgstr "トポロジー"
+
+msgid "{medium} backbone line"
+msgstr "{medium} バックボーン・ライン"
+
+msgid "{medium} main line"
+msgstr "{medium} メイン・ライン"
+
+msgid "Backbone"
+msgstr "バックボーン"
+
+msgid "Backbone Medium"
+msgstr "バックボーン・ミディアム"
+
+msgid "Network Latency"
+msgstr "ネットワーク待ち時間"
+
+msgid "LAN (< 400ms)"
+msgstr "LAN(<400ms)"
+
+msgid "WLAN (< 1s)"
+msgstr "WLAN (< 1秒)"
+
+msgid "WAN (< 2s)"
+msgstr "WAN(<2s)"
+
+msgid "Mobile (< 4s)"
+msgstr "携帯電話(< 4秒)"
+
+msgid "Satellite (< 8s)"
+msgstr "サテライト (< 8秒)"
+
+msgid "The network latency must be a number of milliseconds from 1 to 65535."
+msgstr "ネットワーク待ち時間は 1 から 65535 ミリ秒の数値でなければなりません。"
+
+msgid "Multicast Address"
+msgstr "マルチキャストアドレス"
+
+msgid "Enter a multicast address from 224.0.0.0 to 239.255.255.255."
+msgstr "224.0.0.0 から 239.255.255.255 のマルチキャストアドレスを入力してください。"
+
+msgid "Bus Connection"
+msgstr "バス接続"
+
+msgid "Set IP routing of the backbone"
+msgstr "バックボーンのIPルーティングを設定"
+
+msgid "As long as a coupler exists at a sub line or sub segment, a change of the medium type is not possible."
+msgstr "サブラインやサブセグメントにカプラが存在する限り、メディアタイプの変更はできません。"
+
+msgid "A main line of a project cannot have medium type RF."
+msgstr "プロジェクトのメインラインのメディアタイプはRFとすることはできません。"
+
+msgid "The operation could not be executed, because as medium type of the backbone only IP and TP are allowed."
+msgstr "バックボーンのミディアムタイプとして IP と TP のみ許されるため、操作を実行できませんでした。"
+
+msgid "A sub-segment of KNX medium type IP or PL is not allowed."
+msgstr "KNXメディアタイプIPまたはPLのサブセグメントは許可されません。"
+
+msgid "The medium type of the main line '{line}' can no longer be changed to PL, because it already contains lines or segments that are not allowed in PL main lines."
+msgstr "ライン '{line}' のメディアタイプはPLのメディアに変更できません、なぜならすでに中でPLラインでは許されないラインまたはセグメントを含むためです。"
+
+msgid "The medium type of the main line '{line}' cannot be changed to IoT, because the backbone line '{backbone}' is not of medium type IP."
+msgstr "メインライン '{line}' のメディアタイプはIoTのメディアに変更できません、なぜならバックボーンライン '{backbone}'はIPのメディアタイプではないからです。"
+
+msgid "The medium type of the main line '{line}' can no longer be changed to IoT, because it already contains lines or segments that are not allowed in IoT main lines."
+msgstr "ライン '{line}' のメディアタイプはIoTのメディアに変更できません、なぜならすでに中でIoTラインでは許されないラインまたはセグメントを含むためです。"
+
+msgid "The medium type of the line '{line}' cannot be changed, because it already contains lines or segments that require an IoT or IP main line."
+msgstr "メインライン '{line}' のメディアタイプは変更できません。 IoTやIPのメインラインが必要なラインやセグメントがすでに含まれているため、。"
+
+msgid "A sub-segment is not allowed below a main segment of KNX medium type RF."
+msgstr "KNX ミディアムタイプ RF のメインセグメントの下に、サブセグメントは許可されません。"
+
+msgid "A sub-segment is not allowed below a main segment of KNX medium type PL."
+msgstr "KNX ミディアムタイプ PL のメインセグメントの下に、サブセグメントは許可されません。"
+
+msgid "A sub-segment of KNX medium type IoT is not allowed below a main segment of the same type."
+msgstr "KNXミディアムタイプIoTのサブセグメントは、同じタイプのメインセグメントの下には許可されません。"
+
+msgid "The operation could not be executed, because a RF main line '{line}' requires all other lines in the area to be RF lines as well."
+msgstr "RFメインライン「{line}」では、エリア内の他のすべてのラインもRFラインでなければならないため、操作を実行できませんでした。"
+
+msgid "The operation could not be executed, because a PL main line '{line}' requires all other lines in the area to be PL lines as well."
+msgstr "PL メインライン '{line}' ではエリア内の他のすべてのラインも PL ラインでなければならないため、操作を実行できませんでした。"
+
+msgid "The operation could not be executed, because a IoT main line '{line}' requires all other lines in the area to be IoT lines as well."
+msgstr "IoTメインライン '{line}' では、エリア内の他のすべてのラインもIoTラインでなければならないため、操作を実行できませんでした。"
+
+msgid "The medium type of the line '{line}' cannot be changed to IoT, because its main line '{main}' is not of medium type IP."
+msgstr "セグメント '{line}' のメディアタイプはIoTのメディアに変更できません、なぜならその親のライン '{main}'はIPのメディアタイプではないからです。"
+
+msgid "The medium type of the line '{line}' can no longer be changed to IoT, because it already contains segments that are not allowed in IoT lines."
+msgstr "ライン '{line}' のメディアタイプはIoTのメディアに変更できません、なぜならすでに中でIoTラインでは許されないセグメントを含むためです。"
+
+msgid "The operation could not be executed, because the line is the IP backbone line and the project contains KNXnet/IP routers. KNXnet/IP routers require an IP backbone line."
+msgstr "ラインがIPバックボーン・ラインであり、プロジェクトがKNXネット/IPルーターを含んでいる為、オペレーションは実行できませんでした。KNXネット/IPルーターはIPバックボーン・ラインを必要とします."
+
+msgid "The operation could not be executed, because the line is the IP main line and the project contains KNXnet/IP routers. KNXnet/IP routers require an IP main line."
+msgstr "ラインがIPメイン・ラインでプロジェクトがKNXネット/IPルーターを含んでいるため、オペレーションは実行できませんでした。KNXネット/IPルーターはＩＰメイン・ラインを必要とします."
+
+msgid "The operation could not be executed, because the line is the IP backbone line and the project contains IoT or IP lines."
+msgstr "ラインがIPバックボーンラインで、プロジェクトがIoTまたはIPラインを含む為、操作は実行できませんでした。"
+
+msgid "The operation could not be executed, because the medium type of the line can only be set to IP if an IP main line exists."
+msgstr "IPがメイン・ラインに存在する場合、ラインのミディアム・タイプはIPにのみセットできるので、オペレーションは実行できませんでした."
+
+msgid "The operation could not be executed, because the medium type of the line can only be set to IP if an IP backbone line exists."
+msgstr "IPバックボーン・ラインが存在する場合のみ、ラインのミディアム・タイプはIPに設定できるので、オペレーションは実行できませんでした."
+
+msgid "The operation could not be executed, because below a TP main segment only segments of KNX medium type TP, RF or PL can exist."
+msgstr "TPメインセグメントの下には、KNXメディアタイプ TP、RF、PLのセグメントのみが存在できるため、操作を実行できませんでした。"
+
+msgid "Below a main segment of KNX medium type IP only segments of medium type TP or RF can exist."
+msgstr "KNXメディアタイプIPのメインセグメントの下には、メディアタイプTPかRFのセグメントのみ存在できます。"
+
+msgid "A sub-segment of KNX medium type PL is not allowed below a main segment."
+msgstr "KNXメディアタイプPLのサブセグメントは、メインセグメントの下では許可されません。"
+
+msgid "Set bus connection of the backbone"
+msgstr "バックボーンのバス接続を設定"
+
+msgid "Set domain address"
+msgstr "ドメインアドレスを設定"
