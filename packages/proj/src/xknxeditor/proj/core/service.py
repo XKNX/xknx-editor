@@ -2024,12 +2024,14 @@ class ProjectService:
         medium_config_loaded: bool | None = None,
         parameters_loaded: bool | None = None,
         mac_address: str | None = None,
+        download: bool = False,
     ) -> None:
         """Update a device's commissioning state (loaded ticks, serial, last download, the MAC
         address read from an IP device).
 
         Each field is optional; ``None`` leaves it unchanged. Typically called after programming to
-        record what was loaded, and by the importer's round-trip (the ``.knxproj`` carries it)."""
+        record what was loaded (``download``: then its "Last Modified" stays), and by the
+        importer's round-trip (the ``.knxproj`` carries it)."""
         self._state(project_id).store.append(
             SetDeviceCommissioning(
                 device_id=device_id,
@@ -2041,6 +2043,7 @@ class ProjectService:
                 medium_config_loaded=medium_config_loaded,
                 parameters_loaded=parameters_loaded,
                 mac_address=mac_address,
+                download=download,
             )
         )
 

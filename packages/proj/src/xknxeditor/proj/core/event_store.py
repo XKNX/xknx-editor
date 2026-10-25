@@ -13,6 +13,7 @@ from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
 from xknxeditor.proj.core.events import Event, deserialize_event
+from xknxeditor.proj.core.modified import stamp_modified
 from xknxeditor.proj.models import Event as EventModel
 
 
@@ -53,6 +54,7 @@ class EventStore:
             )
 
             event.apply(self._session)
+            stamp_modified(self._session, event)
 
             model = EventModel(
                 type=event.event_type,
@@ -77,7 +79,9 @@ class EventStore:
         if model is None:
             return False
 
-        deserialize_event(model.type, model.data).revert(self._session)
+        event = deserialize_event(model.type, model.data)
+        event.revert(self._session)
+        stamp_modified(self._session, event, reverting=True)
         model.reverted = True
         self._session.commit()
 
@@ -106,7 +110,9 @@ class EventStore:
         if model is None:
             return False
 
-        deserialize_event(model.type, model.data).apply(self._session)
+        event = deserialize_event(model.type, model.data)
+        event.apply(self._session)
+        stamp_modified(self._session, event)
         model.reverted = False
         self._session.commit()
 

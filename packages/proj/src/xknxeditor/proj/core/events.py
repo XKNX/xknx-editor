@@ -3939,6 +3939,21 @@ class SetDeviceCommissioning(Event):
     parameters_loaded: bool | None = None
     mac_address: str | None = None
     _old: dict[str, Any] = field(default_factory=dict[str, Any])
+    # Recorded by a download, which leaves the device's "Last Modified" as it was.
+    download: bool = False
+
+    def changed(self) -> bool:
+        """Whether applying it changed a value (the old ones are in ``_old``)."""
+        if any(
+            self._old[name] != getattr(self, name)
+            for name in _COMMISSIONING_FIELDS
+            if name in self._old
+        ):
+            return True
+        if "ip_config" not in self._old:
+            return False
+        old_config = cast("dict[str, str] | None", self._old["ip_config"]) or {}
+        return old_config.get("MACAddress") != self.mac_address
 
     def apply(self, session: Session) -> None:
         device = session.get(Device, self.device_id)
@@ -3970,6 +3985,7 @@ class SetDeviceCommissioning(Event):
             **{name: getattr(self, name) for name in _COMMISSIONING_FIELDS},
             "mac_address": self.mac_address,
             "_old": self._old,
+            "download": self.download,
         }
 
     @classmethod

@@ -84,6 +84,7 @@ from xknxeditor.proj.core.medium import (
     medium_name,
     parse_domain_address,
 )
+from xknxeditor.proj.core.modified import project_timestamp
 from xknxeditor.proj.core.project_secrets import check_project_password
 from xknxeditor.proj.core.rich_text import parse_rich_text, plain_text
 from xknxeditor.proj.core.service import DEFAULT_MULTICAST_ADDRESS
@@ -3685,11 +3686,7 @@ class ProjectService:
         flags = _COMMISSIONING_BY_SCOPE.get(scope_value)
         if flags is None:
             return
-        now = (
-            None
-            if scope_value == "unload"
-            else datetime.datetime.now(datetime.UTC).strftime("%Y-%m-%dT%H:%M:%S.%f0Z")
-        )
+        now = None if scope_value == "unload" else project_timestamp()
         self.set_device_commissioning(
             node_id,
             serial_number=serial_to_project(serial) if serial else None,
@@ -3697,6 +3694,7 @@ class ProjectService:
             mac_address=":".join(f"{b:02X}" for b in mac_address)
             if mac_address
             else None,
+            download=True,
             **flags,
         )
 
@@ -3712,9 +3710,11 @@ class ProjectService:
         medium_config_loaded: bool | None = None,
         parameters_loaded: bool | None = None,
         mac_address: str | None = None,
+        download: bool = False,
     ) -> None:
         """Record a device's commissioning state (loaded ticks / serial / last download / MAC
-        address).
+        address); ``download`` for what a download recorded (the device's "Last Modified"
+        stays).
 
         Called after programming a device. Non-structural: the device's parameter/com-object UI is
         unchanged, so the expensive device cache is preserved (only the revision bumps)."""
@@ -3731,6 +3731,7 @@ class ProjectService:
             medium_config_loaded=medium_config_loaded,
             parameters_loaded=parameters_loaded,
             mac_address=mac_address,
+            download=download,
         )
         self._bump(structural=False)
 
