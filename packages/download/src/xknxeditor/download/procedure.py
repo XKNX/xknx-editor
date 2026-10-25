@@ -116,7 +116,12 @@ from .group_communication import materialize_group_communication_controls
 from .ip_config import IP_PARAMETER_OBJECT, IP_PROPERTY_WIDTHS
 from .merge import resolve_download_controls
 from .preflight import PreflightReport, PropertyDiff, SegmentDiff
-from .programmer import DEFAULT_MAX_APDU_LENGTH, PID_TABLE_REFERENCE, DeviceProgrammer
+from .programmer import (
+    DEFAULT_MAX_APDU_LENGTH,
+    PID_TABLE_REFERENCE,
+    DeviceProgrammer,
+    negotiated_apdu_length,
+)
 from .property_layout import STANDARD_WRITE_WIDTHS, property_width
 from .resources import bundled_mask_resources, property_mapped_lsms
 from .scope import (
@@ -923,9 +928,8 @@ class LoadProcedureRunner:
             if self._negotiated_apdu is None:
                 if self._property_services:
                     device_max = await programmer.read_max_apdu_length()
-                    self._negotiated_apdu = max(
-                        DEFAULT_MAX_APDU_LENGTH,
-                        min(device_max, self._max_apdu_length),
+                    self._negotiated_apdu = negotiated_apdu_length(
+                        device_max, self._max_apdu_length
                     )
                     logger.info(
                         "negotiated APDU length: %d (device reports %d)",

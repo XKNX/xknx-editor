@@ -51,7 +51,12 @@ from .preflight import (
     SegmentDiff,
 )
 from .procedure import LoadProcedureRunner
-from .programmer import ConnectionManager, DeviceProgrammer
+from .programmer import (
+    DEFAULT_MAX_APDU_LENGTH,
+    ConnectionManager,
+    DeviceProgrammer,
+    negotiated_apdu_length,
+)
 from .project_data import (
     GroupObjectLink,
     SeedDevice,
@@ -72,6 +77,7 @@ from .tables import (
 __version__ = "0.1.0"
 
 __all__ = [
+    "DEFAULT_MAX_APDU_LENGTH",
     "FILTER_TABLE_SIZE",
     "AddressInUseError",
     "Association",
@@ -117,6 +123,7 @@ __all__ = [
     "is_coupler_address",
     "load_device_security",
     "module_instances_from_device",
+    "negotiated_apdu_length",
     "parameter_instance_refs_from_device",
     "parameter_values_from_device",
     "preflight",

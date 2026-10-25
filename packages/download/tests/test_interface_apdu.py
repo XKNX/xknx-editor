@@ -17,9 +17,21 @@ from xknxeditor.download.download import (
     preflight,
 )
 from xknxeditor.download.errors import MemoryReadNotAnswered
-from xknxeditor.download.programmer import DeviceProgrammer
+from xknxeditor.download.programmer import DeviceProgrammer, negotiated_apdu_length
 
 download_module = importlib.import_module("xknxeditor.download.download")
+
+
+def test_negotiated_apdu_length_caps_at_the_interface() -> None:
+    # No interface limit: the device maximum, capped at the communication ceiling.
+    assert negotiated_apdu_length(55) == 55
+    assert negotiated_apdu_length(254) == 239
+    # The interface limit wins when it is the smaller.
+    assert negotiated_apdu_length(254, 55) == 55
+    assert negotiated_apdu_length(55, 15) == 15
+    # Never below the mandatory standard frame, whatever the device or interface reports.
+    assert negotiated_apdu_length(8) == 15
+    assert negotiated_apdu_length(254, 10) == 15
 
 
 def test_negotiation_stays_within_the_interface() -> None:

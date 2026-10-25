@@ -18,7 +18,12 @@ from typing import TYPE_CHECKING
 from xknx.exceptions import ManagementConnectionError, XKNXException
 from xknx.telegram import IndividualAddress
 
-from xknxeditor.download import DeviceProgrammer
+from xknxeditor.download import (
+    DEFAULT_MAX_APDU_LENGTH,
+    DeviceProgrammer,
+    negotiated_apdu_length,
+)
+from xknxeditor.download.errors import MemoryReadNotAnswered
 from xknxeditor.download.session import connect
 
 from .dossier import DeviceDossier, read_dossier
@@ -219,6 +224,7 @@ async def recover_device_at(
     application: Application,
     *,
     negotiate_apdu: bool = True,
+    interface_max_apdu_length: int | None = None,
     progress: Callable[[str], None] | None = None,
     attempts: int = 3,
     retry_delay: float = 1.5,
@@ -226,14 +232,19 @@ async def recover_device_at(
     """Open a connection to ``address``, recover the device, and close it again.
 
     ``xknx`` has to be started. When ``negotiate_apdu`` is set the device's maximum
-    APDU length is read first so reads use larger, fewer telegrams. ``progress``
-    reports the current read stage. Read-only.
+    APDU length is read first so reads use larger, fewer telegrams, capped at
+    ``interface_max_apdu_length`` (the connecting interface's maximum): a device behind
+    a tunnelling-v1 interface may advertise longer frames than the interface can carry,
+    and those frames are dropped. ``progress`` reports the current read stage. Read-only.
 
     A transient transport failure (the KNXnet/IP tunnel dropping the point-to-point
     connection under sustained load - a ``DisconnectRequest``, a missing ACK, or a
     timeout that a table read did not tolerate) reconnects and retries the whole
     device up to ``attempts`` times, so one bus hiccup does not fail a device on a
-    large scan. The last error is raised if every attempt fails.
+    large scan. Every retry falls back to the mandatory 15-octet APDU, which every
+    device and interface can carry: a device whose longer frames the interface drops
+    then still recovers, just more slowly. The last error is raised if every attempt
+    fails.
     """
     target = IndividualAddress(address)
     last_exc: Exception | None = None
@@ -243,13 +254,24 @@ async def recover_device_at(
             connection = await connect(xknx, target)
             programmer = DeviceProgrammer(connection)
             if negotiate_apdu:
-                with contextlib.suppress(XKNXException):
-                    programmer.max_apdu_length = await programmer.read_max_apdu_length()
+                if attempt == 0:
+                    with contextlib.suppress(XKNXException):
+                        device_max = await programmer.read_max_apdu_length()
+                        programmer.max_apdu_length = negotiated_apdu_length(
+                            device_max, interface_max_apdu_length
+                        )
+                else:
+                    # An earlier attempt failed: drop to the mandatory 15 octets in case a
+                    # longer frame the interface could not deliver was the cause.
+                    programmer.max_apdu_length = DEFAULT_MAX_APDU_LENGTH
             return await recover_device(
                 programmer, application, address=str(target), progress=progress
             )
-        except (ManagementConnectionError, XKNXException) as exc:
-            last_exc = exc  # transport hiccup: reconnect and retry
+        except (ManagementConnectionError, XKNXException, MemoryReadNotAnswered) as exc:
+            # Transport hiccup, or a long read the interface dropped (raised as
+            # MemoryReadNotAnswered, which is not an XKNXException): reconnect and retry,
+            # the next attempt at the 15-octet fallback.
+            last_exc = exc
         finally:
             if connection is not None:
                 with contextlib.suppress(ManagementConnectionError, XKNXException):

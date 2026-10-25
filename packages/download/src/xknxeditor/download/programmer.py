@@ -126,6 +126,24 @@ _USER_MEMORY_BOUNDARY = 0x10000
 _MAX_USER_MEMORY_CHUNK = 0xF
 
 
+def negotiated_apdu_length(
+    device_max_apdu_length: int, interface_max_apdu_length: int | None = None
+) -> int:
+    """APDU length to use with a device: its reported maximum, capped at what the
+    connecting interface can carry (and the communication ceiling) and floored at the
+    mandatory 15 octets.
+
+    A frame longer than the interface accepts is dropped even when the device could take
+    it, so a device reached through a tunnelling-v1 interface must stay at the interface
+    limit. Applies the same ceiling as the download negotiation so bus recovery sizes
+    frames the same way.
+    """
+    ceiling = MAX_COMMUNICATION_APDU_LENGTH
+    if interface_max_apdu_length is not None:
+        ceiling = min(ceiling, interface_max_apdu_length)
+    return max(DEFAULT_MAX_APDU_LENGTH, min(device_max_apdu_length, ceiling))
+
+
 class BusConnection(Protocol):
     """Subset of ``xknx.management.P2PConnection`` used for programming."""
 
