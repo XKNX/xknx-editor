@@ -7,7 +7,7 @@ touch screen where the mouse has nothing alike.
   started in (up and down, or sideways); sideways on a tab bar it moves the tabs. Where nothing
   scrolls that way, or the finger is on a scroll bar, a window's title or something that shows a
   resize pointer (a splitter, a column border), it drags like the mouse (also a slider moved
-  sideways).
+  sideways). On a menu that has nothing to scroll it does nothing.
 - Holding the finger still for a moment (the page tells when) and lifting it is a right-click,
   for the context menus; holding and then moving drags like the mouse (drag and drop, selecting
   text).
@@ -385,6 +385,11 @@ class ImGuiTouchUi:
             ):
                 return None
             if _room(window, vertical) > 0.0:
+                return window.name
+            # A menu with nothing to scroll: the swipe does nothing. It neither scrolls the menu
+            # a submenu opened from (imgui makes a submenu a child window of it) nor drags over
+            # the items, which would pick the one it ends on.
+            if window.flags & imgui.WindowFlags_.child_menu:
                 return window.name
             if not window.flags & imgui.WindowFlags_.child_window:
                 return None
