@@ -142,3 +142,47 @@ def test_no_progress_without_a_bus_operation() -> None:
     operation[0] = None
     _frames(panel, 3)
     assert reads == []
+
+
+def test_an_operation_connected_for_that_did_not_start_keeps_its_reason() -> None:
+    from concurrent.futures import Future
+
+    from editor_gui.plugins.connection.service import OperationNotStarted
+    from editor_gui.plugins.project.program_queue import (
+        OperationState,
+        QueueItem,
+        _outcome,  # pyright: ignore[reportPrivateUsage]
+    )
+
+    item = QueueItem(node_id=1, address="1.1.5", name="Dimmer", scope=None)
+    item.message = "The device has no valid address."
+    future: Future[object] = Future()
+    future.set_exception(OperationNotStarted("program_device could not start"))
+    assert _outcome(item, future) == (OperationState.FAILED, None)
+    item.message = None
+    assert _outcome(item, future) == (
+        OperationState.FAILED,
+        "program_device could not start",
+    )
+
+
+def test_a_certificate_found_missing_after_connecting_is_asked_for() -> None:
+    from editor_gui.plugins.connection.service import DeviceCertificateRequired
+    from editor_gui.plugins.project.program_queue import QueueItem
+
+    asked: list[int] = []
+    device = SimpleNamespace(node_id=1)
+    plugin = ProjectPlugin.__new__(ProjectPlugin)
+    plugin._api = SimpleNamespace(  # pyright: ignore[reportPrivateUsage, reportAttributeAccessIssue]
+        project=SimpleNamespace(find_device_by_node_id=lambda _n: device)
+    )
+    plugin._ask_certificate = lambda d, _item: asked.append(d.node_id)  # pyright: ignore[reportPrivateUsage, reportAttributeAccessIssue]
+    error = DeviceCertificateRequired("1.1.5")
+    item = QueueItem(node_id=1, address="1.1.5", name="Dimmer", scope=None)
+    assert plugin._program_error_text(error) == S.DEVICE_CERTIFICATE_REQUIRED  # pyright: ignore[reportPrivateUsage]
+    assert plugin._describe_program_error(item, error) is None  # pyright: ignore[reportPrivateUsage]
+    assert asked == [1]
+    # An operation an MCP client started gets the message instead of the dialog.
+    item.origin = "MCP"
+    plugin._describe_program_error(item, error)  # pyright: ignore[reportPrivateUsage]
+    assert asked == [1]

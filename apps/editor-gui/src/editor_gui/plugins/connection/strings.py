@@ -257,5 +257,33 @@ class ConnectionStrings:
     def MENU_RETRY(self) -> str:
         return _("Retry")
 
+    @property
+    def SELECT_CONNECTION_TITLE(self) -> str:
+        return _("Select Connection")
+
+    @property
+    def SELECT_CONNECTION_AUTOMATIC(self) -> str:
+        return _("XKNX Editor could not determine an available connection.")
+
+    @property
+    def SELECT_CONNECTION_SPECIFIC(self) -> str:
+        return _("The connection {name} is not available.")
+
+    @property
+    def SELECT_CONNECTION_INSTEAD(self) -> str:
+        return _("You may use any of the connections listed below, instead.")
+
+    @property
+    def SELECT_CONNECTION_FAILED(self) -> str:
+        return _("{name}: {error}")
+
+    @property
+    def SELECT_CONNECTION_CANCEL(self) -> str:
+        return _("Cancel")
+
+    @property
+    def BUS_CONNECTION_UNSUPPORTED(self) -> str:
+        return _("This kind of connection is not supported.")
+
 
 S = ConnectionStrings()

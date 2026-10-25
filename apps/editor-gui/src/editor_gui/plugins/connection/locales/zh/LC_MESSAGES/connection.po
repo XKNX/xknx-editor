@@ -174,3 +174,24 @@ msgstr "服务：{services}"
 
 msgid "Retry"
 msgstr "重试"
+
+msgid "Select Connection"
+msgstr "选择连接"
+
+msgid "XKNX Editor could not determine an available connection."
+msgstr "XKNX Editor无法确定可用的连接。"
+
+msgid "The connection {name} is not available."
+msgstr "连接{name} 不可用。"
+
+msgid "You may use any of the connections listed below, instead."
+msgstr "您可以使用下面列出的任何连接。"
+
+msgid "{name}: {error}"
+msgstr "{name}: {error}"
+
+msgid "Cancel"
+msgstr "取消"
+
+msgid "This kind of connection is not supported."
+msgstr "不支持此类连接。"

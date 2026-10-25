@@ -76,7 +76,9 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
     service = ctx.api.connection
 
     def _ensure_connected() -> None:
-        if ctx.api.connection.xknx is None:
+        # Without an open connection the editor connects through the backbone's Bus
+        # Connection (project_set_backbone), else the user selects one in the editor.
+        if not ctx.api.connection.can_reach_bus():
             raise ToolError(
                 "no KNX connection; connect first with connection_connect (configured gateway) "
                 "or connection_scan + connection_connect_gateway"

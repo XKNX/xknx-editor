@@ -174,3 +174,24 @@ msgstr "Υπηρεσίες: {services}"
 
 msgid "Retry"
 msgstr "Επανάληψη"
+
+msgid "Select Connection"
+msgstr "Επιλέξτε σύνδεση"
+
+msgid "XKNX Editor could not determine an available connection."
+msgstr "Το XKNX Editor δεν μπόρεσε να καθορίσει μια διαθέσιμη σύνδεση."
+
+msgid "The connection {name} is not available."
+msgstr "Η σύνδεση {name} δεν είναι διαθέσιμη."
+
+msgid "You may use any of the connections listed below, instead."
+msgstr "Αντ' αυτού, μπορείτε να χρησιμοποιήσετε οποιαδήποτε από τις συνδέσεις που αναφέρονται παρακάτω."
+
+msgid "{name}: {error}"
+msgstr "{name}: {error}"
+
+msgid "Cancel"
+msgstr "Ακύρωση"
+
+msgid "This kind of connection is not supported."
+msgstr "Αυτός ο τύπος σύνδεσης δεν υποστηρίζεται."

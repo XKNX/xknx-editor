@@ -260,11 +260,11 @@ class ProjectPlugin:
         self._focus_tools = False
 
         group_bus = GroupValueBus(
-            connected=lambda: api.connection.xknx is not None,
-            read=lambda address: api.connection.send_group_telegram(
+            connected=api.connection.can_reach_bus,
+            read=lambda address: api.connection.send_group_value(
                 address, GroupValueRead()
             ),
-            write=lambda address, payload: api.connection.send_group_telegram(
+            write=lambda address, payload: api.connection.send_group_value(
                 address, GroupValueWrite(payload)
             ),
             formats=lambda: cached_master_formats(api.connection.master),
@@ -1015,7 +1015,7 @@ class ProjectPlugin:
 
     def _render_dali_tab(self, device: "Device") -> None:
         """Render the DALI commissioning tab body (MDT DALI devices), passing bus-connected state."""
-        self._dali_panel.render(device, connected=self._api.connection.xknx is not None)
+        self._dali_panel.render(device, connected=self._api.connection.can_reach_bus())
 
     def _run_dali(self, device: "Device", op: "Any", channel: int = 0) -> bool:
         """Start a DALI commissioning coroutine over the bus; True if it was accepted (bus free)."""
@@ -1054,7 +1054,7 @@ class ProjectPlugin:
     def _render_siemens_dali_tab(self, device: "Device") -> None:
         """Render the Siemens N141/03 DALI read-only snapshot tab body."""
         self._siemens_dali_panel.render(
-            device, connected=self._api.connection.xknx is not None
+            device, connected=self._api.connection.can_reach_bus()
         )
 
     def _run_siemens_dali(self, device: "Device", op: "Any") -> bool:
@@ -2323,11 +2323,14 @@ class ProjectPlugin:
 
     def _program_error_text(self, error: BaseException) -> str | None:
         """Translated text of the download errors the editor explains itself."""
+        from editor_gui.plugins.connection.service import DeviceCertificateRequired
         from xknxeditor.download.partial import (
             DifferentProgramLoaded,
             IncompatibleMaskVersion,
         )
 
+        if isinstance(error, DeviceCertificateRequired):
+            return S.DEVICE_CERTIFICATE_REQUIRED
         if isinstance(error, DifferentProgramLoaded):
             return S.DIFFERENT_PROGRAM_LOADED
         if isinstance(error, IncompatibleMaskVersion):
@@ -2339,7 +2342,16 @@ class ProjectPlugin:
     def _describe_program_error(
         self, item: QueueItem, error: BaseException
     ) -> str | None:
-        """For a failed device check, the project devices the reported value belongs to."""
+        """For a failed device check, the project devices the reported value belongs to. A
+        download that found the device's certificate missing only once it had connected for it
+        asks for the certificate, as one that found it before."""
+        from editor_gui.plugins.connection.service import DeviceCertificateRequired
+
+        if isinstance(error, DeviceCertificateRequired):
+            device = self._api.project.find_device_by_node_id(item.node_id)
+            if device is not None and item.origin is None:
+                self._ask_certificate(device, item)
+            return None
         mismatch = compare_mismatch(error)
         if mismatch is None:
             return None
@@ -2602,9 +2614,9 @@ class ProjectPlugin:
 
     def _eval_device(self, device: "Device", scope: "DownloadScope") -> None:
         label = device.name or device.individual_address or "device"
-        # The test reads the live device, so it needs a bus connection; without one
-        # there is nothing to compare against.
-        if self._api.connection.xknx is None:
+        # The test reads the live device, so it needs a bus connection; without one (and none
+        # to open for it) there is nothing to compare against.
+        if not self._api.connection.can_reach_bus():
             self._preflight_result.submit_error(
                 label, scope.name, S.PREFLIGHT_NO_CONNECTION
             )

@@ -415,7 +415,9 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         routing (224.0.0.0 to 239.255.255.255); ``security`` of the IP routing (On needs a
         project password: it creates the backbone key); ``bus_connection`` "" for Automatic, or
         the parameter of one of project_get_backbone's found_interfaces or of its current
-        bus_connection. Each change is an undo step (project_undo), except the security. Returns
+        bus_connection: an online operation (programming, a device test, a group value read or
+        write …) that finds no open connection connects through it and closes it afterwards.
+        Each change is an undo step (project_undo), except the security. Returns
         what project_get_backbone returns."""
         require_project(ctx)
 

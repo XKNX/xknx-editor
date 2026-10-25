@@ -5794,6 +5794,17 @@ class ProjectService:
             bus_connection=format_bus_access(main.bus_access if main else None),
         )
 
+    def backbone_bus_connection(self) -> tuple[str, str] | None:
+        """The backbone's bus connection: its ``Parameter`` and its name as shown; None for
+        "Automatic" (or without a project). An online operation that finds no open connection
+        connects through it."""
+        area = next((a for a in self.get_areas() if a.area_number == 0), None)
+        main = self._main_line(area.id) if area is not None else None
+        access = main.bus_access if main is not None else None
+        if not access or not access.get("Parameter"):
+            return None
+        return access["Parameter"], format_bus_access(access)
+
     def set_backbone_bus_connection(self, parameter: str) -> None:
         """Set the backbone's bus connection: the ``Parameter`` of its ``<BusAccess>``, "" for
         "Automatic"; undoable."""

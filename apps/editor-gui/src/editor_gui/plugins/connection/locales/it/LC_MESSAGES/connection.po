@@ -174,3 +174,24 @@ msgstr "Servizi: {services}"
 
 msgid "Retry"
 msgstr "Riprova"
+
+msgid "Select Connection"
+msgstr "Seleziona connessione"
+
+msgid "XKNX Editor could not determine an available connection."
+msgstr "XKNX Editor non può determinare una connessione disponibile."
+
+msgid "The connection {name} is not available."
+msgstr "La connessione {name} non è disponibile."
+
+msgid "You may use any of the connections listed below, instead."
+msgstr "È possibile utilizzare invece una qualsiasi delle connessioni elencate di seguito."
+
+msgid "{name}: {error}"
+msgstr "{name}: {error}"
+
+msgid "Cancel"
+msgstr "Annulla"
+
+msgid "This kind of connection is not supported."
+msgstr "Questo tipo di connessione non è supportato."

@@ -128,7 +128,8 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
     channels: dict[tuple[int, int], _Channel] = {}
 
     def _ensure_connected() -> None:
-        if service.xknx is None:
+        # Without an open connection the editor connects for the operation (see connection.py).
+        if not service.can_reach_bus():
             raise ToolError(
                 "no KNX connection; connect first with connection_connect (configured gateway) "
                 "or connection_scan + connection_connect_gateway"

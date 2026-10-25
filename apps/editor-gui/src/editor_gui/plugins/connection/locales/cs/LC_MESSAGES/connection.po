@@ -174,3 +174,24 @@ msgstr "Služby: {services}"
 
 msgid "Retry"
 msgstr "Zkusit znovu"
+
+msgid "Select Connection"
+msgstr "Vybrat připojení"
+
+msgid "XKNX Editor could not determine an available connection."
+msgstr "XKNX Editor se nepodařilo určit dostupné připojení."
+
+msgid "The connection {name} is not available."
+msgstr "Připojení {name} není dostupné."
+
+msgid "You may use any of the connections listed below, instead."
+msgstr "Namísto toho můžete použít kterékoli z níže uvedených připojení."
+
+msgid "{name}: {error}"
+msgstr "{name}: {error}"
+
+msgid "Cancel"
+msgstr "Zrušit"
+
+msgid "This kind of connection is not supported."
+msgstr "Tento druh připojení není podporován."
