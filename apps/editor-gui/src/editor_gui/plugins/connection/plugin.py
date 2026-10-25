@@ -94,16 +94,35 @@ class ConnectionState(Enum):
     ERROR = "error"
 
 
+def split_endpoint(address: str) -> tuple[str, int]:
+    """The host and port of an interface address as entered: ``host`` (port 3671) or
+    ``host:port``."""
+    text = address.strip()
+    host, colon, port = text.rpartition(":")
+    if colon and host and ":" not in host and port.isdigit() and 0 < int(port) < 65536:
+        return host, int(port)
+    return text, DEFAULT_GATEWAY_PORT
+
+
+def join_endpoint(host: str, port: int) -> str:
+    """An interface address as entered: the host, with ``:port`` when not 3671."""
+    return host if port == DEFAULT_GATEWAY_PORT else f"{host}:{port}"
+
+
 def tunnel_host(parameter: str) -> str | None:
-    """The host a Bus Connection (a ``<BusAccess>`` ``Parameter``) tunnels to, for a KNXnet/IP
-    tunnelling one (``Type=IpTunneling;HostAddress=…``); None for any other kind."""
+    """The address a Bus Connection (a ``<BusAccess>`` ``Parameter``) tunnels to, for a
+    KNXnet/IP tunnelling one (``Type=IpTunneling;HostAddress=…;Port=…``): its host, with
+    ``:port`` when not 3671; None for any other kind."""
     fields: dict[str, str] = {}
     for part in parameter.split(";"):
         key, _, value = part.partition("=")
         fields[key.strip()] = value.strip().strip('"')
     if fields.get("Type") != "IpTunneling" or not fields.get("HostAddress"):
         return None
-    return fields["HostAddress"]
+    port = fields.get("Port", "")
+    return join_endpoint(
+        fields["HostAddress"], int(port) if port.isdigit() else DEFAULT_GATEWAY_PORT
+    )
 
 
 class _OperationConnector:
@@ -339,7 +358,7 @@ class ConnectionPlugin:
             return
         if gateway.supports_tunnelling:
             self._connection_type = ConnectionType.TUNNELING
-            self._controller_ip = gateway.ip_addr
+            self._controller_ip = join_endpoint(gateway.ip_addr, gateway.port)
         else:
             self._connection_type = ConnectionType.ROUTING
             self._multicast_group = gateway.multicast_address or DEFAULT_MCAST_GRP
@@ -478,8 +497,9 @@ class ConnectionPlugin:
     async def _gateway_description(self) -> GatewayDescriptor | None:
         """The tunnelling interface's description as it is now: its download changes the services
         it secures."""
+        host, port = self._endpoint()
         try:
-            return await request_description(self._controller_ip)
+            return await request_description(host, port)
         except Exception as err:
             self._log.debug(
                 "gateway description unavailable",
@@ -516,6 +536,7 @@ class ConnectionPlugin:
                 multicast_group=self._multicast_group,
                 threaded=True,
             )
+        host, port = self._endpoint()
         if gateway is not None and gateway.tunnelling_requires_secure:
             free = [
                 str(address)
@@ -531,7 +552,8 @@ class ConnectionPlugin:
                 raise MissingCredentialsError(gateway)
             return ConnectionConfig(
                 connection_type=ConnectionType.TUNNELING_TCP_SECURE,
-                gateway_ip=self._controller_ip,
+                gateway_ip=host,
+                gateway_port=port,
                 individual_address=tunnel.individual_address,
                 secure_config=SecureConfig(
                     user_id=tunnel.user_id,
@@ -542,7 +564,8 @@ class ConnectionPlugin:
             )
         return ConnectionConfig(
             connection_type=ConnectionType.TUNNELING,
-            gateway_ip=self._controller_ip,
+            gateway_ip=host,
+            gateway_port=port,
             threaded=True,
         )
 
@@ -766,7 +789,9 @@ class ConnectionPlugin:
         for gateway in self._gateways:
             label = f"{gateway.name}  ({gateway.ip_addr})"
             if imgui.selectable(f"{label}##select_{gateway.ip_addr}", False)[0]:
-                self._connect_for_operation(label, gateway.ip_addr, gateway)
+                self._connect_for_operation(
+                    label, join_endpoint(gateway.ip_addr, gateway.port), gateway
+                )
         if not self._gateways and not self._scanning:
             imgui.text_disabled(S.NO_GATEWAYS_FOUND)
         imgui.text_disabled(S.SECTION_MANUAL)
@@ -924,19 +949,19 @@ class ConnectionPlugin:
                 port=DEFAULT_GATEWAY_PORT,
                 connector="IpRouting",
             )
+        host, port = self._endpoint()
         return LinkInfo(
             name=name or "IP Tunneling",
-            host=self._controller_ip,
-            port=self._gateway_port(),
+            host=host,
+            port=port,
             connector="IpTunneling",
             protocol="Udp",
         )
 
-    def _gateway_port(self) -> int:
-        gateway = self._selected_gateway
-        if gateway is not None and gateway.ip_addr == self._controller_ip:
-            return gateway.port
-        return DEFAULT_GATEWAY_PORT
+    def _endpoint(self) -> tuple[str, int]:
+        """The host and port of the tunnelling interface: the controller address as entered,
+        ``host`` (port 3671) or ``host:port``."""
+        return split_endpoint(self._controller_ip)
 
     # --- bus monitor mode -----------------------------------------------------
 
@@ -964,8 +989,7 @@ class ConnectionPlugin:
 
     async def _start_busmonitor_async(self) -> None:
         service = self._api.connection
-        gateway_ip = self._controller_ip
-        port = self._gateway_port()
+        gateway_ip, port = self._endpoint()
         link = self._link_info()
         self._log.info("starting bus monitor", target=gateway_ip, port=port)
         if self._interface is not None or self._xknx is not None:

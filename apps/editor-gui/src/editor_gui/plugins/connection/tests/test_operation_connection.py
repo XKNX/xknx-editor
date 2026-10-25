@@ -17,6 +17,8 @@ from editor_gui.plugins.connection import plugin as plugin_module
 from editor_gui.plugins.connection.plugin import (
     ConnectionPlugin,
     ConnectionState,
+    join_endpoint,
+    split_endpoint,
     tunnel_host,
 )
 from editor_gui.plugins.connection.service import (
@@ -147,6 +149,34 @@ def test_the_host_of_a_bus_connection() -> None:
     assert tunnel_host(_BUS) == "192.168.16.88"
     assert tunnel_host("Type=Usb;Name=USB") is None
     assert tunnel_host("Type=IpTunneling") is None
+    # Another port than 3671 is kept with the host.
+    assert tunnel_host("Type=IpTunneling;HostAddress=10.0.0.5;Port=3700") == (
+        "10.0.0.5:3700"
+    )
+
+
+def test_an_interface_address_with_its_port() -> None:
+    assert split_endpoint("192.168.16.88") == ("192.168.16.88", 3671)
+    assert split_endpoint(" 192.168.16.88:3700 ") == ("192.168.16.88", 3700)
+    assert split_endpoint("knx.local:3671") == ("knx.local", 3671)
+    # Not a port: the address as it is.
+    assert split_endpoint("10.0.0.1:abc") == ("10.0.0.1:abc", 3671)
+    assert split_endpoint("10.0.0.1:70000") == ("10.0.0.1:70000", 3671)
+    assert split_endpoint("fe80::1") == ("fe80::1", 3671)
+    assert join_endpoint("10.0.0.5", 3671) == "10.0.0.5"
+    assert join_endpoint("10.0.0.5", 3700) == "10.0.0.5:3700"
+
+
+def test_the_connection_goes_to_the_port_of_the_interface() -> None:
+    plugin = _plugin(("Type=IpTunneling;HostAddress=10.0.0.5;Port=3700", "Remote"))
+    plugin._multicast_group = "224.0.23.12"
+    plugin.open_for_operation()
+    assert plugin._controller_ip == "10.0.0.5:3700"
+    config = plugin._connection_config(None)
+    assert (config.gateway_ip, config.gateway_port) == ("10.0.0.5", 3700)
+    plugin._gateway_info = None
+    link = plugin._link_info()
+    assert (link.host, link.port) == ("10.0.0.5", 3700)
 
 
 def _plugin(bus: tuple[str, str] | None) -> Any:
@@ -277,7 +307,7 @@ def _frames(plugin: Any, count: int = 3) -> None:
 def test_the_dialog_connects_to_an_interface_found_or_cancels(clicks: Clicks) -> None:
     plugin = _plugin((_BUS, "IP-Interface"))
     gateway = SimpleNamespace(
-        name="Office", ip_addr="192.168.16.90", supports_tunnelling=True
+        name="Office", ip_addr="192.168.16.90", port=3671, supports_tunnelling=True
     )
     plugin._gateways = [gateway]
     pending = plugin.open_for_operation()
@@ -301,3 +331,14 @@ def test_the_dialog_connects_to_an_interface_found_or_cancels(clicks: Clicks) ->
     clicks.button = S.SELECT_CONNECTION_CANCEL
     _frames(plugin)
     assert pending.cancelled()
+
+
+def test_an_operation_waits_for_its_connection_until_it_is_open() -> None:
+    service, connector = _service()
+    operation: Future[Any] = Future()
+    result = service.connect_for_operation("program_device", lambda: operation)
+    assert service.waiting_for_connection(result)
+    connector.opening.set_result(None)
+    assert not service.waiting_for_connection(result)
+    assert not service.waiting_for_connection(None)
+    assert not service.waiting_for_connection(operation)
