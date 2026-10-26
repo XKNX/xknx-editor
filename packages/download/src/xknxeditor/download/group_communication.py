@@ -20,6 +20,7 @@ from .scope import (
     GROUP_COMMUNICATION_OBJECTS,
     DownloadScope,
     control_in_scope,
+    scoped_controls,
     target_object_type,
 )
 
@@ -38,7 +39,7 @@ def materialize_group_communication_controls(
     """
     if scope in (DownloadScope.UNLOAD, DownloadScope.UNLOAD_ALL):
         return list(controls)
-    selected = [c for c in controls if control_in_scope(c, scope, object_types)]
+    selected = scoped_controls(controls, scope, object_types)
     tables = {
         segment.object_type
         for segment in image.relative_segments

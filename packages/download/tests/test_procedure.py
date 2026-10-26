@@ -1547,17 +1547,28 @@ def _abs_segment_control() -> LdCtrlAbsSegment:
     )
 
 
-async def test_abs_segment_writes_initialized_bytes_in_partial_scope_for_memory_mapped_lsm() -> (
+async def test_a_parameters_download_writes_the_application_segment_of_a_memory_mapped_lsm() -> (
     None
 ):
-    """A memory-mapped LSM mask (BIM M112) reallocates on almost every load; a
-    parameter download's mask alone could leave that segment empty or stale, so
-    its AbsSegment write still flashes the whole code seed."""
+    """A parameters download does not allocate the loaded application's segment again, on a
+    memory-mapped LSM mask (BIM M112) either: it writes the parameter bytes and nothing of
+    the code seed, and sends no load-control record."""
     application = _m112_application(_abs_segment_control())
+    image = DownloadImage(
+        segments=(
+            MemorySegment(
+                address=0x4B20,
+                data=b"\xaa\xbb\xcc\xdd",
+                mask=b"\x00\xff\x00\x00",
+                initialized_mask=b"\xff\xff\xff\xff",
+            ),
+        ),
+        properties=(),
+    )
     device = _device()
     runner = LoadProcedureRunner(
         application,
-        _abs_segment_image(),
+        image,
         DeviceProgrammer(device),
         controls=[_abs_segment_control()],
         scope=DownloadScope.PARAMETERS,
@@ -1566,7 +1577,7 @@ async def test_abs_segment_writes_initialized_bytes_in_partial_scope_for_memory_
 
     await runner.run()
 
-    assert bytes(device.memory[0x4B20 + i] for i in range(4)) == b"\xaa\xbb\xcc\xdd"
+    assert device.memory == {0x4B21: 0xBB}
 
 
 @pytest.mark.parametrize("memory_mapped", [True, False])

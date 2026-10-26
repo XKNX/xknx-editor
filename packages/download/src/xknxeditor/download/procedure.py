@@ -2592,12 +2592,12 @@ class LoadProcedureRunner:
         # but only the bytes the image actually produced (its mask). Bytes the
         # encoder did not write stay at their current device value.
         # A memory-mapped mask (BIM M112) reallocates that range on almost every
-        # load; a partial download's parameter mask alone would skip the
-        # application-code seed (n_runs=0) and leave the BCU with an empty or
-        # stale segment after AllocAbsDataSeg, so flush the full seed there even
-        # outside a full/application download. Other masks keep the scope-based
-        # default (see :meth:`_memory_runs`), or a parameter download would cost
-        # as much bus time as a full one on a large application. A device that
+        # load, so flush the full seed there even outside a full/application
+        # download (a partial download allocates only group communication tables;
+        # it writes a loaded program's segments, see scoped_controls). Other masks
+        # keep the scope-based default (see :meth:`_memory_runs`), or a parameter
+        # download would cost as much bus time as a full one on a large
+        # application. A device that
         # has the application loaded keeps its seed (see :meth:`_writes_seed`).
         runs = (
             self._memory_runs(

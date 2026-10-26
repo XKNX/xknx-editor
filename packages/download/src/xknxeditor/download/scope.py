@@ -2,12 +2,15 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from enum import Enum
 from typing import TYPE_CHECKING
 
 from xknxeditor.namespaces.intermediate.ld_ctrl_abs_segment_t import LdCtrlAbsSegment
 from xknxeditor.namespaces.intermediate.ld_ctrl_base_t import LdCtrlBase
+from xknxeditor.namespaces.intermediate.ld_ctrl_control_variable_t import (
+    LdCtrlControlVariable,
+)
 from xknxeditor.namespaces.intermediate.ld_ctrl_load_completed_t import (
     LdCtrlLoadCompleted,
 )
@@ -15,13 +18,17 @@ from xknxeditor.namespaces.intermediate.ld_ctrl_load_image_rel_mem_t import (
     LdCtrlLoadImageRelMem,
 )
 from xknxeditor.namespaces.intermediate.ld_ctrl_load_t import LdCtrlLoad
-from xknxeditor.namespaces.intermediate.ld_ctrl_max_length_t import LdCtrlMaxLength
+from xknxeditor.namespaces.intermediate.ld_ctrl_proc_type_t import LdCtrlProcType
 from xknxeditor.namespaces.intermediate.ld_ctrl_rel_segment_t import LdCtrlRelSegment
+from xknxeditor.namespaces.intermediate.ld_ctrl_set_control_variable_t import (
+    LdCtrlSetControlVariable,
+)
 from xknxeditor.namespaces.intermediate.ld_ctrl_task_ctrl1_t import LdCtrlTaskCtrl1
 from xknxeditor.namespaces.intermediate.ld_ctrl_task_ctrl2_t import LdCtrlTaskCtrl2
 from xknxeditor.namespaces.intermediate.ld_ctrl_task_ptr_t import LdCtrlTaskPtr
 from xknxeditor.namespaces.intermediate.ld_ctrl_task_segment_t import LdCtrlTaskSegment
 from xknxeditor.namespaces.intermediate.ld_ctrl_unload_t import LdCtrlUnload
+from xknxeditor.namespaces.intermediate.ld_ctrl_write_mem_t import LdCtrlWriteMem
 from xknxeditor.namespaces.intermediate.ld_ctrl_write_prop_t import LdCtrlWriteProp
 from xknxeditor.namespaces.intermediate.ld_ctrl_write_rel_mem_t import LdCtrlWriteRelMem
 
@@ -34,6 +41,8 @@ if TYPE_CHECKING:
     from xknxeditor.namespaces.intermediate.master_data_t import MasterData
 
 GROUP_COMMUNICATION_OBJECTS = frozenset({1, 2, 9})
+_APPLICATION_OBJECT = 3
+_SECOND_PROGRAM_OBJECT = 4
 # Load events a load state machine accepts only while loading: they run where the Load of their
 # loadable part runs, or the device answers them with the error state.
 _LOADING_EVENTS = (
@@ -42,11 +51,11 @@ _LOADING_EVENTS = (
     LdCtrlRelSegment,
     LdCtrlAbsSegment,
     LdCtrlTaskSegment,
-    LdCtrlTaskPtr,
-    LdCtrlTaskCtrl1,
-    LdCtrlTaskCtrl2,
-    LdCtrlMaxLength,
 )
+# A partial download sets up no task: the device keeps the one its last full download set.
+_TASK_SETUP = (LdCtrlTaskPtr, LdCtrlTaskCtrl1, LdCtrlTaskCtrl2)
+# Memory type of an EEPROM segment (both low bits set).
+_EEPROM = 0x03
 # Writes into a loadable part's relative memory: a group communication table's belong to its
 # download.
 _RELATIVE_WRITES = (LdCtrlWriteRelMem, LdCtrlLoadImageRelMem)
@@ -74,6 +83,15 @@ class DownloadScope(Enum):
             DownloadScope.INDIVIDUAL_ADDRESS,
             DownloadScope.OVERWRITE_INDIVIDUAL_ADDRESS,
         )
+
+
+_PARTIAL_SCOPES = frozenset(
+    {
+        DownloadScope.PARAMETERS,
+        DownloadScope.GROUP_COMMUNICATION,
+        DownloadScope.PARAMETERS_AND_GROUP_COMMUNICATION,
+    }
+)
 
 
 def mask_configuration(
@@ -162,6 +180,8 @@ def control_in_scope(
         return True
     if isinstance(control, LdCtrlBase) and control.applies_to.value != "auto":
         return True
+    if isinstance(control, _TASK_SETUP):
+        return False
     if not isinstance(
         control, (LdCtrlUnload, LdCtrlWriteProp, *_LOADING_EVENTS, *_RELATIVE_WRITES)
     ):
@@ -182,10 +202,18 @@ def control_in_scope(
     if isinstance(control, _LOADING_EVENTS):
         if target in GROUP_COMMUNICATION_OBJECTS:
             return group
-        if target == 4:
-            return has_application_program2 and (
-                parameters or isinstance(control, LdCtrlRelSegment)
-            )
+        if target == _SECOND_PROGRAM_OBJECT and not has_application_program2:
+            return False
+        if isinstance(control, LdCtrlRelSegment):
+            return True
+        if target in (_APPLICATION_OBJECT, _SECOND_PROGRAM_OBJECT) and isinstance(
+            control, (LdCtrlAbsSegment, LdCtrlTaskSegment)
+        ):
+            # A loaded program is not allocated again: its segments become memory writes
+            # (see scoped_controls), its task stays as it is.
+            return False
+        if target == _SECOND_PROGRAM_OBJECT:
+            return parameters
     if isinstance(control, _RELATIVE_WRITES) and target in GROUP_COMMUNICATION_OBJECTS:
         return group
     if isinstance(control, LdCtrlWriteProp) and (
@@ -194,6 +222,80 @@ def control_in_scope(
     ):
         return group
     return True
+
+
+def scoped_controls(
+    controls: Sequence[object],
+    scope: DownloadScope,
+    object_types: Mapping[int, int] | None = None,
+    *,
+    has_application_program2: bool = False,
+) -> list[object]:
+    """The controls a download of ``scope`` runs, in procedure order.
+
+    As :func:`control_in_scope`, except that a partial download writes a loaded program's
+    EEPROM segments instead of allocating them again: an automatic ``AbsSegment`` of the
+    application (or of the second program, in a parameters download) becomes a verified
+    memory write of the same range. A segment of another memory type (RAM) is left out, as
+    are all of them while the procedure has switched segment writes off.
+    """
+    result: list[object] = []
+    segment_write = True
+    for control in controls:
+        if (
+            isinstance(control, LdCtrlSetControlVariable)
+            and control.name is LdCtrlControlVariable.ENABLE_SEGMENT_WRITE
+            and control.applies_to is LdCtrlProcType.AUTO
+            and control_applies(control, scope)
+        ):
+            segment_write = control.value
+        if control_in_scope(
+            control,
+            scope,
+            object_types,
+            has_application_program2=has_application_program2,
+        ):
+            result.append(control)
+        elif segment_write and _program_segment(
+            control, scope, object_types, has_application_program2
+        ):
+            assert isinstance(control, LdCtrlAbsSegment)
+            if control.mem_type & _EEPROM == _EEPROM:
+                result.append(
+                    LdCtrlWriteMem(
+                        address=control.address,
+                        size=control.size,
+                        verify=True,
+                        applies_to=LdCtrlProcType.ALL,
+                    )
+                )
+    return result
+
+
+def _program_segment(
+    control: object,
+    scope: DownloadScope,
+    object_types: Mapping[int, int] | None,
+    has_application_program2: bool,
+) -> bool:
+    """Whether ``control`` is an automatic ``AbsSegment`` of a program that a partial
+    download of ``scope`` writes (see :func:`scoped_controls`)."""
+    if (
+        not isinstance(control, LdCtrlAbsSegment)
+        or control.applies_to is not LdCtrlProcType.AUTO
+        or not control_applies(control, scope)
+        or scope not in _PARTIAL_SCOPES
+    ):
+        return False
+    target = target_object_type(control, object_types or {})
+    if target == _APPLICATION_OBJECT:
+        return True
+    return (
+        target == _SECOND_PROGRAM_OBJECT
+        and has_application_program2
+        and scope
+        in (DownloadScope.PARAMETERS, DownloadScope.PARAMETERS_AND_GROUP_COMMUNICATION)
+    )
 
 
 def control_applies(control: object, scope: DownloadScope) -> bool:
