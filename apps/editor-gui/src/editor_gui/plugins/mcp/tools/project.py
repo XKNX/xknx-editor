@@ -481,6 +481,14 @@ def resolve_in_scope(
     return resolve_parameter_ref(roots, label, value_label)
 
 
+def _hidden_block(node: Any) -> bool:
+    """Whether ``node`` is a block the parameter view never shows (Access None): the tree tools
+    leave it out with its content, keeping the index paths of its siblings."""
+    from xknxeditor.prod.parser_v2.ui import UiParameterBlock
+
+    return isinstance(node, UiParameterBlock) and node.hidden
+
+
 def _ui_node(
     node: Any, include_choices: bool = True, path: str = "0"
 ) -> dict[str, Any]:
@@ -514,7 +522,8 @@ def _ui_node(
         children = [
             d
             for i, ch in enumerate(node.children)
-            if (d := _ui_node(ch, include_choices, f"{path}.{i}")).get("kind")
+            if not _hidden_block(ch)
+            and (d := _ui_node(ch, include_choices, f"{path}.{i}")).get("kind")
             != "separator"
         ]
         out: dict[str, Any] = {
@@ -545,7 +554,7 @@ def _search_node(node: Any, needle: str, path: str = "0") -> dict[str, Any] | No
         return _ui_node(node, False, path) if needle in node.label.lower() else None
     if isinstance(node, UiButton):
         return _ui_node(node, False, path) if needle in node.text.lower() else None
-    if not isinstance(node, (UiTab, UiParameterBlock)):
+    if not isinstance(node, (UiTab, UiParameterBlock)) or _hidden_block(node):
         return None
     heading = getattr(node, "text", None) or getattr(node, "name", None) or ""
     if needle in heading.lower():
@@ -591,7 +600,9 @@ def _count_leaves(node: Any) -> tuple[int, int]:
             params += 1
         elif isinstance(current, UiComObject):
             cos += 1
-        elif isinstance(current, (UiTab, UiParameterBlock)):
+        elif isinstance(current, (UiTab, UiParameterBlock)) and not _hidden_block(
+            current
+        ):
             stack.extend(current.children)
     return params, cos
 
@@ -602,7 +613,7 @@ def _outline_node(node: Any, path: str = "0") -> dict[str, Any] | None:
     for a non-container node."""
     from xknxeditor.prod.parser_v2.ui import UiParameterBlock, UiTab
 
-    if not isinstance(node, (UiTab, UiParameterBlock)):
+    if not isinstance(node, (UiTab, UiParameterBlock)) or _hidden_block(node):
         return None
     params, cos = _count_leaves(node)
     children = [
@@ -637,8 +648,12 @@ def _find_subtree(nodes: list[Any], subtree_id: str) -> Any | None:
     node: Any = nodes[parts[0]] if parts[0] < len(nodes) else None
     try:
         for p in parts[1:]:
+            if _hidden_block(node):
+                return None
             node = node.children[p]
     except (IndexError, AttributeError, TypeError):
+        return None
+    if _hidden_block(node):
         return None
     return node if isinstance(node, (UiTab, UiParameterBlock)) else None
 
@@ -1980,7 +1995,9 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                     )
                 scoped: list[tuple[str, Any]] = [(subtree_id, found)]
             else:
-                scoped = [(str(i), n) for i, n in enumerate(roots)]
+                scoped = [
+                    (str(i), n) for i, n in enumerate(roots) if not _hidden_block(n)
+                ]
             if needle:
                 rows = [
                     d
