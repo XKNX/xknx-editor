@@ -981,6 +981,59 @@ def _relidref(ref_id: str) -> str:
     return ref_id
 
 
+def module_repeat_indexes(app_xml: bytes) -> dict[str, str]:
+    """The ``RepeatIndex`` of every module instance of an application program, by its relative
+    id (``MD-1_M-2_MI-1``), as genuine exports write it and the importer requires it (without
+    it the import fails on the device).
+
+    Each element of the program's own ``<Dynamic>`` has a place, counted in document order from
+    the ``<Dynamic>`` itself (0). An instance's index is the place of its ``<Module>`` with
+    ``x1``, after ``{place}x{iteration}`` of each ``<Repeat>`` it is in (outermost first,
+    separated by spaces); ``MI-n`` is the n-th iteration: ``529x1``, or ``2x3 3x1`` for the third
+    instance of a module in a repeat."""
+    root = ET.fromstring(app_xml)
+    program = next(
+        (el for el in root.iter() if el.tag.rsplit("}", 1)[-1] == "ApplicationProgram"),
+        None,
+    )
+    dynamic = (
+        next((el for el in program if el.tag.rsplit("}", 1)[-1] == "Dynamic"), None)
+        if program is not None
+        else None
+    )
+    indexes: dict[str, str] = {}
+    if dynamic is None:
+        return indexes
+    place = 0
+
+    def walk(element: ET.Element, repeats: list[tuple[int, int]]) -> None:
+        nonlocal place
+        here = place
+        place += 1
+        tag = element.tag.rsplit("}", 1)[-1]
+        if tag == "Module" and element.get("Id"):
+            module = _relidref(element.get("Id", ""))
+            iterations: list[list[int]] = [[]]
+            for _place, count in repeats:
+                iterations = [
+                    [*done, n] for done in iterations for n in range(1, count + 1)
+                ]
+            for number, iteration in enumerate(iterations, start=1):
+                parts = [
+                    f"{at}x{n}"
+                    for (at, _count), n in zip(repeats, iteration, strict=True)
+                ]
+                indexes[f"{module}_MI-{number}"] = " ".join([*parts, f"{here}x1"])
+        if tag == "Repeat":
+            count = int(element.get("Count") or "1")
+            repeats = [*repeats, (here, max(count, 1))]
+        for child in element:
+            walk(child, repeats)
+
+    walk(dynamic, [])
+    return indexes
+
+
 def _has_override(co: ComObject) -> bool:
     """Whether the com-object carries a per-instance override an export must persist.
 
@@ -1049,37 +1102,28 @@ class _ExportIds:
         if puid is not None and puid > 0:
             self._puids.setdefault(puid, owner)
 
-    def id(
-        self,
-        kind: str,
-        owner: object,
-        source_id: str = "",
-        *,
-        scope: str = "",
-        first: int = 1,
-    ) -> str:
-        """``owner``'s id of ``kind``: its reserved one, else the next free ``{scope}{kind}-n``
-        (numbered per scope from ``first``)."""
+    def id(self, kind: str, owner: object, source_id: str = "") -> str:
+        """``owner``'s id of ``kind``: its reserved one, else the next free ``{kind}-n``
+        (numbered from 1)."""
         claims = self._ids.setdefault(kind, {})
         local = _local_id(source_id)
         if local and claims.get(local) is owner:
             return local
-        counter = f"{scope}{kind}"
-        n = self._counters.get(counter)
+        n = self._counters.get(kind)
         if n is None:
-            pattern = re.compile(rf"{re.escape(scope)}{kind}-(\d+)")
+            pattern = re.compile(rf"{kind}-(\d+)")
             numbers = [
                 int(match.group(1))
                 for claimed in claims
                 if (match := pattern.fullmatch(claimed))
             ]
-            n = max(numbers, default=first - 1)
+            n = max(numbers, default=0)
         while True:
             n += 1
-            candidate = f"{scope}{kind}-{n}"
+            candidate = f"{kind}-{n}"
             if candidate not in claims:
                 break
-        self._counters[counter] = n
+        self._counters[kind] = n
         claims[candidate] = owner
         return candidate
 
@@ -1316,6 +1360,10 @@ class _Writer:
         # ETS stores each per-device BinaryData payload as a file, not inline; these are added to the
         # archive under the project folder and must be covered by the folder signature.
         self._binary_files: dict[str, bytes] = {}
+        # The application programs written (set per archive in write_archive), and the
+        # RepeatIndex of their module instances, by application program id.
+        self._product_members: Mapping[str, bytes] = {}
+        self._repeat_indexes: dict[str, dict[str, str]] = {}
 
     def _topology_name(self, name: str) -> str | None:
         """The ``@Name`` of an area or line: an empty one is left out in project/22+23, as genuine
@@ -1381,6 +1429,8 @@ class _Writer:
             else project.id
         )
         self._source_schema = project.schema_version or self._schema
+        self._product_members = extra_files or {}
+        self._repeat_indexes = {}
         self._ids = _ExportIds(project.last_used_puid)
         if installation is not None:
             _reserve_source_identities(self._ids, installation)
@@ -1873,11 +1923,10 @@ class _Writer:
                 if fga.group_address_id not in ga_link_id:
                     continue
                 # GroupAddressRef_t requires Name and Puid (schema); the importer crashes building
-                # the buildings tree when they are missing. A new Id is scoped under the function
-                # (``_F-n_GF-m``) as genuine exports write it.
-                ref_id = self._ids.id(
-                    "GF", fga, fga.source_id, scope=f"{function_id}_", first=0
-                )
+                # the buildings tree when they are missing. A new Id is numbered in the project
+                # (``GF-1``, ``GF-2``, …) as genuine exports write it; the importer rejects one
+                # scoped under the function.
+                ref_id = self._ids.id("GF", fga, fga.source_id)
                 self._el(
                     fn_el,
                     "GroupAddressRef",
@@ -2215,6 +2264,28 @@ class _Writer:
             self._refs.remap(src, self._pid)
             self._graft(container, src)
 
+    def _repeat_index(self, device: Device, instance_id: str) -> str:
+        """The ``RepeatIndex`` of the module instance ``instance_id`` of ``device``, from its
+        application program in the export (see :func:`module_repeat_indexes`); "" when that is
+        not there."""
+        parts = instance_id.split("_")
+        app_id = (
+            f"{parts[0]}_{parts[1]}"
+            if len(parts) >= 3 and parts[0].startswith("M-")
+            else device.application_program_ref_id or ""
+        )
+        if not app_id:
+            return ""
+        indexes = self._repeat_indexes.get(app_id)
+        if indexes is None:
+            data = self._product_members.get(f"{app_id.split('_', 1)[0]}/{app_id}.xml")
+            try:
+                indexes = module_repeat_indexes(data) if data else {}
+            except ET.ParseError:
+                indexes = {}
+            self._repeat_indexes[app_id] = indexes
+        return indexes.get(_relidref(instance_id), "")
+
     def _build_module_instances(self, di: ET.Element, device: Device) -> None:
         if not device.module_instances:
             return
@@ -2237,7 +2308,10 @@ class _Writer:
                 # the editor stores the full id.
                 Id=_relidref(mi.instance_id),
                 RefId=_relidref(re.sub(r"_MI-\d+$", "", mi.instance_id)),
-                RepeatIndex=mi.repeat_index or None,
+                # A device added in the editor has none stored: the importer needs one.
+                RepeatIndex=mi.repeat_index
+                or self._repeat_index(device, mi.instance_id)
+                or None,
             )
             if arguments:
                 args = self._el(module, "Arguments")

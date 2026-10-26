@@ -10,6 +10,7 @@ import pytest
 from sqlalchemy.orm import Session
 
 from xknxeditor.proj import ProjectService, export_knxproj
+from xknxeditor.proj.core.knxproj_export import module_repeat_indexes
 from xknxeditor.proj.core.knxproj_import import _build_module_instance
 from xknxeditor.proj.db import make_engine, url_for
 from xknxeditor.proj.models import ModuleInstance
@@ -120,3 +121,68 @@ def test_open_refuses_a_missing_or_empty_file(tmp_path: Path, empty: bool) -> No
         ProjectService().open(path)
     assert path.exists() == empty
     assert not empty or path.stat().st_size == 0
+
+
+_APP_XML = f"""<KNX xmlns="http://knx.org/xml/project/23"><ManufacturerData><Manufacturer>
+<ApplicationPrograms><ApplicationProgram Id="{APP}">
+<ModuleDefs><ModuleDef Id="{APP}_MD-2"><Dynamic><Module Id="{APP}_MD-2_SM-1_M-1" />
+</Dynamic></ModuleDef></ModuleDefs>
+<Dynamic>
+  <ChannelIndependentBlock><ParameterBlock Id="{APP}_PB-1" /></ChannelIndependentBlock>
+  <Module Id="{APP}_MD-2_M-12" />
+  <Repeat Id="{APP}_X-1" Count="3"><Module Id="{APP}_MD-2_M-2" /></Repeat>
+</Dynamic>
+</ApplicationProgram></ApplicationPrograms></Manufacturer></ManufacturerData></KNX>"""
+
+
+def test_repeat_indexes_count_the_places_in_the_dynamic_section() -> None:
+    # The program's <Dynamic> is place 0; a repeat's iterations number the instances; the
+    # modules of a module definition's own <Dynamic> are not counted.
+    assert module_repeat_indexes(_APP_XML.encode()) == {
+        "MD-2_M-12_MI-1": "3x1",
+        "MD-2_M-2_MI-1": "4x1 5x1",
+        "MD-2_M-2_MI-2": "4x2 5x1",
+        "MD-2_M-2_MI-3": "4x3 5x1",
+    }
+    assert module_repeat_indexes(b"<KNX />") == {}
+
+
+def test_export_numbers_the_module_instances_of_a_device_added_in_the_editor(
+    tmp_path: Path,
+) -> None:
+    # Without a RepeatIndex the importer fails on the device.
+    src = tmp_path / "p.xknx"
+    _project_with_modules(src)
+    out = tmp_path / "out.knxproj"
+    export_knxproj(src, out, extra_files={f"M-0083/{APP}.xml": _APP_XML.encode()})
+    first, second = _module_instances(out)
+    assert 'Id="MD-2_M-12_MI-1" RefId="MD-2_M-12" RepeatIndex="3x1"' in first
+    assert 'Id="MD-2_M-2_MI-1" RefId="MD-2_M-2" RepeatIndex="4x1 5x1"' in second
+    # Without the application program there is nothing to number them by.
+    export_knxproj(src, out)
+    assert all("RepeatIndex" not in m for m in _module_instances(out))
+
+
+def test_function_group_address_refs_are_numbered_in_the_project(
+    tmp_path: Path,
+) -> None:
+    svc = ProjectService()
+    src = tmp_path / "f.xknx"
+    pid = svc.create(src, "P-FN")
+    building = svc.create_space(pid, 0, "Building", "House")
+    links = []
+    for name in ("Light", "Blind"):
+        function = svc.create_function(pid, building, "FT-1", name)
+        for sub in (1, 2):
+            ga = svc.create_group_address(pid, 0, (1 << 11) + sub + len(links) * 2, "")
+            links.append(svc.add_function_group_address(pid, function, ga))
+    svc.close(pid)
+    out = tmp_path / "out.knxproj"
+    export_knxproj(src, out)
+    with zipfile.ZipFile(out) as zf:
+        zero = next(n for n in zf.namelist() if n.endswith("/0.xml"))
+        xml = zf.read(zero).decode("utf-8")
+    ids = re.findall(r'<GroupAddressRef Id="([^"]+)"', xml)
+    # As genuine exports: P-xxxx-0_GF-n from 1 across the project, not under the function.
+    assert [i.split("_", 1)[1] for i in ids] == ["GF-1", "GF-2", "GF-3", "GF-4"]
+    assert all(re.fullmatch(r"P-[^_]+-0_GF-\d+", i) for i in ids)
