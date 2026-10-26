@@ -2925,3 +2925,6 @@ msgstr "Kopírovat individuální adresu"
 
 msgid "Copy Group Address"
 msgstr "Kopírovat skupinovou adresu"
+
+msgid "Existing Devices…"
+msgstr "Existující přístroje…"

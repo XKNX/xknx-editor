@@ -2925,3 +2925,6 @@ msgstr "Αντιγραφή Ατομικής Διεύθυνσης"
 
 msgid "Copy Group Address"
 msgstr "Αντιγραφή Διεύθυνσης Ομάδας"
+
+msgid "Existing Devices…"
+msgstr "Υπάρχουσες συσκευές…"

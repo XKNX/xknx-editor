@@ -2963,3 +2963,6 @@ msgstr "Individueel adres kopiëren"
 
 msgid "Copy Group Address"
 msgstr "Groepsadres kopiëren"
+
+msgid "Existing Devices…"
+msgstr "Bestaande apparaten…"

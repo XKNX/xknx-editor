@@ -161,7 +161,8 @@ class AddDialog:
         self._title = f"###add_{dialog_id}"
         self._heading = ""
         self._target = ""
-        self._default_name = ""
+        # The name a row's elements get when it has none, shown in its empty name field.
+        self._default_name: Callable[[AddRow], str] = lambda _row: ""
         self._choice: AddChoice | None = None
         self._numbered = False
         self._start_minimum = 1
@@ -180,7 +181,7 @@ class AddDialog:
         target: str,
         on_add: Callable[[AddRequest], None],
         *,
-        default_name: str = "",
+        default_name: str | Callable[[AddRow], str] = "",
         choice: AddChoice | None = None,
         numbered: bool = False,
         start_minimum: int = 1,
@@ -189,7 +190,9 @@ class AddDialog:
         capacity: int | None = None,
     ) -> bool:
         """Ask what to add (``heading``, e.g. "Add Lines") to ``target`` (its name); the dialog
-        opens in the next frame it is rendered in. ``numbered`` shows "Generate Addresses",
+        opens in the next frame it is rendered in. ``default_name``: the name the elements of a
+        row without one get (or show with), shown dimmed in its empty name field; a function of
+        the row when it follows the row's choice. ``numbered`` shows "Generate Addresses",
         whose "Start with" takes ``start_minimum`` to ``start_maximum``. ``limit``: how many
         more there is room for. ``capacity`` shows a "Capacity" column (1 to 65535), starting
         at that. False (and no dialog) when there is room for none."""
@@ -199,7 +202,11 @@ class AddDialog:
         self._heading = heading
         self._target = target
         self._on_add = on_add
-        self._default_name = default_name
+        self._default_name = (
+            default_name
+            if callable(default_name)
+            else (lambda _row, text=default_name: text)
+        )
         self._choice = choice
         self._numbered = numbered
         self._start_minimum = start_minimum
@@ -292,7 +299,7 @@ class AddDialog:
                 - style.item_spacing.x
             )
             _, row.name = imgui.input_text_with_hint(
-                "##name", self._default_name, row.name
+                "##name", self._default_name(row), row.name
             )
             if self._choice is not None:
                 imgui.same_line()

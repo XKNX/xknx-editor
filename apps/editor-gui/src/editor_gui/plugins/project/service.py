@@ -97,7 +97,7 @@ from xknxeditor.proj.core.paste import GroupAddressCopy, PasteOptions
 from xknxeditor.proj.core.project_secrets import check_project_password
 from xknxeditor.proj.core.rich_text import parse_rich_text, plain_text
 from xknxeditor.proj.core.service import DEFAULT_MULTICAST_ADDRESS
-from xknxeditor.proj.core.space_rules import SpaceRuleError
+from xknxeditor.proj.core.space_rules import SpaceRuleError, holds_devices
 
 if TYPE_CHECKING:
     from editor_gui.plugins.base import Logger
@@ -1218,6 +1218,8 @@ class ProjectService:
         # catalog adds devices to (None: the space's Current Line or the first TP line).
         self._focus_catalog_requested = False
         self._device_target_segment: int | None = None
+        # The room (a space that holds devices) the catalog adds devices into; None: none.
+        self._device_target_space: int | None = None
         # Re-instantiate a device's persisted com-objects on a function/mode parameter change, scoped
         # to exactly the objects that parameter controls (its ChooseWhenNode branches). Only the
         # objects the parameter governs are added/removed; channels and globals stay as configured.
@@ -2503,9 +2505,37 @@ class ProjectService:
     def add_devices_to(self, segment_id: int | None) -> None:
         """ "Add → Devices…" in the Topology tree: the catalog comes to the front and adds
         devices to the segment ``segment_id`` (a line's main segment or a sub-segment; None:
-        the space's Current Line or the first TP line)."""
+        the space's Current Line or the first TP line), into no room."""
         self._device_target_segment = segment_id
+        self._device_target_space = None
         self._focus_catalog_requested = True
+
+    def add_devices_into(self, space_id: int) -> None:
+        """ "Add → Devices…" in the Buildings tree: the catalog comes to the front and adds
+        devices into the space ``space_id``, on its Current Line ("Automatic")."""
+        self._device_target_space = space_id
+        self._device_target_segment = None
+        self._focus_catalog_requested = True
+
+    @property
+    def device_target_space(self) -> int | None:
+        """The space the catalog adds devices into; None (also when it is gone or holds no
+        devices): none."""
+        space = self._device_target_space
+        if space is None:
+            return None
+
+        def holds(spaces: "list[SpaceInfo]") -> bool:
+            return any(
+                (s.id == space and holds_devices(s.space_type)) or holds(s.children)
+                for s in spaces
+            )
+
+        return space if holds(self.get_space_tree()) else None
+
+    @device_target_space.setter
+    def device_target_space(self, space_id: int | None) -> None:
+        self._device_target_space = space_id
 
     def take_focus_catalog(self) -> bool:
         """One-shot: whether the catalog was asked to focus, then cleared."""

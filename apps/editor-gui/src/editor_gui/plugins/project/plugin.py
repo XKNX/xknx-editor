@@ -507,6 +507,7 @@ class ProjectPlugin:
             group_style=lambda: api.project.group_address_style,
             on_create_ga_in=api.project.create_group_address_in,
             get_selected_element=lambda: api.project.selected_element,
+            on_add_devices=api.project.add_devices_into,
         )
 
         self._project_info_panel = ProjectInfoPanel(

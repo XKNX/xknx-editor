@@ -87,3 +87,41 @@ def test_one_row_has_the_defaults() -> None:
     request = one_row(choice, 4)
     assert [(r.count, r.name, r.choice) for r in request.rows] == [(1, "", "MT-2")]
     assert request.start_with == 4
+
+
+@pytest.mark.usefixtures("context")
+def test_an_empty_name_field_shows_the_name_the_row_gets(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    hints: list[str] = []
+    real = imgui.input_text_with_hint
+
+    def input_text_with_hint(label: str, hint: str, *args: Any) -> Any:
+        hints.append(hint)
+        return real(label, hint, *args)
+
+    monkeypatch.setattr(imgui, "input_text_with_hint", input_text_with_hint)
+    choice = AddChoice("Medium", [("MT-0", "TP"), ("MT-2", "RF")], "MT-0")
+    dialog = AddDialog("test")
+    # The hint follows each row's choice (e.g. "RF segment").
+    dialog.open(
+        "Add Segments",
+        "1.1",
+        lambda _r: None,
+        default_name=lambda row: f"{row.choice} segment",
+        choice=choice,
+    )
+    dialog.request.rows.append(AddRow(choice="MT-2"))
+    for _ in range(2):
+        imgui.new_frame()
+        dialog.render()
+        imgui.end_frame()
+    assert hints[-2:] == ["MT-0 segment", "MT-2 segment"]
+    # A fixed one for every row.
+    hints.clear()
+    dialog.open("Add Floors", "House", lambda _r: None, default_name="New floor")
+    for _ in range(2):
+        imgui.new_frame()
+        dialog.render()
+        imgui.end_frame()
+    assert hints[-1] == "New floor"

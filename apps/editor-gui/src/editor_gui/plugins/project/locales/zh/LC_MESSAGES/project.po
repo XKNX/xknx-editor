@@ -2925,3 +2925,6 @@ msgstr "复制物理地址"
 
 msgid "Copy Group Address"
 msgstr "复制组地址"
+
+msgid "Existing Devices…"
+msgstr "现有设备…"

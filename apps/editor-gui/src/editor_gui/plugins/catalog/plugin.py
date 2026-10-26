@@ -54,6 +54,8 @@ class CatalogPlugin:
                 product, space, segment
             ),
             tell_refused=api.tell_refused,
+            get_space=lambda: api.project.device_target_space,
+            set_space=self._set_space,
         )
         self._panels = [
             PanelDefinition(
@@ -66,6 +68,9 @@ class CatalogPlugin:
 
     def _set_line(self, segment_id: int | None) -> None:
         self._api.project.device_target_segment = segment_id
+
+    def _set_space(self, space_id: int | None) -> None:
+        self._api.project.device_target_space = space_id
 
     def _notify(self, text: str) -> None:
         if self._api.notify is not None:

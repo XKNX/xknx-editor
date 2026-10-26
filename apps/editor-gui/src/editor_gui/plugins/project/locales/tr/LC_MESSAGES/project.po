@@ -2925,3 +2925,6 @@ msgstr "Bireysel Adresi Kopyala"
 
 msgid "Copy Group Address"
 msgstr "Grup Adresini Kopyala"
+
+msgid "Existing Devices…"
+msgstr "Mevcut Cihazlar…"

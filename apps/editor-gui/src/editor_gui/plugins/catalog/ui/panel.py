@@ -196,12 +196,16 @@ class CatalogPanel:
         set_line: Callable[[int | None], None] = lambda _s: None,
         on_add_to_line: Callable[[ProductSummary, int, int | None], None] | None = None,
         tell_refused: Callable[[str], None] = lambda _text: None,
+        get_space: Callable[[], int | None] | None = None,
+        set_space: Callable[[int | None], None] | None = None,
     ) -> None:
         """``get_lines`` lists the lines (and sub-segments) a new device can go on, as (segment
         id, text); ``get_line`` is the one chosen (None: automatic), ``set_line`` chooses
-        one. ``on_add_to_line`` adds a product on a line (segment id) into a room (space id or
-        None) right away (a product's "Add to"). ``find_local_product`` gives the local product
-        an online one (by item id) was imported as, None while it is not in the local catalog."""
+        one; ``get_space`` and ``set_space`` the same of the room (None: no room; kept by the
+        panel when not given). ``on_add_to_line`` adds a product on a line (segment id) into a
+        room (space id or None) right away (a product's "Add to"). ``find_local_product`` gives
+        the local product an online one (by item id) was imported as, None while it is not in
+        the local catalog."""
         self._get_lines = get_lines
         self._on_add_to_line = on_add_to_line
         self._tell_refused = tell_refused
@@ -213,7 +217,9 @@ class CatalogPanel:
         # space on creation instead of always landing in "Without space". ``_add_space_id`` is
         # the room chosen (None = no room) for "Add Device", a double-click and "Add to".
         self._get_spaces = get_spaces
-        self._add_space_id: int | None = None
+        self._space: int | None = None
+        self._get_space: Callable[[], int | None] = get_space or (lambda: self._space)
+        self._set_space: Callable[[int | None], None] = set_space or self._keep_space
         self._search: str = ""
         # Online catalog (manufacturer list from the KNX service).
         self._get_online_manufacturers = get_online_manufacturers
@@ -283,6 +289,19 @@ class CatalogPanel:
         self._export_product_cb = export_product
         self._export_dialog: file_dialogs.SaveFileDialog | None = None
         self._export_target: ProductSummary | None = None
+
+    def _keep_space(self, space_id: int | None) -> None:
+        """Keep the room chosen in the panel (when no ``set_space`` keeps it elsewhere)."""
+        self._space = space_id
+
+    @property
+    def _add_space_id(self) -> int | None:
+        """The room chosen at the top (None: no room)."""
+        return self._get_space()
+
+    @_add_space_id.setter
+    def _add_space_id(self, space_id: int | None) -> None:
+        self._set_space(space_id)
 
     def render(self) -> None:
         self._render_missing_apps_banner()

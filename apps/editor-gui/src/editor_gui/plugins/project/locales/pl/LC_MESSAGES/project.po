@@ -2925,3 +2925,6 @@ msgstr "Kopiuj adres indywidualny"
 
 msgid "Copy Group Address"
 msgstr "Kopiuj adres grupowy"
+
+msgid "Existing Devices…"
+msgstr "Istniejące urządzenia…"

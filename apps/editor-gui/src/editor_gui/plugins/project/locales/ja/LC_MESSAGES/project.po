@@ -2925,3 +2925,6 @@ msgstr "個別アドレスをコピー"
 
 msgid "Copy Group Address"
 msgstr "グループ・アドレスをコピー"
+
+msgid "Existing Devices…"
+msgstr "既存のデバイス…"

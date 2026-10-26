@@ -184,8 +184,10 @@ class SpacesPanel:
         ),
         on_create_ga_in: Callable[[int, int, str], int | None] | None = None,
         get_selected_element: Callable[[], tuple[str, int] | None] = lambda: None,
+        on_add_devices: Callable[[int], None] | None = None,
     ) -> None:
-        """``notify`` shows the reason an edit was refused; ``one_undo_step`` makes the edits of
+        """``on_add_devices`` opens the catalog to add new devices into a space (by id);
+        ``notify`` shows the reason an edit was refused; ``one_undo_step`` makes the edits of
         one drop one undo step; ``paste_dialog`` asks how to copy what is dropped with Ctrl
         held (no copies without it); ``on_delete_device`` deletes a device (by id) from the
         project, after the user confirmed it; ``get_parked_address`` gives "1.5.-" for a device
@@ -197,6 +199,7 @@ class SpacesPanel:
         self._group_style = group_style
         self._on_create_ga_in = on_create_ga_in
         self._get_selected_element = get_selected_element
+        self._on_add_devices = on_add_devices
         # The group address link (of a function) selected in this tree.
         self._selected_link: int | None = None
         self._one_undo_step = one_undo_step
@@ -443,11 +446,15 @@ class SpacesPanel:
             title = S.TRADES_TITLE if parent is None else S.TRADES_TITLE_SUBTRADES
         else:
             title = add_title(add_type)
+        fallback = S.TRADES_DEFAULT if trade else default_name(add_type)
         self._adder.open(
             title,
             parent_name,
             add,
-            default_name=S.TRADES_DEFAULT if trade else default_name(add_type),
+            # A room with a use (and no name) is named after its use.
+            default_name=lambda row: (
+                usage_label(row.choice) if add_type == ROOM and row.choice else fallback
+            ),
             choice=choice,
         )
 
@@ -548,6 +555,20 @@ class SpacesPanel:
         self._selected_trade = None
         self._selected_link = None
 
+    def _other_selected(self) -> bool:
+        """Whether something other than a device is selected: a building part, a trade, a
+        function, a function's group address or an element of another tree."""
+        return (
+            self._selected_function is not None
+            or self._selected_trade is not None
+            or self._selected_link is not None
+            or (
+                self._get_selected_space_id is not None
+                and self._get_selected_space_id() is not None
+            )
+            or self._get_selected_element() is not None
+        )
+
     def _ask_delete_space(self, space_id: int) -> None:
         """Ask before the space ``space_id`` is deleted with everything in it."""
         self._pending_popup_id = _delete_space_dialog(space_id)
@@ -575,7 +596,7 @@ class SpacesPanel:
             S.SPACES_TITLE_FUNCTIONS,
             target,
             add,
-            default_name=S.SPACES_DEFAULT_FUNCTION,
+            default_name=lambda row: default_function_name(row.choice),
             choice=choice,
         )
 
@@ -639,7 +660,7 @@ class SpacesPanel:
 
     def _render_add_menu(self, space: "SpaceInfo") -> None:
         """The "Add" submenu of a space: the types it holds, then devices (when it holds
-        them) and functions."""
+        them: new ones from the catalog, or those of the project) and functions."""
         if not imgui.begin_menu(S.SPACES_ADD_MENU):
             return
         if self._on_create_space is not None:
@@ -648,8 +669,14 @@ class SpacesPanel:
                     self._start_add(space_type, space.id, space_label(space))
         if (
             holds_devices(space.space_type)
-            and self._on_set_device_space is not None
+            and self._on_add_devices is not None
             and imgui.menu_item(S.SPACES_ADD_DEVICES, "", False)[0]
+        ):
+            self._on_add_devices(space.id)
+        if (
+            holds_devices(space.space_type)
+            and self._on_set_device_space is not None
+            and imgui.menu_item(S.SPACES_ADD_EXISTING_DEVICES, "", False)[0]
         ):
             self._start_assign_device()
             self._pending_popup_id = _assign_device_dialog(space.id)
@@ -875,9 +902,12 @@ class SpacesPanel:
     ) -> None:
         detail = device.description
         leaf = self._device_label(device)
+        # A building part, trade, function or another element selected after the device takes
+        # the highlight (the device stays the one the editor shows).
         selected = (
             self._get_selected_node_id is not None
             and self._get_selected_node_id() == device.id
+            and not self._other_selected()
         )
         # The same device can be in a space and in trades: the ids stay apart per place.
         where = f"t{trade_id}" if trade_id is not None else ""
@@ -1062,7 +1092,7 @@ class SpacesPanel:
                 self._start_add(_TRADE, trade.id, label)
             if (
                 self._on_add_trade_device is not None
-                and imgui.menu_item(S.SPACES_ADD_DEVICES, "", False)[0]
+                and imgui.menu_item(S.SPACES_ADD_EXISTING_DEVICES, "", False)[0]
             ):
                 self._trade_device_filter = ""
                 self._pending_popup_id = _trade_devices_dialog(trade.id)

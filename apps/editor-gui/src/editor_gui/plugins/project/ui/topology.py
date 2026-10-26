@@ -934,6 +934,10 @@ class TopologyPanel:
                 S.TOPOLOGY_TITLE_AREAS,
                 target,
                 lambda request: self._add_areas(request, target),
+                # An area without a name shows as its main line ("TP main line").
+                default_name=lambda row: S.MAIN_LINE_NAME.format(
+                    medium=medium_name(row.choice)
+                ),
                 choice=choice,
                 numbered=True,
                 start_maximum=15,
@@ -1023,6 +1027,8 @@ class TopologyPanel:
                 S.TOPOLOGY_TITLE_SEGMENTS,
                 target,
                 lambda request: self._add_segments(request, line, target),
+                # One without a name shows after its medium ("TP segment").
+                default_name=lambda row: segment_display_name("", row.choice),
                 choice=choice,
                 limit=_segment_room(line),
             ),

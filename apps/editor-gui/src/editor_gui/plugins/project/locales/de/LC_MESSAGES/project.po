@@ -3110,3 +3110,6 @@ msgstr "Physikalische Adresse kopieren"
 
 msgid "Copy Group Address"
 msgstr "Gruppenadresse kopieren"
+
+msgid "Existing Devices…"
+msgstr "Vorhandene Geräte…"

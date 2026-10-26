@@ -79,6 +79,7 @@ def _panel(project: ProjectService, notes: list[str]) -> SpacesPanel:
         get_space_devices=project.get_space_devices,
         notify=notes.append,
         one_undo_step=project.one_undo_step,
+        on_add_devices=project.add_devices_into,
     )
 
 
@@ -224,8 +225,17 @@ def test_devices_go_into_spaces_and_out_again(
     first, second = _device(project, 5), _device(project, 6)
     panel = _panel(project, notes)
     _frames(panel)
-    # "Add > Devices…" of the room lists the devices without a space.
+    # "Add > Devices…" of the room brings the catalog to the front, adding into the room.
     _choose(clicks, panel, f"##spctx{room}", S.SPACES_ADD_MENU, S.SPACES_ADD_DEVICES)
+    assert project.take_focus_catalog() and project.device_target_space == room
+    # "Add > Existing Devices…" of the room lists the devices without a space.
+    _choose(
+        clicks,
+        panel,
+        f"##spctx{room}",
+        S.SPACES_ADD_MENU,
+        S.SPACES_ADD_EXISTING_DEVICES,
+    )
     clicks.items.add(f"1.1.5  D5##assignpick{room}_{first}")
     _frames(panel)
     assert _names(project)[0] == ("p", [("Kitchen", [], ["D5"])], [])
@@ -332,7 +342,11 @@ def test_devices_go_into_trades_and_out_again(
     clicks.open.add(f"Lighting##trade{trade}")
     _frames(panel)
     _choose(
-        clicks, panel, f"##tradectx{trade}", S.SPACES_ADD_MENU, S.SPACES_ADD_DEVICES
+        clicks,
+        panel,
+        f"##tradectx{trade}",
+        S.SPACES_ADD_MENU,
+        S.SPACES_ADD_EXISTING_DEVICES,
     )
     clicks.items.add(f"1.1.5  D5##tradepick{trade}_{device}")
     _frames(panel)
@@ -401,3 +415,43 @@ def test_move_to_grays_out_where_it_is_and_hides_without_another_place(
     clicks2.menus.add(S.SPACES_MOVE_TO)
     _frames(panel, 1)
     assert shown == [(S.SPACES_MOVE_ROOT, True), ("Lighting", False)]
+
+
+@pytest.mark.usefixtures("context")
+def test_a_device_gives_up_its_highlight_to_what_is_selected_after_it(
+    project: ProjectService, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    building = project.get_space_tree()[0].id
+    room = project.create_space(building, "Room", "Kitchen")
+    assert room is not None
+    device = _device(project, 5)
+    project.set_device_space(device, room)
+    selected: dict[str, object] = {"node": device, "space": None, "element": None}
+    highlighted: list[bool] = []
+    real_selectable = imgui.selectable
+
+    def selectable(label: str, flag: bool = False, *args: object, **kwargs: object):  # type: ignore[no-untyped-def]
+        if label.endswith(f"##spdev{device}"):
+            highlighted.append(flag)
+        return real_selectable(label, flag, *args, **kwargs)  # type: ignore[arg-type]
+
+    monkeypatch.setattr(imgui, "selectable", selectable)
+    panel = SpacesPanel(
+        get_space_tree=project.get_space_tree,
+        on_select_device_id=lambda _n: None,
+        get_selected_node_id=lambda: selected["node"],  # type: ignore[arg-type, return-value]
+        get_selected_space_id=lambda: selected["space"],  # type: ignore[arg-type, return-value]
+        get_selected_element=lambda: selected["element"],  # type: ignore[arg-type, return-value]
+    )
+    # The device selected: highlighted.
+    _frames(panel, 1)
+    assert highlighted[-1] is True
+    # Its room selected after it: only the room is (the editor still shows the device).
+    selected["space"] = room
+    _frames(panel, 1)
+    assert highlighted[-1] is False
+    # An element of another tree (a group address) selected after it.
+    selected["space"] = None
+    selected["element"] = ("group_address", 1)
+    _frames(panel, 1)
+    assert highlighted[-1] is False

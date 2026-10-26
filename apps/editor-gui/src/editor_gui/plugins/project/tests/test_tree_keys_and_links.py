@@ -373,6 +373,26 @@ def test_the_catalog_adds_devices_where_the_topology_asked(
     # A segment that is gone is no target any more.
     project.device_target_segment = 99999
     assert project.device_target_segment is None
+    # From the Buildings tree: into a room, on its Current Line ("Automatic").
+    building = project.get_space_tree()[0].id
+    room = project.create_space(building, "Room", "Kitchen")
+    assert room is not None
+    project.device_target_segment = segment
+    project.add_devices_into(room)
+    assert project.take_focus_catalog()
+    assert (project.device_target_space, project.device_target_segment) == (room, None)
+    # From the Topology tree again: on the line, into no room.
+    project.add_devices_to(segment)
+    assert (project.device_target_space, project.device_target_segment) == (
+        None,
+        segment,
+    )
+    # Only a space that holds devices, and is there, is a target.
+    project.device_target_space = building
+    assert project.device_target_space is None
+    project.device_target_space = room
+    project.remove_space(room)
+    assert project.device_target_space is None
 
 
 @pytest.mark.usefixtures("context")

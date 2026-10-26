@@ -2925,3 +2925,6 @@ msgstr "Kopioi yksilöllinen osoite"
 
 msgid "Copy Group Address"
 msgstr "Kopioi ryhmäosoite"
+
+msgid "Existing Devices…"
+msgstr "Olemassa olevat laitteet…"

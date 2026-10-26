@@ -1575,6 +1575,11 @@ class ProjectStrings:
         return _("Devices…")
 
     @property
+    def SPACES_ADD_EXISTING_DEVICES(self) -> str:
+        # The "Add" submenu of a room or trade: devices of the project, not new ones.
+        return _("Existing Devices…")
+
+    @property
     def SPACES_ADD_FUNCTIONS(self) -> str:
         return _("Functions…")
 
