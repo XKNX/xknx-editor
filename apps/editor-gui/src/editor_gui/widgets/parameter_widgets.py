@@ -1270,15 +1270,16 @@ def render_ui_tree(
             _get_icon = get_icon
             _narrow_page[0] = stacked
             try:
-                request = _render_page(
-                    device,
-                    selected,
-                    on_change,
-                    deferred_enum,
-                    needle,
-                    differing_refs,
-                    buttons,
-                )
+                with _page_colors():
+                    request = _render_page(
+                        device,
+                        selected,
+                        on_change,
+                        deferred_enum,
+                        needle,
+                        differing_refs,
+                        buttons,
+                    )
             finally:
                 _get_picture = None
                 _get_icon = None
@@ -2072,11 +2073,10 @@ def _render_cell_separator(
         text = _indented_cell_text(sep.text, origin)
         imgui.push_text_wrap_pos(max(right, imgui.get_cursor_pos_x() + 1.0))
         if sep.hint == "Headline":
-            with bold(_HEADLINE_SCALE), _page_text(_HEADLINE_SOFTEN):
+            with bold(_HEADLINE_SCALE), _headline_color():
                 imgui.text_unformatted(text)
         else:
-            with _page_text(_TEXT_SOFTEN):
-                imgui.text_unformatted(text)
+            imgui.text_unformatted(text)
         imgui.pop_text_wrap_pos()
         return imgui.get_item_rect_size().y
     _render_separator(sep)
@@ -2208,8 +2208,7 @@ def _render_param_table(
                 imgui.text_wrapped(label)
                 imgui.pop_style_color()
             else:
-                with _page_text(_TEXT_SOFTEN):
-                    imgui.text_wrapped(label)
+                imgui.text_wrapped(label)
             label_hovered = imgui.is_item_hovered()
             _track_help(param.help_context)
             if indent > 0:
@@ -2296,9 +2295,9 @@ _RULER_ABOVE = 14.0
 _RULER_BELOW = 7.0
 _HINT_ABOVE = 9.0
 _HINT_BELOW = 5.0
-# How far the labels and texts of a page and its headlines lean from the text color towards the
-# page's background: the reference draws them in thin type (its labels and texts thinner than its
-# headlines), so they look lighter on a light page than ours in the same color would.
+# How far the texts and check marks of a page and its headlines lean from their color towards the
+# page's background: the reference draws its text in thin type (thinner than its headlines), so
+# it looks lighter on a light page than ours in the same color would.
 _TEXT_SOFTEN = 0.13
 _HEADLINE_SOFTEN = 0.06
 # Room at 100 % scaling above and below a separator's text: with the line gap a text ends with,
@@ -2384,8 +2383,7 @@ def _render_hint(
                 px(1.6),
             )
     imgui.set_cursor_screen_pos(imgui.ImVec2(top.x + pad * 2 + icon, top.y + pad))
-    with _page_text(_TEXT_SOFTEN):
-        wrapped_text(text, text_width)
+    wrapped_text(text, text_width)
     imgui.set_cursor_screen_pos(imgui.ImVec2(top.x, box_max.y))
     imgui.dummy(imgui.ImVec2(width, 0))
 
@@ -2396,12 +2394,34 @@ def _mix(a: imgui.ImVec4, b: imgui.ImVec4, t: float) -> imgui.ImVec4:
     )
 
 
+# The text color before _page_colors leans it, for the headlines inside (see _headline_color).
+_page_base_text: list[imgui.ImVec4 | None] = [None]
+
+
 @contextmanager
-def _page_text(soften: float) -> Generator[None]:
-    """Text drawn inside in the text color leaning ``soften`` towards the page's background:
-    lighter on a light page, darker on a dark one (see _TEXT_SOFTEN)."""
+def _page_colors() -> Generator[None]:
+    """A page drawn inside has its texts (labels, fields, drop-downs, checkboxes and radio
+    buttons) and check marks in their color leaning _TEXT_SOFTEN towards the page's background:
+    lighter on a light page, darker on a dark one."""
+    background = content_background()
     text = imgui.get_style_color_vec4(imgui.Col_.text)
-    imgui.push_style_color(imgui.Col_.text, _mix(text, content_background(), soften))
+    _page_base_text[0] = imgui.ImVec4(text.x, text.y, text.z, text.w)
+    mark = imgui.get_style_color_vec4(imgui.Col_.check_mark)
+    imgui.push_style_color(imgui.Col_.text, _mix(text, background, _TEXT_SOFTEN))
+    imgui.push_style_color(imgui.Col_.check_mark, _mix(mark, background, _TEXT_SOFTEN))
+    try:
+        yield
+    finally:
+        imgui.pop_style_color(2)
+        _page_base_text[0] = None
+
+
+@contextmanager
+def _headline_color() -> Generator[None]:
+    """A headline drawn inside leans only _HEADLINE_SOFTEN from the text color."""
+    base = _page_base_text[0] or imgui.get_style_color_vec4(imgui.Col_.text)
+    color = _mix(base, content_background(), _HEADLINE_SOFTEN)
+    imgui.push_style_color(imgui.Col_.text, color)
     try:
         yield
     finally:
@@ -2416,7 +2436,7 @@ def _render_separator(sep: UiSeparator) -> None:
         _render_ruler()
         vertical_space(px(_RULER_BELOW))
     elif sep.hint == "Headline":
-        with bold(_HEADLINE_SCALE), _page_text(_HEADLINE_SOFTEN):
+        with bold(_HEADLINE_SCALE), _headline_color():
             imgui.align_text_to_frame_padding()
             _aligned_text(sep.text, sep.alignment)
     elif sep.hint == "Information":
@@ -2431,8 +2451,7 @@ def _render_separator(sep: UiSeparator) -> None:
         vertical_space(px(_HINT_BELOW))
     else:
         vertical_space(px(_TEXT_ROOM))
-        with _page_text(_TEXT_SOFTEN):
-            _aligned_text(sep.text, sep.alignment)
+        _aligned_text(sep.text, sep.alignment)
         vertical_space(px(_TEXT_ROOM))
 
 

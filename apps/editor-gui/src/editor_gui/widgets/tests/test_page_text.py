@@ -1,5 +1,6 @@
-"""The labels and texts of a parameter page lean from the text color towards the page's background
-(lighter on a light page, darker on a dark one), headlines less so: the reference's thin type."""
+"""The texts and check marks of a parameter page lean from their color towards the page's
+background (lighter on a light page, darker on a dark one), headlines less so: the reference's
+thin type."""
 
 from __future__ import annotations
 
@@ -25,23 +26,30 @@ def frame() -> Iterator[None]:
     imgui.destroy_context(ctx)
 
 
-def _text_inside(soften: float) -> float:
-    with parameter_widgets._page_text(soften):  # pyright: ignore[reportPrivateUsage]
-        return imgui.get_style_color_vec4(imgui.Col_.text).x
+def _red(col: int) -> float:
+    return imgui.get_style_color_vec4(col).x
 
 
 @pytest.mark.usefixtures("frame")
 @pytest.mark.parametrize("light", [True, False])
-def test_page_text_leans_towards_the_background(light: bool) -> None:
+def test_page_colors_lean_towards_the_background(light: bool) -> None:
     if light:
         imgui.style_colors_light()
     else:
         imgui.style_colors_dark()
-    text = imgui.get_style_color_vec4(imgui.Col_.text).x
+    text = _red(imgui.Col_.text)
+    mark = _red(imgui.Col_.check_mark)
     background = content_background().x
-    texts = _text_inside(parameter_widgets._TEXT_SOFTEN)  # pyright: ignore[reportPrivateUsage]
-    headlines = _text_inside(parameter_widgets._HEADLINE_SOFTEN)  # pyright: ignore[reportPrivateUsage]
-    # Headlines lean less than texts, both towards the background, and the color is back after.
-    assert abs(text - headlines) < abs(text - texts)
+    with parameter_widgets._page_colors():  # pyright: ignore[reportPrivateUsage]
+        texts = _red(imgui.Col_.text)
+        marks = _red(imgui.Col_.check_mark)
+        with parameter_widgets._headline_color():  # pyright: ignore[reportPrivateUsage]
+            headlines = _red(imgui.Col_.text)
+    # Texts and check marks lean towards the background, headlines less than texts.
     assert abs(texts - background) < abs(text - background)
-    assert imgui.get_style_color_vec4(imgui.Col_.text).x == text
+    assert abs(marks - background) < abs(mark - background)
+    assert abs(text - headlines) < abs(text - texts)
+    assert abs(headlines - background) < abs(text - background)
+    # The colors are back after the page.
+    assert _red(imgui.Col_.text) == text
+    assert _red(imgui.Col_.check_mark) == mark
