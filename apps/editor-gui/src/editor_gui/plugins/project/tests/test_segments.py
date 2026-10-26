@@ -41,7 +41,7 @@ from editor_gui.plugins.project.ui.topology import (
 from editor_gui.plugins.project.ui.tree_drag import Dragged
 from editor_gui.strings import get_locale, set_locale
 from xknxeditor.catalog import ProductSummary
-from xknxeditor.proj.core.medium import MEDIUM_RF, MEDIUM_TP, MediumError
+from xknxeditor.proj.core.medium import MEDIUM_IOT, MEDIUM_RF, MEDIUM_TP, MediumError
 
 from ._drops import drop_on
 
@@ -91,6 +91,9 @@ def test_a_segment_shows_its_details(project: ProjectService) -> None:
     assert project.segment_medium(line.main_segment_id) == (MEDIUM_TP, True)
     assert project.segment_medium(segment_id) == (MEDIUM_TP, False)
     assert project.segment_medium(-1) is None
+    # On a TP line it cannot be IoT: grayed out in its "Medium", with the reason.
+    details = project.element_details("segment", segment_id)
+    assert details is not None and list(details.refused_media) == [MEDIUM_IOT]
 
     project.rename_element("segment", segment_id, "Garden")
     project.set_element_description("segment", segment_id, "RF sensors")
@@ -391,6 +394,11 @@ def test_the_tree_shows_the_backbone_the_areas_and_the_segments() -> None:
         area, line, line.segments[1]
     ) == "1.1 " + S.SEGMENT_NAME.format(medium="TP")
     assert panel._format_line_label(area, line) == "1.1 L"
+    # A line without a name is called after its medium.
+    unnamed = Line(5, 1, 3, "")
+    assert panel._format_line_label(area, unnamed) == "1.3 " + S.LINE_NAME.format(
+        medium="TP"
+    )
     # An area shows as its main line; one without a name is called after its medium.
     assert panel._format_area_label(Area(0, 0, ""), backbone) == "0.0 IP backbone line"
     assert panel._format_area_label(Area(1, 1, "Hauptlinie"), main) == "1.0 Hauptlinie"

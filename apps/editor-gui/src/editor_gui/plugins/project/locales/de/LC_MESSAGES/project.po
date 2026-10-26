@@ -3122,3 +3122,6 @@ msgstr "{count} Geräte entfernen"
 
 msgid "Delete Devices"
 msgstr "Geräte löschen"
+
+msgid "{medium} line"
+msgstr "{medium} Linie"

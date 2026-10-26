@@ -2937,3 +2937,6 @@ msgstr "Fjern {count} deltagere"
 
 msgid "Delete Devices"
 msgstr "Slett enheter"
+
+msgid "{medium} line"
+msgstr "{medium}-linje"

@@ -38,11 +38,36 @@ def _choose(
 
 
 def choice_combo(
-    label: str, options: list[tuple[str, str]], current: str
+    label: str,
+    options: list[tuple[str, str]],
+    current: str,
+    refused: dict[str, str] | None = None,
 ) -> str | None:
     """A drop-down of ``options`` (value, text) with ``current`` chosen; the value chosen, or
-    None while it stays. A value the options lack is shown as it is."""
-    return _choose(label, options, current, current)
+    None while it stays. A value the options lack is shown as it is. The values in ``refused``
+    are grayed out, their reason shown when hovered."""
+    if not refused:
+        return _choose(label, options, current, current)
+    preview = next((text for value, text in options if value == current), current)
+    chosen: str | None = None
+    imgui.set_next_item_width(-1)
+    if begin_combo(label, preview):
+        for value, text in options:
+            selected = value == current
+            reason = refused.get(value, "")
+            imgui.begin_disabled(bool(reason))
+            clicked = imgui.selectable(f"{text}##{value}", selected)[0]
+            if clicked and not selected and not reason:
+                chosen = value
+            imgui.end_disabled()
+            if reason and imgui.is_item_hovered(
+                imgui.HoveredFlags_.allow_when_disabled
+            ):
+                imgui.set_tooltip(reason)
+            if selected:
+                imgui.set_item_default_focus()
+        imgui.end_combo()
+    return chosen
 
 
 def status_combo(label: str, current: str) -> str | None:

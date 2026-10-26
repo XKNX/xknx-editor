@@ -2937,3 +2937,6 @@ msgstr "Αφαίρεση {count} συσκευών"
 
 msgid "Delete Devices"
 msgstr "Διαγραφή Συσκευών"
+
+msgid "{medium} line"
+msgstr "{medium} γραμμή"

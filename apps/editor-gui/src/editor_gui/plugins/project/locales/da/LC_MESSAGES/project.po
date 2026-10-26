@@ -2937,3 +2937,6 @@ msgstr "Fjern {count} enheder"
 
 msgid "Delete Devices"
 msgstr "Slet enheder"
+
+msgid "{medium} line"
+msgstr "{medium}-linje"

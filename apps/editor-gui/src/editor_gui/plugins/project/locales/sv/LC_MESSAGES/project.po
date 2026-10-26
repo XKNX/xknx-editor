@@ -2937,3 +2937,6 @@ msgstr "Ta bort {count} apparater"
 
 msgid "Delete Devices"
 msgstr "Ta bort apparater"
+
+msgid "{medium} line"
+msgstr "{medium}-linje"

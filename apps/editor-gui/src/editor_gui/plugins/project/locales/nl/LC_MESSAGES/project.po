@@ -2975,3 +2975,6 @@ msgstr "{count} apparaten verwijderen"
 
 msgid "Delete Devices"
 msgstr "Apparaten verwijderen"
+
+msgid "{medium} line"
+msgstr "{medium} lijn"

@@ -221,6 +221,11 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             result["status"] = details.status
         if details.medium is not None:
             result["medium"] = medium_name(details.medium)
+        if details.refused_media:
+            result["refused_media"] = {
+                medium_name(medium): reason
+                for medium, reason in details.refused_media.items()
+            }
         if details.domain_address:
             result["domain_address"] = details.domain_address
         if details.security is not None:
@@ -302,7 +307,9 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         ("2"), which project_set_number changes unless number_editable is false (a segment and a
         function have none); status is the "Status" of an area, line, segment or function (see
         project_set_status); medium (TP, PL, RF, IP or IoT) is a line's or a segment's (see
-        project_set_medium), domain_address an RF or PL one's. A group address and a group have
+        project_set_medium), refused_media the media it cannot be set to with the reason (a
+        segment on a line that is not IP: IoT), domain_address an RF or PL one's. A group
+        address and a group have
         security (their own mode: Auto, On or Off) and security_forced_by (the group above that
         overrides it, {group_range_id, name, mode} or null); a group address also central and
         datapoint_type (its "Data Type" as a DPST token, null for none; see

@@ -59,6 +59,9 @@ async def test_segments_are_added_renamed_and_removed(tmp_path: Path) -> None:
         assert element["type"] == "segment"
         assert element["medium"] == "RF" and element["status"] == "Undefined"
         assert "address" not in element
+        # On a TP line a segment cannot be IoT: told with the reason.
+        assert list(element["refused_media"]) == ["IoT"]
+        assert "IoT" in element["refused_media"]["IoT"]
 
         with pytest.raises(Exception, match="main segment cannot be deleted"):
             await client.call_tool(

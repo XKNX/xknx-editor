@@ -2813,6 +2813,11 @@ class ProjectStrings:
         return _("{medium} main line")
 
     @property
+    def LINE_NAME(self) -> str:
+        # The name a line (not a main line) without one is shown with ("TP line").
+        return _("{medium} line")
+
+    @property
     def DEVICE_UNASSIGNED(self) -> str:
         return _("Unassigned ({count})")
 

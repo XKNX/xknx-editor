@@ -699,6 +699,9 @@ class ElementDetails:
     status: str | None = None
     has_address: bool = True
     medium: str | None = None
+    # The media its "Medium" offers but the rules refuse for it, with the reason (a segment on a
+    # line that is not IP cannot be IoT).
+    refused_media: dict[str, str] = field(default_factory=dict[str, str])
     domain_address: str = ""
     security: str | None = None
     forced_by: "ForcedSecurity | None" = None
@@ -743,11 +746,14 @@ def interface_bus_access(name: str, host: str, port: int) -> str:
 
 
 def line_display_name(area_number: int, line: "_Line") -> str:
-    """A line's name; a backbone or main line without one is called after its medium ("IP
-    backbone line", "TP main line")."""
-    if line.name or line.line_number != 0:
+    """A line's name; one without a name is called after its medium ("IP backbone line", "TP
+    main line", "TP line")."""
+    if line.name:
         return line.name
-    text = S.BACKBONE_LINE_NAME if area_number == 0 else S.MAIN_LINE_NAME
+    if line.line_number != 0:
+        text = S.LINE_NAME
+    else:
+        text = S.BACKBONE_LINE_NAME if area_number == 0 else S.MAIN_LINE_NAME
     return text.format(medium=medium_name(line.medium_type)).strip()
 
 
@@ -6379,6 +6385,24 @@ class ProjectService:
         self._bump()
         return None
 
+    def _refused_segment_media(self, segment: _Segment) -> dict[str, str]:
+        """The media a sub-segment may not be changed to, with the reason: IoT on a line that
+        is not IP (or IoT)."""
+        from xknxeditor.proj.core.medium import MEDIUM_IOT, MEDIUM_IP
+
+        line = self.find_line(segment.line_id)
+        if line is None or line.medium_type in (MEDIUM_IP, MEDIUM_IOT):
+            return {}
+        area = next((a for a in self.get_areas() if a.id == line.area_id), None)
+        prefix = f"{area.area_number}.{line.line_number}" if area is not None else ""
+        name = line_display_name(area.area_number if area else 0, line)
+        return {
+            MEDIUM_IOT: S.MEDIUM_ERROR_SUB_SEGMENT_IOT.format(
+                segment=segment_display_name(segment.name, segment.medium_type),
+                line=f"{prefix} {name}".strip(),
+            )
+        }
+
     def element_details(self, kind: str, element_id: int) -> "ElementDetails | None":
         """What the details of an area, line, segment, group range, group address or building
         function show; None when it does not exist (any more)."""
@@ -6397,6 +6421,7 @@ class ProjectService:
                 status=self.completion_status(kind, element_id),
                 has_address=False,
                 medium=segment.medium_type,
+                refused_media=self._refused_segment_media(segment),
                 domain_address=format_domain_address(
                     segment.medium_type, segment.domain_address
                 ),

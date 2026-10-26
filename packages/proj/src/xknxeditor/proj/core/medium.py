@@ -267,8 +267,11 @@ class LineView:
 
 def sub_segment_media(main: str) -> tuple[str, ...]:
     """The media a new sub-segment of a line whose main segment has ``main`` can have: TP or
-    RF below TP or IP; none below RF, PL or IoT."""
-    return (MEDIUM_TP, MEDIUM_RF) if main in (MEDIUM_TP, MEDIUM_IP) else ()
+    RF below TP; TP, RF or IoT below IP (an IoT segment needs IP above it, as when an existing
+    one is changed to IoT); none below RF, PL or IoT."""
+    if main == MEDIUM_IP:
+        return (MEDIUM_TP, MEDIUM_RF, MEDIUM_IOT)
+    return (MEDIUM_TP, MEDIUM_RF) if main == MEDIUM_TP else ()
 
 
 def check_new_sub_segment(main: str, medium: str) -> None:

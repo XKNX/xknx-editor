@@ -40,8 +40,9 @@ def test_a_room_inherits_the_building_s_line_until_it_has_its_own(
     project: ProjectService,
 ) -> None:
     lines = {text: line_id for line_id, text in project.line_choices()}
-    # A backbone or main line without a name is called after its medium.
-    assert list(lines) == ["0.0 IP backbone line", "1.0 IP main line", "1.1"]
+    # A line without a name is called after its medium.
+    assert list(lines) == ["0.0 IP backbone line", "1.0 IP main line", "1.1 TP line"]
+    lines["1.1"] = lines["1.1 TP line"]
     lines["1.0"] = lines["1.0 IP main line"]
     building = project.get_space_tree()[0].id
     room = project.create_space(building, "Room", "Living")
@@ -98,6 +99,7 @@ def test_the_details_show_the_own_or_the_inherited_line(
 ) -> None:
     lines = {text: line_id for line_id, text in project.line_choices()}
     lines["1.0"] = lines["1.0 IP main line"]
+    lines["1.1"] = lines["1.1 TP line"]
     building = project.get_space_tree()[0]
     project.rename_space(building.id, "House")
     room = project.create_space(building.id, "Room", "Living")
@@ -115,7 +117,7 @@ def test_the_details_show_the_own_or_the_inherited_line(
         assert [text for _id, text in choices] == [
             "0.0 IP backbone line",
             "1.0 IP main line",
-            "1.1",
+            "1.1 TP line",
         ]
         assert none_text == "None"
         shown.append((own, preview))
@@ -131,9 +133,9 @@ def test_the_details_show_the_own_or_the_inherited_line(
         on_set_current_line=project.set_space_default_line,
     )
     _render(panel, project, room)
-    assert shown[-1] == (None, "1.1 (inherits from House)")
+    assert shown[-1] == (None, "1.1 TP line (inherits from House)")
     _render(panel, project, building.id)
-    assert shown[-1] == (lines["1.1"], "1.1")
+    assert shown[-1] == (lines["1.1"], "1.1 TP line")
 
     choice[0] = (True, lines["1.0"])
     _render(panel, project, room)

@@ -2937,3 +2937,6 @@ msgstr "{count} 台のデバイスを削除"
 
 msgid "Delete Devices"
 msgstr "デバイスを削除"
+
+msgid "{medium} line"
+msgstr "{medium} ライン"

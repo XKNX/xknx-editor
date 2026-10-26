@@ -218,13 +218,15 @@ def test_ip_lines_and_knxnet_ip_routers() -> None:
 def test_new_sub_segments() -> None:
     check_new_sub_segment(MEDIUM_TP, MEDIUM_RF)
     check_new_sub_segment(MEDIUM_IP, MEDIUM_TP)
+    # Below IP also IoT (as an existing sub-segment there may be changed to IoT).
+    check_new_sub_segment(MEDIUM_IP, MEDIUM_IOT)
     for main, medium, reason in (
         (MEDIUM_RF, MEDIUM_TP, "rf_no_sub_segments"),
         (MEDIUM_PL, MEDIUM_TP, "pl_no_sub_segments"),
         (MEDIUM_IOT, MEDIUM_IOT, "iot_no_sub_segments"),
         (MEDIUM_TP, MEDIUM_PL, "pl_sub_segment"),
         (MEDIUM_TP, MEDIUM_IOT, "below_tp"),
-        (MEDIUM_IP, MEDIUM_IOT, "below_ip"),
+        (MEDIUM_IP, MEDIUM_PL, "pl_sub_segment"),
     ):
         with pytest.raises(MediumError) as error:
             check_new_sub_segment(main, medium)
@@ -306,9 +308,17 @@ def test_an_ip_line_gets_tp_by_default_and_an_rf_line_none(tmp_path: Path) -> No
     )
     svc.add_segment(pid, main)
     assert _segments(svc, pid, main) == [(0, MEDIUM_IP), (1, MEDIUM_TP)]
+    # An IoT sub-segment below IP, with its domain address.
+    iot = svc.add_segment(pid, main, medium_type=MEDIUM_IOT)
+    assert _segments(svc, pid, main) == [
+        (0, MEDIUM_IP),
+        (1, MEDIUM_TP),
+        (2, MEDIUM_IOT),
+    ]
+    assert iot is not None
     with pytest.raises(MediumError) as error:
-        svc.add_segment(pid, main, medium_type=MEDIUM_IOT)
-    assert _reason(error) == "below_ip"
+        svc.add_segment(pid, main, medium_type=MEDIUM_PL)
+    assert _reason(error) == "pl_sub_segment"
 
     _svc, _pid, line = (
         svc,

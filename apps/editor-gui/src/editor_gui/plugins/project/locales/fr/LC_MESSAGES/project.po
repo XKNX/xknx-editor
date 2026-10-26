@@ -2937,3 +2937,6 @@ msgstr "Enlever {count} participants"
 
 msgid "Delete Devices"
 msgstr "Supprimer les participants"
+
+msgid "{medium} line"
+msgstr "ligne {medium}"

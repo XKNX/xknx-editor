@@ -2937,3 +2937,6 @@ msgstr "Удалить {count} устройств"
 
 msgid "Delete Devices"
 msgstr "Удалить устройства"
+
+msgid "{medium} line"
+msgstr "линия {medium}"

@@ -47,7 +47,7 @@ async def test_the_current_line_is_inherited_set_and_cleared(tmp_path: Path) -> 
         assert await _data(client, "project_get_current_line", space_id=room) == {
             "space_id": room,
             "line_id": lines["1.1"],
-            "line": "1.1",
+            "line": "1.1 TP line",
             "set_by_space_id": building,
         }
         tree = (await _data(client, "project_spaces"))["items"][0]

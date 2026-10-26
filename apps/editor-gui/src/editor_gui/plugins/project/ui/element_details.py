@@ -417,7 +417,10 @@ class ElementDetailsPanel:
             if details.kind == "backbone"
             else line_media()
         )
-        chosen = choice_combo("##element_medium", options, medium)
+        # A medium the rules refuse for it is grayed out, telling why.
+        chosen = choice_combo(
+            "##element_medium", options, medium, details.refused_media
+        )
         if chosen is not None:
             self._medium_error = (
                 self._on_set_medium(details.kind, details.element_id, chosen) or ""

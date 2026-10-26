@@ -3057,8 +3057,9 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
     ) -> dict[str, Any]:
         """Add a sub-segment to a line (``id`` from project_topology), or ``count`` of them (1 to
         100, one undo step) as the Add dialog does. A line's devices are on its main segment
-        (the line itself) unless they are on a sub-segment; a new sub-segment of a TP or IP line
-        is TP or RF, an RF, PL or IoT line takes none, and a line has at most 128 segments.
+        (the line itself) unless they are on a sub-segment; a new sub-segment of a TP line is TP
+        or RF, of an IP line TP, RF or IoT, an RF, PL or IoT line takes none, and a line has at
+        most 128 segments.
         ``medium`` defaults to the line's own when a sub-segment can have it, else TP; without
         a ``name`` it has none (the editor shows it after its medium, e.g. "TP segment"), as
         areas and lines. Undoable with project_undo. Returns the (first) segment as

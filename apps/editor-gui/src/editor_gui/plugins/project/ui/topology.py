@@ -877,7 +877,10 @@ class TopologyPanel:
 
     @staticmethod
     def _format_line_label(area: Area, line: Line) -> str:
-        return f"{area.number}.{line.number} {line.name}".rstrip()
+        """A line as "1.1 Name"; one without a name is called after its medium ("1.1 TP
+        line")."""
+        name = line.name or S.LINE_NAME.format(medium=medium_name(line.medium_type))
+        return f"{area.number}.{line.number} {name}"
 
     @staticmethod
     def _format_segment_label(area: Area, line: Line, segment: Segment) -> str:
@@ -1056,6 +1059,10 @@ class TopologyPanel:
                 S.TOPOLOGY_TITLE_LINES,
                 target,
                 lambda request: self._add_lines(request, area, target),
+                # One without a name shows after its medium ("TP line").
+                default_name=lambda row: S.LINE_NAME.format(
+                    medium=medium_name(row.choice)
+                ),
                 choice=choice,
                 numbered=True,
                 start_maximum=15,

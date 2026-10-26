@@ -2937,3 +2937,6 @@ msgstr "删除 {count} 个设备"
 
 msgid "Delete Devices"
 msgstr "删除设备"
+
+msgid "{medium} line"
+msgstr "{medium} 线路"
