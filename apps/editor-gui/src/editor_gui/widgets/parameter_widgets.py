@@ -2,7 +2,8 @@ from __future__ import annotations
 
 import math
 import re
-from collections.abc import Callable, Generator
+from collections import Counter
+from collections.abc import Callable, Generator, Iterable
 from contextlib import contextmanager
 from dataclasses import dataclass, replace
 
@@ -908,23 +909,34 @@ def _node_matches(node: UiNode, needle: str) -> bool:
     return False
 
 
-def _instance_label(label: str, node_id: str | None) -> str:
+def _raw_label(node: UiTab | UiParameterBlock) -> str:
+    fallback = "Tab" if isinstance(node, UiTab) else ""
+    return node.text or node.name or node.id or fallback
+
+
+def _repeated_labels(nodes: Iterable[UiNode]) -> frozenset[str]:
+    """The labels that several of the tabs and blocks among ``nodes`` share."""
+    counts = Counter(
+        _raw_label(node) for node in nodes if isinstance(node, UiTab | UiParameterBlock)
+    )
+    return frozenset(label for label, count in counts.items() if count > 1)
+
+
+def _instance_label(node: UiTab | UiParameterBlock, repeated: frozenset[str]) -> str:
     """Disambiguate a repeated module instance's tab/block label with its instance index.
 
     Some apps (e.g. the MDT DALI gateway) give every repeated instance the same text — 16 group tabs
     all "G,", 64 ECG blocks all "ECG ," — because the instance-number placeholder isn't substituted
     into the title; only the id differs (``…_MI-1`` … ``_MI-64``). Append that index so they read
-    "G, 1"…"G, 16" / "ECG, 1"…"ECG, 64" (matching the "G1"/"ECG1"… labelling). Skips labels that
-    already carry the number.
+    "G, 1"…"G, 16" / "ECG, 1"…"ECG, 64" (matching the "G1"/"ECG1"… labelling). Only a label that
+    siblings share (``repeated``) gets it: instances with texts of their own ("Channel B: Kitchen")
+    keep them, as do labels that already carry the number.
     """
-    match = re.search(r"_MI-(\d+)", node_id or "")
-    if match and match.group(1) not in re.findall(r"\d+", label):
+    label = _raw_label(node)
+    match = re.search(r"_MI-(\d+)", node.id or "")
+    if label in repeated and match and match.group(1) not in re.findall(r"\d+", label):
         return f"{label.rstrip(' ,;:')} {match.group(1)}".strip()
     return label
-
-
-def _tab_label(tab: UiTab) -> str:
-    return _instance_label(tab.text or tab.name or tab.id or "Tab", tab.id)
 
 
 @dataclass(frozen=True, slots=True)
@@ -971,6 +983,7 @@ def _split_pages(
     """Separate the content shown on a page from the sub-pages listed below it in the tree."""
     content: list[UiNode] = []
     pages: list[ParameterPage] = []
+    repeated = _repeated_labels(children)
     for node in children:
         if isinstance(node, UiTab):
             key = f"{prefix}_{node.id}"
@@ -988,7 +1001,7 @@ def _split_pages(
                 pages.append(
                     ParameterPage(
                         key=_unique_key(key, seen),
-                        label=_tab_label(node),
+                        label=_instance_label(node, repeated),
                         icon=node.icon,
                         content=inner,
                         children=tuple(sub),
@@ -1011,7 +1024,7 @@ def _split_pages(
             pages.append(
                 ParameterPage(
                     key=_unique_key(key, seen),
-                    label=_instance_label(node.text or node.name or node.id, node.id),
+                    label=_instance_label(node, repeated),
                     icon=node.icon,
                     content=inner,
                     children=tuple(sub),
@@ -1603,6 +1616,7 @@ def _render_children(
     popup_request: EnumPopupRequest | None = None
     pending_params: list[UiParameter | UiButton] = []
     table_idx = 0
+    repeated = _repeated_labels(children)
     # Whether the last thing drawn was a table (a grid or a list of parameters): the next one
     # then joins it row against row.
     after_grid = False
@@ -1665,6 +1679,7 @@ def _render_children(
                 needle,
                 differing_refs,
                 buttons,
+                repeated,
             )
             after_grid = is_grid
             if req is not None:
@@ -1694,7 +1709,9 @@ def _render_block(
     needle: str = "",
     differing_refs: frozenset[str] = frozenset(),
     buttons: ButtonActions | None = None,
+    repeated: frozenset[str] = frozenset(),
 ) -> EnumPopupRequest | None:
+    """``repeated``: the labels the block's siblings share (see :func:`_instance_label`)."""
     if block.hidden:
         return None
     block_prefix = f"{prefix}_{block.id}"
@@ -1722,7 +1739,7 @@ def _render_block(
             buttons,
         )
 
-    label = _instance_label(block.text or block.name or block.id, block.id)
+    label = _instance_label(block, repeated)
     param_count = count_parameters(block.children)
     popup_request: EnumPopupRequest | None = None
     if needle:  # while filtering, expand matching blocks so hits are visible
@@ -1880,6 +1897,7 @@ def _render_grid_block(
             "",
             differing_refs,
             buttons,
+            _repeated_labels(uncelled_blocks),
         )
         if req is not None:
             popup_request = req
