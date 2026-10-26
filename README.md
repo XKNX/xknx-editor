@@ -20,9 +20,8 @@ workflows which can auto-download PDF manuals from the manufacturers.
 ## Download
 
 Prebuilt apps for **Windows, Linux, and macOS** are attached to every release — grab the latest from
-the [Releases page](https://github.com/xknx/xknx-editor/releases/latest) and start it directly.
-For a server, the [browser UI](#container-home-assistant-and-unraid) also comes as a container image,
-a Home Assistant add-on and an Unraid template.
+the [Releases page](https://github.com/xknx/xknx-editor/releases/latest) and start it directly, or
+run it on a server via its [Browser UI](#browser-ui).
 
 On Windows, run `XKNX-Editor-windows-installer-x64.exe` (or `-arm64.exe` on Windows on ARM). It
 installs for the current user without administrator rights, adds a Start menu entry (and one for
@@ -127,11 +126,10 @@ expose it to clients you trust.
 
 ## Browser UI
 
-The editor can also run without a window and be used in a web browser: on the same computer, or on
-a server next to the installation (a mini PC, a NAS, a container) that you reach from the house
-network. It is the same editor with the same dialogs; the browser draws it itself (no video
-stream), so it stays sharp at any display scaling. Works in current Chrome, Edge, Opera, Firefox and
-Safari (WebGL 2).
+The editor can also run without a window and be used in a web browser — on the same computer, or
+on a server (mini PC, NAS, container) you reach from the house network. It is the same editor with
+the same dialogs; the browser draws it itself (no video stream, so it stays sharp at any scaling).
+Works in current Chrome, Edge, Opera, Firefox and Safari (WebGL 2).
 
 Start the app with `--web` and open the address it prints:
 
@@ -142,26 +140,17 @@ Start the app with `--web` and open the address it prints:
 | Linux | `./XKNX-Editor-x86_64.AppImage --web` |
 | From source | `uv run python -m editor_gui.main --web` |
 
-By default it serves `http://localhost:8080/` on this computer only (the next free port when 8080
-is in use) and opens the default browser there. No sign-in is needed then. **File → Exit** in the browser, or Ctrl+C in the terminal it was
-started from, ends it. A project file can be given as usual, e.g. `XKNX-Editor.exe --web Haus.xknx`.
+By default it serves `http://localhost:8080/` on this computer only, opens the browser there (no
+sign-in) and shows a tray icon with **Open in Browser** / **Stop XKNX Editor**. **File → Exit** or
+Ctrl+C ends it. A project file can be given as usual, e.g. `XKNX-Editor.exe --web Haus.xknx`.
 
-On a desktop, a tray icon shows that the editor runs in the background: in the Windows notification
-area, the macOS menu bar, or the tray of a Linux desktop (KDE Plasma, GNOME with the AppIndicator
-extension, Xfce, …). Its menu has **Open in Browser** and **Stop XKNX Editor**; on Windows, and on
-Linux desktops that support it, a left click opens the browser directly.
-
-Reachable from other devices, every browser signs in once with a password you choose:
+To reach it from other devices, give an address and a password (or `--web-trust-proxy` behind a
+proxy that signs users in itself, like Home Assistant Ingress; for HTTPS pass a certificate or
+terminate TLS in the proxy):
 
 ```bash
 XKNX_WEB_PASSWORD='choose a password' ./XKNX-Editor-x86_64.AppImage --web=0.0.0.0:8080
 ```
-
-A network address given without a password works too, e.g. in a network protected otherwise; the app
-then warns in its terminal, as anyone reaching it could program the installation and read its KNX
-Secure keys. Behind a proxy that signs users in itself (e.g. Home Assistant Ingress) and reaches the
-app on this computer, add `--web-trust-proxy`. For HTTPS, pass a certificate or let a reverse proxy
-in front handle it.
 
 | Option | Meaning |
 |---|---|
@@ -177,19 +166,11 @@ in front handle it.
 
 `--help` lists all options.
 
-On a tablet or phone the layout follows the screen: from about 1000 pixels width the usual one,
-below it the navigation above (or beside) the other panels, which share one section as tabs; it
-changes when the device is turned. On a narrow screen the menus are in one **☰** menu, the parameter
-editor shows its pages above the parameters with each label above its field, rows of buttons go on
-in the next line and wide tables scroll sideways. Each browser keeps its own zoom: two fingers,
-Ctrl+Plus/Minus/0, Ctrl+wheel (a touchpad's pinch), or **View → Zoom In/Zoom Out/Reset Zoom**;
-on the Topology diagram they zoom the diagram. With a finger, a tap clicks, a swipe scrolls, holding and lifting is a
-right-click (context menus) and holding and moving drags. The on-screen keyboard appears for text
-fields only.
-
-One browser controls the editor at a time; it keeps control across a reload. Another browser watches
-and can take over with **Take Control**, and gets control right away once the controlling one was
-inactive for the idle time.
+Tablets and phones get a narrow layout (menus in **☰**, parameter pages above the fields, button
+rows wrap, wide tables scroll sideways); a tap clicks, hold+lift opens the context menu, hold+drag
+drags. Each browser keeps its own zoom (two fingers, Ctrl+Plus/Minus/0, Ctrl+wheel, or
+**View → Zoom**). One browser controls the editor at a time and keeps control across a reload;
+another watches and can take over with **Take Control** (or automatically after the idle timeout).
 
 Files go through the browser: **Open** uploads a file from your computer (or drop it on the page)
 or picks one already on the server; **Save** and **Export** write into the server's file folder and
