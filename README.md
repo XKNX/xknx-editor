@@ -40,7 +40,7 @@ click **Open Anyway** (confirm on the next launch). Alternatively, remove the qu
 terminal:
 
 ```bash
-xattr -dr com.apple.quarantine "/Applications/XKNX Editor.app"
+xattr -dr com.apple.quarantine "/Applications/XKNX-Editor.app"
 ```
 
 On Linux, make the AppImage executable first (a double-click without this may open it in a
