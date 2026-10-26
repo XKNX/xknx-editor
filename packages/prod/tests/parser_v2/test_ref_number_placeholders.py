@@ -12,6 +12,7 @@ from xknxeditor.prod.parser_v2.context import EvalContext
 from xknxeditor.prod.parser_v2.state import ParameterState
 
 DESCRIPTION = "A_P-1664_R-5889"
+EMPTY = "A_P-1665_R-5891"
 UNSET = "A_P-7_R-7"
 MODULE_REF = "A_MD-1_P-1_R-7"
 
@@ -21,13 +22,14 @@ class _Index:
 
     def __init__(self) -> None:
         self.refs_by_number: dict[str | None, dict[int, str]] = {
-            None: {5889: DESCRIPTION, 7: UNSET},
+            None: {5889: DESCRIPTION, 5891: EMPTY, 7: UNSET},
             "A_MD-1": {7: MODULE_REF},
         }
 
     def default_value(self, ref_id: str) -> str | None:
         return {
             DESCRIPTION: "",
+            EMPTY: "",
             UNSET: "Default",
             MODULE_REF: "Module default",
         }.get(ref_id)
@@ -47,6 +49,14 @@ def test_a_number_stands_for_the_value_of_that_parameter_ref() -> None:
     assert _text("Channel A: {{5889}}", ctx) == "Channel A: Living Room South"
     # A ref never set shows its default.
     assert _text("Value: {{7}}", ctx) == "Value: Default"
+
+
+def test_an_empty_value_shows_the_fallback_after_the_colon() -> None:
+    """A channel page without a description is named after its mode ("Kanal C: Rollladen")."""
+    ctx = _context()
+    assert _text("Channel A: {{5889:Shutter}}", ctx) == "Channel A: Living Room South"
+    assert _text("Channel B: {{5891:Blinds}}", ctx) == "Channel B: Blinds"
+    assert _text("Channel B: {{5891}}", ctx) == "Channel B:"
 
 
 def test_zero_unknown_numbers_and_arguments_keep_their_meaning() -> None:
