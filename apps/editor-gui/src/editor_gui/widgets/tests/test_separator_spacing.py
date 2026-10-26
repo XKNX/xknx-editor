@@ -10,7 +10,7 @@ import pytest
 from imgui_bundle import imgui
 
 from editor_gui.widgets import parameter_widgets
-from editor_gui.widgets.wrapping import LINE_GAP
+from editor_gui.widgets.wrapping import LINE_GAP, text_height
 from xknxeditor.prod.parser_v2.ui import UiSeparator
 
 
@@ -91,3 +91,13 @@ def test_texts_in_a_row_have_room_between() -> None:
     pitch = 4.0 + imgui.get_text_line_height() + LINE_GAP + 4.0
     assert imgui.get_cursor_pos_y() - top == pytest.approx(pitch)
     assert pitch - imgui.get_text_line_height() == 10.0
+
+
+@pytest.mark.usefixtures("frame")
+def test_grid_labels_break_after_hyphens() -> None:
+    sep = UiSeparator(id="S-1", text="Kanaltransfer-Operation")
+    gap = parameter_widgets._CELL_GAP  # pyright: ignore[reportPrivateUsage]
+    narrow = imgui.calc_text_size("Kanaltransfer-").x + gap + 1.0
+    height = parameter_widgets._celltext_height  # pyright: ignore[reportPrivateUsage]
+    assert height(sep, narrow) == pytest.approx(text_height(2))
+    assert height(sep, None) == pytest.approx(text_height(1))

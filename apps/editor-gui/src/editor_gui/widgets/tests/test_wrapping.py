@@ -43,3 +43,20 @@ def test_lines_break_at_spaces() -> None:
         "  one two",
         "three",
     ]
+
+
+@pytest.mark.usefixtures("context")
+def test_lines_break_after_hyphens() -> None:
+    width = imgui.calc_text_size("of a channel transfer-").x
+    assert wrap_lines("of a channel transfer-operation", width) == [
+        "of a channel transfer-",
+        "operation",
+    ]
+    # A hyphen before a digit, a leading one or a double one is no place to break.
+    narrow = imgui.calc_text_size("range ").x
+    assert wrap_lines("range 1-2", narrow) == ["range", "1-2"]
+    assert wrap_lines("value -5", narrow) == ["value", "-5"]
+    dash = imgui.calc_text_size("x a--b").x - 1
+    assert wrap_lines("x a--b", dash) == ["x", "a--b"]
+    # A line that fits keeps the word whole.
+    assert wrap_lines("transfer-operation", 1000) == ["transfer-operation"]

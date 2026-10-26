@@ -2046,12 +2046,11 @@ def _celltext_height(sep: UiSeparator, width: float | None) -> float:
     if not sep.text or sep.hint not in ("Headline", None):
         return 0.0
     text = "\n".join(line.lstrip(" ") for line in sep.text.split("\n"))
-    if width:
-        width = max(width - px(_CELL_GAP), 1.0)
+    wrap = max(width - px(_CELL_GAP), 1.0) if width else math.inf
     if sep.hint == "Headline":
         with bold(_HEADLINE_SCALE):
-            return imgui.calc_text_size(text, wrap_width=width if width else -1.0).y
-    return imgui.calc_text_size(text, wrap_width=width if width else -1.0).y
+            return text_height(len(wrap_lines(text, wrap)))
+    return text_height(len(wrap_lines(text, wrap)))
 
 
 def _render_cell_separator(
@@ -2071,13 +2070,13 @@ def _render_cell_separator(
             - px(_CELL_GAP)
         )
         text = _indented_cell_text(sep.text, origin)
-        imgui.push_text_wrap_pos(max(right, imgui.get_cursor_pos_x() + 1.0))
+        # Broken into lines as other texts are (at spaces and after hyphens).
+        wrap = max(right - imgui.get_cursor_pos_x(), 1.0)
         if sep.hint == "Headline":
             with bold(_HEADLINE_SCALE), _headline_color():
-                imgui.text_unformatted(text)
+                wrapped_text(text, wrap)
         else:
-            imgui.text_unformatted(text)
-        imgui.pop_text_wrap_pos()
+            wrapped_text(text, wrap)
         return imgui.get_item_rect_size().y
     _render_separator(sep)
     return 0.0
@@ -2194,7 +2193,7 @@ def _render_param_table(
                 imgui.text_colored(_CHANGED_COLOR, "*")
                 imgui.same_line(0, px(4))
                 imgui.push_style_color(imgui.Col_.text, _CHANGED_COLOR)
-                imgui.text_wrapped(label)
+                _wrapped_label(label)
                 imgui.pop_style_color()
                 if imgui.is_item_hovered():
                     imgui.set_tooltip(
@@ -2205,10 +2204,10 @@ def _render_param_table(
                     imgui.Col_.text,
                     imgui.get_style_color_vec4(imgui.Col_.text_disabled),
                 )
-                imgui.text_wrapped(label)
+                _wrapped_label(label)
                 imgui.pop_style_color()
             else:
-                imgui.text_wrapped(label)
+                _wrapped_label(label)
             label_hovered = imgui.is_item_hovered()
             _track_help(param.help_context)
             if indent > 0:
@@ -2332,6 +2331,12 @@ def _render_ruler() -> None:
         top, imgui.ImVec2(top.x + width, top.y + 1.0), color
     )
     imgui.dummy(imgui.ImVec2(width, 1.0))
+
+
+def _wrapped_label(label: str) -> None:
+    """A parameter's label in the rest of its column, broken into lines as separator texts are
+    (at spaces and after hyphens)."""
+    wrapped_text(label, max(imgui.get_content_region_avail().x, 1.0))
 
 
 def _aligned_text(text: str, alignment: str | None) -> None:
