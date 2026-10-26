@@ -505,9 +505,6 @@ msgstr "Clique num resultado para saltar para o dispositivo."
 msgid "No buildings/rooms in this project"
 msgstr "Não há construções/compartimentos neste projeto"
 
-msgid "+ Function"
-msgstr "+ Função"
-
 msgid "Name"
 msgstr "Nome"
 

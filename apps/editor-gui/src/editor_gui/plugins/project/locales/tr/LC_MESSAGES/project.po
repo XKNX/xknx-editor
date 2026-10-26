@@ -505,9 +505,6 @@ msgstr "Cihaza gitmek için bir bulguya tıklayın."
 msgid "No buildings/rooms in this project"
 msgstr "Bu projede bina/oda yok"
 
-msgid "+ Function"
-msgstr "+ Fonksiyon"
-
 msgid "Name"
 msgstr "Ad"
 

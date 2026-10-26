@@ -505,9 +505,6 @@ msgstr "Клацніть результат, щоб перейти до прис
 msgid "No buildings/rooms in this project"
 msgstr "У цьому проєкті немає будівель/кімнат"
 
-msgid "+ Function"
-msgstr "+ Функція"
-
 msgid "Name"
 msgstr "Ім'я"
 

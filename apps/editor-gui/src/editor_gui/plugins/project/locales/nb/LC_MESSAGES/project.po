@@ -505,9 +505,6 @@ msgstr "Klikk på et funn for å gå til enheten."
 msgid "No buildings/rooms in this project"
 msgstr "Ingen bygninger/rom i dette prosjektet"
 
-msgid "+ Function"
-msgstr "+ Funksjon"
-
 msgid "Name"
 msgstr "Navn"
 

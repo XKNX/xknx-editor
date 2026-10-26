@@ -843,9 +843,6 @@ msgstr "Klicken zum Kopieren"
 msgid "Update to V{version}"
 msgstr "Auf V{version} aktualisieren"
 
-msgid "+ Function"
-msgstr "+ Funktion"
-
 msgid "Type"
 msgstr "Typ"
 

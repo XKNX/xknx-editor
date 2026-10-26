@@ -378,9 +378,6 @@ msgstr "Gekopieerd"
 msgid "Click to copy"
 msgstr "Klik om te kopieren"
 
-msgid "+ Function"
-msgstr "+ Functie"
-
 msgid "Type"
 msgstr "Type"
 

@@ -505,9 +505,6 @@ msgstr "Kliknutím na nález přejdete na zařízení."
 msgid "No buildings/rooms in this project"
 msgstr "V tomto projektu nejsou žádné budovy/místnosti"
 
-msgid "+ Function"
-msgstr "+ Funkce"
-
 msgid "Name"
 msgstr "Název"
 

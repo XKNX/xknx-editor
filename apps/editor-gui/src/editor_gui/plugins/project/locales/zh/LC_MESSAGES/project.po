@@ -505,9 +505,6 @@ msgstr "点击某项结果可跳转到该设备。"
 msgid "No buildings/rooms in this project"
 msgstr "此项目中没有建筑/房间"
 
-msgid "+ Function"
-msgstr "+ 功能"
-
 msgid "Name"
 msgstr "名称"
 

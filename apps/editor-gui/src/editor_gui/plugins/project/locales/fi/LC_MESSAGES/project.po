@@ -505,9 +505,6 @@ msgstr "Siirry laitteeseen napsauttamalla havaintoa."
 msgid "No buildings/rooms in this project"
 msgstr "Tässä projektissa ei ole rakennuksia/huoneita"
 
-msgid "+ Function"
-msgstr "+ Toiminto"
-
 msgid "Name"
 msgstr "Nimi"
 

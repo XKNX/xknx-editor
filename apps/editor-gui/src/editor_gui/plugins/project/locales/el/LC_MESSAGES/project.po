@@ -505,9 +505,6 @@ msgstr "Κάντε κλικ σε ένα εύρημα για μετάβαση σ�
 msgid "No buildings/rooms in this project"
 msgstr "Δεν υπάρχουν κτίρια/δωμάτια σε αυτό το έργο"
 
-msgid "+ Function"
-msgstr "+ Λειτουργία"
-
 msgid "Name"
 msgstr "Όνομα"
 

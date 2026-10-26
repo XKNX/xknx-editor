@@ -501,11 +501,6 @@ class SpacesPanel:
         ):
             self._start_assign_device()
             imgui.open_popup(_assign_device_dialog(space.id))
-        if self._on_create_function is not None:
-            if devices_here and self._on_set_device_space is not None:
-                imgui.same_line()
-            if imgui.small_button(f"{S.SPACES_ADD_FUNCTION}##addfn{space.id}"):
-                self._start_add_functions(space)
         imgui.tree_pop()
 
     def _start_assign_device(self) -> None:

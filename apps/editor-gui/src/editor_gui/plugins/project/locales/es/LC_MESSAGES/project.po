@@ -505,9 +505,6 @@ msgstr "Haga clic en un hallazgo para ir al dispositivo."
 msgid "No buildings/rooms in this project"
 msgstr "No hay edificios/estancias en este proyecto"
 
-msgid "+ Function"
-msgstr "+ Función"
-
 msgid "Name"
 msgstr "Nombre"
 

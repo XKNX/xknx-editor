@@ -1439,10 +1439,6 @@ class ProjectStrings:
         return _("No buildings/rooms in this project")
 
     @property
-    def SPACES_ADD_FUNCTION(self) -> str:
-        return _("+ Function")
-
-    @property
     def SPACES_SPACE_NAME(self) -> str:
         return _("Name")
 

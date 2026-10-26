@@ -505,9 +505,6 @@ msgstr "Cliquez sur un résultat pour accéder au participant."
 msgid "No buildings/rooms in this project"
 msgstr "Aucun bâtiment/aucune pièce dans ce projet"
 
-msgid "+ Function"
-msgstr "+ Fonction"
-
 msgid "Name"
 msgstr "Nom"
 

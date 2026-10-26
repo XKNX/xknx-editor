@@ -505,9 +505,6 @@ msgstr "項目をクリックするとデバイスに移動します。"
 msgid "No buildings/rooms in this project"
 msgstr "このプロジェクトには構造／部屋がありません"
 
-msgid "+ Function"
-msgstr "+ 機能"
-
 msgid "Name"
 msgstr "名前"
 
