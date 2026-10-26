@@ -57,6 +57,7 @@ def test_the_device_header_shows_the_times_and_the_status(
                 app=None,
                 name="Dimmer",
                 display_name="Dimmer",
+                product_name="Universal Dimmer",
                 individual_address="1.1.5",
                 description="",
             ),
