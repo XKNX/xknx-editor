@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from collections.abc import Iterable
+from collections.abc import Iterable, Iterator, Mapping
 from typing import TYPE_CHECKING
 
 from xknxeditor.namespaces.intermediate import ModuleArg
@@ -60,6 +60,32 @@ class EvalCapture:
             for ref, chains in self.chains.items()
             if any(chain <= active_params for chain in chains)
         }
+
+
+class _TextArgs(Mapping[str, str]):
+    """The module arguments of a scope, plus parameter-ref values by unique number (looked up
+    only when a text asks for one). ``{{0}}`` is not a number here: it is the text parameter."""
+
+    __slots__ = ("_args", "_ctx")
+
+    def __init__(self, ctx: EvalContext) -> None:
+        self._ctx = ctx
+        self._args = ctx.get_arg_defaults()
+
+    def __getitem__(self, key: str) -> str:
+        if key in self._args:
+            return self._args[key]
+        if key.isdigit() and int(key) != 0:
+            ref = self._ctx.ref_by_number(int(key))
+            if ref is not None:
+                return self._ctx.value_or_default(ref) or ""
+        raise KeyError(key)
+
+    def __iter__(self) -> Iterator[str]:
+        return iter(self._args)
+
+    def __len__(self) -> int:
+        return len(self._args)
 
 
 class EvalContext:
@@ -171,6 +197,30 @@ class EvalContext:
 
     def get_arg_defaults(self) -> dict[str, str]:
         return self._scope.get_arg_defaults()
+
+    def text_args(self) -> Mapping[str, str]:
+        """What ``{{name}}`` placeholders in texts stand for: the module arguments, and for a
+        number the value of the parameter-ref with that unique number (``…_R-<number>``) in the
+        scope's module definition, else in the application ("Channel A: {{5889}}")."""
+        return _TextArgs(self)
+
+    def ref_by_number(self, number: int) -> str | None:
+        """The parameter-ref with unique number ``number`` of this scope (see :meth:`text_args`)."""
+        if self._idx is None:
+            return None
+        owner = getattr(self._scope, "ref_id", None)
+        for scope_owner in (owner, None) if owner is not None else (None,):
+            ref = self._idx.refs_by_number.get(scope_owner, {}).get(number)
+            if ref is not None:
+                return ref
+        return None
+
+    def value_or_default(self, ref_id: str) -> str | None:
+        """The value of ``ref_id`` in this scope, else its default."""
+        value = self.get(ref_id)
+        if value is None and self._idx is not None:
+            value = self._idx.default_value(ref_id)
+        return value
 
     def seed_param_ref_defaults(self, param_ref_defaults: dict[str, str]) -> None:
         self._scope.set_param_ref_defaults(param_ref_defaults)

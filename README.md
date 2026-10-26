@@ -65,13 +65,15 @@ and `~/.local/state/xknx-editor/log` on Linux.
 
 ## Features
 
-<!-- Images are placeholders — replace the files in docs/images/ with real screenshots. -->
-
 **Project editor** — a tree for the installation (topology, group addresses, buildings and rooms), a
 detail table, and a properties panel. Communication objects are linked to group addresses with live
 compatibility checks, and every change has full undo/redo.
 
 ![Project editor](docs/images/editor.png)
+
+The same in the light theme:
+
+![Project editor in the light theme](docs/images/editor-light.png)
 
 **Import and export both work.** Open an existing project file and edit it, or export one that opens
 in ETS. Exports bundle the required product data so the project is self-contained, are signed so ETS
@@ -83,46 +85,52 @@ export (`.xml`, `ga-export/01`). A group-address export carries only the group-a
 middle group folders with their addresses and datapoint types, no devices); it is imported into a new
 project whose group-address tree mirrors the export.
 
-![Import and export](docs/images/import-export.png)
+<img src="docs/images/import-export.png" alt="Import and export" width="700">
 
 **Product catalog** — import product files into a searchable catalog of manufacturers, hardware, and
 applications, independent of any project, and drag entries in as new devices. You can also browse the
 online catalog, cached locally for offline use.
 
-![Product catalog](docs/images/catalog.png)
+<img src="docs/images/catalog.png" alt="Product catalog" width="598">
 
 **Programming real devices** — commission a device end-to-end over a live connection (tunneling or
 routing, with gateway discovery), including setting a new device's address. A read-only **preflight**
 and **Test Programming** read the device back and show the exact changes before anything is
 written. Vendor-independent by design.
 
-![Programming and preflight](docs/images/programming.png)
+<img src="docs/images/programming.png" alt="Programming and preflight" width="384">
 
 **Cockpit and health checks** — a site-wide device table with live status, plus a panel that flags
 issues (missing or duplicate addresses, applications missing from the catalog, unlinked objects,
 group addresses without a type or sender); click a finding to jump to the device.
 
-
+![Cockpit and health checks](docs/images/cockpit.png)
 
 **Bus monitors and logs** — record and inspect bus traffic in the Group Monitor, Bus Monitor and Bus
 Activity alongside a filterable application log;
 with a project open, values are shown with the group address' name and decoded type.
 
+![Group Monitor](docs/images/monitor.png)
 
+**Bus Diagram** — the installation drawn by its topology or by its buildings, and as links: which
+devices send on each group address and which receive from it, for the whole project, a room or a
+main group. Click a device or group address to follow it.
+
+<img src="docs/images/links.png" alt="Bus Diagram links" width="696">
 
 **Recover from the bus** — reconstruct an installation without a project file by scanning an address
 range and reading each device back read-only, then adding it to the project. Uncertain values are
 marked rather than guessed, and a read-only verify diffs the result against the device. Still
 maturing — review a recovered project before relying on it.
 
-![Recover from the bus](docs/images/recover.png)
+<img src="docs/images/recover.png" alt="Recover from the bus" width="696">
 
 **MCP server (LLM control)** — an embedded [Model Context Protocol](https://modelcontextprotocol.io)
 server lets an LLM drive the editor in the same live session as the GUI (shared project, catalog, and
-connection). Start it from **Settings → MCP**. It can edit the project and program hardware, so only
-expose it to clients you trust.
+connection). Start it from the **MCP Server** menu. It can edit the project and program hardware, so
+only expose it to clients you trust.
 
-![MCP server](docs/images/mcp.png)
+<img src="docs/images/mcp.png" alt="MCP server" width="560">
 
 ## Browser UI
 

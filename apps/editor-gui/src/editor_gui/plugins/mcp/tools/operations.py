@@ -86,7 +86,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         recovery) as {kind, address, text, progress?: [done, total]}, or null; ``active`` the
         running operation followed by the waiting ones, ``history`` the ended ones, newest first
         (left out with history=false). Each entry: {node_id, device_address, name, operation (e.g.
-        "Download(Parameters)"), state (waiting, running, finished, canceled, failed),
+        "Download (Parameters)"), state (waiting, running, finished, canceled, failed),
         state_text (e.g. "Connecting" while a running one waits for the connection opened for
         it through the backbone's Bus Connection), origin ("MCP" when an MCP client started it), message (the error), details
         (the result sections of a device info), connection, started_at, ended_at,

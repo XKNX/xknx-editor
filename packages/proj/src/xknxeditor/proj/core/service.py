@@ -513,16 +513,19 @@ class LinkInfo:
 
 @dataclass(frozen=True)
 class DeviceLinkInfo:
-    """A group-address link with the device of its com-object and the com-object's effective flags."""
+    """A group-address link with the device of its com-object and the com-object's flags as the
+    project stores them: ``None`` where it leaves a flag to the application (the caller that knows
+    the application resolves it, see ``com_object_id``)."""
 
     device_id: int
     group_address_id: int
     is_sending: bool
-    communication: bool
-    read: bool
-    write: bool
-    transmit: bool
-    update: bool
+    communication: bool | None
+    read: bool | None
+    write: bool | None
+    transmit: bool | None
+    update: bool | None
+    com_object_id: int = 0
 
 
 def _forced_by(group_range: GroupRange | None) -> ForcedSecurity | None:
@@ -4705,7 +4708,8 @@ class ProjectService:
         )
 
     def device_links(self, project_id: str) -> list[DeviceLinkInfo]:
-        """Every group-address link of the project with its device and flags, in one query."""
+        """Every group-address link of the project with its device and flags, in one query; a
+        flag the project leaves to the application is ``None``."""
         rows = (
             self._state(project_id)
             .session.query(
@@ -4717,6 +4721,7 @@ class ProjectService:
                 ComObject.write_flag,
                 ComObject.transmit_flag,
                 ComObject.update_flag,
+                ComObject.id,
             )
             .join(ComObjectLink, ComObjectLink.com_object_id == ComObject.id)
             .order_by(ComObjectLink.id)
@@ -4727,13 +4732,24 @@ class ProjectService:
                 device_id=device_id,
                 group_address_id=ga_id,
                 is_sending=bool(sending),
-                communication=bool(communication),
-                read=bool(read),
-                write=bool(write),
-                transmit=bool(transmit),
-                update=bool(update),
+                communication=communication,
+                read=read,
+                write=write,
+                transmit=transmit,
+                update=update,
+                com_object_id=com_object_id,
             )
-            for device_id, ga_id, sending, communication, read, write, transmit, update in rows
+            for (
+                device_id,
+                ga_id,
+                sending,
+                communication,
+                read,
+                write,
+                transmit,
+                update,
+                com_object_id,
+            ) in rows
         ]
 
     def group_addresses(self, project_id: str) -> list[GroupAddressInfo]:

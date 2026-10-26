@@ -58,6 +58,11 @@ def test_multiple_placeholders_in_one_text() -> None:
     )
 
 
+def test_an_empty_argument_shows_the_fallback() -> None:
+    assert apply_text_args("Room {{Name:unnamed}}", {"Name": ""}) == "Room unnamed"
+    assert apply_text_args("Room {{Name:unnamed}}", {"Name": "Hall"}) == "Room Hall"
+
+
 def test_unknown_argument_name_is_left_for_fill_name() -> None:
     # fill_name's final pass strips any surviving {{...}} placeholder.
     assert (

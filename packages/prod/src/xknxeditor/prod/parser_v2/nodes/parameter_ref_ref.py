@@ -39,7 +39,7 @@ class ParameterRefRefNode(DynamicNode):
         if access is Access.NONE:
             return []
         local_ref_id = self._elem.ref_id
-        arg_defaults = ctx.get_arg_defaults()
+        arg_defaults = ctx.text_args()
         static_label = apply_text_args(
             self._param_ref.text or self._param.text or "", arg_defaults
         )

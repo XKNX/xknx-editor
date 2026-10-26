@@ -72,7 +72,7 @@ async def test_operations_show_the_queue_and_the_bus_operation(tmp_path: Path) -
             ("1.1.5", "running"),
             ("1.1.6", "waiting"),
         ]
-        assert state["active"][0]["operation"] == "Download(Full)"
+        assert state["active"][0]["operation"] == "Download (Full)"
         assert state["active"][1]["origin"] == "MCP"
         assert state["history"] == []
 

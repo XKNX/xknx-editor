@@ -15,7 +15,7 @@ import time
 import xml.etree.ElementTree as ET
 import zipfile
 from collections.abc import Callable, Collection, Generator
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal, cast
 
@@ -26,6 +26,7 @@ from editor_gui.concurrency import (
 )
 from editor_gui.device import (
     ComObject,
+    ComObjectFlags,
     Device,
     UnloadedDevice,
     address_order,
@@ -445,6 +446,28 @@ def _co_instance_ref_from_row(
         transmit_flag=_e(row.transmit_flag),
         update_flag=_e(row.update_flag),
         read_on_init_flag=_e(row.read_on_init_flag),
+    )
+
+
+def _effective_flags(
+    link: "DeviceLinkInfo", flags: ComObjectFlags | None
+) -> "DeviceLinkInfo":
+    """``link`` with the flags its project leaves to the application taken from ``flags`` (the
+    group object's effective flags); off when the object is unknown."""
+
+    def pick(stored: bool | None, effective: bool) -> bool:
+        if stored is not None:
+            return stored
+        return effective if flags is not None else False
+
+    default = flags or ComObjectFlags()
+    return replace(
+        link,
+        communication=pick(link.communication, default.communication),
+        read=pick(link.read, default.read),
+        write=pick(link.write, default.write),
+        transmit=pick(link.transmit, default.transmit),
+        update=pick(link.update, default.update),
     )
 
 
@@ -2702,10 +2725,21 @@ class ProjectService:
     @revision_cached
     def device_links(self) -> list["DeviceLinkInfo"]:
         """Every group-address link with its device (``node_id``) and its com-object's flags, read in
-        one query: for views over the whole project, where a read per com-object is far too slow."""
+        one query: for views over the whole project, where a read per com-object is far too slow.
+        A flag the project leaves to the application comes from the device's group object, as the
+        Group Objects view shows it."""
         if self._pid is None:
             return []
-        return self._svc.device_links(self._pid)
+        flags = {
+            co.db_id: co.flags
+            for device in self.devices
+            for co in device.com_objects
+            if co.db_id is not None
+        }
+        return [
+            _effective_flags(link, flags.get(link.com_object_id))
+            for link in self._svc.device_links(self._pid)
+        ]
 
     @io_guarded(list)
     @revision_cached_by_args

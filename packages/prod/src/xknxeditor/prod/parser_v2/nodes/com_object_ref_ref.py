@@ -140,12 +140,13 @@ class ComObjectRefRefNode(DynamicNode):
         name_value = (
             ctx.get(self._text_param_ref_id) if self._text_param_ref_id else None
         )
+        text_args = ctx.text_args()
         name = fill_name(
-            apply_text_args(self._name_template, ctx.get_arg_defaults()),
+            apply_text_args(self._name_template, text_args),
             name_value or "",
         )
         function_text = fill_name(
-            apply_text_args(self._function_text, ctx.get_arg_defaults()),
+            apply_text_args(self._function_text, text_args),
             name_value or "",
         )
         ov = ctx.get_com_obj_instance_ref(qualified_ref_id)

@@ -66,6 +66,51 @@ def _shown(graph: dict[str, Any]) -> list[tuple[str, list[int], list[int]]]:
     ]
 
 
+async def test_flags_the_project_leaves_to_the_application(tmp_path: Path) -> None:
+    """A device added in the editor stores no flags of its own: the application's apply, so it
+    takes part in the graph and its links carry them."""
+    mcp, _project = _build(tmp_path)
+    async with Client(mcp) as client:
+        await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
+        await _data(client, "catalog_import_knxprod", path=str(_FIXTURE))
+        product = (await _data(client, "catalog_list_products"))["items"][0][
+            "product_ref_id"
+        ]
+        devices: list[tuple[int, dict[str, Any]]] = []
+        for wanted in ("transmit", "write"):
+            node_id = (
+                await _data(client, "project_add_device", product_ref_id=product)
+            )["node_id"]
+            objects = (
+                await _data(client, "project_list_com_objects", node_id=node_id)
+            )["items"]
+            devices.append(
+                (
+                    node_id,
+                    next(
+                        o
+                        for o in objects
+                        if o["linkable"]
+                        and o["flags"]["communication"]
+                        and o["flags"][wanted]
+                    ),
+                )
+            )
+        await _data(client, "project_create_group_address", address="1/1/1")
+        for (node_id, co), sending in zip(devices, (True, False), strict=True):
+            await _link(client, (node_id, co["ref_id"]), "1/1/1", sending=sending)
+
+        (sender, sender_co), (receiver, _receiver_co) = devices
+        # The sending object receives too when it also has Write or Update.
+        also = sender_co["flags"]["write"] or sender_co["flags"]["update"]
+        assert _shown(await _data(client, "project_link_graph")) == [
+            ("1/1/1", [sender], [sender, receiver] if also else [receiver])
+        ]
+        links = (await _data(client, "project_list_links", node_id=sender))["items"]
+        expected = {k: sender_co["flags"][k] for k in links[0]["flags"]}
+        assert links[0]["flags"] == expected
+
+
 async def test_senders_and_receivers_per_group_address(tmp_path: Path) -> None:
     mcp, _project = _build(tmp_path)
     async with Client(mcp) as client:

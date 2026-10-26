@@ -21,7 +21,7 @@ class ParameterSeparatorNode(DynamicNode):
             return []
         raw = self._elem.text
         if raw:
-            template = apply_text_args(raw, ctx.get_arg_defaults())
+            template = apply_text_args(raw, ctx.text_args())
             name_value = (
                 ctx.get(self._elem.text_parameter_ref_id)
                 if self._elem.text_parameter_ref_id

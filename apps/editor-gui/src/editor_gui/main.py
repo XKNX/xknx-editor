@@ -126,7 +126,6 @@ from editor_gui.widgets.dialog import (
 )
 from editor_gui.widgets.dpi import px, px_vec2
 from editor_gui.widgets.fonts import (
-    bold,
     fitted_heading,
     follow_language,
     heading,
@@ -1872,34 +1871,25 @@ class KnxGuiApp:
         # The fields' titles in front of them, every field from the same column, also the ones on
         # the login tab's page (inside its padding).
         style = imgui.get_style()
-        # EXPORT_FORMAT is drawn bold and larger below, so measure it the same way — it is wider than
-        # its regular size and the column must be wide enough that the field next to it does not
-        # overlap the label.
-        with bold(_STRONG_TITLE_SCALE):
-            format_label_w = imgui.calc_text_size(S.EXPORT_FORMAT).x
         self._sign_title_w = (
             max(
-                format_label_w,
-                *(
-                    imgui.calc_text_size(label).x
-                    for label in (
-                        S.MYKNX_SIGN_USERNAME,
-                        S.MYKNX_SIGN_PASSWORD,
-                        S.MYKNX_SIGN_LICENSE,
-                    )
-                ),
+                imgui.calc_text_size(label).x
+                for label in (
+                    S.EXPORT_FORMAT,
+                    S.MYKNX_SIGN_USERNAME,
+                    S.MYKNX_SIGN_PASSWORD,
+                    S.MYKNX_SIGN_LICENSE,
+                )
             )
             + style.item_spacing.x
         )
-        # Target format: ETS 6 (schema 23, default) or ETS 5 (schema 20). Bold (strong=True): this is
-        # the key export choice and is easy to miss among the dimmed field titles.
+        # Target format: schema 23 (the default) or schema 20.
         _title_in_front(
             S.EXPORT_FORMAT,
             imgui.get_cursor_start_pos().x
             + style.window_padding.x
             + style.child_border_size
             + self._sign_title_w,
-            strong=True,
         )
         formats = [("23", S.EXPORT_FORMAT_ETS6), ("20", S.EXPORT_FORMAT_ETS5)]
         current = next(lbl for code, lbl in formats if code == self._export_schema)
@@ -6007,21 +5997,11 @@ def _product_language_items() -> list[tuple[str, str]]:
     return sorted(items, key=lambda item: _alphabetical(item[1]))
 
 
-_STRONG_TITLE_SCALE = 1.2
-
-
-def _title_in_front(
-    label: str, value_x: float, *, dim: bool = True, strong: bool = False
-) -> None:
+def _title_in_front(label: str, value_x: float, *, dim: bool = True) -> None:
     """``label`` as the title of the field that follows, which starts at ``value_x``. ``dim`` greys
-    the label (the default for secondary fields); pass ``dim=False`` to keep it at full contrast, and
-    ``strong=True`` to draw it bold and larger (``_STRONG_TITLE_SCALE``), for a field that must stand
-    out."""
+    the label (the default for secondary fields); pass ``dim=False`` to keep it at full contrast."""
     imgui.align_text_to_frame_padding()
-    if strong:
-        with bold(_STRONG_TITLE_SCALE):
-            imgui.text(label)
-    elif dim:
+    if dim:
         imgui.text_disabled(label)
     else:
         imgui.text(label)
