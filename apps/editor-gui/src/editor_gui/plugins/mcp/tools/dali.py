@@ -19,6 +19,7 @@ from typing import TYPE_CHECKING, Any, Literal
 from fastmcp.exceptions import ToolError
 
 from editor_gui.plugins.mcp.context import McpContext, make_tool
+from editor_gui.plugins.mcp.tools.connection import await_operation, not_started
 from editor_gui.plugins.mcp.tools.project import require_device
 
 if TYPE_CHECKING:
@@ -163,10 +164,8 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         _ensure_connected()
         future = ctx.run_locked(lambda: service.run_dali(device, op, channel=channel))
         if future is None:
-            raise ToolError(
-                "the DALI operation could not start (another bus operation runs)"
-            )
-        return future.result(timeout=timeout)
+            raise not_started(service, "the DALI operation")
+        return await_operation(service, future, timeout, "the DALI operation")
 
     def _persist(device: Device, channel: int) -> bool:
         """Save the channel's state into the project's backup data, as the tab does after a
@@ -442,10 +441,10 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             lambda: service.run_siemens_dali(device, lambda p: scan_n141_03(p, line=0))
         )
         if future is None:
-            raise ToolError(
-                "the DALI scan could not start (another bus operation runs)"
-            )
-        return siemens_scan_dict(device.node_id, future.result(timeout=timeout))
+            raise not_started(service, "the DALI scan")
+        return siemens_scan_dict(
+            device.node_id, await_operation(service, future, timeout, "the DALI scan")
+        )
 
     @tool("destructive", open_world=True)
     def connection_siemens_dali_program(
@@ -475,5 +474,6 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             lambda: service.run_siemens_dca_program(device, entry.data)
         )
         if future is None:
-            raise ToolError("programming could not start (another bus operation runs)")
-        return {"node_id": device.node_id, "writes": future.result(timeout=timeout)}
+            raise not_started(service, "programming")
+        writes = await_operation(service, future, timeout, "programming")
+        return {"node_id": device.node_id, "writes": writes}
