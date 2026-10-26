@@ -152,9 +152,7 @@ def _render_close(
             box, ident, imgui.internal.NavRenderCursorFlags_.compact
         )
         # The cross of imgui's close button.
-        center = imgui.ImVec2(
-            (box.min.x + box.max.x) / 2 - 0.5, (box.min.y + box.max.y) / 2 - 0.5
-        )
+        center = imgui.ImVec2((box.min.x + box.max.x) / 2, (box.min.y + box.max.y) / 2)
         extent = imgui.get_font_size() * 0.5 * 0.7071 - 1.0
         color = imgui.get_color_u32(imgui.Col_.text)
         for dx in (extent, -extent):

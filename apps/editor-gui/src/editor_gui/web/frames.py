@@ -117,11 +117,9 @@ def encode_frame(
     draw_data: imgui.ImDrawData,
     cursor: int,
     scale: float = 1.0,
-    white: tuple[float, float] = (0.0, 0.0),
 ) -> Frame:
     """The frame of ``draw_data`` (see the module docstring), for a browser with ``scale``
-    display pixels per unit; ``white`` is the texture position shapes are drawn with (the font
-    atlas's white pixel)."""
+    display pixels per unit."""
     lists = [draw_data.cmd_lists[i] for i in range(draw_data.cmd_lists.size())]
     index_size = next((_index_size(dl) for dl in lists if dl.idx_buffer.size() >= 2), 2)
     header = _FRAME_HEADER.pack(
@@ -136,7 +134,7 @@ def encode_frame(
     )
     encoded: list[tuple[bytes, bytes]] = []
     for draw_list in lists:
-        data = _encode_list(draw_list, index_size, scale, white)
+        data = _encode_list(draw_list, index_size, scale)
         encoded.append((hashlib.blake2b(data, digest_size=8).digest(), data))
     return Frame(header, tuple(encoded))
 
@@ -145,7 +143,6 @@ def _encode_list(
     draw_list: imgui.ImDrawList,
     index_size: int,
     scale: float,
-    white: tuple[float, float],
 ) -> bytes:
     vertices = draw_list.vtx_buffer
     indices = draw_list.idx_buffer
@@ -154,7 +151,7 @@ def _encode_list(
         vertices.data_address(), vertices.size() * _VERTEX_SIZE
     )
     if scale != round(scale):
-        vertex_bytes = snap_to_pixels(vertex_bytes, scale, white)
+        vertex_bytes = snap_to_pixels(vertex_bytes, scale)
     parts = [
         _LIST_HEADER.pack(vertices.size(), indices.size(), commands.size()),
         vertex_bytes,
@@ -181,35 +178,34 @@ def _encode_list(
     return b"".join(parts)
 
 
-def snap_to_pixels(
-    vertex_bytes: bytes, scale: float, white: tuple[float, float]
-) -> bytes:
-    """Move every textured rectangle among the vertices (a glyph, an image: four vertices in a
-    row whose texture position is not ``white``) so that its top left corner is on a whole pixel
-    at ``scale`` pixels per unit. Shapes (drawn with the white pixel) stay where they are."""
+def snap_to_pixels(vertex_bytes: bytes, scale: float) -> bytes:
+    """Move every glyph and image among the vertices so that its top left corner is on a whole
+    pixel at ``scale`` pixels per unit. A glyph or an image is four vertices in a row that make a
+    rectangle (top left, top right, bottom right, bottom left) on the screen and in the texture.
+    The rest stays where it is: shapes of the white pixel, and the anti-aliased lines and rounded
+    corners drawn from the texture, which take no height or no width of it."""
     vertices = np.frombuffer(vertex_bytes, dtype=_VERTEX).copy()
-    textured = np.flatnonzero((vertices["u"] != white[0]) | (vertices["v"] != white[1]))
-    if textured.size < 4:
+    if vertices.size < 4:
         return vertex_bytes
-    # Runs of textured vertices next to each other; a rectangle starts every four in a run.
-    run_start = np.ones(textured.size, dtype=bool)
-    run_start[1:] = np.diff(textured) != 1
-    starts_at = np.flatnonzero(run_start)
-    run_length = np.diff(np.append(starts_at, textured.size))
-    position = np.arange(textured.size) - np.repeat(starts_at, run_length)
-    left = np.repeat(run_length, run_length) - position
-    first = textured[(position % 4 == 0) & (left >= 4)]
-    x, y = vertices["x"], vertices["y"]
-    # Only rectangles: top left, top right, bottom right, bottom left.
+    x, y, u, v = (vertices[axis] for axis in ("x", "y", "u", "v"))
+    tl, tr, br, bl = (slice(corner, vertices.size - 3 + corner) for corner in range(4))
     rect = (
-        (y[first] == y[first + 1])
-        & (y[first + 2] == y[first + 3])
-        & (x[first] == x[first + 3])
-        & (x[first + 1] == x[first + 2])
+        (y[tl] == y[tr])
+        & (y[br] == y[bl])
+        & (x[tl] == x[bl])
+        & (x[tr] == x[br])
+        & (v[tl] == v[tr])
+        & (v[br] == v[bl])
+        & (u[tl] == u[bl])
+        & (u[tr] == u[br])
+        & (u[tl] != u[tr])
+        & (v[tl] != v[bl])
     )
-    first = first[rect]
+    first = np.flatnonzero(rect)
     if first.size == 0:
         return vertex_bytes
+    # Rectangles share no vertices: of overlapping matches, the first one counts.
+    first = first[np.concatenate(([True], np.diff(first) >= 4))]
     for axis in (x, y):
         start = axis[first]
         shift = (np.round(start * scale) / scale - start).astype(np.float32)

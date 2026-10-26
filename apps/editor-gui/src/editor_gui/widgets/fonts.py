@@ -58,7 +58,7 @@ def load_fonts() -> None:
     for font in (_default, _italic):
         if font is not None:
             for missing, similar in _SIMILAR_GLYPHS:
-                font.add_remap_char(missing, similar)
+                font.add_remap_codepoint(missing, similar)
     _cjk_order = order
 
 

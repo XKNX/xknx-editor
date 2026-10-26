@@ -814,8 +814,8 @@ msgstr "Kantudjævnede linjer"
 msgid "Anti-Aliased Fills"
 msgstr "Kantudjævnede flader"
 
-msgid "Curve Tessellation Tolerance"
-msgstr "Tolerance for kurveopdeling"
+msgid "Maximum Curve Tessellation Error"
+msgstr "Maksimal fejl ved kurveopdeling"
 
 msgid "Maximum Circle Tessellation Error"
 msgstr "Maksimal fejl ved cirkelopdeling"

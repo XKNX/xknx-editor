@@ -399,7 +399,7 @@ _SIZES: tuple[tuple[Callable[[], str], tuple[_Setting, ...]], ...] = (
 _RENDERING = (
     _Setting("font_scale_main", lambda: S.THEME_FONT_SCALE, 0.5, 2.0, "%.2f"),
     _Setting(
-        "curve_tessellation_tol", lambda: S.THEME_CURVE_TOLERANCE, 0.1, 10.0, "%.2f"
+        "curve_tessellation_max_error", lambda: S.THEME_CURVE_ERROR, 0.1, 5.0, "%.2f"
     ),
     _Setting(
         "circle_tessellation_max_error", lambda: S.THEME_CIRCLE_ERROR, 0.1, 5.0, "%.2f"

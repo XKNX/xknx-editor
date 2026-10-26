@@ -814,8 +814,8 @@ msgstr "Εξομάλυνση Γραμμών"
 msgid "Anti-Aliased Fills"
 msgstr "Εξομάλυνση Γεμισμάτων"
 
-msgid "Curve Tessellation Tolerance"
-msgstr "Ανοχή Διαίρεσης Καμπυλών"
+msgid "Maximum Curve Tessellation Error"
+msgstr "Μέγιστο Σφάλμα Διαίρεσης Καμπυλών"
 
 msgid "Maximum Circle Tessellation Error"
 msgstr "Μέγιστο Σφάλμα Διαίρεσης Κύκλων"

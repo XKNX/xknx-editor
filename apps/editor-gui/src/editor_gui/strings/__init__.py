@@ -1361,8 +1361,8 @@ class MenuStrings:
         return _("Anti-Aliased Fills")
 
     @property
-    def THEME_CURVE_TOLERANCE(self) -> str:
-        return _("Curve Tessellation Tolerance")
+    def THEME_CURVE_ERROR(self) -> str:
+        return _("Maximum Curve Tessellation Error")
 
     @property
     def THEME_CIRCLE_ERROR(self) -> str:

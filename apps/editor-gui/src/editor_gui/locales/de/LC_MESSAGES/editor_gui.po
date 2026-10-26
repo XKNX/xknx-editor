@@ -1078,8 +1078,8 @@ msgstr "Kantenglättung für Linien"
 msgid "Anti-Aliased Fills"
 msgstr "Kantenglättung für Flächen"
 
-msgid "Curve Tessellation Tolerance"
-msgstr "Toleranz der Kurvenunterteilung"
+msgid "Maximum Curve Tessellation Error"
+msgstr "Maximaler Fehler der Kurvenunterteilung"
 
 msgid "Maximum Circle Tessellation Error"
 msgstr "Maximaler Fehler der Kreisunterteilung"

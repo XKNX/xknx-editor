@@ -814,8 +814,8 @@ msgstr "Kenar Yumuşatmalı Çizgiler"
 msgid "Anti-Aliased Fills"
 msgstr "Kenar Yumuşatmalı Dolgular"
 
-msgid "Curve Tessellation Tolerance"
-msgstr "Eğri Mozaikleme Toleransı"
+msgid "Maximum Curve Tessellation Error"
+msgstr "Maksimum Eğri Mozaikleme Hatası"
 
 msgid "Maximum Circle Tessellation Error"
 msgstr "Maksimum Daire Mozaikleme Hatası"

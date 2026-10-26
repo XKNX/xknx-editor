@@ -814,8 +814,8 @@ msgstr "線のアンチエイリアス"
 msgid "Anti-Aliased Fills"
 msgstr "塗りつぶしのアンチエイリアス"
 
-msgid "Curve Tessellation Tolerance"
-msgstr "曲線分割の許容値"
+msgid "Maximum Curve Tessellation Error"
+msgstr "曲線分割の最大誤差"
 
 msgid "Maximum Circle Tessellation Error"
 msgstr "円分割の最大誤差"
