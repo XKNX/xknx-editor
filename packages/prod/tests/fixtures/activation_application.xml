@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="utf-8"?>
+<KNX xmlns="http://knx.org/xml/project/20" CreatedBy="test" ToolVersion="1">
+  <ManufacturerData>
+    <Manufacturer RefId="M-00FA">
+      <ApplicationPrograms>
+        <ApplicationProgram Id="M-00FA_A-0003-01-0000" ApplicationNumber="3" ApplicationVersion="1"
+            ProgramType="ApplicationProgram" MaskVersion="MV-07B0" Name="Activation"
+            LoadProcedureStyle="MergedProcedure" PeiType="0" DefaultLanguage="en-US"
+            DynamicTableManagement="false" Linkable="false" MinEtsVersion="5.0">
+          <Static>
+            <ParameterTypes>
+              <ParameterType Id="M-00FA_A-0003-01-0000_PT-YN" Name="YesNo">
+                <TypeRestriction Base="Value" SizeInBit="8">
+                  <Enumeration Text="Inactive" Value="0" Id="M-00FA_A-0003-01-0000_PT-YN_EN-0" />
+                  <Enumeration Text="Active" Value="1" Id="M-00FA_A-0003-01-0000_PT-YN_EN-1" />
+                </TypeRestriction>
+              </ParameterType>
+              <ParameterType Id="M-00FA_A-0003-01-0000_PT-V" Name="Visualisation">
+                <TypeRestriction Base="Value" SizeInBit="8">
+                  <Enumeration Text="None" Value="0" Id="M-00FA_A-0003-01-0000_PT-V_EN-0" />
+                  <Enumeration Text="One Button" Value="1" Id="M-00FA_A-0003-01-0000_PT-V_EN-1" />
+                  <Enumeration Text="Two Buttons" Value="2" Id="M-00FA_A-0003-01-0000_PT-V_EN-2" />
+                </TypeRestriction>
+              </ParameterType>
+              <ParameterType Id="M-00FA_A-0003-01-0000_PT-F" Name="Function">
+                <TypeRestriction Base="Value" SizeInBit="8">
+                  <Enumeration Text="Switch" Value="0" Id="M-00FA_A-0003-01-0000_PT-F_EN-0" />
+                  <Enumeration Text="Dimming" Value="1" Id="M-00FA_A-0003-01-0000_PT-F_EN-1" />
+                  <Enumeration Text="Shutter" Value="2" Id="M-00FA_A-0003-01-0000_PT-F_EN-2" />
+                </TypeRestriction>
+              </ParameterType>
+              <ParameterType Id="M-00FA_A-0003-01-0000_PT-N" Name="N">
+                <TypeNumber SizeInBit="8" Type="unsignedInt" minInclusive="0" maxInclusive="100" />
+              </ParameterType>
+              <ParameterType Id="M-00FA_A-0003-01-0000_PT-C" Name="Channels">
+                <TypeNumber SizeInBit="8" Type="unsignedInt" minInclusive="1" maxInclusive="4" />
+              </ParameterType>
+            </ParameterTypes>
+            <Parameters>
+              <Parameter Id="M-00FA_A-0003-01-0000_P-1" Name="Slot" ParameterType="M-00FA_A-0003-01-0000_PT-YN" Text="Slot 1" Value="0" />
+              <Parameter Id="M-00FA_A-0003-01-0000_P-2" Name="Visualisation" ParameterType="M-00FA_A-0003-01-0000_PT-V" Text="Visualisation" Value="0" />
+              <Parameter Id="M-00FA_A-0003-01-0000_P-3" Name="Function" ParameterType="M-00FA_A-0003-01-0000_PT-F" Text="Function" Value="0" />
+              <Parameter Id="M-00FA_A-0003-01-0000_P-4" Name="MinDim" ParameterType="M-00FA_A-0003-01-0000_PT-N" Text="Minimum Dimming Value" Value="10" />
+              <Parameter Id="M-00FA_A-0003-01-0000_P-5" Name="Mode" ParameterType="M-00FA_A-0003-01-0000_PT-V" Text="Mode" Value="0" />
+              <Parameter Id="M-00FA_A-0003-01-0000_P-6" Name="Advanced" ParameterType="M-00FA_A-0003-01-0000_PT-N" Text="Advanced" Value="5" />
+              <Parameter Id="M-00FA_A-0003-01-0000_P-7" Name="Internal" ParameterType="M-00FA_A-0003-01-0000_PT-N" Text="Internal" Value="0" />
+              <Parameter Id="M-00FA_A-0003-01-0000_P-8" Name="Locked" ParameterType="M-00FA_A-0003-01-0000_PT-YN" Text="Locked" Value="0" />
+              <Parameter Id="M-00FA_A-0003-01-0000_P-9" Name="BehindLock" ParameterType="M-00FA_A-0003-01-0000_PT-N" Text="Behind the Lock" Value="0" />
+              <Parameter Id="M-00FA_A-0003-01-0000_P-10" Name="Channels" ParameterType="M-00FA_A-0003-01-0000_PT-C" Text="Channels" Value="1" />
+              <Parameter Id="M-00FA_A-0003-01-0000_P-11" Name="Many" ParameterType="M-00FA_A-0003-01-0000_PT-YN" Text="Many Channels" Value="0" />
+            </Parameters>
+            <ParameterRefs>
+              <ParameterRef Id="M-00FA_A-0003-01-0000_P-1_R-1" RefId="M-00FA_A-0003-01-0000_P-1" />
+              <ParameterRef Id="M-00FA_A-0003-01-0000_P-2_R-2" RefId="M-00FA_A-0003-01-0000_P-2" />
+              <ParameterRef Id="M-00FA_A-0003-01-0000_P-3_R-3" RefId="M-00FA_A-0003-01-0000_P-3" />
+              <ParameterRef Id="M-00FA_A-0003-01-0000_P-4_R-4" RefId="M-00FA_A-0003-01-0000_P-4" />
+              <ParameterRef Id="M-00FA_A-0003-01-0000_P-5_R-5" RefId="M-00FA_A-0003-01-0000_P-5" />
+              <ParameterRef Id="M-00FA_A-0003-01-0000_P-6_R-6" RefId="M-00FA_A-0003-01-0000_P-6" />
+              <ParameterRef Id="M-00FA_A-0003-01-0000_P-7_R-7" RefId="M-00FA_A-0003-01-0000_P-7" Access="None" />
+              <ParameterRef Id="M-00FA_A-0003-01-0000_P-8_R-8" RefId="M-00FA_A-0003-01-0000_P-8" Access="None" />
+              <ParameterRef Id="M-00FA_A-0003-01-0000_P-9_R-9" RefId="M-00FA_A-0003-01-0000_P-9" />
+              <ParameterRef Id="M-00FA_A-0003-01-0000_P-10_R-10" RefId="M-00FA_A-0003-01-0000_P-10" />
+              <ParameterRef Id="M-00FA_A-0003-01-0000_P-11_R-11" RefId="M-00FA_A-0003-01-0000_P-11" Access="None" />
+            </ParameterRefs>
+            <ParameterCalculations>
+              <ParameterCalculation Id="M-00FA_A-0003-01-0000_PC-1" Name="PC-1" Language="JavaScript" LRTransformationFunc="many" RLTransformationFunc="nothing"><LParameters><ParameterRefRef RefId="M-00FA_A-0003-01-0000_P-10_R-10" AliasName="channels" /></LParameters><RParameters><ParameterRefRef RefId="M-00FA_A-0003-01-0000_P-11_R-11" AliasName="many" /></RParameters></ParameterCalculation>
+            </ParameterCalculations>
+            <Script>
+function many(input, output) { output.many = input.channels > 2 ? 1 : 0; }
+function nothing(input, output) {}
+</Script>
+          </Static>
+          <ModuleDefs>
+            <ModuleDef Id="M-00FA_A-0003-01-0000_MD-1" Name="Channel">
+              <Arguments>
+                <Argument Id="M-00FA_A-0003-01-0000_MD-1_A-1" Name="Ch" />
+              </Arguments>
+              <Static>
+                <Parameters>
+                  <Parameter Id="M-00FA_A-0003-01-0000_MD-1_P-1" Name="Extra" ParameterType="M-00FA_A-0003-01-0000_PT-N" Text="Extra" Value="0" />
+                </Parameters>
+                <ParameterRefs>
+                  <ParameterRef Id="M-00FA_A-0003-01-0000_MD-1_P-1_R-1" RefId="M-00FA_A-0003-01-0000_MD-1_P-1" />
+                </ParameterRefs>
+              </Static>
+              <Dynamic>
+                <ParameterBlock Id="M-00FA_A-0003-01-0000_MD-1_PB-1" Text="Extra Channel">
+                  <ParameterRefRef RefId="M-00FA_A-0003-01-0000_MD-1_P-1_R-1" />
+                </ParameterBlock>
+              </Dynamic>
+            </ModuleDef>
+          </ModuleDefs>
+          <Dynamic>
+            <ChannelIndependentBlock>
+              <ParameterBlock Id="M-00FA_A-0003-01-0000_PB-1" Text="Display">
+                <ParameterRefRef RefId="M-00FA_A-0003-01-0000_P-1_R-1" />
+                <choose ParamRefId="M-00FA_A-0003-01-0000_P-1_R-1">
+                  <when test="1">
+                    <ParameterRefRef RefId="M-00FA_A-0003-01-0000_P-2_R-2" />
+                    <choose ParamRefId="M-00FA_A-0003-01-0000_P-2_R-2">
+                      <when test="1 2">
+                        <ParameterBlock Id="M-00FA_A-0003-01-0000_PB-2" Text="Control">
+                          <ParameterRefRef RefId="M-00FA_A-0003-01-0000_P-3_R-3" />
+                          <choose ParamRefId="M-00FA_A-0003-01-0000_P-3_R-3">
+                            <when test="1">
+                              <ParameterRefRef RefId="M-00FA_A-0003-01-0000_P-4_R-4" />
+                            </when>
+                          </choose>
+                        </ParameterBlock>
+                      </when>
+                    </choose>
+                  </when>
+                </choose>
+              </ParameterBlock>
+              <ParameterBlock Id="M-00FA_A-0003-01-0000_PB-3" Text="General">
+                <ParameterRefRef RefId="M-00FA_A-0003-01-0000_P-5_R-5" />
+                <choose ParamRefId="M-00FA_A-0003-01-0000_P-5_R-5">
+                  <when test="0">
+                    <ParameterSeparator Id="M-00FA_A-0003-01-0000_PS-1" Text="basic" />
+                  </when>
+                  <when default="true">
+                    <ParameterRefRef RefId="M-00FA_A-0003-01-0000_P-6_R-6" />
+                  </when>
+                </choose>
+                <ParameterRefRef RefId="M-00FA_A-0003-01-0000_P-7_R-7" />
+                <choose ParamRefId="M-00FA_A-0003-01-0000_P-8_R-8">
+                  <when test="1">
+                    <ParameterRefRef RefId="M-00FA_A-0003-01-0000_P-9_R-9" />
+                  </when>
+                </choose>
+                <ParameterRefRef RefId="M-00FA_A-0003-01-0000_P-10_R-10" />
+                <Repeat Id="M-00FA_A-0003-01-0000_X-1" Name="" ParameterRefId="M-00FA_A-0003-01-0000_P-11_R-11">
+                  <Module Id="M-00FA_A-0003-01-0000_MD-1_M-1" RefId="M-00FA_A-0003-01-0000_MD-1"><NumericArg RefId="M-00FA_A-0003-01-0000_MD-1_A-1" Value="1" /></Module>
+                </Repeat>
+              </ParameterBlock>
+            </ChannelIndependentBlock>
+          </Dynamic>
+        </ApplicationProgram>
+      </ApplicationPrograms>
+    </Manufacturer>
+  </ManufacturerData>
+</KNX>

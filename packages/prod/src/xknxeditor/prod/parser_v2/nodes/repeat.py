@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from xknxeditor.namespaces.intermediate import Repeat
 
-from ..context import EvalContext
+from ..context import EvalContext, Explorer, Gate
 from ..ui import UiNode
 from .base import DynamicNode
 
@@ -39,7 +39,28 @@ class RepeatNode(DynamicNode):
     def _active(self) -> list[DynamicNode]:
         return [c for c in self._children if c is not None]
 
+    def _explore(self, ctx: EvalContext, explorer: Explorer) -> list[UiNode]:
+        """At least one pass; a pass of a parameter-driven count needs the count to reach it."""
+        count_param = self._elem.parameter_ref_id if self._elem.count == 0 else None
+        result: list[UiNode] = []
+        for i in range(1, max(self._count(ctx), 1) + 1):
+            rctx = ctx.repeat_ctx(i)
+            if count_param:
+                explorer.push_gate(
+                    Gate(ctx.qualify_local(count_param), f">={i}", needs_active=False)
+                )
+            try:
+                for c in self._active():
+                    result.extend(c.eval(rctx))
+            finally:
+                if count_param:
+                    explorer.pop_gate()
+        return result
+
     def eval(self, ctx: EvalContext) -> list[UiNode]:
+        explorer = ctx.explore
+        if explorer is not None:
+            return self._explore(ctx, explorer)
         result: list[UiNode] = []
         capture = ctx.capture
         # A parameter-driven instance count gates the objects this Repeat produces; put that parameter
