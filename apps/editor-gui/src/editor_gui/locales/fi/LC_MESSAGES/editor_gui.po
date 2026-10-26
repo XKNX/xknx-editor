@@ -814,8 +814,8 @@ msgstr "Viivojen reunanpehmennys"
 msgid "Anti-Aliased Fills"
 msgstr "Täyttöjen reunanpehmennys"
 
-msgid "Curve Tessellation Tolerance"
-msgstr "Käyrien tessellaatiotoleranssi"
+msgid "Maximum Curve Tessellation Error"
+msgstr "Käyrien tessellaation enimmäisvirhe"
 
 msgid "Maximum Circle Tessellation Error"
 msgstr "Ympyröiden tessellaation enimmäisvirhe"

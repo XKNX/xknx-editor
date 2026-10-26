@@ -814,8 +814,8 @@ msgstr "Vyhlazování čar"
 msgid "Anti-Aliased Fills"
 msgstr "Vyhlazování ploch"
 
-msgid "Curve Tessellation Tolerance"
-msgstr "Tolerance teselace křivek"
+msgid "Maximum Curve Tessellation Error"
+msgstr "Maximální chyba teselace křivek"
 
 msgid "Maximum Circle Tessellation Error"
 msgstr "Maximální chyba teselace kruhů"

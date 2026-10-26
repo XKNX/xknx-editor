@@ -376,12 +376,7 @@ class RichTextEdit:
                 if fmt & UNDERLINE:
                     x_end = ox + row.xs[stop - row.start]
                     under = y + text_offset + ascent + px(1.5)
-                    draw.add_line(
-                        imgui.ImVec2(x, under),
-                        imgui.ImVec2(x_end, under),
-                        text_color,
-                        max(px(1.0), 1.0),
-                    )
+                    draw.add_line_h(x, x_end, under, text_color, max(px(1.0), 1.0))
                 k = stop
         if self._focused:
             x, top = self._caret_xy(doc.caret)
@@ -389,7 +384,13 @@ class RichTextEdit:
             caret_bottom = imgui.ImVec2(ox + x, oy + top + line_height - px(1.0))
             blink = imgui.get_time() - self._blink_start
             if not imgui.get_io().config_input_text_cursor_blink or blink % 1.2 < 0.8:
-                draw.add_line(caret_top, caret_bottom, text_color, max(px(1.0), 1.0))
+                draw.add_line_v(
+                    caret_top.x,
+                    caret_top.y,
+                    caret_bottom.y,
+                    text_color,
+                    max(px(1.0), 1.0),
+                )
             ime = imgui.get_current_context().platform_ime_data
             ime.want_visible = True
             ime.want_text_input = True

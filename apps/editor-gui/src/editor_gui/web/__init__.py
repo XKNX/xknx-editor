@@ -234,6 +234,19 @@ def _port_in_use(options: WebOptions) -> None:
     raise SystemExit(2)
 
 
+def windowless(runner_params: hello_imgui.RunnerParams) -> None:
+    """Run without a window or a renderer (the browser draws), and with the input as the browser
+    sends it."""
+    runner_params.platform_backend_type = hello_imgui.PlatformBackendType.null
+    runner_params.renderer_backend_type = hello_imgui.RendererBackendType.null
+    # A finger reaches the app already turned into mouse input by TouchGestures (web.touch):
+    # Hello ImGui's own touch gestures would take that for the finger and act on it again.
+    runner_params.touch_scroll_mode = hello_imgui.TouchScrollMode.disabled
+    runner_params.touch_long_press_is_right_click = False
+    runner_params.touch_thin_scrollbars = False
+    runner_params.touch_pinch_mode = hello_imgui.TouchPinchMode.disabled
+
+
 def enable_web_mode(
     runner_params: hello_imgui.RunnerParams, options: WebOptions
 ) -> WebHub:
@@ -268,8 +281,7 @@ def enable_web_mode(
     # The web file dialogs are the app's own: nested in the topmost open dialog, else after the
     # app's windows.
     dialog.nested_content = hub.host.draw
-    runner_params.platform_backend_type = hello_imgui.PlatformBackendType.null
-    runner_params.renderer_backend_type = hello_imgui.RendererBackendType.null
+    windowless(runner_params)
 
     callbacks = runner_params.callbacks
     # An error in a panel or the menus does not end the app (and with it every browser's
@@ -385,9 +397,6 @@ def enable_web_mode(
         if gestures:
             gestures[0].step(time.monotonic())
         touch_look.apply(touch[0])
-        # Lines with their edges smoothed by geometry, not by a texture: only text and images
-        # are then textured, which encode_frame moves onto whole pixels.
-        imgui.get_style().anti_aliased_lines_use_tex = False
         # With a finger, a swipe on a tab bar would easily tear a panel out of its section:
         # tabs only change their order then.
         docking = hello_imgui.get_runner_params().docking_params
@@ -480,13 +489,7 @@ def enable_web_mode(
         # None before the first frame was rendered.
         draw_data = cast("imgui.ImDrawData | None", imgui.get_draw_data())
         if connected and draw_data is not None and draw_data.valid:
-            white = imgui.get_io().fonts.tex_uv_white_pixel
-            encoded = encode_frame(
-                draw_data,
-                int(imgui.get_mouse_cursor()),
-                hub.scale,
-                (white.x, white.y),
-            )
+            encoded = encode_frame(draw_data, int(imgui.get_mouse_cursor()), hub.scale)
             # A browser that just connected needs the current frame even when nothing changed.
             if not encoded.same_as(last_frame[0]) or not clients_seen[0]:
                 last_frame[0] = frame = encoded

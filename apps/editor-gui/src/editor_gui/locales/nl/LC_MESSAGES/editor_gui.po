@@ -987,8 +987,8 @@ msgstr "Anti-aliasing voor lijnen"
 msgid "Anti-Aliased Fills"
 msgstr "Anti-aliasing voor vlakken"
 
-msgid "Curve Tessellation Tolerance"
-msgstr "Tolerantie curveverdeling"
+msgid "Maximum Curve Tessellation Error"
+msgstr "Maximale fout curveverdeling"
 
 msgid "Maximum Circle Tessellation Error"
 msgstr "Maximale fout cirkelverdeling"

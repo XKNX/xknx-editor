@@ -814,8 +814,8 @@ msgstr "Linhas com Antialiasing"
 msgid "Anti-Aliased Fills"
 msgstr "Preenchimentos com Antialiasing"
 
-msgid "Curve Tessellation Tolerance"
-msgstr "Tolerância de Tesselação de Curvas"
+msgid "Maximum Curve Tessellation Error"
+msgstr "Erro Máximo de Tesselação de Curvas"
 
 msgid "Maximum Circle Tessellation Error"
 msgstr "Erro Máximo de Tesselação de Círculos"

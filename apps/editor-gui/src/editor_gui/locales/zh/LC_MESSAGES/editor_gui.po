@@ -814,8 +814,8 @@ msgstr "抗锯齿线条"
 msgid "Anti-Aliased Fills"
 msgstr "抗锯齿填充"
 
-msgid "Curve Tessellation Tolerance"
-msgstr "曲线细分容差"
+msgid "Maximum Curve Tessellation Error"
+msgstr "曲线细分最大误差"
 
 msgid "Maximum Circle Tessellation Error"
 msgstr "圆形细分最大误差"

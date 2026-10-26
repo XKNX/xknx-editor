@@ -814,8 +814,8 @@ msgstr "Сглаживание линий"
 msgid "Anti-Aliased Fills"
 msgstr "Сглаживание заливок"
 
-msgid "Curve Tessellation Tolerance"
-msgstr "Допуск тесселяции кривых"
+msgid "Maximum Curve Tessellation Error"
+msgstr "Максимальная погрешность тесселяции кривых"
 
 msgid "Maximum Circle Tessellation Error"
 msgstr "Максимальная погрешность тесселяции окружностей"

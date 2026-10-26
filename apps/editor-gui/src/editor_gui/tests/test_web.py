@@ -17,7 +17,7 @@ from pathlib import Path
 from typing import Any
 
 import pytest
-from imgui_bundle import imgui
+from imgui_bundle import hello_imgui, imgui
 from imgui_bundle import portable_file_dialogs as pfd
 from starlette.testclient import TestClient
 from starlette.websockets import WebSocketDisconnect
@@ -1044,7 +1044,7 @@ def test_glyphs_snap_to_whole_pixels_at_fractional_scales() -> None:
     ]
     shape = [(0, 3, *white), (5, 3, *white), (5, 9, *white)]
     data = b"".join(vertex(*v) for v in shape + glyph)
-    snapped = frames.snap_to_pixels(data, 1.25, white)
+    snapped = frames.snap_to_pixels(data, 1.25)
     values = [struct.unpack_from("<ffffI", snapped, i * 20) for i in range(7)]
     # The shape stays; the glyph's top 3 * 1.25 = 3.75 px moves to 4 px, its height kept.
     assert [v[1] for v in values[:3]] == [3, 3, 9]
@@ -1055,9 +1055,51 @@ def test_glyphs_snap_to_whole_pixels_at_fractional_scales() -> None:
     assert values[3][0] * 1.25 == pytest.approx(13.0)
     assert values[4][0] - values[3][0] == pytest.approx(7.0)
     # Nothing textured: unchanged.
-    assert frames.snap_to_pixels(b"".join(vertex(*v) for v in shape), 1.25, white) == (
+    assert frames.snap_to_pixels(b"".join(vertex(*v) for v in shape), 1.25) == (
         b"".join(vertex(*v) for v in shape)
     )
+
+
+def test_the_browser_runs_without_a_window_and_with_its_own_touch_gestures() -> None:
+    """The touch input arrives already turned into mouse input: Hello ImGui's own gestures,
+    which would act on it a second time, are off."""
+    params = hello_imgui.RunnerParams()
+    assert params.touch_scroll_mode == hello_imgui.TouchScrollMode.auto
+    web.windowless(params)
+    assert params.platform_backend_type == hello_imgui.PlatformBackendType.null
+    assert params.renderer_backend_type == hello_imgui.RendererBackendType.null
+    assert params.touch_scroll_mode == hello_imgui.TouchScrollMode.disabled
+    assert not params.touch_long_press_is_right_click
+    assert not params.touch_thin_scrollbars
+    assert params.touch_pinch_mode == hello_imgui.TouchPinchMode.disabled
+
+
+def test_lines_and_corners_from_the_texture_stay_in_place() -> None:
+    """Anti-aliased lines and rounded corners are drawn from the texture too, but take no height
+    of it (or no width): they stay, and a glyph after a strip of any length still snaps."""
+
+    def vertex(x: float, y: float, u: float, v: float) -> bytes:
+        return struct.pack("<ffffI", x, y, u, v, 0xFFFFFFFF)
+
+    # A horizontal line (top and bottom edge, along it), and a rounded rectangle's top row.
+    line = [(10.2, 2.2, 0.48, 0.26), (10.2, 4.2, 0.5, 0.26)]
+    line += [(50.2, 2.2, 0.48, 0.26), (50.2, 4.2, 0.5, 0.26)]
+    corners = [(10.2, 5.2, 0.58, 0.01), (15.2, 5.2, 0.59, 0.01)]
+    corners += [(45.2, 5.2, 0.59, 0.01), (50.2, 5.2, 0.58, 0.01)]
+    # A strip of three vertices: the glyph after it starts off the grid of four.
+    strip = [(1.1, 1.1, 0.48, 0.26), (2.1, 1.1, 0.5, 0.26), (3.1, 2.1, 0.48, 0.26)]
+    glyph = [
+        (10.2, 3, 0.2, 0.2),
+        (17.2, 3, 0.3, 0.2),
+        (17.2, 15, 0.3, 0.4),
+        (10.2, 15, 0.2, 0.4),
+    ]
+    kept = line + corners + strip
+    data = b"".join(vertex(*v) for v in kept + glyph)
+    snapped = frames.snap_to_pixels(data, 1.25)
+    assert snapped[: len(kept) * 20] == data[: len(kept) * 20]
+    left, top = struct.unpack_from("<ff", snapped, len(kept) * 20)
+    assert (left * 1.25, top * 1.25) == pytest.approx((13.0, 4.0))
 
 
 def test_an_error_in_a_panel_does_not_end_the_frame(hub: WebHub) -> None:
