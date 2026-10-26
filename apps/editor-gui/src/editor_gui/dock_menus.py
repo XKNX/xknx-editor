@@ -11,6 +11,16 @@ from editor_gui.strings import S
 from editor_gui.widgets.checkbox import checkbox
 
 _POPUP = "##section_menu"
+# The colors a tab is drawn with.
+_TAB_COLORS = (
+    imgui.Col_.tab,
+    imgui.Col_.tab_hovered,
+    imgui.Col_.tab_selected,
+    imgui.Col_.tab_selected_overline,
+    imgui.Col_.tab_dimmed,
+    imgui.Col_.tab_dimmed_selected,
+    imgui.Col_.tab_dimmed_selected_overline,
+)
 
 
 def render_section_menus() -> None:
@@ -67,9 +77,13 @@ def _render_close(
 ) -> None:
     """The button at the end of the tab bar that closes the tab in front, as far from the right
     edge as from the top and the bottom (imgui's own keeps the frame padding from the right)."""
-    # The tabs end before it, as before imgui's own (a grayed-out tab button holds the place).
+    # The tabs end before it, as before imgui's own: an unseen, grayed-out tab button holds the
+    # place (a dimmed tab bar would show its background).
     imgui.begin_disabled()
+    for color in _TAB_COLORS:
+        imgui.push_style_color(color, imgui.ImVec4(0.0, 0.0, 0.0, 0.0))
     imgui.tab_item_button("##close_space", imgui.TabItemFlags_.trailing)
+    imgui.pop_style_color(len(_TAB_COLORS))
     imgui.end_disabled()
     shown = node.visible_window.name if node.visible_window is not None else None  # pyright: ignore[reportUnnecessaryComparison]
     window = next((w for w in windows if w.label == shown), None)
