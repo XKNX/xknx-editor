@@ -187,6 +187,8 @@ def apply_style() -> None:
     style.item_spacing = imgui.ImVec2(8.0, 6.0)
     style.item_inner_spacing = imgui.ImVec2(6.0, 4.0)
     style.scrollbar_size = 12.0
+    # The grab fills the scrollbar, so that it starts at the top of the list beside it.
+    style.scrollbar_padding = 0.0
     style.cell_padding = imgui.ImVec2(6.0, 4.0)
     if windows:
         _clamp_colors(style)

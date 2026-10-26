@@ -3,6 +3,8 @@ to show or hide it, so a closed tab can be reopened where it belongs."""
 
 from __future__ import annotations
 
+import math
+
 from imgui_bundle import hello_imgui, imgui
 
 from editor_gui.strings import S
@@ -38,11 +40,15 @@ def render_section_menus() -> None:
             or node.last_frame_active != imgui.get_frame_count()
         ):
             continue
-        flag = imgui.internal.DockNodeFlagsPrivate_.no_window_menu_button
-        if not node.local_flags & flag:
+        flag = (
+            imgui.internal.DockNodeFlagsPrivate_.no_window_menu_button
+            | imgui.internal.DockNodeFlagsPrivate_.no_close_button
+        )
+        if node.local_flags & flag != flag:
             node.set_local_flags(node.local_flags | flag)
         if imgui.internal.dock_node_begin_amend_tab_bar(node):
             _render_menu(node, windows)
+            _render_close(node, windows)
             imgui.internal.dock_node_end_amend_tab_bar()
 
 
@@ -54,6 +60,63 @@ def _section_id(
     if imgui_window is not None and imgui_window.dock_id:  # pyright: ignore[reportUnnecessaryComparison]
         return imgui_window.dock_id
     return params.dock_space_id_from_name(window.dock_space_name)
+
+
+def _render_close(
+    node: imgui.internal.DockNode, windows: list[hello_imgui.DockableWindow]
+) -> None:
+    """The button at the end of the tab bar that closes the tab in front, as far from the right
+    edge as from the top and the bottom (imgui's own keeps the frame padding from the right)."""
+    # The tabs end before it, as before imgui's own (a grayed-out tab button holds the place).
+    imgui.begin_disabled()
+    imgui.tab_item_button("##close_space", imgui.TabItemFlags_.trailing)
+    imgui.end_disabled()
+    shown = node.visible_window.name if node.visible_window is not None else None  # pyright: ignore[reportUnnecessaryComparison]
+    window = next((w for w in windows if w.label == shown), None)
+    if window is None or not window.can_be_closed:
+        return
+    # Whole pixels, so that the gaps come out the same (imgui's button is as large as the font).
+    # The bar's last row is the line below the tabs.
+    bar = math.floor(imgui.get_frame_height())
+    visible = math.floor(bar - imgui.get_style().tab_bar_border_size)
+    gap = math.ceil((visible - imgui.get_font_size()) / 2)
+    side = visible - 2 * gap
+    right = round(node.pos.x + node.size.x)
+    top = round(node.pos.y)
+    box = imgui.internal.ImRect(
+        right - gap - side, top + gap, right - gap, top + gap + side
+    )
+    ident = imgui.get_id("##section_close")
+    imgui.push_clip_rect(
+        imgui.ImVec2(right - bar, top), imgui.ImVec2(right, top + bar), False
+    )
+    if imgui.internal.item_add(box, ident):
+        pressed, hovered, held = imgui.internal.button_behavior(
+            box, ident, False, False
+        )
+        draw = imgui.get_window_draw_list()
+        if hovered:
+            col = imgui.Col_.button_active if held else imgui.Col_.button_hovered
+            draw.add_rect_filled(box.min, box.max, imgui.get_color_u32(col))
+        # The keyboard focus frame, inside the box.
+        imgui.internal.render_nav_cursor(
+            box, ident, imgui.internal.NavRenderCursorFlags_.compact
+        )
+        # The cross of imgui's close button.
+        center = imgui.ImVec2(
+            (box.min.x + box.max.x) / 2 - 0.5, (box.min.y + box.max.y) / 2 - 0.5
+        )
+        extent = imgui.get_font_size() * 0.5 * 0.7071 - 1.0
+        color = imgui.get_color_u32(imgui.Col_.text)
+        for dx in (extent, -extent):
+            draw.add_line(
+                imgui.ImVec2(center.x + dx, center.y + extent),
+                imgui.ImVec2(center.x - dx, center.y - extent),
+                color,
+            )
+        if pressed:
+            window.is_visible = False
+    imgui.pop_clip_rect()
 
 
 def _render_menu(
