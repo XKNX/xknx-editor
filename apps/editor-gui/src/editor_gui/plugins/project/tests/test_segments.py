@@ -26,6 +26,7 @@ from editor_gui.plugins.project.service import (
     format_domain_address,
     interface_bus_access,
 )
+from editor_gui.plugins.project.strings import S
 from editor_gui.plugins.project.ui.element_details import (
     ElementDetailsPanel,
     latency_options,
@@ -81,7 +82,11 @@ def test_a_segment_shows_its_details(project: ProjectService) -> None:
     assert segment_id is not None
     line = project.find_line(line_id)
     assert line is not None
-    assert [s.name for s in line.segments] == ["segment"]
+    # Stored without a name, shown after its medium (as the catalog lists it).
+    assert [s.name for s in line.segments] == [""]
+    assert f"  1.1 {S.SEGMENT_NAME.format(medium='TP')}" in dict(
+        project.segment_choices()
+    ).get(segment_id, "")
     assert line.main_segment_id is not None
     assert project.segment_medium(line.main_segment_id) == (MEDIUM_TP, True)
     assert project.segment_medium(segment_id) == (MEDIUM_TP, False)
@@ -381,7 +386,10 @@ def test_the_tree_shows_the_backbone_the_areas_and_the_segments() -> None:
         imgui.end_frame()
     area = Area(1, 1, "A")
     assert panel._format_segment_label(area, line, line.segments[0]) == "1.1 Garden"
-    assert panel._format_segment_label(area, line, line.segments[1]) == "1.1"
+    # One without a name is called after its medium.
+    assert panel._format_segment_label(
+        area, line, line.segments[1]
+    ) == "1.1 " + S.SEGMENT_NAME.format(medium="TP")
     assert panel._format_line_label(area, line) == "1.1 L"
     # An area shows as its main line; one without a name is called after its medium.
     assert panel._format_area_label(Area(0, 0, ""), backbone) == "0.0 IP backbone line"
@@ -450,11 +458,8 @@ def test_segments_are_added_and_deleted_from_the_tree(
     panel._adder.request.rows[0].choice = "MT-2"  # pyright: ignore[reportPrivateUsage]
     clicks.button = S.BTN_OK
     frames()
-    assert added == [
-        (3, S.SEGMENT_DEFAULT_NAME, "MT-0"),
-        (3, S.SEGMENT_DEFAULT_NAME, "MT-0"),
-        (1, "Garage", "MT-2"),
-    ]
+    # Without a name typed, a new segment has none.
+    assert added == [(3, "", "MT-0"), (3, "", "MT-0"), (1, "Garage", "MT-2")]
     # An RF line takes no sub-segment: the item is grayed out, telling why, and no dialog opens.
     tips: list[str] = []
     with monkeypatch.context() as hovered:

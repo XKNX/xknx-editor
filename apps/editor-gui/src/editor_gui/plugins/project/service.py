@@ -43,7 +43,10 @@ from editor_gui.device_snapshot import (
 from editor_gui.dpt import dpt_from_token, lookup_or_make_dpt
 from editor_gui.hardware_text import current_text
 from editor_gui.plugins.project.element_status import status_label, usage_label
-from editor_gui.plugins.project.medium_text import medium_error_text
+from editor_gui.plugins.project.medium_text import (
+    medium_error_text,
+    segment_display_name,
+)
 from editor_gui.plugins.project.paste import PasteKind, Paster, PasteTarget
 from editor_gui.plugins.project.space_text import space_error_text
 from editor_gui.plugins.project.strings import S
@@ -2534,7 +2537,11 @@ class ProjectService:
                     name = line_display_name(area.area_number, line)
                     out.append((line.main_segment_id, f"{prefix} {name}".rstrip()))
                 out.extend(
-                    (segment.id, f"  {prefix} {segment.name}".rstrip())
+                    (
+                        segment.id,
+                        f"  {prefix} "
+                        + segment_display_name(segment.name, segment.medium_type),
+                    )
                     for segment in line.segments
                 )
         return out
@@ -5327,7 +5334,7 @@ class ProjectService:
             self._pid,
             line_id,
             medium_type=medium_type,
-            name=S.SEGMENT_DEFAULT_NAME if name is None else name,
+            name=name or "",
         )
         self._bump()
         return segment_id

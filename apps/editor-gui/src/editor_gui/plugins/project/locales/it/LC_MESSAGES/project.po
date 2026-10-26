@@ -1144,9 +1144,6 @@ msgstr "Filtra stanze, dispositivi, funzioni…"
 msgid "Unassigned ({count})"
 msgstr "Non assegnati ({count})"
 
-msgid "Copy Address"
-msgstr "Copia indirizzo"
-
 msgid "Duplicate"
 msgstr "Duplica"
 
@@ -2266,9 +2263,6 @@ msgstr "Rete"
 msgid "Domain Address"
 msgstr "Indirizzo di Dominio"
 
-msgid "segment"
-msgstr "segmento"
-
 msgid "The medium of a segment can only change while it holds no device."
 msgstr "Il tipo di mezzo trasmissivo del segmento può essere cambiato solo se esso non contiene alcun dispositivo."
 
@@ -2919,3 +2913,15 @@ msgstr "Un indirizzo di gruppo dell'intervallo è già in uso lì."
 
 msgid "Copied {count} group ranges to '{target}'."
 msgstr "{count} intervalli di indirizzi di gruppo copiati in '{target}'."
+
+msgid "Add Areas…"
+msgstr "Aggiungi Aree…"
+
+msgid "{medium} segment"
+msgstr "segmento {medium}"
+
+msgid "Copy Individual Address"
+msgstr "Copia indirizzo individuale"
+
+msgid "Copy Group Address"
+msgstr "Copia indirizzo di gruppo"

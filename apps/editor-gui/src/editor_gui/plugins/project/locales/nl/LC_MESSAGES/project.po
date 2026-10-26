@@ -916,9 +916,6 @@ msgstr "Opmerkingen ontsleuteld"
 msgid "Compare the open project with another project file (.knxproj or .xknx): which devices and group addresses were added, removed or changed. The other project is read-only; nothing is modified."
 msgstr "Het geopende project vergelijken met een ander projectbestand (.knxproj of .xknx): welke apparaten en groepsadressen zijn toegevoegd, verwijderd of gewijzigd. Het andere project wordt alleen gelezen; er wordt niets gewijzigd."
 
-msgid "Copy Address"
-msgstr "Adres kopiëren"
-
 msgid "Copy Log"
 msgstr "Logboek kopiëren"
 
@@ -2304,9 +2301,6 @@ msgstr "Medium"
 msgid "Domain Address"
 msgstr "Domeinadres"
 
-msgid "segment"
-msgstr "segment"
-
 msgid "The medium of a segment can only change while it holds no device."
 msgstr "Het mediumtype van een segment kan alleen worden gewijzigd als het geen apparaat bevat."
 
@@ -2957,3 +2951,15 @@ msgstr "Een groepsadres van het bereik is daar al in gebruik."
 
 msgid "Copied {count} group ranges to '{target}'."
 msgstr "{count} groepsadresbereiken gekopieerd naar '{target}'."
+
+msgid "Add Areas…"
+msgstr "Gebieden Toevoegen…"
+
+msgid "{medium} segment"
+msgstr "{medium} segment"
+
+msgid "Copy Individual Address"
+msgstr "Individueel adres kopiëren"
+
+msgid "Copy Group Address"
+msgstr "Groepsadres kopiëren"

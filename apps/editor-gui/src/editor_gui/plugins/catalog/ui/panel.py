@@ -13,6 +13,7 @@ from editor_gui.device_info import application_version_text
 from editor_gui.hardware_text import bus_current_text, rail_text
 from editor_gui.languages import product_text_languages
 from editor_gui.plugins.catalog.strings import S
+from editor_gui.plugins.project.ui.move_menu import render_move_menu
 from editor_gui.regional import regional_format
 from editor_gui.strings import get_locale
 from editor_gui.widgets.backgrounds import fill_content_background
@@ -21,7 +22,12 @@ from editor_gui.widgets.combo import combo
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
 from editor_gui.widgets.dpi import label_column_width, px, px_vec2
 from editor_gui.widgets.filter_box import filter_box
-from editor_gui.widgets.flow import checkbox_width, fits_beside, same_line_if_fits
+from editor_gui.widgets.flow import (
+    button_width,
+    checkbox_width,
+    fits_beside,
+    same_line_if_fits,
+)
 from editor_gui.widgets.tabs import begin_tab_bar
 from editor_gui.widgets.tree import leaf_rows, tree_node
 from editor_gui.widgets.value_pickers import format_date
@@ -187,19 +193,22 @@ class CatalogPanel:
         get_lines: Callable[[], list[tuple[int, str]]] | None = None,
         get_line: Callable[[], int | None] = lambda: None,
         set_line: Callable[[int | None], None] = lambda _s: None,
+        on_add_to_line: Callable[[ProductSummary, int], None] | None = None,
     ) -> None:
         """``get_lines`` lists the lines (and sub-segments) a new device can go on, as (segment
         id, text); ``get_line`` is the one chosen (None: automatic), ``set_line`` chooses
-        one."""
+        one. ``on_add_to_line`` adds a product on a line (segment id) right away (a product's
+        "Add to")."""
         self._get_lines = get_lines
+        self._on_add_to_line = on_add_to_line
         self._get_line = get_line
         self._set_line = set_line
         self._get_products = get_products
         self._on_select = on_select
         # Optional room picker for "Add device": lists (space_id, path) so a device can be placed
         # into a space on creation instead of always landing in "Without space". ``_add_space_id``
-        # is the panel-level chosen target (None = no room), applied by both the button and the
-        # double-click quick-add.
+        # is the panel-level chosen target (None = no room), chosen in the dialog "Add Device" and
+        # a double-click open.
         self._get_spaces = get_spaces
         self._add_space_id: int | None = None
         # Double-click a product to add it: first ask which room to place it in (when the project
@@ -294,9 +303,7 @@ class CatalogPanel:
 
     def _render_local_catalog(self) -> None:
         self._search = filter_box("##catalog_search", S.LOCAL_SEARCH_HINT, self._search)
-        # A line chosen ("Add → Devices…" in the Topology tree) shows right away.
-        if self._get_line() is not None:
-            self._render_line_picker("top")
+        self._render_add_row()
         fill_content_background()
         deleting = self._deleting
         if deleting is not None:
@@ -349,18 +356,22 @@ class CatalogPanel:
                 for product in by_manufacturer[mfr_id]:
                     name = _label(product)
                     if search in name.lower() or search in mfr_label.lower():
-                        tree_node(f"{mfr_label} - {name}##{_key(product)}", leaf_flags)
-                        self._handle_product_click(product)
-                        self._render_product_context_menu(product)
+                        self._render_product(
+                            f"{mfr_label} - {name}##{_key(product)}",
+                            product,
+                            leaf_flags,
+                        )
         else:
             for mfr_id in sorted_mfrs:
                 mfr_label = manufacturer_labels[mfr_id]
                 if tree_node(f"{mfr_label}##{mfr_id}"):
                     with leaf_rows(nodes=True):
                         for product in by_manufacturer[mfr_id]:
-                            tree_node(f"{_label(product)}##{_key(product)}", leaf_flags)
-                            self._handle_product_click(product)
-                            self._render_product_context_menu(product)
+                            self._render_product(
+                                f"{_label(product)}##{_key(product)}",
+                                product,
+                                leaf_flags,
+                            )
                     imgui.tree_pop()
 
         self._render_product_detail()
@@ -387,6 +398,26 @@ class CatalogPanel:
             self._fetch_missing_apps()
         finally:
             self._fetching_missing = False
+
+    def _render_add_row(self) -> None:
+        """The line a new device goes on and "Add Device" for the product selected (grayed out
+        while none is), as a double-click on it does."""
+        if self._render_line_picker("top"):
+            same_line_if_fits(button_width(S.CATALOG_DETAIL_ADD))
+        product = self._selected_product
+        imgui.begin_disabled(product is None)
+        clicked = imgui.button(S.CATALOG_DETAIL_ADD)
+        imgui.end_disabled()
+        if clicked and product is not None:
+            self._request_add(product)
+
+    def _render_product(self, label: str, product: ProductSummary, flags: int) -> None:
+        """A product's row: selected (highlighted) by a click, added by a double-click."""
+        if _same(self._selected_product, product):
+            flags |= imgui.TreeNodeFlags_.selected
+        tree_node(label, flags)
+        self._handle_product_click(product)
+        self._render_product_context_menu(product)
 
     def _handle_product_click(self, product: ProductSummary) -> None:
         if imgui.is_item_clicked():
@@ -433,9 +464,24 @@ class CatalogPanel:
             end_dialog()
 
     def _render_product_context_menu(self, product: ProductSummary) -> None:
-        if self._delete_product is None and self._export_product_cb is None:
+        if (
+            self._delete_product is None
+            and self._export_product_cb is None
+            and self._on_add_to_line is None
+        ):
             return
         if imgui.begin_popup_context_item(f"##catalog_ctx_{_key(product)}"):
+            if self._on_add_to_line is not None and self._get_lines is not None:
+                # "Add to": the product on one of the lines (and sub-segments) right away.
+                lines = [
+                    (f"{text}##addto{segment}", segment)
+                    for segment, text in self._get_lines()
+                ]
+                chosen = render_move_menu(lines, None, label=S.CATALOG_ADD_TO)
+                if chosen is not None:
+                    self._on_add_to_line(product, chosen[0])
+                if lines:
+                    imgui.separator()
             if (
                 self._export_product_cb is not None
                 and imgui.menu_item(S.CONTEXT_EXPORT_KNXPROD, "", False)[0]
@@ -572,19 +618,14 @@ class CatalogPanel:
             imgui.text_disabled(label)
             imgui.same_line(label_w)
             imgui.text_wrapped(value)
-        self._render_line_picker()
-        if self._render_space_picker():
-            imgui.same_line()
-        if imgui.button(S.CATALOG_DETAIL_ADD):
-            self._on_select(product, self._add_space_id)
 
-    def _render_line_picker(self, where: str = "detail") -> None:
+    def _render_line_picker(self, where: str = "dialog") -> bool:
         """The line a new device goes on, "Automatic" first (the room's Current Line, else the
         first TP line). Hidden when no line getter is wired or the project has no lines;
-        ``where`` keeps the pickers at the top and in the details apart."""
+        ``where`` keeps the pickers at the top and in the dialog apart. Whether it was shown."""
         lines = self._get_lines() if self._get_lines is not None else []
         if not lines:
-            return
+            return False
         options: list[tuple[int | None, str]] = [
             (None, S.CATALOG_ADD_LINE_AUTO),
             *lines,
@@ -600,6 +641,7 @@ class CatalogPanel:
         )
         if changed:
             self._set_line(options[picked][0])
+        return True
 
     def _render_space_picker(self) -> bool:
         """Room label and combo before the Add button: pick a space to place the new device in

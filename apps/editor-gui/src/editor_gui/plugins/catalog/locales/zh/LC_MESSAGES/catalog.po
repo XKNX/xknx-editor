@@ -219,3 +219,6 @@ msgstr "线路"
 
 msgid "Automatic"
 msgstr "自动"
+
+msgid "Add to"
+msgstr "添加到"

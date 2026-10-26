@@ -41,6 +41,8 @@ def _plugin(
     plugin._api = SimpleNamespace(  # pyright: ignore[reportPrivateUsage, reportAttributeAccessIssue]
         project=project,
         notify=notices.append,
+        # What was refused, and why, goes to the toast that stands out.
+        tell_refused=notices.append,
         log=SimpleNamespace(warning=lambda message, **_k: warnings.append(message)),
     )
     return plugin, project, notices, warnings

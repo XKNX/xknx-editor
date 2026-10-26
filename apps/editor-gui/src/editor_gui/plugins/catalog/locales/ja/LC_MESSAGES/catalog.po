@@ -219,3 +219,6 @@ msgstr "ライン"
 
 msgid "Automatic"
 msgstr "自動"
+
+msgid "Add to"
+msgstr "追加先"

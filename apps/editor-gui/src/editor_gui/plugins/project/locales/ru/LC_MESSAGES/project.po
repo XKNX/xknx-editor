@@ -1144,9 +1144,6 @@ msgstr "Фильтр комнат, устройств, функций…"
 msgid "Unassigned ({count})"
 msgstr "Не назначено ({count})"
 
-msgid "Copy Address"
-msgstr "Копировать адрес"
-
 msgid "Duplicate"
 msgstr "Дублировать"
 
@@ -2266,9 +2263,6 @@ msgstr "Носитель"
 msgid "Domain Address"
 msgstr "Адрес домена"
 
-msgid "segment"
-msgstr "сегмент"
-
 msgid "The medium of a segment can only change while it holds no device."
 msgstr "Тип среды сегмента можно изменить только в том случае, если он не содержит никаких устройств."
 
@@ -2919,3 +2913,15 @@ msgstr "Групповой адрес диапазона там уже испо�
 
 msgid "Copied {count} group ranges to '{target}'."
 msgstr "Скопировано диапазонов групповых адресов: {count} в '{target}'."
+
+msgid "Add Areas…"
+msgstr "Добавить области…"
+
+msgid "{medium} segment"
+msgstr "сегмент {medium}"
+
+msgid "Copy Individual Address"
+msgstr "Копировать индивидуальный адрес"
+
+msgid "Copy Group Address"
+msgstr "Копировать групповой адрес"

@@ -1144,9 +1144,6 @@ msgstr "Suodata huoneita, laitteita, toimintoja…"
 msgid "Unassigned ({count})"
 msgstr "Kohdistamattomat ({count})"
 
-msgid "Copy Address"
-msgstr "Kopioi osoite"
-
 msgid "Duplicate"
 msgstr "Luo kopio"
 
@@ -2266,9 +2263,6 @@ msgstr "Media"
 msgid "Domain Address"
 msgstr "Toimialue Osoite"
 
-msgid "segment"
-msgstr "segmentti"
-
 msgid "The medium of a segment can only change while it holds no device."
 msgstr "Segmentin mediatyyppiä voi muuttaa vain, jos se ei sisällä laitteita."
 
@@ -2919,3 +2913,15 @@ msgstr "Jokin alueen ryhmäosoite on siellä jo käytössä."
 
 msgid "Copied {count} group ranges to '{target}'."
 msgstr "{count} ryhmäosoitealuetta kopioitu kohteeseen '{target}'."
+
+msgid "Add Areas…"
+msgstr "Lisää Alueita…"
+
+msgid "{medium} segment"
+msgstr "{medium}-segmentti"
+
+msgid "Copy Individual Address"
+msgstr "Kopioi yksilöllinen osoite"
+
+msgid "Copy Group Address"
+msgstr "Kopioi ryhmäosoite"

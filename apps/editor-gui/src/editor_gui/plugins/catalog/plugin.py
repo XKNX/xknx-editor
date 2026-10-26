@@ -50,6 +50,9 @@ class CatalogPlugin:
             ),
             get_line=lambda: api.project.device_target_segment,
             set_line=self._set_line,
+            on_add_to_line=lambda product, segment: self._on_select(
+                product, segment_id=segment
+            ),
         )
         self._panels = [
             PanelDefinition(
@@ -67,27 +70,34 @@ class CatalogPlugin:
         if self._api.notify is not None:
             self._api.notify(text)
 
-    def _on_select(self, product: ProductSummary, space_id: int | None = None) -> None:
+    def _on_select(
+        self,
+        product: ProductSummary,
+        space_id: int | None = None,
+        segment_id: int | None = None,
+    ) -> None:
+        """Add ``product`` to the project (in the space ``space_id``), on the line (segment)
+        ``segment_id``, else on the one chosen in the catalog."""
         # "Add device" needs a project to add into; without one add_device is a silent no-op, so give
         # explicit feedback instead of the button appearing to do nothing.
         if not self._api.project.is_open:
             self._log.warning(
                 "cannot add device: no project open", product=product.product_ref_id
             )
-            self._notify(S.CATALOG_ADD_NEEDS_PROJECT)
+            self._api.tell_refused(S.CATALOG_ADD_NEEDS_PROJECT)
             return
         if product.application_id is None:
             self._log.warning(
                 "product has no application", product=product.product_ref_id
             )
-            self._notify(S.CATALOG_ADD_NO_APP)
+            self._api.tell_refused(S.CATALOG_ADD_NO_APP)
             return
         app = self._api.catalog.get_application(product.application_id)
         if app is None:
             self._log.warning(
                 "application not found", application_id=product.application_id
             )
-            self._notify(S.CATALOG_ADD_NO_APP)
+            self._api.tell_refused(S.CATALOG_ADD_NO_APP)
             return
 
         # A device that supports KNX Data Secure is commissioned securely by default, which needs
@@ -100,23 +110,30 @@ class CatalogPlugin:
         ):
             request(
                 S.CATALOG_ADD_SECURE_PASSWORD,
-                lambda: self._add(product, app, space_id, secure_commissioning=True),
-                lambda: self._add(product, app, space_id, secure_commissioning=False),
+                lambda: self._add(
+                    product, app, space_id, segment_id, secure_commissioning=True
+                ),
+                lambda: self._add(
+                    product, app, space_id, segment_id, secure_commissioning=False
+                ),
             )
             return
-        self._add(product, app, space_id)
+        self._add(product, app, space_id, segment_id)
 
     def _add(
         self,
         product: ProductSummary,
         app: Application,
         space_id: int | None,
+        segment_id: int | None = None,
         *,
         secure_commissioning: bool | None = None,
     ) -> None:
         # A new device has no name of its own; it shows its product's name until renamed. It
-        # goes on the line chosen in the catalog, else (added to a space) on the space's Current
-        # Line; its hardware must support the line's medium.
+        # goes on the line given ("Add to"), else the one chosen in the catalog, else (added to a
+        # space) on the space's Current Line; its hardware must support the line's medium.
+        if segment_id is None:
+            segment_id = self._api.project.device_target_segment
         try:
             device_id = self._api.project.add_device(
                 product_ref_id=product.product_ref_id,
@@ -126,11 +143,11 @@ class CatalogPlugin:
                 product=DeviceProduct.of(product),
                 secure_commissioning=secure_commissioning,
                 space_id=space_id,
-                segment_id=self._api.project.device_target_segment,
+                segment_id=segment_id,
             )
         except MediumError as error:
             self._log.warning("device not added", error=str(error))
-            self._notify(medium_error_text(error))
+            self._api.tell_refused(medium_error_text(error))
             return
         if device_id:
             ask = self._api.ask_device_certificate
@@ -190,7 +207,7 @@ class CatalogPlugin:
         source = self._api.catalog.get_program_source(product.hardware2program_ref_id)
         if source is None:
             self._log.warning("no stored archive for product", product=name)
-            self._notify(S.EXPORT_KNXPROD_UNAVAILABLE.format(name=name))
+            self._api.tell_refused(S.EXPORT_KNXPROD_UNAVAILABLE.format(name=name))
             return
         knxprod_path, _manufacturer = source
         try:
@@ -201,7 +218,9 @@ class CatalogPlugin:
                 product=name,
                 error=f"{type(exc).__name__}: {exc}",
             )
-            self._notify(S.EXPORT_KNXPROD_FAILED.format(name=name, error=str(exc)))
+            self._api.tell_refused(
+                S.EXPORT_KNXPROD_FAILED.format(name=name, error=str(exc))
+            )
             return
         self._log.info("exported knxprod", product=name, dest=dest)
         self._notify(S.EXPORT_KNXPROD_OK.format(name=name))
@@ -269,7 +288,7 @@ class CatalogPlugin:
         matching freshly-imported local product is the longest such prefix match. Reuses the normal
         local add path (``_on_select``) so catalog resolution/export behave identically."""
         if not self._api.project.is_open:
-            self._notify(S.CATALOG_ADD_NEEDS_PROJECT)
+            self._api.tell_refused(S.CATALOG_ADD_NEEDS_PROJECT)
             return
         matches = [
             p
@@ -279,7 +298,7 @@ class CatalogPlugin:
         ]
         if not matches:
             self._log.warning("imported product not found for online add", item=item_id)
-            self._notify(S.CATALOG_ADD_NO_APP)
+            self._api.tell_refused(S.CATALOG_ADD_NO_APP)
             return
         product = max(matches, key=lambda p: len(p.hardware2program_ref_id))
         self._on_select(product)

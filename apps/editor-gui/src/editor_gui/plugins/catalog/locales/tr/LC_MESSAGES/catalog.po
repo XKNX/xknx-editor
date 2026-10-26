@@ -219,3 +219,6 @@ msgstr "Hat"
 
 msgid "Automatic"
 msgstr "Otomatik"
+
+msgid "Add to"
+msgstr "Şuraya Ekle"

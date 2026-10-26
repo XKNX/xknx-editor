@@ -59,6 +59,8 @@ _HELPERS_SHOWN = {
     "filter_box",
     "flash_toast",
     "_flash_toast",
+    "_warn_toast",
+    "tell_refused",
     "heading",
     "radio_button",
     "wrapped_tooltip",

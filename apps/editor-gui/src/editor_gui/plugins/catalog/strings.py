@@ -157,6 +157,11 @@ class CatalogStrings:
         return _("(no room)")
 
     @property
+    def CATALOG_ADD_TO(self) -> str:
+        # A product's menu: its submenu lists the lines to add it on.
+        return _("Add to")
+
+    @property
     def CATALOG_ADD_LINE_LABEL(self) -> str:
         return _("Line")
 

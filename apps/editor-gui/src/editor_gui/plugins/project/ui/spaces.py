@@ -39,10 +39,13 @@ from editor_gui.plugins.project.ui.group_addresses import (
 )
 from editor_gui.plugins.project.ui.move_menu import render_move_menu
 from editor_gui.plugins.project.ui.paste_special import (
+    MenuGroups,
     PasteSpecialDialog,
     ShortcutRow,
     handle_row_keys,
     no_paste,
+    render_copy_device_address_item,
+    render_copy_group_address_item,
     render_copy_item,
     render_delete_item,
 )
@@ -686,11 +689,15 @@ class SpacesPanel:
         return out
 
     def _render_move_device_menu(
-        self, device_id: int, space_id: int | None, trade_id: int | None
+        self,
+        device_id: int,
+        space_id: int | None,
+        trade_id: int | None,
+        before: Callable[[], object],
     ) -> None:
         """ "Move to" of a device: from a trade into another trade, else (from a building part
         or "Without space") into a building part that holds devices; the others show grayed
-        out, for the tree around them."""
+        out, for the tree around them. ``before`` runs right before it shows."""
         if trade_id is not None:
             if self._on_add_trade_device is None:
                 return
@@ -703,7 +710,7 @@ class SpacesPanel:
                     walk(trade.children, depth + 1)
 
             walk(self._get_trade_tree(), 0)
-            chosen_trade = render_move_menu(trades, trade_id)
+            chosen_trade = render_move_menu(trades, trade_id, before=before)
             if chosen_trade is not None:
                 self._on_add_trade_device(chosen_trade[0], device_id)
             return
@@ -721,6 +728,7 @@ class SpacesPanel:
                 for space, _depth in spaces
                 if not holds_devices(space.space_type)
             },
+            before=before,
         )
         if chosen is not None:
             self._report(self._on_set_device_space(device_id, chosen[0]))
@@ -898,33 +906,10 @@ class SpacesPanel:
             or self._on_delete_device is not None
         )
         if has_menu and context_menu(f"##spdev_ctx_{where}{device.id}"):
-            if self._paste_dialog is not None:
-                render_copy_item(Dragged("device", (device.id,)))
-                # What is pasted on a device goes where the device is.
-                self._paste_dialog.render_paste_items(
-                    lambda c: self._beside_device_target(space_id, trade_id, c)
-                )
-                imgui.separator()
-            self._render_move_device_menu(device.id, space_id, trade_id)
-            # "Unlink" takes the device out of the trade or the building part it shows in.
-            if (
-                trade_id is not None
-                and self._on_remove_trade_device is not None
-                and imgui.menu_item(S.TRADES_REMOVE_DEVICE, "", False)[0]
-            ):
-                self._on_remove_trade_device(trade_id, device.id)
-            if (
-                space_id is not None
-                and self._on_set_device_space is not None
-                and imgui.menu_item(S.SPACES_UNASSIGN, "", False)[0]
-            ):
-                self._report(self._on_set_device_space(device.id, None))
-            if (
-                device.individual_address
-                and imgui.menu_item(S.CONTEXT_COPY_ADDRESS, "", False)[0]
-            ):
-                imgui.set_clipboard_text(device.individual_address)
-            if self._on_copy_config is not None:
+            # As in the Topology tree: its configuration; where it is and its address; reading,
+            # comparing and unlinking; then Copy / Cut / Paste and "Delete".
+            groups = MenuGroups()
+            if self._on_copy_config is not None and groups.show():
                 config_label = self._device_label(device)
                 if imgui.menu_item(S.CONTEXT_DUPLICATE, "", False)[0]:
                     self._config_dialog.open(device.id, config_label, "duplicate")
@@ -939,19 +924,49 @@ class SpacesPanel:
                     else False,
                 )[0]:
                     self._config_dialog.open(device.id, config_label, "paste")
-            if self._on_device_info is not None:
+            groups.next()
+            self._render_move_device_menu(device.id, space_id, trade_id, groups.show)
+            render_copy_device_address_item(device.individual_address, groups.show)
+            groups.next()
+            if self._on_device_info is not None and groups.show():
                 render_read_device_item(
                     device.id, bool(device.individual_address), self._on_device_info
                 )
             if (
                 self._on_compare is not None
+                and groups.show()
                 and imgui.menu_item(S.CONTEXT_COMPARE_DEVICE, "", False)[0]
             ):
                 self._on_compare(device.id)
-            if self._on_delete_device is not None:
-                imgui.separator()
-                if render_delete_item():
-                    self._ask_delete_device(device)
+            # "Unlink" takes the device out of the trade or the building part it shows in.
+            if (
+                trade_id is not None
+                and self._on_remove_trade_device is not None
+                and groups.show()
+                and imgui.menu_item(S.TRADES_REMOVE_DEVICE, "", False)[0]
+            ):
+                self._on_remove_trade_device(trade_id, device.id)
+            if (
+                space_id is not None
+                and self._on_set_device_space is not None
+                and groups.show()
+                and imgui.menu_item(S.SPACES_UNASSIGN, "", False)[0]
+            ):
+                self._report(self._on_set_device_space(device.id, None))
+            groups.next()
+            if self._paste_dialog is not None and groups.show():
+                render_copy_item(Dragged("device", (device.id,)))
+                # What is pasted on a device goes where the device is.
+                self._paste_dialog.render_paste_items(
+                    lambda c: self._beside_device_target(space_id, trade_id, c)
+                )
+            groups.next()
+            if (
+                self._on_delete_device is not None
+                and groups.show()
+                and render_delete_item()
+            ):
+                self._ask_delete_device(device)
             imgui.end_popup()
         # The KNX Data Secure shield, then a short description inline or a longer one while its
         # icon is hovered.
@@ -1235,8 +1250,7 @@ class SpacesPanel:
             self._selected_link = ref.id
             self._on_select_element("group_address", ref.group_address_id)
         if remove is not None and context_menu(f"##fnga_ctx{ref.id}"):
-            if imgui.menu_item(S.CONTEXT_COPY_ADDRESS, "", False)[0]:
-                imgui.set_clipboard_text(ref.text)
+            render_copy_group_address_item(ref.text)
             imgui.separator()
             if render_delete_item():
                 remove(ref.id)
@@ -1264,7 +1278,6 @@ class SpacesPanel:
                     else S.SPACES_FN_NO_GROUP,
                 ):
                     self._start_add_function_gas(function)
-                imgui.separator()
             if self._on_move_function is not None:
                 # Into any other space.
                 targets = [

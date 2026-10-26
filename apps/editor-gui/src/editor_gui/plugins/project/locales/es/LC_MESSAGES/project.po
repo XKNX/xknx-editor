@@ -1144,9 +1144,6 @@ msgstr "Filtrar estancias, dispositivos, funciones…"
 msgid "Unassigned ({count})"
 msgstr "Sin asignar ({count})"
 
-msgid "Copy Address"
-msgstr "Copiar Dirección"
-
 msgid "Duplicate"
 msgstr "Duplicar"
 
@@ -2266,9 +2263,6 @@ msgstr "Medio"
 msgid "Domain Address"
 msgstr "Dirección de Dominio"
 
-msgid "segment"
-msgstr "segmento"
-
 msgid "The medium of a segment can only change while it holds no device."
 msgstr "El tipo de medio de un segmento sólo puede cambiarse si no contiene ningún dispositivo."
 
@@ -2919,3 +2913,15 @@ msgstr "Una dirección de grupo del rango ya está en uso ahí."
 
 msgid "Copied {count} group ranges to '{target}'."
 msgstr "{count} rangos de direcciones de grupo copiados a '{target}'."
+
+msgid "Add Areas…"
+msgstr "Añadir Áreas…"
+
+msgid "{medium} segment"
+msgstr "segmento {medium}"
+
+msgid "Copy Individual Address"
+msgstr "Copiar Dirección Individual"
+
+msgid "Copy Group Address"
+msgstr "Copiar Dirección de Grupo"

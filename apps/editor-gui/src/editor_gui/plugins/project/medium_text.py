@@ -1,5 +1,6 @@
 """The media of lines and segments as the editor shows them: the choices of their "Medium"
-drop-downs and the translated text of a change the media do not allow."""
+drop-downs, the translated text of a change the media do not allow, and the name an unnamed
+segment is shown with."""
 
 from __future__ import annotations
 
@@ -9,7 +10,15 @@ from xknxeditor.proj.core.medium import (
     MEDIUM_NAMES,
     SEGMENT_MEDIA,
     MediumError,
+    medium_name,
 )
+
+
+def segment_display_name(name: str, medium_type: str) -> str:
+    """A sub-segment's name; one without a name (as a new one is) is called after its medium
+    ("TP segment")."""
+    return name or S.SEGMENT_NAME.format(medium=medium_name(medium_type)).strip()
+
 
 # The texts whose name does not follow the reason (MEDIUM_ERROR_<REASON>).
 _NAMES = {

@@ -204,7 +204,7 @@ class ProjectPlugin:
             api.connection,
             api.main_thread.submit if api.main_thread is not None else _run_now,
             Logger(api.log, "project"),
-            api.notify,
+            api.tell_refused,
         )
 
         self._memory_preview = MemoryPreviewWindow(
@@ -325,6 +325,7 @@ class ProjectPlugin:
             open_memory_preview=self._memory_preview.open,
             on_param_change_all=self._handle_param_change_all,
             notify=api.notify,
+            warn=api.tell_refused,
             on_update_application=self._update_application,
             get_update_version=self._api.project.newer_application_version,
             get_change_targets=self._api.project.application_change_targets,
@@ -415,7 +416,7 @@ class ProjectPlugin:
             get_latest_value=get_latest_value,
             on_move_ga=api.project.move_group_address,
             on_move_range=api.project.move_group_range,
-            notify=lambda text: api.notify(text) if api.notify is not None else None,
+            notify=api.tell_refused,
             one_undo_step=api.project.one_undo_step,
             paste_dialog=self._paste_dialog("group_addresses"),
         )
@@ -499,7 +500,7 @@ class ProjectPlugin:
             on_remove_trade_device=api.project.remove_trade_device,
             get_space_devices=api.project.get_space_devices,
             get_parked_address=api.project.parked_address,
-            notify=api.notify if api.notify is not None else lambda _t: None,
+            notify=api.tell_refused,
             one_undo_step=api.project.one_undo_step,
             paste_dialog=self._paste_dialog("buildings"),
             on_delete_device=self._delete_device,
@@ -655,7 +656,12 @@ class ProjectPlugin:
                 number=ln.line_number,
                 name=ln.name,
                 segments=[
-                    Segment(id=s.id, name=s.name, description=s.description)
+                    Segment(
+                        id=s.id,
+                        name=s.name,
+                        description=s.description,
+                        medium_type=s.medium_type,
+                    )
                     for s in ln.segments
                 ],
                 medium_type=ln.medium_type,
@@ -1033,8 +1039,8 @@ class ProjectPlugin:
 
         def work() -> None:
             result = self._api.project.update_application(device)
-            if result is None and self._api.notify is not None:
-                self._api.notify(S.UPDATE_APP_FAILED)
+            if result is None:
+                self._api.tell_refused(S.UPDATE_APP_FAILED)
 
         self._in_background(S.UPDATING_APPLICATION, work)
 
@@ -1044,8 +1050,8 @@ class ProjectPlugin:
 
         def work() -> None:
             changed = self._api.project.change_application(device, program)
-            if not changed and self._api.notify is not None:
-                self._api.notify(S.CHANGE_APP_FAILED)
+            if not changed:
+                self._api.tell_refused(S.CHANGE_APP_FAILED)
 
         self._in_background(S.CHANGING_APPLICATION, work)
 
@@ -2011,9 +2017,7 @@ class ProjectPlugin:
 
     def _medium_error(self, error: MediumError) -> None:
         """Tell the user why the media of the topology do not allow a change."""
-        text = self._rejected(error)
-        if self._api.notify is not None:
-            self._api.notify(text)
+        self._api.tell_refused(self._rejected(error))
 
     def _rejected(self, error: MediumError) -> str:
         """Log that the media of the topology do not allow a change; the reason to tell."""
@@ -2024,8 +2028,7 @@ class ProjectPlugin:
 
     def _report(self, reason: str | None) -> None:
         """Tell the user why an edit was refused (``reason``; None: it was not)."""
-        if reason and self._api.notify is not None:
-            self._api.notify(reason)
+        self._api.tell_refused(reason)
 
     def _paste_dialog(self, dialog_id: str) -> PasteSpecialDialog:
         """The Paste Special dialog of the tree panel ``dialog_id``."""

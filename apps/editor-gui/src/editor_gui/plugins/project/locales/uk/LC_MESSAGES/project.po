@@ -1144,9 +1144,6 @@ msgstr "Фільтрувати кімнати, пристрої, функції�
 msgid "Unassigned ({count})"
 msgstr "Не призначено ({count})"
 
-msgid "Copy Address"
-msgstr "Копіювати адресу"
-
 msgid "Duplicate"
 msgstr "Дублювати"
 
@@ -2266,9 +2263,6 @@ msgstr "Середовище"
 msgid "Domain Address"
 msgstr "Адреса домену"
 
-msgid "segment"
-msgstr "сегмент"
-
 msgid "The medium of a segment can only change while it holds no device."
 msgstr "Тип середовища передачі даних сегменту можна змінити, лише якщо в ньому нема жодного пристрою."
 
@@ -2919,3 +2913,15 @@ msgstr "Групова адреса діапазону там уже викор�
 
 msgid "Copied {count} group ranges to '{target}'."
 msgstr "Скопійовано діапазонів групових адрес: {count} до '{target}'."
+
+msgid "Add Areas…"
+msgstr "Додати області…"
+
+msgid "{medium} segment"
+msgstr "сегмент {medium}"
+
+msgid "Copy Individual Address"
+msgstr "Копіювати індивідуальну адресу"
+
+msgid "Copy Group Address"
+msgstr "Копіювати групову адресу"

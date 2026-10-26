@@ -298,6 +298,7 @@ class ConfigurePanel:
         open_memory_preview: Callable[[Device], None] | None = None,
         on_param_change_all: Callable[[Device, str, str], None] | None = None,
         notify: Callable[[str], None] | None = None,
+        warn: Callable[[str], None] | None = None,
         set_dpt: Callable[[Device, str, str | None], None] | None = None,
         set_priority: Callable[[Device, str, str | None], None] | None = None,
         set_description: Callable[[Device, str, str | None], None] | None = None,
@@ -401,6 +402,8 @@ class ConfigurePanel:
         self._get_device_info = get_device_info
         self._find_product = find_product
         self._notify = notify
+        # Why an edit was refused (a toast that stands out); ``notify`` when not given.
+        self._warn = warn or notify
         self._on_update_application = on_update_application
         self._get_update_version = get_update_version
         self._get_change_targets = get_change_targets
@@ -936,8 +939,8 @@ class ConfigurePanel:
             text = self._serial_buffer.strip()
             serial = parse_serial_text(text) if text else None
             if text and serial is None:
-                if self._notify is not None:
-                    self._notify(S.SERIAL_NUMBER_INVALID)
+                if self._warn is not None:
+                    self._warn(S.SERIAL_NUMBER_INVALID)
             elif self._on_serial_number_change is not None:
                 self._on_serial_number_change(device, serial)
         if not imgui.is_item_active() and self._serial_buffer != stored:
@@ -1934,8 +1937,8 @@ class ConfigurePanel:
         if self._on_ip_secure_change is None:
             return
         error = self._on_ip_secure_change(device, field, value)
-        if error and self._notify is not None:
-            self._notify(error)
+        if error and self._warn is not None:
+            self._warn(error)
 
     def _render_label_value(self, label: str, value: str) -> None:
         imgui.text_disabled(label)

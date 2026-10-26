@@ -1144,9 +1144,6 @@ msgstr "Filtrer rom, enheter, funksjoner…"
 msgid "Unassigned ({count})"
 msgstr "Ikke tilordnet ({count})"
 
-msgid "Copy Address"
-msgstr "Kopier adresse"
-
 msgid "Duplicate"
 msgstr "Dupliser"
 
@@ -2266,9 +2263,6 @@ msgstr "Medie"
 msgid "Domain Address"
 msgstr "Domeneadresse"
 
-msgid "segment"
-msgstr "segment"
-
 msgid "The medium of a segment can only change while it holds no device."
 msgstr "Medietypen til et segment kan bare endres hvis det ikke inneholder utstyr."
 
@@ -2919,3 +2913,15 @@ msgstr "En gruppeadresse i området er allerede i bruk der."
 
 msgid "Copied {count} group ranges to '{target}'."
 msgstr "{count} gruppeadresseområder kopiert til '{target}'."
+
+msgid "Add Areas…"
+msgstr "Legg til områder…"
+
+msgid "{medium} segment"
+msgstr "{medium}-segment"
+
+msgid "Copy Individual Address"
+msgstr "Kopier individuell adresse"
+
+msgid "Copy Group Address"
+msgstr "Kopier gruppeadresse"

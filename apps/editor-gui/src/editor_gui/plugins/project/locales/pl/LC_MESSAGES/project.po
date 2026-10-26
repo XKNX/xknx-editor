@@ -1144,9 +1144,6 @@ msgstr "Filtruj pokoje, urządzenia, funkcje…"
 msgid "Unassigned ({count})"
 msgstr "Nieprzypisane ({count})"
 
-msgid "Copy Address"
-msgstr "Kopiuj adres"
-
 msgid "Duplicate"
 msgstr "Zduplikuj"
 
@@ -2266,9 +2263,6 @@ msgstr "Medium"
 msgid "Domain Address"
 msgstr "Adres domeny"
 
-msgid "segment"
-msgstr "segment"
-
 msgid "The medium of a segment can only change while it holds no device."
 msgstr "Medium segmentu można zmienić tylko wtedy, gdy nie zawiera ono żadnego urządzenia."
 
@@ -2919,3 +2913,15 @@ msgstr "Adres grupowy zakresu jest tam już używany."
 
 msgid "Copied {count} group ranges to '{target}'."
 msgstr "Skopiowano zakresy adresów grupowych ({count}) do '{target}'."
+
+msgid "Add Areas…"
+msgstr "Dodaj obszary…"
+
+msgid "{medium} segment"
+msgstr "segment {medium}"
+
+msgid "Copy Individual Address"
+msgstr "Kopiuj adres indywidualny"
+
+msgid "Copy Group Address"
+msgstr "Kopiuj adres grupowy"

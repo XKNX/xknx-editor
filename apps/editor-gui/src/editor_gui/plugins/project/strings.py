@@ -94,9 +94,9 @@ class ProjectStrings:
         return _("Domain Address")
 
     @property
-    def SEGMENT_DEFAULT_NAME(self) -> str:
-        # The name a new segment gets.
-        return _("segment")
+    def SEGMENT_NAME(self) -> str:
+        # The name a sub-segment without one is shown with ("TP segment").
+        return _("{medium} segment")
 
     @property
     def MEDIUM_ERROR_SEGMENT_HAS_DEVICES(self) -> str:
@@ -2812,6 +2812,11 @@ class ProjectStrings:
         return _("Unassigned ({count})")
 
     @property
+    def TOPOLOGY_ADD_AREAS_ITEM(self) -> str:
+        # The menu of the topology's empty space.
+        return _("Add Areas…")
+
+    @property
     def TOPOLOGY_ADD_AREAS(self) -> str:
         # An item of the "Add" submenu of the topology.
         return _("Areas…")
@@ -2892,8 +2897,14 @@ class ProjectStrings:
         return _("Delete")
 
     @property
-    def CONTEXT_COPY_ADDRESS(self) -> str:
-        return _("Copy Address")
+    def CONTEXT_COPY_DEVICE_ADDRESS(self) -> str:
+        # A device's menu: its individual address to the clipboard.
+        return _("Copy Individual Address")
+
+    @property
+    def CONTEXT_COPY_GROUP_ADDRESS(self) -> str:
+        # A group address's menu: its address (e.g. "1/2/3") to the clipboard.
+        return _("Copy Group Address")
 
     @property
     def CONTEXT_DUPLICATE(self) -> str:

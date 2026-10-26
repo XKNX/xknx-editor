@@ -76,6 +76,47 @@ def render_delete_item(label: str | None = None) -> bool:
     return imgui.menu_item(label or S.CONTEXT_DELETE, delete_key(), False)[0]
 
 
+def render_copy_device_address_item(
+    address: str | None, before: Callable[[], bool] = lambda: True
+) -> None:
+    """ "Copy Individual Address" of a device that has one: the address to the clipboard.
+    ``before`` runs right before it shows."""
+    if (
+        address
+        and before()
+        and imgui.menu_item(S.CONTEXT_COPY_DEVICE_ADDRESS, "", False)[0]
+    ):
+        imgui.set_clipboard_text(address)
+
+
+def render_copy_group_address_item(text: str) -> None:
+    """ "Copy Group Address": the printed address (e.g. "1/2/3") to the clipboard."""
+    if imgui.menu_item(S.CONTEXT_COPY_GROUP_ADDRESS, "", False)[0]:
+        imgui.set_clipboard_text(text)
+
+
+class MenuGroups:
+    """The separators between the groups of a context menu whose items show only sometimes:
+    :meth:`next` ends a group, :meth:`show` (called right before an item that shows) draws the
+    separator once the next group shows something, so no group is empty."""
+
+    def __init__(self) -> None:
+        self._shown = False
+        self._pending = False
+
+    def next(self) -> None:
+        if self._shown:
+            self._pending = True
+
+    def show(self) -> bool:
+        """True, for use in a condition: ``groups.show() and imgui.menu_item(…)``."""
+        if self._pending:
+            imgui.separator()
+            self._pending = False
+        self._shown = True
+        return True
+
+
 def copied() -> Dragged | None:
     """What "Copy" or "Cut" took last, None before (and after the paste of a cut one)."""
     return _Clipboard.copied

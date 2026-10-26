@@ -37,7 +37,7 @@ async def test_segments_are_added_renamed_and_removed(tmp_path: Path) -> None:
         assert (await _line(client, "1.0"))["medium"] == "IP"
 
         tp = await _data(client, "project_add_segment", line_id=line["id"])
-        assert (tp["number"], tp["name"], tp["medium"]) == (1, "segment", "TP")
+        assert (tp["number"], tp["name"], tp["medium"]) == (1, "", "TP")
         rf = await _data(
             client,
             "project_add_segment",

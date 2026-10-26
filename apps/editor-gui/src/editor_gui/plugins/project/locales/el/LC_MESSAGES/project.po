@@ -1144,9 +1144,6 @@ msgstr "Φιλτράρισμα δωματίων, συσκευών, λειτου�
 msgid "Unassigned ({count})"
 msgstr "Μη ανατεθειμένα ({count})"
 
-msgid "Copy Address"
-msgstr "Αντιγραφή Διεύθυνσης"
-
 msgid "Duplicate"
 msgstr "Δημιουργία Διπλοτύπου"
 
@@ -2266,9 +2263,6 @@ msgstr "Μέσο"
 msgid "Domain Address"
 msgstr "Διεύθυνση Τομέα"
 
-msgid "segment"
-msgstr "τμήμα"
-
 msgid "The medium of a segment can only change while it holds no device."
 msgstr "Ο τύπος μέσου ενός τμήματος μπορεί να αλλάξει μόνο εάν δεν περιέχει καμία συσκευή."
 
@@ -2919,3 +2913,15 @@ msgstr "Μια διεύθυνση ομάδας της περιοχής χρησ�
 
 msgid "Copied {count} group ranges to '{target}'."
 msgstr "Αντιγράφηκαν {count} περιοχές διευθύνσεων ομάδας στο '{target}'."
+
+msgid "Add Areas…"
+msgstr "Προσθήκη Περιοχών…"
+
+msgid "{medium} segment"
+msgstr "{medium} τμήμα"
+
+msgid "Copy Individual Address"
+msgstr "Αντιγραφή Ατομικής Διεύθυνσης"
+
+msgid "Copy Group Address"
+msgstr "Αντιγραφή Διεύθυνσης Ομάδας"

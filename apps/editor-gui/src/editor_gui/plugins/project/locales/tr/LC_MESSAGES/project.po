@@ -1144,9 +1144,6 @@ msgstr "Odaları, cihazları, fonksiyonları filtrele…"
 msgid "Unassigned ({count})"
 msgstr "Atanmamış ({count})"
 
-msgid "Copy Address"
-msgstr "Adresi Kopyala"
-
 msgid "Duplicate"
 msgstr "Kopya Oluştur"
 
@@ -2266,9 +2263,6 @@ msgstr "Ortam"
 msgid "Domain Address"
 msgstr "Domain Adres"
 
-msgid "segment"
-msgstr "segment"
-
 msgid "The medium of a segment can only change while it holds no device."
 msgstr "Bir segmentin ortam tipi yalnızca herhangi bir cihaz içermiyorsa değiştirilebilir."
 
@@ -2919,3 +2913,15 @@ msgstr "Aralığın bir grup adresi orada zaten kullanılıyor."
 
 msgid "Copied {count} group ranges to '{target}'."
 msgstr "{count} grup adresi aralığı '{target}' konumuna kopyalandı."
+
+msgid "Add Areas…"
+msgstr "Alan Ekle…"
+
+msgid "{medium} segment"
+msgstr "{medium} segment"
+
+msgid "Copy Individual Address"
+msgstr "Bireysel Adresi Kopyala"
+
+msgid "Copy Group Address"
+msgstr "Grup Adresini Kopyala"

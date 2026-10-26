@@ -1144,9 +1144,6 @@ msgstr "Filtrar compartimentos, dispositivos, funções…"
 msgid "Unassigned ({count})"
 msgstr "Não atribuídos ({count})"
 
-msgid "Copy Address"
-msgstr "Copiar Endereço"
-
 msgid "Duplicate"
 msgstr "Duplicar"
 
@@ -2266,9 +2263,6 @@ msgstr "Meio"
 msgid "Domain Address"
 msgstr "Endereço de Domínio"
 
-msgid "segment"
-msgstr "segmento"
-
 msgid "The medium of a segment can only change while it holds no device."
 msgstr "O tipo de meio físico de um segmento só pode ser alterado, se este não tiver nenhum dispositivo."
 
@@ -2919,3 +2913,15 @@ msgstr "Um endereço de grupo do intervalo já está em uso aí."
 
 msgid "Copied {count} group ranges to '{target}'."
 msgstr "{count} intervalos de endereços de grupo copiados para '{target}'."
+
+msgid "Add Areas…"
+msgstr "Adicionar Áreas…"
+
+msgid "{medium} segment"
+msgstr "segmento {medium}"
+
+msgid "Copy Individual Address"
+msgstr "Copiar Endereço Individual"
+
+msgid "Copy Group Address"
+msgstr "Copiar Endereço de Grupo"

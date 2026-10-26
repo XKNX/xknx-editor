@@ -1144,9 +1144,6 @@ msgstr "Filtrovat místnosti, zařízení, funkce…"
 msgid "Unassigned ({count})"
 msgstr "Nepřiřazeno ({count})"
 
-msgid "Copy Address"
-msgstr "Kopírovat adresu"
-
 msgid "Duplicate"
 msgstr "Duplikovat"
 
@@ -2266,9 +2263,6 @@ msgstr "Médium"
 msgid "Domain Address"
 msgstr "Adresa domény"
 
-msgid "segment"
-msgstr "segment"
-
 msgid "The medium of a segment can only change while it holds no device."
 msgstr "Typ média segmentu lze změnit jen tehdy, jestliže neobsahuje žádné zařízení."
 
@@ -2919,3 +2913,15 @@ msgstr "Skupinová adresa rozsahu je tam již použita."
 
 msgid "Copied {count} group ranges to '{target}'."
 msgstr "{count} rozsahů skupinových adres zkopírováno do '{target}'."
+
+msgid "Add Areas…"
+msgstr "Přidat oblasti…"
+
+msgid "{medium} segment"
+msgstr "{medium} segment"
+
+msgid "Copy Individual Address"
+msgstr "Kopírovat individuální adresu"
+
+msgid "Copy Group Address"
+msgstr "Kopírovat skupinovou adresu"

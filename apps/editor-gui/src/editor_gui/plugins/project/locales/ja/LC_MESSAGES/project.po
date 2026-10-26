@@ -1144,9 +1144,6 @@ msgstr "部屋、デバイス、機能をフィルター…"
 msgid "Unassigned ({count})"
 msgstr "未割り当て（{count}）"
 
-msgid "Copy Address"
-msgstr "アドレスをコピー"
-
 msgid "Duplicate"
 msgstr "複製する"
 
@@ -2266,9 +2263,6 @@ msgstr "ミディアム"
 msgid "Domain Address"
 msgstr "ドメインアドレス"
 
-msgid "segment"
-msgstr "セグメント"
-
 msgid "The medium of a segment can only change while it holds no device."
 msgstr "セグメントのメディアタイプは、デバイスが含まれていない場合にのみ変更できます。"
 
@@ -2919,3 +2913,15 @@ msgstr "範囲のグループアドレスがそこで既に使われています
 
 msgid "Copied {count} group ranges to '{target}'."
 msgstr "{count} 個のグループアドレス範囲を '{target}' にコピーしました。"
+
+msgid "Add Areas…"
+msgstr "エリアを追加…"
+
+msgid "{medium} segment"
+msgstr "{medium} セグメント"
+
+msgid "Copy Individual Address"
+msgstr "個別アドレスをコピー"
+
+msgid "Copy Group Address"
+msgstr "グループ・アドレスをコピー"

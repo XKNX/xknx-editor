@@ -44,7 +44,7 @@ class MonitorPlugin:
             connection=api.connection,
             get_group_addresses=lambda: api.project.group_addresses,
             get_index=self._project_index,
-            notify=api.notify,
+            notify=api.tell_refused,
             on_select_device=self._select_device,
         )
         connection = api.connection

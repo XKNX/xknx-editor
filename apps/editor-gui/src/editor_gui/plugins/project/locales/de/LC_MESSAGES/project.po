@@ -335,9 +335,6 @@ msgstr "Nicht zugewiesen ({count})"
 msgid "Delete"
 msgstr "Löschen"
 
-msgid "Copy Address"
-msgstr "Adresse kopieren"
-
 msgid "Number"
 msgstr "Nummer"
 
@@ -2451,9 +2448,6 @@ msgstr "Medientyp"
 msgid "Domain Address"
 msgstr "Domänenadresse"
 
-msgid "segment"
-msgstr "Segment"
-
 msgid "The medium of a segment can only change while it holds no device."
 msgstr "Der Medientyp eines Segments kann nur geändert werden, wenn es kein Gerät enthält."
 
@@ -3104,3 +3098,15 @@ msgstr "Eine Gruppenadresse des Bereichs ist dort schon vergeben."
 
 msgid "Copied {count} group ranges to '{target}'."
 msgstr "{count} Gruppenadressbereiche nach '{target}' kopiert."
+
+msgid "Add Areas…"
+msgstr "Bereiche hinzufügen…"
+
+msgid "{medium} segment"
+msgstr "{medium} Segment"
+
+msgid "Copy Individual Address"
+msgstr "Physikalische Adresse kopieren"
+
+msgid "Copy Group Address"
+msgstr "Gruppenadresse kopieren"

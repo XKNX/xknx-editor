@@ -1144,9 +1144,6 @@ msgstr "过滤房间、设备、功能…"
 msgid "Unassigned ({count})"
 msgstr "未分配（{count}）"
 
-msgid "Copy Address"
-msgstr "复制地址"
-
 msgid "Duplicate"
 msgstr "创建副本"
 
@@ -2266,9 +2263,6 @@ msgstr "介质"
 msgid "Domain Address"
 msgstr "域地址"
 
-msgid "segment"
-msgstr "段"
-
 msgid "The medium of a segment can only change while it holds no device."
 msgstr "只能更改不包含任何设备的段的介质类型。"
 
@@ -2919,3 +2913,15 @@ msgstr "该范围的某个组地址在那里已被使用。"
 
 msgid "Copied {count} group ranges to '{target}'."
 msgstr "已将 {count} 个组地址范围复制到“{target}”。"
+
+msgid "Add Areas…"
+msgstr "添加区域…"
+
+msgid "{medium} segment"
+msgstr "{medium} 段"
+
+msgid "Copy Individual Address"
+msgstr "复制物理地址"
+
+msgid "Copy Group Address"
+msgstr "复制组地址"

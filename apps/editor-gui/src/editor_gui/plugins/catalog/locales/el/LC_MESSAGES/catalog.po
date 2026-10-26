@@ -219,3 +219,6 @@ msgstr "Γραμμή"
 
 msgid "Automatic"
 msgstr "Αυτόματα"
+
+msgid "Add to"
+msgstr "Προσθήκη σε"

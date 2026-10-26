@@ -141,6 +141,7 @@ from editor_gui.widgets.tables import (
 )
 from editor_gui.widgets.tabs import begin_tab_bar
 from editor_gui.widgets.text_util import fit_text, human_size, text_clipped_tooltip
+from editor_gui.widgets.toasts import Toasts
 from editor_gui.widgets.tree import collapsing_header
 from editor_gui.window_title import bring_to_front, set_window_title, wake
 from xknxeditor.catalog import ProductSummary
@@ -606,7 +607,7 @@ class KnxGuiApp:
         # Runs MCP tool bodies on this (imgui) thread; drained each frame in gui_menu.
         self._ui_executor = MainThreadExecutor()
         # Transient toasts, auto-raised from warning/error log records (visible failure feedback).
-        self._toasts: list[tuple[str, str, float]] = []  # (text, level, expires_at)
+        self._toasts = Toasts()
         self._toast_seen_ts = time.time()
         # Set by the export worker on success; the render loop opens a summary window with the
         # archive's details (size, counts, signing). Worker->render handoff via the request flag.
@@ -699,6 +700,7 @@ class KnxGuiApp:
             connection=self._connection_service,
             log=self._log_service,
             notify=self._flash_toast,
+            warn=self._warn_toast,
             main_thread=self._ui_executor,
             run_background=self._run_bg,
             request_project_password=self._ask_project_password,
@@ -5108,18 +5110,18 @@ class KnxGuiApp:
 
     def _flash_toast(self, text: str) -> None:
         """Show a short green feedback toast (e.g. 'Copied'). Called from panels via PluginAPI."""
-        self._toasts.append((text, "success", time.time() + 2.0))
+        self._toasts.add(text, "success", 2.0)
+
+    def _warn_toast(self, text: str) -> None:
+        """Show why something was refused or failed, in an orange toast that stays a while (a
+        click closes it). Called from panels via PluginAPI."""
+        self._toasts.add(text, "warning", 8.0)
 
     def _render_toasts(self) -> None:
         """Surface new warning/error log records as transient bottom-right toasts."""
-        now = time.time()
         if self._mirror_notice is not None:
-            self._toasts.append(
-                (
-                    S.MIRROR_NOTICE.format(home=self._mirror_notice),
-                    "success",
-                    now + 10.0,
-                )
+            self._toasts.add(
+                S.MIRROR_NOTICE.format(home=self._mirror_notice), "success", 10.0
             )
             self._mirror_notice = None
         for rec in self._log_service.get_records():
@@ -5132,35 +5134,8 @@ class KnxGuiApp:
             ):
                 detail = rec.payload.get("error") or ""
                 text = f"[{rec.plugin}] {rec.event}" + (f": {detail}" if detail else "")
-                self._toasts.append((text, rec.level, now + 6.0))
-        self._toasts = [t for t in self._toasts if t[2] > now]
-        if not self._toasts:
-            return
-        vp = imgui.get_main_viewport()
-        pos = imgui.ImVec2(
-            vp.work_pos.x + vp.work_size.x - px(12.0),
-            vp.work_pos.y + vp.work_size.y - px(12.0),
-        )
-        imgui.set_next_window_pos(pos, imgui.Cond_.always, imgui.ImVec2(1.0, 1.0))
-        imgui.set_next_window_bg_alpha(0.9)
-        flags = (
-            imgui.WindowFlags_.no_decoration
-            | imgui.WindowFlags_.no_inputs
-            | imgui.WindowFlags_.no_saved_settings
-            | imgui.WindowFlags_.always_auto_resize
-            | imgui.WindowFlags_.no_focus_on_appearing
-            | imgui.WindowFlags_.no_nav
-        )
-        if imgui.begin("##toasts", None, flags)[0]:
-            for text, level, _exp in self._toasts[-5:]:
-                if level in ("error", "critical"):
-                    color = imgui.ImVec4(0.9, 0.35, 0.35, 1.0)
-                elif level == "success":
-                    color = imgui.ImVec4(0.45, 0.8, 0.5, 1.0)
-                else:
-                    color = imgui.ImVec4(0.95, 0.75, 0.2, 1.0)
-                imgui.text_colored(color, text)
-        imgui.end()
+                self._toasts.add(text, rec.level, 6.0)
+        self._toasts.render()
 
     def _render_language_menu(self) -> None:
         """UI language selector (next to Help). Overrides the auto-detected OS locale; persisted.

@@ -1144,9 +1144,6 @@ msgstr "Filtrera rum, apparater, funktioner…"
 msgid "Unassigned ({count})"
 msgstr "Ej tilldelade ({count})"
 
-msgid "Copy Address"
-msgstr "Kopiera adress"
-
 msgid "Duplicate"
 msgstr "Duplicera"
 
@@ -2266,9 +2263,6 @@ msgstr "Medium"
 msgid "Domain Address"
 msgstr "Domänadress"
 
-msgid "segment"
-msgstr "segment"
-
 msgid "The medium of a segment can only change while it holds no device."
 msgstr "Mediumtypen för ett segment kan endast ändras om det inte innehåller några apparater."
 
@@ -2919,3 +2913,15 @@ msgstr "En gruppadress i området används redan där."
 
 msgid "Copied {count} group ranges to '{target}'."
 msgstr "{count} gruppadressområden kopierade till '{target}'."
+
+msgid "Add Areas…"
+msgstr "Lägg till områden…"
+
+msgid "{medium} segment"
+msgstr "{medium}-segment"
+
+msgid "Copy Individual Address"
+msgstr "Kopiera individuell adress"
+
+msgid "Copy Group Address"
+msgstr "Kopiera gruppadress"

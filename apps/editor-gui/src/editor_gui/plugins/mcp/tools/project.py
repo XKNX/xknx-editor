@@ -3059,8 +3059,9 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         100, one undo step) as the Add dialog does. A line's devices are on its main segment
         (the line itself) unless they are on a sub-segment; a new sub-segment of a TP or IP line
         is TP or RF, an RF, PL or IoT line takes none, and a line has at most 128 segments.
-        ``medium`` defaults to the line's own when a sub-segment can have it, else TP; ``name``
-        to the editor's default. Undoable with project_undo. Returns the (first) segment as
+        ``medium`` defaults to the line's own when a sub-segment can have it, else TP; without
+        a ``name`` it has none (the editor shows it after its medium, e.g. "TP segment"), as
+        areas and lines. Undoable with project_undo. Returns the (first) segment as
         project_topology lists it: {id, number, name, medium, domain_address?}, with
         ``segment_ids``: all of them."""
         require_project(ctx)

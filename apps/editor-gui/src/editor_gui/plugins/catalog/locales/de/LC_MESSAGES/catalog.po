@@ -224,3 +224,6 @@ msgstr "Linie"
 
 msgid "Automatic"
 msgstr "Automatisch"
+
+msgid "Add to"
+msgstr "Hinzufügen zu"

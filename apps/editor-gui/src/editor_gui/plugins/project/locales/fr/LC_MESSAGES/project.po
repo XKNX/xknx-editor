@@ -1144,9 +1144,6 @@ msgstr "Filtrer les pièces, participants, fonctions…"
 msgid "Unassigned ({count})"
 msgstr "Non affectés ({count})"
 
-msgid "Copy Address"
-msgstr "Copier l'adresse"
-
 msgid "Duplicate"
 msgstr "Dupliquer"
 
@@ -2266,9 +2263,6 @@ msgstr "Media"
 msgid "Domain Address"
 msgstr "Adresse de Domaine"
 
-msgid "segment"
-msgstr "segment"
-
 msgid "The medium of a segment can only change while it holds no device."
 msgstr "Le type de média d'un segment ne peut être changé que s'il ne contient aucun participant."
 
@@ -2919,3 +2913,15 @@ msgstr "Une adresse de groupe de la plage y est déjà utilisée."
 
 msgid "Copied {count} group ranges to '{target}'."
 msgstr "{count} plages d'adresses de groupe copiées vers '{target}'."
+
+msgid "Add Areas…"
+msgstr "Ajouter des zones…"
+
+msgid "{medium} segment"
+msgstr "segment {medium}"
+
+msgid "Copy Individual Address"
+msgstr "Copier l'adresse individuelle"
+
+msgid "Copy Group Address"
+msgstr "Copier l'adresse de groupe"

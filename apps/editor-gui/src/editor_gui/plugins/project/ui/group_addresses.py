@@ -36,6 +36,7 @@ from editor_gui.plugins.project.ui.paste_special import (
     PasteSpecialDialog,
     ShortcutRow,
     handle_row_keys,
+    render_copy_group_address_item,
     render_copy_item,
     render_delete_item,
 )
@@ -695,9 +696,17 @@ class GroupAddressesPanel:
         # ga is a core GroupAddressInfo (id, text, name, datapoint_type, …).
         if not context_menu(f"##ga_ctx_{ga.id}"):  # type: ignore[attr-defined]
             return
-        if imgui.menu_item(S.CONTEXT_COPY_ADDRESS, "", False)[0]:
-            imgui.set_clipboard_text(getattr(ga, "text", "") or "")
+        # As a device's: where it is and its address; reading and writing its value; then
+        # Copy / Cut / Paste and "Delete".
         self._render_move_ga_menu(ga.id)  # type: ignore[attr-defined]
+        render_copy_group_address_item(getattr(ga, "text", "") or "")
+        if self._group_value is not None:
+            imgui.separator()
+            self._group_value.render_menu_items(
+                getattr(ga, "text", "") or "",
+                getattr(ga, "name", "") or "",
+                getattr(ga, "datapoint_type", None),
+            )
         if self._paste_dialog is not None:
             imgui.separator()
             render_copy_item(Dragged("group_address", (ga.id,)))  # type: ignore[attr-defined]
@@ -707,13 +716,6 @@ class GroupAddressesPanel:
                     if c.kind == "group_address"
                     else None
                 )
-            )
-        if self._group_value is not None:
-            imgui.separator()
-            self._group_value.render_menu_items(
-                getattr(ga, "text", "") or "",
-                getattr(ga, "name", "") or "",
-                getattr(ga, "datapoint_type", None),
             )
         imgui.separator()
         if render_delete_item():
@@ -760,7 +762,7 @@ class GroupAddressesPanel:
                 (f"{'  ' * depth_of[g.id]}{_range_text(g)}", g.id) for g in groups
             ]
         chosen = render_move_menu(targets, current, disabled)
-        if chosen is not None and chosen[0] is not None:
+        if chosen is not None:
             self._report(self._on_move_ga(ga_id, chosen[0]))
 
     def _render_move_range_menu(self, range_id: int) -> None:
