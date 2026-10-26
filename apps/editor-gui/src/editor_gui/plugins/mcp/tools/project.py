@@ -270,9 +270,15 @@ def _widget_dict(widget: Any, include_choices: bool = True) -> dict[str, Any]:
     if name == "EnumWidget":
         if not include_choices:
             return {"type": "enum", "choice_count": len(widget.choices)}
+        # A choice shown as an icon carries its name; one without a text (a colour) is named
+        # by it.
         return {
             "type": "enum",
-            "choices": [{"value": c.value, "label": c.label} for c in widget.choices],
+            "choices": [
+                {"value": c.value, "label": _choice_label(c)}
+                | ({"icon": c.icon} if getattr(c, "icon", None) else {})
+                for c in widget.choices
+            ],
         }
     if name in ("NumberWidget", "NumberSliderWidget", "ProgressBarWidget"):
         return {"type": "number", "min": widget.min, "max": widget.max}
@@ -293,8 +299,13 @@ def _enum_value_label(widget: Any, value: Any) -> str | None:
         return None
     for c in widget.choices:
         if str(c.value) == str(value):
-            return c.label
+            return _choice_label(c)
     return None
+
+
+def _choice_label(choice: Any) -> str:
+    """An enum choice's text; one shown only as its icon (a colour) is named by the icon."""
+    return choice.label or getattr(choice, "icon", None) or ""
 
 
 def _parameter_dict(p: Any, include_choices: bool = True) -> dict[str, Any]:
@@ -323,9 +334,9 @@ def _resolve_enum_value(widget: Any, value_label: str, param_label: str) -> str:
             f"parameter {param_label!r} is not an enum; pass a raw value, not value_label"
         )
     want = value_label.strip().casefold()
-    hits = [c for c in widget.choices if (c.label or "").strip().casefold() == want]
+    hits = [c for c in widget.choices if _choice_label(c).strip().casefold() == want]
     if not hits:
-        avail = ", ".join(repr(c.label) for c in widget.choices)
+        avail = ", ".join(repr(_choice_label(c)) for c in widget.choices)
         raise ValueError(
             f"no choice labelled {value_label!r} for {param_label!r}; choices: {avail}"
         )

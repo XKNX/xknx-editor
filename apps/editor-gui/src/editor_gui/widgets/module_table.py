@@ -21,7 +21,8 @@ from imgui_bundle import imgui
 
 from editor_gui.device import Device
 from editor_gui.widgets.dpi import px
-from editor_gui.widgets.parameter_widgets import render_param_widget
+from editor_gui.widgets.icons import Icon
+from editor_gui.widgets.parameter_widgets import device_images, render_param_widget
 from editor_gui.widgets.tables import begin_data_table, data_table_headers
 from editor_gui.widgets.tree import collapsing_header
 from xknxeditor.prod.parser_v2.ui import (
@@ -166,8 +167,20 @@ def render_module_tables(
     tables: list[ModuleTable],
     on_change: Callable[[Device, str, str], None],
     filter_text: str = "",
+    get_icon: Callable[[str], Icon | None] | None = None,
 ) -> None:
-    """Render each module as an editable imgui table (one row per instance)."""
+    """Render each module as an editable imgui table (one row per instance); ``get_icon`` loads
+    the device's icons (of enumeration entries)."""
+    with device_images(get_icon):
+        _render_tables(device, tables, on_change, filter_text)
+
+
+def _render_tables(
+    device: Device,
+    tables: list[ModuleTable],
+    on_change: Callable[[Device, str, str], None],
+    filter_text: str,
+) -> None:
     needle = filter_text.lower().strip()
     for table in tables:
         header = f"{table.title} ({len(table.rows)})"

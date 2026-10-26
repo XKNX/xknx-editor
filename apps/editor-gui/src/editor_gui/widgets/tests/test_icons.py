@@ -65,6 +65,11 @@ def test_coloured_icon_is_kept() -> None:
     assert white_png(_png([(255, 0, 0, 255), (0, 0, 255, 255)], 2)) is None
 
 
+def test_a_colour_swatch_keeps_its_colour() -> None:
+    # A fully opaque single-coloured image (an enumeration entry's colour) is no glyph.
+    assert white_png(_png([(255, 0, 0, 255)] * 4, 2)) is None
+
+
 def test_not_a_png() -> None:
     assert white_png(b"<svg/>") is None
 

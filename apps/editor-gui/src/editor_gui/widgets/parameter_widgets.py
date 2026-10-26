@@ -2,7 +2,8 @@ from __future__ import annotations
 
 import math
 import re
-from collections.abc import Callable
+from collections.abc import Callable, Generator
+from contextlib import contextmanager
 from dataclasses import dataclass, replace
 
 from imgui_bundle import imgui
@@ -62,6 +63,7 @@ from xknxeditor.prod.parser_v2.ui.parameter import (
     CheckBoxWidget,
     ColorWidget,
     DateWidget,
+    EnumChoice,
     EnumWidget,
     FloatSliderWidget,
     FloatWidget,
@@ -225,7 +227,7 @@ def _value_display(param: UiParameter, value: str) -> str:
     if isinstance(widget, EnumWidget):
         for choice in widget.choices:
             if str(choice.value) == value:
-                return choice.label
+                return choice_text(choice)
     if isinstance(widget, FloatWidget | FloatSliderWidget) and value:
         return format_float(value, decimal=regional_format().decimal)
     if isinstance(widget, DateWidget):
@@ -284,6 +286,127 @@ def _render_picture(widget: PictureWidget, width: float) -> None:
     imgui.dummy(imgui.ImVec2(width, h))
 
 
+@contextmanager
+def device_images(
+    get_icon: Callable[[str], Icon | None] | None,
+    get_picture: Callable[[str], Picture | None] | None = None,
+) -> Generator[None]:
+    """The parameters drawn inside show the device's icons and pictures (outside a parameter
+    page, e.g. its channel tables)."""
+    global _get_icon, _get_picture
+    saved = _get_icon, _get_picture
+    _get_icon, _get_picture = get_icon, get_picture
+    try:
+        yield
+    finally:
+        _get_icon, _get_picture = saved
+
+
+def choice_text(choice: EnumChoice) -> str:
+    """The text of an enumeration entry; one shown only as its icon (a colour) has the icon's
+    name where no icon can be drawn."""
+    return choice.label or choice.icon or str(choice.value)
+
+
+def _choice_icon(choice: EnumChoice | None) -> Icon | None:
+    if choice is None or not choice.icon or _get_icon is None:
+        return None
+    return _get_icon(choice.icon)
+
+
+def _fills_row(choice: EnumChoice, icon: Icon | None) -> bool:
+    """Whether an entry shows as its image across the whole row: one without a text whose
+    picture repeats or stretches (a colour)."""
+    return (
+        icon is not None
+        and not choice.label.strip()
+        and choice.picture_alignment
+        in (HorizontalAlignment.REPEAT, HorizontalAlignment.STRETCH)
+    )
+
+
+def _draw_choice(
+    choice: EnumChoice,
+    icon: Icon | None,
+    draw: imgui.ImDrawList,
+    low: imgui.ImVec2,
+    high: imgui.ImVec2,
+) -> None:
+    """An enumeration entry in the box ``low``-``high``: its icon before its text, or its image
+    across the box (see :func:`_fills_row`)."""
+    style = imgui.get_style()
+    size = imgui.get_text_line_height()
+    top = low.y + (high.y - low.y - size) / 2
+    draw.push_clip_rect(low, high, True)
+    if icon is not None and _fills_row(choice, icon):
+        draw.add_image(
+            icon.texture,
+            imgui.ImVec2(low.x, top),
+            imgui.ImVec2(high.x, top + size),
+        )
+    else:
+        x = low.x
+        if icon is not None:
+            draw_icon(icon, imgui.ImVec2(x, top), size)
+            x += size + style.item_inner_spacing.x
+        draw.add_text(
+            imgui.ImVec2(x, top),
+            imgui.get_color_u32(imgui.Col_.text),
+            choice.label if icon is not None else choice_text(choice),
+        )
+    draw.pop_clip_rect()
+
+
+def _render_enum_combo(
+    widget_id: str,
+    widget: EnumWidget,
+    current: EnumChoice | None,
+    preview: str,
+    on_change: Callable[[str], None],
+) -> None:
+    """The drop-down of an enumeration; entries with an icon show it before their text, a
+    colour across the row. ``current`` None: ``preview`` is shown (e.g. "<differs>")."""
+    icon = _choice_icon(current)
+    style = imgui.get_style()
+    # The box the chosen entry is drawn in, left of the arrow.
+    start = imgui.get_cursor_screen_pos()
+    low = imgui.ImVec2(start.x + style.frame_padding.x, start.y)
+    high = imgui.ImVec2(
+        start.x + imgui.calc_item_width() - imgui.get_frame_height(),
+        start.y + imgui.get_frame_height(),
+    )
+    draw = imgui.get_window_draw_list()
+    custom = current is not None and icon is not None
+    shown = "" if custom else (choice_text(current) if current else preview)
+    if begin_combo(f"##{widget_id}", shown):
+        for i, choice in enumerate(widget.choices):
+            selected = current is not None and choice.value == current.value
+            choice_icon = _choice_icon(choice)
+            if choice_icon is None:
+                clicked = imgui.selectable(f"{choice_text(choice)}##{i}", selected)[0]
+            else:
+                clicked = imgui.selectable(
+                    f"##{i}",
+                    selected,
+                    0,
+                    imgui.ImVec2(0, imgui.get_text_line_height()),
+                )[0]
+                _draw_choice(
+                    choice,
+                    choice_icon,
+                    imgui.get_window_draw_list(),
+                    imgui.get_item_rect_min(),
+                    imgui.get_item_rect_max(),
+                )
+            if clicked:
+                on_change(str(choice.value))
+            if selected:
+                imgui.set_item_default_focus()
+        imgui.end_combo()
+    if custom and current is not None:
+        _draw_choice(current, icon, draw, low, high)
+
+
 @dataclass
 class EnumPopupRequest:
     device: Device
@@ -307,7 +430,7 @@ def render_param_widget(
                 if str(choice.value) == param.value:
                     current_idx = i
                     break
-            preview = w.choices[current_idx].label if w.choices else param.value
+            preview = choice_text(w.choices[current_idx]) if w.choices else param.value
             if differs:
                 preview = S.PARAM_DIFFERS
             if deferred_enum:
@@ -319,16 +442,14 @@ def render_param_widget(
                         imgui.same_line()
                     selected = not differs and str(choice.value) == param.value
                     if _small_radio(
-                        f"{choice.label}##{widget_id}_{i}", selected, first=i == 0
+                        f"{choice_text(choice)}##{widget_id}_{i}",
+                        selected,
+                        first=i == 0,
                     ):
                         on_change(str(choice.value))
             else:
-                if begin_combo(f"##{widget_id}", preview):
-                    for i, choice in enumerate(w.choices):
-                        selected = not differs and str(choice.value) == param.value
-                        if imgui.selectable(f"{choice.label}##{i}", selected)[0]:
-                            on_change(str(choice.value))
-                    imgui.end_combo()
+                current = None if differs or not w.choices else w.choices[current_idx]
+                _render_enum_combo(widget_id, w, current, preview, on_change)
         case NumberWidget() as w:
             _render_int_param(
                 widget_id,
@@ -2338,7 +2459,7 @@ class EnumPopup:
             if target is not None and isinstance(target.param.widget, EnumWidget):
                 for i, choice in enumerate(target.param.widget.choices):
                     selected = str(choice.value) == target.param.value
-                    if imgui.menu_item(f"{choice.label}##{i}", "", selected)[0]:
+                    if imgui.menu_item(f"{choice_text(choice)}##{i}", "", selected)[0]:
                         self._on_change(
                             target.device, target.param.ref_id, str(choice.value)
                         )

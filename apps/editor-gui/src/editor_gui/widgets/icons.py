@@ -1,6 +1,7 @@
 """Icons and pictures an application ships as images.
 
-Single-coloured icons are drawn in the text colour. The grey parts of other images on a
+Single-coloured icons are drawn in the text colour (not a fully opaque one: that is a colour,
+e.g. of an enumeration entry). The grey parts of other images on a
 transparent background are inverted when they would hardly stand out from the theme's
 background: dark greys on a dark theme, light greys on a light one.
 """
@@ -115,11 +116,14 @@ def _encode_rgba(header: bytes, width: int, height: int, pixels: bytearray) -> b
 
 
 def white_png(data: bytes) -> bytes | None:
-    """``data`` re-encoded in white with its alpha, if it is a single-coloured RGBA PNG."""
+    """``data`` re-encoded in white with its alpha, if it is a single-coloured RGBA PNG with
+    transparent parts (a glyph); a fully opaque one is a colour and keeps it."""
     decoded = _decode_rgba(data)
     if decoded is None:
         return None
     header, width, height, pixels = decoded
+    if all(pixels[i] == 255 for i in range(3, len(pixels), 4)):
+        return None
     colours = {
         bytes(pixels[i : i + 3]) for i in range(0, len(pixels), 4) if pixels[i + 3]
     }

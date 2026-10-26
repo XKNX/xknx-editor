@@ -1239,6 +1239,7 @@ class ConfigurePanel:
                         module_tables,
                         self._dispatch_param,
                         filter_text=self._module_filter,
+                        get_icon=self._icon_getter(device),
                     )
                     imgui.end_tab_item()
 
