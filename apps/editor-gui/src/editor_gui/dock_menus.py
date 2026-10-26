@@ -72,29 +72,64 @@ def _section_id(
     return params.dock_space_id_from_name(window.dock_space_name)
 
 
+def _tabs_overflow(node: imgui.internal.DockNode, reserve: float) -> bool:
+    """Whether the tabs of ``node`` do not fit beside ``reserve`` at the end of its tab bar, even
+    shrunk as far as imgui shrinks them before it scrolls them (by the widths imgui lays them out
+    with, without the place held by _hold_close_place: the same answer with it or without)."""
+    style = imgui.get_style()
+    held = imgui.get_id("##close_space")
+    width = reserve
+    for tab in node.tab_bar.tabs:
+        if tab.id_ != held:
+            width += min(tab.content_width, style.tab_min_width_shrink)
+            width += style.item_inner_spacing.x
+    edges = 2 * (style.window_border_size + style.frame_padding.x)
+    return width > node.size.x - edges
+
+
+def _hold_close_place(width: float) -> None:
+    """Keep the tabs off the last ``width`` of the tab bar (the close button and its gaps): an
+    unseen, grayed-out tab button at the end holds the place (a dimmed tab bar would show its
+    background). The tab bar itself ends a frame padding and a border before the section's right
+    edge, and the tabs keep the usual spacing before the button."""
+    style = imgui.get_style()
+    held = width - style.window_border_size - style.frame_padding.x
+    held -= style.item_inner_spacing.x
+    # A tab button without a label is two frame paddings and 1 px wide.
+    padding = max((held - 1.0) / 2, 0.0)
+    imgui.begin_disabled()
+    for color in _TAB_COLORS:
+        imgui.push_style_color(color, imgui.ImVec4(0.0, 0.0, 0.0, 0.0))
+    imgui.push_style_var(
+        imgui.StyleVar_.frame_padding, imgui.ImVec2(padding, style.frame_padding.y)
+    )
+    imgui.tab_item_button("##close_space", imgui.TabItemFlags_.trailing)
+    imgui.pop_style_var()
+    imgui.pop_style_color(len(_TAB_COLORS))
+    imgui.end_disabled()
+
+
 def _render_close(
     node: imgui.internal.DockNode, windows: list[hello_imgui.DockableWindow]
 ) -> None:
     """The button at the end of the tab bar that closes the tab in front, as far from the right
     edge as from the top and the bottom (imgui's own keeps the frame padding from the right)."""
-    # The tabs end before it, as before imgui's own: an unseen, grayed-out tab button holds the
-    # place (a dimmed tab bar would show its background).
-    imgui.begin_disabled()
-    for color in _TAB_COLORS:
-        imgui.push_style_color(color, imgui.ImVec4(0.0, 0.0, 0.0, 0.0))
-    imgui.tab_item_button("##close_space", imgui.TabItemFlags_.trailing)
-    imgui.pop_style_color(len(_TAB_COLORS))
-    imgui.end_disabled()
+    # Whole pixels, so that the gaps come out the same (imgui's button is as large as the font).
+    # The bar's last row is the line below the tabs.
+    style = imgui.get_style()
+    bar = math.floor(imgui.get_frame_height())
+    visible = math.floor(bar - style.tab_bar_border_size)
+    gap = math.ceil((visible - imgui.get_font_size()) / 2)
+    side = visible - 2 * gap
+    # Tabs that do not fit scroll with imgui's arrows at the right edge: no close button there
+    # then (the tab in front has its own), and the tabs get its room.
+    if _tabs_overflow(node, 2 * gap + side):
+        return
+    _hold_close_place(2 * gap + side)
     shown = node.visible_window.name if node.visible_window is not None else None  # pyright: ignore[reportUnnecessaryComparison]
     window = next((w for w in windows if w.label == shown), None)
     if window is None or not window.can_be_closed:
         return
-    # Whole pixels, so that the gaps come out the same (imgui's button is as large as the font).
-    # The bar's last row is the line below the tabs.
-    bar = math.floor(imgui.get_frame_height())
-    visible = math.floor(bar - imgui.get_style().tab_bar_border_size)
-    gap = math.ceil((visible - imgui.get_font_size()) / 2)
-    side = visible - 2 * gap
     right = round(node.pos.x + node.size.x)
     top = round(node.pos.y)
     box = imgui.internal.ImRect(
