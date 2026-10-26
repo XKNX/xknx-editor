@@ -182,7 +182,7 @@ def test_secured_groups_and_addresses_show_the_shield(
         get_range_tree=project.get_group_range_tree,
         get_assignments_for_ga=project.get_assignments_for_ga,
         get_devices=lambda: [],
-        on_create_ga=lambda _a, _n: None,
+        on_create_ga_in=lambda _g, _a, _n: None,
         on_remove_ga=lambda _i: None,
         take_requested_ga=lambda: ga,
     )

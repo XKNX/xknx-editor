@@ -111,7 +111,7 @@ def test_group_addresses_and_their_groups_show_their_descriptions(
             get_range_tree=project.get_group_range_tree,
             get_assignments_for_ga=project.get_assignments_for_ga,
             get_devices=lambda: [],
-            on_create_ga=lambda _a, _n: None,
+            on_create_ga_in=lambda _g, _a, _n: None,
             on_remove_ga=lambda _i: None,
             on_create_range=project.create_group_range,
             group_style=lambda: project.group_address_style,

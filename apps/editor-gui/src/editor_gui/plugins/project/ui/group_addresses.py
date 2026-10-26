@@ -18,11 +18,15 @@ from editor_gui.plugins.project.paste import PasteTarget
 from editor_gui.plugins.project.strings import S
 from editor_gui.plugins.project.ui._filter import filter_box
 from editor_gui.plugins.project.ui.add_dialog import (
+    AddChoice,
     AddDialog,
     AddRequest,
     AddRow,
     UndoStep,
+    add_button,
+    add_menu_item,
     add_rows,
+    no_room,
     no_undo_step,
     start_add,
 )
@@ -47,6 +51,7 @@ from editor_gui.widgets.description import (
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
 from editor_gui.widgets.dpi import px
 from editor_gui.widgets.dpt_value import GroupValueBus
+from editor_gui.widgets.flow import button_width, same_line_if_fits
 from editor_gui.widgets.tables import begin_data_table, table_header_menu
 from editor_gui.widgets.text_util import text_clipped_tooltip
 from editor_gui.widgets.tree import (
@@ -65,6 +70,9 @@ if TYPE_CHECKING:
     from xknxeditor.proj.core.service import GroupRangeInfo
 
 
+# Keeps the toolbar buttons apart from the menu items of the same text.
+TOOLBAR_ID = "##ga_toolbar"
+
 # The most main groups (0 to 31) and middle groups of a main group (0 to 7).
 _MAIN_GROUPS = 32
 _MIDDLE_GROUPS = 8
@@ -74,6 +82,11 @@ _FREE_RANGE_CAPACITY = 1024
 # Accent colour for the last value a group address was seen carrying on the bus, as (on dark
 # themes, on light themes).
 _LIVE_COLOR = (imgui.ImVec4(0.45, 0.7, 0.9, 1.0), imgui.ImVec4(0.1, 0.38, 0.7, 1.0))
+
+
+def _address_room(group: "GroupRangeInfo") -> int:
+    """How many more group addresses ``group`` holds."""
+    return group.range_end - group.range_start + 1 - len(group.group_addresses)
 
 
 def _range_text(node: "GroupRangeInfo") -> str:
@@ -182,7 +195,7 @@ class GroupAddressesPanel:
         get_range_tree: "Callable[[], list[GroupRangeInfo]]",
         get_assignments_for_ga: "Callable[[int], list[Assignment]]",
         get_devices: "Callable[[], list[Device]]",
-        on_create_ga: Callable[[str, str], None],
+        on_create_ga_in: Callable[[int, int, str], object],
         on_remove_ga: Callable[[int], None],
         take_requested_ga: Callable[[], int | None] | None = None,
         on_create_range: Callable[[int | None, str, int | None], object] | None = None,
@@ -202,7 +215,6 @@ class GroupAddressesPanel:
         paste_dialog: PasteSpecialDialog | None = None,
         on_create_free_range: Callable[[int | None, str, int, int], object]
         | None = None,
-        on_create_ga_in: Callable[[int, int, str], object] | None = None,
     ) -> None:
         """``on_create_range`` adds a main group (parent None) or a middle group below a main
         group, with a name and a number (None: the next free one), giving its id or None;
@@ -232,7 +244,6 @@ class GroupAddressesPanel:
         self._selected_range_id: int | None = None
         self._get_assignments_for_ga = get_assignments_for_ga
         self._get_devices = get_devices
-        self._on_create_ga = on_create_ga
         self._on_remove_ga = on_remove_ga
         self._on_create_range = on_create_range
         self._on_create_free_range = on_create_free_range
@@ -261,10 +272,6 @@ class GroupAddressesPanel:
         self._reveal_ga_id: int | None = None
         self._selected_ga_text: str = ""
         self._selected_ga_comment: str = ""
-        # Modal state.
-        self._popup_address: str = ""
-        self._popup_name: str = ""
-        self._open_new_ga = False
         self._group_value = (
             GroupValueActions(bus, "ga_write_value") if bus is not None else None
         )
@@ -291,34 +298,34 @@ class GroupAddressesPanel:
         # Visible toolbar (the right-click menu above is easy to miss). Shown before the modal
         # dispatch so a click is picked up the same frame, and above the empty-tree early return so
         # the first folder/address can be created in a fresh project.
-        if imgui.small_button(S.GA_NEW_ITEM):
-            self._popup_address = ""
-            self._popup_name = ""
-            self._open_new_ga = True
+        if add_button(
+            f"{S.GA_ADD_GROUP_ADDRESSES}{TOOLBAR_ID}", self._no_address_group(tree)
+        ):
+            self._start_add_group_addresses_to(tree)
+        # The buttons go on in the next line where the panel is too narrow (a phone).
         if self._folders_enabled():
-            imgui.same_line()
-            if imgui.small_button(S.GA_ADD_MAIN_GROUPS):
+            same_line_if_fits(button_width(S.GA_ADD_MAIN_GROUPS))
+            if add_button(
+                f"{S.GA_ADD_MAIN_GROUPS}{TOOLBAR_ID}",
+                no_room(_MAIN_GROUPS - len(tree)),
+            ):
                 self._start_add_main_groups(tree)
         elif self._free_ranges_enabled():
-            imgui.same_line()
-            if imgui.small_button(S.GA_ADD_GROUP_RANGES):
+            same_line_if_fits(button_width(S.GA_ADD_GROUP_RANGES))
+            if imgui.small_button(f"{S.GA_ADD_GROUP_RANGES}{TOOLBAR_ID}"):
                 self._start_add_free_ranges(None)
         if self._on_export is not None:
-            imgui.same_line()
+            same_line_if_fits(button_width(S.GA_EXPORT_BUTTON))
             if imgui.small_button(S.GA_EXPORT_BUTTON):
                 self._on_export()
         if self._on_import is not None:
-            imgui.same_line()
+            same_line_if_fits(button_width(S.GA_IMPORT_BUTTON))
             if imgui.small_button(S.GA_IMPORT_BUTTON):
                 self.start_import()
 
-        if self._open_new_ga:
-            imgui.open_popup(S.GA_NEW)
-            self._open_new_ga = False
         if self._open_delete_range:
             imgui.open_popup(S.GA_FOLDER_DELETE)
             self._open_delete_range = False
-        self._render_new_ga_popup()
         if self._group_value is not None:
             self._group_value.render()
         self._adder.render()
@@ -360,16 +367,14 @@ class GroupAddressesPanel:
         self._render_assignments()
 
     def _render_create_menu_items(self) -> None:
-        """The 'new group address' / 'new main group' items shared by the panel's context menus."""
-        if imgui.menu_item(S.GA_NEW_ITEM, "", False)[0]:
-            self._popup_address = ""
-            self._popup_name = ""
-            self._open_new_ga = True
-        if (
-            self._folders_enabled()
-            and imgui.menu_item(S.GA_ADD_MAIN_GROUPS, "", False)[0]
+        """The "Add …" items shared by the panel's context menus."""
+        tree = self._get_range_tree()
+        if add_menu_item(S.GA_ADD_GROUP_ADDRESSES, self._no_address_group(tree)):
+            self._start_add_group_addresses_to(tree)
+        if self._folders_enabled() and add_menu_item(
+            S.GA_ADD_MAIN_GROUPS, no_room(_MAIN_GROUPS - len(tree))
         ):
-            self._start_add_main_groups(self._get_range_tree())
+            self._start_add_main_groups(tree)
         if (
             self._free_ranges_enabled()
             and imgui.menu_item(S.GA_ADD_GROUP_RANGES, "", False)[0]
@@ -831,16 +836,18 @@ class GroupAddressesPanel:
         if not context_menu(f"##gr_ctx_{node.id}"):
             return
         # Group addresses live in middle groups (ThreeLevel) or main groups (TwoLevel).
-        if (
-            not (is_root and self._middle_enabled())
-            and imgui.menu_item(S.GA_ADD_GROUP_ADDRESSES, "", False)[0]
+        if not (is_root and self._middle_enabled()) and add_menu_item(
+            S.GA_ADD_GROUP_ADDRESSES, no_room(_address_room(node))
         ):
             self._start_add_group_addresses(node)
         # A middle group can only be added under a top-level (main) group, ThreeLevel only.
         if (
             is_root
             and self._middle_enabled()
-            and imgui.menu_item(S.GA_ADD_MIDDLE_GROUPS, "", False)[0]
+            and add_menu_item(
+                S.GA_ADD_MIDDLE_GROUPS,
+                no_room(_MIDDLE_GROUPS - len(node.children)),
+            )
         ):
             self._start_add_middle_groups(node)
         # A Free style range holds ranges as well as group addresses.
@@ -968,7 +975,6 @@ class GroupAddressesPanel:
     def _start_add_group_addresses(self, node: "GroupRangeInfo") -> None:
         """ "Add Group Addresses" to a middle group (a main group in two-level style): "Start
         with" is the address within the group."""
-        from xknxeditor.proj.core.addressing import format_ga
         from xknxeditor.proj.core.paste import group_base
 
         style = self._style()
@@ -979,25 +985,17 @@ class GroupAddressesPanel:
 
         def add(request: AddRequest) -> None:
             group = self._find_range(node.id) or node
-
-            def create(group_id: int, address: int, name: str) -> None:
-                if self._on_create_ga_in is not None:
-                    self._on_create_ga_in(group_id, address, name)
-                else:
-                    self._on_create_ga(format_ga(address, style), name)
-
             add_group_addresses(
                 request,
                 lambda _row: group,
                 self._get_range_tree(),
                 style,
-                create,
+                self._on_create_ga_in,
                 target,
                 self._one_undo_step,
                 self._notify,
             )
 
-        size = node.range_end - node.range_start + 1
         start_add(
             lambda: self._adder.open(
                 S.GA_TITLE_GROUP_ADDRESSES,
@@ -1007,11 +1005,78 @@ class GroupAddressesPanel:
                 numbered=True,
                 start_minimum=node.range_start if free else 0,
                 start_maximum=node.range_end - base,
-                limit=size - len(node.group_addresses),
+                limit=_address_room(node),
             ),
             add,
             self._notify,
             start_with=node.range_start if free else 0,
+        )
+
+    def _no_address_group(self, tree: "list[GroupRangeInfo]") -> str:
+        """Why no group address can be added from the panel: no group holds any ("" when one
+        does)."""
+        return "" if address_groups(tree, self._style()) else S.SPACES_FN_NO_GROUP
+
+    def _start_add_group_addresses_to(self, tree: "list[GroupRangeInfo]") -> None:
+        """ "Add Group Addresses" from the panel: the group each row's go into is chosen in the
+        dialog, at first the selected group (or the group of the selected group address)."""
+        from xknxeditor.proj.core.paste import group_base
+
+        style = self._style()
+        groups = address_groups(tree, style)
+        if not groups:
+            return
+        first = next(
+            (
+                g
+                for g in groups
+                if g.id == self._selected_range_id
+                or any(ga.id == self._selected_ga_id for ga in g.group_addresses)
+            ),
+            groups[0],
+        )
+        choice = AddChoice(
+            S.SPACES_FN_GA_GROUP,
+            [(str(g.id), group_text(g)) for g in groups],
+            str(first.id),
+        )
+        free = style is GroupAddressStyle.FREE
+        target = S.PANEL_GROUP_ADDRESSES
+
+        def add(request: AddRequest) -> None:
+            now = self._get_range_tree()
+            by_id = {g.id: g for g in address_groups(now, style)}
+            add_group_addresses(
+                request,
+                lambda row: (
+                    by_id.get(int(row.choice)) if row.choice.isdigit() else None
+                ),
+                now,
+                style,
+                self._on_create_ga_in,
+                target,
+                self._one_undo_step,
+                self._notify,
+            )
+
+        start_add(
+            lambda: self._adder.open(
+                S.GA_TITLE_GROUP_ADDRESSES,
+                target,
+                add,
+                default_name=S.GA_DEFAULT_GROUP_ADDRESS,
+                choice=choice,
+                numbered=True,
+                # "Start with" counts within the group, in the Free style it is the address.
+                start_minimum=1 if free else 0,
+                start_maximum=0xFFFF
+                if free
+                else first.range_end - group_base(first.range_start, style),
+            ),
+            add,
+            self._notify,
+            choice,
+            start_with=first.range_start if free else 0,
         )
 
     def _start_add_free_ranges(self, parent: "GroupRangeInfo | None") -> None:
@@ -1141,25 +1206,6 @@ class GroupAddressesPanel:
         clicked = dialog_buttons(S.CONTEXT_DELETE, S.BTN_CANCEL)
         if clicked == 0:
             self._on_remove_range(self._popup_range_id)
-            imgui.close_current_popup()
-        if clicked == 1:
-            imgui.close_current_popup()
-        end_dialog()
-
-    def _render_new_ga_popup(self) -> None:
-        if not begin_dialog(S.GA_NEW):
-            return
-        imgui.text_disabled(S.GA_ADDRESS)
-        imgui.set_next_item_width(px(220.0))
-        _, self._popup_address = imgui.input_text_with_hint(
-            "##ga_addr", "1/2/3", self._popup_address
-        )
-        imgui.text_disabled(S.POPUP_NAME)
-        imgui.set_next_item_width(px(220.0))
-        _, self._popup_name = imgui.input_text("##ga_new_name", self._popup_name)
-        clicked = dialog_buttons(S.BTN_OK, S.BTN_CANCEL)
-        if clicked == 0 and self._popup_address.strip():
-            self._on_create_ga(self._popup_address.strip(), self._popup_name)
             imgui.close_current_popup()
         if clicked == 1:
             imgui.close_current_popup()

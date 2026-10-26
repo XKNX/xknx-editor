@@ -1228,9 +1228,6 @@ msgstr "Lataa"
 msgid "Copy Log"
 msgstr "Kopioi loki"
 
-msgid "New Group Address"
-msgstr "Uusi ryhmäosoite"
-
 msgid "Delete Folder"
 msgstr "Poista kansio"
 
@@ -2922,6 +2919,3 @@ msgstr "Jokin alueen ryhmäosoite on siellä jo käytössä."
 
 msgid "Copied {count} group ranges to '{target}'."
 msgstr "{count} ryhmäosoitealuetta kopioitu kohteeseen '{target}'."
-
-msgid "New Group Address…"
-msgstr "Uusi ryhmäosoite…"

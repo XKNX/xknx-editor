@@ -1228,9 +1228,6 @@ msgstr "Carica"
 msgid "Copy Log"
 msgstr "Copia log"
 
-msgid "New Group Address"
-msgstr "Nuovo indirizzo di gruppo"
-
 msgid "Delete Folder"
 msgstr "Elimina cartella"
 
@@ -2922,6 +2919,3 @@ msgstr "Un indirizzo di gruppo dell'intervallo è già in uso lì."
 
 msgid "Copied {count} group ranges to '{target}'."
 msgstr "{count} intervalli di indirizzi di gruppo copiati in '{target}'."
-
-msgid "New Group Address…"
-msgstr "Nuovo indirizzo di gruppo…"

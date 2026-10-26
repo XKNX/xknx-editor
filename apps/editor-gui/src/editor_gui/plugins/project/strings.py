@@ -3007,10 +3007,6 @@ class ProjectStrings:
         )
 
     @property
-    def POPUP_NAME(self) -> str:
-        return _("Name")
-
-    @property
     def BTN_ADD(self) -> str:
         return _("Add")
 
@@ -3033,14 +3029,6 @@ class ProjectStrings:
     @property
     def BTN_CANCEL(self) -> str:
         return _("Cancel")
-
-    @property
-    def GA_NEW(self) -> str:
-        return _("New Group Address")
-
-    @property
-    def GA_NEW_ITEM(self) -> str:
-        return _("New Group Address…")
 
     @property
     def GA_ADD_MAIN_GROUPS(self) -> str:

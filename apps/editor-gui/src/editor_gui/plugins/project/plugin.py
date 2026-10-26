@@ -401,7 +401,6 @@ class ProjectPlugin:
             on_select_element=api.project.select_element,
             get_assignments_for_ga=api.project.get_assignments_for_ga,
             get_devices=lambda: api.project.devices,
-            on_create_ga=self._on_create_ga,
             on_remove_ga=api.project.remove_group_address,
             take_requested_ga=api.project.take_requested_group_address,
             on_create_range=api.project.create_group_range,
@@ -1294,16 +1293,6 @@ class ProjectPlugin:
         from xknxeditor.proj.core.addressing import format_ga
 
         return format_ga(address, self._api.project.group_address_style)
-
-    def _on_create_ga(self, address: str, name: str) -> None:
-        ga_id = self._api.project.create_group_address(address, name)
-        self._api.log.info(
-            "group address created",
-            plugin="project",
-            address=address or "auto",
-            name=name,
-            id=ga_id,
-        )
 
     def _links_for_com_object(
         self, com_object_db_id: int

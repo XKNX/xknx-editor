@@ -1228,9 +1228,6 @@ msgstr "Załaduj"
 msgid "Copy Log"
 msgstr "Kopiuj log"
 
-msgid "New Group Address"
-msgstr "Nowy adres grupowy"
-
 msgid "Delete Folder"
 msgstr "Usuń folder"
 
@@ -2922,6 +2919,3 @@ msgstr "Adres grupowy zakresu jest tam już używany."
 
 msgid "Copied {count} group ranges to '{target}'."
 msgstr "Skopiowano zakresy adresów grupowych ({count}) do '{target}'."
-
-msgid "New Group Address…"
-msgstr "Nowy adres grupowy…"

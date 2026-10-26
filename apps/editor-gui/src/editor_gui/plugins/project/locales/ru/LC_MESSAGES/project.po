@@ -1228,9 +1228,6 @@ msgstr "Загрузить"
 msgid "Copy Log"
 msgstr "Копировать журнал"
 
-msgid "New Group Address"
-msgstr "Новый групповой адрес"
-
 msgid "Delete Folder"
 msgstr "Удалить папку"
 
@@ -2922,6 +2919,3 @@ msgstr "Групповой адрес диапазона там уже испо�
 
 msgid "Copied {count} group ranges to '{target}'."
 msgstr "Скопировано диапазонов групповых адресов: {count} в '{target}'."
-
-msgid "New Group Address…"
-msgstr "Новый групповой адрес…"

@@ -1,15 +1,68 @@
-"""The limit of the "Add" dialog: with no room left it does not open, and the counts of its rows
-stay within the room there is."""
+"""The limit of the "Add" dialog: with no room left it does not open and its "Add …" item is
+grayed out, telling why, and the counts of its rows stay within the room there is."""
 
 from __future__ import annotations
+
+from collections.abc import Iterator
+from typing import Any
+
+import pytest
+from imgui_bundle import imgui
 
 from editor_gui.plugins.project.strings import S
 from editor_gui.plugins.project.ui.add_dialog import (
     AddChoice,
     AddDialog,
     AddRow,
+    add_button,
+    add_menu_item,
+    no_room,
     one_row,
 )
+
+
+@pytest.fixture
+def context() -> Iterator[None]:
+    ctx = imgui.create_context()
+    io = imgui.get_io()
+    io.display_size = imgui.ImVec2(800, 600)
+    io.backend_flags |= imgui.BackendFlags_.renderer_has_textures
+    yield
+    imgui.destroy_context(ctx)
+
+
+def test_no_room_tells_why() -> None:
+    assert no_room(0) == no_room(-1) == S.ADD_LIMIT_REACHED
+    assert no_room(1) == ""
+
+
+@pytest.mark.usefixtures("context")
+def test_items_without_room_are_grayed_out_and_do_nothing(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    enabled: dict[str, bool] = {}
+    tips: list[str] = []
+    real_menu_item = imgui.menu_item
+
+    # Every item "clicked", as when the user clicks it; only the ones with room take it.
+    def menu_item(label: str, *args: Any) -> Any:
+        enabled[label] = args[2]
+        return True, real_menu_item(label, *args)[1]
+
+    monkeypatch.setattr(imgui, "menu_item", menu_item)
+    monkeypatch.setattr(imgui, "small_button", lambda _label: True)
+    monkeypatch.setattr(imgui, "is_item_hovered", lambda *_a: True)
+    monkeypatch.setattr(imgui, "set_tooltip", tips.append)
+    imgui.new_frame()
+    imgui.begin("w")
+    assert add_menu_item("Add Lines", no_room(2))
+    assert not add_menu_item("Add Areas", no_room(0))
+    assert add_button("Add Main Groups", "")
+    assert not add_button("Add Group Addresses", S.SPACES_FN_NO_GROUP)
+    imgui.end()
+    imgui.end_frame()
+    assert enabled == {"Add Lines": True, "Add Areas": False}
+    assert tips == [S.ADD_LIMIT_REACHED, S.SPACES_FN_NO_GROUP]
 
 
 def test_no_room_opens_no_dialog() -> None:

@@ -1172,9 +1172,6 @@ msgstr "Overeenkomst: het gegenereerde geheugenbeeld is identiek aan wat op het 
 msgid "Memory Preview"
 msgstr "Geheugenvoorbeeld"
 
-msgid "New Group Address"
-msgstr "Nieuw groepsadres"
-
 msgid "No .NET runtime found (install the .NET SDK, or run on Windows with ETS)."
 msgstr "Geen .NET-runtime gevonden (installeer de .NET SDK, of voer het uit op Windows met ETS)."
 
@@ -2960,6 +2957,3 @@ msgstr "Een groepsadres van het bereik is daar al in gebruik."
 
 msgid "Copied {count} group ranges to '{target}'."
 msgstr "{count} groepsadresbereiken gekopieerd naar '{target}'."
-
-msgid "New Group Address…"
-msgstr "Nieuw groepsadres…"

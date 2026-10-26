@@ -1228,9 +1228,6 @@ msgstr "Yükle"
 msgid "Copy Log"
 msgstr "Günlüğü Kopyala"
 
-msgid "New Group Address"
-msgstr "Yeni Grup Adresi"
-
 msgid "Delete Folder"
 msgstr "Klasörü Sil"
 
@@ -2922,6 +2919,3 @@ msgstr "Aralığın bir grup adresi orada zaten kullanılıyor."
 
 msgid "Copied {count} group ranges to '{target}'."
 msgstr "{count} grup adresi aralığı '{target}' konumuna kopyalandı."
-
-msgid "New Group Address…"
-msgstr "Yeni Grup Adresi…"

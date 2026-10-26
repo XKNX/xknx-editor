@@ -1228,9 +1228,6 @@ msgstr "Charger"
 msgid "Copy Log"
 msgstr "Copier le journal"
 
-msgid "New Group Address"
-msgstr "Nouvelle adresse de groupe"
-
 msgid "Delete Folder"
 msgstr "Supprimer le répertoire"
 
@@ -2922,6 +2919,3 @@ msgstr "Une adresse de groupe de la plage y est déjà utilisée."
 
 msgid "Copied {count} group ranges to '{target}'."
 msgstr "{count} plages d'adresses de groupe copiées vers '{target}'."
-
-msgid "New Group Address…"
-msgstr "Nouvelle adresse de groupe…"

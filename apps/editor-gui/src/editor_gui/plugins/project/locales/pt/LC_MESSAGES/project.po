@@ -1228,9 +1228,6 @@ msgstr "Carregar"
 msgid "Copy Log"
 msgstr "Copiar Registo"
 
-msgid "New Group Address"
-msgstr "Novo Endereço de Grupo"
-
 msgid "Delete Folder"
 msgstr "Apagar Pasta"
 
@@ -2922,6 +2919,3 @@ msgstr "Um endereço de grupo do intervalo já está em uso aí."
 
 msgid "Copied {count} group ranges to '{target}'."
 msgstr "{count} intervalos de endereços de grupo copiados para '{target}'."
-
-msgid "New Group Address…"
-msgstr "Novo Endereço de Grupo…"

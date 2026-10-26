@@ -26,6 +26,7 @@ from editor_gui.plugins.project.ui.add_dialog import (
     AddRequest,
     AddRow,
     UndoStep,
+    add_menu_item,
     no_undo_step,
     one_row,
     start_add,
@@ -1255,9 +1256,12 @@ class SpacesPanel:
                 if imgui.menu_item(S.SPACES_FN_LINK, "", False)[0]:
                     self._link_filter = ""
                     self._pending_popup_id = _link_function_dialog(function.id)
-                if (
-                    self._on_create_ga_in is not None
-                    and imgui.menu_item(S.GA_ADD_GROUP_ADDRESSES, "", False)[0]
+                tree = self._get_ga_range_tree() if self._get_ga_range_tree else []
+                if self._on_create_ga_in is not None and add_menu_item(
+                    S.GA_ADD_GROUP_ADDRESSES,
+                    ""
+                    if address_groups(tree, self._group_style())
+                    else S.SPACES_FN_NO_GROUP,
                 ):
                     self._start_add_function_gas(function)
                 imgui.separator()

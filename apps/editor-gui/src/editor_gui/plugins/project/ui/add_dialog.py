@@ -6,7 +6,7 @@ numbers (areas, lines, groups, group addresses) also choose where their numbers 
 
 A kind with room for only so many more (16 areas, 16 lines in an area, …) is given that
 ``limit``: the counts of all rows together stay within it ("The limit to add was reached."), and
-with no room left the dialog does not open. OK always closes the dialog; the rows are added top
+with no room left its "Add …" item is grayed out, telling why. OK always closes the dialog; the rows are added top
 to bottom, one undo step each, and a row that cannot be added does not keep the later ones from
 being added."""
 
@@ -103,6 +103,30 @@ def start_add(
         on_add(one_row(choice, start_with, capacity))
     elif not open_dialog():
         notify(S.ADD_LIMIT_REACHED)
+
+
+def no_room(room: int) -> str:
+    """Why nothing more can be added with ``room`` for so many more ("" while there is)."""
+    return S.ADD_LIMIT_REACHED if room <= 0 else ""
+
+
+def add_menu_item(label: str, why_not: str = "") -> bool:
+    """An "Add …" menu item, clicked; with ``why_not`` (e.g. :func:`no_room`) it is grayed
+    out and tells that when hovered."""
+    clicked = imgui.menu_item(label, "", False, not why_not)[0]
+    if why_not and imgui.is_item_hovered(imgui.HoveredFlags_.allow_when_disabled):
+        imgui.set_tooltip(why_not)
+    return clicked and not why_not
+
+
+def add_button(label: str, why_not: str = "") -> bool:
+    """An "Add …" toolbar button, clicked; grayed out like :func:`add_menu_item`."""
+    imgui.begin_disabled(bool(why_not))
+    clicked = imgui.small_button(label)
+    imgui.end_disabled()
+    if why_not and imgui.is_item_hovered(imgui.HoveredFlags_.allow_when_disabled):
+        imgui.set_tooltip(why_not)
+    return clicked and not why_not
 
 
 def add_rows(

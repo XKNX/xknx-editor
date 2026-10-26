@@ -455,12 +455,18 @@ def test_segments_are_added_and_deleted_from_the_tree(
         (3, S.SEGMENT_DEFAULT_NAME, "MT-0"),
         (1, "Garage", "MT-2"),
     ]
-    # An RF line takes no sub-segment: it is told, and no dialog opens.
-    clicks.context = "##line_ctx_4"
-    clicks.menus.add(S.SPACES_ADD_MENU)
-    clicks.items.add(S.TOPOLOGY_ADD_SEGMENTS)
-    frames()
-    assert len(notes) == 1 and len(added) == 3
+    # An RF line takes no sub-segment: the item is grayed out, telling why, and no dialog opens.
+    tips: list[str] = []
+    with monkeypatch.context() as hovered:
+        hovered.setattr(imgui, "is_item_hovered", lambda *_a: True)
+        hovered.setattr(imgui, "set_tooltip", tips.append)
+        clicks.context = "##line_ctx_4"
+        clicks.menus.add(S.SPACES_ADD_MENU)
+        clicks.items.add(S.TOPOLOGY_ADD_SEGMENTS)
+        frames()
+    why = topology_ui._no_segment(topology_ui.Line(4, 1, 2, "", medium_type="MT-2"))  # pyright: ignore[reportPrivateUsage]
+    assert why and why in tips
+    assert notes == [] and len(added) == 3
     clicks.context = "##segment_ctx_5"
     clicks.items.add(S.CONTEXT_DELETE)
     frames()

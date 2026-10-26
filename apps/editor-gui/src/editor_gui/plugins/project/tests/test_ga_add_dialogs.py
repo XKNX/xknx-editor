@@ -5,6 +5,7 @@ from __future__ import annotations
 
 from collections.abc import Iterator
 from pathlib import Path
+from typing import TYPE_CHECKING, Any
 
 import pytest
 from imgui_bundle import imgui
@@ -15,11 +16,17 @@ from editor_gui.plugins.logger.service import LogService
 from editor_gui.plugins.project.service import ProjectService
 from editor_gui.plugins.project.strings import S
 from editor_gui.plugins.project.ui import add_dialog, group_addresses
-from editor_gui.plugins.project.ui.group_addresses import GroupAddressesPanel
+from editor_gui.plugins.project.ui.group_addresses import (
+    TOOLBAR_ID,
+    GroupAddressesPanel,
+)
 from xknxeditor.proj.core.paste import Allocation
 
 from ._clicks import Clicks
 from .test_move_to_menus import _frames
+
+if TYPE_CHECKING:
+    from xknxeditor.proj.core.service import GroupRangeInfo
 
 
 @pytest.fixture
@@ -46,7 +53,7 @@ def _panel(project: ProjectService, notes: list[str]) -> GroupAddressesPanel:
         get_range_tree=project.get_group_range_tree,
         get_assignments_for_ga=project.get_assignments_for_ga,
         get_devices=lambda: [],
-        on_create_ga=lambda a, n: project.create_group_address(a, n),
+        on_create_ga_in=project.create_group_address_in,
         on_remove_ga=lambda _i: None,
         on_create_range=project.create_group_range,
         on_remove_range=project.remove_group_range,
@@ -70,7 +77,7 @@ def test_main_groups_middle_groups_and_addresses_are_added(
     _frames(panel)
     before = set(_main(project))
     # Two main groups from 5 on, with the default name, in one undo step.
-    clicks.context = "##ga_tree_ctx"
+    clicks.context = "##ga_context"
     clicks.items.add(S.GA_ADD_MAIN_GROUPS)
     _frames(panel)
     request = panel._adder.request  # pyright: ignore[reportPrivateUsage]
@@ -133,7 +140,6 @@ def test_free_style_ranges_and_their_addresses_are_added(
             get_range_tree=project.get_group_range_tree,
             get_assignments_for_ga=project.get_assignments_for_ga,
             get_devices=lambda: [],
-            on_create_ga=lambda a, n: project.create_group_address(a, n),
             on_remove_ga=lambda _i: None,
             on_create_range=project.create_group_range,
             on_remove_range=project.remove_group_range,
@@ -146,7 +152,7 @@ def test_free_style_ranges_and_their_addresses_are_added(
         _frames(panel)
         before = {(n.range_start, n.range_end) for n in project.get_group_range_tree()}
         # Two ranges of 100 addresses from 5000 on.
-        clicks.context = "##ga_tree_ctx"
+        clicks.context = "##ga_context"
         clicks.items.add(S.GA_ADD_GROUP_RANGES)
         _frames(panel)
         request = panel._adder.request  # pyright: ignore[reportPrivateUsage]
@@ -182,3 +188,99 @@ def test_free_style_ranges_and_their_addresses_are_added(
         assert notes == []
     finally:
         project.close()
+
+
+def _group(project: ProjectService, address: str) -> GroupRangeInfo:
+    stack = list(project.get_group_range_tree())
+    while stack:
+        node = stack.pop()
+        if node.address == address:
+            return node
+        stack.extend(node.children)
+    raise AssertionError(address)
+
+
+@pytest.mark.usefixtures("context")
+def test_group_addresses_are_added_from_the_panel_into_the_chosen_group(
+    project: ProjectService, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    project.create_group_address("1/2/3", "Light")
+    dimmer = project.create_group_address("1/3/1", "Dimmer")
+    clicks = Clicks(monkeypatch, group_addresses, add_dialog)
+    notes: list[str] = []
+    panel = _panel(project, notes)
+    panel._selected_ga_id = dimmer  # pyright: ignore[reportPrivateUsage]
+    _frames(panel)
+    # The toolbar button: the group of the selected group address is chosen at first.
+    clicks.items.add(f"{S.GA_ADD_GROUP_ADDRESSES}{TOOLBAR_ID}")
+    _frames(panel)
+    request = panel._adder.request  # pyright: ignore[reportPrivateUsage]
+    assert request.rows[0].choice == str(_group(project, "1/3").id)
+    request.rows[0].count = 2
+    clicks.button = S.BTN_OK
+    _frames(panel)
+    assert len(_group(project, "1/3").group_addresses) == 3
+    assert project.history()[0].display_text == (
+        S.HISTORY_EV_ADDED_GROUP_ADDRESSES.format(
+            count=2, target=S.PANEL_GROUP_ADDRESSES
+        )
+    )
+    # The same from the menu of the empty space, into another group.
+    clicks.context = "##ga_tree_ctx"
+    clicks.items.add(S.GA_ADD_GROUP_ADDRESSES)
+    _frames(panel)
+    request = panel._adder.request  # pyright: ignore[reportPrivateUsage]
+    request.rows[0].choice = str(_group(project, "1/2").id)
+    clicks.button = S.BTN_OK
+    _frames(panel)
+    names = {ga.name for ga in _group(project, "1/2").group_addresses}
+    assert names == {"Light", S.GA_DEFAULT_GROUP_ADDRESS}
+    assert notes == []
+
+
+@pytest.mark.usefixtures("context")
+def test_groups_without_room_gray_out_their_add_items(
+    project: ProjectService, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    used = {node.range_start >> 11 for node in project.get_group_range_tree()}
+    for number in range(32):
+        if number not in used:
+            project.create_group_range(None, f"Main {number}", number)
+    full = _group(project, "1")
+    taken = {(child.range_start >> 8) & 7 for child in full.children}
+    for number in range(8):
+        if number not in taken:
+            project.create_group_range(full.id, f"Middle {number}", number)
+    clicks = Clicks(monkeypatch, group_addresses, add_dialog)
+    enabled: dict[str, list[bool]] = {}
+    clicked_item = imgui.menu_item
+
+    def menu_item(label: str, *args: Any) -> Any:
+        if len(args) > 2:
+            enabled.setdefault(label, []).append(args[2])
+        return clicked_item(label, *args)
+
+    monkeypatch.setattr(imgui, "menu_item", menu_item)
+    notes: list[str] = []
+    panel = _panel(project, notes)
+    _frames(panel)
+    # All 32 main groups exist: the toolbar button and the item do nothing.
+    clicks.items.add(f"{S.GA_ADD_MAIN_GROUPS}{TOOLBAR_ID}")
+    _frames(panel)
+    clicks.context = "##ga_tree_ctx"
+    clicks.items.add(S.GA_ADD_MAIN_GROUPS)
+    _frames(panel)
+    assert enabled[S.GA_ADD_MAIN_GROUPS] == [False]
+    assert not imgui.is_popup_open("", imgui.PopupFlags_.any_popup_id)
+    # A main group with all 8 middle groups takes no more; one with room does.
+    clicks.context = f"##gr_ctx_{full.id}"
+    clicks.items.add(S.GA_ADD_MIDDLE_GROUPS)
+    _frames(panel)
+    assert enabled[S.GA_ADD_MIDDLE_GROUPS] == [False]
+    assert not imgui.is_popup_open("", imgui.PopupFlags_.any_popup_id)
+    clicks.context = f"##gr_ctx_{_group(project, '2').id}"
+    clicks.items.add(S.GA_ADD_MIDDLE_GROUPS)
+    _frames(panel)
+    assert enabled[S.GA_ADD_MIDDLE_GROUPS] == [False, True]
+    assert imgui.is_popup_open("", imgui.PopupFlags_.any_popup_id)
+    assert notes == []

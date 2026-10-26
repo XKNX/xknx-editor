@@ -356,9 +356,6 @@ msgstr "Log kopieren"
 msgid "Cancel"
 msgstr "Abbrechen"
 
-msgid "New Group Address"
-msgstr "Neue Gruppenadresse"
-
 msgid "Address"
 msgstr "Adresse"
 
@@ -3107,6 +3104,3 @@ msgstr "Eine Gruppenadresse des Bereichs ist dort schon vergeben."
 
 msgid "Copied {count} group ranges to '{target}'."
 msgstr "{count} Gruppenadressbereiche nach '{target}' kopiert."
-
-msgid "New Group Address…"
-msgstr "Neue Gruppenadresse…"

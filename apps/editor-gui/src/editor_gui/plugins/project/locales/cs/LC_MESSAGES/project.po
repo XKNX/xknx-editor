@@ -1228,9 +1228,6 @@ msgstr "Načíst"
 msgid "Copy Log"
 msgstr "Kopírovat protokol"
 
-msgid "New Group Address"
-msgstr "Nová skupinová adresa"
-
 msgid "Delete Folder"
 msgstr "Odstranit složku"
 
@@ -2922,6 +2919,3 @@ msgstr "Skupinová adresa rozsahu je tam již použita."
 
 msgid "Copied {count} group ranges to '{target}'."
 msgstr "{count} rozsahů skupinových adres zkopírováno do '{target}'."
-
-msgid "New Group Address…"
-msgstr "Nová skupinová adresa…"

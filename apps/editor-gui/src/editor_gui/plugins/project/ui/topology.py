@@ -15,7 +15,9 @@ from editor_gui.plugins.project.ui.add_dialog import (
     AddRequest,
     AddRow,
     UndoStep,
+    add_menu_item,
     add_rows,
+    no_room,
     no_undo_step,
     start_add,
 )
@@ -115,6 +117,22 @@ def _split_line(
         own = by_segment.get(segment_of.get(device.node_id, -1))
         (main if own is None else own).append(device)
     return [(s, by_segment[s.id]) for s in line.segments], main
+
+
+def _segment_room(line: Line) -> int:
+    """How many more sub-segments ``line`` takes (its main segment counts)."""
+    return MAX_SEGMENTS - 1 - len(line.segments)
+
+
+def _no_segment(line: Line) -> str:
+    """Why ``line`` takes no more sub-segment: its medium takes none, or it has the most ("" when
+    it takes one)."""
+    if not sub_segment_media(line.medium_type):
+        try:
+            check_new_sub_segment(line.medium_type, MEDIUM_TP)
+        except MediumError as error:
+            return medium_error_text(error)
+    return no_room(_segment_room(line))
 
 
 class TopologyPanel:
@@ -793,7 +811,7 @@ class TopologyPanel:
     def _render_line_context_menu(self, area: Area, line: Line) -> None:
         if context_menu(f"##line_ctx_{line.id}"):
             if imgui.begin_menu(S.SPACES_ADD_MENU):
-                if imgui.menu_item(S.TOPOLOGY_ADD_SEGMENTS, "", False)[0]:
+                if add_menu_item(S.TOPOLOGY_ADD_SEGMENTS, _no_segment(line)):
                     self._start_add_segments(area, line)
                 self._render_add_devices_item(line.main_segment_id)
                 imgui.end_menu()
@@ -856,16 +874,18 @@ class TopologyPanel:
             area = backbone
             lines = self._get_lines(area.id) if area is not None else []
             main = next((ln for ln in lines if ln.number == 0), None)
-        if (area is None or area.number == 0) and imgui.menu_item(
-            S.TOPOLOGY_ADD_AREAS, "", False
-        )[0]:
+        if (area is None or area.number == 0) and add_menu_item(
+            S.TOPOLOGY_ADD_AREAS, no_room(_MAX_AREAS - len(self._get_areas()))
+        ):
             self._start_add_areas()
-        if area is not None and imgui.menu_item(S.TOPOLOGY_ADD_LINES, "", False)[0]:
+        if area is not None and add_menu_item(
+            S.TOPOLOGY_ADD_LINES, no_room(MAX_LINES - len(lines))
+        ):
             self._start_add_lines(area, lines, main)
         if (
             area is not None
             and main is not None
-            and imgui.menu_item(S.TOPOLOGY_ADD_SEGMENTS, "", False)[0]
+            and add_menu_item(S.TOPOLOGY_ADD_SEGMENTS, _no_segment(main))
         ):
             self._start_add_segments(area, main)
 
@@ -972,11 +992,6 @@ class TopologyPanel:
     def _start_add_segments(self, area: Area, line: Line) -> None:
         media = list(sub_segment_media(line.medium_type))
         if not media:
-            # The line takes no sub-segment: tell why.
-            try:
-                check_new_sub_segment(line.medium_type, MEDIUM_TP)
-            except MediumError as error:
-                self._notify(medium_error_text(error))
             return
         default = line.medium_type
         if default == MEDIUM_IP or area.number == 0:
@@ -996,7 +1011,7 @@ class TopologyPanel:
                 lambda request: self._add_segments(request, line, target),
                 default_name=S.SEGMENT_DEFAULT_NAME,
                 choice=choice,
-                limit=MAX_SEGMENTS - 1 - len(line.segments),
+                limit=_segment_room(line),
             ),
         )
 

@@ -46,6 +46,15 @@ class Clicks:
                 imgui.open_popup(str_id)
             return real_context(str_id, *args)
 
+        real_window_context = imgui.begin_popup_context_window
+
+        # The menu of a window's empty space.
+        def begin_popup_context_window(str_id: str | None = None, *args: Any) -> bool:
+            if str_id is not None and str_id == self.context:
+                self.context = None
+                imgui.open_popup(str_id)
+            return real_window_context(str_id, *args)
+
         def begin_menu(label: str, *args: Any) -> bool:
             if label in self.menus:
                 self.menus.discard(label)
@@ -87,6 +96,7 @@ class Clicks:
 
         for name, fake in (
             ("begin_popup_context_item", begin_popup_context_item),
+            ("begin_popup_context_window", begin_popup_context_window),
             ("begin_menu", begin_menu),
             ("end_menu", end_menu),
             ("menu_item", menu_item),

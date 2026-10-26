@@ -1228,9 +1228,6 @@ msgstr "加载"
 msgid "Copy Log"
 msgstr "复制日志"
 
-msgid "New Group Address"
-msgstr "新建组地址"
-
 msgid "Delete Folder"
 msgstr "删除文件夹"
 
@@ -2922,6 +2919,3 @@ msgstr "该范围的某个组地址在那里已被使用。"
 
 msgid "Copied {count} group ranges to '{target}'."
 msgstr "已将 {count} 个组地址范围复制到“{target}”。"
-
-msgid "New Group Address…"
-msgstr "新建组地址…"

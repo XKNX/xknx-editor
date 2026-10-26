@@ -310,7 +310,7 @@ def test_a_function_adds_group_addresses_it_is_linked_with(
 
 
 @pytest.mark.usefixtures("context")
-def test_a_function_without_a_group_tells_so_and_subtrades_have_their_title(
+def test_a_function_without_a_group_grays_out_its_add_and_subtrades_have_their_title(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     project = _project(tmp_path, GroupAddressStyle.TWO_LEVEL)
@@ -318,16 +318,27 @@ def test_a_function_without_a_group_tells_so_and_subtrades_have_their_title(
         for main in project.get_group_range_tree():
             project.remove_group_range(main.id)
         clicks = Clicks(monkeypatch, spaces, add_dialog)
+        enabled: dict[str, bool] = {}
+        clicked_item = imgui.menu_item
+
+        def menu_item(label: str, *args: Any) -> Any:
+            if len(args) > 2:
+                enabled[label] = args[2]
+            return clicked_item(label, *args)
+
+        monkeypatch.setattr(imgui, "menu_item", menu_item)
         notes: list[str] = []
         building = project.get_space_tree()[0].id
         function_id = project.create_function(building, "Custom", "Light")
         trade = project.create_trade(None, "Lights")
         panel = _spaces_panel(project, notes, [])
         _frames(panel.render)
+        # Grayed out (telling why when hovered): a click does nothing.
         clicks.context = f"##fnctx{function_id}"
         clicks.items.add(S.GA_ADD_GROUP_ADDRESSES)
         _frames(panel.render)
-        assert notes == [S.SPACES_FN_NO_GROUP]
+        assert enabled[S.GA_ADD_GROUP_ADDRESSES] is False
+        assert notes == []
         # The "Add" dialog below a trade adds subtrades.
         clicks.context = f"##tradectx{trade}"
         clicks.menus.add(S.SPACES_ADD_MENU)
@@ -451,7 +462,6 @@ def _free_panel(project: ProjectService, notes: list[str]) -> GroupAddressesPane
         get_range_tree=project.get_group_range_tree,
         get_assignments_for_ga=project.get_assignments_for_ga,
         get_devices=lambda: [],
-        on_create_ga=lambda a, n: project.create_group_address(a, n),
         on_remove_ga=project.remove_group_address,
         on_create_range=project.create_group_range,
         on_remove_range=project.remove_group_range,

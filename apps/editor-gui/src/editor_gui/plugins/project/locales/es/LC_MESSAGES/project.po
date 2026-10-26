@@ -1228,9 +1228,6 @@ msgstr "Cargar"
 msgid "Copy Log"
 msgstr "Copiar Registro"
 
-msgid "New Group Address"
-msgstr "Nueva Dirección de Grupo"
-
 msgid "Delete Folder"
 msgstr "Eliminar Carpeta"
 
@@ -2922,6 +2919,3 @@ msgstr "Una dirección de grupo del rango ya está en uso ahí."
 
 msgid "Copied {count} group ranges to '{target}'."
 msgstr "{count} rangos de direcciones de grupo copiados a '{target}'."
-
-msgid "New Group Address…"
-msgstr "Nueva Dirección de Grupo…"

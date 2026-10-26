@@ -1228,9 +1228,6 @@ msgstr "Ladda"
 msgid "Copy Log"
 msgstr "Kopiera logg"
 
-msgid "New Group Address"
-msgstr "Ny gruppadress"
-
 msgid "Delete Folder"
 msgstr "Ta bort mapp"
 
@@ -2922,6 +2919,3 @@ msgstr "En gruppadress i området används redan där."
 
 msgid "Copied {count} group ranges to '{target}'."
 msgstr "{count} gruppadressområden kopierade till '{target}'."
-
-msgid "New Group Address…"
-msgstr "Ny gruppadress…"

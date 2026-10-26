@@ -1228,9 +1228,6 @@ msgstr "読み込む"
 msgid "Copy Log"
 msgstr "ログをコピー"
 
-msgid "New Group Address"
-msgstr "新しいグループ・アドレス"
-
 msgid "Delete Folder"
 msgstr "フォルダーを削除"
 
@@ -2922,6 +2919,3 @@ msgstr "範囲のグループアドレスがそこで既に使われています
 
 msgid "Copied {count} group ranges to '{target}'."
 msgstr "{count} 個のグループアドレス範囲を '{target}' にコピーしました。"
-
-msgid "New Group Address…"
-msgstr "新しいグループ・アドレス…"

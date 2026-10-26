@@ -1228,9 +1228,6 @@ msgstr "Φόρτωση"
 msgid "Copy Log"
 msgstr "Αντιγραφή Καταγραφής"
 
-msgid "New Group Address"
-msgstr "Νέα Διεύθυνση Ομάδας"
-
 msgid "Delete Folder"
 msgstr "Διαγραφή Φακέλου"
 
@@ -2922,6 +2919,3 @@ msgstr "Μια διεύθυνση ομάδας της περιοχής χρησ�
 
 msgid "Copied {count} group ranges to '{target}'."
 msgstr "Αντιγράφηκαν {count} περιοχές διευθύνσεων ομάδας στο '{target}'."
-
-msgid "New Group Address…"
-msgstr "Νέα Διεύθυνση Ομάδας…"
