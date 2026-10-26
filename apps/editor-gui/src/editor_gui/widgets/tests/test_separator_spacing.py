@@ -10,6 +10,7 @@ import pytest
 from imgui_bundle import imgui
 
 from editor_gui.widgets import parameter_widgets
+from editor_gui.widgets.wrapping import LINE_GAP
 from xknxeditor.prod.parser_v2.ui import UiSeparator
 
 
@@ -42,3 +43,51 @@ def test_a_headline_takes_no_more_than_a_line() -> None:
     )
     # No more room than a line of text beside a field: no gap of its own below it.
     assert imgui.get_cursor_pos_y() - top <= line
+
+
+def _lines(monkeypatch: pytest.MonkeyPatch) -> list[float]:
+    """The lines drawn on the page (their top), recorded."""
+    lines: list[float] = []
+
+    class Recorder:
+        def add_rect_filled(
+            self, low: imgui.ImVec2, _high: imgui.ImVec2, _col: int
+        ) -> None:
+            lines.append(low.y)
+
+    monkeypatch.setattr(parameter_widgets.imgui, "get_window_draw_list", Recorder)
+    return lines
+
+
+@pytest.mark.usefixtures("frame")
+@pytest.mark.parametrize("hint", [None, "HorizontalRuler", "Headline", "Information"])
+def test_a_separator_without_text_is_a_line(
+    monkeypatch: pytest.MonkeyPatch, hint: str | None
+) -> None:
+    lines = _lines(monkeypatch)
+    parameter_widgets._render_separator(  # pyright: ignore[reportPrivateUsage]
+        UiSeparator(id="S-1", text="", hint=hint)
+    )
+    assert len(lines) == 1
+
+
+@pytest.mark.usefixtures("frame")
+def test_a_ruler_with_text_is_the_text_alone(monkeypatch: pytest.MonkeyPatch) -> None:
+    lines = _lines(monkeypatch)
+    parameter_widgets._render_separator(  # pyright: ignore[reportPrivateUsage]
+        UiSeparator(id="S-1", text="Known Limitations", hint="HorizontalRuler")
+    )
+    assert lines == []
+
+
+@pytest.mark.usefixtures("frame")
+def test_texts_in_a_row_have_room_between() -> None:
+    top = imgui.get_cursor_pos_y()
+    parameter_widgets._render_separator(  # pyright: ignore[reportPrivateUsage]
+        UiSeparator(id="S-1", text="Note")
+    )
+    # One line of text (the window is narrow) with 4 px above and the line gap and 4 px below:
+    # two texts in a row are 10 px apart.
+    pitch = 4.0 + imgui.get_text_line_height() + LINE_GAP + 4.0
+    assert imgui.get_cursor_pos_y() - top == pytest.approx(pitch)
+    assert pitch - imgui.get_text_line_height() == 10.0

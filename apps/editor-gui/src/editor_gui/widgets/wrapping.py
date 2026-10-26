@@ -16,11 +16,15 @@ LINE_GAP = 2.0
 
 def wrap_lines(text: str, width: float) -> list[str]:
     """``text`` broken into lines at most ``width`` wide, in the current font: at spaces, and
-    within a word only when the word alone is wider."""
+    within a word only when the word alone is wider. The spaces a line starts with stay (an
+    indent)."""
     lines: list[str] = []
     for paragraph in text.split("\n"):
+        words = paragraph.split(" ")
+        indent = len(paragraph) - len(paragraph.lstrip(" "))
+        words = [" " * indent + words[indent], *words[indent + 1 :]]
         line = ""
-        for word in paragraph.split(" "):
+        for word in words:
             candidate = f"{line} {word}" if line else word
             if not line or imgui.calc_text_size(candidate).x <= width:
                 line = candidate

@@ -2294,6 +2294,9 @@ _RULER_ABOVE = 14.0
 _RULER_BELOW = 7.0
 _HINT_ABOVE = 9.0
 _HINT_BELOW = 5.0
+# Room at 100 % scaling above and below a separator's text: with the line gap a text ends with,
+# two texts in a row are 10 px apart (5 px above and below each).
+_TEXT_ROOM = 4.0
 
 
 def _wrap_width() -> float:
@@ -2313,40 +2316,16 @@ def _page_width() -> float:
     return min(imgui.get_content_region_avail().x, px(_GRID_REFERENCE_WIDTH))
 
 
-def _render_ruler(text: str | None) -> None:
-    """A horizontal line as wide as the page's rows, with ``text`` in it as a title; drawn like
-    a separator, which would reach the window's edge."""
-    style = imgui.get_style()
+def _render_ruler() -> None:
+    """A horizontal line as wide as the page's rows; drawn like a separator, which would reach
+    the window's edge."""
     width = _page_width()
     top = imgui.get_cursor_screen_pos()
-    draw_list = imgui.get_window_draw_list()
     color = imgui.get_color_u32(imgui.Col_.separator)
-    if not text:
-        draw_list.add_rect_filled(top, imgui.ImVec2(top.x + width, top.y + 1.0), color)
-        imgui.dummy(imgui.ImVec2(width, 1.0))
-        return
-    pad = style.separator_text_padding
-    thickness = style.separator_text_border_size
-    size = imgui.calc_text_size(text)
-    height = size.y + pad.y * 2
-    middle = top.y + height / 2
-    text_x = top.x + pad.x
-    gap = style.item_spacing.x
-
-    def line(x0: float, x1: float) -> None:
-        if x1 > x0:
-            draw_list.add_rect_filled(
-                imgui.ImVec2(x0, middle - thickness / 2),
-                imgui.ImVec2(x1, middle + thickness / 2),
-                color,
-            )
-
-    line(top.x, text_x - gap)
-    line(text_x + size.x + gap, top.x + width)
-    draw_list.add_text(
-        imgui.ImVec2(text_x, top.y + pad.y), imgui.get_color_u32(imgui.Col_.text), text
+    imgui.get_window_draw_list().add_rect_filled(
+        top, imgui.ImVec2(top.x + width, top.y + 1.0), color
     )
-    imgui.dummy(imgui.ImVec2(width, height))
+    imgui.dummy(imgui.ImVec2(width, 1.0))
 
 
 def _aligned_text(text: str, alignment: str | None) -> None:
@@ -2410,12 +2389,12 @@ def _mix(a: imgui.ImVec4, b: imgui.ImVec4, t: float) -> imgui.ImVec4:
 
 
 def _render_separator(sep: UiSeparator) -> None:
-    if sep.hint == "HorizontalRuler":
+    """A separator without a text is a line, whatever its hint; one with a text is a headline, an
+    information or error box, or else (also a horizontal ruler with a text) the text alone."""
+    if not sep.text:
         vertical_space(px(_RULER_ABOVE))
-        _render_ruler(sep.text)
+        _render_ruler()
         vertical_space(px(_RULER_BELOW))
-    elif not sep.text:
-        imgui.spacing()
     elif sep.hint == "Headline":
         with bold(_HEADLINE_SCALE):
             imgui.align_text_to_frame_padding()
@@ -2431,7 +2410,9 @@ def _render_separator(sep: UiSeparator) -> None:
         _render_hint(sep.text, _ERROR_BORDER, fill, _ERROR_ICON, "")
         vertical_space(px(_HINT_BELOW))
     else:
+        vertical_space(px(_TEXT_ROOM))
         _aligned_text(sep.text, sep.alignment)
+        vertical_space(px(_TEXT_ROOM))
 
 
 class EnumPopup:
