@@ -435,3 +435,21 @@ def test_paste_on_a_group_address_goes_into_its_group(
             PasteOptions(),
         )
     ]
+
+
+@pytest.mark.usefixtures("context")
+def test_the_dialog_lists_what_is_pasted_one_per_line(
+    project: ProjectService, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    devices = [_device(project, address) for address in (7, 8, 9)]
+    dialog = _dialog(project, [])
+    shown: list[str] = []
+    real = imgui.text_disabled
+    monkeypatch.setattr(
+        imgui, "text_disabled", lambda text, *a: (shown.append(text), real(text, *a))
+    )
+    target = PasteTarget("segment", project.device_segments()[devices[0]])
+    dialog.open("device", devices, target)
+    _frames(dialog, 2)
+    names = project.paste_names("device", devices)
+    assert len(names) == 3 and all(name in shown for name in names)

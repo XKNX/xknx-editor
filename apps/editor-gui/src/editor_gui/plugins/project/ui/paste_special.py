@@ -42,6 +42,8 @@ _GROUP_KINDS = ("group_address", "group_range")
 _ERROR_COLOR = imgui.ImVec4(1.0, 0.42, 0.42, 1.0)
 # The most copies one paste makes.
 _MAX_COUNT = 65535
+# How many names of what is pasted show at once; more scroll.
+_NAMES_SHOWN = 8
 # The text typed for the group of new group addresses, by style, at first.
 _DEFAULT_RANGE = {
     GroupAddressStyle.THREE_LEVEL: "0/0",
@@ -209,7 +211,8 @@ class PasteSpecialDialog:
         self._notify = notify
         self._pending: tuple[PasteKind, list[int], PasteTarget] | None = None
         self._open = False
-        self._description = ""
+        # The names of what is pasted.
+        self._description: list[str] = []
         self._count = 1
         self._behaviour = GroupAddressCopy.DONT_COPY
         self._range_text = ""
@@ -223,7 +226,7 @@ class PasteSpecialDialog:
         it is rendered in, with its defaults."""
         self._pending = (kind, ids, target)
         self._open = True
-        self._description = ", ".join(self._names(kind, ids))
+        self._description = list(self._names(kind, ids))
         self._count = 1
         self._behaviour = GroupAddressCopy.DONT_COPY
         self._range_text = _DEFAULT_RANGE.get(self._group_style(), "")
@@ -352,16 +355,30 @@ class PasteSpecialDialog:
         end_dialog()
 
     def _render_description(self) -> None:
-        """The names of what is pasted, on one line, cut off with "…" when too long."""
-        text = self._description
-        room = imgui.get_content_region_avail().x
-        if imgui.calc_text_size(text).x > room:
-            while text and imgui.calc_text_size(f"{text}…").x > room:
-                text = text[:-1]
-            text = f"{text}…"
-        imgui.text_disabled(text)
-        if text != self._description and imgui.is_item_hovered():
-            imgui.set_tooltip(self._description)
+        """The names of what is pasted, one per line, each cut off with "…" when too long
+        (the whole name when hovered); more than a few scroll."""
+        names = self._description
+        shown = min(len(names), _NAMES_SHOWN)
+        spacing = imgui.get_style().item_spacing.y
+        height = shown * imgui.get_text_line_height_with_spacing() - spacing
+        scrolls = len(names) > shown
+        if scrolls and not imgui.begin_child(
+            "##paste_names", imgui.ImVec2(0.0, height)
+        ):
+            imgui.end_child()
+            return
+        for name in names:
+            text = name
+            room = imgui.get_content_region_avail().x
+            if imgui.calc_text_size(text).x > room:
+                while text and imgui.calc_text_size(f"{text}…").x > room:
+                    text = text[:-1]
+                text = f"{text}…"
+            imgui.text_disabled(text)
+            if text != name and imgui.is_item_hovered():
+                imgui.set_tooltip(name)
+        if scrolls:
+            imgui.end_child()
 
     def _render_group_addresses(self) -> None:
         imgui.separator_text(S.PANEL_GROUP_ADDRESSES)

@@ -5,8 +5,8 @@ stays centred while its content changes its size (wrapped text settles over the 
 content loads later), until the user moves it. When the screen changes its size (a browser window
 resized, a phone turned), it is centred and fitted to it again. It has a title bar and does not
 remember a position it was moved to. Its buttons sit in one row of equal-width buttons: the actions
-left-aligned, the button that dismisses the dialog (Cancel, Close, No, ...) right-aligned and
-triggered by Escape. Tool windows open centred too while they float, and are centred again on a
+left-aligned (the first triggered by Enter), the button that dismisses the dialog (Cancel, Close,
+No, ...) right-aligned and triggered by Escape. Tool windows open centred too while they float, and are centred again on a
 screen that changed its size; they can be docked and keep their dock place and size.
 """
 
@@ -22,8 +22,9 @@ from editor_gui.widgets.backgrounds import window_border
 from editor_gui.widgets.dpi import px, px_vec2
 
 _MIN_BUTTON_WIDTH = 90.0
-# The frame in which Escape last dismissed a dialog.
+# The frame in which Escape last dismissed a dialog, and Enter last accepted one.
 _escape_frame = [-1]
+_enter_frame = [-1]
 # Off by more than this (pixels) from where it was placed, a dialog was moved by the user.
 _MOVED_TOLERANCE = 1.5
 # Room a dialog leaves to each edge of a screen it does not fit on, at 100 % scaling.
@@ -280,9 +281,10 @@ def dialog_buttons(
     """A row of equal-width buttons below a separator, the primary one first.
 
     The last label is the button that dismisses the dialog: it sits at the right edge and Escape
-    triggers it while the dialog has focus. The others sit left-aligned. Returns the index of the
-    clicked button, or ``None``. ``rects`` receives each button's screen rectangle (x, y, width,
-    height).
+    triggers it while the dialog has focus. The others sit left-aligned; Enter triggers the first
+    one (the action, e.g. "Delete" or "OK") while the dialog has focus, unless it is disabled or
+    a multi-line text field takes the Enter. Returns the index of the clicked button, or
+    ``None``. ``rects`` receives each button's screen rectangle (x, y, width, height).
     """
     style = imgui.get_style()
     width = max(
@@ -329,7 +331,35 @@ def dialog_buttons(
         ):
             clicked = index
             _escape_frame[0] = imgui.get_frame_count()
+    if (
+        clicked is None
+        and len(labels) > 1
+        and (enabled is None or enabled[0])
+        and _enter_pressed()
+    ):
+        clicked = 0
     return clicked
+
+
+def _enter_pressed() -> bool:
+    """Whether Enter accepts the dialog now: pressed while it has the focus (not a dialog or
+    popup opened from it), and not taken by a text field still being edited (a multi-line one; a
+    one-line field gives the focus up on Enter). One press accepts only one dialog."""
+    pressed = imgui.is_key_pressed(
+        imgui.Key.enter, repeat=False
+    ) or imgui.is_key_pressed(imgui.Key.keypad_enter, repeat=False)
+    if (
+        not pressed
+        or imgui.is_any_item_active()
+        or imgui.get_frame_count() == _enter_frame[0]
+        or not imgui.is_window_focused(
+            imgui.FocusedFlags_.root_and_child_windows
+            | imgui.FocusedFlags_.no_popup_hierarchy
+        )
+    ):
+        return False
+    _enter_frame[0] = imgui.get_frame_count()
+    return True
 
 
 # The size of the screen each floating window was last shown on, by window title.
