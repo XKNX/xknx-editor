@@ -16,6 +16,7 @@ from editor_gui.plugins.base import Logger
 from editor_gui.plugins.catalog.service import CatalogService
 from editor_gui.plugins.logger.service import LogService
 from editor_gui.plugins.project.medium_text import (
+    backbone_media,
     line_media,
     medium_error_text,
     segment_media,
@@ -71,6 +72,8 @@ def _line_1_1(project: ProjectService) -> int:
 def test_the_media_offered() -> None:
     assert [name for _id, name in line_media()] == ["TP", "PL", "RF", "IP", "IoT"]
     assert [name for _id, name in segment_media()] == ["TP", "RF", "IoT"]
+    # TP first, as everywhere.
+    assert [name for _id, name in backbone_media()] == ["TP", "IP"]
     assert format_domain_address(MEDIUM_RF, 0x0001_2345_6789) == "0001:23456789"
     assert format_domain_address("MT-1", 7) == "7"
     assert format_domain_address(MEDIUM_RF, None) == ""

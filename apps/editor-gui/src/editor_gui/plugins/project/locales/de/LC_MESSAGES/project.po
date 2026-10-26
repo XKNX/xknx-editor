@@ -2508,9 +2508,6 @@ msgstr "{medium} Hauptlinie"
 msgid "Backbone"
 msgstr "Backbone"
 
-msgid "Backbone Medium"
-msgstr "Backbone-Medium"
-
 msgid "Network Latency"
 msgstr "Netzwerklatenz"
 

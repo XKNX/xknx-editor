@@ -30,7 +30,7 @@ MEDIUM_NAMES: dict[str, str] = {
 # The media a sub-segment offers.
 SEGMENT_MEDIA = (MEDIUM_TP, MEDIUM_RF, MEDIUM_IOT)
 # The media a backbone line can have.
-BACKBONE_MEDIA = (MEDIUM_IP, MEDIUM_TP)
+BACKBONE_MEDIA = (MEDIUM_TP, MEDIUM_IP)
 # The most segments a line can have, its main segment included.
 MAX_SEGMENTS = 128
 # The most lines an area can have, its main line included (line numbers 0 to 15).

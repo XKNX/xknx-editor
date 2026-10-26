@@ -2323,9 +2323,6 @@ msgstr "línea principal {medium}"
 msgid "Backbone"
 msgstr "Red troncal"
 
-msgid "Backbone Medium"
-msgstr "Medio del Backbone"
-
 msgid "Network Latency"
 msgstr "Latencia de la Red"
 

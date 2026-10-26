@@ -2361,9 +2361,6 @@ msgstr "{medium} hoofdlijn"
 msgid "Backbone"
 msgstr "Backbone"
 
-msgid "Backbone Medium"
-msgstr "Backbone medium"
-
 msgid "Network Latency"
 msgstr "Netwerk responstijd"
 

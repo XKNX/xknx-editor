@@ -144,7 +144,6 @@ class ElementDetailsPanel:
             S.GA_CENTRAL,
             S.GA_SECURITY,
             S.GA_DATA_TYPE,
-            S.BACKBONE_MEDIUM,
             S.NETWORK_LATENCY,
             S.MULTICAST_ADDRESS,
             S.BUS_CONNECTION,
@@ -274,7 +273,7 @@ class ElementDetailsPanel:
             imgui.pop_text_wrap_pos()
 
     def _backbone_rows(self, details: ElementDetails, latency: int) -> None:
-        """The backbone: description, status, its medium (IP or TP), the network latency, the
+        """The backbone: description, status, its medium (TP or IP), the network latency, the
         multicast address and the security of the IP routing, and the bus connection."""
         self._row(S.CONFIGURE_DESCRIPTION)
         self._description_field(details)
@@ -284,7 +283,7 @@ class ElementDetailsPanel:
             if chosen is not None:
                 self._on_set_status(details.kind, details.element_id, chosen)
         if details.medium is not None:
-            self._row(S.BACKBONE_MEDIUM)
+            self._row(S.MEDIUM)
             self._medium_field(details, details.medium)
         self._row(S.NETWORK_LATENCY)
         chosen = choice_combo(

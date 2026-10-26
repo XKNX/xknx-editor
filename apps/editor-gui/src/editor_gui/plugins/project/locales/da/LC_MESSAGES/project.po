@@ -2323,9 +2323,6 @@ msgstr "{medium} hovedlinje"
 msgid "Backbone"
 msgstr "Rygrad"
 
-msgid "Backbone Medium"
-msgstr "Backbone-medie"
-
 msgid "Network Latency"
 msgstr "Netværk-latenstid"
 

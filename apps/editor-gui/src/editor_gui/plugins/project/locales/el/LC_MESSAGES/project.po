@@ -2323,9 +2323,6 @@ msgstr "{medium} κύρια γραμμή"
 msgid "Backbone"
 msgstr "Κεντρική"
 
-msgid "Backbone Medium"
-msgstr "Μέσο Κεντρικής Γραμμής"
-
 msgid "Network Latency"
 msgstr "Καθυστέρηση Δικτύου"
 

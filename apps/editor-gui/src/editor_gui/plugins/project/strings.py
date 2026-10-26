@@ -36,10 +36,6 @@ class ProjectStrings:
         return _("Backbone")
 
     @property
-    def BACKBONE_MEDIUM(self) -> str:
-        return _("Backbone Medium")
-
-    @property
     def NETWORK_LATENCY(self) -> str:
         return _("Network Latency")
 

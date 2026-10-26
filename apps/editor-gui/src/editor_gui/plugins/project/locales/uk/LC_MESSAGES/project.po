@@ -2323,9 +2323,6 @@ msgstr "головна лінія {medium}"
 msgid "Backbone"
 msgstr "Магістраль"
 
-msgid "Backbone Medium"
-msgstr "Середовище магістральної лінії"
-
 msgid "Network Latency"
 msgstr "Затримка мережі"
 
