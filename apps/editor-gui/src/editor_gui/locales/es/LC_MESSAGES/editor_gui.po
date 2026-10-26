@@ -1428,3 +1428,9 @@ msgstr "Esto cierra XKNX Editor en el servidor. Hasta que se vuelva a iniciar al
 
 msgid "Del"
 msgstr "Supr"
+
+msgid "This Machine Only"
+msgstr "Sólo este equipo"
+
+msgid "On the Network"
+msgstr "En la red"

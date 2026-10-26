@@ -1493,3 +1493,9 @@ msgstr "Hiermee wordt XKNX Editor op de server gestopt. Totdat hij daar opnieuw 
 
 msgid "Del"
 msgstr "Del"
+
+msgid "This Machine Only"
+msgstr "Alleen deze computer"
+
+msgid "On the Network"
+msgstr "Op het netwerk"

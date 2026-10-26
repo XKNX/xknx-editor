@@ -1588,3 +1588,9 @@ msgstr "Damit wird XKNX Editor auf dem Server beendet. Bis er dort wieder gestar
 
 msgid "Del"
 msgstr "Entf"
+
+msgid "This Machine Only"
+msgstr "Nur Dieser Rechner"
+
+msgid "On the Network"
+msgstr "Im Netzwerk"

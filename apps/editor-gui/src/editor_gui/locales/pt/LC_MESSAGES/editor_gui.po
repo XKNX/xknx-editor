@@ -1428,3 +1428,9 @@ msgstr "Isto para o XKNX Editor no servidor. Até ser iniciado lá novamente, ne
 
 msgid "Del"
 msgstr "Del"
+
+msgid "This Machine Only"
+msgstr "Apenas este computador"
+
+msgid "On the Network"
+msgstr "Na rede"

@@ -1428,3 +1428,9 @@ msgstr "Αυτό τερματίζει το XKNX Editor στον διακομισ
 
 msgid "Del"
 msgstr "Del"
+
+msgid "This Machine Only"
+msgstr "Μόνο αυτός ο υπολογιστής"
+
+msgid "On the Network"
+msgstr "Στο δίκτυο"

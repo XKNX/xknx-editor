@@ -30,6 +30,50 @@ if TYPE_CHECKING:
     from editor_gui.plugins.project.plugin import ProjectPlugin
 
 
+def _primary_lan_address() -> str | None:
+    """A LAN address this host is reachable at from other machines, best-effort.
+
+    Opens a UDP socket to a public IP WITHOUT sending anything: the kernel picks the outbound
+    interface and ``getsockname()`` returns its address. Returns None when no routable interface
+    is up (offline, loopback-only), so the caller can fall back."""
+    for family, probe in (
+        (socket.AF_INET, ("8.8.8.8", 80)),
+        (socket.AF_INET6, ("2001:4860:4860::8888", 80)),
+    ):
+        try:
+            with socket.socket(family, socket.SOCK_DGRAM) as sock:
+                sock.connect(probe)
+                addr = sock.getsockname()[0]
+                if addr and not addr.startswith(("0.", "127.", "::")):
+                    return addr
+        except OSError:
+            continue
+    return None
+
+
+_WILDCARD_BIND_HOSTS = frozenset({"0.0.0.0", "::", "::0", ""})
+
+
+def advertise_url(host: str, port: str | int, path: str = "/mcp") -> str:
+    """Build the URL to SHOW the user as the server address.
+
+    A wildcard bind (0.0.0.0, ::) is correct for the server but useless as a target from another
+    machine; substitute the primary LAN address when one is up. Loopback hosts (127.0.0.1, ::1,
+    localhost) are deliberate "local only" — kept as-is. Falls back to the raw host if no LAN
+    address is reachable, so nothing is invented."""
+    stripped = (host or "").strip()
+    advertise = stripped
+    if stripped in _WILDCARD_BIND_HOSTS:
+        lan = _primary_lan_address()
+        if lan is not None:
+            advertise = f"[{lan}]" if ":" in lan else lan
+        else:
+            advertise = (
+                stripped or "0.0.0.0"
+            )  # offline: honest, agent/user sees the bind value
+    return f"http://{advertise}:{port}{path}"
+
+
 def _build_auth(token: str = "") -> Any:
     """Optional bearer-token auth for the HTTP endpoint.
 

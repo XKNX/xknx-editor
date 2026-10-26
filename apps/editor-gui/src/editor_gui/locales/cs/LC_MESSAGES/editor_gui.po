@@ -1428,3 +1428,9 @@ msgstr "Tím se XKNX Editor na serveru ukončí. Dokud tam nebude znovu spuště
 
 msgid "Del"
 msgstr "Del"
+
+msgid "This Machine Only"
+msgstr "Jen tento počítač"
+
+msgid "On the Network"
+msgstr "V síti"

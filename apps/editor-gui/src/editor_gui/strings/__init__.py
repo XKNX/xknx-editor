@@ -398,6 +398,16 @@ class MenuStrings:
         )
 
     @property
+    def KI_HOST_PRESET_LOCAL(self) -> str:
+        # Combo entry for host 127.0.0.1 (loopback only).
+        return _("This Machine Only")
+
+    @property
+    def KI_HOST_PRESET_NETWORK(self) -> str:
+        # Combo entry for host 0.0.0.0 (all interfaces).
+        return _("On the Network")
+
+    @property
     def KI_CLAUDE_CMD(self) -> str:
         return _("claude mcp add --transport http xknx-editor {url}")
 

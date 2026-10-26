@@ -1428,3 +1428,9 @@ msgstr "Dette avslutter XKNX Editor på serveren. Inntil den startes der igjen, 
 
 msgid "Del"
 msgstr "Del"
+
+msgid "This Machine Only"
+msgstr "Bare denne maskinen"
+
+msgid "On the Network"
+msgstr "På nettverket"

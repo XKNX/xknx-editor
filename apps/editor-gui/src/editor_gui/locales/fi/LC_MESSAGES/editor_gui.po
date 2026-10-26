@@ -1428,3 +1428,9 @@ msgstr "T채m채 lopettaa XKNX Editorin palvelimella. Ennen kuin se k채ynnistet채�
 
 msgid "Del"
 msgstr "Del"
+
+msgid "This Machine Only"
+msgstr "Vain t채m채 kone"
+
+msgid "On the Network"
+msgstr "Verkossa"

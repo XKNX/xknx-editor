@@ -1428,3 +1428,9 @@ msgstr "Spowoduje to zatrzymanie XKNX Editor na serwerze. Dopóki nie zostanie t
 
 msgid "Del"
 msgstr "Del"
+
+msgid "This Machine Only"
+msgstr "Tylko ten komputer"
+
+msgid "On the Network"
+msgstr "W sieci"

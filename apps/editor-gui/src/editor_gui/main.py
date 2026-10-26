@@ -81,6 +81,7 @@ from editor_gui.plugins.health import HealthPlugin
 from editor_gui.plugins.keyring import KeyringPlugin
 from editor_gui.plugins.logger import LoggerPlugin, LogService
 from editor_gui.plugins.mcp import McpServerPlugin
+from editor_gui.plugins.mcp.plugin import advertise_url as _mcp_advertise_url
 from editor_gui.plugins.monitor import MonitorPlugin
 from editor_gui.plugins.project import ProjectPlugin, ProjectService
 from editor_gui.plugins.project.knxproj_manufacturer import collect_manufacturer_bundle
@@ -5376,6 +5377,13 @@ class KnxGuiApp:
             },
         )
 
+    def _persist_mcp_fields(self) -> None:
+        """Store the current host/port/token without changing the stored running flag.
+
+        The main save path only fires on start/stop; typing a new host without restarting would
+        otherwise be lost on the next app launch. Call after every edit of these fields."""
+        self._save_mcp_settings(running=self._mcp_plugin.is_running)
+
     def _start_mcp(self, *, save: bool = True) -> None:
         """Start the MCP server; when it cannot start, say why (a toast, and beside the status)."""
         self._mcp_error = None
@@ -5431,18 +5439,48 @@ class KnxGuiApp:
                 self._start_mcp()
         self._render_mcp_error()
         imgui.separator()
-        imgui.set_next_item_width(px(180.0))
-        _, self._mcp_host = imgui.input_text(S.SETTINGS_MCP_HOST, self._mcp_host)
-        imgui.set_next_item_width(px(180.0))
-        _, self._mcp_port = imgui.input_text(S.SETTINGS_MCP_PORT, self._mcp_port)
-        imgui.set_next_item_width(px(180.0))
-        _, self._mcp_token = imgui.input_text(
-            S.SETTINGS_MCP_TOKEN, self._mcp_token, imgui.InputTextFlags_.password
-        )
+        self._render_mcp_host_row(width_px=180.0)
+        self._render_mcp_port_token_rows(width_px=180.0)
         if running:
             imgui.separator()
-            imgui.text_disabled(f"http://{self._mcp_host}:{self._mcp_port}/mcp")
+            imgui.text_disabled(_mcp_advertise_url(self._mcp_host, self._mcp_port))
         imgui.end_menu()
+
+    def _render_mcp_host_row(self, width_px: float) -> None:
+        """Host preset FIRST (loopback / all interfaces), then the free host input on the next
+        line. Typing a specific interface IP stays supported; the combo then shows "custom".
+        Any change persists."""
+        presets = ("127.0.0.1", "0.0.0.0")
+        try:
+            selected = presets.index(self._mcp_host.strip())
+        except ValueError:
+            selected = -1  # a custom interface IP; keep as-is
+        imgui.set_next_item_width(px(width_px))
+        preset_changed, new_idx = imgui.combo(
+            f"##mcp_host_preset_{id(self)}",
+            selected,
+            [S.KI_HOST_PRESET_LOCAL, S.KI_HOST_PRESET_NETWORK],
+        )
+        imgui.set_next_item_width(px(width_px))
+        changed, self._mcp_host = imgui.input_text(S.SETTINGS_MCP_HOST, self._mcp_host)
+        if preset_changed and 0 <= new_idx < len(presets):
+            self._mcp_host = presets[new_idx]
+            changed = True
+        if changed:
+            self._persist_mcp_fields()
+
+    def _render_mcp_port_token_rows(self, width_px: float) -> None:
+        """Port and token inputs that persist on every change."""
+        imgui.set_next_item_width(px(width_px))
+        changed_port, self._mcp_port = imgui.input_text(
+            S.SETTINGS_MCP_PORT, self._mcp_port
+        )
+        imgui.set_next_item_width(px(width_px))
+        changed_token, self._mcp_token = imgui.input_text(
+            S.SETTINGS_MCP_TOKEN, self._mcp_token, imgui.InputTextFlags_.password
+        )
+        if changed_port or changed_token:
+            self._persist_mcp_fields()
 
     def _render_ki_panel(self) -> None:
         """'AI' tab: explains AI control via the MCP server, lets the user start/stop it, and shows
@@ -5460,18 +5498,12 @@ class KnxGuiApp:
             S.SETTINGS_MCP_RUNNING if running else S.SETTINGS_MCP_STOPPED,
         )
         self._render_mcp_error()
-        imgui.set_next_item_width(px(240.0))
-        _, self._mcp_host = imgui.input_text(S.SETTINGS_MCP_HOST, self._mcp_host)
+        self._render_mcp_host_row(width_px=240.0)
         imgui.push_text_wrap_pos(0.0)
         imgui.text_disabled(S.KI_HOST_HINT)
         imgui.pop_text_wrap_pos()
-        imgui.set_next_item_width(px(240.0))
-        _, self._mcp_port = imgui.input_text(S.SETTINGS_MCP_PORT, self._mcp_port)
-        imgui.set_next_item_width(px(240.0))
-        _, self._mcp_token = imgui.input_text(
-            S.SETTINGS_MCP_TOKEN, self._mcp_token, imgui.InputTextFlags_.password
-        )
-        url = f"http://{self._mcp_host}:{self._mcp_port}/mcp"
+        self._render_mcp_port_token_rows(width_px=240.0)
+        url = _mcp_advertise_url(self._mcp_host, self._mcp_port)
         if running:
             imgui.text_disabled(f"{S.KI_ENDPOINT}:")
             imgui.same_line()

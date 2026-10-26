@@ -1428,3 +1428,9 @@ msgstr "Cela arrête XKNX Editor sur le serveur. Tant qu'il n'y est pas redémar
 
 msgid "Del"
 msgstr "Suppr"
+
+msgid "This Machine Only"
+msgstr "Cette machine uniquement"
+
+msgid "On the Network"
+msgstr "Sur le réseau"

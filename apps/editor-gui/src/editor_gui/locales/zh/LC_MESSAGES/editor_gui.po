@@ -1428,3 +1428,9 @@ msgstr "这将停止服务器上的 XKNX Editor。在服务器上重新启动之
 
 msgid "Del"
 msgstr "Del"
+
+msgid "This Machine Only"
+msgstr "仅本机"
+
+msgid "On the Network"
+msgstr "在网络上"

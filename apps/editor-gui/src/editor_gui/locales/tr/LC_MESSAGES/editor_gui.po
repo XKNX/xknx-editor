@@ -1428,3 +1428,9 @@ msgstr "Bu işlem XKNX Editor'ü sunucuda durdurur. Orada yeniden başlatılana 
 
 msgid "Del"
 msgstr "Del"
+
+msgid "This Machine Only"
+msgstr "Yalnızca bu makine"
+
+msgid "On the Network"
+msgstr "Ağda"
