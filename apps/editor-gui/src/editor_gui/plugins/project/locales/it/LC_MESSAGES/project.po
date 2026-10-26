@@ -2928,3 +2928,12 @@ msgstr "Copia indirizzo di gruppo"
 
 msgid "Existing Devices…"
 msgstr "Dispositivi esistenti…"
+
+msgid "Delete the {count} selected devices? Their group objects and group-address links are removed and their individual addresses are freed. This can be undone."
+msgstr "Eliminare i {count} dispositivi selezionati? I loro oggetti di gruppo e i collegamenti agli indirizzi di gruppo vengono rimossi e i loro indirizzi individuali vengono liberati. L'operazione può essere annullata."
+
+msgid "Remove {count} devices"
+msgstr "Rimuovi {count} dispositivi"
+
+msgid "Delete Devices"
+msgstr "Elimina dispositivi"

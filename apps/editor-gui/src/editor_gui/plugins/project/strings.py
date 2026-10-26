@@ -3016,11 +3016,26 @@ class ProjectStrings:
         return _("Delete Device")
 
     @property
+    def DEVICE_DELETE_TITLE_SEVERAL(self) -> str:
+        return _("Delete Devices")
+
+    @property
     def DEVICE_DELETE_CONFIRM(self) -> str:
         return _(
             "Delete '{name}'? Its group objects and group-address links are removed and its "
             "individual address is freed. This can be undone."
         )
+
+    @property
+    def DEVICE_DELETE_CONFIRM_SEVERAL(self) -> str:
+        return _(
+            "Delete the {count} selected devices? Their group objects and group-address links "
+            "are removed and their individual addresses are freed. This can be undone."
+        )
+
+    @property
+    def HISTORY_EV_REMOVE_DEVICES(self) -> str:
+        return _("Remove {count} devices")
 
     @property
     def BTN_ADD(self) -> str:

@@ -819,7 +819,7 @@ class SpacesPanel:
         if not begin_dialog(_assign_device_dialog(space_id)):
             return
         self._assign_filter = filter_box(
-            f"##assignflt{space_id}", S.SPACES_FILTER_HINT, self._assign_filter
+            f"##assignflt{space_id}", S.DEVICE_FILTER_HINT, self._assign_filter
         )
         needle = self._assign_filter.strip().lower()
         devices = self._get_unassigned_devices()
@@ -1205,7 +1205,7 @@ class SpacesPanel:
         ):
             return
         self._trade_device_filter = filter_box(
-            f"##tradedevflt{trade.id}", S.SPACES_FILTER_HINT, self._trade_device_filter
+            f"##tradedevflt{trade.id}", S.DEVICE_FILTER_HINT, self._trade_device_filter
         )
         needle = self._trade_device_filter.strip().lower()
         inside = {link.device.id for link in trade.devices}

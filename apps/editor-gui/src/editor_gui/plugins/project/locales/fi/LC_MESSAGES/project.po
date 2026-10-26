@@ -2928,3 +2928,12 @@ msgstr "Kopioi ryhmäosoite"
 
 msgid "Existing Devices…"
 msgstr "Olemassa olevat laitteet…"
+
+msgid "Delete the {count} selected devices? Their group objects and group-address links are removed and their individual addresses are freed. This can be undone."
+msgstr "Poistetaanko {count} valittua laitetta? Niiden ryhmäobjektit ja ryhmäosoitelinkit poistetaan ja niiden yksilölliset osoitteet vapautetaan. Tämän voi kumota."
+
+msgid "Remove {count} devices"
+msgstr "Poista {count} laitetta"
+
+msgid "Delete Devices"
+msgstr "Poista laitteet"

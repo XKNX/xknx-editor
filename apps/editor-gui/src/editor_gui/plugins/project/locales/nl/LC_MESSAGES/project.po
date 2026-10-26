@@ -2966,3 +2966,12 @@ msgstr "Groepsadres kopiëren"
 
 msgid "Existing Devices…"
 msgstr "Bestaande apparaten…"
+
+msgid "Delete the {count} selected devices? Their group objects and group-address links are removed and their individual addresses are freed. This can be undone."
+msgstr "De {count} geselecteerde apparaten verwijderen? Hun groepsobjecten en groepsadreskoppelingen worden verwijderd en hun fysieke adressen worden vrijgegeven. Dit kan ongedaan worden gemaakt."
+
+msgid "Remove {count} devices"
+msgstr "{count} apparaten verwijderen"
+
+msgid "Delete Devices"
+msgstr "Apparaten verwijderen"

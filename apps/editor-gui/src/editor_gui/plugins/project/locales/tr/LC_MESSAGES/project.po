@@ -2928,3 +2928,12 @@ msgstr "Grup Adresini Kopyala"
 
 msgid "Existing Devices…"
 msgstr "Mevcut Cihazlar…"
+
+msgid "Delete the {count} selected devices? Their group objects and group-address links are removed and their individual addresses are freed. This can be undone."
+msgstr "Seçili {count} cihaz silinsin mi? Grup nesneleri ve grup adresi bağlantıları kaldırılır, bireysel adresleri serbest bırakılır. Bu işlem geri alınabilir."
+
+msgid "Remove {count} devices"
+msgstr "{count} cihazı kaldır"
+
+msgid "Delete Devices"
+msgstr "Cihazları Sil"

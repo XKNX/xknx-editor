@@ -2928,3 +2928,12 @@ msgstr "グループ・アドレスをコピー"
 
 msgid "Existing Devices…"
 msgstr "既存のデバイス…"
+
+msgid "Delete the {count} selected devices? Their group objects and group-address links are removed and their individual addresses are freed. This can be undone."
+msgstr "選択した {count} 台のデバイスを削除しますか? グループオブジェクトとグループアドレスのリンクは削除され、個別アドレスは解放されます。元に戻すことができます。"
+
+msgid "Remove {count} devices"
+msgstr "{count} 台のデバイスを削除"
+
+msgid "Delete Devices"
+msgstr "デバイスを削除"

@@ -2928,3 +2928,12 @@ msgstr "Копіювати групову адресу"
 
 msgid "Existing Devices…"
 msgstr "Наявні пристрої…"
+
+msgid "Delete the {count} selected devices? Their group objects and group-address links are removed and their individual addresses are freed. This can be undone."
+msgstr "Видалити {count} вибраних пристроїв? Їхні групові об'єкти та зв'язки з груповими адресами буде видалено, а індивідуальні адреси звільнено. Це можна скасувати."
+
+msgid "Remove {count} devices"
+msgstr "Видалити {count} пристроїв"
+
+msgid "Delete Devices"
+msgstr "Видалити пристрої"

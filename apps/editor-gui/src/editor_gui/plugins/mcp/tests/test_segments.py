@@ -388,3 +388,57 @@ async def test_a_parked_device_keeps_its_line(tmp_path: Path) -> None:
         await _data(client, "project_undo")
         read = await _data(client, "project_get_device", node_id=device["node_id"])
         assert read["individual_address"] == device["individual_address"]
+
+
+@pytest.mark.skipif(not _FIXTURE.exists(), reason="knxprod fixture missing")
+async def test_several_devices_are_moved_and_removed_in_one_batch(
+    tmp_path: Path,
+) -> None:
+    mcp, _project_service = _build(tmp_path)
+    async with Client(mcp) as client:
+        await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
+        await _data(client, "catalog_import_knxprod", path=str(_FIXTURE))
+        product = (await _data(client, "catalog_list_products"))["items"][0]
+        first, second = [
+            await _data(
+                client, "project_add_device", product_ref_id=product["product_ref_id"]
+            )
+            for _ in range(2)
+        ]
+        line = await _line(client, "1.1")
+        segment = await _data(client, "project_add_segment", line_id=line["id"])
+        # "Move to" of several selected devices.
+        moved = await _data(
+            client,
+            "project_batch",
+            operations=[
+                {
+                    "op": "move_device_to_segment",
+                    "params": {"node_id": d["node_id"], "segment_id": segment["id"]},
+                }
+                for d in (first, second)
+            ],
+        )
+        assert [r["result"]["node_id"] for r in moved["results"]] == [
+            first["node_id"],
+            second["node_id"],
+        ]
+        for device in (first, second):
+            read = await _data(client, "project_get_device", node_id=device["node_id"])
+            assert read["segment_id"] == segment["id"]
+        # "Delete" of several selected devices, one addressed by its individual address.
+        await _data(
+            client,
+            "project_batch",
+            operations=[
+                {"op": "remove_device", "params": {"node_id": first["node_id"]}},
+                {
+                    "op": "remove_device",
+                    "params": {"device_address": second["individual_address"]},
+                },
+            ],
+        )
+        devices = (await _data(client, "project_list_devices"))["items"]
+        assert all(
+            d["node_id"] not in (first["node_id"], second["node_id"]) for d in devices
+        )

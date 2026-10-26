@@ -244,6 +244,18 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             )
         return {"node_id": device.node_id}
 
+    def _op_move_device_to_segment(p: dict[str, Any]) -> dict[str, Any]:
+        device = _device(p)
+        project.move_device_to_segment(device.node_id, int(p["segment_id"]))
+        return {"node_id": device.node_id}
+
+    def _op_remove_device(p: dict[str, Any]) -> dict[str, Any]:
+        node_id = _device(p).node_id
+        project.remove_device(node_id)
+        if node_id in project.selected_node_ids:
+            project.set_multi_selection(None, [])
+        return {"node_id": node_id}
+
     def _op_set_comment(p: dict[str, Any]) -> dict[str, Any]:
         kind = p["kind"]
         if kind not in _COMMENT_KINDS:
@@ -285,6 +297,8 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
     ] = {
         "add_device": (("product_ref_id",), _op_add_device),
         "rename_device": ((), _op_rename_device),
+        "move_device_to_segment": (("segment_id",), _op_move_device_to_segment),
+        "remove_device": ((), _op_remove_device),
         "set_individual_address": (("address",), _op_set_individual_address),
         "set_parameter": ((), _op_set_parameter),
         "set_com_object_flag": (
@@ -428,6 +442,11 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         - add_device: product_ref_id [name, space_id] -> {node_id}; uses the first matching
           catalog product; with space_id it is added to that space, on its Current Line.
         - rename_device: device, [name] [description] (at least one) -> {node_id}.
+        - move_device_to_segment: device, segment_id -> {node_id}; as
+          project_move_device_to_segment (several devices, also from different lines, as one
+          "Move to" of a multi-selection does).
+        - remove_device: device -> {node_id}; as project_remove_device (several devices in one
+          batch, as "Delete" of a multi-selection does).
         - set_individual_address: device, address -> {node_id, address}.
         - set_parameter: device, (parameter_ref_id | label [subtree_id tree_token] [value_label]),
           value? -> {node_id, ref_id, requested, value, active, changed?, lost_links?}. Address the

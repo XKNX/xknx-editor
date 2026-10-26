@@ -1,4 +1,4 @@
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
 from typing import cast
 
@@ -253,10 +253,14 @@ class TopologyPanel:
         self._line_text: dict[int, str] = {}
         self._addressed: set[int] = set()
 
-        self._delete_target_device: TreeDevice | None = None
+        # The devices "Delete" (or the Delete key) asks about: one, or the selected ones.
+        self._delete_targets: list[TreeDevice] = []
         self._open_delete_device_popup: bool = False
+        # The selected device pressed while several are selected (see _handle_device_click).
+        self._press_in_selection: Device | None = None
 
     def render(self) -> None:
+        self._settle_press_in_selection()
         devices: list[TreeDevice] = sorted(
             [*self._get_devices(), *self._get_unloaded_devices()],
             key=_address_order,
@@ -300,7 +304,7 @@ class TopologyPanel:
             imgui.end_popup()
 
         if self._open_delete_device_popup:
-            imgui.open_popup(S.DEVICE_DELETE_TITLE)
+            imgui.open_popup(self._delete_dialog_title())
             self._open_delete_device_popup = False
 
         self._adder.render()
@@ -569,14 +573,16 @@ class TopologyPanel:
         tree_node(self._device_label(device), leaf(device))
         if device.node_id in self._selected_devices and self._shortcut_row is None:
             segment = self._get_device_segments().get(device.node_id)
+            dragged = self._dragged_devices(device)
             self._shortcut_row = ShortcutRow(
-                self._dragged_devices(device),
+                dragged,
                 lambda c: (
                     PasteTarget("segment", segment)
                     if c.kind == "device" and segment is not None
                     else None
                 ),
-                on_delete=lambda: self._ask_delete_device(device),
+                # The Delete key deletes all selected devices.
+                on_delete=lambda: self._ask_delete_devices(self._devices_of(dragged)),
             )
         if imgui.is_item_clicked():
             self._handle_device_click(device, ordered_ids)
@@ -605,8 +611,19 @@ class TopologyPanel:
 
     def _ask_delete_device(self, device: TreeDevice) -> None:
         """Ask before ``device`` is deleted from the project."""
-        self._delete_target_device = device
+        self._ask_delete_devices([device])
+
+    def _ask_delete_devices(self, devices: Sequence[TreeDevice]) -> None:
+        """Ask before ``devices`` are deleted from the project (one undo step)."""
+        if not devices:
+            return
+        self._delete_targets = list(devices)
         self._open_delete_device_popup = True
+
+    def _devices_of(self, dragged: Dragged) -> list[Device]:
+        """The devices ``dragged`` names, in its order."""
+        by_id = {d.node_id: d for d in self._get_devices()}
+        return [by_id[i] for i in dragged.ids if i in by_id]
 
     def _render_unlink_item(
         self, node_ids: tuple[int, ...], before: Callable[[], bool]
@@ -651,6 +668,11 @@ class TopologyPanel:
         shift = io.key_shift
         current = set(self._get_selected_node_ids())
         nid = device.node_id
+        if not ctrl and not shift and nid in current and len(current) > 1:
+            # A press on one of several selected devices may start dragging them all: it
+            # selects only this one when the button comes up without a drag.
+            self._press_in_selection = device
+            return
         if shift and self._last_selected in ordered_ids and nid in ordered_ids:
             i0 = ordered_ids.index(self._last_selected)
             i1 = ordered_ids.index(nid)
@@ -664,16 +686,34 @@ class TopologyPanel:
         self._last_selected = nid
         self._on_select_devices(device, sorted(current))
 
+    def _settle_press_in_selection(self) -> None:
+        """A press on one of several selected devices: a drag takes them all along; released
+        without one, only that device stays selected."""
+        device = self._press_in_selection
+        if device is None:
+            return
+        if imgui.is_mouse_dragging(imgui.MouseButton_.left):
+            self._press_in_selection = None
+        elif not imgui.is_mouse_down(imgui.MouseButton_.left):
+            self._press_in_selection = None
+            self._last_selected = device.node_id
+            if self._on_select_devices is not None:
+                self._on_select_devices(device, [device.node_id])
+
     def _render_device_context_menu(self, device: Device) -> None:
         if context_menu(f"##dev_ctx_{device.node_id}"):
             # Its configuration; where it is and its address; reading, comparing and
-            # unlinking; then Copy / Cut / Paste and "Delete".
+            # unlinking; then Copy / Cut / Paste and "Delete". On one of several selected
+            # devices only what acts on all of them: pasting a configuration into them, moving,
+            # parking and unlinking them, Copy / Cut / Paste and deleting them.
+            dragged = self._dragged_devices(device)
+            several = len(dragged.ids) > 1
             groups = MenuGroups()
             label = self._device_display_name(device)
             groups.show()
-            if imgui.menu_item(S.CONTEXT_DUPLICATE, "", False)[0]:
+            if not several and imgui.menu_item(S.CONTEXT_DUPLICATE, "", False)[0]:
                 self._config_dialog.open(device.node_id, label, "duplicate")
-            if imgui.menu_item(S.CONTEXT_COPY_CONFIG, "", False)[0]:
+            if not several and imgui.menu_item(S.CONTEXT_COPY_CONFIG, "", False)[0]:
                 self._on_copy_config(device.node_id)
             if imgui.menu_item(
                 S.CONTEXT_PASTE_CONFIG,
@@ -683,26 +723,28 @@ class TopologyPanel:
             )[0]:
                 self._config_dialog.open(device.node_id, label, "paste")
             groups.next()
-            self._render_move_device_menu(device, groups.show)
-            render_copy_device_address_item(device.individual_address, groups.show)
+            self._render_move_device_menu(device, groups.show, dragged.ids)
+            if not several:
+                render_copy_device_address_item(device.individual_address, groups.show)
             groups.next()
-            if self._on_device_info is not None and groups.show():
+            if not several and self._on_device_info is not None and groups.show():
                 render_read_device_item(
                     device.node_id,
                     bool(device.individual_address),
                     self._on_device_info,
                 )
             if (
-                self._on_compare is not None
+                not several
+                and self._on_compare is not None
                 and groups.show()
                 and imgui.menu_item(S.CONTEXT_COMPARE_DEVICE, "", False)[0]
             ):
                 self._on_compare(device.node_id)
-            self._render_unlink_item(self._dragged_devices(device).ids, groups.show)
+            self._render_unlink_item(dragged.ids, groups.show)
             # Devices pasted on a device go to its segment.
             segment = self._get_device_segments().get(device.node_id)
             self._render_clipboard_items(
-                self._dragged_devices(device),
+                dragged,
                 lambda c: (
                     PasteTarget("segment", segment)
                     if c.kind == "device" and segment is not None
@@ -711,17 +753,23 @@ class TopologyPanel:
             )
             imgui.separator()
             if render_delete_item():
-                self._ask_delete_device(device)
+                self._ask_delete_devices(self._devices_of(dragged))
             imgui.end_popup()
 
     def _render_move_device_menu(
-        self, device: TreeDevice, before: Callable[[], object]
+        self,
+        device: TreeDevice,
+        before: Callable[[], object],
+        node_ids: tuple[int, ...] = (),
     ) -> None:
-        """ "Move to" of a device: every line (as its main segment) and sub-segment, the one it
-        is on grayed out. A device keeps its address within its line and gets the lowest free
-        one of another line. ``before`` runs right before it shows."""
+        """ "Move to" of a device, or of the devices ``node_ids`` (several selected, also on
+        different lines; one undo step): every line (as its main segment) and sub-segment, the
+        one they are on grayed out. A device keeps its address within its line and gets the
+        lowest free one of another line. ``before`` runs right before it shows."""
         segment_of = self._get_device_segments()
-        own = segment_of.get(device.node_id)
+        moved = node_ids or (device.node_id,)
+        on = {segment_of.get(node_id) for node_id in moved}
+        own = next(iter(on)) if len(on) == 1 else None
         targets: list[tuple[str, int]] = []
         for area in self._get_areas():
             for line in sorted(self._get_lines(area.id), key=lambda ln: ln.number):
@@ -745,24 +793,49 @@ class TopologyPanel:
         chosen = render_move_menu(
             targets, own if own is not None else -1, before=before
         )
-        if chosen is not None:
+        if chosen is None:
+            return
+        if len(moved) == 1:
             self._on_move_device_to_segment(
                 cast(Device, device), Segment(chosen[0], "")
             )
+            return
+        with self._one_undo_step():
+            for each in self._devices_of(Dragged("device", moved)):
+                if segment_of.get(each.node_id) != chosen[0]:
+                    self._on_move_device_to_segment(each, Segment(chosen[0], ""))
+
+    def _delete_dialog_title(self) -> str:
+        """ "Delete Device", or "Delete Devices" for several (one dialog id for both)."""
+        several = len(self._delete_targets) > 1
+        title = S.DEVICE_DELETE_TITLE_SEVERAL if several else S.DEVICE_DELETE_TITLE
+        return f"{title}###topology_delete_devices"
 
     def _render_delete_device_popup(self) -> None:
-        if begin_dialog(S.DEVICE_DELETE_TITLE, width=420.0):
-            device = self._delete_target_device
-            name = self._device_display_name(device) if device else ""
-            imgui.text_wrapped(S.DEVICE_DELETE_CONFIRM.format(name=name))
+        if begin_dialog(self._delete_dialog_title(), width=420.0):
+            devices = self._delete_targets
+            if len(devices) == 1:
+                text = S.DEVICE_DELETE_CONFIRM.format(
+                    name=self._device_display_name(devices[0])
+                )
+            else:
+                text = S.DEVICE_DELETE_CONFIRM_SEVERAL.format(count=len(devices))
+            imgui.text_wrapped(text)
             clicked = dialog_buttons(S.CONTEXT_DELETE, S.BTN_CANCEL)
             if clicked == 0:
-                if device is not None:
-                    self._on_delete_device(device)
-                self._delete_target_device = None
+                # Several in one undo step.
+                label = (
+                    S.HISTORY_EV_REMOVE_DEVICES.format(count=len(devices))
+                    if len(devices) > 1
+                    else None
+                )
+                with self._one_undo_step(label):
+                    for device in devices:
+                        self._on_delete_device(device)
+                self._delete_targets = []
                 imgui.close_current_popup()
             elif clicked == 1:
-                self._delete_target_device = None
+                self._delete_targets = []
                 imgui.close_current_popup()
             end_dialog()
 

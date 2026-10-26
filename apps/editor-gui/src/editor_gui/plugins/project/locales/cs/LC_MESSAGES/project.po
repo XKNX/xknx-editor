@@ -2928,3 +2928,12 @@ msgstr "Kopírovat skupinovou adresu"
 
 msgid "Existing Devices…"
 msgstr "Existující přístroje…"
+
+msgid "Delete the {count} selected devices? Their group objects and group-address links are removed and their individual addresses are freed. This can be undone."
+msgstr "Smazat {count} vybraných přístrojů? Jejich skupinové objekty a propojení se skupinovými adresami se odstraní a jejich individuální adresy se uvolní. Lze to vrátit zpět."
+
+msgid "Remove {count} devices"
+msgstr "Odstranit {count} přístrojů"
+
+msgid "Delete Devices"
+msgstr "Odstranit zařízení"
