@@ -89,8 +89,8 @@ def project_hubs(project: ProjectService) -> list[Hub]:
     for link in project.device_links():
         if not link.communication:
             continue
-        sends = link.transmit and link.is_sending
-        receives = link.write or link.update
+        sends = bool(link.transmit and link.is_sending)
+        receives = bool(link.write or link.update)
         if not (sends or receives):
             continue
         bits = part.setdefault(link.group_address_id, {}).setdefault(
