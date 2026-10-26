@@ -449,7 +449,8 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
           batch, as "Delete" of a multi-selection does).
         - set_individual_address: device, address -> {node_id, address}.
         - set_parameter: device, (parameter_ref_id | label [subtree_id tree_token] [value_label]),
-          value? -> {node_id, ref_id, requested, value, active, changed?, lost_links?}. Address the
+          value? -> {node_id, ref_id, requested, value, active, tree_token, changed?, lost_links?}
+          (tree_token as for project_set_parameter: the tree after this op). Address the
           parameter by parameter_ref_id, or by label (resolved AT THIS OP'S TURN within subtree_id,
           so a child a prior op in the batch just activated resolves; a SCOPED label requires
           tree_token from the project_parameter_tree response its subtree_id came from, so an op
