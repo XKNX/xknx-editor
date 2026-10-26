@@ -61,6 +61,8 @@ from editor_gui.widgets.tree import (
     keyboard_moved_here,
     leaf_rows,
     row_chosen,
+    row_selectable,
+    same_row,
     tree_node,
 )
 from xknxeditor.proj.core.addressing import GroupAddressStyle
@@ -625,7 +627,7 @@ class GroupAddressesPanel:
             # clipped, so it never covers the name. allow_overlap lets the value be hovered for a
             # tooltip without fighting the row below it.
             row_x = imgui.get_cursor_pos_x()
-            clicked = imgui.selectable(
+            clicked = row_selectable(
                 f"{name}##ga{ga.id}", selected, imgui.SelectableFlags_.allow_overlap
             )[0]
             if clicked or keyboard_moved_here():
@@ -657,9 +659,9 @@ class GroupAddressesPanel:
                 description_icon(description, x=left + end + spacing)
                 end += spacing + description_icon_width()
             elif description:
-                imgui.same_line()
-                imgui.set_cursor_pos_x(end + spacing)
-                imgui.text_disabled(description)
+                with same_row():
+                    imgui.set_cursor_pos_x(end + spacing)
+                    imgui.text_disabled(description)
                 end += spacing + imgui.calc_text_size(description).x
             live = (
                 self._get_latest_value(ga.text, ga.datapoint_type)
@@ -668,9 +670,9 @@ class GroupAddressesPanel:
             )
             value_text, value_time = (live[0], live[1]) if live else ("", "")
             if value_text:
-                imgui.same_line()
-                imgui.set_cursor_pos_x(end + spacing * 3.0)
-                imgui.text_colored(themed(*_LIVE_COLOR), value_text)
+                with same_row():
+                    imgui.set_cursor_pos_x(end + spacing * 3.0)
+                    imgui.text_colored(themed(*_LIVE_COLOR), value_text)
                 if imgui.is_item_hovered():
                     imgui.set_tooltip(
                         f"{value_text}\n{value_time}" if value_time else value_text

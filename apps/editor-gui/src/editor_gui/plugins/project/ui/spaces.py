@@ -60,6 +60,7 @@ from editor_gui.widgets.tree import (
     keyboard_moved_here,
     leaf_rows,
     row_chosen,
+    row_selectable,
     tree_node,
 )
 from xknxeditor.proj.core.addressing import GroupAddressStyle
@@ -920,7 +921,7 @@ class SpacesPanel:
                 ),
             )
         if (
-            imgui.selectable(f"{leaf}##spdev{where}{device.id}", selected)[0]
+            row_selectable(f"{leaf}##spdev{where}{device.id}", selected)[0]
             or keyboard_moved_here()
         ):
             self._clear_selection()
@@ -1277,7 +1278,7 @@ class SpacesPanel:
                 on_delete=(lambda: remove(ref.id)) if remove is not None else None,
             )
         if (
-            imgui.selectable(f"{text}##fnga{ref.id}", selected)[0]
+            row_selectable(f"{text}##fnga{ref.id}", selected)[0]
             or keyboard_moved_here()
         ):
             self._clear_selection()

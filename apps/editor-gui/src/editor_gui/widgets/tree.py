@@ -47,11 +47,51 @@ def row_chosen() -> bool:
 
 
 def tree_node(label: str, flags: int = 0) -> bool:
-    """``imgui.tree_node_ex`` with the narrow arrow margin."""
-    padding = imgui.ImVec2(px(_ARROW_MARGIN), imgui.get_style().frame_padding.y)
+    """``imgui.tree_node_ex`` with the narrow arrow margin. The row takes the spacing to the next
+    one as room above and below its label, so that its highlight (selected, hovered) reaches the
+    next row's: several selected rows make one area. The rows stay as far apart."""
+    spacing = imgui.get_style().item_spacing
+    padding = imgui.ImVec2(px(_ARROW_MARGIN), spacing.y / 2)
     imgui.push_style_var(imgui.StyleVar_.frame_padding, padding)
+    imgui.push_style_var(imgui.StyleVar_.item_spacing, imgui.ImVec2(spacing.x, 0.0))
     try:
-        return imgui.tree_node_ex(label, flags)
+        return imgui.tree_node_ex(label, flags | imgui.TreeNodeFlags_.frame_padding)
+    finally:
+        imgui.pop_style_var(2)
+
+
+def row_selectable(label: str, selected: bool, flags: int = 0) -> tuple[bool, bool]:
+    """``imgui.selectable`` for a tree row without an arrow, laid out as a :func:`tree_node` row:
+    as high, with its label as far down, and its highlight reaching the next row."""
+    spacing = imgui.get_style().item_spacing
+    height = imgui.get_text_line_height() + spacing.y
+    imgui.push_style_var(imgui.StyleVar_.item_spacing, imgui.ImVec2(spacing.x, 0.0))
+    imgui.push_style_var(
+        imgui.StyleVar_.selectable_text_align,
+        imgui.ImVec2(imgui.get_style().selectable_text_align.x, 0.5),
+    )
+    try:
+        result = imgui.selectable(label, selected, flags, imgui.ImVec2(0.0, height))
+    finally:
+        imgui.pop_style_var(2)
+    # Texts after it on its line (see same_row) sit on its label's line.
+    internal.get_current_window().dc.prev_line_text_base_offset = spacing.y / 2
+    return result
+
+
+@contextmanager
+def same_row() -> Generator[None]:
+    """Items after the previous one on its line, leaving the room below the line it left (a tree
+    row leaves none: its highlight fills the room to the next row)."""
+    lines = internal.get_current_window().dc
+    below = lines.cursor_pos.y - lines.cursor_pos_prev_line.y - lines.prev_line_size.y
+    imgui.same_line()
+    spacing = imgui.get_style().item_spacing
+    imgui.push_style_var(
+        imgui.StyleVar_.item_spacing, imgui.ImVec2(spacing.x, max(below, 0.0))
+    )
+    try:
+        yield
     finally:
         imgui.pop_style_var()
 
