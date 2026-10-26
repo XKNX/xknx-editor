@@ -861,7 +861,9 @@ class ConfigurePanel:
         """The device name. Without a custom name the default one is shown in grey italics and
         filled in when the field is entered; leaving it with the default name keeps no custom
         name."""
-        default = device.display_name
+        # The name it is shown with without a custom name (not the custom name itself: leaving the
+        # field unchanged would drop it).
+        default = device.product_name or (device.app.name if device.app else "")
         placeholder = not device.name and not self._name_prefilled
         imgui.set_next_item_width(-1)
         name_focus.focus_name_field()

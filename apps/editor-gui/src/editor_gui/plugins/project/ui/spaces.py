@@ -57,7 +57,9 @@ from editor_gui.widgets.dpi import px_vec2
 from editor_gui.widgets.tree import (
     begin_tree_area,
     context_menu,
+    keyboard_moved_here,
     leaf_rows,
+    row_chosen,
     tree_node,
 )
 from xknxeditor.proj.core.addressing import GroupAddressStyle
@@ -519,11 +521,7 @@ class SpacesPanel:
                 ),
             )
         open_node = tree_node(f"{space_label(space)}##sp{space.id}", flags)
-        if (
-            self._on_select_space is not None
-            and imgui.is_item_clicked()
-            and not imgui.is_item_toggled_open()
-        ):
+        if self._on_select_space is not None and row_chosen():
             self._clear_selection()
             self._on_select_space(space.id)
         # The context menu and the space's own popups must run whether the node is expanded or not
@@ -921,7 +919,10 @@ class SpacesPanel:
                     else None
                 ),
             )
-        if imgui.selectable(f"{leaf}##spdev{where}{device.id}", selected)[0]:
+        if (
+            imgui.selectable(f"{leaf}##spdev{where}{device.id}", selected)[0]
+            or keyboard_moved_here()
+        ):
             self._clear_selection()
             self._on_select_device_id(device.id)
         hovered = imgui.is_item_hovered()  # capture before the context menu below
@@ -1063,7 +1064,7 @@ class SpacesPanel:
             )
         label = f"{trade.number} {trade.name}".strip() or S.TRADES_DEFAULT
         open_node = tree_node(f"{label}##trade{trade.id}", flags)
-        if imgui.is_item_clicked() and not imgui.is_item_toggled_open():
+        if row_chosen():
             self._clear_selection()
             self._selected_trade = trade.id
             self._on_select_element("trade", trade.id)
@@ -1242,7 +1243,7 @@ class SpacesPanel:
                 on_delete=(lambda: remove(function.id)) if remove is not None else None,
             )
         open_node = tree_node(f"ƒ {label}  [{type_label}]##fn{function.id}", flags)
-        if imgui.is_item_clicked() and not imgui.is_item_toggled_open():
+        if row_chosen():
             self._clear_selection()
             self._selected_function = function.id
             self._on_select_element("function", function.id)
@@ -1275,7 +1276,10 @@ class SpacesPanel:
                 no_paste,
                 on_delete=(lambda: remove(ref.id)) if remove is not None else None,
             )
-        if imgui.selectable(f"{text}##fnga{ref.id}", selected)[0]:
+        if (
+            imgui.selectable(f"{text}##fnga{ref.id}", selected)[0]
+            or keyboard_moved_here()
+        ):
             self._clear_selection()
             self._selected_link = ref.id
             self._on_select_element("group_address", ref.group_address_id)

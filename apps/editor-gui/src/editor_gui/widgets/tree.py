@@ -24,6 +24,28 @@ _ARROW_END = 0.8
 _ARROW_FREE_HEIGHT = 0.5 - 0.4 * 0.866
 
 
+def keyboard_moved_here() -> bool:
+    """Whether the keyboard (an arrow key, Tab) just moved the focus onto the item drawn last:
+    a tree row is selected then, as by a click. With Ctrl held the focus moves alone, as in
+    Windows Explorer. Not when a panel takes the focus first (it focuses its first row then,
+    with no key pressed)."""
+    item = imgui.get_item_id()
+    context = imgui.get_current_context()
+    return (
+        item != 0
+        and context.nav_just_moved_to_id == item
+        and context.nav_cursor_visible
+        and not imgui.get_io().key_ctrl
+    )
+
+
+def row_chosen() -> bool:
+    """Whether the tree row drawn last is chosen: clicked (not on its arrow, which opens or
+    closes it), or moved onto with the keyboard."""
+    clicked = imgui.is_item_clicked() and not imgui.is_item_toggled_open()
+    return clicked or keyboard_moved_here()
+
+
 def tree_node(label: str, flags: int = 0) -> bool:
     """``imgui.tree_node_ex`` with the narrow arrow margin."""
     padding = imgui.ImVec2(px(_ARROW_MARGIN), imgui.get_style().frame_padding.y)

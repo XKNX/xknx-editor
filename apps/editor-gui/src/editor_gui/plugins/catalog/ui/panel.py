@@ -30,7 +30,7 @@ from editor_gui.widgets.flow import (
     same_line_if_fits,
 )
 from editor_gui.widgets.tabs import begin_tab_bar
-from editor_gui.widgets.tree import leaf_rows, tree_node
+from editor_gui.widgets.tree import keyboard_moved_here, leaf_rows, tree_node
 from editor_gui.widgets.value_pickers import format_date
 
 if TYPE_CHECKING:
@@ -446,6 +446,8 @@ class CatalogPanel:
         self._render_product_context_menu(product)
 
     def _handle_product_click(self, product: ProductSummary) -> None:
+        if keyboard_moved_here():
+            self._selected_product = product
         if imgui.is_item_clicked():
             self._selected_product = product  # single click selects (shows detail)
             if imgui.is_mouse_double_clicked(0):
@@ -859,6 +861,8 @@ class CatalogPanel:
         if self._selected_online == item.id:
             flags |= imgui.TreeNodeFlags_.selected
         tree_node(label, flags)
+        if keyboard_moved_here():
+            self._selected_online = item.id
         if imgui.is_item_clicked():
             self._selected_online = item.id
             if imgui.is_mouse_double_clicked(0):

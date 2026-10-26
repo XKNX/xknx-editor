@@ -41,7 +41,9 @@ from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
 from editor_gui.widgets.tree import (
     begin_tree_area,
     context_menu,
+    keyboard_moved_here,
     leaf_rows,
+    row_chosen,
     tree_node,
 )
 from xknxeditor.proj.core.medium import (
@@ -395,7 +397,7 @@ class TopologyPanel:
             # The context menu belongs to the node whether it is open or closed.
             label = self._format_area_label(area, main)
             area_open = tree_node(f"{label}##area_{area.id}", area_flags)
-            if imgui.is_item_clicked() and not imgui.is_item_toggled_open():
+            if row_chosen():
                 self._select_element(kind, area.id)
             self._render_area_context_menu(area, [line for line, _f in lines], main)
             if main is not None:
@@ -460,7 +462,7 @@ class TopologyPanel:
             imgui.set_next_item_open(True, imgui.Cond_.always)
         label = self._format_line_label(area, line)
         opened = tree_node(f"{label}##line_{line.id}", flags)
-        if imgui.is_item_clicked() and not imgui.is_item_toggled_open():
+        if row_chosen():
             self._select_element("line", line.id)
         self._render_line_context_menu(area, line)
         drag_source(Dragged("line", (line.id,)), label)
@@ -525,7 +527,7 @@ class TopologyPanel:
             imgui.set_next_item_open(True, imgui.Cond_.always)
         label = self._format_segment_label(area, line, segment)
         opened = tree_node(f"{label}##segment_{segment.id}", flags)
-        if imgui.is_item_clicked() and not imgui.is_item_toggled_open():
+        if row_chosen():
             self._select_element("segment", segment.id)
         if context_menu(f"##segment_ctx_{segment.id}"):
             if self._on_add_devices is not None and imgui.begin_menu(S.SPACES_ADD_MENU):
@@ -584,7 +586,7 @@ class TopologyPanel:
                 # The Delete key deletes all selected devices.
                 on_delete=lambda: self._ask_delete_devices(self._devices_of(dragged)),
             )
-        if imgui.is_item_clicked():
+        if imgui.is_item_clicked() or keyboard_moved_here():
             self._handle_device_click(device, ordered_ids)
         self._render_device_context_menu(device)
         self._render_device_drag_source(device)

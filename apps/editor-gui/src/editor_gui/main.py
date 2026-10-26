@@ -4742,11 +4742,16 @@ class KnxGuiApp:
         # panel itself, because a background dock tab is not rendered and would never see the flag.
         # Use hello_imgui's docking API (focus_window_at_next_frame) — calling imgui.set_window_focus
         # by name from this post-render phase re-enters the docking layout and crashes.
-        if self._project_service.take_focus_editor():
+        # An Editor already shown keeps the focus where it is: the arrow keys go on moving through
+        # the tree a device was chosen in.
+        editor_label = f"{_DOCK_LABELS['editor']()}###editor"
+        if self._project_service.take_focus_editor() and not _window_shown(
+            editor_label
+        ):
             # Dockable windows are labelled "Title###name"; focus by the exact current label so the
             # ###editor identity matches after the language-aware title change.
             hello_imgui.get_runner_params().docking_params.focus_dockable_window(
-                f"{_DOCK_LABELS['editor']()}###editor"
+                editor_label
             )
         if self._project_service.take_focus_group_addresses():
             hello_imgui.get_runner_params().docking_params.focus_dockable_window(
@@ -5047,7 +5052,9 @@ class KnxGuiApp:
             imgui.ImVec2(0.5, 0.0),
         )
         imgui.set_next_window_size(px_vec2(520.0, 0.0), imgui.Cond_.appearing)
-        if not imgui.begin_popup("##cmd_palette"):
+        # Its own arrow keys and Enter move through and pick from the list below its field, so
+        # imgui's keyboard navigation stays out of it (it would move away from the field).
+        if not imgui.begin_popup("##cmd_palette", imgui.WindowFlags_.no_nav_inputs):
             return
         if self._palette_focus:
             imgui.set_keyboard_focus_here()
@@ -5909,6 +5916,13 @@ def _dock_window_name(window: hello_imgui.DockableWindow) -> str:
     return window.label.split("###")[-1]
 
 
+def _window_shown(label: str) -> bool:
+    """Whether the window ``label`` was drawn in this frame and is not a tab behind another."""
+    window = imgui.internal.find_window_by_name(label)
+    # The bindings type it as non-optional, but it is None for a window never drawn.
+    return window is not None and window.active and not window.hidden  # pyright: ignore[reportUnnecessaryComparison]
+
+
 def create_dockable_windows(app: KnxGuiApp) -> list[hello_imgui.DockableWindow]:
     windows: list[hello_imgui.DockableWindow] = []
     for panel in app.get_all_panels():
@@ -6176,6 +6190,10 @@ def _main() -> None:
     # revision caching (see the revision-cached reads in ProjectService). No cost when off.
     def pre_new_frame() -> None:
         follow_language()
+        # The keyboard moves through the app as on Windows: Tab and Shift+Tab through every
+        # field, Space and Enter use the one in focus, the arrow keys move through drop-down
+        # lists and trees, Escape leaves them.
+        imgui.get_io().config_flags |= imgui.ConfigFlags_.nav_enable_keyboard
         if frame_db_profiler.enabled:
             app.watch_db_frame()
 

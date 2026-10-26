@@ -58,7 +58,9 @@ from editor_gui.widgets.text_util import text_clipped_tooltip
 from editor_gui.widgets.tree import (
     begin_tree_area,
     context_menu,
+    keyboard_moved_here,
     leaf_rows,
+    row_chosen,
     tree_node,
 )
 from xknxeditor.proj.core.addressing import GroupAddressStyle
@@ -486,7 +488,7 @@ class GroupAddressesPanel:
                 ),
             )
         open_node = tree_node(label, flags)
-        if imgui.is_item_clicked() and not imgui.is_item_toggled_open():
+        if row_chosen():
             self._selected_range_id = node.id
             self._on_select_element("group_range", node.id)
         self._render_range_context_menu(node, is_root)
@@ -626,7 +628,7 @@ class GroupAddressesPanel:
             clicked = imgui.selectable(
                 f"{name}##ga{ga.id}", selected, imgui.SelectableFlags_.allow_overlap
             )[0]
-            if clicked:
+            if clicked or keyboard_moved_here():
                 self._selected_ga_id = ga.id
                 self._selected_range_id = None
                 self._on_select_element("group_address", ga.id)
