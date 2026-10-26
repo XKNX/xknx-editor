@@ -174,3 +174,24 @@ msgstr "Служби: {services}"
 
 msgid "Retry"
 msgstr "Повторити спробу"
+
+msgid "Select Connection"
+msgstr "Виберіть з'єднання"
+
+msgid "XKNX Editor could not determine an available connection."
+msgstr "XKNX Editor не може визначити доступне підключення."
+
+msgid "The connection {name} is not available."
+msgstr "Підключення {name} не доступне."
+
+msgid "You may use any of the connections listed below, instead."
+msgstr "Замість ви можете використовувати будь-які перераховані нижче з'єднання."
+
+msgid "{name}: {error}"
+msgstr "{name}: {error}"
+
+msgid "Cancel"
+msgstr "Скасувати"
+
+msgid "This kind of connection is not supported."
+msgstr "Цей тип з'єднання не підтримується."

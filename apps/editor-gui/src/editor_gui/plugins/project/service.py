@@ -1,5 +1,8 @@
 """GUI project facade: lazy device view over ProjectService with selection and pub/sub."""
 
+import base64
+import binascii
+import contextlib
 import datetime
 import hashlib
 import io
@@ -11,8 +14,8 @@ import threading
 import time
 import xml.etree.ElementTree as ET
 import zipfile
-from collections.abc import Callable
-from dataclasses import dataclass
+from collections.abc import Callable, Collection, Generator
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal, cast
 
@@ -38,6 +41,14 @@ from editor_gui.device_snapshot import (
     snapshot_state,
 )
 from editor_gui.dpt import dpt_from_token, lookup_or_make_dpt
+from editor_gui.hardware_text import current_text
+from editor_gui.plugins.project.element_status import status_label, usage_label
+from editor_gui.plugins.project.medium_text import (
+    medium_error_text,
+    segment_display_name,
+)
+from editor_gui.plugins.project.paste import PasteKind, Paster, PasteTarget
+from editor_gui.plugins.project.space_text import space_error_text
 from editor_gui.plugins.project.strings import S
 from editor_gui.plugins.project.ui.history import HistoryEntry
 from editor_gui.settings import config_dir
@@ -60,14 +71,33 @@ from xknxeditor.proj import import_ga_export as _import_ga_export
 from xknxeditor.proj import import_knxproj as _import_knxproj
 from xknxeditor.proj import is_ga_export as _is_ga_export
 from xknxeditor.proj import write_ga_export as _write_ga_export
-from xknxeditor.proj.core.addressing import GroupAddressStyle, format_ga, parse_ga
+from xknxeditor.proj.core.addressing import (
+    GroupAddressStyle,
+    format_ga,
+    parse_ga,
+    parse_ia,
+)
+from xknxeditor.proj.core.bus_load import BusLoad, Hardware
+from xknxeditor.proj.core.coupler_rules import CouplerDevice
 from xknxeditor.proj.core.dpt import normalize_datapoint_type
 from xknxeditor.proj.core.ga_export import write_ga_csv as _write_ga_csv
 from xknxeditor.proj.core.identity import qualified_com_object_ref
 from xknxeditor.proj.core.ip_secure import PASSWORD_ACCESS_TYPES
+from xknxeditor.proj.core.medium import (
+    IP_ROUTER_MASKS,
+    MEDIUM_TP,
+    MediumError,
+    device_fits,
+    format_domain_address,
+    medium_name,
+    parse_domain_address,
+)
+from xknxeditor.proj.core.modified import project_timestamp
+from xknxeditor.proj.core.paste import GroupAddressCopy, PasteOptions
 from xknxeditor.proj.core.project_secrets import check_project_password
 from xknxeditor.proj.core.rich_text import parse_rich_text, plain_text
-from xknxeditor.proj.core.skeleton import MEDIUM_TP
+from xknxeditor.proj.core.service import DEFAULT_MULTICAST_ADDRESS
+from xknxeditor.proj.core.space_rules import SpaceRuleError, holds_devices
 
 if TYPE_CHECKING:
     from editor_gui.plugins.base import Logger
@@ -89,12 +119,19 @@ if TYPE_CHECKING:
         DeviceInfo,
         DeviceKeys,
         DeviceLinkInfo,
+        ForcedSecurity,
+        FunctionInfo,
         GroupRangeInfo,
         IpSecrets,
         SecureCommissioningImpact,
         SpaceDeviceInfo,
         SpaceInfo,
+        TradeInfo,
     )
+    from xknxeditor.proj.core.service import (
+        GroupAddressInfo as CoreGroupAddressInfo,
+    )
+    from xknxeditor.proj.models import Device as DeviceRow
 
 _INSTALLATION = 0
 
@@ -432,6 +469,8 @@ def additional_address_error_text(exc: AdditionalAddressError) -> str:
         return S.ADDITIONAL_ADDRESS_OTHER_LINE.format(line=exc.address)
     if exc.kind == AdditionalAddressError.IN_USE:
         return S.ADDITIONAL_ADDRESS_IN_USE.format(address=exc.address)
+    if exc.kind == AdditionalAddressError.NO_LINE:
+        return S.ADDITIONAL_ADDRESS_NO_LINE
     return S.ADDITIONAL_ADDRESS_INVALID
 
 
@@ -492,7 +531,13 @@ _HISTORY_LABELS: dict[str, Callable[[dict[str, Any]], str]] = {
     "SetDeviceName": lambda d: S.HISTORY_EV_RENAME_DEVICE.format(
         name=_quoted(d, "name")
     ),
-    "MoveDevice": lambda d: S.HISTORY_EV_MOVE_DEVICE,
+    "MoveDevice": lambda d: (
+        S.HISTORY_EV_UNLINK_DEVICE
+        if d.get("segment_id") is None
+        else S.HISTORY_EV_PARK_DEVICE
+        if d.get("address") is None
+        else S.HISTORY_EV_MOVE_DEVICE
+    ),
     "SetDeviceAdditionalAddresses": lambda d: str(
         d.get("label") or S.HISTORY_ADDITIONAL_ADDRESSES
     ),
@@ -509,14 +554,24 @@ _HISTORY_LABELS: dict[str, Callable[[dict[str, Any]], str]] = {
     "RemoveSegment": lambda d: S.HISTORY_EV_REMOVE_SEGMENT,
     "RemoveGroupAddress": lambda d: S.HISTORY_EV_REMOVE_GA,
     "RemoveFunction": lambda d: S.HISTORY_EV_REMOVE_FUNCTION,
+    "MoveFunction": lambda d: S.HISTORY_EV_MOVE_FUNCTION,
+    # Only inside a paste, the step the history names after the paste.
+    "SetFields": lambda d: S.HISTORY_EV_CHANGE,
     "RemoveFunctionGroupAddress": lambda d: S.HISTORY_EV_REMOVE_FUNCTION_GA,
     "RemoveSpace": lambda d: S.HISTORY_EV_REMOVE_SPACE,
     "RemoveGroupRange": lambda d: S.HISTORY_EV_REMOVE_GROUP_RANGE,
     "UpdateDeviceApplication": lambda d: S.HISTORY_EV_UPDATE_APP,
     "ChangeDeviceApplication": lambda d: S.HISTORY_EV_CHANGE_APP,
+    "SetDeviceIpConfig": lambda d: str(d.get("label") or ""),
     "SyncDeviceComObjects": lambda d: S.HISTORY_EV_SYNC_COM_OBJECTS,
     "SyncDeviceModuleInstances": lambda d: S.HISTORY_EV_SYNC_MODULES,
     "SetGroupAddressSecurity": lambda d: S.HISTORY_EV_SET_GA_SECURITY,
+    "SetGroupRangeSecurity": lambda d: S.HISTORY_EV_SET_GROUP_SECURITY,
+    "SetGroupAddressCentral": lambda d: (
+        S.HISTORY_EV_SET_GA_CENTRAL
+        if d.get("central")
+        else S.HISTORY_EV_UNSET_GA_CENTRAL
+    ),
     "SetDeviceSecureCommissioning": lambda d: S.HISTORY_EV_SET_SECURE_COMMISSIONING,
     "RenameGroupAddress": lambda d: S.HISTORY_EV_RENAME_GA.format(
         name=_quoted(d, "name")
@@ -540,11 +595,41 @@ _HISTORY_LABELS: dict[str, Callable[[dict[str, Any]], str]] = {
         else S.HISTORY_EV_SET_GROUP_RANGE_DESCRIPTION
     ),
     "SetGroupRangeAddress": lambda d: S.HISTORY_EV_SET_GROUP_RANGE_ADDRESS,
+    "MoveGroupRange": lambda d: S.HISTORY_EV_MOVE_GROUP_RANGE,
     "SetComment": lambda d: (
         S.HISTORY_EV_SET_INSTALLATION_HINTS
         if d.get("field") == "installation_hints"
         else S.HISTORY_EV_SET_COMMENT
     ),
+    "SetCompletionStatus": lambda d: S.HISTORY_EV_SET_STATUS.format(
+        status=status_label(str(d.get("status", "")))
+    ),
+    "SetSpaceUsage": lambda d: S.HISTORY_EV_SET_SPACE_USE,
+    "SetSpaceDefaultLine": lambda d: S.HISTORY_EV_SET_CURRENT_LINE,
+    "SetInstallationAttribute": lambda d: S.HISTORY_EV_SET_IP_ROUTING,
+    "SetSegmentBusAccess": lambda d: S.HISTORY_EV_SET_BUS_CONNECTION,
+    "CreateTrade": lambda d: S.HISTORY_EV_CREATE_TRADE.format(name=_quoted(d, "name")),
+    "SetTradeField": lambda d: (
+        S.HISTORY_EV_RENAME_TRADE.format(name=_quoted(d, "value"))
+        if d.get("field") == "name"
+        else S.HISTORY_EV_SET_TRADE_NUMBER
+        if d.get("field") == "number"
+        else S.HISTORY_EV_SET_TRADE_DESCRIPTION
+    ),
+    "MoveTrade": lambda d: S.HISTORY_EV_MOVE_TRADE,
+    "MoveLine": lambda d: S.HISTORY_EV_MOVE_LINE,
+    "MoveSegment": lambda d: S.HISTORY_EV_MOVE_SEGMENT,
+    "RemoveTrade": lambda d: S.HISTORY_EV_REMOVE_TRADE,
+    "AddTradeDevice": lambda d: S.HISTORY_EV_ADD_TRADE_DEVICE,
+    "RemoveTradeDevice": lambda d: S.HISTORY_EV_REMOVE_TRADE_DEVICE,
+    "SetSegmentDomainAddress": lambda d: S.HISTORY_EV_SET_DOMAIN_ADDRESS,
+    "RenameSegment": lambda d: S.HISTORY_EV_RENAME_SEGMENT.format(
+        name=_quoted(d, "name")
+    ),
+    "SetSegmentMedium": lambda d: S.HISTORY_EV_SET_MEDIUM.format(
+        medium=medium_name(str(d.get("medium_type", "")))
+    ),
+    "SetFunctionDescription": lambda d: S.HISTORY_EV_SET_FUNCTION_DESCRIPTION,
     "CreateFunction": lambda d: S.HISTORY_EV_CREATE_FUNCTION.format(
         name=_quoted(d, "name")
     ),
@@ -593,10 +678,15 @@ def _history_label(event_type: str, data: dict[str, Any]) -> str:
 
 @dataclass(frozen=True)
 class ElementDetails:
-    """What the details of a selected area, line, group range or group address show. ``title_kind``
-    names it in the tab ("area", "line", "main_group", "middle_group", "group_range",
-    "group_address"); a line's address shows after its area's (``prefix`` "1."), a middle group's
-    after its main group's ("1/")."""
+    """What the details of a selected area, line, segment, group range, group address or
+    building function show. ``title_kind`` names it in the tab ("area", "line", "segment",
+    "main_group", "middle_group", "group_range", "group_address", "function"); a line's address
+    shows after its area's (``prefix`` "1."), a middle group's after its main group's ("1/").
+    ``status`` is the element's "Status" for the kinds that have one, else None; a segment and a
+    function have no address (``has_address``). A line and a segment have a ``medium``, an RF or
+    PL one its ``domain_address`` as shown ("" for none). A group address and a main or middle
+    group have their own ``security`` ("Auto", "On" or "Off"), with the group above them that
+    forces one (``forced_by``); a group address is ``central`` or not."""
 
     kind: str
     element_id: int
@@ -606,6 +696,79 @@ class ElementDetails:
     prefix: str
     address: str
     editable: bool = True
+    status: str | None = None
+    has_address: bool = True
+    medium: str | None = None
+    # The media its "Medium" offers but the rules refuse for it, with the reason (a segment on a
+    # line that is not IP cannot be IoT).
+    refused_media: dict[str, str] = field(default_factory=dict[str, str])
+    domain_address: str = ""
+    security: str | None = None
+    forced_by: "ForcedSecurity | None" = None
+    central: bool | None = None
+    # A group address's data point type ("DPST-16-1", "" for none); None for other elements.
+    datapoint_type: str | None = None
+    # A trade's number (a free text); None for other elements.
+    number: str | None = None
+    # The backbone's IP routing: network latency (ms), multicast address, its security ("Auto",
+    # "On" or "Off"), and its bus connection: the ``Parameter`` of its ``<BusAccess>`` ("" for
+    # "Automatic") and as shown.
+    latency: int | None = None
+    multicast_address: str = ""
+    backbone_security: str | None = None
+    bus_access: str = ""
+    bus_connection: str = ""
+
+
+def format_bus_access(bus_access: dict[str, str] | None) -> str:
+    """A bus connection kept with a segment, as shown: its name and where it connects to
+    ("IP Tunneling (192.168.16.103:3671 Tcp)"); "" for none."""
+    if not bus_access:
+        return ""
+    fields: dict[str, str] = {}
+    for part in bus_access.get("Parameter", "").split(";"):
+        key, _, value = part.partition("=")
+        if key.strip():
+            fields[key.strip()] = value.strip().strip('"')
+    name = fields.get("Name") or bus_access.get("Name", "") or fields.get("Type", "")
+    host = fields.get("HostAddress", "")
+    if not host:
+        return name
+    where = f"{host}:{fields.get('Port') or 3671}"
+    protocol = fields.get("ProtocolType", "")
+    return f"{name} ({where} {protocol})".replace(" )", ")")
+
+
+def interface_bus_access(name: str, host: str, port: int) -> str:
+    """The ``Parameter`` of the ``<BusAccess>`` of a KNXnet/IP interface tunnelled to over UDP."""
+    where = host if port == 3671 else f"{host};Port={port}"
+    return f'Type=IpTunneling;HostAddress={where};ProtocolType=Udp;Name="{name}"'
+
+
+def line_display_name(area_number: int, line: "_Line") -> str:
+    """A line's name; one without a name is called after its medium ("IP backbone line", "TP
+    main line", "TP line")."""
+    if line.name:
+        return line.name
+    if line.line_number != 0:
+        text = S.LINE_NAME
+    else:
+        text = S.BACKBONE_LINE_NAME if area_number == 0 else S.MAIN_LINE_NAME
+    return text.format(medium=medium_name(line.medium_type)).strip()
+
+
+def _stored_kind(kind: str) -> str:
+    """The kind the project stores an element's status, comment and description under: the
+    backbone is area 0."""
+    return "area" if kind == "backbone" else kind
+
+
+def _addresses_in(node: "GroupRangeInfo") -> "list[CoreGroupAddressInfo]":
+    """The group addresses of a group and of every group below it."""
+    found = list(node.group_addresses)
+    for child in node.children:
+        found.extend(_addresses_in(child))
+    return found
 
 
 def _find_range(
@@ -628,6 +791,63 @@ class _Area:
     description: str = ""
 
 
+def _line_of(line: Any) -> "_Line":
+    """A line of the topology (a ``Line`` row) with its medium and its sub-segments."""
+    ordered = sorted(line.segments, key=lambda s: (s.number, s.id))
+    return _Line(
+        id=line.id,
+        area_id=line.area_id,
+        line_number=line.address,
+        name=line.name,
+        description=line.description,
+        medium_type=ordered[0].medium_type if ordered else MEDIUM_TP,
+        domain_address=ordered[0].domain_address if ordered else None,
+        bus_access=ordered[0].bus_access if ordered else None,
+        segments=[
+            _Segment(
+                id=s.id,
+                line_id=line.id,
+                number=s.number,
+                name=s.name,
+                medium_type=s.medium_type,
+                description=s.description,
+                domain_address=s.domain_address,
+            )
+            for s in ordered[1:]
+        ],
+        main_segment_id=ordered[0].id if ordered else None,
+    )
+
+
+@dataclass
+class _Segment:
+    id: int
+    line_id: int
+    number: int
+    name: str
+    medium_type: str
+    description: str = ""
+    domain_address: int | None = None
+
+
+@dataclass(frozen=True)
+class IpSettings:
+    """The IP settings of an IP device as its details show them."""
+
+    # Whether the application leaves its IP configuration to the tool ("Tool"): only then the
+    # assignment and the MAC address are shown and set.
+    tool_managed: bool
+    # "Auto" or "Fixed".
+    assign: str
+    ip_address: str | None
+    subnet_mask: str | None
+    default_gateway: str | None
+    mac_address: str | None
+    # The installation's routing multicast address, shown for a device on an IP medium (or a
+    # line coupler with mask 091A); None otherwise.
+    multicast_address: str | None = None
+
+
 @dataclass
 class _Line:
     id: int
@@ -635,6 +855,13 @@ class _Line:
     line_number: int
     name: str
     description: str = ""
+    # Its main segment's medium, domain address and bus connection, the line's.
+    medium_type: str = MEDIUM_TP
+    domain_address: int | None = None
+    bus_access: dict[str, str] | None = None
+    # Its sub-segments, in their order (the main segment is not among them).
+    segments: list[_Segment] = field(default_factory=list[_Segment])
+    main_segment_id: int | None = None
 
 
 @dataclass
@@ -647,6 +874,11 @@ class GroupAddressInfo:
     comment: str = ""
     data_secure: bool = False
     raw: int = 0  # raw 16-bit group-address value (style-independent; matches xknx GroupAddress.raw)
+    # Its own Security mode (None = default, Auto), the group above it that forces one, and
+    # whether it is marked central.
+    security_mode: str | None = None
+    forced_by: "ForcedSecurity | None" = None
+    central: bool = False
 
 
 @dataclass
@@ -964,7 +1196,7 @@ class ProjectService:
         # A space selected in the Buildings tree: its details replace the device's until a device
         # is selected again.
         self._selected_space_id: int | None = None
-        # An area or a line selected in the Devices tree, or a group range or group address in the
+        # An area or a line selected in the Topology tree, or a group range or group address in the
         # Group Addresses tree: (kind, id). Its details replace the device's until a device or a
         # space is selected.
         self._selected_element: tuple[str, int] | None = None
@@ -973,6 +1205,8 @@ class ProjectService:
         self._comment_target: tuple[str, int] | None = None
         # (kind, id, field) -> (revision, stored comment or None without such an element).
         self._comment_cache: dict[tuple[str, int, str], tuple[int, str | None]] = {}
+        # (kind, id) -> (revision, stored status or None without such an element).
+        self._status_cache: dict[tuple[str, int], tuple[int, str | None]] = {}
         # Multi-selection: the full set of selected device node ids (the primary above is
         # the last-clicked one, kept for all single-device consumers). Empty = single/none.
         self._selected_node_ids: set[int] = set()
@@ -986,6 +1220,12 @@ class ProjectService:
         self._focus_editor_requested = False
         # Cross-panel "please bring the Group Addresses tab to front" request.
         self._focus_group_addresses_requested = False
+        # "Add → Devices…" in the Topology tree: the catalog to the front, and the segment the
+        # catalog adds devices to (None: the space's Current Line or the first TP line).
+        self._focus_catalog_requested = False
+        self._device_target_segment: int | None = None
+        # The room (a space that holds devices) the catalog adds devices into; None: none.
+        self._device_target_space: int | None = None
         # Re-instantiate a device's persisted com-objects on a function/mode parameter change, scoped
         # to exactly the objects that parameter controls (its ChooseWhenNode branches). Only the
         # objects the parameter governs are added/removed; channels and globals stay as configured.
@@ -1550,6 +1790,7 @@ class ProjectService:
         self._comment_target = None
         self._selected_element = None
         self._comment_cache.clear()
+        self._status_cache.clear()
         self._selected_node_ids = set()
         self._dynui_lru.clear()
         self._app_cache.clear()
@@ -2267,6 +2508,80 @@ class ProjectService:
         self._focus_group_addresses_requested = False
         return requested
 
+    def add_devices_to(self, segment_id: int | None) -> None:
+        """ "Add → Devices…" in the Topology tree: the catalog comes to the front and adds
+        devices to the segment ``segment_id`` (a line's main segment or a sub-segment; None:
+        the space's Current Line or the first TP line), into no room."""
+        self._device_target_segment = segment_id
+        self._device_target_space = None
+        self._focus_catalog_requested = True
+
+    def add_devices_into(self, space_id: int) -> None:
+        """ "Add → Devices…" in the Buildings tree: the catalog comes to the front and adds
+        devices into the space ``space_id``, on its Current Line ("Automatic")."""
+        self._device_target_space = space_id
+        self._device_target_segment = None
+        self._focus_catalog_requested = True
+
+    @property
+    def device_target_space(self) -> int | None:
+        """The space the catalog adds devices into; None (also when it is gone or holds no
+        devices): none."""
+        space = self._device_target_space
+        if space is None:
+            return None
+
+        def holds(spaces: "list[SpaceInfo]") -> bool:
+            return any(
+                (s.id == space and holds_devices(s.space_type)) or holds(s.children)
+                for s in spaces
+            )
+
+        return space if holds(self.get_space_tree()) else None
+
+    @device_target_space.setter
+    def device_target_space(self, space_id: int | None) -> None:
+        self._device_target_space = space_id
+
+    def take_focus_catalog(self) -> bool:
+        """One-shot: whether the catalog was asked to focus, then cleared."""
+        requested, self._focus_catalog_requested = self._focus_catalog_requested, False
+        return requested
+
+    @property
+    def device_target_segment(self) -> int | None:
+        """The segment the catalog adds devices to; None (also when it is gone): the space's
+        Current Line or the first TP line."""
+        segment = self._device_target_segment
+        if segment is None or all(s != segment for s, _text in self.segment_choices()):
+            return None
+        return segment
+
+    @device_target_segment.setter
+    def device_target_segment(self, segment_id: int | None) -> None:
+        self._device_target_segment = segment_id
+
+    def segment_choices(self) -> list[tuple[int, str]]:
+        """Every line (as its main segment) and sub-segment devices can go on, as the segment
+        id and its text ("1.1 Name", a sub-segment's indented below its line), in address
+        order."""
+        out: list[tuple[int, str]] = []
+        for area in sorted(self.get_areas(), key=lambda a: a.area_number):
+            for line in sorted(self.get_lines(area.id), key=lambda ln: ln.line_number):
+                prefix = f"{area.area_number}.{line.line_number}"
+                if line.main_segment_id is not None:
+                    name = line_display_name(area.area_number, line)
+                    out.append((line.main_segment_id, f"{prefix} {name}".rstrip()))
+                out.extend(
+                    (
+                        segment.id,
+                        f"  {prefix} "
+                        + segment_display_name(segment.name, segment.medium_type),
+                    )
+                    for segment in line.segments
+                )
+        return out
+
     def _installation(self) -> Any:
         assert self._pid is not None
         return self._svc.topology(self._pid, _INSTALLATION)
@@ -2301,17 +2616,7 @@ class ProjectService:
             for a in installation.areas
         ]
         self._lines_cache = {
-            a.id: [
-                _Line(
-                    id=ln.id,
-                    area_id=ln.area_id,
-                    line_number=ln.address,
-                    name=ln.name,
-                    description=ln.description,
-                )
-                for ln in a.lines
-            ]
-            for a in installation.areas
+            a.id: [_line_of(ln) for ln in a.lines] for a in installation.areas
         }
         self._topology_cache_version = self._version
 
@@ -2346,6 +2651,9 @@ class ProjectService:
                 comment=plain_text(parse_rich_text(g.comment)),
                 data_secure=g.data_secure,
                 raw=g.address,
+                security_mode=g.security_mode,
+                forced_by=g.forced_by,
+                central=g.central,
             )
             for g in self._svc.group_addresses(self._pid)
         ]
@@ -2370,6 +2678,9 @@ class ProjectService:
             comment=plain_text(parse_rich_text(g.comment)),
             data_secure=g.data_secure,
             raw=g.address,
+            security_mode=g.security_mode,
+            forced_by=g.forced_by,
+            central=g.central,
         )
 
     @io_guarded(list)
@@ -2605,16 +2916,18 @@ class ProjectService:
         def secure(other: Device) -> bool:
             return bool(self._svc.secure_commissioning(self._pid or "", other.node_id))
 
+        # The mode that counts: a group above the address may force it.
+        mode = ga.effective_security_mode
         if self.com_object_requires_security(com_object_id):
-            if ga.security_mode == "Off" or not secure(device):
+            if mode == "Off" or not secure(device):
                 return True
-            if ga.security_mode != "On" and not all(
+            if mode != "On" and not all(
                 secure(other)
                 for link in ga.links
                 if (other := owner.get(link)) is not None
             ):
                 return True
-        if ga.security_mode not in ("On", "Off") and not secure(device):
+        if mode not in ("On", "Off") and not secure(device):
             return any(self.com_object_requires_security(link) for link in ga.links)
         return False
 
@@ -3362,6 +3675,102 @@ class ProjectService:
         return info
 
     @io_guarded(lambda: None)
+    def ip_settings(self, node_id: int) -> IpSettings | None:
+        """The IP settings of an IP device (its hardware ``IsIPEnabled``), None for any other
+        device. Cached by revision, as the device details read it every frame."""
+        if self._pid is None:
+            return None
+        cache_key = f"ip_settings:{node_id}"
+        hit = self._revision_cache.get(cache_key)
+        if hit is not None and hit[0] == self.revision:
+            return cast("IpSettings | None", hit[1])
+        settings = self._read_ip_settings(node_id)
+        self._revision_cache[cache_key] = (self.revision, settings)
+        return settings
+
+    def _read_ip_settings(self, node_id: int) -> IpSettings | None:
+        from xknxeditor.proj.core.ip_settings import ASSIGN_AUTO
+        from xknxeditor.proj.core.medium import MEDIUM_IP
+
+        info = self.get_device_info(node_id)
+        program = info.hardware2program_ref_id if info is not None else None
+        if (
+            self._pid is None
+            or info is None
+            or not program
+            or not self._catalog.hardware_is_ip_enabled(program)
+        ):
+            return None
+        config = info.ip_config or {}
+        tool_managed = self._catalog.ip_config(program) != "Custom"
+        multicast: str | None = None
+        if tool_managed:
+            device = self.find_device_by_node_id(node_id)
+            segment = self.device_segments().get(node_id)
+            medium = self.segment_medium(segment) if segment is not None else None
+            coupler = (
+                device is not None
+                and device.app is not None
+                and device.app.program.mask_version == "MV-091A"
+            )
+            if coupler or (medium is not None and medium[0] == MEDIUM_IP):
+                multicast = (
+                    self._svc.installation_attributes(self._pid).get(
+                        "IPRoutingMulticastAddress"
+                    )
+                    or "224.0.23.12"
+                )
+        return IpSettings(
+            tool_managed=tool_managed,
+            assign=config.get("Assign") or ASSIGN_AUTO,
+            ip_address=config.get("IPAddress"),
+            subnet_mask=config.get("SubnetMask"),
+            default_gateway=config.get("DefaultGateway"),
+            mac_address=config.get("MACAddress"),
+            multicast_address=multicast,
+        )
+
+    def set_ip_settings(
+        self,
+        node_id: int,
+        *,
+        assign: str | None = None,
+        ip_address: str | None = None,
+        subnet_mask: str | None = None,
+        default_gateway: str | None = None,
+    ) -> str | None:
+        """Change the IP settings of an IP device in one undo step; ``None`` leaves a value. The
+        addresses are read like :func:`~xknxeditor.proj.core.ip_settings.parse_ipv4`. Returns
+        the message for an address that cannot be read (nothing changes then), else None."""
+        from xknxeditor.proj.core.ip_settings import parse_ipv4
+
+        settings = self.ip_settings(node_id)
+        if self._pid is None or settings is None:
+            return None
+        name = self._device_history_name(node_id)
+        try:
+            label = (
+                S.HISTORY_IP_ADDRESS_CHANGED.format(name, parse_ipv4(ip_address))
+                if ip_address is not None
+                else S.HISTORY_IP_CONFIG_CHANGED.format(name)
+            )
+            changed = self._svc.set_device_ip_config(
+                self._pid,
+                node_id,
+                assign=assign,
+                ip_address=ip_address,
+                subnet_mask=subnet_mask,
+                default_gateway=default_gateway,
+                tool_managed=settings.tool_managed,
+                label=label,
+            )
+        except ValueError:
+            return S.CONFIGURE_IP_INVALID
+        if changed:
+            self._bump(structural=False)
+        return None
+
+    @io_guarded(lambda: None)
     def ip_download_config(self, device: Device) -> "IpDeviceConfig | None":
         """The project's IP settings a full download writes to ``device``, or ``None`` when its
         hardware is not an IP device."""
@@ -3379,6 +3788,7 @@ class ProjectService:
         )
         if (
             row is None
+            or row.segment is None
             or not row.hardware2program_ref_id
             or not self._catalog.hardware_is_ip_enabled(row.hardware2program_ref_id)
         ):
@@ -3421,6 +3831,7 @@ class ProjectService:
         )
         if (
             row is None
+            or row.segment is None
             or not row.hardware2program_ref_id
             or not self._catalog.hardware_is_ip_enabled(row.hardware2program_ref_id)
         ):
@@ -3502,11 +3913,7 @@ class ProjectService:
         flags = _COMMISSIONING_BY_SCOPE.get(scope_value)
         if flags is None:
             return
-        now = (
-            None
-            if scope_value == "unload"
-            else datetime.datetime.now(datetime.UTC).strftime("%Y-%m-%dT%H:%M:%S.%f0Z")
-        )
+        now = None if scope_value == "unload" else project_timestamp()
         self.set_device_commissioning(
             node_id,
             serial_number=serial_to_project(serial) if serial else None,
@@ -3514,6 +3921,8 @@ class ProjectService:
             mac_address=":".join(f"{b:02X}" for b in mac_address)
             if mac_address
             else None,
+            download=True,
+            ip_address=None,
             **flags,
         )
 
@@ -3529,9 +3938,12 @@ class ProjectService:
         medium_config_loaded: bool | None = None,
         parameters_loaded: bool | None = None,
         mac_address: str | None = None,
+        download: bool = False,
+        ip_address: str | None = None,
     ) -> None:
         """Record a device's commissioning state (loaded ticks / serial / last download / MAC
-        address).
+        address / the IP address it was found at); ``download`` for what a download recorded
+        (the device's "Last Modified" stays).
 
         Called after programming a device. Non-structural: the device's parameter/com-object UI is
         unchanged, so the expensive device cache is preserved (only the revision bumps)."""
@@ -3548,8 +3960,39 @@ class ProjectService:
             medium_config_loaded=medium_config_loaded,
             parameters_loaded=parameters_loaded,
             mac_address=mac_address,
+            download=download,
+            ip_address=ip_address,
         )
         self._bump(structural=False)
+
+    def serial_to_find_ip(self, node_id: int) -> bytes | None:
+        """The serial number to find an IP device by on the network after a download: one that
+        obtains its address automatically (or whose application sets it) and whose address is
+        not known. None for any other device, or one without a serial number."""
+        from xknxeditor.proj.core.ip_settings import ASSIGN_AUTO, known_address
+
+        settings = self.ip_settings(node_id)
+        info = self.get_device_info(node_id)
+        if (
+            settings is None
+            or info is None
+            or not info.serial_number
+            or known_address(settings.ip_address) is not None
+            or (settings.tool_managed and settings.assign != ASSIGN_AUTO)
+        ):
+            return None
+        try:
+            return base64.b64decode(info.serial_number)
+        except (ValueError, binascii.Error):
+            return None
+
+    def record_found_ip(self, node_id: int, address: str) -> None:
+        """Keep the address a download found the IP device at, when the device still needs one
+        (see :meth:`serial_to_find_ip`); a known address is never replaced."""
+        from xknxeditor.proj.core.ip_settings import NONE_ADDRESS
+
+        if address != NONE_ADDRESS and self.serial_to_find_ip(node_id) is not None:
+            self.set_device_commissioning(node_id, ip_address=address, download=True)
 
     @io_guarded(set)
     def program_refs(self) -> set[str]:
@@ -3991,6 +4434,9 @@ class ProjectService:
         product: DeviceProduct | None = None,
         secure_commissioning: bool | None = None,
         with_additional_addresses: bool = True,
+        space_id: int | None = None,
+        no_address: bool = False,
+        unassigned: bool = False,
     ) -> int | None:
         """Add a device. A device that supports KNX Data Secure is commissioned securely by
         default when the project has a password (``secure_commissioning`` ``None``); ``True``
@@ -3998,7 +4444,11 @@ class ProjectService:
         ``False`` adds it commissioned in the clear. The device gets the additional individual
         addresses its application has (its tunnelling addresses), the highest free ones of the
         line, unless ``with_additional_addresses`` is off; when the line has too few free, it is
-        added without them."""
+        added without them. A device added to the space ``space_id`` goes on the space's Current
+        Line when no ``segment_id`` is given, in the same undo step. Without ``address`` it gets
+        the next free one of the line, none with ``no_address``; ``unassigned`` adds it on no
+        line. Raises ``MediumError`` when the device's hardware does not support the medium of
+        the segment."""
         if self._pid is None:
             return None
         if not app.program.is_secure_enabled:
@@ -4006,9 +4456,19 @@ class ProjectService:
         elif secure_commissioning is None:
             secure_commissioning = self.project_password is not None
         product = product or DeviceProduct()
-        if segment_id is None:
-            segment_id = self._default_device_segment_id()
-        if address is None:
+        if unassigned:
+            segment_id, address, no_address = None, None, True
+        else:
+            if segment_id is None and space_id is not None:
+                segment_id = self._svc.current_line_segment(self._pid, space_id)
+            if segment_id is None:
+                segment_id = self._default_device_segment_id()
+            self.check_device_medium(
+                hardware2program_ref_id,
+                segment_id,
+                name or product.product_name or app.name,
+            )
+        if address is None and not no_address and segment_id is not None:
             # Assign the next free individual address on the target line (standard behaviour), instead of
             # leaving the device address-less. Editable afterwards in Configure. If the line is full,
             # fall back to no address rather than failing the add.
@@ -4042,11 +4502,12 @@ class ProjectService:
                 manufacturer_name=product.manufacturer_name,
                 secure_commissioning=secure_commissioning,
                 additional_addresses=additional,
+                space_id=space_id,
             )
 
         additional = (
             app.program.additional_addresses_count or 0
-            if with_additional_addresses
+            if with_additional_addresses and address is not None
             else 0
         )
         try:
@@ -4589,11 +5050,15 @@ class ProjectService:
     ) -> bool:
         """Persist a new individual address. Returns ``True`` on success, ``False`` when rejected
         (e.g. the address is already used) so the caller can avoid mutating its live device object
-        with an address the project never accepted."""
+        with an address the project never accepted. Raises ``MediumError`` when the address
+        moves the device to a line whose medium its hardware does not support."""
         if self._pid is None or old_address == new_address:
             return False
+        self._check_line_medium(node_id, new_address)
         try:
-            self._svc.set_individual_address(self._pid, node_id, new_address)
+            self._svc.set_individual_address(
+                self._pid, node_id, new_address, couplers=self._line_couplers()
+            )
         except (KeyError, ValueError) as e:
             self._log.warning(
                 "could not set individual address", address=new_address, error=str(e)
@@ -4800,12 +5265,28 @@ class ProjectService:
                     return c
         return None
 
-    def create_area(self, area_number: int, name: str = "") -> int | None:
+    def create_area(
+        self, area_number: int, name: str = "", medium_type: str | None = None
+    ) -> int | None:
+        """A new area; with ``medium_type`` also its main line of that medium (one undo
+        step). Raises ``ValueError`` for a number in use, ``MediumError`` for a medium the
+        rules refuse."""
         if self._pid is None:
             return None
-        area_id = self._svc.create_area(self._pid, _INSTALLATION, area_number, name)
+        area_id = self._svc.create_area(
+            self._pid, _INSTALLATION, area_number, name, medium_type=medium_type
+        )
         self._bump()
         return area_id
+
+    def new_line_media(self, area_number: int, line_number: int) -> list[str]:
+        """The media a new line ``line_number`` of the area ``area_number`` can have (line 0
+        of an area not there yet: a new area's main line)."""
+        if self._pid is None:
+            return []
+        return self._svc.new_line_media(
+            self._pid, _INSTALLATION, area_number, line_number
+        )
 
     def remove_area(self, area_id: int, area_number: int = 0, name: str = "") -> None:
         if self._pid is None:
@@ -4819,10 +5300,21 @@ class ProjectService:
         self._svc.rename_area(self._pid, area_id, new_name)
         self._bump()
 
-    def create_line(self, area_id: int, line_number: int, name: str = "") -> int | None:
+    def create_line(
+        self,
+        area_id: int,
+        line_number: int,
+        name: str = "",
+        medium_type: str | None = None,
+    ) -> int | None:
+        """A new line of ``medium_type`` (by default the one a new line there gets); one undo
+        step. Raises ``ValueError`` for a number in use, ``MediumError`` for a medium the rules
+        refuse."""
         if self._pid is None:
             return None
-        line_id = self._svc.create_line(self._pid, area_id, line_number, name)
+        line_id = self._svc.create_line(
+            self._pid, area_id, line_number, name, medium_type=medium_type
+        )
         self._bump()
         return line_id
 
@@ -4840,14 +5332,444 @@ class ProjectService:
         self._svc.rename_line(self._pid, line_id, new_name)
         self._bump()
 
+    @io_guarded(dict)
+    @revision_cached
+    def device_segments(self) -> dict[int, int]:
+        """Every device's segment: ``node id -> segment id``."""
+        if self._pid is None:
+            return {}
+        return self._svc.device_segments(self._pid)
+
+    def find_line(self, line_id: int) -> _Line | None:
+        """The line ``line_id`` with its medium and its sub-segments."""
+        found = self.find_topology("line", line_id)
+        return found if isinstance(found, _Line) else None
+
+    def find_segment(self, segment_id: int) -> _Segment | None:
+        """The sub-segment ``segment_id`` (a line's main segment is the line itself)."""
+        self._ensure_topology_cache()
+        return next(
+            (
+                segment
+                for lines in (self._lines_cache or {}).values()
+                for line in lines
+                for segment in line.segments
+                if segment.id == segment_id
+            ),
+            None,
+        )
+
+    def add_segment(
+        self, line_id: int, name: str | None = None, medium_type: str | None = None
+    ) -> int | None:
+        """A new sub-segment of the line, of ``medium_type`` (by default the medium a line
+        gives a new one); undoable. Raises ``MediumError`` when the line allows none."""
+        if self._pid is None:
+            return None
+        segment_id = self._svc.add_segment(
+            self._pid,
+            line_id,
+            medium_type=medium_type,
+            name=name or "",
+        )
+        self._bump()
+        return segment_id
+
+    def remove_segment(self, segment_id: int) -> None:
+        """Remove a sub-segment and its devices; undoable."""
+        if self._pid is None:
+            return
+        self._svc.remove_segment(self._pid, segment_id)
+        self._bump()
+
+    def rename_segment(self, segment_id: int, name: str) -> None:
+        segment = self.find_segment(segment_id)
+        if self._pid is None or segment is None or segment.name == name:
+            return
+        self._svc.rename_segment(self._pid, segment_id, name)
+        self._bump()
+
+    def set_line_medium(self, line_id: int, medium_type: str) -> None:
+        """Change a line's medium (its main segment's); undoable. Raises ``MediumError`` when
+        the line holds devices or its segments do not allow it."""
+        line = self.find_line(line_id)
+        if self._pid is None or line is None or line.medium_type == medium_type:
+            return
+        couplers, ip_routers = self._device_roles()
+        self._svc.set_line_medium(
+            self._pid,
+            line_id,
+            medium_type,
+            couplers=couplers,
+            ip_routers=ip_routers,
+            line_names=self._line_names(),
+        )
+        self._bump()
+
+    def _device_roles(self) -> tuple[set[int], set[int]]:
+        """The devices whose hardware is a coupler, and those that are KNXnet/IP routers (by
+        their application's mask version), as the catalog knows them."""
+        programs = self._svc.device_programs(cast(str, self._pid))
+        roles = self._catalog.program_roles(sorted(set(programs.values())))
+        couplers = {d for d, p in programs.items() if p in roles and roles[p][0]}
+        ip_routers = {
+            d
+            for d, p in programs.items()
+            if p in roles and roles[p][1] in IP_ROUTER_MASKS
+        }
+        return couplers, ip_routers
+
+    def _line_couplers(self) -> set[int]:
+        """The devices whose hardware is a coupler but no segment coupler: a change of their
+        individual address takes their group communication's downloaded state too."""
+        if self._pid is None:
+            return set()
+        couplers, _ip_routers = self._device_roles()
+        programs = self._svc.device_programs(self._pid)
+        return {
+            d
+            for d in couplers
+            if "SegmentCoupler" not in self._catalog.coupler_capabilities(programs[d])
+        }
+
+    @io_guarded(lambda: (dict[int, BusLoad](), dict[int, BusLoad]()))
+    @revision_cached
+    def bus_loads(self) -> "tuple[dict[int, BusLoad], dict[int, BusLoad]]":
+        """The devices and the bus current of every line and every segment (by line id and by
+        segment id), with the hardware the catalog knows."""
+        if self._pid is None:
+            return {}, {}
+        return self._svc.bus_loads(self._pid, self._hardware())
+
+    def _hardware(self) -> "dict[str, Hardware]":
+        """What the catalog tells about the hardware of the project's devices, by program."""
+        programs = self._svc.device_programs(cast(str, self._pid))
+        power = self._catalog.program_power(sorted(set(programs.values())))
+        return {
+            program: Hardware(current, power_supply, coupler)
+            for program, (current, power_supply, coupler) in power.items()
+        }
+
+    def bus_load_texts(self, kind: str, element_id: int) -> tuple[int, str] | None:
+        """The number of devices and the bus current of a line, a segment, an area's main line
+        or the backbone, as their details show them; None for other elements."""
+        lines, segments = self.bus_loads()
+        if kind == "segment":
+            load = segments.get(element_id)
+        elif kind in ("area", "backbone"):
+            main = self._main_line(element_id)
+            load = lines.get(main.id) if main is not None else None
+        elif kind == "line":
+            load = lines.get(element_id)
+        else:
+            return None
+        if load is None:
+            return None
+        return load.devices, current_text(
+            load.current, load.estimated, S.BUS_CURRENT_ESTIMATED
+        )
+
+    def device_bus_current_text(self, node_id: int) -> str:
+        """A device's own bus current as its details show it: its hardware's, else the
+        estimate it needs on its line; "-" for neither."""
+        if self._pid is None:
+            return "-"
+        try:
+            program = self._svc.device_placement(
+                self._pid, node_id
+            ).hardware2program_ref_id
+            power = self._catalog.program_power([program]) if program else {}
+            row = power.get(program or "")
+            value, estimated = self._svc.device_bus_current(
+                self._pid, node_id, Hardware(*row) if row is not None else None
+            )
+        except KeyError:
+            return "-"
+        return current_text(value, estimated, S.BUS_CURRENT_ESTIMATED)
+
+    def _line_names(self) -> dict[int, str]:
+        """Every line's name as the tree shows it ("IP main line" for an unnamed main line)."""
+        return {
+            line.id: line_display_name(area.area_number, line)
+            for area in self.get_areas()
+            for line in self.get_lines(area.id)
+        }
+
+    def set_segment_medium(self, segment_id: int, medium_type: str) -> None:
+        """Change a sub-segment's medium; undoable. Raises ``MediumError`` when it holds devices
+        or its line does not allow it."""
+        segment = self.find_segment(segment_id)
+        if self._pid is None or segment is None or segment.medium_type == medium_type:
+            return
+        couplers, ip_routers = self._device_roles()
+        self._svc.set_segment_medium(
+            self._pid,
+            segment_id,
+            medium_type,
+            couplers=couplers,
+            ip_routers=ip_routers,
+            line_names=self._line_names(),
+        )
+        self._bump()
+
+    def segment_medium(self, segment_id: int) -> tuple[str, bool] | None:
+        """A segment's medium and whether it is its line's main segment; None for no such
+        segment."""
+        self._ensure_topology_cache()
+        for lines in (self._lines_cache or {}).values():
+            for line in lines:
+                if line.main_segment_id == segment_id:
+                    return line.medium_type, True
+                for segment in line.segments:
+                    if segment.id == segment_id:
+                        return segment.medium_type, False
+        return None
+
+    def _coupler_device(
+        self, hardware2program_ref_id: str | None
+    ) -> CouplerDevice | None:
+        """What the coupler rules need of a device's hardware program; None for a device that
+        is neither a coupler nor a KNXnet/IP router (or one the catalog lacks)."""
+        if not hardware2program_ref_id:
+            return None
+        profile = self._catalog.program_media(hardware2program_ref_id)
+        roles = self._catalog.program_roles([hardware2program_ref_id]).get(
+            hardware2program_ref_id
+        )
+        if profile is None or roles is None:
+            return None
+        is_coupler, mask = roles
+        if not is_coupler and mask not in IP_ROUTER_MASKS:
+            return None
+        capabilities = self._catalog.coupler_capabilities(hardware2program_ref_id)
+        return CouplerDevice(
+            media=frozenset(profile[0]),
+            mask=mask,
+            is_coupler=is_coupler,
+            segment_coupler="SegmentCoupler" in capabilities,
+            ip_router=is_coupler
+            and self._catalog.hardware_is_ip_enabled(hardware2program_ref_id)
+            and self._catalog.ip_config(hardware2program_ref_id) != "Custom",
+        )
+
+    def _coupler_of(
+        self, node_id: int, hardware2program_ref_id: str | None
+    ) -> tuple[CouplerDevice, str] | None:
+        """A device's coupler data and name for the coupler rules (see ``CouplerOf``)."""
+        device = self._coupler_device(hardware2program_ref_id)
+        if device is None:
+            return None
+        found = self.find_device_by_node_id(node_id)
+        return device, device_label(found) if found is not None else str(node_id)
+
+    def move_line(self, line_id: int, area_id: int) -> str | None:
+        """Put a sub line into another area ("Move to"), one undo step: it keeps its number when
+        that is free there, else gets the lowest free one; its devices keep their device
+        numbers. The reason it cannot be, or None."""
+        if self._pid is None:
+            return None
+        _couplers, ip_routers = self._device_roles()
+        try:
+            self._svc.move_line(
+                self._pid,
+                line_id,
+                area_id,
+                coupler_of=self._coupler_of,
+                ip_routers=ip_routers,
+                line_names=self._line_names(),
+                couplers=self._line_couplers(),
+            )
+        except MediumError as error:
+            return medium_error_text(error)
+        except KeyError as error:
+            return str(error.args[0])
+        self._bump()
+        return None
+
+    def move_segment(self, segment_id: int, line_id: int) -> str | None:
+        """Put a sub-segment onto another line ("Move to"), one undo step: it gets the line's
+        lowest free segment number, its devices keep their numbers unless one is taken there.
+        The reason it cannot be, or None."""
+        if self._pid is None:
+            return None
+        _couplers, ip_routers = self._device_roles()
+        try:
+            self._svc.move_segment(
+                self._pid,
+                segment_id,
+                line_id,
+                coupler_of=self._coupler_of,
+                ip_routers=ip_routers,
+                line_names=self._line_names(),
+                couplers=self._line_couplers(),
+            )
+        except MediumError as error:
+            return medium_error_text(error)
+        except AdditionalAddressError as error:
+            return additional_address_error_text(error)
+        except KeyError as error:
+            return str(error.args[0])
+        self._bump()
+        return None
+
+    def check_device_medium(
+        self,
+        hardware2program_ref_id: str | None,
+        segment_id: int,
+        label: str,
+        *,
+        moving: Collection[int] = (),
+        check_couplers: bool = True,
+    ) -> None:
+        """Raise a ``MediumError`` naming the device ``label`` when it may not go to the segment:
+        a coupler or KNXnet/IP router by the rules of ``coupler_rules`` (unless not
+        ``check_couplers``; ``moving`` are the devices being moved there), any other device when
+        its hardware does not support the segment's medium. A device whose hardware the catalog
+        lacks or lists without media is not checked."""
+        if not hardware2program_ref_id:
+            return
+        profile = self._catalog.program_media(hardware2program_ref_id)
+        target = self.segment_medium(segment_id)
+        if profile is None or target is None:
+            return
+        media, coupler = profile
+        medium, main = target
+        device = (
+            self._coupler_device(hardware2program_ref_id) if check_couplers else None
+        )
+        if device is not None and self._pid is not None:
+            _couplers, ip_routers = self._device_roles()
+            self._svc.check_coupler(
+                self._pid,
+                segment_id,
+                device,
+                label,
+                ip_routers=ip_routers,
+                moving=moving,
+                line_names=self._line_names(),
+            )
+        if coupler or not media or device_fits(medium, media):
+            return
+        raise MediumError(
+            "device_line_medium" if main else "device_segment_medium", device=label
+        )
+
+    def _check_line_medium(self, node_id: int, address: str) -> None:
+        """Raise a ``MediumError`` when the individual address ``address`` moves the device to
+        another line, onto a main segment whose medium its hardware does not support."""
+        try:
+            area_number, line_number, _device = parse_ia(address)
+            placement = self._svc.device_placement(cast(str, self._pid), node_id)
+        except (KeyError, ValueError):
+            return
+        area = next((a for a in self.get_areas() if a.area_number == area_number), None)
+        line = next(
+            (
+                ln
+                for ln in (self.get_lines(area.id) if area is not None else [])
+                if ln.line_number == line_number
+            ),
+            None,
+        )
+        if line is None or line.id == placement.line_id or line.main_segment_id is None:
+            return
+        device = self.find_device_by_node_id(node_id)
+        self.check_device_medium(
+            placement.hardware2program_ref_id,
+            line.main_segment_id,
+            device_label(device) if device is not None else address,
+            check_couplers=False,
+        )
+
+    def unlink_device(self, node_id: int) -> None:
+        """Take a device off its line ("Unlink"): it is on no line then, without an individual
+        address. Undoable; nothing for a device on no line."""
+        if self._pid is None:
+            return
+        self._svc.unlink_device(self._pid, node_id, couplers=self._line_couplers())
+        self._bump()
+
+    def park_device(self, node_id: int) -> None:
+        """Clear a device's device number ("Park"): it stays on its line ("1.5.-"). Undoable;
+        nothing for a device without one."""
+        if self._pid is None:
+            return
+        self._svc.park_device(self._pid, node_id, couplers=self._line_couplers())
+        self._bump()
+
+    @io_guarded(dict)
+    @revision_cached
+    def device_lines(self) -> dict[int, str]:
+        """The line of every device on one, as its individual address starts: ``node id ->
+        "1.5"``; a device without a device number shows as "1.5.-"."""
+        place: dict[int, str] = {}
+        for area in self.get_areas():
+            for line in self.get_lines(area.id):
+                text = f"{area.area_number}.{line.line_number}"
+                for segment_id in (
+                    line.main_segment_id,
+                    *(s.id for s in line.segments),
+                ):
+                    if segment_id is not None:
+                        place[segment_id] = text
+        return {
+            node_id: place[segment_id]
+            for node_id, segment_id in self.device_segments().items()
+            if segment_id in place
+        }
+
+    def parked_address(self, node_id: int) -> str:
+        """Its line's address with "-" ("1.5.-") for a device on a line, "" on no line: what
+        shows for it while it has no device number."""
+        line = self.device_lines().get(node_id)
+        return f"{line}.-" if line is not None else ""
+
+    def move_device_to_segment(self, node_id: int, segment_id: int) -> None:
+        """Move a device to a segment: within its line it keeps its address, into another line
+        it gets that line's lowest free one. Undoable. Raises ``MediumError`` when the device's
+        hardware does not support the segment's medium, ``ValueError`` when the line is full."""
+        if self._pid is None:
+            return
+        placement = self._svc.device_placement(self._pid, node_id)
+        if placement.segment_id == segment_id:
+            return
+        device = self.find_device_by_node_id(node_id)
+        label = device_label(device) if device is not None else str(node_id)
+        self.check_device_medium(
+            placement.hardware2program_ref_id, segment_id, label, moving={node_id}
+        )
+        target_line = next(
+            (
+                line
+                for lines in (self._lines_cache or {}).values()
+                for line in lines
+                if line.main_segment_id == segment_id
+                or any(s.id == segment_id for s in line.segments)
+            ),
+            None,
+        )
+        if target_line is None:
+            raise ValueError(f"no segment with id {segment_id}")
+        address = (
+            placement.address
+            if target_line.id == placement.line_id
+            else self._svc.next_free_individual_address(self._pid, target_line.id)
+        )
+        self._svc.move_device(
+            self._pid, node_id, segment_id, address, couplers=self._line_couplers()
+        )
+        self._bump()
+
     @property
     @io_guarded(lambda: GroupAddressStyle.THREE_LEVEL)
+    @revision_cached
     def group_address_style(self) -> GroupAddressStyle:
         """The project's group-address style (three-level, two-level, free).
 
-        Read every frame by several panels, so it is IO-guarded: during a background import (which
-        rewrites the schema on a worker thread) it returns the default instead of querying the DB
-        mid-DDL, which would raise "malformed database schema"."""
+        Read every frame by several panels (the Group Addresses tree once per row), so it is cached
+        by revision and IO-guarded: during a background import (which rewrites the schema on a
+        worker thread) it returns the default instead of querying the DB mid-DDL, which would raise
+        "malformed database schema"."""
         if self._pid is None:
             return GroupAddressStyle.THREE_LEVEL
         return GroupAddressStyle(self._svc.project(self._pid).group_address_style)
@@ -4924,11 +5846,62 @@ class ProjectService:
         self._bump(structural=True)
         return True
 
+    def move_group_address(self, ga_id: int, range_id: int) -> str | None:
+        """Put a group address into another group ("Move to"): it keeps its number within the
+        group when free, else gets the lowest free one; undoable. The reason it cannot be, or
+        None."""
+        if self._pid is None:
+            return None
+        try:
+            self._svc.move_group_address(self._pid, ga_id, range_id)
+        except KeyError as exc:
+            return str(exc.args[0])
+        except ValueError as exc:
+            # The menu offers only groups that hold group addresses; others come from MCP.
+            return S.GA_MOVE_NO_FREE if "no free" in str(exc) else str(exc)
+        self._bump()
+        return None
+
+    def move_group_range(self, range_id: int, parent_id: int | None) -> str | None:
+        """Put a middle group with its group addresses below another main group ("Move to"):
+        it keeps its number when free, else gets the lowest free one. A Free style range goes
+        into the range ``parent_id`` (None: to the top), keeping its addresses when they fit
+        there. Undoable. The reason it cannot be, or None."""
+        if self._pid is None:
+            return None
+        try:
+            self._svc.move_group_range(self._pid, range_id, parent_id)
+        except KeyError as exc:
+            return str(exc.args[0])
+        except ValueError as exc:
+            # The menu offers only the places it may go; others come from MCP.
+            text = str(exc)
+            if "no free" in text:
+                return S.GROUP_MOVE_NO_FREE
+            if "does not fit" in text:
+                return S.GROUP_MOVE_NO_ROOM
+            if "into itself" in text:
+                return S.GROUP_MOVE_INTO_ITSELF
+            if "is taken" in text:
+                return S.GROUP_MOVE_ADDRESS_TAKEN
+            return text
+        self._bump()
+        return None
+
     def set_group_address_dpt(self, ga_id: int, dpt: str | None) -> None:
         if self._pid is None:
             return
         self._svc.set_group_address_datapoint_type(self._pid, ga_id, dpt or None)
         self._bump(structural=False)
+
+    def set_element_dpt(self, ga_id: int, dpt: str) -> str | None:
+        """Set a group address's data point type ("" for none); the reason it cannot be, or
+        None."""
+        try:
+            self.set_group_address_dpt(ga_id, dpt.strip())
+        except ValueError as exc:
+            return str(exc)
+        return None
 
     def set_group_address_security(self, ga_id: int, mode: str) -> None:
         """Set a group address's Security mode (``"Auto"``/``"On"``/``"Off"``). ``"On"`` secures it
@@ -4954,6 +5927,60 @@ class ProjectService:
             self._svc.set_group_address_security(self._pid, ga_id, mode)
         self._bump(structural=False)
 
+    def set_group_range_security(self, range_id: int, mode: str) -> None:
+        """Set a main or middle group's Security mode (``"Auto"``/``"On"``/``"Off"``): ``"On"`` and
+        ``"Off"`` force it on every group address below it. Raises
+        ``GroupAddressSecurityError`` for ``"On"`` while a device linked below it is not
+        commissioned securely, or for ``"Off"`` while a group object linked below it requires
+        security; ``ProjectPasswordRequired`` when it secures an address without a key."""
+        from xknxeditor.proj import GroupAddressSecurityError
+
+        if self._pid is None:
+            return
+        if mode == "Off":
+            found = _find_range(self.get_group_range_tree(), range_id, 0)
+            links = (
+                [link for ga in _addresses_in(found[0]) for link in ga.links]
+                if found is not None
+                else []
+            )
+            if any(self.com_object_requires_security(link) for link in links):
+                raise GroupAddressSecurityError(
+                    "a group object below the group requires secure communication"
+                )
+        with self._io_lock:
+            self._svc.set_group_range_security(self._pid, range_id, mode)
+        self._bump(structural=False)
+
+    def set_group_address_central(self, ga_id: int, central: bool) -> None:
+        """Mark a group address as central or not; undoable."""
+        if self._pid is None:
+            return
+        self._svc.set_group_address_central(self._pid, ga_id, central)
+        self._bump(structural=False)
+
+    def set_element_security(self, kind: str, element_id: int, mode: str) -> str | None:
+        """Set the Security of a group address or a main or middle group; the reason it cannot
+        be, or None."""
+        from xknxeditor.proj import GroupAddressSecurityError, ProjectPasswordRequired
+
+        try:
+            if kind == "group_address":
+                self.set_group_address_security(element_id, mode)
+            elif kind == "group_range":
+                self.set_group_range_security(element_id, mode)
+        except ProjectPasswordRequired:
+            return S.SECURE_DOWNLOAD_PASSWORD_REQUIRED
+        except GroupAddressSecurityError:
+            if mode != "On":
+                return S.GA_SECURE_REQUIRED
+            return (
+                S.GA_SECURE_ON_REFUSED
+                if kind == "group_address"
+                else S.GROUP_SECURE_ON_REFUSED
+            )
+        return None
+
     def remove_group_address(
         self, ga_id: int, address: str = "", name: str = ""
     ) -> None:
@@ -4962,12 +5989,41 @@ class ProjectService:
         self._svc.remove_group_address(self._pid, ga_id)
         self._bump(structural=False)
 
-    def create_group_range(self, parent_id: int | None, name: str) -> int | None:
+    def create_group_range(
+        self, parent_id: int | None, name: str, number: int | None = None
+    ) -> int | None:
         """Create an empty group-range folder (main group when ``parent_id`` is ``None``, else a
-        middle group under it). Returns ``None`` when the style has no such folder or it is full."""
+        middle group under it), numbered ``number`` (None: the next free one). Returns ``None``
+        when the style has no such folder, it is full or ``number`` is taken."""
         if self._pid is None:
             return None
-        rid = self._svc.create_group_range(self._pid, _INSTALLATION, parent_id, name)
+        rid = self._svc.create_group_range(
+            self._pid, _INSTALLATION, parent_id, name, number
+        )
+        self._bump(structural=False)
+        return rid
+
+    def create_group_address_in(
+        self, range_id: int, address: int, name: str
+    ) -> int | None:
+        """Create the group address ``address`` in the group ``range_id``. Raises
+        ``ValueError`` when the address is outside it or taken."""
+        if self._pid is None:
+            return None
+        ga_id = self._svc.create_group_address_in(self._pid, range_id, address, name)
+        self._bump(structural=False)
+        return ga_id
+
+    def create_free_group_range(
+        self, parent_id: int | None, name: str, start: int, end: int
+    ) -> int | None:
+        """Create a group range of the Free style spanning ``start`` to ``end``, at the top or
+        in ``parent_id``. Raises ``ValueError`` when it does not fit there (see the core)."""
+        if self._pid is None:
+            return None
+        rid = self._svc.create_free_group_range(
+            self._pid, _INSTALLATION, parent_id, name, start, end
+        )
         self._bump(structural=False)
         return rid
 
@@ -5094,6 +6150,14 @@ class ProjectService:
         self._svc.remove_function(self._pid, function_id)
         self._bump(structural=False)
 
+    def move_function(self, function_id: int, space_id: int) -> None:
+        """Put a building function into another space ("Move to"), after its functions;
+        undoable."""
+        if self._pid is None:
+            return
+        self._svc.move_function(self._pid, function_id, space_id)
+        self._bump(structural=False)
+
     def rename_function(self, function_id: int, name: str) -> None:
         if self._pid is None:
             return
@@ -5134,12 +6198,20 @@ class ProjectService:
         return self._svc.unassigned_devices(self._pid, _INSTALLATION)
 
     def create_space(
-        self, parent_id: int | None, space_type: str, name: str
+        self, parent_id: int | None, space_type: str, name: str, usage: str = ""
     ) -> int | None:
+        """A new space; a room with its ``usage`` (a SpaceUsage id, "" for none). Raises
+        ``SpaceRuleError`` when its parent cannot hold its type (see ``space_rules``)."""
         if self._pid is None:
             return None
         sid = self._svc.create_space(
-            self._pid, _INSTALLATION, space_type, name, parent_id
+            self._pid,
+            _INSTALLATION,
+            space_type,
+            name,
+            parent_id,
+            usage=usage,
+            usage_text=usage_label(usage) if usage else "",
         )
         self._bump(structural=False)
         return sid
@@ -5170,18 +6242,25 @@ class ProjectService:
 
     @property
     def selected_topology(self) -> tuple[str, int] | None:
-        """The selected element if it is an area or a line."""
+        """The selected element if it is the backbone, an area, a line or a segment."""
         element = self._selected_element
         return (
-            element if element is not None and element[0] in ("area", "line") else None
+            element
+            if element is not None
+            and element[0] in ("backbone", "area", "line", "segment")
+            else None
         )
 
     def select_element(self, kind: str, element_id: int) -> None:
         """An area, line, group range or group address was selected: its details show in place of
-        the device's, its comment in the Comment tab."""
+        the device's, its comment in the Comment tab. The backbone is area 0 ("backbone")."""
         self._selected_element = (kind, element_id)
         self._selected_space_id = None
-        self._comment_target = (kind, element_id)
+        self._comment_target = (_stored_kind(kind), element_id)
+
+    def _main_line(self, area_id: int) -> _Line | None:
+        """The main line (address 0) of the area ``area_id``."""
+        return next((ln for ln in self.get_lines(area_id) if ln.line_number == 0), None)
 
     def find_topology(self, kind: str, element_id: int) -> "_Area | _Line | None":
         """The area or line ``element_id``; None when it does not exist (any more)."""
@@ -5198,12 +6277,162 @@ class ProjectService:
             None,
         )
 
+    def _backbone_details(self, area_id: int) -> "ElementDetails | None":
+        """The backbone (area 0 with its line 0.0) and the IP routing of the installation."""
+        area = self.find_topology("area", area_id)
+        if self._pid is None or not isinstance(area, _Area) or area.area_number != 0:
+            return None
+        main = self._main_line(area_id)
+        attributes = self._svc.installation_attributes(self._pid)
+        return ElementDetails(
+            "backbone",
+            area_id,
+            "backbone",
+            area.name,
+            area.description,
+            "",
+            "",
+            status=self.completion_status("area", area_id),
+            has_address=False,
+            medium=main.medium_type if main is not None else None,
+            latency=_int_or(attributes.get("IPRoutingLatencyTolerance"), 2000),
+            multicast_address=attributes.get("IPRoutingMulticastAddress")
+            or DEFAULT_MULTICAST_ADDRESS,
+            backbone_security=attributes.get("IPRoutingBackboneSecurity") or "Auto",
+            bus_access=((main.bus_access or {}).get("Parameter", "") if main else ""),
+            bus_connection=format_bus_access(main.bus_access if main else None),
+        )
+
+    def backbone_bus_connection(self) -> tuple[str, str] | None:
+        """The backbone's bus connection: its ``Parameter`` and its name as shown; None for
+        "Automatic" (or without a project). An online operation that finds no open connection
+        connects through it."""
+        area = next((a for a in self.get_areas() if a.area_number == 0), None)
+        main = self._main_line(area.id) if area is not None else None
+        access = main.bus_access if main is not None else None
+        if not access or not access.get("Parameter"):
+            return None
+        return access["Parameter"], format_bus_access(access)
+
+    def set_backbone_bus_connection(self, parameter: str) -> None:
+        """Set the backbone's bus connection: the ``Parameter`` of its ``<BusAccess>``, "" for
+        "Automatic"; undoable."""
+        area = next((a for a in self.get_areas() if a.area_number == 0), None)
+        main = self._main_line(area.id) if area is not None else None
+        if self._pid is None or main is None or main.main_segment_id is None:
+            return
+        self._svc.set_segment_bus_access(
+            self._pid, main.main_segment_id, parameter or None
+        )
+        self._bump(structural=False)
+
+    def set_element_backbone_security(self, mode: str) -> str | None:
+        """Set the security of the backbone's IP routing ("Auto", "On" or "Off"); the reason it
+        cannot be, or None."""
+        from xknxeditor.proj import ProjectPasswordRequired
+
+        try:
+            self.set_backbone_security(None if mode == "Auto" else mode)
+        except ProjectPasswordRequired:
+            return S.SECURE_DOWNLOAD_PASSWORD_REQUIRED
+        return None
+
+    def set_ip_routing(
+        self, *, latency: int | None = None, multicast_address: str | None = None
+    ) -> str | None:
+        """Set the backbone's network latency (ms) or routing multicast address; the reason it
+        cannot be, or None."""
+        if self._pid is None:
+            return None
+        try:
+            self._svc.set_ip_routing(
+                self._pid, latency=latency, multicast_address=multicast_address
+            )
+        except ValueError:
+            return (
+                S.MULTICAST_ADDRESS_INVALID
+                if multicast_address is not None
+                else S.LATENCY_INVALID
+            )
+        self._bump(structural=False)
+        return None
+
+    def _element_segment(self, kind: str, element_id: int) -> int | None:
+        """The segment whose medium an area, the backbone, a line or a segment shows: the main
+        segment of the main line, of the line, or the segment itself."""
+        if kind == "segment":
+            return element_id
+        if kind in ("area", "backbone"):
+            main = self._main_line(element_id)
+            return main.main_segment_id if main is not None else None
+        line = self.find_line(element_id) if kind == "line" else None
+        return line.main_segment_id if line is not None else None
+
+    def set_element_domain_address(
+        self, kind: str, element_id: int, text: str | None
+    ) -> str | None:
+        """Set the domain address of an RF, PL or IoT line or segment as entered (``text``), or
+        generate a new one (None); undoable. The reason it cannot be, or None."""
+        segment_id = self._element_segment(kind, element_id)
+        found = self.segment_medium(segment_id) if segment_id is not None else None
+        if self._pid is None or segment_id is None or found is None:
+            return None
+        try:
+            address = None if text is None else parse_domain_address(found[0], text)
+            self._svc.set_domain_address(self._pid, segment_id, address)
+        except MediumError as error:
+            return medium_error_text(error)
+        self._bump()
+        return None
+
+    def _refused_segment_media(self, segment: _Segment) -> dict[str, str]:
+        """The media a sub-segment may not be changed to, with the reason: IoT on a line that
+        is not IP (or IoT)."""
+        from xknxeditor.proj.core.medium import MEDIUM_IOT, MEDIUM_IP
+
+        line = self.find_line(segment.line_id)
+        if line is None or line.medium_type in (MEDIUM_IP, MEDIUM_IOT):
+            return {}
+        area = next((a for a in self.get_areas() if a.id == line.area_id), None)
+        prefix = f"{area.area_number}.{line.line_number}" if area is not None else ""
+        name = line_display_name(area.area_number if area else 0, line)
+        return {
+            MEDIUM_IOT: S.MEDIUM_ERROR_SUB_SEGMENT_IOT.format(
+                segment=segment_display_name(segment.name, segment.medium_type),
+                line=f"{prefix} {name}".strip(),
+            )
+        }
+
     def element_details(self, kind: str, element_id: int) -> "ElementDetails | None":
-        """What the details of an area, line, group range or group address show; None when it does
-        not exist (any more)."""
+        """What the details of an area, line, segment, group range, group address or building
+        function show; None when it does not exist (any more)."""
+        if kind == "segment":
+            segment = self.find_segment(element_id)
+            if segment is None:
+                return None
+            return ElementDetails(
+                kind,
+                element_id,
+                "segment",
+                segment.name,
+                segment.description,
+                "",
+                "",
+                status=self.completion_status(kind, element_id),
+                has_address=False,
+                medium=segment.medium_type,
+                refused_media=self._refused_segment_media(segment),
+                domain_address=format_domain_address(
+                    segment.medium_type, segment.domain_address
+                ),
+            )
+        if kind == "backbone":
+            return self._backbone_details(element_id)
         if kind in ("area", "line"):
             element = self.find_topology(kind, element_id)
+            status = self.completion_status(kind, element_id)
             if isinstance(element, _Area):
+                main = self._main_line(element.id)
                 return ElementDetails(
                     kind,
                     element_id,
@@ -5212,6 +6441,13 @@ class ProjectService:
                     element.description,
                     "",
                     str(element.area_number),
+                    status=status,
+                    medium=main.medium_type if main is not None else None,
+                    domain_address=format_domain_address(
+                        main.medium_type, main.domain_address
+                    )
+                    if main is not None
+                    else "",
                 )
             if isinstance(element, _Line):
                 area = self.find_topology("area", element.area_id)
@@ -5224,8 +6460,44 @@ class ProjectService:
                     element.description,
                     prefix,
                     str(element.line_number),
+                    status=status,
+                    medium=element.medium_type,
+                    domain_address=format_domain_address(
+                        element.medium_type, element.domain_address
+                    ),
                 )
             return None
+        if kind == "function":
+            function = self.find_function(element_id)
+            if function is None:
+                return None
+            return ElementDetails(
+                kind,
+                element_id,
+                "function",
+                function.name,
+                function.description,
+                "",
+                "",
+                status=self.completion_status(kind, element_id),
+                has_address=False,
+            )
+        if kind == "trade":
+            trade = self.find_trade(element_id)
+            if trade is None:
+                return None
+            return ElementDetails(
+                kind,
+                element_id,
+                "trade",
+                trade.name,
+                trade.description,
+                "",
+                "",
+                status=self.completion_status(kind, element_id),
+                has_address=False,
+                number=trade.number,
+            )
         if kind == "group_address":
             ga = self.get_group_address(element_id)
             if ga is None:
@@ -5238,12 +6510,17 @@ class ProjectService:
                 ga.description,
                 "",
                 ga.address,
+                security=ga.security_mode or "Auto",
+                forced_by=ga.forced_by,
+                central=ga.central,
+                datapoint_type=ga.datapoint_type or "",
             )
         if kind == "group_range":
             found = _find_range(self.get_group_range_tree(), element_id, 0)
             if found is None:
                 return None
             node, depth = found
+            security = node.security_mode or "Auto"
             if not node.address:  # Free style: groups without a number
                 return ElementDetails(
                     kind,
@@ -5254,6 +6531,8 @@ class ProjectService:
                     "",
                     f"{node.range_start}\u2013{node.range_end}",
                     editable=False,
+                    security=security,
+                    forced_by=node.forced_by,
                 )
             prefix, _, number = node.address.rpartition("/")
             return ElementDetails(
@@ -5264,6 +6543,8 @@ class ProjectService:
                 node.description,
                 f"{prefix}/" if prefix else "",
                 number,
+                security=security,
+                forced_by=node.forced_by,
             )
         return None
 
@@ -5271,26 +6552,57 @@ class ProjectService:
         details = self.element_details(kind, element_id)
         if details is None or details.name == name:
             return
-        if kind == "area":
+        if kind in ("area", "backbone"):
             self.rename_area(element_id, details.name, name)
         elif kind == "line":
             self.rename_line(element_id, details.name, name)
+        elif kind == "segment":
+            self.rename_segment(element_id, name)
         elif kind == "group_range":
             self.rename_group_range(element_id, name)
         elif kind == "group_address":
             self.rename_group_address(element_id, name)
+        elif kind == "function" and name:
+            self.rename_function(element_id, name)
+        elif kind == "trade":
+            self.set_trade_field(element_id, "name", name)
 
     def set_element_description(
         self, kind: str, element_id: int, description: str
     ) -> None:
-        if kind in ("area", "line"):
-            self.set_topology_description(kind, element_id, description)
+        if kind in ("area", "line", "backbone"):
+            self.set_topology_description(_stored_kind(kind), element_id, description)
             return
         details = self.element_details(kind, element_id)
         if self._pid is None or details is None or details.description == description:
             return
-        self._svc.set_group_description(self._pid, kind, element_id, description)
+        if kind == "segment":
+            self._svc.set_topology_description(self._pid, kind, element_id, description)
+        elif kind == "trade":
+            self._svc.set_trade_field(self._pid, element_id, "description", description)
+        elif kind == "function":
+            self._svc.set_function_description(self._pid, element_id, description)
+        else:
+            self._svc.set_group_description(self._pid, kind, element_id, description)
         self._bump(structural=False)
+
+    def set_element_medium(
+        self, kind: str, element_id: int, medium_type: str
+    ) -> str | None:
+        """Change the medium of a line or a segment, of an area's main line (the backbone's
+        for the backbone); the reason it cannot be, or None."""
+        try:
+            if kind in ("area", "backbone"):
+                main = self._main_line(element_id)
+                if main is not None:
+                    self.set_line_medium(main.id, medium_type)
+            elif kind == "line":
+                self.set_line_medium(element_id, medium_type)
+            elif kind == "segment":
+                self.set_segment_medium(element_id, medium_type)
+        except MediumError as error:
+            return medium_error_text(error)
+        return None
 
     def set_element_address(self, kind: str, element_id: int, text: str) -> str | None:
         """Give the element another address; the reason it cannot be, or None."""
@@ -5350,7 +6662,9 @@ class ProjectService:
         if current is None or current == address:
             return None
         try:
-            self._svc.set_topology_address(self._pid, kind, element_id, address)
+            self._svc.set_topology_address(
+                self._pid, kind, element_id, address, couplers=self._line_couplers()
+            )
         except ValueError:
             return S.TOPOLOGY_ADDRESS_IN_USE.format(address=address)
         self._bump()
@@ -5389,6 +6703,32 @@ class ProjectService:
         self._svc.set_comment(self._pid, kind, element_id, value, field)
         self._bump(structural=False)
 
+    def completion_status(self, kind: str, element_id: int) -> str | None:
+        """The "Status" of the project (``kind`` "project"), an area, a line, a device (its
+        database id), a space or a function; None when it does not exist (any more). The
+        backbone's is area 0's."""
+        if self._pid is None:
+            return None
+        kind = _stored_kind(kind)
+        key = (kind, element_id)
+        cached = self._status_cache.get(key)
+        if cached is not None and cached[0] == self._version:
+            return cached[1]
+        value = self._svc.completion_status(self._pid, kind, element_id)
+        self._status_cache[key] = (self._version, value)
+        return value
+
+    def set_completion_status(self, kind: str, element_id: int, status: str) -> None:
+        """Set an element's "Status" (one of ``COMPLETION_STATUSES``); undoable."""
+        kind = _stored_kind(kind)
+        if self._pid is None or self.completion_status(kind, element_id) in (
+            None,
+            status,
+        ):
+            return
+        self._svc.set_completion_status(self._pid, kind, element_id, status)
+        self._bump(structural=False)
+
     def find_space(self, space_id: int) -> "SpaceInfo | None":
         """The space ``space_id`` of the building tree."""
 
@@ -5396,6 +6736,21 @@ class ProjectService:
             for space in spaces:
                 if space.id == space_id:
                     return space
+                found = search(space.children)
+                if found is not None:
+                    return found
+            return None
+
+        return search(self.get_space_tree())
+
+    def find_function(self, function_id: int) -> "FunctionInfo | None":
+        """The building function ``function_id``."""
+
+        def search(spaces: "list[SpaceInfo]") -> "FunctionInfo | None":
+            for space in spaces:
+                for function in space.functions:
+                    if function.id == function_id:
+                        return function
                 found = search(space.children)
                 if found is not None:
                     return found
@@ -5415,17 +6770,65 @@ class ProjectService:
         self._svc.set_space_description(self._pid, space_id, description)
         self._bump(structural=False)
 
-    def set_space_type(self, space_id: int, space_type: str) -> None:
-        if self._pid is None:
+    def set_space_usage(self, space_id: int, usage: str) -> None:
+        """Set a room's use: a SpaceUsage id of the master data, "" for none."""
+        space = self.find_space(space_id)
+        if self._pid is None or space is None or space.usage == usage:
             return
-        self._svc.set_space_type(self._pid, space_id, space_type)
+        self._svc.set_space_usage(
+            self._pid, space_id, usage, usage_label(usage) if usage else ""
+        )
         self._bump(structural=False)
 
-    def move_space(self, space_id: int, new_parent_id: int | None) -> None:
-        if self._pid is None:
+    def current_line(self, space_id: int) -> "tuple[int, SpaceInfo] | None":
+        """The Current Line of a space: the line's id and the space that sets it, the space itself
+        or the nearest one above it that has one; None when none has."""
+
+        def path(spaces: "list[SpaceInfo]") -> "list[SpaceInfo] | None":
+            for space in spaces:
+                if space.id == space_id:
+                    return [space]
+                below = path(space.children)
+                if below is not None:
+                    return [space, *below]
+            return None
+
+        for space in reversed(path(self.get_space_tree()) or []):
+            if space.default_line_id is not None:
+                return space.default_line_id, space
+        return None
+
+    def line_choices(self) -> list[tuple[int, str]]:
+        """Every line of the topology as its id and its text ("1.1 Name"), in address order; a
+        backbone or main line without a name is called after its medium ("1.0 TP main line")."""
+        return [
+            (
+                line.id,
+                f"{area.area_number}.{line.line_number} {line_display_name(area.area_number, line)}".rstrip(),
+            )
+            for area in sorted(self.get_areas(), key=lambda a: a.area_number)
+            for line in sorted(self.get_lines(area.id), key=lambda ln: ln.line_number)
+        ]
+
+    def set_space_default_line(self, space_id: int, line_id: int | None) -> None:
+        """Set a space's own Current Line, or clear it with ``line_id`` None; undoable."""
+        space = self.find_space(space_id)
+        if self._pid is None or space is None or space.default_line_id == line_id:
             return
-        self._svc.move_space(self._pid, space_id, new_parent_id)
+        self._svc.set_space_default_line(self._pid, space_id, line_id)
         self._bump(structural=False)
+
+    def move_space(self, space_id: int, new_parent_id: int | None) -> str | None:
+        """Put a space below another one (None: at the top level); undoable. The reason it
+        cannot go there, or None."""
+        if self._pid is None:
+            return None
+        try:
+            self._svc.move_space(self._pid, space_id, new_parent_id)
+        except SpaceRuleError as error:
+            return space_error_text(error)
+        self._bump(structural=False)
+        return None
 
     def remove_space(self, space_id: int) -> None:
         if self._pid is None:
@@ -5433,11 +6836,94 @@ class ProjectService:
         self._svc.remove_space(self._pid, space_id)
         self._bump(structural=False)
 
-    def set_device_space(self, device_id: int, space_id: int | None) -> None:
+    # --- trades ---------------------------------------------------------------------------
+
+    @io_guarded(list)
+    @revision_cached
+    def get_space_devices(self) -> "list[SpaceDeviceInfo]":
+        """Every device of the project, as the Buildings view lists them (to put into a
+        trade)."""
+        if self._pid is None:
+            return []
+        return self._svc.space_devices(self._pid, _INSTALLATION)
+
+    @io_guarded(list)
+    @revision_cached
+    def get_trade_tree(self) -> list["TradeInfo"]:
+        """The trades of the Buildings view, each with its sub-trades and devices."""
+        if self._pid is None:
+            return []
+        return self._svc.trade_tree(self._pid, _INSTALLATION)
+
+    def find_trade(self, trade_id: int) -> "TradeInfo | None":
+        """The trade ``trade_id``; None when it does not exist (any more)."""
+
+        def search(trades: "list[TradeInfo]") -> "TradeInfo | None":
+            for trade in trades:
+                if trade.id == trade_id:
+                    return trade
+                found = search(trade.children)
+                if found is not None:
+                    return found
+            return None
+
+        return search(self.get_trade_tree())
+
+    def create_trade(self, parent_id: int | None, name: str) -> int | None:
+        """A new trade below ``parent_id`` (at the top level for None); undoable."""
+        if self._pid is None:
+            return None
+        trade_id = self._svc.create_trade(self._pid, _INSTALLATION, name, parent_id)
+        self._bump(structural=False)
+        return trade_id
+
+    def set_trade_field(self, trade_id: int, field: str, value: str) -> None:
+        """Set a trade's name, number or description; undoable."""
         if self._pid is None:
             return
-        self._svc.set_device_space(self._pid, device_id, space_id)
+        self._svc.set_trade_field(self._pid, trade_id, field, value)
         self._bump(structural=False)
+
+    def move_trade(self, trade_id: int, new_parent_id: int | None) -> None:
+        """Put a trade below another one (None: at the top level); undoable. Raises
+        ``ValueError`` for a move into itself or below itself."""
+        if self._pid is None:
+            return
+        self._svc.move_trade(self._pid, trade_id, new_parent_id)
+        self._bump(structural=False)
+
+    def remove_trade(self, trade_id: int) -> None:
+        """Delete a trade with its sub-trades (the devices stay); undoable."""
+        if self._pid is None:
+            return
+        self._svc.remove_trade(self._pid, trade_id)
+        self._bump(structural=False)
+
+    def add_trade_device(self, trade_id: int, node_id: int) -> None:
+        """Put a device into a trade; undoable."""
+        if self._pid is None:
+            return
+        self._svc.add_trade_device(self._pid, trade_id, node_id)
+        self._bump(structural=False)
+
+    def remove_trade_device(self, trade_id: int, node_id: int) -> None:
+        """Take a device out of a trade (it stays in the project); undoable."""
+        if self._pid is None:
+            return
+        self._svc.remove_trade_device(self._pid, trade_id, node_id)
+        self._bump(structural=False)
+
+    def set_device_space(self, device_id: int, space_id: int | None) -> str | None:
+        """Put a device into a space (None: into none); undoable. The reason it cannot go
+        there (a space that holds no devices), or None."""
+        if self._pid is None:
+            return None
+        try:
+            self._svc.set_device_space(self._pid, device_id, space_id)
+        except SpaceRuleError as error:
+            return space_error_text(error)
+        self._bump(structural=False)
+        return None
 
     def undo(self) -> bool:
         if self._pid is None:
@@ -5477,7 +6963,9 @@ class ProjectService:
                     return
             elif event_type in (
                 "SetDeviceAdditionalAddresses",
+                "SetDeviceIpConfig",
                 "SetComment",
+                "SetCompletionStatus",
                 "SetTopologyDescription",
                 "SetGroupDescription",
             ):
@@ -5507,6 +6995,201 @@ class ProjectService:
     @io_guarded(lambda: 0)
     def cursor(self) -> int:
         return self._svc.cursor(self._pid) if self._pid is not None else 0
+
+    @contextlib.contextmanager
+    def one_undo_step(self, label: str | None = None) -> Generator[None]:
+        """The edits made inside as one undo step (``label`` naming it in the history), as one
+        drop of several elements is."""
+        if self._pid is None:
+            yield
+            return
+        pid, start = self._pid, self._svc.cursor(self._pid)
+        try:
+            yield
+        finally:
+            if self._pid == pid:
+                self._svc.group_since(pid, start, label)
+                self._bump()
+
+    def _paster(self) -> Paster | None:
+        if self._pid is None:
+            return None
+        return Paster(
+            self._svc,
+            self._pid,
+            _INSTALLATION,
+            self.group_address_style,
+            self._paste_device,
+        )
+
+    def paste(
+        self,
+        kind: PasteKind,
+        ids: list[int],
+        target: PasteTarget,
+        options: PasteOptions,
+    ) -> list[int]:
+        """Paste Special: ``options.count`` copies of the elements ``ids`` of ``kind`` in
+        ``target`` (see :mod:`.paste`), one undo step named after them; the ids of the copies.
+        A group typed for new group addresses that does not exist yet is made first, an undo
+        step of its own. Raises ``PasteError`` when the paste cannot be made."""
+        paster = self._paster()
+        if paster is None or not ids:
+            return []
+        if options.group_addresses is GroupAddressCopy.CREATE_NEW:
+            with self.one_undo_step():
+                paster.target_range(options, create=True)
+        with self.one_undo_step(paster.label(kind, ids, target)):
+            created = paster.paste(kind, ids, target, options)
+        self._log.info("pasted", kind=kind, sources=len(ids), copies=len(created))
+        return created
+
+    def move_pasted(
+        self, kind: PasteKind, ids: list[int], target: PasteTarget
+    ) -> str | None:
+        """Paste what "Cut" took: move the elements ``ids`` of ``kind`` to ``target`` as their
+        "Move to" or a drop does, all in one undo step; the reason it cannot be (what moved
+        before stays moved), or None."""
+        if self._pid is None:
+            return None
+        with self.one_undo_step():
+            for ident in ids:
+                reason = self._move_to(kind, ident, target)
+                if reason:
+                    return reason
+        return None
+
+    def _move_to(self, kind: PasteKind, ident: int, target: PasteTarget) -> str | None:
+        """Move one element (see :meth:`move_pasted`)."""
+        place = target.element_id
+        try:
+            if kind == "device":
+                return self._move_device_to(ident, target)
+            if kind == "space" and target.kind == "space":
+                return self.move_space(ident, place)
+            if kind == "trade" and target.kind == "trade":
+                self.move_trade(ident, place)
+                return None
+            if kind == "function" and target.kind == "space" and place is not None:
+                self.move_function(ident, place)
+                return None
+            if kind == "line" and target.kind == "area" and place is not None:
+                return self.move_line(ident, place)
+            if kind == "segment" and place is not None:
+                line = self._line_of_target(target)
+                if line is not None:
+                    return self.move_segment(ident, line)
+            if kind == "group_address" and target.kind == "group_range" and place:
+                return self.move_group_address(ident, place)
+            # A Free style range also goes to the top (no place).
+            free = self.group_address_style is GroupAddressStyle.FREE
+            if (
+                kind == "group_range"
+                and target.kind == "group_range"
+                and (place or free)
+            ):
+                return self.move_group_range(ident, place)
+        except MediumError as error:
+            return medium_error_text(error)
+        except ValueError as error:
+            return str(error)
+        return S.PASTE_CANNOT_MOVE
+
+    def _line_of_target(self, target: PasteTarget) -> int | None:
+        """The line a segment pasted on ``target`` goes to: the line itself, a segment's line,
+        an area's main line."""
+        if target.element_id is None:
+            return None
+        if target.kind == "line":
+            return target.element_id
+        if target.kind == "segment":
+            segment = self.find_segment(target.element_id)
+            if segment is not None:
+                return segment.line_id
+            line = next(
+                (
+                    ln
+                    for lines in (self._lines_cache or {}).values()
+                    for ln in lines
+                    if ln.main_segment_id == target.element_id
+                ),
+                None,
+            )
+            return line.id if line is not None else None
+        if target.kind == "area":
+            main = self._main_line(target.element_id)
+            return main.id if main is not None else None
+        return None
+
+    def _move_device_to(self, node_id: int, target: PasteTarget) -> str | None:
+        """A cut device pasted on ``target``: onto a segment, into a building part, or into a
+        trade (out of the trades it was in)."""
+        place = target.element_id
+        if target.kind == "segment" and place is not None:
+            self.move_device_to_segment(node_id, place)
+            return None
+        if target.kind == "space":
+            return self.set_device_space(node_id, place)
+        if target.kind == "trade" and place is not None:
+            stack = list(self.get_trade_tree())
+            while stack:
+                trade = stack.pop()
+                stack.extend(trade.children)
+                if trade.id != place and any(
+                    d.device.id == node_id for d in trade.devices
+                ):
+                    self.remove_trade_device(trade.id, node_id)
+            self.add_trade_device(place, node_id)
+            return None
+        return S.PASTE_CANNOT_MOVE
+
+    def paste_names(self, kind: PasteKind, ids: list[int]) -> list[str]:
+        """The names of the elements a paste copies, as the Paste Special dialog lists them."""
+        paster = self._paster()
+        return paster.names(kind, ids) if paster is not None else []
+
+    def paste_target_name(self, target: PasteTarget) -> str:
+        """The name of the place a paste copies to."""
+        paster = self._paster()
+        return paster.target_name(target) if paster is not None else ""
+
+    def _paste_device(
+        self,
+        source: "DeviceRow",
+        segment_id: int | None,
+        number: int | None,
+        space_id: int | None,
+    ) -> int | None:
+        """A device like ``source`` (its product, application and parameter values) in the
+        segment (None: on no line) with the device number (None: none), in the building part
+        ``space_id``."""
+        if self._pid is None:
+            return None
+        app = self._resolve_app(
+            source.hardware2program_ref_id, source.application_program_ref_id
+        )
+        if app is None:
+            self._log.warning("cannot copy: application not resolved", device=source.id)
+            return None
+        return self.add_device(
+            source.product_ref_id,
+            source.hardware2program_ref_id,
+            source.name,
+            app,
+            segment_id=segment_id,
+            address=number,
+            no_address=number is None,
+            unassigned=segment_id is None,
+            parameters=[(p.ref_id, p.value) for p in source.parameters],
+            product=DeviceProduct(
+                product_name=source.product_name,
+                hardware_name=source.hardware_name,
+                order_number=source.order_number,
+                manufacturer_name=source.manufacturer_name,
+            ),
+            secure_commissioning=self._svc.secure_commissioning(self._pid, source.id),
+            space_id=space_id,
+        )
 
     def jump_to(self, event_id: int) -> None:
         if self._pid is None:

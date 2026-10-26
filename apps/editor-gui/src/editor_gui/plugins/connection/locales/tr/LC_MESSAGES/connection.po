@@ -174,3 +174,24 @@ msgstr "Hizmetler: {services}"
 
 msgid "Retry"
 msgstr "Yeniden Dene"
+
+msgid "Select Connection"
+msgstr "Bağlantı Seçin"
+
+msgid "XKNX Editor could not determine an available connection."
+msgstr "XKNX Editor, kullanılabilir bir bağlantı belirleyemedi."
+
+msgid "The connection {name} is not available."
+msgstr "{name} bağlantısı kullanılamıyor."
+
+msgid "You may use any of the connections listed below, instead."
+msgstr "Bunun yerine aşağıda listelenen bağlantılardan herhangi birini kullanabilirsiniz."
+
+msgid "{name}: {error}"
+msgstr "{name}: {error}"
+
+msgid "Cancel"
+msgstr "İptal"
+
+msgid "This kind of connection is not supported."
+msgstr "Bu tür bağlantı desteklenmiyor."

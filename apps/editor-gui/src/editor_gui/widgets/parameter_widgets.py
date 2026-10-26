@@ -2,7 +2,8 @@ from __future__ import annotations
 
 import math
 import re
-from collections.abc import Callable
+from collections.abc import Callable, Generator
+from contextlib import contextmanager
 from dataclasses import dataclass, replace
 
 from imgui_bundle import imgui
@@ -62,6 +63,7 @@ from xknxeditor.prod.parser_v2.ui.parameter import (
     CheckBoxWidget,
     ColorWidget,
     DateWidget,
+    EnumChoice,
     EnumWidget,
     FloatSliderWidget,
     FloatWidget,
@@ -225,7 +227,7 @@ def _value_display(param: UiParameter, value: str) -> str:
     if isinstance(widget, EnumWidget):
         for choice in widget.choices:
             if str(choice.value) == value:
-                return choice.label
+                return choice_text(choice)
     if isinstance(widget, FloatWidget | FloatSliderWidget) and value:
         return format_float(value, decimal=regional_format().decimal)
     if isinstance(widget, DateWidget):
@@ -284,6 +286,127 @@ def _render_picture(widget: PictureWidget, width: float) -> None:
     imgui.dummy(imgui.ImVec2(width, h))
 
 
+@contextmanager
+def device_images(
+    get_icon: Callable[[str], Icon | None] | None,
+    get_picture: Callable[[str], Picture | None] | None = None,
+) -> Generator[None]:
+    """The parameters drawn inside show the device's icons and pictures (outside a parameter
+    page, e.g. its channel tables)."""
+    global _get_icon, _get_picture
+    saved = _get_icon, _get_picture
+    _get_icon, _get_picture = get_icon, get_picture
+    try:
+        yield
+    finally:
+        _get_icon, _get_picture = saved
+
+
+def choice_text(choice: EnumChoice) -> str:
+    """The text of an enumeration entry; one shown only as its icon (a colour) has the icon's
+    name where no icon can be drawn."""
+    return choice.label or choice.icon or str(choice.value)
+
+
+def _choice_icon(choice: EnumChoice | None) -> Icon | None:
+    if choice is None or not choice.icon or _get_icon is None:
+        return None
+    return _get_icon(choice.icon)
+
+
+def _fills_row(choice: EnumChoice, icon: Icon | None) -> bool:
+    """Whether an entry shows as its image across the whole row: one without a text whose
+    picture repeats or stretches (a colour)."""
+    return (
+        icon is not None
+        and not choice.label.strip()
+        and choice.picture_alignment
+        in (HorizontalAlignment.REPEAT, HorizontalAlignment.STRETCH)
+    )
+
+
+def _draw_choice(
+    choice: EnumChoice,
+    icon: Icon | None,
+    draw: imgui.ImDrawList,
+    low: imgui.ImVec2,
+    high: imgui.ImVec2,
+) -> None:
+    """An enumeration entry in the box ``low``-``high``: its icon before its text, or its image
+    across the box (see :func:`_fills_row`)."""
+    style = imgui.get_style()
+    size = imgui.get_text_line_height()
+    top = low.y + (high.y - low.y - size) / 2
+    draw.push_clip_rect(low, high, True)
+    if icon is not None and _fills_row(choice, icon):
+        draw.add_image(
+            icon.texture,
+            imgui.ImVec2(low.x, top),
+            imgui.ImVec2(high.x, top + size),
+        )
+    else:
+        x = low.x
+        if icon is not None:
+            draw_icon(icon, imgui.ImVec2(x, top), size)
+            x += size + style.item_inner_spacing.x
+        draw.add_text(
+            imgui.ImVec2(x, top),
+            imgui.get_color_u32(imgui.Col_.text),
+            choice.label if icon is not None else choice_text(choice),
+        )
+    draw.pop_clip_rect()
+
+
+def _render_enum_combo(
+    widget_id: str,
+    widget: EnumWidget,
+    current: EnumChoice | None,
+    preview: str,
+    on_change: Callable[[str], None],
+) -> None:
+    """The drop-down of an enumeration; entries with an icon show it before their text, a
+    colour across the row. ``current`` None: ``preview`` is shown (e.g. "<differs>")."""
+    icon = _choice_icon(current)
+    style = imgui.get_style()
+    # The box the chosen entry is drawn in, left of the arrow.
+    start = imgui.get_cursor_screen_pos()
+    low = imgui.ImVec2(start.x + style.frame_padding.x, start.y)
+    high = imgui.ImVec2(
+        start.x + imgui.calc_item_width() - imgui.get_frame_height(),
+        start.y + imgui.get_frame_height(),
+    )
+    draw = imgui.get_window_draw_list()
+    custom = current is not None and icon is not None
+    shown = "" if custom else (choice_text(current) if current else preview)
+    if begin_combo(f"##{widget_id}", shown):
+        for i, choice in enumerate(widget.choices):
+            selected = current is not None and choice.value == current.value
+            choice_icon = _choice_icon(choice)
+            if choice_icon is None:
+                clicked = imgui.selectable(f"{choice_text(choice)}##{i}", selected)[0]
+            else:
+                clicked = imgui.selectable(
+                    f"##{i}",
+                    selected,
+                    0,
+                    imgui.ImVec2(0, imgui.get_text_line_height()),
+                )[0]
+                _draw_choice(
+                    choice,
+                    choice_icon,
+                    imgui.get_window_draw_list(),
+                    imgui.get_item_rect_min(),
+                    imgui.get_item_rect_max(),
+                )
+            if clicked:
+                on_change(str(choice.value))
+            if selected:
+                imgui.set_item_default_focus()
+        imgui.end_combo()
+    if custom and current is not None:
+        _draw_choice(current, icon, draw, low, high)
+
+
 @dataclass
 class EnumPopupRequest:
     device: Device
@@ -307,7 +430,7 @@ def render_param_widget(
                 if str(choice.value) == param.value:
                     current_idx = i
                     break
-            preview = w.choices[current_idx].label if w.choices else param.value
+            preview = choice_text(w.choices[current_idx]) if w.choices else param.value
             if differs:
                 preview = S.PARAM_DIFFERS
             if deferred_enum:
@@ -319,16 +442,14 @@ def render_param_widget(
                         imgui.same_line()
                     selected = not differs and str(choice.value) == param.value
                     if _small_radio(
-                        f"{choice.label}##{widget_id}_{i}", selected, first=i == 0
+                        f"{choice_text(choice)}##{widget_id}_{i}",
+                        selected,
+                        first=i == 0,
                     ):
                         on_change(str(choice.value))
             else:
-                if begin_combo(f"##{widget_id}", preview):
-                    for i, choice in enumerate(w.choices):
-                        selected = not differs and str(choice.value) == param.value
-                        if imgui.selectable(f"{choice.label}##{i}", selected)[0]:
-                            on_change(str(choice.value))
-                    imgui.end_combo()
+                current = None if differs or not w.choices else w.choices[current_idx]
+                _render_enum_combo(widget_id, w, current, preview, on_change)
         case NumberWidget() as w:
             _render_int_param(
                 widget_id,
@@ -1149,15 +1270,16 @@ def render_ui_tree(
             _get_icon = get_icon
             _narrow_page[0] = stacked
             try:
-                request = _render_page(
-                    device,
-                    selected,
-                    on_change,
-                    deferred_enum,
-                    needle,
-                    differing_refs,
-                    buttons,
-                )
+                with _page_colors():
+                    request = _render_page(
+                        device,
+                        selected,
+                        on_change,
+                        deferred_enum,
+                        needle,
+                        differing_refs,
+                        buttons,
+                    )
             finally:
                 _get_picture = None
                 _get_icon = None
@@ -1924,12 +2046,11 @@ def _celltext_height(sep: UiSeparator, width: float | None) -> float:
     if not sep.text or sep.hint not in ("Headline", None):
         return 0.0
     text = "\n".join(line.lstrip(" ") for line in sep.text.split("\n"))
-    if width:
-        width = max(width - px(_CELL_GAP), 1.0)
+    wrap = max(width - px(_CELL_GAP), 1.0) if width else math.inf
     if sep.hint == "Headline":
         with bold(_HEADLINE_SCALE):
-            return imgui.calc_text_size(text, wrap_width=width if width else -1.0).y
-    return imgui.calc_text_size(text, wrap_width=width if width else -1.0).y
+            return text_height(len(wrap_lines(text, wrap)))
+    return text_height(len(wrap_lines(text, wrap)))
 
 
 def _render_cell_separator(
@@ -1949,13 +2070,13 @@ def _render_cell_separator(
             - px(_CELL_GAP)
         )
         text = _indented_cell_text(sep.text, origin)
-        imgui.push_text_wrap_pos(max(right, imgui.get_cursor_pos_x() + 1.0))
+        # Broken into lines as other texts are (at spaces and after hyphens).
+        wrap = max(right - imgui.get_cursor_pos_x(), 1.0)
         if sep.hint == "Headline":
-            with bold(_HEADLINE_SCALE):
-                imgui.text_unformatted(text)
+            with bold(_HEADLINE_SCALE), _headline_color():
+                wrapped_text(text, wrap)
         else:
-            imgui.text_unformatted(text)
-        imgui.pop_text_wrap_pos()
+            wrapped_text(text, wrap)
         return imgui.get_item_rect_size().y
     _render_separator(sep)
     return 0.0
@@ -2072,7 +2193,7 @@ def _render_param_table(
                 imgui.text_colored(_CHANGED_COLOR, "*")
                 imgui.same_line(0, px(4))
                 imgui.push_style_color(imgui.Col_.text, _CHANGED_COLOR)
-                imgui.text_wrapped(label)
+                _wrapped_label(label)
                 imgui.pop_style_color()
                 if imgui.is_item_hovered():
                     imgui.set_tooltip(
@@ -2083,10 +2204,10 @@ def _render_param_table(
                     imgui.Col_.text,
                     imgui.get_style_color_vec4(imgui.Col_.text_disabled),
                 )
-                imgui.text_wrapped(label)
+                _wrapped_label(label)
                 imgui.pop_style_color()
             else:
-                imgui.text_wrapped(label)
+                _wrapped_label(label)
             label_hovered = imgui.is_item_hovered()
             _track_help(param.help_context)
             if indent > 0:
@@ -2166,13 +2287,21 @@ _BUTTON_MARGIN = 7.0
 # Size of a headline over the text: the semibold 10.5 pt over 9 pt of Windows dialogs, as wide as
 # that with the emboldened font.
 _HEADLINE_SCALE = 1.1
-# Room at 100 % scaling beyond the usual spacing above and below a separator line, below a
-# headline and above and below an information or error box.
+# Room at 100 % scaling beyond the usual spacing above and below a separator line and above and
+# below an information or error box. A headline takes the usual spacing only, as its first row
+# follows it one row pitch further down.
 _RULER_ABOVE = 14.0
 _RULER_BELOW = 7.0
-_HEADLINE_BELOW = 6.0
 _HINT_ABOVE = 9.0
 _HINT_BELOW = 5.0
+# How far the texts and check marks of a page and its headlines lean from their color towards the
+# page's background: the reference draws its text in thin type (thinner than its headlines), so
+# it looks lighter on a light page than ours in the same color would.
+_TEXT_SOFTEN = 0.13
+_HEADLINE_SOFTEN = 0.06
+# Room at 100 % scaling above and below a separator's text: with the line gap a text ends with,
+# two texts in a row are 10 px apart (5 px above and below each).
+_TEXT_ROOM = 4.0
 
 
 def _wrap_width() -> float:
@@ -2192,40 +2321,22 @@ def _page_width() -> float:
     return min(imgui.get_content_region_avail().x, px(_GRID_REFERENCE_WIDTH))
 
 
-def _render_ruler(text: str | None) -> None:
-    """A horizontal line as wide as the page's rows, with ``text`` in it as a title; drawn like
-    a separator, which would reach the window's edge."""
-    style = imgui.get_style()
+def _render_ruler() -> None:
+    """A horizontal line as wide as the page's rows; drawn like a separator, which would reach
+    the window's edge."""
     width = _page_width()
     top = imgui.get_cursor_screen_pos()
-    draw_list = imgui.get_window_draw_list()
     color = imgui.get_color_u32(imgui.Col_.separator)
-    if not text:
-        draw_list.add_rect_filled(top, imgui.ImVec2(top.x + width, top.y + 1.0), color)
-        imgui.dummy(imgui.ImVec2(width, 1.0))
-        return
-    pad = style.separator_text_padding
-    thickness = style.separator_text_border_size
-    size = imgui.calc_text_size(text)
-    height = size.y + pad.y * 2
-    middle = top.y + height / 2
-    text_x = top.x + pad.x
-    gap = style.item_spacing.x
-
-    def line(x0: float, x1: float) -> None:
-        if x1 > x0:
-            draw_list.add_rect_filled(
-                imgui.ImVec2(x0, middle - thickness / 2),
-                imgui.ImVec2(x1, middle + thickness / 2),
-                color,
-            )
-
-    line(top.x, text_x - gap)
-    line(text_x + size.x + gap, top.x + width)
-    draw_list.add_text(
-        imgui.ImVec2(text_x, top.y + pad.y), imgui.get_color_u32(imgui.Col_.text), text
+    imgui.get_window_draw_list().add_rect_filled(
+        top, imgui.ImVec2(top.x + width, top.y + 1.0), color
     )
-    imgui.dummy(imgui.ImVec2(width, height))
+    imgui.dummy(imgui.ImVec2(width, 1.0))
+
+
+def _wrapped_label(label: str) -> None:
+    """A parameter's label in the rest of its column, broken into lines as separator texts are
+    (at spaces and after hyphens)."""
+    wrapped_text(label, max(imgui.get_content_region_avail().x, 1.0))
 
 
 def _aligned_text(text: str, alignment: str | None) -> None:
@@ -2288,18 +2399,51 @@ def _mix(a: imgui.ImVec4, b: imgui.ImVec4, t: float) -> imgui.ImVec4:
     )
 
 
+# The text color before _page_colors leans it, for the headlines inside (see _headline_color).
+_page_base_text: list[imgui.ImVec4 | None] = [None]
+
+
+@contextmanager
+def _page_colors() -> Generator[None]:
+    """A page drawn inside has its texts (labels, fields, drop-downs, checkboxes and radio
+    buttons) and check marks in their color leaning _TEXT_SOFTEN towards the page's background:
+    lighter on a light page, darker on a dark one."""
+    background = content_background()
+    text = imgui.get_style_color_vec4(imgui.Col_.text)
+    _page_base_text[0] = imgui.ImVec4(text.x, text.y, text.z, text.w)
+    mark = imgui.get_style_color_vec4(imgui.Col_.check_mark)
+    imgui.push_style_color(imgui.Col_.text, _mix(text, background, _TEXT_SOFTEN))
+    imgui.push_style_color(imgui.Col_.check_mark, _mix(mark, background, _TEXT_SOFTEN))
+    try:
+        yield
+    finally:
+        imgui.pop_style_color(2)
+        _page_base_text[0] = None
+
+
+@contextmanager
+def _headline_color() -> Generator[None]:
+    """A headline drawn inside leans only _HEADLINE_SOFTEN from the text color."""
+    base = _page_base_text[0] or imgui.get_style_color_vec4(imgui.Col_.text)
+    color = _mix(base, content_background(), _HEADLINE_SOFTEN)
+    imgui.push_style_color(imgui.Col_.text, color)
+    try:
+        yield
+    finally:
+        imgui.pop_style_color()
+
+
 def _render_separator(sep: UiSeparator) -> None:
-    if sep.hint == "HorizontalRuler":
+    """A separator without a text is a line, whatever its hint; one with a text is a headline, an
+    information or error box, or else (also a horizontal ruler with a text) the text alone."""
+    if not sep.text:
         vertical_space(px(_RULER_ABOVE))
-        _render_ruler(sep.text)
+        _render_ruler()
         vertical_space(px(_RULER_BELOW))
-    elif not sep.text:
-        imgui.spacing()
     elif sep.hint == "Headline":
-        with bold(_HEADLINE_SCALE):
+        with bold(_HEADLINE_SCALE), _headline_color():
             imgui.align_text_to_frame_padding()
             _aligned_text(sep.text, sep.alignment)
-        vertical_space(px(_HEADLINE_BELOW))
     elif sep.hint == "Information":
         vertical_space(px(_HINT_ABOVE))
         fill = _mix(content_background(), _INFO_BORDER, _INFO_TINT)
@@ -2311,7 +2455,9 @@ def _render_separator(sep: UiSeparator) -> None:
         _render_hint(sep.text, _ERROR_BORDER, fill, _ERROR_ICON, "")
         vertical_space(px(_HINT_BELOW))
     else:
+        vertical_space(px(_TEXT_ROOM))
         _aligned_text(sep.text, sep.alignment)
+        vertical_space(px(_TEXT_ROOM))
 
 
 class EnumPopup:
@@ -2339,7 +2485,7 @@ class EnumPopup:
             if target is not None and isinstance(target.param.widget, EnumWidget):
                 for i, choice in enumerate(target.param.widget.choices):
                     selected = str(choice.value) == target.param.value
-                    if imgui.menu_item(f"{choice.label}##{i}", "", selected)[0]:
+                    if imgui.menu_item(f"{choice_text(choice)}##{i}", "", selected)[0]:
                         self._on_change(
                             target.device, target.param.ref_id, str(choice.value)
                         )

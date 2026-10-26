@@ -71,6 +71,7 @@ from editor_gui.myknx_oauth import (
 )
 from editor_gui.os_open import open_url
 from editor_gui.plugins.base import API_VERSION, Logger, PanelDefinition, PluginAPI
+from editor_gui.plugins.bus_diagram import BusDiagramPlugin
 from editor_gui.plugins.catalog import CatalogPlugin, CatalogService
 from editor_gui.plugins.cockpit import CockpitPlugin
 from editor_gui.plugins.connection import ConnectionPlugin
@@ -83,12 +84,12 @@ from editor_gui.plugins.mcp import McpServerPlugin
 from editor_gui.plugins.monitor import MonitorPlugin
 from editor_gui.plugins.project import ProjectPlugin, ProjectService
 from editor_gui.plugins.project.knxproj_manufacturer import collect_manufacturer_bundle
+from editor_gui.plugins.project.space_text import space_type_name
 from editor_gui.plugins.project.strings import S as PROJECT_S
-from editor_gui.plugins.project.ui.spaces import space_type_label
+from editor_gui.plugins.project.ui.program_queue import bus_operation_text
 from editor_gui.plugins.recover import RecoverPlugin
 from editor_gui.plugins.signing import SigningPlugin
 from editor_gui.plugins.timeline import TimelinePlugin
-from editor_gui.plugins.topology import TopologyPlugin
 from editor_gui.portal_save import PortalSaveDialog
 from editor_gui.ports import PortInUseError
 from editor_gui.settings import config_dir, load_settings, save_settings
@@ -98,8 +99,7 @@ from editor_gui.theme import (
     apply_style,
     apply_theme,
     system_theme,
-    theme_name,
-    themes,
+    theme_menu_groups,
 )
 from editor_gui.update_check import (
     ReleaseAsset,
@@ -120,6 +120,7 @@ from editor_gui.widgets.dialog import (
     focus_when_appearing,
     follow_screen,
     outlined_tabs,
+    screen_room,
     tab_page,
 )
 from editor_gui.widgets.dpi import px, px_vec2
@@ -140,6 +141,7 @@ from editor_gui.widgets.tables import (
 )
 from editor_gui.widgets.tabs import begin_tab_bar
 from editor_gui.widgets.text_util import fit_text, human_size, text_clipped_tooltip
+from editor_gui.widgets.toasts import Toasts
 from editor_gui.widgets.tree import collapsing_header
 from editor_gui.window_title import bring_to_front, set_window_title, wake
 from xknxeditor.catalog import ProductSummary
@@ -605,7 +607,7 @@ class KnxGuiApp:
         # Runs MCP tool bodies on this (imgui) thread; drained each frame in gui_menu.
         self._ui_executor = MainThreadExecutor()
         # Transient toasts, auto-raised from warning/error log records (visible failure feedback).
-        self._toasts: list[tuple[str, str, float]] = []  # (text, level, expires_at)
+        self._toasts = Toasts()
         self._toast_seen_ts = time.time()
         # Set by the export worker on success; the render loop opens a summary window with the
         # archive's details (size, counts, signing). Worker->render handoff via the request flag.
@@ -698,6 +700,7 @@ class KnxGuiApp:
             connection=self._connection_service,
             log=self._log_service,
             notify=self._flash_toast,
+            warn=self._warn_toast,
             main_thread=self._ui_executor,
             run_background=self._run_bg,
             request_project_password=self._ask_project_password,
@@ -724,7 +727,7 @@ class KnxGuiApp:
         self._recover_plugin = RecoverPlugin(self._plugin_api)
         self._health_plugin = HealthPlugin(self._plugin_api)
         self._cockpit_plugin = CockpitPlugin(self._plugin_api)
-        self._topology_plugin = TopologyPlugin(self._plugin_api)
+        self._bus_diagram_plugin = BusDiagramPlugin(self._plugin_api)
         self._timeline_plugin = TimelinePlugin(
             self._plugin_api,
             get_telegrams=lambda: self._monitor_plugin.service.telegrams(limit=4000),
@@ -734,6 +737,16 @@ class KnxGuiApp:
             get_selected_node_ids=lambda: [],
             export_group_addresses=self._export_ga_export,
             get_latest_value=self._monitor_plugin.service.latest_text,
+            get_interfaces=lambda: [
+                (
+                    g.name,
+                    g.ip_addr,
+                    g.port,
+                    str(g.individual_address) if g.individual_address else "",
+                )
+                for g in self._connection_plugin.gateways
+                if g.supports_tunnelling
+            ],
         )
         self._project_plugin.show_context_help = bool(
             load_settings("app").get("show_context_help", True)
@@ -794,7 +807,7 @@ class KnxGuiApp:
             self._recover_plugin,
             self._project_plugin,
             self._cockpit_plugin,
-            self._topology_plugin,
+            self._bus_diagram_plugin,
             self._timeline_plugin,
             self._health_plugin,
             self._logger_plugin,
@@ -2286,18 +2299,22 @@ class KnxGuiApp:
             imgui.open_popup(S.PROGRESS_TITLE)
             self._progress_requested = False
         # Keep auto-resize (height fits content) but enforce a comfortable minimum width so long
-        # device names in the status line don't wrap into a cramped, tall popup.
+        # device names in the status line don't wrap into a cramped, tall popup; on a phone no
+        # wider than its screen.
+        room = screen_room()
         imgui.set_next_window_size_constraints(
-            px_vec2(560.0, 0.0), imgui.ImVec2(1.0e9, 1.0e9)
+            imgui.ImVec2(min(px(560.0), room), 0.0), imgui.ImVec2(1.0e9, 1.0e9)
         )
         if not begin_dialog(S.PROGRESS_TITLE):
             return
         imgui.text_wrapped(self._progress_text)
         elapsed = time.time() - self._progress_started_at
         fraction = self._progress_fraction
-        # The window's content width, at least 520 px: a stretch (-1) bar inside an auto-resizing
-        # modal feeds back and shrinks it, a fixed width leaves a wider margin on the right.
-        bar_size = imgui.ImVec2(max(px(520.0), imgui.get_content_region_avail().x), 0.0)
+        # The window's content width, at least 520 px (or what the screen leaves): a stretch (-1)
+        # bar inside an auto-resizing modal feeds back and shrinks it, a fixed width leaves a
+        # wider margin on the right.
+        least = min(px(520.0), room - 2 * imgui.get_style().window_padding.x)
+        bar_size = imgui.ImVec2(max(least, imgui.get_content_region_avail().x), 0.0)
         if fraction is not None:
             fraction = max(0.0, min(1.0, fraction))
             imgui.progress_bar(fraction, bar_size, f"{fraction * 100:0.0f}%")
@@ -3380,14 +3397,14 @@ class KnxGuiApp:
         self._run_bg(S.PROGRESS_LOAD_KNXPROD, worker)
 
     def _sync_device_section(self) -> None:
-        """While a space is selected in the Buildings tree, an area or a line in the Devices tree,
+        """While a space is selected in the Buildings tree, an area or a line in the Topology tree,
         or a group range or group address, the Device tab shows it, titled with its type
         (Building, Floor, …, Area, Line, Main Group, …), and the Manufacturer tab is hidden and
         left out of the menus; selecting a device again restores both."""
         space = self._project_plugin.selected_space()
         element = self._project_plugin.selected_element() if space is None else None
         if space is not None:
-            title = space_type_label(space.space_type) or _DOCK_LABELS["device"]()
+            title = space_type_name(space.space_type) or _DOCK_LABELS["device"]()
         elif element is not None:
             title = _ELEMENT_TITLES[element.title_kind]()
         else:
@@ -3425,11 +3442,13 @@ class KnxGuiApp:
         """The Project Log tab only while the open project has entries in its log: they come only
         from an imported project, the editor writes none. Otherwise it is hidden and left out of
         the menus, and it comes back once a project with a log is open (unless the user had
-        closed it)."""
+        closed it). Its section keeps showing the tab it showed: also at a start, where the tab
+        is hidden until the project is open."""
         has_log = self._project_service.has_project_log()
         if has_log is None:
             return
-        for window in hello_imgui.get_runner_params().docking_params.dockable_windows:
+        windows = hello_imgui.get_runner_params().docking_params.dockable_windows
+        for window in windows:
             if _dock_window_name(window) != "project_log":
                 continue
             window.include_in_view_menu = has_log
@@ -3437,6 +3456,17 @@ class KnxGuiApp:
                 window.is_visible = False
                 self._set_project_log_hidden(True)
             elif has_log and self._project_log_hidden:
+                # A tab that comes back is selected: keep the one its section shows.
+                selected = _selected_tab_window(
+                    [
+                        _dock_window_name(w)
+                        for w in windows
+                        if w is not window
+                        and w.dock_space_name == window.dock_space_name
+                    ]
+                )
+                if selected is not None:
+                    self._kept_tab = (selected, imgui.get_frame_count() + 10)
                 # Not focused when it appears: imgui selects the focused window's tab.
                 window.imgui_window_flags |= imgui.WindowFlags_.no_focus_on_appearing
                 window.is_visible = True
@@ -3541,7 +3571,7 @@ class KnxGuiApp:
             elif kind == "device_info":
                 text = S.STATUS_READING.format(address=address)
             else:
-                text = S.STATUS_TESTING.format(address=address)
+                text = bus_operation_text(kind, address)
             self._status_part(text, imgui.ImVec4(0.95, 0.75, 0.2, 1.0))
         elif self._connection_service.not_connected_notice():
             # A connection-requiring feature (program/test/send) was just refused:
@@ -4707,21 +4737,42 @@ class KnxGuiApp:
             if web.active_hub is None:
                 _log_gl_renderer(self._log)
         self._theme_window.render()
-        # Bring the Editor tab to the front when another view (Device Overview, Topology, Health)
+        # Bring the Editor tab to the front when another view (Device Overview, Bus Diagram, Health)
         # selected a device. Consumed here (a per-frame global callback) rather than in the Editor
         # panel itself, because a background dock tab is not rendered and would never see the flag.
         # Use hello_imgui's docking API (focus_window_at_next_frame) — calling imgui.set_window_focus
         # by name from this post-render phase re-enters the docking layout and crashes.
-        if self._project_service.take_focus_editor():
+        # An Editor already shown keeps the focus where it is: the arrow keys go on moving through
+        # the tree a device was chosen in.
+        editor_label = f"{_DOCK_LABELS['editor']()}###editor"
+        if self._project_service.take_focus_editor() and not _window_shown(
+            editor_label
+        ):
             # Dockable windows are labelled "Title###name"; focus by the exact current label so the
             # ###editor identity matches after the language-aware title change.
             hello_imgui.get_runner_params().docking_params.focus_dockable_window(
-                f"{_DOCK_LABELS['editor']()}###editor"
+                editor_label
             )
         if self._project_service.take_focus_group_addresses():
             hello_imgui.get_runner_params().docking_params.focus_dockable_window(
                 f"{_DOCK_LABELS['group_addresses']()}###group_addresses"
             )
+        # "Compare with…" from a device's context menu: the Tools panel; F2 on an element in a
+        # tree: the Device tab (its name takes the keyboard); "Add → Devices…" in the Topology
+        # tree: the catalog. Each shown again when it was closed, in front of the other tabs of
+        # its dock.
+        asked = {
+            "tools": self._project_plugin.take_focus_tools(),
+            "device": self._project_plugin.take_focus_device(),
+            "catalog": self._project_plugin.take_focus_catalog(),
+        }
+        if any(asked.values()):
+            for (
+                window
+            ) in hello_imgui.get_runner_params().docking_params.dockable_windows:
+                if asked.get(_dock_window_name(window)):
+                    window.is_visible = True
+                    window.focus_window_at_next_frame = True
         if self._recover_plugin.take_focus_request():
             # Shown again when it was closed, and in front of the other tabs of its dock.
             for (
@@ -4771,7 +4822,6 @@ class KnxGuiApp:
                 f"{_DOCK_LABELS['operations']()}###operations"
             )
         self._render_command_palette()
-        self._render_bus_operation_overlay()
         self._render_toasts()
         self._keep_dialog_open()
 
@@ -4792,44 +4842,6 @@ class KnxGuiApp:
                 if _dock_window_name(window) in self._focus_after_dialog:
                     window.focus_window_at_next_frame = True
             self._focus_after_dialog = []
-
-    def _render_bus_operation_overlay(self) -> None:
-        """Non-blocking progress overlay shown while a device is being tested. Determinate bar from the
-        operation's (done, total); indeterminate animated bar until totals are known."""
-        busy = self._connection_service.busy_operation
-        if busy is None:
-            return
-        kind, address = busy
-        if kind in ("script", "program", "device_info"):
-            return  # the Operations panel shows this op's progress instead
-        label = S.STATUS_TESTING.format(address=address)
-        vp = imgui.get_main_viewport()
-        pos = imgui.ImVec2(
-            vp.work_pos.x + vp.work_size.x * 0.5,
-            vp.work_pos.y + vp.work_size.y - px(12.0),
-        )
-        imgui.set_next_window_pos(pos, imgui.Cond_.always, imgui.ImVec2(0.5, 1.0))
-        imgui.set_next_window_bg_alpha(0.9)
-        flags = (
-            imgui.WindowFlags_.no_decoration
-            | imgui.WindowFlags_.no_inputs
-            | imgui.WindowFlags_.no_saved_settings
-            | imgui.WindowFlags_.always_auto_resize
-            | imgui.WindowFlags_.no_focus_on_appearing
-            | imgui.WindowFlags_.no_nav
-            | imgui.WindowFlags_.no_docking
-        )
-        if imgui.begin("##bus_operation", None, flags)[0]:
-            imgui.push_style_color(imgui.Col_.text, imgui.ImVec4(0.95, 0.75, 0.2, 1.0))
-            imgui.text(label)
-            imgui.pop_style_color()
-            bar = hello_imgui.em_to_vec2(18.0, 0.0)
-            prog = self._connection_service.busy_progress
-            if prog is not None and prog[1] > 0:
-                imgui.progress_bar(prog[0] / prog[1], bar, f"{prog[0]}/{prog[1]}")
-            else:
-                imgui.progress_bar(-1.0 * float(imgui.get_time()), bar, "")
-        imgui.end()
 
     def _schema_incompat_devices(self, folders: list[str]) -> list[tuple[int, str]]:
         """(node_id, label) of project devices whose product/program is one of ``folders``.
@@ -5040,7 +5052,9 @@ class KnxGuiApp:
             imgui.ImVec2(0.5, 0.0),
         )
         imgui.set_next_window_size(px_vec2(520.0, 0.0), imgui.Cond_.appearing)
-        if not imgui.begin_popup("##cmd_palette"):
+        # Its own arrow keys and Enter move through and pick from the list below its field, so
+        # imgui's keyboard navigation stays out of it (it would move away from the field).
+        if not imgui.begin_popup("##cmd_palette", imgui.WindowFlags_.no_nav_inputs):
             return
         if self._palette_focus:
             imgui.set_keyboard_focus_here()
@@ -5103,18 +5117,18 @@ class KnxGuiApp:
 
     def _flash_toast(self, text: str) -> None:
         """Show a short green feedback toast (e.g. 'Copied'). Called from panels via PluginAPI."""
-        self._toasts.append((text, "success", time.time() + 2.0))
+        self._toasts.add(text, "success", 2.0)
+
+    def _warn_toast(self, text: str) -> None:
+        """Show why something was refused or failed, in an orange toast that stays a while (a
+        click closes it). Called from panels via PluginAPI."""
+        self._toasts.add(text, "warning", 8.0)
 
     def _render_toasts(self) -> None:
         """Surface new warning/error log records as transient bottom-right toasts."""
-        now = time.time()
         if self._mirror_notice is not None:
-            self._toasts.append(
-                (
-                    S.MIRROR_NOTICE.format(home=self._mirror_notice),
-                    "success",
-                    now + 10.0,
-                )
+            self._toasts.add(
+                S.MIRROR_NOTICE.format(home=self._mirror_notice), "success", 10.0
             )
             self._mirror_notice = None
         for rec in self._log_service.get_records():
@@ -5127,35 +5141,8 @@ class KnxGuiApp:
             ):
                 detail = rec.payload.get("error") or ""
                 text = f"[{rec.plugin}] {rec.event}" + (f": {detail}" if detail else "")
-                self._toasts.append((text, rec.level, now + 6.0))
-        self._toasts = [t for t in self._toasts if t[2] > now]
-        if not self._toasts:
-            return
-        vp = imgui.get_main_viewport()
-        pos = imgui.ImVec2(
-            vp.work_pos.x + vp.work_size.x - px(12.0),
-            vp.work_pos.y + vp.work_size.y - px(12.0),
-        )
-        imgui.set_next_window_pos(pos, imgui.Cond_.always, imgui.ImVec2(1.0, 1.0))
-        imgui.set_next_window_bg_alpha(0.9)
-        flags = (
-            imgui.WindowFlags_.no_decoration
-            | imgui.WindowFlags_.no_inputs
-            | imgui.WindowFlags_.no_saved_settings
-            | imgui.WindowFlags_.always_auto_resize
-            | imgui.WindowFlags_.no_focus_on_appearing
-            | imgui.WindowFlags_.no_nav
-        )
-        if imgui.begin("##toasts", None, flags)[0]:
-            for text, level, _exp in self._toasts[-5:]:
-                if level in ("error", "critical"):
-                    color = imgui.ImVec4(0.9, 0.35, 0.35, 1.0)
-                elif level == "success":
-                    color = imgui.ImVec4(0.45, 0.8, 0.5, 1.0)
-                else:
-                    color = imgui.ImVec4(0.95, 0.75, 0.2, 1.0)
-                imgui.text_colored(color, text)
-        imgui.end()
+                self._toasts.add(text, rec.level, 6.0)
+        self._toasts.render()
 
     def _render_language_menu(self) -> None:
         """UI language selector (next to Help). Overrides the auto-detected OS locale; persisted.
@@ -5355,14 +5342,14 @@ class KnxGuiApp:
     def _render_theme_menu(self, tweaked_theme: hello_imgui.ImGuiTweakedTheme) -> None:
         if not imgui.begin_menu(S.MENU_THEME):
             return
+        for group in theme_menu_groups():
+            for label, theme in group:
+                if imgui.menu_item(label, "", tweaked_theme.theme == theme)[0]:
+                    tweaked_theme.theme = theme
+                    apply_theme(tweaked_theme)
+            imgui.separator()
         if imgui.menu_item(S.MENU_THEME_CUSTOMIZE, "", False)[0]:
             self._theme_window.open = True
-        imgui.separator()
-        for theme in themes():
-            selected = tweaked_theme.theme == theme
-            if imgui.menu_item(theme_name(theme), "", selected)[0]:
-                tweaked_theme.theme = theme
-                apply_theme(tweaked_theme)
         imgui.end_menu()
 
     def _refresh_dock_titles(self) -> None:
@@ -5609,7 +5596,7 @@ class KnxGuiApp:
 
 
 # Bumped whenever the default docking layout changes, so a stored layout is replaced once.
-_LAYOUT_VERSION = 17
+_LAYOUT_VERSION = 18
 
 
 _SECTIONS = ("RightSpace", "DeviceSpace", "LeftSpace", "BottomSpace")
@@ -5825,7 +5812,9 @@ def _keep_window_sections(params: hello_imgui.DockingParams) -> None:
 
 
 def _apply_new_layout_once(docking_params: hello_imgui.DockingParams) -> None:
-    """Replace a stored layout from an older version with the current default layout."""
+    """Replace a stored layout from an older version with the current default layout. The usual
+    layout a smaller one of the browser UI remembered (by panel names that may have changed) goes
+    with it."""
     data = load_settings("app")
     if data.get("layout_version") == _LAYOUT_VERSION:
         return
@@ -5833,6 +5822,7 @@ def _apply_new_layout_once(docking_params: hello_imgui.DockingParams) -> None:
         hello_imgui.DockingLayoutCondition.application_start
     )
     data["layout_version"] = _LAYOUT_VERSION
+    data.pop("wide_layout", None)
     save_settings("app", data)
 
 
@@ -5841,6 +5831,7 @@ def _apply_new_layout_once(docking_params: hello_imgui.DockingParams) -> None:
 # the visible title follows the UI language. This lets _refresh_dock_titles() re-translate tab titles
 # live on a language change without recreating windows (see _render_language_menu).
 def _dock_label_getters() -> "dict[str, Callable[[], str]]":
+    from editor_gui.plugins.bus_diagram.strings import S as _bus_diagram
     from editor_gui.plugins.catalog.strings import S as _cat
     from editor_gui.plugins.cockpit.strings import S as _cockpit
     from editor_gui.plugins.health.strings import S as _health
@@ -5849,10 +5840,9 @@ def _dock_label_getters() -> "dict[str, Callable[[], str]]":
     from editor_gui.plugins.project.strings import S as _proj
     from editor_gui.plugins.recover.strings import S as _recover
     from editor_gui.plugins.timeline.strings import S as _timeline
-    from editor_gui.plugins.topology.strings import S as _topology
 
     return {
-        "devices": lambda: _proj.PANEL_DEVICES,
+        "topology": lambda: _proj.PANEL_TOPOLOGY,
         "buildings": lambda: _proj.PANEL_BUILDINGS,
         "group_addresses": lambda: _proj.PANEL_GROUP_ADDRESSES,
         "editor": lambda: _proj.PANEL_EDITOR,
@@ -5866,7 +5856,7 @@ def _dock_label_getters() -> "dict[str, Callable[[], str]]":
         "project_log": lambda: _proj.PANEL_PROJECT_LOG,
         "operations": lambda: _proj.PANEL_OPERATIONS,
         "catalog": lambda: _cat.PANEL_CATALOG,
-        "topology": lambda: _topology.PANEL_TOPOLOGY,
+        "bus_diagram": lambda: _bus_diagram.PANEL_BUS_DIAGRAM,
         "monitor": lambda: _monitor.PANEL_MONITOR,
         "logger": lambda: _logger.PANEL_LOGGER,
         "health": lambda: _health.PANEL_HEALTH,
@@ -5883,16 +5873,20 @@ _DOCK_LABELS: "dict[str, Callable[[], str]]" = _dock_label_getters()
 _ELEMENT_TITLES: "dict[str, Callable[[], str]]" = {
     "area": lambda: PROJECT_S.PANEL_AREA,
     "line": lambda: PROJECT_S.PANEL_LINE,
+    "segment": lambda: PROJECT_S.PANEL_SEGMENT,
+    "backbone": lambda: PROJECT_S.PANEL_BACKBONE,
     "main_group": lambda: PROJECT_S.PANEL_MAIN_GROUP,
     "middle_group": lambda: PROJECT_S.PANEL_MIDDLE_GROUP,
     "group_range": lambda: PROJECT_S.PANEL_GROUP_RANGE,
     "group_address": lambda: PROJECT_S.PANEL_GROUP_ADDRESS,
+    "function": lambda: PROJECT_S.PANEL_FUNCTION,
+    "trade": lambda: PROJECT_S.PANEL_TRADE,
 }
 
 # Initial tab order per dock space, by stable panel name (order only matters within each space).
 _DOCK_TAB_ORDER = [
     "buildings",
-    "devices",
+    "topology",
     "group_addresses",
     "catalog",
     "editor",
@@ -5906,7 +5900,7 @@ _DOCK_TAB_ORDER = [
     "mass_linker",
     "tools",
     "ki",
-    "topology",
+    "bus_diagram",
     "recover",
     # Bottom bus/log group, then the project info and log.
     "monitor",
@@ -5922,6 +5916,13 @@ def _dock_window_name(window: hello_imgui.DockableWindow) -> str:
     return window.label.split("###")[-1]
 
 
+def _window_shown(label: str) -> bool:
+    """Whether the window ``label`` was drawn in this frame and is not a tab behind another."""
+    window = imgui.internal.find_window_by_name(label)
+    # The bindings type it as non-optional, but it is None for a window never drawn.
+    return window is not None and window.active and not window.hidden  # pyright: ignore[reportUnnecessaryComparison]
+
+
 def create_dockable_windows(app: KnxGuiApp) -> list[hello_imgui.DockableWindow]:
     windows: list[hello_imgui.DockableWindow] = []
     for panel in app.get_all_panels():
@@ -5934,9 +5935,12 @@ def create_dockable_windows(app: KnxGuiApp) -> list[hello_imgui.DockableWindow]:
         windows.append(window)
     rank = {name: i for i, name in enumerate(_DOCK_TAB_ORDER)}
     windows.sort(key=lambda w: rank.get(_dock_window_name(w), len(_DOCK_TAB_ORDER)))
-    # Buildings and Device are the primary views: focus them on first frame.
+    # Each section starts on its first tab. Every window appearing takes the focus, and imgui shows
+    # the focused window's tab: the last one created (the Project Log) would win its section.
+    sections: set[str] = set()
     for w in windows:
-        if _dock_window_name(w) in ("buildings", "device"):
+        if w.dock_space_name not in sections:
+            sections.add(w.dock_space_name)
             w.focus_window_at_next_frame = True
     return windows
 
@@ -6186,6 +6190,10 @@ def _main() -> None:
     # revision caching (see the revision-cached reads in ProjectService). No cost when off.
     def pre_new_frame() -> None:
         follow_language()
+        # The keyboard moves through the app as on Windows: Tab and Shift+Tab through every
+        # field, Space and Enter use the one in focus, the arrow keys move through drop-down
+        # lists and trees, Escape leaves them.
+        imgui.get_io().config_flags |= imgui.ConfigFlags_.nav_enable_keyboard
         if frame_db_profiler.enabled:
             app.watch_db_frame()
 

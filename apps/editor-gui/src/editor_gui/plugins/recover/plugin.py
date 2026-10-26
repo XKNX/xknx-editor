@@ -23,7 +23,7 @@ class RecoverPlugin:
 
     @property
     def panels(self) -> list[PanelDefinition]:
-        # Docked next to the topology/devices tree, not a floating window.
+        # Docked next to the Topology tree, not a floating window.
         return [
             PanelDefinition(
                 name="recover",

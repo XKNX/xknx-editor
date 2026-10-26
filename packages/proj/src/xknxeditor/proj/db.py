@@ -18,7 +18,7 @@ import logging
 import os
 import threading
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 from sqlalchemy import JSON, create_engine, event, inspect, text
 from sqlalchemy.engine import Engine
@@ -82,7 +82,103 @@ def ensure_sqlite_writable(path: Path) -> None:
 # Bump when adding a non-additive migration below. Additive column adds are handled generically and
 # do not require a bump. Stamped into the file's ``PRAGMA user_version`` so future migrations can
 # branch on the version a file was last written with.
-SCHEMA_VERSION = 2
+SCHEMA_VERSION = 5
+
+
+def _devices_off_lines(conn: Any) -> bool:
+    """Version 5: a device may be on no line (unassigned), so ``devices.segment_id`` loses its
+    NOT NULL. SQLite cannot drop a NOT NULL with ALTER TABLE; its documented way for removing
+    one is editing the table's stored ``CREATE TABLE`` text (``writable_schema``), which leaves
+    every row as it is. Returns whether it was changed."""
+    sql = conn.execute(
+        text("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'devices'")
+    ).scalar()
+    if not isinstance(sql, str):
+        return False
+    lines = sql.split("\n")
+    changed = False
+    for index, line in enumerate(lines):
+        if line.strip().startswith("segment_id ") and "NOT NULL" in line:
+            lines[index] = line.replace(" NOT NULL", "")
+            changed = True
+    if not changed:
+        return False
+    version = conn.execute(text("PRAGMA schema_version")).scalar()
+    conn.execute(text("PRAGMA writable_schema = ON"))
+    conn.execute(
+        text(
+            "UPDATE sqlite_master SET sql = :sql WHERE type = 'table' AND name = 'devices'"
+        ),
+        {"sql": "\n".join(lines)},
+    )
+    conn.execute(text(f"PRAGMA schema_version = {int(version or 0) + 1}"))
+    conn.execute(text("PRAGMA writable_schema = OFF"))
+    return True
+
+
+def _link_space_lines(conn: Any) -> int:
+    """Version 4: a space's Current Line, kept as the line's raw ``@Id`` (``default_line``),
+    becomes a reference to the line's row (``default_line_id``), and the raw column goes. An id of
+    a line the project no longer has is dropped. Returns how many spaces got their line."""
+    columns = {row[1] for row in conn.execute(text('PRAGMA table_info("spaces")'))}
+    if "default_line" not in columns:
+        return 0
+    lines: dict[str, int] = {
+        source_id: line_id
+        for line_id, source_id in conn.execute(
+            text("SELECT id, source_id FROM lines WHERE source_id != ''")
+        )
+    }
+    linked = 0
+    rows = conn.execute(
+        text("SELECT id, default_line FROM spaces WHERE default_line != ''")
+    ).all()
+    for space_id, raw in rows:
+        line_id = lines.get(raw)
+        if line_id is None:
+            continue
+        conn.execute(
+            text("UPDATE spaces SET default_line_id = :line WHERE id = :id"),
+            {"line": line_id, "id": space_id},
+        )
+        linked += 1
+    conn.execute(text('ALTER TABLE "spaces" DROP COLUMN "default_line"'))
+    return linked
+
+
+def _move_completion_status(conn: Any) -> int:
+    """Version 3: the project's and the devices' ``CompletionStatus`` moves from
+    ``extra_attributes`` (where the import used to keep it) into its own column. Returns how many
+    rows changed."""
+    moved = 0
+    for table in ("projects", "devices"):
+        rows = conn.execute(
+            text(
+                f'SELECT id, extra_attributes FROM "{table}" '
+                "WHERE extra_attributes LIKE '%CompletionStatus%'"
+            )
+        ).all()
+        for row_id, raw in rows:
+            loaded: object = json.loads(raw) if isinstance(raw, str) else raw
+            if not isinstance(loaded, dict):
+                continue
+            attributes = cast(dict[str, object], loaded)
+            status = attributes.pop("CompletionStatus", None)
+            if not isinstance(status, str):
+                continue
+            conn.execute(
+                text(
+                    f'UPDATE "{table}" SET completion_status = :status, '
+                    "extra_attributes = :attributes WHERE id = :id"
+                ),
+                {
+                    "status": status,
+                    "attributes": json.dumps(attributes) if attributes else None,
+                    "id": row_id,
+                },
+            )
+            moved += 1
+    return moved
 
 
 def _merge_duplicate_com_objects(conn: Any) -> int:
@@ -254,6 +350,16 @@ def _migrate(engine: Engine) -> None:
             merged = _merge_duplicate_com_objects(conn)
             if merged:
                 logger.info("merged %d duplicate com-object rows", merged)
+        if (current or 0) < 3 and {"projects", "devices"} <= tables:
+            moved = _move_completion_status(conn)
+            if moved:
+                logger.info("moved the completion status of %d rows", moved)
+        if (current or 0) < 4 and {"spaces", "lines"} <= tables:
+            linked = _link_space_lines(conn)
+            if linked:
+                logger.info("linked the current line of %d spaces", linked)
+        if (current or 0) < 5 and "devices" in tables and _devices_off_lines(conn):
+            logger.info("devices may be on no line now")
         if added or current != SCHEMA_VERSION:
             conn.execute(text(f"PRAGMA user_version = {SCHEMA_VERSION}"))
             logger.debug(

@@ -505,18 +505,6 @@ msgstr "項目をクリックするとデバイスに移動します。"
 msgid "No buildings/rooms in this project"
 msgstr "このプロジェクトには構造／部屋がありません"
 
-msgid "+ Function"
-msgstr "+ 機能"
-
-msgid "+ Space"
-msgstr "+ スペース"
-
-msgid "+ Sub-space"
-msgstr "+ サブスペース"
-
-msgid "New Space"
-msgstr "新しいスペース"
-
 msgid "Name"
 msgstr "名前"
 
@@ -541,17 +529,11 @@ msgstr "（最上位）"
 msgid "Delete this space and everything in it? Devices are only unassigned, not deleted."
 msgstr "このスペースとその中のすべてを削除しますか？デバイスは割り当てが解除されるだけで、削除はされません。"
 
-msgid "Assign Device"
-msgstr "デバイスを割り当て"
-
 msgid "Assign a Device to This Space"
 msgstr "このスペースにデバイスを割り当て"
 
 msgid "No unassigned devices"
 msgstr "未割り当てのデバイスはありません"
-
-msgid "Remove from Space"
-msgstr "スペースから削除"
 
 msgid "Without Space"
 msgstr "スペースなし"
@@ -573,24 +555,6 @@ msgstr "廊下"
 
 msgid "Stairway"
 msgstr "階段"
-
-msgid "Distribution Board"
-msgstr "配電盤"
-
-msgid "New Function"
-msgstr "新しい機能"
-
-msgid "Rename"
-msgstr "名前を変更"
-
-msgid "Rename Function"
-msgstr "機能の名前を変更"
-
-msgid "Assign Group Address"
-msgstr "グループ・アドレスを割り当て"
-
-msgid "Role (Optional)"
-msgstr "役割（オプション）"
 
 msgid "Custom"
 msgstr "カスタム"
@@ -955,8 +919,23 @@ msgstr "プログラム参照"
 msgid "IP Configuration"
 msgstr "IP 設定"
 
-msgid "Assignment"
-msgstr "割り当て"
+msgid "Obtain an IP address automatically"
+msgstr "IP アドレスを自動的に取得する"
+
+msgid "Use a static IP address"
+msgstr "固定 IP アドレスを使用する"
+
+msgid "Assigned IP Address"
+msgstr "割り当てられた IP アドレス"
+
+msgid "An invalid IP address was specified."
+msgstr "無効な IP アドレスが指定されました。"
+
+msgid "Change assigned IP address of '{0}' to '{1}'."
+msgstr "'{0}' の割り当て IP アドレスを '{1}' に変更しました。"
+
+msgid "IP configuration of device '{0}' changed."
+msgstr "デバイス '{0}' の IP 構成を変更しました。"
 
 msgid "IP Address"
 msgstr "IPアドレス"
@@ -1162,29 +1141,8 @@ msgstr "グループ・アドレスをフィルター（アドレス、名前）
 msgid "Filter rooms, devices, functions…"
 msgstr "部屋、デバイス、機能をフィルター…"
 
-msgid "Area {area}"
-msgstr "エリア {area}"
-
-msgid "{name} (Area {area})"
-msgstr "{name}（エリア {area}）"
-
-msgid "Line {area}.{line}"
-msgstr "ライン {area}.{line}"
-
-msgid "{name} (Line {area}.{line})"
-msgstr "{name}（ライン {area}.{line}）"
-
 msgid "Unassigned ({count})"
 msgstr "未割り当て（{count}）"
-
-msgid "Add Area"
-msgstr "エリアを追加する"
-
-msgid "Add Line"
-msgstr "ラインを追加する"
-
-msgid "Copy Address"
-msgstr "アドレスをコピー"
 
 msgid "Duplicate"
 msgstr "複製する"
@@ -1252,12 +1210,6 @@ msgstr "デバイスを削除"
 msgid "Delete '{name}'? Its group objects and group-address links are removed and its individual address is freed. This can be undone."
 msgstr "「{name}」を削除しますか？グループ・オブジェクトとグループ・アドレスのリンクが削除され、個別アドレスが解放されます。この操作は元に戻せます。"
 
-msgid "New Area"
-msgstr "新しいエリア"
-
-msgid "New Line"
-msgstr "新しいライン"
-
 msgid "Number"
 msgstr "番号"
 
@@ -1273,41 +1225,11 @@ msgstr "読み込む"
 msgid "Copy Log"
 msgstr "ログをコピー"
 
-msgid "New Group Address"
-msgstr "新しいグループ・アドレス"
-
-msgid "New Main Group"
-msgstr "新しいメイン・グループ"
-
-msgid "New Middle Group"
-msgstr "新しいミドル・グループ"
-
-msgid "New Folder"
-msgstr "新しいフォルダー"
-
-msgid "Rename Folder"
-msgstr "フォルダー名を変更"
-
 msgid "Delete Folder"
 msgstr "フォルダーを削除"
 
-msgid "Main group name (the next free number is assigned automatically)"
-msgstr "メイン・グループ名（次の空き番号が自動的に割り当てられます）"
-
-msgid "Middle group name (the next free number is assigned automatically)"
-msgstr "ミドル・グループ名（次の空き番号が自動的に割り当てられます）"
-
 msgid "Delete this folder and every group address in it? This can be undone."
 msgstr "このフォルダーとその中のすべてのグループ・アドレスを削除しますか？この操作は元に戻せます。"
-
-msgid "Rename Group Address"
-msgstr "グループ・アドレスの名前を変更"
-
-msgid "Change Address…"
-msgstr "アドレスを変更…"
-
-msgid "New group address (links are kept):"
-msgstr "新しいグループ・アドレス（リンクは保持されます）："
 
 msgid "Invalid address or already in use."
 msgstr "無効なアドレスか、すでに使用されています。"
@@ -1318,26 +1240,14 @@ msgstr "セキュリティ"
 msgid "Automatic"
 msgstr "自動"
 
-msgid "Secured"
-msgstr "安全"
-
-msgid "Not Secured"
-msgstr "安全でない"
-
 msgid "A secured group address can only be linked to devices that are commissioned securely."
 msgstr "安全なグループ・アドレスは、安全にコミッショニングされたデバイスにのみリンクできます。"
 
 msgid "Not every device linked to this group address is commissioned securely, so it cannot be secured."
 msgstr "このグループ・アドレスにリンクされたデバイスの一部が安全にコミッショニングされていないため、安全にできません。"
 
-msgid "Set Datapoint Type"
-msgstr "データポイントタイプを設定"
-
 msgid "Address"
 msgstr "アドレス"
-
-msgid "Datapoint type (e.g. DPST-1-1); empty to clear"
-msgstr "データポイントタイプ（例：DPST-1-1）。空にするとクリアします"
 
 msgid "Project: {name}"
 msgstr "プロジェクト：{name}"
@@ -1770,9 +1680,6 @@ msgstr "パスワードは1～20文字のLatin-1文字で指定してくださ�
 
 msgid "Close"
 msgstr "閉じる"
-
-msgid "IP Backbone Security"
-msgstr "IPバックボーン・セキュリティ"
 
 msgid "Device Certificates"
 msgstr "デバイス証明書"
@@ -2301,3 +2208,732 @@ msgstr "項目"
 
 msgid "Store plugin data {name}"
 msgstr "プラグインデータ{name}を保存"
+
+msgid "Unknown"
+msgstr "不明"
+
+msgid "Editing"
+msgstr "編集中"
+
+msgid "Finished design"
+msgstr "デザインを終了しました"
+
+msgid "Finished commissioning"
+msgstr "動作確認が終了しました"
+
+msgid "Tested"
+msgstr "テスト済み"
+
+msgid "Accepted"
+msgstr "承認済み"
+
+msgid "Locked"
+msgstr "ロックされている"
+
+msgid "Function"
+msgstr "機能"
+
+msgid "Use"
+msgstr "利用"
+
+msgid "Set room use"
+msgstr "部屋の用途を設定"
+
+msgid "Set status to {status}"
+msgstr "状態を{status}に設定"
+
+msgid "Set function description"
+msgstr "機能の説明を設定"
+
+msgid "Current Line"
+msgstr "現在のライン"
+
+msgid "{line} (inherits from {space})"
+msgstr "{line} (継承元: {space})"
+
+msgid "Set current line"
+msgstr "現在のラインを設定"
+
+msgid "Segment"
+msgstr "セグメント"
+
+msgid "Medium"
+msgstr "ミディアム"
+
+msgid "Domain Address"
+msgstr "ドメインアドレス"
+
+msgid "The medium of a segment can only change while it holds no device."
+msgstr "セグメントのメディアタイプは、デバイスが含まれていない場合にのみ変更できます。"
+
+msgid "The medium type of the segment '{segment}' cannot be changed to IoT, because its parent line '{line}' is not of medium type IP."
+msgstr "セグメント '{segment}' のメディアタイプはIoTに変更できません。親のライン '{line}' がIPのメディアタイプではないためです。"
+
+msgid "The maximum number of segments has been reached."
+msgstr "セグメントの最大数に達しました。"
+
+msgid "The main segment cannot be deleted."
+msgstr "メイン セグメントは削除できません。"
+
+msgid "Device '{device}' is incompatible with line's medium type."
+msgstr "デバイス'{device}'はラインのミディアム・タイプとは互換性がありません。"
+
+msgid "Device '{device}' is incompatible with segment's medium type."
+msgstr "デバイス'{device}'はセグメントのミディアタイプと互換性がありません。"
+
+msgid "Rename segment to {name}"
+msgstr "セグメント名を{name}に変更"
+
+msgid "Set medium to {medium}"
+msgstr "ミディアムを{medium}に設定"
+
+msgid "Forced on"
+msgstr "強制オン"
+
+msgid "Forced off"
+msgstr "強制オフ"
+
+msgid "Overridden by '{name}': {mode}"
+msgstr "'{name}' により上書き: {mode}"
+
+msgid "Central"
+msgstr "セントラル"
+
+msgid "Not every device linked to a group address of this group is commissioned securely, so it cannot be secured."
+msgstr "このグループのグループ・アドレスにリンクされたデバイスの一部が安全にコミッショニングされていないため、安全にできません。"
+
+msgid "Set group security"
+msgstr "グループのセキュリティを設定"
+
+msgid "Mark group address as central"
+msgstr "グループ・アドレスをセントラルに設定"
+
+msgid "Remove central mark from group address"
+msgstr "グループ・アドレスのセントラル設定を解除"
+
+msgid "Topology"
+msgstr "トポロジー"
+
+msgid "{medium} backbone line"
+msgstr "{medium} バックボーン・ライン"
+
+msgid "{medium} main line"
+msgstr "{medium} メイン・ライン"
+
+msgid "Backbone"
+msgstr "バックボーン"
+
+msgid "Network Latency"
+msgstr "ネットワーク待ち時間"
+
+msgid "LAN (< 400ms)"
+msgstr "LAN(<400ms)"
+
+msgid "WLAN (< 1s)"
+msgstr "WLAN (< 1秒)"
+
+msgid "WAN (< 2s)"
+msgstr "WAN(<2s)"
+
+msgid "Mobile (< 4s)"
+msgstr "携帯電話(< 4秒)"
+
+msgid "Satellite (< 8s)"
+msgstr "サテライト (< 8秒)"
+
+msgid "The network latency must be a number of milliseconds from 1 to 65535."
+msgstr "ネットワーク待ち時間は 1 から 65535 ミリ秒の数値でなければなりません。"
+
+msgid "Multicast Address"
+msgstr "マルチキャストアドレス"
+
+msgid "Enter a multicast address from 224.0.0.0 to 239.255.255.255."
+msgstr "224.0.0.0 から 239.255.255.255 のマルチキャストアドレスを入力してください。"
+
+msgid "Bus Connection"
+msgstr "バス接続"
+
+msgid "Set IP routing of the backbone"
+msgstr "バックボーンのIPルーティングを設定"
+
+msgid "As long as a coupler exists at a sub line or sub segment, a change of the medium type is not possible."
+msgstr "サブラインやサブセグメントにカプラが存在する限り、メディアタイプの変更はできません。"
+
+msgid "A main line of a project cannot have medium type RF."
+msgstr "プロジェクトのメインラインのメディアタイプはRFとすることはできません。"
+
+msgid "The operation could not be executed, because as medium type of the backbone only IP and TP are allowed."
+msgstr "バックボーンのミディアムタイプとして IP と TP のみ許されるため、操作を実行できませんでした。"
+
+msgid "A sub-segment of KNX medium type IP or PL is not allowed."
+msgstr "KNXメディアタイプIPまたはPLのサブセグメントは許可されません。"
+
+msgid "The medium type of the main line '{line}' can no longer be changed to PL, because it already contains lines or segments that are not allowed in PL main lines."
+msgstr "ライン '{line}' のメディアタイプはPLのメディアに変更できません、なぜならすでに中でPLラインでは許されないラインまたはセグメントを含むためです。"
+
+msgid "The medium type of the main line '{line}' cannot be changed to IoT, because the backbone line '{backbone}' is not of medium type IP."
+msgstr "メインライン '{line}' のメディアタイプはIoTのメディアに変更できません、なぜならバックボーンライン '{backbone}'はIPのメディアタイプではないからです。"
+
+msgid "The medium type of the main line '{line}' can no longer be changed to IoT, because it already contains lines or segments that are not allowed in IoT main lines."
+msgstr "ライン '{line}' のメディアタイプはIoTのメディアに変更できません、なぜならすでに中でIoTラインでは許されないラインまたはセグメントを含むためです。"
+
+msgid "The medium type of the line '{line}' cannot be changed, because it already contains lines or segments that require an IoT or IP main line."
+msgstr "メインライン '{line}' のメディアタイプは変更できません。 IoTやIPのメインラインが必要なラインやセグメントがすでに含まれているため、。"
+
+msgid "A sub-segment is not allowed below a main segment of KNX medium type RF."
+msgstr "KNX ミディアムタイプ RF のメインセグメントの下に、サブセグメントは許可されません。"
+
+msgid "A sub-segment is not allowed below a main segment of KNX medium type PL."
+msgstr "KNX ミディアムタイプ PL のメインセグメントの下に、サブセグメントは許可されません。"
+
+msgid "A sub-segment of KNX medium type IoT is not allowed below a main segment of the same type."
+msgstr "KNXミディアムタイプIoTのサブセグメントは、同じタイプのメインセグメントの下には許可されません。"
+
+msgid "The operation could not be executed, because a RF main line '{line}' requires all other lines in the area to be RF lines as well."
+msgstr "RFメインライン「{line}」では、エリア内の他のすべてのラインもRFラインでなければならないため、操作を実行できませんでした。"
+
+msgid "The operation could not be executed, because a PL main line '{line}' requires all other lines in the area to be PL lines as well."
+msgstr "PL メインライン '{line}' ではエリア内の他のすべてのラインも PL ラインでなければならないため、操作を実行できませんでした。"
+
+msgid "The operation could not be executed, because a IoT main line '{line}' requires all other lines in the area to be IoT lines as well."
+msgstr "IoTメインライン '{line}' では、エリア内の他のすべてのラインもIoTラインでなければならないため、操作を実行できませんでした。"
+
+msgid "The medium type of the line '{line}' cannot be changed to IoT, because its main line '{main}' is not of medium type IP."
+msgstr "セグメント '{line}' のメディアタイプはIoTのメディアに変更できません、なぜならその親のライン '{main}'はIPのメディアタイプではないからです。"
+
+msgid "The medium type of the line '{line}' can no longer be changed to IoT, because it already contains segments that are not allowed in IoT lines."
+msgstr "ライン '{line}' のメディアタイプはIoTのメディアに変更できません、なぜならすでに中でIoTラインでは許されないセグメントを含むためです。"
+
+msgid "The operation could not be executed, because the line is the IP backbone line and the project contains KNXnet/IP routers. KNXnet/IP routers require an IP backbone line."
+msgstr "ラインがIPバックボーン・ラインであり、プロジェクトがKNXネット/IPルーターを含んでいる為、オペレーションは実行できませんでした。KNXネット/IPルーターはIPバックボーン・ラインを必要とします."
+
+msgid "The operation could not be executed, because the line is the IP main line and the project contains KNXnet/IP routers. KNXnet/IP routers require an IP main line."
+msgstr "ラインがIPメイン・ラインでプロジェクトがKNXネット/IPルーターを含んでいるため、オペレーションは実行できませんでした。KNXネット/IPルーターはＩＰメイン・ラインを必要とします."
+
+msgid "The operation could not be executed, because the line is the IP backbone line and the project contains IoT or IP lines."
+msgstr "ラインがIPバックボーンラインで、プロジェクトがIoTまたはIPラインを含む為、操作は実行できませんでした。"
+
+msgid "The operation could not be executed, because the medium type of the line can only be set to IP if an IP main line exists."
+msgstr "IPがメイン・ラインに存在する場合、ラインのミディアム・タイプはIPにのみセットできるので、オペレーションは実行できませんでした."
+
+msgid "The operation could not be executed, because the medium type of the line can only be set to IP if an IP backbone line exists."
+msgstr "IPバックボーン・ラインが存在する場合のみ、ラインのミディアム・タイプはIPに設定できるので、オペレーションは実行できませんでした."
+
+msgid "The operation could not be executed, because below a TP main segment only segments of KNX medium type TP, RF or PL can exist."
+msgstr "TPメインセグメントの下には、KNXメディアタイプ TP、RF、PLのセグメントのみが存在できるため、操作を実行できませんでした。"
+
+msgid "Below a main segment of KNX medium type IP only segments of medium type TP or RF can exist."
+msgstr "KNXメディアタイプIPのメインセグメントの下には、メディアタイプTPかRFのセグメントのみ存在できます。"
+
+msgid "A sub-segment of KNX medium type PL is not allowed below a main segment."
+msgstr "KNXメディアタイプPLのサブセグメントは、メインセグメントの下では許可されません。"
+
+msgid "Set bus connection of the backbone"
+msgstr "バックボーンのバス接続を設定"
+
+msgid "Set domain address"
+msgstr "ドメインアドレスを設定"
+
+msgid "Generate New"
+msgstr "新規で生成する"
+
+msgid "The given domain address is invalid."
+msgstr "指定したドメイン・アドレスは無効です."
+
+msgid "Domain address is not valid! Valid values are 1 to 255."
+msgstr "ドメイン・アドレスが無効です。1から255までの値が有効な値となります."
+
+msgid "DomainAddress of mediumType 'RF' is lower than the minimum value of 0001:00000000."
+msgstr "RFミディアム・タイプのドメイン・アドレスは、最小値0001:00000000以下となっています."
+
+msgid "DomainAddress of medium type '{medium}' exceeds the maximum valid value of {maximum}"
+msgstr "ミディアム・タイプ'{medium}'のドメイン・アドレスは、{maximum}の値の最大値こ超えています"
+
+msgid "DomainAddress of RF sublines must be equal to DomainAdress of main line."
+msgstr "RFサブラインのドメイン・アドレスは、メイン・ラインのドメイン・アドレスと一致する必要があります."
+
+msgid "Domain Address of IoT sublines must be equal to Domain Address of main line."
+msgstr "IoTサブラインのドメインアドレスは、メインラインのドメインアドレスと一致する必要があります。"
+
+msgid "Each line in a project must have a unique domain address."
+msgstr "プロジェクトの各ラインは一意的なドメイン・アドレスを持つ必要があります."
+
+msgid "Last Downloaded"
+msgstr "最終ダウンロード日"
+
+msgid "Create trade {name}"
+msgstr "トレード{name}を作成"
+
+msgid "Rename trade to {name}"
+msgstr "トレードの名前を{name}に変更"
+
+msgid "Set trade number"
+msgstr "トレード番号を設定"
+
+msgid "Set trade description"
+msgstr "トレードの説明を設定"
+
+msgid "Move trade"
+msgstr "トレードを移動"
+
+msgid "Remove trade"
+msgstr "トレードを削除"
+
+msgid "Add device to trade"
+msgstr "デバイスをトレードに追加"
+
+msgid "Remove device from trade"
+msgstr "デバイスをトレードから削除"
+
+msgid "Trades"
+msgstr "トレード"
+
+msgid "Building Parts…"
+msgstr "構造の一部…"
+
+msgid "Floors…"
+msgstr "フロア…"
+
+msgid "Stairways…"
+msgstr "階段…"
+
+msgid "Rooms…"
+msgstr "スペース…"
+
+msgid "Corridors…"
+msgstr "廊下…"
+
+msgid "Cabinets…"
+msgstr "キャビネット…"
+
+msgid "Devices…"
+msgstr "デバイス…"
+
+msgid "Functions…"
+msgstr "機能…"
+
+msgid "Trades…"
+msgstr "トレード…"
+
+msgid "Add Buildings…"
+msgstr "構造を追加する…"
+
+msgid "Add Trades…"
+msgstr "トレードを追加する…"
+
+msgid "Add Buildings"
+msgstr "構造を追加する"
+
+msgid "Add Building Parts"
+msgstr "構造の一部を追加する"
+
+msgid "Add Floors"
+msgstr "フロアを追加する"
+
+msgid "Add Rooms"
+msgstr "スペースを追加する"
+
+msgid "Add Corridors"
+msgstr "廊下を追加する"
+
+msgid "Add Stairways"
+msgstr "階段を追加する"
+
+msgid "Add Cabinets"
+msgstr "キャビネットを追加する"
+
+msgid "Add Trades"
+msgstr "トレードを追加する"
+
+msgid "Add Devices"
+msgstr "デバイスを追加する"
+
+msgid "Count"
+msgstr "数"
+
+msgid "to \"{name}\""
+msgstr "\"{name}\"に"
+
+msgid "Cabinet"
+msgstr "キャビネット"
+
+msgid "New building"
+msgstr "新しい構造"
+
+msgid "New building part"
+msgstr "新しい構造の一部"
+
+msgid "New floor"
+msgstr "新しいフロア"
+
+msgid "New room"
+msgstr "新しいスペース"
+
+msgid "New corridor"
+msgstr "新しい廊下"
+
+msgid "New stairway"
+msgstr "新しい階段"
+
+msgid "New cabinet"
+msgstr "新しいキャビネット"
+
+msgid "New trade"
+msgstr "新しいトレード"
+
+msgid "A building part of this type cannot be added here."
+msgstr "ここにはこのタイプの構造の一部は追加できません."
+
+msgid "A building part of this type cannot be added here.\nCabinets can be added inside of rooms, corridors, or stairways only. If applicable the corridors have to be moved into the corresponding building parts."
+msgstr "このタイプの構造の一部をここに追加する事はできません。キャビネットは部屋の中、廊下、階段にのみ追加することができます。適用できる廊下は、対応する構造の一部に移動させる必要があります."
+
+msgid "The target is a child building part."
+msgstr "ターゲットは子構造の一部です."
+
+msgid "Devices can only be added to stairways, rooms, corridors and cabinets."
+msgstr "デバイスは階段、部屋、廊下、キャビネットにのみ追加できます。"
+
+msgid "Trade"
+msgstr "トレード"
+
+msgid "(estimated)"
+msgstr "（推定）"
+
+msgid "Number of Devices"
+msgstr "デバイス数"
+
+msgid "Unlink"
+msgstr "リンクを外す"
+
+msgid "An IP router requires an IP backbone line."
+msgstr "IPルーターはIPバックボーン・ラインを必要とします."
+
+msgid "The operation could not be executed, because a coupler needs a main line."
+msgstr "カプラーにはメイン・アドレスが必要なため、オペレーションは実行できませんでした."
+
+msgid "The operation could not be executed, because an area coupler requires a backbone line."
+msgstr "エリア・カプラーがバックボーン・ラインを必要としている為、オペレーションは実行できませんでした."
+
+msgid "The operation could not be executed, because this coupler needs a main line with the medium type '{medium}' ."
+msgstr "このカプラーにはミディアム・タイプ'{medium}'を持つメイン・ラインが必要な為、オペレーションは実行できませんでした ."
+
+msgid "The operation could not be executed, because only one IP router is allowed as a world coupler."
+msgstr "ワールド・カプラーとしてはIPルーターは１つのみ許可されている為、オペレーションは実行できませんでした."
+
+msgid "The operation could not be executed, because only IP router area allowed as a world coupler."
+msgstr "IPルーターのみワールド・カプラーとして許可されている為、オペレーションは実行できませんでした."
+
+msgid "The backbone line contains a world coupler. It is not possible to use an IP router below another IP router."
+msgstr "バックボーンラインは、ワールドカップラーを含みます下記のIPルーターを別のIPルーター下で使うことはできません."
+
+msgid "It is not possible to use a world coupler, when there are already IP routers in the project."
+msgstr "プロジェクトにIPルータがすでに存在する場合、ワールドカプラを使用することはできません。"
+
+msgid "A world coupler can only be used, when the medium type of the backbone is TP."
+msgstr "ワールドカップラーは、バックボーンのミディアムタイプがTPであるときにのみ使用できます."
+
+msgid "The coupler does not support segment coupling, so the sub-segment must be of the same KNX medium type as the main segment."
+msgstr "カプラはセグメントのカップリングをサポートしていないため、サブセグメントはメインセグメントと同じ KNX ミディアムタイプである必要があります。"
+
+msgid "The operation could not be executed, because this device couples medium '{above}' (above) to medium '{below}' (below), but the segment above is '{segment}'."
+msgstr "この操作は完了できません。このデバイスは(上に)メディア '{above}' と接続し、(下に)メディア '{below}' と接続するものですが、上に接続するメディアは '{segment}' です。"
+
+msgid "The operation could not be executed, because medium type of coupler device matches only sub segment, but maximum amount of segments reached."
+msgstr "このミディアムタイプのカプラ デバイスはサブセグメントのみに一致しますが、セグメントの最大数に達したため、操作を実行できませんでした。"
+
+msgid "The operation could not be executed, because this device couples medium '{above}' (above) to medium '{below}' (below), but the medium type of the lower segment is '{segment}'."
+msgstr "この操作は完了できません。このデバイスは(上に) メディア '{above}' と接続し、(下に) メディア '{below}' と接続するものですが、下に接続するメディアタイプは '{segment}' です。"
+
+msgid "Recover Project from Bus"
+msgstr "バスからプロジェクトを復元"
+
+msgid "Devices in Programming Mode"
+msgstr "プログラミング・モードのデバイス"
+
+msgid "Connecting"
+msgstr "接続中"
+
+msgid "Move middle group"
+msgstr "中間グループを移動"
+
+msgid "The group has no free group address."
+msgstr "このグループには空いているグループアドレスがありません。"
+
+msgid "The main group has no free middle group."
+msgstr "このメイングループには空いている中間グループがありません。"
+
+msgid "{count} devices"
+msgstr "{count} 台のデバイス"
+
+msgid "The main segment cannot be moved."
+msgstr "メインセグメントは移動できません。"
+
+msgid "The maximum number of lines has been reached."
+msgstr "ラインの最大数に達しました。"
+
+msgid "The line is already assigned to an area."
+msgstr "このラインは既にエリアに割り当てられています。"
+
+msgid "The main line cannot be moved."
+msgstr "メインラインは移動できません。"
+
+msgid "Move line"
+msgstr "ラインを移動"
+
+msgid "Move segment"
+msgstr "セグメントを移動"
+
+msgid "Move function"
+msgstr "機能を移動"
+
+msgid "Paste Special"
+msgstr "形式を選択して貼り付け"
+
+msgid "Number of Items"
+msgstr "アイテム数"
+
+msgid "Don't copy"
+msgstr "コピーしない"
+
+msgid "Keep"
+msgstr "保持"
+
+msgid "Create new group address in middle group"
+msgstr "中間グループに新しいグループ・アドレスを作成"
+
+msgid "Create new group address in main group"
+msgstr "メイン・グループに新しいグループ・アドレスを作成"
+
+msgid "Create new group address in group range"
+msgstr "グループ範囲に新しいグループ・アドレスを作成"
+
+msgid "Generate Address"
+msgstr "アドレスの生成"
+
+msgid "Fill up (use first free)"
+msgstr "埋める (最初の空き)"
+
+msgid "Append"
+msgstr "末尾に追加"
+
+msgid "Start with"
+msgstr "開始値"
+
+msgid "Enter a middle group, e.g. 1/2."
+msgstr "中間グループを入力してください (例: 1/2)。"
+
+msgid "Enter a main group, e.g. 1."
+msgstr "メイン・グループを入力してください (例: 1)。"
+
+msgid "The group has too few free group addresses for the copies."
+msgstr "このグループにはコピーに必要な空きグループ・アドレスが足りません。"
+
+msgid "The maximum number of group ranges has been reached."
+msgstr "グループ範囲の最大数に達しました。"
+
+msgid "There is no group for the new group addresses."
+msgstr "新しいグループ・アドレス用のグループがありません。"
+
+msgid "Copied '{name}' to '{target}'."
+msgstr "'{name}' を '{target}' にコピーしました。"
+
+msgid "Copied {count} devices to '{target}'."
+msgstr "{count} 台のデバイスを '{target}' にコピーしました。"
+
+msgid "Copied {count} building parts to '{target}'."
+msgstr "{count} 個の建物部分を '{target}' にコピーしました。"
+
+msgid "Copied {count} trades to '{target}'."
+msgstr "{count} 個のトレードを '{target}' にコピーしました。"
+
+msgid "Copied {count} functions to '{target}'."
+msgstr "{count} 個の機能を '{target}' にコピーしました。"
+
+msgid "Copied {count} group addresses to '{target}'."
+msgstr "{count} 個のグループ・アドレスを '{target}' にコピーしました。"
+
+msgid "Copied {count} middle groups to '{target}'."
+msgstr "{count} 個の中間グループを '{target}' にコピーしました。"
+
+msgid "Copied {count} main groups to '{target}'."
+msgstr "{count} 個のメイン・グループを '{target}' にコピーしました。"
+
+msgid "Copied {count} lines to '{target}'."
+msgstr "{count} 本のラインを '{target}' にコピーしました。"
+
+msgid "Copied {count} segments to '{target}'."
+msgstr "{count} 個のセグメントを '{target}' にコピーしました。"
+
+msgid "Paste Special…"
+msgstr "形式を選択して貼り付け…"
+
+msgid "Add Row"
+msgstr "行を追加"
+
+msgid "Remove this row"
+msgstr "この行を削除"
+
+msgid "Generate Addresses"
+msgstr "アドレスの生成"
+
+msgid "Unlink device"
+msgstr "デバイスのリンクを外す"
+
+msgid "The device is on no line: put it on a line first."
+msgstr "デバイスはどのラインにもありません。先にラインに配置してください。"
+
+msgid "Areas…"
+msgstr "エリア…"
+
+msgid "Lines…"
+msgstr "ライン…"
+
+msgid "Segments…"
+msgstr "セグメント…"
+
+msgid "Add Areas"
+msgstr "エリアを追加"
+
+msgid "Add Lines"
+msgstr "ラインを追加"
+
+msgid "Add Segments"
+msgstr "セグメントを追加"
+
+msgid "The limit to add was reached."
+msgstr "追加の上限に達しました。"
+
+msgid "Cannot add any line to the area {area} because of topology constraints. Please check the medium type of the backbone and main lines."
+msgstr "トポロジの制約により、エリア {area} にラインを追加できません。バックボーンとメインラインのメディアタイプを確認してください。"
+
+msgid "Added {count} areas to '{target}'."
+msgstr "{count} 個のエリアを '{target}' に追加しました。"
+
+msgid "Added {count} lines to '{target}'."
+msgstr "{count} 本のラインを '{target}' に追加しました。"
+
+msgid "Added {count} segments to '{target}'."
+msgstr "{count} 個のセグメントを '{target}' に追加しました。"
+
+msgid "Added {count} building parts to '{target}'."
+msgstr "{count} 個の建物部分を '{target}' に追加しました。"
+
+msgid "Added {count} trades to '{target}'."
+msgstr "{count} 個の業種を '{target}' に追加しました。"
+
+msgid "Added {count} main groups to '{target}'."
+msgstr "{count} 個のメイングループを '{target}' に追加しました。"
+
+msgid "Added {count} middle groups to '{target}'."
+msgstr "{count} 個のミドルグループを '{target}' に追加しました。"
+
+msgid "Added {count} group addresses to '{target}'."
+msgstr "{count} 個のグループアドレスを '{target}' に追加しました。"
+
+msgid "Add Main Groups…"
+msgstr "メイングループを追加…"
+
+msgid "Add Middle Groups…"
+msgstr "ミドルグループを追加…"
+
+msgid "Add Main Groups"
+msgstr "メイングループを追加"
+
+msgid "Add Middle Groups"
+msgstr "ミドルグループを追加"
+
+msgid "New main group"
+msgstr "新しいメイングループ"
+
+msgid "New middle group"
+msgstr "新しいミドルグループ"
+
+msgid "New group address"
+msgstr "新しいグループアドレス"
+
+msgid "Cut"
+msgstr "切り取り"
+
+msgid "What was cut cannot be moved there."
+msgstr "切り取ったものはそこへ移動できません。"
+
+msgid "Park"
+msgstr "パーク"
+
+msgid "Park device"
+msgstr "デバイスをパーク"
+
+msgid "Add Functions"
+msgstr "機能を追加"
+
+msgid "New function"
+msgstr "新しい機能"
+
+msgid "Added {count} functions to '{target}'."
+msgstr "{count} 個の機能を '{target}' に追加しました。"
+
+msgid "Added {count} group ranges to '{target}'."
+msgstr "{count} 個のグループアドレス範囲を '{target}' に追加しました。"
+
+msgid "Add Group Ranges…"
+msgstr "グループアドレス範囲を追加…"
+
+msgid "Add Group Ranges"
+msgstr "グループアドレス範囲を追加"
+
+msgid "New group range"
+msgstr "新しいグループアドレス範囲"
+
+msgid "Capacity"
+msgstr "容量"
+
+msgid "Link with…"
+msgstr "リンク…"
+
+msgid "Link with Group Address"
+msgstr "グループアドレスにリンク"
+
+msgid "There is no group to add group addresses to."
+msgstr "グループアドレスを追加するグループがありません。"
+
+msgid "Add Subtrade"
+msgstr "サブトレードを追加"
+
+msgid "The group range does not fit there."
+msgstr "グループアドレス範囲はそこに収まりません。"
+
+msgid "A group range cannot go into itself or a range in it."
+msgstr "グループアドレス範囲は、それ自身やその中の範囲には入れられません。"
+
+msgid "A group address of the range is already in use there."
+msgstr "範囲のグループアドレスがそこで既に使われています。"
+
+msgid "Copied {count} group ranges to '{target}'."
+msgstr "{count} 個のグループアドレス範囲を '{target}' にコピーしました。"
+
+msgid "Add Areas…"
+msgstr "エリアを追加…"
+
+msgid "{medium} segment"
+msgstr "{medium} セグメント"
+
+msgid "Copy Individual Address"
+msgstr "個別アドレスをコピー"
+
+msgid "Copy Group Address"
+msgstr "グループ・アドレスをコピー"
+
+msgid "Existing Devices…"
+msgstr "既存のデバイス…"
+
+msgid "Delete the {count} selected devices? Their group objects and group-address links are removed and their individual addresses are freed. This can be undone."
+msgstr "選択した {count} 台のデバイスを削除しますか? グループオブジェクトとグループアドレスのリンクは削除され、個別アドレスは解放されます。元に戻すことができます。"
+
+msgid "Remove {count} devices"
+msgstr "{count} 台のデバイスを削除"
+
+msgid "Delete Devices"
+msgstr "デバイスを削除"
+
+msgid "{medium} line"
+msgstr "{medium} ライン"

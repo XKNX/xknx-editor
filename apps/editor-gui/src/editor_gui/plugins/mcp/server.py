@@ -22,6 +22,7 @@ from editor_gui.plugins.mcp.tools import (
     keyring,
     monitor,
     network,
+    operations,
     project,
     project_tools,
     status,
@@ -126,6 +127,9 @@ INSTRUCTIONS = (
     "not run it before first programming. To change the address of an already-programmed device, "
     "set the new one in the project, then connection_program_device with scope "
     "OVERWRITE_INDIVIDUAL_ADDRESS and its current_address.\n"
+    "OPERATIONS: programmings run in the editor's Operations panel; connection_operations shows "
+    "what runs, waits and has ended, connection_cancel_operations cancels, and a download that "
+    "finds another application in the device waits for connection_answer_overwrite.\n"
     "DOWNLOAD SCOPE — match it to the change: PARAMETERS (parameter values only), "
     "GROUP_COMMUNICATION (group-address links only), APPLICATION (the full application load, incl. "
     "the GA link tables), PARAMETERS_AND_GROUP_COMMUNICATION (a change touching both, e.g. a new "
@@ -177,6 +181,7 @@ def build_server(ctx: McpContext, auth: Any = None) -> FastMCP:
         batch,
         catalog,
         connection,
+        operations,
         dali,
         monitor,
         keyring,

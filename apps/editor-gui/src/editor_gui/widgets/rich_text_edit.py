@@ -37,6 +37,21 @@ _copied: tuple[str, RichText] | None = None
 # The text selected in the rich text field being edited, for the web page's copy (see web).
 _selection = ""
 _TAB_SPACES = 4
+# The keys the field handles itself while it has the caret.
+_OWN_KEYS = (
+    imgui.Key.left_arrow,
+    imgui.Key.right_arrow,
+    imgui.Key.up_arrow,
+    imgui.Key.down_arrow,
+    imgui.Key.page_up,
+    imgui.Key.page_down,
+    imgui.Key.home,
+    imgui.Key.end,
+    imgui.Key.tab,
+    imgui.Key.space,
+    imgui.Key.enter,
+    imgui.Key.keypad_enter,
+)
 
 
 def active_selection() -> str:
@@ -133,9 +148,15 @@ class RichTextEdit:
         self._last_frame = imgui.get_frame_count()
 
         imgui.begin_group()
-        # The buttons belong to the field (the group): a click on them keeps it focused.
-        imgui.align_text_to_frame_padding()
+        # The buttons belong to the field (the group): a click on them keeps it focused. The
+        # title ends where they end, as near to the field as they are (in a group, so that the
+        # row starts at its top, not where the lowered title does).
+        imgui.begin_group()
+        imgui.set_cursor_pos_y(
+            imgui.get_cursor_pos_y() + 2.0 * imgui.get_style().frame_padding.y
+        )
         imgui.text_disabled(title)
+        imgui.end_group()
         imgui.same_line()
         self._buttons()
         border = self._focused
@@ -192,6 +213,10 @@ class RichTextEdit:
             imgui.set_mouse_cursor(imgui.MouseCursor_.text_input)
         self._mouse()
         if self._focused:
+            # The keys it moves the caret and types with are its own: imgui's keyboard
+            # navigation leaves them to it (it would move the focus away from the text).
+            for key in _OWN_KEYS:
+                imgui.internal.set_key_owner(key, self._button_id)
             self._keyboard()
         self._layout(font, size, width)
         self._draw(font, size)

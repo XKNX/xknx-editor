@@ -38,8 +38,8 @@ round-trip merges or drops:
   xknxproject flattens every ``<Installation>/Topology`` into one areas list, discarding the
   installation boundary, so true per-installation separation is unrecoverable. Import merges the
   topology by address (no duplicate rows); a line that would collide is dropped and counted.
-- **Unassigned devices** (``<Topology>/<UnassignedDevices>``): every device is modelled under a
-  Segment → Line → Area. A device not placed in any line has no home in the model and is dropped.
+- **Unassigned devices** (``<Topology>/<UnassignedDevices>``): the devices the editor has on no
+  line are written there; those of an imported project are kept verbatim (not editable).
 - **IP interface/routing device config** and **``Function`` ``@Number``/``@Implements``**: rarely set
   outside specialised projects; not modelled.
 - **Multi-segment lines in a project/14+20 export**: import now keeps one
@@ -97,6 +97,7 @@ from xknxeditor.proj.core.project_secrets import (
 )
 from xknxeditor.proj.db import make_engine, url_for
 from xknxeditor.proj.models import (
+    UNDEFINED_STATUS,
     Area,
     ComObject,
     ComObjectLink,
@@ -1147,6 +1148,12 @@ class _ExportIds:
         return max(self._last_used, self._max_puid)
 
 
+def _status(status: str) -> str | None:
+    """A ``CompletionStatus`` attribute value: omitted for the default "Undefined", as genuine
+    projects leave it out."""
+    return None if status in ("", UNDEFINED_STATUS) else status
+
+
 def _local_id(source_id: str) -> str:
     """``source_id`` without its project prefix (``P-04BB-0_F-1_GF-0`` -> ``F-1_GF-0``); an id
     without one is returned as is."""
@@ -1155,9 +1162,25 @@ def _local_id(source_id: str) -> str:
     return source_id
 
 
+def _loose_devices(installation: Installation) -> list[Device]:
+    """The devices on no line (unassigned in the editor), by id. A project has one installation,
+    whose devices they are."""
+    session = object_session(installation)
+    if session is None:
+        return []
+    return (
+        session.query(Device)
+        .filter(Device.segment_id.is_(None))
+        .order_by(Device.id)
+        .all()
+    )
+
+
 def _reserve_source_identities(ids: _ExportIds, installation: Installation) -> None:
     """Reserve the imported ids and Puids of ``installation``'s elements (see :class:`_ExportIds`),
     including those of the unassigned devices, which are written verbatim."""
+    for device in _loose_devices(installation):
+        ids.reserve("DI", device, device.source_id, device.puid)
     for raw in installation.unassigned_devices_xml or []:
         try:
             element = ET.fromstring(raw)
@@ -1210,6 +1233,8 @@ def _assign_ids(
                     di_id[device.id] = (
                         f"{pid}-0_{ids.id('DI', device, device.source_id)}"
                     )
+    for device in _loose_devices(installation):
+        di_id[device.id] = f"{pid}-0_{ids.id('DI', device, device.source_id)}"
     return ga_link_id, di_id
 
 
@@ -1257,6 +1282,9 @@ class _SourceRefs:
                     for device in segment.devices:
                         if device.source_id and device.id in di_id:
                             refs.device[device.source_id] = di_id[device.id]
+        for device in _loose_devices(installation):
+            if device.source_id and device.id in di_id:
+                refs.device[device.source_id] = di_id[device.id]
         for unassigned in _unassigned_device_ids(installation):
             refs.device.setdefault(unassigned, unassigned)
         return refs
@@ -1335,6 +1363,8 @@ class _Writer:
         self._default_line_id: str | None = (
             None  # Installation DefaultLine (line holding devices)
         )
+        # Line row id -> its exported @Id, for the spaces' DefaultLine.
+        self._line_ids: dict[int, str] = {}
         # Topology shape differs by schema: project/22 and /23 nest devices under a
         # <Segment> that carries MediumTypeRefId; project/14 and /20 put devices directly
         # under <Line> with MediumTypeRefId on the line. Emitting the wrong shape makes the
@@ -1466,6 +1496,7 @@ class _Writer:
             Name=project.name,
             GroupAddressStyle=project.group_address_style,
             Comment=project.comment or None,
+            CompletionStatus=_status(project.completion_status),
             LastUsedPuid=self._ids.last_used_puid,
             Guid=project_guid,
             LastModified=project.last_modified or now,
@@ -1475,6 +1506,8 @@ class _Writer:
         # only from project/21 on).
         for key, value in (project.extra_attributes or {}).items():
             schemas = _SCHEMA_SPECIFIC_INFO_ATTRS.get(key)
+            if key == "CompletionStatus":
+                continue  # written from its own column above
             if schemas is None or self._schema in schemas:
                 info.set(key, value)
         # ProjectInformation child collections captured verbatim on import, re-emitted in schema
@@ -1681,10 +1714,12 @@ class _Writer:
                 Name=self._topology_name(area.name),
                 Comment=area.comment or None,
                 Description=area.description or None,
+                CompletionStatus=_status(area.completion_status),
                 Puid=self._ids.puid(area, area.puid),
             )
             for line in sorted(area.lines, key=lambda x: x.address):
                 line_id = f"{pid}-0_{self._ids.id('L', line, line.source_id)}"
+                self._line_ids[line.id] = line_id
                 if line.source_id:
                     exported_lines[_local_id(line.source_id)] = line_id
                 medium = line.segments[0].medium_type if line.segments else "MT-0"
@@ -1706,6 +1741,7 @@ class _Writer:
                     Name=self._topology_name(line.name),
                     Comment=line.comment or None,
                     Description=line.description or None,
+                    CompletionStatus=_status(line.completion_status),
                     MediumTypeRefId=None if self._uses_segments else medium,
                     DomainAddress=None if self._uses_segments else line_domain,
                     Puid=self._ids.puid(line, line.puid),
@@ -1718,6 +1754,7 @@ class _Writer:
                             line_el,
                             "Segment",
                             Id=f"{pid}-0_{self._ids.id('S', segment, segment.source_id)}",
+                            Name=segment.name or None,
                             Number=segment.number,
                             MediumTypeRefId=segment.medium_type,
                             DomainAddress=segment.domain_address,
@@ -1725,6 +1762,9 @@ class _Writer:
                             MasterSalt=segment.master_salt
                             if self._schema == "23"
                             else None,
+                            Comment=segment.comment or None,
+                            CompletionStatus=_status(segment.completion_status),
+                            Description=segment.description or None,
                             Puid=self._ids.puid(segment, segment.puid),
                         )
                         if first_segment_el is None:
@@ -1789,7 +1829,7 @@ class _Writer:
 
         # <UnassignedDevices> (schema order: last child of <Topology>, after all <Area>). Devices not
         # placed on a line, captured verbatim on import and re-grafted here so they round-trip.
-        self._build_unassigned_devices(topo, installation)
+        self._build_unassigned_devices(topo, installation, di_id, ga_link_id)
 
         self._build_locations(inst, installation, pid, di_id, ga_link_id)
 
@@ -1893,7 +1933,8 @@ class _Writer:
             Usage=space.usage or None,
             Description=space.description or None,
             Comment=space.comment or None,
-            DefaultLine=space.default_line or None,
+            CompletionStatus=_status(space.completion_status),
+            DefaultLine=self._line_ids.get(space.default_line_id or 0),
             Context=space.context or None,
             Puid=self._ids.puid(space, space.puid),
         )
@@ -1914,6 +1955,7 @@ class _Writer:
                 Type=fn.function_type or None,
                 Comment=fn.comment or None,
                 Description=fn.description or None,
+                CompletionStatus=_status(fn.completion_status),
                 Implements=fn.implements or None,
                 Number=fn.number or None,
                 DefaultGroupRange=fn.default_group_range or None,
@@ -1963,6 +2005,7 @@ class _Writer:
             Hardware2ProgramRefId=device.hardware2program_ref_id,
             Comment=device.comment or None,
             Description=device.description or None,
+            CompletionStatus=_status(device.completion_status),
             InstallationHints=installation_hints(device) or None,
             LastModified=device.last_modified or None,
             # Commissioning state ("loaded" ticks + serial / last download). Emit the flags
@@ -1989,7 +2032,7 @@ class _Writer:
         # attribute and produce invalid XML.
         if self._schema == self._source_schema:
             for key, value in (device.extra_attributes or {}).items():
-                if key != "InstallationHints":
+                if key not in ("InstallationHints", "CompletionStatus"):
                     di.set(key, value)
         # Genuine exports order the device's children ParameterInstanceRefs, then
         # ComObjectInstanceRefs.
@@ -2245,23 +2288,31 @@ class _Writer:
         return el
 
     def _build_unassigned_devices(
-        self, topo: ET.Element, installation: Installation
+        self,
+        topo: ET.Element,
+        installation: Installation,
+        di_id: dict[int, str],
+        ga_link_id: dict[int, str],
     ) -> None:
-        """Re-emit the installation's captured ``<UnassignedDevices>`` under ``topo`` (last child of
-        ``<Topology>``). Each stored string is a namespace-stripped ``<DeviceInstance>`` subtree,
-        re-grafted in the target namespace. Skipped when there are none.
+        """``<UnassignedDevices>`` under ``topo`` (last child of ``<Topology>``): the devices on no
+        line, then the captured ones of the import. Each stored string is a namespace-stripped
+        ``<DeviceInstance>`` subtree, re-grafted in the target namespace. Skipped when there are
+        none.
 
         The captured subtrees carry project/20+ elements (e.g. GroupObjectTree, IPConfig), so they
         are only emitted for schemas that define them; for project/14 the container is skipped rather
         than writing XML the importer would reject."""
-        stored = installation.unassigned_devices_xml
-        if not stored:
+        stored = installation.unassigned_devices_xml or []
+        loose = _loose_devices(installation)
+        if not stored and not loose:
             return
         schema = self._ns.rsplit("/", 1)[-1]
         if not (schema.isdigit() and int(schema) >= 20):
             logger.debug("schema %s has no UnassignedDevices; skipping", schema)
             return
         container = self._el(topo, "UnassignedDevices")
+        for device in loose:
+            self._build_device(container, device, di_id[device.id], ga_link_id)
         for raw in stored:
             try:
                 src = ET.fromstring(raw)
@@ -2376,6 +2427,7 @@ class _Writer:
             Description=group_range.description or None,
             # Coupler pass-through flag; emit only when set (absent means filtered).
             Unfiltered="true" if group_range.unfiltered else None,
+            Security=group_range.security_mode or None,
             Puid=self._ids.puid(group_range, group_range.puid),
         )
         # GroupRange_t is a strict sequence: nested GroupRange* first, then GroupAddress*. Emitting

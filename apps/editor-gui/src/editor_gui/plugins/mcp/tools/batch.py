@@ -16,9 +16,12 @@ from editor_gui.device_plugins import parameters_in_plugin
 from editor_gui.plugins.mcp.context import McpContext, make_tool, require_project
 from editor_gui.plugins.mcp.tools.details import (
     CommentKind,
+    Status,
+    StatusKind,
     comment_rich_text,
     set_comment,
     set_description,
+    status_target,
 )
 from editor_gui.plugins.mcp.tools.project import (
     PLUGIN_PARAMETERS_ERROR,
@@ -36,6 +39,8 @@ if TYPE_CHECKING:
 _SLOW = 300.0
 _FLAGS = ("communication", "read", "write", "transmit", "update", "read_on_init")
 _COMMENT_KINDS: tuple[str, ...] = get_args(CommentKind)
+_STATUS_KINDS: tuple[str, ...] = get_args(StatusKind)
+_STATUSES: tuple[str, ...] = get_args(Status)
 
 
 def register(mcp: FastMCP, ctx: McpContext) -> None:
@@ -125,12 +130,16 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         app = ctx.api.catalog.get_application(product.application_id)
         if app is None:
             raise ValueError(f"application for {p['product_ref_id']!r} not in catalog")
+        space_id = p.get("space_id")
+        if space_id is not None and project.find_space(space_id) is None:
+            raise ValueError(f"no space with id {space_id}")
         node_id = project.add_device(
             product_ref_id=product.product_ref_id,
             hardware2program_ref_id=product.hardware2program_ref_id,
             name=p.get("name") or "",
             app=app,
             product=DeviceProduct.of(product),
+            space_id=space_id,
         )
         return {"node_id": node_id}
 
@@ -235,6 +244,18 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             )
         return {"node_id": device.node_id}
 
+    def _op_move_device_to_segment(p: dict[str, Any]) -> dict[str, Any]:
+        device = _device(p)
+        project.move_device_to_segment(device.node_id, int(p["segment_id"]))
+        return {"node_id": device.node_id}
+
+    def _op_remove_device(p: dict[str, Any]) -> dict[str, Any]:
+        node_id = _device(p).node_id
+        project.remove_device(node_id)
+        if node_id in project.selected_node_ids:
+            project.set_multi_selection(None, [])
+        return {"node_id": node_id}
+
     def _op_set_comment(p: dict[str, Any]) -> dict[str, Any]:
         kind = p["kind"]
         if kind not in _COMMENT_KINDS:
@@ -246,6 +267,22 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         text = comment_rich_text(p.get("text"), p.get("paragraphs"))
         set_comment(project, kind, element_id, field, text)
         return {"kind": kind, "element_id": element_id, "field": field}
+
+    def _op_set_status(p: dict[str, Any]) -> dict[str, Any]:
+        kind = p["kind"]
+        if kind not in _STATUS_KINDS:
+            raise ValueError(f"kind must be one of: {', '.join(_STATUS_KINDS)}")
+        if p["status"] not in _STATUSES:
+            raise ValueError(f"status must be one of: {', '.join(_STATUSES)}")
+        element_id = p.get("element_id", p.get("node_id"))
+        target = status_target(
+            project,
+            kind,
+            None if element_id is None else int(element_id),
+            p.get("device_address"),
+        )
+        project.set_completion_status(kind, target, p["status"])
+        return {"kind": kind, "element_id": target, "status": p["status"]}
 
     def _op_set_com_object_flag(p: dict[str, Any]) -> dict[str, Any]:
         device = _device(p)
@@ -260,6 +297,8 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
     ] = {
         "add_device": (("product_ref_id",), _op_add_device),
         "rename_device": ((), _op_rename_device),
+        "move_device_to_segment": (("segment_id",), _op_move_device_to_segment),
+        "remove_device": ((), _op_remove_device),
         "set_individual_address": (("address",), _op_set_individual_address),
         "set_parameter": ((), _op_set_parameter),
         "set_com_object_flag": (
@@ -278,6 +317,14 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             ("name",),
             _on_group_address(
                 lambda ga_id, p: project.rename_group_address(ga_id, p["name"])
+            ),
+        ),
+        "set_group_address_central": (
+            ("central",),
+            _on_group_address(
+                lambda ga_id, p: project.set_group_address_central(
+                    ga_id, bool(p["central"])
+                )
             ),
         ),
         "rename_group_range": (
@@ -324,6 +371,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             },
         ),
         "set_comment": (("kind",), _op_set_comment),
+        "set_status": (("kind", "status"), _op_set_status),
         "set_description": (
             ("kind", "element_id", "description"),
             lambda p: (
@@ -391,8 +439,14 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         "10/1/2"). Pass exactly one of each pair. Below "device" / "ga" stand for either form.
 
         Supported ops with required params (optional params in brackets) and success result fields:
-        - add_device: product_ref_id [name] -> {node_id}; uses the first matching catalog product.
+        - add_device: product_ref_id [name, space_id] -> {node_id}; uses the first matching
+          catalog product; with space_id it is added to that space, on its Current Line.
         - rename_device: device, [name] [description] (at least one) -> {node_id}.
+        - move_device_to_segment: device, segment_id -> {node_id}; as
+          project_move_device_to_segment (several devices, also from different lines, as one
+          "Move to" of a multi-selection does).
+        - remove_device: device -> {node_id}; as project_remove_device (several devices in one
+          batch, as "Delete" of a multi-selection does).
         - set_individual_address: device, address -> {node_id, address}.
         - set_parameter: device, (parameter_ref_id | label [subtree_id tree_token] [value_label]),
           value? -> {node_id, ref_id, requested, value, active, changed?, lost_links?}. Address the
@@ -407,6 +461,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         - set_com_object_flag: device, com_object_ref_id, flag, value -> {node_id, com_object_ref_id}.
         - create_group_address: [address, name] -> {group_address_id}.
         - rename_group_address: ga, name -> {group_address_id}.
+        - set_group_address_central: ga, central (bool) -> {group_address_id}.
         - rename_group_range: group_range_id, name -> {group_range_id}.
         - rename_function: function_id, name -> {function_id}.
         - set_group_address_dpt: ga [dpt; omitted/null clears] -> {group_address_id}.
@@ -422,7 +477,9 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         - set_comment: kind [element_id] [field="comment"], text | paragraphs -> {kind, element_id,
           field}; kind, field, text and paragraphs as for project_set_comment.
         - set_description: kind, element_id, description -> {kind, element_id}; kind is area, line,
-          group_range, group_address or space.
+          group_range, group_address, space or function.
+        - set_status: kind, status, element_id (a device: node_id or device_address; the project:
+          none) -> {kind, element_id, status}; kind and status as for project_set_status.
 
         Use node_id from project_list_devices, product_ref_id from catalog_list_products, parameter
         ref_id from project_list_parameters as parameter_ref_id, and object ref_id from

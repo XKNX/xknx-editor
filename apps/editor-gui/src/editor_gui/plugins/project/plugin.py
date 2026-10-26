@@ -7,7 +7,6 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, cast
 
-from imgui_bundle import imgui
 from xknx.telegram.apci import GroupValueRead, GroupValueWrite
 
 from editor_gui.device_info import (
@@ -25,7 +24,14 @@ from editor_gui.plugins.project.ga_name_template import (
     DEFAULT_GA_NAME_TEMPLATE,
     render_name_template,
 )
+from editor_gui.plugins.project.medium_text import medium_error_text
 from editor_gui.plugins.project.online_runner import OnlineButtonRunner
+from editor_gui.plugins.project.paste import (
+    PasteError,
+    PasteKind,
+    PasteTarget,
+    paste_error_text,
+)
 from editor_gui.plugins.project.program_queue import (
     ProgramQueue,
     QueueItem,
@@ -35,11 +41,11 @@ from editor_gui.plugins.project.service import (
     DeviceConfigClipboard,
     ElementDetails,
     additional_address_error_text,
+    interface_bus_access,
 )
 from editor_gui.plugins.project.strings import S
 from editor_gui.plugins.project.ui import (
     ConfigurePanel,
-    DevicesPanel,
     GroupAddressesPanel,
     HistoryPanel,
     MassLinkerPanel,
@@ -47,18 +53,21 @@ from editor_gui.plugins.project.ui import (
     ProjectLogPanel,
     SpacesPanel,
     ToolsPanel,
+    TopologyPanel,
+    name_focus,
 )
 from editor_gui.plugins.project.ui.comment import CommentPanel
+from editor_gui.plugins.project.ui.configure import edit_being_stored
 from editor_gui.plugins.project.ui.dali_commissioning import DaliCommissioningPanel
 from editor_gui.plugins.project.ui.device_certificate import (
     CertificateState,
     DeviceCertificateDialog,
 )
 from editor_gui.plugins.project.ui.device_compare import DeviceComparePanel
-from editor_gui.plugins.project.ui.devices import Area, Line
 from editor_gui.plugins.project.ui.element_details import ElementDetailsPanel
 from editor_gui.plugins.project.ui.group_value import GroupValueActions
 from editor_gui.plugins.project.ui.memory_preview import MemoryPreviewWindow
+from editor_gui.plugins.project.ui.paste_special import PasteSpecialDialog
 from editor_gui.plugins.project.ui.plugin_params_panel import PluginParamsPanel
 from editor_gui.plugins.project.ui.preflight_result import PreflightResultWindow
 from editor_gui.plugins.project.ui.program_queue import ProgramQueuePanel
@@ -74,8 +83,8 @@ from editor_gui.plugins.project.ui.secure_commissioning import SecureCommissioni
 from editor_gui.plugins.project.ui.siemens_dali import SiemensDaliPanel
 from editor_gui.plugins.project.ui.space_details import SpaceDetailsPanel
 from editor_gui.plugins.project.ui.tools import apply_name_swap, shifted_ia
+from editor_gui.plugins.project.ui.topology import Area, Line, Segment
 from editor_gui.widgets import ButtonActions
-from editor_gui.widgets.dialog import begin_tool_window
 from editor_gui.widgets.dpt_value import GroupValueBus
 from editor_gui.widgets.icons import (
     Icon,
@@ -87,6 +96,8 @@ from editor_gui.widgets.icons import (
 )
 from xknxeditor.prod.baggage import Baggages
 from xknxeditor.prod.errors import ArchiveError
+from xknxeditor.proj.core.medium import MediumError
+from xknxeditor.proj.core.paste import PasteOptions
 
 if TYPE_CHECKING:
     from concurrent.futures import Future
@@ -117,6 +128,17 @@ def _run_now(fn: Callable[[], None]) -> None:
     fn()
 
 
+# Bus operations the programming queue starts and shows as its own entries.
+_QUEUED_OPERATIONS = frozenset({"script", "program", "device_info"})
+
+
+def _unqueued(operation: tuple[str, str] | None) -> tuple[str, str] | None:
+    """The running bus operation when the queue has no entry for it (a device test, a scan …)."""
+    if operation is None or operation[0] in _QUEUED_OPERATIONS:
+        return None
+    return operation
+
+
 def _project_version(device: "Device") -> int | None:
     """The version of the device's application in the project (from its id, ``...-26-...`` -> 38),
     else the application's own."""
@@ -140,11 +162,16 @@ class ProjectPlugin:
         export_group_addresses: Callable[[], None] | None = None,
         get_latest_value: Callable[[str, str | None], tuple[str, str, float] | None]
         | None = None,
+        get_interfaces: Callable[[], list[tuple[str, str, int, str]]] = list,
     ) -> None:
+        """``get_interfaces`` lists the KNXnet/IP interfaces found on the network, each as
+        (name, IP address, port, individual address)."""
         self._api = api
         self._get_selected_node_ids = get_selected_node_ids
         api.project.set_logger(Logger(api.log, "project"))
         self._button_runner = ButtonRunner(api.project, Logger(api.log, "project"))
+        # The unqueued bus operation the Operations panel was last brought to the front for.
+        self._shown_bus_operation: tuple[str, str] | None = None
         self._baggages: dict[tuple[str, str], Baggages] = {}
 
         # Programming queue: repeated "Program" presses serialise onto the single bus slot.
@@ -167,13 +194,17 @@ class ProjectPlugin:
             on_cancel=self._program_queue.cancel_item,
             on_cancel_all=self._program_queue.cancel_all,
             on_clear_history=self._program_queue.clear_history,
+            get_bus_operation=self.unqueued_bus_operation,
+            is_connecting=lambda item: api.connection.waiting_for_connection(
+                item.future
+            ),
         )
         self._online_runner = OnlineButtonRunner(
             api.project,
             api.connection,
             api.main_thread.submit if api.main_thread is not None else _run_now,
             Logger(api.log, "project"),
-            api.notify,
+            api.tell_refused,
         )
 
         self._memory_preview = MemoryPreviewWindow(
@@ -195,7 +226,7 @@ class ProjectPlugin:
         # Copied device configuration (params + GA links) for "Paste configuration".
         self._device_config_clipboard: DeviceConfigClipboard | None = None
 
-        self._devices_panel = DevicesPanel(
+        self._topology_panel = TopologyPanel(
             get_devices=lambda: api.project.devices,
             get_areas=self._get_areas,
             get_lines=self._get_lines,
@@ -203,10 +234,8 @@ class ProjectPlugin:
             on_move_device=self._on_move_device,
             on_create_area=self._on_create_area,
             on_remove_area=self._on_remove_area,
-            on_rename_area=self._on_rename_area,
             on_create_line=self._on_create_line,
             on_remove_line=self._on_remove_line,
-            on_rename_line=self._on_rename_line,
             get_selected_node_id=self._selected_node_id,
             on_select_devices=self._on_select_devices,
             get_selected_node_ids=lambda: api.project.selected_node_ids,
@@ -221,6 +250,23 @@ class ProjectPlugin:
             on_compare=self._open_compare,
             on_select_element=api.project.select_element,
             get_selected_topology=lambda: api.project.selected_topology,
+            get_device_segments=api.project.device_segments,
+            on_add_segment=self._on_add_segment,
+            on_remove_segment=self._on_remove_segment,
+            on_move_device_to_segment=self._on_move_device_to_segment,
+            on_unlink_device=api.project.unlink_device,
+            on_park_device=api.project.park_device,
+            on_add_devices=api.project.add_devices_to,
+            get_new_line_media=api.project.new_line_media,
+            notify=self._report,
+            on_move_line=lambda line, area: self._report(
+                api.project.move_line(line, area)
+            ),
+            on_move_segment=lambda segment, line: self._report(
+                api.project.move_segment(segment, line)
+            ),
+            one_undo_step=api.project.one_undo_step,
+            paste_dialog=self._paste_dialog("topology"),
         )
         self._compare_panel = DeviceComparePanel(
             get_devices=lambda: api.project.devices,
@@ -235,14 +281,16 @@ class ProjectPlugin:
             ),
             get_revision=lambda: api.project.revision,
         )
-        self._compare_open = False
+        self._focus_tools = False
+        # Whose details the Device tab showed last (see _render_device).
+        self._details_shown: tuple[str, object] | None = None
 
         group_bus = GroupValueBus(
-            connected=lambda: api.connection.xknx is not None,
-            read=lambda address: api.connection.send_group_telegram(
+            connected=api.connection.can_reach_bus,
+            read=lambda address: api.connection.send_group_value(
                 address, GroupValueRead()
             ),
-            write=lambda address, payload: api.connection.send_group_telegram(
+            write=lambda address, payload: api.connection.send_group_value(
                 address, GroupValueWrite(payload)
             ),
             formats=lambda: cached_master_formats(api.connection.master),
@@ -253,6 +301,7 @@ class ProjectPlugin:
         self._configure_panel = ConfigurePanel(
             get_devices=lambda: api.project.devices,
             application_ready=api.project.application_ready,
+            get_parked_address=api.project.parked_address,
             get_selected_device=lambda: api.project.selected_device,
             set_selected_device=self._set_selected_device,
             on_param_change=self.handle_param_change,
@@ -276,6 +325,7 @@ class ProjectPlugin:
             open_memory_preview=self._memory_preview.open,
             on_param_change_all=self._handle_param_change_all,
             notify=api.notify,
+            warn=api.tell_refused,
             on_update_application=self._update_application,
             get_update_version=self._api.project.newer_application_version,
             get_change_targets=self._api.project.application_change_targets,
@@ -306,6 +356,12 @@ class ProjectPlugin:
             get_icon=self._icon,
             get_picture=self._picture,
             on_serial_number_change=self._set_serial_number,
+            get_status=lambda device: api.project.completion_status(
+                "device", device.node_id
+            ),
+            on_status_change=lambda device, status: api.project.set_completion_status(
+                "device", device.node_id, status
+            ),
             get_secure_commissioning=api.project.secure_commissioning,
             on_secure_commissioning_change=self._change_secure_commissioning,
             on_add_certificate=self._ask_certificate_for,
@@ -318,11 +374,14 @@ class ProjectPlugin:
                 if api.project.security_proxy_coupler(d)
                 else "-"
             ),
+            get_bus_current=api.project.device_bus_current_text,
             on_routing_blocking=api.project.set_unicast_broadcast_blocking,
             on_ip_secure_change=self._change_ip_secure,
             get_additional_address_count=api.project.additional_address_count,
             on_additional_address_change=self._change_additional_address,
             on_assign_additional_addresses=self._assign_additional_addresses,
+            get_ip_settings=api.project.ip_settings,
+            on_ip_settings_change=api.project.set_ip_settings,
             use_serial_number_default=lambda: api.connection.use_serial_number,
             find_serial_owner=self._serial_owner,
             find_product=api.catalog.find_product,
@@ -343,15 +402,11 @@ class ProjectPlugin:
             on_select_element=api.project.select_element,
             get_assignments_for_ga=api.project.get_assignments_for_ga,
             get_devices=lambda: api.project.devices,
-            on_create_ga=self._on_create_ga,
-            on_rename_ga=api.project.rename_group_address,
-            on_set_ga_dpt=api.project.set_group_address_dpt,
-            on_set_ga_security=self._set_ga_security,
             on_remove_ga=api.project.remove_group_address,
-            on_set_ga_address=api.project.set_group_address_address,
             take_requested_ga=api.project.take_requested_group_address,
             on_create_range=api.project.create_group_range,
-            on_rename_range=api.project.rename_group_range,
+            on_create_free_range=api.project.create_free_group_range,
+            on_create_ga_in=api.project.create_group_address_in,
             on_remove_range=api.project.remove_group_range,
             group_style=lambda: api.project.group_address_style,
             on_select_device_id=self._select_device_by_id,
@@ -359,24 +414,62 @@ class ProjectPlugin:
             on_import=api.project.import_group_addresses,
             on_export=export_group_addresses,
             get_latest_value=get_latest_value,
+            on_move_ga=api.project.move_group_address,
+            on_move_range=api.project.move_group_range,
+            notify=api.tell_refused,
+            one_undo_step=api.project.one_undo_step,
+            paste_dialog=self._paste_dialog("group_addresses"),
         )
 
         self._element_details = ElementDetailsPanel(
             on_rename=api.project.rename_element,
             on_set_description=api.project.set_element_description,
             on_set_address=api.project.set_element_address,
+            on_set_status=api.project.set_completion_status,
+            on_set_medium=api.project.set_element_medium,
+            on_set_security=api.project.set_element_security,
+            on_set_central=api.project.set_group_address_central,
+            on_set_ip_routing=lambda latency, address: api.project.set_ip_routing(
+                latency=latency, multicast_address=address
+            ),
+            on_set_backbone_security=api.project.set_element_backbone_security,
+            on_set_bus_connection=api.project.set_backbone_bus_connection,
+            found_interfaces=lambda: [
+                (
+                    interface_bus_access(name, host, port),
+                    f"{name} ({host}:{port} Udp - {address})".replace(" - )", ")"),
+                )
+                for name, host, port, address in get_interfaces()
+            ],
+            on_set_dpt=api.project.set_element_dpt,
+            on_set_domain_address=api.project.set_element_domain_address,
+            on_set_number=lambda trade_id, number: api.project.set_trade_field(
+                trade_id, "number", number
+            ),
+            get_bus_load=api.project.bus_load_texts,
+            dpt_names=lambda: cached_master_names(api.connection.master),
         )
         self._space_details = SpaceDetailsPanel(
             on_rename=api.project.rename_space,
             on_set_description=api.project.set_space_description,
             on_set_number=api.project.set_space_number,
+            on_set_usage=api.project.set_space_usage,
+            get_status=lambda space_id: api.project.completion_status(
+                "space", space_id
+            ),
+            on_set_status=lambda space_id, status: api.project.set_completion_status(
+                "space", space_id, status
+            ),
+            line_choices=api.project.line_choices,
+            get_current_line=api.project.current_line,
+            on_set_current_line=api.project.set_space_default_line,
         )
         self._spaces_panel = SpacesPanel(
             get_space_tree=api.project.get_space_tree,
             on_select_device_id=self._select_device_by_id,
             on_create_function=api.project.create_function,
             on_remove_function=api.project.remove_function,
-            on_rename_function=api.project.rename_function,
+            on_move_function=api.project.move_function,
             on_set_function_type=api.project.set_function_type,
             on_add_function_ga=api.project.add_function_group_address,
             on_remove_function_ga=api.project.remove_function_group_address,
@@ -384,7 +477,6 @@ class ProjectPlugin:
             on_create_space=api.project.create_space,
             get_selected_space_id=lambda: api.project.selected_space_id,
             on_select_space=self._select_space,
-            on_set_space_type=api.project.set_space_type,
             on_move_space=api.project.move_space,
             on_remove_space=api.project.remove_space,
             on_set_device_space=api.project.set_device_space,
@@ -396,8 +488,26 @@ class ProjectPlugin:
             count_paste_targets=self._count_paste_targets,
             on_device_info=self._open_read_dialog,
             on_compare=self._open_compare,
-            on_select_element=api.project.select_comment_target,
+            # A function's and a trade's details (name, description, status) show in the Device
+            # tab.
+            on_select_element=api.project.select_element,
             get_selected_node_id=self._selected_node_id,
+            get_trade_tree=api.project.get_trade_tree,
+            on_create_trade=api.project.create_trade,
+            on_move_trade=api.project.move_trade,
+            on_remove_trade=api.project.remove_trade,
+            on_add_trade_device=api.project.add_trade_device,
+            on_remove_trade_device=api.project.remove_trade_device,
+            get_space_devices=api.project.get_space_devices,
+            get_parked_address=api.project.parked_address,
+            notify=api.tell_refused,
+            one_undo_step=api.project.one_undo_step,
+            paste_dialog=self._paste_dialog("buildings"),
+            on_delete_device=self._delete_device,
+            group_style=lambda: api.project.group_address_style,
+            on_create_ga_in=api.project.create_group_address_in,
+            get_selected_element=lambda: api.project.selected_element,
+            on_add_devices=api.project.add_devices_into,
         )
 
         self._project_info_panel = ProjectInfoPanel(
@@ -405,11 +515,13 @@ class ProjectPlugin:
             on_rename=api.project.set_project_name,
             on_set_password=api.project.set_project_password,
             needs_password=api.project.project_needs_password,
-            get_backbone_security=api.project.backbone_security,
-            on_backbone_security=self._set_backbone_security,
             get_certificates=api.project.device_certificate_list,
             on_remove_certificate=api.project.remove_device_certificate,
             on_add_certificate=self._add_project_certificate,
+            get_status=lambda: api.project.completion_status("project", 0),
+            on_set_status=lambda status: api.project.set_completion_status(
+                "project", 0, status
+            ),
         )
         self._project_log_panel = ProjectLogPanel(
             get_traces=api.project.get_project_traces,
@@ -447,14 +559,15 @@ class ProjectPlugin:
             get_group_address_style=lambda: api.project.group_address_style,
             on_shift_group_addresses=self.tools_shift_group_addresses,
             on_diff_projects=self.tools_diff_projects,
+            compare=self._compare_panel,
         )
 
         self._panels = [
             PanelDefinition(
-                name="devices",
-                label=S.PANEL_DEVICES,
+                name="topology",
+                label=S.PANEL_TOPOLOGY,
                 dock="LeftSpace",
-                render=self._devices_panel.render,
+                render=self._topology_panel.render,
             ),
             PanelDefinition(
                 name="buildings",
@@ -532,15 +645,59 @@ class ProjectPlugin:
 
     def _get_areas(self) -> list[Area]:
         return [
-            Area(id=a.id, number=a.area_number, name=a.name)
+            Area(id=a.id, number=a.area_number, name=a.name, description=a.description)
             for a in self._api.project.get_areas()
         ]
 
     def _get_lines(self, area_id: int) -> list[Line]:
         return [
-            Line(id=ln.id, area_id=ln.area_id, number=ln.line_number, name=ln.name)
+            Line(
+                id=ln.id,
+                area_id=ln.area_id,
+                number=ln.line_number,
+                name=ln.name,
+                segments=[
+                    Segment(
+                        id=s.id,
+                        name=s.name,
+                        description=s.description,
+                        medium_type=s.medium_type,
+                    )
+                    for s in ln.segments
+                ],
+                medium_type=ln.medium_type,
+                main_segment_id=ln.main_segment_id,
+                description=ln.description,
+            )
             for ln in self._api.project.get_lines(area_id)
         ]
+
+    def _on_add_segment(self, line: Line, name: str, medium: str) -> str | None:
+        """Add a sub-segment to the line and select it; the reason it cannot be added, or
+        None."""
+        try:
+            segment_id = self._api.project.add_segment(line.id, name, medium)
+        except MediumError as error:
+            return self._rejected(error)
+        if segment_id is not None:
+            self._api.project.select_element("segment", segment_id)
+        return None
+
+    def _on_remove_segment(self, segment: Segment) -> None:
+        try:
+            self._api.project.remove_segment(segment.id)
+        except MediumError as error:
+            self._medium_error(error)
+
+    def _on_move_device_to_segment(self, device: "Device", segment: Segment) -> None:
+        try:
+            self._api.project.move_device_to_segment(device.node_id, segment.id)
+        except MediumError as error:
+            self._medium_error(error)
+        except ValueError as error:
+            self._api.log.warning(
+                "could not move the device", plugin="project", error=str(error)
+            )
 
     def _on_select_device(self, device: "Device") -> None:
         self._api.project.selected_device = device
@@ -607,7 +764,10 @@ class ProjectPlugin:
         )
 
     def _on_delete_device(self, device: "Device | UnloadedDevice") -> None:
-        node_id = device.node_id
+        self._delete_device(device.node_id)
+
+    def _delete_device(self, node_id: int) -> None:
+        """Delete a device from the project (undoable); it is no longer selected."""
         was_selected = self._selected_node_id() == node_id or (
             node_id in self._api.project.selected_node_ids
         )
@@ -615,25 +775,34 @@ class ProjectPlugin:
         if was_selected:
             self._api.project.set_multi_selection(None, [])
 
-    def _on_create_area(self, area_number: int, name: str) -> None:
-        self._api.project.create_area(area_number, name)
+    def _on_create_area(self, area_number: int, name: str, medium: str) -> str | None:
+        """Add an area with its main line of ``medium``; the reason it cannot be added, or
+        None."""
+        try:
+            self._api.project.create_area(area_number, name, medium)
+        except MediumError as error:
+            return self._rejected(error)
+        except ValueError as error:
+            return str(error)
+        return None
 
     def _on_remove_area(self, area: Area) -> None:
         self._api.project.remove_area(area.id, area.number, area.name)
 
-    def _on_rename_area(self, area: Area, new_name: str) -> None:
-        if area.name != new_name:
-            self._api.project.rename_area(area.id, area.name, new_name)
-
-    def _on_create_line(self, area_id: int, line_number: int, name: str) -> None:
-        self._api.project.create_line(area_id, line_number, name)
+    def _on_create_line(
+        self, area_id: int, line_number: int, name: str, medium: str
+    ) -> str | None:
+        """Add a line of ``medium``; the reason it cannot be added, or None."""
+        try:
+            self._api.project.create_line(area_id, line_number, name, medium)
+        except MediumError as error:
+            return self._rejected(error)
+        except ValueError as error:
+            return str(error)
+        return None
 
     def _on_remove_line(self, line: Line) -> None:
         self._api.project.remove_line(line.id, line.area_id, line.number, line.name)
-
-    def _on_rename_line(self, line: Line, new_name: str) -> None:
-        if line.name != new_name:
-            self._api.project.rename_line(line.id, line.name, new_name)
 
     def _on_move_device(
         self, device: "Device", area_number: int, line_number: int
@@ -871,8 +1040,8 @@ class ProjectPlugin:
 
         def work() -> None:
             result = self._api.project.update_application(device)
-            if result is None and self._api.notify is not None:
-                self._api.notify(S.UPDATE_APP_FAILED)
+            if result is None:
+                self._api.tell_refused(S.UPDATE_APP_FAILED)
 
         self._in_background(S.UPDATING_APPLICATION, work)
 
@@ -882,8 +1051,8 @@ class ProjectPlugin:
 
         def work() -> None:
             changed = self._api.project.change_application(device, program)
-            if not changed and self._api.notify is not None:
-                self._api.notify(S.CHANGE_APP_FAILED)
+            if not changed:
+                self._api.tell_refused(S.CHANGE_APP_FAILED)
 
         self._in_background(S.CHANGING_APPLICATION, work)
 
@@ -912,7 +1081,7 @@ class ProjectPlugin:
 
     def _render_dali_tab(self, device: "Device") -> None:
         """Render the DALI commissioning tab body (MDT DALI devices), passing bus-connected state."""
-        self._dali_panel.render(device, connected=self._api.connection.xknx is not None)
+        self._dali_panel.render(device, connected=self._api.connection.can_reach_bus())
 
     def _run_dali(self, device: "Device", op: "Any", channel: int = 0) -> bool:
         """Start a DALI commissioning coroutine over the bus; True if it was accepted (bus free)."""
@@ -951,7 +1120,7 @@ class ProjectPlugin:
     def _render_siemens_dali_tab(self, device: "Device") -> None:
         """Render the Siemens N141/03 DALI read-only snapshot tab body."""
         self._siemens_dali_panel.render(
-            device, connected=self._api.connection.xknx is not None
+            device, connected=self._api.connection.can_reach_bus()
         )
 
     def _run_siemens_dali(self, device: "Device", op: "Any") -> bool:
@@ -1106,36 +1275,31 @@ class ProjectPlugin:
         self._read_device_dialog.open(node_id, label)
 
     def _open_compare(self, node_id: int) -> None:
-        """Open the compare-devices window, seeded with ``node_id`` as device A."""
-        self._compare_panel.set_primary(node_id)
-        self._compare_open = True
+        """Show "Compare Devices" in the Tools panel, with ``node_id`` as the first device."""
+        self._tools_panel.open_compare(node_id)
+        self._focus_tools = True
 
-    def render_compare_window(self) -> None:
-        """The floating "Compare Devices" window; dispatched from the app overlay pass."""
-        if not self._compare_open:
-            return
-        expanded, open_state = begin_tool_window(
-            S.COMPARE_TITLE, True, width=80 * 16, height=40 * 16
-        )
-        self._compare_open = bool(open_state)
-        if expanded:
-            self._compare_panel.render()
-        imgui.end()
+    def take_focus_tools(self) -> bool:
+        """Whether the Tools panel was asked for since the last call (the app brings it to the
+        front)."""
+        asked, self._focus_tools = self._focus_tools, False
+        return asked
+
+    @staticmethod
+    def take_focus_device() -> bool:
+        """Whether the Device tab was asked for since the last call (F2 on an element in a
+        tree: its name there takes the keyboard; the app brings the tab to the front)."""
+        return name_focus.take_tab_request()
+
+    def take_focus_catalog(self) -> bool:
+        """Whether the catalog was asked for since the last call ("Add → Devices…" in the
+        Topology tree; the app brings it to the front)."""
+        return self._api.project.take_focus_catalog()
 
     def _format_group_address(self, address: int) -> str:
         from xknxeditor.proj.core.addressing import format_ga
 
         return format_ga(address, self._api.project.group_address_style)
-
-    def _on_create_ga(self, address: str, name: str) -> None:
-        ga_id = self._api.project.create_group_address(address, name)
-        self._api.log.info(
-            "group address created",
-            plugin="project",
-            address=address or "auto",
-            name=name,
-            id=ga_id,
-        )
 
     def _links_for_com_object(
         self, com_object_db_id: int
@@ -1842,10 +2006,57 @@ class ProjectPlugin:
         # Persist first; only mirror onto the live object when the project accepted the address.
         # Otherwise a rejected value (e.g. a collision) would linger on the cached device and could
         # be programmed onto hardware.
-        if self._api.project.set_device_individual_address(
-            device.node_id, old_address, new_address
-        ):
+        try:
+            accepted = self._api.project.set_device_individual_address(
+                device.node_id, old_address, new_address
+            )
+        except MediumError as error:
+            self._medium_error(error)
+            return
+        if accepted:
             device.individual_address = new_address
+
+    def _medium_error(self, error: MediumError) -> None:
+        """Tell the user why the media of the topology do not allow a change."""
+        self._api.tell_refused(self._rejected(error))
+
+    def _rejected(self, error: MediumError) -> str:
+        """Log that the media of the topology do not allow a change; the reason to tell."""
+        self._api.log.warning(
+            "rejected by the medium", plugin="project", error=str(error)
+        )
+        return medium_error_text(error)
+
+    def _report(self, reason: str | None) -> None:
+        """Tell the user why an edit was refused (``reason``; None: it was not)."""
+        self._api.tell_refused(reason)
+
+    def _paste_dialog(self, dialog_id: str) -> PasteSpecialDialog:
+        """The Paste Special dialog of the tree panel ``dialog_id``."""
+        project = self._api.project
+        return PasteSpecialDialog(
+            dialog_id,
+            group_style=lambda: project.group_address_style,
+            group_ranges=project.get_group_range_tree,
+            names=project.paste_names,
+            on_paste=self._paste,
+            notify=self._report,
+            on_move=project.move_pasted,
+        )
+
+    def _paste(
+        self,
+        kind: PasteKind,
+        ids: list[int],
+        target: PasteTarget,
+        options: PasteOptions,
+    ) -> str | None:
+        """Paste the copies the Paste Special dialog asked for; the reason when it cannot."""
+        try:
+            self._api.project.paste(kind, ids, target, options)
+        except PasteError as exc:
+            return paste_error_text(exc)
+        return None
 
     def _handle_name_change(self, device: "Device", new_name: str) -> None:
         old_name = device.name
@@ -2013,16 +2224,6 @@ class ProjectPlugin:
         data["ask_certificate_on_add"] = not dont_ask
         save_settings(_SECURITY_SETTINGS, data)
 
-    def _set_backbone_security(self, mode: str | None) -> str | None:
-        """The installation's KNX IP Secure routing; the message to show when refused."""
-        from xknxeditor.proj import ProjectPasswordRequired
-
-        try:
-            self._api.project.set_backbone_security(mode)
-        except ProjectPasswordRequired:
-            return S.SECURE_DOWNLOAD_PASSWORD_REQUIRED
-        return None
-
     def _add_project_certificate(self) -> None:
         """ "Add Device Certificate…" from the project's certificate list (no device chosen)."""
         self._certificate_device = None
@@ -2160,24 +2361,6 @@ class ProjectPlugin:
         self._certificate_device = None
         return None
 
-    def _set_ga_security(self, ga_id: int, mode: str) -> bool:
-        """Set a group address's Security mode; ``False`` (and a toast) when a password is needed
-        or a linked device is not commissioned securely."""
-        from xknxeditor.proj import GroupAddressSecurityError, ProjectPasswordRequired
-
-        try:
-            self._api.project.set_group_address_security(ga_id, mode)
-        except ProjectPasswordRequired:
-            self._api.log.error(S.SECURE_DOWNLOAD_PASSWORD_REQUIRED, plugin="project")
-            return False
-        except GroupAddressSecurityError:
-            self._api.log.error(
-                S.GA_SECURE_ON_REFUSED if mode == "On" else S.GA_SECURE_REQUIRED,
-                plugin="project",
-            )
-            return False
-        return True
-
     def _project_serial(self, node_id: int) -> bytes | None:
         info = self._api.project.get_device_info(node_id)
         return serial_from_project(info.serial_number) if info is not None else None
@@ -2241,11 +2424,14 @@ class ProjectPlugin:
 
     def _program_error_text(self, error: BaseException) -> str | None:
         """Translated text of the download errors the editor explains itself."""
+        from editor_gui.plugins.connection.service import DeviceCertificateRequired
         from xknxeditor.download.partial import (
             DifferentProgramLoaded,
             IncompatibleMaskVersion,
         )
 
+        if isinstance(error, DeviceCertificateRequired):
+            return S.DEVICE_CERTIFICATE_REQUIRED
         if isinstance(error, DifferentProgramLoaded):
             return S.DIFFERENT_PROGRAM_LOADED
         if isinstance(error, IncompatibleMaskVersion):
@@ -2257,7 +2443,16 @@ class ProjectPlugin:
     def _describe_program_error(
         self, item: QueueItem, error: BaseException
     ) -> str | None:
-        """For a failed device check, the project devices the reported value belongs to."""
+        """For a failed device check, the project devices the reported value belongs to. A
+        download that found the device's certificate missing only once it had connected for it
+        asks for the certificate, as one that found it before."""
+        from editor_gui.plugins.connection.service import DeviceCertificateRequired
+
+        if isinstance(error, DeviceCertificateRequired):
+            device = self._api.project.find_device_by_node_id(item.node_id)
+            if device is not None and item.origin is None:
+                self._ask_certificate(device, item)
+            return None
         mismatch = compare_mismatch(error)
         if mismatch is None:
             return None
@@ -2473,11 +2668,26 @@ class ProjectPlugin:
         self._program_queue.tick()
 
     def take_operations_focus(self) -> bool:
-        """Whether an operation was queued since the last call; selects the Active tab if so."""
-        if not self._program_queue.take_focus_request():
+        """Whether an operation was queued, or a bus operation without a queue entry started (a
+        device test, a scan …), since the last call; selects the Active tab if so."""
+        queued = self._program_queue.take_focus_request()
+        operation = self.unqueued_bus_operation()
+        started = operation is not None and operation != self._shown_bus_operation
+        self._shown_bus_operation = operation
+        if not (queued or started):
             return False
         self._program_queue_panel.select_active()
         return True
+
+    @property
+    def program_queue(self) -> ProgramQueue:
+        """The operations the Operations panel lists: running, waiting and ended ones."""
+        return self._program_queue
+
+    def unqueued_bus_operation(self) -> tuple[str, str] | None:
+        """The running bus operation the queue has no entry for (a device test, a scan …), as
+        kind and address; the Operations panel shows it above the queue."""
+        return _unqueued(self._api.connection.busy_operation)
 
     def _record_commissioning(
         self,
@@ -2497,17 +2707,42 @@ class ProjectPlugin:
                 # IP Secure settings are only written over a secured connection.
                 if ip_secure is not None and getattr(result, "secured", False):
                     self._api.project.record_ip_secure_download(device, ip_secure)
+            if scope_value != "unload":
+                self._find_ip_after_download(node_id)
 
         if self._api.main_thread is not None:
             self._api.main_thread.submit(_apply)
         else:
             _apply()
 
+    def _find_ip_after_download(self, node_id: int) -> None:
+        """Look for a downloaded IP device on the network when its address is assigned
+        automatically and not known yet, and keep the address it answers from."""
+        serial = self._api.project.serial_to_find_ip(node_id)
+        future = self._api.connection.find_device_ip(serial) if serial else None
+        if future is None:
+            return
+
+        def found(done: "Future[str | None]") -> None:
+            address = None if done.exception() is not None else done.result()
+            if address is None:
+                return
+
+            def keep() -> None:
+                self._api.project.record_found_ip(node_id, address)
+
+            if self._api.main_thread is not None:
+                self._api.main_thread.submit(keep)
+            else:
+                keep()
+
+        future.add_done_callback(found)
+
     def _eval_device(self, device: "Device", scope: "DownloadScope") -> None:
         label = device.name or device.individual_address or "device"
-        # The test reads the live device, so it needs a bus connection; without one
-        # there is nothing to compare against.
-        if self._api.connection.xknx is None:
+        # The test reads the live device, so it needs a bus connection; without one (and none
+        # to open for it) there is nothing to compare against.
+        if not self._api.connection.can_reach_bus():
             self._preflight_result.submit_error(
                 label, scope.name, S.PREFLIGHT_NO_CONNECTION
             )
@@ -2594,16 +2829,52 @@ class ProjectPlugin:
         self._configure_panel.render()
 
     def _render_device(self) -> None:
-        space = self.selected_space()
-        if space is not None:
+        target = self._details_target()
+        shown = self._details_shown
+        # A field of the details stores its edit when it loses the focus, which it learns a
+        # frame later. When that happens by selecting another element, the details shown so far
+        # stay for that frame, so the edit goes to their element, not the one selected now.
+        if (
+            shown is not None
+            and shown != target
+            and edit_being_stored()
+            and self._render_details(shown)
+        ):
+            return
+        self._details_shown = target
+        self._render_details(target)
+
+    def _details_target(self) -> tuple[str, object]:
+        """Whose details the Device tab shows: a space, an element (kind and id) or the
+        device."""
+        space_id = self._api.project.selected_space_id
+        if space_id is not None and self.selected_space() is not None:
+            return ("space", space_id)
+        selected = self._api.project.selected_element
+        if selected is not None and self.selected_element() is not None:
+            return ("element", selected)
+        return ("device", None)
+
+    def _render_details(self, target: tuple[str, object]) -> bool:
+        """The details of ``target`` (see :meth:`_details_target`); False (and nothing drawn)
+        when it is gone."""
+        kind, key = target
+        if kind == "space":
+            space = self._api.project.find_space(cast(int, key))
+            if space is None:
+                return False
             self._space_details.render(space)
-            return
-        element = self.selected_element()
-        if element is not None:
+            return True
+        if kind == "element":
+            element_kind, element_id = cast(tuple[str, int], key)
+            element = self._api.project.element_details(element_kind, element_id)
+            if element is None:
+                return False
             self._element_details.render(element)
-            return
+            return True
         self._sync_selected_device_from_editor()
         self._configure_panel.render_device()
+        return True
 
     def _render_manufacturer(self) -> None:
         self._sync_selected_device_from_editor()
@@ -2655,7 +2926,6 @@ class ProjectPlugin:
         self._button_runner.render()
         self._memory_preview.render()
         self._preflight_result.render()
-        self.render_compare_window()
 
     def on_load(self) -> None:
         pass

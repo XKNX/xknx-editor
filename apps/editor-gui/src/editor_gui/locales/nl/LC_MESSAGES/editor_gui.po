@@ -381,9 +381,6 @@ msgstr "Geen project geopend"
 msgid "Programming {address}…"
 msgstr "{address} wordt geprogrammeerd…"
 
-msgid "Testing {address}…"
-msgstr "{address} wordt getest…"
-
 msgid "Programming complete"
 msgstr "Programmeren voltooid"
 
@@ -851,6 +848,12 @@ msgstr "De wachtwoorden komen niet overeen."
 
 msgid "Protecting the project with the password…"
 msgstr "Project wordt met het wachtwoord beveiligd…"
+
+msgid "Light Theme"
+msgstr "Licht thema"
+
+msgid "Dark Theme"
+msgstr "Donker thema"
 
 msgid "Customize Theme…"
 msgstr "Thema aanpassen…"
@@ -1487,3 +1490,6 @@ msgstr "Ctrl"
 
 msgid "This stops XKNX Editor on the server. Until it is started there again, no browser can connect to it."
 msgstr "Hiermee wordt XKNX Editor op de server gestopt. Totdat hij daar opnieuw wordt gestart, kan geen enkele browser er verbinding mee maken."
+
+msgid "Del"
+msgstr "Del"

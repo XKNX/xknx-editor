@@ -82,7 +82,7 @@ def _fixture() -> Path:
 def test_device_added_into_a_space_is_listed(tmp_path: Path) -> None:
     """The catalog's Add with a room picked adds the device and then places it in the room. Placing
     it (a non-structural change) used to mark the device list from before the add as current, so
-    the new device was missing from the Devices tree until the project was opened again."""
+    the new device was missing from the Topology tree until the project was opened again."""
     cat = CatalogService(tmp_path / "c.xknxcatalog")
     cat.import_knxprod(_fixture())
     product = cat.get_products()[0]
@@ -94,7 +94,7 @@ def test_device_added_into_a_space_is_listed(tmp_path: Path) -> None:
     proj.new(tmp_path / "p.xknx")
     room = proj.create_space(None, "Building", "House")
     assert room is not None
-    _ = proj.devices  # the Devices tree reads them every frame
+    _ = proj.devices  # the Topology tree reads them every frame
 
     device_id = proj.add_device(
         product.product_ref_id,

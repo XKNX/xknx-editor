@@ -23,6 +23,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import TYPE_CHECKING, Any
 
+from editor_gui.plugins.connection.service import OperationNotStarted
 from editor_gui.plugins.project.strings import S
 from xknxeditor.download.partial import FullDownloadDeclined
 from xknxeditor.prod.script import AbortToken, ScriptAborted
@@ -296,6 +297,9 @@ def _outcome(
         return OperationState.CANCELED, None
     if isinstance(error, ScriptAborted | FullDownloadDeclined):
         return OperationState.CANCELED, None
+    if isinstance(error, OperationNotStarted) and item.message:
+        # Connected for it, it did not start: for the reason it gave.
+        return OperationState.FAILED, None
     if error is not None:
         message = getattr(error, "message", None)
         text = (error_text(error) if error_text is not None else None) or (

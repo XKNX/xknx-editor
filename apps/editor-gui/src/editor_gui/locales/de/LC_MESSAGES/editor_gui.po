@@ -59,9 +59,6 @@ msgstr "Kein Projekt geöffnet"
 msgid "Programming {address}…"
 msgstr "Programmiere {address}…"
 
-msgid "Testing {address}…"
-msgstr "Teste {address}…"
-
 msgid "Programming complete"
 msgstr "Programmierung abgeschlossen"
 
@@ -943,6 +940,12 @@ msgstr "Die Passwörter stimmen nicht überein."
 msgid "Protecting the project with the password…"
 msgstr "Projekt wird mit dem Passwort geschützt…"
 
+msgid "Light Theme"
+msgstr "Helles Design"
+
+msgid "Dark Theme"
+msgstr "Dunkles Design"
+
 msgid "Customize Theme…"
 msgstr "Design anpassen…"
 
@@ -1582,3 +1585,6 @@ msgstr "Strg"
 
 msgid "This stops XKNX Editor on the server. Until it is started there again, no browser can connect to it."
 msgstr "Damit wird XKNX Editor auf dem Server beendet. Bis er dort wieder gestartet wird, kann sich kein Browser mehr mit ihm verbinden."
+
+msgid "Del"
+msgstr "Entf"

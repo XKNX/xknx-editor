@@ -15,6 +15,7 @@ from xknxeditor.catalog.core.applications import (
     get_application_detail_by_id,
     get_application_source,
     get_application_xml,
+    get_ip_config,
     get_replaces_versions,
     list_applications,
     load_application_program,
@@ -176,6 +177,58 @@ class CatalogService:
                 )
             }
 
+    def program_media(self, program_id: str) -> tuple[set[str], bool] | None:
+        """The media a hardware program supports (``MT-0`` …), and whether it is a coupler (its
+        hardware is one, or it has coupler capabilities); None for a program the catalog lacks."""
+        from xknxeditor.catalog.models import HardwareProgram
+
+        with Session(self._engine) as db:
+            program = db.get(HardwareProgram, program_id)
+            if program is None:
+                return None
+            media = {row.medium_type for row in program.medium_types}
+            coupler = bool(program.hardware.is_coupler)
+        return media, coupler or bool(self.coupler_capabilities(program_id))
+
+    def program_roles(self, program_ids: Sequence[str]) -> dict[str, tuple[bool, str]]:
+        """For each hardware program the catalog has: whether its hardware is a coupler and
+        the mask version of its application ("" for none)."""
+        from xknxeditor.catalog.models import HardwareProgram
+
+        roles: dict[str, tuple[bool, str]] = {}
+        with Session(self._engine) as db:
+            for program_id in set(program_ids):
+                program = db.get(HardwareProgram, program_id)
+                if program is None:
+                    continue
+                application = program.application
+                roles[program_id] = (
+                    bool(program.hardware.is_coupler),
+                    (application.mask_version or "") if application else "",
+                )
+        return roles
+
+    def program_power(
+        self, program_ids: Sequence[str]
+    ) -> dict[str, tuple[float | None, bool, bool]]:
+        """For each hardware program the catalog has: its hardware's bus current (mA, None for
+        none), whether it is a power supply, and whether it is a coupler."""
+        from xknxeditor.catalog.models import HardwareProgram
+
+        power: dict[str, tuple[float | None, bool, bool]] = {}
+        with Session(self._engine) as db:
+            for program_id in set(program_ids):
+                program = db.get(HardwareProgram, program_id)
+                if program is None:
+                    continue
+                hardware = program.hardware
+                power[program_id] = (
+                    hardware.bus_current,
+                    bool(hardware.is_power_supply),
+                    bool(hardware.is_coupler),
+                )
+        return power
+
     def get_application_xml(self, program_id: str) -> tuple[bytes, str] | None:
         with Session(self._engine) as db:
             return get_application_xml(db, program_id)
@@ -189,6 +242,12 @@ class CatalogService:
         """The application versions the program's application can update."""
         with Session(self._engine) as db:
             return get_replaces_versions(db, program_id)
+
+    def get_ip_config(self, program_id: str) -> str | None:
+        """Who sets the IP configuration of the program's application: "Tool" or "Custom"
+        (``IPConfig``); ``None`` when the catalog lacks it."""
+        with Session(self._engine) as db:
+            return get_ip_config(db, program_id)
 
     def get_program_application_id(self, program_id: str) -> str | None:
         """The application id a hardware program loads, or ``None``."""

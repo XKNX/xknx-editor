@@ -505,18 +505,6 @@ msgstr "Kliknięcie wyniku przechodzi do urządzenia."
 msgid "No buildings/rooms in this project"
 msgstr "Brak budynków/pokoi w tym projekcie"
 
-msgid "+ Function"
-msgstr "+ Funkcja"
-
-msgid "+ Space"
-msgstr "+ Przestrzeń"
-
-msgid "+ Sub-space"
-msgstr "+ Podprzestrzeń"
-
-msgid "New Space"
-msgstr "Nowa przestrzeń"
-
 msgid "Name"
 msgstr "Nazwa"
 
@@ -541,17 +529,11 @@ msgstr "(najwyższy poziom)"
 msgid "Delete this space and everything in it? Devices are only unassigned, not deleted."
 msgstr "Usunąć tę przestrzeń wraz z całą zawartością? Urządzenia zostaną tylko odłączone od przestrzeni, a nie usunięte."
 
-msgid "Assign Device"
-msgstr "Przypisz urządzenie"
-
 msgid "Assign a Device to This Space"
 msgstr "Przypisz urządzenie do tej przestrzeni"
 
 msgid "No unassigned devices"
 msgstr "Brak nieprzypisanych urządzeń"
-
-msgid "Remove from Space"
-msgstr "Usuń z przestrzeni"
 
 msgid "Without Space"
 msgstr "Bez przestrzeni"
@@ -573,24 +555,6 @@ msgstr "Korytarz"
 
 msgid "Stairway"
 msgstr "Schody"
-
-msgid "Distribution Board"
-msgstr "Tablica rozdzielcza"
-
-msgid "New Function"
-msgstr "Nowa funkcja"
-
-msgid "Rename"
-msgstr "Zmień nazwę"
-
-msgid "Rename Function"
-msgstr "Zmień nazwę funkcji"
-
-msgid "Assign Group Address"
-msgstr "Przypisz adres grupowy"
-
-msgid "Role (Optional)"
-msgstr "Rola (opcjonalnie)"
 
 msgid "Custom"
 msgstr "Własny"
@@ -955,8 +919,23 @@ msgstr "Ref. programu"
 msgid "IP Configuration"
 msgstr "Konfiguracja IP"
 
-msgid "Assignment"
-msgstr "Przypisanie"
+msgid "Obtain an IP address automatically"
+msgstr "Uzyskaj adres IP automatycznie"
+
+msgid "Use a static IP address"
+msgstr "Użyj statycznego adresu IP"
+
+msgid "Assigned IP Address"
+msgstr "Przydzielony adres IP"
+
+msgid "An invalid IP address was specified."
+msgstr "Podano nieprawidłowy adres IP."
+
+msgid "Change assigned IP address of '{0}' to '{1}'."
+msgstr "Przydzielony adres IP urządzenia '{0}' zmieniony na '{1}'."
+
+msgid "IP configuration of device '{0}' changed."
+msgstr "Konfiguracja IP urządzenia '{0}' zmieniona."
 
 msgid "IP Address"
 msgstr "Adres IP"
@@ -1162,29 +1141,8 @@ msgstr "Filtruj adresy grupowe (adres, nazwa)…"
 msgid "Filter rooms, devices, functions…"
 msgstr "Filtruj pokoje, urządzenia, funkcje…"
 
-msgid "Area {area}"
-msgstr "Obszar {area}"
-
-msgid "{name} (Area {area})"
-msgstr "{name} (obszar {area})"
-
-msgid "Line {area}.{line}"
-msgstr "Linia {area}.{line}"
-
-msgid "{name} (Line {area}.{line})"
-msgstr "{name} (linia {area}.{line})"
-
 msgid "Unassigned ({count})"
 msgstr "Nieprzypisane ({count})"
-
-msgid "Add Area"
-msgstr "Dodaj obszar"
-
-msgid "Add Line"
-msgstr "Dodaj linię"
-
-msgid "Copy Address"
-msgstr "Kopiuj adres"
 
 msgid "Duplicate"
 msgstr "Zduplikuj"
@@ -1252,12 +1210,6 @@ msgstr "Usuń urządzenie"
 msgid "Delete '{name}'? Its group objects and group-address links are removed and its individual address is freed. This can be undone."
 msgstr "Usunąć '{name}'? Jego obiekty grupy i powiązania z adresami grupowymi zostaną usunięte, a adres indywidualny zwolniony. Tę operację można cofnąć."
 
-msgid "New Area"
-msgstr "Nowy obszar"
-
-msgid "New Line"
-msgstr "Nowa linia"
-
 msgid "Number"
 msgstr "Numer"
 
@@ -1273,41 +1225,11 @@ msgstr "Załaduj"
 msgid "Copy Log"
 msgstr "Kopiuj log"
 
-msgid "New Group Address"
-msgstr "Nowy adres grupowy"
-
-msgid "New Main Group"
-msgstr "Nowa grupa główna"
-
-msgid "New Middle Group"
-msgstr "Nowa grupa pośrednia"
-
-msgid "New Folder"
-msgstr "Nowy folder"
-
-msgid "Rename Folder"
-msgstr "Zmień nazwę folderu"
-
 msgid "Delete Folder"
 msgstr "Usuń folder"
 
-msgid "Main group name (the next free number is assigned automatically)"
-msgstr "Nazwa grupy głównej (następny wolny numer zostanie przypisany automatycznie)"
-
-msgid "Middle group name (the next free number is assigned automatically)"
-msgstr "Nazwa grupy pośredniej (następny wolny numer zostanie przypisany automatycznie)"
-
 msgid "Delete this folder and every group address in it? This can be undone."
 msgstr "Usunąć ten folder i wszystkie zawarte w nim adresy grupowe? Tę operację można cofnąć."
-
-msgid "Rename Group Address"
-msgstr "Zmień nazwę adresu grupowego"
-
-msgid "Change Address…"
-msgstr "Zmień adres…"
-
-msgid "New group address (links are kept):"
-msgstr "Nowy adres grupowy (powiązania zostaną zachowane):"
 
 msgid "Invalid address or already in use."
 msgstr "Nieprawidłowy adres lub adres jest już używany."
@@ -1318,26 +1240,14 @@ msgstr "Bezpieczeństwo"
 msgid "Automatic"
 msgstr "Automatycznie"
 
-msgid "Secured"
-msgstr "Zabezpieczone"
-
-msgid "Not Secured"
-msgstr "Niezabezpieczone"
-
 msgid "A secured group address can only be linked to devices that are commissioned securely."
 msgstr "Zabezpieczony adres grupowy można połączyć tylko z urządzeniami uruchamianymi w trybie bezpiecznym."
 
 msgid "Not every device linked to this group address is commissioned securely, so it cannot be secured."
 msgstr "Nie wszystkie urządzenia połączone z tym adresem grupowym są uruchamiane w trybie bezpiecznym, więc nie można go zabezpieczyć."
 
-msgid "Set Datapoint Type"
-msgstr "Ustaw typ punktu danych"
-
 msgid "Address"
 msgstr "Adres"
-
-msgid "Datapoint type (e.g. DPST-1-1); empty to clear"
-msgstr "Typ punktu danych (np. DPST-1-1); puste, aby wyczyścić"
 
 msgid "Project: {name}"
 msgstr "Projekt: {name}"
@@ -1770,9 +1680,6 @@ msgstr "Hasło musi mieć od 1 do 20 znaków Latin-1."
 
 msgid "Close"
 msgstr "Zamknij"
-
-msgid "IP Backbone Security"
-msgstr "Bezpieczeństwo szkieletu IP"
 
 msgid "Device Certificates"
 msgstr "Certyfikaty urządzeń"
@@ -2301,3 +2208,732 @@ msgstr "Wpis"
 
 msgid "Store plugin data {name}"
 msgstr "Zapisz dane wtyczki {name}"
+
+msgid "Unknown"
+msgstr "Nieznane"
+
+msgid "Editing"
+msgstr "W trakcie edycji"
+
+msgid "Finished design"
+msgstr "Zakończono projektowanie"
+
+msgid "Finished commissioning"
+msgstr "Uruchamianie zakończone"
+
+msgid "Tested"
+msgstr "Przetestowany"
+
+msgid "Accepted"
+msgstr "Zaakceptowany"
+
+msgid "Locked"
+msgstr "Zablokowany"
+
+msgid "Function"
+msgstr "Funkcja"
+
+msgid "Use"
+msgstr "Przeznaczenie"
+
+msgid "Set room use"
+msgstr "Ustaw przeznaczenie pomieszczenia"
+
+msgid "Set status to {status}"
+msgstr "Ustaw status na {status}"
+
+msgid "Set function description"
+msgstr "Ustaw opis funkcji"
+
+msgid "Current Line"
+msgstr "Linia aktywna"
+
+msgid "{line} (inherits from {space})"
+msgstr "{line} (dziedziczy z {space})"
+
+msgid "Set current line"
+msgstr "Ustaw linię aktywną"
+
+msgid "Segment"
+msgstr "Segment"
+
+msgid "Medium"
+msgstr "Medium"
+
+msgid "Domain Address"
+msgstr "Adres domeny"
+
+msgid "The medium of a segment can only change while it holds no device."
+msgstr "Medium segmentu można zmienić tylko wtedy, gdy nie zawiera ono żadnego urządzenia."
+
+msgid "The medium type of the segment '{segment}' cannot be changed to IoT, because its parent line '{line}' is not of medium type IP."
+msgstr "Typ medium segmentu \"{segment}\" nie może zostać zmieniony na IoT, ponieważ jego linia nadrzędna \"{line}\" nie ma typu medium IP."
+
+msgid "The maximum number of segments has been reached."
+msgstr "Osiągnięto maksymalną liczbę segmentów."
+
+msgid "The main segment cannot be deleted."
+msgstr "Główny segment nie może zostać usunięty."
+
+msgid "Device '{device}' is incompatible with line's medium type."
+msgstr "Urządzenie '{device}' jest niezgodne z typem medium linii."
+
+msgid "Device '{device}' is incompatible with segment's medium type."
+msgstr "Urządzenie '{device}' jest niekompatybilne z medium segmentu."
+
+msgid "Rename segment to {name}"
+msgstr "Zmień nazwę segmentu na {name}"
+
+msgid "Set medium to {medium}"
+msgstr "Ustaw medium na {medium}"
+
+msgid "Forced on"
+msgstr "Wymuszone włączenie"
+
+msgid "Forced off"
+msgstr "Wymuszone wyłączenie"
+
+msgid "Overridden by '{name}': {mode}"
+msgstr "Nadpisane przez '{name}': {mode}"
+
+msgid "Central"
+msgstr "Centralna"
+
+msgid "Not every device linked to a group address of this group is commissioned securely, so it cannot be secured."
+msgstr "Nie wszystkie urządzenia połączone z adresem grupowym tej grupy są uruchamiane w trybie bezpiecznym, więc nie można jej zabezpieczyć."
+
+msgid "Set group security"
+msgstr "Ustaw zabezpieczenie grupy"
+
+msgid "Mark group address as central"
+msgstr "Oznacz adres grupowy jako centralny"
+
+msgid "Remove central mark from group address"
+msgstr "Usuń oznaczenie centralne z adresu grupowego"
+
+msgid "Topology"
+msgstr "Topologia"
+
+msgid "{medium} backbone line"
+msgstr "linia obszarowa {medium}"
+
+msgid "{medium} main line"
+msgstr "linia główna {medium}"
+
+msgid "Backbone"
+msgstr "Szkielet"
+
+msgid "Network Latency"
+msgstr "Opóźnienie sieci"
+
+msgid "LAN (< 400ms)"
+msgstr "LAN (< 400 ms)"
+
+msgid "WLAN (< 1s)"
+msgstr "WLAN (< 1 s)"
+
+msgid "WAN (< 2s)"
+msgstr "WAN (< 2 s)"
+
+msgid "Mobile (< 4s)"
+msgstr "Sieć komórkowa (< 4 s)"
+
+msgid "Satellite (< 8s)"
+msgstr "Satelitarne (< 8 s)"
+
+msgid "The network latency must be a number of milliseconds from 1 to 65535."
+msgstr "Opóźnienie sieci musi być liczbą milisekund od 1 do 65535."
+
+msgid "Multicast Address"
+msgstr "Adres multicastowy"
+
+msgid "Enter a multicast address from 224.0.0.0 to 239.255.255.255."
+msgstr "Wprowadź adres multicastowy od 224.0.0.0 do 239.255.255.255."
+
+msgid "Bus Connection"
+msgstr "Połączenie z magistralą"
+
+msgid "Set IP routing of the backbone"
+msgstr "Ustaw routing IP szkieletu"
+
+msgid "As long as a coupler exists at a sub line or sub segment, a change of the medium type is not possible."
+msgstr "Dopóki istnieje sprzęgło w lini podrzędnej lub w podsegmencie, zmiana typu medium nie jest możliwa."
+
+msgid "A main line of a project cannot have medium type RF."
+msgstr "Linia główna projektu nie może mieć medium typu RF."
+
+msgid "The operation could not be executed, because as medium type of the backbone only IP and TP are allowed."
+msgstr "Operacja nie mogła zostać wykonana, ponieważ jako medium obszarowe tylko IP i TP są dozwolone."
+
+msgid "A sub-segment of KNX medium type IP or PL is not allowed."
+msgstr "Podsegment medium KNX IP lub PL jest niedozwolony."
+
+msgid "The medium type of the main line '{line}' can no longer be changed to PL, because it already contains lines or segments that are not allowed in PL main lines."
+msgstr "Typ medium linii głównej \"{line}\" nie może już zostać zmieniony na PL, ponieważ zawiera on już linie lub segmenty, które nie są dozwolone w liniach głównych PL."
+
+msgid "The medium type of the main line '{line}' cannot be changed to IoT, because the backbone line '{backbone}' is not of medium type IP."
+msgstr "Typ medium linii głównej \"{line}\" nie może zostać zmieniony na IoT, ponieważ linia szkieletowa \"{backbone}\" nie ma typu medium IP."
+
+msgid "The medium type of the main line '{line}' can no longer be changed to IoT, because it already contains lines or segments that are not allowed in IoT main lines."
+msgstr "Typ medium linii głównej \"{line}\" nie może już zostać zmieniony na IoT, ponieważ zawiera ona już linie lub segmenty, które nie są dozwolone w liniach głównych IoT."
+
+msgid "The medium type of the line '{line}' cannot be changed, because it already contains lines or segments that require an IoT or IP main line."
+msgstr "Typ medium linii głównej \"{line}\" nie może zostać zmieniony, ponieważ zawiera już linie lub segmenty, które wymagają linii głównej IoT lub IP."
+
+msgid "A sub-segment is not allowed below a main segment of KNX medium type RF."
+msgstr "Podsegment nie jest dozwolony poniżej głównego segmentu medium RF KNX."
+
+msgid "A sub-segment is not allowed below a main segment of KNX medium type PL."
+msgstr "Podsegment jest niedozwolony poniżej głównego segmentu medium KNX typu PL."
+
+msgid "A sub-segment of KNX medium type IoT is not allowed below a main segment of the same type."
+msgstr "Podsegment medium KNX typu IoT nie jest dozwolony poniżej głównego segmentu tego samego typu."
+
+msgid "The operation could not be executed, because a RF main line '{line}' requires all other lines in the area to be RF lines as well."
+msgstr "Operacja nie może być wykonana, ponieważ główna linia RF {line} wymaga, aby wszystkie inne linie w obszarze były również liniami RF."
+
+msgid "The operation could not be executed, because a PL main line '{line}' requires all other lines in the area to be PL lines as well."
+msgstr "Operacja nie może być wykonana, ponieważ główna linia PL {line} wymaga, aby wszystkie inne linie w obszarze były również liniami PL."
+
+msgid "The operation could not be executed, because a IoT main line '{line}' requires all other lines in the area to be IoT lines as well."
+msgstr "Operacja nie mogła zostać wykonana, ponieważ główna linia IoT \"{line}\" wymaga, aby wszystkie inne linie w obszarze również były liniami IoT."
+
+msgid "The medium type of the line '{line}' cannot be changed to IoT, because its main line '{main}' is not of medium type IP."
+msgstr "Typ medium linii \"{line}\" nie może zostać zmieniony na IoT, ponieważ jej linia główna \"{main}\" nie ma typu medium IP."
+
+msgid "The medium type of the line '{line}' can no longer be changed to IoT, because it already contains segments that are not allowed in IoT lines."
+msgstr "Typ medium linii \"{line}\" nie może już zostać zmieniony na IoT, ponieważ zawiera już segmenty, które nie są dozwolone w liniach IoT."
+
+msgid "The operation could not be executed, because the line is the IP backbone line and the project contains KNXnet/IP routers. KNXnet/IP routers require an IP backbone line."
+msgstr "Operacja nie mogła zostać wykonana, ponieważ linia obszarowa jest linią typu IP i projekt zawiera KNXnet / routery IP. KNXnet / IP routery wymagają linii obszarowej ostawionej jako IP."
+
+msgid "The operation could not be executed, because the line is the IP main line and the project contains KNXnet/IP routers. KNXnet/IP routers require an IP main line."
+msgstr "Operacja nie może być wykonana, ponieważ jest to główna linia IP oraz projekt zawiera KNXnet/routery IP. KNXnet/IP routery wymagają ustawienia linii głównej jako linii IP."
+
+msgid "The operation could not be executed, because the line is the IP backbone line and the project contains IoT or IP lines."
+msgstr "Operacja nie mogła zostać wykonana, ponieważ linia jest linią szkieletową IP, a projekt zawiera linie IoT lub IP."
+
+msgid "The operation could not be executed, because the medium type of the line can only be set to IP if an IP main line exists."
+msgstr "Operacja nie może być wykonana, ponieważ rodzaj medium linii może być ustawiona tylko na IP jeśli istnieje linia główna IP."
+
+msgid "The operation could not be executed, because the medium type of the line can only be set to IP if an IP backbone line exists."
+msgstr "Operacja nie może być wykonana, ponieważ rodzaj medium linii może być ustawiony tylko na IP, jeśli linia obszarowa IP istnieje."
+
+msgid "The operation could not be executed, because below a TP main segment only segments of KNX medium type TP, RF or PL can exist."
+msgstr "Operacja nie mogła zostać wykonana, ponieważ poniżej głównego segmentu mogą istnieć tylko segmenty KNX medium TP, RF lub PL."
+
+msgid "Below a main segment of KNX medium type IP only segments of medium type TP or RF can exist."
+msgstr "Poniżej głównego segmentu medium KNX IP mogą istnieć tylko segmenty medium TP lub RF."
+
+msgid "A sub-segment of KNX medium type PL is not allowed below a main segment."
+msgstr "Podsegment medium KNX PL nie jest dozwolony poniżej segmentu głównego."
+
+msgid "Set bus connection of the backbone"
+msgstr "Ustaw połączenie z magistralą szkieletu"
+
+msgid "Set domain address"
+msgstr "Ustaw adres domeny"
+
+msgid "Generate New"
+msgstr "Wygeneruj nowy"
+
+msgid "The given domain address is invalid."
+msgstr "Podany adres domeny jest nieprawidłowy."
+
+msgid "Domain address is not valid! Valid values are 1 to 255."
+msgstr "Adres domeny nie jest prawidłowy! Poprawny adres jest w zakresie od 1 do 255."
+
+msgid "DomainAddress of mediumType 'RF' is lower than the minimum value of 0001:00000000."
+msgstr "Adres domeny medium 'RF' jest niższy od minimalnej wartości 0001: 00000000."
+
+msgid "DomainAddress of medium type '{medium}' exceeds the maximum valid value of {maximum}"
+msgstr "Adres domeny dla typu medium '{medium} \"przekracza maksymalną dopuszczalną wartość {maximum}"
+
+msgid "DomainAddress of RF sublines must be equal to DomainAdress of main line."
+msgstr "Adres domeny linii RF musi być równy adresowi domeny linii głównej."
+
+msgid "Domain Address of IoT sublines must be equal to Domain Address of main line."
+msgstr "Adres domeny podlinii IoT musi być taki sam jak Adres domeny głównej linii."
+
+msgid "Each line in a project must have a unique domain address."
+msgstr "Każda linia w projekcie musi mieć unikalny adres domeny."
+
+msgid "Last Downloaded"
+msgstr "Ostatnie programowanie"
+
+msgid "Create trade {name}"
+msgstr "Utwórz zakład {name}"
+
+msgid "Rename trade to {name}"
+msgstr "Zmień nazwę zakładu na {name}"
+
+msgid "Set trade number"
+msgstr "Ustaw numer zakładu"
+
+msgid "Set trade description"
+msgstr "Ustaw opis zakładu"
+
+msgid "Move trade"
+msgstr "Przenieś zakład"
+
+msgid "Remove trade"
+msgstr "Usuń zakład"
+
+msgid "Add device to trade"
+msgstr "Dodaj urządzenie do zakładu"
+
+msgid "Remove device from trade"
+msgstr "Usuń urządzenie z zakładu"
+
+msgid "Trades"
+msgstr "Zakład"
+
+msgid "Building Parts…"
+msgstr "Części budynku…"
+
+msgid "Floors…"
+msgstr "Piętra…"
+
+msgid "Stairways…"
+msgstr "Schody…"
+
+msgid "Rooms…"
+msgstr "Pokoje…"
+
+msgid "Corridors…"
+msgstr "Korytarze…"
+
+msgid "Cabinets…"
+msgstr "Rozdzielnice…"
+
+msgid "Devices…"
+msgstr "Urządzenia…"
+
+msgid "Functions…"
+msgstr "Funkcje…"
+
+msgid "Trades…"
+msgstr "Zakład…"
+
+msgid "Add Buildings…"
+msgstr "Dodaj budynki…"
+
+msgid "Add Trades…"
+msgstr "Dodaj zakład…"
+
+msgid "Add Buildings"
+msgstr "Dodaj budynki"
+
+msgid "Add Building Parts"
+msgstr "Dodaj części budynku"
+
+msgid "Add Floors"
+msgstr "Dodaj piętro"
+
+msgid "Add Rooms"
+msgstr "Dodaj pokoje"
+
+msgid "Add Corridors"
+msgstr "Dodaj korytarze"
+
+msgid "Add Stairways"
+msgstr "Dodaj schody"
+
+msgid "Add Cabinets"
+msgstr "Dodaj rozdzielnice"
+
+msgid "Add Trades"
+msgstr "Dodaj zakład"
+
+msgid "Add Devices"
+msgstr "Dodaj urządzenia"
+
+msgid "Count"
+msgstr "Licznik"
+
+msgid "to \"{name}\""
+msgstr "do \"{name}\""
+
+msgid "Cabinet"
+msgstr "Rozdzielnica"
+
+msgid "New building"
+msgstr "Nowy budynek"
+
+msgid "New building part"
+msgstr "Nowa część budynku"
+
+msgid "New floor"
+msgstr "Nowe piętro"
+
+msgid "New room"
+msgstr "Nowy pokój"
+
+msgid "New corridor"
+msgstr "Nowy korytarz"
+
+msgid "New stairway"
+msgstr "Nowe klatki schodowe"
+
+msgid "New cabinet"
+msgstr "Nowa rozdzielnica"
+
+msgid "New trade"
+msgstr "Nowy zakład"
+
+msgid "A building part of this type cannot be added here."
+msgstr "Cześć budynku tego typu nie może tutaj zostać dodana."
+
+msgid "A building part of this type cannot be added here.\nCabinets can be added inside of rooms, corridors, or stairways only. If applicable the corridors have to be moved into the corresponding building parts."
+msgstr "Nie można tutaj dodać części budynku takiego typu.\nSzafki można dodawać wyłącznie do wnętrz pokojów, korytarzy i klatek schodowych. Jeśli to możliwe, korytarze należy przesunąć do odpowiednich części budynku."
+
+msgid "The target is a child building part."
+msgstr "Obiekt docelowy jest częścią budynku."
+
+msgid "Devices can only be added to stairways, rooms, corridors and cabinets."
+msgstr "Urządzenia można dodawać tylko do klatek schodowych, pomieszczeń, korytarzy i szafek."
+
+msgid "Trade"
+msgstr "Zakład"
+
+msgid "(estimated)"
+msgstr "(szacowane)"
+
+msgid "Number of Devices"
+msgstr "Ilość urządzeń"
+
+msgid "Unlink"
+msgstr "Usuń"
+
+msgid "An IP router requires an IP backbone line."
+msgstr "Ruter IP wymaga ustawienia linii obszarowej jako linii IP."
+
+msgid "The operation could not be executed, because a coupler needs a main line."
+msgstr "Operacja nie może być wykonana ponieważ sprzęgło potrzebuje linię główną."
+
+msgid "The operation could not be executed, because an area coupler requires a backbone line."
+msgstr "Operacja nie może być wykonana, ponieważ sprzęgło obszarowe wymaga linii obszarowej."
+
+msgid "The operation could not be executed, because this coupler needs a main line with the medium type '{medium}' ."
+msgstr "Operacja nie może być wykonana, ponieważ sprzęgło wymaga linii głównej z medium typu '{medium}' ."
+
+msgid "The operation could not be executed, because only one IP router is allowed as a world coupler."
+msgstr "Operacja nie może być wykonana, ponieważ tylko jeden ruter IP jest dozwolony jako światowe sprzęgło."
+
+msgid "The operation could not be executed, because only IP router area allowed as a world coupler."
+msgstr "Operacja nie może być wykonana, ponieważ tylko ruter IP jest dozwolony jako światowe sprzęgło."
+
+msgid "The backbone line contains a world coupler. It is not possible to use an IP router below another IP router."
+msgstr "W linii szkieletowej znajduje się sprzęgło globalne. Nie można używać routera IP poniżej innego routera IP."
+
+msgid "It is not possible to use a world coupler, when there are already IP routers in the project."
+msgstr "Nie jest możliwe użycie sprzęgła globalnego (\"światowego\"), gdy w projekcie są już routery IP."
+
+msgid "A world coupler can only be used, when the medium type of the backbone is TP."
+msgstr "Sprzęgła globalnego można używać tylko wtedy, gdy typ medium transmisyjnego szkieletu to TP."
+
+msgid "The coupler does not support segment coupling, so the sub-segment must be of the same KNX medium type as the main segment."
+msgstr "Sprzęgło nie obsługuje rozszerzania segmentowego, więc podsegment musi być tego samego typu medium KNX co segment główny."
+
+msgid "The operation could not be executed, because this device couples medium '{above}' (above) to medium '{below}' (below), but the segment above is '{segment}'."
+msgstr "Operacja nie mogła zostać wykonana, ponieważ to urządzenie łączy medium '{above}' (linia nadrzędna) z medium '{below}' (linia podrzędna), a ustawione medium linii nadrzędnej to '{segment}'."
+
+msgid "The operation could not be executed, because medium type of coupler device matches only sub segment, but maximum amount of segments reached."
+msgstr "Operacja nie mogła zostać wykonana, ponieważ medium sprzęgła odpowiada tylko podsegmentowi, ale osiągnięto maksymalną ilość segmentów."
+
+msgid "The operation could not be executed, because this device couples medium '{above}' (above) to medium '{below}' (below), but the medium type of the lower segment is '{segment}'."
+msgstr "Operacja nie mogła zostać wykonana, ponieważ to urządzenie łączy medium '{above}' (linia nadrzędna) z medium '{below}' (linia podrzędna), a ustawione medium linii podrzędnej to '{segment}'."
+
+msgid "Recover Project from Bus"
+msgstr "Odzyskaj projekt z magistrali"
+
+msgid "Devices in Programming Mode"
+msgstr "Urządzenia w trybie programowania"
+
+msgid "Connecting"
+msgstr "Łączenie"
+
+msgid "Move middle group"
+msgstr "Przenieś grupę środkową"
+
+msgid "The group has no free group address."
+msgstr "Grupa nie ma wolnego adresu grupowego."
+
+msgid "The main group has no free middle group."
+msgstr "Grupa główna nie ma wolnej grupy środkowej."
+
+msgid "{count} devices"
+msgstr "Urządzenia: {count}"
+
+msgid "The main segment cannot be moved."
+msgstr "Nie można przenieść segmentu głównego."
+
+msgid "The maximum number of lines has been reached."
+msgstr "Osiągnięto maksymalną liczbę linii."
+
+msgid "The line is already assigned to an area."
+msgstr "Linia jest już przypisana do obszaru."
+
+msgid "The main line cannot be moved."
+msgstr "Nie można przenieść linii głównej."
+
+msgid "Move line"
+msgstr "Przenieś linię"
+
+msgid "Move segment"
+msgstr "Przenieś segment"
+
+msgid "Move function"
+msgstr "Przenieś funkcję"
+
+msgid "Paste Special"
+msgstr "Wklej specjalnie"
+
+msgid "Number of Items"
+msgstr "Liczba elementów"
+
+msgid "Don't copy"
+msgstr "Nie kopiuj"
+
+msgid "Keep"
+msgstr "Zachowaj"
+
+msgid "Create new group address in middle group"
+msgstr "Utwórz nowy adres grupowy w grupie środkowej"
+
+msgid "Create new group address in main group"
+msgstr "Utwórz nowy adres grupowy w grupie głównej"
+
+msgid "Create new group address in group range"
+msgstr "Utwórz nowy adres grupowy w zakresie grup"
+
+msgid "Generate Address"
+msgstr "Generuj adres"
+
+msgid "Fill up (use first free)"
+msgstr "Wypełnij (pierwszy wolny)"
+
+msgid "Append"
+msgstr "Dołącz na końcu"
+
+msgid "Start with"
+msgstr "Zacznij od"
+
+msgid "Enter a middle group, e.g. 1/2."
+msgstr "Wprowadź grupę środkową, np. 1/2."
+
+msgid "Enter a main group, e.g. 1."
+msgstr "Wprowadź grupę główną, np. 1."
+
+msgid "The group has too few free group addresses for the copies."
+msgstr "Grupa ma za mało wolnych adresów grupowych dla kopii."
+
+msgid "The maximum number of group ranges has been reached."
+msgstr "Osiągnięto maksymalną liczbę zakresów grup."
+
+msgid "There is no group for the new group addresses."
+msgstr "Nie ma grupy dla nowych adresów grupowych."
+
+msgid "Copied '{name}' to '{target}'."
+msgstr "Skopiowano '{name}' do '{target}'."
+
+msgid "Copied {count} devices to '{target}'."
+msgstr "Skopiowano urządzenia ({count}) do '{target}'."
+
+msgid "Copied {count} building parts to '{target}'."
+msgstr "Skopiowano części budynku ({count}) do '{target}'."
+
+msgid "Copied {count} trades to '{target}'."
+msgstr "Skopiowano branże ({count}) do '{target}'."
+
+msgid "Copied {count} functions to '{target}'."
+msgstr "Skopiowano funkcje ({count}) do '{target}'."
+
+msgid "Copied {count} group addresses to '{target}'."
+msgstr "Skopiowano adresy grupowe ({count}) do '{target}'."
+
+msgid "Copied {count} middle groups to '{target}'."
+msgstr "Skopiowano grupy środkowe ({count}) do '{target}'."
+
+msgid "Copied {count} main groups to '{target}'."
+msgstr "Skopiowano grupy główne ({count}) do '{target}'."
+
+msgid "Copied {count} lines to '{target}'."
+msgstr "Skopiowano linie ({count}) do '{target}'."
+
+msgid "Copied {count} segments to '{target}'."
+msgstr "Skopiowano segmenty ({count}) do '{target}'."
+
+msgid "Paste Special…"
+msgstr "Wklej specjalnie…"
+
+msgid "Add Row"
+msgstr "Dodaj wiersz"
+
+msgid "Remove this row"
+msgstr "Usuń ten wiersz"
+
+msgid "Generate Addresses"
+msgstr "Generuj adresy"
+
+msgid "Unlink device"
+msgstr "Odłącz urządzenie"
+
+msgid "The device is on no line: put it on a line first."
+msgstr "Urządzenie nie jest na żadnej linii: najpierw umieść je na linii."
+
+msgid "Areas…"
+msgstr "Obszary…"
+
+msgid "Lines…"
+msgstr "Linie…"
+
+msgid "Segments…"
+msgstr "Segmenty…"
+
+msgid "Add Areas"
+msgstr "Dodaj obszary"
+
+msgid "Add Lines"
+msgstr "Dodaj linie"
+
+msgid "Add Segments"
+msgstr "Dodaj segmenty"
+
+msgid "The limit to add was reached."
+msgstr "Osiągnięto limit dodawania."
+
+msgid "Cannot add any line to the area {area} because of topology constraints. Please check the medium type of the backbone and main lines."
+msgstr "Z powodu ograniczeń topologii nie można dodać żadnej linii do obszaru {area}. Sprawdź typ medium linii szkieletowej i głównych."
+
+msgid "Added {count} areas to '{target}'."
+msgstr "Dodano obszary ({count}) do '{target}'."
+
+msgid "Added {count} lines to '{target}'."
+msgstr "Dodano linie ({count}) do '{target}'."
+
+msgid "Added {count} segments to '{target}'."
+msgstr "Dodano segmenty ({count}) do '{target}'."
+
+msgid "Added {count} building parts to '{target}'."
+msgstr "Dodano części budynku ({count}) do '{target}'."
+
+msgid "Added {count} trades to '{target}'."
+msgstr "Dodano branże ({count}) do '{target}'."
+
+msgid "Added {count} main groups to '{target}'."
+msgstr "Dodano grupy główne ({count}) do '{target}'."
+
+msgid "Added {count} middle groups to '{target}'."
+msgstr "Dodano grupy średnie ({count}) do '{target}'."
+
+msgid "Added {count} group addresses to '{target}'."
+msgstr "Dodano adresy grupowe ({count}) do '{target}'."
+
+msgid "Add Main Groups…"
+msgstr "Dodaj grupy główne…"
+
+msgid "Add Middle Groups…"
+msgstr "Dodaj grupy pośrednie…"
+
+msgid "Add Main Groups"
+msgstr "Dodaj grupy główne"
+
+msgid "Add Middle Groups"
+msgstr "Dodaj grupy pośrednie"
+
+msgid "New main group"
+msgstr "Nowa grupa główna"
+
+msgid "New middle group"
+msgstr "Nowa grupa pośrednia"
+
+msgid "New group address"
+msgstr "Nowy adres grupowy"
+
+msgid "Cut"
+msgstr "Wytnij"
+
+msgid "What was cut cannot be moved there."
+msgstr "Wyciętego elementu nie można tam przenieść."
+
+msgid "Park"
+msgstr "Zaparkuj"
+
+msgid "Park device"
+msgstr "Zaparkuj urządzenie"
+
+msgid "Add Functions"
+msgstr "Dodaj funkcje"
+
+msgid "New function"
+msgstr "Nowa funkcja"
+
+msgid "Added {count} functions to '{target}'."
+msgstr "Dodano funkcje ({count}) do '{target}'."
+
+msgid "Added {count} group ranges to '{target}'."
+msgstr "Dodano zakresy adresów grupowych ({count}) do '{target}'."
+
+msgid "Add Group Ranges…"
+msgstr "Dodaj zakresy adresów grupowych…"
+
+msgid "Add Group Ranges"
+msgstr "Dodaj zakresy adresów grupowych"
+
+msgid "New group range"
+msgstr "Nowy zakres adresów grupowych"
+
+msgid "Capacity"
+msgstr "Pojemność"
+
+msgid "Link with…"
+msgstr "Połącz z…"
+
+msgid "Link with Group Address"
+msgstr "Połącz z adresem grupowym"
+
+msgid "There is no group to add group addresses to."
+msgstr "Brak grupy, do której można dodać adresy grupowe."
+
+msgid "Add Subtrade"
+msgstr "Dodaj podzakład"
+
+msgid "The group range does not fit there."
+msgstr "Zakres adresów grupowych się tam nie mieści."
+
+msgid "A group range cannot go into itself or a range in it."
+msgstr "Zakresu adresów grupowych nie można umieścić w nim samym ani w zakresie w nim."
+
+msgid "A group address of the range is already in use there."
+msgstr "Adres grupowy zakresu jest tam już używany."
+
+msgid "Copied {count} group ranges to '{target}'."
+msgstr "Skopiowano zakresy adresów grupowych ({count}) do '{target}'."
+
+msgid "Add Areas…"
+msgstr "Dodaj obszary…"
+
+msgid "{medium} segment"
+msgstr "segment {medium}"
+
+msgid "Copy Individual Address"
+msgstr "Kopiuj adres indywidualny"
+
+msgid "Copy Group Address"
+msgstr "Kopiuj adres grupowy"
+
+msgid "Existing Devices…"
+msgstr "Istniejące urządzenia…"
+
+msgid "Delete the {count} selected devices? Their group objects and group-address links are removed and their individual addresses are freed. This can be undone."
+msgstr "Usunąć {count} zaznaczonych urządzeń? Ich obiekty grupowe i powiązania z adresami grupowymi zostaną usunięte, a ich adresy indywidualne zwolnione. Można to cofnąć."
+
+msgid "Remove {count} devices"
+msgstr "Usuń {count} urządzeń"
+
+msgid "Delete Devices"
+msgstr "Usuń urządzenia"
+
+msgid "{medium} line"
+msgstr "linia {medium}"

@@ -100,9 +100,6 @@ msgstr "Ohjelmoidaan {address}…"
 msgid "Reading {address}…"
 msgstr "Luetaan {address}…"
 
-msgid "Testing {address}…"
-msgstr "Testataan {address}…"
-
 msgid "Programming complete"
 msgstr "Ohjelmointi valmis"
 
@@ -678,6 +675,12 @@ msgstr " (joutokäynti)"
 
 msgid "Theme"
 msgstr "Teema"
+
+msgid "Light Theme"
+msgstr "Vaalea teema"
+
+msgid "Dark Theme"
+msgstr "Tumma teema"
 
 msgid "Customize Theme…"
 msgstr "Mukauta teemaa…"
@@ -1422,3 +1425,6 @@ msgstr "Ctrl"
 
 msgid "This stops XKNX Editor on the server. Until it is started there again, no browser can connect to it."
 msgstr "Tämä lopettaa XKNX Editorin palvelimella. Ennen kuin se käynnistetään siellä uudelleen, mikään selain ei voi muodostaa siihen yhteyttä."
+
+msgid "Del"
+msgstr "Del"

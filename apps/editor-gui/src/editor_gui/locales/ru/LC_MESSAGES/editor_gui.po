@@ -100,9 +100,6 @@ msgstr "Программирование {address}…"
 msgid "Reading {address}…"
 msgstr "Чтение {address}…"
 
-msgid "Testing {address}…"
-msgstr "Тестирование {address}…"
-
 msgid "Programming complete"
 msgstr "Программирование завершено"
 
@@ -678,6 +675,12 @@ msgstr " (простой)"
 
 msgid "Theme"
 msgstr "Тема"
+
+msgid "Light Theme"
+msgstr "Светлая тема"
+
+msgid "Dark Theme"
+msgstr "Тёмная тема"
 
 msgid "Customize Theme…"
 msgstr "Настроить тему…"
@@ -1422,3 +1425,6 @@ msgstr "Ctrl"
 
 msgid "This stops XKNX Editor on the server. Until it is started there again, no browser can connect to it."
 msgstr "Это завершит работу XKNX Editor на сервере. Пока он не будет снова запущен там, ни один браузер не сможет к нему подключиться."
+
+msgid "Del"
+msgstr "Del"

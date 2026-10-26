@@ -505,18 +505,6 @@ msgstr "Siirry laitteeseen napsauttamalla havaintoa."
 msgid "No buildings/rooms in this project"
 msgstr "Tässä projektissa ei ole rakennuksia/huoneita"
 
-msgid "+ Function"
-msgstr "+ Toiminto"
-
-msgid "+ Space"
-msgstr "+ Tila"
-
-msgid "+ Sub-space"
-msgstr "+ Alitila"
-
-msgid "New Space"
-msgstr "Uusi tila"
-
 msgid "Name"
 msgstr "Nimi"
 
@@ -541,17 +529,11 @@ msgstr "(ylin taso)"
 msgid "Delete this space and everything in it? Devices are only unassigned, not deleted."
 msgstr "Poistetaanko tämä tila ja kaikki sen sisältö? Laitteiden kohdistus vain poistetaan, laitteita ei poisteta."
 
-msgid "Assign Device"
-msgstr "Kohdista laite"
-
 msgid "Assign a Device to This Space"
 msgstr "Kohdista laite tähän tilaan"
 
 msgid "No unassigned devices"
 msgstr "Ei kohdistamattomia laitteita"
-
-msgid "Remove from Space"
-msgstr "Poista tilasta"
 
 msgid "Without Space"
 msgstr "Ilman tilaa"
@@ -573,24 +555,6 @@ msgstr "Käytävä"
 
 msgid "Stairway"
 msgstr "Portaat"
-
-msgid "Distribution Board"
-msgstr "Sähkökeskus"
-
-msgid "New Function"
-msgstr "Uusi toiminto"
-
-msgid "Rename"
-msgstr "Nimeä uudelleen"
-
-msgid "Rename Function"
-msgstr "Nimeä toiminto uudelleen"
-
-msgid "Assign Group Address"
-msgstr "Kohdista ryhmäosoite"
-
-msgid "Role (Optional)"
-msgstr "Rooli (valinnainen)"
 
 msgid "Custom"
 msgstr "Mukautettu"
@@ -955,8 +919,23 @@ msgstr "Ohjelmaviite"
 msgid "IP Configuration"
 msgstr "IP-konfiguraatio"
 
-msgid "Assignment"
-msgstr "Määritys"
+msgid "Obtain an IP address automatically"
+msgstr "Hae IP-osoite automaattisesti"
+
+msgid "Use a static IP address"
+msgstr "Käytä kiinteää IP-osoitetta"
+
+msgid "Assigned IP Address"
+msgstr "Määritetty IP-osoite"
+
+msgid "An invalid IP address was specified."
+msgstr "Annettiin virheellinen IP-osoite."
+
+msgid "Change assigned IP address of '{0}' to '{1}'."
+msgstr "Laitteen '{0}' määritetty IP-osoite muutettu: '{1}'."
+
+msgid "IP configuration of device '{0}' changed."
+msgstr "Laitteen '{0}' IP-määritys muutettu."
 
 msgid "IP Address"
 msgstr "IP-osoite"
@@ -1162,29 +1141,8 @@ msgstr "Suodata ryhmäosoitteita (osoite, nimi)…"
 msgid "Filter rooms, devices, functions…"
 msgstr "Suodata huoneita, laitteita, toimintoja…"
 
-msgid "Area {area}"
-msgstr "Alue {area}"
-
-msgid "{name} (Area {area})"
-msgstr "{name} (alue {area})"
-
-msgid "Line {area}.{line}"
-msgstr "Linja {area}.{line}"
-
-msgid "{name} (Line {area}.{line})"
-msgstr "{name} (linja {area}.{line})"
-
 msgid "Unassigned ({count})"
 msgstr "Kohdistamattomat ({count})"
-
-msgid "Add Area"
-msgstr "Lisää Alue"
-
-msgid "Add Line"
-msgstr "Lisää Linja"
-
-msgid "Copy Address"
-msgstr "Kopioi osoite"
 
 msgid "Duplicate"
 msgstr "Luo kopio"
@@ -1252,12 +1210,6 @@ msgstr "Poista laite"
 msgid "Delete '{name}'? Its group objects and group-address links are removed and its individual address is freed. This can be undone."
 msgstr "Poistetaanko '{name}'? Sen ryhmäobjektit ja ryhmäosoitelinkit poistetaan ja sen yksilöllinen osoite vapautetaan. Tämän voi kumota."
 
-msgid "New Area"
-msgstr "Uusi alue"
-
-msgid "New Line"
-msgstr "Uusi linja"
-
 msgid "Number"
 msgstr "Numero"
 
@@ -1273,41 +1225,11 @@ msgstr "Lataa"
 msgid "Copy Log"
 msgstr "Kopioi loki"
 
-msgid "New Group Address"
-msgstr "Uusi ryhmäosoite"
-
-msgid "New Main Group"
-msgstr "Uusi pääryhmä"
-
-msgid "New Middle Group"
-msgstr "Uusi keskiryhmä"
-
-msgid "New Folder"
-msgstr "Uusi kansio"
-
-msgid "Rename Folder"
-msgstr "Nimeä kansio uudelleen"
-
 msgid "Delete Folder"
 msgstr "Poista kansio"
 
-msgid "Main group name (the next free number is assigned automatically)"
-msgstr "Pääryhmän nimi (seuraava vapaa numero annetaan automaattisesti)"
-
-msgid "Middle group name (the next free number is assigned automatically)"
-msgstr "Keskiryhmän nimi (seuraava vapaa numero annetaan automaattisesti)"
-
 msgid "Delete this folder and every group address in it? This can be undone."
 msgstr "Poistetaanko tämä kansio ja kaikki sen ryhmäosoitteet? Tämän voi kumota."
-
-msgid "Rename Group Address"
-msgstr "Nimeä ryhmäosoite uudelleen"
-
-msgid "Change Address…"
-msgstr "Muuta osoitetta…"
-
-msgid "New group address (links are kept):"
-msgstr "Uusi ryhmäosoite (linkit säilyvät):"
 
 msgid "Invalid address or already in use."
 msgstr "Virheellinen osoite tai jo käytössä."
@@ -1318,26 +1240,14 @@ msgstr "Turvallisuus"
 msgid "Automatic"
 msgstr "Automaattinen"
 
-msgid "Secured"
-msgstr "Suojattu"
-
-msgid "Not Secured"
-msgstr "Ei suojattu"
-
 msgid "A secured group address can only be linked to devices that are commissioned securely."
 msgstr "Suojatun ryhmäosoitteen voi linkittää vain laitteisiin, jotka otetaan käyttöön suojatusti."
 
 msgid "Not every device linked to this group address is commissioned securely, so it cannot be secured."
 msgstr "Kaikkia tähän ryhmäosoitteeseen linkitettyjä laitteita ei oteta käyttöön suojatusti, joten sitä ei voi suojata."
 
-msgid "Set Datapoint Type"
-msgstr "Aseta tietopisteen tyyppi"
-
 msgid "Address"
 msgstr "Osoite"
-
-msgid "Datapoint type (e.g. DPST-1-1); empty to clear"
-msgstr "Tietopisteen tyyppi (esim. DPST-1-1); tyhjä poistaa"
 
 msgid "Project: {name}"
 msgstr "Projekti: {name}"
@@ -1770,9 +1680,6 @@ msgstr "Salasanassa on oltava 1–20 Latin-1-merkkiä."
 
 msgid "Close"
 msgstr "Sulje"
-
-msgid "IP Backbone Security"
-msgstr "IP-runkoverkon suojaus"
 
 msgid "Device Certificates"
 msgstr "Laitesertifikaatit"
@@ -2301,3 +2208,732 @@ msgstr "Merkintä"
 
 msgid "Store plugin data {name}"
 msgstr "Tallenna plugin-tiedot {name}"
+
+msgid "Unknown"
+msgstr "Tuntematon"
+
+msgid "Editing"
+msgstr "Muokkaus"
+
+msgid "Finished design"
+msgstr "Päätetty suunnittelu"
+
+msgid "Finished commissioning"
+msgstr "Valmis käyttöönotto"
+
+msgid "Tested"
+msgstr "Testattu"
+
+msgid "Accepted"
+msgstr "Hyväksytty"
+
+msgid "Locked"
+msgstr "Lukittu"
+
+msgid "Function"
+msgstr "Toiminto"
+
+msgid "Use"
+msgstr "Käyttö"
+
+msgid "Set room use"
+msgstr "Aseta huoneen käyttö"
+
+msgid "Set status to {status}"
+msgstr "Aseta tilaksi {status}"
+
+msgid "Set function description"
+msgstr "Aseta toiminnon kuvaus"
+
+msgid "Current Line"
+msgstr "Nykyinen Linja"
+
+msgid "{line} (inherits from {space})"
+msgstr "{line} (periytyy kohteesta {space})"
+
+msgid "Set current line"
+msgstr "Aseta nykyinen linja"
+
+msgid "Segment"
+msgstr "Segmentti"
+
+msgid "Medium"
+msgstr "Media"
+
+msgid "Domain Address"
+msgstr "Toimialue Osoite"
+
+msgid "The medium of a segment can only change while it holds no device."
+msgstr "Segmentin mediatyyppiä voi muuttaa vain, jos se ei sisällä laitteita."
+
+msgid "The medium type of the segment '{segment}' cannot be changed to IoT, because its parent line '{line}' is not of medium type IP."
+msgstr "Segmentin '{segment}' mediatyyppiä ei voi muuttaa IoT:ksi, koska sen kantalinja '{line}' ei ole mediatyyppiä IP."
+
+msgid "The maximum number of segments has been reached."
+msgstr "Segmenttien enimmäismäärä on saavutettu."
+
+msgid "The main segment cannot be deleted."
+msgstr "Pääsegmenttiä ei voi poistaa."
+
+msgid "Device '{device}' is incompatible with line's medium type."
+msgstr "Laite '{device}' ei ole yhteensopiva linjan mediatyypin kanssa."
+
+msgid "Device '{device}' is incompatible with segment's medium type."
+msgstr "Laite '{device}' ei ole yhteensopiva segmentin mediatyypin kanssa."
+
+msgid "Rename segment to {name}"
+msgstr "Nimeä segmentti uudelleen: {name}"
+
+msgid "Set medium to {medium}"
+msgstr "Aseta mediaksi {medium}"
+
+msgid "Forced on"
+msgstr "Pakotettu päälle"
+
+msgid "Forced off"
+msgstr "Pakotettu pois päältä"
+
+msgid "Overridden by '{name}': {mode}"
+msgstr "Ohitettu kohteella '{name}': {mode}"
+
+msgid "Central"
+msgstr "Keskitetty"
+
+msgid "Not every device linked to a group address of this group is commissioned securely, so it cannot be secured."
+msgstr "Kaikkia tämän ryhmän ryhmäosoitteeseen linkitettyjä laitteita ei oteta käyttöön suojatusti, joten sitä ei voi suojata."
+
+msgid "Set group security"
+msgstr "Aseta ryhmän suojaus"
+
+msgid "Mark group address as central"
+msgstr "Merkitse ryhmäosoite keskitetyksi"
+
+msgid "Remove central mark from group address"
+msgstr "Poista keskitetty-merkintä ryhmäosoitteesta"
+
+msgid "Topology"
+msgstr "Topologia"
+
+msgid "{medium} backbone line"
+msgstr "{medium}-runkolinja"
+
+msgid "{medium} main line"
+msgstr "{medium}-päälinja"
+
+msgid "Backbone"
+msgstr "Runkoverkko"
+
+msgid "Network Latency"
+msgstr "Verkkoviive"
+
+msgid "LAN (< 400ms)"
+msgstr "LAN (< 400 ms)"
+
+msgid "WLAN (< 1s)"
+msgstr "WLAN (< 1 s)"
+
+msgid "WAN (< 2s)"
+msgstr "WAN (< 2 s)"
+
+msgid "Mobile (< 4s)"
+msgstr "Kännykkä (< 4 s)"
+
+msgid "Satellite (< 8s)"
+msgstr "Satelliitti (< 8 s)"
+
+msgid "The network latency must be a number of milliseconds from 1 to 65535."
+msgstr "Verkkoviiveen on oltava millisekuntimäärä väliltä 1–65535."
+
+msgid "Multicast Address"
+msgstr "Monilähetysosoite"
+
+msgid "Enter a multicast address from 224.0.0.0 to 239.255.255.255."
+msgstr "Anna monilähetysosoite väliltä 224.0.0.0–239.255.255.255."
+
+msgid "Bus Connection"
+msgstr "Väyläyhteys"
+
+msgid "Set IP routing of the backbone"
+msgstr "Aseta runkoverkon IP-reititys"
+
+msgid "As long as a coupler exists at a sub line or sub segment, a change of the medium type is not possible."
+msgstr "Niin kauan kun yhdistin on olemassa alilinjalla tai alisegmentillä, mediatyypin muutos ei ole mahdollista."
+
+msgid "A main line of a project cannot have medium type RF."
+msgstr "Projektin päälinjan media ei voi olla RF tyyppiä."
+
+msgid "The operation could not be executed, because as medium type of the backbone only IP and TP are allowed."
+msgstr "Toimintoa ei voida suorittaa, koska vain mediatyypit IP ja TP ovat runkolinjalle sallittuja."
+
+msgid "A sub-segment of KNX medium type IP or PL is not allowed."
+msgstr "Alisegmentti KNX mediatyyppillä IP tai PL ei ole sallittu."
+
+msgid "The medium type of the main line '{line}' can no longer be changed to PL, because it already contains lines or segments that are not allowed in PL main lines."
+msgstr "Päälinjan '{line}' mediatyyppiä ei voi enää muuttaa PL:ksi, koska se sisältää jo linjoja tai segmenttejä, jotka eivät ole sallittuja PL päälinjalla."
+
+msgid "The medium type of the main line '{line}' cannot be changed to IoT, because the backbone line '{backbone}' is not of medium type IP."
+msgstr "Päälinjan '{line}' mediatyyppiä ei voi muuttaa IoT:ksi, koska runkolinja '{backbone}' ei ole mediatyyppiä IP."
+
+msgid "The medium type of the main line '{line}' can no longer be changed to IoT, because it already contains lines or segments that are not allowed in IoT main lines."
+msgstr "Päälinjan '{line}' mediatyyppiä ei voi enää muuttaa IoT:ksi, koska se sisältää jo linjoja tai segmenttejä, jotka eivät ole sallittuja IoT päälinjalla."
+
+msgid "The medium type of the line '{line}' cannot be changed, because it already contains lines or segments that require an IoT or IP main line."
+msgstr "Päälinjan '{line}' mediatyyppiä ei voi muuttaa, koska se sisältää jo linjoja tai segmenttejä, jotka edellyttävät IoT- tai IP-päälinjaa."
+
+msgid "A sub-segment is not allowed below a main segment of KNX medium type RF."
+msgstr "Alisegmentti ei ole sallittu pääsegmentin alapuolella KNX mediatyypillä RF."
+
+msgid "A sub-segment is not allowed below a main segment of KNX medium type PL."
+msgstr "Alisegmentti ei ole sallittu pääsegmentin alapuolella KNX mediatyypillä PL."
+
+msgid "A sub-segment of KNX medium type IoT is not allowed below a main segment of the same type."
+msgstr "KNX-mediatyypin IoT:n alasegmentti ei ole sallittu samantyyppisen pääsegmentin alapuolella."
+
+msgid "The operation could not be executed, because a RF main line '{line}' requires all other lines in the area to be RF lines as well."
+msgstr "Toimintoa ei voitu suorittaa, koska RF päälinja {line} vaatii kaikkien muiden alueen linjojen olen RF linjoja myös."
+
+msgid "The operation could not be executed, because a PL main line '{line}' requires all other lines in the area to be PL lines as well."
+msgstr "Toimintoa ei voitu suorittaa, koska PL päälinja {line} vaatii kaikkien muiden alueen linjojen olevan PL linjoja myös."
+
+msgid "The operation could not be executed, because a IoT main line '{line}' requires all other lines in the area to be IoT lines as well."
+msgstr "Toimintoa ei voitu suorittaa, koska IoT-päälinja '{line}' vaatii kaikkien muiden alueen linjojen olevan IoT linjoja myös."
+
+msgid "The medium type of the line '{line}' cannot be changed to IoT, because its main line '{main}' is not of medium type IP."
+msgstr "Linjan '{line}' mediatyyppiä ei voi muuttaa IoT:ksi, koska sen päälinja '{main}' ei ole mediatyyppiä IP."
+
+msgid "The medium type of the line '{line}' can no longer be changed to IoT, because it already contains segments that are not allowed in IoT lines."
+msgstr "Linjan '{line}' mediatyyppiä ei voi enää muuttaa IoT:ksi, koska se sisältää jo segmenttejä, jotka eivät ole sallittuja IoT-linjoilla."
+
+msgid "The operation could not be executed, because the line is the IP backbone line and the project contains KNXnet/IP routers. KNXnet/IP routers require an IP backbone line."
+msgstr "Toimintoa ei voitu suorittaa, koska linja on IP -runkolinja ja projekti sisältää KNXnet/IP -reitittimiä. KNXnet/IP -reitittimet vaativat IP -runkolinjan."
+
+msgid "The operation could not be executed, because the line is the IP main line and the project contains KNXnet/IP routers. KNXnet/IP routers require an IP main line."
+msgstr "Toimintoa ei voi suorittaa, koska linja on IP päälinja ja projekti sisältää KNXnet/IP reitittimet. KNXnet/IP-reitittimet vaativat IP-päälinjan."
+
+msgid "The operation could not be executed, because the line is the IP backbone line and the project contains IoT or IP lines."
+msgstr "Toimintoa ei voitu suorittaa, koska linja on IP-runkolinja ja projekti sisältää IoT- tai IP-linjoja."
+
+msgid "The operation could not be executed, because the medium type of the line can only be set to IP if an IP main line exists."
+msgstr "Toimintoa ei voi suorittaa, koska mediatyyppi linjassa voidaan asettaa IP:ksi vain, jos päälinja on IP."
+
+msgid "The operation could not be executed, because the medium type of the line can only be set to IP if an IP backbone line exists."
+msgstr "Toimintoa ei voitu suorittaa, koska linjan mediatyypin voi asettaa IP:ksi vain kun IP runkolinja on olemassa."
+
+msgid "The operation could not be executed, because below a TP main segment only segments of KNX medium type TP, RF or PL can exist."
+msgstr "Toimintoa ei voitu suorittaa, koska TP -pääsegmentin alla voi olla vain KNX -mediatyyppin TP, RF tai PL segmenttejä."
+
+msgid "Below a main segment of KNX medium type IP only segments of medium type TP or RF can exist."
+msgstr "KNX IP -mediatyypin pääsegmentin alla voi olla vain segmenttejä, joissa mediatyyppi on TP tai RF."
+
+msgid "A sub-segment of KNX medium type PL is not allowed below a main segment."
+msgstr "Alisegmentti KNX mediatyyppillä PL ei ole sallittu pääsegmentin alapuolella."
+
+msgid "Set bus connection of the backbone"
+msgstr "Aseta runkoverkon väyläyhteys"
+
+msgid "Set domain address"
+msgstr "Aseta toimialueen osoite"
+
+msgid "Generate New"
+msgstr "Luo uusi"
+
+msgid "The given domain address is invalid."
+msgstr "Annettu domain-osoite ei kelpaa."
+
+msgid "Domain address is not valid! Valid values are 1 to 255."
+msgstr "Toimialueen osoite ei ole kelvollinen! Sallitut arvot ovat 1-255."
+
+msgid "DomainAddress of mediumType 'RF' is lower than the minimum value of 0001:00000000."
+msgstr "Mediatyypin 'RF' domain-osoite on pienempi kuin vähimmäisarvo 0001:00000000."
+
+msgid "DomainAddress of medium type '{medium}' exceeds the maximum valid value of {maximum}"
+msgstr "Toimialueen osoitteen median tyypi '{medium}' ylittää suurimman kelvollisen arvon {maximum}"
+
+msgid "DomainAddress of RF sublines must be equal to DomainAdress of main line."
+msgstr "RF alalinjojen domain-osoitteen tulee olla sama kuin päälinjan."
+
+msgid "Domain Address of IoT sublines must be equal to Domain Address of main line."
+msgstr "IoT alalinjojen domain-osoitteen tulee olla sama kuin päälinjan."
+
+msgid "Each line in a project must have a unique domain address."
+msgstr "Projektin jokaisella linjalla tulee olla yksilöllinen domain-osoite."
+
+msgid "Last Downloaded"
+msgstr "Viimeisin Lataus"
+
+msgid "Create trade {name}"
+msgstr "Luo vaihto {name}"
+
+msgid "Rename trade to {name}"
+msgstr "Nimeä vaihto uudelleen: {name}"
+
+msgid "Set trade number"
+msgstr "Aseta vaihdon numero"
+
+msgid "Set trade description"
+msgstr "Aseta vaihdon kuvaus"
+
+msgid "Move trade"
+msgstr "Siirrä vaihto"
+
+msgid "Remove trade"
+msgstr "Poista vaihto"
+
+msgid "Add device to trade"
+msgstr "Lisää laite vaihtoon"
+
+msgid "Remove device from trade"
+msgstr "Poista laite vaihdosta"
+
+msgid "Trades"
+msgstr "Vaihdot"
+
+msgid "Building Parts…"
+msgstr "Rakennuksen Osat…"
+
+msgid "Floors…"
+msgstr "Kerrokset…"
+
+msgid "Stairways…"
+msgstr "Portaikot…"
+
+msgid "Rooms…"
+msgstr "Huoneet…"
+
+msgid "Corridors…"
+msgstr "Käytävät…"
+
+msgid "Cabinets…"
+msgstr "Keskukset…"
+
+msgid "Devices…"
+msgstr "Laitteet…"
+
+msgid "Functions…"
+msgstr "Tehtävät…"
+
+msgid "Trades…"
+msgstr "Vaihdot…"
+
+msgid "Add Buildings…"
+msgstr "Lisää Rakennukset…"
+
+msgid "Add Trades…"
+msgstr "Lisää Vaihdot…"
+
+msgid "Add Buildings"
+msgstr "Lisää Rakennukset"
+
+msgid "Add Building Parts"
+msgstr "Lisää Rakennuksen Osat"
+
+msgid "Add Floors"
+msgstr "Lisää Kerroksia"
+
+msgid "Add Rooms"
+msgstr "Lisää Huoneet"
+
+msgid "Add Corridors"
+msgstr "Lisää Käytävät"
+
+msgid "Add Stairways"
+msgstr "Lisää Portaikot"
+
+msgid "Add Cabinets"
+msgstr "Lisää Keskukset"
+
+msgid "Add Trades"
+msgstr "Lisää Vaihdot"
+
+msgid "Add Devices"
+msgstr "Lisää Laitteita"
+
+msgid "Count"
+msgstr "Lukumäärä"
+
+msgid "to \"{name}\""
+msgstr "kohteeseen \"{name}\""
+
+msgid "Cabinet"
+msgstr "Keskus"
+
+msgid "New building"
+msgstr "Uusi rakennus"
+
+msgid "New building part"
+msgstr "Uusi rakennusosa"
+
+msgid "New floor"
+msgstr "Uusi kerros"
+
+msgid "New room"
+msgstr "Uusi huone"
+
+msgid "New corridor"
+msgstr "Uusi käytävä"
+
+msgid "New stairway"
+msgstr "Uusi portaikko"
+
+msgid "New cabinet"
+msgstr "Uusi keskus"
+
+msgid "New trade"
+msgstr "Uusi vaihto"
+
+msgid "A building part of this type cannot be added here."
+msgstr "Tämän tyyppistä rakennuksen osaa ei voida lisätä tänne."
+
+msgid "A building part of this type cannot be added here.\nCabinets can be added inside of rooms, corridors, or stairways only. If applicable the corridors have to be moved into the corresponding building parts."
+msgstr "Tämän tyypin rakennuksen osaa ei voi lisätä tähän.\nKeskukset voidaan lisätä vain huoneen sisälle, käytävälle ja portaikoon. Tarvittaessa käytävät on siirrettävä vastaaviin rakennuksen osiin."
+
+msgid "The target is a child building part."
+msgstr "Kohde on alarakennuksen osa."
+
+msgid "Devices can only be added to stairways, rooms, corridors and cabinets."
+msgstr "Laitteita voi lisätä vain portaikkoihin, huoneisiin, käytäville ja keskuksiin."
+
+msgid "Trade"
+msgstr "Vaihto"
+
+msgid "(estimated)"
+msgstr "(arvioitu)"
+
+msgid "Number of Devices"
+msgstr "Laitteiden määrä"
+
+msgid "Unlink"
+msgstr "Poista linkitys"
+
+msgid "An IP router requires an IP backbone line."
+msgstr "IP-reititin, tarvitsee IP-runkoverkkolinjan."
+
+msgid "The operation could not be executed, because a coupler needs a main line."
+msgstr "Toimintoa ei voitu suorittaa, koska yhdistin vaatii päälinjan."
+
+msgid "The operation could not be executed, because an area coupler requires a backbone line."
+msgstr "Toimintoa ei voitu suorittaa, koska alueyhdistin vaati runkolinjan."
+
+msgid "The operation could not be executed, because this coupler needs a main line with the medium type '{medium}' ."
+msgstr "Toimintoa ei voitu suorittaa, koska tämä yhdistin vaatii päälinjan mediatyypillä '{medium}' ."
+
+msgid "The operation could not be executed, because only one IP router is allowed as a world coupler."
+msgstr "Toimintoa ei voitu suorittaa, koska vain IP-reititin on sallittu maailman yhdistimeksi."
+
+msgid "The operation could not be executed, because only IP router area allowed as a world coupler."
+msgstr "Toimintoa ei voitu suorittaa, koska vain IP-reititinalue on sallittu maailman yhdistimeksi."
+
+msgid "The backbone line contains a world coupler. It is not possible to use an IP router below another IP router."
+msgstr "Runkoverkkolinja sisältää maailmaliittimen. IP-reititintä ei voi käyttää toisen IP-reitittimen alla."
+
+msgid "It is not possible to use a world coupler, when there are already IP routers in the project."
+msgstr "IP-verkkoyhdistintä ei ole mahdollista käyttää, kun projektissa on jo IP-reitittimiä."
+
+msgid "A world coupler can only be used, when the medium type of the backbone is TP."
+msgstr "Vain yleiskäyttöistä yhdistintä voidaan käyttää, kun runkolinjan media on TP."
+
+msgid "The coupler does not support segment coupling, so the sub-segment must be of the same KNX medium type as the main segment."
+msgstr "Yhdistin ei tue segmenttikytkentää, joten alisegmentin on oltava samaa KNX-mediatyyppiä kuin pääsegmentti."
+
+msgid "The operation could not be executed, because this device couples medium '{above}' (above) to medium '{below}' (below), but the segment above is '{segment}'."
+msgstr "Toimintoa ei voitu suorittaa, koska tämä laite kytkee median '{above}' (yllä) mediaan '{below}' (alla), mutta yllä oleva segmentti on '{segment}'."
+
+msgid "The operation could not be executed, because medium type of coupler device matches only sub segment, but maximum amount of segments reached."
+msgstr "Toimintoa ei voitu suorittaa, koska liitäntälaitteen mediatyyppi\\n vastaa vain alisegmenttiä, mutta segmenttien enimmäismäärä saavutettiin."
+
+msgid "The operation could not be executed, because this device couples medium '{above}' (above) to medium '{below}' (below), but the medium type of the lower segment is '{segment}'."
+msgstr "Toimenpidettä ei voitu suorittaa, koska tämä laite yhdistää median '{above}' (yllä) mediaan '{below}' (alla), mutta alemman segmentin mediatyyppi on '{segment}'."
+
+msgid "Recover Project from Bus"
+msgstr "Palauta projekti väylältä"
+
+msgid "Devices in Programming Mode"
+msgstr "Ohjelmointitilassa olevat laitteet"
+
+msgid "Connecting"
+msgstr "Yhdistetään"
+
+msgid "Move middle group"
+msgstr "Siirrä keskiryhmä"
+
+msgid "The group has no free group address."
+msgstr "Ryhmässä ei ole vapaata ryhmäosoitetta."
+
+msgid "The main group has no free middle group."
+msgstr "Pääryhmässä ei ole vapaata keskiryhmää."
+
+msgid "{count} devices"
+msgstr "{count} laitetta"
+
+msgid "The main segment cannot be moved."
+msgstr "Pääsegmenttiä ei voi siirtää."
+
+msgid "The maximum number of lines has been reached."
+msgstr "Linjojen enimmäismäärä on saavutettu."
+
+msgid "The line is already assigned to an area."
+msgstr "Linja on jo määritetty alueelle."
+
+msgid "The main line cannot be moved."
+msgstr "Päälinjaa ei voi siirtää."
+
+msgid "Move line"
+msgstr "Siirrä linja"
+
+msgid "Move segment"
+msgstr "Siirrä segmentti"
+
+msgid "Move function"
+msgstr "Siirrä toiminto"
+
+msgid "Paste Special"
+msgstr "Liitä määräten"
+
+msgid "Number of Items"
+msgstr "Kohteiden määrä"
+
+msgid "Don't copy"
+msgstr "Älä kopioi"
+
+msgid "Keep"
+msgstr "Säilytä"
+
+msgid "Create new group address in middle group"
+msgstr "Luo uusi ryhmäosoite keskiryhmään"
+
+msgid "Create new group address in main group"
+msgstr "Luo uusi ryhmäosoite pääryhmään"
+
+msgid "Create new group address in group range"
+msgstr "Luo uusi ryhmäosoite ryhmäalueeseen"
+
+msgid "Generate Address"
+msgstr "Luo osoite"
+
+msgid "Fill up (use first free)"
+msgstr "Täytä (ensimmäinen vapaa)"
+
+msgid "Append"
+msgstr "Lisää loppuun"
+
+msgid "Start with"
+msgstr "Aloita arvosta"
+
+msgid "Enter a middle group, e.g. 1/2."
+msgstr "Anna keskiryhmä, esim. 1/2."
+
+msgid "Enter a main group, e.g. 1."
+msgstr "Anna pääryhmä, esim. 1."
+
+msgid "The group has too few free group addresses for the copies."
+msgstr "Ryhmässä on liian vähän vapaita ryhmäosoitteita kopioille."
+
+msgid "The maximum number of group ranges has been reached."
+msgstr "Ryhmäalueiden enimmäismäärä on saavutettu."
+
+msgid "There is no group for the new group addresses."
+msgstr "Uusille ryhmäosoitteille ei ole ryhmää."
+
+msgid "Copied '{name}' to '{target}'."
+msgstr "'{name}' kopioitu kohteeseen '{target}'."
+
+msgid "Copied {count} devices to '{target}'."
+msgstr "{count} laitetta kopioitu kohteeseen '{target}'."
+
+msgid "Copied {count} building parts to '{target}'."
+msgstr "{count} rakennuksen osaa kopioitu kohteeseen '{target}'."
+
+msgid "Copied {count} trades to '{target}'."
+msgstr "{count} toimialaa kopioitu kohteeseen '{target}'."
+
+msgid "Copied {count} functions to '{target}'."
+msgstr "{count} toimintoa kopioitu kohteeseen '{target}'."
+
+msgid "Copied {count} group addresses to '{target}'."
+msgstr "{count} ryhmäosoitetta kopioitu kohteeseen '{target}'."
+
+msgid "Copied {count} middle groups to '{target}'."
+msgstr "{count} keskiryhmää kopioitu kohteeseen '{target}'."
+
+msgid "Copied {count} main groups to '{target}'."
+msgstr "{count} pääryhmää kopioitu kohteeseen '{target}'."
+
+msgid "Copied {count} lines to '{target}'."
+msgstr "{count} linjaa kopioitu kohteeseen '{target}'."
+
+msgid "Copied {count} segments to '{target}'."
+msgstr "{count} segmenttiä kopioitu kohteeseen '{target}'."
+
+msgid "Paste Special…"
+msgstr "Liitä määräten…"
+
+msgid "Add Row"
+msgstr "Lisää rivi"
+
+msgid "Remove this row"
+msgstr "Poista tämä rivi"
+
+msgid "Generate Addresses"
+msgstr "Luo osoitteet"
+
+msgid "Unlink device"
+msgstr "Poista laitteen linkitys"
+
+msgid "The device is on no line: put it on a line first."
+msgstr "Laite ei ole millään linjalla: sijoita se ensin linjalle."
+
+msgid "Areas…"
+msgstr "Alueet…"
+
+msgid "Lines…"
+msgstr "Linjat…"
+
+msgid "Segments…"
+msgstr "Segmentit…"
+
+msgid "Add Areas"
+msgstr "Lisää Alueita"
+
+msgid "Add Lines"
+msgstr "Lisää Linjoja"
+
+msgid "Add Segments"
+msgstr "Lisää Segmenttejä"
+
+msgid "The limit to add was reached."
+msgstr "Lisäämisen raja saavutettiin."
+
+msgid "Cannot add any line to the area {area} because of topology constraints. Please check the medium type of the backbone and main lines."
+msgstr "Alueelle {area} ei voi lisätä linjaa topologian rajoitusten vuoksi. Tarkista runkolinjan ja päälinjojen mediatyyppi."
+
+msgid "Added {count} areas to '{target}'."
+msgstr "{count} aluetta lisätty kohteeseen '{target}'."
+
+msgid "Added {count} lines to '{target}'."
+msgstr "{count} linjaa lisätty kohteeseen '{target}'."
+
+msgid "Added {count} segments to '{target}'."
+msgstr "{count} segmenttiä lisätty kohteeseen '{target}'."
+
+msgid "Added {count} building parts to '{target}'."
+msgstr "{count} rakennuksen osaa lisätty kohteeseen '{target}'."
+
+msgid "Added {count} trades to '{target}'."
+msgstr "{count} ammattialaa lisätty kohteeseen '{target}'."
+
+msgid "Added {count} main groups to '{target}'."
+msgstr "{count} pääryhmää lisätty kohteeseen '{target}'."
+
+msgid "Added {count} middle groups to '{target}'."
+msgstr "{count} väliryhmää lisätty kohteeseen '{target}'."
+
+msgid "Added {count} group addresses to '{target}'."
+msgstr "{count} ryhmäosoitetta lisätty kohteeseen '{target}'."
+
+msgid "Add Main Groups…"
+msgstr "Lisää Pääryhmiä…"
+
+msgid "Add Middle Groups…"
+msgstr "Lisää Keskiryhmiä…"
+
+msgid "Add Main Groups"
+msgstr "Lisää Pääryhmiä"
+
+msgid "Add Middle Groups"
+msgstr "Lisää Keskiryhmiä"
+
+msgid "New main group"
+msgstr "Uusi pääryhmä"
+
+msgid "New middle group"
+msgstr "Uusi keskiryhmä"
+
+msgid "New group address"
+msgstr "Uusi ryhmäosoite"
+
+msgid "Cut"
+msgstr "Leikkaa"
+
+msgid "What was cut cannot be moved there."
+msgstr "Leikattua ei voi siirtää sinne."
+
+msgid "Park"
+msgstr "Pysäköi"
+
+msgid "Park device"
+msgstr "Pysäköi laite"
+
+msgid "Add Functions"
+msgstr "Lisää Toimintoja"
+
+msgid "New function"
+msgstr "Uusi toiminto"
+
+msgid "Added {count} functions to '{target}'."
+msgstr "{count} toimintoa lisätty kohteeseen '{target}'."
+
+msgid "Added {count} group ranges to '{target}'."
+msgstr "{count} ryhmäosoitealuetta lisätty kohteeseen '{target}'."
+
+msgid "Add Group Ranges…"
+msgstr "Lisää Ryhmäosoitealueita…"
+
+msgid "Add Group Ranges"
+msgstr "Lisää Ryhmäosoitealueita"
+
+msgid "New group range"
+msgstr "Uusi ryhmäosoitealue"
+
+msgid "Capacity"
+msgstr "Kapasiteetti"
+
+msgid "Link with…"
+msgstr "Yhdistä…"
+
+msgid "Link with Group Address"
+msgstr "Yhdistä Ryhmäosoitteeseen"
+
+msgid "There is no group to add group addresses to."
+msgstr "Ei ryhmää, johon ryhmäosoitteita voisi lisätä."
+
+msgid "Add Subtrade"
+msgstr "Lisää Alivaihto"
+
+msgid "The group range does not fit there."
+msgstr "Ryhmäosoitealue ei mahdu sinne."
+
+msgid "A group range cannot go into itself or a range in it."
+msgstr "Ryhmäosoitealuetta ei voi siirtää itseensä tai sen sisällä olevaan alueeseen."
+
+msgid "A group address of the range is already in use there."
+msgstr "Jokin alueen ryhmäosoite on siellä jo käytössä."
+
+msgid "Copied {count} group ranges to '{target}'."
+msgstr "{count} ryhmäosoitealuetta kopioitu kohteeseen '{target}'."
+
+msgid "Add Areas…"
+msgstr "Lisää Alueita…"
+
+msgid "{medium} segment"
+msgstr "{medium}-segmentti"
+
+msgid "Copy Individual Address"
+msgstr "Kopioi yksilöllinen osoite"
+
+msgid "Copy Group Address"
+msgstr "Kopioi ryhmäosoite"
+
+msgid "Existing Devices…"
+msgstr "Olemassa olevat laitteet…"
+
+msgid "Delete the {count} selected devices? Their group objects and group-address links are removed and their individual addresses are freed. This can be undone."
+msgstr "Poistetaanko {count} valittua laitetta? Niiden ryhmäobjektit ja ryhmäosoitelinkit poistetaan ja niiden yksilölliset osoitteet vapautetaan. Tämän voi kumota."
+
+msgid "Remove {count} devices"
+msgstr "Poista {count} laitetta"
+
+msgid "Delete Devices"
+msgstr "Poista laitteet"
+
+msgid "{medium} line"
+msgstr "{medium}-linja"

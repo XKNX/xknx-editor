@@ -180,3 +180,39 @@ def test_reopen_merges_duplicate_com_objects(tmp_path: Path) -> None:
         (ga2, False),
     ]
     assert len(device.com_objects) == 2
+
+
+def test_reopen_lets_devices_be_on_no_line(tmp_path: Path) -> None:
+    path = tmp_path / "proj.xknx"
+    svc = ProjectService()
+    pid = svc.create(path)
+    svc.close(pid)
+    # A file written while every device had to be on a line.
+    con = sqlite3.connect(path)
+    (sql,) = con.execute(
+        "SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'devices'"
+    ).fetchone()
+    old = sql.replace("segment_id INTEGER,", "segment_id INTEGER NOT NULL,")
+    assert old != sql
+    (version,) = con.execute("PRAGMA schema_version").fetchone()
+    con.execute("PRAGMA writable_schema = ON")
+    con.execute(
+        "UPDATE sqlite_master SET sql = ? WHERE type = 'table' AND name = 'devices'",
+        (old,),
+    )
+    con.execute(f"PRAGMA schema_version = {version + 1}")
+    con.execute("PRAGMA writable_schema = OFF")
+    con.execute("PRAGMA user_version = 4")
+    con.commit()
+    con.close()
+
+    svc2 = ProjectService()
+    pid2 = svc2.open(path)
+    device = svc2.add_device(pid2, None, "M-1_H-1_P-1", name="Loose")
+    placement = svc2.device_placement(pid2, device)
+    assert (placement.segment_id, placement.address) == (None, None)
+    svc2.close(pid2)
+    con = sqlite3.connect(path)
+    assert con.execute("PRAGMA integrity_check").fetchone() == ("ok",)
+    assert con.execute("PRAGMA user_version").fetchone() == (5,)
+    con.close()

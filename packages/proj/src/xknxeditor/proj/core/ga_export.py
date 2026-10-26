@@ -56,12 +56,16 @@ class GroupAddressStyleMismatch(ValueError):
 
 @dataclass(frozen=True)
 class GaRange:
-    """A ``<GroupRange>`` folder: its name, address window and nested child ranges."""
+    """A ``<GroupRange>`` folder: its name, address window and nested child ranges, its
+    Security (``On``/``Off``; ``None`` for the default ``Auto`` or when not given) and its
+    description."""
 
     name: str
     range_start: int
     range_end: int
     children: tuple["GaRange", ...] = ()
+    security: str | None = None
+    description: str = ""
 
 
 @dataclass
@@ -146,18 +150,24 @@ def read_ga_csv(path: Path | str) -> GaExport:
         else GroupAddressStyle.FREE
     )
 
-    mains: dict[int, tuple[str, dict[int, str]]] = {}
+    # Main group -> its row (name, security, description) and its middle groups' rows.
+    mains: dict[int, tuple[_CsvGroup, dict[int, _CsvGroup]]] = {}
     addresses: list[GaAddress] = []
     for cells in rows:
         text = cells[3]
         parts = text.split("/")
         if parts[-1] == "-":
             main = int(parts[0])
-            name, middles = mains.setdefault(main, ("", {}))
+            own, middles = mains.setdefault(main, (_CsvGroup(""), {}))
             if len(parts) == 3 and parts[1] != "-":
-                middles[int(parts[1])] = cells[1] or cells[0]
+                middles[int(parts[1])] = _CsvGroup(
+                    cells[1] or cells[0], _security(cells[8]), cells[6]
+                )
             else:
-                mains[main] = (cells[0] or name, middles)
+                mains[main] = (
+                    _CsvGroup(cells[0] or own.name, _security(cells[8]), cells[6]),
+                    middles,
+                )
             continue
         try:
             value = parse_ga(text, style)
@@ -182,27 +192,40 @@ def read_ga_csv(path: Path | str) -> GaExport:
     ranges: list[GaRange] = []
     if style is not GroupAddressStyle.FREE:
         for main in sorted(mains):
-            name, middles = mains[main]
+            own, middles = mains[main]
             base = main << 11
             children: tuple[GaRange, ...] = ()
             if style is GroupAddressStyle.THREE_LEVEL:
                 children = tuple(
                     GaRange(
-                        name=middles[middle],
+                        name=middles[middle].name,
                         range_start=max(1, base + (middle << 8)),
                         range_end=base + (middle << 8) + 0xFF,
+                        security=middles[middle].security,
+                        description=middles[middle].description,
                     )
                     for middle in sorted(middles)
                 )
             ranges.append(
                 GaRange(
-                    name=name,
+                    name=own.name,
                     range_start=max(1, base),
                     range_end=base + 0x7FF,
                     children=children,
+                    security=own.security,
+                    description=own.description,
                 )
             )
     return GaExport(style=style, ranges=tuple(ranges), addresses=tuple(addresses))
+
+
+@dataclass(frozen=True)
+class _CsvGroup:
+    """A main or middle group row of a CSV export: its name, Security and description."""
+
+    name: str
+    security: str | None = None
+    description: str = ""
 
 
 _CSV_ADDRESS = re.compile(r"^\d+(/(\d+|-)){0,2}$")
@@ -407,6 +430,8 @@ def write_ga_export(source: Path | str, dest: Path | str) -> int:
             )
             ET.register_namespace("", _NS)
             root_el = ET.Element(_ROOT_TAG)
+            for note in _FORMAT_NOTES:
+                root_el.append(ET.Comment(note))
             count = sum(_write_range(gr, root_el, style) for gr in roots)
     finally:
         engine.dispose()
@@ -421,6 +446,26 @@ def write_ga_export(source: Path | str, dest: Path | str) -> int:
     logger.info("ga-export write done: addresses=%d -> %s", count, dest)
     return count
 
+
+# The comments the exports of this format open with, describing its attributes (verbatim).
+_FORMAT_NOTES = (
+    "GroupRange:",
+    "  @Name: The name of the group range (1 to 255 characters)",
+    "  @RangeStart: The inclusive start address of the range as specified in free group "
+    "address style",
+    "  @RangeEnd: The inclusive end address of the range as specified in free group address "
+    "style",
+    "  @Description: The group ranges' description if available",
+    "GroupAddress:",
+    "  @Name: The name of the group range (1 to 255 characters)",
+    "  @Address: The address as specified either in three-level (1/2/3 or two-level (1/3) or "
+    "numeric (12345) or hexadecimal ($1Fa3 or 0x1fa3) group address value",
+    "  @Central: True if the group address has the Central flag set",
+    "  @Unfiltered: True if the group address has the Unfiltered flag set",
+    "  @Description: The group addresses' description if available",
+    "  @DTPs: The Data Point Types associated with the group address if available, comma "
+    "separated, e.g. '1.001, 1.002'",
+)
 
 CSV_SEPARATORS = {"tab": "\t", "comma": ",", "semicolon": ";"}
 # Value of the central/unfiltered columns for a set flag.
@@ -499,7 +544,9 @@ def _csv_range(
             text = f"{main}/{(gr.range_start >> 8) & 0x7}/-"
         names = ["", "", ""]
         names[min(depth, 2)] = gr.name.strip()
-        rows.append([*names, text, "", "", "", "", "Auto"])
+        rows.append(
+            [*names, text, "", "", gr.description, "", gr.security_mode or "Auto"]
+        )
     count = 0
     for child in sorted(gr.children, key=lambda c: c.range_start):
         count += _csv_range(child, rows, style, depth + 1)
@@ -529,6 +576,10 @@ def _write_range(
     el.set("Name", gr.name)
     el.set("RangeStart", str(gr.range_start))
     el.set("RangeEnd", str(gr.range_end))
+    if gr.description:
+        el.set("Description", gr.description)
+    if gr.security_mode and gr.security_mode != "Auto":
+        el.set("Security", gr.security_mode)
     count = sum(
         _write_range(child, el, style)
         for child in sorted(gr.children, key=lambda c: c.range_start)
@@ -586,6 +637,8 @@ def _read_range(elem: ET.Element) -> GaRange:
         range_start=int(elem.get("RangeStart", "0")),
         range_end=int(elem.get("RangeEnd", "0")),
         children=tuple(_read_range(child) for child in elem.findall(_RANGE_TAG)),
+        security=_security(elem.get("Security")),
+        description=elem.get("Description", ""),
     )
 
 
@@ -641,6 +694,8 @@ def _graft_ranges(
             range_start=r.range_start,
             range_end=r.range_end,
             name=r.name,
+            description=r.description,
+            security_mode=r.security,
             parent=parent,
         )
         installation.group_ranges.append(gr)

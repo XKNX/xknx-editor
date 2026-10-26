@@ -63,6 +63,19 @@ def test_every_theme_has_a_name_with_spaces() -> None:
     assert all("_" not in name for name in names)
 
 
+def test_theme_menu_offers_the_light_and_the_dark_theme_first() -> None:
+    first, others = theme.theme_menu_groups()
+    assert first == [
+        ("Light Theme - Microsoft Style", hello_imgui.ImGuiTheme_.microsoft_style),
+        ("Dark Theme - Darcula (Darker)", hello_imgui.ImGuiTheme_.darcula_darker),
+    ]
+    # Every other theme once, in the order of the theme list, without the two above.
+    assert [t for _, t in others] == [
+        t for t in theme.themes() if t not in (theme.LIGHT_THEME, theme.DARK_THEME)
+    ]
+    assert all(label == theme.theme_name(t) for label, t in others)
+
+
 @pytest.fixture
 def context() -> Iterator[None]:
     ctx = imgui.create_context()

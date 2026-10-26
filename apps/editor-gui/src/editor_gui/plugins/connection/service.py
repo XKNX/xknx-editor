@@ -9,7 +9,7 @@ from collections.abc import Awaitable, Callable, Collection, Coroutine
 from concurrent.futures import Future
 from dataclasses import dataclass
 from enum import Enum
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, Any, Protocol, cast
 
 from xknx.cemi.cemi_frame import CEMIFrame, CEMILData
 from xknx.cemi.const import CEMIMessageCode
@@ -88,11 +88,62 @@ class DeviceCertificateRequired(Exception):
     project does not know (no device certificate for its serial number)."""
 
 
+class OperationNotStarted(Exception):
+    """An operation that a connection was opened for did not start (the reason is the one it
+    gave itself, e.g. on its queue entry)."""
+
+
 class BusmonitorState(Enum):
     OFF = "off"
     STARTING = "starting"
     RUNNING = "running"
     STOPPING = "stopping"
+
+
+class OperationConnector(Protocol):
+    """Opens a connection for online operations while none is open (the connection plugin):
+    through the backbone's Bus Connection, else the one the user selects."""
+
+    def open(self) -> Future[None]:
+        """A connection for one more operation: done once it is open, canceled when the user
+        canceled the selection. Each call is balanced by ``release``."""
+        ...
+
+    def release(self) -> None:
+        """An operation has ended; the connection closes after the last one."""
+        ...
+
+    def opened_for_operations(self) -> bool:
+        """Whether the open connection was opened for operations: one started now uses it
+        too, so it stays open until that one has ended."""
+        ...
+
+    def submit(self, fn: Callable[[], None]) -> None:
+        """Run ``fn`` on the main thread."""
+        ...
+
+
+def _connects[F: Callable[..., Any]](op: str) -> Callable[[F], F]:
+    """An online operation: while no connection is open it first connects through the
+    ``OperationConnector`` (when there is one), then runs; its future is the operation's."""
+
+    def decorate(method: F) -> F:
+        @functools.wraps(method)
+        def run(self: ConnectionService, *args: Any, **kwargs: Any) -> Any:
+            connector = self.operation_connector
+            if (
+                connector is not None
+                and not self.busmonitor_active
+                and (self.xknx is None or connector.opened_for_operations())
+            ):
+                return self.connect_for_operation(
+                    op, lambda: method(self, *args, **kwargs)
+                )
+            return method(self, *args, **kwargs)
+
+        return cast(F, run)
+
+    return decorate
 
 
 @dataclass(frozen=True)
@@ -142,6 +193,8 @@ class ConnectionService:
         # The individual address of the interface the connection runs through.
         self.interface_address: str | None = None
         self._reopen: Callable[[], None] | None = None
+        # Finds a KNXnet/IP device on the network by its serial number (see find_device_ip).
+        self._find_device_ip: Callable[[bytes], Future[str | None]] | None = None
         # Keyring service (KNX Data Secure), injected at startup. Used to look up a device's tool
         # key so a point-to-point download/test is secured when the device was commissioned secure.
         self.keyring: KeyringService | None = None
@@ -167,6 +220,10 @@ class ConnectionService:
         # Timestamp of the last connection-requiring call made while disconnected,
         # so the status bar can show a brief "no connection" notice.
         self._not_connected_notice: float | None = None
+        # Opens a connection for an operation while none is open (set by the connection plugin),
+        # and the operation behind each future connect_for_operation returned, for its cancel.
+        self.operation_connector: OperationConnector | None = None
+        self._connected_operations: dict[Future[Any], Future[Any] | None] = {}
 
     @property
     def busy_operation(self) -> tuple[str, str] | None:
@@ -232,6 +289,86 @@ class ConnectionService:
             self._not_connected_notice = time.monotonic()
         return True
 
+    def can_reach_bus(self) -> bool:
+        """Whether an online operation can run: a connection is open, or one can be opened for
+        it (see ``OperationConnector``) while the bus monitor does not hold the interface."""
+        if self.xknx is not None:
+            return True
+        return self.operation_connector is not None and not self.busmonitor_active
+
+    def waiting_for_connection(self, future: Future[Any] | None) -> bool:
+        """Whether the operation behind ``future`` (from ``connect_for_operation``) still waits
+        for its connection to open."""
+        return (
+            future is not None
+            and future in self._connected_operations
+            and self._connected_operations[future] is None
+        )
+
+    def connect_for_operation(
+        self, op: str, start: Callable[[], Future[Any] | None]
+    ) -> Future[Any] | None:
+        """Run ``start`` (an online operation) once a connection for it is open, see
+        ``OperationConnector``; the connection closes after the last operation using it. The
+        future returned ends as the operation's; it is canceled when the user canceled the
+        selection of a connection. Without a connector the operation is refused (None)."""
+        connector = self.operation_connector
+        if connector is None:
+            self.not_connected(op)
+            return None
+        result: Future[Any] = Future()
+        self._connected_operations[result] = None
+        result.add_done_callback(lambda f: self._connected_operations.pop(f, None))
+
+        def begin() -> None:
+            # On the main thread, where the connection is opened.
+            opening = connector.open()
+            opening.add_done_callback(lambda _f: connector.submit(lambda: run(opening)))
+
+        def run(opening: Future[None]) -> None:
+            if result.done():  # canceled while it connected
+                connector.release()
+                return
+            if opening.cancelled():
+                connector.release()
+                result.cancel()
+                return
+            error = opening.exception()
+            if error is not None:
+                connector.release()
+                self.not_connected(op)
+                result.set_exception(error)
+                return
+            try:
+                operation = start()
+            except BaseException as exc:
+                connector.release()
+                result.set_exception(exc)
+                return
+            if operation is None:
+                connector.release()
+                result.set_exception(OperationNotStarted(f"{op} could not start"))
+                return
+            self._connected_operations[result] = operation
+
+            def ended(done: Future[Any]) -> None:
+                # The operation's outcome first: a queue that starts the next operation then
+                # finds the connection still open.
+                if result.done():
+                    pass
+                elif done.cancelled():
+                    result.cancel()
+                elif (failure := done.exception()) is not None:
+                    result.set_exception(failure)
+                else:
+                    result.set_result(done.result())
+                connector.submit(connector.release)
+
+            operation.add_done_callback(ended)
+
+        connector.submit(begin)
+        return result
+
     def not_connected_notice(self, max_age: float = 6.0) -> bool:
         """Whether a recent call was refused for lack of a connection (for the status bar)."""
         with self._busy_lock:
@@ -290,6 +427,18 @@ class ConnectionService:
     def set_reopen_controller(self, reopen: Callable[[], None]) -> None:
         """How the connection is opened anew when its interface requires another one."""
         self._reopen = reopen
+
+    def set_device_ip_finder(self, find: Callable[[bytes], Future[str | None]]) -> None:
+        """How a KNXnet/IP device is found on the network by its serial number."""
+        self._find_device_ip = find
+
+    def find_device_ip(self, serial: bytes) -> Future[str | None] | None:
+        """Search the network for the KNXnet/IP device with ``serial`` (also without a bus
+        connection): a future of its IP address, None when it does not answer. None when
+        there is no way to search."""
+        if self._find_device_ip is None:
+            return None
+        return self._find_device_ip(serial)
 
     # --- bus monitor mode -----------------------------------------------------
 
@@ -437,6 +586,20 @@ class ConnectionService:
         else:
             self._log.debug("send_cemi ok")
 
+    def send_group_value(
+        self, address: str, payload: GroupValueRead | GroupValueWrite
+    ) -> Future[Any] | None:
+        """Read or write the value of the group address ``address`` (its Read and Write commands):
+        a group telegram, through a connection opened for it while none is open."""
+        return self._send_group_value(address, payload)
+
+    @_connects("send_group_value")
+    def _send_group_value(
+        self, address: str, payload: GroupValueRead | GroupValueWrite
+    ) -> Future[Any] | None:
+        return self.send_group_telegram(address, payload)
+
+    @_connects("read_programming_mode_devices")
     def read_programming_mode_devices(self, timeout: float = 3.0) -> Future[Any] | None:
         if self.not_connected("read_programming_mode_devices"):
             return None
@@ -444,6 +607,7 @@ class ConnectionService:
             nm_individual_address_read(self._connected_xknx, timeout=timeout)
         )
 
+    @_connects("scan_programming_mode")
     def scan_programming_mode(self, timeout: float = 3.0) -> Future[Any] | None:
         """Find devices in programming mode and read each one's dossier off the bus.
 
@@ -483,6 +647,7 @@ class ConnectionService:
             addresses=[r.address for r in results],
         )
 
+    @_connects("assign_individual_address_by_serial")
     def assign_individual_address_by_serial(
         self, serial: bytes, address: str
     ) -> Future[Any] | None:
@@ -499,6 +664,7 @@ class ConnectionService:
             )
         )
 
+    @_connects("assign_individual_address")
     def assign_individual_address(self, address: str) -> Future[Any] | None:
         if self.not_connected("assign_individual_address"):
             return None
@@ -521,6 +687,7 @@ class ConnectionService:
             return None
         return self.assign_individual_address(device.individual_address)
 
+    @_connects("restart_device")
     def restart_device(self, device: Device) -> Future[Any] | None:
         """Restart (reboot) a device over the bus via A_Restart (non-destructive)."""
         if self.not_connected("restart_device"):
@@ -566,6 +733,7 @@ class ConnectionService:
             return
         self._log.info("Device restarted", address=address)
 
+    @_connects("master_reset_device")
     def master_reset_device(
         self, device: Device, erase_code: int
     ) -> Future[Any] | None:
@@ -762,6 +930,7 @@ class ConnectionService:
             return
         self._xknx.cemi_handler.data_secure = self.data_secure()
 
+    @_connects("program_device")
     def program_device(
         self,
         device: Device,
@@ -1088,6 +1257,7 @@ class ConnectionService:
             return None
         return notice[0]
 
+    @_connects("evaluate_device")
     def evaluate_device(
         self,
         device: Device,
@@ -1176,6 +1346,7 @@ class ConnectionService:
         for line in report.summary().splitlines():
             self._log.info(line.strip())
 
+    @_connects("device_info")
     def device_info(
         self,
         device: Device,
@@ -1230,6 +1401,7 @@ class ConnectionService:
                 address=address,
             )
 
+    @_connects("dali_commissioning")
     def run_dali(
         self,
         device: Device,
@@ -1308,6 +1480,7 @@ class ConnectionService:
             return
         self._log.info("DALI commissioning done", address=address)
 
+    @_connects("siemens_dali_commissioning")
     def run_siemens_dali(
         self,
         device: Device,
@@ -1348,6 +1521,7 @@ class ConnectionService:
         )
         return future
 
+    @_connects("siemens_dca_program")
     def run_siemens_dca_program(
         self,
         device: Device,
@@ -1418,6 +1592,14 @@ class ConnectionService:
         is canceled on the loop rather than the future itself: the future ends only once the
         operation has unwound and closed its connection, and its done callbacks free the bus
         only then."""
+        if future in self._connected_operations:
+            # Connected for it: cancel the operation, or the wait for its connection.
+            operation = self._connected_operations[future]
+            if operation is None:
+                future.cancel()
+            else:
+                self.cancel_operation(operation)
+            return
         started = self._operation_tasks.get(future)
         if started and self._loop is not None:
             self._loop.call_soon_threadsafe(started[0].cancel)

@@ -49,6 +49,7 @@ from xknxeditor.proj.core.knxproj_export import (
     relidref,
 )
 from xknxeditor.proj.models import (
+    UNDEFINED_STATUS,
     ComObject,
     Device,
     GroupRange,
@@ -197,15 +198,11 @@ class _StoreBuilder:
     def _s(self, kind: str, oid: int) -> int:
         return self._idseq[(kind, oid)]
 
-    def _remap_pid(self, ref: str) -> str:
-        """Rewrite the leading ``P-XXXX`` of a stored ref to this store's id.
-
-        Element ids we emit are prefixed with ``self._pid``; a ref captured on import (e.g. a
-        ``DefaultLine``) carries the source project's id, which differs when writing a copy under a
-        new id and would otherwise dangle. Empty/foreign refs are returned unchanged."""
-        if not ref:
-            return ref
-        return re.sub(r"^P-[0-9A-Fa-f]+(?=-0_)", self._pid, ref)
+    def _line_ref(self, line_id: int | None) -> str | None:
+        """The id this store gives the line ``line_id``; None for no line."""
+        if line_id is None or ("L", line_id) not in self._idseq:
+            return None
+        return f"{self._pid}-0_L-{self._s('L', line_id)}"
 
     # -- Streams ---------------------------------------------------------------------------
 
@@ -248,9 +245,8 @@ class _StoreBuilder:
         )
         function_count = sum(len(s.functions) for s in inst.spaces) if inst else 0
         # The project list reads its "Status" column from CompletionStatus; without it the project
-        # is listed as "Unknown". It is captured at import into extra_attributes (it is one of the
-        # ProjectInformation attributes xknxproject does not surface), so re-emit it from there and
-        # fall back to what ETS puts on a project that is simply being worked on.
+        # is listed as "Unknown". Write the project's own status, else "Editing", the status of a
+        # project that is simply being worked on.
         counts: dict[str, object] = (
             {"Birdy-DeviceCount": device_count}
             if self._format is StoreFormat.ETS5
@@ -271,7 +267,9 @@ class _StoreBuilder:
             LastModified=project.last_modified or now,
             ProjectStart=extra.get("ProjectStart") or now,
             Comment=project.comment or "",
-            CompletionStatus=extra.get("CompletionStatus") or "Editing",
+            CompletionStatus=project.completion_status
+            if project.completion_status not in ("", UNDEFINED_STATUS)
+            else "Editing",
             LastUsedPuid=self._counter,
             Guid=self.guid,
             **counts,
@@ -337,7 +335,7 @@ class _StoreBuilder:
             Usage=space.usage or None,
             Description=space.description or None,
             Comment=space.comment or None,
-            DefaultLine=self._remap_pid(space.default_line) or None,
+            DefaultLine=self._line_ref(space.default_line_id),
             Context=space.context or None,
             Puid=self._p("SP", space.id),
         )
@@ -371,6 +369,7 @@ class _StoreBuilder:
             Comment=group_range.comment or None,
             Description=group_range.description or None,
             Unfiltered="true" if group_range.unfiltered else None,
+            Security=group_range.security_mode or None,
             Puid=self._p("GR", group_range.id),
         )
         for child in sorted(group_range.children, key=lambda gr: gr.range_start):

@@ -29,8 +29,22 @@ from editor_gui.device import (
 )
 from editor_gui.device_plugins import parameters_in_plugin
 from editor_gui.plugins.mcp.context import McpContext, make_tool, require_project
+from editor_gui.plugins.project.element_status import usage_label, usage_options
+from editor_gui.plugins.project.paste import PasteTarget
 from editor_gui.plugins.project.service import DeviceProduct
+from editor_gui.plugins.project.space_text import default_name, space_error_text
+from editor_gui.plugins.project.space_usages import SPACE_USAGES
+from editor_gui.plugins.project.strings import S as PROJECT_S
 from editor_gui.settings import config_dir
+from xknxeditor.proj.core.medium import (
+    MEDIUM_NAMES,
+    MediumError,
+    format_domain_address,
+    has_domain_address,
+    medium_name,
+)
+from xknxeditor.proj.core.paste import AddressPool, Allocation
+from xknxeditor.proj.core.space_rules import SpaceRuleError
 
 # A device whose parameters only the manufacturer's plugin dialog sets.
 PLUGIN_PARAMETERS_ERROR = (
@@ -47,6 +61,8 @@ if TYPE_CHECKING:
 
 # Slow, file/parse-heavy operations get a generous main-thread budget (they briefly hold the frame).
 _SLOW = 300.0
+# The most spaces or trades one add creates, as the Add dialog's Count allows.
+_MAX_ADD_COUNT = 100
 
 # The com-object flags a client may override (also the schema enum for project_set_com_object_flag).
 Flag = Literal["communication", "read", "write", "transmit", "update", "read_on_init"]
@@ -88,6 +104,46 @@ def _prune(d: dict[str, Any]) -> dict[str, Any]:
     return {k: v for k, v in d.items() if v not in (None, "", [], ())}
 
 
+# The media of lines and segments by the name a client passes.
+Medium = Literal["TP", "PL", "RF", "IP", "IoT"]
+_MEDIA: dict[str, str] = {name: medium for medium, name in MEDIUM_NAMES.items()}
+# How new areas and lines are numbered ("Generate Addresses" of the Add dialog).
+NumberAllocation = Literal["fill_up", "append", "start_with"]
+
+
+def _segment_entry(segment: Any) -> dict[str, Any]:
+    """A sub-segment as project_topology lists it."""
+    entry: dict[str, Any] = {
+        "id": segment.id,
+        "number": segment.number,
+        "name": segment.name,
+        "medium": medium_name(segment.medium_type),
+    }
+    if segment.domain_address is not None:
+        entry["domain_address"] = format_domain_address(
+            segment.medium_type, segment.domain_address
+        )
+    return entry
+
+
+def _line_entry(line: Any) -> dict[str, Any]:
+    """A line as project_topology lists it: with its medium and its sub-segments."""
+    entry: dict[str, Any] = {
+        "id": line.id,
+        "line_number": line.line_number,
+        "name": line.name,
+        "description": line.description,
+        "medium": medium_name(line.medium_type),
+        "main_segment_id": line.main_segment_id,
+        "segments": [_segment_entry(s) for s in line.segments],
+    }
+    if line.domain_address is not None:
+        entry["domain_address"] = format_domain_address(
+            line.medium_type, line.domain_address
+        )
+    return entry
+
+
 def _device_dict(device: Device) -> dict[str, Any]:
     return {
         "node_id": device.node_id,
@@ -106,6 +162,17 @@ def _additional_address_dict(entry: Any) -> dict[str, Any]:
     }
 
 
+def _forced_dict(forced: Any) -> dict[str, Any] | None:
+    """The group that forces its Security on what is below it, or None."""
+    if forced is None:
+        return None
+    return {
+        "group_range_id": forced.group_range_id,
+        "name": forced.name,
+        "mode": forced.mode,
+    }
+
+
 def _ga_dict(g: Any) -> dict[str, Any]:
     return {
         "id": g.id,
@@ -114,6 +181,9 @@ def _ga_dict(g: Any) -> dict[str, Any]:
         "datapoint_type": g.datapoint_type,
         "description": g.description,
         "data_secure": g.data_secure,
+        "security": g.security_mode or "Auto",
+        "security_forced_by": _forced_dict(g.forced_by),
+        "central": g.central,
     }
 
 
@@ -142,6 +212,7 @@ def _function_dict(f: Any) -> dict[str, Any]:
                     "id": g.id,
                     "group_address_id": g.group_address_id,
                     "text": g.text,
+                    "name": g.name,
                     "role": g.role,
                 }
                 for g in f.group_addresses
@@ -150,18 +221,36 @@ def _function_dict(f: Any) -> dict[str, Any]:
     )
 
 
+def _trade_dict(t: Any) -> dict[str, Any]:
+    """A trade with its devices and sub-trades (recursive); empty optional fields are left
+    out."""
+    return {"id": t.id, "name": t.name} | _prune(
+        {
+            "number": t.number,
+            "description": t.description,
+            "devices": [_space_device_dict(d.device) for d in t.devices],
+            "children": [_trade_dict(c) for c in t.children],
+        }
+    )
+
+
 def _space_dict(s: Any) -> dict[str, Any]:
     """Recursively serialize a building/location tree node (space -> children/devices/functions).
-    Empty optional fields (number, usage_text, description) and empty device/function/children
-    lists are omitted to keep the tree compact."""
+    Empty optional fields (number, usage, usage_text, description, current_line_id) and empty
+    device/function/children lists are omitted to keep the tree compact."""
     return _prune(
         {
             "id": s.id,
             "name": s.name,
             "space_type": s.space_type,
             "number": s.number,
-            "usage_text": s.usage_text,
+            "usage": s.usage,
+            "usage_text": usage_label(s.usage, s.usage_text)
+            if s.usage
+            else s.usage_text,
             "description": s.description,
+            # The space's own Current Line (see project_get_current_line).
+            "current_line_id": s.default_line_id,
             "devices": [_space_device_dict(d) for d in s.devices],
             "functions": [_function_dict(f) for f in s.functions],
             "children": [_space_dict(c) for c in s.children],
@@ -181,9 +270,15 @@ def _widget_dict(widget: Any, include_choices: bool = True) -> dict[str, Any]:
     if name == "EnumWidget":
         if not include_choices:
             return {"type": "enum", "choice_count": len(widget.choices)}
+        # A choice shown as an icon carries its name; one without a text (a colour) is named
+        # by it.
         return {
             "type": "enum",
-            "choices": [{"value": c.value, "label": c.label} for c in widget.choices],
+            "choices": [
+                {"value": c.value, "label": _choice_label(c)}
+                | ({"icon": c.icon} if getattr(c, "icon", None) else {})
+                for c in widget.choices
+            ],
         }
     if name in ("NumberWidget", "NumberSliderWidget", "ProgressBarWidget"):
         return {"type": "number", "min": widget.min, "max": widget.max}
@@ -204,8 +299,13 @@ def _enum_value_label(widget: Any, value: Any) -> str | None:
         return None
     for c in widget.choices:
         if str(c.value) == str(value):
-            return c.label
+            return _choice_label(c)
     return None
+
+
+def _choice_label(choice: Any) -> str:
+    """An enum choice's text; one shown only as its icon (a colour) is named by the icon."""
+    return choice.label or getattr(choice, "icon", None) or ""
 
 
 def _parameter_dict(p: Any, include_choices: bool = True) -> dict[str, Any]:
@@ -234,9 +334,9 @@ def _resolve_enum_value(widget: Any, value_label: str, param_label: str) -> str:
             f"parameter {param_label!r} is not an enum; pass a raw value, not value_label"
         )
     want = value_label.strip().casefold()
-    hits = [c for c in widget.choices if (c.label or "").strip().casefold() == want]
+    hits = [c for c in widget.choices if _choice_label(c).strip().casefold() == want]
     if not hits:
-        avail = ", ".join(repr(c.label) for c in widget.choices)
+        avail = ", ".join(repr(_choice_label(c)) for c in widget.choices)
         raise ValueError(
             f"no choice labelled {value_label!r} for {param_label!r}; choices: {avail}"
         )
@@ -1052,11 +1152,20 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         )
 
     @tool("destructive")
-    def project_new(path: str) -> dict[str, Any]:
-        """Create a new empty KNX project (.xknx) at ``path`` (on the editor host) and open it. An
-        existing file at ``path`` is replaced and the current project closed; file replacement is NOT
-        undoable with project_undo. Returns {open, path}."""
-        ctx.run_locked(lambda: project.new(Path(path)), timeout=_SLOW)
+    def project_new(
+        path: str,
+        group_address_style: Literal["ThreeLevel", "TwoLevel", "Free"] = "ThreeLevel",
+    ) -> dict[str, Any]:
+        """Create a new empty KNX project (.xknx) at ``path`` (on the editor host) and open it,
+        with its group addresses in ``group_address_style`` (as the New Project dialog asks).
+        An existing file at ``path`` is replaced and the current project closed; file
+        replacement is NOT undoable with project_undo. Returns {open, path}."""
+        from xknxeditor.proj.core.addressing import GroupAddressStyle
+
+        style = GroupAddressStyle(group_address_style)
+        ctx.run_locked(
+            lambda: project.new(Path(path), group_address_style=style), timeout=_SLOW
+        )
         return {"open": True, "path": str(project.path) if project.path else None}
 
     @tool("write")
@@ -1260,6 +1369,78 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         return ctx.run_locked(_set)
 
+    @tool("read")
+    def project_get_ip_settings(
+        node_id: int | None = None, device_address: str | None = None
+    ) -> dict[str, Any]:
+        """The IP settings of an IP device (its hardware is IP-enabled). Identify the device by
+        ``node_id`` OR ``device_address`` (an individual address like "1.0.30"); pass exactly
+        one. Returns {node_id, tool_managed, assign, ip_address, subnet_mask, default_gateway,
+        mac_address, multicast_address}:
+        - tool_managed: whether its application leaves the IP configuration to the tool; only
+          then ``assign`` and the MAC address apply (otherwise the application's parameters set
+          it and only ``ip_address``, the assigned one, is kept).
+        - assign: "Auto" (obtained automatically) or "Fixed" (static).
+        - ip_address: the static address, or with "Auto" the address it was assigned (null or
+          "0.0.0.0" when unknown); subnet_mask and default_gateway belong to a static address.
+        - mac_address: read from the device by a download, null before.
+        - multicast_address: the installation's routing multicast address for a device on an
+          IP medium, else null."""
+        require_project(ctx)
+        return ctx.run_locked(
+            lambda: _ip_settings(_require_device(node_id, device_address).node_id)
+        )
+
+    def _ip_settings(node: int) -> dict[str, Any]:
+        settings = project.ip_settings(node)
+        if settings is None:
+            raise ToolError(f"device {node} is no IP device")
+        return {
+            "node_id": node,
+            "tool_managed": settings.tool_managed,
+            "assign": settings.assign,
+            "ip_address": settings.ip_address,
+            "subnet_mask": settings.subnet_mask,
+            "default_gateway": settings.default_gateway,
+            "mac_address": settings.mac_address,
+            "multicast_address": settings.multicast_address,
+        }
+
+    @tool("write")
+    def project_set_ip_settings(
+        node_id: int | None = None,
+        device_address: str | None = None,
+        assign: Literal["Auto", "Fixed"] | None = None,
+        ip_address: str | None = None,
+        subnet_mask: str | None = None,
+        default_gateway: str | None = None,
+    ) -> dict[str, Any]:
+        """Change the IP settings of an IP device in one undo step, as its details do (the next
+        full download writes them). Identify the device by ``node_id`` OR ``device_address``
+        (an individual address like "1.0.30"); pass exactly one. Omitted values stay.
+        ``assign`` "Auto" (obtain automatically) or "Fixed" (static); changing it keeps the
+        addresses. Addresses are IPv4 ("192.168.1.10"; also short forms like "192.168.1" =
+        192.168.0.1); "0.0.0.0" clears the assigned address. A static address marks the
+        device's IP configuration as not downloaded. Returns the settings as
+        project_get_ip_settings does."""
+        require_project(ctx)
+
+        def _set() -> dict[str, Any]:
+            node = _require_device(node_id, device_address).node_id
+            _ip_settings(node)
+            error = project.set_ip_settings(
+                node,
+                assign=assign,
+                ip_address=ip_address,
+                subnet_mask=subnet_mask,
+                default_gateway=default_gateway,
+            )
+            if error:
+                raise ToolError(error)
+            return _ip_settings(node)
+
+        return ctx.run_locked(_set)
+
     @tool("destructive")
     def project_export_keyring(dest: str, password: str) -> dict[str, Any]:
         """Export the open project's key material as a keyring (``.knxkeys``) to ``dest``,
@@ -1419,16 +1600,25 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         """Read a project device. Identify it by ``node_id`` OR ``device_address`` (an individual
         address like "1.0.30"); pass exactly one. Returns {node_id, name, individual_address,
         description}, plus {product_ref_id, hardware2program_ref_id, order_number, hardware_name,
-        product_name, manufacturer_name, additional_addresses} when catalog metadata is available.
-        individual_address is null when unset. additional_addresses lists the device's additional
+        product_name, manufacturer_name, additional_addresses, last_modified, last_downloaded} when
+        catalog metadata is available. individual_address is null when unset. last_modified (its
+        configuration last changed) and last_downloaded are UTC times as the project stores them
+        ("2026-01-24T11:38:26.8111136Z"), null for never. bus_current is its hardware's bus
+        current as shown ("12 mA"; "10 mA (estimated)", or "320 mA (estimated)" for a power
+        supply, when the product gives none; "-" when it needs no estimate on its line). additional_addresses lists the device's additional
         individual addresses (the tunnelling addresses of an IP interface) as {index, address, name,
         description}; index is 1-based (the AddressIndex of a tunnelling interface), address an
-        "a.l.d" string or null for an entry without one."""
+        "a.l.d" string or null for an entry without one. segment_id is the segment the device is
+        on (see project_topology), null for a device on no line (project_unlink_device); line is
+        that line's address ("1.5", null on no line), also for a device without a device number
+        (project_park_device)."""
 
         def _read() -> dict[str, Any]:
             device = _require_device(node_id, device_address)
             info = project.get_device_info(device.node_id)
             data = _device_dict(device)
+            data["segment_id"] = project.device_segments().get(device.node_id)
+            data["line"] = project.device_lines().get(device.node_id)
             if info is not None:
                 data |= {
                     "product_ref_id": info.product_ref_id,
@@ -1441,6 +1631,9 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                         _additional_address_dict(entry)
                         for entry in info.additional_addresses
                     ],
+                    "last_modified": info.last_modified,
+                    "last_downloaded": info.last_download,
+                    "bus_current": project.device_bus_current_text(device.node_id),
                 }
             return data
 
@@ -1781,7 +1974,10 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
     ) -> dict[str, Any]:
         """List project group addresses, optionally filtering names by a case-insensitive substring.
         Returns {items, count}; each item has {id, address, name, datapoint_type, description,
-        data_secure}. Pass ``id`` as group_address_id to project tools. ``address`` is formatted in the
+        data_secure, security, security_forced_by, central}: data_secure whether it is secured
+        now, security its own mode (Auto, On or Off), security_forced_by the main or middle group
+        that overrides it ({group_range_id, name, mode}, null for none), central whether it is
+        marked central. Pass ``id`` as group_address_id to project tools. ``address`` is formatted in the
         project's style; monitor tools accept a group-address string and normalize it (to ThreeLevel)
         internally."""
 
@@ -1801,8 +1997,8 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
     ) -> dict[str, Any]:
         """Read a project group address. Identify it by ``group_address_id`` (id from
         project_list_group_addresses) OR ``group_address`` (a printed address like "10/1/2" in the
-        project's style); pass exactly one. Returns {id, address, name, datapoint_type, description,
-        data_secure}."""
+        project's style); pass exactly one. Returns the fields project_list_group_addresses
+        lists."""
 
         def _read() -> dict[str, Any]:
             ga_id = _require_group_address_id(group_address_id, group_address)
@@ -1868,7 +2064,9 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
     def project_topology() -> dict[str, Any]:
         """Read the project topology. Returns {items, count}; each area item has
         {id, area_number, name, description, lines}, and each line has {id, line_number, name,
-        description}. count counts areas.
+        description, medium, domain_address?, main_segment_id, segments}: medium is TP, PL, RF,
+        IP or IoT (its main segment's), segments its sub-segments [{id, number, name, medium,
+        domain_address?}]. count counts areas.
         Pass an area's id as area_id and a line's id as line_id to topology tools; these IDs differ
         from the area/line numbers used in individual addresses."""
 
@@ -1879,15 +2077,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                     "area_number": area.area_number,
                     "name": area.name,
                     "description": area.description,
-                    "lines": [
-                        {
-                            "id": ln.id,
-                            "line_number": ln.line_number,
-                            "name": ln.name,
-                            "description": ln.description,
-                        }
-                        for ln in project.get_lines(area.id)
-                    ],
+                    "lines": [_line_entry(ln) for ln in project.get_lines(area.id)],
                 }
                 for area in project.get_areas()
             ]
@@ -1924,14 +2114,19 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         space_id: int | None = None,
     ) -> dict[str, Any]:
         """Place a device in a room/space, or remove it from any space with space_id=null. Use a
-        space ``id`` from project_spaces; identify the device by ``node_id`` OR ``device_address``
+        space ``id`` from project_spaces: a Stairway, Room, Corridor or DistributionBoard (the
+        other types hold no devices). Identify the device by ``node_id`` OR ``device_address``
         (an individual address like "1.0.30"), pass exactly one. Undoable project edit. Returns
         {node_id, space_id}."""
         require_project(ctx)
 
         def _set() -> dict[str, Any]:
             device = _require_device(node_id, device_address)
-            project.set_device_space(device.node_id, space_id)
+            if space_id is not None and project.find_space(space_id) is None:
+                raise ToolError(f"no space with id {space_id}")
+            reason = project.set_device_space(device.node_id, space_id)
+            if reason:
+                raise ToolError(reason)
             return {"node_id": device.node_id, "space_id": space_id}
 
         return ctx.run_locked(_set)
@@ -2030,26 +2225,151 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     @tool("write")
     def project_create_space(
-        space_type: str, name: str, parent_id: int | None = None
+        space_type: str,
+        name: str = "",
+        parent_id: int | None = None,
+        usage: str = "",
+        count: int = 1,
     ) -> dict[str, Any]:
-        """Create a building/location space. ``space_type`` is one of Building, BuildingPart, Floor,
-        Room, Corridor, Stairway, DistributionBoard. ``parent_id`` is a parent space ``id`` from
-        project_spaces (null = top level). Undoable project edit. Returns {space_id, parent_id,
-        space_type, name}."""
+        """Create a building/location space, or ``count`` of them (1 to 100) as the Add dialog
+        does. ``space_type`` is one of Building, BuildingPart, Floor, Room, Corridor, Stairway,
+        DistributionBoard (shown as "Cabinet"). Without a ``name`` a space gets the editor's
+        default name of its type ("New room" in English). ``parent_id`` is a parent space ``id``
+        from project_spaces (null = top level). Where a type may go: the top level holds
+        Buildings only; a Building or BuildingPart holds BuildingPart, Floor, Stairway, Room and
+        Corridor; a Floor holds BuildingPart, Room and Corridor; a Stairway, Room or Corridor
+        holds DistributionBoard; a DistributionBoard nothing. Only a Stairway, Room, Corridor or
+        DistributionBoard holds devices. A type never changes. A Room can get its ``usage`` (its
+        "Use", an id from project_list_space_usages; "" for none); without a ``name`` it is
+        named after its use. All of them are one undo step (project_undo). Returns {space_id,
+        space_ids, parent_id, space_type, name}: space_id is the first new space, space_ids all
+        of them."""
         require_project(ctx)
+        if usage and (space_type != "Room" or usage not in SPACE_USAGES):
+            raise ToolError(
+                "usage is for a Room only and must be an id from project_list_space_usages"
+            )
+        if not 1 <= count <= _MAX_ADD_COUNT:
+            raise ToolError(f"count must be 1 to {_MAX_ADD_COUNT}")
+        title = (
+            name.strip()
+            or (usage_label(usage) if usage else "")
+            or default_name(space_type)
+        )
 
         def _create() -> dict[str, Any]:
-            sid = project.create_space(parent_id, space_type, name)
-            if sid is None:
-                raise ToolError("could not create space (no project open)")
+            if parent_id is not None and project.find_space(parent_id) is None:
+                raise ToolError(f"no space with id {parent_id}")
+            target = project.paste_target_name(PasteTarget("space", parent_id))
+            label = (
+                PROJECT_S.HISTORY_EV_ADDED_BUILDING_PARTS.format(
+                    count=count, target=target
+                )
+                if count > 1
+                else None
+            )
+            ids: list[int] = []
+            try:
+                with project.one_undo_step(label):
+                    for _ in range(count):
+                        sid = project.create_space(parent_id, space_type, title, usage)
+                        if sid is None:
+                            raise ToolError("could not create space (no project open)")
+                        ids.append(sid)
+            except SpaceRuleError as error:
+                raise ToolError(space_error_text(error)) from error
             return {
-                "space_id": sid,
+                "space_id": ids[0],
+                "space_ids": ids,
                 "parent_id": parent_id,
                 "space_type": space_type,
-                "name": name,
+                "name": title,
             }
 
         return ctx.run_locked(_create)
+
+    @tool("read")
+    def project_list_space_usages() -> dict[str, Any]:
+        """The uses a Room can have (its "Use" drop-down): the space usages of the KNX master data.
+        Returns {items, count}; each item has {usage, text}: the id for project_set_space_usage
+        and project_create_space, and its text in the editor's language, sorted by text."""
+        return _items(
+            [{"usage": usage, "text": text} for usage, text in usage_options() if usage]
+        )
+
+    @tool("write")
+    def project_set_space_usage(space_id: int, usage: str) -> dict[str, Any]:
+        """Set the "Use" of a Room (``id`` from project_spaces): an id from
+        project_list_space_usages, or "" for none. Undoable project edit. Returns {space_id,
+        usage, usage_text}."""
+        require_project(ctx)
+        if usage and usage not in SPACE_USAGES:
+            raise ToolError(f"unknown usage {usage!r}; see project_list_space_usages")
+
+        def _set() -> dict[str, Any]:
+            space = project.find_space(space_id)
+            if space is None:
+                raise ToolError(f"no space with id {space_id}")
+            if space.space_type != "Room":
+                raise ToolError("only a Room has a use")
+            project.set_space_usage(space_id, usage)
+            return {
+                "space_id": space_id,
+                "usage": usage,
+                "usage_text": usage_label(usage) if usage else "",
+            }
+
+        return ctx.run_locked(_set)
+
+    def _current_line(space_id: int) -> dict[str, Any]:
+        if project.find_space(space_id) is None:
+            raise ToolError(f"no space with id {space_id}")
+        current = project.current_line(space_id)
+        if current is None:
+            return {
+                "space_id": space_id,
+                "line_id": None,
+                "line": None,
+                "set_by_space_id": None,
+            }
+        line_id, setter = current
+        return {
+            "space_id": space_id,
+            "line_id": line_id,
+            "line": dict(project.line_choices()).get(line_id),
+            "set_by_space_id": setter.id,
+        }
+
+    @tool("read")
+    def project_get_current_line(space_id: int) -> dict[str, Any]:
+        """The "Current Line" of a space (``id`` from project_spaces): the line a device added to
+        the space (project_add_device with space_id) is placed on. It is the space's own, else that
+        of the nearest space above it that has one. Returns {space_id, line_id, line,
+        set_by_space_id}: ``line`` is the line's address and name ("1.1 Name"),
+        ``set_by_space_id`` the space that sets it (``space_id`` itself for its own); all null
+        when no space sets one."""
+        require_project(ctx)
+        return ctx.run_locked(lambda: _current_line(space_id))
+
+    @tool("write")
+    def project_set_current_line(
+        space_id: int, line_id: int | None = None
+    ) -> dict[str, Any]:
+        """Set the "Current Line" of a space (``id`` from project_spaces) to the line ``line_id``
+        (a line's id from project_topology), or clear the space's own with null, so it takes the
+        one of the spaces above it again. Undoable project edit. Returns the same as
+        project_get_current_line."""
+        require_project(ctx)
+
+        def _set() -> dict[str, Any]:
+            if project.find_space(space_id) is None:
+                raise ToolError(f"no space with id {space_id}")
+            if line_id is not None and line_id not in dict(project.line_choices()):
+                raise ToolError(f"no line with id {line_id}; see project_topology")
+            project.set_space_default_line(space_id, line_id)
+            return _current_line(space_id)
+
+        return ctx.run_locked(_set)
 
     @tool("write")
     def project_rename_space(space_id: int, name: str) -> dict[str, Any]:
@@ -2060,24 +2380,26 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         return {"space_id": space_id, "name": name}
 
     @tool("write")
-    def project_set_space_type(space_id: int, space_type: str) -> dict[str, Any]:
-        """Set a space's type (Building, BuildingPart, Floor, Room, Corridor, Stairway,
-        DistributionBoard). ``id`` from project_spaces. Undoable project edit. Returns
-        {space_id, space_type}."""
-        require_project(ctx)
-        ctx.run_locked(lambda: project.set_space_type(space_id, space_type))
-        return {"space_id": space_id, "space_type": space_type}
-
-    @tool("write")
     def project_move_space(
         space_id: int, new_parent_id: int | None = None
     ) -> dict[str, Any]:
-        """Move a space under a different parent space, or to the top level with new_parent_id=null.
-        Both ``id`` values come from project_spaces. Undoable project edit. Returns
-        {space_id, new_parent_id}."""
+        """Move a space (with what is below it) under a different parent space, or to the top
+        level with new_parent_id=null. Both ``id`` values come from project_spaces. The rules of
+        project_create_space apply (only a Building at the top level, a DistributionBoard only
+        in a Stairway, Room or Corridor, …); a space cannot go below itself, and its type never
+        changes. Undoable project edit. Returns {space_id, new_parent_id}."""
         require_project(ctx)
-        ctx.run_locked(lambda: project.move_space(space_id, new_parent_id))
-        return {"space_id": space_id, "new_parent_id": new_parent_id}
+
+        def _move() -> dict[str, Any]:
+            for sid in (space_id, new_parent_id):
+                if sid is not None and project.find_space(sid) is None:
+                    raise ToolError(f"no space with id {sid}")
+            reason = project.move_space(space_id, new_parent_id)
+            if reason:
+                raise ToolError(reason)
+            return {"space_id": space_id, "new_parent_id": new_parent_id}
+
+        return ctx.run_locked(_move)
 
     @tool("destructive")
     def project_remove_space(space_id: int) -> dict[str, Any]:
@@ -2087,6 +2409,151 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         ctx.run_locked(lambda: project.remove_space(space_id))
         return {"status": "removed", "space_id": space_id}
 
+    # --- trades -------------------------------------------------------------
+
+    def _require_trade(trade_id: int) -> None:
+        if project.find_trade(trade_id) is None:
+            raise ToolError(f"no trade with id {trade_id}")
+
+    def _trade_result(trade_id: int) -> dict[str, Any]:
+        trade = project.find_trade(trade_id)
+        if trade is None:
+            raise ToolError(f"no trade with id {trade_id}")
+        return _trade_dict(trade)
+
+    @tool("read")
+    def project_trades() -> dict[str, Any]:
+        """Read the trades of the Buildings view: devices grouped by discipline (lighting,
+        heating …) in a tree of trades. Returns {items, count}; count counts top-level trades.
+        Each trade has {id, name, number?, description?, devices?, children?}; a device has
+        {node_id, name, individual_address, description, product_name, manufacturer_name}. A
+        device is in one trade at most. Status and comment: project_get_status /
+        project_get_comment with kind trade."""
+        require_project(ctx)
+
+        def _read() -> dict[str, Any]:
+            trades = [_trade_dict(t) for t in project.get_trade_tree()]
+            return {"items": trades, "count": len(trades)}
+
+        return ctx.run_locked(_read)
+
+    @tool("write")
+    def project_create_trade(
+        name: str = "", parent_id: int | None = None, count: int = 1
+    ) -> dict[str, Any]:
+        """Create a trade below the trade ``parent_id`` (id from project_trades), or at the top
+        level without one, or ``count`` of them (1 to 100) as the Add dialog does; they come
+        after their siblings. Without a ``name`` a trade gets the editor's default name ("New
+        trade" in English). All of them are one undo step (project_undo). Returns the first new
+        trade as project_trades lists it, with ``trade_ids``: all of them."""
+        require_project(ctx)
+        if not 1 <= count <= _MAX_ADD_COUNT:
+            raise ToolError(f"count must be 1 to {_MAX_ADD_COUNT}")
+        title = name.strip() or PROJECT_S.TRADES_DEFAULT
+
+        def _create() -> dict[str, Any]:
+            if parent_id is not None:
+                _require_trade(parent_id)
+            target = project.paste_target_name(PasteTarget("trade", parent_id))
+            label = (
+                PROJECT_S.HISTORY_EV_ADDED_TRADES.format(count=count, target=target)
+                if count > 1
+                else None
+            )
+            ids: list[int] = []
+            with project.one_undo_step(label):
+                for _ in range(count):
+                    trade_id = project.create_trade(parent_id, title)
+                    assert trade_id is not None
+                    ids.append(trade_id)
+            return {**_trade_result(ids[0]), "trade_ids": ids}
+
+        return ctx.run_locked(_create)
+
+    @tool("write")
+    def project_set_trade(
+        trade_id: int,
+        name: str | None = None,
+        number: str | None = None,
+        description: str | None = None,
+    ) -> dict[str, Any]:
+        """Change a trade's name, number (a free text) or description; pass only what changes.
+        Each change is an undo step (project_undo). Returns the trade as project_trades lists
+        it."""
+        require_project(ctx)
+
+        def _set() -> dict[str, Any]:
+            _require_trade(trade_id)
+            for field, value in (
+                ("name", name),
+                ("number", number),
+                ("description", description),
+            ):
+                if value is not None:
+                    project.set_trade_field(trade_id, field, value)
+            return _trade_result(trade_id)
+
+        return ctx.run_locked(_set)
+
+    @tool("write")
+    def project_move_trade(
+        trade_id: int, parent_id: int | None = None
+    ) -> dict[str, Any]:
+        """Put a trade (with its sub-trades and devices) below the trade ``parent_id``, or at
+        the top level without one; it comes after its new siblings. A trade cannot go below
+        itself. Undoable with project_undo. Returns the trade as project_trades lists it."""
+        require_project(ctx)
+
+        def _move() -> dict[str, Any]:
+            _require_trade(trade_id)
+            if parent_id is not None:
+                _require_trade(parent_id)
+            try:
+                project.move_trade(trade_id, parent_id)
+            except ValueError as exc:
+                raise ToolError(str(exc)) from exc
+            return _trade_result(trade_id)
+
+        return ctx.run_locked(_move)
+
+    @tool("destructive")
+    def project_remove_trade(trade_id: int) -> dict[str, Any]:
+        """Remove a trade and its sub-trades (``id`` from project_trades); their devices stay
+        in the project. Undoable with project_undo. Returns {status, trade_id}."""
+        require_project(ctx)
+
+        def _remove() -> dict[str, Any]:
+            _require_trade(trade_id)
+            project.remove_trade(trade_id)
+            return {"status": "removed", "trade_id": trade_id}
+
+        return ctx.run_locked(_remove)
+
+    @tool("write")
+    def project_set_trade_device(
+        trade_id: int,
+        node_id: int | None = None,
+        device_address: str | None = None,
+        member: bool = True,
+    ) -> dict[str, Any]:
+        """Put a device into a trade (``member`` true), or take it out of it (false). Identify
+        the device by ``node_id`` OR ``device_address`` (an individual address like "1.0.30");
+        pass exactly one. A device is in one trade at most: put into another trade, it leaves
+        the one it was in. Undoable with project_undo. Returns the trade as project_trades
+        lists it."""
+        require_project(ctx)
+
+        def _set() -> dict[str, Any]:
+            _require_trade(trade_id)
+            device = _require_device(node_id, device_address)
+            if member:
+                project.add_trade_device(trade_id, device.node_id)
+            else:
+                project.remove_trade_device(trade_id, device.node_id)
+            return _trade_result(trade_id)
+
+        return ctx.run_locked(_set)
+
     # --- device mutations -------------------------------------------------
 
     @tool("write")
@@ -2094,17 +2561,30 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         product_ref_id: str,
         name: str | None = None,
         hardware2program_ref_id: str | None = None,
+        space_id: int | None = None,
+        segment_id: int | None = None,
     ) -> dict[str, Any]:
         """Add a device to the project using product_ref_id from catalog_list_products.
         Optional hardware2program_ref_id from the same catalog listing selects its application;
-        omitting it selects the newest catalog version. Undoable with project_undo; commissioning
-        hardware requires separate connection tools.
+        omitting it selects the newest catalog version. With ``segment_id`` (a line's main
+        segment or a sub-segment, from project_topology) the device goes on that segment with
+        the next free address of its line, as "Add → Devices…" of a line or segment does. With
+        ``space_id`` (an ``id`` from project_spaces) the device is added to that space and,
+        without ``segment_id``, placed on its Current Line (see project_get_current_line);
+        otherwise, and when the space has no Current Line, it goes on the first TP line.
+        Undoable with project_undo; commissioning hardware requires separate connection tools.
 
         Returns {node_id, name, individual_address, description}, or only {node_id} if the created
         device cannot be loaded. Pass node_id to device tools."""
         require_project(ctx)
 
         def _add() -> dict[str, Any]:
+            if space_id is not None and project.find_space(space_id) is None:
+                raise ToolError(f"no space with id {space_id}")
+            if segment_id is not None and all(
+                segment_id != s for s, _text in project.segment_choices()
+            ):
+                raise ToolError(f"no segment with id {segment_id}")
             product = max(
                 (
                     p
@@ -2129,13 +2609,18 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                     f"application {product.application_id!r} for product {product_ref_id!r} "
                     "is not in the catalog"
                 )
-            device_id = project.add_device(
-                product_ref_id=product.product_ref_id,
-                hardware2program_ref_id=product.hardware2program_ref_id,
-                name=name or "",
-                app=app,
-                product=DeviceProduct.of(product),
-            )
+            try:
+                device_id = project.add_device(
+                    product_ref_id=product.product_ref_id,
+                    hardware2program_ref_id=product.hardware2program_ref_id,
+                    name=name or "",
+                    app=app,
+                    product=DeviceProduct.of(product),
+                    space_id=space_id,
+                    segment_id=segment_id,
+                )
+            except MediumError as error:
+                raise ToolError(str(error)) from error
             if device_id is None:
                 raise ToolError("add_device did not return a device id")
             device = project.find_device_by_node_id(device_id)
@@ -2179,15 +2664,19 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         """Set a project device's individual address to ``address``, e.g. "1.1.5". Identify the
         device by ``node_id`` OR ``device_address`` (its CURRENT individual address); pass exactly
         one. The target area/line must exist in project_topology and the address must be unused in
-        the project. Returns {node_id, name, individual_address, description}. Undoable with
-        project_undo. This does not check or write the bus; use
+        the project; moved into another line, the device goes on its main segment, whose medium
+        its hardware must support. Returns {node_id, name, individual_address, description}.
+        Undoable with project_undo. This does not check or write the bus; use
         connection_assign_individual_address to assign it to hardware."""
 
         def _set() -> dict[str, Any]:
             device = _require_device(node_id, device_address)
-            project.set_device_individual_address(
-                device.node_id, device.individual_address, address
-            )
+            try:
+                project.set_device_individual_address(
+                    device.node_id, device.individual_address, address
+                )
+            except MediumError as error:
+                raise ToolError(str(error)) from error
             updated = _require_device(device.node_id)
             if updated.individual_address != address:
                 raise ToolError(
@@ -2387,13 +2876,86 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     # --- topology mutations -----------------------------------------------
 
-    @tool("write")
-    def project_create_area(area_number: int, name: str = "") -> dict[str, Any]:
-        """Create a project topology area. Undoable with project_undo.
-        Returns {area_id, area_number, name}; use area_id for project_create_line and area edits."""
+    def _numbers(
+        used: set[int],
+        number: int | None,
+        count: int,
+        allocation: NumberAllocation,
+        start_with: int,
+    ) -> list[int]:
+        """The numbers (1 to 15) ``count`` new areas or lines get, as the Add dialog's
+        "Generate Addresses" gives them; ``number`` alone when given."""
+        if not 1 <= count <= _MAX_ADD_COUNT:
+            raise ToolError(f"count must be 1 to {_MAX_ADD_COUNT}")
+        if number is not None:
+            if count != 1:
+                raise ToolError("pass a number only with count 1")
+            return [number]
+        if not 1 <= start_with <= 15:
+            raise ToolError("start_with must be 1 to 15")
+        pool = AddressPool(0, 15, used, Allocation(allocation), start_with=start_with)
+        numbers = [pool.take() for _ in range(count)]
+        if None in numbers:
+            raise ToolError(PROJECT_S.ADD_LIMIT_REACHED)
+        return [n for n in numbers if n is not None]
+
+    @tool("read")
+    def project_line_media(area_number: int, line_number: int) -> dict[str, Any]:
+        """The media a new, empty line ``line_number`` of the area ``area_number`` can have,
+        as the Add dialog's Medium column offers them (line 0 of an area that is not there yet:
+        the main line of a new area). Returns {media}: names like "TP", in the offered order;
+        empty when no line can be added there."""
         require_project(ctx)
-        area_id = ctx.run_locked(lambda: project.create_area(area_number, name))
-        return {"area_id": area_id, "area_number": area_number, "name": name}
+        media = ctx.run_locked(lambda: project.new_line_media(area_number, line_number))
+        return {"media": [MEDIUM_NAMES[m] for m in media]}
+
+    @tool("write")
+    def project_create_area(
+        area_number: int | None = None,
+        name: str = "",
+        medium: Medium = "TP",
+        count: int = 1,
+        allocation: NumberAllocation = "fill_up",
+        start_with: int = 1,
+    ) -> dict[str, Any]:
+        """Create a project topology area with its main line (``x.0``) of ``medium`` (see
+        project_line_media), or ``count`` of them (1 to 100, one undo step) as the Add dialog
+        does. Without ``area_number`` the numbers 1-15 are given as "Generate Addresses" does:
+        ``allocation`` "fill_up" takes the lowest free one, "append" the one after the highest
+        (then the lowest free), "start_with" the first free from ``start_with`` on; each next
+        one the free one after the last. A project has at most 16 areas. Undoable with
+        project_undo. Returns {area_id, area_ids, area_number, area_numbers, name}; use area_id
+        for project_create_line and area edits."""
+        require_project(ctx)
+
+        def _create() -> dict[str, Any]:
+            used = {area.area_number for area in project.get_areas()}
+            numbers = _numbers(used, area_number, count, allocation, start_with)
+            label = (
+                PROJECT_S.HISTORY_EV_ADDED_AREAS.format(
+                    count=count, target=PROJECT_S.PANEL_TOPOLOGY
+                )
+                if count > 1
+                else None
+            )
+            ids: list[int] = []
+            with project.one_undo_step(label):
+                for number in numbers:
+                    try:
+                        area_id = project.create_area(number, name, _MEDIA[medium])
+                    except (MediumError, ValueError) as error:
+                        raise ToolError(str(error)) from error
+                    assert area_id is not None
+                    ids.append(area_id)
+            return {
+                "area_id": ids[0],
+                "area_ids": ids,
+                "area_number": numbers[0],
+                "area_numbers": numbers,
+                "name": name,
+            }
+
+        return ctx.run_locked(_create)
 
     @tool("write")
     def project_rename_area(area_id: int, name: str) -> dict[str, Any]:
@@ -2412,15 +2974,58 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     @tool("write")
     def project_create_line(
-        area_id: int, line_number: int, name: str = ""
+        area_id: int,
+        line_number: int | None = None,
+        name: str = "",
+        medium: Medium | None = None,
+        count: int = 1,
+        allocation: NumberAllocation = "fill_up",
+        start_with: int = 1,
     ) -> dict[str, Any]:
-        """Create a project topology line. Use an area's id from project_topology as area_id.
-        Undoable with project_undo. Returns {line_id, area_id, line_number}; pass line_id to line edits."""
+        """Create a project topology line in an area (an area's id from project_topology), or
+        ``count`` of them (1 to 100, one undo step) as the Add dialog does. Without
+        ``line_number`` the numbers are given as in project_create_area. ``medium`` (see
+        project_line_media) defaults to the one a new line there gets (its area main line's).
+        An area has at most 16 lines, its main line included. Undoable with project_undo.
+        Returns {line_id, line_ids, area_id, line_number, line_numbers}; pass line_id to line
+        edits."""
         require_project(ctx)
-        line_id = ctx.run_locked(
-            lambda: project.create_line(area_id, line_number, name)
-        )
-        return {"line_id": line_id, "area_id": area_id, "line_number": line_number}
+
+        def _create() -> dict[str, Any]:
+            area = next((a for a in project.get_areas() if a.id == area_id), None)
+            if area is None:
+                raise ToolError(f"no area with id {area_id}; see project_topology")
+            used = {line.line_number for line in project.get_lines(area_id)}
+            numbers = _numbers(used, line_number, count, allocation, start_with)
+            target = project.paste_target_name(PasteTarget("area", area_id))
+            label = (
+                PROJECT_S.HISTORY_EV_ADDED_LINES.format(count=count, target=target)
+                if count > 1
+                else None
+            )
+            ids: list[int] = []
+            with project.one_undo_step(label):
+                for number in numbers:
+                    try:
+                        line_id = project.create_line(
+                            area_id,
+                            number,
+                            name,
+                            _MEDIA[medium] if medium is not None else None,
+                        )
+                    except (MediumError, ValueError) as error:
+                        raise ToolError(str(error)) from error
+                    assert line_id is not None
+                    ids.append(line_id)
+            return {
+                "line_id": ids[0],
+                "line_ids": ids,
+                "area_id": area_id,
+                "line_number": numbers[0],
+                "line_numbers": numbers,
+            }
+
+        return ctx.run_locked(_create)
 
     @tool("write")
     def project_rename_line(line_id: int, name: str) -> dict[str, Any]:
@@ -2436,6 +3041,301 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         with line_id as a string."""
         ctx.run_locked(lambda: project.remove_line(line_id))
         return {"status": "removed", "line_id": str(line_id)}
+
+    def _segment_dict(segment_id: int) -> dict[str, Any]:
+        segment = project.find_segment(segment_id)
+        if segment is None:
+            raise ToolError(f"no segment with id {segment_id}")
+        return _segment_entry(segment)
+
+    @tool("write")
+    def project_add_segment(
+        line_id: int,
+        name: str | None = None,
+        medium: Medium | None = None,
+        count: int = 1,
+    ) -> dict[str, Any]:
+        """Add a sub-segment to a line (``id`` from project_topology), or ``count`` of them (1 to
+        100, one undo step) as the Add dialog does. A line's devices are on its main segment
+        (the line itself) unless they are on a sub-segment; a new sub-segment of a TP line is TP
+        or RF, of an IP line TP, RF or IoT, an RF, PL or IoT line takes none, and a line has at
+        most 128 segments.
+        ``medium`` defaults to the line's own when a sub-segment can have it, else TP; without
+        a ``name`` it has none (the editor shows it after its medium, e.g. "TP segment"), as
+        areas and lines. Undoable with project_undo. Returns the (first) segment as
+        project_topology lists it: {id, number, name, medium, domain_address?}, with
+        ``segment_ids``: all of them."""
+        require_project(ctx)
+        if not 1 <= count <= _MAX_ADD_COUNT:
+            raise ToolError(f"count must be 1 to {_MAX_ADD_COUNT}")
+
+        def _add() -> dict[str, Any]:
+            if project.find_line(line_id) is None:
+                raise ToolError(f"no line with id {line_id}")
+            target = project.paste_target_name(PasteTarget("line", line_id))
+            label = (
+                PROJECT_S.HISTORY_EV_ADDED_SEGMENTS.format(count=count, target=target)
+                if count > 1
+                else None
+            )
+            ids: list[int] = []
+            with project.one_undo_step(label):
+                for _ in range(count):
+                    try:
+                        segment_id = project.add_segment(
+                            line_id,
+                            name,
+                            _MEDIA[medium] if medium is not None else None,
+                        )
+                    except MediumError as error:
+                        raise ToolError(str(error)) from error
+                    if segment_id is None:
+                        raise ToolError("could not add a segment (no project open)")
+                    ids.append(segment_id)
+            return {**_segment_dict(ids[0]), "segment_ids": ids}
+
+        return ctx.run_locked(_add)
+
+    @tool("write")
+    def project_rename_segment(segment_id: int, name: str) -> dict[str, Any]:
+        """Rename a sub-segment (``id`` from project_topology). Undoable with project_undo.
+        Returns the segment as project_topology lists it."""
+        require_project(ctx)
+
+        def _rename() -> dict[str, Any]:
+            _segment_dict(segment_id)
+            project.rename_segment(segment_id, name)
+            return _segment_dict(segment_id)
+
+        return ctx.run_locked(_rename)
+
+    @tool("destructive")
+    def project_remove_segment(segment_id: int) -> dict[str, Any]:
+        """Remove a sub-segment and its devices (``id`` from project_topology); a line's main
+        segment cannot be removed. Undoable with project_undo; hardware is unchanged. Returns
+        {status: "removed", segment_id}."""
+        require_project(ctx)
+
+        def _remove() -> dict[str, Any]:
+            if project.segment_medium(segment_id) is None:
+                raise ToolError(f"no segment with id {segment_id}")
+            try:
+                project.remove_segment(segment_id)
+            except MediumError as error:
+                raise ToolError(str(error)) from error
+            return {"status": "removed", "segment_id": segment_id}
+
+        return ctx.run_locked(_remove)
+
+    @tool("write")
+    def project_set_medium(
+        medium: Medium,
+        line_id: int | None = None,
+        segment_id: int | None = None,
+    ) -> dict[str, Any]:
+        """Set the medium of a line (its main segment's) or of a sub-segment; pass exactly one of
+        ``line_id`` and ``segment_id`` (ids from project_topology). The medium can only change
+        while the segment holds no device, and only to one its line allows (see
+        project_add_segment); an RF or PL segment gets a domain address of its own. Undoable with
+        project_undo. Returns {kind, element_id, medium, domain_address?}."""
+        require_project(ctx)
+        if (line_id is None) == (segment_id is None):
+            raise ToolError("pass exactly one of line_id and segment_id")
+
+        def _set() -> dict[str, Any]:
+            kind = "line" if line_id is not None else "segment"
+            element_id = line_id if line_id is not None else segment_id
+            assert element_id is not None
+            if project.element_details(kind, element_id) is None:
+                raise ToolError(f"no {kind} with id {element_id}")
+            try:
+                if kind == "line":
+                    project.set_line_medium(element_id, _MEDIA[medium])
+                else:
+                    project.set_segment_medium(element_id, _MEDIA[medium])
+            except MediumError as error:
+                raise ToolError(str(error)) from error
+            details = project.element_details(kind, element_id)
+            assert details is not None and details.medium is not None
+            result: dict[str, Any] = {
+                "kind": kind,
+                "element_id": element_id,
+                "medium": medium_name(details.medium),
+            }
+            if details.domain_address:
+                result["domain_address"] = details.domain_address
+            return result
+
+        return ctx.run_locked(_set)
+
+    @tool("write")
+    def project_set_domain_address(
+        line_id: int | None = None,
+        segment_id: int | None = None,
+        domain_address: str | None = None,
+    ) -> dict[str, Any]:
+        """Set the domain address of an RF, PL or IoT line (its main segment's) or sub-segment;
+        pass exactly one of ``line_id`` and ``segment_id`` (ids from project_topology). An RF
+        address is written "0001:23456789" (48 bits in hex, at least 0001:00000000, unique in
+        the project), a PL one 1 to 255, an IoT one in decimal; omit ``domain_address`` to
+        generate a new one ("Generate New"). A main line's address goes to every line and
+        segment of its area with the same medium; an RF or IoT sub line below a main line of
+        its medium keeps the main line's. Undoable with project_undo. Returns {kind,
+        element_id, medium, domain_address}."""
+        require_project(ctx)
+        if (line_id is None) == (segment_id is None):
+            raise ToolError("pass exactly one of line_id and segment_id")
+
+        def _set() -> dict[str, Any]:
+            kind = "line" if line_id is not None else "segment"
+            element_id = line_id if line_id is not None else segment_id
+            assert element_id is not None
+            details = project.element_details(kind, element_id)
+            if details is None:
+                raise ToolError(f"no {kind} with id {element_id}")
+            if details.medium is None or not has_domain_address(details.medium):
+                raise ToolError(f"a {kind} of medium TP or IP has no domain address")
+            error = project.set_element_domain_address(kind, element_id, domain_address)
+            if error:
+                raise ToolError(error)
+            details = project.element_details(kind, element_id)
+            assert details is not None and details.medium is not None
+            return {
+                "kind": kind,
+                "element_id": element_id,
+                "medium": medium_name(details.medium),
+                "domain_address": details.domain_address,
+            }
+
+        return ctx.run_locked(_set)
+
+    @tool("write")
+    def project_move_device_to_segment(
+        segment_id: int,
+        node_id: int | None = None,
+        device_address: str | None = None,
+    ) -> dict[str, Any]:
+        """Move a device to a segment (``id`` from project_topology; a line's main segment is its
+        ``main_segment_id``). Identify the device by ``node_id`` OR ``device_address`` (an
+        individual address like "1.0.30"). Within its line it keeps its address, into another
+        line it gets that line's lowest free one. Its hardware must support the segment's
+        medium. Undoable with project_undo. Returns {node_id, name, individual_address,
+        description}."""
+        require_project(ctx)
+
+        def _move() -> dict[str, Any]:
+            device = _require_device(node_id, device_address)
+            try:
+                project.move_device_to_segment(device.node_id, segment_id)
+            except MediumError as error:
+                raise ToolError(str(error)) from error
+            except ValueError as error:
+                raise ToolError(str(error)) from error
+            return _device_dict(_require_device(device.node_id))
+
+        return ctx.run_locked(_move)
+
+    @tool("write")
+    def project_unlink_device(
+        node_id: int | None = None, device_address: str | None = None
+    ) -> dict[str, Any]:
+        """Take a device off its line, as "Unlink" in the topology does: it is on no line and has
+        no individual address then (its additional addresses lose theirs too); the topology lists
+        it under "Unassigned". Identify it by ``node_id`` OR ``device_address`` (an individual
+        address like "1.0.30"). A device already on no line stays as it is. To put it on a line
+        again, use project_move_device_to_segment or project_set_individual_address. Undoable
+        with project_undo (one step). Returns {node_id, name, individual_address, description,
+        segment_id}."""
+        require_project(ctx)
+
+        def _unlink() -> dict[str, Any]:
+            device = _require_device(node_id, device_address)
+            project.unlink_device(device.node_id)
+            data = _device_dict(_require_device(device.node_id))
+            data["segment_id"] = project.device_segments().get(device.node_id)
+            return data
+
+        return ctx.run_locked(_unlink)
+
+    @tool("write")
+    def project_park_device(
+        node_id: int | None = None, device_address: str | None = None
+    ) -> dict[str, Any]:
+        """Clear a device's device number, as "Park" in the topology does: it keeps its line and
+        segment but has no individual address then, shown as its line's address with "-"
+        ("1.5.87" becomes "1.5.-"); its additional addresses keep theirs. Identify it by
+        ``node_id`` OR ``device_address`` (an individual address like "1.0.30"). A device
+        without a device number, or on no line, stays as it is. To give it a number again, use
+        project_set_individual_address. Undoable with project_undo (one step). Returns
+        {node_id, name, individual_address, description, segment_id, line}: ``line`` is its
+        line's address ("1.5")."""
+        require_project(ctx)
+
+        def _park() -> dict[str, Any]:
+            device = _require_device(node_id, device_address)
+            project.park_device(device.node_id)
+            data = _device_dict(_require_device(device.node_id))
+            data["segment_id"] = project.device_segments().get(device.node_id)
+            data["line"] = project.device_lines().get(device.node_id)
+            return data
+
+        return ctx.run_locked(_park)
+
+    @tool("write")
+    def project_move_line(line_id: int, area_id: int) -> dict[str, Any]:
+        """Move a sub line (``id`` from project_topology; not a main line x.0) into another area
+        (an area's ``id``), as its "Move to" does. It keeps its line number when that is free
+        there, else gets the lowest free one; its devices keep their device numbers, so their
+        individual addresses change with it (program them afterwards). An RF, PL or IoT main
+        line takes only lines of its medium, an IP or IoT line needs an IP main line (or IP
+        backbone in area 0); an area has at most 16 lines. Its main segment takes the domain
+        address of the area's main line when it has the same medium, else gets a new one (none
+        on TP or IP). Couplers on it are checked where they end up. Undoable with project_undo
+        (one step). Returns the line as project_topology lists it, with ``area_id`` and its
+        ``address`` ("area.line")."""
+        require_project(ctx)
+
+        def _move() -> dict[str, Any]:
+            reason = project.move_line(line_id, area_id)
+            if reason:
+                raise ToolError(reason)
+            return _moved_line(line_id)
+
+        return ctx.run_locked(_move)
+
+    @tool("write")
+    def project_move_segment(segment_id: int, line_id: int) -> dict[str, Any]:
+        """Move a sub-segment (``id`` from project_topology's ``segments``; not a main segment)
+        onto another line (a line's ``id``, a main line x.0 or the backbone included), as its
+        "Move to" does. It gets the line's lowest free segment number. Its devices keep their
+        device numbers unless one of them is taken in that line: then each whose number is
+        taken gets the line's lowest free one (none when the line is full); devices with
+        additional addresses get them again there. The line must allow the segment's medium (TP
+        or RF below TP, TP, RF or IoT below IP, nothing below RF, PL or IoT) and hold at most
+        128 segments; segment couplers on it are checked where they end up. Nothing changes on
+        its own line. Undoable with project_undo (one step). Returns the target line as
+        project_topology lists it, with ``area_id`` and its ``address``."""
+        require_project(ctx)
+
+        def _move() -> dict[str, Any]:
+            reason = project.move_segment(segment_id, line_id)
+            if reason:
+                raise ToolError(reason)
+            return _moved_line(line_id)
+
+        return ctx.run_locked(_move)
+
+    def _moved_line(line_id: int) -> dict[str, Any]:
+        line = project.find_line(line_id)
+        if line is None:
+            raise ToolError(f"no line with id {line_id}")
+        area = next((a for a in project.get_areas() if a.id == line.area_id), None)
+        number = area.area_number if area is not None else "?"
+        return {
+            **_line_entry(line),
+            "area_id": line.area_id,
+            "address": f"{number}.{line.line_number}",
+        }
 
     # --- group address mutations ------------------------------------------
 
@@ -2498,6 +3398,8 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                         "description": r.description or "",
                         "parent_id": parent_id,
                         "depth": depth,
+                        "security": r.security_mode or "Auto",
+                        "security_forced_by": _forced_dict(r.forced_by),
                     }
                 )
                 _walk(r.children, r.id, depth + 1)
@@ -2509,8 +3411,10 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
     def project_list_group_ranges(name_contains: str | None = None) -> dict[str, Any]:
         """List the group-address folders (main and middle groups), optionally filtering names by
         a case-insensitive substring. Returns {items, count}; each item has {id, address, name,
-        description, parent_id, depth} (depth 0 = main group; name and description are "" when
-        unset, parent_id is null for main groups). Pass ``id`` as group_range_id to
+        description, parent_id, depth, security, security_forced_by} (depth 0 = main group; name
+        and description are "" when unset, parent_id is null for main groups; security is its
+        own mode, Auto, On or Off, and security_forced_by the group above it that overrides it,
+        see project_set_group_range_security). Pass ``id`` as group_range_id to
         project_rename_group_range."""
 
         def _read() -> list[dict[str, Any]]:
@@ -2602,12 +3506,15 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         group_address_id: int | None = None,
         group_address: str | None = None,
     ) -> dict[str, Any]:
-        """Set a group address' KNX Data Secure mode: "On" (secured, generates a key; every
-        linked device must be commissioned securely), "Off" (not secured), or "Auto" (secured
-        while every linked device is commissioned securely). A password-protected project is
-        needed to store a generated key. Identify the group address by ``group_address_id`` (id
-        from project_list_group_addresses) OR ``group_address`` (a printed address like "10/1/2"
-        in the project's style); pass exactly one. Returns {id, address, secured}."""
+        """Set a group address' KNX Data Secure mode (its "Security"): "On" (Forced on: secured,
+        generates a key; every linked device must be commissioned securely), "Off" (Forced off:
+        not secured), or "Auto" (Automatic: secured while every linked device is commissioned
+        securely). A main or middle group forcing On or Off overrides it (see
+        project_set_group_range_security); the mode set here then counts once no group does. A
+        password-protected project is needed to store a generated key. Identify the group address
+        by ``group_address_id`` (id from project_list_group_addresses) OR ``group_address`` (a
+        printed address like "10/1/2" in the project's style); pass exactly one. Returns {id,
+        address, secured}."""
         from xknxeditor.proj import GroupAddressSecurityError, ProjectPasswordRequired
 
         if mode not in ("Auto", "On", "Off"):
@@ -2627,6 +3534,137 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             return {"id": g.id, "address": g.address, "secured": g.data_secure}
 
         return ctx.run_locked(_set)
+
+    @tool("write")
+    def project_set_group_range_security(
+        group_range_id: int, mode: Literal["Auto", "On", "Off"]
+    ) -> dict[str, Any]:
+        """Set the "Security" of a main or middle group (id from project_list_group_ranges):
+        "On" (Forced on) secures and "Off" (Forced off) unsecures every group address and group
+        below it, whatever their own mode; the nearest forcing group above an address decides.
+        "Auto" (Automatic) gives them back their own modes, which stay stored meanwhile. "On"
+        needs every device linked below it commissioned securely, and a password-protected
+        project for the keys it generates. Undoable with project_undo. Returns the group as
+        project_list_group_ranges lists it, with ``secured``: the addresses below it secured
+        now."""
+        from xknxeditor.proj import GroupAddressSecurityError, ProjectPasswordRequired
+
+        require_project(ctx)
+
+        def _set() -> dict[str, Any]:
+            if not any(r["id"] == group_range_id for r in _group_ranges()):
+                raise ToolError(f"no group range with id {group_range_id}")
+            try:
+                project.set_group_range_security(group_range_id, mode)
+            except ProjectPasswordRequired as e:
+                raise ToolError("set a project password first") from e
+            except GroupAddressSecurityError as e:
+                raise ToolError(str(e)) from e
+            found = next(r for r in _group_ranges() if r["id"] == group_range_id)
+            node = _range_node(group_range_id)
+            secured = sorted(ga.text for ga in _addresses_below(node) if ga.data_secure)
+            return {**found, "secured": secured}
+
+        return ctx.run_locked(_set)
+
+    def _range_node(group_range_id: int) -> Any:
+        def _find(nodes: list[Any]) -> Any:
+            for r in nodes:
+                if r.id == group_range_id:
+                    return r
+                found = _find(r.children)
+                if found is not None:
+                    return found
+            return None
+
+        return _find(project.get_group_range_tree())
+
+    def _addresses_below(node: Any) -> list[Any]:
+        if node is None:
+            return []
+        found = list(node.group_addresses)
+        for child in node.children:
+            found.extend(_addresses_below(child))
+        return found
+
+    @tool("write")
+    def project_set_group_address_central(
+        central: bool,
+        group_address_id: int | None = None,
+        group_address: str | None = None,
+    ) -> dict[str, Any]:
+        """Mark a group address as central or not (its "Central" checkbox): a central group
+        address is reused, not copied, when devices or groups are copied within the project. It
+        changes nothing on the bus. Identify the group address by ``group_address_id`` OR
+        ``group_address`` (a printed address like "10/1/2"); pass exactly one. Undoable with
+        project_undo. Returns the fields project_list_group_addresses lists."""
+        require_project(ctx)
+
+        def _set() -> dict[str, Any]:
+            ga_id = _require_group_address_id(group_address_id, group_address)
+            project.set_group_address_central(ga_id, central)
+            g = project.get_group_address(ga_id)
+            if g is None:
+                raise ToolError(f"no group address with id {ga_id}")
+            return _ga_dict(g)
+
+        return ctx.run_locked(_set)
+
+    @tool("write")
+    def project_move_group_address(
+        group_range_id: int,
+        group_address_id: int | None = None,
+        group_address: str | None = None,
+    ) -> dict[str, Any]:
+        """Move a group address into another group, as its "Move to" does: ``group_range_id`` is
+        a middle group (a main group in the two-level style, any range in the Free style; ids
+        from project_list_group_ranges). It keeps its number within the group when that is free
+        there (in the Free style its address, when the range spans it), else it gets the lowest
+        free one; its links move with it and, when its address changes, the linked devices
+        need a download of their group communication. Identify the group address by
+        ``group_address_id`` OR ``group_address`` (a printed address like "10/1/2"). Undoable
+        with project_undo. Returns the fields project_list_group_addresses lists, with the new
+        address."""
+        require_project(ctx)
+
+        def _move() -> dict[str, Any]:
+            ga_id = _require_group_address_id(group_address_id, group_address)
+            reason = project.move_group_address(ga_id, group_range_id)
+            if reason:
+                raise ToolError(reason)
+            g = project.get_group_address(ga_id)
+            if g is None:
+                raise ToolError(f"no group address with id {ga_id}")
+            return _ga_dict(g)
+
+        return ctx.run_locked(_move)
+
+    @tool("write")
+    def project_move_group_range(
+        group_range_id: int, parent_id: int | None = None
+    ) -> dict[str, Any]:
+        """Move a group with its group addresses, as its "Move to" does (ids from
+        project_list_group_ranges). Three-level style: a middle group below the main group
+        ``parent_id``; it keeps its number when that is free there, else it gets the lowest
+        free one. Free style: a range into the range ``parent_id``, or to the top without it;
+        it keeps its addresses when they fit there (within the new parent, beside its ranges),
+        else it goes to the next place it fits. Its group addresses change with it and the
+        linked devices need a download of their group communication. Undoable with
+        project_undo. Returns the moved group as project_list_group_ranges lists it."""
+        require_project(ctx)
+
+        def _move() -> dict[str, Any]:
+            reason = project.move_group_range(group_range_id, parent_id)
+            if reason:
+                raise ToolError(reason)
+            found = next(
+                (r for r in _group_ranges() if r["id"] == group_range_id), None
+            )
+            if found is None:
+                raise ToolError(f"no group range with id {group_range_id}")
+            return found
+
+        return ctx.run_locked(_move)
 
     @tool("destructive")
     def project_remove_group_address(

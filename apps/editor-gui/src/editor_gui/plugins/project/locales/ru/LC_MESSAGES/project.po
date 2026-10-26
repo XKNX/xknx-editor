@@ -505,18 +505,6 @@ msgstr "Щёлкните по результату, чтобы перейти к
 msgid "No buildings/rooms in this project"
 msgstr "В этом проекте нет зданий/комнат"
 
-msgid "+ Function"
-msgstr "+ Функция"
-
-msgid "+ Space"
-msgstr "+ Зона"
-
-msgid "+ Sub-space"
-msgstr "+ Подзона"
-
-msgid "New Space"
-msgstr "Новая зона"
-
 msgid "Name"
 msgstr "Имя"
 
@@ -541,17 +529,11 @@ msgstr "(верхний уровень)"
 msgid "Delete this space and everything in it? Devices are only unassigned, not deleted."
 msgstr "Удалить эту зону и всё её содержимое? Устройства только отвязываются, но не удаляются."
 
-msgid "Assign Device"
-msgstr "Назначить устройство"
-
 msgid "Assign a Device to This Space"
 msgstr "Назначить устройство этой зоне"
 
 msgid "No unassigned devices"
 msgstr "Нет неназначенных устройств"
-
-msgid "Remove from Space"
-msgstr "Убрать из зоны"
 
 msgid "Without Space"
 msgstr "Без зоны"
@@ -573,24 +555,6 @@ msgstr "Коридор"
 
 msgid "Stairway"
 msgstr "Лестница"
-
-msgid "Distribution Board"
-msgstr "Распределительный щит"
-
-msgid "New Function"
-msgstr "Новая функция"
-
-msgid "Rename"
-msgstr "Переименовать"
-
-msgid "Rename Function"
-msgstr "Переименовать функцию"
-
-msgid "Assign Group Address"
-msgstr "Назначить групповой адрес"
-
-msgid "Role (Optional)"
-msgstr "Роль (необязательно)"
 
 msgid "Custom"
 msgstr "Пользовательский"
@@ -955,8 +919,23 @@ msgstr "Ссылка на программу"
 msgid "IP Configuration"
 msgstr "Конфигурация IP"
 
-msgid "Assignment"
-msgstr "Назначение"
+msgid "Obtain an IP address automatically"
+msgstr "Получить IP-адрес автоматически"
+
+msgid "Use a static IP address"
+msgstr "Использовать статический IP-адрес"
+
+msgid "Assigned IP Address"
+msgstr "Назначенный IP-адрес"
+
+msgid "An invalid IP address was specified."
+msgstr "Указан недопустимый IP-адрес."
+
+msgid "Change assigned IP address of '{0}' to '{1}'."
+msgstr "Назначенный IP-адрес '{0}' изменён на '{1}'."
+
+msgid "IP configuration of device '{0}' changed."
+msgstr "IP-конфигурация устройства '{0}' изменена."
 
 msgid "IP Address"
 msgstr "IP-адрес"
@@ -1162,29 +1141,8 @@ msgstr "Фильтр групповых адресов (адрес, имя)…"
 msgid "Filter rooms, devices, functions…"
 msgstr "Фильтр комнат, устройств, функций…"
 
-msgid "Area {area}"
-msgstr "Область {area}"
-
-msgid "{name} (Area {area})"
-msgstr "{name} (область {area})"
-
-msgid "Line {area}.{line}"
-msgstr "Линия {area}.{line}"
-
-msgid "{name} (Line {area}.{line})"
-msgstr "{name} (линия {area}.{line})"
-
 msgid "Unassigned ({count})"
 msgstr "Не назначено ({count})"
-
-msgid "Add Area"
-msgstr "Добавить область"
-
-msgid "Add Line"
-msgstr "Добавить линию"
-
-msgid "Copy Address"
-msgstr "Копировать адрес"
 
 msgid "Duplicate"
 msgstr "Дублировать"
@@ -1252,12 +1210,6 @@ msgstr "Удалить устройство"
 msgid "Delete '{name}'? Its group objects and group-address links are removed and its individual address is freed. This can be undone."
 msgstr "Удалить «{name}»? Его групповые объекты и связи с групповыми адресами будут удалены, а индивидуальный адрес освобождён. Это действие можно отменить."
 
-msgid "New Area"
-msgstr "Новая область"
-
-msgid "New Line"
-msgstr "Новая линия"
-
 msgid "Number"
 msgstr "Номер"
 
@@ -1273,41 +1225,11 @@ msgstr "Загрузить"
 msgid "Copy Log"
 msgstr "Копировать журнал"
 
-msgid "New Group Address"
-msgstr "Новый групповой адрес"
-
-msgid "New Main Group"
-msgstr "Новая главная группа"
-
-msgid "New Middle Group"
-msgstr "Новая средняя группа"
-
-msgid "New Folder"
-msgstr "Новая папка"
-
-msgid "Rename Folder"
-msgstr "Переименовать папку"
-
 msgid "Delete Folder"
 msgstr "Удалить папку"
 
-msgid "Main group name (the next free number is assigned automatically)"
-msgstr "Имя главной группы (следующий свободный номер назначается автоматически)"
-
-msgid "Middle group name (the next free number is assigned automatically)"
-msgstr "Имя средней группы (следующий свободный номер назначается автоматически)"
-
 msgid "Delete this folder and every group address in it? This can be undone."
 msgstr "Удалить эту папку и все групповые адреса в ней? Это действие можно отменить."
-
-msgid "Rename Group Address"
-msgstr "Переименовать групповой адрес"
-
-msgid "Change Address…"
-msgstr "Изменить адрес…"
-
-msgid "New group address (links are kept):"
-msgstr "Новый групповой адрес (связи сохраняются):"
 
 msgid "Invalid address or already in use."
 msgstr "Недопустимый адрес или он уже используется."
@@ -1318,26 +1240,14 @@ msgstr "Защита"
 msgid "Automatic"
 msgstr "Автоматически"
 
-msgid "Secured"
-msgstr "Защищено"
-
-msgid "Not Secured"
-msgstr "Не защищено"
-
 msgid "A secured group address can only be linked to devices that are commissioned securely."
 msgstr "Защищённый групповой адрес можно связать только с устройствами, вводимыми в эксплуатацию с защитой."
 
 msgid "Not every device linked to this group address is commissioned securely, so it cannot be secured."
 msgstr "Не все устройства, связанные с этим групповым адресом, вводятся в эксплуатацию с защитой, поэтому его нельзя защитить."
 
-msgid "Set Datapoint Type"
-msgstr "Задать тип данных"
-
 msgid "Address"
 msgstr "Адрес"
-
-msgid "Datapoint type (e.g. DPST-1-1); empty to clear"
-msgstr "Тип данных (напр. DPST-1-1); пусто — очистить"
 
 msgid "Project: {name}"
 msgstr "Проект: {name}"
@@ -1770,9 +1680,6 @@ msgstr "Пароль должен содержать от 1 до 20 символ
 
 msgid "Close"
 msgstr "Закрыть"
-
-msgid "IP Backbone Security"
-msgstr "Защита IP-магистрали"
 
 msgid "Device Certificates"
 msgstr "Сертификаты устройств"
@@ -2301,3 +2208,732 @@ msgstr "Запись"
 
 msgid "Store plugin data {name}"
 msgstr "Сохранить данные плагина {name}"
+
+msgid "Unknown"
+msgstr "Неопределенный"
+
+msgid "Editing"
+msgstr "Редактирование"
+
+msgid "Finished design"
+msgstr "Готовый дизайн"
+
+msgid "Finished commissioning"
+msgstr "Ввод в эксплуатацию завершен"
+
+msgid "Tested"
+msgstr "Протестировано"
+
+msgid "Accepted"
+msgstr "Принято"
+
+msgid "Locked"
+msgstr "Блокирован"
+
+msgid "Function"
+msgstr "Функция"
+
+msgid "Use"
+msgstr "Назначение"
+
+msgid "Set room use"
+msgstr "Задать назначение помещения"
+
+msgid "Set status to {status}"
+msgstr "Задать статус «{status}»"
+
+msgid "Set function description"
+msgstr "Задать описание функции"
+
+msgid "Current Line"
+msgstr "Текущая линия"
+
+msgid "{line} (inherits from {space})"
+msgstr "{line} (наследует от {space})"
+
+msgid "Set current line"
+msgstr "Задать текущую линию"
+
+msgid "Segment"
+msgstr "Сегмент"
+
+msgid "Medium"
+msgstr "Носитель"
+
+msgid "Domain Address"
+msgstr "Адрес домена"
+
+msgid "The medium of a segment can only change while it holds no device."
+msgstr "Тип среды сегмента можно изменить только в том случае, если он не содержит никаких устройств."
+
+msgid "The medium type of the segment '{segment}' cannot be changed to IoT, because its parent line '{line}' is not of medium type IP."
+msgstr "Тип среды сегмента «{segment}» нельзя изменить на IoT, поскольку его родительская линия «{line}» не имеет IP-типа среды."
+
+msgid "The maximum number of segments has been reached."
+msgstr "Достигнуто максимальное количество сегментов."
+
+msgid "The main segment cannot be deleted."
+msgstr "Главный сегмент не может быть удален."
+
+msgid "Device '{device}' is incompatible with line's medium type."
+msgstr "Устройство '{device}' несовместимо с типом среды линии."
+
+msgid "Device '{device}' is incompatible with segment's medium type."
+msgstr "Устройство '{device}' несовместимо с типом среды сегмента."
+
+msgid "Rename segment to {name}"
+msgstr "Переименовать сегмент в {name}"
+
+msgid "Set medium to {medium}"
+msgstr "Задать носитель {medium}"
+
+msgid "Forced on"
+msgstr "Принудительное включение"
+
+msgid "Forced off"
+msgstr "Принудительное выключение"
+
+msgid "Overridden by '{name}': {mode}"
+msgstr "Переопределено группой '{name}': {mode}"
+
+msgid "Central"
+msgstr "Центральный"
+
+msgid "Not every device linked to a group address of this group is commissioned securely, so it cannot be secured."
+msgstr "Не все устройства, связанные с групповым адресом этой группы, вводятся в эксплуатацию с защитой, поэтому её нельзя защитить."
+
+msgid "Set group security"
+msgstr "Задать защиту группы"
+
+msgid "Mark group address as central"
+msgstr "Отметить групповой адрес как центральный"
+
+msgid "Remove central mark from group address"
+msgstr "Снять отметку центрального с группового адреса"
+
+msgid "Topology"
+msgstr "Топология"
+
+msgid "{medium} backbone line"
+msgstr "магистраль {medium}"
+
+msgid "{medium} main line"
+msgstr "основная линия {medium}"
+
+msgid "Backbone"
+msgstr "Магистраль"
+
+msgid "Network Latency"
+msgstr "Задержка сети"
+
+msgid "LAN (< 400ms)"
+msgstr "LAN (< 400 мс)"
+
+msgid "WLAN (< 1s)"
+msgstr "WLAN (< 1 с)"
+
+msgid "WAN (< 2s)"
+msgstr "WAN (< 2 с)"
+
+msgid "Mobile (< 4s)"
+msgstr "Мобильная (< 4 с)"
+
+msgid "Satellite (< 8s)"
+msgstr "Спутник (< 8 с)"
+
+msgid "The network latency must be a number of milliseconds from 1 to 65535."
+msgstr "Задержка сети должна быть числом миллисекунд от 1 до 65535."
+
+msgid "Multicast Address"
+msgstr "Адрес многоадресной рассылки"
+
+msgid "Enter a multicast address from 224.0.0.0 to 239.255.255.255."
+msgstr "Введите адрес многоадресной рассылки от 224.0.0.0 до 239.255.255.255."
+
+msgid "Bus Connection"
+msgstr "Соединение с шиной"
+
+msgid "Set IP routing of the backbone"
+msgstr "Задать IP-маршрутизацию магистрали"
+
+msgid "As long as a coupler exists at a sub line or sub segment, a change of the medium type is not possible."
+msgstr "Пока в подсегменте или подсегменте существует ответвитель, изменение типа среды невозможно."
+
+msgid "A main line of a project cannot have medium type RF."
+msgstr "Основная линия проекта не может иметь средний тип RF."
+
+msgid "The operation could not be executed, because as medium type of the backbone only IP and TP are allowed."
+msgstr "Операция не может быть выполнена, поскольку в качестве среднего типа магистрали разрешены только IP и TP."
+
+msgid "A sub-segment of KNX medium type IP or PL is not allowed."
+msgstr "Подсегмент IP или PL типа среды KNX не допускается."
+
+msgid "The medium type of the main line '{line}' can no longer be changed to PL, because it already contains lines or segments that are not allowed in PL main lines."
+msgstr "Средний тип основной линии «{line}» больше нельзя изменить на PL, поскольку он уже содержит строки или сегменты, которые не разрешены в основных линиях PL."
+
+msgid "The medium type of the main line '{line}' cannot be changed to IoT, because the backbone line '{backbone}' is not of medium type IP."
+msgstr "Средний тип основной линии «{line}» нельзя изменить на IoT, поскольку магистральная линия «{backbone}» не имеет IP-типа среды."
+
+msgid "The medium type of the main line '{line}' can no longer be changed to IoT, because it already contains lines or segments that are not allowed in IoT main lines."
+msgstr "Средний тип основной линии «{line}» больше нельзя изменить на IoT, поскольку он уже содержит линии или сегменты, которые не разрешены в основных линиях IoT."
+
+msgid "The medium type of the line '{line}' cannot be changed, because it already contains lines or segments that require an IoT or IP main line."
+msgstr "Средний тип основной линии '{line}' нельзя изменить, поскольку он уже содержит линии или сегменты, для которых требуется основная линия IoT или IP."
+
+msgid "A sub-segment is not allowed below a main segment of KNX medium type RF."
+msgstr "Подсегмент не допускается ниже основного сегмента RF среднего типа KNX."
+
+msgid "A sub-segment is not allowed below a main segment of KNX medium type PL."
+msgstr "Подсегмент не допускается ниже основного сегмента PL типа среды KNX."
+
+msgid "A sub-segment of KNX medium type IoT is not allowed below a main segment of the same type."
+msgstr "Подсегмент IoT среднего типа KNX не может находиться ниже основного сегмента того же типа."
+
+msgid "The operation could not be executed, because a RF main line '{line}' requires all other lines in the area to be RF lines as well."
+msgstr "Операцию не удалось выполнить, поскольку основная радиочастотная линия «{line}» требует, чтобы все остальные линии в области также были радиочастотными линиями."
+
+msgid "The operation could not be executed, because a PL main line '{line}' requires all other lines in the area to be PL lines as well."
+msgstr "Операцию не удалось выполнить, поскольку основная линия PL «{line}» требует, чтобы все остальные линии в области также были линиями PL."
+
+msgid "The operation could not be executed, because a IoT main line '{line}' requires all other lines in the area to be IoT lines as well."
+msgstr "Не удалось выполнить операцию, поскольку основная линия IoT «{line}» требует, чтобы все остальные линии в этой области также были линиями IoT."
+
+msgid "The medium type of the line '{line}' cannot be changed to IoT, because its main line '{main}' is not of medium type IP."
+msgstr "Тип средней линии «{line}» нельзя изменить на IoT, поскольку ее основная линия «{main}» не имеет IP-типа среды."
+
+msgid "The medium type of the line '{line}' can no longer be changed to IoT, because it already contains segments that are not allowed in IoT lines."
+msgstr "Средний тип линии «{line}» больше нельзя изменить на IoT, поскольку он уже содержит сегменты, которые не разрешены в линиях IoT."
+
+msgid "The operation could not be executed, because the line is the IP backbone line and the project contains KNXnet/IP routers. KNXnet/IP routers require an IP backbone line."
+msgstr "Операция не может быть выполнена, так как линия является IP-магистралью и проект содержит KNXnet / IP маршрутизаторы. KNXnet / IP маршрутизаторы требуют IP-магистрали."
+
+msgid "The operation could not be executed, because the line is the IP main line and the project contains KNXnet/IP routers. KNXnet/IP routers require an IP main line."
+msgstr "Операция не может быть выполнена, потому что линия является IP-магистралью, и проект содержит KNXnet / IP маршрутизаторы. KNXnet / IP маршрутизаторы требуют IP магистрали."
+
+msgid "The operation could not be executed, because the line is the IP backbone line and the project contains IoT or IP lines."
+msgstr "Эта операция не может быть исполнена, поскольку линия является магистральной IP линией, а проект включает в себя другие IP линии."
+
+msgid "The operation could not be executed, because the medium type of the line can only be set to IP if an IP main line exists."
+msgstr "Операция не может быть выполнена, потому что средний тип линии может быть установлен только на IP, если существует IP-магистраль."
+
+msgid "The operation could not be executed, because the medium type of the line can only be set to IP if an IP backbone line exists."
+msgstr "Операция не может быть выполнена, поскольку этот тип среды линии может быть приписан только IP линии, если магистральная IP линия заложена в проекте."
+
+msgid "The operation could not be executed, because below a TP main segment only segments of KNX medium type TP, RF or PL can exist."
+msgstr "Операция не может быть выполнена, потому что ниже основного сегмента TP могут существовать только сегменты TP, RF или PL среднего типа KNX."
+
+msgid "Below a main segment of KNX medium type IP only segments of medium type TP or RF can exist."
+msgstr "Ниже основного сегмента IP среднего типа KNX могут существовать только сегменты среднего типа TP или RF."
+
+msgid "A sub-segment of KNX medium type PL is not allowed below a main segment."
+msgstr "Подсегмент PL типа среднего KNX не допускается ниже основного сегмента."
+
+msgid "Set bus connection of the backbone"
+msgstr "Задать соединение с шиной магистрали"
+
+msgid "Set domain address"
+msgstr "Задать адрес домена"
+
+msgid "Generate New"
+msgstr "Генерировать новый"
+
+msgid "The given domain address is invalid."
+msgstr "Данный доменный адрес недействителен."
+
+msgid "Domain address is not valid! Valid values are 1 to 255."
+msgstr "Домен адрес недействительный! Допустимыми являются значения от 1 до 255."
+
+msgid "DomainAddress of mediumType 'RF' is lower than the minimum value of 0001:00000000."
+msgstr "Доменный адрес типа среды 'RF' меньше минимально допустимого значения 0001:00000000."
+
+msgid "DomainAddress of medium type '{medium}' exceeds the maximum valid value of {maximum}"
+msgstr "Адрес домена среды типа \"{medium}\" превышает максимально допустимое значение {maximum}"
+
+msgid "DomainAddress of RF sublines must be equal to DomainAdress of main line."
+msgstr "Доменный адрес сублинии RF должен быть эквивалентен доменному адресу основной линии."
+
+msgid "Domain Address of IoT sublines must be equal to Domain Address of main line."
+msgstr "Доменный адрес подлиний IoT должен быть равен доменному адресу основной линии."
+
+msgid "Each line in a project must have a unique domain address."
+msgstr "Каждая линия проекта должна иметь уникальный доменный адрес."
+
+msgid "Last Downloaded"
+msgstr "Последняя загрузка"
+
+msgid "Create trade {name}"
+msgstr "Создать систему {name}"
+
+msgid "Rename trade to {name}"
+msgstr "Переименовать систему в {name}"
+
+msgid "Set trade number"
+msgstr "Задать номер системы"
+
+msgid "Set trade description"
+msgstr "Задать описание системы"
+
+msgid "Move trade"
+msgstr "Переместить систему"
+
+msgid "Remove trade"
+msgstr "Удалить систему"
+
+msgid "Add device to trade"
+msgstr "Добавить устройство в систему"
+
+msgid "Remove device from trade"
+msgstr "Удалить устройство из системы"
+
+msgid "Trades"
+msgstr "Системы"
+
+msgid "Building Parts…"
+msgstr "Части здания…"
+
+msgid "Floors…"
+msgstr "Этажи…"
+
+msgid "Stairways…"
+msgstr "Лестницы…"
+
+msgid "Rooms…"
+msgstr "Комнаты…"
+
+msgid "Corridors…"
+msgstr "Коридоры…"
+
+msgid "Cabinets…"
+msgstr "Шкафы…"
+
+msgid "Devices…"
+msgstr "Устройства…"
+
+msgid "Functions…"
+msgstr "Функции…"
+
+msgid "Trades…"
+msgstr "Системы…"
+
+msgid "Add Buildings…"
+msgstr "Добавить сдания…"
+
+msgid "Add Trades…"
+msgstr "Добавить системы…"
+
+msgid "Add Buildings"
+msgstr "Добавить сдания"
+
+msgid "Add Building Parts"
+msgstr "Добавить части здания"
+
+msgid "Add Floors"
+msgstr "Добавить этажи"
+
+msgid "Add Rooms"
+msgstr "Добавить комнаты"
+
+msgid "Add Corridors"
+msgstr "Добавить коридоры"
+
+msgid "Add Stairways"
+msgstr "Добавить лестницы"
+
+msgid "Add Cabinets"
+msgstr "Добавить шкафы"
+
+msgid "Add Trades"
+msgstr "Добавить системы"
+
+msgid "Add Devices"
+msgstr "Добавить устройства"
+
+msgid "Count"
+msgstr "Рассчитывать"
+
+msgid "to \"{name}\""
+msgstr "к \"{name}\""
+
+msgid "Cabinet"
+msgstr "Шкаф"
+
+msgid "New building"
+msgstr "Новое здание"
+
+msgid "New building part"
+msgstr "Новая часть здания"
+
+msgid "New floor"
+msgstr "Новый этаж"
+
+msgid "New room"
+msgstr "Новая комната"
+
+msgid "New corridor"
+msgstr "Новый коридор"
+
+msgid "New stairway"
+msgstr "Новая лестница"
+
+msgid "New cabinet"
+msgstr "Новый шкаф"
+
+msgid "New trade"
+msgstr "Новая система"
+
+msgid "A building part of this type cannot be added here."
+msgstr "Часть здания данного типа не может быть здесь добавлена."
+
+msgid "A building part of this type cannot be added here.\nCabinets can be added inside of rooms, corridors, or stairways only. If applicable the corridors have to be moved into the corresponding building parts."
+msgstr "Здесь нельзя добавить строительный элемент этого типа.\nШкафы можно добавлять только в комнатах, коридорах или лестницах. При необходимости коридоры должны быть перемещены в соответствующие строительные элементы."
+
+msgid "The target is a child building part."
+msgstr "Цель - дочерняя часть здания."
+
+msgid "Devices can only be added to stairways, rooms, corridors and cabinets."
+msgstr "Устройства можно добавлять только на лестницы, в комнаты, коридоры и шкафы."
+
+msgid "Trade"
+msgstr "Система"
+
+msgid "(estimated)"
+msgstr "(оценочно)"
+
+msgid "Number of Devices"
+msgstr "Количество устройств"
+
+msgid "Unlink"
+msgstr "Разъединить"
+
+msgid "An IP router requires an IP backbone line."
+msgstr "IP-маршрутизатор требует IP-магистрали."
+
+msgid "The operation could not be executed, because a coupler needs a main line."
+msgstr "Операция не может быть выполнена, поскольку соединяющее устройство должно быть на основной линии."
+
+msgid "The operation could not be executed, because an area coupler requires a backbone line."
+msgstr "Эта операция не может быть выполнена, поскольку область с соединяющим устройством требует магистральной линии."
+
+msgid "The operation could not be executed, because this coupler needs a main line with the medium type '{medium}' ."
+msgstr "Операция не может быть выполнена, поскольку на основную линию с типом среды '{medium}' необходимо соединяющее устройство ."
+
+msgid "The operation could not be executed, because only one IP router is allowed as a world coupler."
+msgstr "Эта операция не может быть выполнена, поскольку только один IP маршрутизатор определен как соединяющее устройство."
+
+msgid "The operation could not be executed, because only IP router area allowed as a world coupler."
+msgstr "Операция не может быть совершена, поскольку требует наличия IP роутера."
+
+msgid "The backbone line contains a world coupler. It is not possible to use an IP router below another IP router."
+msgstr "В магистральной линии есть мировой соединитель. Невозможно использовать IP-маршрутизатор ниже другого IP-маршрутизатора."
+
+msgid "It is not possible to use a world coupler, when there are already IP routers in the project."
+msgstr "Невозможно использовать мировой соединитель, если в проекте уже есть IP-маршрутизаторы."
+
+msgid "A world coupler can only be used, when the medium type of the backbone is TP."
+msgstr "Универсальный соединитель уровня может использоваться только в том случае, если типом магистральной среды является TP."
+
+msgid "The coupler does not support segment coupling, so the sub-segment must be of the same KNX medium type as the main segment."
+msgstr "Устройство сопряжения не поддерживает соединение сегментов, поэтому подсегмент должен быть того же типа среды KNX, что и основной сегмент."
+
+msgid "The operation could not be executed, because this device couples medium '{above}' (above) to medium '{below}' (below), but the segment above is '{segment}'."
+msgstr "Операция не может быть выполнена, потому что это устройство связывает средний '{above}' (вверху) со средним '{below}' (внизу), но сегмент вверху - '{segment}'."
+
+msgid "The operation could not be executed, because medium type of coupler device matches only sub segment, but maximum amount of segments reached."
+msgstr "Операция не может быть выполнена, поскольку средний тип устройства сопряжения соответствует только подсегменту, но достигнуто максимальное количество сегментов."
+
+msgid "The operation could not be executed, because this device couples medium '{above}' (above) to medium '{below}' (below), but the medium type of the lower segment is '{segment}'."
+msgstr "Операция не может быть выполнена, потому что это устройство связывает средний '{above}' (вверху) со средним '{below}' (внизу), но средний тип нижнего сегмента - '{segment}'."
+
+msgid "Recover Project from Bus"
+msgstr "Восстановить проект с шины"
+
+msgid "Devices in Programming Mode"
+msgstr "Устройства в режиме программирования"
+
+msgid "Connecting"
+msgstr "Подключение"
+
+msgid "Move middle group"
+msgstr "Переместить среднюю группу"
+
+msgid "The group has no free group address."
+msgstr "В группе нет свободного группового адреса."
+
+msgid "The main group has no free middle group."
+msgstr "В главной группе нет свободной средней группы."
+
+msgid "{count} devices"
+msgstr "Устройств: {count}"
+
+msgid "The main segment cannot be moved."
+msgstr "Главный сегмент нельзя переместить."
+
+msgid "The maximum number of lines has been reached."
+msgstr "Достигнуто максимальное количество линий."
+
+msgid "The line is already assigned to an area."
+msgstr "Линия уже назначена области."
+
+msgid "The main line cannot be moved."
+msgstr "Главную линию нельзя переместить."
+
+msgid "Move line"
+msgstr "Переместить линию"
+
+msgid "Move segment"
+msgstr "Переместить сегмент"
+
+msgid "Move function"
+msgstr "Переместить функцию"
+
+msgid "Paste Special"
+msgstr "Специальная вставка"
+
+msgid "Number of Items"
+msgstr "Количество элементов"
+
+msgid "Don't copy"
+msgstr "Не копировать"
+
+msgid "Keep"
+msgstr "Сохранить"
+
+msgid "Create new group address in middle group"
+msgstr "Создать новый групповой адрес в средней группе"
+
+msgid "Create new group address in main group"
+msgstr "Создать новый групповой адрес в главной группе"
+
+msgid "Create new group address in group range"
+msgstr "Создать новый групповой адрес в диапазоне групп"
+
+msgid "Generate Address"
+msgstr "Создание адреса"
+
+msgid "Fill up (use first free)"
+msgstr "Заполнить (первый свободный)"
+
+msgid "Append"
+msgstr "Добавить в конец"
+
+msgid "Start with"
+msgstr "Начать с"
+
+msgid "Enter a middle group, e.g. 1/2."
+msgstr "Введите среднюю группу, например 1/2."
+
+msgid "Enter a main group, e.g. 1."
+msgstr "Введите главную группу, например 1."
+
+msgid "The group has too few free group addresses for the copies."
+msgstr "В группе слишком мало свободных групповых адресов для копий."
+
+msgid "The maximum number of group ranges has been reached."
+msgstr "Достигнуто максимальное количество диапазонов групп."
+
+msgid "There is no group for the new group addresses."
+msgstr "Нет группы для новых групповых адресов."
+
+msgid "Copied '{name}' to '{target}'."
+msgstr "'{name}' скопировано в '{target}'."
+
+msgid "Copied {count} devices to '{target}'."
+msgstr "Скопировано устройств: {count} в '{target}'."
+
+msgid "Copied {count} building parts to '{target}'."
+msgstr "Скопировано частей здания: {count} в '{target}'."
+
+msgid "Copied {count} trades to '{target}'."
+msgstr "Скопировано систем: {count} в '{target}'."
+
+msgid "Copied {count} functions to '{target}'."
+msgstr "Скопировано функций: {count} в '{target}'."
+
+msgid "Copied {count} group addresses to '{target}'."
+msgstr "Скопировано групповых адресов: {count} в '{target}'."
+
+msgid "Copied {count} middle groups to '{target}'."
+msgstr "Скопировано средних групп: {count} в '{target}'."
+
+msgid "Copied {count} main groups to '{target}'."
+msgstr "Скопировано главных групп: {count} в '{target}'."
+
+msgid "Copied {count} lines to '{target}'."
+msgstr "Скопировано линий: {count} в '{target}'."
+
+msgid "Copied {count} segments to '{target}'."
+msgstr "Скопировано сегментов: {count} в '{target}'."
+
+msgid "Paste Special…"
+msgstr "Специальная вставка…"
+
+msgid "Add Row"
+msgstr "Добавить строку"
+
+msgid "Remove this row"
+msgstr "Удалить эту строку"
+
+msgid "Generate Addresses"
+msgstr "Создание адресов"
+
+msgid "Unlink device"
+msgstr "Отсоединить устройство"
+
+msgid "The device is on no line: put it on a line first."
+msgstr "Устройство не находится ни на одной линии: сначала поместите его на линию."
+
+msgid "Areas…"
+msgstr "Области…"
+
+msgid "Lines…"
+msgstr "Линии…"
+
+msgid "Segments…"
+msgstr "Сегменты…"
+
+msgid "Add Areas"
+msgstr "Добавить области"
+
+msgid "Add Lines"
+msgstr "Добавить линии"
+
+msgid "Add Segments"
+msgstr "Добавить сегменты"
+
+msgid "The limit to add was reached."
+msgstr "Достигнут предел добавления."
+
+msgid "Cannot add any line to the area {area} because of topology constraints. Please check the medium type of the backbone and main lines."
+msgstr "Из-за ограничений топологии нельзя добавить линию в область {area}. Проверьте тип среды магистральной и главных линий."
+
+msgid "Added {count} areas to '{target}'."
+msgstr "Добавлено областей: {count} в '{target}'."
+
+msgid "Added {count} lines to '{target}'."
+msgstr "Добавлено линий: {count} в '{target}'."
+
+msgid "Added {count} segments to '{target}'."
+msgstr "Добавлено сегментов: {count} в '{target}'."
+
+msgid "Added {count} building parts to '{target}'."
+msgstr "Добавлено частей здания: {count} в '{target}'."
+
+msgid "Added {count} trades to '{target}'."
+msgstr "Добавлено разделов: {count} в '{target}'."
+
+msgid "Added {count} main groups to '{target}'."
+msgstr "Добавлено главных групп: {count} в '{target}'."
+
+msgid "Added {count} middle groups to '{target}'."
+msgstr "Добавлено средних групп: {count} в '{target}'."
+
+msgid "Added {count} group addresses to '{target}'."
+msgstr "Добавлено групповых адресов: {count} в '{target}'."
+
+msgid "Add Main Groups…"
+msgstr "Добавить главные группы…"
+
+msgid "Add Middle Groups…"
+msgstr "Добавить средние группы…"
+
+msgid "Add Main Groups"
+msgstr "Добавить главные группы"
+
+msgid "Add Middle Groups"
+msgstr "Добавить средние группы"
+
+msgid "New main group"
+msgstr "Новая главная группа"
+
+msgid "New middle group"
+msgstr "Новая средняя группа"
+
+msgid "New group address"
+msgstr "Новый групповой адрес"
+
+msgid "Cut"
+msgstr "Вырезать"
+
+msgid "What was cut cannot be moved there."
+msgstr "Вырезанное нельзя переместить туда."
+
+msgid "Park"
+msgstr "Отложить"
+
+msgid "Park device"
+msgstr "Отложить устройство"
+
+msgid "Add Functions"
+msgstr "Добавить функции"
+
+msgid "New function"
+msgstr "Новая функция"
+
+msgid "Added {count} functions to '{target}'."
+msgstr "Добавлено функций: {count} в '{target}'."
+
+msgid "Added {count} group ranges to '{target}'."
+msgstr "Добавлено диапазонов групповых адресов: {count} в '{target}'."
+
+msgid "Add Group Ranges…"
+msgstr "Добавить диапазоны групповых адресов…"
+
+msgid "Add Group Ranges"
+msgstr "Добавить диапазоны групповых адресов"
+
+msgid "New group range"
+msgstr "Новый диапазон групповых адресов"
+
+msgid "Capacity"
+msgstr "Ёмкость"
+
+msgid "Link with…"
+msgstr "Связать с…"
+
+msgid "Link with Group Address"
+msgstr "Связать с групповым адресом"
+
+msgid "There is no group to add group addresses to."
+msgstr "Нет группы, в которую можно добавить групповые адреса."
+
+msgid "Add Subtrade"
+msgstr "Добавить подсистему"
+
+msgid "The group range does not fit there."
+msgstr "Диапазон групповых адресов туда не помещается."
+
+msgid "A group range cannot go into itself or a range in it."
+msgstr "Диапазон групповых адресов нельзя поместить в него самого или в диапазон внутри него."
+
+msgid "A group address of the range is already in use there."
+msgstr "Групповой адрес диапазона там уже используется."
+
+msgid "Copied {count} group ranges to '{target}'."
+msgstr "Скопировано диапазонов групповых адресов: {count} в '{target}'."
+
+msgid "Add Areas…"
+msgstr "Добавить области…"
+
+msgid "{medium} segment"
+msgstr "сегмент {medium}"
+
+msgid "Copy Individual Address"
+msgstr "Копировать индивидуальный адрес"
+
+msgid "Copy Group Address"
+msgstr "Копировать групповой адрес"
+
+msgid "Existing Devices…"
+msgstr "Существующие устройства…"
+
+msgid "Delete the {count} selected devices? Their group objects and group-address links are removed and their individual addresses are freed. This can be undone."
+msgstr "Удалить {count} выбранных устройств? Их групповые объекты и связи с групповыми адресами будут удалены, а индивидуальные адреса освобождены. Это можно отменить."
+
+msgid "Remove {count} devices"
+msgstr "Удалить {count} устройств"
+
+msgid "Delete Devices"
+msgstr "Удалить устройства"
+
+msgid "{medium} line"
+msgstr "линия {medium}"

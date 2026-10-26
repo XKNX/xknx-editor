@@ -128,6 +128,11 @@ class CatalogStrings:
         return _("Bus Current")
 
     @property
+    def CATALOG_BUS_CURRENT_ESTIMATED(self) -> str:
+        # After a bus current the product gives none of: "10 mA (estimated)".
+        return _("(estimated)")
+
+    @property
     def CATALOG_YES(self) -> str:
         return _("Yes")
 
@@ -152,12 +157,31 @@ class CatalogStrings:
         return _("(no room)")
 
     @property
-    def CATALOG_ADD_SPACE_TITLE(self) -> str:
-        return _("Add Device to Project")
+    def CATALOG_ADD_TO(self) -> str:
+        # A product's menu: its submenu lists the lines to add it on.
+        return _("Add to")
 
     @property
-    def CATALOG_ADD_SPACE_PROMPT(self) -> str:
-        return _("Which room should {name} go into?")
+    def CATALOG_ADD_LINE_LABEL(self) -> str:
+        return _("Line")
+
+    @property
+    def CATALOG_ADD_LINE_AUTO(self) -> str:
+        # The line a new device goes on: the room's Current Line, else the first TP line.
+        return _("Automatic")
+
+    @property
+    def CATALOG_ADD_LINE_AUTO_HINT(self) -> str:
+        # The tooltip of the "Line" drop-down.
+        return _(
+            "Automatic: the device goes on the Current Line of the room chosen, without one on "
+            "the first TP line."
+        )
+
+    @property
+    def ONLINE_DOWNLOAD(self) -> str:
+        # An online product's menu: only into the local catalog, not into the project.
+        return _("Download to Local Catalog")
 
     @property
     def CATALOG_ADD_NEEDS_PROJECT(self) -> str:
@@ -170,22 +194,6 @@ class CatalogStrings:
     @property
     def CATALOG_ADD_OK(self) -> str:
         return _("Added device: {name}")
-
-    @property
-    def CATALOG_ADD_ONLINE_TITLE(self) -> str:
-        return _("Add to project?")
-
-    @property
-    def CATALOG_ADD_ONLINE_PROMPT(self) -> str:
-        return _("“{name}” was added to the local catalog. Add it to the project now?")
-
-    @property
-    def CATALOG_ADD_ONLINE_YES(self) -> str:
-        return _("Add to Project")
-
-    @property
-    def CATALOG_ADD_ONLINE_NO(self) -> str:
-        return _("Not Now")
 
     @property
     def TAB_LOCAL(self) -> str:

@@ -505,18 +505,6 @@ msgstr "Kliknutím na nález přejdete na zařízení."
 msgid "No buildings/rooms in this project"
 msgstr "V tomto projektu nejsou žádné budovy/místnosti"
 
-msgid "+ Function"
-msgstr "+ Funkce"
-
-msgid "+ Space"
-msgstr "+ Prostor"
-
-msgid "+ Sub-space"
-msgstr "+ Podprostor"
-
-msgid "New Space"
-msgstr "Nový prostor"
-
 msgid "Name"
 msgstr "Název"
 
@@ -541,17 +529,11 @@ msgstr "(nejvyšší úroveň)"
 msgid "Delete this space and everything in it? Devices are only unassigned, not deleted."
 msgstr "Odstranit tento prostor a vše v něm? Zařízení se jen odeberou z přiřazení, neodstraní se."
 
-msgid "Assign Device"
-msgstr "Přiřadit zařízení"
-
 msgid "Assign a Device to This Space"
 msgstr "Přiřadit zařízení k tomuto prostoru"
 
 msgid "No unassigned devices"
 msgstr "Žádná nepřiřazená zařízení"
-
-msgid "Remove from Space"
-msgstr "Odebrat z prostoru"
 
 msgid "Without Space"
 msgstr "Bez prostoru"
@@ -573,24 +555,6 @@ msgstr "Chodba"
 
 msgid "Stairway"
 msgstr "Schodiště"
-
-msgid "Distribution Board"
-msgstr "Rozvaděč"
-
-msgid "New Function"
-msgstr "Nová funkce"
-
-msgid "Rename"
-msgstr "Přejmenovat"
-
-msgid "Rename Function"
-msgstr "Přejmenovat funkci"
-
-msgid "Assign Group Address"
-msgstr "Přiřadit skupinovou adresu"
-
-msgid "Role (Optional)"
-msgstr "Role (volitelné)"
 
 msgid "Custom"
 msgstr "Vlastní"
@@ -955,8 +919,23 @@ msgstr "Ref. programu"
 msgid "IP Configuration"
 msgstr "Konfigurace IP"
 
-msgid "Assignment"
-msgstr "Přidělení"
+msgid "Obtain an IP address automatically"
+msgstr "Získat IP adresu automaticky"
+
+msgid "Use a static IP address"
+msgstr "Použít statickou IP adresu"
+
+msgid "Assigned IP Address"
+msgstr "Přiřazená IP adresa"
+
+msgid "An invalid IP address was specified."
+msgstr "Byla zadána neplatná IP adresa."
+
+msgid "Change assigned IP address of '{0}' to '{1}'."
+msgstr "Přiřazená IP adresa zařízení '{0}' změněna na '{1}'."
+
+msgid "IP configuration of device '{0}' changed."
+msgstr "IP konfigurace zařízení '{0}' změněna."
 
 msgid "IP Address"
 msgstr "IP adresa"
@@ -1162,29 +1141,8 @@ msgstr "Filtrovat skupinové adresy (adresa, název)…"
 msgid "Filter rooms, devices, functions…"
 msgstr "Filtrovat místnosti, zařízení, funkce…"
 
-msgid "Area {area}"
-msgstr "Oblast {area}"
-
-msgid "{name} (Area {area})"
-msgstr "{name} (oblast {area})"
-
-msgid "Line {area}.{line}"
-msgstr "Linie {area}.{line}"
-
-msgid "{name} (Line {area}.{line})"
-msgstr "{name} (linie {area}.{line})"
-
 msgid "Unassigned ({count})"
 msgstr "Nepřiřazeno ({count})"
-
-msgid "Add Area"
-msgstr "Přidat oblast"
-
-msgid "Add Line"
-msgstr "Přidat linii"
-
-msgid "Copy Address"
-msgstr "Kopírovat adresu"
 
 msgid "Duplicate"
 msgstr "Duplikovat"
@@ -1252,12 +1210,6 @@ msgstr "Odstranit zařízení"
 msgid "Delete '{name}'? Its group objects and group-address links are removed and its individual address is freed. This can be undone."
 msgstr "Odstranit '{name}'? Jeho skupinové objekty a propojení se skupinovými adresami budou odstraněny a jeho individuální adresa bude uvolněna. Tuto akci lze vrátit zpět."
 
-msgid "New Area"
-msgstr "Nová oblast"
-
-msgid "New Line"
-msgstr "Nová linie"
-
 msgid "Number"
 msgstr "Číslo"
 
@@ -1273,41 +1225,11 @@ msgstr "Načíst"
 msgid "Copy Log"
 msgstr "Kopírovat protokol"
 
-msgid "New Group Address"
-msgstr "Nová skupinová adresa"
-
-msgid "New Main Group"
-msgstr "Nová hlavní skupina"
-
-msgid "New Middle Group"
-msgstr "Nová střední skupina"
-
-msgid "New Folder"
-msgstr "Nová složka"
-
-msgid "Rename Folder"
-msgstr "Přejmenovat složku"
-
 msgid "Delete Folder"
 msgstr "Odstranit složku"
 
-msgid "Main group name (the next free number is assigned automatically)"
-msgstr "Název hlavní skupiny (další volné číslo se přidělí automaticky)"
-
-msgid "Middle group name (the next free number is assigned automatically)"
-msgstr "Název střední skupiny (další volné číslo se přidělí automaticky)"
-
 msgid "Delete this folder and every group address in it? This can be undone."
 msgstr "Odstranit tuto složku a všechny skupinové adresy v ní? Tuto akci lze vrátit zpět."
-
-msgid "Rename Group Address"
-msgstr "Přejmenovat skupinovou adresu"
-
-msgid "Change Address…"
-msgstr "Změnit adresu…"
-
-msgid "New group address (links are kept):"
-msgstr "Nová skupinová adresa (propojení zůstanou zachována):"
 
 msgid "Invalid address or already in use."
 msgstr "Neplatná adresa nebo už je použita."
@@ -1318,26 +1240,14 @@ msgstr "Zabezpečení"
 msgid "Automatic"
 msgstr "Automaticky"
 
-msgid "Secured"
-msgstr "Zabezpečeno"
-
-msgid "Not Secured"
-msgstr "Nezabezpečeno"
-
 msgid "A secured group address can only be linked to devices that are commissioned securely."
 msgstr "Zabezpečenou skupinovou adresu lze propojit jen se zařízeními, která jsou uváděna do provozu zabezpečeně."
 
 msgid "Not every device linked to this group address is commissioned securely, so it cannot be secured."
 msgstr "Ne všechna zařízení propojená s touto skupinovou adresou jsou uváděna do provozu zabezpečeně, proto ji nelze zabezpečit."
 
-msgid "Set Datapoint Type"
-msgstr "Nastavit typ datového bodu"
-
 msgid "Address"
 msgstr "Adresa"
-
-msgid "Datapoint type (e.g. DPST-1-1); empty to clear"
-msgstr "Typ datového bodu (např. DPST-1-1); prázdné pro vymazání"
 
 msgid "Project: {name}"
 msgstr "Projekt: {name}"
@@ -1770,9 +1680,6 @@ msgstr "Heslo musí mít 1 až 20 znaků Latin-1."
 
 msgid "Close"
 msgstr "Zavřít"
-
-msgid "IP Backbone Security"
-msgstr "Zabezpečení páteře IP"
 
 msgid "Device Certificates"
 msgstr "Certifikáty zařízení"
@@ -2301,3 +2208,732 @@ msgstr "Položka"
 
 msgid "Store plugin data {name}"
 msgstr "Uložit data pluginu {name}"
+
+msgid "Unknown"
+msgstr "Neznámé"
+
+msgid "Editing"
+msgstr "Editace"
+
+msgid "Finished design"
+msgstr "Konečný návrh"
+
+msgid "Finished commissioning"
+msgstr "Závěrečné zprovoznění"
+
+msgid "Tested"
+msgstr "Odzkoušeno"
+
+msgid "Accepted"
+msgstr "Přijato"
+
+msgid "Locked"
+msgstr "Uzamčeno"
+
+msgid "Function"
+msgstr "Funkce"
+
+msgid "Use"
+msgstr "Využití"
+
+msgid "Set room use"
+msgstr "Nastavit využití místnosti"
+
+msgid "Set status to {status}"
+msgstr "Nastavit stav na {status}"
+
+msgid "Set function description"
+msgstr "Nastavit popis funkce"
+
+msgid "Current Line"
+msgstr "Aktuální linie"
+
+msgid "{line} (inherits from {space})"
+msgstr "{line} (získá data z {space})"
+
+msgid "Set current line"
+msgstr "Nastavit aktuální linii"
+
+msgid "Segment"
+msgstr "Segment"
+
+msgid "Medium"
+msgstr "Médium"
+
+msgid "Domain Address"
+msgstr "Adresa domény"
+
+msgid "The medium of a segment can only change while it holds no device."
+msgstr "Typ média segmentu lze změnit jen tehdy, jestliže neobsahuje žádné zařízení."
+
+msgid "The medium type of the segment '{segment}' cannot be changed to IoT, because its parent line '{line}' is not of medium type IP."
+msgstr "Typ média segmentu „{segment}“ nelze změnit na IoT, protože nadřazená linie „{line}“ není médium typu IP."
+
+msgid "The maximum number of segments has been reached."
+msgstr "Bylo dosaženo maximálního počtu segmentů."
+
+msgid "The main segment cannot be deleted."
+msgstr "Hlavní segment nelze vymazat."
+
+msgid "Device '{device}' is incompatible with line's medium type."
+msgstr "Přístroj '{device}' není kompatibilní s typem média na linii."
+
+msgid "Device '{device}' is incompatible with segment's medium type."
+msgstr "Zařízení '{device}' je nekompatibilní s typem médií segmentu."
+
+msgid "Rename segment to {name}"
+msgstr "Přejmenovat segment na {name}"
+
+msgid "Set medium to {medium}"
+msgstr "Nastavit médium na {medium}"
+
+msgid "Forced on"
+msgstr "Vynuceně zapnuto"
+
+msgid "Forced off"
+msgstr "Vynuceně vypnuto"
+
+msgid "Overridden by '{name}': {mode}"
+msgstr "Přepsáno skupinou '{name}': {mode}"
+
+msgid "Central"
+msgstr "Centrál"
+
+msgid "Not every device linked to a group address of this group is commissioned securely, so it cannot be secured."
+msgstr "Ne všechna zařízení propojená se skupinovou adresou této skupiny jsou uváděna do provozu zabezpečeně, proto ji nelze zabezpečit."
+
+msgid "Set group security"
+msgstr "Nastavit zabezpečení skupiny"
+
+msgid "Mark group address as central"
+msgstr "Označit skupinovou adresu jako centrální"
+
+msgid "Remove central mark from group address"
+msgstr "Odebrat označení centrální ze skupinové adresy"
+
+msgid "Topology"
+msgstr "Topologie"
+
+msgid "{medium} backbone line"
+msgstr "{medium} páteřní linka"
+
+msgid "{medium} main line"
+msgstr "{medium} hlavní linie"
+
+msgid "Backbone"
+msgstr "Páteř"
+
+msgid "Network Latency"
+msgstr "Doba odezvy sítě"
+
+msgid "LAN (< 400ms)"
+msgstr "LAN (< 400 ms)"
+
+msgid "WLAN (< 1s)"
+msgstr "WLAN (< 1 s)"
+
+msgid "WAN (< 2s)"
+msgstr "WAN (< 2 s)"
+
+msgid "Mobile (< 4s)"
+msgstr "Mobil (< 4s)"
+
+msgid "Satellite (< 8s)"
+msgstr "Satelit (< 8s)"
+
+msgid "The network latency must be a number of milliseconds from 1 to 65535."
+msgstr "Doba odezvy sítě musí být počet milisekund od 1 do 65535."
+
+msgid "Multicast Address"
+msgstr "Adresa multicast"
+
+msgid "Enter a multicast address from 224.0.0.0 to 239.255.255.255."
+msgstr "Zadejte adresu multicast od 224.0.0.0 do 239.255.255.255."
+
+msgid "Bus Connection"
+msgstr "Spojení se sběrnicí"
+
+msgid "Set IP routing of the backbone"
+msgstr "Nastavit IP směrování páteře"
+
+msgid "As long as a coupler exists at a sub line or sub segment, a change of the medium type is not possible."
+msgstr "Dokud v podlince nebo v podsegmentu existuje spojka, není změna typu média možná."
+
+msgid "A main line of a project cannot have medium type RF."
+msgstr "Hlavní linie v projektu nemůže obsahovat médium typu RF."
+
+msgid "The operation could not be executed, because as medium type of the backbone only IP and TP are allowed."
+msgstr "Operaci nebylo možno provést, protože jako typ média páteře jsou povoleny jen IP a TP."
+
+msgid "A sub-segment of KNX medium type IP or PL is not allowed."
+msgstr "Podsegment KNX typu IP nebo PL není povolen."
+
+msgid "The medium type of the main line '{line}' can no longer be changed to PL, because it already contains lines or segments that are not allowed in PL main lines."
+msgstr "Typ média hlavní linie „{line}“ již nelze změnit na PL, protože již obsahuje linie nebo segmenty, které nejsou povoleny v hlavních liniích PL."
+
+msgid "The medium type of the main line '{line}' cannot be changed to IoT, because the backbone line '{backbone}' is not of medium type IP."
+msgstr "Typ média hlavní linie „{line}“ nelze změnit na IoT, protože páteřní linie „{backbone}“ není médium typu IP."
+
+msgid "The medium type of the main line '{line}' can no longer be changed to IoT, because it already contains lines or segments that are not allowed in IoT main lines."
+msgstr "Typ média hlavní linie „{line}“ již nelze změnit na IoT, protože již obsahuje linie nebo segmenty, které nejsou povoleny v hlavních liniích IoT."
+
+msgid "The medium type of the line '{line}' cannot be changed, because it already contains lines or segments that require an IoT or IP main line."
+msgstr "Typ média hlavní linie „{line}“ již nelze změnit, protože již obsahuje linie nebo segmenty, které vyžadují hlavní linii IoT nebo IP."
+
+msgid "A sub-segment is not allowed below a main segment of KNX medium type RF."
+msgstr "Podsegment není dovolen pod hlavním segmentem média KNX typu RF."
+
+msgid "A sub-segment is not allowed below a main segment of KNX medium type PL."
+msgstr "Podsegment není povolen pod hlavním segmentem média KNX typu PL."
+
+msgid "A sub-segment of KNX medium type IoT is not allowed below a main segment of the same type."
+msgstr "Dílčí segment média KNX typu IoT není povolen pod hlavním segmentem stejného typu."
+
+msgid "The operation could not be executed, because a RF main line '{line}' requires all other lines in the area to be RF lines as well."
+msgstr "Operaci nelze spustit, protože hlavní linie RF „{line}“vyžaduje, aby i všechny ostatní linie v oblasti byly liniemi RF."
+
+msgid "The operation could not be executed, because a PL main line '{line}' requires all other lines in the area to be PL lines as well."
+msgstr "Operaci nelze uskutečnit, protože PL hlavní linie '{line}' vyžaduje, aby všechny ostatní linie v oblasti byly rovněž PL liniemi."
+
+msgid "The operation could not be executed, because a IoT main line '{line}' requires all other lines in the area to be IoT lines as well."
+msgstr "Operaci nelze spustit, protože hlavní linie IoT „{line}“ vyžaduje, aby i všechny ostatní linie v oblasti byly liniemi IoT."
+
+msgid "The medium type of the line '{line}' cannot be changed to IoT, because its main line '{main}' is not of medium type IP."
+msgstr "Typ média linie „{line}“ nelze změnit na IoT, protože hlavní linie „{main}“ není médium typu IP."
+
+msgid "The medium type of the line '{line}' can no longer be changed to IoT, because it already contains segments that are not allowed in IoT lines."
+msgstr "Typ média linie „{line}“ již nelze změnit na IoT, protože již obsahuje segmenty, které nejsou povoleny v liniích IoT."
+
+msgid "The operation could not be executed, because the line is the IP backbone line and the project contains KNXnet/IP routers. KNXnet/IP routers require an IP backbone line."
+msgstr "Operaci není možné uskutečnit, protože linie je IP páteřní linií a projekt obsahuje  KNXnet/IP routery. KNXnet/IP routery vyžadují IP páteřní linii."
+
+msgid "The operation could not be executed, because the line is the IP main line and the project contains KNXnet/IP routers. KNXnet/IP routers require an IP main line."
+msgstr "Operaci není možné uskutečnit, protože linie je IP hlavní linií a  projekt obsahuje KNXnet/IP routery. KNXnet/IP routery vyžadují IP hlavní linii."
+
+msgid "The operation could not be executed, because the line is the IP backbone line and the project contains IoT or IP lines."
+msgstr "Operaci nelze uskutečnit, protože páteřní linie je IP a projekt obsahuje IoT nebo IP linie."
+
+msgid "The operation could not be executed, because the medium type of the line can only be set to IP if an IP main line exists."
+msgstr "Operace nemůže být vykonána, protože typ média linie může být nastaven pouze na IP, když existuje IP hlavní linie."
+
+msgid "The operation could not be executed, because the medium type of the line can only be set to IP if an IP backbone line exists."
+msgstr "Operaci nelze uskutečnit, protože typ média na linii lze nastavit pouze na IP jestliže existuje IP páteřní linie."
+
+msgid "The operation could not be executed, because below a TP main segment only segments of KNX medium type TP, RF or PL can exist."
+msgstr "Operaci nebylo možno provést, protože pod hlavním segmentem TP mohou existovat jen segmenty média KNx typu TP, RF nebo PL."
+
+msgid "Below a main segment of KNX medium type IP only segments of medium type TP or RF can exist."
+msgstr "Pod hlavním segmentem média KNX typu IP mohou existovat jen segmenty média typu TP nebo RF."
+
+msgid "A sub-segment of KNX medium type PL is not allowed below a main segment."
+msgstr "Podsegment média KNX typu PL není pod hlavním segmentem dovolen."
+
+msgid "Set bus connection of the backbone"
+msgstr "Nastavit spojení se sběrnicí páteře"
+
+msgid "Set domain address"
+msgstr "Nastavit adresu domény"
+
+msgid "Generate New"
+msgstr "Vytvořit nový"
+
+msgid "The given domain address is invalid."
+msgstr "Daná adresa domény je neplatná."
+
+msgid "Domain address is not valid! Valid values are 1 to 255."
+msgstr "Adresa domény není platná! Platnými hodnotami jsou 1 až 255."
+
+msgid "DomainAddress of mediumType 'RF' is lower than the minimum value of 0001:00000000."
+msgstr "Adresa domény typu média 'RF' je kratší, než minimální hodnota 0001:00000000."
+
+msgid "DomainAddress of medium type '{medium}' exceeds the maximum valid value of {maximum}"
+msgstr "Adresa domény mediálního typu '{medium}' překračuje maximální platnou hodnotu {maximum}"
+
+msgid "DomainAddress of RF sublines must be equal to DomainAdress of main line."
+msgstr "Adresa domény RF podřízené linie musí být shodná a adresou domény hlavní linie."
+
+msgid "Domain Address of IoT sublines must be equal to Domain Address of main line."
+msgstr "DomainAddress dílčích linií IoT musí odpovídat DomainAddress hlavní linie."
+
+msgid "Each line in a project must have a unique domain address."
+msgstr "Každá linie v projektu musí mít jedinečnou doménovou adresu."
+
+msgid "Last Downloaded"
+msgstr "Naposledy staženo"
+
+msgid "Create trade {name}"
+msgstr "Vytvořit činnost {name}"
+
+msgid "Rename trade to {name}"
+msgstr "Přejmenovat činnost na {name}"
+
+msgid "Set trade number"
+msgstr "Nastavit číslo činnosti"
+
+msgid "Set trade description"
+msgstr "Nastavit popis činnosti"
+
+msgid "Move trade"
+msgstr "Přesunout činnost"
+
+msgid "Remove trade"
+msgstr "Odstranit činnost"
+
+msgid "Add device to trade"
+msgstr "Přidat zařízení do činnosti"
+
+msgid "Remove device from trade"
+msgstr "Odebrat zařízení z činnosti"
+
+msgid "Trades"
+msgstr "Činnosti"
+
+msgid "Building Parts…"
+msgstr "Části budovy…"
+
+msgid "Floors…"
+msgstr "Podlaží…"
+
+msgid "Stairways…"
+msgstr "Schodiště…"
+
+msgid "Rooms…"
+msgstr "Místnosti…"
+
+msgid "Corridors…"
+msgstr "Chodby…"
+
+msgid "Cabinets…"
+msgstr "Rozvaděče…"
+
+msgid "Devices…"
+msgstr "Přístroje…"
+
+msgid "Functions…"
+msgstr "Funkce…"
+
+msgid "Trades…"
+msgstr "Činnosti…"
+
+msgid "Add Buildings…"
+msgstr "Vložit budovy…"
+
+msgid "Add Trades…"
+msgstr "Vložit činnosti…"
+
+msgid "Add Buildings"
+msgstr "Vložit budovy"
+
+msgid "Add Building Parts"
+msgstr "Vložit část budovy"
+
+msgid "Add Floors"
+msgstr "Přidat podlaží"
+
+msgid "Add Rooms"
+msgstr "Vložit místnosti"
+
+msgid "Add Corridors"
+msgstr "Vložit chodby"
+
+msgid "Add Stairways"
+msgstr "Vložit schodiště"
+
+msgid "Add Cabinets"
+msgstr "Přidat rozvaděč"
+
+msgid "Add Trades"
+msgstr "Vložit činnosti"
+
+msgid "Add Devices"
+msgstr "Vložit přístroje"
+
+msgid "Count"
+msgstr "Počet"
+
+msgid "to \"{name}\""
+msgstr "do \"{name}\""
+
+msgid "Cabinet"
+msgstr "Rozvaděč"
+
+msgid "New building"
+msgstr "Nová budova"
+
+msgid "New building part"
+msgstr "Nová část budovy"
+
+msgid "New floor"
+msgstr "Nové podlaží"
+
+msgid "New room"
+msgstr "Nová místnost"
+
+msgid "New corridor"
+msgstr "Nová chodba"
+
+msgid "New stairway"
+msgstr "Nové schodiště"
+
+msgid "New cabinet"
+msgstr "Nový rozvaděč"
+
+msgid "New trade"
+msgstr "Nová činnost"
+
+msgid "A building part of this type cannot be added here."
+msgstr "Zde nelze vložit část budovy tohoto typu."
+
+msgid "A building part of this type cannot be added here.\nCabinets can be added inside of rooms, corridors, or stairways only. If applicable the corridors have to be moved into the corresponding building parts."
+msgstr "Část budovy tohoto typu sem nelze přiřadit.\nRozvaděče mohou být přidány pouze do místností, na chodby nebo na schodiště. V případě možnosti mohou být chodby přemístěny do odpovídajících částí budovy."
+
+msgid "The target is a child building part."
+msgstr "Cílem je dílčí část budovy."
+
+msgid "Devices can only be added to stairways, rooms, corridors and cabinets."
+msgstr "Zařízení lze přidat pouze do schodišť, místností, chodeb a rozvaděčů."
+
+msgid "Trade"
+msgstr "Činnost"
+
+msgid "(estimated)"
+msgstr "(odhad)"
+
+msgid "Number of Devices"
+msgstr "Počet zařízení"
+
+msgid "Unlink"
+msgstr "Odpojit"
+
+msgid "An IP router requires an IP backbone line."
+msgstr "IP router vyžaduje IP páteřní linii."
+
+msgid "The operation could not be executed, because a coupler needs a main line."
+msgstr "Operaci nelze uskutečnit, protože spojka vyžaduje hlavní linii."
+
+msgid "The operation could not be executed, because an area coupler requires a backbone line."
+msgstr "Operaci nelze uskutečnit, protože oblastní spojka vyžaduje páteřní linii."
+
+msgid "The operation could not be executed, because this coupler needs a main line with the medium type '{medium}' ."
+msgstr "Operaci nelze uskutečnit, protože tato spojka vyžaduje hlavní linii s typem média '{medium}' ."
+
+msgid "The operation could not be executed, because only one IP router is allowed as a world coupler."
+msgstr "Operaci nelze uskutečnit, protože jen jeden IP router je přípustný jako světová spojka."
+
+msgid "The operation could not be executed, because only IP router area allowed as a world coupler."
+msgstr "Operaci nelze uskutečnit, protože pouze oblastní IP router je povolen jako světová spojka."
+
+msgid "The backbone line contains a world coupler. It is not possible to use an IP router below another IP router."
+msgstr "Páteřní linie obsahuje celosvětovou spojku. Není možné použít IP router pod jiným IP routerem."
+
+msgid "It is not possible to use a world coupler, when there are already IP routers in the project."
+msgstr "Není možné používat světovou spojku, když už v projektu jsou IP směrovače."
+
+msgid "A world coupler can only be used, when the medium type of the backbone is TP."
+msgstr "Celosvětovou spojku lze použít, pouze pokud je typ média páteře TP."
+
+msgid "The coupler does not support segment coupling, so the sub-segment must be of the same KNX medium type as the main segment."
+msgstr "Spojka nepodporuje spojování segmentů, takže podsegment musí být na stejném typu média KNX jako hlavní segment."
+
+msgid "The operation could not be executed, because this device couples medium '{above}' (above) to medium '{below}' (below), but the segment above is '{segment}'."
+msgstr "Operaci nebylo možno provést, protože toto zařízení napojuje médium '{above}' (výše) na médium '{below}' (níže), avšak segment výše je '{segment}'."
+
+msgid "The operation could not be executed, because medium type of coupler device matches only sub segment, but maximum amount of segments reached."
+msgstr "Operaci nebylo možno provést, protože typ média zařízení spojky odpovídá jen podsegmentu, ale bylo dosaženo maximálního počtu segmentů."
+
+msgid "The operation could not be executed, because this device couples medium '{above}' (above) to medium '{below}' (below), but the medium type of the lower segment is '{segment}'."
+msgstr "Operaci nelze provést, protože toto zařízení napojuje médium '{above}' (výše) k médiu '{below}' (níže), avšak typ média dolního segmentu je '{segment}'."
+
+msgid "Recover Project from Bus"
+msgstr "Obnovit projekt ze sběrnice"
+
+msgid "Devices in Programming Mode"
+msgstr "Zařízení v programovacím režimu"
+
+msgid "Connecting"
+msgstr "Připojování"
+
+msgid "Move middle group"
+msgstr "Přesunout střední skupinu"
+
+msgid "The group has no free group address."
+msgstr "Skupina nemá volnou skupinovou adresu."
+
+msgid "The main group has no free middle group."
+msgstr "Hlavní skupina nemá volnou střední skupinu."
+
+msgid "{count} devices"
+msgstr "{count} přístrojů"
+
+msgid "The main segment cannot be moved."
+msgstr "Hlavní segment nelze přesunout."
+
+msgid "The maximum number of lines has been reached."
+msgstr "Bylo dosaženo maximálního počtu linií."
+
+msgid "The line is already assigned to an area."
+msgstr "Linie je již přiřazena k oblasti."
+
+msgid "The main line cannot be moved."
+msgstr "Hlavní linii nelze přesunout."
+
+msgid "Move line"
+msgstr "Přesunout linii"
+
+msgid "Move segment"
+msgstr "Přesunout segment"
+
+msgid "Move function"
+msgstr "Přesunout funkci"
+
+msgid "Paste Special"
+msgstr "Vložit jinak"
+
+msgid "Number of Items"
+msgstr "Počet položek"
+
+msgid "Don't copy"
+msgstr "Nekopírovat"
+
+msgid "Keep"
+msgstr "Ponechat"
+
+msgid "Create new group address in middle group"
+msgstr "Vytvořit novou skupinovou adresu ve střední skupině"
+
+msgid "Create new group address in main group"
+msgstr "Vytvořit novou skupinovou adresu v hlavní skupině"
+
+msgid "Create new group address in group range"
+msgstr "Vytvořit novou skupinovou adresu v rozsahu skupin"
+
+msgid "Generate Address"
+msgstr "Generovat adresu"
+
+msgid "Fill up (use first free)"
+msgstr "Doplnit (první volná)"
+
+msgid "Append"
+msgstr "Připojit"
+
+msgid "Start with"
+msgstr "Začít od"
+
+msgid "Enter a middle group, e.g. 1/2."
+msgstr "Zadejte střední skupinu, např. 1/2."
+
+msgid "Enter a main group, e.g. 1."
+msgstr "Zadejte hlavní skupinu, např. 1."
+
+msgid "The group has too few free group addresses for the copies."
+msgstr "Skupina nemá dost volných skupinových adres pro kopie."
+
+msgid "The maximum number of group ranges has been reached."
+msgstr "Bylo dosaženo maximálního počtu rozsahů skupin."
+
+msgid "There is no group for the new group addresses."
+msgstr "Pro nové skupinové adresy neexistuje žádná skupina."
+
+msgid "Copied '{name}' to '{target}'."
+msgstr "'{name}' zkopírováno do '{target}'."
+
+msgid "Copied {count} devices to '{target}'."
+msgstr "{count} přístrojů zkopírováno do '{target}'."
+
+msgid "Copied {count} building parts to '{target}'."
+msgstr "{count} částí budovy zkopírováno do '{target}'."
+
+msgid "Copied {count} trades to '{target}'."
+msgstr "{count} činností zkopírováno do '{target}'."
+
+msgid "Copied {count} functions to '{target}'."
+msgstr "{count} funkcí zkopírováno do '{target}'."
+
+msgid "Copied {count} group addresses to '{target}'."
+msgstr "{count} skupinových adres zkopírováno do '{target}'."
+
+msgid "Copied {count} middle groups to '{target}'."
+msgstr "{count} středních skupin zkopírováno do '{target}'."
+
+msgid "Copied {count} main groups to '{target}'."
+msgstr "{count} hlavních skupin zkopírováno do '{target}'."
+
+msgid "Copied {count} lines to '{target}'."
+msgstr "{count} linií zkopírováno do '{target}'."
+
+msgid "Copied {count} segments to '{target}'."
+msgstr "{count} segmentů zkopírováno do '{target}'."
+
+msgid "Paste Special…"
+msgstr "Vložit jinak…"
+
+msgid "Add Row"
+msgstr "Přidat řádek"
+
+msgid "Remove this row"
+msgstr "Odebrat tento řádek"
+
+msgid "Generate Addresses"
+msgstr "Generovat adresy"
+
+msgid "Unlink device"
+msgstr "Odpojit zařízení"
+
+msgid "The device is on no line: put it on a line first."
+msgstr "Zařízení není na žádné linii: nejprve ho umístěte na linii."
+
+msgid "Areas…"
+msgstr "Oblasti…"
+
+msgid "Lines…"
+msgstr "Linie…"
+
+msgid "Segments…"
+msgstr "Segmenty…"
+
+msgid "Add Areas"
+msgstr "Přidat oblasti"
+
+msgid "Add Lines"
+msgstr "Přidat linie"
+
+msgid "Add Segments"
+msgstr "Přidat segmenty"
+
+msgid "The limit to add was reached."
+msgstr "Byl dosažen limit pro přidání."
+
+msgid "Cannot add any line to the area {area} because of topology constraints. Please check the medium type of the backbone and main lines."
+msgstr "Kvůli omezením topologie nelze do oblasti {area} přidat žádnou linii. Zkontrolujte typ média páteřní a hlavní linie."
+
+msgid "Added {count} areas to '{target}'."
+msgstr "{count} oblastí přidáno do '{target}'."
+
+msgid "Added {count} lines to '{target}'."
+msgstr "{count} linií přidáno do '{target}'."
+
+msgid "Added {count} segments to '{target}'."
+msgstr "{count} segmentů přidáno do '{target}'."
+
+msgid "Added {count} building parts to '{target}'."
+msgstr "{count} částí budovy přidáno do '{target}'."
+
+msgid "Added {count} trades to '{target}'."
+msgstr "{count} profesí přidáno do '{target}'."
+
+msgid "Added {count} main groups to '{target}'."
+msgstr "{count} hlavních skupin přidáno do '{target}'."
+
+msgid "Added {count} middle groups to '{target}'."
+msgstr "{count} středních skupin přidáno do '{target}'."
+
+msgid "Added {count} group addresses to '{target}'."
+msgstr "{count} skupinových adres přidáno do '{target}'."
+
+msgid "Add Main Groups…"
+msgstr "Přidat hlavní skupiny…"
+
+msgid "Add Middle Groups…"
+msgstr "Přidat střední skupiny…"
+
+msgid "Add Main Groups"
+msgstr "Přidat hlavní skupiny"
+
+msgid "Add Middle Groups"
+msgstr "Přidat střední skupiny"
+
+msgid "New main group"
+msgstr "Nová hlavní skupina"
+
+msgid "New middle group"
+msgstr "Nová střední skupina"
+
+msgid "New group address"
+msgstr "Nová skupinová adresa"
+
+msgid "Cut"
+msgstr "Vyjmout"
+
+msgid "What was cut cannot be moved there."
+msgstr "Vyjmutý prvek sem nelze přesunout."
+
+msgid "Park"
+msgstr "Odstavit"
+
+msgid "Park device"
+msgstr "Odstavit zařízení"
+
+msgid "Add Functions"
+msgstr "Přidat funkce"
+
+msgid "New function"
+msgstr "Nová funkce"
+
+msgid "Added {count} functions to '{target}'."
+msgstr "{count} funkcí přidáno do '{target}'."
+
+msgid "Added {count} group ranges to '{target}'."
+msgstr "{count} rozsahů skupinových adres přidáno do '{target}'."
+
+msgid "Add Group Ranges…"
+msgstr "Přidat rozsahy skupinových adres…"
+
+msgid "Add Group Ranges"
+msgstr "Přidat rozsahy skupinových adres"
+
+msgid "New group range"
+msgstr "Nový rozsah skupinových adres"
+
+msgid "Capacity"
+msgstr "Kapacita"
+
+msgid "Link with…"
+msgstr "Propojit s…"
+
+msgid "Link with Group Address"
+msgstr "Propojit se skupinovou adresou"
+
+msgid "There is no group to add group addresses to."
+msgstr "Neexistuje skupina, do které lze přidat skupinové adresy."
+
+msgid "Add Subtrade"
+msgstr "Vložit podčinnost"
+
+msgid "The group range does not fit there."
+msgstr "Rozsah skupinových adres se sem nevejde."
+
+msgid "A group range cannot go into itself or a range in it."
+msgstr "Rozsah skupinových adres nelze vložit do sebe ani do rozsahu v něm."
+
+msgid "A group address of the range is already in use there."
+msgstr "Skupinová adresa rozsahu je tam již použita."
+
+msgid "Copied {count} group ranges to '{target}'."
+msgstr "{count} rozsahů skupinových adres zkopírováno do '{target}'."
+
+msgid "Add Areas…"
+msgstr "Přidat oblasti…"
+
+msgid "{medium} segment"
+msgstr "{medium} segment"
+
+msgid "Copy Individual Address"
+msgstr "Kopírovat individuální adresu"
+
+msgid "Copy Group Address"
+msgstr "Kopírovat skupinovou adresu"
+
+msgid "Existing Devices…"
+msgstr "Existující přístroje…"
+
+msgid "Delete the {count} selected devices? Their group objects and group-address links are removed and their individual addresses are freed. This can be undone."
+msgstr "Smazat {count} vybraných přístrojů? Jejich skupinové objekty a propojení se skupinovými adresami se odstraní a jejich individuální adresy se uvolní. Lze to vrátit zpět."
+
+msgid "Remove {count} devices"
+msgstr "Odstranit {count} přístrojů"
+
+msgid "Delete Devices"
+msgstr "Odstranit zařízení"
+
+msgid "{medium} line"
+msgstr "{medium} linie"

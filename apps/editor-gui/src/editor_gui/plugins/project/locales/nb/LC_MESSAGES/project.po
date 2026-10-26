@@ -505,18 +505,6 @@ msgstr "Klikk på et funn for å gå til enheten."
 msgid "No buildings/rooms in this project"
 msgstr "Ingen bygninger/rom i dette prosjektet"
 
-msgid "+ Function"
-msgstr "+ Funksjon"
-
-msgid "+ Space"
-msgstr "+ Område"
-
-msgid "+ Sub-space"
-msgstr "+ Underområde"
-
-msgid "New Space"
-msgstr "Nytt område"
-
 msgid "Name"
 msgstr "Navn"
 
@@ -541,17 +529,11 @@ msgstr "(øverste nivå)"
 msgid "Delete this space and everything in it? Devices are only unassigned, not deleted."
 msgstr "Slette dette området og alt innholdet? Enheter blir bare fjernet herfra, ikke slettet."
 
-msgid "Assign Device"
-msgstr "Tilordne enhet"
-
 msgid "Assign a Device to This Space"
 msgstr "Tilordne en enhet til dette området"
 
 msgid "No unassigned devices"
 msgstr "Ingen enheter uten tilordning"
-
-msgid "Remove from Space"
-msgstr "Fjern fra område"
 
 msgid "Without Space"
 msgstr "Uten område"
@@ -573,24 +555,6 @@ msgstr "Korridor"
 
 msgid "Stairway"
 msgstr "Trapp"
-
-msgid "Distribution Board"
-msgstr "Fordeling"
-
-msgid "New Function"
-msgstr "Ny funksjon"
-
-msgid "Rename"
-msgstr "Gi nytt navn"
-
-msgid "Rename Function"
-msgstr "Gi funksjonen nytt navn"
-
-msgid "Assign Group Address"
-msgstr "Tilordne gruppeadresse"
-
-msgid "Role (Optional)"
-msgstr "Rolle (valgfritt)"
 
 msgid "Custom"
 msgstr "Egendefinert"
@@ -955,8 +919,23 @@ msgstr "Programref."
 msgid "IP Configuration"
 msgstr "IP-konfigurasjon"
 
-msgid "Assignment"
-msgstr "Tildeling"
+msgid "Obtain an IP address automatically"
+msgstr "Hent en IP-adresse automatisk"
+
+msgid "Use a static IP address"
+msgstr "Bruk en statisk IP-adresse"
+
+msgid "Assigned IP Address"
+msgstr "Tildelt IP-adresse"
+
+msgid "An invalid IP address was specified."
+msgstr "En ugyldig IP-adresse ble angitt."
+
+msgid "Change assigned IP address of '{0}' to '{1}'."
+msgstr "Tildelt IP-adresse for '{0}' endret til '{1}'."
+
+msgid "IP configuration of device '{0}' changed."
+msgstr "IP-konfigurasjonen til enheten '{0}' er endret."
 
 msgid "IP Address"
 msgstr "IP-adresse"
@@ -1162,29 +1141,8 @@ msgstr "Filtrer gruppeadresser (adresse, navn)…"
 msgid "Filter rooms, devices, functions…"
 msgstr "Filtrer rom, enheter, funksjoner…"
 
-msgid "Area {area}"
-msgstr "Område {area}"
-
-msgid "{name} (Area {area})"
-msgstr "{name} (område {area})"
-
-msgid "Line {area}.{line}"
-msgstr "Linje {area}.{line}"
-
-msgid "{name} (Line {area}.{line})"
-msgstr "{name} (linje {area}.{line})"
-
 msgid "Unassigned ({count})"
 msgstr "Ikke tilordnet ({count})"
-
-msgid "Add Area"
-msgstr "Legg til område"
-
-msgid "Add Line"
-msgstr "Legg til linje"
-
-msgid "Copy Address"
-msgstr "Kopier adresse"
 
 msgid "Duplicate"
 msgstr "Dupliser"
@@ -1252,12 +1210,6 @@ msgstr "Slett enhet"
 msgid "Delete '{name}'? Its group objects and group-address links are removed and its individual address is freed. This can be undone."
 msgstr "Slette «{name}»? Gruppeobjektene og gruppeadressekoblingene fjernes, og den individuelle adressen frigjøres. Dette kan angres."
 
-msgid "New Area"
-msgstr "Nytt område"
-
-msgid "New Line"
-msgstr "Ny linje"
-
 msgid "Number"
 msgstr "Nummer"
 
@@ -1273,41 +1225,11 @@ msgstr "Last"
 msgid "Copy Log"
 msgstr "Kopier logg"
 
-msgid "New Group Address"
-msgstr "Ny gruppeadresse"
-
-msgid "New Main Group"
-msgstr "Ny hovedgruppe"
-
-msgid "New Middle Group"
-msgstr "Ny mellomgruppe"
-
-msgid "New Folder"
-msgstr "Ny mappe"
-
-msgid "Rename Folder"
-msgstr "Gi mappen nytt navn"
-
 msgid "Delete Folder"
 msgstr "Slett mappe"
 
-msgid "Main group name (the next free number is assigned automatically)"
-msgstr "Navn på hovedgruppe (neste ledige nummer tildeles automatisk)"
-
-msgid "Middle group name (the next free number is assigned automatically)"
-msgstr "Navn på mellomgruppe (neste ledige nummer tildeles automatisk)"
-
 msgid "Delete this folder and every group address in it? This can be undone."
 msgstr "Slette denne mappen og alle gruppeadressene i den? Dette kan angres."
-
-msgid "Rename Group Address"
-msgstr "Gi gruppeadressen nytt navn"
-
-msgid "Change Address…"
-msgstr "Endre adresse…"
-
-msgid "New group address (links are kept):"
-msgstr "Ny gruppeadresse (koblingene beholdes):"
 
 msgid "Invalid address or already in use."
 msgstr "Ugyldig adresse eller allerede i bruk."
@@ -1318,26 +1240,14 @@ msgstr "Sikkerhet"
 msgid "Automatic"
 msgstr "Automatisk"
 
-msgid "Secured"
-msgstr "Sikret"
-
-msgid "Not Secured"
-msgstr "Ikke sikret"
-
 msgid "A secured group address can only be linked to devices that are commissioned securely."
 msgstr "En sikret gruppeadresse kan bare kobles til enheter som settes sikkert i drift."
 
 msgid "Not every device linked to this group address is commissioned securely, so it cannot be secured."
 msgstr "Ikke alle enheter som er koblet til denne gruppeadressen, settes sikkert i drift, så den kan ikke sikres."
 
-msgid "Set Datapoint Type"
-msgstr "Angi datapunkttype"
-
 msgid "Address"
 msgstr "Adresse"
-
-msgid "Datapoint type (e.g. DPST-1-1); empty to clear"
-msgstr "Datapunkttype (f.eks. DPST-1-1); tom for å fjerne"
 
 msgid "Project: {name}"
 msgstr "Prosjekt: {name}"
@@ -1770,9 +1680,6 @@ msgstr "Et passord må ha 1 til 20 Latin-1-tegn."
 
 msgid "Close"
 msgstr "Lukk"
-
-msgid "IP Backbone Security"
-msgstr "IP-backbone-sikkerhet"
 
 msgid "Device Certificates"
 msgstr "Enhetssertifikater"
@@ -2301,3 +2208,732 @@ msgstr "Oppføring"
 
 msgid "Store plugin data {name}"
 msgstr "Lagre plugindata {name}"
+
+msgid "Unknown"
+msgstr "Ukjent"
+
+msgid "Editing"
+msgstr "Redigerer"
+
+msgid "Finished design"
+msgstr "Fullført utforming"
+
+msgid "Finished commissioning"
+msgstr "Idriftsettelse ferdig"
+
+msgid "Tested"
+msgstr "Testet"
+
+msgid "Accepted"
+msgstr "Akseptert"
+
+msgid "Locked"
+msgstr "Låst"
+
+msgid "Function"
+msgstr "Funksjon"
+
+msgid "Use"
+msgstr "Bruk"
+
+msgid "Set room use"
+msgstr "Angi rommets bruk"
+
+msgid "Set status to {status}"
+msgstr "Angi status til {status}"
+
+msgid "Set function description"
+msgstr "Angi funksjonsbeskrivelse"
+
+msgid "Current Line"
+msgstr "Gjeldende linje"
+
+msgid "{line} (inherits from {space})"
+msgstr "{line} (arver fra {space})"
+
+msgid "Set current line"
+msgstr "Angi gjeldende linje"
+
+msgid "Segment"
+msgstr "Segment"
+
+msgid "Medium"
+msgstr "Medie"
+
+msgid "Domain Address"
+msgstr "Domeneadresse"
+
+msgid "The medium of a segment can only change while it holds no device."
+msgstr "Medietypen til et segment kan bare endres hvis det ikke inneholder utstyr."
+
+msgid "The medium type of the segment '{segment}' cannot be changed to IoT, because its parent line '{line}' is not of medium type IP."
+msgstr "Medietypen til segmentet «{segment}» kan ikke endres til IoT, fordi den overordnede linjen «{line}» ikke er av medietype IP."
+
+msgid "The maximum number of segments has been reached."
+msgstr "Maksimalt antall segmenter er nådd."
+
+msgid "The main segment cannot be deleted."
+msgstr "Hovedsegmentet kan ikke slettes."
+
+msgid "Device '{device}' is incompatible with line's medium type."
+msgstr "Enhet '{device}' er inkompatibel med linjens mediumtype."
+
+msgid "Device '{device}' is incompatible with segment's medium type."
+msgstr "Enhet '{device}' er inkompatibel med segmentets medium type."
+
+msgid "Rename segment to {name}"
+msgstr "Gi segmentet nytt navn: {name}"
+
+msgid "Set medium to {medium}"
+msgstr "Angi medie til {medium}"
+
+msgid "Forced on"
+msgstr "Tvunget på"
+
+msgid "Forced off"
+msgstr "Tvunget av"
+
+msgid "Overridden by '{name}': {mode}"
+msgstr "Overstyrt av '{name}': {mode}"
+
+msgid "Central"
+msgstr "Sentral"
+
+msgid "Not every device linked to a group address of this group is commissioned securely, so it cannot be secured."
+msgstr "Ikke alle enheter som er koblet til en gruppeadresse i denne gruppen, settes sikkert i drift, så den kan ikke sikres."
+
+msgid "Set group security"
+msgstr "Angi sikkerhet for gruppe"
+
+msgid "Mark group address as central"
+msgstr "Merk gruppeadresse som sentral"
+
+msgid "Remove central mark from group address"
+msgstr "Fjern sentral-merking fra gruppeadresse"
+
+msgid "Topology"
+msgstr "Topologi"
+
+msgid "{medium} backbone line"
+msgstr "{medium} backbonelinje"
+
+msgid "{medium} main line"
+msgstr "{medium} hovedlinje"
+
+msgid "Backbone"
+msgstr "Nettstamme"
+
+msgid "Network Latency"
+msgstr "Nettverkslatens"
+
+msgid "LAN (< 400ms)"
+msgstr "LAN (< 400 ms)"
+
+msgid "WLAN (< 1s)"
+msgstr "WLAN (< 1s)"
+
+msgid "WAN (< 2s)"
+msgstr "WAN (< 2s)"
+
+msgid "Mobile (< 4s)"
+msgstr "Mobil (< 4 s)"
+
+msgid "Satellite (< 8s)"
+msgstr "Satellitt (< 8s)"
+
+msgid "The network latency must be a number of milliseconds from 1 to 65535."
+msgstr "Nettverkslatensen må være et antall millisekunder fra 1 til 65535."
+
+msgid "Multicast Address"
+msgstr "Multicast-adresse"
+
+msgid "Enter a multicast address from 224.0.0.0 to 239.255.255.255."
+msgstr "Angi en multicast-adresse fra 224.0.0.0 til 239.255.255.255."
+
+msgid "Bus Connection"
+msgstr "Bussforbindelse"
+
+msgid "Set IP routing of the backbone"
+msgstr "Angi IP-ruting for nettstammen"
+
+msgid "As long as a coupler exists at a sub line or sub segment, a change of the medium type is not possible."
+msgstr "Så lenge det finnes en kobling på en del, er det ikke mulig å bytte medium på en del."
+
+msgid "A main line of a project cannot have medium type RF."
+msgstr "En hovedlinje i et prosjekt kan ikke ha middels type RF."
+
+msgid "The operation could not be executed, because as medium type of the backbone only IP and TP are allowed."
+msgstr "Operasjonen kunne ikke utføres, fordi som mediumtype av backbone er kun IP og TP tillatt."
+
+msgid "A sub-segment of KNX medium type IP or PL is not allowed."
+msgstr "Et delsegment av KNX-medietype IP eller PL er ikke tillatt."
+
+msgid "The medium type of the main line '{line}' can no longer be changed to PL, because it already contains lines or segments that are not allowed in PL main lines."
+msgstr "Medietypen til hovedlinjen '{line}' kan ikke lenger endres til PL, fordi den allerede inneholder linjer eller segmenter som ikke er tillatt i PL-hovedlinjer."
+
+msgid "The medium type of the main line '{line}' cannot be changed to IoT, because the backbone line '{backbone}' is not of medium type IP."
+msgstr "Medietypen til hovedlinjen «{line}» kan ikke endres til IoT, fordi backbonelinjen «{backbone}» ikke er av medietype IP."
+
+msgid "The medium type of the main line '{line}' can no longer be changed to IoT, because it already contains lines or segments that are not allowed in IoT main lines."
+msgstr "Medietypen til hovedlinjen '{line}' kan ikke lenger endres til IoT, fordi den allerede inneholder linjer eller segmenter som ikke er tillatt i IoT-hovedlinjer."
+
+msgid "The medium type of the line '{line}' cannot be changed, because it already contains lines or segments that require an IoT or IP main line."
+msgstr "Medietypen til hovedlinjen «{line}» kan ikke endres, fordi den allerede inneholder linjer eller segmenter som ikke er tillatt i IoT eller IP-hovedlinjer."
+
+msgid "A sub-segment is not allowed below a main segment of KNX medium type RF."
+msgstr "Et delsegment er ikke tillatt under et hovedsegment av KNX-medietype RF."
+
+msgid "A sub-segment is not allowed below a main segment of KNX medium type PL."
+msgstr "Et delsegment er ikke tillatt under et hovedsegment i KNX-medietype PL."
+
+msgid "A sub-segment of KNX medium type IoT is not allowed below a main segment of the same type."
+msgstr "Et delsegment av KNX-medietype IoT er ikke tillatt under et hovedsegment av samme type."
+
+msgid "The operation could not be executed, because a RF main line '{line}' requires all other lines in the area to be RF lines as well."
+msgstr "Operasjonen kan ikke utføres, fordi en RF-hovedlinje «{line}» krever at alle andre linjer i området må være RF-linjer også."
+
+msgid "The operation could not be executed, because a PL main line '{line}' requires all other lines in the area to be PL lines as well."
+msgstr "Operasjonen kan ikke utføres, fordi en PL-hovedlinjen «{line}» krever at alle andre linjer i området også er PL-linjer."
+
+msgid "The operation could not be executed, because a IoT main line '{line}' requires all other lines in the area to be IoT lines as well."
+msgstr "Operasjonen kan ikke utføres, fordi en IoT hovedlinjen «{line}» krever at alle andre linjer i området for å være IoT linjer også."
+
+msgid "The medium type of the line '{line}' cannot be changed to IoT, because its main line '{main}' is not of medium type IP."
+msgstr "Medietypen til linjen «{line}» kan ikke endres til IoT, fordi hovedlinjen «{main}» ikke er av medietype TP."
+
+msgid "The medium type of the line '{line}' can no longer be changed to IoT, because it already contains segments that are not allowed in IoT lines."
+msgstr "Medietypen til linjen '{line}' kan ikke lenger endres til IoT, fordi den allerede inneholder segmenter som ikke er tillatt i IoT-linjer."
+
+msgid "The operation could not be executed, because the line is the IP backbone line and the project contains KNXnet/IP routers. KNXnet/IP routers require an IP backbone line."
+msgstr "Operasjonen kunne ikke utføres da linjen er IP backbonelinje og prosjektet inneholder KNXnet/IP routere. KNXnet/IP routere krever en IP backbonelinje."
+
+msgid "The operation could not be executed, because the line is the IP main line and the project contains KNXnet/IP routers. KNXnet/IP routers require an IP main line."
+msgstr "Handlingen kunne ikke utføres da linjen er en hovedlinje som inneholder KNXnet/IP routere. KNXnet/IP routere krever en IP hovedlinje."
+
+msgid "The operation could not be executed, because the line is the IP backbone line and the project contains IoT or IP lines."
+msgstr "Operasjonen kunne ikke utføres, fordi linjen er IP-backbonelinjen og prosjektet inneholder IoT- eller IP-linjer."
+
+msgid "The operation could not be executed, because the medium type of the line can only be set to IP if an IP main line exists."
+msgstr "Handlingen kunne ikke utføres fordi en linjes medietype kan bare settes til IP dersom en IP-hovedlinje finnes."
+
+msgid "The operation could not be executed, because the medium type of the line can only be set to IP if an IP backbone line exists."
+msgstr "Operasjonen kunne ikke utføres, fordi mediumtypen til linjen kun kan settes til IP hvis en nettstammelinje eksisterer."
+
+msgid "The operation could not be executed, because below a TP main segment only segments of KNX medium type TP, RF or PL can exist."
+msgstr "Operasjonen kunne ikke utføres, fordi under et TP-hovedsegment er det bare segmenter av KNX-middelstype TP, RF eller PL som kan eksistere."
+
+msgid "Below a main segment of KNX medium type IP only segments of medium type TP or RF can exist."
+msgstr "Under et hovedsegment i KNX-middelstype IP, kan det bare eksistere segmenter av middelstype TP eller RF."
+
+msgid "A sub-segment of KNX medium type PL is not allowed below a main segment."
+msgstr "Et delsegment av KNX-medietype PL er ikke tillatt under en hovedsegment."
+
+msgid "Set bus connection of the backbone"
+msgstr "Angi bussforbindelse for nettstammen"
+
+msgid "Set domain address"
+msgstr "Angi domeneadresse"
+
+msgid "Generate New"
+msgstr "Skap ny"
+
+msgid "The given domain address is invalid."
+msgstr "Den angitte domene adressen er ugyldig."
+
+msgid "Domain address is not valid! Valid values are 1 to 255."
+msgstr "Ugyldig domeneadresse! Gyldige verdier er 1 til 255."
+
+msgid "DomainAddress of mediumType 'RF' is lower than the minimum value of 0001:00000000."
+msgstr "Domene adresse medium Type 'RF' er lavere enn minimumsverdien for 0001: 00000000."
+
+msgid "DomainAddress of medium type '{medium}' exceeds the maximum valid value of {maximum}"
+msgstr "Domeneadressen til mediumtypen '{medium}' overskrider maksverdien på {maximum}"
+
+msgid "DomainAddress of RF sublines must be equal to DomainAdress of main line."
+msgstr "Domene adresse RF underlinjer må være lik domene adresse til hovedlinjen."
+
+msgid "Domain Address of IoT sublines must be equal to Domain Address of main line."
+msgstr "Domeneadressen til IoT-underlinjer må være lik domeneadressen til hovedlinjen."
+
+msgid "Each line in a project must have a unique domain address."
+msgstr "Hver linje i et prosjekt må ha en unik domene-adresse."
+
+msgid "Last Downloaded"
+msgstr "Siste nedlastet"
+
+msgid "Create trade {name}"
+msgstr "Opprett funksjon {name}"
+
+msgid "Rename trade to {name}"
+msgstr "Gi funksjonen nytt navn: {name}"
+
+msgid "Set trade number"
+msgstr "Angi funksjonsnummer"
+
+msgid "Set trade description"
+msgstr "Angi funksjonsbeskrivelse"
+
+msgid "Move trade"
+msgstr "Flytt funksjon"
+
+msgid "Remove trade"
+msgstr "Fjern funksjon"
+
+msgid "Add device to trade"
+msgstr "Legg til enhet i funksjon"
+
+msgid "Remove device from trade"
+msgstr "Fjern enhet fra funksjon"
+
+msgid "Trades"
+msgstr "Funksjoner"
+
+msgid "Building Parts…"
+msgstr "Bygningsdeler…"
+
+msgid "Floors…"
+msgstr "Etasjer…"
+
+msgid "Stairways…"
+msgstr "Trapper…"
+
+msgid "Rooms…"
+msgstr "Rom…"
+
+msgid "Corridors…"
+msgstr "Korridorer…"
+
+msgid "Cabinets…"
+msgstr "Fordelinger…"
+
+msgid "Devices…"
+msgstr "Deltagere…"
+
+msgid "Functions…"
+msgstr "Funksjoner…"
+
+msgid "Trades…"
+msgstr "Funksjoner…"
+
+msgid "Add Buildings…"
+msgstr "Legg til bygninger…"
+
+msgid "Add Trades…"
+msgstr "Legg til funksjoner…"
+
+msgid "Add Buildings"
+msgstr "Legg til bygninger"
+
+msgid "Add Building Parts"
+msgstr "Legg til bygningsdel"
+
+msgid "Add Floors"
+msgstr "Legg til etasjer"
+
+msgid "Add Rooms"
+msgstr "Legg til rom"
+
+msgid "Add Corridors"
+msgstr "Legg til korridorer"
+
+msgid "Add Stairways"
+msgstr "Legg til trapper"
+
+msgid "Add Cabinets"
+msgstr "Legg til fordelinger"
+
+msgid "Add Trades"
+msgstr "Legg til funksjoner"
+
+msgid "Add Devices"
+msgstr "Legg til deltager"
+
+msgid "Count"
+msgstr "Antall"
+
+msgid "to \"{name}\""
+msgstr "til \"{name}\""
+
+msgid "Cabinet"
+msgstr "Fordeling"
+
+msgid "New building"
+msgstr "Ny bygning"
+
+msgid "New building part"
+msgstr "Ny bygningsdel"
+
+msgid "New floor"
+msgstr "Ny etasje"
+
+msgid "New room"
+msgstr "Nytt rom"
+
+msgid "New corridor"
+msgstr "Ny korridor"
+
+msgid "New stairway"
+msgstr "Ny trapp"
+
+msgid "New cabinet"
+msgstr "Ny fordeling"
+
+msgid "New trade"
+msgstr "Ny funksjon"
+
+msgid "A building part of this type cannot be added here."
+msgstr "En bygnings del av denne typen kan ikke legges til her."
+
+msgid "A building part of this type cannot be added here.\nCabinets can be added inside of rooms, corridors, or stairways only. If applicable the corridors have to be moved into the corresponding building parts."
+msgstr "En byggedel av denne typen kan ikke legges til her.\nKabinetter kan bare legges til inni rom, korridorer eller trapper. Hvis det er relevant, må korridorene flyttes i korresponderende byggedeler."
+
+msgid "The target is a child building part."
+msgstr "Målet er en underordnet byggedel."
+
+msgid "Devices can only be added to stairways, rooms, corridors and cabinets."
+msgstr "Enheter kan bare legges til trapper, rom, korridorer og kabinetter."
+
+msgid "Trade"
+msgstr "Funksjon"
+
+msgid "(estimated)"
+msgstr "(antatt)"
+
+msgid "Number of Devices"
+msgstr "Antall deltagere"
+
+msgid "Unlink"
+msgstr "Fjern link"
+
+msgid "An IP router requires an IP backbone line."
+msgstr "En IP router krever at det er IP backbone."
+
+msgid "The operation could not be executed, because a coupler needs a main line."
+msgstr "Operasjonen kunne ikke utføres, fordi en kobler trenger en hovedlinje."
+
+msgid "The operation could not be executed, because an area coupler requires a backbone line."
+msgstr "Operasjonen kunne ikke utføres, forde en linjekobler krever en backbone linje."
+
+msgid "The operation could not be executed, because this coupler needs a main line with the medium type '{medium}' ."
+msgstr "Operasjonen kunne ikke utføres, fordi denne kobleren trenger en hovedlinje med mediumtypen '{medium}' ."
+
+msgid "The operation could not be executed, because only one IP router is allowed as a world coupler."
+msgstr "Operasjonen kan ikke utføres, fordi bare en IP-ruter tillates som en verdenskobler."
+
+msgid "The operation could not be executed, because only IP router area allowed as a world coupler."
+msgstr "Operasjonen kan ikke utføres, fordi bare IP-ruter området tillates som en verdenskobler."
+
+msgid "The backbone line contains a world coupler. It is not possible to use an IP router below another IP router."
+msgstr "Nettstammelinjen inneholder en verdenskobler. Det er ikke mulig å bruke en IP-ruter under en annen IP-ruter."
+
+msgid "It is not possible to use a world coupler, when there are already IP routers in the project."
+msgstr "Det er ikke mulig å bruke en global kobling når det allerede finnes IP-rutere i prosjektet."
+
+msgid "A world coupler can only be used, when the medium type of the backbone is TP."
+msgstr "En verdenskobler kan bare brukes når nettstammens mediumtype er TP."
+
+msgid "The coupler does not support segment coupling, so the sub-segment must be of the same KNX medium type as the main segment."
+msgstr "Koblingen støtter ikke segmentkoplingen, slik at undersegmentet må være av samme KNX-medium som hovedsegmentet."
+
+msgid "The operation could not be executed, because this device couples medium '{above}' (above) to medium '{below}' (below), but the segment above is '{segment}'."
+msgstr "Operasjonen kunne ikke kjøres, fordi denne enheten har medium '{above}' (høyere) til medium '{below}' (under), men segmentet over er '{segment}'."
+
+msgid "The operation could not be executed, because medium type of coupler device matches only sub segment, but maximum amount of segments reached."
+msgstr "Operasjonen kunne ikke utføres fordi type koblinger som samsvarer med bare deling, men maksimalt antall segmenter som ble nådd."
+
+msgid "The operation could not be executed, because this device couples medium '{above}' (above) to medium '{below}' (below), but the medium type of the lower segment is '{segment}'."
+msgstr "Operasjonen kunne ikke utføres, fordi denne enheten har medium '{above}' (høyere) til medium '{below}' (under), men middels typen av det nedre segmentet er '{segment}'."
+
+msgid "Recover Project from Bus"
+msgstr "Gjenopprett prosjekt fra bussen"
+
+msgid "Devices in Programming Mode"
+msgstr "Enheter i programmeringsmodus"
+
+msgid "Connecting"
+msgstr "Kobler til"
+
+msgid "Move middle group"
+msgstr "Flytt mellomgruppe"
+
+msgid "The group has no free group address."
+msgstr "Gruppen har ingen ledig gruppeadresse."
+
+msgid "The main group has no free middle group."
+msgstr "Hovedgruppen har ingen ledig mellomgruppe."
+
+msgid "{count} devices"
+msgstr "{count} enheter"
+
+msgid "The main segment cannot be moved."
+msgstr "Hovedsegmentet kan ikke flyttes."
+
+msgid "The maximum number of lines has been reached."
+msgstr "Maksimalt antall linjer er nådd."
+
+msgid "The line is already assigned to an area."
+msgstr "Linjen er allerede tilordnet et område."
+
+msgid "The main line cannot be moved."
+msgstr "Hovedlinjen kan ikke flyttes."
+
+msgid "Move line"
+msgstr "Flytt linje"
+
+msgid "Move segment"
+msgstr "Flytt segment"
+
+msgid "Move function"
+msgstr "Flytt funksjon"
+
+msgid "Paste Special"
+msgstr "Lim inn spesielt"
+
+msgid "Number of Items"
+msgstr "Antall elementer"
+
+msgid "Don't copy"
+msgstr "Ikke kopier"
+
+msgid "Keep"
+msgstr "Behold"
+
+msgid "Create new group address in middle group"
+msgstr "Opprett ny gruppeadresse i mellomgruppe"
+
+msgid "Create new group address in main group"
+msgstr "Opprett ny gruppeadresse i hovedgruppe"
+
+msgid "Create new group address in group range"
+msgstr "Opprett ny gruppeadresse i gruppeområde"
+
+msgid "Generate Address"
+msgstr "Generer adresse"
+
+msgid "Fill up (use first free)"
+msgstr "Fyll opp (første ledige)"
+
+msgid "Append"
+msgstr "Legg til sist"
+
+msgid "Start with"
+msgstr "Start med"
+
+msgid "Enter a middle group, e.g. 1/2."
+msgstr "Angi en mellomgruppe, f.eks. 1/2."
+
+msgid "Enter a main group, e.g. 1."
+msgstr "Angi en hovedgruppe, f.eks. 1."
+
+msgid "The group has too few free group addresses for the copies."
+msgstr "Gruppen har for få ledige gruppeadresser til kopiene."
+
+msgid "The maximum number of group ranges has been reached."
+msgstr "Maksimalt antall gruppeområder er nådd."
+
+msgid "There is no group for the new group addresses."
+msgstr "Det finnes ingen gruppe for de nye gruppeadressene."
+
+msgid "Copied '{name}' to '{target}'."
+msgstr "'{name}' kopiert til '{target}'."
+
+msgid "Copied {count} devices to '{target}'."
+msgstr "{count} enheter kopiert til '{target}'."
+
+msgid "Copied {count} building parts to '{target}'."
+msgstr "{count} bygningsdeler kopiert til '{target}'."
+
+msgid "Copied {count} trades to '{target}'."
+msgstr "{count} fag kopiert til '{target}'."
+
+msgid "Copied {count} functions to '{target}'."
+msgstr "{count} funksjoner kopiert til '{target}'."
+
+msgid "Copied {count} group addresses to '{target}'."
+msgstr "{count} gruppeadresser kopiert til '{target}'."
+
+msgid "Copied {count} middle groups to '{target}'."
+msgstr "{count} mellomgrupper kopiert til '{target}'."
+
+msgid "Copied {count} main groups to '{target}'."
+msgstr "{count} hovedgrupper kopiert til '{target}'."
+
+msgid "Copied {count} lines to '{target}'."
+msgstr "{count} linjer kopiert til '{target}'."
+
+msgid "Copied {count} segments to '{target}'."
+msgstr "{count} segmenter kopiert til '{target}'."
+
+msgid "Paste Special…"
+msgstr "Lim inn spesielt…"
+
+msgid "Add Row"
+msgstr "Legg til rad"
+
+msgid "Remove this row"
+msgstr "Fjern denne raden"
+
+msgid "Generate Addresses"
+msgstr "Generer adresser"
+
+msgid "Unlink device"
+msgstr "Fjern link til enhet"
+
+msgid "The device is on no line: put it on a line first."
+msgstr "Enheten er ikke på noen linje: plasser den på en linje først."
+
+msgid "Areas…"
+msgstr "Områder…"
+
+msgid "Lines…"
+msgstr "Linjer…"
+
+msgid "Segments…"
+msgstr "Segmenter…"
+
+msgid "Add Areas"
+msgstr "Legg til områder"
+
+msgid "Add Lines"
+msgstr "Legg til linjer"
+
+msgid "Add Segments"
+msgstr "Legg til segmenter"
+
+msgid "The limit to add was reached."
+msgstr "Grensen for å legge til er nådd."
+
+msgid "Cannot add any line to the area {area} because of topology constraints. Please check the medium type of the backbone and main lines."
+msgstr "Kan ikke legge til noen linje i området {area} på grunn av topologibegrensninger. Kontroller medietypen til stamnett- og hovedlinjene."
+
+msgid "Added {count} areas to '{target}'."
+msgstr "{count} områder lagt til i '{target}'."
+
+msgid "Added {count} lines to '{target}'."
+msgstr "{count} linjer lagt til i '{target}'."
+
+msgid "Added {count} segments to '{target}'."
+msgstr "{count} segmenter lagt til i '{target}'."
+
+msgid "Added {count} building parts to '{target}'."
+msgstr "{count} bygningsdeler lagt til i '{target}'."
+
+msgid "Added {count} trades to '{target}'."
+msgstr "{count} fag lagt til i '{target}'."
+
+msgid "Added {count} main groups to '{target}'."
+msgstr "{count} hovedgrupper lagt til i '{target}'."
+
+msgid "Added {count} middle groups to '{target}'."
+msgstr "{count} mellomgrupper lagt til i '{target}'."
+
+msgid "Added {count} group addresses to '{target}'."
+msgstr "{count} gruppeadresser lagt til i '{target}'."
+
+msgid "Add Main Groups…"
+msgstr "Legg til hovedgrupper…"
+
+msgid "Add Middle Groups…"
+msgstr "Legg til mellomgrupper…"
+
+msgid "Add Main Groups"
+msgstr "Legg til hovedgrupper"
+
+msgid "Add Middle Groups"
+msgstr "Legg til mellomgrupper"
+
+msgid "New main group"
+msgstr "Ny hovedgruppe"
+
+msgid "New middle group"
+msgstr "Ny mellomgruppe"
+
+msgid "New group address"
+msgstr "Ny gruppeadresse"
+
+msgid "Cut"
+msgstr "Klipp ut"
+
+msgid "What was cut cannot be moved there."
+msgstr "Det som ble klippet ut, kan ikke flyttes dit."
+
+msgid "Park"
+msgstr "Parker"
+
+msgid "Park device"
+msgstr "Parker enhet"
+
+msgid "Add Functions"
+msgstr "Legg til funksjoner"
+
+msgid "New function"
+msgstr "Ny funksjon"
+
+msgid "Added {count} functions to '{target}'."
+msgstr "{count} funksjoner lagt til i '{target}'."
+
+msgid "Added {count} group ranges to '{target}'."
+msgstr "{count} gruppeadresseområder lagt til i '{target}'."
+
+msgid "Add Group Ranges…"
+msgstr "Legg til gruppeadresseområder…"
+
+msgid "Add Group Ranges"
+msgstr "Legg til gruppeadresseområder"
+
+msgid "New group range"
+msgstr "Nytt gruppeadresseområde"
+
+msgid "Capacity"
+msgstr "Kapasitet"
+
+msgid "Link with…"
+msgstr "Koble til…"
+
+msgid "Link with Group Address"
+msgstr "Koble til gruppeadresse"
+
+msgid "There is no group to add group addresses to."
+msgstr "Det finnes ingen gruppe å legge gruppeadresser til i."
+
+msgid "Add Subtrade"
+msgstr "Legg til underfunksjon"
+
+msgid "The group range does not fit there."
+msgstr "Gruppeadresseområdet får ikke plass der."
+
+msgid "A group range cannot go into itself or a range in it."
+msgstr "Et gruppeadresseområde kan ikke flyttes inn i seg selv eller et område i det."
+
+msgid "A group address of the range is already in use there."
+msgstr "En gruppeadresse i området er allerede i bruk der."
+
+msgid "Copied {count} group ranges to '{target}'."
+msgstr "{count} gruppeadresseområder kopiert til '{target}'."
+
+msgid "Add Areas…"
+msgstr "Legg til områder…"
+
+msgid "{medium} segment"
+msgstr "{medium}-segment"
+
+msgid "Copy Individual Address"
+msgstr "Kopier individuell adresse"
+
+msgid "Copy Group Address"
+msgstr "Kopier gruppeadresse"
+
+msgid "Existing Devices…"
+msgstr "Eksisterende deltagere…"
+
+msgid "Delete the {count} selected devices? Their group objects and group-address links are removed and their individual addresses are freed. This can be undone."
+msgstr "Slette de {count} valgte deltagerne? Gruppeobjektene og gruppeadressekoblingene deres fjernes, og de individuelle adressene frigis. Dette kan angres."
+
+msgid "Remove {count} devices"
+msgstr "Fjern {count} deltagere"
+
+msgid "Delete Devices"
+msgstr "Slett enheter"
+
+msgid "{medium} line"
+msgstr "{medium}-linje"

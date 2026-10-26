@@ -505,18 +505,6 @@ msgstr "点击某项结果可跳转到该设备。"
 msgid "No buildings/rooms in this project"
 msgstr "此项目中没有建筑/房间"
 
-msgid "+ Function"
-msgstr "+ 功能"
-
-msgid "+ Space"
-msgstr "+ 空间"
-
-msgid "+ Sub-space"
-msgstr "+ 子空间"
-
-msgid "New Space"
-msgstr "新空间"
-
 msgid "Name"
 msgstr "名称"
 
@@ -541,17 +529,11 @@ msgstr "（顶层）"
 msgid "Delete this space and everything in it? Devices are only unassigned, not deleted."
 msgstr "删除此空间及其中的所有内容？设备只会被取消分配，不会被删除。"
 
-msgid "Assign Device"
-msgstr "分配设备"
-
 msgid "Assign a Device to This Space"
 msgstr "将设备分配到此空间"
 
 msgid "No unassigned devices"
 msgstr "没有未分配的设备"
-
-msgid "Remove from Space"
-msgstr "从空间中移除"
 
 msgid "Without Space"
 msgstr "无空间"
@@ -573,24 +555,6 @@ msgstr "走廊"
 
 msgid "Stairway"
 msgstr "楼梯"
-
-msgid "Distribution Board"
-msgstr "配电箱"
-
-msgid "New Function"
-msgstr "新功能"
-
-msgid "Rename"
-msgstr "重命名"
-
-msgid "Rename Function"
-msgstr "重命名功能"
-
-msgid "Assign Group Address"
-msgstr "分配组地址"
-
-msgid "Role (Optional)"
-msgstr "角色（可选）"
 
 msgid "Custom"
 msgstr "自定义"
@@ -955,8 +919,23 @@ msgstr "程序引用"
 msgid "IP Configuration"
 msgstr "IP 配置"
 
-msgid "Assignment"
-msgstr "分配方式"
+msgid "Obtain an IP address automatically"
+msgstr "自动获取 IP 地址"
+
+msgid "Use a static IP address"
+msgstr "使用静态 IP 地址"
+
+msgid "Assigned IP Address"
+msgstr "分配的 IP 地址"
+
+msgid "An invalid IP address was specified."
+msgstr "指定的 IP 地址无效。"
+
+msgid "Change assigned IP address of '{0}' to '{1}'."
+msgstr "已将 '{0}' 的分配 IP 地址更改为 '{1}'。"
+
+msgid "IP configuration of device '{0}' changed."
+msgstr "设备 '{0}' 的 IP 配置已更改。"
 
 msgid "IP Address"
 msgstr "IP 地址"
@@ -1162,29 +1141,8 @@ msgstr "过滤组地址（地址、名称）…"
 msgid "Filter rooms, devices, functions…"
 msgstr "过滤房间、设备、功能…"
 
-msgid "Area {area}"
-msgstr "区域 {area}"
-
-msgid "{name} (Area {area})"
-msgstr "{name}（区域 {area}）"
-
-msgid "Line {area}.{line}"
-msgstr "支线 {area}.{line}"
-
-msgid "{name} (Line {area}.{line})"
-msgstr "{name}（支线 {area}.{line}）"
-
 msgid "Unassigned ({count})"
 msgstr "未分配（{count}）"
-
-msgid "Add Area"
-msgstr "添加区域"
-
-msgid "Add Line"
-msgstr "添加支线"
-
-msgid "Copy Address"
-msgstr "复制地址"
 
 msgid "Duplicate"
 msgstr "创建副本"
@@ -1252,12 +1210,6 @@ msgstr "删除设备"
 msgid "Delete '{name}'? Its group objects and group-address links are removed and its individual address is freed. This can be undone."
 msgstr "删除“{name}”？其组对象和组地址链接将被移除，其物理地址将被释放。此操作可以撤消。"
 
-msgid "New Area"
-msgstr "新区域"
-
-msgid "New Line"
-msgstr "新支线"
-
 msgid "Number"
 msgstr "编号"
 
@@ -1273,41 +1225,11 @@ msgstr "加载"
 msgid "Copy Log"
 msgstr "复制日志"
 
-msgid "New Group Address"
-msgstr "新建组地址"
-
-msgid "New Main Group"
-msgstr "新建主组"
-
-msgid "New Middle Group"
-msgstr "新建中间组"
-
-msgid "New Folder"
-msgstr "新文件夹"
-
-msgid "Rename Folder"
-msgstr "重命名文件夹"
-
 msgid "Delete Folder"
 msgstr "删除文件夹"
 
-msgid "Main group name (the next free number is assigned automatically)"
-msgstr "主组名称（自动分配下一个空闲编号）"
-
-msgid "Middle group name (the next free number is assigned automatically)"
-msgstr "中间组名称（自动分配下一个空闲编号）"
-
 msgid "Delete this folder and every group address in it? This can be undone."
 msgstr "删除此文件夹及其中的所有组地址？此操作可以撤消。"
-
-msgid "Rename Group Address"
-msgstr "重命名组地址"
-
-msgid "Change Address…"
-msgstr "更改地址…"
-
-msgid "New group address (links are kept):"
-msgstr "新的组地址（保留链接）："
 
 msgid "Invalid address or already in use."
 msgstr "地址无效或已被使用。"
@@ -1318,26 +1240,14 @@ msgstr "安全性"
 msgid "Automatic"
 msgstr "自动"
 
-msgid "Secured"
-msgstr "安全"
-
-msgid "Not Secured"
-msgstr "非安全"
-
 msgid "A secured group address can only be linked to devices that are commissioned securely."
 msgstr "安全组地址只能链接到以安全方式调试的设备。"
 
 msgid "Not every device linked to this group address is commissioned securely, so it cannot be secured."
 msgstr "并非所有链接到此组地址的设备都以安全方式调试，因此无法将其设为安全。"
 
-msgid "Set Datapoint Type"
-msgstr "设置数据点类型"
-
 msgid "Address"
 msgstr "地址"
-
-msgid "Datapoint type (e.g. DPST-1-1); empty to clear"
-msgstr "数据点类型（例如 DPST-1-1）；留空以清除"
 
 msgid "Project: {name}"
 msgstr "项目：{name}"
@@ -1770,9 +1680,6 @@ msgstr "密码需要 1 到 20 个 Latin-1 字符。"
 
 msgid "Close"
 msgstr "关闭"
-
-msgid "IP Backbone Security"
-msgstr "IP 主干安全"
 
 msgid "Device Certificates"
 msgstr "设备证书"
@@ -2301,3 +2208,732 @@ msgstr "条目"
 
 msgid "Store plugin data {name}"
 msgstr "存储插件数据 {name}"
+
+msgid "Unknown"
+msgstr "未知"
+
+msgid "Editing"
+msgstr "编辑"
+
+msgid "Finished design"
+msgstr "已结束设计"
+
+msgid "Finished commissioning"
+msgstr "完成试运行"
+
+msgid "Tested"
+msgstr "已测试过"
+
+msgid "Accepted"
+msgstr "已接受"
+
+msgid "Locked"
+msgstr "已锁定"
+
+msgid "Function"
+msgstr "功能"
+
+msgid "Use"
+msgstr "使用"
+
+msgid "Set room use"
+msgstr "设置房间用途"
+
+msgid "Set status to {status}"
+msgstr "将状态设置为{status}"
+
+msgid "Set function description"
+msgstr "设置功能说明"
+
+msgid "Current Line"
+msgstr "当前支线"
+
+msgid "{line} (inherits from {space})"
+msgstr "{line}（继承自 {space}）"
+
+msgid "Set current line"
+msgstr "设置当前支线"
+
+msgid "Segment"
+msgstr "段"
+
+msgid "Medium"
+msgstr "介质"
+
+msgid "Domain Address"
+msgstr "域地址"
+
+msgid "The medium of a segment can only change while it holds no device."
+msgstr "只能更改不包含任何设备的段的介质类型。"
+
+msgid "The medium type of the segment '{segment}' cannot be changed to IoT, because its parent line '{line}' is not of medium type IP."
+msgstr "段“{segment}”的介质类型无法更改为 IoT，因为其父线路“{line}”不是IP介质类型。"
+
+msgid "The maximum number of segments has been reached."
+msgstr "已达到段数的最大值。"
+
+msgid "The main segment cannot be deleted."
+msgstr "主段不能删除。"
+
+msgid "Device '{device}' is incompatible with line's medium type."
+msgstr "设备 '{device}'和线路的介质类型不兼容。"
+
+msgid "Device '{device}' is incompatible with segment's medium type."
+msgstr "设备 '{device}'和段的介质类型不兼容。"
+
+msgid "Rename segment to {name}"
+msgstr "将段重命名为 {name}"
+
+msgid "Set medium to {medium}"
+msgstr "将介质设置为 {medium}"
+
+msgid "Forced on"
+msgstr "强制开"
+
+msgid "Forced off"
+msgstr "强制关闭"
+
+msgid "Overridden by '{name}': {mode}"
+msgstr "被“{name}”覆盖：{mode}"
+
+msgid "Central"
+msgstr "中央的"
+
+msgid "Not every device linked to a group address of this group is commissioned securely, so it cannot be secured."
+msgstr "并非所有链接到此组中组地址的设备都以安全方式调试，因此无法将其设为安全。"
+
+msgid "Set group security"
+msgstr "设置组安全性"
+
+msgid "Mark group address as central"
+msgstr "将组地址标记为中央"
+
+msgid "Remove central mark from group address"
+msgstr "取消组地址的中央标记"
+
+msgid "Topology"
+msgstr "拓扑"
+
+msgid "{medium} backbone line"
+msgstr "{medium} 干线"
+
+msgid "{medium} main line"
+msgstr "{medium} 主线路"
+
+msgid "Backbone"
+msgstr "主干"
+
+msgid "Network Latency"
+msgstr "网络延迟"
+
+msgid "LAN (< 400ms)"
+msgstr "LAN (< 400ms)"
+
+msgid "WLAN (< 1s)"
+msgstr "WLAN (< 1s)"
+
+msgid "WAN (< 2s)"
+msgstr "WAN (< 2秒)"
+
+msgid "Mobile (< 4s)"
+msgstr "移动 (< 4s)"
+
+msgid "Satellite (< 8s)"
+msgstr "卫星(< 8s)"
+
+msgid "The network latency must be a number of milliseconds from 1 to 65535."
+msgstr "网络延迟必须是 1 到 65535 之间的毫秒数。"
+
+msgid "Multicast Address"
+msgstr "组播地址"
+
+msgid "Enter a multicast address from 224.0.0.0 to 239.255.255.255."
+msgstr "请输入 224.0.0.0 到 239.255.255.255 之间的组播地址。"
+
+msgid "Bus Connection"
+msgstr "总线连接"
+
+msgid "Set IP routing of the backbone"
+msgstr "设置主干的 IP 路由"
+
+msgid "As long as a coupler exists at a sub line or sub segment, a change of the medium type is not possible."
+msgstr "只要子线或子段存在耦合器，就不可能改变介质类型。"
+
+msgid "A main line of a project cannot have medium type RF."
+msgstr "项目的主线不能有RF类型介质。"
+
+msgid "The operation could not be executed, because as medium type of the backbone only IP and TP are allowed."
+msgstr "操作无法执行，因为作为主干的介质类型，只允许IP和TP。"
+
+msgid "A sub-segment of KNX medium type IP or PL is not allowed."
+msgstr "不允许 KNX 介质类型为 IP 或 PL 的子段。"
+
+msgid "The medium type of the main line '{line}' can no longer be changed to PL, because it already contains lines or segments that are not allowed in PL main lines."
+msgstr "主线“{line}”的介质类型无法再更改为 PL，因为它已经包含 PL 主线中不允许的线路或段。"
+
+msgid "The medium type of the main line '{line}' cannot be changed to IoT, because the backbone line '{backbone}' is not of medium type IP."
+msgstr "主线“{line}”的介质类型无法更改为 IoT，因为骨干线“{backbone}”不是IP介质类型。"
+
+msgid "The medium type of the main line '{line}' can no longer be changed to IoT, because it already contains lines or segments that are not allowed in IoT main lines."
+msgstr "主线“{line}”的介质类型无法再更改为 IoT，因为它已包含 IoT 主线中不允许的线路或段。"
+
+msgid "The medium type of the line '{line}' cannot be changed, because it already contains lines or segments that require an IoT or IP main line."
+msgstr "主线“{line}”的介质类型无法更改，因为它已经包含需要IoT或IP主线的线路或段。"
+
+msgid "A sub-segment is not allowed below a main segment of KNX medium type RF."
+msgstr "子段不允许放在KNX介质类型为无线的主段下面。"
+
+msgid "A sub-segment is not allowed below a main segment of KNX medium type PL."
+msgstr "子段不允许放在KNX介质类型为电力线的主段下面。"
+
+msgid "A sub-segment of KNX medium type IoT is not allowed below a main segment of the same type."
+msgstr "KNX IoT介质类型的子段不允许在同类型的主段下面。"
+
+msgid "The operation could not be executed, because a RF main line '{line}' requires all other lines in the area to be RF lines as well."
+msgstr "无法执行操作， 因为RF 主线“{line}”要求该地区所有其他线也是RF 线。"
+
+msgid "The operation could not be executed, because a PL main line '{line}' requires all other lines in the area to be PL lines as well."
+msgstr "无法执行操作， 因为一个 PL 主行'{line}' 要求该区域的所有其他线也是PL 线。"
+
+msgid "The operation could not be executed, because a IoT main line '{line}' requires all other lines in the area to be IoT lines as well."
+msgstr "该操作无法执行，因为 IoT 主线“{line}”要求该区域中的所有其他线路也都是 IoT 线路。"
+
+msgid "The medium type of the line '{line}' cannot be changed to IoT, because its main line '{main}' is not of medium type IP."
+msgstr "线路“{line}”的介质类型无法更改为 IoT，因为其主线路“{main}”不是 IP介质类型。"
+
+msgid "The medium type of the line '{line}' can no longer be changed to IoT, because it already contains segments that are not allowed in IoT lines."
+msgstr "线路“{line}”的介质类型无法再更改为 IoT，因为它已经包含 IoT 线路中不允许的段。"
+
+msgid "The operation could not be executed, because the line is the IP backbone line and the project contains KNXnet/IP routers. KNXnet/IP routers require an IP backbone line."
+msgstr "该操作不能被执行，因为该支线是IP主干线并且项目含有KNXnet/IP路由器。KNXnet/IP路由器需要一个IP主干线."
+
+msgid "The operation could not be executed, because the line is the IP main line and the project contains KNXnet/IP routers. KNXnet/IP routers require an IP main line."
+msgstr "不能执行该操作，因为该支线是IP主线并且项目含有KNXnet/IP路由器。KNXnet/IP路由器需要一条IP主线."
+
+msgid "The operation could not be executed, because the line is the IP backbone line and the project contains IoT or IP lines."
+msgstr "该操作无法执行，因为线路是 IP 主干线路，而项目包含 IoT 或 IP 线路。"
+
+msgid "The operation could not be executed, because the medium type of the line can only be set to IP if an IP main line exists."
+msgstr "不能执行该操作，因为如果一个IP主干线存在，该支线的媒质类型只能被设置到IP."
+
+msgid "The operation could not be executed, because the medium type of the line can only be set to IP if an IP backbone line exists."
+msgstr "不能执行该操作，因为如果一个IP主干线存在，线路的媒介类型只能设置成IP."
+
+msgid "The operation could not be executed, because below a TP main segment only segments of KNX medium type TP, RF or PL can exist."
+msgstr "操作无法执行，因为在TP主段下，只能存在KNX介质类型为TP、RF或PL的段。"
+
+msgid "Below a main segment of KNX medium type IP only segments of medium type TP or RF can exist."
+msgstr "在 KNX 介质类型IP 的主段下，只能存在介质类型为TP或RF的段。"
+
+msgid "A sub-segment of KNX medium type PL is not allowed below a main segment."
+msgstr "KNX介质类型为电力线的子段不允许放在一个主段下面。"
+
+msgid "Set bus connection of the backbone"
+msgstr "设置主干的总线连接"
+
+msgid "Set domain address"
+msgstr "设置域地址"
+
+msgid "Generate New"
+msgstr "生成新地址"
+
+msgid "The given domain address is invalid."
+msgstr "给定的域地址无效."
+
+msgid "Domain address is not valid! Valid values are 1 to 255."
+msgstr "域地址无效！有效值是从1 到 255."
+
+msgid "DomainAddress of mediumType 'RF' is lower than the minimum value of 0001:00000000."
+msgstr "媒介类型 'RF'的域地址比最小值0001:00000000低."
+
+msgid "DomainAddress of medium type '{medium}' exceeds the maximum valid value of {maximum}"
+msgstr "媒质类型 '{medium}'的域地址已超出 {maximum}最大有效值"
+
+msgid "DomainAddress of RF sublines must be equal to DomainAdress of main line."
+msgstr "射频支线的域地址必须等于主线的域地址."
+
+msgid "Domain Address of IoT sublines must be equal to Domain Address of main line."
+msgstr "IoT支线的域地址必须等于干线的域地址。"
+
+msgid "Each line in a project must have a unique domain address."
+msgstr "一个项目中的每一条线路必须有唯一的域地址."
+
+msgid "Last Downloaded"
+msgstr "最后下载的"
+
+msgid "Create trade {name}"
+msgstr "创建工程作业 {name}"
+
+msgid "Rename trade to {name}"
+msgstr "将工程作业重命名为 {name}"
+
+msgid "Set trade number"
+msgstr "设置工程作业编号"
+
+msgid "Set trade description"
+msgstr "设置工程作业描述"
+
+msgid "Move trade"
+msgstr "移动工程作业"
+
+msgid "Remove trade"
+msgstr "删除工程作业"
+
+msgid "Add device to trade"
+msgstr "将设备添加到工程作业"
+
+msgid "Remove device from trade"
+msgstr "从工程作业中移除设备"
+
+msgid "Trades"
+msgstr "工程作业"
+
+msgid "Building Parts…"
+msgstr "建筑局部…"
+
+msgid "Floors…"
+msgstr "楼层…"
+
+msgid "Stairways…"
+msgstr "楼梯…"
+
+msgid "Rooms…"
+msgstr "房间…"
+
+msgid "Corridors…"
+msgstr "走廊…"
+
+msgid "Cabinets…"
+msgstr "控制室…"
+
+msgid "Devices…"
+msgstr "设备…"
+
+msgid "Functions…"
+msgstr "功能…"
+
+msgid "Trades…"
+msgstr "工程作业…"
+
+msgid "Add Buildings…"
+msgstr "添加建筑…"
+
+msgid "Add Trades…"
+msgstr "添加工程作业…"
+
+msgid "Add Buildings"
+msgstr "添加建筑"
+
+msgid "Add Building Parts"
+msgstr "添加建筑局部"
+
+msgid "Add Floors"
+msgstr "添加楼层"
+
+msgid "Add Rooms"
+msgstr "添加房间"
+
+msgid "Add Corridors"
+msgstr "添加走廊"
+
+msgid "Add Stairways"
+msgstr "添加楼梯"
+
+msgid "Add Cabinets"
+msgstr "添加控制室"
+
+msgid "Add Trades"
+msgstr "添加工程作业"
+
+msgid "Add Devices"
+msgstr "添加设备"
+
+msgid "Count"
+msgstr "计数"
+
+msgid "to \"{name}\""
+msgstr "到\"{name}\""
+
+msgid "Cabinet"
+msgstr "控制室"
+
+msgid "New building"
+msgstr "新建建筑"
+
+msgid "New building part"
+msgstr "新建建筑局部"
+
+msgid "New floor"
+msgstr "新建楼层"
+
+msgid "New room"
+msgstr "新建房间"
+
+msgid "New corridor"
+msgstr "新建走廊"
+
+msgid "New stairway"
+msgstr "新建楼梯"
+
+msgid "New cabinet"
+msgstr "新建控制室"
+
+msgid "New trade"
+msgstr "新建工程作业"
+
+msgid "A building part of this type cannot be added here."
+msgstr "这种类型的一个楼宇部分在这儿不能被添加."
+
+msgid "A building part of this type cannot be added here.\nCabinets can be added inside of rooms, corridors, or stairways only. If applicable the corridors have to be moved into the corresponding building parts."
+msgstr "无法在此添加该类楼宇部件。\n橱柜仅可在房间，走廊或楼梯上添加。若适用，走廊必须转移至对应的楼宇部件中."
+
+msgid "The target is a child building part."
+msgstr "目标是子楼宇部分."
+
+msgid "Devices can only be added to stairways, rooms, corridors and cabinets."
+msgstr "设备只能添加到楼梯、房间、走廊和橱柜中。"
+
+msgid "Trade"
+msgstr "工程作业"
+
+msgid "(estimated)"
+msgstr "（估计的）"
+
+msgid "Number of Devices"
+msgstr "设备数"
+
+msgid "Unlink"
+msgstr "取消链接"
+
+msgid "An IP router requires an IP backbone line."
+msgstr "一个IP路由器需要一个IP主干线."
+
+msgid "The operation could not be executed, because a coupler needs a main line."
+msgstr "不能执行该操作，因为一个耦合器需要一条主干线."
+
+msgid "The operation could not be executed, because an area coupler requires a backbone line."
+msgstr "不能执行该操作，因为区域耦合器要求有一条主干线."
+
+msgid "The operation could not be executed, because this coupler needs a main line with the medium type '{medium}' ."
+msgstr "不能执行该操作，因为该耦合器需要一条媒介类型{medium}的主干线 ."
+
+msgid "The operation could not be executed, because only one IP router is allowed as a world coupler."
+msgstr "不能执行该操作，因为只有一个IP路由器被允许作为一个世界耦合器."
+
+msgid "The operation could not be executed, because only IP router area allowed as a world coupler."
+msgstr "不能执行该操作，因为只有IP路由器允许作为一个世界耦合器."
+
+msgid "The backbone line contains a world coupler. It is not possible to use an IP router below another IP router."
+msgstr "骨干网线路中含一个通用耦合器。在其他IP路由器下无法使用IP路由器."
+
+msgid "It is not possible to use a world coupler, when there are already IP routers in the project."
+msgstr "当项目中已经有IP路由器时，不能使用全局耦合器。"
+
+msgid "A world coupler can only be used, when the medium type of the backbone is TP."
+msgstr "主干网线路介质类型为TP时，仅可用通用耦合器."
+
+msgid "The coupler does not support segment coupling, so the sub-segment must be of the same KNX medium type as the main segment."
+msgstr "耦合器不支持分段耦合，因此子段必须与主段拥有相同的KNX介质类型。"
+
+msgid "The operation could not be executed, because this device couples medium '{above}' (above) to medium '{below}' (below), but the segment above is '{segment}'."
+msgstr "无法执行操作，因为此设备耦合了介质'{above}' (上) 和介质'{below}'(下)，但上面的段是'{segment}'。"
+
+msgid "The operation could not be executed, because medium type of coupler device matches only sub segment, but maximum amount of segments reached."
+msgstr "操作无法执行，因为耦合器设备的介质类型仅匹配子段，但达到了最大的段的数量。"
+
+msgid "The operation could not be executed, because this device couples medium '{above}' (above) to medium '{below}' (below), but the medium type of the lower segment is '{segment}'."
+msgstr "操作无法执行，因为此设备耦合了介质'{above}' (上) 和介质'{below}'(下)，但下面的段的介质类型是'{segment}'。"
+
+msgid "Recover Project from Bus"
+msgstr "从总线恢复项目"
+
+msgid "Devices in Programming Mode"
+msgstr "处于编程模式的设备"
+
+msgid "Connecting"
+msgstr "正在连接"
+
+msgid "Move middle group"
+msgstr "移动中间组"
+
+msgid "The group has no free group address."
+msgstr "该组没有空闲的组地址。"
+
+msgid "The main group has no free middle group."
+msgstr "该主组没有空闲的中间组。"
+
+msgid "{count} devices"
+msgstr "{count} 个设备"
+
+msgid "The main segment cannot be moved."
+msgstr "主网段无法移动。"
+
+msgid "The maximum number of lines has been reached."
+msgstr "已达到线路的最大数量。"
+
+msgid "The line is already assigned to an area."
+msgstr "该线路已分配给某个区域。"
+
+msgid "The main line cannot be moved."
+msgstr "主线路无法移动。"
+
+msgid "Move line"
+msgstr "移动线路"
+
+msgid "Move segment"
+msgstr "移动网段"
+
+msgid "Move function"
+msgstr "移动功能"
+
+msgid "Paste Special"
+msgstr "选择性粘贴"
+
+msgid "Number of Items"
+msgstr "项目数量"
+
+msgid "Don't copy"
+msgstr "不复制"
+
+msgid "Keep"
+msgstr "保留"
+
+msgid "Create new group address in middle group"
+msgstr "在中间组中新建组地址"
+
+msgid "Create new group address in main group"
+msgstr "在主组中新建组地址"
+
+msgid "Create new group address in group range"
+msgstr "在组范围中新建组地址"
+
+msgid "Generate Address"
+msgstr "生成地址"
+
+msgid "Fill up (use first free)"
+msgstr "填充（第一个空闲）"
+
+msgid "Append"
+msgstr "追加"
+
+msgid "Start with"
+msgstr "起始值"
+
+msgid "Enter a middle group, e.g. 1/2."
+msgstr "请输入中间组，例如 1/2。"
+
+msgid "Enter a main group, e.g. 1."
+msgstr "请输入主组，例如 1。"
+
+msgid "The group has too few free group addresses for the copies."
+msgstr "该组空闲的组地址不足以容纳副本。"
+
+msgid "The maximum number of group ranges has been reached."
+msgstr "已达到组范围的最大数量。"
+
+msgid "There is no group for the new group addresses."
+msgstr "没有用于新组地址的组。"
+
+msgid "Copied '{name}' to '{target}'."
+msgstr "已将“{name}”复制到“{target}”。"
+
+msgid "Copied {count} devices to '{target}'."
+msgstr "已将 {count} 个设备复制到“{target}”。"
+
+msgid "Copied {count} building parts to '{target}'."
+msgstr "已将 {count} 个建筑部分复制到“{target}”。"
+
+msgid "Copied {count} trades to '{target}'."
+msgstr "已将 {count} 个工程作业复制到“{target}”。"
+
+msgid "Copied {count} functions to '{target}'."
+msgstr "已将 {count} 个功能复制到“{target}”。"
+
+msgid "Copied {count} group addresses to '{target}'."
+msgstr "已将 {count} 个组地址复制到“{target}”。"
+
+msgid "Copied {count} middle groups to '{target}'."
+msgstr "已将 {count} 个中间组复制到“{target}”。"
+
+msgid "Copied {count} main groups to '{target}'."
+msgstr "已将 {count} 个主组复制到“{target}”。"
+
+msgid "Copied {count} lines to '{target}'."
+msgstr "已将 {count} 条线路复制到“{target}”。"
+
+msgid "Copied {count} segments to '{target}'."
+msgstr "已将 {count} 个网段复制到“{target}”。"
+
+msgid "Paste Special…"
+msgstr "选择性粘贴…"
+
+msgid "Add Row"
+msgstr "添加行"
+
+msgid "Remove this row"
+msgstr "删除此行"
+
+msgid "Generate Addresses"
+msgstr "生成地址"
+
+msgid "Unlink device"
+msgstr "取消设备链接"
+
+msgid "The device is on no line: put it on a line first."
+msgstr "设备不在任何线路上：请先将其放到一条线路上。"
+
+msgid "Areas…"
+msgstr "区域…"
+
+msgid "Lines…"
+msgstr "线路…"
+
+msgid "Segments…"
+msgstr "段…"
+
+msgid "Add Areas"
+msgstr "添加区域"
+
+msgid "Add Lines"
+msgstr "添加线路"
+
+msgid "Add Segments"
+msgstr "添加段"
+
+msgid "The limit to add was reached."
+msgstr "已达到添加上限。"
+
+msgid "Cannot add any line to the area {area} because of topology constraints. Please check the medium type of the backbone and main lines."
+msgstr "由于拓扑限制，无法向区域 {area} 添加任何线路。请检查主干线和主线的介质类型。"
+
+msgid "Added {count} areas to '{target}'."
+msgstr "已向“{target}”添加 {count} 个区域。"
+
+msgid "Added {count} lines to '{target}'."
+msgstr "已向“{target}”添加 {count} 条线路。"
+
+msgid "Added {count} segments to '{target}'."
+msgstr "已向“{target}”添加 {count} 个段。"
+
+msgid "Added {count} building parts to '{target}'."
+msgstr "已向“{target}”添加 {count} 个建筑部分。"
+
+msgid "Added {count} trades to '{target}'."
+msgstr "已向“{target}”添加 {count} 个专业。"
+
+msgid "Added {count} main groups to '{target}'."
+msgstr "已向“{target}”添加 {count} 个主组。"
+
+msgid "Added {count} middle groups to '{target}'."
+msgstr "已向“{target}”添加 {count} 个中间组。"
+
+msgid "Added {count} group addresses to '{target}'."
+msgstr "已向“{target}”添加 {count} 个组地址。"
+
+msgid "Add Main Groups…"
+msgstr "添加主组…"
+
+msgid "Add Middle Groups…"
+msgstr "添加中间组…"
+
+msgid "Add Main Groups"
+msgstr "添加主组"
+
+msgid "Add Middle Groups"
+msgstr "添加中间组"
+
+msgid "New main group"
+msgstr "新主组"
+
+msgid "New middle group"
+msgstr "新中间组"
+
+msgid "New group address"
+msgstr "新组地址"
+
+msgid "Cut"
+msgstr "剪切"
+
+msgid "What was cut cannot be moved there."
+msgstr "剪切的内容无法移动到该处。"
+
+msgid "Park"
+msgstr "停放"
+
+msgid "Park device"
+msgstr "停放设备"
+
+msgid "Add Functions"
+msgstr "添加功能"
+
+msgid "New function"
+msgstr "新功能"
+
+msgid "Added {count} functions to '{target}'."
+msgstr "已向“{target}”添加 {count} 个功能。"
+
+msgid "Added {count} group ranges to '{target}'."
+msgstr "已向“{target}”添加 {count} 个组地址范围。"
+
+msgid "Add Group Ranges…"
+msgstr "添加组地址范围…"
+
+msgid "Add Group Ranges"
+msgstr "添加组地址范围"
+
+msgid "New group range"
+msgstr "新组地址范围"
+
+msgid "Capacity"
+msgstr "容量"
+
+msgid "Link with…"
+msgstr "链接到…"
+
+msgid "Link with Group Address"
+msgstr "链接到组地址"
+
+msgid "There is no group to add group addresses to."
+msgstr "没有可添加组地址的组。"
+
+msgid "Add Subtrade"
+msgstr "添加子工程作业"
+
+msgid "The group range does not fit there."
+msgstr "组地址范围放不下。"
+
+msgid "A group range cannot go into itself or a range in it."
+msgstr "组地址范围不能放入自身或其内部的范围。"
+
+msgid "A group address of the range is already in use there."
+msgstr "该范围的某个组地址在那里已被使用。"
+
+msgid "Copied {count} group ranges to '{target}'."
+msgstr "已将 {count} 个组地址范围复制到“{target}”。"
+
+msgid "Add Areas…"
+msgstr "添加区域…"
+
+msgid "{medium} segment"
+msgstr "{medium} 段"
+
+msgid "Copy Individual Address"
+msgstr "复制物理地址"
+
+msgid "Copy Group Address"
+msgstr "复制组地址"
+
+msgid "Existing Devices…"
+msgstr "现有设备…"
+
+msgid "Delete the {count} selected devices? Their group objects and group-address links are removed and their individual addresses are freed. This can be undone."
+msgstr "删除所选的 {count} 个设备？其组对象和组地址关联将被删除，其物理地址将被释放。此操作可以撤销。"
+
+msgid "Remove {count} devices"
+msgstr "删除 {count} 个设备"
+
+msgid "Delete Devices"
+msgstr "删除设备"
+
+msgid "{medium} line"
+msgstr "{medium} 线路"

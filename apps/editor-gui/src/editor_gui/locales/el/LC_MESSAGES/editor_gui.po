@@ -100,9 +100,6 @@ msgstr "Προγραμματισμός {address}…"
 msgid "Reading {address}…"
 msgstr "Ανάγνωση {address}…"
 
-msgid "Testing {address}…"
-msgstr "Έλεγχος {address}…"
-
 msgid "Programming complete"
 msgstr "Ο προγραμματισμός ολοκληρώθηκε"
 
@@ -678,6 +675,12 @@ msgstr " (Αδράνεια)"
 
 msgid "Theme"
 msgstr "Θέμα"
+
+msgid "Light Theme"
+msgstr "Φωτεινό Θέμα"
+
+msgid "Dark Theme"
+msgstr "Σκοτεινό Θέμα"
 
 msgid "Customize Theme…"
 msgstr "Προσαρμογή Θέματος…"
@@ -1422,3 +1425,6 @@ msgstr "Ctrl"
 
 msgid "This stops XKNX Editor on the server. Until it is started there again, no browser can connect to it."
 msgstr "Αυτό τερματίζει το XKNX Editor στον διακομιστή. Μέχρι να ξεκινήσει ξανά εκεί, κανένα πρόγραμμα περιήγησης δεν μπορεί να συνδεθεί σε αυτό."
+
+msgid "Del"
+msgstr "Del"

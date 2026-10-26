@@ -28,6 +28,410 @@ class ProjectStrings:
         return _("Line")
 
     @property
+    def PANEL_SEGMENT(self) -> str:
+        return _("Segment")
+
+    @property
+    def PANEL_BACKBONE(self) -> str:
+        return _("Backbone")
+
+    @property
+    def NETWORK_LATENCY(self) -> str:
+        return _("Network Latency")
+
+    @property
+    def LATENCY_LAN(self) -> str:
+        return _("LAN (< 400ms)")
+
+    @property
+    def LATENCY_WLAN(self) -> str:
+        return _("WLAN (< 1s)")
+
+    @property
+    def LATENCY_WAN(self) -> str:
+        return _("WAN (< 2s)")
+
+    @property
+    def LATENCY_MOBILE(self) -> str:
+        return _("Mobile (< 4s)")
+
+    @property
+    def LATENCY_SATELLITE(self) -> str:
+        return _("Satellite (< 8s)")
+
+    @property
+    def LATENCY_INVALID(self) -> str:
+        return _(
+            "The network latency must be a number of milliseconds from 1 to 65535."
+        )
+
+    @property
+    def MULTICAST_ADDRESS(self) -> str:
+        return _("Multicast Address")
+
+    @property
+    def MULTICAST_ADDRESS_INVALID(self) -> str:
+        return _("Enter a multicast address from 224.0.0.0 to 239.255.255.255.")
+
+    @property
+    def BUS_CONNECTION(self) -> str:
+        return _("Bus Connection")
+
+    @property
+    def BUS_CONNECTION_AUTOMATIC(self) -> str:
+        return _("Automatic")
+
+    @property
+    def MEDIUM(self) -> str:
+        return _("Medium")
+
+    @property
+    def DOMAIN_ADDRESS(self) -> str:
+        return _("Domain Address")
+
+    @property
+    def SEGMENT_NAME(self) -> str:
+        # The name a sub-segment without one is shown with ("TP segment").
+        return _("{medium} segment")
+
+    @property
+    def MEDIUM_ERROR_SEGMENT_HAS_DEVICES(self) -> str:
+        return _("The medium of a segment can only change while it holds no device.")
+
+    @property
+    def MEDIUM_ERROR_COUPLER_BELOW(self) -> str:
+        return _(
+            "As long as a coupler exists at a sub line or sub segment, a change of the"
+            " medium type is not possible."
+        )
+
+    @property
+    def MEDIUM_ERROR_MAIN_LINE_RF(self) -> str:
+        return _("A main line of a project cannot have medium type RF.")
+
+    @property
+    def MEDIUM_ERROR_BACKBONE_IP_OR_TP(self) -> str:
+        return _(
+            "The operation could not be executed, because as medium type of the backbone"
+            " only IP and TP are allowed."
+        )
+
+    @property
+    def MEDIUM_ERROR_SUB_SEGMENT_IP_OR_PL(self) -> str:
+        return _("A sub-segment of KNX medium type IP or PL is not allowed.")
+
+    @property
+    def MEDIUM_ERROR_SUB_SEGMENT_IOT(self) -> str:
+        return _(
+            "The medium type of the segment '{segment}' cannot be changed to IoT,"
+            " because its parent line '{line}' is not of medium type IP."
+        )
+
+    @property
+    def MEDIUM_ERROR_MAIN_LINE_PL_BELOW(self) -> str:
+        return _(
+            "The medium type of the main line '{line}' can no longer be changed to PL,"
+            " because it already contains lines or segments that are not allowed in PL"
+            " main lines."
+        )
+
+    @property
+    def MEDIUM_ERROR_MAIN_LINE_IOT_BACKBONE(self) -> str:
+        return _(
+            "The medium type of the main line '{line}' cannot be changed to IoT, because"
+            " the backbone line '{backbone}' is not of medium type IP."
+        )
+
+    @property
+    def MEDIUM_ERROR_MAIN_LINE_IOT_BELOW(self) -> str:
+        return _(
+            "The medium type of the main line '{line}' can no longer be changed to IoT,"
+            " because it already contains lines or segments that are not allowed in IoT"
+            " main lines."
+        )
+
+    @property
+    def MEDIUM_ERROR_IOT_BELOW(self) -> str:
+        return _(
+            "The medium type of the line '{line}' cannot be changed, because it already"
+            " contains lines or segments that require an IoT or IP main line."
+        )
+
+    @property
+    def MEDIUM_ERROR_RF_NO_SUB_SEGMENTS(self) -> str:
+        return _(
+            "A sub-segment is not allowed below a main segment of KNX medium type RF."
+        )
+
+    @property
+    def MEDIUM_ERROR_PL_NO_SUB_SEGMENTS(self) -> str:
+        return _(
+            "A sub-segment is not allowed below a main segment of KNX medium type PL."
+        )
+
+    @property
+    def MEDIUM_ERROR_IOT_NO_SUB_SEGMENTS(self) -> str:
+        return _(
+            "A sub-segment of KNX medium type IoT is not allowed below a main segment of"
+            " the same type."
+        )
+
+    @property
+    def MEDIUM_ERROR_RF_MAIN_LINE(self) -> str:
+        return _(
+            "The operation could not be executed, because a RF main line '{line}'"
+            " requires all other lines in the area to be RF lines as well."
+        )
+
+    @property
+    def MEDIUM_ERROR_PL_MAIN_LINE(self) -> str:
+        return _(
+            "The operation could not be executed, because a PL main line '{line}'"
+            " requires all other lines in the area to be PL lines as well."
+        )
+
+    @property
+    def MEDIUM_ERROR_IOT_MAIN_LINE(self) -> str:
+        return _(
+            "The operation could not be executed, because a IoT main line '{line}'"
+            " requires all other lines in the area to be IoT lines as well."
+        )
+
+    @property
+    def MEDIUM_ERROR_SUB_LINE_IOT(self) -> str:
+        return _(
+            "The medium type of the line '{line}' cannot be changed to IoT, because its"
+            " main line '{main}' is not of medium type IP."
+        )
+
+    @property
+    def MEDIUM_ERROR_SUB_LINE_IOT_BELOW(self) -> str:
+        return _(
+            "The medium type of the line '{line}' can no longer be changed to IoT,"
+            " because it already contains segments that are not allowed in IoT lines."
+        )
+
+    @property
+    def MEDIUM_ERROR_IP_BACKBONE_ROUTERS(self) -> str:
+        return _(
+            "The operation could not be executed, because the line is the IP backbone"
+            " line and the project contains KNXnet/IP routers. KNXnet/IP routers require"
+            " an IP backbone line."
+        )
+
+    @property
+    def MEDIUM_ERROR_IP_MAIN_LINE_ROUTERS(self) -> str:
+        return _(
+            "The operation could not be executed, because the line is the IP main line"
+            " and the project contains KNXnet/IP routers. KNXnet/IP routers require an"
+            " IP main line."
+        )
+
+    @property
+    def MEDIUM_ERROR_IP_BACKBONE_IP_LINES(self) -> str:
+        return _(
+            "The operation could not be executed, because the line is the IP backbone"
+            " line and the project contains IoT or IP lines."
+        )
+
+    @property
+    def MEDIUM_ERROR_IP_NEEDS_IP_MAIN_LINE(self) -> str:
+        return _(
+            "The operation could not be executed, because the medium type of the line"
+            " can only be set to IP if an IP main line exists."
+        )
+
+    @property
+    def MEDIUM_ERROR_IP_NEEDS_IP_BACKBONE(self) -> str:
+        return _(
+            "The operation could not be executed, because the medium type of the line"
+            " can only be set to IP if an IP backbone line exists."
+        )
+
+    @property
+    def MEDIUM_ERROR_BELOW_TP(self) -> str:
+        return _(
+            "The operation could not be executed, because below a TP main segment only"
+            " segments of KNX medium type TP, RF or PL can exist."
+        )
+
+    @property
+    def MEDIUM_ERROR_BELOW_IP(self) -> str:
+        return _(
+            "Below a main segment of KNX medium type IP only segments of medium type TP"
+            " or RF can exist."
+        )
+
+    @property
+    def MEDIUM_ERROR_PL_SUB_SEGMENT(self) -> str:
+        return _(
+            "A sub-segment of KNX medium type PL is not allowed below a main segment."
+        )
+
+    @property
+    def MEDIUM_ERROR_TOO_MANY_SEGMENTS(self) -> str:
+        return _("The maximum number of segments has been reached.")
+
+    @property
+    def MEDIUM_ERROR_IP_ROUTER_BACKBONE(self) -> str:
+        return _("An IP router requires an IP backbone line.")
+
+    @property
+    def MEDIUM_ERROR_COUPLER_MAIN_LINE(self) -> str:
+        return _(
+            "The operation could not be executed, because a coupler needs a main line."
+        )
+
+    @property
+    def MEDIUM_ERROR_AREA_COUPLER_BACKBONE(self) -> str:
+        return _(
+            "The operation could not be executed, because an area coupler requires a "
+            "backbone line."
+        )
+
+    @property
+    def MEDIUM_ERROR_COUPLER_MAIN_LINE_MEDIUM(self) -> str:
+        return _(
+            "The operation could not be executed, because this coupler needs a main line "
+            "with the medium type '{medium}' ."
+        )
+
+    @property
+    def MEDIUM_ERROR_ONE_WORLD_COUPLER(self) -> str:
+        return _(
+            "The operation could not be executed, because only one IP router is allowed "
+            "as a world coupler."
+        )
+
+    @property
+    def MEDIUM_ERROR_WORLD_COUPLER_IP_ROUTER(self) -> str:
+        return _(
+            "The operation could not be executed, because only IP router area allowed as "
+            "a world coupler."
+        )
+
+    @property
+    def MEDIUM_ERROR_WORLD_COUPLER_PRESENT(self) -> str:
+        return _(
+            "The backbone line contains a world coupler. It is not possible to use an IP "
+            "router below another IP router."
+        )
+
+    @property
+    def MEDIUM_ERROR_WORLD_COUPLER_IP_ROUTERS(self) -> str:
+        return _(
+            "It is not possible to use a world coupler, when there are already IP routers"
+            " in the project."
+        )
+
+    @property
+    def MEDIUM_ERROR_WORLD_COUPLER_TP_BACKBONE(self) -> str:
+        return _(
+            "A world coupler can only be used, when the medium type of the backbone is "
+            "TP."
+        )
+
+    @property
+    def MEDIUM_ERROR_COUPLER_NO_SEGMENTS(self) -> str:
+        return _(
+            "The coupler does not support segment coupling, so the sub-segment must be of"
+            " the same KNX medium type as the main segment."
+        )
+
+    @property
+    def MEDIUM_ERROR_COUPLER_MEDIA_ABOVE(self) -> str:
+        return _(
+            "The operation could not be executed, because this device couples medium "
+            "'{above}' (above) to medium '{below}' (below), but the segment above is "
+            "'{segment}'."
+        )
+
+    @property
+    def MEDIUM_ERROR_COUPLER_SEGMENTS_FULL(self) -> str:
+        return _(
+            "The operation could not be executed, because medium type of coupler device "
+            "matches only sub segment, but maximum amount of segments reached."
+        )
+
+    @property
+    def MEDIUM_ERROR_COUPLER_MEDIA_BELOW(self) -> str:
+        return _(
+            "The operation could not be executed, because this device couples medium "
+            "'{above}' (above) to medium '{below}' (below), but the medium type of the "
+            "lower segment is '{segment}'."
+        )
+
+    @property
+    def MEDIUM_ERROR_DOMAIN_INVALID(self) -> str:
+        return _("The given domain address is invalid.")
+
+    @property
+    def MEDIUM_ERROR_PL_DOMAIN_RANGE(self) -> str:
+        return _("Domain address is not valid! Valid values are 1 to 255.")
+
+    @property
+    def MEDIUM_ERROR_RF_DOMAIN_MINIMUM(self) -> str:
+        return _(
+            "DomainAddress of mediumType 'RF' is lower than the minimum value of "
+            "0001:00000000."
+        )
+
+    @property
+    def MEDIUM_ERROR_DOMAIN_MAXIMUM(self) -> str:
+        return _(
+            "DomainAddress of medium type '{medium}' exceeds the maximum valid value of "
+            "{maximum}"
+        )
+
+    @property
+    def MEDIUM_ERROR_RF_SUB_LINE_DOMAIN(self) -> str:
+        return _(
+            "DomainAddress of RF sublines must be equal to DomainAdress of main line."
+        )
+
+    @property
+    def MEDIUM_ERROR_IOT_SUB_LINE_DOMAIN(self) -> str:
+        return _(
+            "Domain Address of IoT sublines must be equal to Domain Address of main line."
+        )
+
+    @property
+    def MEDIUM_ERROR_RF_DOMAIN_UNIQUE(self) -> str:
+        return _("Each line in a project must have a unique domain address.")
+
+    @property
+    def DOMAIN_ADDRESS_GENERATE(self) -> str:
+        return _("Generate New")
+
+    @property
+    def MEDIUM_ERROR_MAIN_SEGMENT(self) -> str:
+        return _("The main segment cannot be deleted.")
+
+    @property
+    def MEDIUM_ERROR_MAIN_SEGMENT_MOVE(self) -> str:
+        return _("The main segment cannot be moved.")
+
+    @property
+    def MEDIUM_ERROR_TOO_MANY_LINES(self) -> str:
+        return _("The maximum number of lines has been reached.")
+
+    @property
+    def MEDIUM_ERROR_LINE_IN_AREA(self) -> str:
+        return _("The line is already assigned to an area.")
+
+    @property
+    def MEDIUM_ERROR_MAIN_LINE_MOVE(self) -> str:
+        return _("The main line cannot be moved.")
+
+    @property
+    def MEDIUM_ERROR_DEVICE_LINE(self) -> str:
+        return _("Device '{device}' is incompatible with line's medium type.")
+
+    @property
+    def MEDIUM_ERROR_DEVICE_SEGMENT(self) -> str:
+        return _("Device '{device}' is incompatible with segment's medium type.")
+
+    @property
     def TOPOLOGY_ADDRESS_INVALID(self) -> str:
         return _("The address is a number from 0 to 15.")
 
@@ -68,6 +472,14 @@ class ProjectStrings:
         return _("Group Address")
 
     @property
+    def PANEL_FUNCTION(self) -> str:
+        return _("Function")
+
+    @property
+    def PANEL_TRADE(self) -> str:
+        return _("Trade")
+
+    @property
     def GROUP_MAIN_NUMBER_INVALID(self) -> str:
         return _("The main group is a number from 0 to 31.")
 
@@ -88,6 +500,42 @@ class ProjectStrings:
         return _("Set group range address")
 
     @property
+    def HISTORY_EV_MOVE_GROUP_RANGE(self) -> str:
+        return _("Move middle group")
+
+    @property
+    def HISTORY_EV_MOVE_LINE(self) -> str:
+        return _("Move line")
+
+    @property
+    def HISTORY_EV_MOVE_SEGMENT(self) -> str:
+        return _("Move segment")
+
+    @property
+    def HISTORY_EV_MOVE_FUNCTION(self) -> str:
+        return _("Move function")
+
+    @property
+    def GA_MOVE_NO_FREE(self) -> str:
+        return _("The group has no free group address.")
+
+    @property
+    def GROUP_MOVE_NO_FREE(self) -> str:
+        return _("The main group has no free middle group.")
+
+    @property
+    def GROUP_MOVE_NO_ROOM(self) -> str:
+        return _("The group range does not fit there.")
+
+    @property
+    def GROUP_MOVE_INTO_ITSELF(self) -> str:
+        return _("A group range cannot go into itself or a range in it.")
+
+    @property
+    def GROUP_MOVE_ADDRESS_TAKEN(self) -> str:
+        return _("A group address of the range is already in use there.")
+
+    @property
     def COMMENT_INSTALLATION_HINTS(self) -> str:
         return _("Installation Hints")
 
@@ -96,8 +544,144 @@ class ProjectStrings:
         return _("Select an element in a tree to see its comment.")
 
     @property
-    def PANEL_DEVICES(self) -> str:
-        return _("Devices")
+    def PANEL_TOPOLOGY(self) -> str:
+        return _("Topology")
+
+    @property
+    def DRAG_DEVICES(self) -> str:
+        return _("{count} devices")
+
+    @property
+    def PASTE_TITLE(self) -> str:
+        return _("Paste Special")
+
+    @property
+    def CONTEXT_COPY(self) -> str:
+        return _("Copy")
+
+    @property
+    def CONTEXT_CUT(self) -> str:
+        return _("Cut")
+
+    @property
+    def PASTE_CANNOT_MOVE(self) -> str:
+        return _("What was cut cannot be moved there.")
+
+    @property
+    def CONTEXT_PASTE(self) -> str:
+        return _("Paste")
+
+    @property
+    def CONTEXT_PASTE_SPECIAL(self) -> str:
+        return _("Paste Special…")
+
+    @property
+    def PASTE_COUNT(self) -> str:
+        return _("Number of Items")
+
+    @property
+    def PASTE_GA_DONT_COPY(self) -> str:
+        return _("Don't copy")
+
+    @property
+    def PASTE_GA_KEEP(self) -> str:
+        return _("Keep")
+
+    @property
+    def PASTE_GA_NEW_MIDDLE(self) -> str:
+        return _("Create new group address in middle group")
+
+    @property
+    def PASTE_GA_NEW_MAIN(self) -> str:
+        return _("Create new group address in main group")
+
+    @property
+    def PASTE_GA_NEW_RANGE(self) -> str:
+        return _("Create new group address in group range")
+
+    @property
+    def PASTE_GENERATE(self) -> str:
+        return _("Generate Address")
+
+    @property
+    def PASTE_FILL_UP(self) -> str:
+        return _("Fill up (use first free)")
+
+    @property
+    def PASTE_APPEND(self) -> str:
+        return _("Append")
+
+    @property
+    def PASTE_START_WITH(self) -> str:
+        return _("Start with")
+
+    @property
+    def PASTE_OFFSET(self) -> str:
+        return _("Offset")
+
+    @property
+    def PASTE_NOT_MIDDLE(self) -> str:
+        return _("Enter a middle group, e.g. 1/2.")
+
+    @property
+    def PASTE_NOT_MAIN(self) -> str:
+        return _("Enter a main group, e.g. 1.")
+
+    @property
+    def PASTE_NO_GA_ROOM(self) -> str:
+        return _("The group has too few free group addresses for the copies.")
+
+    @property
+    def PASTE_NO_RANGE_ROOM(self) -> str:
+        return _("The maximum number of group ranges has been reached.")
+
+    @property
+    def PASTE_NO_TARGET_RANGE(self) -> str:
+        return _("There is no group for the new group addresses.")
+
+    @property
+    def HISTORY_EV_COPIED(self) -> str:
+        return _("Copied '{name}' to '{target}'.")
+
+    @property
+    def HISTORY_EV_COPIED_DEVICES(self) -> str:
+        return _("Copied {count} devices to '{target}'.")
+
+    @property
+    def HISTORY_EV_COPIED_SPACES(self) -> str:
+        return _("Copied {count} building parts to '{target}'.")
+
+    @property
+    def HISTORY_EV_COPIED_TRADES(self) -> str:
+        return _("Copied {count} trades to '{target}'.")
+
+    @property
+    def HISTORY_EV_COPIED_FUNCTIONS(self) -> str:
+        return _("Copied {count} functions to '{target}'.")
+
+    @property
+    def HISTORY_EV_COPIED_GROUP_ADDRESSES(self) -> str:
+        return _("Copied {count} group addresses to '{target}'.")
+
+    @property
+    def HISTORY_EV_COPIED_MIDDLE_GROUPS(self) -> str:
+        return _("Copied {count} middle groups to '{target}'.")
+
+    @property
+    def HISTORY_EV_COPIED_MAIN_GROUPS(self) -> str:
+        return _("Copied {count} main groups to '{target}'.")
+
+    @property
+    def HISTORY_EV_COPIED_GROUP_RANGES(self) -> str:
+        return _("Copied {count} group ranges to '{target}'.")
+
+    @property
+    def HISTORY_EV_COPIED_LINES(self) -> str:
+        return _("Copied {count} lines to '{target}'.")
+
+    @property
+    def HISTORY_EV_COPIED_SEGMENTS(self) -> str:
+        return _("Copied {count} segments to '{target}'.")
 
     @property
     def PANEL_CONFIGURE(self) -> str:
@@ -867,28 +1451,8 @@ class ProjectStrings:
         return _("No buildings/rooms in this project")
 
     @property
-    def SPACES_ADD_FUNCTION(self) -> str:
-        return _("+ Function")
-
-    @property
-    def SPACES_ADD_SPACE(self) -> str:
-        return _("+ Space")
-
-    @property
-    def SPACES_ADD_SUBSPACE(self) -> str:
-        return _("+ Sub-space")
-
-    @property
-    def SPACES_SPACE_NEW_TITLE(self) -> str:
-        return _("New Space")
-
-    @property
     def SPACES_SPACE_NAME(self) -> str:
         return _("Name")
-
-    @property
-    def SPACES_SPACE_TYPE(self) -> str:
-        return _("Type")
 
     @property
     def SPACES_SPACE_CREATE(self) -> str:
@@ -901,10 +1465,6 @@ class ProjectStrings:
     @property
     def SPACES_DELETE_TITLE(self) -> str:
         return _("Delete Space")
-
-    @property
-    def SPACES_TYPE(self) -> str:
-        return _("Type")
 
     @property
     def SPACES_MOVE_TO(self) -> str:
@@ -921,10 +1481,6 @@ class ProjectStrings:
         )
 
     @property
-    def SPACES_ASSIGN_DEVICE(self) -> str:
-        return _("Assign Device")
-
-    @property
     def SPACES_ASSIGN_TITLE(self) -> str:
         return _("Assign a Device to This Space")
 
@@ -934,7 +1490,8 @@ class ProjectStrings:
 
     @property
     def SPACES_UNASSIGN(self) -> str:
-        return _("Remove from Space")
+        # Takes a device out of its building part.
+        return _("Unlink")
 
     @property
     def SPACES_UNASSIGNED_TITLE(self) -> str:
@@ -966,43 +1523,223 @@ class ProjectStrings:
 
     @property
     def SPACES_TYPE_DISTRIBUTION(self) -> str:
-        return _("Distribution Board")
+        # The DistributionBoard type.
+        return _("Cabinet")
 
     @property
-    def SPACES_FN_NEW_TITLE(self) -> str:
-        return _("New Function")
+    def SPACES_ROOT_BUILDINGS(self) -> str:
+        return _("Buildings")
 
     @property
-    def SPACES_FN_NAME(self) -> str:
-        return _("Name")
+    def SPACES_ROOT_TRADES(self) -> str:
+        return _("Trades")
+
+    @property
+    def SPACES_ADD_MENU(self) -> str:
+        return _("Add")
+
+    @property
+    def SPACES_ADD_BUILDINGS(self) -> str:
+        return _("Add Buildings…")
+
+    @property
+    def SPACES_ADD_BUILDING_PARTS(self) -> str:
+        return _("Building Parts…")
+
+    @property
+    def SPACES_ADD_FLOORS(self) -> str:
+        return _("Floors…")
+
+    @property
+    def SPACES_ADD_STAIRWAYS(self) -> str:
+        return _("Stairways…")
+
+    @property
+    def SPACES_ADD_ROOMS(self) -> str:
+        return _("Rooms…")
+
+    @property
+    def SPACES_ADD_CORRIDORS(self) -> str:
+        return _("Corridors…")
+
+    @property
+    def SPACES_ADD_CABINETS(self) -> str:
+        return _("Cabinets…")
+
+    @property
+    def SPACES_ADD_DEVICES(self) -> str:
+        return _("Devices…")
+
+    @property
+    def SPACES_ADD_EXISTING_DEVICES(self) -> str:
+        # The "Add" submenu of a room or trade: devices of the project, not new ones.
+        return _("Existing Devices…")
+
+    @property
+    def SPACES_ADD_FUNCTIONS(self) -> str:
+        return _("Functions…")
+
+    @property
+    def SPACES_TITLE_BUILDINGS(self) -> str:
+        return _("Add Buildings")
+
+    @property
+    def SPACES_TITLE_BUILDING_PARTS(self) -> str:
+        return _("Add Building Parts")
+
+    @property
+    def SPACES_TITLE_FLOORS(self) -> str:
+        return _("Add Floors")
+
+    @property
+    def SPACES_TITLE_STAIRWAYS(self) -> str:
+        return _("Add Stairways")
+
+    @property
+    def SPACES_TITLE_ROOMS(self) -> str:
+        return _("Add Rooms")
+
+    @property
+    def SPACES_TITLE_CORRIDORS(self) -> str:
+        return _("Add Corridors")
+
+    @property
+    def SPACES_TITLE_CABINETS(self) -> str:
+        return _("Add Cabinets")
+
+    @property
+    def SPACES_COUNT(self) -> str:
+        return _("Count")
+
+    @property
+    def SPACES_ADD_TO(self) -> str:
+        # Below the title of an "Add" dialog: where the new ones go.
+        return _('to "{name}"')
+
+    @property
+    def ADD_ROW(self) -> str:
+        return _("Add Row")
+
+    @property
+    def ADD_REMOVE_ROW(self) -> str:
+        return _("Remove this row")
+
+    @property
+    def ADD_GENERATE(self) -> str:
+        return _("Generate Addresses")
+
+    @property
+    def SPACES_DEFAULT_BUILDING(self) -> str:
+        return _("New building")
+
+    @property
+    def SPACES_DEFAULT_BUILDING_PART(self) -> str:
+        return _("New building part")
+
+    @property
+    def SPACES_DEFAULT_FLOOR(self) -> str:
+        return _("New floor")
+
+    @property
+    def SPACES_DEFAULT_STAIRWAY(self) -> str:
+        return _("New stairway")
+
+    @property
+    def SPACES_DEFAULT_ROOM(self) -> str:
+        return _("New room")
+
+    @property
+    def SPACES_DEFAULT_CORRIDOR(self) -> str:
+        return _("New corridor")
+
+    @property
+    def SPACES_DEFAULT_CABINET(self) -> str:
+        return _("New cabinet")
+
+    @property
+    def SPACE_ERROR_TYPE_NOT_HERE(self) -> str:
+        return _("A building part of this type cannot be added here.")
+
+    @property
+    def SPACE_ERROR_CABINET_NOT_HERE(self) -> str:
+        return _(
+            "A building part of this type cannot be added here.\nCabinets can be added "
+            "inside of rooms, corridors, or stairways only. If applicable the corridors have "
+            "to be moved into the corresponding building parts."
+        )
+
+    @property
+    def SPACE_ERROR_TARGET_IS_CHILD(self) -> str:
+        return _("The target is a child building part.")
+
+    @property
+    def SPACE_ERROR_NO_DEVICES(self) -> str:
+        return _(
+            "Devices can only be added to stairways, rooms, corridors and cabinets."
+        )
+
+    @property
+    def TRADES_ADD(self) -> str:
+        return _("Add Trades…")
+
+    @property
+    def TRADES_ADD_TRADES(self) -> str:
+        return _("Trades…")
+
+    @property
+    def TRADES_TITLE(self) -> str:
+        return _("Add Trades")
+
+    @property
+    def TRADES_TITLE_SUBTRADES(self) -> str:
+        return _("Add Subtrade")
+
+    @property
+    def TRADES_DEFAULT(self) -> str:
+        return _("New trade")
+
+    @property
+    def TRADES_ADD_DEVICES_TITLE(self) -> str:
+        return _("Add Devices")
+
+    @property
+    def TRADES_REMOVE_DEVICE(self) -> str:
+        # Takes a device out of its trade.
+        return _("Unlink")
+
+    @property
+    def SPACES_TITLE_FUNCTIONS(self) -> str:
+        return _("Add Functions")
+
+    @property
+    def SPACES_DEFAULT_FUNCTION(self) -> str:
+        # The name a new custom function gets when none is entered.
+        return _("New function")
 
     @property
     def SPACES_FN_TYPE(self) -> str:
         return _("Type")
 
     @property
-    def SPACES_FN_CREATE(self) -> str:
-        return _("Create")
-
-    @property
-    def SPACES_FN_RENAME(self) -> str:
-        return _("Rename")
-
-    @property
-    def SPACES_FN_RENAME_TITLE(self) -> str:
-        return _("Rename Function")
-
-    @property
     def SPACES_FN_DELETE(self) -> str:
         return _("Delete")
 
     @property
-    def SPACES_FN_ADD_GA(self) -> str:
-        return _("Assign Group Address")
+    def SPACES_FN_LINK(self) -> str:
+        return _("Link with…")
 
     @property
-    def SPACES_FN_ROLE(self) -> str:
-        return _("Role (Optional)")
+    def SPACES_FN_LINK_TITLE(self) -> str:
+        return _("Link with Group Address")
+
+    @property
+    def SPACES_FN_GA_GROUP(self) -> str:
+        # The group new group addresses of a function go into.
+        return _("Group")
+
+    @property
+    def SPACES_FN_NO_GROUP(self) -> str:
+        return _("There is no group to add group addresses to.")
 
     @property
     def SPACES_FN_TYPE_CUSTOM(self) -> str:
@@ -1221,10 +1958,6 @@ class ProjectStrings:
 
     @property
     def CONFIGURE_DESCRIPTION(self) -> str:
-        return _("Description")
-
-    @property
-    def GA_DESCRIPTION(self) -> str:
         return _("Description")
 
     @property
@@ -1568,6 +2301,14 @@ class ProjectStrings:
         return _("Serial Number")
 
     @property
+    def CONFIGURE_LAST_MODIFIED(self) -> str:
+        return _("Last Modified")
+
+    @property
+    def CONFIGURE_LAST_DOWNLOADED(self) -> str:
+        return _("Last Downloaded")
+
+    @property
     def SERIAL_NUMBER_INVALID(self) -> str:
         return _(
             "Enter the serial number as 12 hexadecimal digits, e.g. 0083:7AA2039C."
@@ -1709,8 +2450,24 @@ class ProjectStrings:
         return _("IP Configuration")
 
     @property
-    def CONFIGURE_IP_ASSIGN(self) -> str:
-        return _("Assignment")
+    def CONFIGURE_IP_AUTOMATIC(self) -> str:
+        return _("Obtain an IP address automatically")
+
+    @property
+    def CONFIGURE_IP_STATIC(self) -> str:
+        return _("Use a static IP address")
+
+    @property
+    def CONFIGURE_IP_ASSIGNED(self) -> str:
+        return _("Assigned IP Address")
+
+    @property
+    def CONFIGURE_IP_UNKNOWN(self) -> str:
+        return _("Unknown")
+
+    @property
+    def CONFIGURE_IP_INVALID(self) -> str:
+        return _("An invalid IP address was specified.")
 
     @property
     def CONFIGURE_IP_ADDRESS(self) -> str:
@@ -2042,44 +2799,118 @@ class ProjectStrings:
         return _("Filter rooms, devices, functions…")
 
     @property
-    def DEVICE_AREA(self) -> str:
-        return _("Area {area}")
+    def BACKBONE_LINE_NAME(self) -> str:
+        # The name a backbone line without one is shown with ("IP backbone line").
+        return _("{medium} backbone line")
 
     @property
-    def DEVICE_AREA_NAMED(self) -> str:
-        return _("{name} (Area {area})")
+    def MAIN_LINE_NAME(self) -> str:
+        # The name a main line without one is shown with ("TP main line").
+        return _("{medium} main line")
 
     @property
-    def DEVICE_LINE(self) -> str:
-        return _("Line {area}.{line}")
-
-    @property
-    def DEVICE_LINE_NAMED(self) -> str:
-        return _("{name} (Line {area}.{line})")
+    def LINE_NAME(self) -> str:
+        # The name a line (not a main line) without one is shown with ("TP line").
+        return _("{medium} line")
 
     @property
     def DEVICE_UNASSIGNED(self) -> str:
         return _("Unassigned ({count})")
 
     @property
-    def CONTEXT_ADD_AREA(self) -> str:
-        return _("Add Area")
+    def TOPOLOGY_ADD_AREAS_ITEM(self) -> str:
+        # The menu of the topology's empty space.
+        return _("Add Areas…")
 
     @property
-    def CONTEXT_ADD_LINE(self) -> str:
-        return _("Add Line")
+    def TOPOLOGY_ADD_AREAS(self) -> str:
+        # An item of the "Add" submenu of the topology.
+        return _("Areas…")
 
     @property
-    def CONTEXT_RENAME(self) -> str:
-        return _("Rename")
+    def TOPOLOGY_ADD_LINES(self) -> str:
+        return _("Lines…")
+
+    @property
+    def TOPOLOGY_ADD_SEGMENTS(self) -> str:
+        return _("Segments…")
+
+    @property
+    def TOPOLOGY_TITLE_AREAS(self) -> str:
+        return _("Add Areas")
+
+    @property
+    def TOPOLOGY_TITLE_LINES(self) -> str:
+        return _("Add Lines")
+
+    @property
+    def TOPOLOGY_TITLE_SEGMENTS(self) -> str:
+        return _("Add Segments")
+
+    @property
+    def ADD_LIMIT_REACHED(self) -> str:
+        return _("The limit to add was reached.")
+
+    @property
+    def ADD_NO_LINE_MEDIUM(self) -> str:
+        return _(
+            "Cannot add any line to the area {area} because of topology constraints. "
+            "Please check the medium type of the backbone and main lines."
+        )
+
+    @property
+    def HISTORY_EV_ADDED_AREAS(self) -> str:
+        return _("Added {count} areas to '{target}'.")
+
+    @property
+    def HISTORY_EV_ADDED_LINES(self) -> str:
+        return _("Added {count} lines to '{target}'.")
+
+    @property
+    def HISTORY_EV_ADDED_SEGMENTS(self) -> str:
+        return _("Added {count} segments to '{target}'.")
+
+    @property
+    def HISTORY_EV_ADDED_BUILDING_PARTS(self) -> str:
+        return _("Added {count} building parts to '{target}'.")
+
+    @property
+    def HISTORY_EV_ADDED_TRADES(self) -> str:
+        return _("Added {count} trades to '{target}'.")
+
+    @property
+    def HISTORY_EV_ADDED_FUNCTIONS(self) -> str:
+        return _("Added {count} functions to '{target}'.")
+
+    @property
+    def HISTORY_EV_ADDED_GROUP_RANGES(self) -> str:
+        return _("Added {count} group ranges to '{target}'.")
+
+    @property
+    def HISTORY_EV_ADDED_MAIN_GROUPS(self) -> str:
+        return _("Added {count} main groups to '{target}'.")
+
+    @property
+    def HISTORY_EV_ADDED_MIDDLE_GROUPS(self) -> str:
+        return _("Added {count} middle groups to '{target}'.")
+
+    @property
+    def HISTORY_EV_ADDED_GROUP_ADDRESSES(self) -> str:
+        return _("Added {count} group addresses to '{target}'.")
 
     @property
     def CONTEXT_DELETE(self) -> str:
         return _("Delete")
 
     @property
-    def CONTEXT_COPY_ADDRESS(self) -> str:
-        return _("Copy Address")
+    def CONTEXT_COPY_DEVICE_ADDRESS(self) -> str:
+        # A device's menu: its individual address to the clipboard.
+        return _("Copy Individual Address")
+
+    @property
+    def CONTEXT_COPY_GROUP_ADDRESS(self) -> str:
+        # A group address's menu: its address (e.g. "1/2/3") to the clipboard.
+        return _("Copy Group Address")
 
     @property
     def CONTEXT_DUPLICATE(self) -> str:
@@ -2186,6 +3017,10 @@ class ProjectStrings:
         return _("Delete Device")
 
     @property
+    def DEVICE_DELETE_TITLE_SEVERAL(self) -> str:
+        return _("Delete Devices")
+
+    @property
     def DEVICE_DELETE_CONFIRM(self) -> str:
         return _(
             "Delete '{name}'? Its group objects and group-address links are removed and its "
@@ -2193,24 +3028,15 @@ class ProjectStrings:
         )
 
     @property
-    def POPUP_NEW_AREA(self) -> str:
-        return _("New Area")
+    def DEVICE_DELETE_CONFIRM_SEVERAL(self) -> str:
+        return _(
+            "Delete the {count} selected devices? Their group objects and group-address links "
+            "are removed and their individual addresses are freed. This can be undone."
+        )
 
     @property
-    def POPUP_NEW_LINE(self) -> str:
-        return _("New Line")
-
-    @property
-    def POPUP_RENAME(self) -> str:
-        return _("Rename")
-
-    @property
-    def POPUP_NUMBER(self) -> str:
-        return _("Number")
-
-    @property
-    def POPUP_NAME(self) -> str:
-        return _("Name")
+    def HISTORY_EV_REMOVE_DEVICES(self) -> str:
+        return _("Remove {count} devices")
 
     @property
     def BTN_ADD(self) -> str:
@@ -2237,54 +3063,69 @@ class ProjectStrings:
         return _("Cancel")
 
     @property
-    def GA_NEW(self) -> str:
-        return _("New Group Address")
+    def GA_ADD_MAIN_GROUPS(self) -> str:
+        return _("Add Main Groups…")
 
     @property
-    def GA_NEW_MAIN(self) -> str:
-        return _("New Main Group")
+    def GA_ADD_MIDDLE_GROUPS(self) -> str:
+        return _("Add Middle Groups…")
 
     @property
-    def GA_NEW_MIDDLE(self) -> str:
-        return _("New Middle Group")
+    def GA_ADD_GROUP_ADDRESSES(self) -> str:
+        return _("Add Group Addresses…")
 
     @property
-    def GA_FOLDER_NEW(self) -> str:
-        return _("New Folder")
+    def GA_TITLE_MAIN_GROUPS(self) -> str:
+        return _("Add Main Groups")
 
     @property
-    def GA_FOLDER_RENAME(self) -> str:
-        return _("Rename Folder")
+    def GA_TITLE_MIDDLE_GROUPS(self) -> str:
+        return _("Add Middle Groups")
+
+    @property
+    def GA_TITLE_GROUP_ADDRESSES(self) -> str:
+        return _("Add Group Addresses")
+
+    @property
+    def GA_DEFAULT_MAIN_GROUP(self) -> str:
+        # The name a new main group gets when none is entered.
+        return _("New main group")
+
+    @property
+    def GA_DEFAULT_MIDDLE_GROUP(self) -> str:
+        return _("New middle group")
+
+    @property
+    def GA_DEFAULT_GROUP_ADDRESS(self) -> str:
+        return _("New group address")
+
+    @property
+    def GA_ADD_GROUP_RANGES(self) -> str:
+        # Free style: groups of any span.
+        return _("Add Group Ranges…")
+
+    @property
+    def GA_TITLE_GROUP_RANGES(self) -> str:
+        return _("Add Group Ranges")
+
+    @property
+    def GA_DEFAULT_GROUP_RANGE(self) -> str:
+        return _("New group range")
+
+    @property
+    def ADD_CAPACITY(self) -> str:
+        # How many addresses a new group range spans.
+        return _("Capacity")
 
     @property
     def GA_FOLDER_DELETE(self) -> str:
         return _("Delete Folder")
 
     @property
-    def GA_FOLDER_MAIN_HINT(self) -> str:
-        return _("Main group name (the next free number is assigned automatically)")
-
-    @property
-    def GA_FOLDER_MIDDLE_HINT(self) -> str:
-        return _("Middle group name (the next free number is assigned automatically)")
-
-    @property
     def GA_FOLDER_DELETE_CONFIRM(self) -> str:
         return _(
             "Delete this folder and every group address in it? This can be undone."
         )
-
-    @property
-    def GA_RENAME(self) -> str:
-        return _("Rename Group Address")
-
-    @property
-    def GA_RENUMBER(self) -> str:
-        return _("Change Address…")
-
-    @property
-    def GA_RENUMBER_PROMPT(self) -> str:
-        return _("New group address (links are kept):")
 
     @property
     def GA_RENUMBER_FAILED(self) -> str:
@@ -2299,12 +3140,28 @@ class ProjectStrings:
         return _("Automatic")
 
     @property
-    def GA_SECURITY_ON(self) -> str:
-        return _("Secured")
+    def SECURITY_FORCED_ON(self) -> str:
+        # The same as a choice of the Security drop-down.
+        return _("Forced on")
 
     @property
-    def GA_SECURITY_OFF(self) -> str:
-        return _("Not Secured")
+    def SECURITY_FORCED_OFF(self) -> str:
+        return _("Forced off")
+
+    @property
+    def SECURITY_FORCED_BY(self) -> str:
+        return _("Overridden by '{name}': {mode}")
+
+    @property
+    def GA_CENTRAL(self) -> str:
+        return _("Central")
+
+    @property
+    def GROUP_SECURE_ON_REFUSED(self) -> str:
+        return _(
+            "Not every device linked to a group address of this group is commissioned"
+            " securely, so it cannot be secured."
+        )
 
     @property
     def GA_SECURE_LINK_REFUSED(self) -> str:
@@ -2321,16 +3178,12 @@ class ProjectStrings:
         )
 
     @property
-    def GA_SET_DPT(self) -> str:
-        return _("Set Datapoint Type")
+    def GA_DATA_TYPE(self) -> str:
+        return _("Data Type")
 
     @property
     def GA_ADDRESS(self) -> str:
         return _("Address")
-
-    @property
-    def GA_DPT_HINT(self) -> str:
-        return _("Datapoint type (e.g. DPST-1-1); empty to clear")
 
     @property
     def STATUS_PROJECT(self) -> str:
@@ -2509,6 +3362,14 @@ class ProjectStrings:
     @property
     def OPERATION_READING(self) -> str:
         return _("Reading")
+
+    @property
+    def OPERATION_RECOVER(self) -> str:
+        return _("Recover Project from Bus")
+
+    @property
+    def OPERATION_PROGRAMMING_MODE(self) -> str:
+        return _("Devices in Programming Mode")
 
     @property
     def DEVICE_INFO_GENERAL(self) -> str:
@@ -2721,6 +3582,10 @@ class ProjectStrings:
         return _("Downloading")
 
     @property
+    def OPERATION_CONNECTING(self) -> str:
+        return _("Connecting")
+
+    @property
     def OPERATION_PRESS_PROGRAMMING_BUTTON(self) -> str:
         return _("Please press the programming button")
 
@@ -2807,6 +3672,15 @@ class ProjectStrings:
     @property
     def CONFIGURE_BUS_CURRENT(self) -> str:
         return _("Bus Current")
+
+    @property
+    def BUS_CURRENT_ESTIMATED(self) -> str:
+        # After a bus current that is (or includes) an estimate: "10 mA (estimated)".
+        return _("(estimated)")
+
+    @property
+    def DEVICE_COUNT(self) -> str:
+        return _("Number of Devices")
 
     @property
     def GA_READ_VALUE(self) -> str:
@@ -3006,10 +3880,6 @@ class ProjectStrings:
     @property
     def BTN_CLOSE(self) -> str:
         return _("Close")
-
-    @property
-    def PROJECT_INFO_BACKBONE_SECURITY(self) -> str:
-        return _("IP Backbone Security")
 
     @property
     def PROJECT_INFO_CERTIFICATES(self) -> str:
@@ -3284,6 +4154,54 @@ class ProjectStrings:
         return _("Number")
 
     @property
+    def SPACE_USE(self) -> str:
+        return _("Use")
+
+    @property
+    def CURRENT_LINE(self) -> str:
+        return _("Current Line")
+
+    @property
+    def CURRENT_LINE_NONE(self) -> str:
+        return _("None")
+
+    @property
+    def CURRENT_LINE_INHERITED(self) -> str:
+        return _("{line} (inherits from {space})")
+
+    @property
+    def STATUS(self) -> str:
+        return _("Status")
+
+    @property
+    def STATUS_UNDEFINED(self) -> str:
+        return _("Unknown")
+
+    @property
+    def STATUS_EDITING(self) -> str:
+        return _("Editing")
+
+    @property
+    def STATUS_FINISHED_DESIGN(self) -> str:
+        return _("Finished design")
+
+    @property
+    def STATUS_FINISHED_COMMISSIONING(self) -> str:
+        return _("Finished commissioning")
+
+    @property
+    def STATUS_TESTED(self) -> str:
+        return _("Tested")
+
+    @property
+    def STATUS_ACCEPTED(self) -> str:
+        return _("Accepted")
+
+    @property
+    def STATUS_LOCKED(self) -> str:
+        return _("Locked")
+
+    @property
     def CONFIGURE_ADDITIONAL_ADDRESSES(self) -> str:
         return _("Additional Individual Addresses")
 
@@ -3316,8 +4234,20 @@ class ProjectStrings:
         return _("The individual address {address} is already used in this line.")
 
     @property
+    def ADDITIONAL_ADDRESS_NO_LINE(self) -> str:
+        return _("The device is on no line: put it on a line first.")
+
+    @property
     def HISTORY_ADDITIONAL_ADDRESS_CHANGED(self) -> str:
         return _("Changed additional address of device '{0}' from '{1}' to '{2}'.")
+
+    @property
+    def HISTORY_IP_ADDRESS_CHANGED(self) -> str:
+        return _("Change assigned IP address of '{0}' to '{1}'.")
+
+    @property
+    def HISTORY_IP_CONFIG_CHANGED(self) -> str:
+        return _("IP configuration of device '{0}' changed.")
 
     @property
     def HISTORY_ADDITIONAL_ADDRESS_NAMES(self) -> str:
@@ -3368,6 +4298,26 @@ class ProjectStrings:
         return _("Add segment")
 
     @property
+    def HISTORY_EV_SET_IP_ROUTING(self) -> str:
+        return _("Set IP routing of the backbone")
+
+    @property
+    def HISTORY_EV_SET_BUS_CONNECTION(self) -> str:
+        return _("Set bus connection of the backbone")
+
+    @property
+    def HISTORY_EV_RENAME_SEGMENT(self) -> str:
+        return _("Rename segment to {name}")
+
+    @property
+    def HISTORY_EV_SET_MEDIUM(self) -> str:
+        return _("Set medium to {medium}")
+
+    @property
+    def HISTORY_EV_SET_DOMAIN_ADDRESS(self) -> str:
+        return _("Set domain address")
+
+    @property
     def HISTORY_EV_CREATE_GA(self) -> str:
         return _("Create group address {address}")
 
@@ -3406,6 +4356,24 @@ class ProjectStrings:
     @property
     def HISTORY_EV_MOVE_DEVICE(self) -> str:
         return _("Move device")
+
+    @property
+    def HISTORY_EV_UNLINK_DEVICE(self) -> str:
+        return _("Unlink device")
+
+    @property
+    def HISTORY_EV_PARK_DEVICE(self) -> str:
+        return _("Park device")
+
+    @property
+    def CONTEXT_PARK(self) -> str:
+        # Clears a device's device number; it stays on its line ("1.5.-").
+        return _("Park")
+
+    @property
+    def CONTEXT_UNLINK_LINE(self) -> str:
+        # Takes a device off its line in the topology.
+        return _("Unlink")
 
     @property
     def HISTORY_EV_SET_FLAG(self) -> str:
@@ -3492,6 +4460,18 @@ class ProjectStrings:
         return _("Set group address security")
 
     @property
+    def HISTORY_EV_SET_GROUP_SECURITY(self) -> str:
+        return _("Set group security")
+
+    @property
+    def HISTORY_EV_SET_GA_CENTRAL(self) -> str:
+        return _("Mark group address as central")
+
+    @property
+    def HISTORY_EV_UNSET_GA_CENTRAL(self) -> str:
+        return _("Remove central mark from group address")
+
+    @property
     def HISTORY_EV_SET_SECURE_COMMISSIONING(self) -> str:
         return _("Set secure commissioning")
 
@@ -3518,6 +4498,22 @@ class ProjectStrings:
     @property
     def HISTORY_EV_SET_INSTALLATION_HINTS(self) -> str:
         return _("Set installation hints")
+
+    @property
+    def HISTORY_EV_SET_STATUS(self) -> str:
+        return _("Set status to {status}")
+
+    @property
+    def HISTORY_EV_SET_SPACE_USE(self) -> str:
+        return _("Set room use")
+
+    @property
+    def HISTORY_EV_SET_CURRENT_LINE(self) -> str:
+        return _("Set current line")
+
+    @property
+    def HISTORY_EV_SET_FUNCTION_DESCRIPTION(self) -> str:
+        return _("Set function description")
 
     @property
     def HISTORY_EV_CREATE_FUNCTION(self) -> str:
@@ -3562,6 +4558,38 @@ class ProjectStrings:
     @property
     def HISTORY_EV_SET_DEVICE_SPACE(self) -> str:
         return _("Assign device to building part")
+
+    @property
+    def HISTORY_EV_CREATE_TRADE(self) -> str:
+        return _("Create trade {name}")
+
+    @property
+    def HISTORY_EV_RENAME_TRADE(self) -> str:
+        return _("Rename trade to {name}")
+
+    @property
+    def HISTORY_EV_SET_TRADE_NUMBER(self) -> str:
+        return _("Set trade number")
+
+    @property
+    def HISTORY_EV_SET_TRADE_DESCRIPTION(self) -> str:
+        return _("Set trade description")
+
+    @property
+    def HISTORY_EV_MOVE_TRADE(self) -> str:
+        return _("Move trade")
+
+    @property
+    def HISTORY_EV_REMOVE_TRADE(self) -> str:
+        return _("Remove trade")
+
+    @property
+    def HISTORY_EV_ADD_TRADE_DEVICE(self) -> str:
+        return _("Add device to trade")
+
+    @property
+    def HISTORY_EV_REMOVE_TRADE_DEVICE(self) -> str:
+        return _("Remove device from trade")
 
     @property
     def HISTORY_EV_SET_COMMISSIONING(self) -> str:

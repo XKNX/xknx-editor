@@ -67,6 +67,19 @@ class OnlineButtonRunner:
         self._notify = notify
 
     def start(self, item: QueueItem) -> Future[Any] | None:
+        conn = self._connection
+        connector = conn.operation_connector
+        if connector is not None and (
+            (conn.xknx is None and conn.can_reach_bus())
+            or (conn.xknx is not None and connector.opened_for_operations())
+        ):
+            # Run through a connection opened for it (and the operations around it).
+            return conn.connect_for_operation(
+                S.SCRIPT_OPERATION, lambda: self._start(item)
+            )
+        return self._start(item)
+
+    def _start(self, item: QueueItem) -> Future[Any] | None:
         run = item.script
         device = self._project.find_device_by_node_id(item.node_id)
         if run is None or device is None:

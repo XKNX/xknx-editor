@@ -505,18 +505,6 @@ msgstr "Cihaza gitmek için bir bulguya tıklayın."
 msgid "No buildings/rooms in this project"
 msgstr "Bu projede bina/oda yok"
 
-msgid "+ Function"
-msgstr "+ Fonksiyon"
-
-msgid "+ Space"
-msgstr "+ Mekan"
-
-msgid "+ Sub-space"
-msgstr "+ Alt Mekan"
-
-msgid "New Space"
-msgstr "Yeni Mekan"
-
 msgid "Name"
 msgstr "Ad"
 
@@ -541,17 +529,11 @@ msgstr "(En Üst Seviye)"
 msgid "Delete this space and everything in it? Devices are only unassigned, not deleted."
 msgstr "Bu mekan ve içindeki her şey silinsin mi? Cihazlar yalnızca atamadan çıkarılır, silinmez."
 
-msgid "Assign Device"
-msgstr "Cihaz Ata"
-
 msgid "Assign a Device to This Space"
 msgstr "Bu Mekana Bir Cihaz Ata"
 
 msgid "No unassigned devices"
 msgstr "Atanmamış cihaz yok"
-
-msgid "Remove from Space"
-msgstr "Mekandan Kaldır"
 
 msgid "Without Space"
 msgstr "Mekansız"
@@ -573,24 +555,6 @@ msgstr "Koridor"
 
 msgid "Stairway"
 msgstr "Merdiven"
-
-msgid "Distribution Board"
-msgstr "Dağıtım Panosu"
-
-msgid "New Function"
-msgstr "Yeni Fonksiyon"
-
-msgid "Rename"
-msgstr "Yeniden adlandır"
-
-msgid "Rename Function"
-msgstr "Fonksiyonu Yeniden Adlandır"
-
-msgid "Assign Group Address"
-msgstr "Grup Adresi Ata"
-
-msgid "Role (Optional)"
-msgstr "Rol (İsteğe Bağlı)"
 
 msgid "Custom"
 msgstr "Özel"
@@ -955,8 +919,23 @@ msgstr "Program Ref."
 msgid "IP Configuration"
 msgstr "IP Yapılandırması"
 
-msgid "Assignment"
-msgstr "Atama"
+msgid "Obtain an IP address automatically"
+msgstr "IP adresini otomatik al"
+
+msgid "Use a static IP address"
+msgstr "Statik IP adresi kullan"
+
+msgid "Assigned IP Address"
+msgstr "Atanan IP Adresi"
+
+msgid "An invalid IP address was specified."
+msgstr "Geçersiz bir IP adresi belirtildi."
+
+msgid "Change assigned IP address of '{0}' to '{1}'."
+msgstr "'{0}' için atanan IP adresi '{1}' olarak değiştirildi."
+
+msgid "IP configuration of device '{0}' changed."
+msgstr "'{0}' cihazının IP yapılandırması değiştirildi."
 
 msgid "IP Address"
 msgstr "IP Adresi"
@@ -1162,29 +1141,8 @@ msgstr "Grup adreslerini filtrele (adres, ad)…"
 msgid "Filter rooms, devices, functions…"
 msgstr "Odaları, cihazları, fonksiyonları filtrele…"
 
-msgid "Area {area}"
-msgstr "Alan {area}"
-
-msgid "{name} (Area {area})"
-msgstr "{name} (Alan {area})"
-
-msgid "Line {area}.{line}"
-msgstr "Linye {area}.{line}"
-
-msgid "{name} (Line {area}.{line})"
-msgstr "{name} (Linye {area}.{line})"
-
 msgid "Unassigned ({count})"
 msgstr "Atanmamış ({count})"
-
-msgid "Add Area"
-msgstr "Alan Ekle"
-
-msgid "Add Line"
-msgstr "Linye Ekle"
-
-msgid "Copy Address"
-msgstr "Adresi Kopyala"
 
 msgid "Duplicate"
 msgstr "Kopya Oluştur"
@@ -1252,12 +1210,6 @@ msgstr "Cihazı Sil"
 msgid "Delete '{name}'? Its group objects and group-address links are removed and its individual address is freed. This can be undone."
 msgstr "'{name}' silinsin mi? Grup nesneleri ve grup adresi bağlantıları kaldırılır, bireysel adresi serbest bırakılır. Bu işlem geri alınabilir."
 
-msgid "New Area"
-msgstr "Yeni Alan"
-
-msgid "New Line"
-msgstr "Yeni Linye"
-
 msgid "Number"
 msgstr "Numara"
 
@@ -1273,41 +1225,11 @@ msgstr "Yükle"
 msgid "Copy Log"
 msgstr "Günlüğü Kopyala"
 
-msgid "New Group Address"
-msgstr "Yeni Grup Adresi"
-
-msgid "New Main Group"
-msgstr "Yeni Ana Grup"
-
-msgid "New Middle Group"
-msgstr "Yeni Orta Grup"
-
-msgid "New Folder"
-msgstr "Yeni Klasör"
-
-msgid "Rename Folder"
-msgstr "Klasörü Yeniden Adlandır"
-
 msgid "Delete Folder"
 msgstr "Klasörü Sil"
 
-msgid "Main group name (the next free number is assigned automatically)"
-msgstr "Ana grup adı (sonraki boş numara otomatik atanır)"
-
-msgid "Middle group name (the next free number is assigned automatically)"
-msgstr "Orta grup adı (sonraki boş numara otomatik atanır)"
-
 msgid "Delete this folder and every group address in it? This can be undone."
 msgstr "Bu klasör ve içindeki tüm grup adresleri silinsin mi? Bu işlem geri alınabilir."
-
-msgid "Rename Group Address"
-msgstr "Grup Adresini Yeniden Adlandır"
-
-msgid "Change Address…"
-msgstr "Adresi Değiştir…"
-
-msgid "New group address (links are kept):"
-msgstr "Yeni grup adresi (bağlantılar korunur):"
 
 msgid "Invalid address or already in use."
 msgstr "Geçersiz adres veya zaten kullanılıyor."
@@ -1318,26 +1240,14 @@ msgstr "Güvenlik"
 msgid "Automatic"
 msgstr "Otomatik"
 
-msgid "Secured"
-msgstr "Güvenli"
-
-msgid "Not Secured"
-msgstr "Güvenli Değil"
-
 msgid "A secured group address can only be linked to devices that are commissioned securely."
 msgstr "Güvenli bir grup adresi yalnızca güvenli şekilde devreye alınan cihazlara bağlanabilir."
 
 msgid "Not every device linked to this group address is commissioned securely, so it cannot be secured."
 msgstr "Bu grup adresine bağlı cihazların tümü güvenli şekilde devreye alınmıyor; bu nedenle grup adresi güvenli yapılamaz."
 
-msgid "Set Datapoint Type"
-msgstr "Veri Tipini Belirle"
-
 msgid "Address"
 msgstr "Adres"
-
-msgid "Datapoint type (e.g. DPST-1-1); empty to clear"
-msgstr "Veri tipi (ör. DPST-1-1); temizlemek için boş bırakın"
 
 msgid "Project: {name}"
 msgstr "Proje: {name}"
@@ -1770,9 +1680,6 @@ msgstr "Parola 1 ile 20 arasında Latin-1 karakterinden oluşmalıdır."
 
 msgid "Close"
 msgstr "Kapat"
-
-msgid "IP Backbone Security"
-msgstr "IP Omurga Güvenliği"
 
 msgid "Device Certificates"
 msgstr "Cihaz Sertifikaları"
@@ -2301,3 +2208,732 @@ msgstr "Kayıt"
 
 msgid "Store plugin data {name}"
 msgstr "Eklenti verilerini kaydet: {name}"
+
+msgid "Unknown"
+msgstr "Bilinmeyen"
+
+msgid "Editing"
+msgstr "Düzenleme"
+
+msgid "Finished design"
+msgstr "Tasarım bitti"
+
+msgid "Finished commissioning"
+msgstr "Devreye alma bitti"
+
+msgid "Tested"
+msgstr "Test edildi"
+
+msgid "Accepted"
+msgstr "Kabul edildi"
+
+msgid "Locked"
+msgstr "Kilitli"
+
+msgid "Function"
+msgstr "Fonksiyon"
+
+msgid "Use"
+msgstr "Kullanım"
+
+msgid "Set room use"
+msgstr "Oda kullanımını belirle"
+
+msgid "Set status to {status}"
+msgstr "Durumu {status} olarak belirle"
+
+msgid "Set function description"
+msgstr "Fonksiyon tanımını belirle"
+
+msgid "Current Line"
+msgstr "Geçerli Linye"
+
+msgid "{line} (inherits from {space})"
+msgstr "{line} ({space} öğesinden devralınır)"
+
+msgid "Set current line"
+msgstr "Geçerli linyeyi belirle"
+
+msgid "Segment"
+msgstr "Segment"
+
+msgid "Medium"
+msgstr "Ortam"
+
+msgid "Domain Address"
+msgstr "Domain Adres"
+
+msgid "The medium of a segment can only change while it holds no device."
+msgstr "Bir segmentin ortam tipi yalnızca herhangi bir cihaz içermiyorsa değiştirilebilir."
+
+msgid "The medium type of the segment '{segment}' cannot be changed to IoT, because its parent line '{line}' is not of medium type IP."
+msgstr "'{segment}' segmentinin ortam tipi IoT olarak değiştirilemez çünkü üst linyesi '{line}' ortam tipi IP'ye sahip değildir."
+
+msgid "The maximum number of segments has been reached."
+msgstr "Maksimum segment sayısına ulaşıldı."
+
+msgid "The main segment cannot be deleted."
+msgstr "Ana segment silinemez."
+
+msgid "Device '{device}' is incompatible with line's medium type."
+msgstr "'{device}' cihazı linyenin ortam tipi ile uyumlu değil."
+
+msgid "Device '{device}' is incompatible with segment's medium type."
+msgstr "'{device}' cihazı, segmentin ortam türüyle uyumlu değildir."
+
+msgid "Rename segment to {name}"
+msgstr "Segmenti yeniden adlandır: {name}"
+
+msgid "Set medium to {medium}"
+msgstr "Ortamı {medium} olarak belirle"
+
+msgid "Forced on"
+msgstr "Zorla açma"
+
+msgid "Forced off"
+msgstr "Zorla kapatma"
+
+msgid "Overridden by '{name}': {mode}"
+msgstr "'{name}' tarafından geçersiz kılındı: {mode}"
+
+msgid "Central"
+msgstr "Merkezi"
+
+msgid "Not every device linked to a group address of this group is commissioned securely, so it cannot be secured."
+msgstr "Bu grubun bir grup adresine bağlı cihazların tümü güvenli şekilde devreye alınmıyor; bu nedenle grup güvenli yapılamaz."
+
+msgid "Set group security"
+msgstr "Grup güvenliğini belirle"
+
+msgid "Mark group address as central"
+msgstr "Grup adresini merkezi olarak işaretle"
+
+msgid "Remove central mark from group address"
+msgstr "Grup adresinden merkezi işaretini kaldır"
+
+msgid "Topology"
+msgstr "Topoloji"
+
+msgid "{medium} backbone line"
+msgstr "{medium} omurga linyesi"
+
+msgid "{medium} main line"
+msgstr "{medium} ana linye"
+
+msgid "Backbone"
+msgstr "Omurga"
+
+msgid "Network Latency"
+msgstr "Ağ Gecikmesi"
+
+msgid "LAN (< 400ms)"
+msgstr "LAN (< 400 ms)"
+
+msgid "WLAN (< 1s)"
+msgstr "WLAN (< 1 s)"
+
+msgid "WAN (< 2s)"
+msgstr "WAN (< 2s)"
+
+msgid "Mobile (< 4s)"
+msgstr "Hareketli (< 4s)"
+
+msgid "Satellite (< 8s)"
+msgstr "Uydu (< 8s)"
+
+msgid "The network latency must be a number of milliseconds from 1 to 65535."
+msgstr "Ağ gecikmesi 1 ile 65535 arasında bir milisaniye sayısı olmalıdır."
+
+msgid "Multicast Address"
+msgstr "Multicast Adresi"
+
+msgid "Enter a multicast address from 224.0.0.0 to 239.255.255.255."
+msgstr "224.0.0.0 ile 239.255.255.255 arasında bir multicast adresi girin."
+
+msgid "Bus Connection"
+msgstr "Bus Bağlantısı"
+
+msgid "Set IP routing of the backbone"
+msgstr "Omurganın IP yönlendirmesini belirle"
+
+msgid "As long as a coupler exists at a sub line or sub segment, a change of the medium type is not possible."
+msgstr "Bir alt linye veya alt segmentte bir bağlayıcı bulunduğu sürece, ortam tipinin değiştirilmesi mümkün değildir."
+
+msgid "A main line of a project cannot have medium type RF."
+msgstr "Bir projenin ana linyesi RF medya tipine sahip olamaz."
+
+msgid "The operation could not be executed, because as medium type of the backbone only IP and TP are allowed."
+msgstr "Omurganın ortam tipi olarak sadece IP ve TP'ye izin verildiğinden işlem yürütülemedi."
+
+msgid "A sub-segment of KNX medium type IP or PL is not allowed."
+msgstr "KNX IP veya PL ortam tiplerinde bir alt segmente izin verilmez."
+
+msgid "The medium type of the main line '{line}' can no longer be changed to PL, because it already contains lines or segments that are not allowed in PL main lines."
+msgstr "'{line}' ana linyesinin ortam tipi artık PL olarak değiştirilemez çünkü zaten PL ana şinyelerinde izin verilmeyen linyeler veya segmentler içeriyor."
+
+msgid "The medium type of the main line '{line}' cannot be changed to IoT, because the backbone line '{backbone}' is not of medium type IP."
+msgstr "'{line}' ana linyesinin ortam tipi IoT olarak değiştirilemez çünkü '{backbone}' omurga linyesi ortam tipi IP'ye sahip değildir."
+
+msgid "The medium type of the main line '{line}' can no longer be changed to IoT, because it already contains lines or segments that are not allowed in IoT main lines."
+msgstr "'{line}' ana linyesinin ortam tipi artık IoT olarak değiştirilemez çünkü halihazırda IoT ana linyelerinde izin verilmeyen linyeler veya segmentler içeriyor."
+
+msgid "The medium type of the line '{line}' cannot be changed, because it already contains lines or segments that require an IoT or IP main line."
+msgstr "'{line}' ana linyesinin ortam tipi değiştirilemez çünkü zaten IoT veya IP ana linye gerektiren linyeler veya segmentler içeriyor."
+
+msgid "A sub-segment is not allowed below a main segment of KNX medium type RF."
+msgstr "KNX ortam tipi RF olan bir ana segmentin altında bir alt segmente izin verilmez."
+
+msgid "A sub-segment is not allowed below a main segment of KNX medium type PL."
+msgstr "KNX ortam tipi PL olan bir ana segmentin altında bir alt segmente izin verilmez."
+
+msgid "A sub-segment of KNX medium type IoT is not allowed below a main segment of the same type."
+msgstr "Aynı türden bir ana segmentin altında KNX IoT ortamının bir alt segmentine izin verilmez."
+
+msgid "The operation could not be executed, because a RF main line '{line}' requires all other lines in the area to be RF lines as well."
+msgstr "İşlem gerçekleştirilemedi çünkü bir RF ana linyesi {line}, alandaki diğer tüm linyelerinde RF linyesi olmasını gerektiriyor."
+
+msgid "The operation could not be executed, because a PL main line '{line}' requires all other lines in the area to be PL lines as well."
+msgstr "İşlem yürütülemedi, çünkü bir PL ana linyesi {line} alandaki diğer tüm linyelerin de PL linyesi olmasını gerektiriyor."
+
+msgid "The operation could not be executed, because a IoT main line '{line}' requires all other lines in the area to be IoT lines as well."
+msgstr "IoT ana linyesi '{line}', bölgedeki diğer tüm linyelerin de IoT linyesi olmasını gerektirdiğinden işlem yürütülemedi."
+
+msgid "The medium type of the line '{line}' cannot be changed to IoT, because its main line '{main}' is not of medium type IP."
+msgstr "'{line}' satırının ortam tipi IoT olarak değiştirilemez çünkü '{main}' ana linyesi ortam tipi IP'ye sahip değildir."
+
+msgid "The medium type of the line '{line}' can no longer be changed to IoT, because it already contains segments that are not allowed in IoT lines."
+msgstr "'{line}' linyesinin ortam tipi artık IoT olarak değiştirilemez çünkü zaten IoT linyelerinde izin verilmeyen segmentler içeriyor."
+
+msgid "The operation could not be executed, because the line is the IP backbone line and the project contains KNXnet/IP routers. KNXnet/IP routers require an IP backbone line."
+msgstr "İşlem yürütülemedi, çünkü linye IP omurga hattı ve projede   KNXnet/IP yönlendiriciler var. KNXnet/IP yönlendiriciler için IP omurga hattı gereklidir."
+
+msgid "The operation could not be executed, because the line is the IP main line and the project contains KNXnet/IP routers. KNXnet/IP routers require an IP main line."
+msgstr "İşlem yürütülemedi, çünkü  linye IP ana linyesi ve projede KNXnet/IP yönlendiriciler mevcut. KNXnet/IP yönlendiriciler IP ana linyesi gerektirir."
+
+msgid "The operation could not be executed, because the line is the IP backbone line and the project contains IoT or IP lines."
+msgstr "Linye IP omurga linyesi olduğundan ve proje IoT veya IP linyeleri içerdiğinden işlem gerçekleştirilemedi."
+
+msgid "The operation could not be executed, because the medium type of the line can only be set to IP if an IP main line exists."
+msgstr "İşlem yürütülemedi, çünkü ancak IP ana linyesi mevcut ise linye tipi IP olarak ayarlanabilir."
+
+msgid "The operation could not be executed, because the medium type of the line can only be set to IP if an IP backbone line exists."
+msgstr "İşlem yürütülemedi, çünkü IP omurga bulunuyor ise, ortam tipi yalnızca IP olabilir."
+
+msgid "The operation could not be executed, because below a TP main segment only segments of KNX medium type TP, RF or PL can exist."
+msgstr "İşlem yürütülemedi, çünkü bir TP ana segmentinin altında sadece KNX orta tip TP, RF veya PL segmentleri bulunabilir."
+
+msgid "Below a main segment of KNX medium type IP only segments of medium type TP or RF can exist."
+msgstr "KNX ortam tipi IP olan bir ana segmentin altında sadece ortam tipi TP veya RF olan segmentler bulunabilir."
+
+msgid "A sub-segment of KNX medium type PL is not allowed below a main segment."
+msgstr "Ana segmentin altında bir KNX PL alt segmentine izin verilmez."
+
+msgid "Set bus connection of the backbone"
+msgstr "Omurganın bus bağlantısını belirle"
+
+msgid "Set domain address"
+msgstr "Domain adresini belirle"
+
+msgid "Generate New"
+msgstr "Yeni oluştur"
+
+msgid "The given domain address is invalid."
+msgstr "Verilen Etki Alan Adresi geçerli değil."
+
+msgid "Domain address is not valid! Valid values are 1 to 255."
+msgstr "EtkinAlan adresi geçerli değil! Geçerli değerler 1 den 255 e."
+
+msgid "DomainAddress of mediumType 'RF' is lower than the minimum value of 0001:00000000."
+msgstr "'RF' ortam tipinin EtkiAlanAdresi 0001:00000000 un asgari değerinin altında olmalıdır."
+
+msgid "DomainAddress of medium type '{medium}' exceeds the maximum valid value of {maximum}"
+msgstr "Ortam türü '{medium}' 'ın EtkiAlanıAdresi maksimum geçerli {maximum} değerini aşıyor"
+
+msgid "DomainAddress of RF sublines must be equal to DomainAdress of main line."
+msgstr "RF altlinyelerin EtkiAlanAdresi ana linyeninki ile aynı olmalıdır."
+
+msgid "Domain Address of IoT sublines must be equal to Domain Address of main line."
+msgstr "IoT alt linyelerinin Etki Alanı Adresi, ana linyenin Etki Alanı Adresine eşit olmalıdır."
+
+msgid "Each line in a project must have a unique domain address."
+msgstr "Projedeki her linyenin tek EtkiAlanAdresi olmalıdır."
+
+msgid "Last Downloaded"
+msgstr "Son Yüklenen"
+
+msgid "Create trade {name}"
+msgstr "Ticaret oluştur: {name}"
+
+msgid "Rename trade to {name}"
+msgstr "Ticareti yeniden adlandır: {name}"
+
+msgid "Set trade number"
+msgstr "Ticaret numarasını belirle"
+
+msgid "Set trade description"
+msgstr "Ticaret açıklamasını belirle"
+
+msgid "Move trade"
+msgstr "Ticareti taşı"
+
+msgid "Remove trade"
+msgstr "Ticareti kaldır"
+
+msgid "Add device to trade"
+msgstr "Cihazı ticarete ekle"
+
+msgid "Remove device from trade"
+msgstr "Cihazı ticaretten kaldır"
+
+msgid "Trades"
+msgstr "Ticaretler"
+
+msgid "Building Parts…"
+msgstr "Bina Bölümleri…"
+
+msgid "Floors…"
+msgstr "Katlar…"
+
+msgid "Stairways…"
+msgstr "Merdiven…"
+
+msgid "Rooms…"
+msgstr "Odalar…"
+
+msgid "Corridors…"
+msgstr "Koridorlar…"
+
+msgid "Cabinets…"
+msgstr "Panolar…"
+
+msgid "Devices…"
+msgstr "Cihazlar…"
+
+msgid "Functions…"
+msgstr "Fonksiyonlar…"
+
+msgid "Trades…"
+msgstr "Ticaretler…"
+
+msgid "Add Buildings…"
+msgstr "Binalar Ekle…"
+
+msgid "Add Trades…"
+msgstr "Tüm Ticariler…"
+
+msgid "Add Buildings"
+msgstr "Binalar Ekle"
+
+msgid "Add Building Parts"
+msgstr "Bina Bölümleri Ekle"
+
+msgid "Add Floors"
+msgstr "Kat Ekle"
+
+msgid "Add Rooms"
+msgstr "Oda Ekle"
+
+msgid "Add Corridors"
+msgstr "Koridorlar Ekle"
+
+msgid "Add Stairways"
+msgstr "Merdiven Ekle"
+
+msgid "Add Cabinets"
+msgstr "Pano Ekle"
+
+msgid "Add Trades"
+msgstr "Tüm Ticariler"
+
+msgid "Add Devices"
+msgstr "Cihaz ekle"
+
+msgid "Count"
+msgstr "Miktar"
+
+msgid "to \"{name}\""
+msgstr "\"{name}\" a kadar"
+
+msgid "Cabinet"
+msgstr "Pano"
+
+msgid "New building"
+msgstr "Yeni bina"
+
+msgid "New building part"
+msgstr "Yeni bina bölümü"
+
+msgid "New floor"
+msgstr "Yeni kat"
+
+msgid "New room"
+msgstr "Yeni oda"
+
+msgid "New corridor"
+msgstr "Yeni koridor"
+
+msgid "New stairway"
+msgstr "Yeni merdiven"
+
+msgid "New cabinet"
+msgstr "Yeni pano"
+
+msgid "New trade"
+msgstr "Yeni ticaret"
+
+msgid "A building part of this type cannot be added here."
+msgstr "Bu tip bina bölümü buraya eklenemez."
+
+msgid "A building part of this type cannot be added here.\nCabinets can be added inside of rooms, corridors, or stairways only. If applicable the corridors have to be moved into the corresponding building parts."
+msgstr "Bu türde bir bina parçası buraya eklenemez.\nKabinler odaların, koridorların içerisine veya yalnızca merdivenlere eklenebilir. Varsa şayet koridorlar ilgili bina parçalarına taşınmalıdır."
+
+msgid "The target is a child building part."
+msgstr "Hedef bina bölümünün çocuğudur."
+
+msgid "Devices can only be added to stairways, rooms, corridors and cabinets."
+msgstr "Cihazlar yalnızca merdivenlere, odalara, koridorlara ve kabinlere eklenebilir."
+
+msgid "Trade"
+msgstr "Ticaret"
+
+msgid "(estimated)"
+msgstr "(tahmini)"
+
+msgid "Number of Devices"
+msgstr "Cihaz sayısı"
+
+msgid "Unlink"
+msgstr "İlişkiyi kaldır"
+
+msgid "An IP router requires an IP backbone line."
+msgstr "Bir IP yönlendiriciye  IP omurga hattı gereklidir."
+
+msgid "The operation could not be executed, because a coupler needs a main line."
+msgstr "İşlem yürütülemedi, çünkü bir kalper için ana linye gereklidir."
+
+msgid "The operation could not be executed, because an area coupler requires a backbone line."
+msgstr "İşlem yürütülemedi, çünkü alan kapleri omurga linyesi gerektirir."
+
+msgid "The operation could not be executed, because this coupler needs a main line with the medium type '{medium}' ."
+msgstr "İşlem yürütülemedi, çünkü  '{medium}' ortam tipi olan kapler gerekmekte ."
+
+msgid "The operation could not be executed, because only one IP router is allowed as a world coupler."
+msgstr "İşlem yürütülemedi, çünkü evrensel kapler için yalnızca bir IP router olabilir."
+
+msgid "The operation could not be executed, because only IP router area allowed as a world coupler."
+msgstr "İşlem yürütülemedi, çünkü yalnız IP router alanı evrensel kapler olabilir."
+
+msgid "The backbone line contains a world coupler. It is not possible to use an IP router below another IP router."
+msgstr "Omurga linyesi bir dünya bağlaştırıcısı içeriyor. Bir IP yönlendiricisini başka bir IP yönlendiricisinin altında kullanmak mümkün değil."
+
+msgid "It is not possible to use a world coupler, when there are already IP routers in the project."
+msgstr "Projede halihazırda IP yönlendiricileri varken bir dünya(world) bağlayıcısı kullanmak mümkün değildir."
+
+msgid "A world coupler can only be used, when the medium type of the backbone is TP."
+msgstr "Dünya bağlayıcısı yalnızca omurganın ortam tipi TP olduğunda kullanılabilir."
+
+msgid "The coupler does not support segment coupling, so the sub-segment must be of the same KNX medium type as the main segment."
+msgstr "Bağlayıcılar segment bağlantısını desteklemez, bu nedenle alt segment ana segment ile aynı KNX ortam tipinde olmalıdır."
+
+msgid "The operation could not be executed, because this device couples medium '{above}' (above) to medium '{below}' (below), but the segment above is '{segment}'."
+msgstr "İşlem gerçekleştirilemedi, bu cihaz '{above}' ortamı (yukarıda) ile ortam '{below}' (aşağıda) arasında bağlantı sağlamaktadır, ancak yukarıdaki segment '{segment}''dir."
+
+msgid "The operation could not be executed, because medium type of coupler device matches only sub segment, but maximum amount of segments reached."
+msgstr "Bağlayıcının ortam tipi alt segmentler ile eşleşiyor ancak maksimum segment sayısına ulaşıldığı için işlem gerçekleştirilimiyor."
+
+msgid "The operation could not be executed, because this device couples medium '{above}' (above) to medium '{below}' (below), but the medium type of the lower segment is '{segment}'."
+msgstr "İşlem gerçekleştirilemedi, bu cihaz ortam '{above}' (yukarıda) ile ortam '{below}' (aşağıda) arasında bağlantı sağlamaktadır ancak alt segmentin ortam tipi '{segment}'."
+
+msgid "Recover Project from Bus"
+msgstr "Projeyi Bus'tan Kurtar"
+
+msgid "Devices in Programming Mode"
+msgstr "Programlama Modundaki Cihazlar"
+
+msgid "Connecting"
+msgstr "Bağlanıyor"
+
+msgid "Move middle group"
+msgstr "Orta grubu taşı"
+
+msgid "The group has no free group address."
+msgstr "Grupta boş grup adresi yok."
+
+msgid "The main group has no free middle group."
+msgstr "Ana grupta boş orta grup yok."
+
+msgid "{count} devices"
+msgstr "{count} cihaz"
+
+msgid "The main segment cannot be moved."
+msgstr "Ana segment taşınamaz."
+
+msgid "The maximum number of lines has been reached."
+msgstr "Azami hat sayısına ulaşıldı."
+
+msgid "The line is already assigned to an area."
+msgstr "Hat zaten bir alana atanmış."
+
+msgid "The main line cannot be moved."
+msgstr "Ana hat taşınamaz."
+
+msgid "Move line"
+msgstr "Hattı taşı"
+
+msgid "Move segment"
+msgstr "Segmenti taşı"
+
+msgid "Move function"
+msgstr "İşlevi taşı"
+
+msgid "Paste Special"
+msgstr "Özel Yapıştır"
+
+msgid "Number of Items"
+msgstr "Öğe Sayısı"
+
+msgid "Don't copy"
+msgstr "Kopyalama"
+
+msgid "Keep"
+msgstr "Koru"
+
+msgid "Create new group address in middle group"
+msgstr "Orta grupta yeni grup adresi oluştur"
+
+msgid "Create new group address in main group"
+msgstr "Ana grupta yeni grup adresi oluştur"
+
+msgid "Create new group address in group range"
+msgstr "Grup aralığında yeni grup adresi oluştur"
+
+msgid "Generate Address"
+msgstr "Adres Oluştur"
+
+msgid "Fill up (use first free)"
+msgstr "Doldur (ilk boş)"
+
+msgid "Append"
+msgstr "Sona ekle"
+
+msgid "Start with"
+msgstr "Şununla başla"
+
+msgid "Enter a middle group, e.g. 1/2."
+msgstr "Bir orta grup girin, örn. 1/2."
+
+msgid "Enter a main group, e.g. 1."
+msgstr "Bir ana grup girin, örn. 1."
+
+msgid "The group has too few free group addresses for the copies."
+msgstr "Grupta kopyalar için yeterli boş grup adresi yok."
+
+msgid "The maximum number of group ranges has been reached."
+msgstr "Azami grup aralığı sayısına ulaşıldı."
+
+msgid "There is no group for the new group addresses."
+msgstr "Yeni grup adresleri için grup yok."
+
+msgid "Copied '{name}' to '{target}'."
+msgstr "'{name}', '{target}' konumuna kopyalandı."
+
+msgid "Copied {count} devices to '{target}'."
+msgstr "{count} cihaz '{target}' konumuna kopyalandı."
+
+msgid "Copied {count} building parts to '{target}'."
+msgstr "{count} bina bölümü '{target}' konumuna kopyalandı."
+
+msgid "Copied {count} trades to '{target}'."
+msgstr "{count} ticaret '{target}' konumuna kopyalandı."
+
+msgid "Copied {count} functions to '{target}'."
+msgstr "{count} işlev '{target}' konumuna kopyalandı."
+
+msgid "Copied {count} group addresses to '{target}'."
+msgstr "{count} grup adresi '{target}' konumuna kopyalandı."
+
+msgid "Copied {count} middle groups to '{target}'."
+msgstr "{count} orta grup '{target}' konumuna kopyalandı."
+
+msgid "Copied {count} main groups to '{target}'."
+msgstr "{count} ana grup '{target}' konumuna kopyalandı."
+
+msgid "Copied {count} lines to '{target}'."
+msgstr "{count} hat '{target}' konumuna kopyalandı."
+
+msgid "Copied {count} segments to '{target}'."
+msgstr "{count} segment '{target}' konumuna kopyalandı."
+
+msgid "Paste Special…"
+msgstr "Özel Yapıştır…"
+
+msgid "Add Row"
+msgstr "Satır Ekle"
+
+msgid "Remove this row"
+msgstr "Bu satırı kaldır"
+
+msgid "Generate Addresses"
+msgstr "Adresleri Oluştur"
+
+msgid "Unlink device"
+msgstr "Cihazın ilişkisini kaldır"
+
+msgid "The device is on no line: put it on a line first."
+msgstr "Cihaz hiçbir hatta değil: önce bir hatta yerleştirin."
+
+msgid "Areas…"
+msgstr "Alanlar…"
+
+msgid "Lines…"
+msgstr "Hatlar…"
+
+msgid "Segments…"
+msgstr "Segmentler…"
+
+msgid "Add Areas"
+msgstr "Alan Ekle"
+
+msgid "Add Lines"
+msgstr "Hat Ekle"
+
+msgid "Add Segments"
+msgstr "Segment Ekle"
+
+msgid "The limit to add was reached."
+msgstr "Ekleme sınırına ulaşıldı."
+
+msgid "Cannot add any line to the area {area} because of topology constraints. Please check the medium type of the backbone and main lines."
+msgstr "Topoloji kısıtlamaları nedeniyle {area} alanına hat eklenemiyor. Lütfen omurga ve ana hatların ortam türünü kontrol edin."
+
+msgid "Added {count} areas to '{target}'."
+msgstr "{count} alan '{target}' konumuna eklendi."
+
+msgid "Added {count} lines to '{target}'."
+msgstr "{count} hat '{target}' konumuna eklendi."
+
+msgid "Added {count} segments to '{target}'."
+msgstr "{count} segment '{target}' konumuna eklendi."
+
+msgid "Added {count} building parts to '{target}'."
+msgstr "{count} bina bölümü '{target}' konumuna eklendi."
+
+msgid "Added {count} trades to '{target}'."
+msgstr "{count} iş kolu '{target}' konumuna eklendi."
+
+msgid "Added {count} main groups to '{target}'."
+msgstr "{count} ana grup '{target}' konumuna eklendi."
+
+msgid "Added {count} middle groups to '{target}'."
+msgstr "{count} orta grup '{target}' konumuna eklendi."
+
+msgid "Added {count} group addresses to '{target}'."
+msgstr "{count} grup adresi '{target}' konumuna eklendi."
+
+msgid "Add Main Groups…"
+msgstr "Ana Grup Ekle…"
+
+msgid "Add Middle Groups…"
+msgstr "Orta Grup Ekle…"
+
+msgid "Add Main Groups"
+msgstr "Ana Grup Ekle"
+
+msgid "Add Middle Groups"
+msgstr "Orta Grup Ekle"
+
+msgid "New main group"
+msgstr "Yeni ana grup"
+
+msgid "New middle group"
+msgstr "Yeni orta grup"
+
+msgid "New group address"
+msgstr "Yeni grup adresi"
+
+msgid "Cut"
+msgstr "Kes"
+
+msgid "What was cut cannot be moved there."
+msgstr "Kesilen öğe oraya taşınamaz."
+
+msgid "Park"
+msgstr "Park et"
+
+msgid "Park device"
+msgstr "Cihazı park et"
+
+msgid "Add Functions"
+msgstr "Fonksiyon Ekle"
+
+msgid "New function"
+msgstr "Yeni fonksiyon"
+
+msgid "Added {count} functions to '{target}'."
+msgstr "{count} fonksiyon '{target}' konumuna eklendi."
+
+msgid "Added {count} group ranges to '{target}'."
+msgstr "{count} grup adresi aralığı '{target}' konumuna eklendi."
+
+msgid "Add Group Ranges…"
+msgstr "Grup Adresi Aralığı Ekle…"
+
+msgid "Add Group Ranges"
+msgstr "Grup Adresi Aralığı Ekle"
+
+msgid "New group range"
+msgstr "Yeni grup adresi aralığı"
+
+msgid "Capacity"
+msgstr "Kapasite"
+
+msgid "Link with…"
+msgstr "Bağla…"
+
+msgid "Link with Group Address"
+msgstr "Grup Adresine Bağla"
+
+msgid "There is no group to add group addresses to."
+msgstr "Grup adresi eklenecek bir grup yok."
+
+msgid "Add Subtrade"
+msgstr "Alt Ticari Ekle"
+
+msgid "The group range does not fit there."
+msgstr "Grup adresi aralığı oraya sığmıyor."
+
+msgid "A group range cannot go into itself or a range in it."
+msgstr "Bir grup adresi aralığı kendisine veya içindeki bir aralığa taşınamaz."
+
+msgid "A group address of the range is already in use there."
+msgstr "Aralığın bir grup adresi orada zaten kullanılıyor."
+
+msgid "Copied {count} group ranges to '{target}'."
+msgstr "{count} grup adresi aralığı '{target}' konumuna kopyalandı."
+
+msgid "Add Areas…"
+msgstr "Alan Ekle…"
+
+msgid "{medium} segment"
+msgstr "{medium} segment"
+
+msgid "Copy Individual Address"
+msgstr "Bireysel Adresi Kopyala"
+
+msgid "Copy Group Address"
+msgstr "Grup Adresini Kopyala"
+
+msgid "Existing Devices…"
+msgstr "Mevcut Cihazlar…"
+
+msgid "Delete the {count} selected devices? Their group objects and group-address links are removed and their individual addresses are freed. This can be undone."
+msgstr "Seçili {count} cihaz silinsin mi? Grup nesneleri ve grup adresi bağlantıları kaldırılır, bireysel adresleri serbest bırakılır. Bu işlem geri alınabilir."
+
+msgid "Remove {count} devices"
+msgstr "{count} cihazı kaldır"
+
+msgid "Delete Devices"
+msgstr "Cihazları Sil"
+
+msgid "{medium} line"
+msgstr "{medium} linye"

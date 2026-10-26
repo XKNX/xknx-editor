@@ -3,8 +3,13 @@
 from types import SimpleNamespace
 from typing import cast
 
-from xknxeditor.proj.core.ga_security import exports_key, is_secured
-from xknxeditor.proj.models import GroupAddress
+from xknxeditor.proj.core.ga_security import (
+    effective_mode,
+    exports_key,
+    forcing_range,
+    is_secured,
+)
+from xknxeditor.proj.models import GroupAddress, GroupRange
 
 
 def test_on_and_off_decide_alone() -> None:
@@ -19,9 +24,20 @@ def test_auto_needs_every_linked_device_commissioned_securely() -> None:
         assert not is_secured(mode, [], {1})  # unlinked
 
 
-def _ga(mode: str | None, linked: bool) -> GroupAddress:
+def _range(mode: str | None, parent: GroupRange | None = None) -> GroupRange:
+    return cast("GroupRange", SimpleNamespace(security_mode=mode, parent=parent))
+
+
+def _ga(
+    mode: str | None, linked: bool, group_range: GroupRange | None = None
+) -> GroupAddress:
     return cast(
-        "GroupAddress", SimpleNamespace(security_mode=mode, links=[1] if linked else [])
+        "GroupAddress",
+        SimpleNamespace(
+            security_mode=mode,
+            links=[1] if linked else [],
+            group_range=group_range or _range(None),
+        ),
     )
 
 
@@ -32,3 +48,15 @@ def test_a_plain_group_address_is_exported_without_its_key() -> None:
     assert not exports_key(_ga("Off", False), secured=False)
     # An unlinked Auto one keeps its key.
     assert exports_key(_ga("Auto", False), secured=False)
+    # Unless a group above forces it off.
+    assert not exports_key(_ga("Auto", False, _range("Off")), secured=False)
+
+
+def test_the_nearest_forcing_group_decides() -> None:
+    main = _range("On")
+    middle = _range("Off", main)
+    assert forcing_range(_range("Auto", middle)) is middle
+    assert effective_mode(_ga("On", False, _range(None, middle))) == "Off"
+    assert effective_mode(_ga("Off", False, _range("Auto", main))) == "On"
+    assert effective_mode(_ga("On", False, _range("Auto", _range(None)))) == "On"
+    assert forcing_range(None) is None

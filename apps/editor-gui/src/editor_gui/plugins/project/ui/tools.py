@@ -42,6 +42,7 @@ from xknxeditor.proj.core.addressing import GroupAddressStyle, format_ga
 
 if TYPE_CHECKING:
     from editor_gui.device import ComObject, Device
+    from editor_gui.plugins.project.ui.device_compare import DeviceComparePanel
     from xknxeditor.proj.core.service import DeviceInfo
 
 LinkResult = tuple[int, list[str]]  # (changed count, error messages)
@@ -206,7 +207,12 @@ class ToolsPanel:
         get_group_address_style: Callable[[], GroupAddressStyle],
         on_shift_group_addresses: Callable[[list[int], int], LinkResult],
         on_diff_projects: Callable[[str, str | None], DiffOutcome],
+        compare: DeviceComparePanel | None = None,
     ) -> None:
+        """``compare`` is the "Compare Devices" tab, after "Replace Device"."""
+        self._compare = compare
+        # Show the compare tab on the next frame (asked from a device's context menu).
+        self._select_compare = False
         self._get_devices = get_devices
         self._get_device_info = get_device_info
         self._is_open = is_open
@@ -279,6 +285,18 @@ class ToolsPanel:
             if imgui.begin_tab_item(S.TOOLS_TAB_REPLACE)[0]:
                 self._render_replace_tab()
                 imgui.end_tab_item()
+            if self._compare is not None:
+                flags = (
+                    imgui.TabItemFlags_.set_selected
+                    if self._select_compare
+                    else imgui.TabItemFlags_.none
+                )
+                self._select_compare = False
+                if imgui.begin_tab_item(
+                    f"{S.COMPARE_TITLE}###tools_compare", None, flags
+                )[0]:
+                    self._compare.render()
+                    imgui.end_tab_item()
             if imgui.begin_tab_item(S.TOOLS_TAB_SHIFT)[0]:
                 self._render_shift_tab()
                 imgui.end_tab_item()
@@ -292,6 +310,12 @@ class ToolsPanel:
                 self._render_topology_tab()
                 imgui.end_tab_item()
             imgui.end_tab_bar()
+
+    def open_compare(self, node_id: int) -> None:
+        """Show the "Compare Devices" tab with ``node_id`` as the first device."""
+        if self._compare is not None:
+            self._compare.set_primary(node_id)
+            self._select_compare = True
 
     # -- Extended Copy -----------------------------------------------------
 

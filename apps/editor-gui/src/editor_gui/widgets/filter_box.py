@@ -9,6 +9,7 @@ from __future__ import annotations
 from imgui_bundle import imgui
 
 from editor_gui.widgets.dpi import px
+from editor_gui.widgets.x_button import x_button
 
 
 def filter_box(widget_id: str, hint: str, text: str, reserve: float = 0.0) -> str:
@@ -22,7 +23,7 @@ def filter_box(widget_id: str, hint: str, text: str, reserve: float = 0.0) -> st
     _, text = imgui.input_text_with_hint(widget_id, hint, text)
     imgui.same_line(0.0, px(4.0))
     imgui.begin_disabled(not text)
-    if imgui.button(f"x##{widget_id}_clear", imgui.ImVec2(btn, btn)):
+    if x_button(f"{widget_id}_clear", imgui.ImVec2(btn, btn)):
         text = ""
     imgui.end_disabled()
     return text

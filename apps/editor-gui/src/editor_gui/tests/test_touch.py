@@ -4,9 +4,12 @@ from __future__ import annotations
 
 from typing import Any
 
+import pytest
 from imgui_bundle import hello_imgui
 
+from editor_gui import main
 from editor_gui.main import (
+    _apply_new_layout_once,  # pyright: ignore[reportPrivateUsage]
     _restore_wide_layout,  # pyright: ignore[reportPrivateUsage]
     compact_docking_splits,
     compact_section,
@@ -24,6 +27,8 @@ class FakeUi:
         self.frames = 0
         self.scrolled = [0.0, 0.0]
         self.room = True
+        # The window under the pointer.
+        self.window = 1
 
     def frame(self) -> int:
         return self.frames
@@ -49,6 +54,9 @@ class FakeUi:
         self.scrolled[1] += dy
         return self.room
 
+    def pointer_window(self) -> int:
+        return self.window
+
     def buttons(self) -> list[tuple[Any, ...]]:
         return [c for c in self.calls if c[0] == "button"]
 
@@ -67,6 +75,12 @@ def finger(
     gestures.handle(event, ms / 1000.0)
 
 
+def _frames(g: TouchGestures, ui: FakeUi, count: int) -> None:
+    for _ in range(count):
+        ui.frames += 1
+        g.step(0.0)
+
+
 def test_tap_clicks_at_the_release() -> None:
     ui = FakeUi()
     g = TouchGestures(ui)
@@ -74,8 +88,35 @@ def test_tap_clicks_at_the_release() -> None:
     assert ui.calls == [("move", 10, 20)]
     finger(g, ui, "move", 12, 21)
     finger(g, ui, "up", 12, 21)
+    # The release waits until the frame after the press shows what it opened.
+    assert ui.buttons() == [("button", 0, True)]
+    assert g.active
+    _frames(g, ui, 2)
     assert ui.buttons() == [("button", 0, True), ("button", 0, False)]
-    assert ui.calls[-1] == ("leave",)
+    assert ui.calls[-2:] == [("button", 0, False), ("leave",)]
+    assert not g.active
+
+
+def test_tap_does_not_click_what_its_press_opened_under_the_finger() -> None:
+    """A submenu at the screen's edge opens over the finger: the release does not click the
+    item of it under the finger (it would open the Customize Theme window)."""
+    ui = FakeUi()
+    g = TouchGestures(ui)
+    finger(g, ui, "down", 10, 20)
+    finger(g, ui, "up", 10, 20)
+    ui.window = 2  # the submenu the press opened
+    _frames(g, ui, 2)
+    assert ui.calls[-3:] == [("leave",), ("button", 0, False), ("leave",)]
+
+
+def test_next_finger_releases_a_waiting_tap() -> None:
+    ui = FakeUi()
+    g = TouchGestures(ui)
+    finger(g, ui, "down", 10, 20)
+    finger(g, ui, "up", 10, 20)
+    finger(g, ui, "down", 30, 40)
+    assert ui.buttons() == [("button", 0, True), ("button", 0, False)]
+    assert ui.calls[-1] == ("move", 30, 40)
 
 
 def test_swipe_scrolls_and_never_presses() -> None:
@@ -248,3 +289,26 @@ def test_usual_layout_restored_before_imgui_runs() -> None:
     )
     assert params.dockable_windows[0].dock_space_name == "DeviceSpace"
     assert {s.new_dock for s in params.docking_splits} >= {"DeviceSpace", "BottomSpace"}
+
+
+def test_new_layout_forgets_the_remembered_usual_layout(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A new default layout also drops the usual layout a smaller one remembered: its panel names
+    are those of the older version (the Topology tree would take the Bus Diagram's place)."""
+    stored: dict[str, Any] = {
+        "layout_version": main._LAYOUT_VERSION - 1,  # pyright: ignore[reportPrivateUsage]
+        "wide_layout": {"docks": {"topology": "MainDockSpace"}},
+        "locale": "de",
+    }
+    saved: list[dict[str, Any]] = []
+    monkeypatch.setattr(main, "load_settings", lambda _name: dict(stored))
+    monkeypatch.setattr(main, "save_settings", lambda _name, data: saved.append(data))
+    params = hello_imgui.DockingParams()
+    _apply_new_layout_once(params)
+    assert saved == [
+        {"layout_version": main._LAYOUT_VERSION, "locale": "de"}  # pyright: ignore[reportPrivateUsage]
+    ]
+    assert (
+        params.layout_condition == hello_imgui.DockingLayoutCondition.application_start
+    )

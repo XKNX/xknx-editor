@@ -505,18 +505,6 @@ msgstr "Κάντε κλικ σε ένα εύρημα για μετάβαση σ�
 msgid "No buildings/rooms in this project"
 msgstr "Δεν υπάρχουν κτίρια/δωμάτια σε αυτό το έργο"
 
-msgid "+ Function"
-msgstr "+ Λειτουργία"
-
-msgid "+ Space"
-msgstr "+ Χώρος"
-
-msgid "+ Sub-space"
-msgstr "+ Υποχώρος"
-
-msgid "New Space"
-msgstr "Νέος Χώρος"
-
 msgid "Name"
 msgstr "Όνομα"
 
@@ -541,17 +529,11 @@ msgstr "(Ανώτατο Επίπεδο)"
 msgid "Delete this space and everything in it? Devices are only unassigned, not deleted."
 msgstr "Να διαγραφεί αυτός ο χώρος και όλο το περιεχόμενό του; Οι συσκευές απλώς αποσυνδέονται από τον χώρο, δεν διαγράφονται."
 
-msgid "Assign Device"
-msgstr "Ανάθεση Συσκευής"
-
 msgid "Assign a Device to This Space"
 msgstr "Ανάθεση Συσκευής σε Αυτόν τον Χώρο"
 
 msgid "No unassigned devices"
 msgstr "Δεν υπάρχουν μη ανατεθειμένες συσκευές"
-
-msgid "Remove from Space"
-msgstr "Αφαίρεση από τον Χώρο"
 
 msgid "Without Space"
 msgstr "Χωρίς Χώρο"
@@ -573,24 +555,6 @@ msgstr "Διάδρομος"
 
 msgid "Stairway"
 msgstr "Σκάλα"
-
-msgid "Distribution Board"
-msgstr "Πίνακας Διανομής"
-
-msgid "New Function"
-msgstr "Νέα Λειτουργία"
-
-msgid "Rename"
-msgstr "Μετονομασία"
-
-msgid "Rename Function"
-msgstr "Μετονομασία Λειτουργίας"
-
-msgid "Assign Group Address"
-msgstr "Ανάθεση Διεύθυνσης Ομάδας"
-
-msgid "Role (Optional)"
-msgstr "Ρόλος (Προαιρετικός)"
 
 msgid "Custom"
 msgstr "Προσαρμοσμένο"
@@ -955,8 +919,23 @@ msgstr "Αναφ. Προγράμματος"
 msgid "IP Configuration"
 msgstr "Διαμόρφωση IP"
 
-msgid "Assignment"
-msgstr "Ανάθεση"
+msgid "Obtain an IP address automatically"
+msgstr "Αυτόματη λήψη διεύθυνσης IP"
+
+msgid "Use a static IP address"
+msgstr "Χρήση στατικής διεύθυνσης IP"
+
+msgid "Assigned IP Address"
+msgstr "Εκχωρημένη Διεύθυνση IP"
+
+msgid "An invalid IP address was specified."
+msgstr "Καθορίστηκε μη έγκυρη διεύθυνση IP."
+
+msgid "Change assigned IP address of '{0}' to '{1}'."
+msgstr "Η εκχωρημένη διεύθυνση IP του '{0}' άλλαξε σε '{1}'."
+
+msgid "IP configuration of device '{0}' changed."
+msgstr "Η διαμόρφωση IP της συσκευής '{0}' άλλαξε."
 
 msgid "IP Address"
 msgstr "Διεύθυνση IP"
@@ -1162,29 +1141,8 @@ msgstr "Φιλτράρισμα διευθύνσεων ομάδων (διεύθυ
 msgid "Filter rooms, devices, functions…"
 msgstr "Φιλτράρισμα δωματίων, συσκευών, λειτουργιών…"
 
-msgid "Area {area}"
-msgstr "Περιοχή {area}"
-
-msgid "{name} (Area {area})"
-msgstr "{name} (Περιοχή {area})"
-
-msgid "Line {area}.{line}"
-msgstr "Γραμμή {area}.{line}"
-
-msgid "{name} (Line {area}.{line})"
-msgstr "{name} (Γραμμή {area}.{line})"
-
 msgid "Unassigned ({count})"
 msgstr "Μη ανατεθειμένα ({count})"
-
-msgid "Add Area"
-msgstr "Προσθήκη Περιοχής"
-
-msgid "Add Line"
-msgstr "Προσθήκη Γραμμής"
-
-msgid "Copy Address"
-msgstr "Αντιγραφή Διεύθυνσης"
 
 msgid "Duplicate"
 msgstr "Δημιουργία Διπλοτύπου"
@@ -1252,12 +1210,6 @@ msgstr "Διαγραφή Συσκευής"
 msgid "Delete '{name}'? Its group objects and group-address links are removed and its individual address is freed. This can be undone."
 msgstr "Να διαγραφεί το '{name}'; Τα αντικείμενα επικοινωνίας του και οι συνδέσεις διευθύνσεων ομάδων αφαιρούνται και η ατομική του διεύθυνση αποδεσμεύεται. Η ενέργεια μπορεί να αναιρεθεί."
 
-msgid "New Area"
-msgstr "Νέα Περιοχή"
-
-msgid "New Line"
-msgstr "Νέα Γραμμή"
-
 msgid "Number"
 msgstr "Αριθμός"
 
@@ -1273,41 +1225,11 @@ msgstr "Φόρτωση"
 msgid "Copy Log"
 msgstr "Αντιγραφή Καταγραφής"
 
-msgid "New Group Address"
-msgstr "Νέα Διεύθυνση Ομάδας"
-
-msgid "New Main Group"
-msgstr "Νέα Κύρια Ομάδα"
-
-msgid "New Middle Group"
-msgstr "Νέα Μεσαία Ομάδα"
-
-msgid "New Folder"
-msgstr "Νέος Φάκελος"
-
-msgid "Rename Folder"
-msgstr "Μετονομασία Φακέλου"
-
 msgid "Delete Folder"
 msgstr "Διαγραφή Φακέλου"
 
-msgid "Main group name (the next free number is assigned automatically)"
-msgstr "Όνομα κύριας ομάδας (ο επόμενος ελεύθερος αριθμός ανατίθεται αυτόματα)"
-
-msgid "Middle group name (the next free number is assigned automatically)"
-msgstr "Όνομα μεσαίας ομάδας (ο επόμενος ελεύθερος αριθμός ανατίθεται αυτόματα)"
-
 msgid "Delete this folder and every group address in it? This can be undone."
 msgstr "Να διαγραφεί αυτός ο φάκελος και κάθε διεύθυνση ομάδας που περιέχει; Η ενέργεια μπορεί να αναιρεθεί."
-
-msgid "Rename Group Address"
-msgstr "Μετονομασία Διεύθυνσης Ομάδας"
-
-msgid "Change Address…"
-msgstr "Αλλαγή Διεύθυνσης…"
-
-msgid "New group address (links are kept):"
-msgstr "Νέα διεύθυνση ομάδας (οι συνδέσεις διατηρούνται):"
 
 msgid "Invalid address or already in use."
 msgstr "Μη έγκυρη διεύθυνση ή χρησιμοποιείται ήδη."
@@ -1318,26 +1240,14 @@ msgstr "Ασφάλεια"
 msgid "Automatic"
 msgstr "Αυτόματη"
 
-msgid "Secured"
-msgstr "Ασφαλές"
-
-msgid "Not Secured"
-msgstr "Μη Ασφαλές"
-
 msgid "A secured group address can only be linked to devices that are commissioned securely."
 msgstr "Μια ασφαλής διεύθυνση ομάδας μπορεί να συνδεθεί μόνο με συσκευές που τίθενται σε λειτουργία με ασφάλεια."
 
 msgid "Not every device linked to this group address is commissioned securely, so it cannot be secured."
 msgstr "Δεν τίθενται όλες οι συσκευές που είναι συνδεδεμένες με αυτήν τη διεύθυνση ομάδας σε λειτουργία με ασφάλεια, επομένως δεν μπορεί να γίνει ασφαλής."
 
-msgid "Set Datapoint Type"
-msgstr "Ορισμός Τύπου Datapoint"
-
 msgid "Address"
 msgstr "Διεύθυνση"
-
-msgid "Datapoint type (e.g. DPST-1-1); empty to clear"
-msgstr "Τύπος datapoint (π.χ. DPST-1-1)· κενό για διαγραφή"
 
 msgid "Project: {name}"
 msgstr "Έργο: {name}"
@@ -1770,9 +1680,6 @@ msgstr "Ο κωδικός χρειάζεται 1 έως 20 χαρακτήρες 
 
 msgid "Close"
 msgstr "Κλείσιμο"
-
-msgid "IP Backbone Security"
-msgstr "Ασφάλεια Κεντρικής Γραμμής IP"
 
 msgid "Device Certificates"
 msgstr "Πιστοποιητικά Συσκευών"
@@ -2301,3 +2208,732 @@ msgstr "Καταχώριση"
 
 msgid "Store plugin data {name}"
 msgstr "Αποθήκευση δεδομένων plugin {name}"
+
+msgid "Unknown"
+msgstr "Άγνωστο"
+
+msgid "Editing"
+msgstr "Υπό επεξεργασία"
+
+msgid "Finished design"
+msgstr "Ολοκλήρωση σχεδιασμού"
+
+msgid "Finished commissioning"
+msgstr "Η θέση σε λειτουργία ολοκληρώθηκε"
+
+msgid "Tested"
+msgstr "Ελέγχθηκε"
+
+msgid "Accepted"
+msgstr "Έγινε αποδεκτό"
+
+msgid "Locked"
+msgstr "Κλειδωμένο"
+
+msgid "Function"
+msgstr "Λειτουργία"
+
+msgid "Use"
+msgstr "Χρήση"
+
+msgid "Set room use"
+msgstr "Ορισμός χρήσης χώρου"
+
+msgid "Set status to {status}"
+msgstr "Ορισμός κατάστασης σε {status}"
+
+msgid "Set function description"
+msgstr "Ορισμός περιγραφής λειτουργίας"
+
+msgid "Current Line"
+msgstr "Τρέχουσα Γραμμή"
+
+msgid "{line} (inherits from {space})"
+msgstr "{line} (προέρχεται από {space})"
+
+msgid "Set current line"
+msgstr "Ορισμός τρέχουσας γραμμής"
+
+msgid "Segment"
+msgstr "Τμήμα"
+
+msgid "Medium"
+msgstr "Μέσο"
+
+msgid "Domain Address"
+msgstr "Διεύθυνση Τομέα"
+
+msgid "The medium of a segment can only change while it holds no device."
+msgstr "Ο τύπος μέσου ενός τμήματος μπορεί να αλλάξει μόνο εάν δεν περιέχει καμία συσκευή."
+
+msgid "The medium type of the segment '{segment}' cannot be changed to IoT, because its parent line '{line}' is not of medium type IP."
+msgstr "Ο τύπος μέσου του τμήματος '{segment}' δεν μπορεί να αλλάξει σε IoT, επειδή η γονική του γραμμή '{line}' δεν έχει τύπο μέσου IP."
+
+msgid "The maximum number of segments has been reached."
+msgstr "Ο μέγιστος αριθμός τμημάτων έχει επιτευχθεί."
+
+msgid "The main segment cannot be deleted."
+msgstr "Το κύριο τμήμα δεν μπορεί να διαγραφεί."
+
+msgid "Device '{device}' is incompatible with line's medium type."
+msgstr "Η συσκευή '{device}' δεν είναι συμβατή με τον τύπο μέσου της γραμμής."
+
+msgid "Device '{device}' is incompatible with segment's medium type."
+msgstr "Η συσκευή '{device}' δεν είναι συμβατή με τον τύπο μέσου του τμήματος."
+
+msgid "Rename segment to {name}"
+msgstr "Μετονομασία τμήματος σε {name}"
+
+msgid "Set medium to {medium}"
+msgstr "Ορισμός μέσου σε {medium}"
+
+msgid "Forced on"
+msgstr "Υποχρ. ενεργοποιημένη"
+
+msgid "Forced off"
+msgstr "Υποχρ. απενεργοποιημένη"
+
+msgid "Overridden by '{name}': {mode}"
+msgstr "Παρακάμπτεται από '{name}': {mode}"
+
+msgid "Central"
+msgstr "Κεντρικό"
+
+msgid "Not every device linked to a group address of this group is commissioned securely, so it cannot be secured."
+msgstr "Δεν τίθενται όλες οι συσκευές που είναι συνδεδεμένες με μια διεύθυνση ομάδας αυτής της ομάδας σε λειτουργία με ασφάλεια, επομένως δεν μπορεί να γίνει ασφαλής."
+
+msgid "Set group security"
+msgstr "Ορισμός ασφάλειας ομάδας"
+
+msgid "Mark group address as central"
+msgstr "Σήμανση διεύθυνσης ομάδας ως κεντρικής"
+
+msgid "Remove central mark from group address"
+msgstr "Κατάργηση σήμανσης κεντρικής από διεύθυνση ομάδας"
+
+msgid "Topology"
+msgstr "Τοπολογία"
+
+msgid "{medium} backbone line"
+msgstr "{medium} κεντρική γραμμή"
+
+msgid "{medium} main line"
+msgstr "{medium} κύρια γραμμή"
+
+msgid "Backbone"
+msgstr "Κεντρική"
+
+msgid "Network Latency"
+msgstr "Καθυστέρηση Δικτύου"
+
+msgid "LAN (< 400ms)"
+msgstr "LAN (< 400ms)"
+
+msgid "WLAN (< 1s)"
+msgstr "WLAN (< 1 δευτ)"
+
+msgid "WAN (< 2s)"
+msgstr "WAN (< 2 δευτ)"
+
+msgid "Mobile (< 4s)"
+msgstr "Φορητό (< 4s)"
+
+msgid "Satellite (< 8s)"
+msgstr "Δορυφόρος (< 8δ)"
+
+msgid "The network latency must be a number of milliseconds from 1 to 65535."
+msgstr "Η καθυστέρηση δικτύου πρέπει να είναι αριθμός χιλιοστών του δευτερολέπτου από 1 έως 65535."
+
+msgid "Multicast Address"
+msgstr "Διεύθυνση Multicast"
+
+msgid "Enter a multicast address from 224.0.0.0 to 239.255.255.255."
+msgstr "Εισαγάγετε μια διεύθυνση multicast από 224.0.0.0 έως 239.255.255.255."
+
+msgid "Bus Connection"
+msgstr "Σύνδεση Bus"
+
+msgid "Set IP routing of the backbone"
+msgstr "Ορισμός δρομολόγησης IP της κεντρικής"
+
+msgid "As long as a coupler exists at a sub line or sub segment, a change of the medium type is not possible."
+msgstr "Εφόσον υπάρχει ένας προσαρμοστής σε μία γραμμή ή υποτμήμα, δεν είναι δυνατή η αλλαγή του τύπου μέσου."
+
+msgid "A main line of a project cannot have medium type RF."
+msgstr "Η κύρια γραμμή ενός έργου δε μπορεί να έχει τύπο μέσου RF."
+
+msgid "The operation could not be executed, because as medium type of the backbone only IP and TP are allowed."
+msgstr "Η λειτουργία δεν μπορούσε να εκτελεστεί, επειδή ως τύπος μέσου της κεντρικής γραμμής επιτρέπονται μόνο IP και TP."
+
+msgid "A sub-segment of KNX medium type IP or PL is not allowed."
+msgstr "Δεν επιτρέπεται ένα υποτμήμα του τύπου μέσου KNX IP ή PL."
+
+msgid "The medium type of the main line '{line}' can no longer be changed to PL, because it already contains lines or segments that are not allowed in PL main lines."
+msgstr "Ο τύπος μέσου της κύριας γραμμής '{line}' δεν μπορεί πλέον να αλλάξει σε PL, επειδή περιέχει ήδη γραμμές ή τμήματα που δεν επιτρέπονται στις κύριες γραμμές PL."
+
+msgid "The medium type of the main line '{line}' cannot be changed to IoT, because the backbone line '{backbone}' is not of medium type IP."
+msgstr "Ο τύπος μέσου της κύριας γραμμής \"{line}\" δεν μπορεί να αλλάξει σε IoT, επειδή η κεντρική γραμμή \"{backbone}\" δεν είναι τύπου μέσου IP."
+
+msgid "The medium type of the main line '{line}' can no longer be changed to IoT, because it already contains lines or segments that are not allowed in IoT main lines."
+msgstr "Ο τύπος μέσου της κύριας γραμμής '{line}' δεν μπορεί πλέον να αλλάξει σε IoT, επειδή περιέχει ήδη γραμμές ή τμήματα που δεν επιτρέπονται σε κύριες γραμμές IoT."
+
+msgid "The medium type of the line '{line}' cannot be changed, because it already contains lines or segments that require an IoT or IP main line."
+msgstr "Ο τύπος μέσου της κύριας γραμμής \"{line}\" δεν μπορεί να αλλάξει, επειδή περιέχει ήδη γραμμές ή τμήματα που απαιτούν κύρια γραμμή IoT ή IP."
+
+msgid "A sub-segment is not allowed below a main segment of KNX medium type RF."
+msgstr "Δεν επιτρέπεται ένα υποτμήμα κάτω από ένα κύριο τμήμα τύπου μέσου KNX RF."
+
+msgid "A sub-segment is not allowed below a main segment of KNX medium type PL."
+msgstr "Δεν επιτρέπεται ένα υποτμήμα κάτω από ένα κύριο τμήμα τύπου μέσου KNX PL."
+
+msgid "A sub-segment of KNX medium type IoT is not allowed below a main segment of the same type."
+msgstr "Δεν επιτρέπεται ένα υποτμήμα του τύπου μέσου KNX IoT κάτω από ένα κύριο τμήμα του ίδιου τύπου."
+
+msgid "The operation could not be executed, because a RF main line '{line}' requires all other lines in the area to be RF lines as well."
+msgstr "Η λειτουργία δε μπόρεσε να εκτελεστεί, διότι μία κύρια γραμμή RF '{line}' απαιτεί όλες οι άλλες γραμμές στην περιοχή να είναι επίσης RF."
+
+msgid "The operation could not be executed, because a PL main line '{line}' requires all other lines in the area to be PL lines as well."
+msgstr "Η λειτουργία δε μπόρεσε να εκτελεστεί, διότι μία κύρια γραμμή PL '{line}' απαιτεί όλες οι άλλες γραμμές στην περιοχή να είναι επίσης PL."
+
+msgid "The operation could not be executed, because a IoT main line '{line}' requires all other lines in the area to be IoT lines as well."
+msgstr "Η λειτουργία δε μπόρεσε να εκτελεστεί, διότι μία κύρια γραμμή IoT '{line}' απαιτεί όλες οι άλλες γραμμές στην περιοχή να είναι επίσης IoT."
+
+msgid "The medium type of the line '{line}' cannot be changed to IoT, because its main line '{main}' is not of medium type IP."
+msgstr "Ο τύπος μέσου της γραμμής \"{line}\" δεν μπορεί να αλλάξει σε IoT, επειδή η κύρια γραμμή του \"{main}\" δεν είναι τύπου IP."
+
+msgid "The medium type of the line '{line}' can no longer be changed to IoT, because it already contains segments that are not allowed in IoT lines."
+msgstr "Ο τύπος μέσου της γραμμής '{line}' δεν μπορεί πλέον να αλλάξει σε IoT, επειδή περιέχει ήδη τμήματα που δεν επιτρέπονται σε γραμμές IoT."
+
+msgid "The operation could not be executed, because the line is the IP backbone line and the project contains KNXnet/IP routers. KNXnet/IP routers require an IP backbone line."
+msgstr "Η λειτουργία δε μπόρεσε να εκτελεστεί, επειδή η γραμμή είναι κεντρική (backbone) γραμμή IP και το έργο περιέχει KNXnet/IP δρομολογητές. Οι KNXnet/IP δρομολογητές απαιτούν μια κεντρική (backbone) γραμμή IP."
+
+msgid "The operation could not be executed, because the line is the IP main line and the project contains KNXnet/IP routers. KNXnet/IP routers require an IP main line."
+msgstr "Η λειτουργία δε μπόρεσε να εκτελεστεί, επειδή η γραμμή είναι κύρια γραμμή IP και το έργο περιέχει δρομολογητές KNXnet/IP. Οι δρομολογητές KNXnet/IP απαιτούν μια κύρια γραμμή IP."
+
+msgid "The operation could not be executed, because the line is the IP backbone line and the project contains IoT or IP lines."
+msgstr "Η λειτουργία δε μπόρεσε να εκτελεστεί, διότι η γραμμή είναι η κεντρική γραμμή IP και το έργο περιέχει γραμμές IoT ή IP."
+
+msgid "The operation could not be executed, because the medium type of the line can only be set to IP if an IP main line exists."
+msgstr "Η λειτουργία δε μπόρεσε να εκτελεστεί, επειδή ο τύπος του μέσου της γραμμής μπορεί να τεθεί μόνο σε IP αν υπάρχει μια κύρια γραμμή IP."
+
+msgid "The operation could not be executed, because the medium type of the line can only be set to IP if an IP backbone line exists."
+msgstr "Η λειτουργία δε μπόρεσε να εκτελεστεί, διότι ο τύπος μέσου της γραμμής μπορεί να τεθεί μόνο σε IP αν υπάρχει μία κεντρική γραμμή IP."
+
+msgid "The operation could not be executed, because below a TP main segment only segments of KNX medium type TP, RF or PL can exist."
+msgstr "Η λειτουργία δεν μπόρεσε να εκτελεστεί, επειδή κάτω από ένα κύριο τμήμα TP μπορούν να υπάρχουν μόνο τμήματα του τύπου μέσου KNX TP, RF ή PL."
+
+msgid "Below a main segment of KNX medium type IP only segments of medium type TP or RF can exist."
+msgstr "Κάτω από ένα κύριο τμήμα του τύπου μέσου KNX IP μπορούν να υπάρχουν μόνο τμήματα τύπου μέσου KNX IP."
+
+msgid "A sub-segment of KNX medium type PL is not allowed below a main segment."
+msgstr "Δεν επιτρέπεται ένα υποτμήμα του τύπου μέσου KNX PL κάτω από ένα κύριο τμήμα."
+
+msgid "Set bus connection of the backbone"
+msgstr "Ορισμός σύνδεσης bus της κεντρικής"
+
+msgid "Set domain address"
+msgstr "Ορισμός διεύθυνσης τομέα"
+
+msgid "Generate New"
+msgstr "Δημιουργία νέου"
+
+msgid "The given domain address is invalid."
+msgstr "Η δοθείσα Διεύθυνση Τομέα δεν είναι έγκυρη."
+
+msgid "Domain address is not valid! Valid values are 1 to 255."
+msgstr "Η διεύθυνση τομέα δεν είναι έγκυρη. Οι έγκυρες τιμές είναι από 1 έως 255."
+
+msgid "DomainAddress of mediumType 'RF' is lower than the minimum value of 0001:00000000."
+msgstr "Η Διεύθυνση Τομέα του τύπου μέσου 'RF' είναι χαμηλότερη από την ελάχιστη τιμή 0001:00000000."
+
+msgid "DomainAddress of medium type '{medium}' exceeds the maximum valid value of {maximum}"
+msgstr "Η διεύθυνση τομέα του τύπου μέσου '{medium}' υπερβαίνει τη μέγιστη έγκυρη τιμή {maximum}"
+
+msgid "DomainAddress of RF sublines must be equal to DomainAdress of main line."
+msgstr "Η Διεύθυνση Τομέα των υπογραμμών RF πρέπει να είναι ίδια με τη Διεύθυνση Τομέα της κύριας γραμμής."
+
+msgid "Domain Address of IoT sublines must be equal to Domain Address of main line."
+msgstr "Η Διεύθυνση Τομέα των υπογραμμών IoT πρέπει να είναι ίδια με τη Διεύθυνση Τομέα της κύριας γραμμής."
+
+msgid "Each line in a project must have a unique domain address."
+msgstr "Κάθε γραμμή σε ένα έργο πρέπει να έχει μια μοναδική Διεύθυνση Τομέα."
+
+msgid "Last Downloaded"
+msgstr "Τελευταία φόρτιση"
+
+msgid "Create trade {name}"
+msgstr "Δημιουργία λειτουργίας {name}"
+
+msgid "Rename trade to {name}"
+msgstr "Μετονομασία λειτουργίας σε {name}"
+
+msgid "Set trade number"
+msgstr "Ορισμός αριθμού λειτουργίας"
+
+msgid "Set trade description"
+msgstr "Ορισμός περιγραφής λειτουργίας"
+
+msgid "Move trade"
+msgstr "Μετακίνηση λειτουργίας"
+
+msgid "Remove trade"
+msgstr "Αφαίρεση λειτουργίας"
+
+msgid "Add device to trade"
+msgstr "Προσθήκη συσκευής στη λειτουργία"
+
+msgid "Remove device from trade"
+msgstr "Αφαίρεση συσκευής από τη λειτουργία"
+
+msgid "Trades"
+msgstr "Λειτουργίες"
+
+msgid "Building Parts…"
+msgstr "Τμήματα Κτιρίου…"
+
+msgid "Floors…"
+msgstr "Όροφοι…"
+
+msgid "Stairways…"
+msgstr "Σκάλες…"
+
+msgid "Rooms…"
+msgstr "Δωμάτια…"
+
+msgid "Corridors…"
+msgstr "Διάδρομοι…"
+
+msgid "Cabinets…"
+msgstr "Πίνακες…"
+
+msgid "Devices…"
+msgstr "Συσκευές…"
+
+msgid "Functions…"
+msgstr "Λειτουργίες…"
+
+msgid "Trades…"
+msgstr "Λειτουργίες…"
+
+msgid "Add Buildings…"
+msgstr "Προσθήκη Κτιρίων…"
+
+msgid "Add Trades…"
+msgstr "Προσθήκη Λειτουργιών…"
+
+msgid "Add Buildings"
+msgstr "Προσθήκη Κτιρίων"
+
+msgid "Add Building Parts"
+msgstr "Προσθήκη Τμημάτων Κτιρίου"
+
+msgid "Add Floors"
+msgstr "Προσθήκη Ορόφων"
+
+msgid "Add Rooms"
+msgstr "Προσθήκη Δωματίων"
+
+msgid "Add Corridors"
+msgstr "Προσθήκη Διαδρόμων"
+
+msgid "Add Stairways"
+msgstr "Προσθέστε Σκαλών"
+
+msgid "Add Cabinets"
+msgstr "Προσθήκη Πινάκων"
+
+msgid "Add Trades"
+msgstr "Προσθήκη Λειτουργιών"
+
+msgid "Add Devices"
+msgstr "Προσθήκη Συσκευών"
+
+msgid "Count"
+msgstr "Μετρητής"
+
+msgid "to \"{name}\""
+msgstr "σε \"{name}\""
+
+msgid "Cabinet"
+msgstr "Πίνακας"
+
+msgid "New building"
+msgstr "Νέο κτίριο"
+
+msgid "New building part"
+msgstr "Νέο μέρος κτιρίου"
+
+msgid "New floor"
+msgstr "Νέος όροφος"
+
+msgid "New room"
+msgstr "Νέο δωμάτιο"
+
+msgid "New corridor"
+msgstr "Νέος διάδρομος"
+
+msgid "New stairway"
+msgstr "Νέα σκάλα"
+
+msgid "New cabinet"
+msgstr "Νέος πίνακας"
+
+msgid "New trade"
+msgstr "Νέα λειτουργία"
+
+msgid "A building part of this type cannot be added here."
+msgstr "Ένα τμήμα κτιρίου αυτού του τύπου δε μπορεί να προστεθεί εδώ."
+
+msgid "A building part of this type cannot be added here.\nCabinets can be added inside of rooms, corridors, or stairways only. If applicable the corridors have to be moved into the corresponding building parts."
+msgstr "Δεν είναι δυνατό να προσθέσετε ενα τμήμα κτιρίου αυτού του τύπου εδώ.\nΟι πίνακες μπορούν να τοποθετηθούν μόνο μέσα σε δωμάτια, διαδρόμους ή σε σκάλες. Αν είναι εφικτό οι διάδρομοι πρέπει να μετακινηθούν στα αντίστοιχα τμήματα κτιρίου."
+
+msgid "The target is a child building part."
+msgstr "Ο προορισμός είναι ένα γονικό τμήμα κτιρίου."
+
+msgid "Devices can only be added to stairways, rooms, corridors and cabinets."
+msgstr "Οι συσκευές μπορούν να προστεθούν μόνο σε σκάλες, δωμάτια, διαδρόμους και πίνακες."
+
+msgid "Trade"
+msgstr "Λειτουργία"
+
+msgid "(estimated)"
+msgstr "(εκτιμώμενο)"
+
+msgid "Number of Devices"
+msgstr "Αριθμός συσκευών"
+
+msgid "Unlink"
+msgstr "Αποσύνδεση"
+
+msgid "An IP router requires an IP backbone line."
+msgstr "Ένας δρομολογητής IP απαιτεί μια κεντρική (backbone) γραμμή."
+
+msgid "The operation could not be executed, because a coupler needs a main line."
+msgstr "Η λειτουργία δε μπόρεσε να εκτελεστεί, διότι ο προσαρμοστής χρειάζεται μία κύρια γραμμή."
+
+msgid "The operation could not be executed, because an area coupler requires a backbone line."
+msgstr "Η λειτουργία δε μπόρεσε να εκτελεστεί, διότι ένας προσαρμοστής περιοχής απαιτεί μία κεντρική γραμμή."
+
+msgid "The operation could not be executed, because this coupler needs a main line with the medium type '{medium}' ."
+msgstr "Η λειτουργία δε μπόρεσε να εκτελεστεί, διότι ο προσαρμοστής χρειάζεται μία κύρια γραμμή με τύπο μέσου '{medium}' ."
+
+msgid "The operation could not be executed, because only one IP router is allowed as a world coupler."
+msgstr "Η λειτουργία δε μπόρεσε να εκτελεστεί, διότι μόνο ένας δρομολογητής IP επιτρέπεται ως υπερπροσαρμοστής."
+
+msgid "The operation could not be executed, because only IP router area allowed as a world coupler."
+msgstr "Η λειτουργία δε μπόρεσε να εκτελεστεί, διότι μόνο ένας δρομολογητής IP επιτρέπεται ως υπερπροσαρμοστής."
+
+msgid "The backbone line contains a world coupler. It is not possible to use an IP router below another IP router."
+msgstr "Η κεντρική γραμμή περιέχει έναν παγκόσμιο προσαρμοστή. Δεν είναι δυνατό να χρησιμοποιήσετε έναν IP router κάτω από ένα άλλο IP router."
+
+msgid "It is not possible to use a world coupler, when there are already IP routers in the project."
+msgstr "Δεν είναι δυνατόν να χρησιμοποιήσετε έναν παγκόσμιο προσαρμοστή, όταν υπάρχουν ήδη δρομολογητές IP στο έργο."
+
+msgid "A world coupler can only be used, when the medium type of the backbone is TP."
+msgstr "Ένας παγκόσμιος προσαρμοστής μπορεί να χρησιμοποιηθεί μόνο όταν ο τύπος μέσου της κεντρικής γραμμής είναι TP."
+
+msgid "The coupler does not support segment coupling, so the sub-segment must be of the same KNX medium type as the main segment."
+msgstr "Ο προσαρμοστής δεν υποστηρίζει σύζευξη τμημάτων, οπότε το υποτμήμα πρέπει να είναι του ίδιου τύπου μέσου KNX με το κύριο τμήμα."
+
+msgid "The operation could not be executed, because this device couples medium '{above}' (above) to medium '{below}' (below), but the segment above is '{segment}'."
+msgstr "Η λειτουργία δεν μπόρεσε να εκτελεστεί, επειδή αυτή η συσκευή συνδέει το μέσο '{above}' (επάνω) στο μέσο '{below}' (κάτω), αλλά το παραπάνω τμήμα είναι '{segment}'."
+
+msgid "The operation could not be executed, because medium type of coupler device matches only sub segment, but maximum amount of segments reached."
+msgstr "Η λειτουργία δεν μπόρεσε να εκτελεστεί, επειδή ο τύπος μέσου του προσαρμοστή ταιριάζει μόνο στο υποτμήμα, αλλά έχει επιτευχθεί ο μέγιστος αριθμός τμημάτων."
+
+msgid "The operation could not be executed, because this device couples medium '{above}' (above) to medium '{below}' (below), but the medium type of the lower segment is '{segment}'."
+msgstr "Η λειτουργία δεν μπόρεσε να εκτελεστεί, επειδή αυτή η συσκευή συνδέει το μέσο '{above}' (επάνω) στο μέσο '{below}' (κάτω), αλλά ο τύπος μέσου του παρακάτω τμήματος είναι '{segment}'."
+
+msgid "Recover Project from Bus"
+msgstr "Ανάκτηση Έργου από το Bus"
+
+msgid "Devices in Programming Mode"
+msgstr "Συσκευές σε Κατάσταση Προγραμματισμού"
+
+msgid "Connecting"
+msgstr "Σύνδεση"
+
+msgid "Move middle group"
+msgstr "Μετακίνηση μεσαίας ομάδας"
+
+msgid "The group has no free group address."
+msgstr "Η ομάδα δεν έχει ελεύθερη διεύθυνση ομάδας."
+
+msgid "The main group has no free middle group."
+msgstr "Η κύρια ομάδα δεν έχει ελεύθερη μεσαία ομάδα."
+
+msgid "{count} devices"
+msgstr "{count} συσκευές"
+
+msgid "The main segment cannot be moved."
+msgstr "Το κύριο τμήμα δεν μπορεί να μετακινηθεί."
+
+msgid "The maximum number of lines has been reached."
+msgstr "Έχει επιτευχθεί ο μέγιστος αριθμός γραμμών."
+
+msgid "The line is already assigned to an area."
+msgstr "Η γραμμή έχει ήδη αντιστοιχιστεί σε περιοχή."
+
+msgid "The main line cannot be moved."
+msgstr "Η κύρια γραμμή δεν μπορεί να μετακινηθεί."
+
+msgid "Move line"
+msgstr "Μετακίνηση γραμμής"
+
+msgid "Move segment"
+msgstr "Μετακίνηση τμήματος"
+
+msgid "Move function"
+msgstr "Μετακίνηση λειτουργίας"
+
+msgid "Paste Special"
+msgstr "Ειδική επικόλληση"
+
+msgid "Number of Items"
+msgstr "Πλήθος στοιχείων"
+
+msgid "Don't copy"
+msgstr "Χωρίς αντιγραφή"
+
+msgid "Keep"
+msgstr "Διατήρηση"
+
+msgid "Create new group address in middle group"
+msgstr "Δημιουργία νέας διεύθυνσης ομάδας στη μεσαία ομάδα"
+
+msgid "Create new group address in main group"
+msgstr "Δημιουργία νέας διεύθυνσης ομάδας στην κύρια ομάδα"
+
+msgid "Create new group address in group range"
+msgstr "Δημιουργία νέας διεύθυνσης ομάδας στο εύρος ομάδων"
+
+msgid "Generate Address"
+msgstr "Δημιουργία Διεύθυνσης"
+
+msgid "Fill up (use first free)"
+msgstr "Συμπλήρωση (πρώτη ελεύθερη)"
+
+msgid "Append"
+msgstr "Προσάρτηση"
+
+msgid "Start with"
+msgstr "Έναρξη από"
+
+msgid "Enter a middle group, e.g. 1/2."
+msgstr "Εισαγάγετε μεσαία ομάδα, π.χ. 1/2."
+
+msgid "Enter a main group, e.g. 1."
+msgstr "Εισαγάγετε κύρια ομάδα, π.χ. 1."
+
+msgid "The group has too few free group addresses for the copies."
+msgstr "Η ομάδα έχει πολύ λίγες ελεύθερες διευθύνσεις ομάδας για τα αντίγραφα."
+
+msgid "The maximum number of group ranges has been reached."
+msgstr "Έχει επιτευχθεί ο μέγιστος αριθμός ευρών ομάδων."
+
+msgid "There is no group for the new group addresses."
+msgstr "Δεν υπάρχει ομάδα για τις νέες διευθύνσεις ομάδας."
+
+msgid "Copied '{name}' to '{target}'."
+msgstr "Το '{name}' αντιγράφηκε στο '{target}'."
+
+msgid "Copied {count} devices to '{target}'."
+msgstr "{count} συσκευές αντιγράφηκαν στο '{target}'."
+
+msgid "Copied {count} building parts to '{target}'."
+msgstr "{count} τμήματα κτιρίου αντιγράφηκαν στο '{target}'."
+
+msgid "Copied {count} trades to '{target}'."
+msgstr "{count} κλάδοι αντιγράφηκαν στο '{target}'."
+
+msgid "Copied {count} functions to '{target}'."
+msgstr "{count} λειτουργίες αντιγράφηκαν στο '{target}'."
+
+msgid "Copied {count} group addresses to '{target}'."
+msgstr "{count} διευθύνσεις ομάδας αντιγράφηκαν στο '{target}'."
+
+msgid "Copied {count} middle groups to '{target}'."
+msgstr "{count} μεσαίες ομάδες αντιγράφηκαν στο '{target}'."
+
+msgid "Copied {count} main groups to '{target}'."
+msgstr "{count} κύριες ομάδες αντιγράφηκαν στο '{target}'."
+
+msgid "Copied {count} lines to '{target}'."
+msgstr "{count} γραμμές αντιγράφηκαν στο '{target}'."
+
+msgid "Copied {count} segments to '{target}'."
+msgstr "{count} τμήματα αντιγράφηκαν στο '{target}'."
+
+msgid "Paste Special…"
+msgstr "Ειδική επικόλληση…"
+
+msgid "Add Row"
+msgstr "Προσθήκη Γραμμής"
+
+msgid "Remove this row"
+msgstr "Αφαίρεση αυτής της γραμμής"
+
+msgid "Generate Addresses"
+msgstr "Δημιουργία Διευθύνσεων"
+
+msgid "Unlink device"
+msgstr "Αποσύνδεση συσκευής"
+
+msgid "The device is on no line: put it on a line first."
+msgstr "Η συσκευή δεν βρίσκεται σε καμία γραμμή: τοποθετήστε την πρώτα σε μια γραμμή."
+
+msgid "Areas…"
+msgstr "Περιοχές…"
+
+msgid "Lines…"
+msgstr "Γραμμές…"
+
+msgid "Segments…"
+msgstr "Τμήματα…"
+
+msgid "Add Areas"
+msgstr "Προσθήκη Περιοχών"
+
+msgid "Add Lines"
+msgstr "Προσθήκη Γραμμών"
+
+msgid "Add Segments"
+msgstr "Προσθήκη Τμημάτων"
+
+msgid "The limit to add was reached."
+msgstr "Επιτεύχθηκε το όριο προσθήκης."
+
+msgid "Cannot add any line to the area {area} because of topology constraints. Please check the medium type of the backbone and main lines."
+msgstr "Δεν είναι δυνατή η προσθήκη γραμμής στην περιοχή {area} λόγω περιορισμών τοπολογίας. Ελέγξτε τον τύπο μέσου της κεντρικής γραμμής κορμού και των κύριων γραμμών."
+
+msgid "Added {count} areas to '{target}'."
+msgstr "Προστέθηκαν {count} περιοχές στο '{target}'."
+
+msgid "Added {count} lines to '{target}'."
+msgstr "Προστέθηκαν {count} γραμμές στο '{target}'."
+
+msgid "Added {count} segments to '{target}'."
+msgstr "Προστέθηκαν {count} τμήματα στο '{target}'."
+
+msgid "Added {count} building parts to '{target}'."
+msgstr "Προστέθηκαν {count} τμήματα κτιρίου στο '{target}'."
+
+msgid "Added {count} trades to '{target}'."
+msgstr "Προστέθηκαν {count} ειδικότητες στο '{target}'."
+
+msgid "Added {count} main groups to '{target}'."
+msgstr "Προστέθηκαν {count} κύριες ομάδες στο '{target}'."
+
+msgid "Added {count} middle groups to '{target}'."
+msgstr "Προστέθηκαν {count} μεσαίες ομάδες στο '{target}'."
+
+msgid "Added {count} group addresses to '{target}'."
+msgstr "Προστέθηκαν {count} διευθύνσεις ομάδας στο '{target}'."
+
+msgid "Add Main Groups…"
+msgstr "Προσθήκη Κύριων Ομάδων…"
+
+msgid "Add Middle Groups…"
+msgstr "Προσθήκη Μεσαίων Ομάδων…"
+
+msgid "Add Main Groups"
+msgstr "Προσθήκη Κύριων Ομάδων"
+
+msgid "Add Middle Groups"
+msgstr "Προσθήκη Μεσαίων Ομάδων"
+
+msgid "New main group"
+msgstr "Νέα κύρια ομάδα"
+
+msgid "New middle group"
+msgstr "Νέα μεσαία ομάδα"
+
+msgid "New group address"
+msgstr "Νέα διεύθυνση ομάδας"
+
+msgid "Cut"
+msgstr "Αποκοπή"
+
+msgid "What was cut cannot be moved there."
+msgstr "Αυτό που αποκόπηκε δεν μπορεί να μετακινηθεί εκεί."
+
+msgid "Park"
+msgstr "Στάθμευση"
+
+msgid "Park device"
+msgstr "Στάθμευση συσκευής"
+
+msgid "Add Functions"
+msgstr "Προσθήκη Λειτουργιών"
+
+msgid "New function"
+msgstr "Νέα λειτουργία"
+
+msgid "Added {count} functions to '{target}'."
+msgstr "Προστέθηκαν {count} λειτουργίες στο '{target}'."
+
+msgid "Added {count} group ranges to '{target}'."
+msgstr "Προστέθηκαν {count} περιοχές διευθύνσεων ομάδας στο '{target}'."
+
+msgid "Add Group Ranges…"
+msgstr "Προσθήκη Περιοχών Διευθύνσεων Ομάδας…"
+
+msgid "Add Group Ranges"
+msgstr "Προσθήκη Περιοχών Διευθύνσεων Ομάδας"
+
+msgid "New group range"
+msgstr "Νέα περιοχή διευθύνσεων ομάδας"
+
+msgid "Capacity"
+msgstr "Χωρητικότητα"
+
+msgid "Link with…"
+msgstr "Σύνδεση με…"
+
+msgid "Link with Group Address"
+msgstr "Σύνδεση με Διεύθυνση Ομάδας"
+
+msgid "There is no group to add group addresses to."
+msgstr "Δεν υπάρχει ομάδα για προσθήκη διευθύνσεων ομάδας."
+
+msgid "Add Subtrade"
+msgstr "Προσθήκη Υπολειτουργίας"
+
+msgid "The group range does not fit there."
+msgstr "Η περιοχή διευθύνσεων ομάδας δεν χωράει εκεί."
+
+msgid "A group range cannot go into itself or a range in it."
+msgstr "Μια περιοχή διευθύνσεων ομάδας δεν μπορεί να μπει στον εαυτό της ή σε περιοχή μέσα της."
+
+msgid "A group address of the range is already in use there."
+msgstr "Μια διεύθυνση ομάδας της περιοχής χρησιμοποιείται ήδη εκεί."
+
+msgid "Copied {count} group ranges to '{target}'."
+msgstr "Αντιγράφηκαν {count} περιοχές διευθύνσεων ομάδας στο '{target}'."
+
+msgid "Add Areas…"
+msgstr "Προσθήκη Περιοχών…"
+
+msgid "{medium} segment"
+msgstr "{medium} τμήμα"
+
+msgid "Copy Individual Address"
+msgstr "Αντιγραφή Ατομικής Διεύθυνσης"
+
+msgid "Copy Group Address"
+msgstr "Αντιγραφή Διεύθυνσης Ομάδας"
+
+msgid "Existing Devices…"
+msgstr "Υπάρχουσες συσκευές…"
+
+msgid "Delete the {count} selected devices? Their group objects and group-address links are removed and their individual addresses are freed. This can be undone."
+msgstr "Διαγραφή των {count} επιλεγμένων συσκευών; Τα αντικείμενα ομάδας και οι συνδέσεις διευθύνσεων ομάδας τους αφαιρούνται και οι ατομικές διευθύνσεις τους ελευθερώνονται. Αυτό μπορεί να αναιρεθεί."
+
+msgid "Remove {count} devices"
+msgstr "Αφαίρεση {count} συσκευών"
+
+msgid "Delete Devices"
+msgstr "Διαγραφή Συσκευών"
+
+msgid "{medium} line"
+msgstr "{medium} γραμμή"

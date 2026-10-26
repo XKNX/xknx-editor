@@ -47,6 +47,19 @@ def _on_mac() -> bool:
     return hub.client_mac if hub is not None else sys.platform == "darwin"
 
 
+def mac_keys() -> bool:
+    """Whether the keyboard is a Mac's: Cmd for Ctrl, its Delete key sends Backspace."""
+    return _on_mac()
+
+
+def delete_key() -> str:
+    """The key that deletes, as shortcut labels name it: Delete on a Mac, else Del."""
+    if _on_mac():
+        return "Delete"
+    # Translators: the Del key as shortcut labels name it (German keyboards: "Entf").
+    return _("Del")
+
+
 def modifier_key() -> str:
     """The key shortcuts are held with, as the platform names it: Cmd on a Mac, else Ctrl."""
     if _on_mac():
@@ -200,10 +213,6 @@ class BaseStrings:
     @property
     def STATUS_READING(self) -> str:
         return _("Reading {address}…")
-
-    @property
-    def STATUS_TESTING(self) -> str:
-        return _("Testing {address}…")
 
     @property
     def STATUS_PROGRAM_DONE(self) -> str:
@@ -1156,6 +1165,14 @@ class MenuStrings:
     @property
     def MENU_THEME(self) -> str:
         return _("Theme")
+
+    @property
+    def MENU_THEME_LIGHT(self) -> str:
+        return _("Light Theme")
+
+    @property
+    def MENU_THEME_DARK(self) -> str:
+        return _("Dark Theme")
 
     @property
     def MENU_THEME_CUSTOMIZE(self) -> str:

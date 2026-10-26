@@ -11,7 +11,7 @@ from editor_gui.plugins.base import Logger
 from editor_gui.plugins.catalog.service import CatalogService
 from editor_gui.plugins.logger.service import LogService
 from editor_gui.plugins.project.service import DeviceProduct, ProjectService
-from editor_gui.plugins.project.ui.devices import _address_order
+from editor_gui.plugins.project.ui.topology import _address_order
 
 _APP_ID = "M-0008_A-7072-21-5CC3-O000A"
 

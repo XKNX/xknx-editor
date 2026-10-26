@@ -65,7 +65,7 @@ class PanelDefinition:
 
 **Dock spaces** (defined in `main.py::create_docking_splits`):
 - `MainDockSpace` — central area (project editor)
-- `LeftSpace` (ratio 0.2, left of main) — catalog, devices
+- `LeftSpace` (ratio 0.2, left of main) — catalog, topology
 - `RightSpace` (ratio 0.25, right of main) — configure, history, virtual
 - `BottomSpace` (ratio 0.25, below main) — monitor, logs
 
@@ -78,7 +78,8 @@ instead renders into the menu bar or a status area via its own methods, called d
 | Plugin | Panels | Purpose |
 |--------|--------|---------|
 | `CatalogPlugin` | `catalog` (LeftSpace) | Browse and add devices from the catalog |
-| `ProjectPlugin` | `devices` (LeftSpace), `configure` (RightSpace), `history` (RightSpace) | Device topology, configuration, undo history |
+| `ProjectPlugin` | `topology` (LeftSpace), `configure` (RightSpace), `history` (RightSpace) | Device topology, configuration, undo history |
+| `BusDiagramPlugin` | `bus_diagram` (MainDockSpace) | Bus Diagram: areas, lines and devices, buildings, and which devices talk to which |
 | `ConnectionPlugin` | *(none)* | Real KNX connection (tunneling/routing), gateway discovery, status indicator + menu |
 | `ProxyPlugin` | *(none)* | KNXnet/IP tunnelling server for testing without hardware; menu only |
 | `VirtualPlugin` | `virtual` (RightSpace) | Virtual router + virtual devices |

@@ -12,6 +12,7 @@ import pytest
 from fastmcp import Client
 
 from editor_gui.plugins.mcp.server import build_server
+from editor_gui.plugins.project.strings import S as PROJECT_S
 from xknxeditor.dali import DaliBusState
 from xknxeditor.dali.model import GROUP_SINGLE, EcgState, GroupState
 
@@ -80,8 +81,15 @@ async def test_building_functions_and_their_group_addresses(tmp_path: Path) -> N
     mcp, _project = _build(tmp_path)
     async with Client(mcp) as client:
         await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
+        building = (await _data(client, "project_spaces"))["items"][0]["id"]
         space_id = (
-            await _data(client, "project_create_space", space_type="Room", name="Hall")
+            await _data(
+                client,
+                "project_create_space",
+                space_type="Room",
+                name="Hall",
+                parent_id=building,
+            )
         )["space_id"]
         created = await _data(
             client, "project_create_function", space_id=space_id, name="Ceiling light"
@@ -433,3 +441,240 @@ async def test_dali_commissioning_of_a_gateway(
     assert ("new",) in commissioner.calls
     # Each groups/scenes write saves the whole channel: the new group, then the scenes too.
     assert saved == [(7, [(0, 1), (1, 4)], 0, 0), (7, [(0, 1), (1, 4)], 1, 0)]
+
+
+async def test_a_function_moves_into_another_space(tmp_path: Path) -> None:
+    mcp, _project = _build(tmp_path)
+    async with Client(mcp) as client:
+        await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
+        building = (await _data(client, "project_spaces"))["items"][0]["id"]
+        rooms = [
+            (
+                await _data(
+                    client,
+                    "project_create_space",
+                    space_type="Room",
+                    name=name,
+                    parent_id=building,
+                )
+            )["space_id"]
+            for name in ("Hall", "Kitchen")
+        ]
+        function_id = (
+            await _data(
+                client, "project_create_function", space_id=rooms[0], name="Light"
+            )
+        )["function_id"]
+        moved = await _data(
+            client, "project_move_function", function_id=function_id, space_id=rooms[1]
+        )
+        assert moved == {"function_id": function_id, "space_id": rooms[1]}
+        children = (await _data(client, "project_spaces"))["items"][0]["children"]
+        kitchen = next(c for c in children if c["id"] == rooms[1])
+        assert [f["id"] for f in kitchen["functions"]] == [function_id]
+        await _data(client, "project_undo")
+        children = (await _data(client, "project_spaces"))["items"][0]["children"]
+        hall = next(c for c in children if c["id"] == rooms[0])
+        assert [f["id"] for f in hall["functions"]] == [function_id]
+        with pytest.raises(Exception, match="no space with id"):
+            await client.call_tool(
+                "project_move_function", {"function_id": function_id, "space_id": 999}
+            )
+
+
+async def test_groups_and_group_addresses_are_added_as_the_add_dialog_does(
+    tmp_path: Path,
+) -> None:
+    mcp, project = _build(tmp_path)
+    async with Client(mcp) as client:
+        await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
+        mains = await _data(
+            client,
+            "project_create_group_range",
+            count=2,
+            allocation="start_with",
+            start_with=20,
+        )
+        assert [
+            project.element_details("group_range", i).address  # type: ignore[union-attr]
+            for i in mains["group_range_ids"]
+        ] == ["20", "21"]
+        assert mains["name"] == PROJECT_S.GA_DEFAULT_MAIN_GROUP
+        middle = await _data(
+            client,
+            "project_create_group_range",
+            parent_id=mains["group_range_id"],
+            number=3,
+            name="Blinds",
+        )
+        assert middle["address"] == "20/3"
+        added = await _data(
+            client,
+            "project_add_group_addresses",
+            group_range_id=middle["group_range_id"],
+            count=3,
+            allocation="start_with",
+            start_with=10,
+        )
+        assert added["addresses"] == ["20/3/10", "20/3/11", "20/3/12"]
+        await _data(client, "project_undo")
+        listed = (await _data(client, "project_list_group_addresses"))["items"]
+        assert "20/3/10" not in {ga["address"] for ga in listed}
+        # A main group holds middle groups in three-level style, not group addresses.
+        await _error(
+            client,
+            "project_add_group_addresses",
+            "holds group addresses",
+            group_range_id=mains["group_range_id"],
+        )
+        await _error(
+            client,
+            "project_create_group_range",
+            "count 1",
+            number=4,
+            count=2,
+        )
+
+
+async def test_several_functions_get_the_name_of_their_type(tmp_path: Path) -> None:
+    mcp, project = _build(tmp_path)
+    async with Client(mcp) as client:
+        await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
+        space_id = project.get_space_tree()[0].id
+        added = await _data(
+            client,
+            "project_create_function",
+            space_id=space_id,
+            function_type="FT-6",
+            count=2,
+        )
+        assert len(added["function_ids"]) == 2
+        assert added["name"] == PROJECT_S.SPACES_FN_TYPE_DIM
+        custom = await _data(
+            client, "project_create_function", space_id=space_id, function_type="FT-0"
+        )
+        assert custom["name"] == PROJECT_S.SPACES_DEFAULT_FUNCTION
+        await _data(client, "project_undo")
+        await _data(client, "project_undo")
+        assert project.get_space_tree()[0].functions == []
+
+
+async def test_free_style_ranges_and_addresses_are_added(tmp_path: Path) -> None:
+    mcp, _project = _build(tmp_path)
+    async with Client(mcp) as client:
+        await _data(
+            client,
+            "project_new",
+            path=str(tmp_path / "free.xknx"),
+            group_address_style="Free",
+        )
+        ranges = await _data(
+            client,
+            "project_create_group_range",
+            count=2,
+            capacity=100,
+            allocation="start_with",
+            start_with=5000,
+        )
+        assert ranges["spans"] == ["5000-5099", "5100-5199"]
+        assert ranges["name"] == PROJECT_S.GA_DEFAULT_GROUP_RANGE
+        inner = await _data(
+            client, "project_create_group_range", parent_id=ranges["group_range_id"]
+        )
+        # A quarter of the range it is in.
+        assert inner["spans"] == ["5000-5023"]
+        added = await _data(
+            client,
+            "project_add_group_addresses",
+            group_range_id=ranges["group_range_ids"][1],
+            count=2,
+            allocation="start_with",
+            start_with=5150,
+        )
+        assert added["addresses"] == ["5150", "5151"]
+        await _error(
+            client,
+            "project_create_group_range",
+            "number",
+            number=3,
+        )
+
+
+async def test_a_function_gets_new_group_addresses_linked(tmp_path: Path) -> None:
+    mcp, _project = _build(tmp_path)
+    async with Client(mcp) as client:
+        await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
+        building = (await _data(client, "project_spaces"))["items"][0]["id"]
+        function_id = (
+            await _data(
+                client, "project_create_function", space_id=building, name="Light"
+            )
+        )["function_id"]
+        await _data(client, "project_create_group_address", address="1/2/5")
+        ranges = (await _data(client, "project_list_group_ranges"))["items"]
+        middle = next(r["id"] for r in ranges if r["address"] == "1/2")
+        added = await _data(
+            client,
+            "project_add_group_addresses",
+            group_range_id=middle,
+            count=2,
+            function_id=function_id,
+            role="Switch",
+        )
+        spaces = (await _data(client, "project_spaces"))["items"]
+        (function,) = spaces[0]["functions"]
+        assert [(g["text"], g["role"]) for g in function["group_addresses"]] == [
+            (address, "Switch") for address in added["addresses"]
+        ]
+        assert {g["name"] for g in function["group_addresses"]} == {
+            PROJECT_S.GA_DEFAULT_GROUP_ADDRESS
+        }
+        # One undo step takes the addresses and their links.
+        await _data(client, "project_undo")
+        spaces = (await _data(client, "project_spaces"))["items"]
+        assert "group_addresses" not in spaces[0]["functions"][0]
+        await _error(
+            client,
+            "project_add_group_addresses",
+            "no function with id 999",
+            group_range_id=middle,
+            function_id=999,
+        )
+
+
+async def test_free_style_ranges_move_into_ranges_and_to_the_top(
+    tmp_path: Path,
+) -> None:
+    mcp, _project = _build(tmp_path)
+    async with Client(mcp) as client:
+        await _data(
+            client,
+            "project_new",
+            path=str(tmp_path / "free.xknx"),
+            group_address_style="Free",
+        )
+        top = await _data(
+            client,
+            "project_create_group_range",
+            count=2,
+            capacity=100,
+            allocation="start_with",
+            start_with=5000,
+        )
+        first, second = top["group_range_ids"]
+        inner = (await _data(client, "project_create_group_range", parent_id=first))[
+            "group_range_id"
+        ]
+        moved = await _data(
+            client, "project_move_group_range", group_range_id=inner, parent_id=second
+        )
+        assert moved["parent_id"] == second
+        moved = await _data(client, "project_move_group_range", group_range_id=inner)
+        assert moved["parent_id"] is None
+        await _error(
+            client,
+            "project_move_group_range",
+            "into itself",
+            group_range_id=first,
+            parent_id=first,
+        )

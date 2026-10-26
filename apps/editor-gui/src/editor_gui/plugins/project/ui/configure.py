@@ -1,3 +1,4 @@
+import datetime
 import threading
 from collections.abc import Callable
 from contextlib import nullcontext
@@ -22,6 +23,8 @@ from editor_gui.device_plugins import device_plugins, parameters_in_plugin
 from editor_gui.hardware_text import bus_current_text, rail_text
 from editor_gui.os_open import open_url
 from editor_gui.plugins.project.strings import S
+from editor_gui.plugins.project.ui import name_focus
+from editor_gui.plugins.project.ui.status_field import status_combo
 from editor_gui.widgets.dpi import label_column_width, px, px_vec2
 from editor_gui.widgets.filter_box import filter_box
 from editor_gui.widgets.flow import button_width, same_line_if_fits
@@ -31,9 +34,16 @@ from editor_gui.widgets.tree import collapsing_header
 from xknxeditor.download.scope import DownloadScope
 from xknxeditor.prod.app_id import parse_app_id
 from xknxeditor.prod.parser_v2.ui import UiNode
+from xknxeditor.proj.core.ip_settings import (
+    ASSIGN_AUTO,
+    ASSIGN_FIXED,
+    NO_ADDRESS,
+    NONE_ADDRESS,
+    known_address,
+)
 
 if TYPE_CHECKING:
-    from editor_gui.plugins.project.service import IpSecureSettings
+    from editor_gui.plugins.project.service import IpSecureSettings, IpSettings
     from xknxeditor.catalog import ProductSummary, ProgramSummary
     from xknxeditor.proj.core.addressing import GroupAddressStyle
     from xknxeditor.proj.core.service import DeviceInfo
@@ -51,7 +61,7 @@ from editor_gui.widgets import (
     take_selected_help,
 )
 from editor_gui.widgets.backgrounds import child_background, side_background
-from editor_gui.widgets.checkbox import checkbox
+from editor_gui.widgets.checkbox import checkbox, radio_button
 from editor_gui.widgets.combo import begin_combo, combo
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
 from editor_gui.widgets.group_objects_widgets import (
@@ -167,7 +177,7 @@ def _same_line_if_fits_checkbox(label: str) -> None:
     same_line_if_fits(width, style.item_spacing.x * 2)
 
 
-def _edit_being_stored() -> bool:
+def edit_being_stored() -> bool:
     """Whether a field that was edited lost the focus and reports it (to store the edit) in this
     frame or the next."""
     data = imgui.get_current_context().deactivated_item_data
@@ -232,6 +242,27 @@ def direct_program_request(
     return ProgramRequest(scope=scope, use_serial_number=use_serial_number)
 
 
+def timestamp_text(stamp: str | None) -> str:
+    """A time the project stores (UTC, "2026-01-24T11:38:26.8111136Z") as shown: in local time to
+    the minute, "2026-01-24 12:38"; "-" for none or one that cannot be read."""
+    if not stamp:
+        return "-"
+    # Seven digits of fraction are more than fromisoformat reads; the minute is enough.
+    whole = stamp.strip().removesuffix("Z").partition(".")[0]
+    try:
+        moment = datetime.datetime.fromisoformat(whole)
+    except ValueError:
+        return "-"
+    if moment.tzinfo is None:
+        moment = moment.replace(tzinfo=datetime.UTC)
+    return moment.astimezone().strftime("%Y-%m-%d %H:%M")
+
+
+def _timestamp_field(stamp: str | None) -> None:
+    imgui.align_text_to_frame_padding()
+    imgui.text_unformatted(timestamp_text(stamp))
+
+
 def _render_loading_application() -> None:
     """Shown while the device's application loads in the background."""
     imgui.spacing()
@@ -267,6 +298,7 @@ class ConfigurePanel:
         open_memory_preview: Callable[[Device], None] | None = None,
         on_param_change_all: Callable[[Device, str, str], None] | None = None,
         notify: Callable[[str], None] | None = None,
+        warn: Callable[[str], None] | None = None,
         set_dpt: Callable[[Device, str, str | None], None] | None = None,
         set_priority: Callable[[Device, str, str | None], None] | None = None,
         set_description: Callable[[Device, str, str | None], None] | None = None,
@@ -300,23 +332,31 @@ class ConfigurePanel:
         get_icon: Callable[[Device, str], Icon | None] | None = None,
         get_picture: Callable[[Device, str], Picture | None] | None = None,
         on_serial_number_change: Callable[[Device, bytes | None], None] | None = None,
+        get_status: Callable[[Device], str | None] | None = None,
+        on_status_change: Callable[[Device, str], None] | None = None,
         get_secure_commissioning: Callable[[Device], bool | None] | None = None,
         on_secure_commissioning_change: Callable[[Device, bool], None] | None = None,
         on_add_certificate: Callable[[Device], None] | None = None,
         has_certificate: Callable[[Device], bool] | None = None,
         get_ip_secure: "Callable[[Device], IpSecureSettings | None] | None" = None,
         get_routing_blocking: Callable[[Device], str | None] | None = None,
+        get_bus_current: Callable[[int], str] | None = None,
         on_routing_blocking: Callable[[Device, str | None], None] | None = None,
         on_ip_secure_change: Callable[[Device, str, object], str | None] | None = None,
         get_additional_address_count: Callable[[Device], int] | None = None,
         on_additional_address_change: Callable[[Device, int, str, str], str | None]
         | None = None,
         on_assign_additional_addresses: Callable[[Device], str | None] | None = None,
+        get_ip_settings: "Callable[[int], IpSettings | None] | None" = None,
+        on_ip_settings_change: Callable[..., str | None] | None = None,
         use_serial_number_default: Callable[[], bool] | None = None,
         find_serial_owner: Callable[[Device, bytes], str | None] | None = None,
         find_product: "Callable[[str], ProductSummary | None] | None" = None,
         application_ready: Callable[[Device], bool] | None = None,
+        get_parked_address: Callable[[int], str] = lambda _n: "",
     ) -> None:
+        # "1.5.-" for a device (node id) on a line without a device number, else "".
+        self._get_parked_address = get_parked_address
         self._get_devices = get_devices
         # Whether a device's application is loaded (it is loaded in the background otherwise).
         self._application_ready = application_ready
@@ -362,6 +402,8 @@ class ConfigurePanel:
         self._get_device_info = get_device_info
         self._find_product = find_product
         self._notify = notify
+        # Why an edit was refused (a toast that stands out); ``notify`` when not given.
+        self._warn = warn or notify
         self._on_update_application = on_update_application
         self._get_update_version = get_update_version
         self._get_change_targets = get_change_targets
@@ -414,12 +456,16 @@ class ConfigurePanel:
         self._program_use_serial = False
         self._serial_buffer = ""
         self._on_serial_number_change = on_serial_number_change
+        self._get_status = get_status
+        self._on_status_change = on_status_change
         self._get_secure_commissioning = get_secure_commissioning
         self._on_secure_commissioning_change = on_secure_commissioning_change
         self._on_add_certificate = on_add_certificate
         self._has_certificate = has_certificate
         self._get_ip_secure = get_ip_secure
         self._get_routing_blocking = get_routing_blocking
+        # A device's bus current as shown (with the estimate it needs on its line), by node id.
+        self._get_bus_current = get_bus_current
         self._on_routing_blocking = on_routing_blocking
         self._on_ip_secure_change = on_ip_secure_change
         # The KNX IP Secure section's edit buffers (field key -> text) and its "show" switch.
@@ -436,6 +482,14 @@ class ConfigurePanel:
         self._additional_buffers: dict[str, str] = {}
         self._additional_device: int | None = None
         self._additional_error = ""
+        # The IP settings of an IP device (by node id), their change (assignment and addresses
+        # by keyword -> the message when an address cannot be read), the edit buffers (field ->
+        # text) and the field whose text was rejected, with its message.
+        self._get_ip_settings = get_ip_settings
+        self._on_ip_settings_change = on_ip_settings_change
+        self._ip_buffers: dict[str, str] = {}
+        self._ip_device: int | None = None
+        self._ip_error: tuple[str, str] | None = None
         self._use_serial_number_default = use_serial_number_default
         self._find_serial_owner = find_serial_owner
         self._render_dali = (
@@ -466,7 +520,7 @@ class ConfigurePanel:
         if (
             shown is not None
             and shown.node_id != device.node_id
-            and _edit_being_stored()
+            and edit_being_stored()
         ):
             # The current object of that device: storing the edit may have rebuilt it.
             current = next((d for d in devices if d.node_id == shown.node_id), None)
@@ -494,11 +548,12 @@ class ConfigurePanel:
             S.CONFIGURE_PROGRAM_REF,
             S.CONFIGURE_RAIL,
             S.CONFIGURE_BUS_CURRENT,
-            S.CONFIGURE_IP_ASSIGN,
+            S.CONFIGURE_IP_ASSIGNED,
             S.CONFIGURE_IP_ADDRESS,
             S.CONFIGURE_IP_SUBNET,
             S.CONFIGURE_IP_GATEWAY,
             S.CONFIGURE_IP_MAC,
+            S.MULTICAST_ADDRESS,
             S.READOUT_MASK,
             S.READOUT_SERIAL,
             S.READOUT_ORDER,
@@ -717,6 +772,15 @@ class ConfigurePanel:
             fields.append(
                 (S.CONFIGURE_SERIAL_NUMBER, lambda: self._serial_input(device))
             )
+        status = self._get_status(device) if self._get_status is not None else None
+        if status is not None:
+            fields.append((S.STATUS, lambda: self._status_input(device, status)))
+        info = self._get_device_info(device.node_id)
+        for label, stamp in (
+            (S.CONFIGURE_LAST_MODIFIED, info.last_modified if info else None),
+            (S.CONFIGURE_LAST_DOWNLOADED, info.last_download if info else None),
+        ):
+            fields.append((label, lambda stamp=stamp: _timestamp_field(stamp)))
         # The secure-commissioning and routing-blocking fields need the parsed application. Only
         # read them once it is loaded: for a snapshot device _ready() starts the background load
         # and returns False, so these fields appear when it is ready instead of parsing the whole
@@ -788,13 +852,21 @@ class ConfigurePanel:
             render()
         imgui.end_table()
 
+    def _status_input(self, device: Device, status: str) -> None:
+        chosen = status_combo("##device_status", status)
+        if chosen is not None and self._on_status_change is not None:
+            self._on_status_change(device, chosen)
+
     def _name_input(self, device: Device) -> None:
         """The device name. Without a custom name the default one is shown in grey italics and
         filled in when the field is entered; leaving it with the default name keeps no custom
         name."""
-        default = device.display_name
+        # The name it is shown with without a custom name (not the custom name itself: leaving the
+        # field unchanged would drop it).
+        default = device.product_name or (device.app.name if device.app else "")
         placeholder = not device.name and not self._name_prefilled
         imgui.set_next_item_width(-1)
+        name_focus.focus_name_field()
         with italic() if placeholder else nullcontext():
             _, self._name_buffer = imgui.input_text_with_hint(
                 "##name", default if placeholder else "", self._name_buffer
@@ -806,6 +878,8 @@ class ConfigurePanel:
             # The bindings type the state as non-optional, but it is None without an active edit.
             if state is not None:  # pyright: ignore[reportUnnecessaryComparison]
                 state.reload_user_buf_and_move_to_end()
+        # F2: the whole name selected (also the default one filled in above).
+        name_focus.select_name()
         if imgui.is_item_deactivated():
             # The default name itself is not stored as a custom name.
             name = "" if self._name_buffer.strip() == default else self._name_buffer
@@ -836,8 +910,11 @@ class ConfigurePanel:
 
     def _address_input(self, device: Device) -> None:
         imgui.set_next_item_width(-1)
-        _, self._address_buffer = imgui.input_text(
-            "##individual_address", self._address_buffer
+        # A device on a line without a device number shows its line ("1.5.-").
+        _, self._address_buffer = imgui.input_text_with_hint(
+            "##individual_address",
+            self._get_parked_address(device.node_id),
+            self._address_buffer,
         )
         if (
             imgui.is_item_deactivated_after_edit()
@@ -864,8 +941,8 @@ class ConfigurePanel:
             text = self._serial_buffer.strip()
             serial = parse_serial_text(text) if text else None
             if text and serial is None:
-                if self._notify is not None:
-                    self._notify(S.SERIAL_NUMBER_INVALID)
+                if self._warn is not None:
+                    self._warn(S.SERIAL_NUMBER_INVALID)
             elif self._on_serial_number_change is not None:
                 self._on_serial_number_change(device, serial)
         if not imgui.is_item_active() and self._serial_buffer != stored:
@@ -1050,7 +1127,12 @@ class ConfigurePanel:
                 (S.CONFIGURE_ORDER_NUMBER, info.order_number if info else ""),
                 (S.CONFIGURE_HARDWARE, info.hardware_name if info else ""),
                 (S.CONFIGURE_RAIL, rail_text(product, S.BTN_YES, S.BTN_NO)),
-                (S.CONFIGURE_BUS_CURRENT, bus_current_text(product)),
+                (
+                    S.CONFIGURE_BUS_CURRENT,
+                    self._get_bus_current(device.node_id)
+                    if self._get_bus_current is not None
+                    else bus_current_text(product, S.BUS_CURRENT_ESTIMATED),
+                ),
                 (S.CONFIGURE_PRODUCT, info.product_name if info else ""),
                 (S.CONFIGURE_PRODUCT_REF, info.product_ref_id if info else ""),
                 (
@@ -1162,6 +1244,7 @@ class ConfigurePanel:
                         module_tables,
                         self._dispatch_param,
                         filter_text=self._module_filter,
+                        get_icon=self._icon_getter(device),
                     )
                     imgui.end_tab_item()
 
@@ -1565,26 +1648,96 @@ class ConfigurePanel:
                 imgui.tree_pop()
 
     def _render_ip_config(self, device: Device) -> None:
-        """Read-only IP configuration of an IP router/interface, carried verbatim from import. Only
-        shown when the device has static values (IP/subnet/gateway/MAC); a plain ``Assign="Auto"``
-        with no addresses carries nothing worth showing, so the header stays hidden then."""
-        info = self._get_device_info(device.node_id)
-        cfg = info.ip_config if info else None
-        # Nothing, or only the Assign method with no static address -> not worth a section.
-        if not cfg or not (cfg.keys() - {"Assign"}):
+        """The IP settings of an IP device (its hardware is IP-enabled). When its application
+        leaves them to the tool: whether it obtains its address automatically or uses a static
+        one, and its MAC address. Then the address it was assigned (automatically, or when the
+        application sets its IP configuration itself) or the static address, subnet mask and
+        default gateway, and on an IP medium the routing multicast address. An address is stored
+        when its field is left; one that cannot be read keeps its text and shows why."""
+        settings = (
+            self._get_ip_settings(device.node_id)
+            if self._get_ip_settings is not None
+            else None
+        )
+        if settings is None:
             return
+        if self._ip_device != device.node_id:
+            self._ip_buffers = {}
+            self._ip_error = None
+            self._ip_device = device.node_id
         imgui.spacing()
         if not collapsing_header(S.CONFIGURE_IP_CONFIG):
             return
-        self._render_detail_grid(
-            [
-                (S.CONFIGURE_IP_ASSIGN, cfg.get("Assign", "")),
-                (S.CONFIGURE_IP_ADDRESS, cfg.get("IPAddress", "")),
-                (S.CONFIGURE_IP_SUBNET, cfg.get("SubnetMask", "")),
-                (S.CONFIGURE_IP_GATEWAY, cfg.get("DefaultGateway", "")),
-                (S.CONFIGURE_IP_MAC, cfg.get("MACAddress", "")),
-            ]
+        fixed = settings.tool_managed and settings.assign == ASSIGN_FIXED
+        if settings.tool_managed:
+            if radio_button(S.CONFIGURE_IP_AUTOMATIC, not fixed) and fixed:
+                self._ip_edit(device, "assign", ASSIGN_AUTO)
+            if radio_button(S.CONFIGURE_IP_STATIC, fixed) and not fixed:
+                self._ip_edit(device, "assign", ASSIGN_FIXED)
+        if fixed:
+            for label, field, value in (
+                (S.CONFIGURE_IP_ADDRESS, "ip_address", settings.ip_address),
+                (S.CONFIGURE_IP_SUBNET, "subnet_mask", settings.subnet_mask),
+                (S.CONFIGURE_IP_GATEWAY, "default_gateway", settings.default_gateway),
+            ):
+                self._ip_input(device, label, field, value or NONE_ADDRESS)
+        else:
+            self._ip_input(
+                device,
+                S.CONFIGURE_IP_ASSIGNED,
+                "assigned",
+                known_address(settings.ip_address) or "",
+            )
+        if settings.tool_managed:
+            self._ip_read_only(
+                S.CONFIGURE_IP_MAC, settings.mac_address or S.CONFIGURE_IP_UNKNOWN
+            )
+        if settings.multicast_address:
+            self._ip_read_only(S.MULTICAST_ADDRESS, settings.multicast_address)
+
+    def _ip_input(self, device: Device, label: str, field: str, value: str) -> None:
+        """An address of the IP settings with its label; stored when the field is left. An
+        empty assigned address stores none."""
+        imgui.align_text_to_frame_padding()
+        imgui.text_disabled(label)
+        imgui.same_line(self._label_w)
+        buffer = self._ip_buffers.get(field, value)
+        imgui.set_next_item_width(min(px(220), imgui.get_content_region_avail().x))
+        _, buffer = imgui.input_text_with_hint(
+            f"##ip_{field}",
+            S.CONFIGURE_IP_UNKNOWN if field == "assigned" else "",
+            buffer,
         )
+        self._ip_buffers[field] = buffer
+        if imgui.is_item_deactivated_after_edit() and buffer != value:
+            if field != "assigned":
+                self._ip_edit(device, field, buffer)
+            elif buffer.strip() or value:
+                self._ip_edit(device, field, buffer.strip() or NO_ADDRESS)
+        rejected = self._ip_error is not None and self._ip_error[0] == field
+        if not imgui.is_item_active() and buffer != value and not rejected:
+            self._ip_buffers[field] = value
+        if rejected and self._ip_error is not None:
+            imgui.push_style_color(imgui.Col_.text, _ERROR_COLOR)
+            imgui.text_wrapped(self._ip_error[1])
+            imgui.pop_style_color()
+
+    def _ip_read_only(self, label: str, value: str) -> None:
+        imgui.align_text_to_frame_padding()
+        imgui.text_disabled(label)
+        imgui.same_line(self._label_w)
+        imgui.begin_disabled()
+        imgui.set_next_item_width(min(px(220), imgui.get_content_region_avail().x))
+        imgui.input_text(f"##ip_{label}", value, imgui.InputTextFlags_.read_only)
+        imgui.end_disabled()
+
+    def _ip_edit(self, device: Device, field: str, value: str) -> None:
+        """Store one change of the IP settings; a rejected address keeps its field's text."""
+        if self._on_ip_settings_change is None:
+            return
+        keyword = "ip_address" if field == "assigned" else field
+        error = self._on_ip_settings_change(device.node_id, **{keyword: value})
+        self._ip_error = (field, error) if error else None
 
     def _render_additional_addresses(self, device: Device) -> None:
         """The device's additional individual addresses (the tunnelling addresses of an IP
@@ -1786,8 +1939,8 @@ class ConfigurePanel:
         if self._on_ip_secure_change is None:
             return
         error = self._on_ip_secure_change(device, field, value)
-        if error and self._notify is not None:
-            self._notify(error)
+        if error and self._warn is not None:
+            self._warn(error)
 
     def _render_label_value(self, label: str, value: str) -> None:
         imgui.text_disabled(label)

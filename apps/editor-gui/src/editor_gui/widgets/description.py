@@ -9,6 +9,7 @@ from collections.abc import Callable, Collection
 from imgui_bundle import imgui
 
 from editor_gui.widgets.dpi import px
+from editor_gui.widgets.tree import same_row
 
 # FontAwesome 4 "comment-o" (the icon font the app loads).
 ICON_DESCRIPTION = ""
@@ -76,13 +77,15 @@ def shows_description_icon(description: str | None) -> bool:
 
 def render_description(description: str | None) -> bool:
     """Append ``description`` after the previous item: a short one inline (dimmed), a longer or
-    multi-line one behind a hover icon. Returns whether the icon is hovered (always ``False`` for the inline form)."""
-    if not description or not description.strip():
+    multi-line one behind a hover icon. Spaces and line breaks around it are left out. Returns
+    whether the icon is hovered (always ``False`` for the inline form)."""
+    text = (description or "").strip()
+    if not text:
         return False
-    if shows_description_icon(description):
-        return description_icon(description)
-    imgui.same_line()
-    imgui.text_disabled(description)
+    if shows_description_icon(text):
+        return description_icon(text)
+    with same_row():
+        imgui.text_disabled(text)
     return False
 
 
@@ -95,26 +98,28 @@ def description_icon(description: str, *, x: float | None = None) -> bool:
     ``description`` while hovered; returns whether it is hovered."""
     hovered = _hover_icon(ICON_DESCRIPTION, x)
     if hovered:
-        description_tooltip(description)
+        description_tooltip(description.strip())
     return hovered
 
 
 def _hover_icon(icon: str, x: float | None) -> bool:
     """``icon`` on the line of the previous item, after it or at screen position ``x``, dimmed and
     in the text colour while hovered; returns whether it is hovered."""
-    imgui.same_line()
-    if x is not None:
-        imgui.set_cursor_screen_pos(imgui.ImVec2(x, imgui.get_cursor_screen_pos().y))
-    pos = imgui.get_cursor_screen_pos()
-    size = imgui.calc_text_size(icon)
-    # The rows the icon sits on claim the hover themselves, so test its rectangle.
-    hovered = imgui.is_window_hovered(
-        imgui.HoveredFlags_.allow_when_blocked_by_active_item
-    ) and imgui.is_mouse_hovering_rect(
-        pos, imgui.ImVec2(pos.x + size.x, pos.y + imgui.get_text_line_height())
-    )
-    color = imgui.Col_.text if hovered else imgui.Col_.text_disabled
-    imgui.text_colored(imgui.get_style().color_(color), icon)
+    with same_row():
+        if x is not None:
+            imgui.set_cursor_screen_pos(
+                imgui.ImVec2(x, imgui.get_cursor_screen_pos().y)
+            )
+        pos = imgui.get_cursor_screen_pos()
+        size = imgui.calc_text_size(icon)
+        # The rows the icon sits on claim the hover themselves, so test its rectangle.
+        hovered = imgui.is_window_hovered(
+            imgui.HoveredFlags_.allow_when_blocked_by_active_item
+        ) and imgui.is_mouse_hovering_rect(
+            pos, imgui.ImVec2(pos.x + size.x, pos.y + imgui.get_text_line_height())
+        )
+        color = imgui.Col_.text if hovered else imgui.Col_.text_disabled
+        imgui.text_colored(imgui.get_style().color_(color), icon)
     return hovered
 
 

@@ -49,38 +49,11 @@ msgstr "Parameters ({count})"
 msgid "Com Flags ({count})"
 msgstr "Com Vlaggen ({count})"
 
-msgid "Area {area}"
-msgstr "Gebied {area}"
-
-msgid "{name} (Area {area})"
-msgstr "{name} (Gebied {area})"
-
-msgid "Line {area}.{line}"
-msgstr "Lijn {area}.{line}"
-
-msgid "{name} (Line {area}.{line})"
-msgstr "{name} (Lijn {area}.{line})"
-
 msgid "Unassigned ({count})"
 msgstr "Niet toegewezen ({count})"
 
-msgid "Add Area"
-msgstr "Gebied Toevoegen"
-
-msgid "Add Line"
-msgstr "Lijn Toevoegen"
-
-msgid "Rename"
-msgstr "Hernoemen"
-
 msgid "Delete"
 msgstr "Verwijderen"
-
-msgid "New Area"
-msgstr "Nieuw Gebied"
-
-msgid "New Line"
-msgstr "Nieuwe Lijn"
 
 msgid "Number"
 msgstr "Nummer"
@@ -405,23 +378,11 @@ msgstr "Gekopieerd"
 msgid "Click to copy"
 msgstr "Klik om te kopieren"
 
-msgid "+ Function"
-msgstr "+ Functie"
-
-msgid "New Function"
-msgstr "Nieuwe functie"
-
 msgid "Type"
 msgstr "Type"
 
 msgid "Create"
 msgstr "Aanmaken"
-
-msgid "Assign Group Address"
-msgstr "Groepsadres toewijzen"
-
-msgid "Role (Optional)"
-msgstr "Rol (optioneel)"
 
 msgid "Custom"
 msgstr "Aangepast"
@@ -495,17 +456,8 @@ msgstr "{ready} gereed · {amb} dubbelzinnig · {bad} incompatibel · {none} gee
 msgid "(Top Level)"
 msgstr "(bovenste niveau)"
 
-msgid "+ Space"
-msgstr "+ Ruimte"
-
-msgid "+ Sub-space"
-msgstr "+ Subruimte"
-
 msgid "Assign a Device to This Space"
 msgstr "Een apparaat aan deze ruimte toewijzen"
-
-msgid "Assign Device"
-msgstr "Apparaat toewijzen"
 
 msgid "Building"
 msgstr "Gebouw"
@@ -519,23 +471,14 @@ msgstr "Gang"
 msgid "Delete this space and everything in it? Devices are only unassigned, not deleted."
 msgstr "Deze ruimte en alles erin verwijderen? Apparaten worden alleen ontkoppeld, niet verwijderd."
 
-msgid "Distribution Board"
-msgstr "Verdeelkast"
-
 msgid "Floor"
 msgstr "Verdieping"
 
 msgid "Move to"
 msgstr "Verplaatsen naar"
 
-msgid "New Space"
-msgstr "Nieuwe ruimte"
-
 msgid "No unassigned devices"
 msgstr "Geen niet-toegewezen apparaten"
-
-msgid "Remove from Space"
-msgstr "Uit ruimte verwijderen"
 
 msgid "Room"
 msgstr "Kamer"
@@ -546,26 +489,8 @@ msgstr "Trappenhuis"
 msgid "Without Space"
 msgstr "Zonder ruimte"
 
-msgid "New Main Group"
-msgstr "Nieuwe hoofdgroep"
-
-msgid "New Middle Group"
-msgstr "Nieuwe middengroep"
-
-msgid "New Folder"
-msgstr "Nieuwe map"
-
-msgid "Rename Folder"
-msgstr "Map hernoemen"
-
 msgid "Delete Folder"
 msgstr "Map verwijderen"
-
-msgid "Main group name (the next free number is assigned automatically)"
-msgstr "Naam van de hoofdgroep (het volgende vrije nummer wordt automatisch toegewezen)"
-
-msgid "Middle group name (the next free number is assigned automatically)"
-msgstr "Naam van de middengroep (het volgende vrije nummer wordt automatisch toegewezen)"
 
 msgid "Delete this folder and every group address in it? This can be undone."
 msgstr "Deze map en alle groepsadressen erin verwijderen? Dit kan ongedaan worden gemaakt."
@@ -892,9 +817,6 @@ msgstr "Applicatieprogramma wordt gewijzigd…"
 msgid "Delete Space"
 msgstr "Ruimte verwijderen"
 
-msgid "Rename Function"
-msgstr "Functie hernoemen"
-
 msgid "Load Reference File"
 msgstr "Referentiebestand laden"
 
@@ -949,9 +871,6 @@ msgstr "Opeenvolgend toewijzen"
 msgid "Assigned Objects"
 msgstr "Toegewezen objecten"
 
-msgid "Assignment"
-msgstr "Toewijzing"
-
 msgid "Based on OpenKNXproducer"
 msgstr "Gebaseerd op OpenKNXproducer"
 
@@ -966,9 +885,6 @@ msgstr "Kan niet worden uitgevoerd: geen KNX-verbinding. Maak verbinding met een
 
 msgid "Cannot run: the project was changed since it was opened. This test compares the generated image against the device's programmed state, which only matches the project as it was opened. Undo your changes in this session to test."
 msgstr "Kan niet worden uitgevoerd: het project is gewijzigd sinds het werd geopend. Deze test vergelijkt het gegenereerde geheugenbeeld met de geprogrammeerde toestand van het apparaat, die alleen overeenkomt met het project zoals het werd geopend. Maak je wijzigingen in deze sessie ongedaan om te testen."
-
-msgid "Change Address…"
-msgstr "Adres wijzigen…"
 
 msgid "Changed"
 msgstr "Gewijzigd"
@@ -1000,9 +916,6 @@ msgstr "Opmerkingen ontsleuteld"
 msgid "Compare the open project with another project file (.knxproj or .xknx): which devices and group addresses were added, removed or changed. The other project is read-only; nothing is modified."
 msgstr "Het geopende project vergelijken met een ander projectbestand (.knxproj of .xknx): welke apparaten en groepsadressen zijn toegevoegd, verwijderd of gewijzigd. Het andere project wordt alleen gelezen; er wordt niets gewijzigd."
 
-msgid "Copy Address"
-msgstr "Adres kopiëren"
-
 msgid "Copy Log"
 msgstr "Logboek kopiëren"
 
@@ -1017,9 +930,6 @@ msgstr "DALI (bus)"
 
 msgid "DPT"
 msgstr "DPT"
-
-msgid "Datapoint type (e.g. DPST-1-1); empty to clear"
-msgstr "Datapunttype (bijv. DPST-1-1); leeg om te wissen"
 
 msgid "Date"
 msgstr "Datum"
@@ -1172,6 +1082,24 @@ msgid "Group Objects ({count})"
 msgstr "Groepsobjecten ({count})"
 
 
+msgid "Obtain an IP address automatically"
+msgstr "Automatisch een IP-adres laten toewijzen"
+
+msgid "Use a static IP address"
+msgstr "Een vast IP-adres gebruiken"
+
+msgid "Assigned IP Address"
+msgstr "Toegewezen IP-adres"
+
+msgid "An invalid IP address was specified."
+msgstr "Er is een ongeldig IP-adres opgegeven."
+
+msgid "Change assigned IP address of '{0}' to '{1}'."
+msgstr "Toegewezen IP-adres van '{0}' gewijzigd in '{1}'."
+
+msgid "IP configuration of device '{0}' changed."
+msgstr "IP-configuratie van apparaat '{0}' gewijzigd."
+
 msgid "IP Address"
 msgstr "IP-adres"
 
@@ -1240,12 +1168,6 @@ msgstr "Overeenkomst: het gegenereerde geheugenbeeld is identiek aan wat op het 
 
 msgid "Memory Preview"
 msgstr "Geheugenvoorbeeld"
-
-msgid "New Group Address"
-msgstr "Nieuw groepsadres"
-
-msgid "New group address (links are kept):"
-msgstr "Nieuw groepsadres (koppelingen blijven behouden):"
 
 msgid "No .NET runtime found (install the .NET SDK, or run on Windows with ETS)."
 msgstr "Geen .NET-runtime gevonden (installeer de .NET SDK, of voer het uit op Windows met ETS)."
@@ -1331,9 +1253,6 @@ msgstr "Van apparaat lezen"
 msgid "Read-only test: checks that the download function generates the same image as what is already programmed on the device. Nothing is written to the device."
 msgstr "Alleen-lezen test: controleert of de downloadfunctie hetzelfde geheugenbeeld genereert als wat al op het apparaat is geprogrammeerd. Er wordt niets naar het apparaat geschreven."
 
-msgid "Rename Group Address"
-msgstr "Groepsadres hernoemen"
-
 msgid "Renumber group addresses by adding an offset to their raw value, e.g. to open gaps. Group object links move with each address. Nothing is written if any move would collide or leave the valid range."
 msgstr "Groepsadressen hernummeren door een verschuiving op te tellen bij hun ruwe waarde, bijv. om ruimte te maken. Koppelingen van groepsobjecten gaan met elk adres mee. Er wordt niets geschreven als een verschuiving zou botsen of buiten het geldige bereik zou vallen."
 
@@ -1360,9 +1279,6 @@ msgstr "Alles selecteren"
 
 msgid "Select at least one field."
 msgstr "Selecteer minstens één veld."
-
-msgid "Set Datapoint Type"
-msgstr "Datapunttype instellen"
 
 msgid "Set an individual address and connect to the bus first"
 msgstr "Stel eerst een individueel adres in en maak verbinding met de bus"
@@ -1589,12 +1505,6 @@ msgstr "Beveiliging"
 msgid "Automatic"
 msgstr "Automatisch"
 
-msgid "Secured"
-msgstr "Beveiligd"
-
-msgid "Not Secured"
-msgstr "Niet beveiligd"
-
 msgid "Plain"
 msgstr "Onversleuteld"
 
@@ -1666,9 +1576,6 @@ msgstr "Een wachtwoord heeft 1 tot 20 Latin-1-tekens nodig."
 
 msgid "Close"
 msgstr "Sluiten"
-
-msgid "IP Backbone Security"
-msgstr "IP-backbonebeveiliging"
 
 msgid "Device Certificates"
 msgstr "Apparaatcertificaten"
@@ -2339,3 +2246,732 @@ msgstr "Item"
 
 msgid "Store plugin data {name}"
 msgstr "Plug-ingegevens {name} opslaan"
+
+msgid "Unknown"
+msgstr "Onbekend"
+
+msgid "Editing"
+msgstr "Bewerken"
+
+msgid "Finished design"
+msgstr "Ontwerpen beëindigd"
+
+msgid "Finished commissioning"
+msgstr "Inbedrijfname voltooid"
+
+msgid "Tested"
+msgstr "Getest"
+
+msgid "Accepted"
+msgstr "Aanvaard"
+
+msgid "Locked"
+msgstr "Vergrendeld"
+
+msgid "Function"
+msgstr "Functie"
+
+msgid "Use"
+msgstr "Gebruik"
+
+msgid "Set room use"
+msgstr "Ruimtegebruik instellen"
+
+msgid "Set status to {status}"
+msgstr "Status instellen op {status}"
+
+msgid "Set function description"
+msgstr "Functiebeschrijving instellen"
+
+msgid "Current Line"
+msgstr "Huidige Lijn"
+
+msgid "{line} (inherits from {space})"
+msgstr "{line} (erft van {space})"
+
+msgid "Set current line"
+msgstr "Huidige lijn instellen"
+
+msgid "Segment"
+msgstr "Segment"
+
+msgid "Medium"
+msgstr "Medium"
+
+msgid "Domain Address"
+msgstr "Domeinadres"
+
+msgid "The medium of a segment can only change while it holds no device."
+msgstr "Het mediumtype van een segment kan alleen worden gewijzigd als het geen apparaat bevat."
+
+msgid "The medium type of the segment '{segment}' cannot be changed to IoT, because its parent line '{line}' is not of medium type IP."
+msgstr "Het mediumtype van het segment '{segment}' kan niet worden gewijzigd in IoT, omdat de bovenliggende lijn '{line}' niet het mediumtype IP heeft."
+
+msgid "The maximum number of segments has been reached."
+msgstr "Het maximale aantal segmenten is bereikt."
+
+msgid "The main segment cannot be deleted."
+msgstr "Het hoofdsegment kan niet worden verwijderd."
+
+msgid "Device '{device}' is incompatible with line's medium type."
+msgstr "Apparaat '{device}' is niet compatibel met het mediumtype van de lijn."
+
+msgid "Device '{device}' is incompatible with segment's medium type."
+msgstr "Apparaat '{device}' is niet compatibel met het mediumtype van het segment."
+
+msgid "Rename segment to {name}"
+msgstr "Segment hernoemen naar {name}"
+
+msgid "Set medium to {medium}"
+msgstr "Medium instellen op {medium}"
+
+msgid "Forced on"
+msgstr "Verplicht ingeschakeld"
+
+msgid "Forced off"
+msgstr "Verplicht uitgeschakeld"
+
+msgid "Overridden by '{name}': {mode}"
+msgstr "Overschreven door '{name}': {mode}"
+
+msgid "Central"
+msgstr "Centraal"
+
+msgid "Not every device linked to a group address of this group is commissioned securely, so it cannot be secured."
+msgstr "Niet alle apparaten die aan een groepsadres van deze groep zijn gekoppeld worden beveiligd in bedrijf gesteld, daarom kan deze niet worden beveiligd."
+
+msgid "Set group security"
+msgstr "Beveiliging van groep instellen"
+
+msgid "Mark group address as central"
+msgstr "Groepsadres als centraal markeren"
+
+msgid "Remove central mark from group address"
+msgstr "Centrale markering van groepsadres verwijderen"
+
+msgid "Topology"
+msgstr "Topologie"
+
+msgid "{medium} backbone line"
+msgstr "{medium} backbone lijn"
+
+msgid "{medium} main line"
+msgstr "{medium} hoofdlijn"
+
+msgid "Backbone"
+msgstr "Backbone"
+
+msgid "Network Latency"
+msgstr "Netwerk responstijd"
+
+msgid "LAN (< 400ms)"
+msgstr "LAN (< 400 msec.)"
+
+msgid "WLAN (< 1s)"
+msgstr "WLAN (< 1s)"
+
+msgid "WAN (< 2s)"
+msgstr "WAN (< 2 sec.)"
+
+msgid "Mobile (< 4s)"
+msgstr "Mobiel (< 4s)"
+
+msgid "Satellite (< 8s)"
+msgstr "Satelliet (< 8s)"
+
+msgid "The network latency must be a number of milliseconds from 1 to 65535."
+msgstr "De netwerkresponstijd moet een aantal milliseconden van 1 tot 65535 zijn."
+
+msgid "Multicast Address"
+msgstr "Multicast Adres"
+
+msgid "Enter a multicast address from 224.0.0.0 to 239.255.255.255."
+msgstr "Voer een multicastadres in van 224.0.0.0 tot 239.255.255.255."
+
+msgid "Bus Connection"
+msgstr "Busverbinding"
+
+msgid "Set IP routing of the backbone"
+msgstr "IP-routing van de backbone instellen"
+
+msgid "As long as a coupler exists at a sub line or sub segment, a change of the medium type is not possible."
+msgstr "Zolang er een koppelaar op een sublijn of een subsegment aanwezig is, is een verandering van het mediumtype niet mogelijk."
+
+msgid "A main line of a project cannot have medium type RF."
+msgstr "Een hoofdlijn van een project kan geen mediumtype RF hebben."
+
+msgid "The operation could not be executed, because as medium type of the backbone only IP and TP are allowed."
+msgstr "De verrichting kon niet worden uitgevoerd, omdat alleen IP en TP zijn toegestaan als mediumtype van de backbone."
+
+msgid "A sub-segment of KNX medium type IP or PL is not allowed."
+msgstr "Een subsegment van het KNX-mediumtype IP of PL is niet toegestaan."
+
+msgid "The medium type of the main line '{line}' can no longer be changed to PL, because it already contains lines or segments that are not allowed in PL main lines."
+msgstr "Het mediumtype van de hoofdlijn '{line}' kan niet meer worden gewijzigd in PL, omdat deze al lijnen of segmenten bevat die niet zijn toegestaan in PL-hoofdlijnen."
+
+msgid "The medium type of the main line '{line}' cannot be changed to IoT, because the backbone line '{backbone}' is not of medium type IP."
+msgstr "Het mediumtype van de hoofdlijn '{line}' kan niet worden gewijzigd in IoT, omdat de backbone '{backbone}' niet het mediumtype IP heeft."
+
+msgid "The medium type of the main line '{line}' can no longer be changed to IoT, because it already contains lines or segments that are not allowed in IoT main lines."
+msgstr "Het mediumtype van de hoofdlijn '{line}' kan niet meer worden gewijzigd in IoT, omdat deze al lijnen of segmenten bevat die niet zijn toegestaan in IoT-hoofdlijnen."
+
+msgid "The medium type of the line '{line}' cannot be changed, because it already contains lines or segments that require an IoT or IP main line."
+msgstr "Het mediumtype van de hoofdlijn '{line}' kan niet worden gewijzigd, omdat deze al lijnen of segmenten bevat waarvoor een IoT of een IP-hoofdlijn vereist is."
+
+msgid "A sub-segment is not allowed below a main segment of KNX medium type RF."
+msgstr "Een subsegment is niet toegestaan onder een hoofdsegment van het KNX-mediumtype RF."
+
+msgid "A sub-segment is not allowed below a main segment of KNX medium type PL."
+msgstr "Een subsegment is niet toegestaan onder een hoofdsegment van het KNX-mediumtype PL."
+
+msgid "A sub-segment of KNX medium type IoT is not allowed below a main segment of the same type."
+msgstr "Een subsegment van het KNX mediumtype IoT is niet toegestaan onder een hoofdsegment van hetzelfde type."
+
+msgid "The operation could not be executed, because a RF main line '{line}' requires all other lines in the area to be RF lines as well."
+msgstr "De verrichting kon niet worden uitgevoerd omdat een RF hoofdlijn '{line}' vereist dat alle andere lijnen in de zone eveneens RF lijnen zijn."
+
+msgid "The operation could not be executed, because a PL main line '{line}' requires all other lines in the area to be PL lines as well."
+msgstr "De verrichting kon niet worden uitgevoerd omdat een PL hoofdlijn '{line}' vereist dat alle andere lijnen in de zone eveneens PL lijnen zijn."
+
+msgid "The operation could not be executed, because a IoT main line '{line}' requires all other lines in the area to be IoT lines as well."
+msgstr "De verrichting kon niet worden uitgevoerd omdat een IoT hoofdlijn '{line}' vereist dat alle andere lijnen in de zone eveneens IoT lijnen zijn."
+
+msgid "The medium type of the line '{line}' cannot be changed to IoT, because its main line '{main}' is not of medium type IP."
+msgstr "Het mediumtype van de lijn '{line}' kan niet worden gewijzigd in IoT, omdat de hoofdlijn '{main}' niet het mediumtype IP heeft."
+
+msgid "The medium type of the line '{line}' can no longer be changed to IoT, because it already contains segments that are not allowed in IoT lines."
+msgstr "Het mediumtype van de lijn '{line}' kan niet meer worden gewijzigd in IoT, omdat deze al segmenten bevat die niet zijn toegestaan in IoT-lijnen."
+
+msgid "The operation could not be executed, because the line is the IP backbone line and the project contains KNXnet/IP routers. KNXnet/IP routers require an IP backbone line."
+msgstr "De operatie kon niet uitgevoerd worden want de lijn is de IP backbonelijn en het project bevat KNXnet/IP routers. KNXnet/IP routers vereisen een IP backbonelijn."
+
+msgid "The operation could not be executed, because the line is the IP main line and the project contains KNXnet/IP routers. KNXnet/IP routers require an IP main line."
+msgstr "De operatie kon niet uitgevoerd worden omdat de IP hoofdlijn betrokken is terwijl het project KNXnet/IP routers bevat. KNXnet/IP routers vergen een IP hoofdlijn."
+
+msgid "The operation could not be executed, because the line is the IP backbone line and the project contains IoT or IP lines."
+msgstr "De bewerking kon niet worden uitgevoerd, omdat de lijn de IP-backbonelijn is en het project IoT- of IP-lijnen bevat."
+
+msgid "The operation could not be executed, because the medium type of the line can only be set to IP if an IP main line exists."
+msgstr "De operatie kon niet uitgevoerd worden omdat het medium type van een lijn alleen naar IP kan ingesteld worden als deze onder een IP hoofdlijn valt."
+
+msgid "The operation could not be executed, because the medium type of the line can only be set to IP if an IP backbone line exists."
+msgstr "Deze operatie kan niet uitgevoerd worden omdat het mediumtype van de lijn enkel op IP gezet kan worden indien er een IP backbone lijn bestaat."
+
+msgid "The operation could not be executed, because below a TP main segment only segments of KNX medium type TP, RF or PL can exist."
+msgstr "De verrichting kon niet worden uitgevoerd, omdat onder een TP-hoofdsegment alleen segmenten van het KNX- mediumtype TP, RF of PL kunnen voorkomen."
+
+msgid "Below a main segment of KNX medium type IP only segments of medium type TP or RF can exist."
+msgstr "Onder een hoofdsegment van het KNX-mediumtype IP, kunnen alleen segmenten met het mediumtype TP of RF voorkomen."
+
+msgid "A sub-segment of KNX medium type PL is not allowed below a main segment."
+msgstr "Een subsegment van het KNX-mediumtype PL is niet toegestaan onder een hoofdsegment."
+
+msgid "Set bus connection of the backbone"
+msgstr "Busverbinding van de backbone instellen"
+
+msgid "Set domain address"
+msgstr "Domeinadres instellen"
+
+msgid "Generate New"
+msgstr "Nieuw aanmaken"
+
+msgid "The given domain address is invalid."
+msgstr "Het opgegeven domeinadres is ongeldig."
+
+msgid "Domain address is not valid! Valid values are 1 to 255."
+msgstr "Domeinadres is niet geldig! Geldige waarden zijn 1 tot 255."
+
+msgid "DomainAddress of mediumType 'RF' is lower than the minimum value of 0001:00000000."
+msgstr "DomainAdres van mediumType 'RF' is lager dan de minimumwaarde van 0001:00000000."
+
+msgid "DomainAddress of medium type '{medium}' exceeds the maximum valid value of {maximum}"
+msgstr "DomeinAdres van mediumtype '{medium}' overschrijdt de maximale geldige waarde van {maximum}"
+
+msgid "DomainAddress of RF sublines must be equal to DomainAdress of main line."
+msgstr "DomeinAdres van RF sublijnen moeten gelijk zijn aan DomeinAdres van de hoofdlijn."
+
+msgid "Domain Address of IoT sublines must be equal to Domain Address of main line."
+msgstr "Het domeinadres van IoT-sublijnen moet gelijk zijn aan het domeinadres van de hoofdlijn."
+
+msgid "Each line in a project must have a unique domain address."
+msgstr "Elke lijn in een project moet een uniek DomeinAdres hebben."
+
+msgid "Last Downloaded"
+msgstr "Laatste Gedownload"
+
+msgid "Create trade {name}"
+msgstr "Technisch gebouw {name} aanmaken"
+
+msgid "Rename trade to {name}"
+msgstr "Technisch gebouw hernoemen naar {name}"
+
+msgid "Set trade number"
+msgstr "Nummer van technisch gebouw instellen"
+
+msgid "Set trade description"
+msgstr "Beschrijving van technisch gebouw instellen"
+
+msgid "Move trade"
+msgstr "Technisch gebouw verplaatsen"
+
+msgid "Remove trade"
+msgstr "Technisch gebouw verwijderen"
+
+msgid "Add device to trade"
+msgstr "Apparaat aan technisch gebouw toevoegen"
+
+msgid "Remove device from trade"
+msgstr "Apparaat uit technisch gebouw verwijderen"
+
+msgid "Trades"
+msgstr "Technische gebouwen"
+
+msgid "Building Parts…"
+msgstr "Gebouwengedeeltes…"
+
+msgid "Floors…"
+msgstr "Verdiepingen…"
+
+msgid "Stairways…"
+msgstr "Trappen…"
+
+msgid "Rooms…"
+msgstr "Kamers…"
+
+msgid "Corridors…"
+msgstr "Gangen…"
+
+msgid "Cabinets…"
+msgstr "Schakelkasten…"
+
+msgid "Devices…"
+msgstr "Apparaten…"
+
+msgid "Functions…"
+msgstr "Functies…"
+
+msgid "Trades…"
+msgstr "Technische gebouwen…"
+
+msgid "Add Buildings…"
+msgstr "Voeg Gebouwen toe…"
+
+msgid "Add Trades…"
+msgstr "Voeg Technische Gebouwen toe…"
+
+msgid "Add Buildings"
+msgstr "Voeg Gebouwen toe"
+
+msgid "Add Building Parts"
+msgstr "Voeg Gebouwonderdelen toe"
+
+msgid "Add Floors"
+msgstr "Voeg Verdiepingen toe"
+
+msgid "Add Rooms"
+msgstr "Voeg Kamers toe"
+
+msgid "Add Corridors"
+msgstr "Voeg Gangen toe"
+
+msgid "Add Stairways"
+msgstr "Voeg Trappen toe"
+
+msgid "Add Cabinets"
+msgstr "Voeg Schakelkasten toe"
+
+msgid "Add Trades"
+msgstr "Voeg Technische Gebouwen toe"
+
+msgid "Add Devices"
+msgstr "Voeg Apparaten toe"
+
+msgid "Count"
+msgstr "Aantal"
+
+msgid "to \"{name}\""
+msgstr "naar \"{name}\""
+
+msgid "Cabinet"
+msgstr "Kabinet"
+
+msgid "New building"
+msgstr "Nieuw gebouw"
+
+msgid "New building part"
+msgstr "Nieuw gebouwengedeelte"
+
+msgid "New floor"
+msgstr "Nieuwe verdieping"
+
+msgid "New room"
+msgstr "Nieuwe kamer"
+
+msgid "New corridor"
+msgstr "Nieuwe gang"
+
+msgid "New stairway"
+msgstr "Nieuwe trap"
+
+msgid "New cabinet"
+msgstr "Nieuw schakelkast"
+
+msgid "New trade"
+msgstr "Nieuw technisch gebouw"
+
+msgid "A building part of this type cannot be added here."
+msgstr "Een gebouwenonderdeel van dit type kan hier niet worden toegevoegd."
+
+msgid "A building part of this type cannot be added here.\nCabinets can be added inside of rooms, corridors, or stairways only. If applicable the corridors have to be moved into the corresponding building parts."
+msgstr "Een gebouwenonderdeel van deze soort kan hier niet worden toegevoegd.\nVerdeelborden kunnen enkel in ruimten, gangen of hallen worden geplaatst. Indien mogelijk moeten de gangen verplaatst worden naar de overeenstemmende gebouwenonderdelen."
+
+msgid "The target is a child building part."
+msgstr "Het doel is een onderliggend gebouwenonderdeel."
+
+msgid "Devices can only be added to stairways, rooms, corridors and cabinets."
+msgstr "Apparaten kunnen alleen aan trappenhuizen, ruimten, gangen en verdeelborden worden toegevoegd."
+
+msgid "Trade"
+msgstr "Technisch Gebouw"
+
+msgid "(estimated)"
+msgstr "(geschat)"
+
+msgid "Number of Devices"
+msgstr "Aantal apparaten"
+
+msgid "Unlink"
+msgstr "Ontkoppel"
+
+msgid "An IP router requires an IP backbone line."
+msgstr "Een IP router vergt een IP backbone lijn."
+
+msgid "The operation could not be executed, because a coupler needs a main line."
+msgstr "De verrichting kan niet uitgevoerd worden omdat een koppelaar een hoofdgroep nodig heeft."
+
+msgid "The operation could not be executed, because an area coupler requires a backbone line."
+msgstr "Deze operatie kan niet uitgevoerd worden omdat een zone koppelaar een backbone lijn nodig heeft."
+
+msgid "The operation could not be executed, because this coupler needs a main line with the medium type '{medium}' ."
+msgstr "De verrichting kan niet uitgevoerd worden omdat deze koppelaar een hoofdlijn met de mediumtype  '{medium}' nodig heeft ."
+
+msgid "The operation could not be executed, because only one IP router is allowed as a world coupler."
+msgstr "Deze operatie kon niet uitgevoerd worden omdat slechts één IP router als een netwerk koppelaar toegestaan is."
+
+msgid "The operation could not be executed, because only IP router area allowed as a world coupler."
+msgstr "Deze operatie kan niet uitgevoerd worden omdat enkel de IP router zone toegestaan is als netwerk koppelaar."
+
+msgid "The backbone line contains a world coupler. It is not possible to use an IP router below another IP router."
+msgstr "De backbonelijn bevat een wereldkoppelaar. Het is niet mogelijk om een IP-router onder een andere IP-router te gebruiken."
+
+msgid "It is not possible to use a world coupler, when there are already IP routers in the project."
+msgstr "Het is niet mogelijk om een netwerkkoppelaar te gebruiken, als er al IP-routers in het project zijn."
+
+msgid "A world coupler can only be used, when the medium type of the backbone is TP."
+msgstr "Een wereldkoppelaar kan enkel worden gebruikt als het mediumtype van de backbone TP is."
+
+msgid "The coupler does not support segment coupling, so the sub-segment must be of the same KNX medium type as the main segment."
+msgstr "De koppelaar ondersteunt geen segment-koppeling, dus het subsegment moet van hetzelfde KNX-mediumtype zijn als het hoofdsegment."
+
+msgid "The operation could not be executed, because this device couples medium '{above}' (above) to medium '{below}' (below), but the segment above is '{segment}'."
+msgstr "De verrichting kon niet worden uitgevoerd, omdat dit apparaat medium '{above}' (hierboven) aan medium '{below}' (hieronder) koppelt, maar het segment hierboven is '{segment}'."
+
+msgid "The operation could not be executed, because medium type of coupler device matches only sub segment, but maximum amount of segments reached."
+msgstr "De verrichting kon niet worden uitgevoerd, omdat het mediumtype van de koppelaar alleen overeenkomt met het subsegment, maar het maximale aantal segmenten is bereikt."
+
+msgid "The operation could not be executed, because this device couples medium '{above}' (above) to medium '{below}' (below), but the medium type of the lower segment is '{segment}'."
+msgstr "De verrichting kon niet worden uitgevoerd, omdat dit apparaat medium '{above}' (hierboven) aan medium '{below}' (hieronder) koppelt, maar het mediumtype van het onderste segment is '{segment}'."
+
+msgid "Recover Project from Bus"
+msgstr "Project van de bus herstellen"
+
+msgid "Devices in Programming Mode"
+msgstr "Apparaten in programmeermodus"
+
+msgid "Connecting"
+msgstr "Wordt verbonden"
+
+msgid "Move middle group"
+msgstr "Middengroep verplaatsen"
+
+msgid "The group has no free group address."
+msgstr "De groep heeft geen vrij groepsadres."
+
+msgid "The main group has no free middle group."
+msgstr "De hoofdgroep heeft geen vrije middengroep."
+
+msgid "{count} devices"
+msgstr "{count} apparaten"
+
+msgid "The main segment cannot be moved."
+msgstr "Het hoofdsegment kan niet worden verplaatst."
+
+msgid "The maximum number of lines has been reached."
+msgstr "Het maximale aantal lijnen is bereikt."
+
+msgid "The line is already assigned to an area."
+msgstr "De lijn is al aan een bereik toegewezen."
+
+msgid "The main line cannot be moved."
+msgstr "De hoofdlijn kan niet worden verplaatst."
+
+msgid "Move line"
+msgstr "Lijn verplaatsen"
+
+msgid "Move segment"
+msgstr "Segment verplaatsen"
+
+msgid "Move function"
+msgstr "Functie verplaatsen"
+
+msgid "Paste Special"
+msgstr "Plakken speciaal"
+
+msgid "Number of Items"
+msgstr "Aantal items"
+
+msgid "Don't copy"
+msgstr "Niet kopiëren"
+
+msgid "Keep"
+msgstr "Behouden"
+
+msgid "Create new group address in middle group"
+msgstr "Nieuw groepsadres in middengroep maken"
+
+msgid "Create new group address in main group"
+msgstr "Nieuw groepsadres in hoofdgroep maken"
+
+msgid "Create new group address in group range"
+msgstr "Nieuw groepsadres in groepsbereik maken"
+
+msgid "Generate Address"
+msgstr "Adres genereren"
+
+msgid "Fill up (use first free)"
+msgstr "Opvullen (eerste vrije)"
+
+msgid "Append"
+msgstr "Achteraan toevoegen"
+
+msgid "Start with"
+msgstr "Beginnen met"
+
+msgid "Enter a middle group, e.g. 1/2."
+msgstr "Voer een middengroep in, bijv. 1/2."
+
+msgid "Enter a main group, e.g. 1."
+msgstr "Voer een hoofdgroep in, bijv. 1."
+
+msgid "The group has too few free group addresses for the copies."
+msgstr "De groep heeft te weinig vrije groepsadressen voor de kopieën."
+
+msgid "The maximum number of group ranges has been reached."
+msgstr "Het maximale aantal groepsbereiken is bereikt."
+
+msgid "There is no group for the new group addresses."
+msgstr "Er is geen groep voor de nieuwe groepsadressen."
+
+msgid "Copied '{name}' to '{target}'."
+msgstr "'{name}' gekopieerd naar '{target}'."
+
+msgid "Copied {count} devices to '{target}'."
+msgstr "{count} apparaten gekopieerd naar '{target}'."
+
+msgid "Copied {count} building parts to '{target}'."
+msgstr "{count} gebouwdelen gekopieerd naar '{target}'."
+
+msgid "Copied {count} trades to '{target}'."
+msgstr "{count} disciplines gekopieerd naar '{target}'."
+
+msgid "Copied {count} functions to '{target}'."
+msgstr "{count} functies gekopieerd naar '{target}'."
+
+msgid "Copied {count} group addresses to '{target}'."
+msgstr "{count} groepsadressen gekopieerd naar '{target}'."
+
+msgid "Copied {count} middle groups to '{target}'."
+msgstr "{count} middengroepen gekopieerd naar '{target}'."
+
+msgid "Copied {count} main groups to '{target}'."
+msgstr "{count} hoofdgroepen gekopieerd naar '{target}'."
+
+msgid "Copied {count} lines to '{target}'."
+msgstr "{count} lijnen gekopieerd naar '{target}'."
+
+msgid "Copied {count} segments to '{target}'."
+msgstr "{count} segmenten gekopieerd naar '{target}'."
+
+msgid "Paste Special…"
+msgstr "Plakken speciaal…"
+
+msgid "Add Row"
+msgstr "Rij toevoegen"
+
+msgid "Remove this row"
+msgstr "Deze rij verwijderen"
+
+msgid "Generate Addresses"
+msgstr "Adressen genereren"
+
+msgid "Unlink device"
+msgstr "Apparaat ontkoppelen"
+
+msgid "The device is on no line: put it on a line first."
+msgstr "Het apparaat staat op geen enkele lijn: zet het eerst op een lijn."
+
+msgid "Areas…"
+msgstr "Gebieden…"
+
+msgid "Lines…"
+msgstr "Lijnen…"
+
+msgid "Segments…"
+msgstr "Segmenten…"
+
+msgid "Add Areas"
+msgstr "Gebieden Toevoegen"
+
+msgid "Add Lines"
+msgstr "Lijnen Toevoegen"
+
+msgid "Add Segments"
+msgstr "Segmenten Toevoegen"
+
+msgid "The limit to add was reached."
+msgstr "De limiet om toe te voegen is bereikt."
+
+msgid "Cannot add any line to the area {area} because of topology constraints. Please check the medium type of the backbone and main lines."
+msgstr "Vanwege topologiebeperkingen kan geen lijn aan het gebied {area} worden toegevoegd. Controleer het mediumtype van de backbone- en hoofdlijnen."
+
+msgid "Added {count} areas to '{target}'."
+msgstr "{count} gebieden toegevoegd aan '{target}'."
+
+msgid "Added {count} lines to '{target}'."
+msgstr "{count} lijnen toegevoegd aan '{target}'."
+
+msgid "Added {count} segments to '{target}'."
+msgstr "{count} segmenten toegevoegd aan '{target}'."
+
+msgid "Added {count} building parts to '{target}'."
+msgstr "{count} gebouwdelen toegevoegd aan '{target}'."
+
+msgid "Added {count} trades to '{target}'."
+msgstr "{count} disciplines toegevoegd aan '{target}'."
+
+msgid "Added {count} main groups to '{target}'."
+msgstr "{count} hoofdgroepen toegevoegd aan '{target}'."
+
+msgid "Added {count} middle groups to '{target}'."
+msgstr "{count} middengroepen toegevoegd aan '{target}'."
+
+msgid "Added {count} group addresses to '{target}'."
+msgstr "{count} groepsadressen toegevoegd aan '{target}'."
+
+msgid "Add Main Groups…"
+msgstr "Hoofdgroepen Toevoegen…"
+
+msgid "Add Middle Groups…"
+msgstr "Middengroepen Toevoegen…"
+
+msgid "Add Main Groups"
+msgstr "Hoofdgroepen Toevoegen"
+
+msgid "Add Middle Groups"
+msgstr "Middengroepen Toevoegen"
+
+msgid "New main group"
+msgstr "Nieuwe hoofdgroep"
+
+msgid "New middle group"
+msgstr "Nieuwe middengroep"
+
+msgid "New group address"
+msgstr "Nieuw groepsadres"
+
+msgid "Cut"
+msgstr "Knippen"
+
+msgid "What was cut cannot be moved there."
+msgstr "Wat geknipt is, kan daar niet naartoe worden verplaatst."
+
+msgid "Park"
+msgstr "Parkeren"
+
+msgid "Park device"
+msgstr "Apparaat parkeren"
+
+msgid "Add Functions"
+msgstr "Functies Toevoegen"
+
+msgid "New function"
+msgstr "Nieuwe functie"
+
+msgid "Added {count} functions to '{target}'."
+msgstr "{count} functies toegevoegd aan '{target}'."
+
+msgid "Added {count} group ranges to '{target}'."
+msgstr "{count} groepsadresbereiken toegevoegd aan '{target}'."
+
+msgid "Add Group Ranges…"
+msgstr "Groepsadresbereiken Toevoegen…"
+
+msgid "Add Group Ranges"
+msgstr "Groepsadresbereiken Toevoegen"
+
+msgid "New group range"
+msgstr "Nieuw groepsadresbereik"
+
+msgid "Capacity"
+msgstr "Capaciteit"
+
+msgid "Link with…"
+msgstr "Koppelen aan…"
+
+msgid "Link with Group Address"
+msgstr "Koppelen aan Groepsadres"
+
+msgid "There is no group to add group addresses to."
+msgstr "Er is geen groep om groepsadressen aan toe te voegen."
+
+msgid "Add Subtrade"
+msgstr "Voeg Sub-Technisch Gebouw toe"
+
+msgid "The group range does not fit there."
+msgstr "Het groepsadresbereik past daar niet."
+
+msgid "A group range cannot go into itself or a range in it."
+msgstr "Een groepsadresbereik kan niet in zichzelf of in een bereik daarbinnen."
+
+msgid "A group address of the range is already in use there."
+msgstr "Een groepsadres van het bereik is daar al in gebruik."
+
+msgid "Copied {count} group ranges to '{target}'."
+msgstr "{count} groepsadresbereiken gekopieerd naar '{target}'."
+
+msgid "Add Areas…"
+msgstr "Gebieden Toevoegen…"
+
+msgid "{medium} segment"
+msgstr "{medium} segment"
+
+msgid "Copy Individual Address"
+msgstr "Individueel adres kopiëren"
+
+msgid "Copy Group Address"
+msgstr "Groepsadres kopiëren"
+
+msgid "Existing Devices…"
+msgstr "Bestaande apparaten…"
+
+msgid "Delete the {count} selected devices? Their group objects and group-address links are removed and their individual addresses are freed. This can be undone."
+msgstr "De {count} geselecteerde apparaten verwijderen? Hun groepsobjecten en groepsadreskoppelingen worden verwijderd en hun fysieke adressen worden vrijgegeven. Dit kan ongedaan worden gemaakt."
+
+msgid "Remove {count} devices"
+msgstr "{count} apparaten verwijderen"
+
+msgid "Delete Devices"
+msgstr "Apparaten verwijderen"
+
+msgid "{medium} line"
+msgstr "{medium} lijn"

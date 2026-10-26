@@ -3,7 +3,7 @@ import contextlib
 import math
 import threading
 import time
-from collections.abc import Callable, Coroutine
+from collections.abc import Awaitable, Callable, Coroutine, Iterable
 from concurrent.futures import Future
 from enum import Enum
 from typing import TYPE_CHECKING, Any
@@ -34,7 +34,12 @@ from editor_gui.programming import (
     ScannedDevice,
 )
 from editor_gui.settings import load_settings, save_settings
-from editor_gui.widgets.dialog import begin_tool_window
+from editor_gui.widgets.dialog import (
+    begin_dialog,
+    begin_tool_window,
+    dialog_buttons,
+    end_dialog,
+)
 from editor_gui.widgets.dpi import label_column_width, px, px_vec2
 from editor_gui.widgets.tree import collapsing_header
 from xknxeditor.prod.app_id import parse_app_id
@@ -89,6 +94,118 @@ class ConnectionState(Enum):
     ERROR = "error"
 
 
+def scan_addresses(adapters: Iterable[Any] | None = None) -> list[str]:
+    """The local IPv4 addresses a gateway search goes out from: those of every network adapter
+    (``ifaddr`` adapters), but loopback and link-local (169.254.x.x) ones, behind which no
+    KNXnet/IP interface answers."""
+    if adapters is None:
+        import ifaddr
+
+        adapters = ifaddr.get_adapters()
+    found: list[str] = []
+    for adapter in adapters:
+        for ip in adapter.ips:
+            address = ip.ip
+            if (
+                isinstance(address, str)
+                and not address.startswith(("127.", "169.254."))
+                and address not in found
+            ):
+                found.append(address)
+    return found
+
+
+async def search_gateways(
+    timeout: float,
+    addresses: list[str] | None = None,
+    on_error: Callable[[BaseException], None] | None = None,
+) -> list[GatewayDescriptor]:
+    """The KNXnet/IP devices that answer a search within ``timeout`` seconds, each once. The
+    search goes out from every local address (``addresses``, :func:`scan_addresses` by
+    default): the one the system routes multicast through alone may be a virtual network (WSL,
+    Hyper-V, VPN) without any interface. ``on_error`` hears of a search that failed."""
+    xknx = XKNX()
+    if addresses is None:
+        addresses = scan_addresses()
+    scans = [
+        GatewayScanner(xknx, local_ip=address, timeout_in_seconds=timeout).scan()
+        for address in addresses
+    ] or [GatewayScanner(xknx, timeout_in_seconds=timeout).scan()]
+    found: dict[tuple[str, int], GatewayDescriptor] = {}
+    for result in await asyncio.gather(*scans, return_exceptions=True):
+        if isinstance(result, BaseException):
+            if on_error is not None:
+                on_error(result)
+            continue
+        for gateway in result:
+            found.setdefault((gateway.ip_addr, gateway.port), gateway)
+    return list(found.values())
+
+
+async def find_by_serial(
+    serial: bytes,
+    tries: int = 6,
+    search: Callable[[float], Awaitable[list[GatewayDescriptor]]] = search_gateways,
+) -> str | None:
+    """The IP address of the KNXnet/IP device with ``serial``: up to ``tries`` searches of a
+    second each. None when it does not answer."""
+    for _ in range(tries):
+        for gateway in await search(1.0):
+            if bytes.fromhex(gateway.serial_number.replace(":", "")) == serial:
+                return gateway.ip_addr
+    return None
+
+
+def split_endpoint(address: str) -> tuple[str, int]:
+    """The host and port of an interface address as entered: ``host`` (port 3671) or
+    ``host:port``."""
+    text = address.strip()
+    host, colon, port = text.rpartition(":")
+    if colon and host and ":" not in host and port.isdigit() and 0 < int(port) < 65536:
+        return host, int(port)
+    return text, DEFAULT_GATEWAY_PORT
+
+
+def join_endpoint(host: str, port: int) -> str:
+    """An interface address as entered: the host, with ``:port`` when not 3671."""
+    return host if port == DEFAULT_GATEWAY_PORT else f"{host}:{port}"
+
+
+def tunnel_host(parameter: str) -> str | None:
+    """The address a Bus Connection (a ``<BusAccess>`` ``Parameter``) tunnels to, for a
+    KNXnet/IP tunnelling one (``Type=IpTunneling;HostAddress=…;Port=…``): its host, with
+    ``:port`` when not 3671; None for any other kind."""
+    fields: dict[str, str] = {}
+    for part in parameter.split(";"):
+        key, _, value = part.partition("=")
+        fields[key.strip()] = value.strip().strip('"')
+    if fields.get("Type") != "IpTunneling" or not fields.get("HostAddress"):
+        return None
+    port = fields.get("Port", "")
+    return join_endpoint(
+        fields["HostAddress"], int(port) if port.isdigit() else DEFAULT_GATEWAY_PORT
+    )
+
+
+class _OperationConnector:
+    """The connection plugin as the connection service's ``OperationConnector``."""
+
+    def __init__(self, plugin: "ConnectionPlugin") -> None:
+        self._plugin = plugin
+
+    def open(self) -> Future[None]:
+        return self._plugin.open_for_operation()
+
+    def release(self) -> None:
+        self._plugin.release_operation()
+
+    def opened_for_operations(self) -> bool:
+        return self._plugin.opened_for_operations
+
+    def submit(self, fn: Callable[[], None]) -> None:
+        self._plugin.on_main_thread(fn)
+
+
 class ConnectionPlugin:
     name = "connection"
 
@@ -132,6 +249,11 @@ class ConnectionPlugin:
             supported=lambda: not self.is_routing,
         )
         api.connection.set_reopen_controller(self.reopen)
+        api.connection.set_device_ip_finder(
+            lambda serial: asyncio.run_coroutine_threadsafe(
+                find_by_serial(serial), self._ensure_async_loop()
+            )
+        )
 
         self._gateways: list[GatewayDescriptor] = []
         # The project revision the connection's Data Secure tables were built from.
@@ -152,6 +274,24 @@ class ConnectionPlugin:
         self._progmode_error: str | None = (
             None  # last scan's failure, shown in the window
         )
+
+        # A connection opened for online operations while none was open: through the backbone's
+        # Bus Connection, else the one chosen in "Select Connection". How many operations use
+        # it, whether it is open, the open() all of them wait for, the connection settings it
+        # replaces while it is open, the name it is opened as, and the dialog with the failed
+        # attempts.
+        self._operation_users = 0
+        self._operation_open = False
+        self._operation_pending: Future[None] | None = None
+        self._operation_restore: (
+            tuple[str, ConnectionType, GatewayDescriptor | None, str] | None
+        ) = None
+        self._operation_name = ""
+        self._select_open = False
+        self._select_shown = False
+        self._select_failures: list[tuple[str, str]] = []
+        self._select_ip = ""
+        api.connection.operation_connector = _OperationConnector(self)
 
     @property
     def state(self) -> ConnectionState:
@@ -285,7 +425,7 @@ class ConnectionPlugin:
             return
         if gateway.supports_tunnelling:
             self._connection_type = ConnectionType.TUNNELING
-            self._controller_ip = gateway.ip_addr
+            self._controller_ip = join_endpoint(gateway.ip_addr, gateway.port)
         else:
             self._connection_type = ConnectionType.ROUTING
             self._multicast_group = gateway.multicast_address or DEFAULT_MCAST_GRP
@@ -424,8 +564,9 @@ class ConnectionPlugin:
     async def _gateway_description(self) -> GatewayDescriptor | None:
         """The tunnelling interface's description as it is now: its download changes the services
         it secures."""
+        host, port = self._endpoint()
         try:
-            return await request_description(self._controller_ip)
+            return await request_description(host, port)
         except Exception as err:
             self._log.debug(
                 "gateway description unavailable",
@@ -462,6 +603,7 @@ class ConnectionPlugin:
                 multicast_group=self._multicast_group,
                 threaded=True,
             )
+        host, port = self._endpoint()
         if gateway is not None and gateway.tunnelling_requires_secure:
             free = [
                 str(address)
@@ -477,7 +619,8 @@ class ConnectionPlugin:
                 raise MissingCredentialsError(gateway)
             return ConnectionConfig(
                 connection_type=ConnectionType.TUNNELING_TCP_SECURE,
-                gateway_ip=self._controller_ip,
+                gateway_ip=host,
+                gateway_port=port,
                 individual_address=tunnel.individual_address,
                 secure_config=SecureConfig(
                     user_id=tunnel.user_id,
@@ -488,7 +631,8 @@ class ConnectionPlugin:
             )
         return ConnectionConfig(
             connection_type=ConnectionType.TUNNELING,
-            gateway_ip=self._controller_ip,
+            gateway_ip=host,
+            gateway_port=port,
             threaded=True,
         )
 
@@ -525,12 +669,224 @@ class ConnectionPlugin:
         self._data_secure_revision = revision
         self._api.connection.refresh_data_secure()
 
+    # --- connections for online operations --------------------------------------------
+
+    @property
+    def opened_for_operations(self) -> bool:
+        """Whether the open connection was opened for online operations (it closes after the
+        last of them)."""
+        return self._operation_open
+
+    def on_main_thread(self, fn: Callable[[], None]) -> None:
+        """Run ``fn`` on the main thread (at once without one, e.g. in tests)."""
+        executor = getattr(self._api, "main_thread", None)
+        if executor is None:
+            fn()
+        else:
+            executor.submit(fn)
+
+    def open_for_operation(self) -> Future[None]:
+        """A connection for one more online operation: the open one, else one through the
+        backbone's Bus Connection; when there is none or it fails, the user selects one. Done
+        once it is open, canceled when the user canceled the selection. Each call is balanced
+        by ``release_operation``."""
+        self._operation_users += 1
+        if self._state == ConnectionState.CONNECTED:
+            done: Future[None] = Future()
+            done.set_result(None)
+            return done
+        if self._operation_pending is not None:
+            return self._operation_pending
+        pending: Future[None] = Future()
+        self._operation_pending = pending
+        self._select_failures = []
+        project = self._api.project
+        bus = project.backbone_bus_connection() if project.is_open else None
+        if bus is None:
+            self._open_select_connection()
+            return pending
+        parameter, name = bus
+        host = tunnel_host(parameter)
+        if host is None:
+            self._select_failures.append((name, S.BUS_CONNECTION_UNSUPPORTED))
+            self._open_select_connection()
+        else:
+            self._connect_for_operation(name, host, None)
+        return pending
+
+    def release_operation(self) -> None:
+        """An online operation has ended: the connection opened for operations closes after
+        the last one, and the connection settings it replaced return."""
+        self._operation_users = max(0, self._operation_users - 1)
+        self._close_when_unused()
+
+    def _close_when_unused(self) -> None:
+        if self._operation_users or not self._operation_open:
+            return
+        self._operation_open = False
+        self._session += 1
+        self._state = ConnectionState.DISCONNECTING
+        self._log.info("closing the connection opened for the operations")
+        self._run_async(self._close_for_operations())
+
+    async def _close_for_operations(self) -> None:
+        await self._disconnect_async()
+        await self._on_main_thread(self._restore_connection_settings)
+
+    def _connect_for_operation(
+        self, name: str, host: str, gateway: GatewayDescriptor | None
+    ) -> None:
+        """Connect to ``host`` (or the discovered ``gateway``) for the waiting operations, without
+        making it the connection the user chose (its settings return when it closes)."""
+        if self._operation_restore is None:
+            self._operation_restore = (
+                self._controller_ip,
+                self._connection_type,
+                self._selected_gateway,
+                self._multicast_group,
+            )
+        if gateway is not None and not gateway.supports_tunnelling:
+            self._connection_type = ConnectionType.ROUTING
+            self._multicast_group = gateway.multicast_address or DEFAULT_MCAST_GRP
+        else:
+            self._connection_type = ConnectionType.TUNNELING
+            self._controller_ip = host
+        self._selected_gateway = gateway
+        self._operation_name = name
+        self._session += 1
+        self._retry_on_credentials = False
+        self._state = ConnectionState.CONNECTING
+        self._error_message = None
+        self._log.info("connecting for an operation", connection=name)
+        self._run_async(self._connect_for_operation_async())
+
+    async def _connect_for_operation_async(self) -> None:
+        await self._connect_async()
+        # Not retried later on: the operation asks for another connection instead.
+        self._retry_on_credentials = False
+        await self._on_main_thread(self._operation_connected)
+
+    def _operation_connected(self) -> None:
+        pending = self._operation_pending
+        if self._state == ConnectionState.CONNECTED:
+            self._operation_pending = None
+            self._select_open = False
+            self._operation_open = True
+            if pending is None:
+                # The selection was canceled while it connected: it closes unless used.
+                self._close_when_unused()
+            else:
+                pending.set_result(None)
+            return
+        self._select_failures.append(
+            (self._operation_name, self._error_message or S.STATUS_CONNECTION_FAILED)
+        )
+        self._restore_connection_settings()
+        self._state = ConnectionState.DISCONNECTED
+        self._error_message = None
+        if pending is not None:
+            self._open_select_connection()
+
+    def _restore_connection_settings(self) -> None:
+        restore, self._operation_restore = self._operation_restore, None
+        if restore is not None:
+            (
+                self._controller_ip,
+                self._connection_type,
+                self._selected_gateway,
+                self._multicast_group,
+            ) = restore
+
+    def _open_select_connection(self) -> None:
+        """Ask the user for the connection of the waiting operations ("Select Connection")."""
+        self._select_open = True
+        self._select_ip = self._controller_ip
+        if not self._scanning:
+            self.scan()
+
+    def _cancel_select_connection(self) -> None:
+        pending, self._operation_pending = self._operation_pending, None
+        self._select_open = False
+        if pending is not None:
+            pending.cancel()
+
+    def _render_select_connection(self) -> None:
+        """The "Select Connection" dialog: why no connection could be opened (the attempts that
+        failed) and the interfaces found, or one entered, to use instead."""
+        title = f"{S.SELECT_CONNECTION_TITLE}###select_connection"
+        if self._select_open and not self._select_shown:
+            imgui.open_popup(title)
+            self._select_shown = True
+        if not self._select_shown:
+            return
+        if not begin_dialog(title, width=460.0):
+            self._select_shown = False
+            return
+        if not self._select_open:
+            imgui.close_current_popup()
+            end_dialog()
+            return
+        failures = self._select_failures
+        imgui.text_wrapped(
+            S.SELECT_CONNECTION_SPECIFIC.format(name=failures[0][0])
+            if failures
+            else S.SELECT_CONNECTION_AUTOMATIC
+        )
+        for name, error in failures:
+            imgui.push_style_color(imgui.Col_.text, imgui.ImVec4(0.9, 0.4, 0.4, 1.0))
+            imgui.text_wrapped(
+                S.SELECT_CONNECTION_FAILED.format(name=name, error=error)
+            )
+            imgui.pop_style_color()
+        imgui.text_wrapped(S.SELECT_CONNECTION_INSTEAD)
+        imgui.separator()
+        connecting = self._state == ConnectionState.CONNECTING
+        imgui.begin_disabled(connecting)
+        imgui.text_disabled(S.SECTION_DISCOVERED)
+        if self._scanning or connecting:
+            imgui.same_line()
+            imspinner.spinner_ang(
+                "##select-spinner",
+                px(6),
+                px(2),
+                color=imgui.ImColor(
+                    imgui.get_style_color_vec4(imgui.Col_.tab_selected)
+                ),
+            )
+        for gateway in self._gateways:
+            label = f"{gateway.name}  ({gateway.ip_addr})"
+            if imgui.selectable(f"{label}##select_{gateway.ip_addr}", False)[0]:
+                self._connect_for_operation(
+                    label, join_endpoint(gateway.ip_addr, gateway.port), gateway
+                )
+        if not self._gateways and not self._scanning:
+            imgui.text_disabled(S.NO_GATEWAYS_FOUND)
+        imgui.text_disabled(S.SECTION_MANUAL)
+        imgui.set_next_item_width(px(180))
+        _, self._select_ip = imgui.input_text("IP##select_ip", self._select_ip)
+        imgui.same_line()
+        if (
+            imgui.button(f"{S.MENU_CONNECT}##select_connect")
+            and self._select_ip.strip()
+        ):
+            host = self._select_ip.strip()
+            self._connect_for_operation(host, host, None)
+        imgui.end_disabled()
+        if dialog_buttons(S.SELECT_CONNECTION_CANCEL) == 0:
+            self._cancel_select_connection()
+            imgui.close_current_popup()
+        end_dialog()
+
     def disconnect(self) -> None:
         if self._api.connection.busmonitor_state is BusmonitorState.RUNNING:
             self.stop_busmonitor(restore=False)
             return
         if self._state in (ConnectionState.DISCONNECTED, ConnectionState.DISCONNECTING):
             return
+        if self._operation_open:
+            # Closed by the user: the operations using it fail, and it is not closed again.
+            self._operation_open = False
+            self._restore_connection_settings()
         self._session += 1
         self._retry_on_credentials = False
         self._state = ConnectionState.DISCONNECTING
@@ -660,19 +1016,19 @@ class ConnectionPlugin:
                 port=DEFAULT_GATEWAY_PORT,
                 connector="IpRouting",
             )
+        host, port = self._endpoint()
         return LinkInfo(
             name=name or "IP Tunneling",
-            host=self._controller_ip,
-            port=self._gateway_port(),
+            host=host,
+            port=port,
             connector="IpTunneling",
             protocol="Udp",
         )
 
-    def _gateway_port(self) -> int:
-        gateway = self._selected_gateway
-        if gateway is not None and gateway.ip_addr == self._controller_ip:
-            return gateway.port
-        return DEFAULT_GATEWAY_PORT
+    def _endpoint(self) -> tuple[str, int]:
+        """The host and port of the tunnelling interface: the controller address as entered,
+        ``host`` (port 3671) or ``host:port``."""
+        return split_endpoint(self._controller_ip)
 
     # --- bus monitor mode -----------------------------------------------------
 
@@ -700,8 +1056,7 @@ class ConnectionPlugin:
 
     async def _start_busmonitor_async(self) -> None:
         service = self._api.connection
-        gateway_ip = self._controller_ip
-        port = self._gateway_port()
+        gateway_ip, port = self._endpoint()
         link = self._link_info()
         self._log.info("starting bus monitor", target=gateway_ip, port=port)
         if self._interface is not None or self._xknx is not None:
@@ -776,10 +1131,19 @@ class ConnectionPlugin:
 
     async def _scan_async(self, auto_connect: bool = False) -> None:
         try:
-            xknx = XKNX()
-            scanner = GatewayScanner(xknx, timeout_in_seconds=3.0)
-            self._gateways = await scanner.scan()
-            self._log.info("gateway scan complete", found=len(self._gateways))
+            addresses = scan_addresses()
+            self._gateways = await search_gateways(
+                3.0,
+                addresses,
+                lambda error: self._log.debug(
+                    "gateway search failed", error=str(error)
+                ),
+            )
+            self._log.info(
+                "gateway scan complete",
+                found=len(self._gateways),
+                addresses=",".join(addresses),
+            )
             for g in self._gateways:
                 self._log.debug(
                     "gateway found",
@@ -966,7 +1330,9 @@ class ConnectionPlugin:
         future.add_done_callback(_done)
 
     def render_window(self) -> None:
-        """The 'Devices in programming mode' window; called from the overlay pass."""
+        """The 'Devices in programming mode' window and the "Select Connection" dialog; called
+        from the overlay pass."""
+        self._render_select_connection()
         if not self._progmode_open:
             return
         expanded, open_state = begin_tool_window(

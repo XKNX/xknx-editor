@@ -23,6 +23,9 @@ class PluginAPI:
     # Transient user feedback (e.g. "Copied"), shown as a short toast by the app. Optional so
     # tests/other callers can build the API without a UI.
     notify: Callable[[str], None] | None = None
+    # Why something was refused or failed, shown by the app as a toast that stands out and stays
+    # longer (see :meth:`tell_refused`).
+    warn: Callable[[str], None] | None = None
     # Marshals a callable onto the imgui/UI thread (drained each frame). Used to apply project edits
     # from background threads (e.g. async programming callbacks). Optional so tests can omit a UI.
     main_thread: "MainThreadExecutor | None" = None
@@ -43,3 +46,10 @@ class PluginAPI:
     queue_program: Callable[..., "QueueItem | None"] | None = None
     # Cancels a queued or running operation. Set by the project plugin.
     cancel_operation: Callable[["QueueItem"], None] | None = None
+
+    def tell_refused(self, reason: str | None) -> None:
+        """Tell the user why something was refused or failed (``reason``; None or "": it was
+        not), through ``warn`` (else ``notify``)."""
+        show = self.warn or self.notify
+        if reason and show is not None:
+            show(reason)

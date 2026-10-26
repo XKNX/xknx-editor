@@ -10,11 +10,17 @@ from imgui_bundle import imgui
 
 from editor_gui import web
 from editor_gui.web.touch import ImGuiTouchUi
-from editor_gui.widgets.tabs import begin_tab_bar, shown_tab_bar_ids
+from editor_gui.widgets.tabs import (
+    begin_tab_bar,
+    forget_shown_tab_bars,
+    shown_tab_bar_ids,
+)
 
 
 @pytest.fixture
 def context() -> Iterator[None]:
+    # Tab bars of another test's context (its frames counted from 0 too) are not this one's.
+    forget_shown_tab_bars()
     ctx = imgui.create_context()
     io = imgui.get_io()
     io.display_size = imgui.ImVec2(800, 600)

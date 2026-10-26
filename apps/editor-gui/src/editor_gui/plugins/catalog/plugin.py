@@ -9,7 +9,10 @@ from editor_gui.plugins.catalog.online_catalog import (
 )
 from editor_gui.plugins.catalog.strings import S
 from editor_gui.plugins.catalog.ui import CatalogPanel
+from editor_gui.plugins.project.medium_text import medium_error_text
 from editor_gui.plugins.project.service import DeviceProduct
+from xknxeditor.proj.core.medium import MediumError
+from xknxeditor.proj.core.space_rules import holds_devices
 
 if TYPE_CHECKING:
     from editor_gui.plugins.catalog.online_catalog import OnlineCatalogItem
@@ -37,11 +40,22 @@ class CatalogPlugin:
             get_online_index_status=api.catalog.online_index_status,
             search_online_products=api.catalog.search_online_products,
             online_filters=api.catalog.online_filters,
-            add_online_item=self._add_online_item_to_project,
+            find_local_product=self._local_product_of,
             can_add_to_project=lambda: api.project.is_open,
             plan_delete_product=self._plan_delete_product,
             delete_product=self._delete_product,
             export_product=self._export_product,
+            get_lines=lambda: (
+                api.project.segment_choices() if api.project.is_open else []
+            ),
+            get_line=lambda: api.project.device_target_segment,
+            set_line=self._set_line,
+            on_add_to_line=lambda product, segment, space: self._on_select(
+                product, space, segment
+            ),
+            tell_refused=api.tell_refused,
+            get_space=lambda: api.project.device_target_space,
+            set_space=self._set_space,
         )
         self._panels = [
             PanelDefinition(
@@ -52,31 +66,44 @@ class CatalogPlugin:
             ),
         ]
 
+    def _set_line(self, segment_id: int | None) -> None:
+        self._api.project.device_target_segment = segment_id
+
+    def _set_space(self, space_id: int | None) -> None:
+        self._api.project.device_target_space = space_id
+
     def _notify(self, text: str) -> None:
         if self._api.notify is not None:
             self._api.notify(text)
 
-    def _on_select(self, product: ProductSummary, space_id: int | None = None) -> None:
+    def _on_select(
+        self,
+        product: ProductSummary,
+        space_id: int | None = None,
+        segment_id: int | None = None,
+    ) -> None:
+        """Add ``product`` to the project (in the space ``space_id``), on the line (segment)
+        ``segment_id``, else on the one chosen in the catalog."""
         # "Add device" needs a project to add into; without one add_device is a silent no-op, so give
         # explicit feedback instead of the button appearing to do nothing.
         if not self._api.project.is_open:
             self._log.warning(
                 "cannot add device: no project open", product=product.product_ref_id
             )
-            self._notify(S.CATALOG_ADD_NEEDS_PROJECT)
+            self._api.tell_refused(S.CATALOG_ADD_NEEDS_PROJECT)
             return
         if product.application_id is None:
             self._log.warning(
                 "product has no application", product=product.product_ref_id
             )
-            self._notify(S.CATALOG_ADD_NO_APP)
+            self._api.tell_refused(S.CATALOG_ADD_NO_APP)
             return
         app = self._api.catalog.get_application(product.application_id)
         if app is None:
             self._log.warning(
                 "application not found", application_id=product.application_id
             )
-            self._notify(S.CATALOG_ADD_NO_APP)
+            self._api.tell_refused(S.CATALOG_ADD_NO_APP)
             return
 
         # A device that supports KNX Data Secure is commissioned securely by default, which needs
@@ -89,32 +116,46 @@ class CatalogPlugin:
         ):
             request(
                 S.CATALOG_ADD_SECURE_PASSWORD,
-                lambda: self._add(product, app, space_id, secure_commissioning=True),
-                lambda: self._add(product, app, space_id, secure_commissioning=False),
+                lambda: self._add(
+                    product, app, space_id, segment_id, secure_commissioning=True
+                ),
+                lambda: self._add(
+                    product, app, space_id, segment_id, secure_commissioning=False
+                ),
             )
             return
-        self._add(product, app, space_id)
+        self._add(product, app, space_id, segment_id)
 
     def _add(
         self,
         product: ProductSummary,
         app: Application,
         space_id: int | None,
+        segment_id: int | None = None,
         *,
         secure_commissioning: bool | None = None,
     ) -> None:
-        # A new device has no name of its own; it shows its product's name until renamed.
-        device_id = self._api.project.add_device(
-            product_ref_id=product.product_ref_id,
-            hardware2program_ref_id=product.hardware2program_ref_id,
-            name="",
-            app=app,
-            product=DeviceProduct.of(product),
-            secure_commissioning=secure_commissioning,
-        )
+        # A new device has no name of its own; it shows its product's name until renamed. It
+        # goes on the line given ("Add to"), else the one chosen in the catalog, else (added to a
+        # space) on the space's Current Line; its hardware must support the line's medium.
+        if segment_id is None:
+            segment_id = self._api.project.device_target_segment
+        try:
+            device_id = self._api.project.add_device(
+                product_ref_id=product.product_ref_id,
+                hardware2program_ref_id=product.hardware2program_ref_id,
+                name="",
+                app=app,
+                product=DeviceProduct.of(product),
+                secure_commissioning=secure_commissioning,
+                space_id=space_id,
+                segment_id=segment_id,
+            )
+        except MediumError as error:
+            self._log.warning("device not added", error=str(error))
+            self._api.tell_refused(medium_error_text(error))
+            return
         if device_id:
-            if space_id is not None:
-                self._api.project.set_device_space(device_id, space_id)
             ask = self._api.ask_device_certificate
             if ask is not None and self._api.project.secure_commissioning_of(device_id):
                 ask(device_id)
@@ -172,7 +213,7 @@ class CatalogPlugin:
         source = self._api.catalog.get_program_source(product.hardware2program_ref_id)
         if source is None:
             self._log.warning("no stored archive for product", product=name)
-            self._notify(S.EXPORT_KNXPROD_UNAVAILABLE.format(name=name))
+            self._api.tell_refused(S.EXPORT_KNXPROD_UNAVAILABLE.format(name=name))
             return
         knxprod_path, _manufacturer = source
         try:
@@ -183,14 +224,17 @@ class CatalogPlugin:
                 product=name,
                 error=f"{type(exc).__name__}: {exc}",
             )
-            self._notify(S.EXPORT_KNXPROD_FAILED.format(name=name, error=str(exc)))
+            self._api.tell_refused(
+                S.EXPORT_KNXPROD_FAILED.format(name=name, error=str(exc))
+            )
             return
         self._log.info("exported knxprod", product=name, dest=dest)
         self._notify(S.EXPORT_KNXPROD_OK.format(name=name))
 
     def _space_options(self) -> list[tuple[int, str]]:
         """Flattened (space_id, "Building / Floor / Room") pairs for the Add-device room picker,
-        in tree order. Empty when no project is open or the project has no spaces."""
+        in tree order: the spaces that hold devices (stairways, rooms, corridors, cabinets).
+        Empty when no project is open or the project has no such space."""
         if not self._api.project.is_open:
             return []
         out: list[tuple[int, str]] = []
@@ -198,7 +242,8 @@ class CatalogPlugin:
         def walk(spaces: list[Any], trail: list[str]) -> None:
             for space in spaces:
                 here = [*trail, space.name or space.space_type or "?"]
-                out.append((space.id, " / ".join(here)))
+                if holds_devices(space.space_type):
+                    out.append((space.id, " / ".join(here)))
                 walk(space.children, here)
 
         walk(self._api.project.get_space_tree(), [])
@@ -242,15 +287,11 @@ class CatalogPlugin:
             raise
         self._log.info("online product imported", item=item_id, added=len(added))
 
-    def _add_online_item_to_project(self, item_id: str) -> None:
-        """Add a just-imported online product to the open project (confirmed via the panel alert).
-
-        The online item id carries the product's ``hardware2program_ref_id`` as a prefix, so the
-        matching freshly-imported local product is the longest such prefix match. Reuses the normal
-        local add path (``_on_select``) so catalog resolution/export behave identically."""
-        if not self._api.project.is_open:
-            self._notify(S.CATALOG_ADD_NEEDS_PROJECT)
-            return
+    def _local_product_of(self, item_id: str) -> ProductSummary | None:
+        """The local product the online product ``item_id`` was imported as; None while it is
+        not in the local catalog. The online item id carries the product's
+        ``hardware2program_ref_id`` as a prefix, so it is the longest such prefix match; it is
+        added by the normal local path (``_on_select``)."""
         matches = [
             p
             for p in self._api.catalog.get_products()
@@ -258,11 +299,8 @@ class CatalogPlugin:
             and item_id.startswith(p.hardware2program_ref_id)
         ]
         if not matches:
-            self._log.warning("imported product not found for online add", item=item_id)
-            self._notify(S.CATALOG_ADD_NO_APP)
-            return
-        product = max(matches, key=lambda p: len(p.hardware2program_ref_id))
-        self._on_select(product)
+            return None
+        return max(matches, key=lambda p: len(p.hardware2program_ref_id))
 
     def _build_online_index(
         self,

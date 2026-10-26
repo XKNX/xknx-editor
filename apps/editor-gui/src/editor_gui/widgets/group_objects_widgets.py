@@ -30,6 +30,7 @@ from editor_gui.widgets.dpi import px
 from editor_gui.widgets.flow import button_width, checkbox_width, same_line_if_fits
 from editor_gui.widgets.strings import S
 from editor_gui.widgets.tables import begin_data_table, data_table_headers
+from editor_gui.widgets.x_button import small_x_size, x_button
 from xknxeditor.proj.core.addressing import GroupAddressStyle
 
 # One com-object → group-address link: (assignment_id, group_address_id, text, is_sending).
@@ -234,7 +235,8 @@ class GroupObjectsTable:
                 if imgui.button(paste):
                     self._paste_to_checked(device, com_objects)
                 imgui.end_disabled()
-                if imgui.is_item_hovered(imgui.HoveredFlags_.allow_when_disabled):
+                # A disabled button tells nothing.
+                if imgui.is_item_hovered():
                     imgui.set_tooltip(S.GROUP_OBJECTS_PASTE_LINKS_HINT)
                 same_line_if_fits(checkbox_width(S.GROUP_OBJECTS_PASTE_MERGE))
                 _, self._paste_merge = checkbox(
@@ -471,7 +473,7 @@ class GroupObjectsTable:
         direction, value_color = _value_role(com_object)
         older = S.GROUP_OBJECTS_VALUE_OLDER
         for assignment_id, ga_id, text, is_sending in ordered:
-            if imgui.small_button(f"x##unlink{assignment_id}"):
+            if x_button(f"unlink{assignment_id}", small_x_size()):
                 self._on_unlink(assignment_id)
             imgui.same_line()
             if is_sending:

@@ -401,10 +401,38 @@ class CatalogService:
         hardware = self._service.get_hardware(hardware_id)
         return bool(hardware is not None and hardware.is_ip_enabled)
 
+    @io_guarded(lambda: None)
+    def ip_config(self, hardware2program_id: str) -> str | None:
+        """Who sets the IP configuration of a product's application: "Tool" or "Custom"
+        (``IPConfig``); ``None`` when the catalog lacks it."""
+        return self._service.get_ip_config(hardware2program_id)
+
     @io_guarded(lambda: set[str]())
     def coupler_capabilities(self, hardware2program_id: str) -> set[str]:
         """The coupler capabilities of a hardware program (e.g. ``SecurityProxy``)."""
         return self._service.coupler_capabilities(hardware2program_id)
+
+    @io_guarded(lambda: None)
+    def program_media(self, hardware2program_id: str) -> tuple[set[str], bool] | None:
+        """The media a hardware program supports and whether it is a coupler; None when the
+        catalog lacks the program."""
+        return self._service.program_media(hardware2program_id)
+
+    @io_guarded(dict)
+    def program_roles(
+        self, hardware2program_ids: list[str]
+    ) -> dict[str, tuple[bool, str]]:
+        """Per hardware program the catalog has: whether its hardware is a coupler, and the
+        mask version of its application."""
+        return self._service.program_roles(hardware2program_ids)
+
+    @io_guarded(dict)
+    def program_power(
+        self, hardware2program_ids: list[str]
+    ) -> dict[str, tuple[float | None, bool, bool]]:
+        """Per hardware program the catalog has: its hardware's bus current (mA, None for
+        none), whether it is a power supply, and whether it is a coupler."""
+        return self._service.program_power(hardware2program_ids)
 
     @io_guarded(lambda: False)
     def has_application(self, application_id: str) -> bool:
