@@ -1097,12 +1097,15 @@ class LoadProcedureRunner:
         if address_segment is None:
             return None
         base = address_segment.address + (address_table.offset or 0)
+        # The address table the image built: its count and entries are written, the two
+        # own-address octets after the count are left to individual-address programming.
         tables = [
             segment
             for segment in self.image.segments
             if segment.address == base
             and segment.mask is not None
-            and all(segment.mask)
+            and segment.mask[:1] == b"\xff"
+            and all(segment.mask[3:])
         ]
         if not tables:
             return None
