@@ -253,6 +253,7 @@ class ProjectPlugin:
             on_remove_segment=self._on_remove_segment,
             on_move_device_to_segment=self._on_move_device_to_segment,
             on_unlink_device=api.project.unlink_device,
+            on_park_device=api.project.park_device,
             get_new_line_media=api.project.new_line_media,
             notify=self._report,
             on_move_line=lambda line, area: self._report(
@@ -295,6 +296,7 @@ class ProjectPlugin:
         self._configure_panel = ConfigurePanel(
             get_devices=lambda: api.project.devices,
             application_ready=api.project.application_ready,
+            get_parked_address=api.project.parked_address,
             get_selected_device=lambda: api.project.selected_device,
             set_selected_device=self._set_selected_device,
             on_param_change=self.handle_param_change,
@@ -398,6 +400,8 @@ class ProjectPlugin:
             on_remove_ga=api.project.remove_group_address,
             take_requested_ga=api.project.take_requested_group_address,
             on_create_range=api.project.create_group_range,
+            on_create_free_range=api.project.create_free_group_range,
+            on_create_ga_in=api.project.create_group_address_in,
             on_remove_range=api.project.remove_group_range,
             group_style=lambda: api.project.group_address_style,
             on_select_device_id=self._select_device_by_id,
@@ -490,6 +494,7 @@ class ProjectPlugin:
             on_add_trade_device=api.project.add_trade_device,
             on_remove_trade_device=api.project.remove_trade_device,
             get_space_devices=api.project.get_space_devices,
+            get_parked_address=api.project.parked_address,
             notify=api.notify if api.notify is not None else lambda _t: None,
             one_undo_step=api.project.one_undo_step,
             paste_dialog=self._paste_dialog("buildings"),

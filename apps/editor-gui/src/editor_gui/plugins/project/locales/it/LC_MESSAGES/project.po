@@ -562,9 +562,6 @@ msgstr "Corridoio"
 msgid "Stairway"
 msgstr "Scala"
 
-msgid "New Function"
-msgstr "Nuova funzione"
-
 msgid "Assign Group Address"
 msgstr "Assegna indirizzo di gruppo"
 
@@ -2886,3 +2883,33 @@ msgstr "Taglia"
 
 msgid "What was cut cannot be moved there."
 msgstr "L'elemento tagliato non può essere spostato lì."
+
+msgid "Park"
+msgstr "Parcheggia"
+
+msgid "Park device"
+msgstr "Parcheggia dispositivo"
+
+msgid "Add Functions"
+msgstr "Aggiungi Funzioni"
+
+msgid "New function"
+msgstr "Nuova funzione"
+
+msgid "Added {count} functions to '{target}'."
+msgstr "{count} funzioni aggiunte a '{target}'."
+
+msgid "Added {count} group ranges to '{target}'."
+msgstr "{count} intervalli di indirizzi di gruppo aggiunti a '{target}'."
+
+msgid "Add Group Ranges…"
+msgstr "Aggiungi Intervalli di Indirizzi di Gruppo…"
+
+msgid "Add Group Ranges"
+msgstr "Aggiungi Intervalli di Indirizzi di Gruppo"
+
+msgid "New group range"
+msgstr "Nuovo intervallo di indirizzi di gruppo"
+
+msgid "Capacity"
+msgstr "Capacità"

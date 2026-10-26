@@ -157,8 +157,10 @@ class TopologyPanel:
             MEDIUM_TP
         ],
         notify: Callable[[str], None] = lambda _t: None,
+        on_park_device: Callable[[int], None] | None = None,
     ) -> None:
-        """``on_create_area`` adds an area (number, name, its main line's medium),
+        """``on_park_device`` clears a device's (by id) device number, keeping it on its line
+        ("Park"). ``on_create_area`` adds an area (number, name, its main line's medium),
         ``on_create_line`` a line (area id, number, name, medium) and ``on_add_segment`` a
         sub-segment (line, name, medium), each giving the reason it cannot, or None;
         ``get_new_line_media`` gives the media a new line (area and line number) can have.
@@ -174,6 +176,7 @@ class TopologyPanel:
         self._one_undo_step = one_undo_step
         self._paste_dialog = paste_dialog
         self._on_unlink_device = on_unlink_device
+        self._on_park_device = on_park_device
         self._on_move_line = on_move_line
         self._on_move_segment = on_move_segment
         # A line's sub-segments show as nodes before its main segment's devices, each with its
@@ -213,6 +216,10 @@ class TopologyPanel:
         # The selected row as Ctrl+C/X/V take it, and the devices selected, found each frame.
         self._shortcut_row: ShortcutRow | None = None
         self._selected_devices: set[int] = set()
+        # Per frame: the line of each device placed on one ("1.5"), and the devices with an
+        # individual address.
+        self._line_text: dict[int, str] = {}
+        self._addressed: set[int] = set()
 
         self._delete_target_device: TreeDevice | None = None
         self._open_delete_device_popup: bool = False
@@ -552,11 +559,21 @@ class TopologyPanel:
             imgui.end_popup()
 
     def _render_unlink_item(self, node_ids: tuple[int, ...]) -> None:
-        """ "Unlink" of devices on a line: they are on no line then (one undo step)."""
-        if self._on_unlink_device is None:
-            return
+        """ "Park" of devices with a device number: they keep their line ("1.5.-"); "Unlink" of
+        devices on a line: they are on no line then. One undo step each."""
         segment_of = self._get_device_segments()
         on_line = [n for n in node_ids if n in segment_of]
+        numbered = [n for n in on_line if n in self._addressed]
+        if (
+            self._on_park_device is not None
+            and numbered
+            and imgui.menu_item(S.CONTEXT_PARK, "", False)[0]
+        ):
+            with self._one_undo_step():
+                for node_id in numbered:
+                    self._on_park_device(node_id)
+        if self._on_unlink_device is None:
+            return
         if on_line and imgui.menu_item(S.CONTEXT_UNLINK_LINE, "", False)[0]:
             with self._one_undo_step():
                 for node_id in on_line:
@@ -705,7 +722,11 @@ class TopologyPanel:
         return flt in app_name.lower()
 
     def _device_label(self, device: TreeDevice) -> str:
-        # Imported devices are often unnamed; fall back to the product/application name.
+        # Imported devices are often unnamed; fall back to the product/application name. One on
+        # a line without a device number shows its line's address ("1.5.-").
+        line = self._line_text.get(device.node_id)
+        if not device.individual_address and line is not None:
+            return f"{line}.-  {device.display_name or '?'}##dev{device.node_id}"
         return f"{device_label(device)}##dev{device.node_id}"
 
     @staticmethod
@@ -980,8 +1001,12 @@ class TopologyPanel:
         segment_of = self._get_device_segments()
         tree: dict[int, dict[int, list[TreeDevice]]] = {}
         unassigned: list[TreeDevice] = []
+        self._line_text = {}
+        self._addressed = {d.node_id for d in devices if d.individual_address}
         for device in devices:
             where = place.get(segment_of.get(device.node_id, -1))
+            if where is not None:
+                self._line_text[device.node_id] = f"{where[0]}.{where[1]}"
             if where is None:
                 where = _line_of_address(device.individual_address)
                 if where is not None and where[1] not in lines_of.get(where[0], set()):

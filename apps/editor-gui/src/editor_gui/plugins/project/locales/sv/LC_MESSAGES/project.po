@@ -562,9 +562,6 @@ msgstr "Korridor"
 msgid "Stairway"
 msgstr "Trappuppgång"
 
-msgid "New Function"
-msgstr "Ny funktion"
-
 msgid "Assign Group Address"
 msgstr "Tilldela gruppadress"
 
@@ -2886,3 +2883,33 @@ msgstr "Klipp ut"
 
 msgid "What was cut cannot be moved there."
 msgstr "Det som klipptes ut kan inte flyttas dit."
+
+msgid "Park"
+msgstr "Parkera"
+
+msgid "Park device"
+msgstr "Parkera enhet"
+
+msgid "Add Functions"
+msgstr "Lägg till funktioner"
+
+msgid "New function"
+msgstr "Ny funktion"
+
+msgid "Added {count} functions to '{target}'."
+msgstr "{count} funktioner tillagda i '{target}'."
+
+msgid "Added {count} group ranges to '{target}'."
+msgstr "{count} gruppadressområden tillagda i '{target}'."
+
+msgid "Add Group Ranges…"
+msgstr "Lägg till gruppadressområden…"
+
+msgid "Add Group Ranges"
+msgstr "Lägg till gruppadressområden"
+
+msgid "New group range"
+msgstr "Nytt gruppadressområde"
+
+msgid "Capacity"
+msgstr "Kapacitet"

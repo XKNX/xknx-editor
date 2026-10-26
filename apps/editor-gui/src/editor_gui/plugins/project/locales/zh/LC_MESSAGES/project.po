@@ -562,9 +562,6 @@ msgstr "走廊"
 msgid "Stairway"
 msgstr "楼梯"
 
-msgid "New Function"
-msgstr "新功能"
-
 msgid "Assign Group Address"
 msgstr "分配组地址"
 
@@ -2886,3 +2883,33 @@ msgstr "剪切"
 
 msgid "What was cut cannot be moved there."
 msgstr "剪切的内容无法移动到该处。"
+
+msgid "Park"
+msgstr "停放"
+
+msgid "Park device"
+msgstr "停放设备"
+
+msgid "Add Functions"
+msgstr "添加功能"
+
+msgid "New function"
+msgstr "新功能"
+
+msgid "Added {count} functions to '{target}'."
+msgstr "已向“{target}”添加 {count} 个功能。"
+
+msgid "Added {count} group ranges to '{target}'."
+msgstr "已向“{target}”添加 {count} 个组地址范围。"
+
+msgid "Add Group Ranges…"
+msgstr "添加组地址范围…"
+
+msgid "Add Group Ranges"
+msgstr "添加组地址范围"
+
+msgid "New group range"
+msgstr "新组地址范围"
+
+msgid "Capacity"
+msgstr "容量"

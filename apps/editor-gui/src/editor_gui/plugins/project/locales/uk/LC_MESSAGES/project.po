@@ -562,9 +562,6 @@ msgstr "Коридор"
 msgid "Stairway"
 msgstr "Сходи"
 
-msgid "New Function"
-msgstr "Нова функція"
-
 msgid "Assign Group Address"
 msgstr "Призначити групову адресу"
 
@@ -2886,3 +2883,33 @@ msgstr "Вирізати"
 
 msgid "What was cut cannot be moved there."
 msgstr "Вирізане не можна перемістити туди."
+
+msgid "Park"
+msgstr "Відкласти"
+
+msgid "Park device"
+msgstr "Відкласти пристрій"
+
+msgid "Add Functions"
+msgstr "Додати функції"
+
+msgid "New function"
+msgstr "Нова функція"
+
+msgid "Added {count} functions to '{target}'."
+msgstr "Додано функцій: {count} до '{target}'."
+
+msgid "Added {count} group ranges to '{target}'."
+msgstr "Додано діапазонів групових адрес: {count} до '{target}'."
+
+msgid "Add Group Ranges…"
+msgstr "Додати діапазони групових адрес…"
+
+msgid "Add Group Ranges"
+msgstr "Додати діапазони групових адрес"
+
+msgid "New group range"
+msgstr "Новий діапазон групових адрес"
+
+msgid "Capacity"
+msgstr "Ємність"

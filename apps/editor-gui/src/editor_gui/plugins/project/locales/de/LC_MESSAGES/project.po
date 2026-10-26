@@ -846,9 +846,6 @@ msgstr "Auf V{version} aktualisieren"
 msgid "+ Function"
 msgstr "+ Funktion"
 
-msgid "New Function"
-msgstr "Neue Funktion"
-
 msgid "Type"
 msgstr "Typ"
 
@@ -3071,3 +3068,33 @@ msgstr "Ausschneiden"
 
 msgid "What was cut cannot be moved there."
 msgstr "Das Ausgeschnittene kann nicht dorthin verschoben werden."
+
+msgid "Park"
+msgstr "Parken"
+
+msgid "Park device"
+msgstr "Gerät parken"
+
+msgid "Add Functions"
+msgstr "Funktionen hinzufügen"
+
+msgid "New function"
+msgstr "Neue Funktion"
+
+msgid "Added {count} functions to '{target}'."
+msgstr "{count} Funktionen in '{target}' eingefügt."
+
+msgid "Added {count} group ranges to '{target}'."
+msgstr "{count} Gruppenadressbereiche in '{target}' eingefügt."
+
+msgid "Add Group Ranges…"
+msgstr "Gruppenadressbereiche hinzufügen…"
+
+msgid "Add Group Ranges"
+msgstr "Gruppenadressbereiche hinzufügen"
+
+msgid "New group range"
+msgstr "Neuer Gruppenadressbereich"
+
+msgid "Capacity"
+msgstr "Kapazität"

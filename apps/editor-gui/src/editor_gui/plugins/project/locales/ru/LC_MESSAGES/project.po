@@ -562,9 +562,6 @@ msgstr "Коридор"
 msgid "Stairway"
 msgstr "Лестница"
 
-msgid "New Function"
-msgstr "Новая функция"
-
 msgid "Assign Group Address"
 msgstr "Назначить групповой адрес"
 
@@ -2886,3 +2883,33 @@ msgstr "Вырезать"
 
 msgid "What was cut cannot be moved there."
 msgstr "Вырезанное нельзя переместить туда."
+
+msgid "Park"
+msgstr "Отложить"
+
+msgid "Park device"
+msgstr "Отложить устройство"
+
+msgid "Add Functions"
+msgstr "Добавить функции"
+
+msgid "New function"
+msgstr "Новая функция"
+
+msgid "Added {count} functions to '{target}'."
+msgstr "Добавлено функций: {count} в '{target}'."
+
+msgid "Added {count} group ranges to '{target}'."
+msgstr "Добавлено диапазонов групповых адресов: {count} в '{target}'."
+
+msgid "Add Group Ranges…"
+msgstr "Добавить диапазоны групповых адресов…"
+
+msgid "Add Group Ranges"
+msgstr "Добавить диапазоны групповых адресов"
+
+msgid "New group range"
+msgstr "Новый диапазон групповых адресов"
+
+msgid "Capacity"
+msgstr "Ёмкость"

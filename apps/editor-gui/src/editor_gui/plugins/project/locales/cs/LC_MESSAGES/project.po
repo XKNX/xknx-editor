@@ -562,9 +562,6 @@ msgstr "Chodba"
 msgid "Stairway"
 msgstr "Schodiště"
 
-msgid "New Function"
-msgstr "Nová funkce"
-
 msgid "Assign Group Address"
 msgstr "Přiřadit skupinovou adresu"
 
@@ -2886,3 +2883,33 @@ msgstr "Vyjmout"
 
 msgid "What was cut cannot be moved there."
 msgstr "Vyjmutý prvek sem nelze přesunout."
+
+msgid "Park"
+msgstr "Odstavit"
+
+msgid "Park device"
+msgstr "Odstavit zařízení"
+
+msgid "Add Functions"
+msgstr "Přidat funkce"
+
+msgid "New function"
+msgstr "Nová funkce"
+
+msgid "Added {count} functions to '{target}'."
+msgstr "{count} funkcí přidáno do '{target}'."
+
+msgid "Added {count} group ranges to '{target}'."
+msgstr "{count} rozsahů skupinových adres přidáno do '{target}'."
+
+msgid "Add Group Ranges…"
+msgstr "Přidat rozsahy skupinových adres…"
+
+msgid "Add Group Ranges"
+msgstr "Přidat rozsahy skupinových adres"
+
+msgid "New group range"
+msgstr "Nový rozsah skupinových adres"
+
+msgid "Capacity"
+msgstr "Kapacita"

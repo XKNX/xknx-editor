@@ -562,9 +562,6 @@ msgstr "廊下"
 msgid "Stairway"
 msgstr "階段"
 
-msgid "New Function"
-msgstr "新しい機能"
-
 msgid "Assign Group Address"
 msgstr "グループ・アドレスを割り当て"
 
@@ -2886,3 +2883,33 @@ msgstr "切り取り"
 
 msgid "What was cut cannot be moved there."
 msgstr "切り取ったものはそこへ移動できません。"
+
+msgid "Park"
+msgstr "パーク"
+
+msgid "Park device"
+msgstr "デバイスをパーク"
+
+msgid "Add Functions"
+msgstr "機能を追加"
+
+msgid "New function"
+msgstr "新しい機能"
+
+msgid "Added {count} functions to '{target}'."
+msgstr "{count} 個の機能を '{target}' に追加しました。"
+
+msgid "Added {count} group ranges to '{target}'."
+msgstr "{count} 個のグループアドレス範囲を '{target}' に追加しました。"
+
+msgid "Add Group Ranges…"
+msgstr "グループアドレス範囲を追加…"
+
+msgid "Add Group Ranges"
+msgstr "グループアドレス範囲を追加"
+
+msgid "New group range"
+msgstr "新しいグループアドレス範囲"
+
+msgid "Capacity"
+msgstr "容量"

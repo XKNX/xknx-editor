@@ -531,6 +531,8 @@ _HISTORY_LABELS: dict[str, Callable[[dict[str, Any]], str]] = {
     "MoveDevice": lambda d: (
         S.HISTORY_EV_UNLINK_DEVICE
         if d.get("segment_id") is None
+        else S.HISTORY_EV_PARK_DEVICE
+        if d.get("address") is None
         else S.HISTORY_EV_MOVE_DEVICE
     ),
     "SetDeviceAdditionalAddresses": lambda d: str(
@@ -5598,6 +5600,41 @@ class ProjectService:
         self._svc.unlink_device(self._pid, node_id, couplers=self._line_couplers())
         self._bump()
 
+    def park_device(self, node_id: int) -> None:
+        """Clear a device's device number ("Park"): it stays on its line ("1.5.-"). Undoable;
+        nothing for a device without one."""
+        if self._pid is None:
+            return
+        self._svc.park_device(self._pid, node_id, couplers=self._line_couplers())
+        self._bump()
+
+    @io_guarded(dict)
+    @revision_cached
+    def device_lines(self) -> dict[int, str]:
+        """The line of every device on one, as its individual address starts: ``node id ->
+        "1.5"``; a device without a device number shows as "1.5.-"."""
+        place: dict[int, str] = {}
+        for area in self.get_areas():
+            for line in self.get_lines(area.id):
+                text = f"{area.area_number}.{line.line_number}"
+                for segment_id in (
+                    line.main_segment_id,
+                    *(s.id for s in line.segments),
+                ):
+                    if segment_id is not None:
+                        place[segment_id] = text
+        return {
+            node_id: place[segment_id]
+            for node_id, segment_id in self.device_segments().items()
+            if segment_id in place
+        }
+
+    def parked_address(self, node_id: int) -> str:
+        """Its line's address with "-" ("1.5.-") for a device on a line, "" on no line: what
+        shows for it while it has no device number."""
+        line = self.device_lines().get(node_id)
+        return f"{line}.-" if line is not None else ""
+
     def move_device_to_segment(self, node_id: int, segment_id: int) -> None:
         """Move a device to a segment: within its line it keeps its address, into another line
         it gets that line's lowest free one. Undoable. Raises ``MediumError`` when the device's
@@ -5863,6 +5900,30 @@ class ProjectService:
             return None
         rid = self._svc.create_group_range(
             self._pid, _INSTALLATION, parent_id, name, number
+        )
+        self._bump(structural=False)
+        return rid
+
+    def create_group_address_in(
+        self, range_id: int, address: int, name: str
+    ) -> int | None:
+        """Create the group address ``address`` in the group ``range_id``. Raises
+        ``ValueError`` when the address is outside it or taken."""
+        if self._pid is None:
+            return None
+        ga_id = self._svc.create_group_address_in(self._pid, range_id, address, name)
+        self._bump(structural=False)
+        return ga_id
+
+    def create_free_group_range(
+        self, parent_id: int | None, name: str, start: int, end: int
+    ) -> int | None:
+        """Create a group range of the Free style spanning ``start`` to ``end``, at the top or
+        in ``parent_id``. Raises ``ValueError`` when it does not fit there (see the core)."""
+        if self._pid is None:
+            return None
+        rid = self._svc.create_free_group_range(
+            self._pid, _INSTALLATION, parent_id, name, start, end
         )
         self._bump(structural=False)
         return rid

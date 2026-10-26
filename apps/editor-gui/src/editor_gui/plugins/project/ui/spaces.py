@@ -9,9 +9,13 @@ from imgui_bundle import imgui
 from editor_gui.plugins.project.element_status import usage_label, usage_options
 from editor_gui.plugins.project.paste import PasteTarget
 from editor_gui.plugins.project.space_text import (
+    DEFAULT_FUNCTION_TYPE,
     add_item_text,
     add_title,
+    default_function_name,
     default_name,
+    function_type_label,
+    function_type_presets,
     space_type_name,
 )
 from editor_gui.plugins.project.strings import S
@@ -33,7 +37,6 @@ from editor_gui.plugins.project.ui.paste_special import (
 )
 from editor_gui.plugins.project.ui.topology import render_read_device_item
 from editor_gui.plugins.project.ui.tree_drag import Dragged, drag_source, drop_target
-from editor_gui.widgets.combo import combo
 from editor_gui.widgets.description import render_description, render_device_marks
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
 from editor_gui.widgets.dpi import px, px_vec2
@@ -52,32 +55,6 @@ if TYPE_CHECKING:
         SpaceInfo,
         TradeInfo,
     )
-
-
-def _function_type_presets() -> list[tuple[str, str]]:
-    """(label, KNX FunctionType code) for the type picker: every current (non-deprecated) type
-    of knx_master.xml, in its order; role stays free text since group addresses are accepted
-    without one."""
-    return [
-        (S.SPACES_FN_TYPE_CUSTOM, "FT-0"),
-        (S.SPACES_FN_TYPE_SWITCH, "FT-1"),
-        (S.SPACES_FN_TYPE_DIM, "FT-6"),
-        (S.SPACES_FN_TYPE_SUN_PROTECTION, "FT-7"),
-        (S.SPACES_FN_TYPE_HEATING_SWITCHING, "FT-8"),
-        (S.SPACES_FN_TYPE_HEATING_CONTINUOUS, "FT-9"),
-        (S.SPACES_FN_TYPE_SOCKET, "FT-10"),
-    ]
-
-
-# The type a new function starts with: a switchable light.
-_DEFAULT_FUNCTION_TYPE = 1
-
-
-def _function_type_label(code: str) -> str:
-    for label, c in _function_type_presets():
-        if c == code:
-            return label
-    return code or S.SPACES_FN_TYPE_CUSTOM
 
 
 def space_label(space: "SpaceInfo") -> str:
@@ -137,10 +114,6 @@ def _assign_device_dialog(space_id: int) -> str:
     return f"{S.SPACES_ASSIGN_TITLE}###assigndev{space_id}"
 
 
-def _new_function_dialog(space_id: int) -> str:
-    return f"{S.SPACES_FN_NEW_TITLE}###newfn{space_id}"
-
-
 def _add_function_ga_dialog(function_id: int) -> str:
     return f"{S.SPACES_FN_ADD_GA}###addfnga{function_id}"
 
@@ -184,11 +157,14 @@ class SpacesPanel:
         one_undo_step: UndoStep = no_undo_step,
         paste_dialog: PasteSpecialDialog | None = None,
         on_delete_device: Callable[[int], None] | None = None,
+        get_parked_address: Callable[[int], str] = lambda _n: "",
     ) -> None:
         """``notify`` shows the reason an edit was refused; ``one_undo_step`` makes the edits of
         one drop one undo step; ``paste_dialog`` asks how to copy what is dropped with Ctrl
         held (no copies without it); ``on_delete_device`` deletes a device (by id) from the
-        project, after the user confirmed it."""
+        project, after the user confirmed it; ``get_parked_address`` gives "1.5.-" for a device
+        on a line without a device number."""
+        self._get_parked_address = get_parked_address
         self._one_undo_step = one_undo_step
         self._paste_dialog = paste_dialog
         self._on_delete_device = on_delete_device
@@ -244,12 +220,6 @@ class SpacesPanel:
             count_paste_targets or (lambda _n: 1),
         )
         self._filter_text: str = ""
-        # "New function" form state (one dialog at a time; keyed by the target space).
-        self._new_fn_space: int | None = None
-        self._new_fn_name = ""
-        self._new_fn_type = (
-            _DEFAULT_FUNCTION_TYPE  # index into _function_type_presets()
-        )
         # "Assign group address" dialog state.
         self._addga_fn: int | None = None
         self._addga_role = ""
@@ -512,8 +482,6 @@ class SpacesPanel:
         self._render_space_delete_confirm(space.id)
         self._open_if_pending(_assign_device_dialog(space.id))
         self._render_assign_device_popup(space.id)
-        self._open_if_pending(_new_function_dialog(space.id))
-        self._render_new_function_popup(space.id)
         if not open_node:
             return
         for child in space.children:
@@ -537,17 +505,51 @@ class SpacesPanel:
             if devices_here and self._on_set_device_space is not None:
                 imgui.same_line()
             if imgui.small_button(f"{S.SPACES_ADD_FUNCTION}##addfn{space.id}"):
-                self._start_new_function(space.id)
-                imgui.open_popup(_new_function_dialog(space.id))
+                self._start_add_functions(space)
         imgui.tree_pop()
 
     def _start_assign_device(self) -> None:
         self._assign_filter = ""
 
-    def _start_new_function(self, space_id: int) -> None:
-        self._new_fn_space = space_id
-        self._new_fn_name = ""
-        self._new_fn_type = _DEFAULT_FUNCTION_TYPE
+    def _start_add_functions(self, space: "SpaceInfo") -> None:
+        """The "Add" dialog of functions in ``space``: rows of how many, their name (empty:
+        the name of their type) and their type."""
+        choice = AddChoice(
+            S.SPACES_FN_TYPE,
+            [(code, label) for label, code in function_type_presets()],
+            DEFAULT_FUNCTION_TYPE,
+        )
+        target = space_label(space)
+
+        def add(request: AddRequest) -> None:
+            self._add_functions(space.id, target, request)
+
+        if imgui.get_io().key_shift:
+            add(one_row(choice))
+            return
+        self._adder.open(
+            S.SPACES_TITLE_FUNCTIONS,
+            target,
+            add,
+            default_name=S.SPACES_DEFAULT_FUNCTION,
+            choice=choice,
+        )
+
+    def _add_functions(self, space_id: int, target: str, request: AddRequest) -> None:
+        """Add the functions the dialog asks for, one undo step per row. Without a name a
+        function is named after its type, a custom one "New function"."""
+        if self._on_create_function is None:
+            return
+        for row in request.rows:
+            name = row.name.strip() or default_function_name(row.choice)
+            label = (
+                S.HISTORY_EV_ADDED_FUNCTIONS.format(count=row.count, target=target)
+                if row.count > 1
+                else None
+            )
+            with self._one_undo_step(label):
+                for _ in range(row.count):
+                    self._on_create_function(space_id, row.choice, name)
 
     def _open_if_pending(self, popup_id: str) -> None:
         """Open ``popup_id`` here if a context menu requested it. Called at the tree scope, the
@@ -614,8 +616,7 @@ class SpacesPanel:
             self._on_create_function is not None
             and imgui.menu_item(S.SPACES_ADD_FUNCTIONS, "", False)[0]
         ):
-            self._start_new_function(space.id)
-            self._pending_popup_id = _new_function_dialog(space.id)
+            self._start_add_functions(space)
         imgui.end_menu()
 
     def _report(self, reason: str | None) -> None:
@@ -797,34 +798,13 @@ class SpacesPanel:
                         imgui.close_current_popup()
                 imgui.end_popup()
 
-    @staticmethod
-    def _device_label(device: "SpaceDeviceInfo") -> str:
-        ia = f"{device.individual_address}  " if device.individual_address else ""
+    def _device_label(self, device: "SpaceDeviceInfo") -> str:
+        # On a line without a device number: its line ("1.5.-").
+        address = device.individual_address or self._get_parked_address(device.id)
+        ia = f"{address}  " if address else ""
         # Unnamed: the product/hardware name; the description shows behind its icon only.
         primary = device.name or device.product_name or device.hardware_name or "?"
         return f"{ia}{primary}".strip()
-
-    def _render_new_function_popup(self, space_id: int) -> None:
-        if not begin_dialog(_new_function_dialog(space_id)):
-            return
-        imgui.set_next_item_width(px(220.0))
-        _, self._new_fn_name = imgui.input_text(S.SPACES_FN_NAME, self._new_fn_name)
-        presets = _function_type_presets()
-        imgui.set_next_item_width(px(220.0))
-        _, self._new_fn_type = combo(
-            S.SPACES_FN_TYPE, self._new_fn_type, [label for label, _ in presets]
-        )
-        can_create = bool(self._new_fn_name.strip())
-        clicked = dialog_buttons(
-            S.SPACES_FN_CREATE, S.ML_CANCEL, enabled=[can_create, True]
-        )
-        if clicked == 0 and self._on_create_function is not None:
-            _, code = presets[self._new_fn_type]
-            self._on_create_function(space_id, code, self._new_fn_name.strip())
-            imgui.close_current_popup()
-        elif clicked == 1:
-            imgui.close_current_popup()
-        end_dialog()
 
     @staticmethod
     def _space_matches_self(space: "SpaceInfo", flt: str) -> bool:
@@ -1183,7 +1163,7 @@ class SpacesPanel:
 
     def _render_function(self, function: "FunctionInfo", space_id: int) -> None:
         label = function.name or function.usage_text or function.function_type
-        type_label = _function_type_label(function.function_type)
+        type_label = function_type_label(function.function_type)
         # A click selects the function, the arrow and a double click open it.
         flags = (
             imgui.TreeNodeFlags_.open_on_arrow

@@ -351,7 +351,10 @@ class ConfigurePanel:
         find_serial_owner: Callable[[Device, bytes], str | None] | None = None,
         find_product: "Callable[[str], ProductSummary | None] | None" = None,
         application_ready: Callable[[Device], bool] | None = None,
+        get_parked_address: Callable[[int], str] = lambda _n: "",
     ) -> None:
+        # "1.5.-" for a device (node id) on a line without a device number, else "".
+        self._get_parked_address = get_parked_address
         self._get_devices = get_devices
         # Whether a device's application is loaded (it is loaded in the background otherwise).
         self._application_ready = application_ready
@@ -898,8 +901,11 @@ class ConfigurePanel:
 
     def _address_input(self, device: Device) -> None:
         imgui.set_next_item_width(-1)
-        _, self._address_buffer = imgui.input_text(
-            "##individual_address", self._address_buffer
+        # A device on a line without a device number shows its line ("1.5.-").
+        _, self._address_buffer = imgui.input_text_with_hint(
+            "##individual_address",
+            self._get_parked_address(device.node_id),
+            self._address_buffer,
         )
         if (
             imgui.is_item_deactivated_after_edit()

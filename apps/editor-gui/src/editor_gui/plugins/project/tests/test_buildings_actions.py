@@ -264,10 +264,22 @@ def test_functions_are_added_in_a_space(
     _choose(
         clicks, panel, f"##spctx{building}", S.SPACES_ADD_MENU, S.SPACES_ADD_FUNCTIONS
     )
-    panel._new_fn_name = "Ceiling light"  # pyright: ignore[reportPrivateUsage]
-    clicks.button = S.SPACES_FN_CREATE
+    # One named, two of a type without a name (named after it), a custom one without one.
+    _rows(panel)[0].name = "Ceiling light"
+    _rows(panel).append(AddRow(count=2, choice="FT-6"))
+    _rows(panel).append(AddRow(choice="FT-0"))
+    clicks.button = S.BTN_OK
     _frames(panel)
-    assert [f.name for f in project.get_space_tree()[0].functions] == ["Ceiling light"]
+    functions = project.get_space_tree()[0].functions
+    assert [(f.name, f.function_type) for f in functions] == [
+        ("Ceiling light", "FT-1"),
+        (S.SPACES_FN_TYPE_DIM, "FT-6"),
+        (S.SPACES_FN_TYPE_DIM, "FT-6"),
+        (S.SPACES_DEFAULT_FUNCTION, "FT-0"),
+    ]
+    assert project.history()[1].display_text == S.HISTORY_EV_ADDED_FUNCTIONS.format(
+        count=2, target="p"
+    )
 
 
 def test_trades_are_added_moved_and_deleted(

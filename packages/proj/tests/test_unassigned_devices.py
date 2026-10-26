@@ -76,3 +76,28 @@ def test_devices_on_no_line_are_exported_and_imported(tmp_path: Path) -> None:
     (row,) = [d for d in svc2.devices(pid2) if d.name == "Switch"]
     assert (row.segment_id, row.address) == (None, None)
     svc2.close(pid2)
+
+
+def test_a_parked_device_stays_on_its_line(tmp_path: Path) -> None:
+    svc, pid, device = _project(tmp_path)
+    before = svc.device_placement(pid, device)
+    entries = len(svc.history(pid))
+    svc.park_device(pid, device)
+    placement = svc.device_placement(pid, device)
+    assert (placement.segment_id, placement.address) == (before.segment_id, None)
+    assert svc.individual_address(pid, device) is None
+    assert len(svc.history(pid)) == entries + 1
+    # Parking again changes nothing.
+    svc.park_device(pid, device)
+    assert len(svc.history(pid)) == entries + 1
+    assert svc.undo(pid)
+    assert svc.individual_address(pid, device) == "1.1.1"
+    assert svc.redo(pid)
+    # A new number in its line.
+    svc.set_individual_address(pid, device, "1.1.9")
+    assert svc.individual_address(pid, device) == "1.1.9"
+    # An unlinked device has no line to park on.
+    svc.unlink_device(pid, device)
+    entries = len(svc.history(pid))
+    svc.park_device(pid, device)
+    assert len(svc.history(pid)) == entries

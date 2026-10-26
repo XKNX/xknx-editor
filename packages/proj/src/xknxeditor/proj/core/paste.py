@@ -168,3 +168,38 @@ class AddressPool:
     def room(self) -> int:
         """How many numbers are still free."""
         return sum(1 for n in range(self._low, self._high + 1) if self._free(n))
+
+
+def place_range(
+    low: int,
+    high: int,
+    taken: Iterable[tuple[int, int]],
+    size: int,
+    allocation: Allocation = Allocation.FILL_UP,
+    start_with: int = 0,
+) -> int | None:
+    """Where a group range of ``size`` addresses goes between ``low`` and ``high`` (a free-style
+    group range, beside the ranges ``taken`` as ``(start, end)``): ``FILL_UP`` the lowest place
+    it fits, ``APPEND`` right after the highest taken one, ``START_WITH`` the first place from
+    ``start_with`` on; the lowest place when the asked one has no room. None when it fits
+    nowhere."""
+    spans = sorted((start, end) for start, end in taken)
+
+    def fits(start: int) -> bool:
+        end = start + size - 1
+        return (
+            low <= start and end <= high and all(end < s or start > e for s, e in spans)
+        )
+
+    def first_from(begin: int) -> int | None:
+        candidates = [begin, *(e + 1 for _s, e in spans if e + 1 > begin)]
+        return next((c for c in sorted(candidates) if fits(c)), None)
+
+    if size < 1:
+        return None
+    wanted: int | None = None
+    if allocation is Allocation.APPEND:
+        wanted = first_from(max((e + 1 for _s, e in spans), default=low))
+    elif allocation is Allocation.START_WITH:
+        wanted = first_from(max(low, start_with))
+    return wanted if wanted is not None else first_from(low)

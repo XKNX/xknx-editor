@@ -381,9 +381,6 @@ msgstr "Klik om te kopieren"
 msgid "+ Function"
 msgstr "+ Functie"
 
-msgid "New Function"
-msgstr "Nieuwe functie"
-
 msgid "Type"
 msgstr "Type"
 
@@ -2924,3 +2921,33 @@ msgstr "Knippen"
 
 msgid "What was cut cannot be moved there."
 msgstr "Wat geknipt is, kan daar niet naartoe worden verplaatst."
+
+msgid "Park"
+msgstr "Parkeren"
+
+msgid "Park device"
+msgstr "Apparaat parkeren"
+
+msgid "Add Functions"
+msgstr "Functies Toevoegen"
+
+msgid "New function"
+msgstr "Nieuwe functie"
+
+msgid "Added {count} functions to '{target}'."
+msgstr "{count} functies toegevoegd aan '{target}'."
+
+msgid "Added {count} group ranges to '{target}'."
+msgstr "{count} groepsadresbereiken toegevoegd aan '{target}'."
+
+msgid "Add Group Ranges…"
+msgstr "Groepsadresbereiken Toevoegen…"
+
+msgid "Add Group Ranges"
+msgstr "Groepsadresbereiken Toevoegen"
+
+msgid "New group range"
+msgstr "Nieuw groepsadresbereik"
+
+msgid "Capacity"
+msgstr "Capaciteit"

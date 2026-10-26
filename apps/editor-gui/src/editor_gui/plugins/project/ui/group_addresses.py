@@ -46,19 +46,21 @@ from editor_gui.widgets.tree import (
     leaf_rows,
     tree_node,
 )
-from xknxeditor.proj.core.paste import AddressPool
+from xknxeditor.proj.core.addressing import GroupAddressStyle
+from xknxeditor.proj.core.paste import AddressPool, place_range
 from xknxeditor.proj.core.rich_text import parse_rich_text, plain_text
 
 if TYPE_CHECKING:
     from editor_gui.device import Device
     from editor_gui.plugins.project.service import Assignment
-    from xknxeditor.proj.core.addressing import GroupAddressStyle
     from xknxeditor.proj.core.service import GroupRangeInfo
 
 
 # The most main groups (0 to 31) and middle groups of a main group (0 to 7).
 _MAIN_GROUPS = 32
 _MIDDLE_GROUPS = 8
+# How many addresses a new Free style range at the top spans.
+_FREE_RANGE_CAPACITY = 1024
 
 # Accent colour for the last value a group address was seen carrying on the bus, as (on dark
 # themes, on light themes).
@@ -96,9 +98,15 @@ class GroupAddressesPanel:
         notify: Callable[[str], None] = lambda _text: None,
         one_undo_step: UndoStep = no_undo_step,
         paste_dialog: PasteSpecialDialog | None = None,
+        on_create_free_range: Callable[[int | None, str, int, int], object]
+        | None = None,
+        on_create_ga_in: Callable[[int, int, str], object] | None = None,
     ) -> None:
         """``on_create_range`` adds a main group (parent None) or a middle group below a main
-        group, with a name and a number (None: the next free one), giving its id or None.
+        group, with a name and a number (None: the next free one), giving its id or None;
+        ``on_create_free_range`` a Free style range (parent, name, first and last address),
+        ``on_create_ga_in`` a group address in a range (range id, address, name); both raise
+        ``ValueError`` when it does not fit there.
         ``on_move_ga`` puts a group address into another group, ``on_move_range`` a middle
         group below another main group ("Move to"); both give the reason it cannot be, which
         ``notify`` shows. ``one_undo_step`` makes the edits of one drop one undo step;
@@ -124,6 +132,8 @@ class GroupAddressesPanel:
         self._on_create_ga = on_create_ga
         self._on_remove_ga = on_remove_ga
         self._on_create_range = on_create_range
+        self._on_create_free_range = on_create_free_range
+        self._on_create_ga_in = on_create_ga_in
         self._on_remove_range = on_remove_range
         self._group_style = group_style
         self._on_select_device_id = on_select_device_id
@@ -187,6 +197,10 @@ class GroupAddressesPanel:
             imgui.same_line()
             if imgui.small_button(S.GA_ADD_MAIN_GROUPS):
                 self._start_add_main_groups(tree)
+        elif self._free_ranges_enabled():
+            imgui.same_line()
+            if imgui.small_button(S.GA_ADD_GROUP_RANGES):
+                self._start_add_free_ranges(None)
         if self._on_export is not None:
             imgui.same_line()
             if imgui.small_button(S.GA_EXPORT_BUTTON):
@@ -252,6 +266,11 @@ class GroupAddressesPanel:
             and imgui.menu_item(S.GA_ADD_MAIN_GROUPS, "", False)[0]
         ):
             self._start_add_main_groups(self._get_range_tree())
+        if (
+            self._free_ranges_enabled()
+            and imgui.menu_item(S.GA_ADD_GROUP_RANGES, "", False)[0]
+        ):
+            self._start_add_free_ranges(None)
         if self._on_export is not None or self._on_import is not None:
             imgui.separator()
         if (
@@ -631,6 +650,12 @@ class GroupAddressesPanel:
             and imgui.menu_item(S.GA_ADD_MIDDLE_GROUPS, "", False)[0]
         ):
             self._start_add_middle_groups(node)
+        # A Free style range holds ranges as well as group addresses.
+        if (
+            self._free_ranges_enabled()
+            and imgui.menu_item(S.GA_ADD_GROUP_RANGES, "", False)[0]
+        ):
+            self._start_add_free_ranges(node)
         if not is_root:
             self._render_move_range_menu(node.id)
         if self._paste_dialog is not None:
@@ -753,15 +778,24 @@ class GroupAddressesPanel:
         from xknxeditor.proj.core.paste import group_base
 
         style = self._style()
-        base = group_base(node.range_start, style)
-        target = f"{node.address} {node.name}".strip()
+        free = style is GroupAddressStyle.FREE
+        # In the Free style "Start with" is the address itself.
+        base = 0 if free else group_base(node.range_start, style)
+        target = f"{node.address} {node.name}".strip() or node.name
 
         def add(request: AddRequest) -> None:
             group = self._find_range(node.id) or node
+            # Every address in use, also in other ranges (Free style ranges may share them).
+            used: set[int] = set()
+            stack = list(self._get_range_tree())
+            while stack:
+                each = stack.pop()
+                used.update(ga.address for ga in each.group_addresses)
+                stack.extend(each.children)
             pool = AddressPool(
                 group.range_start,
                 group.range_end,
-                (ga.address for ga in group.group_addresses),
+                used,
                 request.allocation,
                 start_with=request.start_with,
                 base=base,
@@ -771,10 +805,14 @@ class GroupAddressesPanel:
                 address = pool.take()
                 if address is None:
                     return S.ADD_LIMIT_REACHED
-                self._on_create_ga(
-                    format_ga(address, style),
-                    row.name.strip() or S.GA_DEFAULT_GROUP_ADDRESS,
-                )
+                name = row.name.strip() or S.GA_DEFAULT_GROUP_ADDRESS
+                if self._on_create_ga_in is not None:
+                    try:
+                        self._on_create_ga_in(node.id, address, name)
+                    except ValueError as error:
+                        return str(error)
+                else:
+                    self._on_create_ga(format_ga(address, style), name)
                 return None
 
             add_rows(
@@ -794,12 +832,97 @@ class GroupAddressesPanel:
                 add,
                 default_name=S.GA_DEFAULT_GROUP_ADDRESS,
                 numbered=True,
-                start_minimum=0,
+                start_minimum=node.range_start if free else 0,
                 start_maximum=node.range_end - base,
                 limit=size - len(node.group_addresses),
             ),
             add,
             self._notify,
+            start_with=node.range_start if free else 0,
+        )
+
+    def _start_add_free_ranges(self, parent: "GroupRangeInfo | None") -> None:
+        """ "Add Group Ranges" of the Free style, at the top or in ``parent``: each row's ranges
+        span its Capacity (1024 at the top, a quarter of the parent in one), placed as
+        "Generate Addresses" says ("Start with" is the first address)."""
+        create = self._on_create_free_range
+        if create is None:
+            return
+        low, high = (
+            (1, 0xFFFF) if parent is None else (parent.range_start, parent.range_end)
+        )
+        capacity = (
+            _FREE_RANGE_CAPACITY
+            if parent is None
+            else max(1, (parent.range_end - parent.range_start) // 4)
+        )
+        parent_id = parent.id if parent is not None else None
+        target = S.PANEL_GROUP_ADDRESSES if parent is None else parent.name
+
+        def add(request: AddRequest) -> None:
+            siblings = (
+                self._get_range_tree()
+                if parent is None
+                else (self._find_range(parent.id) or parent).children
+            )
+            taken = [(n.range_start, n.range_end) for n in siblings]
+
+            def add_one(row: AddRow) -> str | None:
+                start = place_range(
+                    low,
+                    high,
+                    taken,
+                    row.capacity,
+                    request.allocation,
+                    request.start_with,
+                )
+                if start is None:
+                    return S.ADD_LIMIT_REACHED
+                end = start + row.capacity - 1
+                try:
+                    create(
+                        parent_id,
+                        row.name.strip() or S.GA_DEFAULT_GROUP_RANGE,
+                        start,
+                        end,
+                    )
+                except ValueError as error:
+                    return str(error)
+                taken.append((start, end))
+                return None
+
+            add_rows(
+                request,
+                S.HISTORY_EV_ADDED_GROUP_RANGES,
+                target,
+                add_one,
+                self._one_undo_step,
+                self._notify,
+            )
+
+        start_add(
+            lambda: self._adder.open(
+                S.GA_TITLE_GROUP_RANGES,
+                target,
+                add,
+                default_name=S.GA_DEFAULT_GROUP_RANGE,
+                numbered=True,
+                start_minimum=low,
+                start_maximum=high,
+                capacity=capacity,
+            ),
+            add,
+            self._notify,
+            start_with=low,
+            capacity=capacity,
+        )
+
+    def _free_ranges_enabled(self) -> bool:
+        """Group ranges of any span: the Free style."""
+        return (
+            self._on_create_free_range is not None
+            and self._group_style is not None
+            and self._group_style() is GroupAddressStyle.FREE
         )
 
     def _find_range(self, range_id: int) -> "GroupRangeInfo | None":

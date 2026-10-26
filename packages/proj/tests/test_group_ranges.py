@@ -135,3 +135,37 @@ def test_folders_gated_by_style(tmp_path: Path) -> None:
     main = svc2.create_group_range(pid2, 0, None, "Main")
     assert main is not None
     assert svc2.create_group_range(pid2, 0, main, "Middle") is None
+
+
+def test_free_style_ranges_have_any_span_without_overlap(tmp_path: Path) -> None:
+    import pytest
+
+    svc, pid = _new(tmp_path, GroupAddressStyle.FREE)
+    top = svc.create_free_group_range(pid, 0, None, "Lights", 1, 1024)
+    inner = svc.create_free_group_range(pid, 0, top, "Hall", 1, 256)
+    assert _find(_roots(svc, pid), inner) is not None
+    with pytest.raises(ValueError, match="overlaps"):
+        svc.create_free_group_range(pid, 0, None, "Blinds", 1000, 2000)
+    with pytest.raises(ValueError, match="not within"):
+        svc.create_free_group_range(pid, 0, top, "Out", 1000, 2000)
+    assert svc.undo(pid)
+    assert _find(_roots(svc, pid), inner) is None
+    # Only the Free style.
+    svc2, pid2 = _new(tmp_path, name="three.xknx")
+    with pytest.raises(ValueError, match="Free style"):
+        svc2.create_free_group_range(pid2, 0, None, "x", 1, 10)
+
+
+def test_a_range_is_placed_where_it_fits() -> None:
+    from xknxeditor.proj.core.paste import Allocation, place_range
+
+    taken = [(1, 100), (201, 300)]
+    assert place_range(1, 1000, taken, 100) == 101
+    assert place_range(1, 1000, taken, 101) == 301
+    assert place_range(1, 1000, taken, 50, Allocation.APPEND) == 301
+    assert place_range(1, 1000, taken, 10, Allocation.START_WITH, 150) == 150
+    # The first place from there on; with none, the lowest one.
+    assert place_range(1, 1000, taken, 10, Allocation.START_WITH, 295) == 301
+    assert place_range(1, 310, taken, 20, Allocation.START_WITH, 295) == 101
+    assert place_range(1, 300, taken, 101) is None
+    assert place_range(1, 300, [], 0) is None

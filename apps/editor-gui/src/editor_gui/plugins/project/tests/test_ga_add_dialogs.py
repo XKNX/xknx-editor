@@ -115,3 +115,70 @@ def test_main_groups_middle_groups_and_addresses_are_added(
     main = next(n for n in project.get_group_range_tree() if n.address == "5")
     assert main.children[0].group_addresses == []
     assert notes == []
+
+
+@pytest.mark.usefixtures("context")
+def test_free_style_ranges_and_their_addresses_are_added(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from xknxeditor.proj.core.addressing import GroupAddressStyle
+
+    project = ProjectService(CatalogService(tmp_path / "c.xknxcatalog"))
+    project.set_logger(Logger(LogService(), "project"))
+    project.new(tmp_path / "free.xknx", group_address_style=GroupAddressStyle.FREE)
+    try:
+        clicks = Clicks(monkeypatch, group_addresses, add_dialog)
+        notes: list[str] = []
+        panel = GroupAddressesPanel(
+            get_range_tree=project.get_group_range_tree,
+            get_assignments_for_ga=project.get_assignments_for_ga,
+            get_devices=lambda: [],
+            on_create_ga=lambda a, n: project.create_group_address(a, n),
+            on_remove_ga=lambda _i: None,
+            on_create_range=project.create_group_range,
+            on_remove_range=project.remove_group_range,
+            group_style=lambda: project.group_address_style,
+            notify=notes.append,
+            one_undo_step=project.one_undo_step,
+            on_create_free_range=project.create_free_group_range,
+            on_create_ga_in=project.create_group_address_in,
+        )
+        _frames(panel)
+        before = {(n.range_start, n.range_end) for n in project.get_group_range_tree()}
+        # Two ranges of 100 addresses from 5000 on.
+        clicks.context = "##ga_tree_ctx"
+        clicks.items.add(S.GA_ADD_GROUP_RANGES)
+        _frames(panel)
+        request = panel._adder.request  # pyright: ignore[reportPrivateUsage]
+        assert request.rows[0].capacity == 1024
+        request.rows[0].count = 2
+        request.rows[0].capacity = 100
+        request.allocation = Allocation.START_WITH
+        request.start_with = 5000
+        clicks.button = S.BTN_OK
+        _frames(panel)
+        added = [
+            n
+            for n in project.get_group_range_tree()
+            if (n.range_start, n.range_end) not in before
+        ]
+        assert [(n.range_start, n.range_end, n.name) for n in added] == [
+            (5000, 5099, S.GA_DEFAULT_GROUP_RANGE),
+            (5100, 5199, S.GA_DEFAULT_GROUP_RANGE),
+        ]
+        # Group addresses in the first one: "Start with" is the address itself.
+        clicks.context = f"##gr_ctx_{added[0].id}"
+        clicks.items.add(S.GA_ADD_GROUP_ADDRESSES)
+        _frames(panel)
+        request = panel._adder.request  # pyright: ignore[reportPrivateUsage]
+        assert request.start_with == 5000
+        request.rows[0].count = 2
+        request.allocation = Allocation.START_WITH
+        request.start_with = 5010
+        clicks.button = S.BTN_OK
+        _frames(panel)
+        first = next(n for n in project.get_group_range_tree() if n.id == added[0].id)
+        assert sorted(ga.address for ga in first.group_addresses) == [5010, 5011]
+        assert notes == []
+    finally:
+        project.close()

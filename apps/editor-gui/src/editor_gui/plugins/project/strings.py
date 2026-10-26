@@ -1695,20 +1695,17 @@ class ProjectStrings:
         return _("Unlink")
 
     @property
-    def SPACES_FN_NEW_TITLE(self) -> str:
-        return _("New Function")
+    def SPACES_TITLE_FUNCTIONS(self) -> str:
+        return _("Add Functions")
 
     @property
-    def SPACES_FN_NAME(self) -> str:
-        return _("Name")
+    def SPACES_DEFAULT_FUNCTION(self) -> str:
+        # The name a new custom function gets when none is entered.
+        return _("New function")
 
     @property
     def SPACES_FN_TYPE(self) -> str:
         return _("Type")
-
-    @property
-    def SPACES_FN_CREATE(self) -> str:
-        return _("Create")
 
     @property
     def SPACES_FN_DELETE(self) -> str:
@@ -2859,6 +2856,14 @@ class ProjectStrings:
         return _("Added {count} trades to '{target}'.")
 
     @property
+    def HISTORY_EV_ADDED_FUNCTIONS(self) -> str:
+        return _("Added {count} functions to '{target}'.")
+
+    @property
+    def HISTORY_EV_ADDED_GROUP_RANGES(self) -> str:
+        return _("Added {count} group ranges to '{target}'.")
+
+    @property
     def HISTORY_EV_ADDED_MAIN_GROUPS(self) -> str:
         return _("Added {count} main groups to '{target}'.")
 
@@ -3057,6 +3062,24 @@ class ProjectStrings:
     @property
     def GA_DEFAULT_GROUP_ADDRESS(self) -> str:
         return _("New group address")
+
+    @property
+    def GA_ADD_GROUP_RANGES(self) -> str:
+        # Free style: groups of any span.
+        return _("Add Group Ranges…")
+
+    @property
+    def GA_TITLE_GROUP_RANGES(self) -> str:
+        return _("Add Group Ranges")
+
+    @property
+    def GA_DEFAULT_GROUP_RANGE(self) -> str:
+        return _("New group range")
+
+    @property
+    def ADD_CAPACITY(self) -> str:
+        # How many addresses a new group range spans.
+        return _("Capacity")
 
     @property
     def GA_FOLDER_DELETE(self) -> str:
@@ -4301,6 +4324,15 @@ class ProjectStrings:
     @property
     def HISTORY_EV_UNLINK_DEVICE(self) -> str:
         return _("Unlink device")
+
+    @property
+    def HISTORY_EV_PARK_DEVICE(self) -> str:
+        return _("Park device")
+
+    @property
+    def CONTEXT_PARK(self) -> str:
+        # Clears a device's device number; it stays on its line ("1.5.-").
+        return _("Park")
 
     @property
     def CONTEXT_UNLINK_LINE(self) -> str:

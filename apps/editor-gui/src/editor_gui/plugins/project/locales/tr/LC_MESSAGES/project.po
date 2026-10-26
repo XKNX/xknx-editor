@@ -562,9 +562,6 @@ msgstr "Koridor"
 msgid "Stairway"
 msgstr "Merdiven"
 
-msgid "New Function"
-msgstr "Yeni Fonksiyon"
-
 msgid "Assign Group Address"
 msgstr "Grup Adresi Ata"
 
@@ -2886,3 +2883,33 @@ msgstr "Kes"
 
 msgid "What was cut cannot be moved there."
 msgstr "Kesilen öğe oraya taşınamaz."
+
+msgid "Park"
+msgstr "Park et"
+
+msgid "Park device"
+msgstr "Cihazı park et"
+
+msgid "Add Functions"
+msgstr "Fonksiyon Ekle"
+
+msgid "New function"
+msgstr "Yeni fonksiyon"
+
+msgid "Added {count} functions to '{target}'."
+msgstr "{count} fonksiyon '{target}' konumuna eklendi."
+
+msgid "Added {count} group ranges to '{target}'."
+msgstr "{count} grup adresi aralığı '{target}' konumuna eklendi."
+
+msgid "Add Group Ranges…"
+msgstr "Grup Adresi Aralığı Ekle…"
+
+msgid "Add Group Ranges"
+msgstr "Grup Adresi Aralığı Ekle"
+
+msgid "New group range"
+msgstr "Yeni grup adresi aralığı"
+
+msgid "Capacity"
+msgstr "Kapasite"

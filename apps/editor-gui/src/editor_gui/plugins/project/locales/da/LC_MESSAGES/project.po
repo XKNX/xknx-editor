@@ -562,9 +562,6 @@ msgstr "Gang"
 msgid "Stairway"
 msgstr "Trappe"
 
-msgid "New Function"
-msgstr "Ny funktion"
-
 msgid "Assign Group Address"
 msgstr "Tildel gruppeadresse"
 
@@ -2886,3 +2883,33 @@ msgstr "Klip"
 
 msgid "What was cut cannot be moved there."
 msgstr "Det klippede kan ikke flyttes dertil."
+
+msgid "Park"
+msgstr "Parkér"
+
+msgid "Park device"
+msgstr "Parkér enhed"
+
+msgid "Add Functions"
+msgstr "Tilføj funktioner"
+
+msgid "New function"
+msgstr "Ny funktion"
+
+msgid "Added {count} functions to '{target}'."
+msgstr "{count} funktioner tilføjet til '{target}'."
+
+msgid "Added {count} group ranges to '{target}'."
+msgstr "{count} gruppeadresseområder tilføjet til '{target}'."
+
+msgid "Add Group Ranges…"
+msgstr "Tilføj gruppeadresseområder…"
+
+msgid "Add Group Ranges"
+msgstr "Tilføj gruppeadresseområder"
+
+msgid "New group range"
+msgstr "Nyt gruppeadresseområde"
+
+msgid "Capacity"
+msgstr "Kapacitet"

@@ -109,3 +109,63 @@ def test_the_project_unlinks_a_device_in_one_undo_step(tmp_path: Path) -> None:
         assert node_id in project.device_segments()
     finally:
         project.close()
+
+
+@pytest.mark.usefixtures("context")
+def test_park_clears_the_device_number_of_a_numbered_device(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    clicks = Clicks(monkeypatch, topology_ui)
+    labels: list[str] = []
+    real_node = topology_ui.tree_node
+
+    def tree_node(label: str, *args: object, **kwargs: object) -> bool:
+        labels.append(label)
+        return real_node(label, *args, **kwargs)  # type: ignore[arg-type]
+
+    monkeypatch.setattr(topology_ui, "tree_node", tree_node)
+    shown: list[str] = []
+    real_item = imgui.menu_item
+
+    def menu_item(label: str, *args: object) -> object:
+        shown.append(label)
+        return real_item(label, *args)  # type: ignore[arg-type]
+
+    monkeypatch.setattr(imgui, "menu_item", menu_item)
+    numbered = UnloadedDevice(7, "", "Dimmer", "1.1.5", None)
+    parked_device = UnloadedDevice(8, "", "Switch", "", None)
+    parked: list[int] = []
+    panel = _panel([numbered, parked_device], {7: 10, 8: 10}, [])
+    panel._on_park_device = parked.append  # pyright: ignore[reportPrivateUsage]
+    clicks.open.add("1.0 Ground##area_1")
+    clicks.open.add("1.1 Office##line_1")
+    _frames(panel)
+    # A device on a line without a device number shows its line's address.
+    assert "1.1.-  Switch##dev8" in labels
+    clicks.context = "##dev_ctx_7"
+    clicks.items.add(S.CONTEXT_PARK)
+    _frames(panel, 1)
+    assert parked == [7]
+    # Park comes before Unlink; a device without a number has nothing to park.
+    assert shown.index(S.CONTEXT_PARK) < shown.index(S.CONTEXT_UNLINK_LINE)
+    shown.clear()
+    clicks.context = "##dev_ctx_8"
+    _frames(panel, 1)
+    assert S.CONTEXT_UNLINK_LINE in shown and S.CONTEXT_PARK not in shown
+
+
+def test_the_project_parks_a_device(tmp_path: Path) -> None:
+    project = ProjectService(CatalogService(tmp_path / "c.xknxcatalog"))
+    project.set_logger(Logger(LogService(), "project"))
+    project.new(tmp_path / "p.xknx")
+    try:
+        node_id = _device(project, 4)
+        project.park_device(node_id)
+        assert node_id in project.device_segments()
+        assert project.parked_address(node_id) == "1.1.-"
+        assert project.history()[0].display_text == S.HISTORY_EV_PARK_DEVICE
+        project.undo()
+        assert project.parked_address(node_id) == "1.1.-"
+        assert project._svc.individual_address(project._pid, node_id) == "1.1.4"  # pyright: ignore[reportPrivateUsage, reportArgumentType]
+    finally:
+        project.close()

@@ -562,9 +562,6 @@ msgstr "Διάδρομος"
 msgid "Stairway"
 msgstr "Σκάλα"
 
-msgid "New Function"
-msgstr "Νέα Λειτουργία"
-
 msgid "Assign Group Address"
 msgstr "Ανάθεση Διεύθυνσης Ομάδας"
 
@@ -2886,3 +2883,33 @@ msgstr "Αποκοπή"
 
 msgid "What was cut cannot be moved there."
 msgstr "Αυτό που αποκόπηκε δεν μπορεί να μετακινηθεί εκεί."
+
+msgid "Park"
+msgstr "Στάθμευση"
+
+msgid "Park device"
+msgstr "Στάθμευση συσκευής"
+
+msgid "Add Functions"
+msgstr "Προσθήκη Λειτουργιών"
+
+msgid "New function"
+msgstr "Νέα λειτουργία"
+
+msgid "Added {count} functions to '{target}'."
+msgstr "Προστέθηκαν {count} λειτουργίες στο '{target}'."
+
+msgid "Added {count} group ranges to '{target}'."
+msgstr "Προστέθηκαν {count} περιοχές διευθύνσεων ομάδας στο '{target}'."
+
+msgid "Add Group Ranges…"
+msgstr "Προσθήκη Περιοχών Διευθύνσεων Ομάδας…"
+
+msgid "Add Group Ranges"
+msgstr "Προσθήκη Περιοχών Διευθύνσεων Ομάδας"
+
+msgid "New group range"
+msgstr "Νέα περιοχή διευθύνσεων ομάδας"
+
+msgid "Capacity"
+msgstr "Χωρητικότητα"

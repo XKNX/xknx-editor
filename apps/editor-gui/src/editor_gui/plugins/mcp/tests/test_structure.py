@@ -534,3 +534,67 @@ async def test_groups_and_group_addresses_are_added_as_the_add_dialog_does(
             number=4,
             count=2,
         )
+
+
+async def test_several_functions_get_the_name_of_their_type(tmp_path: Path) -> None:
+    mcp, project = _build(tmp_path)
+    async with Client(mcp) as client:
+        await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
+        space_id = project.get_space_tree()[0].id
+        added = await _data(
+            client,
+            "project_create_function",
+            space_id=space_id,
+            function_type="FT-6",
+            count=2,
+        )
+        assert len(added["function_ids"]) == 2
+        assert added["name"] == PROJECT_S.SPACES_FN_TYPE_DIM
+        custom = await _data(
+            client, "project_create_function", space_id=space_id, function_type="FT-0"
+        )
+        assert custom["name"] == PROJECT_S.SPACES_DEFAULT_FUNCTION
+        await _data(client, "project_undo")
+        await _data(client, "project_undo")
+        assert project.get_space_tree()[0].functions == []
+
+
+async def test_free_style_ranges_and_addresses_are_added(tmp_path: Path) -> None:
+    mcp, _project = _build(tmp_path)
+    async with Client(mcp) as client:
+        await _data(
+            client,
+            "project_new",
+            path=str(tmp_path / "free.xknx"),
+            group_address_style="Free",
+        )
+        ranges = await _data(
+            client,
+            "project_create_group_range",
+            count=2,
+            capacity=100,
+            allocation="start_with",
+            start_with=5000,
+        )
+        assert ranges["spans"] == ["5000-5099", "5100-5199"]
+        assert ranges["name"] == PROJECT_S.GA_DEFAULT_GROUP_RANGE
+        inner = await _data(
+            client, "project_create_group_range", parent_id=ranges["group_range_id"]
+        )
+        # A quarter of the range it is in.
+        assert inner["spans"] == ["5000-5023"]
+        added = await _data(
+            client,
+            "project_add_group_addresses",
+            group_range_id=ranges["group_range_ids"][1],
+            count=2,
+            allocation="start_with",
+            start_with=5150,
+        )
+        assert added["addresses"] == ["5150", "5151"]
+        await _error(
+            client,
+            "project_create_group_range",
+            "number",
+            number=3,
+        )

@@ -562,9 +562,6 @@ msgstr "Käytävä"
 msgid "Stairway"
 msgstr "Portaat"
 
-msgid "New Function"
-msgstr "Uusi toiminto"
-
 msgid "Assign Group Address"
 msgstr "Kohdista ryhmäosoite"
 
@@ -2886,3 +2883,33 @@ msgstr "Leikkaa"
 
 msgid "What was cut cannot be moved there."
 msgstr "Leikattua ei voi siirtää sinne."
+
+msgid "Park"
+msgstr "Pysäköi"
+
+msgid "Park device"
+msgstr "Pysäköi laite"
+
+msgid "Add Functions"
+msgstr "Lisää Toimintoja"
+
+msgid "New function"
+msgstr "Uusi toiminto"
+
+msgid "Added {count} functions to '{target}'."
+msgstr "{count} toimintoa lisätty kohteeseen '{target}'."
+
+msgid "Added {count} group ranges to '{target}'."
+msgstr "{count} ryhmäosoitealuetta lisätty kohteeseen '{target}'."
+
+msgid "Add Group Ranges…"
+msgstr "Lisää Ryhmäosoitealueita…"
+
+msgid "Add Group Ranges"
+msgstr "Lisää Ryhmäosoitealueita"
+
+msgid "New group range"
+msgstr "Uusi ryhmäosoitealue"
+
+msgid "Capacity"
+msgstr "Kapasiteetti"

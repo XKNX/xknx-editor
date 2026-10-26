@@ -1429,6 +1429,52 @@ class ProjectService:
         state.store.append(event)
         return event.range_id
 
+    def create_free_group_range(
+        self,
+        project_id: str,
+        installation: int,
+        parent_id: int | None,
+        name: str,
+        start: int,
+        end: int,
+    ) -> int:
+        """Create a group range of the Free style spanning ``start`` to ``end``, at the top
+        (``parent_id`` None, within 1 to 65535) or in the range ``parent_id`` (within it), and
+        return its id. Raises ``ValueError`` in another style, for a span outside its place or
+        one that overlaps a range beside it; ``KeyError`` for an unknown parent."""
+        state = self._state(project_id)
+        if self._style(state) is not GroupAddressStyle.FREE:
+            raise ValueError("only the Free style has group ranges of any span")
+        inst = self._installation(state, installation)
+        low, high = 1, 0xFFFF
+        if parent_id is not None:
+            parent = state.session.get(GroupRange, parent_id)
+            if parent is None:
+                raise KeyError(f"No group range {parent_id}")
+            low, high = parent.range_start, parent.range_end
+        if not low <= start <= end <= high:
+            raise ValueError(f"the range {start}-{end} is not within {low}-{high}")
+        siblings = state.session.query(
+            GroupRange.range_start, GroupRange.range_end
+        ).filter(
+            GroupRange.installation_id == inst.id,
+            GroupRange.parent_id.is_(None)
+            if parent_id is None
+            else GroupRange.parent_id == parent_id,
+        )
+        if any(not (end < s or start > e) for s, e in siblings):
+            raise ValueError(f"the range {start}-{end} overlaps another one")
+        event = CreateGroupRange(
+            installation_id=inst.id,
+            parent_id=parent_id,
+            range_start=start,
+            range_end=end,
+            name=name,
+        )
+        state.store.append(event)
+        assert event.range_id is not None
+        return event.range_id
+
     def create_group_address_in(
         self, project_id: str, range_id: int, address: int, name: str
     ) -> int:
@@ -4135,6 +4181,24 @@ class ProjectService:
             events.append(
                 SetDeviceAdditionalAddresses(device_id=device_id, entries=entries)
             )
+        events.extend(_address_change_events([device], couplers))
+        state.store.append(events[0] if len(events) == 1 else CompositeEvent(events))
+
+    def park_device(
+        self, project_id: str, device_id: int, *, couplers: Collection[int] = ()
+    ) -> None:
+        """Clear a device's device number ("Park" in the topology): it stays on its line and
+        segment ("1.5.-"), its additional addresses keep theirs. One undo step; its individual
+        address is no longer the downloaded one (see :meth:`_address_change_events`). Nothing
+        happens for a device without a device number or on no line. Raises ``KeyError`` for an
+        unknown device."""
+        state = self._state(project_id)
+        device = self._require_device(state, device_id)
+        if device.segment_id is None or device.address is None:
+            return
+        events: list[Event] = [
+            MoveDevice(device_id=device_id, segment_id=device.segment_id, address=None)
+        ]
         events.extend(_address_change_events([device], couplers))
         state.store.append(events[0] if len(events) == 1 else CompositeEvent(events))
 

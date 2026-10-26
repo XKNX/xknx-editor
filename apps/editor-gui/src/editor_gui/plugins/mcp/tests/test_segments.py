@@ -362,3 +362,29 @@ async def test_areas_lines_and_segments_are_added_as_the_add_dialog_does(
         ] * 3
         await _data(client, "project_undo")
         assert (await _line(client, "1.1"))["segments"] == []
+
+
+@pytest.mark.skipif(not _FIXTURE.exists(), reason="knxprod fixture missing")
+async def test_a_parked_device_keeps_its_line(tmp_path: Path) -> None:
+    mcp, _project_service = _build(tmp_path)
+    async with Client(mcp) as client:
+        await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
+        await _data(client, "catalog_import_knxprod", path=str(_FIXTURE))
+        product = (await _data(client, "catalog_list_products"))["items"][0]
+        device = await _data(
+            client, "project_add_device", product_ref_id=product["product_ref_id"]
+        )
+        line = await _line(client, "1.1")
+        parked = await _data(
+            client, "project_park_device", device_address=device["individual_address"]
+        )
+        assert (parked["individual_address"], parked["segment_id"], parked["line"]) == (
+            None,
+            line["main_segment_id"],
+            "1.1",
+        )
+        read = await _data(client, "project_get_device", node_id=device["node_id"])
+        assert (read["individual_address"], read["line"]) == (None, "1.1")
+        await _data(client, "project_undo")
+        read = await _data(client, "project_get_device", node_id=device["node_id"])
+        assert read["individual_address"] == device["individual_address"]

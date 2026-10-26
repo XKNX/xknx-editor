@@ -1140,11 +1140,20 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         )
 
     @tool("destructive")
-    def project_new(path: str) -> dict[str, Any]:
-        """Create a new empty KNX project (.xknx) at ``path`` (on the editor host) and open it. An
-        existing file at ``path`` is replaced and the current project closed; file replacement is NOT
-        undoable with project_undo. Returns {open, path}."""
-        ctx.run_locked(lambda: project.new(Path(path)), timeout=_SLOW)
+    def project_new(
+        path: str,
+        group_address_style: Literal["ThreeLevel", "TwoLevel", "Free"] = "ThreeLevel",
+    ) -> dict[str, Any]:
+        """Create a new empty KNX project (.xknx) at ``path`` (on the editor host) and open it,
+        with its group addresses in ``group_address_style`` (as the New Project dialog asks).
+        An existing file at ``path`` is replaced and the current project closed; file
+        replacement is NOT undoable with project_undo. Returns {open, path}."""
+        from xknxeditor.proj.core.addressing import GroupAddressStyle
+
+        style = GroupAddressStyle(group_address_style)
+        ctx.run_locked(
+            lambda: project.new(Path(path), group_address_style=style), timeout=_SLOW
+        )
         return {"open": True, "path": str(project.path) if project.path else None}
 
     @tool("write")
@@ -1588,13 +1597,16 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         individual addresses (the tunnelling addresses of an IP interface) as {index, address, name,
         description}; index is 1-based (the AddressIndex of a tunnelling interface), address an
         "a.l.d" string or null for an entry without one. segment_id is the segment the device is
-        on (see project_topology), null for a device on no line (project_unlink_device)."""
+        on (see project_topology), null for a device on no line (project_unlink_device); line is
+        that line's address ("1.5", null on no line), also for a device without a device number
+        (project_park_device)."""
 
         def _read() -> dict[str, Any]:
             device = _require_device(node_id, device_address)
             info = project.get_device_info(device.node_id)
             data = _device_dict(device)
             data["segment_id"] = project.device_segments().get(device.node_id)
+            data["line"] = project.device_lines().get(device.node_id)
             if info is not None:
                 data |= {
                     "product_ref_id": info.product_ref_id,
@@ -3222,6 +3234,30 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             return data
 
         return ctx.run_locked(_unlink)
+
+    @tool("write")
+    def project_park_device(
+        node_id: int | None = None, device_address: str | None = None
+    ) -> dict[str, Any]:
+        """Clear a device's device number, as "Park" in the topology does: it keeps its line and
+        segment but has no individual address then, shown as its line's address with "-"
+        ("1.5.87" becomes "1.5.-"); its additional addresses keep theirs. Identify it by
+        ``node_id`` OR ``device_address`` (an individual address like "1.0.30"). A device
+        without a device number, or on no line, stays as it is. To give it a number again, use
+        project_set_individual_address. Undoable with project_undo (one step). Returns
+        {node_id, name, individual_address, description, segment_id, line}: ``line`` is its
+        line's address ("1.5")."""
+        require_project(ctx)
+
+        def _park() -> dict[str, Any]:
+            device = _require_device(node_id, device_address)
+            project.park_device(device.node_id)
+            data = _device_dict(_require_device(device.node_id))
+            data["segment_id"] = project.device_segments().get(device.node_id)
+            data["line"] = project.device_lines().get(device.node_id)
+            return data
+
+        return ctx.run_locked(_park)
 
     @tool("write")
     def project_move_line(line_id: int, area_id: int) -> dict[str, Any]:

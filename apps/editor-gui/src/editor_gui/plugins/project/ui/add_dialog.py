@@ -29,6 +29,8 @@ from xknxeditor.proj.core.paste import Allocation
 # The most rows, and the most elements one row adds.
 MAX_ROWS = 20
 MAX_COUNT = 100
+# The most addresses a free-style group range spans.
+MAX_CAPACITY = 65535
 
 
 class UndoStep(Protocol):
@@ -44,11 +46,13 @@ def no_undo_step(_label: str | None = None, /) -> AbstractContextManager[None]:
 
 @dataclass
 class AddRow:
-    """One row: how many, their name ("" for the default one) and the chosen option's value."""
+    """One row: how many, their name ("" for the default one), the chosen option's value and,
+    for free-style group ranges, how many addresses each spans."""
 
     count: int = 1
     name: str = ""
     choice: str = ""
+    capacity: int = 0
 
 
 @dataclass(frozen=True)
@@ -69,11 +73,17 @@ class AddRequest:
     start_with: int = 1
 
 
-def one_row(choice: AddChoice | None = None, start_with: int = 1) -> AddRequest:
+def one_row(
+    choice: AddChoice | None = None, start_with: int = 1, capacity: int = 0
+) -> AddRequest:
     """What the dialog asks for when nothing in it is changed: one element with the defaults
     (a Shift+click on an "Add" item adds that without the dialog)."""
     return AddRequest(
-        rows=[AddRow(choice=choice.default if choice is not None else "")],
+        rows=[
+            AddRow(
+                choice=choice.default if choice is not None else "", capacity=capacity
+            )
+        ],
         start_with=start_with,
     )
 
@@ -83,11 +93,14 @@ def start_add(
     on_add: Callable[[AddRequest], None],
     notify: Callable[[str], None],
     choice: AddChoice | None = None,
+    *,
+    start_with: int = 1,
+    capacity: int = 0,
 ) -> None:
     """What an "Add" item does: open the dialog (``open_dialog``, False when there is no
     room left, which is told), or on a Shift+click add one with the defaults right away."""
     if imgui.get_io().key_shift:
-        on_add(one_row(choice))
+        on_add(one_row(choice, start_with, capacity))
     elif not open_dialog():
         notify(S.ADD_LIMIT_REACHED)
 
@@ -130,6 +143,8 @@ class AddDialog:
         self._start_minimum = 1
         self._start_maximum: int | None = None
         self._limit: int | None = None
+        # The span a new free-style group range starts with; None: no Capacity column.
+        self._capacity: int | None = None
         self._on_add: Callable[[AddRequest], None] = lambda _r: None
         self._request = AddRequest()
         self._error = ""
@@ -147,13 +162,16 @@ class AddDialog:
         start_minimum: int = 1,
         start_maximum: int | None = None,
         limit: int | None = None,
+        capacity: int | None = None,
     ) -> bool:
         """Ask what to add (``heading``, e.g. "Add Lines") to ``target`` (its name); the dialog
         opens in the next frame it is rendered in. ``numbered`` shows "Generate Addresses",
         whose "Start with" takes ``start_minimum`` to ``start_maximum``. ``limit``: how many
-        more there is room for. False (and no dialog) when there is room for none."""
+        more there is room for. ``capacity`` shows a "Capacity" column (1 to 65535), starting
+        at that. False (and no dialog) when there is room for none."""
         if limit is not None and limit <= 0:
             return False
+        self._capacity = capacity
         self._heading = heading
         self._target = target
         self._on_add = on_add
@@ -163,7 +181,7 @@ class AddDialog:
         self._start_minimum = start_minimum
         self._start_maximum = start_maximum
         self._limit = limit
-        self._request = one_row(choice, start_minimum)
+        self._request = one_row(choice, start_minimum, capacity or 0)
         self._error = ""
         self._open = True
         return True
@@ -216,7 +234,12 @@ class AddDialog:
         left = imgui.get_cursor_pos_x()
         avail = imgui.get_content_region_avail().x
         imgui.text_disabled(S.SPACES_COUNT)
-        imgui.same_line(left + count_width + style.item_spacing.x)
+        name_left = left + count_width + style.item_spacing.x
+        if self._capacity is not None:
+            imgui.same_line(name_left)
+            imgui.text_disabled(S.ADD_CAPACITY)
+            name_left += count_width + style.item_spacing.x
+        imgui.same_line(name_left)
         imgui.text_disabled(S.SPACES_SPACE_NAME)
         if self._choice is not None:
             imgui.same_line(
@@ -231,6 +254,11 @@ class AddDialog:
             row.count = max(1, min(count, MAX_COUNT))
             if changed:
                 self._clip(index)
+            if self._capacity is not None:
+                imgui.same_line()
+                imgui.set_next_item_width(count_width)
+                _, capacity = imgui.input_int("##capacity", row.capacity)
+                row.capacity = max(1, min(capacity, MAX_CAPACITY))
             imgui.same_line()
             spare = choice_width + style.item_spacing.x if self._choice else 0.0
             imgui.set_next_item_width(
@@ -270,7 +298,7 @@ class AddDialog:
         full = self._limit is not None and sum(r.count for r in rows) >= self._limit
         imgui.begin_disabled(len(rows) >= MAX_ROWS or full)
         if imgui.button(S.ADD_ROW):
-            rows.append(AddRow(choice=rows[-1].choice))
+            rows.append(AddRow(choice=rows[-1].choice, capacity=self._capacity or 0))
         imgui.end_disabled()
 
     def _render_generate(self) -> None:

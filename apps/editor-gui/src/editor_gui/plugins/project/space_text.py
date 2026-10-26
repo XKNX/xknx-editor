@@ -57,6 +57,41 @@ def add_title(space_type: str) -> str:
     }[space_type]
 
 
+# The type a new function starts with: a switchable light.
+DEFAULT_FUNCTION_TYPE = "FT-1"
+
+
+def function_type_presets() -> list[tuple[str, str]]:
+    """(label, KNX FunctionType code) for the type picker: every current (non-deprecated) type
+    of knx_master.xml, in its order; role stays free text since group addresses are accepted
+    without one."""
+    return [
+        (S.SPACES_FN_TYPE_CUSTOM, "FT-0"),
+        (S.SPACES_FN_TYPE_SWITCH, "FT-1"),
+        (S.SPACES_FN_TYPE_DIM, "FT-6"),
+        (S.SPACES_FN_TYPE_SUN_PROTECTION, "FT-7"),
+        (S.SPACES_FN_TYPE_HEATING_SWITCHING, "FT-8"),
+        (S.SPACES_FN_TYPE_HEATING_CONTINUOUS, "FT-9"),
+        (S.SPACES_FN_TYPE_SOCKET, "FT-10"),
+    ]
+
+
+def function_type_label(code: str) -> str:
+    """The text of a function type (a KNX FunctionType code)."""
+    for label, c in function_type_presets():
+        if c == code:
+            return label
+    return code or S.SPACES_FN_TYPE_CUSTOM
+
+
+def default_function_name(code: str) -> str:
+    """The name a new function of a type gets when none is entered: its type's, "New
+    function" for a custom one."""
+    if code and code != "FT-0":
+        return function_type_label(code)
+    return S.SPACES_DEFAULT_FUNCTION
+
+
 def default_name(space_type: str) -> str:
     """The name a new building part of a type gets when none is entered ("New floor")."""
     return {

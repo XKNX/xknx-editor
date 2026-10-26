@@ -562,9 +562,6 @@ msgstr "Pasillo"
 msgid "Stairway"
 msgstr "Escalera"
 
-msgid "New Function"
-msgstr "Nueva Función"
-
 msgid "Assign Group Address"
 msgstr "Asignar Dirección de Grupo"
 
@@ -2886,3 +2883,33 @@ msgstr "Cortar"
 
 msgid "What was cut cannot be moved there."
 msgstr "Lo cortado no se puede mover ahí."
+
+msgid "Park"
+msgstr "Aparcar"
+
+msgid "Park device"
+msgstr "Aparcar dispositivo"
+
+msgid "Add Functions"
+msgstr "Añadir Funciones"
+
+msgid "New function"
+msgstr "Nueva función"
+
+msgid "Added {count} functions to '{target}'."
+msgstr "{count} funciones añadidas a '{target}'."
+
+msgid "Added {count} group ranges to '{target}'."
+msgstr "{count} rangos de direcciones de grupo añadidos a '{target}'."
+
+msgid "Add Group Ranges…"
+msgstr "Añadir Rangos de Direcciones de Grupo…"
+
+msgid "Add Group Ranges"
+msgstr "Añadir Rangos de Direcciones de Grupo"
+
+msgid "New group range"
+msgstr "Nuevo rango de direcciones de grupo"
+
+msgid "Capacity"
+msgstr "Capacidad"
