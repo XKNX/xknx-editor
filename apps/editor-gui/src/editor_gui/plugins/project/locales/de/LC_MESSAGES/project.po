@@ -849,9 +849,6 @@ msgstr "Typ"
 msgid "Create"
 msgstr "Erstellen"
 
-msgid "Role (Optional)"
-msgstr "Rolle (optional)"
-
 msgid "Custom"
 msgstr "Benutzerdefiniert"
 

@@ -1741,10 +1741,6 @@ class ProjectStrings:
         return _("There is no group to add group addresses to.")
 
     @property
-    def SPACES_FN_ROLE(self) -> str:
-        return _("Role (Optional)")
-
-    @property
     def SPACES_FN_TYPE_CUSTOM(self) -> str:
         return _("Custom")
 

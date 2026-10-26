@@ -556,9 +556,6 @@ msgstr "走廊"
 msgid "Stairway"
 msgstr "楼梯"
 
-msgid "Role (Optional)"
-msgstr "角色（可选）"
-
 msgid "Custom"
 msgstr "自定义"
 

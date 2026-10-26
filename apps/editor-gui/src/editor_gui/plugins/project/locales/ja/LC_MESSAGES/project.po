@@ -556,9 +556,6 @@ msgstr "廊下"
 msgid "Stairway"
 msgstr "階段"
 
-msgid "Role (Optional)"
-msgstr "役割（オプション）"
-
 msgid "Custom"
 msgstr "カスタム"
 

@@ -556,9 +556,6 @@ msgstr "Коридор"
 msgid "Stairway"
 msgstr "Лестница"
 
-msgid "Role (Optional)"
-msgstr "Роль (необязательно)"
-
 msgid "Custom"
 msgstr "Пользовательский"
 

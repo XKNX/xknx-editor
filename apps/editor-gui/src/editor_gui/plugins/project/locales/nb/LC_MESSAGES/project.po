@@ -556,9 +556,6 @@ msgstr "Korridor"
 msgid "Stairway"
 msgstr "Trapp"
 
-msgid "Role (Optional)"
-msgstr "Rolle (valgfritt)"
-
 msgid "Custom"
 msgstr "Egendefinert"
 

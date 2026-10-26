@@ -49,7 +49,7 @@ from editor_gui.plugins.project.ui.topology import render_read_device_item
 from editor_gui.plugins.project.ui.tree_drag import Dragged, drag_source, drop_target
 from editor_gui.widgets.description import render_description, render_device_marks
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
-from editor_gui.widgets.dpi import px, px_vec2
+from editor_gui.widgets.dpi import px_vec2
 from editor_gui.widgets.tree import (
     begin_tree_area,
     context_menu,
@@ -251,7 +251,6 @@ class SpacesPanel:
         )
         self._filter_text: str = ""
         # "Link with Group Address" dialog state.
-        self._link_role = ""
         self._link_filter = ""
         # "Assign device" dialog state.
         self._assign_filter = ""
@@ -1253,7 +1252,6 @@ class SpacesPanel:
         if editable and context_menu(f"##fnctx{function.id}"):
             if self._on_add_function_ga is not None:
                 if imgui.menu_item(S.SPACES_FN_LINK, "", False)[0]:
-                    self._link_role = ""
                     self._link_filter = ""
                     self._pending_popup_id = _link_function_dialog(function.id)
                 if (
@@ -1356,11 +1354,9 @@ class SpacesPanel:
         )
 
     def _render_link_dialog(self, function_id: int) -> None:
-        """ "Link with Group Address": the role, then the group addresses to pick one from."""
+        """ "Link with Group Address": the group addresses to pick one from."""
         if not begin_dialog(_link_function_dialog(function_id)):
             return
-        imgui.set_next_item_width(px(260.0))
-        _, self._link_role = imgui.input_text(S.SPACES_FN_ROLE, self._link_role)
         self._link_filter = filter_box(
             f"##fngaflt{function_id}", S.GA_FILTER_HINT, self._link_filter
         )
@@ -1391,9 +1387,7 @@ class SpacesPanel:
                 continue
             if imgui.selectable(f"{text}##fngapick{function_id}_{ga.id}", False)[0]:
                 if self._on_add_function_ga is not None:
-                    self._on_add_function_ga(
-                        function_id, ga.id, self._link_role.strip()
-                    )
+                    self._on_add_function_ga(function_id, ga.id, "")
                 imgui.close_current_popup()
         imgui.tree_pop()
 

@@ -556,9 +556,6 @@ msgstr "Διάδρομος"
 msgid "Stairway"
 msgstr "Σκάλα"
 
-msgid "Role (Optional)"
-msgstr "Ρόλος (Προαιρετικός)"
-
 msgid "Custom"
 msgstr "Προσαρμοσμένο"
 

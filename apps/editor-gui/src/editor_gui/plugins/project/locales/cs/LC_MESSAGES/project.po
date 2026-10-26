@@ -556,9 +556,6 @@ msgstr "Chodba"
 msgid "Stairway"
 msgstr "Schodiště"
 
-msgid "Role (Optional)"
-msgstr "Role (volitelné)"
-
 msgid "Custom"
 msgstr "Vlastní"
 

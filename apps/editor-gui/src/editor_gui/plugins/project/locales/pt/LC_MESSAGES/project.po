@@ -556,9 +556,6 @@ msgstr "Corredor"
 msgid "Stairway"
 msgstr "Escadas"
 
-msgid "Role (Optional)"
-msgstr "Função (Opcional)"
-
 msgid "Custom"
 msgstr "Personalizado"
 

@@ -556,9 +556,6 @@ msgstr "Gang"
 msgid "Stairway"
 msgstr "Trappe"
 
-msgid "Role (Optional)"
-msgstr "Rolle (valgfri)"
-
 msgid "Custom"
 msgstr "Tilpasset"
 

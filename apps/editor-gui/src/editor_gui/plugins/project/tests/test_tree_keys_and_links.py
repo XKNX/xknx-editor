@@ -234,16 +234,19 @@ def test_a_functions_group_addresses_are_rows_with_a_menu(
     panel = _spaces_panel(project, notes, selected)
     clicks.open.add(f"ƒ Light  [{S.SPACES_FN_TYPE_CUSTOM}]##fn{function_id}")
     _frames(panel.render)
-    # "Link with…": the role, then a group address picked from the groups.
+    # "Link with…": a group address picked from the groups, without a role.
     clicks.context = f"##fnctx{function_id}"
     clicks.items.add(S.SPACES_FN_LINK)
     _frames(panel.render)
-    panel._link_role = "Switch"  # pyright: ignore[reportPrivateUsage]
     panel._link_filter = "ceiling"  # pyright: ignore[reportPrivateUsage]
     clicks.items.add(f"1/1/5  Ceiling##fngapick{function_id}_{first}")
     _frames(panel.render)
     (link,) = _function(project, function_id).group_addresses
-    assert (link.group_address_id, link.name, link.role) == (first, "Ceiling", "Switch")
+    assert (link.group_address_id, link.name, link.role) == (first, "Ceiling", "")
+    # A role from an imported project shows after the name.
+    project.remove_function_group_address(link.id)
+    project.add_function_group_address(function_id, first, "Switch")
+    (link,) = _function(project, function_id).group_addresses
     # A row: a click selects the group address, Delete in its menu unlinks it.
     clicks.items.add(f"1/1/5  Ceiling  (Switch)##fnga{link.id}")
     _frames(panel.render)

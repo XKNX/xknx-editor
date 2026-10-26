@@ -556,9 +556,6 @@ msgstr "Couloir"
 msgid "Stairway"
 msgstr "Escalier"
 
-msgid "Role (Optional)"
-msgstr "Rôle (facultatif)"
-
 msgid "Custom"
 msgstr "Personnalisée"
 

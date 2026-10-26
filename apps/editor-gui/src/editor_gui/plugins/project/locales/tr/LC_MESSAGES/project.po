@@ -556,9 +556,6 @@ msgstr "Koridor"
 msgid "Stairway"
 msgstr "Merdiven"
 
-msgid "Role (Optional)"
-msgstr "Rol (İsteğe Bağlı)"
-
 msgid "Custom"
 msgstr "Özel"
 

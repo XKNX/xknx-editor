@@ -556,9 +556,6 @@ msgstr "Käytävä"
 msgid "Stairway"
 msgstr "Portaat"
 
-msgid "Role (Optional)"
-msgstr "Rooli (valinnainen)"
-
 msgid "Custom"
 msgstr "Mukautettu"
 
