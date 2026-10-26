@@ -54,6 +54,7 @@ from editor_gui.plugins.project.ui import (
     SpacesPanel,
     ToolsPanel,
     TopologyPanel,
+    name_focus,
 )
 from editor_gui.plugins.project.ui.comment import CommentPanel
 from editor_gui.plugins.project.ui.dali_commissioning import DaliCommissioningPanel
@@ -254,6 +255,7 @@ class ProjectPlugin:
             on_move_device_to_segment=self._on_move_device_to_segment,
             on_unlink_device=api.project.unlink_device,
             on_park_device=api.project.park_device,
+            on_add_devices=api.project.add_devices_to,
             get_new_line_media=api.project.new_line_media,
             notify=self._report,
             on_move_line=lambda line, area: self._report(
@@ -499,6 +501,9 @@ class ProjectPlugin:
             one_undo_step=api.project.one_undo_step,
             paste_dialog=self._paste_dialog("buildings"),
             on_delete_device=self._delete_device,
+            group_style=lambda: api.project.group_address_style,
+            on_create_ga_in=api.project.create_group_address_in,
+            get_selected_element=lambda: api.project.selected_element,
         )
 
         self._project_info_panel = ProjectInfoPanel(
@@ -1266,6 +1271,17 @@ class ProjectPlugin:
         front)."""
         asked, self._focus_tools = self._focus_tools, False
         return asked
+
+    @staticmethod
+    def take_focus_device() -> bool:
+        """Whether the Device tab was asked for since the last call (F2 on an element in a
+        tree: its name there takes the keyboard; the app brings the tab to the front)."""
+        return name_focus.take_tab_request()
+
+    def take_focus_catalog(self) -> bool:
+        """Whether the catalog was asked for since the last call ("Add → Devices…" in the
+        Topology tree; the app brings it to the front)."""
+        return self._api.project.take_focus_catalog()
 
     def _format_group_address(self, address: int) -> str:
         from xknxeditor.proj.core.addressing import format_ga

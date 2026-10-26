@@ -529,9 +529,6 @@ msgstr "(najwyższy poziom)"
 msgid "Delete this space and everything in it? Devices are only unassigned, not deleted."
 msgstr "Usunąć tę przestrzeń wraz z całą zawartością? Urządzenia zostaną tylko odłączone od przestrzeni, a nie usunięte."
 
-msgid "Assign Device"
-msgstr "Przypisz urządzenie"
-
 msgid "Assign a Device to This Space"
 msgstr "Przypisz urządzenie do tej przestrzeni"
 
@@ -558,9 +555,6 @@ msgstr "Korytarz"
 
 msgid "Stairway"
 msgstr "Schody"
-
-msgid "Assign Group Address"
-msgstr "Przypisz adres grupowy"
 
 msgid "Role (Optional)"
 msgstr "Rola (opcjonalnie)"
@@ -2812,9 +2806,6 @@ msgstr "Linie…"
 msgid "Segments…"
 msgstr "Segmenty…"
 
-msgid "Add Segments…"
-msgstr "Dodaj segmenty…"
-
 msgid "Add Areas"
 msgstr "Dodaj obszary"
 
@@ -2910,3 +2901,30 @@ msgstr "Nowy zakres adresów grupowych"
 
 msgid "Capacity"
 msgstr "Pojemność"
+
+msgid "Link with…"
+msgstr "Połącz z…"
+
+msgid "Link with Group Address"
+msgstr "Połącz z adresem grupowym"
+
+msgid "There is no group to add group addresses to."
+msgstr "Brak grupy, do której można dodać adresy grupowe."
+
+msgid "Add Subtrade"
+msgstr "Dodaj podzakład"
+
+msgid "The group range does not fit there."
+msgstr "Zakres adresów grupowych się tam nie mieści."
+
+msgid "A group range cannot go into itself or a range in it."
+msgstr "Zakresu adresów grupowych nie można umieścić w nim samym ani w zakresie w nim."
+
+msgid "A group address of the range is already in use there."
+msgstr "Adres grupowy zakresu jest tam już używany."
+
+msgid "Copied {count} group ranges to '{target}'."
+msgstr "Skopiowano zakresy adresów grupowych ({count}) do '{target}'."
+
+msgid "New Group Address…"
+msgstr "Nowy adres grupowy…"

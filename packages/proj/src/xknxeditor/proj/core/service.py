@@ -190,6 +190,7 @@ from xknxeditor.proj.core.medium import (
     new_domain_address,
     sub_segment_media,
 )
+from xknxeditor.proj.core.paste import Allocation, place_range
 from xknxeditor.proj.core.product_prune import ProgressCallback
 from xknxeditor.proj.core.project_secrets import (
     InvalidProjectPassword,
@@ -316,6 +317,7 @@ class FunctionGroupAddressInfo:
     group_address_id: int
     text: str
     role: str
+    name: str = ""
 
 
 @dataclass(frozen=True)
@@ -3779,17 +3781,25 @@ class ProjectService:
         state.store.append(SetGroupRangeAddress(range_id=range_id, offset=offset))
 
     def move_group_range(
-        self, project_id: str, range_id: int, main_group_id: int
+        self, project_id: str, range_id: int, main_group_id: int | None
     ) -> None:
         """Put a middle group below another main group (three-level style), with its group
         addresses: it keeps its number when that is free there, else it gets the lowest free
-        one. Undoable.
+        one. In the Free style a range goes into any other range, or to the top with
+        ``main_group_id`` None (see :meth:`_move_free_range`). Undoable.
 
         Raises ``ValueError`` when it is no middle group, the target no main group, or no middle
         group is free there; ``KeyError`` for an unknown range."""
         state = self._state(project_id)
+        if self._style(state) is GroupAddressStyle.FREE:
+            self._move_free_range(state, range_id, main_group_id)
+            return
         group_range = state.session.get(GroupRange, range_id)
-        target = state.session.get(GroupRange, main_group_id)
+        target = (
+            state.session.get(GroupRange, main_group_id)
+            if main_group_id is not None
+            else None
+        )
         if group_range is None or target is None:
             raise KeyError(f"No group range {range_id} or {main_group_id}")
         if self._style(state) is not GroupAddressStyle.THREE_LEVEL:
@@ -3812,12 +3822,84 @@ class ProjectService:
             )
         )
 
+    def _move_free_range(
+        self, state: _Open, range_id: int, parent_id: int | None
+    ) -> None:
+        """Put a Free style range into the range ``parent_id`` (None: to the top), with the
+        ranges and group addresses in it: it keeps its addresses when they fit there (within
+        the new parent, beside its ranges), else it goes to the next place it fits (the lowest
+        one when there is none after), its group addresses moving with it.
+
+        Raises ``ValueError`` when it would go into itself or a range in it, or fits nowhere
+        there, or a group address it moves to is taken; ``KeyError`` for an unknown range."""
+        group_range = state.session.get(GroupRange, range_id)
+        parent = (
+            state.session.get(GroupRange, parent_id) if parent_id is not None else None
+        )
+        if group_range is None or (parent_id is not None and parent is None):
+            raise KeyError(f"No group range {range_id} or {parent_id}")
+        if group_range.parent_id == parent_id:
+            return
+        node = parent
+        while node is not None:
+            if node.id == range_id:
+                raise ValueError("a group range cannot go into itself")
+            node = node.parent
+        low, high = (
+            (parent.range_start, parent.range_end)
+            if parent is not None
+            else (1, 0xFFFF)
+        )
+        siblings = state.session.query(
+            GroupRange.range_start, GroupRange.range_end
+        ).filter(
+            GroupRange.installation_id == group_range.installation_id,
+            GroupRange.parent_id.is_(None)
+            if parent_id is None
+            else GroupRange.parent_id == parent_id,
+        )
+        size = group_range.range_end - group_range.range_start + 1
+        taken = list(siblings)
+        start = place_range(
+            low,
+            high,
+            taken,
+            size,
+            Allocation.START_WITH,
+            group_range.range_start,
+        )
+        if start is None:
+            raise ValueError("the group range does not fit there")
+        offset = start - group_range.range_start
+        if offset:
+            moving: dict[int, int] = {}
+            nodes = [group_range]
+            while nodes:
+                each = nodes.pop()
+                moving.update((ga.id, ga.address) for ga in each.group_addresses)
+                nodes.extend(each.children)
+            used = {
+                address
+                for (ga_id, address) in state.session.query(
+                    GroupAddress.id, GroupAddress.address
+                )
+                .join(GroupRange, GroupAddress.group_range_id == GroupRange.id)
+                .filter(GroupRange.installation_id == group_range.installation_id)
+                if ga_id not in moving
+            }
+            if any(address + offset in used for address in moving.values()):
+                raise ValueError("a group address it moves to is taken")
+        state.store.append(
+            MoveGroupRange(range_id=range_id, new_parent_id=parent_id, offset=offset)
+        )
+
     def move_group_address(
         self, project_id: str, group_address_id: int, range_id: int
     ) -> None:
         """Put a group address into another group (a middle group, or a main group in the
         two-level style): it keeps its number within the group when that is free there, else it
-        gets the lowest free one; its links move with it. Undoable.
+        gets the lowest free one; its links move with it. In the Free style it goes into any
+        range and keeps its address when the range spans it. Undoable.
 
         Raises ``ValueError`` when the group holds no group addresses or has none free;
         ``KeyError`` for an unknown group address or range."""
@@ -3827,6 +3909,9 @@ class ProjectService:
         if ga is None or target is None:
             raise KeyError(f"No group address {group_address_id} or range {range_id}")
         style = self._style(state)
+        if style is GroupAddressStyle.FREE:
+            self._move_free_group_address(state, ga, target)
+            return
         holds = (
             style is GroupAddressStyle.THREE_LEVEL and target.parent is not None
         ) or (style is GroupAddressStyle.TWO_LEVEL and target.parent is None)
@@ -3847,6 +3932,38 @@ class ProjectService:
         if address is None:
             raise ValueError("the group has no free group address")
         self.set_group_address_address(project_id, group_address_id, address)
+
+    def _move_free_group_address(
+        self, state: _Open, ga: GroupAddress, target: GroupRange
+    ) -> None:
+        """A group address into the Free style range ``target``: at its address when the range
+        spans it, else at the range's lowest free one."""
+        if ga.group_range_id == target.id:
+            return
+        used = {
+            address
+            for (address,) in state.session.query(GroupAddress.address)
+            .join(GroupRange, GroupAddress.group_range_id == GroupRange.id)
+            .filter(
+                GroupRange.installation_id == target.installation_id,
+                GroupAddress.id != ga.id,
+            )
+        }
+        candidates = (
+            [ga.address] if target.range_start <= ga.address <= target.range_end else []
+        )
+        candidates += range(max(target.range_start, 1), target.range_end + 1)
+        address = next((a for a in candidates if a not in used), None)
+        if address is None:
+            raise ValueError("the group has no free group address")
+        state.store.append(
+            SetGroupAddressAddress(
+                group_address_id=ga.id,
+                installation_id=target.installation_id,
+                address=address,
+                group_range_id=target.id,
+            )
+        )
 
     def comment(
         self, project_id: str, kind: str, element_id: int, field: str = "comment"
@@ -4987,6 +5104,7 @@ class ProjectService:
                     group_address_id=link.group_address_id,
                     text=format_ga(link.group_address.address, style),
                     role=link.role,
+                    name=link.group_address.name or "",
                 )
                 for link in function.group_addresses
             ],

@@ -849,9 +849,6 @@ msgstr "Typ"
 msgid "Create"
 msgstr "Erstellen"
 
-msgid "Assign Group Address"
-msgstr "Gruppenadresse zuordnen"
-
 msgid "Role (Optional)"
 msgstr "Rolle (optional)"
 
@@ -923,9 +920,6 @@ msgstr "(oberste Ebene)"
 
 msgid "Assign a Device to This Space"
 msgstr "Ein Gerät diesem Bereich zuordnen"
-
-msgid "Assign Device"
-msgstr "Gerät zuordnen"
 
 msgid "Building"
 msgstr "Gebäude"
@@ -2997,9 +2991,6 @@ msgstr "Linien…"
 msgid "Segments…"
 msgstr "Segmente…"
 
-msgid "Add Segments…"
-msgstr "Segmente hinzufügen…"
-
 msgid "Add Areas"
 msgstr "Bereiche hinzufügen"
 
@@ -3095,3 +3086,30 @@ msgstr "Neuer Gruppenadressbereich"
 
 msgid "Capacity"
 msgstr "Kapazität"
+
+msgid "Link with…"
+msgstr "Verbinden mit…"
+
+msgid "Link with Group Address"
+msgstr "Mit Gruppenadresse verbinden"
+
+msgid "There is no group to add group addresses to."
+msgstr "Es gibt keine Gruppe, in die Gruppenadressen eingefügt werden können."
+
+msgid "Add Subtrade"
+msgstr "Untergewerk hinzufügen"
+
+msgid "The group range does not fit there."
+msgstr "Der Gruppenadressbereich passt dort nicht hin."
+
+msgid "A group range cannot go into itself or a range in it."
+msgstr "Ein Gruppenadressbereich kann nicht in sich selbst oder einen Bereich darin."
+
+msgid "A group address of the range is already in use there."
+msgstr "Eine Gruppenadresse des Bereichs ist dort schon vergeben."
+
+msgid "Copied {count} group ranges to '{target}'."
+msgstr "{count} Gruppenadressbereiche nach '{target}' kopiert."
+
+msgid "New Group Address…"
+msgstr "Neue Gruppenadresse…"

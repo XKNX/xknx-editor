@@ -213,3 +213,9 @@ msgstr "{total} 件中 {shown} 件を表示"
 
 msgid "(estimated)"
 msgstr "（推定）"
+
+msgid "Line"
+msgstr "ライン"
+
+msgid "Automatic"
+msgstr "自動"

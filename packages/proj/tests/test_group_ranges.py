@@ -169,3 +169,96 @@ def test_a_range_is_placed_where_it_fits() -> None:
     assert place_range(1, 310, taken, 20, Allocation.START_WITH, 295) == 101
     assert place_range(1, 300, taken, 101) is None
     assert place_range(1, 300, [], 0) is None
+
+
+def _ga_place(svc: ProjectService, pid: str, ga_id: int) -> tuple[int, int] | None:
+    """The address of the group address ``ga_id`` and the range it is in."""
+    stack = list(_roots(svc, pid))
+    while stack:
+        node = stack.pop()
+        for ga in node.group_addresses:
+            if ga.id == ga_id:
+                return ga.address, node.id
+        stack.extend(node.children)
+    return None
+
+
+def test_free_style_ranges_move_into_ranges_and_to_the_top(tmp_path: Path) -> None:
+    import pytest
+
+    svc, pid = _new(tmp_path, GroupAddressStyle.FREE)
+    lights = svc.create_free_group_range(pid, 0, None, "Lights", 1, 1024)
+    blinds = svc.create_free_group_range(pid, 0, None, "Blinds", 1025, 2048)
+    hall = svc.create_free_group_range(pid, 0, lights, "Hall", 1, 256)
+    ga = svc.create_group_address_in(pid, hall, 10, "Hall light")
+    # Into a range that spans its addresses it keeps them...
+    big = svc.create_free_group_range(pid, 0, None, "All", 3000, 3999)
+    svc.move_group_range(pid, hall, big)
+    node = _find(_roots(svc, pid), hall)
+    assert (node.range_start, node.range_end) == (3000, 3255)
+    assert _ga_place(svc, pid, ga) == (3009, hall)
+    assert svc.undo(pid)
+    node = _find(_roots(svc, pid), hall)
+    assert (node.range_start, _ga_place(svc, pid, ga)) == (1, (10, hall))
+    # ...where they overlap a range there, it goes to the next place it fits: at the top
+    # "Blinds" spans them, so it goes after it.
+    inner = svc.create_free_group_range(pid, 0, blinds, "Kitchen", 1025, 1100)
+    svc.move_group_range(pid, inner, None)
+    assert inner in [n.id for n in _roots(svc, pid)]
+    assert _find(_roots(svc, pid), inner).range_start == 2049
+    # Kept at the top (not lost from its old parent), and back below it on undo.
+    svc._state(pid).session.expire_all()  # pyright: ignore[reportPrivateUsage]
+    assert inner in [n.id for n in _roots(svc, pid)]
+    assert svc.undo(pid)
+    assert [c.id for c in _find(_roots(svc, pid), blinds).children] == [inner]
+    assert svc.redo(pid)
+    assert _find(_roots(svc, pid), inner).range_start == 2049
+    # Not into itself or a range in it; nothing when it is where it goes.
+    with pytest.raises(ValueError, match="into itself"):
+        svc.move_group_range(pid, lights, hall)
+    svc.move_group_range(pid, hall, lights)
+    # A range too large for the place does not fit.
+    with pytest.raises(ValueError, match="does not fit"):
+        svc.move_group_range(pid, lights, inner)
+
+
+def test_a_moved_range_needs_its_new_addresses_free(tmp_path: Path) -> None:
+    import pytest
+
+    svc, pid = _new(tmp_path, GroupAddressStyle.FREE)
+    top = svc.create_free_group_range(pid, 0, None, "Top", 1, 1000)
+    child = svc.create_free_group_range(pid, 0, top, "Child", 1, 100)
+    svc.create_group_address_in(pid, child, 5, "a")
+    other = svc.create_free_group_range(pid, 0, None, "Other", 2000, 2100)
+    # The parent itself holds the address the child's group address would move to.
+    svc.create_group_address_in(pid, other, 2004, "b")
+    with pytest.raises(ValueError, match="is taken"):
+        svc.move_group_range(pid, child, other)
+
+
+def test_free_style_group_addresses_move_into_any_range(tmp_path: Path) -> None:
+    from xknxeditor.proj.core.events import SetGroupAddressAddress
+
+    svc, pid = _new(tmp_path, GroupAddressStyle.FREE)
+    top = svc.create_free_group_range(pid, 0, None, "Top", 1, 1000)
+    child = svc.create_free_group_range(pid, 0, top, "Child", 1, 100)
+    far = svc.create_free_group_range(pid, 0, None, "Far", 2000, 2100)
+    ga = svc.create_group_address_in(pid, top, 50, "a")
+    # Into a range that spans it, it keeps its address.
+    svc.move_group_address(pid, ga, child)
+    assert _ga_place(svc, pid, ga) == (50, child)
+    # Elsewhere it gets the range's lowest free one; undo puts it back.
+    svc.create_group_address_in(pid, far, 2000, "b")
+    svc.move_group_address(pid, ga, far)
+    assert _ga_place(svc, pid, ga) == (2001, far)
+    assert svc.undo(pid)
+    assert _ga_place(svc, pid, ga) == (50, child)
+    assert svc.redo(pid)
+    assert _ga_place(svc, pid, ga) == (2001, far)
+    svc.move_group_address(pid, ga, far)  # where it is: nothing
+    # Stored events without the range keep the group address where it is.
+    event = SetGroupAddressAddress.from_dict(
+        {"group_address_id": 1, "installation_id": 1, "address": 2}
+    )
+    assert event.group_range_id is None
+    assert event.to_dict()["group_range_id"] is None

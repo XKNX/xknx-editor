@@ -212,6 +212,7 @@ def _function_dict(f: Any) -> dict[str, Any]:
                     "id": g.id,
                     "group_address_id": g.group_address_id,
                     "text": g.text,
+                    "name": g.name,
                     "role": g.role,
                 }
                 for g in f.group_addresses
@@ -2550,14 +2551,17 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         name: str | None = None,
         hardware2program_ref_id: str | None = None,
         space_id: int | None = None,
+        segment_id: int | None = None,
     ) -> dict[str, Any]:
         """Add a device to the project using product_ref_id from catalog_list_products.
         Optional hardware2program_ref_id from the same catalog listing selects its application;
-        omitting it selects the newest catalog version. With ``space_id`` (an ``id`` from
-        project_spaces) the device is added to that space and placed on its Current Line (see
-        project_get_current_line) with the next free address; otherwise, and when the space has
-        no Current Line, it goes on the first TP line. Undoable with project_undo; commissioning
-        hardware requires separate connection tools.
+        omitting it selects the newest catalog version. With ``segment_id`` (a line's main
+        segment or a sub-segment, from project_topology) the device goes on that segment with
+        the next free address of its line, as "Add → Devices…" of a line or segment does. With
+        ``space_id`` (an ``id`` from project_spaces) the device is added to that space and,
+        without ``segment_id``, placed on its Current Line (see project_get_current_line);
+        otherwise, and when the space has no Current Line, it goes on the first TP line.
+        Undoable with project_undo; commissioning hardware requires separate connection tools.
 
         Returns {node_id, name, individual_address, description}, or only {node_id} if the created
         device cannot be loaded. Pass node_id to device tools."""
@@ -2566,6 +2570,10 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         def _add() -> dict[str, Any]:
             if space_id is not None and project.find_space(space_id) is None:
                 raise ToolError(f"no space with id {space_id}")
+            if segment_id is not None and all(
+                segment_id != s for s, _text in project.segment_choices()
+            ):
+                raise ToolError(f"no segment with id {segment_id}")
             product = max(
                 (
                     p
@@ -2598,6 +2606,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                     app=app,
                     product=DeviceProduct.of(product),
                     space_id=space_id,
+                    segment_id=segment_id,
                 )
             except MediumError as error:
                 raise ToolError(str(error)) from error
@@ -3595,9 +3604,10 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         group_address: str | None = None,
     ) -> dict[str, Any]:
         """Move a group address into another group, as its "Move to" does: ``group_range_id`` is
-        a middle group (a main group in the two-level style; ids from
-        project_list_group_ranges). It keeps its number within the group when that is free
-        there, else it gets the lowest free one; its links move with it and the linked devices
+        a middle group (a main group in the two-level style, any range in the Free style; ids
+        from project_list_group_ranges). It keeps its number within the group when that is free
+        there (in the Free style its address, when the range spans it), else it gets the lowest
+        free one; its links move with it and, when its address changes, the linked devices
         need a download of their group communication. Identify the group address by
         ``group_address_id`` OR ``group_address`` (a printed address like "10/1/2"). Undoable
         with project_undo. Returns the fields project_list_group_addresses lists, with the new
@@ -3618,17 +3628,20 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     @tool("write")
     def project_move_group_range(
-        group_range_id: int, main_group_id: int
+        group_range_id: int, parent_id: int | None = None
     ) -> dict[str, Any]:
-        """Move a middle group with its group addresses below another main group, as its "Move
-        to" does (three-level style; ids from project_list_group_ranges). It keeps its number
-        when that is free there, else it gets the lowest free one; its group addresses change
-        with it and the linked devices need a download of their group communication. Undoable
-        with project_undo. Returns the moved group as project_list_group_ranges lists it."""
+        """Move a group with its group addresses, as its "Move to" does (ids from
+        project_list_group_ranges). Three-level style: a middle group below the main group
+        ``parent_id``; it keeps its number when that is free there, else it gets the lowest
+        free one. Free style: a range into the range ``parent_id``, or to the top without it;
+        it keeps its addresses when they fit there (within the new parent, beside its ranges),
+        else it goes to the next place it fits. Its group addresses change with it and the
+        linked devices need a download of their group communication. Undoable with
+        project_undo. Returns the moved group as project_list_group_ranges lists it."""
         require_project(ctx)
 
         def _move() -> dict[str, Any]:
-            reason = project.move_group_range(group_range_id, main_group_id)
+            reason = project.move_group_range(group_range_id, parent_id)
             if reason:
                 raise ToolError(reason)
             found = next(

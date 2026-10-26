@@ -157,6 +157,15 @@ class CatalogStrings:
         return _("(no room)")
 
     @property
+    def CATALOG_ADD_LINE_LABEL(self) -> str:
+        return _("Line")
+
+    @property
+    def CATALOG_ADD_LINE_AUTO(self) -> str:
+        # The line a new device goes on: the room's Current Line, else the first TP line.
+        return _("Automatic")
+
+    @property
     def CATALOG_ADD_SPACE_TITLE(self) -> str:
         return _("Add Device to Project")
 

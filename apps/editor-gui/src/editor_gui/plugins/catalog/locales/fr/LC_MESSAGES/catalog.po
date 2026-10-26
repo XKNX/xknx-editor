@@ -213,3 +213,9 @@ msgstr "{shown} affichés sur {total}"
 
 msgid "(estimated)"
 msgstr "(estimé)"
+
+msgid "Line"
+msgstr "Ligne"
+
+msgid "Automatic"
+msgstr "Automatique"

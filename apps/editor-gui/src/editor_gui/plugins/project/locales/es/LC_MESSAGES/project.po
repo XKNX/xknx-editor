@@ -529,9 +529,6 @@ msgstr "(Nivel Superior)"
 msgid "Delete this space and everything in it? Devices are only unassigned, not deleted."
 msgstr "¿Eliminar este espacio y todo su contenido? Los dispositivos solo se desasignan, no se eliminan."
 
-msgid "Assign Device"
-msgstr "Asignar Dispositivo"
-
 msgid "Assign a Device to This Space"
 msgstr "Asignar un Dispositivo a Este Espacio"
 
@@ -558,9 +555,6 @@ msgstr "Pasillo"
 
 msgid "Stairway"
 msgstr "Escalera"
-
-msgid "Assign Group Address"
-msgstr "Asignar Dirección de Grupo"
 
 msgid "Role (Optional)"
 msgstr "Rol (Opcional)"
@@ -2812,9 +2806,6 @@ msgstr "Líneas…"
 msgid "Segments…"
 msgstr "Segmentos…"
 
-msgid "Add Segments…"
-msgstr "Añadir Segmentos…"
-
 msgid "Add Areas"
 msgstr "Añadir Áreas"
 
@@ -2910,3 +2901,30 @@ msgstr "Nuevo rango de direcciones de grupo"
 
 msgid "Capacity"
 msgstr "Capacidad"
+
+msgid "Link with…"
+msgstr "Vincular con…"
+
+msgid "Link with Group Address"
+msgstr "Vincular con Dirección de Grupo"
+
+msgid "There is no group to add group addresses to."
+msgstr "No hay ningún grupo al que añadir direcciones de grupo."
+
+msgid "Add Subtrade"
+msgstr "Añadir Subfunción"
+
+msgid "The group range does not fit there."
+msgstr "El rango de direcciones de grupo no cabe ahí."
+
+msgid "A group range cannot go into itself or a range in it."
+msgstr "Un rango de direcciones de grupo no puede ir dentro de sí mismo ni de un rango que contenga."
+
+msgid "A group address of the range is already in use there."
+msgstr "Una dirección de grupo del rango ya está en uso ahí."
+
+msgid "Copied {count} group ranges to '{target}'."
+msgstr "{count} rangos de direcciones de grupo copiados a '{target}'."
+
+msgid "New Group Address…"
+msgstr "Nueva Dirección de Grupo…"

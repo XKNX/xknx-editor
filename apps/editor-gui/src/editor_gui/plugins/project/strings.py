@@ -528,6 +528,18 @@ class ProjectStrings:
         return _("The main group has no free middle group.")
 
     @property
+    def GROUP_MOVE_NO_ROOM(self) -> str:
+        return _("The group range does not fit there.")
+
+    @property
+    def GROUP_MOVE_INTO_ITSELF(self) -> str:
+        return _("A group range cannot go into itself or a range in it.")
+
+    @property
+    def GROUP_MOVE_ADDRESS_TAKEN(self) -> str:
+        return _("A group address of the range is already in use there.")
+
+    @property
     def COMMENT_INSTALLATION_HINTS(self) -> str:
         return _("Installation Hints")
 
@@ -662,6 +674,10 @@ class ProjectStrings:
     @property
     def HISTORY_EV_COPIED_MAIN_GROUPS(self) -> str:
         return _("Copied {count} main groups to '{target}'.")
+
+    @property
+    def HISTORY_EV_COPIED_GROUP_RANGES(self) -> str:
+        return _("Copied {count} group ranges to '{target}'.")
 
     @property
     def HISTORY_EV_COPIED_LINES(self) -> str:
@@ -1469,10 +1485,6 @@ class ProjectStrings:
         )
 
     @property
-    def SPACES_ASSIGN_DEVICE(self) -> str:
-        return _("Assign Device")
-
-    @property
     def SPACES_ASSIGN_TITLE(self) -> str:
         return _("Assign a Device to This Space")
 
@@ -1678,6 +1690,10 @@ class ProjectStrings:
         return _("Add Trades")
 
     @property
+    def TRADES_TITLE_SUBTRADES(self) -> str:
+        return _("Add Subtrade")
+
+    @property
     def TRADES_DEFAULT(self) -> str:
         return _("New trade")
 
@@ -1708,8 +1724,21 @@ class ProjectStrings:
         return _("Delete")
 
     @property
-    def SPACES_FN_ADD_GA(self) -> str:
-        return _("Assign Group Address")
+    def SPACES_FN_LINK(self) -> str:
+        return _("Link with…")
+
+    @property
+    def SPACES_FN_LINK_TITLE(self) -> str:
+        return _("Link with Group Address")
+
+    @property
+    def SPACES_FN_GA_GROUP(self) -> str:
+        # The group new group addresses of a function go into.
+        return _("Group")
+
+    @property
+    def SPACES_FN_NO_GROUP(self) -> str:
+        return _("There is no group to add group addresses to.")
 
     @property
     def SPACES_FN_ROLE(self) -> str:
@@ -2804,11 +2833,6 @@ class ProjectStrings:
         return _("Segments…")
 
     @property
-    def TOPOLOGY_ADD_SEGMENTS_ITEM(self) -> str:
-        # The menu item of a line, which adds nothing else.
-        return _("Add Segments…")
-
-    @property
     def TOPOLOGY_TITLE_AREAS(self) -> str:
         return _("Add Areas")
 
@@ -3021,6 +3045,10 @@ class ProjectStrings:
     @property
     def GA_NEW(self) -> str:
         return _("New Group Address")
+
+    @property
+    def GA_NEW_ITEM(self) -> str:
+        return _("New Group Address…")
 
     @property
     def GA_ADD_MAIN_GROUPS(self) -> str:

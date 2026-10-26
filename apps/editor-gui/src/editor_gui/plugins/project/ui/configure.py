@@ -23,6 +23,7 @@ from editor_gui.device_plugins import device_plugins, parameters_in_plugin
 from editor_gui.hardware_text import bus_current_text, rail_text
 from editor_gui.os_open import open_url
 from editor_gui.plugins.project.strings import S
+from editor_gui.plugins.project.ui import name_focus
 from editor_gui.plugins.project.ui.status_field import status_combo
 from editor_gui.widgets.dpi import label_column_width, px, px_vec2
 from editor_gui.widgets.filter_box import filter_box
@@ -860,6 +861,7 @@ class ConfigurePanel:
         default = device.display_name
         placeholder = not device.name and not self._name_prefilled
         imgui.set_next_item_width(-1)
+        name_focus.focus_name_field()
         with italic() if placeholder else nullcontext():
             _, self._name_buffer = imgui.input_text_with_hint(
                 "##name", default if placeholder else "", self._name_buffer
@@ -871,6 +873,8 @@ class ConfigurePanel:
             # The bindings type the state as non-optional, but it is None without an active edit.
             if state is not None:  # pyright: ignore[reportUnnecessaryComparison]
                 state.reload_user_buf_and_move_to_end()
+        # F2: the whole name selected (also the default one filled in above).
+        name_focus.select_name()
         if imgui.is_item_deactivated():
             # The default name itself is not stored as a custom name.
             name = "" if self._name_buffer.strip() == default else self._name_buffer

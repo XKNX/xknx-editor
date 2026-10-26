@@ -45,6 +45,11 @@ class CatalogPlugin:
             plan_delete_product=self._plan_delete_product,
             delete_product=self._delete_product,
             export_product=self._export_product,
+            get_lines=lambda: (
+                api.project.segment_choices() if api.project.is_open else []
+            ),
+            get_line=lambda: api.project.device_target_segment,
+            set_line=self._set_line,
         )
         self._panels = [
             PanelDefinition(
@@ -54,6 +59,9 @@ class CatalogPlugin:
                 render=self._panel.render,
             ),
         ]
+
+    def _set_line(self, segment_id: int | None) -> None:
+        self._api.project.device_target_segment = segment_id
 
     def _notify(self, text: str) -> None:
         if self._api.notify is not None:
@@ -106,8 +114,9 @@ class CatalogPlugin:
         *,
         secure_commissioning: bool | None = None,
     ) -> None:
-        # A new device has no name of its own; it shows its product's name until renamed. Added to
-        # a space, it goes on the space's Current Line, whose medium its hardware must support.
+        # A new device has no name of its own; it shows its product's name until renamed. It
+        # goes on the line chosen in the catalog, else (added to a space) on the space's Current
+        # Line; its hardware must support the line's medium.
         try:
             device_id = self._api.project.add_device(
                 product_ref_id=product.product_ref_id,
@@ -117,6 +126,7 @@ class CatalogPlugin:
                 product=DeviceProduct.of(product),
                 secure_commissioning=secure_commissioning,
                 space_id=space_id,
+                segment_id=self._api.project.device_target_segment,
             )
         except MediumError as error:
             self._log.warning("device not added", error=str(error))

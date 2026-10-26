@@ -213,3 +213,9 @@ msgstr "{shown}/{total} näytetään"
 
 msgid "(estimated)"
 msgstr "(arvioitu)"
+
+msgid "Line"
+msgstr "Linja"
+
+msgid "Automatic"
+msgstr "Automaattinen"

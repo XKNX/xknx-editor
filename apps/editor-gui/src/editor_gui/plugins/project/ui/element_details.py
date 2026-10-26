@@ -16,6 +16,7 @@ from editor_gui.plugins.project.medium_text import (
     segment_media,
 )
 from editor_gui.plugins.project.strings import S
+from editor_gui.plugins.project.ui import name_focus
 from editor_gui.plugins.project.ui.status_field import (
     bus_connection_combo,
     choice_combo,
@@ -373,7 +374,9 @@ class ElementDetailsPanel:
 
     def _name_field(self, details: ElementDetails) -> None:
         imgui.set_next_item_width(-1)
+        name_focus.focus_name_field()
         _, self._name = imgui.input_text("##element_name", self._name)
+        name_focus.select_name()
         if imgui.is_item_deactivated_after_edit() and self._name != details.name:
             self._on_rename(details.kind, details.element_id, self._name.strip())
         if not imgui.is_item_active() and self._name != details.name:

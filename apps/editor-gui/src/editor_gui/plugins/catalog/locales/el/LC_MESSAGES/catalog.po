@@ -213,3 +213,9 @@ msgstr "Εμφανίζονται {shown} από {total}"
 
 msgid "(estimated)"
 msgstr "(εκτιμώμενο)"
+
+msgid "Line"
+msgstr "Γραμμή"
+
+msgid "Automatic"
+msgstr "Αυτόματα"

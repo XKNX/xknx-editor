@@ -529,9 +529,6 @@ msgstr "(øverste niveau)"
 msgid "Delete this space and everything in it? Devices are only unassigned, not deleted."
 msgstr "Vil du slette denne placering og alt i den? Enheder fjernes kun fra den, de slettes ikke."
 
-msgid "Assign Device"
-msgstr "Tildel enhed"
-
 msgid "Assign a Device to This Space"
 msgstr "Tildel en enhed til denne placering"
 
@@ -558,9 +555,6 @@ msgstr "Gang"
 
 msgid "Stairway"
 msgstr "Trappe"
-
-msgid "Assign Group Address"
-msgstr "Tildel gruppeadresse"
 
 msgid "Role (Optional)"
 msgstr "Rolle (valgfri)"
@@ -2812,9 +2806,6 @@ msgstr "Linjer…"
 msgid "Segments…"
 msgstr "Segmenter…"
 
-msgid "Add Segments…"
-msgstr "Tilføj segmenter…"
-
 msgid "Add Areas"
 msgstr "Tilføj områder"
 
@@ -2910,3 +2901,30 @@ msgstr "Nyt gruppeadresseområde"
 
 msgid "Capacity"
 msgstr "Kapacitet"
+
+msgid "Link with…"
+msgstr "Forbind med…"
+
+msgid "Link with Group Address"
+msgstr "Forbind med gruppeadresse"
+
+msgid "There is no group to add group addresses to."
+msgstr "Der er ingen gruppe at tilføje gruppeadresser til."
+
+msgid "Add Subtrade"
+msgstr "Tilføj undertrade"
+
+msgid "The group range does not fit there."
+msgstr "Gruppeadresseområdet passer ikke der."
+
+msgid "A group range cannot go into itself or a range in it."
+msgstr "Et gruppeadresseområde kan ikke flyttes ind i sig selv eller et område i det."
+
+msgid "A group address of the range is already in use there."
+msgstr "En gruppeadresse i området er allerede i brug der."
+
+msgid "Copied {count} group ranges to '{target}'."
+msgstr "{count} gruppeadresseområder kopieret til '{target}'."
+
+msgid "New Group Address…"
+msgstr "Ny gruppeadresse…"

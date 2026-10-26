@@ -145,14 +145,14 @@ async def test_moves_and_unknown_elements_are_refused(tmp_path: Path) -> None:
             "project_move_group_range",
             "only a middle group",
             group_range_id=ranges["1"],
-            main_group_id=ranges["2"],
+            parent_id=ranges["2"],
         )
         await _refused(
             client,
             "project_move_group_range",
             "No group range",
             group_range_id=ranges["1/1"],
-            main_group_id=999,
+            parent_id=999,
         )
         # A middle group's Security, found below its main group.
         middle = await _data(

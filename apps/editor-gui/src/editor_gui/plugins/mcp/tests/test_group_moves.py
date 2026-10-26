@@ -31,7 +31,7 @@ async def test_group_address_and_middle_group_move(tmp_path: Path) -> None:
             client,
             "project_move_group_range",
             group_range_id=by_address["1/1"],
-            main_group_id=by_address["2"],
+            parent_id=by_address["2"],
         )
         assert group["address"] == "2/0"
         # A main group holds no group addresses in the three-level style.

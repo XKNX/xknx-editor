@@ -213,3 +213,9 @@ msgstr "{shown} van {total} getoond"
 
 msgid "(estimated)"
 msgstr "(geschat)"
+
+msgid "Line"
+msgstr "Lijn"
+
+msgid "Automatic"
+msgstr "Automatisch"

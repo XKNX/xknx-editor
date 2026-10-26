@@ -621,6 +621,8 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         name: str = "",
         allocation: NumberAllocation = "fill_up",
         start_with: int = 0,
+        function_id: int | None = None,
+        role: str = "",
     ) -> dict[str, Any]:
         """Add ``count`` group addresses (1 to 100, one undo step) to a middle group (a main
         group in two-level style, any group range in the Free style; ``group_range_id`` from
@@ -629,8 +631,10 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         ``allocation`` "fill_up" takes the lowest free address of the group, "append" the one
         after the highest, "start_with" the first free from ``start_with`` on, counted within
         the group (10 in 1/2 is 1/2/10; in the Free style the address itself); the address
-        0/0/0 is never given. Undoable with project_undo. Returns {group_address_ids,
-        addresses}: the printed addresses."""
+        0/0/0 is never given. With ``function_id`` (a building function, from project_spaces)
+        each new group address is linked with that function, with ``role``, in the same undo
+        step, as the function's "Add Group Addresses…" does. Undoable with project_undo.
+        Returns {group_address_ids, addresses}: the printed addresses."""
         require_project(ctx)
         if not 1 <= count <= _MAX_COPIES:
             raise ToolError(f"count must be 1 to {_MAX_COPIES}")
@@ -648,6 +652,8 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                     f"no group with id {group_range_id} that holds group addresses"
                 )
             node = group.node
+            if function_id is not None and function_id not in _functions(project):
+                raise ToolError(f"no function with id {function_id}")
             pool = AddressPool(
                 node.range_start,
                 node.range_end,
@@ -679,6 +685,8 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                         raise ToolError(str(error)) from error
                     if ga_id is None:
                         raise ToolError(f"could not create group address {text}")
+                    if function_id is not None:
+                        project.add_function_group_address(function_id, ga_id, role)
                     ids.append(ga_id)
                     addresses.append(text)
             return {"group_address_ids": ids, "addresses": addresses}

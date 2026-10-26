@@ -443,7 +443,8 @@ def test_segments_are_added_and_deleted_from_the_tree(
     clicks.button = S.BTN_OK
     frames()
     clicks.context = "##line_ctx_1"
-    clicks.items.add(S.TOPOLOGY_ADD_SEGMENTS_ITEM)
+    clicks.menus.add(S.SPACES_ADD_MENU)
+    clicks.items.add(S.TOPOLOGY_ADD_SEGMENTS)
     frames()
     panel._adder.request.rows[0].name = "Garage"  # pyright: ignore[reportPrivateUsage]
     panel._adder.request.rows[0].choice = "MT-2"  # pyright: ignore[reportPrivateUsage]
@@ -456,7 +457,8 @@ def test_segments_are_added_and_deleted_from_the_tree(
     ]
     # An RF line takes no sub-segment: it is told, and no dialog opens.
     clicks.context = "##line_ctx_4"
-    clicks.items.add(S.TOPOLOGY_ADD_SEGMENTS_ITEM)
+    clicks.menus.add(S.SPACES_ADD_MENU)
+    clicks.items.add(S.TOPOLOGY_ADD_SEGMENTS)
     frames()
     assert len(notes) == 1 and len(added) == 3
     clicks.context = "##segment_ctx_5"

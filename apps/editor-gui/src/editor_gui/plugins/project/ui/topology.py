@@ -24,7 +24,9 @@ from editor_gui.plugins.project.ui.move_menu import render_move_menu
 from editor_gui.plugins.project.ui.paste_special import (
     PasteSpecialDialog,
     ShortcutRow,
+    handle_row_keys,
     render_copy_item,
+    render_delete_item,
 )
 from editor_gui.plugins.project.ui.tree_drag import Dragged, drag_source, drop_target
 from editor_gui.widgets.description import render_device_marks
@@ -158,9 +160,11 @@ class TopologyPanel:
         ],
         notify: Callable[[str], None] = lambda _t: None,
         on_park_device: Callable[[int], None] | None = None,
+        on_add_devices: Callable[[int | None], None] | None = None,
     ) -> None:
         """``on_park_device`` clears a device's (by id) device number, keeping it on its line
-        ("Park"). ``on_create_area`` adds an area (number, name, its main line's medium),
+        ("Park"). ``on_add_devices`` opens the catalog to add devices to a segment (by id; None:
+        where the catalog puts them), "Add → Devices…". ``on_create_area`` adds an area (number, name, its main line's medium),
         ``on_create_line`` a line (area id, number, name, medium) and ``on_add_segment`` a
         sub-segment (line, name, medium), each giving the reason it cannot, or None;
         ``get_new_line_media`` gives the media a new line (area and line number) can have.
@@ -177,6 +181,7 @@ class TopologyPanel:
         self._paste_dialog = paste_dialog
         self._on_unlink_device = on_unlink_device
         self._on_park_device = on_park_device
+        self._on_add_devices = on_add_devices
         self._on_move_line = on_move_line
         self._on_move_segment = on_move_segment
         # A line's sub-segments show as nodes before its main segment's devices, each with its
@@ -241,6 +246,8 @@ class TopologyPanel:
         self._render_tree(devices, areas, device_tree, unassigned_devices, flt)
         if self._paste_dialog is not None:
             self._paste_dialog.handle_shortcuts(self._shortcut_row)
+        else:
+            handle_row_keys(self._shortcut_row)
         imgui.end_child()
 
     def _render_tree(
@@ -259,6 +266,7 @@ class TopologyPanel:
         if imgui.begin_popup_context_window("##topology_context"):
             if imgui.begin_menu(S.SPACES_ADD_MENU):
                 self._render_add_items(None, [], None)
+                self._render_add_devices_item(None)
                 imgui.end_menu()
             imgui.end_popup()
 
@@ -347,6 +355,7 @@ class TopologyPanel:
                         lambda c, a=area, m=main: self._line_copy_target(
                             a, m, c, area_node=True
                         ),
+                        on_delete=lambda a=area: self._on_remove_area(a),
                     )
             if flt:
                 imgui.set_next_item_open(True, imgui.Cond_.always)
@@ -411,6 +420,7 @@ class TopologyPanel:
             self._shortcut_row = ShortcutRow(
                 Dragged("line", (line.id,)),
                 lambda c: self._line_copy_target(area, line, c),
+                on_delete=lambda: self._on_remove_line(line),
             )
         if self._filter_text.strip():
             imgui.set_next_item_open(True, imgui.Cond_.always)
@@ -474,6 +484,7 @@ class TopologyPanel:
                 lambda c: (
                     PasteTarget("segment", segment.id) if c.kind == "device" else None
                 ),
+                on_delete=lambda: self._on_remove_segment(segment),
             )
         if self._filter_text.strip():
             imgui.set_next_item_open(True, imgui.Cond_.always)
@@ -482,6 +493,9 @@ class TopologyPanel:
         if imgui.is_item_clicked() and not imgui.is_item_toggled_open():
             self._select_element("segment", segment.id)
         if context_menu(f"##segment_ctx_{segment.id}"):
+            if self._on_add_devices is not None and imgui.begin_menu(S.SPACES_ADD_MENU):
+                self._render_add_devices_item(segment.id)
+                imgui.end_menu()
             self._render_move_segment_menu(segment, line)
             if self._paste_dialog is not None:
                 render_copy_item(Dragged("segment", (segment.id,)))
@@ -491,7 +505,7 @@ class TopologyPanel:
                 )
             )
             imgui.separator()
-            if imgui.menu_item(S.CONTEXT_DELETE, "", False)[0]:
+            if render_delete_item():
                 self._on_remove_segment(segment)
             imgui.end_popup()
         drag_source(Dragged("segment", (segment.id,)), label)
@@ -531,6 +545,7 @@ class TopologyPanel:
                     if c.kind == "device" and segment is not None
                     else None
                 ),
+                on_delete=lambda: self._ask_delete_device(device),
             )
         if imgui.is_item_clicked():
             self._handle_device_click(device, ordered_ids)
@@ -553,10 +568,14 @@ class TopologyPanel:
                 imgui.set_clipboard_text(device.individual_address)
             self._render_move_device_menu(device)
             self._render_unlink_item((device.node_id,))
-            if imgui.menu_item(S.CONTEXT_DELETE, "", False)[0]:
-                self._delete_target_device = device
-                self._open_delete_device_popup = True
+            if render_delete_item():
+                self._ask_delete_device(device)
             imgui.end_popup()
+
+    def _ask_delete_device(self, device: TreeDevice) -> None:
+        """Ask before ``device`` is deleted from the project."""
+        self._delete_target_device = device
+        self._open_delete_device_popup = True
 
     def _render_unlink_item(self, node_ids: tuple[int, ...]) -> None:
         """ "Park" of devices with a device number: they keep their line ("1.5.-"); "Unlink" of
@@ -651,9 +670,8 @@ class TopologyPanel:
                     )
                 )
             imgui.separator()
-            if imgui.menu_item(S.CONTEXT_DELETE, "", False)[0]:
-                self._delete_target_device = device
-                self._open_delete_device_popup = True
+            if render_delete_item():
+                self._ask_delete_device(device)
             imgui.end_popup()
 
     def _render_move_device_menu(self, device: TreeDevice) -> None:
@@ -754,28 +772,42 @@ class TopologyPanel:
         if context_menu(f"##area_ctx_{area.id}"):
             if imgui.begin_menu(S.SPACES_ADD_MENU):
                 self._render_add_items(area, lines, main)
+                if main is not None:
+                    self._render_add_devices_item(main.main_segment_id)
                 imgui.end_menu()
             if main is not None:
                 self._render_paste_items(
                     lambda c: self._line_copy_target(area, main, c, area_node=True)
                 )
             imgui.separator()
-            if imgui.menu_item(S.CONTEXT_DELETE, "", False)[0]:
+            if render_delete_item():
                 self._on_remove_area(area)
             imgui.end_popup()
 
     def _render_line_context_menu(self, area: Area, line: Line) -> None:
         if context_menu(f"##line_ctx_{line.id}"):
-            if imgui.menu_item(S.TOPOLOGY_ADD_SEGMENTS_ITEM, "", False)[0]:
-                self._start_add_segments(area, line)
+            if imgui.begin_menu(S.SPACES_ADD_MENU):
+                if imgui.menu_item(S.TOPOLOGY_ADD_SEGMENTS, "", False)[0]:
+                    self._start_add_segments(area, line)
+                self._render_add_devices_item(line.main_segment_id)
+                imgui.end_menu()
             self._render_move_line_menu(area, line)
             if self._paste_dialog is not None and line.number != 0:
                 render_copy_item(Dragged("line", (line.id,)))
             self._render_paste_items(lambda c: self._line_copy_target(area, line, c))
             imgui.separator()
-            if imgui.menu_item(S.CONTEXT_DELETE, "", False)[0]:
+            if render_delete_item():
                 self._on_remove_line(line)
             imgui.end_popup()
+
+    def _render_add_devices_item(self, segment_id: int | None) -> None:
+        """ "Devices…" of an "Add" submenu: the catalog, adding devices to the segment
+        ``segment_id`` (None: where the catalog puts them)."""
+        if (
+            self._on_add_devices is not None
+            and imgui.menu_item(S.SPACES_ADD_DEVICES, "", False)[0]
+        ):
+            self._on_add_devices(segment_id)
 
     def _render_move_line_menu(self, area: Area, line: Line) -> None:
         """ "Move to" of a sub line: every area (by its main line), its own grayed out. It

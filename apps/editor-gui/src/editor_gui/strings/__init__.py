@@ -47,6 +47,19 @@ def _on_mac() -> bool:
     return hub.client_mac if hub is not None else sys.platform == "darwin"
 
 
+def mac_keys() -> bool:
+    """Whether the keyboard is a Mac's: Cmd for Ctrl, its Delete key sends Backspace."""
+    return _on_mac()
+
+
+def delete_key() -> str:
+    """The key that deletes, as shortcut labels name it: Delete on a Mac, else Del."""
+    if _on_mac():
+        return "Delete"
+    # Translators: the Del key as shortcut labels name it (German keyboards: "Entf").
+    return _("Del")
+
+
 def modifier_key() -> str:
     """The key shortcuts are held with, as the platform names it: Cmd on a Mac, else Ctrl."""
     if _on_mac():

@@ -529,9 +529,6 @@ msgstr "(nejvyšší úroveň)"
 msgid "Delete this space and everything in it? Devices are only unassigned, not deleted."
 msgstr "Odstranit tento prostor a vše v něm? Zařízení se jen odeberou z přiřazení, neodstraní se."
 
-msgid "Assign Device"
-msgstr "Přiřadit zařízení"
-
 msgid "Assign a Device to This Space"
 msgstr "Přiřadit zařízení k tomuto prostoru"
 
@@ -558,9 +555,6 @@ msgstr "Chodba"
 
 msgid "Stairway"
 msgstr "Schodiště"
-
-msgid "Assign Group Address"
-msgstr "Přiřadit skupinovou adresu"
 
 msgid "Role (Optional)"
 msgstr "Role (volitelné)"
@@ -2812,9 +2806,6 @@ msgstr "Linie…"
 msgid "Segments…"
 msgstr "Segmenty…"
 
-msgid "Add Segments…"
-msgstr "Přidat segmenty…"
-
 msgid "Add Areas"
 msgstr "Přidat oblasti"
 
@@ -2910,3 +2901,30 @@ msgstr "Nový rozsah skupinových adres"
 
 msgid "Capacity"
 msgstr "Kapacita"
+
+msgid "Link with…"
+msgstr "Propojit s…"
+
+msgid "Link with Group Address"
+msgstr "Propojit se skupinovou adresou"
+
+msgid "There is no group to add group addresses to."
+msgstr "Neexistuje skupina, do které lze přidat skupinové adresy."
+
+msgid "Add Subtrade"
+msgstr "Vložit podčinnost"
+
+msgid "The group range does not fit there."
+msgstr "Rozsah skupinových adres se sem nevejde."
+
+msgid "A group range cannot go into itself or a range in it."
+msgstr "Rozsah skupinových adres nelze vložit do sebe ani do rozsahu v něm."
+
+msgid "A group address of the range is already in use there."
+msgstr "Skupinová adresa rozsahu je tam již použita."
+
+msgid "Copied {count} group ranges to '{target}'."
+msgstr "{count} rozsahů skupinových adres zkopírováno do '{target}'."
+
+msgid "New Group Address…"
+msgstr "Nová skupinová adresa…"

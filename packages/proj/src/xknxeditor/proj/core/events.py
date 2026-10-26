@@ -2219,6 +2219,8 @@ class SetGroupAddressAddress(Event):
     old_group_range_id: int | None = None
     # Devices whose group communication was loaded before (the address is in their tables).
     cleared: dict[str, bool] = field(default_factory=dict[str, bool])
+    # Free style (no ``levels``): the range it goes into; None keeps it in its range.
+    group_range_id: int | None = None
 
     def apply(self, session: Session) -> None:
         ga = session.get(GroupAddress, self.group_address_id)
@@ -2226,8 +2228,13 @@ class SetGroupAddressAddress(Event):
             return
         self.old_address = ga.address
         self.old_group_range_id = ga.group_range_id
-        self.cleared = _clear_communication_loaded(
-            session, _devices_on(session, self.group_address_id)
+        # Only a new address changes what the devices have loaded.
+        self.cleared = (
+            _clear_communication_loaded(
+                session, _devices_on(session, self.group_address_id)
+            )
+            if self.address != ga.address
+            else {}
         )
 
         # Ensure the target range chain exists (same walk as CreateGroupAddress), tracking which
@@ -2275,6 +2282,10 @@ class SetGroupAddressAddress(Event):
         ga.address = self.address
         if parent_range is not None:
             ga.group_range = parent_range
+        elif self.group_range_id is not None:
+            target = session.get(GroupRange, self.group_range_id)
+            if target is not None:
+                ga.group_range = target
 
     def revert(self, session: Session) -> None:
         ga = session.get(GroupAddress, self.group_address_id)
@@ -2307,6 +2318,7 @@ class SetGroupAddressAddress(Event):
             "old_address": self.old_address,
             "old_group_range_id": self.old_group_range_id,
             "cleared": self.cleared,
+            "group_range_id": self.group_range_id,
         }
 
     @classmethod
@@ -2944,24 +2956,35 @@ def _shift_group_range(session: Session, range_id: int, offset: int) -> set[int]
 @_register
 @dataclass
 class MoveGroupRange(Event):
-    """Put a middle group below another main group: it, the ranges below it and all their group
-    addresses move by ``offset`` (in raw address units), and the devices linked to them get their
-    group communication marked as not loaded, as for a renumbered group."""
+    """Put a middle group below another main group, or a Free style range into another range
+    (``new_parent_id`` None: to the top): it, the ranges below it and all their group addresses
+    move by ``offset`` (in raw address units), and the devices linked to them get their group
+    communication marked as not loaded, as for a renumbered group."""
 
     event_type: ClassVar[str] = "MoveGroupRange"
 
     range_id: int
-    new_parent_id: int
+    new_parent_id: int | None
     offset: int
     old_parent_id: int | None = None
     cleared: dict[str, bool] = field(default_factory=dict[str, bool])
 
     def _reparent(self, session: Session, parent_id: int | None) -> None:
         group_range = session.get(GroupRange, self.range_id)
-        if group_range is not None:
-            group_range.parent = (
-                session.get(GroupRange, parent_id) if parent_id is not None else None
-            )
+        if group_range is None:
+            return
+        old_parent = group_range.parent
+        # The key, not the relationship: a range taken out of its parent's children (to the
+        # top) would be deleted as an orphan.
+        group_range.parent_id = parent_id
+        session.flush()
+        session.expire(group_range, ["parent"])
+        new_parent = (
+            session.get(GroupRange, parent_id) if parent_id is not None else None
+        )
+        for parent in (old_parent, new_parent):
+            if parent is not None:
+                session.expire(parent, ["children"])
 
     def apply(self, session: Session) -> None:
         group_range = session.get(GroupRange, self.range_id)

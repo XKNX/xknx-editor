@@ -529,9 +529,6 @@ msgstr "(ylin taso)"
 msgid "Delete this space and everything in it? Devices are only unassigned, not deleted."
 msgstr "Poistetaanko tämä tila ja kaikki sen sisältö? Laitteiden kohdistus vain poistetaan, laitteita ei poisteta."
 
-msgid "Assign Device"
-msgstr "Kohdista laite"
-
 msgid "Assign a Device to This Space"
 msgstr "Kohdista laite tähän tilaan"
 
@@ -558,9 +555,6 @@ msgstr "Käytävä"
 
 msgid "Stairway"
 msgstr "Portaat"
-
-msgid "Assign Group Address"
-msgstr "Kohdista ryhmäosoite"
 
 msgid "Role (Optional)"
 msgstr "Rooli (valinnainen)"
@@ -2812,9 +2806,6 @@ msgstr "Linjat…"
 msgid "Segments…"
 msgstr "Segmentit…"
 
-msgid "Add Segments…"
-msgstr "Lisää Segmenttejä…"
-
 msgid "Add Areas"
 msgstr "Lisää Alueita"
 
@@ -2910,3 +2901,30 @@ msgstr "Uusi ryhmäosoitealue"
 
 msgid "Capacity"
 msgstr "Kapasiteetti"
+
+msgid "Link with…"
+msgstr "Yhdistä…"
+
+msgid "Link with Group Address"
+msgstr "Yhdistä Ryhmäosoitteeseen"
+
+msgid "There is no group to add group addresses to."
+msgstr "Ei ryhmää, johon ryhmäosoitteita voisi lisätä."
+
+msgid "Add Subtrade"
+msgstr "Lisää Alivaihto"
+
+msgid "The group range does not fit there."
+msgstr "Ryhmäosoitealue ei mahdu sinne."
+
+msgid "A group range cannot go into itself or a range in it."
+msgstr "Ryhmäosoitealuetta ei voi siirtää itseensä tai sen sisällä olevaan alueeseen."
+
+msgid "A group address of the range is already in use there."
+msgstr "Jokin alueen ryhmäosoite on siellä jo käytössä."
+
+msgid "Copied {count} group ranges to '{target}'."
+msgstr "{count} ryhmäosoitealuetta kopioitu kohteeseen '{target}'."
+
+msgid "New Group Address…"
+msgstr "Uusi ryhmäosoite…"

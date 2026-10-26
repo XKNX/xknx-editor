@@ -1425,3 +1425,6 @@ msgstr "Ctrl"
 
 msgid "This stops XKNX Editor on the server. Until it is started there again, no browser can connect to it."
 msgstr "これにより、サーバー上の XKNX Editor が終了します。サーバーで再び起動するまで、どのブラウザーからも接続できません。"
+
+msgid "Del"
+msgstr "Del"

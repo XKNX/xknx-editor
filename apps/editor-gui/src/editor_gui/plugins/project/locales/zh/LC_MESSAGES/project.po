@@ -529,9 +529,6 @@ msgstr "（顶层）"
 msgid "Delete this space and everything in it? Devices are only unassigned, not deleted."
 msgstr "删除此空间及其中的所有内容？设备只会被取消分配，不会被删除。"
 
-msgid "Assign Device"
-msgstr "分配设备"
-
 msgid "Assign a Device to This Space"
 msgstr "将设备分配到此空间"
 
@@ -558,9 +555,6 @@ msgstr "走廊"
 
 msgid "Stairway"
 msgstr "楼梯"
-
-msgid "Assign Group Address"
-msgstr "分配组地址"
 
 msgid "Role (Optional)"
 msgstr "角色（可选）"
@@ -2812,9 +2806,6 @@ msgstr "线路…"
 msgid "Segments…"
 msgstr "段…"
 
-msgid "Add Segments…"
-msgstr "添加段…"
-
 msgid "Add Areas"
 msgstr "添加区域"
 
@@ -2910,3 +2901,30 @@ msgstr "新组地址范围"
 
 msgid "Capacity"
 msgstr "容量"
+
+msgid "Link with…"
+msgstr "链接到…"
+
+msgid "Link with Group Address"
+msgstr "链接到组地址"
+
+msgid "There is no group to add group addresses to."
+msgstr "没有可添加组地址的组。"
+
+msgid "Add Subtrade"
+msgstr "添加子工程作业"
+
+msgid "The group range does not fit there."
+msgstr "组地址范围放不下。"
+
+msgid "A group range cannot go into itself or a range in it."
+msgstr "组地址范围不能放入自身或其内部的范围。"
+
+msgid "A group address of the range is already in use there."
+msgstr "该范围的某个组地址在那里已被使用。"
+
+msgid "Copied {count} group ranges to '{target}'."
+msgstr "已将 {count} 个组地址范围复制到“{target}”。"
+
+msgid "New Group Address…"
+msgstr "新建组地址…"

@@ -213,3 +213,9 @@ msgstr "{shown} av {total} vist"
 
 msgid "(estimated)"
 msgstr "(antatt)"
+
+msgid "Line"
+msgstr "Linje"
+
+msgid "Automatic"
+msgstr "Automatisk"

@@ -213,3 +213,9 @@ msgstr "显示 {total} 个中的 {shown} 个"
 
 msgid "(estimated)"
 msgstr "（估计的）"
+
+msgid "Line"
+msgstr "线路"
+
+msgid "Automatic"
+msgstr "自动"

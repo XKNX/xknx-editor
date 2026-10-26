@@ -131,6 +131,13 @@ def _same(a: ProductSummary | None, b: ProductSummary) -> bool:
     return a is not None and _key(a) == _key(b)
 
 
+def _picker_label_width() -> float:
+    """Where the line and room pickers start, after their labels, one below the other."""
+    return label_column_width(
+        S.CATALOG_ADD_LINE_LABEL, S.CATALOG_ADD_SPACE_LABEL, minimum=0.0
+    )
+
+
 def _version_text(product: ProductSummary) -> str:
     if product.application_version is None:
         return "-"
@@ -177,7 +184,16 @@ class CatalogPanel:
         plan_delete_product: Callable[[ProductSummary], int | None] | None = None,
         delete_product: Callable[[ProductSummary], None] | None = None,
         export_product: Callable[[ProductSummary, str], None] | None = None,
+        get_lines: Callable[[], list[tuple[int, str]]] | None = None,
+        get_line: Callable[[], int | None] = lambda: None,
+        set_line: Callable[[int | None], None] = lambda _s: None,
     ) -> None:
+        """``get_lines`` lists the lines (and sub-segments) a new device can go on, as (segment
+        id, text); ``get_line`` is the one chosen (None: automatic), ``set_line`` chooses
+        one."""
+        self._get_lines = get_lines
+        self._get_line = get_line
+        self._set_line = set_line
         self._get_products = get_products
         self._on_select = on_select
         # Optional room picker for "Add device": lists (space_id, path) so a device can be placed
@@ -278,6 +294,9 @@ class CatalogPanel:
 
     def _render_local_catalog(self) -> None:
         self._search = filter_box("##catalog_search", S.LOCAL_SEARCH_HINT, self._search)
+        # A line chosen ("Add → Devices…" in the Topology tree) shows right away.
+        if self._get_line() is not None:
+            self._render_line_picker("top")
         fill_content_background()
         deleting = self._deleting
         if deleting is not None:
@@ -401,6 +420,7 @@ class CatalogPanel:
                 )
             )
             imgui.spacing()
+            self._render_line_picker()
             self._render_space_picker()
             clicked = dialog_buttons(S.CATALOG_DETAIL_ADD, S.BTN_CANCEL)
             if clicked == 0:
@@ -552,10 +572,34 @@ class CatalogPanel:
             imgui.text_disabled(label)
             imgui.same_line(label_w)
             imgui.text_wrapped(value)
+        self._render_line_picker()
         if self._render_space_picker():
             imgui.same_line()
         if imgui.button(S.CATALOG_DETAIL_ADD):
             self._on_select(product, self._add_space_id)
+
+    def _render_line_picker(self, where: str = "detail") -> None:
+        """The line a new device goes on, "Automatic" first (the room's Current Line, else the
+        first TP line). Hidden when no line getter is wired or the project has no lines;
+        ``where`` keeps the pickers at the top and in the details apart."""
+        lines = self._get_lines() if self._get_lines is not None else []
+        if not lines:
+            return
+        options: list[tuple[int | None, str]] = [
+            (None, S.CATALOG_ADD_LINE_AUTO),
+            *lines,
+        ]
+        chosen = self._get_line()
+        current = next((i for i, (sid, _) in enumerate(options) if sid == chosen), 0)
+        imgui.align_text_to_frame_padding()
+        imgui.text(S.CATALOG_ADD_LINE_LABEL)
+        imgui.same_line(_picker_label_width())
+        imgui.set_next_item_width(px(240.0))
+        changed, picked = combo(
+            f"##catalog_add_line_{where}", current, [label for _, label in options]
+        )
+        if changed:
+            self._set_line(options[picked][0])
 
     def _render_space_picker(self) -> bool:
         """Room label and combo before the Add button: pick a space to place the new device in
@@ -578,7 +622,7 @@ class CatalogPanel:
         )
         imgui.align_text_to_frame_padding()
         imgui.text(S.CATALOG_ADD_SPACE_LABEL)
-        imgui.same_line()
+        imgui.same_line(_picker_label_width())
         imgui.set_next_item_width(px(240.0))
         changed, picked = combo(
             "##catalog_add_space", current, [label for _, label in options]

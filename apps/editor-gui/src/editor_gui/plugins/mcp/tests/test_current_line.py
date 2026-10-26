@@ -172,3 +172,36 @@ async def test_a_device_added_to_a_space_goes_on_its_current_line(
                 "project_add_device",
                 {"product_ref_id": product["product_ref_id"], "space_id": 999},
             )
+
+
+@pytest.mark.skipif(not _FIXTURE.exists(), reason="knxprod fixture missing")
+async def test_a_device_goes_on_the_segment_asked_for(tmp_path: Path) -> None:
+    mcp, _project_service = _build(tmp_path)
+    async with Client(mcp) as client:
+        spaces = await _spaces(client, tmp_path)
+        area = (await _data(client, "project_topology"))["items"][1]["id"]
+        await _data(client, "project_create_line", area_id=area, line_number=2)
+        lines = await _lines(client)
+        await _data(client, "project_set_medium", line_id=lines["1.2"], medium="TP")
+        await _data(client, "catalog_import_knxprod", path=str(_FIXTURE))
+        product = (await _data(client, "catalog_list_products"))["items"][0]
+        line = next(
+            ln
+            for a in (await _data(client, "project_topology"))["items"]
+            for ln in a["lines"]
+            if ln["id"] == lines["1.2"]
+        )
+        # The segment wins over the space's Current Line (1.1), as "Add → Devices…" does.
+        device = await _data(
+            client,
+            "project_add_device",
+            product_ref_id=product["product_ref_id"],
+            space_id=spaces["room"],
+            segment_id=line["main_segment_id"],
+        )
+        assert device["individual_address"].startswith("1.2.")
+        with pytest.raises(Exception, match="no segment with id 999"):
+            await client.call_tool(
+                "project_add_device",
+                {"product_ref_id": product["product_ref_id"], "segment_id": 999},
+            )

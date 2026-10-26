@@ -19,7 +19,9 @@ from imgui_bundle import imgui
 
 from editor_gui.plugins.project.paste import PasteKind, PasteTarget
 from editor_gui.plugins.project.strings import S
+from editor_gui.plugins.project.ui import name_focus
 from editor_gui.plugins.project.ui.tree_drag import Dragged
+from editor_gui.strings import delete_key, mac_keys, shortcut
 from editor_gui.widgets.checkbox import radio_beside_field, radio_button
 from editor_gui.widgets.combo import combo
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
@@ -62,10 +64,16 @@ def _take(copied: Dragged, *, cut: bool) -> None:
 def render_copy_item(copied: Dragged, *, movable: bool = True) -> None:
     """The "Copy" and "Cut" items of a tree row's context menu; ``copied`` is what they take.
     ``movable`` False: it cannot be moved (a main group), so no "Cut"."""
-    if imgui.menu_item(S.CONTEXT_COPY, "", False)[0]:
+    if imgui.menu_item(S.CONTEXT_COPY, shortcut("C"), False)[0]:
         _take(copied, cut=False)
-    if movable and imgui.menu_item(S.CONTEXT_CUT, "", False)[0]:
+    if movable and imgui.menu_item(S.CONTEXT_CUT, shortcut("X"), False)[0]:
         _take(copied, cut=True)
+
+
+def render_delete_item(label: str | None = None) -> bool:
+    """The "Delete" item of a tree row's context menu (``label`` for another text), with its
+    key; whether it was clicked."""
+    return imgui.menu_item(label or S.CONTEXT_DELETE, delete_key(), False)[0]
 
 
 def copied() -> Dragged | None:
@@ -81,17 +89,40 @@ def is_cut() -> bool:
 @dataclass(frozen=True)
 class ShortcutRow:
     """The element selected in a tree, as the keyboard copies and pastes it: what Ctrl+C and
-    Ctrl+X take (None: nothing), where Ctrl+V pastes (as its "Paste" item) and whether it can
-    be moved (Ctrl+X)."""
+    Ctrl+X take (None: nothing), where Ctrl+V pastes (as its "Paste" item), whether it can
+    be moved (Ctrl+X), what the Delete key does (as its "Delete" item; None: nothing) and
+    whether F2 goes to its name in the details."""
 
     copied: Dragged | None
     target_for: Callable[[Dragged], PasteTarget | None]
     movable: bool = True
+    on_delete: Callable[[], None] | None = None
+    named: bool = True
+
+
+def no_paste(_copied: Dragged) -> PasteTarget | None:
+    """Where nothing is pasted (a :class:`ShortcutRow` without Ctrl+V)."""
+    return None
 
 
 def _chord(key: imgui.Key) -> int:
     """Ctrl with ``key``; imgui gives Cmd on a Mac as Ctrl."""
     return int(imgui.Key.mod_ctrl) | int(key)
+
+
+def handle_row_keys(row: ShortcutRow | None) -> None:
+    """The Delete key and F2 on the element selected in the tree (``row``), while the tree has
+    the keyboard and no text is typed (also on a Mac's Delete key, which sends Backspace).
+    Called inside the tree's window."""
+    if row is None or imgui.get_io().want_text_input:
+        return
+    if row.on_delete is not None and (
+        imgui.shortcut(int(imgui.Key.delete))
+        or (mac_keys() and imgui.shortcut(int(imgui.Key.backspace)))
+    ):
+        row.on_delete()
+    if row.named and imgui.shortcut(int(imgui.Key.f2)):
+        name_focus.request()
 
 
 def _flat(ranges: list[GroupRangeInfo]) -> list[GroupRangeInfo]:
@@ -169,7 +200,7 @@ class PasteSpecialDialog:
         clip = _Clipboard.copied
         target = target_for(clip) if clip is not None else None
         enabled = clip is not None and target is not None
-        paste = imgui.menu_item(S.CONTEXT_PASTE, "", False, enabled)[0]
+        paste = imgui.menu_item(S.CONTEXT_PASTE, shortcut("V"), False, enabled)[0]
         special = imgui.menu_item(
             S.CONTEXT_PASTE_SPECIAL, "", False, enabled and not is_cut()
         )[0]
@@ -200,7 +231,9 @@ class PasteSpecialDialog:
 
     def handle_shortcuts(self, row: ShortcutRow | None) -> None:
         """Ctrl+C, Ctrl+X and Ctrl+V on the element selected in the tree (``row``), while the
-        tree has the keyboard and no text is typed. Called inside the tree's window."""
+        tree has the keyboard and no text is typed, and its Delete key and F2 (see
+        :func:`handle_row_keys`). Called inside the tree's window."""
+        handle_row_keys(row)
         if row is None or imgui.get_io().want_text_input:
             return
         if row.copied is not None and imgui.shortcut(_chord(imgui.Key.c)):

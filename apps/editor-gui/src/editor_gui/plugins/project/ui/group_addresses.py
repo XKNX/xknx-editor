@@ -5,7 +5,7 @@ create / rename / delete group addresses and groups (context menus + modals, mir
 Topology panel); a secured group address, and a group whose Security is on, shows the KNX Data
 Secure shield. Address, data type and security are changed in the details."""
 
-from collections.abc import Callable
+from collections.abc import Callable, Iterable
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -31,7 +31,9 @@ from editor_gui.plugins.project.ui.move_menu import render_move_menu
 from editor_gui.plugins.project.ui.paste_special import (
     PasteSpecialDialog,
     ShortcutRow,
+    handle_row_keys,
     render_copy_item,
+    render_delete_item,
 )
 from editor_gui.plugins.project.ui.tree_drag import Dragged, drag_source, drop_target
 from editor_gui.widgets.description import secure_icon, secure_icon_width
@@ -69,9 +71,102 @@ _LIVE_COLOR = (imgui.ImVec4(0.45, 0.7, 0.9, 1.0), imgui.ImVec4(0.1, 0.38, 0.7, 1
 
 def _range_text(node: "GroupRangeInfo") -> str:
     """A group as a "Move to" target: its number and name ("1/2  Lights")."""
+    return f"{group_text(node)}##mvgr{node.id}"
+
+
+def group_text(node: "GroupRangeInfo") -> str:
+    """A group as lists show it: its number and name ("1/2  Lights"), a Free style range its
+    addresses and name ("1-1024  Lights")."""
     base = node.name or f"[{node.id}]"
-    shown = f"{node.address}  {base}" if node.address else base
-    return f"{shown}##mvgr{node.id}"
+    number = node.address or (
+        f"{node.range_start}-{node.range_end}" if node.range_end else ""
+    )
+    return f"{number}  {base}" if number else base
+
+
+def address_groups(
+    tree: "list[GroupRangeInfo]", style: GroupAddressStyle
+) -> "list[GroupRangeInfo]":
+    """The groups that hold group addresses, in tree order: the middle groups, the main groups
+    of the two-level style, every range of the Free style."""
+    if style is GroupAddressStyle.THREE_LEVEL:
+        return [middle for main in tree for middle in main.children]
+    if style is GroupAddressStyle.TWO_LEVEL:
+        return list(tree)
+    out: list[GroupRangeInfo] = []
+
+    def walk(nodes: "list[GroupRangeInfo]") -> None:
+        for node in nodes:
+            out.append(node)
+            walk(node.children)
+
+    walk(tree)
+    return out
+
+
+def used_addresses(tree: "list[GroupRangeInfo]") -> set[int]:
+    """Every address in use, in every group (Free style ranges may share them)."""
+    used: set[int] = set()
+    stack = list(tree)
+    while stack:
+        each = stack.pop()
+        used.update(ga.address for ga in each.group_addresses)
+        stack.extend(each.children)
+    return used
+
+
+def add_group_addresses(
+    request: AddRequest,
+    group_of: "Callable[[AddRow], GroupRangeInfo | None]",
+    tree: "list[GroupRangeInfo]",
+    style: GroupAddressStyle,
+    create: Callable[[int, int, str], object],
+    target: str,
+    undo_step: UndoStep,
+    notify: Callable[[str], None],
+) -> None:
+    """Add the group addresses ``request`` asks for (to ``target``, its name), a row's into the
+    group ``group_of`` gives it, numbered as its "Generate Addresses" says: "Start with" counts
+    within the group, in the Free style it is the address itself. ``create`` makes one (group
+    id, address, name) and raises ``ValueError`` when it cannot. One undo step per row."""
+    from xknxeditor.proj.core.paste import group_base
+
+    used = used_addresses(tree)
+
+    def add_one(row: AddRow) -> str | None:
+        group = group_of(row)
+        if group is None:
+            return S.ADD_LIMIT_REACHED
+        base = (
+            0
+            if style is GroupAddressStyle.FREE
+            else group_base(group.range_start, style)
+        )
+        address = AddressPool(
+            group.range_start,
+            group.range_end,
+            used,
+            request.allocation,
+            start_with=request.start_with,
+            base=base,
+        ).take()
+        if address is None:
+            return S.ADD_LIMIT_REACHED
+        try:
+            create(group.id, address, row.name.strip() or S.GA_DEFAULT_GROUP_ADDRESS)
+        except ValueError as error:
+            return str(error)
+        used.add(address)
+        return None
+
+    add_rows(
+        request,
+        S.HISTORY_EV_ADDED_GROUP_ADDRESSES,
+        target,
+        add_one,
+        undo_step,
+        notify,
+    )
 
 
 class GroupAddressesPanel:
@@ -94,7 +189,7 @@ class GroupAddressesPanel:
         get_latest_value: Callable[[str, str | None], tuple[str, str, float] | None]
         | None = None,
         on_move_ga: Callable[[int, int], str | None] | None = None,
-        on_move_range: Callable[[int, int], str | None] | None = None,
+        on_move_range: Callable[[int, int | None], str | None] | None = None,
         notify: Callable[[str], None] = lambda _text: None,
         one_undo_step: UndoStep = no_undo_step,
         paste_dialog: PasteSpecialDialog | None = None,
@@ -108,7 +203,8 @@ class GroupAddressesPanel:
         ``on_create_ga_in`` a group address in a range (range id, address, name); both raise
         ``ValueError`` when it does not fit there.
         ``on_move_ga`` puts a group address into another group, ``on_move_range`` a middle
-        group below another main group ("Move to"); both give the reason it cannot be, which
+        group below another main group or a Free style range into another range (None: to the
+        top) ("Move to"); both give the reason it cannot be, which
         ``notify`` shows. ``one_undo_step`` makes the edits of one drop one undo step;
         ``paste_dialog`` asks how to copy what is dropped with Ctrl held (no copies without
         it)."""
@@ -189,7 +285,7 @@ class GroupAddressesPanel:
         # Visible toolbar (the right-click menu above is easy to miss). Shown before the modal
         # dispatch so a click is picked up the same frame, and above the empty-tree early return so
         # the first folder/address can be created in a fresh project.
-        if imgui.small_button(S.GA_NEW):
+        if imgui.small_button(S.GA_NEW_ITEM):
             self._popup_address = ""
             self._popup_name = ""
             self._open_new_ga = True
@@ -248,6 +344,8 @@ class GroupAddressesPanel:
                 self._render_range(node, flt, is_root=True)
             if self._paste_dialog is not None:
                 self._paste_dialog.handle_shortcuts(self._shortcut_row)
+            else:
+                handle_row_keys(self._shortcut_row)
         imgui.end_child()
         # Reveal is a one-frame action: ancestors were force-opened and the GA scrolled into view.
         self._reveal_ga_id = None
@@ -257,7 +355,7 @@ class GroupAddressesPanel:
 
     def _render_create_menu_items(self) -> None:
         """The 'new group address' / 'new main group' items shared by the panel's context menus."""
-        if imgui.menu_item(S.GA_NEW, "", False)[0]:
+        if imgui.menu_item(S.GA_NEW_ITEM, "", False)[0]:
             self._popup_address = ""
             self._popup_name = ""
             self._open_new_ga = True
@@ -271,6 +369,10 @@ class GroupAddressesPanel:
             and imgui.menu_item(S.GA_ADD_GROUP_RANGES, "", False)[0]
         ):
             self._start_add_free_ranges(None)
+        if self._paste_dialog is not None:
+            # Main groups and Free style ranges pasted here go to the top.
+            imgui.separator()
+            self._paste_dialog.render_paste_items(self._top_copy_target)
         if self._on_export is not None or self._on_import is not None:
             imgui.separator()
         if (
@@ -363,8 +465,13 @@ class GroupAddressesPanel:
             self._shortcut_row = ShortcutRow(
                 Dragged("group_range", (node.id,)),
                 lambda c: self._range_copy_target(node, is_root, c),
-                # A main group stays where it is.
-                movable=not is_root,
+                # A main group stays where it is; a Free style range moves anywhere.
+                movable=not is_root or self._free(),
+                on_delete=(
+                    (lambda: self._ask_delete_range(node.id))
+                    if self._on_remove_range is not None
+                    else None
+                ),
             )
         open_node = tree_node(label, flags)
         if imgui.is_item_clicked() and not imgui.is_item_toggled_open():
@@ -392,15 +499,16 @@ class GroupAddressesPanel:
         self, node: "GroupRangeInfo", is_root: bool, shown: str
     ) -> None:
         """Drag and drop as "Move to" does: a middle group onto another main group, a group
-        address onto another group that holds group addresses. With Ctrl held they are copied
-        there, also into their own group; a main group's copy (dragged onto any main group)
-        goes to the top."""
+        address onto another group that holds group addresses, a Free style range into another
+        range. With Ctrl held they are copied there, also into their own group; a main group's
+        copy (dragged onto any main group) goes to the top."""
         middle = self._middle_enabled()
-        movable = self._on_move_range is not None and middle and not is_root
+        free = self._free()
+        movable = self._on_move_range is not None and (free or (middle and not is_root))
         if movable or (is_root and self._paste_dialog is not None):
             drag_source(Dragged("group_range", (node.id,)), shown)
-        holds_addresses = self._folders_enabled() and (
-            not is_root if middle else is_root
+        holds_addresses = free or (
+            self._folders_enabled() and (not is_root if middle else is_root)
         )
 
         def accepts(dragged: Dragged) -> bool:
@@ -411,6 +519,10 @@ class GroupAddressesPanel:
                 return False
             if dragged.kind == "group_address":
                 return holds_addresses and self._on_move_ga is not None
+            if dragged.kind == "group_range" and free:
+                return self._on_move_range is not None and not self._inside_any(
+                    node.id, dragged.ids
+                )
             return (
                 dragged.kind == "group_range"
                 and middle
@@ -438,6 +550,15 @@ class GroupAddressesPanel:
                     assert self._on_move_range is not None
                     self._report(self._on_move_range(ident, node.id))
 
+    def _top_copy_target(self, copied: Dragged) -> PasteTarget | None:
+        """Where ``copied`` goes when pasted beside the groups: main groups and Free style
+        ranges to the top."""
+        if copied.kind != "group_range" or not (
+            self._free() or self._main_groups().issuperset(copied.ids)
+        ):
+            return None
+        return PasteTarget("group_range", None)
+
     def _range_copy_target(
         self, node: "GroupRangeInfo", is_root: bool, copied: Dragged
     ) -> PasteTarget | None:
@@ -447,11 +568,17 @@ class GroupAddressesPanel:
         if self._paste_dialog is None:
             return None
         middle = self._middle_enabled()
+        free = self._free()
         if copied.kind == "group_address":
-            holds_addresses = self._folders_enabled() and (
-                not is_root if middle else is_root
+            holds_addresses = free or (
+                self._folders_enabled() and (not is_root if middle else is_root)
             )
             return PasteTarget("group_range", node.id) if holds_addresses else None
+        if copied.kind == "group_range" and free:
+            # Into any range but itself and those in it.
+            if self._inside_any(node.id, copied.ids):
+                return None
+            return PasteTarget("group_range", node.id)
         if copied.kind != "group_range" or not is_root:
             return None
         mains = self._main_groups()
@@ -475,6 +602,7 @@ class GroupAddressesPanel:
                         if c.kind == "group_address"
                         else None
                     ),
+                    on_delete=lambda ga_id=ga.id: self._delete_ga(ga_id),
                 )
             name = f"{ga.text}  {ga.name}"
             # Full-width row so the whole line is the click / right-click target and the name stays
@@ -498,7 +626,9 @@ class GroupAddressesPanel:
                 imgui.set_scroll_here_y()
             # Context menu while the selectable is still the last item, so it binds to the row.
             self._render_ga_context_menu(ga, node)
-            if self._on_move_ga is not None and self._folders_enabled():
+            if self._on_move_ga is not None and (
+                self._folders_enabled() or self._free()
+            ):
                 drag_source(Dragged("group_address", (ga.id,)), name)
             end = row_x + imgui.calc_text_size(name).x
             if ga.data_secure:
@@ -564,23 +694,28 @@ class GroupAddressesPanel:
                 getattr(ga, "datapoint_type", None),
             )
         imgui.separator()
-        if imgui.menu_item(S.CONTEXT_DELETE, "", False)[0]:
-            self._on_remove_ga(ga.id)  # type: ignore[attr-defined]
-            if self._selected_ga_id == ga.id:  # type: ignore[attr-defined]
-                self._selected_ga_id = None
+        if render_delete_item():
+            self._delete_ga(ga.id)  # type: ignore[attr-defined]
         imgui.end_popup()
+
+    def _delete_ga(self, ga_id: int) -> None:
+        """Delete the group address ``ga_id`` ("Delete" in its menu, or the Delete key)."""
+        self._on_remove_ga(ga_id)
+        if self._selected_ga_id == ga_id:
+            self._selected_ga_id = None
+
+    def _ask_delete_range(self, range_id: int) -> None:
+        """Ask before the group ``range_id`` is deleted with everything in it."""
+        self._popup_range_id = range_id
+        self._open_delete_range = True
 
     def _render_move_ga_menu(self, ga_id: int) -> None:
         """ "Move to" of a group address: the groups that hold group addresses (the middle
-        groups, or the main groups of the two-level style), its own grayed out."""
-        if self._on_move_ga is None or not self._folders_enabled():
+        groups, or the main groups of the two-level style, every range of the Free style), its
+        own grayed out."""
+        if self._on_move_ga is None or not (self._folders_enabled() or self._free()):
             return
-        tree = self._get_range_tree()
-        groups = (
-            [m for main in tree for m in main.children]
-            if self._middle_enabled()
-            else list(tree)
-        )
+        groups = address_groups(self._get_range_tree(), self._style())
         current = next(
             (g.id for g in groups if any(a.id == ga_id for a in g.group_addresses)),
             None,
@@ -590,10 +725,34 @@ class GroupAddressesPanel:
             self._report(self._on_move_ga(ga_id, chosen[0]))
 
     def _render_move_range_menu(self, range_id: int) -> None:
-        """ "Move to" of a middle group: the main groups, its own grayed out."""
-        if self._on_move_range is None or not self._middle_enabled():
+        """ "Move to" of a middle group: the main groups, its own grayed out. Of a Free style
+        range: the top, then every range but itself and those in it, where it is grayed
+        out."""
+        if self._on_move_range is None:
             return
         tree = self._get_range_tree()
+        if self._free():
+            parent = next(
+                (
+                    g.id
+                    for g in address_groups(tree, GroupAddressStyle.FREE)
+                    if any(c.id == range_id for c in g.children)
+                ),
+                None,
+            )
+            targets: list[tuple[str, int | None]] = [(S.SPACES_MOVE_ROOT, None)]
+            depth_of = self._depths(tree)
+            targets.extend(
+                (f"{'  ' * depth_of[g.id]}{_range_text(g)}", g.id)
+                for g in address_groups(tree, GroupAddressStyle.FREE)
+                if not self._inside_any(g.id, (range_id,))
+            )
+            chosen_free = render_move_menu(targets, parent)
+            if chosen_free is not None:
+                self._report(self._on_move_range(range_id, chosen_free[0]))
+            return
+        if not self._middle_enabled():
+            return
         current = next(
             (main.id for main in tree if any(m.id == range_id for m in main.children)),
             None,
@@ -656,20 +815,21 @@ class GroupAddressesPanel:
             and imgui.menu_item(S.GA_ADD_GROUP_RANGES, "", False)[0]
         ):
             self._start_add_free_ranges(node)
-        if not is_root:
+        if not is_root or self._free():
             self._render_move_range_menu(node.id)
         if self._paste_dialog is not None:
             imgui.separator()
             # A main group cannot be moved: no "Cut".
-            render_copy_item(Dragged("group_range", (node.id,)), movable=not is_root)
+            render_copy_item(
+                Dragged("group_range", (node.id,)), movable=not is_root or self._free()
+            )
             self._paste_dialog.render_paste_items(
                 lambda c: self._range_copy_target(node, is_root, c)
             )
         if self._on_remove_range is not None:
             imgui.separator()
-            if imgui.menu_item(S.CONTEXT_DELETE, "", False)[0]:
-                self._popup_range_id = node.id
-                self._open_delete_range = True
+            if render_delete_item():
+                self._ask_delete_range(node.id)
         imgui.end_popup()
 
     def _style(self) -> "GroupAddressStyle":
@@ -785,41 +945,20 @@ class GroupAddressesPanel:
 
         def add(request: AddRequest) -> None:
             group = self._find_range(node.id) or node
-            # Every address in use, also in other ranges (Free style ranges may share them).
-            used: set[int] = set()
-            stack = list(self._get_range_tree())
-            while stack:
-                each = stack.pop()
-                used.update(ga.address for ga in each.group_addresses)
-                stack.extend(each.children)
-            pool = AddressPool(
-                group.range_start,
-                group.range_end,
-                used,
-                request.allocation,
-                start_with=request.start_with,
-                base=base,
-            )
 
-            def add_one(row: AddRow) -> str | None:
-                address = pool.take()
-                if address is None:
-                    return S.ADD_LIMIT_REACHED
-                name = row.name.strip() or S.GA_DEFAULT_GROUP_ADDRESS
+            def create(group_id: int, address: int, name: str) -> None:
                 if self._on_create_ga_in is not None:
-                    try:
-                        self._on_create_ga_in(node.id, address, name)
-                    except ValueError as error:
-                        return str(error)
+                    self._on_create_ga_in(group_id, address, name)
                 else:
                     self._on_create_ga(format_ga(address, style), name)
-                return None
 
-            add_rows(
+            add_group_addresses(
                 request,
-                S.HISTORY_EV_ADDED_GROUP_ADDRESSES,
+                lambda _row: group,
+                self._get_range_tree(),
+                style,
+                create,
                 target,
-                add_one,
                 self._one_undo_step,
                 self._notify,
             )
@@ -919,11 +1058,35 @@ class GroupAddressesPanel:
 
     def _free_ranges_enabled(self) -> bool:
         """Group ranges of any span: the Free style."""
+        return self._on_create_free_range is not None and self._free()
+
+    def _free(self) -> bool:
+        """Whether the project has the Free style: ranges of any span, anywhere."""
         return (
-            self._on_create_free_range is not None
-            and self._group_style is not None
+            self._group_style is not None
             and self._group_style() is GroupAddressStyle.FREE
         )
+
+    def _inside_any(self, range_id: int, ids: "Iterable[int]") -> bool:
+        """Whether the range ``range_id`` is one of the ranges ``ids`` or in one of them."""
+        for ident in ids:
+            node = self._find_range(ident)
+            if node is not None and _contains_range(node, range_id):
+                return True
+        return False
+
+    @staticmethod
+    def _depths(tree: "list[GroupRangeInfo]") -> dict[int, int]:
+        """How deep each range of ``tree`` is (0 at the top)."""
+        depths: dict[int, int] = {}
+
+        def walk(nodes: "list[GroupRangeInfo]", depth: int) -> None:
+            for node in nodes:
+                depths[node.id] = depth
+                walk(node.children, depth + 1)
+
+        walk(tree, 0)
+        return depths
 
     def _find_range(self, range_id: int) -> "GroupRangeInfo | None":
         """The group ``range_id`` as the tree shows it now."""
@@ -1066,6 +1229,13 @@ class GroupAddressesPanel:
         self._com_names_cache = names
         self._com_names_key = id(devices)
         return names
+
+
+def _contains_range(node: "GroupRangeInfo", range_id: int) -> bool:
+    """Whether ``range_id`` is ``node`` or a range in it."""
+    return node.id == range_id or any(
+        _contains_range(child, range_id) for child in node.children
+    )
 
 
 def _forced_on(node: "GroupRangeInfo") -> bool:

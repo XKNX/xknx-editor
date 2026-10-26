@@ -24,16 +24,26 @@ from editor_gui.plugins.project.ui.add_dialog import (
     AddChoice,
     AddDialog,
     AddRequest,
+    AddRow,
     UndoStep,
     no_undo_step,
     one_row,
+    start_add,
 )
 from editor_gui.plugins.project.ui.config_dialog import DeviceConfigDialog
+from editor_gui.plugins.project.ui.group_addresses import (
+    add_group_addresses,
+    address_groups,
+    group_text,
+)
 from editor_gui.plugins.project.ui.move_menu import render_move_menu
 from editor_gui.plugins.project.ui.paste_special import (
     PasteSpecialDialog,
     ShortcutRow,
+    handle_row_keys,
+    no_paste,
     render_copy_item,
+    render_delete_item,
 )
 from editor_gui.plugins.project.ui.topology import render_read_device_item
 from editor_gui.plugins.project.ui.tree_drag import Dragged, drag_source, drop_target
@@ -46,10 +56,13 @@ from editor_gui.widgets.tree import (
     leaf_rows,
     tree_node,
 )
+from xknxeditor.proj.core.addressing import GroupAddressStyle
+from xknxeditor.proj.core.paste import group_base
 from xknxeditor.proj.core.space_rules import ROOM, child_types, holds_devices
 
 if TYPE_CHECKING:
     from xknxeditor.proj.core.service import (
+        FunctionGroupAddressInfo,
         FunctionInfo,
         SpaceDeviceInfo,
         SpaceInfo,
@@ -114,8 +127,12 @@ def _assign_device_dialog(space_id: int) -> str:
     return f"{S.SPACES_ASSIGN_TITLE}###assigndev{space_id}"
 
 
-def _add_function_ga_dialog(function_id: int) -> str:
-    return f"{S.SPACES_FN_ADD_GA}###addfnga{function_id}"
+def _link_function_dialog(function_id: int) -> str:
+    return f"{S.SPACES_FN_LINK_TITLE}###linkfn{function_id}"
+
+
+def _function_label(function: "FunctionInfo") -> str:
+    return function.name or function.usage_text or function.function_type
 
 
 class SpacesPanel:
@@ -158,13 +175,26 @@ class SpacesPanel:
         paste_dialog: PasteSpecialDialog | None = None,
         on_delete_device: Callable[[int], None] | None = None,
         get_parked_address: Callable[[int], str] = lambda _n: "",
+        group_style: Callable[[], GroupAddressStyle] = (
+            lambda: GroupAddressStyle.THREE_LEVEL
+        ),
+        on_create_ga_in: Callable[[int, int, str], int | None] | None = None,
+        get_selected_element: Callable[[], tuple[str, int] | None] = lambda: None,
     ) -> None:
         """``notify`` shows the reason an edit was refused; ``one_undo_step`` makes the edits of
         one drop one undo step; ``paste_dialog`` asks how to copy what is dropped with Ctrl
         held (no copies without it); ``on_delete_device`` deletes a device (by id) from the
         project, after the user confirmed it; ``get_parked_address`` gives "1.5.-" for a device
-        on a line without a device number."""
+        on a line without a device number. ``on_create_ga_in`` creates a group address (group
+        id, address, name) for a function's "Add Group Addresses…", giving its id and raising
+        ``ValueError`` when it does not fit there; ``get_selected_element`` is the element
+        selected in any tree (kind, id)."""
         self._get_parked_address = get_parked_address
+        self._group_style = group_style
+        self._on_create_ga_in = on_create_ga_in
+        self._get_selected_element = get_selected_element
+        # The group address link (of a function) selected in this tree.
+        self._selected_link: int | None = None
         self._one_undo_step = one_undo_step
         self._paste_dialog = paste_dialog
         self._on_delete_device = on_delete_device
@@ -220,10 +250,9 @@ class SpacesPanel:
             count_paste_targets or (lambda _n: 1),
         )
         self._filter_text: str = ""
-        # "Assign group address" dialog state.
-        self._addga_fn: int | None = None
-        self._addga_role = ""
-        self._addga_filter = ""
+        # "Link with Group Address" dialog state.
+        self._link_role = ""
+        self._link_filter = ""
         # "Assign device" dialog state.
         self._assign_filter = ""
         # A popup requested from inside a context menu must be opened one scope up, not inside the
@@ -244,6 +273,8 @@ class SpacesPanel:
         self._render_tree(tree, flt)
         if self._paste_dialog is not None:
             self._paste_dialog.handle_shortcuts(self._shortcut_row)
+        else:
+            handle_row_keys(self._shortcut_row)
         imgui.end_child()
         self._config_dialog.render()
         self._adder.render()
@@ -404,8 +435,13 @@ class SpacesPanel:
         if imgui.get_io().key_shift:
             add(one_row(choice))
             return
+        if trade:
+            # Below a trade they are its subtrades.
+            title = S.TRADES_TITLE if parent is None else S.TRADES_TITLE_SUBTRADES
+        else:
+            title = add_title(add_type)
         self._adder.open(
-            S.TRADES_TITLE if trade else add_title(add_type),
+            title,
             parent_name,
             add,
             default_name=S.TRADES_DEFAULT if trade else default_name(add_type),
@@ -457,11 +493,20 @@ class SpacesPanel:
         selected = (
             self._get_selected_space_id() if self._get_selected_space_id else None
         )
-        if space.id == selected and self._selected_function is None:
+        if (
+            space.id == selected
+            and self._selected_function is None
+            and self._selected_link is None
+        ):
             flags |= imgui.TreeNodeFlags_.selected
             self._shortcut_row = ShortcutRow(
                 Dragged("space", (space.id,)),
                 lambda c: self._space_copy_target(space, c),
+                on_delete=(
+                    (lambda: self._ask_delete_space(space.id))
+                    if self._on_remove_space is not None
+                    else None
+                ),
             )
         open_node = tree_node(f"{space_label(space)}##sp{space.id}", flags)
         if (
@@ -469,8 +514,7 @@ class SpacesPanel:
             and imgui.is_item_clicked()
             and not imgui.is_item_toggled_open()
         ):
-            self._selected_function = None
-            self._selected_trade = None
+            self._clear_selection()
             self._on_select_space(space.id)
         # The context menu and the space's own popups must run whether the node is expanded or not
         # (a collapsed node can still be moved/deleted), so render them before the return.
@@ -493,15 +537,17 @@ class SpacesPanel:
         for function in space.functions:
             if self_match or self._function_matches(function, flt):
                 self._render_function(function, space.id)
-        devices_here = holds_devices(space.space_type)
-        if (
-            devices_here
-            and self._on_set_device_space is not None
-            and imgui.small_button(f"{S.SPACES_ASSIGN_DEVICE}##assign{space.id}")
-        ):
-            self._start_assign_device()
-            imgui.open_popup(_assign_device_dialog(space.id))
         imgui.tree_pop()
+
+    def _clear_selection(self) -> None:
+        """Nothing selected in this tree any more but what is selected next."""
+        self._selected_function = None
+        self._selected_trade = None
+        self._selected_link = None
+
+    def _ask_delete_space(self, space_id: int) -> None:
+        """Ask before the space ``space_id`` is deleted with everything in it."""
+        self._pending_popup_id = _delete_space_dialog(space_id)
 
     def _start_assign_device(self) -> None:
         self._assign_filter = ""
@@ -584,11 +630,8 @@ class SpacesPanel:
                 lambda c: self._space_copy_target(space, c)
             )
             imgui.separator()
-        if (
-            self._on_remove_space is not None
-            and imgui.menu_item(S.SPACES_DELETE, "", False)[0]
-        ):
-            self._pending_popup_id = _delete_space_dialog(space.id)
+        if self._on_remove_space is not None and render_delete_item(S.SPACES_DELETE):
+            self._ask_delete_space(space.id)
         imgui.end_popup()
 
     def _render_add_menu(self, space: "SpaceInfo") -> None:
@@ -694,6 +737,11 @@ class SpacesPanel:
         walk(self._get_space_tree(), 0)
         return out
 
+    def _ask_delete_device(self, device: "SpaceDeviceInfo") -> None:
+        """Ask before ``device`` is deleted from the project."""
+        self._delete_device = (device.id, self._device_label(device))
+        self._open_delete_device = True
+
     def _render_delete_device_confirm(self) -> None:
         """ "Delete Device": asks before a device is deleted from the project."""
         if self._open_delete_device:
@@ -765,33 +813,12 @@ class SpacesPanel:
             return
         if not tree_node(f"{S.SPACES_UNASSIGNED_TITLE} ({len(devices)})##unassigned"):
             return
+        # A device goes into a building part by its "Move to", by drag and drop, or by the
+        # building part's "Add → Devices…".
         with leaf_rows():
-            self._render_unassigned_devices(devices)
+            for device in devices:
+                self._render_device(device)
         imgui.tree_pop()
-
-    def _render_unassigned_devices(self, devices: list["SpaceDeviceInfo"]) -> None:
-        assert self._on_set_device_space is not None
-        # -1: no space excluded; every space that holds devices is a target.
-        targets = self._move_targets(-1)
-        for device in devices:
-            # A selectable (not plain text) so the device opens in the editor on click, exactly
-            # like a device shown inside a room.
-            self._render_device(device)
-            if not targets:
-                continue
-            imgui.same_line()
-            if imgui.small_button(f"{S.SPACES_ASSIGN_DEVICE}##uassign{device.id}"):
-                imgui.open_popup(f"##uassignto{device.id}")
-            if imgui.begin_popup(f"##uassignto{device.id}"):
-                for target, depth in targets:
-                    indent = "  " * depth
-                    label = f"{indent}{space_label(target)}"
-                    if imgui.menu_item(
-                        f"{label}##uto{device.id}_{target.id}", "", False
-                    )[0]:
-                        self._report(self._on_set_device_space(device.id, target.id))
-                        imgui.close_current_popup()
-                imgui.end_popup()
 
     def _device_label(self, device: "SpaceDeviceInfo") -> str:
         # On a line without a device number: its line ("1.5.-").
@@ -850,17 +877,14 @@ class SpacesPanel:
             self._shortcut_row = ShortcutRow(
                 Dragged("device", (device.id,)),
                 lambda c: self._beside_device_target(space_id, trade_id, c),
+                on_delete=(
+                    (lambda: self._ask_delete_device(device))
+                    if self._on_delete_device is not None
+                    else None
+                ),
             )
-        # allow_overlap: the "Without space" section draws an "Assign device" button via
-        # same_line() over this full-width selectable. Without the flag the selectable (submitted
-        # first) claims the click and the button never fires.
-        if imgui.selectable(
-            f"{leaf}##spdev{where}{device.id}",
-            selected,
-            imgui.SelectableFlags_.allow_overlap,
-        )[0]:
-            self._selected_function = None
-            self._selected_trade = None
+        if imgui.selectable(f"{leaf}##spdev{where}{device.id}", selected)[0]:
+            self._clear_selection()
             self._on_select_device_id(device.id)
         hovered = imgui.is_item_hovered()  # capture before the context menu below
         drag_source(Dragged("device", (device.id,)), leaf)
@@ -926,9 +950,8 @@ class SpacesPanel:
                 self._on_compare(device.id)
             if self._on_delete_device is not None:
                 imgui.separator()
-                if imgui.menu_item(S.CONTEXT_DELETE, "", False)[0]:
-                    self._delete_device = (device.id, self._device_label(device))
-                    self._open_delete_device = True
+                if render_delete_item():
+                    self._ask_delete_device(device)
             imgui.end_popup()
         # The KNX Data Secure shield, then a short description inline or a longer one while its
         # icon is hovered.
@@ -987,14 +1010,16 @@ class SpacesPanel:
         )
         if self._selected_trade == trade.id:
             flags |= imgui.TreeNodeFlags_.selected
+            remove = self._on_remove_trade
             self._shortcut_row = ShortcutRow(
                 Dragged("trade", (trade.id,)),
                 lambda c: self._trade_copy_target(trade, c),
+                on_delete=(lambda: remove(trade.id)) if remove is not None else None,
             )
         label = f"{trade.number} {trade.name}".strip() or S.TRADES_DEFAULT
         open_node = tree_node(f"{label}##trade{trade.id}", flags)
         if imgui.is_item_clicked() and not imgui.is_item_toggled_open():
-            self._selected_function = None
+            self._clear_selection()
             self._selected_trade = trade.id
             self._on_select_element("trade", trade.id)
         self._render_trade_context_menu(trade, label)
@@ -1044,10 +1069,7 @@ class SpacesPanel:
                 lambda c: self._trade_copy_target(trade, c)
             )
             imgui.separator()
-        if (
-            self._on_remove_trade is not None
-            and imgui.menu_item(S.SPACES_DELETE, "", False)[0]
-        ):
+        if self._on_remove_trade is not None and render_delete_item(S.SPACES_DELETE):
             self._on_remove_trade(trade.id)
         imgui.end_popup()
 
@@ -1157,30 +1179,89 @@ class SpacesPanel:
         end_dialog()
 
     def _render_function(self, function: "FunctionInfo", space_id: int) -> None:
-        label = function.name or function.usage_text or function.function_type
+        label = _function_label(function)
         type_label = function_type_label(function.function_type)
         # A click selects the function, the arrow and a double click open it.
         flags = (
             imgui.TreeNodeFlags_.open_on_arrow
             | imgui.TreeNodeFlags_.open_on_double_click
         )
+        if not function.group_addresses:
+            flags |= imgui.TreeNodeFlags_.leaf
         if self._selected_function == function.id:
             flags |= imgui.TreeNodeFlags_.selected
+            remove = self._on_remove_function
             self._shortcut_row = ShortcutRow(
                 Dragged("function", (function.id,)),
                 lambda c: self._beside_device_target(space_id, None, c),
+                on_delete=(lambda: remove(function.id)) if remove is not None else None,
             )
         open_node = tree_node(f"ƒ {label}  [{type_label}]##fn{function.id}", flags)
         if imgui.is_item_clicked() and not imgui.is_item_toggled_open():
+            self._clear_selection()
             self._selected_function = function.id
-            self._selected_trade = None
             self._on_select_element("function", function.id)
+        self._render_function_context_menu(function, space_id)
+        if self._on_move_function is not None:
+            drag_source(Dragged("function", (function.id,)), label)
+        self._open_if_pending(_link_function_dialog(function.id))
+        self._render_link_dialog(function.id)
+        if not open_node:
+            return
+        with leaf_rows():
+            for ref in function.group_addresses:
+                self._render_function_link(ref)
+        imgui.tree_pop()
+
+    def _render_function_link(self, ref: "FunctionGroupAddressInfo") -> None:
+        """A group address a function is linked with: a click selects the group address (its
+        details show), its menu's "Delete" (or the Delete key) unlinks it."""
+        role = f"  ({ref.role})" if ref.role else ""
+        text = f"{ref.text}  {ref.name}".strip() + role
+        selected = self._selected_link == ref.id and self._get_selected_element() in (
+            None,
+            ("group_address", ref.group_address_id),
+        )
+        remove = self._on_remove_function_ga
+        if selected:
+            self._shortcut_row = ShortcutRow(
+                None,
+                no_paste,
+                on_delete=(lambda: remove(ref.id)) if remove is not None else None,
+            )
+        if imgui.selectable(f"{text}##fnga{ref.id}", selected)[0]:
+            self._clear_selection()
+            self._selected_link = ref.id
+            self._on_select_element("group_address", ref.group_address_id)
+        if remove is not None and context_menu(f"##fnga_ctx{ref.id}"):
+            if imgui.menu_item(S.CONTEXT_COPY_ADDRESS, "", False)[0]:
+                imgui.set_clipboard_text(ref.text)
+            imgui.separator()
+            if render_delete_item():
+                remove(ref.id)
+            imgui.end_popup()
+
+    def _render_function_context_menu(
+        self, function: "FunctionInfo", space_id: int
+    ) -> None:
         editable = (
             self._on_move_function is not None
             or self._on_remove_function is not None
+            or self._on_add_function_ga is not None
             or self._paste_dialog is not None
         )
         if editable and context_menu(f"##fnctx{function.id}"):
+            if self._on_add_function_ga is not None:
+                if imgui.menu_item(S.SPACES_FN_LINK, "", False)[0]:
+                    self._link_role = ""
+                    self._link_filter = ""
+                    self._pending_popup_id = _link_function_dialog(function.id)
+                if (
+                    self._on_create_ga_in is not None
+                    and imgui.menu_item(S.GA_ADD_GROUP_ADDRESSES, "", False)[0]
+                ):
+                    self._start_add_function_gas(function)
+                imgui.separator()
             if self._on_move_function is not None:
                 # Into any other space.
                 targets = [
@@ -1194,46 +1275,96 @@ class SpacesPanel:
                 if chosen is not None:
                     self._on_move_function(function.id, chosen[0])
             if self._paste_dialog is not None:
+                imgui.separator()
                 render_copy_item(Dragged("function", (function.id,)))
                 # What is pasted on a function goes into its building part.
                 self._paste_dialog.render_paste_items(
                     lambda c: self._beside_device_target(space_id, None, c)
                 )
-            if (
-                self._on_remove_function is not None
-                and imgui.menu_item(S.SPACES_FN_DELETE, "", False)[0]
-            ):
-                self._on_remove_function(function.id)
+            if self._on_remove_function is not None:
+                imgui.separator()
+                if render_delete_item(S.SPACES_FN_DELETE):
+                    self._on_remove_function(function.id)
             imgui.end_popup()
-        if self._on_move_function is not None:
-            drag_source(Dragged("function", (function.id,)), label)
-        if not open_node:
-            return
-        for ref in function.group_addresses:
-            role = f"  ({ref.role})" if ref.role else ""
-            imgui.bullet_text(f"{ref.text}{role}")
-            if self._on_remove_function_ga is not None:
-                imgui.same_line()
-                if imgui.small_button(f"x##rmfnga{ref.id}"):
-                    self._on_remove_function_ga(ref.id)
-        if self._on_add_function_ga is not None:
-            if imgui.small_button(f"{S.SPACES_FN_ADD_GA}##addfnga{function.id}"):
-                self._addga_fn = function.id
-                self._addga_role = ""
-                self._addga_filter = ""
-                imgui.open_popup(_add_function_ga_dialog(function.id))
-            self._render_addga_popup(function.id)
-        imgui.tree_pop()
 
-    def _render_addga_popup(self, function_id: int) -> None:
-        if not begin_dialog(_add_function_ga_dialog(function_id)):
+    def _start_add_function_gas(self, function: "FunctionInfo") -> None:
+        """ "Add Group Addresses…" of a function: the group addresses dialog of a group, with
+        the group each row's go into (at first the group of the function's first group
+        address); the new ones are linked with the function, in the row's undo step."""
+        create = self._on_create_ga_in
+        link = self._on_add_function_ga
+        tree = self._get_ga_range_tree() if self._get_ga_range_tree else []
+        style = self._group_style()
+        groups = address_groups(tree, style)
+        if create is None or link is None or not groups:
+            self._notify(S.SPACES_FN_NO_GROUP)
+            return
+        linked = {ref.group_address_id for ref in function.group_addresses}
+        first = next(
+            (g for g in groups if any(ga.id in linked for ga in g.group_addresses)),
+            groups[0],
+        )
+        choice = AddChoice(
+            S.SPACES_FN_GA_GROUP,
+            [(str(g.id), group_text(g)) for g in groups],
+            str(first.id),
+        )
+        free = style is GroupAddressStyle.FREE
+        target = _function_label(function)
+
+        def add(request: AddRequest) -> None:
+            now = self._get_ga_range_tree() if self._get_ga_range_tree else []
+            by_id = {g.id: g for g in address_groups(now, style)}
+
+            def group_of(row: AddRow) -> Any:
+                return by_id.get(int(row.choice)) if row.choice.isdigit() else None
+
+            def create_linked(group_id: int, address: int, name: str) -> None:
+                ga_id = create(group_id, address, name)
+                if ga_id is not None:
+                    link(function.id, ga_id, "")
+
+            add_group_addresses(
+                request,
+                group_of,
+                now,
+                style,
+                create_linked,
+                target,
+                self._one_undo_step,
+                self._notify,
+            )
+
+        start_add(
+            lambda: self._adder.open(
+                S.GA_TITLE_GROUP_ADDRESSES,
+                target,
+                add,
+                default_name=S.GA_DEFAULT_GROUP_ADDRESS,
+                choice=choice,
+                numbered=True,
+                # "Start with" counts within the group, in the Free style it is the address.
+                start_minimum=1 if free else 0,
+                start_maximum=0xFFFF
+                if free
+                else first.range_end - group_base(first.range_start, style),
+            ),
+            add,
+            self._notify,
+            choice,
+            start_with=first.range_start if free else 0,
+        )
+
+    def _render_link_dialog(self, function_id: int) -> None:
+        """ "Link with Group Address": the role, then the group addresses to pick one from."""
+        if not begin_dialog(_link_function_dialog(function_id)):
             return
         imgui.set_next_item_width(px(260.0))
-        _, self._addga_role = imgui.input_text(S.SPACES_FN_ROLE, self._addga_role)
-        self._addga_filter = filter_box(
-            f"##fngaflt{function_id}", S.SPACES_FILTER_HINT, self._addga_filter
+        _, self._link_role = imgui.input_text(S.SPACES_FN_ROLE, self._link_role)
+        self._link_filter = filter_box(
+            f"##fngaflt{function_id}", S.GA_FILTER_HINT, self._link_filter
         )
-        needle = self._addga_filter.strip().lower()
+        needle = self._link_filter.strip().lower()
         if (
             imgui.begin_child("##fngalist", px_vec2(320.0, 260.0))
             and self._get_ga_range_tree is not None
@@ -1250,7 +1381,7 @@ class SpacesPanel:
             return
         if needle:
             imgui.set_next_item_open(True, imgui.Cond_.always)
-        if not imgui.tree_node_ex(f"{node.name or f'[{node.id}]'}##fngr{node.id}"):
+        if not imgui.tree_node_ex(f"{group_text(node)}##fngr{node.id}"):
             return
         for child in node.children:
             self._render_ga_pick_range(function_id, child, needle)
@@ -1261,7 +1392,7 @@ class SpacesPanel:
             if imgui.selectable(f"{text}##fngapick{function_id}_{ga.id}", False)[0]:
                 if self._on_add_function_ga is not None:
                     self._on_add_function_ga(
-                        function_id, ga.id, self._addga_role.strip()
+                        function_id, ga.id, self._link_role.strip()
                     )
                 imgui.close_current_popup()
         imgui.tree_pop()

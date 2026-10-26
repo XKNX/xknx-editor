@@ -598,3 +598,83 @@ async def test_free_style_ranges_and_addresses_are_added(tmp_path: Path) -> None
             "number",
             number=3,
         )
+
+
+async def test_a_function_gets_new_group_addresses_linked(tmp_path: Path) -> None:
+    mcp, _project = _build(tmp_path)
+    async with Client(mcp) as client:
+        await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
+        building = (await _data(client, "project_spaces"))["items"][0]["id"]
+        function_id = (
+            await _data(
+                client, "project_create_function", space_id=building, name="Light"
+            )
+        )["function_id"]
+        await _data(client, "project_create_group_address", address="1/2/5")
+        ranges = (await _data(client, "project_list_group_ranges"))["items"]
+        middle = next(r["id"] for r in ranges if r["address"] == "1/2")
+        added = await _data(
+            client,
+            "project_add_group_addresses",
+            group_range_id=middle,
+            count=2,
+            function_id=function_id,
+            role="Switch",
+        )
+        spaces = (await _data(client, "project_spaces"))["items"]
+        (function,) = spaces[0]["functions"]
+        assert [(g["text"], g["role"]) for g in function["group_addresses"]] == [
+            (address, "Switch") for address in added["addresses"]
+        ]
+        assert {g["name"] for g in function["group_addresses"]} == {
+            PROJECT_S.GA_DEFAULT_GROUP_ADDRESS
+        }
+        # One undo step takes the addresses and their links.
+        await _data(client, "project_undo")
+        spaces = (await _data(client, "project_spaces"))["items"]
+        assert "group_addresses" not in spaces[0]["functions"][0]
+        await _error(
+            client,
+            "project_add_group_addresses",
+            "no function with id 999",
+            group_range_id=middle,
+            function_id=999,
+        )
+
+
+async def test_free_style_ranges_move_into_ranges_and_to_the_top(
+    tmp_path: Path,
+) -> None:
+    mcp, _project = _build(tmp_path)
+    async with Client(mcp) as client:
+        await _data(
+            client,
+            "project_new",
+            path=str(tmp_path / "free.xknx"),
+            group_address_style="Free",
+        )
+        top = await _data(
+            client,
+            "project_create_group_range",
+            count=2,
+            capacity=100,
+            allocation="start_with",
+            start_with=5000,
+        )
+        first, second = top["group_range_ids"]
+        inner = (await _data(client, "project_create_group_range", parent_id=first))[
+            "group_range_id"
+        ]
+        moved = await _data(
+            client, "project_move_group_range", group_range_id=inner, parent_id=second
+        )
+        assert moved["parent_id"] == second
+        moved = await _data(client, "project_move_group_range", group_range_id=inner)
+        assert moved["parent_id"] is None
+        await _error(
+            client,
+            "project_move_group_range",
+            "into itself",
+            group_range_id=first,
+            parent_id=first,
+        )

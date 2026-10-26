@@ -529,9 +529,6 @@ msgstr "(верхний уровень)"
 msgid "Delete this space and everything in it? Devices are only unassigned, not deleted."
 msgstr "Удалить эту зону и всё её содержимое? Устройства только отвязываются, но не удаляются."
 
-msgid "Assign Device"
-msgstr "Назначить устройство"
-
 msgid "Assign a Device to This Space"
 msgstr "Назначить устройство этой зоне"
 
@@ -558,9 +555,6 @@ msgstr "Коридор"
 
 msgid "Stairway"
 msgstr "Лестница"
-
-msgid "Assign Group Address"
-msgstr "Назначить групповой адрес"
 
 msgid "Role (Optional)"
 msgstr "Роль (необязательно)"
@@ -2812,9 +2806,6 @@ msgstr "Линии…"
 msgid "Segments…"
 msgstr "Сегменты…"
 
-msgid "Add Segments…"
-msgstr "Добавить сегменты…"
-
 msgid "Add Areas"
 msgstr "Добавить области"
 
@@ -2910,3 +2901,30 @@ msgstr "Новый диапазон групповых адресов"
 
 msgid "Capacity"
 msgstr "Ёмкость"
+
+msgid "Link with…"
+msgstr "Связать с…"
+
+msgid "Link with Group Address"
+msgstr "Связать с групповым адресом"
+
+msgid "There is no group to add group addresses to."
+msgstr "Нет группы, в которую можно добавить групповые адреса."
+
+msgid "Add Subtrade"
+msgstr "Добавить подсистему"
+
+msgid "The group range does not fit there."
+msgstr "Диапазон групповых адресов туда не помещается."
+
+msgid "A group range cannot go into itself or a range in it."
+msgstr "Диапазон групповых адресов нельзя поместить в него самого или в диапазон внутри него."
+
+msgid "A group address of the range is already in use there."
+msgstr "Групповой адрес диапазона там уже используется."
+
+msgid "Copied {count} group ranges to '{target}'."
+msgstr "Скопировано диапазонов групповых адресов: {count} в '{target}'."
+
+msgid "New Group Address…"
+msgstr "Новый групповой адрес…"

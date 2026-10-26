@@ -213,3 +213,9 @@ msgstr "{total} içinden {shown} gösteriliyor"
 
 msgid "(estimated)"
 msgstr "(tahmini)"
+
+msgid "Line"
+msgstr "Hat"
+
+msgid "Automatic"
+msgstr "Otomatik"

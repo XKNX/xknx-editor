@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING
 from imgui_bundle import imgui
 
 from editor_gui.plugins.project.strings import S
+from editor_gui.plugins.project.ui import name_focus
 from editor_gui.plugins.project.ui.status_field import (
     line_combo,
     status_combo,
@@ -125,7 +126,9 @@ class SpaceDetailsPanel:
 
     def _name_field(self, space: SpaceInfo) -> None:
         imgui.set_next_item_width(-1)
+        name_focus.focus_name_field()
         _, self._name = imgui.input_text("##space_name", self._name)
+        name_focus.select_name()
         if imgui.is_item_deactivated_after_edit():
             name = self._name.strip()
             # A space keeps a name: an emptied field goes back to the current one.

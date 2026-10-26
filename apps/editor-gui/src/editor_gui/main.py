@@ -4750,13 +4750,20 @@ class KnxGuiApp:
             hello_imgui.get_runner_params().docking_params.focus_dockable_window(
                 f"{_DOCK_LABELS['group_addresses']()}###group_addresses"
             )
-        if self._project_plugin.take_focus_tools():
-            # "Compare with…" from a device's context menu: the Tools panel, shown again when it
-            # was closed, in front of the other tabs of its dock.
+        # "Compare with…" from a device's context menu: the Tools panel; F2 on an element in a
+        # tree: the Device tab (its name takes the keyboard); "Add → Devices…" in the Topology
+        # tree: the catalog. Each shown again when it was closed, in front of the other tabs of
+        # its dock.
+        asked = {
+            "tools": self._project_plugin.take_focus_tools(),
+            "device": self._project_plugin.take_focus_device(),
+            "catalog": self._project_plugin.take_focus_catalog(),
+        }
+        if any(asked.values()):
             for (
                 window
             ) in hello_imgui.get_runner_params().docking_params.dockable_windows:
-                if _dock_window_name(window) == "tools":
+                if asked.get(_dock_window_name(window)):
                     window.is_visible = True
                     window.focus_window_at_next_frame = True
         if self._recover_plugin.take_focus_request():

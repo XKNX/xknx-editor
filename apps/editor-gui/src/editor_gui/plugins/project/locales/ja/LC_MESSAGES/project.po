@@ -529,9 +529,6 @@ msgstr "（最上位）"
 msgid "Delete this space and everything in it? Devices are only unassigned, not deleted."
 msgstr "このスペースとその中のすべてを削除しますか？デバイスは割り当てが解除されるだけで、削除はされません。"
 
-msgid "Assign Device"
-msgstr "デバイスを割り当て"
-
 msgid "Assign a Device to This Space"
 msgstr "このスペースにデバイスを割り当て"
 
@@ -558,9 +555,6 @@ msgstr "廊下"
 
 msgid "Stairway"
 msgstr "階段"
-
-msgid "Assign Group Address"
-msgstr "グループ・アドレスを割り当て"
 
 msgid "Role (Optional)"
 msgstr "役割（オプション）"
@@ -2812,9 +2806,6 @@ msgstr "ライン…"
 msgid "Segments…"
 msgstr "セグメント…"
 
-msgid "Add Segments…"
-msgstr "セグメントを追加…"
-
 msgid "Add Areas"
 msgstr "エリアを追加"
 
@@ -2910,3 +2901,30 @@ msgstr "新しいグループアドレス範囲"
 
 msgid "Capacity"
 msgstr "容量"
+
+msgid "Link with…"
+msgstr "リンク…"
+
+msgid "Link with Group Address"
+msgstr "グループアドレスにリンク"
+
+msgid "There is no group to add group addresses to."
+msgstr "グループアドレスを追加するグループがありません。"
+
+msgid "Add Subtrade"
+msgstr "サブトレードを追加"
+
+msgid "The group range does not fit there."
+msgstr "グループアドレス範囲はそこに収まりません。"
+
+msgid "A group range cannot go into itself or a range in it."
+msgstr "グループアドレス範囲は、それ自身やその中の範囲には入れられません。"
+
+msgid "A group address of the range is already in use there."
+msgstr "範囲のグループアドレスがそこで既に使われています。"
+
+msgid "Copied {count} group ranges to '{target}'."
+msgstr "{count} 個のグループアドレス範囲を '{target}' にコピーしました。"
+
+msgid "New Group Address…"
+msgstr "新しいグループ・アドレス…"

@@ -1211,6 +1211,10 @@ class ProjectService:
         self._focus_editor_requested = False
         # Cross-panel "please bring the Group Addresses tab to front" request.
         self._focus_group_addresses_requested = False
+        # "Add → Devices…" in the Topology tree: the catalog to the front, and the segment the
+        # catalog adds devices to (None: the space's Current Line or the first TP line).
+        self._focus_catalog_requested = False
+        self._device_target_segment: int | None = None
         # Re-instantiate a device's persisted com-objects on a function/mode parameter change, scoped
         # to exactly the objects that parameter controls (its ChooseWhenNode branches). Only the
         # objects the parameter governs are added/removed; channels and globals stay as configured.
@@ -2492,6 +2496,48 @@ class ProjectService:
         requested = self._focus_group_addresses_requested
         self._focus_group_addresses_requested = False
         return requested
+
+    def add_devices_to(self, segment_id: int | None) -> None:
+        """ "Add → Devices…" in the Topology tree: the catalog comes to the front and adds
+        devices to the segment ``segment_id`` (a line's main segment or a sub-segment; None:
+        the space's Current Line or the first TP line)."""
+        self._device_target_segment = segment_id
+        self._focus_catalog_requested = True
+
+    def take_focus_catalog(self) -> bool:
+        """One-shot: whether the catalog was asked to focus, then cleared."""
+        requested, self._focus_catalog_requested = self._focus_catalog_requested, False
+        return requested
+
+    @property
+    def device_target_segment(self) -> int | None:
+        """The segment the catalog adds devices to; None (also when it is gone): the space's
+        Current Line or the first TP line."""
+        segment = self._device_target_segment
+        if segment is None or all(s != segment for s, _text in self.segment_choices()):
+            return None
+        return segment
+
+    @device_target_segment.setter
+    def device_target_segment(self, segment_id: int | None) -> None:
+        self._device_target_segment = segment_id
+
+    def segment_choices(self) -> list[tuple[int, str]]:
+        """Every line (as its main segment) and sub-segment devices can go on, as the segment
+        id and its text ("1.1 Name", a sub-segment's indented below its line), in address
+        order."""
+        out: list[tuple[int, str]] = []
+        for area in sorted(self.get_areas(), key=lambda a: a.area_number):
+            for line in sorted(self.get_lines(area.id), key=lambda ln: ln.line_number):
+                prefix = f"{area.area_number}.{line.line_number}"
+                if line.main_segment_id is not None:
+                    name = line_display_name(area.area_number, line)
+                    out.append((line.main_segment_id, f"{prefix} {name}".rstrip()))
+                out.extend(
+                    (segment.id, f"  {prefix} {segment.name}".rstrip())
+                    for segment in line.segments
+                )
+        return out
 
     def _installation(self) -> Any:
         assert self._pid is not None
@@ -5773,19 +5819,29 @@ class ProjectService:
         self._bump()
         return None
 
-    def move_group_range(self, range_id: int, main_group_id: int) -> str | None:
+    def move_group_range(self, range_id: int, parent_id: int | None) -> str | None:
         """Put a middle group with its group addresses below another main group ("Move to"):
-        it keeps its number when free, else gets the lowest free one; undoable. The reason it
-        cannot be, or None."""
+        it keeps its number when free, else gets the lowest free one. A Free style range goes
+        into the range ``parent_id`` (None: to the top), keeping its addresses when they fit
+        there. Undoable. The reason it cannot be, or None."""
         if self._pid is None:
             return None
         try:
-            self._svc.move_group_range(self._pid, range_id, main_group_id)
+            self._svc.move_group_range(self._pid, range_id, parent_id)
         except KeyError as exc:
             return str(exc.args[0])
         except ValueError as exc:
-            # The menu offers only main groups for middle groups; others come from MCP.
-            return S.GROUP_MOVE_NO_FREE if "no free" in str(exc) else str(exc)
+            # The menu offers only the places it may go; others come from MCP.
+            text = str(exc)
+            if "no free" in text:
+                return S.GROUP_MOVE_NO_FREE
+            if "does not fit" in text:
+                return S.GROUP_MOVE_NO_ROOM
+            if "into itself" in text:
+                return S.GROUP_MOVE_INTO_ITSELF
+            if "is taken" in text:
+                return S.GROUP_MOVE_ADDRESS_TAKEN
+            return text
         self._bump()
         return None
 
@@ -6963,7 +7019,13 @@ class ProjectService:
                     return self.move_segment(ident, line)
             if kind == "group_address" and target.kind == "group_range" and place:
                 return self.move_group_address(ident, place)
-            if kind == "group_range" and target.kind == "group_range" and place:
+            # A Free style range also goes to the top (no place).
+            free = self.group_address_style is GroupAddressStyle.FREE
+            if (
+                kind == "group_range"
+                and target.kind == "group_range"
+                and (place or free)
+            ):
                 return self.move_group_range(ident, place)
         except MediumError as error:
             return medium_error_text(error)

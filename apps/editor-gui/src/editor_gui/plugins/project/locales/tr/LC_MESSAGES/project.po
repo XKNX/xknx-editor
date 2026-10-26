@@ -529,9 +529,6 @@ msgstr "(En Üst Seviye)"
 msgid "Delete this space and everything in it? Devices are only unassigned, not deleted."
 msgstr "Bu mekan ve içindeki her şey silinsin mi? Cihazlar yalnızca atamadan çıkarılır, silinmez."
 
-msgid "Assign Device"
-msgstr "Cihaz Ata"
-
 msgid "Assign a Device to This Space"
 msgstr "Bu Mekana Bir Cihaz Ata"
 
@@ -558,9 +555,6 @@ msgstr "Koridor"
 
 msgid "Stairway"
 msgstr "Merdiven"
-
-msgid "Assign Group Address"
-msgstr "Grup Adresi Ata"
 
 msgid "Role (Optional)"
 msgstr "Rol (İsteğe Bağlı)"
@@ -2812,9 +2806,6 @@ msgstr "Hatlar…"
 msgid "Segments…"
 msgstr "Segmentler…"
 
-msgid "Add Segments…"
-msgstr "Segment Ekle…"
-
 msgid "Add Areas"
 msgstr "Alan Ekle"
 
@@ -2910,3 +2901,30 @@ msgstr "Yeni grup adresi aralığı"
 
 msgid "Capacity"
 msgstr "Kapasite"
+
+msgid "Link with…"
+msgstr "Bağla…"
+
+msgid "Link with Group Address"
+msgstr "Grup Adresine Bağla"
+
+msgid "There is no group to add group addresses to."
+msgstr "Grup adresi eklenecek bir grup yok."
+
+msgid "Add Subtrade"
+msgstr "Alt Ticari Ekle"
+
+msgid "The group range does not fit there."
+msgstr "Grup adresi aralığı oraya sığmıyor."
+
+msgid "A group range cannot go into itself or a range in it."
+msgstr "Bir grup adresi aralığı kendisine veya içindeki bir aralığa taşınamaz."
+
+msgid "A group address of the range is already in use there."
+msgstr "Aralığın bir grup adresi orada zaten kullanılıyor."
+
+msgid "Copied {count} group ranges to '{target}'."
+msgstr "{count} grup adresi aralığı '{target}' konumuna kopyalandı."
+
+msgid "New Group Address…"
+msgstr "Yeni Grup Adresi…"

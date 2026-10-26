@@ -384,9 +384,6 @@ msgstr "Type"
 msgid "Create"
 msgstr "Aanmaken"
 
-msgid "Assign Group Address"
-msgstr "Groepsadres toewijzen"
-
 msgid "Role (Optional)"
 msgstr "Rol (optioneel)"
 
@@ -464,9 +461,6 @@ msgstr "(bovenste niveau)"
 
 msgid "Assign a Device to This Space"
 msgstr "Een apparaat aan deze ruimte toewijzen"
-
-msgid "Assign Device"
-msgstr "Apparaat toewijzen"
 
 msgid "Building"
 msgstr "Gebouw"
@@ -2850,9 +2844,6 @@ msgstr "Lijnen…"
 msgid "Segments…"
 msgstr "Segmenten…"
 
-msgid "Add Segments…"
-msgstr "Segmenten Toevoegen…"
-
 msgid "Add Areas"
 msgstr "Gebieden Toevoegen"
 
@@ -2948,3 +2939,30 @@ msgstr "Nieuw groepsadresbereik"
 
 msgid "Capacity"
 msgstr "Capaciteit"
+
+msgid "Link with…"
+msgstr "Koppelen aan…"
+
+msgid "Link with Group Address"
+msgstr "Koppelen aan Groepsadres"
+
+msgid "There is no group to add group addresses to."
+msgstr "Er is geen groep om groepsadressen aan toe te voegen."
+
+msgid "Add Subtrade"
+msgstr "Voeg Sub-Technisch Gebouw toe"
+
+msgid "The group range does not fit there."
+msgstr "Het groepsadresbereik past daar niet."
+
+msgid "A group range cannot go into itself or a range in it."
+msgstr "Een groepsadresbereik kan niet in zichzelf of in een bereik daarbinnen."
+
+msgid "A group address of the range is already in use there."
+msgstr "Een groepsadres van het bereik is daar al in gebruik."
+
+msgid "Copied {count} group ranges to '{target}'."
+msgstr "{count} groepsadresbereiken gekopieerd naar '{target}'."
+
+msgid "New Group Address…"
+msgstr "Nieuw groepsadres…"

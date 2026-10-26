@@ -229,12 +229,16 @@ def test_devices_go_into_spaces_and_out_again(
     clicks.items.add(f"1.1.5  D5##assignpick{room}_{first}")
     _frames(panel)
     assert _names(project)[0] == ("p", [("Kitchen", [], ["D5"])], [])
-    # A device without a space goes to one from the "Without Space" section.
+    # A device in the "Without Space" section goes into one by its "Move to" (no button).
     clicks.open.add(f"{S.SPACES_UNASSIGNED_TITLE} (1)##unassigned")
-    clicks.items.add(f"{S.SPACES_ASSIGN_DEVICE}##uassign{second}")
-    _frames(panel, 2)
-    clicks.items.add(f"  Kitchen##uto{second}_{room}")
     _frames(panel)
+    _choose(
+        clicks,
+        panel,
+        f"##spdev_ctx_{second}",
+        S.SPACES_MOVE_TO,
+        f"  Kitchen##mvdev{room}",
+    )
     assert _names(project)[0] == ("p", [("Kitchen", [], ["D5", "D6"])], [])
     # A building holds no devices: told why.
     panel._report(project.set_device_space(first, building))  # pyright: ignore[reportPrivateUsage]

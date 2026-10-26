@@ -529,9 +529,6 @@ msgstr "(Ανώτατο Επίπεδο)"
 msgid "Delete this space and everything in it? Devices are only unassigned, not deleted."
 msgstr "Να διαγραφεί αυτός ο χώρος και όλο το περιεχόμενό του; Οι συσκευές απλώς αποσυνδέονται από τον χώρο, δεν διαγράφονται."
 
-msgid "Assign Device"
-msgstr "Ανάθεση Συσκευής"
-
 msgid "Assign a Device to This Space"
 msgstr "Ανάθεση Συσκευής σε Αυτόν τον Χώρο"
 
@@ -558,9 +555,6 @@ msgstr "Διάδρομος"
 
 msgid "Stairway"
 msgstr "Σκάλα"
-
-msgid "Assign Group Address"
-msgstr "Ανάθεση Διεύθυνσης Ομάδας"
 
 msgid "Role (Optional)"
 msgstr "Ρόλος (Προαιρετικός)"
@@ -2812,9 +2806,6 @@ msgstr "Γραμμές…"
 msgid "Segments…"
 msgstr "Τμήματα…"
 
-msgid "Add Segments…"
-msgstr "Προσθήκη Τμημάτων…"
-
 msgid "Add Areas"
 msgstr "Προσθήκη Περιοχών"
 
@@ -2910,3 +2901,30 @@ msgstr "Νέα περιοχή διευθύνσεων ομάδας"
 
 msgid "Capacity"
 msgstr "Χωρητικότητα"
+
+msgid "Link with…"
+msgstr "Σύνδεση με…"
+
+msgid "Link with Group Address"
+msgstr "Σύνδεση με Διεύθυνση Ομάδας"
+
+msgid "There is no group to add group addresses to."
+msgstr "Δεν υπάρχει ομάδα για προσθήκη διευθύνσεων ομάδας."
+
+msgid "Add Subtrade"
+msgstr "Προσθήκη Υπολειτουργίας"
+
+msgid "The group range does not fit there."
+msgstr "Η περιοχή διευθύνσεων ομάδας δεν χωράει εκεί."
+
+msgid "A group range cannot go into itself or a range in it."
+msgstr "Μια περιοχή διευθύνσεων ομάδας δεν μπορεί να μπει στον εαυτό της ή σε περιοχή μέσα της."
+
+msgid "A group address of the range is already in use there."
+msgstr "Μια διεύθυνση ομάδας της περιοχής χρησιμοποιείται ήδη εκεί."
+
+msgid "Copied {count} group ranges to '{target}'."
+msgstr "Αντιγράφηκαν {count} περιοχές διευθύνσεων ομάδας στο '{target}'."
+
+msgid "New Group Address…"
+msgstr "Νέα Διεύθυνση Ομάδας…"

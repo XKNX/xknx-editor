@@ -22,11 +22,13 @@ from xknxeditor.proj.core.addressing import GroupAddressStyle, format_ga
 from xknxeditor.proj.core.medium import MAX_LINES, MediumError
 from xknxeditor.proj.core.paste import (
     AddressPool,
+    Allocation,
     GroupAddressCopy,
     PasteOptions,
     group_base,
     parse_target_range,
     place_in_group,
+    place_range,
 )
 from xknxeditor.proj.models import (
     Area,
@@ -311,7 +313,9 @@ class Paster:
         if len(ids) == 1:
             name = self.name(self.row(_MODELS[kind], ids[0]))
             return S.HISTORY_EV_COPIED.format(name=name, target=where)
-        if kind == "group_range":
+        if kind == "group_range" and self._style is GroupAddressStyle.FREE:
+            text = S.HISTORY_EV_COPIED_GROUP_RANGES
+        elif kind == "group_range":
             main = self.row(GroupRange, ids[0]).parent_id is None
             text = (
                 S.HISTORY_EV_COPIED_MAIN_GROUPS
@@ -693,8 +697,11 @@ class Paster:
     ) -> list[int]:
         """Copies of middle groups below the main group ``parent_id``, or of main groups
         (``parent_id`` None); their group addresses keep their place in the group, the middle
-        groups of a main group their number."""
+        groups of a main group their number. Free style ranges see
+        :meth:`_paste_free_ranges`."""
         sources = [self.row(GroupRange, ident) for ident in ids]
+        if self._style is GroupAddressStyle.FREE:
+            return self._paste_free_ranges(sources, parent_id, options, count)
         if parent_id is None:
             used = {
                 r.range_start >> 11
@@ -732,6 +739,79 @@ class Paster:
                 if new_id is not None:
                     created.append(new_id)
         return created
+
+    def _paste_free_ranges(
+        self,
+        sources: Sequence[GroupRange],
+        parent_id: int | None,
+        options: PasteOptions,
+        count: int,
+    ) -> list[int]:
+        """Copies of Free style ranges in the range ``parent_id`` (None: at the top), each as
+        large as its source, placed beside the ranges there as "Generate Addresses" says (an
+        offset counts from where the source starts); the ranges and group addresses in them
+        keep their place in the copy, a group address whose address is taken is left out."""
+        if parent_id is None:
+            low, high = 1, 0xFFFF
+            siblings = self._core.root_group_ranges(self._pid, self._installation)
+        else:
+            parent = self.row(GroupRange, parent_id)
+            # Not into itself or a range in it.
+            node: GroupRange | None = parent
+            while node is not None:
+                if any(source.id == node.id for source in sources):
+                    raise PasteError("group_ranges")
+                node = node.parent
+            low, high = parent.range_start, parent.range_end
+            siblings = list(parent.children)
+        taken = [(r.range_start, r.range_end) for r in siblings]
+        # Every copy's place first: nothing is made when one does not fit.
+        places: list[tuple[GroupRange, int]] = []
+        for _ in range(count):
+            for source in sources:
+                size = source.range_end - source.range_start + 1
+                allocation, start_with = options.allocation, options.start_with
+                if allocation is Allocation.OFFSET:
+                    allocation = Allocation.START_WITH
+                    start_with = source.range_start + options.offset
+                start = place_range(low, high, taken, size, allocation, start_with)
+                if start is None:
+                    raise PasteError("group_ranges")
+                places.append((source, start))
+                taken.append((start, start + size - 1))
+        used = self._core.used_group_addresses(self._pid, self._installation)
+        return [
+            self._free_range_copy(source, parent_id, start, used)
+            for source, start in places
+        ]
+
+    def _free_range_copy(
+        self, source: GroupRange, parent_id: int | None, start: int, used: set[int]
+    ) -> int:
+        """A copy of the Free style range ``source`` starting at ``start`` below
+        ``parent_id``, with copies of its ranges and group addresses at the same place in it
+        (but not on an address in ``used``, which gets those it takes)."""
+        offset = start - source.range_start
+        new_id = self._core.create_free_group_range(
+            self._pid,
+            self._installation,
+            parent_id,
+            source.name,
+            start,
+            source.range_end + offset,
+        )
+        self._set("group_range", new_id, _values(source, _GROUP_RANGE_FIELDS))
+        copy = self.row(GroupRange, new_id)
+        for child in sorted(source.children, key=lambda r: r.range_start):
+            self._free_range_copy(child, new_id, child.range_start + offset, used)
+        for ga in sorted(source.group_addresses, key=lambda ga: ga.address):
+            address = ga.address + offset
+            if address in used:
+                continue
+            ga_id = self.new_group_address(ga, copy, address)
+            self.copy_security(ga, ga_id)
+            used.add(address)
+        return new_id
 
     def _range_copy(
         self, source: GroupRange, parent_id: int | None, number: int

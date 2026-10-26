@@ -213,3 +213,9 @@ msgstr "Показано {shown} з {total}"
 
 msgid "(estimated)"
 msgstr "(за оцінками)"
+
+msgid "Line"
+msgstr "Лінія"
+
+msgid "Automatic"
+msgstr "Автоматично"
