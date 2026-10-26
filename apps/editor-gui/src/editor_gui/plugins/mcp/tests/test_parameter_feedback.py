@@ -113,6 +113,102 @@ async def test_a_selector_change_names_what_it_shows_and_hides(tmp_path: Path) -
         }
 
 
+async def _tree_token(client: Client, node_id: int) -> str:
+    return (
+        await _data(client, "project_parameter_tree", node_id=node_id, outline=True)
+    )["tree_token"]
+
+
+async def test_an_edit_returns_the_tree_token_after_it(tmp_path: Path) -> None:
+    """The token tells whether the subtree ids of an earlier read still hold: a change that
+    reshapes the tree returns a new one, an edit that shows or hides nothing the same."""
+    mcp, _project = _build(tmp_path)
+    async with Client(mcp) as client:
+        node_id = await _device(client, tmp_path)
+        before = await _tree_token(client, node_id)
+
+        reshaped = await _data(
+            client,
+            "project_set_parameter",
+            node_id=node_id,
+            parameter_ref_id=_COMBINE,
+            value="1",
+        )
+        after = await _tree_token(client, node_id)
+        assert reshaped["tree_token"] == after != before
+
+        unchanged = await _data(
+            client,
+            "project_set_parameter",
+            node_id=node_id,
+            parameter_ref_id=_COMBINE,
+            value="1",
+        )
+        assert unchanged["tree_token"] == after
+
+        await _data(client, "project_undo")
+        batch = await _data(
+            client,
+            "project_batch",
+            operations=[
+                {
+                    "op": "set_parameter",
+                    "params": {
+                        "node_id": node_id,
+                        "parameter_ref_id": _COMBINE,
+                        "value": "0",
+                    },
+                }
+            ],
+        )
+        assert batch["results"][0]["result"]["tree_token"] == before
+        assert await _tree_token(client, node_id) == before
+
+
+async def test_the_com_object_list_carries_each_objects_links(tmp_path: Path) -> None:
+    """One call shows which group address is on which object, as the Group Objects tab does."""
+    mcp, _project = _build(tmp_path)
+    async with Client(mcp) as client:
+        node_id = await _device(client, tmp_path)
+        _params, objects = await _visible(client, node_id)
+        linked = sorted(objects)[0]
+        await _data(client, "project_create_group_address", address="0/0/1", name="A")
+        await _data(client, "project_create_group_address", address="0/0/2", name="B")
+        for address, sending in (("0/0/1", True), ("0/0/2", False)):
+            await _data(
+                client,
+                "project_link_com_object",
+                node_id=node_id,
+                com_object_ref_id=linked,
+                group_address=address,
+                is_sending=sending,
+            )
+
+        items = (await _data(client, "project_list_com_objects", node_id=node_id))[
+            "items"
+        ]
+        by_ref = {co["ref_id"]: co for co in items}
+        links = by_ref[linked]["links"]
+        assert [
+            (link["address"], link["name"], link["is_sending"]) for link in links
+        ] == [
+            ("0/0/1", "A", True),
+            ("0/0/2", "B", False),
+        ]
+        assert (
+            links
+            == (
+                await _data(
+                    client,
+                    "project_get_com_object_links",
+                    node_id=node_id,
+                    com_object_ref_id=linked,
+                )
+            )["items"]
+        )
+        assert all(co["links"] == [] for ref, co in by_ref.items() if ref != linked)
+
+
 async def test_linking_a_hidden_com_object_says_so(tmp_path: Path) -> None:
     mcp, project = _build(tmp_path)
     async with Client(mcp) as client:

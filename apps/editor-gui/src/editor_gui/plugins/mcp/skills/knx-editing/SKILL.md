@@ -76,13 +76,13 @@ instructions.
 Changing a button's function replaces its group objects, and the links of the old ones go.
 
 1. Capture the current state of the button's block: function, sub-parameters including symbols
-   and labels, and every object's links.
+   and labels, and every object's links (project_list_com_objects lists each object with its
+   links).
 
    ```
    project_parameter_tree(device_address="1.1.20", outline=True)
    project_parameter_tree(device_address="1.1.20", subtree_id="0.3", tree_token="...")
    project_list_com_objects(device_address="1.1.20")
-   project_get_com_object_links(device_address="1.1.20", com_object_ref_id="M-0008_..._O-3")
    ```
 
 2. Set the new function. The result tells what the change cost and what it offers:
@@ -157,7 +157,6 @@ Work from the project to the bus; stop at the first finding.
 
    ```
    project_list_com_objects(device_address="1.1.21")
-   project_get_com_object_links(device_address="1.1.21", com_object_ref_id="M-0002_..._O-9")
    monitor_latest(address="1/1/40")
    ```
 

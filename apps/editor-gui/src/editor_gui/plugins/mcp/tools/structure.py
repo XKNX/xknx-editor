@@ -105,7 +105,8 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
     def project_remove_device(
         node_id: int | None = None, device_address: str | None = None
     ) -> dict[str, Any]:
-        """Remove a device from the project, with its group objects and their links. Identify
+        """Delete (remove) a device from the project, with its group objects and their links, as
+        "Delete" in the device's menu does. Identify
         it by ``node_id`` OR ``device_address`` (an individual address like "1.0.30"); pass
         exactly one. Undoable with project_undo; the device on the bus is unchanged. Returns
         {status: "removed", node_id}."""

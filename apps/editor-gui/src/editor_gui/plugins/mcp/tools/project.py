@@ -97,6 +97,25 @@ def com_object_dict(co: ComObject) -> dict[str, Any]:
     }
 
 
+def com_object_links(project: ProjectService, co: ComObject) -> list[dict[str, Any]]:
+    """The group-address links of the com-object ``co``; none when it has no project row."""
+    if co.db_id is None:
+        return []
+    links: list[dict[str, Any]] = []
+    for a in project.get_links_for_com_object(co.db_id):
+        g = project.get_group_address(a.group_address_id)
+        links.append(
+            {
+                "assignment_id": a.id,
+                "group_address_id": a.group_address_id,
+                "address": g.address if g else None,
+                "name": g.name if g else None,
+                "is_sending": a.is_sending,
+            }
+        )
+    return links
+
+
 def _prune(d: dict[str, Any]) -> dict[str, Any]:
     """Drop keys whose value is None, an empty string, or an empty list/tuple, to keep list
     payloads compact. A falsy-but-meaningful value (0, False) is kept. Used for the spaces tree,
@@ -849,12 +868,14 @@ def param_change_result(
 
     With ``before`` (the device's :func:`visible_state` before the edit) the result also names
     the parameters and com-objects the edit showed or hid. ``lost_links`` are the links the edit
-    dropped (default: the device's ``last_lost_links``)."""
+    dropped (default: the device's ``last_lost_links``). ``tree_token`` is the device tree's
+    fingerprint after the edit, to compare with the one a caller holds."""
     effective: str | None = None
     active = False
     shown_parameters: list[dict[str, Any]] = []
     visible_parameters: set[str] = set()
-    for p in _collect_ui_parameters(device.get_ui()):
+    roots: list[Any] = list(device.get_ui())
+    for p in _collect_ui_parameters(roots):
         visible_parameters.add(p.ref_id)
         if p.ref_id == parameter_ref_id:
             effective, active = p.value, True
@@ -868,6 +889,7 @@ def param_change_result(
         "requested": requested,
         "value": effective,
         "active": active,
+        "tree_token": _tree_fingerprint(device.node_id, roots),
     }
     side_effects = [
         {"ref_id": ref, "old": old, "new": new}
@@ -1643,17 +1665,24 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
     def project_list_com_objects(
         node_id: int | None = None, device_address: str | None = None
     ) -> dict[str, Any]:
-        """List a project device's visible com-objects. Identify the device by ``node_id`` OR
-        ``device_address`` (an individual address like "1.0.30"); pass exactly one.
+        """List a project device's visible com-objects with their group-address links, as the
+        Group Objects tab shows them. Identify the device by ``node_id`` OR ``device_address`` (an
+        individual address like "1.0.30"); pass exactly one.
         Returns {items, count}; each item has {ref_id, db_id, linkable, name, number, dpt, dpt_name,
-        object_size, flags, description, priority}. flags contains communication, read, write,
-        transmit, update, read_on_init.
+        object_size, flags, description, priority, links}. flags contains communication, read,
+        write, transmit, update, read_on_init. links are the object's group-address links as
+        project_get_com_object_links returns them ({assignment_id, group_address_id, address, name,
+        is_sending}); empty when it has none: one call shows which group address is on which
+        object.
         Pass ref_id as com_object_ref_id with the same device. Linking and flag edits require
         linkable=true (db_id set)."""
 
         def _read() -> list[dict[str, Any]]:
             device = _require_device(node_id, device_address)
-            return [com_object_dict(co) for co in device.get_visible_com_objects()]
+            return [
+                {**com_object_dict(co), "links": com_object_links(project, co)}
+                for co in device.get_visible_com_objects()
+            ]
 
         return _items(ctx.run_locked(_read))
 
@@ -1728,21 +1757,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                     f"no com-object {com_object_ref_id!r} on device {device.node_id}; "
                     "call project_list_com_objects for valid ref_ids"
                 )
-            if co.db_id is None:
-                return []
-            links: list[dict[str, Any]] = []
-            for a in project.get_links_for_com_object(co.db_id):
-                g = project.get_group_address(a.group_address_id)
-                links.append(
-                    {
-                        "assignment_id": a.id,
-                        "group_address_id": a.group_address_id,
-                        "address": g.address if g else None,
-                        "name": g.name if g else None,
-                        "is_sending": a.is_sending,
-                    }
-                )
-            return links
+            return com_object_links(project, co)
 
         return _items(ctx.run_locked(_read))
 
@@ -1829,7 +1844,9 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
           to get a fresh one. ``search`` (above) finds parameters with their sections.
         - ``tree_token`` is a short fingerprint of the device's current structure. Pass it back to
           any scoped read/mutation (``subtree_id``, project_resolve_parameter, batch set_parameter)
-          to prove the structure has not changed since the id was obtained.
+          to prove the structure has not changed since the id was obtained. A value edit keeps it
+          unless the edit shows or hides parameters or blocks; project_set_parameter returns the
+          current one, so compare instead of re-reading.
 
         Pass a parameter's ref_id as parameter_ref_id to project_get_parameter/project_set_parameter.
         This reads project configuration."""
@@ -2854,8 +2871,13 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         yourself. Setting a function type usually reveals extra symbol/label parameters; re-read the
         block with project_parameter_tree and set them too, so the button shows correctly on the device.
 
-        Returns {ref_id, requested, value, active, changed?, lost_links?, shown_parameters?,
-        hidden_parameters?, shown_com_objects?, hidden_com_objects?}: ``value`` is read back
+        Returns {ref_id, requested, value, active, tree_token, changed?, lost_links?,
+        shown_parameters?, hidden_parameters?, shown_com_objects?, hidden_com_objects?}:
+        ``tree_token`` is the device tree's fingerprint after the edit: when it equals the one
+        from your last project_parameter_tree read, its subtree ids still hold and you can go on
+        with them; when it differs, the edit reshaped the tree and subtree ids may point elsewhere,
+        so read the outline again before a scoped call (never pair old ids with the new token).
+        ``value`` is read back
         AFTER the edit (may be a normalized form of ``requested``, or null with ``active=false`` if
         the edit deactivated the parameter), ``changed`` lists other parameters a calculation changed
         as a side effect, and ``lost_links`` lists group-address links this change dropped by
