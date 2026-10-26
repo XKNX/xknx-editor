@@ -57,6 +57,7 @@ from editor_gui.plugins.project.ui import (
     name_focus,
 )
 from editor_gui.plugins.project.ui.comment import CommentPanel
+from editor_gui.plugins.project.ui.configure import edit_being_stored
 from editor_gui.plugins.project.ui.dali_commissioning import DaliCommissioningPanel
 from editor_gui.plugins.project.ui.device_certificate import (
     CertificateState,
@@ -281,6 +282,8 @@ class ProjectPlugin:
             get_revision=lambda: api.project.revision,
         )
         self._focus_tools = False
+        # Whose details the Device tab showed last (see _render_device).
+        self._details_shown: tuple[str, object] | None = None
 
         group_bus = GroupValueBus(
             connected=api.connection.can_reach_bus,
@@ -641,7 +644,7 @@ class ProjectPlugin:
 
     def _get_areas(self) -> list[Area]:
         return [
-            Area(id=a.id, number=a.area_number, name=a.name)
+            Area(id=a.id, number=a.area_number, name=a.name, description=a.description)
             for a in self._api.project.get_areas()
         ]
 
@@ -652,9 +655,13 @@ class ProjectPlugin:
                 area_id=ln.area_id,
                 number=ln.line_number,
                 name=ln.name,
-                segments=[Segment(id=s.id, name=s.name) for s in ln.segments],
+                segments=[
+                    Segment(id=s.id, name=s.name, description=s.description)
+                    for s in ln.segments
+                ],
                 medium_type=ln.medium_type,
                 main_segment_id=ln.main_segment_id,
+                description=ln.description,
             )
             for ln in self._api.project.get_lines(area_id)
         ]
@@ -2829,16 +2836,52 @@ class ProjectPlugin:
         self._configure_panel.render()
 
     def _render_device(self) -> None:
-        space = self.selected_space()
-        if space is not None:
+        target = self._details_target()
+        shown = self._details_shown
+        # A field of the details stores its edit when it loses the focus, which it learns a
+        # frame later. When that happens by selecting another element, the details shown so far
+        # stay for that frame, so the edit goes to their element, not the one selected now.
+        if (
+            shown is not None
+            and shown != target
+            and edit_being_stored()
+            and self._render_details(shown)
+        ):
+            return
+        self._details_shown = target
+        self._render_details(target)
+
+    def _details_target(self) -> tuple[str, object]:
+        """Whose details the Device tab shows: a space, an element (kind and id) or the
+        device."""
+        space_id = self._api.project.selected_space_id
+        if space_id is not None and self.selected_space() is not None:
+            return ("space", space_id)
+        selected = self._api.project.selected_element
+        if selected is not None and self.selected_element() is not None:
+            return ("element", selected)
+        return ("device", None)
+
+    def _render_details(self, target: tuple[str, object]) -> bool:
+        """The details of ``target`` (see :meth:`_details_target`); False (and nothing drawn)
+        when it is gone."""
+        kind, key = target
+        if kind == "space":
+            space = self._api.project.find_space(cast(int, key))
+            if space is None:
+                return False
             self._space_details.render(space)
-            return
-        element = self.selected_element()
-        if element is not None:
+            return True
+        if kind == "element":
+            element_kind, element_id = cast(tuple[str, int], key)
+            element = self._api.project.element_details(element_kind, element_id)
+            if element is None:
+                return False
             self._element_details.render(element)
-            return
+            return True
         self._sync_selected_device_from_editor()
         self._configure_panel.render_device()
+        return True
 
     def _render_manufacturer(self) -> None:
         self._sync_selected_device_from_editor()

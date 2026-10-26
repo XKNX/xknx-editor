@@ -1960,10 +1960,6 @@ class ProjectStrings:
         return _("Description")
 
     @property
-    def GA_DESCRIPTION(self) -> str:
-        return _("Description")
-
-    @property
     def GA_COMMENT(self) -> str:
         return _("Comment")
 

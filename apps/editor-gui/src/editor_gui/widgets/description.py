@@ -76,13 +76,15 @@ def shows_description_icon(description: str | None) -> bool:
 
 def render_description(description: str | None) -> bool:
     """Append ``description`` after the previous item: a short one inline (dimmed), a longer or
-    multi-line one behind a hover icon. Returns whether the icon is hovered (always ``False`` for the inline form)."""
-    if not description or not description.strip():
+    multi-line one behind a hover icon. Spaces and line breaks around it are left out. Returns
+    whether the icon is hovered (always ``False`` for the inline form)."""
+    text = (description or "").strip()
+    if not text:
         return False
-    if shows_description_icon(description):
-        return description_icon(description)
+    if shows_description_icon(text):
+        return description_icon(text)
     imgui.same_line()
-    imgui.text_disabled(description)
+    imgui.text_disabled(text)
     return False
 
 
@@ -95,7 +97,7 @@ def description_icon(description: str, *, x: float | None = None) -> bool:
     ``description`` while hovered; returns whether it is hovered."""
     hovered = _hover_icon(ICON_DESCRIPTION, x)
     if hovered:
-        description_tooltip(description)
+        description_tooltip(description.strip())
     return hovered
 
 

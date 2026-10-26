@@ -81,13 +81,36 @@ def test_group_addresses_and_middle_groups_move(
     for node in (main_1, middle_1, main_2, middle_2):
         clicks.open.add(f"{node.address}  {node.name or f'[{node.id}]'}##gr{node.id}")
     _frames(panel)
-    # The group address into middle group 2/1: 2/1/5 is taken, so 2/1/0.
+    shown: list[tuple[str, bool]] = []
+    limits: list[float] = []
+    real_item = imgui.menu_item
+    real_limit = imgui.set_next_window_size_constraints
+
+    def menu_item(label: str, *args: object) -> object:
+        if "##mvgr" in label:
+            shown.append((label, bool(args[2]) if len(args) > 2 else True))
+        return real_item(label, *args)  # type: ignore[arg-type]
+
+    def set_limit(low: imgui.ImVec2, high: imgui.ImVec2, *args: object) -> None:
+        limits.append(high.y)
+        real_limit(low, high, *args)  # type: ignore[arg-type]
+
+    monkeypatch.setattr(imgui, "menu_item", menu_item)
+    monkeypatch.setattr(imgui, "set_next_window_size_constraints", set_limit)
+    # The group address into middle group 2/1: 2/1/5 is taken, so 2/1/0. The middle groups
+    # are listed below their main groups, which are grayed out.
     clicks.context = f"##ga_ctx_{light}"
     clicks.menus.add(S.SPACES_MOVE_TO)
     clicks.items.add(
-        f"{middle_2.address}  {middle_2.name or f'[{middle_2.id}]'}##mvgr{middle_2.id}"
+        f"  {middle_2.address}  {middle_2.name or f'[{middle_2.id}]'}##mvgr{middle_2.id}"
     )
     _frames(panel)
+    menu = dict(shown)
+    assert menu[f"{main_1.address}  {main_1.name}##mvgr{main_1.id}"] is False
+    assert menu[f"  {middle_1.address}  {middle_1.name}##mvgr{middle_1.id}"] is False
+    assert menu[f"  {middle_2.address}  {middle_2.name}##mvgr{middle_2.id}"] is True
+    # A long list scrolls: the submenu grows at most to half the screen.
+    assert 400.0 in limits
     moved = project.element_details("group_address", light)
     assert moved is not None and moved.address == "2/1/0"
     # The (now empty) middle group 1/1 below main group 2: its number 1 is taken there.

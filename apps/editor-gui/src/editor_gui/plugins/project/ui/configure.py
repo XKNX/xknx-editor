@@ -177,7 +177,7 @@ def _same_line_if_fits_checkbox(label: str) -> None:
     same_line_if_fits(width, style.item_spacing.x * 2)
 
 
-def _edit_being_stored() -> bool:
+def edit_being_stored() -> bool:
     """Whether a field that was edited lost the focus and reports it (to store the edit) in this
     frame or the next."""
     data = imgui.get_current_context().deactivated_item_data
@@ -517,7 +517,7 @@ class ConfigurePanel:
         if (
             shown is not None
             and shown.node_id != device.node_id
-            and _edit_being_stored()
+            and edit_being_stored()
         ):
             # The current object of that device: storing the edit may have rebuilt it.
             current = next((d for d in devices if d.node_id == shown.node_id), None)

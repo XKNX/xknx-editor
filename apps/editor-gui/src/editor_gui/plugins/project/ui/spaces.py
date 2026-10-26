@@ -1203,6 +1203,7 @@ class SpacesPanel:
         self._render_function_context_menu(function, space_id)
         if self._on_move_function is not None:
             drag_source(Dragged("function", (function.id,)), label)
+        render_description(function.description)
         self._open_if_pending(_link_function_dialog(function.id))
         self._render_link_dialog(function.id)
         if not open_node:

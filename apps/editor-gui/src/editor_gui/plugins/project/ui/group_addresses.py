@@ -36,7 +36,14 @@ from editor_gui.plugins.project.ui.paste_special import (
     render_delete_item,
 )
 from editor_gui.plugins.project.ui.tree_drag import Dragged, drag_source, drop_target
-from editor_gui.widgets.description import secure_icon, secure_icon_width
+from editor_gui.widgets.description import (
+    description_icon,
+    description_icon_width,
+    render_description,
+    secure_icon,
+    secure_icon_width,
+    shows_description_icon,
+)
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
 from editor_gui.widgets.dpi import px
 from editor_gui.widgets.dpt_value import GroupValueBus
@@ -253,7 +260,6 @@ class GroupAddressesPanel:
         # of this GA and scrolls to it for one frame, then clears it.
         self._reveal_ga_id: int | None = None
         self._selected_ga_text: str = ""
-        self._selected_ga_description: str = ""
         self._selected_ga_comment: str = ""
         # Modal state.
         self._popup_address: str = ""
@@ -487,6 +493,7 @@ class GroupAddressesPanel:
                 + imgui.calc_text_size(shown).x
                 + imgui.get_style().item_spacing.x
             )
+        render_description(node.description)
         if not open_node:
             return
         for child in node.children:
@@ -618,9 +625,8 @@ class GroupAddressesPanel:
                 self._selected_range_id = None
                 self._on_select_element("group_address", ga.id)
             if ga.id == self._selected_ga_id:
-                # Kept current: the comment and description can change while it is selected.
+                # Kept current: the comment can change while it is selected.
                 self._selected_ga_text = name
-                self._selected_ga_description = ga.description
                 self._selected_ga_comment = plain_text(parse_rich_text(ga.comment))
             if ga.id == self._reveal_ga_id:
                 imgui.set_scroll_here_y()
@@ -631,11 +637,22 @@ class GroupAddressesPanel:
             ):
                 drag_source(Dragged("group_address", (ga.id,)), name)
             end = row_x + imgui.calc_text_size(name).x
+            # Screen x of the window's x 0 (``end`` counts in window coordinates).
+            left = imgui.get_item_rect_min().x - row_x
             if ga.data_secure:
                 # The KNX Data Secure shield right after the name, as after a secure device.
-                left = imgui.get_item_rect_min().x - row_x
                 secure_icon(x=left + end + spacing)
                 end += spacing + secure_icon_width()
+            # Its description: a short one inline, a longer one behind the note icon.
+            description = (ga.description or "").strip()
+            if description and shows_description_icon(description):
+                description_icon(description, x=left + end + spacing)
+                end += spacing + description_icon_width()
+            elif description:
+                imgui.same_line()
+                imgui.set_cursor_pos_x(end + spacing)
+                imgui.text_disabled(description)
+                end += spacing + imgui.calc_text_size(description).x
             live = (
                 self._get_latest_value(ga.text, ga.datapoint_type)
                 if self._get_latest_value is not None
@@ -712,15 +729,32 @@ class GroupAddressesPanel:
     def _render_move_ga_menu(self, ga_id: int) -> None:
         """ "Move to" of a group address: the groups that hold group addresses (the middle
         groups, or the main groups of the two-level style, every range of the Free style), its
-        own grayed out."""
+        own grayed out. The middle groups are listed below their main groups, which are grayed
+        out; the ranges of the Free style below the ranges they are in."""
         if self._on_move_ga is None or not (self._folders_enabled() or self._free()):
             return
-        groups = address_groups(self._get_range_tree(), self._style())
+        tree = self._get_range_tree()
+        style = self._style()
+        groups = address_groups(tree, style)
         current = next(
             (g.id for g in groups if any(a.id == ga_id for a in g.group_addresses)),
             None,
         )
-        chosen = render_move_menu([(_range_text(g), g.id) for g in groups], current)
+        targets: list[tuple[str, int]] = []
+        disabled: set[int] = set()
+        if style is GroupAddressStyle.THREE_LEVEL:
+            for main in tree:
+                targets.append((_range_text(main), main.id))
+                disabled.add(main.id)
+                targets.extend(
+                    (f"  {_range_text(middle)}", middle.id) for middle in main.children
+                )
+        else:
+            depth_of = self._depths(tree)
+            targets = [
+                (f"{'  ' * depth_of[g.id]}{_range_text(g)}", g.id) for g in groups
+            ]
+        chosen = render_move_menu(targets, current, disabled)
         if chosen is not None and chosen[0] is not None:
             self._report(self._on_move_ga(ga_id, chosen[0]))
 
@@ -1135,9 +1169,8 @@ class GroupAddressesPanel:
         if self._selected_ga_id is None:
             imgui.text_disabled(S.GA_ASSIGNED_OBJECTS)
             return
+        # The description shows in the tree (behind its icon when long) and in the details.
         imgui.text_disabled(self._selected_ga_text)
-        if self._selected_ga_description:
-            imgui.text_wrapped(f"{S.GA_DESCRIPTION}: {self._selected_ga_description}")
         if self._selected_ga_comment:
             imgui.text_wrapped(f"{S.GA_COMMENT}: {self._selected_ga_comment}")
 

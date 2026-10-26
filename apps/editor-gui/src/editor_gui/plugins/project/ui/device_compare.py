@@ -140,7 +140,7 @@ class DeviceComparePanel:
         by_id: dict[int, Device],
     ) -> int:
         cur = by_id.get(current)
-        description = cur.description if cur is not None else ""
+        description = cur.description.strip() if cur is not None else ""
         # Room after the dropdown for the KNX Data Secure shield and the description: the icon
         # (long) or the inline text (short).
         spacing = imgui.get_style().item_spacing.x

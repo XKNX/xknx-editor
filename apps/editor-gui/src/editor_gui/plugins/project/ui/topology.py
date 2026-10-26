@@ -29,7 +29,7 @@ from editor_gui.plugins.project.ui.paste_special import (
     render_delete_item,
 )
 from editor_gui.plugins.project.ui.tree_drag import Dragged, drag_source, drop_target
-from editor_gui.widgets.description import render_device_marks
+from editor_gui.widgets.description import render_description, render_device_marks
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
 from editor_gui.widgets.tree import (
     begin_tree_area,
@@ -79,6 +79,7 @@ class Area:
     id: int
     number: int
     name: str
+    description: str = ""
 
 
 @dataclass
@@ -87,6 +88,7 @@ class Segment:
 
     id: int
     name: str
+    description: str = ""
 
 
 @dataclass
@@ -99,6 +101,7 @@ class Line:
     medium_type: str = MEDIUM_TP
     # The line's own segment (its devices not on a sub-segment); None when unknown.
     main_segment_id: int | None = None
+    description: str = ""
 
 
 def _split_line(
@@ -367,6 +370,7 @@ class TopologyPanel:
             self._render_area_context_menu(area, [line for line, _f in lines], main)
             if main is not None:
                 self._render_line_drop_target(area, main, area_node=True)
+            render_description(area.description)
             if area_open:
                 for line, found in lines:
                     if line.number == 0:
@@ -431,6 +435,7 @@ class TopologyPanel:
         self._render_line_context_menu(area, line)
         drag_source(Dragged("line", (line.id,)), label)
         self._render_line_drop_target(area, line)
+        render_description(line.description)
         if opened:
             self._render_line_content(
                 area, line, devices, segment_of, leaf, ordered_ids
@@ -512,6 +517,7 @@ class TopologyPanel:
         self._drop_devices(
             segment.id, lambda device: self._on_move_device_to_segment(device, segment)
         )
+        render_description(segment.description)
         if opened:
             with leaf_rows(nodes=True):
                 for device in devices:
