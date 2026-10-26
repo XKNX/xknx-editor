@@ -4,13 +4,20 @@ keeps its highlight."""
 
 from __future__ import annotations
 
+import itertools
 from collections.abc import Iterator
 
 import pytest
 from imgui_bundle import imgui
 
 from editor_gui.widgets import tree
-from editor_gui.widgets.tree import begin_tree_area, context_menu
+from editor_gui.widgets.tree import (
+    begin_tree_area,
+    context_menu,
+    row_selectable,
+    same_row,
+    tree_node,
+)
 
 
 @pytest.fixture
@@ -124,3 +131,31 @@ def test_the_area_scrolls_while_dragging_near_its_edges(
     for _ in range(3):
         _frame()
     assert _frame() < down
+
+
+@pytest.mark.usefixtures("context")
+def test_rows_touch_so_that_selected_rows_make_one_area() -> None:
+    rows: list[tuple[float, float]] = []
+    imgui.new_frame()
+    imgui.begin("Panel")
+    if begin_tree_area("##area"):
+        style = imgui.get_style()
+        pitch = imgui.get_text_line_height() + style.item_spacing.y
+        tree_node("Area", imgui.TreeNodeFlags_.leaf)
+        rows.append((imgui.get_item_rect_min().y, imgui.get_item_rect_max().y))
+        imgui.tree_pop()
+        # A note after the label on its line takes no room below the row.
+        with same_row():
+            imgui.text("note")
+        row_selectable("Device", True)
+        rows.append((imgui.get_item_rect_min().y, imgui.get_item_rect_max().y))
+        tree_node("Line", imgui.TreeNodeFlags_.leaf)
+        rows.append((imgui.get_item_rect_min().y, imgui.get_item_rect_max().y))
+        imgui.tree_pop()
+    imgui.end_child()
+    imgui.end()
+    imgui.end_frame()
+    for (_top, bottom), (top, _bottom) in itertools.pairwise(rows):
+        assert top == pytest.approx(bottom)
+    # As far apart as text rows with the usual spacing.
+    assert [bottom - top for top, bottom in rows] == pytest.approx([pitch] * 3)
