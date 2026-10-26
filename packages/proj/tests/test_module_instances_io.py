@@ -186,3 +186,6 @@ def test_function_group_address_refs_are_numbered_in_the_project(
     # As genuine exports: P-xxxx-0_GF-n from 1 across the project, not under the function.
     assert [i.split("_", 1)[1] for i in ids] == ["GF-1", "GF-2", "GF-3", "GF-4"]
     assert all(re.fullmatch(r"P-[^_]+-0_GF-\d+", i) for i in ids)
+    # Each with its role from the function type (switchable light), though none is stored.
+    roles = re.findall(r'<GroupAddressRef [^>]*Role="([^"]+)"', xml)
+    assert roles == ["SwitchOnOff", "InfoOnOff"] * 2

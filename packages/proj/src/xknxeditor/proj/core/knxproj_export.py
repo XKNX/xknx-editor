@@ -73,6 +73,7 @@ from xknxeditor.proj.core import import_notes
 from xknxeditor.proj.core._dll_signer import sign_member_map
 from xknxeditor.proj.core.compact import used_product_ids
 from xknxeditor.proj.core.dpt import normalize_datapoint_type
+from xknxeditor.proj.core.function_roles import function_roles
 from xknxeditor.proj.core.ga_security import exports_key, secured_group_addresses
 from xknxeditor.proj.core.import_notes import ImportLoss
 from xknxeditor.proj.core.knxproj_protect import protect_project_folder
@@ -1919,9 +1920,16 @@ class _Writer:
                 Context=fn.context or None,
                 Puid=self._ids.puid(fn, fn.puid),
             )
-            for fga in fn.group_addresses:
-                if fga.group_address_id not in ga_link_id:
-                    continue
+            links = [
+                fga for fga in fn.group_addresses if fga.group_address_id in ga_link_id
+            ]
+            # Each group address's role in the function, from the function type, as genuine
+            # exports have it (a link made in the editor stores none).
+            roles = function_roles(
+                fn.function_type,
+                [(fga.role, fga.group_address.datapoint_type) for fga in links],
+            )
+            for fga, role in zip(links, roles, strict=True):
                 # GroupAddressRef_t requires Name and Puid (schema); the importer crashes building
                 # the buildings tree when they are missing. A new Id is numbered in the project
                 # (``GF-1``, ``GF-2``, …) as genuine exports write it; the importer rejects one
@@ -1933,7 +1941,7 @@ class _Writer:
                     Id=f"{pid}-0_{ref_id}",
                     Name=fga.name,
                     RefId=f"{pid}-0_{ga_link_id[fga.group_address_id]}",
-                    Role=fga.role or None,
+                    Role=role or None,
                     Context=fga.context or None,
                     Puid=self._ids.puid(fga, fga.puid),
                 )
