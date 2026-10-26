@@ -115,12 +115,6 @@ msgstr "Δωμάτιο"
 msgid "(no room)"
 msgstr "(χωρίς δωμάτιο)"
 
-msgid "Add Device to Project"
-msgstr "Προσθήκη Συσκευής στο Έργο"
-
-msgid "Which room should {name} go into?"
-msgstr "Σε ποιο δωμάτιο να τοποθετηθεί η συσκευή {name};"
-
 msgid "Open or create a project first to add a device."
 msgstr "Ανοίξτε ή δημιουργήστε πρώτα ένα έργο για να προσθέσετε συσκευή."
 
@@ -129,18 +123,6 @@ msgstr "Αυτό το προϊόν δεν έχει χρησιμοποιήσιμ�
 
 msgid "Added device: {name}"
 msgstr "Προστέθηκε συσκευή: {name}"
-
-msgid "Add to project?"
-msgstr "Προσθήκη στο έργο;"
-
-msgid "“{name}” was added to the local catalog. Add it to the project now?"
-msgstr "Το «{name}» προστέθηκε στον τοπικό κατάλογο. Να προστεθεί τώρα στο έργο;"
-
-msgid "Add to Project"
-msgstr "Προσθήκη στο Έργο"
-
-msgid "Not Now"
-msgstr "Όχι Τώρα"
 
 msgid "Local"
 msgstr "Τοπικός"
@@ -222,3 +204,9 @@ msgstr "Αυτόματα"
 
 msgid "Add to"
 msgstr "Προσθήκη σε"
+
+msgid "Automatic: the device goes on the Current Line of the room chosen, without one on the first TP line."
+msgstr "Αυτόματα: η συσκευή μπαίνει στην Τρέχουσα Γραμμή του επιλεγμένου χώρου, αλλιώς στην πρώτη γραμμή TP."
+
+msgid "Download to Local Catalog"
+msgstr "Λήψη στον Τοπικό Κατάλογο"

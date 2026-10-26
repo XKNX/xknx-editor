@@ -14,6 +14,7 @@ from editor_gui.hardware_text import bus_current_text, rail_text
 from editor_gui.languages import product_text_languages
 from editor_gui.plugins.catalog.strings import S
 from editor_gui.plugins.project.ui.move_menu import render_move_menu
+from editor_gui.plugins.project.ui.paste_special import MenuGroups
 from editor_gui.regional import regional_format
 from editor_gui.strings import get_locale
 from editor_gui.widgets.backgrounds import fill_content_background
@@ -185,7 +186,7 @@ class CatalogPanel:
         ]
         | None = None,
         online_filters: OnlineFilters | None = None,
-        add_online_item: Callable[[str], None] | None = None,
+        find_local_product: Callable[[str], ProductSummary | None] | None = None,
         can_add_to_project: Callable[[], bool] | None = None,
         plan_delete_product: Callable[[ProductSummary], int | None] | None = None,
         delete_product: Callable[[ProductSummary], None] | None = None,
@@ -193,28 +194,26 @@ class CatalogPanel:
         get_lines: Callable[[], list[tuple[int, str]]] | None = None,
         get_line: Callable[[], int | None] = lambda: None,
         set_line: Callable[[int | None], None] = lambda _s: None,
-        on_add_to_line: Callable[[ProductSummary, int], None] | None = None,
+        on_add_to_line: Callable[[ProductSummary, int, int | None], None] | None = None,
+        tell_refused: Callable[[str], None] = lambda _text: None,
     ) -> None:
         """``get_lines`` lists the lines (and sub-segments) a new device can go on, as (segment
         id, text); ``get_line`` is the one chosen (None: automatic), ``set_line`` chooses
-        one. ``on_add_to_line`` adds a product on a line (segment id) right away (a product's
-        "Add to")."""
+        one. ``on_add_to_line`` adds a product on a line (segment id) into a room (space id or
+        None) right away (a product's "Add to"). ``find_local_product`` gives the local product
+        an online one (by item id) was imported as, None while it is not in the local catalog."""
         self._get_lines = get_lines
         self._on_add_to_line = on_add_to_line
+        self._tell_refused = tell_refused
         self._get_line = get_line
         self._set_line = set_line
         self._get_products = get_products
         self._on_select = on_select
-        # Optional room picker for "Add device": lists (space_id, path) so a device can be placed
-        # into a space on creation instead of always landing in "Without space". ``_add_space_id``
-        # is the panel-level chosen target (None = no room), chosen in the dialog "Add Device" and
-        # a double-click open.
+        # The room picker at the top: lists (space_id, path) so a device can be placed into a
+        # space on creation instead of always landing in "Without space". ``_add_space_id`` is
+        # the room chosen (None = no room) for "Add Device", a double-click and "Add to".
         self._get_spaces = get_spaces
         self._add_space_id: int | None = None
-        # Double-click a product to add it: first ask which room to place it in (when the project
-        # has rooms). ``_add_target`` is the product waiting on that choice.
-        self._add_target: ProductSummary | None = None
-        self._open_add_space_popup = False
         self._search: str = ""
         # Online catalog (manufacturer list from the KNX service).
         self._get_online_manufacturers = get_online_manufacturers
@@ -243,6 +242,8 @@ class CatalogPanel:
         self._online_items_loading: set[int] = set()
         self._online_downloading: set[str] = set()
         self._selected_product: ProductSummary | None = None
+        # The online product selected (its item id), highlighted and added by "Add Device".
+        self._selected_online: str | None = None
         # Fetch missing project applications from the online catalog.
         self._get_missing_app_count = get_missing_app_count
         self._fetch_missing_apps = fetch_missing_apps
@@ -262,12 +263,13 @@ class CatalogPanel:
         self._flat_query: str | None = None
         self._flat_results: list[OnlineCatalogItem] = []
         self._flat_total = 0
-        # After an online download+import, offer to add the product to the project (confirmed in a
-        # modal rendered on the GUI thread; set from the download worker thread under _online_lock).
-        self._add_online_item = add_online_item
+        # An online product is added as the local product it was imported as
+        # (``find_local_product``), downloaded first when it is not in the local catalog yet. The
+        # one to add once its download is done: (item id, line or None for the one chosen); set
+        # from the download worker thread under _online_lock, added on the GUI thread.
+        self._find_local_product = find_local_product
         self._can_add_to_project = can_add_to_project
-        self._pending_add_item: str | None = None
-        self._pending_add_name: str = ""
+        self._pending_add: tuple[str, int | None] | None = None
         # Delete a local product: the planner returns the number of project devices that would
         # lose their product data (None when the product is gone); the delete runs on a worker.
         self._plan_delete_product = plan_delete_product
@@ -296,8 +298,7 @@ class CatalogPanel:
                 self._render_online_catalog()
                 imgui.end_tab_item()
             imgui.end_tab_bar()
-        self._render_add_to_project_modal()
-        self._render_add_space_modal()
+        self._add_downloaded()
         self._render_delete_modal()
         self._poll_export()
 
@@ -399,17 +400,23 @@ class CatalogPanel:
         finally:
             self._fetching_missing = False
 
-    def _render_add_row(self) -> None:
-        """The line a new device goes on and "Add Device" for the product selected (grayed out
-        while none is), as a double-click on it does."""
-        if self._render_line_picker("top"):
+    def _render_add_row(self, online: bool = False) -> None:
+        """The line and the room a new device goes on and into, and "Add Device" for the
+        product selected (grayed out while none is), as a double-click on it does; ``online``:
+        of the Online tab, whose product is downloaded first when it is not local yet."""
+        line_shown = self._render_line_picker()
+        if self._render_space_picker() or line_shown:
             same_line_if_fits(button_width(S.CATALOG_DETAIL_ADD))
-        product = self._selected_product
-        imgui.begin_disabled(product is None)
+        selected = self._selected_online if online else self._selected_product
+        imgui.begin_disabled(selected is None)
         clicked = imgui.button(S.CATALOG_DETAIL_ADD)
         imgui.end_disabled()
-        if clicked and product is not None:
-            self._request_add(product)
+        if not clicked:
+            return
+        if online and self._selected_online is not None:
+            self._add_online(self._selected_online)
+        elif self._selected_product is not None:
+            self._request_add(self._selected_product)
 
     def _render_product(self, label: str, product: ProductSummary, flags: int) -> None:
         """A product's row: selected (highlighted) by a click, added by a double-click."""
@@ -426,42 +433,24 @@ class CatalogPanel:
                 self._request_add(product)  # double click adds to the project
 
     def _request_add(self, product: ProductSummary) -> None:
-        """Double-click add: ask which room to place the device in first. Adds straight away only
-        when the project has no rooms to choose from."""
-        spaces = self._get_spaces() if self._get_spaces is not None else []
-        if not spaces:
-            self._on_select(product, None)
-            return
-        self._add_target = product
-        self._open_add_space_popup = True
+        """Add ``product`` to the project: on the line and into the room chosen at the top."""
+        self._on_select(product, self._add_space_id)
 
-    def _render_add_space_modal(self) -> None:
-        title = S.CATALOG_ADD_SPACE_TITLE
-        if self._open_add_space_popup:
-            imgui.open_popup(title)
-            self._open_add_space_popup = False
-        product = self._add_target
-        if product is None:
-            return
-        if begin_dialog(title):
-            imgui.dummy(px_vec2(360, 0))  # anchor the minimum content width
-            imgui.text_wrapped(
-                S.CATALOG_ADD_SPACE_PROMPT.format(
-                    name=product.name or product.product_ref_id
-                )
-            )
-            imgui.spacing()
-            self._render_line_picker()
-            self._render_space_picker()
-            clicked = dialog_buttons(S.CATALOG_DETAIL_ADD, S.BTN_CANCEL)
-            if clicked == 0:
-                self._on_select(product, self._add_space_id)
-                self._add_target = None
-                imgui.close_current_popup()
-            elif clicked == 1:
-                self._add_target = None
-                imgui.close_current_popup()
-            end_dialog()
+    def _add_to_line(self, product: ProductSummary, segment: int) -> None:
+        """Add ``product`` on the line (segment) ``segment``, into the room chosen at the top."""
+        if self._on_add_to_line is not None:
+            self._on_add_to_line(product, segment, self._add_space_id)
+
+    def _render_add_to_menu(self, before: Callable[[], object]) -> int | None:
+        """ "Add to" of a product's menu: every line and sub-segment; the one chosen (its
+        segment id), or None. ``before`` runs right before it shows."""
+        if self._on_add_to_line is None or self._get_lines is None:
+            return None
+        lines = [
+            (f"{text}##addto{segment}", segment) for segment, text in self._get_lines()
+        ]
+        chosen = render_move_menu(lines, None, label=S.CATALOG_ADD_TO, before=before)
+        return chosen[0] if chosen is not None else None
 
     def _render_product_context_menu(self, product: ProductSummary) -> None:
         if (
@@ -471,24 +460,21 @@ class CatalogPanel:
         ):
             return
         if imgui.begin_popup_context_item(f"##catalog_ctx_{_key(product)}"):
-            if self._on_add_to_line is not None and self._get_lines is not None:
-                # "Add to": the product on one of the lines (and sub-segments) right away.
-                lines = [
-                    (f"{text}##addto{segment}", segment)
-                    for segment, text in self._get_lines()
-                ]
-                chosen = render_move_menu(lines, None, label=S.CATALOG_ADD_TO)
-                if chosen is not None:
-                    self._on_add_to_line(product, chosen[0])
-                if lines:
-                    imgui.separator()
+            groups = MenuGroups()
+            segment = self._render_add_to_menu(groups.show)
+            if segment is not None:
+                self._add_to_line(product, segment)
+            groups.next()
             if (
                 self._export_product_cb is not None
+                and groups.show()
                 and imgui.menu_item(S.CONTEXT_EXPORT_KNXPROD, "", False)[0]
             ):
                 self._start_export(product)
+            groups.next()
             if (
                 self._delete_product is not None
+                and groups.show()
                 and imgui.menu_item(
                     S.CONTEXT_DELETE, "", False, self._deleting is None
                 )[0]
@@ -619,10 +605,10 @@ class CatalogPanel:
             imgui.same_line(label_w)
             imgui.text_wrapped(value)
 
-    def _render_line_picker(self, where: str = "dialog") -> bool:
+    def _render_line_picker(self) -> bool:
         """The line a new device goes on, "Automatic" first (the room's Current Line, else the
-        first TP line). Hidden when no line getter is wired or the project has no lines;
-        ``where`` keeps the pickers at the top and in the dialog apart. Whether it was shown."""
+        first TP line; told when hovered). Hidden when no line getter is wired or the project
+        has no lines. Whether it was shown."""
         lines = self._get_lines() if self._get_lines is not None else []
         if not lines:
             return False
@@ -637,8 +623,10 @@ class CatalogPanel:
         imgui.same_line(_picker_label_width())
         imgui.set_next_item_width(px(240.0))
         changed, picked = combo(
-            f"##catalog_add_line_{where}", current, [label for _, label in options]
+            "##catalog_add_line_top", current, [label for _, label in options]
         )
+        if imgui.is_item_hovered():
+            imgui.set_tooltip(S.CATALOG_ADD_LINE_AUTO_HINT)
         if changed:
             self._set_line(options[picked][0])
         return True
@@ -708,6 +696,7 @@ class CatalogPanel:
         self._online_search = filter_box(
             "##online_search", S.ONLINE_SEARCH_HINT, self._online_search
         )
+        self._render_add_row(online=True)
         query = self._online_search.lower().strip()
         fill_content_background()
         filters = self._online_filters.key() if self._online_filters else None
@@ -752,7 +741,7 @@ class CatalogPanel:
     def _render_online_products(
         self, manufacturer_id: int, leaf_flags: int, query: str = ""
     ) -> None:
-        """Products of one online manufacturer: fetched on first expand, downloaded on double-click.
+        """Products of one online manufacturer: fetched on first expand, added on double-click.
 
         ``query`` (the online search text) filters the products by name / order number."""
         with self._online_lock:
@@ -840,9 +829,53 @@ class CatalogPanel:
             imgui.text_disabled(f"{label}  {S.ONLINE_NOT_DOWNLOADABLE}")
             return
         with leaf_rows(nodes=True):
-            tree_node(f"{label}##online_item_{item.id}", leaf_flags)
-        if imgui.is_item_clicked() and imgui.is_mouse_double_clicked(0):
-            self._start_download(item.id)
+            self._render_online_row(f"{label}##online_item_{item.id}", item, leaf_flags)
+
+    def _render_online_row(
+        self, label: str, item: OnlineCatalogItem, flags: int
+    ) -> None:
+        """An online product's row: selected (highlighted) by a click, added by a double-click
+        (downloaded first when it is not local yet; without a project only downloaded); its
+        menu has "Add to" and "Download"."""
+        if self._selected_online == item.id:
+            flags |= imgui.TreeNodeFlags_.selected
+        tree_node(label, flags)
+        if imgui.is_item_clicked():
+            self._selected_online = item.id
+            if imgui.is_mouse_double_clicked(0):
+                if self._can_add_to_project is None or self._can_add_to_project():
+                    self._add_online(item.id)
+                else:
+                    self._start_download(item.id)
+        if imgui.begin_popup_context_item(f"##online_ctx_{item.id}"):
+            groups = MenuGroups()
+            segment = self._render_add_to_menu(groups.show)
+            if segment is not None:
+                self._add_online(item.id, segment)
+            groups.next()
+            if (
+                self._download_online_item is not None
+                and groups.show()
+                and imgui.menu_item(S.ONLINE_DOWNLOAD, "", False)[0]
+            ):
+                self._start_download(item.id)
+            imgui.end_popup()
+
+    def _add_online(self, item_id: str, segment: int | None = None) -> None:
+        """Add the online product ``item_id`` to the project (on ``segment``, else on the line
+        chosen, into the room chosen): right away when it is in the local catalog, else once it
+        is downloaded."""
+        local = (
+            self._find_local_product(item_id)
+            if self._find_local_product is not None
+            else None
+        )
+        if local is None:
+            self._start_download(item_id, add=(item_id, segment))
+        elif segment is None:
+            self._request_add(local)
+        else:
+            self._add_to_line(local, segment)
 
     def _start_fetch_items(self, manufacturer_id: int) -> None:
         if self._fetch_online_items is None:
@@ -865,7 +898,11 @@ class CatalogPanel:
             self._online_items[manufacturer_id] = items
             self._online_items_loading.discard(manufacturer_id)
 
-    def _start_download(self, item_id: str) -> None:
+    def _start_download(
+        self, item_id: str, add: tuple[str, int | None] | None = None
+    ) -> None:
+        """Download the online product ``item_id`` into the local catalog (on a worker); with
+        ``add`` (item id, line or None), add it to the project once that worked."""
         if self._download_online_item is None:
             return
         with self._online_lock:
@@ -873,10 +910,10 @@ class CatalogPanel:
                 return
             self._online_downloading.add(item_id)
         threading.Thread(
-            target=self._download_item, args=(item_id,), daemon=True
+            target=self._download_item, args=(item_id, add), daemon=True
         ).start()
 
-    def _download_item(self, item_id: str) -> None:
+    def _download_item(self, item_id: str, add: tuple[str, int | None] | None) -> None:
         assert self._download_online_item is not None
         ok = False
         try:
@@ -887,59 +924,29 @@ class CatalogPanel:
         finally:
             with self._online_lock:
                 self._online_downloading.discard(item_id)
-        # Offer to add it to the project, but only on a successful import and with a project open.
-        if (
-            ok
-            and self._add_online_item is not None
-            and (self._can_add_to_project is None or self._can_add_to_project())
-        ):
-            name = self._online_item_name(item_id)
-            with self._online_lock:
-                self._pending_add_item = item_id
-                self._pending_add_name = name
+                # Added on the GUI thread (_add_downloaded), only after a successful import.
+                if ok and add is not None:
+                    self._pending_add = add
 
-    def _online_item_name(self, item_id: str) -> str:
-        locale = product_text_languages()
+    def _add_downloaded(self) -> None:
+        """Add the online product whose download (to add it) just finished."""
         with self._online_lock:
-            pools = [*self._online_items.values(), self._flat_results]
-        for items in pools:
-            for it in items:
-                if it.id == item_id:
-                    return it.name_in(locale) or item_id
-        return item_id
-
-    def _render_add_to_project_modal(self) -> None:
-        with self._online_lock:
-            item_id = self._pending_add_item
-            name = self._pending_add_name
-        if item_id is None:
+            pending, self._pending_add = self._pending_add, None
+        if pending is None:
             return
-        title = S.CATALOG_ADD_ONLINE_TITLE
-        imgui.open_popup(title)
-        # A comfortable width so the prompt doesn't wrap narrow.
-        imgui.set_next_window_size_constraints(
-            imgui.ImVec2(px(460.0), px(140.0)), imgui.ImVec2(px(680.0), 1.0e9)
+        item_id, segment = pending
+        local = (
+            self._find_local_product(item_id)
+            if self._find_local_product is not None
+            else None
         )
-        if begin_dialog(title):
-            imgui.dummy(
-                imgui.ImVec2(px(440.0), 0.0)
-            )  # anchor the minimum content width
-            imgui.text_wrapped(S.CATALOG_ADD_ONLINE_PROMPT.format(name=name))
-            clicked = dialog_buttons(S.CATALOG_ADD_ONLINE_YES, S.CATALOG_ADD_ONLINE_NO)
-            if clicked == 0:
-                if self._add_online_item is not None:
-                    self._add_online_item(item_id)
-                self._clear_pending_add()
-                imgui.close_current_popup()
-            elif clicked == 1:
-                self._clear_pending_add()
-                imgui.close_current_popup()
-            end_dialog()
-
-    def _clear_pending_add(self) -> None:
-        with self._online_lock:
-            self._pending_add_item = None
-            self._pending_add_name = ""
+        if local is None:
+            self._tell_refused(S.CATALOG_ADD_NO_APP)
+            return
+        if segment is None:
+            self._request_add(local)
+        else:
+            self._add_to_line(local, segment)
 
     # --- full product index: build + flat cross-manufacturer search ------
 
@@ -1026,7 +1033,7 @@ class CatalogPanel:
         self._flat_results, self._flat_total = self._search_online_products(query, 300)
 
     def _render_flat_results(self, leaf_flags: int) -> None:
-        """Flat cross-manufacturer product hits for the current query; double-click downloads."""
+        """Flat cross-manufacturer product hits for the current query; double-click adds."""
         if self._get_online_index_status is not None:
             status = self._get_online_index_status()
             if not status.products:
@@ -1057,9 +1064,7 @@ class CatalogPanel:
             if not item.downloadable:
                 imgui.text_disabled(f"{label}  {S.ONLINE_NOT_DOWNLOADABLE}")
                 continue
-            tree_node(f"{label}##flat_{item.id}", leaf_flags)
-            if imgui.is_item_clicked() and imgui.is_mouse_double_clicked(0):
-                self._start_download(item.id)
+            self._render_online_row(f"{label}##flat_{item.id}", item, leaf_flags)
 
     def _local_versions_by_order(self) -> dict[str, set[int | None]]:
         """Map order number (lower-case) -> set of application versions already in the local

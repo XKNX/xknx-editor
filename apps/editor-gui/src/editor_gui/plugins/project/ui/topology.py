@@ -1244,7 +1244,7 @@ class TopologyPanel:
 def render_read_device_item(
     node_id: int, enabled: bool, on_read: Callable[[int], None]
 ) -> None:
-    """The "Read from device" entry of a device's context menu."""
-    imgui.separator()
+    """The "Read from device" entry of a device's context menu (the menu draws the separators
+    around its group)."""
     if imgui.menu_item(S.BTN_READ_DEVICE_INFO, "", False, enabled)[0]:
         on_read(node_id)

@@ -115,12 +115,6 @@ msgstr "Комната"
 msgid "(no room)"
 msgstr "(без комнаты)"
 
-msgid "Add Device to Project"
-msgstr "Добавить устройство в проект"
-
-msgid "Which room should {name} go into?"
-msgstr "В какую комнату поместить {name}?"
-
 msgid "Open or create a project first to add a device."
 msgstr "Чтобы добавить устройство, сначала откройте или создайте проект."
 
@@ -129,18 +123,6 @@ msgstr "У этого продукта нет пригодной приклад�
 
 msgid "Added device: {name}"
 msgstr "Устройство добавлено: {name}"
-
-msgid "Add to project?"
-msgstr "Добавить в проект?"
-
-msgid "“{name}” was added to the local catalog. Add it to the project now?"
-msgstr "«{name}» добавлен в локальный каталог. Добавить его в проект сейчас?"
-
-msgid "Add to Project"
-msgstr "Добавить в проект"
-
-msgid "Not Now"
-msgstr "Не сейчас"
 
 msgid "Local"
 msgstr "Локальный"
@@ -222,3 +204,9 @@ msgstr "Автоматически"
 
 msgid "Add to"
 msgstr "Добавить в"
+
+msgid "Automatic: the device goes on the Current Line of the room chosen, without one on the first TP line."
+msgstr "Автоматически: устройство попадает на текущую линию выбранного помещения, иначе на первую линию TP."
+
+msgid "Download to Local Catalog"
+msgstr "Загрузить в локальный каталог"

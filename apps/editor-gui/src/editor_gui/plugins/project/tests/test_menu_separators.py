@@ -171,6 +171,71 @@ def test_topology_menus_are_grouped(
 
 
 @pytest.mark.usefixtures("context")
+def test_a_device_menu_is_grouped(monkeypatch: pytest.MonkeyPatch) -> None:
+    from editor_gui.device import Device
+    from editor_gui.plugins.project.ui.topology import Area, Line, TopologyPanel
+
+    dialog = paste_special.PasteSpecialDialog(
+        "test",
+        group_style=lambda: GroupAddressStyle.THREE_LEVEL,
+        group_ranges=list,
+        names=lambda _k, ids: [str(i) for i in ids],
+        on_paste=lambda *_a: None,
+        on_move=lambda *_a: None,
+    )
+    clicks = Clicks(monkeypatch, topology)
+    menu = _Menu(monkeypatch)
+    lines = {
+        0: [Line(2, 0, 0, "", medium_type="MT-5", main_segment_id=20)],
+        1: [
+            Line(3, 1, 0, "", main_segment_id=30),
+            Line(1, 1, 1, "L", main_segment_id=10),
+        ],
+    }
+    panel = TopologyPanel(
+        get_devices=lambda: [Device(7, "Dimmer", None, "1.1.5")],
+        get_areas=lambda: [Area(0, 0, ""), Area(1, 1, "Main")],
+        get_lines=lambda area_id: lines[area_id],
+        on_select_device=lambda _d: None,
+        on_move_device=lambda _d, _a, _l: None,
+        on_create_area=lambda _n, _t, _m: None,
+        on_remove_area=lambda _a: None,
+        on_create_line=lambda _a, _n, _t, _m: None,
+        on_remove_line=lambda _l: None,
+        on_device_info=lambda _n: None,
+        on_compare=lambda _n: None,
+        on_park_device=lambda _n: None,
+        on_unlink_device=lambda _n: None,
+        get_device_segments=lambda: {7: 10},
+        paste_dialog=dialog,
+    )
+    _frames(panel.render)
+    shown = _shown(clicks, menu, panel.render, "##dev_ctx_7")
+    # Its configuration; "Move to" with its address; reading, comparing, unlinking; then
+    # Copy / Cut / Paste and "Delete" ("Read from Device" brings no separator of its own).
+    assert shown == [
+        S.CONTEXT_DUPLICATE,
+        S.CONTEXT_COPY_CONFIG,
+        S.CONTEXT_PASTE_CONFIG,
+        _SEPARATOR,
+        S.SPACES_MOVE_TO,
+        S.CONTEXT_COPY_DEVICE_ADDRESS,
+        _SEPARATOR,
+        S.BTN_READ_DEVICE_INFO,
+        S.CONTEXT_COMPARE_DEVICE,
+        S.CONTEXT_PARK,
+        S.CONTEXT_UNLINK_LINE,
+        _SEPARATOR,
+        S.CONTEXT_COPY,
+        S.CONTEXT_CUT,
+        S.CONTEXT_PASTE,
+        S.CONTEXT_PASTE_SPECIAL,
+        _SEPARATOR,
+        S.CONTEXT_DELETE,
+    ]
+
+
+@pytest.mark.usefixtures("context")
 def test_group_address_menus_are_grouped(
     free: ProjectService, monkeypatch: pytest.MonkeyPatch
 ) -> None:

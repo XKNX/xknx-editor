@@ -40,7 +40,7 @@ class CatalogPlugin:
             get_online_index_status=api.catalog.online_index_status,
             search_online_products=api.catalog.search_online_products,
             online_filters=api.catalog.online_filters,
-            add_online_item=self._add_online_item_to_project,
+            find_local_product=self._local_product_of,
             can_add_to_project=lambda: api.project.is_open,
             plan_delete_product=self._plan_delete_product,
             delete_product=self._delete_product,
@@ -50,9 +50,10 @@ class CatalogPlugin:
             ),
             get_line=lambda: api.project.device_target_segment,
             set_line=self._set_line,
-            on_add_to_line=lambda product, segment: self._on_select(
-                product, segment_id=segment
+            on_add_to_line=lambda product, segment, space: self._on_select(
+                product, space, segment
             ),
+            tell_refused=api.tell_refused,
         )
         self._panels = [
             PanelDefinition(
@@ -281,15 +282,11 @@ class CatalogPlugin:
             raise
         self._log.info("online product imported", item=item_id, added=len(added))
 
-    def _add_online_item_to_project(self, item_id: str) -> None:
-        """Add a just-imported online product to the open project (confirmed via the panel alert).
-
-        The online item id carries the product's ``hardware2program_ref_id`` as a prefix, so the
-        matching freshly-imported local product is the longest such prefix match. Reuses the normal
-        local add path (``_on_select``) so catalog resolution/export behave identically."""
-        if not self._api.project.is_open:
-            self._api.tell_refused(S.CATALOG_ADD_NEEDS_PROJECT)
-            return
+    def _local_product_of(self, item_id: str) -> ProductSummary | None:
+        """The local product the online product ``item_id`` was imported as; None while it is
+        not in the local catalog. The online item id carries the product's
+        ``hardware2program_ref_id`` as a prefix, so it is the longest such prefix match; it is
+        added by the normal local path (``_on_select``)."""
         matches = [
             p
             for p in self._api.catalog.get_products()
@@ -297,11 +294,8 @@ class CatalogPlugin:
             and item_id.startswith(p.hardware2program_ref_id)
         ]
         if not matches:
-            self._log.warning("imported product not found for online add", item=item_id)
-            self._api.tell_refused(S.CATALOG_ADD_NO_APP)
-            return
-        product = max(matches, key=lambda p: len(p.hardware2program_ref_id))
-        self._on_select(product)
+            return None
+        return max(matches, key=lambda p: len(p.hardware2program_ref_id))
 
     def _build_online_index(
         self,

@@ -115,12 +115,6 @@ msgstr "Rum"
 msgid "(no room)"
 msgstr "(intet rum)"
 
-msgid "Add Device to Project"
-msgstr "Tilføj enhed til projekt"
-
-msgid "Which room should {name} go into?"
-msgstr "Hvilket rum skal {name} placeres i?"
-
 msgid "Open or create a project first to add a device."
 msgstr "Åbn eller opret først et projekt for at tilføje en enhed."
 
@@ -129,18 +123,6 @@ msgstr "Dette produkt har intet anvendeligt applikationsprogram."
 
 msgid "Added device: {name}"
 msgstr "Enhed tilføjet: {name}"
-
-msgid "Add to project?"
-msgstr "Tilføj til projekt?"
-
-msgid "“{name}” was added to the local catalog. Add it to the project now?"
-msgstr "“{name}” blev tilføjet til det lokale katalog. Vil du tilføje det til projektet nu?"
-
-msgid "Add to Project"
-msgstr "Tilføj til projekt"
-
-msgid "Not Now"
-msgstr "Ikke nu"
 
 msgid "Local"
 msgstr "Lokal"
@@ -222,3 +204,9 @@ msgstr "Automatisk"
 
 msgid "Add to"
 msgstr "Tilføj til"
+
+msgid "Automatic: the device goes on the Current Line of the room chosen, without one on the first TP line."
+msgstr "Automatisk: enheden placeres på den valgte rums aktuelle linje, ellers på den første TP-linje."
+
+msgid "Download to Local Catalog"
+msgstr "Download til lokalt katalog"

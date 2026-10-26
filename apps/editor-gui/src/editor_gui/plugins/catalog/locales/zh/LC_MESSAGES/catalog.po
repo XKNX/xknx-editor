@@ -115,12 +115,6 @@ msgstr "房间"
 msgid "(no room)"
 msgstr "（无房间）"
 
-msgid "Add Device to Project"
-msgstr "将设备添加到项目"
-
-msgid "Which room should {name} go into?"
-msgstr "要将 {name} 放入哪个房间？"
-
 msgid "Open or create a project first to add a device."
 msgstr "请先打开或创建项目，然后再添加设备。"
 
@@ -129,18 +123,6 @@ msgstr "此产品没有可用的应用程序。"
 
 msgid "Added device: {name}"
 msgstr "已添加设备：{name}"
-
-msgid "Add to project?"
-msgstr "添加到项目？"
-
-msgid "“{name}” was added to the local catalog. Add it to the project now?"
-msgstr "“{name}”已添加到本地产品目录。现在将其添加到项目吗？"
-
-msgid "Add to Project"
-msgstr "添加到项目"
-
-msgid "Not Now"
-msgstr "以后再说"
 
 msgid "Local"
 msgstr "本地"
@@ -222,3 +204,9 @@ msgstr "自动"
 
 msgid "Add to"
 msgstr "添加到"
+
+msgid "Automatic: the device goes on the Current Line of the room chosen, without one on the first TP line."
+msgstr "自动：设备放在所选房间的当前支线上，没有时放在第一条 TP 线路上。"
+
+msgid "Download to Local Catalog"
+msgstr "下载到本地目录"

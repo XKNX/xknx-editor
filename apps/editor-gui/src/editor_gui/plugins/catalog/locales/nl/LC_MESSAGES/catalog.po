@@ -109,12 +109,6 @@ msgstr "(plug-in vereist)"
 msgid "Add Device"
 msgstr "Apparaat toevoegen"
 
-msgid "Add to Project"
-msgstr "Aan project toevoegen"
-
-msgid "Add to project?"
-msgstr "Aan project toevoegen?"
-
 msgid "Application"
 msgstr "Applicatie"
 
@@ -148,9 +142,6 @@ msgstr "Geen downloadbare producten"
 msgid "No products imported yet — import a .knxprod or use the Online tab."
 msgstr "Nog geen producten geïmporteerd — importeer een .knxprod of gebruik het tabblad Online."
 
-msgid "Not Now"
-msgstr "Niet nu"
-
 msgid "Online"
 msgstr "Online"
 
@@ -165,9 +156,6 @@ msgstr "Productref"
 
 msgid "Room"
 msgstr "Kamer"
-
-msgid "“{name}” was added to the local catalog. Add it to the project now?"
-msgstr "“{name}” is aan de lokale catalogus toegevoegd. Nu aan het project toevoegen?"
 
 msgid "This device supports KNX Data Secure. Set a project password to commission it securely; without one it is added and commissioned in the clear."
 msgstr "Dit apparaat ondersteunt KNX Data Secure. Stel een projectwachtwoord in om het beveiligd in bedrijf te stellen; zonder wachtwoord wordt het toegevoegd en onversleuteld in bedrijf gesteld."
@@ -193,12 +181,6 @@ msgstr "Kan {name} niet exporteren: {error}"
 msgid "No stored archive for {name}"
 msgstr "Geen opgeslagen archief voor {name}"
 
-msgid "Which room should {name} go into?"
-msgstr "In welke ruimte moet {name}?"
-
-msgid "Add Device to Project"
-msgstr "Apparaat aan project toevoegen"
-
 msgid "Market:"
 msgstr "Markt:"
 
@@ -222,3 +204,9 @@ msgstr "Automatisch"
 
 msgid "Add to"
 msgstr "Toevoegen aan"
+
+msgid "Automatic: the device goes on the Current Line of the room chosen, without one on the first TP line."
+msgstr "Automatisch: het apparaat komt op de huidige lijn van de gekozen ruimte, anders op de eerste TP-lijn."
+
+msgid "Download to Local Catalog"
+msgstr "Downloaden naar Lokale Catalogus"

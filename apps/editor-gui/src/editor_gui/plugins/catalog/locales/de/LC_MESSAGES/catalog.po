@@ -162,18 +162,6 @@ msgstr "Ja"
 msgid "No"
 msgstr "Nein"
 
-msgid "Add to Project"
-msgstr "Zum Projekt hinzufügen"
-
-msgid "Add to project?"
-msgstr "Zum Projekt hinzufügen?"
-
-msgid "Not Now"
-msgstr "Nicht jetzt"
-
-msgid "“{name}” was added to the local catalog. Add it to the project now?"
-msgstr "„{name}“ wurde zum lokalen Katalog hinzugefügt. Jetzt zum Projekt hinzufügen?"
-
 msgid "This device supports KNX Data Secure. Set a project password to commission it securely; without one it is added and commissioned in the clear."
 msgstr "Dieses Gerät unterstützt KNX Data Secure. Legen Sie ein Projektpasswort fest, um es sicher in Betrieb zu nehmen; ohne Passwort wird es hinzugefügt und unverschlüsselt in Betrieb genommen."
 
@@ -198,12 +186,6 @@ msgstr "{name} konnte nicht exportiert werden: {error}"
 msgid "No stored archive for {name}"
 msgstr "Kein gespeichertes Archiv für {name}"
 
-msgid "Which room should {name} go into?"
-msgstr "In welchen Raum soll {name}?"
-
-msgid "Add Device to Project"
-msgstr "Gerät zum Projekt hinzufügen"
-
 msgid "Market:"
 msgstr "Markt:"
 
@@ -227,3 +209,9 @@ msgstr "Automatisch"
 
 msgid "Add to"
 msgstr "Hinzufügen zu"
+
+msgid "Automatic: the device goes on the Current Line of the room chosen, without one on the first TP line."
+msgstr "Automatisch: Das Gerät kommt auf die Aktuelle Linie des gewählten Raums, ohne eine auf die erste TP-Linie."
+
+msgid "Download to Local Catalog"
+msgstr "In lokalen Katalog herunterladen"

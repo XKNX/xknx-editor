@@ -218,17 +218,22 @@ def test_a_product_is_selected_added_by_the_button_and_added_to_a_line(
         imgui, "is_item_clicked", lambda *_a: pressed["clicked"] == "row"
     )
     added: list[tuple[str, int | None]] = []
-    to_line: list[tuple[str, int]] = []
+    to_line: list[tuple[str, int, int | None]] = []
     panel = CatalogPanel(
         get_products=lambda: [product],
         on_select=lambda p, s: added.append((p.product_ref_id, s)),
+        get_spaces=lambda: [(3, "House / Kitchen")],
         get_lines=lambda: _LINES,
-        on_add_to_line=lambda p, segment: to_line.append((p.product_ref_id, segment)),
+        on_add_to_line=lambda p, segment, space: to_line.append(
+            (p.product_ref_id, segment, space)
+        ),
     )
     # Nothing selected: "Add Device" is grayed out and the row not highlighted.
     _frames(panel)
     assert disabled[-1] is True and selected == []
-    # A click selects the product: highlighted, and the button adds it.
+    # A click selects the product: highlighted, and the button adds it, into the room chosen
+    # at the top (no dialog asks for it).
+    panel._add_space_id = 3  # pyright: ignore[reportPrivateUsage]
     pressed["clicked"] = "row"
     _frames(panel, 1)
     pressed["clicked"] = ""
@@ -236,11 +241,86 @@ def test_a_product_is_selected_added_by_the_button_and_added_to_a_line(
     _frames(panel, 1)
     pressed["add"] = False
     assert disabled[-1] is False and selected
-    assert added == [("P", None)]
-    # Its menu's "Add to" lists the lines and adds it on the one chosen.
+    assert added == [("P", 3)]
+    assert not imgui.is_popup_open("", imgui.PopupFlags_.any_popup_id)
+    # Its menu's "Add to" lists the lines and adds it on the one chosen, into the room.
     clicks = Clicks(monkeypatch, panel_module)
     clicks.context = "##catalog_ctx_P|H"
     clicks.menus.add(S.CATALOG_ADD_TO)
     clicks.items.add("  1.1 Garage##addto6")
     _frames(panel)
-    assert to_line == [("P", 6)]
+    assert to_line == [("P", 6, 3)]
+
+
+class _SyncThread:
+    """A thread that runs its target when started (the download of a test)."""
+
+    def __init__(self, target: Any, args: tuple[Any, ...] = (), daemon: bool = False):
+        self._target, self._args = target, args
+
+    def start(self) -> None:
+        self._target(*self._args)
+
+
+def test_an_online_product_is_added_and_downloaded_first_when_not_local(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from editor_gui.plugins.catalog.ui import panel as panel_module
+    from editor_gui.plugins.catalog.ui.panel import CatalogPanel
+
+    monkeypatch.setattr(panel_module.threading, "Thread", _SyncThread)
+    product = ProductSummary("P", "H-7", "Dimmer", None, None, "M-1", None)
+    local: dict[str, ProductSummary] = {}
+    downloads: list[str] = []
+    added: list[tuple[str, int | None]] = []
+    to_line: list[tuple[str, int, int | None]] = []
+    refused: list[str] = []
+
+    def download(item_id: str) -> None:
+        downloads.append(item_id)
+        if item_id == "H-7_X":
+            local[item_id] = product
+        elif item_id == "broken":
+            raise RuntimeError("no connection")
+
+    panel = CatalogPanel(
+        get_products=list,
+        on_select=lambda p, s: added.append((p.product_ref_id, s)),
+        download_online_item=download,
+        find_local_product=local.get,
+        on_add_to_line=lambda p, segment, space: to_line.append(
+            (p.product_ref_id, segment, space)
+        ),
+        tell_refused=refused.append,
+    )
+    panel._add_space_id = 4  # pyright: ignore[reportPrivateUsage]
+    # Not local yet: downloaded first, then added (on the GUI thread, the next frame).
+    panel._add_online("H-7_X")  # pyright: ignore[reportPrivateUsage]
+    assert downloads == ["H-7_X"] and added == []
+    panel._add_downloaded()  # pyright: ignore[reportPrivateUsage]
+    assert added == [("P", 4)]
+    # Local now: added right away, "Add to" on the line given.
+    panel._add_online("H-7_X", 6)  # pyright: ignore[reportPrivateUsage]
+    assert downloads == ["H-7_X"] and to_line == [("P", 6, 4)]
+    # A failed download adds nothing; a download that imported nothing usable says why.
+    panel._add_online("broken")  # pyright: ignore[reportPrivateUsage]
+    panel._add_downloaded()  # pyright: ignore[reportPrivateUsage]
+    panel._add_online("empty")  # pyright: ignore[reportPrivateUsage]
+    panel._add_downloaded()  # pyright: ignore[reportPrivateUsage]
+    assert added == [("P", 4)] and refused == [S.CATALOG_ADD_NO_APP]
+    # "Download to Local Catalog" only downloads.
+    panel._start_download("other")  # pyright: ignore[reportPrivateUsage]
+    panel._add_downloaded()  # pyright: ignore[reportPrivateUsage]
+    assert downloads[-1] == "other" and added == [("P", 4)]
+
+
+def test_the_online_item_becomes_the_local_product_it_was_imported_as() -> None:
+    products = [
+        ProductSummary("P1", "M-1_H-1", "Short", None, None, "M-1", None),
+        ProductSummary("P2", "M-1_H-1-2", "Long", None, None, "M-1", None),
+    ]
+    plugin = _plugin(SimpleNamespace(), [])
+    plugin._api.catalog = SimpleNamespace(get_products=lambda: products)  # pyright: ignore[reportPrivateUsage, reportAttributeAccessIssue]
+    found = plugin._local_product_of("M-1_H-1-2_HP-9")  # pyright: ignore[reportPrivateUsage]
+    assert found is not None and found.product_ref_id == "P2"
+    assert plugin._local_product_of("M-2_H-1") is None  # pyright: ignore[reportPrivateUsage]

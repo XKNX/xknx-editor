@@ -115,12 +115,6 @@ msgstr "Compartimento"
 msgid "(no room)"
 msgstr "(sem compartimento)"
 
-msgid "Add Device to Project"
-msgstr "Adicionar Dispositivo ao Projeto"
-
-msgid "Which room should {name} go into?"
-msgstr "Em que compartimento deve ser colocado {name}?"
-
 msgid "Open or create a project first to add a device."
 msgstr "Abra ou crie primeiro um projeto para adicionar um dispositivo."
 
@@ -129,18 +123,6 @@ msgstr "Este produto não tem nenhum programa de aplicação utilizável."
 
 msgid "Added device: {name}"
 msgstr "Dispositivo adicionado: {name}"
-
-msgid "Add to project?"
-msgstr "Adicionar ao projeto?"
-
-msgid "“{name}” was added to the local catalog. Add it to the project now?"
-msgstr "“{name}” foi adicionado ao catálogo local. Adicioná-lo agora ao projeto?"
-
-msgid "Add to Project"
-msgstr "Adicionar ao Projeto"
-
-msgid "Not Now"
-msgstr "Agora Não"
 
 msgid "Local"
 msgstr "Local"
@@ -222,3 +204,9 @@ msgstr "Automático"
 
 msgid "Add to"
 msgstr "Adicionar a"
+
+msgid "Automatic: the device goes on the Current Line of the room chosen, without one on the first TP line."
+msgstr "Automático: o dispositivo vai para a linha atual da divisão escolhida; sem ela, para a primeira linha TP."
+
+msgid "Download to Local Catalog"
+msgstr "Transferir para o Catálogo Local"

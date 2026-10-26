@@ -115,12 +115,6 @@ msgstr "Oda"
 msgid "(no room)"
 msgstr "(oda yok)"
 
-msgid "Add Device to Project"
-msgstr "Cihazı Projeye Ekle"
-
-msgid "Which room should {name} go into?"
-msgstr "{name} hangi odaya eklensin?"
-
 msgid "Open or create a project first to add a device."
 msgstr "Cihaz eklemek için önce bir proje açın veya oluşturun."
 
@@ -129,18 +123,6 @@ msgstr "Bu ürünün kullanılabilir bir uygulama programı yok."
 
 msgid "Added device: {name}"
 msgstr "Cihaz eklendi: {name}"
-
-msgid "Add to project?"
-msgstr "Projeye eklensin mi?"
-
-msgid "“{name}” was added to the local catalog. Add it to the project now?"
-msgstr "“{name}” yerel kataloğa eklendi. Şimdi projeye eklensin mi?"
-
-msgid "Add to Project"
-msgstr "Projeye Ekle"
-
-msgid "Not Now"
-msgstr "Şimdi Değil"
 
 msgid "Local"
 msgstr "Yerel"
@@ -222,3 +204,9 @@ msgstr "Otomatik"
 
 msgid "Add to"
 msgstr "Şuraya Ekle"
+
+msgid "Automatic: the device goes on the Current Line of the room chosen, without one on the first TP line."
+msgstr "Otomatik: cihaz seçilen odanın geçerli linyesine, yoksa ilk TP linyesine eklenir."
+
+msgid "Download to Local Catalog"
+msgstr "Yerel Kataloğa İndir"

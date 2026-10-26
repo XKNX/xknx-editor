@@ -115,12 +115,6 @@ msgstr "部屋"
 msgid "(no room)"
 msgstr "（部屋なし）"
 
-msgid "Add Device to Project"
-msgstr "プロジェクトにデバイスを追加"
-
-msgid "Which room should {name} go into?"
-msgstr "{name} をどの部屋に配置しますか？"
-
 msgid "Open or create a project first to add a device."
 msgstr "デバイスを追加するには、先にプロジェクトを開くか作成してください。"
 
@@ -129,18 +123,6 @@ msgstr "この製品には使用可能なアプリケーションプログラム
 
 msgid "Added device: {name}"
 msgstr "デバイスを追加しました：{name}"
-
-msgid "Add to project?"
-msgstr "プロジェクトに追加しますか？"
-
-msgid "“{name}” was added to the local catalog. Add it to the project now?"
-msgstr "「{name}」をローカル・カタログに追加しました。今すぐプロジェクトに追加しますか？"
-
-msgid "Add to Project"
-msgstr "プロジェクトに追加"
-
-msgid "Not Now"
-msgstr "後で"
 
 msgid "Local"
 msgstr "ローカル"
@@ -222,3 +204,9 @@ msgstr "自動"
 
 msgid "Add to"
 msgstr "追加先"
+
+msgid "Automatic: the device goes on the Current Line of the room chosen, without one on the first TP line."
+msgstr "自動: デバイスは選択した部屋の現在のラインに、なければ最初のTPラインに入ります。"
+
+msgid "Download to Local Catalog"
+msgstr "ローカルカタログにダウンロード"

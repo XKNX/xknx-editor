@@ -115,12 +115,6 @@ msgstr "Pokój"
 msgid "(no room)"
 msgstr "(brak pokoju)"
 
-msgid "Add Device to Project"
-msgstr "Dodaj urządzenie do projektu"
-
-msgid "Which room should {name} go into?"
-msgstr "Do którego pokoju dodać {name}?"
-
 msgid "Open or create a project first to add a device."
 msgstr "Aby dodać urządzenie, należy najpierw otworzyć lub utworzyć projekt."
 
@@ -129,18 +123,6 @@ msgstr "Ten produkt nie ma programu aplikacyjnego, którego można użyć."
 
 msgid "Added device: {name}"
 msgstr "Dodano urządzenie: {name}"
-
-msgid "Add to project?"
-msgstr "Dodać do projektu?"
-
-msgid "“{name}” was added to the local catalog. Add it to the project now?"
-msgstr "„{name}” dodano do katalogu lokalnego. Dodać go teraz do projektu?"
-
-msgid "Add to Project"
-msgstr "Dodaj do projektu"
-
-msgid "Not Now"
-msgstr "Nie teraz"
 
 msgid "Local"
 msgstr "Lokalny"
@@ -222,3 +204,9 @@ msgstr "Automatycznie"
 
 msgid "Add to"
 msgstr "Dodaj do"
+
+msgid "Automatic: the device goes on the Current Line of the room chosen, without one on the first TP line."
+msgstr "Automatycznie: urządzenie trafia na linię aktywną wybranego pomieszczenia, a bez niej na pierwszą linię TP."
+
+msgid "Download to Local Catalog"
+msgstr "Pobierz do katalogu lokalnego"

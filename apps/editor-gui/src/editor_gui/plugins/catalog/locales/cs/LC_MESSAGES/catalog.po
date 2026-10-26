@@ -115,12 +115,6 @@ msgstr "Místnost"
 msgid "(no room)"
 msgstr "(bez místnosti)"
 
-msgid "Add Device to Project"
-msgstr "Přidat zařízení do projektu"
-
-msgid "Which room should {name} go into?"
-msgstr "Do které místnosti má být {name} umístěno?"
-
 msgid "Open or create a project first to add a device."
 msgstr "Pro přidání zařízení nejprve otevřete nebo vytvořte projekt."
 
@@ -129,18 +123,6 @@ msgstr "Tento produkt nemá žádný použitelný aplikační program."
 
 msgid "Added device: {name}"
 msgstr "Přidáno zařízení: {name}"
-
-msgid "Add to project?"
-msgstr "Přidat do projektu?"
-
-msgid "“{name}” was added to the local catalog. Add it to the project now?"
-msgstr "„{name}“ bylo přidáno do místního katalogu. Přidat ho nyní do projektu?"
-
-msgid "Add to Project"
-msgstr "Přidat do projektu"
-
-msgid "Not Now"
-msgstr "Nyní ne"
 
 msgid "Local"
 msgstr "Místní"
@@ -222,3 +204,9 @@ msgstr "Automaticky"
 
 msgid "Add to"
 msgstr "Přidat do"
+
+msgid "Automatic: the device goes on the Current Line of the room chosen, without one on the first TP line."
+msgstr "Automaticky: zařízení přijde na aktuální linii zvolené místnosti, jinak na první linii TP."
+
+msgid "Download to Local Catalog"
+msgstr "Stáhnout do místního katalogu"

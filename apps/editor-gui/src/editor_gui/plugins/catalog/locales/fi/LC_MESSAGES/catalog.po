@@ -115,12 +115,6 @@ msgstr "Huone"
 msgid "(no room)"
 msgstr "(ei huonetta)"
 
-msgid "Add Device to Project"
-msgstr "Lisää laite projektiin"
-
-msgid "Which room should {name} go into?"
-msgstr "Mihin huoneeseen laite {name} sijoitetaan?"
-
 msgid "Open or create a project first to add a device."
 msgstr "Avaa tai luo ensin projekti, jotta voit lisätä laitteen."
 
@@ -129,18 +123,6 @@ msgstr "Tällä tuotteella ei ole käyttökelpoista sovellusohjelmaa."
 
 msgid "Added device: {name}"
 msgstr "Laite lisätty: {name}"
-
-msgid "Add to project?"
-msgstr "Lisätäänkö projektiin?"
-
-msgid "“{name}” was added to the local catalog. Add it to the project now?"
-msgstr "”{name}” lisättiin paikalliseen luetteloon. Lisätäänkö se nyt projektiin?"
-
-msgid "Add to Project"
-msgstr "Lisää projektiin"
-
-msgid "Not Now"
-msgstr "Ei nyt"
 
 msgid "Local"
 msgstr "Paikallinen"
@@ -222,3 +204,9 @@ msgstr "Automaattinen"
 
 msgid "Add to"
 msgstr "Lisää"
+
+msgid "Automatic: the device goes on the Current Line of the room chosen, without one on the first TP line."
+msgstr "Automaattinen: laite menee valitun huoneen nykyiselle linjalle, muuten ensimmäiselle TP-linjalle."
+
+msgid "Download to Local Catalog"
+msgstr "Lataa paikalliseen luetteloon"
