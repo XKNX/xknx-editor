@@ -43,9 +43,7 @@ class ChannelNode(DynamicNode):
 
     def eval(self, ctx: EvalContext) -> list[UiNode]:
         items = [u for c in self._children if c for u in c.eval(ctx)]
-        template = apply_text_args(
-            self._text or self._name or "", ctx.get_arg_defaults()
-        )
+        template = apply_text_args(self._text or self._name or "", ctx.text_args())
         name_value = (
             ctx.get(self._text_param_ref_id) if self._text_param_ref_id else None
         )

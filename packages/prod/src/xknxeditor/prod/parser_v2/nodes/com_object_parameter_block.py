@@ -35,7 +35,7 @@ class ComObjectParameterBlockNode(DynamicNode):
         if self._elem.param_ref_id:
             ctx.mark_active_param(self._elem.param_ref_id)
         items = [u for c in self._children if c for u in c.eval(ctx)]
-        arg_defaults = ctx.get_arg_defaults()
+        arg_defaults = ctx.text_args()
         text_ref = self._elem.text_parameter_ref_id
         name_value = ctx.get(text_ref) if text_ref else None
         template = (

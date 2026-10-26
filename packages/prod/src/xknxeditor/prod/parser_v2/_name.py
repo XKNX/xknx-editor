@@ -2,13 +2,14 @@ from __future__ import annotations
 
 import contextlib
 import re
+from collections.abc import Mapping
 
 _NAME_PLACEHOLDER = re.compile(r"\{\{0(?::[^{}]*)?\}\}")
 _ARG_PLACEHOLDER = re.compile(r"\{\{([^{}]+)\}\}")
 _MODIFIER = re.compile(r"\b(Format|Offset)\s*=\s*(\S+)")
 
 
-def apply_text_args(text: str, text_args: dict[str, str]) -> str:
+def apply_text_args(text: str, text_args: Mapping[str, str]) -> str:
     """Replace ``{{Name}}`` / ``{{Name Format=Alpha|Decimal Offset=N}}`` placeholders.
 
     ``Format`` / ``Offset`` mirror the modifiers accepted by applications in dynamic text:

@@ -21,7 +21,7 @@ class ButtonNode(DynamicNode):
         if elem.access == Access.NONE:
             return []
         args = ctx.get_arg_defaults()
-        text = apply_text_args(elem.text, args)
+        text = apply_text_args(elem.text, ctx.text_args())
         if elem.text_parameter_ref_id:
             text = fill_name(text, ctx.get(elem.text_parameter_ref_id) or "")
         params = elem.event_handler_parameters
