@@ -18,8 +18,10 @@ System B realisation of the same tables is produced by :mod:`.tables_systemb`.
 
 from __future__ import annotations
 
+import re
 from collections.abc import Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
+from typing import cast
 
 from .errors import ImageError
 
@@ -68,24 +70,77 @@ def build_association_table(associations: Sequence[Association]) -> bytes:
     sending associations first, then by group object number, then by group
     address index.
     """
-    ordered = sorted(
-        associations,
-        key=lambda a: (
-            not a.sending,
-            a.group_object_number,
-            a.group_address_index,
-        ),
+    return build_association_list(
+        sorted(
+            associations,
+            key=lambda a: (
+                not a.sending,
+                a.group_object_number,
+                a.group_address_index,
+            ),
+        )
     )
-    if len(ordered) > 0xFF:
-        raise ImageError(f"association table has too many entries: {len(ordered)}")
+
+
+def build_association_list(associations: Sequence[Association]) -> bytes:
+    """Return ``[count:1]`` and a ``[group address index:1][group object number:1]``
+    entry per association, in the given order."""
+    if len(associations) > 0xFF:
+        raise ImageError(f"association table has too many entries: {len(associations)}")
     out = bytearray()
-    out.append(len(ordered))
-    for association in ordered:
+    out.append(len(associations))
+    for association in associations:
         _require_octet(association.group_address_index, "group address index")
         _require_octet(association.group_object_number, "group object number")
         out.append(association.group_address_index)
         out.append(association.group_object_number)
     return bytes(out)
+
+
+# The group address index of a reserved BCU1/BCU2 association slot that holds no
+# association.
+UNUSED_SLOT = 0xFE
+
+
+def association_slots(
+    associations: Sequence[Association], object_count: int
+) -> list[Association]:
+    """The BCU1/BCU2 association list: one reserved slot per group object first.
+
+    Slot *i* holds the sending association of object *i*, or ``UNUSED_SLOT`` when the
+    object sends on none; a second sending association of an object counts as a
+    receiving one. The other associations follow in their order. While the list is
+    longer than the slots, an unused slot takes the first of them whose group address is
+    not one an object sends on from its own slot.
+    """
+    table: list[Association | None] = [None] * object_count
+    for association in associations:
+        number = association.group_object_number
+        if association.sending:
+            if number < object_count and table[number] is None:
+                table[number] = association
+                continue
+            association = replace(association, sending=False)
+        table.append(association)
+    for slot in range(object_count):
+        if len(table) <= object_count:
+            break
+        if table[slot] is not None:
+            continue
+        for candidate in range(object_count, len(table)):
+            index = cast(Association, table[candidate]).group_address_index
+            if not any(
+                entry is not None
+                and entry.group_address_index == index
+                and entry.group_object_number == number
+                for number, entry in enumerate(table[:object_count])
+            ):
+                table[slot] = table.pop(candidate)
+                break
+    return [
+        entry if entry is not None else Association(UNUSED_SLOT, number, sending=False)
+        for number, entry in enumerate(table)
+    ]
 
 
 # --- com object table -------------------------------------------------------
@@ -165,6 +220,25 @@ def size_code(object_size: str) -> int:
             f"descriptor). Please file a bug report with the product data so this "
             f"size can be added."
         ) from exc
+
+
+_OCTETS = re.compile(r"(\d+) Bytes")
+
+
+def memory_size_code(object_size: str) -> int:
+    """Return the type of a BCU1/BCU2 group object record for a ``ComObjectSize``.
+
+    ``LegacyVarData`` is 15, 15 to 50 octets are 21 to 56, and a size without a code
+    is 0.
+    """
+    if object_size == "LegacyVarData":
+        return 15
+    if object_size in _SIZE_CODE:
+        return _SIZE_CODE[object_size]
+    octets = _OCTETS.fullmatch(object_size)
+    if octets is not None and 15 <= int(octets.group(1)) <= 50:
+        return int(octets.group(1)) + 6
+    return 0
 
 
 # Inverse lookups, for decoding tables read back off a device.

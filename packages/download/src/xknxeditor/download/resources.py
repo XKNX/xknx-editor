@@ -538,6 +538,26 @@ def bcu1_association_table(mask_version: str) -> bool:
     )
 
 
+def bcu2_association_table(mask_version: str) -> bool:
+    """Whether the association table is the BCU2 list at its pointer."""
+    resources = bundled_mask_resources(mask_version)
+    if resources is None:
+        return False
+    return (
+        resources.flavour(ResourceName.GROUP_ASSOCIATION_TABLE)
+        is ResourceFlavour.ASSOCIATION_TABLE_BCU2
+    )
+
+
+def segments_have_inline_checksum(mask_version: str) -> bool:
+    """Whether a segment allocation of ``mask_version`` gets an extra octet for its
+    checksum (``AllocExtraByte``)."""
+    resources = bundled_mask_resources(mask_version)
+    return bool(
+        resources is not None and resources.feature(MaskFeature.ALLOC_EXTRA_BYTE)
+    )
+
+
 def m112_association_table(mask_version: str) -> bool:
     """Whether the association table is the property-mapped M112 list.
 

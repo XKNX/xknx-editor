@@ -21,6 +21,7 @@ from xknxeditor.namespaces.intermediate.application_program_static_t_code_relati
 )
 from xknxeditor.namespaces.intermediate.com_object_t import ComObject
 from xknxeditor.namespaces.intermediate.enable_t import Enable
+from xknxeditor.namespaces.intermediate.ld_ctrl_abs_segment_t import LdCtrlAbsSegment
 from xknxeditor.namespaces.intermediate.resource_addr_space_t import ResourceAddrSpace
 from xknxeditor.namespaces.intermediate.resource_name_t import ResourceName
 from xknxeditor.prod import Application
@@ -28,7 +29,7 @@ from xknxeditor.prod.errors import EncodingError
 
 from .errors import ImageError
 from .factory_image import FactoryImage, FactoryLocation
-from .merge import device_mask_version, procedure_parameter_refs
+from .merge import device_mask_version, iter_load_controls, procedure_parameter_refs
 from .project_data import (
     GroupObjectLink,
     SeedDevice,
@@ -39,6 +40,7 @@ from .project_data import (
 from .resources import (
     bcu1_association_table,
     bcu1_group_object_table,
+    bcu2_association_table,
     bcu2_group_object_table,
     bundled_mask_resources,
     m112_association_table,
@@ -46,16 +48,20 @@ from .resources import (
     mask_number,
     property_group_tables,
     reserved_memory,
+    segments_have_inline_checksum,
 )
 from .secure_config import GroupSecurity, SecurityTables, security_tables
 from .tables import (
     SEGMENT_SELECTOR_BIT,
     Association,
     ComObjectDescriptor,
+    association_slots,
+    build_association_list,
     build_association_table,
     build_com_object_table,
     build_group_address_table,
     com_object_flag_byte,
+    memory_size_code,
     size_code,
 )
 from .tables_system300 import PropertyTables, property_tables
@@ -131,11 +137,46 @@ class PackedGroupTables:
     declared_association_size: int
 
 
+# Applications (id prefixes) whose group tables stay where the product data declares them,
+# also with DynamicTableManagement.
+STATIC_GROUP_TABLES = ("M-0004_A-9019-01", "M-00A6_A-0004-10")
+
+
+def dynamic_tables(application: Application) -> bool:
+    """Whether the download places the group tables (``DynamicTableManagement``)."""
+    program = application.program
+    application_id: str = getattr(program, "id", None) or ""
+    return bool(program.dynamic_table_management) and not application_id.startswith(
+        STATIC_GROUP_TABLES
+    )
+
+
+@dataclass(frozen=True, slots=True)
+class MovedTables:
+    """Where a BCU2 download with dynamic table management places the group tables.
+
+    The address table at 0116h is allocated at its used length (plus the segment's
+    checksum octet) by the load state machine 1 segment. The association table starts
+    after it and still ends where the load state machine 2 segment ends.
+    """
+
+    address_length: int
+    association_address: int
+
+
+@dataclass(frozen=True, slots=True)
+class GroupTables:
+    """The memory segments of the group communication tables, and where a BCU2 download
+    moves them (``None``: they stay where the product data declares them)."""
+
+    segments: list[MemorySegment]
+    moved: MovedTables | None = None
+
+
 def _packs_group_tables(application: Application) -> bool:
     """Whether the download packs the M112 group tables (see :func:`packed_group_tables`)."""
-    program = application.program
-    return bool(program.dynamic_table_management) and m112_association_table(
-        program.mask_version
+    return dynamic_tables(application) and m112_association_table(
+        application.program.mask_version
     )
 
 
@@ -405,6 +446,8 @@ class DownloadImage:
     # The memory segments of the mask (start, length), from its master data: part of the
     # image, with nothing to write unless a code segment or table covers them.
     mask_memory: tuple[tuple[int, int], ...] = ()
+    # The allocations of a BCU2 download that places the group tables itself.
+    moved_tables: MovedTables | None = None
 
     def relative_segment(self, object_type: int) -> RelativeSegment | None:
         """Return the relative segment for an interface object type, if any."""
@@ -640,6 +683,7 @@ def build_image(
 
     relative_segments: list[RelativeSegment] = []
     tables: PropertyTables | None = None
+    moved: MovedTables | None = None
     if group_communication is not None:
         static = application.program.static
         memory_mapped = (
@@ -656,16 +700,16 @@ def build_image(
                 application, ui, group_communication, segments
             )
         elif memory_mapped:
-            segments.extend(
-                _group_communication_segments(
-                    application,
-                    ui,
-                    base_addresses,
-                    encoded,
-                    group_communication,
-                    factory_image,
-                )
+            group_tables = _group_communication_segments(
+                application,
+                ui,
+                base_addresses,
+                encoded,
+                group_communication,
+                factory_image,
             )
+            segments.extend(group_tables.segments)
+            moved = group_tables.moved
         else:
             relative_segments.extend(
                 _group_communication_relative_segments(
@@ -732,6 +776,7 @@ def build_image(
         factory_image=factory_image,
         procedure_parameters=MappingProxyType(_procedure_parameters(application, ui)),
         property_tables=tables,
+        moved_tables=moved,
     )
 
 
@@ -810,14 +855,15 @@ def _group_communication_segments(
     encoded: Mapping[str, tuple[bytes, bytes]],
     gc: GroupCommunication,
     factory_image: FactoryImage | None = None,
-) -> list[MemorySegment]:
+) -> GroupTables:
     """Build the address, association and com object table segments from links.
 
     Group addresses come from the links; each association references a group
     address by its address-table index and the com object by its number (read
     from the application's com object table). The com object table overlays each
     resolved com object's flags and size onto the segment seed. The table
-    locations come from the application's static table definitions.
+    locations come from the application's static table definitions, on BCU1 and
+    BCU2 also from the download's own placement (see :func:`_bcu_group_tables`).
     ``factory_image`` decides the communication bits (see
     ``_communication_by_link``).
     """
@@ -833,16 +879,37 @@ def _group_communication_segments(
 
     links = _active_links(ui, gc, number_of)
     group_addresses = sorted({link.group_address for link in links})
-    dynamic_tables = _bcu1_dynamic_tables(application)
-    if not dynamic_tables and not _packs_group_tables(application):
+    mask_version = device_mask_version(application)
+    system1 = bcu1_association_table(mask_version)
+    bcu = system1 or bcu2_association_table(mask_version)
+    if not bcu and not _packs_group_tables(application):
         _validate_table_capacity(application, group_addresses, [])
     index_of = {address: i + 1 for i, address in enumerate(group_addresses)}
     linked_numbers = {number_of[link.com_object_ref_id] for link in links}
 
     result: list[MemorySegment] = []
     packed: PackedGroupTables | None = None
-    address_table_end: int | None = None
     com_object_table = static.com_object_table
+    referenced_numbers = set(number_of.values())
+    # The table has one record per object number up to the highest, holes included.
+    record_count = 1 + max(
+        {
+            com_object.number
+            for com_object in (
+                com_object_table.com_object if com_object_table is not None else ()
+            )
+        }
+        | referenced_numbers,
+        default=-1,
+    )
+    options = getattr(static, "options", None)
+    # Easy controller style: the application's objects all communicate while none of
+    # them is active, and the BCU2 association table has no reserved slots.
+    easy = bool(
+        options is not None
+        and options.easy_ctrl_mode_mode_style_empty_group_com_tables
+        and not _has_active_objects(ui)
+    )
     if com_object_table is not None and com_object_table.code_segment is not None:
         seed = encoded.get(com_object_table.code_segment)
         base = base_addresses.get(com_object_table.code_segment)
@@ -853,20 +920,17 @@ def _group_communication_segments(
             # The objects' own communication flags replace the link state when the
             # factory image holds the table.
             product_flags = None if by_link else _product_communication(application)
+            if product_flags is not None and easy:
+                product_flags = dict.fromkeys(product_flags, True)
             active_numbers = {
                 number_of[ref_id]
                 for ref_id in ui.instantiated_com_object_ref_ids()
                 if ref_id in number_of
             }
-            referenced_numbers = set(number_of.values())
             table_offset = com_object_table.offset or 0
-            mask_version = device_mask_version(application)
-            # The table has one record per object number up to the highest, holes
-            # included.
-            record_count = 1 + max(
-                {com_object.number for com_object in com_object_table.com_object}
-                | referenced_numbers,
-                default=-1,
+            # A count the product data leaves unset is written.
+            count_unset = not _seed_initialized(
+                application, com_object_table.code_segment, table_offset
             )
             partial_octets: tuple[tuple[int, int], ...] = ()
             initialized: bytearray | None = None
@@ -885,6 +949,7 @@ def _group_communication_segments(
                     table_offset,
                     record_count,
                     set_flags=BCU1_FLAGS,
+                    count_unset=count_unset,
                 )
                 seed_mask = bytearray(b"\xff" * len(data))
                 run_control = 0x010D - base
@@ -907,6 +972,7 @@ def _group_communication_segments(
                     pointers=not (application.program.id or "").startswith(
                         BCU2_HIDDEN_POINTERS
                     ),
+                    count_unset=count_unset,
                 )
             elif m112_group_object_table(mask_version):
                 # The static table also holds objects with no dynamic ComObjectRef
@@ -950,23 +1016,29 @@ def _group_communication_segments(
                     partial_octets=partial_octets,
                 )
             )
+    if bcu:
+        moved = _bcu_group_tables(
+            application,
+            base_addresses,
+            gc.device_address,
+            group_addresses,
+            links,
+            number_of,
+            record_count,
+            result,
+            system1=system1,
+            easy=easy,
+        )
+        return GroupTables(result, moved)
     address_table = static.address_table
     if address_table is not None and address_table.code_segment is not None:
         base = base_addresses.get(address_table.code_segment)
         if base is not None:
             offset = address_table.offset or 0
             data = build_group_address_table(gc.device_address, group_addresses)
-            # The download writes only the count and the group address
-            # entries; the two own-address octets after the count are written
-            # during individual-address programming, not by this download, so keep
-            # them out of the mask (they legitimately differ per realisation, e.g.
-            # a 0xffff placeholder).
-            mask = bytearray(b"\xff" * len(data))
-            mask[1] = mask[2] = 0x00
             address = base + offset
-            result.append(MemorySegment(address, data, mask=bytes(mask)))
+            result.append(MemorySegment(address, data, mask=_address_table_mask(data)))
             packed = packed_group_tables(application, len(data))
-            address_table_end = address + len(data)
     association_table = static.association_table
     if association_table is not None and association_table.code_segment is not None:
         base = base_addresses.get(association_table.code_segment)
@@ -979,15 +1051,8 @@ def _group_communication_segments(
                 )
                 for link in links
             ]
-            # AssociationTable_Bcu1 is this same list, at the pointer in the
-            # shared EEPROM. One slot per object drops a second group address.
             data = build_association_table(associations)
-            if dynamic_tables:
-                address = _bcu1_association_address(
-                    application, base_addresses, base, address_table_end, len(data)
-                )
-                _set_bcu1_association_pointer(result, address)
-            elif packed is None:
+            if packed is None:
                 _validate_table_capacity(application, group_addresses, associations)
                 address = base + (association_table.offset or 0)
             else:
@@ -999,79 +1064,253 @@ def _group_communication_segments(
                     )
                 address = packed.association_address
             result.append(MemorySegment(address, data, mask=b"\xff" * len(data)))
-    return result
+    return GroupTables(result)
+
+
+def _address_table_mask(data: bytes) -> bytes:
+    """The download writes only the count and the group address entries of an address
+    table; the two own-address octets after the count are written during
+    individual-address programming, not by this download, so keep them out of the mask
+    (they legitimately differ per realisation, e.g. a 0xffff placeholder)."""
+    mask = bytearray(b"\xff" * len(data))
+    mask[1] = mask[2] = 0x00
+    return bytes(mask)
+
+
+def _has_active_objects(ui: DynamicUI) -> bool:
+    """Whether the device has an active group object: one it instantiated, or else one
+    its parameters show."""
+    from xknxeditor.prod.parser_v2.ui import UiComObject, UiParameterBlock, UiTab
+
+    if ui.instantiated_com_object_ref_ids():
+        return True
+    stack: list[object] = list(ui.ui())
+    while stack:
+        node = stack.pop()
+        if isinstance(node, UiComObject):
+            return True
+        if isinstance(node, (UiTab, UiParameterBlock)):
+            stack.extend(node.children)
+    return False
+
+
+def _seed_initialized(application: Application, segment_id: str, offset: int) -> bool:
+    """Whether the product data gives the octet at ``offset`` of a code segment."""
+    code = application.program.static.code
+    for segment in code.absolute_segment if code is not None else ():
+        if segment.id == segment_id:
+            data: bytes = getattr(segment, "data", None) or b""
+            mask: bytes | None = getattr(segment, "mask", None)
+            return offset < len(data) and (
+                mask is None or (offset < len(mask) and mask[offset] != 0)
+            )
+    return False
 
 
 # GrAssocTabPtr: one octet at 0111h; the association table lies at 100h + its value.
-_BCU1_ASSOCIATION_POINTER = 0x0111
-_BCU1_ADDRESS_TABLE = 0x0116
+_ASSOCIATION_POINTER = 0x0111
+# The BCU1 and BCU2 address table: the count, the device's own address and the group
+# addresses from 0119h.
+_ADDRESS_TABLE = 0x0116
+_GROUP_ADDRESSES = _ADDRESS_TABLE + 3
+# The segment flag of an allocation that ends in a checksum octet.
+_CHECKSUM_SEGMENT = 0x80
 
 
-def _bcu1_dynamic_tables(application: Application) -> bool:
-    """Whether the BCU1 EEPROM tables are placed by the download.
-
-    The address table at 0116h then grows with the group addresses, and the
-    association table is found through GrAssocTabPtr, which the download sets.
-    """
-    program = application.program
-    return bool(program.dynamic_table_management) and bcu1_association_table(
-        program.mask_version
-    )
-
-
-def _bcu1_association_address(
+def _bcu_group_tables(
     application: Application,
     base_addresses: Mapping[str, int],
-    base: int,
-    address_table_end: int | None,
-    length: int,
-) -> int:
-    """Return where the dynamically managed BCU1 association table goes.
+    device_address: int,
+    group_addresses: Sequence[int],
+    links: Sequence[GroupObjectLink],
+    number_of: Mapping[str, int],
+    object_count: int,
+    result: list[MemorySegment],
+    *,
+    system1: bool,
+    easy: bool,
+) -> MovedTables | None:
+    """Add the BCU1 (``system1``) or BCU2 address and association tables to ``result``.
 
-    It stays at its declared place while the address table ends before it, and
-    otherwise directly follows the address table. Both tables share the room up
-    to the group object table.
+    The address table lies at 0116h. The association list follows the group object
+    numbers, each object's links in their order. On BCU1, and on BCU2 unless the
+    application keeps its tables in easy controller style (``easy``), it starts with a
+    reserved slot per group object (see :func:`association_slots`).
+
+    BCU1 puts a dynamically managed association table right after the address table,
+    and always points GrAssocTabPtr at the association table. BCU2 moves a dynamically
+    managed one there too, after the checksum octet of the address table's segment;
+    it points GrAssocTabPtr at the table when the product declares it in
+    0100h..01FFh. The seed octets of the declared table areas are not written.
+    Returns the BCU2 placement for the load procedure.
     """
     static = application.program.static
-    table = static.association_table
-    assert table is not None
-    declared = base + (table.offset or 0)
-    address = declared
-    if address_table_end is not None and address_table_end > address:
-        address = address_table_end
-    limit = declared + 1 + 2 * table.max_entries
-    objects = static.com_object_table
-    if objects is not None and objects.code_segment is not None:
-        objects_base = base_addresses.get(objects.code_segment)
-        if objects_base is not None:
-            objects_start = objects_base + (objects.offset or 0)
-            if objects_start > address:
-                limit = max(limit, objects_start)
-    pointer = address - 0x100
-    if not 0x19 <= pointer <= 0xFE or address + length > limit:
-        raise ImageError(
-            "group address and association tables need "
-            f"{address + length - _BCU1_ADDRESS_TABLE} octets from 0116h; "
-            f"{limit - _BCU1_ADDRESS_TABLE} are free before the group object table"
+    index_of = {address: i + 1 for i, address in enumerate(group_addresses)}
+    associations = [
+        Association(
+            index_of[link.group_address],
+            number_of[link.com_object_ref_id],
+            sending=link.sending,
         )
-    return address
+        for link in sorted(links, key=lambda link: number_of[link.com_object_ref_id])
+    ]
+    if system1 or not easy:
+        associations = association_slots(associations, object_count)
+    address_data = build_group_address_table(device_address, group_addresses)
+    association_data = build_association_list(associations)
+    address_entries = (
+        static.address_table.max_entries if static.address_table is not None else 0
+    )
+    table = static.association_table
+    association_entries = table.max_entries if table is not None else 0
+    base = (
+        base_addresses.get(table.code_segment)
+        if table is not None and table.code_segment is not None
+        else None
+    )
+    nominal = None if base is None or table is None else base + (table.offset or 0)
+    dynamic = dynamic_tables(application)
+    moved: MovedTables | None = None
+    pointer: int | None = None
+    if system1:
+        if dynamic:
+            address = _ADDRESS_TABLE + len(address_data)
+            room = 3 + 2 * address_entries + 1 + 2 * association_entries
+            if len(address_data) + len(association_data) > room:
+                raise ImageError(
+                    "group address and association tables need "
+                    f"{len(address_data) + len(association_data)} octets from 0116h; "
+                    f"the product data declares {room}"
+                )
+            if nominal is not None and nominal > _GROUP_ADDRESSES:
+                _invalidate(
+                    result, _GROUP_ADDRESSES, nominal + 1 + 2 * association_entries
+                )
+        else:
+            _check_declared_entries(
+                len(group_addresses),
+                address_entries,
+                len(associations),
+                association_entries,
+            )
+            if nominal is None:
+                raise ImageError("the product data has no association table")
+            address = nominal
+            _invalidate(
+                result, _GROUP_ADDRESSES, _GROUP_ADDRESSES + 2 * address_entries
+            )
+            _invalidate(result, nominal, nominal + 1 + 2 * association_entries)
+        pointer = address
+    else:
+        if len(group_addresses) > 254:
+            raise ImageError(
+                f"address table has {len(group_addresses)} group addresses; "
+                "the device holds 254"
+            )
+        if not dynamic:
+            _check_declared_entries(
+                len(group_addresses),
+                address_entries,
+                len(associations),
+                association_entries,
+            )
+        _invalidate(result, _GROUP_ADDRESSES, _GROUP_ADDRESSES + 2 * address_entries)
+        if nominal is None:
+            result.append(
+                MemorySegment(
+                    _ADDRESS_TABLE, address_data, mask=_address_table_mask(address_data)
+                )
+            )
+            return None
+        end = nominal + 1 + 2 * association_entries
+        _invalidate(result, nominal, end)
+        address = nominal
+        if dynamic:
+            address = (
+                _ADDRESS_TABLE + len(address_data) + _address_checksum(application)
+            )
+            if end < address or len(association_data) > end - address:
+                raise ImageError(
+                    f"association table has {len(associations)} entries; "
+                    f"{max(end - address, 0)} octets are left for it after the "
+                    "address table"
+                )
+            moved = MovedTables(len(address_data), address)
+        if 0x0100 <= nominal <= 0x01FF:
+            pointer = address
+    result.append(
+        MemorySegment(
+            _ADDRESS_TABLE, address_data, mask=_address_table_mask(address_data)
+        )
+    )
+    result.append(
+        MemorySegment(address, association_data, mask=b"\xff" * len(association_data))
+    )
+    if pointer is not None:
+        _set_octet(result, _ASSOCIATION_POINTER, pointer & 0xFF)
+    return moved
 
 
-def _set_bcu1_association_pointer(segments: list[MemorySegment], address: int) -> None:
-    """Point GrAssocTabPtr at the association table written at ``address``."""
-    pointer = address - 0x100
+def _check_declared_entries(
+    addresses: int, address_entries: int, associations: int, association_entries: int
+) -> None:
+    """Refuse tables longer than the product data declares them (``MaxEntries``)."""
+    if addresses > address_entries:
+        raise ImageError(
+            f"address table has {addresses} entries; MaxEntries={address_entries}"
+        )
+    if associations > association_entries:
+        raise ImageError(
+            f"association table has {associations} entries; "
+            f"MaxEntries={association_entries}"
+        )
+
+
+def _address_checksum(application: Application) -> int:
+    """1 when the address table's segment (load state machine 1) ends in a checksum
+    octet, else 0."""
+    if not segments_have_inline_checksum(device_mask_version(application)):
+        return 0
+    control = lsm_segment(application, 1)
+    return 1 if control is not None and control.seg_flags & _CHECKSUM_SEGMENT else 0
+
+
+def lsm_segment(application: Application, lsm: int) -> LdCtrlAbsSegment | None:
+    """The first ``LdCtrlAbsSegment`` of load state machine ``lsm`` in the application's
+    load procedures."""
+    procedures = getattr(application, "load_procedures", None)
+    for procedure in procedures.load_procedure if procedures is not None else ():
+        for control in iter_load_controls(procedure.choice):
+            if isinstance(control, LdCtrlAbsSegment) and control.lsm_idx == lsm:
+                return control
+    return None
+
+
+def _invalidate(segments: list[MemorySegment], start: int, end: int) -> None:
+    """Leave the seed octets in ``[start, end)`` of ``segments`` unwritten."""
     for i, segment in enumerate(segments):
-        offset = _BCU1_ASSOCIATION_POINTER - segment.address
+        initialized = segment.initialized_mask
+        low, high = max(start, segment.address), min(end, segment.end)
+        if initialized is None or low >= high:
+            continue
+        valid = bytearray(initialized)
+        valid[low - segment.address : high - segment.address] = bytes(high - low)
+        segments[i] = replace(segment, initialized_mask=bytes(valid))
+
+
+def _set_octet(segments: list[MemorySegment], address: int, value: int) -> None:
+    """Write ``value`` at ``address``: into the segment that covers it, or as a segment
+    of its own."""
+    for i, segment in enumerate(segments):
+        offset = address - segment.address
         if 0 <= offset < len(segment.data):
             data = bytearray(segment.data)
-            data[offset] = pointer
+            data[offset] = value
             mask = bytearray(segment.mask or b"\xff" * len(data))
             mask[offset] = 0xFF
             segments[i] = replace(segment, data=bytes(data), mask=bytes(mask))
             return
-    segments.append(
-        MemorySegment(_BCU1_ASSOCIATION_POINTER, bytes([pointer]), mask=b"\xff")
-    )
+    segments.append(MemorySegment(address, bytes([value]), mask=b"\xff"))
 
 
 def _group_communication_relative_segments(
@@ -1416,13 +1655,18 @@ def _product_communication(application: Application) -> dict[int, bool]:
 
 
 def _resolved_group_object_descriptors(
-    ui: DynamicUI, linked_numbers: set[int], *, by_link: bool = True
+    ui: DynamicUI,
+    linked_numbers: set[int],
+    *,
+    by_link: bool = True,
+    memory_sizes: bool = False,
 ) -> dict[int, tuple[int, int]]:
     """Map each active object's number to its ``(flag byte, size code)``.
 
     Walks the configured UI so flags and size come from the resolved com object
     reference. With ``by_link``, unlinked active objects retain all flags except
-    communication.
+    communication. ``memory_sizes`` takes the size codes of a BCU1/BCU2 record (see
+    :func:`memory_size_code`); otherwise an object without a size code is left out.
     """
     from xknxeditor.prod.parser_v2.ui import UiComObject, UiParameterBlock, UiTab
 
@@ -1431,10 +1675,13 @@ def _resolved_group_object_descriptors(
     while stack:
         node = stack.pop()
         if isinstance(node, UiComObject):
-            try:
-                size = size_code(node.object_size)
-            except ImageError:
-                continue
+            if memory_sizes:
+                size = memory_size_code(node.object_size)
+            else:
+                try:
+                    size = size_code(node.object_size)
+                except ImageError:
+                    continue
             flags = com_object_flag_byte(
                 priority=node.priority or "Low",
                 communication=node.communication
@@ -1586,8 +1833,7 @@ def _m112_table_writes(
 # GroupObjectTable_Bcu1x and GroupObjectTable_Bcu2: the object count, the RAM flags table
 # pointer and a 3-octet record per object number: the value pointer, the flag byte and
 # the type byte. Which masks those are is the flavour, not a nibble of the mask version
-# (see resources.py). On BCU1 the association table next to it is the ordinary one-octet
-# list, not one slot per object number.
+# (see resources.py).
 _SHORT_HEADER = 2
 _SHORT_RECORD = 3
 # Bit 7 of every BCU1 flag byte is set.
@@ -1634,6 +1880,7 @@ def _short_com_object_table(
     *,
     set_flags: int = 0,
     pointers: bool = True,
+    count_unset: bool = False,
 ) -> tuple[bytes, bytes, tuple[tuple[int, int], ...]]:
     """Write a table of 3-octet records at ``table_offset`` of its segment seed.
 
@@ -1641,10 +1888,13 @@ def _short_com_object_table(
     object from its own flags, a hole in the numbering none; ``set_flags`` are set in
     each. Bit 5 of the flag byte stays as the seed has it. An active object also gets its
     size in the type byte, whose top two bits stay. The count, the RAM flags table
-    pointer and the value pointers (with ``pointers``) are written from the seed.
+    pointer and the value pointers (with ``pointers``) are written from the seed; a count
+    the product data leaves unset (``count_unset``) is the number of records.
     """
     data, mask = bytearray(seed), bytearray(len(seed))
-    partial = _object_count(seed, mask, table_offset, record_count)
+    if count_unset and table_offset < len(data):
+        data[table_offset] = record_count & 0xFF
+    partial = _object_count(bytes(data), mask, table_offset, record_count)
     if table_offset + 1 < len(mask):
         mask[table_offset + 1] = 0xFF
     table = application.program.static.com_object_table
@@ -1653,7 +1903,7 @@ def _short_com_object_table(
         for com_object in (table.com_object if table is not None else ())
     }
     visible = _resolved_group_object_descriptors(
-        ui, linked_numbers, by_link=product_flags is None
+        ui, linked_numbers, by_link=product_flags is None, memory_sizes=True
     )
     for number in range(record_count):
         record = table_offset + _SHORT_HEADER + number * _SHORT_RECORD

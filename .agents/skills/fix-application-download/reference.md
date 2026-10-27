@@ -92,6 +92,20 @@ Hint: mask `MV-0300…`, Siemens HVAC (`M-00FD`) and similar.
 - `GroupObjectTable_System300` (descriptor `01000001…`): the tables are properties (`tables_system300.py`). OT1 PID 23 holds the group addresses (2 octets each, ascending, no count). OT2 PID 23 holds the links (`[address index + 1][object number]`, 2 or 4 octets per element as the device describes the property). OT9 PID 51 holds 6 octets per object `1..highest`, octet 1 the flags without bit 5, the rest from parameters. The product's `WriteProp` controls (`Count="0"`) get each table's element count, and an empty table is not written. PID 52 is written only with parameters, and a download without parameters leaves PID 51's other octets to the device.
 - The memory configuration (descriptor `01000000…`): `LsmIdx` n is object index n, PID 5. The table segments are RAM and are only allocated; the EEPROM segment `256..278` reaches the group address table's count octet at `278` (1 + group addresses), which is all that is written of the tables.
 
+## BCU1 and BCU2 group tables
+
+Hint: mask `MV-001x` / `MV-002x`, an association table that differs in its count or order, a product `WriteMem` at `0x0111`, or a BCU2 application with `DynamicTableManagement`.
+
+- The address table is at `0x0116` (count 1 + n, then the own address and the group addresses). `0x0117`/`0x0118` are left to the image.
+- The association list runs in object number order, each object's links in their order. It starts with one reserved slot per group object (`association_slots` in `tables.py`). Slot i is object i's sending link, or `FE i` when the object sends on none. A second sending link of an object counts as receiving. While the list is longer than the slots, an unused slot takes the first later link whose group address is not the one an object sends on from its own slot. BCU2 skips the slots for an application with `EasyCtrlModeModeStyleEmptyGroupComTables` and no active object.
+- BCU1: with dynamic tables the association table directly follows the address table. The check is against the summed declared sizes, (3 + 2n) + (1 + 2m) ≤ (3 + 2·MaxEntries) + (1 + 2·MaxEntries). `0x0111` (GrAssocTabPtr) is always the low octet of its address.
+- BCU2 without dynamic tables: the declared place and the MaxEntries checks. `0x0111` is written when the declared table lies in `0x0100..0x01FF`; every `MV-002x` mask has memory `0x0100` (880 octets), so the image covers it.
+- BCU2 with dynamic tables: the association table moves to `0x0116` + (3 + 2n) + 1. The 1 applies when the mask has `AllocExtraByte` and the procedure's LSM 1 `AbsSegment` has `SegFlags & 0x80`. The table still ends where the declared one ends. The LSM 1 `AbsSegment` is allocated at 3 + 2n (+1 with that flag). The LSM 2 `AbsSegment` and `TaskSegment` start at the moved table, and the segment keeps its end (`MovedTables`).
+- `M-0004_A-9019-01` and `M-00A6_A-0004-10` are downloaded as without dynamic tables (`STATIC_GROUP_TABLES`).
+- Seed octets of the declared table areas (from `0x0119`, and the association table) are not written; with BCU1 dynamic tables, from `0x0119` to the declared association table's end.
+- Group object table: the count is written when the product data leaves it unset. A size without a type is type 0, `LegacyVarData` 15, and 15–50 octets are 21–56.
+- With the group object table in the factory image, an easy-style application with no active object sets every object's communication bit.
+
 ## Module parameters with a BaseValue
 
 A module parameter whose `BaseValue` names an argument takes that argument's value: in the UI, for a `choose`, and in the download. Its own value, default or stored, does not count. An argument's own `BaseValue` adds to its value.

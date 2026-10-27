@@ -1199,13 +1199,26 @@ class LoadProcedureRunner:
         table = min(tables, key=lambda segment: len(segment.data))
         return packed_group_tables(self.application, len(table.data))
 
-    def _segment_placement(self, address: int, size: int) -> tuple[int, int]:
-        """Address and length ETS allocates for an absolute segment.
+    def _segment_placement(self, control: LdCtrlAbsSegment) -> tuple[int, int]:
+        """Address and length allocated for an absolute segment.
 
         A property-mapped mask declares the address table and association table
         at full capacity. The allocation uses the encoded address table and
-        starts the association table on the next octet.
+        starts the association table on the next octet. A BCU2 download that places
+        the tables allocates the address table (load state machine 1) at its length,
+        plus the checksum octet of a checksummed segment, and moves the start of the
+        association table's segment (load state machine 2).
         """
+        address, size = control.address, control.size
+        moved = getattr(self.image, "moved_tables", None)
+        if moved is not None and control.lsm_idx == 1:
+            checksum = 1 if control.seg_flags & 0x80 else 0
+            return address, moved.address_length + checksum
+        if moved is not None and control.lsm_idx == 2:
+            return (
+                moved.association_address,
+                address + size - moved.association_address,
+            )
         packed = self._packed_group_tables()
         if packed is None:
             return address, size
@@ -1218,8 +1231,13 @@ class LoadProcedureRunner:
             return packed.association_address, packed.association_length
         return address, size
 
-    def _task_address(self, address: int) -> int:
-        """Task-segment address, moved with the association table when ETS packs it."""
+    def _task_address(self, control: LdCtrlTaskSegment) -> int:
+        """Task-segment address, moved with the association table when the download
+        packs or places it."""
+        address = control.address
+        moved = getattr(self.image, "moved_tables", None)
+        if moved is not None and control.lsm_idx == 2:
+            return moved.association_address
         packed = self._packed_group_tables()
         if packed is not None and address == packed.declared_association_address:
             return packed.association_address
@@ -2716,7 +2734,7 @@ class LoadProcedureRunner:
         """
         segment_type = load_state.SegmentType(control.seg_type)
         index = await self._resolve_index(control)
-        address, size = self._segment_placement(control.address, control.size)
+        address, size = self._segment_placement(control)
         # A checksum-less segment whose image holds only the code seed has no
         # parameter bytes. ETS does not allocate it (the Merten 5701 segment at
         # 0x5100 is 25856 bytes, and the device does not ACK that record). The
@@ -2801,7 +2819,7 @@ class LoadProcedureRunner:
         if patch:
             application_id = (0x0002).to_bytes(2, "big") + application_id[2:]
         event = load_state.alloc_task_segment(
-            self._task_address(control.address),
+            self._task_address(control),
             self.application.program.pei_type,
             application_id,
         )
@@ -2866,7 +2884,7 @@ class LoadProcedureRunner:
             # image does NOT cover (a RAM/system segment) is allocated and left unwritten
             # by _abs_segment, so it is a clean allocate-only preview here too, not an error.
             if self._writes_segment_data(control):
-                address, size = self._segment_placement(control.address, control.size)
+                address, size = self._segment_placement(control)
                 await self._diff_masked(
                     address,
                     size,
