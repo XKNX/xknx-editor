@@ -57,6 +57,8 @@ if TYPE_CHECKING:
 
     from editor_gui.device import ComObject, Device
     from editor_gui.plugins.project.service import ProjectService
+    from xknxeditor.prod.parser_v2.activation import ActivationPlan, PlanStep
+    from xknxeditor.prod.parser_v2.ui import UiParameter
     from xknxeditor.proj import CompactResult
 
 # Slow, file/parse-heavy operations get a generous main-thread budget (they briefly hold the frame).
@@ -479,6 +481,14 @@ def resolve_in_scope(
     return resolve_parameter_ref(roots, label, value_label)
 
 
+def _hidden_block(node: Any) -> bool:
+    """Whether ``node`` is a block the parameter view never shows (Access None): the tree tools
+    leave it out with its content, keeping the index paths of its siblings."""
+    from xknxeditor.prod.parser_v2.ui import UiParameterBlock
+
+    return isinstance(node, UiParameterBlock) and node.hidden
+
+
 def _ui_node(
     node: Any, include_choices: bool = True, path: str = "0"
 ) -> dict[str, Any]:
@@ -512,7 +522,8 @@ def _ui_node(
         children = [
             d
             for i, ch in enumerate(node.children)
-            if (d := _ui_node(ch, include_choices, f"{path}.{i}")).get("kind")
+            if not _hidden_block(ch)
+            and (d := _ui_node(ch, include_choices, f"{path}.{i}")).get("kind")
             != "separator"
         ]
         out: dict[str, Any] = {
@@ -543,7 +554,7 @@ def _search_node(node: Any, needle: str, path: str = "0") -> dict[str, Any] | No
         return _ui_node(node, False, path) if needle in node.label.lower() else None
     if isinstance(node, UiButton):
         return _ui_node(node, False, path) if needle in node.text.lower() else None
-    if not isinstance(node, (UiTab, UiParameterBlock)):
+    if not isinstance(node, (UiTab, UiParameterBlock)) or _hidden_block(node):
         return None
     heading = getattr(node, "text", None) or getattr(node, "name", None) or ""
     if needle in heading.lower():
@@ -589,7 +600,9 @@ def _count_leaves(node: Any) -> tuple[int, int]:
             params += 1
         elif isinstance(current, UiComObject):
             cos += 1
-        elif isinstance(current, (UiTab, UiParameterBlock)):
+        elif isinstance(current, (UiTab, UiParameterBlock)) and not _hidden_block(
+            current
+        ):
             stack.extend(current.children)
     return params, cos
 
@@ -600,7 +613,7 @@ def _outline_node(node: Any, path: str = "0") -> dict[str, Any] | None:
     for a non-container node."""
     from xknxeditor.prod.parser_v2.ui import UiParameterBlock, UiTab
 
-    if not isinstance(node, (UiTab, UiParameterBlock)):
+    if not isinstance(node, (UiTab, UiParameterBlock)) or _hidden_block(node):
         return None
     params, cos = _count_leaves(node)
     children = [
@@ -635,8 +648,12 @@ def _find_subtree(nodes: list[Any], subtree_id: str) -> Any | None:
     node: Any = nodes[parts[0]] if parts[0] < len(nodes) else None
     try:
         for p in parts[1:]:
+            if _hidden_block(node):
+                return None
             node = node.children[p]
     except (IndexError, AttributeError, TypeError):
+        return None
+    if _hidden_block(node):
         return None
     return node if isinstance(node, (UiTab, UiParameterBlock)) else None
 
@@ -795,11 +812,94 @@ def require_editable_param(device: Any, ref_id: str) -> Any:
                     "(not user-editable); its value is set internally"
                 )
             return p
+    hint = _activation_hint(device, ref_id)
     raise ToolError(
         f"parameter {ref_id!r} is not visible on device {device.node_id} "
         "(not instantiated or deactivated by the current configuration); "
-        "call project_list_parameters for the currently editable parameters"
+        + (f"{hint}; " if hint else "")
+        + "call project_list_parameters for the currently editable parameters"
     )
+
+
+def activation_plan(
+    device: Any, ref_id: str, value: str | None = None
+) -> ActivationPlan:
+    """The edits that show ``ref_id`` on ``device`` (and set ``value``), see plan_activation;
+    raises ToolError with the reason when no plan does."""
+    from xknxeditor.prod.parser_v2.activation import ActivationError, plan_activation
+
+    ui = device.dynamic_ui
+    if ui is None:
+        raise ToolError(f"device {device.node_id} has no application parameters")
+    try:
+        return plan_activation(ui, ref_id, value)
+    except ActivationError as exc:
+        raise ToolError(str(exc)) from exc
+
+
+def _step_text(step: PlanStep) -> str:
+    where = " > ".join(step.sections)
+    text = f"{step.label!r} = {step.value_label or step.value!r}"
+    return f"{text} ({where})" if where else text
+
+
+def _activation_hint(device: Any, ref_id: str) -> str:
+    """What shows a hidden ``ref_id``, for the message that rejects setting it."""
+    try:
+        plan = activation_plan(device, ref_id)
+    except ToolError as exc:
+        return str(exc)
+    if not plan.steps:
+        return ""
+    return (
+        "to show it, set first: "
+        + "; ".join(_step_text(step) for step in plan.steps)
+        + " (project_plan_parameter returns these as project_batch operations)"
+    )
+
+
+def hidden_parameter_rows(
+    device: Any, compact: bool, *, modified_only: bool = False
+) -> list[dict[str, Any]]:
+    """The parameters the device's configuration hides now, once each, with ``visible: false``
+    and the ``section`` (tabs and blocks, outermost first) of the first place they appear in.
+    Parameters no user ever sees (Access None, or in a block that is never shown) are left out;
+    ``modified_only`` keeps those whose value differs from their default."""
+    from dataclasses import replace
+
+    from xknxeditor.namespaces.intermediate.access_t import Access
+
+    ui = device.dynamic_ui
+    if ui is None:
+        return []
+    shown = {p.ref_id for p in _collect_ui_parameters(device.get_ui())}
+    rows: list[dict[str, Any]] = []
+    seen: set[str] = set()
+    for placement in ui.explore_parameters():
+        parameter = placement.parameter
+        ref_id = parameter.ref_id
+        if (
+            ref_id in shown
+            or ref_id in seen
+            or placement.hidden_section
+            or parameter.access is Access.NONE
+        ):
+            continue
+        seen.add(ref_id)
+        parameter = replace(
+            parameter, value=ui.get_value(ref_id) or parameter.default_value
+        )
+        if modified_only and parameter.value == parameter.default_value:
+            continue
+        row = (
+            _compact_parameter_dict(parameter)
+            if compact
+            else _parameter_dict(parameter, include_choices=False)
+        )
+        row["visible"] = False
+        row["section"] = " > ".join(placement.sections)
+        rows.append(row)
+    return rows
 
 
 @dataclass(frozen=True, slots=True)
@@ -1768,6 +1868,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         search: str | None = None,
         modified_only: bool = False,
         compact: bool = False,
+        include_hidden: bool = False,
     ) -> dict[str, Any]:
         """A device's visible application parameters with current value and default. Identify the
         device by ``node_id`` OR ``device_address`` (an individual address like "1.0.30"); pass
@@ -1781,6 +1882,12 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         with its tab/block, which tells repeated labels (one per channel) apart. ``modified_only`` keeps only the parameters whose value
         differs from their default (those the parameter view marks as changed). ``compact`` gives
         each item only ref_id, label and value (plus value_label for an enum).
+        ``include_hidden`` also lists the parameters the current configuration hides (a switch
+        further up selects another branch), each once with ``visible: false`` and its
+        ``section`` ("Tab > Block > …", where it appears once shown); visible items then carry
+        ``visible: true``. Use it with ``search`` to find a setting that is not shown yet, then
+        project_plan_parameter for the edits that show it. Parameters no user ever sees are not
+        listed.
 
         Pass an item's ``ref_id`` to project_set_parameter as its ``parameter_ref_id`` argument."""
 
@@ -1793,6 +1900,12 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                 for p in _collect_ui_parameters(device.get_ui())
                 if not modified_only or p.value != p.default_value
             ]
+            if include_hidden:
+                for row in rows:
+                    row["visible"] = True
+                rows += hidden_parameter_rows(
+                    device, compact, modified_only=modified_only
+                )
             if search:
                 needle = search.casefold()
                 rows = [r for r in rows if needle in str(r.get("label", "")).casefold()]
@@ -1882,7 +1995,9 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                     )
                 scoped: list[tuple[str, Any]] = [(subtree_id, found)]
             else:
-                scoped = [(str(i), n) for i, n in enumerate(roots)]
+                scoped = [
+                    (str(i), n) for i, n in enumerate(roots) if not _hidden_block(n)
+                ]
             if needle:
                 rows = [
                     d
@@ -1941,6 +2056,99 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             )
 
         return ctx.run_locked(_read)
+
+    @tool("read")
+    def project_plan_parameter(
+        parameter_ref_id: str,
+        node_id: int | None = None,
+        device_address: str | None = None,
+        value: str | None = None,
+        value_label: str | None = None,
+    ) -> dict[str, Any]:
+        """The edits that show a parameter the current configuration hides, so it can be set.
+        Identify the device by ``node_id`` OR ``device_address`` (an individual address like
+        "1.0.30"); pass exactly one. ``parameter_ref_id`` is a ref_id from
+        project_list_parameters(include_hidden=True), or one a set was rejected for as not visible.
+
+        A parameter is shown when every switch above it (a choose further up in the tree, often
+        several levels: e.g. a slot, then its visualisation, then its function) selects the part
+        it sits in. The plan works back from the parameter to those switches, also through
+        switches that are hidden themselves and through values the application calculates from
+        other parameters, and gives each switch the value that selects the part. Every plan is
+        tried on a copy of the device before it is returned, through the same checks a user's
+        edit takes, so applying it shows the parameter; the device itself is not changed.
+        With ``value`` (or ``value_label``, an enum choice's text) the plan ends with setting the
+        parameter, and the value is checked too.
+
+        Returns {node_id, parameter_ref_id, label, steps, operations, also_shown, also_hidden}:
+        ``steps`` in order, each {parameter_ref_id, label, section, value, value_label?,
+        current_value}; ``operations`` the same edits as project_batch operations
+        ({op: "set_parameter", params: {node_id, parameter_ref_id, value}}) — pass them to
+        project_batch unchanged to apply the plan as one batch; ``also_shown`` / ``also_hidden``
+        how many other parameters the plan shows or hides. No steps means the parameter is shown
+        already. A parameter no plan shows raises with the reason: it is never shown to users,
+        a switch on its way is set by the application, or no value selects its part."""
+
+        def _plan() -> dict[str, Any]:
+            device = _require_device(node_id, device_address)
+            if parameters_in_plugin(device):
+                raise ToolError(PLUGIN_PARAMETERS_ERROR.format(node_id=device.node_id))
+            target_value = value
+            if value_label is not None:
+                parameter = _planned_parameter(device, parameter_ref_id)
+                try:
+                    target_value = _resolve_enum_value(
+                        parameter.widget, value_label, parameter.label
+                    )
+                except ValueError as exc:
+                    raise ToolError(str(exc)) from exc
+            plan = activation_plan(device, parameter_ref_id, target_value)
+            ui = device.dynamic_ui
+            nid = device.node_id
+            steps: list[dict[str, Any]] = []
+            for step in plan.steps:
+                row: dict[str, Any] = {
+                    "parameter_ref_id": step.ref_id,
+                    "label": step.label,
+                    "section": " > ".join(step.sections),
+                    "value": step.value,
+                }
+                if step.value_label is not None:
+                    row["value_label"] = step.value_label
+                row["current_value"] = ui.get_value(step.ref_id) if ui else None
+                steps.append(row)
+            return {
+                "node_id": nid,
+                "parameter_ref_id": parameter_ref_id,
+                "label": _planned_parameter(device, parameter_ref_id).label,
+                "steps": steps,
+                "operations": [
+                    {
+                        "op": "set_parameter",
+                        "params": {
+                            "node_id": nid,
+                            "parameter_ref_id": step.ref_id,
+                            "value": step.value,
+                        },
+                    }
+                    for step in plan.steps
+                ],
+                "also_shown": len(plan.shown),
+                "also_hidden": len(plan.hidden),
+            }
+
+        return ctx.run_locked(_plan)
+
+    def _planned_parameter(device: Device, ref_id: str) -> UiParameter:
+        """The parameter ``ref_id`` as shown, else as it appears once shown."""
+        for p in _collect_ui_parameters(device.get_ui()):
+            if p.ref_id == ref_id:
+                return p
+        ui = device.dynamic_ui
+        for placement in ui.explore_parameters() if ui is not None else []:
+            if placement.parameter.ref_id == ref_id:
+                return placement.parameter
+        raise ToolError(f"no parameter {ref_id!r} on device {device.node_id}")
 
     @tool("read")
     def project_resolve_parameter(

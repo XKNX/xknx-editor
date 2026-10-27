@@ -84,6 +84,8 @@ class _CoLeaf(DynamicNode):
 class _Ctx:
     """Stub EvalContext: Choose/Repeat/leaf eval need get(ref_id), capture and repeat_ctx."""
 
+    explore = None
+
     def __init__(
         self, values: dict[str, str], capture: EvalCapture | None = None
     ) -> None:

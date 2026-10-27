@@ -41,13 +41,23 @@ class ChannelNode(DynamicNode):
         self._children = children
         self._independent = independent
 
-    def eval(self, ctx: EvalContext) -> list[UiNode]:
-        items = [u for c in self._children if c for u in c.eval(ctx)]
+    def _heading(self, ctx: EvalContext) -> str | None:
         template = apply_text_args(self._text or self._name or "", ctx.text_args())
         name_value = (
             ctx.get(self._text_param_ref_id) if self._text_param_ref_id else None
         )
-        text = fill_name(template, name_value or "") or None
+        return fill_name(template, name_value or "") or None
+
+    def eval(self, ctx: EvalContext) -> list[UiNode]:
+        explorer = ctx.explore
+        if explorer is not None:
+            explorer.enter_section(self._heading(ctx) or "")
+        try:
+            items = [u for c in self._children if c for u in c.eval(ctx)]
+        finally:
+            if explorer is not None:
+                explorer.leave_section()
+        text = self._heading(ctx)
         return [
             UiTab(
                 children=tuple(items),

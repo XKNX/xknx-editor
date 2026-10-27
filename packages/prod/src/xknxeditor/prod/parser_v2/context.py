@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterable, Iterator, Mapping
+from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 from xknxeditor.namespaces.intermediate import ModuleArg
@@ -11,6 +12,71 @@ from xknxeditor.namespaces.intermediate.com_object_instance_ref_t import (
 if TYPE_CHECKING:
     from .application_indexer import ApplicationIndexer
     from .state import ParameterState
+    from .ui.parameter import UiParameter
+
+
+@dataclass(frozen=True, slots=True)
+class Gate:
+    """A condition on the way to a part of the parameter tree: the (instance-qualified) parameter
+    ``param`` has to take a value that satisfies the ``when`` test, or, for a default branch
+    (``when`` is None), none of the ``unless`` tests. With ``needs_active`` (a choose) the
+    parameter itself has to be shown or assigned too, or its choose selects nothing; a repeat
+    count does not."""
+
+    param: str
+    when: str | None
+    unless: tuple[str, ...] = ()
+    needs_active: bool = True
+
+
+@dataclass(frozen=True, slots=True)
+class Placement:
+    """One place of a parameter in the tree, with the gates leading to it and the headings of the
+    tabs and blocks around it (outermost first). ``hidden_section`` is set when a block on the way
+    is never shown (Access None)."""
+
+    parameter: UiParameter
+    gates: tuple[Gate, ...]
+    sections: tuple[str, ...]
+    hidden_section: bool = False
+
+
+class Explorer:
+    """Records every parameter placement of a tree evaluated in explore mode: each choose
+    evaluates all its branches and each repeat at least one pass, whatever the current values,
+    pushing the condition of the branch it is in (see :class:`Gate`)."""
+
+    __slots__ = ("_gates", "_hidden", "_sections", "placements")
+
+    def __init__(self) -> None:
+        self._gates: list[Gate] = []
+        self._sections: list[str] = []
+        self._hidden = 0
+        self.placements: list[Placement] = []
+
+    def push_gate(self, gate: Gate) -> None:
+        self._gates.append(gate)
+
+    def pop_gate(self) -> None:
+        self._gates.pop()
+
+    def enter_section(self, heading: str, *, hidden: bool = False) -> None:
+        self._sections.append(heading)
+        self._hidden += hidden
+
+    def leave_section(self, *, hidden: bool = False) -> None:
+        self._sections.pop()
+        self._hidden -= hidden
+
+    def record(self, parameter: UiParameter) -> None:
+        self.placements.append(
+            Placement(
+                parameter,
+                tuple(self._gates),
+                tuple(s for s in self._sections if s),
+                self._hidden > 0,
+            )
+        )
 
 
 class EvalCapture:
@@ -94,7 +160,14 @@ class EvalContext:
     Reads fall through the state's parent chain (submodule → module → global); writes hit only the active state.
     """
 
-    __slots__ = ("_capture", "_idx", "_repeat_idx", "_scope", "_union_suppress")
+    __slots__ = (
+        "_capture",
+        "_explore",
+        "_idx",
+        "_repeat_idx",
+        "_scope",
+        "_union_suppress",
+    )
 
     def __init__(
         self,
@@ -103,6 +176,7 @@ class EvalContext:
         idx: ApplicationIndexer | None = None,
         capture: EvalCapture | None = None,
         union_suppress: bool = True,
+        explore: Explorer | None = None,
     ) -> None:
         self._scope = scope
         self._repeat_idx = repeat_idx
@@ -111,10 +185,16 @@ class EvalContext:
         # False during the union-discovery pass (render both overlapping members so the reached one
         # is recorded); True during the render pass (suppress the inactive overlay).
         self._union_suppress = union_suppress
+        # Set for an explore pass (see Explorer): every branch is evaluated and recorded.
+        self._explore = explore
 
     @property
     def capture(self) -> EvalCapture | None:
         return self._capture
+
+    @property
+    def explore(self) -> Explorer | None:
+        return self._explore
 
     @property
     def union_suppress(self) -> bool:
@@ -188,7 +268,12 @@ class EvalContext:
 
     def repeat_ctx(self, repeat_idx: int) -> EvalContext:
         return EvalContext(
-            self._scope, repeat_idx, self._idx, self._capture, self._union_suppress
+            self._scope,
+            repeat_idx,
+            self._idx,
+            self._capture,
+            self._union_suppress,
+            self._explore,
         )
 
     def get_arg_value(self, ref_id: str) -> int:
@@ -246,4 +331,5 @@ class EvalContext:
             idx=self._idx,
             capture=self._capture,
             union_suppress=self._union_suppress,
+            explore=self._explore,
         )

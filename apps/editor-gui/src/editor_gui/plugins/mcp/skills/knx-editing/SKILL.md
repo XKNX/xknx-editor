@@ -39,6 +39,16 @@ instructions.
    The result's `shown_parameters` and `shown_com_objects` are what the change made visible: set
    and link those instead of re-reading the whole device.
 
+   A setting that is not shown yet sits behind switches further up (e.g. a slot, then its
+   visualisation, then its function). Do not guess them: find the setting with its section,
+   ask for the edits that show it, and apply them as one batch:
+
+   ```
+   project_list_parameters(device_address="1.1.20", include_hidden=True, search="minimum dimming")
+   project_plan_parameter(device_address="1.1.20", parameter_ref_id="M-0071_..._UP-20_R-58", value="10")
+   project_batch(operations=[...the plan's operations...])
+   ```
+
 4. Create the group addresses and link the objects in one batch. A group address created earlier
    in the batch can be linked by its printed address. Mark the object that transmits with
    `is_sending=true`; link each status/feedback object to its status address too:

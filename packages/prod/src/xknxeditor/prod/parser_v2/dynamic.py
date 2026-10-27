@@ -1,8 +1,9 @@
 from __future__ import annotations
 
+import contextlib
 import copy
 import logging
-from collections.abc import Callable, Iterable, Mapping, Sequence
+from collections.abc import Callable, Generator, Iterable, Mapping, Sequence
 from typing import TYPE_CHECKING
 
 from xknxeditor.namespaces.intermediate import (
@@ -49,7 +50,7 @@ from .calculation import (
     run_calculations_many,
     run_validations,
 )
-from .context import EvalCapture, EvalContext
+from .context import EvalCapture, EvalContext, Explorer, Placement
 from .converted_pages import place_hidden_parameters
 from .encode import (
     MaskedProperty,
@@ -1502,6 +1503,32 @@ class DynamicUI:
     def active_parameter_ref_ids(self) -> frozenset[str]:
         self.ui()
         return frozenset(self._state.active_param_refs())
+
+    def explore_parameters(self) -> list[Placement]:
+        """Every place of every parameter in the tree, whatever the current values select, with
+        the gates leading there (see :class:`Explorer`). Evaluated on a copy of the state."""
+        explorer = Explorer()
+        state = copy.deepcopy(self._state)
+        self._tree.eval(
+            EvalContext(state, idx=self._idx, union_suppress=False, explore=explorer)
+        )
+        return explorer.placements
+
+    @contextlib.contextmanager
+    def simulation(self) -> Generator[None]:
+        """Edits made inside the block are undone when it is left: the state, the UI and the
+        active set are the ones from before."""
+        state = self._state
+        ui = self._ui
+        snapshot = self._active_snapshot
+        self._state = copy.deepcopy(state)
+        self._invalidate()
+        try:
+            yield
+        finally:
+            self._state = state
+            self._ui = ui
+            self._active_snapshot = snapshot
 
     @property
     def indexer(self) -> ApplicationIndexer:

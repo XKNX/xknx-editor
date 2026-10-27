@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from ..context import EvalContext
+from ..context import EvalContext, Explorer, Gate
 from ..ui import UiNode
 from .base import DynamicNode
 
@@ -76,7 +76,29 @@ class ChooseWhenNode(DynamicNode):
             self._param_ref_id in self._widget_param_refs
         )
 
+    def _explore(self, ctx: EvalContext, explorer: Explorer) -> list[UiNode]:
+        """Evaluate every branch, each under the gate that selects it."""
+        param = ctx.qualify_local(self._param_ref_id)
+        conditions = tuple(self._condition_to_nodes)
+        branches: list[tuple[Gate, list[DynamicNode | None]]] = [
+            (Gate(param, condition), nodes)
+            for condition, nodes in self._condition_to_nodes.items()
+        ]
+        if self._default_nodes is not None:
+            branches.append((Gate(param, None, conditions), self._default_nodes))
+        result: list[UiNode] = []
+        for gate, nodes in branches:
+            explorer.push_gate(gate)
+            try:
+                result.extend(u for n in nodes if n for u in n.eval(ctx))
+            finally:
+                explorer.pop_gate()
+        return result
+
     def eval(self, ctx: EvalContext) -> list[UiNode]:
+        explorer = ctx.explore
+        if explorer is not None:
+            return self._explore(ctx, explorer)
         # Union-member gate: this Choose's parameter shares memory with its siblings, so only the
         # ACTIVE overlay's content should render (else overlapping members duplicate content). The
         # active overlay is the member REACHED under the current values, determined order-independently

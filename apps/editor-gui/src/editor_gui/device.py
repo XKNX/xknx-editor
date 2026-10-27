@@ -220,7 +220,9 @@ def _collect_ui_com_objects(
 def collect_ui_parameters(
     nodes: list[UiNode] | tuple[UiNode, ...],
 ) -> list[UiParameter]:
-    """Flatten a device UI tree to its parameter leaves (imgui-free), recursing tabs and blocks."""
+    """Flatten a device UI tree to its parameter leaves (imgui-free), recursing tabs and blocks.
+    A hidden block (Access None) is left out with its content, as the parameter view never
+    shows it."""
     from xknxeditor.prod.parser_v2.ui import UiParameter as _UiParameter
     from xknxeditor.prod.parser_v2.ui import UiParameterBlock as _UiParameterBlock
     from xknxeditor.prod.parser_v2.ui import UiTab as _UiTab
@@ -229,7 +231,9 @@ def collect_ui_parameters(
     for node in nodes:
         if isinstance(node, _UiParameter):
             result.append(node)
-        elif isinstance(node, (_UiTab, _UiParameterBlock)):
+        elif isinstance(node, _UiTab) or (
+            isinstance(node, _UiParameterBlock) and not node.hidden
+        ):
             result.extend(collect_ui_parameters(node.children))
     return result
 

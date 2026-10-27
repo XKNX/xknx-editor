@@ -34,7 +34,24 @@ class ComObjectParameterBlockNode(DynamicNode):
         # The block's heading parameter is active while the block is shown.
         if self._elem.param_ref_id:
             ctx.mark_active_param(self._elem.param_ref_id)
-        items = [u for c in self._children if c for u in c.eval(ctx)]
+        explorer = ctx.explore
+        hidden = self._elem.access == Access.NONE
+        if explorer is not None:
+            heading = (
+                ctx.get_text(self._elem.id)
+                or self._heading_text
+                or self._elem.text
+                or self._elem.name
+            )
+            explorer.enter_section(
+                fill_name(apply_text_args(heading or "", ctx.text_args()), ""),
+                hidden=hidden,
+            )
+        try:
+            items = [u for c in self._children if c for u in c.eval(ctx)]
+        finally:
+            if explorer is not None:
+                explorer.leave_section(hidden=hidden)
         arg_defaults = ctx.text_args()
         text_ref = self._elem.text_parameter_ref_id
         name_value = ctx.get(text_ref) if text_ref else None

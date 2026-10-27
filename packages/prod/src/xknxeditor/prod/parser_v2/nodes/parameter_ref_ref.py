@@ -36,8 +36,17 @@ class ParameterRefRefNode(DynamicNode):
         )
         if self._param_type.plugin and access is not Access.NONE:
             access = Access.READ
-        if access is Access.NONE:
+        explorer = ctx.explore
+        if access is Access.NONE and explorer is None:
             return []
+        parameter = self._ui_parameter(ctx, access)
+        if explorer is not None:
+            explorer.record(parameter)
+            if access is Access.NONE:
+                return []
+        return [parameter]
+
+    def _ui_parameter(self, ctx: EvalContext, access: Access) -> UiParameter:
         local_ref_id = self._elem.ref_id
         arg_defaults = ctx.text_args()
         static_label = apply_text_args(
@@ -49,19 +58,17 @@ class ParameterRefRefNode(DynamicNode):
         suffix = apply_text_args(raw_suffix, arg_defaults) if raw_suffix else raw_suffix
         default_value = self._param_ref.value or self._param.value or ""
         value = ctx.get(local_ref_id) or default_value
-        return [
-            UiParameter(
-                ref_id=ctx.qualify(local_ref_id),
-                label=label,
-                value=value,
-                widget=resolve_widget(self._param_type),
-                default_value=default_value,
-                indent_level=self._elem.indent_level,
-                suffix=suffix,
-                access=access,
-                icon=self._elem.icon,
-                cell=self._elem.cell,
-                text_alignment=self._param_type.text_alignment,
-                help_context=self._elem.help_context,
-            )
-        ]
+        return UiParameter(
+            ref_id=ctx.qualify(local_ref_id),
+            label=label,
+            value=value,
+            widget=resolve_widget(self._param_type),
+            default_value=default_value,
+            indent_level=self._elem.indent_level,
+            suffix=suffix,
+            access=access,
+            icon=self._elem.icon,
+            cell=self._elem.cell,
+            text_alignment=self._param_type.text_alignment,
+            help_context=self._elem.help_context,
+        )
