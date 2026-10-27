@@ -295,8 +295,8 @@ msgstr "トポロジー・チェック"
 msgid "Project Diff"
 msgstr "プロジェクト比較"
 
-msgid "Compare the open project with another project file (.knxproj, .xknx or a backup .zip): which devices and group addresses were added, removed or changed. The other project is read-only; nothing is modified."
-msgstr "開いているプロジェクトを別のプロジェクト・ファイル（.knxproj、.xknx またはバックアップの .zip）と比較し、追加・削除・変更されたデバイスとグループ・アドレスを表示します。比較先のプロジェクトは読み取り専用で、何も変更されません。"
+msgid "Compare the open project with another project file (.knxproj, .xknx or a backup): which devices and group addresses were added, removed or changed. The other project is read-only; nothing is modified."
+msgstr "開いているプロジェクトを別のプロジェクト・ファイル（.knxproj、.xknx またはバックアップ）と比較し、追加・削除・変更されたデバイスとグループ・アドレスを表示します。比較先のプロジェクトは読み取り専用で、何も変更されません。"
 
 msgid "Choose Project to Compare…"
 msgstr "比較するプロジェクトを選択…"

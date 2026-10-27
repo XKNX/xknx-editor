@@ -1090,7 +1090,7 @@ class ProjectStrings:
     def TOOLS_DIFF_DESC(self) -> str:
         return _(
             "Compare the open project with another project file (.knxproj, .xknx or a "
-            "backup .zip): which devices and group addresses were added, removed or changed. "
+            "backup): which devices and group addresses were added, removed or changed. "
             "The other project is read-only; nothing is modified."
         )
 

@@ -295,8 +295,8 @@ msgstr "Sprawdzenie topologii"
 msgid "Project Diff"
 msgstr "Porównanie projektów"
 
-msgid "Compare the open project with another project file (.knxproj, .xknx or a backup .zip): which devices and group addresses were added, removed or changed. The other project is read-only; nothing is modified."
-msgstr "Porównanie otwartego projektu z innym plikiem projektu (.knxproj, .xknx lub kopią zapasową .zip): które urządzenia i adresy grupowe zostały dodane, usunięte lub zmienione. Drugi projekt jest tylko do odczytu; nic nie jest modyfikowane."
+msgid "Compare the open project with another project file (.knxproj, .xknx or a backup): which devices and group addresses were added, removed or changed. The other project is read-only; nothing is modified."
+msgstr "Porównanie otwartego projektu z innym plikiem projektu (.knxproj, .xknx lub kopią zapasową): które urządzenia i adresy grupowe zostały dodane, usunięte lub zmienione. Drugi projekt jest tylko do odczytu; nic nie jest modyfikowane."
 
 msgid "Choose Project to Compare…"
 msgstr "Wybierz projekt do porównania…"
