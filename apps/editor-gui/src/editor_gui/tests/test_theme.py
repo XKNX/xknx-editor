@@ -136,3 +136,35 @@ def test_windows_themes_have_the_dark_gray_text_of_windows_dialogs(
     )
     assert style.frame_rounding == rounding
     assert style.color_(imgui.Col_.window_bg).x == 1.0
+
+
+@pytest.mark.parametrize(
+    ("applied", "table_header"),
+    [
+        (hello_imgui.ImGuiTheme_.microsoft_style, True),
+        (hello_imgui.ImGuiTheme_.white_is_white, True),
+        (hello_imgui.ImGuiTheme_.gray_variations, True),
+        (hello_imgui.ImGuiTheme_.imgui_colors_light, False),
+        (hello_imgui.ImGuiTheme_.darcula_darker, False),
+    ],
+)
+def test_light_themes_select_in_the_gray_of_table_headers(
+    context: None,
+    monkeypatch: pytest.MonkeyPatch,
+    applied: hello_imgui.ImGuiTheme_,
+    table_header: bool,
+) -> None:
+    tweaked = hello_imgui.ImGuiTweakedTheme()
+    tweaked.theme = applied
+    hello_imgui.apply_tweaked_theme(tweaked)
+    _use_theme(monkeypatch, hello_imgui.ImGuiThemeTweaks(), applied)
+    style = imgui.get_style()
+    before = style.color_(imgui.Col_.header)
+    before = (before.x, before.y, before.z, before.w)
+    theme.apply_style()
+    header = style.color_(imgui.Col_.header)
+    if table_header:
+        assert header == style.color_(imgui.Col_.table_header_bg)
+    else:
+        # A blue or dark theme's selection shows clearly already.
+        assert (header.x, header.y, header.z, header.w) == before

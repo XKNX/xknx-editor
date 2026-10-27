@@ -201,6 +201,7 @@ def apply_style() -> None:
     _apply_text_selection(style)
     _apply_link_color(style)
     _apply_table_lines(style)
+    _apply_row_selection(style)
     apply_window_colors()
 
 
@@ -259,6 +260,21 @@ def _apply_table_lines(style: imgui.Style) -> None:
             for a, b in zip(w, (text.x, text.y, text.z), strict=True)
         ]
         style.set_color_(col, imgui.ImVec4(mixed[0], mixed[1], mixed[2], 1.0))
+
+
+def _apply_row_selection(style: imgui.Style) -> None:
+    """In a light theme, a selected row or item in the gray of the table headers where that is
+    darker: some light themes select in a gray barely darker than their alternate table rows."""
+    window = style.color_(imgui.Col_.window_bg)
+    if _luminance(window) < 0.5:
+        return
+    selection = style.color_(imgui.Col_.header)
+    # How light the selection is drawn over the window (it may be partly transparent).
+    alpha = min(max(selection.w, 0.0), 1.0)
+    shown = _luminance(window) + (_luminance(selection) - _luminance(window)) * alpha
+    header = style.color_(imgui.Col_.table_header_bg)
+    if _luminance(header) < shown:
+        style.set_color_(imgui.Col_.header, header)
 
 
 def apply_window_colors() -> None:
