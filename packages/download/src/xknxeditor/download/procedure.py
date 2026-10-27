@@ -31,6 +31,7 @@ import logging
 import re
 import time
 from collections.abc import Callable, Mapping, Sequence
+from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 from xknx.profile.const import ResourceGenericPropertyId, ResourceObjectType
@@ -369,12 +370,43 @@ def _supports_extended_properties(application: Application) -> bool:
 # Applications whose devices fall back to the standard memory services when an extended one
 # fails (by application id prefix).
 _EXTENDED_MEMORY_FALLBACK = ("M-0071",)
+# Applications whose devices take at most 12 octets per standard memory service: manufacturer
+# and application numbers.
+_SHORT_MEMORY_SERVICES = {"M-0083": frozenset({100, 101, 102, 103, 106, 107})}
+_SHORT_MEMORY_SERVICE_COUNT = 12
 
 
-def memory_services(application: Application) -> tuple[bool, bool]:
-    """Whether the device takes the extended memory services (A_MemoryExtended_Read/Write):
-    the application says so, or it is a secure application; and whether a failed extended
-    service falls back to the standard ones for the rest of the connection."""
+@dataclass(frozen=True)
+class MemoryServices:
+    """How a device's memory is read and written, from its application: with the extended
+    memory services (A_MemoryExtended_Read/Write) when it takes them, falling back to the
+    standard ones when an extended one fails (``fallback``), and with at most ``max_count``
+    octets per standard memory service (None: as the APDU allows)."""
+
+    extended: bool = False
+    fallback: bool = False
+    max_count: int | None = None
+
+    def cap(self, count: int | None) -> int | None:
+        """A standard memory service count (None: as the APDU allows) within ``max_count``."""
+        if self.max_count is None:
+            return count
+        return min(count or self.max_count, self.max_count)
+
+    def apply(self, programmer: DeviceProgrammer) -> None:
+        """Set up a programmer of a new connection."""
+        programmer.extended_memory = self.extended
+        programmer.extended_memory_fallback = self.fallback
+        if self.max_count is not None:
+            programmer.max_memory_service_count = min(
+                programmer.max_memory_service_count, self.max_count
+            )
+
+
+def memory_services(application: Application) -> MemoryServices:
+    """The memory services of a device of ``application``: extended when the application says
+    so or is a secure one; the fallback and the short standard services for the applications
+    that need them."""
     program = getattr(application, "program", None)
     options = getattr(getattr(program, "static", None), "options", None)
     extended = bool(
@@ -382,7 +414,15 @@ def memory_services(application: Application) -> tuple[bool, bool]:
         or getattr(program, "is_secure_enabled", False)
     )
     app_id = getattr(application, "id", "") or getattr(program, "id", "") or ""
-    return extended, app_id.startswith(_EXTENDED_MEMORY_FALLBACK)
+    manufacturer = getattr(application, "manufacturer_id", "") or app_id[:6]
+    short = getattr(program, "application_number", None) in _SHORT_MEMORY_SERVICES.get(
+        manufacturer, frozenset()
+    )
+    return MemoryServices(
+        extended=extended,
+        fallback=app_id.startswith(_EXTENDED_MEMORY_FALLBACK),
+        max_count=_SHORT_MEMORY_SERVICE_COUNT if short else None,
+    )
 
 
 def _application_id(application: Application) -> bytes:
@@ -500,8 +540,10 @@ class LoadProcedureRunner:
         # BCU1 has no interface-object properties. Leave this on for every other mask.
         self._property_services = property_services
         # Optional lowered cap on the classic memory-service payload (a no-ACK
-        # fallback); None keeps the programmer's APDU-derived default.
-        self._memory_service_count = memory_service_count
+        # fallback); None keeps the programmer's APDU-derived default. Devices that take only
+        # short memory services never get more.
+        self._memory_services = memory_services(application)
+        self._memory_service_count = self._memory_services.cap(memory_service_count)
         # (legacy control filter, original error) -> mapped error; 0 is wildcard.
         self._error_mappings: dict[tuple[int, int], int] = {}
         self._controls = (
@@ -917,11 +959,8 @@ class LoadProcedureRunner:
             self._programmer.table_reference_width = 4
         if self._memory_service_count is not None:
             self._programmer.max_memory_service_count = self._memory_service_count
-        # Per connection: a fallback turns them off until the next one.
-        (
-            self._programmer.extended_memory,
-            self._programmer.extended_memory_fallback,
-        ) = memory_services(self.application)
+        # Per connection: a fallback turns the extended services off until the next one.
+        self._memory_services.apply(self._programmer)
         if not self._property_services:
             self._programmer.skip_property_verify_probe()
         await self._prepare_device(self._programmer)

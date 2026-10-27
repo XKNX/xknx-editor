@@ -115,7 +115,7 @@ class OnlineButtonRunner:
             object_types=_object_types(conn, device),
             memory_services=memory_services(device.app)
             if device.app is not None
-            else (False, False),
+            else None,
         )
         online = OnlineHost(session, self._run_coroutine, run.abort)
         node_id = device.node_id

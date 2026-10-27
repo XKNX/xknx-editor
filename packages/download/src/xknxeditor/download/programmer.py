@@ -488,7 +488,9 @@ class DeviceProgrammer:
         cross it is cut at the boundary.
         """
         limit = (
-            self._payload_budget(4, 15)
+            self._payload_budget(
+                4, min(_MAX_USER_MEMORY_CHUNK, self.max_memory_service_count)
+            )
             if address >= _USER_MEMORY_BOUNDARY
             else self.memory_chunk_size
         )

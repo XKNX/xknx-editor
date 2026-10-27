@@ -16,7 +16,7 @@ from xknx.telegram.apci import (
 
 from xknxeditor.download import programmer as programmer_module
 from xknxeditor.download.errors import CompareMismatch, VerificationError
-from xknxeditor.download.procedure import memory_services
+from xknxeditor.download.procedure import MemoryServices, memory_services
 from xknxeditor.download.programmer import DeviceProgrammer
 
 from .conftest import FakeDevice
@@ -134,23 +134,47 @@ async def test_the_standard_services_end_at_one_mebibyte() -> None:
 def _application(app_id: str, *, memory: bool = False, secure: bool = False) -> Any:
     options = SimpleNamespace(supports_extended_memory_services=memory)
     program = SimpleNamespace(
-        id=app_id, static=SimpleNamespace(options=options), is_secure_enabled=secure
+        id=app_id,
+        static=SimpleNamespace(options=options),
+        is_secure_enabled=secure,
+        application_number=int(app_id.split("_A-")[1][:4], 16),
     )
-    return SimpleNamespace(id=app_id, program=program)
+    return SimpleNamespace(id=app_id, manufacturer_id=app_id[:6], program=program)
 
 
 @pytest.mark.parametrize(
     ("app_id", "memory", "secure", "expected"),
     [
-        ("M-0071_A-4381-12-8943", True, False, (True, True)),
-        ("M-0083_A-00B0-32-0DFC", True, False, (True, False)),
-        ("M-0002_A-1234-10-0000", False, True, (True, False)),
-        ("M-0002_A-1234-10-0000", False, False, (False, False)),
+        ("M-0071_A-4381-12-8943", True, False, MemoryServices(True, True)),
+        ("M-0083_A-00B0-32-0DFC", True, False, MemoryServices(True, False)),
+        ("M-0002_A-1234-10-0000", False, True, MemoryServices(True, False)),
+        ("M-0002_A-1234-10-0000", False, False, MemoryServices()),
+        # MDT presence detectors take at most 12 octets per standard memory service.
+        ("M-0083_A-0064-34-D10D", False, False, MemoryServices(max_count=12)),
+        ("M-0083_A-006B-34-27BA", False, False, MemoryServices(max_count=12)),
+        ("M-0002_A-0064-10-0000", False, False, MemoryServices()),
     ],
 )
 def test_the_application_decides_the_memory_services(
-    app_id: str, memory: bool, secure: bool, expected: tuple[bool, bool]
+    app_id: str, memory: bool, secure: bool, expected: MemoryServices
 ) -> None:
     assert memory_services(_application(app_id, memory=memory, secure=secure)) == (
         expected
     )
+
+
+async def test_short_memory_services_cap_standard_and_user_memory() -> None:
+    device = FakeDevice()
+    programmer = DeviceProgrammer(device, max_apdu_length=55)
+    programmer.skip_property_verify_probe()
+    MemoryServices(max_count=12).apply(programmer)
+    await programmer.write_memory(0x4000, bytes(30))
+    await programmer.write_memory(0x10000, bytes(20))
+    sizes = [len(p.data) for p in device.sent if hasattr(p, "data")]
+    assert sizes == [12, 12, 6, 12, 8]
+
+
+def test_a_fallback_cap_stays_within_short_memory_services() -> None:
+    short = MemoryServices(max_count=12)
+    assert [short.cap(given) for given in (None, 15, 8)] == [12, 12, 8]
+    assert [MemoryServices().cap(given) for given in (None, 15)] == [None, 15]

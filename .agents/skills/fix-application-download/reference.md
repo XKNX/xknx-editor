@@ -61,6 +61,7 @@ The application decides, not the mask: `Options/@SupportsExtendedMemoryServices=
 - A return code from `0x80` on is an error. Code `1` carries a CRC16 (`segment_crc`: CCITT, the augmented form, over count, 3-octet address and data), checked when the write is verified. Extended writes are never read back.
 - Without the extended services: A_Memory below 64 KiB, A_UserMemory above (20 bits).
 - Zennio applications (`M-0071`) fall back to the standard services for the rest of the connection when an extended service fails (`extended_memory_fallback`).
+- MDT presence detectors (`M-0083`, application numbers 100–103, 106, 107) take at most 12 octets per standard (and user) memory service (`MemoryServices.max_count`).
 
 ## What a matching Berker 8014 download contains
 

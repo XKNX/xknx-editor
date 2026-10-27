@@ -33,6 +33,7 @@ if TYPE_CHECKING:
     from xknxeditor.prod.script.sandbox import AbortToken, HostFunction
 
     from .data_secure import DeviceSecurity
+    from .procedure import MemoryServices
     from .programmer import ConnectionManager
 
 # APDU length reported before connect(): the length every KNX device supports.
@@ -56,11 +57,10 @@ class OnlineSession:
         interface_max_apdu_length: int | None = None,
         locale: str | None = None,
         object_types: dict[int, int] | None = None,
-        memory_services: tuple[bool, bool] = (False, False),
+        memory_services: MemoryServices | None = None,
     ) -> None:
-        """``memory_services``: whether the device takes the extended memory services, and
-        whether a failed one falls back to the standard ones (see
-        ``procedure.memory_services``)."""
+        """``memory_services``: how the device's memory is read and written, from its
+        application (see ``procedure.memory_services``); None: the standard services."""
         self._xknx = xknx
         self._memory_services = memory_services
         self._address = address
@@ -107,9 +107,8 @@ class OnlineSession:
             programmer = DeviceProgrammer(
                 connection, apdu_overhead=apdu_overhead(self._security)
             )
-            programmer.extended_memory, programmer.extended_memory_fallback = (
-                self._memory_services
-            )
+            if self._memory_services is not None:
+                self._memory_services.apply(programmer)
             descriptor = await programmer.read_device_descriptor()
             if self._mask_version is not None and descriptor != self._mask_version:
                 raise HostError(DEVICE_MISMATCH.format(descriptor, self._mask_version))

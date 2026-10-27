@@ -267,9 +267,7 @@ async def _partial_scope(
     manager = _connection_manager(xknx, address, security)
     try:
         programmer = DeviceProgrammer(await manager.open())
-        programmer.extended_memory, programmer.extended_memory_fallback = (
-            memory_services(application)
-        )
+        memory_services(application).apply(programmer)
         reason = await partial_download_mismatch(programmer, application, resources)
     except ManagementConnectionError as exc:
         if not prefer:
