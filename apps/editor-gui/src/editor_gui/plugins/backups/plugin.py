@@ -359,7 +359,6 @@ class BackupsPlugin:
         """The buttons for the chosen backup: (label, tooltip, what it does)."""
         pinned = backup is not None and backup.pinned
         return [
-            (S.BTN_COMPARE, S.TIP_COMPARE, self._compare_with),
             (S.BTN_RESTORE, "", self._ask_restore),
             (S.BTN_EXPORT, "", self._ask_export),
             (
@@ -367,6 +366,7 @@ class BackupsPlugin:
                 S.TIP_PIN,
                 lambda b: self._pin(b, not b.pinned),
             ),
+            (S.BTN_COMPARE, S.TIP_COMPARE, self._compare_with),
             (S.BTN_CHECK, S.TIP_CHECK, self._check),
             (S.BTN_DELETE, "", self._ask_delete),
         ]
