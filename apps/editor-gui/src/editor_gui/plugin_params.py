@@ -17,11 +17,13 @@ from __future__ import annotations
 
 import json
 import re
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable
 from dataclasses import dataclass, field
 from functools import lru_cache
 from pathlib import Path
 from typing import TYPE_CHECKING, Protocol, cast
+
+from xknxeditor.prod.parser_v2._name import apply_text_args, fill_name
 
 if TYPE_CHECKING:
     from editor_gui.device import Device
@@ -177,8 +179,10 @@ def build_sections(
     parameter_refs: list[_ParameterRefLike],
     stored_values: dict[str, str],
     mapping: PluginMapping,
+    pt_by_id: dict[str, object] | None = None,
 ) -> list[PluginSectionView]:
     """Group every parameter-ref of an application into sections keyed by its parameter's name."""
+    types = pt_by_id or {}
     sections: dict[str, PluginSectionView] = {}
     for ref in parameter_refs:
         param = parameters_by_ref_id.get(ref.ref_id)
@@ -217,6 +221,7 @@ def build_sections(
             section=section_label,
             display_order=int(getattr(ref, "display_order", 0) or 0),
             writable=bool(writable),
+            choices=_enum_choices(param, types),
         )
         sections.setdefault(
             section_label, PluginSectionView(section=section_label)
@@ -252,6 +257,94 @@ def _text(value: object) -> str:
     return str(value)
 
 
+def _enum_choices(
+    param: object, pt_by_id: dict[str, object]
+) -> tuple[tuple[str, str], ...]:
+    """The (raw value, label) pairs of ``param``'s ParameterType if it is an enumeration.
+
+    Reads the type restriction's ``enumeration`` directly (by attribute, not by matching a
+    version-specific binding class), so the viewer shows human labels + a dropdown the way the
+    normal tree does (``3`` -> ``RGBW Colour``) instead of the raw stored integer, across every
+    schema version. Empty when the type is not an enumeration or is unknown (plain numeric/text
+    parameters keep their free input).
+    """
+    pt_id = getattr(param, "parameter_type", None)
+    if not pt_id:
+        return ()
+    pt = pt_by_id.get(str(pt_id))
+    restriction = getattr(pt, "choice", None)
+    enumeration = getattr(restriction, "enumeration", None)
+    if not enumeration:
+        return ()
+    ordered = sorted(
+        enumeration,
+        key=lambda e: getattr(e, "display_order", None) or 0,
+    )
+    choices: list[tuple[str, str]] = []
+    for e in ordered:
+        value = getattr(e, "value", None)
+        if value is None:
+            continue
+        choices.append((str(value), str(getattr(e, "text", "") or "")))
+    return tuple(choices)
+
+
+def _resolve_placeholders(label: str, text_args: dict[str, str]) -> str:
+    """Substitute ``{{Name}}`` placeholders in ``label`` from ``text_args`` (module arguments).
+
+    ``{{GRP_NO}}`` and friends come from a module instance's resolved arguments (allocators
+    applied). Any placeholder with no argument is then dropped by :func:`fill_name` so a stray
+    ``{{...}}`` never reaches the user. Labels without ``{{`` are returned unchanged.
+    """
+    if "{{" not in label:
+        return label
+    return fill_name(apply_text_args(label, text_args), "")
+
+
+def _module_text_args(device: Device, program: object) -> dict[str, dict[str, str]]:
+    """Per module-instance ``{argument name: value}`` for resolving ``{{Name}}`` placeholders.
+
+    Values come from the device's resolved module arguments (``get_module_instance_arguments``,
+    allocators applied), the argument names from the application's module-def ``<Argument>``
+    declarations. Keyed by instance id (``MD-1_M-2_MI-1``). Best-effort: any failure yields an
+    empty map so a label simply keeps / drops its placeholder instead of crashing the viewer.
+    """
+    try:
+        args_by_iid = device.get_module_instance_arguments()
+    except Exception:
+        return {}
+    if not args_by_iid:
+        return {}
+    name_by_arg_id: dict[str, str] = {}
+    mdefs = getattr(program, "module_defs", None)
+    for mdef in getattr(mdefs, "module_def", []) or []:
+        container = getattr(mdef, "arguments", None)
+        for arg in getattr(container, "argument", []) or []:
+            arg_id = str(getattr(arg, "id", "") or "")
+            arg_name = str(getattr(arg, "name", "") or "")
+            if not arg_id or not arg_name:
+                continue
+            name_by_arg_id[arg_id] = arg_name
+            # get_module_instance_arguments keys args relative to the module ("MD-1_A-3"), so also
+            # index by that suffix (the module-def id is the full app-prefixed form).
+            pos = arg_id.find("_MD-")
+            if pos != -1:
+                name_by_arg_id[arg_id[pos + 1 :]] = arg_name
+    out: dict[str, dict[str, str]] = {}
+    for iid, pairs in args_by_iid.items():
+        mapping: dict[str, str] = {}
+        for arg_id, value in pairs:
+            name = name_by_arg_id.get(str(arg_id))
+            if name:
+                mapping[name] = str(value)
+        if mapping:
+            out[iid] = mapping
+    return out
+
+
+_IID_PATTERN = re.compile(r"(MD-[0-9]+_M-[0-9]+_MI-[0-9]+)")
+
+
 def collect_from_device(
     device: Device, mapping: PluginMapping
 ) -> list[PluginSectionView]:
@@ -269,6 +362,17 @@ def collect_from_device(
     if parameters_container is None or refs_container is None:
         return []
     by_id: dict[str, _ParameterLike] = {}
+    pt_container = getattr(static, "parameter_types", None)
+    pt_list: Iterable[object] = (
+        getattr(pt_container, "parameter_type", []) or []
+        if pt_container is not None
+        else []
+    )
+    pt_by_id: dict[str, object] = {}
+    for pt in pt_list:
+        pt_id = str(getattr(pt, "id", "") or "")
+        if pt_id:
+            pt_by_id[pt_id] = pt
     choice_items: Iterable[object] = getattr(parameters_container, "choice", []) or []
     for item in choice_items:
         # Union: has a .parameter list of UnionParameter; plain Parameter: has .id directly.
@@ -325,12 +429,22 @@ def collect_from_device(
         parameter_refs=refs,
         stored_values=stored,
         mapping=mapping,
+        pt_by_id=pt_by_id,
     )
     # Module instances: the application's parameter_refs only list templates (one per module
     # definition), while the project stores instance refs like "..._MD-N_M-x_MI-y_P-M_R-z". Those
     # never resolve via the template refs, so add synthetic rows for them, resolving the template
     # parameter by stripping the "_M-x_MI-y" fragment.
-    _add_module_instance_rows(sections_result, device, by_id, ref_param_ids, mapping)
+    text_args_by_iid = _module_text_args(device, program)
+    _add_module_instance_rows(
+        sections_result,
+        device,
+        by_id,
+        ref_param_ids,
+        mapping,
+        pt_by_id,
+        text_args_by_iid,
+    )
     # Vendor BLOB readers (e.g. Siemens N141/03's BLOB_PARA): append the plug-in's own
     # binary-stored sensor / commissioning state as additional read-only sections.
     if mapping.blob_reader:
@@ -356,13 +470,37 @@ def _read_blob_sections(device: Device, reader_name: str) -> list[PluginSectionV
         data = getattr(entry, "data", None)
         if not data:
             continue
+        entry_name = str(getattr(entry, "name", "") or "")
+        # Readers accept an optional entry name (used by multi-blob vendors to disambiguate a
+        # channel and route edits back); older readers that only take data still work.
         try:
-            sections = cast("list[PluginSectionView]", read(data))
+            sections = cast(
+                "list[PluginSectionView]", _call_reader(read, data, entry_name)
+            )
         except Exception:
             continue
         if sections:
             out.extend(sections)
     return out
+
+
+def _call_reader(read: object, data: bytes, name: str) -> object:
+    """Call a blob reader, passing the entry ``name`` only when its signature accepts it.
+
+    Deciding by signature (not by catching ``TypeError``) avoids masking a genuine ``TypeError``
+    raised inside a reader that does accept ``name``.
+    """
+    import inspect
+
+    reader = cast("Callable[..., object]", read)
+    try:
+        params = inspect.signature(reader).parameters
+        accepts_name = "name" in params or any(
+            p.kind is inspect.Parameter.VAR_KEYWORD for p in params.values()
+        )
+    except (ValueError, TypeError):
+        accepts_name = False
+    return reader(data, name=name) if accepts_name else reader(data)
 
 
 _MODULE_REF_PATTERN = re.compile(
@@ -376,6 +514,8 @@ def _add_module_instance_rows(
     by_id: dict[str, _ParameterLike],
     ref_param_ids: set[object],
     mapping: PluginMapping,
+    pt_by_id: dict[str, object],
+    text_args_by_iid: dict[str, dict[str, str]],
 ) -> None:
     """Attach rows for stored module-instance refs that the template-only pass skipped."""
     section_lookup = {s.section: s for s in sections}
@@ -412,6 +552,13 @@ def _add_module_instance_rows(
             if text_attr and not _is_placeholder_text(text_attr)
             else field_name
         )
+        # Resolve {{GRP_NO}} etc. from this instance's module arguments (the group/ECG number),
+        # so the user sees "Group 3, Description" instead of the raw template placeholder.
+        iid_match = _IID_PATTERN.search(str(full_ref))
+        if iid_match is not None:
+            base_label = _resolve_placeholders(
+                base_label, text_args_by_iid.get(iid_match.group(1), {})
+            )
         # Module instances share one template, so prefix the row with the instance index to
         # distinguish e.g. ECG 1 vs ECG 2 within the same section.
         row_label = f"[{mi}] {base_label}"
@@ -424,6 +571,7 @@ def _add_module_instance_rows(
             section=section_label,
             display_order=int(mi),
             writable=True,
+            choices=_enum_choices(param, pt_by_id),
         )
         view = section_lookup.get(section_label)
         if view is None:

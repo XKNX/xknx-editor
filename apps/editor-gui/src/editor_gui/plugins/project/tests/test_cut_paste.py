@@ -85,7 +85,7 @@ def _frame(render: object, keys: tuple[imgui.Key, ...] = ()) -> None:
     io = imgui.get_io()
     for down in (False, True) if keys else (False,):
         for key in keys if down else ():
-            io.add_key_event(imgui.Key.mod_ctrl, True)
+            io.add_key_event(imgui.Key.reserved_for_mod_ctrl, True)
             io.add_key_event(key, True)
         imgui.new_frame()
         imgui.set_next_window_focus()
@@ -95,7 +95,7 @@ def _frame(render: object, keys: tuple[imgui.Key, ...] = ()) -> None:
         imgui.end_frame()
     for key in keys:
         io.add_key_event(key, False)
-        io.add_key_event(imgui.Key.mod_ctrl, False)
+        io.add_key_event(imgui.Key.reserved_for_mod_ctrl, False)
     imgui.new_frame()
     imgui.end_frame()
 

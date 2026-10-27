@@ -516,6 +516,8 @@ msgstr "Læser projekterne…"
 
 msgid "Comparing devices: {done} of {total}"
 msgstr "Sammenligner enheder: {done} af {total}"
+msgid "File"
+msgstr "Fil"
 
 msgid "Type"
 msgstr "Type"

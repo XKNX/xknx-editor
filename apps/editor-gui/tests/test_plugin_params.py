@@ -8,12 +8,15 @@ sections rather than the Other bucket.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, cast
 
 import pytest
 from editor_gui.plugin_params import (
     _MAPPINGS_DIR,
+    _enum_choices,
     _load_mapping,
+    _module_text_args,
+    _resolve_placeholders,
     collect_from_device,
     mapping_for,
 )
@@ -183,3 +186,113 @@ def test_mapping_directory_lives_next_to_module() -> None:
 
 if __name__ == "__main__":  # pragma: no cover
     pytest.main([__file__, "-v"])
+
+
+@dataclass
+class _StubEnumEntry:
+    value: int
+    text: str
+    display_order: int | None = None
+
+
+@dataclass
+class _StubRestriction:
+    enumeration: list[Any] = field(default_factory=list)
+
+
+@dataclass
+class _StubParameterType:
+    id: str
+    choice: Any = None
+
+
+def test_enum_choices_resolves_label_pairs() -> None:
+    pt = _StubParameterType(
+        id="PT-ColourControlType",
+        choice=_StubRestriction(
+            enumeration=[
+                _StubEnumEntry(value=0, text="none"),
+                _StubEnumEntry(value=3, text="RGBW Colour"),
+                _StubEnumEntry(value=1, text="Colour Temperature", display_order=1),
+            ]
+        ),
+    )
+    param = _StubParam(id="P-1", name="DCA1-CC-ColourControlType")
+    param.parameter_type = pt.id  # type: ignore[attr-defined]
+    choices = _enum_choices(param, {pt.id: pt})
+    # value 3 maps to its label; the panel renders a dropdown seeded by the stored "3".
+    assert ("3", "RGBW Colour") in choices
+    assert ("0", "none") in choices
+
+
+def test_enum_choices_empty_for_non_enum() -> None:
+    pt = _StubParameterType(id="PT-Number", choice=_StubRestriction(enumeration=[]))
+    param = _StubParam(id="P-2", name="DEV-Foo")
+    param.parameter_type = pt.id  # type: ignore[attr-defined]
+    assert _enum_choices(param, {pt.id: pt}) == ()
+    # Unknown type id -> no choices, no crash.
+    assert _enum_choices(param, {}) == ()
+
+
+def test_resolve_placeholders_substitutes_and_strips() -> None:
+    assert (
+        _resolve_placeholders("Group {{GRP_NO}}, Description", {"GRP_NO": "3"})
+        == "Group 3, Description"
+    )
+    # A placeholder with no argument is dropped rather than shown raw.
+    assert "{{" not in _resolve_placeholders("Group {{GRP_NO}}, X", {})
+    # No placeholder -> unchanged.
+    assert _resolve_placeholders("Plain label", {}) == "Plain label"
+
+
+@dataclass
+class _StubArg:
+    id: str
+    name: str
+
+
+@dataclass
+class _StubArgs:
+    argument: list[Any] = field(default_factory=list)
+
+
+@dataclass
+class _StubMdefWithArgs:
+    arguments: Any = None
+
+
+@dataclass
+class _StubProgramArgs:
+    module_defs: Any = None
+
+
+class _StubDeviceArgs:
+    def __init__(self, args: dict[str, list[tuple[str, str]]]) -> None:
+        self._args = args
+
+    def get_module_instance_arguments(self) -> dict[str, list[tuple[str, str]]]:
+        return self._args
+
+
+def test_module_text_args_maps_allocator_name_to_value() -> None:
+    # The module def declares GRP_NO with its full app-prefixed id; the resolved instance args
+    # come back keyed relative to the module ("MD-1_A-3"). _module_text_args must bridge both.
+    program = _StubProgramArgs(
+        module_defs=_StubModuleDefs(
+            module_def=[
+                _StubMdefWithArgs(
+                    arguments=_StubArgs(
+                        argument=[_StubArg(id="M-0083_A-0154_MD-1_A-3", name="GRP_NO")]
+                    )
+                )
+            ]
+        )
+    )
+    device = _StubDeviceArgs({"MD-1_M-2_MI-3": [("MD-1_A-3", "3")]})
+    result = _module_text_args(cast(Any, device), program)
+    assert result == {"MD-1_M-2_MI-3": {"GRP_NO": "3"}}
+
+
+def test_module_text_args_empty_when_no_instances() -> None:
+    device = _StubDeviceArgs({})
+    assert _module_text_args(cast(Any, device), _StubProgramArgs()) == {}

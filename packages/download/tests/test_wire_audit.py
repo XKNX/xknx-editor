@@ -241,6 +241,11 @@ def capture_application(
     app, ui = seeded_application((4, 0, data))
     app.load_procedure_style = LoadProcedureStyle.MERGED_PROCEDURE  # type: ignore[misc]
     app.program.id = "M-00FA_A-1000-10-0001"
+    # The captured download used A_Memory_Write: the device's application declares no
+    # extended memory services (the fixture's Gira application does).
+    assert app.program.static.options is not None
+    app.program.static.options.supports_extended_memory_services = False
+    app.program.is_secure_enabled = False
     app.load_procedures = XmlParser().from_path(  # type: ignore[misc]
         Path(__file__).parent / "fixtures/systemb_fragments.xml", LoadProcedures
     )

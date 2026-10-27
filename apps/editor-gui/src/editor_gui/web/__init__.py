@@ -380,9 +380,9 @@ def enable_web_mode(
                     io.add_mouse_pos_event(-3.4e38, -3.4e38)
                 else:
                     io.add_mouse_pos_event(float(event["x"]), float(event["y"]))
-                    io.add_key_event(imgui.Key.mod_ctrl, True)
+                    io.add_key_event(imgui.Key.reserved_for_mod_ctrl, True)
                     io.add_mouse_wheel_event(0.0, float(event.get("steps", 0)))
-                    io.add_key_event(imgui.Key.mod_ctrl, False)
+                    io.add_key_event(imgui.Key.reserved_for_mod_ctrl, False)
             elif kind == "touch" and gestures:
                 if gestures[0].needs_frame(event):
                     hub.put_back(events[i:])
@@ -636,10 +636,13 @@ def _apply(io: imgui.IO, event: dict[str, Any]) -> None:
 
     kind = event.get("t")
     if kind == "mods":
-        io.add_key_event(imgui.Key.mod_ctrl, bool(event.get("c")))
-        io.add_key_event(imgui.Key.mod_shift, bool(event.get("s")))
-        io.add_key_event(imgui.Key.mod_alt, bool(event.get("a")))
-        io.add_key_event(imgui.Key.mod_super, bool(event.get("m")))
+        # imgui-bundle 1.93 only updates io.key_ctrl/shift/alt/super from the
+        # ``reserved_for_mod_*`` key slots; feeding the plain ``mod_*`` aliases via
+        # add_key_event no longer sets the modifier state (browser Ctrl/Cmd combos).
+        io.add_key_event(imgui.Key.reserved_for_mod_ctrl, bool(event.get("c")))
+        io.add_key_event(imgui.Key.reserved_for_mod_shift, bool(event.get("s")))
+        io.add_key_event(imgui.Key.reserved_for_mod_alt, bool(event.get("a")))
+        io.add_key_event(imgui.Key.reserved_for_mod_super, bool(event.get("m")))
     elif kind == "move":
         io.add_mouse_pos_event(float(event["x"]), float(event["y"]))
     elif kind == "button":

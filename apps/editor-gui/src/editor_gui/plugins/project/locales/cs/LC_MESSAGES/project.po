@@ -516,6 +516,8 @@ msgstr "Načítání projektů…"
 
 msgid "Comparing devices: {done} of {total}"
 msgstr "Porovnávání zařízení: {done} z {total}"
+msgid "File"
+msgstr "Soubor"
 
 msgid "Type"
 msgstr "Typ"

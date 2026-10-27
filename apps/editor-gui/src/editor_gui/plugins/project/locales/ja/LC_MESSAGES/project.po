@@ -516,6 +516,8 @@ msgstr "プロジェクトを読み込んでいます…"
 
 msgid "Comparing devices: {done} of {total}"
 msgstr "デバイスを比較中: {done} / {total}"
+msgid "File"
+msgstr "ファイル"
 
 msgid "Type"
 msgstr "タイプ"

@@ -516,6 +516,8 @@ msgstr "Ανάγνωση των έργων…"
 
 msgid "Comparing devices: {done} of {total}"
 msgstr "Σύγκριση συσκευών: {done} από {total}"
+msgid "File"
+msgstr "Αρχείο"
 
 msgid "Type"
 msgstr "Τύπος"

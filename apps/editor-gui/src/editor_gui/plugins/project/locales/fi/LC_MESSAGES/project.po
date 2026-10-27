@@ -516,6 +516,8 @@ msgstr "Luetaan projekteja…"
 
 msgid "Comparing devices: {done} of {total}"
 msgstr "Verrataan laitteita: {done}/{total}"
+msgid "File"
+msgstr "Tiedosto"
 
 msgid "Type"
 msgstr "Tyyppi"

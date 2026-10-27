@@ -29,13 +29,13 @@ def _press(key: imgui.Key, frame: Callable[[], None], ctrl: bool = False) -> Non
     """Presses and releases ``key`` (with Ctrl held), one frame each, and one frame after."""
     io = imgui.get_io()
     if ctrl:
-        io.add_key_event(imgui.Key.mod_ctrl, True)
+        io.add_key_event(imgui.Key.reserved_for_mod_ctrl, True)
     io.add_key_event(key, True)
     frame()
     io.add_key_event(key, False)
     frame()
     if ctrl:
-        io.add_key_event(imgui.Key.mod_ctrl, False)
+        io.add_key_event(imgui.Key.reserved_for_mod_ctrl, False)
     frame()
 
 

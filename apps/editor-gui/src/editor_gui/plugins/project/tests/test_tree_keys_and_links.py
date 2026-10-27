@@ -123,7 +123,9 @@ def test_the_delete_key_and_f2_act_on_the_selected_row(
     row = ShortcutRow(None, no_paste, on_delete=lambda: deleted.append(1))
     _frames(lambda: handle_row_keys(row), keys=(imgui.Key.delete,))
     assert deleted == [1]
-    # Backspace deletes only on a Mac, whose Delete key sends it.
+    # Backspace deletes only on a Mac, whose Delete key sends it. Pin the platform so the test
+    # is deterministic on both Linux CI and a macOS dev machine (where mac_keys() is True).
+    monkeypatch.setattr(paste_special, "mac_keys", lambda: False)
     _frames(lambda: handle_row_keys(row), keys=(imgui.Key.backspace,))
     assert deleted == [1]
     monkeypatch.setattr(paste_special, "mac_keys", lambda: True)

@@ -516,6 +516,8 @@ msgstr "Leyendo los proyectos…"
 
 msgid "Comparing devices: {done} of {total}"
 msgstr "Comparando dispositivos: {done} de {total}"
+msgid "File"
+msgstr "Archivo"
 
 msgid "Type"
 msgstr "Tipo"

@@ -516,6 +516,8 @@ msgstr "Projeler okunuyor…"
 
 msgid "Comparing devices: {done} of {total}"
 msgstr "Cihazlar karşılaştırılıyor: {done} / {total}"
+msgid "File"
+msgstr "Dosya"
 
 msgid "Type"
 msgstr "Tip"

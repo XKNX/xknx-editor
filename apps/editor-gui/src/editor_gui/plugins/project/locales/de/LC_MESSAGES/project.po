@@ -45,6 +45,8 @@ msgstr "Projekte werden gelesen…"
 
 msgid "Comparing devices: {done} of {total}"
 msgstr "Geräte werden verglichen: {done} von {total}"
+msgid "File"
+msgstr "Datei"
 
 msgid "Group Address Style"
 msgstr "Gruppenadressansicht"
