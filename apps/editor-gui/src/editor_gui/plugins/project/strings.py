@@ -1099,6 +1099,14 @@ class ProjectStrings:
         return _("Choose Project to Compare…")
 
     @property
+    def TOOLS_DIFF_BACKUPS(self) -> str:
+        return _("From Backups…")
+
+    @property
+    def TOOLS_DIFF_BACKUPS_TIP(self) -> str:
+        return _("Compare with a backup of this project")
+
+    @property
     def TOOLS_DIFF_PICK_TITLE(self) -> str:
         return _("Choose Project to Compare")
 
@@ -1108,7 +1116,7 @@ class ProjectStrings:
 
     @property
     def TOOLS_DIFF_COMPARED_WITH(self) -> str:
-        return _("compared with {name}")
+        return _("Compared with {name}:")
 
     @property
     def TOOLS_DIFF_IDENTICAL(self) -> str:

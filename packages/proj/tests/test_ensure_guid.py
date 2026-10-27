@@ -1,4 +1,4 @@
-"""A project always has a GUID once asked for: one made by an earlier version is given one,
+"""A project always has a GUID once asked for: an older project file is given one,
 kept from then on."""
 
 from __future__ import annotations

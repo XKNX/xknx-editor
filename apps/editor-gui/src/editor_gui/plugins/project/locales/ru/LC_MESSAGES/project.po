@@ -307,8 +307,8 @@ msgstr "Выбрать проект для сравнения"
 msgid "KNX project (*.knxproj *.xknx *.zip)"
 msgstr "Проект KNX (*.knxproj *.xknx *.zip)"
 
-msgid "compared with {name}"
-msgstr "в сравнении с {name}"
+msgid "Compared with {name}:"
+msgstr "В сравнении с {name}:"
 
 msgid "No differences in devices or group addresses."
 msgstr "Нет различий в устройствах и групповых адресах."
@@ -2951,3 +2951,9 @@ msgstr "Удалить устройства"
 
 msgid "{medium} line"
 msgstr "линия {medium}"
+
+msgid "From Backups…"
+msgstr "Из резервных копий…"
+
+msgid "Compare with a backup of this project"
+msgstr "Сравнить с резервной копией этого проекта"

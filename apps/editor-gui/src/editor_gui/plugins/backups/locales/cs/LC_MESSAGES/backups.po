@@ -7,14 +7,14 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-msgid "Versions and Backups"
-msgstr "Verze a zálohy"
+msgid "Backups"
+msgstr "Zálohy"
 
 msgid "Create Backup…"
 msgstr "Vytvořit zálohu…"
 
-msgid "Show Versions and Backups…"
-msgstr "Zobrazit verze a zálohy…"
+msgid "Show Backups…"
+msgstr "Zobrazit zálohy…"
 
 msgid "Comment: {comment}"
 msgstr "Komentář: {comment}"
@@ -202,14 +202,11 @@ msgstr "Jeho nejnovější záloha je z {created}. Obnovit z ní projekt? Soubor
 msgid "The damaged file was kept as {name}."
 msgstr "Poškozený soubor byl uchován jako {name}."
 
-msgid "Versions and Backups Settings"
-msgstr "Nastavení verzí a záloh"
+msgid "Backup Settings"
+msgstr "Nastavení záloh"
 
-msgid "Full Backups"
-msgstr "Úplné zálohy"
-
-msgid "A full backup is one file with the complete project, which can be restored on its own. Each project has a folder of its own in the backup folder. A network drive or a folder synchronized with a cloud service keeps the backups off this computer."
-msgstr "Úplná záloha je jeden soubor s celým projektem, který lze obnovit samostatně. Každý projekt má ve složce záloh vlastní složku. Síťová jednotka nebo složka synchronizovaná s cloudovou službou uchovává zálohy mimo tento počítač."
+msgid "A backup is one file with the complete project, which can be restored on its own. Each project has a folder of its own in the backup folder. A network drive or a folder synchronized with a cloud service keeps the backups off this computer."
+msgstr "Záloha je jeden soubor s celým projektem, který lze obnovit samostatně. Každý projekt má ve složce záloh vlastní složku. Síťová jednotka nebo složka synchronizovaná s cloudovou službou uchovává zálohy mimo tento počítač."
 
 msgid "Backup Folder"
 msgstr "Složka záloh"

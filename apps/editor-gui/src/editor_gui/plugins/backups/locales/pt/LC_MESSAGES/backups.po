@@ -7,14 +7,14 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-msgid "Versions and Backups"
-msgstr "Versões e cópias de segurança"
+msgid "Backups"
+msgstr "Cópias de segurança"
 
 msgid "Create Backup…"
 msgstr "Criar cópia de segurança…"
 
-msgid "Show Versions and Backups…"
-msgstr "Mostrar versões e cópias de segurança…"
+msgid "Show Backups…"
+msgstr "Mostrar cópias de segurança…"
 
 msgid "Comment: {comment}"
 msgstr "Comentário: {comment}"
@@ -202,14 +202,11 @@ msgstr "A sua cópia de segurança mais recente é de {created}. Restaurar o pro
 msgid "The damaged file was kept as {name}."
 msgstr "O ficheiro danificado foi guardado como {name}."
 
-msgid "Versions and Backups Settings"
-msgstr "Definições de versões e cópias de segurança"
+msgid "Backup Settings"
+msgstr "Definições de cópias de segurança"
 
-msgid "Full Backups"
-msgstr "Cópias de segurança completas"
-
-msgid "A full backup is one file with the complete project, which can be restored on its own. Each project has a folder of its own in the backup folder. A network drive or a folder synchronized with a cloud service keeps the backups off this computer."
-msgstr "Uma cópia de segurança completa é um único ficheiro com o projeto inteiro, que pode ser restaurado por si só. Cada projeto tem a sua própria pasta na pasta de cópias de segurança. Uma unidade de rede ou uma pasta sincronizada com um serviço na nuvem guarda as cópias fora deste computador."
+msgid "A backup is one file with the complete project, which can be restored on its own. Each project has a folder of its own in the backup folder. A network drive or a folder synchronized with a cloud service keeps the backups off this computer."
+msgstr "Uma cópia de segurança é um único ficheiro com o projeto inteiro, que pode ser restaurado por si só. Cada projeto tem a sua própria pasta na pasta de cópias de segurança. Uma unidade de rede ou uma pasta sincronizada com um serviço na nuvem guarda as cópias fora deste computador."
 
 msgid "Backup Folder"
 msgstr "Pasta de cópias de segurança"

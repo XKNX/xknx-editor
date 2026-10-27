@@ -307,8 +307,8 @@ msgstr "Karşılaştırılacak Projeyi Seç"
 msgid "KNX project (*.knxproj *.xknx *.zip)"
 msgstr "KNX projesi (*.knxproj *.xknx *.zip)"
 
-msgid "compared with {name}"
-msgstr "karşılaştırılan: {name}"
+msgid "Compared with {name}:"
+msgstr "{name} ile karşılaştırma:"
 
 msgid "No differences in devices or group addresses."
 msgstr "Cihazlarda veya grup adreslerinde fark yok."
@@ -2951,3 +2951,9 @@ msgstr "Cihazları Sil"
 
 msgid "{medium} line"
 msgstr "{medium} linye"
+
+msgid "From Backups…"
+msgstr "Yedeklerden…"
+
+msgid "Compare with a backup of this project"
+msgstr "Bu projenin bir yedeğiyle karşılaştır"

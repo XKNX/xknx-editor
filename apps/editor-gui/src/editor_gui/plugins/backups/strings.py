@@ -11,7 +11,7 @@ _ = create_translator("backups", _locale_dir)
 class BackupStrings:
     @property
     def MENU(self) -> str:
-        return _("Versions and Backups")
+        return _("Backups")
 
     @property
     def MENU_CREATE_BACKUP(self) -> str:
@@ -19,7 +19,7 @@ class BackupStrings:
 
     @property
     def MENU_SHOW(self) -> str:
-        return _("Show Versions and Backups…")
+        return _("Show Backups…")
 
     @property
     def COMMENT_LINE(self) -> str:
@@ -31,7 +31,7 @@ class BackupStrings:
 
     @property
     def WINDOW_TITLE(self) -> str:
-        return _("Versions and Backups")
+        return _("Backups")
 
     @property
     def NO_PROJECT(self) -> str:
@@ -282,16 +282,12 @@ class BackupStrings:
 
     @property
     def SETTINGS_TITLE(self) -> str:
-        return _("Versions and Backups Settings")
-
-    @property
-    def SECTION_BACKUPS(self) -> str:
-        return _("Full Backups")
+        return _("Backup Settings")
 
     @property
     def BACKUPS_HINT(self) -> str:
         return _(
-            "A full backup is one file with the complete project, which can be restored on its "
+            "A backup is one file with the complete project, which can be restored on its "
             "own. Each project has a folder of its own in the backup folder. A network drive or a "
             "folder synchronized with a cloud service keeps the backups off this computer."
         )

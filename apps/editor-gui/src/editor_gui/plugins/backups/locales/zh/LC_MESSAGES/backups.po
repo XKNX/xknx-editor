@@ -7,14 +7,14 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-msgid "Versions and Backups"
-msgstr "版本和备份"
+msgid "Backups"
+msgstr "备份"
 
 msgid "Create Backup…"
 msgstr "创建备份…"
 
-msgid "Show Versions and Backups…"
-msgstr "显示版本和备份…"
+msgid "Show Backups…"
+msgstr "显示备份…"
 
 msgid "Comment: {comment}"
 msgstr "注释：{comment}"
@@ -202,14 +202,11 @@ msgstr "其最新备份来自 {created}。要从该备份恢复项目吗？现�
 msgid "The damaged file was kept as {name}."
 msgstr "损坏的文件已保留为 {name}。"
 
-msgid "Versions and Backups Settings"
-msgstr "版本和备份设置"
+msgid "Backup Settings"
+msgstr "备份设置"
 
-msgid "Full Backups"
-msgstr "完整备份"
-
-msgid "A full backup is one file with the complete project, which can be restored on its own. Each project has a folder of its own in the backup folder. A network drive or a folder synchronized with a cloud service keeps the backups off this computer."
-msgstr "完整备份是包含整个项目的单个文件，可单独恢复。每个项目在备份文件夹中都有自己的文件夹。网络驱动器或与云服务同步的文件夹可将备份保存在此计算机之外。"
+msgid "A backup is one file with the complete project, which can be restored on its own. Each project has a folder of its own in the backup folder. A network drive or a folder synchronized with a cloud service keeps the backups off this computer."
+msgstr "备份是包含整个项目的单个文件，可单独恢复。每个项目在备份文件夹中都有自己的文件夹。网络驱动器或与云服务同步的文件夹可将备份保存在此计算机之外。"
 
 msgid "Backup Folder"
 msgstr "备份文件夹"

@@ -7,14 +7,14 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-msgid "Versions and Backups"
-msgstr "Versies en back-ups"
+msgid "Backups"
+msgstr "Back-ups"
 
 msgid "Create Backup…"
 msgstr "Back-up maken…"
 
-msgid "Show Versions and Backups…"
-msgstr "Versies en back-ups tonen…"
+msgid "Show Backups…"
+msgstr "Back-ups weergeven…"
 
 msgid "Comment: {comment}"
 msgstr "Opmerking: {comment}"
@@ -202,14 +202,11 @@ msgstr "De nieuwste back-up is van {created}. Het project daaruit herstellen? Ee
 msgid "The damaged file was kept as {name}."
 msgstr "Het beschadigde bestand is bewaard als {name}."
 
-msgid "Versions and Backups Settings"
-msgstr "Instellingen voor versies en back-ups"
+msgid "Backup Settings"
+msgstr "Back-upinstellingen"
 
-msgid "Full Backups"
-msgstr "Volledige back-ups"
-
-msgid "A full backup is one file with the complete project, which can be restored on its own. Each project has a folder of its own in the backup folder. A network drive or a folder synchronized with a cloud service keeps the backups off this computer."
-msgstr "Een volledige back-up is één bestand met het complete project, dat op zichzelf kan worden hersteld. Elk project heeft een eigen map in de back-upmap. Een netwerkschijf of een map die met een clouddienst wordt gesynchroniseerd, bewaart de back-ups buiten deze computer."
+msgid "A backup is one file with the complete project, which can be restored on its own. Each project has a folder of its own in the backup folder. A network drive or a folder synchronized with a cloud service keeps the backups off this computer."
+msgstr "Een back-up is één bestand met het complete project, dat op zichzelf kan worden hersteld. Elk project heeft een eigen map in de back-upmap. Een netwerkschijf of een map die met een clouddienst wordt gesynchroniseerd, bewaart de back-ups buiten deze computer."
 
 msgid "Backup Folder"
 msgstr "Back-upmap"

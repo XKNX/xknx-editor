@@ -7,14 +7,14 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-msgid "Versions and Backups"
-msgstr "Versionen und Sicherungen"
+msgid "Backups"
+msgstr "Sicherungen"
 
 msgid "Create Backup…"
 msgstr "Sicherung erstellen…"
 
-msgid "Show Versions and Backups…"
-msgstr "Versionen und Sicherungen anzeigen…"
+msgid "Show Backups…"
+msgstr "Sicherungen anzeigen…"
 
 msgid "Comment: {comment}"
 msgstr "Kommentar: {comment}"
@@ -202,14 +202,11 @@ msgstr "Seine neueste Sicherung ist vom {created}. Das Projekt daraus wiederhers
 msgid "The damaged file was kept as {name}."
 msgstr "Die beschädigte Datei wurde als {name} aufbewahrt."
 
-msgid "Versions and Backups Settings"
-msgstr "Einstellungen für Versionen und Sicherungen"
+msgid "Backup Settings"
+msgstr "Sicherungseinstellungen"
 
-msgid "Full Backups"
-msgstr "Vollständige Sicherungen"
-
-msgid "A full backup is one file with the complete project, which can be restored on its own. Each project has a folder of its own in the backup folder. A network drive or a folder synchronized with a cloud service keeps the backups off this computer."
-msgstr "Eine vollständige Sicherung ist eine Datei mit dem ganzen Projekt, die für sich allein wiederhergestellt werden kann. Jedes Projekt hat einen eigenen Ordner im Sicherungsordner. Ein Netzlaufwerk oder ein mit einem Cloud-Dienst synchronisierter Ordner bewahrt die Sicherungen außerhalb dieses Computers auf."
+msgid "A backup is one file with the complete project, which can be restored on its own. Each project has a folder of its own in the backup folder. A network drive or a folder synchronized with a cloud service keeps the backups off this computer."
+msgstr "Eine Sicherung ist eine Datei mit dem ganzen Projekt, die für sich allein wiederhergestellt werden kann. Jedes Projekt hat einen eigenen Ordner im Sicherungsordner. Ein Netzlaufwerk oder ein mit einem Cloud-Dienst synchronisierter Ordner bewahrt die Sicherungen außerhalb dieses Computers auf."
 
 msgid "Backup Folder"
 msgstr "Sicherungsordner"

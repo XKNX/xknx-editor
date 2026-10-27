@@ -1,4 +1,4 @@
-"""Making, listing and restoring the full backups of the open project (files: see ``store``).
+"""Making, listing and restoring the backups of the open project (files: see ``store``).
 
 Backups are written on a thread of their own, one at a time, so the editor keeps going while a
 large project is compressed. They are made on request, when a project is closed and at an

@@ -38,6 +38,7 @@ from editor_gui.plugins.project.ui.project_diff import (
 from editor_gui.widgets.checkbox import checkbox, radio_button
 from editor_gui.widgets.combo import begin_combo
 from editor_gui.widgets.dpi import px, px_vec2
+from editor_gui.widgets.flow import button_width, same_line_if_fits
 from editor_gui.widgets.tabs import begin_tab_bar
 from xknxeditor.proj.core.addressing import GroupAddressStyle, format_ga
 
@@ -227,6 +228,8 @@ class ToolsPanel:
         self._get_group_address_style = get_group_address_style
         self._on_shift_group_addresses = on_shift_group_addresses
         self._on_diff_projects = on_diff_projects
+        # Shows the backups of the project, where Project Diff with one of them starts.
+        self.show_backups: Callable[[], None] | None = None
 
         # Replace Device state (selection by node id, with per-list filters).
         self._repl_target_node: int | None = None
@@ -835,10 +838,16 @@ class ToolsPanel:
                     "*",
                 ],
             )
+        if self.show_backups is not None:
+            same_line_if_fits(button_width(S.TOOLS_DIFF_BACKUPS))
+            if imgui.button(S.TOOLS_DIFF_BACKUPS):
+                self.show_backups()
+            if imgui.is_item_hovered(imgui.HoveredFlags_.delay_normal):
+                imgui.set_tooltip(S.TOOLS_DIFF_BACKUPS_TIP)
         imgui.end_disabled()
         if self._diff_other_name:
-            imgui.same_line()
-            imgui.text_disabled(
+            # What it was compared with, on a line of its own, the outcome below it.
+            imgui.text_wrapped(
                 S.TOOLS_DIFF_COMPARED_WITH.format(name=self._diff_other_name)
             )
         if self._diff_job is not None:

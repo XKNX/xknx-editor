@@ -7,14 +7,14 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-msgid "Versions and Backups"
-msgstr "Версії та резервні копії"
+msgid "Backups"
+msgstr "Резервні копії"
 
 msgid "Create Backup…"
 msgstr "Створити резервну копію…"
 
-msgid "Show Versions and Backups…"
-msgstr "Показати версії та резервні копії…"
+msgid "Show Backups…"
+msgstr "Показати резервні копії…"
 
 msgid "Comment: {comment}"
 msgstr "Коментар: {comment}"
@@ -202,14 +202,11 @@ msgstr "Його найновіша резервна копія від {created}
 msgid "The damaged file was kept as {name}."
 msgstr "Пошкоджений файл збережено як {name}."
 
-msgid "Versions and Backups Settings"
-msgstr "Налаштування версій і резервних копій"
+msgid "Backup Settings"
+msgstr "Налаштування резервного копіювання"
 
-msgid "Full Backups"
-msgstr "Повні резервні копії"
-
-msgid "A full backup is one file with the complete project, which can be restored on its own. Each project has a folder of its own in the backup folder. A network drive or a folder synchronized with a cloud service keeps the backups off this computer."
-msgstr "Повна резервна копія — це один файл з усім проєктом, який можна відновити самостійно. Кожен проєкт має власну папку в папці резервних копій. Мережевий диск або папка, синхронізована з хмарним сервісом, зберігає резервні копії поза цим комп'ютером."
+msgid "A backup is one file with the complete project, which can be restored on its own. Each project has a folder of its own in the backup folder. A network drive or a folder synchronized with a cloud service keeps the backups off this computer."
+msgstr "Резервна копія — це один файл з усім проєктом, який можна відновити самостійно. Кожен проєкт має власну папку в папці резервних копій. Мережевий диск або папка, синхронізована з хмарним сервісом, зберігає резервні копії поза цим комп'ютером."
 
 msgid "Backup Folder"
 msgstr "Папка резервних копій"

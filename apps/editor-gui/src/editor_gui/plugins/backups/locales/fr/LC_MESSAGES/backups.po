@@ -7,14 +7,14 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-msgid "Versions and Backups"
-msgstr "Versions et sauvegardes"
+msgid "Backups"
+msgstr "Sauvegardes"
 
 msgid "Create Backup…"
 msgstr "Créer une sauvegarde…"
 
-msgid "Show Versions and Backups…"
-msgstr "Afficher les versions et sauvegardes…"
+msgid "Show Backups…"
+msgstr "Afficher les sauvegardes…"
 
 msgid "Comment: {comment}"
 msgstr "Commentaire : {comment}"
@@ -202,14 +202,11 @@ msgstr "Sa sauvegarde la plus récente date du {created}. Restaurer le projet à
 msgid "The damaged file was kept as {name}."
 msgstr "Le fichier endommagé a été conservé sous le nom {name}."
 
-msgid "Versions and Backups Settings"
-msgstr "Paramètres des versions et sauvegardes"
+msgid "Backup Settings"
+msgstr "Paramètres de sauvegarde"
 
-msgid "Full Backups"
-msgstr "Sauvegardes complètes"
-
-msgid "A full backup is one file with the complete project, which can be restored on its own. Each project has a folder of its own in the backup folder. A network drive or a folder synchronized with a cloud service keeps the backups off this computer."
-msgstr "Une sauvegarde complète est un seul fichier contenant tout le projet, qui peut être restauré à lui seul. Chaque projet a son propre dossier dans le dossier de sauvegarde. Un lecteur réseau ou un dossier synchronisé avec un service cloud conserve les sauvegardes hors de cet ordinateur."
+msgid "A backup is one file with the complete project, which can be restored on its own. Each project has a folder of its own in the backup folder. A network drive or a folder synchronized with a cloud service keeps the backups off this computer."
+msgstr "Une sauvegarde est un seul fichier contenant tout le projet, qui peut être restauré à lui seul. Chaque projet a son propre dossier dans le dossier de sauvegarde. Un lecteur réseau ou un dossier synchronisé avec un service cloud conserve les sauvegardes hors de cet ordinateur."
 
 msgid "Backup Folder"
 msgstr "Dossier de sauvegarde"

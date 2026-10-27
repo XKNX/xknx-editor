@@ -307,8 +307,8 @@ msgstr "Επιλογή Έργου για Σύγκριση"
 msgid "KNX project (*.knxproj *.xknx *.zip)"
 msgstr "Έργο KNX (*.knxproj *.xknx *.zip)"
 
-msgid "compared with {name}"
-msgstr "σε σύγκριση με {name}"
+msgid "Compared with {name}:"
+msgstr "Σε σύγκριση με {name}:"
 
 msgid "No differences in devices or group addresses."
 msgstr "Δεν υπάρχουν διαφορές σε συσκευές ή διευθύνσεις ομάδων."
@@ -2951,3 +2951,9 @@ msgstr "Διαγραφή Συσκευών"
 
 msgid "{medium} line"
 msgstr "{medium} γραμμή"
+
+msgid "From Backups…"
+msgstr "Από αντίγραφα ασφαλείας…"
+
+msgid "Compare with a backup of this project"
+msgstr "Σύγκριση με ένα αντίγραφο ασφαλείας αυτού του έργου"

@@ -7,14 +7,14 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-msgid "Versions and Backups"
-msgstr "Versiones y copias de seguridad"
+msgid "Backups"
+msgstr "Copias de seguridad"
 
 msgid "Create Backup…"
 msgstr "Crear copia de seguridad…"
 
-msgid "Show Versions and Backups…"
-msgstr "Mostrar versiones y copias de seguridad…"
+msgid "Show Backups…"
+msgstr "Mostrar copias de seguridad…"
 
 msgid "Comment: {comment}"
 msgstr "Comentario: {comment}"
@@ -202,14 +202,11 @@ msgstr "Su copia de seguridad más reciente es del {created}. ¿Restaurar el pro
 msgid "The damaged file was kept as {name}."
 msgstr "El archivo dañado se ha conservado como {name}."
 
-msgid "Versions and Backups Settings"
-msgstr "Configuración de versiones y copias de seguridad"
+msgid "Backup Settings"
+msgstr "Configuración de copias de seguridad"
 
-msgid "Full Backups"
-msgstr "Copias de seguridad completas"
-
-msgid "A full backup is one file with the complete project, which can be restored on its own. Each project has a folder of its own in the backup folder. A network drive or a folder synchronized with a cloud service keeps the backups off this computer."
-msgstr "Una copia de seguridad completa es un único archivo con el proyecto entero, que se puede restaurar por sí solo. Cada proyecto tiene su propia carpeta en la carpeta de copias de seguridad. Una unidad de red o una carpeta sincronizada con un servicio en la nube guarda las copias fuera de este equipo."
+msgid "A backup is one file with the complete project, which can be restored on its own. Each project has a folder of its own in the backup folder. A network drive or a folder synchronized with a cloud service keeps the backups off this computer."
+msgstr "Una copia de seguridad es un único archivo con el proyecto entero, que se puede restaurar por sí solo. Cada proyecto tiene su propia carpeta en la carpeta de copias de seguridad. Una unidad de red o una carpeta sincronizada con un servicio en la nube guarda las copias fuera de este equipo."
 
 msgid "Backup Folder"
 msgstr "Carpeta de copias de seguridad"

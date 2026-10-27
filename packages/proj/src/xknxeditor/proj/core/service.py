@@ -4574,7 +4574,7 @@ class ProjectService:
         return project
 
     def ensure_guid(self, project_id: str) -> str:
-        """The project's GUID. A project without one (made by an earlier version) is given one;
+        """The project's GUID. A project without one (an older project file) is given one;
         this is not an undoable step."""
         state = self._state(project_id)
         project = self.project(project_id)

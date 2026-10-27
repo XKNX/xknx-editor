@@ -7,14 +7,14 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-msgid "Versions and Backups"
-msgstr "Versioner og sikkerhedskopier"
+msgid "Backups"
+msgstr "Sikkerhedskopier"
 
 msgid "Create Backup…"
 msgstr "Opret sikkerhedskopi…"
 
-msgid "Show Versions and Backups…"
-msgstr "Vis versioner og sikkerhedskopier…"
+msgid "Show Backups…"
+msgstr "Vis sikkerhedskopier…"
 
 msgid "Comment: {comment}"
 msgstr "Kommentar: {comment}"
@@ -202,14 +202,11 @@ msgstr "Dets nyeste sikkerhedskopi er fra {created}. Gendan projektet fra den? E
 msgid "The damaged file was kept as {name}."
 msgstr "Den beskadigede fil blev gemt som {name}."
 
-msgid "Versions and Backups Settings"
-msgstr "Indstillinger for versioner og sikkerhedskopier"
+msgid "Backup Settings"
+msgstr "Indstillinger for sikkerhedskopier"
 
-msgid "Full Backups"
-msgstr "Fulde sikkerhedskopier"
-
-msgid "A full backup is one file with the complete project, which can be restored on its own. Each project has a folder of its own in the backup folder. A network drive or a folder synchronized with a cloud service keeps the backups off this computer."
-msgstr "En fuld sikkerhedskopi er én fil med hele projektet, som kan gendannes alene. Hvert projekt har sin egen mappe i mappen til sikkerhedskopier. Et netværksdrev eller en mappe, der synkroniseres med en cloudtjeneste, opbevarer sikkerhedskopierne uden for denne computer."
+msgid "A backup is one file with the complete project, which can be restored on its own. Each project has a folder of its own in the backup folder. A network drive or a folder synchronized with a cloud service keeps the backups off this computer."
+msgstr "En sikkerhedskopi er én fil med hele projektet, som kan gendannes alene. Hvert projekt har sin egen mappe i mappen til sikkerhedskopier. Et netværksdrev eller en mappe, der synkroniseres med en cloudtjeneste, opbevarer sikkerhedskopierne uden for denne computer."
 
 msgid "Backup Folder"
 msgstr "Mappe til sikkerhedskopier"

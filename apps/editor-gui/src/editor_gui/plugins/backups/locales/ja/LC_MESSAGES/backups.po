@@ -7,14 +7,14 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-msgid "Versions and Backups"
-msgstr "バージョンとバックアップ"
+msgid "Backups"
+msgstr "バックアップ"
 
 msgid "Create Backup…"
 msgstr "バックアップを作成…"
 
-msgid "Show Versions and Backups…"
-msgstr "バージョンとバックアップを表示…"
+msgid "Show Backups…"
+msgstr "バックアップを表示…"
 
 msgid "Comment: {comment}"
 msgstr "コメント：{comment}"
@@ -202,14 +202,11 @@ msgstr "最新のバックアップは {created} のものです。このバッ�
 msgid "The damaged file was kept as {name}."
 msgstr "破損したファイルは {name} として保存されました。"
 
-msgid "Versions and Backups Settings"
-msgstr "バージョンとバックアップの設定"
+msgid "Backup Settings"
+msgstr "バックアップの設定"
 
-msgid "Full Backups"
-msgstr "完全バックアップ"
-
-msgid "A full backup is one file with the complete project, which can be restored on its own. Each project has a folder of its own in the backup folder. A network drive or a folder synchronized with a cloud service keeps the backups off this computer."
-msgstr "完全バックアップはプロジェクト全体を含む 1 つのファイルで、それだけで復元できます。各プロジェクトはバックアップフォルダー内に専用のフォルダーを持ちます。ネットワークドライブやクラウドサービスと同期するフォルダーを使うと、バックアップをこのコンピューターの外に保管できます。"
+msgid "A backup is one file with the complete project, which can be restored on its own. Each project has a folder of its own in the backup folder. A network drive or a folder synchronized with a cloud service keeps the backups off this computer."
+msgstr "バックアップはプロジェクト全体を含む 1 つのファイルで、それだけで復元できます。各プロジェクトはバックアップフォルダー内に専用のフォルダーを持ちます。ネットワークドライブやクラウドサービスと同期するフォルダーを使うと、バックアップをこのコンピューターの外に保管できます。"
 
 msgid "Backup Folder"
 msgstr "バックアップフォルダー"

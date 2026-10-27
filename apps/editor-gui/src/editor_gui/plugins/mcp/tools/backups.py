@@ -1,7 +1,6 @@
 # The @mcp.tool decorator registers each tool via its side effect, not a direct call.
 # pyright: reportUnusedFunction=false
-"""Backup tools: the full backups of the open project (File > Versions and Backups) and their
-settings."""
+"""Backup tools: the backups of the open project (File > Backups) and their settings."""
 
 from __future__ import annotations
 
@@ -64,7 +63,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     @tool("read")
     def backup_settings() -> dict[str, Any]:
-        """The backup settings (File > Versions and Backups > Settings…), for every project:
+        """The backup settings (File > Backups > Settings…), for every project:
         {folder ("" = the default folder), effective_folder, default_folder, on_close (a backup
         when a project is closed), interval and interval_hours (a backup every that many hours
         while a project is open and changed), expire, expire_days and keep_newest (automatic
@@ -104,7 +103,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     @tool("read")
     def backup_list() -> dict[str, Any]:
-        """The full backups of the open project, the newest first: {folder, backups: [{path,
+        """The backups of the open project, the newest first: {folder, backups: [{path,
         created (ISO time, UTC), kind (manual, close, interval, or restore: the project as it
         was before a restore), comment, user, machine, source (the project file it was made
         from), size (bytes), pinned}]}. A backup's path also works as the other project of
@@ -119,8 +118,8 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     @tool("write")
     def backup_create(comment: str = "", timeout: float = 600.0) -> dict[str, Any]:
-        """Make a full backup of the open project as it is now, with an optional ``comment``,
-        like File > Versions and Backups > Create Backup…. The project is checked first; a
+        """Make a backup of the open project as it is now, with an optional ``comment``,
+        like File > Backups > Create Backup…. The project is checked first; a
         damaged one gets no backup (an error). Waits until the backup is written (``timeout``
         seconds). Returns the backup (see backup_list)."""
         require_project(ctx)

@@ -7,14 +7,14 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-msgid "Versions and Backups"
-msgstr "Wersje i kopie zapasowe"
+msgid "Backups"
+msgstr "Kopie zapasowe"
 
 msgid "Create Backup…"
 msgstr "Utwórz kopię zapasową…"
 
-msgid "Show Versions and Backups…"
-msgstr "Pokaż wersje i kopie zapasowe…"
+msgid "Show Backups…"
+msgstr "Pokaż kopie zapasowe…"
 
 msgid "Comment: {comment}"
 msgstr "Komentarz: {comment}"
@@ -202,14 +202,11 @@ msgstr "Jego najnowsza kopia zapasowa pochodzi z {created}. Przywrócić z niej 
 msgid "The damaged file was kept as {name}."
 msgstr "Uszkodzony plik zachowano jako {name}."
 
-msgid "Versions and Backups Settings"
-msgstr "Ustawienia wersji i kopii zapasowych"
+msgid "Backup Settings"
+msgstr "Ustawienia kopii zapasowych"
 
-msgid "Full Backups"
-msgstr "Pełne kopie zapasowe"
-
-msgid "A full backup is one file with the complete project, which can be restored on its own. Each project has a folder of its own in the backup folder. A network drive or a folder synchronized with a cloud service keeps the backups off this computer."
-msgstr "Pełna kopia zapasowa to jeden plik z całym projektem, który można przywrócić samodzielnie. Każdy projekt ma własny folder w folderze kopii zapasowych. Dysk sieciowy lub folder synchronizowany z usługą w chmurze przechowuje kopie poza tym komputerem."
+msgid "A backup is one file with the complete project, which can be restored on its own. Each project has a folder of its own in the backup folder. A network drive or a folder synchronized with a cloud service keeps the backups off this computer."
+msgstr "Kopia zapasowa to jeden plik z całym projektem, który można przywrócić samodzielnie. Każdy projekt ma własny folder w folderze kopii zapasowych. Dysk sieciowy lub folder synchronizowany z usługą w chmurze przechowuje kopie poza tym komputerem."
 
 msgid "Backup Folder"
 msgstr "Folder kopii zapasowych"

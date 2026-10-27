@@ -1,5 +1,5 @@
-"""Versions and backups of the open project: the "Versions and Backups" submenu of the File menu,
-the window that lists a project's backups, and the settings.
+"""Backups of the open project: the "Backups" submenu of the File menu, the dialog that lists
+a project's backups, and the settings.
 
 A backup is made, restored and checked in the background (see ``service``); the window shows
 how far one being made is, and a toast tells when it is done."""
@@ -138,7 +138,7 @@ class BackupsPlugin:
     # --- menu ---------------------------------------------------------------
 
     def render_file_menu(self) -> None:
-        """The "Versions and Backups" submenu of the File menu."""
+        """The "Backups" submenu of the File menu."""
         if not imgui.begin_menu(S.MENU):
             return
         is_open = self._api.project.is_open
@@ -650,7 +650,6 @@ class BackupsPlugin:
         if not begin_dialog(title, width=520.0):
             return
         draft = self._draft.to_dict()
-        imgui.separator_text(S.SECTION_BACKUPS)
         imgui.text_wrapped(S.BACKUPS_HINT)
         imgui.spacing()
         imgui.text(S.BACKUP_FOLDER)

@@ -811,6 +811,7 @@ class KnxGuiApp:
             open_project=self._do_open_project,
             compare=self._project_plugin.open_project_diff,
         )
+        self._project_plugin.set_show_backups(self._backups_plugin.show_window)
 
         # Embedded MCP server: drives these same live services (no panels, so not in _plugins).
         self._mcp_plugin = McpServerPlugin(

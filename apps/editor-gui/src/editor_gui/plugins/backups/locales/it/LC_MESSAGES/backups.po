@@ -7,14 +7,14 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-msgid "Versions and Backups"
-msgstr "Versioni e backup"
+msgid "Backups"
+msgstr "Backup"
 
 msgid "Create Backup…"
 msgstr "Crea backup…"
 
-msgid "Show Versions and Backups…"
-msgstr "Mostra versioni e backup…"
+msgid "Show Backups…"
+msgstr "Mostra backup…"
 
 msgid "Comment: {comment}"
 msgstr "Commento: {comment}"
@@ -202,14 +202,11 @@ msgstr "Il suo backup più recente è del {created}. Ripristinare il progetto da
 msgid "The damaged file was kept as {name}."
 msgstr "Il file danneggiato è stato conservato come {name}."
 
-msgid "Versions and Backups Settings"
-msgstr "Impostazioni di versioni e backup"
+msgid "Backup Settings"
+msgstr "Impostazioni dei backup"
 
-msgid "Full Backups"
-msgstr "Backup completi"
-
-msgid "A full backup is one file with the complete project, which can be restored on its own. Each project has a folder of its own in the backup folder. A network drive or a folder synchronized with a cloud service keeps the backups off this computer."
-msgstr "Un backup completo è un unico file con l'intero progetto, ripristinabile da solo. Ogni progetto ha una propria cartella nella cartella dei backup. Un'unità di rete o una cartella sincronizzata con un servizio cloud conserva i backup al di fuori di questo computer."
+msgid "A backup is one file with the complete project, which can be restored on its own. Each project has a folder of its own in the backup folder. A network drive or a folder synchronized with a cloud service keeps the backups off this computer."
+msgstr "Un backup è un unico file con l'intero progetto, ripristinabile da solo. Ogni progetto ha una propria cartella nella cartella dei backup. Un'unità di rete o una cartella sincronizzata con un servizio cloud conserva i backup al di fuori di questo computer."
 
 msgid "Backup Folder"
 msgstr "Cartella dei backup"

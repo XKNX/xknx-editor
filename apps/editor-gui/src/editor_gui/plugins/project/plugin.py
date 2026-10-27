@@ -1291,6 +1291,11 @@ class ProjectPlugin:
         self._tools_panel.open_diff(path, name, password)
         self._focus_tools = True
 
+    def set_show_backups(self, show: Callable[[], None]) -> None:
+        """Let Project Diff show the project's backups with ``show`` (to compare with one of
+        them)."""
+        self._tools_panel.show_backups = show
+
     def take_focus_tools(self) -> bool:
         """Whether the Tools panel was asked for since the last call (the app brings it to the
         front)."""

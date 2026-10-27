@@ -1,5 +1,5 @@
-"""MCP tools for the full backups of the open project: settings, create, list, pin, check,
-export, compare, restore and delete, as in File > Versions and Backups."""
+"""MCP tools for the backups of the open project: settings, create, list, pin, check, export,
+compare, restore and delete, as in File > Backups."""
 
 from __future__ import annotations
 

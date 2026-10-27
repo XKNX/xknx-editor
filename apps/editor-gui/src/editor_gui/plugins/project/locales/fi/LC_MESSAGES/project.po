@@ -307,8 +307,8 @@ msgstr "Valitse verrattava projekti"
 msgid "KNX project (*.knxproj *.xknx *.zip)"
 msgstr "KNX-projekti (*.knxproj *.xknx *.zip)"
 
-msgid "compared with {name}"
-msgstr "verrattu: {name}"
+msgid "Compared with {name}:"
+msgstr "Vertailu kohteeseen {name}:"
 
 msgid "No differences in devices or group addresses."
 msgstr "Laitteissa tai ryhmäosoitteissa ei ole eroja."
@@ -2951,3 +2951,9 @@ msgstr "Poista laitteet"
 
 msgid "{medium} line"
 msgstr "{medium}-linja"
+
+msgid "From Backups…"
+msgstr "Varmuuskopioista…"
+
+msgid "Compare with a backup of this project"
+msgstr "Vertaa tämän projektin varmuuskopioon"

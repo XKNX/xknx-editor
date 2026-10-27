@@ -7,14 +7,14 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-msgid "Versions and Backups"
-msgstr "Εκδόσεις και αντίγραφα ασφαλείας"
+msgid "Backups"
+msgstr "Αντίγραφα ασφαλείας"
 
 msgid "Create Backup…"
 msgstr "Δημιουργία αντιγράφου ασφαλείας…"
 
-msgid "Show Versions and Backups…"
-msgstr "Εμφάνιση εκδόσεων και αντιγράφων ασφαλείας…"
+msgid "Show Backups…"
+msgstr "Εμφάνιση αντιγράφων ασφαλείας…"
 
 msgid "Comment: {comment}"
 msgstr "Σχόλιο: {comment}"
@@ -202,14 +202,11 @@ msgstr "Το νεότερο αντίγραφο ασφαλείας του είν�
 msgid "The damaged file was kept as {name}."
 msgstr "Το κατεστραμμένο αρχείο διατηρήθηκε ως {name}."
 
-msgid "Versions and Backups Settings"
-msgstr "Ρυθμίσεις εκδόσεων και αντιγράφων ασφαλείας"
+msgid "Backup Settings"
+msgstr "Ρυθμίσεις αντιγράφων ασφαλείας"
 
-msgid "Full Backups"
-msgstr "Πλήρη αντίγραφα ασφαλείας"
-
-msgid "A full backup is one file with the complete project, which can be restored on its own. Each project has a folder of its own in the backup folder. A network drive or a folder synchronized with a cloud service keeps the backups off this computer."
-msgstr "Ένα πλήρες αντίγραφο ασφαλείας είναι ένα αρχείο με ολόκληρο το έργο, που μπορεί να επαναφερθεί αυτοτελώς. Κάθε έργο έχει δικό του φάκελο μέσα στον φάκελο αντιγράφων ασφαλείας. Μια μονάδα δικτύου ή ένας φάκελος συγχρονισμένος με υπηρεσία cloud κρατά τα αντίγραφα εκτός αυτού του υπολογιστή."
+msgid "A backup is one file with the complete project, which can be restored on its own. Each project has a folder of its own in the backup folder. A network drive or a folder synchronized with a cloud service keeps the backups off this computer."
+msgstr "Ένα αντίγραφο ασφαλείας είναι ένα αρχείο με ολόκληρο το έργο, που μπορεί να επαναφερθεί αυτοτελώς. Κάθε έργο έχει δικό του φάκελο μέσα στον φάκελο αντιγράφων ασφαλείας. Μια μονάδα δικτύου ή ένας φάκελος συγχρονισμένος με υπηρεσία cloud κρατά τα αντίγραφα εκτός αυτού του υπολογιστή."
 
 msgid "Backup Folder"
 msgstr "Φάκελος αντιγράφων ασφαλείας"

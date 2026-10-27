@@ -7,14 +7,14 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-msgid "Versions and Backups"
-msgstr "Versjoner og sikkerhetskopier"
+msgid "Backups"
+msgstr "Sikkerhetskopier"
 
 msgid "Create Backup…"
 msgstr "Opprett sikkerhetskopi…"
 
-msgid "Show Versions and Backups…"
-msgstr "Vis versjoner og sikkerhetskopier…"
+msgid "Show Backups…"
+msgstr "Vis sikkerhetskopier…"
 
 msgid "Comment: {comment}"
 msgstr "Kommentar: {comment}"
@@ -202,14 +202,11 @@ msgstr "Den nyeste sikkerhetskopien er fra {created}. Gjenopprette prosjektet fr
 msgid "The damaged file was kept as {name}."
 msgstr "Den skadede filen ble beholdt som {name}."
 
-msgid "Versions and Backups Settings"
-msgstr "Innstillinger for versjoner og sikkerhetskopier"
+msgid "Backup Settings"
+msgstr "Innstillinger for sikkerhetskopier"
 
-msgid "Full Backups"
-msgstr "Fullstendige sikkerhetskopier"
-
-msgid "A full backup is one file with the complete project, which can be restored on its own. Each project has a folder of its own in the backup folder. A network drive or a folder synchronized with a cloud service keeps the backups off this computer."
-msgstr "En fullstendig sikkerhetskopi er én fil med hele prosjektet, som kan gjenopprettes alene. Hvert prosjekt har sin egen mappe i mappen for sikkerhetskopier. En nettverksstasjon eller en mappe som synkroniseres med en skytjeneste, oppbevarer sikkerhetskopiene utenfor denne datamaskinen."
+msgid "A backup is one file with the complete project, which can be restored on its own. Each project has a folder of its own in the backup folder. A network drive or a folder synchronized with a cloud service keeps the backups off this computer."
+msgstr "En sikkerhetskopi er én fil med hele prosjektet, som kan gjenopprettes alene. Hvert prosjekt har sin egen mappe i mappen for sikkerhetskopier. En nettverksstasjon eller en mappe som synkroniseres med en skytjeneste, oppbevarer sikkerhetskopiene utenfor denne datamaskinen."
 
 msgid "Backup Folder"
 msgstr "Mappe for sikkerhetskopier"

@@ -1,4 +1,4 @@
-"""The Versions and Backups window and its dialogs, driven headless: a backup is created,
+"""The Backups dialog and its dialogs, driven headless: a backup is created,
 restored (asking for an older password), deleted, and offered for a project that could not be
 opened; the settings are kept."""
 

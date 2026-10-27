@@ -7,14 +7,14 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-msgid "Versions and Backups"
-msgstr "Versioner och säkerhetskopior"
+msgid "Backups"
+msgstr "Säkerhetskopior"
 
 msgid "Create Backup…"
 msgstr "Skapa säkerhetskopia…"
 
-msgid "Show Versions and Backups…"
-msgstr "Visa versioner och säkerhetskopior…"
+msgid "Show Backups…"
+msgstr "Visa säkerhetskopior…"
 
 msgid "Comment: {comment}"
 msgstr "Kommentar: {comment}"
@@ -202,14 +202,11 @@ msgstr "Dess senaste säkerhetskopia är från {created}. Återställa projektet
 msgid "The damaged file was kept as {name}."
 msgstr "Den skadade filen behölls som {name}."
 
-msgid "Versions and Backups Settings"
-msgstr "Inställningar för versioner och säkerhetskopior"
+msgid "Backup Settings"
+msgstr "Inställningar för säkerhetskopior"
 
-msgid "Full Backups"
-msgstr "Fullständiga säkerhetskopior"
-
-msgid "A full backup is one file with the complete project, which can be restored on its own. Each project has a folder of its own in the backup folder. A network drive or a folder synchronized with a cloud service keeps the backups off this computer."
-msgstr "En fullständig säkerhetskopia är en fil med hela projektet som kan återställas på egen hand. Varje projekt har en egen mapp i mappen för säkerhetskopior. En nätverksenhet eller en mapp som synkroniseras med en molntjänst förvarar säkerhetskopiorna utanför den här datorn."
+msgid "A backup is one file with the complete project, which can be restored on its own. Each project has a folder of its own in the backup folder. A network drive or a folder synchronized with a cloud service keeps the backups off this computer."
+msgstr "En säkerhetskopia är en fil med hela projektet som kan återställas på egen hand. Varje projekt har en egen mapp i mappen för säkerhetskopior. En nätverksenhet eller en mapp som synkroniseras med en molntjänst förvarar säkerhetskopiorna utanför den här datorn."
 
 msgid "Backup Folder"
 msgstr "Mapp för säkerhetskopior"

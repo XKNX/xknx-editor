@@ -7,14 +7,14 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-msgid "Versions and Backups"
-msgstr "Sürümler ve yedekler"
+msgid "Backups"
+msgstr "Yedekler"
 
 msgid "Create Backup…"
 msgstr "Yedek oluştur…"
 
-msgid "Show Versions and Backups…"
-msgstr "Sürümleri ve yedekleri göster…"
+msgid "Show Backups…"
+msgstr "Yedekleri göster…"
 
 msgid "Comment: {comment}"
 msgstr "Yorum: {comment}"
@@ -202,14 +202,11 @@ msgstr "En yeni yedeği {created} tarihli. Proje bu yedekten geri yüklensin mi?
 msgid "The damaged file was kept as {name}."
 msgstr "Hasarlı dosya {name} olarak saklandı."
 
-msgid "Versions and Backups Settings"
-msgstr "Sürüm ve yedek ayarları"
+msgid "Backup Settings"
+msgstr "Yedek ayarları"
 
-msgid "Full Backups"
-msgstr "Tam yedekler"
-
-msgid "A full backup is one file with the complete project, which can be restored on its own. Each project has a folder of its own in the backup folder. A network drive or a folder synchronized with a cloud service keeps the backups off this computer."
-msgstr "Tam yedek, projenin tamamını içeren ve tek başına geri yüklenebilen tek bir dosyadır. Her projenin yedek klasöründe kendi klasörü vardır. Bir ağ sürücüsü veya bir bulut hizmetiyle eşitlenen bir klasör, yedekleri bu bilgisayarın dışında tutar."
+msgid "A backup is one file with the complete project, which can be restored on its own. Each project has a folder of its own in the backup folder. A network drive or a folder synchronized with a cloud service keeps the backups off this computer."
+msgstr "Yedek, projenin tamamını içeren ve tek başına geri yüklenebilen tek bir dosyadır. Her projenin yedek klasöründe kendi klasörü vardır. Bir ağ sürücüsü veya bir bulut hizmetiyle eşitlenen bir klasör, yedekleri bu bilgisayarın dışında tutar."
 
 msgid "Backup Folder"
 msgstr "Yedek klasörü"

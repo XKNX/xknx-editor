@@ -1541,8 +1541,8 @@ msgstr "hinzugefügt"
 msgid "changed"
 msgstr "geändert"
 
-msgid "compared with {name}"
-msgstr "verglichen mit {name}"
+msgid "Compared with {name}:"
+msgstr "Verglichen mit {name}:"
 
 msgid "removed"
 msgstr "entfernt"
@@ -3136,3 +3136,9 @@ msgstr "Geräte löschen"
 
 msgid "{medium} line"
 msgstr "{medium} Linie"
+
+msgid "From Backups…"
+msgstr "Aus Sicherungen…"
+
+msgid "Compare with a backup of this project"
+msgstr "Mit einer Sicherung dieses Projekts vergleichen"

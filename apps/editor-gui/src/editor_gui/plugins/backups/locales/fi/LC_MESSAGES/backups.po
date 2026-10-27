@@ -7,14 +7,14 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-msgid "Versions and Backups"
-msgstr "Versiot ja varmuuskopiot"
+msgid "Backups"
+msgstr "Varmuuskopiot"
 
 msgid "Create Backup…"
 msgstr "Luo varmuuskopio…"
 
-msgid "Show Versions and Backups…"
-msgstr "Näytä versiot ja varmuuskopiot…"
+msgid "Show Backups…"
+msgstr "Näytä varmuuskopiot…"
 
 msgid "Comment: {comment}"
 msgstr "Kommentti: {comment}"
@@ -202,14 +202,11 @@ msgstr "Sen uusin varmuuskopio on ajalta {created}. Palautetaanko projekti siit�
 msgid "The damaged file was kept as {name}."
 msgstr "Vioittunut tiedosto säilytettiin nimellä {name}."
 
-msgid "Versions and Backups Settings"
-msgstr "Versioiden ja varmuuskopioiden asetukset"
+msgid "Backup Settings"
+msgstr "Varmuuskopioinnin asetukset"
 
-msgid "Full Backups"
-msgstr "Täydet varmuuskopiot"
-
-msgid "A full backup is one file with the complete project, which can be restored on its own. Each project has a folder of its own in the backup folder. A network drive or a folder synchronized with a cloud service keeps the backups off this computer."
-msgstr "Täysi varmuuskopio on yksi tiedosto, jossa on koko projekti ja joka voidaan palauttaa sellaisenaan. Jokaisella projektilla on oma kansionsa varmuuskopiokansiossa. Verkkoasema tai pilvipalveluun synkronoitu kansio säilyttää varmuuskopiot tämän tietokoneen ulkopuolella."
+msgid "A backup is one file with the complete project, which can be restored on its own. Each project has a folder of its own in the backup folder. A network drive or a folder synchronized with a cloud service keeps the backups off this computer."
+msgstr "Varmuuskopio on yksi tiedosto, jossa on koko projekti ja joka voidaan palauttaa sellaisenaan. Jokaisella projektilla on oma kansionsa varmuuskopiokansiossa. Verkkoasema tai pilvipalveluun synkronoitu kansio säilyttää varmuuskopiot tämän tietokoneen ulkopuolella."
 
 msgid "Backup Folder"
 msgstr "Varmuuskopiokansio"

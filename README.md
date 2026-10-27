@@ -112,7 +112,7 @@ with a project open, values are shown with the group address' name and decoded t
 
 ![Group Monitor](docs/images/monitor.png)
 
-**Backups** — a full backup of a project is one ZIP file with the complete project, made on request,
+**Backups** — a backup of a project is one ZIP file with the complete project, made on request,
 when the project is closed or at an interval, into a folder of your choice (a network drive or a
 cloud folder keeps them off the computer). Compare a backup with the project in Project Diff, or
 restore it; the state before a restore is kept as a backup too.

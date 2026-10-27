@@ -307,8 +307,8 @@ msgstr "选择要比较的项目"
 msgid "KNX project (*.knxproj *.xknx *.zip)"
 msgstr "KNX 项目 (*.knxproj *.xknx *.zip)"
 
-msgid "compared with {name}"
-msgstr "与 {name} 比较"
+msgid "Compared with {name}:"
+msgstr "与 {name} 比较："
 
 msgid "No differences in devices or group addresses."
 msgstr "设备或组地址没有差异。"
@@ -2951,3 +2951,9 @@ msgstr "删除设备"
 
 msgid "{medium} line"
 msgstr "{medium} 线路"
+
+msgid "From Backups…"
+msgstr "从备份…"
+
+msgid "Compare with a backup of this project"
+msgstr "与此项目的备份进行比较"

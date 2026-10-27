@@ -1360,8 +1360,8 @@ msgstr "toegevoegd"
 msgid "changed"
 msgstr "gewijzigd"
 
-msgid "compared with {name}"
-msgstr "vergeleken met {name}"
+msgid "Compared with {name}:"
+msgstr "Vergeleken met {name}:"
 
 msgid "device-managed"
 msgstr "door apparaat beheerd"
@@ -2989,3 +2989,9 @@ msgstr "Apparaten verwijderen"
 
 msgid "{medium} line"
 msgstr "{medium} lijn"
+
+msgid "From Backups…"
+msgstr "Uit back-ups…"
+
+msgid "Compare with a backup of this project"
+msgstr "Vergelijken met een back-up van dit project"

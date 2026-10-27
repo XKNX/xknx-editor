@@ -33,6 +33,7 @@ def context() -> Iterator[None]:
 def _panel() -> ToolsPanel:
     panel = object.__new__(ToolsPanel)
     panel._diff_other_name = "old.xknx"  # pyright: ignore[reportPrivateUsage]
+    panel.show_backups = None
     return panel
 
 
@@ -124,6 +125,42 @@ def test_a_comparison_asked_from_elsewhere_shows_the_tab() -> None:
     assert panel._select_diff  # pyright: ignore[reportPrivateUsage]
     assert started == [("backup.zip", "secret")]
     assert panel._diff_other_name == "Backup of 2026-10-27 12:00"  # pyright: ignore[reportPrivateUsage]
+
+
+@pytest.mark.usefixtures("context")
+def test_the_backups_are_shown_from_the_tab(monkeypatch: pytest.MonkeyPatch) -> None:
+    panel = _job_panel(DiffJob())
+    panel._diff_dialog = None  # pyright: ignore[reportPrivateUsage]
+    panel._diff_other_name = ""  # pyright: ignore[reportPrivateUsage]
+    shown: list[bool] = []
+    panel.show_backups = lambda: shown.append(True)
+    monkeypatch.setattr(
+        tools.imgui, "button", lambda label: label == S.TOOLS_DIFF_BACKUPS
+    )
+    imgui.new_frame()
+    imgui.begin("Tools")
+    panel._render_diff_tab()  # pyright: ignore[reportPrivateUsage]
+    imgui.end()
+    imgui.end_frame()
+    assert shown == [True]
+
+
+@pytest.mark.usefixtures("context")
+def test_what_it_was_compared_with_is_a_line_above_the_outcome(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    panel = _job_panel(DiffJob())
+    panel._diff_dialog = None  # pyright: ignore[reportPrivateUsage]
+    panel._diff_other_name = "Backup of 2026-10-27 12:00"  # pyright: ignore[reportPrivateUsage]
+    panel._diff_result = DiffResult(devices=[], group_addresses=[])  # pyright: ignore[reportPrivateUsage]
+    lines: list[str] = []
+    monkeypatch.setattr(tools.imgui, "text_wrapped", lines.append)
+    imgui.new_frame()
+    imgui.begin("Tools")
+    panel._render_diff_tab()  # pyright: ignore[reportPrivateUsage]
+    imgui.end()
+    imgui.end_frame()
+    assert S.TOOLS_DIFF_COMPARED_WITH.format(name="Backup of 2026-10-27 12:00") in lines
 
 
 def _frame(panel: ToolsPanel, result: DiffResult) -> None:

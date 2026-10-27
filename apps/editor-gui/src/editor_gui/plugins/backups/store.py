@@ -1,4 +1,4 @@
-"""Full backups of a project: one self-contained ZIP file per backup.
+"""Backups of a project: one self-contained ZIP file per backup.
 
 A backup holds the project file (``<name>.xknx``) as it was and ``backup.json`` with when, where
 and why it was made. It needs nothing else to be restored: any ZIP tool gets the project file out.
@@ -27,7 +27,8 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any, cast
 
-# Version of the layout of ``backup.json``; a reader skips backups of a later one.
+# The layout of ``backup.json``, counted up when it changes; a reader skips backups of a later
+# one.
 FORMAT = 1
 INFO_NAME = "backup.json"
 PIN_SUFFIX = ".pinned"
@@ -73,7 +74,8 @@ class BackupInfo:
 
     @staticmethod
     def from_json(text: str | bytes) -> BackupInfo | None:
-        """The info, or None for one that is not a backup's of a format this version reads."""
+        """The info, or None for one that is not a backup's or of a later layout than this
+        editor reads."""
         try:
             raw = json.loads(text)
         except ValueError:
