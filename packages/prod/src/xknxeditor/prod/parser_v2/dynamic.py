@@ -98,6 +98,7 @@ from .state import (
     ModuleState,
     ParameterState,
     compute_arg_defaults,
+    compute_param_ref_bases,
     compute_param_ref_defaults,
 )
 from .ui import UiNode
@@ -470,6 +471,9 @@ class DynamicTreeBuilder:
                 param_ref_defaults,
                 arg_defaults,
                 arg_names,
+                compute_param_ref_bases(
+                    mod_def.static.parameter_refs if mod_def.static else None, self.idx
+                ),
             )
         elif isinstance(elem, ParameterRefRef):
             # Leaf parameter widget; resolve ParameterRef/Parameter/ParameterType now

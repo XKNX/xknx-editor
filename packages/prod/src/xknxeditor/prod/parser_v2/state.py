@@ -56,6 +56,23 @@ def compute_param_ref_defaults(
     return result
 
 
+def compute_param_ref_bases(
+    refs_container: object, idx: ApplicationIndexer
+) -> dict[str, str]:
+    """Map pr.id to the module argument its Parameter's ``BaseValue`` names: the parameter
+    takes that argument's value."""
+    result: dict[str, str] = {}
+    refs = getattr(refs_container, "parameter_ref", None)
+    if not refs:
+        return result
+    for pr in refs:
+        param = idx.parameters.get(pr.ref_id)
+        base = getattr(param, "base_value", None)
+        if base is not None:
+            result[pr.id] = base
+    return result
+
+
 # The top-level module instance in an instance-qualified ref, e.g. "MD-34_M-15_MI-1" (and "MD-34").
 _INSTANCE_IN_REF = re.compile(r"(?:^|_)((MD-[^_]+)_M-[^_]+_MI-[^_]+)_")
 
@@ -372,6 +389,7 @@ class ParameterState:
         param_ref_defaults: dict[str, str] | None = None,
         arg_defaults: dict[str, str] | None = None,
         ref_id: str | None = None,
+        param_ref_bases: dict[str, str] | None = None,
     ) -> ModuleState:
         """Fetch or create the module instance state, linked into the tree."""
         key = f"{module_id}_MI-{repeat_idx}"
@@ -383,6 +401,7 @@ class ParameterState:
                 param_ref_defaults=param_ref_defaults,
                 arg_defaults=arg_defaults,
                 ref_id=ref_id,
+                param_ref_bases=param_ref_bases,
             )
             child._parent = self
             self._children[key] = child
@@ -397,6 +416,8 @@ class ParameterState:
                 child.set_param_ref_defaults(param_ref_defaults)
             if arg_defaults is not None:
                 child.set_arg_defaults(arg_defaults)
+            if param_ref_bases is not None:
+                child.param_ref_bases = param_ref_bases
         return self._children[key]
 
     def parameter_instance_refs(self) -> dict[str, str]:
@@ -495,7 +516,13 @@ class ModuleState(ParameterState):
     the shared prefix, e.g. M-..._MD-1_P-5_R-5 -> M-..._MD-1_M-100_MI-2_P-5_R-5.
     """
 
-    __slots__ = ("_arg_defaults", "arguments", "module_instance_id", "ref_id")
+    __slots__ = (
+        "_arg_defaults",
+        "arguments",
+        "module_instance_id",
+        "param_ref_bases",
+        "ref_id",
+    )
 
     def __init__(
         self,
@@ -504,12 +531,24 @@ class ModuleState(ParameterState):
         param_ref_defaults: dict[str, str] | None = None,
         arg_defaults: dict[str, str] | None = None,
         ref_id: str | None = None,
+        param_ref_bases: dict[str, str] | None = None,
     ) -> None:
         super().__init__(param_ref_defaults=param_ref_defaults)
         self.module_instance_id = module_instance_id
         self.ref_id: str | None = ref_id
         self.arguments: dict[str, ModuleArg] = arguments or {}
         self._arg_defaults: dict[str, str] = arg_defaults or {}
+        # ParameterRef -> the argument whose value is the parameter's value (its Parameter's
+        # BaseValue). While the argument has a value, the parameter's own value, stored or
+        # default, does not count.
+        self.param_ref_bases: dict[str, str] = param_ref_bases or {}
+
+    def get(self, ref_id: str) -> str | None:
+        base = self.param_ref_bases.get(ref_id)
+        arg = self.get_arg(base) if base is not None else None
+        if arg is not None and arg.value is not None:
+            return str(arg.value)
+        return super().get(ref_id)
 
     def get_arg_defaults(self) -> dict[str, str]:
         return self._arg_defaults

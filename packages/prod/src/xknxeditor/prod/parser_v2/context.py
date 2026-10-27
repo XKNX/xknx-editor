@@ -317,6 +317,7 @@ class EvalContext:
         param_ref_defaults: dict[str, str] | None = None,
         arg_defaults: dict[str, str] | None = None,
         ref_id: str | None = None,
+        param_ref_bases: dict[str, str] | None = None,
     ) -> EvalContext:
         ms = self._scope.module_child(
             module_id,
@@ -325,6 +326,7 @@ class EvalContext:
             param_ref_defaults=param_ref_defaults,
             arg_defaults=arg_defaults,
             ref_id=ref_id,
+            param_ref_bases=param_ref_bases,
         )
         return EvalContext(
             ms,

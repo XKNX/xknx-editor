@@ -45,6 +45,7 @@ class ModuleNode(DynamicNode):
         param_ref_defaults: dict[str, str] | None = None,
         arg_defaults: dict[str, str] | None = None,
         arg_names: dict[str, str] | None = None,
+        param_ref_bases: dict[str, str] | None = None,
     ) -> None:
         self._module_id = module_id
         self._ref_id = ref_id
@@ -55,6 +56,8 @@ class ModuleNode(DynamicNode):
         # arg ref_id -> arg name, so per-instance NUMERIC args (allocator-driven, e.g. ECG_NO/GRP_NO/
         # MD_NO = 1,2,3…) can be exposed as text args for "{{ECG_NO}}"-style label substitution.
         self._arg_names: dict[str, str] = arg_names or {}
+        # ParameterRef -> the argument its Parameter takes its value from (BaseValue).
+        self._param_ref_bases: dict[str, str] = param_ref_bases or {}
 
     def eval(self, ctx: EvalContext) -> list[UiNode]:
         args = _resolve_arguments(ctx, self._ref_id, self._arguments)
@@ -72,5 +75,6 @@ class ModuleNode(DynamicNode):
             param_ref_defaults=self._param_ref_defaults or None,
             arg_defaults=text_args or None,
             ref_id=self._ref_id,
+            param_ref_bases=self._param_ref_bases or None,
         )
         return self._subtree.eval(mctx)
