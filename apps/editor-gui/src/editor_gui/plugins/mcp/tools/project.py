@@ -4037,14 +4037,45 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         return {"redone": ctx.run_locked(project.redo)}
 
     @tool("read")
-    def project_history() -> dict[str, Any]:
-        """Project edit history. Returns {items, count}; each item has {id, label, reverted}. Pass an
-        item's ``id`` as project_jump_to's ``event_id``."""
+    def project_history(since: str | None = None) -> dict[str, Any]:
+        """Project edit history, newest first. Returns {items, count}; each item has {id, label,
+        reverted, timestamp}: ``timestamp`` is when the step was made (ISO 8601 UTC, e.g.
+        "2026-10-27T09:12:03Z"). ``since`` (ISO 8601; without a time zone it is UTC) keeps only
+        the steps made at or after it. Pass an item's ``id`` as project_jump_to's ``event_id``."""
+        from datetime import UTC, datetime
+
+        start: datetime | None = None
+        if since is not None:
+            try:
+                start = datetime.fromisoformat(since.strip())
+            except ValueError as exc:
+                raise ToolError(
+                    f"since {since!r} is no ISO 8601 date and time"
+                ) from exc
+            if start.tzinfo is None:
+                start = start.replace(tzinfo=UTC)
+
+        def _stamp(moment: datetime | None) -> str | None:
+            if moment is None:
+                return None
+            return (
+                moment.astimezone(UTC)
+                .isoformat(timespec="seconds")
+                .replace("+00:00", "Z")
+            )
+
         return _items(
             ctx.run_locked(
                 lambda: [
-                    {"id": e.id, "label": e.display_text, "reverted": e.reverted}
+                    {
+                        "id": e.id,
+                        "label": e.display_text,
+                        "reverted": e.reverted,
+                        "timestamp": _stamp(e.timestamp),
+                    }
                     for e in project.history()
+                    if start is None
+                    or (e.timestamp is not None and e.timestamp >= start)
                 ]
             )
         )

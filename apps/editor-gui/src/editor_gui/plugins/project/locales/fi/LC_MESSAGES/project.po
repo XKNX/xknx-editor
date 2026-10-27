@@ -508,6 +508,9 @@ msgstr "Tässä projektissa ei ole rakennuksia/huoneita"
 msgid "Name"
 msgstr "Nimi"
 
+msgid "Open Project"
+msgstr "Avoin projekti"
+
 msgid "Type"
 msgstr "Tyyppi"
 

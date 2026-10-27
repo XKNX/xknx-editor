@@ -11,7 +11,13 @@ from typing import Any, cast
 import pytest
 
 from editor_gui.plugins.project.plugin import ProjectPlugin
-from editor_gui.plugins.project.ui.project_diff import DiffOutcome, ProjectSnapshot
+from editor_gui.plugins.project.project_snapshot import read_project_snapshot
+from editor_gui.plugins.project.ui.project_diff import (
+    DiffOutcome,
+    DiffResult,
+    ProjectSnapshot,
+    diff_projects,
+)
 from xknxeditor.proj import ProjectService, export_knxproj
 
 
@@ -37,15 +43,22 @@ def _diff(path: Path, password: str | None) -> DiffOutcome:
     """Run the plugin's comparison on a stand-in that has only what it uses."""
     plugin = cast(Any, SimpleNamespace())
 
-    def load(other: str, pw: str | None) -> ProjectSnapshot:
-        return ProjectPlugin._load_project_snapshot(plugin, other, pw)  # pyright: ignore[reportPrivateUsage]
+    def compare(other: str, pw: str | None) -> DiffResult:
+        return ProjectPlugin._compare_with_file(plugin, other, pw)  # pyright: ignore[reportPrivateUsage]
+
+    def compare_with(svc: ProjectService, pid: str, name: str) -> DiffResult:
+        # The open project is empty here: everything of the other one is added.
+        current = ProjectSnapshot("current", (), {})
+        return diff_projects(current, read_project_snapshot(svc, pid, name))
 
     def warning(*args: object, **kwargs: object) -> None:
         pass
 
-    plugin._project_snapshot_current = lambda: ProjectSnapshot("current", {}, {})
-    plugin._load_project_snapshot = load
-    plugin._api = SimpleNamespace(log=SimpleNamespace(warning=warning))
+    plugin._compare_with_file = compare
+    plugin._api = SimpleNamespace(
+        log=SimpleNamespace(warning=warning),
+        project=SimpleNamespace(compare_with=compare_with),
+    )
     return ProjectPlugin.tools_diff_projects(plugin, str(path), password)  # pyright: ignore[reportPrivateUsage]
 
 

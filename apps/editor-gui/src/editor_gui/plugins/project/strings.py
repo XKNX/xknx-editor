@@ -1200,6 +1200,10 @@ class ProjectStrings:
         return _("Group Addresses")
 
     @property
+    def TOOLS_DIFF_OPEN_PROJECT(self) -> str:
+        return _("Open Project")
+
+    @property
     def TOOLS_DIFF_KIND(self) -> dict[str, str]:
         return {
             "added": _("added"),

@@ -839,7 +839,45 @@ class ToolsPanel:
             tag = S.TOOLS_DIFF_KIND[e.kind]
             imgui.text_colored(color, f"[{tag}]")
             imgui.same_line()
-            imgui.text(f"{e.key}  {e.detail}")
+            imgui.text_wrapped(f"{e.key}  {e.detail}".rstrip())
+            if e.rows:
+                self._render_diff_rows(e)
+
+    def _render_diff_rows(self, entry: DiffEntry) -> None:
+        """The parameters and group objects of a changed device, collapsed: what each is in the
+        open project and in the other one."""
+        label = S.TOOLS_DIFF_COUNT.format(count=len(entry.rows))
+        if not imgui.tree_node(f"{label}###diff_rows_{entry.key}"):
+            return
+        for section, title in (
+            ("parameter", S.COMPARE_SECTION_PARAMETERS),
+            ("group_object", S.COMPARE_SECTION_COM_OBJECTS),
+        ):
+            rows = [r for r in entry.rows if r.section == section]
+            if not rows:
+                continue
+            imgui.text_disabled(title)
+            flags = (
+                imgui.TableFlags_.borders_inner_v
+                | imgui.TableFlags_.row_bg
+                | imgui.TableFlags_.resizable
+            )
+            if not imgui.begin_table(f"##diff_{section}_{entry.key}", 3, flags):
+                continue
+            imgui.table_setup_column(S.COMPARE_COL_FIELD)
+            imgui.table_setup_column(S.TOOLS_DIFF_OPEN_PROJECT)
+            imgui.table_setup_column(self._diff_other_name)
+            imgui.table_headers_row()
+            for row in rows:
+                imgui.table_next_row()
+                imgui.table_set_column_index(0)
+                imgui.text_wrapped(row.label)
+                imgui.table_set_column_index(1)
+                imgui.text_wrapped(row.current or "-")
+                imgui.table_set_column_index(2)
+                imgui.text_wrapped(row.other or "-")
+            imgui.end_table()
+        imgui.tree_pop()
 
     def _poll_diff_dialog(self) -> None:
         if self._diff_dialog is None or not self._diff_dialog.ready():

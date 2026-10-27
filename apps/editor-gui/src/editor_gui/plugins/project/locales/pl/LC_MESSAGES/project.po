@@ -508,6 +508,9 @@ msgstr "Brak budynków/pokoi w tym projekcie"
 msgid "Name"
 msgstr "Nazwa"
 
+msgid "Open Project"
+msgstr "Otwarty projekt"
+
 msgid "Type"
 msgstr "Typ"
 

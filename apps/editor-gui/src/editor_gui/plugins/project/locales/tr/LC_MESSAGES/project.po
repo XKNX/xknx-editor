@@ -508,6 +508,9 @@ msgstr "Bu projede bina/oda yok"
 msgid "Name"
 msgstr "Ad"
 
+msgid "Open Project"
+msgstr "Açık proje"
+
 msgid "Type"
 msgstr "Tip"
 

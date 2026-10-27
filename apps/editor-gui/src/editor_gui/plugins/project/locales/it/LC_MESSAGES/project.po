@@ -508,6 +508,9 @@ msgstr "Nessun edificio/stanza in questo progetto"
 msgid "Name"
 msgstr "Nome"
 
+msgid "Open Project"
+msgstr "Progetto aperto"
+
 msgid "Type"
 msgstr "Tipo"
 

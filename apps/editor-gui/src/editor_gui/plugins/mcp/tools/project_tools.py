@@ -168,8 +168,18 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         ``path`` (an .xknx or .knxproj file on the editor's machine, opened read-only; the open
         project is not changed), ``password`` for a protected one. Returns {devices,
         group_addresses}, each a list of {key, kind, detail} with kind added, removed or changed
-        (key: the individual or group address); or {error, needs_password} when the other project
-        cannot be opened (needs_password: it needs a (different) password)."""
+        (key: the individual or group address, "-" for a device without one); or {error,
+        needs_password} when the other project cannot be opened (needs_password: it needs a
+        (different) password).
+
+        Devices are matched as the same device, not only by address: by the id of the project
+        file they were imported from, then (two files of the same project) by their id, then by
+        individual address; so a device with another address is one changed device ("address
+        '1.1.5' -> '1.1.7'" in its detail). The detail of a changed device names its differing
+        address, name, product, order number, application and location (building > ... > room).
+        A changed device also has ``parameters`` and ``group_objects``: the differing ones as
+        {label, kind, current, other} (their values in the open and in the other project, "" where
+        absent; a group object's value sums up DPT, flags, priority and linked group addresses)."""
         require_project(ctx)
         plugin = _plugin()
         outcome = ctx.run_locked(
@@ -178,8 +188,31 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         if outcome.result is None:
             return {"error": outcome.error, "needs_password": outcome.needs_password}
 
-        def _entries(entries: list[Any]) -> list[dict[str, str]]:
-            return [{"key": e.key, "kind": e.kind, "detail": e.detail} for e in entries]
+        def _rows(entry: Any, section: str) -> list[dict[str, str]]:
+            return [
+                {
+                    "label": r.label,
+                    "kind": r.kind,
+                    "current": r.current,
+                    "other": r.other,
+                }
+                for r in entry.rows
+                if r.section == section
+            ]
+
+        def _entries(entries: list[Any]) -> list[dict[str, Any]]:
+            out: list[dict[str, Any]] = []
+            for e in entries:
+                item: dict[str, Any] = {
+                    "key": e.key,
+                    "kind": e.kind,
+                    "detail": e.detail,
+                }
+                if e.rows:
+                    item["parameters"] = _rows(e, "parameter")
+                    item["group_objects"] = _rows(e, "group_object")
+                out.append(item)
+            return out
 
         return {
             "devices": _entries(outcome.result.devices),

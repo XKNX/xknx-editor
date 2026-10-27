@@ -71,13 +71,7 @@ from editor_gui.plugins.project.ui.paste_special import PasteSpecialDialog
 from editor_gui.plugins.project.ui.plugin_params_panel import PluginParamsPanel
 from editor_gui.plugins.project.ui.preflight_result import PreflightResultWindow
 from editor_gui.plugins.project.ui.program_queue import ProgramQueuePanel
-from editor_gui.plugins.project.ui.project_diff import (
-    DeviceSnap,
-    DiffOutcome,
-    GaSnap,
-    ProjectSnapshot,
-    diff_projects,
-)
+from editor_gui.plugins.project.ui.project_diff import DiffOutcome, DiffResult
 from editor_gui.plugins.project.ui.read_device_dialog import ReadDeviceDialog
 from editor_gui.plugins.project.ui.secure_commissioning import SecureCommissioningDialog
 from editor_gui.plugins.project.ui.siemens_dali import SiemensDaliPanel
@@ -1746,8 +1740,7 @@ class ProjectPlugin:
         from xknxeditor.proj import InvalidProjectPassword, ProjectPasswordRequired
 
         try:
-            base = self._project_snapshot_current()
-            other = self._load_project_snapshot(other_path, password)
+            result = self._compare_with_file(other_path, password)
         except (
             InvalidPasswordException,
             InvalidProjectPassword,
@@ -1762,35 +1755,11 @@ class ProjectPlugin:
                 error=f"{type(e).__name__}: {e}",
             )
             return DiffOutcome(None, str(e))
-        return DiffOutcome(diff_projects(base, other))
+        return DiffOutcome(result)
 
-    def _project_snapshot_current(self) -> ProjectSnapshot:
-        """Snapshot the open project from the GUI service (already loaded and cached)."""
-        devices: dict[str, DeviceSnap] = {}
-        for d in self._api.project.devices:
-            ia = d.individual_address or ""
-            if not ia:
-                continue
-            info = self._api.project.get_device_info(d.node_id)
-            devices[ia] = DeviceSnap(
-                ia=ia,
-                name=d.name,
-                product=info.product_name if info else "",
-                order=info.order_number if info else "",
-            )
-        gas = {
-            g.address: GaSnap(
-                address=g.address, name=g.name, dpt=g.datapoint_type or ""
-            )
-            for g in self._api.project.group_addresses
-        }
-        return ProjectSnapshot(name="current", devices=devices, group_addresses=gas)
-
-    def _load_project_snapshot(
-        self, path: str, password: str | None = None
-    ) -> ProjectSnapshot:
-        """Open a project file read-only and snapshot it (a .knxproj is converted first).
-        ``password`` opens a password-protected project or archive."""
+    def _compare_with_file(self, path: str, password: str | None = None) -> DiffResult:
+        """Open a project file and compare the open project with it (a .knxproj is converted
+        first). ``password`` opens a password-protected project or archive."""
         from xknxeditor.proj import ProjectService as CoreProjectService
         from xknxeditor.proj import import_knxproj
 
@@ -1811,27 +1780,9 @@ class ProjectPlugin:
             svc = CoreProjectService()
             pid = svc.open(xknx_path, password)
             try:
-                devices: dict[str, DeviceSnap] = {}
-                for d in svc.devices(pid):
-                    info = svc.device(pid, d.id)
-                    ia = info.individual_address or ""
-                    if not ia:
-                        continue
-                    devices[ia] = DeviceSnap(
-                        ia=ia,
-                        name=info.name,
-                        product=info.product_name,
-                        order=info.order_number,
-                    )
-                gas = {
-                    g.text: GaSnap(
-                        address=g.text, name=g.name, dpt=g.datapoint_type or ""
-                    )
-                    for g in svc.group_addresses(pid)
-                }
+                return self._api.project.compare_with(svc, pid, src.stem)
             finally:
                 svc.close(pid)
-            return ProjectSnapshot(name=src.stem, devices=devices, group_addresses=gas)
         finally:
             if tmpdir is not None:
                 tmpdir.cleanup()

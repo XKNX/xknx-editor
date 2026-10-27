@@ -508,6 +508,9 @@ msgstr "此项目中没有建筑/房间"
 msgid "Name"
 msgstr "名称"
 
+msgid "Open Project"
+msgstr "当前打开的项目"
+
 msgid "Type"
 msgstr "类型"
 

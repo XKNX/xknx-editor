@@ -105,6 +105,11 @@ if TYPE_CHECKING:
     from editor_gui.plugins.catalog.service import CatalogService
     from editor_gui.plugins.connection.service import SecureTunnel
     from editor_gui.plugins.keyring.service import KeyringIpSecrets, KeyringService
+    from editor_gui.plugins.project.ui.project_diff import (
+        DetailRow,
+        DeviceSnap,
+        DiffResult,
+    )
     from xknxeditor.catalog import ProductDeletion, ProductSummary, ProgramSummary
     from xknxeditor.download.image import GroupCommunication
     from xknxeditor.download.ip_config import IpDeviceConfig
@@ -2228,16 +2233,21 @@ class ProjectService:
             )
             return None
 
-    def _device_inputs(self, row: Any, app_program_id: str) -> _DeviceInputs:
-        """What the device of ``row`` is evaluated from besides its application."""
+    def _device_inputs(
+        self, row: Any, app_program_id: str, individual_address: str | None = None
+    ) -> _DeviceInputs:
+        """What the device of ``row`` is evaluated from besides its application; with
+        ``individual_address`` for a row of another project."""
         assert self._pid is not None
         pirs, mis, coirs = _instance_refs(row, app_program_id)
+        if individual_address is None:
+            individual_address = self._svc.individual_address(self._pid, row.id) or ""
         return _DeviceInputs(
             node_id=row.id,
             name=row.name,
             product_name=row.product_name or "",
             description=row.description,
-            individual_address=self._svc.individual_address(self._pid, row.id) or "",
+            individual_address=individual_address,
             parameter_instance_refs=pirs,
             module_instances=mis,
             com_object_instance_refs=coirs,
@@ -3561,6 +3571,108 @@ class ProjectService:
             certificate_size=len(p.knx_certificate),
             password_protected=self._svc.is_password_protected(self._pid),
         )
+
+    def compare_with(
+        self, other: _ProjectService, other_pid: str, name: str
+    ) -> "DiffResult":
+        """How the project ``other_pid`` of ``other`` (another file, opened read-only) differs
+        from the open one: its devices, with the parameters and group objects that differ, and
+        its group addresses."""
+        from editor_gui.plugins.project.project_snapshot import read_project_snapshot
+        from editor_gui.plugins.project.ui.project_diff import diff_projects
+
+        if self._pid is None:
+            raise ValueError("no project is open")
+        base = read_project_snapshot(self._svc, self._pid, "current")
+        theirs = read_project_snapshot(other, other_pid, name)
+        rows: dict[int, Any] = {}
+
+        def details(mine: "DeviceSnap", their: "DeviceSnap") -> "list[DetailRow]":
+            if not rows:
+                rows.update(
+                    (row.id, row)
+                    for row in other.devices(other_pid, with_contents=True)
+                )
+            row = rows.get(their.id)
+            if row is None:
+                return []
+            try:
+                return self._device_differences(mine.id, row, other, other_pid)
+            except Exception as e:
+                self._log.warning(
+                    "device not compared",
+                    device=their.ia or their.name,
+                    error=f"{type(e).__name__}: {e}",
+                )
+                return []
+
+        return diff_projects(base, theirs, details)
+
+    def _device_differences(
+        self, node_id: int, row: Any, other: _ProjectService, other_pid: str
+    ) -> "list[DetailRow]":
+        """The parameters and group objects in which the open project's device ``node_id``
+        differs from the device ``row`` of the project ``other_pid``, as Compare Devices shows
+        them; none when either device cannot be built from its application."""
+        from editor_gui.plugins.project.ui.device_diff import (
+            diff_devices,
+            snapshot_device,
+        )
+        from editor_gui.plugins.project.ui.project_diff import DetailRow
+
+        current = self.find_device_by_node_id(node_id)
+        if current is None:
+            return []
+        app = self._resolve_app(
+            row.hardware2program_ref_id,
+            getattr(row, "application_program_ref_id", None),
+        )
+        if app is None:
+            return []
+        theirs = _compute_device(
+            self._device_inputs(
+                row,
+                app.program.id,
+                individual_address=other.individual_address(other_pid, row.id) or "",
+            ),
+            app,
+        )
+
+        def links(db_id: int) -> list[tuple[int, bool]]:
+            return [
+                (a.group_address_id, a.is_sending)
+                for a in self.get_links_for_com_object(db_id)
+            ]
+
+        def address(ga_id: int) -> str:
+            ga = self.get_group_address(ga_id)
+            return ga.address if ga is not None else ""
+
+        def other_links(db_id: int) -> list[tuple[int, bool]]:
+            return [
+                (link.group_address_id, link.is_sending)
+                for link in other.com_object_links(other_pid, db_id)
+            ]
+
+        def other_address(ga_id: int) -> str:
+            try:
+                return other.group_address(other_pid, ga_id).text
+            except KeyError:
+                return ""
+
+        result = diff_devices(
+            snapshot_device(current, links, address),
+            snapshot_device(theirs, other_links, other_address),
+        )
+        return [
+            DetailRow(section, r.label, r.kind, r.a, r.b)
+            for section, section_rows in (
+                ("parameter", result.parameters),
+                ("group_object", result.com_objects),
+            )
+            for r in section_rows
+            if r.kind != "same"
+        ]
 
     def set_project_name(self, name: str) -> None:
         """Rename the project (one undo step); an empty name keeps the current one."""
@@ -7245,6 +7357,7 @@ class ProjectService:
                 id=entry.id,
                 display_text=_history_label(entry.event_type, entry.data),
                 reverted=entry.reverted,
+                timestamp=entry.timestamp,
             )
             for entry in self._svc.history(self._pid)
         ]

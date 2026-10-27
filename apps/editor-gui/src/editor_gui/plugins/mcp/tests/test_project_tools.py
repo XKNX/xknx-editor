@@ -175,6 +175,78 @@ async def test_group_addresses_shift_create_and_mass_link(tmp_path: Path) -> Non
         )
 
 
+async def test_history_steps_carry_their_time(tmp_path: Path) -> None:
+    from datetime import UTC, datetime, timedelta
+
+    mcp, _project = _server(tmp_path)
+    async with Client(mcp) as client:
+        await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
+        await _device(client, "1.1.40")
+        steps = (await _data(client, "project_history"))["items"]
+        assert steps
+        for step in steps:
+            assert step["timestamp"].endswith("Z")
+            moment = datetime.fromisoformat(step["timestamp"])
+            assert abs(datetime.now(UTC) - moment) < timedelta(minutes=5)
+        newest = steps[0]["timestamp"]
+        since = await _data(client, "project_history", since=newest)
+        assert since["count"] >= 1
+        assert all(s["timestamp"] >= newest for s in since["items"])
+        later = (datetime.now(UTC) + timedelta(hours=1)).replace(tzinfo=None)
+        none = await _data(client, "project_history", since=later.isoformat())
+        assert none["count"] == 0
+        await _error(client, "project_history", "no ISO 8601", since="yesterday")
+
+
+async def test_compare_projects_lists_what_changed_in_a_device(tmp_path: Path) -> None:
+    mcp, project = _server(tmp_path)
+    async with Client(mcp) as client:
+        await _data(client, "project_new", path=str(tmp_path / "old.xknx"))
+        node_id = await _device(client, "1.1.40")
+        params = (await _data(client, "project_list_parameters", node_id=node_id))[
+            "items"
+        ]
+        enum = next(
+            p
+            for p in params
+            if p["widget"].get("type") == "enum"
+            and p["widget"].get("choice_count", 0) > 1
+            and p.get("access") == "READ_WRITE"
+        )
+        full = await _data(
+            client,
+            "project_get_parameter",
+            node_id=node_id,
+            parameter_ref_id=enum["ref_id"],
+        )
+        value = next(
+            str(c["value"])
+            for c in full["widget"]["choices"]
+            if str(c["value"]) != str(enum["value"])
+        )
+        # Continue in a copy, so the old file keeps the device as it was.
+        assert project.save_as(tmp_path / "new.xknx") is not None
+        await _data(
+            client,
+            "project_set_parameter",
+            node_id=node_id,
+            parameter_ref_id=enum["ref_id"],
+            value=value,
+        )
+        await _data(
+            client, "project_set_individual_address", node_id=node_id, address="1.1.41"
+        )
+        result = await _data(
+            client, "project_compare_projects", path=str(tmp_path / "old.xknx")
+        )
+    # One device: the same one with another address, not one removed and one added.
+    (device,) = result["devices"]
+    assert (device["key"], device["kind"]) == ("1.1.41", "changed")
+    assert "address '1.1.41' -> '1.1.40'" in device["detail"]
+    labels = [p["label"] for p in device["parameters"] if p["kind"] == "changed"]
+    assert any(enum["label"] in label for label in labels)
+
+
 async def test_compare_projects(tmp_path: Path) -> None:
     mcp, _project = _server(tmp_path)
     async with Client(mcp) as client:

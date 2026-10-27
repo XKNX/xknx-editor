@@ -37,6 +37,9 @@ msgstr "Kein Projekt"
 msgid "Name"
 msgstr "Name"
 
+msgid "Open Project"
+msgstr "Geöffnetes Projekt"
+
 msgid "Group Address Style"
 msgstr "Gruppenadressansicht"
 
