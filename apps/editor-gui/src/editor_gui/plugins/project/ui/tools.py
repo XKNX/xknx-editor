@@ -38,6 +38,7 @@ from editor_gui.plugins.project.ui.project_diff import (
 from editor_gui.widgets.checkbox import checkbox, radio_button
 from editor_gui.widgets.combo import begin_combo
 from editor_gui.widgets.dpi import px, px_vec2
+from editor_gui.widgets.flow import button_width, same_line_if_fits
 from editor_gui.widgets.tabs import begin_tab_bar
 from xknxeditor.proj.core.addressing import GroupAddressStyle, format_ga
 
@@ -227,6 +228,8 @@ class ToolsPanel:
         self._get_group_address_style = get_group_address_style
         self._on_shift_group_addresses = on_shift_group_addresses
         self._on_diff_projects = on_diff_projects
+        # Shows the backups of the project, where Project Diff with one of them starts.
+        self.show_backups: Callable[[], None] | None = None
 
         # Replace Device state (selection by node id, with per-list filters).
         self._repl_target_node: int | None = None
@@ -275,6 +278,8 @@ class ToolsPanel:
         # The comparison running on a worker thread, and the project it compares with.
         self._diff_job: DiffJob | None = None
         self._diff_job_path = ""
+        # Show the Project Diff tab on the next frame (asked from a backup).
+        self._select_diff = False
 
     def render(self) -> None:
         if not self._is_open():
@@ -307,13 +312,30 @@ class ToolsPanel:
             if imgui.begin_tab_item(S.TOOLS_TAB_LABELS)[0]:
                 self._render_labels_tab()
                 imgui.end_tab_item()
-            if imgui.begin_tab_item(S.TOOLS_TAB_DIFF)[0]:
+            flags = (
+                imgui.TabItemFlags_.set_selected
+                if self._select_diff
+                else imgui.TabItemFlags_.none
+            )
+            self._select_diff = False
+            if imgui.begin_tab_item(f"{S.TOOLS_TAB_DIFF}###tools_diff", None, flags)[0]:
                 self._render_diff_tab()
                 imgui.end_tab_item()
             if imgui.begin_tab_item(S.TOOLS_TAB_TOPOLOGY)[0]:
                 self._render_topology_tab()
                 imgui.end_tab_item()
             imgui.end_tab_bar()
+
+    def open_diff(self, path: str, name: str, password: str | None = None) -> None:
+        """Show the Project Diff tab comparing with the project file ``path``, named ``name``
+        there; ``password`` opens a protected one (else it is asked for). A comparison still
+        running goes on."""
+        self._select_diff = True
+        if self._diff_job is not None:
+            return
+        self._diff_other_name = name
+        self._diff_password = ""
+        self._run_diff(path, password)
 
     def open_compare(self, node_id: int) -> None:
         """Show the "Compare Devices" tab with ``node_id`` as the first device."""
@@ -809,29 +831,49 @@ class ToolsPanel:
             self._diff_dialog = file_dialogs.open_file(
                 S.TOOLS_DIFF_PICK_TITLE,
                 "",
-                [S.TOOLS_DIFF_FILTER, "*.knxproj *.xknx", S.TOOLS_SELECT_ALL, "*"],
+                [
+                    S.TOOLS_DIFF_FILTER,
+                    "*.knxproj *.xknx *.zip",
+                    S.TOOLS_SELECT_ALL,
+                    "*",
+                ],
             )
+        if self.show_backups is not None:
+            same_line_if_fits(button_width(S.TOOLS_DIFF_BACKUPS))
+            if imgui.button(S.TOOLS_DIFF_BACKUPS):
+                self.show_backups()
+            if imgui.is_item_hovered(imgui.HoveredFlags_.delay_normal):
+                imgui.set_tooltip(S.TOOLS_DIFF_BACKUPS_TIP)
         imgui.end_disabled()
         if self._diff_other_name:
-            imgui.same_line()
-            imgui.text_disabled(
-                S.TOOLS_DIFF_COMPARED_WITH.format(name=self._diff_other_name)
-            )
+            # What it was compared with on a line of its own, the outcome right after it.
+            imgui.text(S.TOOLS_DIFF_COMPARED_WITH.format(name=self._diff_other_name))
+        compared = bool(self._diff_other_name)
+
+        def outcome(text: str) -> str:
+            """``text``, beside what it was compared with where it fits there."""
+            if compared:
+                same_line_if_fits(imgui.calc_text_size(text).x)
+            return text
+
         if self._diff_job is not None:
             self._render_diff_progress(self._diff_job)
             return
         if self._diff_password_path is not None:
             self._render_diff_password(self._diff_password_path)
+            compared = False
         if self._diff_error:
-            imgui.text_colored(_ERR_COLOR, self._diff_error)
+            imgui.text_colored(_ERR_COLOR, outcome(self._diff_error))
             return
         result = self._diff_result
         if result is None:
             return
         if result.total == 0:
-            imgui.text_colored(imgui.ImVec4(0.5, 0.8, 0.5, 1.0), S.TOOLS_DIFF_IDENTICAL)
+            imgui.text_colored(
+                imgui.ImVec4(0.5, 0.8, 0.5, 1.0), outcome(S.TOOLS_DIFF_IDENTICAL)
+            )
             return
-        imgui.text_disabled(S.TOOLS_DIFF_COUNT.format(count=result.total))
+        imgui.text_disabled(outcome(S.TOOLS_DIFF_COUNT.format(count=result.total)))
         if imgui.begin_child("##diff_result"):
             self._render_diff_section(S.TOOLS_DIFF_DEVICES, result.devices)
             self._render_diff_section(S.TOOLS_DIFF_GAS, result.group_addresses)

@@ -17,7 +17,6 @@ from editor_gui.plugins.project.ui.move_menu import render_move_menu
 from editor_gui.plugins.project.ui.paste_special import MenuGroups
 from editor_gui.regional import regional_format
 from editor_gui.strings import get_locale
-from editor_gui.widgets.backgrounds import fill_content_background
 from editor_gui.widgets.checkbox import checkbox
 from editor_gui.widgets.combo import combo
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
@@ -30,7 +29,12 @@ from editor_gui.widgets.flow import (
     same_line_if_fits,
 )
 from editor_gui.widgets.tabs import begin_tab_bar
-from editor_gui.widgets.tree import keyboard_moved_here, leaf_rows, tree_node
+from editor_gui.widgets.tree import (
+    begin_tree_area,
+    keyboard_moved_here,
+    leaf_rows,
+    tree_node,
+)
 from editor_gui.widgets.value_pickers import format_date
 
 if TYPE_CHECKING:
@@ -324,7 +328,14 @@ class CatalogPanel:
     def _render_local_catalog(self) -> None:
         self._search = filter_box("##catalog_search", S.LOCAL_SEARCH_HINT, self._search)
         self._render_add_row()
-        fill_content_background()
+        # Only the tree scrolls; the search and the rows above it stay.
+        begin_tree_area("##catalog_tree")
+        self._render_local_tree()
+        imgui.end_child()
+
+    def _render_local_tree(self) -> None:
+        """The local products below the search, by manufacturer, and the chosen one's
+        details."""
         deleting = self._deleting
         if deleting is not None:
             imgui.text_disabled(S.DELETING.format(name=deleting))
@@ -719,7 +730,19 @@ class CatalogPanel:
         )
         self._render_add_row(online=True)
         query = self._online_search.lower().strip()
-        fill_content_background()
+        # Only the tree scrolls; the search and the rows above it stay.
+        begin_tree_area("##online_catalog_tree")
+        self._render_online_tree(online, query, leaf_flags)
+        imgui.end_child()
+
+    def _render_online_tree(
+        self,
+        online: list[OnlineManufacturer] | None,
+        query: str,
+        leaf_flags: int,
+    ) -> None:
+        """The online products below the search: those found for ``query``, else the
+        manufacturers to open."""
         filters = self._online_filters.key() if self._online_filters else None
         if (
             query != self._flat_query or filters != self._flat_filters

@@ -52,11 +52,11 @@ msgstr "Mostrar Informação Alargada"
 msgid "Hide Extended Information"
 msgstr "Ocultar Informação Alargada"
 
-msgid "{count} teleg."
-msgstr "{count} teleg."
+msgid "{count} telg."
+msgstr "{count} telg."
 
-msgid "Load: {rate} t/s"
-msgstr "Carga: {rate} t/s"
+msgid "{rate} t/s"
+msgstr "{rate} t/s"
 
 msgid "Group Address:"
 msgstr "Endereço de Grupo:"

@@ -18,6 +18,28 @@ def checkbox(label: str, value: bool, *, centred: bool = False) -> tuple[bool, b
     return result
 
 
+def wrapped_checkbox(label: str, value: bool) -> tuple[bool, bool]:
+    """A checkbox whose text wraps at the window's edge instead of making it wider (a long text
+    on a phone); a click on the text toggles it too. ``label`` may end with an ``##id``."""
+    text, _, key = label.partition("##")
+    changed, value = checkbox(f"##{key or text}", value)
+    imgui.same_line(0.0, imgui.get_style().item_inner_spacing.x)
+    imgui.push_text_wrap_pos(0.0)
+    imgui.text(text)
+    imgui.pop_text_wrap_pos()
+    if imgui.is_item_clicked():
+        changed, value = True, not value
+    return changed, value
+
+
+def checkbox_text_indent() -> float:
+    """How far right of a :func:`checkbox` (or :func:`wrapped_checkbox`) its text starts: the
+    indent that lines up what belongs to it below (fields, hints) with its text."""
+    padding = imgui.get_style().frame_padding
+    box = imgui.get_font_size() + 2 * (padding.y / 4)
+    return box + imgui.get_style().item_inner_spacing.x
+
+
 def radio_button(label: str, active: bool, *, centred: bool = False) -> bool:
     """A radio button about the size of the text; whether it was clicked. ``centred`` lines it
     up with full-height fields (buttons, inputs) on the same row; otherwise it lines up with

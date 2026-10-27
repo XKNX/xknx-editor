@@ -86,6 +86,34 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             f"no response on {address!r} within {timeout}s (device may not answer reads)"
         )
 
+    def _kind(name: str) -> Any:
+        from editor_gui.plugins.monitor.service import MonitorKind
+
+        try:
+            return MonitorKind(name)
+        except ValueError:
+            raise ToolError(
+                f"unknown monitor {name!r}; one of group, bus, activity"
+            ) from None
+
+    @tool("read")
+    def monitor_max_records() -> dict[str, int]:
+        """The most telegrams each monitor keeps (the Max field in its toolbar): {group, bus,
+        activity}; the oldest tenth is dropped when one is exceeded."""
+        from editor_gui.plugins.monitor.service import MonitorKind
+
+        return {kind.value: monitor.max_records(kind) for kind in MonitorKind}
+
+    @tool("write")
+    def monitor_set_max_records(name: str, value: int) -> dict[str, int]:
+        """Set the most telegrams the monitor ``name`` (group, bus or activity) keeps, at
+        least 10; it is trimmed down to it at once. Not part of the project's undo history.
+        Returns the caps of all monitors (see monitor_max_records)."""
+        from editor_gui.plugins.monitor.service import MonitorKind
+
+        monitor.set_max_records(_kind(name), max(value, 10))
+        return {kind.value: monitor.max_records(kind) for kind in MonitorKind}
+
     @tool("destructive")
     def monitor_clear() -> dict[str, str]:
         """Clear cached latest values and the Group Monitor log; active recording continues.

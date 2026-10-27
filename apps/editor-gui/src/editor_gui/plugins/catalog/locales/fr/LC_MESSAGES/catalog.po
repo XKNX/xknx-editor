@@ -206,7 +206,7 @@ msgid "Add to"
 msgstr "Ajouter à"
 
 msgid "Automatic: the device goes on the Current Line of the room chosen, without one on the first TP line."
-msgstr "Automatique : l'appareil va sur la ligne courante de la pièce choisie, sinon sur la première ligne TP."
+msgstr "Automatique : l'appareil va sur la ligne courante de la pièce choisie, sinon sur la première ligne TP."
 
 msgid "Download to Local Catalog"
 msgstr "Télécharger dans le catalogue local"

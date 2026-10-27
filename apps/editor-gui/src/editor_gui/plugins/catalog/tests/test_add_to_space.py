@@ -132,6 +132,8 @@ def _frames(panel: Any, count: int = 2) -> None:
 
     for _ in range(count):
         imgui.new_frame()
+        # A panel's size, so its tree area below the search has room for rows.
+        imgui.set_next_window_size(imgui.ImVec2(600, 500))
         imgui.begin("Catalog")
         panel.render()
         imgui.end()

@@ -1369,8 +1369,8 @@ msgstr "Kommentare sind verschlüsselt"
 msgid "Comments decrypted"
 msgstr "Kommentare entschlüsselt"
 
-msgid "Compare the open project with another project file (.knxproj or .xknx): which devices and group addresses were added, removed or changed. The other project is read-only; nothing is modified."
-msgstr "Das geöffnete Projekt mit einer anderen Projektdatei (.knxproj oder .xknx) vergleichen: welche Geräte und Gruppenadressen hinzugefügt, entfernt oder geändert wurden. Das andere Projekt wird nur gelesen; es wird nichts verändert."
+msgid "Compare the open project with another project file (.knxproj, .xknx or a backup): which devices and group addresses were added, removed or changed. The other project is read-only; nothing is modified."
+msgstr "Das geöffnete Projekt mit einer anderen Projektdatei (.knxproj, .xknx oder einer Sicherung) vergleichen: welche Geräte und Gruppenadressen hinzugefügt, entfernt oder geändert wurden. Das andere Projekt wird nur gelesen; es wird nichts verändert."
 
 msgid "Custom Grid"
 msgstr "Eigenes Raster"
@@ -1460,8 +1460,8 @@ msgstr "Ungültige Adresse oder bereits vergeben."
 msgid "KNX Common Assembly"
 msgstr "KNX-Common-Assembly"
 
-msgid "KNX project (*.knxproj *.xknx)"
-msgstr "KNX-Projekt (*.knxproj *.xknx)"
+msgid "KNX project (*.knxproj *.xknx *.zip)"
+msgstr "KNX-Projekt (*.knxproj *.xknx *.zip)"
 
 msgid "Key extracted; comments decrypted"
 msgstr "Schlüssel extrahiert; Kommentare entschlüsselt"
@@ -1541,8 +1541,8 @@ msgstr "hinzugefügt"
 msgid "changed"
 msgstr "geändert"
 
-msgid "compared with {name}"
-msgstr "verglichen mit {name}"
+msgid "Compared with {name}:"
+msgstr "Verglichen mit {name}:"
 
 msgid "removed"
 msgstr "entfernt"
@@ -3136,3 +3136,9 @@ msgstr "Geräte löschen"
 
 msgid "{medium} line"
 msgstr "{medium} Linie"
+
+msgid "From Backups…"
+msgstr "Aus Sicherungen…"
+
+msgid "Compare with a backup of this project"
+msgstr "Mit einer Sicherung dieses Projekts vergleichen"

@@ -295,8 +295,8 @@ msgstr "Topologian Tarkastus"
 msgid "Project Diff"
 msgstr "Projektien vertailu"
 
-msgid "Compare the open project with another project file (.knxproj or .xknx): which devices and group addresses were added, removed or changed. The other project is read-only; nothing is modified."
-msgstr "Vertaa avointa projektia toiseen projektitiedostoon (.knxproj tai .xknx): mitä laitteita ja ryhmäosoitteita on lisätty, poistettu tai muutettu. Toista projektia vain luetaan; mitään ei muuteta."
+msgid "Compare the open project with another project file (.knxproj, .xknx or a backup): which devices and group addresses were added, removed or changed. The other project is read-only; nothing is modified."
+msgstr "Vertaa avointa projektia toiseen projektitiedostoon (.knxproj, .xknx tai varmuuskopio): mitä laitteita ja ryhmäosoitteita on lisätty, poistettu tai muutettu. Toista projektia vain luetaan; mitään ei muuteta."
 
 msgid "Choose Project to Compare…"
 msgstr "Valitse verrattava projekti…"
@@ -304,11 +304,11 @@ msgstr "Valitse verrattava projekti…"
 msgid "Choose Project to Compare"
 msgstr "Valitse verrattava projekti"
 
-msgid "KNX project (*.knxproj *.xknx)"
-msgstr "KNX-projekti (*.knxproj *.xknx)"
+msgid "KNX project (*.knxproj *.xknx *.zip)"
+msgstr "KNX-projekti (*.knxproj *.xknx *.zip)"
 
-msgid "compared with {name}"
-msgstr "verrattu: {name}"
+msgid "Compared with {name}:"
+msgstr "Vertailu kohteeseen {name}:"
 
 msgid "No differences in devices or group addresses."
 msgstr "Laitteissa tai ryhmäosoitteissa ei ole eroja."
@@ -2951,3 +2951,9 @@ msgstr "Poista laitteet"
 
 msgid "{medium} line"
 msgstr "{medium}-linja"
+
+msgid "From Backups…"
+msgstr "Varmuuskopioista…"
+
+msgid "Compare with a backup of this project"
+msgstr "Vertaa tämän projektin varmuuskopioon"

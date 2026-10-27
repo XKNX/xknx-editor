@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable
-from typing import Any
+from typing import Any, cast
 
 from editor_gui.plugins.base import Logger, PanelDefinition, PluginAPI
 from editor_gui.plugins.monitor import frames
@@ -14,7 +14,7 @@ from editor_gui.plugins.monitor.formatting import (
     master_formats,
 )
 from editor_gui.plugins.monitor.frames import individual_address_text
-from editor_gui.plugins.monitor.service import MonitorService
+from editor_gui.plugins.monitor.service import MonitorKind, MonitorService
 from editor_gui.plugins.monitor.strings import S
 from editor_gui.plugins.monitor.ui import MonitorPanel
 from editor_gui.regional import regional_format
@@ -32,10 +32,16 @@ class MonitorPlugin:
         self._api = api
         self._service = MonitorService(api.connection)
         self._service.set_logger(Logger(api.log, "monitor"))
-        # Restore the persisted max-records cap (set in the Group Monitor toolbar).
+        # Restore the persisted caps (each set in its monitor's toolbar); one number is the
+        # Group Monitor's, from when the monitors shared one cap.
         stored = load_settings(_SETTINGS).get("max_records")
-        if isinstance(stored, int) and stored > 0:
-            self._service.set_max_records(stored)
+        if isinstance(stored, int):
+            stored = {MonitorKind.GROUP.value: stored}
+        if isinstance(stored, dict):
+            for kind in MonitorKind:
+                value = cast(dict[str, Any], stored).get(kind.value)
+                if isinstance(value, int) and value > 0:
+                    self._service.set_max_records(kind, value)
         self._service.on_max_records_changed = self._save_max_records
         self._index = ProjectIndex()
         self._formats: tuple[int, dict[str, DptFormat]] = (0, {})
@@ -82,9 +88,12 @@ class MonitorPlugin:
         if device is not None:
             self._api.project.selected_device = device
 
-    def _save_max_records(self, value: int) -> None:
+    def _save_max_records(self, kind: MonitorKind, value: int) -> None:
         data = load_settings(_SETTINGS)
-        data["max_records"] = value
+        stored = data.get("max_records")
+        caps = dict(cast(dict[str, Any], stored)) if isinstance(stored, dict) else {}
+        caps[kind.value] = value
+        data["max_records"] = caps
         save_settings(_SETTINGS, data)
 
     def _project_index(self) -> ProjectIndex:

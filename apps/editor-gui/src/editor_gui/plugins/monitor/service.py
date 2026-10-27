@@ -139,7 +139,7 @@ class MonitorService:
         self.replay_result: tuple[int, bool] | None = None
         self.host = socket.gethostname()
         # Set by the host to persist a new max_records value.
-        self.on_max_records_changed: Callable[[int], None] | None = None
+        self.on_max_records_changed: Callable[[MonitorKind, int], None] | None = None
 
     def set_logger(self, log: Logger) -> None:
         self._log = log
@@ -445,21 +445,19 @@ class MonitorService:
         self._values = {}
         self.clear_log(MonitorKind.GROUP)
 
-    @property
-    def max_records(self) -> int:
-        """Current cap on records a monitor keeps. All channels share the same cap."""
-        return self.channels[MonitorKind.GROUP].log.max_records
+    def max_records(self, kind: MonitorKind) -> int:
+        """The cap on the records the monitor ``kind`` keeps; each monitor has its own."""
+        return self.channels[kind].log.max_records
 
-    def set_max_records(self, value: int) -> None:
-        """Change the cap on all channels and trim them down to it right away. Fires
+    def set_max_records(self, kind: MonitorKind, value: int) -> None:
+        """Change the cap of the monitor ``kind`` and trim it down to it right away. Fires
         :attr:`on_max_records_changed` when the value differs from the current one, so the
         host can persist it."""
-        previous = self.max_records
-        for channel in self.channels.values():
-            channel.log.set_max_records(value)
-        new = self.max_records
+        previous = self.max_records(kind)
+        self.channels[kind].log.set_max_records(value)
+        new = self.max_records(kind)
         if new != previous and self.on_max_records_changed is not None:
-            self.on_max_records_changed(new)
+            self.on_max_records_changed(kind, new)
 
     # --- outgoing (UI thread) ---------------------------------------------
 

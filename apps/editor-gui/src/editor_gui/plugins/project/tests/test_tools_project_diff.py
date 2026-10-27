@@ -33,6 +33,7 @@ def context() -> Iterator[None]:
 def _panel() -> ToolsPanel:
     panel = object.__new__(ToolsPanel)
     panel._diff_other_name = "old.xknx"  # pyright: ignore[reportPrivateUsage]
+    panel.show_backups = None
     return panel
 
 
@@ -100,6 +101,78 @@ def test_the_outcome_of_a_comparison_is_shown_once_it_ended() -> None:
     panel._poll_diff_job()  # pyright: ignore[reportPrivateUsage]
     assert panel._diff_job is None  # pyright: ignore[reportPrivateUsage]
     assert panel._diff_result is result  # pyright: ignore[reportPrivateUsage]
+
+
+def test_a_comparison_asked_from_elsewhere_shows_the_tab() -> None:
+    job = DiffJob()
+    panel = _job_panel(job)
+    started: list[tuple[str, str | None]] = []
+
+    def start(path: str, password: str | None) -> DiffJob:
+        started.append((path, password))
+        return job
+
+    panel._on_diff_projects = start  # pyright: ignore[reportPrivateUsage]
+    panel._select_diff = False  # pyright: ignore[reportPrivateUsage]
+    panel.open_diff("backup.zip", "Backup of 2026-10-27 12:00", "secret")
+    assert panel._select_diff  # pyright: ignore[reportPrivateUsage]
+    assert panel._diff_other_name == "Backup of 2026-10-27 12:00"  # pyright: ignore[reportPrivateUsage]
+    assert started == [("backup.zip", "secret")]
+
+    # One still running goes on.
+    panel._select_diff = False  # pyright: ignore[reportPrivateUsage]
+    panel.open_diff("other.zip", "Other", None)
+    assert panel._select_diff  # pyright: ignore[reportPrivateUsage]
+    assert started == [("backup.zip", "secret")]
+    assert panel._diff_other_name == "Backup of 2026-10-27 12:00"  # pyright: ignore[reportPrivateUsage]
+
+
+@pytest.mark.usefixtures("context")
+def test_the_backups_are_shown_from_the_tab(monkeypatch: pytest.MonkeyPatch) -> None:
+    panel = _job_panel(DiffJob())
+    panel._diff_dialog = None  # pyright: ignore[reportPrivateUsage]
+    panel._diff_other_name = ""  # pyright: ignore[reportPrivateUsage]
+    shown: list[bool] = []
+    panel.show_backups = lambda: shown.append(True)
+    monkeypatch.setattr(
+        tools.imgui, "button", lambda label: label == S.TOOLS_DIFF_BACKUPS
+    )
+    imgui.new_frame()
+    imgui.begin("Tools")
+    panel._render_diff_tab()  # pyright: ignore[reportPrivateUsage]
+    imgui.end()
+    imgui.end_frame()
+    assert shown == [True]
+
+
+@pytest.mark.usefixtures("context")
+def test_what_it_was_compared_with_is_a_line_with_the_outcome(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    panel = _job_panel(DiffJob())
+    panel._diff_dialog = None  # pyright: ignore[reportPrivateUsage]
+    panel._diff_other_name = "Backup of 2026-10-27 12:00"  # pyright: ignore[reportPrivateUsage]
+    panel._diff_result = DiffResult(devices=[], group_addresses=[])  # pyright: ignore[reportPrivateUsage]
+    lines: list[str] = []
+    beside: list[bool] = []
+    monkeypatch.setattr(tools.imgui, "text", lines.append)
+    monkeypatch.setattr(
+        tools.imgui, "text_colored", lambda _color, text: lines.append(text)
+    )
+    monkeypatch.setattr(
+        tools, "same_line_if_fits", lambda _width, spacing=None: beside.append(True)
+    )
+    imgui.new_frame()
+    imgui.begin("Tools")
+    panel._render_diff_tab()  # pyright: ignore[reportPrivateUsage]
+    imgui.end()
+    imgui.end_frame()
+    assert lines[-2:] == [
+        S.TOOLS_DIFF_COMPARED_WITH.format(name="Backup of 2026-10-27 12:00"),
+        S.TOOLS_DIFF_IDENTICAL,
+    ]
+    # The outcome goes beside it (where it fits).
+    assert beside == [True]
 
 
 def _frame(panel: ToolsPanel, result: DiffResult) -> None:

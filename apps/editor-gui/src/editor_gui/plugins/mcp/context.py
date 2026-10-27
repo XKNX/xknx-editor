@@ -24,6 +24,7 @@ from xknxeditor.prod.errors import ArchiveError
 if TYPE_CHECKING:
     from fastmcp import FastMCP
 
+    from editor_gui.plugins.backups.service import BackupService
     from editor_gui.plugins.base import Logger, PluginAPI
     from editor_gui.plugins.connection.plugin import ConnectionPlugin
     from editor_gui.plugins.keyring.service import KeyringService
@@ -112,6 +113,8 @@ class McpContext:
     # The project plugin, for the actions it composes (the Tools window, bulk group addresses);
     # None where no GUI runs them (tests).
     project_plugin: ProjectPlugin | None = None
+    # The backups of the open project; None where no GUI runs them (tests).
+    backups: BackupService | None = None
 
     def run_locked(self, fn: Callable[[], T], *, timeout: float = 30.0) -> T:
         """Run ``fn`` on the UI thread while holding the shared project/catalog lock non-blocking.

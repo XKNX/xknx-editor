@@ -41,7 +41,7 @@ msgid "Channels"
 msgstr "Canaux"
 
 msgid "Channel: {channel} ({device})"
-msgstr "Canal : {channel} ({device})"
+msgstr "Canal : {channel} ({device})"
 
 msgid "List the group objects"
 msgstr "Lister les objets de groupe"
@@ -50,10 +50,10 @@ msgid "Hide the group objects"
 msgstr "Masquer les objets de groupe"
 
 msgid "Group object {number}: {name}"
-msgstr "Objet de groupe {number} : {name}"
+msgstr "Objet de groupe {number} : {name}"
 
 msgid "Channel: {channel}"
-msgstr "Canal : {channel}"
+msgstr "Canal : {channel}"
 
 msgid "No linked devices to show."
 msgstr "Aucun participant lié à afficher."

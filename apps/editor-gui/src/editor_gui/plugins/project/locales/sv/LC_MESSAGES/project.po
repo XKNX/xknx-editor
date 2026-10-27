@@ -295,8 +295,8 @@ msgstr "Topologikontroll"
 msgid "Project Diff"
 msgstr "Projektjämförelse"
 
-msgid "Compare the open project with another project file (.knxproj or .xknx): which devices and group addresses were added, removed or changed. The other project is read-only; nothing is modified."
-msgstr "Jämför det öppna projektet med en annan projektfil (.knxproj eller .xknx): vilka apparater och gruppadresser som har lagts till, tagits bort eller ändrats. Det andra projektet är skrivskyddat; inget ändras."
+msgid "Compare the open project with another project file (.knxproj, .xknx or a backup): which devices and group addresses were added, removed or changed. The other project is read-only; nothing is modified."
+msgstr "Jämför det öppna projektet med en annan projektfil (.knxproj, .xknx eller en säkerhetskopia): vilka apparater och gruppadresser som har lagts till, tagits bort eller ändrats. Det andra projektet är skrivskyddat; inget ändras."
 
 msgid "Choose Project to Compare…"
 msgstr "Välj projekt att jämföra…"
@@ -304,11 +304,11 @@ msgstr "Välj projekt att jämföra…"
 msgid "Choose Project to Compare"
 msgstr "Välj projekt att jämföra"
 
-msgid "KNX project (*.knxproj *.xknx)"
-msgstr "KNX-projekt (*.knxproj *.xknx)"
+msgid "KNX project (*.knxproj *.xknx *.zip)"
+msgstr "KNX-projekt (*.knxproj *.xknx *.zip)"
 
-msgid "compared with {name}"
-msgstr "jämfört med {name}"
+msgid "Compared with {name}:"
+msgstr "Jämfört med {name}:"
 
 msgid "No differences in devices or group addresses."
 msgstr "Inga skillnader i apparater eller gruppadresser."
@@ -2951,3 +2951,9 @@ msgstr "Ta bort apparater"
 
 msgid "{medium} line"
 msgstr "{medium}-linje"
+
+msgid "From Backups…"
+msgstr "Från säkerhetskopior…"
+
+msgid "Compare with a backup of this project"
+msgstr "Jämför med en säkerhetskopia av det här projektet"

@@ -295,8 +295,8 @@ msgstr "Έλεγχος Τοπολογίας"
 msgid "Project Diff"
 msgstr "Σύγκριση Έργων"
 
-msgid "Compare the open project with another project file (.knxproj or .xknx): which devices and group addresses were added, removed or changed. The other project is read-only; nothing is modified."
-msgstr "Σύγκριση του ανοιχτού έργου με άλλο αρχείο έργου (.knxproj ή .xknx): ποιες συσκευές και διευθύνσεις ομάδων προστέθηκαν, αφαιρέθηκαν ή άλλαξαν. Το άλλο έργο είναι μόνο για ανάγνωση· δεν τροποποιείται τίποτα."
+msgid "Compare the open project with another project file (.knxproj, .xknx or a backup): which devices and group addresses were added, removed or changed. The other project is read-only; nothing is modified."
+msgstr "Σύγκριση του ανοιχτού έργου με άλλο αρχείο έργου (.knxproj, .xknx ή αντίγραφο ασφαλείας): ποιες συσκευές και διευθύνσεις ομάδων προστέθηκαν, αφαιρέθηκαν ή άλλαξαν. Το άλλο έργο είναι μόνο για ανάγνωση· δεν τροποποιείται τίποτα."
 
 msgid "Choose Project to Compare…"
 msgstr "Επιλογή Έργου για Σύγκριση…"
@@ -304,11 +304,11 @@ msgstr "Επιλογή Έργου για Σύγκριση…"
 msgid "Choose Project to Compare"
 msgstr "Επιλογή Έργου για Σύγκριση"
 
-msgid "KNX project (*.knxproj *.xknx)"
-msgstr "Έργο KNX (*.knxproj *.xknx)"
+msgid "KNX project (*.knxproj *.xknx *.zip)"
+msgstr "Έργο KNX (*.knxproj *.xknx *.zip)"
 
-msgid "compared with {name}"
-msgstr "σε σύγκριση με {name}"
+msgid "Compared with {name}:"
+msgstr "Σε σύγκριση με {name}:"
 
 msgid "No differences in devices or group addresses."
 msgstr "Δεν υπάρχουν διαφορές σε συσκευές ή διευθύνσεις ομάδων."
@@ -2951,3 +2951,9 @@ msgstr "Διαγραφή Συσκευών"
 
 msgid "{medium} line"
 msgstr "{medium} γραμμή"
+
+msgid "From Backups…"
+msgstr "Από αντίγραφα ασφαλείας…"
+
+msgid "Compare with a backup of this project"
+msgstr "Σύγκριση με ένα αντίγραφο ασφαλείας αυτού του έργου"

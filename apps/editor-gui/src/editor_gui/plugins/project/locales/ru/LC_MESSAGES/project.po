@@ -295,8 +295,8 @@ msgstr "Проверка топологии"
 msgid "Project Diff"
 msgstr "Сравнение проектов"
 
-msgid "Compare the open project with another project file (.knxproj or .xknx): which devices and group addresses were added, removed or changed. The other project is read-only; nothing is modified."
-msgstr "Сравнить открытый проект с другим файлом проекта (.knxproj или .xknx): какие устройства и групповые адреса были добавлены, удалены или изменены. Другой проект только читается; ничего не изменяется."
+msgid "Compare the open project with another project file (.knxproj, .xknx or a backup): which devices and group addresses were added, removed or changed. The other project is read-only; nothing is modified."
+msgstr "Сравнить открытый проект с другим файлом проекта (.knxproj, .xknx или резервная копия): какие устройства и групповые адреса были добавлены, удалены или изменены. Другой проект только читается; ничего не изменяется."
 
 msgid "Choose Project to Compare…"
 msgstr "Выбрать проект для сравнения…"
@@ -304,11 +304,11 @@ msgstr "Выбрать проект для сравнения…"
 msgid "Choose Project to Compare"
 msgstr "Выбрать проект для сравнения"
 
-msgid "KNX project (*.knxproj *.xknx)"
-msgstr "Проект KNX (*.knxproj *.xknx)"
+msgid "KNX project (*.knxproj *.xknx *.zip)"
+msgstr "Проект KNX (*.knxproj *.xknx *.zip)"
 
-msgid "compared with {name}"
-msgstr "в сравнении с {name}"
+msgid "Compared with {name}:"
+msgstr "В сравнении с {name}:"
 
 msgid "No differences in devices or group addresses."
 msgstr "Нет различий в устройствах и групповых адресах."
@@ -2951,3 +2951,9 @@ msgstr "Удалить устройства"
 
 msgid "{medium} line"
 msgstr "линия {medium}"
+
+msgid "From Backups…"
+msgstr "Из резервных копий…"
+
+msgid "Compare with a backup of this project"
+msgstr "Сравнить с резервной копией этого проекта"

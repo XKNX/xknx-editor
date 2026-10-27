@@ -161,8 +161,8 @@ msgstr "z. B. 1/2/3"
 msgid "Group Address:"
 msgstr "Gruppenadresse:"
 
-msgid "Load: {rate} t/s"
-msgstr "Last: {rate} T/s"
+msgid "{rate} t/s"
+msgstr "{rate} T/s"
 
 msgid "Clear"
 msgstr "Löschen"
@@ -191,8 +191,8 @@ msgstr "Gruppenmonitor"
 msgid "Group Objects"
 msgstr "Kommunikationsobjekte"
 
-msgid "{count} teleg."
-msgstr "{count} Teleg."
+msgid "{count} telg."
+msgstr "{count} Telg."
 
 msgid "Enter a group address of the project to send to it."
 msgstr "Geben Sie eine Gruppenadresse des Projekts ein, um an sie zu senden."
