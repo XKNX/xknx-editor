@@ -1,3 +1,4 @@
+import datetime
 from collections.abc import Callable
 from dataclasses import dataclass
 
@@ -12,6 +13,21 @@ class HistoryEntry:
     id: int
     display_text: str
     reverted: bool
+    # When the step was made (UTC); None when unknown.
+    timestamp: datetime.datetime | None = None
+
+
+def history_time_text(
+    moment: datetime.datetime | None, now: datetime.datetime | None = None
+) -> str:
+    """When a history step was made, in local time: the time of day for a step of today, else
+    the date too ("2026-10-26 17:05:12"); "" when unknown."""
+    if moment is None:
+        return ""
+    local = moment.astimezone()
+    today = (now or datetime.datetime.now().astimezone()).date()
+    pattern = "%H:%M:%S" if local.date() == today else "%Y-%m-%d %H:%M:%S"
+    return local.strftime(pattern)
 
 
 class HistoryPanel:
@@ -24,6 +40,20 @@ class HistoryPanel:
         self._get_entries = get_entries
         self._get_cursor = get_cursor
         self._on_jump_to = on_jump_to
+        # The shown time of each step, made once per day (the panel renders every frame).
+        self._times: dict[datetime.datetime, str] = {}
+        self._times_day: datetime.date | None = None
+
+    def _time_text(self, moment: datetime.datetime | None) -> str:
+        if moment is None:
+            return ""
+        today = datetime.date.today()
+        if today != self._times_day:
+            self._times, self._times_day = {}, today
+        text = self._times.get(moment)
+        if text is None:
+            text = self._times[moment] = history_time_text(moment)
+        return text
 
     def render(self) -> None:
         entries = self._get_entries()
@@ -74,6 +104,10 @@ class HistoryPanel:
                     imgui.dummy(imgui.ImVec2(col_width, 0))
 
             imgui.same_line()
+            moment = self._time_text(entry.timestamp)
+            if moment:
+                imgui.text_disabled(moment)
+                imgui.same_line()
             imgui.text(entry.display_text)
 
             if entry.reverted:

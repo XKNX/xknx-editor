@@ -508,6 +508,14 @@ msgstr "Δεν υπάρχουν κτίρια/δωμάτια σε αυτό το �
 msgid "Name"
 msgstr "Όνομα"
 
+msgid "Open Project"
+msgstr "Ανοιχτό έργο"
+
+msgid "Reading the projects…"
+msgstr "Ανάγνωση των έργων…"
+
+msgid "Comparing devices: {done} of {total}"
+msgstr "Σύγκριση συσκευών: {done} από {total}"
 msgid "File"
 msgstr "Αρχείο"
 

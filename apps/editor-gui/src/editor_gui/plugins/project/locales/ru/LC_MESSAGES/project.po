@@ -508,6 +508,14 @@ msgstr "В этом проекте нет зданий/комнат"
 msgid "Name"
 msgstr "Имя"
 
+msgid "Open Project"
+msgstr "Открытый проект"
+
+msgid "Reading the projects…"
+msgstr "Чтение проектов…"
+
+msgid "Comparing devices: {done} of {total}"
+msgstr "Сравнение устройств: {done} из {total}"
 msgid "File"
 msgstr "Файл"
 

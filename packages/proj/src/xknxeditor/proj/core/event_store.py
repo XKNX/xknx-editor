@@ -23,6 +23,8 @@ class HistoryEntry:
     event_type: str
     data: dict[str, Any]
     reverted: bool
+    # When the event was made (UTC).
+    timestamp: datetime | None = None
 
 
 class EventStore:
@@ -195,8 +197,8 @@ class EventStore:
             self.redo()
 
     def history(self) -> list[HistoryEntry]:
-        """Every event newest-first as (id, command name, payload, reverted); labelling is left to
-        the caller (a UI concern)."""
+        """Every event newest-first as (id, command name, payload, reverted, time in UTC);
+        labelling is left to the caller (a UI concern)."""
         models = (
             self._session.execute(select(EventModel).order_by(EventModel.id.desc()))
             .scalars()
@@ -208,6 +210,10 @@ class EventStore:
                 event_type=model.type,
                 data=model.data,
                 reverted=model.reverted,
+                # SQLite keeps no time zone; the store writes UTC.
+                timestamp=model.timestamp.replace(tzinfo=UTC)
+                if model.timestamp.tzinfo is None
+                else model.timestamp,
             )
             for model in models
         ]

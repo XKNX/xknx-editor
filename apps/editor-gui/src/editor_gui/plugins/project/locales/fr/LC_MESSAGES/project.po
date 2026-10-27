@@ -508,6 +508,14 @@ msgstr "Aucun bâtiment/aucune pièce dans ce projet"
 msgid "Name"
 msgstr "Nom"
 
+msgid "Open Project"
+msgstr "Projet ouvert"
+
+msgid "Reading the projects…"
+msgstr "Lecture des projets…"
+
+msgid "Comparing devices: {done} of {total}"
+msgstr "Comparaison des appareils : {done} sur {total}"
 msgid "File"
 msgstr "Fichier"
 

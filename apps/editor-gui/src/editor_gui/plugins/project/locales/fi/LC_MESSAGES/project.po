@@ -508,6 +508,14 @@ msgstr "Tässä projektissa ei ole rakennuksia/huoneita"
 msgid "Name"
 msgstr "Nimi"
 
+msgid "Open Project"
+msgstr "Avoin projekti"
+
+msgid "Reading the projects…"
+msgstr "Luetaan projekteja…"
+
+msgid "Comparing devices: {done} of {total}"
+msgstr "Verrataan laitteita: {done}/{total}"
 msgid "File"
 msgstr "Tiedosto"
 

@@ -508,6 +508,14 @@ msgstr "Não há construções/compartimentos neste projeto"
 msgid "Name"
 msgstr "Nome"
 
+msgid "Open Project"
+msgstr "Projeto aberto"
+
+msgid "Reading the projects…"
+msgstr "A ler os projetos…"
+
+msgid "Comparing devices: {done} of {total}"
+msgstr "A comparar dispositivos: {done} de {total}"
 msgid "File"
 msgstr "Ficheiro"
 

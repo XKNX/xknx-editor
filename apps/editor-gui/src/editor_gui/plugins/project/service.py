@@ -105,6 +105,12 @@ if TYPE_CHECKING:
     from editor_gui.plugins.catalog.service import CatalogService
     from editor_gui.plugins.connection.service import SecureTunnel
     from editor_gui.plugins.keyring.service import KeyringIpSecrets, KeyringService
+    from editor_gui.plugins.project.ui.project_diff import (
+        DetailRow,
+        DeviceSnap,
+        DiffProgress,
+        DiffResult,
+    )
     from xknxeditor.catalog import ProductDeletion, ProductSummary, ProgramSummary
     from xknxeditor.download.image import GroupCommunication
     from xknxeditor.download.ip_config import IpDeviceConfig
@@ -2228,25 +2234,35 @@ class ProjectService:
             )
             return None
 
-    def _device_inputs(self, row: Any, app_program_id: str) -> _DeviceInputs:
-        """What the device of ``row`` is evaluated from besides its application."""
-        assert self._pid is not None
+    def _device_inputs(
+        self, row: Any, app_program_id: str, individual_address: str | None = None
+    ) -> _DeviceInputs:
+        """What the device of ``row`` is evaluated from besides its application. With
+        ``individual_address`` it is a row read elsewhere (a project compared on another thread):
+        nothing is read from the open project or the catalog then, and the product's download
+        plugin, factory image and configuration app are left out."""
         pirs, mis, coirs = _instance_refs(row, app_program_id)
+        compared = individual_address is not None
+        if individual_address is None:
+            assert self._pid is not None
+            individual_address = self._svc.individual_address(self._pid, row.id) or ""
+        program_ref = row.hardware2program_ref_id
         return _DeviceInputs(
             node_id=row.id,
             name=row.name,
             product_name=row.product_name or "",
             description=row.description,
-            individual_address=self._svc.individual_address(self._pid, row.id) or "",
+            individual_address=individual_address,
             parameter_instance_refs=pirs,
             module_instances=mis,
             com_object_instance_refs=coirs,
-            download_plugin_required=self._requires_download_plugin(
-                row.hardware2program_ref_id
-            ),
+            download_plugin_required=not compared
+            and self._requires_download_plugin(program_ref),
             binary_data=tuple(getattr(row, "binary_data", []) or []),
-            factory_image=self._factory_image_source(row.hardware2program_ref_id),
-            configuration_app=next(
+            factory_image=None if compared else self._factory_image_source(program_ref),
+            configuration_app=None
+            if compared
+            else next(
                 (
                     a.name
                     for a in self._configuration_apps()
@@ -3561,6 +3577,132 @@ class ProjectService:
             certificate_size=len(p.knx_certificate),
             password_protected=self._svc.is_password_protected(self._pid),
         )
+
+    def compare_projects(
+        self,
+        mine: _ProjectService,
+        mine_pid: str,
+        other: _ProjectService,
+        other_pid: str,
+        name: str,
+        *,
+        resolve_app: "Callable[[str | None, str | None], Application | None] | None" = None,
+        progress: "DiffProgress | None" = None,
+        canceled: Callable[[], bool] = lambda: False,
+    ) -> "DiffResult":
+        """How the project ``other_pid`` of ``other`` (another file) differs from ``mine_pid`` of
+        ``mine`` (the open project's file on a connection of its own): its devices, with the
+        parameters and group objects that differ, and its group addresses.
+
+        It reads nothing of the open project's session, so it runs on any thread: ``resolve_app``
+        finds an application (default: here, on this thread), ``progress`` learns how many
+        devices are compared, and it stops with ``DiffCanceled`` once ``canceled()``."""
+        from editor_gui.plugins.project.project_snapshot import read_project_snapshot
+        from editor_gui.plugins.project.ui.project_diff import (
+            DiffCanceled,
+            diff_projects,
+        )
+
+        resolve = resolve_app or self._resolve_app
+        base = read_project_snapshot(mine, mine_pid, "current")
+        theirs = read_project_snapshot(other, other_pid, name)
+        rows: dict[tuple[int, int], Any] = {}
+
+        def row(side: int, svc: _ProjectService, pid: str, device_id: int) -> Any:
+            if not any(key[0] == side for key in rows):
+                rows.update(
+                    ((side, r.id), r) for r in svc.devices(pid, with_contents=True)
+                )
+            return rows.get((side, device_id))
+
+        def details(a: "DeviceSnap", b: "DeviceSnap") -> "list[DetailRow]":
+            if canceled():
+                raise DiffCanceled
+            try:
+                return self._device_differences(
+                    (mine, mine_pid, row(0, mine, mine_pid, a.id)),
+                    (other, other_pid, row(1, other, other_pid, b.id)),
+                    resolve,
+                )
+            except Exception as e:
+                self._log.warning(
+                    "device not compared",
+                    device=b.ia or b.name,
+                    error=f"{type(e).__name__}: {e}",
+                )
+                return []
+
+        return diff_projects(base, theirs, details, progress)
+
+    def resolve_application(
+        self, program_ref: str | None, application_ref: str | None = None
+    ) -> Application | None:
+        """The application of a device with the hardware program ``program_ref`` (and the
+        application ref ``application_ref``), from the catalog; None when it is not there."""
+        return self._resolve_app(program_ref, application_ref)
+
+    def _device_differences(
+        self,
+        mine: tuple[_ProjectService, str, Any],
+        theirs: tuple[_ProjectService, str, Any],
+        resolve_app: "Callable[[str | None, str | None], Application | None]",
+    ) -> "list[DetailRow]":
+        """The parameters and group objects in which a device differs between two projects,
+        each given as (service, project id, device row), as Compare Devices shows them; none
+        when either device cannot be built from its application."""
+        from editor_gui.plugins.project.ui.device_diff import (
+            DeviceSnapshot,
+            diff_devices,
+            snapshot_device,
+        )
+        from editor_gui.plugins.project.ui.project_diff import DetailRow
+
+        def snapshot(svc: _ProjectService, pid: str, row: Any) -> DeviceSnapshot | None:
+            if row is None:
+                return None
+            app = resolve_app(
+                row.hardware2program_ref_id,
+                getattr(row, "application_program_ref_id", None),
+            )
+            if app is None:
+                return None
+            device = _compute_device(
+                self._device_inputs(
+                    row,
+                    app.program.id,
+                    individual_address=svc.individual_address(pid, row.id) or "",
+                ),
+                app,
+            )
+
+            def links(db_id: int) -> list[tuple[int, bool]]:
+                return [
+                    (link.group_address_id, link.is_sending)
+                    for link in svc.com_object_links(pid, db_id)
+                ]
+
+            def address(ga_id: int) -> str:
+                try:
+                    return svc.group_address(pid, ga_id).text
+                except KeyError:
+                    return ""
+
+            return snapshot_device(device, links, address)
+
+        a = snapshot(*mine)
+        b = snapshot(*theirs)
+        if a is None or b is None:
+            return []
+        result = diff_devices(a, b)
+        return [
+            DetailRow(section, r.label, r.kind, r.a, r.b)
+            for section, section_rows in (
+                ("parameter", result.parameters),
+                ("group_object", result.com_objects),
+            )
+            for r in section_rows
+            if r.kind != "same"
+        ]
 
     def set_project_name(self, name: str) -> None:
         """Rename the project (one undo step); an empty name keeps the current one."""
@@ -7254,6 +7396,7 @@ class ProjectService:
                 id=entry.id,
                 display_text=_history_label(entry.event_type, entry.data),
                 reverted=entry.reverted,
+                timestamp=entry.timestamp,
             )
             for entry in self._svc.history(self._pid)
         ]

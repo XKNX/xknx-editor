@@ -508,6 +508,14 @@ msgstr "Inga byggnader/rum i det här projektet"
 msgid "Name"
 msgstr "Namn"
 
+msgid "Open Project"
+msgstr "Öppet projekt"
+
+msgid "Reading the projects…"
+msgstr "Läser projekten…"
+
+msgid "Comparing devices: {done} of {total}"
+msgstr "Jämför enheter: {done} av {total}"
 msgid "File"
 msgstr "Fil"
 

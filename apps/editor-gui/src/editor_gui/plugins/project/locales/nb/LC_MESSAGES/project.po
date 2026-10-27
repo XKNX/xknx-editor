@@ -508,6 +508,14 @@ msgstr "Ingen bygninger/rom i dette prosjektet"
 msgid "Name"
 msgstr "Navn"
 
+msgid "Open Project"
+msgstr "Åpent prosjekt"
+
+msgid "Reading the projects…"
+msgstr "Leser prosjektene…"
+
+msgid "Comparing devices: {done} of {total}"
+msgstr "Sammenligner enheter: {done} av {total}"
 msgid "File"
 msgstr "Fil"
 
