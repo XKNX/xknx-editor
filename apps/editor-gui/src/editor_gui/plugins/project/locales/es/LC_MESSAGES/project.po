@@ -1164,6 +1164,9 @@ msgstr "Copiar Configuración"
 msgid "Compare with…"
 msgstr "Comparar con…"
 
+msgid "Show in Bus Diagram"
+msgstr "Mostrar en el diagrama de bus"
+
 msgid "Compare Devices"
 msgstr "Comparar Dispositivos"
 

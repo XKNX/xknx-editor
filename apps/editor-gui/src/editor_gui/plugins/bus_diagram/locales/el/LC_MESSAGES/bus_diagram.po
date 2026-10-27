@@ -31,11 +31,29 @@ msgstr "Συνδέσεις"
 msgid "Which devices talk to which over their group addresses: sending devices on the left, receiving devices on the right."
 msgstr "Ποιες συσκευές επικοινωνούν με ποιες μέσω των διευθύνσεων ομάδων τους: συσκευές αποστολής αριστερά, συσκευές λήψης δεξιά."
 
-msgid "Click to follow a device or group address, double-click to open a device. Drag to move, {key}+scroll to zoom."
-msgstr "Κάντε κλικ για να ακολουθήσετε μια συσκευή ή διεύθυνση ομάδας, διπλό κλικ για να ανοίξετε μια συσκευή. Σύρετε για μετακίνηση, {key}+κύλιση για μεγέθυνση."
+msgid "Click to follow a device, channel or group address, double-click to open a device, click the arrow of a device to list its group objects. Drag to move, {key}+scroll to zoom."
+msgstr "Κάντε κλικ για να ακολουθήσετε μια συσκευή, ένα κανάλι ή μια διεύθυνση ομάδας, διπλό κλικ για να ανοίξετε μια συσκευή, κλικ στο βέλος μιας συσκευής για να εμφανίσετε τα αντικείμενα επικοινωνίας της. Σύρετε για μετακίνηση, {key}+κύλιση για μεγέθυνση."
 
-msgid "Tap to follow a device or group address, double-tap to open a device. Zoom with two fingers."
-msgstr "Πατήστε για να ακολουθήσετε μια συσκευή ή διεύθυνση ομάδας, διπλό πάτημα για να ανοίξετε μια συσκευή. Μεγέθυνση με δύο δάχτυλα."
+msgid "Tap to follow a device, channel or group address, double-tap to open a device, tap the arrow of a device to list its group objects. Zoom with two fingers."
+msgstr "Πατήστε για να ακολουθήσετε μια συσκευή, ένα κανάλι ή μια διεύθυνση ομάδας, διπλό πάτημα για να ανοίξετε μια συσκευή, πάτημα στο βέλος μιας συσκευής για να εμφανίσετε τα αντικείμενα επικοινωνίας της. Μεγέθυνση με δύο δάχτυλα."
+
+msgid "Channels"
+msgstr "Κανάλια"
+
+msgid "Channel: {channel} ({device})"
+msgstr "Κανάλι: {channel} ({device})"
+
+msgid "List the group objects"
+msgstr "Εμφάνιση των αντικειμένων επικοινωνίας"
+
+msgid "Hide the group objects"
+msgstr "Απόκρυψη των αντικειμένων επικοινωνίας"
+
+msgid "Group object {number}: {name}"
+msgstr "Αντικείμενο επικοινωνίας {number}: {name}"
+
+msgid "Channel: {channel}"
+msgstr "Κανάλι: {channel}"
 
 msgid "No linked devices to show."
 msgstr "Δεν υπάρχουν συνδεδεμένες συσκευές για εμφάνιση."

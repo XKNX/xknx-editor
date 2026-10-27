@@ -1164,6 +1164,9 @@ msgstr "構成をコピー"
 msgid "Compare with…"
 msgstr "比較対象を選択…"
 
+msgid "Show in Bus Diagram"
+msgstr "バス図に表示"
+
 msgid "Compare Devices"
 msgstr "デバイスを比較する"
 

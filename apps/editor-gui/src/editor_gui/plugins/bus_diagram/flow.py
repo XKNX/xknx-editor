@@ -3,9 +3,11 @@
 The group addresses form the middle column in address order, under a header per middle group (or
 main group). Each device sits at the median height of its group addresses, pushed down where it
 would overlap the one above, so that most links run nearly level. A device that sends and receives
-shows on both sides. Only a chosen part of the project is laid out (a room, a main group, one
-device or one group address, or the whole project); devices outside it are marked, and on a group
-address with many of them they collapse into one "more" entry until it is expanded.
+shows on both sides. An opened device lists the group objects it links with below its box, under a
+heading per channel, and its links run from those. Only a chosen part of the project is laid out (a
+room, a main group, one device, one channel of a device or one group address, or the whole
+project); devices outside it are marked, and on a group address with many of them they collapse into
+one "more" entry until it is expanded.
 """
 
 from __future__ import annotations
@@ -15,13 +17,14 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Literal
 
 if TYPE_CHECKING:
+    from editor_gui.device import Device
     from editor_gui.plugins.project.service import ProjectService
 
-# A group address with its devices: ``(ga_id, address, name, ((node id, sends, receives), ...))``.
-Hub = tuple[int, str, str, tuple[tuple[int, bool, bool], ...]]
-# A node: ("s", device id) sending, ("r", device id) receiving, ("g", group address id).
+# A node: ("s", device id) sending, ("r", device id) receiving, ("g", group address id), and the
+# group objects of an opened device: ("so", group object id) sending, ("ro", group object id)
+# receiving.
 NodeKey = tuple[str, int]
-ScopeKind = Literal["all", "room", "main", "device", "ga"]
+ScopeKind = Literal["all", "room", "main", "device", "channel", "ga"]
 
 ROW = 30.0
 # More devices outside the scope than this on one group address collapse into one entry.
@@ -29,12 +32,47 @@ COLLAPSE = 6
 
 
 @dataclass(frozen=True)
+class Member:
+    """A device on a group address: whether it sends and receives there, and through which of its
+    group objects, ``(group object id, sends, receives)``."""
+
+    node_id: int
+    sends: bool
+    receives: bool
+    objects: tuple[tuple[int, bool, bool], ...] = ()
+
+
+@dataclass(frozen=True)
+class Hub:
+    """A group address with the devices linked to it."""
+
+    ga_id: int
+    address: str
+    name: str
+    members: tuple[Member, ...]
+
+
+@dataclass(frozen=True)
+class GroupObject:
+    """A group object as an opened device lists it: its number, name and channel (``""`` when it
+    is in none); ``channel_order`` is the channel's position in the device's parameters."""
+
+    number: int
+    name: str
+    channel: str = ""
+    channel_label: str = ""
+    channel_order: int = 0
+
+
+@dataclass(frozen=True)
 class Scope:
     """The part of the project the view lays out; ``key`` is the room label, main group number,
-    device node id or group address id."""
+    device node id or group address id. A channel scope is the channel ``channel`` of the device
+    ``key``."""
 
     kind: ScopeKind
     key: str | int | None = None
+    channel: str = ""
 
 
 @dataclass
@@ -49,6 +87,24 @@ class FlowNode:
     # Group address nodes: the address and name, drawn apart.
     address: str = ""
     name: str = ""
+    # Device nodes: listing their group objects; the device the scope shows.
+    opened: bool = False
+    chosen: bool = False
+    # Group object nodes: their device and channel.
+    owner: int | None = None
+    channel: str = ""
+
+
+@dataclass
+class FlowChannel:
+    """The heading of a channel among the group objects of an opened device."""
+
+    column: int  # 0 or 2
+    y: float
+    label: str
+    node_id: int
+    channel: str
+    inside: bool = True
 
 
 @dataclass
@@ -68,6 +124,7 @@ class FlowLayout:
     edges: list[tuple[NodeKey, NodeKey, int]] = field(
         default_factory=list[tuple[NodeKey, NodeKey, int]]
     )
+    channels: list[FlowChannel] = field(default_factory=list[FlowChannel])
     more: list[FlowMore] = field(default_factory=list[FlowMore])
     headers: list[tuple[float, str]] = field(default_factory=list[tuple[float, str]])
     height: float = 0.0
@@ -78,14 +135,14 @@ class FlowLayout:
 
 
 def project_hubs(project: ProjectService) -> list[Hub]:
-    """One hub per group address of the open project: ``(ga_id, address, name, participants)``
-    where each participant is ``(device node id, sends, receives)``.
+    """One hub per group address of the open project, with the devices linked to it and the group
+    objects they link with.
 
-    Direction follows the com-object's flags, gated by Communication: a device SENDS on a group
+    Direction follows the group object's flags, gated by Communication: a device SENDS on a group
     address when it transmits there (Transmit on its sending link); it RECEIVES when it is
     written to (Write) or takes updates (Update). Answering read requests is not sending. Every
-    group address with at least one participant is kept; the view decides what to show."""
-    part: dict[int, dict[int, list[bool]]] = {}
+    group address with at least one device is kept; the view decides what to show."""
+    part: dict[int, dict[int, dict[int, list[bool]]]] = {}
     for link in project.device_links():
         if not link.communication:
             continue
@@ -93,8 +150,10 @@ def project_hubs(project: ProjectService) -> list[Hub]:
         receives = bool(link.write or link.update)
         if not (sends or receives):
             continue
-        bits = part.setdefault(link.group_address_id, {}).setdefault(
-            link.device_id, [False, False]
+        bits = (
+            part.setdefault(link.group_address_id, {})
+            .setdefault(link.device_id, {})
+            .setdefault(link.com_object_id, [False, False])
         )
         bits[0] = bits[0] or sends
         bits[1] = bits[1] or receives
@@ -104,9 +163,43 @@ def project_hubs(project: ProjectService) -> list[Hub]:
         ga = gas.get(ga_id)
         address = ga.address if ga is not None else str(ga_id)
         name = ga.name if ga is not None else ""
-        participants = tuple((nid, bits[0], bits[1]) for nid, bits in devs.items())
-        hubs.append((ga_id, address, name, participants))
+        members = tuple(
+            Member(
+                nid,
+                any(s for s, _r in objects.values()),
+                any(r for _s, r in objects.values()),
+                tuple((co, s, r) for co, (s, r) in sorted(objects.items())),
+            )
+            for nid, objects in devs.items()
+        )
+        hubs.append(Hub(ga_id, address, name, members))
     return hubs
+
+
+def device_group_objects(
+    device: Device, with_channels: bool = True
+) -> dict[int, GroupObject]:
+    """The group objects of ``device`` by their id, with their channels from its parameters
+    (``with_channels``; that needs the device's application). A device not evaluated before is
+    released again afterwards."""
+    from editor_gui.device import com_object_display_name
+    from editor_gui.widgets.parameter_widgets import com_object_channels
+
+    channels: dict[str, tuple[str, str, int]] = {}
+    if with_channels:
+        evaluated = device.evaluated
+        channels = com_object_channels(device.get_ui())
+        if not evaluated:
+            device.release_dynamic_ui()
+    objects: dict[int, GroupObject] = {}
+    for co in device.com_objects:
+        if co.db_id is None:
+            continue
+        channel, label, order = channels.get(co.id, ("", "", 0))
+        objects[co.db_id] = GroupObject(
+            co.number, com_object_display_name(co), channel, label, order
+        )
+    return objects
 
 
 def address_key(address: str) -> tuple[int, ...]:
@@ -143,27 +236,47 @@ def _header(group: str, names: Mapping[str, str]) -> str:
     return f"{group}/*" + (f"   {title}" if title else "")
 
 
+def chosen_device(scope: Scope) -> int | None:
+    """The device a device or channel scope shows."""
+    if scope.kind in ("device", "channel"):
+        return int(scope.key or 0)
+    return None
+
+
 def in_scope(
-    hubs: Sequence[Hub], scope: Scope, rooms: Mapping[str, set[int]]
+    hubs: Sequence[Hub],
+    scope: Scope,
+    rooms: Mapping[str, set[int]],
+    objects: Mapping[int, Mapping[int, GroupObject]] | None = None,
 ) -> tuple[list[Hub], set[int] | None]:
-    """The group addresses ``scope`` shows, and the devices inside it (``None``: all are)."""
+    """The group addresses ``scope`` shows, and the devices inside it (``None``: all are). A channel
+    scope needs the group objects of its device in ``objects``."""
     core: set[int] | None = None
     if scope.kind == "room":
         core = set(rooms.get(str(scope.key), set()))
-    elif scope.kind == "device":
+    elif scope.kind in ("device", "channel"):
         core = {int(scope.key or 0)}
+    # The channel's group objects.
+    channel: set[int] = set()
+    if scope.kind == "channel" and objects is not None:
+        own = objects.get(int(scope.key or 0), {})
+        channel = {co for co, o in own.items() if o.channel == scope.channel}
     kept: list[Hub] = []
     for hub in hubs:
-        ga_id, address, _name, parts = hub
         if scope.kind == "ga":
-            if ga_id == scope.key:
+            if hub.ga_id == scope.key:
                 kept.append(hub)
             continue
-        if len(parts) < 2:
+        if len(hub.members) < 2:
             continue  # one device on a group address links nothing
-        if scope.kind == "main" and main_of(address) != scope.key:
+        if scope.kind == "main" and main_of(hub.address) != scope.key:
             continue
-        if core is not None and not any(nid in core for nid, _s, _r in parts):
+        if core is not None and not any(m.node_id in core for m in hub.members):
+            continue
+        if scope.kind == "channel" and not any(
+            m.node_id == scope.key and any(co in channel for co, _s, _r in m.objects)
+            for m in hub.members
+        ):
             continue
         kept.append(hub)
     return kept, core
@@ -176,101 +289,185 @@ def build_flow(
     labels: Mapping[int, str],
     names: Mapping[str, str],
     expanded: set[int] | frozenset[int] = frozenset(),
+    objects: Mapping[int, Mapping[int, GroupObject]] | None = None,
 ) -> FlowLayout:
     """Lay out the group addresses of ``scope`` with their devices. ``labels`` names the devices,
     ``names`` the main ("1") and middle ("1/2") groups; ``expanded`` lists the group addresses whose
-    devices outside the scope are shown one by one."""
-    kept, core = in_scope(hubs, scope, rooms)
-    kept.sort(key=lambda hub: address_key(hub[1]))
+    devices outside the scope are shown one by one. ``objects`` has the group objects of the opened
+    devices, which list them."""
+    opened = objects or {}
+    kept, core = in_scope(hubs, scope, rooms, opened)
+    kept.sort(key=lambda hub: address_key(hub.address))
+    chosen = chosen_device(scope)
     layout = FlowLayout()
     ga_y: dict[int, float] = {}
-    sends: dict[int, list[int]] = {}
-    receives: dict[int, list[int]] = {}
+    # Per side, each device's group addresses and, when opened, its group objects' ones.
+    gas_of: dict[str, dict[int, list[int]]] = {"s": {}, "r": {}}
+    objects_of: dict[str, dict[int, dict[int, list[int]]]] = {"s": {}, "r": {}}
     y = 0.0
     group: str | None = None
-    for ga_id, address, name, parts in kept:
-        here = _group_of(address)
+    for hub in kept:
+        here = _group_of(hub.address)
         if here != group:
             group = here
             title = _header(here, names)
             if title:
                 layout.headers.append((y, title))
                 y += ROW
-        ga_y[ga_id] = y
-        main = main_of(address)
+        ga_y[hub.ga_id] = y
         layout.nodes.append(
             FlowNode(
-                ("g", ga_id),
+                ("g", hub.ga_id),
                 1,
                 y,
-                f"{address}  {name}".strip(),
-                main,
-                address=address,
-                name=name,
+                f"{hub.address}  {hub.name}".strip(),
+                main_of(hub.address),
+                address=hub.address,
+                name=hub.name,
             )
         )
-        outside = [p for p in parts if core is not None and p[0] not in core]
-        collapse = len(outside) > COLLAPSE and ga_id not in expanded
+        outside = [m for m in hub.members if core is not None and m.node_id not in core]
+        collapse = len(outside) > COLLAPSE and hub.ga_id not in expanded
         if collapse:
             for column, count in (
-                (0, sum(1 for p in outside if p[1])),
-                (2, sum(1 for p in outside if p[2])),
+                (0, sum(1 for m in outside if m.sends)),
+                (2, sum(1 for m in outside if m.receives)),
             ):
                 if count:
-                    layout.more.append(FlowMore(ga_id, column, y, count))
-        for nid, sending, receiving in parts:
-            if collapse and core is not None and nid not in core:
+                    layout.more.append(FlowMore(hub.ga_id, column, y, count))
+        for m in hub.members:
+            if collapse and core is not None and m.node_id not in core:
                 continue
-            if nid not in labels:
+            if m.node_id not in labels:
                 continue
-            if sending:
-                sends.setdefault(nid, []).append(ga_id)
-            if receiving:
-                receives.setdefault(nid, []).append(ga_id)
+            for side, on, index in (("s", m.sends, 1), ("r", m.receives, 2)):
+                if not on:
+                    continue
+                gas_of[side].setdefault(m.node_id, []).append(hub.ga_id)
+                if m.node_id in opened:
+                    per_object = objects_of[side].setdefault(m.node_id, {})
+                    for link in m.objects:
+                        if link[index]:
+                            per_object.setdefault(link[0], []).append(hub.ga_id)
         y += ROW
     bottom = y
-    placed: dict[NodeKey, float] = {}
-    for side, column, members in (("s", 0, sends), ("r", 2, receives)):
-        for nid, top in _place(members, ga_y).items():
-            key = (side, nid)
-            placed[key] = top
+    for side, column in (("s", 0), ("r", 2)):
+        rows = {
+            nid: _rows(objects_of[side].get(nid, {}), opened.get(nid, {}))
+            for nid in gas_of[side]
+        }
+        tops = _place(gas_of[side], ga_y, {nid: len(r) for nid, r in rows.items()})
+        for nid, top in tops.items():
+            inside = core is None or nid in core
             layout.nodes.append(
                 FlowNode(
-                    key,
+                    (side, nid),
                     column,
                     top,
                     labels[nid],
-                    inside=core is None or nid in core,
+                    inside=inside,
+                    opened=nid in opened,
+                    chosen=nid == chosen,
                 )
             )
-            bottom = max(bottom, top + ROW)
-    for ga_id, address, _name, parts in kept:
-        main = main_of(address)
-        target: NodeKey = ("g", ga_id)
-        for nid, sending, receiving in parts:
-            if sending and ("s", nid) in placed:
-                _link(layout, ("s", nid), target, main)
-            if receiving and ("r", nid) in placed:
-                _link(layout, target, ("r", nid), main)
+            for i, row in enumerate(rows[nid], start=1):
+                row_y = top + i * ROW
+                if isinstance(row, FlowChannel):
+                    row.column, row.y, row.node_id, row.inside = (
+                        column,
+                        row_y,
+                        nid,
+                        inside,
+                    )
+                    layout.channels.append(row)
+                else:
+                    co, label, channel = row
+                    layout.nodes.append(
+                        FlowNode(
+                            (f"{side}o", co),
+                            column,
+                            row_y,
+                            label,
+                            inside=inside,
+                            owner=nid,
+                            channel=channel,
+                        )
+                    )
+            bottom = max(bottom, top + (1 + len(rows[nid])) * ROW)
+    placed = {n.key for n in layout.nodes}
+    for hub in kept:
+        main = main_of(hub.address)
+        target: NodeKey = ("g", hub.ga_id)
+        for m in hub.members:
+            for side, on, index in (("s", m.sends, 1), ("r", m.receives, 2)):
+                if not on or (side, m.node_id) not in placed:
+                    continue
+                ends = [
+                    (f"{side}o", link[0])
+                    for link in m.objects
+                    if link[index] and (f"{side}o", link[0]) in placed
+                ]
+                for end in ends or [(side, m.node_id)]:
+                    if side == "s":
+                        _link(layout, end, target, main)
+                    else:
+                        _link(layout, target, end, main)
     layout.height = bottom
     return layout
 
 
+def _rows(
+    linked: Mapping[int, list[int]], objects: Mapping[int, GroupObject]
+) -> list[FlowChannel | tuple[int, str, str]]:
+    """The rows an opened device lists below its box: its linked group objects ``(id, label,
+    channel)`` in channel and number order, each channel under its heading."""
+    order = sorted(
+        linked,
+        key=lambda co: (
+            (o.channel_order, o.number, co)
+            if (o := objects.get(co)) is not None
+            else (1 << 30, 0, co)
+        ),
+    )
+    rows: list[FlowChannel | tuple[int, str, str]] = []
+    channel: str | None = None
+    for co in order:
+        o = objects.get(co)
+        if o is None:
+            rows.append((co, "?", ""))
+            continue
+        if o.channel and o.channel != channel:
+            rows.append(FlowChannel(0, 0.0, o.channel_label, 0, o.channel))
+        channel = o.channel
+        rows.append((co, f"{o.number}  {o.name}".strip(), o.channel))
+    return rows
+
+
 def _place(
-    members: Mapping[int, list[int]], ga_y: Mapping[int, float]
+    members: Mapping[int, list[int]],
+    ga_y: Mapping[int, float],
+    extra: Mapping[int, int],
 ) -> dict[int, float]:
     """Each device at the median height of its group addresses, pushed down where it would
-    overlap the device above."""
+    overlap the device above; ``extra`` rows below a device list its group objects, which start
+    one row higher to sit beside the group addresses."""
     wanted = sorted(
-        (sorted(ga_y[g] for g in gas)[len(gas) // 2], nid)
+        (
+            max(
+                0.0,
+                sorted(ga_y[g] for g in gas)[len(gas) // 2]
+                - (ROW if extra[nid] else 0),
+            ),
+            nid,
+        )
         for nid, gas in members.items()
     )
     placed: dict[int, float] = {}
-    previous = -ROW
+    free = 0.0
     for want, nid in wanted:
-        top = max(want, previous + ROW)
+        top = max(want, free)
         placed[nid] = top
-        previous = top
+        free = top + (1 + extra[nid]) * ROW
     return placed
 
 

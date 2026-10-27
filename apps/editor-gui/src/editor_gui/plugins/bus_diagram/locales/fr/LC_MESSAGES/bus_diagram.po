@@ -31,11 +31,29 @@ msgstr "Liaisons"
 msgid "Which devices talk to which over their group addresses: sending devices on the left, receiving devices on the right."
 msgstr "Quels participants communiquent entre eux via leurs adresses de groupe : participants émetteurs à gauche, participants récepteurs à droite."
 
-msgid "Click to follow a device or group address, double-click to open a device. Drag to move, {key}+scroll to zoom."
-msgstr "Cliquez pour suivre un participant ou une adresse de groupe, double-cliquez pour ouvrir un participant. Faites glisser pour déplacer, {key}+molette pour zoomer."
+msgid "Click to follow a device, channel or group address, double-click to open a device, click the arrow of a device to list its group objects. Drag to move, {key}+scroll to zoom."
+msgstr "Cliquez pour suivre un participant, un canal ou une adresse de groupe, double-cliquez pour ouvrir un participant, cliquez sur la flèche d'un participant pour lister ses objets de groupe. Faites glisser pour déplacer, {key}+molette pour zoomer."
 
-msgid "Tap to follow a device or group address, double-tap to open a device. Zoom with two fingers."
-msgstr "Touchez pour suivre un participant ou une adresse de groupe, touchez deux fois pour ouvrir un participant. Zoomez avec deux doigts."
+msgid "Tap to follow a device, channel or group address, double-tap to open a device, tap the arrow of a device to list its group objects. Zoom with two fingers."
+msgstr "Touchez pour suivre un participant, un canal ou une adresse de groupe, touchez deux fois pour ouvrir un participant, touchez la flèche d'un participant pour lister ses objets de groupe. Zoomez avec deux doigts."
+
+msgid "Channels"
+msgstr "Canaux"
+
+msgid "Channel: {channel} ({device})"
+msgstr "Canal : {channel} ({device})"
+
+msgid "List the group objects"
+msgstr "Lister les objets de groupe"
+
+msgid "Hide the group objects"
+msgstr "Masquer les objets de groupe"
+
+msgid "Group object {number}: {name}"
+msgstr "Objet de groupe {number} : {name}"
+
+msgid "Channel: {channel}"
+msgstr "Canal : {channel}"
 
 msgid "No linked devices to show."
 msgstr "Aucun participant lié à afficher."

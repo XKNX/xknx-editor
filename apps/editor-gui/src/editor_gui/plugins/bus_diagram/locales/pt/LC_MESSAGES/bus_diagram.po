@@ -31,11 +31,29 @@ msgstr "Vinculações"
 msgid "Which devices talk to which over their group addresses: sending devices on the left, receiving devices on the right."
 msgstr "Que dispositivos comunicam entre si através dos seus endereços de grupo: dispositivos emissores à esquerda, dispositivos recetores à direita."
 
-msgid "Click to follow a device or group address, double-click to open a device. Drag to move, {key}+scroll to zoom."
-msgstr "Clique para seguir um dispositivo ou endereço de grupo, faça duplo clique para abrir um dispositivo. Arraste para mover, {key}+roda para ampliar."
+msgid "Click to follow a device, channel or group address, double-click to open a device, click the arrow of a device to list its group objects. Drag to move, {key}+scroll to zoom."
+msgstr "Clique para seguir um dispositivo, canal ou endereço de grupo, faça duplo clique para abrir um dispositivo, clique na seta de um dispositivo para listar os seus objetos de grupo. Arraste para mover, {key}+roda para ampliar."
 
-msgid "Tap to follow a device or group address, double-tap to open a device. Zoom with two fingers."
-msgstr "Toque para seguir um dispositivo ou endereço de grupo, toque duas vezes para abrir um dispositivo. Amplie com dois dedos."
+msgid "Tap to follow a device, channel or group address, double-tap to open a device, tap the arrow of a device to list its group objects. Zoom with two fingers."
+msgstr "Toque para seguir um dispositivo, canal ou endereço de grupo, toque duas vezes para abrir um dispositivo, toque na seta de um dispositivo para listar os seus objetos de grupo. Amplie com dois dedos."
+
+msgid "Channels"
+msgstr "Canais"
+
+msgid "Channel: {channel} ({device})"
+msgstr "Canal: {channel} ({device})"
+
+msgid "List the group objects"
+msgstr "Listar os objetos de grupo"
+
+msgid "Hide the group objects"
+msgstr "Ocultar os objetos de grupo"
+
+msgid "Group object {number}: {name}"
+msgstr "Objeto de grupo {number}: {name}"
+
+msgid "Channel: {channel}"
+msgstr "Canal: {channel}"
 
 msgid "No linked devices to show."
 msgstr "Não há dispositivos vinculados para mostrar."

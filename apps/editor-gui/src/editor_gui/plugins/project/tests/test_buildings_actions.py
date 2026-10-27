@@ -80,6 +80,7 @@ def _panel(project: ProjectService, notes: list[str]) -> SpacesPanel:
         notify=notes.append,
         one_undo_step=project.one_undo_step,
         on_add_devices=project.add_devices_into,
+        on_show_links=project.show_in_bus_diagram,
     )
 
 
@@ -250,6 +251,12 @@ def test_devices_go_into_spaces_and_out_again(
         f"  Kitchen##mvdev{room}",
     )
     assert _names(project)[0] == ("p", [("Kitchen", [], ["D5", "D6"])], [])
+    # "Show in Bus Diagram" brings the Bus Diagram to the front, showing the device, once.
+    _choose(clicks, panel, f"##spdev_ctx_{second}", S.CONTEXT_SHOW_IN_BUS_DIAGRAM)
+    assert project.take_focus_bus_diagram()
+    assert not project.take_focus_bus_diagram()
+    assert project.take_bus_diagram_request() == (second, "")
+    assert project.take_bus_diagram_request() is None
     # A building holds no devices: told why.
     panel._report(project.set_device_space(first, building))  # pyright: ignore[reportPrivateUsage]
     assert notes

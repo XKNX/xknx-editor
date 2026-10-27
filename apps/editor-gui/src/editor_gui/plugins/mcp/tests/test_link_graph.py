@@ -199,3 +199,56 @@ async def test_senders_and_receivers_per_group_address(tmp_path: Path) -> None:
         )
         await _error(client, "project_link_graph", "no space", space_id=room + 1000)
         await _error(client, "project_link_graph", "no device", node_id=10_000)
+
+
+async def test_group_objects_and_channels(tmp_path: Path) -> None:
+    """The device of a device scope lists the group objects it links with, with their channels;
+    a channel scope shows the group addresses of the channel's group objects."""
+    mcp, _project = _build(tmp_path)
+    async with Client(mcp) as client:
+        await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
+        await _data(client, "catalog_import_knxprod", path=str(_FIXTURE))
+        product = (await _data(client, "catalog_list_products"))["items"][0][
+            "product_ref_id"
+        ]
+        sender = await _device(
+            client, product, communication=True, transmit=True, write=False
+        )
+        receiver = await _device(
+            client, product, communication=True, transmit=False, write=True
+        )
+        await _data(client, "project_create_group_address", address="1/1/1")
+        await _link(client, sender, "1/1/1", sending=True)
+        await _link(client, receiver, "1/1/1")
+        graph = await _data(client, "project_link_graph", node_id=receiver[0])
+        item = graph["items"][0]
+        # Only the device shown lists its group objects.
+        assert all("group_objects" not in d for d in item["senders"])
+        shown = next(d for d in item["receivers"] if d["node_id"] == receiver[0])
+        (group_object,) = shown["group_objects"]
+        assert set(group_object) == {"db_id", "number", "name", "channel"}
+        channel = group_object["channel"]
+        assert channel is not None
+        assert channel["name"]
+
+        # With with_group_objects every device lists them.
+        whole = await _data(client, "project_link_graph", with_group_objects=True)
+        devices = whole["items"][0]["senders"] + whole["items"][0]["receivers"]
+        assert all(d["group_objects"] for d in devices)
+
+        # The channel by its name or its id: its group object's group address.
+        for key in (channel["name"], channel["id"]):
+            in_channel = await _data(
+                client, "project_link_graph", node_id=receiver[0], channel=key
+            )
+            assert _shown(in_channel) == _shown(graph)
+        await _error(
+            client,
+            "project_link_graph",
+            "no channel 'Nowhere'; its channels: ",
+            node_id=receiver[0],
+            channel="Nowhere",
+        )
+        await _error(
+            client, "project_link_graph", "channel needs its device", channel="x"
+        )

@@ -1,6 +1,10 @@
 from __future__ import annotations
 
-from editor_gui.widgets.parameter_widgets import build_pages, filter_pages
+from editor_gui.widgets.parameter_widgets import (
+    build_pages,
+    com_object_channels,
+    filter_pages,
+)
 from xknxeditor.namespaces.intermediate.parameter_block_layout_t import (
     ParameterBlockLayout,
 )
@@ -92,6 +96,41 @@ def test_channels_and_pages() -> None:
     shown = [n.ref_id for n in pm.content if isinstance(n, UiParameter)]
     assert shown == ["P-3"]
     assert any(isinstance(n, UiParameterBlock) and n.inline for n in pm.content)
+
+
+def test_group_objects_belong_to_the_channel_holding_them() -> None:
+    """A group object's channel is the channel tab around it, named as the page tree names it
+    (repeated module instances with their index); a channel-independent block is no channel, and
+    an object listed twice keeps the place it is listed first."""
+    tree: list[UiNode] = [
+        UiTab(
+            id="general",
+            independent=True,
+            children=(_block("B-1", "Common", _com_object("O-0")),),
+        ),
+        UiTab(
+            id="X_MD-1_MI-1_CH-1",
+            text="G,",
+            children=(_block("B-2", "Inputs", _com_object("O-1")),),
+        ),
+        UiTab(
+            id="X_MD-1_MI-2_CH-1",
+            text="G,",
+            children=(_com_object("O-2"), _com_object("O-1")),
+        ),
+        UiTab(id="CH-9", text="Logic", children=(_com_object("O-3"),)),
+    ]
+    channels = com_object_channels(tree)
+    assert channels == {
+        "O-1": ("X_MD-1_MI-1_CH-1", "G 1", 1),
+        "O-2": ("X_MD-1_MI-2_CH-1", "G 2", 2),
+        "O-3": ("CH-9", "Logic", 3),
+    }
+    # A channel's page carries the same id, for "Show in Bus Diagram".
+    pages = build_pages(
+        [UiTab(id="CH-9", text="Logic", children=(_param("P-1", "Mode"),))], "1"
+    )
+    assert pages[0].channel == "CH-9"
 
 
 def test_grid_page_keeps_its_cells() -> None:

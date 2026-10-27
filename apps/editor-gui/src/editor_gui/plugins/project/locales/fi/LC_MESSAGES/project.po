@@ -1164,6 +1164,9 @@ msgstr "Kopioi konfiguraatio"
 msgid "Compare with…"
 msgstr "Vertaa…"
 
+msgid "Show in Bus Diagram"
+msgstr "Näytä väyläkaaviossa"
+
 msgid "Compare Devices"
 msgstr "Vertaa Laitteet"
 

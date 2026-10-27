@@ -4776,12 +4776,13 @@ class KnxGuiApp:
             )
         # "Compare with…" from a device's context menu: the Tools panel; F2 on an element in a
         # tree: the Device tab (its name takes the keyboard); "Add → Devices…" in the Topology
-        # tree: the catalog. Each shown again when it was closed, in front of the other tabs of
-        # its dock.
+        # tree: the catalog; "Show in Bus Diagram": the Bus Diagram. Each shown again when it was
+        # closed, in front of the other tabs of its dock.
         asked = {
             "tools": self._project_plugin.take_focus_tools(),
             "device": self._project_plugin.take_focus_device(),
             "catalog": self._project_plugin.take_focus_catalog(),
+            "bus_diagram": self._project_service.take_focus_bus_diagram(),
         }
         if any(asked.values()):
             for (

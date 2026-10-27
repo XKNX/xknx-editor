@@ -31,11 +31,29 @@ msgstr "Kopplingar"
 msgid "Which devices talk to which over their group addresses: sending devices on the left, receiving devices on the right."
 msgstr "Vilka apparater som kommunicerar med vilka via sina gruppadresser: sändande apparater till vänster, mottagande apparater till höger."
 
-msgid "Click to follow a device or group address, double-click to open a device. Drag to move, {key}+scroll to zoom."
-msgstr "Klicka för att följa en apparat eller gruppadress, dubbelklicka för att öppna en apparat. Dra för att flytta, {key}+scrolla för att zooma."
+msgid "Click to follow a device, channel or group address, double-click to open a device, click the arrow of a device to list its group objects. Drag to move, {key}+scroll to zoom."
+msgstr "Klicka för att följa en apparat, kanal eller gruppadress, dubbelklicka för att öppna en apparat, klicka på en apparats pil för att visa dess gruppobjekt. Dra för att flytta, {key}+scrolla för att zooma."
 
-msgid "Tap to follow a device or group address, double-tap to open a device. Zoom with two fingers."
-msgstr "Tryck för att följa en apparat eller gruppadress, dubbeltryck för att öppna en apparat. Zooma med två fingrar."
+msgid "Tap to follow a device, channel or group address, double-tap to open a device, tap the arrow of a device to list its group objects. Zoom with two fingers."
+msgstr "Tryck för att följa en apparat, kanal eller gruppadress, dubbeltryck för att öppna en apparat, tryck på en apparats pil för att visa dess gruppobjekt. Zooma med två fingrar."
+
+msgid "Channels"
+msgstr "Kanaler"
+
+msgid "Channel: {channel} ({device})"
+msgstr "Kanal: {channel} ({device})"
+
+msgid "List the group objects"
+msgstr "Visa gruppobjekten"
+
+msgid "Hide the group objects"
+msgstr "Dölj gruppobjekten"
+
+msgid "Group object {number}: {name}"
+msgstr "Gruppobjekt {number}: {name}"
+
+msgid "Channel: {channel}"
+msgstr "Kanal: {channel}"
 
 msgid "No linked devices to show."
 msgstr "Inga förbundna apparater att visa."

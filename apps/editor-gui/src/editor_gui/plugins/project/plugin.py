@@ -248,6 +248,7 @@ class ProjectPlugin:
             get_unloaded_devices=lambda: api.project.unloaded_devices,
             on_device_info=self._open_read_dialog,
             on_compare=self._open_compare,
+            on_show_links=api.project.show_in_bus_diagram,
             on_select_element=api.project.select_element,
             get_selected_topology=lambda: api.project.selected_topology,
             get_device_segments=api.project.device_segments,
@@ -301,6 +302,7 @@ class ProjectPlugin:
         self._configure_panel = ConfigurePanel(
             get_devices=lambda: api.project.devices,
             application_ready=api.project.application_ready,
+            on_show_links=api.project.show_in_bus_diagram,
             get_parked_address=api.project.parked_address,
             get_selected_device=lambda: api.project.selected_device,
             set_selected_device=self._set_selected_device,
@@ -488,6 +490,7 @@ class ProjectPlugin:
             count_paste_targets=self._count_paste_targets,
             on_device_info=self._open_read_dialog,
             on_compare=self._open_compare,
+            on_show_links=api.project.show_in_bus_diagram,
             # A function's and a trade's details (name, description, status) show in the Device
             # tab.
             on_select_element=api.project.select_element,

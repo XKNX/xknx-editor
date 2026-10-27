@@ -1164,6 +1164,9 @@ msgstr "Yapılandırmayı Kopyala"
 msgid "Compare with…"
 msgstr "Şununla Karşılaştır…"
 
+msgid "Show in Bus Diagram"
+msgstr "Bus Şemasında Göster"
+
 msgid "Compare Devices"
 msgstr "Cihaz Karşılaştırma"
 

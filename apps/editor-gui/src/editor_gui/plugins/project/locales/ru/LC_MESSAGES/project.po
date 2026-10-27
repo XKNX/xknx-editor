@@ -1164,6 +1164,9 @@ msgstr "Копировать конфигурацию"
 msgid "Compare with…"
 msgstr "Сравнить с…"
 
+msgid "Show in Bus Diagram"
+msgstr "Показать на схеме шины"
+
 msgid "Compare Devices"
 msgstr "Сравнить устройства"
 

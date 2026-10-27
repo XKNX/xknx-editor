@@ -1760,6 +1760,9 @@ msgstr "Geräte vergleichen"
 msgid "Compare with…"
 msgstr "Vergleichen mit…"
 
+msgid "Show in Bus Diagram"
+msgstr "Im Busdiagramm zeigen"
+
 msgid "Device A"
 msgstr "Gerät A"
 

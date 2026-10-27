@@ -113,8 +113,9 @@ with a project open, values are shown with the group address' name and decoded t
 ![Group Monitor](docs/images/monitor.png)
 
 **Bus Diagram** — the installation drawn by its topology or by its buildings, and as links: which
-devices send on each group address and which receive from it, for the whole project, a room or a
-main group. Click a device or group address to follow it.
+devices send on each group address and which receive from it, for the whole project, a room, a
+main group or one channel of a device. Click a device, channel or group address to follow it; the
+arrow of a device lists its group objects under their channels.
 
 <img src="docs/images/links.png" alt="Bus Diagram links" width="696">
 

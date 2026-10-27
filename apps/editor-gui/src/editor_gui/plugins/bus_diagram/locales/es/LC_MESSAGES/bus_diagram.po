@@ -31,11 +31,29 @@ msgstr "Enlaces"
 msgid "Which devices talk to which over their group addresses: sending devices on the left, receiving devices on the right."
 msgstr "Qué dispositivos se comunican con cuáles a través de sus direcciones de grupo: dispositivos emisores a la izquierda, dispositivos receptores a la derecha."
 
-msgid "Click to follow a device or group address, double-click to open a device. Drag to move, {key}+scroll to zoom."
-msgstr "Haga clic para seguir un dispositivo o una dirección de grupo, doble clic para abrir un dispositivo. Arrastre para mover, {key}+rueda para hacer zoom."
+msgid "Click to follow a device, channel or group address, double-click to open a device, click the arrow of a device to list its group objects. Drag to move, {key}+scroll to zoom."
+msgstr "Haga clic para seguir un dispositivo, un canal o una dirección de grupo, doble clic para abrir un dispositivo, clic en la flecha de un dispositivo para listar sus objetos de grupo. Arrastre para mover, {key}+rueda para hacer zoom."
 
-msgid "Tap to follow a device or group address, double-tap to open a device. Zoom with two fingers."
-msgstr "Toque para seguir un dispositivo o una dirección de grupo, toque dos veces para abrir un dispositivo. Haga zoom con dos dedos."
+msgid "Tap to follow a device, channel or group address, double-tap to open a device, tap the arrow of a device to list its group objects. Zoom with two fingers."
+msgstr "Toque para seguir un dispositivo, un canal o una dirección de grupo, toque dos veces para abrir un dispositivo, toque la flecha de un dispositivo para listar sus objetos de grupo. Haga zoom con dos dedos."
+
+msgid "Channels"
+msgstr "Canales"
+
+msgid "Channel: {channel} ({device})"
+msgstr "Canal: {channel} ({device})"
+
+msgid "List the group objects"
+msgstr "Listar los objetos de grupo"
+
+msgid "Hide the group objects"
+msgstr "Ocultar los objetos de grupo"
+
+msgid "Group object {number}: {name}"
+msgstr "Objeto de grupo {number}: {name}"
+
+msgid "Channel: {channel}"
+msgstr "Canal: {channel}"
 
 msgid "No linked devices to show."
 msgstr "No hay dispositivos enlazados que mostrar."

@@ -33,6 +33,7 @@ from editor_gui.widgets.time_format import (
     time_pattern,
     unit_ms,
 )
+from editor_gui.widgets.tree import context_menu
 from editor_gui.widgets.value_pickers import (
     format_date,
     render_color_param,
@@ -939,6 +940,34 @@ def _instance_label(node: UiTab | UiParameterBlock, repeated: frozenset[str]) ->
     return label
 
 
+def com_object_channels(
+    nodes: Iterable[UiNode],
+) -> dict[str, tuple[str, str, int]]:
+    """The channel of each group object in a device's parameter tree, by its ComObjectRef id:
+    ``(channel id, label as the page tree shows it, position of the channel)``. A group object in
+    no channel (or in a channel-independent block) has none; one the tree lists twice keeps the
+    place it is listed first, as the device's group objects do."""
+    first: dict[str, tuple[str, str, int] | None] = {}
+    count = 0
+
+    def walk(children: Iterable[UiNode], channel: tuple[str, str, int] | None) -> None:
+        nonlocal count
+        children = tuple(children)
+        repeated = _repeated_labels(children)
+        for node in children:
+            if isinstance(node, UiComObject):
+                first.setdefault(node.ref_id, channel)
+            elif isinstance(node, UiTab) and not node.independent:
+                count += 1
+                label = _instance_label(node, repeated)
+                walk(node.children, (node.id or label, label, count))
+            elif isinstance(node, UiTab | UiParameterBlock):
+                walk(node.children, channel)
+
+    walk(nodes, None)
+    return {ref: channel for ref, channel in first.items() if channel is not None}
+
+
 @dataclass(frozen=True, slots=True)
 class ParameterPage:
     """A channel or parameter page in the page tree."""
@@ -950,6 +979,8 @@ class ParameterPage:
     children: tuple[ParameterPage, ...] = ()
     block: UiParameterBlock | None = None
     selectable: bool = True
+    # A channel's page: the channel's id, as :func:`com_object_channels` names it.
+    channel: str | None = None
 
 
 def _is_page(node: UiNode) -> bool:
@@ -998,14 +1029,16 @@ def _split_pages(
             # devices carry channels that only group communication objects (no parameters); those
             # belong to the Group Objects view, not the page tree.
             if selectable or _first_selectable(tuple(sub)) is not None:
+                label = _instance_label(node, repeated)
                 pages.append(
                     ParameterPage(
                         key=_unique_key(key, seen),
-                        label=_instance_label(node, repeated),
+                        label=label,
                         icon=node.icon,
                         content=inner,
                         children=tuple(sub),
                         selectable=selectable,
+                        channel=node.id or label,
                     )
                 )
         elif _is_page(node):
@@ -1197,6 +1230,7 @@ def render_ui_tree(
     get_picture: Callable[[str], Picture | None] | None = None,
     footer: Callable[[float], None] | None = None,
     footer_height: float = 0.0,
+    channel_menu: Callable[[str], None] | None = None,
 ) -> EnumPopupRequest | None:
     """The page tree beside the selected page, with filter and multi-device diff markers, filling
     the rest of the window.
@@ -1205,6 +1239,8 @@ def render_ui_tree(
 
     ``footer`` is drawn below the page, about ``footer_height`` high, and is passed the
     exact height left for it.
+
+    ``channel_menu`` draws the items of a channel page's context menu, given the channel's id.
     """
     if not nodes:
         return None
@@ -1249,6 +1285,7 @@ def render_ui_tree(
                 opened,
                 bool(needle),
                 get_icon,
+                channel_menu=channel_menu,
             )
             imgui.unindent(px(_TREE_INDENT))
             # An item after the tree's last move of the cursor (imgui asserts on a cursor moved
@@ -1466,9 +1503,11 @@ def _render_page_tree(
     get_icon: Callable[[str], Icon | None] | None,
     *,
     top_level: bool = True,
+    channel_menu: Callable[[str], None] | None = None,
 ) -> str | None:
     """Draw ``pages`` as tree nodes; returns the key of a page clicked this frame. A top-level
-    page with pages below is a group, boxed with them."""
+    page with pages below is a group, boxed with them. ``channel_menu`` draws the items of a
+    channel page's context menu."""
     clicked: str | None = None
     icon_size = imgui.get_font_size()
     space = imgui.calc_text_size(" ").x
@@ -1521,11 +1560,24 @@ def _render_page_tree(
             and not imgui.is_item_toggled_open()
         ):
             clicked = page.key
+        if (
+            page.channel is not None
+            and channel_menu is not None
+            and context_menu(f"##page_ctx_{page.key}")
+        ):
+            channel_menu(page.channel)
+            imgui.end_popup()
         if page.block is not None:
             _track_help(page.block.help_context)
         if is_open and page.children:
             below = _render_page_tree(
-                page.children, selected, opened, open_all, get_icon, top_level=False
+                page.children,
+                selected,
+                opened,
+                open_all,
+                get_icon,
+                top_level=False,
+                channel_menu=channel_menu,
             )
             clicked = clicked or below
             imgui.tree_pop()

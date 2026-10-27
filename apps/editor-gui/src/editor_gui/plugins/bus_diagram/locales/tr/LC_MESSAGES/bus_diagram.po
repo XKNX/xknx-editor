@@ -31,11 +31,29 @@ msgstr "Bağlantılar"
 msgid "Which devices talk to which over their group addresses: sending devices on the left, receiving devices on the right."
 msgstr "Hangi cihazların grup adresleri üzerinden hangileriyle iletişim kurduğu: gönderen cihazlar solda, alıcı cihazlar sağda."
 
-msgid "Click to follow a device or group address, double-click to open a device. Drag to move, {key}+scroll to zoom."
-msgstr "Bir cihazı veya grup adresini izlemek için tıklayın, bir cihazı açmak için çift tıklayın. Taşımak için sürükleyin, yakınlaştırmak için {key}+kaydırma."
+msgid "Click to follow a device, channel or group address, double-click to open a device, click the arrow of a device to list its group objects. Drag to move, {key}+scroll to zoom."
+msgstr "Bir cihazı, kanalı veya grup adresini izlemek için tıklayın, bir cihazı açmak için çift tıklayın, grup nesnelerini listelemek için bir cihazın okuna tıklayın. Taşımak için sürükleyin, yakınlaştırmak için {key}+kaydırma."
 
-msgid "Tap to follow a device or group address, double-tap to open a device. Zoom with two fingers."
-msgstr "Bir cihazı veya grup adresini izlemek için dokunun, bir cihazı açmak için çift dokunun. İki parmakla yakınlaştırın."
+msgid "Tap to follow a device, channel or group address, double-tap to open a device, tap the arrow of a device to list its group objects. Zoom with two fingers."
+msgstr "Bir cihazı, kanalı veya grup adresini izlemek için dokunun, bir cihazı açmak için çift dokunun, grup nesnelerini listelemek için bir cihazın okuna dokunun. İki parmakla yakınlaştırın."
+
+msgid "Channels"
+msgstr "Kanallar"
+
+msgid "Channel: {channel} ({device})"
+msgstr "Kanal: {channel} ({device})"
+
+msgid "List the group objects"
+msgstr "Grup nesnelerini listele"
+
+msgid "Hide the group objects"
+msgstr "Grup nesnelerini gizle"
+
+msgid "Group object {number}: {name}"
+msgstr "Grup nesnesi {number}: {name}"
+
+msgid "Channel: {channel}"
+msgstr "Kanal: {channel}"
 
 msgid "No linked devices to show."
 msgstr "Gösterilecek bağlı cihaz yok."

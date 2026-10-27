@@ -185,6 +185,7 @@ def test_a_device_menu_is_grouped(monkeypatch: pytest.MonkeyPatch) -> None:
     )
     clicks = Clicks(monkeypatch, topology)
     menu = _Menu(monkeypatch)
+    shown_links: list[int] = []
     lines = {
         0: [Line(2, 0, 0, "", medium_type="MT-5", main_segment_id=20)],
         1: [
@@ -204,6 +205,7 @@ def test_a_device_menu_is_grouped(monkeypatch: pytest.MonkeyPatch) -> None:
         on_remove_line=lambda _l: None,
         on_device_info=lambda _n: None,
         on_compare=lambda _n: None,
+        on_show_links=shown_links.append,
         on_park_device=lambda _n: None,
         on_unlink_device=lambda _n: None,
         get_device_segments=lambda: {7: 10},
@@ -211,8 +213,8 @@ def test_a_device_menu_is_grouped(monkeypatch: pytest.MonkeyPatch) -> None:
     )
     _frames(panel.render)
     shown = _shown(clicks, menu, panel.render, "##dev_ctx_7")
-    # Its configuration; "Move to" with its address; reading, comparing, unlinking; then
-    # Copy / Cut / Paste and "Delete" ("Read from Device" brings no separator of its own).
+    # Its configuration; "Move to" with its address; reading, comparing, its links, unlinking;
+    # then Copy / Cut / Paste and "Delete" ("Read from Device" brings no separator of its own).
     assert shown == [
         S.CONTEXT_DUPLICATE,
         S.CONTEXT_COPY_CONFIG,
@@ -223,6 +225,7 @@ def test_a_device_menu_is_grouped(monkeypatch: pytest.MonkeyPatch) -> None:
         _SEPARATOR,
         S.BTN_READ_DEVICE_INFO,
         S.CONTEXT_COMPARE_DEVICE,
+        S.CONTEXT_SHOW_IN_BUS_DIAGRAM,
         S.CONTEXT_PARK,
         S.CONTEXT_UNLINK_LINE,
         _SEPARATOR,
@@ -233,6 +236,10 @@ def test_a_device_menu_is_grouped(monkeypatch: pytest.MonkeyPatch) -> None:
         _SEPARATOR,
         S.CONTEXT_DELETE,
     ]
+    clicks.context = "##dev_ctx_7"
+    clicks.items.add(S.CONTEXT_SHOW_IN_BUS_DIAGRAM)
+    _frames(panel.render)
+    assert shown_links == [7]
 
 
 @pytest.mark.usefixtures("context")

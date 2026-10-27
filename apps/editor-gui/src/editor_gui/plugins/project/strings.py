@@ -2941,6 +2941,10 @@ class ProjectStrings:
         return _("Compare with…")
 
     @property
+    def CONTEXT_SHOW_IN_BUS_DIAGRAM(self) -> str:
+        return _("Show in Bus Diagram")
+
+    @property
     def COMPARE_TITLE(self) -> str:
         return _("Compare Devices")
 

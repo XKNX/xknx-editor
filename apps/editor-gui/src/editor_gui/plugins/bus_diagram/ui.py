@@ -8,7 +8,7 @@ secured; the tooltip adds its description), and clicking it selects the device."
 
 from __future__ import annotations
 
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -22,6 +22,7 @@ from editor_gui.plugins.bus_diagram.canvas import (
     crisp_zoom,
     zoom_with_wheel,
 )
+from editor_gui.plugins.bus_diagram.flow import GroupObject, Hub, Scope
 from editor_gui.plugins.bus_diagram.links_view import LinkView
 from editor_gui.plugins.bus_diagram.strings import S
 from editor_gui.widgets.backgrounds import child_background, content_background
@@ -80,12 +81,13 @@ class BusDiagramPanel:
         get_space_tree: Callable[[], list[Any]],
         on_select: Callable[[int], None],
         is_open: Callable[[], bool],
-        get_link_graph: Callable[
-            [], list[tuple[int, str, str, tuple[tuple[int, bool, bool], ...]]]
-        ]
-        | None = None,
+        get_link_graph: Callable[[], list[Hub]] | None = None,
         get_group_names: Callable[[], dict[str, str]] | None = None,
+        get_group_objects: Callable[[int], Mapping[int, GroupObject]] | None = None,
+        take_request: Callable[[], tuple[int, str] | None] | None = None,
     ) -> None:
+        """``take_request`` gives the device and channel (its id, or ``""``) the Links view was
+        asked to show from elsewhere ("Show in Bus Diagram"), once."""
         self._get_devices = get_devices
         self._get_space_tree = get_space_tree
         self._on_select = on_select
@@ -103,6 +105,7 @@ class BusDiagramPanel:
         # applied in _draw), so it need not be regrouped/re-sorted every frame.
         self._layout_key: tuple[bool, int] | None = None
         self._layout_cache: _Layout | None = None
+        self._take_request = take_request
         self._links = (
             LinkView(
                 get_devices,
@@ -111,6 +114,7 @@ class BusDiagramPanel:
                 get_group_names or dict,
                 on_select,
                 _device_tooltip,
+                get_group_objects or (lambda _n: {}),
             )
             if get_link_graph is not None
             else None
@@ -120,6 +124,15 @@ class BusDiagramPanel:
         if not self._is_open():
             imgui.text_disabled(S.BUS_DIAGRAM_EMPTY)
             return
+        request = self._take_request() if self._take_request is not None else None
+        if request is not None and self._links is not None:
+            node_id, channel = request
+            self._mode = "links"
+            self._links.show(
+                Scope("channel", node_id, channel)
+                if channel
+                else Scope("device", node_id)
+            )
         if radio_button(S.BUS_DIAGRAM_MODE_PHYSICAL, self._mode == "physical"):
             self._mode = "physical"
         imgui.same_line()

@@ -1249,6 +1249,9 @@ class ProjectService:
         self._focus_editor_requested = False
         # Cross-panel "please bring the Group Addresses tab to front" request.
         self._focus_group_addresses_requested = False
+        # "Show in Bus Diagram": the Bus Diagram to the front, showing a device or its channel.
+        self._focus_bus_diagram_requested = False
+        self._bus_diagram_request: tuple[int, str] | None = None
         # "Add → Devices…" in the Topology tree: the catalog to the front, and the segment the
         # catalog adds devices to (None: the space's Current Line or the first TP line).
         self._focus_catalog_requested = False
@@ -2546,6 +2549,23 @@ class ProjectService:
         requested = self._focus_group_addresses_requested
         self._focus_group_addresses_requested = False
         return requested
+
+    def show_in_bus_diagram(self, node_id: int, channel: str = "") -> None:
+        """Ask the Bus Diagram to come to the front and show the links of a device, or of its
+        channel ``channel`` (the channel's id)."""
+        self._bus_diagram_request = (node_id, channel)
+        self._focus_bus_diagram_requested = True
+
+    def take_focus_bus_diagram(self) -> bool:
+        """One-shot: whether the Bus Diagram was asked to focus, then cleared."""
+        requested = self._focus_bus_diagram_requested
+        self._focus_bus_diagram_requested = False
+        return requested
+
+    def take_bus_diagram_request(self) -> tuple[int, str] | None:
+        """One-shot: the device and channel the Bus Diagram was asked to show, then cleared."""
+        request, self._bus_diagram_request = self._bus_diagram_request, None
+        return request
 
     def add_devices_to(self, segment_id: int | None) -> None:
         """ "Add → Devices…" in the Topology tree: the catalog comes to the front and adds

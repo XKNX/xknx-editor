@@ -31,11 +31,29 @@ msgstr "Связи"
 msgid "Which devices talk to which over their group addresses: sending devices on the left, receiving devices on the right."
 msgstr "Какие устройства обмениваются данными через свои групповые адреса: передающие устройства слева, принимающие справа."
 
-msgid "Click to follow a device or group address, double-click to open a device. Drag to move, {key}+scroll to zoom."
-msgstr "Щелчок — следовать за устройством или групповым адресом, двойной щелчок — открыть устройство. Перетаскивайте для перемещения, {key}+прокрутка для масштабирования."
+msgid "Click to follow a device, channel or group address, double-click to open a device, click the arrow of a device to list its group objects. Drag to move, {key}+scroll to zoom."
+msgstr "Щелчок — следовать за устройством, каналом или групповым адресом, двойной щелчок — открыть устройство, щелчок по стрелке устройства — показать его групповые объекты. Перетаскивайте для перемещения, {key}+прокрутка для масштабирования."
 
-msgid "Tap to follow a device or group address, double-tap to open a device. Zoom with two fingers."
-msgstr "Касание — следовать за устройством или групповым адресом, двойное касание — открыть устройство. Масштабируйте двумя пальцами."
+msgid "Tap to follow a device, channel or group address, double-tap to open a device, tap the arrow of a device to list its group objects. Zoom with two fingers."
+msgstr "Касание — следовать за устройством, каналом или групповым адресом, двойное касание — открыть устройство, касание стрелки устройства — показать его групповые объекты. Масштабируйте двумя пальцами."
+
+msgid "Channels"
+msgstr "Каналы"
+
+msgid "Channel: {channel} ({device})"
+msgstr "Канал: {channel} ({device})"
+
+msgid "List the group objects"
+msgstr "Показать групповые объекты"
+
+msgid "Hide the group objects"
+msgstr "Скрыть групповые объекты"
+
+msgid "Group object {number}: {name}"
+msgstr "Групповой объект {number}: {name}"
+
+msgid "Channel: {channel}"
+msgstr "Канал: {channel}"
 
 msgid "No linked devices to show."
 msgstr "Нет связанных устройств для отображения."

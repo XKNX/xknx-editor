@@ -354,9 +354,12 @@ class ConfigurePanel:
         find_product: "Callable[[str], ProductSummary | None] | None" = None,
         application_ready: Callable[[Device], bool] | None = None,
         get_parked_address: Callable[[int], str] = lambda _n: "",
+        on_show_links: Callable[[int, str], None] | None = None,
     ) -> None:
         # "1.5.-" for a device (node id) on a line without a device number, else "".
         self._get_parked_address = get_parked_address
+        # "Show in Bus Diagram" on a channel page: the device (node id) and the channel's id.
+        self._on_show_links = on_show_links
         self._get_devices = get_devices
         # Whether a device's application is loaded (it is loaded in the background otherwise).
         self._application_ready = application_ready
@@ -609,6 +612,18 @@ class ConfigurePanel:
 
     def _ready(self, device: Device) -> bool:
         return self._application_ready is None or self._application_ready(device)
+
+    def _channel_menu(self, device: Device) -> Callable[[str], None] | None:
+        """The context menu of a channel page: "Show in Bus Diagram"."""
+        show = self._on_show_links
+        if show is None:
+            return None
+
+        def items(channel: str) -> None:
+            if imgui.menu_item(S.CONTEXT_SHOW_IN_BUS_DIAGRAM, "", False)[0]:
+                show(device.node_id, channel)
+
+        return items
 
     def _programming_labels(self) -> list[str]:
         labels: list[str] = []
@@ -1210,6 +1225,7 @@ class ConfigurePanel:
                         if help_text
                         else None,
                         footer_height=self._help_height() if help_text else 0.0,
+                        channel_menu=self._channel_menu(device),
                     )
                     imgui.end_disabled()
                 elif not device.has_application:

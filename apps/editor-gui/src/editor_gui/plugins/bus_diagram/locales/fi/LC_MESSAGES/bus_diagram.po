@@ -31,11 +31,29 @@ msgstr "Linkit"
 msgid "Which devices talk to which over their group addresses: sending devices on the left, receiving devices on the right."
 msgstr "Mitkä laitteet viestivät keskenään ryhmäosoitteidensa kautta: lähettävät laitteet vasemmalla, vastaanottavat laitteet oikealla."
 
-msgid "Click to follow a device or group address, double-click to open a device. Drag to move, {key}+scroll to zoom."
-msgstr "Seuraa laitetta tai ryhmäosoitetta napsauttamalla, avaa laite kaksoisnapsauttamalla. Siirrä vetämällä, zoomaa {key}+vierityksellä."
+msgid "Click to follow a device, channel or group address, double-click to open a device, click the arrow of a device to list its group objects. Drag to move, {key}+scroll to zoom."
+msgstr "Seuraa laitetta, kanavaa tai ryhmäosoitetta napsauttamalla, avaa laite kaksoisnapsauttamalla, näytä laitteen ryhmäobjektit napsauttamalla sen nuolta. Siirrä vetämällä, zoomaa {key}+vierityksellä."
 
-msgid "Tap to follow a device or group address, double-tap to open a device. Zoom with two fingers."
-msgstr "Seuraa laitetta tai ryhmäosoitetta napauttamalla, avaa laite kaksoisnapautuksella. Zoomaa kahdella sormella."
+msgid "Tap to follow a device, channel or group address, double-tap to open a device, tap the arrow of a device to list its group objects. Zoom with two fingers."
+msgstr "Seuraa laitetta, kanavaa tai ryhmäosoitetta napauttamalla, avaa laite kaksoisnapautuksella, näytä laitteen ryhmäobjektit napauttamalla sen nuolta. Zoomaa kahdella sormella."
+
+msgid "Channels"
+msgstr "Kanavat"
+
+msgid "Channel: {channel} ({device})"
+msgstr "Kanava: {channel} ({device})"
+
+msgid "List the group objects"
+msgstr "Näytä ryhmäobjektit"
+
+msgid "Hide the group objects"
+msgstr "Piilota ryhmäobjektit"
+
+msgid "Group object {number}: {name}"
+msgstr "Ryhmäobjekti {number}: {name}"
+
+msgid "Channel: {channel}"
+msgstr "Kanava: {channel}"
 
 msgid "No linked devices to show."
 msgstr "Ei näytettäviä linkitettyjä laitteita."
