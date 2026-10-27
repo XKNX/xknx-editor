@@ -45,6 +45,7 @@ from .programmer import (
     MAX_COMMUNICATION_APDU_LENGTH,
     MEMORY_SERVICE_FALLBACKS,
 )
+from .resources import property_group_tables
 from .scope import DownloadScope, mask_object_types
 from .secure_config import (
     commissioning_controls,
@@ -210,7 +211,11 @@ def _resolve_procedure(
         parameter_values=image.procedure_parameters,
     )
     return materialize_group_communication_controls(
-        image, base, _object_types(application, master), scope
+        image,
+        base,
+        _object_types(application, master),
+        scope,
+        property_tables=property_group_tables(application.program.mask_version),
     )
 
 

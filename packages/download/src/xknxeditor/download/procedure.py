@@ -124,7 +124,11 @@ from .programmer import (
     negotiated_apdu_length,
 )
 from .property_layout import STANDARD_WRITE_WIDTHS, property_width
-from .resources import bundled_mask_resources, property_mapped_lsms
+from .resources import (
+    bundled_mask_resources,
+    property_group_tables,
+    property_mapped_lsms,
+)
 from .scope import (
     GROUP_COMMUNICATION_OBJECTS,
     DownloadScope,
@@ -136,6 +140,15 @@ from .secure_config import (
     SECURITY_OBJECT,
     SECURITY_PROPERTY_WIDTHS,
     sequence_number_control,
+)
+from .tables_system300 import (
+    ADDRESS_TABLE,
+    ASSOCIATION_TABLE,
+    GROUP_OBJECT_ELEMENT_SIZE,
+    GROUP_OBJECT_REFERENCE_SIZE,
+    GROUP_OBJECT_REFERENCES,
+    GROUP_OBJECT_TABLE,
+    PropertyTables,
 )
 
 if TYPE_CHECKING:
@@ -576,7 +589,11 @@ class LoadProcedureRunner:
         download progress.
         """
         in_scope = materialize_group_communication_controls(
-            self.image, self._controls, self._object_types, self.scope
+            self.image,
+            self._controls,
+            self._object_types,
+            self.scope,
+            property_tables=self._property_tables(),
         )
         self._prevalidate(in_scope)
         self._property_captures.clear()
@@ -694,7 +711,11 @@ class LoadProcedureRunner:
         properties: list[PropertyDiff] = []
         self._device_written = set()
         in_scope = materialize_group_communication_controls(
-            self.image, self._controls, self._object_types, self.scope
+            self.image,
+            self._controls,
+            self._object_types,
+            self.scope,
+            property_tables=self._property_tables(),
         )
         self._prevalidate(in_scope)
         self._property_captures.clear()
@@ -1755,7 +1776,60 @@ class LoadProcedureRunner:
                 for i, bits in enumerate(cover):
                     covered[i] |= bits
                 break
+        tables = self.image.property_tables
+        if tables is not None and self._property_tables():
+            self._lay_table(tables, (object_type, control.prop_id), control, width)(
+                data, covered
+            )
         return data, covered
+
+    def _property_tables(self) -> bool:
+        """Whether the device holds its group communication tables as properties."""
+        program = getattr(self.application, "program", None)
+        return property_group_tables(getattr(program, "mask_version", None) or "")
+
+    def _lay_table(
+        self,
+        tables: PropertyTables,
+        target: tuple[int | None, int],
+        control: LdCtrlWriteProp,
+        width: int,
+    ) -> Callable[[bytearray, bytearray], None]:
+        """How the table ``control`` writes (object type, PID) is laid over the data the image
+        holds for it: the group addresses and the links replace it; the group objects' flags
+        go into octet 1 of each element, and a download with parameters also writes the octets
+        no parameter covers (as zeros), one without them leaves them to the device."""
+        start = (control.start_element - 1) * width
+
+        def replace_all(table: bytes) -> Callable[[bytearray, bytearray], None]:
+            def apply(data: bytearray, covered: bytearray) -> None:
+                data[:] = table[start : start + len(data)].ljust(len(data), b"\x00")
+                covered[:] = b"\xff" * len(covered)
+
+            return apply
+
+        if target == ADDRESS_TABLE:
+            if width != 2:
+                raise ImageError(
+                    f"group address table elements of {width} octets are not supported"
+                )
+            return replace_all(tables.address_data)
+        if target == ASSOCIATION_TABLE:
+            return replace_all(tables.association_data(width))
+        if target == GROUP_OBJECT_TABLE:
+            parameters = self.scope in (
+                DownloadScope.FULL,
+                DownloadScope.APPLICATION,
+                DownloadScope.PARAMETERS,
+                DownloadScope.PARAMETERS_AND_GROUP_COMMUNICATION,
+            )
+
+            def objects(data: bytearray, covered: bytearray) -> None:
+                covered[:] = (b"\xff" if parameters else b"\x00") * len(covered)
+                tables.lay_object_flags(data, covered, control.start_element)
+
+            return objects
+        return lambda data, covered: None
 
     def _factory_property(
         self,
@@ -2219,6 +2293,20 @@ class LoadProcedureRunner:
             return
         if control.prop_id in STANDARD_WRITE_WIDTHS:
             return
+        if self._property_tables() and isinstance(control, LdCtrlWriteProp):
+            object_type = (
+                control.obj_type
+                if control.obj_idx is None and control.obj_type is not None
+                else self._object_types.get(index)
+            )
+            # The group object table's properties have one property type each.
+            known = {
+                GROUP_OBJECT_TABLE: GROUP_OBJECT_ELEMENT_SIZE,
+                GROUP_OBJECT_REFERENCES: GROUP_OBJECT_REFERENCE_SIZE,
+            }.get((object_type, control.prop_id))  # type: ignore[arg-type]
+            if known is not None:
+                self._property_widths[key] = known
+                return
         if (
             control.obj_idx is None
             and control.obj_type == IP_PARAMETER_OBJECT

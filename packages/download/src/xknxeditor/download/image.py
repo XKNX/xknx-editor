@@ -44,6 +44,7 @@ from .resources import (
     m112_association_table,
     m112_group_object_table,
     mask_number,
+    property_group_tables,
     reserved_memory,
 )
 from .secure_config import GroupSecurity, SecurityTables, security_tables
@@ -57,6 +58,7 @@ from .tables import (
     com_object_flag_byte,
     size_code,
 )
+from .tables_system300 import PropertyTables, property_tables
 from .tables_systemb import (
     association_table_wide,
     build_association_table_b,
@@ -398,6 +400,8 @@ class DownloadImage:
     # The values of the active parameters a ``choose`` in the load procedure tests, by
     # parameter ref id: they select the controls the procedure runs.
     procedure_parameters: Mapping[str, str] = MappingProxyType({})
+    # The group communication tables of a device that holds them as properties (System 300).
+    property_tables: PropertyTables | None = None
 
     def relative_segment(self, object_type: int) -> RelativeSegment | None:
         """Return the relative segment for an interface object type, if any."""
@@ -626,13 +630,18 @@ def build_image(
             segments.append(memory)
 
     relative_segments: list[RelativeSegment] = []
+    tables: PropertyTables | None = None
     if group_communication is not None:
         static = application.program.static
         memory_mapped = (
             static.address_table is not None
             and static.address_table.code_segment is not None
         )
-        if memory_mapped:
+        if property_group_tables(application.program.mask_version):
+            tables = _group_communication_properties(
+                application, ui, group_communication, factory_image
+            )
+        elif memory_mapped:
             segments.extend(
                 _group_communication_segments(
                     application,
@@ -708,6 +717,7 @@ def build_image(
         security_tables=security,
         factory_image=factory_image,
         procedure_parameters=MappingProxyType(_procedure_parameters(application, ui)),
+        property_tables=tables,
     )
 
 
@@ -1130,6 +1140,84 @@ def _group_communication_relative_segments(
             b"\xff" * len(group_object_data),
         ),
     ]
+
+
+def _group_communication_properties(
+    application: Application,
+    ui: DynamicUI,
+    gc: GroupCommunication,
+    factory_image: FactoryImage | None = None,
+) -> PropertyTables:
+    """Build the group communication tables of a device that holds them as properties
+    (System 300, see :mod:`.tables_system300`).
+
+    The group addresses and links are those of the System B tables. Every group object
+    number up to the highest gets its flags: an active object from its configuration, any
+    other object from its own flags (its communication flag only while linked, unless the
+    factory image holds the table), a hole in the numbering none.
+    """
+    from xknxeditor.prod.parser_v2.application_indexer import ApplicationIndexer
+
+    indexer = ApplicationIndexer(application.program)
+    number_of: dict[str, int] = {}
+    for ref_id, ref in indexer.com_object_refs.items():
+        com_object = indexer.com_objects.get(ref.ref_id)
+        if com_object is not None:
+            number_of[ref_id] = com_object.number
+
+    links = _active_links(ui, gc, number_of)
+    group_addresses = sorted({link.group_address for link in links})
+    index_of = group_address_index_b(group_addresses)
+    associations = [
+        Association(
+            index_of[link.group_address] - 1,
+            number_of[link.com_object_ref_id],
+            sending=link.sending,
+        )
+        for link in links
+    ]
+    _validate_table_capacity(application, group_addresses, associations)
+    linked_numbers = {association.group_object_number for association in associations}
+
+    by_link = _communication_by_link(application, factory_image, None)
+    product_flags = None if by_link else _product_communication(application)
+    if gc.group_object_descriptors is not None:
+        visible = dict(gc.group_object_descriptors)
+    else:
+        visible = _resolved_group_object_descriptors(
+            ui, linked_numbers, by_link=by_link
+        )
+    # Objects the device instantiates; recovered descriptors stand for themselves.
+    active_numbers = (
+        {
+            number_of[ref_id]
+            for ref_id in ui.instantiated_com_object_ref_ids()
+            if ref_id in number_of
+        }
+        if gc.group_object_descriptors is None
+        else set(visible)
+    )
+    static_objects = {
+        com_object.number: com_object for com_object in indexer.com_objects.values()
+    }
+    highest_number = max(
+        {*static_objects, *number_of.values(), *visible, *linked_numbers}, default=0
+    )
+    flags: dict[int, int] = {}
+    for number in range(1, highest_number + 1):
+        descriptor = visible.get(number)
+        if active_numbers and number not in active_numbers:
+            descriptor = None
+        if descriptor is not None:
+            flags[number] = descriptor[0]
+        elif number in static_objects:
+            flags[number] = _static_flag_byte(
+                static_objects[number],
+                _inactive_communication(number, linked_numbers, product_flags),
+            )
+        else:
+            flags[number] = _HOLE_FLAGS
+    return property_tables(group_addresses, associations, flags, highest_number)
 
 
 def _active_links(

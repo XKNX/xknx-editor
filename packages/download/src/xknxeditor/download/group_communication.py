@@ -12,6 +12,7 @@ from xknxeditor.namespaces.intermediate.ld_ctrl_load_t import LdCtrlLoad
 from xknxeditor.namespaces.intermediate.ld_ctrl_rel_segment_t import LdCtrlRelSegment
 from xknxeditor.namespaces.intermediate.ld_ctrl_restart_t import LdCtrlRestart
 from xknxeditor.namespaces.intermediate.ld_ctrl_unload_t import LdCtrlUnload
+from xknxeditor.namespaces.intermediate.ld_ctrl_write_prop_t import LdCtrlWriteProp
 from xknxeditor.namespaces.intermediate.ld_ctrl_write_rel_mem_t import LdCtrlWriteRelMem
 
 from .errors import ImageError, UnsupportedProcedureError
@@ -23,6 +24,12 @@ from .scope import (
     scoped_controls,
     target_object_type,
 )
+from .tables_system300 import (
+    ADDRESS_TABLE,
+    ASSOCIATION_TABLE,
+    GROUP_OBJECT_REFERENCES,
+    GROUP_OBJECT_TABLE,
+)
 
 
 def materialize_group_communication_controls(
@@ -30,16 +37,22 @@ def materialize_group_communication_controls(
     controls: Sequence[object],
     object_types: Mapping[int, int],
     scope: DownloadScope = DownloadScope.FULL,
+    *,
+    property_tables: bool = False,
 ) -> list[object]:
     """Resize table allocations/writes, rejecting incomplete plans before bus access.
 
     Replace the sizes on existing controls, preserving their transaction order.
     Do not append controls after completion/restart. Copies
     keep the master/application templates reusable for another image or scope.
+    With ``property_tables`` (System 300) the tables are written as properties instead:
+    see :func:`_property_table_controls`.
     """
     if scope in (DownloadScope.UNLOAD, DownloadScope.UNLOAD_ALL):
         return list(controls)
     selected = scoped_controls(controls, scope, object_types)
+    if property_tables:
+        return _property_table_controls(image, selected, object_types, scope)
     tables = {
         segment.object_type
         for segment in image.relative_segments
@@ -140,4 +153,61 @@ def materialize_group_communication_controls(
             raise UnsupportedProcedureError(
                 f"incomplete table lifecycle for object type {target}: missing load/allocation/data/completion"
             )
+    return result
+
+
+_TABLE_PROPERTIES = frozenset(
+    {ADDRESS_TABLE, ASSOCIATION_TABLE, GROUP_OBJECT_TABLE, GROUP_OBJECT_REFERENCES}
+)
+_LOADS_TABLES = frozenset(
+    {
+        DownloadScope.FULL,
+        DownloadScope.APPLICATION,
+        DownloadScope.GROUP_COMMUNICATION,
+        DownloadScope.PARAMETERS_AND_GROUP_COMMUNICATION,
+    }
+)
+_LOADS_PARAMETERS = frozenset(
+    {
+        DownloadScope.FULL,
+        DownloadScope.APPLICATION,
+        DownloadScope.PARAMETERS,
+        DownloadScope.PARAMETERS_AND_GROUP_COMMUNICATION,
+    }
+)
+
+
+def _property_table_controls(
+    image: DownloadImage,
+    selected: Sequence[object],
+    object_types: Mapping[int, int],
+    scope: DownloadScope,
+) -> list[object]:
+    """The product's table writes of a System 300 device with the number of elements to
+    write: the group addresses, the links, and the group objects (for ``PID_GRPOBJTABLE`` and
+    for ``PID_EXT_GRPOBJREFERENCE``, which only a download with parameters writes). A table
+    with nothing to write, or one the scope does not load, is not written."""
+    tables = image.property_tables
+    result: list[object] = []
+    for control in selected:
+        if isinstance(control, LdCtrlWriteProp) and control.start_element != 0:
+            # The object's type; one addressed by an index the mask does not list is none.
+            object_type = (
+                control.obj_type
+                if control.obj_idx is None
+                else object_types.get(control.obj_idx)
+            )
+            target = (object_type, control.prop_id)
+            if target in _TABLE_PROPERTIES:
+                count = (
+                    tables.element_count(target)  # type: ignore[arg-type]
+                    if tables is not None and scope in _LOADS_TABLES
+                    else 0
+                )
+                if target == GROUP_OBJECT_REFERENCES and scope not in _LOADS_PARAMETERS:
+                    count = 0
+                if count == 0:
+                    continue
+                control = replace(control, count=count)
+        result.append(control)
     return result

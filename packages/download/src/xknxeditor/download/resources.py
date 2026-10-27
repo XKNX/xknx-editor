@@ -89,8 +89,9 @@ Group-object table:
   encoder, shared by every mask with this record.
 - Both counts are the highest object number + 1. A full download keeps the
   product's count octet when it differs; a partial download writes the count.
-- ``GroupObjectTable_SystemB`` and ``GroupObjectTable_System300`` are the
-  relative System B records.
+- ``GroupObjectTable_SystemB`` is the relative System B record.
+  ``GroupObjectTable_System300`` is a property: the three tables are written as
+  the elements of ``PID_TABLE`` and ``PID_GRPOBJTABLE`` (see ``tables_system300``).
 
 Load control:
 
@@ -495,6 +496,18 @@ def bcu2_group_object_table(mask_version: str) -> bool:
     return (
         resources.flavour(ResourceName.GROUP_OBJECT_TABLE)
         is ResourceFlavour.GROUP_OBJECT_TABLE_BCU2
+    )
+
+
+def property_group_tables(mask_version: str) -> bool:
+    """Whether the group communication tables are properties (``GroupObjectTable_System300``,
+    see :mod:`.tables_system300`)."""
+    resources = bundled_mask_resources(mask_version)
+    if resources is None:
+        return False
+    return (
+        resources.flavour(ResourceName.GROUP_OBJECT_TABLE)
+        is ResourceFlavour.GROUP_OBJECT_TABLE_SYSTEM300
     )
 
 
