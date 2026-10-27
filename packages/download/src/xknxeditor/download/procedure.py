@@ -685,6 +685,7 @@ class LoadProcedureRunner:
             address,
             size,
             include_initialized=include_initialized,
+            partial=not self._writes_seed(),
         )
         if (
             space is LdCtrlMemAddrSpace.LC_FILTER
@@ -1550,6 +1551,7 @@ class LoadProcedureRunner:
             control.offset,
             control.size,
             include_initialized=self._writes_seed(),
+            partial=not self._writes_seed(),
         )
         return self._overlay_memory_capture(index, control.offset, control.size, runs)
 

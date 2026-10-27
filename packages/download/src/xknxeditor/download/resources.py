@@ -78,12 +78,17 @@ Group-object table:
   segment (a count, then flag in the third octet of each record). Laying a
   4-octet System B record out from the start of that segment overwrites the
   application id and the table pointers.
-- ``GroupObjectTable_Bcu2`` is the BCU2 table. MV-002x uses it. The 3-octet
-  overlay does not apply.
-- ``GroupObjectTable_M112`` is the 4-octet record: 5-octet header, flag at
-  ``5 + number * 4``. The communication bit ``0x04`` is cleared for an unused
-  static object and for a hole in the table count. That rule is the encoder,
-  shared by every mask with this record.
+- ``GroupObjectTable_Bcu2`` is the BCU2 table. MV-002x uses it: the count, the
+  RAM flags table pointer, then a 3-octet record per object number (value
+  pointer, flags, type). Every record gets a flag byte, also an object the
+  device does not instantiate (its own flags) and a hole (none).
+- ``GroupObjectTable_M112`` is the count, a 2-octet RAM flags table pointer and
+  a 4-octet record per object number (value pointer, flags, size), so a flag at
+  ``5 + number * 4`` from the table. The communication bit ``0x04`` is cleared
+  for an unused static object and for a hole in the numbering. That rule is the
+  encoder, shared by every mask with this record.
+- Both counts are the highest object number + 1. A full download keeps the
+  product's count octet when it differs; a partial download writes the count.
 - ``GroupObjectTable_SystemB`` and ``GroupObjectTable_System300`` are the
   relative System B records.
 
@@ -468,12 +473,24 @@ def bcu1_group_object_table(mask_version: str) -> bool:
     )
 
 
+def bcu2_group_object_table(mask_version: str) -> bool:
+    """Whether the group-object table is ``GroupObjectTable_Bcu2``: the count, the RAM
+    flags table pointer and 3-octet records (value pointer, flags, type)."""
+    resources = bundled_mask_resources(mask_version)
+    if resources is None:
+        return False
+    return (
+        resources.flavour(ResourceName.GROUP_OBJECT_TABLE)
+        is ResourceFlavour.GROUP_OBJECT_TABLE_BCU2
+    )
+
+
 def m112_group_object_table(mask_version: str) -> bool:
     """Whether the group-object table is the 4-octet M112 record.
 
-    Only this flavour has the per-slot communication-bit rule: ETS clears the
-    bit on static objects without a ComObjectRef and on holes in the table
-    count. ``GroupObjectTable_Bcu2`` (MV-0020/0021/0025) is a different record.
+    Only this flavour has the per-slot communication-bit rule: the bit is cleared
+    on static objects without a ComObjectRef and on holes in the numbering.
+    ``GroupObjectTable_Bcu2`` (MV-0020/0021/0025) is a different record.
     """
     resources = bundled_mask_resources(mask_version)
     if resources is None:

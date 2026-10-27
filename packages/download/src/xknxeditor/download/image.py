@@ -19,6 +19,7 @@ from xknx.profile.const import ResourceObjectType
 from xknxeditor.namespaces.intermediate.application_program_static_t_code_relative_segment import (
     ApplicationProgramStaticCodeRelativeSegment,
 )
+from xknxeditor.namespaces.intermediate.com_object_t import ComObject
 from xknxeditor.namespaces.intermediate.enable_t import Enable
 from xknxeditor.namespaces.intermediate.resource_addr_space_t import ResourceAddrSpace
 from xknxeditor.namespaces.intermediate.resource_name_t import ResourceName
@@ -38,6 +39,7 @@ from .project_data import (
 from .resources import (
     bcu1_association_table,
     bcu1_group_object_table,
+    bcu2_group_object_table,
     bundled_mask_resources,
     m112_association_table,
     m112_group_object_table,
@@ -274,6 +276,9 @@ class MemorySegment:
     data: bytes
     mask: bytes | None = None
     initialized_mask: bytes | None = None
+    # ``(offset, value)`` octets a partial download writes in place of ``data``: the object
+    # count of a group object table, where a full download keeps the product's octet.
+    partial_octets: tuple[tuple[int, int], ...] = ()
 
     def __post_init__(self) -> None:
         for mask in (self.mask, self.initialized_mask):
@@ -290,13 +295,19 @@ class MemorySegment:
         return self.address + len(self.data)
 
     def masked_runs(
-        self, *, include_initialized: bool = False
+        self, *, include_initialized: bool = False, partial: bool = False
     ) -> list[tuple[int, bytes]]:
         """Return ``(address, data)`` for each contiguous run this segment writes.
 
         With no mask the whole block is one run; otherwise each maximal run of
-        ``0xFF`` mask bytes becomes one write.
+        ``0xFF`` mask bytes becomes one write. ``partial`` applies ``partial_octets``.
         """
+        source = self.data
+        if partial and self.partial_octets:
+            patched = bytearray(source)
+            for offset, value in self.partial_octets:
+                patched[offset] = value
+            source = bytes(patched)
         mask = self.mask
         if (
             include_initialized
@@ -307,15 +318,15 @@ class MemorySegment:
                 a | b for a, b in zip(mask, self.initialized_mask, strict=True)
             )
         if mask is None:
-            return [(self.address, self.data)] if self.data else []
+            return [(self.address, source)] if source else []
         runs: list[tuple[int, bytes]] = []
-        i, n = 0, len(self.data)
+        i, n = 0, len(source)
         while i < n:
             if mask[i]:
                 j = i
                 while j < n and mask[j]:
                     j += 1
-                runs.append((self.address + i, bytes(self.data[i:j])))
+                runs.append((self.address + i, bytes(source[i:j])))
                 i = j
             else:
                 i += 1
@@ -456,15 +467,21 @@ class DownloadImage:
             return None
 
     def masked_writes(
-        self, address: int, size: int, *, include_initialized: bool = False
+        self,
+        address: int,
+        size: int,
+        *,
+        include_initialized: bool = False,
+        partial: bool = False,
     ) -> list[tuple[int, bytes]] | None:
         """Return the ``(address, data)`` runs to write within ``[address, size)``.
 
         Collects the masked runs of every segment that *overlaps* the range,
-        clipped to it (see :meth:`MemorySegment.masked_runs`), in ascending
-        address order. Returns ``None`` only when no segment overlaps the range at
-        all (as :meth:`read_optional` reports missing data), and an empty list when
-        overlapping segments write nothing within it.
+        clipped to it (see :meth:`MemorySegment.masked_runs`; ``partial`` for a
+        partial download), in ascending address order. Returns ``None`` only when
+        no segment overlaps the range at all (as :meth:`read_optional` reports
+        missing data), and an empty list when overlapping segments write nothing
+        within it.
 
         Overlap - not full containment - is the right test because an allocation is
         commonly larger than the data that fills it: the group-address and
@@ -487,7 +504,7 @@ class DownloadImage:
                 continue  # no overlap with the requested range
             covered = True
             for run_address, run_data in segment.masked_runs(
-                include_initialized=include_initialized
+                include_initialized=include_initialized, partial=partial
             ):
                 lo = max(run_address, address)
                 hi = min(run_address + len(run_data), end)
@@ -820,38 +837,32 @@ def _group_communication_segments(
                 if ref_id in number_of
             }
             referenced_numbers = set(number_of.values())
-            table_numbers: set[int] = set()
-            if m112_group_object_table(application.program.mask_version):
-                # The static table also holds objects with no dynamic ComObjectRef
-                # (unused channels, antitheft, …). Their seed still has the
-                # communication bit set. ETS clears that bit; leaving it makes
-                # LoadCompleted checksum the wrong image and enter ERROR.
-                table_numbers = {
-                    com_object.number for com_object in com_object_table.com_object
-                }
-                # The first octet is the number of 4-octet records. Holes in the
-                # numbering (no ComObject at all) still carry the seed's
-                # communication bit; ETS clears every slot in that count.
-                record_count = seed[0][0]
-                if (
-                    record_count
-                    and _COM_OBJECT_HEADER + record_count * _COM_OBJECT_RECORD
-                    <= len(seed[0])
-                ):
-                    table_numbers.update(range(record_count))
+            table_offset = com_object_table.offset or 0
+            mask_version = application.program.mask_version
+            # The table has one record per object number up to the highest, holes
+            # included.
+            record_count = 1 + max(
+                {com_object.number for com_object in com_object_table.com_object}
+                | referenced_numbers,
+                default=-1,
+            )
+            partial_octets: tuple[tuple[int, int], ...] = ()
+            initialized: bytearray | None = None
             # GroupObjectTable_Bcu10 / Bcu11 / Bcu1PL keep the address, association
             # and group-object tables inside the one EEPROM segment. A 4-octet
             # record laid out from the segment start overwrites the application id
             # and the table pointers.
-            if bcu1_group_object_table(application.program.mask_version):
-                data, mask = _bcu1_com_object_overlay(
+            if bcu1_group_object_table(mask_version):
+                data, mask, partial_octets = _short_com_object_table(
                     seed[0],
                     ui,
                     linked_numbers,
-                    referenced_numbers,
                     active_numbers or None,
-                    com_object_table.offset or 0,
                     product_flags,
+                    application,
+                    table_offset,
+                    record_count,
+                    set_flags=BCU1_FLAGS,
                 )
                 seed_mask = bytearray(b"\xff" * len(data))
                 run_control = 0x010D - base
@@ -859,24 +870,52 @@ def _group_communication_segments(
                     # Leave the run byte to the procedure's inline stop/start writes.
                     seed_mask[run_control] = 0
                 initialized = seed_mask
+            elif bcu2_group_object_table(mask_version):
+                # GroupObjectTable_Bcu2 is not reallocated; a full download writes
+                # the table only, not the rest of the seed.
+                data, mask, partial_octets = _short_com_object_table(
+                    seed[0],
+                    ui,
+                    linked_numbers,
+                    active_numbers or None,
+                    product_flags,
+                    application,
+                    table_offset,
+                    record_count,
+                    pointers=not (application.program.id or "").startswith(
+                        BCU2_HIDDEN_POINTERS
+                    ),
+                )
+            elif m112_group_object_table(mask_version):
+                # The static table also holds objects with no dynamic ComObjectRef
+                # (unused channels, antitheft, …), and a hole has no object at all;
+                # their seed still has the communication bit set. Leaving it makes
+                # LoadCompleted checksum the wrong image and enter ERROR.
+                data, mask = _build_com_object_table(
+                    seed[0],
+                    ui,
+                    linked_numbers,
+                    set(range(record_count)) | referenced_numbers,
+                    active_numbers or None,
+                    product_flags,
+                    table_offset,
+                )
+                mask, partial_octets = _m112_table_writes(
+                    data, mask, table_offset, record_count
+                )
+                # GroupObjectTable_M112 sits on the manufacturer seed (header and
+                # data pointers). After AllocAbsDataSeg those seed octets must go
+                # out too, or the BCU checksums an empty object table.
+                initialized = bytearray(b"\xff" * len(data))
             else:
                 data, mask = _build_com_object_table(
                     seed[0],
                     ui,
                     linked_numbers,
-                    table_numbers | referenced_numbers,
+                    referenced_numbers,
                     active_numbers or None,
                     product_flags,
-                )
-                # GroupObjectTable_M112 sits on the manufacturer seed (header and
-                # data pointers). After AllocAbsDataSeg those seed octets must go
-                # out too, or the BCU checksums an empty object table.
-                # GroupObjectTable_Bcu2 is not reallocated; a full download writes
-                # the flag and size bytes only.
-                initialized = (
-                    bytearray(b"\xff" * len(data))
-                    if m112_group_object_table(application.program.mask_version)
-                    else None
+                    table_offset,
                 )
             result.append(
                 MemorySegment(
@@ -886,6 +925,7 @@ def _group_communication_segments(
                     initialized_mask=None
                     if initialized is None
                     else bytes(initialized),
+                    partial_octets=partial_octets,
                 )
             )
     address_table = static.address_table
@@ -1233,48 +1273,6 @@ _COM_OBJECT_HEADER = 5
 _COM_OBJECT_RECORD = 4
 _COMMUNICATION_BIT = 0x04
 
-# GroupObjectTable_Bcu1x is a count plus 3-octet records whose last octet is
-# the flag byte. Which masks those are is the flavour, not a nibble of the
-# mask version (see resources.py). The association table next to it is the
-# ordinary one-octet list, not one slot per object number.
-
-
-def _bcu1_com_object_overlay(
-    seed: bytes,
-    ui: DynamicUI,
-    linked_numbers: set[int],
-    object_numbers: set[int],
-    active_numbers: set[int] | None,
-    table_offset: int,
-    product_flags: Mapping[int, bool] | None = None,
-) -> tuple[bytes, bytes]:
-    """Write each object's flag into its 3-octet BCU1 record, leaving pointers.
-
-    ``product_flags`` (the objects' own communication flags) replaces the link state as
-    the source of the communication bit."""
-    data, mask = bytearray(seed), bytearray(len(seed))
-    visible = _resolved_group_object_descriptors(
-        ui, linked_numbers, by_link=product_flags is None
-    )
-    for number in object_numbers:
-        pos = table_offset + 1 + number * 3 + 2
-        if pos >= len(data):
-            continue
-        descriptor = visible.get(number)
-        if descriptor is None or (
-            active_numbers is not None and number not in active_numbers
-        ):
-            flags = data[pos] & ~_COMMUNICATION_BIT
-            if _inactive_communication(number, linked_numbers, product_flags):
-                flags |= _COMMUNICATION_BIT
-            data[pos] = flags
-        else:
-            data[pos] = (data[pos] & SEGMENT_SELECTOR_BIT) | (
-                descriptor[0] & ~SEGMENT_SELECTOR_BIT
-            )
-        mask[pos] = 0xFF
-    return bytes(data), bytes(mask)
-
 
 def _build_com_object_table(
     seed: bytes,
@@ -1283,8 +1281,10 @@ def _build_com_object_table(
     object_numbers: set[int],
     active_numbers: set[int] | None = None,
     product_flags: Mapping[int, bool] | None = None,
+    table_offset: int = 0,
 ) -> tuple[bytes, bytes]:
-    """Overlay each com object's flags onto the table seed.
+    """Overlay each com object's flags onto the table seed (the segment, with the table at
+    ``table_offset``).
 
     Follows the Group Object Table definition (3/5/1 Resources, 4.18): an *active*
     com object gets its full flag byte and size recomputed (communication bit set
@@ -1338,13 +1338,15 @@ def _build_com_object_table(
         elif isinstance(node, (UiTab, UiParameterBlock)):
             stack.extend(node.children)
 
-    data, mask = build_com_object_table(seed, descriptors)
+    data, mask = build_com_object_table(
+        seed, descriptors, header_size=table_offset + _COM_OBJECT_HEADER
+    )
     visible = {descriptor.number for descriptor in descriptors}
     data, mask = bytearray(data), bytearray(mask)
     for number in object_numbers:
         if number in visible:
             continue
-        offset = _COM_OBJECT_HEADER + number * _COM_OBJECT_RECORD
+        offset = table_offset + _COM_OBJECT_HEADER + number * _COM_OBJECT_RECORD
         if offset >= len(data):
             continue
         flags = seed[offset] & ~_COMMUNICATION_BIT
@@ -1363,3 +1365,135 @@ def _inactive_communication(
     if product_flags is not None:
         return product_flags.get(number, False)
     return number in linked_numbers
+
+
+def _object_count(
+    data: bytes, mask: bytearray, at: int, count: int
+) -> tuple[tuple[int, int], ...]:
+    """Mark the object count at ``at`` for writing, and return the partial octets for it.
+
+    The count is the number of records. A full download keeps the product's octet when it
+    differs (the product data is inconsistent then); a partial download writes the count.
+    """
+    if at >= len(data):
+        return ()
+    mask[at] = 0xFF
+    count &= 0xFF
+    return () if data[at] == count else ((at, count),)
+
+
+def _m112_table_writes(
+    data: bytes, mask: bytes, table_offset: int, record_count: int
+) -> tuple[bytes, tuple[tuple[int, int], ...]]:
+    """Mask the whole GroupObjectTable_M112 up to the last record for writing.
+
+    The table is the object count, the RAM flags table pointer (2 octets) and a 4-octet
+    record per object number. A partial download writes the count and the pointers from
+    the seed along with the flags and sizes, not just those.
+    """
+    written = bytearray(mask)
+    partial = _object_count(data, written, table_offset, record_count)
+    end = min(len(written), table_offset + 3 + record_count * _COM_OBJECT_RECORD)
+    for offset in range(table_offset + 1, end):
+        written[offset] = 0xFF
+    return bytes(written), partial
+
+
+# GroupObjectTable_Bcu1x and GroupObjectTable_Bcu2: the object count, the RAM flags table
+# pointer and a 3-octet record per object number: the value pointer, the flag byte and
+# the type byte. Which masks those are is the flavour, not a nibble of the mask version
+# (see resources.py). On BCU1 the association table next to it is the ordinary one-octet
+# list, not one slot per object number.
+_SHORT_HEADER = 2
+_SHORT_RECORD = 3
+# Bit 7 of every BCU1 flag byte is set.
+BCU1_FLAGS = 0x80
+# Applications (id prefixes) whose value pointers in a BCU2 table are not written.
+BCU2_HIDDEN_POINTERS = (
+    "M-00FD_A-0006-10",
+    "M-00FD_A-0001-11",
+    "M-00FD_A-0001-1B",
+    "M-00FD_A-0003-10",
+    "M-00FD_A-0007-10",
+    "M-00FD_A-0008-10",
+    "M-00FD_A-0009-10",
+    "M-00FD_A-000A-10",
+    "M-00FD_A-000B-10",
+    "M-00FD_A-000C-10",
+)
+# The flag byte of a hole in the numbering: no flags, low priority.
+_HOLE_FLAGS = 0x03
+
+
+def _static_flag_byte(com_object: ComObject, communication: bool) -> int:
+    """The flag byte of an object the device does not instantiate, from its own flags."""
+    return com_object_flag_byte(
+        priority=com_object.priority.value,
+        communication=communication,
+        read=com_object.read_flag is Enable.ENABLED,
+        write=com_object.write_flag is Enable.ENABLED,
+        transmit=com_object.transmit_flag is Enable.ENABLED,
+        update=com_object.update_flag is Enable.ENABLED,
+        read_on_init=com_object.read_on_init_flag is Enable.ENABLED,
+    )
+
+
+def _short_com_object_table(
+    seed: bytes,
+    ui: DynamicUI,
+    linked_numbers: set[int],
+    active_numbers: set[int] | None,
+    product_flags: Mapping[int, bool] | None,
+    application: Application,
+    table_offset: int,
+    record_count: int,
+    *,
+    set_flags: int = 0,
+    pointers: bool = True,
+) -> tuple[bytes, bytes, tuple[tuple[int, int], ...]]:
+    """Write a table of 3-octet records at ``table_offset`` of its segment seed.
+
+    Every record gets its flag byte: an active object from its configuration, any other
+    object from its own flags, a hole in the numbering none; ``set_flags`` are set in
+    each. Bit 5 of the flag byte stays as the seed has it. An active object also gets its
+    size in the type byte, whose top two bits stay. The count, the RAM flags table
+    pointer and the value pointers (with ``pointers``) are written from the seed.
+    """
+    data, mask = bytearray(seed), bytearray(len(seed))
+    partial = _object_count(seed, mask, table_offset, record_count)
+    if table_offset + 1 < len(mask):
+        mask[table_offset + 1] = 0xFF
+    table = application.program.static.com_object_table
+    static_objects = {
+        com_object.number: com_object
+        for com_object in (table.com_object if table is not None else ())
+    }
+    visible = _resolved_group_object_descriptors(
+        ui, linked_numbers, by_link=product_flags is None
+    )
+    for number in range(record_count):
+        record = table_offset + _SHORT_HEADER + number * _SHORT_RECORD
+        if record + _SHORT_RECORD > len(data):
+            break
+        descriptor = visible.get(number)
+        if active_numbers is not None and number not in active_numbers:
+            descriptor = None
+        if descriptor is not None:
+            flags, size = descriptor
+            data[record + 2] = (data[record + 2] & 0xC0) | (size & 0x3F)
+        elif number in static_objects:
+            flags = _static_flag_byte(
+                static_objects[number],
+                _inactive_communication(number, linked_numbers, product_flags),
+            )
+        else:
+            flags = _HOLE_FLAGS
+        data[record + 1] = (
+            (data[record + 1] & SEGMENT_SELECTOR_BIT)
+            | (flags & ~SEGMENT_SELECTOR_BIT)
+            | set_flags
+        )
+        if pointers:
+            mask[record] = 0xFF
+        mask[record + 1] = mask[record + 2] = 0xFF
+    return bytes(data), bytes(mask), partial
