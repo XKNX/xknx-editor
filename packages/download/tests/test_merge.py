@@ -336,3 +336,37 @@ def test_a_mask_id_with_a_management_descriptor_resolves() -> None:
     for scope in (DownloadScope.FULL, DownloadScope.PARAMETERS):
         controls = resolve_download_controls(app, None, scope=scope)  # type: ignore[arg-type]
         assert [type(c) for c in controls] == [LdCtrlRestart]
+
+
+def test_the_object_table_lsm_is_only_loaded_where_the_mask_has_its_load_control() -> (
+    None
+):
+    from xknxeditor.namespaces.intermediate.ld_ctrl_load_t import LdCtrlLoad
+    from xknxeditor.namespaces.intermediate.ld_ctrl_task_segment_t import (
+        LdCtrlTaskSegment,
+    )
+
+    def controls(mask: str) -> list[object]:
+        procedure = LoadProceduresLoadProcedure(
+            choice=[  # type: ignore[arg-type]
+                LdCtrlLoad(lsm_idx=5),
+                LdCtrlTaskSegment(lsm_idx=5, address=0x4324),
+                LdCtrlLoad(lsm_idx=3),
+                LdCtrlRestart(),
+            ]
+        )
+        app = SimpleNamespace(
+            load_procedure_style=LoadProcedureStyle.PRODUCT_PROCEDURE,
+            load_procedures=LoadProcedures(load_procedure=[procedure]),
+            program=SimpleNamespace(mask_version=mask),
+        )
+        return resolve_download_controls(app, None)  # type: ignore[arg-type]
+
+    # A mask without a group object table load control is not told the table's address.
+    assert [
+        (type(c).__name__, getattr(c, "lsm_idx", None)) for c in controls("MV-0701")
+    ] == [
+        ("LdCtrlLoad", 3),
+        ("LdCtrlRestart", None),
+    ]
+    assert len(controls("MV-07B0")) == 4

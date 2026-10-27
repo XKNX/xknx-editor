@@ -28,7 +28,7 @@ from xknxeditor.prod.errors import EncodingError
 
 from .errors import ImageError
 from .factory_image import FactoryImage, FactoryLocation
-from .merge import procedure_parameter_refs
+from .merge import device_mask_version, procedure_parameter_refs
 from .project_data import (
     GroupObjectLink,
     SeedDevice,
@@ -153,7 +153,7 @@ def _table_segment_initialized(
     static = application.program.static
     com_object_table = static.com_object_table
     if (
-        not m112_association_table(application.program.mask_version)
+        not m112_association_table(device_mask_version(application))
         or _packs_group_tables(application)
         or (
             com_object_table is not None and com_object_table.code_segment == segment_id
@@ -578,7 +578,7 @@ def build_image(
         )
         if table is not None
     }
-    reserved = reserved_memory(application.program.mask_version)
+    reserved = reserved_memory(device_mask_version(application))
     segments: list[MemorySegment] = []
     application_segments: list[ObjectMemorySegment] = []
     for segment_id, (data, mask) in encoded.items():
@@ -613,7 +613,7 @@ def build_image(
                     for offset, value in enumerate(initialized)
                 )
             data, initialized = _coupler_bytes(
-                application.program.mask_version, base, data, mask, initialized
+                device_mask_version(application), base, data, mask, initialized
             )
         # A declared segment stays in the image even when nothing in it is written (a zero
         # mask and no parameters): a partial download turns its allocation into a WriteMem
@@ -637,9 +637,14 @@ def build_image(
             static.address_table is not None
             and static.address_table.code_segment is not None
         )
-        if property_group_tables(application.program.mask_version):
+        mask_version = device_mask_version(application)
+        if property_group_tables(mask_version):
             tables = _group_communication_properties(
                 application, ui, group_communication, factory_image
+            )
+        elif mask_number(mask_version) == _SYSTEM_300:
+            segments = _system300_memory_tables(
+                application, ui, group_communication, segments
             )
         elif memory_mapped:
             segments.extend(
@@ -846,7 +851,7 @@ def _group_communication_segments(
             }
             referenced_numbers = set(number_of.values())
             table_offset = com_object_table.offset or 0
-            mask_version = application.program.mask_version
+            mask_version = device_mask_version(application)
             # The table has one record per object number up to the highest, holes
             # included.
             record_count = 1 + max(
@@ -1142,6 +1147,90 @@ def _group_communication_relative_segments(
     ]
 
 
+_SYSTEM_300 = 0x0300
+# Where the group address table of a System 300 memory configuration is, unless the
+# procedure allocates its segment (load state machine 1) elsewhere.
+_SYSTEM_300_ADDRESS_TABLE = 0x0116
+_ADDRESS_TABLE_LSM = 1
+
+
+def _system300_memory_tables(
+    application: Application,
+    ui: DynamicUI,
+    gc: GroupCommunication,
+    segments: list[MemorySegment],
+) -> list[MemorySegment]:
+    """The group address table count of a System 300 device that keeps its tables in memory
+    (the configuration without property tables).
+
+    Its procedures allocate the table segments and write only the EEPROM segments, which reach
+    the first octet of the group address table: its count, 1 + the number of group addresses.
+    That octet is set in the image segment that holds it (or a segment of its own); the rest of
+    the tables is not written.
+    """
+    from xknxeditor.prod.parser_v2.application_indexer import ApplicationIndexer
+
+    indexer = ApplicationIndexer(application.program)
+    number_of: dict[str, int] = {}
+    for ref_id, ref in indexer.com_object_refs.items():
+        com_object = indexer.com_objects.get(ref.ref_id)
+        if com_object is not None:
+            number_of[ref_id] = com_object.number
+    links = _active_links(ui, gc, number_of)
+    group_addresses = sorted({link.group_address for link in links})
+    index_of = group_address_index_b(group_addresses)
+    _validate_table_capacity(
+        application,
+        group_addresses,
+        [
+            Association(
+                index_of[link.group_address] - 1,
+                number_of[link.com_object_ref_id],
+                sending=link.sending,
+            )
+            for link in links
+        ],
+    )
+    address = _allocated_address(application, _ADDRESS_TABLE_LSM)
+    if address is None:
+        address = _SYSTEM_300_ADDRESS_TABLE
+    count = 1 + len(group_addresses)
+    if count > 0xFF:
+        raise ImageError(f"group address table has too many entries: {count - 1}")
+    result: list[MemorySegment] = []
+    placed = False
+    for segment in segments:
+        if not placed and segment.address <= address < segment.end:
+            at = address - segment.address
+            data, mask = bytearray(segment.data), bytearray(segment.mask or b"")
+            data[at] = count
+            if mask:
+                mask[at] = 0xFF
+            segment = replace(
+                segment, data=bytes(data), mask=bytes(mask) if mask else None
+            )
+            placed = True
+        result.append(segment)
+    if not placed:
+        result.append(MemorySegment(address, bytes([count]), b"\xff"))
+    return result
+
+
+def _allocated_address(application: Application, lsm: int) -> int | None:
+    """The address of the first segment the application's own procedure allocates for the
+    load state machine ``lsm``, if it allocates one."""
+    from xknxeditor.namespaces.intermediate.ld_ctrl_abs_segment_t import (
+        LdCtrlAbsSegment,
+    )
+
+    procedures = application.load_procedures
+    for procedure in procedures.load_procedure if procedures is not None else ():
+        for control in procedure.choice:
+            if isinstance(control, LdCtrlAbsSegment) and control.lsm_idx == lsm:
+                return control.address
+    return None
+
+
 def _group_communication_properties(
     application: Application,
     ui: DynamicUI,
@@ -1283,7 +1372,7 @@ def _communication_by_link(
     """
     if factory_image is None:
         return True
-    resources = bundled_mask_resources(application.program.mask_version)
+    resources = bundled_mask_resources(device_mask_version(application))
     location = (
         resources.location(ResourceName.GROUP_OBJECT_TABLE) if resources else None
     )

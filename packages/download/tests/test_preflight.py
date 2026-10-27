@@ -339,3 +339,38 @@ async def test_preflight_still_allows_a_covered_range_that_writes_nothing() -> N
     report = await runner.preflight()
 
     assert not report.has_changes
+
+
+async def test_only_an_eeprom_segment_gets_its_data_written() -> None:
+    """An allocation writes the image data only into EEPROM (memory type 3); a RAM segment
+    is allocated, and neither written nor previewed, although the image covers it."""
+    image = DownloadImage(
+        segments=(
+            MemorySegment(address=0x0700, data=b"\x01\x02"),
+            MemorySegment(address=0x4400, data=b"\x11\x22"),
+        ),
+        properties=(),
+    )
+
+    def segment(address: int, mem_type: int) -> LdCtrlAbsSegment:
+        return LdCtrlAbsSegment(
+            obj_type=_ADDRESS_TABLE_TYPE,
+            occurrence=0,
+            seg_type=0,
+            address=address,
+            size=2,
+            access=0xFF,
+            mem_type=mem_type,
+            seg_flags=0x80,
+        )
+
+    application = _application(segment(0x0700, 2), segment(0x4400, 3))
+    runner, _device = _runner(application, image)
+    report = await runner.preflight()
+    assert [s.address for s in report.segments] == [0x4400]
+
+    runner, device = _runner(application, image)
+    await runner.run()
+    writes = [p for p in device.sent if isinstance(p, MemoryWrite)]
+    assert [w.address for w in writes] == [0x4400]
+    assert device.memory.get(0x0700) is None

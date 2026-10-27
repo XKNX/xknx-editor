@@ -35,6 +35,7 @@ from .ip_config import (
 from .ip_config import applies as ip_config_applies
 from .ip_secure import IpSecureConfig, ip_secure_controls
 from .merge import (
+    device_mask_version,
     mask_authorize_levels,
     mask_has_property_services,
     resolve_download_controls,
@@ -215,7 +216,7 @@ def _resolve_procedure(
         base,
         _object_types(application, master),
         scope,
-        property_tables=property_group_tables(application.program.mask_version),
+        property_tables=property_group_tables(device_mask_version(application)),
     )
 
 
@@ -255,7 +256,7 @@ async def _partial_scope(
     from .resources import bundled_mask_resources, mask_resources
 
     options = application.program.static.options
-    mapped = bundled_mask_resources(application.program.mask_version)
+    mapped = bundled_mask_resources(device_mask_version(application))
     # BIM M112 product procedures reload by unloading/allocating absolute
     # segments. A "partial" still runs those AbsSegments; skipping Unload of
     # LSM 3 leaves a half-mapped application. They keep the full load, without
@@ -268,7 +269,7 @@ async def _partial_scope(
     )
     if scope not in _PARTIAL_SCOPES and not prefer:
         return _ScopeCheck(scope)
-    resources = mask_resources(master, application.program.mask_version)
+    resources = mask_resources(master, device_mask_version(application))
     manager = _connection_manager(xknx, address, security)
     try:
         programmer = DeviceProgrammer(await manager.open())
@@ -346,7 +347,7 @@ def _object_types(
     application: Application, master: MasterData | None
 ) -> dict[int, int]:
     return (
-        mask_object_types(master.raw, application.program.mask_version)
+        mask_object_types(master.raw, device_mask_version(application))
         if master is not None
         else {}
     )
@@ -372,7 +373,7 @@ def _authorize_levels(
         return 0
     if master is None:
         return 0
-    return mask_authorize_levels(master.raw, application.program.mask_version)
+    return mask_authorize_levels(master.raw, device_mask_version(application))
 
 
 def _property_services(application: Application, master: MasterData | None) -> bool:

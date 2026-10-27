@@ -26,18 +26,22 @@ from typing import TYPE_CHECKING
 
 from xknxeditor.namespaces.intermediate.ld_ctrl_base_choose_t import LdCtrlBaseChoose
 from xknxeditor.namespaces.intermediate.ld_ctrl_base_t import LdCtrlBase
+from xknxeditor.namespaces.intermediate.ld_ctrl_compare_prop_t import LdCtrlCompareProp
+from xknxeditor.namespaces.intermediate.ld_ctrl_load_t import LdCtrlLoad
 from xknxeditor.namespaces.intermediate.ld_ctrl_merge_t import LdCtrlMerge
 from xknxeditor.namespaces.intermediate.ld_ctrl_proc_type_t import LdCtrlProcType
+from xknxeditor.namespaces.intermediate.ld_ctrl_task_segment_t import LdCtrlTaskSegment
 from xknxeditor.namespaces.intermediate.load_procedure_style_t import LoadProcedureStyle
 from xknxeditor.namespaces.intermediate.mask_version_t_management_model import (
     MaskVersionManagementModel,
 )
 from xknxeditor.namespaces.intermediate.procedure_type_t import ProcedureType
 from xknxeditor.namespaces.intermediate.resource_access_t import ResourceAccess
+from xknxeditor.namespaces.intermediate.resource_name_t import ResourceName
 from xknxeditor.prod.parser_v2.nodes.choose import satisfies
 
 from .errors import UnsupportedProcedureError
-from .resources import mask_number
+from .resources import bundled_mask_resources, mask_number
 from .scope import (
     DownloadScope,
     control_applies,
@@ -53,6 +57,42 @@ if TYPE_CHECKING:
     from xknxeditor.namespaces.intermediate.load_procedures_t import LoadProcedures
     from xknxeditor.namespaces.intermediate.master_data_t import MasterData
     from xknxeditor.prod import Application
+
+
+# A System 300 application's mask version, which the device's management descriptor completes.
+_SYSTEM_300 = "MV-0300"
+_PID_MANAGEMENT_DESCRIPTOR = 72
+_device_masks: dict[str, str] = {}
+
+
+def device_mask_version(application: Application) -> str:
+    """The mask version id of the device the application is for, as the master data and the
+    mask resources know it.
+
+    A System 300 application names the mask "MV-0300" alone. The device's management
+    descriptor (PID 72 of its device object) selects the configuration, e.g.
+    "MV-0300-01000001000000000000"; the application's procedure checks that descriptor first,
+    so the configuration is the one of the descriptor it expects."""
+    mask = application.program.mask_version
+    procedures = getattr(application, "load_procedures", None)
+    if mask != _SYSTEM_300 or procedures is None:
+        return mask
+    key = getattr(application, "id", "")
+    known = _device_masks.get(key)
+    if known is not None:
+        return known
+    resolved = mask
+    for control in _flatten(procedures, {}):
+        if (
+            isinstance(control, LdCtrlCompareProp)
+            and control.obj_idx == 0
+            and control.prop_id == _PID_MANAGEMENT_DESCRIPTOR
+            and control.inline_data
+        ):
+            resolved = f"{mask}-{control.inline_data.hex().upper()}"
+            break
+    _device_masks[key] = resolved
+    return resolved
 
 
 def resolve_download_controls(
@@ -90,14 +130,14 @@ def resolve_download_controls(
         return _finalize_controls(
             _flatten(load_procedures, values),
             master_data,
-            application.program.mask_version,
+            device_mask_version(application),
             scope,
             has_application_program2,
         )
 
     default = _default_procedure(
         master_data,
-        application.program.mask_version,
+        device_mask_version(application),
         procedure_type,
         scope=scope,
         access=access,
@@ -124,7 +164,7 @@ def resolve_download_controls(
     return _finalize_controls(
         controls,
         master_data,
-        application.program.mask_version,
+        device_mask_version(application),
         scope,
         has_application_program2,
     )
@@ -149,17 +189,41 @@ def _finalize_controls(
         and number is not None
         and number & 0xFF0 == 0x7B0
     )
+    announces_table = _announces_object_table(mask_version)
     # Automatic transformations precede removal of the absent second program.
     return [
         _explicit(c)
         for c in scoped_controls(
-            controls,
+            [c for c in controls if announces_table or not _object_table_lsm(c)],
             scope,
             object_types,
             has_application_program2=has_application_program2,
         )
         if not (remove_second and _second_program_control(c))
     ]
+
+
+# The load state machine a procedure announces the group object table address with.
+_OBJECT_TABLE_LSM = 5
+
+
+def _announces_object_table(mask_version: str) -> bool:
+    """Whether the mask takes the group object table through its own load state machine
+    (it has a ``GroupObjectTableLoadControl``); other masks are not told its address."""
+    resources = bundled_mask_resources(mask_version)
+    return (
+        resources is None
+        or resources.location(ResourceName.GROUP_OBJECT_TABLE_LOAD_CONTROL) is not None
+    )
+
+
+def _object_table_lsm(control: object) -> bool:
+    """Whether ``control`` loads or announces the group object table's load state machine
+    (``LdCtrlLoad`` / ``LdCtrlTaskSegment`` of LSM 5)."""
+    return (
+        isinstance(control, (LdCtrlLoad, LdCtrlTaskSegment))
+        and control.lsm_idx == _OBJECT_TABLE_LSM
+    )
 
 
 def _explicit(control: object) -> object:

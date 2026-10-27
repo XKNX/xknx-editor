@@ -231,3 +231,104 @@ async def test_a_group_communication_download_keeps_the_device_bytes() -> None:
     assert objects[2:6] == b"\xee" * 4
     assert objects[7] == 0x03
     assert (3, 52) not in writes
+
+
+def test_the_descriptor_completes_a_plain_system_300_mask() -> None:
+    from xknxeditor.download.merge import device_mask_version
+
+    xml = _XML.replace(f'MaskVersion="{_MASK}"', 'MaskVersion="MV-0300"').replace(
+        "<LoadProcedure>",
+        '<LoadProcedure><LdCtrlCompareProp ObjIdx="0" PropId="72" '
+        'InlineData="01000001000000000000" />',
+    )
+    app = parse_application_xml(xml.encode(), "M-00FD")[0]
+    assert app.program.mask_version == "MV-0300"
+    assert device_mask_version(app) == _MASK
+    assert _image(app).property_tables is not None
+
+
+_LEGACY = "M-00FD_A-9001-10-0000"
+_LEGACY_XML = f"""<?xml version="1.0" encoding="utf-8"?>
+<KNX xmlns="http://knx.org/xml/project/20" CreatedBy="test" ToolVersion="1">
+  <ManufacturerData>
+    <Manufacturer RefId="M-00FD">
+      <ApplicationPrograms>
+        <ApplicationProgram Id="{_LEGACY}" ApplicationNumber="36865" ApplicationVersion="16"
+            ProgramType="ApplicationProgram" MaskVersion="MV-0300-01000000000000000000"
+            Name="System 300 memory" LoadProcedureStyle="ProductProcedure" PeiType="0"
+            DefaultLanguage="en-US" DynamicTableManagement="false" Linkable="false"
+            MinEtsVersion="5.0">
+          <Static>
+            <Code>
+              <AbsoluteSegment Id="{_LEGACY}_AS-0100" Address="256" Size="23"><Data>AQIDBAUGBwgJCgsMDQ4PEBESExQVFhc=</Data></AbsoluteSegment>
+              <AbsoluteSegment Id="{_LEGACY}_AS-0124" Address="292" Size="8"><Data>AgAAAAAAAAA=</Data></AbsoluteSegment>
+            </Code>
+            <ComObjectTable CodeSegment="{_LEGACY}_AS-0124" Offset="0">
+              <ComObject Id="{_LEGACY}_O-1" Name="Switch" Text="Switch" Number="1" FunctionText="Switch" ObjectSize="1 Bit" ReadFlag="Disabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-1" />
+            </ComObjectTable>
+            <ComObjectRefs>
+              <ComObjectRef Id="{_LEGACY}_O-1_R-1" RefId="{_LEGACY}_O-1" />
+            </ComObjectRefs>
+            <AddressTable MaxEntries="2" />
+            <AssociationTable MaxEntries="2" />
+            <LoadProcedures>
+              <LoadProcedure>
+                <LdCtrlUnload LsmIdx="1" />
+                <LdCtrlUnload LsmIdx="4" />
+                <LdCtrlLoad LsmIdx="1" />
+                <LdCtrlAbsSegment LsmIdx="1" SegType="0" Address="278" Size="8" Access="51" MemType="2" SegFlags="129" />
+                <LdCtrlLoadCompleted LsmIdx="1" />
+                <LdCtrlLoad LsmIdx="4" />
+                <LdCtrlAbsSegment LsmIdx="4" SegType="0" Address="256" Size="23" Access="51" MemType="3" SegFlags="131" />
+                <LdCtrlLoadCompleted LsmIdx="4" />
+                <LdCtrlTaskSegment LsmIdx="5" Address="292" />
+                <LdCtrlRestart />
+              </LoadProcedure>
+            </LoadProcedures>
+          </Static>
+          <Dynamic>
+            <ChannelIndependentBlock>
+              <ComObjectRefRef RefId="{_LEGACY}_O-1_R-1" />
+            </ChannelIndependentBlock>
+          </Dynamic>
+        </ApplicationProgram>
+      </ApplicationPrograms>
+    </Manufacturer>
+  </ManufacturerData>
+</KNX>
+"""
+
+
+async def test_a_memory_configuration_writes_only_its_eeprom_segment() -> None:
+    from xknx.telegram.apci import MemoryWrite
+
+    from xknxeditor.download.load_state import LoadState
+
+    app = parse_application_xml(_LEGACY_XML.encode(), "M-00FD")[0]
+    links = [
+        GroupObjectLink(f"{_LEGACY}_O-1_R-1", _GA_HIGH, sending=True),
+        GroupObjectLink(f"{_LEGACY}_O-1_R-1", _GA_LOW, sending=False),
+    ]
+    image = build_image(app, group_communication=GroupCommunication(0x1105, links))
+    device = FakeDevice(descriptor=0x0300)
+    programmer = DeviceProgrammer(device)
+    programmer.skip_property_verify_probe()
+    await LoadProcedureRunner(
+        app,
+        image,
+        programmer,
+        controls=resolve_download_controls(app, None, scope=DownloadScope.FULL),
+        scope=DownloadScope.FULL,
+    ).run()
+    written = {
+        w.address + i
+        for w in device.sent
+        if isinstance(w, MemoryWrite)
+        for i in range(len(w.data))
+    }
+    # The EEPROM segment, and in it the count of the group address table (1 + 2).
+    assert written == set(range(256, 279))
+    assert device.memory[278] == 3
+    # The RAM segment of the table is only allocated; LSM 5 is not announced.
+    assert device.load_states[1] == LoadState.LOADED
+    assert 5 not in device.load_states

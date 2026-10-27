@@ -115,7 +115,7 @@ from .errors import (
 from .factory_image import FactoryLocation, FactorySegment, FactoryStamp, PropertyStamp
 from .group_communication import materialize_group_communication_controls
 from .ip_config import IP_PARAMETER_OBJECT, IP_PROPERTY_WIDTHS
-from .merge import resolve_download_controls
+from .merge import device_mask_version, resolve_download_controls
 from .preflight import PreflightReport, PropertyDiff, SegmentDiff
 from .programmer import (
     DEFAULT_MAX_APDU_LENGTH,
@@ -172,6 +172,8 @@ UNCONFIRMED_MASTER_RESET_COOLDOWN = 5.0
 # the segment CRC in octets 6..7 (big-endian).
 _PID_MCB_TABLE = ResourceGenericPropertyId.PID_MCB_TABLE
 _MCB_ENTRY_SIZE = 8
+# The memory type bits of an EEPROM segment, the one an allocation writes its data into.
+_EEPROM_MEMORY = 0x03
 
 # After a Master Reset that resets them, a device showing its factory stamp holds the factory
 # image: of everything but the group object table after erase code 5 (parameters) or 7 (factory
@@ -1117,7 +1119,7 @@ class LoadProcedureRunner:
         full/application download writes the seed, a parameter download touches
         only the changed bytes.
         """
-        resources = bundled_mask_resources(self.application.program.mask_version)
+        resources = bundled_mask_resources(device_mask_version(self.application))
         return resources is not None and resources.memory_mapped_lsm() is not None
 
     def _writes_seed(self, *, segment: bool = False) -> bool:
@@ -1145,9 +1147,9 @@ class LoadProcedureRunner:
         """
         if index < 1:
             return None
-        if property_mapped_lsms(self.application.program.mask_version):
+        if property_mapped_lsms(device_mask_version(self.application)):
             return None
-        resources = bundled_mask_resources(self.application.program.mask_version)
+        resources = bundled_mask_resources(device_mask_version(self.application))
         if resources is None:
             return None
         mapped = resources.memory_mapped_lsm()
@@ -1232,7 +1234,7 @@ class LoadProcedureRunner:
         also_accept: load_state.LoadState | None = None,
     ) -> None:
         """Write a load event through the mask's LSM realisation."""
-        resources = bundled_mask_resources(self.application.program.mask_version)
+        resources = bundled_mask_resources(device_mask_version(self.application))
         if resources is not None and resources.omits_load_event(index):
             return
         programmer = await self._bus()
@@ -1785,8 +1787,12 @@ class LoadProcedureRunner:
 
     def _property_tables(self) -> bool:
         """Whether the device holds its group communication tables as properties."""
-        program = getattr(self.application, "program", None)
-        return property_group_tables(getattr(program, "mask_version", None) or "")
+        if (
+            getattr(getattr(self.application, "program", None), "mask_version", None)
+            is None
+        ):
+            return False
+        return property_group_tables(device_mask_version(self.application))
 
     def _lay_table(
         self,
@@ -1842,7 +1848,7 @@ class LoadProcedureRunner:
         factory = self.image.factory_image
         if factory is None:
             return None
-        resources = bundled_mask_resources(self.application.program.mask_version)
+        resources = bundled_mask_resources(device_mask_version(self.application))
         first_app_object = (
             resources.feature(MaskFeature.FIRST_APP_OBJECT_IDX)
             if resources is not None
@@ -1937,7 +1943,7 @@ class LoadProcedureRunner:
         if prop.location is FactoryLocation.PROPERTY:
             return prop.object_ref
         if prop.location is FactoryLocation.APP_PROPERTY:
-            resources = bundled_mask_resources(self.application.program.mask_version)
+            resources = bundled_mask_resources(device_mask_version(self.application))
             first = (
                 resources.feature(MaskFeature.FIRST_APP_OBJECT_IDX)
                 if resources is not None
@@ -2109,7 +2115,7 @@ class LoadProcedureRunner:
     def _factory_group_object_table(self, segment: FactorySegment) -> bool:
         """Whether a factory segment is the group object table: at the mask's location of it,
         or at the application's table address in memory."""
-        resources = bundled_mask_resources(self.application.program.mask_version)
+        resources = bundled_mask_resources(device_mask_version(self.application))
         location = (
             resources.location(ResourceName.GROUP_OBJECT_TABLE) if resources else None
         )
@@ -2759,13 +2765,21 @@ class LoadProcedureRunner:
             self._memory_runs(
                 address, size, include_initialized=self._writes_seed(segment=True)
             )
-            if self._enable_segment_write
+            if self._writes_segment_data(control)
             else []
         )
         if runs:
             programmer = await self._memory_programmer()
             for address, data in runs:
                 await programmer.write_memory(address, data, verify=True)
+
+    def _writes_segment_data(self, control: LdCtrlAbsSegment) -> bool:
+        """Whether the image data of an allocated segment is written: only into EEPROM (memory
+        type 3); a RAM segment (1, 2) or one of another type is only allocated."""
+        return (
+            self._enable_segment_write
+            and (control.mem_type or 0) & _EEPROM_MEMORY == _EEPROM_MEMORY
+        )
 
     async def _task_segment(self, control: LdCtrlTaskSegment) -> None:
         """Allocate the task segment via a load event."""
@@ -2851,7 +2865,7 @@ class LoadProcedureRunner:
             # preview only the bytes the image actually writes (its mask). A range the
             # image does NOT cover (a RAM/system segment) is allocated and left unwritten
             # by _abs_segment, so it is a clean allocate-only preview here too, not an error.
-            if self._enable_segment_write:
+            if self._writes_segment_data(control):
                 address, size = self._segment_placement(control.address, control.size)
                 await self._diff_masked(
                     address,
