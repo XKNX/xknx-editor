@@ -490,6 +490,12 @@ class BackupService:
         return check_backup(backup.path)
 
     def set_pinned(self, backup: Backup, pinned: bool) -> Backup:
+        """Pin ``backup`` (or unpin it); one made by hand is never deleted automatically and
+        is not pinned (raises :class:`BackupError`)."""
+        if pinned and not backup.automatic:
+            raise BackupError(
+                "a backup made by hand is never deleted automatically and needs no pin"
+            )
         changed = set_pinned(backup, pinned)
         self._listing_stale = True
         return changed

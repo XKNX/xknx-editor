@@ -161,7 +161,8 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
     @tool("write")
     def backup_pin(path: str, pinned: bool = True) -> dict[str, Any]:
         """Pin (or with ``pinned`` false unpin) the backup at ``path``: a pinned backup is never
-        deleted automatically. Returns the backup."""
+        deleted automatically. Only automatic backups are pinned (one made by hand is never
+        deleted automatically: an error). Returns the backup."""
         backup = find(path)
         try:
             return _backup(service().set_pinned(backup, pinned))

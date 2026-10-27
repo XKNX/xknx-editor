@@ -240,3 +240,6 @@ msgstr "Zawsze zachowuj najnowsze"
 
 msgid "An automatic backup is only made when the project changed since its newest backup. Backups you create yourself and pinned backups are never deleted automatically."
 msgstr "Automatyczna kopia zapasowa jest tworzona tylko wtedy, gdy projekt zmienił się od najnowszej kopii. Kopie utworzone przez Ciebie i kopie przypięte nigdy nie są usuwane automatycznie."
+
+msgid "Backups you create yourself are never deleted automatically"
+msgstr "Kopie zapasowe utworzone przez Ciebie nigdy nie są usuwane automatycznie"

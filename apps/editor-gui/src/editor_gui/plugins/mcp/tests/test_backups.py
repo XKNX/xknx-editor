@@ -71,7 +71,7 @@ async def test_settings_are_read_and_changed(tmp_path: Path) -> None:
 
 
 async def test_backups_are_made_used_and_deleted(tmp_path: Path) -> None:
-    mcp, _ctx = _server(tmp_path)
+    mcp, ctx = _server(tmp_path)
     async with Client(mcp) as client:
         await _error(client, "backup_list", "no project is open")
         await _data(client, "backup_set_settings", folder=str(tmp_path / "backups"))
@@ -86,11 +86,15 @@ async def test_backups_are_made_used_and_deleted(tmp_path: Path) -> None:
         assert [b["path"] for b in listed["backups"]] == [made["path"]]
         assert listed["folder"] == str(Path(made["path"]).parent)
 
-        pinned = await _data(client, "backup_pin", path=made["path"])
-        assert pinned["pinned"] is True
+        # One made by hand is never deleted automatically: it is not pinned.
+        await _error(client, "backup_pin", "needs no pin", path=made["path"])
         assert (await _data(client, "backup_pin", path=made["path"], pinned=False))[
             "pinned"
         ] is False
+        automatic = ctx.backups.create(kind="close").future.result(timeout=30)
+        pinned = await _data(client, "backup_pin", path=str(automatic.path))
+        assert pinned["pinned"] is True
+        await _data(client, "backup_delete", path=str(automatic.path))
         assert await _data(client, "backup_check", path=made["path"]) == {
             "ok": True,
             "problem": "",

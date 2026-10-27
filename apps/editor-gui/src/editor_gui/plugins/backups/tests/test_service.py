@@ -283,7 +283,14 @@ def test_export_writes_a_project_file_but_not_over_the_open_one(
 
 
 def test_pin_and_delete(env: Env) -> None:
-    backup = _wait(env.backups.create())
+    # One made by hand is never deleted automatically: it is not pinned.
+    manual = _wait(env.backups.create())
+    with pytest.raises(BackupError):
+        env.backups.set_pinned(manual, True)
+    assert not env.backups.set_pinned(manual, False).pinned
+    env.backups.delete(manual)
+
+    backup = _wait(env.backups.create(kind=KIND_INTERVAL))
     assert env.backups.set_pinned(backup, True).pinned
     assert env.backups.find(str(backup.path)).pinned
     env.backups.delete(backup)

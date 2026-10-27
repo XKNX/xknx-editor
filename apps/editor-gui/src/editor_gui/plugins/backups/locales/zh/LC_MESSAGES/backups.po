@@ -240,3 +240,6 @@ msgstr "始终保留的最新数量"
 
 msgid "An automatic backup is only made when the project changed since its newest backup. Backups you create yourself and pinned backups are never deleted automatically."
 msgstr "仅当项目自其最新备份以来发生更改时才会创建自动备份。您自己创建的备份和已固定的备份永远不会被自动删除。"
+
+msgid "Backups you create yourself are never deleted automatically"
+msgstr "您自己创建的备份永远不会被自动删除"

@@ -240,3 +240,6 @@ msgstr "Behold alltid de nyeste"
 
 msgid "An automatic backup is only made when the project changed since its newest backup. Backups you create yourself and pinned backups are never deleted automatically."
 msgstr "En automatisk sikkerhetskopi opprettes bare hvis prosjektet er endret siden den nyeste sikkerhetskopien. Sikkerhetskopier du oppretter selv, og festede sikkerhetskopier slettes aldri automatisk."
+
+msgid "Backups you create yourself are never deleted automatically"
+msgstr "Sikkerhetskopier du oppretter selv, slettes aldri automatisk"

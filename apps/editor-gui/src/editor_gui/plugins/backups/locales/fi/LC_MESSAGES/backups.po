@@ -240,3 +240,6 @@ msgstr "Säilytä aina uusimmat"
 
 msgid "An automatic backup is only made when the project changed since its newest backup. Backups you create yourself and pinned backups are never deleted automatically."
 msgstr "Automaattinen varmuuskopio luodaan vain, jos projekti on muuttunut uusimman varmuuskopionsa jälkeen. Itse luomiasi ja kiinnitettyjä varmuuskopioita ei koskaan poisteta automaattisesti."
+
+msgid "Backups you create yourself are never deleted automatically"
+msgstr "Itse luomiasi varmuuskopioita ei koskaan poisteta automaattisesti"

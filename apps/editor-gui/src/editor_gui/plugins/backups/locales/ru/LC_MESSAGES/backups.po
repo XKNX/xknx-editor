@@ -240,3 +240,6 @@ msgstr "Всегда хранить самые новые"
 
 msgid "An automatic backup is only made when the project changed since its newest backup. Backups you create yourself and pinned backups are never deleted automatically."
 msgstr "Автоматическая резервная копия создаётся, только если проект изменился с момента его самой новой резервной копии. Созданные вами и закреплённые резервные копии никогда не удаляются автоматически."
+
+msgid "Backups you create yourself are never deleted automatically"
+msgstr "Созданные вами резервные копии никогда не удаляются автоматически"

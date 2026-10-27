@@ -240,3 +240,6 @@ msgstr "En yenileri her zaman sakla"
 
 msgid "An automatic backup is only made when the project changed since its newest backup. Backups you create yourself and pinned backups are never deleted automatically."
 msgstr "Otomatik yedek yalnızca proje en yeni yedeğinden bu yana değiştiyse oluşturulur. Kendi oluşturduğunuz yedekler ve sabitlenmiş yedekler hiçbir zaman otomatik olarak silinmez."
+
+msgid "Backups you create yourself are never deleted automatically"
+msgstr "Kendi oluşturduğunuz yedekler hiçbir zaman otomatik olarak silinmez"

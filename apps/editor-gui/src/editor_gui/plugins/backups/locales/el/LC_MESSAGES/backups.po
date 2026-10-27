@@ -240,3 +240,6 @@ msgstr "Διατήρηση πάντα των νεότερων"
 
 msgid "An automatic backup is only made when the project changed since its newest backup. Backups you create yourself and pinned backups are never deleted automatically."
 msgstr "Αυτόματο αντίγραφο ασφαλείας δημιουργείται μόνο αν το έργο άλλαξε από το νεότερο αντίγραφό του. Τα αντίγραφα που δημιουργείτε εσείς και τα καρφιτσωμένα δεν διαγράφονται ποτέ αυτόματα."
+
+msgid "Backups you create yourself are never deleted automatically"
+msgstr "Τα αντίγραφα ασφαλείας που δημιουργείτε εσείς δεν διαγράφονται ποτέ αυτόματα"

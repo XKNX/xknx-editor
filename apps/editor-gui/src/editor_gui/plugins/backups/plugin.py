@@ -38,6 +38,9 @@ from editor_gui.widgets.flow import button_width, same_line_if_fits
 from editor_gui.widgets.tables import begin_data_table, data_table_headers
 
 _ERR_COLOR = imgui.ImVec4(0.9, 0.4, 0.4, 1.0)
+# A button for the chosen backup: label, tooltip, what it does, and why it does not apply to it
+# ("" where it does).
+_Action = tuple[str, str, Callable[[Backup], None], str]
 # Where a number field starts beside its label in the settings (unscaled pixels).
 _FIELD_X = 210.0
 
@@ -295,7 +298,7 @@ class BackupsPlugin:
             return
         selected = next((b for b in backups if b.path == self._selected), None)
         actions = self._actions(selected)
-        rows = _button_rows([label for label, _tip, _action in actions])
+        rows = _button_rows([action[0] for action in actions])
         style = imgui.get_style()
         frame, spacing = imgui.get_frame_height(), style.item_spacing.y
         # The rows of buttons below the table, and the dialog's own row of buttons below them.
@@ -359,39 +362,50 @@ class BackupsPlugin:
                 imgui.text(text)
         imgui.end_table()
 
-    def _actions(
-        self, backup: Backup | None
-    ) -> list[tuple[str, str, Callable[[Backup], None]]]:
-        """The buttons for the chosen backup: (label, tooltip, what it does)."""
+    def _actions(self, backup: Backup | None) -> list[_Action]:
+        """The buttons for the chosen backup."""
         pinned = backup is not None and backup.pinned
+        # A backup made by hand is never deleted automatically: nothing to pin.
+        manual = backup is not None and not backup.automatic and not pinned
         return [
-            (S.BTN_RESTORE, "", self._ask_restore),
-            (S.BTN_EXPORT, "", self._ask_export),
+            (S.BTN_RESTORE, "", self._ask_restore, ""),
+            (S.BTN_EXPORT, "", self._ask_export, ""),
             (
                 S.BTN_UNPIN if pinned else S.BTN_PIN,
                 S.TIP_PIN,
                 lambda b: self._pin(b, not b.pinned),
+                S.PIN_NOT_NEEDED if manual else "",
             ),
-            (S.BTN_COMPARE, S.TIP_COMPARE, self._compare_with),
-            (S.BTN_CHECK, S.TIP_CHECK, self._check),
-            (S.BTN_DELETE, "", self._ask_delete),
+            (S.BTN_COMPARE, S.TIP_COMPARE, self._compare_with, ""),
+            (S.BTN_CHECK, S.TIP_CHECK, self._check, ""),
+            (S.BTN_DELETE, "", self._ask_delete, ""),
         ]
 
     def _render_actions(
         self,
         backup: Backup | None,
-        actions: list[tuple[str, str, Callable[[Backup], None]]],
+        actions: list[_Action],
     ) -> None:
-        """The buttons in as many rows as the window's width needs."""
-        imgui.begin_disabled(backup is None)
-        for index, (label, tip, action) in enumerate(actions):
+        """The buttons in as many rows as the window's width needs; one that does not apply
+        to the chosen backup says why when pointed at."""
+        for index, (label, tip, action, why_not) in enumerate(actions):
             if index:
                 same_line_if_fits(button_width(label))
+            imgui.begin_disabled(backup is None or bool(why_not))
             if imgui.button(label) and backup is not None:
                 action(backup)
-            if tip and imgui.is_item_hovered(imgui.HoveredFlags_.delay_normal):
+            imgui.end_disabled()
+            if why_not and imgui.is_item_hovered(
+                imgui.HoveredFlags_.allow_when_disabled
+                | imgui.HoveredFlags_.delay_normal
+            ):
+                imgui.set_tooltip(why_not)
+            elif (
+                tip
+                and backup is not None
+                and imgui.is_item_hovered(imgui.HoveredFlags_.delay_normal)
+            ):
                 imgui.set_tooltip(tip)
-        imgui.end_disabled()
 
     def _ask_delete(self, backup: Backup) -> None:
         self._target = backup

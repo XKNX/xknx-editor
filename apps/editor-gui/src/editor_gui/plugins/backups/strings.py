@@ -90,6 +90,10 @@ class BackupStrings:
         return _("A pinned backup is never deleted automatically")
 
     @property
+    def PIN_NOT_NEEDED(self) -> str:
+        return _("Backups you create yourself are never deleted automatically")
+
+    @property
     def TIP_CHECK(self) -> str:
         return _("Check that the backup can be restored")
 

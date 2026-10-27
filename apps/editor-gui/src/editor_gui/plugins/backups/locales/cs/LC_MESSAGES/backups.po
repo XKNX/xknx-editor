@@ -240,3 +240,6 @@ msgstr "Vždy ponechat nejnovější"
 
 msgid "An automatic backup is only made when the project changed since its newest backup. Backups you create yourself and pinned backups are never deleted automatically."
 msgstr "Automatická záloha se vytvoří, jen pokud se projekt od své nejnovější zálohy změnil. Zálohy, které vytvoříte sami, a připnuté zálohy se nikdy neodstraňují automaticky."
+
+msgid "Backups you create yourself are never deleted automatically"
+msgstr "Zálohy, které vytvoříte sami, se nikdy neodstraňují automaticky"

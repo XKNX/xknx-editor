@@ -240,3 +240,6 @@ msgstr "常に保持する最新の数"
 
 msgid "An automatic backup is only made when the project changed since its newest backup. Backups you create yourself and pinned backups are never deleted automatically."
 msgstr "自動バックアップは、最新のバックアップ以降にプロジェクトが変更された場合にのみ作成されます。自分で作成したバックアップと固定したバックアップは自動的に削除されません。"
+
+msgid "Backups you create yourself are never deleted automatically"
+msgstr "自分で作成したバックアップは自動的に削除されません"

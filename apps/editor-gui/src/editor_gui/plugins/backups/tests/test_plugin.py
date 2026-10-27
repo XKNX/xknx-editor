@@ -282,3 +282,13 @@ def test_no_offer_without_a_backup(env: Env) -> None:
     time.sleep(0.2)
     env.frames(2)
     assert env.plugin._damaged is None  # pyright: ignore[reportPrivateUsage]
+
+
+def test_a_backup_made_by_hand_is_not_pinned(env: Env) -> None:
+    manual = env.backup()
+    pin = env.plugin._actions(manual)[2]  # pyright: ignore[reportPrivateUsage]
+    assert pin[0] == S.BTN_PIN
+    assert pin[3] == S.PIN_NOT_NEEDED
+    automatic = env.plugin.service.create(kind="interval").future.result(timeout=30)
+    assert automatic is not None
+    assert env.plugin._actions(automatic)[2][3] == ""  # pyright: ignore[reportPrivateUsage]
