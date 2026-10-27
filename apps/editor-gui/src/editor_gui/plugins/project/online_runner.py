@@ -11,6 +11,7 @@ from xknx.telegram import IndividualAddress
 
 from editor_gui.plugins.project.strings import S
 from xknxeditor.download.errors import DownloadError
+from xknxeditor.download.procedure import memory_services
 from xknxeditor.download.scope import mask_object_types
 from xknxeditor.download.script_online import OnlineHost, OnlineSession
 from xknxeditor.prod.script import ScriptAborted, ScriptError
@@ -112,6 +113,9 @@ class OnlineButtonRunner:
             interface_max_apdu_length=conn.interface_max_apdu_length,
             locale=ui.script_env.locale if ui.script_env is not None else None,
             object_types=_object_types(conn, device),
+            memory_services=memory_services(device.app)
+            if device.app is not None
+            else (False, False),
         )
         online = OnlineHost(session, self._run_coroutine, run.abort)
         node_id = device.node_id

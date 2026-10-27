@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections.abc import Iterator
 
 import pytest
+from xknx.exceptions import ManagementConnectionError
 from xknx.telegram import IndividualAddress, Telegram
 from xknx.telegram.apci import (
     APCI,
@@ -15,6 +16,10 @@ from xknx.telegram.apci import (
     FunctionPropertyCommand,
     FunctionPropertyStateRead,
     FunctionPropertyStateResponse,
+    MemoryExtendedRead,
+    MemoryExtendedReadResponse,
+    MemoryExtendedWrite,
+    MemoryExtendedWriteResponse,
     MemoryRead,
     MemoryResponse,
     MemoryWrite,
@@ -31,6 +36,7 @@ from xknx.telegram.apci import (
     UserMemoryWrite,
 )
 
+from xknxeditor.download.crc import segment_crc
 from xknxeditor.download.load_state import (
     PID_LOAD_STATE_CONTROL,
     LoadEvent,
@@ -96,6 +102,12 @@ class FakeDevice:
         # with a ZERO-length MemoryResponse (as observed on BIM M112 / mask 0701), forcing the
         # reader to back the block size off. None = always serve the full requested count.
         self.memory_read_zero_above: int | None = None
+        # A_MemoryExtended_Write_Response return code: 0 success, 1 success with the CRC over
+        # count, address and data in the confirmation (``extended_crc`` replaces that CRC).
+        self.extended_write_code = 0
+        self.extended_crc: int | None = None
+        # The device takes no extended memory services: they go unanswered.
+        self.extended_memory_unanswered = False
 
     async def send_data(self, payload: APCI, wait_for_ack: bool = True) -> None:
         """Handle a payload the programmer does not expect an answer to."""
@@ -120,6 +132,34 @@ class FakeDevice:
                     property_id=payload.property_id,
                     type_=16 + width,
                     max_count=100,
+                )
+            )
+        if isinstance(payload, MemoryExtendedWrite | MemoryExtendedRead):
+            if self.extended_memory_unanswered:
+                raise ManagementConnectionError("no response to the extended service")
+            if isinstance(payload, MemoryExtendedRead):
+                data = self._read_memory(payload.address, payload.count)
+                return self._telegram(
+                    MemoryExtendedReadResponse(
+                        return_code=0, address=payload.address, data=data
+                    )
+                )
+            self._store_memory(payload.address, payload.data)
+            confirmation = b""
+            if self.extended_write_code == 1:
+                crc = segment_crc(
+                    bytes([len(payload.data)])
+                    + payload.address.to_bytes(3, "big")
+                    + payload.data
+                )
+                if self.extended_crc is not None:
+                    crc = self.extended_crc
+                confirmation = crc.to_bytes(2, "big")
+            return self._telegram(
+                MemoryExtendedWriteResponse(
+                    return_code=self.extended_write_code,
+                    address=payload.address,
+                    confirmation_data=confirmation,
                 )
             )
         if isinstance(payload, MemoryWrite | UserMemoryWrite):

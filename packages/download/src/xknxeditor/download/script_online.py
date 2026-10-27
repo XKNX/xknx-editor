@@ -56,8 +56,13 @@ class OnlineSession:
         interface_max_apdu_length: int | None = None,
         locale: str | None = None,
         object_types: dict[int, int] | None = None,
+        memory_services: tuple[bool, bool] = (False, False),
     ) -> None:
+        """``memory_services``: whether the device takes the extended memory services, and
+        whether a failed one falls back to the standard ones (see
+        ``procedure.memory_services``)."""
         self._xknx = xknx
+        self._memory_services = memory_services
         self._address = address
         self._security = security
         self._connectionless = connectionless
@@ -101,6 +106,9 @@ class OnlineSession:
             connection = await manager.open()
             programmer = DeviceProgrammer(
                 connection, apdu_overhead=apdu_overhead(self._security)
+            )
+            programmer.extended_memory, programmer.extended_memory_fallback = (
+                self._memory_services
             )
             descriptor = await programmer.read_device_descriptor()
             if self._mask_version is not None and descriptor != self._mask_version:

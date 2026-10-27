@@ -39,7 +39,7 @@ from .merge import (
     mask_has_property_services,
     resolve_download_controls,
 )
-from .procedure import LoadProcedureRunner
+from .procedure import LoadProcedureRunner, memory_services
 from .programmer import (
     DEFAULT_MAX_APDU_LENGTH,
     MAX_COMMUNICATION_APDU_LENGTH,
@@ -267,6 +267,9 @@ async def _partial_scope(
     manager = _connection_manager(xknx, address, security)
     try:
         programmer = DeviceProgrammer(await manager.open())
+        programmer.extended_memory, programmer.extended_memory_fallback = (
+            memory_services(application)
+        )
         reason = await partial_download_mismatch(programmer, application, resources)
     except ManagementConnectionError as exc:
         if not prefer:

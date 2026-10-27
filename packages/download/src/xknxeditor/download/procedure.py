@@ -366,6 +366,25 @@ def _supports_extended_properties(application: Application) -> bool:
     )
 
 
+# Applications whose devices fall back to the standard memory services when an extended one
+# fails (by application id prefix).
+_EXTENDED_MEMORY_FALLBACK = ("M-0071",)
+
+
+def memory_services(application: Application) -> tuple[bool, bool]:
+    """Whether the device takes the extended memory services (A_MemoryExtended_Read/Write):
+    the application says so, or it is a secure application; and whether a failed extended
+    service falls back to the standard ones for the rest of the connection."""
+    program = getattr(application, "program", None)
+    options = getattr(getattr(program, "static", None), "options", None)
+    extended = bool(
+        getattr(options, "supports_extended_memory_services", False)
+        or getattr(program, "is_secure_enabled", False)
+    )
+    app_id = getattr(application, "id", "") or getattr(program, "id", "") or ""
+    return extended, app_id.startswith(_EXTENDED_MEMORY_FALLBACK)
+
+
 def _application_id(application: Application) -> bytes:
     """Assemble the 5 octet application id (manufacturer, type, version)."""
     manufacturer = application.manufacturer_id.split("-")[-1]
@@ -898,6 +917,11 @@ class LoadProcedureRunner:
             self._programmer.table_reference_width = 4
         if self._memory_service_count is not None:
             self._programmer.max_memory_service_count = self._memory_service_count
+        # Per connection: a fallback turns them off until the next one.
+        (
+            self._programmer.extended_memory,
+            self._programmer.extended_memory_fallback,
+        ) = memory_services(self.application)
         if not self._property_services:
             self._programmer.skip_property_verify_probe()
         await self._prepare_device(self._programmer)
