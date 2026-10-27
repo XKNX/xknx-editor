@@ -9,13 +9,17 @@ Hint: `group_object_communication` or `communication_bit`.
 The manufacturer seed leaves bit `0x04` set on every group-object slot. ETS clears it for slots that are not communicating. Two kinds of slot are easy to miss:
 
 - A static `ComObject` with no dynamic `ComObjectRef` (unused channel, antitheft, alarm).
-- A hole: the table count in the first octet includes a number that has no `ComObject` at all.
+- A hole: a number below the highest object number that has no `ComObject` at all.
 
-On the 4-octet table (5-byte header) the flag sits at `segment + 5 + number * 4`. The diff is only bit `0x04` (`0xDF` vs `0xDB`, `0xCF` vs `0xCB`). `LoadCompleted` then checksums the wrong image and that LSM enters `ERROR`.
+The table has one record per object number up to the highest, holes included; its count (first octet) is the highest number + 1. It starts at the table's `Offset` in its code segment, not at the segment start.
 
-The overlay is `_group_communication_segments` / `_build_com_object_table` in `packages/download/src/xknxeditor/download/image.py`. Include every static com-object number, and every slot in `range(seed[0])` when `5 + count * 4` fits in the segment. A linked object keeps the bit.
+On the 4-octet table (`GroupObjectTable_M112`: count, 2-octet RAM flags pointer, records of value pointer, flags, size) the flag sits at `table + 5 + number * 4`. The diff is only bit `0x04` (`0xDF` vs `0xDB`, `0xCF` vs `0xCB`). `LoadCompleted` then checksums the wrong image and that LSM enters `ERROR`.
 
-`GroupObjectTable_Bcu10` / `GroupObjectTable_Bcu11` (mask `MV-001x`, such as the Siemens N 561) and `GroupObjectTable_Bcu1PL` keep the address, association, and group-object tables inside one EEPROM segment. That path must stay on `_bcu1_com_object_overlay`. `GroupObjectTable_Bcu2` (`MV-002x`) is a different table and must not take this overlay. Laying a 4-octet record out from the start of the BCU1 segment overwrites the application id and the table pointers. Which mask is which comes from the flavour in `resources.py`, not from a nibble of the mask id.
+The overlay is `_group_communication_segments` / `_build_com_object_table` in `packages/download/src/xknxeditor/download/image.py`. A linked object keeps the bit.
+
+`GroupObjectTable_Bcu10` / `GroupObjectTable_Bcu11` / `GroupObjectTable_Bcu1PL` (mask `MV-001x`, such as the Siemens N 561) and `GroupObjectTable_Bcu2` (`MV-002x`) are 3-octet records after the count and a 1-octet RAM flags pointer: value pointer, flags, type (`_short_com_object_table`). Every record gets a flag byte, also an object the device does not instantiate (its own flags) and a hole (none). On BCU1 bit 7 of each flag byte is set. BCU1 keeps the address, association, and group-object tables inside one EEPROM segment; laying a 4-octet record out from the start of that segment overwrites the application id and the table pointers. Which mask is which comes from the flavour in `resources.py`, not from a nibble of the mask id.
+
+The count octet: a full download writes the product's octet, even when it differs from the count (inconsistent product data, e.g. `0xFE` on the Theben DM 4-2 T with 253 records). A partial download writes the count (`MemorySegment.partial_octets`), plus the RAM flags pointer and every record's value pointer from the seed.
 
 ## Task-segment manufacturer
 

@@ -1580,6 +1580,50 @@ async def test_a_parameters_download_writes_the_application_segment_of_a_memory_
     assert device.memory == {0x4B21: 0xBB}
 
 
+@pytest.mark.parametrize(
+    ("scope", "application_loaded", "count"),
+    [
+        (DownloadScope.FULL, False, 0xFE),
+        (DownloadScope.FULL, True, 0x05),
+        (DownloadScope.PARAMETERS, False, 0x05),
+        (DownloadScope.GROUP_COMMUNICATION, False, 0x05),
+    ],
+)
+async def test_the_object_count_of_a_partial_download_is_the_number_of_objects(
+    scope: DownloadScope, application_loaded: bool, count: int
+) -> None:
+    """A full download writes the product's count octet of the group object table; a
+    download without the code seed writes the number of objects in its place."""
+    application = _m112_application(_abs_segment_control())
+    image = DownloadImage(
+        segments=(
+            MemorySegment(
+                address=0x4B20,
+                data=b"\xfe\x20\x20\xdd",
+                mask=b"\xff\xff\xff\x00",
+                initialized_mask=b"\xff\xff\xff\xff",
+                partial_octets=((0, 0x05),),
+            ),
+        ),
+        properties=(),
+    )
+    device = _device()
+    runner = LoadProcedureRunner(
+        application,
+        image,
+        DeviceProgrammer(device),
+        controls=[_abs_segment_control()],
+        scope=scope,
+        object_types=_APPLICATION_OBJECT,
+        application_loaded=application_loaded,
+    )
+
+    await runner.run()
+
+    assert device.memory[0x4B20] == count
+    assert (device.memory[0x4B21], device.memory[0x4B22]) == (0x20, 0x20)
+
+
 @pytest.mark.parametrize("memory_mapped", [True, False])
 async def test_full_load_with_the_application_loaded_writes_no_code_seed(
     memory_mapped: bool,

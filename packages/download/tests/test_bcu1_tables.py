@@ -29,6 +29,7 @@ from xknxeditor.download.image import (
     _group_communication_segments,
 )
 from xknxeditor.download.project_data import GroupObjectLink
+from xknxeditor.namespaces.intermediate.com_object_priority_t import ComObjectPriority
 from xknxeditor.namespaces.intermediate.enable_t import Enable
 from xknxeditor.prod.parser_v2.ui.com_object import UiComObject
 
@@ -78,10 +79,40 @@ class _UI:
         return {node.ref_id for node in self._nodes}
 
 
-def _application(
-    mask: str, *, dynamic: bool = False, association_offset: int = 59
+def _static_object(
+    number: int,
+    *,
+    communication: bool = False,
+    read: bool = False,
+    write: bool = False,
+    priority: ComObjectPriority = ComObjectPriority.LOW,
 ) -> SimpleNamespace:
-    objects = [SimpleNamespace(id=f"O-{number}", number=number) for number in range(3)]
+    """A group object of the application's static table, with its own flags."""
+
+    def flag(enabled: bool) -> Enable:
+        return Enable.ENABLED if enabled else Enable.DISABLED
+
+    return SimpleNamespace(
+        id=f"O-{number}",
+        number=number,
+        priority=priority,
+        communication_flag=flag(communication),
+        read_flag=flag(read),
+        write_flag=flag(write),
+        transmit_flag=Enable.DISABLED,
+        update_flag=Enable.DISABLED,
+        read_on_init_flag=Enable.DISABLED,
+    )
+
+
+def _application(
+    mask: str,
+    *,
+    dynamic: bool = False,
+    association_offset: int = 59,
+    application_id: str = "M-00FA_A-0001-01-0000",
+) -> SimpleNamespace:
+    objects = [_static_object(number) for number in range(3)]
     refs = [
         SimpleNamespace(id=f"O-{number}_R", ref_id=f"O-{number}") for number in range(3)
     ]
@@ -93,6 +124,7 @@ def _application(
 
     return SimpleNamespace(
         program=SimpleNamespace(
+            id=application_id,
             mask_version=mask,
             dynamic_table_management=dynamic,
             module_defs=None,
@@ -210,33 +242,36 @@ def test_bcu1_association_keeps_every_link() -> None:
     assert association.data == bytes.fromhex("040300040101000201")
 
 
-def test_system_b_overlay_still_starts_at_the_segment() -> None:
-    """The BCU1 layout is mask 001x only. MV-0701 still uses the 4-octet record."""
+def test_m112_record_starts_at_the_table() -> None:
+    """The BCU1 layout is mask 001x only. MV-0701 uses the 4-octet record, from the
+    table's offset in the segment; the application id before it stays."""
     segments = _segments("MV-0701")
     eeprom = next(segment for segment in segments if len(segment.data) == 256)
-    assert eeprom.data[5] == 0x93
+    assert eeprom.data[4:13] == bytes.fromhex("01540b01fe13000000")
+    assert eeprom.data[_m112_flags(0)] == 0x93
     assert eeprom.initialized_mask is not None
     assert eeprom.initialized_mask[0x0D] == 0xFF
     association = next(segment for segment in segments if segment.address == 0x013B)
     assert association.data == bytes.fromhex("010101")
 
 
-def test_m112_clears_communication_without_a_dynamic_ref() -> None:
-    """A static group object with no ComObjectRef must not keep the seed's communication bit."""
-    application = _application("MV-0701")
-    application.program.static.com_object_table.com_object.append(
-        SimpleNamespace(id="O-3", number=3)
-    )
-    nodes = [
-        _com_object(0, read=False, write=True, transmit=False, update=True),
-        _com_object(1, read=True, write=True, transmit=True, update=True),
-        _com_object(2, read=True, write=False, transmit=False, update=True),
-    ]
-    seed = bytearray(_seed())
-    # Five records: object 3 is static-only, object 4 is a hole with no ComObject.
-    seed[0] = 5
-    seed[5 + 3 * 4] = 0xCF
-    seed[5 + 4 * 4] = 0xDF
+# The group object table of the fixtures lies at offset 94 of the segment.
+_TABLE = 94
+
+
+def _m112_flags(number: int) -> int:
+    """Offset of an object's flag byte in a GroupObjectTable_M112 at ``_TABLE``."""
+    return _TABLE + 5 + number * 4
+
+
+def _bcu2_flags(number: int) -> int:
+    """Offset of an object's flag byte in a GroupObjectTable_Bcu2 at ``_TABLE``."""
+    return _TABLE + 2 + number * 3 + 1
+
+
+def _m112_segments(
+    application: SimpleNamespace, seed: bytearray, nodes: list[UiComObject]
+) -> MemorySegment:
     segments = _group_communication_segments(
         application,  # type: ignore[arg-type]
         _UI(nodes),  # type: ignore[arg-type]
@@ -251,9 +286,136 @@ def test_m112_clears_communication_without_a_dynamic_ref() -> None:
             ),
         ),
     )
-    eeprom = next(segment for segment in segments if len(segment.data) == 256)
-    assert eeprom.data[5 + 3 * 4] == 0xCB
-    assert eeprom.data[5 + 4 * 4] == 0xDB
+    return next(segment for segment in segments if len(segment.data) == 256)
+
+
+_NODES = [
+    _com_object(0, read=False, write=True, transmit=False, update=True),
+    _com_object(1, read=True, write=True, transmit=True, update=True),
+    _com_object(2, read=True, write=False, transmit=False, update=True),
+]
+
+
+def test_m112_clears_communication_without_a_dynamic_ref() -> None:
+    """A static group object with no ComObjectRef and a hole in the numbering must not
+    keep the seed's communication bit. A record past the highest object number stays."""
+    application = _application("MV-0701")
+    objects = application.program.static.com_object_table.com_object
+    objects.extend((_static_object(3), _static_object(5)))
+    seed = bytearray(_seed())
+    # Object 3 and 5 are static-only, object 4 is a hole with no ComObject, record 6 is
+    # past the table.
+    seed[_TABLE] = 6
+    for number, flags in ((3, 0xCF), (4, 0xDF), (5, 0xCF), (6, 0xDF)):
+        seed[_m112_flags(number)] = flags
+    eeprom = _m112_segments(application, seed, _NODES)
+    assert [eeprom.data[_m112_flags(number)] for number in range(3, 7)] == [
+        0xCB,
+        0xDB,
+        0xCB,
+        0xDF,
+    ]
+    assert eeprom.mask is not None
+    assert eeprom.mask[_m112_flags(6)] == 0
+
+
+def test_m112_count_is_the_number_of_records() -> None:
+    """The count is the highest object number + 1. A full download writes the product's
+    octet, which differs here; a partial download writes the count. Both write the
+    whole table: the count, the RAM flags pointer and every record."""
+    application = _application("MV-0705")
+    application.program.static.com_object_table.com_object.append(_static_object(4))
+    seed = bytearray(_seed())
+    seed[_TABLE] = 0xFE
+    eeprom = _m112_segments(application, seed, _NODES)
+    assert eeprom.partial_octets == ((_TABLE, 5),)
+    assert eeprom.mask is not None
+    end = _TABLE + 3 + 5 * 4
+    assert eeprom.mask[_TABLE:end] == b"\xff" * (end - _TABLE)
+    assert not any(eeprom.mask[:_TABLE]) and not any(eeprom.mask[end:])
+
+    full = dict(eeprom.masked_runs(include_initialized=True))
+    assert full[_BASE][_TABLE] == 0xFE
+    (address, data), *_ = eeprom.masked_runs(partial=True)
+    assert address == _BASE + _TABLE
+    assert data[0] == 5
+    assert data[1:3] == seed[_TABLE + 1 : _TABLE + 3]
+
+
+def test_m112_count_that_matches_the_product_is_kept_everywhere() -> None:
+    application = _application("MV-0701")
+    seed = bytearray(_seed())
+    seed[_TABLE] = 3
+    eeprom = _m112_segments(application, seed, _NODES)
+    assert eeprom.partial_octets == ()
+    assert eeprom.masked_runs(partial=True)[0][1][0] == 3
+
+
+def test_bcu2_writes_3_octet_records_at_the_table() -> None:
+    """GroupObjectTable_Bcu2: count, RAM flags pointer, then value pointer, flags and type
+    per object number. An active object gets its configured flags and size, a static one
+    its own flags without communication, a hole none; bit 5 of the flags and the top two
+    bits of the type stay as the seed has them."""
+    application = _application("MV-0020")
+    objects = application.program.static.com_object_table.com_object
+    objects[2] = _static_object(2, communication=True, read=True, write=True)
+    objects.append(_static_object(4, priority=ComObjectPriority.HIGH))
+    seed = bytearray(_seed())
+    seed[_TABLE : _TABLE + 2 + 6 * 3] = bytes.fromhex(
+        "09ce" + "00ffc0" + "01ff00" + "02df00" + "03ff00" + "04ff00" + "05ff00"
+    )
+    eeprom = _m112_segments(application, seed, _NODES[:2])
+    record = _TABLE + 2
+    assert eeprom.data[record : record + 5 * 3] == bytes.fromhex(
+        # Object 0: update, write, low priority, bit 5 from the seed; 1 bit (0) under
+        # the seed's top bits.
+        "00b3c0"
+        # Object 1: linked, every flag but read on init; bit 5 from the seed.
+        "01ff00"
+        # Object 2: static, read and write, communication cleared (unused).
+        "021b00"
+        # Hole: no flags, low priority; bit 5 from the seed.
+        "032300"
+        # Object 4: static, no flags, high priority.
+        "042100"
+    )
+    assert eeprom.data[record + 5 * 3 : record + 6 * 3] == bytes.fromhex("05ff00")
+    assert eeprom.mask is not None
+    assert eeprom.mask[_TABLE : record + 5 * 3] == b"\xff" * (2 + 5 * 3)
+    assert not any(eeprom.mask[record + 5 * 3 :])
+    assert eeprom.partial_octets == ((_TABLE, 5),)
+    # A full download writes the table only, not the rest of the seed.
+    assert eeprom.initialized_mask is None
+
+
+def test_bcu1_sets_bit_7_of_every_flag_byte() -> None:
+    """BCU1 records are the BCU2 ones; bit 7 of each flag byte is set, also for an
+    object without the update flag, a static object and a hole."""
+    application = _application("MV-0012")
+    application.program.static.com_object_table.com_object.append(
+        _static_object(4, read=True)
+    )
+    seed = bytearray(_seed())
+    seed[_TABLE : _TABLE + 2 + 5 * 3] = bytes.fromhex(
+        "09ce" + "000700" + "010700" + "020700" + "030700" + "040700"
+    )
+    nodes = [_com_object(0, read=True, write=True, transmit=True, update=False)]
+    eeprom = _m112_segments(application, seed, nodes)
+    flags = [eeprom.data[_bcu2_flags(number)] for number in range(5)]
+    # Object 0 configured; 1 and 2 static, not instantiated; 3 a hole; 4 static.
+    assert flags == [0xDB, 0x83, 0x83, 0x83, 0x8B]
+    assert eeprom.data[_TABLE + 2 + 2] == 0x00
+    assert eeprom.partial_octets == ((_TABLE, 5),)
+    assert eeprom.mask is not None
+    assert eeprom.mask[_TABLE : _TABLE + 2 + 5 * 3] == b"\xff" * 17
+
+
+def test_bcu2_hidden_pointers_are_not_written() -> None:
+    application = _application("MV-0025", application_id="M-00FD_A-0001-11-1234")
+    eeprom = _m112_segments(application, bytearray(_seed()), _NODES)
+    assert eeprom.mask is not None
+    assert [eeprom.mask[_TABLE + 2 + number * 3] for number in range(3)] == [0, 0, 0]
+    assert eeprom.mask[_bcu2_flags(0)] == 0xFF
 
 
 @pytest.mark.parametrize(
@@ -261,8 +423,10 @@ def test_m112_clears_communication_without_a_dynamic_ref() -> None:
     [
         # BCU1: 3-octet records after the count, the flag in the third octet.
         ("MV-0011", lambda number: 94 + 1 + number * 3 + 2),
+        # BCU2: 3-octet records after the count and the RAM flags pointer.
+        ("MV-0020", _bcu2_flags),
         # M112 (System 7): 4-octet records after a 5-octet header, the flag first.
-        ("MV-0705", lambda number: 5 + number * 4),
+        ("MV-0705", _m112_flags),
     ],
 )
 def test_memory_mapped_tables_keep_the_segment_selector(
@@ -278,7 +442,6 @@ def test_memory_mapped_tables_keep_the_segment_selector(
         _com_object(1, read=True, write=True, transmit=True, update=True),
     ]
     seed = bytearray(_seed())
-    seed[0] = 2
     seed[flag_offset(0)] = 0x9F
     seed[flag_offset(1)] = 0xBF
     segments = _group_communication_segments(
@@ -304,31 +467,23 @@ def test_memory_mapped_tables_keep_the_segment_selector(
     assert eeprom.data[flag_offset(1)] == 0xFF
 
 
-def test_bcu2_keeps_communication_on_static_slots() -> None:
-    """GroupObjectTable_Bcu2 is not the M112 record; its other slots stay as seeded."""
-    application = _application("MV-0020")
-    application.program.static.com_object_table.com_object.append(
-        SimpleNamespace(id="O-3", number=3)
-    )
-    nodes = [_com_object(0, read=False, write=True, transmit=False, update=True)]
-    seed = bytearray(_seed())
-    seed[0] = 5
-    seed[5 + 3 * 4] = 0xCF
-    seed[5 + 4 * 4] = 0xDF
+def test_bcu2_factory_table_keeps_each_objects_communication_flag() -> None:
+    """With the table in the factory image, a static object keeps its own communication
+    flag."""
+    application = _application("MV-0021")
+    objects = application.program.static.com_object_table.com_object
+    objects[2] = _static_object(2, communication=True)
     segments = _group_communication_segments(
         application,  # type: ignore[arg-type]
-        _UI(nodes),  # type: ignore[arg-type]
+        _UI(_NODES[:2]),  # type: ignore[arg-type]
         {_SEGMENT: _BASE},
-        {_SEGMENT: (bytes(seed), b"\x00" * len(seed))},
+        {_SEGMENT: (_seed(), b"\x00" * 256)},
         GroupCommunication(device_address=0x1133, links=()),
+        _factory(FactoryLocation.MEMORY, 0, 0, _BASE + _TABLE),
     )
     eeprom = next(segment for segment in segments if len(segment.data) == 256)
-    assert eeprom.mask is not None
-    assert eeprom.mask[5 + 3 * 4] == 0x00
-    assert eeprom.mask[5 + 4 * 4] == 0x00
-    # A full download writes initialized bytes. BCU2 has none, so the seed
-    # stays out of that write.
-    assert eeprom.initialized_mask is None
+    # Communication, low priority; bit 5 of the seed's 8f is clear.
+    assert eeprom.data[_bcu2_flags(2)] == 0x07
 
 
 def _dynamic_segments(
@@ -400,22 +555,17 @@ def _factory(
 def _m112_table(factory_image: FactoryImage | None) -> bytes:
     application = _application("MV-0701")
     objects = application.program.static.com_object_table.com_object
-    objects.append(SimpleNamespace(id="O-3", number=3))
+    objects.extend((_static_object(3), _static_object(5)))
     for com_object in objects:
         com_object.communication_flag = Enable.ENABLED
-    nodes = [
-        _com_object(0, read=False, write=True, transmit=False, update=True),
-        _com_object(1, read=True, write=True, transmit=True, update=True),
-        _com_object(2, read=True, write=False, transmit=False, update=True),
-    ]
     seed = bytearray(_seed())
-    # Five records: object 3 is static-only, object 4 is a hole with no ComObject.
-    seed[0] = 5
-    seed[5 + 3 * 4] = 0xCF
-    seed[5 + 4 * 4] = 0xDF
+    # Object 3 and 5 are static-only, object 4 is a hole with no ComObject.
+    seed[_TABLE] = 6
+    for number, flags in ((3, 0xCF), (4, 0xDF), (5, 0xCF)):
+        seed[_m112_flags(number)] = flags
     segments = _group_communication_segments(
         application,  # type: ignore[arg-type]
-        _UI(nodes),  # type: ignore[arg-type]
+        _UI(_NODES),  # type: ignore[arg-type]
         {_SEGMENT: _BASE},
         {_SEGMENT: (bytes(seed), b"\x00" * len(seed))},
         GroupCommunication(
@@ -436,13 +586,14 @@ def test_m112_factory_table_keeps_each_objects_communication_flag() -> None:
     communication flag, linked or not; a hole without a group object has none."""
     by_link = _m112_table(None)
     # The table sits at the com object table's address (segment base + offset 94).
-    own = _m112_table(_factory(FactoryLocation.MEMORY, 0, 0, _BASE + 94))
+    own = _m112_table(_factory(FactoryLocation.MEMORY, 0, 0, _BASE + _TABLE))
     for number in (0, 2):
-        assert not by_link[5 + number * 4] & 0x04
-        assert own[5 + number * 4] == by_link[5 + number * 4] | 0x04
-    assert own[5 + 1 * 4] == by_link[5 + 1 * 4]
-    assert own[5 + 3 * 4] == 0xCF
-    assert own[5 + 4 * 4] == 0xDB
+        assert not by_link[_m112_flags(number)] & 0x04
+        assert own[_m112_flags(number)] == by_link[_m112_flags(number)] | 0x04
+    assert own[_m112_flags(1)] == by_link[_m112_flags(1)]
+    assert own[_m112_flags(3)] == 0xCF
+    assert own[_m112_flags(4)] == 0xDB
+    assert own[_m112_flags(5)] == 0xCF
 
 
 def test_m112_factory_image_elsewhere_keeps_the_link_rule() -> None:
