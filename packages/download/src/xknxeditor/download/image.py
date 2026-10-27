@@ -43,6 +43,7 @@ from .resources import (
     bundled_mask_resources,
     m112_association_table,
     m112_group_object_table,
+    mask_number,
     reserved_memory,
 )
 from .secure_config import GroupSecurity, SecurityTables, security_tables
@@ -84,19 +85,12 @@ _COUPLER_BYTES = {
 }
 
 
-def _mask_number(mask_version: str) -> int | None:
-    try:
-        return int(mask_version.removeprefix("MV-"), 16)
-    except ValueError:
-        return None
-
-
 def _coupler_bytes(
     mask_version: str, base: int, data: bytes, mask: bytes, initialized: bytes
 ) -> tuple[bytes, bytes]:
     """``data`` and ``initialized`` with the fixed line coupler bytes, for a segment
     that covers them; bytes a parameter writes (``mask``) keep its value."""
-    version = _mask_number(mask_version)
+    version = mask_number(mask_version)
     if (
         version is None
         or version & 0xFFE0 != 0x0900

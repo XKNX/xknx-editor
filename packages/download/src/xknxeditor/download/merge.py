@@ -37,6 +37,7 @@ from xknxeditor.namespaces.intermediate.resource_access_t import ResourceAccess
 from xknxeditor.prod.parser_v2.nodes.choose import satisfies
 
 from .errors import UnsupportedProcedureError
+from .resources import mask_number
 from .scope import (
     DownloadScope,
     control_applies,
@@ -141,10 +142,12 @@ def _finalize_controls(
         DownloadScope.PARAMETERS,
         DownloadScope.PARAMETERS_AND_GROUP_COMMUNICATION,
     )
+    number = mask_number(mask_version)
     remove_second = (
         partial_parameters
         and not has_application_program2
-        and int(mask_version.removeprefix("MV-"), 16) & 0xFF0 == 0x7B0
+        and number is not None
+        and number & 0xFF0 == 0x7B0
     )
     # Automatic transformations precede removal of the absent second program.
     return [

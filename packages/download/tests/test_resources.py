@@ -192,3 +192,17 @@ def test_mask_resources_falls_back_to_bundled_without_master() -> None:
     resolved = mask_resources(None, "MV-07B0")
     assert resolved is not None
     assert resolved.property_ref(ResourceName.APPLICATION_RUN_CONTROL) == (4, 6)
+
+
+def test_mask_number_ignores_the_management_descriptor() -> None:
+    from xknxeditor.download.resources import mask_number
+
+    assert mask_number("MV-0705") == 0x0705
+    assert mask_number("MV-07B0") == 0x07B0
+    assert mask_number("MV-0300-01000001000000000000") == 0x0300
+    assert [mask_number(text) for text in ("", "MV-", "MV-07", "MV-XY12")] == [
+        None,
+        None,
+        None,
+        None,
+    ]

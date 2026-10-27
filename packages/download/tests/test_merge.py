@@ -322,3 +322,17 @@ def test_legacy_configuration_is_not_mixed_with_current_metadata() -> None:
     configurations.insert(0, legacy)
     assert mask_object_types(master, "MV-07B0") == MAPPING
     assert resolve_download_controls(app, master) != [LdCtrlConnect()]
+
+
+def test_a_mask_id_with_a_management_descriptor_resolves() -> None:
+    from xknxeditor.download.scope import DownloadScope
+
+    procedure = LoadProceduresLoadProcedure(choice=[LdCtrlRestart()])  # type: ignore[arg-type]
+    app = SimpleNamespace(
+        load_procedure_style=LoadProcedureStyle.PRODUCT_PROCEDURE,
+        load_procedures=LoadProcedures(load_procedure=[procedure]),
+        program=SimpleNamespace(mask_version="MV-0300-01000001000000000000"),
+    )
+    for scope in (DownloadScope.FULL, DownloadScope.PARAMETERS):
+        controls = resolve_download_controls(app, None, scope=scope)  # type: ignore[arg-type]
+        assert [type(c) for c in controls] == [LdCtrlRestart]

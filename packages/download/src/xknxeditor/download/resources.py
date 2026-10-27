@@ -441,6 +441,19 @@ def _bundled_table() -> Mapping[str, object]:
     return table if table is not None else {}
 
 
+def mask_number(mask_version: str) -> int | None:
+    """The mask version number of a mask id: ``0x0705`` for ``MV-0705``, also with the
+    management descriptor some ids carry (``MV-0300-01000001000000000000`` is 0x0300).
+    None for an id that does not start with four hex digits."""
+    digits = mask_version.removeprefix("MV-")[:4]
+    if len(digits) != 4:
+        return None
+    try:
+        return int(digits, 16)
+    except ValueError:
+        return None
+
+
 def property_mapped_lsms(mask_version: str) -> bool:
     """Whether ``mask_version`` drives load state machines through a property.
 
