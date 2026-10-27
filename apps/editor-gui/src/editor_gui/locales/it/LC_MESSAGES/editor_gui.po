@@ -13,6 +13,9 @@ msgstr "XKNX Editor"
 msgid "{project} - {app}"
 msgstr "{project} - {app}"
 
+msgid "{project} – {file} - {app}"
+msgstr "{project} – {file} - {app}"
+
 msgid "Help"
 msgstr "Aiuto"
 

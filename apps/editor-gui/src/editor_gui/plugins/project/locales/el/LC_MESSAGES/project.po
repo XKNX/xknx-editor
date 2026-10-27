@@ -508,6 +508,9 @@ msgstr "Δεν υπάρχουν κτίρια/δωμάτια σε αυτό το �
 msgid "Name"
 msgstr "Όνομα"
 
+msgid "File"
+msgstr "Αρχείο"
+
 msgid "Type"
 msgstr "Τύπος"
 

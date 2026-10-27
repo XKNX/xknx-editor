@@ -508,6 +508,9 @@ msgstr "No hay edificios/estancias en este proyecto"
 msgid "Name"
 msgstr "Nombre"
 
+msgid "File"
+msgstr "Archivo"
+
 msgid "Type"
 msgstr "Tipo"
 

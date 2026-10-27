@@ -508,6 +508,9 @@ msgstr "Não há construções/compartimentos neste projeto"
 msgid "Name"
 msgstr "Nome"
 
+msgid "File"
+msgstr "Ficheiro"
+
 msgid "Type"
 msgstr "Tipo"
 

@@ -508,6 +508,9 @@ msgstr "Nessun edificio/stanza in questo progetto"
 msgid "Name"
 msgstr "Nome"
 
+msgid "File"
+msgstr "File"
+
 msgid "Type"
 msgstr "Tipo"
 

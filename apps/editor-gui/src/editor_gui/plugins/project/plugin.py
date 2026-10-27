@@ -522,6 +522,7 @@ class ProjectPlugin:
             on_set_status=lambda status: api.project.set_completion_status(
                 "project", 0, status
             ),
+            get_path=lambda: api.project.path,
         )
         self._project_log_panel = ProjectLogPanel(
             get_traces=api.project.get_project_traces,

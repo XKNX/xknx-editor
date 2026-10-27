@@ -219,6 +219,22 @@ def _any_popup_open() -> bool:
     return imgui.is_popup_open("", imgui.PopupFlags_.any_popup_id)
 
 
+def window_title(name: str, path: Path | None) -> str:
+    """The window title of a project named ``name`` in the file ``path``: its name, followed by
+    the file name when that is not the name, so a file renamed or saved under another name shows
+    which one is open; the file name alone for a project without a name."""
+    file = path.name if path is not None else ""
+    if not name:
+        name, file = (path.stem if path is not None else ""), ""
+    elif path is not None and path.stem == name:
+        file = ""
+    if not name:
+        return S.APP_TITLE
+    if file:
+        return S.WINDOW_TITLE_FILE.format(project=name, file=file, app=S.APP_TITLE)
+    return S.WINDOW_TITLE.format(project=name, app=S.APP_TITLE)
+
+
 def startup_file(argv: list[str]) -> str | None:
     """The file to open at start: the first argument that is not an option, as an absolute path.
     Opening a project from the file manager (the .xknx file association) passes it this way."""
@@ -3591,14 +3607,16 @@ class KnxGuiApp:
         if self._project_service.is_open:
             meta = self._project_service.get_project_metadata()
             name = meta.name if meta and meta.name else None
-            if not name and self._project_service.path is not None:
-                name = self._project_service.path.name
+            path = self._project_service.path
+            if not name and path is not None:
+                name = path.name
             self._status_part(
                 S.STATUS_PROJECT.format(
                     name=name or "?",
                     devices=len(self._project_service.devices),
                     gas=len(self._project_service.group_addresses),
-                )
+                ),
+                tooltip=str(path) if path is not None else None,
             )
         else:
             self._status_part(S.STATUS_NO_PROJECT)
@@ -3618,10 +3636,15 @@ class KnxGuiApp:
         if self._show_status_fps:
             self._render_status_fps()
 
-    def _status_part(self, text: str, color: imgui.ImVec4 | None = None) -> None:
-        """The next part of the status bar after a separator, greyed without ``color``. In a
-        narrow window the part that no longer fits is shortened (all of it in its tooltip) and
-        the parts after it are left out."""
+    def _status_part(
+        self,
+        text: str,
+        color: imgui.ImVec4 | None = None,
+        tooltip: str | None = None,
+    ) -> None:
+        """The next part of the status bar after a separator, greyed without ``color``, with
+        ``tooltip`` on hover. In a narrow window the part that no longer fits is shortened (all
+        of it in its tooltip) and the parts after it are left out."""
         if self._status_full:
             return
         imgui.same_line()
@@ -3647,8 +3670,11 @@ class KnxGuiApp:
             imgui.text_disabled(shown)
         else:
             imgui.text_colored(color, shown)
-        if shown != text and imgui.is_item_hovered():
-            imgui.set_tooltip(text)
+        hint = "\n".join(
+            part for part in (text if shown != text else None, tooltip) if part
+        )
+        if hint and imgui.is_item_hovered():
+            imgui.set_tooltip(hint)
 
     def _status_fps_width(self) -> float:
         """Width of the FPS display at the right of the status bar, its idling toggle included."""
@@ -5086,7 +5112,7 @@ class KnxGuiApp:
         imgui.end_popup()
 
     def _window_title(self) -> str:
-        """The app name, preceded by the open project's name."""
+        """The app name, preceded by the open project's name and file (see ``window_title``)."""
         service = self._project_service
         if not service.is_open:
             return S.APP_TITLE
@@ -5098,13 +5124,7 @@ class KnxGuiApp:
         name = (
             self._title_name if self._title_key and self._title_key[0] == key[0] else ""
         )
-        if not name and service.path is not None:
-            name = service.path.stem
-        return (
-            S.WINDOW_TITLE.format(project=name, app=S.APP_TITLE)
-            if name
-            else S.APP_TITLE
-        )
+        return window_title(name, service.path)
 
     def _flash_toast(self, text: str) -> None:
         """Show a short green feedback toast (e.g. 'Copied'). Called from panels via PluginAPI."""

@@ -25,6 +25,9 @@ msgstr "Dit product heeft geen applicatieprogramma."
 msgid "Name"
 msgstr "Naam"
 
+msgid "File"
+msgstr "Bestand"
+
 msgid "Individual Address"
 msgstr "Individueel Adres"
 
