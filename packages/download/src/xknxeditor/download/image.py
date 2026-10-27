@@ -617,7 +617,11 @@ def build_image(
             data, initialized = _coupler_bytes(
                 application.program.mask_version, base, data, mask, initialized
             )
-        if not any(mask) and not any(initialized):
+        # A declared segment stays in the image even when nothing in it is written (a zero
+        # mask and no parameters): a partial download turns its allocation into a WriteMem
+        # over the whole segment, which then writes nothing. Table segments get their bytes
+        # from the table builders below.
+        if not any(mask) and not any(initialized) and segment_id in table_ids:
             continue
         memory = MemorySegment(base_addresses[segment_id], data, mask, initialized)
         if isinstance(declaration, ApplicationProgramStaticCodeRelativeSegment):
