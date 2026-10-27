@@ -5809,12 +5809,21 @@ class ProjectService:
         return GroupAddressStyle(self._svc.project(self._pid).group_address_style)
 
     def create_group_address(
-        self, address: str | None = None, name: str = ""
+        self, address: str | None = None, name: str = "", dpt: str | None = None
     ) -> int | None:
         """Create a group address. ``address`` is a style-formatted string (e.g. ``"1/2/3"``); when
-        omitted, the next free address is allocated. Returns ``None`` on an invalid address."""
+        omitted, the next free address is allocated. Returns ``None`` on an invalid address.
+        ``dpt`` (``"1.001"`` or ``"DPST-1-1"``) sets its data point type in the same undo step;
+        one that cannot be parsed raises ``ValueError`` before anything is created."""
         if self._pid is None:
             return None
+        if dpt:
+            normalize_datapoint_type(dpt)
+            with self.one_undo_step():
+                ga_id = self.create_group_address(address, name)
+                if ga_id is not None:
+                    self.set_group_address_dpt(ga_id, dpt)
+            return ga_id
         if address:
             style = GroupAddressStyle(self._svc.project(self._pid).group_address_style)
             try:

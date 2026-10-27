@@ -221,6 +221,19 @@ def _space_device_dict(d: Any) -> dict[str, Any]:
     )
 
 
+def _device_space(
+    spaces: list[Any], node_id: int, trail: tuple[str, ...] = ()
+) -> dict[str, Any] | None:
+    """The space the device ``node_id`` is placed in, with the names of the spaces above it."""
+    for space in spaces:
+        here = (*trail, space.name)
+        if any(d.id == node_id for d in space.devices):
+            return {"space_id": space.id, "name": space.name, "path": " > ".join(here)}
+        if (found := _device_space(space.children, node_id, here)) is not None:
+            return found
+    return None
+
+
 def _function_dict(f: Any) -> dict[str, Any]:
     return _prune(
         {
@@ -1120,6 +1133,32 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         """Device resolver call site shared by the tools that accept either addressing form."""
         return _require_device(node_id, device_address)
 
+    def _scoped_subtree(
+        device: Device, roots: list[Any], subtree_id: str, tree_token: str | None
+    ) -> Any:
+        """The tab/block ``subtree_id`` of ``roots``, after checking that ``tree_token`` is the
+        device's current one (a path can stay valid after a structural change but point to
+        another container)."""
+        if tree_token is None:
+            raise ToolError(
+                "a scoped (subtree_id) read requires tree_token from the same "
+                "project_parameter_tree response; re-read without subtree_id first"
+            )
+        current_token = _tree_fingerprint(device.node_id, roots)
+        if tree_token != current_token:
+            raise ToolError(
+                f"stale tree_token for device {device.node_id} (current "
+                f"{current_token!r} != {tree_token!r}); re-read project_parameter_tree "
+                "to refresh"
+            )
+        found = _find_subtree(roots, subtree_id)
+        if found is None:
+            raise ToolError(
+                f"no tab/block at id {subtree_id!r} on device {device.node_id}; call "
+                "project_parameter_tree(outline=True) for the current ids"
+            )
+        return found
+
     # --- application update ("Update Application Program") ------------
 
     @tool("read")
@@ -1733,7 +1772,9 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         "a.l.d" string or null for an entry without one. segment_id is the segment the device is
         on (see project_topology), null for a device on no line (project_unlink_device); line is
         that line's address ("1.5", null on no line), also for a device without a device number
-        (project_park_device)."""
+        (project_park_device). space is the room (or other space) it is placed in, {space_id,
+        name, path} with path its spaces from the building down ("House > Ground Floor >
+        Kitchen"), null when it is in no space; pass space_id to project_set_device_space."""
 
         def _read() -> dict[str, Any]:
             device = _require_device(node_id, device_address)
@@ -1741,6 +1782,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             data = _device_dict(device)
             data["segment_id"] = project.device_segments().get(device.node_id)
             data["line"] = project.device_lines().get(device.node_id)
+            data["space"] = _device_space(project.get_space_tree(), device.node_id)
             if info is not None:
                 data |= {
                     "product_ref_id": info.product_ref_id,
@@ -1763,7 +1805,11 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     @tool("read")
     def project_list_com_objects(
-        node_id: int | None = None, device_address: str | None = None
+        node_id: int | None = None,
+        device_address: str | None = None,
+        search: str | None = None,
+        linked_only: bool = False,
+        compact: bool = False,
     ) -> dict[str, Any]:
         """List a project device's visible com-objects with their group-address links, as the
         Group Objects tab shows them. Identify the device by ``node_id`` OR ``device_address`` (an
@@ -1773,16 +1819,38 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         write, transmit, update, read_on_init. links are the object's group-address links as
         project_get_com_object_links returns them ({assignment_id, group_address_id, address, name,
         is_sending}); empty when it has none: one call shows which group address is on which
-        object.
+        object, and gives the assignment_id project_unlink_com_object takes.
+        ``search`` keeps the objects whose name (with its function), description, or a linked
+        group address (its address or name) contains it, case-insensitive. ``linked_only`` keeps
+        the objects with at least one link: all of a device's links in one call. ``compact`` gives
+        each item only ref_id, number, name, dpt and links.
         Pass ref_id as com_object_ref_id with the same device. Linking and flag edits require
         linkable=true (db_id set)."""
 
+        needle = (search or "").casefold()
+
+        def _matches(row: dict[str, Any]) -> bool:
+            texts = [row["name"], row["description"]]
+            texts += [
+                t for link in row["links"] for t in (link["address"], link["name"])
+            ]
+            return any(needle in (t or "").casefold() for t in texts)
+
         def _read() -> list[dict[str, Any]]:
             device = _require_device(node_id, device_address)
-            return [
+            rows = [
                 {**com_object_dict(co), "links": com_object_links(project, co)}
                 for co in device.get_visible_com_objects()
             ]
+            rows = [
+                r
+                for r in rows
+                if (not linked_only or r["links"]) and (not needle or _matches(r))
+            ]
+            if compact:
+                keys = ("ref_id", "number", "name", "dpt", "links")
+                rows = [{k: r[k] for k in keys} for r in rows]
+            return rows
 
         return _items(ctx.run_locked(_read))
 
@@ -1869,10 +1937,15 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         modified_only: bool = False,
         compact: bool = False,
         include_hidden: bool = False,
+        subtree_id: str | None = None,
+        tree_token: str | None = None,
     ) -> dict[str, Any]:
         """A device's visible application parameters with current value and default. Identify the
         device by ``node_id`` OR ``device_address`` (an individual address like "1.0.30"); pass
-        exactly one.
+        exactly one. ``subtree_id`` (a tab/block ``id`` from project_parameter_tree, with the
+        ``tree_token`` of the same read) lists only that section's parameters, nested blocks
+        included, as a flat list: one channel's or tile's settings in one call, e.g. with
+        ``compact``.
         Returns {items, count}; each item has ref_id, label, value, default_value, access, widget.
         To keep the list compact, an enum ``widget`` carries only ``choice_count`` (plus
         ``value_label`` on the item for the current value), NOT the full choice list — call
@@ -1887,17 +1960,27 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         ``section`` ("Tab > Block > …", where it appears once shown); visible items then carry
         ``visible: true``. Use it with ``search`` to find a setting that is not shown yet, then
         project_plan_parameter for the edits that show it. Parameters no user ever sees are not
-        listed.
+        listed. A hidden parameter has no place in the tree yet, so ``include_hidden`` does not
+        combine with ``subtree_id``; its ``section`` tells where it appears.
 
         Pass an item's ``ref_id`` to project_set_parameter as its ``parameter_ref_id`` argument."""
 
+        if include_hidden and subtree_id is not None:
+            raise ToolError(
+                "include_hidden lists the whole device; pass it without subtree_id and use "
+                "search, each hidden parameter carries its section"
+            )
+
         def _read() -> list[dict[str, Any]]:
             device = _require_device(node_id, device_address)
+            roots: list[Any] = list(device.get_ui())
+            if subtree_id is not None:
+                roots = [_scoped_subtree(device, roots, subtree_id, tree_token)]
             rows = [
                 _compact_parameter_dict(p)
                 if compact
                 else _parameter_dict(p, include_choices=False)
-                for p in _collect_ui_parameters(device.get_ui())
+                for p in _collect_ui_parameters(roots)
                 if not modified_only or p.value != p.default_value
             ]
             if include_hidden:
@@ -1972,27 +2055,10 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         def _read() -> dict[str, Any]:
             device = _require_device(node_id, device_address)
-            resolved_node_id = device.node_id
             roots: list[Any] = list(device.get_ui())
-            current_token = _tree_fingerprint(resolved_node_id, roots)
+            current_token = _tree_fingerprint(device.node_id, roots)
             if subtree_id is not None:
-                if tree_token is None:
-                    raise ToolError(
-                        "a scoped (subtree_id) read requires tree_token from the same "
-                        "project_parameter_tree response; re-read without subtree_id first"
-                    )
-                if tree_token != current_token:
-                    raise ToolError(
-                        f"stale tree_token for device {resolved_node_id} (current "
-                        f"{current_token!r} != {tree_token!r}); re-read project_parameter_tree "
-                        "to refresh"
-                    )
-                found = _find_subtree(roots, subtree_id)
-                if found is None:
-                    raise ToolError(
-                        f"no tab/block at id {subtree_id!r} on device {resolved_node_id}; call "
-                        "project_parameter_tree(outline=True) for the current ids"
-                    )
+                found = _scoped_subtree(device, roots, subtree_id, tree_token)
                 scoped: list[tuple[str, Any]] = [(subtree_id, found)]
             else:
                 scoped = [
@@ -2038,18 +2104,32 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         parameter_ref_id: str,
         node_id: int | None = None,
         device_address: str | None = None,
+        choice_search: str | None = None,
     ) -> dict[str, Any]:
         """Read a project application parameter. Identify the device by ``node_id`` OR
         ``device_address`` (an individual address like "1.0.30"); pass exactly one. Pass ref_id from
         project_list_parameters or project_parameter_tree as parameter_ref_id.
         Returns {ref_id, label, value, default_value, access, widget}; for an enum, widget includes
-        the full ``choices`` (value/label/id) — the allowed values for project_set_parameter."""
+        the full ``choices`` (value/label/id) — the allowed values for project_set_parameter.
+        ``choice_search`` keeps only the choices whose label contains it (case-insensitive), e.g.
+        "garage" in a list of several hundred icons; widget then also carries ``choice_count``,
+        the number of all choices."""
 
         def _read() -> dict[str, Any]:
             device = _require_device(node_id, device_address)
             for p in _collect_ui_parameters(device.get_ui()):
                 if p.ref_id == parameter_ref_id:
-                    return _parameter_dict(p)
+                    data = _parameter_dict(p)
+                    widget = data["widget"]
+                    if choice_search and "choices" in widget:
+                        needle = choice_search.casefold()
+                        widget["choice_count"] = len(widget["choices"])
+                        widget["choices"] = [
+                            c
+                            for c in widget["choices"]
+                            if needle in str(c["label"]).casefold()
+                        ]
+                    return data
             raise ToolError(
                 f"no parameter {parameter_ref_id!r} on device {device.node_id}; "
                 "call project_list_parameters for valid ref_ids"
@@ -2196,6 +2276,10 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
     @tool("read")
     def project_list_group_addresses(
         name_contains: str | None = None,
+        group_address_ids: list[int] | None = None,
+        group_addresses: list[str] | None = None,
+        group_range_id: int | None = None,
+        compact: bool = False,
     ) -> dict[str, Any]:
         """List project group addresses, optionally filtering names by a case-insensitive substring.
         Returns {items, count}; each item has {id, address, name, datapoint_type, description,
@@ -2204,17 +2288,65 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         that overrides it ({group_range_id, name, mode}, null for none), central whether it is
         marked central. Pass ``id`` as group_address_id to project tools. ``address`` is formatted in the
         project's style; monitor tools accept a group-address string and normalize it (to ThreeLevel)
-        internally."""
+        internally.
+        ``group_address_ids`` and/or ``group_addresses`` (printed addresses like "0/7/4") list
+        only those; the result then also carries ``not_found``, the requested ids and addresses
+        the project does not have (empty when all exist). ``group_range_id`` (an id from
+        project_list_group_ranges) keeps the addresses in that main or middle group, its middle
+        groups included. Filters combine. ``compact`` gives each item only id, address, name and
+        datapoint_type."""
 
-        def _read() -> list[dict[str, Any]]:
+        def _find_range(nodes: list[Any]) -> Any | None:
+            for r in nodes:
+                if r.id == group_range_id:
+                    return r
+                if (found := _find_range(r.children)) is not None:
+                    return found
+            return None
+
+        def _range_ids(r: Any) -> set[int]:
+            """The group addresses of the range ``r`` and of the ranges below it."""
+            ids = {g.id for g in r.group_addresses}
+            for child in r.children:
+                ids |= _range_ids(child)
+            return ids
+
+        listed = group_address_ids is not None or group_addresses is not None
+
+        def _read() -> dict[str, Any]:
             needle = (name_contains or "").lower()
-            return [
-                _ga_dict(g)
-                for g in project.group_addresses
-                if not needle or needle in g.name.lower()
-            ]
+            every = project.group_addresses
+            rows = [g for g in every if not needle or needle in g.name.lower()]
+            if group_range_id is not None:
+                found = _find_range(project.get_group_range_tree())
+                if found is None:
+                    raise ToolError(
+                        f"no group range with id {group_range_id}; call "
+                        "project_list_group_ranges for valid ids"
+                    )
+                in_range = _range_ids(found)
+                rows = [g for g in rows if g.id in in_range]
+            not_found: list[int | str] = []
+            if listed:
+                ids = set(group_address_ids or ())
+                printed = set(group_addresses or ())
+                known_ids = {g.id for g in every}
+                known_addresses = {g.address for g in every}
+                not_found = [i for i in group_address_ids or () if i not in known_ids]
+                not_found += [
+                    a for a in group_addresses or () if a not in known_addresses
+                ]
+                rows = [g for g in rows if g.id in ids or g.address in printed]
+            items = [_ga_dict(g) for g in rows]
+            if compact:
+                keys = ("id", "address", "name", "datapoint_type")
+                items = [{k: d[k] for k in keys} for d in items]
+            result = _items(items)
+            if listed:
+                result["not_found"] = not_found
+            return result
 
-        return _items(ctx.run_locked(_read))
+        return ctx.run_locked(_read)
 
     @tool("read")
     def project_get_group_address(
@@ -3571,17 +3703,23 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     @tool("write")
     def project_create_group_address(
-        address: str | None = None, name: str = ""
+        address: str | None = None, name: str = "", dpt: str | None = None
     ) -> dict[str, Any]:
         """Create a project group address. address follows project_info's group_address_style
-        (e.g. "1/2/3"); omit it for the next free address. Returns {group_address_id, address, name},
-        or only {group_address_id} if the created row cannot be read. Pass group_address_id to group
-        address and linking tools. Undoable with project_undo; hardware changes require linking
-        com-objects and programming their devices."""
+        (e.g. "1/2/3"); omit it for the next free address. ``dpt`` sets its datapoint type right
+        away, as project_set_group_address_dpt takes it ("1.001" or "DPST-1-1"); the address and
+        its type are then one undo step, and a type that cannot be parsed creates nothing.
+        Returns {group_address_id, address, name, datapoint_type}, or only {group_address_id} if
+        the created row cannot be read. Pass group_address_id to group address and linking tools.
+        Undoable with project_undo; hardware changes require linking com-objects and programming
+        their devices."""
         require_project(ctx)
 
         def _create() -> dict[str, Any]:
-            ga_id = project.create_group_address(address, name)
+            try:
+                ga_id = project.create_group_address(address, name, dpt)
+            except ValueError as e:
+                raise ToolError(str(e)) from e
             if ga_id is None:
                 raise ToolError(
                     f"could not create group address {address!r} (invalid for the project's style)"
@@ -3589,7 +3727,12 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             g = project.get_group_address(ga_id)
             if g is None:
                 return {"group_address_id": ga_id}
-            return {"group_address_id": g.id, "address": g.address, "name": g.name}
+            return {
+                "group_address_id": g.id,
+                "address": g.address,
+                "name": g.name,
+                "datapoint_type": g.datapoint_type,
+            }
 
         return ctx.run_locked(_create)
 
