@@ -508,6 +508,9 @@ msgstr "V tomto projektu nejsou žádné budovy/místnosti"
 msgid "Name"
 msgstr "Název"
 
+msgid "File"
+msgstr "Soubor"
+
 msgid "Type"
 msgstr "Typ"
 

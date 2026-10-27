@@ -203,3 +203,27 @@ def test_the_project_status_is_chosen_in_the_project_info(
     imgui.end()
     imgui.end_frame()
     assert project.completion_status("project", 0) == "Accepted"
+
+
+@pytest.mark.usefixtures("context")
+def test_the_project_info_shows_the_project_file(
+    project: ProjectService, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from editor_gui.plugins.project.strings import S
+    from editor_gui.plugins.project.ui import project_info
+
+    shown: list[str] = []
+    monkeypatch.setattr(project_info.imgui, "text_wrapped", shown.append)
+    monkeypatch.setattr(project_info.imgui, "text_disabled", shown.append)
+    panel = project_info.ProjectInfoPanel(
+        get_project_info=project.get_project_metadata,
+        get_path=lambda: project.path,
+    )
+    imgui.new_frame()
+    imgui.begin("Project")
+    panel.render()
+    imgui.end()
+    imgui.end_frame()
+    assert project.path is not None
+    label = shown.index(S.PROJECT_INFO_FILE)
+    assert shown[label + 1] == str(project.path)

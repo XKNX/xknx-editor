@@ -1778,6 +1778,10 @@ class ProjectStrings:
         return _("Name")
 
     @property
+    def PROJECT_INFO_FILE(self) -> str:
+        return _("File")
+
+    @property
     def PROJECT_INFO_INSTALLATION(self) -> str:
         return _("Installation")
 

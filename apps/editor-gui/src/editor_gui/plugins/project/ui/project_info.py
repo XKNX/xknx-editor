@@ -17,6 +17,8 @@ from editor_gui.widgets.tables import begin_data_table, data_table_headers
 from xknxeditor.proj.core.addressing import GroupAddressStyle
 
 if TYPE_CHECKING:
+    from pathlib import Path
+
     from editor_gui.plugins.project.service import ProjectInfo
 
 
@@ -42,8 +44,10 @@ class ProjectInfoPanel:
         on_add_certificate: Callable[[], None] | None = None,
         get_status: Callable[[], str | None] = lambda: None,
         on_set_status: Callable[[str], None] = lambda _s: None,
+        get_path: "Callable[[], Path | None]" = lambda: None,
     ) -> None:
         self._get_project_info = get_project_info
+        self._get_path = get_path
         self._get_status = get_status
         self._on_set_status = on_set_status
         self._on_rename = on_rename
@@ -63,7 +67,9 @@ class ProjectInfoPanel:
         if info is None:
             imgui.text_disabled(S.PROJECT_INFO_EMPTY)
             return
+        path = self._get_path()
         rows = [
+            (S.PROJECT_INFO_FILE, str(path) if path is not None else None),
             (S.PROJECT_INFO_INSTALLATION, info.installation_name),
             (S.PROJECT_INFO_GA_STYLE, _style_text(info.group_address_style)),
             (S.PROJECT_INFO_CREATED_BY, info.created_by),

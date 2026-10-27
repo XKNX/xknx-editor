@@ -508,6 +508,9 @@ msgstr "Bu projede bina/oda yok"
 msgid "Name"
 msgstr "Ad"
 
+msgid "File"
+msgstr "Dosya"
+
 msgid "Type"
 msgstr "Tip"
 

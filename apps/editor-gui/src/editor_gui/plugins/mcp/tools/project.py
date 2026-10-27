@@ -1679,16 +1679,20 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     @tool("read")
     def project_info() -> dict[str, Any]:
-        """Project metadata. Returns {id, name, group_address_style, guid, created_by, last_modified,
-        schema_version, tool_version}. ``group_address_style`` (ThreeLevel/TwoLevel/Free) governs how
-        group-address strings parse."""
+        """Project metadata. Returns {id, name, path, group_address_style, guid, created_by,
+        last_modified, schema_version, tool_version}. ``path`` is the project's .xknx file on the
+        editor host. ``group_address_style`` (ThreeLevel/TwoLevel/Free) governs how group-address
+        strings parse."""
         require_project(ctx)
-        info = ctx.run_locked(project.get_project_metadata)
+        info, path = ctx.run_locked(
+            lambda: (project.get_project_metadata(), project.path)
+        )
         if info is None:
             raise ToolError("no project metadata available")
         return {
             "id": info.id,
             "name": info.name,
+            "path": str(path) if path is not None else None,
             "group_address_style": info.group_address_style,
             "guid": info.guid,
             "created_by": info.created_by,

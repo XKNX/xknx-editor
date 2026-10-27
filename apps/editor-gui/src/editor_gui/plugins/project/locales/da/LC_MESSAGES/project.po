@@ -508,6 +508,9 @@ msgstr "Ingen bygninger/rum i dette projekt"
 msgid "Name"
 msgstr "Navn"
 
+msgid "File"
+msgstr "Fil"
+
 msgid "Type"
 msgstr "Type"
 

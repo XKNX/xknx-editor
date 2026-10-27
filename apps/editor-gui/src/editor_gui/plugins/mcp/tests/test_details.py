@@ -372,7 +372,11 @@ async def test_com_object_properties_links_and_project_name(tmp_path: Path) -> N
 
         renamed = await _data(client, "project_set_name", name="  House  ")
         assert renamed["name"] == "House"
-        assert (await _data(client, "project_info"))["name"] == "House"
+        info = await _data(client, "project_info")
+        assert info["name"] == "House"
+        # The file keeps its own name; the Project panel shows its path.
+        assert info["path"] == (await _data(client, "project_status"))["path"]
+        assert info["path"].endswith(".xknx")
 
 
 @_needs_fixture

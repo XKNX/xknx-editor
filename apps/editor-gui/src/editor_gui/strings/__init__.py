@@ -84,6 +84,10 @@ class BaseStrings:
         return _("{project} - {app}")
 
     @property
+    def WINDOW_TITLE_FILE(self) -> str:
+        return _("{project} – {file} - {app}")  # noqa: RUF001
+
+    @property
     def MENU_HELP(self) -> str:
         return _("Help")
 

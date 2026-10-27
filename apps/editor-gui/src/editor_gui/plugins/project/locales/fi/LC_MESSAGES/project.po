@@ -508,6 +508,9 @@ msgstr "Tässä projektissa ei ole rakennuksia/huoneita"
 msgid "Name"
 msgstr "Nimi"
 
+msgid "File"
+msgstr "Tiedosto"
+
 msgid "Type"
 msgstr "Tyyppi"
 
