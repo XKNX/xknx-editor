@@ -9,6 +9,7 @@ request is fetched on the imgui thread first (``ctx.run_on_ui``).
 
 from __future__ import annotations
 
+import contextlib
 import time
 from typing import TYPE_CHECKING, Any, Literal
 
@@ -19,9 +20,12 @@ from editor_gui.plugins.mcp.context import McpContext, make_tool
 from editor_gui.plugins.mcp.tools.project import require_device
 
 if TYPE_CHECKING:
+    from concurrent.futures import Future
+
     from fastmcp import FastMCP
 
     from editor_gui.device import Device
+    from editor_gui.plugins.connection.service import ConnectionService
 
 # Download scopes (schema enum); maps to xknxeditor.download.scope.DownloadScope in _resolve_scope.
 Scope = Literal[
@@ -58,6 +62,56 @@ _ERASE_CODES: dict[str, int] = {
 }
 
 
+# The connection service's operation kinds (``busy_operation``), as an error message names them.
+_OPERATION_NAMES: dict[str, str] = {
+    "program": "a download",
+    "test": "a download preview",
+    "scan_progmode": "a programming mode scan",
+    "restart": "a restart",
+    "reset": "a Master Reset",
+    "device_info": "a device info read",
+    "dali": "a DALI operation",
+    "siemens_dali": "a DALI operation",
+    "siemens_dca": "a DALI operation",
+    "recover": "a project recovery",
+}
+# How long a timed-out operation may take to unwind after it was canceled.
+_UNWIND_TIMEOUT = 10.0
+
+
+def not_started(service: ConnectionService, what: str) -> ToolError:
+    """Why the connection service did not start an operation: another one holds the bus, or
+    there is no connection."""
+    busy = service.busy_operation
+    if busy is not None:
+        kind, address = busy
+        name = _OPERATION_NAMES.get(kind, kind)
+        return ToolError(
+            f"{what} could not start: {name} ({address}) is still running on the bus; "
+            "wait until it has ended"
+        )
+    if service.xknx is None:
+        return ToolError(f"{what} could not start (no KNX connection)")
+    return ToolError(f"{what} could not start; see the editor log (project_log)")
+
+
+def await_operation(
+    service: ConnectionService, future: Future[Any], timeout: float, what: str
+) -> Any:
+    """The operation's result. One that does not end within ``timeout`` s is canceled and given
+    a moment to unwind, so it does not keep the bus from later operations."""
+    try:
+        return future.result(timeout=timeout)
+    except TimeoutError as exc:
+        service.cancel_operation(future)
+        # Canceled (or it ended just now): either way it no longer holds the bus.
+        with contextlib.suppress(Exception):
+            future.result(timeout=_UNWIND_TIMEOUT)
+        raise ToolError(
+            f"{what} did not finish within {timeout} s and was canceled"
+        ) from exc
+
+
 def _resolve_scope(scope: str | None) -> Any:
     from xknxeditor.download.scope import DownloadScope
 
@@ -88,6 +142,12 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         return ctx.run_locked(
             lambda: require_device(ctx.api.project, node_id, device_address)
         )
+
+    def _not_started(what: str) -> ToolError:
+        return not_started(service, what)
+
+    def _await(future: Future[Any], timeout: float, what: str) -> Any:
+        return await_operation(service, future, timeout, what)
 
     def _programmable_device(
         node_id: int | None, device_address: str | None
@@ -370,12 +430,8 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         except DeviceCertificateRequired as exc:
             raise _certificate_error(nid) from exc
         if future is None:
-            raise ToolError("programming could not be scheduled (no connection)")
-        try:
-            result = future.result(timeout=timeout)
-        except TimeoutError as exc:
-            future.cancel()
-            raise ToolError(f"programming did not finish within {timeout} s") from exc
+            raise _not_started("programming")
+        result = _await(future, timeout, "programming")
         serial = result if isinstance(result, bytes) else None
         mac = getattr(result, "mac_address", None)
         ctx.run_locked(
@@ -393,7 +449,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         node_id: int | None = None,
         device_address: str | None = None,
         scope: Scope | None = None,
-        timeout: float = 120.0,
+        timeout: float = 300.0,
     ) -> dict[str, Any]:
         """Preview what a download would change on an ALREADY-programmed device, without changing it.
         Identify the device by ``node_id`` OR ``device_address`` (its individual address like
@@ -403,7 +459,9 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         connection and the device answering at its project individual address — a device that does not
         respond (e.g. a virgin/unprogrammed one) fails, so skip this and program a NEW device directly
         with scope FULL. ``scope`` defaults to FULL; the individual-address scopes are rejected.
-        ``timeout`` in seconds.
+        ``timeout`` in seconds: it reads about as much as the download writes, so a large application
+        through an interface with short frames takes minutes, like its download. A preview that does
+        not end in time is canceled and frees the bus; nothing was written.
 
         Returns {node_id, changed_bytes, config_bytes, default_bytes, runtime_bytes, config_locations,
         changed_segments, changed_properties, summary}. ``changed_bytes`` is the raw total; it is split
@@ -432,8 +490,8 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             )
         )
         if future is None:
-            raise ToolError("evaluation could not be scheduled (no connection)")
-        report = future.result(timeout=timeout)
+            raise _not_started("the evaluation")
+        report = _await(future, timeout, "the evaluation")
         # Classify the raw changed bytes (config vs. benign default/runtime) with the same logic
         # the GUI pre-flight uses; the classifiers read the device UI, so run them on the UI thread.
         from editor_gui.programming import (
@@ -492,8 +550,8 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             }
         future = service.assign_individual_address_for_device(device)
         if future is None:
-            raise ToolError("assignment could not be scheduled (no connection)")
-        future.result(timeout=timeout)
+            raise _not_started("the assignment")
+        _await(future, timeout, "the assignment")
         ctx.run_locked(lambda: ctx.api.project.record_download(nid, "ia"))
         return {
             "status": "assigned",
@@ -508,8 +566,8 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         """Read the individual addresses of devices currently in programming mode (needs a connection)."""
         future = service.read_programming_mode_devices()
         if future is None:
-            raise ToolError("not connected")
-        addresses = {str(a) for a in future.result(timeout=timeout)}
+            raise _not_started("the read")
+        addresses = {str(a) for a in _await(future, timeout, "the read")}
         return {"addresses": sorted(addresses, key=address_order)}
 
     @tool("destructive", open_world=True)
@@ -529,10 +587,8 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             raise ToolError(f"device {device.node_id} has no individual address")
         future = ctx.run_locked(lambda: service.restart_device(device))
         if future is None:
-            raise ToolError(
-                "the restart could not be started (another bus operation runs)"
-            )
-        future.result(timeout=timeout)
+            raise _not_started("the restart")
+        _await(future, timeout, "the restart")
         return {"status": "restarted", "node_id": device.node_id}
 
     @tool("destructive", open_world=True)
@@ -556,10 +612,8 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         erase_code = _ERASE_CODES[reset]
         future = ctx.run_locked(lambda: service.master_reset_device(device, erase_code))
         if future is None:
-            raise ToolError(
-                "the reset could not be started (another bus operation runs)"
-            )
-        future.result(timeout=timeout)
+            raise _not_started("the reset")
+        _await(future, timeout, "the reset")
         if reset == "FACTORY_RESET":
             # The device holds no Tool Key any more: its next secure download needs its
             # certificate.
