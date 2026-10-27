@@ -846,25 +846,34 @@ class ToolsPanel:
                 imgui.set_tooltip(S.TOOLS_DIFF_BACKUPS_TIP)
         imgui.end_disabled()
         if self._diff_other_name:
-            # What it was compared with, on a line of its own, the outcome below it.
-            imgui.text_wrapped(
-                S.TOOLS_DIFF_COMPARED_WITH.format(name=self._diff_other_name)
-            )
+            # What it was compared with on a line of its own, the outcome right after it.
+            imgui.text(S.TOOLS_DIFF_COMPARED_WITH.format(name=self._diff_other_name))
+        compared = bool(self._diff_other_name)
+
+        def outcome(text: str) -> str:
+            """``text``, beside what it was compared with where it fits there."""
+            if compared:
+                same_line_if_fits(imgui.calc_text_size(text).x)
+            return text
+
         if self._diff_job is not None:
             self._render_diff_progress(self._diff_job)
             return
         if self._diff_password_path is not None:
             self._render_diff_password(self._diff_password_path)
+            compared = False
         if self._diff_error:
-            imgui.text_colored(_ERR_COLOR, self._diff_error)
+            imgui.text_colored(_ERR_COLOR, outcome(self._diff_error))
             return
         result = self._diff_result
         if result is None:
             return
         if result.total == 0:
-            imgui.text_colored(imgui.ImVec4(0.5, 0.8, 0.5, 1.0), S.TOOLS_DIFF_IDENTICAL)
+            imgui.text_colored(
+                imgui.ImVec4(0.5, 0.8, 0.5, 1.0), outcome(S.TOOLS_DIFF_IDENTICAL)
+            )
             return
-        imgui.text_disabled(S.TOOLS_DIFF_COUNT.format(count=result.total))
+        imgui.text_disabled(outcome(S.TOOLS_DIFF_COUNT.format(count=result.total)))
         if imgui.begin_child("##diff_result"):
             self._render_diff_section(S.TOOLS_DIFF_DEVICES, result.devices)
             self._render_diff_section(S.TOOLS_DIFF_GAS, result.group_addresses)

@@ -146,7 +146,7 @@ def test_the_backups_are_shown_from_the_tab(monkeypatch: pytest.MonkeyPatch) -> 
 
 
 @pytest.mark.usefixtures("context")
-def test_what_it_was_compared_with_is_a_line_above_the_outcome(
+def test_what_it_was_compared_with_is_a_line_with_the_outcome(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     panel = _job_panel(DiffJob())
@@ -154,13 +154,25 @@ def test_what_it_was_compared_with_is_a_line_above_the_outcome(
     panel._diff_other_name = "Backup of 2026-10-27 12:00"  # pyright: ignore[reportPrivateUsage]
     panel._diff_result = DiffResult(devices=[], group_addresses=[])  # pyright: ignore[reportPrivateUsage]
     lines: list[str] = []
-    monkeypatch.setattr(tools.imgui, "text_wrapped", lines.append)
+    beside: list[bool] = []
+    monkeypatch.setattr(tools.imgui, "text", lines.append)
+    monkeypatch.setattr(
+        tools.imgui, "text_colored", lambda _color, text: lines.append(text)
+    )
+    monkeypatch.setattr(
+        tools, "same_line_if_fits", lambda _width, spacing=None: beside.append(True)
+    )
     imgui.new_frame()
     imgui.begin("Tools")
     panel._render_diff_tab()  # pyright: ignore[reportPrivateUsage]
     imgui.end()
     imgui.end_frame()
-    assert S.TOOLS_DIFF_COMPARED_WITH.format(name="Backup of 2026-10-27 12:00") in lines
+    assert lines[-2:] == [
+        S.TOOLS_DIFF_COMPARED_WITH.format(name="Backup of 2026-10-27 12:00"),
+        S.TOOLS_DIFF_IDENTICAL,
+    ]
+    # The outcome goes beside it (where it fits).
+    assert beside == [True]
 
 
 def _frame(panel: ToolsPanel, result: DiffResult) -> None:
