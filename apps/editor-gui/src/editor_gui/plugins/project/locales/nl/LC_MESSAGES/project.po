@@ -28,6 +28,12 @@ msgstr "Naam"
 msgid "Open Project"
 msgstr "Geopend project"
 
+msgid "Reading the projects…"
+msgstr "Projecten worden gelezen…"
+
+msgid "Comparing devices: {done} of {total}"
+msgstr "Apparaten worden vergeleken: {done} van {total}"
+
 msgid "Individual Address"
 msgstr "Individueel Adres"
 

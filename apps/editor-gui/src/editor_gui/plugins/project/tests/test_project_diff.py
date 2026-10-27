@@ -121,6 +121,53 @@ def test_parameters_and_group_objects_of_a_device_whose_settings_differ():
     assert asked == [("a", "b")]
 
 
+def test_progress_counts_the_devices_compared_in_detail():
+    calls: list[tuple[int, int]] = []
+    base = _snap(
+        "A",
+        [
+            DeviceSnap("1.1.1", "S", "P", "O", inputs="a"),
+            DeviceSnap("1.1.2", "S", "P", "O", inputs="x"),
+            DeviceSnap("1.1.3", "S", "P", "O", inputs="c"),
+        ],
+        [],
+    )
+    other = _snap(
+        "B",
+        [
+            DeviceSnap("1.1.1", "S", "P", "O", inputs="b"),
+            DeviceSnap("1.1.2", "S", "P", "O", inputs="x"),
+            DeviceSnap("1.1.3", "S", "P", "O", inputs="d"),
+        ],
+        [],
+    )
+    diff_projects(
+        base, other, lambda _b, _o: [], lambda done, total: calls.append((done, total))
+    )
+    # The unchanged device is not counted.
+    assert calls == [(0, 2), (1, 2), (2, 2)]
+
+
+def test_a_comparison_can_be_stopped():
+    import pytest
+
+    from editor_gui.plugins.project.ui.project_diff import DiffCanceled, DiffJob
+
+    job = DiffJob()
+
+    def details(_b: DeviceSnap, _o: DeviceSnap) -> list[DetailRow]:
+        if job.cancel_requested:
+            raise DiffCanceled
+        return []
+
+    job.cancel()
+    base = _snap("A", [DeviceSnap("1.1.1", "S", "P", "O", inputs="a")], [])
+    other = _snap("B", [DeviceSnap("1.1.1", "S", "P", "O", inputs="b")], [])
+    with pytest.raises(DiffCanceled):
+        diff_projects(base, other, details, job.progress)
+    assert (job.done, job.total) == (0, 1)
+
+
 def test_settings_that_differ_where_nothing_shows_them_are_named():
     base = _snap("A", [DeviceSnap("1.1.1", "S", "P", "O", inputs="a")], [])
     other = _snap("B", [DeviceSnap("1.1.1", "S", "P", "O", inputs="b")], [])

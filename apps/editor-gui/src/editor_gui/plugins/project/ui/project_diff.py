@@ -16,7 +16,8 @@ applications, only for the devices whose stored settings differ.
 from __future__ import annotations
 
 from collections.abc import Callable, Iterable
-from dataclasses import dataclass
+from concurrent.futures import Future
+from dataclasses import dataclass, field
 
 
 @dataclass(frozen=True)
@@ -94,10 +95,36 @@ class DiffOutcome:
     result: DiffResult | None
     error: str = ""
     needs_password: bool = False
+    # The user stopped it.
+    canceled: bool = False
+
+
+class DiffCanceled(Exception):
+    """A comparison the user stopped."""
+
+
+@dataclass
+class DiffJob:
+    """A comparison running on a worker thread: ``future`` ends with its outcome, ``done`` of
+    ``total`` changed devices are compared so far (``total`` 0 while the projects are read)."""
+
+    future: Future[DiffOutcome] = field(default_factory=lambda: Future[DiffOutcome]())
+    done: int = 0
+    total: int = 0
+    cancel_requested: bool = False
+
+    def progress(self, done: int, total: int) -> None:
+        self.done, self.total = done, total
+
+    def cancel(self) -> None:
+        """Stop it before the next device; it ends with a canceled outcome."""
+        self.cancel_requested = True
 
 
 # The differing parameters and group objects of a device in both projects (base, other).
 DeviceDetails = Callable[[DeviceSnap, DeviceSnap], list[DetailRow]]
+# How far the detailed comparison is: devices compared, of how many.
+DiffProgress = Callable[[int, int], None]
 
 # The detail of a changed device whose stored settings differ only where no parameter or group
 # object shows it (e.g. a hidden parameter).
@@ -108,14 +135,17 @@ def diff_projects(
     base: ProjectSnapshot,
     other: ProjectSnapshot,
     details: DeviceDetails | None = None,
+    progress: DiffProgress | None = None,
 ) -> DiffResult:
     """Report how ``other`` differs from ``base`` for devices and group addresses; ``details``
-    lists the differing parameters and group objects of a device whose settings differ."""
+    lists the differing parameters and group objects of a device whose settings differ, and
+    ``progress`` learns how many of those devices are compared."""
     same_project = bool(base.project_id) and base.project_id == other.project_id
     return DiffResult(
         devices=_diff_devices(
             match_devices(base.devices, other.devices, same_project=same_project),
             details,
+            progress,
         ),
         group_addresses=_diff_section(
             base.group_addresses, other.group_addresses, _ga_detail, _ga_label
@@ -175,7 +205,14 @@ def _unique(
 def _diff_devices(
     pairs: list[tuple[DeviceSnap | None, DeviceSnap | None]],
     details: DeviceDetails | None,
+    progress: DiffProgress | None = None,
 ) -> list[DiffEntry]:
+    total = (
+        sum(1 for b, o in pairs if b and o and b.inputs != o.inputs) if details else 0
+    )
+    done = 0
+    if progress is not None:
+        progress(done, total)
     entries: list[DiffEntry] = []
     for b, o in pairs:
         if b is None:
@@ -187,6 +224,10 @@ def _diff_devices(
             entry = _changed_device(b, o, details)
             if entry is not None:
                 entries.append(entry)
+            if details is not None and b.inputs != o.inputs:
+                done += 1
+                if progress is not None:
+                    progress(done, total)
     return sorted(entries, key=lambda e: e.key)
 
 

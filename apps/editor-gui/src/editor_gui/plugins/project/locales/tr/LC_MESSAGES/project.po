@@ -511,6 +511,12 @@ msgstr "Ad"
 msgid "Open Project"
 msgstr "Açık proje"
 
+msgid "Reading the projects…"
+msgstr "Projeler okunuyor…"
+
+msgid "Comparing devices: {done} of {total}"
+msgstr "Cihazlar karşılaştırılıyor: {done} / {total}"
+
 msgid "Type"
 msgstr "Tip"
 

@@ -108,6 +108,7 @@ if TYPE_CHECKING:
     from editor_gui.plugins.project.ui.project_diff import (
         DetailRow,
         DeviceSnap,
+        DiffProgress,
         DiffResult,
     )
     from xknxeditor.catalog import ProductDeletion, ProductSummary, ProgramSummary
@@ -2236,12 +2237,16 @@ class ProjectService:
     def _device_inputs(
         self, row: Any, app_program_id: str, individual_address: str | None = None
     ) -> _DeviceInputs:
-        """What the device of ``row`` is evaluated from besides its application; with
-        ``individual_address`` for a row of another project."""
-        assert self._pid is not None
+        """What the device of ``row`` is evaluated from besides its application. With
+        ``individual_address`` it is a row read elsewhere (a project compared on another thread):
+        nothing is read from the open project or the catalog then, and the product's download
+        plugin, factory image and configuration app are left out."""
         pirs, mis, coirs = _instance_refs(row, app_program_id)
+        compared = individual_address is not None
         if individual_address is None:
+            assert self._pid is not None
             individual_address = self._svc.individual_address(self._pid, row.id) or ""
+        program_ref = row.hardware2program_ref_id
         return _DeviceInputs(
             node_id=row.id,
             name=row.name,
@@ -2251,12 +2256,13 @@ class ProjectService:
             parameter_instance_refs=pirs,
             module_instances=mis,
             com_object_instance_refs=coirs,
-            download_plugin_required=self._requires_download_plugin(
-                row.hardware2program_ref_id
-            ),
+            download_plugin_required=not compared
+            and self._requires_download_plugin(program_ref),
             binary_data=tuple(getattr(row, "binary_data", []) or []),
-            factory_image=self._factory_image_source(row.hardware2program_ref_id),
-            configuration_app=next(
+            factory_image=None if compared else self._factory_image_source(program_ref),
+            configuration_app=None
+            if compared
+            else next(
                 (
                     a.name
                     for a in self._configuration_apps()
@@ -3572,98 +3578,122 @@ class ProjectService:
             password_protected=self._svc.is_password_protected(self._pid),
         )
 
-    def compare_with(
-        self, other: _ProjectService, other_pid: str, name: str
+    def compare_projects(
+        self,
+        mine: _ProjectService,
+        mine_pid: str,
+        other: _ProjectService,
+        other_pid: str,
+        name: str,
+        *,
+        resolve_app: "Callable[[str | None, str | None], Application | None] | None" = None,
+        progress: "DiffProgress | None" = None,
+        canceled: Callable[[], bool] = lambda: False,
     ) -> "DiffResult":
-        """How the project ``other_pid`` of ``other`` (another file, opened read-only) differs
-        from the open one: its devices, with the parameters and group objects that differ, and
-        its group addresses."""
+        """How the project ``other_pid`` of ``other`` (another file) differs from ``mine_pid`` of
+        ``mine`` (the open project's file on a connection of its own): its devices, with the
+        parameters and group objects that differ, and its group addresses.
+
+        It reads nothing of the open project's session, so it runs on any thread: ``resolve_app``
+        finds an application (default: here, on this thread), ``progress`` learns how many
+        devices are compared, and it stops with ``DiffCanceled`` once ``canceled()``."""
         from editor_gui.plugins.project.project_snapshot import read_project_snapshot
-        from editor_gui.plugins.project.ui.project_diff import diff_projects
+        from editor_gui.plugins.project.ui.project_diff import (
+            DiffCanceled,
+            diff_projects,
+        )
 
-        if self._pid is None:
-            raise ValueError("no project is open")
-        base = read_project_snapshot(self._svc, self._pid, "current")
+        resolve = resolve_app or self._resolve_app
+        base = read_project_snapshot(mine, mine_pid, "current")
         theirs = read_project_snapshot(other, other_pid, name)
-        rows: dict[int, Any] = {}
+        rows: dict[tuple[int, int], Any] = {}
 
-        def details(mine: "DeviceSnap", their: "DeviceSnap") -> "list[DetailRow]":
-            if not rows:
+        def row(side: int, svc: _ProjectService, pid: str, device_id: int) -> Any:
+            if not any(key[0] == side for key in rows):
                 rows.update(
-                    (row.id, row)
-                    for row in other.devices(other_pid, with_contents=True)
+                    ((side, r.id), r) for r in svc.devices(pid, with_contents=True)
                 )
-            row = rows.get(their.id)
-            if row is None:
-                return []
+            return rows.get((side, device_id))
+
+        def details(a: "DeviceSnap", b: "DeviceSnap") -> "list[DetailRow]":
+            if canceled():
+                raise DiffCanceled
             try:
-                return self._device_differences(mine.id, row, other, other_pid)
+                return self._device_differences(
+                    (mine, mine_pid, row(0, mine, mine_pid, a.id)),
+                    (other, other_pid, row(1, other, other_pid, b.id)),
+                    resolve,
+                )
             except Exception as e:
                 self._log.warning(
                     "device not compared",
-                    device=their.ia or their.name,
+                    device=b.ia or b.name,
                     error=f"{type(e).__name__}: {e}",
                 )
                 return []
 
-        return diff_projects(base, theirs, details)
+        return diff_projects(base, theirs, details, progress)
+
+    def resolve_application(
+        self, program_ref: str | None, application_ref: str | None = None
+    ) -> Application | None:
+        """The application of a device with the hardware program ``program_ref`` (and the
+        application ref ``application_ref``), from the catalog; None when it is not there."""
+        return self._resolve_app(program_ref, application_ref)
 
     def _device_differences(
-        self, node_id: int, row: Any, other: _ProjectService, other_pid: str
+        self,
+        mine: tuple[_ProjectService, str, Any],
+        theirs: tuple[_ProjectService, str, Any],
+        resolve_app: "Callable[[str | None, str | None], Application | None]",
     ) -> "list[DetailRow]":
-        """The parameters and group objects in which the open project's device ``node_id``
-        differs from the device ``row`` of the project ``other_pid``, as Compare Devices shows
-        them; none when either device cannot be built from its application."""
+        """The parameters and group objects in which a device differs between two projects,
+        each given as (service, project id, device row), as Compare Devices shows them; none
+        when either device cannot be built from its application."""
         from editor_gui.plugins.project.ui.device_diff import (
+            DeviceSnapshot,
             diff_devices,
             snapshot_device,
         )
         from editor_gui.plugins.project.ui.project_diff import DetailRow
 
-        current = self.find_device_by_node_id(node_id)
-        if current is None:
+        def snapshot(svc: _ProjectService, pid: str, row: Any) -> DeviceSnapshot | None:
+            if row is None:
+                return None
+            app = resolve_app(
+                row.hardware2program_ref_id,
+                getattr(row, "application_program_ref_id", None),
+            )
+            if app is None:
+                return None
+            device = _compute_device(
+                self._device_inputs(
+                    row,
+                    app.program.id,
+                    individual_address=svc.individual_address(pid, row.id) or "",
+                ),
+                app,
+            )
+
+            def links(db_id: int) -> list[tuple[int, bool]]:
+                return [
+                    (link.group_address_id, link.is_sending)
+                    for link in svc.com_object_links(pid, db_id)
+                ]
+
+            def address(ga_id: int) -> str:
+                try:
+                    return svc.group_address(pid, ga_id).text
+                except KeyError:
+                    return ""
+
+            return snapshot_device(device, links, address)
+
+        a = snapshot(*mine)
+        b = snapshot(*theirs)
+        if a is None or b is None:
             return []
-        app = self._resolve_app(
-            row.hardware2program_ref_id,
-            getattr(row, "application_program_ref_id", None),
-        )
-        if app is None:
-            return []
-        theirs = _compute_device(
-            self._device_inputs(
-                row,
-                app.program.id,
-                individual_address=other.individual_address(other_pid, row.id) or "",
-            ),
-            app,
-        )
-
-        def links(db_id: int) -> list[tuple[int, bool]]:
-            return [
-                (a.group_address_id, a.is_sending)
-                for a in self.get_links_for_com_object(db_id)
-            ]
-
-        def address(ga_id: int) -> str:
-            ga = self.get_group_address(ga_id)
-            return ga.address if ga is not None else ""
-
-        def other_links(db_id: int) -> list[tuple[int, bool]]:
-            return [
-                (link.group_address_id, link.is_sending)
-                for link in other.com_object_links(other_pid, db_id)
-            ]
-
-        def other_address(ga_id: int) -> str:
-            try:
-                return other.group_address(other_pid, ga_id).text
-            except KeyError:
-                return ""
-
-        result = diff_devices(
-            snapshot_device(current, links, address),
-            snapshot_device(theirs, other_links, other_address),
-        )
+        result = diff_devices(a, b)
         return [
             DetailRow(section, r.label, r.kind, r.a, r.b)
             for section, section_rows in (

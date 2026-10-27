@@ -2,6 +2,7 @@ import asyncio
 import functools
 import secrets
 import tempfile
+import threading
 import zipfile
 from collections.abc import Callable
 from pathlib import Path
@@ -71,7 +72,12 @@ from editor_gui.plugins.project.ui.paste_special import PasteSpecialDialog
 from editor_gui.plugins.project.ui.plugin_params_panel import PluginParamsPanel
 from editor_gui.plugins.project.ui.preflight_result import PreflightResultWindow
 from editor_gui.plugins.project.ui.program_queue import ProgramQueuePanel
-from editor_gui.plugins.project.ui.project_diff import DiffOutcome, DiffResult
+from editor_gui.plugins.project.ui.project_diff import (
+    DiffCanceled,
+    DiffJob,
+    DiffOutcome,
+    DiffResult,
+)
 from editor_gui.plugins.project.ui.read_device_dialog import ReadDeviceDialog
 from editor_gui.plugins.project.ui.secure_commissioning import SecureCommissioningDialog
 from editor_gui.plugins.project.ui.siemens_dali import SiemensDaliPanel
@@ -552,7 +558,7 @@ class ProjectPlugin:
             get_group_addresses=lambda: api.project.group_addresses,
             get_group_address_style=lambda: api.project.group_address_style,
             on_shift_group_addresses=self.tools_shift_group_addresses,
-            on_diff_projects=self.tools_diff_projects,
+            on_diff_projects=self.start_project_diff,
             compare=self._compare_panel,
         )
 
@@ -1726,21 +1732,53 @@ class ProjectPlugin:
         )
         return changed, errors
 
-    def tools_diff_projects(
+    def start_project_diff(
         self, other_path: str, password: str | None = None
+    ) -> DiffJob:
+        """Start comparing the open project with the project at ``other_path`` on a worker
+        thread (see ``tools_diff_projects``). Called on the UI thread; the job tells how far it
+        is, can be canceled and ends with the outcome."""
+        job = DiffJob()
+        current = (self._api.project.working_path, self._api.project.project_password)
+
+        def run() -> None:
+            try:
+                outcome = self.tools_diff_projects(other_path, password, job, current)
+            except BaseException as e:
+                outcome = DiffOutcome(None, f"{type(e).__name__}: {e}")
+            job.future.set_result(outcome)
+
+        threading.Thread(target=run, name="project-diff", daemon=True).start()
+        return job
+
+    def tools_diff_projects(
+        self,
+        other_path: str,
+        password: str | None = None,
+        job: DiffJob | None = None,
+        current: tuple[Path | None, str | None] | None = None,
     ) -> DiffOutcome:
         """Compare the open project against the project at ``other_path`` (.xknx or .knxproj),
-        opened with ``password`` when it is protected.
+        opened with ``password`` when it is protected; ``job`` follows its progress and can
+        cancel it. ``current`` is the open project's file and password, read on the UI thread for
+        a comparison on another one.
 
         On failure the outcome has no result but the message to show, and ``needs_password`` when
-        the other project needs a (different) password. The other project is opened read-only on
-        its own engine, so the open project is untouched."""
+        the other project needs a (different) password. Both projects are opened read-only on
+        engines of their own, so the open project is untouched."""
         from xknxproject.exceptions import InvalidPasswordException
 
         from xknxeditor.proj import InvalidProjectPassword, ProjectPasswordRequired
 
+        if current is None:
+            current = (
+                self._api.project.working_path,
+                self._api.project.project_password,
+            )
         try:
-            result = self._compare_with_file(other_path, password)
+            result = self._compare_with_file(other_path, password, job, current)
+        except DiffCanceled:
+            return DiffOutcome(None, canceled=True)
         except (
             InvalidPasswordException,
             InvalidProjectPassword,
@@ -1757,12 +1795,22 @@ class ProjectPlugin:
             return DiffOutcome(None, str(e))
         return DiffOutcome(result)
 
-    def _compare_with_file(self, path: str, password: str | None = None) -> DiffResult:
-        """Open a project file and compare the open project with it (a .knxproj is converted
-        first). ``password`` opens a password-protected project or archive."""
+    def _compare_with_file(
+        self,
+        path: str,
+        password: str | None,
+        job: DiffJob | None,
+        current: tuple[Path | None, str | None],
+    ) -> DiffResult:
+        """Open a project file and compare the open project (its file ``current[0]``, opened
+        with ``current[1]``) with it (a .knxproj is converted first). ``password`` opens a
+        password-protected project or archive."""
         from xknxeditor.proj import ProjectService as CoreProjectService
         from xknxeditor.proj import import_knxproj
 
+        working, own_password = current
+        if working is None:
+            raise ValueError("no project is open")
         src = Path(path)
         tmpdir: tempfile.TemporaryDirectory[str] | None = None
         try:
@@ -1780,12 +1828,42 @@ class ProjectPlugin:
             svc = CoreProjectService()
             pid = svc.open(xknx_path, password)
             try:
-                return self._api.project.compare_with(svc, pid, src.stem)
+                mine = CoreProjectService()
+                mine_pid = mine.open(working, own_password)
+                try:
+                    return self._api.project.compare_projects(
+                        mine,
+                        mine_pid,
+                        svc,
+                        pid,
+                        src.stem,
+                        resolve_app=self._resolve_on_ui,
+                        progress=job.progress if job is not None else None,
+                        canceled=(lambda: job.cancel_requested)
+                        if job is not None
+                        else (lambda: False),
+                    )
+                finally:
+                    mine.close(mine_pid)
             finally:
                 svc.close(pid)
         finally:
             if tmpdir is not None:
                 tmpdir.cleanup()
+
+    def _resolve_on_ui(
+        self, program_ref: str | None, application_ref: str | None
+    ) -> "Application | None":
+        """A device's application, looked up on the UI thread (the catalog serves another
+        thread only while the UI does not use it) and waited for."""
+        main_thread = self._api.main_thread
+
+        def resolve() -> "Application | None":
+            return self._api.project.resolve_application(program_ref, application_ref)
+
+        if main_thread is None:
+            return resolve()
+        return main_thread.submit(resolve).result()
 
     def _help_text(self, device: "Device", context: str) -> str | None:
         """A help page from the ContextHelpFile baggage of the device's source .knxprod."""

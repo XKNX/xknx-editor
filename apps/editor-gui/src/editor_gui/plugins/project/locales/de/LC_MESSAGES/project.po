@@ -40,6 +40,12 @@ msgstr "Name"
 msgid "Open Project"
 msgstr "Geöffnetes Projekt"
 
+msgid "Reading the projects…"
+msgstr "Projekte werden gelesen…"
+
+msgid "Comparing devices: {done} of {total}"
+msgstr "Geräte werden verglichen: {done} von {total}"
+
 msgid "Group Address Style"
 msgstr "Gruppenadressansicht"
 

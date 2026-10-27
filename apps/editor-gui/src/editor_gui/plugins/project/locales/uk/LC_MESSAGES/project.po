@@ -511,6 +511,12 @@ msgstr "Ім'я"
 msgid "Open Project"
 msgstr "Відкритий проєкт"
 
+msgid "Reading the projects…"
+msgstr "Читання проєктів…"
+
+msgid "Comparing devices: {done} of {total}"
+msgstr "Порівняння пристроїв: {done} з {total}"
+
 msgid "Type"
 msgstr "Тип"
 

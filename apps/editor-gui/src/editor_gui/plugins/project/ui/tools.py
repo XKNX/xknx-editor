@@ -31,6 +31,7 @@ from editor_gui.plugins.project.ui import label_render
 from editor_gui.plugins.project.ui._filter import filter_box
 from editor_gui.plugins.project.ui.project_diff import (
     DiffEntry,
+    DiffJob,
     DiffOutcome,
     DiffResult,
 )
@@ -206,7 +207,7 @@ class ToolsPanel:
         get_group_addresses: Callable[[], Sequence[GroupAddressRow]],
         get_group_address_style: Callable[[], GroupAddressStyle],
         on_shift_group_addresses: Callable[[list[int], int], LinkResult],
-        on_diff_projects: Callable[[str, str | None], DiffOutcome],
+        on_diff_projects: Callable[[str, str | None], DiffJob],
         compare: DeviceComparePanel | None = None,
     ) -> None:
         """``compare`` is the "Compare Devices" tab, after "Replace Device"."""
@@ -271,6 +272,9 @@ class ToolsPanel:
         self._diff_password = ""
         # The password field takes the keyboard focus when it is asked for.
         self._diff_password_focus = False
+        # The comparison running on a worker thread, and the project it compares with.
+        self._diff_job: DiffJob | None = None
+        self._diff_job_path = ""
 
     def render(self) -> None:
         if not self._is_open():
@@ -798,17 +802,24 @@ class ToolsPanel:
     def _render_diff_tab(self) -> None:
         _desc(S.TOOLS_DIFF_DESC)
         imgui.separator_text(S.TOOLS_TAB_DIFF)
+        self._poll_diff_job()
+        running = self._diff_job is not None
+        imgui.begin_disabled(running)
         if imgui.button(S.TOOLS_DIFF_PICK):
             self._diff_dialog = file_dialogs.open_file(
                 S.TOOLS_DIFF_PICK_TITLE,
                 "",
                 [S.TOOLS_DIFF_FILTER, "*.knxproj *.xknx", S.TOOLS_SELECT_ALL, "*"],
             )
+        imgui.end_disabled()
         if self._diff_other_name:
             imgui.same_line()
             imgui.text_disabled(
                 S.TOOLS_DIFF_COMPARED_WITH.format(name=self._diff_other_name)
             )
+        if self._diff_job is not None:
+            self._render_diff_progress(self._diff_job)
+            return
         if self._diff_password_path is not None:
             self._render_diff_password(self._diff_password_path)
         if self._diff_error:
@@ -825,6 +836,29 @@ class ToolsPanel:
             self._render_diff_section(S.TOOLS_DIFF_DEVICES, result.devices)
             self._render_diff_section(S.TOOLS_DIFF_GAS, result.group_addresses)
         imgui.end_child()
+
+    def _render_diff_progress(self, job: DiffJob) -> None:
+        """How far a running comparison is, with the button that stops it."""
+        if job.total:
+            fraction = job.done / job.total
+            text = S.TOOLS_DIFF_PROGRESS.format(done=job.done, total=job.total)
+        else:
+            # Reading the projects: no count yet, the bar moves back and forth.
+            fraction = -1.0 * imgui.get_time()
+            text = S.TOOLS_DIFF_READING
+        imgui.progress_bar(fraction, imgui.ImVec2(-1, 0), text)
+        imgui.begin_disabled(job.cancel_requested)
+        if imgui.button(S.BTN_CANCEL):
+            job.cancel()
+        imgui.end_disabled()
+
+    def _poll_diff_job(self) -> None:
+        """Take the outcome of a comparison over once it has ended."""
+        job = self._diff_job
+        if job is None or not job.future.done():
+            return
+        self._diff_job = None
+        self._show_diff_outcome(self._diff_job_path, job.future.result())
 
     def _render_diff_section(self, title: str, entries: list[DiffEntry]) -> None:
         if not entries:
@@ -892,7 +926,16 @@ class ToolsPanel:
         self._run_diff(path, None)
 
     def _run_diff(self, path: str, password: str | None) -> None:
-        outcome = self._on_diff_projects(path, password)
+        """Start the comparison; it runs on a worker thread, the tab shows how far it is."""
+        self._diff_result, self._diff_error = None, ""
+        self._diff_password_path = None
+        self._diff_job_path = path
+        self._diff_job = self._on_diff_projects(path, password)
+
+    def _show_diff_outcome(self, path: str, outcome: DiffOutcome) -> None:
+        if outcome.canceled:
+            self._diff_other_name = ""
+            return
         self._diff_result, self._diff_error = outcome.result, outcome.error
         self._diff_password_path = path if outcome.needs_password else None
         self._diff_password_focus = outcome.needs_password

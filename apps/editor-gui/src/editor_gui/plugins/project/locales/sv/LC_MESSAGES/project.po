@@ -511,6 +511,12 @@ msgstr "Namn"
 msgid "Open Project"
 msgstr "Öppet projekt"
 
+msgid "Reading the projects…"
+msgstr "Läser projekten…"
+
+msgid "Comparing devices: {done} of {total}"
+msgstr "Jämför enheter: {done} av {total}"
+
 msgid "Type"
 msgstr "Typ"
 

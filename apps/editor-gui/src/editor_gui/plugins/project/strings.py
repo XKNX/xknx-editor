@@ -1204,6 +1204,14 @@ class ProjectStrings:
         return _("Open Project")
 
     @property
+    def TOOLS_DIFF_READING(self) -> str:
+        return _("Reading the projects…")
+
+    @property
+    def TOOLS_DIFF_PROGRESS(self) -> str:
+        return _("Comparing devices: {done} of {total}")
+
+    @property
     def TOOLS_DIFF_KIND(self) -> dict[str, str]:
         return {
             "added": _("added"),

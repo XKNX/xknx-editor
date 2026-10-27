@@ -162,7 +162,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     @tool("read")
     def project_compare_projects(
-        path: str, password: str | None = None
+        path: str, password: str | None = None, timeout: float = 300.0
     ) -> dict[str, Any]:
         """The Tools window's project comparison: compare the open project with the project at
         ``path`` (an .xknx or .knxproj file on the editor's machine, opened read-only; the open
@@ -179,12 +179,22 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         address, name, product, order number, application and location (building > ... > room).
         A changed device also has ``parameters`` and ``group_objects``: the differing ones as
         {label, kind, current, other} (their values in the open and in the other project, "" where
-        absent; a group object's value sums up DPT, flags, priority and linked group addresses)."""
+        absent; a group object's value sums up DPT, flags, priority and linked group addresses).
+
+        It runs in the background like in the Tools window; ``timeout`` in seconds, after which
+        it is stopped."""
         require_project(ctx)
         plugin = _plugin()
-        outcome = ctx.run_locked(
-            lambda: plugin.tools_diff_projects(path, password), timeout=300.0
-        )
+        job = ctx.run_locked(lambda: plugin.start_project_diff(path, password))
+        try:
+            outcome = job.future.result(timeout=timeout)
+        except TimeoutError as exc:
+            job.cancel()
+            raise ToolError(
+                f"the comparison did not finish within {timeout} s and was stopped"
+            ) from exc
+        if outcome.canceled:
+            raise ToolError("the comparison was stopped")
         if outcome.result is None:
             return {"error": outcome.error, "needs_password": outcome.needs_password}
 

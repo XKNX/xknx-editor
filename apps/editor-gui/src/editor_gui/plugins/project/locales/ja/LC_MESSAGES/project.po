@@ -511,6 +511,12 @@ msgstr "名前"
 msgid "Open Project"
 msgstr "開いているプロジェクト"
 
+msgid "Reading the projects…"
+msgstr "プロジェクトを読み込んでいます…"
+
+msgid "Comparing devices: {done} of {total}"
+msgstr "デバイスを比較中: {done} / {total}"
+
 msgid "Type"
 msgstr "タイプ"
 
