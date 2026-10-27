@@ -370,3 +370,26 @@ def test_the_object_table_lsm_is_only_loaded_where_the_mask_has_its_load_control
         ("LdCtrlRestart", None),
     ]
     assert len(controls("MV-07B0")) == 4
+
+
+def test_a_download_plugin_without_load_procedure_is_named() -> None:
+    import pytest
+
+    from xknxeditor.download.errors import UnsupportedProcedureError
+
+    def app(plugin: str | None) -> object:
+        return SimpleNamespace(
+            load_procedure_style=LoadProcedureStyle.DEFAULT_PROCEDURE,
+            load_procedures=None,
+            program=SimpleNamespace(
+                mask_version="MV-0701",
+                static=SimpleNamespace(
+                    extension=SimpleNamespace(ets_download_plugin=plugin)
+                ),
+            ),
+        )
+
+    with pytest.raises(UnsupportedProcedureError, match="download plug-in"):
+        resolve_download_controls(app("{CC18BBDF}"), None)  # type: ignore[arg-type]
+    with pytest.raises(UnsupportedProcedureError, match="master data is required"):
+        resolve_download_controls(app(None), None)  # type: ignore[arg-type]

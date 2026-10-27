@@ -115,9 +115,53 @@ def resolve_download_controls(
     in the procedure tests (see :func:`procedure_parameter_refs`); a ``choose`` on a parameter
     missing there selects no controls.
     """
+    try:
+        return _resolve_controls(
+            application,
+            master_data,
+            procedure_type=procedure_type,
+            scope=scope,
+            access=access,
+            has_application_program2=has_application_program2,
+            values=parameter_values or {},
+        )
+    except UnsupportedProcedureError:
+        # A product the manufacturer's download plug-in downloads may ship no Load procedure
+        # of its own, on a mask without a default one.
+        if (
+            procedure_type is ProcedureType.LOAD
+            and not (
+                application.load_procedures is not None
+                and application.load_procedures.load_procedure
+            )
+            and _download_plugin(application)
+        ):
+            raise UnsupportedProcedureError(
+                "the product data has no load procedure for this application: "
+                "the manufacturer's download plug-in downloads it"
+            ) from None
+        raise
+
+
+def _download_plugin(application: Application) -> bool:
+    """Whether the application names a manufacturer download plug-in."""
+    static = getattr(application.program, "static", None)
+    extension = getattr(static, "extension", None)
+    return bool(getattr(extension, "ets_download_plugin", None))
+
+
+def _resolve_controls(
+    application: Application,
+    master_data: MasterData | None,
+    *,
+    procedure_type: ProcedureType,
+    scope: DownloadScope,
+    access: ResourceAccess,
+    has_application_program2: bool,
+    values: Mapping[str, str],
+) -> list[object]:
     style = application.load_procedure_style
     load_procedures = application.load_procedures
-    values = parameter_values or {}
 
     # An application ships only its Load procedure (ProductProcedure) or Load
     # fragments (MergedProcedure). The Unload procedure always comes from the

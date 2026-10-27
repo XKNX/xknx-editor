@@ -146,11 +146,11 @@ def test_incomplete_or_misordered_lifecycle_rejected(missing: int) -> None:
         )
 
 
-def test_missing_controls_are_not_synthesized_after_restart() -> None:
-    with pytest.raises(UnsupportedProcedureError, match="incomplete table lifecycle"):
-        materialize_group_communication_controls(
-            _image(RelativeSegment(1, b"ADDR")), [LdCtrlRestart()], MAPPING
-        )
+def test_missing_controls_are_not_synthesized() -> None:
+    # A procedure that does not allocate or write a table is run as it is.
+    assert materialize_group_communication_controls(
+        _image(RelativeSegment(1, b"ADDR")), [LdCtrlRestart()], MAPPING
+    ) == [LdCtrlRestart()]
 
 
 def test_missing_table_cannot_fall_back_to_parameter_memory() -> None:
@@ -248,22 +248,42 @@ async def test_invalid_plan_fails_before_bus_access() -> None:
     assert not runner.state_mutated
 
 
-def test_both_existing_allocation_modes_are_resized_without_insertion() -> None:
+def test_the_first_allocation_of_a_table_gets_its_size() -> None:
     controls = _lifecycle()
     controls.insert(2, LdCtrlRelSegment(lsm_idx=1, size=2, mode=1, fill=0xFF))
     prepared = materialize_group_communication_controls(
         _image(RelativeSegment(1, b"ADDR")), controls, MAPPING
     )
     allocations = [c for c in prepared if isinstance(c, LdCtrlRelSegment)]
-    assert [(c.mode, c.fill, c.size) for c in allocations] == [(1, 0xFF, 4), (0, 0, 4)]
+    # A later allocation keeps the size the procedure gives it.
+    assert [(c.mode, c.fill, c.size) for c in allocations] == [(1, 0xFF, 4), (0, 0, 2)]
     assert len(prepared) == len(controls)
 
 
-def test_second_table_with_only_unload_also_requires_data() -> None:
+def test_an_allocation_merged_before_the_load_is_kept() -> None:
+    # A product fragment merged right after the connection allocates the table before the
+    # procedure unloads and loads it; it is sent as it is and gets the table's size.
+    controls = [LdCtrlRelSegment(lsm_idx=1, size=65536, mode=0, fill=0), *_lifecycle()]
+    prepared = materialize_group_communication_controls(
+        _image(RelativeSegment(1, b"ADDR")), controls, MAPPING
+    )
+    allocations = [c for c in prepared if isinstance(c, LdCtrlRelSegment)]
+    assert [c.size for c in allocations] == [4, 2]
+    assert isinstance(prepared[0], LdCtrlRelSegment)
+
+
+def test_a_table_the_procedure_does_not_allocate_needs_no_data() -> None:
+    # The second table is only unloaded: the procedure loads it by other means, if at all.
     controls = [LdCtrlUnload(lsm_idx=2), *_lifecycle()]
+    prepared = materialize_group_communication_controls(
+        _image(RelativeSegment(1, b"ADDR")), controls, MAPPING
+    )
+    assert prepared[0] == LdCtrlUnload(lsm_idx=2)
     with pytest.raises(ImageError, match="missing table image for object type 2"):
         materialize_group_communication_controls(
-            _image(RelativeSegment(1, b"ADDR")), controls, MAPPING
+            _image(RelativeSegment(1, b"ADDR")),
+            [*controls, LdCtrlRelSegment(lsm_idx=2, size=2, mode=0, fill=0)],
+            MAPPING,
         )
 
 

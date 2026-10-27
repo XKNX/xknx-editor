@@ -20,7 +20,6 @@ from .image import DownloadImage
 from .scope import (
     GROUP_COMMUNICATION_OBJECTS,
     DownloadScope,
-    control_in_scope,
     scoped_controls,
     target_object_type,
 )
@@ -53,32 +52,23 @@ def materialize_group_communication_controls(
     selected = scoped_controls(controls, scope, object_types)
     if property_tables:
         return _property_table_controls(image, selected, object_types, scope)
-    tables = {
-        segment.object_type
-        for segment in image.relative_segments
-        if segment.object_type in GROUP_COMMUNICATION_OBJECTS
-        and control_in_scope(
-            LdCtrlLoad(obj_type=segment.object_type), scope, object_types
-        )
-    }
+    # The tables the procedure allocates or writes in relative memory: those get the size of
+    # their image and need their complete transaction. A table the procedure loads by other
+    # means (absolute segments) is left as the procedure has it.
+    tables: set[int] = set()
     for control in selected:
         if isinstance(control, (LdCtrlRelSegment, LdCtrlWriteRelMem)):
             target = target_object_type(control, object_types)
             if target in GROUP_COMMUNICATION_OBJECTS:
                 tables.add(target)
-    # In a System B plan every touched table needs its complete transaction,
-    # including one whose allocation/write was accidentally omitted altogether.
-    if tables or 9 in object_types.values():
-        for control in selected:
-            if isinstance(control, (LdCtrlUnload, LdCtrlLoad, LdCtrlLoadCompleted)):
-                target = target_object_type(control, object_types)
-                if target in GROUP_COMMUNICATION_OBJECTS:
-                    tables.add(target)
     if not tables:
         return selected
 
     # Per table: unloaded -> loading -> allocated -> written -> completed.
     phases: dict[int, str] = {}
+    # The first allocation and the first write of each table get its size; later ones keep
+    # the size the procedure gives them.
+    sized: set[tuple[int, type]] = set()
     result: list[object] = []
     for position, control in enumerate(selected, 1):
         if isinstance(control, LdCtrlRestart) and any(
@@ -127,9 +117,13 @@ def materialize_group_communication_controls(
             valid = phase in (None, "unloaded", "completed")
             next_phase = "loading"
         elif isinstance(control, LdCtrlRelSegment):
-            valid = phase in ("loading", "allocated")
-            next_phase = "allocated"
-            control = replace(control, size=len(segment.data))
+            # An allocation outside the table's load (a product fragment merged before it) is
+            # sent as it is; the device answers it.
+            valid = True
+            next_phase = "allocated" if phase in ("loading", "allocated") else phase
+            if (target, LdCtrlRelSegment) not in sized:
+                sized.add((target, LdCtrlRelSegment))
+                control = replace(control, size=len(segment.data))
         elif isinstance(control, LdCtrlWriteRelMem):
             valid = phase == "allocated"
             next_phase = "written"
@@ -137,7 +131,9 @@ def materialize_group_communication_controls(
                 raise UnsupportedProcedureError(
                     f"table type {target} requires one image-backed write at offset 0"
                 )
-            control = replace(control, size=len(segment.data))
+            if (target, LdCtrlWriteRelMem) not in sized:
+                sized.add((target, LdCtrlWriteRelMem))
+                control = replace(control, size=len(segment.data))
         else:
             valid = phase == "written"
             next_phase = "completed"
@@ -146,7 +142,8 @@ def materialize_group_communication_controls(
                 f"invalid table lifecycle for object type {target} at control {position}: "
                 f"{type(control).__name__} after {phase or 'no load'}"
             )
-        phases[target] = next_phase
+        if next_phase is not None:
+            phases[target] = next_phase
         result.append(control)
     for target in tables:
         if phases.get(target) != "completed":
