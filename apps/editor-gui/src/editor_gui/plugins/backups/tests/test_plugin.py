@@ -61,6 +61,15 @@ class Env:
         assert info is not None
         return info.name
 
+    def shown(self, popup: str) -> bool:
+        """Whether the dialog ``popup`` is shown, after one more frame."""
+        imgui.new_frame()
+        self.plugin.render_window()
+        shown = imgui.is_popup_open(popup)
+        imgui.end_frame()
+        imgui.render()
+        return shown
+
     def list_shown(self) -> bool:
         """Whether the list of backups is shown, after one more frame."""
         imgui.new_frame()
@@ -134,11 +143,31 @@ def test_create_asks_for_a_comment(env: Env) -> None:
     # The comment field has the keyboard focus once the dialog is shown.
     env.frames(3)
     env.frames(key=imgui.Key.enter)
+    # Its progress shows in a dialog, which then tells it was made (no toast).
+    assert env.shown("###backup_creating")
     env.plugin.service.wait_idle(30)
     env.frames()
     made = env.plugin.service.list_now()
     assert [b.info.kind for b in made] == ["manual"]
-    assert len(env.notes) == 1
+    assert env.notes == []
+    assert env.shown("###backup_creating")
+    env.frames(key=imgui.Key.escape)
+    assert not env.shown("###backup_creating")
+
+
+def test_a_failed_backup_asked_for_is_told_in_its_dialog(
+    env: Env, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(service_mod, "check_project_file", lambda _path: "damaged")
+    env.plugin.ask_create()
+    env.frames(3)
+    env.frames(key=imgui.Key.enter)
+    env.plugin.service.wait_idle(30)
+    env.frames()
+    assert env.warnings == []
+    job = env.plugin._creating  # pyright: ignore[reportPrivateUsage]
+    assert job is not None
+    assert str(job.future.exception()) == "damaged"
 
 
 def test_a_failed_backup_is_reported(env: Env, monkeypatch: pytest.MonkeyPatch) -> None:

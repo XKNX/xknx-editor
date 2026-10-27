@@ -115,6 +115,9 @@ class BackupsPlugin:
         self._damaged: tuple[Path, str, Backup] | None = None
         # A message to show in a dialog (the outcome of a check).
         self._message = ""
+        # The backup asked for in the Create Backup dialog: its progress and outcome are shown in
+        # a dialog until confirmed.
+        self._creating: BackupJob | None = None
 
     @property
     def service(self) -> BackupService:
@@ -214,6 +217,9 @@ class BackupsPlugin:
 
     def _report_finished(self) -> None:
         for job in self._service.take_finished():
+            if job is self._creating:
+                # Its dialog tells the outcome.
+                continue
             error = job.future.exception()
             if error is not None:
                 self._warn(S.FAILED.format(error=error))
@@ -514,6 +520,7 @@ class BackupsPlugin:
             "settings": f"{S.SETTINGS_TITLE}###backup_settings",
             "damaged": f"{S.DAMAGED_TITLE}###backup_damaged",
             "message": f"{S.WINDOW_TITLE}###backup_message",
+            "creating": f"{S.CREATE_TITLE}###backup_creating",
         }
         # The offer for a project that could not be opened waits for the progress of the open
         # (another dialog) to end.
@@ -530,6 +537,7 @@ class BackupsPlugin:
         self._render_settings(titles["settings"])
         self._render_damaged(titles["damaged"])
         self._render_message(titles["message"])
+        self._render_creating(titles["creating"])
 
     def _render_create(self, title: str) -> None:
         if not begin_dialog(title, width=440.0):
@@ -548,7 +556,8 @@ class BackupsPlugin:
         if clicked == 0 or submitted:
             imgui.close_current_popup()
             try:
-                self._service.create(self._comment.strip())
+                self._creating = self._service.create(self._comment.strip())
+                self._request = "creating"
             except BackupError as e:
                 self._warn(S.FAILED.format(error=e))
         elif clicked == 1:
@@ -635,6 +644,31 @@ class BackupsPlugin:
             self._restore_damaged(damaged[0], damaged[2])
         elif clicked is not None:
             self._damaged = None
+            imgui.close_current_popup()
+        end_dialog()
+
+    def _render_creating(self, title: str) -> None:
+        """How far the backup asked for is, then whether it was made, until confirmed."""
+        if not begin_dialog(title, width=460.0):
+            return
+        job = self._creating
+        done = job is None or job.future.done()
+        if job is not None and not done:
+            self._render_progress(job)
+        elif job is not None and job.future.exception() is not None:
+            imgui.push_style_color(imgui.Col_.text, _ERR_COLOR)
+            imgui.text_wrapped(S.FAILED.format(error=job.future.exception()))
+            imgui.pop_style_color()
+        elif job is not None:
+            backup = job.future.result()
+            if backup is not None:
+                imgui.text_wrapped(S.CREATED.format(name=backup.path.name))
+                imgui.spacing()
+                imgui.push_text_wrap_pos(0.0)
+                imgui.text_disabled(S.FOLDER.format(path=backup.path.parent))
+                imgui.pop_text_wrap_pos()
+        if dialog_buttons(S.BTN_OK, enabled=[done]) == 0 and done:
+            self._creating = None
             imgui.close_current_popup()
         end_dialog()
 
