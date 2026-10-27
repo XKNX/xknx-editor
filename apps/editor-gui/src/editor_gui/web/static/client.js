@@ -855,6 +855,11 @@
     if (e.pointerType !== "touch") send({ t: "leave" });
   });
   canvas.addEventListener("contextmenu", (e) => e.preventDefault());
+  // The mouse's back and forward buttons go to the app (e.g. Back in the Bus Diagram), not to the
+  // browser's history, which would leave the page.
+  canvas.addEventListener("mouseup", (e) => {
+    if (e.button === 3 || e.button === 4) e.preventDefault();
+  });
   canvas.addEventListener("wheel", (e) => {
     const unit = e.deltaMode === 1 ? 1 / 3 : e.deltaMode === 2 ? 1 : 1 / 100;
     // Ctrl+wheel and a touchpad's pinch (sent as Ctrl+wheel) zoom the app, as the browser would;
@@ -876,7 +881,8 @@
   // Keys the browser would act on itself (focus change, page navigation) are not passed on.
   const OWN_KEYS = new Set(["Tab", "Backspace", "Enter", "NumpadEnter", "Escape", "ArrowLeft",
     "ArrowRight", "ArrowUp", "ArrowDown", "PageUp", "PageDown", "Home", "End", "Delete", "Insert",
-    "F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12"]);
+    "F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12", "BrowserBack",
+    "BrowserForward"]);
 
   keys.addEventListener("keydown", (e) => {
     if (e.isComposing) return;

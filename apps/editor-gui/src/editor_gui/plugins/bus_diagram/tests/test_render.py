@@ -236,6 +236,50 @@ def _links(panel: BusDiagramPanel) -> LinkView:
     return links
 
 
+def test_the_back_keys_go_back(clicks: Clicks) -> None:
+    """Backspace and the Back key while the diagram has the focus, and the mouse's back button
+    over it, do what Back does."""
+    panel = _panel([], requests=[(1, "")])
+    _frames(panel, width=1400)
+    links = _links(panel)
+    for scope in (Scope("ga", 10), Scope("ga", 11), Scope("ga", 12)):
+        links.show(scope)
+    _frames(panel, width=1400)
+    io = imgui.get_io()
+    io.add_mouse_pos_event(500, 400)
+    _frames(panel, width=1400, count=1)
+    shown: list[Scope] = []
+    for press, release in (
+        (
+            lambda: io.add_key_event(imgui.Key.backspace, True),
+            lambda: io.add_key_event(imgui.Key.backspace, False),
+        ),
+        (
+            lambda: io.add_key_event(imgui.Key.app_back, True),
+            lambda: io.add_key_event(imgui.Key.app_back, False),
+        ),
+        (
+            lambda: io.add_mouse_button_event(3, True),
+            lambda: io.add_mouse_button_event(3, False),
+        ),
+    ):
+        press()
+        _frames(panel, width=1400, count=1)
+        release()
+        _frames(panel, width=1400, count=1)
+        shown.append(links._scope)  # pyright: ignore[reportPrivateUsage]
+    assert shown == [Scope("ga", 11), Scope("ga", 10), Scope("device", 1)]
+    # Back to the start, then nothing to go back to: the keys do nothing.
+    for _ in range(2):
+        io.add_key_event(imgui.Key.backspace, True)
+        _frames(panel, width=1400, count=1)
+        io.add_key_event(imgui.Key.backspace, False)
+        _frames(panel, width=1400, count=1)
+    assert links._scope == Scope("all")  # pyright: ignore[reportPrivateUsage]
+    links.back()
+    assert links._scope == Scope("all")  # pyright: ignore[reportPrivateUsage]
+
+
 def test_a_device_shown_lists_its_group_objects_and_its_arrow_closes_them(
     clicks: Clicks,
 ) -> None:
@@ -300,7 +344,7 @@ def test_a_click_on_a_channel_or_a_group_object_shows_its_channel(
     layout = links._layout  # pyright: ignore[reportPrivateUsage]
     assert layout is not None
     heading = next(c for c in layout.channels if c.channel == "CH-B")
-    mouse.click(panel, links_view._X[2] + 40, heading.y + 10)  # pyright: ignore[reportPrivateUsage]
+    mouse.click(panel, links_view._X[2] + 40, heading.y + 3)  # pyright: ignore[reportPrivateUsage]
     assert links._scope == Scope("channel", 1, "CH-B")  # pyright: ignore[reportPrivateUsage]
     # Only the channel's group address; its device still lists the group object.
     layout = links._layout  # pyright: ignore[reportPrivateUsage]

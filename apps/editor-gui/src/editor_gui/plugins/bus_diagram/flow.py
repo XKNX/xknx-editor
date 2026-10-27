@@ -27,6 +27,9 @@ NodeKey = tuple[str, int]
 ScopeKind = Literal["all", "room", "main", "device", "channel", "ga"]
 
 ROW = 30.0
+# A channel heading's row among the group objects of an opened device: its text stands about as
+# far below what is above it as two group objects stand apart, and closer to its first one.
+HEADING_ROW = 13.0
 # More devices outside the scope than this on one group address collapse into one entry.
 COLLAPSE = 6
 
@@ -356,7 +359,11 @@ def build_flow(
             nid: _rows(objects_of[side].get(nid, {}), opened.get(nid, {}))
             for nid in gas_of[side]
         }
-        tops = _place(gas_of[side], ga_y, {nid: len(r) for nid, r in rows.items()})
+        tops = _place(
+            gas_of[side],
+            ga_y,
+            {nid: sum(_height(row) for row in r) for nid, r in rows.items()},
+        )
         for nid, top in tops.items():
             inside = core is None or nid in core
             layout.nodes.append(
@@ -370,8 +377,8 @@ def build_flow(
                     chosen=nid == chosen,
                 )
             )
-            for i, row in enumerate(rows[nid], start=1):
-                row_y = top + i * ROW
+            row_y = top + ROW
+            for row in rows[nid]:
                 if isinstance(row, FlowChannel):
                     row.column, row.y, row.node_id, row.inside = (
                         column,
@@ -393,7 +400,8 @@ def build_flow(
                             channel=channel,
                         )
                     )
-            bottom = max(bottom, top + (1 + len(rows[nid])) * ROW)
+                row_y += _height(row)
+            bottom = max(bottom, row_y)
     placed = {n.key for n in layout.nodes}
     for hub in kept:
         main = main_of(hub.address)
@@ -443,14 +451,19 @@ def _rows(
     return rows
 
 
+def _height(row: FlowChannel | tuple[int, str, str]) -> float:
+    """A channel heading is lower than a group object's row: it sits close to what follows."""
+    return HEADING_ROW if isinstance(row, FlowChannel) else ROW
+
+
 def _place(
     members: Mapping[int, list[int]],
     ga_y: Mapping[int, float],
-    extra: Mapping[int, int],
+    extra: Mapping[int, float],
 ) -> dict[int, float]:
     """Each device at the median height of its group addresses, pushed down where it would
-    overlap the device above; ``extra`` rows below a device list its group objects, which start
-    one row higher to sit beside the group addresses."""
+    overlap the device above; ``extra`` is the height below a device that lists its group
+    objects, which start one row higher to sit beside the group addresses."""
     wanted = sorted(
         (
             max(
@@ -467,7 +480,7 @@ def _place(
     for want, nid in wanted:
         top = max(want, free)
         placed[nid] = top
-        free = top + (1 + extra[nid]) * ROW
+        free = top + ROW + extra[nid]
     return placed
 
 

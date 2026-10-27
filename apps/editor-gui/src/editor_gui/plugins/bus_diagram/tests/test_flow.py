@@ -13,6 +13,7 @@ from editor_gui.device import ComObject, ComObjectFlags
 from editor_gui.dpt import DPT_UNKNOWN
 from editor_gui.plugins.bus_diagram.flow import (
     COLLAPSE,
+    HEADING_ROW,
     ROW,
     FlowLayout,
     GroupObject,
@@ -187,9 +188,14 @@ def test_an_opened_device_lists_its_group_objects_under_their_channels() -> None
         ("Channel A: Kitchen", 1, "CH-A"),
         ("Channel B: Hall", 1, "CH-B"),
     ]
-    # Device box, heading, object, heading, object: one row each.
+    # Device box, heading, object, heading, object: a heading's row is lower, so that it sits
+    # close to its group object.
+    h = HEADING_ROW
     assert [headings[0].y, receiving[0].y, headings[1].y, receiving[1].y] == [
-        device.y + ROW * i for i in range(1, 5)
+        device.y + ROW,
+        device.y + ROW + h,
+        device.y + 2 * ROW + h,
+        device.y + 2 * ROW + 2 * h,
     ]
     # The links run from and to the group objects, not the device box.
     assert (("g", 1), ("ro", 11), 1) in layout.edges
@@ -197,7 +203,7 @@ def test_an_opened_device_lists_its_group_objects_under_their_channels() -> None
     assert not any(("r", 1) in e[:2] for e in layout.edges)
     # The push button stays closed and links with its box.
     assert (("s", 2), ("g", 1), 1) in layout.edges
-    assert layout.height >= device.y + 5 * ROW
+    assert layout.height >= device.y + 3 * ROW + 2 * h
 
 
 def test_opened_devices_do_not_overlap_the_next_device() -> None:
@@ -205,11 +211,12 @@ def test_opened_devices_do_not_overlap_the_next_device() -> None:
         _HUBS, Scope("all"), {}, LABELS, NAMES, objects={1: _OBJECTS, 2: {}}
     )
     for column in (0, 2):
+        # Each row (a box, or a heading's lower row) ends before the next one starts.
         rows = sorted(
-            [n.y for n in layout.nodes if n.column == column]
-            + [c.y for c in layout.channels if c.column == column]
+            [(n.y, ROW) for n in layout.nodes if n.column == column]
+            + [(c.y, HEADING_ROW) for c in layout.channels if c.column == column]
         )
-        assert all(b - a >= ROW for a, b in itertools.pairwise(rows))
+        assert all(b[0] - a[0] >= a[1] for a, b in itertools.pairwise(rows))
     # A group object without details (not among the device's) is still listed.
     unknown = next(n for n in layout.nodes if n.key == ("so", 21))
     assert (unknown.label, unknown.owner) == ("?", 2)

@@ -23,6 +23,7 @@ from editor_gui.plugins.bus_diagram.canvas import (
     zoom_with_wheel,
 )
 from editor_gui.plugins.bus_diagram.flow import (
+    HEADING_ROW,
     ROW,
     FlowChannel,
     FlowLayout,
@@ -52,11 +53,17 @@ _MORE_W = 96.0
 # arrow that opens it takes this much of the box's start.
 _INDENT = 18.0
 _ARROW_W = 16.0
+# The arrow's centre from the start of the box; its group objects hang from there.
+_ARROW_X = _TEXT_PAD + 3
+# From a channel heading's baseline down to its first group object.
+_HEADING_GAP = 4.0
 _X = (_PAD, _PAD + _COL_W + _GAP, _PAD + 2 * (_COL_W + _GAP))
 _WIDTH = 2 * _PAD + 3 * _COL_W + 2 * _GAP
 # "Fit" zooms out at most this far.
 _FIT_MIN = 0.7
 _ELLIPSIS = "…"
+# The mouse's back button (the first extra one).
+_MOUSE_BACK = 3
 
 
 def _is_device(n: FlowNode) -> bool:
@@ -156,15 +163,40 @@ class LinkView:
             imgui.end_combo()
         imgui.same_line()
         imgui.begin_disabled(not self._history)
-        if imgui.button(S.BUS_DIAGRAM_BACK):
-            self._scope = self._history.pop()
-            self._expanded.clear()
-            self._closed.clear()
-            self._top_pending = True
+        if imgui.button(S.BUS_DIAGRAM_BACK) or self._back_key():
+            self.back()
         imgui.end_disabled()
         imgui.same_line()
         if imgui.button(S.BUS_DIAGRAM_FIT):
             self._fit_pending = True
+
+    def _back_key(self) -> bool:
+        """The Back key (also Backspace) while the diagram has the focus, or the mouse's back
+        button over it."""
+        if not self._history:
+            return False
+        focused = imgui.is_window_focused(imgui.FocusedFlags_.root_and_child_windows)
+        typing = imgui.get_io().want_text_input
+        if (
+            focused
+            and not typing
+            and (
+                imgui.is_key_pressed(imgui.Key.backspace, False)
+                or imgui.is_key_pressed(imgui.Key.app_back, False)
+            )
+        ):
+            return True
+        hovered = imgui.is_window_hovered(imgui.HoveredFlags_.root_and_child_windows)
+        return hovered and imgui.is_mouse_clicked(_MOUSE_BACK)
+
+    def back(self) -> None:
+        """Show what was shown before."""
+        if not self._history:
+            return
+        self._scope = self._history.pop()
+        self._expanded.clear()
+        self._closed.clear()
+        self._top_pending = True
 
     def show(self, scope: Scope) -> None:
         """Show ``scope``; Back returns to what was shown before."""
@@ -352,13 +384,25 @@ class LinkView:
         mouse = imgui.get_mouse_pos()
         hovered = imgui.is_window_hovered()
 
-        def under_mouse(x0: float, x1: float, y: float) -> bool:
+        def under_mouse(x0: float, x1: float, y: float, height: float = _BOX_H) -> bool:
             p0 = to_screen(x0, y)
             return (
                 hovered
                 and p0.x <= mouse.x <= p0.x + (x1 - x0) * z
-                and p0.y <= mouse.y <= p0.y + _BOX_H * z
+                and p0.y <= mouse.y <= p0.y + height * z
             )
+
+        # The text's height above its baseline, in unscaled pixels.
+        baked = imgui.get_font_baked()
+        ascent = baked.ascent / baked.size * imgui.get_font_size() / px(1.0)
+
+        def heading_top(c: FlowChannel) -> float:
+            """A channel heading sits right above its first group object, closer to it than to
+            what is above it."""
+            return c.y + HEADING_ROW - _HEADING_GAP - ascent
+
+        def heading_middle(c: FlowChannel) -> float:
+            return heading_top(c) + ascent * 0.65
 
         hovered_node: FlowNode | None = None
         hovered_more: int | None = None
@@ -367,7 +411,9 @@ class LinkView:
             if under_mouse(_left(n), _X[n.column] + _COL_W, n.y):
                 hovered_node = n
         for c in layout.channels:
-            if under_mouse(_left(c), _X[c.column] + _COL_W, c.y):
+            # The heading's text, not reaching into the group object right below it.
+            top = heading_top(c) - 2
+            if under_mouse(_left(c), _X[c.column] + _COL_W, top, ascent + 4):
                 hovered_channel = c
         for i, more in enumerate(layout.more):
             x0 = _X[1] - _MORE_W - 12 if more.column == 0 else _X[1] + _COL_W + 12
@@ -423,8 +469,10 @@ class LinkView:
                 palette.muted,
                 title,
             )
+        # A group's heading stands as far above its first group address (from the text's
+        # baseline) as the group addresses stand apart; the room above it is larger.
         for y, title in layout.headers:
-            p = to_screen(_X[1] + 4, y + 6)
+            p = to_screen(_X[1] + 4, y + _BOX_H - ascent * 0.92)
             if visible(p.y - ROW * z, p.y + ROW * z):
                 dl.add_text(
                     font, font_size * 0.92, p, palette.muted, self._fit(title, _COL_W)
@@ -458,6 +506,34 @@ class LinkView:
                 col,
             )
 
+        # An opened device's group objects and channel headings hang from its arrow, as in a
+        # tree, so that they read as the device's also below a heading.
+        for n in layout.nodes:
+            if not (_is_device(n) and n.opened):
+                continue
+            # Where each row's tick meets it: a box at its middle, a heading at its text.
+            rows = [
+                (m.y + _BOX_H / 2, _left(m))
+                for m in layout.nodes
+                if m.owner == n.key[1] and m.column == n.column
+            ] + [
+                (heading_middle(c), _left(c))
+                for c in layout.channels
+                if c.node_id == n.key[1] and c.column == n.column
+            ]
+            if not rows:
+                continue
+            spine = _X[n.column] + _ARROW_X
+            last = max(y for y, _x in rows)
+            top, bottom = to_screen(spine, n.y + _BOX_H), to_screen(spine, last)
+            if not visible(top.y, bottom.y):
+                continue
+            dim = bool(focus) and n.key not in focus
+            col = palette.text_alpha(0.12 if dim else 0.35)
+            dl.add_line(top, bottom, col, px(1.0))
+            for y, x in rows:
+                dl.add_line(to_screen(spine, y), to_screen(x, y), col, px(1.0))
+
         for n in layout.nodes:
             p0 = to_screen(_left(n), n.y)
             if not visible(p0.y, p0.y + _BOX_H * z):
@@ -476,7 +552,7 @@ class LinkView:
                 n is hovered_node and on_arrow,
             )
         for c in layout.channels:
-            p = to_screen(_left(c) + 4, c.y + 3)
+            p = to_screen(_left(c) + 4, heading_top(c))
             if not visible(p.y, p.y + _BOX_H * z):
                 continue
             lit_channel = c is hovered_channel
@@ -495,7 +571,9 @@ class LinkView:
                 if lit_channel
                 else palette.text_alpha((0.62 if c.inside else 0.45) * fade)
             )
-            dl.add_text(font, font_size, p, color, self._fit(c.label, _COL_W - _INDENT))
+            # "Channel A:" names what follows below it.
+            label = c.label if c.label.endswith(":") else f"{c.label}:"
+            dl.add_text(font, font_size, p, color, self._fit(label, _COL_W - _INDENT))
         for i, more in enumerate(layout.more):
             x0 = _X[1] - _MORE_W - 12 if more.column == 0 else _X[1] + _COL_W + 12
             p0 = to_screen(x0, more.y)
@@ -645,7 +723,7 @@ class LinkView:
             dl.add_text(font, font_size, text_pos, color, self._fit(n.label, width))
             return
         # The arrow: pointing right while closed, down while the group objects are listed.
-        cx, cy = p0.x + (_TEXT_PAD + 3) * z, p0.y + _BOX_H / 2 * z
+        cx, cy = p0.x + _ARROW_X * z, p0.y + _BOX_H / 2 * z
         s = 3.5 * z
         arrow = palette.text if arrow_hovered else palette.text_alpha(0.55 * fade)
         if n.opened:
