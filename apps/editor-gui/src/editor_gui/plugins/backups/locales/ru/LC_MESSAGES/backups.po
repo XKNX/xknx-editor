@@ -226,8 +226,8 @@ msgstr "Создавать резервную копию при закрытии
 msgid "Create backups at regular intervals while a project is open"
 msgstr "Создавать резервные копии через равные промежутки, пока проект открыт"
 
-msgid "Interval in Hours"
-msgstr "Интервал в часах"
+msgid "Interval in Minutes"
+msgstr "Интервал в минутах"
 
 msgid "Delete old automatic backups"
 msgstr "Удалять старые автоматические резервные копии"

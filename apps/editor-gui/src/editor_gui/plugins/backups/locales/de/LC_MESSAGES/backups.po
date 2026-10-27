@@ -226,8 +226,8 @@ msgstr "Beim Schließen eines Projekts eine Sicherung erstellen"
 msgid "Create backups at regular intervals while a project is open"
 msgstr "Sicherungen in regelmäßigen Abständen erstellen, solange ein Projekt geöffnet ist"
 
-msgid "Interval in Hours"
-msgstr "Abstand in Stunden"
+msgid "Interval in Minutes"
+msgstr "Abstand in Minuten"
 
 msgid "Delete old automatic backups"
 msgstr "Alte automatische Sicherungen löschen"

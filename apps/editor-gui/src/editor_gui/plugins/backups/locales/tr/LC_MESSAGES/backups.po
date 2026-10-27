@@ -226,8 +226,8 @@ msgstr "Bir proje kapatıldığında yedek oluştur"
 msgid "Create backups at regular intervals while a project is open"
 msgstr "Bir proje açıkken düzenli aralıklarla yedek oluştur"
 
-msgid "Interval in Hours"
-msgstr "Saat cinsinden aralık"
+msgid "Interval in Minutes"
+msgstr "Dakika cinsinden aralık"
 
 msgid "Delete old automatic backups"
 msgstr "Eski otomatik yedekleri sil"

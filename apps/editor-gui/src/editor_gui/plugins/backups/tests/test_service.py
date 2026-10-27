@@ -164,29 +164,35 @@ def test_interval_backups_when_due_and_changed(env: Env) -> None:
     assert env.made() == []
 
     env.backups.set_settings(
-        BackupSettings(folder=str(env.root), interval=True, interval_hours=24)
+        BackupSettings(folder=str(env.root), interval=True, interval_minutes=60)
     )
+    env.backups.tick()
+    # The interval counts from when the project was opened.
+    assert env.made() == []
+    env.clock[0] += 61
+    env.later(minutes=61)
     env.backups.tick()
     assert [b.info.kind for b in env.made()] == [KIND_INTERVAL]
 
-    # Looked at again only after a minute; unchanged, none is made.
-    env.clock[0] += 61
-    env.later(hours=30)
-    env.backups.tick()
-    assert len(env.made()) == 1
-
     # Changed, but the newest backup is younger than the interval.
     env.project.set_project_name("Renamed")
-    env.later(hours=1)
-    env.clock[0] += 30
+    env.later(minutes=10)
+    env.clock[0] += 61
     env.backups.tick()
-    env.clock[0] += 31
-    env.later(hours=1)
+    assert len(env.made()) == 1
+    env.clock[0] += 61
+    env.later(minutes=55)
     env.backups.tick()
     env.backups.wait_idle(30)
     made = env.made()
     assert len(made) == 2
     assert made[0].info.project_name == "Renamed"
+
+    # Looked at again only after a minute; unchanged, none is made.
+    env.clock[0] += 61
+    env.later(minutes=70)
+    env.backups.tick()
+    assert len(env.made()) == 2
 
 
 def test_restore_keeps_the_state_before(env: Env) -> None:

@@ -226,8 +226,8 @@ msgstr "Skapa en säkerhetskopia när ett projekt stängs"
 msgid "Create backups at regular intervals while a project is open"
 msgstr "Skapa säkerhetskopior med jämna mellanrum medan ett projekt är öppet"
 
-msgid "Interval in Hours"
-msgstr "Intervall i timmar"
+msgid "Interval in Minutes"
+msgstr "Intervall i minuter"
 
 msgid "Delete old automatic backups"
 msgstr "Ta bort gamla automatiska säkerhetskopior"

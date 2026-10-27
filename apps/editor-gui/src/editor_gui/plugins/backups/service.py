@@ -118,6 +118,8 @@ class BackupService:
         # Set while a restore replaces the project: its closing needs no backup.
         self._restoring = False
         self._last_interval_check: float | None = None
+        # When the open project was opened (first seen by tick), by its generation.
+        self._opened: tuple[int, datetime] = (-1, datetime.min.replace(tzinfo=UTC))
         # The listed backups of the open project: (its GUID, the backups), and whether the
         # list is to be read again.
         self._listing: tuple[str, list[Backup]] = ("", [])
@@ -394,18 +396,28 @@ class BackupService:
         meta = self.meta()
         if meta is None:
             return
-        root, hours = self.root, settings.interval_hours
+        root, minutes = self.root, settings.interval_minutes
+        opened = self._opened_at()
 
         def work(job: BackupJob) -> Backup | None:
             found = list_backups(root, meta.guid)
-            if found:
-                if found[0].info.state == meta.state:
-                    return None
-                if self._now() - found[0].info.created < timedelta(hours=hours):
-                    return None
+            if found and found[0].info.state == meta.state:
+                return None
+            # The interval counts from the newest backup, but not from before the project was
+            # opened.
+            since = max(found[0].info.created, opened) if found else opened
+            if self._now() - since < timedelta(minutes=minutes):
+                return None
             return self._make_live(meta, root, KIND_INTERVAL, "", job)
 
         self._submit(BackupJob(KIND_INTERVAL), work)
+
+    def _opened_at(self) -> datetime:
+        """When the open project was opened (first seen by :meth:`tick`)."""
+        generation = self._project.generation
+        if self._opened[0] != generation:
+            self._opened = (generation, self._now())
+        return self._opened[1]
 
     # --- using backups ----------------------------------------------------------
 

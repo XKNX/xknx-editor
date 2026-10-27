@@ -317,8 +317,8 @@ class BackupStrings:
         return _("Create backups at regular intervals while a project is open")
 
     @property
-    def INTERVAL_HOURS(self) -> str:
-        return _("Interval in Hours")
+    def INTERVAL_MINUTES(self) -> str:
+        return _("Interval in Minutes")
 
     @property
     def EXPIRE(self) -> str:

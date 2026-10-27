@@ -65,7 +65,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
     def backup_settings() -> dict[str, Any]:
         """The backup settings (File > Backups > Settings…), for every project:
         {folder ("" = the default folder), effective_folder, default_folder, on_close (a backup
-        when a project is closed), interval and interval_hours (a backup every that many hours
+        when a project is closed), interval and interval_minutes (a backup every that many minutes
         while a project is open and changed), expire, expire_days and keep_newest (automatic
         backups older than expire_days days are deleted, all but the newest keep_newest)}.
         Backups made by hand and pinned ones are never deleted automatically."""
@@ -76,14 +76,14 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         folder: str | None = None,
         on_close: bool | None = None,
         interval: bool | None = None,
-        interval_hours: int | None = None,
+        interval_minutes: int | None = None,
         expire: bool | None = None,
         expire_days: int | None = None,
         keep_newest: int | None = None,
     ) -> dict[str, Any]:
         """Change the backup settings (see backup_settings); a parameter left out keeps its
         value, ``folder`` "" means the default folder. Numbers are kept within their bounds
-        (interval_hours 1-8760, expire_days 1-36500, keep_newest 0-1000). Not part of the
+        (interval_minutes 5-1440, expire_days 1-36500, keep_newest 0-1000). Not part of the
         project's undo history. Returns the settings as kept."""
         changes = {
             name: value
@@ -91,7 +91,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                 "folder": folder,
                 "on_close": on_close,
                 "interval": interval,
-                "interval_hours": interval_hours,
+                "interval_minutes": interval_minutes,
                 "expire": expire,
                 "expire_days": expire_days,
                 "keep_newest": keep_newest,

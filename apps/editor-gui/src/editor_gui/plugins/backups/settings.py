@@ -12,7 +12,7 @@ from editor_gui.settings import config_dir, load_settings, save_settings
 _NAME = "backups"
 
 # The bounds of the numbers, so a hand-edited file cannot make a backup every second.
-INTERVAL_HOURS = (1, 24 * 365)
+INTERVAL_MINUTES = (5, 24 * 60)
 EXPIRE_DAYS = (1, 365 * 100)
 KEEP_NEWEST = (0, 1000)
 
@@ -28,14 +28,14 @@ def _clamp(value: int, bounds: tuple[int, int]) -> int:
 @dataclass(frozen=True)
 class BackupSettings:
     """``folder`` empty: the default folder. Automatic backups are made when a project is
-    closed (``on_close``) and every ``interval_hours`` while it changed (``interval``); with
+    closed (``on_close``) and every ``interval_minutes`` while it changed (``interval``); with
     ``expire`` the automatic ones older than ``expire_days`` days are deleted, all but the newest
     ``keep_newest``."""
 
     folder: str = ""
     on_close: bool = False
     interval: bool = False
-    interval_hours: int = 24
+    interval_minutes: int = 60
     expire: bool = True
     expire_days: int = 90
     keep_newest: int = 3
@@ -51,7 +51,7 @@ class BackupSettings:
             folder=self.folder,
             on_close=self.on_close,
             interval=self.interval,
-            interval_hours=_clamp(self.interval_hours, INTERVAL_HOURS),
+            interval_minutes=_clamp(self.interval_minutes, INTERVAL_MINUTES),
             expire=self.expire,
             expire_days=_clamp(self.expire_days, EXPIRE_DAYS),
             keep_newest=_clamp(self.keep_newest, KEEP_NEWEST),

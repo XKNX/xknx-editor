@@ -226,8 +226,8 @@ msgstr "Vytvořit zálohu při zavření projektu"
 msgid "Create backups at regular intervals while a project is open"
 msgstr "Vytvářet zálohy v pravidelných intervalech, dokud je projekt otevřený"
 
-msgid "Interval in Hours"
-msgstr "Interval v hodinách"
+msgid "Interval in Minutes"
+msgstr "Interval v minutách"
 
 msgid "Delete old automatic backups"
 msgstr "Odstraňovat staré automatické zálohy"

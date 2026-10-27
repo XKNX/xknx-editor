@@ -226,8 +226,8 @@ msgstr "Δημιουργία αντιγράφου ασφαλείας όταν κ
 msgid "Create backups at regular intervals while a project is open"
 msgstr "Δημιουργία αντιγράφων ασφαλείας σε τακτά διαστήματα όσο ένα έργο είναι ανοιχτό"
 
-msgid "Interval in Hours"
-msgstr "Διάστημα σε ώρες"
+msgid "Interval in Minutes"
+msgstr "Διάστημα σε λεπτά"
 
 msgid "Delete old automatic backups"
 msgstr "Διαγραφή παλαιών αυτόματων αντιγράφων ασφαλείας"

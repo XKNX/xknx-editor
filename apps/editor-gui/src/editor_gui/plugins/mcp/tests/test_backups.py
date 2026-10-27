@@ -58,13 +58,13 @@ async def test_settings_are_read_and_changed(tmp_path: Path) -> None:
             "backup_set_settings",
             folder=folder,
             on_close=True,
-            interval_hours=0,
+            interval_minutes=0,
             keep_newest=5,
         )
         assert changed["folder"] == folder
         assert changed["effective_folder"] == folder
         assert changed["on_close"] is True
-        assert changed["interval_hours"] == 1
+        assert changed["interval_minutes"] == 5
         assert changed["keep_newest"] == 5
         assert changed["expire_days"] == 90
         assert (await _data(client, "backup_settings"))["on_close"] is True

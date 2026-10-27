@@ -226,8 +226,8 @@ msgstr "プロジェクトを閉じるときにバックアップを作成する
 msgid "Create backups at regular intervals while a project is open"
 msgstr "プロジェクトを開いている間、定期的にバックアップを作成する"
 
-msgid "Interval in Hours"
-msgstr "間隔（時間）"
+msgid "Interval in Minutes"
+msgstr "間隔（分）"
 
 msgid "Delete old automatic backups"
 msgstr "古い自動バックアップを削除する"

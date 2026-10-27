@@ -226,8 +226,8 @@ msgstr "关闭项目时创建备份"
 msgid "Create backups at regular intervals while a project is open"
 msgstr "项目打开期间定期创建备份"
 
-msgid "Interval in Hours"
-msgstr "间隔（小时）"
+msgid "Interval in Minutes"
+msgstr "间隔（分钟）"
 
 msgid "Delete old automatic backups"
 msgstr "删除旧的自动备份"

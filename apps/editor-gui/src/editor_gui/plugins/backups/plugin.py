@@ -18,7 +18,7 @@ from editor_gui import file_dialogs
 from editor_gui.plugins.backups.service import BackupJob, BackupService
 from editor_gui.plugins.backups.settings import (
     EXPIRE_DAYS,
-    INTERVAL_HOURS,
+    INTERVAL_MINUTES,
     KEEP_NEWEST,
     BackupSettings,
 )
@@ -705,11 +705,11 @@ class BackupsPlugin:
         draft["on_close"] = wrapped_checkbox(S.ON_CLOSE, draft["on_close"])[1]
         draft["interval"] = wrapped_checkbox(S.INTERVAL, draft["interval"])[1]
         imgui.begin_disabled(not draft["interval"])
-        draft["interval_hours"] = self._number(
-            S.INTERVAL_HOURS,
-            "##interval_hours",
-            draft["interval_hours"],
-            INTERVAL_HOURS,
+        draft["interval_minutes"] = self._number(
+            S.INTERVAL_MINUTES,
+            "##interval_minutes",
+            draft["interval_minutes"],
+            INTERVAL_MINUTES,
         )
         imgui.end_disabled()
         draft["expire"] = wrapped_checkbox(S.EXPIRE, draft["expire"])[1]

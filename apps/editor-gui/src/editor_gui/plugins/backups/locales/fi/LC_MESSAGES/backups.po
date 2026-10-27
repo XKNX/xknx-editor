@@ -226,8 +226,8 @@ msgstr "Luo varmuuskopio, kun projekti suljetaan"
 msgid "Create backups at regular intervals while a project is open"
 msgstr "Luo varmuuskopioita säännöllisin väliajoin, kun projekti on auki"
 
-msgid "Interval in Hours"
-msgstr "Väli tunteina"
+msgid "Interval in Minutes"
+msgstr "Väli minuutteina"
 
 msgid "Delete old automatic backups"
 msgstr "Poista vanhat automaattiset varmuuskopiot"
