@@ -74,3 +74,24 @@ ETS, programming individual address `1.1.4` from tool `15.15.4`:
 - A property write and a restart follow the loads.
 
 After the communication-bit and manufacturer fixes, the script reports `RESULT match` for that dump against the saved project.
+
+## Segments and LSM 5
+
+Hint: a RAM segment written, a missing `0x46C0`-style range in a partial download, or an LSM 5 event the device rejects.
+
+- An `AbsSegment` writes its image data only into EEPROM (`MemType & 3 == 3`). RAM (`1`, `2`) and other types are only allocated, in a full download as in a partial one (where the allocation becomes a `WriteMem`).
+- Every declared code segment is an image segment, also one with nothing to write (zero mask, no parameters): a `WriteMem` over it writes nothing.
+- `LdCtrlLoad` and `LdCtrlTaskSegment` of LSM 5 are dropped unless the mask has a `GroupObjectTableLoadControl` (only System B has one).
+- A control whose object index the mask does not list has no type; a partial download keeps it as it is.
+
+## System 300
+
+Hint: mask `MV-0300…`, Siemens HVAC (`M-00FD`) and similar.
+
+- The configuration is the one of the device's management descriptor (PID 72), e.g. `MV-0300-01000001000000000000`. An application naming plain `MV-0300` checks the descriptor with its first `LdCtrlCompareProp`; `device_mask_version` (`merge.py`) takes it from there.
+- `GroupObjectTable_System300` (descriptor `01000001…`): the tables are properties (`tables_system300.py`). OT1 PID 23 holds the group addresses (2 octets each, ascending, no count). OT2 PID 23 holds the links (`[address index + 1][object number]`, 2 or 4 octets per element as the device describes the property). OT9 PID 51 holds 6 octets per object `1..highest`, octet 1 the flags without bit 5, the rest from parameters. The product's `WriteProp` controls (`Count="0"`) get each table's element count, and an empty table is not written. PID 52 is written only with parameters, and a download without parameters leaves PID 51's other octets to the device.
+- The memory configuration (descriptor `01000000…`): `LsmIdx` n is object index n, PID 5. The table segments are RAM and are only allocated; the EEPROM segment `256..278` reaches the group address table's count octet at `278` (1 + group addresses), which is all that is written of the tables.
+
+## Module parameters with a BaseValue
+
+A module parameter whose `BaseValue` names an argument takes that argument's value: in the UI, for a `choose`, and in the download. Its own value, default or stored, does not count. An argument's own `BaseValue` adds to its value.
