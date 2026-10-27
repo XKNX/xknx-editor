@@ -49,15 +49,16 @@ class BusDiagramStrings:
     @property
     def BUS_DIAGRAM_LINKS_HINT(self) -> str:
         return _(
-            "Click to follow a device or group address, double-click to open a device. Drag to "
-            "move, {key}+scroll to zoom."
+            "Click to follow a device, channel or group address, double-click to open a device, "
+            "click the arrow of a device to list its group objects. Drag to move, {key}+scroll "
+            "to zoom."
         ).format(key=modifier_key())
 
     @property
     def BUS_DIAGRAM_LINKS_HINT_TOUCH(self) -> str:
         return _(
-            "Tap to follow a device or group address, double-tap to open a device. Zoom with two "
-            "fingers."
+            "Tap to follow a device, channel or group address, double-tap to open a device, tap "
+            "the arrow of a device to list its group objects. Zoom with two fingers."
         )
 
     @property
@@ -85,8 +86,32 @@ class BusDiagramStrings:
         return _("Device: {device}")
 
     @property
+    def BUS_DIAGRAM_SCOPE_CHANNELS(self) -> str:
+        return _("Channels")
+
+    @property
+    def BUS_DIAGRAM_SCOPE_CHANNEL(self) -> str:
+        return _("Channel: {channel} ({device})")
+
+    @property
     def BUS_DIAGRAM_SCOPE_GA(self) -> str:
         return _("Group Address: {address}")
+
+    @property
+    def BUS_DIAGRAM_OPEN_OBJECTS(self) -> str:
+        return _("List the group objects")
+
+    @property
+    def BUS_DIAGRAM_CLOSE_OBJECTS(self) -> str:
+        return _("Hide the group objects")
+
+    @property
+    def BUS_DIAGRAM_TIP_OBJECT(self) -> str:
+        return _("Group object {number}: {name}")
+
+    @property
+    def BUS_DIAGRAM_TIP_CHANNEL(self) -> str:
+        return _("Channel: {channel}")
 
     @property
     def BUS_DIAGRAM_BACK(self) -> str:

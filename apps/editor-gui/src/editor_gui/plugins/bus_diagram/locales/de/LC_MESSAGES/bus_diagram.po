@@ -85,11 +85,29 @@ msgstr "Applikation: {application}"
 msgid "Which devices talk to which over their group addresses: sending devices on the left, receiving devices on the right."
 msgstr "Welche Geräte über ihre Gruppenadressen miteinander sprechen: sendende Geräte links, empfangende Geräte rechts."
 
-msgid "Click to follow a device or group address, double-click to open a device. Drag to move, {key}+scroll to zoom."
-msgstr "Klicken, um einem Gerät oder einer Gruppenadresse zu folgen, Doppelklick öffnet ein Gerät. Ziehen zum Verschieben, {key}+Scrollen zum Zoomen."
+msgid "Click to follow a device, channel or group address, double-click to open a device, click the arrow of a device to list its group objects. Drag to move, {key}+scroll to zoom."
+msgstr "Klicken, um einem Gerät, Kanal oder einer Gruppenadresse zu folgen, Doppelklick öffnet ein Gerät, Klick auf den Pfeil eines Geräts listet seine Kommunikationsobjekte. Ziehen zum Verschieben, {key}+Scrollen zum Zoomen."
 
-msgid "Tap to follow a device or group address, double-tap to open a device. Zoom with two fingers."
-msgstr "Antippen, um einem Gerät oder einer Gruppenadresse zu folgen, doppelt antippen öffnet ein Gerät. Mit zwei Fingern zoomen."
+msgid "Tap to follow a device, channel or group address, double-tap to open a device, tap the arrow of a device to list its group objects. Zoom with two fingers."
+msgstr "Antippen, um einem Gerät, Kanal oder einer Gruppenadresse zu folgen, doppelt antippen öffnet ein Gerät, Antippen des Pfeils eines Geräts listet seine Kommunikationsobjekte. Mit zwei Fingern zoomen."
+
+msgid "Channels"
+msgstr "Kanäle"
+
+msgid "Channel: {channel} ({device})"
+msgstr "Kanal: {channel} ({device})"
+
+msgid "List the group objects"
+msgstr "Kommunikationsobjekte auflisten"
+
+msgid "Hide the group objects"
+msgstr "Kommunikationsobjekte ausblenden"
+
+msgid "Group object {number}: {name}"
+msgstr "Kommunikationsobjekt {number}: {name}"
+
+msgid "Channel: {channel}"
+msgstr "Kanal: {channel}"
 
 msgid "Drag to move, {key}+scroll to zoom. Click a device to open it."
 msgstr "Ziehen zum Verschieben, {key}+Scrollen zum Zoomen. Klicke ein Gerät, um es zu öffnen."

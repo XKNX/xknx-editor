@@ -252,6 +252,8 @@ def test_keys() -> None:
     assert imgui_key("ArrowLeft") == imgui.Key.left_arrow
     assert imgui_key("F12") == imgui.Key.f12
     assert imgui_key("ControlRight") == imgui.Key.right_ctrl
+    # A keyboard's Back key (e.g. Back in the Bus Diagram).
+    assert imgui_key("BrowserBack") == imgui.Key.app_back
     assert imgui_key("NoSuchKey") is None
 
 

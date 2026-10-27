@@ -57,6 +57,8 @@ _NAMED = {
     "NumpadSubtract": "keypad_subtract",
     "NumpadAdd": "keypad_add",
     "NumpadEqual": "keypad_equal",
+    "BrowserBack": "app_back",
+    "BrowserForward": "app_forward",
 }
 
 _KEYS: dict[str, imgui.Key] = {}

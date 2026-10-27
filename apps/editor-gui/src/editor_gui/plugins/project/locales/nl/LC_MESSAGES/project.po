@@ -1614,6 +1614,9 @@ msgstr "Apparaten vergelijken"
 msgid "Compare with…"
 msgstr "Vergelijken met…"
 
+msgid "Show in Bus Diagram"
+msgstr "Tonen in busdiagram"
+
 msgid "Device A"
 msgstr "Apparaat A"
 

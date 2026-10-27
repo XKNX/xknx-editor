@@ -31,11 +31,29 @@ msgstr "Зв'язки"
 msgid "Which devices talk to which over their group addresses: sending devices on the left, receiving devices on the right."
 msgstr "Які пристрої обмінюються даними між собою через групові адреси: передавальні пристрої ліворуч, приймальні праворуч."
 
-msgid "Click to follow a device or group address, double-click to open a device. Drag to move, {key}+scroll to zoom."
-msgstr "Клацніть, щоб простежити пристрій або групову адресу, подвійне клацання відкриває пристрій. Перетягніть, щоб переміщати, {key}+прокрутка для масштабування."
+msgid "Click to follow a device, channel or group address, double-click to open a device, click the arrow of a device to list its group objects. Drag to move, {key}+scroll to zoom."
+msgstr "Клацніть, щоб простежити пристрій, канал або групову адресу, подвійне клацання відкриває пристрій, клацання стрілки пристрою показує його групові об'єкти. Перетягніть, щоб переміщати, {key}+прокрутка для масштабування."
 
-msgid "Tap to follow a device or group address, double-tap to open a device. Zoom with two fingers."
-msgstr "Торкніться, щоб простежити пристрій або групову адресу, подвійний дотик відкриває пристрій. Масштабуйте двома пальцями."
+msgid "Tap to follow a device, channel or group address, double-tap to open a device, tap the arrow of a device to list its group objects. Zoom with two fingers."
+msgstr "Торкніться, щоб простежити пристрій, канал або групову адресу, подвійний дотик відкриває пристрій, дотик до стрілки пристрою показує його групові об'єкти. Масштабуйте двома пальцями."
+
+msgid "Channels"
+msgstr "Канали"
+
+msgid "Channel: {channel} ({device})"
+msgstr "Канал: {channel} ({device})"
+
+msgid "List the group objects"
+msgstr "Показати групові об'єкти"
+
+msgid "Hide the group objects"
+msgstr "Приховати групові об'єкти"
+
+msgid "Group object {number}: {name}"
+msgstr "Груповий об'єкт {number}: {name}"
+
+msgid "Channel: {channel}"
+msgstr "Канал: {channel}"
 
 msgid "No linked devices to show."
 msgstr "Немає зв'язаних пристроїв для показу."

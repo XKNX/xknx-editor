@@ -1164,6 +1164,9 @@ msgstr "Αντιγραφή Διαμόρφωσης"
 msgid "Compare with…"
 msgstr "Σύγκριση με…"
 
+msgid "Show in Bus Diagram"
+msgstr "Εμφάνιση στο διάγραμμα διαύλου"
+
 msgid "Compare Devices"
 msgstr "Σύγκριση Συσκευών"
 

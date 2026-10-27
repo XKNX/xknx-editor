@@ -1164,6 +1164,9 @@ msgstr "Copia configurazione"
 msgid "Compare with…"
 msgstr "Confronta con…"
 
+msgid "Show in Bus Diagram"
+msgstr "Mostra nello schema del bus"
+
 msgid "Compare Devices"
 msgstr "Confronta Dispositivi"
 

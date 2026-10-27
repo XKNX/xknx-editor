@@ -31,11 +31,29 @@ msgstr "链接"
 msgid "Which devices talk to which over their group addresses: sending devices on the left, receiving devices on the right."
 msgstr "哪些设备通过其组地址相互通信：左侧为发送设备，右侧为接收设备。"
 
-msgid "Click to follow a device or group address, double-click to open a device. Drag to move, {key}+scroll to zoom."
-msgstr "单击以跟踪设备或组地址，双击以打开设备。拖动以移动，{key}+滚轮缩放。"
+msgid "Click to follow a device, channel or group address, double-click to open a device, click the arrow of a device to list its group objects. Drag to move, {key}+scroll to zoom."
+msgstr "单击以跟踪设备、通道或组地址，双击以打开设备，单击设备的箭头以列出其组对象。拖动以移动，{key}+滚轮缩放。"
 
-msgid "Tap to follow a device or group address, double-tap to open a device. Zoom with two fingers."
-msgstr "点按以跟踪设备或组地址，点按两次以打开设备。用两指缩放。"
+msgid "Tap to follow a device, channel or group address, double-tap to open a device, tap the arrow of a device to list its group objects. Zoom with two fingers."
+msgstr "点按以跟踪设备、通道或组地址，点按两次以打开设备，点按设备的箭头以列出其组对象。用两指缩放。"
+
+msgid "Channels"
+msgstr "通道"
+
+msgid "Channel: {channel} ({device})"
+msgstr "通道：{channel}（{device}）"
+
+msgid "List the group objects"
+msgstr "列出组对象"
+
+msgid "Hide the group objects"
+msgstr "隐藏组对象"
+
+msgid "Group object {number}: {name}"
+msgstr "组对象 {number}：{name}"
+
+msgid "Channel: {channel}"
+msgstr "通道：{channel}"
 
 msgid "No linked devices to show."
 msgstr "没有可显示的已链接设备。"

@@ -168,6 +168,7 @@ class SpacesPanel:
         count_paste_targets: Callable[[int], int] | None = None,
         on_device_info: Callable[[int], None] | None = None,
         on_compare: Callable[[int], None] | None = None,
+        on_show_links: Callable[[int], None] | None = None,
         on_select_element: Callable[[str, int], None] = lambda _k, _i: None,
         get_selected_node_id: Callable[[], int | None] | None = None,
         get_trade_tree: "Callable[[], list[TradeInfo]]" = list,
@@ -251,6 +252,8 @@ class SpacesPanel:
         self._can_paste_config_cb = can_paste_config
         self._on_device_info = on_device_info
         self._on_compare = on_compare
+        # "Show in Bus Diagram": a device (by id) in the Bus Diagram's Links view.
+        self._on_show_links = on_show_links
         # Node id of the globally selected device, so this tree highlights the matching leaf.
         self._get_selected_node_id = get_selected_node_id
         self._config_dialog = DeviceConfigDialog(
@@ -934,6 +937,7 @@ class SpacesPanel:
             or (trade_id is not None and self._on_remove_trade_device is not None)
             or self._on_copy_config is not None
             or self._on_compare is not None
+            or self._on_show_links is not None
             or self._paste_dialog is not None
             or self._on_delete_device is not None
         )
@@ -970,6 +974,12 @@ class SpacesPanel:
                 and imgui.menu_item(S.CONTEXT_COMPARE_DEVICE, "", False)[0]
             ):
                 self._on_compare(device.id)
+            if (
+                self._on_show_links is not None
+                and groups.show()
+                and imgui.menu_item(S.CONTEXT_SHOW_IN_BUS_DIAGRAM, "", False)[0]
+            ):
+                self._on_show_links(device.id)
             # "Unlink" takes the device out of the trade or the building part it shows in.
             if (
                 trade_id is not None

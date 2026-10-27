@@ -31,11 +31,29 @@ msgstr "リンク"
 msgid "Which devices talk to which over their group addresses: sending devices on the left, receiving devices on the right."
 msgstr "どのデバイスがグループ・アドレスを介してどのデバイスと通信しているか：送信デバイスは左、受信デバイスは右です。"
 
-msgid "Click to follow a device or group address, double-click to open a device. Drag to move, {key}+scroll to zoom."
-msgstr "クリックでデバイスまたはグループ・アドレスをたどり、ダブルクリックでデバイスを開きます。ドラッグで移動、{key}+スクロールでズーム。"
+msgid "Click to follow a device, channel or group address, double-click to open a device, click the arrow of a device to list its group objects. Drag to move, {key}+scroll to zoom."
+msgstr "クリックでデバイス、チャンネルまたはグループ・アドレスをたどり、ダブルクリックでデバイスを開き、デバイスの矢印をクリックするとそのグループ・オブジェクトを一覧表示します。ドラッグで移動、{key}+スクロールでズーム。"
 
-msgid "Tap to follow a device or group address, double-tap to open a device. Zoom with two fingers."
-msgstr "タップでデバイスまたはグループ・アドレスをたどり、ダブルタップでデバイスを開きます。2本指でズームします。"
+msgid "Tap to follow a device, channel or group address, double-tap to open a device, tap the arrow of a device to list its group objects. Zoom with two fingers."
+msgstr "タップでデバイス、チャンネルまたはグループ・アドレスをたどり、ダブルタップでデバイスを開き、デバイスの矢印をタップするとそのグループ・オブジェクトを一覧表示します。2本指でズームします。"
+
+msgid "Channels"
+msgstr "チャンネル"
+
+msgid "Channel: {channel} ({device})"
+msgstr "チャンネル：{channel}（{device}）"
+
+msgid "List the group objects"
+msgstr "グループ・オブジェクトを一覧表示"
+
+msgid "Hide the group objects"
+msgstr "グループ・オブジェクトを隠す"
+
+msgid "Group object {number}: {name}"
+msgstr "グループ・オブジェクト {number}：{name}"
+
+msgid "Channel: {channel}"
+msgstr "チャンネル：{channel}"
 
 msgid "No linked devices to show."
 msgstr "表示するリンク済みデバイスがありません。"

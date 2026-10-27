@@ -88,11 +88,29 @@ msgstr "Applicatie: {application}"
 msgid "Which devices talk to which over their group addresses: sending devices on the left, receiving devices on the right."
 msgstr "Welke apparaten via hun groepsadressen met elkaar praten: zendende apparaten links, ontvangende apparaten rechts."
 
-msgid "Click to follow a device or group address, double-click to open a device. Drag to move, {key}+scroll to zoom."
-msgstr "Klik om een apparaat of groepsadres te volgen, dubbelklik om een apparaat te openen. Sleep om te verschuiven, {key}+scrollen om te zoomen."
+msgid "Click to follow a device, channel or group address, double-click to open a device, click the arrow of a device to list its group objects. Drag to move, {key}+scroll to zoom."
+msgstr "Klik om een apparaat, kanaal of groepsadres te volgen, dubbelklik om een apparaat te openen, klik op de pijl van een apparaat om zijn groepsobjecten te tonen. Sleep om te verschuiven, {key}+scrollen om te zoomen."
 
-msgid "Tap to follow a device or group address, double-tap to open a device. Zoom with two fingers."
-msgstr "Tik om een apparaat of groepsadres te volgen, dubbeltik om een apparaat te openen. Zoom met twee vingers."
+msgid "Tap to follow a device, channel or group address, double-tap to open a device, tap the arrow of a device to list its group objects. Zoom with two fingers."
+msgstr "Tik om een apparaat, kanaal of groepsadres te volgen, dubbeltik om een apparaat te openen, tik op de pijl van een apparaat om zijn groepsobjecten te tonen. Zoom met twee vingers."
+
+msgid "Channels"
+msgstr "Kanalen"
+
+msgid "Channel: {channel} ({device})"
+msgstr "Kanaal: {channel} ({device})"
+
+msgid "List the group objects"
+msgstr "Groepsobjecten tonen"
+
+msgid "Hide the group objects"
+msgstr "Groepsobjecten verbergen"
+
+msgid "Group object {number}: {name}"
+msgstr "Groepsobject {number}: {name}"
+
+msgid "Channel: {channel}"
+msgstr "Kanaal: {channel}"
 
 msgid "Drag to move, {key}+scroll to zoom. Click a device to open it."
 msgstr "Sleep om te verschuiven, {key}+scrollen om te zoomen. Klik op een apparaat om het te openen."

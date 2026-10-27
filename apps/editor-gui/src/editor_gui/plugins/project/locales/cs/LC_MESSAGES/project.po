@@ -1164,6 +1164,9 @@ msgstr "Kopírovat konfiguraci"
 msgid "Compare with…"
 msgstr "Porovnat s…"
 
+msgid "Show in Bus Diagram"
+msgstr "Zobrazit v diagramu sběrnice"
+
 msgid "Compare Devices"
 msgstr "Porovnat zařízení"
 

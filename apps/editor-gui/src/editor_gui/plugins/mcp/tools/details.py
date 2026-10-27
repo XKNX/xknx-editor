@@ -16,8 +16,11 @@ from typing import TYPE_CHECKING, Any, Literal
 from fastmcp.exceptions import ToolError
 
 from editor_gui.plugins.bus_diagram.flow import (
+    GroupObject,
+    Member,
     Scope,
     address_key,
+    device_group_objects,
     in_scope,
     project_hubs,
 )
@@ -634,9 +637,12 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         group_address: str | None = None,
         main_group: int | None = None,
         space_id: int | None = None,
+        channel: str | None = None,
+        with_group_objects: bool = False,
     ) -> dict[str, Any]:
         """Which devices talk to which over their group addresses, as the Bus Diagram's Links
-        view shows it: per group address the devices that send on it and those that receive it.
+        view shows it: per group address the devices that send on it and those that receive it,
+        and through which of their group objects (in which channel).
 
         A device SENDS on a group address when its group object has Transmit and the link is its
         sending one; it RECEIVES when the object has Write or Update. Only objects with
@@ -645,6 +651,9 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         Without a scope the whole project is listed; pass at most one scope:
         - a device (node_id, or device_address: an individual address like "1.0.30"): the group
           addresses it sends or receives on;
+        - a channel of a device: the device as above plus channel (the channel's id or its name,
+          as the group_objects of the device list them): the group addresses the channel's
+          group objects send or receive on;
         - a group address (group_address_id, or group_address: a printed address like "10/1/2"):
           that one, also with a single device;
         - main_group (e.g. 1): the group addresses of that main group;
@@ -655,8 +664,12 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         Returns {items, count} in address order; each item has {group_address_id, group_address,
         name, senders, receivers}, senders and receivers being lists of {node_id,
-        individual_address, name}. A device that sends and receives is in both. Use
-        project_list_links for the raw links and their flags."""
+        individual_address, name}. A device that sends and receives is in both. The device of a
+        device or channel scope, and every device with with_group_objects=true, also has
+        group_objects: the group objects it sends or receives with there, each {db_id, number,
+        name, channel} with channel {id, name} or null (the channels come from the device's
+        parameters, so with_group_objects is slower on a whole project). Use project_list_links
+        for the raw links and their flags."""
         require_project(ctx)
 
         def _read() -> list[dict[str, Any]]:
@@ -667,11 +680,41 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                     "pass at most one scope: a device, a group address, main_group or "
                     "space_id"
                 )
-            rooms: dict[str, set[int]] = {}
-            if device:
-                scope = Scope(
-                    "device", require_device(project, node_id, device_address).node_id
+            if channel is not None and not device:
+                raise ToolError(
+                    "channel needs its device: pass node_id or device_address as well"
                 )
+            rooms: dict[str, set[int]] = {}
+            objects: dict[int, dict[int, GroupObject]] = {}
+
+            def group_objects(nid: int) -> dict[int, GroupObject]:
+                if nid not in objects:
+                    found = project.find_device_by_node_id(nid)
+                    objects[nid] = (
+                        device_group_objects(found) if found is not None else {}
+                    )
+                return objects[nid]
+
+            chosen: int | None = None
+            if device:
+                chosen = require_device(project, node_id, device_address).node_id
+                scope = Scope("device", chosen)
+                if channel is not None:
+                    known = {
+                        (o.channel, o.channel_label)
+                        for o in group_objects(chosen).values()
+                        if o.channel
+                    }
+                    match = next(
+                        (c for c, label in sorted(known) if channel in (c, label)), None
+                    )
+                    if match is None:
+                        names = ", ".join(sorted({label for _c, label in known}))
+                        raise ToolError(
+                            f"the device has no channel {channel!r}; its channels: "
+                            f"{names or 'none'}"
+                        )
+                    scope = Scope("channel", chosen, match)
             elif ga:
                 scope = Scope(
                     "ga",
@@ -689,30 +732,47 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                 rooms[str(space_id)] = placed
             else:
                 scope = Scope("all")
-            hubs, _inside = in_scope(project_hubs(project), scope, rooms)
+            hubs, _inside = in_scope(project_hubs(project), scope, rooms, objects)
             devices = {d.node_id: d for d in project.devices}
 
-            def entry(nid: int) -> dict[str, Any]:
-                d = devices.get(nid)
-                return {
-                    "node_id": nid,
+            def entry(member: Member, index: int) -> dict[str, Any]:
+                d = devices.get(member.node_id)
+                out: dict[str, Any] = {
+                    "node_id": member.node_id,
                     "individual_address": (d.individual_address or None) if d else None,
                     "name": d.name if d else "",
                 }
+                if with_group_objects or member.node_id == chosen:
+                    own = group_objects(member.node_id)
+                    listed: list[dict[str, Any]] = []
+                    for link in member.objects:
+                        if not link[index]:
+                            continue
+                        o = own.get(link[0])
+                        listed.append(
+                            {
+                                "db_id": link[0],
+                                "number": o.number if o else None,
+                                "name": o.name if o else "",
+                                "channel": {"id": o.channel, "name": o.channel_label}
+                                if o and o.channel
+                                else None,
+                            }
+                        )
+                    out["group_objects"] = sorted(
+                        listed, key=lambda g: (g["number"] is None, g["number"] or 0)
+                    )
+                return out
 
             return [
                 {
-                    "group_address_id": ga_id,
-                    "group_address": address,
-                    "name": name,
-                    "senders": [entry(nid) for nid, sends, _r in parts if sends],
-                    "receivers": [
-                        entry(nid) for nid, _s, receives in parts if receives
-                    ],
+                    "group_address_id": hub.ga_id,
+                    "group_address": hub.address,
+                    "name": hub.name,
+                    "senders": [entry(m, 1) for m in hub.members if m.sends],
+                    "receivers": [entry(m, 2) for m in hub.members if m.receives],
                 }
-                for ga_id, address, name, parts in sorted(
-                    hubs, key=lambda hub: address_key(hub[1])
-                )
+                for hub in sorted(hubs, key=lambda hub: address_key(hub.address))
             ]
 
         rows = ctx.run_locked(_read)

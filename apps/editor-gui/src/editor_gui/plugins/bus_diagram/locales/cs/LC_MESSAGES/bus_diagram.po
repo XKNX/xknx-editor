@@ -31,11 +31,29 @@ msgstr "Propojení"
 msgid "Which devices talk to which over their group addresses: sending devices on the left, receiving devices on the right."
 msgstr "Která zařízení spolu komunikují přes své skupinové adresy: vysílající zařízení vlevo, přijímající vpravo."
 
-msgid "Click to follow a device or group address, double-click to open a device. Drag to move, {key}+scroll to zoom."
-msgstr "Kliknutím sledujete zařízení nebo skupinovou adresu, dvojklikem otevřete zařízení. Tažením posunete, {key}+kolečko mění zvětšení."
+msgid "Click to follow a device, channel or group address, double-click to open a device, click the arrow of a device to list its group objects. Drag to move, {key}+scroll to zoom."
+msgstr "Kliknutím sledujete zařízení, kanál nebo skupinovou adresu, dvojklikem otevřete zařízení, kliknutím na šipku zařízení zobrazíte jeho skupinové objekty. Tažením posunete, {key}+kolečko mění zvětšení."
 
-msgid "Tap to follow a device or group address, double-tap to open a device. Zoom with two fingers."
-msgstr "Klepnutím sledujete zařízení nebo skupinovou adresu, dvojitým klepnutím otevřete zařízení. Zvětšení dvěma prsty."
+msgid "Tap to follow a device, channel or group address, double-tap to open a device, tap the arrow of a device to list its group objects. Zoom with two fingers."
+msgstr "Klepnutím sledujete zařízení, kanál nebo skupinovou adresu, dvojitým klepnutím otevřete zařízení, klepnutím na šipku zařízení zobrazíte jeho skupinové objekty. Zvětšení dvěma prsty."
+
+msgid "Channels"
+msgstr "Kanály"
+
+msgid "Channel: {channel} ({device})"
+msgstr "Kanál: {channel} ({device})"
+
+msgid "List the group objects"
+msgstr "Zobrazit skupinové objekty"
+
+msgid "Hide the group objects"
+msgstr "Skrýt skupinové objekty"
+
+msgid "Group object {number}: {name}"
+msgstr "Skupinový objekt {number}: {name}"
+
+msgid "Channel: {channel}"
+msgstr "Kanál: {channel}"
 
 msgid "No linked devices to show."
 msgstr "Žádná propojená zařízení k zobrazení."

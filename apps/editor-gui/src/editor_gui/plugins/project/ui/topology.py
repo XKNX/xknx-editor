@@ -169,6 +169,7 @@ class TopologyPanel:
         get_unloaded_devices: Callable[[], list[UnloadedDevice]] = lambda: [],
         on_device_info: Callable[[int], None] | None = None,
         on_compare: Callable[[int], None] | None = None,
+        on_show_links: Callable[[int], None] | None = None,
         on_select_element: Callable[[str, int], None] = lambda _k, _i: None,
         get_selected_topology: Callable[[], tuple[str, int] | None] = lambda: None,
         get_device_segments: Callable[[], dict[int, int]] = dict,
@@ -200,7 +201,8 @@ class TopologyPanel:
         ``on_move_line`` puts a sub line (id) into an area (id), ``on_move_segment`` a
         sub-segment (id) onto a line (id); ``one_undo_step`` makes the edits of one drop one
         undo step; ``paste_dialog`` asks how to copy what is dropped with Ctrl held (no copies
-        without it); ``on_unlink_device`` takes a device (by id) off its line ("Unlink").
+        without it); ``on_unlink_device`` takes a device (by id) off its line ("Unlink");
+        ``on_show_links`` shows a device (by id) in the Bus Diagram's Links view.
         ``notify`` tells why something was not added."""
         self._get_devices = get_devices
         self._get_new_line_media = get_new_line_media
@@ -225,6 +227,7 @@ class TopologyPanel:
         self._get_selected_topology = get_selected_topology
         self._on_device_info = on_device_info
         self._on_compare = on_compare
+        self._on_show_links = on_show_links
         self._get_unloaded_devices = get_unloaded_devices
         self._get_areas = get_areas
         self._get_lines = get_lines
@@ -742,6 +745,13 @@ class TopologyPanel:
                 and imgui.menu_item(S.CONTEXT_COMPARE_DEVICE, "", False)[0]
             ):
                 self._on_compare(device.node_id)
+            if (
+                not several
+                and self._on_show_links is not None
+                and groups.show()
+                and imgui.menu_item(S.CONTEXT_SHOW_IN_BUS_DIAGRAM, "", False)[0]
+            ):
+                self._on_show_links(device.node_id)
             self._render_unlink_item(dragged.ids, groups.show)
             # Devices pasted on a device go to its segment.
             segment = self._get_device_segments().get(device.node_id)

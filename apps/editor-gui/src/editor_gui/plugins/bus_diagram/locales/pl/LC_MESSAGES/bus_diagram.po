@@ -31,11 +31,29 @@ msgstr "Powiązania"
 msgid "Which devices talk to which over their group addresses: sending devices on the left, receiving devices on the right."
 msgstr "Które urządzenia komunikują się ze sobą przez adresy grupowe: urządzenia nadające po lewej, odbierające po prawej."
 
-msgid "Click to follow a device or group address, double-click to open a device. Drag to move, {key}+scroll to zoom."
-msgstr "Kliknięcie śledzi urządzenie lub adres grupowy, dwukrotne kliknięcie otwiera urządzenie. Przeciągnij, aby przesunąć, {key}+kółko, aby powiększyć."
+msgid "Click to follow a device, channel or group address, double-click to open a device, click the arrow of a device to list its group objects. Drag to move, {key}+scroll to zoom."
+msgstr "Kliknięcie śledzi urządzenie, kanał lub adres grupowy, dwukrotne kliknięcie otwiera urządzenie, kliknięcie strzałki urządzenia wyświetla jego obiekty grupy. Przeciągnij, aby przesunąć, {key}+kółko, aby powiększyć."
 
-msgid "Tap to follow a device or group address, double-tap to open a device. Zoom with two fingers."
-msgstr "Dotknięcie śledzi urządzenie lub adres grupowy, dwukrotne dotknięcie otwiera urządzenie. Powiększanie dwoma palcami."
+msgid "Tap to follow a device, channel or group address, double-tap to open a device, tap the arrow of a device to list its group objects. Zoom with two fingers."
+msgstr "Dotknięcie śledzi urządzenie, kanał lub adres grupowy, dwukrotne dotknięcie otwiera urządzenie, dotknięcie strzałki urządzenia wyświetla jego obiekty grupy. Powiększanie dwoma palcami."
+
+msgid "Channels"
+msgstr "Kanały"
+
+msgid "Channel: {channel} ({device})"
+msgstr "Kanał: {channel} ({device})"
+
+msgid "List the group objects"
+msgstr "Pokaż obiekty grupy"
+
+msgid "Hide the group objects"
+msgstr "Ukryj obiekty grupy"
+
+msgid "Group object {number}: {name}"
+msgstr "Obiekt grupy {number}: {name}"
+
+msgid "Channel: {channel}"
+msgstr "Kanał: {channel}"
 
 msgid "No linked devices to show."
 msgstr "Brak połączonych urządzeń do wyświetlenia."
