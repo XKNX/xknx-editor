@@ -34,6 +34,10 @@ from xknx.telegram.apci import (
     FunctionPropertyCommand,
     FunctionPropertyStateRead,
     FunctionPropertyStateResponse,
+    MemoryExtendedRead,
+    MemoryExtendedReadResponse,
+    MemoryExtendedWrite,
+    MemoryExtendedWriteResponse,
     MemoryRead,
     MemoryResponse,
     MemoryWrite,
@@ -59,6 +63,7 @@ from xknx.telegram.apci import (
 )
 
 from . import load_state
+from .crc import segment_crc
 from .errors import (
     RESOURCE_READ_PROTECTED_ERROR,
     RESOURCE_WRITE_PROTECTED_ERROR,
@@ -124,6 +129,16 @@ _MAX_OBJECT_INDEX = 255
 _USER_MEMORY_BOUNDARY = 0x10000
 # A_UserMemory_Read/Write encode the octet count in 4 bits.
 _MAX_USER_MEMORY_CHUNK = 0xF
+# A_MemoryExtended_Read/Write (KNX 3/3/7 3.4.9): an 8-bit count and a 24-bit address after
+# the APCI.
+_EXTENDED_MEMORY_OVERHEAD = 5
+_MAX_EXTENDED_MEMORY_CHUNK = 0xFF
+_EXTENDED_MEMORY_END = 0x1000000
+_STANDARD_MEMORY_END = 0x100000
+# Return codes of the extended memory responses: from 0x80 on an error, 1 a success with
+# a CRC over the written count, address and data in the confirmation.
+_RETURN_CODE_ERROR = 0x80
+_RETURN_CODE_SUCCESS_WITH_CRC = 0x01
 
 
 def negotiated_apdu_length(
@@ -208,6 +223,13 @@ class DeviceProgrammer:
         # Upper bound on the classic memory-service payload. Defaults to the protocol
         # maximum so the chunk follows the negotiated APDU; a no-ACK fallback lowers it.
         self.max_memory_service_count: int = _MAX_MEMORY_CHUNK
+        # The device's application takes A_MemoryExtended_Read/Write (24-bit addresses):
+        # writes always use them then, reads when the APDU is longer than 15 octets or the
+        # range ends above 64 KiB (see ``memory_services``).
+        self.extended_memory = False
+        # A failed extended memory service switches to the standard ones for the rest of the
+        # connection and is repeated with them (applications that ask for it).
+        self.extended_memory_fallback = False
 
     def skip_property_verify_probe(self) -> None:
         """Treat memory auto-verify as off without reading PID 14.
@@ -466,7 +488,9 @@ class DeviceProgrammer:
         cross it is cut at the boundary.
         """
         limit = (
-            self._payload_budget(4, 15)
+            self._payload_budget(
+                4, min(_MAX_USER_MEMORY_CHUNK, self.max_memory_service_count)
+            )
             if address >= _USER_MEMORY_BOUNDARY
             else self.memory_chunk_size
         )
@@ -475,8 +499,95 @@ class DeviceProgrammer:
             count = _USER_MEMORY_BOUNDARY - address
         return count
 
+    def _reads_extended(self, address: int, size: int) -> bool:
+        """Whether a read takes A_MemoryExtended_Read: the device takes it, and the APDU is
+        longer than a standard frame or the range ends above 64 KiB (a short read below it
+        stays on A_Memory_Read)."""
+        return self.extended_memory and (
+            self.max_apdu_length > DEFAULT_MAX_APDU_LENGTH
+            or address + size > _USER_MEMORY_BOUNDARY
+        )
+
+    async def _with_fallback(
+        self,
+        extended: Callable[[], Awaitable[_T]],
+        standard: Callable[[], Awaitable[_T]],
+    ) -> _T:
+        """Run ``extended``; when it fails and the device asks for it, switch to the standard
+        services for the rest of the connection and run ``standard`` instead."""
+        try:
+            return await extended()
+        except (DownloadError, ManagementConnectionError) as exc:
+            if not self.extended_memory_fallback:
+                raise
+            logger.warning(
+                "extended memory service did not work, falling back to the standard "
+                "memory services [%s]: %s",
+                self.diagnostic_context,
+                exc,
+            )
+            self.extended_memory = False
+            return await standard()
+
     async def read_memory(self, address: int, size: int) -> bytes:
-        """Read ``size`` octets starting at ``address``, chunked to the APDU length.
+        """Read ``size`` octets starting at ``address``, chunked to the APDU length, with
+        A_MemoryExtended_Read when the device takes it (see ``_reads_extended``), else with
+        A_Memory_Read below 64 KiB and A_UserMemory_Read above."""
+        if self._reads_extended(address, size):
+            return await self._with_fallback(
+                lambda: self._read_extended(address, size),
+                lambda: self._read_standard(address, size),
+            )
+        return await self._read_standard(address, size)
+
+    async def _read_extended(self, address: int, size: int) -> bytes:
+        """Read with A_MemoryExtended_Read; a return code from 0x80 on is an error."""
+        self._validate_memory_range(address, size, _EXTENDED_MEMORY_END)
+        result = bytearray()
+        offset = 0
+        logger.debug("read_memory (extended): addr=%#08x size=%d", address, size)
+        while offset < size:
+            data = await self._read_extended_block(
+                address + offset, min(self._extended_chunk_size, size - offset)
+            )
+            result.extend(data)
+            offset += len(data)
+        return bytes(result)
+
+    async def _read_extended_block(self, address: int, count: int) -> bytes:
+        """Read one block with A_MemoryExtended_Read: at least one and at most ``count``
+        octets."""
+        request = MemoryExtendedRead(count=count, address=address)
+        telegram = await self._retry_transient(
+            lambda: self.connection.request(request, MemoryExtendedReadResponse)
+        )
+        payload = telegram.payload
+        if not isinstance(payload, MemoryExtendedReadResponse):
+            raise VerificationError(f"no memory response for address {address:#08x}")
+        if payload.return_code >= _RETURN_CODE_ERROR:
+            raise VerificationError(
+                f"memory read at {address:#08x} refused "
+                f"(return code {payload.return_code:#04x})"
+            )
+        if payload.address != address:
+            raise VerificationError(
+                f"memory response address mismatch at {address:#08x}"
+            )
+        if not payload.data or len(payload.data) > count:
+            raise VerificationError(
+                f"memory response at {address:#08x}: asked {count} "
+                f"got {len(payload.data)}"
+            )
+        return payload.data
+
+    @property
+    def _extended_chunk_size(self) -> int:
+        return self._payload_budget(
+            _EXTENDED_MEMORY_OVERHEAD, _MAX_EXTENDED_MEMORY_CHUNK
+        )
+
+    async def _read_standard(self, address: int, size: int) -> bytes:
+        """Read with A_Memory_Read / A_UserMemory_Read.
 
         Tolerant of a device that answers an A_Memory_Read with fewer octets than
         requested (some cap the reply below the negotiated APDU): the returned
@@ -557,7 +668,80 @@ class DeviceProgrammer:
     async def write_memory(
         self, address: int, data: bytes, *, verify: bool = False
     ) -> None:
-        """Write ``data`` starting at ``address``, chunked to the APDU length.
+        """Write ``data`` starting at ``address``, chunked to the APDU length, with
+        A_MemoryExtended_Write when the device takes it, else with A_Memory_Write below
+        64 KiB and A_UserMemory_Write above."""
+        if self.extended_memory:
+            await self._with_fallback(
+                lambda: self._write_extended(address, data, verify=verify),
+                lambda: self._write_standard(address, data, verify=verify),
+            )
+            return
+        await self._write_standard(address, data, verify=verify)
+
+    async def _write_extended(
+        self, address: int, data: bytes, *, verify: bool = False
+    ) -> None:
+        """Write with A_MemoryExtended_Write. Each block is confirmed by the device: a return
+        code from 0x80 on is an error; with ``verify`` (or memory auto-verify), a
+        confirmation with a CRC must match the CRC over the block's count, address and
+        data. Nothing is read back."""
+        self._validate_memory_range(address, len(data), _EXTENDED_MEMORY_END)
+        offset = 0
+        logger.debug(
+            "write_memory (extended): addr=%#08x len=%d verify=%s",
+            address,
+            len(data),
+            verify,
+        )
+        while offset < len(data):
+            block = data[offset : offset + self._extended_chunk_size]
+            await self._write_extended_block(
+                address + offset, block, verify=verify or self.memory_auto_verify
+            )
+            offset += len(block)
+
+    async def _write_extended_block(
+        self, address: int, block: bytes, *, verify: bool
+    ) -> None:
+        """Write one block with A_MemoryExtended_Write and check its confirmation."""
+        request = MemoryExtendedWrite(address=address, data=block)
+        try:
+            telegram = await self._retry_transient(
+                lambda: self.connection.request(request, MemoryExtendedWriteResponse)
+            )
+        except ManagementConnectionError as exc:
+            raise MemoryWriteNotAcknowledged(
+                f"{exc} while writing memory {address:#08x} "
+                f"({len(block)} byte(s)) [{self.diagnostic_context}]"
+            ) from exc
+        response = telegram.payload
+        if not isinstance(response, MemoryExtendedWriteResponse):
+            raise VerificationError(f"no memory write response at {address:#08x}")
+        if response.return_code >= _RETURN_CODE_ERROR:
+            raise VerificationError(
+                f"memory write at {address:#08x} refused "
+                f"(return code {response.return_code:#04x})"
+            )
+        if response.address != address:
+            raise VerificationError(
+                f"memory write response address mismatch at {address:#08x}"
+            )
+        if verify and response.return_code == _RETURN_CODE_SUCCESS_WITH_CRC:
+            expected = segment_crc(
+                bytes([len(block)]) + address.to_bytes(3, "big") + block
+            )
+            received = int.from_bytes(response.confirmation_data[:2], "big")
+            if received != expected:
+                raise CompareMismatch(
+                    f"memory verification failed at {address:#08x}: "
+                    f"CRC {received:04X} instead of {expected:04X}"
+                )
+
+    async def _write_standard(
+        self, address: int, data: bytes, *, verify: bool = False
+    ) -> None:
+        """Write with A_Memory_Write / A_UserMemory_Write.
 
         With memory auto-verify enabled, consume and validate every write echo.
         Otherwise ``verify`` reads each block back and compares it immediately.
@@ -577,7 +761,7 @@ class DeviceProgrammer:
             block = data[offset : offset + count]
             await self._write_block(block_address, block)
             if verify and not self.memory_auto_verify:
-                read_back = await self.read_memory(block_address, len(block))
+                read_back = await self._read_standard(block_address, len(block))
                 if read_back != block:
                     raise CompareMismatch(
                         f"memory verification failed at {block_address:#06x}: "
@@ -586,10 +770,21 @@ class DeviceProgrammer:
             offset += count
 
     @staticmethod
-    def _validate_memory_range(address: int, size: int) -> None:
-        if address < 0 or size < 0 or address + size > 0x100000:
+    def _validate_memory_range(
+        address: int, size: int, end: int = _STANDARD_MEMORY_END
+    ) -> None:
+        """Refuse a range past ``end``: the 20-bit address of A_UserMemory_Read/Write, or
+        the 24-bit one of the extended memory services."""
+        if address < 0 or size < 0 or address + size > end:
+            bits = 24 if end == _EXTENDED_MEMORY_END else 20
             raise VerificationError(
-                "memory range exceeds supported 20-bit address space"
+                f"memory range {address:#x}+{size} exceeds the {bits}-bit address space"
+                + (
+                    ""
+                    if bits == 24
+                    else " (the device's application does not declare the extended "
+                    "memory services)"
+                )
             )
 
     def _connection_failure(

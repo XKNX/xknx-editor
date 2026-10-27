@@ -51,6 +51,18 @@ Load control on that property-mapped mask is `PID_LOAD_STATE_CONTROL`, including
 
 The Merten 4806 procedure also lists an LSM 5 task segment and load after the restart. MV-0705 publishes no PEI LoadStatus, and ETS does not send them. Object 5 is `FirstAppObjectIdx`; a property write of PID 5 there is rejected with zero elements. Skip that LSM. A byte compare can still report `RESULT match`.
 
+## Memory services
+
+Hint: `MemoryExtendedWrite` / `MemoryExtendedRead` in the recording, or a memory range above 64 KiB (a System B relative segment whose `PID_TABLE_REFERENCE` is high, e.g. Zennio).
+
+The application decides, not the mask: `Options/@SupportsExtendedMemoryServices="true"` or a secure application (`IsSecureEnabled`) means the device takes A_MemoryExtended_Read/Write (24-bit address, 8-bit count, 5 octets overhead, up to 255 octets). `memory_services` in `procedure.py` reads that; `DeviceProgrammer.extended_memory` uses it.
+
+- Writes always use the extended service then. Reads only when the APDU is longer than 15 octets or the range ends above 64 KiB; a short read below it stays A_Memory_Read.
+- A return code from `0x80` on is an error. Code `1` carries a CRC16 (`segment_crc`: CCITT, the augmented form, over count, 3-octet address and data), checked when the write is verified. Extended writes are never read back.
+- Without the extended services: A_Memory below 64 KiB, A_UserMemory above (20 bits).
+- Zennio applications (`M-0071`) fall back to the standard services for the rest of the connection when an extended service fails (`extended_memory_fallback`).
+- MDT presence detectors (`M-0083`, application numbers 100–103, 106, 107) take at most 12 octets per standard (and user) memory service (`MemoryServices.max_count`).
+
 ## What a matching Berker 8014 download contains
 
 ETS, programming individual address `1.1.4` from tool `15.15.4`:
