@@ -10,11 +10,13 @@ from __future__ import annotations
 
 import logging
 from collections.abc import Awaitable, Callable, Mapping
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import TYPE_CHECKING, NamedTuple
 
 from xknx.exceptions import ManagementConnectionError
 from xknx.telegram import IndividualAddress
+
+from xknxeditor.namespaces.intermediate.resource_addr_space_t import ResourceAddrSpace
 
 from .errors import (
     DownloadError,
@@ -35,6 +37,7 @@ from .ip_config import (
 from .ip_config import applies as ip_config_applies
 from .ip_secure import IpSecureConfig, ip_secure_controls
 from .merge import (
+    device_mask_version,
     mask_authorize_levels,
     mask_has_property_services,
     resolve_download_controls,
@@ -45,7 +48,8 @@ from .programmer import (
     MAX_COMMUNICATION_APDU_LENGTH,
     MEMORY_SERVICE_FALLBACKS,
 )
-from .scope import DownloadScope, mask_object_types
+from .resources import property_group_tables
+from .scope import DownloadScope, mask_configuration, mask_object_types
 from .secure_config import (
     commissioning_controls,
     plain_controls,
@@ -210,7 +214,11 @@ def _resolve_procedure(
         parameter_values=image.procedure_parameters,
     )
     return materialize_group_communication_controls(
-        image, base, _object_types(application, master), scope
+        image,
+        base,
+        _object_types(application, master),
+        scope,
+        property_tables=property_group_tables(device_mask_version(application)),
     )
 
 
@@ -250,7 +258,7 @@ async def _partial_scope(
     from .resources import bundled_mask_resources, mask_resources
 
     options = application.program.static.options
-    mapped = bundled_mask_resources(application.program.mask_version)
+    mapped = bundled_mask_resources(device_mask_version(application))
     # BIM M112 product procedures reload by unloading/allocating absolute
     # segments. A "partial" still runs those AbsSegments; skipping Unload of
     # LSM 3 leaves a half-mapped application. They keep the full load, without
@@ -263,7 +271,7 @@ async def _partial_scope(
     )
     if scope not in _PARTIAL_SCOPES and not prefer:
         return _ScopeCheck(scope)
-    resources = mask_resources(master, application.program.mask_version)
+    resources = mask_resources(master, device_mask_version(application))
     manager = _connection_manager(xknx, address, security)
     try:
         programmer = DeviceProgrammer(await manager.open())
@@ -341,7 +349,7 @@ def _object_types(
     application: Application, master: MasterData | None
 ) -> dict[int, int]:
     return (
-        mask_object_types(master.raw, application.program.mask_version)
+        mask_object_types(master.raw, device_mask_version(application))
         if master is not None
         else {}
     )
@@ -367,7 +375,7 @@ def _authorize_levels(
         return 0
     if master is None:
         return 0
-    return mask_authorize_levels(master.raw, application.program.mask_version)
+    return mask_authorize_levels(master.raw, device_mask_version(application))
 
 
 def _property_services(application: Application, master: MasterData | None) -> bool:
@@ -378,6 +386,25 @@ def _property_services(application: Application, master: MasterData | None) -> b
         return True
     raw = master.raw if master is not None else None
     return mask_has_property_services(raw, mask_version)
+
+
+def _with_mask_memory(
+    image: DownloadImage, application: Application, master: MasterData | None
+) -> DownloadImage:
+    """``image`` with the memory segments of the device's mask from the master data."""
+    if master is None or getattr(image, "mask_memory", True):
+        return image
+    configuration = mask_configuration(master.raw, device_mask_version(application))
+    segments = configuration.memory_segments if configuration is not None else None
+    ranges = tuple(
+        (segment.location.start_address, segment.length)
+        for segment in (segments.memory_segment if segments is not None else ())
+        if segment.location is not None
+        and segment.location.address_space is ResourceAddrSpace.STANDARD_MEMORY
+        and segment.location.start_address is not None
+        and segment.length
+    )
+    return replace(image, mask_memory=ranges) if ranges else image
 
 
 def _reject_address_scope(scope: DownloadScope) -> None:
@@ -510,6 +537,7 @@ async def download(
         )
     else:
         logger.debug("download: using pre-built image (scope=%s)", scope.name)
+    image = _with_mask_memory(image, application, master)
     controls = _resolve_controls(
         application,
         master,
@@ -730,6 +758,7 @@ async def preflight(
             parameter_values=parameter_values,
             group_communication=group_communication,
         )
+    image = _with_mask_memory(image, application, master)
     address = IndividualAddress(individual_address)
     application_loaded = False
     if scope not in _PARTIAL_SCOPES:

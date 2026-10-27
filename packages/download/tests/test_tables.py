@@ -10,10 +10,14 @@ import pytest
 
 from xknxeditor.download.errors import ImageError
 from xknxeditor.download.tables import (
+    UNUSED_SLOT,
     Association,
+    association_slots,
+    build_association_list,
     build_association_table,
     build_group_address_table,
     group_address_index,
+    memory_size_code,
 )
 
 # Device 1.1.74 = 0x114a; its 18 group addresses (sorted ascending).
@@ -101,3 +105,47 @@ def test_association_table_orders_by_group_object_number() -> None:
 def test_group_address_table_rejects_overflow() -> None:
     with pytest.raises(ImageError):
         build_group_address_table(0x1101, list(range(300)))
+
+
+def test_association_slots_hold_each_objects_sending_address() -> None:
+    """The unused slot of object 1 skips the receiving link on the address object 0
+    sends on from its slot and takes the next one. A second sending association of
+    object 2 counts as receiving."""
+    slots = association_slots(
+        [
+            Association(1, 0),
+            Association(1, 1, sending=False),
+            Association(3, 1, sending=False),
+            Association(2, 2),
+            Association(4, 2),
+        ],
+        3,
+    )
+    assert build_association_list(slots) == bytes.fromhex(
+        "05 0100 0301 0202 0101 0402".replace(" ", "")
+    )
+    assert [slot.sending for slot in slots] == [True, False, True, False, False]
+
+
+def test_association_slots_of_objects_without_links_are_unused() -> None:
+    slots = association_slots([Association(1, 1)], 3)
+    assert build_association_list(slots) == bytes.fromhex(
+        "03 fe00 0101 fe02".replace(" ", "")
+    )
+    assert slots[0] == Association(UNUSED_SLOT, 0, sending=False)
+
+
+@pytest.mark.parametrize(
+    ("object_size", "code"),
+    [
+        ("1 Bit", 0),
+        ("14 Bytes", 14),
+        ("5 Bytes", 15),
+        ("LegacyVarData", 15),
+        ("15 Bytes", 21),
+        ("50 Bytes", 56),
+        ("51 Bytes", 0),
+    ],
+)
+def test_memory_size_codes(object_size: str, code: int) -> None:
+    assert memory_size_code(object_size) == code

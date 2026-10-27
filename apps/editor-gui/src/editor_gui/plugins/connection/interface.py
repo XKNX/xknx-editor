@@ -6,6 +6,7 @@ from collections.abc import Callable
 from typing import TYPE_CHECKING
 
 from xknx.cemi.cemi_frame import CEMIFrame
+from xknx.cemi.cemi_handler import CEMIHandler
 from xknx.exceptions import XKNXException
 from xknx.io.data_connection import SequenceVerdict
 from xknx.io.interface import Interface
@@ -28,6 +29,26 @@ _FEATURE_TIMEOUT = 2.0
 if TYPE_CHECKING:
     from xknx import XKNX
     from xknx.io.connection import ConnectionConfig
+    from xknx.telegram import Telegram
+
+
+class SequentialCEMIHandler(CEMIHandler):
+    """Sends a frame only after the preceding one is confirmed (its L_Data.con arrived, or the
+    wait for it timed out), as the cEMI flow control recommends (KNX 3/6/3, 4.1.5.1).
+
+    The handler of xknx waits for each frame's confirmation, but not before it sends the next
+    one: the T_Ack a connection-oriented session sends in the background then overlaps the
+    following request, and either may take the other's confirmation."""
+
+    __slots__ = ("_send_lock",)
+
+    def __init__(self, xknx: XKNX) -> None:
+        super().__init__(xknx)
+        self._send_lock = asyncio.Lock()
+
+    async def send_telegram(self, telegram: Telegram) -> None:
+        async with self._send_lock:
+            await super().send_telegram(telegram)
 
 
 def _notify_sent(callback: Callable[[bytes], None], cemi: CEMIFrame) -> None:

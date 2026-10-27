@@ -1,19 +1,22 @@
-"""BCU1 group tables share the application EEPROM.
+"""BCU1 and BCU2 group tables share the application EEPROM.
 
 Mask MV-0011 (AssociationTable_Bcu1, GroupObjectTable_Bcu11) keeps the
 one-octet association list and a 3-octet group-object record inside the same
 segment as the application id. A System B record laid out from the segment
-start overwrites that id. A second link to one object is a second entry;
-unlinked objects are omitted.
+start overwrites that id. The association list starts with a reserved slot per
+group object for the address it sends on; the other links follow.
 """
 
 from __future__ import annotations
 
 from collections.abc import Callable
+from dataclasses import replace
 from types import SimpleNamespace
+from typing import cast
 
 import pytest
 from xknx.profile.const import ResourceObjectType
+from xknx.telegram.apci import PropertyValueWrite
 
 from xknxeditor.download.errors import ImageError
 from xknxeditor.download.factory_image import (
@@ -22,19 +25,38 @@ from xknxeditor.download.factory_image import (
     FactorySegment,
 )
 from xknxeditor.download.image import (
+    DownloadImage,
     GroupCommunication,
+    GroupTables,
     MemorySegment,
+    MovedTables,
     _communication_by_link,
     _group_communication_relative_segments,
-    _group_communication_segments,
 )
+from xknxeditor.download.image import (
+    _group_communication_segments as _group_tables,
+)
+from xknxeditor.download.load_state import PID_LOAD_STATE_CONTROL
+from xknxeditor.download.procedure import LoadProcedureRunner
+from xknxeditor.download.programmer import DeviceProgrammer
 from xknxeditor.download.project_data import GroupObjectLink
 from xknxeditor.namespaces.intermediate.com_object_priority_t import ComObjectPriority
 from xknxeditor.namespaces.intermediate.enable_t import Enable
+from xknxeditor.namespaces.intermediate.ld_ctrl_abs_segment_t import LdCtrlAbsSegment
+from xknxeditor.namespaces.intermediate.ld_ctrl_task_segment_t import LdCtrlTaskSegment
+from xknxeditor.prod import Application
 from xknxeditor.prod.parser_v2.ui.com_object import UiComObject
+
+from .conftest import FakeDevice
+from .test_packed_tables import _application as _packed_application
 
 _SEGMENT = "AS-0100"
 _BASE = 0x0100
+
+
+def _group_communication_segments(*args: object) -> list[MemorySegment]:
+    tables: GroupTables = _group_tables(*args)  # type: ignore[arg-type]
+    return tables.segments
 
 
 def _com_object(
@@ -111,6 +133,8 @@ def _application(
     dynamic: bool = False,
     association_offset: int = 59,
     application_id: str = "M-00FA_A-0001-01-0000",
+    easy: bool = False,
+    controls: list[object] | None = None,
 ) -> SimpleNamespace:
     objects = [_static_object(number) for number in range(3)]
     refs = [
@@ -123,6 +147,9 @@ def _application(
         )
 
     return SimpleNamespace(
+        load_procedures=SimpleNamespace(
+            load_procedure=[SimpleNamespace(choice=controls or [])]
+        ),
         program=SimpleNamespace(
             id=application_id,
             mask_version=mask,
@@ -130,8 +157,15 @@ def _application(
             module_defs=None,
             static=SimpleNamespace(
                 script=None,
+                options=SimpleNamespace(
+                    easy_ctrl_mode_mode_style_empty_group_com_tables=easy
+                ),
                 code=SimpleNamespace(
-                    absolute_segment=[SimpleNamespace(id=_SEGMENT, address=_BASE)],
+                    absolute_segment=[
+                        SimpleNamespace(
+                            id=_SEGMENT, address=_BASE, data=_seed(), mask=None
+                        )
+                    ],
                     relative_segment=[],
                 ),
                 parameter_types=None,
@@ -148,7 +182,7 @@ def _application(
                 address_table=table(22, 0 if dynamic else 17),
                 association_table=table(association_offset),
             ),
-        )
+        ),
     )
 
 
@@ -200,11 +234,20 @@ def test_bcu1_tables_keep_the_application_header() -> None:
     )
 
     association = next(segment for segment in segments if segment.address == 0x013B)
-    # One link: object 1, address-table index 1. Objects 0 and 2 are omitted.
-    assert association.data == bytes.fromhex("010101")
+    # One link: object 1, address-table index 1, in its slot. Objects 0 and 2 send on
+    # nothing.
+    assert association.data == bytes.fromhex("03fe000101fe02")
+    # GrAssocTabPtr points at the declared table.
+    assert eeprom.data[0x11] == 0x3B
+    assert eeprom.mask is not None and eeprom.mask[0x11] == 0xFF
 
     address_table = next(segment for segment in segments if segment.address == 0x0116)
     assert address_table.data == bytes.fromhex("021133090d")
+    # The seed of the declared table areas is not written: the group addresses from
+    # 0119h (17 entries) and the association table (17 entries).
+    assert not any(eeprom.initialized_mask[0x19 : 0x19 + 34])
+    assert not any(eeprom.initialized_mask[0x3B : 0x3B + 35])
+    assert eeprom.initialized_mask[0x3B + 35] == 0xFF
 
 
 def test_bcu1_association_keeps_every_link() -> None:
@@ -237,8 +280,9 @@ def test_bcu1_association_keeps_every_link() -> None:
         ),
     )
     association = next(segment for segment in segments if segment.address == 0x013B)
-    # Sorted addresses 0x1000, 0x1001, 0x110D, 0x110E are indexes 1..4.
-    # Sending links first, then the receiving links.
+    # Sorted addresses 0x1000, 0x1001, 0x110D, 0x110E are indexes 1..4. The sending
+    # links are in the slots of objects 0 and 1; the unused slot of object 2 takes the
+    # first receiving link, the second follows.
     assert association.data == bytes.fromhex("040300040101000201")
 
 
@@ -410,6 +454,48 @@ def test_bcu1_sets_bit_7_of_every_flag_byte() -> None:
     assert eeprom.mask[_TABLE : _TABLE + 2 + 5 * 3] == b"\xff" * 17
 
 
+def test_bcu2_writes_a_count_the_product_leaves_unset() -> None:
+    """A count the product data does not give is the number of records, for a full
+    download too; one it gives and that differs stays (see above)."""
+    application = _application("MV-0020")
+    segment = application.program.static.code.absolute_segment[0]
+    segment.mask = b"\xff" * _TABLE + b"\x00"
+    eeprom = _m112_segments(application, bytearray(_seed()), _NODES)
+    assert eeprom.data[_TABLE] == 3
+    assert eeprom.partial_octets == ()
+    assert eeprom.mask is not None and eeprom.mask[_TABLE] == 0xFF
+
+
+def test_bcu2_type_of_sizes_without_a_code() -> None:
+    """LegacyVarData is type 15; a size without a type is 0, and the object keeps its
+    configured flags."""
+    nodes = [
+        replace(_NODES[0], object_size="LegacyVarData"),
+        replace(_NODES[1], object_size="51 Bytes"),
+    ]
+    eeprom = _m112_segments(_application("MV-0020"), bytearray(_seed()), nodes)
+    record = _TABLE + 2
+    assert eeprom.data[record + 2] & 0x3F == 15
+    assert eeprom.data[record + 3 + 2] & 0x3F == 0
+    assert eeprom.data[_bcu2_flags(1)] == 0xDF
+
+
+def test_easy_controller_style_lets_every_object_communicate() -> None:
+    """With the group object table in the factory image, an application in easy
+    controller style without an active object sets every object's communication bit."""
+    for easy, flags in ((False, 0x03), (True, 0x07)):
+        segments = _group_communication_segments(
+            _application("MV-0021", easy=easy),
+            _UI([]),
+            {_SEGMENT: _BASE},
+            {_SEGMENT: (_seed(), b"\x00" * 256)},
+            GroupCommunication(device_address=0x1133, links=()),
+            _factory(FactoryLocation.MEMORY, 0, 0, _BASE + _TABLE),
+        )
+        eeprom = next(segment for segment in segments if len(segment.data) == 256)
+        assert eeprom.data[_bcu2_flags(2)] & 0xDF == flags
+
+
 def test_bcu2_hidden_pointers_are_not_written() -> None:
     application = _application("MV-0025", application_id="M-00FD_A-0001-11-1234")
     eeprom = _m112_segments(application, bytearray(_seed()), _NODES)
@@ -486,12 +572,23 @@ def test_bcu2_factory_table_keeps_each_objects_communication_flag() -> None:
     assert eeprom.data[_bcu2_flags(2)] == 0x07
 
 
-def _dynamic_segments(
-    links: int, *, association_offset: int = 59
-) -> list[MemorySegment]:
+def _dynamic_tables(
+    links: int,
+    *,
+    mask: str = "MV-0012",
+    association_offset: int = 59,
+    application_id: str = "M-00FA_A-0001-01-0000",
+    controls: list[object] | None = None,
+) -> GroupTables:
     seed = _seed()
-    return _group_communication_segments(
-        _application("MV-0012", dynamic=True, association_offset=association_offset),  # type: ignore[arg-type]
+    return _group_tables(
+        _application(  # type: ignore[arg-type]
+            mask,
+            dynamic=True,
+            association_offset=association_offset,
+            application_id=application_id,
+            controls=controls,
+        ),
         _UI(
             [
                 _com_object(n, read=True, write=True, transmit=True, update=True)
@@ -521,27 +618,145 @@ def _association_pointer(segments: list[MemorySegment]) -> int:
     return eeprom.data[0x11]
 
 
-def test_dynamic_tables_keep_the_declared_association_place() -> None:
-    """The address table ends before the declared association table: it stays there."""
-    segments = _dynamic_segments(2)
-    assert any(segment.address == 0x013B for segment in segments)
+def test_dynamic_bcu1_association_table_follows_the_address_table() -> None:
+    """With dynamic tables, the BCU1 association table directly follows the address
+    table, wherever the product declares it."""
+    tables = _dynamic_tables(2)
+    # Count, own address and 2 group addresses: 0116h..011Ch.
+    association = next(s for s in tables.segments if s.address == 0x011D)
+    assert association.data == bytes.fromhex("0301000201fe02")
+    assert _association_pointer(tables.segments) == 0x1D
+    assert tables.moved is None
+    # The seed from 0119h to the end of the declared association table is not written.
+    eeprom = next(segment for segment in tables.segments if len(segment.data) == 256)
+    assert eeprom.initialized_mask is not None
+    assert not any(eeprom.initialized_mask[0x19 : 0x3B + 35])
+    assert eeprom.initialized_mask[0x3B + 35] == 0xFF
+
+
+def test_dynamic_bcu1_tables_share_the_declared_room() -> None:
+    """Both tables share the room declared for them: 3 + 2 * 0 address entries and
+    1 + 2 * 17 association entries. 8 links need 19 + 17 octets, 9 links 21 + 19."""
+    _dynamic_tables(8)
+    with pytest.raises(ImageError, match="the product data declares 38"):
+        _dynamic_tables(9)
+
+
+def test_bcu2_tables_stay_where_the_product_declares_them() -> None:
+    """Without dynamic tables, the BCU2 association table stays declared, has a slot per
+    object and GrAssocTabPtr points at it (it lies in 0100h..01FFh)."""
+    segments = _segments("MV-0020")
+    association = next(segment for segment in segments if segment.address == 0x013B)
+    assert association.data == bytes.fromhex("03fe000101fe02")
     assert _association_pointer(segments) == 0x3B
 
 
-def test_dynamic_tables_follow_a_grown_address_table() -> None:
-    """With no room declared for addresses, the association table follows them."""
-    segments = _dynamic_segments(4, association_offset=25)
-    # Count, own address and 4 group addresses: 0116h..0120h.
-    association = next(segment for segment in segments if segment.address == 0x0121)
-    assert association.data[0] == 4
-    assert _association_pointer(segments) == 0x21
+def test_bcu2_easy_controller_style_has_no_reserved_slots() -> None:
+    """An application in easy controller style without an active object keeps its
+    association table empty, with no reserved slots."""
+    for easy, table in ((False, "03fe00fe01fe02"), (True, "00")):
+        segments = _group_communication_segments(
+            _application("MV-0020", easy=easy),
+            _UI([]),
+            {_SEGMENT: _BASE},
+            {_SEGMENT: (_seed(), b"\x00" * 256)},
+            GroupCommunication(device_address=0x1133, links=()),
+        )
+        association = next(s for s in segments if s.address == 0x013B)
+        assert association.data == bytes.fromhex(table)
 
 
-def test_dynamic_tables_end_at_the_group_object_table() -> None:
-    """Both tables share 0116h..015Dh; 18 links need 76 octets there."""
-    _dynamic_segments(17)
-    with pytest.raises(ImageError, match="are free before the group object table"):
-        _dynamic_segments(18)
+def _lsm1(seg_flags: int) -> LdCtrlAbsSegment:
+    return LdCtrlAbsSegment(
+        lsm_idx=1,
+        occurrence=0,
+        seg_type=0,
+        address=0x0116,
+        size=84,
+        access=0x32,
+        mem_type=3,
+        seg_flags=seg_flags,
+    )
+
+
+@pytest.mark.parametrize(("seg_flags", "address"), [(0x80, 0x011C), (0x00, 0x011B)])
+def test_dynamic_bcu2_association_table_follows_the_address_table(
+    seg_flags: int, address: int
+) -> None:
+    """With dynamic tables, the BCU2 association table follows the address table and the
+    checksum octet of a checksummed segment; GrAssocTabPtr points at it."""
+    tables = _dynamic_tables(1, mask="MV-0021", controls=[_lsm1(seg_flags)])
+    association = next(s for s in tables.segments if s.address == address)
+    assert association.data == bytes.fromhex("030100fe01fe02")
+    assert tables.moved == MovedTables(address_length=5, association_address=address)
+    assert _association_pointer(tables.segments) == address & 0xFF
+
+
+def test_dynamic_bcu2_association_table_ends_where_declared() -> None:
+    """The moved table still ends with the declared one, at 015Eh (013Bh + 1 + 2 * 17):
+    16 links put it at 013Bh for 33 octets, 17 links at 013Dh for 35."""
+    _dynamic_tables(16, mask="MV-0021", controls=[_lsm1(0x80)])
+    with pytest.raises(ImageError, match="octets are left for it"):
+        _dynamic_tables(17, mask="MV-0021", controls=[_lsm1(0x80)])
+
+
+def test_some_applications_keep_their_declared_tables() -> None:
+    """These applications are downloaded as without dynamic tables, MaxEntries included."""
+    application = _application(
+        "MV-0021",
+        dynamic=True,
+        application_id="M-0004_A-9019-01-ABCD",
+        controls=[_lsm1(0x80)],
+    )
+    application.program.static.address_table.max_entries = 17
+    tables = _group_tables(
+        application,  # type: ignore[arg-type]
+        _UI(_NODES),  # type: ignore[arg-type]
+        {_SEGMENT: _BASE},
+        {_SEGMENT: (_seed(), b"\x00" * 256)},
+        GroupCommunication(device_address=0x1133, links=()),
+    )
+    assert tables.moved is None
+    assert any(segment.address == 0x013B for segment in tables.segments)
+
+
+async def test_moved_bcu2_tables_are_allocated_where_the_image_put_them() -> None:
+    """The address table's segment (load state machine 1) is allocated at its length plus
+    its checksum octet; the association table's segment and task segment (load state
+    machine 2) start at the moved table and end where they did."""
+    image = DownloadImage(
+        segments=(
+            MemorySegment(0x0116, bytes(5), mask=b"\xff\x00\x00\xff\xff"),
+            MemorySegment(0x011C, b"\x01\x01\x01", mask=b"\xff\xff\xff"),
+        ),
+        properties=(),
+        moved_tables=MovedTables(address_length=5, association_address=0x011C),
+    )
+    device = FakeDevice()
+    runner = LoadProcedureRunner(
+        cast("Application", _packed_application("MV-0021")),
+        image,
+        DeviceProgrammer(device),
+        controls=[
+            _lsm1(0x80),
+            replace(_lsm1(0x80), lsm_idx=2, address=0x016A, size=124),
+            LdCtrlTaskSegment(lsm_idx=2, address=0x016A, occurrence=0),
+        ],
+    )
+
+    await runner.run()
+
+    events = [
+        payload.data
+        for payload in device.sent
+        if isinstance(payload, PropertyValueWrite)
+        and payload.property_id == PID_LOAD_STATE_CONTROL
+    ]
+    assert [event[2:6] for event in events[:2]] == [
+        bytes.fromhex("01160006"),
+        bytes.fromhex("011c00ca"),
+    ]
+    assert events[2][:4] == bytes.fromhex("0302011c")
 
 
 def _factory(

@@ -25,7 +25,10 @@ from editor_gui.plugins.connection.busmonitor import (
     BusmonitorConnection,
     rejection_reason,
 )
-from editor_gui.plugins.connection.interface import ObservableKNXIPInterfaceThreaded
+from editor_gui.plugins.connection.interface import (
+    ObservableKNXIPInterfaceThreaded,
+    SequentialCEMIHandler,
+)
 from editor_gui.plugins.connection.service import BusmonitorState, LinkInfo
 from editor_gui.plugins.connection.strings import S
 from editor_gui.programming import (
@@ -454,6 +457,8 @@ class ConnectionPlugin:
         )
         try:
             self._xknx = XKNX()
+            # One frame at a time, each after the confirmation of the one before.
+            self._xknx.cemi_handler = SequentialCEMIHandler(self._xknx)
             description = (
                 await self._gateway_description()
                 if self._connection_type == ConnectionType.TUNNELING

@@ -89,8 +89,9 @@ Group-object table:
   encoder, shared by every mask with this record.
 - Both counts are the highest object number + 1. A full download keeps the
   product's count octet when it differs; a partial download writes the count.
-- ``GroupObjectTable_SystemB`` and ``GroupObjectTable_System300`` are the
-  relative System B records.
+- ``GroupObjectTable_SystemB`` is the relative System B record.
+  ``GroupObjectTable_System300`` is a property: the three tables are written as
+  the elements of ``PID_TABLE`` and ``PID_GRPOBJTABLE`` (see ``tables_system300``).
 
 Load control:
 
@@ -441,6 +442,19 @@ def _bundled_table() -> Mapping[str, object]:
     return table if table is not None else {}
 
 
+def mask_number(mask_version: str) -> int | None:
+    """The mask version number of a mask id: ``0x0705`` for ``MV-0705``, also with the
+    management descriptor some ids carry (``MV-0300-01000001000000000000`` is 0x0300).
+    None for an id that does not start with four hex digits."""
+    digits = mask_version.removeprefix("MV-")[:4]
+    if len(digits) != 4:
+        return None
+    try:
+        return int(digits, 16)
+    except ValueError:
+        return None
+
+
 def property_mapped_lsms(mask_version: str) -> bool:
     """Whether ``mask_version`` drives load state machines through a property.
 
@@ -485,6 +499,18 @@ def bcu2_group_object_table(mask_version: str) -> bool:
     )
 
 
+def property_group_tables(mask_version: str) -> bool:
+    """Whether the group communication tables are properties (``GroupObjectTable_System300``,
+    see :mod:`.tables_system300`)."""
+    resources = bundled_mask_resources(mask_version)
+    if resources is None:
+        return False
+    return (
+        resources.flavour(ResourceName.GROUP_OBJECT_TABLE)
+        is ResourceFlavour.GROUP_OBJECT_TABLE_SYSTEM300
+    )
+
+
 def m112_group_object_table(mask_version: str) -> bool:
     """Whether the group-object table is the 4-octet M112 record.
 
@@ -509,6 +535,26 @@ def bcu1_association_table(mask_version: str) -> bool:
     return (
         resources.flavour(ResourceName.GROUP_ASSOCIATION_TABLE)
         is ResourceFlavour.ASSOCIATION_TABLE_BCU1
+    )
+
+
+def bcu2_association_table(mask_version: str) -> bool:
+    """Whether the association table is the BCU2 list at its pointer."""
+    resources = bundled_mask_resources(mask_version)
+    if resources is None:
+        return False
+    return (
+        resources.flavour(ResourceName.GROUP_ASSOCIATION_TABLE)
+        is ResourceFlavour.ASSOCIATION_TABLE_BCU2
+    )
+
+
+def segments_have_inline_checksum(mask_version: str) -> bool:
+    """Whether a segment allocation of ``mask_version`` gets an extra octet for its
+    checksum (``AllocExtraByte``)."""
+    resources = bundled_mask_resources(mask_version)
+    return bool(
+        resources is not None and resources.feature(MaskFeature.ALLOC_EXTRA_BYTE)
     )
 
 

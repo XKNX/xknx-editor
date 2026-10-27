@@ -755,15 +755,16 @@ def _collect_param(
     # An explicit override of "" (empty RawData/Text) is a real value, not "unset", so
     # membership decides the fallback - not truthiness, which would drop it to the default.
     value = overrides.get(item.id, item.value)
-    # A module parameter's base_value offsets the encoded value by an arg-resolved amount.
+    # A module parameter with a BaseValue takes the value of that argument; its own value,
+    # stored or default, does not count while the argument has one.
     if (
         isinstance(item, ModuleDefStaticParametersParameter)
         and item.base_value is not None
         and ms is not None
     ):
         bv = _resolve_base(item.base_value, ms)
-        if bv is not None and bv != 0:
-            value = str(int(value) + bv)
+        if bv is not None:
+            value = str(bv)
     # Test subclasses first: module types derive from the top-level ones
     if isinstance(choice, ModuleDefStaticParametersParameterMemory):
         assert ms is not None

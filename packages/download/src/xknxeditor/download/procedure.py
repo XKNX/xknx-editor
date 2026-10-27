@@ -115,7 +115,7 @@ from .errors import (
 from .factory_image import FactoryLocation, FactorySegment, FactoryStamp, PropertyStamp
 from .group_communication import materialize_group_communication_controls
 from .ip_config import IP_PARAMETER_OBJECT, IP_PROPERTY_WIDTHS
-from .merge import resolve_download_controls
+from .merge import device_mask_version, resolve_download_controls
 from .preflight import PreflightReport, PropertyDiff, SegmentDiff
 from .programmer import (
     DEFAULT_MAX_APDU_LENGTH,
@@ -124,7 +124,11 @@ from .programmer import (
     negotiated_apdu_length,
 )
 from .property_layout import STANDARD_WRITE_WIDTHS, property_width
-from .resources import bundled_mask_resources, property_mapped_lsms
+from .resources import (
+    bundled_mask_resources,
+    property_group_tables,
+    property_mapped_lsms,
+)
 from .scope import (
     GROUP_COMMUNICATION_OBJECTS,
     DownloadScope,
@@ -136,6 +140,15 @@ from .secure_config import (
     SECURITY_OBJECT,
     SECURITY_PROPERTY_WIDTHS,
     sequence_number_control,
+)
+from .tables_system300 import (
+    ADDRESS_TABLE,
+    ASSOCIATION_TABLE,
+    GROUP_OBJECT_ELEMENT_SIZE,
+    GROUP_OBJECT_REFERENCE_SIZE,
+    GROUP_OBJECT_REFERENCES,
+    GROUP_OBJECT_TABLE,
+    PropertyTables,
 )
 
 if TYPE_CHECKING:
@@ -159,6 +172,8 @@ UNCONFIRMED_MASTER_RESET_COOLDOWN = 5.0
 # the segment CRC in octets 6..7 (big-endian).
 _PID_MCB_TABLE = ResourceGenericPropertyId.PID_MCB_TABLE
 _MCB_ENTRY_SIZE = 8
+# The memory type bits of an EEPROM segment, the one an allocation writes its data into.
+_EEPROM_MEMORY = 0x03
 
 # After a Master Reset that resets them, a device showing its factory stamp holds the factory
 # image: of everything but the group object table after erase code 5 (parameters) or 7 (factory
@@ -576,7 +591,11 @@ class LoadProcedureRunner:
         download progress.
         """
         in_scope = materialize_group_communication_controls(
-            self.image, self._controls, self._object_types, self.scope
+            self.image,
+            self._controls,
+            self._object_types,
+            self.scope,
+            property_tables=self._property_tables(),
         )
         self._prevalidate(in_scope)
         self._property_captures.clear()
@@ -694,7 +713,11 @@ class LoadProcedureRunner:
         properties: list[PropertyDiff] = []
         self._device_written = set()
         in_scope = materialize_group_communication_controls(
-            self.image, self._controls, self._object_types, self.scope
+            self.image,
+            self._controls,
+            self._object_types,
+            self.scope,
+            property_tables=self._property_tables(),
         )
         self._prevalidate(in_scope)
         self._property_captures.clear()
@@ -1096,7 +1119,7 @@ class LoadProcedureRunner:
         full/application download writes the seed, a parameter download touches
         only the changed bytes.
         """
-        resources = bundled_mask_resources(self.application.program.mask_version)
+        resources = bundled_mask_resources(device_mask_version(self.application))
         return resources is not None and resources.memory_mapped_lsm() is not None
 
     def _writes_seed(self, *, segment: bool = False) -> bool:
@@ -1124,9 +1147,9 @@ class LoadProcedureRunner:
         """
         if index < 1:
             return None
-        if property_mapped_lsms(self.application.program.mask_version):
+        if property_mapped_lsms(device_mask_version(self.application)):
             return None
-        resources = bundled_mask_resources(self.application.program.mask_version)
+        resources = bundled_mask_resources(device_mask_version(self.application))
         if resources is None:
             return None
         mapped = resources.memory_mapped_lsm()
@@ -1176,13 +1199,26 @@ class LoadProcedureRunner:
         table = min(tables, key=lambda segment: len(segment.data))
         return packed_group_tables(self.application, len(table.data))
 
-    def _segment_placement(self, address: int, size: int) -> tuple[int, int]:
-        """Address and length ETS allocates for an absolute segment.
+    def _segment_placement(self, control: LdCtrlAbsSegment) -> tuple[int, int]:
+        """Address and length allocated for an absolute segment.
 
         A property-mapped mask declares the address table and association table
         at full capacity. The allocation uses the encoded address table and
-        starts the association table on the next octet.
+        starts the association table on the next octet. A BCU2 download that places
+        the tables allocates the address table (load state machine 1) at its length,
+        plus the checksum octet of a checksummed segment, and moves the start of the
+        association table's segment (load state machine 2).
         """
+        address, size = control.address, control.size
+        moved = getattr(self.image, "moved_tables", None)
+        if moved is not None and control.lsm_idx == 1:
+            checksum = 1 if control.seg_flags & 0x80 else 0
+            return address, moved.address_length + checksum
+        if moved is not None and control.lsm_idx == 2:
+            return (
+                moved.association_address,
+                address + size - moved.association_address,
+            )
         packed = self._packed_group_tables()
         if packed is None:
             return address, size
@@ -1195,8 +1231,13 @@ class LoadProcedureRunner:
             return packed.association_address, packed.association_length
         return address, size
 
-    def _task_address(self, address: int) -> int:
-        """Task-segment address, moved with the association table when ETS packs it."""
+    def _task_address(self, control: LdCtrlTaskSegment) -> int:
+        """Task-segment address, moved with the association table when the download
+        packs or places it."""
+        address = control.address
+        moved = getattr(self.image, "moved_tables", None)
+        if moved is not None and control.lsm_idx == 2:
+            return moved.association_address
         packed = self._packed_group_tables()
         if packed is not None and address == packed.declared_association_address:
             return packed.association_address
@@ -1211,7 +1252,7 @@ class LoadProcedureRunner:
         also_accept: load_state.LoadState | None = None,
     ) -> None:
         """Write a load event through the mask's LSM realisation."""
-        resources = bundled_mask_resources(self.application.program.mask_version)
+        resources = bundled_mask_resources(device_mask_version(self.application))
         if resources is not None and resources.omits_load_event(index):
             return
         programmer = await self._bus()
@@ -1755,7 +1796,64 @@ class LoadProcedureRunner:
                 for i, bits in enumerate(cover):
                     covered[i] |= bits
                 break
+        tables = self.image.property_tables
+        if tables is not None and self._property_tables():
+            self._lay_table(tables, (object_type, control.prop_id), control, width)(
+                data, covered
+            )
         return data, covered
+
+    def _property_tables(self) -> bool:
+        """Whether the device holds its group communication tables as properties."""
+        if (
+            getattr(getattr(self.application, "program", None), "mask_version", None)
+            is None
+        ):
+            return False
+        return property_group_tables(device_mask_version(self.application))
+
+    def _lay_table(
+        self,
+        tables: PropertyTables,
+        target: tuple[int | None, int],
+        control: LdCtrlWriteProp,
+        width: int,
+    ) -> Callable[[bytearray, bytearray], None]:
+        """How the table ``control`` writes (object type, PID) is laid over the data the image
+        holds for it: the group addresses and the links replace it; the group objects' flags
+        go into octet 1 of each element, and a download with parameters also writes the octets
+        no parameter covers (as zeros), one without them leaves them to the device."""
+        start = (control.start_element - 1) * width
+
+        def replace_all(table: bytes) -> Callable[[bytearray, bytearray], None]:
+            def apply(data: bytearray, covered: bytearray) -> None:
+                data[:] = table[start : start + len(data)].ljust(len(data), b"\x00")
+                covered[:] = b"\xff" * len(covered)
+
+            return apply
+
+        if target == ADDRESS_TABLE:
+            if width != 2:
+                raise ImageError(
+                    f"group address table elements of {width} octets are not supported"
+                )
+            return replace_all(tables.address_data)
+        if target == ASSOCIATION_TABLE:
+            return replace_all(tables.association_data(width))
+        if target == GROUP_OBJECT_TABLE:
+            parameters = self.scope in (
+                DownloadScope.FULL,
+                DownloadScope.APPLICATION,
+                DownloadScope.PARAMETERS,
+                DownloadScope.PARAMETERS_AND_GROUP_COMMUNICATION,
+            )
+
+            def objects(data: bytearray, covered: bytearray) -> None:
+                covered[:] = (b"\xff" if parameters else b"\x00") * len(covered)
+                tables.lay_object_flags(data, covered, control.start_element)
+
+            return objects
+        return lambda data, covered: None
 
     def _factory_property(
         self,
@@ -1768,7 +1866,7 @@ class LoadProcedureRunner:
         factory = self.image.factory_image
         if factory is None:
             return None
-        resources = bundled_mask_resources(self.application.program.mask_version)
+        resources = bundled_mask_resources(device_mask_version(self.application))
         first_app_object = (
             resources.feature(MaskFeature.FIRST_APP_OBJECT_IDX)
             if resources is not None
@@ -1863,7 +1961,7 @@ class LoadProcedureRunner:
         if prop.location is FactoryLocation.PROPERTY:
             return prop.object_ref
         if prop.location is FactoryLocation.APP_PROPERTY:
-            resources = bundled_mask_resources(self.application.program.mask_version)
+            resources = bundled_mask_resources(device_mask_version(self.application))
             first = (
                 resources.feature(MaskFeature.FIRST_APP_OBJECT_IDX)
                 if resources is not None
@@ -2035,7 +2133,7 @@ class LoadProcedureRunner:
     def _factory_group_object_table(self, segment: FactorySegment) -> bool:
         """Whether a factory segment is the group object table: at the mask's location of it,
         or at the application's table address in memory."""
-        resources = bundled_mask_resources(self.application.program.mask_version)
+        resources = bundled_mask_resources(device_mask_version(self.application))
         location = (
             resources.location(ResourceName.GROUP_OBJECT_TABLE) if resources else None
         )
@@ -2219,6 +2317,20 @@ class LoadProcedureRunner:
             return
         if control.prop_id in STANDARD_WRITE_WIDTHS:
             return
+        if self._property_tables() and isinstance(control, LdCtrlWriteProp):
+            object_type = (
+                control.obj_type
+                if control.obj_idx is None and control.obj_type is not None
+                else self._object_types.get(index)
+            )
+            # The group object table's properties have one property type each.
+            known = {
+                GROUP_OBJECT_TABLE: GROUP_OBJECT_ELEMENT_SIZE,
+                GROUP_OBJECT_REFERENCES: GROUP_OBJECT_REFERENCE_SIZE,
+            }.get((object_type, control.prop_id))  # type: ignore[arg-type]
+            if known is not None:
+                self._property_widths[key] = known
+                return
         if (
             control.obj_idx is None
             and control.obj_type == IP_PARAMETER_OBJECT
@@ -2622,7 +2734,7 @@ class LoadProcedureRunner:
         """
         segment_type = load_state.SegmentType(control.seg_type)
         index = await self._resolve_index(control)
-        address, size = self._segment_placement(control.address, control.size)
+        address, size = self._segment_placement(control)
         # A checksum-less segment whose image holds only the code seed has no
         # parameter bytes. ETS does not allocate it (the Merten 5701 segment at
         # 0x5100 is 25856 bytes, and the device does not ACK that record). The
@@ -2671,13 +2783,21 @@ class LoadProcedureRunner:
             self._memory_runs(
                 address, size, include_initialized=self._writes_seed(segment=True)
             )
-            if self._enable_segment_write
+            if self._writes_segment_data(control)
             else []
         )
         if runs:
             programmer = await self._memory_programmer()
             for address, data in runs:
                 await programmer.write_memory(address, data, verify=True)
+
+    def _writes_segment_data(self, control: LdCtrlAbsSegment) -> bool:
+        """Whether the image data of an allocated segment is written: only into EEPROM (memory
+        type 3); a RAM segment (1, 2) or one of another type is only allocated."""
+        return (
+            self._enable_segment_write
+            and (control.mem_type or 0) & _EEPROM_MEMORY == _EEPROM_MEMORY
+        )
 
     async def _task_segment(self, control: LdCtrlTaskSegment) -> None:
         """Allocate the task segment via a load event."""
@@ -2699,7 +2819,7 @@ class LoadProcedureRunner:
         if patch:
             application_id = (0x0002).to_bytes(2, "big") + application_id[2:]
         event = load_state.alloc_task_segment(
-            self._task_address(control.address),
+            self._task_address(control),
             self.application.program.pei_type,
             application_id,
         )
@@ -2763,8 +2883,8 @@ class LoadProcedureRunner:
             # preview only the bytes the image actually writes (its mask). A range the
             # image does NOT cover (a RAM/system segment) is allocated and left unwritten
             # by _abs_segment, so it is a clean allocate-only preview here too, not an error.
-            if self._enable_segment_write:
-                address, size = self._segment_placement(control.address, control.size)
+            if self._writes_segment_data(control):
+                address, size = self._segment_placement(control)
                 await self._diff_masked(
                     address,
                     size,

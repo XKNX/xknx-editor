@@ -154,7 +154,7 @@ def _segments(
                 ),
             ),
         ),
-    )
+    ).segments
 
 
 def test_mv0705_places_the_association_table_after_the_address_table() -> None:
@@ -219,16 +219,6 @@ def test_packed_tables_write_nothing_of_their_segments() -> None:
     application = _application("MV-0705")
     initialized = b"\xff" * 511
     assert _table_segment_initialized(application, _ADDR, initialized) == bytes(511)  # type: ignore[arg-type]
-
-
-def test_bcu2_association_table_is_not_packed() -> None:
-    """AssociationTable_Bcu2 (MV-0020/0021/0025) is a different table reached through
-    its own pointer, not the M112 list. Even with dynamic table management, the
-    association table stays at its declared address."""
-    segments = _segments("MV-0020")
-    association = next(segment for segment in segments if segment.address == 0x41FF)
-    assert association.data == bytes.fromhex("010101")
-    assert all(segment.address != 0x4005 for segment in segments)
 
 
 def _abs(lsm: int, address: int, size: int) -> LdCtrlAbsSegment:

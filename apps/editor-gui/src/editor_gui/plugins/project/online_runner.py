@@ -12,6 +12,7 @@ from xknx.telegram import IndividualAddress
 from editor_gui.plugins.project.strings import S
 from xknxeditor.download.errors import DownloadError
 from xknxeditor.download.procedure import memory_services
+from xknxeditor.download.resources import mask_number
 from xknxeditor.download.scope import mask_object_types
 from xknxeditor.download.script_online import OnlineHost, OnlineSession
 from xknxeditor.prod.script import ScriptAborted, ScriptError
@@ -32,11 +33,7 @@ _DISPOSE_TIMEOUT = 10.0
 
 
 def _mask_version(device: Device) -> int | None:
-    text = (device.app.program.mask_version if device.app else None) or ""
-    try:
-        return int(text.removeprefix("MV-"), 16)
-    except ValueError:
-        return None
+    return mask_number((device.app.program.mask_version if device.app else None) or "")
 
 
 def _object_types(conn: ConnectionService, device: Device) -> dict[int, int]:

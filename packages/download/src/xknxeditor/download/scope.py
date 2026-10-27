@@ -127,9 +127,9 @@ def mask_object_types(
 def target_object_type(control: object, object_types: Mapping[int, int]) -> int | None:
     """Resolve classification only; the original control still chooses the wire service.
 
-    Returns ``None`` for an application object (an index absent from a populated mask
-    map) so the scope rules treat it as non-system and default to including it. With
-    no mask metadata at all (empty map) an indexed target fails closed. The device
+    Returns ``None`` for an index the mask does not list (an application object, or any
+    object of a mask without interface object metadata, such as the System 300 masks) so
+    the scope rules treat it as non-system and keep the control as it is. The device
     object at index zero is the only fixed identity used without metadata.
     """
     if type(control).__name__ == "LdCtrlClearLcfilterTable":
@@ -145,20 +145,9 @@ def target_object_type(control: object, object_types: Mapping[int, int]) -> int 
         return None
     if index == 0:
         return _DEVICE_OBJECT
-    if index not in object_types:
-        # A populated mask map lists every system interface object, so an index that
-        # is absent is an application object (index at or above the mask's first
-        # application object). Classify it as non-system (None): the scope rules then
-        # default to including it. Only an
-        # empty map (no mask metadata at all) is genuinely unclassifiable and fails
-        # closed, since a missing system object then cannot be told apart.
-        if object_types:
-            return None
-        raise UnsupportedProcedureError(
-            f"cannot resolve interface object index {index} to a type for "
-            f"{type(control).__name__}; mask InterfaceObjects metadata is required"
-        )
-    return object_types[index]
+    # An index the mask does not list has no type: a partial download keeps the control
+    # as it is (the automatic transformation needs the type to change it).
+    return object_types.get(index)
 
 
 def control_in_scope(
