@@ -10,11 +10,13 @@ from __future__ import annotations
 
 import logging
 from collections.abc import Awaitable, Callable, Mapping
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import TYPE_CHECKING, NamedTuple
 
 from xknx.exceptions import ManagementConnectionError
 from xknx.telegram import IndividualAddress
+
+from xknxeditor.namespaces.intermediate.resource_addr_space_t import ResourceAddrSpace
 
 from .errors import (
     DownloadError,
@@ -47,7 +49,7 @@ from .programmer import (
     MEMORY_SERVICE_FALLBACKS,
 )
 from .resources import property_group_tables
-from .scope import DownloadScope, mask_object_types
+from .scope import DownloadScope, mask_configuration, mask_object_types
 from .secure_config import (
     commissioning_controls,
     plain_controls,
@@ -386,6 +388,25 @@ def _property_services(application: Application, master: MasterData | None) -> b
     return mask_has_property_services(raw, mask_version)
 
 
+def _with_mask_memory(
+    image: DownloadImage, application: Application, master: MasterData | None
+) -> DownloadImage:
+    """``image`` with the memory segments of the device's mask from the master data."""
+    if master is None or getattr(image, "mask_memory", True):
+        return image
+    configuration = mask_configuration(master.raw, device_mask_version(application))
+    segments = configuration.memory_segments if configuration is not None else None
+    ranges = tuple(
+        (segment.location.start_address, segment.length)
+        for segment in (segments.memory_segment if segments is not None else ())
+        if segment.location is not None
+        and segment.location.address_space is ResourceAddrSpace.STANDARD_MEMORY
+        and segment.location.start_address is not None
+        and segment.length
+    )
+    return replace(image, mask_memory=ranges) if ranges else image
+
+
 def _reject_address_scope(scope: DownloadScope) -> None:
     if scope.individual_address_only:
         raise UnsupportedProcedureError(
@@ -516,6 +537,7 @@ async def download(
         )
     else:
         logger.debug("download: using pre-built image (scope=%s)", scope.name)
+    image = _with_mask_memory(image, application, master)
     controls = _resolve_controls(
         application,
         master,
@@ -736,6 +758,7 @@ async def preflight(
             parameter_values=parameter_values,
             group_communication=group_communication,
         )
+    image = _with_mask_memory(image, application, master)
     address = IndividualAddress(individual_address)
     application_loaded = False
     if scope not in _PARTIAL_SCOPES:

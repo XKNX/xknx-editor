@@ -128,3 +128,10 @@ async def test_preview_and_download_skip_the_segment() -> None:
     assert writes
     assert all(w.address < _EMPTY for w in writes)
     assert device.memory[0x4503] == 0x07
+
+
+def test_the_mask_memory_is_part_of_the_image() -> None:
+    # A range in the mask's own memory has nothing to write; outside it, data is missing.
+    image = DownloadImage(segments=(), properties=(), mask_memory=((0x100, 880),))
+    assert image.masked_writes(0x111, 1, include_initialized=True) == []
+    assert image.masked_writes(0x500, 1, include_initialized=True) is None

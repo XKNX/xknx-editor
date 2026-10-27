@@ -402,6 +402,9 @@ class DownloadImage:
     procedure_parameters: Mapping[str, str] = MappingProxyType({})
     # The group communication tables of a device that holds them as properties (System 300).
     property_tables: PropertyTables | None = None
+    # The memory segments of the mask (start, length), from its master data: part of the
+    # image, with nothing to write unless a code segment or table covers them.
+    mask_memory: tuple[tuple[int, int], ...] = ()
 
     def relative_segment(self, object_type: int) -> RelativeSegment | None:
         """Return the relative segment for an interface object type, if any."""
@@ -508,6 +511,12 @@ class DownloadImage:
                 hi = min(run_address + len(run_data), end)
                 if lo < hi:
                     out.append((lo, run_data[lo - run_address : hi - run_address]))
+        if not covered and any(
+            start <= address and end <= start + length
+            for start, length in self.mask_memory
+        ):
+            # The mask's own memory is part of every image, with nothing to write.
+            covered = True
         return out if covered else None
 
 
