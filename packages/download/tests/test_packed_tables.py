@@ -245,9 +245,12 @@ def _abs(lsm: int, address: int, size: int) -> LdCtrlAbsSegment:
 
 
 def _image(*, association_address: int) -> DownloadImage:
+    # As the image builds the address table: the two own-address octets after the count
+    # are left to individual-address programming (issue #150: an all-0xFF mask here hid
+    # that the runner then kept the declared placement).
     return DownloadImage(
         segments=(
-            MemorySegment(0x4000, bytes(25), mask=b"\xff" * 25),
+            MemorySegment(0x4000, bytes(25), mask=b"\xff\x00\x00" + b"\xff" * 22),
             MemorySegment(association_address, b"\x0d\x03", mask=b"\xff\xff"),
         ),
         properties=(),
@@ -294,6 +297,42 @@ async def test_mv0705_allocates_the_packed_tables_as_properties() -> None:
     assert device.memory[0x4019] == 0x0D
     assert device.memory[0x401A] == 0x03
     assert 0x41FF not in device.memory
+
+
+async def test_mv0705_allocates_the_association_table_where_the_image_put_it() -> None:
+    """The tables as the image builds them: the association table segment and its task
+    segment move to where the image wrote the association table (issue #150: they stayed
+    at the declared 0x41FF, so the device found no associations and stayed silent)."""
+    application = cast("Application", _application("MV-0705"))
+    image = DownloadImage(segments=tuple(_segments("MV-0705")), properties=())
+    device = FakeDevice()
+    runner = LoadProcedureRunner(
+        application,
+        image,
+        DeviceProgrammer(device),
+        controls=[
+            _abs(1, 0x4000, 511),
+            _abs(2, 0x41FF, 511),
+            LdCtrlTaskSegment(lsm_idx=2, address=0x41FF, occurrence=0),
+        ],
+    )
+
+    await runner.run()
+
+    events = [
+        payload.data
+        for payload in device.sent
+        if isinstance(payload, PropertyValueWrite)
+        and payload.property_id == PID_LOAD_STATE_CONTROL
+    ]
+    # The address table holds 5 octets, the association table starts at 0x4005 and ends
+    # where the declared one does (0x41FF + 1 + 2 * 255).
+    assert events[:2] == [
+        bytes.fromhex("030040000005f2038000"),
+        bytes.fromhex("0300400503f9f2038000"),
+    ]
+    assert events[2][:4] == bytes.fromhex("03024005")
+    assert bytes(device.memory[0x4005 + i] for i in range(3)) == bytes.fromhex("010101")
 
 
 async def test_mv0705_skips_the_pei_load_ets_does_not_send() -> None:

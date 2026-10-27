@@ -40,9 +40,9 @@ from .errors import UnsupportedProcedureError
 from .scope import (
     DownloadScope,
     control_applies,
-    control_in_scope,
     mask_configuration,
     mask_object_types,
+    scoped_controls,
 )
 
 logger = logging.getLogger(__name__)
@@ -149,11 +149,13 @@ def _finalize_controls(
     # Automatic transformations precede removal of the absent second program.
     return [
         _explicit(c)
-        for c in controls
-        if control_in_scope(
-            c, scope, object_types, has_application_program2=has_application_program2
+        for c in scoped_controls(
+            controls,
+            scope,
+            object_types,
+            has_application_program2=has_application_program2,
         )
-        and not (remove_second and _second_program_control(c))
+        if not (remove_second and _second_program_control(c))
     ]
 
 
