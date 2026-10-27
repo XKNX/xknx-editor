@@ -1169,6 +1169,8 @@ class ProjectService:
         # Signature of the non-reverted events at open — the baseline the read-only pre-flight
         # compares against, so opening a previously-edited project is not itself "modified".
         self._history_baseline: frozenset[tuple[int, str, str]] = frozenset()
+        # The last state key (see state_key) and the (generation, revision) it was taken at.
+        self._state_key: tuple[tuple[int, int], str] = ((-1, -1), "")
         # Optional (i_done, total) callback invoked while (re)building the device views — lets the
         # GUI show a determinate "opening project" progress bar sized to the project's device count.
         self.build_progress: Callable[[int, int, str], None] | None = None
@@ -1481,7 +1483,10 @@ class ProjectService:
         """End the active project: close the engine, then (if mirroring) write the local working
         file back to the network home. The single place project teardown happens, so every switch
         (open/new/import) and app exit writes the mirror back. A write-back failure (share gone) is
-        logged and KEEPS the local mirror — never loses data."""
+        logged and KEEPS the local mirror — never loses data.
+
+        Listeners hear ``closing`` while the project is still open and ``closed`` (with the
+        working file, complete and no longer written to) once it is closed."""
         if self._pid is None:
             return
         working, home = self._working_path, self._path
@@ -1491,7 +1496,10 @@ class ProjectService:
             working=str(working) if working else None,
             mirroring=working is not None and home is not None and working != home,
         )
+        self._emit("closing")
         self._svc.close(self._pid)
+        if working is not None:
+            self._emit("closed", working)
         if working is not None and home is not None and working != home:
             self._log.info("writing project back to network location", home=str(home))
             try:
@@ -1804,6 +1812,57 @@ class ProjectService:
                 self._teardown_current()
                 self._history_baseline = frozenset()
                 self._log.info("project closed")
+
+    @io_guarded(lambda: "")
+    def state_key(self) -> str:
+        """A key of the open project's state: it changes with every edit, undo, redo and new
+        password, so a backup that has the same key holds the same state. Empty with no project
+        open, or while a background open or import holds the project."""
+        if self._pid is None:
+            return ""
+        at = (self._generation, self._version)
+        if self._state_key[0] == at:
+            return self._state_key[1]
+        digest = hashlib.sha256()
+        for entry in self._svc.history(self._pid):
+            if not entry.reverted:
+                digest.update(repr((entry.id, entry.event_type, entry.data)).encode())
+        digest.update((self._svc.project(self._pid).password_check or "").encode())
+        key = digest.hexdigest()
+        self._state_key = (at, key)
+        return key
+
+    def ensure_guid(self) -> str:
+        """The open project's GUID (one is given to a project without one); empty with no
+        project open."""
+        if self._pid is None:
+            return ""
+        with self._io_lock:
+            return self._svc.ensure_guid(self._pid)
+
+    def replace_with(self, source: Path, password: str | None) -> None:
+        """Replace the open project by the project file ``source`` (a restored backup) at the
+        same location, and open it: with ``password`` when it is protected (raises
+        ``ProjectPasswordRequired``/``InvalidProjectPassword`` before anything changes)."""
+        if self._pid is None or self._path is None or self._working_path is None:
+            raise ValueError("no project is open")
+        check_project_password(source, password)
+        home, working = self._path, self._working_path
+        with self._io_lock:
+            self._teardown_current()
+            self._copy_atomic(source, working)
+            if working != home:
+                try:
+                    self._copy_atomic(source, home)
+                except OSError as e:
+                    self._log.error(
+                        "could not write the restored project to its network location; it is "
+                        "written there when the project is closed",
+                        home=str(home),
+                        error=f"{type(e).__name__}: {e}",
+                    )
+            self.open(home, password)
+        self._log.info("project replaced", path=str(home), source=str(source))
 
     def _reset(self) -> None:
         self._devices_cache = None

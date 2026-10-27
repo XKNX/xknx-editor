@@ -1,0 +1,245 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor backups 1.0\n"
+"Language: da\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Versions and Backups"
+msgstr "Versioner og sikkerhedskopier"
+
+msgid "Create Backup…"
+msgstr "Opret sikkerhedskopi…"
+
+msgid "Show Versions and Backups…"
+msgstr "Vis versioner og sikkerhedskopier…"
+
+msgid "Comment: {comment}"
+msgstr "Kommentar: {comment}"
+
+msgid "Settings…"
+msgstr "Indstillinger…"
+
+msgid "Open a project to see its backups."
+msgstr "Åbn et projekt for at se dets sikkerhedskopier."
+
+msgid "This project has no backups yet."
+msgstr "Dette projekt har endnu ingen sikkerhedskopier."
+
+msgid "Folder: {path}"
+msgstr "Mappe: {path}"
+
+msgid "Open Folder"
+msgstr "Åbn mappe"
+
+msgid "Compare"
+msgstr "Sammenlign"
+
+msgid "Restore…"
+msgstr "Gendan…"
+
+msgid "Export as .xknx…"
+msgstr "Eksportér som .xknx…"
+
+msgid "Pin"
+msgstr "Fastgør"
+
+msgid "Unpin"
+msgstr "Frigør"
+
+msgid "Check"
+msgstr "Kontrollér"
+
+msgid "Delete…"
+msgstr "Slet…"
+
+msgid "Show what differs between the project now and this backup"
+msgstr "Viser, hvad der er forskelligt mellem projektet nu og denne sikkerhedskopi"
+
+msgid "A pinned backup is never deleted automatically"
+msgstr "En fastgjort sikkerhedskopi slettes aldrig automatisk"
+
+msgid "Check that the backup can be restored"
+msgstr "Kontrollerer, at sikkerhedskopien kan gendannes"
+
+msgid "Created"
+msgstr "Oprettet"
+
+msgid "Kind"
+msgstr "Type"
+
+msgid "Comment"
+msgstr "Kommentar"
+
+msgid "Computer"
+msgstr "Computer"
+
+msgid "User"
+msgstr "Bruger"
+
+msgid "Size"
+msgstr "Størrelse"
+
+msgid "Manual"
+msgstr "Manuel"
+
+msgid "On close"
+msgstr "Ved lukning"
+
+msgid "Interval"
+msgstr "Interval"
+
+msgid "Before restore"
+msgstr "Før gendannelse"
+
+msgid "Pinned"
+msgstr "fastgjort"
+
+msgid "{size} MB"
+msgstr "{size} MB"
+
+msgid "Creating a backup: copying the project…"
+msgstr "Opretter sikkerhedskopi: kopierer projektet…"
+
+msgid "Creating a backup: checking the project…"
+msgstr "Opretter sikkerhedskopi: kontrollerer projektet…"
+
+msgid "Creating a backup: compressing…"
+msgstr "Opretter sikkerhedskopi: komprimerer…"
+
+msgid "Create Backup"
+msgstr "Opret sikkerhedskopi"
+
+msgid "The backup holds the project as it is now."
+msgstr "Sikkerhedskopien indeholder projektet, som det er nu."
+
+msgid "Create"
+msgstr "Opret"
+
+msgid "Cancel"
+msgstr "Annuller"
+
+msgid "OK"
+msgstr "OK"
+
+msgid "Backup created: {name}"
+msgstr "Sikkerhedskopi oprettet: {name}"
+
+msgid "The backup failed: {error}"
+msgstr "Sikkerhedskopieringen mislykkedes: {error}"
+
+msgid "Restore Backup"
+msgstr "Gendan sikkerhedskopi"
+
+msgid "Restore the project to its state of {created}?\n\nThe project as it is now is saved as a backup first, so you can go back to it."
+msgstr "Gendan projektet til dets tilstand fra {created}?\n\nProjektet, som det er nu, gemmes først som sikkerhedskopi, så du kan vende tilbage til det."
+
+msgid "Restore"
+msgstr "Gendan"
+
+msgid "The project had another password when this backup was made. Enter that password:"
+msgstr "Projektet havde en anden adgangskode, da denne sikkerhedskopi blev oprettet. Indtast den adgangskode:"
+
+msgid "Wrong password"
+msgstr "Forkert adgangskode"
+
+msgid "Restoring the backup…"
+msgstr "Gendanner sikkerhedskopien…"
+
+msgid "Project restored to its state of {created}"
+msgstr "Projektet er gendannet til dets tilstand fra {created}"
+
+msgid "The backup could not be restored: {error}"
+msgstr "Sikkerhedskopien kunne ikke gendannes: {error}"
+
+msgid "Delete Backup"
+msgstr "Slet sikkerhedskopi"
+
+msgid "Delete the backup of {created}? This cannot be undone."
+msgstr "Slet sikkerhedskopien fra {created}? Dette kan ikke fortrydes."
+
+msgid "Delete"
+msgstr "Slet"
+
+msgid "Export Backup as Project File"
+msgstr "Eksportér sikkerhedskopi som projektfil"
+
+msgid "XKNX Editor projects"
+msgstr "XKNX Editor-projekter"
+
+msgid "Exporting the backup…"
+msgstr "Eksporterer sikkerhedskopien…"
+
+msgid "Backup exported: {name}"
+msgstr "Sikkerhedskopi eksporteret: {name}"
+
+msgid "Checking the backup…"
+msgstr "Kontrollerer sikkerhedskopien…"
+
+msgid "The backup is intact and can be restored."
+msgstr "Sikkerhedskopien er intakt og kan gendannes."
+
+msgid "The backup is damaged: {error}"
+msgstr "Sikkerhedskopien er beskadiget: {error}"
+
+msgid "Backup of {created}"
+msgstr "Sikkerhedskopi fra {created}"
+
+msgid "Restore from Backup"
+msgstr "Gendan fra sikkerhedskopi"
+
+msgid "The project {name} could not be opened: {error}"
+msgstr "Projektet {name} kunne ikke åbnes: {error}"
+
+msgid "The project file {name} no longer exists."
+msgstr "Projektfilen {name} findes ikke længere."
+
+msgid "Its newest backup is from {created}. Restore the project from it? A file that is there now is kept under another name."
+msgstr "Dets nyeste sikkerhedskopi er fra {created}. Gendan projektet fra den? En fil, der ligger der nu, gemmes under et andet navn."
+
+msgid "The damaged file was kept as {name}."
+msgstr "Den beskadigede fil blev gemt som {name}."
+
+msgid "Versions and Backups Settings"
+msgstr "Indstillinger for versioner og sikkerhedskopier"
+
+msgid "Full Backups"
+msgstr "Fulde sikkerhedskopier"
+
+msgid "A full backup is one file with the complete project, which can be restored on its own. Each project has a folder of its own in the backup folder. A network drive or a folder synchronized with a cloud service keeps the backups off this computer."
+msgstr "En fuld sikkerhedskopi er én fil med hele projektet, som kan gendannes alene. Hvert projekt har sin egen mappe i mappen til sikkerhedskopier. Et netværksdrev eller en mappe, der synkroniseres med en cloudtjeneste, opbevarer sikkerhedskopierne uden for denne computer."
+
+msgid "Backup Folder"
+msgstr "Mappe til sikkerhedskopier"
+
+msgid "Choose Folder…"
+msgstr "Vælg mappe…"
+
+msgid "Default"
+msgstr "Standard"
+
+msgid "Choose the Backup Folder"
+msgstr "Vælg mappen til sikkerhedskopier"
+
+msgid "Create a backup when a project is closed"
+msgstr "Opret en sikkerhedskopi, når et projekt lukkes"
+
+msgid "Create backups at regular intervals while a project is open"
+msgstr "Opret sikkerhedskopier med jævne mellemrum, mens et projekt er åbent"
+
+msgid "Interval in Hours"
+msgstr "Interval i timer"
+
+msgid "Delete old automatic backups"
+msgstr "Slet gamle automatiske sikkerhedskopier"
+
+msgid "Delete After (Days)"
+msgstr "Slet efter (dage)"
+
+msgid "Always Keep the Newest"
+msgstr "Behold altid de nyeste"
+
+msgid "An automatic backup is only made when the project changed since its newest backup. Backups you create yourself and pinned backups are never deleted automatically."
+msgstr "En automatisk sikkerhedskopi oprettes kun, hvis projektet er ændret siden dets nyeste sikkerhedskopi. Sikkerhedskopier, du selv opretter, og fastgjorte sikkerhedskopier slettes aldrig automatisk."

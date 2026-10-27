@@ -295,8 +295,8 @@ msgstr "Topologikontrol"
 msgid "Project Diff"
 msgstr "Projektsammenligning"
 
-msgid "Compare the open project with another project file (.knxproj or .xknx): which devices and group addresses were added, removed or changed. The other project is read-only; nothing is modified."
-msgstr "Sammenlign det åbne projekt med en anden projektfil (.knxproj eller .xknx): hvilke enheder og gruppeadresser der blev tilføjet, fjernet eller ændret. Det andet projekt læses kun; intet ændres."
+msgid "Compare the open project with another project file (.knxproj, .xknx or a backup .zip): which devices and group addresses were added, removed or changed. The other project is read-only; nothing is modified."
+msgstr "Sammenlign det åbne projekt med en anden projektfil (.knxproj, .xknx eller en sikkerhedskopi .zip): hvilke enheder og gruppeadresser der blev tilføjet, fjernet eller ændret. Det andet projekt læses kun; intet ændres."
 
 msgid "Choose Project to Compare…"
 msgstr "Vælg projekt til sammenligning…"
@@ -304,8 +304,8 @@ msgstr "Vælg projekt til sammenligning…"
 msgid "Choose Project to Compare"
 msgstr "Vælg projekt til sammenligning"
 
-msgid "KNX project (*.knxproj *.xknx)"
-msgstr "KNX-projekt (*.knxproj *.xknx)"
+msgid "KNX project (*.knxproj *.xknx *.zip)"
+msgstr "KNX-projekt (*.knxproj *.xknx *.zip)"
 
 msgid "compared with {name}"
 msgstr "sammenlignet med {name}"

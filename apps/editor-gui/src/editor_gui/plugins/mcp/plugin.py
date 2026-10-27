@@ -22,6 +22,7 @@ from editor_gui.ports import PortInUseError, bind_port
 if TYPE_CHECKING:
     import uvicorn
 
+    from editor_gui.plugins.backups.service import BackupService
     from editor_gui.plugins.base import PluginAPI
     from editor_gui.plugins.connection.plugin import ConnectionPlugin
     from editor_gui.plugins.keyring.service import KeyringService
@@ -119,6 +120,7 @@ class McpServerPlugin:
         monitor: MonitorService,
         keyring: KeyringService,
         project_plugin: ProjectPlugin | None = None,
+        backups: BackupService | None = None,
     ) -> None:
         self._log = Logger(api.log, "mcp")
         self._context_args: dict[str, Any] = {
@@ -129,6 +131,7 @@ class McpServerPlugin:
             "keyring": keyring,
             "log": self._log,
             "project_plugin": project_plugin,
+            "backups": backups,
         }
         self._ctx: McpContext | None = None
         self._server: uvicorn.Server | None = None

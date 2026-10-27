@@ -70,6 +70,7 @@ from editor_gui.myknx_oauth import (
     save_credentials as save_myknx_oauth_credentials,
 )
 from editor_gui.os_open import open_url
+from editor_gui.plugins.backups import BackupsPlugin
 from editor_gui.plugins.base import API_VERSION, Logger, PanelDefinition, PluginAPI
 from editor_gui.plugins.bus_diagram import BusDiagramPlugin
 from editor_gui.plugins.catalog import CatalogPlugin, CatalogService
@@ -804,6 +805,13 @@ class KnxGuiApp:
         self._log = Logger(self._log_service, "app")
         self._logger_plugin = LoggerPlugin(self._log_service)
 
+        self._backups_plugin = BackupsPlugin(
+            self._plugin_api,
+            open_folder=self._open_folder,
+            open_project=self._do_open_project,
+            compare=self._project_plugin.open_project_diff,
+        )
+
         # Embedded MCP server: drives these same live services (no panels, so not in _plugins).
         self._mcp_plugin = McpServerPlugin(
             self._plugin_api,
@@ -812,6 +820,7 @@ class KnxGuiApp:
             self._monitor_plugin.service,
             self._keyring_plugin.service,
             self._project_plugin,
+            self._backups_plugin.service,
         )
 
         self._plugins: list[Any] = [
@@ -819,6 +828,7 @@ class KnxGuiApp:
             self._connection_plugin,
             self._monitor_plugin,
             self._keyring_plugin,
+            self._backups_plugin,
             self._signing_plugin,
             self._recover_plugin,
             self._project_plugin,
@@ -1059,6 +1069,8 @@ class KnxGuiApp:
         self._connection_plugin.shutdown()
         if self._project_service.is_open:
             self._project_service.close()
+        # The backup made when the project closed is written before the app ends.
+        self._backups_plugin.shutdown()
 
     # --- recent files (persisted in the app settings) ---------------------
 
@@ -2836,6 +2848,7 @@ class KnxGuiApp:
         if not self._project_service.can_open(Path(path)):
             self._log.error("project file no longer exists", path=path)
             self._remove_recent(path)
+            self._backups_plugin.offer_restore(path, "")
             return
         # Another editor has it open: ask first, as two editors would overwrite each other's changes.
         if not open_anyway:
@@ -2877,10 +2890,12 @@ class KnxGuiApp:
             except ProjectStorageError as e:
                 # The file lives somewhere SQLite can't operate (network share, read-only dir).
                 self._log.error("Cannot open the project here", path=path, error=str(e))
-            except (ValueError, SQLAlchemyError) as e:
+            except (ValueError, SQLAlchemyError, FileNotFoundError) as e:
                 # A missing/stale/corrupt file must not take down the app (e.g. the demo project
-                # opened at startup, or a bad file picked via "Open Project").
+                # opened at startup, or a bad file picked via "Open Project"). Its newest backup
+                # is offered.
                 self._log.error("could not open project", path=path, error=str(e))
+                self._backups_plugin.offer_restore(path, str(e))
             finally:
                 self._project_service.build_progress = None
 
@@ -3802,6 +3817,7 @@ class KnxGuiApp:
                 0
             ]:
                 self._start_compact_analysis()
+            self._backups_plugin.render_file_menu()
             imgui.separator()
             if imgui.menu_item(
                 S.MENU_EXPORT_GA_EXPORT,
@@ -4826,6 +4842,7 @@ class KnxGuiApp:
         self._render_compact_result_modal()
         self._render_knxprod_result_modal()
         self._keyring_plugin.render_window()
+        self._backups_plugin.render_window()
         # The Signing Key dialog asked for from the Signing menu.
         if self._signing_plugin.take_open_request():
             imgui.open_popup(S.SIGNING_KEY_TITLE)

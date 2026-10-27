@@ -1,0 +1,245 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor backups 1.0\n"
+"Language: tr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Versions and Backups"
+msgstr "Sürümler ve yedekler"
+
+msgid "Create Backup…"
+msgstr "Yedek oluştur…"
+
+msgid "Show Versions and Backups…"
+msgstr "Sürümleri ve yedekleri göster…"
+
+msgid "Comment: {comment}"
+msgstr "Yorum: {comment}"
+
+msgid "Settings…"
+msgstr "Ayarlar…"
+
+msgid "Open a project to see its backups."
+msgstr "Yedeklerini görmek için bir proje açın."
+
+msgid "This project has no backups yet."
+msgstr "Bu projenin henüz yedeği yok."
+
+msgid "Folder: {path}"
+msgstr "Klasör: {path}"
+
+msgid "Open Folder"
+msgstr "Klasörü aç"
+
+msgid "Compare"
+msgstr "Karşılaştır"
+
+msgid "Restore…"
+msgstr "Geri yükle…"
+
+msgid "Export as .xknx…"
+msgstr ".xknx olarak dışa aktar…"
+
+msgid "Pin"
+msgstr "Sabitle"
+
+msgid "Unpin"
+msgstr "Sabitlemeyi kaldır"
+
+msgid "Check"
+msgstr "Denetle"
+
+msgid "Delete…"
+msgstr "Sil…"
+
+msgid "Show what differs between the project now and this backup"
+msgstr "Projenin şimdiki hâli ile bu yedek arasındaki farkları gösterir"
+
+msgid "A pinned backup is never deleted automatically"
+msgstr "Sabitlenmiş bir yedek hiçbir zaman otomatik olarak silinmez"
+
+msgid "Check that the backup can be restored"
+msgstr "Yedeğin geri yüklenebildiğini denetler"
+
+msgid "Created"
+msgstr "Oluşturulma"
+
+msgid "Kind"
+msgstr "Tür"
+
+msgid "Comment"
+msgstr "Yorum"
+
+msgid "Computer"
+msgstr "Bilgisayar"
+
+msgid "User"
+msgstr "Kullanıcı"
+
+msgid "Size"
+msgstr "Boyut"
+
+msgid "Manual"
+msgstr "Elle"
+
+msgid "On close"
+msgstr "Kapatırken"
+
+msgid "Interval"
+msgstr "Aralıklı"
+
+msgid "Before restore"
+msgstr "Geri yüklemeden önce"
+
+msgid "Pinned"
+msgstr "sabitlenmiş"
+
+msgid "{size} MB"
+msgstr "{size} MB"
+
+msgid "Creating a backup: copying the project…"
+msgstr "Yedek oluşturuluyor: proje kopyalanıyor…"
+
+msgid "Creating a backup: checking the project…"
+msgstr "Yedek oluşturuluyor: proje denetleniyor…"
+
+msgid "Creating a backup: compressing…"
+msgstr "Yedek oluşturuluyor: sıkıştırılıyor…"
+
+msgid "Create Backup"
+msgstr "Yedek oluştur"
+
+msgid "The backup holds the project as it is now."
+msgstr "Yedek, projeyi şimdiki hâliyle içerir."
+
+msgid "Create"
+msgstr "Oluştur"
+
+msgid "Cancel"
+msgstr "İptal et"
+
+msgid "OK"
+msgstr "Tamam"
+
+msgid "Backup created: {name}"
+msgstr "Yedek oluşturuldu: {name}"
+
+msgid "The backup failed: {error}"
+msgstr "Yedekleme başarısız oldu: {error}"
+
+msgid "Restore Backup"
+msgstr "Yedeği geri yükle"
+
+msgid "Restore the project to its state of {created}?\n\nThe project as it is now is saved as a backup first, so you can go back to it."
+msgstr "Proje {created} tarihindeki durumuna geri yüklensin mi?\n\nProjenin şimdiki hâli önce yedek olarak kaydedilir, böylece ona geri dönebilirsiniz."
+
+msgid "Restore"
+msgstr "Geri yükle"
+
+msgid "The project had another password when this backup was made. Enter that password:"
+msgstr "Bu yedek oluşturulduğunda projenin başka bir parolası vardı. O parolayı girin:"
+
+msgid "Wrong password"
+msgstr "Yanlış parola"
+
+msgid "Restoring the backup…"
+msgstr "Yedek geri yükleniyor…"
+
+msgid "Project restored to its state of {created}"
+msgstr "Proje {created} tarihindeki durumuna geri yüklendi"
+
+msgid "The backup could not be restored: {error}"
+msgstr "Yedek geri yüklenemedi: {error}"
+
+msgid "Delete Backup"
+msgstr "Yedeği sil"
+
+msgid "Delete the backup of {created}? This cannot be undone."
+msgstr "{created} tarihli yedek silinsin mi? Bu işlem geri alınamaz."
+
+msgid "Delete"
+msgstr "Sil"
+
+msgid "Export Backup as Project File"
+msgstr "Yedeği proje dosyası olarak dışa aktar"
+
+msgid "XKNX Editor projects"
+msgstr "XKNX Editor projeleri"
+
+msgid "Exporting the backup…"
+msgstr "Yedek dışa aktarılıyor…"
+
+msgid "Backup exported: {name}"
+msgstr "Yedek dışa aktarıldı: {name}"
+
+msgid "Checking the backup…"
+msgstr "Yedek denetleniyor…"
+
+msgid "The backup is intact and can be restored."
+msgstr "Yedek sağlam ve geri yüklenebilir."
+
+msgid "The backup is damaged: {error}"
+msgstr "Yedek hasarlı: {error}"
+
+msgid "Backup of {created}"
+msgstr "{created} tarihli yedek"
+
+msgid "Restore from Backup"
+msgstr "Yedekten geri yükle"
+
+msgid "The project {name} could not be opened: {error}"
+msgstr "{name} projesi açılamadı: {error}"
+
+msgid "The project file {name} no longer exists."
+msgstr "{name} proje dosyası artık mevcut değil."
+
+msgid "Its newest backup is from {created}. Restore the project from it? A file that is there now is kept under another name."
+msgstr "En yeni yedeği {created} tarihli. Proje bu yedekten geri yüklensin mi? Şu anda orada bulunan bir dosya başka bir adla saklanır."
+
+msgid "The damaged file was kept as {name}."
+msgstr "Hasarlı dosya {name} olarak saklandı."
+
+msgid "Versions and Backups Settings"
+msgstr "Sürüm ve yedek ayarları"
+
+msgid "Full Backups"
+msgstr "Tam yedekler"
+
+msgid "A full backup is one file with the complete project, which can be restored on its own. Each project has a folder of its own in the backup folder. A network drive or a folder synchronized with a cloud service keeps the backups off this computer."
+msgstr "Tam yedek, projenin tamamını içeren ve tek başına geri yüklenebilen tek bir dosyadır. Her projenin yedek klasöründe kendi klasörü vardır. Bir ağ sürücüsü veya bir bulut hizmetiyle eşitlenen bir klasör, yedekleri bu bilgisayarın dışında tutar."
+
+msgid "Backup Folder"
+msgstr "Yedek klasörü"
+
+msgid "Choose Folder…"
+msgstr "Klasör seç…"
+
+msgid "Default"
+msgstr "Varsayılan"
+
+msgid "Choose the Backup Folder"
+msgstr "Yedek klasörünü seç"
+
+msgid "Create a backup when a project is closed"
+msgstr "Bir proje kapatıldığında yedek oluştur"
+
+msgid "Create backups at regular intervals while a project is open"
+msgstr "Bir proje açıkken düzenli aralıklarla yedek oluştur"
+
+msgid "Interval in Hours"
+msgstr "Saat cinsinden aralık"
+
+msgid "Delete old automatic backups"
+msgstr "Eski otomatik yedekleri sil"
+
+msgid "Delete After (Days)"
+msgstr "Şu kadar sonra sil (gün)"
+
+msgid "Always Keep the Newest"
+msgstr "En yenileri her zaman sakla"
+
+msgid "An automatic backup is only made when the project changed since its newest backup. Backups you create yourself and pinned backups are never deleted automatically."
+msgstr "Otomatik yedek yalnızca proje en yeni yedeğinden bu yana değiştiyse oluşturulur. Kendi oluşturduğunuz yedekler ve sabitlenmiş yedekler hiçbir zaman otomatik olarak silinmez."

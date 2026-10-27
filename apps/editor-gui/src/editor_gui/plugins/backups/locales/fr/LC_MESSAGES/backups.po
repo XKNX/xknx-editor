@@ -1,0 +1,245 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor backups 1.0\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Versions and Backups"
+msgstr "Versions et sauvegardes"
+
+msgid "Create Backup…"
+msgstr "Créer une sauvegarde…"
+
+msgid "Show Versions and Backups…"
+msgstr "Afficher les versions et sauvegardes…"
+
+msgid "Comment: {comment}"
+msgstr "Commentaire : {comment}"
+
+msgid "Settings…"
+msgstr "Paramètres…"
+
+msgid "Open a project to see its backups."
+msgstr "Ouvrez un projet pour voir ses sauvegardes."
+
+msgid "This project has no backups yet."
+msgstr "Ce projet n'a encore aucune sauvegarde."
+
+msgid "Folder: {path}"
+msgstr "Dossier : {path}"
+
+msgid "Open Folder"
+msgstr "Ouvrir le dossier"
+
+msgid "Compare"
+msgstr "Comparer"
+
+msgid "Restore…"
+msgstr "Restaurer…"
+
+msgid "Export as .xknx…"
+msgstr "Exporter en .xknx…"
+
+msgid "Pin"
+msgstr "Épingler"
+
+msgid "Unpin"
+msgstr "Désépingler"
+
+msgid "Check"
+msgstr "Vérifier"
+
+msgid "Delete…"
+msgstr "Supprimer…"
+
+msgid "Show what differs between the project now and this backup"
+msgstr "Affiche ce qui diffère entre le projet actuel et cette sauvegarde"
+
+msgid "A pinned backup is never deleted automatically"
+msgstr "Une sauvegarde épinglée n'est jamais supprimée automatiquement"
+
+msgid "Check that the backup can be restored"
+msgstr "Vérifie que la sauvegarde peut être restaurée"
+
+msgid "Created"
+msgstr "Créée"
+
+msgid "Kind"
+msgstr "Type"
+
+msgid "Comment"
+msgstr "Commentaire"
+
+msgid "Computer"
+msgstr "Ordinateur"
+
+msgid "User"
+msgstr "Utilisateur"
+
+msgid "Size"
+msgstr "Taille"
+
+msgid "Manual"
+msgstr "Manuelle"
+
+msgid "On close"
+msgstr "À la fermeture"
+
+msgid "Interval"
+msgstr "Intervalle"
+
+msgid "Before restore"
+msgstr "Avant restauration"
+
+msgid "Pinned"
+msgstr "épinglée"
+
+msgid "{size} MB"
+msgstr "{size} MB"
+
+msgid "Creating a backup: copying the project…"
+msgstr "Création d'une sauvegarde : copie du projet…"
+
+msgid "Creating a backup: checking the project…"
+msgstr "Création d'une sauvegarde : vérification du projet…"
+
+msgid "Creating a backup: compressing…"
+msgstr "Création d'une sauvegarde : compression…"
+
+msgid "Create Backup"
+msgstr "Créer une sauvegarde"
+
+msgid "The backup holds the project as it is now."
+msgstr "La sauvegarde contient le projet tel qu'il est maintenant."
+
+msgid "Create"
+msgstr "Créer"
+
+msgid "Cancel"
+msgstr "Annuler"
+
+msgid "OK"
+msgstr "OK"
+
+msgid "Backup created: {name}"
+msgstr "Sauvegarde créée : {name}"
+
+msgid "The backup failed: {error}"
+msgstr "La sauvegarde a échoué : {error}"
+
+msgid "Restore Backup"
+msgstr "Restaurer la sauvegarde"
+
+msgid "Restore the project to its state of {created}?\n\nThe project as it is now is saved as a backup first, so you can go back to it."
+msgstr "Rétablir le projet dans son état du {created} ?\n\nLe projet tel qu'il est maintenant est d'abord enregistré comme sauvegarde, pour que vous puissiez y revenir."
+
+msgid "Restore"
+msgstr "Restaurer"
+
+msgid "The project had another password when this backup was made. Enter that password:"
+msgstr "Le projet avait un autre mot de passe lorsque cette sauvegarde a été créée. Saisissez ce mot de passe :"
+
+msgid "Wrong password"
+msgstr "Mot de passe incorrect"
+
+msgid "Restoring the backup…"
+msgstr "Restauration de la sauvegarde…"
+
+msgid "Project restored to its state of {created}"
+msgstr "Projet rétabli dans son état du {created}"
+
+msgid "The backup could not be restored: {error}"
+msgstr "La sauvegarde n'a pas pu être restaurée : {error}"
+
+msgid "Delete Backup"
+msgstr "Supprimer la sauvegarde"
+
+msgid "Delete the backup of {created}? This cannot be undone."
+msgstr "Supprimer la sauvegarde du {created} ? Cette action est irréversible."
+
+msgid "Delete"
+msgstr "Supprimer"
+
+msgid "Export Backup as Project File"
+msgstr "Exporter la sauvegarde comme fichier de projet"
+
+msgid "XKNX Editor projects"
+msgstr "Projets XKNX Editor"
+
+msgid "Exporting the backup…"
+msgstr "Exportation de la sauvegarde…"
+
+msgid "Backup exported: {name}"
+msgstr "Sauvegarde exportée : {name}"
+
+msgid "Checking the backup…"
+msgstr "Vérification de la sauvegarde…"
+
+msgid "The backup is intact and can be restored."
+msgstr "La sauvegarde est intacte et peut être restaurée."
+
+msgid "The backup is damaged: {error}"
+msgstr "La sauvegarde est endommagée : {error}"
+
+msgid "Backup of {created}"
+msgstr "Sauvegarde du {created}"
+
+msgid "Restore from Backup"
+msgstr "Restaurer depuis une sauvegarde"
+
+msgid "The project {name} could not be opened: {error}"
+msgstr "Le projet {name} n'a pas pu être ouvert : {error}"
+
+msgid "The project file {name} no longer exists."
+msgstr "Le fichier de projet {name} n'existe plus."
+
+msgid "Its newest backup is from {created}. Restore the project from it? A file that is there now is kept under another name."
+msgstr "Sa sauvegarde la plus récente date du {created}. Restaurer le projet à partir de celle-ci ? Un fichier qui s'y trouve actuellement est conservé sous un autre nom."
+
+msgid "The damaged file was kept as {name}."
+msgstr "Le fichier endommagé a été conservé sous le nom {name}."
+
+msgid "Versions and Backups Settings"
+msgstr "Paramètres des versions et sauvegardes"
+
+msgid "Full Backups"
+msgstr "Sauvegardes complètes"
+
+msgid "A full backup is one file with the complete project, which can be restored on its own. Each project has a folder of its own in the backup folder. A network drive or a folder synchronized with a cloud service keeps the backups off this computer."
+msgstr "Une sauvegarde complète est un seul fichier contenant tout le projet, qui peut être restauré à lui seul. Chaque projet a son propre dossier dans le dossier de sauvegarde. Un lecteur réseau ou un dossier synchronisé avec un service cloud conserve les sauvegardes hors de cet ordinateur."
+
+msgid "Backup Folder"
+msgstr "Dossier de sauvegarde"
+
+msgid "Choose Folder…"
+msgstr "Choisir un dossier…"
+
+msgid "Default"
+msgstr "Par défaut"
+
+msgid "Choose the Backup Folder"
+msgstr "Choisir le dossier de sauvegarde"
+
+msgid "Create a backup when a project is closed"
+msgstr "Créer une sauvegarde à la fermeture d'un projet"
+
+msgid "Create backups at regular intervals while a project is open"
+msgstr "Créer des sauvegardes à intervalles réguliers tant qu'un projet est ouvert"
+
+msgid "Interval in Hours"
+msgstr "Intervalle en heures"
+
+msgid "Delete old automatic backups"
+msgstr "Supprimer les anciennes sauvegardes automatiques"
+
+msgid "Delete After (Days)"
+msgstr "Supprimer après (jours)"
+
+msgid "Always Keep the Newest"
+msgstr "Toujours garder les plus récentes"
+
+msgid "An automatic backup is only made when the project changed since its newest backup. Backups you create yourself and pinned backups are never deleted automatically."
+msgstr "Une sauvegarde automatique n'est créée que si le projet a changé depuis sa sauvegarde la plus récente. Les sauvegardes que vous créez vous-même et les sauvegardes épinglées ne sont jamais supprimées automatiquement."

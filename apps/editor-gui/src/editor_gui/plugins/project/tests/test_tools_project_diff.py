@@ -102,6 +102,30 @@ def test_the_outcome_of_a_comparison_is_shown_once_it_ended() -> None:
     assert panel._diff_result is result  # pyright: ignore[reportPrivateUsage]
 
 
+def test_a_comparison_asked_from_elsewhere_shows_the_tab() -> None:
+    job = DiffJob()
+    panel = _job_panel(job)
+    started: list[tuple[str, str | None]] = []
+
+    def start(path: str, password: str | None) -> DiffJob:
+        started.append((path, password))
+        return job
+
+    panel._on_diff_projects = start  # pyright: ignore[reportPrivateUsage]
+    panel._select_diff = False  # pyright: ignore[reportPrivateUsage]
+    panel.open_diff("backup.zip", "Backup of 2026-10-27 12:00", "secret")
+    assert panel._select_diff  # pyright: ignore[reportPrivateUsage]
+    assert panel._diff_other_name == "Backup of 2026-10-27 12:00"  # pyright: ignore[reportPrivateUsage]
+    assert started == [("backup.zip", "secret")]
+
+    # One still running goes on.
+    panel._select_diff = False  # pyright: ignore[reportPrivateUsage]
+    panel.open_diff("other.zip", "Other", None)
+    assert panel._select_diff  # pyright: ignore[reportPrivateUsage]
+    assert started == [("backup.zip", "secret")]
+    assert panel._diff_other_name == "Backup of 2026-10-27 12:00"  # pyright: ignore[reportPrivateUsage]
+
+
 def _frame(panel: ToolsPanel, result: DiffResult) -> None:
     imgui.new_frame()
     imgui.begin("Tools")

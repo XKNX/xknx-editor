@@ -924,8 +924,8 @@ msgstr "Opmerkingen zijn versleuteld"
 msgid "Comments decrypted"
 msgstr "Opmerkingen ontsleuteld"
 
-msgid "Compare the open project with another project file (.knxproj or .xknx): which devices and group addresses were added, removed or changed. The other project is read-only; nothing is modified."
-msgstr "Het geopende project vergelijken met een ander projectbestand (.knxproj of .xknx): welke apparaten en groepsadressen zijn toegevoegd, verwijderd of gewijzigd. Het andere project wordt alleen gelezen; er wordt niets gewijzigd."
+msgid "Compare the open project with another project file (.knxproj, .xknx or a backup .zip): which devices and group addresses were added, removed or changed. The other project is read-only; nothing is modified."
+msgstr "Het geopende project vergelijken met een ander projectbestand (.knxproj, .xknx of een back-up .zip): welke apparaten en groepsadressen zijn toegevoegd, verwijderd of gewijzigd. Het andere project wordt alleen gelezen; er wordt niets gewijzigd."
 
 msgid "Copy Log"
 msgstr "Logboek kopiëren"
@@ -1129,8 +1129,8 @@ msgstr "Ongeldig adres of al in gebruik."
 msgid "KNX Common Assembly"
 msgstr "KNX Common-assembly"
 
-msgid "KNX project (*.knxproj *.xknx)"
-msgstr "KNX-project (*.knxproj *.xknx)"
+msgid "KNX project (*.knxproj *.xknx *.zip)"
+msgstr "KNX-project (*.knxproj *.xknx *.zip)"
 
 msgid "Key extracted; comments decrypted"
 msgstr "Sleutel geëxtraheerd; opmerkingen ontsleuteld"

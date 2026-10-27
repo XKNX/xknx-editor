@@ -1283,6 +1283,14 @@ class ProjectPlugin:
         self._tools_panel.open_compare(node_id)
         self._focus_tools = True
 
+    def open_project_diff(
+        self, path: str, name: str, password: str | None = None
+    ) -> None:
+        """Show Project Diff in the Tools panel, comparing the open project with the project
+        file ``path`` (named ``name`` there; ``password`` opens a protected one)."""
+        self._tools_panel.open_diff(path, name, password)
+        self._focus_tools = True
+
     def take_focus_tools(self) -> bool:
         """Whether the Tools panel was asked for since the last call (the app brings it to the
         front)."""
@@ -1807,8 +1815,9 @@ class ProjectPlugin:
         current: tuple[Path | None, str | None],
     ) -> DiffResult:
         """Open a project file and compare the open project (its file ``current[0]``, opened
-        with ``current[1]``) with it (a .knxproj is converted first). ``password`` opens a
-        password-protected project or archive."""
+        with ``current[1]``) with it (a .knxproj is converted first, the project of a backup .zip
+        read out). ``password`` opens a password-protected project or archive."""
+        from editor_gui.plugins.backups.store import extract_project
         from xknxeditor.proj import ProjectService as CoreProjectService
         from xknxeditor.proj import import_knxproj
 
@@ -1820,6 +1829,10 @@ class ProjectPlugin:
         try:
             if src.suffix.lower() == ".xknx":
                 xknx_path = src
+            elif src.suffix.lower() == ".zip":
+                tmpdir = tempfile.TemporaryDirectory(prefix="xknx-diff-")
+                xknx_path = Path(tmpdir.name) / "other.xknx"
+                extract_project(src, xknx_path)
             else:
                 tmpdir = tempfile.TemporaryDirectory(prefix="xknx-diff-")
                 xknx_path = Path(tmpdir.name) / "other.xknx"

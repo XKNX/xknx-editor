@@ -295,8 +295,8 @@ msgstr "Verificação de Topologia"
 msgid "Project Diff"
 msgstr "Comparação de Projetos"
 
-msgid "Compare the open project with another project file (.knxproj or .xknx): which devices and group addresses were added, removed or changed. The other project is read-only; nothing is modified."
-msgstr "Comparar o projeto aberto com outro ficheiro de projeto (.knxproj ou .xknx): que dispositivos e endereços de grupo foram adicionados, removidos ou alterados. O outro projeto é apenas lido; nada é modificado."
+msgid "Compare the open project with another project file (.knxproj, .xknx or a backup .zip): which devices and group addresses were added, removed or changed. The other project is read-only; nothing is modified."
+msgstr "Comparar o projeto aberto com outro ficheiro de projeto (.knxproj, .xknx ou uma cópia de segurança .zip): que dispositivos e endereços de grupo foram adicionados, removidos ou alterados. O outro projeto é apenas lido; nada é modificado."
 
 msgid "Choose Project to Compare…"
 msgstr "Escolher Projeto a Comparar…"
@@ -304,8 +304,8 @@ msgstr "Escolher Projeto a Comparar…"
 msgid "Choose Project to Compare"
 msgstr "Escolher Projeto a Comparar"
 
-msgid "KNX project (*.knxproj *.xknx)"
-msgstr "Projeto KNX (*.knxproj *.xknx)"
+msgid "KNX project (*.knxproj *.xknx *.zip)"
+msgstr "Projeto KNX (*.knxproj *.xknx *.zip)"
 
 msgid "compared with {name}"
 msgstr "comparado com {name}"

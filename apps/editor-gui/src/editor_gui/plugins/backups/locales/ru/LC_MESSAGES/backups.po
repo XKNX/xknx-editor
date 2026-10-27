@@ -1,0 +1,245 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor backups 1.0\n"
+"Language: ru\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Versions and Backups"
+msgstr "Версии и резервные копии"
+
+msgid "Create Backup…"
+msgstr "Создать резервную копию…"
+
+msgid "Show Versions and Backups…"
+msgstr "Показать версии и резервные копии…"
+
+msgid "Comment: {comment}"
+msgstr "Комментарий: {comment}"
+
+msgid "Settings…"
+msgstr "Настройки…"
+
+msgid "Open a project to see its backups."
+msgstr "Откройте проект, чтобы увидеть его резервные копии."
+
+msgid "This project has no backups yet."
+msgstr "У этого проекта пока нет резервных копий."
+
+msgid "Folder: {path}"
+msgstr "Папка: {path}"
+
+msgid "Open Folder"
+msgstr "Открыть папку"
+
+msgid "Compare"
+msgstr "Сравнить"
+
+msgid "Restore…"
+msgstr "Восстановить…"
+
+msgid "Export as .xknx…"
+msgstr "Экспортировать как .xknx…"
+
+msgid "Pin"
+msgstr "Закрепить"
+
+msgid "Unpin"
+msgstr "Открепить"
+
+msgid "Check"
+msgstr "Проверить"
+
+msgid "Delete…"
+msgstr "Удалить…"
+
+msgid "Show what differs between the project now and this backup"
+msgstr "Показывает, чем текущий проект отличается от этой резервной копии"
+
+msgid "A pinned backup is never deleted automatically"
+msgstr "Закреплённая резервная копия никогда не удаляется автоматически"
+
+msgid "Check that the backup can be restored"
+msgstr "Проверяет, можно ли восстановить резервную копию"
+
+msgid "Created"
+msgstr "Создана"
+
+msgid "Kind"
+msgstr "Вид"
+
+msgid "Comment"
+msgstr "Комментарий"
+
+msgid "Computer"
+msgstr "Компьютер"
+
+msgid "User"
+msgstr "Пользователь"
+
+msgid "Size"
+msgstr "Размер"
+
+msgid "Manual"
+msgstr "Вручную"
+
+msgid "On close"
+msgstr "При закрытии"
+
+msgid "Interval"
+msgstr "По интервалу"
+
+msgid "Before restore"
+msgstr "Перед восстановлением"
+
+msgid "Pinned"
+msgstr "закреплена"
+
+msgid "{size} MB"
+msgstr "{size} МБ"
+
+msgid "Creating a backup: copying the project…"
+msgstr "Создание резервной копии: копирование проекта…"
+
+msgid "Creating a backup: checking the project…"
+msgstr "Создание резервной копии: проверка проекта…"
+
+msgid "Creating a backup: compressing…"
+msgstr "Создание резервной копии: сжатие…"
+
+msgid "Create Backup"
+msgstr "Создать резервную копию"
+
+msgid "The backup holds the project as it is now."
+msgstr "Резервная копия содержит проект в его текущем состоянии."
+
+msgid "Create"
+msgstr "Создать"
+
+msgid "Cancel"
+msgstr "Отмена"
+
+msgid "OK"
+msgstr "ОК"
+
+msgid "Backup created: {name}"
+msgstr "Резервная копия создана: {name}"
+
+msgid "The backup failed: {error}"
+msgstr "Не удалось создать резервную копию: {error}"
+
+msgid "Restore Backup"
+msgstr "Восстановить резервную копию"
+
+msgid "Restore the project to its state of {created}?\n\nThe project as it is now is saved as a backup first, so you can go back to it."
+msgstr "Восстановить проект в состояние на {created}?\n\nТекущее состояние проекта сначала сохраняется как резервная копия, чтобы вы могли к нему вернуться."
+
+msgid "Restore"
+msgstr "Восстановить"
+
+msgid "The project had another password when this backup was made. Enter that password:"
+msgstr "Когда создавалась эта резервная копия, у проекта был другой пароль. Введите этот пароль:"
+
+msgid "Wrong password"
+msgstr "Неверный пароль"
+
+msgid "Restoring the backup…"
+msgstr "Восстановление резервной копии…"
+
+msgid "Project restored to its state of {created}"
+msgstr "Проект восстановлен в состояние на {created}"
+
+msgid "The backup could not be restored: {error}"
+msgstr "Не удалось восстановить резервную копию: {error}"
+
+msgid "Delete Backup"
+msgstr "Удалить резервную копию"
+
+msgid "Delete the backup of {created}? This cannot be undone."
+msgstr "Удалить резервную копию от {created}? Это действие нельзя отменить."
+
+msgid "Delete"
+msgstr "Удалить"
+
+msgid "Export Backup as Project File"
+msgstr "Экспорт резервной копии в файл проекта"
+
+msgid "XKNX Editor projects"
+msgstr "Проекты XKNX Editor"
+
+msgid "Exporting the backup…"
+msgstr "Экспорт резервной копии…"
+
+msgid "Backup exported: {name}"
+msgstr "Резервная копия экспортирована: {name}"
+
+msgid "Checking the backup…"
+msgstr "Проверка резервной копии…"
+
+msgid "The backup is intact and can be restored."
+msgstr "Резервная копия цела и может быть восстановлена."
+
+msgid "The backup is damaged: {error}"
+msgstr "Резервная копия повреждена: {error}"
+
+msgid "Backup of {created}"
+msgstr "Резервная копия от {created}"
+
+msgid "Restore from Backup"
+msgstr "Восстановить из резервной копии"
+
+msgid "The project {name} could not be opened: {error}"
+msgstr "Не удалось открыть проект {name}: {error}"
+
+msgid "The project file {name} no longer exists."
+msgstr "Файл проекта {name} больше не существует."
+
+msgid "Its newest backup is from {created}. Restore the project from it? A file that is there now is kept under another name."
+msgstr "Его самая новая резервная копия от {created}. Восстановить проект из неё? Файл, который сейчас там находится, сохраняется под другим именем."
+
+msgid "The damaged file was kept as {name}."
+msgstr "Повреждённый файл сохранён как {name}."
+
+msgid "Versions and Backups Settings"
+msgstr "Настройки версий и резервных копий"
+
+msgid "Full Backups"
+msgstr "Полные резервные копии"
+
+msgid "A full backup is one file with the complete project, which can be restored on its own. Each project has a folder of its own in the backup folder. A network drive or a folder synchronized with a cloud service keeps the backups off this computer."
+msgstr "Полная резервная копия — это один файл со всем проектом, который можно восстановить сам по себе. У каждого проекта есть своя папка в папке резервных копий. Сетевой диск или папка, синхронизируемая с облачным сервисом, хранит резервные копии вне этого компьютера."
+
+msgid "Backup Folder"
+msgstr "Папка резервных копий"
+
+msgid "Choose Folder…"
+msgstr "Выбрать папку…"
+
+msgid "Default"
+msgstr "По умолчанию"
+
+msgid "Choose the Backup Folder"
+msgstr "Выбор папки резервных копий"
+
+msgid "Create a backup when a project is closed"
+msgstr "Создавать резервную копию при закрытии проекта"
+
+msgid "Create backups at regular intervals while a project is open"
+msgstr "Создавать резервные копии через равные промежутки, пока проект открыт"
+
+msgid "Interval in Hours"
+msgstr "Интервал в часах"
+
+msgid "Delete old automatic backups"
+msgstr "Удалять старые автоматические резервные копии"
+
+msgid "Delete After (Days)"
+msgstr "Удалять через (дней)"
+
+msgid "Always Keep the Newest"
+msgstr "Всегда хранить самые новые"
+
+msgid "An automatic backup is only made when the project changed since its newest backup. Backups you create yourself and pinned backups are never deleted automatically."
+msgstr "Автоматическая резервная копия создаётся, только если проект изменился с момента его самой новой резервной копии. Созданные вами и закреплённые резервные копии никогда не удаляются автоматически."

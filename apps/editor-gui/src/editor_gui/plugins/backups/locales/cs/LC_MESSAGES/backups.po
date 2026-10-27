@@ -1,0 +1,245 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor backups 1.0\n"
+"Language: cs\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Versions and Backups"
+msgstr "Verze a zálohy"
+
+msgid "Create Backup…"
+msgstr "Vytvořit zálohu…"
+
+msgid "Show Versions and Backups…"
+msgstr "Zobrazit verze a zálohy…"
+
+msgid "Comment: {comment}"
+msgstr "Komentář: {comment}"
+
+msgid "Settings…"
+msgstr "Nastavení…"
+
+msgid "Open a project to see its backups."
+msgstr "Otevřete projekt, abyste viděli jeho zálohy."
+
+msgid "This project has no backups yet."
+msgstr "Tento projekt zatím nemá žádné zálohy."
+
+msgid "Folder: {path}"
+msgstr "Složka: {path}"
+
+msgid "Open Folder"
+msgstr "Otevřít složku"
+
+msgid "Compare"
+msgstr "Porovnat"
+
+msgid "Restore…"
+msgstr "Obnovit…"
+
+msgid "Export as .xknx…"
+msgstr "Exportovat jako .xknx…"
+
+msgid "Pin"
+msgstr "Připnout"
+
+msgid "Unpin"
+msgstr "Odepnout"
+
+msgid "Check"
+msgstr "Zkontrolovat"
+
+msgid "Delete…"
+msgstr "Odstranit…"
+
+msgid "Show what differs between the project now and this backup"
+msgstr "Ukáže, čím se současný projekt liší od této zálohy"
+
+msgid "A pinned backup is never deleted automatically"
+msgstr "Připnutá záloha se nikdy neodstraní automaticky"
+
+msgid "Check that the backup can be restored"
+msgstr "Zkontroluje, zda lze zálohu obnovit"
+
+msgid "Created"
+msgstr "Vytvořeno"
+
+msgid "Kind"
+msgstr "Druh"
+
+msgid "Comment"
+msgstr "Komentář"
+
+msgid "Computer"
+msgstr "Počítač"
+
+msgid "User"
+msgstr "Uživatel"
+
+msgid "Size"
+msgstr "Velikost"
+
+msgid "Manual"
+msgstr "Ručně"
+
+msgid "On close"
+msgstr "Při zavření"
+
+msgid "Interval"
+msgstr "Interval"
+
+msgid "Before restore"
+msgstr "Před obnovením"
+
+msgid "Pinned"
+msgstr "připnuto"
+
+msgid "{size} MB"
+msgstr "{size} MB"
+
+msgid "Creating a backup: copying the project…"
+msgstr "Vytváření zálohy: kopírování projektu…"
+
+msgid "Creating a backup: checking the project…"
+msgstr "Vytváření zálohy: kontrola projektu…"
+
+msgid "Creating a backup: compressing…"
+msgstr "Vytváření zálohy: komprimace…"
+
+msgid "Create Backup"
+msgstr "Vytvořit zálohu"
+
+msgid "The backup holds the project as it is now."
+msgstr "Záloha obsahuje projekt v jeho současném stavu."
+
+msgid "Create"
+msgstr "Vytvořit"
+
+msgid "Cancel"
+msgstr "Zrušit"
+
+msgid "OK"
+msgstr "OK"
+
+msgid "Backup created: {name}"
+msgstr "Záloha vytvořena: {name}"
+
+msgid "The backup failed: {error}"
+msgstr "Zálohování se nezdařilo: {error}"
+
+msgid "Restore Backup"
+msgstr "Obnovit zálohu"
+
+msgid "Restore the project to its state of {created}?\n\nThe project as it is now is saved as a backup first, so you can go back to it."
+msgstr "Obnovit projekt do stavu z {created}?\n\nSoučasný stav projektu se nejprve uloží jako záloha, abyste se k němu mohli vrátit."
+
+msgid "Restore"
+msgstr "Obnovit"
+
+msgid "The project had another password when this backup was made. Enter that password:"
+msgstr "Projekt měl při vytvoření této zálohy jiné heslo. Zadejte toto heslo:"
+
+msgid "Wrong password"
+msgstr "Nesprávné heslo"
+
+msgid "Restoring the backup…"
+msgstr "Obnovování zálohy…"
+
+msgid "Project restored to its state of {created}"
+msgstr "Projekt obnoven do stavu z {created}"
+
+msgid "The backup could not be restored: {error}"
+msgstr "Zálohu se nepodařilo obnovit: {error}"
+
+msgid "Delete Backup"
+msgstr "Odstranit zálohu"
+
+msgid "Delete the backup of {created}? This cannot be undone."
+msgstr "Odstranit zálohu z {created}? Tuto akci nelze vrátit zpět."
+
+msgid "Delete"
+msgstr "Odstranit"
+
+msgid "Export Backup as Project File"
+msgstr "Exportovat zálohu jako soubor projektu"
+
+msgid "XKNX Editor projects"
+msgstr "Projekty XKNX Editor"
+
+msgid "Exporting the backup…"
+msgstr "Exportování zálohy…"
+
+msgid "Backup exported: {name}"
+msgstr "Záloha exportována: {name}"
+
+msgid "Checking the backup…"
+msgstr "Kontrola zálohy…"
+
+msgid "The backup is intact and can be restored."
+msgstr "Záloha je neporušená a lze ji obnovit."
+
+msgid "The backup is damaged: {error}"
+msgstr "Záloha je poškozená: {error}"
+
+msgid "Backup of {created}"
+msgstr "Záloha z {created}"
+
+msgid "Restore from Backup"
+msgstr "Obnovit ze zálohy"
+
+msgid "The project {name} could not be opened: {error}"
+msgstr "Projekt {name} nelze otevřít: {error}"
+
+msgid "The project file {name} no longer exists."
+msgstr "Soubor projektu {name} již neexistuje."
+
+msgid "Its newest backup is from {created}. Restore the project from it? A file that is there now is kept under another name."
+msgstr "Jeho nejnovější záloha je z {created}. Obnovit z ní projekt? Soubor, který tam nyní je, se uchová pod jiným názvem."
+
+msgid "The damaged file was kept as {name}."
+msgstr "Poškozený soubor byl uchován jako {name}."
+
+msgid "Versions and Backups Settings"
+msgstr "Nastavení verzí a záloh"
+
+msgid "Full Backups"
+msgstr "Úplné zálohy"
+
+msgid "A full backup is one file with the complete project, which can be restored on its own. Each project has a folder of its own in the backup folder. A network drive or a folder synchronized with a cloud service keeps the backups off this computer."
+msgstr "Úplná záloha je jeden soubor s celým projektem, který lze obnovit samostatně. Každý projekt má ve složce záloh vlastní složku. Síťová jednotka nebo složka synchronizovaná s cloudovou službou uchovává zálohy mimo tento počítač."
+
+msgid "Backup Folder"
+msgstr "Složka záloh"
+
+msgid "Choose Folder…"
+msgstr "Vybrat složku…"
+
+msgid "Default"
+msgstr "Výchozí"
+
+msgid "Choose the Backup Folder"
+msgstr "Vybrat složku záloh"
+
+msgid "Create a backup when a project is closed"
+msgstr "Vytvořit zálohu při zavření projektu"
+
+msgid "Create backups at regular intervals while a project is open"
+msgstr "Vytvářet zálohy v pravidelných intervalech, dokud je projekt otevřený"
+
+msgid "Interval in Hours"
+msgstr "Interval v hodinách"
+
+msgid "Delete old automatic backups"
+msgstr "Odstraňovat staré automatické zálohy"
+
+msgid "Delete After (Days)"
+msgstr "Odstranit po (dnech)"
+
+msgid "Always Keep the Newest"
+msgstr "Vždy ponechat nejnovější"
+
+msgid "An automatic backup is only made when the project changed since its newest backup. Backups you create yourself and pinned backups are never deleted automatically."
+msgstr "Automatická záloha se vytvoří, jen pokud se projekt od své nejnovější zálohy změnil. Zálohy, které vytvoříte sami, a připnuté zálohy se nikdy neodstraňují automaticky."

@@ -295,8 +295,8 @@ msgstr "Перевірка топології"
 msgid "Project Diff"
 msgstr "Порівняння проєктів"
 
-msgid "Compare the open project with another project file (.knxproj or .xknx): which devices and group addresses were added, removed or changed. The other project is read-only; nothing is modified."
-msgstr "Порівняти відкритий проєкт з іншим файлом проєкту (.knxproj або .xknx): які пристрої та групові адреси було додано, видалено чи змінено. Інший проєкт лише читається; нічого не змінюється."
+msgid "Compare the open project with another project file (.knxproj, .xknx or a backup .zip): which devices and group addresses were added, removed or changed. The other project is read-only; nothing is modified."
+msgstr "Порівняти відкритий проєкт з іншим файлом проєкту (.knxproj, .xknx або .zip резервної копії): які пристрої та групові адреси було додано, видалено чи змінено. Інший проєкт лише читається; нічого не змінюється."
 
 msgid "Choose Project to Compare…"
 msgstr "Вибрати проєкт для порівняння…"
@@ -304,8 +304,8 @@ msgstr "Вибрати проєкт для порівняння…"
 msgid "Choose Project to Compare"
 msgstr "Вибір проєкту для порівняння"
 
-msgid "KNX project (*.knxproj *.xknx)"
-msgstr "Проєкт KNX (*.knxproj *.xknx)"
+msgid "KNX project (*.knxproj *.xknx *.zip)"
+msgstr "Проєкт KNX (*.knxproj *.xknx *.zip)"
 
 msgid "compared with {name}"
 msgstr "порівняно з {name}"

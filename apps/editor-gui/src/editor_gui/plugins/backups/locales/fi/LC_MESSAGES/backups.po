@@ -1,0 +1,245 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor backups 1.0\n"
+"Language: fi\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Versions and Backups"
+msgstr "Versiot ja varmuuskopiot"
+
+msgid "Create Backup…"
+msgstr "Luo varmuuskopio…"
+
+msgid "Show Versions and Backups…"
+msgstr "Näytä versiot ja varmuuskopiot…"
+
+msgid "Comment: {comment}"
+msgstr "Kommentti: {comment}"
+
+msgid "Settings…"
+msgstr "Asetukset…"
+
+msgid "Open a project to see its backups."
+msgstr "Avaa projekti nähdäksesi sen varmuuskopiot."
+
+msgid "This project has no backups yet."
+msgstr "Tällä projektilla ei ole vielä varmuuskopioita."
+
+msgid "Folder: {path}"
+msgstr "Kansio: {path}"
+
+msgid "Open Folder"
+msgstr "Avaa kansio"
+
+msgid "Compare"
+msgstr "Vertaa"
+
+msgid "Restore…"
+msgstr "Palauta…"
+
+msgid "Export as .xknx…"
+msgstr "Vie .xknx-tiedostoksi…"
+
+msgid "Pin"
+msgstr "Kiinnitä"
+
+msgid "Unpin"
+msgstr "Irrota"
+
+msgid "Check"
+msgstr "Tarkista"
+
+msgid "Delete…"
+msgstr "Poista…"
+
+msgid "Show what differs between the project now and this backup"
+msgstr "Näyttää, miten nykyinen projekti eroaa tästä varmuuskopiosta"
+
+msgid "A pinned backup is never deleted automatically"
+msgstr "Kiinnitettyä varmuuskopiota ei koskaan poisteta automaattisesti"
+
+msgid "Check that the backup can be restored"
+msgstr "Tarkistaa, että varmuuskopio voidaan palauttaa"
+
+msgid "Created"
+msgstr "Luotu"
+
+msgid "Kind"
+msgstr "Laji"
+
+msgid "Comment"
+msgstr "Kommentti"
+
+msgid "Computer"
+msgstr "Tietokone"
+
+msgid "User"
+msgstr "Käyttäjä"
+
+msgid "Size"
+msgstr "Koko"
+
+msgid "Manual"
+msgstr "Manuaalinen"
+
+msgid "On close"
+msgstr "Suljettaessa"
+
+msgid "Interval"
+msgstr "Ajastettu"
+
+msgid "Before restore"
+msgstr "Ennen palautusta"
+
+msgid "Pinned"
+msgstr "kiinnitetty"
+
+msgid "{size} MB"
+msgstr "{size} Mt"
+
+msgid "Creating a backup: copying the project…"
+msgstr "Luodaan varmuuskopiota: kopioidaan projektia…"
+
+msgid "Creating a backup: checking the project…"
+msgstr "Luodaan varmuuskopiota: tarkistetaan projektia…"
+
+msgid "Creating a backup: compressing…"
+msgstr "Luodaan varmuuskopiota: pakataan…"
+
+msgid "Create Backup"
+msgstr "Luo varmuuskopio"
+
+msgid "The backup holds the project as it is now."
+msgstr "Varmuuskopio sisältää projektin sen nykyisessä tilassa."
+
+msgid "Create"
+msgstr "Luo"
+
+msgid "Cancel"
+msgstr "Peruuta"
+
+msgid "OK"
+msgstr "OK"
+
+msgid "Backup created: {name}"
+msgstr "Varmuuskopio luotu: {name}"
+
+msgid "The backup failed: {error}"
+msgstr "Varmuuskopiointi epäonnistui: {error}"
+
+msgid "Restore Backup"
+msgstr "Palauta varmuuskopio"
+
+msgid "Restore the project to its state of {created}?\n\nThe project as it is now is saved as a backup first, so you can go back to it."
+msgstr "Palautetaanko projekti tilaan {created}?\n\nProjektin nykyinen tila tallennetaan ensin varmuuskopioksi, jotta voit palata siihen."
+
+msgid "Restore"
+msgstr "Palauta"
+
+msgid "The project had another password when this backup was made. Enter that password:"
+msgstr "Projektilla oli eri salasana, kun tämä varmuuskopio luotiin. Anna se salasana:"
+
+msgid "Wrong password"
+msgstr "Väärä salasana"
+
+msgid "Restoring the backup…"
+msgstr "Palautetaan varmuuskopiota…"
+
+msgid "Project restored to its state of {created}"
+msgstr "Projekti palautettu tilaan {created}"
+
+msgid "The backup could not be restored: {error}"
+msgstr "Varmuuskopiota ei voitu palauttaa: {error}"
+
+msgid "Delete Backup"
+msgstr "Poista varmuuskopio"
+
+msgid "Delete the backup of {created}? This cannot be undone."
+msgstr "Poistetaanko varmuuskopio {created}? Tätä ei voi kumota."
+
+msgid "Delete"
+msgstr "Poista"
+
+msgid "Export Backup as Project File"
+msgstr "Vie varmuuskopio projektitiedostoksi"
+
+msgid "XKNX Editor projects"
+msgstr "XKNX Editor -projektit"
+
+msgid "Exporting the backup…"
+msgstr "Viedään varmuuskopiota…"
+
+msgid "Backup exported: {name}"
+msgstr "Varmuuskopio viety: {name}"
+
+msgid "Checking the backup…"
+msgstr "Tarkistetaan varmuuskopiota…"
+
+msgid "The backup is intact and can be restored."
+msgstr "Varmuuskopio on eheä ja voidaan palauttaa."
+
+msgid "The backup is damaged: {error}"
+msgstr "Varmuuskopio on vioittunut: {error}"
+
+msgid "Backup of {created}"
+msgstr "Varmuuskopio {created}"
+
+msgid "Restore from Backup"
+msgstr "Palauta varmuuskopiosta"
+
+msgid "The project {name} could not be opened: {error}"
+msgstr "Projektia {name} ei voitu avata: {error}"
+
+msgid "The project file {name} no longer exists."
+msgstr "Projektitiedostoa {name} ei ole enää olemassa."
+
+msgid "Its newest backup is from {created}. Restore the project from it? A file that is there now is kept under another name."
+msgstr "Sen uusin varmuuskopio on ajalta {created}. Palautetaanko projekti siitä? Siellä nyt oleva tiedosto säilytetään toisella nimellä."
+
+msgid "The damaged file was kept as {name}."
+msgstr "Vioittunut tiedosto säilytettiin nimellä {name}."
+
+msgid "Versions and Backups Settings"
+msgstr "Versioiden ja varmuuskopioiden asetukset"
+
+msgid "Full Backups"
+msgstr "Täydet varmuuskopiot"
+
+msgid "A full backup is one file with the complete project, which can be restored on its own. Each project has a folder of its own in the backup folder. A network drive or a folder synchronized with a cloud service keeps the backups off this computer."
+msgstr "Täysi varmuuskopio on yksi tiedosto, jossa on koko projekti ja joka voidaan palauttaa sellaisenaan. Jokaisella projektilla on oma kansionsa varmuuskopiokansiossa. Verkkoasema tai pilvipalveluun synkronoitu kansio säilyttää varmuuskopiot tämän tietokoneen ulkopuolella."
+
+msgid "Backup Folder"
+msgstr "Varmuuskopiokansio"
+
+msgid "Choose Folder…"
+msgstr "Valitse kansio…"
+
+msgid "Default"
+msgstr "Oletus"
+
+msgid "Choose the Backup Folder"
+msgstr "Valitse varmuuskopiokansio"
+
+msgid "Create a backup when a project is closed"
+msgstr "Luo varmuuskopio, kun projekti suljetaan"
+
+msgid "Create backups at regular intervals while a project is open"
+msgstr "Luo varmuuskopioita säännöllisin väliajoin, kun projekti on auki"
+
+msgid "Interval in Hours"
+msgstr "Väli tunteina"
+
+msgid "Delete old automatic backups"
+msgstr "Poista vanhat automaattiset varmuuskopiot"
+
+msgid "Delete After (Days)"
+msgstr "Poista jälkeen (päivää)"
+
+msgid "Always Keep the Newest"
+msgstr "Säilytä aina uusimmat"
+
+msgid "An automatic backup is only made when the project changed since its newest backup. Backups you create yourself and pinned backups are never deleted automatically."
+msgstr "Automaattinen varmuuskopio luodaan vain, jos projekti on muuttunut uusimman varmuuskopionsa jälkeen. Itse luomiasi ja kiinnitettyjä varmuuskopioita ei koskaan poisteta automaattisesti."

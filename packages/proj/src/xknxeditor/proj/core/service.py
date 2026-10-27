@@ -4573,6 +4573,16 @@ class ProjectService:
         assert project is not None
         return project
 
+    def ensure_guid(self, project_id: str) -> str:
+        """The project's GUID. A project without one (made by an earlier version) is given one;
+        this is not an undoable step."""
+        state = self._state(project_id)
+        project = self.project(project_id)
+        if not project.guid:
+            project.guid = str(uuid4())
+            state.session.commit()
+        return project.guid
+
     def project_traces(self, project_id: str) -> list[tuple[str, str, str]]:
         """The project log entries as ``(date, user_name, comment)``, in document order: a project
         can have thousands, read without building an object for each."""

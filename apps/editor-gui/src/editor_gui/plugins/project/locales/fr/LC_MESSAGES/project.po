@@ -295,8 +295,8 @@ msgstr "Vérification de topologie"
 msgid "Project Diff"
 msgstr "Comparaison de projets"
 
-msgid "Compare the open project with another project file (.knxproj or .xknx): which devices and group addresses were added, removed or changed. The other project is read-only; nothing is modified."
-msgstr "Compare le projet ouvert avec un autre fichier de projet (.knxproj ou .xknx) : quels participants et adresses de groupe ont été ajoutés, supprimés ou modifiés. L'autre projet est en lecture seule ; rien n'est modifié."
+msgid "Compare the open project with another project file (.knxproj, .xknx or a backup .zip): which devices and group addresses were added, removed or changed. The other project is read-only; nothing is modified."
+msgstr "Compare le projet ouvert avec un autre fichier de projet (.knxproj, .xknx ou une sauvegarde .zip) : quels participants et adresses de groupe ont été ajoutés, supprimés ou modifiés. L'autre projet est en lecture seule ; rien n'est modifié."
 
 msgid "Choose Project to Compare…"
 msgstr "Choisir le projet à comparer…"
@@ -304,8 +304,8 @@ msgstr "Choisir le projet à comparer…"
 msgid "Choose Project to Compare"
 msgstr "Choisir le projet à comparer"
 
-msgid "KNX project (*.knxproj *.xknx)"
-msgstr "Projet KNX (*.knxproj *.xknx)"
+msgid "KNX project (*.knxproj *.xknx *.zip)"
+msgstr "Projet KNX (*.knxproj *.xknx *.zip)"
 
 msgid "compared with {name}"
 msgstr "comparé avec {name}"
@@ -515,7 +515,7 @@ msgid "Reading the projects…"
 msgstr "Lecture des projets…"
 
 msgid "Comparing devices: {done} of {total}"
-msgstr "Comparaison des appareils : {done} sur {total}"
+msgstr "Comparaison des appareils : {done} sur {total}"
 msgid "File"
 msgstr "Fichier"
 
@@ -2149,13 +2149,13 @@ msgid "DALI commissioning"
 msgstr "Mise en service DALI"
 
 msgid "DALI commissioning writes the gateway on the bus but does not update the project parameters; re-export the .knxproj after a DCA-side edit."
-msgstr "La mise en service DALI écrit la passerelle sur le bus mais ne met pas à jour les paramètres du projet ; réexportez le .knxproj après une modification côté DCA."
+msgstr "La mise en service DALI écrit la passerelle sur le bus mais ne met pas à jour les paramètres du projet ; réexportez le .knxproj après une modification côté DCA."
 
 msgid "Default"
 msgstr "Par défaut"
 
 msgid "Editable fallback for parameters whose manufacturer plugin is not available here. The hierarchy is reconstructed from parameter name prefixes; labels and groupings may be rough. Edits are written to the project and transferred by a normal download."
-msgstr "Repli éditable pour les paramètres dont le plugin du fabricant n'est pas disponible ici. La hiérarchie est reconstruite à partir des préfixes de noms de paramètres ; les libellés et regroupements peuvent être approximatifs. Les modifications sont écrites dans le projet et transférées par un téléchargement normal."
+msgstr "Repli éditable pour les paramètres dont le plugin du fabricant n'est pas disponible ici. La hiérarchie est reconstruite à partir des préfixes de noms de paramètres ; les libellés et regroupements peuvent être approximatifs. Les modifications sont écrites dans le projet et transférées par un téléchargement normal."
 
 msgid "Min Dim"
 msgstr "Gradation min."
@@ -2185,7 +2185,7 @@ msgid "Read-only snapshot. Writing group assignments, scenes or firmware is not 
 msgstr "Instantané en lecture seule. L'écriture des affectations de groupe, scènes ou firmware n'est pas encore disponible et reste dans le plugin du fabricant."
 
 msgid "Read-only view. The hierarchy is a best-effort reconstruction from parameter name prefixes; names and groupings may be rough. Writing values is not available yet."
-msgstr "Vue en lecture seule. La hiérarchie est une reconstruction au mieux à partir des préfixes de noms de paramètres ; noms et regroupements peuvent être approximatifs. L'écriture de valeurs n'est pas encore disponible."
+msgstr "Vue en lecture seule. La hiérarchie est une reconstruction au mieux à partir des préfixes de noms de paramètres ; noms et regroupements peuvent être approximatifs. L'écriture de valeurs n'est pas encore disponible."
 
 msgid "Reading the DALI bus from object {object_index}…"
 msgstr "Lecture du bus DALI depuis l'objet {object_index}…"
@@ -2200,7 +2200,7 @@ msgid "The application has no static parameters."
 msgstr "L'application n'a pas de paramètres statiques."
 
 msgid "This gateway's commissioning protocol has not been verified against a capture; writes may misbehave. Proceed with care."
-msgstr "Le protocole de mise en service de cette passerelle n'a pas été vérifié par rapport à une capture ; les écritures peuvent mal se comporter. Procédez avec précaution."
+msgstr "Le protocole de mise en service de cette passerelle n'a pas été vérifié par rapport à une capture ; les écritures peuvent mal se comporter. Procédez avec précaution."
 
 msgid "{count} ECG(s) present on line {line}"
 msgstr "{count} ECG présents sur la ligne {line}"
@@ -2212,7 +2212,7 @@ msgid "Sends the DALI device settings to the gateway as property values."
 msgstr "Envoie les réglages des appareils DALI à la passerelle sous forme de valeurs de propriétés."
 
 msgid "Add to {section}:"
-msgstr "Ajouter à {section} :"
+msgstr "Ajouter à {section} :"
 
 msgid "No entries."
 msgstr "Aucune entrée."
@@ -2308,13 +2308,13 @@ msgid "Forced off"
 msgstr "Forcé à Off"
 
 msgid "Overridden by '{name}': {mode}"
-msgstr "Remplacé par '{name}' : {mode}"
+msgstr "Remplacé par '{name}' : {mode}"
 
 msgid "Central"
 msgstr "Centrale"
 
 msgid "Not every device linked to a group address of this group is commissioned securely, so it cannot be secured."
-msgstr "Tous les participants liés à une adresse de groupe de ce groupe ne sont pas mis en service de manière sécurisée ; il ne peut donc pas être sécurisé."
+msgstr "Tous les participants liés à une adresse de groupe de ce groupe ne sont pas mis en service de manière sécurisée ; il ne peut donc pas être sécurisé."
 
 msgid "Set group security"
 msgstr "Définir la sécurité du groupe"
@@ -2794,7 +2794,7 @@ msgid "Unlink device"
 msgstr "Délier le participant"
 
 msgid "The device is on no line: put it on a line first."
-msgstr "Le participant n'est sur aucune ligne : placez-le d'abord sur une ligne."
+msgstr "Le participant n'est sur aucune ligne : placez-le d'abord sur une ligne."
 
 msgid "Areas…"
 msgstr "Zones…"
@@ -2941,7 +2941,7 @@ msgid "Existing Devices…"
 msgstr "Participants existants…"
 
 msgid "Delete the {count} selected devices? Their group objects and group-address links are removed and their individual addresses are freed. This can be undone."
-msgstr "Supprimer les {count} participants sélectionnés ? Leurs objets de groupe et leurs liaisons aux adresses de groupe sont supprimés et leurs adresses individuelles sont libérées. Cette action peut être annulée."
+msgstr "Supprimer les {count} participants sélectionnés ? Leurs objets de groupe et leurs liaisons aux adresses de groupe sont supprimés et leurs adresses individuelles sont libérées. Cette action peut être annulée."
 
 msgid "Remove {count} devices"
 msgstr "Enlever {count} participants"

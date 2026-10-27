@@ -1089,9 +1089,9 @@ class ProjectStrings:
     @property
     def TOOLS_DIFF_DESC(self) -> str:
         return _(
-            "Compare the open project with another project file (.knxproj or .xknx): "
-            "which devices and group addresses were added, removed or changed. The other "
-            "project is read-only; nothing is modified."
+            "Compare the open project with another project file (.knxproj, .xknx or a "
+            "backup .zip): which devices and group addresses were added, removed or changed. "
+            "The other project is read-only; nothing is modified."
         )
 
     @property
@@ -1104,7 +1104,7 @@ class ProjectStrings:
 
     @property
     def TOOLS_DIFF_FILTER(self) -> str:
-        return _("KNX project (*.knxproj *.xknx)")
+        return _("KNX project (*.knxproj *.xknx *.zip)")
 
     @property
     def TOOLS_DIFF_COMPARED_WITH(self) -> str:

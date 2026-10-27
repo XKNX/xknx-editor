@@ -1,0 +1,245 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor backups 1.0\n"
+"Language: nl\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Versions and Backups"
+msgstr "Versies en back-ups"
+
+msgid "Create Backup…"
+msgstr "Back-up maken…"
+
+msgid "Show Versions and Backups…"
+msgstr "Versies en back-ups tonen…"
+
+msgid "Comment: {comment}"
+msgstr "Opmerking: {comment}"
+
+msgid "Settings…"
+msgstr "Instellingen…"
+
+msgid "Open a project to see its backups."
+msgstr "Open een project om de back-ups ervan te zien."
+
+msgid "This project has no backups yet."
+msgstr "Dit project heeft nog geen back-ups."
+
+msgid "Folder: {path}"
+msgstr "Map: {path}"
+
+msgid "Open Folder"
+msgstr "Map openen"
+
+msgid "Compare"
+msgstr "Vergelijken"
+
+msgid "Restore…"
+msgstr "Herstellen…"
+
+msgid "Export as .xknx…"
+msgstr "Exporteren als .xknx…"
+
+msgid "Pin"
+msgstr "Vastzetten"
+
+msgid "Unpin"
+msgstr "Losmaken"
+
+msgid "Check"
+msgstr "Controleren"
+
+msgid "Delete…"
+msgstr "Verwijderen…"
+
+msgid "Show what differs between the project now and this backup"
+msgstr "Toont wat er verschilt tussen het huidige project en deze back-up"
+
+msgid "A pinned backup is never deleted automatically"
+msgstr "Een vastgezette back-up wordt nooit automatisch verwijderd"
+
+msgid "Check that the backup can be restored"
+msgstr "Controleert of de back-up kan worden hersteld"
+
+msgid "Created"
+msgstr "Gemaakt"
+
+msgid "Kind"
+msgstr "Soort"
+
+msgid "Comment"
+msgstr "Opmerking"
+
+msgid "Computer"
+msgstr "Computer"
+
+msgid "User"
+msgstr "Gebruiker"
+
+msgid "Size"
+msgstr "Grootte"
+
+msgid "Manual"
+msgstr "Handmatig"
+
+msgid "On close"
+msgstr "Bij sluiten"
+
+msgid "Interval"
+msgstr "Interval"
+
+msgid "Before restore"
+msgstr "Voor herstel"
+
+msgid "Pinned"
+msgstr "vastgezet"
+
+msgid "{size} MB"
+msgstr "{size} MB"
+
+msgid "Creating a backup: copying the project…"
+msgstr "Back-up maken: project kopiëren…"
+
+msgid "Creating a backup: checking the project…"
+msgstr "Back-up maken: project controleren…"
+
+msgid "Creating a backup: compressing…"
+msgstr "Back-up maken: comprimeren…"
+
+msgid "Create Backup"
+msgstr "Back-up maken"
+
+msgid "The backup holds the project as it is now."
+msgstr "De back-up bevat het project zoals het nu is."
+
+msgid "Create"
+msgstr "Maken"
+
+msgid "Cancel"
+msgstr "Annuleren"
+
+msgid "OK"
+msgstr "OK"
+
+msgid "Backup created: {name}"
+msgstr "Back-up gemaakt: {name}"
+
+msgid "The backup failed: {error}"
+msgstr "De back-up is mislukt: {error}"
+
+msgid "Restore Backup"
+msgstr "Back-up herstellen"
+
+msgid "Restore the project to its state of {created}?\n\nThe project as it is now is saved as a backup first, so you can go back to it."
+msgstr "Het project herstellen naar de stand van {created}?\n\nHet project zoals het nu is wordt eerst als back-up opgeslagen, zodat u ernaar terug kunt."
+
+msgid "Restore"
+msgstr "Herstellen"
+
+msgid "The project had another password when this backup was made. Enter that password:"
+msgstr "Het project had een ander wachtwoord toen deze back-up werd gemaakt. Voer dat wachtwoord in:"
+
+msgid "Wrong password"
+msgstr "Onjuist wachtwoord"
+
+msgid "Restoring the backup…"
+msgstr "Back-up wordt hersteld…"
+
+msgid "Project restored to its state of {created}"
+msgstr "Project hersteld naar de stand van {created}"
+
+msgid "The backup could not be restored: {error}"
+msgstr "De back-up kon niet worden hersteld: {error}"
+
+msgid "Delete Backup"
+msgstr "Back-up verwijderen"
+
+msgid "Delete the backup of {created}? This cannot be undone."
+msgstr "De back-up van {created} verwijderen? Dit kan niet ongedaan worden gemaakt."
+
+msgid "Delete"
+msgstr "Verwijderen"
+
+msgid "Export Backup as Project File"
+msgstr "Back-up exporteren als projectbestand"
+
+msgid "XKNX Editor projects"
+msgstr "XKNX Editor-projecten"
+
+msgid "Exporting the backup…"
+msgstr "Back-up wordt geëxporteerd…"
+
+msgid "Backup exported: {name}"
+msgstr "Back-up geëxporteerd: {name}"
+
+msgid "Checking the backup…"
+msgstr "Back-up wordt gecontroleerd…"
+
+msgid "The backup is intact and can be restored."
+msgstr "De back-up is intact en kan worden hersteld."
+
+msgid "The backup is damaged: {error}"
+msgstr "De back-up is beschadigd: {error}"
+
+msgid "Backup of {created}"
+msgstr "Back-up van {created}"
+
+msgid "Restore from Backup"
+msgstr "Herstellen uit back-up"
+
+msgid "The project {name} could not be opened: {error}"
+msgstr "Het project {name} kon niet worden geopend: {error}"
+
+msgid "The project file {name} no longer exists."
+msgstr "Het projectbestand {name} bestaat niet meer."
+
+msgid "Its newest backup is from {created}. Restore the project from it? A file that is there now is kept under another name."
+msgstr "De nieuwste back-up is van {created}. Het project daaruit herstellen? Een bestand dat er nu staat, wordt onder een andere naam bewaard."
+
+msgid "The damaged file was kept as {name}."
+msgstr "Het beschadigde bestand is bewaard als {name}."
+
+msgid "Versions and Backups Settings"
+msgstr "Instellingen voor versies en back-ups"
+
+msgid "Full Backups"
+msgstr "Volledige back-ups"
+
+msgid "A full backup is one file with the complete project, which can be restored on its own. Each project has a folder of its own in the backup folder. A network drive or a folder synchronized with a cloud service keeps the backups off this computer."
+msgstr "Een volledige back-up is één bestand met het complete project, dat op zichzelf kan worden hersteld. Elk project heeft een eigen map in de back-upmap. Een netwerkschijf of een map die met een clouddienst wordt gesynchroniseerd, bewaart de back-ups buiten deze computer."
+
+msgid "Backup Folder"
+msgstr "Back-upmap"
+
+msgid "Choose Folder…"
+msgstr "Map kiezen…"
+
+msgid "Default"
+msgstr "Standaard"
+
+msgid "Choose the Backup Folder"
+msgstr "Back-upmap kiezen"
+
+msgid "Create a backup when a project is closed"
+msgstr "Een back-up maken wanneer een project wordt gesloten"
+
+msgid "Create backups at regular intervals while a project is open"
+msgstr "Met regelmatige tussenpozen back-ups maken zolang een project open is"
+
+msgid "Interval in Hours"
+msgstr "Interval in uren"
+
+msgid "Delete old automatic backups"
+msgstr "Oude automatische back-ups verwijderen"
+
+msgid "Delete After (Days)"
+msgstr "Verwijderen na (dagen)"
+
+msgid "Always Keep the Newest"
+msgstr "Altijd de nieuwste bewaren"
+
+msgid "An automatic backup is only made when the project changed since its newest backup. Backups you create yourself and pinned backups are never deleted automatically."
+msgstr "Een automatische back-up wordt alleen gemaakt als het project sinds de nieuwste back-up is gewijzigd. Back-ups die u zelf maakt en vastgezette back-ups worden nooit automatisch verwijderd."

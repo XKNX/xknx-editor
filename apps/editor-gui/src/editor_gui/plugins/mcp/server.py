@@ -14,6 +14,7 @@ from fastmcp import FastMCP
 from fastmcp.server.providers.skills import SkillsDirectoryProvider
 
 from editor_gui.plugins.mcp.tools import (
+    backups,
     batch,
     catalog,
     connection,
@@ -187,6 +188,7 @@ def build_server(ctx: McpContext, auth: Any = None) -> FastMCP:
         monitor,
         keyring,
         network,
+        backups,
     ):
         module.register(mcp, ctx)
     if _SKILLS_DIR.is_dir():

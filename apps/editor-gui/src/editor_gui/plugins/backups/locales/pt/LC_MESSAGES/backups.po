@@ -1,0 +1,245 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor backups 1.0\n"
+"Language: pt\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Versions and Backups"
+msgstr "Versões e cópias de segurança"
+
+msgid "Create Backup…"
+msgstr "Criar cópia de segurança…"
+
+msgid "Show Versions and Backups…"
+msgstr "Mostrar versões e cópias de segurança…"
+
+msgid "Comment: {comment}"
+msgstr "Comentário: {comment}"
+
+msgid "Settings…"
+msgstr "Definições…"
+
+msgid "Open a project to see its backups."
+msgstr "Abra um projeto para ver as suas cópias de segurança."
+
+msgid "This project has no backups yet."
+msgstr "Este projeto ainda não tem cópias de segurança."
+
+msgid "Folder: {path}"
+msgstr "Pasta: {path}"
+
+msgid "Open Folder"
+msgstr "Abrir pasta"
+
+msgid "Compare"
+msgstr "Comparar"
+
+msgid "Restore…"
+msgstr "Restaurar…"
+
+msgid "Export as .xknx…"
+msgstr "Exportar como .xknx…"
+
+msgid "Pin"
+msgstr "Fixar"
+
+msgid "Unpin"
+msgstr "Desafixar"
+
+msgid "Check"
+msgstr "Verificar"
+
+msgid "Delete…"
+msgstr "Eliminar…"
+
+msgid "Show what differs between the project now and this backup"
+msgstr "Mostra o que difere entre o projeto atual e esta cópia de segurança"
+
+msgid "A pinned backup is never deleted automatically"
+msgstr "Uma cópia de segurança fixada nunca é eliminada automaticamente"
+
+msgid "Check that the backup can be restored"
+msgstr "Verifica se a cópia de segurança pode ser restaurada"
+
+msgid "Created"
+msgstr "Criada"
+
+msgid "Kind"
+msgstr "Tipo"
+
+msgid "Comment"
+msgstr "Comentário"
+
+msgid "Computer"
+msgstr "Computador"
+
+msgid "User"
+msgstr "Utilizador"
+
+msgid "Size"
+msgstr "Tamanho"
+
+msgid "Manual"
+msgstr "Manual"
+
+msgid "On close"
+msgstr "Ao fechar"
+
+msgid "Interval"
+msgstr "Intervalo"
+
+msgid "Before restore"
+msgstr "Antes do restauro"
+
+msgid "Pinned"
+msgstr "fixada"
+
+msgid "{size} MB"
+msgstr "{size} MB"
+
+msgid "Creating a backup: copying the project…"
+msgstr "A criar cópia de segurança: a copiar o projeto…"
+
+msgid "Creating a backup: checking the project…"
+msgstr "A criar cópia de segurança: a verificar o projeto…"
+
+msgid "Creating a backup: compressing…"
+msgstr "A criar cópia de segurança: a comprimir…"
+
+msgid "Create Backup"
+msgstr "Criar cópia de segurança"
+
+msgid "The backup holds the project as it is now."
+msgstr "A cópia de segurança contém o projeto tal como está agora."
+
+msgid "Create"
+msgstr "Criar"
+
+msgid "Cancel"
+msgstr "Cancelar"
+
+msgid "OK"
+msgstr "OK"
+
+msgid "Backup created: {name}"
+msgstr "Cópia de segurança criada: {name}"
+
+msgid "The backup failed: {error}"
+msgstr "A cópia de segurança falhou: {error}"
+
+msgid "Restore Backup"
+msgstr "Restaurar cópia de segurança"
+
+msgid "Restore the project to its state of {created}?\n\nThe project as it is now is saved as a backup first, so you can go back to it."
+msgstr "Restaurar o projeto para o estado de {created}?\n\nO projeto tal como está agora é primeiro guardado como cópia de segurança, para que possa voltar a ele."
+
+msgid "Restore"
+msgstr "Restaurar"
+
+msgid "The project had another password when this backup was made. Enter that password:"
+msgstr "O projeto tinha outra palavra-passe quando esta cópia de segurança foi criada. Introduza essa palavra-passe:"
+
+msgid "Wrong password"
+msgstr "Palavra-passe incorreta"
+
+msgid "Restoring the backup…"
+msgstr "A restaurar a cópia de segurança…"
+
+msgid "Project restored to its state of {created}"
+msgstr "Projeto restaurado para o estado de {created}"
+
+msgid "The backup could not be restored: {error}"
+msgstr "Não foi possível restaurar a cópia de segurança: {error}"
+
+msgid "Delete Backup"
+msgstr "Eliminar cópia de segurança"
+
+msgid "Delete the backup of {created}? This cannot be undone."
+msgstr "Eliminar a cópia de segurança de {created}? Não é possível anular."
+
+msgid "Delete"
+msgstr "Eliminar"
+
+msgid "Export Backup as Project File"
+msgstr "Exportar cópia de segurança como ficheiro de projeto"
+
+msgid "XKNX Editor projects"
+msgstr "Projetos do XKNX Editor"
+
+msgid "Exporting the backup…"
+msgstr "A exportar a cópia de segurança…"
+
+msgid "Backup exported: {name}"
+msgstr "Cópia de segurança exportada: {name}"
+
+msgid "Checking the backup…"
+msgstr "A verificar a cópia de segurança…"
+
+msgid "The backup is intact and can be restored."
+msgstr "A cópia de segurança está intacta e pode ser restaurada."
+
+msgid "The backup is damaged: {error}"
+msgstr "A cópia de segurança está danificada: {error}"
+
+msgid "Backup of {created}"
+msgstr "Cópia de segurança de {created}"
+
+msgid "Restore from Backup"
+msgstr "Restaurar a partir de cópia de segurança"
+
+msgid "The project {name} could not be opened: {error}"
+msgstr "Não foi possível abrir o projeto {name}: {error}"
+
+msgid "The project file {name} no longer exists."
+msgstr "O ficheiro de projeto {name} já não existe."
+
+msgid "Its newest backup is from {created}. Restore the project from it? A file that is there now is kept under another name."
+msgstr "A sua cópia de segurança mais recente é de {created}. Restaurar o projeto a partir dela? Um ficheiro que lá esteja agora é guardado com outro nome."
+
+msgid "The damaged file was kept as {name}."
+msgstr "O ficheiro danificado foi guardado como {name}."
+
+msgid "Versions and Backups Settings"
+msgstr "Definições de versões e cópias de segurança"
+
+msgid "Full Backups"
+msgstr "Cópias de segurança completas"
+
+msgid "A full backup is one file with the complete project, which can be restored on its own. Each project has a folder of its own in the backup folder. A network drive or a folder synchronized with a cloud service keeps the backups off this computer."
+msgstr "Uma cópia de segurança completa é um único ficheiro com o projeto inteiro, que pode ser restaurado por si só. Cada projeto tem a sua própria pasta na pasta de cópias de segurança. Uma unidade de rede ou uma pasta sincronizada com um serviço na nuvem guarda as cópias fora deste computador."
+
+msgid "Backup Folder"
+msgstr "Pasta de cópias de segurança"
+
+msgid "Choose Folder…"
+msgstr "Escolher pasta…"
+
+msgid "Default"
+msgstr "Predefinida"
+
+msgid "Choose the Backup Folder"
+msgstr "Escolher a pasta de cópias de segurança"
+
+msgid "Create a backup when a project is closed"
+msgstr "Criar uma cópia de segurança ao fechar um projeto"
+
+msgid "Create backups at regular intervals while a project is open"
+msgstr "Criar cópias de segurança em intervalos regulares enquanto um projeto está aberto"
+
+msgid "Interval in Hours"
+msgstr "Intervalo em horas"
+
+msgid "Delete old automatic backups"
+msgstr "Eliminar cópias de segurança automáticas antigas"
+
+msgid "Delete After (Days)"
+msgstr "Eliminar após (dias)"
+
+msgid "Always Keep the Newest"
+msgstr "Manter sempre as mais recentes"
+
+msgid "An automatic backup is only made when the project changed since its newest backup. Backups you create yourself and pinned backups are never deleted automatically."
+msgstr "Só é criada uma cópia de segurança automática se o projeto tiver mudado desde a sua cópia mais recente. As cópias que cria e as cópias fixadas nunca são eliminadas automaticamente."

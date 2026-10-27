@@ -112,6 +112,11 @@ with a project open, values are shown with the group address' name and decoded t
 
 ![Group Monitor](docs/images/monitor.png)
 
+**Backups** — a full backup of a project is one ZIP file with the complete project, made on request,
+when the project is closed or at an interval, into a folder of your choice (a network drive or a
+cloud folder keeps them off the computer). Compare a backup with the project in Project Diff, or
+restore it; the state before a restore is kept as a backup too.
+
 **Bus Diagram** — the installation drawn by its topology or by its buildings, and as links: which
 devices send on each group address and which receive from it, for the whole project, a room, a
 main group or one channel of a device. Click a device, channel or group address to follow it; the

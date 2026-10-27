@@ -1,0 +1,245 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor backups 1.0\n"
+"Language: pl\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Versions and Backups"
+msgstr "Wersje i kopie zapasowe"
+
+msgid "Create Backup…"
+msgstr "Utwórz kopię zapasową…"
+
+msgid "Show Versions and Backups…"
+msgstr "Pokaż wersje i kopie zapasowe…"
+
+msgid "Comment: {comment}"
+msgstr "Komentarz: {comment}"
+
+msgid "Settings…"
+msgstr "Ustawienia…"
+
+msgid "Open a project to see its backups."
+msgstr "Otwórz projekt, aby zobaczyć jego kopie zapasowe."
+
+msgid "This project has no backups yet."
+msgstr "Ten projekt nie ma jeszcze kopii zapasowych."
+
+msgid "Folder: {path}"
+msgstr "Folder: {path}"
+
+msgid "Open Folder"
+msgstr "Otwórz folder"
+
+msgid "Compare"
+msgstr "Porównaj"
+
+msgid "Restore…"
+msgstr "Przywróć…"
+
+msgid "Export as .xknx…"
+msgstr "Eksportuj jako .xknx…"
+
+msgid "Pin"
+msgstr "Przypnij"
+
+msgid "Unpin"
+msgstr "Odepnij"
+
+msgid "Check"
+msgstr "Sprawdź"
+
+msgid "Delete…"
+msgstr "Usuń…"
+
+msgid "Show what differs between the project now and this backup"
+msgstr "Pokazuje, czym obecny projekt różni się od tej kopii zapasowej"
+
+msgid "A pinned backup is never deleted automatically"
+msgstr "Przypięta kopia zapasowa nigdy nie jest usuwana automatycznie"
+
+msgid "Check that the backup can be restored"
+msgstr "Sprawdza, czy kopię zapasową można przywrócić"
+
+msgid "Created"
+msgstr "Utworzono"
+
+msgid "Kind"
+msgstr "Rodzaj"
+
+msgid "Comment"
+msgstr "Komentarz"
+
+msgid "Computer"
+msgstr "Komputer"
+
+msgid "User"
+msgstr "Użytkownik"
+
+msgid "Size"
+msgstr "Rozmiar"
+
+msgid "Manual"
+msgstr "Ręczna"
+
+msgid "On close"
+msgstr "Przy zamknięciu"
+
+msgid "Interval"
+msgstr "Okresowa"
+
+msgid "Before restore"
+msgstr "Przed przywróceniem"
+
+msgid "Pinned"
+msgstr "przypięta"
+
+msgid "{size} MB"
+msgstr "{size} MB"
+
+msgid "Creating a backup: copying the project…"
+msgstr "Tworzenie kopii zapasowej: kopiowanie projektu…"
+
+msgid "Creating a backup: checking the project…"
+msgstr "Tworzenie kopii zapasowej: sprawdzanie projektu…"
+
+msgid "Creating a backup: compressing…"
+msgstr "Tworzenie kopii zapasowej: kompresowanie…"
+
+msgid "Create Backup"
+msgstr "Utwórz kopię zapasową"
+
+msgid "The backup holds the project as it is now."
+msgstr "Kopia zapasowa zawiera projekt w obecnym stanie."
+
+msgid "Create"
+msgstr "Utwórz"
+
+msgid "Cancel"
+msgstr "Anuluj"
+
+msgid "OK"
+msgstr "OK"
+
+msgid "Backup created: {name}"
+msgstr "Utworzono kopię zapasową: {name}"
+
+msgid "The backup failed: {error}"
+msgstr "Tworzenie kopii zapasowej nie powiodło się: {error}"
+
+msgid "Restore Backup"
+msgstr "Przywróć kopię zapasową"
+
+msgid "Restore the project to its state of {created}?\n\nThe project as it is now is saved as a backup first, so you can go back to it."
+msgstr "Przywrócić projekt do stanu z {created}?\n\nObecny stan projektu zostanie najpierw zapisany jako kopia zapasowa, aby można było do niego wrócić."
+
+msgid "Restore"
+msgstr "Przywróć"
+
+msgid "The project had another password when this backup was made. Enter that password:"
+msgstr "Projekt miał inne hasło, gdy utworzono tę kopię zapasową. Wprowadź to hasło:"
+
+msgid "Wrong password"
+msgstr "Nieprawidłowe hasło"
+
+msgid "Restoring the backup…"
+msgstr "Przywracanie kopii zapasowej…"
+
+msgid "Project restored to its state of {created}"
+msgstr "Przywrócono projekt do stanu z {created}"
+
+msgid "The backup could not be restored: {error}"
+msgstr "Nie można przywrócić kopii zapasowej: {error}"
+
+msgid "Delete Backup"
+msgstr "Usuń kopię zapasową"
+
+msgid "Delete the backup of {created}? This cannot be undone."
+msgstr "Usunąć kopię zapasową z {created}? Tej operacji nie można cofnąć."
+
+msgid "Delete"
+msgstr "Usuń"
+
+msgid "Export Backup as Project File"
+msgstr "Eksportuj kopię zapasową jako plik projektu"
+
+msgid "XKNX Editor projects"
+msgstr "Projekty XKNX Editor"
+
+msgid "Exporting the backup…"
+msgstr "Eksportowanie kopii zapasowej…"
+
+msgid "Backup exported: {name}"
+msgstr "Wyeksportowano kopię zapasową: {name}"
+
+msgid "Checking the backup…"
+msgstr "Sprawdzanie kopii zapasowej…"
+
+msgid "The backup is intact and can be restored."
+msgstr "Kopia zapasowa jest nienaruszona i można ją przywrócić."
+
+msgid "The backup is damaged: {error}"
+msgstr "Kopia zapasowa jest uszkodzona: {error}"
+
+msgid "Backup of {created}"
+msgstr "Kopia zapasowa z {created}"
+
+msgid "Restore from Backup"
+msgstr "Przywróć z kopii zapasowej"
+
+msgid "The project {name} could not be opened: {error}"
+msgstr "Nie można otworzyć projektu {name}: {error}"
+
+msgid "The project file {name} no longer exists."
+msgstr "Plik projektu {name} już nie istnieje."
+
+msgid "Its newest backup is from {created}. Restore the project from it? A file that is there now is kept under another name."
+msgstr "Jego najnowsza kopia zapasowa pochodzi z {created}. Przywrócić z niej projekt? Plik, który tam teraz jest, zostanie zachowany pod inną nazwą."
+
+msgid "The damaged file was kept as {name}."
+msgstr "Uszkodzony plik zachowano jako {name}."
+
+msgid "Versions and Backups Settings"
+msgstr "Ustawienia wersji i kopii zapasowych"
+
+msgid "Full Backups"
+msgstr "Pełne kopie zapasowe"
+
+msgid "A full backup is one file with the complete project, which can be restored on its own. Each project has a folder of its own in the backup folder. A network drive or a folder synchronized with a cloud service keeps the backups off this computer."
+msgstr "Pełna kopia zapasowa to jeden plik z całym projektem, który można przywrócić samodzielnie. Każdy projekt ma własny folder w folderze kopii zapasowych. Dysk sieciowy lub folder synchronizowany z usługą w chmurze przechowuje kopie poza tym komputerem."
+
+msgid "Backup Folder"
+msgstr "Folder kopii zapasowych"
+
+msgid "Choose Folder…"
+msgstr "Wybierz folder…"
+
+msgid "Default"
+msgstr "Domyślny"
+
+msgid "Choose the Backup Folder"
+msgstr "Wybierz folder kopii zapasowych"
+
+msgid "Create a backup when a project is closed"
+msgstr "Twórz kopię zapasową przy zamykaniu projektu"
+
+msgid "Create backups at regular intervals while a project is open"
+msgstr "Twórz kopie zapasowe w regularnych odstępach, gdy projekt jest otwarty"
+
+msgid "Interval in Hours"
+msgstr "Odstęp w godzinach"
+
+msgid "Delete old automatic backups"
+msgstr "Usuwaj stare automatyczne kopie zapasowe"
+
+msgid "Delete After (Days)"
+msgstr "Usuń po (dniach)"
+
+msgid "Always Keep the Newest"
+msgstr "Zawsze zachowuj najnowsze"
+
+msgid "An automatic backup is only made when the project changed since its newest backup. Backups you create yourself and pinned backups are never deleted automatically."
+msgstr "Automatyczna kopia zapasowa jest tworzona tylko wtedy, gdy projekt zmienił się od najnowszej kopii. Kopie utworzone przez Ciebie i kopie przypięte nigdy nie są usuwane automatycznie."

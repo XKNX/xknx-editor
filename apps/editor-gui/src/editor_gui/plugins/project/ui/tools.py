@@ -275,6 +275,8 @@ class ToolsPanel:
         # The comparison running on a worker thread, and the project it compares with.
         self._diff_job: DiffJob | None = None
         self._diff_job_path = ""
+        # Show the Project Diff tab on the next frame (asked from a backup).
+        self._select_diff = False
 
     def render(self) -> None:
         if not self._is_open():
@@ -307,13 +309,30 @@ class ToolsPanel:
             if imgui.begin_tab_item(S.TOOLS_TAB_LABELS)[0]:
                 self._render_labels_tab()
                 imgui.end_tab_item()
-            if imgui.begin_tab_item(S.TOOLS_TAB_DIFF)[0]:
+            flags = (
+                imgui.TabItemFlags_.set_selected
+                if self._select_diff
+                else imgui.TabItemFlags_.none
+            )
+            self._select_diff = False
+            if imgui.begin_tab_item(f"{S.TOOLS_TAB_DIFF}###tools_diff", None, flags)[0]:
                 self._render_diff_tab()
                 imgui.end_tab_item()
             if imgui.begin_tab_item(S.TOOLS_TAB_TOPOLOGY)[0]:
                 self._render_topology_tab()
                 imgui.end_tab_item()
             imgui.end_tab_bar()
+
+    def open_diff(self, path: str, name: str, password: str | None = None) -> None:
+        """Show the Project Diff tab comparing with the project file ``path``, named ``name``
+        there; ``password`` opens a protected one (else it is asked for). A comparison still
+        running goes on."""
+        self._select_diff = True
+        if self._diff_job is not None:
+            return
+        self._diff_other_name = name
+        self._diff_password = ""
+        self._run_diff(path, password)
 
     def open_compare(self, node_id: int) -> None:
         """Show the "Compare Devices" tab with ``node_id`` as the first device."""
@@ -809,7 +828,12 @@ class ToolsPanel:
             self._diff_dialog = file_dialogs.open_file(
                 S.TOOLS_DIFF_PICK_TITLE,
                 "",
-                [S.TOOLS_DIFF_FILTER, "*.knxproj *.xknx", S.TOOLS_SELECT_ALL, "*"],
+                [
+                    S.TOOLS_DIFF_FILTER,
+                    "*.knxproj *.xknx *.zip",
+                    S.TOOLS_SELECT_ALL,
+                    "*",
+                ],
             )
         imgui.end_disabled()
         if self._diff_other_name:

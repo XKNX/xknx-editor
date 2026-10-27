@@ -1,0 +1,245 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor backups 1.0\n"
+"Language: el\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Versions and Backups"
+msgstr "Εκδόσεις και αντίγραφα ασφαλείας"
+
+msgid "Create Backup…"
+msgstr "Δημιουργία αντιγράφου ασφαλείας…"
+
+msgid "Show Versions and Backups…"
+msgstr "Εμφάνιση εκδόσεων και αντιγράφων ασφαλείας…"
+
+msgid "Comment: {comment}"
+msgstr "Σχόλιο: {comment}"
+
+msgid "Settings…"
+msgstr "Ρυθμίσεις…"
+
+msgid "Open a project to see its backups."
+msgstr "Ανοίξτε ένα έργο για να δείτε τα αντίγραφα ασφαλείας του."
+
+msgid "This project has no backups yet."
+msgstr "Αυτό το έργο δεν έχει ακόμη αντίγραφα ασφαλείας."
+
+msgid "Folder: {path}"
+msgstr "Φάκελος: {path}"
+
+msgid "Open Folder"
+msgstr "Άνοιγμα φακέλου"
+
+msgid "Compare"
+msgstr "Σύγκριση"
+
+msgid "Restore…"
+msgstr "Επαναφορά…"
+
+msgid "Export as .xknx…"
+msgstr "Εξαγωγή ως .xknx…"
+
+msgid "Pin"
+msgstr "Καρφίτσωμα"
+
+msgid "Unpin"
+msgstr "Ξεκαρφίτσωμα"
+
+msgid "Check"
+msgstr "Έλεγχος"
+
+msgid "Delete…"
+msgstr "Διαγραφή…"
+
+msgid "Show what differs between the project now and this backup"
+msgstr "Δείχνει σε τι διαφέρει το τρέχον έργο από αυτό το αντίγραφο ασφαλείας"
+
+msgid "A pinned backup is never deleted automatically"
+msgstr "Ένα καρφιτσωμένο αντίγραφο ασφαλείας δεν διαγράφεται ποτέ αυτόματα"
+
+msgid "Check that the backup can be restored"
+msgstr "Ελέγχει ότι το αντίγραφο ασφαλείας μπορεί να επαναφερθεί"
+
+msgid "Created"
+msgstr "Δημιουργία"
+
+msgid "Kind"
+msgstr "Είδος"
+
+msgid "Comment"
+msgstr "Σχόλιο"
+
+msgid "Computer"
+msgstr "Υπολογιστής"
+
+msgid "User"
+msgstr "Χρήστης"
+
+msgid "Size"
+msgstr "Μέγεθος"
+
+msgid "Manual"
+msgstr "Χειροκίνητο"
+
+msgid "On close"
+msgstr "Στο κλείσιμο"
+
+msgid "Interval"
+msgstr "Περιοδικό"
+
+msgid "Before restore"
+msgstr "Πριν από επαναφορά"
+
+msgid "Pinned"
+msgstr "καρφιτσωμένο"
+
+msgid "{size} MB"
+msgstr "{size} MB"
+
+msgid "Creating a backup: copying the project…"
+msgstr "Δημιουργία αντιγράφου ασφαλείας: αντιγραφή του έργου…"
+
+msgid "Creating a backup: checking the project…"
+msgstr "Δημιουργία αντιγράφου ασφαλείας: έλεγχος του έργου…"
+
+msgid "Creating a backup: compressing…"
+msgstr "Δημιουργία αντιγράφου ασφαλείας: συμπίεση…"
+
+msgid "Create Backup"
+msgstr "Δημιουργία αντιγράφου ασφαλείας"
+
+msgid "The backup holds the project as it is now."
+msgstr "Το αντίγραφο ασφαλείας περιέχει το έργο όπως είναι τώρα."
+
+msgid "Create"
+msgstr "Δημιουργία"
+
+msgid "Cancel"
+msgstr "Άκυρο"
+
+msgid "OK"
+msgstr "ΟΚ"
+
+msgid "Backup created: {name}"
+msgstr "Δημιουργήθηκε αντίγραφο ασφαλείας: {name}"
+
+msgid "The backup failed: {error}"
+msgstr "Η δημιουργία αντιγράφου ασφαλείας απέτυχε: {error}"
+
+msgid "Restore Backup"
+msgstr "Επαναφορά αντιγράφου ασφαλείας"
+
+msgid "Restore the project to its state of {created}?\n\nThe project as it is now is saved as a backup first, so you can go back to it."
+msgstr "Επαναφορά του έργου στην κατάστασή του στις {created};\n\nΤο έργο όπως είναι τώρα αποθηκεύεται πρώτα ως αντίγραφο ασφαλείας, ώστε να μπορείτε να επιστρέψετε σε αυτό."
+
+msgid "Restore"
+msgstr "Επαναφορά"
+
+msgid "The project had another password when this backup was made. Enter that password:"
+msgstr "Το έργο είχε άλλο κωδικό πρόσβασης όταν δημιουργήθηκε αυτό το αντίγραφο ασφαλείας. Εισαγάγετε αυτόν τον κωδικό:"
+
+msgid "Wrong password"
+msgstr "Λάθος κωδικός πρόσβασης"
+
+msgid "Restoring the backup…"
+msgstr "Επαναφορά του αντιγράφου ασφαλείας…"
+
+msgid "Project restored to its state of {created}"
+msgstr "Το έργο επανήλθε στην κατάστασή του στις {created}"
+
+msgid "The backup could not be restored: {error}"
+msgstr "Δεν ήταν δυνατή η επαναφορά του αντιγράφου ασφαλείας: {error}"
+
+msgid "Delete Backup"
+msgstr "Διαγραφή αντιγράφου ασφαλείας"
+
+msgid "Delete the backup of {created}? This cannot be undone."
+msgstr "Διαγραφή του αντιγράφου ασφαλείας της {created}; Αυτό δεν μπορεί να αναιρεθεί."
+
+msgid "Delete"
+msgstr "Διαγραφή"
+
+msgid "Export Backup as Project File"
+msgstr "Εξαγωγή αντιγράφου ασφαλείας ως αρχείου έργου"
+
+msgid "XKNX Editor projects"
+msgstr "Έργα XKNX Editor"
+
+msgid "Exporting the backup…"
+msgstr "Εξαγωγή του αντιγράφου ασφαλείας…"
+
+msgid "Backup exported: {name}"
+msgstr "Έγινε εξαγωγή του αντιγράφου ασφαλείας: {name}"
+
+msgid "Checking the backup…"
+msgstr "Έλεγχος του αντιγράφου ασφαλείας…"
+
+msgid "The backup is intact and can be restored."
+msgstr "Το αντίγραφο ασφαλείας είναι ακέραιο και μπορεί να επαναφερθεί."
+
+msgid "The backup is damaged: {error}"
+msgstr "Το αντίγραφο ασφαλείας είναι κατεστραμμένο: {error}"
+
+msgid "Backup of {created}"
+msgstr "Αντίγραφο ασφαλείας της {created}"
+
+msgid "Restore from Backup"
+msgstr "Επαναφορά από αντίγραφο ασφαλείας"
+
+msgid "The project {name} could not be opened: {error}"
+msgstr "Δεν ήταν δυνατό το άνοιγμα του έργου {name}: {error}"
+
+msgid "The project file {name} no longer exists."
+msgstr "Το αρχείο έργου {name} δεν υπάρχει πλέον."
+
+msgid "Its newest backup is from {created}. Restore the project from it? A file that is there now is kept under another name."
+msgstr "Το νεότερο αντίγραφο ασφαλείας του είναι της {created}. Επαναφορά του έργου από αυτό; Ένα αρχείο που βρίσκεται εκεί τώρα διατηρείται με άλλο όνομα."
+
+msgid "The damaged file was kept as {name}."
+msgstr "Το κατεστραμμένο αρχείο διατηρήθηκε ως {name}."
+
+msgid "Versions and Backups Settings"
+msgstr "Ρυθμίσεις εκδόσεων και αντιγράφων ασφαλείας"
+
+msgid "Full Backups"
+msgstr "Πλήρη αντίγραφα ασφαλείας"
+
+msgid "A full backup is one file with the complete project, which can be restored on its own. Each project has a folder of its own in the backup folder. A network drive or a folder synchronized with a cloud service keeps the backups off this computer."
+msgstr "Ένα πλήρες αντίγραφο ασφαλείας είναι ένα αρχείο με ολόκληρο το έργο, που μπορεί να επαναφερθεί αυτοτελώς. Κάθε έργο έχει δικό του φάκελο μέσα στον φάκελο αντιγράφων ασφαλείας. Μια μονάδα δικτύου ή ένας φάκελος συγχρονισμένος με υπηρεσία cloud κρατά τα αντίγραφα εκτός αυτού του υπολογιστή."
+
+msgid "Backup Folder"
+msgstr "Φάκελος αντιγράφων ασφαλείας"
+
+msgid "Choose Folder…"
+msgstr "Επιλογή φακέλου…"
+
+msgid "Default"
+msgstr "Προεπιλογή"
+
+msgid "Choose the Backup Folder"
+msgstr "Επιλογή φακέλου αντιγράφων ασφαλείας"
+
+msgid "Create a backup when a project is closed"
+msgstr "Δημιουργία αντιγράφου ασφαλείας όταν κλείνει ένα έργο"
+
+msgid "Create backups at regular intervals while a project is open"
+msgstr "Δημιουργία αντιγράφων ασφαλείας σε τακτά διαστήματα όσο ένα έργο είναι ανοιχτό"
+
+msgid "Interval in Hours"
+msgstr "Διάστημα σε ώρες"
+
+msgid "Delete old automatic backups"
+msgstr "Διαγραφή παλαιών αυτόματων αντιγράφων ασφαλείας"
+
+msgid "Delete After (Days)"
+msgstr "Διαγραφή μετά από (ημέρες)"
+
+msgid "Always Keep the Newest"
+msgstr "Διατήρηση πάντα των νεότερων"
+
+msgid "An automatic backup is only made when the project changed since its newest backup. Backups you create yourself and pinned backups are never deleted automatically."
+msgstr "Αυτόματο αντίγραφο ασφαλείας δημιουργείται μόνο αν το έργο άλλαξε από το νεότερο αντίγραφό του. Τα αντίγραφα που δημιουργείτε εσείς και τα καρφιτσωμένα δεν διαγράφονται ποτέ αυτόματα."

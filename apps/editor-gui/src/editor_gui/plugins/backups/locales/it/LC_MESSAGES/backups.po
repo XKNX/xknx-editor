@@ -1,0 +1,245 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor backups 1.0\n"
+"Language: it\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Versions and Backups"
+msgstr "Versioni e backup"
+
+msgid "Create Backup…"
+msgstr "Crea backup…"
+
+msgid "Show Versions and Backups…"
+msgstr "Mostra versioni e backup…"
+
+msgid "Comment: {comment}"
+msgstr "Commento: {comment}"
+
+msgid "Settings…"
+msgstr "Impostazioni…"
+
+msgid "Open a project to see its backups."
+msgstr "Apri un progetto per vederne i backup."
+
+msgid "This project has no backups yet."
+msgstr "Questo progetto non ha ancora backup."
+
+msgid "Folder: {path}"
+msgstr "Cartella: {path}"
+
+msgid "Open Folder"
+msgstr "Apri cartella"
+
+msgid "Compare"
+msgstr "Confronta"
+
+msgid "Restore…"
+msgstr "Ripristina…"
+
+msgid "Export as .xknx…"
+msgstr "Esporta come .xknx…"
+
+msgid "Pin"
+msgstr "Fissa"
+
+msgid "Unpin"
+msgstr "Sblocca"
+
+msgid "Check"
+msgstr "Verifica"
+
+msgid "Delete…"
+msgstr "Elimina…"
+
+msgid "Show what differs between the project now and this backup"
+msgstr "Mostra in cosa il progetto attuale differisce da questo backup"
+
+msgid "A pinned backup is never deleted automatically"
+msgstr "Un backup fissato non viene mai eliminato automaticamente"
+
+msgid "Check that the backup can be restored"
+msgstr "Verifica che il backup possa essere ripristinato"
+
+msgid "Created"
+msgstr "Creato"
+
+msgid "Kind"
+msgstr "Tipo"
+
+msgid "Comment"
+msgstr "Commento"
+
+msgid "Computer"
+msgstr "Computer"
+
+msgid "User"
+msgstr "Utente"
+
+msgid "Size"
+msgstr "Dimensione"
+
+msgid "Manual"
+msgstr "Manuale"
+
+msgid "On close"
+msgstr "Alla chiusura"
+
+msgid "Interval"
+msgstr "Intervallo"
+
+msgid "Before restore"
+msgstr "Prima del ripristino"
+
+msgid "Pinned"
+msgstr "fissato"
+
+msgid "{size} MB"
+msgstr "{size} MB"
+
+msgid "Creating a backup: copying the project…"
+msgstr "Creazione del backup: copia del progetto…"
+
+msgid "Creating a backup: checking the project…"
+msgstr "Creazione del backup: verifica del progetto…"
+
+msgid "Creating a backup: compressing…"
+msgstr "Creazione del backup: compressione…"
+
+msgid "Create Backup"
+msgstr "Crea backup"
+
+msgid "The backup holds the project as it is now."
+msgstr "Il backup contiene il progetto così com'è ora."
+
+msgid "Create"
+msgstr "Crea"
+
+msgid "Cancel"
+msgstr "Annulla"
+
+msgid "OK"
+msgstr "OK"
+
+msgid "Backup created: {name}"
+msgstr "Backup creato: {name}"
+
+msgid "The backup failed: {error}"
+msgstr "Il backup non è riuscito: {error}"
+
+msgid "Restore Backup"
+msgstr "Ripristina backup"
+
+msgid "Restore the project to its state of {created}?\n\nThe project as it is now is saved as a backup first, so you can go back to it."
+msgstr "Ripristinare il progetto allo stato del {created}?\n\nIl progetto così com'è ora viene prima salvato come backup, così potrai tornarci."
+
+msgid "Restore"
+msgstr "Ripristina"
+
+msgid "The project had another password when this backup was made. Enter that password:"
+msgstr "Il progetto aveva un'altra password quando è stato creato questo backup. Inserisci quella password:"
+
+msgid "Wrong password"
+msgstr "Password errata"
+
+msgid "Restoring the backup…"
+msgstr "Ripristino del backup…"
+
+msgid "Project restored to its state of {created}"
+msgstr "Progetto ripristinato allo stato del {created}"
+
+msgid "The backup could not be restored: {error}"
+msgstr "Impossibile ripristinare il backup: {error}"
+
+msgid "Delete Backup"
+msgstr "Elimina backup"
+
+msgid "Delete the backup of {created}? This cannot be undone."
+msgstr "Eliminare il backup del {created}? L'operazione non può essere annullata."
+
+msgid "Delete"
+msgstr "Elimina"
+
+msgid "Export Backup as Project File"
+msgstr "Esporta backup come file di progetto"
+
+msgid "XKNX Editor projects"
+msgstr "Progetti XKNX Editor"
+
+msgid "Exporting the backup…"
+msgstr "Esportazione del backup…"
+
+msgid "Backup exported: {name}"
+msgstr "Backup esportato: {name}"
+
+msgid "Checking the backup…"
+msgstr "Verifica del backup…"
+
+msgid "The backup is intact and can be restored."
+msgstr "Il backup è integro e può essere ripristinato."
+
+msgid "The backup is damaged: {error}"
+msgstr "Il backup è danneggiato: {error}"
+
+msgid "Backup of {created}"
+msgstr "Backup del {created}"
+
+msgid "Restore from Backup"
+msgstr "Ripristina da backup"
+
+msgid "The project {name} could not be opened: {error}"
+msgstr "Impossibile aprire il progetto {name}: {error}"
+
+msgid "The project file {name} no longer exists."
+msgstr "Il file di progetto {name} non esiste più."
+
+msgid "Its newest backup is from {created}. Restore the project from it? A file that is there now is kept under another name."
+msgstr "Il suo backup più recente è del {created}. Ripristinare il progetto da questo? Un file presente ora viene conservato con un altro nome."
+
+msgid "The damaged file was kept as {name}."
+msgstr "Il file danneggiato è stato conservato come {name}."
+
+msgid "Versions and Backups Settings"
+msgstr "Impostazioni di versioni e backup"
+
+msgid "Full Backups"
+msgstr "Backup completi"
+
+msgid "A full backup is one file with the complete project, which can be restored on its own. Each project has a folder of its own in the backup folder. A network drive or a folder synchronized with a cloud service keeps the backups off this computer."
+msgstr "Un backup completo è un unico file con l'intero progetto, ripristinabile da solo. Ogni progetto ha una propria cartella nella cartella dei backup. Un'unità di rete o una cartella sincronizzata con un servizio cloud conserva i backup al di fuori di questo computer."
+
+msgid "Backup Folder"
+msgstr "Cartella dei backup"
+
+msgid "Choose Folder…"
+msgstr "Scegli cartella…"
+
+msgid "Default"
+msgstr "Predefinita"
+
+msgid "Choose the Backup Folder"
+msgstr "Scegli la cartella dei backup"
+
+msgid "Create a backup when a project is closed"
+msgstr "Crea un backup alla chiusura di un progetto"
+
+msgid "Create backups at regular intervals while a project is open"
+msgstr "Crea backup a intervalli regolari mentre un progetto è aperto"
+
+msgid "Interval in Hours"
+msgstr "Intervallo in ore"
+
+msgid "Delete old automatic backups"
+msgstr "Elimina i vecchi backup automatici"
+
+msgid "Delete After (Days)"
+msgstr "Elimina dopo (giorni)"
+
+msgid "Always Keep the Newest"
+msgstr "Conserva sempre i più recenti"
+
+msgid "An automatic backup is only made when the project changed since its newest backup. Backups you create yourself and pinned backups are never deleted automatically."
+msgstr "Un backup automatico viene creato solo se il progetto è cambiato dal suo backup più recente. I backup creati da te e quelli fissati non vengono mai eliminati automaticamente."

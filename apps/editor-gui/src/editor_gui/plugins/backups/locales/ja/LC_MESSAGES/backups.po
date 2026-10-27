@@ -1,0 +1,245 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor backups 1.0\n"
+"Language: ja\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Versions and Backups"
+msgstr "バージョンとバックアップ"
+
+msgid "Create Backup…"
+msgstr "バックアップを作成…"
+
+msgid "Show Versions and Backups…"
+msgstr "バージョンとバックアップを表示…"
+
+msgid "Comment: {comment}"
+msgstr "コメント：{comment}"
+
+msgid "Settings…"
+msgstr "設定…"
+
+msgid "Open a project to see its backups."
+msgstr "バックアップを表示するにはプロジェクトを開いてください。"
+
+msgid "This project has no backups yet."
+msgstr "このプロジェクトにはまだバックアップがありません。"
+
+msgid "Folder: {path}"
+msgstr "フォルダー：{path}"
+
+msgid "Open Folder"
+msgstr "フォルダーを開く"
+
+msgid "Compare"
+msgstr "比較"
+
+msgid "Restore…"
+msgstr "復元…"
+
+msgid "Export as .xknx…"
+msgstr ".xknx としてエクスポート…"
+
+msgid "Pin"
+msgstr "固定"
+
+msgid "Unpin"
+msgstr "固定を解除"
+
+msgid "Check"
+msgstr "検査"
+
+msgid "Delete…"
+msgstr "削除…"
+
+msgid "Show what differs between the project now and this backup"
+msgstr "現在のプロジェクトとこのバックアップの違いを表示します"
+
+msgid "A pinned backup is never deleted automatically"
+msgstr "固定したバックアップは自動的に削除されません"
+
+msgid "Check that the backup can be restored"
+msgstr "バックアップを復元できるか検査します"
+
+msgid "Created"
+msgstr "作成日時"
+
+msgid "Kind"
+msgstr "種類"
+
+msgid "Comment"
+msgstr "コメント"
+
+msgid "Computer"
+msgstr "コンピューター"
+
+msgid "User"
+msgstr "ユーザー"
+
+msgid "Size"
+msgstr "サイズ"
+
+msgid "Manual"
+msgstr "手動"
+
+msgid "On close"
+msgstr "閉じるとき"
+
+msgid "Interval"
+msgstr "定期"
+
+msgid "Before restore"
+msgstr "復元前"
+
+msgid "Pinned"
+msgstr "固定"
+
+msgid "{size} MB"
+msgstr "{size} MB"
+
+msgid "Creating a backup: copying the project…"
+msgstr "バックアップを作成中：プロジェクトをコピーしています…"
+
+msgid "Creating a backup: checking the project…"
+msgstr "バックアップを作成中：プロジェクトを検査しています…"
+
+msgid "Creating a backup: compressing…"
+msgstr "バックアップを作成中：圧縮しています…"
+
+msgid "Create Backup"
+msgstr "バックアップを作成"
+
+msgid "The backup holds the project as it is now."
+msgstr "バックアップには現在の状態のプロジェクトが保存されます。"
+
+msgid "Create"
+msgstr "作成"
+
+msgid "Cancel"
+msgstr "キャンセル"
+
+msgid "OK"
+msgstr "OK"
+
+msgid "Backup created: {name}"
+msgstr "バックアップを作成しました：{name}"
+
+msgid "The backup failed: {error}"
+msgstr "バックアップに失敗しました：{error}"
+
+msgid "Restore Backup"
+msgstr "バックアップを復元"
+
+msgid "Restore the project to its state of {created}?\n\nThe project as it is now is saved as a backup first, so you can go back to it."
+msgstr "プロジェクトを {created} の状態に復元しますか？\n\n現在の状態のプロジェクトは先にバックアップとして保存されるため、元に戻すことができます。"
+
+msgid "Restore"
+msgstr "復元"
+
+msgid "The project had another password when this backup was made. Enter that password:"
+msgstr "このバックアップの作成時、プロジェクトには別のパスワードが設定されていました。そのパスワードを入力してください："
+
+msgid "Wrong password"
+msgstr "パスワードが違います"
+
+msgid "Restoring the backup…"
+msgstr "バックアップを復元しています…"
+
+msgid "Project restored to its state of {created}"
+msgstr "プロジェクトを {created} の状態に復元しました"
+
+msgid "The backup could not be restored: {error}"
+msgstr "バックアップを復元できませんでした：{error}"
+
+msgid "Delete Backup"
+msgstr "バックアップを削除"
+
+msgid "Delete the backup of {created}? This cannot be undone."
+msgstr "{created} のバックアップを削除しますか？この操作は元に戻せません。"
+
+msgid "Delete"
+msgstr "削除"
+
+msgid "Export Backup as Project File"
+msgstr "バックアップをプロジェクトファイルとしてエクスポート"
+
+msgid "XKNX Editor projects"
+msgstr "XKNX Editor プロジェクト"
+
+msgid "Exporting the backup…"
+msgstr "バックアップをエクスポートしています…"
+
+msgid "Backup exported: {name}"
+msgstr "バックアップをエクスポートしました：{name}"
+
+msgid "Checking the backup…"
+msgstr "バックアップを検査しています…"
+
+msgid "The backup is intact and can be restored."
+msgstr "バックアップは正常で、復元できます。"
+
+msgid "The backup is damaged: {error}"
+msgstr "バックアップが破損しています：{error}"
+
+msgid "Backup of {created}"
+msgstr "{created} のバックアップ"
+
+msgid "Restore from Backup"
+msgstr "バックアップから復元"
+
+msgid "The project {name} could not be opened: {error}"
+msgstr "プロジェクト {name} を開けませんでした：{error}"
+
+msgid "The project file {name} no longer exists."
+msgstr "プロジェクトファイル {name} はもう存在しません。"
+
+msgid "Its newest backup is from {created}. Restore the project from it? A file that is there now is kept under another name."
+msgstr "最新のバックアップは {created} のものです。このバックアップからプロジェクトを復元しますか？現在そこにあるファイルは別の名前で保存されます。"
+
+msgid "The damaged file was kept as {name}."
+msgstr "破損したファイルは {name} として保存されました。"
+
+msgid "Versions and Backups Settings"
+msgstr "バージョンとバックアップの設定"
+
+msgid "Full Backups"
+msgstr "完全バックアップ"
+
+msgid "A full backup is one file with the complete project, which can be restored on its own. Each project has a folder of its own in the backup folder. A network drive or a folder synchronized with a cloud service keeps the backups off this computer."
+msgstr "完全バックアップはプロジェクト全体を含む 1 つのファイルで、それだけで復元できます。各プロジェクトはバックアップフォルダー内に専用のフォルダーを持ちます。ネットワークドライブやクラウドサービスと同期するフォルダーを使うと、バックアップをこのコンピューターの外に保管できます。"
+
+msgid "Backup Folder"
+msgstr "バックアップフォルダー"
+
+msgid "Choose Folder…"
+msgstr "フォルダーを選択…"
+
+msgid "Default"
+msgstr "既定"
+
+msgid "Choose the Backup Folder"
+msgstr "バックアップフォルダーを選択"
+
+msgid "Create a backup when a project is closed"
+msgstr "プロジェクトを閉じるときにバックアップを作成する"
+
+msgid "Create backups at regular intervals while a project is open"
+msgstr "プロジェクトを開いている間、定期的にバックアップを作成する"
+
+msgid "Interval in Hours"
+msgstr "間隔（時間）"
+
+msgid "Delete old automatic backups"
+msgstr "古い自動バックアップを削除する"
+
+msgid "Delete After (Days)"
+msgstr "削除までの日数"
+
+msgid "Always Keep the Newest"
+msgstr "常に保持する最新の数"
+
+msgid "An automatic backup is only made when the project changed since its newest backup. Backups you create yourself and pinned backups are never deleted automatically."
+msgstr "自動バックアップは、最新のバックアップ以降にプロジェクトが変更された場合にのみ作成されます。自分で作成したバックアップと固定したバックアップは自動的に削除されません。"
