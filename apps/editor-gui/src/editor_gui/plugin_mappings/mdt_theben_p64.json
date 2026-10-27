@@ -1,7 +1,8 @@
 {
-  "app_id_prefixes": ["M-0083_A-0153", "M-0048_A-DA11", "M-00EF_A-DA11"],
+  "app_id_prefixes": ["M-0083_A-0153", "M-0083_A-0154", "M-0083_A-0155", "M-0083_A-0158", "M-0048_A-DA11", "M-00EF_A-DA11"],
   "title": "MDT / Theben / IPAS DALI P64 chassis (shared OEM plug-in)",
-  "note": "The MDT DALI Control Pro64 Gateway, Theben DALI-Gateway P64 KNX and IPAS DaliControl e64 Pro share the same OEM parameter namespace (``DEV-``, ``GRP<N>-``, ``ECG<N>-``, ``PB<N>-``, ``MD<N>-``, ``GI-``, ``DCA<N>-``, ``DCE<N>-``, ``DCM<N>-``, ``DCD-``, ``PROP-``). All DCA state lives in ParameterRefs + ModuleInstances; no BLOB_PARA is used.",
+  "note": "The MDT DALI Control Pro64 Gateway (SCN-DA641/642 variants), Theben DALI-Gateway P64 KNX and IPAS DaliControl e64 Pro share the same OEM parameter namespace (``DEV-``, ``GRP<N>-``, ``ECG<N>-``, ``PB<N>-``, ``MD<N>-``, ``GI-``, ``DCA<N>-``, ``DCE<N>-``, ``DCM<N>-``, ``DCD-``, ``PROP-``). Scenes, time-control templates and effects live in the DaliGC16-/Dalie64-Backup-Store BinaryData blob, surfaced read-only by the ``dali_backup`` reader.",
+  "blob_reader": "dali_backup",
   "sections": [
     {
       "regex": "^DCA([0-9]+)-CC-",

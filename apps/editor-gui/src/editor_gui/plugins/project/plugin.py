@@ -1897,6 +1897,9 @@ class ProjectPlugin:
         if param_id.startswith("siemens_blob:"):
             self._apply_siemens_blob_edit(device, param_id, new_value)
             return
+        if param_id.startswith("dali_backup:"):
+            self._apply_dali_backup_edit(device, param_id, new_value)
+            return
         try:
             self._api.project.set_param(device, param_id, new_value)
         except ValueError as exc:
@@ -1949,6 +1952,61 @@ class ProjectPlugin:
             session.commit()
         self._api.log.info(
             "siemens blob edit applied",
+            plugin="project",
+            device=device.individual_address,
+            ref=ref_id,
+        )
+
+    def _apply_dali_backup_edit(
+        self, device: "Device", ref_id: str, new_value: str
+    ) -> None:
+        """Write an edited DALI backup-blob field (e.g. an ECG type select box) back into the
+        device's BinaryData. The blob name is encoded in ``ref_id``
+        (``dali_backup:<name>:<container>:<index>:<attr>``) so a two-channel gateway routes to
+        the right blob."""
+        from sqlalchemy.orm import Session
+
+        from editor_gui.plugin_blob_readers.dali_backup import apply_edit
+
+        parts = ref_id.split(":")
+        # Top-level refs have 5 parts, nested-leaf refs (scene item / effect step / template
+        # command) have 7; both carry the blob name in parts[1]. apply_edit validates the rest.
+        if len(parts) not in (5, 7):
+            return
+        blob_name = parts[1]
+        entry = next(
+            (
+                e
+                for e in getattr(device, "binary_data", []) or []
+                if e.data is not None and (e.name or "") == blob_name
+            ),
+            None,
+        )
+        if entry is None:
+            self._api.log.warning(
+                "dali backup edit: blob not found",
+                plugin="project",
+                device=device.individual_address,
+                blob=blob_name,
+            )
+            return
+        try:
+            new_blob = apply_edit(entry.data, ref_id, new_value)
+        except ValueError as exc:
+            self._api.log.warning(
+                "dali backup edit rejected",
+                plugin="project",
+                device=device.individual_address,
+                ref=ref_id,
+                error=str(exc),
+            )
+            return
+        entry.data = new_blob
+        session = Session.object_session(entry)
+        if session is not None:
+            session.commit()
+        self._api.log.info(
+            "dali backup edit applied",
             plugin="project",
             device=device.individual_address,
             ref=ref_id,
