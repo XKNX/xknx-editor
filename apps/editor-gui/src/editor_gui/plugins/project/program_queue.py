@@ -1,4 +1,5 @@
-"""A tiny FIFO that serialises repeated "Program" presses onto the single KNX bus slot.
+"""A tiny FIFO that serialises repeated "Program" and "Test Programming" presses onto the single
+KNX bus slot.
 
 The bus has one exclusive operation slot (``ConnectionService.begin_operation``), so a second
 programming started while one runs would be rejected. This queue instead appends it and drains the
@@ -79,6 +80,11 @@ class QueueItem:
     ended_at: datetime.datetime | None = None
     # A device info readout instead of a download; True also reads the group communication.
     device_info: bool | None = None
+    # A test of the programming in ``scope`` (reads the device, writes nothing) instead of a
+    # download.
+    test: bool = False
+    # What a finished operation returned (the report of a test).
+    result: Any = field(default=None, repr=False)
     # Result rows shown in the details: (section, [(label, value), ...]).
     details: list[tuple[str, list[tuple[str, str]]]] = field(
         default_factory=list[tuple[str, list[tuple[str, str]]]]
@@ -173,6 +179,7 @@ class ProgramQueue:
                 and item.script is None
                 and queued.device_info is None
                 and item.device_info is None
+                and queued.test == item.test
                 # A caller waits for each of these, so they stay separate operations.
                 and queued.ended is None
                 and item.ended is None
@@ -276,8 +283,10 @@ class ProgramQueue:
         item.future = None
         if message is not None:
             item.message = message
-        if state is OperationState.FINISHED and self._on_finished is not None:
-            self._on_finished(item, future.result())
+        if state is OperationState.FINISHED:
+            item.result = future.result()
+            if self._on_finished is not None:
+                self._on_finished(item, item.result)
         self._end(item, state)
         self._current = None
         self.tick()

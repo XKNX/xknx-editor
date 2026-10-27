@@ -41,7 +41,7 @@ class ProgramQueuePanel:
         is_connecting: Callable[[QueueItem], bool] = lambda _item: False,
     ) -> None:
         """``get_bus_operation`` is the running bus operation the queue has no entry for
-        (kind and address, see ``bus_operation_text``): a device test, a restart, a scan …;
+        (kind and address, see ``bus_operation_text``): a restart, a scan …;
         ``is_connecting`` whether an operation still waits for the connection opened for it."""
         self._get_bus_operation = get_bus_operation
         self._is_connecting = is_connecting
@@ -100,8 +100,8 @@ class ProgramQueuePanel:
         imgui.end_child()
 
     def _render_bus_operation(self, kind: str, address: str) -> None:
-        """A running bus operation started elsewhere (a device test, a restart, a scan …): what it
-        does and where, and how far it is."""
+        """A running bus operation started elsewhere (a restart, a scan …): what it does and
+        where, and how far it is."""
         imgui.text(bus_operation_text(kind, address))
         bar = imgui.ImVec2(-1.0, hello_imgui.em_size(1.0))
         progress = self._get_progress()
@@ -310,6 +310,8 @@ def operation_text(item: QueueItem) -> str:
         return S.SCRIPT_OPERATION
     if item.device_info is not None:
         return S.DEVICE_INFO_GROUPS if item.device_info else S.DEVICE_INFO
+    if item.test:
+        return f"{S.BTN_EVAL_DEVICE} ({_scope_label(item.scope)})"
     if item.scope is DownloadScope.INDIVIDUAL_ADDRESS and item.serial_number:
         return f"{S.OPERATION_DOWNLOAD} ({S.SCOPE_INDIVIDUAL_ADDRESS_SERIAL})"
     return f"{S.OPERATION_DOWNLOAD} ({_scope_label(item.scope)})"
@@ -326,7 +328,7 @@ def state_text(item: QueueItem, connecting: bool = False) -> str:
                 return S.SCRIPT_CANCELING
             if connecting:
                 return S.OPERATION_CONNECTING
-            if item.device_info is not None:
+            if item.device_info is not None or item.test:
                 return S.OPERATION_READING
             if item.script is None:
                 if item.waiting_for_button:

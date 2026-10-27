@@ -51,6 +51,7 @@ class _Harness:
         error: bool = False,
         exc: BaseException | None = None,
         cancelled: bool = False,
+        result: Any = None,
     ) -> None:
         """Complete a running device's future (bus frees, queue advances)."""
         self.busy = False
@@ -62,15 +63,16 @@ class _Harness:
         elif error:
             fut.set_exception(RuntimeError("boom"))
         else:
-            fut.set_result(None)
+            fut.set_result(result)
 
 
-def _item(node_id: int, scope: str = "FULL") -> QueueItem:
+def _item(node_id: int, scope: str = "FULL", *, test: bool = False) -> QueueItem:
     return QueueItem(
         node_id=node_id,
         address=f"1.1.{node_id}",
         name=f"D{node_id}",
         scope=DownloadScope[scope],
+        test=test,
     )
 
 
@@ -124,6 +126,39 @@ def test_dedupe_updates_scope_no_duplicate() -> None:
     h.queue.enqueue(_item(2, scope="PARAMETERS"))  # same device -> update scope, no dup
     assert [q.node_id for q in h.queue.queued] == [2]
     assert h.queue.queued[0].scope is DownloadScope.PARAMETERS
+
+
+def test_a_test_waits_for_the_bus_and_keeps_its_report() -> None:
+    h = _Harness()
+    h.queue.enqueue(_item(1))  # a download runs
+    h.queue.enqueue(_item(2, test=True))
+    h.queue.enqueue(_item(3, test=True))
+    assert h.started == [1]
+    h.finish(1)
+    h.finish(2, result="report 2")
+    assert h.started == [1, 2, 3]
+    test = h.queue.history[0]
+    assert (test.node_id, test.state, test.result) == (
+        2,
+        OperationState.FINISHED,
+        "report 2",
+    )
+    # A download returns no report.
+    assert h.queue.history[1].result is None
+
+
+def test_a_test_and_a_download_of_a_device_stay_separate() -> None:
+    h = _Harness()
+    h.queue.enqueue(_item(9))  # keeps the bus busy
+    h.queue.enqueue(_item(1, test=True))
+    h.queue.enqueue(_item(1))
+    assert [(q.node_id, q.test) for q in h.queue.queued] == [(1, True), (1, False)]
+    # Pressing Test Programming again only updates the waiting test's scope.
+    h.queue.enqueue(_item(1, scope="PARAMETERS", test=True))
+    assert [(q.node_id, q.test, q.scope) for q in h.queue.queued] == [
+        (1, True, DownloadScope.PARAMETERS),
+        (1, False, DownloadScope.FULL),
+    ]
 
 
 def test_continue_on_error_advances() -> None:

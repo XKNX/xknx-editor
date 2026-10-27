@@ -26,6 +26,7 @@ if TYPE_CHECKING:
 
     from editor_gui.device import Device
     from editor_gui.plugins.connection.service import ConnectionService
+    from editor_gui.plugins.project.program_queue import QueueItem
 
 # Download scopes (schema enum); maps to xknxeditor.download.scope.DownloadScope in _resolve_scope.
 Scope = Literal[
@@ -178,15 +179,18 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             "with project_set_secure_commissioning to program it in the clear"
         )
 
-    def _run_queued(node_id: int, scope: Any, timeout: float, **options: Any) -> bool:
-        """Run a programming in the editor's operations queue, labelled as started by an MCP
-        client, so the user sees it there (also in the history) and can cancel it; it waits behind
-        operations already queued. Returns False when the editor has no queue (no project plugin,
-        e.g. a headless server), so the caller programs directly. Raises ToolError when the
-        operation fails, is canceled, or does not end within ``timeout`` (it is canceled then)."""
+    def _run_queued(
+        node_id: int, scope: Any, timeout: float, **options: Any
+    ) -> QueueItem | None:
+        """Run a programming (or with ``test=True`` its test) in the editor's operations queue,
+        labelled as started by an MCP client, so the user sees it there (also in the history) and
+        can cancel it; it waits behind operations already queued. Returns the finished item, or
+        None when the editor has no queue (no project plugin, e.g. a headless server), so the
+        caller programs directly. Raises ToolError when the operation fails, is canceled, or does
+        not end within ``timeout`` (it is canceled then)."""
         queue = ctx.api.queue_program
         if queue is None:
-            return False
+            return None
         from editor_gui.plugins.project.program_queue import ORIGIN_MCP, OperationState
         from editor_gui.plugins.project.strings import S
 
@@ -205,7 +209,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                 f"the operation did not finish within {timeout} s and was canceled"
             ) from exc
         if ended.state is OperationState.FINISHED:
-            return True
+            return ended
         if ended.message == S.DEVICE_CERTIFICATE_REQUIRED:
             raise _certificate_error(node_id)
         if ended.state is OperationState.CANCELED:
@@ -388,13 +392,16 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             raise ToolError(
                 "the device is commissioned securely: set a project password first"
             ) from exc
-        if _run_queued(
-            nid,
-            resolved,
-            timeout,
-            without_plugin=without_plugin,
-            current_address=current_address,
-            serial_number=serial,
+        if (
+            _run_queued(
+                nid,
+                resolved,
+                timeout,
+                without_plugin=without_plugin,
+                current_address=current_address,
+                serial_number=serial,
+            )
+            is not None
         ):
             return {"status": "programmed", "node_id": nid}
         ip_secure = ctx.run_locked(
@@ -461,7 +468,10 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         with scope FULL. ``scope`` defaults to FULL; the individual-address scopes are rejected.
         ``timeout`` in seconds: it reads about as much as the download writes, so a large application
         through an interface with short frames takes minutes, like its download. A preview that does
-        not end in time is canceled and frees the bus; nothing was written.
+        not end in time is canceled and frees the bus; nothing was written. It runs in the
+        editor's operations queue, labelled MCP, like "Test Programming" in the editor: it waits
+        behind the operations already queued (the wait counts toward ``timeout``), and the user can
+        cancel it.
 
         Returns {node_id, changed_bytes, config_bytes, default_bytes, runtime_bytes, config_locations,
         changed_segments, changed_properties, summary}. ``changed_bytes`` is the raw total; it is split
@@ -480,18 +490,24 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         resolved = _resolve_scope(scope)
         if resolved.individual_address_only:
             raise ToolError("an individual address download cannot be evaluated")
-        # Run evaluate_device under the lock on the UI thread: its synchronous security lookup
-        # reads the non-thread-safe project session and must not run on this MCP worker thread.
-        # The bus Future is awaited outside the lock below.
-        ip_config = ctx.run_locked(lambda: ctx.api.project.ip_download_config(device))
-        future = ctx.run_locked(
-            lambda: service.evaluate_device(
-                device, resolved, group_communication, ip_config
+        queued = _run_queued(device.node_id, resolved, timeout, test=True)
+        if queued is not None:
+            report = queued.result
+        else:
+            # Run evaluate_device under the lock on the UI thread: its synchronous security
+            # lookup reads the non-thread-safe project session and must not run on this MCP
+            # worker thread. The bus Future is awaited outside the lock below.
+            ip_config = ctx.run_locked(
+                lambda: ctx.api.project.ip_download_config(device)
             )
-        )
-        if future is None:
-            raise _not_started("the evaluation")
-        report = _await(future, timeout, "the evaluation")
+            future = ctx.run_locked(
+                lambda: service.evaluate_device(
+                    device, resolved, group_communication, ip_config
+                )
+            )
+            if future is None:
+                raise _not_started("the evaluation")
+            report = _await(future, timeout, "the evaluation")
         # Classify the raw changed bytes (config vs. benign default/runtime) with the same logic
         # the GUI pre-flight uses; the classifiers read the device UI, so run them on the UI thread.
         from editor_gui.programming import (
@@ -542,7 +558,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             )
         from xknxeditor.download.scope import DownloadScope
 
-        if _run_queued(nid, DownloadScope.INDIVIDUAL_ADDRESS, timeout):
+        if _run_queued(nid, DownloadScope.INDIVIDUAL_ADDRESS, timeout) is not None:
             return {
                 "status": "assigned",
                 "node_id": nid,

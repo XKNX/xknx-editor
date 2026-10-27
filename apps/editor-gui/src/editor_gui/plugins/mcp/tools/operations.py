@@ -81,8 +81,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
     @tool("read")
     def connection_operations(history: bool = True) -> dict[str, Any]:
         """What the Operations panel shows. Returns {bus_operation, active, history}:
-        ``bus_operation`` is the running bus operation without a queue entry (a device test,
-        restart, reset, DALI or DCA commissioning, the programming mode scan, the project
+        ``bus_operation`` is the running bus operation without a queue entry (a restart, reset, DALI or DCA commissioning, the programming mode scan, the project
         recovery) as {kind, address, text, progress?: [done, total]}, or null; ``active`` the
         running operation followed by the waiting ones, ``history`` the ended ones, newest first
         (left out with history=false). Each entry: {node_id, device_address, name, operation (e.g.

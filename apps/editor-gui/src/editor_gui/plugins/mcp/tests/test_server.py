@@ -1625,6 +1625,8 @@ async def test_programming_runs_in_the_operations_queue(
         OperationState,
         QueueItem,
     )
+    from xknxeditor.download.preflight import PreflightReport
+    from xknxeditor.download.scope import DownloadScope
 
     ctx = _build_ctx(tmp_path)
     connection = ctx.api.connection
@@ -1637,10 +1639,14 @@ async def test_programming_runs_in_the_operations_queue(
     def assign_individual_address(device: object) -> None:
         direct.append("ia")
 
+    def evaluate_device(*args: object) -> None:
+        direct.append("test")
+
     monkeypatch.setattr(connection, "program_device", program_device)
     monkeypatch.setattr(
         connection, "assign_individual_address_for_device", assign_individual_address
     )
+    monkeypatch.setattr(connection, "evaluate_device", evaluate_device)
     queued: list[QueueItem] = []
     outcome: dict[str, Any] = {"state": OperationState.FINISHED, "message": None}
 
@@ -1660,6 +1666,8 @@ async def test_programming_runs_in_the_operations_queue(
         if outcome["state"] is not None:
             item.state = outcome["state"]
             item.message = outcome["message"]
+            if item.test:
+                item.result = PreflightReport(segments=(), properties=())
             assert item.ended is not None
             item.ended.set_result(item)
         return item
@@ -1687,6 +1695,16 @@ async def test_programming_runs_in_the_operations_queue(
             client, "connection_assign_individual_address", node_id=node_id
         )
         assert assigned["status"] == "assigned"
+        evaluated = await _data(
+            client, "connection_evaluate_device", node_id=node_id, scope="PARAMETERS"
+        )
+        assert (evaluated["changed_bytes"], evaluated["config_bytes"]) == (0, 0)
+        tested = queued.pop()
+        assert (tested.test, tested.scope, tested.origin) == (
+            True,
+            DownloadScope.PARAMETERS,
+            ORIGIN_MCP,
+        )
         outcome.update(state=OperationState.CANCELED, message="Cancelled by user.")
         with pytest.raises(Exception, match="Cancelled by user"):
             await client.call_tool("connection_program_device", {"node_id": node_id})
