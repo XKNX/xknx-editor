@@ -129,11 +129,11 @@ def _run_now(fn: Callable[[], None]) -> None:
 
 
 # Bus operations the programming queue starts and shows as its own entries.
-_QUEUED_OPERATIONS = frozenset({"script", "program", "device_info"})
+_QUEUED_OPERATIONS = frozenset({"script", "program", "device_info", "test"})
 
 
 def _unqueued(operation: tuple[str, str] | None) -> tuple[str, str] | None:
-    """The running bus operation when the queue has no entry for it (a device test, a scan …)."""
+    """The running bus operation when the queue has no entry for it (a restart, a scan …)."""
     if operation is None or operation[0] in _QUEUED_OPERATIONS:
         return None
     return operation
@@ -2133,10 +2133,12 @@ class ProjectPlugin:
         without_plugin: bool = False,
         current_address: str | None = None,
         serial_number: bytes | None = None,
+        test: bool = False,
     ) -> QueueItem | None:
         """Queue a programming started outside the editor's UI (``origin``, e.g. an MCP client),
-        shown in Operations like one started here. Returns the item, whose ``ended`` future
-        resolves once it has ended, or None for a device not in the project."""
+        shown in Operations like one started here; ``test`` only tests it (the item's ``result``
+        is then the report). Returns the item, whose ``ended`` future resolves once it has ended,
+        or None for a device not in the project."""
         from concurrent.futures import Future
 
         device = self._api.project.find_device_by_node_id(node_id)
@@ -2150,6 +2152,7 @@ class ProjectPlugin:
             without_plugin=without_plugin,
             current_address=current_address,
             serial_number=serial_number,
+            test=test,
             origin=origin,
             ended=Future(),
         )
@@ -2571,6 +2574,8 @@ class ProjectPlugin:
             return self._start_device_info(item)
         if item.scope is None:
             return None
+        if item.test:
+            return self._start_test(item)
         device = self._api.project.find_device_by_node_id(item.node_id)
         if device is None:
             self._api.log.debug(
@@ -2669,7 +2674,7 @@ class ProjectPlugin:
 
     def take_operations_focus(self) -> bool:
         """Whether an operation was queued, or a bus operation without a queue entry started (a
-        device test, a scan …), since the last call; selects the Active tab if so."""
+        restart, a scan …), since the last call; selects the Active tab if so."""
         queued = self._program_queue.take_focus_request()
         operation = self.unqueued_bus_operation()
         started = operation is not None and operation != self._shown_bus_operation
@@ -2685,7 +2690,7 @@ class ProjectPlugin:
         return self._program_queue
 
     def unqueued_bus_operation(self) -> tuple[str, str] | None:
-        """The running bus operation the queue has no entry for (a device test, a scan …), as
+        """The running bus operation the queue has no entry for (a restart, a scan …), as
         kind and address; the Operations panel shows it above the queue."""
         return _unqueued(self._api.connection.busy_operation)
 
@@ -2755,20 +2760,45 @@ class ProjectPlugin:
                 label, scope.name, S.PREFLIGHT_PROJECT_MODIFIED
             )
             return
+        # Like a programming it waits in the operations queue while the bus is busy.
+        self._program_queue.enqueue(
+            QueueItem(
+                node_id=device.node_id,
+                address=device.individual_address or "",
+                name=device.name,
+                scope=scope,
+                test=True,
+            )
+        )
+
+    def _start_test(self, item: QueueItem) -> "Future[Any] | None":
+        """Start a queued test; one started in the editor shows its report in the result
+        window."""
+        device = self._api.project.find_device_by_node_id(item.node_id)
+        if device is None or item.scope is None:
+            return None
+        label = device.name or device.individual_address or "device"
         runtime = self._runtime_managed_addresses(device)
         driven = self._parameter_driven_bits(device)
         future = self._api.connection.evaluate_device(
             device,
-            scope,
+            item.scope,
             self._group_communication_for(device),
             self._api.project.ip_download_config(device),
         )
-        if future is not None:
-            future.add_done_callback(
-                functools.partial(
-                    self._on_eval_done, label, scope.name, runtime, driven
-                )
-            )
+        if future is None:
+            if self._api.connection.xknx is None:
+                item.message = S.SCRIPT_NOT_CONNECTED
+            return None
+        if item.origin is None:
+            scope_name = item.scope.name
+
+            def done(f: "Future[Any]") -> None:
+                if not item.canceled_by_user:
+                    self._on_eval_done(label, scope_name, runtime, driven, f)
+
+            future.add_done_callback(done)
+        return future
 
     @staticmethod
     def _runtime_managed_addresses(device: "Device") -> set[int]:
