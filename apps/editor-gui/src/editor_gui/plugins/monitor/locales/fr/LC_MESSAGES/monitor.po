@@ -55,8 +55,8 @@ msgstr "Masquer les informations étendues"
 msgid "{count} telg."
 msgstr "{count} telg."
 
-msgid "Load: {rate} t/s"
-msgstr "Charge : {rate} t/s"
+msgid "{rate} t/s"
+msgstr "{rate} t/s"
 
 msgid "Group Address:"
 msgstr "Adresse de Groupe :"

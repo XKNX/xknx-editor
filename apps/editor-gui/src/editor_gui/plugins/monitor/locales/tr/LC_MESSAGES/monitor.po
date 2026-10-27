@@ -55,8 +55,8 @@ msgstr "Genişletilmiş Bilgileri Gizle"
 msgid "{count} telg."
 msgstr "{count} telg."
 
-msgid "Load: {rate} t/s"
-msgstr "Yük: {rate} t/s"
+msgid "{rate} t/s"
+msgstr "{rate} t/s"
 
 msgid "Group Address:"
 msgstr "Grup Adresi:"

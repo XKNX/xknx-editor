@@ -55,8 +55,8 @@ msgstr "Dölj utökad information"
 msgid "{count} telg."
 msgstr "{count} telg."
 
-msgid "Load: {rate} t/s"
-msgstr "Last: {rate} t/s"
+msgid "{rate} t/s"
+msgstr "{rate} t/s"
 
 msgid "Group Address:"
 msgstr "Gruppadress:"

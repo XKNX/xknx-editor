@@ -161,8 +161,8 @@ msgstr "bijv. 1/2/3"
 msgid "Group Address:"
 msgstr "Groepsadres:"
 
-msgid "Load: {rate} t/s"
-msgstr "Last: {rate} t/s"
+msgid "{rate} t/s"
+msgstr "{rate} t/s"
 
 msgid "Clear"
 msgstr "Wissen"

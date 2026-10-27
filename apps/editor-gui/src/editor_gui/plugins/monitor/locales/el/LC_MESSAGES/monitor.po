@@ -55,8 +55,8 @@ msgstr "Απόκρυψη Εκτεταμένων Πληροφοριών"
 msgid "{count} telg."
 msgstr "{count} telg."
 
-msgid "Load: {rate} t/s"
-msgstr "Φορτίο: {rate} t/s"
+msgid "{rate} t/s"
+msgstr "{rate} t/s"
 
 msgid "Group Address:"
 msgstr "Διεύθυνση Ομάδας:"

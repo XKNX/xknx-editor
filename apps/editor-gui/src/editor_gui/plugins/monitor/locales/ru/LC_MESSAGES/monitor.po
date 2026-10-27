@@ -55,8 +55,8 @@ msgstr "Скрыть расширенные сведения"
 msgid "{count} telg."
 msgstr "{count} telg."
 
-msgid "Load: {rate} t/s"
-msgstr "Нагрузка: {rate} т/с"
+msgid "{rate} t/s"
+msgstr "{rate} т/с"
 
 msgid "Group Address:"
 msgstr "Групповой адрес:"

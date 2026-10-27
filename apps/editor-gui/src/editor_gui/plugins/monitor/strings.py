@@ -79,7 +79,7 @@ class MonitorStrings:
 
     @property
     def MONITOR_BUS_LOAD(self) -> str:
-        return _("Load: {rate} t/s")
+        return _("{rate} t/s")
 
     @property
     def MONITOR_MAX_RECORDS(self) -> str:

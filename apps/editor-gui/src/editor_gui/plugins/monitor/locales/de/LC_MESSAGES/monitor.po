@@ -161,8 +161,8 @@ msgstr "z. B. 1/2/3"
 msgid "Group Address:"
 msgstr "Gruppenadresse:"
 
-msgid "Load: {rate} t/s"
-msgstr "Last: {rate} T/s"
+msgid "{rate} t/s"
+msgstr "{rate} T/s"
 
 msgid "Clear"
 msgstr "Löschen"

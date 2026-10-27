@@ -55,8 +55,8 @@ msgstr "Piilota laajennetut tiedot"
 msgid "{count} telg."
 msgstr "{count} telg."
 
-msgid "Load: {rate} t/s"
-msgstr "Kuorma: {rate} sähkettä/s"
+msgid "{rate} t/s"
+msgstr "{rate} sähkettä/s"
 
 msgid "Group Address:"
 msgstr "Ryhmäosoite:"
