@@ -52,8 +52,8 @@ msgstr "显示扩展信息"
 msgid "Hide Extended Information"
 msgstr "隐藏扩展信息"
 
-msgid "{count} teleg."
-msgstr "{count} teleg."
+msgid "{count} telg."
+msgstr "{count} telg."
 
 msgid "Load: {rate} t/s"
 msgstr "负载：{rate} t/s"

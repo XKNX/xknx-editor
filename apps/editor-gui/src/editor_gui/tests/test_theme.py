@@ -136,3 +136,40 @@ def test_windows_themes_have_the_dark_gray_text_of_windows_dialogs(
     )
     assert style.frame_rounding == rounding
     assert style.color_(imgui.Col_.window_bg).x == 1.0
+
+
+@pytest.mark.parametrize(
+    "applied",
+    [
+        hello_imgui.ImGuiTheme_.white_is_white,
+        hello_imgui.ImGuiTheme_.microsoft_style,
+        hello_imgui.ImGuiTheme_.imgui_colors_light,
+        hello_imgui.ImGuiTheme_.gray_variations,
+        hello_imgui.ImGuiTheme_.darcula_darker,
+        hello_imgui.ImGuiTheme_.imgui_colors_dark,
+    ],
+)
+def test_a_selected_row_stands_out_from_the_rows_in_light_themes(
+    context: None, monkeypatch: pytest.MonkeyPatch, applied: hello_imgui.ImGuiTheme_
+) -> None:
+    tweaked = hello_imgui.ImGuiTweakedTheme()
+    tweaked.theme = applied
+    hello_imgui.apply_tweaked_theme(tweaked)
+    _use_theme(monkeypatch, hello_imgui.ImGuiThemeTweaks(), applied)
+    style = imgui.get_style()
+    before = style.color_(imgui.Col_.header)
+    before = (before.x, before.y, before.z, before.w)
+    theme.apply_style()
+    window = theme._channels(style.color_(imgui.Col_.window_bg))  # pyright: ignore[reportPrivateUsage]
+    lightness = theme._lightness  # pyright: ignore[reportPrivateUsage]
+    over = theme._over  # pyright: ignore[reportPrivateUsage]
+    header = style.color_(imgui.Col_.header)
+    if lightness(window) < 50.0:
+        # Dark themes show a selection clearly already: unchanged.
+        assert (header.x, header.y, header.z, header.w) == before
+        return
+    selected = lightness(over(header, window))
+    for row in (imgui.Col_.table_row_bg, imgui.Col_.table_row_bg_alt):
+        assert lightness(over(style.color_(row), window)) - selected >= 19.9
+    # Still a grey or the theme's own shade, not the blue of hovered items.
+    assert abs(header.x - header.y) < 0.2

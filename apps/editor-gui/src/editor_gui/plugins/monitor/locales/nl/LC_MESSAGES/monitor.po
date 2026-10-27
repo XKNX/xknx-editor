@@ -191,8 +191,8 @@ msgstr "Groepsmonitor"
 msgid "Group Objects"
 msgstr "Groepsobjecten"
 
-msgid "{count} teleg."
-msgstr "{count} teleg."
+msgid "{count} telg."
+msgstr "{count} telg."
 
 msgid "Enter a group address of the project to send to it."
 msgstr "Voer een groepsadres van het project in om ernaar te verzenden."

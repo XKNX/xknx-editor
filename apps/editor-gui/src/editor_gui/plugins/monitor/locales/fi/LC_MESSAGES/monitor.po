@@ -52,8 +52,8 @@ msgstr "Näytä laajennetut tiedot"
 msgid "Hide Extended Information"
 msgstr "Piilota laajennetut tiedot"
 
-msgid "{count} teleg."
-msgstr "{count} teleg."
+msgid "{count} telg."
+msgstr "{count} telg."
 
 msgid "Load: {rate} t/s"
 msgstr "Kuorma: {rate} sähkettä/s"

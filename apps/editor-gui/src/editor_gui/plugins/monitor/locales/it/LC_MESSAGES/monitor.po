@@ -52,8 +52,8 @@ msgstr "Mostra informazioni estese"
 msgid "Hide Extended Information"
 msgstr "Nascondi informazioni estese"
 
-msgid "{count} teleg."
-msgstr "{count} teleg."
+msgid "{count} telg."
+msgstr "{count} telg."
 
 msgid "Load: {rate} t/s"
 msgstr "Carico: {rate} t/s"

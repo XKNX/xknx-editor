@@ -151,6 +151,9 @@ _WINDOWS_COLORS = {
 _SELECTION = imgui.ImVec4(0.0, 120 / 255, 215 / 255, 0.3)
 # The least a selection differs from a light field, in luminance (Light Rounded has 0.16).
 _SELECTION_MIN_CONTRAST = 0.08
+# The least a selected row or item is darker than the rows of a table in a light theme, in
+# perceived lightness (CIE L*, 0..100): dark themes show a selection about that far off.
+_ROW_SELECTION_CONTRAST = 20.0
 # Links: the blue of Windows hyperlinks on light windows, a lighter blue on dark ones.
 _LINK_ON_LIGHT = imgui.ImVec4(0.0, 102 / 255, 204 / 255, 1.0)
 _LINK_ON_DARK = imgui.ImVec4(110 / 255, 168 / 255, 254 / 255, 1.0)
@@ -201,6 +204,7 @@ def apply_style() -> None:
     _apply_text_selection(style)
     _apply_link_color(style)
     _apply_table_lines(style)
+    _apply_row_selection(style)
     apply_window_colors()
 
 
@@ -259,6 +263,64 @@ def _apply_table_lines(style: imgui.Style) -> None:
             for a, b in zip(w, (text.x, text.y, text.z), strict=True)
         ]
         style.set_color_(col, imgui.ImVec4(mixed[0], mixed[1], mixed[2], 1.0))
+
+
+def _lightness(rgb: tuple[float, float, float]) -> float:
+    """The perceived lightness (CIE L*, 0..100) of an sRGB color."""
+
+    def linear(c: float) -> float:
+        return c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4
+
+    y = 0.2126 * linear(rgb[0]) + 0.7152 * linear(rgb[1]) + 0.0722 * linear(rgb[2])
+    return 903.3 * y if y <= 0.008856 else 116.0 * y ** (1.0 / 3.0) - 16.0
+
+
+def _channels(color: imgui.ImVec4) -> tuple[float, float, float]:
+    """The red, green and blue of ``color``, each within 0..1."""
+    r, g, b = (min(max(c, 0.0), 1.0) for c in (color.x, color.y, color.z))
+    return r, g, b
+
+
+def _over(
+    color: imgui.ImVec4, below: tuple[float, float, float]
+) -> tuple[float, float, float]:
+    """``color`` drawn over the opaque ``below``."""
+    a = min(max(color.w, 0.0), 1.0)
+    r, g, b = _channels(color)
+    return (
+        below[0] + (r - below[0]) * a,
+        below[1] + (g - below[1]) * a,
+        below[2] + (b - below[2]) * a,
+    )
+
+
+def _apply_row_selection(style: imgui.Style) -> None:
+    """In a light theme, a selected row or item (``Col_.header``) clearly darker than the rows
+    of a table: some light themes draw it in a grey barely darker than their alternate rows. It
+    is darkened in its own shade until it is, never turned into another color (the hover color
+    stays the only blue)."""
+    w = _channels(style.color_(imgui.Col_.window_bg))
+    if _lightness(w) < 50.0:
+        return
+    rows = [
+        _over(style.color_(imgui.Col_.table_row_bg), w),
+        _over(style.color_(imgui.Col_.table_row_bg_alt), w),
+    ]
+    target = min(_lightness(row) for row in rows) - _ROW_SELECTION_CONTRAST
+    shown = _over(style.color_(imgui.Col_.header), w)
+    if _lightness(shown) <= target:
+        return
+    low, high = 0.0, 1.0
+    for _ in range(24):
+        mid = (low + high) / 2
+        if _lightness((shown[0] * mid, shown[1] * mid, shown[2] * mid)) > target:
+            high = mid
+        else:
+            low = mid
+    style.set_color_(
+        imgui.Col_.header,
+        imgui.ImVec4(shown[0] * low, shown[1] * low, shown[2] * low, 1.0),
+    )
 
 
 def apply_window_colors() -> None:

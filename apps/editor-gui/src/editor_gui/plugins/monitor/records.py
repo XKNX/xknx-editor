@@ -22,7 +22,7 @@ TICKS_PER_SECOND = 10_000_000
 _EPOCH = datetime(1970, 1, 1, tzinfo=UTC)
 
 # Most records a monitor keeps; the oldest tenth is dropped when it is exceeded.
-DEFAULT_MAX_RECORDS = 100_000
+DEFAULT_MAX_RECORDS = 10_000
 
 
 def now_ticks() -> int:

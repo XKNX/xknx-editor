@@ -191,8 +191,8 @@ msgstr "Gruppenmonitor"
 msgid "Group Objects"
 msgstr "Kommunikationsobjekte"
 
-msgid "{count} teleg."
-msgstr "{count} Teleg."
+msgid "{count} telg."
+msgstr "{count} Telg."
 
 msgid "Enter a group address of the project to send to it."
 msgstr "Geben Sie eine Gruppenadresse des Projekts ein, um an sie zu senden."

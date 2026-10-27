@@ -52,8 +52,8 @@ msgstr "Zobrazit rozšířené informace"
 msgid "Hide Extended Information"
 msgstr "Skrýt rozšířené informace"
 
-msgid "{count} teleg."
-msgstr "{count} teleg."
+msgid "{count} telg."
+msgstr "{count} telg."
 
 msgid "Load: {rate} t/s"
 msgstr "Zatížení: {rate} t/s"

@@ -52,8 +52,8 @@ msgstr "Εμφάνιση Εκτεταμένων Πληροφοριών"
 msgid "Hide Extended Information"
 msgstr "Απόκρυψη Εκτεταμένων Πληροφοριών"
 
-msgid "{count} teleg."
-msgstr "{count} teleg."
+msgid "{count} telg."
+msgstr "{count} telg."
 
 msgid "Load: {rate} t/s"
 msgstr "Φορτίο: {rate} t/s"

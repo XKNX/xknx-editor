@@ -71,11 +71,11 @@ class MonitorStrings:
 
     @property
     def MONITOR_TELEGRAM_COUNT(self) -> str:
-        return _("{count} teleg.")
+        return _("{count} telg.")
 
     @property
     def MONITOR_TELEGRAM_COUNT_ONE(self) -> str:
-        return _("{count} teleg.")
+        return _("{count} telg.")
 
     @property
     def MONITOR_BUS_LOAD(self) -> str:
