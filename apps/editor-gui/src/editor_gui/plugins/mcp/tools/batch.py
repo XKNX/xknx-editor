@@ -289,6 +289,15 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         project.set_flag(device, p["com_object_ref_id"], p["flag"], p["value"])
         return {"node_id": device.node_id, "com_object_ref_id": p["com_object_ref_id"]}
 
+    def _op_create_group_address(p: dict[str, Any]) -> dict[str, Any]:
+        address = p.get("address")
+        ga_id = project.create_group_address(address, p.get("name", ""), p.get("dpt"))
+        if ga_id is None:
+            raise ValueError(
+                f"could not create group address {address!r} (invalid for the project's style)"
+            )
+        return {"group_address_id": ga_id}
+
     # op name -> (required params, handler). Handlers raise ValueError on bad input. The device
     # identifier (node_id | device_address) is NOT in `required` because the op itself picks the
     # right form and errors clearly; same for group_address_id | group_address on link.
@@ -305,14 +314,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             ("com_object_ref_id", "flag", "value"),
             _op_set_com_object_flag,
         ),
-        "create_group_address": (
-            (),
-            lambda p: {
-                "group_address_id": project.create_group_address(
-                    p.get("address"), p.get("name", "")
-                )
-            },
-        ),
+        "create_group_address": ((), _op_create_group_address),
         "rename_group_address": (
             ("name",),
             _on_group_address(
@@ -460,7 +462,8 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
           shown_parameters, hidden_parameters, shown_com_objects and hidden_com_objects (when not
           empty) are what the edit showed or hid, as for project_set_parameter.
         - set_com_object_flag: device, com_object_ref_id, flag, value -> {node_id, com_object_ref_id}.
-        - create_group_address: [address, name] -> {group_address_id}.
+        - create_group_address: [address, name, dpt] -> {group_address_id}; dpt as for
+          set_group_address_dpt, set in the same step.
         - rename_group_address: ga, name -> {group_address_id}.
         - set_group_address_central: ga, central (bool) -> {group_address_id}.
         - rename_group_range: group_range_id, name -> {group_range_id}.

@@ -49,14 +49,22 @@ instructions.
    project_batch(operations=[...the plan's operations...])
    ```
 
-4. Create the group addresses and link the objects in one batch. A group address created earlier
-   in the batch can be linked by its printed address. Mark the object that transmits with
-   `is_sending=true`; link each status/feedback object to its status address too:
+4. Check which of the planned group addresses exist already (`not_found` lists the others), and
+   what the existing ones are used for:
+
+   ```
+   project_list_group_addresses(group_addresses=["1/1/30", "1/1/31"])
+   ```
+
+   Create the missing ones with their datapoint type and link the objects in one batch. A group
+   address created earlier in the batch can be linked by its printed address. Mark the object
+   that transmits with `is_sending=true`; link each status/feedback object to its status address
+   too:
 
    ```
    project_batch(operations=[
-     {"op": "create_group_address", "params": {"address": "1/1/30", "name": "Kitchen light switch"}},
-     {"op": "create_group_address", "params": {"address": "1/1/31", "name": "Kitchen light status"}},
+     {"op": "create_group_address", "params": {"address": "1/1/30", "name": "Kitchen light switch", "dpt": "1.001"}},
+     {"op": "create_group_address", "params": {"address": "1/1/31", "name": "Kitchen light status", "dpt": "1.001"}},
      {"op": "link_com_object", "params": {"device_address": "1.1.20", "com_object_ref_id": "M-0008_..._O-1", "group_address": "1/1/30", "is_sending": true}},
      {"op": "link_com_object", "params": {"device_address": "1.1.20", "com_object_ref_id": "M-0008_..._O-2", "group_address": "1/1/31"}}
    ])
@@ -87,12 +95,12 @@ Changing a button's function replaces its group objects, and the links of the ol
 
 1. Capture the current state of the button's block: function, sub-parameters including symbols
    and labels, and every object's links (project_list_com_objects lists each object with its
-   links).
+   links; `linked_only` keeps the objects that have some).
 
    ```
    project_parameter_tree(device_address="1.1.20", outline=True)
-   project_parameter_tree(device_address="1.1.20", subtree_id="0.3", tree_token="...")
-   project_list_com_objects(device_address="1.1.20")
+   project_list_parameters(device_address="1.1.20", subtree_id="0.3", tree_token="...", compact=True)
+   project_list_com_objects(device_address="1.1.20", linked_only=True)
    ```
 
 2. Set the new function. The result tells what the change cost and what it offers:
@@ -106,7 +114,12 @@ Changing a button's function replaces its group objects, and the links of the ol
 
 3. Set the new sub-parameters from `shown_parameters` — also the symbols and labels, mirrored
    from an equivalent button — and relink EVERY new object: the transmitting ones with
-   `is_sending=true`, each status/feedback object to its status address.
+   `is_sending=true`, each status/feedback object to its status address. A long choice list
+   (e.g. several hundred symbols) is searched by its text:
+
+   ```
+   project_get_parameter(device_address="1.1.20", parameter_ref_id="M-0008_..._P-112_R-162", choice_search="lamp")
+   ```
 
    ```
    project_batch(operations=[
@@ -166,7 +179,7 @@ Work from the project to the bus; stop at the first finding.
    Look for such objects on the channel and their current values:
 
    ```
-   project_list_com_objects(device_address="1.1.21")
+   project_list_com_objects(device_address="1.1.21", search="lock")
    monitor_latest(address="1/1/40")
    ```
 
