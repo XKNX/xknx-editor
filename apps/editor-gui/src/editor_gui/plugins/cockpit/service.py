@@ -1,10 +1,12 @@
 """Commissioning cockpit data: one row per project device with catalog + health status.
 
-Rows are built from the live project and cached by the project revision, so the per-frame table
-render never hits the database. "Attention" is derived from the shared health checks."""
+Rows are built from the live project and cached by the project revision, its device list and the
+language, so the per-frame table render never hits the database. "Attention" is derived from the
+shared health checks."""
 
 from __future__ import annotations
 
+import re
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
@@ -12,8 +14,12 @@ from typing import TYPE_CHECKING, Any
 from editor_gui.device import address_order
 from editor_gui.plugins.cockpit.strings import S
 from editor_gui.plugins.health.service import HealthService, Severity
+from editor_gui.strings import get_locale
 
 _SEVERITY_RANK = {Severity.ERROR: 0, Severity.WARNING: 1, Severity.INFO: 2}
+# The colon that ends the device a finding starts with ("1.1.2  Name: 10 unlinked ..."): with a
+# space before it in French, full width (U+FF1A) in Chinese and Japanese.
+_LABEL_COLON = re.compile("^\\s*[:\uff1a]\\s*")
 
 if TYPE_CHECKING:
     from editor_gui.plugins.project.service import ProjectService
@@ -52,14 +58,23 @@ class CockpitRow:
 
     @property
     def issue_summary(self) -> str:
-        """Short inline text for the status column: the most severe finding's message with the
-        redundant device-name prefix removed, plus ``(+N)`` when further findings exist."""
+        """Short inline text for the status column: the most severe finding's message without the
+        device it starts with (the row shows it already), plus ``(+N)`` when further findings
+        exist."""
         if not self.issues:
             return ""
         _, message = min(self.issues, key=lambda i: _SEVERITY_RANK[i[0]])
-        prefix = f"{self.name}: "
-        if message.startswith(prefix):
-            message = message[len(prefix) :]
+        # The health checks name the device as the device lists do: "address  name".
+        label = (
+            f"{self.individual_address}  {self.name}"
+            if self.individual_address
+            else self.name
+        )
+        if label and message.startswith(label):
+            # The colon after it may have a space before it in some languages.
+            rest = _LABEL_COLON.sub("", message[len(label) :], count=1)
+            if rest != message[len(label) :]:
+                message = rest
         extra = len(self.issues) - 1
         return f"{message}  (+{extra})" if extra else message
 
@@ -122,17 +137,24 @@ class CockpitService:
         self._project = project
         self._health = HealthService(project)
         self._cache: list[CockpitRow] | None = None
-        self._cache_revision = -1
+        self._cache_key: tuple[int, int, str] | None = None
 
     def skipped_count(self) -> int:
         """Devices dropped from the view because their application is not in the catalog."""
         return len(self._project.missing_program_refs())
 
     def rows(self) -> list[CockpitRow]:
-        rev = self._project.revision
-        if self._cache is None or self._cache_revision != rev:
+        """One row per device, built again only when the project or the language changed.
+
+        While a background task holds the project (opening it, rebuilding the devices) its reads
+        are empty placeholders, so the last rows stay until it is done: built from them, the
+        table stayed empty until the next edit."""
+        if self._project.loading:
+            return self._cache or []
+        key = (self._project.revision, id(self._project.devices), get_locale())
+        if self._cache is None or self._cache_key != key:
             self._cache = self._build()
-            self._cache_revision = rev
+            self._cache_key = key
         return self._cache
 
     def _build(self) -> list[CockpitRow]:
