@@ -31,7 +31,7 @@ RUN uv sync --frozen --no-dev --all-packages
 # Compiles OUR reflection programs (not ETS code) to framework-dependent assemblies. At runtime only
 # the .NET runtime runs them; the ETS assembly is still provided by the user. The trace helper bundles
 # its ConfigurationManager dependency, so no NuGet restore is needed at runtime.
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS dotnet-build
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS dotnet-build
 ENV DOTNET_CLI_TELEMETRY_OPTOUT=1 DOTNET_NOLOGO=1
 WORKDIR /x
 COPY packages/proj/src/xknxeditor/proj/core/_extract.cs       sign/_extract.cs
@@ -43,7 +43,7 @@ RUN set -eux; \
       { echo '<Project Sdk="Microsoft.NET.Sdk">'; \
         echo '  <PropertyGroup>'; \
         echo '    <OutputType>Exe</OutputType>'; \
-        echo '    <TargetFramework>net8.0</TargetFramework>'; \
+        echo '    <TargetFramework>net10.0</TargetFramework>'; \
         echo '    <Nullable>disable</Nullable>'; \
         echo '    <ImplicitUsings>disable</ImplicitUsings>'; \
         echo '    <AssemblyName>xknxkeyx</AssemblyName>'; \
@@ -57,7 +57,7 @@ RUN set -eux; \
       dotnet publish "$d/xknxkeyx.csproj" -c Release -o "/opt/xknx-keyextract/$d"; \
     }; \
     gen sign _extract.cs ''; \
-    gen trace _extract_trace.cs '<PackageReference Include="System.Configuration.ConfigurationManager" Version="8.0.0" />'; \
+    gen trace _extract_trace.cs '<PackageReference Include="System.Configuration.ConfigurationManager" Version="10.0.14" />'; \
     gen oauth _extract_oauth.cs ''
 
 # ---- app: the runtime image, shared by both final targets ----------------------------------------
@@ -72,7 +72,7 @@ RUN apt-get update \
         libx11-6 libxext6 libglib2.0-0 ca-certificates curl tini \
     && rm -rf /var/lib/apt/lists/*
 
-# .NET 8 runtime only (not the SDK) — our key-extraction helpers are precompiled in the dotnet-build
+# .NET 10 runtime only (not the SDK) — our key-extraction helpers are precompiled in the dotnet-build
 # stage and just run here. Invariant globalization so no ICU package is needed (the helpers are
 # culture-insensitive: reflection + RSA export); without it .NET aborts the moment it needs a culture.
 ENV DOTNET_CLI_TELEMETRY_OPTOUT=1 \
@@ -80,7 +80,7 @@ ENV DOTNET_CLI_TELEMETRY_OPTOUT=1 \
     DOTNET_ROOT=/usr/share/dotnet \
     DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1
 RUN curl -fsSL https://dot.net/v1/dotnet-install.sh -o /tmp/dotnet-install.sh \
-    && bash /tmp/dotnet-install.sh --channel 8.0 --runtime dotnet --install-dir /usr/share/dotnet \
+    && bash /tmp/dotnet-install.sh --channel 10.0 --runtime dotnet --install-dir /usr/share/dotnet \
     && ln -s /usr/share/dotnet/dotnet /usr/local/bin/dotnet \
     && rm /tmp/dotnet-install.sh
 

@@ -29,7 +29,7 @@ File editor add-ons).
 
 A project exported by the editor can be signed so other KNX tools accept it. The signing key is not
 distributed; you extract it from an installation of the KNX authoring tool that you own. The add-on
-image carries the .NET SDK needed to read the assembly, but never the assembly itself.
+image carries the .NET 10 runtime needed to read the assembly, but never the assembly itself.
 
 In the editor, open **Signing** and give it the assembly in whichever way suits you:
 
