@@ -2957,3 +2957,9 @@ msgstr "从备份…"
 
 msgid "Compare with a backup of this project"
 msgstr "与此项目的备份进行比较"
+
+msgid "In the browser, choose Knx.Ets.Common.dll together with log4net.dll from the same folder."
+msgstr "在浏览器中，请同时选择 Knx.Ets.Common.dll 和同一文件夹中的 log4net.dll。"
+
+msgid "Knx.Ets.Common.dll needs log4net.dll from its folder: choose both files together."
+msgstr "Knx.Ets.Common.dll 需要其文件夹中的 log4net.dll：请同时选择这两个文件。"

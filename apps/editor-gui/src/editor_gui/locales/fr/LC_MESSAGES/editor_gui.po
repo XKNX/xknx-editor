@@ -1426,9 +1426,6 @@ msgstr "Islandais"
 msgid "Ctrl"
 msgstr "Ctrl"
 
-msgid "This stops XKNX Editor on the server. Until it is started there again, no browser can connect to it."
-msgstr "Cela arrête XKNX Editor sur le serveur. Tant qu'il n'y est pas redémarré, aucun navigateur ne peut s'y connecter."
-
 msgid "Del"
 msgstr "Suppr"
 
@@ -1437,3 +1434,21 @@ msgstr "Cette machine uniquement"
 
 msgid "On the Network"
 msgstr "Sur le réseau"
+
+msgid "This editor is controllable by an AI assistant through the built-in MCP server: it exposes the catalog and project as tools over Streamable HTTP. Register its endpoint in your AI tool."
+msgstr "Cet éditeur peut être piloté par un assistant IA via le serveur MCP intégré : il expose le catalogue et le projet sous forme d'outils via Streamable HTTP. Enregistrez son point de terminaison dans votre outil d'IA."
+
+msgid "Example: register the MCP server in your AI tool:"
+msgstr "Exemple : enregistrer le serveur MCP dans votre outil d'IA :"
+
+msgid "Example: register the MCP server in your AI tool, with your token in place of HOME_ASSISTANT_TOKEN:"
+msgstr "Exemple : enregistrer le serveur MCP dans votre outil d'IA, avec votre jeton à la place de HOME_ASSISTANT_TOKEN :"
+
+msgid "Home Assistant provides the MCP server: AI tools sign in with a long-lived access token of a Home Assistant user who may use the editor (Profile > Security)."
+msgstr "Home Assistant fournit le serveur MCP : les outils d'IA se connectent avec un jeton d'accès longue durée d'un utilisateur de Home Assistant autorisé à utiliser l'éditeur (Profil > Sécurité)."
+
+msgid "The program that started XKNX Editor set up its MCP server."
+msgstr "Le programme qui a démarré XKNX Editor a configuré son serveur MCP."
+
+msgid "Home Assistant updates XKNX Editor with its integration: check Home Assistant for an update of the XKNX Editor integration. It may follow this release a little later."
+msgstr "Home Assistant met à jour XKNX Editor avec son intégration : recherchez dans Home Assistant une mise à jour de l’intégration XKNX Editor. Elle peut suivre cette version avec un peu de retard."

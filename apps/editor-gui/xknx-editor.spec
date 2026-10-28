@@ -139,8 +139,7 @@ exe = EXE(
     strip=False,
     upx=False,  # also disabled: UPX likewise corrupted the Windows python DLL / MSVC runtime.
     console=False,  # windowed app (no terminal)
-    # Platform icon (macOS .icns / Windows .ico) — the XKNX logo. Regenerate the .icns with:
-    #   sips -s format icns src/editor_gui/assets/app_settings/icon.png --out icon.icns
+    # Platform icon (macOS .icns / Windows .ico) — the XKNX logo, drawn by tools/make_icon.py.
     icon=_icon,
 )
 # UPX disabled (see EXE above): it corrupted the bundled python3xx.dll / MSVC runtime on Windows,

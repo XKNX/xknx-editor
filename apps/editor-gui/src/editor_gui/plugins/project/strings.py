@@ -1943,6 +1943,20 @@ class ProjectStrings:
         )
 
     @property
+    def PROJECT_LOG_UPLOAD_HINT(self) -> str:
+        # Shown in the browser UI, where the assembly is uploaded to the server on its own.
+        return _(
+            "In the browser, choose Knx.Ets.Common.dll together with log4net.dll from the same "
+            "folder."
+        )
+
+    @property
+    def PROJECT_LOG_NEEDS_LOG4NET(self) -> str:
+        return _(
+            "Knx.Ets.Common.dll needs log4net.dll from its folder: choose both files together."
+        )
+
+    @property
     def PROJECT_LOG_ENCRYPTED(self) -> str:
         return _("Comments are encrypted")
 

@@ -1426,9 +1426,6 @@ msgstr "Islandsk"
 msgid "Ctrl"
 msgstr "Ctrl"
 
-msgid "This stops XKNX Editor on the server. Until it is started there again, no browser can connect to it."
-msgstr "Dette avslutter XKNX Editor på serveren. Inntil den startes der igjen, kan ingen nettleser koble til den."
-
 msgid "Del"
 msgstr "Del"
 
@@ -1437,3 +1434,21 @@ msgstr "Bare denne maskinen"
 
 msgid "On the Network"
 msgstr "På nettverket"
+
+msgid "This editor is controllable by an AI assistant through the built-in MCP server: it exposes the catalog and project as tools over Streamable HTTP. Register its endpoint in your AI tool."
+msgstr "Denne editoren kan styres av en KI-assistent via den innebygde MCP-serveren: den gjør katalogen og prosjektet tilgjengelig som verktøy via Streamable HTTP. Registrer endepunktet i KI-verktøyet ditt."
+
+msgid "Example: register the MCP server in your AI tool:"
+msgstr "Eksempel: registrer MCP-serveren i KI-verktøyet ditt:"
+
+msgid "Example: register the MCP server in your AI tool, with your token in place of HOME_ASSISTANT_TOKEN:"
+msgstr "Eksempel: registrer MCP-serveren i KI-verktøyet ditt, med tokenet ditt i stedet for HOME_ASSISTANT_TOKEN:"
+
+msgid "Home Assistant provides the MCP server: AI tools sign in with a long-lived access token of a Home Assistant user who may use the editor (Profile > Security)."
+msgstr "Home Assistant stiller MCP-serveren til rådighet: KI-verktøy logger på med et langtidstilgangstoken fra en Home Assistant-bruker som har lov til å bruke editoren (Profil > Sikkerhet)."
+
+msgid "The program that started XKNX Editor set up its MCP server."
+msgstr "Programmet som startet XKNX Editor, har satt opp MCP-serveren."
+
+msgid "Home Assistant updates XKNX Editor with its integration: check Home Assistant for an update of the XKNX Editor integration. It may follow this release a little later."
+msgstr "Home Assistant oppdaterer XKNX Editor med sin integrasjon: se etter en oppdatering av XKNX Editor-integrasjonen i Home Assistant. Den kan komme litt etter denne utgivelsen."

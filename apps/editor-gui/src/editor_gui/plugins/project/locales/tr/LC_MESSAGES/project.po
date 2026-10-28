@@ -2957,3 +2957,9 @@ msgstr "Yedeklerden…"
 
 msgid "Compare with a backup of this project"
 msgstr "Bu projenin bir yedeğiyle karşılaştır"
+
+msgid "In the browser, choose Knx.Ets.Common.dll together with log4net.dll from the same folder."
+msgstr "Tarayıcıda Knx.Ets.Common.dll dosyasını aynı klasördeki log4net.dll ile birlikte seçin."
+
+msgid "Knx.Ets.Common.dll needs log4net.dll from its folder: choose both files together."
+msgstr "Knx.Ets.Common.dll, kendi klasöründeki log4net.dll dosyasına ihtiyaç duyar: iki dosyayı birlikte seçin."

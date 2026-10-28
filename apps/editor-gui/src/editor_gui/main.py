@@ -25,7 +25,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 from xknxproject.exceptions import InvalidPasswordException, XknxProjectException
 
-from editor_gui import __version__, file_dialogs, self_update, web
+from editor_gui import __version__, file_dialogs, host, self_update, web
 from editor_gui import signing_key as signing_key_store
 from editor_gui import trace_key as trace_key_store
 from editor_gui.cache import (
@@ -475,8 +475,6 @@ class KnxGuiApp:
         self._ga_export_empty_requested = False
         # Clear Cache…: the confirmation, with the size the cache had when it was asked for.
         self._clear_cache_requested = False
-        # File > Exit in the browser view: it stops the server, so it is confirmed first.
-        self._exit_confirm_requested = False
         self._clear_cache_size = 0
         # Folder picker for the ProjectStore export when the default path is not found, and which
         # ETS generation that export is aimed at (set when the export starts, read by the dialogs).
@@ -618,6 +616,13 @@ class KnxGuiApp:
         self._mcp_port = str(_mcp_cfg.get("port") or "8765")
         # Optional bearer token; when set, the server requires it on every request. Empty = no auth.
         self._mcp_token = str(_mcp_cfg.get("token") or "")
+        options = host.current()
+        if options.mcp_managed:
+            # Set up by the program that started the editor (--mcp); the token comes from
+            # XKNX_MCP_AUTH_TOKEN, and nothing of it is stored.
+            self._mcp_host = options.mcp_host or "127.0.0.1"
+            self._mcp_port = str(options.mcp_port)
+            self._mcp_token = ""
         # Why the last start failed (port in use, ...), shown with the server status until the next
         # start.
         self._mcp_error: str | None = None
@@ -869,8 +874,9 @@ class KnxGuiApp:
         project given on the command line."""
         # Discover KNX gateways at startup and auto-connect to the last-used (or first) one.
         self._connection_plugin.autostart()
-        # Restart the MCP server when it was running at the last exit.
-        if load_settings("mcp").get("running"):
+        # The MCP server set up by the program that started the editor, else the one that was
+        # running at the last exit.
+        if host.current().mcp_managed or load_settings("mcp").get("running"):
             self._start_mcp(save=False)
         if self.startup_file is not None:
             self._do_open_project(self.startup_file)
@@ -1306,28 +1312,8 @@ class KnxGuiApp:
         end_dialog()
 
     def _exit(self) -> None:
-        """File > Exit: the desktop window closes right away. In the browser view it stops
-        the server, after which no browser can connect again, so it is confirmed first."""
-        if web.active_hub is not None:
-            self._exit_confirm_requested = True
-        else:
-            hello_imgui.get_runner_params().app_shall_exit = True
-
-    def _render_exit_confirm_modal(self) -> None:
-        title = f"{S.TRAY_STOP}###exit_confirm"
-        if self._exit_confirm_requested:
-            imgui.open_popup(title)
-            self._exit_confirm_requested = False
-        if not begin_dialog(title, width=460.0):
-            return
-        imgui.text_wrapped(S.EXIT_CONFIRM_TEXT)
-        clicked = dialog_buttons(S.TRAY_STOP, S.BTN_CANCEL)
-        if clicked == 0:
-            imgui.close_current_popup()
-            hello_imgui.get_runner_params().app_shall_exit = True
-        elif clicked == 1:
-            imgui.close_current_popup()
-        end_dialog()
+        """File > Exit (on the desktop only): the window closes."""
+        hello_imgui.get_runner_params().app_shall_exit = True
 
     def _render_ga_export_empty_modal(self) -> None:
         title = f"{S.FILE_DIALOG_GA_EXPORT_SAVE_TITLE}###ga_export_empty"
@@ -3857,9 +3843,12 @@ class KnxGuiApp:
             if imgui.menu_item(load_from_url, "", False)[0]:
                 self._url_input = ""
                 self._url_prompt_requested = True
-            imgui.separator()
-            if imgui.menu_item(S.MENU_EXIT, "", False)[0]:
-                self._exit()
+            # On the desktop only: the browser UI is stopped from the tray icon or by the program
+            # that started it (Home Assistant, a service, Ctrl+C), not from a browser.
+            if web.active_hub is None:
+                imgui.separator()
+                if imgui.menu_item(S.MENU_EXIT, "", False)[0]:
+                    self._exit()
             imgui.end_menu()
 
         if imgui.begin_menu(S.MENU_EDIT):
@@ -3883,8 +3872,17 @@ class KnxGuiApp:
         self._render_language_menu()
 
         if imgui.begin_menu(S.MENU_HELP):
-            if imgui.menu_item(S.MENU_ABOUT, "", False)[0]:
-                self._about_requested = True
+            if imgui.menu_item(S.MENU_OPEN_CACHE_DIR, "", False)[0]:
+                self._open_folder(cache_dir())
+            if imgui.menu_item(S.MENU_CLEAR_CACHE, "", False)[0]:
+                self._clear_cache_size = cache_size()
+                self._clear_cache_requested = True
+            imgui.separator()
+            if imgui.menu_item(S.MENU_OPEN_CONFIG_DIR, "", False)[0]:
+                self._open_folder(config_dir())
+            if imgui.menu_item(S.MENU_OPEN_LOG_DIR, "", False)[0]:
+                self._open_folder(log_dir())
+            imgui.separator()
             if imgui.menu_item(S.MENU_CHECK_UPDATES, "", False)[0]:
                 self._start_update_check(manual=True)
             changed, enabled = imgui.menu_item(
@@ -3893,16 +3891,8 @@ class KnxGuiApp:
             if changed:
                 self._set_update_check_enabled(enabled)
             imgui.separator()
-            if imgui.menu_item(S.MENU_OPEN_CONFIG_DIR, "", False)[0]:
-                self._open_folder(config_dir())
-            if imgui.menu_item(S.MENU_OPEN_LOG_DIR, "", False)[0]:
-                self._open_folder(log_dir())
-            imgui.separator()
-            if imgui.menu_item(S.MENU_OPEN_CACHE_DIR, "", False)[0]:
-                self._open_folder(cache_dir())
-            if imgui.menu_item(S.MENU_CLEAR_CACHE, "", False)[0]:
-                self._clear_cache_size = cache_size()
-                self._clear_cache_requested = True
+            if imgui.menu_item(S.MENU_ABOUT, "", False)[0]:
+                self._about_requested = True
             imgui.end_menu()
 
         if imgui.menu_item(S.MENU_FEEDBACK, "", False)[0]:
@@ -4095,6 +4085,17 @@ class KnxGuiApp:
             if imgui.begin_child("##update-notes", px_vec2(0.0, 220.0), True):
                 imgui.text_wrapped(info.notes)
             imgui.end_child()
+        if host.home_assistant():
+            # Home Assistant updates the editor with its integration.
+            imgui.spacing()
+            imgui.text_wrapped(S.UPDATE_HOME_ASSISTANT_INTEGRATION)
+            # Nothing to choose: the dialog only informs. Seen once, the check at start does not
+            # show this version again (Help > Check for Updates still does).
+            if dialog_buttons(S.BTN_CLOSE) == 0:
+                self._skip_update_version(info.version)
+                imgui.close_current_popup()
+            end_dialog()
+            return
         installer = self._update_installer(info)
         if installer is not None:
             imgui.spacing()
@@ -4828,7 +4829,6 @@ class KnxGuiApp:
         self._render_ga_export_options_modal()
         self._render_ga_export_empty_modal()
         self._render_clear_cache_modal()
-        self._render_exit_confirm_modal()
         self._render_projectstore_confirm_modal()
         self._render_url_prompt_modal()
         self._render_new_project_modal()
@@ -5395,7 +5395,10 @@ class KnxGuiApp:
                 w.label = f"{getter()}###{name}"
 
     def _save_mcp_settings(self, running: bool) -> None:
-        """Host, port, token and whether the server runs, restored on the next start."""
+        """Host, port, token and whether the server runs, restored on the next start; nothing
+        when the program that started the editor set up the server (--mcp)."""
+        if host.current().mcp_managed:
+            return
         save_settings(
             "mcp",
             {
@@ -5448,6 +5451,17 @@ class KnxGuiApp:
         if not imgui.begin_menu(S.PANEL_MCP):
             return
         running = self._mcp_plugin.is_running
+        if host.current().mcp_managed:
+            # Set up by the program that started the editor: its status and address only.
+            self._render_mcp_status(running)
+            self._render_mcp_error()
+            imgui.separator()
+            imgui.push_text_wrap_pos(imgui.get_cursor_pos_x() + px(360.0))
+            imgui.text_disabled(self._mcp_managed_text())
+            imgui.pop_text_wrap_pos()
+            imgui.text_disabled(self._mcp_url())
+            imgui.end_menu()
+            return
         # The status, and the button that starts or stops the server right-aligned beside it.
         imgui.align_text_to_frame_padding()
         imgui.text_colored(
@@ -5472,8 +5486,30 @@ class KnxGuiApp:
         self._render_mcp_port_token_rows(width_px=180.0)
         if running:
             imgui.separator()
-            imgui.text_disabled(_mcp_advertise_url(self._mcp_host, self._mcp_port))
+            imgui.text_disabled(self._mcp_url())
         imgui.end_menu()
+
+    def _render_mcp_status(self, running: bool) -> None:
+        imgui.text_colored(
+            imgui.ImVec4(0.4, 0.85, 0.45, 1.0)
+            if running
+            else imgui.ImVec4(0.6, 0.6, 0.6, 1.0),
+            S.SETTINGS_MCP_RUNNING if running else S.SETTINGS_MCP_STOPPED,
+        )
+
+    def _mcp_url(self) -> str:
+        """The address MCP clients use: the one the program that started the editor gave
+        (--mcp-url, a proxy in front), else the server's own."""
+        return host.current().mcp_url or _mcp_advertise_url(
+            self._mcp_host, self._mcp_port
+        )
+
+    @staticmethod
+    def _mcp_managed_text() -> str:
+        """Who set up the MCP server and how clients sign in, when the editor did not."""
+        if host.home_assistant():
+            return S.MCP_HOME_ASSISTANT
+        return S.MCP_MANAGED
 
     def _render_mcp_host_row(self, width_px: float) -> None:
         """Host preset FIRST (loopback / all interfaces), then the free host input on the next
@@ -5514,41 +5550,51 @@ class KnxGuiApp:
     def _render_ki_panel(self) -> None:
         """'AI' tab: explains AI control via the MCP server, lets the user start/stop it, and shows
         example commands to register the server in Claude Code / Codex."""
+        managed = host.current().mcp_managed
         imgui.push_text_wrap_pos(0.0)
-        imgui.text(S.KI_INFO)
+        imgui.text(S.KI_INFO_MANAGED if managed else S.KI_INFO)
         imgui.pop_text_wrap_pos()
         imgui.separator()
 
         running = self._mcp_plugin.is_running
-        imgui.text_colored(
-            imgui.ImVec4(0.4, 0.85, 0.45, 1.0)
-            if running
-            else imgui.ImVec4(0.6, 0.6, 0.6, 1.0),
-            S.SETTINGS_MCP_RUNNING if running else S.SETTINGS_MCP_STOPPED,
-        )
+        self._render_mcp_status(running)
         self._render_mcp_error()
-        self._render_mcp_host_row(width_px=240.0)
-        imgui.push_text_wrap_pos(0.0)
-        imgui.text_disabled(S.KI_HOST_HINT)
-        imgui.pop_text_wrap_pos()
-        self._render_mcp_port_token_rows(width_px=240.0)
-        url = _mcp_advertise_url(self._mcp_host, self._mcp_port)
-        if running:
+        url = self._mcp_url()
+        if managed:
+            # Set up by the program that started the editor: the address, and how to sign in.
             imgui.text_disabled(f"{S.KI_ENDPOINT}:")
             imgui.same_line()
             self._ki_copy_row(url, "endpoint")
-            if imgui.button(S.SETTINGS_MCP_STOP):
-                self._stop_mcp()
-        elif imgui.button(S.SETTINGS_MCP_START):
-            self._start_mcp()
+            imgui.push_text_wrap_pos(0.0)
+            imgui.text_disabled(self._mcp_managed_text())
+            imgui.pop_text_wrap_pos()
+        else:
+            self._render_mcp_host_row(width_px=240.0)
+            imgui.push_text_wrap_pos(0.0)
+            imgui.text_disabled(S.KI_HOST_HINT)
+            imgui.pop_text_wrap_pos()
+            self._render_mcp_port_token_rows(width_px=240.0)
+            if running:
+                imgui.text_disabled(f"{S.KI_ENDPOINT}:")
+                imgui.same_line()
+                self._ki_copy_row(url, "endpoint")
+                if imgui.button(S.SETTINGS_MCP_STOP):
+                    self._stop_mcp()
+            elif imgui.button(S.SETTINGS_MCP_START):
+                self._start_mcp()
 
         imgui.separator()
         imgui.push_text_wrap_pos(0.0)
-        imgui.text_disabled(S.KI_COMMANDS_HINT)
+        if host.home_assistant() and managed:
+            imgui.text_disabled(S.KI_COMMANDS_HINT_HOME_ASSISTANT)
+        else:
+            imgui.text_disabled(
+                S.KI_COMMANDS_HINT_MANAGED if managed else S.KI_COMMANDS_HINT
+            )
         imgui.pop_text_wrap_pos()
         # A bearer token, when set, is woven into the copy-ready command (inline header for Claude,
         # an env var for Codex, which only takes the token by env-var name).
-        token = self._mcp_token.strip()
+        token = self._ki_command_token()
         claude_cmd = (
             S.KI_CLAUDE_CMD_AUTH.format(url=url, token=token)
             if token
@@ -5561,6 +5607,16 @@ class KnxGuiApp:
         )
         self._ki_command("Claude Code", claude_cmd)
         self._ki_command("Codex", codex_cmd)
+
+    def _ki_command_token(self) -> str:
+        """The bearer token in the example commands: the one set here; inside Home Assistant a
+        placeholder for the user's Home Assistant token (MCP_HOME_ASSISTANT says so); else the
+        one the program that started the editor set."""
+        if not host.current().mcp_managed:
+            return self._mcp_token.strip()
+        if host.home_assistant():
+            return host.HOME_ASSISTANT_TOKEN_PLACEHOLDER
+        return os.environ.get("XKNX_MCP_AUTH_TOKEN", "").strip()
 
     def _ki_copy_row(self, text: str, ident: str) -> None:
         imgui.text_disabled(text)
@@ -6131,6 +6187,8 @@ def main() -> None:
 
 
 def _main() -> None:
+    # Where the editor runs (inside Home Assistant, an MCP server set up by its launcher).
+    host.set_current(host.host_options(sys.argv))
     # Applies the OS locale, whose regional formats are used in every UI language. A persisted
     # choice (Language menu) wins over the auto-detected OS language.
     os_language = _detect_locale()

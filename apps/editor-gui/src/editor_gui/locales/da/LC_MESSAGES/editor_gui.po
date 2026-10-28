@@ -1426,9 +1426,6 @@ msgstr "Islandsk"
 msgid "Ctrl"
 msgstr "Ctrl"
 
-msgid "This stops XKNX Editor on the server. Until it is started there again, no browser can connect to it."
-msgstr "Dette afslutter XKNX Editor på serveren. Indtil den startes der igen, kan ingen browser oprette forbindelse til den."
-
 msgid "Del"
 msgstr "Del"
 
@@ -1437,3 +1434,21 @@ msgstr "Kun denne maskine"
 
 msgid "On the Network"
 msgstr "På netværket"
+
+msgid "This editor is controllable by an AI assistant through the built-in MCP server: it exposes the catalog and project as tools over Streamable HTTP. Register its endpoint in your AI tool."
+msgstr "Denne editor kan styres af en AI-assistent via den indbyggede MCP-server: den stiller kataloget og projektet til rådighed som værktøjer via Streamable HTTP. Registrer dens endpoint i dit AI-værktøj."
+
+msgid "Example: register the MCP server in your AI tool:"
+msgstr "Eksempel: registrer MCP-serveren i dit AI-værktøj:"
+
+msgid "Example: register the MCP server in your AI tool, with your token in place of HOME_ASSISTANT_TOKEN:"
+msgstr "Eksempel: registrer MCP-serveren i dit AI-værktøj med dit token i stedet for HOME_ASSISTANT_TOKEN:"
+
+msgid "Home Assistant provides the MCP server: AI tools sign in with a long-lived access token of a Home Assistant user who may use the editor (Profile > Security)."
+msgstr "Home Assistant stiller MCP-serveren til rådighed: AI-værktøjer logger ind med et langtidsadgangstoken fra en Home Assistant-bruger, der må bruge editoren (Profil > Sikkerhed)."
+
+msgid "The program that started XKNX Editor set up its MCP server."
+msgstr "Programmet, der startede XKNX Editor, har sat MCP-serveren op."
+
+msgid "Home Assistant updates XKNX Editor with its integration: check Home Assistant for an update of the XKNX Editor integration. It may follow this release a little later."
+msgstr "Home Assistant opdaterer XKNX Editor med sin integration: se efter en opdatering af XKNX Editor-integrationen i Home Assistant. Den kan komme lidt efter denne udgivelse."

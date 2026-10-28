@@ -1426,9 +1426,6 @@ msgstr "Islandés"
 msgid "Ctrl"
 msgstr "Ctrl"
 
-msgid "This stops XKNX Editor on the server. Until it is started there again, no browser can connect to it."
-msgstr "Esto cierra XKNX Editor en el servidor. Hasta que se vuelva a iniciar allí, ningún navegador podrá conectarse a él."
-
 msgid "Del"
 msgstr "Supr"
 
@@ -1437,3 +1434,21 @@ msgstr "Sólo este equipo"
 
 msgid "On the Network"
 msgstr "En la red"
+
+msgid "This editor is controllable by an AI assistant through the built-in MCP server: it exposes the catalog and project as tools over Streamable HTTP. Register its endpoint in your AI tool."
+msgstr "Este editor puede ser controlado por un asistente de IA a través del servidor MCP integrado: expone el catálogo y el proyecto como herramientas mediante Streamable HTTP. Registre su endpoint en su herramienta de IA."
+
+msgid "Example: register the MCP server in your AI tool:"
+msgstr "Ejemplo: registrar el servidor MCP en su herramienta de IA:"
+
+msgid "Example: register the MCP server in your AI tool, with your token in place of HOME_ASSISTANT_TOKEN:"
+msgstr "Ejemplo: registrar el servidor MCP en su herramienta de IA, con su token en lugar de HOME_ASSISTANT_TOKEN:"
+
+msgid "Home Assistant provides the MCP server: AI tools sign in with a long-lived access token of a Home Assistant user who may use the editor (Profile > Security)."
+msgstr "Home Assistant proporciona el servidor MCP: las herramientas de IA inician sesión con un token de acceso de larga duración de un usuario de Home Assistant que puede usar el editor (Perfil > Seguridad)."
+
+msgid "The program that started XKNX Editor set up its MCP server."
+msgstr "El programa que inició XKNX Editor configuró su servidor MCP."
+
+msgid "Home Assistant updates XKNX Editor with its integration: check Home Assistant for an update of the XKNX Editor integration. It may follow this release a little later."
+msgstr "Home Assistant actualiza XKNX Editor con su integración: busque en Home Assistant una actualización de la integración XKNX Editor. Puede llegar algo después de esta versión."

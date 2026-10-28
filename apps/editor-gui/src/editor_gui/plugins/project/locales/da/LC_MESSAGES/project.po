@@ -2957,3 +2957,9 @@ msgstr "Fra sikkerhedskopier…"
 
 msgid "Compare with a backup of this project"
 msgstr "Sammenlign med en sikkerhedskopi af dette projekt"
+
+msgid "In the browser, choose Knx.Ets.Common.dll together with log4net.dll from the same folder."
+msgstr "I browseren skal du vælge Knx.Ets.Common.dll sammen med log4net.dll fra samme mappe."
+
+msgid "Knx.Ets.Common.dll needs log4net.dll from its folder: choose both files together."
+msgstr "Knx.Ets.Common.dll skal bruge log4net.dll fra sin mappe: vælg begge filer sammen."

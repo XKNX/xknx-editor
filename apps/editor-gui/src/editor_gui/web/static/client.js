@@ -338,8 +338,24 @@
       hideChooser();
       requestDraw();
       if (denied) setTimeout(() => location.reload(), 1500);
-      else setTimeout(connect, 2000);
+      else reconnect();
     };
+  }
+
+  // Firefox delays each new WebSocket to a server that refused earlier ones, longer with every
+  // refusal (up to a minute, kept across page reloads), so a socket opens only once a plain
+  // request has reached the server again. A proxy in front answers 502–504 while it is down.
+  async function reconnect() {
+    for (;;) {
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      try {
+        const response = await fetch(new URL("favicon.png", location.href), { method: "HEAD", cache: "no-store" });
+        if (response.status < 502 || response.status > 504) break;
+      } catch {
+        // not reachable yet
+      }
+    }
+    connect();
   }
 
   let lastMods = "";

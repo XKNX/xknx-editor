@@ -10,6 +10,6 @@ The XKNX project maintains the XKNX Editor, a KNX project editor built on the op
 
 Report problems and ask questions in the [GitHub issues](https://github.com/XKNX/xknx-editor/issues).
   </Profile>
-  <Icon>https://raw.githubusercontent.com/XKNX/xknx-editor/main/homeassistant/xknx-editor/icon.png</Icon>
+  <Icon>https://raw.githubusercontent.com/XKNX/xknx-editor/main/apps/editor-gui/src/editor_gui/assets/app_settings/icon.png</Icon>
   <WebPage>https://github.com/XKNX/xknx-editor</WebPage>
 </CommunityApplications>

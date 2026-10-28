@@ -133,8 +133,9 @@ maturing — review a recovered project before relying on it.
 
 **MCP server (LLM control)** — an embedded [Model Context Protocol](https://modelcontextprotocol.io)
 server lets an LLM drive the editor in the same live session as the GUI (shared project, catalog, and
-connection). Start it from the **MCP Server** menu. It can edit the project and program hardware, so
-only expose it to clients you trust.
+connection). Start it from the **MCP Server** menu, or with the editor through `--mcp` (see
+[Started by another program](#started-by-another-program)). It can edit the project and program
+hardware, so only expose it to clients you trust.
 
 <img src="docs/images/mcp.png" alt="MCP server" width="560">
 
@@ -155,12 +156,11 @@ Start the app with `--web` and open the address it prints:
 | From source | `uv run python -m editor_gui.main --web` |
 
 By default it serves `http://localhost:8080/` on this computer only, opens the browser there (no
-sign-in) and shows a tray icon with **Open in Browser** / **Stop XKNX Editor**. **File → Exit** or
-Ctrl+C ends it. A project file can be given as usual, e.g. `XKNX-Editor.exe --web Haus.xknx`.
+sign-in) and shows a tray icon with **Open in Browser** / **Stop XKNX Editor**. **Stop XKNX
+Editor** or Ctrl+C ends it (the browser itself has no **File → Exit**). A project file can be given as usual, e.g. `XKNX-Editor.exe --web Haus.xknx`.
 
 To reach it from other devices, give an address and a password (or `--web-trust-proxy` behind a
-proxy that signs users in itself, like Home Assistant Ingress; for HTTPS pass a certificate or
-terminate TLS in the proxy):
+proxy that signs users in itself; for HTTPS pass a certificate or terminate TLS in the proxy):
 
 ```bash
 XKNX_WEB_PASSWORD='choose a password' ./XKNX-Editor-x86_64.AppImage --web=0.0.0.0:8080
@@ -180,6 +180,17 @@ XKNX_WEB_PASSWORD='choose a password' ./XKNX-Editor-x86_64.AppImage --web=0.0.0.
 
 `--help` lists all options.
 
+### Started by Another Program
+
+A program that starts the editor, like the Home Assistant integration, can set up its MCP server
+and tell it that it runs inside Home Assistant:
+
+| Option | Meaning |
+|---|---|
+| `--mcp=[host:]port` | Start the MCP server with the editor on this address (a port alone: `127.0.0.1`), with the bearer token from `XKNX_MCP_AUTH_TOKEN`; the editor then shows its status and address, not its settings |
+| `--mcp-url=URL` | The address MCP clients use, shown in the editor (when a proxy is in front) |
+| `--home-assistant` | Runs inside Home Assistant, started by its integration: Home Assistant updates the editor, so a new version is announced with its release notes and a hint to update the integration, not installed or downloaded |
+
 Tablets and phones get a narrow layout (menus in **☰**, parameter pages above the fields, button
 rows wrap, wide tables scroll sideways); a tap clicks, hold+lift opens the context menu, hold+drag
 drags. Each browser keeps its own zoom (two fingers, Ctrl+Plus/Minus/0, Ctrl+wheel, or
@@ -190,19 +201,34 @@ Files go through the browser: **Open** uploads a file from your computer (or dro
 or picks one already on the server; **Save** and **Export** write into the server's file folder and
 download the result to your computer when **Download to This Computer** is ticked.
 
-### Container, Home Assistant and Unraid
+### Container and Unraid
 
 On a server, the browser UI runs without installing anything else:
 
 | | |
 |---|---|
 | Docker, Compose, … | the image [`ghcr.io/xknx/xknx-editor-web`](https://github.com/XKNX/xknx-editor/pkgs/container/xknx-editor-web), built for every release (amd64, arm64); see [docker/README.md](docker/README.md) |
-| Home Assistant | the add-on in [homeassistant/xknx-editor](homeassistant/xknx-editor), in the sidebar without an extra password |
 | Unraid | the template in [unraid](unraid), for Community Applications |
 
-This button adds the add-on repository to your Home Assistant:
+### Home Assistant
 
-[![Add the repository to your Home Assistant](https://my.home-assistant.io/badges/supervisor_add_addon_repository.svg)](https://my.home-assistant.io/redirect/supervisor_add_addon_repository/?repository_url=https%3A%2F%2Fgithub.com%2FXKNX%2Fxknx-editor)
+The [XKNX Editor integration](https://github.com/XKNX/xknx-editor-ha-integration) runs the editor
+on your Home Assistant server and shows it in the sidebar, signed in with Home Assistant. It works
+with Home Assistant OS and Home Assistant Container.
+
+Until it is listed in the Marketplace, add it from its GitHub link:
+
+1. **Home Assistant 2026.11 and later:** open **Settings** > **Marketplace**, choose **Custom
+   repositories** in the menu at the top right, and add
+   `https://github.com/XKNX/xknx-editor-ha-integration` with the type **Integration** (this asks
+   you to connect GitHub first). **Home Assistant 2026.10:** the same in
+   [HACS](https://hacs.xyz), also with **Custom repositories** in its menu at the top right.
+2. Search for **XKNX Editor** there, install it and restart Home Assistant.
+3. Add it under **Settings** > **Devices & services** > **Add integration** > **XKNX Editor**.
+
+On its first start it installs the editor, which takes a few minutes; the panel shows the progress.
+See the [integration's README](https://github.com/XKNX/xknx-editor-ha-integration#readme) for the
+MCP server and the options.
 
 ## Running from source
 

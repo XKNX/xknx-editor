@@ -387,12 +387,44 @@ class MenuStrings:
         )
 
     @property
+    def KI_INFO_MANAGED(self) -> str:
+        # KI_INFO when the program that started the editor runs the MCP server (Home Assistant).
+        return _(
+            "This editor is controllable by an AI assistant through the built-in MCP server: it "
+            "exposes the catalog and project as tools over Streamable HTTP. Register its "
+            "endpoint in your AI tool."
+        )
+
+    @property
     def KI_ENDPOINT(self) -> str:
         return _("MCP Endpoint")
 
     @property
     def KI_COMMANDS_HINT(self) -> str:
         return _("Example: register the MCP server in your AI tool (adjust host/port):")
+
+    @property
+    def KI_COMMANDS_HINT_MANAGED(self) -> str:
+        return _("Example: register the MCP server in your AI tool:")
+
+    @property
+    def KI_COMMANDS_HINT_HOME_ASSISTANT(self) -> str:
+        # HOME_ASSISTANT_TOKEN stays as it is: it stands for the token in the commands below.
+        return _(
+            "Example: register the MCP server in your AI tool, with your token in place of "
+            "HOME_ASSISTANT_TOKEN:"
+        )
+
+    @property
+    def MCP_HOME_ASSISTANT(self) -> str:
+        return _(
+            "Home Assistant provides the MCP server: AI tools sign in with a long-lived access "
+            "token of a Home Assistant user who may use the editor (Profile > Security)."
+        )
+
+    @property
+    def MCP_MANAGED(self) -> str:
+        return _("The program that started XKNX Editor set up its MCP server.")
 
     @property
     def KI_HOST_HINT(self) -> str:
@@ -1649,6 +1681,14 @@ class MenuStrings:
         )
 
     @property
+    def UPDATE_HOME_ASSISTANT_INTEGRATION(self) -> str:
+        # The update dialog inside Home Assistant's integration, which installs the editor.
+        return _(
+            "Home Assistant updates XKNX Editor with its integration: check Home Assistant for "
+            "an update of the XKNX Editor integration. It may follow this release a little later."
+        )
+
+    @property
     def PROGRESS_DOWNLOAD_UPDATE(self) -> str:
         return _("Downloading the update…")
 
@@ -2049,14 +2089,6 @@ class _CombinedStrings(BaseStrings, MenuStrings):
     @property
     def TRAY_STOP(self) -> str:
         return _("Stop XKNX Editor")
-
-    @property
-    def EXIT_CONFIRM_TEXT(self) -> str:
-        """File > Exit in the browser view: what stopping means."""
-        return _(
-            "This stops XKNX Editor on the server. Until it is started there again, no "
-            "browser can connect to it."
-        )
 
     @property
     def EDITOR_RUNNING_TITLE(self) -> str:

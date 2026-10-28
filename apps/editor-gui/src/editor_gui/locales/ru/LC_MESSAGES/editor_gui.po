@@ -1426,9 +1426,6 @@ msgstr "Исландский"
 msgid "Ctrl"
 msgstr "Ctrl"
 
-msgid "This stops XKNX Editor on the server. Until it is started there again, no browser can connect to it."
-msgstr "Это завершит работу XKNX Editor на сервере. Пока он не будет снова запущен там, ни один браузер не сможет к нему подключиться."
-
 msgid "Del"
 msgstr "Del"
 
@@ -1437,3 +1434,21 @@ msgstr "Только этот компьютер"
 
 msgid "On the Network"
 msgstr "В сети"
+
+msgid "This editor is controllable by an AI assistant through the built-in MCP server: it exposes the catalog and project as tools over Streamable HTTP. Register its endpoint in your AI tool."
+msgstr "Этим редактором может управлять ИИ-ассистент через встроенный сервер MCP: он предоставляет каталог и проект как инструменты через Streamable HTTP. Зарегистрируйте его конечную точку в своём ИИ-инструменте."
+
+msgid "Example: register the MCP server in your AI tool:"
+msgstr "Пример: регистрация сервера MCP в ИИ-инструменте:"
+
+msgid "Example: register the MCP server in your AI tool, with your token in place of HOME_ASSISTANT_TOKEN:"
+msgstr "Пример: регистрация сервера MCP в ИИ-инструменте, с вашим токеном вместо HOME_ASSISTANT_TOKEN:"
+
+msgid "Home Assistant provides the MCP server: AI tools sign in with a long-lived access token of a Home Assistant user who may use the editor (Profile > Security)."
+msgstr "Сервер MCP предоставляет Home Assistant: ИИ-инструменты входят с долгосрочным токеном доступа пользователя Home Assistant, которому разрешено пользоваться редактором (Профиль > Безопасность)."
+
+msgid "The program that started XKNX Editor set up its MCP server."
+msgstr "Сервер MCP настроила программа, запустившая XKNX Editor."
+
+msgid "Home Assistant updates XKNX Editor with its integration: check Home Assistant for an update of the XKNX Editor integration. It may follow this release a little later."
+msgstr "Home Assistant обновляет XKNX Editor через свою интеграцию: проверьте в Home Assistant наличие обновления интеграции XKNX Editor. Оно может выйти немного позже этого выпуска."

@@ -47,6 +47,19 @@ _WEB = (
     ("--web-no-browser", "Do not open the browser at start (an autostart, a service)."),
     ("--web-no-tray", "No tray icon."),
 )
+_HOST = (
+    (
+        "--home-assistant",
+        "Runs inside Home Assistant, started by its integration: Home Assistant updates the "
+        "editor, so a new version is only announced.",
+    ),
+    (
+        "--mcp=[host:]port",
+        "Run the MCP server on this address from the start, with the token in "
+        "XKNX_MCP_AUTH_TOKEN; its settings are not shown.",
+    ),
+    ("--mcp-url=URL", "The address MCP clients use (a proxy in front)."),
+)
 
 
 def wants_help(argv: list[str]) -> bool:
@@ -84,6 +97,9 @@ def help_text() -> str:
             "",
             "Browser UI:",
             *_options(_WEB),
+            "",
+            "Started by another program:",
+            *_options(_HOST),
         ]
     )
 

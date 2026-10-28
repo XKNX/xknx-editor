@@ -2957,3 +2957,9 @@ msgstr "З резервних копій…"
 
 msgid "Compare with a backup of this project"
 msgstr "Порівняти з резервною копією цього проєкту"
+
+msgid "In the browser, choose Knx.Ets.Common.dll together with log4net.dll from the same folder."
+msgstr "У браузері виберіть Knx.Ets.Common.dll разом із log4net.dll з тієї ж папки."
+
+msgid "Knx.Ets.Common.dll needs log4net.dll from its folder: choose both files together."
+msgstr "Knx.Ets.Common.dll потребує log4net.dll зі своєї папки: виберіть обидва файли разом."

@@ -1426,9 +1426,6 @@ msgstr "Islandsky"
 msgid "Ctrl"
 msgstr "Ctrl"
 
-msgid "This stops XKNX Editor on the server. Until it is started there again, no browser can connect to it."
-msgstr "Tím se XKNX Editor na serveru ukončí. Dokud tam nebude znovu spuštěn, nemůže se k němu připojit žádný prohlížeč."
-
 msgid "Del"
 msgstr "Del"
 
@@ -1437,3 +1434,21 @@ msgstr "Jen tento počítač"
 
 msgid "On the Network"
 msgstr "V síti"
+
+msgid "This editor is controllable by an AI assistant through the built-in MCP server: it exposes the catalog and project as tools over Streamable HTTP. Register its endpoint in your AI tool."
+msgstr "Tento editor lze ovládat asistentem AI přes vestavěný server MCP: zpřístupňuje katalog a projekt jako nástroje přes Streamable HTTP. Zaregistrujte jeho koncový bod ve svém nástroji AI."
+
+msgid "Example: register the MCP server in your AI tool:"
+msgstr "Příklad: registrace serveru MCP ve vašem nástroji AI:"
+
+msgid "Example: register the MCP server in your AI tool, with your token in place of HOME_ASSISTANT_TOKEN:"
+msgstr "Příklad: registrace serveru MCP ve vašem nástroji AI, s vaším tokenem místo HOME_ASSISTANT_TOKEN:"
+
+msgid "Home Assistant provides the MCP server: AI tools sign in with a long-lived access token of a Home Assistant user who may use the editor (Profile > Security)."
+msgstr "Server MCP poskytuje Home Assistant: nástroje AI se přihlašují dlouhodobým přístupovým tokenem uživatele Home Assistant, který smí editor používat (Profil > Zabezpečení)."
+
+msgid "The program that started XKNX Editor set up its MCP server."
+msgstr "Server MCP nastavil program, který spustil XKNX Editor."
+
+msgid "Home Assistant updates XKNX Editor with its integration: check Home Assistant for an update of the XKNX Editor integration. It may follow this release a little later."
+msgstr "Home Assistant aktualizuje XKNX Editor svou integrací: v Home Assistantu zkontrolujte aktualizaci integrace XKNX Editor. Může přijít o něco později než toto vydání."
