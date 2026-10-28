@@ -27,14 +27,14 @@ def test_options_from_the_command_line() -> None:
         [
             "editor",
             "--web=127.0.0.1:9000",
-            "--home-assistant=integration",
+            "--home-assistant",
             "--mcp=127.0.0.1:41000",
             "--mcp-url=https://ha.example/api/xknx_editor/mcp",
             "project.xknx",
         ]
     )
     assert options == HostOptions(
-        "integration", "127.0.0.1", 41000, "https://ha.example/api/xknx_editor/mcp"
+        True, "127.0.0.1", 41000, "https://ha.example/api/xknx_editor/mcp"
     )
     assert options.mcp_managed
 
@@ -46,9 +46,9 @@ def test_options_from_the_command_line() -> None:
         (["editor"], HostOptions()),
         # A port alone listens on this machine only.
         (["editor", "--mcp=41000"], HostOptions(mcp_host="127.0.0.1", mcp_port=41000)),
-        (["editor", "--home-assistant=app"], HostOptions(home_assistant="app")),
-        # Unknown values are ignored.
-        (["editor", "--home-assistant=desktop", "--mcp=host:port"], HostOptions()),
+        (["editor", "--home-assistant"], HostOptions(home_assistant=True)),
+        # Unknown values are ignored: the flag takes none.
+        (["editor", "--home-assistant=app", "--mcp=host:port"], HostOptions()),
     ],
 )
 def test_defaults_and_unknown_values(argv: list[str], expected: HostOptions) -> None:
@@ -57,9 +57,9 @@ def test_defaults_and_unknown_values(argv: list[str], expected: HostOptions) -> 
 
 
 def test_home_assistant() -> None:
-    assert host.home_assistant() is None
-    host.set_current(HostOptions(home_assistant="app"))
-    assert host.home_assistant() == "app"
+    assert host.home_assistant() is False
+    host.set_current(HostOptions(home_assistant=True))
+    assert host.home_assistant() is True
 
 
 def _app(**fields: Any) -> SimpleNamespace:
@@ -78,15 +78,13 @@ def test_mcp_url_and_token_standalone() -> None:
     assert KnxGuiApp._mcp_url(stub) == "http://127.0.0.1:8765/mcp"  # type: ignore[arg-type]
     assert KnxGuiApp._ki_command_token(stub) == "own-token"  # type: ignore[arg-type]
     assert KnxGuiApp._mcp_managed_text() == S.MCP_MANAGED
-    host.set_current(HostOptions("integration", "127.0.0.1", 41000))
+    host.set_current(HostOptions(True, "127.0.0.1", 41000))
     assert KnxGuiApp._mcp_managed_text() == S.MCP_HOME_ASSISTANT
 
 
 def test_mcp_url_and_token_in_home_assistant() -> None:
     host.set_current(
-        HostOptions(
-            "integration", "127.0.0.1", 41000, "https://ha.example/api/xknx_editor/mcp"
-        )
+        HostOptions(True, "127.0.0.1", 41000, "https://ha.example/api/xknx_editor/mcp")
     )
     stub = _app()
     # Clients reach the server through Home Assistant, signed in with their own token.
@@ -147,18 +145,9 @@ def test_session_starts_the_managed_mcp_server(
     assert started == ([False] if starts else [])
 
 
-@pytest.mark.parametrize(
-    ("kind", "hint"),
-    [
-        ("integration", "UPDATE_HOME_ASSISTANT_INTEGRATION"),
-        ("app", "UPDATE_HOME_ASSISTANT_APP"),
-    ],
-)
-def test_update_found_inside_home_assistant(
-    monkeypatch: pytest.MonkeyPatch, kind: str, hint: str
-) -> None:
+def test_update_found_inside_home_assistant(monkeypatch: pytest.MonkeyPatch) -> None:
     """The new version and its notes, and where to update; no install or download."""
-    host.set_current(HostOptions(home_assistant=kind))
+    host.set_current(HostOptions(home_assistant=True))
     shown: list[str] = []
     buttons: list[tuple[str, ...]] = []
     skipped: list[str] = []
@@ -192,7 +181,7 @@ def test_update_found_inside_home_assistant(
 
     KnxGuiApp._render_update_modal(stub)  # type: ignore[arg-type]
 
-    assert getattr(S, hint) in shown
+    assert S.UPDATE_HOME_ASSISTANT_INTEGRATION in shown
     assert "New things" in shown
     # Only informs: one button; closed, the check at start does not show it again.
     assert buttons == [(S.BTN_CLOSE,)]

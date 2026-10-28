@@ -1,6 +1,5 @@
-# XKNX Editor web UI as a container. Two final targets share one build:
+# XKNX Editor web UI as a container:
 #   --target web  -> ghcr.io/xknx/xknx-editor-web  (plain image: docker run / compose)
-#   --target ha   -> ghcr.io/xknx/xknx-editor-ha   (Home Assistant add-on image, behind Ingress)
 #
 # Build context is the repository root:  docker build -f docker/Dockerfile --target web -t ... .
 #
@@ -60,7 +59,7 @@ RUN set -eux; \
     gen trace _extract_trace.cs '<PackageReference Include="System.Configuration.ConfigurationManager" Version="10.0.14" />'; \
     gen oauth _extract_oauth.cs ''
 
-# ---- app: the runtime image, shared by both final targets ----------------------------------------
+# ---- app: the runtime image of the final target --------------------------------------------------
 FROM python:3.13-slim-bookworm AS app
 
 # X11 client libs (libx11/libxext, pulling libxcb/libXau/libXdmcp): imgui_bundle's native extension
@@ -104,8 +103,8 @@ VOLUME /data
 EXPOSE 8080
 
 # tini as PID 1: reap the short-lived subprocesses the app spawns (the .NET key-extraction run, the
-# MCP server) and forward signals to the app. This gives the image its own init, so the Home Assistant
-# add-on sets `init: false` and a plain `docker run` needs no `--init`.
+# MCP server) and forward signals to the app. This gives the image its own init, so a plain
+# `docker run` needs no `--init`.
 ENTRYPOINT ["/usr/bin/tini", "--"]
 
 # ---- web: plain image ----------------------------------------------------------------------------
@@ -117,7 +116,7 @@ ENTRYPOINT ["/usr/bin/tini", "--"]
 #
 # web-run.sh starts the editor as root, or as PUID/PGID when they are set (see the script). The
 # product data cache and the logs live under /data too, so an image update keeps them and a
-# non-root user can write them. They stay out of the ha target, whose /data goes into HA backups.
+# non-root user can write them.
 FROM app AS web
 ENV XDG_CACHE_HOME=/data/cache \
     XDG_STATE_HOME=/data/state
@@ -132,11 +131,3 @@ VOLUME /projects
 ENV XKNX_WEB_PORT=8080
 HEALTHCHECK --interval=30s --timeout=5s --start-period=45s --retries=3 \
     CMD code=$(curl -s -o /dev/null -w "%{http_code}" "http://127.0.0.1:${XKNX_WEB_PORT:-8080}/" || true); case "$code" in 200|403) exit 0;; *) exit 1;; esac
-
-# ---- ha: Home Assistant add-on image -------------------------------------------------------------
-# Home Assistant Ingress signs users in and reverse-proxies to us, so we trust the proxy (no
-# password) and rely on HA's persistent /data mount. See homeassistant/xknx-editor/config.yaml.
-FROM app AS ha
-COPY docker/ha-run.sh /ha-run.sh
-RUN chmod +x /ha-run.sh
-CMD ["/ha-run.sh"]

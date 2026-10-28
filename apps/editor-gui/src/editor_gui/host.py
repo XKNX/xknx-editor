@@ -1,9 +1,8 @@
 """Where the editor runs: on its own, or as part of a program that starts it (the command line).
 
-- ``--home-assistant=integration`` or ``--home-assistant=app``: the editor runs inside Home
-  Assistant, started by its integration (the panel in the sidebar) or as a Home Assistant app
-  (the add-on). Home Assistant updates it, so a new version found by the update check is not
-  installed or downloaded: the editor asks to update the integration or the app instead. Other
+- ``--home-assistant``: the editor runs inside Home Assistant, started by its integration (the
+  panel in the sidebar). Home Assistant updates it, so a new version found by the update check is
+  not installed or downloaded: the editor asks to update the integration instead. Other
   differences check :func:`home_assistant` too.
 - ``--mcp=[host:]port``: the MCP server runs on this address from the start, with the token in
   ``XKNX_MCP_AUTH_TOKEN``. The program that started the editor set it up, so the MCP menu and the
@@ -16,18 +15,15 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-HOME_ASSISTANT_INTEGRATION = "integration"
-HOME_ASSISTANT_APP = "app"
 # Stands for the user's Home Assistant access token in the example commands of the AI tab.
 HOME_ASSISTANT_TOKEN_PLACEHOLDER = "HOME_ASSISTANT_TOKEN"
-_HOME_ASSISTANT_KINDS = (HOME_ASSISTANT_INTEGRATION, HOME_ASSISTANT_APP)
 _MCP_DEFAULT_HOST = "127.0.0.1"
 
 
 @dataclass(frozen=True)
 class HostOptions:
-    # "integration" or "app" inside Home Assistant, else None.
-    home_assistant: str | None = None
+    # Inside Home Assistant (--home-assistant).
+    home_assistant: bool = False
     # The MCP server's address set by the program that started the editor (--mcp).
     mcp_host: str | None = None
     mcp_port: int | None = None
@@ -42,14 +38,14 @@ class HostOptions:
 
 def host_options(argv: list[str]) -> HostOptions:
     """The options of this module from the command line (unknown values are ignored)."""
-    home_assistant: str | None = None
+    home_assistant = False
     mcp_host: str | None = None
     mcp_port: int | None = None
     mcp_url: str | None = None
     for arg in argv[1:]:
         name, _, value = arg.partition("=")
-        if name == "--home-assistant" and value in _HOME_ASSISTANT_KINDS:
-            home_assistant = value
+        if arg == "--home-assistant":
+            home_assistant = True
         elif name == "--mcp" and value:
             host, _, port = value.rpartition(":")
             if port.isdigit():
@@ -72,6 +68,6 @@ def set_current(options: HostOptions) -> None:
     _current = options
 
 
-def home_assistant() -> str | None:
-    """``"integration"`` or ``"app"`` when the editor runs inside Home Assistant, else None."""
+def home_assistant() -> bool:
+    """Whether the editor runs inside Home Assistant."""
     return _current.home_assistant

@@ -4,11 +4,11 @@ build (needs Pillow):
     uv run --with pillow python apps/editor-gui/tools/make_icon.py
 
 Writes, all from the same drawing:
-  - src/editor_gui/assets/app_settings/icon.png  (512 px window icon, browser favicon)
+  - src/editor_gui/assets/app_settings/icon.png  (512 px window icon, browser favicon, and the
+                                                 icon of the Unraid template)
   - src/editor_gui/web/tray/icon.png             (64 px tray icon of the browser UI)
   - icon.ico                                     (Windows .exe icon, multi-size)
   - icon.icns                                    (macOS .app icon, multi-size)
-  - homeassistant/xknx-editor/icon.png, logo.png (the Home Assistant app)
 
 The icon is "XKNX" over "editor" in white on a near-black rounded square, in the editor's own bold
 font (assets/fonts/DroidSans-Bold.ttf), so every OS draws the same pixels. Smaller sizes drop
@@ -97,10 +97,8 @@ def build(size: int, words: tuple[str, ...] | None = None) -> Image.Image:
 def main() -> None:
     icon = APP / "src" / "editor_gui" / "assets" / "app_settings" / "icon.png"
     tray = APP / "src" / "editor_gui" / "web" / "tray" / "icon.png"
-    home_assistant = APP.parent.parent / "homeassistant" / "xknx-editor"
-    for path in (icon, home_assistant / "icon.png", home_assistant / "logo.png"):
-        build(512).save(path, optimize=True)
-        print(f"wrote {path}")
+    build(512).save(icon, optimize=True)
+    print(f"wrote {icon}")
     # Trays show it at 16-24 px: the one word only.
     build(64, ("XKNX",)).save(tray, optimize=True)
     print(f"wrote {tray}")

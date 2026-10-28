@@ -1452,6 +1452,3 @@ msgstr "Program, który uruchomił XKNX Editor, skonfigurował jego serwer MCP."
 
 msgid "Home Assistant updates XKNX Editor with its integration: check Home Assistant for an update of the XKNX Editor integration. It may follow this release a little later."
 msgstr "Home Assistant aktualizuje XKNX Editor za pomocą swojej integracji: sprawdź w Home Assistant aktualizację integracji XKNX Editor. Może pojawić się nieco później niż to wydanie."
-
-msgid "Home Assistant updates XKNX Editor with its app: check Home Assistant for an update of the XKNX Editor app."
-msgstr "Home Assistant aktualizuje XKNX Editor za pomocą swojej aplikacji: sprawdź w Home Assistant aktualizację aplikacji XKNX Editor."

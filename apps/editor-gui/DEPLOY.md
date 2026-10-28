@@ -96,8 +96,8 @@ and update with `winget install XKNX.Editor` and `winget upgrade XKNX.Editor`.
   (512×512), loaded via `hello_imgui.set_assets_folder(...)` in `main.py`.
 - **Executable / dock icon**: PyInstaller needs a platform icon — `icon.icns` on macOS, `icon.ico`
   on Windows, both set in `xknx-editor.spec`.
-- **Tray icon** of the browser UI: `src/editor_gui/web/tray/icon.png`; the Home Assistant app's
-  icon and logo: `homeassistant/xknx-editor/`.
+- **Tray icon** of the browser UI: `src/editor_gui/web/tray/icon.png`. The Unraid template shows
+  the window icon too, by its URL on `main`.
 - All of them are drawn by `tools/make_icon.py` (on any OS) and committed. After changing the
   design:
 

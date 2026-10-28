@@ -4085,14 +4085,10 @@ class KnxGuiApp:
             if imgui.begin_child("##update-notes", px_vec2(0.0, 220.0), True):
                 imgui.text_wrapped(info.notes)
             imgui.end_child()
-        if (kind := host.home_assistant()) is not None:
-            # Home Assistant updates the editor with its integration or app.
+        if host.home_assistant():
+            # Home Assistant updates the editor with its integration.
             imgui.spacing()
-            imgui.text_wrapped(
-                S.UPDATE_HOME_ASSISTANT_INTEGRATION
-                if kind == host.HOME_ASSISTANT_INTEGRATION
-                else S.UPDATE_HOME_ASSISTANT_APP
-            )
+            imgui.text_wrapped(S.UPDATE_HOME_ASSISTANT_INTEGRATION)
             # Nothing to choose: the dialog only informs. Seen once, the check at start does not
             # show this version again (Help > Check for Updates still does).
             if dialog_buttons(S.BTN_CLOSE) == 0:
@@ -5511,7 +5507,7 @@ class KnxGuiApp:
     @staticmethod
     def _mcp_managed_text() -> str:
         """Who set up the MCP server and how clients sign in, when the editor did not."""
-        if host.home_assistant() == host.HOME_ASSISTANT_INTEGRATION:
+        if host.home_assistant():
             return S.MCP_HOME_ASSISTANT
         return S.MCP_MANAGED
 
@@ -5589,7 +5585,7 @@ class KnxGuiApp:
 
         imgui.separator()
         imgui.push_text_wrap_pos(0.0)
-        if host.home_assistant() == host.HOME_ASSISTANT_INTEGRATION and managed:
+        if host.home_assistant() and managed:
             imgui.text_disabled(S.KI_COMMANDS_HINT_HOME_ASSISTANT)
         else:
             imgui.text_disabled(
@@ -5618,7 +5614,7 @@ class KnxGuiApp:
         one the program that started the editor set."""
         if not host.current().mcp_managed:
             return self._mcp_token.strip()
-        if host.home_assistant() == host.HOME_ASSISTANT_INTEGRATION:
+        if host.home_assistant():
             return host.HOME_ASSISTANT_TOKEN_PLACEHOLDER
         return os.environ.get("XKNX_MCP_AUTH_TOKEN", "").strip()
 

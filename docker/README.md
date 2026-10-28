@@ -1,15 +1,16 @@
 # XKNX Editor in a container
 
-Two images are built from [`docker/Dockerfile`](./Dockerfile) by
-[`.github/workflows/docker-image.yml`](../.github/workflows/docker-image.yml):
+The image `ghcr.io/xknx/xknx-editor-web` is built from [`docker/Dockerfile`](./Dockerfile) by
+[`.github/workflows/docker-image.yml`](../.github/workflows/docker-image.yml), for plain
+`docker run`, Compose, any orchestrator and the [Unraid template](../unraid). It binds
+`0.0.0.0:8080` and needs a password.
 
-| Image | For | Entry |
-| --- | --- | --- |
-| `ghcr.io/xknx/xknx-editor-web` | plain `docker run` / Compose / any orchestrator, and the Unraid template | binds `0.0.0.0:8080`, needs a password; Unraid: see [`unraid`](../unraid) |
-| `ghcr.io/xknx/xknx-editor-ha` | the Home Assistant add-on (behind Ingress) | see [`homeassistant/xknx-editor`](../homeassistant/xknx-editor) |
-
-Both run the editor's browser UI (`--web`) with no desktop and carry the .NET 10 runtime used for
+It runs the editor's browser UI (`--web`) with no desktop and carries the .NET 10 runtime used for
 signing-key extraction. The KNX authoring assembly is never shipped — you provide your own (below).
+
+For Home Assistant, use the
+[XKNX Editor integration](https://github.com/XKNX/xknx-editor-ha-integration) instead: it runs the
+editor on the Home Assistant server and shows it in the sidebar.
 
 ## Volumes
 
@@ -165,5 +166,4 @@ no signed attestation yet.
 ```bash
 # from the repository root
 docker build -f docker/Dockerfile --target web -t xknx-editor-web:local .
-docker build -f docker/Dockerfile --target ha  -t xknx-editor-ha:local  .
 ```

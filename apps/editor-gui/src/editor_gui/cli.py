@@ -49,10 +49,9 @@ _WEB = (
 )
 _HOST = (
     (
-        "--home-assistant=KIND",
-        "Runs inside Home Assistant, started by its integration (integration) or as a Home "
-        "Assistant app (app): Home Assistant updates the editor, so a new version is only "
-        "announced.",
+        "--home-assistant",
+        "Runs inside Home Assistant, started by its integration: Home Assistant updates the "
+        "editor, so a new version is only announced.",
     ),
     (
         "--mcp=[host:]port",

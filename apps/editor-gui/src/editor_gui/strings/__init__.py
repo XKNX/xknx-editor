@@ -1689,14 +1689,6 @@ class MenuStrings:
         )
 
     @property
-    def UPDATE_HOME_ASSISTANT_APP(self) -> str:
-        # The update dialog inside the Home Assistant app (add-on).
-        return _(
-            "Home Assistant updates XKNX Editor with its app: check Home Assistant for an "
-            "update of the XKNX Editor app."
-        )
-
-    @property
     def PROGRESS_DOWNLOAD_UPDATE(self) -> str:
         return _("Downloading the update…")
 

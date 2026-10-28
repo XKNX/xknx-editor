@@ -20,7 +20,5 @@ node_modules
 *.log
 .DS_Store
 # Packaging/docs not needed inside the image (keeps the build cache stable when they change)
-homeassistant
-repository.yaml
 .mcp.json
 xknx-web-container.png

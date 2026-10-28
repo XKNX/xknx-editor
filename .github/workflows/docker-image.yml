@@ -1,8 +1,7 @@
 name: Container images
 
-# Builds the browser-UI container in two flavours and pushes them to GHCR:
-#   - xknx-editor-web                 multi-arch (amd64 + arm64), for plain docker run / Compose
-#   - xknx-editor-ha-{amd64,aarch64}  one tag per arch, referenced by the Home Assistant add-on
+# Builds the browser-UI container and pushes it to GHCR:
+#   - xknx-editor-web  multi-arch (amd64 + arm64), for plain docker run / Compose
 #
 # Pushes on a version tag (xknx-editor-v*). A manual run builds without pushing unless "push" is
 # ticked, so the Dockerfile can be validated without publishing.
@@ -93,34 +92,3 @@ jobs:
         with:
           subject-name: ${{ env.REGISTRY }}/${{ steps.meta.outputs.owner }}/xknx-editor-web
           subject-digest: ${{ steps.web.outputs.digest }}
-
-      - name: Build Home Assistant image (multi-arch)
-        id: ha
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: docker/Dockerfile
-          target: ha
-          platforms: linux/amd64,linux/arm64
-          push: ${{ steps.meta.outputs.push }}
-          # No unsigned BuildKit provenance: it is published as an extra "unknown/unknown" platform
-          # entry in the image index, which the package page lists next to the real architectures.
-          # The signed attestation of the next step replaces it.
-          provenance: false
-          # Which source, commit and version the image was built from, readable with docker inspect.
-          labels: |
-            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
-            org.opencontainers.image.revision=${{ github.sha }}
-            org.opencontainers.image.version=${{ steps.meta.outputs.version }}
-          tags: |
-            ${{ env.REGISTRY }}/${{ steps.meta.outputs.owner }}/xknx-editor-ha:latest
-            ${{ env.REGISTRY }}/${{ steps.meta.outputs.owner }}/xknx-editor-ha:${{ steps.meta.outputs.version }}
-          cache-from: type=gha,scope=ha
-          cache-to: type=gha,mode=max,scope=ha
-
-      - name: Attest Home Assistant image
-        if: steps.meta.outputs.push == 'true'
-        uses: actions/attest@v4
-        with:
-          subject-name: ${{ env.REGISTRY }}/${{ steps.meta.outputs.owner }}/xknx-editor-ha
-          subject-digest: ${{ steps.ha.outputs.digest }}

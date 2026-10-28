@@ -25,7 +25,7 @@ _ARGUMENTS = (
     "--web-key=",
     "--web-no-browser",
     "--web-no-tray",
-    "--home-assistant=",
+    "--home-assistant",
     "--mcp=",
     "--mcp-url=",
 )

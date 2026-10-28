@@ -1452,6 +1452,3 @@ msgstr "Сервер MCP налаштувала програма, яка зап�
 
 msgid "Home Assistant updates XKNX Editor with its integration: check Home Assistant for an update of the XKNX Editor integration. It may follow this release a little later."
 msgstr "Home Assistant оновлює XKNX Editor через свою інтеграцію: перевірте в Home Assistant наявність оновлення інтеграції XKNX Editor. Воно може вийти трохи пізніше за цей випуск."
-
-msgid "Home Assistant updates XKNX Editor with its app: check Home Assistant for an update of the XKNX Editor app."
-msgstr "Home Assistant оновлює XKNX Editor через свій застосунок: перевірте в Home Assistant наявність оновлення застосунку XKNX Editor."
