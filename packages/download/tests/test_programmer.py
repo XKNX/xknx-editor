@@ -18,8 +18,12 @@ from xknxeditor.download.errors import (
 )
 from xknxeditor.download.load_state import (
     PID_LOAD_STATE_CONTROL,
+    LoadEvent,
     LoadState,
+    SegmentType,
+    alloc_absolute_segment,
     start_loading,
+    unload,
 )
 from xknxeditor.download.programmer import (
     PID_IO_LIST,
@@ -546,3 +550,67 @@ async def test_transient_read_timeout_is_retried() -> None:
     programmer = DeviceProgrammer(device)
     assert await programmer.read_memory(0x10, 4) == bytes(range(4))
     assert device.read_failures == 1  # first read raised once and was retried
+
+
+class _FlakyPropertyWrite(FakeDevice):
+    """Loses the answer to the first ``failures`` property writes."""
+
+    def __init__(self, failures: int = 1) -> None:
+        super().__init__()
+        self.failures = failures
+        self.writes: list[PropertyValueWrite] = []
+
+    async def request(self, payload: object, expected: object) -> object:
+        from xknx.exceptions import ManagementConnectionError
+
+        if isinstance(payload, PropertyValueWrite):
+            self.writes.append(payload)
+            if self.failures:
+                self.failures -= 1
+                raise ManagementConnectionError(
+                    "Timeout while waiting for PropertyValueResponse"
+                )
+        return await super().request(payload, expected)  # type: ignore[arg-type]
+
+
+async def test_transient_property_write_timeout_is_retried() -> None:
+    device = _FlakyPropertyWrite()
+    programmer = DeviceProgrammer(device)
+    await programmer.write_property(5, 0x33, b"\xaa\xbb")
+    assert len(device.writes) == 2
+    assert await programmer.read_property(5, 0x33) == b"\xaa\xbb"
+
+
+async def test_a_load_event_whose_response_got_lost_is_sent_again() -> None:
+    # An unload whose response did not arrive within the timeout broke the download off.
+    device = _FlakyPropertyWrite()
+    programmer = DeviceProgrammer(device)
+    await programmer.send_load_event(3, unload(), LoadState.UNLOADED)
+    assert [w.data[0] for w in device.writes] == [LoadEvent.UNLOAD] * 2
+    assert device.load_states[3] == LoadState.UNLOADED
+
+
+async def test_a_property_write_lost_every_time_still_fails() -> None:
+    from xknx.exceptions import ManagementConnectionError
+
+    device = _FlakyPropertyWrite(failures=10)
+    programmer = DeviceProgrammer(device)
+    with pytest.raises(ManagementConnectionError, match="writing object 5 property 51"):
+        await programmer.write_property(5, 0x33, b"\xaa\xbb")
+    assert len(device.writes) == 3  # sent once and retried twice
+
+
+async def test_an_additional_load_control_is_sent_once() -> None:
+    # A second segment allocation would allocate again: a lost answer is not resent.
+    from xknx.exceptions import ManagementConnectionError
+
+    device = _FlakyPropertyWrite()
+    device.load_states[3] = LoadState.LOADING
+    programmer = DeviceProgrammer(device)
+    with pytest.raises(ManagementConnectionError):
+        await programmer.write_property(
+            3,
+            PID_LOAD_STATE_CONTROL,
+            alloc_absolute_segment(SegmentType.ABS_DATA, 0x4000, 0x100),
+        )
+    assert len(device.writes) == 1

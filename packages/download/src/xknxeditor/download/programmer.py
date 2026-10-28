@@ -94,7 +94,8 @@ _MAX_MEMORY_CHUNK = 0x3F
 MEMORY_SERVICE_FALLBACKS = (15, 12)
 # A lost acknowledgement or response on a still-open connection can be transient; the
 # operation is resent a few times before it is treated as failed. Memory reads and
-# writes are idempotent by address, so a resend cannot corrupt the device.
+# writes are idempotent by address, and so are property writes (see _resend_is_safe), so
+# a resend cannot corrupt the device.
 _TRANSIENT_RETRIES = 2
 _TRANSIENT_RETRY_DELAY = 0.2
 
@@ -804,7 +805,8 @@ class DeviceProgrammer:
         times before letting it propagate.
 
         A lost ACK or response on a still-open connection is resent; memory reads and
-        writes are idempotent by address, so a resend cannot corrupt the device. A
+        writes are idempotent by address, and so are the property writes it is used for
+        (see :func:`_resend_is_safe`), so a resend cannot corrupt the device. A
         persistent failure (e.g. the device dropped the connection) still propagates
         after the retries, so a genuine no-acknowledge reaches the caller unchanged.
         """
@@ -1024,17 +1026,20 @@ class DeviceProgrammer:
             start_index,
             data.hex(),
         )
+        request = PropertyValueWrite(
+            object_index=object_index,
+            property_id=property_id,
+            count=count,
+            start_index=start_index,
+            data=data,
+        )
         try:
-            telegram = await self.connection.request(
-                PropertyValueWrite(
-                    object_index=object_index,
-                    property_id=property_id,
-                    count=count,
-                    start_index=start_index,
-                    data=data,
-                ),
-                PropertyValueResponse,
-            )
+            if _resend_is_safe(property_id, data):
+                telegram = await self._retry_transient(
+                    lambda: self.connection.request(request, PropertyValueResponse)
+                )
+            else:
+                telegram = await self.connection.request(request, PropertyValueResponse)
         except ManagementConnectionError as exc:
             raise self._connection_failure(
                 exc,
@@ -1575,6 +1580,21 @@ class DeviceProgrammer:
         self.memory_auto_verify = False
         self._memory_verify_known = False
         return payload.process_time
+
+
+def _resend_is_safe(property_id: int, data: bytes) -> bool:
+    """Whether a property write may be sent again after its ACK or response got lost.
+
+    A value written twice is the same value, and a load state event the device already
+    took leaves its state where it is (unloading an unloaded part, completing a loaded
+    one); the caller checks the resulting state either way. Only additional load controls
+    act each time they arrive - a second segment allocation would allocate again - so
+    they are sent once.
+    """
+    return not (
+        property_id == load_state.PID_LOAD_STATE_CONTROL
+        and data[:1] == bytes([load_state.LoadEvent.ADDITIONAL])
+    )
 
 
 def _validate_property_response(
