@@ -693,8 +693,6 @@ msgstr "Το ETS κρυπτογραφεί τα σχόλια του ημερολ�
 msgid "Comments are encrypted"
 msgstr "Τα σχόλια είναι κρυπτογραφημένα"
 
-msgid "Comments decrypted"
-msgstr "Τα σχόλια αποκρυπτογραφήθηκαν"
 
 msgid "Extracting key…"
 msgstr "Εξαγωγή κλειδιού…"

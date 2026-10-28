@@ -33,7 +33,6 @@ if TYPE_CHECKING:
     from editor_gui.plugins.project.service import ProjectTrace
 
 _RED = imgui.ImVec4(0.9, 0.4, 0.4, 1.0)
-_GREEN = imgui.ImVec4(0.4, 0.8, 0.4, 1.0)
 _UNKNOWN = "?"
 # The library Knx.Ets.Common.dll loads from its own folder.
 _LOG4NET = "log4net"
@@ -128,8 +127,8 @@ class ProjectLogPanel:
     # --- key extraction bar --------------------------------------------------------------
 
     def _render_key_bar(self) -> None:
+        """What it takes to read the comments; nothing once they can be read."""
         if trace_key_available():
-            imgui.text_colored(_GREEN, S.PROJECT_LOG_DECRYPTED)
             return
         imgui.text_colored(_RED, S.PROJECT_LOG_ENCRYPTED)
         imgui.text_wrapped(S.PROJECT_LOG_DECRYPT_HINT)

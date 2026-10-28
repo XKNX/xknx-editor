@@ -693,8 +693,6 @@ msgstr "ETS шифрує коментарі журналу. Щоб прочит�
 msgid "Comments are encrypted"
 msgstr "Коментарі зашифровано"
 
-msgid "Comments decrypted"
-msgstr "Коментарі розшифровано"
 
 msgid "Extracting key…"
 msgstr "Видобування ключа…"

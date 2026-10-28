@@ -1366,8 +1366,6 @@ msgstr "Spalten"
 msgid "Comments are encrypted"
 msgstr "Kommentare sind verschlüsselt"
 
-msgid "Comments decrypted"
-msgstr "Kommentare entschlüsselt"
 
 msgid "Compare the open project with another project file (.knxproj, .xknx or a backup): which devices and group addresses were added, removed or changed. The other project is read-only; nothing is modified."
 msgstr "Das geöffnete Projekt mit einer anderen Projektdatei (.knxproj, .xknx oder einer Sicherung) vergleichen: welche Geräte und Gruppenadressen hinzugefügt, entfernt oder geändert wurden. Das andere Projekt wird nur gelesen; es wird nichts verändert."

@@ -693,8 +693,6 @@ msgstr "ETS szyfruje komentarze w dzienniku. Aby je odczytać, należy wyodrębn
 msgid "Comments are encrypted"
 msgstr "Komentarze są zaszyfrowane"
 
-msgid "Comments decrypted"
-msgstr "Komentarze odszyfrowane"
 
 msgid "Extracting key…"
 msgstr "Wyodrębnianie klucza…"

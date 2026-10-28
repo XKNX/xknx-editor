@@ -693,8 +693,6 @@ msgstr "ETS, geçmişteki yorumları şifreler. Okumak için şifre çözme anah
 msgid "Comments are encrypted"
 msgstr "Yorumlar şifreli"
 
-msgid "Comments decrypted"
-msgstr "Yorumların şifresi çözüldü"
 
 msgid "Extracting key…"
 msgstr "Anahtar çıkarılıyor…"

@@ -693,8 +693,6 @@ msgstr "ETS 会加密日志备注。请从您自己的 ETS 安装中的 Knx.Ets.
 msgid "Comments are encrypted"
 msgstr "备注已加密"
 
-msgid "Comments decrypted"
-msgstr "备注已解密"
 
 msgid "Extracting key…"
 msgstr "正在提取密钥…"

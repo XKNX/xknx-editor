@@ -693,8 +693,6 @@ msgstr "ETS chiffre les commentaires du journal. Extrayez la clé de déchiffrem
 msgid "Comments are encrypted"
 msgstr "Les commentaires sont chiffrés"
 
-msgid "Comments decrypted"
-msgstr "Commentaires déchiffrés"
 
 msgid "Extracting key…"
 msgstr "Extraction de la clé…"

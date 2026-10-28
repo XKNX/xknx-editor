@@ -693,8 +693,6 @@ msgstr "ETS cifra i commenti del log. Estrarre la chiave di decifratura dal file
 msgid "Comments are encrypted"
 msgstr "I commenti sono cifrati"
 
-msgid "Comments decrypted"
-msgstr "Commenti decifrati"
 
 msgid "Extracting key…"
 msgstr "Estrazione della chiave…"

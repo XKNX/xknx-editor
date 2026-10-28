@@ -693,8 +693,6 @@ msgstr "ETS šifruje komentáře v protokolu. Pro jejich čtení extrahujte deš
 msgid "Comments are encrypted"
 msgstr "Komentáře jsou šifrované"
 
-msgid "Comments decrypted"
-msgstr "Komentáře dešifrovány"
 
 msgid "Extracting key…"
 msgstr "Extrahování klíče…"

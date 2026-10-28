@@ -693,8 +693,6 @@ msgstr "ETS krypterar kommentarerna i loggen. Extrahera dekrypteringsnyckeln fr�
 msgid "Comments are encrypted"
 msgstr "Kommentarerna är krypterade"
 
-msgid "Comments decrypted"
-msgstr "Kommentarerna dekrypterade"
 
 msgid "Extracting key…"
 msgstr "Extraherar nyckel…"

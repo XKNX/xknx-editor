@@ -693,8 +693,6 @@ msgstr "ETS はログのコメントを暗号化しています。コメント�
 msgid "Comments are encrypted"
 msgstr "コメントは暗号化されています"
 
-msgid "Comments decrypted"
-msgstr "コメントを復号しました"
 
 msgid "Extracting key…"
 msgstr "キーを抽出中…"

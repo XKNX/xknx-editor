@@ -693,8 +693,6 @@ msgstr "ETS salaa lokin kommentit. Pura salauksen purkuavain oman ETS-asennukses
 msgid "Comments are encrypted"
 msgstr "Kommentit on salattu"
 
-msgid "Comments decrypted"
-msgstr "Kommenttien salaus purettu"
 
 msgid "Extracting key…"
 msgstr "Puretaan avainta…"

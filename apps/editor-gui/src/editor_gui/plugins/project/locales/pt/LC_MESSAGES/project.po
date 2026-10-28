@@ -693,8 +693,6 @@ msgstr "O ETS encripta os comentários do registo. Extraia a chave de desencript
 msgid "Comments are encrypted"
 msgstr "Os comentários estão encriptados"
 
-msgid "Comments decrypted"
-msgstr "Comentários desencriptados"
 
 msgid "Extracting key…"
 msgstr "A extrair a chave…"
