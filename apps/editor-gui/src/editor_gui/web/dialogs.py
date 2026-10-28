@@ -140,7 +140,7 @@ def _entries_table(
     double = False
     fetch: Entry | None = None
     if not entries:
-        imgui.text_disabled(S.WEB_NO_FILES)
+        imgui.text_unformatted(S.WEB_NO_FILES)
         return None, False, None
     columns = 2 + int(sizes) + int(download)
     # Fixed columns as wide as their widest content (always computed, never a width saved from an
