@@ -86,10 +86,11 @@ Tests: `src/editor_gui/tests/test_web.py`, `src/editor_gui/tests/test_touch.py`.
 
 ## Inside Home Assistant (`editor_gui.host`)
 
-Home Assistant runs the editor in its browser mode in two ways: its integration ([xknx-editor-ha-integration](https://github.com/XKNX/xknx-editor-ha-integration), the panel in the sidebar) starts it with `--home-assistant=integration`, the Home Assistant app (`docker/ha-run.sh`) with `--home-assistant=app`. `host.home_assistant()` tells which (None: standalone); check it for anything that differs inside Home Assistant:
+Home Assistant runs the editor in its browser mode through its integration ([xknx-editor-ha-integration](https://github.com/XKNX/xknx-editor-ha-integration), the panel in the sidebar), which starts it with `--home-assistant`. `host.home_assistant()` tells whether it runs there; check it for anything that differs inside Home Assistant:
 
-- **Updates:** Home Assistant updates the editor (with the integration or the app). The update check still runs and shows a new version with its release notes, but asks to update the integration or the app in Home Assistant instead of offering to install or download it.
+- **Updates:** Home Assistant updates the editor with the integration. The update check still runs and shows a new version with its release notes, but asks to update the integration in Home Assistant instead of offering to install or download it.
 - **Exit:** like every browser UI, there is no File > Exit (the tray icon or the program that started the editor stops it).
 - **MCP:** the integration sets up the MCP server (`--mcp=host:port`, token in `XKNX_MCP_AUTH_TOKEN`, `--mcp-url` for the address clients use through Home Assistant). `host.current().mcp_managed` is then true: the server starts with the editor, the MCP menu and the AI tab show its status and address without the fields to change it, and nothing of it is stored in the settings.
+- **Release files:** the integration installs the editor from files of its release: a locked requirements file, the wheels it names and the key-extraction helpers (`packaging/home_assistant/release_files.py`, attached by `.github/workflows/home-assistant-files.yml`). A new dependency must have musllinux wheels for Home Assistant's Python (x86_64 and aarch64): the integration installs without building.
 
-Tests: `src/editor_gui/tests/test_host.py`.
+Tests: `src/editor_gui/tests/test_host.py`, `tests/test_home_assistant_release_files.py`.
