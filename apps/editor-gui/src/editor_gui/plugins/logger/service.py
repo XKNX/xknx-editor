@@ -30,6 +30,16 @@ _PACKAGE_LABELS: dict[str, str] = {
     "namespaces": "models",
 }
 
+# Loggers whose records reach the in-app log, each from the given level on: the packages' own, xknx's
+# point-to-point connections (a telegram the device did not acknowledge and its repetitions, an
+# unexpected sequence number, a disconnect by the device), and the rest of xknx from warnings on (a
+# frame the interface did not confirm, a lost tunnel) - its debug output has every bus frame.
+_BRIDGED_LOGGERS: tuple[tuple[str, int], ...] = (
+    ("xknxeditor", logging.DEBUG),
+    ("xknx.management", logging.DEBUG),
+    ("xknx", logging.WARNING),
+)
+
 
 class _TeeStream:
     def __init__(self, *streams: Any) -> None:
@@ -52,10 +62,11 @@ class _TeeStream:
 
 
 class _StdlibBridgeHandler(logging.Handler):
-    """Forwards stdlib log records from the ``xknxeditor.*`` packages into a :class:`LogService`."""
+    """Forwards stdlib log records from the ``xknxeditor.*`` packages and ``xknx`` into a
+    :class:`LogService`."""
 
-    def __init__(self, service: LogService) -> None:
-        super().__init__(level=logging.DEBUG)
+    def __init__(self, service: LogService, level: int = logging.DEBUG) -> None:
+        super().__init__(level=level)
         self._service = service
 
     def retarget(self, service: LogService) -> None:
@@ -153,21 +164,26 @@ class LogService:
 
     def _install_stdlib_bridge(self) -> None:
         """Route the packages' stdlib ``logging`` (``xknxeditor.*`` - programming, download, myknx,
-        export, import) into the same in-app log so their debug output shows in the Logger panel.
+        export, import) and xknx's (see ``_BRIDGED_LOGGERS``) into the same in-app log so their
+        output shows in the Logger panel.
 
-        We capture at DEBUG unconditionally (the panel filters by level client-side) and stop
-        propagation so the records neither hit the root last-resort handler nor get double-printed.
+        We capture each from its level on unconditionally (the panel filters by level client-side)
+        and stop propagation so the records neither hit the root last-resort handler nor get
+        double-printed.
         """
-        pkg_logger = logging.getLogger("xknxeditor")
-        pkg_logger.setLevel(logging.DEBUG)
-        pkg_logger.propagate = False
-        # Idempotent: reuse the single bridge on the shared package logger, re-pointing it at this
+        for name, level in _BRIDGED_LOGGERS:
+            self._bridge_logger(logging.getLogger(name), level)
+
+    def _bridge_logger(self, logger: logging.Logger, level: int) -> None:
+        logger.setLevel(level)
+        logger.propagate = False
+        # Idempotent: reuse the single bridge on the shared logger, re-pointing it at this
         # instance (the app has one LogService; tests create several — the newest is the sink).
-        for h in pkg_logger.handlers:
+        for h in logger.handlers:
             if isinstance(h, _StdlibBridgeHandler):
                 h.retarget(self)
                 return
-        pkg_logger.addHandler(_StdlibBridgeHandler(self))
+        logger.addHandler(_StdlibBridgeHandler(self, level))
 
     def ingest_stdlib(self, record: logging.LogRecord) -> None:
         """Convert a stdlib ``LogRecord`` into our ``LogRecord`` and store it."""
