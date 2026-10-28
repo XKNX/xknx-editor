@@ -146,10 +146,9 @@ _INSTALLATION_EXTRA_ATTRS = (
     "BCUKey",
 )
 
-# ProjectInformation attributes xknxproject does not surface, round-tripped verbatim. Restricted to
-# attributes defined in project/14, /20 and /23 (the schema-specific CodePage/BusAccessLegacyMode and
-# v23 ArchivedVersion are left out), plus ProjectType (project/21+), which the export writes only to
-# the schemas that define it.
+# ProjectInformation attributes xknxproject does not surface, round-tripped verbatim. All of them are
+# defined in project/14 to /23, except ProjectType and ArchivedVersion (project/21+), which the export
+# writes only to the schemas that define them.
 _PROJECT_EXTRA_ATTRS = (
     "ProjectStart",
     "ProjectNumber",
@@ -159,6 +158,9 @@ _PROJECT_EXTRA_ATTRS = (
     "CompletionStatus",
     "ProjectTracingPassword",
     "ProjectType",
+    "ArchivedVersion",
+    "CodePage",
+    "BusAccessLegacyMode",
 )
 
 _INSTALLATION_INDEX = 0

@@ -111,8 +111,9 @@ class Project(Base):
         String, nullable=False, default=UNDEFINED_STATUS
     )
     # ProjectInformation attributes xknxproject does not surface (ProjectStart, ProjectNumber,
-    # ContractNumber, ProjectEnd, ProjectId, ProjectTracingPassword — valid in project/14, /20, /23),
-    # captured verbatim and re-emitted. ``None`` when the source had none.
+    # ContractNumber, ProjectEnd, ProjectId, ProjectTracingPassword, CodePage, BusAccessLegacyMode,
+    # and the project/21+ ProjectType and ArchivedVersion), captured verbatim and re-emitted. ``None``
+    # when the source had none.
     extra_attributes: Mapped[dict[str, str] | None] = mapped_column(JSON)
     # ProjectInformation child collections xknxproject drops, captured verbatim (namespace-stripped
     # XML) and re-emitted: ``{"Tags": ..., "HistoryEntries": ..., "ToDoItems": ...,
