@@ -8,7 +8,7 @@ from typing import Any
 
 import pytest
 
-from editor_gui import host
+from editor_gui import host, main
 from editor_gui.host import HostOptions, host_options
 from editor_gui.main import KnxGuiApp
 from editor_gui.strings import S
@@ -145,3 +145,54 @@ def test_session_starts_the_managed_mcp_server(
     KnxGuiApp._start_session(stub)  # type: ignore[arg-type]
     # Started without storing anything.
     assert started == ([False] if starts else [])
+
+
+@pytest.mark.parametrize(
+    ("kind", "hint"),
+    [
+        ("integration", "UPDATE_HOME_ASSISTANT_INTEGRATION"),
+        ("app", "UPDATE_HOME_ASSISTANT_APP"),
+    ],
+)
+def test_update_found_inside_home_assistant(
+    monkeypatch: pytest.MonkeyPatch, kind: str, hint: str
+) -> None:
+    """The new version and its notes, and where to update; no install or download."""
+    host.set_current(HostOptions(home_assistant=kind))
+    shown: list[str] = []
+    buttons: list[tuple[str, ...]] = []
+    skipped: list[str] = []
+
+    def dialog_buttons(*labels: str, **_: Any) -> int:
+        buttons.append(labels)
+        return 0
+
+    monkeypatch.setattr(main, "begin_dialog", lambda *a, **k: True)
+    monkeypatch.setattr(main, "end_dialog", lambda: None)
+    monkeypatch.setattr(main, "dialog_buttons", dialog_buttons)
+    monkeypatch.setattr(main, "px_vec2", lambda *a: None)
+    for name in (
+        "open_popup",
+        "close_current_popup",
+        "spacing",
+        "separator",
+        "end_child",
+    ):
+        monkeypatch.setattr(main.imgui, name, lambda *a, **k: None)
+    monkeypatch.setattr(main.imgui, "text_disabled", lambda *a, **k: None)
+    monkeypatch.setattr(main.imgui, "begin_child", lambda *a, **k: True)
+    monkeypatch.setattr(main.imgui, "text_wrapped", shown.append)
+    stub = SimpleNamespace(
+        _update_prompt_requested=False,
+        _update_info=SimpleNamespace(
+            version="9.9.0", notes="New things", url="", assets=[]
+        ),
+        _skip_update_version=skipped.append,
+    )
+
+    KnxGuiApp._render_update_modal(stub)  # type: ignore[arg-type]
+
+    assert getattr(S, hint) in shown
+    assert "New things" in shown
+    assert buttons == [(S.UPDATE_SKIP, S.UPDATE_LATER)]
+    assert skipped == ["9.9.0"]

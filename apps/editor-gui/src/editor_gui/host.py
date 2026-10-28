@@ -2,8 +2,9 @@
 
 - ``--home-assistant=integration`` or ``--home-assistant=app``: the editor runs inside Home
   Assistant, started by its integration (the panel in the sidebar) or as a Home Assistant app
-  (the add-on). Home Assistant updates and stops it, so the editor leaves out its own update check
-  and File > Exit; other differences check :func:`home_assistant` too.
+  (the add-on). Home Assistant updates it, so a new version found by the update check is not
+  installed or downloaded: the editor asks to update the integration or the app instead. Other
+  differences check :func:`home_assistant` too.
 - ``--mcp=[host:]port``: the MCP server runs on this address from the start, with the token in
   ``XKNX_MCP_AUTH_TOKEN``. The program that started the editor set it up, so the MCP menu and the
   AI tab show it without the fields to change it.

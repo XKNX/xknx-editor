@@ -1586,9 +1586,6 @@ msgstr "Isländisch"
 msgid "Ctrl"
 msgstr "Strg"
 
-msgid "This stops XKNX Editor on the server. Until it is started there again, no browser can connect to it."
-msgstr "Damit wird XKNX Editor auf dem Server beendet. Bis er dort wieder gestartet wird, kann sich kein Browser mehr mit ihm verbinden."
-
 msgid "Del"
 msgstr "Entf"
 
@@ -1612,3 +1609,9 @@ msgstr "Home Assistant stellt den MCP-Server bereit: KI-Tools melden sich mit ei
 
 msgid "The program that started XKNX Editor set up its MCP server."
 msgstr "Das Programm, das XKNX Editor gestartet hat, hat seinen MCP-Server eingerichtet."
+
+msgid "Home Assistant updates XKNX Editor with its integration: check Home Assistant for an update of the XKNX Editor integration. It may follow this release a little later."
+msgstr "Home Assistant aktualisiert XKNX Editor mit seiner Integration: Prüfe in Home Assistant, ob es ein Update der XKNX-Editor-Integration gibt. Es kann etwas nach diesem Release folgen."
+
+msgid "Home Assistant updates XKNX Editor with its app: check Home Assistant for an update of the XKNX Editor app."
+msgstr "Home Assistant aktualisiert XKNX Editor mit seiner App: Prüfe in Home Assistant, ob es ein Update der XKNX-Editor-App gibt."

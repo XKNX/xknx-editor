@@ -1681,6 +1681,22 @@ class MenuStrings:
         )
 
     @property
+    def UPDATE_HOME_ASSISTANT_INTEGRATION(self) -> str:
+        # The update dialog inside Home Assistant's integration, which installs the editor.
+        return _(
+            "Home Assistant updates XKNX Editor with its integration: check Home Assistant for "
+            "an update of the XKNX Editor integration. It may follow this release a little later."
+        )
+
+    @property
+    def UPDATE_HOME_ASSISTANT_APP(self) -> str:
+        # The update dialog inside the Home Assistant app (add-on).
+        return _(
+            "Home Assistant updates XKNX Editor with its app: check Home Assistant for an "
+            "update of the XKNX Editor app."
+        )
+
+    @property
     def PROGRESS_DOWNLOAD_UPDATE(self) -> str:
         return _("Downloading the update…")
 
@@ -2081,14 +2097,6 @@ class _CombinedStrings(BaseStrings, MenuStrings):
     @property
     def TRAY_STOP(self) -> str:
         return _("Stop XKNX Editor")
-
-    @property
-    def EXIT_CONFIRM_TEXT(self) -> str:
-        """File > Exit in the browser view: what stopping means."""
-        return _(
-            "This stops XKNX Editor on the server. Until it is started there again, no "
-            "browser can connect to it."
-        )
 
     @property
     def EDITOR_RUNNING_TITLE(self) -> str:

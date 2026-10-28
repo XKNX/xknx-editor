@@ -88,7 +88,8 @@ Tests: `src/editor_gui/tests/test_web.py`, `src/editor_gui/tests/test_touch.py`.
 
 Home Assistant runs the editor in its browser mode in two ways: its integration ([xknx-editor-ha-integration](https://github.com/XKNX/xknx-editor-ha-integration), the panel in the sidebar) starts it with `--home-assistant=integration`, the Home Assistant app (`docker/ha-run.sh`) with `--home-assistant=app`. `host.home_assistant()` tells which (None: standalone); check it for anything that differs inside Home Assistant:
 
-- **Updates and exit:** Home Assistant updates and stops the editor, so there is no update check (Help menu, About dialog, at start) and no File > Exit.
+- **Updates:** Home Assistant updates the editor (with the integration or the app). The update check still runs and shows a new version with its release notes, but asks to update the integration or the app in Home Assistant instead of offering to install or download it.
+- **Exit:** like every browser UI, there is no File > Exit (the tray icon or the program that started the editor stops it).
 - **MCP:** the integration sets up the MCP server (`--mcp=host:port`, token in `XKNX_MCP_AUTH_TOKEN`, `--mcp-url` for the address clients use through Home Assistant). `host.current().mcp_managed` is then true: the server starts with the editor, the MCP menu and the AI tab show its status and address without the fields to change it, and nothing of it is stored in the settings.
 
 Tests: `src/editor_gui/tests/test_host.py`.

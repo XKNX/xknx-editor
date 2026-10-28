@@ -1491,9 +1491,6 @@ msgstr "Ijslands"
 msgid "Ctrl"
 msgstr "Ctrl"
 
-msgid "This stops XKNX Editor on the server. Until it is started there again, no browser can connect to it."
-msgstr "Hiermee wordt XKNX Editor op de server gestopt. Totdat hij daar opnieuw wordt gestart, kan geen enkele browser er verbinding mee maken."
-
 msgid "Del"
 msgstr "Del"
 
@@ -1517,3 +1514,9 @@ msgstr "Home Assistant levert de MCP-server: AI-tools melden zich aan met een la
 
 msgid "The program that started XKNX Editor set up its MCP server."
 msgstr "Het programma dat XKNX Editor heeft gestart, heeft de MCP-server ingesteld."
+
+msgid "Home Assistant updates XKNX Editor with its integration: check Home Assistant for an update of the XKNX Editor integration. It may follow this release a little later."
+msgstr "Home Assistant werkt XKNX Editor bij met zijn integratie: kijk in Home Assistant of er een update van de XKNX Editor-integratie is. Die kan iets na deze release volgen."
+
+msgid "Home Assistant updates XKNX Editor with its app: check Home Assistant for an update of the XKNX Editor app."
+msgstr "Home Assistant werkt XKNX Editor bij met zijn app: kijk in Home Assistant of er een update van de XKNX Editor-app is."

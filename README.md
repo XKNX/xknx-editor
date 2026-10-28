@@ -156,8 +156,8 @@ Start the app with `--web` and open the address it prints:
 | From source | `uv run python -m editor_gui.main --web` |
 
 By default it serves `http://localhost:8080/` on this computer only, opens the browser there (no
-sign-in) and shows a tray icon with **Open in Browser** / **Stop XKNX Editor**. **File → Exit** or
-Ctrl+C ends it. A project file can be given as usual, e.g. `XKNX-Editor.exe --web Haus.xknx`.
+sign-in) and shows a tray icon with **Open in Browser** / **Stop XKNX Editor**. **Stop XKNX
+Editor** or Ctrl+C ends it (the browser itself has no **File → Exit**). A project file can be given as usual, e.g. `XKNX-Editor.exe --web Haus.xknx`.
 
 To reach it from other devices, give an address and a password (or `--web-trust-proxy` behind a
 proxy that signs users in itself, like Home Assistant Ingress; for HTTPS pass a certificate or
@@ -190,7 +190,7 @@ server and tell it that it runs inside Home Assistant:
 |---|---|
 | `--mcp=[host:]port` | Start the MCP server with the editor on this address (a port alone: `127.0.0.1`), with the bearer token from `XKNX_MCP_AUTH_TOKEN`; the editor then shows its status and address, not its settings |
 | `--mcp-url=URL` | The address MCP clients use, shown in the editor (when a proxy is in front) |
-| `--home-assistant=integration\|app` | Runs inside Home Assistant, started by its integration or as its app: Home Assistant updates and stops the editor, so there is no update check and no **File → Exit** |
+| `--home-assistant=integration\|app` | Runs inside Home Assistant, started by its integration or as its app: Home Assistant updates the editor, so a new version is announced with its release notes and a hint to update the integration or the app, not installed or downloaded |
 
 Tablets and phones get a narrow layout (menus in **☰**, parameter pages above the fields, button
 rows wrap, wide tables scroll sideways); a tap clicks, hold+lift opens the context menu, hold+drag

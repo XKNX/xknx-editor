@@ -475,8 +475,6 @@ class KnxGuiApp:
         self._ga_export_empty_requested = False
         # Clear Cache…: the confirmation, with the size the cache had when it was asked for.
         self._clear_cache_requested = False
-        # File > Exit in the browser view: it stops the server, so it is confirmed first.
-        self._exit_confirm_requested = False
         self._clear_cache_size = 0
         # Folder picker for the ProjectStore export when the default path is not found, and which
         # ETS generation that export is aimed at (set when the export starts, read by the dialogs).
@@ -864,9 +862,8 @@ class KnxGuiApp:
         if trace_key_store.apply_cached_key():
             self._log.info("trace key loaded")
         self._register_editor()
-        # Best-effort check for a newer release on GitHub (unless the user disabled it). Inside
-        # Home Assistant, Home Assistant updates the editor.
-        if self._update_check_enabled() and host.home_assistant() is None:
+        # Best-effort check for a newer release on GitHub (unless the user disabled it).
+        if self._update_check_enabled():
             self._start_update_check(manual=False)
         # With other editors running, the user is asked first (_render_running_editors_modal).
         if not self.running_editors:
@@ -1315,28 +1312,8 @@ class KnxGuiApp:
         end_dialog()
 
     def _exit(self) -> None:
-        """File > Exit: the desktop window closes right away. In the browser view it stops
-        the server, after which no browser can connect again, so it is confirmed first."""
-        if web.active_hub is not None:
-            self._exit_confirm_requested = True
-        else:
-            hello_imgui.get_runner_params().app_shall_exit = True
-
-    def _render_exit_confirm_modal(self) -> None:
-        title = f"{S.TRAY_STOP}###exit_confirm"
-        if self._exit_confirm_requested:
-            imgui.open_popup(title)
-            self._exit_confirm_requested = False
-        if not begin_dialog(title, width=460.0):
-            return
-        imgui.text_wrapped(S.EXIT_CONFIRM_TEXT)
-        clicked = dialog_buttons(S.TRAY_STOP, S.BTN_CANCEL)
-        if clicked == 0:
-            imgui.close_current_popup()
-            hello_imgui.get_runner_params().app_shall_exit = True
-        elif clicked == 1:
-            imgui.close_current_popup()
-        end_dialog()
+        """File > Exit (on the desktop only): the window closes."""
+        hello_imgui.get_runner_params().app_shall_exit = True
 
     def _render_ga_export_empty_modal(self) -> None:
         title = f"{S.FILE_DIALOG_GA_EXPORT_SAVE_TITLE}###ga_export_empty"
@@ -3866,8 +3843,9 @@ class KnxGuiApp:
             if imgui.menu_item(load_from_url, "", False)[0]:
                 self._url_input = ""
                 self._url_prompt_requested = True
-            # Inside Home Assistant, Home Assistant starts and stops the editor.
-            if host.home_assistant() is None:
+            # On the desktop only: the browser UI is stopped from the tray icon or by the program
+            # that started it (Home Assistant, a service, Ctrl+C), not from a browser.
+            if web.active_hub is None:
                 imgui.separator()
                 if imgui.menu_item(S.MENU_EXIT, "", False)[0]:
                     self._exit()
@@ -3894,28 +3872,27 @@ class KnxGuiApp:
         self._render_language_menu()
 
         if imgui.begin_menu(S.MENU_HELP):
-            if imgui.menu_item(S.MENU_ABOUT, "", False)[0]:
-                self._about_requested = True
-            # Inside Home Assistant, Home Assistant updates the editor.
-            if host.home_assistant() is None:
-                if imgui.menu_item(S.MENU_CHECK_UPDATES, "", False)[0]:
-                    self._start_update_check(manual=True)
-                changed, enabled = imgui.menu_item(
-                    S.MENU_UPDATE_ON_STARTUP, "", self._update_check_enabled()
-                )
-                if changed:
-                    self._set_update_check_enabled(enabled)
+            if imgui.menu_item(S.MENU_OPEN_CACHE_DIR, "", False)[0]:
+                self._open_folder(cache_dir())
+            if imgui.menu_item(S.MENU_CLEAR_CACHE, "", False)[0]:
+                self._clear_cache_size = cache_size()
+                self._clear_cache_requested = True
             imgui.separator()
             if imgui.menu_item(S.MENU_OPEN_CONFIG_DIR, "", False)[0]:
                 self._open_folder(config_dir())
             if imgui.menu_item(S.MENU_OPEN_LOG_DIR, "", False)[0]:
                 self._open_folder(log_dir())
             imgui.separator()
-            if imgui.menu_item(S.MENU_OPEN_CACHE_DIR, "", False)[0]:
-                self._open_folder(cache_dir())
-            if imgui.menu_item(S.MENU_CLEAR_CACHE, "", False)[0]:
-                self._clear_cache_size = cache_size()
-                self._clear_cache_requested = True
+            if imgui.menu_item(S.MENU_CHECK_UPDATES, "", False)[0]:
+                self._start_update_check(manual=True)
+            changed, enabled = imgui.menu_item(
+                S.MENU_UPDATE_ON_STARTUP, "", self._update_check_enabled()
+            )
+            if changed:
+                self._set_update_check_enabled(enabled)
+            imgui.separator()
+            if imgui.menu_item(S.MENU_ABOUT, "", False)[0]:
+                self._about_requested = True
             imgui.end_menu()
 
         if imgui.menu_item(S.MENU_FEEDBACK, "", False)[0]:
@@ -4051,11 +4028,7 @@ class KnxGuiApp:
         imgui.text(S.ABOUT_WEBSITE)
         imgui.same_line()
         _link(_REPO_URL)
-        # Inside Home Assistant, Home Assistant updates the editor: no update check.
-        if host.home_assistant() is None:
-            clicked = dialog_buttons(S.MENU_CHECK_UPDATES, S.BTN_OK)
-        else:
-            clicked = 1 if dialog_buttons(S.BTN_OK) == 0 else None
+        clicked = dialog_buttons(S.MENU_CHECK_UPDATES, S.BTN_OK)
         if clicked == 0:
             self._start_update_check(manual=True)
         elif clicked == 1:
@@ -4112,6 +4085,21 @@ class KnxGuiApp:
             if imgui.begin_child("##update-notes", px_vec2(0.0, 220.0), True):
                 imgui.text_wrapped(info.notes)
             imgui.end_child()
+        if (kind := host.home_assistant()) is not None:
+            # Home Assistant updates the editor with its integration or app.
+            imgui.spacing()
+            imgui.text_wrapped(
+                S.UPDATE_HOME_ASSISTANT_INTEGRATION
+                if kind == host.HOME_ASSISTANT_INTEGRATION
+                else S.UPDATE_HOME_ASSISTANT_APP
+            )
+            clicked = dialog_buttons(S.UPDATE_SKIP, S.UPDATE_LATER)
+            if clicked == 0:
+                self._skip_update_version(info.version)
+            if clicked is not None:
+                imgui.close_current_popup()
+            end_dialog()
+            return
         installer = self._update_installer(info)
         if installer is not None:
             imgui.spacing()
@@ -4845,7 +4833,6 @@ class KnxGuiApp:
         self._render_ga_export_options_modal()
         self._render_ga_export_empty_modal()
         self._render_clear_cache_modal()
-        self._render_exit_confirm_modal()
         self._render_projectstore_confirm_modal()
         self._render_url_prompt_modal()
         self._render_new_project_modal()
