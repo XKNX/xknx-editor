@@ -3194,3 +3194,6 @@ msgstr "Westeuropäisch (ISO 8859-15)"
 
 msgid "Set codepage to {code_page}"
 msgstr "Codepage auf {code_page} setzen"
+
+msgid "Encrypted"
+msgstr "Verschlüsselt"

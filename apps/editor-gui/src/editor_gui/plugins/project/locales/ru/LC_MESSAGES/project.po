@@ -3009,3 +3009,6 @@ msgstr "Западно-Европейский (ISO 8859-15)"
 
 msgid "Set codepage to {code_page}"
 msgstr "Установить кодировку {code_page}"
+
+msgid "Encrypted"
+msgstr "Зашифровано"

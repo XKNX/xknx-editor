@@ -4240,20 +4240,23 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         and when (the editor writes no entries; a project created here has none). Optionally only
         the entries whose date, user or comment contains ``contains`` (case-insensitive), from the
         ``offset``-th one on, at most ``limit``. Returns {items, count, total}; each item has
-        {date, user_name, comment, decrypted}: comment is the text when it could be decrypted
-        (decrypted=true), else as stored. total counts the matching entries."""
+        {date, user_name, comment, decrypted, encrypted}: comment is the text when it could be
+        decrypted (decrypted=true); null when it is stored encrypted and no decryption key is set
+        (encrypted=true, as the Project Log shows "Encrypted"), else as stored. total counts the
+        matching entries."""
         require_project(ctx)
         if offset < 0 or limit < 1:
             raise ToolError("offset must be 0 or more and limit 1 or more")
 
         def _read() -> dict[str, Any]:
             needle = (contains or "").lower()
-            rows = [
+            rows: list[dict[str, Any]] = [
                 {
                     "date": t.date,
                     "user_name": t.user_name,
-                    "comment": t.comment_plain or t.comment,
+                    "comment": None if t.encrypted else t.comment_plain or t.comment,
                     "decrypted": t.comment_plain is not None,
+                    "encrypted": t.encrypted,
                 }
                 for t in project.get_project_traces()
             ]
@@ -4262,7 +4265,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                     r
                     for r in rows
                     if any(
-                        needle in r[key].lower()
+                        needle in str(r[key] or "").lower()
                         for key in ("date", "user_name", "comment")
                     )
                 ]

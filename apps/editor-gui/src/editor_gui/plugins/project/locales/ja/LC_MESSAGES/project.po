@@ -3009,3 +3009,6 @@ msgstr "西ヨーロッパ語(ISO 8859-15)"
 
 msgid "Set codepage to {code_page}"
 msgstr "コード・ページを{code_page}に設定"
+
+msgid "Encrypted"
+msgstr "暗号化済み"

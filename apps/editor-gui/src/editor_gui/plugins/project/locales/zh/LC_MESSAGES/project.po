@@ -3009,3 +3009,6 @@ msgstr "西欧 (ISO 8859-15)"
 
 msgid "Set codepage to {code_page}"
 msgstr "将代码页设置为 {code_page}"
+
+msgid "Encrypted"
+msgstr "已加密"

@@ -3009,3 +3009,6 @@ msgstr "Europa Zachodnia (ISO 8859-15)"
 
 msgid "Set codepage to {code_page}"
 msgstr "Ustaw stronę kodową na {code_page}"
+
+msgid "Encrypted"
+msgstr "Zaszyfrowany"

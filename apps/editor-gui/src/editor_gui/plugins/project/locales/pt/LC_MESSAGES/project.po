@@ -3009,3 +3009,6 @@ msgstr "Europeu Ocidental (ISO 8859-15)"
 
 msgid "Set codepage to {code_page}"
 msgstr "Definir o código de página para {code_page}"
+
+msgid "Encrypted"
+msgstr "Encriptado"

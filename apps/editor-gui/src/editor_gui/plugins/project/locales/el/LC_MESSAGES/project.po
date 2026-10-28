@@ -3009,3 +3009,6 @@ msgstr "Δυτ.Ευρώπης (ISO 8859-15)"
 
 msgid "Set codepage to {code_page}"
 msgstr "Ορισμός κωδικοσελίδας σε {code_page}"
+
+msgid "Encrypted"
+msgstr "Κρυπτογραφημένο"

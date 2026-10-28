@@ -952,6 +952,8 @@ class ProjectTrace:
     user_name: str
     comment: str
     comment_plain: str | None = None
+    # The comment is stored encrypted and cannot be read (no trace key installed).
+    encrypted: bool = False
 
 
 @dataclass
@@ -3901,7 +3903,7 @@ class ProjectService:
         the decrypted text when a trace key has been installed (see :mod:`editor_gui.trace_key`).
         Cached by revision and installed key: the Project Log reads it every frame.
         """
-        from xknxeditor.proj import current_marker, decrypt_comment
+        from xknxeditor.proj import current_marker, decrypt_comment, looks_encrypted
 
         if self._pid is None:
             return []
@@ -3909,15 +3911,18 @@ class ProjectService:
         hit = self._revision_cache.get(cache_key)
         if hit is not None and hit[0] == self.revision:
             return cast("list[ProjectTrace]", hit[1])
-        traces = [
-            ProjectTrace(
-                date=date,
-                user_name=user_name,
-                comment=comment,
-                comment_plain=decrypt_comment(comment),
+        traces: list[ProjectTrace] = []
+        for date, user_name, comment in self._svc.project_traces(self._pid):
+            plain = decrypt_comment(comment)
+            traces.append(
+                ProjectTrace(
+                    date=date,
+                    user_name=user_name,
+                    comment=comment,
+                    comment_plain=plain,
+                    encrypted=plain is None and looks_encrypted(comment),
+                )
             )
-            for date, user_name, comment in self._svc.project_traces(self._pid)
-        ]
         self._revision_cache[cache_key] = (self.revision, traces)
         return traces
 

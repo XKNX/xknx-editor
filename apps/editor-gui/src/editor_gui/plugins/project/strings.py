@@ -2021,6 +2021,10 @@ class ProjectStrings:
         return _("Comments are encrypted")
 
     @property
+    def PROJECT_LOG_ENCRYPTED_COMMENT(self) -> str:
+        return _("Encrypted")
+
+    @property
     def PROJECT_LOG_EXTRACTING(self) -> str:
         return _("Extracting key…")
 

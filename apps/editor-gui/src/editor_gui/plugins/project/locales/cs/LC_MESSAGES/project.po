@@ -3009,3 +3009,6 @@ msgstr "Západoevropský (ISO 8859-15)"
 
 msgid "Set codepage to {code_page}"
 msgstr "Nastavit kódovou stranu na {code_page}"
+
+msgid "Encrypted"
+msgstr "Šifrováno"

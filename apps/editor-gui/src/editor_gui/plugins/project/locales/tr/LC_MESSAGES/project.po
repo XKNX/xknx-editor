@@ -3009,3 +3009,6 @@ msgstr "Batı Avrupa  (ISO 8859-15)"
 
 msgid "Set codepage to {code_page}"
 msgstr "Kod sayfasını {code_page} olarak ayarla"
+
+msgid "Encrypted"
+msgstr "Şifreli"

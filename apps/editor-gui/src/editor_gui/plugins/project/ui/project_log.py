@@ -122,6 +122,9 @@ class ProjectLogPanel:
                 imgui.table_set_column_index(1)
                 imgui.text_unformatted(t.user_name or "-")
                 imgui.table_set_column_index(2)
+                if t.encrypted:
+                    imgui.text_disabled(comment)
+                    continue
                 imgui.text_unformatted(comment or "-")
                 if comment and imgui.is_item_hovered():
                     imgui.set_tooltip(comment)
@@ -231,6 +234,9 @@ class ProjectLogPanel:
 
     @staticmethod
     def _display(t: ProjectTrace) -> str:
+        """The comment as shown, filtered and sorted: "Encrypted" while it cannot be read."""
+        if t.encrypted:
+            return S.PROJECT_LOG_ENCRYPTED_COMMENT
         return t.comment_plain or t.comment
 
     def _read_sort(self) -> None:

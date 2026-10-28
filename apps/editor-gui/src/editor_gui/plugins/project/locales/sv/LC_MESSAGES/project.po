@@ -3009,3 +3009,6 @@ msgstr "Västeuropeiska (ISO 8859-15)"
 
 msgid "Set codepage to {code_page}"
 msgstr "Ange kodsida till {code_page}"
+
+msgid "Encrypted"
+msgstr "Krypterad"
