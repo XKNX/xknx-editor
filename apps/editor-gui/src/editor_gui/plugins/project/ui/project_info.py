@@ -86,11 +86,20 @@ class ProjectInfoPanel:
             (S.PROJECT_INFO_VALIDATION, self._artifact(info.validation_size)),
             (S.PROJECT_INFO_CERTIFICATE, self._artifact(info.certificate_size)),
         ]
-        flags = imgui.TableFlags_.borders_inner | imgui.TableFlags_.resizable
-        if not imgui.begin_table("##project_info", 2, flags):
+        # Laid out like the Device panel's fields: grey labels in a column as wide as the longest
+        # of them, the values beside them, no lines between the rows.
+        labels = [
+            S.PROJECT_INFO_NAME,
+            S.STATUS,
+            S.PROJECT_INFO_CODE_PAGE,
+            S.PROJECT_INFO_PASSWORD,
+            S.PROJECT_INFO_CERTIFICATES,
+            *(label for label, _value in rows),
+        ]
+        label_w = max(imgui.calc_text_size(label).x for label in labels) + px(12)
+        if not imgui.begin_table("##project_info", 2):
             return
-        # Fixed, compact label column so the value column gets the rest — wide enough for a GUID.
-        imgui.table_setup_column("", imgui.TableColumnFlags_.width_fixed, px(130.0))
+        imgui.table_setup_column("", imgui.TableColumnFlags_.width_fixed, label_w)
         imgui.table_setup_column("", imgui.TableColumnFlags_.width_stretch, 1.0)
         self._render_name(info)
         self._render_status()
@@ -100,8 +109,10 @@ class ProjectInfoPanel:
         for label, value in rows:
             imgui.table_next_row()
             imgui.table_set_column_index(0)
+            imgui.align_text_to_frame_padding()
             imgui.text_disabled(label)
             imgui.table_set_column_index(1)
+            imgui.align_text_to_frame_padding()
             imgui.text_wrapped(value or "-")
         imgui.end_table()
         self._render_password_dialog()

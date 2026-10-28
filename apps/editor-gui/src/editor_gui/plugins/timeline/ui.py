@@ -85,18 +85,21 @@ class TimelinePanel:
 
         self._filter = filter_box("##tl_filter", S.TIMELINE_SEARCH, self._filter)
         needle = self._filter.lower().strip()
-        for raw, label, _dpt in ga_info:
-            if needle and needle not in label.lower():
-                continue
-            checked = raw in self._pinned
-            changed, new = checkbox(f"##pin{raw}", checked)
-            if changed:
-                if new:
-                    self._pinned.add(raw)
-                else:
-                    self._pinned.discard(raw)
-            imgui.same_line()
-            imgui.text_colored(color_by_raw[raw], label)
+        # Only the list scrolls; the filter stays above it.
+        if imgui.begin_child("##tl_pins", imgui.ImVec2(0.0, 0.0)):
+            for raw, label, _dpt in ga_info:
+                if needle and needle not in label.lower():
+                    continue
+                checked = raw in self._pinned
+                changed, new = checkbox(f"##pin{raw}", checked)
+                if changed:
+                    if new:
+                        self._pinned.add(raw)
+                    else:
+                        self._pinned.discard(raw)
+                imgui.same_line()
+                imgui.text_colored(color_by_raw[raw], label)
+        imgui.end_child()
 
     def _render_chart(
         self, ga_info: list[GaInfo], color_by_raw: dict[int, imgui.ImVec4]

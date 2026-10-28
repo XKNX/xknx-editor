@@ -53,6 +53,20 @@ def _frames(
     return pos, size
 
 
+def _drag(at: int, to: imgui.ImVec2) -> Callable[[int], None]:
+    """Move the dialog to ``to`` in frame ``at`` with the mouse button held, as a drag does."""
+
+    def before(frame: int) -> None:
+        io = imgui.get_io()
+        if frame == at - 1:
+            io.add_mouse_button_event(0, True)  # held from the next frame on
+        if frame == at:
+            imgui.set_window_pos("Delete", to)
+            io.add_mouse_button_event(0, False)
+
+    return before
+
+
 def _centred(pos: imgui.ImVec2, size: imgui.ImVec2) -> bool:
     return abs(pos.x + size.x / 2 - 400) <= 1 and abs(pos.y + size.y / 2 - 300) <= 1
 
@@ -78,18 +92,45 @@ def test_recentred_when_content_grows() -> None:
 
 @pytest.mark.usefixtures("context")
 def test_moved_dialog_stays_where_moved() -> None:
-    def move(frame: int) -> None:
-        if frame == 4:
-            imgui.set_window_pos("Delete", imgui.ImVec2(20, 30))
-
     def content(frame: int) -> None:
         imgui.text("Deleting")
         if frame >= 6:
             imgui.dummy(imgui.ImVec2(300, 200))
 
-    pos, size = _frames(10, content, move)
+    pos, size = _frames(10, content, _drag(4, imgui.ImVec2(20, 30)))
     assert size.y > 200
     assert (pos.x, pos.y) == (20, 30)
+
+
+@pytest.mark.usefixtures("context")
+def test_shifted_without_a_drag_is_centred_again() -> None:
+    # ImGui shifts a window a little to keep it on the screen (a dialog that is as tall as the
+    # screen in its first frame): no move by the user, so it is centred again.
+    def shift(frame: int) -> None:
+        if frame == 4:
+            imgui.set_window_pos("Delete", imgui.ImVec2(20, 30))
+
+    pos, size = _frames(8, lambda _: imgui.text("Deleting"), shift)
+    assert _centred(pos, size)
+
+
+@pytest.mark.usefixtures("context")
+def test_a_minimum_width_from_the_first_frame() -> None:
+    sizes: list[imgui.ImVec2] = []
+    for frame in range(6):
+        imgui.new_frame()
+        if frame == 0:
+            imgui.open_popup("Working")
+        if begin_dialog("Working", min_width=560.0):
+            imgui.text_wrapped(_TEXT)
+            sizes.append(imgui.get_window_size())
+            pos = imgui.get_window_pos()
+            end_dialog()
+        imgui.end_frame()
+    # Wrapped at the minimum width at once, not character by character into a tall first frame.
+    assert all(size.y < 300 for size in sizes[1:])
+    assert sizes[-1].x >= 560
+    assert _centred(pos, sizes[-1])
 
 
 def _resize_screen(at: int, width: float, height: float) -> Callable[[int], None]:
@@ -140,8 +181,7 @@ def test_follows_a_smaller_screen() -> None:
 @pytest.mark.usefixtures("context")
 def test_moved_dialog_is_centred_on_a_resized_screen() -> None:
     def before(frame: int) -> None:
-        if frame == 4:
-            imgui.set_window_pos("Delete", imgui.ImVec2(20, 30))
+        _drag(4, imgui.ImVec2(20, 30))(frame)
         _resize_screen(7, 1200, 900)(frame)
 
     pos, size = _frames(10, lambda _: imgui.text("Deleting"), before)
