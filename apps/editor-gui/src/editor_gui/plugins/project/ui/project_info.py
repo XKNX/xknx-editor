@@ -1,13 +1,14 @@
-"""Project information view: the project metadata carried over on import, with the project name and
-password editable."""
+"""Project information view: the project metadata carried over on import, with the project name,
+status, codepage and password editable."""
 
 from collections.abc import Callable
 from typing import TYPE_CHECKING
 
 from imgui_bundle import imgui
 
+from editor_gui.plugins.project.code_page import PROJECT_CODE_PAGES, code_page_text
 from editor_gui.plugins.project.strings import S
-from editor_gui.plugins.project.ui.status_field import status_combo
+from editor_gui.plugins.project.ui.status_field import choice_combo, status_combo
 from editor_gui.strings import S as APP_S
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
 from editor_gui.widgets.dpi import px
@@ -45,8 +46,10 @@ class ProjectInfoPanel:
         get_status: Callable[[], str | None] = lambda: None,
         on_set_status: Callable[[str], None] = lambda _s: None,
         get_path: "Callable[[], Path | None]" = lambda: None,
+        on_set_code_page: Callable[[str | None], None] | None = None,
     ) -> None:
         self._get_project_info = get_project_info
+        self._on_set_code_page = on_set_code_page
         self._get_path = get_path
         self._get_status = get_status
         self._on_set_status = on_set_status
@@ -91,6 +94,7 @@ class ProjectInfoPanel:
         imgui.table_setup_column("", imgui.TableColumnFlags_.width_stretch, 1.0)
         self._render_name(info)
         self._render_status()
+        self._render_code_page(info)
         self._render_password(info)
         self._render_certificates_row()
         for label, value in rows:
@@ -134,6 +138,26 @@ class ProjectInfoPanel:
         chosen = status_combo("##project_status", status)
         if chosen is not None:
             self._on_set_status(chosen)
+
+    def _render_code_page(self, info: "ProjectInfo") -> None:
+        """The codepage some devices encode their texts with; "" stands for the system language."""
+        imgui.table_next_row()
+        imgui.table_set_column_index(0)
+        imgui.align_text_to_frame_padding()
+        imgui.text_disabled(S.PROJECT_INFO_CODE_PAGE)
+        imgui.table_set_column_index(1)
+        if self._on_set_code_page is None:
+            imgui.text_wrapped(code_page_text(info.code_page))
+            return
+        options = [(code or "", code_page_text(code)) for code in PROJECT_CODE_PAGES]
+        current = info.code_page or ""
+        if all(value != current for value, _text in options):
+            options.insert(0, (current, code_page_text(current)))
+        chosen = choice_combo("##project_code_page", options, current)
+        if imgui.is_item_hovered():
+            imgui.set_tooltip(S.PROJECT_INFO_CODE_PAGE_HINT)
+        if chosen is not None:
+            self._on_set_code_page(chosen or None)
 
     def _render_certificates_row(self) -> None:
         """The number of device certificates, with the dialog that manages them."""

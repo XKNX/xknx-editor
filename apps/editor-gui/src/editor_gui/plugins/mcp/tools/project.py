@@ -29,6 +29,7 @@ from editor_gui.device import (
 )
 from editor_gui.device_plugins import parameters_in_plugin
 from editor_gui.plugins.mcp.context import McpContext, make_tool, require_project
+from editor_gui.plugins.project.code_page import code_page_text
 from editor_gui.plugins.project.element_status import usage_label, usage_options
 from editor_gui.plugins.project.paste import PasteTarget
 from editor_gui.plugins.project.service import DeviceProduct
@@ -1719,9 +1720,11 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
     @tool("read")
     def project_info() -> dict[str, Any]:
         """Project metadata. Returns {id, name, path, group_address_style, guid, created_by,
-        last_modified, schema_version, tool_version}. ``path`` is the project's .xknx file on the
-        editor host. ``group_address_style`` (ThreeLevel/TwoLevel/Free) governs how group-address
-        strings parse."""
+        last_modified, schema_version, tool_version, code_page, code_page_name}. ``path`` is the
+        project's .xknx file on the editor host. ``group_address_style`` (ThreeLevel/TwoLevel/Free)
+        governs how group-address strings parse. ``code_page`` is the codepage the project texts
+        are entered in (e.g. iso-8859-1; null: the system language), which some applications
+        encode their text parameters with; change it with project_set_code_page."""
         require_project(ctx)
         info, path = ctx.run_locked(
             lambda: (project.get_project_metadata(), project.path)
@@ -1738,6 +1741,8 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             "last_modified": info.last_modified,
             "schema_version": info.schema_version,
             "tool_version": info.tool_version,
+            "code_page": info.code_page,
+            "code_page_name": code_page_text(info.code_page),
         }
 
     # --- reads ------------------------------------------------------------

@@ -2963,3 +2963,51 @@ msgstr "У браузері виберіть Knx.Ets.Common.dll разом із 
 
 msgid "Knx.Ets.Common.dll needs log4net.dll from its folder: choose both files together."
 msgstr "Knx.Ets.Common.dll потребує log4net.dll зі своєї папки: виберіть обидва файли разом."
+
+msgid "Codepage"
+msgstr "Кодова сторінка"
+
+msgid "Choose in which language the project texts are entered"
+msgstr "Виберіть, якою мовою в проєкті вводяться тексти"
+
+msgid "System language"
+msgstr "Мова системи"
+
+msgid "Western European (ISO 8859-1)"
+msgstr "Western European (ISO 8859-1)"
+
+msgid "Central European (ISO 8859-2)"
+msgstr "Central European (ISO 8859-2)"
+
+msgid "South European (ISO 8859-3)"
+msgstr "South European (ISO 8859-3)"
+
+msgid "North European (ISO 8859-4)"
+msgstr "North European (ISO 8859-4)"
+
+msgid "Cyrillic (ISO 8859-5)"
+msgstr "Cyrillic (ISO 8859-5)"
+
+msgid "Arabic (ISO 8859-6)"
+msgstr "Arabic (ISO 8859-6)"
+
+msgid "Greek (ISO 8859-7)"
+msgstr "Greek (ISO 8859-7)"
+
+msgid "Hebrew (ISO 8859-8)"
+msgstr "Hebrew (ISO 8859-8)"
+
+msgid "Turkish (ISO 8859-9)"
+msgstr "Turkish (ISO 8859-9)"
+
+msgid "Nordic (ISO 8859-10)"
+msgstr "Nordic (ISO 8859-10)"
+
+msgid "Baltic Rim (ISO 8859-13)"
+msgstr "Baltic Rim (ISO 8859-13)"
+
+msgid "Western European (ISO 8859-15)"
+msgstr "Western European (ISO 8859-15)"
+
+msgid "Set codepage to {code_page}"
+msgstr "Встановити кодову сторінку {code_page}"

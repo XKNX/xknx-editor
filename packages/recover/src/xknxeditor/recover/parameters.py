@@ -47,18 +47,22 @@ def recover_parameters(
     application: Application,
     parameter_segments: Mapping[str, bytes],
     property_values: Mapping[tuple[int | None, int, int], bytes] | None = None,
+    project_code_page: str | None = None,
 ) -> RecoveredParameters:
     """Recover parameter reference values from a device's memory and properties.
 
     ``parameter_segments`` is ``{segment_id: bytes}`` and ``property_values`` is
     ``{(object_index, property_id, occurrence): bytes}``, both as read off the
-    device (see :mod:`xknxeditor.recover.read_config`). Returns the recovered value
+    device (see :mod:`xknxeditor.recover.read_config`). ``project_code_page`` is the
+    ``CodePage`` of the project the device goes into (``None``: the system language),
+    which some applications encode their text parameters with. Returns the recovered value
     for every parameter reference whose type is reconstructable, and the parameter
     ids whose value is unknown (lossy types / absent data).
     """
     ui = application.dynamic_ui()
     if ui is None:
         return RecoveredParameters(values={}, unknown=[])
+    ui.project_code_page = project_code_page
     decoded = dict(ui.decode_memory_parameters(parameter_segments))
     if property_values:
         # Memory and property parameters are disjoint, so a plain merge is safe.
@@ -79,7 +83,7 @@ def recover_parameters(
     # stores, so they merge straight into values.
     from .recover import seed_dynamic_ui
 
-    seeded = seed_dynamic_ui(application, values)
+    seeded = seed_dynamic_ui(application, values, project_code_page)
     if seeded is not None:
         for ref_id, value in seeded.decode_module_parameters(
             parameter_segments, property_values or {}

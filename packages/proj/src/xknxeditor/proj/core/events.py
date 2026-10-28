@@ -2593,6 +2593,51 @@ class SetProjectName(Event):
 
 @_register
 @dataclass
+class SetProjectCodePage(Event):
+    """Set the project's ``CodePage`` (``ProjectInformation/@CodePage``); ``None`` removes it, which
+    means the system language."""
+
+    event_type: ClassVar[str] = "SetProjectCodePage"
+
+    project_id: str
+    code_page: str | None
+    old_code_page: str | None = None
+
+    @staticmethod
+    def _write(project: Project, code_page: str | None) -> None:
+        # A new dict, so the JSON column registers the change.
+        attributes = dict(project.extra_attributes or {})
+        if code_page is None:
+            attributes.pop("CodePage", None)
+        else:
+            attributes["CodePage"] = code_page
+        project.extra_attributes = attributes or None
+
+    def apply(self, session: Session) -> None:
+        project = session.get(Project, self.project_id)
+        if project is not None:
+            self.old_code_page = (project.extra_attributes or {}).get("CodePage")
+            self._write(project, self.code_page)
+
+    def revert(self, session: Session) -> None:
+        project = session.get(Project, self.project_id)
+        if project is not None:
+            self._write(project, self.old_code_page)
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "project_id": self.project_id,
+            "code_page": self.code_page,
+            "old_code_page": self.old_code_page,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> SetProjectCodePage:
+        return cls(**data)
+
+
+@_register
+@dataclass
 class SetDeviceCertificates(Event):
     """Replace the project's ``<DeviceCertificates>`` (the FDSKs, kept encrypted as they are)."""
 

@@ -2963,3 +2963,51 @@ msgstr "在浏览器中，请同时选择 Knx.Ets.Common.dll 和同一文件夹�
 
 msgid "Knx.Ets.Common.dll needs log4net.dll from its folder: choose both files together."
 msgstr "Knx.Ets.Common.dll 需要其文件夹中的 log4net.dll：请同时选择这两个文件。"
+
+msgid "Codepage"
+msgstr "代码页"
+
+msgid "Choose in which language the project texts are entered"
+msgstr "选择项目文本输入的语言"
+
+msgid "System language"
+msgstr "系统语言"
+
+msgid "Western European (ISO 8859-1)"
+msgstr "西欧(ISO 8859-1)"
+
+msgid "Central European (ISO 8859-2)"
+msgstr "中欧(ISO 8859-2)"
+
+msgid "South European (ISO 8859-3)"
+msgstr "南欧(ISO 8859-3)"
+
+msgid "North European (ISO 8859-4)"
+msgstr "北欧(ISO 8859-4)"
+
+msgid "Cyrillic (ISO 8859-5)"
+msgstr "西里尔字母 (ISO 8859-5)"
+
+msgid "Arabic (ISO 8859-6)"
+msgstr "阿拉伯(ISO 8859-6)"
+
+msgid "Greek (ISO 8859-7)"
+msgstr "希腊 (ISO 8859-7)"
+
+msgid "Hebrew (ISO 8859-8)"
+msgstr "希伯来 (ISO 8859-8)"
+
+msgid "Turkish (ISO 8859-9)"
+msgstr "土耳其 (ISO 8859-9)"
+
+msgid "Nordic (ISO 8859-10)"
+msgstr "北欧人的 (ISO 8859-10)"
+
+msgid "Baltic Rim (ISO 8859-13)"
+msgstr "波罗的海 (ISO 8859-13)"
+
+msgid "Western European (ISO 8859-15)"
+msgstr "西欧 (ISO 8859-15)"
+
+msgid "Set codepage to {code_page}"
+msgstr "将代码页设置为 {code_page}"

@@ -2963,3 +2963,51 @@ msgstr "Στο πρόγραμμα περιήγησης, επιλέξτε το Kn
 
 msgid "Knx.Ets.Common.dll needs log4net.dll from its folder: choose both files together."
 msgstr "Το Knx.Ets.Common.dll χρειάζεται το log4net.dll από τον φάκελό του: επιλέξτε και τα δύο αρχεία μαζί."
+
+msgid "Codepage"
+msgstr "Κωδικοσελίδα"
+
+msgid "Choose in which language the project texts are entered"
+msgstr "Επιλέξτε τη γλώσσα στην οποία εισάγονται τα κείμενα του έργου"
+
+msgid "System language"
+msgstr "Γλώσσα συστήματος"
+
+msgid "Western European (ISO 8859-1)"
+msgstr "Δυτ.Ευρώπης (ISO 8859-1)"
+
+msgid "Central European (ISO 8859-2)"
+msgstr "Κεντρ.Ευρώπης (ISO 8859-2)"
+
+msgid "South European (ISO 8859-3)"
+msgstr "Νότιας Ευρώπης (ISO 8859-3)"
+
+msgid "North European (ISO 8859-4)"
+msgstr "Βόρειας Ευρώπης (ISO 8859-4)"
+
+msgid "Cyrillic (ISO 8859-5)"
+msgstr "Κυριλλικά (ISO 8859-5)"
+
+msgid "Arabic (ISO 8859-6)"
+msgstr "Αραβικά (ISO 8859-6)"
+
+msgid "Greek (ISO 8859-7)"
+msgstr "Ελληνικά (ISO 8859-7)"
+
+msgid "Hebrew (ISO 8859-8)"
+msgstr "Εβραϊκά (ISO 8859-8)"
+
+msgid "Turkish (ISO 8859-9)"
+msgstr "Τούρκικα (ISO 8859-9)"
+
+msgid "Nordic (ISO 8859-10)"
+msgstr "Σκανδιναβικά (ISO 8859-10)"
+
+msgid "Baltic Rim (ISO 8859-13)"
+msgstr "Βαλτικά (ISO 8859-13)"
+
+msgid "Western European (ISO 8859-15)"
+msgstr "Δυτ.Ευρώπης (ISO 8859-15)"
+
+msgid "Set codepage to {code_page}"
+msgstr "Ορισμός κωδικοσελίδας σε {code_page}"

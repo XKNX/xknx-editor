@@ -83,6 +83,7 @@ from xknxeditor.namespaces.intermediate.union_parameter_t import UnionParameter
 from ..errors import EncodingError
 from .application_indexer import ApplicationIndexer
 from .state import GlobalState, ModuleState
+from .text_encoding import text_parameter_encoding
 
 log = logging.getLogger(__name__)
 # Out-of-range values already reported, (value, id of its type), so a repeated encode stays quiet.
@@ -138,27 +139,6 @@ def _program_little_endian(app: ApplicationProgram) -> bool:
     options = getattr(app.static, "options", None)
     order = getattr(options, "parameter_byte_order", None)
     return order is not None and order.value == "LittleEndian"
-
-
-def _program_text_encoding(app: ApplicationProgram) -> str:
-    """The text encoding the application wants its ``Text`` parameters packed in.
-
-    Read from the static options' ``TextParameterEncoding`` attribute. ETS schemas
-    expose ``utf-8``/``iso-8859-1``/``us-ascii``; the attribute is optional and defaults
-    to Latin-1 (ISO-8859-1), which was the pre-ETS6 code page. We only need to tell apart
-    utf-8 from the single-byte codepages — the ``str.encode`` codec names are the schema's
-    tokens lowercased.
-    """
-    options = getattr(app.static, "options", None)
-    raw = getattr(options, "text_parameter_encoding", None)
-    if raw is None:
-        return "latin-1"
-    token = str(getattr(raw, "value", raw) or "").lower().strip()
-    if token in ("utf-8", "utf8"):
-        return "utf-8"
-    if token in ("us-ascii", "ascii"):
-        return "ascii"
-    return "latin-1"
 
 
 # Bit-widths of the value types that have no ``size_in_bit`` field of their own because
@@ -466,9 +446,9 @@ def _encode_float(
 def _encode_text(str_value: str, size_in_bit: int, encoding: str = "latin-1") -> int:
     """Text parameter payload, truncated and zero-padded to the field width.
 
-    The ``encoding`` comes from the application's static ``TextParameterEncoding`` option
-    (``_program_text_encoding``) — ``utf-8`` for modern products, ``latin-1`` (ISO-8859-1)
-    for older code-page apps. A character the chosen codec cannot represent falls back to
+    The ``encoding`` is the application's in its project (see
+    :func:`~xknxeditor.prod.parser_v2.text_encoding.text_parameter_encoding`). A character the
+    chosen codec cannot represent falls back to
     ``?`` so the write doesn't abort on a stray glyph. Zero padding also provides the null
     terminator implicitly (the KNX standard relies on the zero-initialised buffer for
     termination).
@@ -1144,15 +1124,17 @@ def encode_to_memory(
     idx: ApplicationIndexer,
     overrides: dict[str, str],
     state: GlobalState | None = None,
+    text_encoding: str | None = None,
 ) -> dict[str, bytes]:
     """Pack parameter values into per-segment byte buffers.
 
     Yields {segment_id: bytes} for each segment, seeded by :func:`segment_seed`.
-    Layout: bit_offset 0 is a byte's MSB; values are big-endian.
+    Layout: bit_offset 0 is a byte's MSB; values are big-endian. ``text_encoding`` is the
+    codec of ``Text`` parameters (default: :func:`text_parameter_encoding` without a project).
     """
     writes = collect_writes(app, idx, overrides, state)
     little_endian = _program_little_endian(app)
-    text_encoding = _program_text_encoding(app)
+    text_encoding = text_encoding or text_parameter_encoding(app)
     bufs: dict[str, bytearray] = {
         seg_id: segment_seed(seg) for seg_id, seg in idx.code_segments.items()
     }
@@ -1183,6 +1165,7 @@ def encode_to_memory_masked(
     idx: ApplicationIndexer,
     overrides: dict[str, str],
     state: GlobalState | None = None,
+    text_encoding: str | None = None,
 ) -> dict[str, tuple[bytes, bytes]]:
     """Like :func:`encode_to_memory` but also return a write mask per segment.
 
@@ -1195,7 +1178,7 @@ def encode_to_memory_masked(
     """
     writes = collect_writes(app, idx, overrides, state, inactive_ranges=True)
     little_endian = _program_little_endian(app)
-    text_encoding = _program_text_encoding(app)
+    text_encoding = text_encoding or text_parameter_encoding(app)
     bufs: dict[str, bytearray] = {
         seg_id: segment_seed(seg) for seg_id, seg in idx.code_segments.items()
     }
@@ -1366,6 +1349,7 @@ def _decode_value(
     tc: object,
     *,
     little_endian: bool,
+    text_encoding: str = "latin-1",
     for_property: bool = False,
 ) -> str | None:
     """Best-effort inverse of :func:`_encode_value`; ``None`` when not recoverable.
@@ -1379,7 +1363,8 @@ def _decode_value(
     ``None`` - the original cannot be reconstructed from the bytes alone.
 
     ``for_property`` selects the RawData framing (memory has a 4-octet length
-    prefix, a property value has none - see :func:`_encode_raw_data`).
+    prefix, a property value has none - see :func:`_encode_raw_data`); ``text_encoding``
+    is the codec of ``Text`` parameters.
     """
     if isinstance(tc, ParameterTypeTypeRestriction):
         for enumeration in tc.enumeration:
@@ -1407,7 +1392,9 @@ def _decode_value(
         return _decode_float(raw if logical is None else logical, size_in_bit, tc)
     if isinstance(tc, ParameterTypeTypeText):
         data = _field_bytes(raw, size_in_bit)
-        return None if data is None else data.rstrip(b"\x00").decode("latin-1")
+        if data is None:
+            return None
+        return data.rstrip(b"\x00").decode(text_encoding, errors="replace")
     if isinstance(tc, ParameterTypeTypeIpaddress):
         data = _field_bytes(raw, size_in_bit)
         if data is None or len(data) not in (4, 16):
@@ -1454,6 +1441,7 @@ def decode_memory_parameters(
     idx: ApplicationIndexer,
     segments: Mapping[str, bytes],
     state: GlobalState | None = None,
+    text_encoding: str | None = None,
 ) -> dict[str, str | None]:
     """Best-effort inverse of :func:`encode_to_memory` for recovering parameter values.
 
@@ -1471,6 +1459,7 @@ def decode_memory_parameters(
     and is left to a caller that has it. Property-backed parameters are omitted too.
     """
     little_endian = _program_little_endian(app)
+    text_encoding = text_encoding or text_parameter_encoding(app)
     result: dict[str, str | None] = {}
     # Resolving against the evaluated state (not empty overrides) is what makes union
     # members appear in the write set: a union only contributes its active alternative
@@ -1491,7 +1480,11 @@ def decode_memory_parameters(
             continue  # field does not fit the bytes we read (do not decode zero-fill)
         raw = _read_bits(data, w.offset, w.bit_offset, size_in_bit)
         result[w.param_id] = _decode_value(
-            raw, size_in_bit, pt.choice, little_endian=little_endian
+            raw,
+            size_in_bit,
+            pt.choice,
+            little_endian=little_endian,
+            text_encoding=text_encoding,
         )
     return result
 
@@ -1501,6 +1494,7 @@ def decode_property_parameters(
     idx: ApplicationIndexer,
     properties: Mapping[PropertyKey, bytes],
     state: GlobalState | None = None,
+    text_encoding: str | None = None,
 ) -> dict[str, str | None]:
     """Best-effort inverse of :func:`encode_to_properties` for property parameters.
 
@@ -1512,6 +1506,7 @@ def decode_property_parameters(
     for the same reason as :func:`decode_memory_parameters`.
     """
     little_endian = _program_little_endian(app)
+    text_encoding = text_encoding or text_parameter_encoding(app)
     result: dict[str, str | None] = {}
     overrides = resolve_param_values(idx, state) if state is not None else {}
     for w in collect_writes(app, idx, overrides, state).prop:
@@ -1537,7 +1532,12 @@ def decode_property_parameters(
             continue  # field does not fit the bytes we read
         raw = _read_bits(data, w.offset, w.bit_offset, size_in_bit)
         result[w.param_id] = _decode_value(
-            raw, size_in_bit, pt.choice, little_endian=little_endian, for_property=True
+            raw,
+            size_in_bit,
+            pt.choice,
+            little_endian=little_endian,
+            text_encoding=text_encoding,
+            for_property=True,
         )
     return result
 
@@ -1548,6 +1548,7 @@ def _decode_field(
     idx: ApplicationIndexer,
     *,
     little_endian: bool,
+    text_encoding: str,
     for_property: bool,
 ) -> str | None:
     """Decode one write's field from ``data`` (its segment/property bytes)."""
@@ -1565,6 +1566,7 @@ def _decode_field(
         size_in_bit,
         pt.choice,
         little_endian=little_endian,
+        text_encoding=text_encoding,
         for_property=for_property,
     )
 
@@ -1575,6 +1577,7 @@ def decode_module_parameters(
     state: GlobalState,
     segments: Mapping[str, bytes],
     properties: Mapping[PropertyKey, bytes],
+    text_encoding: str | None = None,
 ) -> dict[str, str | None]:
     """Decode module-instance parameter values from device memory and properties.
 
@@ -1585,6 +1588,7 @@ def decode_module_parameters(
     reference ids a project stores - with ``None`` for unreconstructable types.
     """
     little_endian = _program_little_endian(app)
+    text_encoding = text_encoding or text_parameter_encoding(app)
     param_to_refs: dict[str, list[str]] = {}
     for ref_id, ref in idx.parameter_refs.items():
         param_to_refs.setdefault(ref.ref_id, []).append(ref_id)
@@ -1598,7 +1602,12 @@ def decode_module_parameters(
             data = segments.get(w.seg_id)
             if data is not None:
                 value = _decode_field(
-                    w, data, idx, little_endian=little_endian, for_property=False
+                    w,
+                    data,
+                    idx,
+                    little_endian=little_endian,
+                    text_encoding=text_encoding,
+                    for_property=False,
                 )
                 for ref_id in param_to_refs.get(w.param_id, []):
                     result[scope.qualify(ref_id)] = value
@@ -1615,7 +1624,12 @@ def decode_module_parameters(
                 )
             if data is not None:
                 value = _decode_field(
-                    w, data, idx, little_endian=little_endian, for_property=True
+                    w,
+                    data,
+                    idx,
+                    little_endian=little_endian,
+                    text_encoding=text_encoding,
+                    for_property=True,
                 )
                 for ref_id in param_to_refs.get(w.param_id, []):
                     result[scope.qualify(ref_id)] = value
@@ -1632,11 +1646,13 @@ def encode_to_properties(
     idx: ApplicationIndexer,
     overrides: dict[str, str],
     state: GlobalState | None = None,
+    text_encoding: str | None = None,
 ) -> dict[PropertyKey, bytes]:
     """Pack PropertyParameter-backed values into interface-object property data.
 
     Yields {(object_index, property_id, occurrence): bytes}.
     Layout: bit_offset 0 is a byte's MSB; values are big-endian. Buffers grow to fit.
+    ``text_encoding`` as for :func:`encode_to_memory`.
     """
     return _encode_properties(
         app,
@@ -1644,6 +1660,7 @@ def encode_to_properties(
         overrides,
         state,
         lambda w: (w.object_index, w.property_id, w.occurrence),
+        text_encoding,
     )
 
 
@@ -1652,6 +1669,7 @@ def encode_to_typed_properties(
     idx: ApplicationIndexer,
     overrides: dict[str, str],
     state: GlobalState | None = None,
+    text_encoding: str | None = None,
 ) -> dict[TypedPropertyKey, bytes]:
     """:func:`encode_to_properties` keyed by ``(object_index, object_type, property_id,
     occurrence)``, so properties of objects addressed by type stay apart per type."""
@@ -1661,6 +1679,7 @@ def encode_to_typed_properties(
         overrides,
         state,
         lambda w: (w.object_index, w.object_type, w.property_id, w.occurrence),
+        text_encoding,
     )
 
 
@@ -1685,6 +1704,7 @@ def encode_to_typed_properties_masked(
     idx: ApplicationIndexer,
     overrides: dict[str, str],
     state: GlobalState | None = None,
+    text_encoding: str | None = None,
 ) -> dict[TypedPropertyKey, MaskedProperty]:
     """:func:`encode_to_typed_properties` with what the parameters cover (see
     :class:`MaskedProperty`). A kept range (an inactive parameter under ``Background``) is
@@ -1695,6 +1715,7 @@ def encode_to_typed_properties_masked(
         overrides,
         state,
         lambda w: (w.object_index, w.object_type, w.property_id, w.occurrence),
+        text_encoding,
     )
 
 
@@ -1704,8 +1725,11 @@ def _encode_properties[K](
     overrides: dict[str, str],
     state: GlobalState | None,
     key_of: Callable[[PropWrite], K],
+    text_encoding: str | None,
 ) -> dict[K, bytes]:
-    encoded = _encode_properties_masked(app, idx, overrides, state, key_of)
+    encoded = _encode_properties_masked(
+        app, idx, overrides, state, key_of, text_encoding
+    )
     return {key: prop.data for key, prop in encoded.items()}
 
 
@@ -1715,10 +1739,11 @@ def _encode_properties_masked[K](
     overrides: dict[str, str],
     state: GlobalState | None,
     key_of: Callable[[PropWrite], K],
+    text_encoding: str | None,
 ) -> dict[K, MaskedProperty]:
     writes = collect_writes(app, idx, overrides, state, inactive_ranges=True)
     little_endian = _program_little_endian(app)
-    text_encoding = _program_text_encoding(app)
+    text_encoding = text_encoding or text_parameter_encoding(app)
     bitwise = (app.id or "").startswith(DO_NOT_FILL_UNUSED_BITS)
     bufs: dict[K, bytearray] = {}
     masks: dict[K, bytearray] = {}

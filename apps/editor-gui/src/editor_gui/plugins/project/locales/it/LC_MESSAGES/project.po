@@ -2963,3 +2963,51 @@ msgstr "Nel browser, scegliere Knx.Ets.Common.dll insieme a log4net.dll dalla st
 
 msgid "Knx.Ets.Common.dll needs log4net.dll from its folder: choose both files together."
 msgstr "Knx.Ets.Common.dll richiede log4net.dll dalla sua cartella: scegliere entrambi i file insieme."
+
+msgid "Codepage"
+msgstr "Codice pagina"
+
+msgid "Choose in which language the project texts are entered"
+msgstr "Scegli in quale lingua vengono inseriti i testi del progetto"
+
+msgid "System language"
+msgstr "Lingua di sistema"
+
+msgid "Western European (ISO 8859-1)"
+msgstr "Europa dell'Ovest (ISO 8859-1)"
+
+msgid "Central European (ISO 8859-2)"
+msgstr "Europa Centrale (ISO 8859-2)"
+
+msgid "South European (ISO 8859-3)"
+msgstr "Sud Europa (ISO 8859-3)"
+
+msgid "North European (ISO 8859-4)"
+msgstr "Nord Europa (ISO 8859-4)"
+
+msgid "Cyrillic (ISO 8859-5)"
+msgstr "Cirillico (ISO 8859-5)"
+
+msgid "Arabic (ISO 8859-6)"
+msgstr "Arabo (ISO 8859-6)"
+
+msgid "Greek (ISO 8859-7)"
+msgstr "Greco (ISO 8859-7)"
+
+msgid "Hebrew (ISO 8859-8)"
+msgstr "Ebraico (ISO 8859-8)"
+
+msgid "Turkish (ISO 8859-9)"
+msgstr "Turco (ISO 8859-9)"
+
+msgid "Nordic (ISO 8859-10)"
+msgstr "Nordico (ISO 8859-10)"
+
+msgid "Baltic Rim (ISO 8859-13)"
+msgstr "Baltic Rim (ISO 8859-13)"
+
+msgid "Western European (ISO 8859-15)"
+msgstr "Europa Ovest (ISO 8859-15)"
+
+msgid "Set codepage to {code_page}"
+msgstr "Imposta il codice pagina su {code_page}"

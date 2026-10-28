@@ -2963,3 +2963,51 @@ msgstr "Valitse selaimessa Knx.Ets.Common.dll yhdessä samasta kansiosta olevan 
 
 msgid "Knx.Ets.Common.dll needs log4net.dll from its folder: choose both files together."
 msgstr "Knx.Ets.Common.dll tarvitsee log4net.dll-tiedoston samasta kansiosta: valitse molemmat tiedostot yhdessä."
+
+msgid "Codepage"
+msgstr "Koodisivu"
+
+msgid "Choose in which language the project texts are entered"
+msgstr "Valitse, millä kielellä projektin tekstit syötetään"
+
+msgid "System language"
+msgstr "Järjestelmän kieli"
+
+msgid "Western European (ISO 8859-1)"
+msgstr "Länsi-Eurooppa (ISO 8859-1)"
+
+msgid "Central European (ISO 8859-2)"
+msgstr "Keski-Eurooppa (ISO 8859-2)"
+
+msgid "South European (ISO 8859-3)"
+msgstr "Etelä-Eurooppa (ISO 8859-3)"
+
+msgid "North European (ISO 8859-4)"
+msgstr "Pohjoiseurooppalainen (ISO 8859-4)"
+
+msgid "Cyrillic (ISO 8859-5)"
+msgstr "Kyrillinen (ISO 8859-5)"
+
+msgid "Arabic (ISO 8859-6)"
+msgstr "Arabia (ISO 8859-6)"
+
+msgid "Greek (ISO 8859-7)"
+msgstr "Kreikka (ISO 8859-7)"
+
+msgid "Hebrew (ISO 8859-8)"
+msgstr "Heprea (ISO 8859-8)"
+
+msgid "Turkish (ISO 8859-9)"
+msgstr "Turkki (ISO 8859-9)"
+
+msgid "Nordic (ISO 8859-10)"
+msgstr "Pohjoismainen (ISO 8859-10)"
+
+msgid "Baltic Rim (ISO 8859-13)"
+msgstr "Baltian Alue (ISO 8859-13)"
+
+msgid "Western European (ISO 8859-15)"
+msgstr "Länsi-Eurooppa (ISO 8859-15)"
+
+msgid "Set codepage to {code_page}"
+msgstr "Aseta koodisivuksi {code_page}"

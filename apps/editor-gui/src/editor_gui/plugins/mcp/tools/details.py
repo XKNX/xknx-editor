@@ -30,6 +30,7 @@ from editor_gui.plugins.mcp.tools.project import (
     require_device,
     require_group_address_id,
 )
+from editor_gui.plugins.project.code_page import code_page_text
 from editor_gui.plugins.project.service import interface_bus_access
 from xknxeditor.proj.core.medium import MEDIUM_NAMES, medium_name
 from xknxeditor.proj.core.rich_text import (
@@ -578,6 +579,25 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             project.set_project_name(name)
             info = project.get_project_metadata()
             return {"name": info.name if info is not None else name.strip()}
+
+        return ctx.run_locked(_set)
+
+    @tool("write")
+    def project_set_code_page(code_page: str | None = None) -> dict[str, Any]:
+        """Set the open project's codepage: the language its texts are entered in. Applications
+        that ask for it encode their text parameters with it. ``code_page`` is one of
+        iso-8859-1, -2, -3, -4, -5, -6, -7, -8, -9, -10, -13, -15 (the ones offered in the
+        Project Info panel), us-ascii or utf-8; null (the default) is the system language.
+        Undoable with project_undo. Returns {code_page, name}."""
+        require_project(ctx)
+
+        def _set() -> dict[str, Any]:
+            try:
+                project.set_project_code_page(code_page or None)
+            except ValueError as exc:
+                raise ToolError(str(exc)) from exc
+            current = project.project_code_page()
+            return {"code_page": current, "name": code_page_text(current)}
 
         return ctx.run_locked(_set)
 

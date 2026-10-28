@@ -1810,6 +1810,66 @@ class ProjectStrings:
         return _("Group Address Style")
 
     @property
+    def PROJECT_INFO_CODE_PAGE(self) -> str:
+        return _("Codepage")
+
+    @property
+    def PROJECT_INFO_CODE_PAGE_HINT(self) -> str:
+        return _("Choose in which language the project texts are entered")
+
+    @property
+    def CODE_PAGE_SYSTEM(self) -> str:
+        return _("System language")
+
+    @property
+    def CODE_PAGE_ISO_8859_1(self) -> str:
+        return _("Western European (ISO 8859-1)")
+
+    @property
+    def CODE_PAGE_ISO_8859_2(self) -> str:
+        return _("Central European (ISO 8859-2)")
+
+    @property
+    def CODE_PAGE_ISO_8859_3(self) -> str:
+        return _("South European (ISO 8859-3)")
+
+    @property
+    def CODE_PAGE_ISO_8859_4(self) -> str:
+        return _("North European (ISO 8859-4)")
+
+    @property
+    def CODE_PAGE_ISO_8859_5(self) -> str:
+        return _("Cyrillic (ISO 8859-5)")
+
+    @property
+    def CODE_PAGE_ISO_8859_6(self) -> str:
+        return _("Arabic (ISO 8859-6)")
+
+    @property
+    def CODE_PAGE_ISO_8859_7(self) -> str:
+        return _("Greek (ISO 8859-7)")
+
+    @property
+    def CODE_PAGE_ISO_8859_8(self) -> str:
+        return _("Hebrew (ISO 8859-8)")
+
+    @property
+    def CODE_PAGE_ISO_8859_9(self) -> str:
+        return _("Turkish (ISO 8859-9)")
+
+    @property
+    def CODE_PAGE_ISO_8859_10(self) -> str:
+        return _("Nordic (ISO 8859-10)")
+
+    @property
+    def CODE_PAGE_ISO_8859_13(self) -> str:
+        return _("Baltic Rim (ISO 8859-13)")
+
+    @property
+    def CODE_PAGE_ISO_8859_15(self) -> str:
+        return _("Western European (ISO 8859-15)")
+
+    @property
     def PROJECT_INFO_CREATED_BY(self) -> str:
         return _("Created by")
 
@@ -4386,6 +4446,10 @@ class ProjectStrings:
     @property
     def HISTORY_EV_RENAME_PROJECT(self) -> str:
         return _("Rename project to {name}")
+
+    @property
+    def HISTORY_EV_SET_CODE_PAGE(self) -> str:
+        return _("Set codepage to {code_page}")
 
     @property
     def HISTORY_EV_RENAME_LINE(self) -> str:

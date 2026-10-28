@@ -2963,3 +2963,51 @@ msgstr "V prohlížeči vyberte Knx.Ets.Common.dll spolu s log4net.dll ze stejn�
 
 msgid "Knx.Ets.Common.dll needs log4net.dll from its folder: choose both files together."
 msgstr "Knx.Ets.Common.dll potřebuje log4net.dll ze své složky: vyberte oba soubory najednou."
+
+msgid "Codepage"
+msgstr "Kódová strana"
+
+msgid "Choose in which language the project texts are entered"
+msgstr "Vyberte, v jakém jazyce budou zadávány texty projektů"
+
+msgid "System language"
+msgstr "Jazyk systému"
+
+msgid "Western European (ISO 8859-1)"
+msgstr "Západoevropský (ISO 8859-1)"
+
+msgid "Central European (ISO 8859-2)"
+msgstr "Středoevroský (ISO 8859-2)"
+
+msgid "South European (ISO 8859-3)"
+msgstr "Jihoevropský (ISO 8859-3)"
+
+msgid "North European (ISO 8859-4)"
+msgstr "Severoevropský (ISO 8859-4)"
+
+msgid "Cyrillic (ISO 8859-5)"
+msgstr "Kyrilice (ISO 8859-5)"
+
+msgid "Arabic (ISO 8859-6)"
+msgstr "Arabsky (ISO 8859-6)"
+
+msgid "Greek (ISO 8859-7)"
+msgstr "Řecky (ISO 8859-7)"
+
+msgid "Hebrew (ISO 8859-8)"
+msgstr "Hebrejština (ISO 8859-8)"
+
+msgid "Turkish (ISO 8859-9)"
+msgstr "Turecky (ISO 8859-9)"
+
+msgid "Nordic (ISO 8859-10)"
+msgstr "Skandinávský (ISO 8859-10)"
+
+msgid "Baltic Rim (ISO 8859-13)"
+msgstr "Baltský Kraj (ISO 8859-13)"
+
+msgid "Western European (ISO 8859-15)"
+msgstr "Západoevropský (ISO 8859-15)"
+
+msgid "Set codepage to {code_page}"
+msgstr "Nastavit kódovou stranu na {code_page}"
