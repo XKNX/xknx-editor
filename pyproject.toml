@@ -34,6 +34,8 @@ dev = [
 [tool.pytest.ini_options]
 testpaths = ["packages", "apps"]
 asyncio_mode = "auto"
+# A SQLAlchemy warning is a bug in our database handling (e.g. deleting rows that are gone).
+filterwarnings = ["error::sqlalchemy.exc.SAWarning"]
 
 [tool.coverage.run]
 # Measured in CI with `pytest --cov` and uploaded to Codecov: the packages and the app,

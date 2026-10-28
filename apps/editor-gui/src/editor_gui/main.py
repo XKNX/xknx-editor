@@ -4093,10 +4093,10 @@ class KnxGuiApp:
                 if kind == host.HOME_ASSISTANT_INTEGRATION
                 else S.UPDATE_HOME_ASSISTANT_APP
             )
-            clicked = dialog_buttons(S.UPDATE_SKIP, S.UPDATE_LATER)
-            if clicked == 0:
+            # Nothing to choose: the dialog only informs. Seen once, the check at start does not
+            # show this version again (Help > Check for Updates still does).
+            if dialog_buttons(S.BTN_CLOSE) == 0:
                 self._skip_update_version(info.version)
-            if clicked is not None:
                 imgui.close_current_popup()
             end_dialog()
             return

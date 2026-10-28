@@ -194,5 +194,6 @@ def test_update_found_inside_home_assistant(
 
     assert getattr(S, hint) in shown
     assert "New things" in shown
-    assert buttons == [(S.UPDATE_SKIP, S.UPDATE_LATER)]
+    # Only informs: one button; closed, the check at start does not show it again.
+    assert buttons == [(S.BTN_CLOSE,)]
     assert skipped == ["9.9.0"]

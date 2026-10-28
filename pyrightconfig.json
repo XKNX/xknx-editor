@@ -17,5 +17,6 @@
   ],
   "pythonVersion": "3.13",
   "typeCheckingMode": "strict",
-  "reportMissingTypeStubs": false
+  "reportMissingTypeStubs": false,
+  "reportMissingModuleSource": false
 }

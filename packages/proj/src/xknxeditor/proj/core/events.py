@@ -4591,6 +4591,9 @@ class ImportGroupAddresses(Event):
                 created
                 and (group_range := session.get(GroupRange, range_id)) is not None
             ):
+                # Its children as they are now: the addresses and sub-ranges deleted above are
+                # still in the collections loaded before, and deleting them again matches no row.
+                session.expire(group_range)
                 session.delete(group_range)
                 session.flush()
         for range_id, old_name in reversed(self.renamed):
