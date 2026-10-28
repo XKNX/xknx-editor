@@ -1437,3 +1437,18 @@ msgstr "Vain tämä kone"
 
 msgid "On the Network"
 msgstr "Verkossa"
+
+msgid "This editor is controllable by an AI assistant through the built-in MCP server: it exposes the catalog and project as tools over Streamable HTTP. Register its endpoint in your AI tool."
+msgstr "Tätä editoria voi ohjata tekoälyavustaja sisäänrakennetun MCP-palvelimen kautta: se tarjoaa luettelon ja projektin työkaluina Streamable HTTP:n kautta. Rekisteröi sen päätepiste tekoälytyökaluusi."
+
+msgid "Example: register the MCP server in your AI tool:"
+msgstr "Esimerkki: rekisteröi MCP-palvelin tekoälytyökaluusi:"
+
+msgid "Example: register the MCP server in your AI tool, with your token in place of HOME_ASSISTANT_TOKEN:"
+msgstr "Esimerkki: rekisteröi MCP-palvelin tekoälytyökaluusi ja korvaa HOME_ASSISTANT_TOKEN omalla tunnuksellasi:"
+
+msgid "Home Assistant provides the MCP server: AI tools sign in with a long-lived access token of a Home Assistant administrator (Profile > Security)."
+msgstr "Home Assistant tarjoaa MCP-palvelimen: tekoälytyökalut kirjautuvat Home Assistant -järjestelmänvalvojan pitkäaikaisella käyttötunnuksella (Profiili > Suojaus)."
+
+msgid "The program that started XKNX Editor set up its MCP server."
+msgstr "XKNX Editorin käynnistänyt ohjelma on määrittänyt sen MCP-palvelimen."

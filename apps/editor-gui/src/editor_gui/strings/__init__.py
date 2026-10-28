@@ -387,12 +387,44 @@ class MenuStrings:
         )
 
     @property
+    def KI_INFO_MANAGED(self) -> str:
+        # KI_INFO when the program that started the editor runs the MCP server (Home Assistant).
+        return _(
+            "This editor is controllable by an AI assistant through the built-in MCP server: it "
+            "exposes the catalog and project as tools over Streamable HTTP. Register its "
+            "endpoint in your AI tool."
+        )
+
+    @property
     def KI_ENDPOINT(self) -> str:
         return _("MCP Endpoint")
 
     @property
     def KI_COMMANDS_HINT(self) -> str:
         return _("Example: register the MCP server in your AI tool (adjust host/port):")
+
+    @property
+    def KI_COMMANDS_HINT_MANAGED(self) -> str:
+        return _("Example: register the MCP server in your AI tool:")
+
+    @property
+    def KI_COMMANDS_HINT_HOME_ASSISTANT(self) -> str:
+        # HOME_ASSISTANT_TOKEN stays as it is: it stands for the token in the commands below.
+        return _(
+            "Example: register the MCP server in your AI tool, with your token in place of "
+            "HOME_ASSISTANT_TOKEN:"
+        )
+
+    @property
+    def MCP_HOME_ASSISTANT(self) -> str:
+        return _(
+            "Home Assistant provides the MCP server: AI tools sign in with a long-lived access "
+            "token of a Home Assistant administrator (Profile > Security)."
+        )
+
+    @property
+    def MCP_MANAGED(self) -> str:
+        return _("The program that started XKNX Editor set up its MCP server.")
 
     @property
     def KI_HOST_HINT(self) -> str:

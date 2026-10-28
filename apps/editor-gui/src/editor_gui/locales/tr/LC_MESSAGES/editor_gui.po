@@ -1437,3 +1437,18 @@ msgstr "Yalnızca bu makine"
 
 msgid "On the Network"
 msgstr "Ağda"
+
+msgid "This editor is controllable by an AI assistant through the built-in MCP server: it exposes the catalog and project as tools over Streamable HTTP. Register its endpoint in your AI tool."
+msgstr "Bu düzenleyici yerleşik MCP sunucusu aracılığıyla bir yapay zekâ asistanı tarafından kontrol edilebilir: sunucu, katalog ve projeyi Streamable HTTP üzerinden araçlar olarak sunar. Uç noktasını yapay zekâ aracınıza kaydedin."
+
+msgid "Example: register the MCP server in your AI tool:"
+msgstr "Örnek: MCP sunucusunu yapay zekâ aracınıza kaydedin:"
+
+msgid "Example: register the MCP server in your AI tool, with your token in place of HOME_ASSISTANT_TOKEN:"
+msgstr "Örnek: MCP sunucusunu, HOME_ASSISTANT_TOKEN yerine kendi belirtecinizle yapay zekâ aracınıza kaydedin:"
+
+msgid "Home Assistant provides the MCP server: AI tools sign in with a long-lived access token of a Home Assistant administrator (Profile > Security)."
+msgstr "MCP sunucusunu Home Assistant sağlar: yapay zekâ araçları, bir Home Assistant yöneticisinin uzun ömürlü erişim belirteciyle oturum açar (Profil > Güvenlik)."
+
+msgid "The program that started XKNX Editor set up its MCP server."
+msgstr "XKNX Editor'ü başlatan program MCP sunucusunu yapılandırdı."

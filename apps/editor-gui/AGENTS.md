@@ -83,3 +83,12 @@ The same app also runs without a window: `--web` serves it to web browsers (`src
 - **Shared state:** all connected browsers share one UI state, and one of them controls it. State that should differ per browser (like the zoom) is held by the page.
 
 Tests: `src/editor_gui/tests/test_web.py`, `src/editor_gui/tests/test_touch.py`. Try a change with `uv run python -m editor_gui.main --web` (add `--web-no-browser` to keep the browser closed).
+
+## Inside Home Assistant (`editor_gui.host`)
+
+Home Assistant runs the editor in its browser mode in two ways: its integration ([xknx-editor-ha-integration](https://github.com/XKNX/xknx-editor-ha-integration), the panel in the sidebar) starts it with `--home-assistant=integration`, the Home Assistant app (`docker/ha-run.sh`) with `--home-assistant=app`. `host.home_assistant()` tells which (None: standalone); check it for anything that differs inside Home Assistant:
+
+- **Updates and exit:** Home Assistant updates and stops the editor, so there is no update check (Help menu, About dialog, at start) and no File > Exit.
+- **MCP:** the integration sets up the MCP server (`--mcp=host:port`, token in `XKNX_MCP_AUTH_TOKEN`, `--mcp-url` for the address clients use through Home Assistant). `host.current().mcp_managed` is then true: the server starts with the editor, the MCP menu and the AI tab show its status and address without the fields to change it, and nothing of it is stored in the settings.
+
+Tests: `src/editor_gui/tests/test_host.py`.

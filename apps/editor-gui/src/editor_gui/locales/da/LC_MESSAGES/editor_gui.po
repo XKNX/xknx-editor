@@ -1437,3 +1437,18 @@ msgstr "Kun denne maskine"
 
 msgid "On the Network"
 msgstr "På netværket"
+
+msgid "This editor is controllable by an AI assistant through the built-in MCP server: it exposes the catalog and project as tools over Streamable HTTP. Register its endpoint in your AI tool."
+msgstr "Denne editor kan styres af en AI-assistent via den indbyggede MCP-server: den stiller kataloget og projektet til rådighed som værktøjer via Streamable HTTP. Registrer dens endpoint i dit AI-værktøj."
+
+msgid "Example: register the MCP server in your AI tool:"
+msgstr "Eksempel: registrer MCP-serveren i dit AI-værktøj:"
+
+msgid "Example: register the MCP server in your AI tool, with your token in place of HOME_ASSISTANT_TOKEN:"
+msgstr "Eksempel: registrer MCP-serveren i dit AI-værktøj med dit token i stedet for HOME_ASSISTANT_TOKEN:"
+
+msgid "Home Assistant provides the MCP server: AI tools sign in with a long-lived access token of a Home Assistant administrator (Profile > Security)."
+msgstr "Home Assistant stiller MCP-serveren til rådighed: AI-værktøjer logger ind med et langtidsadgangstoken fra en Home Assistant-administrator (Profil > Sikkerhed)."
+
+msgid "The program that started XKNX Editor set up its MCP server."
+msgstr "Programmet, der startede XKNX Editor, har sat MCP-serveren op."

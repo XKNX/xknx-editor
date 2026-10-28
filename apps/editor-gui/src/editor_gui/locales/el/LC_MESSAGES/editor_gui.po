@@ -1437,3 +1437,18 @@ msgstr "Μόνο αυτός ο υπολογιστής"
 
 msgid "On the Network"
 msgstr "Στο δίκτυο"
+
+msgid "This editor is controllable by an AI assistant through the built-in MCP server: it exposes the catalog and project as tools over Streamable HTTP. Register its endpoint in your AI tool."
+msgstr "Αυτός ο επεξεργαστής μπορεί να ελέγχεται από έναν βοηθό τεχνητής νοημοσύνης μέσω του ενσωματωμένου διακομιστή MCP: παρέχει τον κατάλογο και το έργο ως εργαλεία μέσω Streamable HTTP. Καταχωρίστε το τελικό σημείο του στο εργαλείο AI σας."
+
+msgid "Example: register the MCP server in your AI tool:"
+msgstr "Παράδειγμα: καταχώριση του διακομιστή MCP στο εργαλείο AI σας:"
+
+msgid "Example: register the MCP server in your AI tool, with your token in place of HOME_ASSISTANT_TOKEN:"
+msgstr "Παράδειγμα: καταχώριση του διακομιστή MCP στο εργαλείο AI σας, με το token σας στη θέση του HOME_ASSISTANT_TOKEN:"
+
+msgid "Home Assistant provides the MCP server: AI tools sign in with a long-lived access token of a Home Assistant administrator (Profile > Security)."
+msgstr "Το Home Assistant παρέχει τον διακομιστή MCP: τα εργαλεία AI συνδέονται με ένα διακριτικό πρόσβασης μακράς διάρκειας ενός διαχειριστή του Home Assistant (Προφίλ > Ασφάλεια)."
+
+msgid "The program that started XKNX Editor set up its MCP server."
+msgstr "Το πρόγραμμα που εκκίνησε το XKNX Editor ρύθμισε τον διακομιστή MCP του."
