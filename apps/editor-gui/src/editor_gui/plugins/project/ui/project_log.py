@@ -9,11 +9,13 @@ from __future__ import annotations
 
 import threading
 from collections.abc import Callable
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 from imgui_bundle import imgui
+from imgui_bundle import portable_file_dialogs as pfd
 
-from editor_gui import file_dialogs, trace_key
+from editor_gui import file_dialogs, trace_key, web
 from editor_gui.plugins.project.strings import S
 from editor_gui.widgets.dpi import px
 from editor_gui.widgets.filter_box import filter_box
@@ -33,6 +35,16 @@ if TYPE_CHECKING:
 _RED = imgui.ImVec4(0.9, 0.4, 0.4, 1.0)
 _GREEN = imgui.ImVec4(0.4, 0.8, 0.4, 1.0)
 _UNKNOWN = "?"
+# The library Knx.Ets.Common.dll loads from its own folder.
+_LOG4NET = "log4net"
+
+
+def _trace_assembly(paths: list[str]) -> str:
+    """The assembly to read among the files chosen (it may come with log4net.dll)."""
+    for path in paths:
+        if Path(path).name.lower() == TRACE_DLL_NAME.lower():
+            return path
+    return paths[0]
 
 
 class ProjectLogPanel:
@@ -121,6 +133,9 @@ class ProjectLogPanel:
             return
         imgui.text_colored(_RED, S.PROJECT_LOG_ENCRYPTED)
         imgui.text_wrapped(S.PROJECT_LOG_DECRYPT_HINT)
+        if web.active_hub is not None:
+            # Uploaded, the assembly is alone on the server: its dependency has to come along.
+            imgui.text_wrapped(S.PROJECT_LOG_UPLOAD_HINT)
         # Looked up once: finding the tools searches the PATH, too slow for every frame.
         if self._backend is _UNKNOWN:
             self._backend = extraction_backend()
@@ -151,6 +166,8 @@ class ProjectLogPanel:
                 S.PROJECT_LOG_ALL_FILES,
                 "*",
             ],
+            # The assembly with log4net.dll (in the browser both are uploaded together).
+            pfd.opt.multiselect,
         )
 
     def _poll_dialog(self) -> None:
@@ -158,7 +175,7 @@ class ProjectLogPanel:
             result = self._dialog.result()
             self._dialog = None
             if result:
-                self._start_extraction(result[0])
+                self._start_extraction(_trace_assembly(result))
 
     def _start_extraction(self, dll_path: str) -> None:
         self._extracting = True
@@ -170,7 +187,11 @@ class ProjectLogPanel:
             try:
                 self._result = extract_trace_key(dll_path)
             except (KeyExtractionError, Exception) as exc:
-                self._result_error = f"{type(exc).__name__}: {exc}"
+                if _LOG4NET in str(exc):
+                    # The assembly could not load its dependency next to it.
+                    self._result_error = S.PROJECT_LOG_NEEDS_LOG4NET
+                else:
+                    self._result_error = f"{type(exc).__name__}: {exc}"
 
         threading.Thread(target=_work, daemon=True).start()
 

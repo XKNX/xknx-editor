@@ -2957,3 +2957,9 @@ msgstr "Ze záloh…"
 
 msgid "Compare with a backup of this project"
 msgstr "Porovnat se zálohou tohoto projektu"
+
+msgid "In the browser, choose Knx.Ets.Common.dll together with log4net.dll from the same folder."
+msgstr "V prohlížeči vyberte Knx.Ets.Common.dll spolu s log4net.dll ze stejné složky."
+
+msgid "Knx.Ets.Common.dll needs log4net.dll from its folder: choose both files together."
+msgstr "Knx.Ets.Common.dll potřebuje log4net.dll ze své složky: vyberte oba soubory najednou."

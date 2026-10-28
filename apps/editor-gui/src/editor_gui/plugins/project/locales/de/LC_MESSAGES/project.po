@@ -3142,3 +3142,9 @@ msgstr "Aus Sicherungen…"
 
 msgid "Compare with a backup of this project"
 msgstr "Mit einer Sicherung dieses Projekts vergleichen"
+
+msgid "In the browser, choose Knx.Ets.Common.dll together with log4net.dll from the same folder."
+msgstr "Wähle im Browser Knx.Ets.Common.dll zusammen mit log4net.dll aus demselben Ordner."
+
+msgid "Knx.Ets.Common.dll needs log4net.dll from its folder: choose both files together."
+msgstr "Knx.Ets.Common.dll braucht log4net.dll aus seinem Ordner: wähle beide Dateien zusammen."

@@ -2957,3 +2957,9 @@ msgstr "Από αντίγραφα ασφαλείας…"
 
 msgid "Compare with a backup of this project"
 msgstr "Σύγκριση με ένα αντίγραφο ασφαλείας αυτού του έργου"
+
+msgid "In the browser, choose Knx.Ets.Common.dll together with log4net.dll from the same folder."
+msgstr "Στο πρόγραμμα περιήγησης, επιλέξτε το Knx.Ets.Common.dll μαζί με το log4net.dll από τον ίδιο φάκελο."
+
+msgid "Knx.Ets.Common.dll needs log4net.dll from its folder: choose both files together."
+msgstr "Το Knx.Ets.Common.dll χρειάζεται το log4net.dll από τον φάκελό του: επιλέξτε και τα δύο αρχεία μαζί."
