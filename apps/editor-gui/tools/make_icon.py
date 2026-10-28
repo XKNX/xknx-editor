@@ -1,22 +1,22 @@
-"""Regenerate the committed app icons — run MANUALLY, never during the build.
-
-The build ships pre-made icons as-is (no image processing in CI):
-  - src/editor_gui/assets/app_settings/icon.png  (512 px window icon)
-  - icon.ico                                     (Windows .exe icon, multi-size)
-  - icon.icns                                    (macOS .app icon, multi-size; regenerated on macOS only)
-
-Re-run after changing the design (needs Pillow, and iconutil for the .icns on macOS):
+"""Regenerate the committed app icons — run MANUALLY after changing the design, never during the
+build (needs Pillow):
 
     uv run --with pillow python apps/editor-gui/tools/make_icon.py
 
-The wordmark "XKNX" is drawn with a real bold font at 32 px and up; the 16/24 px mini sizes fall back
-to a single "X" because four letters are an unreadable smear that small.
+Writes, all from the same drawing:
+  - src/editor_gui/assets/app_settings/icon.png  (512 px window icon, browser favicon)
+  - src/editor_gui/web/tray/icon.png             (64 px tray icon of the browser UI)
+  - icon.ico                                     (Windows .exe icon, multi-size)
+  - icon.icns                                    (macOS .app icon, multi-size)
+  - homeassistant/xknx-editor/icon.png, logo.png (the Home Assistant app)
+
+The icon is "XKNX" over "editor" in white on a near-black rounded square, in the editor's own bold
+font (assets/fonts/DroidSans-Bold.ttf), so every OS draws the same pixels. Smaller sizes drop
+words that would be an unreadable smear: below 64 px only "XKNX", at 24 px and less only "X".
 """
 
 from __future__ import annotations
 
-import subprocess
-import sys
 from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFont
@@ -24,93 +24,104 @@ from PIL import Image, ImageDraw, ImageFont
 BG = (17, 17, 17, 255)  # near-black rounded square
 FG = (255, 255, 255, 255)  # white wordmark
 
-# Bold, geometric sans fonts to try in order (first that exists wins).
-_FONT_CANDIDATES = [
-    "/System/Library/Fonts/Supplemental/Arial Bold.ttf",
-    "/System/Library/Fonts/HelveticaNeue.ttc",
-    "/System/Library/Fonts/Helvetica.ttc",
-    "/Library/Fonts/Arial Bold.ttf",
-    "C:/Windows/Fonts/arialbd.ttf",
-    "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
-]
+APP = Path(__file__).resolve().parent.parent
+FONT = APP / "src" / "editor_gui" / "assets" / "fonts" / "DroidSans-Bold.ttf"
+
+# The layout, in pixels of the 512 px icon: transparent margin, corner radius (share of the
+# square), ink widths of the lines, letter spacing of "editor" (share of its font size), the gap
+# between the lines and where the middle of the text sits.
+_MARGIN = 6
+_RADIUS = 0.22
+_WIDTHS = {"XKNX": 452, "editor": 292, "X": 300}
+_TRACKING = {"editor": 0.07}
+_GAP = 49
+_MIDDLE = 261.5
 
 
-def _font_path() -> str:
-    for f in _FONT_CANDIDATES:
-        if Path(f).exists():
-            return f
-    raise SystemExit(
-        "no bold TTF found; edit _FONT_CANDIDATES in tools/make_icon.py for your OS"
+def _words(size: int) -> tuple[str, ...]:
+    if size >= 64:
+        return ("XKNX", "editor")
+    return ("XKNX",) if size > 24 else ("X",)
+
+
+def _ink(text: str, font_size: int) -> Image.Image:
+    """``text`` as an 8-bit mask, cropped to its ink."""
+    font = ImageFont.truetype(str(FONT), font_size)
+    tracking = _TRACKING.get(text, 0.0) * font_size
+    draw = ImageDraw.Draw(Image.new("L", (1, 1)))
+    width = sum(draw.textlength(ch, font=font) for ch in text) + tracking * len(text)
+    mask = Image.new("L", (int(width) + 2 * font_size, 3 * font_size))
+    draw = ImageDraw.Draw(mask)
+    x = float(font_size)
+    for ch in text:
+        draw.text((x, font_size), ch, font=font, fill=255)
+        x += draw.textlength(ch, font=font) + tracking
+    return mask.crop(mask.getbbox())
+
+
+def _fitted(text: str, width: float) -> Image.Image:
+    """``text`` at the font size whose ink comes closest to ``width``."""
+    low, high = 1, 4 * max(1, int(width))
+    while low < high:
+        mid = (low + high + 1) // 2
+        if _ink(text, mid).width <= width:
+            low = mid
+        else:
+            high = mid - 1
+    return min(
+        (_ink(text, low), _ink(text, low + 1)), key=lambda m: abs(m.width - width)
     )
 
 
-def build(size: int) -> Image.Image:
-    """Render the icon at `size` px as an RGBA image (rounded square + centered wordmark)."""
-    text = "X" if size <= 24 else "XKNX"
+def build(size: int, words: tuple[str, ...] | None = None) -> Image.Image:
+    """The icon at ``size`` px as an RGBA image."""
+    scale = size / 512
     im = Image.new("RGBA", (size, size), (0, 0, 0, 0))
-    d = ImageDraw.Draw(im)
-    d.rounded_rectangle([0, 0, size - 1, size - 1], radius=int(size * 0.22), fill=BG)
-
-    # Fit the font so the text spans ~84% (wordmark) / ~64% (single X) of the width.
-    target = size * (0.64 if text == "X" else 0.84)
-    fp = _font_path()
-    fs = size
-    for _ in range(40):
-        if d.textlength(text, font=ImageFont.truetype(fp, fs)) <= target or fs <= 4:
-            break
-        fs = max(
-            4, int(fs * target / d.textlength(text, font=ImageFont.truetype(fp, fs)))
-        )
-    font = ImageFont.truetype(fp, fs)
-    bb = d.textbbox((0, 0), text, font=font)
-    x = (size - (bb[2] - bb[0])) / 2 - bb[0]
-    y = (size - (bb[3] - bb[1])) / 2 - bb[1]
-    d.text((x, y), text, font=font, fill=FG)
+    margin = round(_MARGIN * scale)
+    side = size - 2 * margin
+    ImageDraw.Draw(im).rounded_rectangle(
+        [margin, margin, size - margin - 1, size - margin - 1],
+        radius=round(_RADIUS * side),
+        fill=BG,
+    )
+    lines = [_fitted(w, _WIDTHS[w] * scale) for w in (words or _words(size))]
+    gap = round(_GAP * scale)
+    middle = _MIDDLE * scale if len(lines) > 1 else size / 2
+    y = round(middle - (sum(m.height for m in lines) + gap * (len(lines) - 1)) / 2)
+    for mask in lines:
+        im.paste(FG, (round((size - mask.width) / 2), y), mask)
+        y += mask.height + gap
     return im
 
 
 def main() -> None:
-    root = Path(__file__).resolve().parent.parent
-    png_path = root / "src" / "editor_gui" / "assets" / "app_settings" / "icon.png"
-    png_path.parent.mkdir(parents=True, exist_ok=True)
-    build(512).save(png_path)
-    print(f"wrote {png_path}")
+    icon = APP / "src" / "editor_gui" / "assets" / "app_settings" / "icon.png"
+    tray = APP / "src" / "editor_gui" / "web" / "tray" / "icon.png"
+    home_assistant = APP.parent.parent / "homeassistant" / "xknx-editor"
+    for path in (icon, home_assistant / "icon.png", home_assistant / "logo.png"):
+        build(512).save(path, optimize=True)
+        print(f"wrote {path}")
+    # Trays show it at 16-24 px: the one word only.
+    build(64, ("XKNX",)).save(tray, optimize=True)
+    print(f"wrote {tray}")
 
-    # Windows .ico with the sizes Explorer/taskbar actually use.
-    ico_path = root / "icon.ico"
+    # Windows .ico with the sizes Explorer and the taskbar use.
     ico_sizes = [16, 24, 32, 48, 64, 128, 256]
     build(256).save(
-        ico_path,
+        APP / "icon.ico",
         format="ICO",
         sizes=[(s, s) for s in ico_sizes],
         append_images=[build(s) for s in ico_sizes],
     )
-    print(f"wrote {ico_path}")
+    print(f"wrote {APP / 'icon.ico'}")
 
-    # macOS .icns via iconutil (macOS only). Mini slots (16 pt) keep the single "X".
-    if sys.platform == "darwin":
-        iconset = root / "icon.iconset"
-        iconset.mkdir(exist_ok=True)
-        for name, s in {
-            "icon_16x16": 16,
-            "icon_16x16@2x": 24,
-            "icon_32x32": 32,
-            "icon_32x32@2x": 64,
-            "icon_128x128": 128,
-            "icon_128x128@2x": 256,
-            "icon_256x256": 256,
-            "icon_256x256@2x": 512,
-            "icon_512x512": 512,
-            "icon_512x512@2x": 1024,
-        }.items():
-            build(s).save(iconset / f"{name}.png")
-        subprocess.run(
-            ["iconutil", "-c", "icns", str(iconset), "-o", str(root / "icon.icns")],
-            check=True,
-        )
-        print(f"wrote {root / 'icon.icns'}")
-    else:
-        print("skipping icon.icns (run on macOS to regenerate it)")
+    # macOS .icns with every size of an iconset (16 pt to 512 pt @2x).
+    build(1024).save(
+        APP / "icon.icns",
+        format="ICNS",
+        append_images=[build(s) for s in (16, 32, 64, 128, 256, 512)],
+    )
+    print(f"wrote {APP / 'icon.icns'}")
 
 
 if __name__ == "__main__":

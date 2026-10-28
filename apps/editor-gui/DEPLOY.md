@@ -94,17 +94,15 @@ and update with `winget install XKNX.Editor` and `winget upgrade XKNX.Editor`.
 
 - **Window icon** (Windows/Linux, and the in-app icon): `src/editor_gui/assets/app_settings/icon.png`
   (512×512), loaded via `hello_imgui.set_assets_folder(...)` in `main.py`.
-- **Executable / dock icon**: PyInstaller needs a platform icon — `.icns` on macOS, `.ico` on
-  Windows. Generate one from the PNG and set `icon=` in `xknx-editor.spec`. On macOS:
+- **Executable / dock icon**: PyInstaller needs a platform icon — `icon.icns` on macOS, `icon.ico`
+  on Windows, both set in `xknx-editor.spec`.
+- **Tray icon** of the browser UI: `src/editor_gui/web/tray/icon.png`; the Home Assistant app's
+  icon and logo: `homeassistant/xknx-editor/`.
+- All of them are drawn by `tools/make_icon.py` (on any OS) and committed. After changing the
+  design:
 
   ```bash
-  cd apps/editor-gui/src/editor_gui/assets/app_settings
-  mkdir icon.iconset
-  for s in 16 32 128 256 512; do
-    sips -z $s $s icon.png --out icon.iconset/icon_${s}x${s}.png >/dev/null
-    sips -z $((s*2)) $((s*2)) icon.png --out icon.iconset/icon_${s}x${s}@2x.png >/dev/null
-  done
-  iconutil -c icns icon.iconset -o icon.icns && rm -r icon.iconset
+  uv run --with pillow python apps/editor-gui/tools/make_icon.py
   ```
 
 ## Note
