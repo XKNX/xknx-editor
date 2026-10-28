@@ -21,6 +21,7 @@ from editor_gui.plugins.mcp.tools import (
     dali,
     details,
     keyring,
+    keys,
     monitor,
     network,
     operations,
@@ -187,6 +188,7 @@ def build_server(ctx: McpContext, auth: Any = None) -> FastMCP:
         dali,
         monitor,
         keyring,
+        keys,
         network,
         backups,
     ):
