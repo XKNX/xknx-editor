@@ -133,8 +133,9 @@ maturing — review a recovered project before relying on it.
 
 **MCP server (LLM control)** — an embedded [Model Context Protocol](https://modelcontextprotocol.io)
 server lets an LLM drive the editor in the same live session as the GUI (shared project, catalog, and
-connection). Start it from the **MCP Server** menu. It can edit the project and program hardware, so
-only expose it to clients you trust.
+connection). Start it from the **MCP Server** menu, or with the editor through `--mcp` (see
+[Started by another program](#started-by-another-program)). It can edit the project and program
+hardware, so only expose it to clients you trust.
 
 <img src="docs/images/mcp.png" alt="MCP server" width="560">
 
@@ -179,6 +180,17 @@ XKNX_WEB_PASSWORD='choose a password' ./XKNX-Editor-x86_64.AppImage --web=0.0.0.
 | `--web-no-tray` | No tray icon |
 
 `--help` lists all options.
+
+### Started by Another Program
+
+A program that starts the editor, like the Home Assistant app or integration, can set up its MCP
+server and tell it that it runs inside Home Assistant:
+
+| Option | Meaning |
+|---|---|
+| `--mcp=[host:]port` | Start the MCP server with the editor on this address (a port alone: `127.0.0.1`), with the bearer token from `XKNX_MCP_AUTH_TOKEN`; the editor then shows its status and address, not its settings |
+| `--mcp-url=URL` | The address MCP clients use, shown in the editor (when a proxy is in front) |
+| `--home-assistant=integration\|app` | Runs inside Home Assistant, started by its integration or as its app: Home Assistant updates and stops the editor, so there is no update check and no **File → Exit** |
 
 Tablets and phones get a narrow layout (menus in **☰**, parameter pages above the fields, button
 rows wrap, wide tables scroll sideways); a tap clicks, hold+lift opens the context menu, hold+drag

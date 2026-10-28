@@ -419,7 +419,7 @@ class MenuStrings:
     def MCP_HOME_ASSISTANT(self) -> str:
         return _(
             "Home Assistant provides the MCP server: AI tools sign in with a long-lived access "
-            "token of a Home Assistant administrator (Profile > Security)."
+            "token of a Home Assistant user who may use the editor (Profile > Security)."
         )
 
     @property

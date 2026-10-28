@@ -1447,8 +1447,8 @@ msgstr "Esimerkki: rekisteröi MCP-palvelin tekoälytyökaluusi:"
 msgid "Example: register the MCP server in your AI tool, with your token in place of HOME_ASSISTANT_TOKEN:"
 msgstr "Esimerkki: rekisteröi MCP-palvelin tekoälytyökaluusi ja korvaa HOME_ASSISTANT_TOKEN omalla tunnuksellasi:"
 
-msgid "Home Assistant provides the MCP server: AI tools sign in with a long-lived access token of a Home Assistant administrator (Profile > Security)."
-msgstr "Home Assistant tarjoaa MCP-palvelimen: tekoälytyökalut kirjautuvat Home Assistant -järjestelmänvalvojan pitkäaikaisella käyttötunnuksella (Profiili > Suojaus)."
+msgid "Home Assistant provides the MCP server: AI tools sign in with a long-lived access token of a Home Assistant user who may use the editor (Profile > Security)."
+msgstr "Home Assistant tarjoaa MCP-palvelimen: tekoälytyökalut kirjautuvat sellaisen Home Assistant -käyttäjän pitkäaikaisella käyttötunnuksella, joka saa käyttää editoria (Profiili > Suojaus)."
 
 msgid "The program that started XKNX Editor set up its MCP server."
 msgstr "XKNX Editorin käynnistänyt ohjelma on määrittänyt sen MCP-palvelimen."

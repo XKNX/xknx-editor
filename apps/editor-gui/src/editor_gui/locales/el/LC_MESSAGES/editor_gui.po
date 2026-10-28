@@ -1447,8 +1447,8 @@ msgstr "Παράδειγμα: καταχώριση του διακομιστή M
 msgid "Example: register the MCP server in your AI tool, with your token in place of HOME_ASSISTANT_TOKEN:"
 msgstr "Παράδειγμα: καταχώριση του διακομιστή MCP στο εργαλείο AI σας, με το token σας στη θέση του HOME_ASSISTANT_TOKEN:"
 
-msgid "Home Assistant provides the MCP server: AI tools sign in with a long-lived access token of a Home Assistant administrator (Profile > Security)."
-msgstr "Το Home Assistant παρέχει τον διακομιστή MCP: τα εργαλεία AI συνδέονται με ένα διακριτικό πρόσβασης μακράς διάρκειας ενός διαχειριστή του Home Assistant (Προφίλ > Ασφάλεια)."
+msgid "Home Assistant provides the MCP server: AI tools sign in with a long-lived access token of a Home Assistant user who may use the editor (Profile > Security)."
+msgstr "Το Home Assistant παρέχει τον διακομιστή MCP: τα εργαλεία AI συνδέονται με ένα διακριτικό πρόσβασης μακράς διάρκειας ενός χρήστη του Home Assistant που μπορεί να χρησιμοποιεί τον επεξεργαστή (Προφίλ > Ασφάλεια)."
 
 msgid "The program that started XKNX Editor set up its MCP server."
 msgstr "Το πρόγραμμα που εκκίνησε το XKNX Editor ρύθμισε τον διακομιστή MCP του."

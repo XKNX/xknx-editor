@@ -1447,8 +1447,8 @@ msgstr "Příklad: registrace serveru MCP ve vašem nástroji AI:"
 msgid "Example: register the MCP server in your AI tool, with your token in place of HOME_ASSISTANT_TOKEN:"
 msgstr "Příklad: registrace serveru MCP ve vašem nástroji AI, s vaším tokenem místo HOME_ASSISTANT_TOKEN:"
 
-msgid "Home Assistant provides the MCP server: AI tools sign in with a long-lived access token of a Home Assistant administrator (Profile > Security)."
-msgstr "Server MCP poskytuje Home Assistant: nástroje AI se přihlašují dlouhodobým přístupovým tokenem administrátora Home Assistant (Profil > Zabezpečení)."
+msgid "Home Assistant provides the MCP server: AI tools sign in with a long-lived access token of a Home Assistant user who may use the editor (Profile > Security)."
+msgstr "Server MCP poskytuje Home Assistant: nástroje AI se přihlašují dlouhodobým přístupovým tokenem uživatele Home Assistant, který smí editor používat (Profil > Zabezpečení)."
 
 msgid "The program that started XKNX Editor set up its MCP server."
 msgstr "Server MCP nastavil program, který spustil XKNX Editor."

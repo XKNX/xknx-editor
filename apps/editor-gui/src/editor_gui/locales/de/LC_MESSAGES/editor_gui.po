@@ -1607,8 +1607,8 @@ msgstr "Beispiel: MCP-Server im KI-Tool eintragen:"
 msgid "Example: register the MCP server in your AI tool, with your token in place of HOME_ASSISTANT_TOKEN:"
 msgstr "Beispiel: MCP-Server im KI-Tool eintragen, mit deinem Token anstelle von HOME_ASSISTANT_TOKEN:"
 
-msgid "Home Assistant provides the MCP server: AI tools sign in with a long-lived access token of a Home Assistant administrator (Profile > Security)."
-msgstr "Home Assistant stellt den MCP-Server bereit: KI-Tools melden sich mit einem langlebigen Zugriffstoken eines Home-Assistant-Administrators an (Profil > Sicherheit)."
+msgid "Home Assistant provides the MCP server: AI tools sign in with a long-lived access token of a Home Assistant user who may use the editor (Profile > Security)."
+msgstr "Home Assistant stellt den MCP-Server bereit: KI-Tools melden sich mit einem langlebigen Zugriffstoken eines Home-Assistant-Benutzers an, der den Editor nutzen darf (Profil > Sicherheit)."
 
 msgid "The program that started XKNX Editor set up its MCP server."
 msgstr "Das Programm, das XKNX Editor gestartet hat, hat seinen MCP-Server eingerichtet."
