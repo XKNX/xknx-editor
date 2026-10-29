@@ -44,7 +44,7 @@ def test_an_unknown_product_language_follows_the_ui_language() -> None:
 
 def test_the_ui_languages_and_five_more_are_product_languages() -> None:
     cultures = [lang.culture for lang in PRODUCT_LANGUAGES]
-    assert len(cultures) == len(set(cultures)) == 24
+    assert len(cultures) == len(set(cultures)) == 25
     assert {"hu-HU", "ro-RO", "sk-SK", "sl-SI", "is-IS"} <= set(cultures)
 
 
@@ -53,8 +53,9 @@ def test_the_product_language_menu_reads_alphabetically() -> None:
 
     set_locale("de")
     labels = [label for _code, label in _product_language_items()]
-    assert len(labels) == 24
-    assert labels[:3] == [
+    assert len(labels) == 25
+    assert labels[:4] == [
+        "Albanisch (shqip)",
         "Chinesisch, vereinfacht (中文(中国))",
         "Dänisch (dansk)",
         "Deutsch",

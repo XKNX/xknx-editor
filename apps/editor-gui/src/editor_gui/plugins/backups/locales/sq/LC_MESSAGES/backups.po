@@ -1,0 +1,245 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor backups 1.0\n"
+"Language: sq\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Backups"
+msgstr "Kopjet rezervë"
+
+msgid "Create Backup…"
+msgstr "Krijo kopje rezervë…"
+
+msgid "Show Backups…"
+msgstr "Shfaq kopjet rezervë…"
+
+msgid "Comment: {comment}"
+msgstr "Komenti: {comment}"
+
+msgid "Settings…"
+msgstr "Cilësimet…"
+
+msgid "Open a project to see its backups."
+msgstr "Hapni një projekt për të parë kopjet e tij rezervë."
+
+msgid "This project has no backups yet."
+msgstr "Ky projekt nuk ka ende kopje rezervë."
+
+msgid "Folder: {path}"
+msgstr "Dosja: {path}"
+
+msgid "Open Folder"
+msgstr "Hap dosjen"
+
+msgid "Compare"
+msgstr "Krahaso"
+
+msgid "Restore…"
+msgstr "Rikthe…"
+
+msgid "Export as .xknx…"
+msgstr "Eksporto si .xknx…"
+
+msgid "Pin"
+msgstr "Fikso"
+
+msgid "Unpin"
+msgstr "Hiq fiksimin"
+
+msgid "Check"
+msgstr "Kontrollo"
+
+msgid "Delete…"
+msgstr "Fshi…"
+
+msgid "Show what differs between the project now and this backup"
+msgstr "Shfaq ndryshimet midis projektit të tanishëm dhe kësaj kopjeje rezervë"
+
+msgid "A pinned backup is never deleted automatically"
+msgstr "Një kopje rezervë e fiksuar nuk fshihet kurrë automatikisht"
+
+msgid "Check that the backup can be restored"
+msgstr "Kontrollo që kopja rezervë mund të rikthehet"
+
+msgid "Created"
+msgstr "Krijuar"
+
+msgid "Kind"
+msgstr "Lloji"
+
+msgid "Comment"
+msgstr "Koment"
+
+msgid "Computer"
+msgstr "Kompjuteri"
+
+msgid "User"
+msgstr "Përdoruesi"
+
+msgid "Size"
+msgstr "Madhësia"
+
+msgid "Manual"
+msgstr "Manuale"
+
+msgid "On close"
+msgstr "Në mbyllje"
+
+msgid "Interval"
+msgstr "Me interval"
+
+msgid "Before restore"
+msgstr "Para rikthimit"
+
+msgid "Pinned"
+msgstr "E fiksuar"
+
+msgid "{size} MB"
+msgstr "{size} MB"
+
+msgid "Creating a backup: copying the project…"
+msgstr "Po krijohet kopja rezervë: po kopjohet projekti…"
+
+msgid "Creating a backup: checking the project…"
+msgstr "Po krijohet kopja rezervë: po kontrollohet projekti…"
+
+msgid "Creating a backup: compressing…"
+msgstr "Po krijohet kopja rezervë: po kompresohet…"
+
+msgid "Create Backup"
+msgstr "Krijo kopje rezervë"
+
+msgid "The backup holds the project as it is now."
+msgstr "Kopja rezervë e ruan projektin ashtu siç është tani."
+
+msgid "Create"
+msgstr "Krijo"
+
+msgid "Cancel"
+msgstr "Anulo"
+
+msgid "OK"
+msgstr "OK"
+
+msgid "Backup created: {name}"
+msgstr "Kopja rezervë u krijua: {name}"
+
+msgid "The backup failed: {error}"
+msgstr "Kopja rezervë dështoi: {error}"
+
+msgid "Restore Backup"
+msgstr "Rikthe kopjen rezervë"
+
+msgid "Restore the project to its state of {created}?\n\nThe project as it is now is saved as a backup first, so you can go back to it."
+msgstr "Ta riktheni projektin në gjendjen e {created}?\n\nProjekti ashtu siç është tani ruhet më parë si kopje rezervë, që të mund të ktheheni te ai."
+
+msgid "Restore"
+msgstr "Rikthe"
+
+msgid "The project had another password when this backup was made. Enter that password:"
+msgstr "Projekti kishte një fjalëkalim tjetër kur u bë kjo kopje rezervë. Vendosni atë fjalëkalim:"
+
+msgid "Wrong password"
+msgstr "Fjalëkalim i gabuar"
+
+msgid "Restoring the backup…"
+msgstr "Po rikthehet kopja rezervë…"
+
+msgid "Project restored to its state of {created}"
+msgstr "Projekti u rikthye në gjendjen e {created}"
+
+msgid "The backup could not be restored: {error}"
+msgstr "Kopja rezervë nuk u rikthye dot: {error}"
+
+msgid "Delete Backup"
+msgstr "Fshi kopjen rezervë"
+
+msgid "Delete the backup of {created}? This cannot be undone."
+msgstr "Ta fshini kopjen rezervë të {created}? Ky veprim nuk mund të zhbëhet."
+
+msgid "Delete"
+msgstr "Fshi"
+
+msgid "Export Backup as Project File"
+msgstr "Eksporto kopjen rezervë si skedar projekti"
+
+msgid "XKNX Editor projects"
+msgstr "Projekte XKNX Editor"
+
+msgid "Exporting the backup…"
+msgstr "Po eksportohet kopja rezervë…"
+
+msgid "Backup exported: {name}"
+msgstr "Kopja rezervë u eksportua: {name}"
+
+msgid "Checking the backup…"
+msgstr "Po kontrollohet kopja rezervë…"
+
+msgid "The backup is intact and can be restored."
+msgstr "Kopja rezervë është e paprekur dhe mund të rikthehet."
+
+msgid "The backup is damaged: {error}"
+msgstr "Kopja rezervë është e dëmtuar: {error}"
+
+msgid "Backup of {created}"
+msgstr "Kopje rezervë e {created}"
+
+msgid "Restore from Backup"
+msgstr "Rikthe nga kopja rezervë"
+
+msgid "The project {name} could not be opened: {error}"
+msgstr "Projekti {name} nuk u hap dot: {error}"
+
+msgid "The project file {name} no longer exists."
+msgstr "Skedari i projektit {name} nuk ekziston më."
+
+msgid "Its newest backup is from {created}. Restore the project from it? A file that is there now is kept under another name."
+msgstr "Kopja e tij rezervë më e re është e {created}. Ta riktheni projektin prej saj? Një skedar që ndodhet tani aty ruhet me një emër tjetër."
+
+msgid "The damaged file was kept as {name}."
+msgstr "Skedari i dëmtuar u ruajt si {name}."
+
+msgid "Backup Settings"
+msgstr "Cilësimet e kopjeve rezervë"
+
+msgid "A backup is one file with the complete project, which can be restored on its own. Each project has a folder of its own in the backup folder. A network drive or a folder synchronized with a cloud service keeps the backups off this computer."
+msgstr "Një kopje rezervë është një skedar i vetëm me të gjithë projektin, që mund të rikthehet më vete. Çdo projekt ka dosjen e vet në dosjen e kopjeve rezervë. Një disk rrjeti ose një dosje e sinkronizuar me një shërbim cloud i mban kopjet rezervë jashtë këtij kompjuteri."
+
+msgid "Backup Folder"
+msgstr "Dosja e kopjeve rezervë"
+
+msgid "Choose Folder…"
+msgstr "Zgjidh dosjen…"
+
+msgid "Default"
+msgstr "Parazgjedhja"
+
+msgid "Choose the Backup Folder"
+msgstr "Zgjidh dosjen e kopjeve rezervë"
+
+msgid "Create a backup when a project is closed"
+msgstr "Krijo një kopje rezervë kur mbyllet një projekt"
+
+msgid "Create backups at regular intervals while a project is open"
+msgstr "Krijo kopje rezervë në intervale të rregullta, sa kohë që një projekt është i hapur"
+
+msgid "Interval in Minutes"
+msgstr "Intervali në minuta"
+
+msgid "Delete old automatic backups"
+msgstr "Fshi kopjet rezervë automatike të vjetra"
+
+msgid "Delete After (Days)"
+msgstr "Fshi pas (ditësh)"
+
+msgid "Always Keep the Newest"
+msgstr "Mbaj gjithmonë më të rejat"
+
+msgid "An automatic backup is only made when the project changed since its newest backup. Backups you create yourself and pinned backups are never deleted automatically."
+msgstr "Një kopje rezervë automatike bëhet vetëm kur projekti ka ndryshuar që nga kopja e tij rezervë më e re. Kopjet rezervë që krijoni vetë dhe ato të fiksuara nuk fshihen kurrë automatikisht."
+
+msgid "Backups you create yourself are never deleted automatically"
+msgstr "Kopjet rezervë që krijoni vetë nuk fshihen kurrë automatikisht"

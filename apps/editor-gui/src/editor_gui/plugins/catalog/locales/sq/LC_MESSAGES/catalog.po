@@ -1,0 +1,212 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor catalog 1.0\n"
+"Language: sq\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Catalog"
+msgstr "Katalogu"
+
+msgid "Failed to load archive"
+msgstr "Arkivi nuk u ngarkua"
+
+msgid "Loaded: {path}"
+msgstr "U ngarkua: {path}"
+
+msgid "Found {count} application(s)"
+msgstr "Aplikacione të gjetura: {count}"
+
+msgid "({count} group objects)"
+msgstr "({count} objekte grupi)"
+
+msgid "Fetch Online Catalog"
+msgstr "Merr katalogun online"
+
+msgid "Loading manufacturer list…"
+msgstr "Po ngarkohet lista e prodhuesve…"
+
+msgid "Online catalog not reachable"
+msgstr "Katalogu online nuk arrihet"
+
+msgid "{count} matches"
+msgstr "{count} rezultate"
+
+msgid "Loading products…"
+msgstr "Po ngarkohen produktet…"
+
+msgid "No downloadable products"
+msgstr "Nuk ka produkte për shkarkim"
+
+msgid "Downloading {name}…"
+msgstr "Po shkarkohet {name}…"
+
+msgid "(plugin required)"
+msgstr "(kërkohet plugin)"
+
+msgid "(in local catalog)"
+msgstr "(në katalogun lokal)"
+
+msgid "Search products, order number…"
+msgstr "Kërko produkte, numër porosie…"
+
+msgid "Product Index ({date}): {mfrs} manufacturers, {products} products"
+msgstr "Indeksi i produkteve ({date}): {mfrs} prodhues, {products} produkte"
+
+msgid "No Product Index yet - fetch the online catalog to build it"
+msgstr "Ende pa indeks produktesh - merrni katalogun online për ta ndërtuar"
+
+msgid "Building Product Index… {done}/{total} manufacturers"
+msgstr "Po ndërtohet indeksi i produkteve… {done}/{total} prodhues"
+
+msgid "Cancel"
+msgstr "Anulo"
+
+msgid "Fetch the online catalog to search across all manufacturers."
+msgstr "Merrni katalogun online për të kërkuar te të gjithë prodhuesit."
+
+msgid "Showing {shown} of {total} matches - refine the search"
+msgstr "Po shfaqen {shown} nga {total} rezultate - ngushtoni kërkimin"
+
+msgid "Product Details"
+msgstr "Detajet e produktit"
+
+msgid "Name"
+msgstr "Emri"
+
+msgid "Order Number"
+msgstr "Numri i porosisë"
+
+msgid "Manufacturer"
+msgstr "Prodhuesi"
+
+msgid "Application"
+msgstr "Aplikacioni"
+
+msgid "Program Version"
+msgstr "Versioni i programit"
+
+msgid "Application ID"
+msgstr "ID e aplikacionit"
+
+msgid "DIN Rail Mounting"
+msgstr "Montim në shinë DIN"
+
+msgid "Bus Current"
+msgstr "Rryma e busit"
+
+msgid "Yes"
+msgstr "Po"
+
+msgid "No"
+msgstr "Jo"
+
+msgid "Product Ref"
+msgstr "Referenca e produktit"
+
+msgid "Add Device"
+msgstr "Shto pajisje"
+
+msgid "Room"
+msgstr "Dhoma"
+
+msgid "(no room)"
+msgstr "(pa dhomë)"
+
+msgid "Open or create a project first to add a device."
+msgstr "Për të shtuar një pajisje, fillimisht hapni ose krijoni një projekt."
+
+msgid "This product has no usable application program."
+msgstr "Ky produkt nuk ka program aplikativ të përdorshëm."
+
+msgid "Added device: {name}"
+msgstr "U shtua pajisja: {name}"
+
+msgid "Local"
+msgstr "Lokal"
+
+msgid "Online"
+msgstr "Online"
+
+msgid "No products imported yet — import a .knxprod or use the Online tab."
+msgstr "Ende pa produkte — importoni një .knxprod ose përdorni skedën Online."
+
+msgid "Fetch {count} Missing Application(s) Online"
+msgstr "Merr online aplikacionet që mungojnë ({count})"
+
+msgid "Fetching missing applications…"
+msgstr "Po merren aplikacionet që mungojnë…"
+
+msgid "Delete"
+msgstr "Fshi"
+
+msgid "Delete from Local Catalog"
+msgstr "Fshi nga katalogu lokal"
+
+msgid "Are you sure you want to delete the selected device? This cannot be undone."
+msgstr "Jeni të sigurt që doni ta fshini pajisjen e zgjedhur? Ky veprim nuk mund të zhbëhet."
+
+msgid "{count} device(s) in the open project use this product. They can't be loaded until the product is imported again."
+msgstr "{count} pajisje në projektin e hapur e përdorin këtë produkt. Ato nuk mund të ngarkohen derisa produkti të importohet sërish."
+
+msgid "Deleting {name}…"
+msgstr "Po fshihet {name}…"
+
+msgid "Deleted from the local catalog: {name}"
+msgstr "U fshi nga katalogu lokal: {name}"
+
+msgid "Export .knxprod…"
+msgstr "Eksporto .knxprod…"
+
+msgid "Export .knxprod"
+msgstr "Eksporto .knxprod"
+
+msgid "KNX product (*.knxprod)"
+msgstr "Produkt KNX (*.knxprod)"
+
+msgid "Exported {name}"
+msgstr "U eksportua {name}"
+
+msgid "Could not export {name}: {error}"
+msgstr "{name} nuk u eksportua: {error}"
+
+msgid "No stored archive for {name}"
+msgstr "Nuk ka arkiv të ruajtur për {name}"
+
+msgid "This device supports KNX Data Secure. Set a project password to commission it securely; without one it is added and commissioned in the clear."
+msgstr "Kjo pajisje mbështet KNX Data Secure. Vendosni një fjalëkalim projekti për ta vënë në punë në mënyrë të sigurt; pa të, ajo shtohet dhe vihet në punë pa enkriptim."
+
+msgid "Search…"
+msgstr "Kërko…"
+
+msgid "Market:"
+msgstr "Tregu:"
+
+msgid "All Markets"
+msgstr "Të gjitha tregjet"
+
+msgid "Only Products in {language}"
+msgstr "Vetëm produkte në {language}"
+
+msgid "{shown} of {total} shown"
+msgstr "{shown} nga {total} të shfaqura"
+
+msgid "(estimated)"
+msgstr "(përafërsisht)"
+
+msgid "Line"
+msgstr "Linja"
+
+msgid "Automatic"
+msgstr "Automatike"
+
+msgid "Add to"
+msgstr "Shto në"
+
+msgid "Automatic: the device goes on the Current Line of the room chosen, without one on the first TP line."
+msgstr "Automatike: pajisja vendoset në linjën aktuale të dhomës së zgjedhur; nëse dhoma nuk ka të tillë, në linjën e parë TP."
+
+msgid "Download to Local Catalog"
+msgstr "Shkarko në katalogun lokal"

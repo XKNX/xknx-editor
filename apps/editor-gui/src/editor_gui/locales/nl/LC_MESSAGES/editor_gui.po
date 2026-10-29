@@ -1470,6 +1470,9 @@ msgstr "Turks"
 msgid "Ukrainian"
 msgstr "Oekraïens"
 
+msgid "Albanian"
+msgstr "Albanees"
+
 msgid "Preferred Product Language"
 msgstr "Voorkeur Producttaal"
 

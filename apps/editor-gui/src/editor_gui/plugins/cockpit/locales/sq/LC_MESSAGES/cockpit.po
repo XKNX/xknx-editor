@@ -1,0 +1,71 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor cockpit 1.0\n"
+"Language: sq\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Device Overview"
+msgstr "Përmbledhje e pajisjeve"
+
+msgid "No project open"
+msgstr "Asnjë projekt i hapur"
+
+msgid "Filter devices…"
+msgstr "Filtro pajisjet…"
+
+msgid "Needs Attention Only"
+msgstr "Vetëm ato që kërkojnë vëmendje"
+
+msgid "{count} device(s) not in catalog"
+msgstr "{count} pajisje nuk janë në katalog"
+
+msgid "Address"
+msgstr "Adresa"
+
+msgid "Name"
+msgstr "Emri"
+
+msgid "Product"
+msgstr "Produkti"
+
+msgid "Status"
+msgstr "Gjendja"
+
+msgid "OK"
+msgstr "OK"
+
+msgid "Loaded"
+msgstr "Ngarkuar"
+
+msgid "loaded"
+msgstr "ngarkuar"
+
+msgid "not loaded"
+msgstr "pa ngarkuar"
+
+msgid "partial ({done}/{total})"
+msgstr "pjesërisht ({done}/{total})"
+
+msgid "Individual Address"
+msgstr "Adresa individuale"
+
+msgid "Application Program"
+msgstr "Programi aplikativ"
+
+msgid "Communication Part"
+msgstr "Pjesa e komunikimit"
+
+msgid "Medium Config"
+msgstr "Konfigurimi i mediumit"
+
+msgid "Parameters"
+msgstr "Parametrat"
+
+msgid "Serial: {serial}"
+msgstr "Nr. serial: {serial}"
+
+msgid "Last Download: {when}"
+msgstr "Programimi i fundit: {when}"

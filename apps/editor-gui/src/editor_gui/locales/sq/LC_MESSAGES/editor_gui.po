@@ -1,0 +1,1457 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor editor_gui 1.0\n"
+"Language: sq\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "XKNX Editor"
+msgstr "XKNX Editor"
+
+msgid "{project} - {app}"
+msgstr "{project} - {app}"
+
+msgid "{project} – {file} - {app}"
+msgstr "{project} – {file} - {app}"
+
+msgid "Help"
+msgstr "Ndihmë"
+
+msgid "Feedback"
+msgstr "Komente"
+
+msgid "About"
+msgstr "Rreth"
+
+msgid "Language"
+msgstr "Gjuha"
+
+msgid "No matches"
+msgstr "Asnjë rezultat"
+
+msgid "Version {version}"
+msgstr "Versioni {version}"
+
+msgid "A desktop editor for building-automation installation projects, built on the open-source xknx library and based on xknxtoolkit by kewde. Not affiliated with or endorsed by the KNX Association."
+msgstr "Një editor desktopi për projektet e instalimeve të automatizimit të ndërtesave, i ndërtuar mbi bibliotekën me kod të hapur xknx dhe i bazuar në xknxtoolkit nga kewde. Nuk ka lidhje me KNX Association dhe nuk miratohet prej saj."
+
+msgid "Network Location"
+msgstr "Vendndodhje në rrjet"
+
+msgid "This location is on a network drive:\n{home}\n\nKNX project files use a database that cannot run reliably on network shares. The editor can work on a local copy instead and write it back to the network location when you close the project."
+msgstr "Kjo vendndodhje ndodhet në një disk rrjeti:\n{home}\n\nSkedarët e projekteve KNX përdorin një bazë të dhënash që nuk funksionon me siguri në dosje të ndara në rrjet. Në vend të kësaj, editori mund të punojë me një kopje lokale dhe ta shkruajë atë përsëri në vendndodhjen e rrjetit kur ta mbyllni projektin."
+
+msgid "Use a Local Copy"
+msgstr "Përdor një kopje lokale"
+
+msgid "Working on a local copy; written back to {home} when you close the project."
+msgstr "Po punohet me një kopje lokale; do të shkruhet përsëri në {home} kur ta mbyllni projektin."
+
+msgid "Add"
+msgstr "Shto"
+
+msgid "Close"
+msgstr "Mbyll"
+
+msgid "Cancel"
+msgstr "Anulo"
+
+msgid "New Project"
+msgstr "Projekt i ri"
+
+msgid "Project Name"
+msgstr "Emri i projektit"
+
+msgid "Group Address Style"
+msgstr "Stili i adresave të grupit"
+
+msgid "Free"
+msgstr "I lirë"
+
+msgid "Two-level"
+msgstr "Me dy nivele"
+
+msgid "Three-level"
+msgstr "Me tre nivele"
+
+msgid "Create…"
+msgstr "Krijo…"
+
+msgid "Copy"
+msgstr "Kopjo"
+
+msgid "Clear"
+msgstr "Pastro"
+
+msgid "Stop"
+msgstr "Ndalo"
+
+msgid "All Files"
+msgstr "Të gjithë skedarët"
+
+msgid "Project: {name}  ·  {devices} devices  ·  {gas} GAs"
+msgstr "Projekti: {name}  ·  {devices} pajisje  ·  {gas} adresa grupi"
+
+msgid "No project open"
+msgstr "Asnjë projekt i hapur"
+
+msgid "Programming {address}…"
+msgstr "Po programohet {address}…"
+
+msgid "Reading {address}…"
+msgstr "Po lexohet {address}…"
+
+msgid "Programming complete"
+msgstr "Programimi përfundoi"
+
+msgid "Programming failed"
+msgstr "Programimi dështoi"
+
+msgid "No KNX connection"
+msgstr "Pa lidhje KNX"
+
+msgid "KNX Master v{version} ({date})"
+msgstr "KNX Master v{version} ({date})"
+
+msgid "File"
+msgstr "Skedari"
+
+msgid "Open Project (.knxproj/.xknx)"
+msgstr "Hap projekt (.knxproj/.xknx)"
+
+msgid "Save As…"
+msgstr "Ruaj si…"
+
+msgid "Saved as {name}"
+msgstr "U ruajt si {name}"
+
+msgid "Open Recent"
+msgstr "Hap të fundit"
+
+msgid "Settings…"
+msgstr "Cilësimet…"
+
+msgid "MCP Server"
+msgstr "Serveri MCP"
+
+msgid "Settings"
+msgstr "Cilësimet"
+
+msgid "Gateway"
+msgstr "Gateway"
+
+msgid "MCP"
+msgstr "MCP"
+
+msgid "Catalog"
+msgstr "Katalogu"
+
+msgid "Use multicast routing (instead of tunneling)"
+msgstr "Përdor routing multicast (në vend të tunneling)"
+
+msgid "Gateway IP"
+msgstr "IP e gateway-t"
+
+msgid "Multicast Group"
+msgstr "Grupi multicast"
+
+msgid "Run the MCP server so an LLM can drive the editor over Streamable HTTP. It shares this app's catalog database."
+msgstr "Nisni serverin MCP që një LLM ta drejtojë editorin përmes Streamable HTTP. Ai ndan të njëjtën bazë të dhënash të katalogut me këtë aplikacion."
+
+msgid "MCP Host"
+msgstr "Host-i MCP"
+
+msgid "MCP Port"
+msgstr "Porta MCP"
+
+msgid "Bearer Token (Optional)"
+msgstr "Token Bearer (opsional)"
+
+msgid "Server: Running"
+msgstr "Serveri: në punë"
+
+msgid "Server: Stopped"
+msgstr "Serveri: i ndalur"
+
+msgid "Port {port} is already in use by another program, so the MCP server cannot start. Choose another port, or end the other program."
+msgstr "Porta {port} përdoret tashmë nga një program tjetër, prandaj serveri MCP nuk mund të niset. Zgjidhni një portë tjetër ose mbyllni programin tjetër."
+
+msgid "The MCP server could not start: {error}"
+msgstr "Serveri MCP nuk u nis dot: {error}"
+
+msgid "Start Server"
+msgstr "Nis serverin"
+
+msgid "Stop Server"
+msgstr "Ndalo serverin"
+
+msgid "AI MCP"
+msgstr "AI MCP"
+
+msgid "This editor is controllable by an AI assistant (Claude, Codex, …) through the built-in MCP server: it exposes the catalog and project as tools over Streamable HTTP. Start the server below, then register its endpoint in your AI tool."
+msgstr "Ky editor mund të drejtohet nga një asistent AI (Claude, Codex, …) përmes serverit MCP të integruar: ai e ofron katalogun dhe projektin si vegla përmes Streamable HTTP. Nisni serverin më poshtë, pastaj regjistroni pikën e tij fundore në veglën tuaj AI."
+
+msgid "MCP Endpoint"
+msgstr "Pika fundore MCP"
+
+msgid "Example: register the MCP server in your AI tool (adjust host/port):"
+msgstr "Shembull: regjistroni serverin MCP në veglën tuaj AI (përshtatni host-in/portën):"
+
+msgid "Use host 0.0.0.0 to make the server reachable from other devices on the network; 127.0.0.1/localhost only allows this machine."
+msgstr "Përdorni host-in 0.0.0.0 që serveri të arrihet nga pajisje të tjera në rrjet; 127.0.0.1/localhost lejon vetëm këtë kompjuter."
+
+msgid "claude mcp add --transport http xknx-editor {url}"
+msgstr "claude mcp add --transport http xknx-editor {url}"
+
+msgid "claude mcp add --transport http xknx-editor {url} --header \"Authorization: Bearer {token}\""
+msgstr "claude mcp add --transport http xknx-editor {url} --header \"Authorization: Bearer {token}\""
+
+msgid "codex mcp add xknx-editor --url {url}"
+msgstr "codex mcp add xknx-editor --url {url}"
+
+msgid "export XKNX_MCP_TOKEN='{token}'\ncodex mcp add xknx-editor --url {url} --bearer-token-env-var XKNX_MCP_TOKEN"
+msgstr "export XKNX_MCP_TOKEN='{token}'\ncodex mcp add xknx-editor --url {url} --bearer-token-env-var XKNX_MCP_TOKEN"
+
+msgid "Copied"
+msgstr "U kopjua"
+
+msgid "Download Language"
+msgstr "Gjuha e shkarkimit"
+
+msgid "MCP running"
+msgstr "MCP në punë"
+
+msgid "Welcome"
+msgstr "Mirë se vini"
+
+msgid "Create a new project or open an existing one to get started."
+msgstr "Për të filluar, krijoni një projekt të ri ose hapni një ekzistues."
+
+msgid "Recent Projects"
+msgstr "Projektet e fundit"
+
+msgid "Recover from Bus…"
+msgstr "Rikupero nga busi…"
+
+msgid "Export .knxproj…"
+msgstr "Eksporto .knxproj…"
+
+msgid "Export to ETS 5 ProjectStore"
+msgstr "Eksporto në ProjectStore të ETS 5"
+
+msgid "Export Group Addresses…"
+msgstr "Eksporto adresat e grupit…"
+
+msgid "Import Group Addresses…"
+msgstr "Importo adresat e grupit…"
+
+msgid "Exported {count} group address(es)"
+msgstr "U eksportuan {count} adresë(a) grupi"
+
+msgid "Export Group Addresses"
+msgstr "Eksporto adresat e grupit"
+
+msgid "Output Format"
+msgstr "Formati i daljes"
+
+msgid "CSV Format"
+msgstr "Formati CSV"
+
+msgid "3/1 - three columns, Main/Middle/Sub group separated"
+msgstr "3/1 - tri kolona, grupi kryesor/i mesëm/nëngrupi të ndara"
+
+msgid "1/3 - Group address name/Main - Middle - Sub group"
+msgstr "1/3 - Emri i adresës së grupit/Kryesor - I mesëm - Nëngrup"
+
+msgid "1/1 - Name/Address"
+msgstr "1/1 - Emri/Adresa"
+
+msgid "3/3 - Main - Middle - Sub group name/Main - Middle - Sub group address"
+msgstr "3/3 - Emri i grupit kryesor - të mesëm - nëngrupit/Adresa e grupit kryesor - të mesëm - nëngrupit"
+
+msgid "Export with Header Line"
+msgstr "Eksporto me rresht titujsh"
+
+msgid "CSV Separator"
+msgstr "Ndarësi CSV"
+
+msgid "Tabulator"
+msgstr "Tabulator"
+
+msgid "Comma"
+msgstr "Presje"
+
+msgid "Semicolon"
+msgstr "Pikëpresje"
+
+msgid "Export"
+msgstr "Eksporto"
+
+msgid "Group Address Export (*.csv)"
+msgstr "Eksport i adresave të grupit (*.csv)"
+
+msgid "Exported to {path} ({size}) as {schema}"
+msgstr "U eksportua në {path} ({size}) si {schema}"
+
+msgid "Export Complete"
+msgstr "Eksportimi përfundoi"
+
+msgid "Successfully created {name}"
+msgstr "{name} u krijua me sukses"
+
+msgid "File Size"
+msgstr "Madhësia e skedarit"
+
+msgid "Project"
+msgstr "Projekti"
+
+msgid "Format"
+msgstr "Formati"
+
+msgid "Devices"
+msgstr "Pajisjet"
+
+msgid "Buildings"
+msgstr "Ndërtesat"
+
+msgid "Group Addresses"
+msgstr "Adresat e grupit"
+
+msgid "Group Object Links"
+msgstr "Lidhjet e objekteve të grupit"
+
+msgid "Areas / Lines"
+msgstr "Zonat / Linjat"
+
+msgid "Floors / Rooms"
+msgstr "Katet / Dhomat"
+
+msgid "Functions"
+msgstr "Funksionet"
+
+msgid "KNX Master Version"
+msgstr "Versioni i KNX Master"
+
+msgid "Exported at"
+msgstr "Eksportuar më"
+
+msgid "Manufacturer Data (M Folders)"
+msgstr "Të dhënat e prodhuesit (dosjet M)"
+
+msgid "Signed"
+msgstr "I nënshkruar"
+
+msgid "Certificate"
+msgstr "Certifikata"
+
+msgid "yes"
+msgstr "po"
+
+msgid "no"
+msgstr "jo"
+
+msgid "Open Folder"
+msgstr "Hap dosjen"
+
+msgid "Good to Know"
+msgstr "Mirë të dihet"
+
+msgid "Your project opened fine and everything you need to work with is here. A few extra details from the original file are shown a bit more simply:"
+msgstr "Projekti juaj u hap pa probleme dhe gjithçka që ju nevojitet për punë është këtu. Disa detaje shtesë nga skedari origjinal shfaqen pak më thjesht:"
+
+msgid "This project came from a file with a few extra details this editor does not use. The export leaves these out:"
+msgstr "Ky projekt vjen nga një skedar me disa detaje shtesë që ky editor nuk i përdor. Eksporti i lë jashtë këto:"
+
+msgid "The original file had {count} installations. They were combined into one."
+msgstr "Skedari origjinal kishte {count} instalime. Ato u bashkuan në një."
+
+msgid "{count} device(s) aren't assigned to a line. They're kept in the project and included on export, but can't be edited here yet."
+msgstr "{count} pajisje nuk janë caktuar në asnjë linjë. Ato mbahen në projekt dhe përfshihen në eksport, por ende nuk mund të ndryshohen këtu."
+
+msgid "{count} group object(s) had an extra description in the original file. The custom name and function are kept; only that description is not shown here."
+msgstr "{count} objekt(e) grupi kishin një përshkrim shtesë në skedarin origjinal. Emri dhe funksioni i personalizuar ruhen; vetëm ai përshkrim nuk shfaqet këtu."
+
+msgid "For example: {examples}"
+msgstr "Për shembull: {examples}"
+
+msgid "{count} IP or function setting(s) from the original file are not used here."
+msgstr "{count} cilësim(e) IP ose funksionesh nga skedari origjinal nuk përdoren këtu."
+
+msgid "{count} line(s) use several segments. In a schema 14/20 export they are shown at line level only."
+msgstr "{count} linjë(a) përdorin disa segmente. Në një eksport me skemën 14/20 ato shfaqen vetëm në nivel linje."
+
+msgid "{count} line(s) had the same address in different installations. One of each was kept when combining."
+msgstr "{count} linjë(a) kishin të njëjtën adresë në instalime të ndryshme. Gjatë bashkimit u mbajt nga një për secilën."
+
+msgid "Exporting {name} — this can take a while for large projects."
+msgstr "Po eksportohet {name} — për projekte të mëdha kjo mund të zgjasë pak."
+
+msgid "Collecting the manufacturer data…"
+msgstr "Po mblidhen të dhënat e prodhuesit…"
+
+msgid "Writing the archive…"
+msgstr "Po shkruhet arkivi…"
+
+msgid "Getting the certificate from MyKNX…"
+msgstr "Po merret certifikata nga MyKNX…"
+
+msgid "Cancelling…"
+msgstr "Po anulohet…"
+
+msgid "Export cancelled, no file was written"
+msgstr "Eksportimi u anulua, nuk u shkrua asnjë skedar"
+
+msgid "Export Failed"
+msgstr "Eksportimi dështoi"
+
+msgid "The project could not be exported to {name}."
+msgstr "Projekti nuk u eksportua dot në {name}."
+
+msgid "MyKNX did not issue the certificate for the project:"
+msgstr "MyKNX nuk e lëshoi certifikatën për projektin:"
+
+msgid "To export without it, choose 'Export Without Certificate' or the 'License with a Dongle' tab in the Sign Export window."
+msgstr "Për të eksportuar pa të, zgjidhni 'Eksporto pa certifikatë' ose skedën 'Licenco me dongle' në dritaren Nënshkruaj eksportin."
+
+msgid "{name} cannot be imported."
+msgstr "{name} nuk mund të importohet."
+
+msgid "The file was written, but it refers to product data that is not in the catalog: {references}. Add these products to the catalog and export again."
+msgstr "Skedari u shkrua, por ai i referohet të dhënave të produkteve që nuk janë në katalog: {references}. Shtojini këto produkte në katalog dhe eksportoni përsëri."
+
+msgid "Sign Export"
+msgstr "Nënshkruaj eksportin"
+
+msgid "ETS 6: needs a licensed .knxproj through a MyKNX login or a dongle.\nETS 5: just use 'Export Without Certificate'."
+msgstr "ETS 6: kërkon një .knxproj të licencuar përmes hyrjes në MyKNX ose një dongle-i.\nETS 5: thjesht përdorni 'Eksporto pa certifikatë'."
+
+msgid "Sign with MyKNX Login"
+msgstr "Nënshkruaj me hyrje në MyKNX"
+
+msgid "License with a Dongle"
+msgstr "Licenco me dongle"
+
+msgid "ETS must not be running on any computer with this MyKNX account while you log in and export here."
+msgstr "ETS nuk duhet të jetë në punë në asnjë kompjuter me këtë llogari MyKNX ndërkohë që ju hyni dhe eksportoni këtu."
+
+msgid "MyKNX Username"
+msgstr "Emri i përdoruesit MyKNX"
+
+msgid "MyKNX Password"
+msgstr "Fjalëkalimi MyKNX"
+
+msgid "Log in"
+msgstr "Hyr"
+
+msgid "Complete sign-in in your browser. Code: {code}"
+msgstr "Përfundoni hyrjen në shfletuesin tuaj. Kodi: {code}"
+
+msgid "Login failed (HTTP 401). Either the password is wrong, or this account uses two-factor authentication - the server does not say which."
+msgstr "Hyrja dështoi (HTTP 401). Ose fjalëkalimi është i gabuar, ose kjo llogari përdor vërtetim me dy faktorë - serveri nuk tregon cilin rast."
+
+msgid "Re-enter Credentials"
+msgstr "Rifut kredencialet"
+
+msgid "Start 2FA Sign-In"
+msgstr "Nis hyrjen me 2FA"
+
+msgid "MyKNX OAuth Credentials (2FA)"
+msgstr "Kredencialet OAuth të MyKNX (2FA)"
+
+msgid "Needed only for accounts with two-factor authentication. The 2FA sign-in opens in your browser automatically when a normal login is rejected. Enter the OAuth client id/secret, or extract them from your installed ETS: pick 'Knx.Ets.MyKnx.dll' from the ETS program folder (e.g. C:\\Program Files (x86)\\ETS6\\Knx.Ets.MyKnx.dll).\n\nAlternatively, if you have any licensed ETS installed, skip online signing entirely and use the local project store instead - see the 'License with a Dongle' tab."
+msgstr "Nevojitet vetëm për llogari me vërtetim me dy faktorë. Hyrja me 2FA hapet automatikisht në shfletues kur një hyrje normale refuzohet. Vendosni ID-në/sekretin e klientit OAuth, ose nxirrini nga ETS-i juaj i instaluar: zgjidhni 'Knx.Ets.MyKnx.dll' nga dosja e programit ETS (p.sh. C:\\Program Files (x86)\\ETS6\\Knx.Ets.MyKnx.dll).\n\nPërndryshe, nëse keni të instaluar ndonjë ETS të licencuar, anashkaloni krejt nënshkrimin online dhe përdorni në vend të tij project store-in lokal - shihni skedën 'Licenco me dongle'."
+
+msgid "Client ID"
+msgstr "ID e klientit"
+
+msgid "Client Secret"
+msgstr "Sekreti i klientit"
+
+msgid "Extract from ETS…"
+msgstr "Nxirre nga ETS…"
+
+msgid "Extracting…"
+msgstr "Po nxirret…"
+
+msgid "Save"
+msgstr "Ruaj"
+
+msgid "All files"
+msgstr "Të gjithë skedarët"
+
+msgid "Logging in…"
+msgstr "Po kryhet hyrja…"
+
+msgid "License"
+msgstr "Licenca"
+
+msgid "No licenses found on this account"
+msgstr "Nuk u gjet asnjë licencë në këtë llogari"
+
+msgid "no online certificate"
+msgstr "pa certifikatë online"
+
+msgid "expired"
+msgstr "e skaduar"
+
+msgid "None of these licenses can sign online. Only ETS6 (or a cloud-enabled ETS app) licenses produce a certificate; ETS5/older licenses cannot. Use 'License with a dongle' instead."
+msgstr "Asnjë nga këto licenca nuk mund të nënshkruajë online. Vetëm licencat ETS6 (ose të një aplikacioni ETS me cloud) prodhojnë certifikatë; licencat ETS5 ose më të vjetra jo. Përdorni në vend të kësaj 'Licenco me dongle'."
+
+msgid "Login failed: {error}"
+msgstr "Hyrja dështoi: {error}"
+
+msgid "Format Version"
+msgstr "Versioni i formatit"
+
+msgid "Remove device(s) & re-export"
+msgstr "Hiq pajisjet & rieksporto"
+
+msgid "Removed {count} incompatible device(s); re-exporting"
+msgstr "U hoqën {count} pajisje të papërputhshme; po rieksportohet"
+
+msgid "This file will NOT import into the chosen ETS version: the product data of these manufacturers only exists for a newer ETS (e.g. an ETS 6 product in an ETS 5 export), so ETS rejects the whole project. Remove the affected device(s) or export for the newer ETS."
+msgstr "Ky skedar NUK do të importohet në versionin e zgjedhur të ETS: të dhënat e produkteve të këtyre prodhuesve ekzistojnë vetëm për një ETS më të ri (p.sh. një produkt ETS 6 në një eksport ETS 5), prandaj ETS e refuzon të gjithë projektin. Hiqni pajisjet e prekura ose eksportoni për ETS-in më të ri."
+
+msgid "ETS 6 (schema 23)"
+msgstr "ETS 6 (skema 23)"
+
+msgid "ETS 5 (schema 20)"
+msgstr "ETS 5 (skema 20)"
+
+msgid "Signing Key…"
+msgstr "Çelësi i nënshkrimit…"
+
+msgid "Signing Key"
+msgstr "Çelësi i nënshkrimit"
+
+msgid "Folder signature uses a placeholder key. Enter a valid signature under 'Signing Key…' or use the 'License with a Dongle' way."
+msgstr "Nënshkrimi i dosjes përdor një çelës vendmbajtës. Vendosni një nënshkrim të vlefshëm te 'Çelësi i nënshkrimit…' ose përdorni rrugën 'Licenco me dongle'."
+
+msgid "Export to ProjectStore"
+msgstr "Eksporto në ProjectStore"
+
+msgid "Select the {ets} ProjectStore folder"
+msgstr "Zgjidhni dosjen ProjectStore të {ets}"
+
+msgid "Select the ETS installer.guid file"
+msgstr "Zgjidhni skedarin installer.guid të ETS"
+
+msgid "ETS installer id"
+msgstr "ID e instaluesit ETS"
+
+msgid "Project Already in the Store"
+msgstr "Projekti është tashmë në Store"
+
+msgid "A project folder '{pid}' already exists in this ETS ProjectStore. Overwrite it, or add it as a separate copy?"
+msgstr "Një dosje projekti '{pid}' ekziston tashmë në këtë ProjectStore të ETS. Ta mbishkruaj apo ta shtoj si kopje më vete?"
+
+msgid "Overwrite"
+msgstr "Mbishkruaj"
+
+msgid "Add Copy"
+msgstr "Shto kopje"
+
+msgid "XKNX Export"
+msgstr "Eksport XKNX"
+
+msgid "Re-license the project through your own licensed ETS, which re-signs the copy with your dongle license:\n\nETS 6 - use the local project store:\n1. Click 'Export to ProjectStore'. It writes the project's 'P-XXXX' folder straight into your ETS 6 project store. If ETS is not installed on this computer, you are asked for the store folder (or any folder you then copy over manually).\n2. The export needs your 'installer.guid' from C:\\ProgramData\\KNX\\ETS6\\Installer. If it cannot be found automatically, you are asked to select it.\n3. Restart ETS 6 - the project appears in the project overview.\n4. Make a copy of it there (Copy in the overview). The copy is re-signed with your license - open it, then use or export it normally.\n\nETS 5 - no project store is needed:\nChoose 'Export Without Certificate' (with ETS 5 as version) and an active signing key to save a .knxproj, then import that file into ETS 5.\n\nThis is bounded by the device-per-project limit of your license."
+msgstr "Rilicenconi projektin përmes ETS-it tuaj të licencuar, i cili e rinënshkruan kopjen me licencën tuaj në dongle:\n\nETS 6 - përdorni project store-in lokal:\n1. Klikoni 'Eksporto në ProjectStore'. Kjo e shkruan dosjen 'P-XXXX' të projektit drejtpërdrejt në project store-in tuaj të ETS 6. Nëse ETS nuk është i instaluar në këtë kompjuter, do t'ju kërkohet dosja e store-it (ose çdo dosje që më pas e kopjoni me dorë).\n2. Eksporti kërkon skedarin tuaj 'installer.guid' nga C:\\ProgramData\\KNX\\ETS6\\Installer. Nëse nuk gjendet automatikisht, do t'ju kërkohet ta zgjidhni.\n3. Rinisni ETS 6 - projekti shfaqet në pasqyrën e projekteve.\n4. Bëni aty një kopje të tij (Copy në pasqyrë). Kopja rinënshkruhet me licencën tuaj - hapeni, pastaj përdoreni ose eksportojeni normalisht.\n\nETS 5 - nuk nevojitet project store:\nZgjidhni 'Eksporto pa certifikatë' (me ETS 5 si version) dhe një çelës nënshkrimi aktiv për të ruajtur një .knxproj, pastaj importojeni atë skedar në ETS 5.\n\nKjo kufizohet nga numri maksimal i pajisjeve për projekt i licencës suaj."
+
+msgid "Sign & Export"
+msgstr "Nënshkruaj & eksporto"
+
+msgid "Export Without Certificate"
+msgstr "Eksporto pa certifikatë"
+
+msgid "Export ETS Project"
+msgstr "Eksporto projekt ETS"
+
+msgid "Load .knxprod…"
+msgstr "Ngarko .knxprod…"
+
+msgid "Load OpenKNX from URL or Folder…"
+msgstr "Ngarko OpenKNX nga URL ose dosje…"
+
+msgid "Load OpenKNX from URL or Files…"
+msgstr "Ngarko OpenKNX nga URL ose skedarë…"
+
+msgid "Load OpenKNX from URL or Folder"
+msgstr "Ngarko OpenKNX nga URL ose dosje"
+
+msgid "Load OpenKNX from URL or Files"
+msgstr "Ngarko OpenKNX nga URL ose skedarë"
+
+msgid "Paste an OpenKNX GitHub release URL (the release page works — the .zip asset is found automatically). A direct .knxprod or KNX product XML link also works.\n\nExamples:\n  https://github.com/OpenKNX/OAM-RaumController/releases/tag/v5.4.3\n  https://github.com/OpenKNX/OAM-RaumController/releases/latest"
+msgstr "Ngjitni URL-në e një release-i OpenKNX në GitHub (funksionon edhe faqja e release-it — skedari .zip gjendet automatikisht). Funksionon edhe një lidhje e drejtpërdrejtë .knxprod ose XML produkti KNX.\n\nShembuj:\n  https://github.com/OpenKNX/OAM-RaumController/releases/tag/v5.4.3\n  https://github.com/OpenKNX/OAM-RaumController/releases/latest"
+
+msgid "Or choose a local folder with product files (.knxprod, OpenKNX release .zip, or KNX product XML) to import all of them."
+msgstr "Ose zgjidhni një dosje lokale me skedarë produktesh (.knxprod, .zip release OpenKNX ose XML produkti KNX) për t'i importuar të gjithë."
+
+msgid "Choose Folder…"
+msgstr "Zgjidh dosjen…"
+
+msgid "Or upload product files (.knxprod, OpenKNX release .zip, or KNX product XML) from this computer to import all of them."
+msgstr "Ose ngarkoni skedarë produktesh (.knxprod, .zip release OpenKNX ose XML produkti KNX) nga ky kompjuter për t'i importuar të gjithë."
+
+msgid "Choose Files…"
+msgstr "Zgjidh skedarët…"
+
+msgid "Load"
+msgstr "Ngarko"
+
+msgid "Downloading and importing…"
+msgstr "Po shkarkohet dhe importohet…"
+
+msgid "Nothing new imported (already in the catalog)"
+msgstr "Nuk u importua asgjë e re (tashmë në katalog)"
+
+msgid "Import from URL failed: {error}"
+msgstr "Importimi nga URL dështoi: {error}"
+
+msgid "Choose a Folder with KNX Product Files"
+msgstr "Zgjidhni një dosje me skedarë produktesh KNX"
+
+msgid "Importing from folder…"
+msgstr "Po importohet nga dosja…"
+
+msgid "Nothing new imported from folder (no product files found, or already in the catalog)"
+msgstr "Nuk u importua asgjë e re nga dosja (nuk u gjetën skedarë produktesh, ose janë tashmë në katalog)"
+
+msgid "Import from folder failed: {error}"
+msgstr "Importimi nga dosja dështoi: {error}"
+
+msgid "Choose KNX Product Files"
+msgstr "Zgjidhni skedarë produktesh KNX"
+
+msgid "KNX Product Files (*.knxprod, *.zip, *.xml)"
+msgstr "Skedarë produktesh KNX (*.knxprod, *.zip, *.xml)"
+
+msgid "Importing files…"
+msgstr "Po importohen skedarët…"
+
+msgid "Nothing new imported from the files (no product files, or already in the catalog)"
+msgstr "Nuk u importua asgjë e re nga skedarët (nuk ka skedarë produktesh, ose janë tashmë në katalog)"
+
+msgid "Import of the files failed: {error}"
+msgstr "Importimi i skedarëve dështoi: {error}"
+
+msgid "Exit"
+msgstr "Dil"
+
+msgid "Edit"
+msgstr "Ndrysho"
+
+msgid "View"
+msgstr "Pamja"
+
+msgid "Restore Default Layout"
+msgstr "Rikthe paraqitjen e parazgjedhur"
+
+msgid "Show All"
+msgstr "Shfaq të gjitha"
+
+msgid "Hide All"
+msgstr "Fshih të gjitha"
+
+msgid "Highlight Changes"
+msgstr "Thekso ndryshimet"
+
+msgid "Context Help"
+msgstr "Ndihmë kontekstuale"
+
+msgid "Status Bar"
+msgstr "Shiriti i gjendjes"
+
+msgid "FPS in Status Bar"
+msgstr "FPS në shiritin e gjendjes"
+
+msgid "Enable Idling"
+msgstr "Aktivizo pushimin"
+
+msgid "FPS: {fps:.1f}{idling}"
+msgstr "FPS: {fps:.1f}{idling}"
+
+msgid " (Idling)"
+msgstr " (në pushim)"
+
+msgid "Theme"
+msgstr "Tema"
+
+msgid "Light Theme"
+msgstr "Temë e çelët"
+
+msgid "Dark Theme"
+msgstr "Temë e errët"
+
+msgid "Customize Theme…"
+msgstr "Personalizo temën…"
+
+msgid "Customize Theme"
+msgstr "Personalizo temën"
+
+msgid "Sizes"
+msgstr "Madhësitë"
+
+msgid "Colors"
+msgstr "Ngjyrat"
+
+msgid "Rendering"
+msgstr "Vizatimi"
+
+msgid "Adjustments"
+msgstr "Rregullimet"
+
+msgid "Theme Default"
+msgstr "Parazgjedhja e temës"
+
+msgid "Reset to Theme"
+msgstr "Rikthe te tema"
+
+msgid "Rounding"
+msgstr "Rrumbullakimi"
+
+msgid "Scrollbar Rounding Ratio"
+msgstr "Raporti i rrumbullakimit të shiritave të lëvizjes"
+
+msgid "Opacity"
+msgstr "Opaciteti"
+
+msgid "Hue"
+msgstr "Nuanca"
+
+msgid "Saturation"
+msgstr "Ngopja"
+
+msgid "Brightness of Controls"
+msgstr "Ndriçimi i kontrolleve"
+
+msgid "Brightness of Backgrounds"
+msgstr "Ndriçimi i sfondeve"
+
+msgid "Brightness of Text"
+msgstr "Ndriçimi i tekstit"
+
+msgid "Brightness of Input Fields"
+msgstr "Ndriçimi i fushave të hyrjes"
+
+msgid "Spacing"
+msgstr "Hapësirat"
+
+msgid "Borders"
+msgstr "Kornizat"
+
+msgid "Alignment"
+msgstr "Rreshtimi"
+
+msgid "Window Padding"
+msgstr "Mbushja e dritares"
+
+msgid "Field Padding"
+msgstr "Mbushja e fushave"
+
+msgid "Cell Padding"
+msgstr "Mbushja e qelizave"
+
+msgid "Item Spacing"
+msgstr "Hapësira mes elementeve"
+
+msgid "Item Inner Spacing"
+msgstr "Hapësira e brendshme e elementeve"
+
+msgid "Extra Touch Padding"
+msgstr "Mbushje shtesë për prekje"
+
+msgid "Indent"
+msgstr "Kryeradha"
+
+msgid "Scrollbar Width"
+msgstr "Gjerësia e shiritave të lëvizjes"
+
+msgid "Minimum Slider Grip Size"
+msgstr "Madhësia minimale e dorezës së rrëshqitësit"
+
+msgid "Windows"
+msgstr "Dritaret"
+
+msgid "Child Windows"
+msgstr "Dritaret bijë"
+
+msgid "Popups"
+msgstr "Dritaret kërcyese"
+
+msgid "Fields"
+msgstr "Fushat"
+
+msgid "Tabs"
+msgstr "Skedat"
+
+msgid "Tab Bar"
+msgstr "Shiriti i skedave"
+
+msgid "Scrollbars"
+msgstr "Shiritat e lëvizjes"
+
+msgid "Slider Grips"
+msgstr "Dorezat e rrëshqitësve"
+
+msgid "Window Title"
+msgstr "Titulli i dritares"
+
+msgid "Button Text"
+msgstr "Teksti i butonave"
+
+msgid "List Entry Text"
+msgstr "Teksti i elementeve të listës"
+
+msgid "Separator Text"
+msgstr "Teksti i ndarësve"
+
+msgid "Font Scale"
+msgstr "Shkalla e shkronjave"
+
+msgid "Anti-Aliased Lines"
+msgstr "Vija me anti-aliasing"
+
+msgid "Anti-Aliased Fills"
+msgstr "Mbushje me anti-aliasing"
+
+msgid "Maximum Curve Tessellation Error"
+msgstr "Gabimi maksimal i ndarjes së kurbave"
+
+msgid "Maximum Circle Tessellation Error"
+msgstr "Gabimi maksimal i ndarjes së rrathëve"
+
+msgid "Global Opacity"
+msgstr "Opaciteti i përgjithshëm"
+
+msgid "Opacity of Disabled Items"
+msgstr "Opaciteti i elementeve joaktive"
+
+msgid "Show ImGui Demo Window"
+msgstr "Shfaq dritaren demo të ImGui"
+
+msgid "Filter colors"
+msgstr "Filtro ngjyrat"
+
+msgid "Undo"
+msgstr "Zhbëj"
+
+msgid "Redo"
+msgstr "Ribëj"
+
+msgid "Open KNX Product Archive"
+msgstr "Hap arkiv produkti KNX"
+
+msgid "KNX Product (*.knxprod, *.vd1-*.vd5)"
+msgstr "Produkt KNX (*.knxprod, *.vd1-*.vd5)"
+
+msgid "Legacy ETS product databases (.vd1-.vd5) are not imported directly.\n\nConvert the file to .knxprod first with the conversion tools that ship with ETS5/ETS6 - open the product file in ETS, or use its command-line converter - then import the resulting .knxprod here."
+msgstr "Bazat e vjetra të të dhënave të produkteve ETS (.vd1-.vd5) nuk importohen drejtpërdrejt.\n\nFillimisht konvertojeni skedarin në .knxprod me veglat e konvertimit që vijnë me ETS5/ETS6 - hapeni skedarin e produktit në ETS, ose përdorni konvertuesin e tij nga rreshti i komandave - pastaj importojeni këtu .knxprod-in që përftohet."
+
+msgid "ETS Project (*.knxproj)"
+msgstr "Projekt ETS (*.knxproj)"
+
+msgid "ETS 6 Project (*.knxproj)"
+msgstr "Projekt ETS 6 (*.knxproj)"
+
+msgid "ETS 5 Project (*.knxproj)"
+msgstr "Projekt ETS 5 (*.knxproj)"
+
+msgid "Group Address Exports (*.xml, *.csv)"
+msgstr "Eksporte adresash grupi (*.xml, *.csv)"
+
+msgid "Group Address Export (*.xml)"
+msgstr "Eksport i adresave të grupit (*.xml)"
+
+msgid "Open XKNX Project"
+msgstr "Hap projekt XKNX"
+
+msgid "Save XKNX Project"
+msgstr "Ruaj projektin XKNX"
+
+msgid "Save Project As"
+msgstr "Ruaj projektin si"
+
+msgid "Replace File"
+msgstr "Zëvendëso skedarin"
+
+msgid "{name} already exists."
+msgstr "{name} ekziston tashmë."
+
+msgid "It is in {dir}. Replacing it overwrites its current content; this cannot be undone."
+msgstr "Ndodhet në {dir}. Zëvendësimi e mbishkruan përmbajtjen e tij aktuale; ky veprim nuk mund të zhbëhet."
+
+msgid "Replace"
+msgstr "Zëvendëso"
+
+msgid "XKNX Project (*.xknx)"
+msgstr "Projekt XKNX (*.xknx)"
+
+msgid "Projects (*.xknx, *.knxproj, *.xml, *.csv)"
+msgstr "Projekte (*.xknx, *.knxproj, *.xml, *.csv)"
+
+msgid "Working…"
+msgstr "Po punohet…"
+
+msgid "Importing project — this can take a while for large projects."
+msgstr "Po importohet projekti — për projekte të mëdha kjo mund të zgjasë pak."
+
+msgid "{done}/{total} devices"
+msgstr "{done}/{total} pajisje"
+
+msgid "Loading product catalog…"
+msgstr "Po ngarkohet katalogu i produkteve…"
+
+msgid "Imported {count} product version(s) from {name}:"
+msgstr "U importuan {count} version(e) produkti nga {name}:"
+
+msgid "KNX Secure"
+msgstr "KNX Secure"
+
+msgid "DIN rail"
+msgstr "Shinë DIN"
+
+msgid "Flush-mounted"
+msgstr "Montim në mur"
+
+msgid "Registered: {info}"
+msgstr "I regjistruar: {info}"
+
+msgid "Manufacturer"
+msgstr "Prodhuesi"
+
+msgid "Product"
+msgstr "Produkti"
+
+msgid "Order no."
+msgstr "Nr. porosie"
+
+msgid "Application"
+msgstr "Aplikacioni"
+
+msgid "Version"
+msgstr "Versioni"
+
+msgid "Mask"
+msgstr "Maska"
+
+msgid "Hardware"
+msgstr "Harduer"
+
+msgid "Registered"
+msgstr "I regjistruar"
+
+msgid "{name} was already in the catalog, nothing new imported"
+msgstr "{name} ishte tashmë në katalog, nuk u importua asgjë e re"
+
+msgid "Product Catalog Import"
+msgstr "Importimi i katalogut të produkteve"
+
+msgid "Opening project…"
+msgstr "Po hapet projekti…"
+
+msgid "Importing group addresses…"
+msgstr "Po importohen adresat e grupit…"
+
+msgid "Switching language…"
+msgstr "Po ndërrohet gjuha…"
+
+msgid "Project Password"
+msgstr "Fjalëkalimi i projektit"
+
+msgid "This ETS project is password protected. Enter its password:"
+msgstr "Ky projekt ETS është i mbrojtur me fjalëkalim. Vendosni fjalëkalimin e tij:"
+
+msgid "Wrong password, please try again."
+msgstr "Fjalëkalim i gabuar, ju lutemi provoni përsëri."
+
+msgid "This project is protected with a password. Enter it to open the project:"
+msgstr "Ky projekt është i mbrojtur me fjalëkalim. Vendoseni për ta hapur projektin:"
+
+msgid "This project contains KNX Secure keys. Set a project password to protect them; the project can then only be opened with it."
+msgstr "Ky projekt përmban çelësa KNX Secure. Vendosni një fjalëkalim projekti për t'i mbrojtur; pas kësaj projekti mund të hapet vetëm me të."
+
+msgid "Password"
+msgstr "Fjalëkalimi"
+
+msgid "Repeat Password"
+msgstr "Përsërit fjalëkalimin"
+
+msgid "The passwords do not match."
+msgstr "Fjalëkalimet nuk përputhen."
+
+msgid "Protecting the project with the password…"
+msgstr "Po mbrohet projekti me fjalëkalimin…"
+
+msgid "OK"
+msgstr "OK"
+
+msgid "Check for Updates"
+msgstr "Kontrollo për përditësime"
+
+msgid "Check for Updates on Startup"
+msgstr "Kontrollo për përditësime gjatë nisjes"
+
+msgid "Update Available"
+msgstr "Ka përditësim"
+
+msgid "Version {latest} is available. You have {current}."
+msgstr "Versioni {latest} është i disponueshëm. Ju keni {current}."
+
+msgid "You are up to date (version {version})."
+msgstr "Keni versionin më të fundit ({version})."
+
+msgid "Download"
+msgstr "Shkarko"
+
+msgid "Install Update"
+msgstr "Instalo përditësimin"
+
+msgid "Install Update downloads the installer, closes XKNX Editor and starts it again with the open project."
+msgstr "Instalo përditësimin shkarkon instaluesin, mbyll XKNX Editor dhe e nis përsëri me projektin e hapur."
+
+msgid "Downloading the update…"
+msgstr "Po shkarkohet përditësimi…"
+
+msgid "{done} of {total} MB"
+msgstr "{done} nga {total} MB"
+
+msgid "Skip This Version"
+msgstr "Anashkalo këtë version"
+
+msgid "Later"
+msgstr "Më vonë"
+
+msgid "Release Notes:"
+msgstr "Shënimet e versionit:"
+
+msgid "License: GPL-2.0-only"
+msgstr "Licenca: GPL-2.0-only"
+
+msgid "Website:"
+msgstr "Faqja në internet:"
+
+msgid "Open Config Folder"
+msgstr "Hap dosjen e konfigurimit"
+
+msgid "Open Cache Folder"
+msgstr "Hap dosjen e cache-it"
+
+msgid "Open Log Folder"
+msgstr "Hap dosjen e regjistrave"
+
+msgid "Compact Project…"
+msgstr "Ngjesh projektin…"
+
+msgid "Compact Project"
+msgstr "Ngjesh projektin"
+
+msgid "Analysing project…"
+msgstr "Po analizohet projekti…"
+
+msgid "Compacting project…"
+msgstr "Po ngjeshet projekti…"
+
+msgid "Analysing devices"
+msgstr "Po analizohen pajisjet"
+
+msgid "Analysing product data ({manufacturer})"
+msgstr "Po analizohen të dhënat e produkteve ({manufacturer})"
+
+msgid "Removing unused product data ({manufacturer})"
+msgstr "Po hiqen të dhënat e papërdorura të produkteve ({manufacturer})"
+
+msgid "Saving product data"
+msgstr "Po ruhen të dhënat e produkteve"
+
+msgid "Compacting project file"
+msgstr "Po ngjeshet skedari i projektit"
+
+msgid "The following product data is not used by any device in this project and will be removed:"
+msgstr "Të dhënat e mëposhtme të produkteve nuk përdoren nga asnjë pajisje në këtë projekt dhe do të hiqen:"
+
+msgid "All product data in this project is used by its devices, nothing to remove. The project file can still be compacted to free unused space."
+msgstr "Të gjitha të dhënat e produkteve në këtë projekt përdoren nga pajisjet e tij, nuk ka asgjë për të hequr. Skedari i projektit mund të ngjeshet sidoqoftë për të liruar hapësirën e papërdorur."
+
+msgid "Application Programs"
+msgstr "Programet aplikative"
+
+msgid "Device Types (Products)"
+msgstr "Llojet e pajisjeve (produktet)"
+
+msgid "Manufacturers"
+msgstr "Prodhuesit"
+
+msgid "Catalog Entries"
+msgstr "Hyrjet e katalogut"
+
+msgid "Help and Plug-in Files"
+msgstr "Skedarë ndihme dhe plug-in"
+
+msgid "Details"
+msgstr "Detajet"
+
+msgid "Current File Size"
+msgstr "Madhësia aktuale e skedarit"
+
+msgid "Estimated Size Afterwards"
+msgstr "Madhësia e vlerësuar pas"
+
+msgid "This cannot be undone. Removed product data has to be imported again if these products are added to the project later."
+msgstr "Ky veprim nuk mund të zhbëhet. Të dhënat e hequra të produkteve duhet të importohen sërish nëse këto produkte shtohen më vonë në projekt."
+
+msgid "Compact"
+msgstr "Ngjesh"
+
+msgid "Project Compacted"
+msgstr "Projekti u ngjesh"
+
+msgid "The project file was compacted."
+msgstr "Skedari i projektit u ngjesh."
+
+msgid "Size before"
+msgstr "Madhësia para"
+
+msgid "Size after"
+msgstr "Madhësia pas"
+
+msgid "Compacting cancelled, the project was not changed"
+msgstr "Ngjeshja u anulua, projekti nuk ndryshoi"
+
+msgid "Remove Unused Product Data"
+msgstr "Hiq të dhënat e papërdorura të produkteve"
+
+msgid "(only in the export, the project stays unchanged)"
+msgstr "(vetëm në eksport, projekti mbetet i pandryshuar)"
+
+msgid "Hide Tab Bar"
+msgstr "Fshih shiritin e skedave"
+
+msgid "Open {url}"
+msgstr "Hap {url}"
+
+msgid "Copy Link"
+msgstr "Kopjo lidhjen"
+
+msgid "Enter the password for access to the editor."
+msgstr "Vendosni fjalëkalimin për të hyrë në editor."
+
+msgid "Sign In"
+msgstr "Hyr"
+
+msgid "Wrong password."
+msgstr "Fjalëkalim i gabuar."
+
+msgid "Disconnected. Reconnecting…"
+msgstr "Lidhja u shkëput. Po rilidhet…"
+
+msgid "Access denied. Please sign in again."
+msgstr "Qasja u refuzua. Ju lutemi hyni përsëri."
+
+msgid "Upload from This Computer…"
+msgstr "Ngarko nga ky kompjuter…"
+
+msgid "Or drop files here."
+msgstr "Ose lëshoni skedarët këtu."
+
+msgid "Files on the Server"
+msgstr "Skedarët në server"
+
+msgid "No files yet."
+msgstr "Ende pa skedarë."
+
+msgid "Open"
+msgstr "Hap"
+
+msgid "Select"
+msgstr "Zgjidh"
+
+msgid "File Name"
+msgstr "Emri i skedarit"
+
+msgid "Folder Name"
+msgstr "Emri i dosjes"
+
+msgid "File Type"
+msgstr "Lloji i skedarit"
+
+msgid "Download to This Computer"
+msgstr "Shkarko në këtë kompjuter"
+
+msgid "Uploading {name}…"
+msgstr "Po ngarkohet {name}…"
+
+msgid "Upload failed: {error}"
+msgstr "Ngarkimi dështoi: {error}"
+
+msgid "Show"
+msgstr "Shfaq"
+
+msgid "Folder on the Server"
+msgstr "Dosja në server"
+
+msgid "View only: another browser controls the editor."
+msgstr "Vetëm shikim: editorin e drejton një shfletues tjetër."
+
+msgid "Take Control"
+msgstr "Merr kontrollin"
+
+msgid "Name"
+msgstr "Emri"
+
+msgid "Size"
+msgstr "Madhësia"
+
+msgid "Modified"
+msgstr "Ndryshuar"
+
+msgid "The browser did not open it by itself."
+msgstr "Shfletuesi nuk e hapi vetë."
+
+msgid "Download started: {name}"
+msgstr "Shkarkimi nisi: {name}"
+
+msgid "Choose File…"
+msgstr "Zgjidh skedarin…"
+
+msgid "{name} is ready."
+msgstr "{name} është gati."
+
+msgid "Open Link"
+msgstr "Hap lidhjen"
+
+msgid "Checking for updates…"
+msgstr "Po kontrollohet për përditësime…"
+
+msgid "The check for updates failed: {error}"
+msgstr "Kontrolli për përditësime dështoi: {error}"
+
+msgid "The project has no group addresses to export."
+msgstr "Projekti nuk ka adresa grupi për të eksportuar."
+
+msgid "Clear Cache…"
+msgstr "Pastro cache-in…"
+
+msgid "Clear Cache"
+msgstr "Pastro cache-in"
+
+msgid "The cache holds {size} of parsed product data and of documentation fetched for the AI tools. All of it is made again when needed; afterwards only the first use of each product takes longer."
+msgstr "Cache-i përmban {size} të dhëna produktesh të përpunuara dhe dokumentacion të marrë për veglat AI. Të gjitha krijohen përsëri kur nevojiten; pas kësaj vetëm përdorimi i parë i çdo produkti zgjat më shumë."
+
+msgid "Cache cleared, {size} freed"
+msgstr "Cache-i u pastrua, u liruan {size}"
+
+msgid "Zoom In"
+msgstr "Zmadho"
+
+msgid "Zoom Out"
+msgstr "Zvogëlo"
+
+msgid "Reset Zoom"
+msgstr "Rivendos zmadhimin"
+
+msgid "Cut"
+msgstr "Prit"
+
+msgid "Paste"
+msgstr "Ngjit"
+
+msgid "Select All"
+msgstr "Zgjidh të gjitha"
+
+msgid "Long-press in the field below and choose Paste."
+msgstr "Shtypni gjatë në fushën më poshtë dhe zgjidhni Ngjit."
+
+msgid "Too many wrong passwords. Please try again in a few minutes."
+msgstr "Shumë fjalëkalime të gabuara. Ju lutemi provoni përsëri pas disa minutash."
+
+msgid "Port {port} is already in use by another program, so the browser UI cannot start there. Start it with another port (e.g. --web={example}) or without a port to take a free one."
+msgstr "Porta {port} përdoret tashmë nga një program tjetër, prandaj ndërfaqja në shfletues nuk mund të niset aty. Niseni me një portë tjetër (p.sh. --web={example}) ose pa portë për të marrë një të lirë."
+
+msgid "Open in Browser"
+msgstr "Hap në shfletues"
+
+msgid "Stop XKNX Editor"
+msgstr "Ndalo XKNX Editor"
+
+msgid "XKNX Editor Already Running"
+msgstr "XKNX Editor është tashmë në punë"
+
+msgid "XKNX Editor is already running on this computer. Switch to it, or start another one, e.g. to work on a second project or with another bus connection."
+msgstr "XKNX Editor është tashmë në punë në këtë kompjuter. Kaloni te ai, ose nisni një tjetër, p.sh. për të punuar me një projekt të dytë ose me një lidhje tjetër me busin."
+
+msgid "Window"
+msgstr "Dritarja"
+
+msgid "Browser UI ({url})"
+msgstr "Ndërfaqja në shfletues ({url})"
+
+msgid "{kind}: {project}"
+msgstr "{kind}: {project}"
+
+msgid "Switch to It"
+msgstr "Kalo te ai"
+
+msgid "Start Another"
+msgstr "Nis një tjetër"
+
+msgid "That XKNX Editor has ended in the meantime."
+msgstr "Ai XKNX Editor është mbyllur ndërkohë."
+
+msgid "Project Already Open"
+msgstr "Projekti është tashmë i hapur"
+
+msgid "{name} is already open in another XKNX Editor. Editing it in two editors at once can overwrite changes."
+msgstr "{name} është tashmë i hapur në një XKNX Editor tjetër. Ndryshimi i tij njëkohësisht në dy editorë mund të mbishkruajë ndryshimet."
+
+msgid "Open Anyway"
+msgstr "Hape gjithsesi"
+
+msgid "C"
+msgstr "C"
+
+msgid "R"
+msgstr "R"
+
+msgid "W"
+msgstr "W"
+
+msgid "T"
+msgstr "T"
+
+msgid "U"
+msgstr "U"
+
+msgid "I"
+msgstr "I"
+
+msgid "Communication"
+msgstr "Komunikim"
+
+msgid "Read"
+msgstr "Lexim"
+
+msgid "Write"
+msgstr "Shkrim"
+
+msgid "Transmit"
+msgstr "Transmetim"
+
+msgid "Update"
+msgstr "Përditësim"
+
+msgid "Read on Init"
+msgstr "Lexim në nisje"
+
+msgid "English"
+msgstr "Anglisht"
+
+msgid "German"
+msgstr "Gjermanisht"
+
+msgid "Dutch"
+msgstr "Holandisht"
+
+msgid "{name} ({native})"
+msgstr "{name} ({native})"
+
+msgid "Spanish"
+msgstr "Spanjisht"
+
+msgid "Greek"
+msgstr "Greqisht"
+
+msgid "Simplified Chinese"
+msgstr "Kinezisht e thjeshtuar"
+
+msgid "Japanese"
+msgstr "Japonisht"
+
+msgid "Czech"
+msgstr "Çekisht"
+
+msgid "Danish"
+msgstr "Danisht"
+
+msgid "Finnish"
+msgstr "Finlandisht"
+
+msgid "French"
+msgstr "Frëngjisht"
+
+msgid "Italian"
+msgstr "Italisht"
+
+msgid "Norwegian"
+msgstr "Norvegjisht"
+
+msgid "Polish"
+msgstr "Polonisht"
+
+msgid "Portuguese"
+msgstr "Portugalisht"
+
+msgid "Russian"
+msgstr "Rusisht"
+
+msgid "Swedish"
+msgstr "Suedisht"
+
+msgid "Turkish"
+msgstr "Turqisht"
+
+msgid "Ukrainian"
+msgstr "Ukrainisht"
+
+msgid "Albanian"
+msgstr "Shqip"
+
+msgid "Preferred Product Language"
+msgstr "Gjuha e preferuar e produkteve"
+
+msgid "Hungarian"
+msgstr "Hungarisht"
+
+msgid "Romanian"
+msgstr "Rumanisht"
+
+msgid "Slovak"
+msgstr "Sllovakisht"
+
+msgid "Slovenian"
+msgstr "Sllovenisht"
+
+msgid "Icelandic"
+msgstr "Islandisht"
+
+msgid "Ctrl"
+msgstr "Ctrl"
+
+msgid "Del"
+msgstr "Del"
+
+msgid "This Machine Only"
+msgstr "Vetëm ky kompjuter"
+
+msgid "On the Network"
+msgstr "Në rrjet"
+
+msgid "This editor is controllable by an AI assistant through the built-in MCP server: it exposes the catalog and project as tools over Streamable HTTP. Register its endpoint in your AI tool."
+msgstr "Ky editor mund të drejtohet nga një asistent AI përmes serverit të integruar MCP: ai ofron katalogun dhe projektin si mjete përmes Streamable HTTP. Regjistroni endpoint-in e tij në mjetin tuaj AI."
+
+msgid "Example: register the MCP server in your AI tool:"
+msgstr "Shembull: regjistroni serverin MCP në mjetin tuaj AI:"
+
+msgid "Example: register the MCP server in your AI tool, with your token in place of HOME_ASSISTANT_TOKEN:"
+msgstr "Shembull: regjistroni serverin MCP në mjetin tuaj AI, me token-in tuaj në vend të HOME_ASSISTANT_TOKEN:"
+
+msgid "Home Assistant provides the MCP server: AI tools sign in with a long-lived access token of a Home Assistant user who may use the editor (Profile > Security)."
+msgstr "Serverin MCP e ofron Home Assistant: mjetet AI hyjnë me një token aksesi afatgjatë të një përdoruesi të Home Assistant që ka të drejtë të përdorë editorin (Profili > Siguria)."
+
+msgid "The program that started XKNX Editor set up its MCP server."
+msgstr "Programi që nisi XKNX Editor e ka konfiguruar serverin e tij MCP."
+
+msgid "Home Assistant updates XKNX Editor with its integration: check Home Assistant for an update of the XKNX Editor integration. It may follow this release a little later."
+msgstr "Home Assistant e përditëson XKNX Editor bashkë me integrimin e tij: kontrolloni në Home Assistant nëse ka përditësim për integrimin XKNX Editor. Ai mund të vijë pak më vonë se ky version."

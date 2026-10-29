@@ -1,0 +1,86 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor keyring 1.0\n"
+"Language: sq\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "KNX Secure"
+msgstr "KNX Secure"
+
+msgid "Show Window"
+msgstr "Shfaq dritaren"
+
+msgid "No keyring loaded"
+msgstr "Asnjë keyring i ngarkuar"
+
+msgid "Import Keyring…"
+msgstr "Importo keyring…"
+
+msgid "Export Keyring…"
+msgstr "Eksporto keyring…"
+
+msgid "Export"
+msgstr "Eksporto"
+
+msgid "Set the password for the exported keyring:"
+msgstr "Vendosni fjalëkalimin për keyring-un e eksportuar:"
+
+msgid "KNX Keyring (*.knxkeys)"
+msgstr "Keyring KNX (*.knxkeys)"
+
+msgid "All Files"
+msgstr "Të gjithë skedarët"
+
+msgid "Load"
+msgstr "Ngarko"
+
+msgid "Cancel"
+msgstr "Anulo"
+
+msgid "Close"
+msgstr "Mbyll"
+
+msgid "{project} — created by {by}"
+msgstr "{project} — krijuar nga {by}"
+
+msgid "Backbone"
+msgstr "Backbone"
+
+msgid "Interfaces ({count})"
+msgstr "Ndërfaqet ({count})"
+
+msgid "Group Address Keys ({count})"
+msgstr "Çelësat e adresave të grupit ({count})"
+
+msgid "Devices ({count})"
+msgstr "Pajisjet ({count})"
+
+msgid "Export Keyring from Project…"
+msgstr "Eksporto keyring nga projekti…"
+
+msgid "Type"
+msgstr "Lloji"
+
+msgid "Address"
+msgstr "Adresa"
+
+msgid "Host"
+msgstr "Host"
+
+msgid "User"
+msgstr "Përdoruesi"
+
+msgid "Key"
+msgstr "Çelësi"
+
+msgid "In Project"
+msgstr "Në projekt"
+
+msgid "Tool Key"
+msgstr "Çelësi i veglës"
+
+msgid "{address}   key {key}"
+msgstr "{address}   çelësi {key}"

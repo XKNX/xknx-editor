@@ -1,0 +1,392 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor monitor 1.0\n"
+"Language: sq\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Monitor"
+msgstr "Monitori"
+
+msgid "No group addresses (open or import a project)"
+msgstr "Nuk ka adresa grupi (hapni ose importoni një projekt)"
+
+msgid "Not Connected"
+msgstr "Pa lidhje"
+
+msgid "value (e.g. on / 21.5 / 50)"
+msgstr "vlera (p.sh. on / 21.5 / 50)"
+
+msgid "Value:"
+msgstr "Vlera:"
+
+msgid "Filter by address or name…"
+msgstr "Filtro sipas adresës ose emrit…"
+
+msgid "Write"
+msgstr "Shkruaj"
+
+msgid "Read"
+msgstr "Lexo"
+
+msgid "Group Objects"
+msgstr "Objektet e grupit"
+
+msgid "Bus Monitor"
+msgstr "Monitori i busit"
+
+msgid "Group Monitor"
+msgstr "Monitori i grupeve"
+
+msgid "Bus Activity"
+msgstr "Aktiviteti i busit"
+
+msgid "Clear"
+msgstr "Pastro"
+
+msgid "Show Extended Information"
+msgstr "Shfaq informacionin e zgjeruar"
+
+msgid "Hide Extended Information"
+msgstr "Fshih informacionin e zgjeruar"
+
+msgid "{count} telg."
+msgstr "{count} telg."
+
+msgid "{rate} t/s"
+msgstr "{rate} t/s"
+
+msgid "Group Address:"
+msgstr "Adresa e grupit:"
+
+msgid "e.g. 1/2/3"
+msgstr "p.sh. 1/2/3"
+
+msgid "Enter a group address of the project to send to it."
+msgstr "Vendosni një adresë grupi të projektit për të dërguar drejt saj."
+
+msgid "Start"
+msgstr "Nis"
+
+msgid "Stop"
+msgstr "Ndalo"
+
+msgid "Import"
+msgstr "Importo"
+
+msgid "Export"
+msgstr "Eksporto"
+
+msgid "Print"
+msgstr "Printo"
+
+msgid "Replay Telegrams"
+msgstr "Riluaj telegramet"
+
+msgid "Stop Replay"
+msgstr "Ndalo riluajtjen"
+
+msgid "Start recording the group telegrams"
+msgstr "Nis regjistrimin e telegrameve të grupit"
+
+msgid "Start recording the connection's communication other than group telegrams, including every frame this app sends"
+msgstr "Nis regjistrimin e komunikimit të lidhjes përveç telegrameve të grupit, përfshirë çdo kornizë që dërgon ky aplikacion"
+
+msgid "Connect the interface in bus monitor mode and record every frame"
+msgstr "Lidh ndërfaqen në modalitetin e monitorit të busit dhe regjistro çdo kornizë"
+
+msgid "Stop recording"
+msgstr "Ndalo regjistrimin"
+
+msgid "Close the bus monitor connection and restore the normal connection"
+msgstr "Mbyll lidhjen e monitorit të busit dhe rikthe lidhjen normale"
+
+msgid "Remove all telegrams"
+msgstr "Hiq të gjitha telegramet"
+
+msgid "Load a recording"
+msgstr "Ngarko një regjistrim"
+
+msgid "Save the telegrams to a file"
+msgstr "Ruaj telegramet në një skedar"
+
+msgid "Print the telegrams as a PDF document"
+msgstr "Printo telegramet si dokument PDF"
+
+msgid "Send the selected group telegrams (all if none is selected) again with their original timing"
+msgstr "Dërgo përsëri telegramet e grupit të zgjedhura (të gjitha, nëse nuk është zgjedhur asnjë) me kohët e tyre origjinale"
+
+msgid "Cancel the replay"
+msgstr "Anulo riluajtjen"
+
+msgid "Copy"
+msgstr "Kopjo"
+
+msgid "Copy the selected telegrams (all shown if none is selected) to the clipboard ({shortcut}). Double-click a telegram to select its source device."
+msgstr "Kopjo telegramet e zgjedhura (të gjitha të shfaqurat, nëse nuk është zgjedhur asnjë) në kujtesën e fragmenteve ({shortcut}). Klikim i dyfishtë mbi një telegram zgjedh pajisjen e tij burimore."
+
+msgid "Rec."
+msgstr "Reg."
+
+msgid "Stopped"
+msgstr "Ndalur"
+
+msgid "Replaying {done}/{total}"
+msgstr "Po riluhet {done}/{total}"
+
+msgid "Connecting in bus monitor mode…"
+msgstr "Po lidhet në modalitetin e monitorit të busit…"
+
+msgid "Closing the bus monitor connection…"
+msgstr "Po mbyllet lidhja e monitorit të busit…"
+
+msgid "Bus monitor mode: the normal connection is closed. Nothing can be sent or downloaded until the bus monitor is stopped."
+msgstr "Modaliteti i monitorit të busit: lidhja normale është e mbyllur. Asgjë nuk mund të dërgohet ose programohet derisa të ndalohet monitori i busit."
+
+msgid "Start Bus Monitor"
+msgstr "Nis monitorin e busit"
+
+msgid "The bus monitor connects the interface in bus monitor mode. The normal connection is closed while the bus monitor runs: nothing can be sent or downloaded in that time. Stopping the bus monitor restores the normal connection.\n\nStart the bus monitor?"
+msgstr "Monitori i busit e lidh ndërfaqen në modalitetin e monitorit të busit. Lidhja normale mbyllet sa kohë që monitori i busit është në punë: gjatë kësaj kohe asgjë nuk mund të dërgohet ose programohet. Ndalimi i monitorit të busit e rikthen lidhjen normale.\n\nTa nis monitorin e busit?"
+
+msgid "The bus monitor is not supported for this connection type. It needs a tunnelling connection."
+msgstr "Monitori i busit nuk mbështetet për këtë lloj lidhjeje. Ai kërkon një lidhje tunneling."
+
+msgid "The interface does not support bus monitor mode."
+msgstr "Ndërfaqja nuk e mbështet modalitetin e monitorit të busit."
+
+msgid "The interface rejected bus monitor mode: another client holds a connection to it."
+msgstr "Ndërfaqja e refuzoi modalitetin e monitorit të busit: një klient tjetër mban një lidhje me të."
+
+msgid "The bus monitor connection could not be established."
+msgstr "Lidhja e monitorit të busit nuk u vendos dot."
+
+msgid "The normal connection is restored."
+msgstr "Lidhja normale u rikthye."
+
+msgid "Unsaved Telegrams"
+msgstr "Telegrame të paruajtura"
+
+msgid "The telegrams have not been exported. Clear them anyway?"
+msgstr "Telegramet nuk janë eksportuar. T'i pastroj gjithsesi?"
+
+msgid "The telegrams have not been exported. Loading a recording replaces them and stops the recording. Continue?"
+msgstr "Telegramet nuk janë eksportuar. Ngarkimi i një regjistrimi i zëvendëson ato dhe ndalon regjistrimin. Të vazhdoj?"
+
+msgid "Loading a recording replaces the telegrams and stops the recording. Continue?"
+msgstr "Ngarkimi i një regjistrimi zëvendëson telegramet dhe ndalon regjistrimin. Të vazhdoj?"
+
+msgid "Yes"
+msgstr "Po"
+
+msgid "No"
+msgstr "Jo"
+
+msgid "OK"
+msgstr "OK"
+
+msgid "Cancel"
+msgstr "Anulo"
+
+msgid "Export Telegrams"
+msgstr "Eksporto telegramet"
+
+msgid "Print Telegrams"
+msgstr "Printo telegramet"
+
+msgid "Which telegrams?"
+msgstr "Cilat telegrame?"
+
+msgid "All Telegrams ({count})"
+msgstr "Të gjitha telegramet ({count})"
+
+msgid "Selected Telegrams ({count})"
+msgstr "Telegramet e zgjedhura ({count})"
+
+msgid "Filtered Telegrams ({count})"
+msgstr "Telegramet e filtruara ({count})"
+
+msgid "Telegram recordings"
+msgstr "Regjistrime telegramesh"
+
+msgid "All files"
+msgstr "Të gjithë skedarët"
+
+msgid "{count} telegrams exported to {path}"
+msgstr "{count} telegrame u eksportuan në {path}"
+
+msgid "Export failed: {error}"
+msgstr "Eksportimi dështoi: {error}"
+
+msgid "{count} entries loaded from {path}"
+msgstr "{count} hyrje u ngarkuan nga {path}"
+
+msgid "Loading failed: {error}"
+msgstr "Ngarkimi dështoi: {error}"
+
+msgid "{count} telegrams in another frame format were skipped"
+msgstr "{count} telegrame në një format tjetër kornize u anashkaluan"
+
+msgid "Printing failed: {error}"
+msgstr "Printimi dështoi: {error}"
+
+msgid "Page {page}"
+msgstr "Faqja {page}"
+
+msgid "{count} Data Secure telegrams are not replayed"
+msgstr "{count} telegrame Data Secure nuk riluhen"
+
+msgid "There are no group telegrams to replay"
+msgstr "Nuk ka telegrame grupi për t'u riluajtur"
+
+msgid "Replay finished: {count} telegrams sent"
+msgstr "Riluajtja përfundoi: {count} telegrame u dërguan"
+
+msgid "Replay cancelled: {count} telegrams sent"
+msgstr "Riluajtja u anulua: {count} telegrame u dërguan"
+
+msgid "from bus"
+msgstr "nga busi"
+
+msgid "to bus"
+msgstr "drejt busit"
+
+msgid "Connection event"
+msgstr "Ngjarje lidhjeje"
+
+msgid "Invalid frame"
+msgstr "Kornizë e pavlefshme"
+
+msgid "Comment"
+msgstr "Koment"
+
+msgid "Recording was started, Host={host}, Connection={connection}, Mode={mode}"
+msgstr "Regjistrimi u nis, Host={host}, Lidhja={connection}, Modaliteti={mode}"
+
+msgid "Recording was stopped"
+msgstr "Regjistrimi u ndal"
+
+msgid "Connection was established"
+msgstr "Lidhja u vendos"
+
+msgid "Connection was lost"
+msgstr "Lidhja humbi"
+
+msgid "System"
+msgstr "Sistem"
+
+msgid "Normal"
+msgstr "Normal"
+
+msgid "Urgent"
+msgstr "Urgjent"
+
+msgid "Low"
+msgstr "I ulët"
+
+msgid "Standard"
+msgstr "Standard"
+
+msgid "Extended"
+msgstr "I zgjeruar"
+
+msgid "#"
+msgstr "#"
+
+msgid "Date"
+msgstr "Data"
+
+msgid "Time"
+msgstr "Ora"
+
+msgid "Service"
+msgstr "Shërbimi"
+
+msgid "Flags"
+msgstr "Flamujt"
+
+msgid "Prio"
+msgstr "Prio"
+
+msgid "Source Address"
+msgstr "Adresa burimore"
+
+msgid "Source Name"
+msgstr "Emri i burimit"
+
+msgid "Destination Address"
+msgstr "Adresa e destinacionit"
+
+msgid "Destination Name"
+msgstr "Emri i destinacionit"
+
+msgid "Building Part"
+msgstr "Pjesa e ndërtesës"
+
+msgid "Building Function"
+msgstr "Funksioni i ndërtesës"
+
+msgid "Hop Count"
+msgstr "Numri i kapërcimeve"
+
+msgid "Telegram Type"
+msgstr "Lloji i telegramit"
+
+msgid "Telegram Type (Short)"
+msgstr "Lloji i telegramit (shkurt)"
+
+msgid "DPT"
+msgstr "DPT"
+
+msgid "Value"
+msgstr "Vlera"
+
+msgid "Iack"
+msgstr "Iack"
+
+msgid "Raw Data"
+msgstr "Të dhëna bruto"
+
+msgid "Raw Value"
+msgstr "Vlera bruto"
+
+msgid "Message Code"
+msgstr "Kodi i mesazhit"
+
+msgid "Repeated"
+msgstr "I përsëritur"
+
+msgid "Security"
+msgstr "Siguria"
+
+msgid "Frame Format"
+msgstr "Formati i kornizës"
+
+msgid "System Broadcast"
+msgstr "System Broadcast"
+
+msgid "Interface"
+msgstr "Ndërfaqja"
+
+msgid "MediumInfo"
+msgstr "MediumInfo"
+
+msgid "Source Description"
+msgstr "Përshkrimi i burimit"
+
+msgid "Destination Description"
+msgstr "Përshkrimi i destinacionit"
+
+msgid "Address"
+msgstr "Adresa"
+
+msgid "Name"
+msgstr "Emri"
+
+msgid "Max"
+msgstr "Maks."
+
+msgid "Maximum telegrams this monitor keeps. The oldest tenth is dropped when the cap is exceeded."
+msgstr "Numri maksimal i telegrameve që mban ky monitor. Kur kalohet kufiri, hiqet një e dhjeta e telegrameve më të vjetra."

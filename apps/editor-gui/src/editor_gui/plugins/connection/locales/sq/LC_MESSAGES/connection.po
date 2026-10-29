@@ -1,0 +1,197 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor connection 1.0\n"
+"Language: sq\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Gateway"
+msgstr "Gateway"
+
+msgid "Connect"
+msgstr "Lidhu"
+
+msgid "Disconnect"
+msgstr "Shkëputu"
+
+msgid "Use Serial Number for Downloads"
+msgstr "Përdor numrin serial për programim"
+
+msgid "Discovered Gateways"
+msgstr "Gateway të gjetur"
+
+msgid "Diagnostics"
+msgstr "Diagnostikimi"
+
+msgid "Check for Devices in Programming Mode"
+msgstr "Kërko pajisje në modalitetin e programimit"
+
+msgid "Devices in Programming Mode"
+msgstr "Pajisje në modalitetin e programimit"
+
+msgid "Rescan"
+msgstr "Kërko përsëri"
+
+msgid "Searching the bus…"
+msgstr "Po kërkohet në bus…"
+
+msgid "Press the programming button on a device to put it into programming mode, then rescan."
+msgstr "Shtypni butonin e programimit në një pajisje për ta kaluar në modalitetin e programimit, pastaj kërkoni përsëri."
+
+msgid "No device is in programming mode."
+msgstr "Asnjë pajisje në modalitetin e programimit."
+
+msgid "The scan could not be completed: {error}"
+msgstr "Kërkimi nuk u përfundua: {error}"
+
+msgid "The interface did not confirm the scan request (bus busy or interface overloaded). Please try again."
+msgstr "Ndërfaqja nuk e konfirmoi kërkesën për kërkim (bus i zënë ose ndërfaqe e mbingarkuar). Ju lutemi provoni përsëri."
+
+msgid "{count} device(s) in programming mode"
+msgstr "{count} pajisje në modalitetin e programimit"
+
+msgid "Answered the scan, but reading its details failed: {error}"
+msgstr "U përgjigj në kërkim, por leximi i detajeve dështoi: {error}"
+
+msgid "In this project: {name}"
+msgstr "Në këtë projekt: {name}"
+
+msgid "Not in this project"
+msgstr "Nuk është në këtë projekt"
+
+msgid "Unprogrammed device (factory default address 15.15.255)"
+msgstr "Pajisje e paprogramuar (adresa e fabrikës 15.15.255)"
+
+msgid "Select in Project"
+msgstr "Zgjidhe në projekt"
+
+msgid "Manufacturer"
+msgstr "Prodhuesi"
+
+msgid "Product (Catalog)"
+msgstr "Produkti (katalogu)"
+
+msgid "Application"
+msgstr "Aplikacioni"
+
+msgid "Application Version"
+msgstr "Versioni i aplikacionit"
+
+msgid "Mask Version"
+msgstr "Versioni i maskës"
+
+msgid "Serial Number"
+msgstr "Numri serial"
+
+msgid "Order Number"
+msgstr "Numri i porosisë"
+
+msgid "Hardware Type"
+msgstr "Lloji i harduerit"
+
+msgid "Status"
+msgstr "Gjendja"
+
+msgid "No fault"
+msgstr "Pa defekt"
+
+msgid "Programming mode active"
+msgstr "Modaliteti i programimit aktiv"
+
+msgid "No gateways found"
+msgstr "Nuk u gjet asnjë gateway"
+
+msgid "Manual Connection"
+msgstr "Lidhje manuale"
+
+msgid "Connected: {ip}"
+msgstr "I lidhur: {ip}"
+
+msgid "Connected to {ip}"
+msgstr "I lidhur me {ip}"
+
+msgid "Disconnected"
+msgstr "I shkëputur"
+
+msgid "Connecting…"
+msgstr "Po lidhet…"
+
+msgid "Connection failed"
+msgstr "Lidhja dështoi"
+
+msgid "Scan"
+msgstr "Kërko"
+
+msgid "Settings"
+msgstr "Cilësimet"
+
+msgid "Use multicast routing (instead of tunneling)"
+msgstr "Përdor routing multicast (në vend të tunneling)"
+
+msgid "Gateway IP"
+msgstr "IP e gateway-t"
+
+msgid "Multicast Group"
+msgstr "Grupi multicast"
+
+msgid "Apply"
+msgstr "Zbato"
+
+msgid "Bus monitor: {ip}"
+msgstr "Monitori i busit: {ip}"
+
+msgid "The gateway is connected in bus monitor mode. Nothing can be sent or downloaded until the bus monitor is stopped."
+msgstr "Gateway-i është i lidhur në modalitetin e monitorit të busit. Asgjë nuk mund të dërgohet ose programohet derisa të ndalohet monitori i busit."
+
+msgid "Not possible while the bus monitor is running"
+msgstr "Nuk është e mundur ndërkohë që monitori i busit është në punë"
+
+msgid "Stop Bus Monitor"
+msgstr "Ndalo monitorin e busit"
+
+msgid "The interface requires KNX IP Secure, but neither the project nor a loaded keyring has its passwords."
+msgstr "Ndërfaqja kërkon KNX IP Secure, por as projekti as ndonjë keyring i ngarkuar nuk i ka fjalëkalimet e saj."
+
+msgid "Error: {error}"
+msgstr "Gabim: {error}"
+
+msgid "Unknown error"
+msgstr "Gabim i panjohur"
+
+msgid "Name: {name}"
+msgstr "Emri: {name}"
+
+msgid "KNX Address: {address}"
+msgstr "Adresa KNX: {address}"
+
+msgid "Core Version: {version}"
+msgstr "Versioni i bërthamës: {version}"
+
+msgid "Services: {services}"
+msgstr "Shërbimet: {services}"
+
+msgid "Retry"
+msgstr "Provo përsëri"
+
+msgid "Select Connection"
+msgstr "Zgjidh lidhjen"
+
+msgid "XKNX Editor could not determine an available connection."
+msgstr "XKNX Editor nuk gjeti dot një lidhje të disponueshme."
+
+msgid "The connection {name} is not available."
+msgstr "Lidhja {name} nuk është e disponueshme."
+
+msgid "You may use any of the connections listed below, instead."
+msgstr "Në vend të saj, mund të përdorni cilëndo nga lidhjet më poshtë."
+
+msgid "{name}: {error}"
+msgstr "{name}: {error}"
+
+msgid "Cancel"
+msgstr "Anulo"
+
+msgid "This kind of connection is not supported."
+msgstr "Ky lloj lidhjeje nuk mbështetet."

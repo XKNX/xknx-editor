@@ -1,0 +1,41 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor health 1.0\n"
+"Language: sq\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Health"
+msgstr "Gjendja"
+
+msgid "No project open"
+msgstr "Asnjë projekt i hapur"
+
+msgid "No issues found"
+msgstr "Nuk u gjet asnjë problem"
+
+msgid "{errors} errors, {warnings} warnings"
+msgstr "{errors} gabime, {warnings} paralajmërime"
+
+msgid "{device}: no individual address"
+msgstr "{device}: pa adresë individuale"
+
+msgid "Duplicate individual address {address} ({device})"
+msgstr "Adresë individuale e dyfishtë {address} ({device})"
+
+msgid "{count} device(s) skipped: application not in catalog"
+msgstr "{count} pajisje u anashkaluan: aplikacioni nuk është në katalog"
+
+msgid "{device}: {count} unlinked group object(s)"
+msgstr "{device}: {count} objekt(e) grupi pa lidhje"
+
+msgid "{address} {name}: no datapoint type"
+msgstr "{address} {name}: pa lloj pike të dhënash"
+
+msgid "{address} {name}: no sending group object"
+msgstr "{address} {name}: pa objekt grupi dërgues"
+
+msgid "{address} {name}: {count} sending group objects"
+msgstr "{address} {name}: {count} objekte grupi dërguese"

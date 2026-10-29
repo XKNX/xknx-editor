@@ -33,6 +33,7 @@ LANGUAGES: tuple[Language, ...] = (
     Language("pl", "pl-PL", "polski", lambda: S.LANGUAGE_POLISH),
     Language("pt", "pt-PT", "português", lambda: S.LANGUAGE_PORTUGUESE),
     Language("ru", "ru-RU", "русский", lambda: S.LANGUAGE_RUSSIAN),
+    Language("sq", "sq-AL", "shqip", lambda: S.LANGUAGE_ALBANIAN),
     Language("sv", "sv-SE", "svenska", lambda: S.LANGUAGE_SWEDISH),
     Language("tr", "tr-TR", "Türkçe", lambda: S.LANGUAGE_TURKISH),
     Language("uk", "uk-UA", "українська", lambda: S.LANGUAGE_UKRAINIAN),

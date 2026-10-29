@@ -1,0 +1,3014 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor project 1.0\n"
+"Language: sq\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Device"
+msgstr "Pajisja"
+
+msgid "Manufacturer"
+msgstr "Prodhuesi"
+
+msgid "Devices"
+msgstr "Pajisjet"
+
+msgid "Configure"
+msgstr "Konfiguro"
+
+msgid "History"
+msgstr "Historiku"
+
+msgid "Editor"
+msgstr "Editori"
+
+msgid "Group Addresses"
+msgstr "Adresat e grupit"
+
+msgid "Buildings"
+msgstr "Ndërtesat"
+
+msgid "Project"
+msgstr "Projekti"
+
+msgid "Project Log"
+msgstr "Regjistri i projektit"
+
+msgid "Mass Linker"
+msgstr "Lidhje masive"
+
+msgid "Object <> GA"
+msgstr "Objekt <> adresë grupi"
+
+msgid "Object <> Object"
+msgstr "Objekt <> objekt"
+
+msgid "Log"
+msgstr "Regjistri"
+
+msgid "Open a project to use the Mass Linker."
+msgstr "Hapni një projekt për të përdorur Lidhjet masive."
+
+msgid "Pairs are matched by list order (1st with 1st, …). Surplus items on the longer side are ignored. Reorder a list via its right-click menu."
+msgstr "Çiftet formohen sipas radhës në listë (i 1-ri me të 1-rin, …). Elementet e tepërta në anën më të gjatë shpërfillen. Renditjen e një liste e ndryshoni nga menyja e klikimit të djathtë."
+
+msgid "Link group objects to existing group addresses."
+msgstr "Lidh objektet e grupit me adresa grupi ekzistuese."
+
+msgid "Add objects with \"{add_device}\" or \"{add_objects}\"."
+msgstr "Shtoni objekte me \"{add_device}\" ose \"{add_objects}\"."
+
+msgid "Pick a group address per row, or fill all with \"{match}\" or \"{sequential}\"."
+msgstr "Zgjidhni një adresë grupi për çdo rresht, ose plotësojini të gjitha me \"{match}\" ose \"{sequential}\"."
+
+msgid "\"{link_all}\" links every row that has one."
+msgstr "\"{link_all}\" lidh çdo rresht që ka një të tillë."
+
+msgid "Link objects to each other through a new group address each: the source sends, the target receives."
+msgstr "Lidh objektet me njëri-tjetrin, secilin përmes një adrese grupi të re: burimi dërgon, objektivi merr."
+
+msgid "Add the source objects with \"{add_device}\" or \"{add_objects}\"."
+msgstr "Shtoni objektet burimore me \"{add_device}\" ose \"{add_objects}\"."
+
+msgid "Pick a target object per row. Address and name are suggested and can be changed."
+msgstr "Zgjidhni një objekt objektiv për çdo rresht. Adresa dhe emri sugjerohen dhe mund të ndryshohen."
+
+msgid "\"{link_all}\" creates the group addresses and links them."
+msgstr "\"{link_all}\" krijon adresat e grupit dhe i lidh ato."
+
+msgid "Link All"
+msgstr "Lidh të gjitha"
+
+msgid "Chronological record of every mass-link operation in this session."
+msgstr "Regjistër kronologjik i çdo veprimi të lidhjes masive në këtë seancë."
+
+msgid "Source (objects)"
+msgstr "Burimi (objekte)"
+
+msgid "Target (Group Addresses)"
+msgstr "Objektivi (adresa grupi)"
+
+msgid "Target (objects)"
+msgstr "Objektivi (objekte)"
+
+msgid "Preview & Link"
+msgstr "Parapamje & lidhje"
+
+msgid "Add Group Objects…"
+msgstr "Shto objekte grupi…"
+
+msgid "Add Group Addresses…"
+msgstr "Shto adresa grupi…"
+
+msgid "Add Selected"
+msgstr "Shto të zgjedhurat"
+
+msgid "Clear"
+msgstr "Pastro"
+
+msgid "Remove"
+msgstr "Hiq"
+
+msgid "Move up"
+msgstr "Lëviz lart"
+
+msgid "Move Down"
+msgstr "Lëviz poshtë"
+
+msgid "{count} items"
+msgstr "{count} elemente"
+
+msgid "{count} pairs"
+msgstr "{count} çifte"
+
+msgid "{count} unpaired (ignored)"
+msgstr "{count} pa çift (të shpërfillura)"
+
+msgid "Link"
+msgstr "Lidh"
+
+msgid "GA Name ({source}, {target}, {n})"
+msgstr "Emri i adresës së grupit ({source}, {target}, {n})"
+
+msgid "Start Address"
+msgstr "Adresa fillestare"
+
+msgid "Filter…"
+msgstr "Filtro…"
+
+msgid "Add Group Objects"
+msgstr "Shto objekte grupi"
+
+msgid "Add Group Addresses"
+msgstr "Shto adresa grupi"
+
+msgid "Mass Linker Result"
+msgstr "Rezultati i lidhjes masive"
+
+msgid "Linked {count} object(s) to group addresses"
+msgstr "U lidhën {count} objekt(e) me adresa grupi"
+
+msgid "Linked {count} object pair(s) via new group addresses"
+msgstr "U lidhën {count} çift(e) objektesh përmes adresave të reja të grupit"
+
+msgid "{count} error(s)"
+msgstr "{count} gabim(e)"
+
+msgid "Clear All"
+msgstr "Pastro të gjitha"
+
+msgid "No operations yet."
+msgstr "Ende asnjë veprim."
+
+msgid "Group Object"
+msgstr "Objekti i grupit"
+
+msgid "DPT"
+msgstr "DPT"
+
+msgid "Target Group Address"
+msgstr "Adresa e grupit objektiv"
+
+msgid "Target Group Object"
+msgstr "Objekti i grupit objektiv"
+
+msgid "Group Address"
+msgstr "Adresa e grupit"
+
+msgid "Group Address Name"
+msgstr "Emri i adresës së grupit"
+
+msgid "(none)"
+msgstr "(asnjë)"
+
+msgid "Matching DPT Only"
+msgstr "Vetëm DPT që përputhet"
+
+msgid "Only group addresses with the object's main datapoint type, and those without one (they take the object's type when linked)."
+msgstr "Vetëm adresat e grupit me llojin kryesor të pikës së të dhënave të objektit, dhe ato pa lloj (marrin llojin e objektit kur lidhen)."
+
+msgid "no DPT"
+msgstr "pa DPT"
+
+msgid "Only objects with the same main datapoint type, and those without one."
+msgstr "Vetëm objektet me të njëjtin lloj kryesor të pikës së të dhënave, dhe ato pa lloj."
+
+msgid "Select a device in the tree first."
+msgstr "Fillimisht zgjidhni një pajisje në pemë."
+
+msgid "{device} has no group objects."
+msgstr "{device} nuk ka objekte grupi."
+
+msgid "All objects of {device} are in the list already."
+msgstr "Të gjitha objektet e {device} janë tashmë në listë."
+
+msgid "+ Selected Device"
+msgstr "+ Pajisja e zgjedhur"
+
+msgid "Select All"
+msgstr "Zgjidh të gjitha"
+
+msgid "No objects yet — add the selected device or pick objects."
+msgstr "Ende pa objekte — shtoni pajisjen e zgjedhur ose zgjidhni objekte."
+
+msgid "From"
+msgstr "Nga"
+
+msgid "Assign Sequential"
+msgstr "Cakto me radhë"
+
+msgid "Match by Name"
+msgstr "Përputh sipas emrit"
+
+msgid "Link All ({count})"
+msgstr "Lidh të gjitha ({count})"
+
+msgid "{ready} ready · {amb} ambiguous · {bad} incompatible · {none} unmatched"
+msgstr "{ready} gati · {amb} të paqarta · {bad} të papërputhshme · {none} pa përputhje"
+
+msgid "Only Problems"
+msgstr "Vetëm problemet"
+
+msgid "Ready to link."
+msgstr "Gati për lidhje."
+
+msgid "Check the group address: several match, or a datapoint type is unknown."
+msgstr "Kontrolloni adresën e grupit: përputhen disa, ose një lloj pike të dhënash është i panjohur."
+
+msgid "The datapoint types do not match; this row is not linked."
+msgstr "Llojet e pikave të të dhënave nuk përputhen; ky rresht nuk lidhet."
+
+msgid "No group address chosen yet."
+msgstr "Ende nuk është zgjedhur asnjë adresë grupi."
+
+msgid "OK"
+msgstr "OK"
+
+msgid "Cancel"
+msgstr "Anulo"
+
+msgid "Tools"
+msgstr "Veglat"
+
+msgid "Open a project to use the tools."
+msgstr "Hapni një projekt për të përdorur veglat."
+
+msgid "No devices in this project."
+msgstr "Nuk ka pajisje në këtë projekt."
+
+msgid "Extended Copy"
+msgstr "Kopjim i zgjeruar"
+
+msgid "Replace Device"
+msgstr "Zëvendëso pajisjen"
+
+msgid "Swap a device for another model (a template device already in the project), keeping its group-address links. Group objects are matched by number and size; unmatched ones are reported. Parameters are not carried over."
+msgstr "Ndërroni një pajisje me një model tjetër (një pajisje shabllon që është tashmë në projekt), duke ruajtur lidhjet e saj me adresat e grupit. Objektet e grupit përputhen sipas numrit dhe madhësisë; ato pa përputhje raportohen. Parametrat nuk barten."
+
+msgid "Device to Replace"
+msgstr "Pajisja që do të zëvendësohet"
+
+msgid "Replace with (Template)"
+msgstr "Zëvendëso me (shabllon)"
+
+msgid "Group Object Mapping (by Number)"
+msgstr "Përputhja e objekteve të grupit (sipas numrit)"
+
+msgid "{count} object(s) will be re-mapped"
+msgstr "{count} objekt(e) do të ripërputhen"
+
+msgid "Replaced; re-mapped {count} group object(s)"
+msgstr "U zëvendësua; u ripërputhën {count} objekt(e) grupi"
+
+msgid "Shift Addresses"
+msgstr "Zhvendos adresat"
+
+msgid "Labels"
+msgstr "Etiketat"
+
+msgid "Topology Check"
+msgstr "Kontrolli i topologjisë"
+
+msgid "Project Diff"
+msgstr "Krahasimi i projekteve"
+
+msgid "Compare the open project with another project file (.knxproj, .xknx or a backup): which devices and group addresses were added, removed or changed. The other project is read-only; nothing is modified."
+msgstr "Krahasoni projektin e hapur me një skedar tjetër projekti (.knxproj, .xknx ose një kopje rezervë): cilat pajisje dhe adresa grupi u shtuan, u hoqën ose u ndryshuan. Projekti tjetër vetëm lexohet; asgjë nuk ndryshohet."
+
+msgid "Choose Project to Compare…"
+msgstr "Zgjidh projektin për krahasim…"
+
+msgid "Choose Project to Compare"
+msgstr "Zgjidh projektin për krahasim"
+
+msgid "KNX project (*.knxproj *.xknx *.zip)"
+msgstr "Projekt KNX (*.knxproj *.xknx *.zip)"
+
+msgid "Compared with {name}:"
+msgstr "Krahasuar me {name}:"
+
+msgid "No differences in devices or group addresses."
+msgstr "Nuk ka ndryshime te pajisjet ose adresat e grupit."
+
+msgid "{count} difference(s)"
+msgstr "{count} ndryshim(e)"
+
+msgid "Add Device Certificate"
+msgstr "Shto certifikatën e pajisjes"
+
+msgid "Device Certificate"
+msgstr "Certifikata e pajisjes"
+
+msgid "This device already uses its own key from this project. Its certificate is only needed again after a factory reset."
+msgstr "Kjo pajisje përdor tashmë çelësin e vet nga ky projekt. Certifikata e saj nevojitet sërish vetëm pas një rikthimi në cilësimet e fabrikës."
+
+msgid "This device still uses its factory key: its first secure download needs its certificate."
+msgstr "Kjo pajisje përdor ende çelësin e fabrikës: programimi i saj i parë i sigurt kërkon certifikatën e saj."
+
+msgid "Stored Certificate: {serial}"
+msgstr "Certifikata e ruajtur: {serial}"
+
+msgid "Enter the FDSK from its label or certificate (36 characters):"
+msgstr "Vendosni FDSK-në nga etiketa ose certifikata e saj (36 karaktere):"
+
+msgid "To replace it, enter the new FDSK (36 characters):"
+msgstr "Për ta zëvendësuar, vendosni FDSK-në e re (36 karaktere):"
+
+msgid "Remove the stored certificate? After a factory reset, the device can then only be reached again with the code from its label."
+msgstr "Ta hiqni certifikatën e ruajtur? Pas një rikthimi në cilësimet e fabrikës, pajisja mund të arrihet sërish vetëm me kodin nga etiketa e saj."
+
+msgid "Device Certificate…"
+msgstr "Certifikata e pajisjes…"
+
+msgid "The device certificate (FDSK) is missing."
+msgstr "Mungon certifikata e pajisjes (FDSK)."
+
+msgid "This is not a valid FDSK; please check it."
+msgstr "Kjo nuk është një FDSK e vlefshme; ju lutemi kontrollojeni."
+
+msgid "This certificate belongs to the device with serial number {serial}."
+msgstr "Kjo certifikatë i përket pajisjes me numër serial {serial}."
+
+msgid "Set a project password first: it protects the device keys."
+msgstr "Fillimisht vendosni një fjalëkalim projekti: ai mbron çelësat e pajisjeve."
+
+msgid "The other project is protected with a password. Enter it to compare:"
+msgstr "Projekti tjetër është i mbrojtur me fjalëkalim. Vendoseni për të krahasuar:"
+
+msgid "Compare"
+msgstr "Krahaso"
+
+msgid "Wrong password, please try again."
+msgstr "Fjalëkalim i gabuar, ju lutemi provoni përsëri."
+
+msgid "Duplicate a device several times. Optionally rewrite the copy name (find/replace) and create a group address for each of its objects."
+msgstr "Shumëfishoni një pajisje disa herë. Sipas dëshirës, rishkruani emrin e kopjes (gjej/zëvendëso) dhe krijoni një adresë grupi për secilin nga objektet e saj."
+
+msgid "Renumber devices by adding an offset to the device part of their individual addresses, e.g. to open gaps for new devices. Group addresses are untouched."
+msgstr "Rinumërtoni pajisjet duke i shtuar një zhvendosje pjesës së pajisjes në adresat e tyre individuale, p.sh. për të hapur boshllëqe për pajisje të reja. Adresat e grupit nuk preken."
+
+msgid "Pick the fields and an output: a CSV, printable label sheets (Avery), or a full-page legend. HTML output opens in your browser to print or save as PDF."
+msgstr "Zgjidhni fushat dhe një dalje: një CSV, fleta etiketash për printim (Avery) ose një legjendë në faqe të plotë. Dalja HTML hapet në shfletuesin tuaj për ta printuar ose ruajtur si PDF."
+
+msgid "Read-only scan: lists devices with a missing, malformed or duplicate individual address."
+msgstr "Kontroll vetëm për lexim: liston pajisjet me adresë individuale që mungon, të pasaktë ose të dyfishtë."
+
+msgid "Source Device"
+msgstr "Pajisja burimore"
+
+msgid "Copies"
+msgstr "Kopjet"
+
+msgid "Find in Name"
+msgstr "Gjej në emër"
+
+msgid "Replace with"
+msgstr "Zëvendëso me"
+
+msgid "Create Group Addresses for Each Copy"
+msgstr "Krijo adresa grupi për çdo kopje"
+
+msgid "Copy Name: {name}"
+msgstr "Emri i kopjes: {name}"
+
+msgid "Copy"
+msgstr "Kopjo"
+
+msgid "Created {count} copy/copies"
+msgstr "U krijuan {count} kopje"
+
+msgid "Shifts the device part of each individual address. Group addresses are not shifted."
+msgstr "Zhvendos pjesën e pajisjes në çdo adresë individuale. Adresat e grupit nuk zhvendosen."
+
+msgid "Offset"
+msgstr "Zhvendosja"
+
+msgid "Filter devices…"
+msgstr "Filtro pajisjet…"
+
+msgid "All"
+msgstr "Të gjitha"
+
+msgid "None"
+msgstr "Asnjë"
+
+msgid "{sel} of {total} selected"
+msgstr "{sel} nga {total} të zgjedhura"
+
+msgid "(out of range)"
+msgstr "(jashtë diapazonit)"
+
+msgid "{count} address(es) will change"
+msgstr "{count} adresë(a) do të ndryshojnë"
+
+msgid "Shifted {count} address(es)"
+msgstr "U zhvendosën {count} adresë(a)"
+
+msgid "Individual Addresses"
+msgstr "Adresat individuale"
+
+msgid "This project has no group addresses."
+msgstr "Ky projekt nuk ka adresa grupi."
+
+msgid "Shift Group Addresses"
+msgstr "Zhvendos adresat e grupit"
+
+msgid "Renumber group addresses by adding an offset to their raw value, e.g. to open gaps. Group object links move with each address. Nothing is written if any move would collide or leave the valid range."
+msgstr "Rinumërtoni adresat e grupit duke i shtuar një zhvendosje vlerës së tyre të papërpunuar, p.sh. për të hapur boshllëqe. Lidhjet e objekteve të grupit lëvizin bashkë me çdo adresë. Asgjë nuk shkruhet nëse ndonjë zhvendosje do të përplasej ose do të dilte jashtë diapazonit të vlefshëm."
+
+msgid "The offset is added to the raw 16-bit value, so it may change the main/middle group as addresses cross a boundary."
+msgstr "Zhvendosja i shtohet vlerës së papërpunuar 16-bitëshe, prandaj mund të ndryshojë grupin kryesor/të mesëm kur adresat kalojnë një kufi."
+
+msgid "Shifted {count} group address(es)"
+msgstr "U zhvendosën {count} adresë(a) grupi"
+
+msgid "Export CSV…"
+msgstr "Eksporto CSV…"
+
+msgid "Exported to {path}"
+msgstr "U eksportua në {path}"
+
+msgid "Fields"
+msgstr "Fushat"
+
+msgid "Output"
+msgstr "Dalja"
+
+msgid "CSV"
+msgstr "CSV"
+
+msgid "Label Sheet"
+msgstr "Fletë etiketash"
+
+msgid "Legend (Full Page)"
+msgstr "Legjendë (faqe e plotë)"
+
+msgid "Sheet"
+msgstr "Fleta"
+
+msgid "Custom Grid"
+msgstr "Rrjetë e personalizuar"
+
+msgid "Columns"
+msgstr "Kolonat"
+
+msgid "Rows"
+msgstr "Rreshtat"
+
+msgid "Label W x H (mm)"
+msgstr "Etiketa Gj x L (mm)"
+
+msgid "Margin Top / Left (mm)"
+msgstr "Kufiri sipër / majtas (mm)"
+
+msgid "Gap X / Y (mm)"
+msgstr "Hapësira X / Y (mm)"
+
+msgid "Export HTML…"
+msgstr "Eksporto HTML…"
+
+msgid "Select at least one field."
+msgstr "Zgjidhni të paktën një fushë."
+
+msgid "No topology issues found."
+msgstr "Nuk u gjet asnjë problem topologjie."
+
+msgid "{count} issue(s)"
+msgstr "{count} problem(e)"
+
+msgid "Click a finding to jump to the device."
+msgstr "Klikoni një gjetje për të kaluar te pajisja."
+
+msgid "No buildings/rooms in this project"
+msgstr "Nuk ka ndërtesa/dhoma në këtë projekt"
+
+msgid "Name"
+msgstr "Emri"
+
+msgid "Open Project"
+msgstr "Projekti i hapur"
+
+msgid "Reading the projects…"
+msgstr "Po lexohen projektet…"
+
+msgid "Comparing devices: {done} of {total}"
+msgstr "Po krahasohen pajisjet: {done} nga {total}"
+
+msgid "File"
+msgstr "Skedari"
+
+msgid "Type"
+msgstr "Lloji"
+
+msgid "Create"
+msgstr "Krijo"
+
+msgid "Delete"
+msgstr "Fshi"
+
+msgid "Delete Space"
+msgstr "Fshi hapësirën"
+
+msgid "Move to"
+msgstr "Zhvendos te"
+
+msgid "(Top Level)"
+msgstr "(Niveli më i lartë)"
+
+msgid "Delete this space and everything in it? Devices are only unassigned, not deleted."
+msgstr "Ta fshini këtë hapësirë dhe gjithçka që ka brenda? Pajisjet vetëm hiqen nga caktimi, nuk fshihen."
+
+msgid "Assign a Device to This Space"
+msgstr "Cakto një pajisje në këtë hapësirë"
+
+msgid "No unassigned devices"
+msgstr "Nuk ka pajisje të pacaktuara"
+
+msgid "Without Space"
+msgstr "Pa hapësirë"
+
+msgid "Building"
+msgstr "Ndërtesë"
+
+msgid "Building Part"
+msgstr "Pjesë ndërtese"
+
+msgid "Floor"
+msgstr "Kat"
+
+msgid "Room"
+msgstr "Dhomë"
+
+msgid "Corridor"
+msgstr "Korridor"
+
+msgid "Stairway"
+msgstr "Shkallë"
+
+msgid "Custom"
+msgstr "I personalizuar"
+
+msgid "Switchable Light"
+msgstr "Dritë me ndezje/fikje"
+
+msgid "Dimmable Light"
+msgstr "Dritë me dimer"
+
+msgid "Sun Protection"
+msgstr "Mbrojtje nga dielli"
+
+msgid "Heating (Switching Variable)"
+msgstr "Ngrohje (variabël ndezje/fikjeje)"
+
+msgid "Heating (Continuous Variable)"
+msgstr "Ngrohje (variabël e vazhdueshme)"
+
+msgid "Switchable Socket"
+msgstr "Prizë me ndezje/fikje"
+
+msgid "No project"
+msgstr "Asnjë projekt"
+
+msgid "Installation"
+msgstr "Instalimi"
+
+msgid "Group Address Style"
+msgstr "Stili i adresave të grupit"
+
+msgid "Created by"
+msgstr "Krijuar nga"
+
+msgid "Tool Version"
+msgstr "Versioni i veglës"
+
+msgid "Schema Version"
+msgstr "Versioni i skemës"
+
+msgid "Last Modified"
+msgstr "Ndryshuar së fundi"
+
+msgid "GUID"
+msgstr "GUID"
+
+msgid "Project ID"
+msgstr "ID e projektit"
+
+msgid "Original Project ID"
+msgstr "ID origjinale e projektit"
+
+msgid "Master Data (Signed)"
+msgstr "Të dhënat master (të nënshkruara)"
+
+msgid "Validation File"
+msgstr "Skedari i validimit"
+
+msgid "Project Certificate"
+msgstr "Certifikata e projektit"
+
+msgid "none"
+msgstr "asnjë"
+
+msgid "present ({size} bytes)"
+msgstr "e pranishme ({size} bajte)"
+
+msgid "Password"
+msgstr "Fjalëkalimi"
+
+msgid "Protected"
+msgstr "I mbrojtur"
+
+msgid "Not protected"
+msgstr "I pambrojtur"
+
+msgid "Set Password"
+msgstr "Vendos fjalëkalimin"
+
+msgid "Change Password"
+msgstr "Ndrysho fjalëkalimin"
+
+msgid "Remove Password"
+msgstr "Hiq fjalëkalimin"
+
+msgid "Project Password"
+msgstr "Fjalëkalimi i projektit"
+
+msgid "The project and its exports are protected with this password; opening or importing them asks for it. A password change cannot be undone."
+msgstr "Projekti dhe eksportet e tij mbrohen me këtë fjalëkalim; hapja ose importimi i tyre e kërkon atë. Ndryshimi i fjalëkalimit nuk mund të zhbëhet."
+
+msgid "Repeat Password"
+msgstr "Përsërit fjalëkalimin"
+
+msgid "The passwords do not match."
+msgstr "Fjalëkalimet nuk përputhen."
+
+msgid "A project with KNX Secure devices needs a password: it protects their keys in the project and in its exports."
+msgstr "Një projekt me pajisje KNX Secure ka nevojë për fjalëkalim: ai mbron çelësat e tyre në projekt dhe në eksportet e tij."
+
+msgid "No project log entries"
+msgstr "Nuk ka hyrje në regjistrin e projektit"
+
+msgid "Date"
+msgstr "Data"
+
+msgid "User"
+msgstr "Përdoruesi"
+
+msgid "Comment"
+msgstr "Komenti"
+
+msgid "Filter log"
+msgstr "Filtro regjistrin"
+
+msgid "Decrypt Comments"
+msgstr "Deshifro komentet"
+
+msgid "Extract from Knx.Ets.Common.dll…"
+msgstr "Nxirre nga Knx.Ets.Common.dll…"
+
+msgid "ETS encrypts the log comments. Extract the decryption key from your own ETS installation's Knx.Ets.Common.dll to read them; nothing is sent anywhere."
+msgstr "ETS i enkripton komentet e regjistrit. Për t'i lexuar, nxirrni çelësin e deshifrimit nga Knx.Ets.Common.dll e instalimit tuaj të ETS; asgjë nuk dërgohet askund."
+
+msgid "Comments are encrypted"
+msgstr "Komentet janë të enkriptuara"
+
+msgid "Extracting key…"
+msgstr "Po nxirret çelësi…"
+
+msgid "Key extracted; comments decrypted"
+msgstr "Çelësi u nxor; komentet u deshifruan"
+
+msgid "No .NET runtime found (install the .NET SDK, or run on Windows with ETS)."
+msgstr "Nuk u gjet runtime .NET (instaloni .NET SDK, ose përdoreni në Windows me ETS)."
+
+msgid "KNX Common Assembly"
+msgstr "Assembly KNX Common"
+
+msgid "All Files"
+msgstr "Të gjithë skedarët"
+
+msgid "Based on OpenKNXproducer"
+msgstr "Bazuar në OpenKNXproducer"
+
+msgid "Order Number"
+msgstr "Numri i porosisë"
+
+msgid "Description"
+msgstr "Përshkrimi"
+
+msgid "Parameters ({count})"
+msgstr "Parametrat ({count})"
+
+msgid "Group Objects ({count})"
+msgstr "Objektet e grupit ({count})"
+
+msgid "Channels ({count})"
+msgstr "Kanalet ({count})"
+
+msgid "DALI (Bus)"
+msgstr "DALI (bus)"
+
+msgid "Assigned Objects"
+msgstr "Objektet e caktuara"
+
+msgid "Object"
+msgstr "Objekti"
+
+msgid "S"
+msgstr "S"
+
+msgid "S = Sending. This object sends its value to the group address; the others only receive it."
+msgstr "S = Sending (dërgues). Ky objekt e dërgon vlerën e vet te adresa e grupit; të tjerët vetëm e marrin."
+
+msgid "Click to open this device in the editor"
+msgstr "Klikoni për ta hapur këtë pajisje në editor"
+
+msgid "No devices"
+msgstr "Nuk ka pajisje"
+
+msgid "Loading application program…"
+msgstr "Po ngarkohet programi aplikativ…"
+
+msgid "This product has no application program."
+msgstr "Ky produkt nuk ka program aplikativ."
+
+msgid "Individual Address"
+msgstr "Adresa individuale"
+
+msgid "Program Device"
+msgstr "Programo pajisjen"
+
+msgid "Test Programming"
+msgstr "Testo programimin"
+
+msgid "Unload Application Program"
+msgstr "Çngarko programin aplikativ"
+
+msgid "This unloads the application program of the device at {address}. The device stops working until its application program is downloaded again."
+msgstr "Kjo e çngarkon programin aplikativ të pajisjes në {address}. Pajisja ndalon së punuari derisa programi i saj aplikativ të programohet sërish."
+
+msgid "This unloads the application program of the device at {address} and then resets its individual address to 15.15.255; for that, its programming button has to be pressed. The device stops working until it is commissioned again."
+msgstr "Kjo e çngarkon programin aplikativ të pajisjes në {address} dhe pastaj e rivendos adresën e saj individuale në 15.15.255; për këtë duhet shtypur butoni i saj i programimit. Pajisja ndalon së punuari derisa të vihet sërish në punë."
+
+msgid "Overwrite Address"
+msgstr "Mbishkruaj adresën"
+
+msgid "Manufacturer's Plugin Not Available"
+msgstr "Plugin-i i prodhuesit nuk është i disponueshëm"
+
+msgid "Serial Number Already Used"
+msgstr "Numri serial është tashmë në përdorim"
+
+msgid "Download"
+msgstr "Programimi"
+
+msgid "Full"
+msgstr "I plotë"
+
+msgid "Application Program"
+msgstr "Programi aplikativ"
+
+msgid "Unload"
+msgstr "Çngarko"
+
+msgid "Unload Application and Address"
+msgstr "Çngarko aplikacionin dhe adresën"
+
+msgid "Partial: Parameters"
+msgstr "Pjesërisht: parametrat"
+
+msgid "Partial: Group Communication"
+msgstr "Pjesërisht: komunikimi në grup"
+
+msgid "Overwrite Individual Address"
+msgstr "Mbishkruaj adresën individuale"
+
+msgid "This writes the individual address {address} to the device whose programming button is pressed. Continue?"
+msgstr "Kjo e shkruan adresën individuale {address} në pajisjen të cilës i është shtypur butoni i programimit. Të vazhdoj?"
+
+msgid "This overwrites the individual address of the device at its current address with {address}. Its programming button does not need to be pressed."
+msgstr "Kjo e mbishkruan adresën individuale të pajisjes në adresën e saj aktuale me {address}. Nuk është e nevojshme të shtypet butoni i saj i programimit."
+
+msgid "Current Individual Address"
+msgstr "Adresa individuale aktuale"
+
+msgid "Enter the device's current individual address, e.g. 1.1.5."
+msgstr "Vendosni adresën individuale aktuale të pajisjes, p.sh. 1.1.5."
+
+msgid "The device already has the individual address {address}."
+msgstr "Pajisja e ka tashmë adresën individuale {address}."
+
+msgid "Individual Address via Serial Number"
+msgstr "Adresa individuale përmes numrit serial"
+
+msgid "This writes the individual address {address} to the device with the serial number {serial}. Its programming button does not need to be pressed."
+msgstr "Kjo e shkruan adresën individuale {address} në pajisjen me numër serial {serial}. Nuk është e nevojshme të shtypet butoni i saj i programimit."
+
+msgid "Use Serial Number"
+msgstr "Përdor numrin serial"
+
+msgid "The serial number is already associated with device {device}."
+msgstr "Numri serial është tashmë i lidhur me pajisjen {device}."
+
+msgid "Serial Number"
+msgstr "Numri serial"
+
+msgid "Enter the serial number as 12 hexadecimal digits, e.g. 0083:7AA2039C."
+msgstr "Vendosni numrin serial si 12 shifra heksadecimale, p.sh. 0083:7AA2039C."
+
+msgid "Manufacturer Info"
+msgstr "Info e prodhuesit"
+
+msgid "Application"
+msgstr "Aplikacioni"
+
+msgid "Application Version"
+msgstr "Versioni i aplikacionit"
+
+msgid "Read from Device"
+msgstr "Lexo nga pajisja"
+
+msgid "Restart"
+msgstr "Rinis"
+
+msgid "Reset…"
+msgstr "Rivendos…"
+
+msgid "Master Reset"
+msgstr "Master Reset"
+
+msgid "Destructive: the device is reset over the bus and must be commissioned again. In KNX Secure mode this deactivates device security."
+msgstr "Shkatërruese: pajisja rivendoset përmes busit dhe duhet vënë sërish në punë. Në modalitetin KNX Secure kjo çaktivizon sigurinë e pajisjes."
+
+msgid "Reset Type"
+msgstr "Lloji i rivendosjes"
+
+msgid "I understand this resets the device"
+msgstr "E kuptoj që kjo e rivendos pajisjen"
+
+msgid "Reset Device"
+msgstr "Rivendos pajisjen"
+
+msgid "Factory Reset"
+msgstr "Rivendosje fabrike"
+
+msgid "Factory Reset (Keep Address)"
+msgstr "Rivendosje fabrike (ruaj adresën)"
+
+msgid "Reset Individual Address"
+msgstr "Rivendos adresën individuale"
+
+msgid "Delete Application Program"
+msgstr "Fshi programin aplikativ"
+
+msgid "Reset Parameters"
+msgstr "Rivendos parametrat"
+
+msgid "Reset Group Address Links"
+msgstr "Rivendos lidhjet e adresave të grupit"
+
+msgid "Confirmed Restart"
+msgstr "Rinisje e konfirmuar"
+
+msgid "Set an individual address and connect to the bus first"
+msgstr "Fillimisht vendosni një adresë individuale dhe lidhuni me busin"
+
+msgid "The reported value matches {devices} in this project."
+msgstr "Vlera e raportuar përputhet me {devices} në këtë projekt."
+
+msgid "Mask Version"
+msgstr "Versioni i maskës"
+
+msgid "Order Info"
+msgstr "Info e porosisë"
+
+msgid "Hardware Type"
+msgstr "Lloji i harduerit"
+
+msgid "Status"
+msgstr "Gjendja"
+
+msgid "no fault reported"
+msgstr "nuk raportohet asnjë defekt"
+
+msgid "differs from project V{version} — program to apply"
+msgstr "ndryshon nga projekti V{version} — programojeni për ta zbatuar"
+
+msgid "Product"
+msgstr "Produkti"
+
+msgid "Product Ref"
+msgstr "Ref. e produktit"
+
+msgid "Program Ref"
+msgstr "Ref. e programit"
+
+msgid "IP Configuration"
+msgstr "Konfigurimi IP"
+
+msgid "Obtain an IP address automatically"
+msgstr "Merr automatikisht një adresë IP"
+
+msgid "Use a static IP address"
+msgstr "Përdor një adresë IP statike"
+
+msgid "Assigned IP Address"
+msgstr "Adresa IP e caktuar"
+
+msgid "An invalid IP address was specified."
+msgstr "U dha një adresë IP e pavlefshme."
+
+msgid "Change assigned IP address of '{0}' to '{1}'."
+msgstr "Ndrysho adresën IP të caktuar të '{0}' në '{1}'."
+
+msgid "IP configuration of device '{0}' changed."
+msgstr "Konfigurimi IP i pajisjes '{0}' u ndryshua."
+
+msgid "IP Address"
+msgstr "Adresa IP"
+
+msgid "Subnet Mask"
+msgstr "Maska e nënrrjetit"
+
+msgid "Default Gateway"
+msgstr "Gateway i parazgjedhur"
+
+msgid "MAC Address"
+msgstr "Adresa MAC"
+
+msgid "Download PDF Manual"
+msgstr "Shkarko manualin PDF"
+
+msgid "Searching Manual…"
+msgstr "Po kërkohet manuali…"
+
+msgid "Find this device's manual (via the KNX device database, else a manufacturer search) and open it in your browser. Best effort - opens the KNX device search if no direct document is found."
+msgstr "Gjeni manualin e kësaj pajisjeje (përmes bazës së të dhënave të pajisjeve KNX, përndryshe me një kërkim te prodhuesi) dhe hapeni në shfletuesin tuaj. Pa garanci - hap kërkimin e pajisjeve KNX nëse nuk gjendet dokument i drejtpërdrejtë."
+
+msgid "Update to V{version}"
+msgstr "Përditëso në V{version}"
+
+msgid "Change Application Program"
+msgstr "Ndrysho programin aplikativ"
+
+msgid "Update Application Program Version"
+msgstr "Përditëso versionin e programit aplikativ"
+
+msgid "Update"
+msgstr "Përditëso"
+
+msgid "Updating the application program…"
+msgstr "Po përditësohet programi aplikativ…"
+
+msgid "Changing the application program…"
+msgstr "Po ndryshohet programi aplikativ…"
+
+msgid "Changing the application program failed"
+msgstr "Ndryshimi i programit aplikativ dështoi"
+
+msgid "Updating the application program failed"
+msgstr "Përditësimi i programit aplikativ dështoi"
+
+msgid "Copied"
+msgstr "U kopjua"
+
+msgid "Click to copy"
+msgstr "Klikoni për ta kopjuar"
+
+msgid "Filter parameters…"
+msgstr "Filtro parametrat…"
+
+msgid "Apply Changes to All {count} Identical Devices"
+msgstr "Zbato ndryshimet te të gjitha {count} pajisjet identike"
+
+msgid "Apply Changes to All Channels"
+msgstr "Zbato ndryshimet te të gjitha kanalet"
+
+msgid "Editing {count} devices — edits apply to all, diverging values show <differs>"
+msgstr "Po ndryshohen {count} pajisje — ndryshimet vlejnë për të gjitha, vlerat që ndryshojnë shfaqin <ndryshon>"
+
+msgid "Hardware"
+msgstr "Harduer"
+
+msgid "Firmware"
+msgstr "Firmware"
+
+msgid "Com Flags ({count})"
+msgstr "Flamujt e komunikimit ({count})"
+
+msgid "Load Procedures ({count})"
+msgstr "Procedurat e ngarkimit ({count})"
+
+msgid "Preview Memory"
+msgstr "Parapamje e memories"
+
+msgid "Memory Preview"
+msgstr "Parapamja e memories"
+
+msgid "Load Reference File"
+msgstr "Ngarko skedarin referencë"
+
+msgid "Save Memory Dump"
+msgstr "Ruaj imazhin e memories"
+
+msgid "Save…"
+msgstr "Ruaj…"
+
+msgid "Diff…"
+msgstr "Krahaso…"
+
+msgid "Clear Diff"
+msgstr "Pastro krahasimin"
+
+msgid "Memory Dumps (*.bin)"
+msgstr "Imazhe memorieje (*.bin)"
+
+msgid "{count} bytes"
+msgstr "{count} bajte"
+
+msgid "No memory segments."
+msgstr "Nuk ka segmente memorieje."
+
+msgid "Cannot encode memory image: {error}"
+msgstr "Imazhi i memories nuk mund të kodohet: {error}"
+
+msgid "The file could not be read or written: {error}"
+msgstr "Skedari nuk u lexua ose nuk u shkrua dot: {error}"
+
+msgid "Programming Test Result"
+msgstr "Rezultati i testit të programimit"
+
+msgid "Evaluation failed"
+msgstr "Vlerësimi dështoi"
+
+msgid "Read-only test: checks that the download function generates the same image as what is already programmed on the device. Nothing is written to the device."
+msgstr "Test vetëm për lexim: kontrollon që funksioni i programimit prodhon të njëjtin imazh me atë që është tashmë i programuar në pajisje. Asgjë nuk shkruhet në pajisje."
+
+msgid "Cannot run: the project was changed since it was opened. This test compares the generated image against the device's programmed state, which only matches the project as it was opened. Undo your changes in this session to test."
+msgstr "Nuk mund të ekzekutohet: projekti është ndryshuar që kur u hap. Ky test e krahason imazhin e prodhuar me gjendjen e programuar të pajisjes, e cila përputhet vetëm me projektin siç ishte kur u hap. Për të testuar, zhbëni ndryshimet tuaja në këtë seancë."
+
+msgid "Cannot run: no KNX connection. Connect to a gateway (Connection menu) and make sure the device is reachable at its individual address."
+msgstr "Nuk mund të ekzekutohet: pa lidhje KNX. Lidhuni me një gateway (menyja Lidhja) dhe sigurohuni që pajisja arrihet në adresën e saj individuale."
+
+msgid "Match: the generated image is identical to what is on the device"
+msgstr "Përputhje: imazhi i prodhuar është identik me atë në pajisje"
+
+msgid "Mismatch: {bytes} byte(s) differ from the device in {locations} location(s)"
+msgstr "Mospërputhje: {bytes} bajt(e) ndryshojnë nga pajisja në {locations} vend(e)"
+
+msgid "{matched} matched, {changed} would change"
+msgstr "{matched} përputhen, {changed} do të ndryshonin"
+
+msgid "Only for ETS 6 devices: this test compares the device against an image generated the ETS 6 way. A device last programmed with ETS 5 uses a different byte layout and will show large false differences - the result is only meaningful for a device last programmed with ETS 6."
+msgstr "Vetëm për pajisje ETS 6: ky test e krahason pajisjen me një imazh të prodhuar sipas mënyrës së ETS 6. Një pajisje e programuar për herë të fundit me ETS 5 përdor një renditje tjetër bajtesh dhe do të shfaqë ndryshime të mëdha të rreme - rezultati ka kuptim vetëm për një pajisje të programuar për herë të fundit me ETS 6."
+
+msgid "Structural differences (whole tables differ) can mean the device was last programmed with ETS 5, whose byte layout differs. Differences in values only usually mean the device holds a different configuration."
+msgstr "Ndryshimet strukturore (ndryshojnë tabela të tëra) mund të nënkuptojnë që pajisja është programuar për herë të fundit me ETS 5, renditja e bajteve të të cilit ndryshon. Ndryshimet vetëm në vlera zakonisht nënkuptojnë që pajisja mban një konfigurim tjetër."
+
+msgid "Location"
+msgstr "Vendndodhja"
+
+msgid "Size"
+msgstr "Madhësia"
+
+msgid "Changed"
+msgstr "Ndryshuar"
+
+msgid "match"
+msgstr "përputhje"
+
+msgid "would change"
+msgstr "do të ndryshonte"
+
+msgid "device-managed"
+msgstr "e menaxhuar nga pajisja"
+
+msgid "System byte the device sets itself at runtime (e.g. a download detection byte reset by the application after a download). A difference here is expected and does not indicate a bad download."
+msgstr "Bajt sistemi që pajisja e vendos vetë gjatë punës (p.sh. një bajt zbulimi programimi që aplikacioni e rivendos pas një programimi). Një ndryshim këtu është i pritshëm dhe nuk tregon programim të dështuar."
+
+msgid "plus {bytes} device-managed runtime byte(s) (expected, benign)"
+msgstr "plus {bytes} bajt(e) pune të pajisjes (të pritshëm, të padëmshëm)"
+
+msgid "No configured differences: the device already carries this configuration. The differences below are benign (see notes)."
+msgstr "Nuk ka ndryshime të konfiguruara: pajisja e mban tashmë këtë konfigurim. Ndryshimet më poshtë janë të padëmshme (shihni shënimet)."
+
+msgid "sets default"
+msgstr "vendos parazgjedhjen"
+
+msgid "This byte is written for a neighbouring parameter; the differing bit is not driven by any active parameter and is only reset to the application default. The device holds an older value (e.g. from a previous configuration or mode) that programming will normalise. Benign."
+msgstr "Ky bajt shkruhet për një parametër fqinj; biti që ndryshon nuk drejtohet nga asnjë parametër aktiv dhe vetëm rivendoset në parazgjedhjen e aplikacionit. Pajisja mban një vlerë më të vjetër (p.sh. nga një konfigurim ose modalitet i mëparshëm) që programimi do ta normalizojë. I padëmshëm."
+
+msgid "plus {bytes} byte(s) reset to the application default (the device holds an older value; benign, will be normalised on programming)"
+msgstr "plus {bytes} bajt(e) të rivendosur në parazgjedhjen e aplikacionit (pajisja mban një vlerë më të vjetër; e padëmshme, do të normalizohet gjatë programimit)"
+
+msgid "Export Ist/Soll…"
+msgstr "Eksporto Ist/Soll…"
+
+msgid "Export Path:"
+msgstr "Shtegu i eksportit:"
+
+msgid "Export Programming Test Result"
+msgstr "Eksporto rezultatin e testit të programimit"
+
+msgid "memory {address}"
+msgstr "memoria {address}"
+
+msgid "object {object} property {property}"
+msgstr "objekti {object} vetia {property}"
+
+msgid "Filter devices (name, address)…"
+msgstr "Filtro pajisjet (emri, adresa)…"
+
+msgid "No devices. Open or import a project (File menu), or right-click here to add an area."
+msgstr "Nuk ka pajisje. Hapni ose importoni një projekt (menyja Skedari), ose klikoni djathtas këtu për të shtuar një zonë."
+
+msgid "Filter group addresses (address, name)…"
+msgstr "Filtro adresat e grupit (adresa, emri)…"
+
+msgid "Filter rooms, devices, functions…"
+msgstr "Filtro dhomat, pajisjet, funksionet…"
+
+msgid "Unassigned ({count})"
+msgstr "Të pacaktuara ({count})"
+
+msgid "Duplicate"
+msgstr "Dyfisho"
+
+msgid "Copy Configuration"
+msgstr "Kopjo konfigurimin"
+
+msgid "Compare with…"
+msgstr "Krahaso me…"
+
+msgid "Show in Bus Diagram"
+msgstr "Shfaq në diagramin e busit"
+
+msgid "Compare Devices"
+msgstr "Krahaso pajisjet"
+
+msgid "Open a project with at least two devices to compare."
+msgstr "Hapni një projekt me të paktën dy pajisje për të krahasuar."
+
+msgid "Only Differences"
+msgstr "Vetëm ndryshimet"
+
+msgid "Filter devices by address, name or description…"
+msgstr "Filtro pajisjet sipas adresës, emrit ose përshkrimit…"
+
+msgid "{count} differences"
+msgstr "{count} ndryshime"
+
+msgid "Parameters"
+msgstr "Parametrat"
+
+msgid "Group Objects"
+msgstr "Objektet e grupit"
+
+msgid "No differences"
+msgstr "Asnjë ndryshim"
+
+msgid "Field"
+msgstr "Fusha"
+
+msgid "Device A"
+msgstr "Pajisja A"
+
+msgid "Device B"
+msgstr "Pajisja B"
+
+msgid "Paste Configuration"
+msgstr "Ngjit konfigurimin"
+
+msgid "Paste configuration onto '{name}':"
+msgstr "Ngjit konfigurimin te '{name}':"
+
+msgid "Paste configuration onto {count} selected devices:"
+msgstr "Ngjit konfigurimin te {count} pajisjet e zgjedhura:"
+
+msgid "Duplicate '{name}':"
+msgstr "Dyfisho '{name}':"
+
+msgid "Group Address Links"
+msgstr "Lidhjet e adresave të grupit"
+
+msgid "Paste"
+msgstr "Ngjit"
+
+msgid "Delete Device"
+msgstr "Fshi pajisjen"
+
+msgid "Delete '{name}'? Its group objects and group-address links are removed and its individual address is freed. This can be undone."
+msgstr "Ta fshini '{name}'? Objektet e saj të grupit dhe lidhjet me adresat e grupit hiqen, dhe adresa e saj individuale lirohet. Ky veprim mund të zhbëhet."
+
+msgid "Number"
+msgstr "Numri"
+
+msgid "Add"
+msgstr "Shto"
+
+msgid "Save"
+msgstr "Ruaj"
+
+msgid "Load"
+msgstr "Ngarko"
+
+msgid "Copy Log"
+msgstr "Kopjo regjistrin"
+
+msgid "Delete Folder"
+msgstr "Fshi dosjen"
+
+msgid "Delete this folder and every group address in it? This can be undone."
+msgstr "Ta fshini këtë dosje dhe çdo adresë grupi brenda saj? Ky veprim mund të zhbëhet."
+
+msgid "Invalid address or already in use."
+msgstr "Adresë e pavlefshme ose tashmë në përdorim."
+
+msgid "Security"
+msgstr "Siguria"
+
+msgid "Automatic"
+msgstr "Automatike"
+
+msgid "A secured group address can only be linked to devices that are commissioned securely."
+msgstr "Një adresë grupi e siguruar mund të lidhet vetëm me pajisje që vihen në punë në mënyrë të sigurt."
+
+msgid "Not every device linked to this group address is commissioned securely, so it cannot be secured."
+msgstr "Jo të gjitha pajisjet e lidhura me këtë adresë grupi vihen në punë në mënyrë të sigurt, prandaj ajo nuk mund të sigurohet."
+
+msgid "Address"
+msgstr "Adresa"
+
+msgid "Project: {name}"
+msgstr "Projekti: {name}"
+
+msgid "(unsaved)"
+msgstr "(i paruajtur)"
+
+msgid "No history"
+msgstr "Pa historik"
+
+msgid "Restore"
+msgstr "Rikthe"
+
+msgid "Add device: {name}"
+msgstr "Shto pajisje: {name}"
+
+msgid "Remove device: {name}"
+msgstr "Hiq pajisje: {name}"
+
+msgid "Address: {old} -> {new}"
+msgstr "Adresa: {old} -> {new}"
+
+msgid "Name: {old} -> {new}"
+msgstr "Emri: {old} -> {new}"
+
+msgid "Parameter: {old} -> {new}"
+msgstr "Parametri: {old} -> {new}"
+
+msgid "DPT: {old} -> {new}"
+msgstr "DPT: {old} -> {new}"
+
+msgid "Flag: {flag} -> {state}"
+msgstr "Flamuri: {flag} -> {state}"
+
+msgid "Group address {address} created"
+msgstr "U krijua adresa e grupit {address}"
+
+msgid "Group address {address} removed"
+msgstr "U hoq adresa e grupit {address}"
+
+msgid "Group address: {old} -> {new}"
+msgstr "Adresa e grupit: {old} -> {new}"
+
+msgid "Group object linked to group address"
+msgstr "Objekti i grupit u lidh me adresën e grupit"
+
+msgid "Group object unlinked from group address"
+msgstr "Objekti i grupit u shkëput nga adresa e grupit"
+
+msgid "Area {number} created"
+msgstr "U krijua zona {number}"
+
+msgid "Area {number} removed"
+msgstr "U hoq zona {number}"
+
+msgid "Area: {old} -> {new}"
+msgstr "Zona: {old} -> {new}"
+
+msgid "Line {number} created"
+msgstr "U krijua linja {number}"
+
+msgid "Line {number} removed"
+msgstr "U hoq linja {number}"
+
+msgid "Line: {old} -> {new}"
+msgstr "Linja: {old} -> {new}"
+
+msgid "This action can only be performed when the individual address of the device is already downloaded."
+msgstr "Ky veprim mund të kryhet vetëm kur adresa individuale e pajisjes është programuar tashmë."
+
+msgid "Button {0} executed. "
+msgstr "Butoni {0} u ekzekutua. "
+
+msgid "A parameter script is running for this device."
+msgstr "Për këtë pajisje po ekzekutohet një skript parametrash."
+
+msgid "The Device has no valid address or is not linked to an area or line."
+msgstr "Pajisja nuk ka adresë të vlefshme ose nuk është e lidhur me një zonë ose linjë."
+
+msgid "Parameter Script"
+msgstr "Skripti i parametrave"
+
+msgid "Executing Script"
+msgstr "Skripti në ekzekutim"
+
+msgid "Script not responding"
+msgstr "Skripti nuk përgjigjet"
+
+msgid "Force Stop"
+msgstr "Ndalo me detyrim"
+
+msgid "The script was stopped."
+msgstr "Skripti u ndal."
+
+msgid "Canceling…"
+msgstr "Po anulohet…"
+
+msgid "No connection to the bus."
+msgstr "Nuk ka lidhje me busin."
+
+msgid "Parameter value cannot be set, because validation failed."
+msgstr "Vlera e parametrit nuk mund të vendoset, sepse validimi dështoi."
+
+msgid "Operations"
+msgstr "Veprimet"
+
+msgid "Active"
+msgstr "Aktive"
+
+msgid "Cancel All"
+msgstr "Anulo të gjitha"
+
+msgid "Clear History"
+msgstr "Pastro historikun"
+
+msgid "No operations."
+msgstr "Asnjë veprim."
+
+msgid "Device Info"
+msgstr "Info e pajisjes"
+
+msgid "Device Info (With Group Communication)"
+msgstr "Info e pajisjes (me komunikimin në grup)"
+
+msgid "Reading"
+msgstr "Po lexohet"
+
+msgid "General"
+msgstr "Të përgjithshme"
+
+msgid "Group Communication"
+msgstr "Komunikimi në grup"
+
+msgid "Device Manufacturer"
+msgstr "Prodhuesi i pajisjes"
+
+msgid "Firmware Version"
+msgstr "Versioni i firmware-it"
+
+msgid "Programming Mode"
+msgstr "Modaliteti i programimit"
+
+msgid "Load State"
+msgstr "Gjendja e ngarkimit"
+
+msgid "Address Table Load State"
+msgstr "Gjendja e ngarkimit të tabelës së adresave"
+
+msgid "Association Table Load State"
+msgstr "Gjendja e ngarkimit të tabelës së asociimeve"
+
+msgid "Group Object Table Load State"
+msgstr "Gjendja e ngarkimit të tabelës së objekteve të grupit"
+
+msgid "Reading the tables failed: {error}"
+msgstr "Leximi i tabelave dështoi: {error}"
+
+msgid "On"
+msgstr "Ndezur"
+
+msgid "Off"
+msgstr "Fikur"
+
+msgid "Unloaded"
+msgstr "I çngarkuar"
+
+msgid "Loaded"
+msgstr "I ngarkuar"
+
+msgid "Loading"
+msgstr "Po ngarkohet"
+
+msgid "Error"
+msgstr "Gabim"
+
+msgid "Unloading"
+msgstr "Po çngarkohet"
+
+msgid "Load Completing"
+msgstr "Ngarkimi po përfundon"
+
+msgid "Yes"
+msgstr "Po"
+
+msgid "No"
+msgstr "Jo"
+
+msgid "Also read the group communication?"
+msgstr "Të lexohet edhe komunikimi në grup?"
+
+msgid "The application on the device is not in the catalog, so its tables cannot be located"
+msgstr "Aplikacioni në pajisje nuk është në katalog, prandaj tabelat e tij nuk mund të gjenden"
+
+msgid "This device can only be programmed with the manufacturer's plugin, which is not available here."
+msgstr "Kjo pajisje mund të programohet vetëm me plugin-in e prodhuesit, i cili nuk është i disponueshëm këtu."
+
+msgid "Parameters in the Manufacturer's Plugin"
+msgstr "Parametrat në plugin-in e prodhuesit"
+
+msgid "The manufacturer sets this device's parameters in its own plugin dialog, which XKNX Editor cannot run, so they cannot be changed here. A download writes their current values unchanged; the group objects can be linked as usual."
+msgstr "Prodhuesi i vendos parametrat e kësaj pajisjeje në dialogun e plugin-it të vet, të cilin XKNX Editor nuk mund ta ekzekutojë, prandaj ato nuk mund të ndryshohen këtu. Një programim i shkruan vlerat e tyre aktuale pa ndryshim; objektet e grupit mund të lidhen si zakonisht."
+
+msgid "Edit parameters anyway"
+msgstr "Ndrysho parametrat gjithsesi"
+
+msgid "The manufacturer configures this device with its own plugin dialog; settings made there are not shown here."
+msgstr "Prodhuesi e konfiguron këtë pajisje me dialogun e plugin-it të vet; cilësimet e bëra aty nuk shfaqen këtu."
+
+msgid "The manufacturer programs this device with its own plugin; the standard download is used here."
+msgstr "Prodhuesi e programon këtë pajisje me plugin-in e vet; këtu përdoret programimi standard."
+
+msgid "The manufacturer keeps part of this device's data with its own plugin, which is not available here."
+msgstr "Prodhuesi e mban një pjesë të të dhënave të kësaj pajisjeje me plugin-in e vet, i cili nuk është i disponueshëm këtu."
+
+msgid "The manufacturer plugin is not available here:"
+msgstr "Plugin-i i prodhuesit nuk është i disponueshëm këtu:"
+
+msgid "Only it can program the device."
+msgstr "Vetëm ai mund ta programojë pajisjen."
+
+msgid "Settings made in its dialog are not shown."
+msgstr "Cilësimet e bëra në dialogun e tij nuk shfaqen."
+
+msgid "The standard download is used instead."
+msgstr "Në vend të tij përdoret programimi standard."
+
+msgid "Part of the device data is not available."
+msgstr "Një pjesë e të dhënave të pajisjes nuk është e disponueshme."
+
+msgid "This device is also configured with separate software from the manufacturer."
+msgstr "Kjo pajisje konfigurohet edhe me softuer të veçantë nga prodhuesi."
+
+msgid "This device includes a manufacturer configuration app (“{name}”) that XKNX Editor can't run. The device's standard parameters can still be programmed, but not the extra functionality that app provides."
+msgstr "Kjo pajisje përfshin një aplikacion konfigurimi të prodhuesit (“{name}”) që XKNX Editor nuk mund ta ekzekutojë. Parametrat standardë të pajisjes mund të programohen ende, por jo funksionet shtesë që ofron ai aplikacion."
+
+msgid "This device includes a manufacturer configuration app (“{name}”) that can't be run directly in XKNX Editor — but it has been ported, so its most important functions are usable here (see the DALI tab)."
+msgstr "Kjo pajisje përfshin një aplikacion konfigurimi të prodhuesit (“{name}”) që nuk mund të ekzekutohet drejtpërdrejt në XKNX Editor — por është portuar, kështu që funksionet e tij më të rëndësishme mund të përdoren këtu (shihni skedën DALI)."
+
+msgid "The manufacturer allows programming this device only with its plugin, which is not available here. Programming it without the plugin may leave the device misconfigured or in an error state."
+msgstr "Prodhuesi lejon programimin e kësaj pajisjeje vetëm me plugin-in e vet, i cili nuk është i disponueshëm këtu. Programimi pa plugin mund ta lërë pajisjen të konfiguruar gabim ose në gjendje gabimi."
+
+msgid "Program Without the Manufacturer's Plugin Anyway"
+msgstr "Programo gjithsesi pa plugin-in e prodhuesit"
+
+msgid "Downloading"
+msgstr "Po programohet"
+
+msgid "Please press the programming button"
+msgstr "Ju lutemi shtypni butonin e programimit"
+
+msgid "Waiting for confirmation"
+msgstr "Në pritje të konfirmimit"
+
+msgid "The application program currently loaded in the device is different from the projected application program"
+msgstr "Programi aplikativ i ngarkuar aktualisht në pajisje ndryshon nga programi aplikativ i projektuar"
+
+msgid "Do you want to overwrite the application program (this may take several minutes)?"
+msgstr "Doni ta mbishkruani programin aplikativ (kjo mund të zgjasë disa minuta)?"
+
+msgid "The application program currently loaded in the device does not comply with the projected application program. You may try a full instead of a partial download."
+msgstr "Programi aplikativ i ngarkuar aktualisht në pajisje nuk përputhet me programin aplikativ të projektuar. Mund të provoni një programim të plotë në vend të një të pjesshmi."
+
+msgid "Incompatible mask version: {found} instead of {expected}"
+msgstr "Version i papërputhshëm i maskës: {found} në vend të {expected}"
+
+msgid "Waiting"
+msgstr "Në pritje"
+
+msgid "Finished"
+msgstr "Përfunduar"
+
+msgid "Canceled"
+msgstr "Anuluar"
+
+msgid "Cancelled by user."
+msgstr "U anulua nga përdoruesi."
+
+msgid "Started by an MCP client."
+msgstr "U nis nga një klient MCP."
+
+msgid "failed"
+msgstr "dështoi"
+
+msgid "No details available"
+msgstr "Nuk ka detaje"
+
+msgid "Connection: {connection}"
+msgstr "Lidhja: {connection}"
+
+msgid "Start: {time}"
+msgstr "Fillimi: {time}"
+
+msgid "End: {time}"
+msgstr "Mbarimi: {time}"
+
+msgid "The product data of this device is missing - its application program is not in the catalog. Import its product to edit the device."
+msgstr "Mungojnë të dhënat e produktit të kësaj pajisjeje - programi i saj aplikativ nuk është në katalog. Importoni produktin e saj për ta ndryshuar pajisjen."
+
+msgid "DIN Rail Mounting"
+msgstr "Montim në shinë DIN"
+
+msgid "Bus Current"
+msgstr "Rryma e busit"
+
+msgid "Read Value"
+msgstr "Lexo vlerën"
+
+msgid "Write Value…"
+msgstr "Shkruaj vlerë…"
+
+msgid "Write Value"
+msgstr "Shkruaj vlerë"
+
+msgid "Data Type"
+msgstr "Lloji i të dhënave"
+
+msgid "Value"
+msgstr "Vlera"
+
+msgid "Set the data type of the group address to write a value."
+msgstr "Caktoni llojin e të dhënave të adresës së grupit për të shkruar një vlerë."
+
+msgid "Write"
+msgstr "Shkruaj"
+
+msgid "Not connected to the bus."
+msgstr "Nuk jeni i lidhur me busin."
+
+msgid "Export Group Addresses…"
+msgstr "Eksporto adresat e grupit…"
+
+msgid "Import Group Addresses…"
+msgstr "Importo adresat e grupit…"
+
+msgid "Import Group Addresses"
+msgstr "Importo adresat e grupit"
+
+msgid "Group Address Files (XML, CSV)"
+msgstr "Skedarë adresash grupi (XML, CSV)"
+
+msgid "{added} group addresses added, {updated} updated."
+msgstr "U shtuan {added} adresa grupi, u përditësuan {updated}."
+
+msgid "{count} group addresses could not be placed in a group."
+msgstr "{count} adresa grupi nuk u vendosën dot në një grup."
+
+msgid "The file could not be imported: {error}"
+msgstr "Skedari nuk u importua dot: {error}"
+
+msgid "The file uses {file} group addresses, but the project uses {project} group addresses."
+msgstr "Skedari përdor adresa grupi {file}, por projekti përdor adresa grupi {project}."
+
+msgid "3-level"
+msgstr "me 3 nivele"
+
+msgid "2-level"
+msgstr "me 2 nivele"
+
+msgid "free"
+msgstr "të lira"
+
+msgid "Export"
+msgstr "Eksporto"
+
+msgid "Import"
+msgstr "Importo"
+
+msgid "Plain"
+msgstr "Pa enkriptim"
+
+msgid "Deactivate Secure Commissioning"
+msgstr "Çaktivizo vënien e sigurt në punë"
+
+msgid "These group addresses will then communicate in the clear:"
+msgstr "Këto adresa grupi do të komunikojnë më pas pa enkriptim:"
+
+msgid "The device's group objects will be removed from these secured group addresses:"
+msgstr "Objektet e grupit të pajisjes do të hiqen nga këto adresa grupi të siguruara:"
+
+msgid "Deactivate"
+msgstr "Çaktivizo"
+
+msgid "Secure Commissioning"
+msgstr "Vënia e sigurt në punë"
+
+msgid "Add Device Certificate…"
+msgstr "Shto certifikatën e pajisjes…"
+
+msgid "Activated"
+msgstr "Aktivizuar"
+
+msgid "Deactivated"
+msgstr "Çaktivizuar"
+
+msgid "A group object that requires secure communication would end up on a group address in the clear."
+msgstr "Një objekt grupi që kërkon komunikim të sigurt do të përfundonte në një adresë grupi pa enkriptim."
+
+msgid "Later"
+msgstr "Më vonë"
+
+msgid "Don't Ask When Adding Devices"
+msgstr "Mos pyet kur shtohen pajisje"
+
+msgid "KNX IP Secure"
+msgstr "KNX IP Secure"
+
+msgid "Show Passwords"
+msgstr "Shfaq fjalëkalimet"
+
+msgid "Secure Tunneling"
+msgstr "Tunneling i sigurt"
+
+msgid "Commissioning Password"
+msgstr "Fjalëkalimi i vënies në punë"
+
+msgid "Authentication Code"
+msgstr "Kodi i vërtetimit"
+
+msgid "Interface"
+msgstr "Ndërfaqja"
+
+msgid "Routing"
+msgstr "Routing"
+
+msgid "Tunnel {address}"
+msgstr "Tuneli {address}"
+
+msgid "A password needs 1 to 20 Latin-1 characters."
+msgstr "Një fjalëkalim duhet të ketë 1 deri në 20 karaktere Latin-1."
+
+msgid "Close"
+msgstr "Mbyll"
+
+msgid "Device Certificates"
+msgstr "Certifikatat e pajisjeve"
+
+msgid "Manage…"
+msgstr "Menaxho…"
+
+msgid "The project has no device certificates."
+msgstr "Projekti nuk ka certifikata pajisjesh."
+
+msgid "The security tables of {device} cannot hold this link."
+msgstr "Tabelat e sigurisë së {device} nuk mund ta mbajnë këtë lidhje."
+
+msgid "Point-to-Point and Broadcast"
+msgstr "Pikë-me-pikë dhe broadcast"
+
+msgid "Blocked"
+msgstr "I bllokuar"
+
+msgid "Routed"
+msgstr "I përcjellë"
+
+msgid "Connect to a KNX interface to commission the DALI bus."
+msgstr "Lidhuni me një ndërfaqe KNX për të vënë në punë busin DALI."
+
+msgid "Scan Bus"
+msgstr "Skano busin"
+
+msgid "All ECGs On"
+msgstr "Ndiz të gjitha ECG-të"
+
+msgid "All Off"
+msgstr "Fik të gjitha"
+
+msgid "New Installation…"
+msgstr "Instalim i ri…"
+
+msgid "Post Installation…"
+msgstr "Instalim shtesë…"
+
+msgid "Running: {task}"
+msgstr "Në punë: {task}"
+
+msgid "scanning the bus"
+msgstr "po skanohet busi"
+
+msgid "switching all ECGs"
+msgstr "po komandohen të gjitha ECG-të"
+
+msgid "blinking"
+msgstr "pulsim"
+
+msgid "stopping the blinking"
+msgstr "po ndalohet pulsimi"
+
+msgid "new installation"
+msgstr "instalim i ri"
+
+msgid "post installation"
+msgstr "instalim shtesë"
+
+msgid "programming the groups"
+msgstr "po programohen grupet"
+
+msgid "programming the scenes"
+msgstr "po programohen skenat"
+
+msgid "{count} found"
+msgstr "{count} të gjetura"
+
+msgid "Use 'Scan Bus' to read the DALI bus."
+msgstr "Përdorni 'Skano busin' për të lexuar busin DALI."
+
+msgid "Firmware {version}"
+msgstr "Firmware {version}"
+
+msgid "Confirm DALI Programming"
+msgstr "Konfirmo programimin DALI"
+
+msgid "Continue"
+msgstr "Vazhdo"
+
+msgid "New installation scans the DALI bus again and REASSIGNS the short\naddress of every ballast. This cannot be undone. Continue?"
+msgstr "Instalimi i ri e skanon sërish busin DALI dhe RICAKTON adresën e shkurtër\ntë çdo ballasti. Ky veprim nuk mund të zhbëhet. Të vazhdoj?"
+
+msgid "Post installation scans the bus for new ballasts and updates their addressing.\nThis changes the device. Continue?"
+msgstr "Instalimi shtesë kërkon në bus ballaste të reja dhe përditëson adresimin e tyre.\nKjo e ndryshon pajisjen. Të vazhdoj?"
+
+msgid "Write the group assignment to the DALI bus. This applies the groups to the\ngateway and its ballasts. Continue?"
+msgstr "Shkruaj caktimin e grupeve në busin DALI. Kjo i zbaton grupet në\ngateway dhe në ballastet e tij. Të vazhdoj?"
+
+msgid "Write the scene values to the DALI bus. Continue?"
+msgstr "Shkruaj vlerat e skenave në busin DALI. Të vazhdoj?"
+
+msgid "{count} ECG(s) present"
+msgstr "{count} ECG të pranishme"
+
+msgid "Group"
+msgstr "Grupi"
+
+msgid "Long Address"
+msgstr "Adresa e gjatë"
+
+msgid "Alarm"
+msgstr "Alarm"
+
+msgid "Blink"
+msgstr "Pulso"
+
+msgid "Stop"
+msgstr "Ndalo"
+
+msgid "Program Groups…"
+msgstr "Programo grupet…"
+
+msgid "Scenes"
+msgstr "Skenat"
+
+msgid "Assign the ECGs to groups above to define scenes."
+msgstr "Caktoni ECG-të në grupet më sipër për të përcaktuar skena."
+
+msgid "Scene"
+msgstr "Skena"
+
+msgid "Scene {number}"
+msgstr "Skena {number}"
+
+msgid "Group {number}"
+msgstr "Grupi {number}"
+
+msgid "Program Scenes…"
+msgstr "Programo skenat…"
+
+msgid "Single"
+msgstr "Veçmas"
+
+msgid "Unassigned"
+msgstr "Pa caktuar"
+
+msgid "Procedure {number}  ({count} steps)"
+msgstr "Procedura {number}  ({count} hapa)"
+
+msgid "Kind"
+msgstr "Lloji"
+
+msgid "Applies To"
+msgstr "Vlen për"
+
+msgid "Details"
+msgstr "Detajet"
+
+msgid "Scope: {scope}"
+msgstr "Shtrirja: {scope}"
+
+msgid "Additional Individual Addresses"
+msgstr "Adresat individuale shtesë"
+
+msgid "Additional Individual Address"
+msgstr "Adresa individuale shtesë"
+
+msgid "Assign Missing Addresses"
+msgstr "Cakto adresat që mungojnë"
+
+msgid "The line does not provide enough addresses for all necessary additional addresses."
+msgstr "Linja nuk ofron mjaftueshëm adresa për të gjitha adresat shtesë të nevojshme."
+
+msgid "Enter a device number from 1 to 255 or a full individual address in the device's line."
+msgstr "Vendosni një numër pajisjeje nga 1 deri në 255 ose një adresë individuale të plotë në linjën e pajisjes."
+
+msgid "An additional address must be in the device's line {line}."
+msgstr "Një adresë shtesë duhet të jetë në linjën {line} të pajisjes."
+
+msgid "The individual address {address} is already used in this line."
+msgstr "Adresa individuale {address} përdoret tashmë në këtë linjë."
+
+msgid "Changed additional address of device '{0}' from '{1}' to '{2}'."
+msgstr "Adresa shtesë e pajisjes '{0}' u ndryshua nga '{1}' në '{2}'."
+
+msgid "Change additional address names"
+msgstr "Ndrysho emrat e adresave shtesë"
+
+msgid "Change additional address descriptions"
+msgstr "Ndrysho përshkrimet e adresave shtesë"
+
+msgid "Assign additional addresses"
+msgstr "Cakto adresat shtesë"
+
+msgid "Change additional addresses"
+msgstr "Ndrysho adresat shtesë"
+
+msgid "Add device {name}"
+msgstr "Shto pajisjen {name}"
+
+msgid "Set {ref} = {value}"
+msgstr "Vendos {ref} = {value}"
+
+msgid "Change"
+msgstr "Ndryshim"
+
+msgid "Create area {address}"
+msgstr "Krijo zonën {address}"
+
+msgid "Create line {address}"
+msgstr "Krijo linjën {address}"
+
+msgid "Add segment"
+msgstr "Shto segment"
+
+msgid "Create group address {address}"
+msgstr "Krijo adresën e grupit {address}"
+
+msgid "Import group addresses"
+msgstr "Importo adresat e grupit"
+
+msgid "Import group addresses from {file}"
+msgstr "Importo adresat e grupit nga {file}"
+
+msgid "Link group object"
+msgstr "Lidh objektin e grupit"
+
+msgid "Unlink group object"
+msgstr "Shkëput objektin e grupit"
+
+msgid "Rename area to {name}"
+msgstr "Riemërto zonën në {name}"
+
+msgid "Rename project to {name}"
+msgstr "Riemërto projektin në {name}"
+
+msgid "Rename line to {name}"
+msgstr "Riemërto linjën në {name}"
+
+msgid "Rename device to {name}"
+msgstr "Riemërto pajisjen në {name}"
+
+msgid "Move device"
+msgstr "Zhvendos pajisjen"
+
+msgid "Set flag"
+msgstr "Vendos flamurin"
+
+msgid "Set datapoint type"
+msgstr "Cakto llojin e pikës së të dhënave"
+
+msgid "Set priority"
+msgstr "Cakto prioritetin"
+
+msgid "Set description"
+msgstr "Vendos përshkrimin"
+
+msgid "Set sending group address"
+msgstr "Cakto adresën e grupit dërguese"
+
+msgid "Add installation"
+msgstr "Shto instalim"
+
+msgid "Remove device"
+msgstr "Hiq pajisjen"
+
+msgid "Remove area"
+msgstr "Hiq zonën"
+
+msgid "Remove line"
+msgstr "Hiq linjën"
+
+msgid "Remove segment"
+msgstr "Hiq segmentin"
+
+msgid "Remove group address"
+msgstr "Hiq adresën e grupit"
+
+msgid "Remove function"
+msgstr "Hiq funksionin"
+
+msgid "Remove group address from function"
+msgstr "Hiq adresën e grupit nga funksioni"
+
+msgid "Remove building part"
+msgstr "Hiq pjesën e ndërtesës"
+
+msgid "Remove group range"
+msgstr "Hiq diapazonin e grupeve"
+
+msgid "Update application program"
+msgstr "Përditëso programin aplikativ"
+
+msgid "Change application program"
+msgstr "Ndrysho programin aplikativ"
+
+msgid "Update group objects"
+msgstr "Përditëso objektet e grupit"
+
+msgid "Update module instances"
+msgstr "Përditëso instancat e moduleve"
+
+msgid "Set group address security"
+msgstr "Cakto sigurinë e adresës së grupit"
+
+msgid "Set secure commissioning"
+msgstr "Cakto vënien e sigurt në punë"
+
+msgid "Rename group address to {name}"
+msgstr "Riemërto adresën e grupit në {name}"
+
+msgid "Change group address"
+msgstr "Ndrysho adresën e grupit"
+
+msgid "Set device certificates"
+msgstr "Vendos certifikatat e pajisjeve"
+
+msgid "Set device description"
+msgstr "Vendos përshkrimin e pajisjes"
+
+msgid "Create function {name}"
+msgstr "Krijo funksionin {name}"
+
+msgid "Rename function to {name}"
+msgstr "Riemërto funksionin në {name}"
+
+msgid "Set function type"
+msgstr "Cakto llojin e funksionit"
+
+msgid "Add group address to function"
+msgstr "Shto adresë grupi në funksion"
+
+msgid "Create building part {name}"
+msgstr "Krijo pjesën e ndërtesës {name}"
+
+msgid "Rename building part to {name}"
+msgstr "Riemërto pjesën e ndërtesës në {name}"
+
+msgid "Set building part number"
+msgstr "Cakto numrin e pjesës së ndërtesës"
+
+msgid "Set building part description"
+msgstr "Vendos përshkrimin e pjesës së ndërtesës"
+
+msgid "Set building part type"
+msgstr "Cakto llojin e pjesës së ndërtesës"
+
+msgid "Move building part"
+msgstr "Zhvendos pjesën e ndërtesës"
+
+msgid "Assign device to building part"
+msgstr "Cakto pajisjen në pjesën e ndërtesës"
+
+msgid "Set commissioning state"
+msgstr "Cakto gjendjen e vënies në punë"
+
+msgid "Create group range {name}"
+msgstr "Krijo diapazonin e grupeve {name}"
+
+msgid "Rename group range to {name}"
+msgstr "Riemërto diapazonin e grupeve në {name}"
+
+msgid "{device}: no individual address"
+msgstr "{device}: pa adresë individuale"
+
+msgid "{device}: malformed address '{address}'"
+msgstr "{device}: adresë e pasaktë '{address}'"
+
+msgid "{device}: duplicate address {address}"
+msgstr "{device}: adresë e dyfishtë {address}"
+
+msgid "added"
+msgstr "shtuar"
+
+msgid "removed"
+msgstr "hequr"
+
+msgid "changed"
+msgstr "ndryshuar"
+
+msgid "Installation Hints"
+msgstr "Udhëzime instalimi"
+
+msgid "Select an element in a tree to see its comment."
+msgstr "Zgjidhni një element në pemë për të parë komentin."
+
+msgid "Set comment"
+msgstr "Vendos komentin"
+
+msgid "Set installation hints"
+msgstr "Vendos udhëzimet e instalimit"
+
+msgid "Area"
+msgstr "Zona"
+
+msgid "Line"
+msgstr "Linja"
+
+msgid "The address is a number from 0 to 15."
+msgstr "Adresa është një numër nga 0 deri në 15."
+
+msgid "Address {address} is already in use."
+msgstr "Adresa {address} është tashmë në përdorim."
+
+msgid "Set area description"
+msgstr "Vendos përshkrimin e zonës"
+
+msgid "Set line description"
+msgstr "Vendos përshkrimin e linjës"
+
+msgid "Set area address"
+msgstr "Cakto adresën e zonës"
+
+msgid "Set line address"
+msgstr "Cakto adresën e linjës"
+
+msgid "Main Group"
+msgstr "Grupi kryesor"
+
+msgid "Middle Group"
+msgstr "Grupi i mesëm"
+
+msgid "Group Range"
+msgstr "Diapazoni i grupeve"
+
+msgid "The main group is a number from 0 to 31."
+msgstr "Grupi kryesor është një numër nga 0 deri në 31."
+
+msgid "The middle group is a number from 0 to 7."
+msgstr "Grupi i mesëm është një numër nga 0 deri në 7."
+
+msgid "Set group address description"
+msgstr "Vendos përshkrimin e adresës së grupit"
+
+msgid "Set group range description"
+msgstr "Vendos përshkrimin e diapazonit të grupeve"
+
+msgid "Set group range address"
+msgstr "Cakto adresën e diapazonit të grupeve"
+
+msgid "##plugin_params_filter"
+msgstr "##plugin_params_filter"
+
+msgid "Channel {n}"
+msgstr "Kanali {n}"
+
+msgid "Colour Temp (K)"
+msgstr "Temp. e ngjyrës (K)"
+
+msgid "Connect to a KNX interface to read the Siemens DALI bus."
+msgstr "Lidhuni me një ndërfaqe KNX për të lexuar busin DALI të Siemens."
+
+msgid "DALI (Siemens)"
+msgstr "DALI (Siemens)"
+
+msgid "DALI Channel"
+msgstr "Kanali DALI"
+
+msgid "DALI commissioning"
+msgstr "Vënia në punë DALI"
+
+msgid "DALI commissioning writes the gateway on the bus but does not update the project parameters; re-export the .knxproj after a DCA-side edit."
+msgstr "Vënia në punë DALI e shkruan gateway-in në bus, por nuk i përditëson parametrat e projektit; rieksportoni .knxproj pas një ndryshimi nga ana e DCA."
+
+msgid "Default"
+msgstr "Parazgjedhja"
+
+msgid "Editable fallback for parameters whose manufacturer plugin is not available here. The hierarchy is reconstructed from parameter name prefixes; labels and groupings may be rough. Edits are written to the project and transferred by a normal download."
+msgstr "Pamje rezervë e ndryshueshme për parametrat, plugin-i i prodhuesit të të cilëve nuk është i disponueshëm këtu. Hierarkia rindërtohet nga parashtesat e emrave të parametrave; etiketat dhe grupimet mund të jenë të përafërta. Ndryshimet shkruhen në projekt dhe transferohen me një programim normal."
+
+msgid "Min Dim"
+msgstr "Dim. minimal"
+
+msgid "No parameter matches the filter."
+msgstr "Asnjë parametër nuk përputhet me filtrin."
+
+msgid "No plugin mapping is available for this device yet. The vendor plugin's parameters stay unreachable from here."
+msgstr "Për këtë pajisje ende nuk ka përputhje me plugin-in. Parametrat e plugin-it të prodhuesit mbeten të paarritshëm nga këtu."
+
+msgid "Parameter"
+msgstr "Parametri"
+
+msgid "Plugin Config"
+msgstr "Konfigurimi i plugin-it"
+
+msgid "Press 'Read DALI Bus' to list the ECGs on the gateway."
+msgstr "Shtypni 'Lexo busin DALI' për të listuar ECG-të në gateway."
+
+msgid "Random Address"
+msgstr "Adresa e rastësishme"
+
+msgid "Read DALI Bus"
+msgstr "Lexo busin DALI"
+
+msgid "Read-only snapshot. Writing group assignments, scenes or firmware is not available yet and remains in the manufacturer's plugin."
+msgstr "Pamje e çastit vetëm për lexim. Shkrimi i caktimeve të grupeve, skenave ose firmware-it nuk është ende i disponueshëm dhe mbetet në plugin-in e prodhuesit."
+
+msgid "Read-only view. The hierarchy is a best-effort reconstruction from parameter name prefixes; names and groupings may be rough. Writing values is not available yet."
+msgstr "Pamje vetëm për lexim. Hierarkia është një rindërtim sa më i mirë i mundshëm nga parashtesat e emrave të parametrave; emrat dhe grupimet mund të jenë të përafërta. Shkrimi i vlerave nuk është ende i disponueshëm."
+
+msgid "Reading the DALI bus from object {object_index}…"
+msgstr "Po lexohet busi DALI nga objekti {object_index}…"
+
+msgid "Short Address"
+msgstr "Adresa e shkurtër"
+
+msgid "Slot"
+msgstr "Slot"
+
+msgid "The application has no static parameters."
+msgstr "Aplikacioni nuk ka parametra statikë."
+
+msgid "This gateway's commissioning protocol has not been verified against a capture; writes may misbehave. Proceed with care."
+msgstr "Protokolli i vënies në punë i këtij gateway-i nuk është verifikuar me një regjistrim; shkrimet mund të sillen gabim. Vazhdoni me kujdes."
+
+msgid "{count} ECG(s) present on line {line}"
+msgstr "{count} ECG të pranishme në linjën {line}"
+
+msgid "Program DCA State"
+msgstr "Programo gjendjen DCA"
+
+msgid "Sends the DALI device settings to the gateway as property values."
+msgstr "Dërgon cilësimet e pajisjeve DALI te gateway-i si vlera të vetive."
+
+msgid "Add to {section}:"
+msgstr "Shto në {section}:"
+
+msgid "No entries."
+msgstr "Nuk ka zëra."
+
+msgid "Entry"
+msgstr "Zëri"
+
+msgid "Store plugin data {name}"
+msgstr "Ruaj të dhënat e plugin-it {name}"
+
+msgid "Unknown"
+msgstr "E panjohur"
+
+msgid "Editing"
+msgstr "Në redaktim"
+
+msgid "Finished design"
+msgstr "Projektimi i përfunduar"
+
+msgid "Finished commissioning"
+msgstr "Vënia në punë e përfunduar"
+
+msgid "Tested"
+msgstr "E testuar"
+
+msgid "Accepted"
+msgstr "E pranuar"
+
+msgid "Locked"
+msgstr "E kyçur"
+
+msgid "Function"
+msgstr "Funksioni"
+
+msgid "Use"
+msgstr "Përdorimi"
+
+msgid "Set room use"
+msgstr "Cakto përdorimin e dhomës"
+
+msgid "Set status to {status}"
+msgstr "Cakto gjendjen në {status}"
+
+msgid "Set function description"
+msgstr "Vendos përshkrimin e funksionit"
+
+msgid "Current Line"
+msgstr "Linja aktuale"
+
+msgid "{line} (inherits from {space})"
+msgstr "{line} (trashëguar nga {space})"
+
+msgid "Set current line"
+msgstr "Cakto linjën aktuale"
+
+msgid "Segment"
+msgstr "Segmenti"
+
+msgid "Medium"
+msgstr "Mediumi"
+
+msgid "Domain Address"
+msgstr "Adresa e domenit"
+
+msgid "The medium of a segment can only change while it holds no device."
+msgstr "Mediumi i një segmenti mund të ndryshojë vetëm kur ai nuk ka asnjë pajisje."
+
+msgid "The medium type of the segment '{segment}' cannot be changed to IoT, because its parent line '{line}' is not of medium type IP."
+msgstr "Lloji i mediumit të segmentit '{segment}' nuk mund të ndryshohet në IoT, sepse linja e tij prind '{line}' nuk është e llojit të mediumit IP."
+
+msgid "The maximum number of segments has been reached."
+msgstr "U arrit numri maksimal i segmenteve."
+
+msgid "The main segment cannot be deleted."
+msgstr "Segmenti kryesor nuk mund të fshihet."
+
+msgid "Device '{device}' is incompatible with line's medium type."
+msgstr "Pajisja '{device}' nuk është e përputhshme me llojin e mediumit të linjës."
+
+msgid "Device '{device}' is incompatible with segment's medium type."
+msgstr "Pajisja '{device}' nuk është e përputhshme me llojin e mediumit të segmentit."
+
+msgid "Rename segment to {name}"
+msgstr "Riemërto segmentin në {name}"
+
+msgid "Set medium to {medium}"
+msgstr "Cakto mediumin në {medium}"
+
+msgid "Forced on"
+msgstr "Ndezur me detyrim"
+
+msgid "Forced off"
+msgstr "Fikur me detyrim"
+
+msgid "Overridden by '{name}': {mode}"
+msgstr "Mbishkruar nga '{name}': {mode}"
+
+msgid "Central"
+msgstr "Qendrore"
+
+msgid "Not every device linked to a group address of this group is commissioned securely, so it cannot be secured."
+msgstr "Jo të gjitha pajisjet e lidhura me një adresë grupi të këtij grupi vihen në punë në mënyrë të sigurt, prandaj ai nuk mund të sigurohet."
+
+msgid "Set group security"
+msgstr "Cakto sigurinë e grupit"
+
+msgid "Mark group address as central"
+msgstr "Shëno adresën e grupit si qendrore"
+
+msgid "Remove central mark from group address"
+msgstr "Hiq shënimin qendror nga adresa e grupit"
+
+msgid "Topology"
+msgstr "Topologjia"
+
+msgid "{medium} backbone line"
+msgstr "Linjë backbone {medium}"
+
+msgid "{medium} main line"
+msgstr "Linjë kryesore {medium}"
+
+msgid "Backbone"
+msgstr "Backbone"
+
+msgid "Network Latency"
+msgstr "Vonesa e rrjetit"
+
+msgid "LAN (< 400ms)"
+msgstr "LAN (< 400ms)"
+
+msgid "WLAN (< 1s)"
+msgstr "WLAN (< 1s)"
+
+msgid "WAN (< 2s)"
+msgstr "WAN (< 2s)"
+
+msgid "Mobile (< 4s)"
+msgstr "Celular (< 4s)"
+
+msgid "Satellite (< 8s)"
+msgstr "Satelit (< 8s)"
+
+msgid "The network latency must be a number of milliseconds from 1 to 65535."
+msgstr "Vonesa e rrjetit duhet të jetë një numër milisekondash nga 1 deri në 65535."
+
+msgid "Multicast Address"
+msgstr "Adresa multicast"
+
+msgid "Enter a multicast address from 224.0.0.0 to 239.255.255.255."
+msgstr "Vendosni një adresë multicast nga 224.0.0.0 deri në 239.255.255.255."
+
+msgid "Bus Connection"
+msgstr "Lidhja me busin"
+
+msgid "Set IP routing of the backbone"
+msgstr "Cakto routing-un IP të backbone-it"
+
+msgid "As long as a coupler exists at a sub line or sub segment, a change of the medium type is not possible."
+msgstr "Për sa kohë ekziston një çiftues në një nënlinjë ose nënsegment, lloji i mediumit nuk mund të ndryshohet."
+
+msgid "A main line of a project cannot have medium type RF."
+msgstr "Një linjë kryesore e projektit nuk mund të ketë llojin e mediumit RF."
+
+msgid "The operation could not be executed, because as medium type of the backbone only IP and TP are allowed."
+msgstr "Veprimi nuk u krye dot, sepse si lloj mediumi i backbone-it lejohen vetëm IP dhe TP."
+
+msgid "A sub-segment of KNX medium type IP or PL is not allowed."
+msgstr "Një nënsegment me llojin e mediumit KNX IP ose PL nuk lejohet."
+
+msgid "The medium type of the main line '{line}' can no longer be changed to PL, because it already contains lines or segments that are not allowed in PL main lines."
+msgstr "Lloji i mediumit të linjës kryesore '{line}' nuk mund të ndryshohet më në PL, sepse ajo përmban tashmë linja ose segmente që nuk lejohen në linjat kryesore PL."
+
+msgid "The medium type of the main line '{line}' cannot be changed to IoT, because the backbone line '{backbone}' is not of medium type IP."
+msgstr "Lloji i mediumit të linjës kryesore '{line}' nuk mund të ndryshohet në IoT, sepse linja backbone '{backbone}' nuk është e llojit të mediumit IP."
+
+msgid "The medium type of the main line '{line}' can no longer be changed to IoT, because it already contains lines or segments that are not allowed in IoT main lines."
+msgstr "Lloji i mediumit të linjës kryesore '{line}' nuk mund të ndryshohet më në IoT, sepse ajo përmban tashmë linja ose segmente që nuk lejohen në linjat kryesore IoT."
+
+msgid "The medium type of the line '{line}' cannot be changed, because it already contains lines or segments that require an IoT or IP main line."
+msgstr "Lloji i mediumit të linjës '{line}' nuk mund të ndryshohet, sepse ajo përmban tashmë linja ose segmente që kërkojnë një linjë kryesore IoT ose IP."
+
+msgid "A sub-segment is not allowed below a main segment of KNX medium type RF."
+msgstr "Nën një segment kryesor me llojin e mediumit KNX RF nuk lejohet asnjë nënsegment."
+
+msgid "A sub-segment is not allowed below a main segment of KNX medium type PL."
+msgstr "Nën një segment kryesor me llojin e mediumit KNX PL nuk lejohet asnjë nënsegment."
+
+msgid "A sub-segment of KNX medium type IoT is not allowed below a main segment of the same type."
+msgstr "Një nënsegment me llojin e mediumit KNX IoT nuk lejohet nën një segment kryesor të të njëjtit lloj."
+
+msgid "The operation could not be executed, because a RF main line '{line}' requires all other lines in the area to be RF lines as well."
+msgstr "Veprimi nuk u krye dot, sepse linja kryesore RF '{line}' kërkon që edhe të gjitha linjat e tjera të zonës të jenë linja RF."
+
+msgid "The operation could not be executed, because a PL main line '{line}' requires all other lines in the area to be PL lines as well."
+msgstr "Veprimi nuk u krye dot, sepse linja kryesore PL '{line}' kërkon që edhe të gjitha linjat e tjera të zonës të jenë linja PL."
+
+msgid "The operation could not be executed, because a IoT main line '{line}' requires all other lines in the area to be IoT lines as well."
+msgstr "Veprimi nuk u krye dot, sepse linja kryesore IoT '{line}' kërkon që edhe të gjitha linjat e tjera të zonës të jenë linja IoT."
+
+msgid "The medium type of the line '{line}' cannot be changed to IoT, because its main line '{main}' is not of medium type IP."
+msgstr "Lloji i mediumit të linjës '{line}' nuk mund të ndryshohet në IoT, sepse linja e saj kryesore '{main}' nuk është e llojit të mediumit IP."
+
+msgid "The medium type of the line '{line}' can no longer be changed to IoT, because it already contains segments that are not allowed in IoT lines."
+msgstr "Lloji i mediumit të linjës '{line}' nuk mund të ndryshohet më në IoT, sepse ajo përmban tashmë segmente që nuk lejohen në linjat IoT."
+
+msgid "The operation could not be executed, because the line is the IP backbone line and the project contains KNXnet/IP routers. KNXnet/IP routers require an IP backbone line."
+msgstr "Veprimi nuk u krye dot, sepse linja është linja backbone IP dhe projekti përmban routerë KNXnet/IP. Routerët KNXnet/IP kërkojnë një linjë backbone IP."
+
+msgid "The operation could not be executed, because the line is the IP main line and the project contains KNXnet/IP routers. KNXnet/IP routers require an IP main line."
+msgstr "Veprimi nuk u krye dot, sepse linja është linja kryesore IP dhe projekti përmban routerë KNXnet/IP. Routerët KNXnet/IP kërkojnë një linjë kryesore IP."
+
+msgid "The operation could not be executed, because the line is the IP backbone line and the project contains IoT or IP lines."
+msgstr "Veprimi nuk u krye dot, sepse linja është linja backbone IP dhe projekti përmban linja IoT ose IP."
+
+msgid "The operation could not be executed, because the medium type of the line can only be set to IP if an IP main line exists."
+msgstr "Veprimi nuk u krye dot, sepse lloji i mediumit të linjës mund të caktohet IP vetëm nëse ekziston një linjë kryesore IP."
+
+msgid "The operation could not be executed, because the medium type of the line can only be set to IP if an IP backbone line exists."
+msgstr "Veprimi nuk u krye dot, sepse lloji i mediumit të linjës mund të caktohet IP vetëm nëse ekziston një linjë backbone IP."
+
+msgid "The operation could not be executed, because below a TP main segment only segments of KNX medium type TP, RF or PL can exist."
+msgstr "Veprimi nuk u krye dot, sepse nën një segment kryesor TP mund të ekzistojnë vetëm segmente me llojin e mediumit KNX TP, RF ose PL."
+
+msgid "Below a main segment of KNX medium type IP only segments of medium type TP or RF can exist."
+msgstr "Nën një segment kryesor me llojin e mediumit KNX IP mund të ekzistojnë vetëm segmente me llojin e mediumit TP ose RF."
+
+msgid "A sub-segment of KNX medium type PL is not allowed below a main segment."
+msgstr "Një nënsegment me llojin e mediumit KNX PL nuk lejohet nën një segment kryesor."
+
+msgid "Set bus connection of the backbone"
+msgstr "Cakto lidhjen me busin të backbone-it"
+
+msgid "Set domain address"
+msgstr "Cakto adresën e domenit"
+
+msgid "Generate New"
+msgstr "Gjenero të re"
+
+msgid "The given domain address is invalid."
+msgstr "Adresa e dhënë e domenit është e pavlefshme."
+
+msgid "Domain address is not valid! Valid values are 1 to 255."
+msgstr "Adresa e domenit nuk është e vlefshme! Vlerat e vlefshme janë nga 1 deri në 255."
+
+msgid "DomainAddress of mediumType 'RF' is lower than the minimum value of 0001:00000000."
+msgstr "Adresa e domenit për llojin e mediumit 'RF' është më e vogël se vlera minimale 0001:00000000."
+
+msgid "DomainAddress of medium type '{medium}' exceeds the maximum valid value of {maximum}"
+msgstr "Adresa e domenit për llojin e mediumit '{medium}' e kalon vlerën maksimale të vlefshme {maximum}"
+
+msgid "DomainAddress of RF sublines must be equal to DomainAdress of main line."
+msgstr "Adresa e domenit e nënlinjave RF duhet të jetë e njëjtë me adresën e domenit të linjës kryesore."
+
+msgid "Domain Address of IoT sublines must be equal to Domain Address of main line."
+msgstr "Adresa e domenit e nënlinjave IoT duhet të jetë e njëjtë me adresën e domenit të linjës kryesore."
+
+msgid "Each line in a project must have a unique domain address."
+msgstr "Çdo linjë në një projekt duhet të ketë një adresë domeni unike."
+
+msgid "Last Downloaded"
+msgstr "Programimi i fundit"
+
+msgid "Create trade {name}"
+msgstr "Krijo sektorin {name}"
+
+msgid "Rename trade to {name}"
+msgstr "Riemërto sektorin në {name}"
+
+msgid "Set trade number"
+msgstr "Cakto numrin e sektorit"
+
+msgid "Set trade description"
+msgstr "Vendos përshkrimin e sektorit"
+
+msgid "Move trade"
+msgstr "Zhvendos sektorin"
+
+msgid "Remove trade"
+msgstr "Hiq sektorin"
+
+msgid "Add device to trade"
+msgstr "Shto pajisjen në sektor"
+
+msgid "Remove device from trade"
+msgstr "Hiq pajisjen nga sektori"
+
+msgid "Trades"
+msgstr "Sektorët"
+
+msgid "Building Parts…"
+msgstr "Pjesë të ndërtesës…"
+
+msgid "Floors…"
+msgstr "Kate…"
+
+msgid "Stairways…"
+msgstr "Shkallë…"
+
+msgid "Rooms…"
+msgstr "Dhoma…"
+
+msgid "Corridors…"
+msgstr "Korridore…"
+
+msgid "Cabinets…"
+msgstr "Kuadro…"
+
+msgid "Devices…"
+msgstr "Pajisje…"
+
+msgid "Functions…"
+msgstr "Funksione…"
+
+msgid "Trades…"
+msgstr "Sektorë…"
+
+msgid "Add Buildings…"
+msgstr "Shto ndërtesa…"
+
+msgid "Add Trades…"
+msgstr "Shto sektorë…"
+
+msgid "Add Buildings"
+msgstr "Shto ndërtesa"
+
+msgid "Add Building Parts"
+msgstr "Shto pjesë të ndërtesës"
+
+msgid "Add Floors"
+msgstr "Shto kate"
+
+msgid "Add Rooms"
+msgstr "Shto dhoma"
+
+msgid "Add Corridors"
+msgstr "Shto korridore"
+
+msgid "Add Stairways"
+msgstr "Shto shkallë"
+
+msgid "Add Cabinets"
+msgstr "Shto kuadro"
+
+msgid "Add Trades"
+msgstr "Shto sektorë"
+
+msgid "Add Devices"
+msgstr "Shto pajisje"
+
+msgid "Count"
+msgstr "Numri"
+
+msgid "to \"{name}\""
+msgstr "në \"{name}\""
+
+msgid "Cabinet"
+msgstr "Kuadër"
+
+msgid "New building"
+msgstr "Ndërtesë e re"
+
+msgid "New building part"
+msgstr "Pjesë e re ndërtese"
+
+msgid "New floor"
+msgstr "Kat i ri"
+
+msgid "New room"
+msgstr "Dhomë e re"
+
+msgid "New corridor"
+msgstr "Korridor i ri"
+
+msgid "New stairway"
+msgstr "Shkallë e re"
+
+msgid "New cabinet"
+msgstr "Kuadër i ri"
+
+msgid "New trade"
+msgstr "Sektor i ri"
+
+msgid "A building part of this type cannot be added here."
+msgstr "Një pjesë ndërtese e këtij lloji nuk mund të shtohet këtu."
+
+msgid "A building part of this type cannot be added here.\nCabinets can be added inside of rooms, corridors, or stairways only. If applicable the corridors have to be moved into the corresponding building parts."
+msgstr "Një pjesë ndërtese e këtij lloji nuk mund të shtohet këtu.\nKuadrot mund të shtohen vetëm brenda dhomave, korridoreve ose shkallëve. Nëse duhet, korridoret duhet të zhvendosen në pjesët përkatëse të ndërtesës."
+
+msgid "The target is a child building part."
+msgstr "Destinacioni është një nënpjesë e kësaj pjese ndërtese."
+
+msgid "Devices can only be added to stairways, rooms, corridors and cabinets."
+msgstr "Pajisjet mund të shtohen vetëm në shkallë, dhoma, korridore dhe kuadro."
+
+msgid "Trade"
+msgstr "Sektori"
+
+msgid "(estimated)"
+msgstr "(përafërsisht)"
+
+msgid "Number of Devices"
+msgstr "Numri i pajisjeve"
+
+msgid "Unlink"
+msgstr "Shkëput"
+
+msgid "An IP router requires an IP backbone line."
+msgstr "Një router IP kërkon një linjë backbone IP."
+
+msgid "The operation could not be executed, because a coupler needs a main line."
+msgstr "Veprimi nuk u krye dot, sepse një çiftues linje ka nevojë për një linjë kryesore."
+
+msgid "The operation could not be executed, because an area coupler requires a backbone line."
+msgstr "Veprimi nuk u krye dot, sepse një çiftues zone kërkon një linjë backbone."
+
+msgid "The operation could not be executed, because this coupler needs a main line with the medium type '{medium}' ."
+msgstr "Veprimi nuk u krye dot, sepse ky çiftues ka nevojë për një linjë kryesore me llojin e mediumit '{medium}'."
+
+msgid "The operation could not be executed, because only one IP router is allowed as a world coupler."
+msgstr "Veprimi nuk u krye dot, sepse si çiftues global lejohet vetëm një router IP."
+
+msgid "The operation could not be executed, because only IP router area allowed as a world coupler."
+msgstr "Veprimi nuk u krye dot, sepse si çiftues global lejohen vetëm routerë IP."
+
+msgid "The backbone line contains a world coupler. It is not possible to use an IP router below another IP router."
+msgstr "Linja backbone përmban një çiftues global. Nuk mund të përdoret një router IP nën një router tjetër IP."
+
+msgid "It is not possible to use a world coupler, when there are already IP routers in the project."
+msgstr "Nuk mund të përdoret një çiftues global kur projekti ka tashmë routerë IP."
+
+msgid "A world coupler can only be used, when the medium type of the backbone is TP."
+msgstr "Një çiftues global mund të përdoret vetëm kur lloji i mediumit të backbone-it është TP."
+
+msgid "The coupler does not support segment coupling, so the sub-segment must be of the same KNX medium type as the main segment."
+msgstr "Çiftuesi nuk e mbështet çiftimin e segmenteve, prandaj nënsegmenti duhet të ketë të njëjtin lloj mediumi KNX si segmenti kryesor."
+
+msgid "The operation could not be executed, because this device couples medium '{above}' (above) to medium '{below}' (below), but the segment above is '{segment}'."
+msgstr "Veprimi nuk u krye dot, sepse kjo pajisje çifton mediumin '{above}' (sipër) me mediumin '{below}' (poshtë), por segmenti sipër është '{segment}'."
+
+msgid "The operation could not be executed, because medium type of coupler device matches only sub segment, but maximum amount of segments reached."
+msgstr "Veprimi nuk u krye dot, sepse lloji i mediumit të çiftuesit përputhet vetëm me një nënsegment, por është arritur numri maksimal i segmenteve."
+
+msgid "The operation could not be executed, because this device couples medium '{above}' (above) to medium '{below}' (below), but the medium type of the lower segment is '{segment}'."
+msgstr "Veprimi nuk u krye dot, sepse kjo pajisje çifton mediumin '{above}' (sipër) me mediumin '{below}' (poshtë), por lloji i mediumit të segmentit poshtë është '{segment}'."
+
+msgid "Recover Project from Bus"
+msgstr "Rikupero projektin nga busi"
+
+msgid "Devices in Programming Mode"
+msgstr "Pajisje në modalitetin e programimit"
+
+msgid "Connecting"
+msgstr "Po lidhet"
+
+msgid "Move middle group"
+msgstr "Zhvendos grupin e mesëm"
+
+msgid "The group has no free group address."
+msgstr "Grupi nuk ka asnjë adresë grupi të lirë."
+
+msgid "The main group has no free middle group."
+msgstr "Grupi kryesor nuk ka asnjë grup të mesëm të lirë."
+
+msgid "{count} devices"
+msgstr "{count} pajisje"
+
+msgid "The main segment cannot be moved."
+msgstr "Segmenti kryesor nuk mund të zhvendoset."
+
+msgid "The maximum number of lines has been reached."
+msgstr "U arrit numri maksimal i linjave."
+
+msgid "The line is already assigned to an area."
+msgstr "Linja është caktuar tashmë në një zonë."
+
+msgid "The main line cannot be moved."
+msgstr "Linja kryesore nuk mund të zhvendoset."
+
+msgid "Move line"
+msgstr "Zhvendos linjën"
+
+msgid "Move segment"
+msgstr "Zhvendos segmentin"
+
+msgid "Move function"
+msgstr "Zhvendos funksionin"
+
+msgid "Paste Special"
+msgstr "Ngjitje e veçantë"
+
+msgid "Number of Items"
+msgstr "Numri i elementeve"
+
+msgid "Don't copy"
+msgstr "Mos kopjo"
+
+msgid "Keep"
+msgstr "Mbaj"
+
+msgid "Create new group address in middle group"
+msgstr "Krijo adresë të re grupi në grupin e mesëm"
+
+msgid "Create new group address in main group"
+msgstr "Krijo adresë të re grupi në grupin kryesor"
+
+msgid "Create new group address in group range"
+msgstr "Krijo adresë të re grupi në diapazonin e grupeve"
+
+msgid "Generate Address"
+msgstr "Gjenero adresën"
+
+msgid "Fill up (use first free)"
+msgstr "Mbush (përdor të parën e lirë)"
+
+msgid "Append"
+msgstr "Shto në fund"
+
+msgid "Start with"
+msgstr "Fillo me"
+
+msgid "Enter a middle group, e.g. 1/2."
+msgstr "Vendosni një grup të mesëm, p.sh. 1/2."
+
+msgid "Enter a main group, e.g. 1."
+msgstr "Vendosni një grup kryesor, p.sh. 1."
+
+msgid "The group has too few free group addresses for the copies."
+msgstr "Grupi ka shumë pak adresa grupi të lira për kopjet."
+
+msgid "The maximum number of group ranges has been reached."
+msgstr "U arrit numri maksimal i diapazoneve të grupeve."
+
+msgid "There is no group for the new group addresses."
+msgstr "Nuk ka asnjë grup për adresat e reja të grupit."
+
+msgid "Copied '{name}' to '{target}'."
+msgstr "'{name}' u kopjua në '{target}'."
+
+msgid "Copied {count} devices to '{target}'."
+msgstr "U kopjuan {count} pajisje në '{target}'."
+
+msgid "Copied {count} building parts to '{target}'."
+msgstr "U kopjuan {count} pjesë ndërtese në '{target}'."
+
+msgid "Copied {count} trades to '{target}'."
+msgstr "U kopjuan {count} sektorë në '{target}'."
+
+msgid "Copied {count} functions to '{target}'."
+msgstr "U kopjuan {count} funksione në '{target}'."
+
+msgid "Copied {count} group addresses to '{target}'."
+msgstr "U kopjuan {count} adresa grupi në '{target}'."
+
+msgid "Copied {count} middle groups to '{target}'."
+msgstr "U kopjuan {count} grupe të mesme në '{target}'."
+
+msgid "Copied {count} main groups to '{target}'."
+msgstr "U kopjuan {count} grupe kryesore në '{target}'."
+
+msgid "Copied {count} lines to '{target}'."
+msgstr "U kopjuan {count} linja në '{target}'."
+
+msgid "Copied {count} segments to '{target}'."
+msgstr "U kopjuan {count} segmente në '{target}'."
+
+msgid "Paste Special…"
+msgstr "Ngjitje e veçantë…"
+
+msgid "Add Row"
+msgstr "Shto rresht"
+
+msgid "Remove this row"
+msgstr "Hiq këtë rresht"
+
+msgid "Generate Addresses"
+msgstr "Gjenero adresat"
+
+msgid "Unlink device"
+msgstr "Shkëput pajisjen"
+
+msgid "The device is on no line: put it on a line first."
+msgstr "Pajisja nuk është në asnjë linjë: vendoseni fillimisht në një linjë."
+
+msgid "Areas…"
+msgstr "Zona…"
+
+msgid "Lines…"
+msgstr "Linja…"
+
+msgid "Segments…"
+msgstr "Segmente…"
+
+msgid "Add Areas"
+msgstr "Shto zona"
+
+msgid "Add Lines"
+msgstr "Shto linja"
+
+msgid "Add Segments"
+msgstr "Shto segmente"
+
+msgid "The limit to add was reached."
+msgstr "U arrit kufiri i shtimit."
+
+msgid "Cannot add any line to the area {area} because of topology constraints. Please check the medium type of the backbone and main lines."
+msgstr "Nuk mund të shtohet asnjë linjë në zonën {area} për shkak të kufizimeve të topologjisë. Kontrolloni llojin e mediumit të linjës backbone dhe të linjave kryesore."
+
+msgid "Added {count} areas to '{target}'."
+msgstr "U shtuan {count} zona në '{target}'."
+
+msgid "Added {count} lines to '{target}'."
+msgstr "U shtuan {count} linja në '{target}'."
+
+msgid "Added {count} segments to '{target}'."
+msgstr "U shtuan {count} segmente në '{target}'."
+
+msgid "Added {count} building parts to '{target}'."
+msgstr "U shtuan {count} pjesë ndërtese në '{target}'."
+
+msgid "Added {count} trades to '{target}'."
+msgstr "U shtuan {count} sektorë në '{target}'."
+
+msgid "Added {count} main groups to '{target}'."
+msgstr "U shtuan {count} grupe kryesore në '{target}'."
+
+msgid "Added {count} middle groups to '{target}'."
+msgstr "U shtuan {count} grupe të mesme në '{target}'."
+
+msgid "Added {count} group addresses to '{target}'."
+msgstr "U shtuan {count} adresa grupi në '{target}'."
+
+msgid "Add Main Groups…"
+msgstr "Shto grupe kryesore…"
+
+msgid "Add Middle Groups…"
+msgstr "Shto grupe të mesme…"
+
+msgid "Add Main Groups"
+msgstr "Shto grupe kryesore"
+
+msgid "Add Middle Groups"
+msgstr "Shto grupe të mesme"
+
+msgid "New main group"
+msgstr "Grup kryesor i ri"
+
+msgid "New middle group"
+msgstr "Grup i mesëm i ri"
+
+msgid "New group address"
+msgstr "Adresë grupi e re"
+
+msgid "Cut"
+msgstr "Prit"
+
+msgid "What was cut cannot be moved there."
+msgstr "Ajo që u pre nuk mund të zhvendoset atje."
+
+msgid "Park"
+msgstr "Parko"
+
+msgid "Park device"
+msgstr "Parko pajisjen"
+
+msgid "Add Functions"
+msgstr "Shto funksione"
+
+msgid "New function"
+msgstr "Funksion i ri"
+
+msgid "Added {count} functions to '{target}'."
+msgstr "U shtuan {count} funksione në '{target}'."
+
+msgid "Added {count} group ranges to '{target}'."
+msgstr "U shtuan {count} diapazone grupesh në '{target}'."
+
+msgid "Add Group Ranges…"
+msgstr "Shto diapazone grupesh…"
+
+msgid "Add Group Ranges"
+msgstr "Shto diapazone grupesh"
+
+msgid "New group range"
+msgstr "Diapazon i ri grupesh"
+
+msgid "Capacity"
+msgstr "Kapaciteti"
+
+msgid "Link with…"
+msgstr "Lidh me…"
+
+msgid "Link with Group Address"
+msgstr "Lidh me adresë grupi"
+
+msgid "There is no group to add group addresses to."
+msgstr "Nuk ka asnjë grup ku të shtohen adresa grupi."
+
+msgid "Add Subtrade"
+msgstr "Shto nënsektor"
+
+msgid "The group range does not fit there."
+msgstr "Diapazoni i grupeve nuk përshtatet atje."
+
+msgid "A group range cannot go into itself or a range in it."
+msgstr "Një diapazon grupesh nuk mund të futet në vetvete ose në një diapazon brenda tij."
+
+msgid "A group address of the range is already in use there."
+msgstr "Një adresë grupi e diapazonit përdoret tashmë atje."
+
+msgid "Copied {count} group ranges to '{target}'."
+msgstr "U kopjuan {count} diapazone grupesh në '{target}'."
+
+msgid "Add Areas…"
+msgstr "Shto zona…"
+
+msgid "{medium} segment"
+msgstr "Segment {medium}"
+
+msgid "Copy Individual Address"
+msgstr "Kopjo adresën individuale"
+
+msgid "Copy Group Address"
+msgstr "Kopjo adresën e grupit"
+
+msgid "Existing Devices…"
+msgstr "Pajisje ekzistuese…"
+
+msgid "Delete the {count} selected devices? Their group objects and group-address links are removed and their individual addresses are freed. This can be undone."
+msgstr "Të fshihen {count} pajisjet e zgjedhura? Objektet e tyre të grupit dhe lidhjet me adresat e grupit hiqen, dhe adresat e tyre individuale lirohen. Ky veprim mund të zhbëhet."
+
+msgid "Remove {count} devices"
+msgstr "Hiq {count} pajisje"
+
+msgid "Delete Devices"
+msgstr "Fshi pajisjet"
+
+msgid "{medium} line"
+msgstr "Linjë {medium}"
+
+msgid "From Backups…"
+msgstr "Nga kopjet rezervë…"
+
+msgid "Compare with a backup of this project"
+msgstr "Krahaso me një kopje rezervë të këtij projekti"
+
+msgid "In the browser, choose Knx.Ets.Common.dll together with log4net.dll from the same folder."
+msgstr "Në shfletues, zgjidhni Knx.Ets.Common.dll bashkë me log4net.dll nga e njëjta dosje."
+
+msgid "Knx.Ets.Common.dll needs log4net.dll from its folder: choose both files together."
+msgstr "Knx.Ets.Common.dll ka nevojë për log4net.dll nga dosja e vet: zgjidhni të dy skedarët bashkë."
+
+msgid "Codepage"
+msgstr "Faqja e kodit"
+
+msgid "Choose in which language the project texts are entered"
+msgstr "Zgjidhni në cilën gjuhë futen tekstet e projektit"
+
+msgid "System language"
+msgstr "Gjuha e sistemit"
+
+msgid "Western European (ISO 8859-1)"
+msgstr "Evropiane perëndimore (ISO 8859-1)"
+
+msgid "Central European (ISO 8859-2)"
+msgstr "Evropiane qendrore (ISO 8859-2)"
+
+msgid "South European (ISO 8859-3)"
+msgstr "Evropiane jugore (ISO 8859-3)"
+
+msgid "North European (ISO 8859-4)"
+msgstr "Evropiane veriore (ISO 8859-4)"
+
+msgid "Cyrillic (ISO 8859-5)"
+msgstr "Cirilike (ISO 8859-5)"
+
+msgid "Arabic (ISO 8859-6)"
+msgstr "Arabe (ISO 8859-6)"
+
+msgid "Greek (ISO 8859-7)"
+msgstr "Greke (ISO 8859-7)"
+
+msgid "Hebrew (ISO 8859-8)"
+msgstr "Hebraike (ISO 8859-8)"
+
+msgid "Turkish (ISO 8859-9)"
+msgstr "Turke (ISO 8859-9)"
+
+msgid "Nordic (ISO 8859-10)"
+msgstr "Nordike (ISO 8859-10)"
+
+msgid "Baltic Rim (ISO 8859-13)"
+msgstr "Baltike (ISO 8859-13)"
+
+msgid "Western European (ISO 8859-15)"
+msgstr "Evropiane perëndimore (ISO 8859-15)"
+
+msgid "Set codepage to {code_page}"
+msgstr "Cakto faqen e kodit në {code_page}"
+
+msgid "Encrypted"
+msgstr "I enkriptuar"

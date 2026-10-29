@@ -1,0 +1,131 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor topology 1.0\n"
+"Language: sq\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Bus Diagram"
+msgstr "Diagrami i busit"
+
+msgid "No project open"
+msgstr "Asnjë projekt i hapur"
+
+msgid "Unassigned"
+msgstr "Pa caktuar"
+
+msgid "Drag to move, {key}+scroll to zoom. Click a device to open it."
+msgstr "Tërhiqni për të lëvizur, {key}+rrotullim për zmadhim. Klikoni një pajisje për ta hapur."
+
+msgid "Physical"
+msgstr "Fizike"
+
+msgid "Building"
+msgstr "Ndërtesa"
+
+msgid "Links"
+msgstr "Lidhjet"
+
+msgid "Which devices talk to which over their group addresses: sending devices on the left, receiving devices on the right."
+msgstr "Cilat pajisje komunikojnë me cilat përmes adresave të grupit: pajisjet dërguese majtas, pajisjet marrëse djathtas."
+
+msgid "Click to follow a device, channel or group address, double-click to open a device, click the arrow of a device to list its group objects. Drag to move, {key}+scroll to zoom."
+msgstr "Klikoni për të ndjekur një pajisje, kanal ose adresë grupi, klikoni dy herë për të hapur një pajisje, klikoni shigjetën e një pajisjeje për të listuar objektet e saj të grupit. Tërhiqni për të lëvizur, {key}+rrotullim për zmadhim."
+
+msgid "Tap to follow a device, channel or group address, double-tap to open a device, tap the arrow of a device to list its group objects. Zoom with two fingers."
+msgstr "Prekni për të ndjekur një pajisje, kanal ose adresë grupi, prekni dy herë për të hapur një pajisje, prekni shigjetën e një pajisjeje për të listuar objektet e saj të grupit. Zmadhoni me dy gishta."
+
+msgid "Channels"
+msgstr "Kanalet"
+
+msgid "Channel: {channel} ({device})"
+msgstr "Kanali: {channel} ({device})"
+
+msgid "List the group objects"
+msgstr "Listo objektet e grupit"
+
+msgid "Hide the group objects"
+msgstr "Fshih objektet e grupit"
+
+msgid "Group object {number}: {name}"
+msgstr "Objekti i grupit {number}: {name}"
+
+msgid "Channel: {channel}"
+msgstr "Kanali: {channel}"
+
+msgid "No linked devices to show."
+msgstr "Nuk ka pajisje të lidhura për të shfaqur."
+
+msgid "Show"
+msgstr "Shfaq"
+
+msgid "Whole Project"
+msgstr "I gjithë projekti"
+
+msgid "Rooms"
+msgstr "Dhomat"
+
+msgid "Main Groups"
+msgstr "Grupet kryesore"
+
+msgid "Device: {device}"
+msgstr "Pajisja: {device}"
+
+msgid "Group Address: {address}"
+msgstr "Adresa e grupit: {address}"
+
+msgid "Back"
+msgstr "Prapa"
+
+msgid "Fit"
+msgstr "Përshtat"
+
+msgid "Sending"
+msgstr "Dërguese"
+
+msgid "Group Addresses"
+msgstr "Adresat e grupit"
+
+msgid "Receiving"
+msgstr "Marrëse"
+
+msgid "Areas"
+msgstr "Zonat"
+
+msgid "Lines"
+msgstr "Linjat"
+
+msgid "Devices"
+msgstr "Pajisjet"
+
+msgid "Buildings"
+msgstr "Ndërtesat"
+
+msgid "+ {count} more"
+msgstr "+ {count} të tjera"
+
+msgid "{count} more devices outside the selection. Click to show them."
+msgstr "{count} pajisje të tjera jashtë përzgjedhjes. Klikoni për t'i shfaqur."
+
+msgid "{address}\n{senders} sending, {receivers} receiving"
+msgstr "{address}\n{senders} dërguese, {receivers} marrëse"
+
+msgid "Area {area}"
+msgstr "Zona {area}"
+
+msgid "L {line}"
+msgstr "L {line}"
+
+msgid "Zoom with two fingers. Tap a device to open it."
+msgstr "Zmadhoni me dy gishta. Prekni një pajisje për ta hapur."
+
+msgid "(unnamed)"
+msgstr "(pa emër)"
+
+msgid "Address: {address}"
+msgstr "Adresa: {address}"
+
+msgid "Application: {application}"
+msgstr "Aplikacioni: {application}"

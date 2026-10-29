@@ -159,7 +159,8 @@ def test_the_language_menu_is_alphabetical_as_it_reads() -> None:
     try:
         set_locale("de")
         labels = [label for _code, label in _language_items()]
-        assert labels[:4] == [
+        assert labels[:5] == [
+            "Albanisch (shqip)",
             "Chinesisch, vereinfacht (中文(中国))",
             "Dänisch (dansk)",
             "Deutsch",
