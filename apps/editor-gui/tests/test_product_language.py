@@ -42,10 +42,22 @@ def test_an_unknown_product_language_follows_the_ui_language() -> None:
     assert product_language() == "de-DE"
 
 
-def test_the_ui_languages_and_five_more_are_product_languages() -> None:
+def test_the_product_languages_are_those_of_the_knx_master_data() -> None:
     cultures = [lang.culture for lang in PRODUCT_LANGUAGES]
-    assert len(cultures) == len(set(cultures)) == 25
+    assert len(cultures) == len(set(cultures)) == 24
     assert {"hu-HU", "ro-RO", "sk-SK", "sl-SI", "is-IS"} <= set(cultures)
+    # Albanian is a UI language, but no product has texts in it.
+    assert "sq-AL" not in cultures
+
+
+def test_a_ui_language_without_a_knx_language_shows_products_in_english() -> None:
+    set_locale("sq")
+    set_product_language(None)
+    assert product_language() == "en-US"
+    assert product_text_languages() == "en-US"
+    # A chosen product language comes first, then English.
+    set_product_language("sk-SK")
+    assert product_text_languages() == "sk-SK,en-US"
 
 
 def test_the_product_language_menu_reads_alphabetically() -> None:
@@ -53,9 +65,9 @@ def test_the_product_language_menu_reads_alphabetically() -> None:
 
     set_locale("de")
     labels = [label for _code, label in _product_language_items()]
-    assert len(labels) == 25
-    assert labels[:4] == [
-        "Albanisch (shqip)",
+    assert len(labels) == 24
+    assert "Albanisch (shqip)" not in labels
+    assert labels[:3] == [
         "Chinesisch, vereinfacht (中文(中国))",
         "Dänisch (dansk)",
         "Deutsch",
@@ -74,4 +86,10 @@ def test_downloads_ask_for_the_preferred_product_language_first() -> None:
     set_product_language("sk-SK")
     languages = service.online_languages
     assert languages[:2] == ["sk-SK", "cs-CZ"]
+    assert len(languages) == len(set(languages))
+    set_locale("sq")
+    set_product_language(None)
+    languages = service.online_languages
+    assert languages[0] == "en-US"
+    assert "sq-AL" not in languages
     assert len(languages) == len(set(languages))

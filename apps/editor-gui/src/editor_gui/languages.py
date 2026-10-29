@@ -11,7 +11,9 @@ from editor_gui.strings import S, get_locale
 @dataclass(frozen=True)
 class Language:
     code: str  # the catalog folder under locales/, e.g. "de"; "en" is the untranslated source
-    culture: str  # the language of product and master data texts, e.g. "de-DE"
+    # The language of product and master data texts, e.g. "de-DE": one of the KNX master data's
+    # languages, English for a UI language that is none of them.
+    culture: str
     native: str  # the name in the language itself
     name: Callable[[], str]  # the name in the current language
 
@@ -33,7 +35,8 @@ LANGUAGES: tuple[Language, ...] = (
     Language("pl", "pl-PL", "polski", lambda: S.LANGUAGE_POLISH),
     Language("pt", "pt-PT", "português", lambda: S.LANGUAGE_PORTUGUESE),
     Language("ru", "ru-RU", "русский", lambda: S.LANGUAGE_RUSSIAN),
-    Language("sq", "sq-AL", "shqip", lambda: S.LANGUAGE_ALBANIAN),
+    # The KNX master data has no Albanian: products and master data show in English.
+    Language("sq", "en-US", "shqip", lambda: S.LANGUAGE_ALBANIAN),
     Language("sv", "sv-SE", "svenska", lambda: S.LANGUAGE_SWEDISH),
     Language("tr", "tr-TR", "Türkçe", lambda: S.LANGUAGE_TURKISH),
     Language("uk", "uk-UA", "українська", lambda: S.LANGUAGE_UKRAINIAN),
@@ -57,6 +60,11 @@ def culture(code: str) -> str:
     return next(language.culture for language in LANGUAGES if language.code == wanted)
 
 
+def ui_cultures() -> list[str]:
+    """The product data languages of the user interface languages, each once."""
+    return list(dict.fromkeys(language.culture for language in LANGUAGES))
+
+
 @dataclass(frozen=True)
 class ProductLanguage:
     culture: str  # the language of product data texts, e.g. "sk-SK"
@@ -64,9 +72,14 @@ class ProductLanguage:
     name: Callable[[], str]  # the name in the current language
 
 
-# The languages product data comes in: those of the user interface and five more.
+# The languages product data comes in, the languages of the KNX master data: those of the user
+# interface that have one of their own, and five more.
 PRODUCT_LANGUAGES: tuple[ProductLanguage, ...] = (
-    *(ProductLanguage(lang.culture, lang.native, lang.name) for lang in LANGUAGES),
+    *(
+        ProductLanguage(lang.culture, lang.native, lang.name)
+        for lang in LANGUAGES
+        if lang.culture.split("-")[0] == lang.code
+    ),
     ProductLanguage("hu-HU", "magyar", lambda: S.LANGUAGE_HUNGARIAN),
     ProductLanguage("ro-RO", "română", lambda: S.LANGUAGE_ROMANIAN),
     ProductLanguage("sk-SK", "slovenčina", lambda: S.LANGUAGE_SLOVAK),
