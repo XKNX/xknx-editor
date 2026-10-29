@@ -2308,10 +2308,7 @@ class KnxGuiApp:
         # device names in the status line don't wrap into a cramped, tall popup; on a phone no
         # wider than its screen.
         room = screen_room()
-        imgui.set_next_window_size_constraints(
-            imgui.ImVec2(min(px(560.0), room), 0.0), imgui.ImVec2(1.0e9, 1.0e9)
-        )
-        if not begin_dialog(S.PROGRESS_TITLE):
+        if not begin_dialog(S.PROGRESS_TITLE, min_width=560.0):
             return
         imgui.text_wrapped(self._progress_text)
         elapsed = time.time() - self._progress_started_at
@@ -4201,10 +4198,7 @@ class KnxGuiApp:
         if self._import_notes_requested:
             imgui.open_popup(S.IMPORT_NOTES_TITLE)
             self._import_notes_requested = False
-        imgui.set_next_window_size_constraints(
-            px_vec2(520.0, 0.0), imgui.ImVec2(1.0e9, 1.0e9)
-        )
-        if not begin_dialog(S.IMPORT_NOTES_TITLE):
+        if not begin_dialog(S.IMPORT_NOTES_TITLE, min_width=520.0):
             return
         if self._import_notes_intro:
             imgui.text_wrapped(self._import_notes_intro)
@@ -4232,10 +4226,7 @@ class KnxGuiApp:
             )
             imgui.open_popup(S.EXPORT_SUMMARY_TITLE)
             self._export_summary_requested = False
-        imgui.set_next_window_size_constraints(
-            px_vec2(420.0, 0.0), imgui.ImVec2(1.0e9, 1.0e9)
-        )
-        if not begin_dialog(S.EXPORT_SUMMARY_TITLE):
+        if not begin_dialog(S.EXPORT_SUMMARY_TITLE, min_width=420.0):
             return
         summary = self._export_summary
         if summary is None:
@@ -4530,10 +4521,7 @@ class KnxGuiApp:
         if self._compact_result_requested:
             imgui.open_popup(S.COMPACT_RESULT_TITLE)
             self._compact_result_requested = False
-        imgui.set_next_window_size_constraints(
-            px_vec2(420.0, 0.0), imgui.ImVec2(1.0e9, 1.0e9)
-        )
-        if not begin_dialog(S.COMPACT_RESULT_TITLE):
+        if not begin_dialog(S.COMPACT_RESULT_TITLE, min_width=420.0):
             return
         result = self._compact_result
         if result is None:

@@ -379,6 +379,28 @@ async def test_com_object_properties_links_and_project_name(tmp_path: Path) -> N
         assert info["path"].endswith(".xknx")
 
 
+async def test_project_code_page(tmp_path: Path) -> None:
+    mcp, project = _build(tmp_path)
+    async with Client(mcp) as client:
+        await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
+        info = await _data(client, "project_info")
+        assert (info["code_page"], info["code_page_name"]) == (None, "System language")
+
+        chosen = await _data(client, "project_set_code_page", code_page="iso-8859-5")
+        assert chosen == {"code_page": "iso-8859-5", "name": "Cyrillic (ISO 8859-5)"}
+        assert project.project_code_page() == "iso-8859-5"
+        assert (await _data(client, "project_info"))["code_page"] == "iso-8859-5"
+        await _error(
+            client, "project_set_code_page", "unknown code page", code_page="cp1251"
+        )
+
+        await _data(client, "project_undo")
+        assert project.project_code_page() is None
+        await _data(client, "project_set_code_page", code_page="utf-8")
+        system = await _data(client, "project_set_code_page")
+        assert system == {"code_page": None, "name": "System language"}
+
+
 @_needs_fixture
 async def test_catalog_product_details_and_export(tmp_path: Path) -> None:
     mcp, _project = _build(tmp_path)

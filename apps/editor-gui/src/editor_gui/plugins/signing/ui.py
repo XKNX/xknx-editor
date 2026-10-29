@@ -10,7 +10,7 @@ from __future__ import annotations
 import threading
 from collections.abc import Callable
 
-from imgui_bundle import hello_imgui, imgui
+from imgui_bundle import imgui
 
 from editor_gui import file_dialogs, signing_key
 from editor_gui.plugins.signing.strings import S
@@ -27,6 +27,33 @@ from xknxeditor.proj import (
 
 _RED = imgui.ImVec4(0.9, 0.4, 0.4, 1.0)
 _GREEN = imgui.ImVec4(0.4, 0.8, 0.4, 1.0)
+# A key field grows with its wrapped text between these numbers of lines, and scrolls beyond.
+_KEY_MIN_LINES = 2
+_KEY_MAX_LINES = 8
+
+
+def key_field_lines(text: str, wrap_width: float) -> int:
+    """How many lines a key field shows for ``text`` wrapped at ``wrap_width``."""
+    height = imgui.calc_text_size(text or " ", False, max(wrap_width, 1.0)).y
+    lines = round(height / imgui.get_text_line_height())
+    return min(max(lines, _KEY_MIN_LINES), _KEY_MAX_LINES)
+
+
+def _key_field(field_id: str, text: str) -> str:
+    """A multi-line field for a long hex key, wrapped to the dialog's width."""
+    style = imgui.get_style()
+    # Wrapped as if the scrollbar were shown: at worst one line too many, never a hidden one.
+    wrap_width = (
+        imgui.get_content_region_avail().x
+        - 2 * style.frame_padding.x
+        - style.scrollbar_size
+    )
+    lines = key_field_lines(text, wrap_width)
+    height = lines * imgui.get_text_line_height() + 2 * style.frame_padding.y
+    _, text = imgui.input_text_multiline(
+        field_id, text, imgui.ImVec2(-1, height), imgui.InputTextFlags_.word_wrap
+    )
+    return text
 
 
 class SigningPanel:
@@ -145,17 +172,10 @@ class SigningPanel:
         imgui.text_wrapped(S.HINT)
         imgui.separator()
 
-        field_h = hello_imgui.em_to_vec2(0.0, 2.4).y
         imgui.text_disabled(S.MODULUS)
-        imgui.set_next_item_width(-1)
-        _, self._modulus = imgui.input_text_multiline(
-            "##modulus", self._modulus, imgui.ImVec2(-1, field_h)
-        )
+        self._modulus = _key_field("##modulus", self._modulus)
         imgui.text_disabled(S.PRIVATE_EXPONENT)
-        imgui.set_next_item_width(-1)
-        _, self._private_exponent = imgui.input_text_multiline(
-            "##priv", self._private_exponent, imgui.ImVec2(-1, field_h)
-        )
+        self._private_exponent = _key_field("##priv", self._private_exponent)
         imgui.text_disabled(S.PUBLIC_EXPONENT)
         imgui.set_next_item_width(-1)
         _, self._public_exponent = imgui.input_text("##pub", self._public_exponent)

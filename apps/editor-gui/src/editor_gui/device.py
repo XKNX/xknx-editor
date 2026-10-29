@@ -310,6 +310,11 @@ class Device:
     configuration_app: str | None = field(
         default=None, repr=False, compare=False, init=False
     )
+    # Gives the project's current ``CodePage`` (None: the system language), which some
+    # applications encode their text parameters with.
+    project_code_page: Callable[[], str | None] | None = field(
+        default=None, repr=False, compare=False, init=False
+    )
     # UI frozen while a script changes this device's parameters on the script worker.
     _script_ui: list[UiNode] | None = field(
         default=None, repr=False, compare=False, init=False
@@ -375,6 +380,9 @@ class Device:
                 com_object_instance_refs=self.com_object_instance_refs or None,
                 tree_builder=tree_builder,
             )
+        if self._dynamic_ui is not None and self.project_code_page is not None:
+            # Read every time: the project's code page can change (and be undone) any time.
+            self._dynamic_ui.project_code_page = self.project_code_page()
         return self._dynamic_ui
 
     def release_dynamic_ui(self) -> None:

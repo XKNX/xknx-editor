@@ -469,7 +469,7 @@ msgid "Log"
 msgstr "Protokoll"
 
 msgid "Open a project to use the Mass Linker."
-msgstr "Öffne ein Projekt, um die Massenverknüpfung zu nutzen."
+msgstr "Öffnen Sie ein Projekt, um die Massenverknüpfung zu nutzen."
 
 msgid ""
 "Pairs are matched by list order (1st with 1st, …). Surplus items on the "
@@ -561,7 +561,7 @@ msgid "Tools"
 msgstr "Werkzeuge"
 
 msgid "Open a project to use the tools."
-msgstr "Öffne ein Projekt, um die Werkzeuge zu nutzen."
+msgstr "Öffnen Sie ein Projekt, um die Werkzeuge zu nutzen."
 
 msgid "No devices in this project."
 msgstr "Keine Geräte in diesem Projekt."
@@ -1366,8 +1366,6 @@ msgstr "Spalten"
 msgid "Comments are encrypted"
 msgstr "Kommentare sind verschlüsselt"
 
-msgid "Comments decrypted"
-msgstr "Kommentare entschlüsselt"
 
 msgid "Compare the open project with another project file (.knxproj, .xknx or a backup): which devices and group addresses were added, removed or changed. The other project is read-only; nothing is modified."
 msgstr "Das geöffnete Projekt mit einer anderen Projektdatei (.knxproj, .xknx oder einer Sicherung) vergleichen: welche Geräte und Gruppenadressen hinzugefügt, entfernt oder geändert wurden. Das andere Projekt wird nur gelesen; es wird nichts verändert."
@@ -3144,7 +3142,58 @@ msgid "Compare with a backup of this project"
 msgstr "Mit einer Sicherung dieses Projekts vergleichen"
 
 msgid "In the browser, choose Knx.Ets.Common.dll together with log4net.dll from the same folder."
-msgstr "Wähle im Browser Knx.Ets.Common.dll zusammen mit log4net.dll aus demselben Ordner."
+msgstr "Wählen Sie im Browser Knx.Ets.Common.dll zusammen mit log4net.dll aus demselben Ordner."
 
 msgid "Knx.Ets.Common.dll needs log4net.dll from its folder: choose both files together."
-msgstr "Knx.Ets.Common.dll braucht log4net.dll aus seinem Ordner: wähle beide Dateien zusammen."
+msgstr "Knx.Ets.Common.dll braucht log4net.dll aus seinem Ordner: wählen Sie beide Dateien zusammen."
+
+msgid "Codepage"
+msgstr "Codepage"
+
+msgid "Choose in which language the project texts are entered"
+msgstr "Wählen Sie, in welcher Sprache die Projekttexte eingegeben werden"
+
+msgid "System language"
+msgstr "Systemsprache"
+
+msgid "Western European (ISO 8859-1)"
+msgstr "Westeuropäisch (ISO 8859-1)"
+
+msgid "Central European (ISO 8859-2)"
+msgstr "Mitteleuropäisch (ISO 8859-2)"
+
+msgid "South European (ISO 8859-3)"
+msgstr "Südeuropäisch (ISO 8859-3)"
+
+msgid "North European (ISO 8859-4)"
+msgstr "Nordeuropäisch (ISO 8859-4)"
+
+msgid "Cyrillic (ISO 8859-5)"
+msgstr "Kyrillisch (ISO 8859-5)"
+
+msgid "Arabic (ISO 8859-6)"
+msgstr "Arabisch (ISO 8859-6)"
+
+msgid "Greek (ISO 8859-7)"
+msgstr "Griechisch (ISO 8859-7)"
+
+msgid "Hebrew (ISO 8859-8)"
+msgstr "Hebräisch (ISO 8859-8)"
+
+msgid "Turkish (ISO 8859-9)"
+msgstr "Türkisch (ISO 8859-9)"
+
+msgid "Nordic (ISO 8859-10)"
+msgstr "Nordisch (ISO 8859-10)"
+
+msgid "Baltic Rim (ISO 8859-13)"
+msgstr "Baltisch (ISO 8859-13)"
+
+msgid "Western European (ISO 8859-15)"
+msgstr "Westeuropäisch (ISO 8859-15)"
+
+msgid "Set codepage to {code_page}"
+msgstr "Codepage auf {code_page} setzen"
+
+msgid "Encrypted"
+msgstr "Verschlüsselt"

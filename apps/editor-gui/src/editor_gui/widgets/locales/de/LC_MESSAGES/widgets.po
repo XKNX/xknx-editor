@@ -273,7 +273,7 @@ msgid "Copy {count} B"
 msgstr "{count} B kopieren"
 
 msgid "Go To:"
-msgstr "Gehe zu:"
+msgstr "Springen zu:"
 
 msgid "{count} difference(s)"
 msgstr "{count} Unterschied(e)"

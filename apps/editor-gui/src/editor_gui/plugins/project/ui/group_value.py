@@ -5,7 +5,7 @@ from imgui_bundle import imgui
 
 from editor_gui.plugins.project.strings import S
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
-from editor_gui.widgets.dpi import px, px_vec2
+from editor_gui.widgets.dpi import px
 from editor_gui.widgets.dpt_value import DptValueInput, GroupValueBus, dpt_label
 
 
@@ -41,10 +41,7 @@ class GroupValueActions:
             self._open = False
         bus = self._bus
         # At least the usual width; wider when a value field needs the room.
-        imgui.set_next_window_size_constraints(
-            px_vec2(480.0, 0.0), imgui.ImVec2(1e9, 1e9)
-        )
-        if not begin_dialog(S.GA_WRITE_VALUE_TITLE):
+        if not begin_dialog(S.GA_WRITE_VALUE_TITLE, min_width=480.0):
             return
         formats = bus.formats()
         fields = self._value.field_labels(self._dpt, formats) if self._dpt else []

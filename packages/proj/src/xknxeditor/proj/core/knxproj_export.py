@@ -286,6 +286,7 @@ _PROJECT_ID = re.compile(r"P-[0-9A-Fa-f]{4}")
 # Captured ProjectInformation attributes that only some target schemas define, by the schemas.
 _SCHEMA_SPECIFIC_INFO_ATTRS: dict[str, frozenset[str]] = {
     "ProjectType": frozenset({"21", "22", "23"}),
+    "ArchivedVersion": frozenset({"21", "22", "23"}),
 }
 
 
@@ -1502,8 +1503,8 @@ class _Writer:
             LastModified=project.last_modified or now,
         )
         # ProjectInformation attributes captured on import (ProjectStart/ProjectNumber/ContractNumber/
-        # ProjectEnd/ProjectId/ProjectTracingPassword, valid in project/14, /20 and /23; ProjectType
-        # only from project/21 on).
+        # ProjectEnd/ProjectId/ProjectTracingPassword/CodePage/BusAccessLegacyMode, valid in
+        # project/14 to /23; ProjectType and ArchivedVersion only from project/21 on).
         for key, value in (project.extra_attributes or {}).items():
             schemas = _SCHEMA_SPECIFIC_INFO_ATTRS.get(key)
             if key == "CompletionStatus":

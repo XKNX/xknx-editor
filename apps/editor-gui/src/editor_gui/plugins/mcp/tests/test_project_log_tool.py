@@ -26,28 +26,34 @@ async def test_project_log_filters_and_pages_the_entries(
             ProjectTrace("2026-01-02", "anna", "stored", comment_plain="Programmed"),
             ProjectTrace("2026-01-03", "ben", "Exported", comment_plain=None),
             ProjectTrace("2026-02-01", "Anna", "stored", comment_plain="Renamed"),
+            ProjectTrace("2026-02-02", "carl", "M: QUJD", encrypted=True),
         ]
         monkeypatch.setattr(project, "get_project_traces", lambda: traces)
         log = await _data(client, "project_log")
-        assert log["total"] == 3
+        assert log["total"] == 4
         assert log["items"][0] == {
             "date": "2026-01-02",
             "user_name": "anna",
             "comment": "Programmed",
             "decrypted": True,
+            "encrypted": False,
         }
-        # A comment that could not be decrypted is returned as stored.
+        # A comment that is not encrypted is returned as stored.
         assert log["items"][1]["comment"] == "Exported"
         assert log["items"][1]["decrypted"] is False
+        # One stored encrypted without a key to read it has no text.
+        assert log["items"][3]["comment"] is None
+        assert log["items"][3]["encrypted"] is True
+        assert (await _data(client, "project_log", contains="QUJD"))["total"] == 0
 
         anna = await _data(client, "project_log", contains="ANNA")
         assert [e["comment"] for e in anna["items"]] == ["Programmed", "Renamed"]
         assert [
             e["comment"]
             for e in (await _data(client, "project_log", contains="2026-02"))["items"]
-        ] == ["Renamed"]
+        ] == ["Renamed", None]
         page = await _data(client, "project_log", offset=1, limit=1)
-        assert (page["count"], page["total"]) == (1, 3)
+        assert (page["count"], page["total"]) == (1, 4)
         assert page["items"][0]["user_name"] == "ben"
 
         with pytest.raises(Exception, match="limit 1 or more"):

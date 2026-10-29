@@ -43,6 +43,7 @@ from editor_gui.device_snapshot import (
 )
 from editor_gui.dpt import dpt_from_token, lookup_or_make_dpt
 from editor_gui.hardware_text import current_text
+from editor_gui.plugins.project.code_page import code_page_text
 from editor_gui.plugins.project.element_status import status_label, usage_label
 from editor_gui.plugins.project.medium_text import (
     medium_error_text,
@@ -366,6 +367,8 @@ class _DeviceInputs:
     binary_data: tuple[Any, ...] = ()
     # Gives the product's factory image (see Device.factory_image).
     factory_image: Callable[[], FactoryData | None] | None = None
+    # Gives the project's codepage (see Device.project_code_page).
+    project_code_page: Callable[[], str | None] | None = None
 
 
 def _compute_device(inputs: _DeviceInputs, app: Application) -> Device:
@@ -385,6 +388,7 @@ def _compute_device(inputs: _DeviceInputs, app: Application) -> Device:
     )
     device.download_plugin_required = inputs.download_plugin_required
     device.factory_image = inputs.factory_image
+    device.project_code_page = inputs.project_code_page
     device.configuration_app = inputs.configuration_app
     for row in inputs.com_objects:
         co = device.find_com_object(row.ref)
@@ -555,6 +559,9 @@ _HISTORY_LABELS: dict[str, Callable[[dict[str, Any]], str]] = {
     "RenameArea": lambda d: S.HISTORY_EV_RENAME_AREA.format(name=_quoted(d, "name")),
     "SetProjectName": lambda d: S.HISTORY_EV_RENAME_PROJECT.format(
         name=_quoted(d, "name")
+    ),
+    "SetProjectCodePage": lambda d: S.HISTORY_EV_SET_CODE_PAGE.format(
+        code_page=code_page_text(d.get("code_page"))
     ),
     "RenameLine": lambda d: S.HISTORY_EV_RENAME_LINE.format(name=_quoted(d, "name")),
     "SetDeviceName": lambda d: S.HISTORY_EV_RENAME_DEVICE.format(
@@ -932,6 +939,8 @@ class ProjectInfo:
     certificate_size: int = 0
     # The project is password protected: its exports carry the project folder encrypted.
     password_protected: bool = False
+    # The project's CodePage (None: the system language), see ProjectService.project_code_page.
+    code_page: str | None = None
 
 
 @dataclass
@@ -943,6 +952,8 @@ class ProjectTrace:
     user_name: str
     comment: str
     comment_plain: str | None = None
+    # The comment is stored encrypted and cannot be read (no trace key installed).
+    encrypted: bool = False
 
 
 @dataclass
@@ -1152,6 +1163,9 @@ class ProjectService:
         self._io_lock = catalog.io_lock
         self._svc = _ProjectService()
         self._pid: str | None = None
+        # The open project's CodePage, read on the UI thread whenever it can change (open, edit,
+        # undo/redo) so devices encoding text on other threads never read the database for it.
+        self._code_page: str | None = None
         # Bumped on every new/open/close so a long-running bus operation can tell its originating
         # project from whatever is open when its deferred writes finally run (see persist_script_changes).
         self._generation = 0
@@ -1896,6 +1910,26 @@ class ProjectService:
             self._recheck_queue.clear()
             self._rechecked.clear()
         self._handled_failures.clear()
+        self._read_code_page()
+
+    def _read_code_page(self) -> None:
+        self._code_page = (
+            self._svc.project_code_page(self._pid) if self._pid is not None else None
+        )
+
+    def project_code_page(self) -> str | None:
+        """The open project's ``CodePage`` (a ``knx:TextEncoding_t`` value such as
+        ``iso-8859-1``), or ``None`` for the system language."""
+        return self._code_page
+
+    def set_project_code_page(self, code_page: str | None) -> None:
+        """Set the project's ``CodePage`` (one undo step); ``None`` is the system language. Raises
+        :class:`ValueError` for an unknown value."""
+        if self._pid is None or code_page == self._code_page:
+            return
+        self._svc.set_project_code_page(self._pid, code_page)
+        self._read_code_page()
+        self._bump(structural=False)
 
     def _bump(self, *, structural: bool = True) -> None:
         """Advance the revision so views refresh. ``structural=False`` for edits that don't change
@@ -2137,6 +2171,7 @@ class ProjectService:
             return None
         device.download_plugin_required = self._requires_download_plugin(program_ref)
         device.factory_image = self._factory_image_source(program_ref)
+        device.project_code_page = self.project_code_page
         device.configuration_app = next(
             (a.name for a in self._configuration_apps() if a.applies_to(app.id)),
             None,
@@ -2322,6 +2357,7 @@ class ProjectService:
             and self._requires_download_plugin(program_ref),
             binary_data=tuple(getattr(row, "binary_data", []) or []),
             factory_image=None if compared else self._factory_image_source(program_ref),
+            project_code_page=None if compared else self.project_code_page,
             configuration_app=None
             if compared
             else next(
@@ -3655,6 +3691,7 @@ class ProjectService:
             validation_size=len(p.knx_validation),
             certificate_size=len(p.knx_certificate),
             password_protected=self._svc.is_password_protected(self._pid),
+            code_page=self._code_page,
         )
 
     def compare_projects(
@@ -3866,7 +3903,7 @@ class ProjectService:
         the decrypted text when a trace key has been installed (see :mod:`editor_gui.trace_key`).
         Cached by revision and installed key: the Project Log reads it every frame.
         """
-        from xknxeditor.proj import current_marker, decrypt_comment
+        from xknxeditor.proj import current_marker, decrypt_comment, looks_encrypted
 
         if self._pid is None:
             return []
@@ -3874,15 +3911,18 @@ class ProjectService:
         hit = self._revision_cache.get(cache_key)
         if hit is not None and hit[0] == self.revision:
             return cast("list[ProjectTrace]", hit[1])
-        traces = [
-            ProjectTrace(
-                date=date,
-                user_name=user_name,
-                comment=comment,
-                comment_plain=decrypt_comment(comment),
+        traces: list[ProjectTrace] = []
+        for date, user_name, comment in self._svc.project_traces(self._pid):
+            plain = decrypt_comment(comment)
+            traces.append(
+                ProjectTrace(
+                    date=date,
+                    user_name=user_name,
+                    comment=comment,
+                    comment_plain=plain,
+                    encrypted=plain is None and looks_encrypted(comment),
+                )
             )
-            for date, user_name, comment in self._svc.project_traces(self._pid)
-        ]
         self._revision_cache[cache_key] = (self.revision, traces)
         return traces
 
@@ -7195,6 +7235,7 @@ class ProjectService:
         peek = self._svc.peek_undo(self._pid)
         result = self._svc.undo(self._pid)
         if result:
+            self._read_code_page()
             self._refresh_after_history(peek, undo=True)
         return result
 
@@ -7204,6 +7245,7 @@ class ProjectService:
         peek = self._svc.peek_redo(self._pid)
         result = self._svc.redo(self._pid)
         if result:
+            self._read_code_page()
             self._refresh_after_history(peek, undo=False)
         return result
 
@@ -7459,6 +7501,7 @@ class ProjectService:
         if self._pid is None:
             return
         self._svc.jump_to(self._pid, event_id)
+        self._read_code_page()
         self._bump()
 
     @io_guarded(list)

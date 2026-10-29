@@ -1,6 +1,7 @@
 """An imported project keeps its ids and Puids on export: the project id, every element's ``Id`` and
 ``Puid`` and ``LastUsedPuid``; elements added in the editor are numbered after them. The
-``ProjectType`` and each segment's ``BusAccess`` round-trip too."""
+``ProjectType``, ``ArchivedVersion``, ``CodePage``, ``BusAccessLegacyMode`` and each segment's
+``BusAccess`` round-trip too."""
 
 from __future__ import annotations
 
@@ -21,6 +22,13 @@ from xknxeditor.proj.models import (
 )
 
 _BUS_ACCESS = 'Type=IpTunneling;HostAddress=192.168.16.103;Name="IP Tunneling"'
+# ProjectInformation attributes of the source project.
+_INFO = {
+    "ProjectType": "Family House",
+    "ArchivedVersion": "2025-04-29T10:15:00.123Z",
+    "CodePage": "iso-8859-5",
+    "BusAccessLegacyMode": "true",
+}
 
 
 def _localname(tag: str) -> str:
@@ -80,8 +88,8 @@ def _as_source_project(
     exported: Path, dest: Path, *, default_line: bool = True
 ) -> None:
     """Rewrite an export into what a source project looks like: the project P-04BB, a device and a
-    group address with numbers of a long-edited project, Puids from 1001, LastUsedPuid 3178, a
-    ProjectType and a segment's BusAccess."""
+    group address with numbers of a long-edited project, Puids from 1001, LastUsedPuid 3178, the
+    ProjectInformation attributes of ``_INFO`` and a segment's BusAccess."""
     members = _members(exported)
     pid = next(n for n in members if n.endswith("/0.xml")).split("/")[0]
     out: dict[str, bytes] = {}
@@ -96,10 +104,9 @@ def _as_source_project(
                 text,
             )
             text = re.sub(r'LastUsedPuid="\d+"', 'LastUsedPuid="3178"', text)
+            attrs = "".join(f'{key}="{value}" ' for key, value in _INFO.items())
             text = text.replace(
-                "<ProjectInformation ",
-                '<ProjectInformation ProjectType="Family House" ',
-                1,
+                "<ProjectInformation ", f"<ProjectInformation {attrs}", 1
             )
             if name.endswith("/0.xml"):
                 text = _with_bus_access(text)
@@ -211,12 +218,13 @@ def test_the_import_keeps_the_source_identities(tmp_path: Path) -> None:
         assert ga.puid is not None and ga.puid > 1000
 
 
-def test_project_type_and_bus_access_round_trip(tmp_path: Path) -> None:
+def test_project_information_and_bus_access_round_trip(tmp_path: Path) -> None:
     imported, _ = _imported(tmp_path)
     out = tmp_path / "out.knxproj"
     export_knxproj(imported, out, schema="23")
 
-    assert _info(out).get("ProjectType") == "Family House"
+    info = _info(out)
+    assert {key: info.get(key) for key in _INFO} == _INFO
     segment = _segment_with(_zero(out), "BusAccess")
     children = [_localname(c.tag) for c in segment]
     assert _element(segment, "BusAccess").get("Parameter") == _BUS_ACCESS
@@ -227,6 +235,8 @@ def test_project_type_and_bus_access_round_trip(tmp_path: Path) -> None:
 def test_project_20_has_no_project_type_and_the_bus_access_on_the_line(
     tmp_path: Path,
 ) -> None:
+    """project/20 defines CodePage and BusAccessLegacyMode, but not ProjectType and
+    ArchivedVersion."""
     imported, _ = _imported(tmp_path)
     # Without the stored project/23 product data, an export to project/20 stays at 20.
     with Session(make_engine(url_for(imported))) as session:
@@ -238,7 +248,12 @@ def test_project_20_has_no_project_type_and_the_bus_access_on_the_line(
     export_knxproj(imported, out, schema="20")
 
     assert _zero(out).tag == "{http://knx.org/xml/project/20}KNX"
-    assert _info(out).get("ProjectType") is None
+    info = _info(out)
+    assert {key: info.get(key) for key in _INFO} == {
+        **_INFO,
+        "ProjectType": None,
+        "ArchivedVersion": None,
+    }
     line = _element(_zero(out), "Line", Name="Line 2")
     access = [c for c in line if _localname(c.tag) == "BusAccess"]
     assert [a.get("Parameter") for a in access] == [_BUS_ACCESS]

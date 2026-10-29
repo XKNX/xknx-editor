@@ -73,7 +73,9 @@ def _device_reports_55(monkeypatch: pytest.MonkeyPatch) -> list[int]:
     )
     used: list[int] = []
 
-    async def fake_recover_device(programmer, application, *, address, progress=None):  # type: ignore[no-untyped-def]
+    async def fake_recover_device(  # type: ignore[no-untyped-def]
+        programmer, application, *, address, progress=None, project_code_page=None
+    ):
         used.append(programmer.max_apdu_length)
         if len(used) == 1:
             # The real 731 failure: a long read the interface dropped surfaces as

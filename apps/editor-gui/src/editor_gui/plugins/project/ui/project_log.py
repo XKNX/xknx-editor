@@ -19,6 +19,7 @@ from editor_gui import file_dialogs, trace_key, web
 from editor_gui.plugins.project.strings import S
 from editor_gui.widgets.dpi import px
 from editor_gui.widgets.filter_box import filter_box
+from editor_gui.widgets.flow import same_line_if_fits
 from editor_gui.widgets.tables import begin_data_table, data_table_headers
 from xknxeditor.proj import (
     TRACE_DLL_NAME,
@@ -33,7 +34,6 @@ if TYPE_CHECKING:
     from editor_gui.plugins.project.service import ProjectTrace
 
 _RED = imgui.ImVec4(0.9, 0.4, 0.4, 1.0)
-_GREEN = imgui.ImVec4(0.4, 0.8, 0.4, 1.0)
 _UNKNOWN = "?"
 # The library Knx.Ets.Common.dll loads from its own folder.
 _LOG4NET = "log4net"
@@ -91,6 +91,8 @@ class ProjectLogPanel:
         )
         if not begin_data_table("##project_log", 3, flags):
             return
+        # The header row stays while the entries scroll.
+        imgui.table_setup_scroll_freeze(0, 1)
         imgui.table_setup_column(
             S.PROJECT_LOG_COL_DATE,
             imgui.TableColumnFlags_.width_fixed
@@ -120,6 +122,9 @@ class ProjectLogPanel:
                 imgui.table_set_column_index(1)
                 imgui.text_unformatted(t.user_name or "-")
                 imgui.table_set_column_index(2)
+                if t.encrypted:
+                    imgui.text_disabled(comment)
+                    continue
                 imgui.text_unformatted(comment or "-")
                 if comment and imgui.is_item_hovered():
                     imgui.set_tooltip(comment)
@@ -128,8 +133,8 @@ class ProjectLogPanel:
     # --- key extraction bar --------------------------------------------------------------
 
     def _render_key_bar(self) -> None:
+        """What it takes to read the comments; nothing once they can be read."""
         if trace_key_available():
-            imgui.text_colored(_GREEN, S.PROJECT_LOG_DECRYPTED)
             return
         imgui.text_colored(_RED, S.PROJECT_LOG_ENCRYPTED)
         imgui.text_wrapped(S.PROJECT_LOG_DECRYPT_HINT)
@@ -143,15 +148,19 @@ class ProjectLogPanel:
         if backend is None:
             imgui.text_colored(_RED, S.PROJECT_LOG_NO_BACKEND)
         if self._extracting:
+            imgui.align_text_to_frame_padding()
             imgui.text_disabled(S.PROJECT_LOG_EXTRACTING)
         else:
             imgui.begin_disabled(backend is None)
             if imgui.button(S.PROJECT_LOG_EXTRACT):
                 self._begin_extract()
             imgui.end_disabled()
+        # The credit beside the button, below it where the panel is narrow (a phone).
+        same_line_if_fits(imgui.calc_text_size(S.PROJECT_LOG_CREDIT).x)
+        imgui.align_text_to_frame_padding()
+        imgui.text_disabled(S.PROJECT_LOG_CREDIT)
         if self._error:
             imgui.text_colored(_RED, self._error)
-        imgui.text_disabled(S.PROJECT_LOG_CREDIT)
         imgui.separator()
 
     def _begin_extract(self) -> None:
@@ -225,6 +234,9 @@ class ProjectLogPanel:
 
     @staticmethod
     def _display(t: ProjectTrace) -> str:
+        """The comment as shown, filtered and sorted: "Encrypted" while it cannot be read."""
+        if t.encrypted:
+            return S.PROJECT_LOG_ENCRYPTED_COMMENT
         return t.comment_plain or t.comment
 
     def _read_sort(self) -> None:

@@ -67,17 +67,22 @@ def _center_next_window(title: str | None = None) -> None:
     )
 
 
-def _fit_screen(title: str | None = None, width: float | None = None) -> int:
+def _fit_screen(
+    title: str | None = None, width: float | None = None, min_width: float = 0.0
+) -> int:
     """Keep the next window within the screen (a phone): at most as large as the main window
-    less a margin, scrolling what does not fit. Returns the window flags for that: a horizontal
-    scroll bar once the window is as wide as the screen allows (``width`` in pixels is the width
-    it is given, else the size it had)."""
+    less a margin, scrolling what does not fit, and at least ``min_width`` pixels wide where the
+    screen has the room. Returns the window flags for that: a horizontal scroll bar once the window
+    is as wide as the screen allows (``width`` in pixels is the width it is given, else the size it
+    had)."""
     viewport = imgui.get_main_viewport()
     margin = 2 * px(_SCREEN_MARGIN)
     room = imgui.ImVec2(
         max(viewport.size.x - margin, px(160)), max(viewport.size.y - margin, px(120))
     )
-    imgui.set_next_window_size_constraints(imgui.ImVec2(0.0, 0.0), room)
+    imgui.set_next_window_size_constraints(
+        imgui.ImVec2(min(min_width, room.x), 0.0), room
+    )
     placement = _placements.get(title) if title is not None else None
     if placement is not None and placement.screen != _screen_size():
         # Scrolling sideways, a window keeps the width its content had: on a screen that changed
@@ -104,9 +109,10 @@ def _near(a: tuple[float, float], b: tuple[float, float]) -> bool:
 
 def _track_placement(title: str) -> None:
     """Note the current dialog's placement after it began: off centre when its size changed since
-    the last frame, moved when it is neither centred for its current nor for its last size. On a
-    screen that changed its size it was centred again (see :func:`_center_next_window`) and counts
-    as not moved."""
+    the last frame, moved when it is neither centred for its current nor for its last size while
+    the mouse button is held (a drag; ImGui itself shifts a window a little to keep it on the
+    screen, which is no move). On a screen that changed its size it was centred again (see
+    :func:`_center_next_window`) and counts as not moved."""
     pos, size = imgui.get_window_pos(), imgui.get_window_size()
     center = imgui.get_main_viewport().get_center()
     current = (size.x, size.y)
@@ -126,7 +132,11 @@ def _track_placement(title: str) -> None:
         (pos.x, pos.y),
         (center.x - placement.size[0] / 2, center.y - placement.size[1] / 2),
     )
-    if not centred_now and not centred_before:
+    if (
+        not centred_now
+        and not centred_before
+        and imgui.is_mouse_down(imgui.MouseButton_.left)
+    ):
         placement.moved = True
     placement.off_centre = not centred_now
     placement.size = current
@@ -154,6 +164,7 @@ def begin_dialog(
     *,
     width: float | None = None,
     height: float | None = None,
+    min_width: float = 0.0,
     flags: int = 0,
 ) -> bool:
     """Begin the modal dialog ``title`` (opened with ``imgui.open_popup(title)``).
@@ -161,13 +172,14 @@ def begin_dialog(
     Call :func:`end_dialog` when this returns ``True``. It stays centred while its size changes until
     the user moves it. ``width`` (unscaled pixels) fixes the
     width and the height follows the content; with ``height`` as well the dialog starts at that
-    size and can be resized. Without either it fits its content. On a screen narrower than
-    ``width`` (a phone) the dialog gets the width there is, so its wrapped text reflows.
+    size and can be resized. Without either it fits its content, at least ``min_width`` (unscaled
+    pixels) wide. On a screen narrower than ``width`` or ``min_width`` (a phone) the dialog gets the
+    width there is, so its wrapped text reflows.
     """
     _center_next_window(title)
     if width is not None:
         width = min(width, _screen_room_width())
-    flags |= _fit_screen(title, px(width) if width is not None else None)
+    flags |= _fit_screen(title, px(width) if width is not None else None, px(min_width))
     if width is not None and height is not None:
         imgui.set_next_window_size(px_vec2(width, height), imgui.Cond_.appearing)
     elif width is not None:

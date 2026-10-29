@@ -571,6 +571,7 @@ def build_image(
     parameter_values: Mapping[str, str] | None = None,
     group_communication: GroupCommunication | None = None,
     factory_image: FactoryImage | None = None,
+    project_code_page: str | None = None,
 ) -> DownloadImage:
     """Assemble the download image for ``application``.
 
@@ -583,7 +584,8 @@ def build_image(
     the address and association table segments (needed for a full or group
     communication download); the load procedure writes them only in scope.
     ``factory_image`` (the product's ``LoadedImage``) is the base of the properties the
-    procedure writes.
+    procedure writes. ``project_code_page`` is the project's ``CodePage`` for a fresh
+    evaluator (``None``: the system language); a given ``ui`` has its own.
     """
     if ui is None and device is not None:
         from xknxeditor.prod.parser_v2.dynamic import DynamicUI
@@ -593,6 +595,7 @@ def build_image(
             parameter_instance_refs=parameter_instance_refs_from_device(device),
             module_instances=module_instances_from_device(device),
             com_object_instance_refs=com_object_instance_refs_from_device(device),
+            project_code_page=project_code_page,
         )
     elif ui is None:
         ui = application.dynamic_ui()
@@ -602,6 +605,7 @@ def build_image(
 
             program, tree_builder = application.resolved()
             ui = DynamicUI(program, tree_builder=tree_builder)
+        ui.project_code_page = project_code_page
 
     if parameter_values:
         for ref_id, value in parameter_values.items():

@@ -26,6 +26,7 @@ from sqlalchemy.dialects.sqlite import insert as sqlite_insert
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session, selectinload
 
+from xknxeditor.namespaces.intermediate.text_encoding_t import TextEncoding
 from xknxeditor.proj.core import ip_secure
 from xknxeditor.proj.core.addressing import (
     GroupAddressStyle,
@@ -126,6 +127,7 @@ from xknxeditor.proj.core.events import (
     SetGroupRangeSecurity,
     SetInstallationAttribute,
     SetParameter,
+    SetProjectCodePage,
     SetProjectName,
     SetSegmentBusAccess,
     SetSegmentDomainAddress,
@@ -2467,6 +2469,22 @@ class ProjectService:
     def set_project_name(self, project_id: str, name: str) -> None:
         self._state(project_id).store.append(
             SetProjectName(project_id=project_id, name=name)
+        )
+
+    def project_code_page(self, project_id: str) -> str | None:
+        """The project's ``CodePage`` (a ``knx:TextEncoding_t`` value such as ``iso-8859-1``), or
+        ``None`` for the system language."""
+        return (self.project(project_id).extra_attributes or {}).get("CodePage")
+
+    def set_project_code_page(self, project_id: str, code_page: str | None) -> None:
+        """Set the project's ``CodePage`` (one undo step); ``None`` is the system language. Raises
+        :class:`ValueError` for a value the project schema does not know."""
+        if code_page is not None and code_page not in {e.value for e in TextEncoding}:
+            raise ValueError(f"unknown code page {code_page!r}")
+        if code_page == self.project_code_page(project_id):
+            return
+        self._state(project_id).store.append(
+            SetProjectCodePage(project_id=project_id, code_page=code_page)
         )
 
     def set_project_password(self, project_id: str, password: str | None) -> None:

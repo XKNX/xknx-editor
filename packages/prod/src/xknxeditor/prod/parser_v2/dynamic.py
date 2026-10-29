@@ -101,6 +101,7 @@ from .state import (
     compute_param_ref_bases,
     compute_param_ref_defaults,
 )
+from .text_encoding import text_parameter_encoding
 from .ui import UiNode
 
 if TYPE_CHECKING:
@@ -769,6 +770,7 @@ class DynamicUI:
         "_state",
         "_tree",
         "_ui",
+        "project_code_page",
         "script_abort",
         "script_env",
     )
@@ -780,12 +782,16 @@ class DynamicUI:
         module_instances: list[ModuleInstance] | None = None,
         com_object_instance_refs: list[ComObjectInstanceRef] | None = None,
         tree_builder: DynamicTreeBuilder | None = None,
+        project_code_page: str | None = None,
     ) -> None:
         # The builder (indexer + node tree) is a pure function of the app program and is read-only
         # during eval, so callers share one across all devices of the same app (see
         # Application.tree_builder) instead of rebuilding it per device.
         builder = tree_builder if tree_builder is not None else DynamicTreeBuilder(app)
         self._app = app
+        # The device's project ``CodePage`` (None: the system language); some applications encode
+        # their text parameters with it (see :attr:`text_encoding`).
+        self.project_code_page = project_code_page
         self._tree = builder.tree
         self._idx = builder.idx
         self._page_for = builder.page_param_for
@@ -1051,6 +1057,7 @@ class DynamicUI:
             self._idx,
             download_param_values(self._app, self._idx, self._state),
             self._state,
+            self.text_encoding,
         )
 
     def encode_to_memory_masked(self) -> dict[str, tuple[bytes, bytes]]:
@@ -1062,6 +1069,7 @@ class DynamicUI:
             self._idx,
             download_param_values(self._app, self._idx, self._state),
             self._state,
+            self.text_encoding,
         )
 
     def decode_memory_parameters(
@@ -1075,7 +1083,9 @@ class DynamicUI:
         skipped (see :func:`decode_memory_parameters`).
         """
         self.ui()
-        return decode_memory_parameters(self._app, self._idx, segments, self._state)
+        return decode_memory_parameters(
+            self._app, self._idx, segments, self._state, self.text_encoding
+        )
 
     def decode_property_parameters(
         self, properties: Mapping[PropertyKey, bytes]
@@ -1088,7 +1098,9 @@ class DynamicUI:
         :func:`decode_property_parameters`).
         """
         self.ui()
-        return decode_property_parameters(self._app, self._idx, properties, self._state)
+        return decode_property_parameters(
+            self._app, self._idx, properties, self._state, self.text_encoding
+        )
 
     def decode_module_parameters(
         self,
@@ -1104,7 +1116,7 @@ class DynamicUI:
         """
         self.ui()
         return decode_module_parameters(
-            self._app, self._idx, self._state, segments, properties
+            self._app, self._idx, self._state, segments, properties, self.text_encoding
         )
 
     def memory_param_map(self) -> dict[str, dict[int, tuple[str, str]]]:
@@ -1141,6 +1153,7 @@ class DynamicUI:
             self._idx,
             download_param_values(self._app, self._idx, self._state),
             self._state,
+            self.text_encoding,
         )
 
     def encode_to_typed_properties(self) -> dict[TypedPropertyKey, bytes]:
@@ -1152,6 +1165,7 @@ class DynamicUI:
             self._idx,
             download_param_values(self._app, self._idx, self._state),
             self._state,
+            self.text_encoding,
         )
 
     def encode_to_typed_properties_masked(
@@ -1165,6 +1179,7 @@ class DynamicUI:
             self._idx,
             download_param_values(self._app, self._idx, self._state),
             self._state,
+            self.text_encoding,
         )
 
     def property_param_map(self) -> dict[PropertyKey, dict[int, tuple[str, str]]]:
@@ -1213,9 +1228,8 @@ class DynamicUI:
 
     @property
     def text_encoding(self) -> str:
-        options = self._app.static.options
-        encoding = options.text_parameter_encoding if options is not None else None
-        return encoding.value if encoding is not None else "iso-8859-1"
+        """The codec of this device's ``Text`` parameters (see :func:`text_parameter_encoding`)."""
+        return text_parameter_encoding(self._app, self.project_code_page)
 
     def _journal(self) -> Journal:
         def explicit(ref_id: str) -> str | None:

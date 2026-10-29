@@ -70,7 +70,9 @@ class RecoveredDevice:
 
 
 def seed_dynamic_ui(
-    application: Application, parameter_values: Mapping[str, str]
+    application: Application,
+    parameter_values: Mapping[str, str],
+    project_code_page: str | None = None,
 ) -> DynamicUI | None:
     """Build a dynamic UI evaluated with recovered parameter reference values.
 
@@ -85,7 +87,8 @@ def seed_dynamic_ui(
     and a second build is seeded with them; without this the override is ignored and
     the map emits the default ref, which no longer matches the object the project
     persists once the override applies (links then resolve to nothing). Returns
-    ``None`` when the application has no dynamic section.
+    ``None`` when the application has no dynamic section. ``project_code_page`` as for
+    :func:`~xknxeditor.recover.parameters.recover_parameters`.
     """
     from xknxeditor.namespaces.intermediate.module_instance_t import ModuleInstance
     from xknxeditor.namespaces.intermediate.parameter_instance_ref_t import (
@@ -99,7 +102,11 @@ def seed_dynamic_ui(
         ParameterInstanceRef(ref_id=ref_id, value=value)
         for ref_id, value in parameter_values.items()
     ]
-    probe = DynamicUI(application.program, parameter_instance_refs=pirs)
+    probe = DynamicUI(
+        application.program,
+        parameter_instance_refs=pirs,
+        project_code_page=project_code_page,
+    )
     module_instances = probe.get_module_instances()
     if not (module_instances and pirs):
         return probe
@@ -110,6 +117,7 @@ def seed_dynamic_ui(
             ModuleInstance(id=instance_id, ref_id=ref_id)
             for instance_id, ref_id in module_instances
         ],
+        project_code_page=project_code_page,
     )
 
 
@@ -162,6 +170,7 @@ async def recover_device(
     *,
     address: str,
     progress: Callable[[str], None] | None = None,
+    project_code_page: str | None = None,
 ) -> RecoveredDevice:
     """Read and decode one device's configuration over an open connection.
 
@@ -169,7 +178,8 @@ async def recover_device(
     from the catalog after identifying it). Reads the group communication tables
     and the parameter memory and decodes them. ``progress`` is called with the
     current stage (``STAGE_GROUP_COMMUNICATION``/``STAGE_PARAMETERS``) so a UI can
-    show what the device read is doing. Read-only.
+    show what the device read is doing. ``project_code_page`` as for
+    :func:`~xknxeditor.recover.parameters.recover_parameters`. Read-only.
     """
     mask_version = await programmer.read_device_descriptor()
     dossier = await read_dossier(programmer)
@@ -180,11 +190,13 @@ async def recover_device(
         progress(STAGE_PARAMETERS)
     parameter_segments = await read_parameter_memory(programmer, application)
     property_values = await read_property_values(programmer, application)
-    parameters = recover_parameters(application, parameter_segments, property_values)
+    parameters = recover_parameters(
+        application, parameter_segments, property_values, project_code_page
+    )
     # Resolve com object numbers against a UI seeded with the recovered parameters,
     # so module instances (and their runtime numbers) match the device rather than
     # the application defaults.
-    seeded_ui = seed_dynamic_ui(application, parameters.values)
+    seeded_ui = seed_dynamic_ui(application, parameters.values, project_code_page)
     com_object_refs = com_object_ref_by_number(application, seeded_ui)
     return RecoveredDevice(
         address=address,
@@ -228,6 +240,7 @@ async def recover_device_at(
     progress: Callable[[str], None] | None = None,
     attempts: int = 3,
     retry_delay: float = 1.5,
+    project_code_page: str | None = None,
 ) -> RecoveredDevice:
     """Open a connection to ``address``, recover the device, and close it again.
 
@@ -235,7 +248,9 @@ async def recover_device_at(
     APDU length is read first so reads use larger, fewer telegrams, capped at
     ``interface_max_apdu_length`` (the connecting interface's maximum): a device behind
     a tunnelling-v1 interface may advertise longer frames than the interface can carry,
-    and those frames are dropped. ``progress`` reports the current read stage. Read-only.
+    and those frames are dropped. ``progress`` reports the current read stage.
+    ``project_code_page`` as for :func:`~xknxeditor.recover.parameters.recover_parameters`.
+    Read-only.
 
     A transient transport failure (the KNXnet/IP tunnel dropping the point-to-point
     connection under sustained load - a ``DisconnectRequest``, a missing ACK, or a
@@ -265,7 +280,11 @@ async def recover_device_at(
                     # longer frame the interface could not deliver was the cause.
                     programmer.max_apdu_length = DEFAULT_MAX_APDU_LENGTH
             return await recover_device(
-                programmer, application, address=str(target), progress=progress
+                programmer,
+                application,
+                address=str(target),
+                progress=progress,
+                project_code_page=project_code_page,
             )
         except (ManagementConnectionError, XKNXException, MemoryReadNotAnswered) as exc:
             # Transport hiccup, or a long read the interface dropped (raised as

@@ -526,6 +526,7 @@ class ProjectPlugin:
                 "project", 0, status
             ),
             get_path=lambda: api.project.path,
+            on_set_code_page=api.project.set_project_code_page,
         )
         self._project_log_panel = ProjectLogPanel(
             get_traces=api.project.get_project_traces,

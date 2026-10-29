@@ -274,6 +274,7 @@ class RecoverService:
                     entry.application,
                     interface_max_apdu_length=self._api.connection.interface_max_apdu_length,
                     progress=self._on_recover_stage,
+                    project_code_page=self._api.project.project_code_page(),
                 )
                 entry.state = S.STATE_RECOVERED
                 if self._log is not None:

@@ -14,6 +14,7 @@ as opaque text — we never assume its exact characters.
 from __future__ import annotations
 
 import base64
+import re
 
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives.padding import PKCS7
@@ -23,6 +24,9 @@ TRACE_SENTINEL = "xknx-trace-probe"
 
 #: AES block size in bits, for PKCS#7 padding.
 _BLOCK_BITS = 128
+
+#: The base64 an encrypted comment ends in: at least one AES block (16 bytes, 24 characters).
+_BASE64_TAIL = re.compile(r"[A-Za-z0-9+/]{22,}={0,2}$")
 
 _key: bytes | None = None
 _iv: bytes | None = None
@@ -56,6 +60,28 @@ def current_marker() -> str | None:
 def is_encrypted(comment: str) -> bool:
     """Whether ``comment`` looks like an encrypted comment (needs an installed marker)."""
     return _marker is not None and comment.startswith(_marker)
+
+
+def looks_encrypted(comment: str) -> bool:
+    """Whether ``comment`` has the stored form of an encrypted comment, also without a key: some
+    marker text followed by the base64 of whole AES blocks. With a key installed, its marker
+    decides (see :func:`is_encrypted`)."""
+    if _marker is not None:
+        return is_encrypted(comment)
+    tail = _BASE64_TAIL.search(comment)
+    if tail is None or tail.start() == 0:
+        return False
+    # The marker may end in characters base64 also uses: try the tail from each later start.
+    for start in range(tail.start(), len(comment) - 15):
+        if (len(comment) - start) % 4:
+            continue
+        try:
+            data = base64.b64decode(comment[start:], validate=True)
+        except ValueError:
+            continue
+        if data and len(data) % 16 == 0:
+            return True
+    return False
 
 
 def decrypt_comment(comment: str) -> str | None:
