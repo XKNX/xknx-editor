@@ -68,6 +68,8 @@ class CatalogService:
         self._replaces: dict[str, list[int]] = {}
         # Factory images (``LoadedImage`` and ``CheckSums``) by hardware program id, read once.
         self._factory_images: dict[str, FactoryData | None] = {}
+        # Second application programs (PEI programs) by hardware program id, read once.
+        self._second_applications: dict[str, Application | None] = {}
         # Shared with the project service so a background import can hold both while it writes.
         self._io_lock = io_lock or threading.RLock()
         # Manufacturer list from the KNX online catalog service (cached next to the db), named from
@@ -393,6 +395,16 @@ class CatalogService:
                 hardware2program_id
             )
         return self._factory_images[hardware2program_id]
+
+    def second_application(self, hardware2program_id: str) -> Application | None:
+        """The second application program of a hardware program (its PEI program, loaded with
+        the application), or ``None`` when it has none. Not skipped while an import runs: a
+        download must not go without it."""
+        if hardware2program_id not in self._second_applications:
+            self._second_applications[hardware2program_id] = (
+                self._service.get_second_application(hardware2program_id)
+            )
+        return self._second_applications[hardware2program_id]
 
     @io_guarded(lambda: False)
     def hardware_is_ip_enabled(self, hardware2program_id: str) -> bool:

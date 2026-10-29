@@ -123,3 +123,44 @@ def test_ip_config_of_the_application(tmp_path: Path) -> None:
         for entry, data in entries.items():
             archive.writestr(entry, data)
     assert service.get_ip_config(program) == "Custom"
+
+
+def test_second_application_of_the_hardware_program(tmp_path: Path) -> None:
+    import re
+    import zipfile
+
+    service = CatalogService(tmp_path / "cat.xknxcatalog")
+    service.import_knxprod(_FIXTURE.read_bytes())
+    program = service.list_products()[0].hardware2program_ref_id
+    assert program is not None
+    # One application program only.
+    assert service.get_second_application(program) is None
+    assert service.get_second_application("M-0000_H-unknown_HP-0000-00-0000") is None
+
+    source = service.get_program_source(program)
+    assert source is not None
+    stored = Path(source[0])
+    with zipfile.ZipFile(stored) as archive:
+        entries = {name: archive.read(name) for name in archive.namelist()}
+    first = "M-0008_A-7072-21-5CC3-O000A"
+    second = "M-0008_A-7072-43-1234"
+    # A PEI program as second ApplicationProgramRef, as presence detectors have one.
+    entries[f"M-0008/{second}.xml"] = (
+        entries[f"M-0008/{first}.xml"]
+        .decode("utf-8")
+        .replace(first, second)
+        .encode("utf-8")
+    )
+    entries["M-0008/Hardware.xml"] = re.sub(
+        rf'(<ApplicationProgramRef RefId="{first}" */>)',
+        rf'\1<ApplicationProgramRef RefId="{second}" />',
+        entries["M-0008/Hardware.xml"].decode("utf-8"),
+    ).encode("utf-8")
+    with zipfile.ZipFile(stored, "w") as archive:
+        for name, data in entries.items():
+            archive.writestr(name, data)
+    found = service.get_second_application(program)
+    assert found is not None and found.id == second
+
+    stored.unlink()
+    assert service.get_second_application(program) is None

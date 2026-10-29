@@ -413,6 +413,7 @@ async def eval_device(
     ip_config: IpDeviceConfig | None = None,
     interface_max_apdu_length: int | None = None,
     factory_image: FactoryData | None = None,
+    second_application: Application | None = None,
 ) -> PreflightReport:
     """Dry run: report what programming ``device`` would change, writing nothing.
 
@@ -421,7 +422,8 @@ async def eval_device(
     ``security`` (KNX Data Secure tool key) secures the point-to-point reads when the
     device is commissioned secure; ``None`` reads in the clear.
     ``interface_max_apdu_length`` (the connected interface's maximum) limits the frames.
-    ``factory_image`` is the product's ``LoadedImage`` (see ``Device.factory_image``).
+    ``factory_image`` is the product's ``LoadedImage`` (see ``Device.factory_image``),
+    ``second_application`` its second application program (``Device.second_application``).
     """
     return await preflight(
         xknx,
@@ -433,6 +435,7 @@ async def eval_device(
         security=security,
         ip_config=ip_config,
         interface_max_apdu_length=interface_max_apdu_length,
+        application2=second_application,
     )
 
 
@@ -454,6 +457,7 @@ async def download_device(
     memory_service_count: int | None = None,
     interface_max_apdu_length: int | None = None,
     factory_image: FactoryData | None = None,
+    second_application: Application | None = None,
 ) -> DownloadResult:
     """Program ``device``: build its image and run the load procedure on the bus.
 
@@ -477,7 +481,8 @@ async def download_device(
     ``disable_security`` switches a device whose secure commissioning was deactivated to plain
     communication. ``interface_max_apdu_length`` (the connected interface's maximum)
     limits the frames. ``factory_image`` is the product's ``LoadedImage`` (see
-    ``Device.factory_image``).
+    ``Device.factory_image``), ``second_application`` its second application program, loaded
+    with the application (see ``Device.second_application``).
     """
     return await download(
         xknx,
@@ -498,4 +503,5 @@ async def download_device(
         ip_config=ip_config,
         memory_service_count=memory_service_count,
         interface_max_apdu_length=interface_max_apdu_length,
+        application2=second_application,
     )

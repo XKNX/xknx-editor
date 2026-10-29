@@ -17,6 +17,7 @@ from xknxeditor.catalog.core.applications import (
     get_application_xml,
     get_ip_config,
     get_replaces_versions,
+    get_second_application_detail,
     list_applications,
     load_application_program,
 )
@@ -300,6 +301,11 @@ class CatalogService:
     def get_application_detail(self, program_id: str) -> Application | None:
         with Session(self._engine) as db:
             return get_application_detail(db, program_id)
+
+    def get_second_application(self, program_id: str) -> Application | None:
+        """The hardware program's second application program (its PEI program), if any."""
+        with Session(self._engine) as db:
+            return get_second_application_detail(db, program_id)
 
     # --- catalog sections -------------------------------------------------
 

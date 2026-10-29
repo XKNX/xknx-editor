@@ -1032,6 +1032,7 @@ class ConnectionService:
                 memory_service_count=seed_cap,
                 interface_max_apdu_length=self.interface_max_apdu_length,
                 factory_image=_factory_image(device),
+                second_application=_second_application(device),
             )
         )
         if future is not None:
@@ -1301,6 +1302,7 @@ class ConnectionService:
                 ip_config=ip_config,
                 interface_max_apdu_length=self.interface_max_apdu_length,
                 factory_image=_factory_image(device),
+                second_application=_second_application(device),
             )
         )
         if future is not None:
@@ -1610,3 +1612,10 @@ class ConnectionService:
 def _factory_image(device: Device) -> FactoryData | None:
     """The factory image of ``device``'s product, read here (not on the bus thread)."""
     return device.factory_image() if device.factory_image is not None else None
+
+
+def _second_application(device: Device) -> Application | None:
+    """The second application program of ``device``'s product, read here (not on the bus
+    thread)."""
+    getter = device.second_application
+    return getter() if getter is not None else None

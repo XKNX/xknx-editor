@@ -784,6 +784,43 @@ def build_image(
     )
 
 
+def with_second_program(
+    image: DownloadImage, application2: Application
+) -> DownloadImage:
+    """``image`` with the relative code segments of the product's second application program
+    (its PEI program, which has no parameters): their data, written in a full download."""
+    code = application2.program.static.code
+    added: list[ObjectMemorySegment] = []
+    for segment in code.relative_segment if code is not None else ():
+        data = (segment.data or b"")[: segment.size]
+        initialized = bytes([0xFF]) * len(data)
+        if segment.mask is not None:
+            mask = segment.mask.ljust(len(data), b"\x00")[: len(data)]
+            initialized = bytes(a & b for a, b in zip(initialized, mask, strict=True))
+        added.append(
+            ObjectMemorySegment(
+                segment.load_state_machine,
+                MemorySegment(
+                    segment.offset,
+                    data.ljust(segment.size, b"\x00"),
+                    bytes(segment.size),
+                    initialized.ljust(segment.size, b"\x00"),
+                ),
+            )
+        )
+    if not added:
+        return image
+    object_segments = dict(image.object_segments)
+    for segment in added:
+        if segment.memory.address == 0:
+            object_segments.setdefault(segment.object_index, segment.memory.data)
+    return replace(
+        image,
+        application_segments=(*image.application_segments, *added),
+        object_segments=MappingProxyType(object_segments),
+    )
+
+
 def _procedure_parameters(application: Application, ui: DynamicUI) -> dict[str, str]:
     """The current values of the active parameters a ``choose`` in the load procedure tests;
     an inactive one has none, so its ``choose`` selects no controls."""

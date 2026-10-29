@@ -104,6 +104,7 @@ def resolve_download_controls(
     access: ResourceAccess = ResourceAccess.REMOTE,
     has_application_program2: bool = False,
     parameter_values: Mapping[str, str] | None = None,
+    application2: Application | None = None,
 ) -> list[object]:
     """Return the flat, ordered list of Load Controls to run for a download.
 
@@ -114,7 +115,17 @@ def resolve_download_controls(
     ``parameter_values`` holds the values of the device's active parameters that a ``choose``
     in the procedure tests (see :func:`procedure_parameter_refs`); a ``choose`` on a parameter
     missing there selects no controls.
+    ``application2`` is the product's second application program (its PEI program): the mask's
+    procedure for both programs is taken, with the fragments of both merged in. An application
+    with a procedure of its own (``ProductProcedure``) is loaded with that procedure alone.
     """
+    if (
+        application2 is not None
+        and application.load_procedure_style != LoadProcedureStyle.PRODUCT_PROCEDURE
+    ):
+        has_application_program2 = True
+    else:
+        application2 = None
     try:
         return _resolve_controls(
             application,
@@ -124,6 +135,7 @@ def resolve_download_controls(
             access=access,
             has_application_program2=has_application_program2,
             values=parameter_values or {},
+            application2=application2,
         )
     except UnsupportedProcedureError:
         # A product the manufacturer's download plug-in downloads may ship no Load procedure
@@ -159,6 +171,7 @@ def _resolve_controls(
     access: ResourceAccess,
     has_application_program2: bool,
     values: Mapping[str, str],
+    application2: Application | None = None,
 ) -> list[object]:
     style = application.load_procedure_style
     load_procedures = application.load_procedures
@@ -197,11 +210,18 @@ def _resolve_controls(
             f"master data is required for {style} on mask {application.program.mask_version}"
         )
 
+    fragments = _fragments_by_merge_id(load_procedures, values)
+    if application2 is not None:
+        # The second program's fragments follow the first program's of the same merge id.
+        for merge_id, more in _fragments_by_merge_id(
+            application2.load_procedures, values
+        ).items():
+            fragments.setdefault(merge_id, []).extend(more)
     controls = [
         c
         for c in _splice(
             [c for c in _expand(default.choice, values) if control_applies(c, scope)],
-            _fragments_by_merge_id(load_procedures, values),
+            fragments,
         )
         if control_applies(c, scope)
     ]

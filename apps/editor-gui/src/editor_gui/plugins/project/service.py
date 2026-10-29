@@ -367,6 +367,8 @@ class _DeviceInputs:
     binary_data: tuple[Any, ...] = ()
     # Gives the product's factory image (see Device.factory_image).
     factory_image: Callable[[], FactoryData | None] | None = None
+    # Gives the product's second application program (see Device.second_application).
+    second_application: Callable[[], Application | None] | None = None
     # Gives the project's codepage (see Device.project_code_page).
     project_code_page: Callable[[], str | None] | None = None
 
@@ -388,6 +390,7 @@ def _compute_device(inputs: _DeviceInputs, app: Application) -> Device:
     )
     device.download_plugin_required = inputs.download_plugin_required
     device.factory_image = inputs.factory_image
+    device.second_application = inputs.second_application
     device.project_code_page = inputs.project_code_page
     device.configuration_app = inputs.configuration_app
     for row in inputs.com_objects:
@@ -2055,6 +2058,16 @@ class ProjectService:
         catalog = self._catalog
         return lambda: catalog.factory_image(program_ref)
 
+    def _second_application_source(
+        self, program_ref: str | None
+    ) -> Callable[[], Application | None] | None:
+        """Gives the second application program of the product ``program_ref`` loads, read
+        when needed."""
+        if not program_ref:
+            return None
+        catalog = self._catalog
+        return lambda: catalog.second_application(program_ref)
+
     def _build_device(self, row: Any) -> Device | None:
         """The device of ``row``: from its snapshot when nothing it was derived from changed, else
         evaluated from its application (and a new snapshot made)."""
@@ -2171,6 +2184,7 @@ class ProjectService:
             return None
         device.download_plugin_required = self._requires_download_plugin(program_ref)
         device.factory_image = self._factory_image_source(program_ref)
+        device.second_application = self._second_application_source(program_ref)
         device.project_code_page = self.project_code_page
         device.configuration_app = next(
             (a.name for a in self._configuration_apps() if a.applies_to(app.id)),
@@ -2357,6 +2371,9 @@ class ProjectService:
             and self._requires_download_plugin(program_ref),
             binary_data=tuple(getattr(row, "binary_data", []) or []),
             factory_image=None if compared else self._factory_image_source(program_ref),
+            second_application=None
+            if compared
+            else self._second_application_source(program_ref),
             project_code_page=None if compared else self.project_code_page,
             configuration_app=None
             if compared

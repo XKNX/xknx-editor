@@ -478,6 +478,7 @@ class LoadProcedureRunner:
         memory_service_count: int | None = None,
         property_services: bool = True,
         application_loaded: bool = False,
+        application2: Application | None = None,
     ) -> None:
         """Initialize the runner.
 
@@ -500,10 +501,14 @@ class LoadProcedureRunner:
         ``application_loaded`` runs a full procedure on a device that already has
         the application loaded (``PreferPartialDownloadIfApplicationLoaded``): the
         segments' code seed is not written, only the tables and the parameters.
+
+        ``application2`` is the product's second application program: its id is the one
+        written to the second program's object.
         """
         if programmer is None and connection_manager is None:
             raise DownloadError("provide a programmer or a connection manager")
         self.application = application
+        self.application2 = application2
         self.image = image
         self.scope = scope
         self.application_loaded = application_loaded
@@ -1702,6 +1707,9 @@ class LoadProcedureRunner:
         if control.prop_id == 13 and object_type in (3, 4):
             if control.start_element != 1 or control.count != 1:
                 raise ImageError("application identity requires element 1, count 1")
+            # The second program's object (type 4) holds that program's id.
+            if object_type == 4 and self.application2 is not None:
+                return _application_id(self.application2), None
             return _application_id(self.application), None
         width = self._property_widths.get(
             (index, control.prop_id), STANDARD_WRITE_WIDTHS.get(control.prop_id)

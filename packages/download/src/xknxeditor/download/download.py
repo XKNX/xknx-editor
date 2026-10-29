@@ -16,6 +16,7 @@ from typing import TYPE_CHECKING, NamedTuple
 from xknx.exceptions import ManagementConnectionError
 from xknx.telegram import IndividualAddress
 
+from xknxeditor.namespaces.intermediate.load_procedure_style_t import LoadProcedureStyle
 from xknxeditor.namespaces.intermediate.resource_addr_space_t import ResourceAddrSpace
 
 from .errors import (
@@ -26,7 +27,7 @@ from .errors import (
     UnsupportedProcedureError,
 )
 from .group_communication import materialize_group_communication_controls
-from .image import build_image
+from .image import build_image, with_second_program
 from .ip_config import (
     IP_PARAMETER_OBJECT,
     PID_MAC_ADDRESS,
@@ -143,14 +144,15 @@ def _resolve_controls(
     ip_secure: IpSecureConfig | None = None,
     disable_security: bool = False,
     routing_blocking: bool | None = None,
+    application2: Application | None = None,
 ) -> list[object]:
     """Select and materialize the scoped procedure before any device mutation.
 
     A secured download of a device with secured group addresses writes its security tables
     before the final restart; with ``tool_key`` it starts with the Security Mode and the Tool
     Key, with ``disable_security`` it ends with emptied tables and the Security Mode off (see
-    :mod:`.secure_config`)."""
-    controls = _resolve_procedure(application, master, image, scope)
+    :mod:`.secure_config`). ``application2`` is the product's second application program."""
+    controls = _resolve_procedure(application, master, image, scope, application2)
     if (
         ip_config is not None
         and scope in _IP_CONFIG_SCOPES
@@ -196,6 +198,7 @@ def _resolve_procedure(
     master: MasterData | None,
     image: DownloadImage,
     scope: DownloadScope,
+    application2: Application | None = None,
 ) -> list[object]:
     master_raw = master.raw if master is not None else None
     if scope in (DownloadScope.UNLOAD, DownloadScope.UNLOAD_ALL):
@@ -206,12 +209,14 @@ def _resolve_procedure(
             master_raw,
             procedure_type=ProcedureType.UNLOAD,
             parameter_values=image.procedure_parameters,
+            application2=application2,
         )
     base = resolve_download_controls(
         application,
         master_raw,
         scope=scope,
         parameter_values=image.procedure_parameters,
+        application2=application2,
     )
     return materialize_group_communication_controls(
         image,
@@ -247,8 +252,10 @@ async def _partial_scope(
     master: MasterData | None,
     scope: DownloadScope,
     confirm_full_download: Callable[[str], Awaitable[bool]] | None,
+    application2: Application | None = None,
 ) -> _ScopeCheck:
-    """The scope to download after checking the device's application."""
+    """The scope to download after checking the device's application (and the product's second
+    application program ``application2``)."""
     from .partial import (
         DifferentProgramLoaded,
         FullDownloadDeclined,
@@ -276,7 +283,9 @@ async def _partial_scope(
     try:
         programmer = DeviceProgrammer(await manager.open())
         memory_services(application).apply(programmer)
-        reason = await partial_download_mismatch(programmer, application, resources)
+        reason = await partial_download_mismatch(
+            programmer, application, resources, application2
+        )
     except ManagementConnectionError as exc:
         if not prefer:
             raise
@@ -407,6 +416,19 @@ def _with_mask_memory(
     return replace(image, mask_memory=ranges) if ranges else image
 
 
+def _with_second_program(
+    image: DownloadImage, application: Application, application2: Application | None
+) -> DownloadImage:
+    """``image`` with the segments of the second application program ``application2``, which
+    the mask's procedure loads with the application (not one with a procedure of its own)."""
+    if (
+        application2 is None
+        or application.load_procedure_style == LoadProcedureStyle.PRODUCT_PROCEDURE
+    ):
+        return image
+    return with_second_program(image, application2)
+
+
 def _reject_address_scope(scope: DownloadScope) -> None:
     if scope.individual_address_only:
         raise UnsupportedProcedureError(
@@ -462,6 +484,7 @@ async def download(
     routing_blocking: bool | None = None,
     memory_service_count: int | None = None,
     interface_max_apdu_length: int | None = None,
+    application2: Application | None = None,
 ) -> DownloadResult:
     """Download ``application`` into the device at ``individual_address``.
 
@@ -517,6 +540,10 @@ async def download(
     ``routing_blocking`` blocks (``True``) or routes (``False``) point-to-point and broadcast
     messages on both sides of a coupler with the security extensions (KNX AN192); ``None``
     leaves them.
+
+    ``application2`` is the product's second application program (the PEI program of a
+    Hardware2Program with two ApplicationProgramRefs): a full download loads it with the
+    application, a partial one checks that the device runs it.
     """
     if tool_key is not None and security is None:
         raise DownloadError("writing the Tool Key needs a secured download")
@@ -537,7 +564,9 @@ async def download(
         )
     else:
         logger.debug("download: using pre-built image (scope=%s)", scope.name)
-    image = _with_mask_memory(image, application, master)
+    image = _with_second_program(
+        _with_mask_memory(image, application, master), application, application2
+    )
     controls = _resolve_controls(
         application,
         master,
@@ -549,6 +578,7 @@ async def download(
         ip_secure,
         disable_security,
         routing_blocking if security is not None else None,
+        application2,
     )
     address = IndividualAddress(individual_address)
     if (
@@ -570,7 +600,14 @@ async def download(
             xknx, address, serial_number=commission_serial_number
         )
     checked = await _partial_scope(
-        xknx, address, security, application, master, scope, confirm_full_download
+        xknx,
+        address,
+        security,
+        application,
+        master,
+        scope,
+        confirm_full_download,
+        application2,
     )
     application_loaded = checked.application_loaded
     if checked.scope is not scope:
@@ -586,6 +623,7 @@ async def download(
             ip_secure,
             disable_security,
             routing_blocking if security is not None else None,
+            application2,
         )
     adapted = await _device_association_format(xknx, address, security, image, scope)
     if adapted is not image:
@@ -601,6 +639,7 @@ async def download(
             ip_secure,
             disable_security,
             routing_blocking if security is not None else None,
+            application2,
         )
     apdu_ceiling, negotiate_apdu = _apdu_settings(
         max_apdu_length, interface_max_apdu_length
@@ -647,6 +686,7 @@ async def download(
             memory_service_count=memory_cap,
             property_services=_property_services(application, master),
             application_loaded=application_loaded,
+            application2=application2,
         )
         try:
             await runner.run(progress)
@@ -737,6 +777,7 @@ async def preflight(
     security: DeviceSecurity | None = None,
     ip_config: IpDeviceConfig | None = None,
     interface_max_apdu_length: int | None = None,
+    application2: Application | None = None,
 ) -> PreflightReport:
     """Report what :func:`download` would change on the device, changing nothing.
 
@@ -748,7 +789,8 @@ async def preflight(
     procedure's compare controls). Pass a pre-built ``image`` to skip assembly.
     ``interface_max_apdu_length`` limits the negotiated APDU length as for
     :func:`download`; a long memory read that gets no response is repeated with
-    smaller blocks. ``xknx`` has to be started.
+    smaller blocks. ``xknx`` has to be started. ``application2`` is the product's second
+    application program, as for :func:`download`.
     """
     _reject_address_scope(scope)
     if image is None:
@@ -758,16 +800,20 @@ async def preflight(
             parameter_values=parameter_values,
             group_communication=group_communication,
         )
-    image = _with_mask_memory(image, application, master)
+    image = _with_second_program(
+        _with_mask_memory(image, application, master), application, application2
+    )
     address = IndividualAddress(individual_address)
     application_loaded = False
     if scope not in _PARTIAL_SCOPES:
         # The scope a download would take (PreferPartialDownloadIfApplicationLoaded).
         scope, application_loaded = await _partial_scope(
-            xknx, address, security, application, master, scope, None
+            xknx, address, security, application, master, scope, None, application2
         )
     image = await _device_association_format(xknx, address, security, image, scope)
-    controls = _resolve_controls(application, master, image, scope, ip_config)
+    controls = _resolve_controls(
+        application, master, image, scope, ip_config, application2=application2
+    )
     apdu_ceiling, negotiate_apdu = _apdu_settings(
         max_apdu_length, interface_max_apdu_length
     )
@@ -789,6 +835,7 @@ async def preflight(
             memory_service_count=memory_cap,
             property_services=_property_services(application, master),
             application_loaded=application_loaded,
+            application2=application2,
         )
         try:
             return await runner.preflight()
