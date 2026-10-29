@@ -168,14 +168,8 @@ from xknxeditor.proj import (
     session_products,
     signing_key_is_placeholder,
 )
-from xknxeditor.proj.core import ets_store, import_notes
+from xknxeditor.proj.core import import_notes, project_store
 from xknxeditor.proj.core.addressing import GroupAddressStyle
-from xknxeditor.proj.core.ets_store_serialize import (
-    next_free_pid,
-    store_pid_exists,
-    unzip_members,
-    write_project_store,
-)
 from xknxeditor.proj.core.ga_export import CSV_LAYOUTS, CSV_SEPARATORS
 from xknxeditor.proj.core.import_notes import ImportLoss
 from xknxeditor.proj.core.product_prune import (
@@ -183,6 +177,12 @@ from xknxeditor.proj.core.product_prune import (
     STEP_MANUFACTURER,
     STEP_STORE,
     STEP_VACUUM,
+)
+from xknxeditor.proj.core.project_store_serialize import (
+    next_free_pid,
+    store_pid_exists,
+    unzip_members,
+    write_project_store,
 )
 from xknxeditor.proj.db import frame_db_profiler, make_engine, url_for
 from xknxeditor.proj.models import Device, Installation, Project
@@ -479,7 +479,7 @@ class KnxGuiApp:
         # Folder picker for the ProjectStore export when the default path is not found, and which
         # ETS generation that export is aimed at (set when the export starts, read by the dialogs).
         self._projectstore_dialog: file_dialogs.SelectFolderDialog | None = None
-        self._projectstore_format = ets_store.StoreFormat.ETS6
+        self._projectstore_format = project_store.StoreFormat.ETS6
         # File picker for the ETS installer.guid when it is not found locally (e.g. exporting on a
         # Mac for a Windows ETS), plus the store folder resolved in the step before it.
         self._installer_guid_dialog: file_dialogs.OpenFileDialog | None = None
@@ -1606,12 +1606,14 @@ class KnxGuiApp:
         data["export_schema"] = code
         save_settings("app", data)
 
-    def _ets_projectstore_dir(self, store_format: ets_store.StoreFormat) -> Path:
+    def _ets_projectstore_dir(self, store_format: project_store.StoreFormat) -> Path:
         """Default project store for ``store_format``: %ProgramData%\\KNX\\ETS{5,6}\\ProjectStore."""
         base = os.environ.get("PROGRAMDATA") or r"C:\ProgramData"
         return Path(base) / "KNX" / store_format.app_dir / "ProjectStore"
 
-    def _begin_projectstore_export(self, store_format: ets_store.StoreFormat) -> None:
+    def _begin_projectstore_export(
+        self, store_format: project_store.StoreFormat
+    ) -> None:
         """Resolve the ProjectStore folder for ``store_format`` (default, else ask), then export."""
         self._projectstore_format = store_format
         store = self._ets_projectstore_dir(store_format)
@@ -1619,14 +1621,14 @@ class KnxGuiApp:
             self._resolve_installer_guid_then_export(store)
         else:
             # ETS not at the default location (or non-Windows): ask the user for the store folder.
-            ets = "ETS 5" if store_format is ets_store.StoreFormat.ETS5 else "ETS 6"
+            ets = "ETS 5" if store_format is project_store.StoreFormat.ETS5 else "ETS 6"
             self._projectstore_dialog = file_dialogs.select_folder(
                 S.MYKNX_DONGLE_PICK_STORE.format(ets=ets), ""
             )
 
     def _resolve_installer_guid_then_export(self, store: Path) -> None:
         """Resolve the target ETS installation GUID (read it locally, else let the user pick it)."""
-        guid = ets_store.read_installer_guid(self._projectstore_format, store=store)
+        guid = project_store.read_installer_guid(self._projectstore_format, store=store)
         if guid:
             self._prepare_projectstore_export(store, guid)
         else:
@@ -1728,7 +1730,7 @@ class KnxGuiApp:
                     )
                 ets = (
                     "ETS 5"
-                    if self._projectstore_format is ets_store.StoreFormat.ETS5
+                    if self._projectstore_format is project_store.StoreFormat.ETS5
                     else "ETS 6"
                 )
                 self._log.info(
@@ -2004,8 +2006,8 @@ class KnxGuiApp:
                 # produce yet, without which ETS 5 can crash opening an area with devices. For
                 # ETS 5 use the "Export without Certificate" .knxproj route instead (see the
                 # steps). Re-enable when the cache is produced:
-                # self._begin_projectstore_export(ets_store.StoreFormat.ETS5)
-                self._begin_projectstore_export(ets_store.StoreFormat.ETS6)
+                # self._begin_projectstore_export(project_store.StoreFormat.ETS5)
+                self._begin_projectstore_export(project_store.StoreFormat.ETS6)
                 self._export_pending_dest = None
                 imgui.close_current_popup()
                 end_dialog()

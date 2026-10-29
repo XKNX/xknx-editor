@@ -2496,7 +2496,7 @@ class _Writer:
 
 
 # Object-model id/ref helpers shared with the ETS project-store serializer
-# (:mod:`ets_store_serialize`), which emits the same model in a different stream shape.
+# (:mod:`project_store_serialize`), which emits the same model in a different stream shape.
 assign_ids = _assign_ids
 enable = _enable
 group_object_tree_instances = _group_object_tree_instances

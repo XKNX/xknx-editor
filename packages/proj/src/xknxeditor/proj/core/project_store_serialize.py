@@ -1,6 +1,6 @@
 """Serialize a project document into the ETS6 internal project-store streams.
 
-Companion to :mod:`ets_store` (the integrity sidecars). A ``.knxproj`` is the interchange format;
+Companion to :mod:`project_store` (the integrity sidecars). A ``.knxproj`` is the interchange format;
 the local project store is a different, internal shape: one XML stream per object-model section --
 ``P`` (project), ``B`` (buildings), ``I`` (installation), ``U`` (unassigned devices), ``G`` (group
 addresses), ``PT`` (traces) and one ``P-XXXX-0_A-N`` per topology area (devices live there).
@@ -32,13 +32,6 @@ from uuid import uuid4
 from sqlalchemy.orm import object_session
 
 from xknxeditor.proj.core.dpt import normalize_datapoint_type
-from xknxeditor.proj.core.ets_store import (
-    StoreFormat,
-    project_mask,
-    write_store_descriptor,
-    write_store_stream,
-    write_store_version,
-)
 from xknxeditor.proj.core.ga_security import secured_group_addresses
 from xknxeditor.proj.core.knxproj_export import (
     assign_ids,
@@ -48,6 +41,13 @@ from xknxeditor.proj.core.knxproj_export import (
     localname,
     relidref,
     tree_covers,
+)
+from xknxeditor.proj.core.project_store import (
+    StoreFormat,
+    project_mask,
+    write_store_descriptor,
+    write_store_stream,
+    write_store_version,
 )
 from xknxeditor.proj.models import (
     UNDEFINED_STATUS,
@@ -692,7 +692,7 @@ def build_store_streams(
 
     ``name`` overrides the stored project name (e.g. to tag a new copy); ``None`` keeps it.
     ``store_format`` selects the target ETS generation's stream shapes -- the two are not
-    interchangeable, see :class:`xknxeditor.proj.core.ets_store.StoreFormat`.
+    interchangeable, see :class:`xknxeditor.proj.core.project_store.StoreFormat`.
     ``group_object_trees`` are trees of devices whose stored one is out of date, as for the
     ``.knxproj`` export (:func:`xknxeditor.proj.core.knxproj_export.export_knxproj`).
     """
@@ -729,7 +729,7 @@ def write_project_store(
     ``{pid}.store`` descriptor bound to ``installer_guid`` (the target machine's ETS installation
     GUID). Manufacturer product data (``M-XXXX/*`` members) is written loose so device product/
     application refs resolve, each folder getting its own ``M-XXXX.store`` descriptor the same way
-    the project folder does (see :func:`xknxeditor.proj.core.ets_store.store_descriptor` -- verified
+    the project folder does (see :func:`xknxeditor.proj.core.project_store.store_descriptor` -- verified
     against a genuine ProjectStore, a manufacturer folder without one is treated as missing/untrusted
     even though its files and hashes are otherwise correct); empty ``BinaryData``/``UserFiles``/
     ``AddinData`` folders complete the layout. ``dest_dir`` is the ``P-XXXX`` folder itself (use

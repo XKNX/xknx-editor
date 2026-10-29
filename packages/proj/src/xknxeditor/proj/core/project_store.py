@@ -34,7 +34,7 @@ class StoreFormat(Enum):
     the other's: ETS 5 discards every line of an ETS 6 topology (it wants ``MediumTypeRefId`` on the
     ``Line``, not on a ``Segment`` it knows nothing about), which drops all devices and leaves the
     project open-able but empty. The ``storeVersion`` marker is the declared discriminator; see
-    ets_store_serialize for the per-format stream shapes.
+    project_store_serialize for the per-format stream shapes.
     """
 
     ETS5 = "ets5"

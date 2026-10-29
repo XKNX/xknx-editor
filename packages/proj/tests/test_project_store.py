@@ -1,4 +1,4 @@
-"""Tests for the ETS ProjectStore integrity primitives (ets_store).
+"""Tests for the ETS ProjectStore integrity primitives (project_store).
 
 Includes two independent sources of ground truth, on top of the ordinary unit tests:
 
@@ -15,7 +15,7 @@ Includes two independent sources of ground truth, on top of the ordinary unit te
 
 from __future__ import annotations
 
-from xknxeditor.proj.core.ets_store import ets5hash, project_mask, store_descriptor
+from xknxeditor.proj.core.project_store import ets5hash, project_mask, store_descriptor
 
 # --- captured from a genuine ETS 5.7.7 ProjectStore (P-0680) -----------------------------------
 

@@ -1,6 +1,6 @@
 # Download mismatches seen against ETS
 
-Use a section only when `compare_ets_download.py` reports that class. Re-run the script after the change.
+Use a section only when `compare_download_capture.py` reports that class. Re-run the script after the change.
 
 ## Group-object communication bit
 

@@ -13,8 +13,8 @@ from xml.etree import ElementTree as ET
 import pytest
 from sqlalchemy.orm import Session
 
-from xknxeditor.proj.core import ets_store
-from xknxeditor.proj.core.ets_store_serialize import (
+from xknxeditor.proj.core import project_store
+from xknxeditor.proj.core.project_store_serialize import (
     build_store_streams,
     next_free_pid,
     store_pid_exists,
@@ -228,7 +228,7 @@ def test_ets5_store_drops_what_ets5_cannot_read() -> None:
     with _session() as session:
         project, inst = _project(session)
         built = build_store_streams(
-            project, inst, store_format=ets_store.StoreFormat.ETS5
+            project, inst, store_format=project_store.StoreFormat.ETS5
         )
 
     for name in ("AI", "BA", "D", "HE", "IPSD", "S", "T", "UF"):
@@ -268,7 +268,7 @@ def test_store_writes_coupler_ip_config_and_extra_addresses() -> None:
         device.additional_addresses.append(DeviceAdditionalAddress(address=2, name=""))
         session.flush()
         built = build_store_streams(
-            project, inst, store_format=ets_store.StoreFormat.ETS5
+            project, inst, store_format=project_store.StoreFormat.ETS5
         )
     di = _di(built.streams, f"{PID}-0_A-2")
     ip = di.find("IP")
@@ -295,18 +295,18 @@ def test_write_project_store_sidecars(tmp_path: Path) -> None:
             product_members={"M-0083/Hardware.xml": b"<KNX/>"},
         )
 
-    mask = ets_store.project_mask(built.guid, built.pid)
+    mask = project_store.project_mask(built.guid, built.pid)
     # Every stream has a self-consistent .ets5hash sidecar.
     for name, data in built.streams.items():
         sidecar = (store_dir / f"{name}.ets5hash").read_text(encoding="ascii")
-        assert sidecar == ets_store.ets5hash(data, mask)
+        assert sidecar == project_store.ets5hash(data, mask)
     # storeVersion, the installation-bound descriptor, product data and the empty folders.
     assert (store_dir / "storeVersion").read_text(
         encoding="utf-8", newline=""
-    ) == ets_store.StoreFormat.ETS6.store_version
+    ) == project_store.StoreFormat.ETS6.store_version
     assert (store_dir / f"{PID}.store").read_text(
         encoding="utf-8"
-    ) == ets_store.store_descriptor(PID, INSTALLER_GUID)
+    ) == project_store.store_descriptor(PID, INSTALLER_GUID)
     assert (store_dir / "M-0083" / "Hardware.xml").read_bytes() == b"<KNX/>"
     for folder in ("BinaryData", "UserFiles", "AddinData"):
         assert (store_dir / folder).is_dir()
@@ -315,14 +315,14 @@ def test_write_project_store_sidecars(tmp_path: Path) -> None:
     # folder without one is otherwise treated as missing even though its files are all correct).
     assert (store_dir / "M-0083" / "M-0083.store").read_text(
         encoding="utf-8"
-    ) == ets_store.store_descriptor("M-0083", INSTALLER_GUID)
+    ) == project_store.store_descriptor("M-0083", INSTALLER_GUID)
     # Unused sections (no unassigned devices, no traces) get no base file at all, only a
     # .ets5hash of zero bytes -- matching a genuine store rather than a present-but-empty file.
     for name in ("U", "PT"):
         assert not (store_dir / name).exists()
         assert (store_dir / f"{name}.ets5hash").read_text(
             encoding="ascii"
-        ) == ets_store.ets5hash(b"", mask)
+        ) == project_store.ets5hash(b"", mask)
 
 
 def test_existing_folder_overwrite_is_clean(tmp_path: Path) -> None:
@@ -344,7 +344,7 @@ def test_reexport_preserves_content_this_writer_does_not_own(tmp_path: Path) -> 
     Regression test for the "project is damaged" / "M-XXXX folders are missing" reports: an
     earlier version of ``write_project_store`` unconditionally ``rmtree``'d the destination before
     swapping the freshly built folder in, which silently dropped every stream type this writer does
-    not model yet (``AI``/``BA``/``D``/``HE``/``IPSD``/``S``/``T``/``UF`` -- see ets_store.py), any
+    not model yet (``AI``/``BA``/``D``/``HE``/``IPSD``/``S``/``T``/``UF`` -- see project_store.py), any
     manufacturer folder this export could not resolve, and real ``BinaryData``/``UserFiles``
     attachments.
     """
@@ -391,7 +391,7 @@ def test_reexport_preserves_content_this_writer_does_not_own(tmp_path: Path) -> 
     assert not (store_dir / "M-0083" / "Stale.xml").exists()
     assert (store_dir / "M-0083" / "M-0083.store").read_text(
         encoding="utf-8"
-    ) == ets_store.store_descriptor("M-0083", INSTALLER_GUID)
+    ) == project_store.store_descriptor("M-0083", INSTALLER_GUID)
 
 
 def test_new_copy_uses_free_id_and_tagged_name(tmp_path: Path) -> None:
