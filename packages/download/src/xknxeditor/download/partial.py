@@ -99,11 +99,13 @@ async def partial_download_mismatch(
     programmer: DeviceProgrammer,
     application: Application,
     resources: MaskResources | None,
+    application2: Application | None = None,
 ) -> str | None:
     """Why the device cannot take a partial download of ``application``, or ``None``.
 
-    Raises :class:`IncompatibleMaskVersion` when the device's mask version does not fit;
-    that error stops any download.
+    ``application2`` is the product's second application program (its PEI program), which the
+    device has to run as well. Raises :class:`IncompatibleMaskVersion` when the device's mask
+    version does not fit; that error stops any download.
     """
     program = application.program
     mask = f"MV-{await programmer.read_device_descriptor():04X}"
@@ -119,34 +121,91 @@ async def partial_download_mismatch(
         )
     loaded = await _read(programmer, resources, ResourceName.APPLICATION_ID)
     if loaded is not None:
-        expected = application_id(application, len(loaded))
+        found, expected = program_id(loaded), program_id_of(application)
         options = program.static.options
-        patched = (
-            options is not None
-            and options.legacy_patch_manufacturer_id_in_task_segment
-            and len(loaded) == 5
-            and int.from_bytes(loaded[:2], "big") == _PATCHED_MANUFACTURER
-            and loaded[2:] == expected[2:]
-        )
-        if loaded != expected and not patched:
-            return (
-                "Partial download not possible because different application program: "
-                f"{loaded.hex(' ').upper()} instead of {expected.hex(' ').upper()}"
-            )
+        if found != expected:
+            if (
+                options is not None
+                and options.legacy_patch_manufacturer_id_in_task_segment
+                and found is not None
+                and found[0] == _PATCHED_MANUFACTURER
+                and found[1:] == expected[1:]
+            ):
+                logger.info(
+                    "Partial download: Different application program: %s instead of %s "
+                    "accepted because of LegacyDoNotPatchManufacturerId",
+                    _program_text(found),
+                    _program_text(expected),
+                )
+            else:
+                return (
+                    "Partial download not possible because different application program: "
+                    f"{_program_text(found)} instead of {_program_text(expected)}"
+                )
     options = program.static.options
     if options is not None and options.legacy_allow_partial_download_if_ap2_mismatch:
         return None
     pei = await _read(programmer, resources, ResourceName.PEIPROG_LOAD_STATUS)
+    if application2 is not None:
+        if pei is not None and pei[:1] != bytes([_LOADED]):
+            return (
+                "Partial download not possible because PEI program not loaded: "
+                f"load status={pei[0] if pei else None}"
+            )
+        pei_id = await _read(programmer, resources, ResourceName.PEIPROG_ID)
+        if pei_id is not None:
+            found, expected = program_id(pei_id), program_id_of(application2)
+            if found != expected:
+                return (
+                    "Partial download not possible because different PEI program: "
+                    f"{_program_text(found)} instead of {_program_text(expected)}"
+                )
+        return None
     if pei is None or pei[:1] == bytes([_UNLOADED]):
         return None
     if pei[:1] == bytes([_LOADED]):
-        pei_id = await _read(programmer, resources, ResourceName.PEIPROG_ID)
-        if pei_id is not None and pei_id[-1:] == b"\x00":
-            logger.info(
-                "partial download: accepted because the loaded PEI program is empty"
-            )
-            return None
-    return (
-        "Partial download not possible because PEI program in device is not unloaded: "
+        logger.warning(
+            "Partial download without PEI program, but PEI program in device is loaded"
+        )
+        return None
+    reason = (
+        "Partial download without PEI program, but PEI program in device is not unloaded: "
         f"load status={pei[0] if pei else None}"
     )
+    pei_id = await _read(programmer, resources, ResourceName.PEIPROG_ID)
+    if pei_id is not None and program_id(pei_id) == (0, 0, 0):
+        logger.warning(reason)
+        logger.warning("Accepted because loaded PEI program is 00 0000 00")
+        return None
+    return reason
+
+
+def program_id(data: bytes) -> tuple[int, int, int] | None:
+    """The (manufacturer, number, version) of a program id as a device stores it: five octets,
+    or four with a one-octet manufacturer; ``None`` for another length."""
+    if len(data) == 5:
+        return (
+            int.from_bytes(data[:2], "big"),
+            int.from_bytes(data[2:4], "big"),
+            data[4],
+        )
+    if len(data) == 4:
+        return data[0], int.from_bytes(data[1:3], "big"), data[3]
+    return None
+
+
+def program_id_of(application: Application) -> tuple[int, int, int]:
+    """The (manufacturer, number, version) of ``application``."""
+    program = application.program
+    return (
+        int(application.manufacturer_id.split("-")[-1], 16),
+        program.application_number,
+        program.application_version & 0xFF,
+    )
+
+
+def _program_text(program: tuple[int, int, int] | None) -> str:
+    if program is None:
+        return "?"
+    manufacturer, number, version = program
+    return f"{manufacturer} {number:04X} {version:02X}"
