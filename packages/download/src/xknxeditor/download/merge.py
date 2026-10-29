@@ -27,10 +27,14 @@ from typing import TYPE_CHECKING
 from xknxeditor.namespaces.intermediate.ld_ctrl_base_choose_t import LdCtrlBaseChoose
 from xknxeditor.namespaces.intermediate.ld_ctrl_base_t import LdCtrlBase
 from xknxeditor.namespaces.intermediate.ld_ctrl_compare_prop_t import LdCtrlCompareProp
+from xknxeditor.namespaces.intermediate.ld_ctrl_connect_t import LdCtrlConnect
+from xknxeditor.namespaces.intermediate.ld_ctrl_disconnect_t import LdCtrlDisconnect
 from xknxeditor.namespaces.intermediate.ld_ctrl_load_t import LdCtrlLoad
 from xknxeditor.namespaces.intermediate.ld_ctrl_merge_t import LdCtrlMerge
 from xknxeditor.namespaces.intermediate.ld_ctrl_proc_type_t import LdCtrlProcType
+from xknxeditor.namespaces.intermediate.ld_ctrl_restart_t import LdCtrlRestart
 from xknxeditor.namespaces.intermediate.ld_ctrl_task_segment_t import LdCtrlTaskSegment
+from xknxeditor.namespaces.intermediate.ld_ctrl_unload_t import LdCtrlUnload
 from xknxeditor.namespaces.intermediate.load_procedure_style_t import LoadProcedureStyle
 from xknxeditor.namespaces.intermediate.mask_version_t_management_model import (
     MaskVersionManagementModel,
@@ -116,16 +120,17 @@ def resolve_download_controls(
     in the procedure tests (see :func:`procedure_parameter_refs`); a ``choose`` on a parameter
     missing there selects no controls.
     ``application2`` is the product's second application program (its PEI program): the mask's
-    procedure for both programs is taken, with the fragments of both merged in. An application
-    with a procedure of its own (``ProductProcedure``) is loaded with that procedure alone.
+    procedure for both programs is taken, with the fragments of both merged in, or with
+    procedures of their own (``ProductProcedure``) both in one (see
+    :func:`_with_second_procedure`). An Unload always takes the mask's procedure for both
+    programs, with the application's fragments only.
     """
-    if (
-        application2 is not None
-        and application.load_procedure_style != LoadProcedureStyle.PRODUCT_PROCEDURE
-    ):
+    if procedure_type is not ProcedureType.LOAD:
+        has_application_program2, application2 = True, None
+        if scope not in (DownloadScope.UNLOAD, DownloadScope.UNLOAD_ALL):
+            scope = DownloadScope.UNLOAD
+    elif application2 is not None:
         has_application_program2 = True
-    else:
-        application2 = None
     try:
         return _resolve_controls(
             application,
@@ -180,12 +185,30 @@ def _resolve_controls(
     # fragments (MergedProcedure). The Unload procedure always comes from the
     # mask version's default in the master data, so never take the application's
     # own procedure for a non-Load request.
-    if (
-        procedure_type is ProcedureType.LOAD
-        and style == LoadProcedureStyle.PRODUCT_PROCEDURE
-    ):
+    load = procedure_type is ProcedureType.LOAD
+    bim_m112 = (
+        _management_model(master_data, device_mask_version(application))
+        is MaskVersionManagementModel.BIM_M112
+    )
+    second = application2 is not None
+    if load and style == LoadProcedureStyle.PRODUCT_PROCEDURE:
+        controls = _program_controls(
+            application, _flatten(load_procedures, values), bim_m112, False, second
+        )
+        if application2 is not None:
+            controls = _with_second_procedure(
+                controls,
+                _program_controls(
+                    application2,
+                    _flatten(application2.load_procedures, values),
+                    bim_m112,
+                    True,
+                    second,
+                ),
+                scope,
+            )
         return _finalize_controls(
-            _flatten(load_procedures, values),
+            correct_anomalies(controls),
             master_data,
             device_mask_version(application),
             scope,
@@ -210,21 +233,30 @@ def _resolve_controls(
             f"master data is required for {style} on mask {application.program.mask_version}"
         )
 
-    fragments = _fragments_by_merge_id(load_procedures, values)
+    fragments = {
+        merge_id: _program_controls(application, more, bim_m112, False, second)
+        for merge_id, more in _fragments_by_merge_id(load_procedures, values).items()
+    }
     if application2 is not None:
         # The second program's fragments follow the first program's of the same merge id.
         for merge_id, more in _fragments_by_merge_id(
             application2.load_procedures, values
         ).items():
-            fragments.setdefault(merge_id, []).extend(more)
-    controls = [
-        c
-        for c in _splice(
-            [c for c in _expand(default.choice, values) if control_applies(c, scope)],
-            fragments,
-        )
-        if control_applies(c, scope)
-    ]
+            fragments.setdefault(merge_id, []).extend(
+                _program_controls(application2, more, bim_m112, True, second)
+            )
+    # An Unload runs every control of the procedure; the merge points always take their
+    # fragments.
+    controls = _splice(
+        [
+            c
+            for c in _expand(default.choice, values)
+            if not load or isinstance(c, LdCtrlMerge) or control_applies(c, scope)
+        ],
+        fragments,
+    )
+    if load:
+        controls = correct_anomalies([c for c in controls if control_applies(c, scope)])
     return _finalize_controls(
         controls,
         master_data,
@@ -318,6 +350,117 @@ def _flatten(
     for procedure in load_procedures.load_procedure:
         controls.extend(_expand(procedure.choice, values))
     return controls
+
+
+# On a BIM M112 the second program has load state machine 4, the application 1 to 3; the
+# controls of these applications are taken as they are.
+_SECOND_PROGRAM_LSM = 4
+_DO_NOT_FILTER_LOAD_CONTROLS = (
+    "M-0001_A-8018-04",
+    "M-0001_A-8018-06",
+    "M-0001_A-8018-08",
+    "M-0001_A-8020-01",
+    "M-0001_A-8020-02",
+    "M-0001_A-8020-03",
+    "M-0001_A-8023-11",
+)
+
+
+def _management_model(
+    master_data: MasterData | None, mask_version_id: str
+) -> MaskVersionManagementModel | None:
+    if master_data is None or master_data.mask_versions is None:
+        return None
+    for mask_version in master_data.mask_versions.mask_version:
+        if mask_version.id == mask_version_id:
+            return getattr(mask_version, "management_model", None)
+    return None
+
+
+def _program_controls(
+    application: Application,
+    controls: Sequence[object],
+    bim_m112: bool,
+    second: bool,
+    has_second: bool,
+) -> list[object]:
+    """``controls`` of ``application`` (the second program when ``second``) without, on a
+    BIM M112, the other program's load state machines: the second program loads only from
+    LSM 4, the application not LSM 4, except its Unload when the product has no second
+    program."""
+    if not bim_m112 or application.program.id.startswith(_DO_NOT_FILTER_LOAD_CONTROLS):
+        return list(controls)
+    result: list[object] = []
+    for control in controls:
+        lsm = getattr(control, "lsm_idx", None)
+        if lsm is None:
+            keep = True
+        elif second:
+            keep = lsm >= _SECOND_PROGRAM_LSM
+        else:
+            keep = lsm != _SECOND_PROGRAM_LSM or (
+                isinstance(control, LdCtrlUnload) and not has_second
+            )
+        if keep:
+            result.append(control)
+        else:
+            logger.debug(
+                "removing %s (%s load control in %s)",
+                type(control).__name__,
+                "AP1" if second else "AP2",
+                "AP2" if second else "AP1",
+            )
+    return result
+
+
+def _with_second_procedure(
+    controls: Sequence[object], second: Sequence[object], scope: DownloadScope
+) -> list[object]:
+    """One procedure of the application's own procedure (``controls``) and the second
+    program's (``second``): the second program's first, the application's Unloads behind its
+    last Unload (else behind its first Connect, else at the start), the application's other
+    controls at the end."""
+    result = [c for c in second if control_applies(c, scope)]
+    unloads = [n for n, c in enumerate(result) if isinstance(c, LdCtrlUnload)]
+    connects = [n for n, c in enumerate(result) if isinstance(c, LdCtrlConnect)]
+    position = unloads[-1] + 1 if unloads else connects[0] + 1 if connects else 0
+    for control in controls:
+        if not control_applies(control, scope):
+            continue
+        if isinstance(control, LdCtrlUnload):
+            result.insert(position, control)
+            position += 1
+        else:
+            result.append(control)
+    return result
+
+
+def correct_anomalies(controls: Sequence[object]) -> list[object]:
+    """``controls`` without a Disconnect directly followed by a Connect, a Connect while
+    connected, a Disconnect while not connected and a second Restart in a row (the procedure
+    runner connects before a control that needs it and disconnects at the end)."""
+    result: list[object] = []
+    connected = False
+    for control in controls:
+        if isinstance(control, LdCtrlConnect):
+            if connected:
+                continue
+            connected = True
+            if result and isinstance(result[-1], LdCtrlDisconnect):
+                result.pop()
+                continue
+        elif isinstance(control, LdCtrlDisconnect):
+            if not connected:
+                continue
+            connected = False
+        elif (
+            isinstance(control, LdCtrlRestart)
+            and result
+            and isinstance(result[-1], LdCtrlRestart)
+        ):
+            continue
+        result.append(control)
+    return result
 
 
 def _fragments_by_merge_id(
@@ -470,8 +613,9 @@ def _default_procedure(
                 or access not in procedure.access
             ):
                 continue
-            candidate = _SUBTYPE_OPTIONS.get(procedure.procedure_sub_type.value)
-            if candidate is None or not candidate & requested:
+            # A subtype without options of its own is one for everything.
+            candidate = _SUBTYPE_OPTIONS.get(procedure.procedure_sub_type.value, 0xFF)
+            if not candidate & requested:
                 continue
             score = _procedure_score(requested, candidate, has_application_program2)
             if score > best_score:

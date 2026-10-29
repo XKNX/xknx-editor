@@ -16,7 +16,6 @@ from typing import TYPE_CHECKING, NamedTuple
 from xknx.exceptions import ManagementConnectionError
 from xknx.telegram import IndividualAddress
 
-from xknxeditor.namespaces.intermediate.load_procedure_style_t import LoadProcedureStyle
 from xknxeditor.namespaces.intermediate.resource_addr_space_t import ResourceAddrSpace
 
 from .errors import (
@@ -204,12 +203,13 @@ def _resolve_procedure(
     if scope in (DownloadScope.UNLOAD, DownloadScope.UNLOAD_ALL):
         from xknxeditor.namespaces.intermediate.procedure_type_t import ProcedureType
 
+        # The mask's Unload procedure unloads the second program too.
         return resolve_download_controls(
             application,
             master_raw,
             procedure_type=ProcedureType.UNLOAD,
+            scope=scope,
             parameter_values=image.procedure_parameters,
-            application2=application2,
         )
     base = resolve_download_controls(
         application,
@@ -417,16 +417,11 @@ def _with_mask_memory(
 
 
 def _with_second_program(
-    image: DownloadImage, application: Application, application2: Application | None
+    image: DownloadImage, application2: Application | None
 ) -> DownloadImage:
     """``image`` with the segments of the second application program ``application2``, which
-    the mask's procedure loads with the application (not one with a procedure of its own)."""
-    if (
-        application2 is None
-        or application.load_procedure_style == LoadProcedureStyle.PRODUCT_PROCEDURE
-    ):
-        return image
-    return with_second_program(image, application2)
+    the procedure loads with the application."""
+    return image if application2 is None else with_second_program(image, application2)
 
 
 def _reject_address_scope(scope: DownloadScope) -> None:
@@ -565,7 +560,7 @@ async def download(
     else:
         logger.debug("download: using pre-built image (scope=%s)", scope.name)
     image = _with_second_program(
-        _with_mask_memory(image, application, master), application, application2
+        _with_mask_memory(image, application, master), application2
     )
     controls = _resolve_controls(
         application,
@@ -801,7 +796,7 @@ async def preflight(
             group_communication=group_communication,
         )
     image = _with_second_program(
-        _with_mask_memory(image, application, master), application, application2
+        _with_mask_memory(image, application, master), application2
     )
     address = IndividualAddress(individual_address)
     application_loaded = False

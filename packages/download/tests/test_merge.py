@@ -87,9 +87,8 @@ def test_merged_procedure_splices_fragments_into_default() -> None:
 
     controls = resolve_download_controls(cast("object", application), master)  # type: ignore[arg-type]
 
-    # Connect, <frag 2: Connect>, <frag 4: WriteMem>, Restart
+    # Connect, <frag 2: Connect, dropped while connected>, <frag 4: WriteMem>, Restart
     assert [type(c).__name__ for c in controls] == [
-        "LdCtrlConnect",
         "LdCtrlConnect",
         "LdCtrlWriteMem",
         "LdCtrlRestart",
@@ -393,3 +392,51 @@ def test_a_download_plugin_without_load_procedure_is_named() -> None:
         resolve_download_controls(app("{CC18BBDF}"), None)  # type: ignore[arg-type]
     with pytest.raises(UnsupportedProcedureError, match="master data is required"):
         resolve_download_controls(app(None), None)  # type: ignore[arg-type]
+
+
+def test_unload_takes_the_procedure_for_both_programs_as_it_is() -> None:
+    from xknxeditor.namespaces.intermediate.ld_ctrl_unload_t import LdCtrlUnload
+
+    def procedure(sub_type: str, *controls: object) -> object:
+        return SimpleNamespace(
+            procedure_type=ProcedureType.UNLOAD,
+            procedure_sub_type=SimpleNamespace(value=sub_type),
+            access=[ResourceAccess.REMOTE],
+            choice=list(controls),
+        )
+
+    master = _master_with_unload()
+    configuration = master.mask_versions.mask_version[0].hawk_configuration_data[0]  # type: ignore[union-attr]
+    configuration.procedures.procedure = [  # type: ignore[union-attr]
+        procedure("ap1", LdCtrlConnect(), LdCtrlUnload(lsm_idx=4)),
+        procedure(
+            "all",
+            LdCtrlConnect(),
+            LdCtrlUnload(lsm_idx=5, applies_to=LdCtrlProcType.PAR),
+            LdCtrlUnload(lsm_idx=4),
+            LdCtrlMerge(merge_id=1),
+        ),
+    ]
+    write = LdCtrlWriteMem(address=0x10, size=1, verify=False, inline_data=b"\x01")
+    application = _application(LoadProcedureStyle.MERGED_PROCEDURE, _fragment(1, write))
+    controls = resolve_download_controls(
+        cast("object", application), master, procedure_type=ProcedureType.UNLOAD
+    )  # type: ignore[arg-type]
+    # The second program is unloaded too, whatever the controls' AppliesTo.
+    assert [type(c).__name__ for c in controls] == [
+        "LdCtrlConnect",
+        "LdCtrlUnload",
+        "LdCtrlUnload",
+        "LdCtrlWriteMem",
+    ]
+    assert [getattr(c, "lsm_idx", None) for c in controls[1:3]] == [5, 4]
+
+
+def test_a_merge_point_takes_its_fragment_whatever_it_applies_to() -> None:
+    master = _master_with_default(
+        LdCtrlConnect(), LdCtrlMerge(merge_id=2, applies_to=LdCtrlProcType.PAR)
+    )
+    write = LdCtrlWriteMem(address=0x10, size=1, verify=False, inline_data=b"\x01")
+    application = _application(LoadProcedureStyle.MERGED_PROCEDURE, _fragment(2, write))
+    controls = resolve_download_controls(cast("object", application), master)  # type: ignore[arg-type]
+    assert [type(c).__name__ for c in controls] == ["LdCtrlConnect", "LdCtrlWriteMem"]
