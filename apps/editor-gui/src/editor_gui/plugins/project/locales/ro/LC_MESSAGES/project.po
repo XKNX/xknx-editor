@@ -1,0 +1,3041 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor project 1.0\n"
+"Language: ro\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Devices"
+msgstr "Dispozitive"
+
+msgid "Configure"
+msgstr "Configurare"
+
+msgid "History"
+msgstr "Istoric"
+
+msgid "Editor"
+msgstr "Editor"
+
+msgid "Group Addresses"
+msgstr "Adrese de grup"
+
+msgid "Buildings"
+msgstr "Clădiri"
+
+msgid "Project"
+msgstr "Proiect"
+
+msgid "No buildings/rooms in this project"
+msgstr "Nicio clădire/cameră în acest proiect"
+
+msgid "No project"
+msgstr "Niciun proiect"
+
+msgid "Name"
+msgstr "Nume"
+
+msgid "Open Project"
+msgstr "Proiect deschis"
+
+msgid "Reading the projects…"
+msgstr "Se citesc proiectele…"
+
+msgid "Comparing devices: {done} of {total}"
+msgstr "Se compară dispozitivele: {done} din {total}"
+
+msgid "File"
+msgstr "Fișier"
+
+msgid "Group Address Style"
+msgstr "Stil adrese de grup"
+
+msgid "Created by"
+msgstr "Creat de"
+
+msgid "Tool Version"
+msgstr "Versiune instrument"
+
+msgid "Schema Version"
+msgstr "Versiune schemă"
+
+msgid "Last Modified"
+msgstr "Ultima modificare"
+
+msgid "GUID"
+msgstr "GUID"
+
+msgid "Project ID"
+msgstr "ID proiect"
+
+msgid "Original Project ID"
+msgstr "ID proiect original"
+
+msgid "Master Data (Signed)"
+msgstr "Date master (semnate)"
+
+msgid "Validation File"
+msgstr "Fișier de validare"
+
+msgid "Project Certificate"
+msgstr "Certificat de proiect"
+
+msgid "none"
+msgstr "niciunul"
+
+msgid "present ({size} bytes)"
+msgstr "prezent ({size} octeți)"
+
+msgid "Order Number"
+msgstr "Cod de comandă"
+
+msgid "Description"
+msgstr "Descriere"
+
+msgid "Comment"
+msgstr "Comentariu"
+
+msgid "Parameters ({count})"
+msgstr "Parametri ({count})"
+
+msgid "Group Objects ({count})"
+msgstr "Obiecte de comunicare ({count})"
+
+msgid "Assigned Objects"
+msgstr "Obiecte alocate"
+
+msgid "No devices"
+msgstr "Niciun dispozitiv"
+
+msgid "Loading application program…"
+msgstr "Se încarcă programul de aplicație…"
+
+msgid "This product has no application program."
+msgstr "Acest produs nu are program de aplicație."
+
+msgid "Individual Address"
+msgstr "Adresă fizică"
+
+msgid "Program Device"
+msgstr "Programare dispozitiv"
+
+msgid "Test Programming"
+msgstr "Testare programare"
+
+msgid "Program device?"
+msgstr "Programați dispozitivul?"
+
+msgid "This writes to the device at {address} (scope: {scope}) and changes its configuration. Continue?"
+msgstr "Această acțiune scrie în dispozitivul de la adresa {address} (domeniu: {scope}) și îi modifică configurația. Continuați?"
+
+msgid "Download"
+msgstr "Programare"
+
+msgid "Full"
+msgstr "Completă"
+
+msgid "Application Program"
+msgstr "Program de aplicație"
+
+msgid "Unload"
+msgstr "Dezinstalare"
+
+msgid "Unload Application and Address"
+msgstr "Dezinstalare aplicație și adresă"
+
+msgid "Partial: Parameters"
+msgstr "Parțial: parametri"
+
+msgid "Partial: Group Communication"
+msgstr "Parțial: comunicare de grup"
+
+msgid "Manufacturer"
+msgstr "Producător"
+
+msgid "Manufacturer Info"
+msgstr "Informații producător"
+
+msgid "Application"
+msgstr "Aplicație"
+
+msgid "Program Version"
+msgstr "Versiune program"
+
+msgid "Application Version"
+msgstr "Versiune aplicație"
+
+msgid "Read from Device"
+msgstr "Citire din dispozitiv"
+
+msgid "Set an individual address and connect to the bus first"
+msgstr "Setați mai întâi o adresă fizică și conectați-vă la magistrală"
+
+msgid "Mask Version"
+msgstr "Versiune mască"
+
+msgid "Serial Number"
+msgstr "Număr de serie"
+
+msgid "Order Info"
+msgstr "Informații comandă"
+
+msgid "Hardware Type"
+msgstr "Tip hardware"
+
+msgid "differs from project V{version} — program to apply"
+msgstr "diferă de proiect V{version} — programați pentru a aplica"
+
+msgid "Filter parameters…"
+msgstr "Filtrare parametri…"
+
+msgid "Hardware"
+msgstr "Hardware"
+
+msgid "Firmware"
+msgstr "Firmware"
+
+msgid "Com Flags ({count})"
+msgstr "Indicatori de comunicare ({count})"
+
+msgid "Load Procedures ({count})"
+msgstr "Proceduri de încărcare ({count})"
+
+msgid "Preview Memory"
+msgstr "Previzualizare memorie"
+
+msgid "Memory Preview"
+msgstr "Previzualizare memorie"
+
+msgid "Programming Test Result"
+msgstr "Rezultatul testului de programare"
+
+msgid "Evaluation failed"
+msgstr "Evaluarea a eșuat"
+
+msgid "Read-only test: checks that the download function generates the same image as what is already programmed on the device. Nothing is written to the device."
+msgstr "Test doar în citire: verifică dacă funcția de programare generează aceeași imagine ca cea deja programată în dispozitiv. Nu se scrie nimic în dispozitiv."
+
+msgid "Cannot run: no KNX connection. Connect to a gateway (Connection menu) and make sure the device is reachable at its individual address."
+msgstr "Nu se poate executa: nicio conexiune KNX. Conectați-vă la un gateway (meniul Conexiune) și asigurați-vă că dispozitivul este accesibil la adresa lui fizică."
+
+msgid "Match: the generated image is identical to what is on the device"
+msgstr "Potrivire: imaginea generată este identică cu cea din dispozitiv"
+
+msgid "Mismatch: {bytes} byte(s) differ from the device in {locations} location(s)"
+msgstr "Nepotrivire: octeți diferiți față de dispozitiv: {bytes}, în locații: {locations}"
+
+msgid "{matched} matched, {changed} would change"
+msgstr "Potrivite: {matched}, s-ar modifica: {changed}"
+
+msgid "Location"
+msgstr "Locație"
+
+msgid "Size"
+msgstr "Dimensiune"
+
+msgid "Status"
+msgstr "Stare"
+
+msgid "Changed"
+msgstr "Modificat"
+
+msgid "match"
+msgstr "potrivire"
+
+msgid "would change"
+msgstr "s-ar modifica"
+
+msgid "device-managed"
+msgstr "gestionat de dispozitiv"
+
+msgid "System byte the device sets itself at runtime (e.g. a download detection byte reset by the application after a download). A difference here is expected and does not indicate a bad download."
+msgstr "Octet de sistem pe care dispozitivul îl setează singur în timpul funcționării (de ex. un octet de detectare a programării, resetat de aplicație după o programare). O diferență aici este de așteptat și nu indică o programare greșită."
+
+msgid "plus {bytes} device-managed runtime byte(s) (expected, benign)"
+msgstr "plus octeți de rulare gestionați de dispozitiv: {bytes} (de așteptat, inofensivi)"
+
+msgid "No configured differences: the device already carries this configuration. The differences below are benign (see notes)."
+msgstr "Nicio diferență configurată: dispozitivul are deja această configurație. Diferențele de mai jos sunt inofensive (vedeți notele)."
+
+msgid "sets default"
+msgstr "setează valoarea implicită"
+
+msgid "This byte is written for a neighbouring parameter; the differing bit is not driven by any active parameter and is only reset to the application default. The device holds an older value (e.g. from a previous configuration or mode) that programming will normalise. Benign."
+msgstr "Acest octet este scris din cauza unui parametru vecin; bitul diferit nu este controlat de niciun parametru activ și este doar resetat la valoarea implicită a aplicației. Dispozitivul conține o valoare mai veche (de ex. dintr-o configurație sau un mod anterior) pe care programarea o va normaliza. Inofensiv."
+
+msgid "plus {bytes} byte(s) reset to the application default (the device holds an older value; benign, will be normalised on programming)"
+msgstr "plus octeți resetați la valoarea implicită a aplicației: {bytes} (dispozitivul conține o valoare mai veche; inofensiv, se normalizează la programare)"
+
+msgid "Export Ist/Soll…"
+msgstr "Export Ist/Soll…"
+
+msgid "Export Path:"
+msgstr "Cale export:"
+
+msgid "memory {address}"
+msgstr "memorie {address}"
+
+msgid "object {object} property {property}"
+msgstr "obiect {object} proprietate {property}"
+
+msgid "Filter devices (name, address)…"
+msgstr "Filtrare dispozitive (nume, adresă)…"
+
+msgid "No devices. Open or import a project (File menu), or right-click here to add an area."
+msgstr "Niciun dispozitiv. Deschideți sau importați un proiect (meniul Fișier) sau faceți clic dreapta aici pentru a adăuga o zonă."
+
+msgid "Filter group addresses (address, name)…"
+msgstr "Filtrare adrese de grup (adresă, nume)…"
+
+msgid "Filter rooms, devices, functions…"
+msgstr "Filtrare camere, dispozitive, funcții…"
+
+msgid "Unassigned ({count})"
+msgstr "Nealocate ({count})"
+
+msgid "Delete"
+msgstr "Ștergere"
+
+msgid "Number"
+msgstr "Număr"
+
+msgid "Add"
+msgstr "Adăugare"
+
+msgid "OK"
+msgstr "OK"
+
+msgid "Save"
+msgstr "Salvare"
+
+msgid "Copy Log"
+msgstr "Copiere jurnal"
+
+msgid "Cancel"
+msgstr "Revocare"
+
+msgid "Address"
+msgstr "Adresă"
+
+msgid "Project: {name}"
+msgstr "Proiect: {name}"
+
+msgid "(unsaved)"
+msgstr "(nesalvat)"
+
+msgid "No history"
+msgstr "Niciun istoric"
+
+msgid "Restore"
+msgstr "Restaurare"
+
+msgid "Add device: {name}"
+msgstr "Adăugare dispozitiv: {name}"
+
+msgid "Remove device: {name}"
+msgstr "Eliminare dispozitiv: {name}"
+
+msgid "Address: {old} -> {new}"
+msgstr "Adresă: {old} -> {new}"
+
+msgid "Name: {old} -> {new}"
+msgstr "Nume: {old} -> {new}"
+
+msgid "Parameter: {old} -> {new}"
+msgstr "Parametru: {old} -> {new}"
+
+msgid "DPT: {old} -> {new}"
+msgstr "DPT: {old} -> {new}"
+
+msgid "Flag: {flag} -> {state}"
+msgstr "Indicator: {flag} -> {state}"
+
+msgid "Group address {address} created"
+msgstr "Adresa de grup {address} a fost creată"
+
+msgid "Group address {address} removed"
+msgstr "Adresa de grup {address} a fost eliminată"
+
+msgid "Group address: {old} -> {new}"
+msgstr "Adresă de grup: {old} -> {new}"
+
+msgid "Group object linked to group address"
+msgstr "Obiect de comunicare legat de adresa de grup"
+
+msgid "Group object unlinked from group address"
+msgstr "Obiect de comunicare dezlegat de adresa de grup"
+
+msgid "Area {number} created"
+msgstr "Zona {number} a fost creată"
+
+msgid "Area {number} removed"
+msgstr "Zona {number} a fost eliminată"
+
+msgid "Area: {old} -> {new}"
+msgstr "Zonă: {old} -> {new}"
+
+msgid "Line {number} created"
+msgstr "Linia {number} a fost creată"
+
+msgid "Line {number} removed"
+msgstr "Linia {number} a fost eliminată"
+
+msgid "Line: {old} -> {new}"
+msgstr "Linie: {old} -> {new}"
+
+msgid "Cannot run: the project was changed since it was opened. This test compares the generated image against the device's programmed state, which only matches the project as it was opened. Undo your changes in this session to test."
+msgstr "Nu se poate executa: proiectul a fost modificat de la deschidere. Acest test compară imaginea generată cu starea programată a dispozitivului, care corespunde doar proiectului așa cum a fost deschis. Anulați modificările din această sesiune pentru a testa."
+
+msgid "Duplicate"
+msgstr "Duplicare"
+
+msgid "Apply Changes to All {count} Identical Devices"
+msgstr "Aplicare modificări la toate dispozitivele identice ({count})"
+
+msgid "Editing {count} devices — edits apply to all, diverging values show <differs>"
+msgstr "Editare dispozitive ({count}) — modificările se aplică tuturor, valorile diferite afișează <diferă>"
+
+msgid "Mass Linker"
+msgstr "Legare în masă"
+
+msgid "Object <> GA"
+msgstr "Obiect <> adresă de grup"
+
+msgid "Object <> Object"
+msgstr "Obiect <> obiect"
+
+msgid "Log"
+msgstr "Jurnal"
+
+msgid "Open a project to use the Mass Linker."
+msgstr "Deschideți un proiect pentru a folosi legarea în masă."
+
+msgid "Pairs are matched by list order (1st with 1st, …). Surplus items on the longer side are ignored. Reorder a list via its right-click menu."
+msgstr "Perechile se formează după ordinea din liste (primul cu primul, …). Elementele în plus de pe partea mai lungă sunt ignorate. Reordonați o listă din meniul ei de clic dreapta."
+
+msgid "Source (objects)"
+msgstr "Sursă (obiecte)"
+
+msgid "Target (Group Addresses)"
+msgstr "Țintă (adrese de grup)"
+
+msgid "Target (objects)"
+msgstr "Țintă (obiecte)"
+
+msgid "Preview & Link"
+msgstr "Previzualizare și legare"
+
+msgid "Add Group Objects…"
+msgstr "Adăugare obiecte de comunicare…"
+
+msgid "Add Group Addresses…"
+msgstr "Adăugare adrese de grup…"
+
+msgid "Add Selected"
+msgstr "Adăugare selecție"
+
+msgid "Clear"
+msgstr "Golire"
+
+msgid "Remove"
+msgstr "Eliminare"
+
+msgid "Move up"
+msgstr "Mutare în sus"
+
+msgid "Move Down"
+msgstr "Mutare în jos"
+
+msgid "{count} items"
+msgstr "Elemente: {count}"
+
+msgid "{count} pairs"
+msgstr "Perechi: {count}"
+
+msgid "{count} unpaired (ignored)"
+msgstr "Fără pereche (ignorate): {count}"
+
+msgid "Link"
+msgstr "Legare"
+
+msgid "GA Name ({source}, {target}, {n})"
+msgstr "Nume adresă de grup ({source}, {target}, {n})"
+
+msgid "Start Address"
+msgstr "Adresă de început"
+
+msgid "Filter…"
+msgstr "Filtrare…"
+
+msgid "Add Group Objects"
+msgstr "Adăugare obiecte de comunicare"
+
+msgid "Add Group Addresses"
+msgstr "Adăugare adrese de grup"
+
+msgid "Linked {count} object(s) to group addresses"
+msgstr "Obiecte legate de adrese de grup: {count}"
+
+msgid "Linked {count} object pair(s) via new group addresses"
+msgstr "Perechi de obiecte legate prin adrese de grup noi: {count}"
+
+msgid "{count} error(s)"
+msgstr "Erori: {count}"
+
+msgid "Clear All"
+msgstr "Golire totală"
+
+msgid "No operations yet."
+msgstr "Încă nicio operație."
+
+msgid "Mass Linker Result"
+msgstr "Rezultatul legării în masă"
+
+msgid "Tools"
+msgstr "Instrumente"
+
+msgid "Open a project to use the tools."
+msgstr "Deschideți un proiect pentru a folosi instrumentele."
+
+msgid "No devices in this project."
+msgstr "Niciun dispozitiv în acest proiect."
+
+msgid "Extended Copy"
+msgstr "Copiere extinsă"
+
+msgid "Shift Addresses"
+msgstr "Deplasare adrese"
+
+msgid "Labels"
+msgstr "Etichete"
+
+msgid "Topology Check"
+msgstr "Verificare topologie"
+
+msgid "Source Device"
+msgstr "Dispozitiv sursă"
+
+msgid "Copies"
+msgstr "Copii"
+
+msgid "Find in Name"
+msgstr "Căutare în nume"
+
+msgid "Replace with"
+msgstr "Înlocuire cu"
+
+msgid "Create Group Addresses for Each Copy"
+msgstr "Creare adrese de grup pentru fiecare copie"
+
+msgid "Copy Name: {name}"
+msgstr "Nume copie: {name}"
+
+msgid "Copy"
+msgstr "Copiere"
+
+msgid "Created {count} copy/copies"
+msgstr "Copii create: {count}"
+
+msgid "Shifts the device part of each individual address. Group addresses are not shifted."
+msgstr "Deplasează partea de dispozitiv a fiecărei adrese fizice. Adresele de grup nu sunt deplasate."
+
+msgid "Offset"
+msgstr "Decalaj"
+
+msgid "Selected source device only (from Extended Copy)"
+msgstr "Doar dispozitivul sursă selectat (din Copiere extinsă)"
+
+msgid "(out of range)"
+msgstr "(în afara intervalului)"
+
+msgid "Shifted {count} address(es)"
+msgstr "Adrese deplasate: {count}"
+
+msgid "Export {count} device(s) to a CSV for on-site labelling."
+msgstr "Export dispozitive ({count}) într-un CSV pentru etichetarea la fața locului."
+
+msgid "Export CSV…"
+msgstr "Export CSV…"
+
+msgid "Exported to {path}"
+msgstr "Exportat în {path}"
+
+msgid "No topology issues found."
+msgstr "Nu s-au găsit probleme de topologie."
+
+msgid "{count} issue(s)"
+msgstr "Probleme: {count}"
+
+msgid "{count} address(es) will change"
+msgstr "Adrese care se vor modifica: {count}"
+
+msgid "Click a finding to jump to the device."
+msgstr "Faceți clic pe o constatare pentru a sări la dispozitiv."
+
+msgid "Link many group objects to existing group addresses at once. 1) Add objects: '+ Selected device' (all objects of the device selected in the tree) or 'Add objects…'. 2) Set each row's target address in its dropdown — or fill them fast with 'Assign sequential' (next free addresses from the given start) or 'Match by name'. 3) 'Link all' links every row that has a target."
+msgstr "Legați simultan multe obiecte de comunicare de adrese de grup existente. 1) Adăugați obiecte: '+ Dispozitiv selectat' (toate obiectele dispozitivului selectat în arbore) sau 'Adăugare obiecte de comunicare…'. 2) Setați adresa țintă a fiecărui rând în lista lui derulantă — sau completați-le rapid cu 'Alocare secvențială' (următoarele adrese libere de la începutul dat) sau 'Potrivire după nume'. 3) 'Legare toate' leagă fiecare rând care are o țintă."
+
+msgid "Link group objects to each other. 1) Add the source objects. 2) Pick a partner object per row. Each pair gets a NEW group address (source sends, target receives): the address and name are suggested (first free address, name template below) but can be edited per row. 3) 'Link all' creates and links them."
+msgstr "Legați obiecte de comunicare între ele. 1) Adăugați obiectele sursă. 2) Alegeți un obiect partener pentru fiecare rând. Fiecare pereche primește o adresă de grup NOUĂ (sursa transmite, ținta recepționează): adresa și numele sunt propuse (prima adresă liberă, șablonul de nume de mai jos), dar pot fi editate pe fiecare rând. 3) 'Legare toate' le creează și le leagă."
+
+msgid "Chronological record of every mass-link operation in this session."
+msgstr "Evidența cronologică a fiecărei operații de legare în masă din această sesiune."
+
+msgid "Duplicate a device several times. Optionally rewrite the copy name (find/replace) and create a group address for each of its objects."
+msgstr "Duplicați un dispozitiv de mai multe ori. Opțional, rescrieți numele copiei (căutare/înlocuire) și creați câte o adresă de grup pentru fiecare dintre obiectele lui."
+
+msgid "Renumber devices by adding an offset to the device part of their individual addresses, e.g. to open gaps for new devices. Group addresses are untouched."
+msgstr "Renumerotați dispozitivele adăugând un decalaj la partea de dispozitiv a adreselor lor fizice, de ex. pentru a face loc unor dispozitive noi. Adresele de grup nu sunt atinse."
+
+msgid "Export the device list (address, name, order number, manufacturer, description) to a CSV you can print as on-site labels."
+msgstr "Exportați lista de dispozitive (adresă, nume, cod de comandă, producător, descriere) într-un CSV pe care îl puteți tipări ca etichete pentru fața locului."
+
+msgid "Read-only scan: lists devices with a missing, malformed or duplicate individual address."
+msgstr "Scanare doar în citire: listează dispozitivele cu adresă fizică lipsă, incorectă sau duplicată."
+
+msgid "All"
+msgstr "Toate"
+
+msgid "None"
+msgstr "Niciunul"
+
+msgid "{sel} of {total} selected"
+msgstr "Selectate: {sel} din {total}"
+
+msgid "Filter devices…"
+msgstr "Filtrare dispozitive…"
+
+msgid "Replace Device"
+msgstr "Înlocuire dispozitiv"
+
+msgid "Swap a device for another model (a template device already in the project), keeping its group-address links. Group objects are matched by number and size; unmatched ones are reported. Parameters are not carried over."
+msgstr "Înlocuiți un dispozitiv cu alt model (un dispozitiv șablon aflat deja în proiect), păstrând legăturile lui cu adresele de grup. Obiectele de comunicare sunt asociate după număr și dimensiune; cele neasociate sunt raportate. Parametrii nu sunt preluați."
+
+msgid "Device to Replace"
+msgstr "Dispozitiv de înlocuit"
+
+msgid "Replace with (Template)"
+msgstr "Înlocuire cu (șablon)"
+
+msgid "Group Object Mapping (by Number)"
+msgstr "Asociere obiecte de comunicare (după număr)"
+
+msgid "{count} object(s) will be re-mapped"
+msgstr "Obiecte care vor fi reasociate: {count}"
+
+msgid "Replaced; re-mapped {count} group object(s)"
+msgstr "Înlocuit; obiecte de comunicare reasociate: {count}"
+
+msgid "Device"
+msgstr "Dispozitiv"
+
+msgid "Group Object"
+msgstr "Obiect de comunicare"
+
+msgid "DPT"
+msgstr "DPT"
+
+msgid "Target Group Address"
+msgstr "Adresă de grup țintă"
+
+msgid "Target Group Object"
+msgstr "Obiect de comunicare țintă"
+
+msgid "Group Address"
+msgstr "Adresă de grup"
+
+msgid "Group Address Name"
+msgstr "Nume adresă de grup"
+
+msgid "(none)"
+msgstr "(niciuna)"
+
+msgid "+ Selected Device"
+msgstr "+ Dispozitiv selectat"
+
+msgid "Select All"
+msgstr "Selectare totală"
+
+msgid "No objects yet — add the selected device or pick objects."
+msgstr "Încă niciun obiect — adăugați dispozitivul selectat sau alegeți obiecte."
+
+msgid "From"
+msgstr "De la"
+
+msgid "Assign Sequential"
+msgstr "Alocare secvențială"
+
+msgid "Match by Name"
+msgstr "Potrivire după nume"
+
+msgid "Link All ({count})"
+msgstr "Legare toate ({count})"
+
+msgid "{ready} ready · {amb} ambiguous · {bad} incompatible · {none} unmatched"
+msgstr "Gata: {ready} · ambigue: {amb} · incompatibile: {bad} · fără pereche: {none}"
+
+msgid "Only Problems"
+msgstr "Numai probleme"
+
+msgid "Only for ETS 6 devices: this test compares the device against an image generated the ETS 6 way. A device last programmed with ETS 5 uses a different byte layout and will show large false differences - the result is only meaningful for a device last programmed with ETS 6."
+msgstr "Numai pentru dispozitive ETS 6: acest test compară dispozitivul cu o imagine generată în modul ETS 6. Un dispozitiv programat ultima dată cu ETS 5 folosește alt aranjament al octeților și va afișa diferențe false mari - rezultatul are sens doar pentru un dispozitiv programat ultima dată cu ETS 6."
+
+msgid "Structural differences (whole tables differ) can mean the device was last programmed with ETS 5, whose byte layout differs. Differences in values only usually mean the device holds a different configuration."
+msgstr "Diferențele structurale (tabele întregi diferite) pot însemna că dispozitivul a fost programat ultima dată cu ETS 5, al cărui aranjament al octeților diferă. Diferențele doar la valori înseamnă de obicei că dispozitivul conține o altă configurație."
+
+msgid "Test/Program mirror an ETS 6 programming. If a test reports whole tables as different, the device was likely last programmed with ETS 5 (different byte layout)."
+msgstr "Testarea/programarea reproduc o programare ETS 6. Dacă un test raportează tabele întregi ca diferite, dispozitivul a fost probabil programat ultima dată cu ETS 5 (alt aranjament al octeților)."
+
+msgid "Product"
+msgstr "Produs"
+
+msgid "Product Ref"
+msgstr "Referință produs"
+
+msgid "Program Ref"
+msgstr "Referință program"
+
+msgid "Copied"
+msgstr "Copiat"
+
+msgid "Click to copy"
+msgstr "Clic pentru copiere"
+
+msgid "Update to V{version}"
+msgstr "Actualizare la V{version}"
+
+msgid "Type"
+msgstr "Tip"
+
+msgid "Create"
+msgstr "Creare"
+
+msgid "Custom"
+msgstr "Personalizat"
+
+msgid "Switchable Light"
+msgstr "Lumină comutabilă"
+
+msgid "Dimmable Light"
+msgstr "Lumină cu variație"
+
+msgid "Sun Protection"
+msgstr "Protecție solară"
+
+msgid "Heating (Switching Variable)"
+msgstr "Încălzire (mărime de comandă comutată)"
+
+msgid "Heating (Continuous Variable)"
+msgstr "Încălzire (mărime de comandă continuă)"
+
+msgid "Switchable Socket"
+msgstr "Priză comutabilă"
+
+msgid "Confirmed Restart"
+msgstr "Repornire confirmată"
+
+msgid "Delete Application Program"
+msgstr "Ștergere program de aplicație"
+
+msgid "Factory Reset"
+msgstr "Resetare la setările din fabrică"
+
+msgid "Factory Reset (Keep Address)"
+msgstr "Resetare la setările din fabrică (păstrare adresă)"
+
+msgid "I understand this resets the device"
+msgstr "Înțeleg că aceasta resetează dispozitivul"
+
+msgid "Master Reset"
+msgstr "Master reset"
+
+msgid "Reset Device"
+msgstr "Resetare dispozitiv"
+
+msgid "Reset Group Address Links"
+msgstr "Resetare legături adrese de grup"
+
+msgid "Reset Individual Address"
+msgstr "Resetare adresă fizică"
+
+msgid "Reset Parameters"
+msgstr "Resetare parametri"
+
+msgid "Reset Type"
+msgstr "Tip resetare"
+
+msgid "Reset…"
+msgstr "Resetare…"
+
+msgid "Restart"
+msgstr "Repornire"
+
+msgid "no fault reported"
+msgstr "nicio eroare raportată"
+
+msgid "(Top Level)"
+msgstr "(nivel superior)"
+
+msgid "Assign a Device to This Space"
+msgstr "Alocare dispozitiv la acest spațiu"
+
+msgid "Building"
+msgstr "Clădire"
+
+msgid "Building Part"
+msgstr "Parte de clădire"
+
+msgid "Corridor"
+msgstr "Coridor"
+
+msgid "Delete this space and everything in it? Devices are only unassigned, not deleted."
+msgstr "Ștergeți acest spațiu și tot ce conține? Dispozitivele sunt doar dezalocate, nu șterse."
+
+msgid "Floor"
+msgstr "Etaj"
+
+msgid "Move to"
+msgstr "Mutare la"
+
+msgid "No unassigned devices"
+msgstr "Niciun dispozitiv nealocat"
+
+msgid "Room"
+msgstr "Cameră"
+
+msgid "Stairway"
+msgstr "Casa scării"
+
+msgid "Without Space"
+msgstr "Fără spațiu"
+
+msgid "Delete Folder"
+msgstr "Ștergere folder"
+
+msgid "Delete this folder and every group address in it? This can be undone."
+msgstr "Ștergeți acest folder și toate adresele de grup din el? Operația poate fi anulată."
+
+msgid "Apply Changes to All Channels"
+msgstr "Aplicare modificări la toate canalele"
+
+msgid "S"
+msgstr "T"
+
+msgid "S = Sending. This object sends its value to the group address; the others only receive it."
+msgstr "T = Transmite. Acest obiect transmite valoarea lui la adresa de grup; celelalte doar o recepționează."
+
+msgid "Click to open this device in the editor"
+msgstr "Clic pentru a deschide acest dispozitiv în editor"
+
+msgid "Copy Configuration"
+msgstr "Copiere configurație"
+
+msgid "Paste Configuration"
+msgstr "Lipire configurație"
+
+msgid "Paste configuration onto '{name}':"
+msgstr "Lipire configurație în '{name}':"
+
+msgid "Paste configuration onto {count} selected devices:"
+msgstr "Lipire configurație în dispozitivele selectate ({count}):"
+
+msgid "Duplicate '{name}':"
+msgstr "Duplicare '{name}':"
+
+msgid "Parameters"
+msgstr "Parametri"
+
+msgid "Group Address Links"
+msgstr "Legături adrese de grup"
+
+msgid "Paste"
+msgstr "Lipire"
+
+msgid "This action can only be performed when the individual address of the device is already downloaded."
+msgstr "Această acțiune poate fi executată numai după ce adresa fizică a dispozitivului a fost deja programată."
+
+msgid "Button {0} executed. "
+msgstr "Butonul {0} a fost executat. "
+
+msgid "A parameter script is running for this device."
+msgstr "Pentru acest dispozitiv rulează un script de parametri."
+
+msgid "The Device has no valid address or is not linked to an area or line."
+msgstr "Dispozitivul nu are o adresă validă sau nu este legat de o zonă sau o linie."
+
+msgid "Parameter Script"
+msgstr "Script de parametri"
+
+msgid "Executing Script"
+msgstr "Script în execuție"
+
+msgid "Script not responding"
+msgstr "Scriptul nu răspunde"
+
+msgid "Force Stop"
+msgstr "Oprire forțată"
+
+msgid "The script was stopped."
+msgstr "Scriptul a fost oprit."
+
+msgid "Canceling…"
+msgstr "Se întrerupe…"
+
+msgid "No connection to the bus."
+msgstr "Nicio conexiune la magistrală."
+
+msgid "Parameter value cannot be set, because validation failed."
+msgstr "Valoarea parametrului nu poate fi setată, deoarece validarea a eșuat."
+
+msgid "Operations"
+msgstr "Operații"
+
+msgid "Active"
+msgstr "Active"
+
+msgid "Cancel All"
+msgstr "Revocare toate"
+
+msgid "Clear History"
+msgstr "Golire istoric"
+
+msgid "No operations."
+msgstr "Nicio operație."
+
+msgid "Downloading"
+msgstr "Se programează"
+
+msgid "Waiting"
+msgstr "În așteptare"
+
+msgid "Finished"
+msgstr "Finalizată"
+
+msgid "Canceled"
+msgstr "Revocată"
+
+msgid "failed"
+msgstr "eșuată"
+
+msgid "No details available"
+msgstr "Nu sunt disponibile detalii"
+
+msgid "Connection: {connection}"
+msgstr "Conexiune: {connection}"
+
+msgid "Start: {time}"
+msgstr "Început: {time}"
+
+msgid "End: {time}"
+msgstr "Sfârșit: {time}"
+
+msgid "The product data of this device is missing - its application program is not in the catalog. Import its product to edit the device."
+msgstr "Datele de produs ale acestui dispozitiv lipsesc - programul lui de aplicație nu este în catalog. Importați produsul pentru a edita dispozitivul."
+
+msgid "Device Info"
+msgstr "Informații dispozitiv"
+
+msgid "Device Info (With Group Communication)"
+msgstr "Informații dispozitiv (cu comunicare de grup)"
+
+msgid "Reading"
+msgstr "Se citește"
+
+msgid "General"
+msgstr "General"
+
+msgid "Group Communication"
+msgstr "Comunicare de grup"
+
+msgid "Device Manufacturer"
+msgstr "Producător dispozitiv"
+
+msgid "Firmware Version"
+msgstr "Versiune firmware"
+
+msgid "Programming Mode"
+msgstr "Mod de programare"
+
+msgid "Load State"
+msgstr "Stare de încărcare"
+
+msgid "Address Table Load State"
+msgstr "Stare de încărcare tabel de adrese"
+
+msgid "Association Table Load State"
+msgstr "Stare de încărcare tabel de asocieri"
+
+msgid "Group Object Table Load State"
+msgstr "Stare de încărcare tabel de obiecte de comunicare"
+
+msgid "Reading the tables failed: {error}"
+msgstr "Citirea tabelelor a eșuat: {error}"
+
+msgid "On"
+msgstr "Pornit"
+
+msgid "Off"
+msgstr "Oprit"
+
+msgid "Unloaded"
+msgstr "Dezinstalat"
+
+msgid "Loaded"
+msgstr "Încărcat"
+
+msgid "Loading"
+msgstr "Se încarcă"
+
+msgid "Error"
+msgstr "Eroare"
+
+msgid "Unloading"
+msgstr "Se dezinstalează"
+
+msgid "Load Completing"
+msgstr "Finalizare încărcare"
+
+msgid "Yes"
+msgstr "Da"
+
+msgid "Also read the group communication?"
+msgstr "Citiți și comunicarea de grup?"
+
+msgid "No"
+msgstr "Nu"
+
+msgid "The application on the device is not in the catalog, so its tables cannot be located"
+msgstr "Aplicația din dispozitiv nu este în catalog, așa că tabelele lui nu pot fi localizate"
+
+msgid "This device can only be programmed with the manufacturer's plugin, which is not available here."
+msgstr "Acest dispozitiv poate fi programat numai cu plugin-ul producătorului, care nu este disponibil aici."
+
+msgid "The manufacturer configures this device with its own plugin dialog; settings made there are not shown here."
+msgstr "Producătorul configurează acest dispozitiv cu propriul dialog de plugin; setările făcute acolo nu sunt afișate aici."
+
+msgid "The manufacturer programs this device with its own plugin; the standard download is used here."
+msgstr "Producătorul programează acest dispozitiv cu propriul plugin; aici se folosește programarea standard."
+
+msgid "The manufacturer keeps part of this device's data with its own plugin, which is not available here."
+msgstr "Producătorul gestionează o parte din datele acestui dispozitiv cu propriul plugin, care nu este disponibil aici."
+
+msgid "This device is also configured with separate software from the manufacturer."
+msgstr "Acest dispozitiv se configurează și cu un software separat al producătorului."
+
+msgid "This device includes a manufacturer configuration app (“{name}”) that XKNX Editor can't run. The device's standard parameters can still be programmed, but not the extra functionality that app provides."
+msgstr "Acest dispozitiv include o aplicație de configurare a producătorului („{name}”) pe care XKNX Editor nu o poate rula. Parametrii standard ai dispozitivului pot fi totuși programați, dar nu și funcțiile suplimentare oferite de acea aplicație."
+
+msgid "This device includes a manufacturer configuration app (“{name}”) that can't be run directly in XKNX Editor — but it has been ported, so its most important functions are usable here (see the DALI tab)."
+msgstr "Acest dispozitiv include o aplicație de configurare a producătorului („{name}”) care nu poate rula direct în XKNX Editor — dar a fost portată, așa că funcțiile ei cele mai importante pot fi folosite aici (vedeți fila DALI)."
+
+msgid "The manufacturer allows programming this device only with its plugin, which is not available here. Programming it without the plugin may leave the device misconfigured or in an error state."
+msgstr "Producătorul permite programarea acestui dispozitiv numai cu plugin-ul lui, care nu este disponibil aici. Programarea fără plugin poate lăsa dispozitivul configurat greșit sau într-o stare de eroare."
+
+msgid "Program Without the Manufacturer's Plugin Anyway"
+msgstr "Programare oricum fără plugin-ul producătorului"
+
+msgid "Overwrite Individual Address"
+msgstr "Suprascriere adresă fizică"
+
+msgid "This writes the individual address {address} to the device whose programming button is pressed. Continue?"
+msgstr "Această acțiune scrie adresa fizică {address} în dispozitivul al cărui buton de programare este apăsat. Continuați?"
+
+msgid "This overwrites the individual address of the device at its current address with {address}. Its programming button does not need to be pressed."
+msgstr "Această acțiune suprascrie adresa fizică a dispozitivului de la adresa lui actuală cu {address}. Nu este necesar să apăsați butonul lui de programare."
+
+msgid "Current Individual Address"
+msgstr "Adresă fizică actuală"
+
+msgid "Enter the device's current individual address, e.g. 1.1.5."
+msgstr "Introduceți adresa fizică actuală a dispozitivului, de ex. 1.1.5."
+
+msgid "The device already has the individual address {address}."
+msgstr "Dispozitivul are deja adresa fizică {address}."
+
+msgid "Please press the programming button"
+msgstr "Apăsați butonul de programare"
+
+msgid "Individual Address via Serial Number"
+msgstr "Adresă fizică prin număr de serie"
+
+msgid "This writes the individual address {address} to the device with the serial number {serial}. Its programming button does not need to be pressed."
+msgstr "Această acțiune scrie adresa fizică {address} în dispozitivul cu numărul de serie {serial}. Nu este necesar să apăsați butonul lui de programare."
+
+msgid "Use Serial Number"
+msgstr "Utilizare număr de serie"
+
+msgid "The serial number is already associated with device {device}."
+msgstr "Numărul de serie este deja asociat cu dispozitivul {device}."
+
+msgid "Enter the serial number as 12 hexadecimal digits, e.g. 0083:7AA2039C."
+msgstr "Introduceți numărul de serie ca 12 cifre hexazecimale, de ex. 0083:7AA2039C."
+
+msgid "The reported value matches {devices} in this project."
+msgstr "Valoarea raportată corespunde în acest proiect cu: {devices}."
+
+msgid "Waiting for confirmation"
+msgstr "Se așteaptă confirmarea"
+
+msgid "The application program currently loaded in the device is different from the projected application program"
+msgstr "Programul de aplicație încărcat acum în dispozitiv diferă de programul de aplicație din proiect"
+
+msgid "Do you want to overwrite the application program (this may take several minutes)?"
+msgstr "Doriți să suprascrieți programul de aplicație (poate dura câteva minute)?"
+
+msgid "The application program currently loaded in the device does not comply with the projected application program. You may try a full instead of a partial download."
+msgstr "Programul de aplicație încărcat acum în dispozitiv nu corespunde programului de aplicație din proiect. Puteți încerca o programare completă în loc de una parțială."
+
+msgid "Incompatible mask version: {found} instead of {expected}"
+msgstr "Versiune de mască incompatibilă: {found} în loc de {expected}"
+
+msgid "Change Application Program"
+msgstr "Schimbare program de aplicație"
+
+msgid "Update Application Program Version"
+msgstr "Actualizare versiune program de aplicație"
+
+msgid "Update"
+msgstr "Actualizare"
+
+msgid "Changing the application program failed"
+msgstr "Schimbarea programului de aplicație a eșuat"
+
+msgid "Updating the application program failed"
+msgstr "Actualizarea programului de aplicație a eșuat"
+
+msgid "Updating the application program…"
+msgstr "Se actualizează programul de aplicație…"
+
+msgid "Changing the application program…"
+msgstr "Se schimbă programul de aplicație…"
+
+msgid "Delete Space"
+msgstr "Ștergere spațiu"
+
+msgid "Load Reference File"
+msgstr "Încărcare fișier de referință"
+
+msgid "Save Memory Dump"
+msgstr "Salvare imagine memorie"
+
+msgid "Export Programming Test Result"
+msgstr "Export rezultat test de programare"
+
+msgid "Load"
+msgstr "Încărcare"
+
+msgid "DIN Rail Mounting"
+msgstr "Montaj pe șină DIN"
+
+msgid "Bus Current"
+msgstr "Curent magistrală"
+
+msgid "Read Value"
+msgstr "Citire valoare"
+
+msgid "Write Value…"
+msgstr "Scriere valoare…"
+
+msgid "Write Value"
+msgstr "Scriere valoare"
+
+msgid "Data Type"
+msgstr "Tip de date"
+
+msgid "Value"
+msgstr "Valoare"
+
+msgid "Set the data type of the group address to write a value."
+msgstr "Setați tipul de date al adresei de grup pentru a scrie o valoare."
+
+msgid "Write"
+msgstr "Scriere"
+
+msgid "Not connected to the bus."
+msgstr "Neconectat la magistrală."
+
+msgid "Export Group Addresses…"
+msgstr "Export adrese de grup…"
+
+msgid "Import Group Addresses…"
+msgstr "Import adrese de grup…"
+
+msgid "Import Group Addresses"
+msgstr "Import adrese de grup"
+
+msgid "Group Address Files (XML, CSV)"
+msgstr "Fișiere de adrese de grup (XML, CSV)"
+
+msgid "All Files"
+msgstr "Toate fișierele"
+
+msgid "{added} group addresses added, {updated} updated."
+msgstr "Adrese de grup adăugate: {added}, actualizate: {updated}."
+
+msgid "{count} group addresses could not be placed in a group."
+msgstr "Adrese de grup care nu au putut fi plasate într-un grup: {count}."
+
+msgid "The file could not be imported: {error}"
+msgstr "Fișierul nu a putut fi importat: {error}"
+
+msgid "The file uses {file} group addresses, but the project uses {project} group addresses."
+msgstr "Fișierul folosește adrese de grup {file}, dar proiectul folosește adrese de grup {project}."
+
+msgid "3-level"
+msgstr "pe 3 niveluri"
+
+msgid "2-level"
+msgstr "pe 2 niveluri"
+
+msgid "free"
+msgstr "libere"
+
+msgid "Export"
+msgstr "Export"
+
+msgid "Import"
+msgstr "Import"
+
+msgid "Based on OpenKNXproducer"
+msgstr "Bazat pe OpenKNXproducer"
+
+msgid "CSV"
+msgstr "CSV"
+
+msgid "Channels ({count})"
+msgstr "Canale ({count})"
+
+msgid "Choose Project to Compare"
+msgstr "Alegeți proiectul de comparat"
+
+msgid "Choose Project to Compare…"
+msgstr "Alegere proiect de comparat…"
+
+msgid "Columns"
+msgstr "Coloane"
+
+msgid "Comments are encrypted"
+msgstr "Comentariile sunt criptate"
+
+msgid "Compare the open project with another project file (.knxproj, .xknx or a backup): which devices and group addresses were added, removed or changed. The other project is read-only; nothing is modified."
+msgstr "Comparați proiectul deschis cu alt fișier de proiect (.knxproj, .xknx sau o copie de rezervă): ce dispozitive și adrese de grup au fost adăugate, eliminate sau modificate. Celălalt proiect este doar citit; nu se modifică nimic."
+
+msgid "Custom Grid"
+msgstr "Grilă personalizată"
+
+msgid "DALI (Bus)"
+msgstr "DALI (magistrală)"
+
+msgid "Date"
+msgstr "Dată"
+
+msgid "Decrypt Comments"
+msgstr "Decriptare comentarii"
+
+msgid "Default Gateway"
+msgstr "Gateway implicit"
+
+msgid "Delete '{name}'? Its group objects and group-address links are removed and its individual address is freed. This can be undone."
+msgstr "Ștergeți '{name}'? Obiectele lui de comunicare și legăturile cu adresele de grup sunt eliminate, iar adresa lui fizică este eliberată. Operația poate fi anulată."
+
+msgid "Delete Device"
+msgstr "Ștergere dispozitiv"
+
+msgid "Destructive: the device is reset over the bus and must be commissioned again. In KNX Secure mode this deactivates device security."
+msgstr "Distructiv: dispozitivul este resetat prin magistrală și trebuie pus din nou în funcțiune. În modul KNX Secure, aceasta dezactivează securitatea dispozitivului."
+
+msgid "Download PDF Manual"
+msgstr "Descărcare manual PDF"
+
+msgid "ETS encrypts the log comments. Extract the decryption key from your own ETS installation's Knx.Ets.Common.dll to read them; nothing is sent anywhere."
+msgstr "ETS criptează comentariile din jurnal. Extrageți cheia de decriptare din Knx.Ets.Common.dll al propriei instalări ETS pentru a le citi; nu se trimite nimic nicăieri."
+
+msgid "Export HTML…"
+msgstr "Export HTML…"
+
+msgid "Extract from Knx.Ets.Common.dll…"
+msgstr "Extragere din Knx.Ets.Common.dll…"
+
+msgid "Extracting key…"
+msgstr "Se extrage cheia…"
+
+msgid "Fields"
+msgstr "Câmpuri"
+
+msgid "Filter log"
+msgstr "Filtrare jurnal"
+
+msgid "Find this device's manual (via the KNX device database, else a manufacturer search) and open it in your browser. Best effort - opens the KNX device search if no direct document is found."
+msgstr "Caută manualul acestui dispozitiv (prin baza de date de dispozitive KNX, altfel printr-o căutare la producător) și îl deschide în browser. Fără garanție - deschide căutarea de dispozitive KNX dacă nu se găsește niciun document direct."
+
+msgid "Gap X / Y (mm)"
+msgstr "Spațiu X / Y (mm)"
+
+msgid "Obtain an IP address automatically"
+msgstr "Se obține automat o adresă IP"
+
+msgid "Use a static IP address"
+msgstr "Se utilizează o adresă IP statică"
+
+msgid "Assigned IP Address"
+msgstr "Adresă IP alocată"
+
+msgid "An invalid IP address was specified."
+msgstr "S-a specificat o adresă IP nevalidă."
+
+msgid "Change assigned IP address of '{0}' to '{1}'."
+msgstr "Schimbare adresă IP alocată a '{0}' la '{1}'."
+
+msgid "IP configuration of device '{0}' changed."
+msgstr "Configurația IP a dispozitivului '{0}' a fost modificată."
+
+msgid "IP Address"
+msgstr "Adresă IP"
+
+msgid "IP Configuration"
+msgstr "Configurație IP"
+
+msgid "Individual Addresses"
+msgstr "Adrese fizice"
+
+msgid "Installation"
+msgstr "Instalație"
+
+msgid "Invalid address or already in use."
+msgstr "Adresă nevalidă sau deja folosită."
+
+msgid "KNX Common Assembly"
+msgstr "KNX Common Assembly"
+
+msgid "KNX project (*.knxproj *.xknx *.zip)"
+msgstr "Proiect KNX (*.knxproj *.xknx *.zip)"
+
+msgid "Key extracted; comments decrypted"
+msgstr "Cheie extrasă; comentarii decriptate"
+
+msgid "Label Sheet"
+msgstr "Coală de etichete"
+
+msgid "Label W x H (mm)"
+msgstr "Etichetă L x Î (mm)"
+
+msgid "Legend (Full Page)"
+msgstr "Legendă (pagină întreagă)"
+
+msgid "MAC Address"
+msgstr "Adresă MAC"
+
+msgid "Margin Top / Left (mm)"
+msgstr "Margine sus / stânga (mm)"
+
+msgid "No .NET runtime found (install the .NET SDK, or run on Windows with ETS)."
+msgstr "Nu s-a găsit niciun runtime .NET (instalați .NET SDK sau rulați pe Windows cu ETS)."
+
+msgid "No differences in devices or group addresses."
+msgstr "Nicio diferență la dispozitive sau adrese de grup."
+
+msgid "No project log entries"
+msgstr "Nicio intrare în jurnalul proiectului"
+
+msgid "Output"
+msgstr "Ieșire"
+
+msgid "Pick the fields and an output: a CSV, printable label sheets (Avery), or a full-page legend. HTML output opens in your browser to print or save as PDF."
+msgstr "Alegeți câmpurile și o ieșire: un CSV, coli de etichete tipăribile (Avery) sau o legendă pe pagină întreagă. Ieșirea HTML se deschide în browser pentru tipărire sau salvare ca PDF."
+
+msgid "Project Diff"
+msgstr "Comparare proiecte"
+
+msgid "Project Log"
+msgstr "Jurnal proiect"
+
+msgid "Renumber group addresses by adding an offset to their raw value, e.g. to open gaps. Group object links move with each address. Nothing is written if any move would collide or leave the valid range."
+msgstr "Renumerotați adresele de grup adăugând un decalaj la valoarea lor brută, de ex. pentru a face loc. Legăturile obiectelor de comunicare se mută odată cu fiecare adresă. Nu se scrie nimic dacă vreo mutare ar intra în conflict sau ar ieși din intervalul valid."
+
+msgid "Rows"
+msgstr "Rânduri"
+
+msgid "Searching Manual…"
+msgstr "Se caută manualul…"
+
+msgid "Select at least one field."
+msgstr "Selectați cel puțin un câmp."
+
+msgid "Sheet"
+msgstr "Coală"
+
+msgid "Shift Group Addresses"
+msgstr "Deplasare adrese de grup"
+
+msgid "Shifted {count} group address(es)"
+msgstr "Adrese de grup deplasate: {count}"
+
+msgid "Subnet Mask"
+msgstr "Mască de subrețea"
+
+msgid "The offset is added to the raw 16-bit value, so it may change the main/middle group as addresses cross a boundary."
+msgstr "Decalajul se adaugă la valoarea brută pe 16 biți, așa că poate schimba grupa principală/mediană când adresele trec peste o limită."
+
+msgid "This project has no group addresses."
+msgstr "Acest proiect nu are adrese de grup."
+
+msgid "User"
+msgstr "Utilizator"
+
+msgid "added"
+msgstr "adăugat"
+
+msgid "changed"
+msgstr "modificat"
+
+msgid "Compared with {name}:"
+msgstr "Comparat cu {name}:"
+
+msgid "removed"
+msgstr "eliminat"
+
+msgid "{count} difference(s)"
+msgstr "Diferențe: {count}"
+
+msgid "Save…"
+msgstr "Salvare…"
+
+msgid "Diff…"
+msgstr "Comparare…"
+
+msgid "Clear Diff"
+msgstr "Anulare comparare"
+
+msgid "Memory Dumps (*.bin)"
+msgstr "Imagini de memorie (*.bin)"
+
+msgid "{count} bytes"
+msgstr "{count} octeți"
+
+msgid "No memory segments."
+msgstr "Niciun segment de memorie."
+
+msgid "Cannot encode memory image: {error}"
+msgstr "Imaginea de memorie nu poate fi codificată: {error}"
+
+msgid "The file could not be read or written: {error}"
+msgstr "Fișierul nu a putut fi citit sau scris: {error}"
+
+msgid "Password"
+msgstr "Parolă"
+
+msgid "Protected"
+msgstr "Protejat"
+
+msgid "Not protected"
+msgstr "Neprotejat"
+
+msgid "Set Password"
+msgstr "Setare parolă"
+
+msgid "Change Password"
+msgstr "Schimbare parolă"
+
+msgid "Remove Password"
+msgstr "Eliminare parolă"
+
+msgid "Project Password"
+msgstr "Parolă proiect"
+
+msgid "The project and its exports are protected with this password; opening or importing them asks for it. A password change cannot be undone."
+msgstr "Proiectul și exporturile lui sunt protejate cu această parolă; la deschiderea sau importul lor, aceasta este cerută. O schimbare a parolei nu poate fi anulată."
+
+msgid "Repeat Password"
+msgstr "Repetare parolă"
+
+msgid "The passwords do not match."
+msgstr "Parolele nu coincid."
+
+msgid "A project with KNX Secure devices needs a password: it protects their keys in the project and in its exports."
+msgstr "Un proiect cu dispozitive KNX Secure are nevoie de o parolă: ea protejează cheile acestora în proiect și în exporturile lui."
+
+msgid "The other project is protected with a password. Enter it to compare:"
+msgstr "Celălalt proiect este protejat cu parolă. Introduceți-o pentru comparare:"
+
+msgid "Compare"
+msgstr "Comparare"
+
+msgid "Wrong password, please try again."
+msgstr "Parolă greșită, încercați din nou."
+
+msgid "Add Device Certificate"
+msgstr "Adăugare certificat dispozitiv"
+
+msgid "Device Certificate"
+msgstr "Certificat dispozitiv"
+
+msgid "This device already uses its own key from this project. Its certificate is only needed again after a factory reset."
+msgstr "Acest dispozitiv folosește deja propria cheie din acest proiect. Certificatul lui este necesar din nou abia după o resetare la setările din fabrică."
+
+msgid "This device still uses its factory key: its first secure download needs its certificate."
+msgstr "Acest dispozitiv folosește încă cheia din fabrică: prima lui programare securizată are nevoie de certificat."
+
+msgid "Stored Certificate: {serial}"
+msgstr "Certificat salvat: {serial}"
+
+msgid "Enter the FDSK from its label or certificate (36 characters):"
+msgstr "Introduceți FDSK-ul de pe eticheta sau certificatul lui (36 de caractere):"
+
+msgid "To replace it, enter the new FDSK (36 characters):"
+msgstr "Pentru a-l înlocui, introduceți noul FDSK (36 de caractere):"
+
+msgid "Remove the stored certificate? After a factory reset, the device can then only be reached again with the code from its label."
+msgstr "Eliminați certificatul salvat? După o resetare la setările din fabrică, dispozitivul va mai putea fi accesat numai cu codul de pe eticheta lui."
+
+msgid "Device Certificate…"
+msgstr "Certificat dispozitiv…"
+
+msgid "The device certificate (FDSK) is missing."
+msgstr "Lipsește certificatul dispozitivului (FDSK)."
+
+msgid "This is not a valid FDSK; please check it."
+msgstr "Acesta nu este un FDSK valid; verificați-l."
+
+msgid "This certificate belongs to the device with serial number {serial}."
+msgstr "Acest certificat aparține dispozitivului cu numărul de serie {serial}."
+
+msgid "Set a project password first: it protects the device keys."
+msgstr "Setați mai întâi o parolă de proiect: ea protejează cheile dispozitivelor."
+
+msgid "Security"
+msgstr "Securitate"
+
+msgid "Automatic"
+msgstr "Automat"
+
+msgid "Plain"
+msgstr "Necriptat"
+
+msgid "Deactivate Secure Commissioning"
+msgstr "Dezactivare punere în funcțiune securizată"
+
+msgid "These group addresses will then communicate in the clear:"
+msgstr "Aceste adrese de grup vor comunica apoi necriptat:"
+
+msgid "The device's group objects will be removed from these secured group addresses:"
+msgstr "Obiectele de comunicare ale dispozitivului vor fi eliminate de la aceste adrese de grup securizate:"
+
+msgid "Deactivate"
+msgstr "Dezactivare"
+
+msgid "Secure Commissioning"
+msgstr "Punere în funcțiune securizată"
+
+msgid "Add Device Certificate…"
+msgstr "Adăugare certificat dispozitiv…"
+
+msgid "Activated"
+msgstr "Activată"
+
+msgid "Deactivated"
+msgstr "Dezactivată"
+
+msgid "A secured group address can only be linked to devices that are commissioned securely."
+msgstr "O adresă de grup securizată poate fi legată numai de dispozitive puse în funcțiune securizat."
+
+msgid "Not every device linked to this group address is commissioned securely, so it cannot be secured."
+msgstr "Nu toate dispozitivele legate de această adresă de grup sunt puse în funcțiune securizat, așa că ea nu poate fi securizată."
+
+msgid "A group object that requires secure communication would end up on a group address in the clear."
+msgstr "Un obiect de comunicare care necesită comunicare securizată ar ajunge pe o adresă de grup necriptată."
+
+msgid "Later"
+msgstr "Mai târziu"
+
+msgid "Don't Ask When Adding Devices"
+msgstr "Fără întrebare la adăugarea dispozitivelor"
+
+msgid "KNX IP Secure"
+msgstr "KNX IP Secure"
+
+msgid "Show Passwords"
+msgstr "Afișare parole"
+
+msgid "Secure Tunneling"
+msgstr "Tunelare securizată"
+
+msgid "Commissioning Password"
+msgstr "Parolă de punere în funcțiune"
+
+msgid "Authentication Code"
+msgstr "Cod de autentificare"
+
+msgid "Interface"
+msgstr "Interfață"
+
+msgid "Routing"
+msgstr "Rutare"
+
+msgid "Tunnel {address}"
+msgstr "Tunel {address}"
+
+msgid "A password needs 1 to 20 Latin-1 characters."
+msgstr "O parolă trebuie să aibă între 1 și 20 de caractere Latin-1."
+
+msgid "Close"
+msgstr "Închidere"
+
+msgid "Device Certificates"
+msgstr "Certificate dispozitive"
+
+msgid "Manage…"
+msgstr "Gestionare…"
+
+msgid "The project has no device certificates."
+msgstr "Proiectul nu are certificate de dispozitive."
+
+msgid "The security tables of {device} cannot hold this link."
+msgstr "Tabelele de securitate ale {device} nu pot cuprinde această legătură."
+
+msgid "Point-to-Point and Broadcast"
+msgstr "Punct-la-punct și broadcast"
+
+msgid "Blocked"
+msgstr "Blocat"
+
+msgid "Routed"
+msgstr "Rutat"
+
+msgid "Compare Devices"
+msgstr "Comparare dispozitive"
+
+msgid "Compare with…"
+msgstr "Comparare cu…"
+
+msgid "Show in Bus Diagram"
+msgstr "Afișare în diagrama magistralei"
+
+msgid "Device A"
+msgstr "Dispozitiv A"
+
+msgid "Device B"
+msgstr "Dispozitiv B"
+
+msgid "Field"
+msgstr "Câmp"
+
+msgid "Filter devices by address, name or description…"
+msgstr "Filtrare dispozitive după adresă, nume sau descriere…"
+
+msgid "Group Objects"
+msgstr "Obiecte de comunicare"
+
+msgid "No differences"
+msgstr "Nicio diferență"
+
+msgid "Only Differences"
+msgstr "Numai diferențe"
+
+msgid "Open a project with at least two devices to compare."
+msgstr "Deschideți un proiect cu cel puțin două dispozitive pentru comparare."
+
+msgid "{count} differences"
+msgstr "Diferențe: {count}"
+
+msgid "The manufacturer plugin is not available here:"
+msgstr "Plugin-ul producătorului nu este disponibil aici:"
+
+msgid "Only it can program the device."
+msgstr "Numai el poate programa dispozitivul."
+
+msgid "Settings made in its dialog are not shown."
+msgstr "Setările făcute în dialogul lui nu sunt afișate."
+
+msgid "The standard download is used instead."
+msgstr "Se folosește în schimb programarea standard."
+
+msgid "Part of the device data is not available."
+msgstr "O parte din datele dispozitivului nu este disponibilă."
+
+msgid "Connect to a KNX interface to commission the DALI bus."
+msgstr "Conectați-vă la o interfață KNX pentru a pune în funcțiune magistrala DALI."
+
+msgid "This gateway's commissioning protocol has not been verified against a capture; writes may misbehave. Proceed with care."
+msgstr "Protocolul de punere în funcțiune al acestui gateway nu a fost verificat pe o înregistrare; scrierile se pot comporta greșit. Procedați cu atenție."
+
+msgid "DALI commissioning writes the gateway on the bus but does not update the project parameters; re-export the .knxproj after a DCA-side edit."
+msgstr "Punerea în funcțiune DALI scrie gateway-ul pe magistrală, dar nu actualizează parametrii proiectului; după o modificare din DCA, exportați din nou fișierul .knxproj."
+
+msgid "Scan Bus"
+msgstr "Scanare magistrală"
+
+msgid "All ECGs On"
+msgstr "Pornire toate balasturile"
+
+msgid "All Off"
+msgstr "Oprire toate"
+
+msgid "New Installation…"
+msgstr "Instalare nouă…"
+
+msgid "Post Installation…"
+msgstr "Postinstalare…"
+
+msgid "Running: {task}"
+msgstr "În execuție: {task}"
+
+msgid "scanning the bus"
+msgstr "scanarea magistralei"
+
+msgid "switching all ECGs"
+msgstr "comutarea tuturor balasturilor"
+
+msgid "blinking"
+msgstr "clipire"
+
+msgid "stopping the blinking"
+msgstr "oprirea clipirii"
+
+msgid "new installation"
+msgstr "instalare nouă"
+
+msgid "post installation"
+msgstr "postinstalare"
+
+msgid "programming the groups"
+msgstr "programarea grupurilor"
+
+msgid "programming the scenes"
+msgstr "programarea scenelor"
+
+msgid "{count} found"
+msgstr "Găsite: {count}"
+
+msgid "Use 'Scan Bus' to read the DALI bus."
+msgstr "Folosiți „Scanare magistrală” pentru a citi magistrala DALI."
+
+msgid "Firmware {version}"
+msgstr "Firmware {version}"
+
+msgid "Confirm DALI Programming"
+msgstr "Confirmare programare DALI"
+
+msgid "Continue"
+msgstr "Continuare"
+
+msgid "New installation scans the DALI bus again and REASSIGNS the short\naddress of every ballast. This cannot be undone. Continue?"
+msgstr "Instalarea nouă scanează din nou magistrala DALI și REALOCĂ adresa scurtă\na fiecărui balast. Operația nu poate fi anulată. Continuați?"
+
+msgid "Post installation scans the bus for new ballasts and updates their addressing.\nThis changes the device. Continue?"
+msgstr "Postinstalarea caută balasturi noi pe magistrală și le actualizează adresarea.\nAceasta modifică dispozitivul. Continuați?"
+
+msgid "Write the group assignment to the DALI bus. This applies the groups to the\ngateway and its ballasts. Continue?"
+msgstr "Se scrie alocarea grupurilor pe magistrala DALI. Aceasta aplică grupurile\nla gateway și la balasturile lui. Continuați?"
+
+msgid "Write the scene values to the DALI bus. Continue?"
+msgstr "Se scriu valorile scenelor pe magistrala DALI. Continuați?"
+
+msgid "{count} ECG(s) present"
+msgstr "Balasturi prezente: {count}"
+
+msgid "Group"
+msgstr "Grup"
+
+msgid "Long Address"
+msgstr "Adresă lungă"
+
+msgid "Alarm"
+msgstr "Alarmă"
+
+msgid "Blink"
+msgstr "Clipire"
+
+msgid "Stop"
+msgstr "Oprire"
+
+msgid "Program Groups…"
+msgstr "Programare grupuri…"
+
+msgid "Scenes"
+msgstr "Scene"
+
+msgid "Assign the ECGs to groups above to define scenes."
+msgstr "Alocați balasturile la grupurile de mai sus pentru a defini scene."
+
+msgid "Scene"
+msgstr "Scenă"
+
+msgid "Scene {number}"
+msgstr "Scena {number}"
+
+msgid "Group {number}"
+msgstr "Grupul {number}"
+
+msgid "Program Scenes…"
+msgstr "Programare scene…"
+
+msgid "Single"
+msgstr "Individual"
+
+msgid "Unassigned"
+msgstr "Nealocat"
+
+msgid "Procedure {number}  ({count} steps)"
+msgstr "Procedura {number}  (pași: {count})"
+
+msgid "Kind"
+msgstr "Tip"
+
+msgid "Applies To"
+msgstr "Se aplică la"
+
+msgid "Details"
+msgstr "Detalii"
+
+msgid "Scope: {scope}"
+msgstr "Domeniu: {scope}"
+
+msgid "Unload Application Program"
+msgstr "Dezinstalare program de aplicație"
+
+msgid "This unloads the application program of the device at {address}. The device stops working until its application program is downloaded again."
+msgstr "Această acțiune dezinstalează programul de aplicație al dispozitivului de la adresa {address}. Dispozitivul nu mai funcționează până când programul lui de aplicație nu este programat din nou."
+
+msgid "This unloads the application program of the device at {address} and then resets its individual address to 15.15.255; for that, its programming button has to be pressed. The device stops working until it is commissioned again."
+msgstr "Această acțiune dezinstalează programul de aplicație al dispozitivului de la adresa {address} și apoi îi resetează adresa fizică la 15.15.255; pentru aceasta trebuie apăsat butonul lui de programare. Dispozitivul nu mai funcționează până când nu este pus din nou în funcțiune."
+
+msgid "Overwrite Address"
+msgstr "Suprascriere adresă"
+
+msgid "Manufacturer's Plugin Not Available"
+msgstr "Plugin-ul producătorului nu este disponibil"
+
+msgid "Serial Number Already Used"
+msgstr "Număr de serie deja folosit"
+
+msgid "Cancelled by user."
+msgstr "Revocat de utilizator."
+
+msgid "Additional Individual Addresses"
+msgstr "Adrese fizice suplimentare"
+
+msgid "Additional Individual Address"
+msgstr "Adresă fizică suplimentară"
+
+msgid "Assign Missing Addresses"
+msgstr "Alocare adrese lipsă"
+
+msgid "The line does not provide enough addresses for all necessary additional addresses."
+msgstr "Linia nu are suficiente adrese pentru toate adresele suplimentare necesare."
+
+msgid "Enter a device number from 1 to 255 or a full individual address in the device's line."
+msgstr "Introduceți un număr de dispozitiv de la 1 la 255 sau o adresă fizică completă din linia dispozitivului."
+
+msgid "An additional address must be in the device's line {line}."
+msgstr "O adresă suplimentară trebuie să fie în linia {line} a dispozitivului."
+
+msgid "The individual address {address} is already used in this line."
+msgstr "Adresa fizică {address} este deja folosită în această linie."
+
+msgid "Changed additional address of device '{0}' from '{1}' to '{2}'."
+msgstr "Adresa suplimentară a dispozitivului '{0}' a fost schimbată din '{1}' în '{2}'."
+
+msgid "Change additional address names"
+msgstr "Schimbare nume adrese suplimentare"
+
+msgid "Change additional address descriptions"
+msgstr "Schimbare descrieri adrese suplimentare"
+
+msgid "Assign additional addresses"
+msgstr "Alocare adrese suplimentare"
+
+msgid "Change additional addresses"
+msgstr "Schimbare adrese suplimentare"
+
+msgid "Started by an MCP client."
+msgstr "Pornit de un client MCP."
+
+msgid "Parameters in the Manufacturer's Plugin"
+msgstr "Parametri în plugin-ul producătorului"
+
+msgid "The manufacturer sets this device's parameters in its own plugin dialog, which XKNX Editor cannot run, so they cannot be changed here. A download writes their current values unchanged; the group objects can be linked as usual."
+msgstr "Producătorul setează parametrii acestui dispozitiv în propriul dialog de plugin, pe care XKNX Editor nu îl poate rula, așa că ei nu pot fi modificați aici. O programare scrie valorile lor actuale neschimbate; obiectele de comunicare pot fi legate ca de obicei."
+
+msgid "Edit parameters anyway"
+msgstr "Editare parametri oricum"
+
+msgid "Matching DPT Only"
+msgstr "Numai DPT potrivit"
+
+msgid "Only group addresses with the object's main datapoint type, and those without one (they take the object's type when linked)."
+msgstr "Numai adresele de grup cu tipul principal de punct de date al obiectului și cele fără tip (acestea preiau tipul obiectului la legare)."
+
+msgid "no DPT"
+msgstr "fără DPT"
+
+msgid "Only objects with the same main datapoint type, and those without one."
+msgstr "Numai obiectele cu același tip principal de punct de date și cele fără tip."
+
+msgid "Select a device in the tree first."
+msgstr "Selectați mai întâi un dispozitiv în arbore."
+
+msgid "{device} has no group objects."
+msgstr "{device} nu are obiecte de comunicare."
+
+msgid "All objects of {device} are in the list already."
+msgstr "Toate obiectele lui {device} sunt deja în listă."
+
+msgid "Link group objects to existing group addresses."
+msgstr "Legați obiecte de comunicare de adrese de grup existente."
+
+msgid "Add objects with \"{add_device}\" or \"{add_objects}\"."
+msgstr "Adăugați obiecte cu „{add_device}” sau „{add_objects}”."
+
+msgid "Pick a group address per row, or fill all with \"{match}\" or \"{sequential}\"."
+msgstr "Alegeți o adresă de grup pentru fiecare rând sau completați-le pe toate cu „{match}” sau „{sequential}”."
+
+msgid "\"{link_all}\" links every row that has one."
+msgstr "„{link_all}” leagă fiecare rând care are una."
+
+msgid "Link objects to each other through a new group address each: the source sends, the target receives."
+msgstr "Legați obiecte între ele prin câte o adresă de grup nouă: sursa transmite, ținta recepționează."
+
+msgid "Add the source objects with \"{add_device}\" or \"{add_objects}\"."
+msgstr "Adăugați obiectele sursă cu „{add_device}” sau „{add_objects}”."
+
+msgid "Pick a target object per row. Address and name are suggested and can be changed."
+msgstr "Alegeți un obiect țintă pentru fiecare rând. Adresa și numele sunt propuse și pot fi modificate."
+
+msgid "\"{link_all}\" creates the group addresses and links them."
+msgstr "„{link_all}” creează adresele de grup și le leagă."
+
+msgid "Link All"
+msgstr "Legare toate"
+
+msgid "Object"
+msgstr "Obiect"
+
+msgid "Ready to link."
+msgstr "Gata de legare."
+
+msgid "Check the group address: several match, or a datapoint type is unknown."
+msgstr "Verificați adresa de grup: se potrivesc mai multe sau un tip de punct de date este necunoscut."
+
+msgid "The datapoint types do not match; this row is not linked."
+msgstr "Tipurile de puncte de date nu se potrivesc; acest rând nu este legat."
+
+msgid "No group address chosen yet."
+msgstr "Încă nu s-a ales nicio adresă de grup."
+
+msgid "Add device {name}"
+msgstr "Adăugare dispozitiv {name}"
+
+msgid "Set {ref} = {value}"
+msgstr "Setare {ref} = {value}"
+
+msgid "Change"
+msgstr "Modificare"
+
+msgid "Create area {address}"
+msgstr "Creare zona {address}"
+
+msgid "Create line {address}"
+msgstr "Creare linia {address}"
+
+msgid "Add segment"
+msgstr "Adăugare segment"
+
+msgid "Create group address {address}"
+msgstr "Creare adresa de grup {address}"
+
+msgid "Import group addresses"
+msgstr "Import adrese de grup"
+
+msgid "Import group addresses from {file}"
+msgstr "Import adrese de grup din {file}"
+
+msgid "Link group object"
+msgstr "Legare obiect de comunicare"
+
+msgid "Unlink group object"
+msgstr "Dezlegare obiect de comunicare"
+
+msgid "Rename area to {name}"
+msgstr "Redenumire zonă în {name}"
+
+msgid "Rename project to {name}"
+msgstr "Redenumire proiect în {name}"
+
+msgid "Rename line to {name}"
+msgstr "Redenumire linie în {name}"
+
+msgid "Rename device to {name}"
+msgstr "Redenumire dispozitiv în {name}"
+
+msgid "Move device"
+msgstr "Mutare dispozitiv"
+
+msgid "Set flag"
+msgstr "Setare indicator"
+
+msgid "Set datapoint type"
+msgstr "Setare tip de punct de date"
+
+msgid "Set priority"
+msgstr "Setare prioritate"
+
+msgid "Set description"
+msgstr "Setare descriere"
+
+msgid "Set sending group address"
+msgstr "Setare adresă de grup de transmisie"
+
+msgid "Add installation"
+msgstr "Adăugare instalație"
+
+msgid "Remove device"
+msgstr "Eliminare dispozitiv"
+
+msgid "Remove area"
+msgstr "Eliminare zonă"
+
+msgid "Remove line"
+msgstr "Eliminare linie"
+
+msgid "Remove segment"
+msgstr "Eliminare segment"
+
+msgid "Remove group address"
+msgstr "Eliminare adresă de grup"
+
+msgid "Remove function"
+msgstr "Eliminare funcție"
+
+msgid "Remove group address from function"
+msgstr "Eliminare adresă de grup din funcție"
+
+msgid "Remove building part"
+msgstr "Eliminare parte de clădire"
+
+msgid "Remove group range"
+msgstr "Eliminare domeniu de grupuri"
+
+msgid "Update application program"
+msgstr "Actualizare program de aplicație"
+
+msgid "Change application program"
+msgstr "Schimbare program de aplicație"
+
+msgid "Update group objects"
+msgstr "Actualizare obiecte de comunicare"
+
+msgid "Update module instances"
+msgstr "Actualizare instanțe de module"
+
+msgid "Set group address security"
+msgstr "Setare securitate adresă de grup"
+
+msgid "Set secure commissioning"
+msgstr "Setare punere în funcțiune securizată"
+
+msgid "Rename group address to {name}"
+msgstr "Redenumire adresă de grup în {name}"
+
+msgid "Change group address"
+msgstr "Schimbare adresă de grup"
+
+msgid "Set device certificates"
+msgstr "Setare certificate dispozitive"
+
+msgid "Set device description"
+msgstr "Setare descriere dispozitiv"
+
+msgid "Create function {name}"
+msgstr "Creare funcție {name}"
+
+msgid "Rename function to {name}"
+msgstr "Redenumire funcție în {name}"
+
+msgid "Set function type"
+msgstr "Setare tip funcție"
+
+msgid "Add group address to function"
+msgstr "Adăugare adresă de grup la funcție"
+
+msgid "Create building part {name}"
+msgstr "Creare parte de clădire {name}"
+
+msgid "Rename building part to {name}"
+msgstr "Redenumire parte de clădire în {name}"
+
+msgid "Set building part number"
+msgstr "Setare număr parte de clădire"
+
+msgid "Set building part description"
+msgstr "Setare descriere parte de clădire"
+
+msgid "Set building part type"
+msgstr "Setare tip parte de clădire"
+
+msgid "Move building part"
+msgstr "Mutare parte de clădire"
+
+msgid "Assign device to building part"
+msgstr "Alocare dispozitiv la parte de clădire"
+
+msgid "Set commissioning state"
+msgstr "Setare stare punere în funcțiune"
+
+msgid "Create group range {name}"
+msgstr "Creare domeniu de grupuri {name}"
+
+msgid "Rename group range to {name}"
+msgstr "Redenumire domeniu de grupuri în {name}"
+
+msgid "{device}: no individual address"
+msgstr "{device}: nicio adresă fizică"
+
+msgid "{device}: malformed address '{address}'"
+msgstr "{device}: adresă incorectă '{address}'"
+
+msgid "{device}: duplicate address {address}"
+msgstr "{device}: adresă duplicată {address}"
+
+msgid "Installation Hints"
+msgstr "Indicații de instalare"
+
+msgid "Select an element in a tree to see its comment."
+msgstr "Selectați un element dintr-un arbore pentru a-i vedea comentariul."
+
+msgid "Set comment"
+msgstr "Setare comentariu"
+
+msgid "Set installation hints"
+msgstr "Setare indicații de instalare"
+
+msgid "Area"
+msgstr "Zonă"
+
+msgid "Line"
+msgstr "Linie"
+
+msgid "The address is a number from 0 to 15."
+msgstr "Adresa este un număr de la 0 la 15."
+
+msgid "Address {address} is already in use."
+msgstr "Adresa {address} este deja folosită."
+
+msgid "Set area description"
+msgstr "Setare descriere zonă"
+
+msgid "Set line description"
+msgstr "Setare descriere linie"
+
+msgid "Set area address"
+msgstr "Setare adresă zonă"
+
+msgid "Set line address"
+msgstr "Setare adresă linie"
+
+msgid "Main Group"
+msgstr "Grupă principală"
+
+msgid "Middle Group"
+msgstr "Grupă mediană"
+
+msgid "Group Range"
+msgstr "Domeniu de grupuri"
+
+msgid "The main group is a number from 0 to 31."
+msgstr "Grupa principală este un număr de la 0 la 31."
+
+msgid "The middle group is a number from 0 to 7."
+msgstr "Grupa mediană este un număr de la 0 la 7."
+
+msgid "Set group address description"
+msgstr "Setare descriere adresă de grup"
+
+msgid "Set group range description"
+msgstr "Setare descriere domeniu de grupuri"
+
+msgid "Set group range address"
+msgstr "Setare adresă domeniu de grupuri"
+
+msgid "DALI (Siemens)"
+msgstr "DALI (Siemens)"
+
+msgid "Connect to a KNX interface to read the Siemens DALI bus."
+msgstr "Conectați-vă la o interfață KNX pentru a citi magistrala DALI Siemens."
+
+msgid "Read DALI Bus"
+msgstr "Citire magistrală DALI"
+
+msgid "Reading the DALI bus from object {object_index}…"
+msgstr "Se citește magistrala DALI din obiectul {object_index}…"
+
+msgid "Press 'Read DALI Bus' to list the ECGs on the gateway."
+msgstr "Apăsați „Citire magistrală DALI” pentru a lista balasturile din gateway."
+
+msgid "{count} ECG(s) present on line {line}"
+msgstr "Balasturi prezente pe linia {line}: {count}"
+
+msgid "Read-only snapshot. Writing group assignments, scenes or firmware is not available yet and remains in the manufacturer's plugin."
+msgstr "Instantaneu doar în citire. Scrierea alocărilor de grupuri, a scenelor sau a firmware-ului nu este încă disponibilă și rămâne în plugin-ul producătorului."
+
+msgid "Short Address"
+msgstr "Adresă scurtă"
+
+msgid "Random Address"
+msgstr "Adresă aleatorie"
+
+msgid "Min Dim"
+msgstr "Variație min."
+
+msgid "Colour Temp (K)"
+msgstr "Temp. culoare (K)"
+
+msgid "Slot"
+msgstr "Slot"
+
+msgid "Plugin Config"
+msgstr "Configurație plugin"
+
+msgid "No plugin mapping is available for this device yet. The vendor plugin's parameters stay unreachable from here."
+msgstr "Pentru acest dispozitiv nu există încă o asociere de plugin. Parametrii plugin-ului producătorului rămân inaccesibili de aici."
+
+msgid "The application has no static parameters."
+msgstr "Aplicația nu are parametri statici."
+
+msgid "Read-only view. The hierarchy is a best-effort reconstruction from parameter name prefixes; names and groupings may be rough. Writing values is not available yet."
+msgstr "Vizualizare doar în citire. Ierarhia este o reconstrucție aproximativă din prefixele numelor parametrilor; numele și grupările pot fi imprecise. Scrierea valorilor nu este încă disponibilă."
+
+msgid "##plugin_params_filter"
+msgstr "##plugin_params_filter"
+
+msgid "No parameter matches the filter."
+msgstr "Niciun parametru nu corespunde filtrului."
+
+msgid "Parameter"
+msgstr "Parametru"
+
+msgid "Default"
+msgstr "Implicit"
+
+msgid "Editable fallback for parameters whose manufacturer plugin is not available here. The hierarchy is reconstructed from parameter name prefixes; labels and groupings may be rough. Edits are written to the project and transferred by a normal download."
+msgstr "Vizualizare editabilă de rezervă pentru parametrii al căror plugin de producător nu este disponibil aici. Ierarhia este reconstruită din prefixele numelor parametrilor; etichetele și grupările pot fi imprecise. Modificările sunt scrise în proiect și transferate printr-o programare normală."
+
+msgid "DALI commissioning"
+msgstr "Punere în funcțiune DALI"
+
+msgid "DALI Channel"
+msgstr "Canal DALI"
+
+msgid "Channel {n}"
+msgstr "Canalul {n}"
+
+msgid "Program DCA State"
+msgstr "Programare stare DCA"
+
+msgid "Sends the DALI device settings to the gateway as property values."
+msgstr "Transmite setările dispozitivelor DALI către gateway ca valori de proprietăți."
+
+msgid "Add to {section}:"
+msgstr "Adăugare la {section}:"
+
+msgid "No entries."
+msgstr "Nicio intrare."
+
+msgid "Entry"
+msgstr "Intrare"
+
+msgid "Store plugin data {name}"
+msgstr "Salvare date plugin {name}"
+
+msgid "Unknown"
+msgstr "Necunoscut"
+
+msgid "Editing"
+msgstr "În editare"
+
+msgid "Finished design"
+msgstr "Proiectare finalizată"
+
+msgid "Finished commissioning"
+msgstr "Punere în funcțiune finalizată"
+
+msgid "Tested"
+msgstr "Testat"
+
+msgid "Accepted"
+msgstr "Acceptat"
+
+msgid "Locked"
+msgstr "Blocat"
+
+msgid "Function"
+msgstr "Funcție"
+
+msgid "Use"
+msgstr "Utilizare"
+
+msgid "Set room use"
+msgstr "Setare utilizare cameră"
+
+msgid "Set status to {status}"
+msgstr "Setare stare la {status}"
+
+msgid "Set function description"
+msgstr "Setare descriere funcție"
+
+msgid "Current Line"
+msgstr "Linie curentă"
+
+msgid "{line} (inherits from {space})"
+msgstr "{line} (moștenită de la {space})"
+
+msgid "Set current line"
+msgstr "Setare linie curentă"
+
+msgid "Segment"
+msgstr "Segment"
+
+msgid "Medium"
+msgstr "Mediu"
+
+msgid "Domain Address"
+msgstr "Adresă de domeniu"
+
+msgid "The medium of a segment can only change while it holds no device."
+msgstr "Mediul unui segment poate fi schimbat numai cât timp nu conține niciun dispozitiv."
+
+msgid "The medium type of the segment '{segment}' cannot be changed to IoT, because its parent line '{line}' is not of medium type IP."
+msgstr "Tipul de mediu al segmentului '{segment}' nu poate fi schimbat în IoT, deoarece linia lui superioară '{line}' nu are tipul de mediu IP."
+
+msgid "The maximum number of segments has been reached."
+msgstr "S-a atins numărul maxim de segmente."
+
+msgid "The main segment cannot be deleted."
+msgstr "Segmentul principal nu poate fi șters."
+
+msgid "Device '{device}' is incompatible with line's medium type."
+msgstr "Dispozitivul '{device}' este incompatibil cu tipul de mediu al liniei."
+
+msgid "Device '{device}' is incompatible with segment's medium type."
+msgstr "Dispozitivul '{device}' este incompatibil cu tipul de mediu al segmentului."
+
+msgid "Rename segment to {name}"
+msgstr "Redenumire segment în {name}"
+
+msgid "Set medium to {medium}"
+msgstr "Setare mediu la {medium}"
+
+msgid "Forced on"
+msgstr "Forțat activ"
+
+msgid "Forced off"
+msgstr "Forțat inactiv"
+
+msgid "Overridden by '{name}': {mode}"
+msgstr "Suprascris de '{name}': {mode}"
+
+msgid "Central"
+msgstr "Central"
+
+msgid "Not every device linked to a group address of this group is commissioned securely, so it cannot be secured."
+msgstr "Nu toate dispozitivele legate de o adresă de grup din acest grup sunt puse în funcțiune securizat, așa că grupul nu poate fi securizat."
+
+msgid "Set group security"
+msgstr "Setare securitate grup"
+
+msgid "Mark group address as central"
+msgstr "Marcare adresă de grup ca centrală"
+
+msgid "Remove central mark from group address"
+msgstr "Eliminare marcaj central de la adresa de grup"
+
+msgid "Topology"
+msgstr "Topologie"
+
+msgid "{medium} backbone line"
+msgstr "Linie backbone {medium}"
+
+msgid "{medium} main line"
+msgstr "Linie principală {medium}"
+
+msgid "Backbone"
+msgstr "Backbone"
+
+msgid "Network Latency"
+msgstr "Latență rețea"
+
+msgid "LAN (< 400ms)"
+msgstr "LAN (< 400ms)"
+
+msgid "WLAN (< 1s)"
+msgstr "WLAN (< 1s)"
+
+msgid "WAN (< 2s)"
+msgstr "WAN (< 2s)"
+
+msgid "Mobile (< 4s)"
+msgstr "Mobil (< 4s)"
+
+msgid "Satellite (< 8s)"
+msgstr "Satelit (< 8s)"
+
+msgid "The network latency must be a number of milliseconds from 1 to 65535."
+msgstr "Latența rețelei trebuie să fie un număr de milisecunde de la 1 la 65535."
+
+msgid "Multicast Address"
+msgstr "Adresă multicast"
+
+msgid "Enter a multicast address from 224.0.0.0 to 239.255.255.255."
+msgstr "Introduceți o adresă multicast de la 224.0.0.0 la 239.255.255.255."
+
+msgid "Bus Connection"
+msgstr "Conexiune la magistrală"
+
+msgid "Set IP routing of the backbone"
+msgstr "Setare rutare IP a backbone-ului"
+
+msgid "As long as a coupler exists at a sub line or sub segment, a change of the medium type is not possible."
+msgstr "Cât timp există un cuplor pe o linie subordonată sau pe un segment subordonat, schimbarea tipului de mediu nu este posibilă."
+
+msgid "A main line of a project cannot have medium type RF."
+msgstr "O linie principală a unui proiect nu poate avea tipul de mediu RF."
+
+msgid "The operation could not be executed, because as medium type of the backbone only IP and TP are allowed."
+msgstr "Operația nu a putut fi executată, deoarece ca tip de mediu al backbone-ului sunt permise doar IP și TP."
+
+msgid "A sub-segment of KNX medium type IP or PL is not allowed."
+msgstr "Nu este permis un subsegment cu tipul de mediu KNX IP sau PL."
+
+msgid "The medium type of the main line '{line}' can no longer be changed to PL, because it already contains lines or segments that are not allowed in PL main lines."
+msgstr "Tipul de mediu al liniei principale '{line}' nu mai poate fi schimbat în PL, deoarece conține deja linii sau segmente nepermise în liniile principale PL."
+
+msgid "The medium type of the main line '{line}' cannot be changed to IoT, because the backbone line '{backbone}' is not of medium type IP."
+msgstr "Tipul de mediu al liniei principale '{line}' nu poate fi schimbat în IoT, deoarece linia backbone '{backbone}' nu are tipul de mediu IP."
+
+msgid "The medium type of the main line '{line}' can no longer be changed to IoT, because it already contains lines or segments that are not allowed in IoT main lines."
+msgstr "Tipul de mediu al liniei principale '{line}' nu mai poate fi schimbat în IoT, deoarece conține deja linii sau segmente nepermise în liniile principale IoT."
+
+msgid "The medium type of the line '{line}' cannot be changed, because it already contains lines or segments that require an IoT or IP main line."
+msgstr "Tipul de mediu al liniei '{line}' nu poate fi schimbat, deoarece conține deja linii sau segmente care necesită o linie principală IoT sau IP."
+
+msgid "A sub-segment is not allowed below a main segment of KNX medium type RF."
+msgstr "Nu este permis un subsegment sub un segment principal cu tipul de mediu KNX RF."
+
+msgid "A sub-segment is not allowed below a main segment of KNX medium type PL."
+msgstr "Nu este permis un subsegment sub un segment principal cu tipul de mediu KNX PL."
+
+msgid "A sub-segment of KNX medium type IoT is not allowed below a main segment of the same type."
+msgstr "Nu este permis un subsegment cu tipul de mediu KNX IoT sub un segment principal de același tip."
+
+msgid "The operation could not be executed, because a RF main line '{line}' requires all other lines in the area to be RF lines as well."
+msgstr "Operația nu a putut fi executată, deoarece o linie principală RF '{line}' cere ca toate celelalte linii din zonă să fie tot linii RF."
+
+msgid "The operation could not be executed, because a PL main line '{line}' requires all other lines in the area to be PL lines as well."
+msgstr "Operația nu a putut fi executată, deoarece o linie principală PL '{line}' cere ca toate celelalte linii din zonă să fie tot linii PL."
+
+msgid "The operation could not be executed, because a IoT main line '{line}' requires all other lines in the area to be IoT lines as well."
+msgstr "Operația nu a putut fi executată, deoarece o linie principală IoT '{line}' cere ca toate celelalte linii din zonă să fie tot linii IoT."
+
+msgid "The medium type of the line '{line}' cannot be changed to IoT, because its main line '{main}' is not of medium type IP."
+msgstr "Tipul de mediu al liniei '{line}' nu poate fi schimbat în IoT, deoarece linia ei principală '{main}' nu are tipul de mediu IP."
+
+msgid "The medium type of the line '{line}' can no longer be changed to IoT, because it already contains segments that are not allowed in IoT lines."
+msgstr "Tipul de mediu al liniei '{line}' nu mai poate fi schimbat în IoT, deoarece conține deja segmente nepermise în liniile IoT."
+
+msgid "The operation could not be executed, because the line is the IP backbone line and the project contains KNXnet/IP routers. KNXnet/IP routers require an IP backbone line."
+msgstr "Operația nu a putut fi executată, deoarece linia este linia backbone IP, iar proiectul conține routere KNXnet/IP. Routerele KNXnet/IP necesită o linie backbone IP."
+
+msgid "The operation could not be executed, because the line is the IP main line and the project contains KNXnet/IP routers. KNXnet/IP routers require an IP main line."
+msgstr "Operația nu a putut fi executată, deoarece linia este linia principală IP, iar proiectul conține routere KNXnet/IP. Routerele KNXnet/IP necesită o linie principală IP."
+
+msgid "The operation could not be executed, because the line is the IP backbone line and the project contains IoT or IP lines."
+msgstr "Operația nu a putut fi executată, deoarece linia este linia backbone IP, iar proiectul conține linii IoT sau IP."
+
+msgid "The operation could not be executed, because the medium type of the line can only be set to IP if an IP main line exists."
+msgstr "Operația nu a putut fi executată, deoarece tipul de mediu al liniei poate fi setat la IP numai dacă există o linie principală IP."
+
+msgid "The operation could not be executed, because the medium type of the line can only be set to IP if an IP backbone line exists."
+msgstr "Operația nu a putut fi executată, deoarece tipul de mediu al liniei poate fi setat la IP numai dacă există o linie backbone IP."
+
+msgid "The operation could not be executed, because below a TP main segment only segments of KNX medium type TP, RF or PL can exist."
+msgstr "Operația nu a putut fi executată, deoarece sub un segment principal TP pot exista numai segmente cu tipul de mediu KNX TP, RF sau PL."
+
+msgid "Below a main segment of KNX medium type IP only segments of medium type TP or RF can exist."
+msgstr "Sub un segment principal cu tipul de mediu KNX IP pot exista numai segmente cu tipul de mediu TP sau RF."
+
+msgid "A sub-segment of KNX medium type PL is not allowed below a main segment."
+msgstr "Nu este permis un subsegment cu tipul de mediu KNX PL sub un segment principal."
+
+msgid "Set bus connection of the backbone"
+msgstr "Setare conexiune la magistrală a backbone-ului"
+
+msgid "Set domain address"
+msgstr "Setare adresă de domeniu"
+
+msgid "Generate New"
+msgstr "Generare nouă"
+
+msgid "The given domain address is invalid."
+msgstr "Adresa de domeniu dată nu este validă."
+
+msgid "Domain address is not valid! Valid values are 1 to 255."
+msgstr "Adresa de domeniu nu este validă! Valorile valide sunt de la 1 la 255."
+
+msgid "DomainAddress of mediumType 'RF' is lower than the minimum value of 0001:00000000."
+msgstr "Adresa de domeniu a tipului de mediu 'RF' este mai mică decât valoarea minimă 0001:00000000."
+
+msgid "DomainAddress of medium type '{medium}' exceeds the maximum valid value of {maximum}"
+msgstr "Adresa de domeniu a tipului de mediu '{medium}' depășește valoarea maximă validă {maximum}"
+
+msgid "DomainAddress of RF sublines must be equal to DomainAdress of main line."
+msgstr "Adresa de domeniu a sublinilor RF trebuie să fie egală cu adresa de domeniu a liniei principale."
+
+msgid "Domain Address of IoT sublines must be equal to Domain Address of main line."
+msgstr "Adresa de domeniu a sublinilor IoT trebuie să fie egală cu adresa de domeniu a liniei principale."
+
+msgid "Each line in a project must have a unique domain address."
+msgstr "Fiecare linie dintr-un proiect trebuie să aibă o adresă de domeniu unică."
+
+msgid "Last Downloaded"
+msgstr "Ultima programare"
+
+msgid "Create trade {name}"
+msgstr "Creare specialitate {name}"
+
+msgid "Rename trade to {name}"
+msgstr "Redenumire specialitate în {name}"
+
+msgid "Set trade number"
+msgstr "Setare număr specialitate"
+
+msgid "Set trade description"
+msgstr "Setare descriere specialitate"
+
+msgid "Move trade"
+msgstr "Mutare specialitate"
+
+msgid "Remove trade"
+msgstr "Eliminare specialitate"
+
+msgid "Add device to trade"
+msgstr "Adăugare dispozitiv la specialitate"
+
+msgid "Remove device from trade"
+msgstr "Eliminare dispozitiv din specialitate"
+
+msgid "Trades"
+msgstr "Specialități"
+
+msgid "Building Parts…"
+msgstr "Părți de clădire…"
+
+msgid "Floors…"
+msgstr "Etaje…"
+
+msgid "Stairways…"
+msgstr "Case ale scării…"
+
+msgid "Rooms…"
+msgstr "Camere…"
+
+msgid "Corridors…"
+msgstr "Coridoare…"
+
+msgid "Cabinets…"
+msgstr "Tablouri…"
+
+msgid "Devices…"
+msgstr "Dispozitive…"
+
+msgid "Functions…"
+msgstr "Funcții…"
+
+msgid "Trades…"
+msgstr "Specialități…"
+
+msgid "Add Buildings…"
+msgstr "Adăugare clădiri…"
+
+msgid "Add Trades…"
+msgstr "Adăugare specialități…"
+
+msgid "Add Buildings"
+msgstr "Adăugare clădiri"
+
+msgid "Add Building Parts"
+msgstr "Adăugare părți de clădire"
+
+msgid "Add Floors"
+msgstr "Adăugare etaje"
+
+msgid "Add Rooms"
+msgstr "Adăugare camere"
+
+msgid "Add Corridors"
+msgstr "Adăugare coridoare"
+
+msgid "Add Stairways"
+msgstr "Adăugare case ale scării"
+
+msgid "Add Cabinets"
+msgstr "Adăugare tablouri"
+
+msgid "Add Trades"
+msgstr "Adăugare specialități"
+
+msgid "Add Devices"
+msgstr "Adăugare dispozitive"
+
+msgid "Count"
+msgstr "Număr"
+
+msgid "to \"{name}\""
+msgstr "în „{name}”"
+
+msgid "Cabinet"
+msgstr "Tablou"
+
+msgid "New building"
+msgstr "Clădire nouă"
+
+msgid "New building part"
+msgstr "Parte de clădire nouă"
+
+msgid "New floor"
+msgstr "Etaj nou"
+
+msgid "New room"
+msgstr "Cameră nouă"
+
+msgid "New corridor"
+msgstr "Coridor nou"
+
+msgid "New stairway"
+msgstr "Casă a scării nouă"
+
+msgid "New cabinet"
+msgstr "Tablou nou"
+
+msgid "New trade"
+msgstr "Specialitate nouă"
+
+msgid "A building part of this type cannot be added here."
+msgstr "O parte de clădire de acest tip nu poate fi adăugată aici."
+
+msgid "A building part of this type cannot be added here.\nCabinets can be added inside of rooms, corridors, or stairways only. If applicable the corridors have to be moved into the corresponding building parts."
+msgstr "O parte de clădire de acest tip nu poate fi adăugată aici.\nTablourile pot fi adăugate numai în camere, coridoare sau case ale scării. Dacă este cazul, coridoarele trebuie mutate în părțile de clădire corespunzătoare."
+
+msgid "The target is a child building part."
+msgstr "Ținta este o parte de clădire subordonată."
+
+msgid "Devices can only be added to stairways, rooms, corridors and cabinets."
+msgstr "Dispozitivele pot fi adăugate numai în case ale scării, camere, coridoare și tablouri."
+
+msgid "Trade"
+msgstr "Specialitate"
+
+msgid "(estimated)"
+msgstr "(estimat)"
+
+msgid "Number of Devices"
+msgstr "Număr de dispozitive"
+
+msgid "Unlink"
+msgstr "Dezlegare"
+
+msgid "An IP router requires an IP backbone line."
+msgstr "Un router IP necesită o linie backbone IP."
+
+msgid "The operation could not be executed, because a coupler needs a main line."
+msgstr "Operația nu a putut fi executată, deoarece un cuplor are nevoie de o linie principală."
+
+msgid "The operation could not be executed, because an area coupler requires a backbone line."
+msgstr "Operația nu a putut fi executată, deoarece un cuplor de zonă necesită o linie backbone."
+
+msgid "The operation could not be executed, because this coupler needs a main line with the medium type '{medium}' ."
+msgstr "Operația nu a putut fi executată, deoarece acest cuplor are nevoie de o linie principală cu tipul de mediu '{medium}' ."
+
+msgid "The operation could not be executed, because only one IP router is allowed as a world coupler."
+msgstr "Operația nu a putut fi executată, deoarece doar un singur router IP este permis ca world coupler."
+
+msgid "The operation could not be executed, because only IP router area allowed as a world coupler."
+msgstr "Operația nu a putut fi executată, deoarece doar routerele IP sunt permise ca world coupler."
+
+msgid "The backbone line contains a world coupler. It is not possible to use an IP router below another IP router."
+msgstr "Linia backbone conține un world coupler. Nu este posibil să folosiți un router IP sub alt router IP."
+
+msgid "It is not possible to use a world coupler, when there are already IP routers in the project."
+msgstr "Nu este posibil să folosiți un world coupler când există deja routere IP în proiect."
+
+msgid "A world coupler can only be used, when the medium type of the backbone is TP."
+msgstr "Un world coupler poate fi folosit numai când tipul de mediu al backbone-ului este TP."
+
+msgid "The coupler does not support segment coupling, so the sub-segment must be of the same KNX medium type as the main segment."
+msgstr "Cuplorul nu acceptă cuplarea segmentelor, așa că subsegmentul trebuie să aibă același tip de mediu KNX ca segmentul principal."
+
+msgid "The operation could not be executed, because this device couples medium '{above}' (above) to medium '{below}' (below), but the segment above is '{segment}'."
+msgstr "Operația nu a putut fi executată, deoarece acest dispozitiv cuplează mediul '{above}' (sus) cu mediul '{below}' (jos), dar segmentul de sus este '{segment}'."
+
+msgid "The operation could not be executed, because medium type of coupler device matches only sub segment, but maximum amount of segments reached."
+msgstr "Operația nu a putut fi executată, deoarece tipul de mediu al cuplorului se potrivește doar cu un subsegment, dar s-a atins numărul maxim de segmente."
+
+msgid "The operation could not be executed, because this device couples medium '{above}' (above) to medium '{below}' (below), but the medium type of the lower segment is '{segment}'."
+msgstr "Operația nu a putut fi executată, deoarece acest dispozitiv cuplează mediul '{above}' (sus) cu mediul '{below}' (jos), dar tipul de mediu al segmentului de jos este '{segment}'."
+
+msgid "Recover Project from Bus"
+msgstr "Recuperare proiect de pe magistrală"
+
+msgid "Devices in Programming Mode"
+msgstr "Dispozitive în modul de programare"
+
+msgid "Connecting"
+msgstr "Se conectează"
+
+msgid "Move middle group"
+msgstr "Mutare grupă mediană"
+
+msgid "The group has no free group address."
+msgstr "Grupul nu are nicio adresă de grup liberă."
+
+msgid "The main group has no free middle group."
+msgstr "Grupa principală nu are nicio grupă mediană liberă."
+
+msgid "{count} devices"
+msgstr "Dispozitive: {count}"
+
+msgid "The main segment cannot be moved."
+msgstr "Segmentul principal nu poate fi mutat."
+
+msgid "The maximum number of lines has been reached."
+msgstr "S-a atins numărul maxim de linii."
+
+msgid "The line is already assigned to an area."
+msgstr "Linia este deja alocată unei zone."
+
+msgid "The main line cannot be moved."
+msgstr "Linia principală nu poate fi mutată."
+
+msgid "Move line"
+msgstr "Mutare linie"
+
+msgid "Move segment"
+msgstr "Mutare segment"
+
+msgid "Move function"
+msgstr "Mutare funcție"
+
+msgid "Paste Special"
+msgstr "Lipire specială"
+
+msgid "Number of Items"
+msgstr "Număr de elemente"
+
+msgid "Don't copy"
+msgstr "Fără copiere"
+
+msgid "Keep"
+msgstr "Păstrare"
+
+msgid "Create new group address in middle group"
+msgstr "Creare adresă de grup nouă în grupa mediană"
+
+msgid "Create new group address in main group"
+msgstr "Creare adresă de grup nouă în grupa principală"
+
+msgid "Create new group address in group range"
+msgstr "Creare adresă de grup nouă în domeniul de grupuri"
+
+msgid "Generate Address"
+msgstr "Generare adresă"
+
+msgid "Fill up (use first free)"
+msgstr "Completare (prima liberă)"
+
+msgid "Append"
+msgstr "Adăugare la sfârșit"
+
+msgid "Start with"
+msgstr "Începere cu"
+
+msgid "Enter a middle group, e.g. 1/2."
+msgstr "Introduceți o grupă mediană, de ex. 1/2."
+
+msgid "Enter a main group, e.g. 1."
+msgstr "Introduceți o grupă principală, de ex. 1."
+
+msgid "The group has too few free group addresses for the copies."
+msgstr "Grupul are prea puține adrese de grup libere pentru copii."
+
+msgid "The maximum number of group ranges has been reached."
+msgstr "S-a atins numărul maxim de domenii de grupuri."
+
+msgid "There is no group for the new group addresses."
+msgstr "Nu există niciun grup pentru noile adrese de grup."
+
+msgid "Copied '{name}' to '{target}'."
+msgstr "'{name}' a fost copiat în '{target}'."
+
+msgid "Copied {count} devices to '{target}'."
+msgstr "Dispozitive copiate în '{target}': {count}."
+
+msgid "Copied {count} building parts to '{target}'."
+msgstr "Părți de clădire copiate în '{target}': {count}."
+
+msgid "Copied {count} trades to '{target}'."
+msgstr "Specialități copiate în '{target}': {count}."
+
+msgid "Copied {count} functions to '{target}'."
+msgstr "Funcții copiate în '{target}': {count}."
+
+msgid "Copied {count} group addresses to '{target}'."
+msgstr "Adrese de grup copiate în '{target}': {count}."
+
+msgid "Copied {count} middle groups to '{target}'."
+msgstr "Grupe mediane copiate în '{target}': {count}."
+
+msgid "Copied {count} main groups to '{target}'."
+msgstr "Grupe principale copiate în '{target}': {count}."
+
+msgid "Copied {count} lines to '{target}'."
+msgstr "Linii copiate în '{target}': {count}."
+
+msgid "Copied {count} segments to '{target}'."
+msgstr "Segmente copiate în '{target}': {count}."
+
+msgid "Paste Special…"
+msgstr "Lipire specială…"
+
+msgid "Add Row"
+msgstr "Adăugare rând"
+
+msgid "Remove this row"
+msgstr "Eliminare acest rând"
+
+msgid "Generate Addresses"
+msgstr "Generare adrese"
+
+msgid "Unlink device"
+msgstr "Dezlegare dispozitiv"
+
+msgid "The device is on no line: put it on a line first."
+msgstr "Dispozitivul nu este pe nicio linie: puneți-l mai întâi pe o linie."
+
+msgid "Areas…"
+msgstr "Zone…"
+
+msgid "Lines…"
+msgstr "Linii…"
+
+msgid "Segments…"
+msgstr "Segmente…"
+
+msgid "Add Areas"
+msgstr "Adăugare zone"
+
+msgid "Add Lines"
+msgstr "Adăugare linii"
+
+msgid "Add Segments"
+msgstr "Adăugare segmente"
+
+msgid "The limit to add was reached."
+msgstr "S-a atins limita de adăugare."
+
+msgid "Cannot add any line to the area {area} because of topology constraints. Please check the medium type of the backbone and main lines."
+msgstr "Nu se poate adăuga nicio linie în zona {area} din cauza restricțiilor de topologie. Verificați tipul de mediu al liniilor backbone și principale."
+
+msgid "Added {count} areas to '{target}'."
+msgstr "Zone adăugate în '{target}': {count}."
+
+msgid "Added {count} lines to '{target}'."
+msgstr "Linii adăugate în '{target}': {count}."
+
+msgid "Added {count} segments to '{target}'."
+msgstr "Segmente adăugate în '{target}': {count}."
+
+msgid "Added {count} building parts to '{target}'."
+msgstr "Părți de clădire adăugate în '{target}': {count}."
+
+msgid "Added {count} trades to '{target}'."
+msgstr "Specialități adăugate în '{target}': {count}."
+
+msgid "Added {count} main groups to '{target}'."
+msgstr "Grupe principale adăugate în '{target}': {count}."
+
+msgid "Added {count} middle groups to '{target}'."
+msgstr "Grupe mediane adăugate în '{target}': {count}."
+
+msgid "Added {count} group addresses to '{target}'."
+msgstr "Adrese de grup adăugate în '{target}': {count}."
+
+msgid "Add Main Groups…"
+msgstr "Adăugare grupe principale…"
+
+msgid "Add Middle Groups…"
+msgstr "Adăugare grupe mediane…"
+
+msgid "Add Main Groups"
+msgstr "Adăugare grupe principale"
+
+msgid "Add Middle Groups"
+msgstr "Adăugare grupe mediane"
+
+msgid "New main group"
+msgstr "Grupă principală nouă"
+
+msgid "New middle group"
+msgstr "Grupă mediană nouă"
+
+msgid "New group address"
+msgstr "Adresă de grup nouă"
+
+msgid "Cut"
+msgstr "Decupare"
+
+msgid "What was cut cannot be moved there."
+msgstr "Ce a fost decupat nu poate fi mutat acolo."
+
+msgid "Park"
+msgstr "Parcare"
+
+msgid "Park device"
+msgstr "Parcare dispozitiv"
+
+msgid "Add Functions"
+msgstr "Adăugare funcții"
+
+msgid "New function"
+msgstr "Funcție nouă"
+
+msgid "Added {count} functions to '{target}'."
+msgstr "Funcții adăugate în '{target}': {count}."
+
+msgid "Added {count} group ranges to '{target}'."
+msgstr "Domenii de grupuri adăugate în '{target}': {count}."
+
+msgid "Add Group Ranges…"
+msgstr "Adăugare domenii de grupuri…"
+
+msgid "Add Group Ranges"
+msgstr "Adăugare domenii de grupuri"
+
+msgid "New group range"
+msgstr "Domeniu de grupuri nou"
+
+msgid "Capacity"
+msgstr "Capacitate"
+
+msgid "Link with…"
+msgstr "Legare cu…"
+
+msgid "Link with Group Address"
+msgstr "Legare cu adresă de grup"
+
+msgid "There is no group to add group addresses to."
+msgstr "Nu există niciun grup în care să se adauge adrese de grup."
+
+msgid "Add Subtrade"
+msgstr "Adăugare subspecialitate"
+
+msgid "The group range does not fit there."
+msgstr "Domeniul de grupuri nu încape acolo."
+
+msgid "A group range cannot go into itself or a range in it."
+msgstr "Un domeniu de grupuri nu poate fi mutat în el însuși sau într-un domeniu din el."
+
+msgid "A group address of the range is already in use there."
+msgstr "O adresă de grup a domeniului este deja folosită acolo."
+
+msgid "Copied {count} group ranges to '{target}'."
+msgstr "Domenii de grupuri copiate în '{target}': {count}."
+
+msgid "Add Areas…"
+msgstr "Adăugare zone…"
+
+msgid "{medium} segment"
+msgstr "Segment {medium}"
+
+msgid "Copy Individual Address"
+msgstr "Copiere adresă fizică"
+
+msgid "Copy Group Address"
+msgstr "Copiere adresă de grup"
+
+msgid "Existing Devices…"
+msgstr "Dispozitive existente…"
+
+msgid "Delete the {count} selected devices? Their group objects and group-address links are removed and their individual addresses are freed. This can be undone."
+msgstr "Ștergeți dispozitivele selectate ({count})? Obiectele lor de comunicare și legăturile cu adresele de grup sunt eliminate, iar adresele lor fizice sunt eliberate. Operația poate fi anulată."
+
+msgid "Remove {count} devices"
+msgstr "Eliminare dispozitive ({count})"
+
+msgid "Delete Devices"
+msgstr "Ștergere dispozitive"
+
+msgid "{medium} line"
+msgstr "Linie {medium}"
+
+msgid "From Backups…"
+msgstr "Din copiile de rezervă…"
+
+msgid "Compare with a backup of this project"
+msgstr "Comparare cu o copie de rezervă a acestui proiect"
+
+msgid "In the browser, choose Knx.Ets.Common.dll together with log4net.dll from the same folder."
+msgstr "În browser, alegeți Knx.Ets.Common.dll împreună cu log4net.dll din același folder."
+
+msgid "Knx.Ets.Common.dll needs log4net.dll from its folder: choose both files together."
+msgstr "Knx.Ets.Common.dll are nevoie de log4net.dll din folderul lui: alegeți ambele fișiere împreună."
+
+msgid "Codepage"
+msgstr "Pagină de cod"
+
+msgid "Choose in which language the project texts are entered"
+msgstr "Alegeți limba în care sunt introduse textele proiectului"
+
+msgid "System language"
+msgstr "Limba sistemului"
+
+msgid "Western European (ISO 8859-1)"
+msgstr "Europa de Vest (ISO 8859-1)"
+
+msgid "Central European (ISO 8859-2)"
+msgstr "Europa Centrală (ISO 8859-2)"
+
+msgid "South European (ISO 8859-3)"
+msgstr "Europa de Sud (ISO 8859-3)"
+
+msgid "North European (ISO 8859-4)"
+msgstr "Europa de Nord (ISO 8859-4)"
+
+msgid "Cyrillic (ISO 8859-5)"
+msgstr "Chirilic (ISO 8859-5)"
+
+msgid "Arabic (ISO 8859-6)"
+msgstr "Arabă (ISO 8859-6)"
+
+msgid "Greek (ISO 8859-7)"
+msgstr "Greacă (ISO 8859-7)"
+
+msgid "Hebrew (ISO 8859-8)"
+msgstr "Ebraică (ISO 8859-8)"
+
+msgid "Turkish (ISO 8859-9)"
+msgstr "Turcă (ISO 8859-9)"
+
+msgid "Nordic (ISO 8859-10)"
+msgstr "Nordică (ISO 8859-10)"
+
+msgid "Baltic Rim (ISO 8859-13)"
+msgstr "Baltică (ISO 8859-13)"
+
+msgid "Western European (ISO 8859-15)"
+msgstr "Europa de Vest (ISO 8859-15)"
+
+msgid "Set codepage to {code_page}"
+msgstr "Setare pagină de cod la {code_page}"
+
+msgid "Encrypted"
+msgstr "Criptat"

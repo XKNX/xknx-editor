@@ -1,0 +1,41 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor health 1.0\n"
+"Language: is\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Health"
+msgstr "Heilbrigðisathugun"
+
+msgid "No project open"
+msgstr "Ekkert verkefni opið"
+
+msgid "No issues found"
+msgstr "Engin vandamál fundust"
+
+msgid "{errors} errors, {warnings} warnings"
+msgstr "Villur: {errors}, viðvaranir: {warnings}"
+
+msgid "{device}: no individual address"
+msgstr "{device}: ekkert einstaklingsvistfang"
+
+msgid "Duplicate individual address {address} ({device})"
+msgstr "Tvítekið einstaklingsvistfang {address} ({device})"
+
+msgid "{count} device(s) skipped: application not in catalog"
+msgstr "Tækjum sleppt: {count} (verkforrit ekki í vörulista)"
+
+msgid "{device}: {count} unlinked group object(s)"
+msgstr "{device}: ótengdir samskiptahlutir: {count}"
+
+msgid "{address} {name}: no datapoint type"
+msgstr "{address} {name}: engin gagnapunktsgerð"
+
+msgid "{address} {name}: no sending group object"
+msgstr "{address} {name}: enginn sendandi samskiptahlutur"
+
+msgid "{address} {name}: {count} sending group objects"
+msgstr "{address} {name}: sendandi samskiptahlutir: {count}"

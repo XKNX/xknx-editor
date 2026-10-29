@@ -120,3 +120,13 @@ def test_a_room_gets_its_use(project: ProjectService) -> None:
     project.set_space_usage(room, "")
     space = project.find_space(room)
     assert space is not None and (space.usage, space.usage_text) == ("", "")
+
+
+def test_every_room_use_has_a_text_in_every_ui_language() -> None:
+    from editor_gui.languages import LANGUAGES
+    from editor_gui.plugins.project.space_usages import SPACE_USAGES
+
+    codes = {language.code for language in LANGUAGES}
+    for usage, texts in SPACE_USAGES.items():
+        assert set(texts) == codes, usage
+        assert all(text.strip() for text in texts.values()), usage

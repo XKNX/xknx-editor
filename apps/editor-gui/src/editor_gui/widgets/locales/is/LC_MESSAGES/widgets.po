@@ -1,0 +1,305 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor widgets 1.0\n"
+"Language: is\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "(image)"
+msgstr "(mynd)"
+
+msgid "Search…"
+msgstr "Leita…"
+
+msgid "{name} (locked)"
+msgstr "{name} (læst)"
+
+msgid "Create Group Addresses ({count})"
+msgstr "Búa til hópvistföng ({count})"
+
+msgid "All"
+msgstr "Allt"
+
+msgid "None"
+msgstr "Ekkert"
+
+msgid "Copy Links ({count})"
+msgstr "Afrita tengingar ({count})"
+
+msgid "Paste Links ({count})"
+msgstr "Líma tengingar ({count})"
+
+msgid "Assigns the copied links and flags to the checked objects in order (1st to 1st, 2nd to 2nd, …), replacing each target's current links."
+msgstr "Úthlutar afrituðum tengingum og flöggum á hakaða hluti í röð (1. á 1., 2. á 2., …) og kemur í stað núverandi tenginga hvers markhlutar."
+
+msgid "Merge"
+msgstr "Sameina"
+
+msgid "Keep each target's existing links and only add the copied ones."
+msgstr "Halda fyrirliggjandi tengingum hvers markhlutar og bæta aðeins afrituðu tengingunum við."
+
+msgid "Copy Links"
+msgstr "Afrita tengingar"
+
+msgid "Paste Links"
+msgstr "Líma tengingar"
+
+msgid "Copy Addresses as Text"
+msgstr "Afrita vistföng sem texta"
+
+msgid "Create Group Addresses"
+msgstr "Búa til hópvistföng"
+
+msgid "Name template placeholders: {object}, {device}, {room}, {function}, {number}, {dpt}, {n} (index; {n:02} zero-pads)"
+msgstr "Staðgenglar í heitasniðmáti: {object}, {device}, {room}, {function}, {number}, {dpt}, {n} (vísir; {n:02} fyllir með núllum)"
+
+msgid "Name Template"
+msgstr "Heitasniðmát"
+
+msgid "Start Address"
+msgstr "Upphafsvistfang"
+
+msgid "Cancel"
+msgstr "Hætta við"
+
+msgid "Sending Group Address"
+msgstr "Sendandi hópvistfang"
+
+msgid "Receiving Group Address"
+msgstr "Móttakandi hópvistfang"
+
+msgid "current value"
+msgstr "núverandi gildi"
+
+msgid "older"
+msgstr "eldra"
+
+msgid "sent"
+msgstr "sent"
+
+msgid "received"
+msgstr "móttekið"
+
+msgid "sent & received"
+msgstr "sent og móttekið"
+
+msgid "Changed from default ({default})"
+msgstr "Breytt frá sjálfgefnu ({default})"
+
+msgid "Changed from default ({default}) — right-click to reset"
+msgstr "Breytt frá sjálfgefnu ({default}) — hægrismelltu til að endurstilla"
+
+msgid "Reset to Default"
+msgstr "Endurstilla á sjálfgefið"
+
+msgid "New Group Address"
+msgstr "Nýtt hópvistfang"
+
+msgid "Address"
+msgstr "Vistfang"
+
+msgid "Name"
+msgstr "Heiti"
+
+msgid "Create & Link"
+msgstr "Búa til og tengja"
+
+msgid "Link Group Address"
+msgstr "Tengja hópvistfang"
+
+msgid "<differs>"
+msgstr "<ólíkt>"
+
+msgid "Off"
+msgstr "Slökkt"
+
+msgid "On"
+msgstr "Kveikt"
+
+msgid "Standard"
+msgstr "Staðlað"
+
+msgid "Advanced"
+msgstr "Ítarlegt"
+
+msgid "Theme Colors"
+msgstr "Litir þema"
+
+msgid "Standard Colors"
+msgstr "Staðlaðir litir"
+
+msgid "Mo Tu We Th Fr Sa Su"
+msgstr "Má Þr Mi Fi Fö La Su"
+
+msgid "Hours"
+msgstr "Klukkustundir"
+
+msgid "Minutes"
+msgstr "Mínútur"
+
+msgid "Seconds"
+msgstr "Sekúndur"
+
+msgid "x 100 ms"
+msgstr "x 100 ms"
+
+msgid "x 10 ms"
+msgstr "x 10 ms"
+
+msgid "Milliseconds"
+msgstr "Millisekúndur"
+
+msgid "General"
+msgstr "Almennt"
+
+msgid "Default (Inherit)"
+msgstr "Sjálfgefið (erft)"
+
+msgid "Edit Description…"
+msgstr "Breyta lýsingu…"
+
+msgid "Edit Description"
+msgstr "Breyta lýsingu"
+
+msgid "OK"
+msgstr "OK"
+
+msgid "Enter a number."
+msgstr "Sláðu inn tölu."
+
+msgid "Enter a whole number."
+msgstr "Sláðu inn heiltölu."
+
+msgid "Enter a value from {minimum} to {maximum}."
+msgstr "Sláðu inn gildi frá {minimum} til {maximum}."
+
+msgid "Enter at most {count} characters."
+msgstr "Hámarksfjöldi stafa: {count}."
+
+msgid "Enter a value."
+msgstr "Sláðu inn gildi."
+
+msgid "This value cannot be sent with this data type."
+msgstr "Ekki er hægt að senda þetta gildi með þessari gagnagerð."
+
+msgid "No value can be entered for this data type."
+msgstr "Ekki er hægt að slá inn gildi fyrir þessa gagnagerð."
+
+msgid "Edit…"
+msgstr "Breyta…"
+
+msgid "The text may take at most {count} bytes."
+msgstr "Textinn má mest vera {count} bæti."
+
+msgid "Value {number}"
+msgstr "Gildi {number}"
+
+msgid "Edit Value"
+msgstr "Breyta gildi"
+
+msgid "Name template"
+msgstr "Heitasniðmát"
+
+msgid "Placeholders"
+msgstr "Staðgenglar"
+
+msgid "{building}  Building\n{floor}  Floor\n{room}  Room\n{device}  Device name or description\n{devicename}  Device name\n{devicedescription}  Device description\n{product}  Product\n{manufacturer}  Manufacturer\n{order}  Order number\n{address}  Individual address\n{object}  Object name\n{ganame}  Object name\n{function}  Function\n{number}  Object number\n{dpt}  Datapoint type"
+msgstr "{building}  Bygging\n{floor}  Hæð\n{room}  Herbergi\n{device}  Heiti eða lýsing tækis\n{devicename}  Heiti tækis\n{devicedescription}  Lýsing tækis\n{product}  Vara\n{manufacturer}  Framleiðandi\n{order}  Pöntunarnúmer\n{address}  Einstaklingsvistfang\n{object}  Heiti hlutar\n{ganame}  Heiti hlutar\n{function}  Aðgerð\n{number}  Númer hlutar\n{dpt}  Gagnapunktsgerð"
+
+msgid "{n}  Sequential index ({n:02} zero-pads)"
+msgstr "{n}  Raðvísir ({n:02} fyllir með núllum)"
+
+msgid "Size Column to Fit"
+msgstr "Laga dálk að efni"
+
+msgid "Size All Columns to Fit"
+msgstr "Laga alla dálka að efni"
+
+msgid "Reset Column Order"
+msgstr "Endurstilla röð dálka"
+
+msgid "Reset Column Visibility"
+msgstr "Endurstilla sýnileika dálka"
+
+msgid "Reset All Columns"
+msgstr "Endurstilla alla dálka"
+
+msgid "DPT"
+msgstr "DPT"
+
+msgid "Length"
+msgstr "Lengd"
+
+msgid "Prio"
+msgstr "Forg."
+
+msgid "Group Addresses"
+msgstr "Hópvistföng"
+
+msgid "(empty)"
+msgstr "(tómt)"
+
+msgid "Options"
+msgstr "Valkostir"
+
+msgid "Columns"
+msgstr "Dálkar"
+
+msgid "Grey Out Zeros"
+msgstr "Grá núll"
+
+msgid "Uppercase Hex"
+msgstr "Hex í hástöfum"
+
+msgid "Show ASCII"
+msgstr "Sýna ASCII"
+
+msgid "Copy"
+msgstr "Afrita"
+
+msgid "Copy {count} B"
+msgstr "Afrita {count} B"
+
+msgid "Go To:"
+msgstr "Fara á:"
+
+msgid "{count} difference(s)"
+msgstr "Mismunur: {count}"
+
+msgid "no differences"
+msgstr "enginn munur"
+
+msgid "Parameter:"
+msgstr "Færibreyta:"
+
+msgid "search…"
+msgstr "leita…"
+
+msgid "automatic"
+msgstr "sjálfvirkt"
+
+msgid "Low"
+msgstr "Lágur"
+
+msgid "High"
+msgstr "Hár"
+
+msgid "Alert"
+msgstr "Viðvörun"
+
+msgid "Bold"
+msgstr "Feitletrað"
+
+msgid "Italic"
+msgstr "Skáletrað"
+
+msgid "Underline"
+msgstr "Undirstrikað"
+
+msgid "Cut"
+msgstr "Klippa"
+
+msgid "Paste"
+msgstr "Líma"

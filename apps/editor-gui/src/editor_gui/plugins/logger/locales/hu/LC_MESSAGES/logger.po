@@ -1,0 +1,41 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor logger 1.0\n"
+"Language: hu\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Logs"
+msgstr "Naplók"
+
+msgid "Filter…"
+msgstr "Szűrés…"
+
+msgid "Time"
+msgstr "Idő"
+
+msgid "Level"
+msgstr "Szint"
+
+msgid "Plugin"
+msgstr "Beépülő modul"
+
+msgid "Message"
+msgstr "Üzenet"
+
+msgid "Copy Log"
+msgstr "Napló másolása"
+
+msgid "Debug"
+msgstr "Hibakeresés"
+
+msgid "Info"
+msgstr "Információ"
+
+msgid "Warning"
+msgstr "Figyelmeztetés"
+
+msgid "Error"
+msgstr "Hiba"

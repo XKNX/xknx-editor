@@ -1,0 +1,1529 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor editor_gui 1.0\n"
+"Language: is\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "XKNX Editor"
+msgstr "XKNX Editor"
+
+msgid "Help"
+msgstr "Hjálp"
+
+msgid "About"
+msgstr "Um"
+
+msgid "Language"
+msgstr "Tungumál"
+
+msgid "Version {version}"
+msgstr "Útgáfa {version}"
+
+msgid "A desktop editor for building-automation installation projects, built on the open-source xknx library. Not affiliated with or endorsed by the KNX Association."
+msgstr "Ritill fyrir verkefni í hússtjórnarkerfum, byggður á opna xknx-forritasafninu. Hvorki tengdur KNX Association né studdur af þeim."
+
+msgid "Add"
+msgstr "Bæta við"
+
+msgid "Close"
+msgstr "Loka"
+
+msgid "Cancel"
+msgstr "Hætta við"
+
+msgid "Clear"
+msgstr "Hreinsa"
+
+msgid "Stop"
+msgstr "Stöðva"
+
+msgid "All Files"
+msgstr "Allar skrár"
+
+msgid "Project: {name}  ·  {devices} devices  ·  {gas} GAs"
+msgstr "Verkefni: {name}  ·  Tæki: {devices}  ·  Hópvistföng: {gas}"
+
+msgid "No project open"
+msgstr "Ekkert verkefni opið"
+
+msgid "Programming {address}…"
+msgstr "Forritar {address}…"
+
+msgid "Programming complete"
+msgstr "Forritun lokið"
+
+msgid "Programming failed"
+msgstr "Forritun mistókst"
+
+msgid "No KNX connection"
+msgstr "Engin KNX-tenging"
+
+msgid "KNX Master v{version} ({date})"
+msgstr "KNX-grunngögn v{version} ({date})"
+
+msgid "File"
+msgstr "Skrá"
+
+msgid "New Project"
+msgstr "Nýtt verkefni"
+
+msgid "Open Project (.knxproj/.xknx)"
+msgstr "Opna verkefni (.knxproj/.xknx)"
+
+msgid "Open Recent"
+msgstr "Opna nýlegt"
+
+msgid "Settings…"
+msgstr "Stillingar…"
+
+msgid "MCP"
+msgstr "MCP"
+
+msgid "Settings"
+msgstr "Stillingar"
+
+msgid "Gateway"
+msgstr "Gátt"
+
+msgid "Catalog"
+msgstr "Vörulisti"
+
+msgid "Use multicast routing (instead of tunneling)"
+msgstr "Nota margvarpsbeiningu (í stað smugs)"
+
+msgid "Gateway IP"
+msgstr "IP-tala gáttar"
+
+msgid "Multicast Group"
+msgstr "Margvarpshópur"
+
+msgid "Run the MCP server so an LLM can drive the editor over Streamable HTTP. It shares this app's catalog database."
+msgstr "Keyra MCP-þjóninn svo að mállíkan geti stjórnað ritlinum um Streamable HTTP. Hann deilir gagnagrunni vörulistans með þessu forriti."
+
+msgid "MCP Host"
+msgstr "MCP-hýsill"
+
+msgid "MCP Port"
+msgstr "MCP-port"
+
+msgid "Server: Running"
+msgstr "Þjónn: í gangi"
+
+msgid "Server: Stopped"
+msgstr "Þjónn: stöðvaður"
+
+msgid "Start Server"
+msgstr "Ræsa þjón"
+
+msgid "Stop Server"
+msgstr "Stöðva þjón"
+
+msgid "Download Language"
+msgstr "Tungumál við niðurhal"
+
+msgid "MCP running"
+msgstr "MCP í gangi"
+
+msgid "Welcome"
+msgstr "Velkomin"
+
+msgid "Create a new project or open an existing one to get started."
+msgstr "Búðu til nýtt verkefni eða opnaðu fyrirliggjandi verkefni til að byrja."
+
+msgid "Recent Projects"
+msgstr "Nýleg verkefni"
+
+msgid "Export .knxproj…"
+msgstr "Flytja út .knxproj…"
+
+msgid "Sign Export"
+msgstr "Undirrita útflutning"
+
+msgid "You can sign the .knxproj with your license so it can be opened in ETS. Log in to sign it, or save the .knxproj without a license."
+msgstr "Þú getur undirritað .knxproj-skrána með leyfinu þínu svo hægt sé að opna hana í ETS. Skráðu þig inn til að undirrita hana, eða vistaðu .knxproj-skrána án leyfis."
+
+msgid "MyKNX Username"
+msgstr "MyKNX-notandanafn"
+
+msgid "MyKNX Password"
+msgstr "MyKNX-aðgangsorð"
+
+msgid "Logging in…"
+msgstr "Skráir inn…"
+
+msgid "License"
+msgstr "Leyfi"
+
+msgid "No licenses found on this account"
+msgstr "Engin leyfi fundust á þessum aðgangi"
+
+msgid "Login failed: {error}"
+msgstr "Innskráning mistókst: {error}"
+
+msgid "Sign & Export"
+msgstr "Undirrita og flytja út"
+
+msgid "Export Without Certificate"
+msgstr "Flytja út án vottorðs"
+
+msgid "Export ETS Project"
+msgstr "Flytja út ETS-verkefni"
+
+msgid "Load .knxprod…"
+msgstr "Hlaða .knxprod…"
+
+msgid "Exit"
+msgstr "Hætta"
+
+msgid "Edit"
+msgstr "Breyta"
+
+msgid "Undo"
+msgstr "Afturkalla"
+
+msgid "Redo"
+msgstr "Endurgera"
+
+msgid "Open KNX Product Archive"
+msgstr "Opna KNX-vörusafn"
+
+msgid "KNX Product (*.knxprod)"
+msgstr "KNX-vara (*.knxprod)"
+
+msgid "ETS Project (*.knxproj)"
+msgstr "ETS-verkefni (*.knxproj)"
+
+msgid "ETS 6 Project (*.knxproj)"
+msgstr "ETS 6-verkefni (*.knxproj)"
+
+msgid "ETS 5 Project (*.knxproj)"
+msgstr "ETS 5-verkefni (*.knxproj)"
+
+msgid "Open XKNX Project"
+msgstr "Opna XKNX-verkefni"
+
+msgid "Save XKNX Project"
+msgstr "Vista XKNX-verkefni"
+
+msgid "XKNX Project (*.xknx)"
+msgstr "XKNX-verkefni (*.xknx)"
+
+msgid "Projects (*.xknx, *.knxproj)"
+msgstr "Verkefni (*.xknx, *.knxproj)"
+
+msgid "Working…"
+msgstr "Augnablik…"
+
+msgid "Importing project — this can take a while for large projects."
+msgstr "Flytur inn verkefni — það getur tekið nokkra stund fyrir stór verkefni."
+
+msgid "Loading product catalog…"
+msgstr "Hleður vörulista…"
+
+msgid "Opening project…"
+msgstr "Opnar verkefni…"
+
+msgid "Project Password"
+msgstr "Aðgangsorð verkefnis"
+
+msgid "This ETS project is password protected. Enter its password:"
+msgstr "Þetta ETS-verkefni er varið með aðgangsorði. Sláðu inn aðgangsorðið:"
+
+msgid "Wrong password, please try again."
+msgstr "Rangt aðgangsorð, reyndu aftur."
+
+msgid "OK"
+msgstr "OK"
+
+msgid "{done}/{total} devices"
+msgstr "Tæki: {done}/{total}"
+
+msgid "Recover from Bus…"
+msgstr "Endurheimta af tengibraut…"
+
+msgid "No matches"
+msgstr "Engar niðurstöður"
+
+msgid "Bearer Token (Optional)"
+msgstr "Bearer-tóki (valfrjálst)"
+
+msgid "License with a Dongle…"
+msgstr "Leyfi með vélbúnaðarlykli…"
+
+msgid "If you have a licensed ETS (dongle or local license), you can license this project in your own ETS instead of signing it online. Export it here without a certificate, then bring it into ETS.\n\nStep 1 - Export: choose 'Export without certificate' below and save the .knxproj.\n\nStep 2 - Import into ETS (try this first):\nETS 5: on the dashboard, click 'Project import', pick the .knxproj and open it.\nETS 6: on the dashboard, click 'Import Project' under the 'Overview' tab (also on the 'Local Projects' list or the taskbar context menu).\n\nA licensed ETS may refuse the import: the file carries only the normal folder signature, not the online project certificate a licensed ETS writes on export. If the import is rejected, use Step 3.\n\nStep 3 - Copy into the ProjectStore (fallback that always works):\n1. A .knxproj is a ZIP; unzip it to get the project folder named P-XXXX.\n2. Copy that P-XXXX folder into your ETS ProjectStore:\n   ETS 5: C:\\ProgramData\\KNX\\ETS5\\ProjectStore\n   ETS 6: C:\\ProgramData\\KNX\\ETS6\\ProjectStore\n   (ProgramData is hidden - enable 'Hidden items' in Explorer.)\n3. ETS 6 only: inside the copied folder create an empty file named P-XXXX_M-dummy (no file extension) so ETS 6 lists the project.\n4. Start ETS with the dongle plugged in; the project appears in the local project list and your license applies.\n\nTip: to confirm a folder's project name, open the 'P' (P.xml) file inside P-XXXX in a text editor - the name is near the top.\n\nNote: license device limits still apply to what you can commission - ETS Demo up to 5 devices, Lite up to 20, Professional unlimited."
+msgstr "Ef þú ert með ETS með leyfi (vélbúnaðarlykil eða staðbundið leyfi) getur þú veitt þessu verkefni leyfi í þínu eigin ETS í stað þess að undirrita það á netinu. Fluttu það hér út án vottorðs og færðu það svo inn í ETS.\n\nSkref 1 - Útflutningur: veldu 'Flytja út án vottorðs' hér fyrir neðan og vistaðu .knxproj-skrána.\n\nSkref 2 - Innflutningur í ETS (reyndu þetta fyrst):\nETS 5: á stjórnborðinu, smelltu á 'Project import', veldu .knxproj-skrána og opnaðu hana.\nETS 6: á stjórnborðinu, smelltu á 'Import Project' undir flipanum 'Overview' (einnig í listanum 'Local Projects' eða í flýtivalmynd verkstikunnar).\n\nETS með leyfi getur hafnað innflutningnum: skráin ber aðeins venjulega möppuundirskrift, ekki netvottorð verkefnisins sem ETS með leyfi skrifar við útflutning. Ef innflutningnum er hafnað skaltu nota skref 3.\n\nSkref 3 - Afrita í ProjectStore (varaleið sem virkar alltaf):\n1. .knxproj er ZIP-skrá; afþjappaðu hana til að fá verkefnismöppuna sem heitir P-XXXX.\n2. Afritaðu P-XXXX-möppuna í ETS ProjectStore:\n   ETS 5: C:\\ProgramData\\KNX\\ETS5\\ProjectStore\n   ETS 6: C:\\ProgramData\\KNX\\ETS6\\ProjectStore\n   (ProgramData er falin - kveiktu á 'Faldir hlutir' í Explorer.)\n3. Aðeins ETS 6: búðu til tóma skrá sem heitir P-XXXX_M-dummy (án skráarendingar) í afrituðu möppunni svo ETS 6 birti verkefnið.\n4. Ræstu ETS með vélbúnaðarlykilinn tengdan; verkefnið birtist í staðbundna verkefnalistanum og leyfið þitt gildir.\n\nÁbending: til að staðfesta heiti verkefnis í möppu skaltu opna skrána 'P' (P.xml) í P-XXXX í textaritli - heitið er efst.\n\nAthugaðu: takmörk leyfisins á fjölda tækja gilda áfram um það sem þú getur gangsett - ETS Demo allt að 5 tæki, Lite allt að 20, Professional ótakmarkað."
+
+msgid "Format Version"
+msgstr "Útgáfa sniðs"
+
+msgid "ETS 6 (schema 20)"
+msgstr "ETS 6 (skema 20)"
+
+msgid "ETS 5 (schema 14)"
+msgstr "ETS 5 (skema 14)"
+
+msgid "MCP Server"
+msgstr "MCP-þjónn"
+
+msgid "Re-license the project through your own licensed ETS, which re-signs the copy with your dongle license:\n\nETS 6 - use the local project store below:\n   1. Click 'Export to ProjectStore'. It writes the project's 'P-XXXX' folder straight into your ETS 6 project store. If ETS is not installed on this computer, you are asked for the store folder (or any folder you then copy over manually).\n   2. The export needs your 'installer.guid' from C:\\ProgramData\\KNX\\ETS6\\Installer. If it cannot be found automatically, you are asked to select it.\n   3. Restart ETS 6 - the project appears in the project overview.\n   4. Make a copy of it there (Copy in the overview). The copy is re-signed with your license - open it, then use or export it normally.\n\nETS 5 - no project store is needed: go Back and choose 'Export without Certificate' (with ETS 5 as the file type) to save a .knxproj, then import that file into ETS 5. It opens unsigned and is re-licensed when you save it there.\n\nThis is bounded by the device-per-project limit of your license."
+msgstr "Veittu verkefninu leyfi að nýju í gegnum þitt eigið ETS með leyfi, sem undirritar afritið að nýju með leyfi vélbúnaðarlykilsins:\n\nETS 6 - notaðu staðbundnu verkefnageymsluna hér fyrir neðan:\n   1. Smelltu á 'Flytja út í ProjectStore'. Það skrifar 'P-XXXX'-möppu verkefnisins beint í ETS 6-verkefnageymsluna. Ef ETS er ekki uppsett á þessari tölvu ertu beðin(n) um geymslumöppuna (eða einhverja möppu sem þú afritar svo handvirkt).\n   2. Útflutningurinn þarf 'installer.guid' skrána þína úr C:\\ProgramData\\KNX\\ETS6\\Installer. Ef hún finnst ekki sjálfkrafa ertu beðin(n) um að velja hana.\n   3. Endurræstu ETS 6 - verkefnið birtist í verkefnayfirlitinu.\n   4. Gerðu afrit af því þar (Copy í yfirlitinu). Afritið er undirritað að nýju með leyfinu þínu - opnaðu það og notaðu það eða fluttu það út eins og venjulega.\n\nETS 5 - engin verkefnageymsla er nauðsynleg: farðu Til baka og veldu 'Flytja út án vottorðs' (með ETS 5 sem skráargerð) til að vista .knxproj-skrá og fluttu þá skrá svo inn í ETS 5. Hún opnast óundirrituð og fær leyfi að nýju þegar þú vistar hana þar.\n\nÞetta takmarkast af hámarksfjölda tækja í verkefni samkvæmt leyfinu þínu."
+
+msgid "Select the ETS installer.guid file"
+msgstr "Veldu ETS-skrána installer.guid"
+
+msgid "ETS installer id"
+msgstr "ETS-uppsetningarauðkenni"
+
+msgid "Project Already in the Store"
+msgstr "Verkefnið er þegar í geymslunni"
+
+msgid "A project folder '{pid}' already exists in this ETS ProjectStore. Overwrite it, or add it as a separate copy?"
+msgstr "Verkefnismappan '{pid}' er þegar til í þessari ETS ProjectStore. Skrifa yfir hana, eða bæta henni við sem sérstöku afriti?"
+
+msgid "Overwrite"
+msgstr "Skrifa yfir"
+
+msgid "Add Copy"
+msgstr "Bæta við afriti"
+
+msgid "XKNX Export"
+msgstr "XKNX-útflutningur"
+
+msgid "Exported to {path} ({size})"
+msgstr "Flutt út í {path} ({size})"
+
+msgid "ETS 6 (schema 22)"
+msgstr "ETS 6 (skema 22)"
+
+msgid "ETS 5 (schema 20)"
+msgstr "ETS 5 (skema 20)"
+
+msgid "ETS 6 (schema 23)"
+msgstr "ETS 6 (skema 23)"
+
+msgid "AI MCP"
+msgstr "Gervigreind MCP"
+
+msgid "This editor is controllable by an AI assistant (Claude, Codex, …) through the built-in MCP server: it exposes the catalog and project as tools over Streamable HTTP. Start the server below, then register its endpoint in your AI tool."
+msgstr "Gervigreindaraðstoðarmaður (Claude, Codex, …) getur stjórnað þessum ritli í gegnum innbyggða MCP-þjóninn: hann gerir vörulistann og verkefnið aðgengileg sem verkfæri um Streamable HTTP. Ræstu þjóninn hér fyrir neðan og skráðu svo endapunkt hans í gervigreindarverkfærinu þínu."
+
+msgid "MCP Endpoint"
+msgstr "MCP-endapunktur"
+
+msgid "Example: register the MCP server in your AI tool (adjust host/port):"
+msgstr "Dæmi: skráðu MCP-þjóninn í gervigreindarverkfærinu þínu (aðlagaðu hýsil/port):"
+
+msgid "Copied"
+msgstr "Afritað"
+
+msgid "Copy"
+msgstr "Afrita"
+
+msgid "Use host 0.0.0.0 to make the server reachable from other devices on the network; 127.0.0.1/localhost only allows this machine."
+msgstr "Notaðu hýsilinn 0.0.0.0 til að ná í þjóninn frá öðrum tækjum á netinu; 127.0.0.1/localhost leyfir aðeins þessa tölvu."
+
+msgid "Switching language…"
+msgstr "Skiptir um tungumál…"
+
+msgid "Load OpenKNX from URL…"
+msgstr "Hlaða OpenKNX af URL-slóð…"
+
+msgid "Load OpenKNX from URL"
+msgstr "Hlaða OpenKNX af URL-slóð"
+
+msgid "Paste an OpenKNX release link (e.g. a GitHub release .zip). A .knxprod or a KNX product XML URL also works."
+msgstr "Límdu inn hlekk á OpenKNX-útgáfu (t.d. GitHub-útgáfu .zip). URL-slóð á .knxprod eða KNX-vöru-XML virkar líka."
+
+msgid "Load"
+msgstr "Hlaða"
+
+msgid "Downloading and importing…"
+msgstr "Sækir og flytur inn…"
+
+msgid "Imported {count} new product version(s) from URL"
+msgstr "Nýjar vöruútgáfur fluttar inn af URL-slóð: {count}"
+
+msgid "Nothing new imported (already in the catalog)"
+msgstr "Ekkert nýtt flutt inn (þegar í vörulistanum)"
+
+msgid "Import from URL failed: {error}"
+msgstr "Innflutningur af URL-slóð mistókst: {error}"
+
+msgid "Paste an OpenKNX GitHub release URL (the release page works — the .zip asset is found automatically). A direct .knxprod or KNX product XML link also works."
+msgstr "Límdu inn URL-slóð á OpenKNX-útgáfu á GitHub (útgáfusíðan virkar — .zip-skráin finnst sjálfkrafa). Beinn hlekkur á .knxprod eða KNX-vöru-XML virkar líka."
+
+msgid "Paste an OpenKNX GitHub release URL (the release page works — the .zip asset is found automatically). A direct .knxprod or KNX product XML link also works.\n\nExamples:\n  https://github.com/OpenKNX/OAM-RaumController/releases/tag/v5.4.3\n  https://github.com/OpenKNX/OAM-RaumController/releases/latest"
+msgstr "Límdu inn URL-slóð á OpenKNX-útgáfu á GitHub (útgáfusíðan virkar — .zip-skráin finnst sjálfkrafa). Beinn hlekkur á .knxprod eða KNX-vöru-XML virkar líka.\n\nDæmi:\n  https://github.com/OpenKNX/OAM-RaumController/releases/tag/v5.4.3\n  https://github.com/OpenKNX/OAM-RaumController/releases/latest"
+
+msgid "Save As…"
+msgstr "Vista sem…"
+
+msgid "Saved as {name}"
+msgstr "Vistað sem {name}"
+
+msgid "Save Project As"
+msgstr "Vista verkefni sem"
+
+msgid "Good to Know"
+msgstr "Gott að vita"
+
+msgid "Your project opened fine and everything you need to work with is here. A few extra details from the original file are shown a bit more simply:"
+msgstr "Verkefnið opnaðist án vandræða og allt sem þú þarft til að vinna með er hér. Nokkur viðbótaratriði úr upprunalegu skránni eru sýnd á aðeins einfaldari hátt:"
+
+msgid "This project came from a file with a few extra details this editor does not use. The export leaves these out:"
+msgstr "Þetta verkefni kom úr skrá með nokkrum viðbótaratriðum sem þessi ritill notar ekki. Útflutningurinn sleppir þeim:"
+
+msgid "The original file had {count} installations. They were combined into one."
+msgstr "Upprunalega skráin hafði fleiri en eina uppsetningu (fjöldi: {count}). Þær voru sameinaðar í eina."
+
+msgid "{count} device(s) had no place in the original file, so they were left out."
+msgstr "Tæki sem höfðu engan stað í upprunalegu skránni og var því sleppt: {count}"
+
+msgid "{count} group object(s) had an extra description in the original file. The custom name and function are kept; only that description is not shown here."
+msgstr "Samskiptahlutir með viðbótarlýsingu í upprunalegu skránni: {count}. Sérsniðnu heiti og aðgerð er haldið; aðeins sú lýsing er ekki sýnd hér."
+
+msgid "{count} IP or function setting(s) from the original file are not used here."
+msgstr "IP- eða aðgerðastillingar úr upprunalegu skránni sem eru ekki notaðar hér: {count}"
+
+msgid "{count} line(s) use several segments. In a schema 14/20 export they are shown at line level only."
+msgstr "Línur sem nota fleiri en einn bút: {count}. Í útflutningi með skema 14/20 eru þær aðeins sýndar á línustigi."
+
+msgid "{count} line(s) had the same address in different installations. One of each was kept when combining."
+msgstr "Línur með sama vistfang í mismunandi uppsetningum: {count}. Einni af hverri var haldið við sameininguna."
+
+msgid "For example: {examples}"
+msgstr "Til dæmis: {examples}"
+
+msgid "Product catalog imported: {count} new product version(s) from {name}"
+msgstr "Vörulisti fluttur inn: nýjar vöruútgáfur úr {name}: {count}"
+
+msgid "Imported {count} product version(s) from {name}:"
+msgstr "Vöruútgáfur fluttar inn úr {name} ({count}):"
+
+msgid "{name} was already in the catalog, nothing new imported"
+msgstr "{name} var þegar í vörulistanum, ekkert nýtt flutt inn"
+
+msgid "Product Catalog Import"
+msgstr "Innflutningur vörulista"
+
+msgid "Export Complete"
+msgstr "Útflutningi lokið"
+
+msgid "Successfully created {name}"
+msgstr "{name} búið til"
+
+msgid "File Size"
+msgstr "Skráarstærð"
+
+msgid "Project"
+msgstr "Verkefni"
+
+msgid "Format"
+msgstr "Snið"
+
+msgid "Devices"
+msgstr "Tæki"
+
+msgid "Buildings"
+msgstr "Byggingar"
+
+msgid "Group Addresses"
+msgstr "Hópvistföng"
+
+msgid "Group Object Links"
+msgstr "Tengingar samskiptahluta"
+
+msgid "Areas / Lines"
+msgstr "Svæði / línur"
+
+msgid "Floors / Rooms"
+msgstr "Hæðir / herbergi"
+
+msgid "Functions"
+msgstr "Aðgerðir"
+
+msgid "KNX Master Version"
+msgstr "Útgáfa KNX-grunngagna"
+
+msgid "Exported at"
+msgstr "Flutt út"
+
+msgid "Manufacturer Data (M Folders)"
+msgstr "Gögn framleiðenda (M-möppur)"
+
+msgid "Signed"
+msgstr "Undirritað"
+
+msgid "Certificate"
+msgstr "Vottorð"
+
+msgid "yes"
+msgstr "já"
+
+msgid "no"
+msgstr "nei"
+
+msgid "Open Folder"
+msgstr "Opna möppu"
+
+msgid "Signing Key…"
+msgstr "Undirritunarlykill…"
+
+msgid "Signing Key"
+msgstr "Undirritunarlykill"
+
+msgid "Folder signature uses a placeholder key. Enter a valid signature under 'Signing Key…' or use the 'License with a Dongle' way."
+msgstr "Möppuundirskriftin notar staðgengilslykil. Sláðu inn gilda undirskrift undir 'Undirritunarlykill…' eða notaðu leiðina 'Leyfi með vélbúnaðarlykli'."
+
+msgid "View"
+msgstr "Skoða"
+
+msgid "Restore Default Layout"
+msgstr "Endurheimta sjálfgefið útlit"
+
+msgid "Show All"
+msgstr "Sýna allt"
+
+msgid "Hide All"
+msgstr "Fela allt"
+
+msgid "Status Bar"
+msgstr "Stöðustika"
+
+msgid "FPS in Status Bar"
+msgstr "FPS í stöðustiku"
+
+msgid "Context Help"
+msgstr "Samhengishjálp"
+
+msgid "Enable Idling"
+msgstr "Virkja biðham"
+
+msgid "Theme"
+msgstr "Þema"
+
+msgid "Reading {address}…"
+msgstr "Les {address}…"
+
+msgid "FPS: {fps:.1f}{idling}"
+msgstr "FPS: {fps:.1f}{idling}"
+
+msgid " (Idling)"
+msgstr " (biðhamur)"
+
+msgid "Compact Project…"
+msgstr "Þjappa verkefni…"
+
+msgid "Compact Project"
+msgstr "Þjappa verkefni"
+
+msgid "Analysing project…"
+msgstr "Greinir verkefni…"
+
+msgid "Compacting project…"
+msgstr "Þjappar verkefni…"
+
+msgid "Analysing devices"
+msgstr "Greinir tæki"
+
+msgid "Analysing product data ({manufacturer})"
+msgstr "Greinir vörugögn ({manufacturer})"
+
+msgid "Removing unused product data ({manufacturer})"
+msgstr "Fjarlægir ónotuð vörugögn ({manufacturer})"
+
+msgid "Saving product data"
+msgstr "Vistar vörugögn"
+
+msgid "Compacting project file"
+msgstr "Þjappar verkefnisskrá"
+
+msgid "The following product data is not used by any device in this project and will be removed:"
+msgstr "Eftirfarandi vörugögn eru ekki notuð af neinu tæki í þessu verkefni og verða fjarlægð:"
+
+msgid "All product data in this project is used by its devices, nothing to remove. The project file can still be compacted to free unused space."
+msgstr "Öll vörugögn í þessu verkefni eru notuð af tækjum þess, ekkert að fjarlægja. Samt er hægt að þjappa verkefnisskránni til að losa ónotað pláss."
+
+msgid "Application Programs"
+msgstr "Verkforrit"
+
+msgid "Device Types (Products)"
+msgstr "Tækjagerðir (vörur)"
+
+msgid "Hardware"
+msgstr "Vélbúnaður"
+
+msgid "Manufacturers"
+msgstr "Framleiðendur"
+
+msgid "Catalog Entries"
+msgstr "Færslur í vörulista"
+
+msgid "Help and Plug-in Files"
+msgstr "Hjálpar- og viðbótarskrár"
+
+msgid "Details"
+msgstr "Nánar"
+
+msgid "Current File Size"
+msgstr "Núverandi skráarstærð"
+
+msgid "Estimated Size Afterwards"
+msgstr "Áætluð stærð á eftir"
+
+msgid "This cannot be undone. Removed product data has to be imported again if these products are added to the project later."
+msgstr "Ekki er hægt að afturkalla þetta. Flytja þarf fjarlægð vörugögn inn aftur ef þessum vörum er síðar bætt við verkefnið."
+
+msgid "Compact"
+msgstr "Þjappa"
+
+msgid "Project Compacted"
+msgstr "Verkefni þjappað"
+
+msgid "The project file was compacted."
+msgstr "Verkefnisskránni var þjappað."
+
+msgid "Size before"
+msgstr "Stærð fyrir"
+
+msgid "Size after"
+msgstr "Stærð eftir"
+
+msgid "Compacting cancelled, the project was not changed"
+msgstr "Hætt við þjöppun, verkefninu var ekki breytt"
+
+msgid "Remove Unused Product Data"
+msgstr "Fjarlægja ónotuð vörugögn"
+
+msgid "ETS 6 needs a signed and licensed .knxproj: log in to license it and set a signing key - or use the 'License with a Dongle' way below.\nETS 5: just use 'Export without Certificate'."
+msgstr "ETS 6 þarf undirritaða .knxproj-skrá með leyfi: skráðu þig inn til að veita leyfið og settu undirritunarlykil - eða notaðu leiðina 'Leyfi með vélbúnaðarlykli' hér fyrir neðan.\nETS 5: notaðu einfaldlega 'Flytja út án vottorðs'."
+
+msgid "Complete sign-in in your browser. Code: {code}"
+msgstr "Ljúktu innskráningu í vafranum. Kóði: {code}"
+
+msgid "Login failed (HTTP 401). Either the password is wrong, or this account uses two-factor authentication - the server does not say which."
+msgstr "Innskráning mistókst (HTTP 401). Annaðhvort er aðgangsorðið rangt eða þessi aðgangur notar tveggja þátta auðkenningu - þjónninn segir ekki hvort."
+
+msgid "Re-enter Credentials"
+msgstr "Slá inn innskráningarupplýsingar aftur"
+
+msgid "Start 2FA Sign-In"
+msgstr "Hefja 2FA-innskráningu"
+
+msgid "MyKNX OAuth Credentials (2FA)"
+msgstr "MyKNX OAuth-innskráningarupplýsingar (2FA)"
+
+msgid "Client ID"
+msgstr "Biðlaraauðkenni (Client ID)"
+
+msgid "Client Secret"
+msgstr "Biðlaraleyndarmál (Client Secret)"
+
+msgid "Extract from ETS…"
+msgstr "Draga út úr ETS…"
+
+msgid "Extracting…"
+msgstr "Dregur út…"
+
+msgid "Save"
+msgstr "Vista"
+
+msgid "All files"
+msgstr "Allar skrár"
+
+msgid "Export to ETS 5 ProjectStore"
+msgstr "Flytja út í ETS 5 ProjectStore"
+
+msgid "Export to ProjectStore"
+msgstr "Flytja út í ProjectStore"
+
+msgid "Select the {ets} ProjectStore folder"
+msgstr "Veldu ProjectStore-möppu {ets}"
+
+msgid "{project} - {app}"
+msgstr "{project} - {app}"
+
+msgid "{project} – {file} - {app}"
+msgstr "{project} – {file} - {app}"
+
+msgid "Highlight Changes"
+msgstr "Auðkenna breytingar"
+
+msgid "Group Address Export (*.xml)"
+msgstr "Útflutningur hópvistfanga (*.xml)"
+
+msgid "Group Address Exports (*.xml, *.csv)"
+msgstr "Útflutningar hópvistfanga (*.xml, *.csv)"
+
+msgid "Projects (*.xknx, *.knxproj, *.xml, *.csv)"
+msgstr "Verkefni (*.xknx, *.knxproj, *.xml, *.csv)"
+
+msgid "Import Group Addresses…"
+msgstr "Flytja inn hópvistföng…"
+
+msgid "Feedback"
+msgstr "Endurgjöf"
+
+msgid "A desktop editor for building-automation installation projects, built on the open-source xknx library and based on xknxtoolkit by kewde. Not affiliated with or endorsed by the KNX Association."
+msgstr "Ritill fyrir verkefni í hússtjórnarkerfum, byggður á opna xknx-forritasafninu og á xknxtoolkit eftir kewde. Hvorki tengdur KNX Association né studdur af þeim."
+
+msgid "Network Location"
+msgstr "Staðsetning á neti"
+
+msgid "This location is on a network drive:\n{home}\n\nKNX project files use a database that cannot run reliably on network shares. The editor can work on a local copy instead and write it back to the network location when you close the project."
+msgstr "Þessi staðsetning er á netdrifi:\n{home}\n\nKNX-verkefnisskrár nota gagnagrunn sem getur ekki keyrt áreiðanlega á netsameignum. Ritillinn getur í staðinn unnið með staðbundið afrit og skrifað það aftur á netstaðsetninguna þegar þú lokar verkefninu."
+
+msgid "Use a Local Copy"
+msgstr "Nota staðbundið afrit"
+
+msgid "Working on a local copy; written back to {home} when you close the project."
+msgstr "Unnið með staðbundið afrit; skrifað aftur í {home} þegar þú lokar verkefninu."
+
+msgid "Project Name"
+msgstr "Heiti verkefnis"
+
+msgid "Group Address Style"
+msgstr "Framsetning hópvistfanga"
+
+msgid "Free"
+msgstr "Frjáls"
+
+msgid "Two-level"
+msgstr "Tvö stig"
+
+msgid "Three-level"
+msgstr "Þrjú stig"
+
+msgid "Create…"
+msgstr "Búa til…"
+
+msgid "claude mcp add --transport http xknx-editor {url}"
+msgstr "claude mcp add --transport http xknx-editor {url}"
+
+msgid "claude mcp add --transport http xknx-editor {url} --header \"Authorization: Bearer {token}\""
+msgstr "claude mcp add --transport http xknx-editor {url} --header \"Authorization: Bearer {token}\""
+
+msgid "codex mcp add xknx-editor --url {url}"
+msgstr "codex mcp add xknx-editor --url {url}"
+
+msgid "export XKNX_MCP_TOKEN='{token}'\ncodex mcp add xknx-editor --url {url} --bearer-token-env-var XKNX_MCP_TOKEN"
+msgstr "export XKNX_MCP_TOKEN='{token}'\ncodex mcp add xknx-editor --url {url} --bearer-token-env-var XKNX_MCP_TOKEN"
+
+msgid "Export Group Addresses…"
+msgstr "Flytja út hópvistföng…"
+
+msgid "Export Group Addresses"
+msgstr "Flytja út hópvistföng"
+
+msgid "Output Format"
+msgstr "Úttakssnið"
+
+msgid "CSV Format"
+msgstr "CSV-snið"
+
+msgid "3/1 - three columns, Main/Middle/Sub group separated"
+msgstr "3/1 - þrír dálkar, aðal-/mið-/undirhópur aðskildir"
+
+msgid "1/3 - Group address name/Main - Middle - Sub group"
+msgstr "1/3 - Heiti hópvistfangs/Aðal - Mið - Undirhópur"
+
+msgid "1/1 - Name/Address"
+msgstr "1/1 - Heiti/Vistfang"
+
+msgid "3/3 - Main - Middle - Sub group name/Main - Middle - Sub group address"
+msgstr "3/3 - Heiti aðal - mið - undirhóps/Vistfang aðal - mið - undirhóps"
+
+msgid "Export with Header Line"
+msgstr "Flytja út með hauslínu"
+
+msgid "CSV Separator"
+msgstr "CSV-skiltákn"
+
+msgid "Tabulator"
+msgstr "Dálkahlaup (Tab)"
+
+msgid "Comma"
+msgstr "Komma"
+
+msgid "Semicolon"
+msgstr "Semíkomma"
+
+msgid "Export"
+msgstr "Flytja út"
+
+msgid "Group Address Export (*.csv)"
+msgstr "Útflutningur hópvistfanga (*.csv)"
+
+msgid "Exported {count} group address(es)"
+msgstr "Hópvistföng flutt út: {count}"
+
+msgid "Exported to {path} ({size}) as {schema}"
+msgstr "Flutt út í {path} ({size}) sem {schema}"
+
+msgid "{count} device(s) aren't assigned to a line. They're kept in the project and included on export, but can't be edited here yet."
+msgstr "Tæki sem eru ekki tengd línu: {count}. Þau eru geymd í verkefninu og tekin með við útflutning, en ekki er enn hægt að breyta þeim hér."
+
+msgid "no online certificate"
+msgstr "ekkert netvottorð"
+
+msgid "expired"
+msgstr "útrunnið"
+
+msgid "None of these licenses can sign online. Only ETS6 (or a cloud-enabled ETS app) licenses produce a certificate; ETS5/older licenses cannot. Use 'License with a dongle' instead."
+msgstr "Ekkert þessara leyfa getur undirritað á netinu. Aðeins ETS6-leyfi (eða ETS-app með skýjatengingu) búa til vottorð; ETS5/eldri leyfi geta það ekki. Notaðu 'Leyfi með vélbúnaðarlykli' í staðinn."
+
+msgid "KNX Product (*.knxprod, *.vd1-*.vd5)"
+msgstr "KNX-vara (*.knxprod, *.vd1-*.vd5)"
+
+msgid "Legacy ETS product databases (.vd1-.vd5) are not imported directly.\n\nConvert the file to .knxprod first with the conversion tools that ship with ETS5/ETS6 - open the product file in ETS, or use its command-line converter - then import the resulting .knxprod here."
+msgstr "Eldri ETS-vörugagnagrunnar (.vd1-.vd5) eru ekki fluttir inn beint.\n\nBreyttu skránni fyrst í .knxprod með umbreytingartólunum sem fylgja ETS5/ETS6 - opnaðu vöruskrána í ETS eða notaðu skipanalínubreyti þess - og fluttu síðan .knxprod-skrána sem verður til inn hér."
+
+msgid "ETS Group-Address Export (*.xml)"
+msgstr "ETS-útflutningur hópvistfanga (*.xml)"
+
+msgid "Replace File"
+msgstr "Skipta út skrá"
+
+msgid "{name} already exists."
+msgstr "{name} er þegar til."
+
+msgid "It is in {dir}. Replacing it overwrites its current content; this cannot be undone."
+msgstr "Hún er í {dir}. Ef henni er skipt út er núverandi efni hennar skrifað yfir; ekki er hægt að afturkalla þetta."
+
+msgid "Replace"
+msgstr "Skipta út"
+
+msgid "Projects (*.xknx, *.knxproj, *.xml)"
+msgstr "Verkefni (*.xknx, *.knxproj, *.xml)"
+
+msgid "Importing group addresses…"
+msgstr "Flytur inn hópvistföng…"
+
+msgid "Check for Updates"
+msgstr "Leita að uppfærslum"
+
+msgid "Check for Updates on Startup"
+msgstr "Leita að uppfærslum við ræsingu"
+
+msgid "Update Available"
+msgstr "Uppfærsla í boði"
+
+msgid "Version {latest} is available. You have {current}."
+msgstr "Útgáfa {latest} er í boði. Þú ert með {current}."
+
+msgid "You are up to date (version {version})."
+msgstr "Þú ert með nýjustu útgáfu ({version})."
+
+msgid "Download"
+msgstr "Sækja"
+
+msgid "Skip This Version"
+msgstr "Sleppa þessari útgáfu"
+
+msgid "Later"
+msgstr "Síðar"
+
+msgid "Release Notes:"
+msgstr "Útgáfuupplýsingar:"
+
+msgid "License: GPL-2.0-only"
+msgstr "Leyfi: GPL-2.0-only"
+
+msgid "Website:"
+msgstr "Vefsvæði:"
+
+msgid "Open Config Folder"
+msgstr "Opna möppu stillinga"
+
+msgid "Open Cache Folder"
+msgstr "Opna skyndiminnismöppu"
+
+msgid "Open Log Folder"
+msgstr "Opna annálamöppu"
+
+msgid "This project is protected with a password. Enter it to open the project:"
+msgstr "Þetta verkefni er varið með aðgangsorði. Sláðu það inn til að opna verkefnið:"
+
+msgid "This project contains KNX Secure keys. Set a project password to protect them; the project can then only be opened with it."
+msgstr "Þetta verkefni inniheldur KNX Secure-lykla. Settu aðgangsorð á verkefnið til að verja þá; eftir það er aðeins hægt að opna verkefnið með því."
+
+msgid "Password"
+msgstr "Aðgangsorð"
+
+msgid "Repeat Password"
+msgstr "Endurtaka aðgangsorð"
+
+msgid "The passwords do not match."
+msgstr "Aðgangsorðin passa ekki saman."
+
+msgid "Protecting the project with the password…"
+msgstr "Ver verkefnið með aðgangsorðinu…"
+
+msgid "Light Theme"
+msgstr "Ljóst þema"
+
+msgid "Dark Theme"
+msgstr "Dökkt þema"
+
+msgid "Customize Theme…"
+msgstr "Sérsníða þema…"
+
+msgid "Customize Theme"
+msgstr "Sérsníða þema"
+
+msgid "Sizes"
+msgstr "Stærðir"
+
+msgid "Colors"
+msgstr "Litir"
+
+msgid "Rendering"
+msgstr "Teiknun"
+
+msgid "Adjustments"
+msgstr "Lagfæringar"
+
+msgid "Theme Default"
+msgstr "Sjálfgefið í þema"
+
+msgid "Reset to Theme"
+msgstr "Endurstilla á þema"
+
+msgid "Rounding"
+msgstr "Námundun horna"
+
+msgid "Scrollbar Rounding Ratio"
+msgstr "Hlutfall námundunar skrunstiku"
+
+msgid "Opacity"
+msgstr "Ógegnsæi"
+
+msgid "Hue"
+msgstr "Litblær"
+
+msgid "Saturation"
+msgstr "Litmettun"
+
+msgid "Brightness of Controls"
+msgstr "Birta stjórnhluta"
+
+msgid "Brightness of Backgrounds"
+msgstr "Birta bakgrunna"
+
+msgid "Brightness of Text"
+msgstr "Birta texta"
+
+msgid "Brightness of Input Fields"
+msgstr "Birta innsláttarreita"
+
+msgid "Spacing"
+msgstr "Bil"
+
+msgid "Borders"
+msgstr "Rammar"
+
+msgid "Alignment"
+msgstr "Jöfnun"
+
+msgid "Window Padding"
+msgstr "Innra bil glugga"
+
+msgid "Field Padding"
+msgstr "Innra bil reita"
+
+msgid "Cell Padding"
+msgstr "Innra bil hólfa"
+
+msgid "Item Spacing"
+msgstr "Bil milli atriða"
+
+msgid "Item Inner Spacing"
+msgstr "Innra bil atriða"
+
+msgid "Extra Touch Padding"
+msgstr "Aukabil fyrir snertingu"
+
+msgid "Indent"
+msgstr "Inndráttur"
+
+msgid "Scrollbar Width"
+msgstr "Breidd skrunstiku"
+
+msgid "Minimum Slider Grip Size"
+msgstr "Lágmarksstærð sleðahandfangs"
+
+msgid "Windows"
+msgstr "Gluggar"
+
+msgid "Child Windows"
+msgstr "Undirgluggar"
+
+msgid "Popups"
+msgstr "Sprettigluggar"
+
+msgid "Fields"
+msgstr "Reitir"
+
+msgid "Tabs"
+msgstr "Flipar"
+
+msgid "Tab Bar"
+msgstr "Flipastika"
+
+msgid "Scrollbars"
+msgstr "Skrunstikur"
+
+msgid "Slider Grips"
+msgstr "Sleðahandföng"
+
+msgid "Window Title"
+msgstr "Titill glugga"
+
+msgid "Button Text"
+msgstr "Texti hnappa"
+
+msgid "List Entry Text"
+msgstr "Texti listafærslna"
+
+msgid "Separator Text"
+msgstr "Texti skila"
+
+msgid "Font Scale"
+msgstr "Leturkvarði"
+
+msgid "Anti-Aliased Lines"
+msgstr "Mýking lína"
+
+msgid "Anti-Aliased Fills"
+msgstr "Mýking fyllinga"
+
+msgid "Maximum Curve Tessellation Error"
+msgstr "Hámarksskekkja við skiptingu ferla"
+
+msgid "Maximum Circle Tessellation Error"
+msgstr "Hámarksskekkja við skiptingu hringja"
+
+msgid "Global Opacity"
+msgstr "Heildarógegnsæi"
+
+msgid "Opacity of Disabled Items"
+msgstr "Ógegnsæi óvirkra atriða"
+
+msgid "Show ImGui Demo Window"
+msgstr "Sýna ImGui-sýnisglugga"
+
+msgid "Filter colors"
+msgstr "Sía liti"
+
+msgid "Device not compatible with this ETS version"
+msgstr "Tæki er ekki samhæft þessari ETS-útgáfu"
+
+msgid "This project cannot be imported into the chosen ETS version. The product data of the device(s) below exists only for a newer ETS (e.g. an ETS 6 product in an ETS 5 export), so ETS rejects the whole project with 'created with a newer version'.\n\nRemove these device(s) and export again, or cancel and export for the newer ETS instead."
+msgstr "Ekki er hægt að flytja þetta verkefni inn í valda ETS-útgáfu. Vörugögn tækjanna hér fyrir neðan eru aðeins til fyrir nýrri ETS (t.d. ETS 6-vara í ETS 5-útflutningi), svo ETS hafnar öllu verkefninu með 'created with a newer version'.\n\nFjarlægðu þessi tæki og flyttu út aftur, eða hættu við og flyttu í staðinn út fyrir nýrri ETS."
+
+msgid "Remove device(s) & re-export"
+msgstr "Fjarlægja tæki og flytja út aftur"
+
+msgid "Removed {count} incompatible device(s); re-exporting"
+msgstr "Ósamhæf tæki fjarlægð: {count}; flytur út aftur"
+
+msgid "This file will NOT import into the chosen ETS version: the product data of these manufacturers only exists for a newer ETS (e.g. an ETS 6 product in an ETS 5 export), so ETS rejects the whole project. Remove the affected device(s) or export for the newer ETS."
+msgstr "Þessi skrá verður EKKI flutt inn í valda ETS-útgáfu: vörugögn þessara framleiðenda eru aðeins til fyrir nýrri ETS (t.d. ETS 6-vara í ETS 5-útflutningi), svo ETS hafnar öllu verkefninu. Fjarlægðu tækin sem um ræðir eða flyttu út fyrir nýrri ETS."
+
+msgid "Hide Tab Bar"
+msgstr "Fela flipastiku"
+
+msgid "Open {url}"
+msgstr "Opna {url}"
+
+msgid "Copy Link"
+msgstr "Afrita hlekk"
+
+msgid "Install Update"
+msgstr "Setja upp uppfærslu"
+
+msgid "Install Update downloads the installer, closes XKNX Editor and starts it again with the open project."
+msgstr "„Setja upp uppfærslu“ sækir uppsetningarforritið, lokar XKNX Editor og ræsir hann aftur með opna verkefninu."
+
+msgid "Downloading the update…"
+msgstr "Sækir uppfærsluna…"
+
+msgid "{done} of {total} MB"
+msgstr "{done} af {total} MB"
+
+msgid "Export Failed"
+msgstr "Útflutningur mistókst"
+
+msgid "The project could not be exported to {name}."
+msgstr "Ekki tókst að flytja verkefnið út í {name}."
+
+msgid "MyKNX did not issue the certificate for the project:"
+msgstr "MyKNX gaf ekki út vottorð fyrir verkefnið:"
+
+msgid "{name} cannot be imported."
+msgstr "Ekki er hægt að flytja inn {name}."
+
+msgid "The file was written, but it refers to product data that is not in the catalog: {references}. Add these products to the catalog and export again."
+msgstr "Skráin var skrifuð, en hún vísar í vörugögn sem eru ekki í vörulistanum: {references}. Bættu þessum vörum í vörulistann og flyttu út aftur."
+
+msgid "Exporting {name} — this can take a while for large projects."
+msgstr "Flytur út {name} — það getur tekið nokkra stund fyrir stór verkefni."
+
+msgid "Collecting the manufacturer data…"
+msgstr "Safnar gögnum framleiðenda…"
+
+msgid "Writing the archive…"
+msgstr "Skrifar safnskrána…"
+
+msgid "Getting the certificate from MyKNX…"
+msgstr "Sækir vottorðið frá MyKNX…"
+
+msgid "Cancelling…"
+msgstr "Hættir við…"
+
+msgid "Export cancelled, no file was written"
+msgstr "Hætt við útflutning, engin skrá var skrifuð"
+
+msgid "Sign In"
+msgstr "Skrá inn"
+
+msgid "Disconnected. Reconnecting…"
+msgstr "Aftengt. Tengist aftur…"
+
+msgid "Access denied. Please sign in again."
+msgstr "Aðgangi hafnað. Skráðu þig inn aftur."
+
+msgid "Upload from This Computer…"
+msgstr "Hlaða upp úr þessari tölvu…"
+
+msgid "Or drop files here."
+msgstr "Eða slepptu skrám hér."
+
+msgid "Files on the Server"
+msgstr "Skrár á þjóninum"
+
+msgid "No files yet."
+msgstr "Engar skrár enn."
+
+msgid "Open"
+msgstr "Opna"
+
+msgid "Select"
+msgstr "Velja"
+
+msgid "File Name"
+msgstr "Skráarheiti"
+
+msgid "Folder Name"
+msgstr "Heiti möppu"
+
+msgid "File Type"
+msgstr "Skráargerð"
+
+msgid "Download to This Computer"
+msgstr "Sækja í þessa tölvu"
+
+msgid "Uploading {name}…"
+msgstr "Hleður upp {name}…"
+
+msgid "Upload failed: {error}"
+msgstr "Upphleðsla mistókst: {error}"
+
+msgid "Show"
+msgstr "Sýna"
+
+msgid "Folder on the Server"
+msgstr "Mappa á þjóninum"
+
+msgid "View only: another browser controls the editor."
+msgstr "Aðeins skoðun: annar vafri stjórnar ritlinum."
+
+msgid "Take Control"
+msgstr "Taka við stjórn"
+
+msgid "Open Link"
+msgstr "Opna hlekk"
+
+msgid "Name"
+msgstr "Heiti"
+
+msgid "Size"
+msgstr "Stærð"
+
+msgid "Modified"
+msgstr "Breytt"
+
+msgid "The browser did not open it by itself."
+msgstr "Vafrinn opnaði það ekki sjálfur."
+
+msgid "Download started: {name}"
+msgstr "Niðurhal hafið: {name}"
+
+msgid "Choose File…"
+msgstr "Velja skrá…"
+
+msgid "{name} is ready."
+msgstr "{name} er tilbúið."
+
+msgid "Enter the password for access to the editor."
+msgstr "Sláðu inn aðgangsorðið til að fá aðgang að ritlinum."
+
+msgid "Wrong password."
+msgstr "Rangt aðgangsorð."
+
+msgid "ETS 6: needs a licensed .knxproj through a MyKNX login or a dongle.\nETS 5: just use 'Export Without Certificate'."
+msgstr "ETS 6: þarf .knxproj með leyfi í gegnum MyKNX-innskráningu eða vélbúnaðarlykil.\nETS 5: notaðu einfaldlega 'Flytja út án vottorðs'."
+
+msgid "Sign with MyKNX Login"
+msgstr "Undirrita með MyKNX-innskráningu"
+
+msgid "License with a Dongle"
+msgstr "Leyfi með vélbúnaðarlykli"
+
+msgid "ETS must not be running on any computer with this MyKNX account while you log in and export here."
+msgstr "ETS má ekki vera í gangi á neinni tölvu með þennan MyKNX-aðgang meðan þú skráir þig inn og flytur út hér."
+
+msgid "Log in"
+msgstr "Skrá inn"
+
+msgid "(only in the export, the project stays unchanged)"
+msgstr "(aðeins í útflutningnum, verkefnið helst óbreytt)"
+
+msgid "To export without it, choose 'Export Without Certificate' or the 'License with a Dongle' tab in the Sign Export window."
+msgstr "Til að flytja út án þess skaltu velja 'Flytja út án vottorðs' eða flipann 'Leyfi með vélbúnaðarlykli' í glugganum 'Undirrita útflutning'."
+
+msgid "Re-license the project through your own licensed ETS, which re-signs the copy with your dongle license:\n\nETS 6 - use the local project store:\n1. Click 'Export to ProjectStore'. It writes the project's 'P-XXXX' folder straight into your ETS 6 project store. If ETS is not installed on this computer, you are asked for the store folder (or any folder you then copy over manually).\n2. The export needs your 'installer.guid' from C:\\ProgramData\\KNX\\ETS6\\Installer. If it cannot be found automatically, you are asked to select it.\n3. Restart ETS 6 - the project appears in the project overview.\n4. Make a copy of it there (Copy in the overview). The copy is re-signed with your license - open it, then use or export it normally.\n\nETS 5 - no project store is needed:\nChoose 'Export Without Certificate' (with ETS 5 as version) and an active signing key to save a .knxproj, then import that file into ETS 5.\n\nThis is bounded by the device-per-project limit of your license."
+msgstr "Veittu verkefninu leyfi að nýju í gegnum þitt eigið ETS með leyfi, sem undirritar afritið að nýju með leyfi vélbúnaðarlykilsins:\n\nETS 6 - notaðu staðbundnu verkefnageymsluna:\n1. Smelltu á 'Flytja út í ProjectStore'. Það skrifar 'P-XXXX'-möppu verkefnisins beint í ETS 6-verkefnageymsluna. Ef ETS er ekki uppsett á þessari tölvu ertu beðin(n) um geymslumöppuna (eða einhverja möppu sem þú afritar svo handvirkt).\n2. Útflutningurinn þarf 'installer.guid' skrána þína úr C:\\ProgramData\\KNX\\ETS6\\Installer. Ef hún finnst ekki sjálfkrafa ertu beðin(n) um að velja hana.\n3. Endurræstu ETS 6 - verkefnið birtist í verkefnayfirlitinu.\n4. Gerðu afrit af því þar (Copy í yfirlitinu). Afritið er undirritað að nýju með leyfinu þínu - opnaðu það og notaðu það eða fluttu það út eins og venjulega.\n\nETS 5 - engin verkefnageymsla er nauðsynleg:\nVeldu 'Flytja út án vottorðs' (með ETS 5 sem útgáfu) og virkan undirritunarlykil til að vista .knxproj-skrá og fluttu þá skrá svo inn í ETS 5.\n\nÞetta takmarkast af hámarksfjölda tækja í verkefni samkvæmt leyfinu þínu."
+
+msgid "Needed only for accounts with two-factor authentication. The 2FA sign-in opens in your browser automatically when a normal login is rejected. Enter the OAuth client id/secret, or extract them from your installed ETS: pick 'Knx.Ets.MyKnx.dll' from the ETS program folder (e.g. C:\\Program Files (x86)\\ETS6\\Knx.Ets.MyKnx.dll).\n\nAlternatively, if you have any licensed ETS installed, skip online signing entirely and use the local project store instead - see the 'License with a Dongle' tab."
+msgstr "Aðeins nauðsynlegt fyrir aðganga með tveggja þátta auðkenningu. 2FA-innskráningin opnast sjálfkrafa í vafranum þegar venjulegri innskráningu er hafnað. Sláðu inn OAuth client id/secret eða dragðu þau út úr uppsettu ETS: veldu 'Knx.Ets.MyKnx.dll' úr forritamöppu ETS (t.d. C:\\Program Files (x86)\\ETS6\\Knx.Ets.MyKnx.dll).\n\nEf þú ert með einhverja ETS-uppsetningu með leyfi getur þú líka sleppt undirritun á netinu alveg og notað staðbundnu verkefnageymsluna í staðinn - sjá flipann 'Leyfi með vélbúnaðarlykli'."
+
+msgid "Checking for updates…"
+msgstr "Leitar að uppfærslum…"
+
+msgid "The check for updates failed: {error}"
+msgstr "Leit að uppfærslum mistókst: {error}"
+
+msgid "The project has no group addresses to export."
+msgstr "Verkefnið hefur engin hópvistföng til að flytja út."
+
+msgid "Clear Cache…"
+msgstr "Hreinsa skyndiminni…"
+
+msgid "Clear Cache"
+msgstr "Hreinsa skyndiminni"
+
+msgid "The cache holds {size} of parsed product data and of documentation fetched for the AI tools. All of it is made again when needed; afterwards only the first use of each product takes longer."
+msgstr "Skyndiminnið geymir {size} af þáttuðum vörugögnum og af skjölun sem sótt var fyrir gervigreindarverkfærin. Allt er búið til aftur þegar þörf krefur; eftir það tekur aðeins fyrsta notkun hverrar vöru lengri tíma."
+
+msgid "Cache cleared, {size} freed"
+msgstr "Skyndiminni hreinsað, {size} losað"
+
+msgid "KNX Secure"
+msgstr "KNX Secure"
+
+msgid "Zoom In"
+msgstr "Auka aðdrátt"
+
+msgid "Zoom Out"
+msgstr "Minnka aðdrátt"
+
+msgid "Reset Zoom"
+msgstr "Endurstilla aðdrátt"
+
+msgid "Cut"
+msgstr "Klippa"
+
+msgid "Paste"
+msgstr "Líma"
+
+msgid "Select All"
+msgstr "Velja allt"
+
+msgid "Long-press in the field below and choose Paste."
+msgstr "Haltu fingri lengi í reitnum hér fyrir neðan og veldu Líma."
+
+msgid "Too many wrong passwords. Please try again in a few minutes."
+msgstr "Of mörg röng aðgangsorð. Reyndu aftur eftir nokkrar mínútur."
+
+msgid "Port {port} is already in use by another program, so the browser UI cannot start there. Start it with another port (e.g. --web={example}) or without a port to take a free one."
+msgstr "Port {port} er þegar í notkun af öðru forriti svo vafraviðmótið getur ekki ræst þar. Ræstu það með öðru porti (t.d. --web={example}) eða án ports til að taka laust port."
+
+msgid "Load OpenKNX from URL or Folder…"
+msgstr "Hlaða OpenKNX af URL-slóð eða úr möppu…"
+
+msgid "Load OpenKNX from URL or Folder"
+msgstr "Hlaða OpenKNX af URL-slóð eða úr möppu"
+
+msgid "Or choose a local folder with product files (.knxprod, OpenKNX release .zip, or KNX product XML) to import all of them."
+msgstr "Eða veldu staðbundna möppu með vöruskrám (.knxprod, OpenKNX-útgáfu .zip eða KNX-vöru-XML) til að flytja þær allar inn."
+
+msgid "Choose Folder…"
+msgstr "Velja möppu…"
+
+msgid "Choose a Folder with KNX Product Files"
+msgstr "Veldu möppu með KNX-vöruskrám"
+
+msgid "Importing from folder…"
+msgstr "Flytur inn úr möppu…"
+
+msgid "Imported {count} new product version(s) from folder"
+msgstr "Nýjar vöruútgáfur fluttar inn úr möppu: {count}"
+
+msgid "Nothing new imported from folder (no product files found, or already in the catalog)"
+msgstr "Ekkert nýtt flutt inn úr möppu (engar vöruskrár fundust, eða þegar í vörulistanum)"
+
+msgid "Import from folder failed: {error}"
+msgstr "Innflutningur úr möppu mistókst: {error}"
+
+msgid "Load OpenKNX from URL or Files…"
+msgstr "Hlaða OpenKNX af URL-slóð eða úr skrám…"
+
+msgid "Load OpenKNX from URL or Files"
+msgstr "Hlaða OpenKNX af URL-slóð eða úr skrám"
+
+msgid "Or upload product files (.knxprod, OpenKNX release .zip, or KNX product XML) from this computer to import all of them."
+msgstr "Eða hladdu upp vöruskrám (.knxprod, OpenKNX-útgáfu .zip eða KNX-vöru-XML) úr þessari tölvu til að flytja þær allar inn."
+
+msgid "Choose Files…"
+msgstr "Velja skrár…"
+
+msgid "Choose KNX Product Files"
+msgstr "Veldu KNX-vöruskrár"
+
+msgid "KNX Product Files (*.knxprod, *.zip, *.xml)"
+msgstr "KNX-vöruskrár (*.knxprod, *.zip, *.xml)"
+
+msgid "Importing files…"
+msgstr "Flytur inn skrár…"
+
+msgid "Nothing new imported from the files (no product files, or already in the catalog)"
+msgstr "Ekkert nýtt flutt inn úr skránum (engar vöruskrár, eða þegar í vörulistanum)"
+
+msgid "Import of the files failed: {error}"
+msgstr "Innflutningur skránna mistókst: {error}"
+
+msgid "DIN rail"
+msgstr "DIN-teinn"
+
+msgid "Flush-mounted"
+msgstr "Innfellt"
+
+msgid "Registered: {info}"
+msgstr "Skráð: {info}"
+
+msgid "Manufacturer"
+msgstr "Framleiðandi"
+
+msgid "Product"
+msgstr "Vara"
+
+msgid "Order no."
+msgstr "Pöntunarnr."
+
+msgid "Application"
+msgstr "Verkforrit"
+
+msgid "Version"
+msgstr "Útgáfa"
+
+msgid "Mask"
+msgstr "Maski"
+
+msgid "Registered"
+msgstr "Skráð"
+
+msgid "Port {port} is already in use by another program, so the MCP server cannot start. Choose another port, or end the other program."
+msgstr "Port {port} er þegar í notkun af öðru forriti svo MCP-þjónninn getur ekki ræst. Veldu annað port eða lokaðu hinu forritinu."
+
+msgid "The MCP server could not start: {error}"
+msgstr "MCP-þjónninn gat ekki ræst: {error}"
+
+msgid "Open in Browser"
+msgstr "Opna í vafra"
+
+msgid "Stop XKNX Editor"
+msgstr "Stöðva XKNX Editor"
+
+msgid "XKNX Editor Already Running"
+msgstr "XKNX Editor er þegar í gangi"
+
+msgid "XKNX Editor is already running on this computer. Switch to it, or start another one, e.g. to work on a second project or with another bus connection."
+msgstr "XKNX Editor er þegar í gangi á þessari tölvu. Skiptu yfir í hann eða ræstu annan, t.d. til að vinna í öðru verkefni eða með aðra tengingu við tengibraut."
+
+msgid "Window"
+msgstr "Gluggi"
+
+msgid "Browser UI ({url})"
+msgstr "Vafraviðmót ({url})"
+
+msgid "{kind}: {project}"
+msgstr "{kind}: {project}"
+
+msgid "Switch to It"
+msgstr "Skipta yfir"
+
+msgid "Start Another"
+msgstr "Ræsa annan"
+
+msgid "That XKNX Editor has ended in the meantime."
+msgstr "Sá XKNX Editor hefur hætt í millitíðinni."
+
+msgid "Project Already Open"
+msgstr "Verkefnið er þegar opið"
+
+msgid "{name} is already open in another XKNX Editor. Editing it in two editors at once can overwrite changes."
+msgstr "{name} er þegar opið í öðrum XKNX Editor. Ef því er breytt í tveimur riturum í einu geta breytingar verið skrifaðar yfir."
+
+msgid "Open Anyway"
+msgstr "Opna samt"
+
+msgid "C"
+msgstr "C"
+
+msgid "R"
+msgstr "R"
+
+msgid "W"
+msgstr "W"
+
+msgid "T"
+msgstr "T"
+
+msgid "U"
+msgstr "U"
+
+msgid "I"
+msgstr "I"
+
+msgid "Communication"
+msgstr "Samskipti"
+
+msgid "Read"
+msgstr "Lesa"
+
+msgid "Write"
+msgstr "Skrifa"
+
+msgid "Transmit"
+msgstr "Senda"
+
+msgid "Update"
+msgstr "Uppfæra"
+
+msgid "Read on Init"
+msgstr "Lesa við ræsingu"
+
+msgid "English"
+msgstr "Enska"
+
+msgid "German"
+msgstr "Þýska"
+
+msgid "Dutch"
+msgstr "Hollenska"
+
+msgid "{name} ({native})"
+msgstr "{name} ({native})"
+
+msgid "Spanish"
+msgstr "Spænska"
+
+msgid "Greek"
+msgstr "Gríska"
+
+msgid "Simplified Chinese"
+msgstr "Kínverska (einfölduð)"
+
+msgid "Japanese"
+msgstr "Japanska"
+
+msgid "Czech"
+msgstr "Tékkneska"
+
+msgid "Danish"
+msgstr "Danska"
+
+msgid "Finnish"
+msgstr "Finnska"
+
+msgid "French"
+msgstr "Franska"
+
+msgid "Italian"
+msgstr "Ítalska"
+
+msgid "Norwegian"
+msgstr "Norskt bókmál"
+
+msgid "Polish"
+msgstr "Pólska"
+
+msgid "Portuguese"
+msgstr "Portúgalska"
+
+msgid "Russian"
+msgstr "Rússneska"
+
+msgid "Swedish"
+msgstr "Sænska"
+
+msgid "Turkish"
+msgstr "Tyrkneska"
+
+msgid "Ukrainian"
+msgstr "Úkraínska"
+
+msgid "Albanian"
+msgstr "Albanska"
+
+msgid "Preferred Product Language"
+msgstr "Valið tungumál vara"
+
+msgid "Hungarian"
+msgstr "Ungverska"
+
+msgid "Romanian"
+msgstr "Rúmenska"
+
+msgid "Slovak"
+msgstr "Slóvakíska"
+
+msgid "Slovenian"
+msgstr "Slóvenska"
+
+msgid "Icelandic"
+msgstr "Íslenska"
+
+msgid "Ctrl"
+msgstr "Ctrl"
+
+msgid "Del"
+msgstr "Del"
+
+msgid "This Machine Only"
+msgstr "Aðeins þessi tölva"
+
+msgid "On the Network"
+msgstr "Á netinu"
+
+msgid "This editor is controllable by an AI assistant through the built-in MCP server: it exposes the catalog and project as tools over Streamable HTTP. Register its endpoint in your AI tool."
+msgstr "Gervigreindaraðstoðarmaður getur stjórnað þessum ritli í gegnum innbyggða MCP-þjóninn: hann gerir vörulistann og verkefnið aðgengileg sem verkfæri um Streamable HTTP. Skráðu endapunkt hans í gervigreindarverkfærinu þínu."
+
+msgid "Example: register the MCP server in your AI tool:"
+msgstr "Dæmi: skráðu MCP-þjóninn í gervigreindarverkfærinu þínu:"
+
+msgid "Example: register the MCP server in your AI tool, with your token in place of HOME_ASSISTANT_TOKEN:"
+msgstr "Dæmi: skráðu MCP-þjóninn í gervigreindarverkfærinu þínu, með tókann þinn í stað HOME_ASSISTANT_TOKEN:"
+
+msgid "Home Assistant provides the MCP server: AI tools sign in with a long-lived access token of a Home Assistant user who may use the editor (Profile > Security)."
+msgstr "Home Assistant veitir MCP-þjóninn: gervigreindarverkfæri skrá sig inn með langlífum aðgangstóka Home Assistant-notanda sem má nota ritilinn (Profile > Security)."
+
+msgid "The program that started XKNX Editor set up its MCP server."
+msgstr "Forritið sem ræsti XKNX Editor setti upp MCP-þjón hans."
+
+msgid "Home Assistant updates XKNX Editor with its integration: check Home Assistant for an update of the XKNX Editor integration. It may follow this release a little later."
+msgstr "Home Assistant uppfærir XKNX Editor með samþættingu sinni: leitaðu í Home Assistant að uppfærslu á XKNX Editor-samþættingunni. Hún gæti komið aðeins síðar en þessi útgáfa."

@@ -100,10 +100,18 @@ def test_the_tree_files_products_into_sorted_sections() -> None:
 
 def test_products_download_in_the_editor_language_first() -> None:
     others = ["es-ES", "el-GR", "zh-CN", "ja-JP", "cs-CZ", "da-DK", "fi-FI", "fr-FR"]
-    others += ["it-IT", "nb-NO", "pl-PL", "pt-PT", "ru-RU", "sv-SE", "tr-TR", "uk-UA"]
+    others += ["hu-HU", "is-IS", "it-IT", "nb-NO", "pl-PL", "pt-PT", "ro-RO", "ru-RU"]
+    others += ["sk-SK", "sl-SI", "sv-SE", "tr-TR", "uk-UA"]
     assert download_languages("de") == ["de-DE", "en-US", "nl-NL", *others]
     assert download_languages("nl") == ["nl-NL", "en-US", "de-DE", *others]
+    assert download_languages("sk") == [
+        "sk-SK",
+        "en-US",
+        "de-DE",
+        "nl-NL",
+        *(c for c in others if c != "sk-SK"),
+    ]
     # A language the editor has no catalog language for: English first.
-    assert download_languages("hu") == ["en-US", "de-DE", "nl-NL", *others]
+    assert download_languages("ko") == ["en-US", "de-DE", "nl-NL", *others]
     # A UI language the KNX master data has none for (Albanian): English first, and only once.
     assert download_languages("sq") == ["en-US", "de-DE", "nl-NL", *others]

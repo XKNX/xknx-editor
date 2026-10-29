@@ -1,0 +1,68 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor signing 1.0\n"
+"Language: sk\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Signing"
+msgstr "Podpisovanie"
+
+msgid "Signing Key…"
+msgstr "Podpisový kľúč…"
+
+msgid "Signing Key"
+msgstr "Podpisový kľúč"
+
+msgid "A signing key is set (exports are signed)."
+msgstr "Podpisový kľúč je nastavený (exporty sa podpisujú)."
+
+msgid "Placeholder key in use — signatures are not ETS-valid."
+msgstr "Používa sa zástupný kľúč – podpisy nie sú platné pre ETS."
+
+msgid "Modulus (hex)"
+msgstr "Modulus (hex)"
+
+msgid "Private Exponent (hex)"
+msgstr "Súkromný exponent (hex)"
+
+msgid "Public Exponent (hex)"
+msgstr "Verejný exponent (hex)"
+
+msgid "Extract from Knx.Ets.XmlSigning.dll…"
+msgstr "Extrahovať z Knx.Ets.XmlSigning.dll…"
+
+msgid "Save"
+msgstr "Uložiť"
+
+msgid "Reset to Placeholder"
+msgstr "Vrátiť na zástupný kľúč"
+
+msgid "All DLLs"
+msgstr "Všetky DLL"
+
+msgid "All Files"
+msgstr "Všetky súbory"
+
+msgid "Select \"Knx.Ets.XmlSigning.dll\" from your ETS installation (e.g. C:\\Program Files (x86)\\ETS6)."
+msgstr "Vyberte „Knx.Ets.XmlSigning.dll“ zo svojej inštalácie ETS (napr. C:\\Program Files (x86)\\ETS6)."
+
+msgid "Extracting key from the assembly…"
+msgstr "Extrahuje sa kľúč zo zostavy…"
+
+msgid "Signing key saved."
+msgstr "Podpisový kľúč uložený."
+
+msgid "Reverted to the placeholder key."
+msgstr "Vrátené na zástupný kľúč."
+
+msgid "No .NET runtime found. Install the .NET SDK (macOS: `brew install dotnet-sdk`; Fedora: `sudo dnf install dotnet-sdk-8.0`) to extract the key, or paste it manually below."
+msgstr "Nenašlo sa prostredie runtime .NET. Na extrahovanie kľúča nainštalujte .NET SDK (macOS: `brew install dotnet-sdk`; Fedora: `sudo dnf install dotnet-sdk-8.0`) alebo ho vložte ručne nižšie."
+
+msgid "The key is read from your own licensed ETS assembly and stored per-user, never in the project."
+msgstr "Kľúč sa číta z vašej vlastnej licencovanej zostavy ETS a ukladá sa pre každého používateľa zvlášť, nikdy do projektu."
+
+msgid "Based on OpenKNXproducer (github.com/OpenKNX/OpenKNXproducer)."
+msgstr "Založené na OpenKNXproducer (github.com/OpenKNX/OpenKNXproducer)."

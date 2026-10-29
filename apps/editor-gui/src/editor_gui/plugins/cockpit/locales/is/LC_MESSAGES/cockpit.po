@@ -1,0 +1,74 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor cockpit 1.0\n"
+"Language: is\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Overview"
+msgstr "Yfirlit"
+
+msgid "No project open"
+msgstr "Ekkert verkefni opið"
+
+msgid "Filter devices…"
+msgstr "Sía tæki…"
+
+msgid "Needs Attention Only"
+msgstr "Aðeins það sem þarfnast athygli"
+
+msgid "{count} device(s) not in catalog"
+msgstr "Tæki sem eru ekki í vörulista: {count}"
+
+msgid "Address"
+msgstr "Vistfang"
+
+msgid "Name"
+msgstr "Heiti"
+
+msgid "Product"
+msgstr "Vara"
+
+msgid "Status"
+msgstr "Staða"
+
+msgid "OK"
+msgstr "OK"
+
+msgid "Device Overview"
+msgstr "Yfirlit tækja"
+
+msgid "Application Program"
+msgstr "Verkforrit"
+
+msgid "Communication Part"
+msgstr "Samskiptaþáttur"
+
+msgid "Individual Address"
+msgstr "Einstaklingsvistfang"
+
+msgid "Last Download: {when}"
+msgstr "Síðasta niðurhleðsla: {when}"
+
+msgid "Loaded"
+msgstr "Hlaðið"
+
+msgid "Medium Config"
+msgstr "Stillingar miðils"
+
+msgid "Parameters"
+msgstr "Færibreytur"
+
+msgid "Serial: {serial}"
+msgstr "Raðnúmer: {serial}"
+
+msgid "loaded"
+msgstr "hlaðið"
+
+msgid "not loaded"
+msgstr "ekki hlaðið"
+
+msgid "partial ({done}/{total})"
+msgstr "að hluta ({done}/{total})"

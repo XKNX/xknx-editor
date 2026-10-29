@@ -1,0 +1,245 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor backups 1.0\n"
+"Language: hu\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Backups"
+msgstr "Biztonsági mentések"
+
+msgid "Create Backup…"
+msgstr "Biztonsági mentés létrehozása…"
+
+msgid "Show Backups…"
+msgstr "Biztonsági mentések megjelenítése…"
+
+msgid "Comment: {comment}"
+msgstr "Megjegyzés: {comment}"
+
+msgid "Settings…"
+msgstr "Beállítások…"
+
+msgid "Open a project to see its backups."
+msgstr "Nyisson meg egy projektet a biztonsági mentései megtekintéséhez."
+
+msgid "This project has no backups yet."
+msgstr "Ennek a projektnek még nincs biztonsági mentése."
+
+msgid "Folder: {path}"
+msgstr "Mappa: {path}"
+
+msgid "Open Folder"
+msgstr "Mappa megnyitása"
+
+msgid "Compare"
+msgstr "Összehasonlítás"
+
+msgid "Restore…"
+msgstr "Visszaállítás…"
+
+msgid "Export as .xknx…"
+msgstr "Exportálás .xknx fájlként…"
+
+msgid "Pin"
+msgstr "Rögzítés"
+
+msgid "Unpin"
+msgstr "Rögzítés feloldása"
+
+msgid "Check"
+msgstr "Ellenőrzés"
+
+msgid "Delete…"
+msgstr "Törlés…"
+
+msgid "Show what differs between the project now and this backup"
+msgstr "Megmutatja, miben tér el a projekt jelenlegi állapota ettől a biztonsági mentéstől"
+
+msgid "A pinned backup is never deleted automatically"
+msgstr "A rögzített biztonsági mentés soha nem törlődik automatikusan"
+
+msgid "Check that the backup can be restored"
+msgstr "Ellenőrzi, hogy a biztonsági mentés visszaállítható-e"
+
+msgid "Created"
+msgstr "Létrehozva"
+
+msgid "Kind"
+msgstr "Fajta"
+
+msgid "Comment"
+msgstr "Megjegyzés"
+
+msgid "Computer"
+msgstr "Számítógép"
+
+msgid "User"
+msgstr "Felhasználó"
+
+msgid "Size"
+msgstr "Méret"
+
+msgid "Manual"
+msgstr "Kézi"
+
+msgid "On close"
+msgstr "Bezáráskor"
+
+msgid "Interval"
+msgstr "Időközönként"
+
+msgid "Before restore"
+msgstr "Visszaállítás előtt"
+
+msgid "Pinned"
+msgstr "Rögzítve"
+
+msgid "{size} MB"
+msgstr "{size} MB"
+
+msgid "Creating a backup: copying the project…"
+msgstr "Biztonsági mentés létrehozása: a projekt másolása…"
+
+msgid "Creating a backup: checking the project…"
+msgstr "Biztonsági mentés létrehozása: a projekt ellenőrzése…"
+
+msgid "Creating a backup: compressing…"
+msgstr "Biztonsági mentés létrehozása: tömörítés…"
+
+msgid "Create Backup"
+msgstr "Biztonsági mentés létrehozása"
+
+msgid "The backup holds the project as it is now."
+msgstr "A biztonsági mentés a projekt jelenlegi állapotát tartalmazza."
+
+msgid "Create"
+msgstr "Létrehozás"
+
+msgid "Cancel"
+msgstr "Mégse"
+
+msgid "OK"
+msgstr "OK"
+
+msgid "Backup created: {name}"
+msgstr "Biztonsági mentés létrehozva: {name}"
+
+msgid "The backup failed: {error}"
+msgstr "A biztonsági mentés nem sikerült: {error}"
+
+msgid "Restore Backup"
+msgstr "Biztonsági mentés visszaállítása"
+
+msgid "Restore the project to its state of {created}?\n\nThe project as it is now is saved as a backup first, so you can go back to it."
+msgstr "Visszaállítja a projektet erre az állapotra: {created}?\n\nA projekt jelenlegi állapota előbb biztonsági mentésként mentésre kerül, így később visszatérhet hozzá."
+
+msgid "Restore"
+msgstr "Visszaállítás"
+
+msgid "The project had another password when this backup was made. Enter that password:"
+msgstr "A projektnek más jelszava volt a biztonsági mentés készítésekor. Adja meg azt a jelszót:"
+
+msgid "Wrong password"
+msgstr "Hibás jelszó"
+
+msgid "Restoring the backup…"
+msgstr "A biztonsági mentés visszaállítása…"
+
+msgid "Project restored to its state of {created}"
+msgstr "A projekt visszaállítva erre az állapotra: {created}"
+
+msgid "The backup could not be restored: {error}"
+msgstr "A biztonsági mentés nem állítható vissza: {error}"
+
+msgid "Delete Backup"
+msgstr "Biztonsági mentés törlése"
+
+msgid "Delete the backup of {created}? This cannot be undone."
+msgstr "Törli ezt a biztonsági mentést: {created}? Ez nem vonható vissza."
+
+msgid "Delete"
+msgstr "Törlés"
+
+msgid "Export Backup as Project File"
+msgstr "Biztonsági mentés exportálása projektfájlként"
+
+msgid "XKNX Editor projects"
+msgstr "XKNX Editor-projektek"
+
+msgid "Exporting the backup…"
+msgstr "A biztonsági mentés exportálása…"
+
+msgid "Backup exported: {name}"
+msgstr "Biztonsági mentés exportálva: {name}"
+
+msgid "Checking the backup…"
+msgstr "A biztonsági mentés ellenőrzése…"
+
+msgid "The backup is intact and can be restored."
+msgstr "A biztonsági mentés ép, és visszaállítható."
+
+msgid "The backup is damaged: {error}"
+msgstr "A biztonsági mentés sérült: {error}"
+
+msgid "Backup of {created}"
+msgstr "Biztonsági mentés – {created}"
+
+msgid "Restore from Backup"
+msgstr "Visszaállítás biztonsági mentésből"
+
+msgid "The project {name} could not be opened: {error}"
+msgstr "A projekt nem nyitható meg: {name}. Hiba: {error}"
+
+msgid "The project file {name} no longer exists."
+msgstr "A projektfájl már nem létezik: {name}"
+
+msgid "Its newest backup is from {created}. Restore the project from it? A file that is there now is kept under another name."
+msgstr "A legújabb biztonsági mentése ekkor készült: {created}. Visszaállítja belőle a projektet? A most ott lévő fájl más néven megmarad."
+
+msgid "The damaged file was kept as {name}."
+msgstr "A sérült fájl megmaradt ezen a néven: {name}"
+
+msgid "Backup Settings"
+msgstr "Biztonsági mentés beállításai"
+
+msgid "A backup is one file with the complete project, which can be restored on its own. Each project has a folder of its own in the backup folder. A network drive or a folder synchronized with a cloud service keeps the backups off this computer."
+msgstr "A biztonsági mentés egyetlen fájl a teljes projekttel, amely önmagában is visszaállítható. Minden projektnek saját mappája van a biztonsági mentések mappájában. Hálózati meghajtó vagy felhőszolgáltatással szinkronizált mappa esetén a biztonsági mentések nem ezen a számítógépen tárolódnak."
+
+msgid "Backup Folder"
+msgstr "Biztonsági mentések mappája"
+
+msgid "Choose Folder…"
+msgstr "Mappa kiválasztása…"
+
+msgid "Default"
+msgstr "Alapértelmezett"
+
+msgid "Choose the Backup Folder"
+msgstr "A biztonsági mentések mappájának kiválasztása"
+
+msgid "Create a backup when a project is closed"
+msgstr "Biztonsági mentés létrehozása a projekt bezárásakor"
+
+msgid "Create backups at regular intervals while a project is open"
+msgstr "Biztonsági mentések létrehozása rendszeres időközönként, amíg a projekt nyitva van"
+
+msgid "Interval in Minutes"
+msgstr "Időköz (perc)"
+
+msgid "Delete old automatic backups"
+msgstr "Régi automatikus biztonsági mentések törlése"
+
+msgid "Delete After (Days)"
+msgstr "Törlés ennyi nap után"
+
+msgid "Always Keep the Newest"
+msgstr "A legújabbak mindig megmaradnak"
+
+msgid "An automatic backup is only made when the project changed since its newest backup. Backups you create yourself and pinned backups are never deleted automatically."
+msgstr "Automatikus biztonsági mentés csak akkor készül, ha a projekt a legutóbbi biztonsági mentése óta megváltozott. A saját kezűleg létrehozott és a rögzített biztonsági mentések soha nem törlődnek automatikusan."
+
+msgid "Backups you create yourself are never deleted automatically"
+msgstr "A saját kezűleg létrehozott biztonsági mentések soha nem törlődnek automatikusan"

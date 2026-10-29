@@ -1,0 +1,197 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor connection 1.0\n"
+"Language: hu\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Gateway"
+msgstr "Átjáró"
+
+msgid "Connect"
+msgstr "Csatlakozás"
+
+msgid "Disconnect"
+msgstr "Kapcsolat bontása"
+
+msgid "Discovered Gateways"
+msgstr "Talált átjárók"
+
+msgid "Diagnostics"
+msgstr "Diagnosztika"
+
+msgid "Check for Devices in Programming Mode"
+msgstr "Programozási módban lévő készülékek keresése"
+
+msgid "No gateways found"
+msgstr "Nem található átjáró"
+
+msgid "Manual Connection"
+msgstr "Kézi kapcsolat"
+
+msgid "Connected: {ip}"
+msgstr "Csatlakoztatva: {ip}"
+
+msgid "Connected to {ip}"
+msgstr "Csatlakoztatva: {ip}"
+
+msgid "Disconnected"
+msgstr "Nincs kapcsolat"
+
+msgid "Connecting…"
+msgstr "Csatlakozás…"
+
+msgid "Connection failed"
+msgstr "A kapcsolódás nem sikerült"
+
+msgid "Scan"
+msgstr "Keresés"
+
+msgid "Settings"
+msgstr "Beállítások"
+
+msgid "Use multicast routing (instead of tunneling)"
+msgstr "Multicast routing használata (tunneling helyett)"
+
+msgid "Gateway IP"
+msgstr "Átjáró IP-címe"
+
+msgid "Multicast Group"
+msgstr "Multicast csoport"
+
+msgid "Apply"
+msgstr "Alkalmaz"
+
+msgid "Use Serial Number for Downloads"
+msgstr "Sorozatszám használata programozáshoz"
+
+msgid "Bus monitor: {ip}"
+msgstr "Buszmonitor: {ip}"
+
+msgid "The gateway is connected in bus monitor mode. Nothing can be sent or downloaded until the bus monitor is stopped."
+msgstr "Az átjáró buszmonitor módban csatlakozik. Amíg a buszmonitor le nem áll, semmi sem küldhető és semmi sem programozható."
+
+msgid "Stop Bus Monitor"
+msgstr "Buszmonitor leállítása"
+
+msgid "Not possible while the bus monitor is running"
+msgstr "Nem lehetséges, amíg a buszmonitor fut"
+
+msgid "Answered the scan, but reading its details failed: {error}"
+msgstr "Válaszolt a keresésre, de a részletei nem olvashatók ki: {error}"
+
+msgid "Application"
+msgstr "Alkalmazás"
+
+msgid "Application Version"
+msgstr "Alkalmazás verziója"
+
+msgid "Devices in Programming Mode"
+msgstr "Programozási módban lévő készülékek"
+
+msgid "Hardware Type"
+msgstr "Hardvertípus"
+
+msgid "In this project: {name}"
+msgstr "Ebben a projektben: {name}"
+
+msgid "Manufacturer"
+msgstr "Gyártó"
+
+msgid "Mask Version"
+msgstr "Maszkverzió"
+
+msgid "No device is in programming mode."
+msgstr "Egy készülék sincs programozási módban."
+
+msgid "No fault"
+msgstr "Nincs hiba"
+
+msgid "Not in this project"
+msgstr "Nincs ebben a projektben"
+
+msgid "Order Number"
+msgstr "Rendelési szám"
+
+msgid "Press the programming button on a device to put it into programming mode, then rescan."
+msgstr "Nyomja meg egy készülék programozó gombját, hogy programozási módba kapcsoljon, majd keressen újra."
+
+msgid "Product (Catalog)"
+msgstr "Termék (katalógus)"
+
+msgid "Programming mode active"
+msgstr "Programozási mód aktív"
+
+msgid "Rescan"
+msgstr "Újrakeresés"
+
+msgid "Searching the bus…"
+msgstr "A busz átkutatása…"
+
+msgid "Select in Project"
+msgstr "Kijelölés a projektben"
+
+msgid "Serial Number"
+msgstr "Sorozatszám"
+
+msgid "Status"
+msgstr "Állapot"
+
+msgid "The interface did not confirm the scan request (bus busy or interface overloaded). Please try again."
+msgstr "Az interfész nem nyugtázta a keresési kérést (a busz foglalt vagy az interfész túlterhelt). Próbálja újra."
+
+msgid "The scan could not be completed: {error}"
+msgstr "A keresés nem fejeződhetett be: {error}"
+
+msgid "Unprogrammed device (factory default address 15.15.255)"
+msgstr "Programozatlan készülék (gyári alapértelmezett cím: 15.15.255)"
+
+msgid "{count} device(s) in programming mode"
+msgstr "Programozási módban lévő készülékek: {count}"
+
+msgid "The interface requires KNX IP Secure, but neither the project nor a loaded keyring has its passwords."
+msgstr "Az interfész KNX IP Secure-t igényel, de sem a projekt, sem egy betöltött kulcskarika nem tartalmazza a jelszavait."
+
+msgid "Error: {error}"
+msgstr "Hiba: {error}"
+
+msgid "Unknown error"
+msgstr "Ismeretlen hiba"
+
+msgid "Name: {name}"
+msgstr "Név: {name}"
+
+msgid "KNX Address: {address}"
+msgstr "KNX-cím: {address}"
+
+msgid "Core Version: {version}"
+msgstr "Core verzió: {version}"
+
+msgid "Services: {services}"
+msgstr "Szolgáltatások: {services}"
+
+msgid "Retry"
+msgstr "Újra"
+
+msgid "Select Connection"
+msgstr "Kapcsolat kiválasztása"
+
+msgid "XKNX Editor could not determine an available connection."
+msgstr "Az XKNX Editor nem talált elérhető kapcsolatot."
+
+msgid "The connection {name} is not available."
+msgstr "A kapcsolat nem érhető el: {name}"
+
+msgid "You may use any of the connections listed below, instead."
+msgstr "Helyette használhatja az alább felsorolt kapcsolatok bármelyikét."
+
+msgid "{name}: {error}"
+msgstr "{name}: {error}"
+
+msgid "Cancel"
+msgstr "Mégse"
+
+msgid "This kind of connection is not supported."
+msgstr "Ez a kapcsolattípus nem támogatott."

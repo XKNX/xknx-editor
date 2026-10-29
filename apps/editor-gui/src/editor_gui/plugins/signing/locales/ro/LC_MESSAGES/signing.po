@@ -1,0 +1,68 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor signing 1.0\n"
+"Language: ro\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Signing"
+msgstr "Semnare"
+
+msgid "Signing Key…"
+msgstr "Cheie de semnare…"
+
+msgid "Signing Key"
+msgstr "Cheie de semnare"
+
+msgid "A signing key is set (exports are signed)."
+msgstr "Este setată o cheie de semnare (exporturile sunt semnate)."
+
+msgid "Placeholder key in use — signatures are not ETS-valid."
+msgstr "Se folosește o cheie substituent — semnăturile nu sunt valide pentru ETS."
+
+msgid "Modulus (hex)"
+msgstr "Modul (hex)"
+
+msgid "Private Exponent (hex)"
+msgstr "Exponent privat (hex)"
+
+msgid "Public Exponent (hex)"
+msgstr "Exponent public (hex)"
+
+msgid "Extract from Knx.Ets.XmlSigning.dll…"
+msgstr "Extragere din Knx.Ets.XmlSigning.dll…"
+
+msgid "Save"
+msgstr "Salvare"
+
+msgid "Reset to Placeholder"
+msgstr "Resetare la substituent"
+
+msgid "All DLLs"
+msgstr "Toate DLL-urile"
+
+msgid "All Files"
+msgstr "Toate fișierele"
+
+msgid "Select \"Knx.Ets.XmlSigning.dll\" from your ETS installation (e.g. C:\\Program Files (x86)\\ETS6)."
+msgstr "Selectați „Knx.Ets.XmlSigning.dll” din instalarea ETS (de ex. C:\\Program Files (x86)\\ETS6)."
+
+msgid "Extracting key from the assembly…"
+msgstr "Se extrage cheia din assembly…"
+
+msgid "Signing key saved."
+msgstr "Cheia de semnare a fost salvată."
+
+msgid "Reverted to the placeholder key."
+msgstr "S-a revenit la cheia substituent."
+
+msgid "No .NET runtime found. Install the .NET SDK (macOS: `brew install dotnet-sdk`; Fedora: `sudo dnf install dotnet-sdk-8.0`) to extract the key, or paste it manually below."
+msgstr "Nu s-a găsit niciun runtime .NET. Instalați .NET SDK (macOS: `brew install dotnet-sdk`; Fedora: `sudo dnf install dotnet-sdk-8.0`) pentru a extrage cheia sau lipiți-o manual mai jos."
+
+msgid "The key is read from your own licensed ETS assembly and stored per-user, never in the project."
+msgstr "Cheia este citită din propriul assembly ETS licențiat și salvată per utilizator, niciodată în proiect."
+
+msgid "Based on OpenKNXproducer (github.com/OpenKNX/OpenKNXproducer)."
+msgstr "Bazat pe OpenKNXproducer (github.com/OpenKNX/OpenKNXproducer)."

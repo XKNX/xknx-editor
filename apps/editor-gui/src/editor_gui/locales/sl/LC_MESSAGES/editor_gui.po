@@ -1,0 +1,1529 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor editor_gui 1.0\n"
+"Language: sl\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "XKNX Editor"
+msgstr "XKNX Editor"
+
+msgid "Help"
+msgstr "Pomoč"
+
+msgid "About"
+msgstr "O programu"
+
+msgid "Language"
+msgstr "Jezik"
+
+msgid "Version {version}"
+msgstr "Različica {version}"
+
+msgid "A desktop editor for building-automation installation projects, built on the open-source xknx library. Not affiliated with or endorsed by the KNX Association."
+msgstr "Namizni urejevalnik za projekte inštalacij avtomatizacije stavb, zgrajen na odprtokodni knjižnici xknx. Ni povezan s KNX Association in ga ta ne podpira."
+
+msgid "Add"
+msgstr "Dodaj"
+
+msgid "Close"
+msgstr "Zapri"
+
+msgid "Cancel"
+msgstr "Prekliči"
+
+msgid "Clear"
+msgstr "Počisti"
+
+msgid "Stop"
+msgstr "Ustavi"
+
+msgid "All Files"
+msgstr "Vse datoteke"
+
+msgid "Project: {name}  ·  {devices} devices  ·  {gas} GAs"
+msgstr "Projekt: {name}  ·  naprave: {devices}  ·  skupinski naslovi: {gas}"
+
+msgid "No project open"
+msgstr "Noben projekt ni odprt"
+
+msgid "Programming {address}…"
+msgstr "Programiranje {address}…"
+
+msgid "Programming complete"
+msgstr "Programiranje je končano"
+
+msgid "Programming failed"
+msgstr "Programiranje ni uspelo"
+
+msgid "No KNX connection"
+msgstr "Ni povezave KNX"
+
+msgid "KNX Master v{version} ({date})"
+msgstr "KNX Master v{version} ({date})"
+
+msgid "File"
+msgstr "Datoteka"
+
+msgid "New Project"
+msgstr "Nov projekt"
+
+msgid "Open Project (.knxproj/.xknx)"
+msgstr "Odpri projekt (.knxproj/.xknx)"
+
+msgid "Open Recent"
+msgstr "Odpri nedavne"
+
+msgid "Settings…"
+msgstr "Nastavitve…"
+
+msgid "MCP"
+msgstr "MCP"
+
+msgid "Settings"
+msgstr "Nastavitve"
+
+msgid "Gateway"
+msgstr "Prehod"
+
+msgid "Catalog"
+msgstr "Katalog"
+
+msgid "Use multicast routing (instead of tunneling)"
+msgstr "Uporabi usmerjanje multicast (namesto tuneliranja)"
+
+msgid "Gateway IP"
+msgstr "IP prehoda"
+
+msgid "Multicast Group"
+msgstr "Skupina multicast"
+
+msgid "Run the MCP server so an LLM can drive the editor over Streamable HTTP. It shares this app's catalog database."
+msgstr "Zaženite strežnik MCP, da lahko LLM upravlja urejevalnik prek Streamable HTTP. Strežnik uporablja zbirko podatkov kataloga tega programa."
+
+msgid "MCP Host"
+msgstr "Gostitelj MCP"
+
+msgid "MCP Port"
+msgstr "Vrata MCP"
+
+msgid "Server: Running"
+msgstr "Strežnik: deluje"
+
+msgid "Server: Stopped"
+msgstr "Strežnik: ustavljen"
+
+msgid "Start Server"
+msgstr "Zaženi strežnik"
+
+msgid "Stop Server"
+msgstr "Ustavi strežnik"
+
+msgid "Download Language"
+msgstr "Jezik prenosa"
+
+msgid "MCP running"
+msgstr "MCP deluje"
+
+msgid "Welcome"
+msgstr "Dobrodošli"
+
+msgid "Create a new project or open an existing one to get started."
+msgstr "Za začetek ustvarite nov projekt ali odprite obstoječega."
+
+msgid "Recent Projects"
+msgstr "Nedavni projekti"
+
+msgid "Export .knxproj…"
+msgstr "Izvozi .knxproj…"
+
+msgid "Sign Export"
+msgstr "Podpis izvoza"
+
+msgid "You can sign the .knxproj with your license so it can be opened in ETS. Log in to sign it, or save the .knxproj without a license."
+msgstr "Datoteko .knxproj lahko podpišete s svojo licenco, da jo je mogoče odpreti v ETS. Prijavite se, da jo podpišete, ali shranite .knxproj brez licence."
+
+msgid "MyKNX Username"
+msgstr "Uporabniško ime MyKNX"
+
+msgid "MyKNX Password"
+msgstr "Geslo MyKNX"
+
+msgid "Logging in…"
+msgstr "Prijavljanje…"
+
+msgid "License"
+msgstr "Licenca"
+
+msgid "No licenses found on this account"
+msgstr "V tem računu ni licenc"
+
+msgid "Login failed: {error}"
+msgstr "Prijava ni uspela: {error}"
+
+msgid "Sign & Export"
+msgstr "Podpiši in izvozi"
+
+msgid "Export Without Certificate"
+msgstr "Izvozi brez potrdila"
+
+msgid "Export ETS Project"
+msgstr "Izvoz projekta ETS"
+
+msgid "Load .knxprod…"
+msgstr "Naloži .knxprod…"
+
+msgid "Exit"
+msgstr "Izhod"
+
+msgid "Edit"
+msgstr "Urejanje"
+
+msgid "Undo"
+msgstr "Razveljavi"
+
+msgid "Redo"
+msgstr "Uveljavi"
+
+msgid "Open KNX Product Archive"
+msgstr "Odpiranje arhiva izdelkov KNX"
+
+msgid "KNX Product (*.knxprod)"
+msgstr "Izdelek KNX (*.knxprod)"
+
+msgid "ETS Project (*.knxproj)"
+msgstr "Projekt ETS (*.knxproj)"
+
+msgid "ETS 6 Project (*.knxproj)"
+msgstr "Projekt ETS 6 (*.knxproj)"
+
+msgid "ETS 5 Project (*.knxproj)"
+msgstr "Projekt ETS 5 (*.knxproj)"
+
+msgid "Open XKNX Project"
+msgstr "Odpiranje projekta XKNX"
+
+msgid "Save XKNX Project"
+msgstr "Shranjevanje projekta XKNX"
+
+msgid "XKNX Project (*.xknx)"
+msgstr "Projekt XKNX (*.xknx)"
+
+msgid "Projects (*.xknx, *.knxproj)"
+msgstr "Projekti (*.xknx, *.knxproj)"
+
+msgid "Working…"
+msgstr "Počakajte…"
+
+msgid "Importing project — this can take a while for large projects."
+msgstr "Uvažanje projekta – pri velikih projektih lahko to traja nekaj časa."
+
+msgid "Loading product catalog…"
+msgstr "Nalaganje kataloga izdelkov…"
+
+msgid "Opening project…"
+msgstr "Odpiranje projekta…"
+
+msgid "Project Password"
+msgstr "Geslo projekta"
+
+msgid "This ETS project is password protected. Enter its password:"
+msgstr "Ta projekt ETS je zaščiten z geslom. Vnesite geslo:"
+
+msgid "Wrong password, please try again."
+msgstr "Napačno geslo, poskusite znova."
+
+msgid "OK"
+msgstr "OK"
+
+msgid "{done}/{total} devices"
+msgstr "Naprave: {done}/{total}"
+
+msgid "Recover from Bus…"
+msgstr "Obnovi z vodila…"
+
+msgid "No matches"
+msgstr "Ni zadetkov"
+
+msgid "Bearer Token (Optional)"
+msgstr "Žeton nosilca (izbirno)"
+
+msgid "License with a Dongle…"
+msgstr "Licenciraj z ključem dongle…"
+
+msgid "If you have a licensed ETS (dongle or local license), you can license this project in your own ETS instead of signing it online. Export it here without a certificate, then bring it into ETS.\n\nStep 1 - Export: choose 'Export without certificate' below and save the .knxproj.\n\nStep 2 - Import into ETS (try this first):\nETS 5: on the dashboard, click 'Project import', pick the .knxproj and open it.\nETS 6: on the dashboard, click 'Import Project' under the 'Overview' tab (also on the 'Local Projects' list or the taskbar context menu).\n\nA licensed ETS may refuse the import: the file carries only the normal folder signature, not the online project certificate a licensed ETS writes on export. If the import is rejected, use Step 3.\n\nStep 3 - Copy into the ProjectStore (fallback that always works):\n1. A .knxproj is a ZIP; unzip it to get the project folder named P-XXXX.\n2. Copy that P-XXXX folder into your ETS ProjectStore:\n   ETS 5: C:\\ProgramData\\KNX\\ETS5\\ProjectStore\n   ETS 6: C:\\ProgramData\\KNX\\ETS6\\ProjectStore\n   (ProgramData is hidden - enable 'Hidden items' in Explorer.)\n3. ETS 6 only: inside the copied folder create an empty file named P-XXXX_M-dummy (no file extension) so ETS 6 lists the project.\n4. Start ETS with the dongle plugged in; the project appears in the local project list and your license applies.\n\nTip: to confirm a folder's project name, open the 'P' (P.xml) file inside P-XXXX in a text editor - the name is near the top.\n\nNote: license device limits still apply to what you can commission - ETS Demo up to 5 devices, Lite up to 20, Professional unlimited."
+msgstr "Če imate licenciran ETS (ključ dongle ali lokalna licenca), lahko ta projekt licencirate v svojem ETS, namesto da ga podpišete na spletu. Tukaj ga izvozite brez potrdila, nato ga prenesite v ETS.\n\n1. korak – izvoz: spodaj izberite »Izvozi brez potrdila« in shranite .knxproj.\n\n2. korak – uvoz v ETS (najprej poskusite to):\nETS 5: na nadzorni plošči kliknite 'Project import', izberite .knxproj in ga odprite.\nETS 6: na nadzorni plošči kliknite 'Import Project' na zavihku 'Overview' (na voljo tudi na seznamu 'Local Projects' ali v priročnem meniju opravilne vrstice).\n\nLicenciran ETS lahko uvoz zavrne: datoteka nosi le običajni podpis mape, ne pa spletnega potrdila projekta, ki ga licenciran ETS zapiše ob izvozu. Če je uvoz zavrnjen, uporabite 3. korak.\n\n3. korak – kopiranje v ProjectStore (nadomestna pot, ki vedno deluje):\n1. Datoteka .knxproj je arhiv ZIP; razširite jo, da dobite mapo projekta z imenom P-XXXX.\n2. To mapo P-XXXX kopirajte v ProjectStore svojega ETS:\n   ETS 5: C:\\ProgramData\\KNX\\ETS5\\ProjectStore\n   ETS 6: C:\\ProgramData\\KNX\\ETS6\\ProjectStore\n   (Mapa ProgramData je skrita – v Raziskovalcu vklopite »Skriti elementi«.)\n3. Samo ETS 6: v kopirani mapi ustvarite prazno datoteko z imenom P-XXXX_M-dummy (brez končnice), da ETS 6 prikaže projekt.\n4. Zaženite ETS z vstavljenim ključem dongle; projekt se prikaže na seznamu lokalnih projektov in velja vaša licenca.\n\nNamig: ime projekta v mapi preverite tako, da datoteko 'P' (P.xml) v mapi P-XXXX odprete v urejevalniku besedila – ime je blizu začetka.\n\nOpomba: omejitve števila naprav po licenci še vedno veljajo za to, kar lahko zaženete – ETS Demo do 5 naprav, Lite do 20, Professional brez omejitev."
+
+msgid "Format Version"
+msgstr "Različica oblike"
+
+msgid "ETS 6 (schema 20)"
+msgstr "ETS 6 (shema 20)"
+
+msgid "ETS 5 (schema 14)"
+msgstr "ETS 5 (shema 14)"
+
+msgid "MCP Server"
+msgstr "Strežnik MCP"
+
+msgid "Re-license the project through your own licensed ETS, which re-signs the copy with your dongle license:\n\nETS 6 - use the local project store below:\n   1. Click 'Export to ProjectStore'. It writes the project's 'P-XXXX' folder straight into your ETS 6 project store. If ETS is not installed on this computer, you are asked for the store folder (or any folder you then copy over manually).\n   2. The export needs your 'installer.guid' from C:\\ProgramData\\KNX\\ETS6\\Installer. If it cannot be found automatically, you are asked to select it.\n   3. Restart ETS 6 - the project appears in the project overview.\n   4. Make a copy of it there (Copy in the overview). The copy is re-signed with your license - open it, then use or export it normally.\n\nETS 5 - no project store is needed: go Back and choose 'Export without Certificate' (with ETS 5 as the file type) to save a .knxproj, then import that file into ETS 5. It opens unsigned and is re-licensed when you save it there.\n\nThis is bounded by the device-per-project limit of your license."
+msgstr "Projekt znova licencirajte prek svojega licenciranega ETS, ki kopijo znova podpiše z vašo licenco na ključu dongle:\n\nETS 6 – uporabite spodnjo lokalno shrambo projektov:\n   1. Kliknite »Izvozi v ProjectStore«. Mapa projekta 'P-XXXX' se zapiše neposredno v shrambo projektov ETS 6. Če ETS v tem računalniku ni nameščen, boste vprašani za mapo shrambe (ali katero koli mapo, iz katere jo nato ročno kopirate).\n   2. Izvoz potrebuje vašo datoteko 'installer.guid' iz C:\\ProgramData\\KNX\\ETS6\\Installer. Če je ni mogoče najti samodejno, jo boste morali izbrati.\n   3. Znova zaženite ETS 6 – projekt se prikaže v pregledu projektov.\n   4. Tam naredite njegovo kopijo ('Copy' v pregledu). Kopija je znova podpisana z vašo licenco – odprite jo, nato jo uporabljajte ali izvozite kot običajno.\n\nETS 5 – shramba projektov ni potrebna: pojdite »Nazaj« in izberite »Izvozi brez potrdila« (z ETS 5 kot vrsto datoteke), da shranite .knxproj, nato to datoteko uvozite v ETS 5. Odpre se nepodpisana in se znova licencira, ko jo tam shranite.\n\nTo omejuje največje število naprav na projekt, ki ga dovoljuje vaša licenca."
+
+msgid "Select the ETS installer.guid file"
+msgstr "Izberite datoteko ETS installer.guid"
+
+msgid "ETS installer id"
+msgstr "ID namestitve ETS"
+
+msgid "Project Already in the Store"
+msgstr "Projekt je že v shrambi"
+
+msgid "A project folder '{pid}' already exists in this ETS ProjectStore. Overwrite it, or add it as a separate copy?"
+msgstr "Mapa projekta '{pid}' že obstaja v tej shrambi ETS ProjectStore. Jo želite prepisati ali dodati kot ločeno kopijo?"
+
+msgid "Overwrite"
+msgstr "Prepiši"
+
+msgid "Add Copy"
+msgstr "Dodaj kopijo"
+
+msgid "XKNX Export"
+msgstr "Izvoz XKNX"
+
+msgid "Exported to {path} ({size})"
+msgstr "Izvoženo v {path} ({size})"
+
+msgid "ETS 6 (schema 22)"
+msgstr "ETS 6 (shema 22)"
+
+msgid "ETS 5 (schema 20)"
+msgstr "ETS 5 (shema 20)"
+
+msgid "ETS 6 (schema 23)"
+msgstr "ETS 6 (shema 23)"
+
+msgid "AI MCP"
+msgstr "UI MCP"
+
+msgid "This editor is controllable by an AI assistant (Claude, Codex, …) through the built-in MCP server: it exposes the catalog and project as tools over Streamable HTTP. Start the server below, then register its endpoint in your AI tool."
+msgstr "Ta urejevalnik lahko upravlja pomočnik UI (Claude, Codex, …) prek vgrajenega strežnika MCP: ta katalog in projekt ponuja kot orodja prek Streamable HTTP. Spodaj zaženite strežnik, nato njegovo končno točko registrirajte v svojem orodju UI."
+
+msgid "MCP Endpoint"
+msgstr "Končna točka MCP"
+
+msgid "Example: register the MCP server in your AI tool (adjust host/port):"
+msgstr "Primer: registracija strežnika MCP v orodju UI (prilagodite gostitelja/vrata):"
+
+msgid "Copied"
+msgstr "Kopirano"
+
+msgid "Copy"
+msgstr "Kopiraj"
+
+msgid "Use host 0.0.0.0 to make the server reachable from other devices on the network; 127.0.0.1/localhost only allows this machine."
+msgstr "Uporabite gostitelja 0.0.0.0, da bo strežnik dosegljiv iz drugih naprav v omrežju; 127.0.0.1/localhost dovoli dostop le temu računalniku."
+
+msgid "Switching language…"
+msgstr "Preklapljanje jezika…"
+
+msgid "Load OpenKNX from URL…"
+msgstr "Naloži OpenKNX z URL-ja…"
+
+msgid "Load OpenKNX from URL"
+msgstr "Nalaganje OpenKNX z URL-ja"
+
+msgid "Paste an OpenKNX release link (e.g. a GitHub release .zip). A .knxprod or a KNX product XML URL also works."
+msgstr "Prilepite povezavo do izdaje OpenKNX (npr. datoteko .zip izdaje na GitHub). Deluje tudi URL datoteke .knxprod ali XML izdelka KNX."
+
+msgid "Load"
+msgstr "Naloži"
+
+msgid "Downloading and importing…"
+msgstr "Prenašanje in uvažanje…"
+
+msgid "Imported {count} new product version(s) from URL"
+msgstr "Nove različice izdelkov, uvožene z URL-ja: {count}"
+
+msgid "Nothing new imported (already in the catalog)"
+msgstr "Nič novega ni bilo uvoženo (že v katalogu)"
+
+msgid "Import from URL failed: {error}"
+msgstr "Uvoz z URL-ja ni uspel: {error}"
+
+msgid "Paste an OpenKNX GitHub release URL (the release page works — the .zip asset is found automatically). A direct .knxprod or KNX product XML link also works."
+msgstr "Prilepite URL izdaje OpenKNX na GitHub (deluje tudi stran izdaje – datoteka .zip se poišče samodejno). Deluje tudi neposredna povezava do .knxprod ali XML izdelka KNX."
+
+msgid "Paste an OpenKNX GitHub release URL (the release page works — the .zip asset is found automatically). A direct .knxprod or KNX product XML link also works.\n\nExamples:\n  https://github.com/OpenKNX/OAM-RaumController/releases/tag/v5.4.3\n  https://github.com/OpenKNX/OAM-RaumController/releases/latest"
+msgstr "Prilepite URL izdaje OpenKNX na GitHub (deluje tudi stran izdaje – datoteka .zip se poišče samodejno). Deluje tudi neposredna povezava do .knxprod ali XML izdelka KNX.\n\nPrimeri:\n  https://github.com/OpenKNX/OAM-RaumController/releases/tag/v5.4.3\n  https://github.com/OpenKNX/OAM-RaumController/releases/latest"
+
+msgid "Save As…"
+msgstr "Shrani kot…"
+
+msgid "Saved as {name}"
+msgstr "Shranjeno kot {name}"
+
+msgid "Save Project As"
+msgstr "Shranjevanje projekta kot"
+
+msgid "Good to Know"
+msgstr "Dobro je vedeti"
+
+msgid "Your project opened fine and everything you need to work with is here. A few extra details from the original file are shown a bit more simply:"
+msgstr "Projekt se je uspešno odprl in vse, kar potrebujete za delo, je tukaj. Nekaj dodatnih podrobnosti iz izvirne datoteke je prikazanih nekoliko poenostavljeno:"
+
+msgid "This project came from a file with a few extra details this editor does not use. The export leaves these out:"
+msgstr "Ta projekt izvira iz datoteke z nekaj dodatnimi podrobnostmi, ki jih ta urejevalnik ne uporablja. Izvoz jih izpusti:"
+
+msgid "The original file had {count} installations. They were combined into one."
+msgstr "Izvirna datoteka je vsebovala več inštalacij (število: {count}). Združene so bile v eno."
+
+msgid "{count} device(s) had no place in the original file, so they were left out."
+msgstr "Naprave, ki v izvirni datoteki niso imele mesta in so bile zato izpuščene: {count}."
+
+msgid "{count} group object(s) had an extra description in the original file. The custom name and function are kept; only that description is not shown here."
+msgstr "Komunikacijski objekti z dodatnim opisom v izvirni datoteki: {count}. Lastno ime in funkcija sta ohranjena; tukaj ni prikazan le ta opis."
+
+msgid "{count} IP or function setting(s) from the original file are not used here."
+msgstr "Nastavitve IP ali funkcij iz izvirne datoteke, ki se tukaj ne uporabljajo: {count}."
+
+msgid "{count} line(s) use several segments. In a schema 14/20 export they are shown at line level only."
+msgstr "Linije z več segmenti: {count}. Pri izvozu s shemo 14/20 so prikazane samo na ravni linije."
+
+msgid "{count} line(s) had the same address in different installations. One of each was kept when combining."
+msgstr "Linije z enakim naslovom v različnih inštalacijah: {count}. Pri združevanju je bila ohranjena po ena."
+
+msgid "For example: {examples}"
+msgstr "Na primer: {examples}"
+
+msgid "Product catalog imported: {count} new product version(s) from {name}"
+msgstr "Katalog izdelkov uvožen iz {name} – nove različice izdelkov: {count}"
+
+msgid "Imported {count} product version(s) from {name}:"
+msgstr "Različice izdelkov, uvožene iz {name} ({count}):"
+
+msgid "{name} was already in the catalog, nothing new imported"
+msgstr "{name} je bil že v katalogu, nič novega ni bilo uvoženo"
+
+msgid "Product Catalog Import"
+msgstr "Uvoz kataloga izdelkov"
+
+msgid "Export Complete"
+msgstr "Izvoz je končan"
+
+msgid "Successfully created {name}"
+msgstr "Uspešno ustvarjeno: {name}"
+
+msgid "File Size"
+msgstr "Velikost datoteke"
+
+msgid "Project"
+msgstr "Projekt"
+
+msgid "Format"
+msgstr "Oblika"
+
+msgid "Devices"
+msgstr "Naprave"
+
+msgid "Buildings"
+msgstr "Stavbe"
+
+msgid "Group Addresses"
+msgstr "Skupinski naslovi"
+
+msgid "Group Object Links"
+msgstr "Povezave komunikacijskih objektov"
+
+msgid "Areas / Lines"
+msgstr "Področja / linije"
+
+msgid "Floors / Rooms"
+msgstr "Nadstropja / prostori"
+
+msgid "Functions"
+msgstr "Funkcije"
+
+msgid "KNX Master Version"
+msgstr "Različica KNX Master"
+
+msgid "Exported at"
+msgstr "Izvoženo"
+
+msgid "Manufacturer Data (M Folders)"
+msgstr "Podatki proizvajalcev (mape M)"
+
+msgid "Signed"
+msgstr "Podpisano"
+
+msgid "Certificate"
+msgstr "Potrdilo"
+
+msgid "yes"
+msgstr "da"
+
+msgid "no"
+msgstr "ne"
+
+msgid "Open Folder"
+msgstr "Odpri mapo"
+
+msgid "Signing Key…"
+msgstr "Ključ za podpisovanje…"
+
+msgid "Signing Key"
+msgstr "Ključ za podpisovanje"
+
+msgid "Folder signature uses a placeholder key. Enter a valid signature under 'Signing Key…' or use the 'License with a Dongle' way."
+msgstr "Podpis mape uporablja nadomestni ključ. V »Ključ za podpisovanje…« vnesite veljaven podpis ali uporabite pot »Licenciraj z ključem dongle«."
+
+msgid "View"
+msgstr "Pogled"
+
+msgid "Restore Default Layout"
+msgstr "Obnovi privzeto postavitev"
+
+msgid "Show All"
+msgstr "Pokaži vse"
+
+msgid "Hide All"
+msgstr "Skrij vse"
+
+msgid "Status Bar"
+msgstr "Vrstica stanja"
+
+msgid "FPS in Status Bar"
+msgstr "FPS v vrstici stanja"
+
+msgid "Context Help"
+msgstr "Kontekstna pomoč"
+
+msgid "Enable Idling"
+msgstr "Omogoči mirovanje"
+
+msgid "Theme"
+msgstr "Tema"
+
+msgid "Reading {address}…"
+msgstr "Branje {address}…"
+
+msgid "FPS: {fps:.1f}{idling}"
+msgstr "FPS: {fps:.1f}{idling}"
+
+msgid " (Idling)"
+msgstr " (mirovanje)"
+
+msgid "Compact Project…"
+msgstr "Strni projekt…"
+
+msgid "Compact Project"
+msgstr "Strnitev projekta"
+
+msgid "Analysing project…"
+msgstr "Analiziranje projekta…"
+
+msgid "Compacting project…"
+msgstr "Strnjevanje projekta…"
+
+msgid "Analysing devices"
+msgstr "Analiziranje naprav"
+
+msgid "Analysing product data ({manufacturer})"
+msgstr "Analiziranje podatkov izdelkov ({manufacturer})"
+
+msgid "Removing unused product data ({manufacturer})"
+msgstr "Odstranjevanje neuporabljenih podatkov izdelkov ({manufacturer})"
+
+msgid "Saving product data"
+msgstr "Shranjevanje podatkov izdelkov"
+
+msgid "Compacting project file"
+msgstr "Strnjevanje projektne datoteke"
+
+msgid "The following product data is not used by any device in this project and will be removed:"
+msgstr "Naslednjih podatkov izdelkov ne uporablja nobena naprava v tem projektu, zato bodo odstranjeni:"
+
+msgid "All product data in this project is used by its devices, nothing to remove. The project file can still be compacted to free unused space."
+msgstr "Vse podatke izdelkov v tem projektu uporabljajo njegove naprave, zato ni ničesar za odstranitev. Projektno datoteko lahko kljub temu strnete in tako sprostite neuporabljen prostor."
+
+msgid "Application Programs"
+msgstr "Aplikacijski programi"
+
+msgid "Device Types (Products)"
+msgstr "Vrste naprav (izdelki)"
+
+msgid "Hardware"
+msgstr "Strojna oprema"
+
+msgid "Manufacturers"
+msgstr "Proizvajalci"
+
+msgid "Catalog Entries"
+msgstr "Vnosi kataloga"
+
+msgid "Help and Plug-in Files"
+msgstr "Datoteke pomoči in vtičnikov"
+
+msgid "Details"
+msgstr "Podrobnosti"
+
+msgid "Current File Size"
+msgstr "Trenutna velikost datoteke"
+
+msgid "Estimated Size Afterwards"
+msgstr "Ocenjena velikost po tem"
+
+msgid "This cannot be undone. Removed product data has to be imported again if these products are added to the project later."
+msgstr "Tega ni mogoče razveljaviti. Odstranjene podatke izdelkov boste morali znova uvoziti, če boste te izdelke pozneje znova dodali v projekt."
+
+msgid "Compact"
+msgstr "Strni"
+
+msgid "Project Compacted"
+msgstr "Projekt je strnjen"
+
+msgid "The project file was compacted."
+msgstr "Projektna datoteka je bila strnjena."
+
+msgid "Size before"
+msgstr "Velikost prej"
+
+msgid "Size after"
+msgstr "Velikost potem"
+
+msgid "Compacting cancelled, the project was not changed"
+msgstr "Strnjevanje je preklicano, projekt ni bil spremenjen"
+
+msgid "Remove Unused Product Data"
+msgstr "Odstrani neuporabljene podatke izdelkov"
+
+msgid "ETS 6 needs a signed and licensed .knxproj: log in to license it and set a signing key - or use the 'License with a Dongle' way below.\nETS 5: just use 'Export without Certificate'."
+msgstr "ETS 6 potrebuje podpisano in licencirano datoteko .knxproj: prijavite se, da jo licencirate, in nastavite ključ za podpisovanje – ali pa spodaj uporabite pot »Licenciraj z ključem dongle«.\nETS 5: preprosto uporabite »Izvozi brez potrdila«."
+
+msgid "Complete sign-in in your browser. Code: {code}"
+msgstr "Dokončajte prijavo v brskalniku. Koda: {code}"
+
+msgid "Login failed (HTTP 401). Either the password is wrong, or this account uses two-factor authentication - the server does not say which."
+msgstr "Prijava ni uspela (HTTP 401). Geslo je napačno ali pa ta račun uporablja dvostopenjsko preverjanje pristnosti – strežnik ne pove, kaj od tega."
+
+msgid "Re-enter Credentials"
+msgstr "Znova vnesite poverilnice"
+
+msgid "Start 2FA Sign-In"
+msgstr "Začni prijavo 2FA"
+
+msgid "MyKNX OAuth Credentials (2FA)"
+msgstr "Poverilnice OAuth za MyKNX (2FA)"
+
+msgid "Client ID"
+msgstr "ID odjemalca"
+
+msgid "Client Secret"
+msgstr "Skrivnost odjemalca"
+
+msgid "Extract from ETS…"
+msgstr "Izvleci iz ETS…"
+
+msgid "Extracting…"
+msgstr "Izvlačenje…"
+
+msgid "Save"
+msgstr "Shrani"
+
+msgid "All files"
+msgstr "Vse datoteke"
+
+msgid "Export to ETS 5 ProjectStore"
+msgstr "Izvozi v ETS 5 ProjectStore"
+
+msgid "Export to ProjectStore"
+msgstr "Izvozi v ProjectStore"
+
+msgid "Select the {ets} ProjectStore folder"
+msgstr "Izberite mapo ProjectStore za {ets}"
+
+msgid "{project} - {app}"
+msgstr "{project} - {app}"
+
+msgid "{project} – {file} - {app}"
+msgstr "{project} – {file} - {app}"
+
+msgid "Highlight Changes"
+msgstr "Označi spremembe"
+
+msgid "Group Address Export (*.xml)"
+msgstr "Izvoz skupinskih naslovov (*.xml)"
+
+msgid "Group Address Exports (*.xml, *.csv)"
+msgstr "Izvozi skupinskih naslovov (*.xml, *.csv)"
+
+msgid "Projects (*.xknx, *.knxproj, *.xml, *.csv)"
+msgstr "Projekti (*.xknx, *.knxproj, *.xml, *.csv)"
+
+msgid "Import Group Addresses…"
+msgstr "Uvozi skupinske naslove…"
+
+msgid "Feedback"
+msgstr "Povratne informacije"
+
+msgid "A desktop editor for building-automation installation projects, built on the open-source xknx library and based on xknxtoolkit by kewde. Not affiliated with or endorsed by the KNX Association."
+msgstr "Namizni urejevalnik za projekte inštalacij avtomatizacije stavb, zgrajen na odprtokodni knjižnici xknx in na osnovi orodja xknxtoolkit avtorja kewde. Ni povezan s KNX Association in ga ta ne podpira."
+
+msgid "Network Location"
+msgstr "Omrežno mesto"
+
+msgid "This location is on a network drive:\n{home}\n\nKNX project files use a database that cannot run reliably on network shares. The editor can work on a local copy instead and write it back to the network location when you close the project."
+msgstr "To mesto je na omrežnem pogonu:\n{home}\n\nProjektne datoteke KNX uporabljajo zbirko podatkov, ki v omrežnih skupnih rabah ne deluje zanesljivo. Urejevalnik lahko namesto tega dela z lokalno kopijo in jo ob zaprtju projekta zapiše nazaj na omrežno mesto."
+
+msgid "Use a Local Copy"
+msgstr "Uporabi lokalno kopijo"
+
+msgid "Working on a local copy; written back to {home} when you close the project."
+msgstr "Delo z lokalno kopijo; ob zaprtju projekta se zapiše nazaj v {home}."
+
+msgid "Project Name"
+msgstr "Ime projekta"
+
+msgid "Group Address Style"
+msgstr "Oblika skupinskih naslovov"
+
+msgid "Free"
+msgstr "Prosta"
+
+msgid "Two-level"
+msgstr "Dvonivojska"
+
+msgid "Three-level"
+msgstr "Trinivojska"
+
+msgid "Create…"
+msgstr "Ustvari…"
+
+msgid "claude mcp add --transport http xknx-editor {url}"
+msgstr "claude mcp add --transport http xknx-editor {url}"
+
+msgid "claude mcp add --transport http xknx-editor {url} --header \"Authorization: Bearer {token}\""
+msgstr "claude mcp add --transport http xknx-editor {url} --header \"Authorization: Bearer {token}\""
+
+msgid "codex mcp add xknx-editor --url {url}"
+msgstr "codex mcp add xknx-editor --url {url}"
+
+msgid "export XKNX_MCP_TOKEN='{token}'\ncodex mcp add xknx-editor --url {url} --bearer-token-env-var XKNX_MCP_TOKEN"
+msgstr "export XKNX_MCP_TOKEN='{token}'\ncodex mcp add xknx-editor --url {url} --bearer-token-env-var XKNX_MCP_TOKEN"
+
+msgid "Export Group Addresses…"
+msgstr "Izvozi skupinske naslove…"
+
+msgid "Export Group Addresses"
+msgstr "Izvoz skupinskih naslovov"
+
+msgid "Output Format"
+msgstr "Izhodna oblika"
+
+msgid "CSV Format"
+msgstr "Oblika CSV"
+
+msgid "3/1 - three columns, Main/Middle/Sub group separated"
+msgstr "3/1 – trije stolpci, glavna/srednja/podskupina ločeno"
+
+msgid "1/3 - Group address name/Main - Middle - Sub group"
+msgstr "1/3 – ime skupinskega naslova/glavna – srednja – podskupina"
+
+msgid "1/1 - Name/Address"
+msgstr "1/1 – ime/naslov"
+
+msgid "3/3 - Main - Middle - Sub group name/Main - Middle - Sub group address"
+msgstr "3/3 – ime glavne – srednje – podskupine/naslov glavne – srednje – podskupine"
+
+msgid "Export with Header Line"
+msgstr "Izvozi z vrstico glave"
+
+msgid "CSV Separator"
+msgstr "Ločilo CSV"
+
+msgid "Tabulator"
+msgstr "Tabulator"
+
+msgid "Comma"
+msgstr "Vejica"
+
+msgid "Semicolon"
+msgstr "Podpičje"
+
+msgid "Export"
+msgstr "Izvozi"
+
+msgid "Group Address Export (*.csv)"
+msgstr "Izvoz skupinskih naslovov (*.csv)"
+
+msgid "Exported {count} group address(es)"
+msgstr "Izvoženi skupinski naslovi: {count}"
+
+msgid "Exported to {path} ({size}) as {schema}"
+msgstr "Izvoženo v {path} ({size}) kot {schema}"
+
+msgid "{count} device(s) aren't assigned to a line. They're kept in the project and included on export, but can't be edited here yet."
+msgstr "Naprave, ki niso dodeljene nobeni liniji: {count}. Ostanejo v projektu in so vključene v izvoz, vendar jih tukaj še ni mogoče urejati."
+
+msgid "no online certificate"
+msgstr "ni spletnega potrdila"
+
+msgid "expired"
+msgstr "poteklo"
+
+msgid "None of these licenses can sign online. Only ETS6 (or a cloud-enabled ETS app) licenses produce a certificate; ETS5/older licenses cannot. Use 'License with a dongle' instead."
+msgstr "Nobena od teh licenc ne more podpisovati na spletu. Potrdilo ustvarijo samo licence ETS6 (ali aplikacije ETS z oblačnimi storitvami); licence ETS5 in starejše tega ne morejo. Namesto tega uporabite »Licenciraj z ključem dongle«."
+
+msgid "KNX Product (*.knxprod, *.vd1-*.vd5)"
+msgstr "Izdelek KNX (*.knxprod, *.vd1-*.vd5)"
+
+msgid "Legacy ETS product databases (.vd1-.vd5) are not imported directly.\n\nConvert the file to .knxprod first with the conversion tools that ship with ETS5/ETS6 - open the product file in ETS, or use its command-line converter - then import the resulting .knxprod here."
+msgstr "Starejše zbirke podatkov izdelkov ETS (.vd1-.vd5) se ne uvozijo neposredno.\n\nDatoteko najprej pretvorite v .knxprod z orodji za pretvorbo, ki so priložena ETS5/ETS6 – odprite datoteko izdelka v ETS ali uporabite njegov pretvornik v ukazni vrstici – nato tukaj uvozite nastalo datoteko .knxprod."
+
+msgid "ETS Group-Address Export (*.xml)"
+msgstr "Izvoz skupinskih naslovov ETS (*.xml)"
+
+msgid "Replace File"
+msgstr "Zamenjava datoteke"
+
+msgid "{name} already exists."
+msgstr "{name} že obstaja."
+
+msgid "It is in {dir}. Replacing it overwrites its current content; this cannot be undone."
+msgstr "Datoteka je v {dir}. Z zamenjavo boste prepisali njeno trenutno vsebino; tega ni mogoče razveljaviti."
+
+msgid "Replace"
+msgstr "Zamenjaj"
+
+msgid "Projects (*.xknx, *.knxproj, *.xml)"
+msgstr "Projekti (*.xknx, *.knxproj, *.xml)"
+
+msgid "Importing group addresses…"
+msgstr "Uvažanje skupinskih naslovov…"
+
+msgid "Check for Updates"
+msgstr "Preveri posodobitve"
+
+msgid "Check for Updates on Startup"
+msgstr "Ob zagonu preveri posodobitve"
+
+msgid "Update Available"
+msgstr "Na voljo je posodobitev"
+
+msgid "Version {latest} is available. You have {current}."
+msgstr "Na voljo je različica {latest}. Vi imate {current}."
+
+msgid "You are up to date (version {version})."
+msgstr "Imate najnovejšo različico ({version})."
+
+msgid "Download"
+msgstr "Prenesi"
+
+msgid "Skip This Version"
+msgstr "Preskoči to različico"
+
+msgid "Later"
+msgstr "Pozneje"
+
+msgid "Release Notes:"
+msgstr "Opombe ob izdaji:"
+
+msgid "License: GPL-2.0-only"
+msgstr "Licenca: GPL-2.0-only"
+
+msgid "Website:"
+msgstr "Spletno mesto:"
+
+msgid "Open Config Folder"
+msgstr "Odpri mapo konfiguracije"
+
+msgid "Open Cache Folder"
+msgstr "Odpri mapo predpomnilnika"
+
+msgid "Open Log Folder"
+msgstr "Odpri mapo dnevnikov"
+
+msgid "This project is protected with a password. Enter it to open the project:"
+msgstr "Ta projekt je zaščiten z geslom. Vnesite ga, da odprete projekt:"
+
+msgid "This project contains KNX Secure keys. Set a project password to protect them; the project can then only be opened with it."
+msgstr "Ta projekt vsebuje ključe KNX Secure. Nastavite geslo projekta, da jih zaščitite; projekt bo nato mogoče odpreti le z njim."
+
+msgid "Password"
+msgstr "Geslo"
+
+msgid "Repeat Password"
+msgstr "Ponovite geslo"
+
+msgid "The passwords do not match."
+msgstr "Gesli se ne ujemata."
+
+msgid "Protecting the project with the password…"
+msgstr "Zaščita projekta z geslom…"
+
+msgid "Light Theme"
+msgstr "Svetla tema"
+
+msgid "Dark Theme"
+msgstr "Temna tema"
+
+msgid "Customize Theme…"
+msgstr "Prilagodi temo…"
+
+msgid "Customize Theme"
+msgstr "Prilagoditev teme"
+
+msgid "Sizes"
+msgstr "Velikosti"
+
+msgid "Colors"
+msgstr "Barve"
+
+msgid "Rendering"
+msgstr "Upodabljanje"
+
+msgid "Adjustments"
+msgstr "Prilagoditve"
+
+msgid "Theme Default"
+msgstr "Privzeto za temo"
+
+msgid "Reset to Theme"
+msgstr "Ponastavi na temo"
+
+msgid "Rounding"
+msgstr "Zaobljenost"
+
+msgid "Scrollbar Rounding Ratio"
+msgstr "Razmerje zaobljenosti drsnih trakov"
+
+msgid "Opacity"
+msgstr "Prekrivnost"
+
+msgid "Hue"
+msgstr "Odtenek"
+
+msgid "Saturation"
+msgstr "Nasičenost"
+
+msgid "Brightness of Controls"
+msgstr "Svetlost kontrolnikov"
+
+msgid "Brightness of Backgrounds"
+msgstr "Svetlost ozadij"
+
+msgid "Brightness of Text"
+msgstr "Svetlost besedila"
+
+msgid "Brightness of Input Fields"
+msgstr "Svetlost vnosnih polj"
+
+msgid "Spacing"
+msgstr "Razmiki"
+
+msgid "Borders"
+msgstr "Obrobe"
+
+msgid "Alignment"
+msgstr "Poravnava"
+
+msgid "Window Padding"
+msgstr "Notranji odmik okna"
+
+msgid "Field Padding"
+msgstr "Notranji odmik polja"
+
+msgid "Cell Padding"
+msgstr "Notranji odmik celice"
+
+msgid "Item Spacing"
+msgstr "Razmik med elementi"
+
+msgid "Item Inner Spacing"
+msgstr "Notranji razmik elementov"
+
+msgid "Extra Touch Padding"
+msgstr "Dodatni odmik za dotik"
+
+msgid "Indent"
+msgstr "Zamik"
+
+msgid "Scrollbar Width"
+msgstr "Širina drsnih trakov"
+
+msgid "Minimum Slider Grip Size"
+msgstr "Najmanjša velikost ročice drsnika"
+
+msgid "Windows"
+msgstr "Okna"
+
+msgid "Child Windows"
+msgstr "Podrejena okna"
+
+msgid "Popups"
+msgstr "Pojavna okna"
+
+msgid "Fields"
+msgstr "Polja"
+
+msgid "Tabs"
+msgstr "Zavihki"
+
+msgid "Tab Bar"
+msgstr "Vrstica zavihkov"
+
+msgid "Scrollbars"
+msgstr "Drsni trakovi"
+
+msgid "Slider Grips"
+msgstr "Ročice drsnikov"
+
+msgid "Window Title"
+msgstr "Naslov okna"
+
+msgid "Button Text"
+msgstr "Besedilo gumba"
+
+msgid "List Entry Text"
+msgstr "Besedilo vnosa seznama"
+
+msgid "Separator Text"
+msgstr "Besedilo ločila"
+
+msgid "Font Scale"
+msgstr "Merilo pisave"
+
+msgid "Anti-Aliased Lines"
+msgstr "Glajenje robov črt"
+
+msgid "Anti-Aliased Fills"
+msgstr "Glajenje robov polnil"
+
+msgid "Maximum Curve Tessellation Error"
+msgstr "Največja napaka teselacije krivulj"
+
+msgid "Maximum Circle Tessellation Error"
+msgstr "Največja napaka teselacije krogov"
+
+msgid "Global Opacity"
+msgstr "Splošna prekrivnost"
+
+msgid "Opacity of Disabled Items"
+msgstr "Prekrivnost onemogočenih elementov"
+
+msgid "Show ImGui Demo Window"
+msgstr "Pokaži predstavitveno okno ImGui"
+
+msgid "Filter colors"
+msgstr "Filtriraj barve"
+
+msgid "Device not compatible with this ETS version"
+msgstr "Naprava ni združljiva s to različico ETS"
+
+msgid "This project cannot be imported into the chosen ETS version. The product data of the device(s) below exists only for a newer ETS (e.g. an ETS 6 product in an ETS 5 export), so ETS rejects the whole project with 'created with a newer version'.\n\nRemove these device(s) and export again, or cancel and export for the newer ETS instead."
+msgstr "Tega projekta ni mogoče uvoziti v izbrano različico ETS. Podatki izdelkov spodnjih naprav obstajajo le za novejši ETS (npr. izdelek ETS 6 v izvozu za ETS 5), zato ETS zavrne celoten projekt s sporočilom 'created with a newer version'.\n\nOdstranite te naprave in znova izvozite ali prekličite in namesto tega izvozite za novejši ETS."
+
+msgid "Remove device(s) & re-export"
+msgstr "Odstrani naprave in znova izvozi"
+
+msgid "Removed {count} incompatible device(s); re-exporting"
+msgstr "Odstranjene nezdružljive naprave: {count}; ponovni izvoz"
+
+msgid "This file will NOT import into the chosen ETS version: the product data of these manufacturers only exists for a newer ETS (e.g. an ETS 6 product in an ETS 5 export), so ETS rejects the whole project. Remove the affected device(s) or export for the newer ETS."
+msgstr "Te datoteke NI mogoče uvoziti v izbrano različico ETS: podatki izdelkov teh proizvajalcev obstajajo le za novejši ETS (npr. izdelek ETS 6 v izvozu za ETS 5), zato ETS zavrne celoten projekt. Odstranite prizadete naprave ali izvozite za novejši ETS."
+
+msgid "Hide Tab Bar"
+msgstr "Skrij vrstico zavihkov"
+
+msgid "Open {url}"
+msgstr "Odpri {url}"
+
+msgid "Copy Link"
+msgstr "Kopiraj povezavo"
+
+msgid "Install Update"
+msgstr "Namesti posodobitev"
+
+msgid "Install Update downloads the installer, closes XKNX Editor and starts it again with the open project."
+msgstr "»Namesti posodobitev« prenese namestitveni program, zapre XKNX Editor in ga znova zažene z odprtim projektom."
+
+msgid "Downloading the update…"
+msgstr "Prenašanje posodobitve…"
+
+msgid "{done} of {total} MB"
+msgstr "{done} od {total} MB"
+
+msgid "Export Failed"
+msgstr "Izvoz ni uspel"
+
+msgid "The project could not be exported to {name}."
+msgstr "Projekta ni bilo mogoče izvoziti v {name}."
+
+msgid "MyKNX did not issue the certificate for the project:"
+msgstr "MyKNX ni izdal potrdila za projekt:"
+
+msgid "{name} cannot be imported."
+msgstr "{name} ni mogoče uvoziti."
+
+msgid "The file was written, but it refers to product data that is not in the catalog: {references}. Add these products to the catalog and export again."
+msgstr "Datoteka je bila zapisana, vendar se sklicuje na podatke izdelkov, ki jih ni v katalogu: {references}. Dodajte te izdelke v katalog in znova izvozite."
+
+msgid "Exporting {name} — this can take a while for large projects."
+msgstr "Izvažanje {name} – pri velikih projektih lahko to traja nekaj časa."
+
+msgid "Collecting the manufacturer data…"
+msgstr "Zbiranje podatkov proizvajalcev…"
+
+msgid "Writing the archive…"
+msgstr "Zapisovanje arhiva…"
+
+msgid "Getting the certificate from MyKNX…"
+msgstr "Pridobivanje potrdila iz MyKNX…"
+
+msgid "Cancelling…"
+msgstr "Preklicevanje…"
+
+msgid "Export cancelled, no file was written"
+msgstr "Izvoz je preklican, nobena datoteka ni bila zapisana"
+
+msgid "Sign In"
+msgstr "Prijava"
+
+msgid "Disconnected. Reconnecting…"
+msgstr "Povezava je prekinjena. Vnovično povezovanje…"
+
+msgid "Access denied. Please sign in again."
+msgstr "Dostop je zavrnjen. Znova se prijavite."
+
+msgid "Upload from This Computer…"
+msgstr "Naloži iz tega računalnika…"
+
+msgid "Or drop files here."
+msgstr "Ali pa datoteke spustite sem."
+
+msgid "Files on the Server"
+msgstr "Datoteke v strežniku"
+
+msgid "No files yet."
+msgstr "Datotek še ni."
+
+msgid "Open"
+msgstr "Odpri"
+
+msgid "Select"
+msgstr "Izberi"
+
+msgid "File Name"
+msgstr "Ime datoteke"
+
+msgid "Folder Name"
+msgstr "Ime mape"
+
+msgid "File Type"
+msgstr "Vrsta datoteke"
+
+msgid "Download to This Computer"
+msgstr "Prenesi v ta računalnik"
+
+msgid "Uploading {name}…"
+msgstr "Nalaganje {name}…"
+
+msgid "Upload failed: {error}"
+msgstr "Nalaganje ni uspelo: {error}"
+
+msgid "Show"
+msgstr "Pokaži"
+
+msgid "Folder on the Server"
+msgstr "Mapa v strežniku"
+
+msgid "View only: another browser controls the editor."
+msgstr "Samo ogled: urejevalnik upravlja drug brskalnik."
+
+msgid "Take Control"
+msgstr "Prevzemi upravljanje"
+
+msgid "Open Link"
+msgstr "Odpri povezavo"
+
+msgid "Name"
+msgstr "Ime"
+
+msgid "Size"
+msgstr "Velikost"
+
+msgid "Modified"
+msgstr "Spremenjeno"
+
+msgid "The browser did not open it by itself."
+msgstr "Brskalnik je ni odprl sam."
+
+msgid "Download started: {name}"
+msgstr "Prenos se je začel: {name}"
+
+msgid "Choose File…"
+msgstr "Izberi datoteko…"
+
+msgid "{name} is ready."
+msgstr "{name} je pripravljeno."
+
+msgid "Enter the password for access to the editor."
+msgstr "Vnesite geslo za dostop do urejevalnika."
+
+msgid "Wrong password."
+msgstr "Napačno geslo."
+
+msgid "ETS 6: needs a licensed .knxproj through a MyKNX login or a dongle.\nETS 5: just use 'Export Without Certificate'."
+msgstr "ETS 6: potrebuje licencirano datoteko .knxproj prek prijave MyKNX ali ključa dongle.\nETS 5: preprosto uporabite »Izvozi brez potrdila«."
+
+msgid "Sign with MyKNX Login"
+msgstr "Podpiši s prijavo MyKNX"
+
+msgid "License with a Dongle"
+msgstr "Licenciraj z ključem dongle"
+
+msgid "ETS must not be running on any computer with this MyKNX account while you log in and export here."
+msgstr "Medtem ko se tukaj prijavljate in izvažate, ETS s tem računom MyKNX ne sme biti zagnan v nobenem računalniku."
+
+msgid "Log in"
+msgstr "Prijava"
+
+msgid "(only in the export, the project stays unchanged)"
+msgstr "(samo v izvozu, projekt ostane nespremenjen)"
+
+msgid "To export without it, choose 'Export Without Certificate' or the 'License with a Dongle' tab in the Sign Export window."
+msgstr "Če želite izvoziti brez njega, v oknu »Podpis izvoza« izberite »Izvozi brez potrdila« ali zavihek »Licenciraj z ključem dongle«."
+
+msgid "Re-license the project through your own licensed ETS, which re-signs the copy with your dongle license:\n\nETS 6 - use the local project store:\n1. Click 'Export to ProjectStore'. It writes the project's 'P-XXXX' folder straight into your ETS 6 project store. If ETS is not installed on this computer, you are asked for the store folder (or any folder you then copy over manually).\n2. The export needs your 'installer.guid' from C:\\ProgramData\\KNX\\ETS6\\Installer. If it cannot be found automatically, you are asked to select it.\n3. Restart ETS 6 - the project appears in the project overview.\n4. Make a copy of it there (Copy in the overview). The copy is re-signed with your license - open it, then use or export it normally.\n\nETS 5 - no project store is needed:\nChoose 'Export Without Certificate' (with ETS 5 as version) and an active signing key to save a .knxproj, then import that file into ETS 5.\n\nThis is bounded by the device-per-project limit of your license."
+msgstr "Projekt znova licencirajte prek svojega licenciranega ETS, ki kopijo znova podpiše z vašo licenco na ključu dongle:\n\nETS 6 – uporabite lokalno shrambo projektov:\n1. Kliknite »Izvozi v ProjectStore«. Mapa projekta 'P-XXXX' se zapiše neposredno v shrambo projektov ETS 6. Če ETS v tem računalniku ni nameščen, boste vprašani za mapo shrambe (ali katero koli mapo, iz katere jo nato ročno kopirate).\n2. Izvoz potrebuje vašo datoteko 'installer.guid' iz C:\\ProgramData\\KNX\\ETS6\\Installer. Če je ni mogoče najti samodejno, jo boste morali izbrati.\n3. Znova zaženite ETS 6 – projekt se prikaže v pregledu projektov.\n4. Tam naredite njegovo kopijo ('Copy' v pregledu). Kopija je znova podpisana z vašo licenco – odprite jo, nato jo uporabljajte ali izvozite kot običajno.\n\nETS 5 – shramba projektov ni potrebna:\nIzberite »Izvozi brez potrdila« (z ETS 5 kot različico) in aktiven ključ za podpisovanje, da shranite .knxproj, nato to datoteko uvozite v ETS 5.\n\nTo omejuje največje število naprav na projekt, ki ga dovoljuje vaša licenca."
+
+msgid "Needed only for accounts with two-factor authentication. The 2FA sign-in opens in your browser automatically when a normal login is rejected. Enter the OAuth client id/secret, or extract them from your installed ETS: pick 'Knx.Ets.MyKnx.dll' from the ETS program folder (e.g. C:\\Program Files (x86)\\ETS6\\Knx.Ets.MyKnx.dll).\n\nAlternatively, if you have any licensed ETS installed, skip online signing entirely and use the local project store instead - see the 'License with a Dongle' tab."
+msgstr "Potrebno samo za račune z dvostopenjskim preverjanjem pristnosti. Prijava 2FA se samodejno odpre v brskalniku, ko je običajna prijava zavrnjena. Vnesite ID/skrivnost odjemalca OAuth ali ju izvlecite iz nameščenega ETS: izberite 'Knx.Ets.MyKnx.dll' iz programske mape ETS (npr. C:\\Program Files (x86)\\ETS6\\Knx.Ets.MyKnx.dll).\n\nČe imate nameščen kateri koli licenciran ETS, lahko spletno podpisovanje v celoti preskočite in namesto tega uporabite lokalno shrambo projektov – glejte zavihek »Licenciraj z ključem dongle«."
+
+msgid "Checking for updates…"
+msgstr "Preverjanje posodobitev…"
+
+msgid "The check for updates failed: {error}"
+msgstr "Preverjanje posodobitev ni uspelo: {error}"
+
+msgid "The project has no group addresses to export."
+msgstr "Projekt nima skupinskih naslovov za izvoz."
+
+msgid "Clear Cache…"
+msgstr "Počisti predpomnilnik…"
+
+msgid "Clear Cache"
+msgstr "Čiščenje predpomnilnika"
+
+msgid "The cache holds {size} of parsed product data and of documentation fetched for the AI tools. All of it is made again when needed; afterwards only the first use of each product takes longer."
+msgstr "Predpomnilnik vsebuje {size} obdelanih podatkov izdelkov in dokumentacije, pridobljene za orodja UI. Vse to se po potrebi znova ustvari; nato traja dlje le prva uporaba posameznega izdelka."
+
+msgid "Cache cleared, {size} freed"
+msgstr "Predpomnilnik je počiščen, sproščeno: {size}"
+
+msgid "KNX Secure"
+msgstr "KNX Secure"
+
+msgid "Zoom In"
+msgstr "Povečaj"
+
+msgid "Zoom Out"
+msgstr "Pomanjšaj"
+
+msgid "Reset Zoom"
+msgstr "Ponastavi povečavo"
+
+msgid "Cut"
+msgstr "Izreži"
+
+msgid "Paste"
+msgstr "Prilepi"
+
+msgid "Select All"
+msgstr "Izberi vse"
+
+msgid "Long-press in the field below and choose Paste."
+msgstr "Dolgo pritisnite v spodnje polje in izberite Prilepi."
+
+msgid "Too many wrong passwords. Please try again in a few minutes."
+msgstr "Preveč napačnih gesel. Poskusite znova čez nekaj minut."
+
+msgid "Port {port} is already in use by another program, so the browser UI cannot start there. Start it with another port (e.g. --web={example}) or without a port to take a free one."
+msgstr "Vrata {port} že uporablja drug program, zato se brskalniški vmesnik tam ne more zagnati. Zaženite ga z drugimi vrati (npr. --web={example}) ali brez vrat, da se izberejo prosta."
+
+msgid "Load OpenKNX from URL or Folder…"
+msgstr "Naloži OpenKNX z URL-ja ali iz mape…"
+
+msgid "Load OpenKNX from URL or Folder"
+msgstr "Nalaganje OpenKNX z URL-ja ali iz mape"
+
+msgid "Or choose a local folder with product files (.knxprod, OpenKNX release .zip, or KNX product XML) to import all of them."
+msgstr "Ali pa izberite lokalno mapo z datotekami izdelkov (.knxprod, .zip izdaje OpenKNX ali XML izdelka KNX), da jih uvozite vse."
+
+msgid "Choose Folder…"
+msgstr "Izberi mapo…"
+
+msgid "Choose a Folder with KNX Product Files"
+msgstr "Izbira mape z datotekami izdelkov KNX"
+
+msgid "Importing from folder…"
+msgstr "Uvažanje iz mape…"
+
+msgid "Imported {count} new product version(s) from folder"
+msgstr "Nove različice izdelkov, uvožene iz mape: {count}"
+
+msgid "Nothing new imported from folder (no product files found, or already in the catalog)"
+msgstr "Iz mape ni bilo uvoženo nič novega (datotek izdelkov ni bilo mogoče najti ali pa so že v katalogu)"
+
+msgid "Import from folder failed: {error}"
+msgstr "Uvoz iz mape ni uspel: {error}"
+
+msgid "Load OpenKNX from URL or Files…"
+msgstr "Naloži OpenKNX z URL-ja ali iz datotek…"
+
+msgid "Load OpenKNX from URL or Files"
+msgstr "Nalaganje OpenKNX z URL-ja ali iz datotek"
+
+msgid "Or upload product files (.knxprod, OpenKNX release .zip, or KNX product XML) from this computer to import all of them."
+msgstr "Ali pa iz tega računalnika naložite datoteke izdelkov (.knxprod, .zip izdaje OpenKNX ali XML izdelka KNX), da jih uvozite vse."
+
+msgid "Choose Files…"
+msgstr "Izberi datoteke…"
+
+msgid "Choose KNX Product Files"
+msgstr "Izbira datotek izdelkov KNX"
+
+msgid "KNX Product Files (*.knxprod, *.zip, *.xml)"
+msgstr "Datoteke izdelkov KNX (*.knxprod, *.zip, *.xml)"
+
+msgid "Importing files…"
+msgstr "Uvažanje datotek…"
+
+msgid "Nothing new imported from the files (no product files, or already in the catalog)"
+msgstr "Iz datotek ni bilo uvoženo nič novega (ni datotek izdelkov ali pa so že v katalogu)"
+
+msgid "Import of the files failed: {error}"
+msgstr "Uvoz datotek ni uspel: {error}"
+
+msgid "DIN rail"
+msgstr "DIN-letev"
+
+msgid "Flush-mounted"
+msgstr "Podometno"
+
+msgid "Registered: {info}"
+msgstr "Registrirano: {info}"
+
+msgid "Manufacturer"
+msgstr "Proizvajalec"
+
+msgid "Product"
+msgstr "Izdelek"
+
+msgid "Order no."
+msgstr "Nar. št."
+
+msgid "Application"
+msgstr "Aplikacija"
+
+msgid "Version"
+msgstr "Različica"
+
+msgid "Mask"
+msgstr "Maska"
+
+msgid "Registered"
+msgstr "Registrirano"
+
+msgid "Port {port} is already in use by another program, so the MCP server cannot start. Choose another port, or end the other program."
+msgstr "Vrata {port} že uporablja drug program, zato se strežnik MCP ne more zagnati. Izberite druga vrata ali končajte drugi program."
+
+msgid "The MCP server could not start: {error}"
+msgstr "Strežnika MCP ni bilo mogoče zagnati: {error}"
+
+msgid "Open in Browser"
+msgstr "Odpri v brskalniku"
+
+msgid "Stop XKNX Editor"
+msgstr "Ustavi XKNX Editor"
+
+msgid "XKNX Editor Already Running"
+msgstr "XKNX Editor že deluje"
+
+msgid "XKNX Editor is already running on this computer. Switch to it, or start another one, e.g. to work on a second project or with another bus connection."
+msgstr "XKNX Editor v tem računalniku že deluje. Preklopite nanj ali zaženite še enega, npr. za delo na drugem projektu ali z drugo povezavo z vodilom."
+
+msgid "Window"
+msgstr "Okno"
+
+msgid "Browser UI ({url})"
+msgstr "Brskalniški vmesnik ({url})"
+
+msgid "{kind}: {project}"
+msgstr "{kind}: {project}"
+
+msgid "Switch to It"
+msgstr "Preklopi nanj"
+
+msgid "Start Another"
+msgstr "Zaženi še enega"
+
+msgid "That XKNX Editor has ended in the meantime."
+msgstr "Ta XKNX Editor se je medtem končal."
+
+msgid "Project Already Open"
+msgstr "Projekt je že odprt"
+
+msgid "{name} is already open in another XKNX Editor. Editing it in two editors at once can overwrite changes."
+msgstr "{name} je že odprt v drugem XKNX Editor. Hkratno urejanje v dveh urejevalnikih lahko prepiše spremembe."
+
+msgid "Open Anyway"
+msgstr "Vseeno odpri"
+
+msgid "C"
+msgstr "C"
+
+msgid "R"
+msgstr "R"
+
+msgid "W"
+msgstr "W"
+
+msgid "T"
+msgstr "T"
+
+msgid "U"
+msgstr "U"
+
+msgid "I"
+msgstr "I"
+
+msgid "Communication"
+msgstr "Komunikacija"
+
+msgid "Read"
+msgstr "Branje"
+
+msgid "Write"
+msgstr "Pisanje"
+
+msgid "Transmit"
+msgstr "Pošiljanje"
+
+msgid "Update"
+msgstr "Posodobitev"
+
+msgid "Read on Init"
+msgstr "Branje ob inicializaciji"
+
+msgid "English"
+msgstr "Angleščina"
+
+msgid "German"
+msgstr "Nemščina"
+
+msgid "Dutch"
+msgstr "Nizozemščina"
+
+msgid "{name} ({native})"
+msgstr "{name} ({native})"
+
+msgid "Spanish"
+msgstr "Španščina"
+
+msgid "Greek"
+msgstr "Grščina"
+
+msgid "Simplified Chinese"
+msgstr "Poenostavljena kitajščina"
+
+msgid "Japanese"
+msgstr "Japonščina"
+
+msgid "Czech"
+msgstr "Češčina"
+
+msgid "Danish"
+msgstr "Danščina"
+
+msgid "Finnish"
+msgstr "Finščina"
+
+msgid "French"
+msgstr "Francoščina"
+
+msgid "Italian"
+msgstr "Italijanščina"
+
+msgid "Norwegian"
+msgstr "Knjižna norveščina"
+
+msgid "Polish"
+msgstr "Poljščina"
+
+msgid "Portuguese"
+msgstr "Portugalščina"
+
+msgid "Russian"
+msgstr "Ruščina"
+
+msgid "Swedish"
+msgstr "Švedščina"
+
+msgid "Turkish"
+msgstr "Turščina"
+
+msgid "Ukrainian"
+msgstr "Ukrajinščina"
+
+msgid "Albanian"
+msgstr "Albanščina"
+
+msgid "Preferred Product Language"
+msgstr "Prednostni jezik izdelkov"
+
+msgid "Hungarian"
+msgstr "Madžarščina"
+
+msgid "Romanian"
+msgstr "Romunščina"
+
+msgid "Slovak"
+msgstr "Slovaščina"
+
+msgid "Slovenian"
+msgstr "Slovenščina"
+
+msgid "Icelandic"
+msgstr "Islandščina"
+
+msgid "Ctrl"
+msgstr "Ctrl"
+
+msgid "Del"
+msgstr "Del"
+
+msgid "This Machine Only"
+msgstr "Samo ta računalnik"
+
+msgid "On the Network"
+msgstr "V omrežju"
+
+msgid "This editor is controllable by an AI assistant through the built-in MCP server: it exposes the catalog and project as tools over Streamable HTTP. Register its endpoint in your AI tool."
+msgstr "Ta urejevalnik lahko upravlja pomočnik UI prek vgrajenega strežnika MCP: ta katalog in projekt ponuja kot orodja prek Streamable HTTP. Njegovo končno točko registrirajte v svojem orodju UI."
+
+msgid "Example: register the MCP server in your AI tool:"
+msgstr "Primer: registracija strežnika MCP v orodju UI:"
+
+msgid "Example: register the MCP server in your AI tool, with your token in place of HOME_ASSISTANT_TOKEN:"
+msgstr "Primer: registracija strežnika MCP v orodju UI, pri čemer HOME_ASSISTANT_TOKEN nadomestite s svojim žetonom:"
+
+msgid "Home Assistant provides the MCP server: AI tools sign in with a long-lived access token of a Home Assistant user who may use the editor (Profile > Security)."
+msgstr "Strežnik MCP zagotavlja Home Assistant: orodja UI se prijavijo z dolgotrajnim žetonom za dostop uporabnika Home Assistant, ki sme uporabljati urejevalnik (Profil > Varnost)."
+
+msgid "The program that started XKNX Editor set up its MCP server."
+msgstr "Program, ki je zagnal XKNX Editor, je nastavil njegov strežnik MCP."
+
+msgid "Home Assistant updates XKNX Editor with its integration: check Home Assistant for an update of the XKNX Editor integration. It may follow this release a little later."
+msgstr "Home Assistant posodablja XKNX Editor s svojo integracijo: v Home Assistant preverite, ali je na voljo posodobitev integracije XKNX Editor. Ta lahko sledi tej izdaji nekoliko pozneje."

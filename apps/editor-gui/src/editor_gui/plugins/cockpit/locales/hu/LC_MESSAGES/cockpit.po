@@ -1,0 +1,74 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor cockpit 1.0\n"
+"Language: hu\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Overview"
+msgstr "Áttekintés"
+
+msgid "No project open"
+msgstr "Nincs megnyitott projekt"
+
+msgid "Filter devices…"
+msgstr "Készülékek szűrése…"
+
+msgid "Needs Attention Only"
+msgstr "Csak a teendőt igénylők"
+
+msgid "{count} device(s) not in catalog"
+msgstr "Nincs a katalógusban: {count} készülék"
+
+msgid "Address"
+msgstr "Cím"
+
+msgid "Name"
+msgstr "Név"
+
+msgid "Product"
+msgstr "Termék"
+
+msgid "Status"
+msgstr "Állapot"
+
+msgid "OK"
+msgstr "OK"
+
+msgid "Device Overview"
+msgstr "Készülékáttekintés"
+
+msgid "Application Program"
+msgstr "Alkalmazási program"
+
+msgid "Communication Part"
+msgstr "Kommunikációs rész"
+
+msgid "Individual Address"
+msgstr "Fizikai cím"
+
+msgid "Last Download: {when}"
+msgstr "Utolsó programozás: {when}"
+
+msgid "Loaded"
+msgstr "Betöltve"
+
+msgid "Medium Config"
+msgstr "Átviteliközeg-konfiguráció"
+
+msgid "Parameters"
+msgstr "Paraméterek"
+
+msgid "Serial: {serial}"
+msgstr "Sorozatszám: {serial}"
+
+msgid "loaded"
+msgstr "betöltve"
+
+msgid "not loaded"
+msgstr "nincs betöltve"
+
+msgid "partial ({done}/{total})"
+msgstr "részleges ({done}/{total})"

@@ -1,0 +1,1529 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor editor_gui 1.0\n"
+"Language: ro\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "XKNX Editor"
+msgstr "XKNX Editor"
+
+msgid "Help"
+msgstr "Ajutor"
+
+msgid "About"
+msgstr "Despre"
+
+msgid "Language"
+msgstr "Limbă"
+
+msgid "Version {version}"
+msgstr "Versiunea {version}"
+
+msgid "A desktop editor for building-automation installation projects, built on the open-source xknx library. Not affiliated with or endorsed by the KNX Association."
+msgstr "Un editor desktop pentru proiecte de instalații de automatizare a clădirilor, bazat pe biblioteca open-source xknx. Nu este afiliat KNX Association și nici aprobat de aceasta."
+
+msgid "Add"
+msgstr "Adăugare"
+
+msgid "Close"
+msgstr "Închidere"
+
+msgid "Cancel"
+msgstr "Revocare"
+
+msgid "Clear"
+msgstr "Golire"
+
+msgid "Stop"
+msgstr "Oprire"
+
+msgid "All Files"
+msgstr "Toate fișierele"
+
+msgid "Project: {name}  ·  {devices} devices  ·  {gas} GAs"
+msgstr "Proiect: {name}  ·  dispozitive: {devices}  ·  adrese de grup: {gas}"
+
+msgid "No project open"
+msgstr "Niciun proiect deschis"
+
+msgid "Programming {address}…"
+msgstr "Se programează {address}…"
+
+msgid "Programming complete"
+msgstr "Programare finalizată"
+
+msgid "Programming failed"
+msgstr "Programarea a eșuat"
+
+msgid "No KNX connection"
+msgstr "Nicio conexiune KNX"
+
+msgid "KNX Master v{version} ({date})"
+msgstr "KNX Master v{version} ({date})"
+
+msgid "File"
+msgstr "Fișier"
+
+msgid "New Project"
+msgstr "Proiect nou"
+
+msgid "Open Project (.knxproj/.xknx)"
+msgstr "Deschidere proiect (.knxproj/.xknx)"
+
+msgid "Open Recent"
+msgstr "Deschise recent"
+
+msgid "Settings…"
+msgstr "Setări…"
+
+msgid "MCP"
+msgstr "MCP"
+
+msgid "Settings"
+msgstr "Setări"
+
+msgid "Gateway"
+msgstr "Gateway"
+
+msgid "Catalog"
+msgstr "Catalog"
+
+msgid "Use multicast routing (instead of tunneling)"
+msgstr "Se utilizează rutarea multicast (în loc de tunelare)"
+
+msgid "Gateway IP"
+msgstr "IP gateway"
+
+msgid "Multicast Group"
+msgstr "Grup multicast"
+
+msgid "Run the MCP server so an LLM can drive the editor over Streamable HTTP. It shares this app's catalog database."
+msgstr "Porniți serverul MCP pentru ca un LLM să poată controla editorul prin Streamable HTTP. Serverul folosește baza de date a catalogului acestei aplicații."
+
+msgid "MCP Host"
+msgstr "Gazdă MCP"
+
+msgid "MCP Port"
+msgstr "Port MCP"
+
+msgid "Server: Running"
+msgstr "Server: rulează"
+
+msgid "Server: Stopped"
+msgstr "Server: oprit"
+
+msgid "Start Server"
+msgstr "Pornire server"
+
+msgid "Stop Server"
+msgstr "Oprire server"
+
+msgid "Download Language"
+msgstr "Limbă descărcare"
+
+msgid "MCP running"
+msgstr "MCP rulează"
+
+msgid "Welcome"
+msgstr "Bun venit"
+
+msgid "Create a new project or open an existing one to get started."
+msgstr "Creați un proiect nou sau deschideți unul existent pentru a începe."
+
+msgid "Recent Projects"
+msgstr "Proiecte recente"
+
+msgid "Export .knxproj…"
+msgstr "Export .knxproj…"
+
+msgid "Sign Export"
+msgstr "Semnare export"
+
+msgid "You can sign the .knxproj with your license so it can be opened in ETS. Log in to sign it, or save the .knxproj without a license."
+msgstr "Puteți semna fișierul .knxproj cu licența dumneavoastră, astfel încât să poată fi deschis în ETS. Autentificați-vă pentru a-l semna sau salvați fișierul .knxproj fără licență."
+
+msgid "MyKNX Username"
+msgstr "Nume de utilizator MyKNX"
+
+msgid "MyKNX Password"
+msgstr "Parolă MyKNX"
+
+msgid "Logging in…"
+msgstr "Autentificare în curs…"
+
+msgid "License"
+msgstr "Licență"
+
+msgid "No licenses found on this account"
+msgstr "Nu s-au găsit licențe în acest cont"
+
+msgid "Login failed: {error}"
+msgstr "Autentificarea a eșuat: {error}"
+
+msgid "Sign & Export"
+msgstr "Semnare și export"
+
+msgid "Export Without Certificate"
+msgstr "Export fără certificat"
+
+msgid "Export ETS Project"
+msgstr "Export proiect ETS"
+
+msgid "Load .knxprod…"
+msgstr "Încărcare .knxprod…"
+
+msgid "Exit"
+msgstr "Ieșire"
+
+msgid "Edit"
+msgstr "Editare"
+
+msgid "Undo"
+msgstr "Anulare"
+
+msgid "Redo"
+msgstr "Refacere"
+
+msgid "Open KNX Product Archive"
+msgstr "Deschidere arhivă de produs KNX"
+
+msgid "KNX Product (*.knxprod)"
+msgstr "Produs KNX (*.knxprod)"
+
+msgid "ETS Project (*.knxproj)"
+msgstr "Proiect ETS (*.knxproj)"
+
+msgid "ETS 6 Project (*.knxproj)"
+msgstr "Proiect ETS 6 (*.knxproj)"
+
+msgid "ETS 5 Project (*.knxproj)"
+msgstr "Proiect ETS 5 (*.knxproj)"
+
+msgid "Open XKNX Project"
+msgstr "Deschidere proiect XKNX"
+
+msgid "Save XKNX Project"
+msgstr "Salvare proiect XKNX"
+
+msgid "XKNX Project (*.xknx)"
+msgstr "Proiect XKNX (*.xknx)"
+
+msgid "Projects (*.xknx, *.knxproj)"
+msgstr "Proiecte (*.xknx, *.knxproj)"
+
+msgid "Working…"
+msgstr "Așteptați…"
+
+msgid "Importing project — this can take a while for large projects."
+msgstr "Se importă proiectul — la proiectele mari poate dura un timp."
+
+msgid "Loading product catalog…"
+msgstr "Se încarcă catalogul de produse…"
+
+msgid "Opening project…"
+msgstr "Se deschide proiectul…"
+
+msgid "Project Password"
+msgstr "Parolă proiect"
+
+msgid "This ETS project is password protected. Enter its password:"
+msgstr "Acest proiect ETS este protejat prin parolă. Introduceți parola:"
+
+msgid "Wrong password, please try again."
+msgstr "Parolă greșită, încercați din nou."
+
+msgid "OK"
+msgstr "OK"
+
+msgid "{done}/{total} devices"
+msgstr "Dispozitive: {done}/{total}"
+
+msgid "Recover from Bus…"
+msgstr "Recuperare de pe magistrală…"
+
+msgid "No matches"
+msgstr "Niciun rezultat"
+
+msgid "Bearer Token (Optional)"
+msgstr "Bearer token (opțional)"
+
+msgid "License with a Dongle…"
+msgstr "Licențiere cu dongle…"
+
+msgid "If you have a licensed ETS (dongle or local license), you can license this project in your own ETS instead of signing it online. Export it here without a certificate, then bring it into ETS.\n\nStep 1 - Export: choose 'Export without certificate' below and save the .knxproj.\n\nStep 2 - Import into ETS (try this first):\nETS 5: on the dashboard, click 'Project import', pick the .knxproj and open it.\nETS 6: on the dashboard, click 'Import Project' under the 'Overview' tab (also on the 'Local Projects' list or the taskbar context menu).\n\nA licensed ETS may refuse the import: the file carries only the normal folder signature, not the online project certificate a licensed ETS writes on export. If the import is rejected, use Step 3.\n\nStep 3 - Copy into the ProjectStore (fallback that always works):\n1. A .knxproj is a ZIP; unzip it to get the project folder named P-XXXX.\n2. Copy that P-XXXX folder into your ETS ProjectStore:\n   ETS 5: C:\\ProgramData\\KNX\\ETS5\\ProjectStore\n   ETS 6: C:\\ProgramData\\KNX\\ETS6\\ProjectStore\n   (ProgramData is hidden - enable 'Hidden items' in Explorer.)\n3. ETS 6 only: inside the copied folder create an empty file named P-XXXX_M-dummy (no file extension) so ETS 6 lists the project.\n4. Start ETS with the dongle plugged in; the project appears in the local project list and your license applies.\n\nTip: to confirm a folder's project name, open the 'P' (P.xml) file inside P-XXXX in a text editor - the name is near the top.\n\nNote: license device limits still apply to what you can commission - ETS Demo up to 5 devices, Lite up to 20, Professional unlimited."
+msgstr "Dacă aveți un ETS licențiat (dongle sau licență locală), puteți licenția acest proiect în propriul ETS în loc să-l semnați online. Exportați-l aici fără certificat, apoi aduceți-l în ETS.\n\nPasul 1 - Export: alegeți mai jos 'Export fără certificat' și salvați fișierul .knxproj.\n\nPasul 2 - Import în ETS (încercați mai întâi aceasta):\nETS 5: în dashboard, faceți clic pe 'Project import', alegeți fișierul .knxproj și deschideți-l.\nETS 6: în dashboard, faceți clic pe 'Import Project' în fila 'Overview' (și în lista 'Local Projects' sau în meniul contextual din bara de activități).\n\nUn ETS licențiat poate refuza importul: fișierul are doar semnătura obișnuită a folderului, nu certificatul online de proiect pe care îl scrie un ETS licențiat la export. Dacă importul este refuzat, folosiți Pasul 3.\n\nPasul 3 - Copiere în ProjectStore (soluție de rezervă care funcționează întotdeauna):\n1. Un fișier .knxproj este un ZIP; dezarhivați-l pentru a obține folderul proiectului numit P-XXXX.\n2. Copiați acest folder P-XXXX în ProjectStore-ul ETS:\n   ETS 5: C:\\ProgramData\\KNX\\ETS5\\ProjectStore\n   ETS 6: C:\\ProgramData\\KNX\\ETS6\\ProjectStore\n   (ProgramData este ascuns - activați 'Elemente ascunse' în Explorer.)\n3. Numai ETS 6: în folderul copiat creați un fișier gol numit P-XXXX_M-dummy (fără extensie), pentru ca ETS 6 să listeze proiectul.\n4. Porniți ETS cu dongle-ul conectat; proiectul apare în lista de proiecte locale și se aplică licența dumneavoastră.\n\nSfat: pentru a verifica numele proiectului dintr-un folder, deschideți fișierul 'P' (P.xml) din P-XXXX într-un editor de text - numele este aproape de început.\n\nNotă: limitele de dispozitive ale licenței se aplică în continuare la punerea în funcțiune - ETS Demo până la 5 dispozitive, Lite până la 20, Professional nelimitat."
+
+msgid "Format Version"
+msgstr "Versiune format"
+
+msgid "ETS 6 (schema 20)"
+msgstr "ETS 6 (schema 20)"
+
+msgid "ETS 5 (schema 14)"
+msgstr "ETS 5 (schema 14)"
+
+msgid "MCP Server"
+msgstr "Server MCP"
+
+msgid "Re-license the project through your own licensed ETS, which re-signs the copy with your dongle license:\n\nETS 6 - use the local project store below:\n   1. Click 'Export to ProjectStore'. It writes the project's 'P-XXXX' folder straight into your ETS 6 project store. If ETS is not installed on this computer, you are asked for the store folder (or any folder you then copy over manually).\n   2. The export needs your 'installer.guid' from C:\\ProgramData\\KNX\\ETS6\\Installer. If it cannot be found automatically, you are asked to select it.\n   3. Restart ETS 6 - the project appears in the project overview.\n   4. Make a copy of it there (Copy in the overview). The copy is re-signed with your license - open it, then use or export it normally.\n\nETS 5 - no project store is needed: go Back and choose 'Export without Certificate' (with ETS 5 as the file type) to save a .knxproj, then import that file into ETS 5. It opens unsigned and is re-licensed when you save it there.\n\nThis is bounded by the device-per-project limit of your license."
+msgstr "Relicențiați proiectul prin propriul ETS licențiat, care resemnează copia cu licența dongle-ului dumneavoastră:\n\nETS 6 - folosiți ProjectStore-ul local de mai jos:\n   1. Faceți clic pe 'Export în ProjectStore'. Folderul 'P-XXXX' al proiectului este scris direct în ProjectStore-ul ETS 6. Dacă ETS nu este instalat pe acest computer, vi se cere folderul store-ului (sau orice folder din care îl copiați apoi manual).\n   2. Exportul are nevoie de fișierul 'installer.guid' din C:\\ProgramData\\KNX\\ETS6\\Installer. Dacă nu poate fi găsit automat, vi se cere să-l selectați.\n   3. Reporniți ETS 6 - proiectul apare în prezentarea generală a proiectelor.\n   4. Faceți acolo o copie a lui (Copy în prezentarea generală). Copia este resemnată cu licența dumneavoastră - deschideți-o, apoi folosiți-o sau exportați-o normal.\n\nETS 5 - nu este nevoie de ProjectStore: mergeți Înapoi și alegeți 'Export fără certificat' (cu ETS 5 ca tip de fișier) pentru a salva un fișier .knxproj, apoi importați acest fișier în ETS 5. Se deschide nesemnat și este relicențiat când îl salvați acolo.\n\nAcest lucru este limitat de numărul maxim de dispozitive per proiect al licenței dumneavoastră."
+
+msgid "Select the ETS installer.guid file"
+msgstr "Selectați fișierul ETS installer.guid"
+
+msgid "ETS installer id"
+msgstr "ID instalare ETS"
+
+msgid "Project Already in the Store"
+msgstr "Proiectul există deja în store"
+
+msgid "A project folder '{pid}' already exists in this ETS ProjectStore. Overwrite it, or add it as a separate copy?"
+msgstr "Un folder de proiect '{pid}' există deja în acest ProjectStore ETS. Îl suprascrieți sau îl adăugați ca o copie separată?"
+
+msgid "Overwrite"
+msgstr "Suprascriere"
+
+msgid "Add Copy"
+msgstr "Adăugare copie"
+
+msgid "XKNX Export"
+msgstr "XKNX Export"
+
+msgid "Exported to {path} ({size})"
+msgstr "Exportat în {path} ({size})"
+
+msgid "ETS 6 (schema 22)"
+msgstr "ETS 6 (schema 22)"
+
+msgid "ETS 5 (schema 20)"
+msgstr "ETS 5 (schema 20)"
+
+msgid "ETS 6 (schema 23)"
+msgstr "ETS 6 (schema 23)"
+
+msgid "AI MCP"
+msgstr "AI MCP"
+
+msgid "This editor is controllable by an AI assistant (Claude, Codex, …) through the built-in MCP server: it exposes the catalog and project as tools over Streamable HTTP. Start the server below, then register its endpoint in your AI tool."
+msgstr "Acest editor poate fi controlat de un asistent AI (Claude, Codex, …) prin serverul MCP integrat: acesta pune la dispoziție catalogul și proiectul ca instrumente prin Streamable HTTP. Porniți serverul mai jos, apoi înregistrați endpoint-ul lui în instrumentul AI."
+
+msgid "MCP Endpoint"
+msgstr "Endpoint MCP"
+
+msgid "Example: register the MCP server in your AI tool (adjust host/port):"
+msgstr "Exemplu: înregistrați serverul MCP în instrumentul AI (adaptați gazda/portul):"
+
+msgid "Copied"
+msgstr "Copiat"
+
+msgid "Copy"
+msgstr "Copiere"
+
+msgid "Use host 0.0.0.0 to make the server reachable from other devices on the network; 127.0.0.1/localhost only allows this machine."
+msgstr "Folosiți gazda 0.0.0.0 pentru ca serverul să fie accesibil de pe alte dispozitive din rețea; 127.0.0.1/localhost permite doar acest computer."
+
+msgid "Switching language…"
+msgstr "Se schimbă limba…"
+
+msgid "Load OpenKNX from URL…"
+msgstr "Încărcare OpenKNX de la URL…"
+
+msgid "Load OpenKNX from URL"
+msgstr "Încărcare OpenKNX de la URL"
+
+msgid "Paste an OpenKNX release link (e.g. a GitHub release .zip). A .knxprod or a KNX product XML URL also works."
+msgstr "Lipiți un link de release OpenKNX (de ex. un fișier .zip de release GitHub). Funcționează și un URL .knxprod sau XML de produs KNX."
+
+msgid "Load"
+msgstr "Încărcare"
+
+msgid "Downloading and importing…"
+msgstr "Se descarcă și se importă…"
+
+msgid "Imported {count} new product version(s) from URL"
+msgstr "Versiuni noi de produs importate de la URL: {count}"
+
+msgid "Nothing new imported (already in the catalog)"
+msgstr "Nu s-a importat nimic nou (există deja în catalog)"
+
+msgid "Import from URL failed: {error}"
+msgstr "Importul de la URL a eșuat: {error}"
+
+msgid "Paste an OpenKNX GitHub release URL (the release page works — the .zip asset is found automatically). A direct .knxprod or KNX product XML link also works."
+msgstr "Lipiți URL-ul unui release OpenKNX de pe GitHub (funcționează și pagina release-ului — fișierul .zip este găsit automat). Funcționează și un link direct .knxprod sau XML de produs KNX."
+
+msgid "Paste an OpenKNX GitHub release URL (the release page works — the .zip asset is found automatically). A direct .knxprod or KNX product XML link also works.\n\nExamples:\n  https://github.com/OpenKNX/OAM-RaumController/releases/tag/v5.4.3\n  https://github.com/OpenKNX/OAM-RaumController/releases/latest"
+msgstr "Lipiți URL-ul unui release OpenKNX de pe GitHub (funcționează și pagina release-ului — fișierul .zip este găsit automat). Funcționează și un link direct .knxprod sau XML de produs KNX.\n\nExemple:\n  https://github.com/OpenKNX/OAM-RaumController/releases/tag/v5.4.3\n  https://github.com/OpenKNX/OAM-RaumController/releases/latest"
+
+msgid "Save As…"
+msgstr "Salvare ca…"
+
+msgid "Saved as {name}"
+msgstr "Salvat ca {name}"
+
+msgid "Save Project As"
+msgstr "Salvare proiect ca"
+
+msgid "Good to Know"
+msgstr "Bine de știut"
+
+msgid "Your project opened fine and everything you need to work with is here. A few extra details from the original file are shown a bit more simply:"
+msgstr "Proiectul s-a deschis fără probleme și aveți tot ce vă trebuie pentru lucru. Câteva detalii suplimentare din fișierul original sunt afișate puțin simplificat:"
+
+msgid "This project came from a file with a few extra details this editor does not use. The export leaves these out:"
+msgstr "Acest proiect provine dintr-un fișier cu câteva detalii suplimentare pe care acest editor nu le folosește. Exportul le omite:"
+
+msgid "The original file had {count} installations. They were combined into one."
+msgstr "Fișierul original avea mai multe instalații ({count}). Ele au fost combinate într-una singură."
+
+msgid "{count} device(s) had no place in the original file, so they were left out."
+msgstr "Dispozitive fără loc în fișierul original, care au fost omise: {count}."
+
+msgid "{count} group object(s) had an extra description in the original file. The custom name and function are kept; only that description is not shown here."
+msgstr "Obiecte de comunicare cu o descriere suplimentară în fișierul original: {count}. Numele propriu și funcția se păstrează; doar acea descriere nu este afișată aici."
+
+msgid "{count} IP or function setting(s) from the original file are not used here."
+msgstr "Setări IP sau de funcție din fișierul original care nu sunt folosite aici: {count}."
+
+msgid "{count} line(s) use several segments. In a schema 14/20 export they are shown at line level only."
+msgstr "Linii care folosesc mai multe segmente: {count}. Într-un export cu schema 14/20 sunt afișate doar la nivel de linie."
+
+msgid "{count} line(s) had the same address in different installations. One of each was kept when combining."
+msgstr "Linii cu aceeași adresă în instalații diferite: {count}. La combinare s-a păstrat câte una."
+
+msgid "For example: {examples}"
+msgstr "De exemplu: {examples}"
+
+msgid "Product catalog imported: {count} new product version(s) from {name}"
+msgstr "Catalog de produse importat din {name}: versiuni noi de produs: {count}"
+
+msgid "Imported {count} product version(s) from {name}:"
+msgstr "Versiuni de produs importate din {name}: {count}"
+
+msgid "{name} was already in the catalog, nothing new imported"
+msgstr "{name} era deja în catalog, nu s-a importat nimic nou"
+
+msgid "Product Catalog Import"
+msgstr "Import catalog de produse"
+
+msgid "Export Complete"
+msgstr "Export finalizat"
+
+msgid "Successfully created {name}"
+msgstr "{name} a fost creat cu succes"
+
+msgid "File Size"
+msgstr "Dimensiune fișier"
+
+msgid "Project"
+msgstr "Proiect"
+
+msgid "Format"
+msgstr "Format"
+
+msgid "Devices"
+msgstr "Dispozitive"
+
+msgid "Buildings"
+msgstr "Clădiri"
+
+msgid "Group Addresses"
+msgstr "Adrese de grup"
+
+msgid "Group Object Links"
+msgstr "Legături obiecte de comunicare"
+
+msgid "Areas / Lines"
+msgstr "Zone / linii"
+
+msgid "Floors / Rooms"
+msgstr "Etaje / camere"
+
+msgid "Functions"
+msgstr "Funcții"
+
+msgid "KNX Master Version"
+msgstr "Versiune KNX Master"
+
+msgid "Exported at"
+msgstr "Exportat la"
+
+msgid "Manufacturer Data (M Folders)"
+msgstr "Date producător (foldere M)"
+
+msgid "Signed"
+msgstr "Semnat"
+
+msgid "Certificate"
+msgstr "Certificat"
+
+msgid "yes"
+msgstr "da"
+
+msgid "no"
+msgstr "nu"
+
+msgid "Open Folder"
+msgstr "Deschidere folder"
+
+msgid "Signing Key…"
+msgstr "Cheie de semnare…"
+
+msgid "Signing Key"
+msgstr "Cheie de semnare"
+
+msgid "Folder signature uses a placeholder key. Enter a valid signature under 'Signing Key…' or use the 'License with a Dongle' way."
+msgstr "Semnătura folderului folosește o cheie substituent. Introduceți o semnătură validă la 'Cheie de semnare…' sau folosiți varianta 'Licențiere cu dongle'."
+
+msgid "View"
+msgstr "Vizualizare"
+
+msgid "Restore Default Layout"
+msgstr "Restaurare aspect implicit"
+
+msgid "Show All"
+msgstr "Afișare toate"
+
+msgid "Hide All"
+msgstr "Ascundere toate"
+
+msgid "Status Bar"
+msgstr "Bară de stare"
+
+msgid "FPS in Status Bar"
+msgstr "FPS în bara de stare"
+
+msgid "Context Help"
+msgstr "Ajutor contextual"
+
+msgid "Enable Idling"
+msgstr "Activare mod inactiv"
+
+msgid "Theme"
+msgstr "Temă"
+
+msgid "Reading {address}…"
+msgstr "Se citește {address}…"
+
+msgid "FPS: {fps:.1f}{idling}"
+msgstr "FPS: {fps:.1f}{idling}"
+
+msgid " (Idling)"
+msgstr " (inactiv)"
+
+msgid "Compact Project…"
+msgstr "Compactare proiect…"
+
+msgid "Compact Project"
+msgstr "Compactare proiect"
+
+msgid "Analysing project…"
+msgstr "Se analizează proiectul…"
+
+msgid "Compacting project…"
+msgstr "Se compactează proiectul…"
+
+msgid "Analysing devices"
+msgstr "Se analizează dispozitivele"
+
+msgid "Analysing product data ({manufacturer})"
+msgstr "Se analizează datele de produs ({manufacturer})"
+
+msgid "Removing unused product data ({manufacturer})"
+msgstr "Se elimină datele de produs nefolosite ({manufacturer})"
+
+msgid "Saving product data"
+msgstr "Se salvează datele de produs"
+
+msgid "Compacting project file"
+msgstr "Se compactează fișierul de proiect"
+
+msgid "The following product data is not used by any device in this project and will be removed:"
+msgstr "Următoarele date de produs nu sunt folosite de niciun dispozitiv din acest proiect și vor fi eliminate:"
+
+msgid "All product data in this project is used by its devices, nothing to remove. The project file can still be compacted to free unused space."
+msgstr "Toate datele de produs din acest proiect sunt folosite de dispozitivele lui, nu este nimic de eliminat. Fișierul de proiect poate fi totuși compactat pentru a elibera spațiul nefolosit."
+
+msgid "Application Programs"
+msgstr "Programe de aplicație"
+
+msgid "Device Types (Products)"
+msgstr "Tipuri de dispozitive (produse)"
+
+msgid "Hardware"
+msgstr "Hardware"
+
+msgid "Manufacturers"
+msgstr "Producători"
+
+msgid "Catalog Entries"
+msgstr "Intrări de catalog"
+
+msgid "Help and Plug-in Files"
+msgstr "Fișiere de ajutor și plug-in"
+
+msgid "Details"
+msgstr "Detalii"
+
+msgid "Current File Size"
+msgstr "Dimensiune actuală fișier"
+
+msgid "Estimated Size Afterwards"
+msgstr "Dimensiune estimată după"
+
+msgid "This cannot be undone. Removed product data has to be imported again if these products are added to the project later."
+msgstr "Operația nu poate fi anulată. Datele de produs eliminate trebuie importate din nou dacă aceste produse sunt adăugate ulterior în proiect."
+
+msgid "Compact"
+msgstr "Compactare"
+
+msgid "Project Compacted"
+msgstr "Proiect compactat"
+
+msgid "The project file was compacted."
+msgstr "Fișierul de proiect a fost compactat."
+
+msgid "Size before"
+msgstr "Dimensiune înainte"
+
+msgid "Size after"
+msgstr "Dimensiune după"
+
+msgid "Compacting cancelled, the project was not changed"
+msgstr "Compactare întreruptă, proiectul nu a fost modificat"
+
+msgid "Remove Unused Product Data"
+msgstr "Eliminare date de produs nefolosite"
+
+msgid "ETS 6 needs a signed and licensed .knxproj: log in to license it and set a signing key - or use the 'License with a Dongle' way below.\nETS 5: just use 'Export without Certificate'."
+msgstr "ETS 6 are nevoie de un fișier .knxproj semnat și licențiat: autentificați-vă pentru a-l licenția și setați o cheie de semnare - sau folosiți varianta 'Licențiere cu dongle' de mai jos.\nETS 5: folosiți simplu 'Export fără certificat'."
+
+msgid "Complete sign-in in your browser. Code: {code}"
+msgstr "Finalizați autentificarea în browser. Cod: {code}"
+
+msgid "Login failed (HTTP 401). Either the password is wrong, or this account uses two-factor authentication - the server does not say which."
+msgstr "Autentificarea a eșuat (HTTP 401). Fie parola este greșită, fie acest cont folosește autentificarea cu doi factori - serverul nu spune care dintre ele."
+
+msgid "Re-enter Credentials"
+msgstr "Reintroducere date de autentificare"
+
+msgid "Start 2FA Sign-In"
+msgstr "Pornire autentificare 2FA"
+
+msgid "MyKNX OAuth Credentials (2FA)"
+msgstr "Date de acces OAuth MyKNX (2FA)"
+
+msgid "Client ID"
+msgstr "ID client"
+
+msgid "Client Secret"
+msgstr "Secret client"
+
+msgid "Extract from ETS…"
+msgstr "Extragere din ETS…"
+
+msgid "Extracting…"
+msgstr "Se extrage…"
+
+msgid "Save"
+msgstr "Salvare"
+
+msgid "All files"
+msgstr "Toate fișierele"
+
+msgid "Export to ETS 5 ProjectStore"
+msgstr "Export în ProjectStore ETS 5"
+
+msgid "Export to ProjectStore"
+msgstr "Export în ProjectStore"
+
+msgid "Select the {ets} ProjectStore folder"
+msgstr "Selectați folderul ProjectStore al {ets}"
+
+msgid "{project} - {app}"
+msgstr "{project} - {app}"
+
+msgid "{project} – {file} - {app}"
+msgstr "{project} – {file} - {app}"
+
+msgid "Highlight Changes"
+msgstr "Evidențiere modificări"
+
+msgid "Group Address Export (*.xml)"
+msgstr "Export adrese de grup (*.xml)"
+
+msgid "Group Address Exports (*.xml, *.csv)"
+msgstr "Exporturi adrese de grup (*.xml, *.csv)"
+
+msgid "Projects (*.xknx, *.knxproj, *.xml, *.csv)"
+msgstr "Proiecte (*.xknx, *.knxproj, *.xml, *.csv)"
+
+msgid "Import Group Addresses…"
+msgstr "Import adrese de grup…"
+
+msgid "Feedback"
+msgstr "Feedback"
+
+msgid "A desktop editor for building-automation installation projects, built on the open-source xknx library and based on xknxtoolkit by kewde. Not affiliated with or endorsed by the KNX Association."
+msgstr "Un editor desktop pentru proiecte de instalații de automatizare a clădirilor, construit pe biblioteca open-source xknx și bazat pe xknxtoolkit de kewde. Nu este afiliat KNX Association și nici aprobat de aceasta."
+
+msgid "Network Location"
+msgstr "Locație în rețea"
+
+msgid "This location is on a network drive:\n{home}\n\nKNX project files use a database that cannot run reliably on network shares. The editor can work on a local copy instead and write it back to the network location when you close the project."
+msgstr "Această locație se află pe o unitate de rețea:\n{home}\n\nFișierele de proiect KNX folosesc o bază de date care nu poate funcționa fiabil pe partajări de rețea. În schimb, editorul poate lucra pe o copie locală și o poate scrie înapoi în locația de rețea când închideți proiectul."
+
+msgid "Use a Local Copy"
+msgstr "Utilizare copie locală"
+
+msgid "Working on a local copy; written back to {home} when you close the project."
+msgstr "Se lucrează pe o copie locală; aceasta este scrisă înapoi în {home} când închideți proiectul."
+
+msgid "Project Name"
+msgstr "Nume proiect"
+
+msgid "Group Address Style"
+msgstr "Stil adrese de grup"
+
+msgid "Free"
+msgstr "Liber"
+
+msgid "Two-level"
+msgstr "Pe două niveluri"
+
+msgid "Three-level"
+msgstr "Pe trei niveluri"
+
+msgid "Create…"
+msgstr "Creare…"
+
+msgid "claude mcp add --transport http xknx-editor {url}"
+msgstr "claude mcp add --transport http xknx-editor {url}"
+
+msgid "claude mcp add --transport http xknx-editor {url} --header \"Authorization: Bearer {token}\""
+msgstr "claude mcp add --transport http xknx-editor {url} --header \"Authorization: Bearer {token}\""
+
+msgid "codex mcp add xknx-editor --url {url}"
+msgstr "codex mcp add xknx-editor --url {url}"
+
+msgid "export XKNX_MCP_TOKEN='{token}'\ncodex mcp add xknx-editor --url {url} --bearer-token-env-var XKNX_MCP_TOKEN"
+msgstr "export XKNX_MCP_TOKEN='{token}'\ncodex mcp add xknx-editor --url {url} --bearer-token-env-var XKNX_MCP_TOKEN"
+
+msgid "Export Group Addresses…"
+msgstr "Export adrese de grup…"
+
+msgid "Export Group Addresses"
+msgstr "Export adrese de grup"
+
+msgid "Output Format"
+msgstr "Format de ieșire"
+
+msgid "CSV Format"
+msgstr "Format CSV"
+
+msgid "3/1 - three columns, Main/Middle/Sub group separated"
+msgstr "3/1 - trei coloane, grupă principală/mediană/subgrupă separate"
+
+msgid "1/3 - Group address name/Main - Middle - Sub group"
+msgstr "1/3 - nume adresă de grup/grupă principală - mediană - subgrupă"
+
+msgid "1/1 - Name/Address"
+msgstr "1/1 - nume/adresă"
+
+msgid "3/3 - Main - Middle - Sub group name/Main - Middle - Sub group address"
+msgstr "3/3 - nume grupă principală - mediană - subgrupă/adresă grupă principală - mediană - subgrupă"
+
+msgid "Export with Header Line"
+msgstr "Export cu rând de antet"
+
+msgid "CSV Separator"
+msgstr "Separator CSV"
+
+msgid "Tabulator"
+msgstr "Tabulator"
+
+msgid "Comma"
+msgstr "Virgulă"
+
+msgid "Semicolon"
+msgstr "Punct și virgulă"
+
+msgid "Export"
+msgstr "Export"
+
+msgid "Group Address Export (*.csv)"
+msgstr "Export adrese de grup (*.csv)"
+
+msgid "Exported {count} group address(es)"
+msgstr "Adrese de grup exportate: {count}"
+
+msgid "Exported to {path} ({size}) as {schema}"
+msgstr "Exportat în {path} ({size}) ca {schema}"
+
+msgid "{count} device(s) aren't assigned to a line. They're kept in the project and included on export, but can't be edited here yet."
+msgstr "Dispozitive care nu sunt alocate unei linii: {count}. Ele rămân în proiect și sunt incluse la export, dar încă nu pot fi editate aici."
+
+msgid "no online certificate"
+msgstr "fără certificat online"
+
+msgid "expired"
+msgstr "expirată"
+
+msgid "None of these licenses can sign online. Only ETS6 (or a cloud-enabled ETS app) licenses produce a certificate; ETS5/older licenses cannot. Use 'License with a dongle' instead."
+msgstr "Niciuna dintre aceste licențe nu poate semna online. Doar licențele ETS6 (sau ale unei aplicații ETS cu suport cloud) produc un certificat; licențele ETS5 sau mai vechi nu pot. Folosiți în schimb 'Licențiere cu dongle'."
+
+msgid "KNX Product (*.knxprod, *.vd1-*.vd5)"
+msgstr "Produs KNX (*.knxprod, *.vd1-*.vd5)"
+
+msgid "Legacy ETS product databases (.vd1-.vd5) are not imported directly.\n\nConvert the file to .knxprod first with the conversion tools that ship with ETS5/ETS6 - open the product file in ETS, or use its command-line converter - then import the resulting .knxprod here."
+msgstr "Bazele de date de produse ETS mai vechi (.vd1-.vd5) nu sunt importate direct.\n\nConvertiți mai întâi fișierul în .knxprod cu instrumentele de conversie livrate cu ETS5/ETS6 - deschideți fișierul de produs în ETS sau folosiți convertorul lui din linia de comandă - apoi importați aici fișierul .knxprod rezultat."
+
+msgid "ETS Group-Address Export (*.xml)"
+msgstr "Export adrese de grup ETS (*.xml)"
+
+msgid "Replace File"
+msgstr "Înlocuire fișier"
+
+msgid "{name} already exists."
+msgstr "{name} există deja."
+
+msgid "It is in {dir}. Replacing it overwrites its current content; this cannot be undone."
+msgstr "Se află în {dir}. Înlocuirea îi suprascrie conținutul actual; operația nu poate fi anulată."
+
+msgid "Replace"
+msgstr "Înlocuire"
+
+msgid "Projects (*.xknx, *.knxproj, *.xml)"
+msgstr "Proiecte (*.xknx, *.knxproj, *.xml)"
+
+msgid "Importing group addresses…"
+msgstr "Se importă adresele de grup…"
+
+msgid "Check for Updates"
+msgstr "Căutare actualizări"
+
+msgid "Check for Updates on Startup"
+msgstr "Căutare actualizări la pornire"
+
+msgid "Update Available"
+msgstr "Actualizare disponibilă"
+
+msgid "Version {latest} is available. You have {current}."
+msgstr "Versiunea {latest} este disponibilă. Aveți versiunea {current}."
+
+msgid "You are up to date (version {version})."
+msgstr "Aveți cea mai recentă versiune ({version})."
+
+msgid "Download"
+msgstr "Descărcare"
+
+msgid "Skip This Version"
+msgstr "Omitere această versiune"
+
+msgid "Later"
+msgstr "Mai târziu"
+
+msgid "Release Notes:"
+msgstr "Note de lansare:"
+
+msgid "License: GPL-2.0-only"
+msgstr "Licență: GPL-2.0-only"
+
+msgid "Website:"
+msgstr "Site web:"
+
+msgid "Open Config Folder"
+msgstr "Deschidere folder de configurare"
+
+msgid "Open Cache Folder"
+msgstr "Deschidere folder cache"
+
+msgid "Open Log Folder"
+msgstr "Deschidere folder jurnale"
+
+msgid "This project is protected with a password. Enter it to open the project:"
+msgstr "Acest proiect este protejat cu parolă. Introduceți-o pentru a deschide proiectul:"
+
+msgid "This project contains KNX Secure keys. Set a project password to protect them; the project can then only be opened with it."
+msgstr "Acest proiect conține chei KNX Secure. Setați o parolă de proiect pentru a le proteja; apoi proiectul se poate deschide numai cu ea."
+
+msgid "Password"
+msgstr "Parolă"
+
+msgid "Repeat Password"
+msgstr "Repetare parolă"
+
+msgid "The passwords do not match."
+msgstr "Parolele nu coincid."
+
+msgid "Protecting the project with the password…"
+msgstr "Se protejează proiectul cu parola…"
+
+msgid "Light Theme"
+msgstr "Temă luminoasă"
+
+msgid "Dark Theme"
+msgstr "Temă întunecată"
+
+msgid "Customize Theme…"
+msgstr "Personalizare temă…"
+
+msgid "Customize Theme"
+msgstr "Personalizare temă"
+
+msgid "Sizes"
+msgstr "Dimensiuni"
+
+msgid "Colors"
+msgstr "Culori"
+
+msgid "Rendering"
+msgstr "Randare"
+
+msgid "Adjustments"
+msgstr "Ajustări"
+
+msgid "Theme Default"
+msgstr "Implicit temă"
+
+msgid "Reset to Theme"
+msgstr "Resetare la temă"
+
+msgid "Rounding"
+msgstr "Rotunjire"
+
+msgid "Scrollbar Rounding Ratio"
+msgstr "Raport de rotunjire bare de derulare"
+
+msgid "Opacity"
+msgstr "Opacitate"
+
+msgid "Hue"
+msgstr "Nuanță"
+
+msgid "Saturation"
+msgstr "Saturație"
+
+msgid "Brightness of Controls"
+msgstr "Luminozitate controale"
+
+msgid "Brightness of Backgrounds"
+msgstr "Luminozitate fundaluri"
+
+msgid "Brightness of Text"
+msgstr "Luminozitate text"
+
+msgid "Brightness of Input Fields"
+msgstr "Luminozitate câmpuri de introducere"
+
+msgid "Spacing"
+msgstr "Spațiere"
+
+msgid "Borders"
+msgstr "Borduri"
+
+msgid "Alignment"
+msgstr "Aliniere"
+
+msgid "Window Padding"
+msgstr "Spațiere interioară fereastră"
+
+msgid "Field Padding"
+msgstr "Spațiere interioară câmp"
+
+msgid "Cell Padding"
+msgstr "Spațiere interioară celulă"
+
+msgid "Item Spacing"
+msgstr "Spațiere elemente"
+
+msgid "Item Inner Spacing"
+msgstr "Spațiere interioară elemente"
+
+msgid "Extra Touch Padding"
+msgstr "Spațiere suplimentară pentru atingere"
+
+msgid "Indent"
+msgstr "Indentare"
+
+msgid "Scrollbar Width"
+msgstr "Lățime bare de derulare"
+
+msgid "Minimum Slider Grip Size"
+msgstr "Dimensiune minimă mâner glisor"
+
+msgid "Windows"
+msgstr "Ferestre"
+
+msgid "Child Windows"
+msgstr "Ferestre secundare"
+
+msgid "Popups"
+msgstr "Ferestre pop-up"
+
+msgid "Fields"
+msgstr "Câmpuri"
+
+msgid "Tabs"
+msgstr "File"
+
+msgid "Tab Bar"
+msgstr "Bară de file"
+
+msgid "Scrollbars"
+msgstr "Bare de derulare"
+
+msgid "Slider Grips"
+msgstr "Mânere glisoare"
+
+msgid "Window Title"
+msgstr "Titlu fereastră"
+
+msgid "Button Text"
+msgstr "Text buton"
+
+msgid "List Entry Text"
+msgstr "Text intrări listă"
+
+msgid "Separator Text"
+msgstr "Text separator"
+
+msgid "Font Scale"
+msgstr "Scalare font"
+
+msgid "Anti-Aliased Lines"
+msgstr "Linii cu antialiasing"
+
+msgid "Anti-Aliased Fills"
+msgstr "Umpleri cu antialiasing"
+
+msgid "Maximum Curve Tessellation Error"
+msgstr "Eroare maximă de teselare a curbelor"
+
+msgid "Maximum Circle Tessellation Error"
+msgstr "Eroare maximă de teselare a cercurilor"
+
+msgid "Global Opacity"
+msgstr "Opacitate globală"
+
+msgid "Opacity of Disabled Items"
+msgstr "Opacitate elemente dezactivate"
+
+msgid "Show ImGui Demo Window"
+msgstr "Afișare fereastră demo ImGui"
+
+msgid "Filter colors"
+msgstr "Filtrare culori"
+
+msgid "Device not compatible with this ETS version"
+msgstr "Dispozitiv incompatibil cu această versiune ETS"
+
+msgid "This project cannot be imported into the chosen ETS version. The product data of the device(s) below exists only for a newer ETS (e.g. an ETS 6 product in an ETS 5 export), so ETS rejects the whole project with 'created with a newer version'.\n\nRemove these device(s) and export again, or cancel and export for the newer ETS instead."
+msgstr "Acest proiect nu poate fi importat în versiunea ETS aleasă. Datele de produs ale dispozitivelor de mai jos există doar pentru un ETS mai nou (de ex. un produs ETS 6 într-un export ETS 5), așa că ETS respinge întregul proiect cu 'created with a newer version'.\n\nEliminați aceste dispozitive și exportați din nou sau revocați și exportați în schimb pentru ETS-ul mai nou."
+
+msgid "Remove device(s) & re-export"
+msgstr "Eliminare dispozitive și reexport"
+
+msgid "Removed {count} incompatible device(s); re-exporting"
+msgstr "Dispozitive incompatibile eliminate: {count}; se exportă din nou"
+
+msgid "This file will NOT import into the chosen ETS version: the product data of these manufacturers only exists for a newer ETS (e.g. an ETS 6 product in an ETS 5 export), so ETS rejects the whole project. Remove the affected device(s) or export for the newer ETS."
+msgstr "Acest fișier NU se va importa în versiunea ETS aleasă: datele de produs ale acestor producători există doar pentru un ETS mai nou (de ex. un produs ETS 6 într-un export ETS 5), așa că ETS respinge întregul proiect. Eliminați dispozitivele afectate sau exportați pentru ETS-ul mai nou."
+
+msgid "Hide Tab Bar"
+msgstr "Ascundere bară de file"
+
+msgid "Open {url}"
+msgstr "Deschidere {url}"
+
+msgid "Copy Link"
+msgstr "Copiere link"
+
+msgid "Install Update"
+msgstr "Instalare actualizare"
+
+msgid "Install Update downloads the installer, closes XKNX Editor and starts it again with the open project."
+msgstr "„Instalare actualizare” descarcă programul de instalare, închide XKNX Editor și îl repornește cu proiectul deschis."
+
+msgid "Downloading the update…"
+msgstr "Se descarcă actualizarea…"
+
+msgid "{done} of {total} MB"
+msgstr "{done} din {total} MB"
+
+msgid "Export Failed"
+msgstr "Export eșuat"
+
+msgid "The project could not be exported to {name}."
+msgstr "Proiectul nu a putut fi exportat în {name}."
+
+msgid "MyKNX did not issue the certificate for the project:"
+msgstr "MyKNX nu a emis certificatul pentru proiect:"
+
+msgid "{name} cannot be imported."
+msgstr "{name} nu poate fi importat."
+
+msgid "The file was written, but it refers to product data that is not in the catalog: {references}. Add these products to the catalog and export again."
+msgstr "Fișierul a fost scris, dar face referire la date de produs care nu sunt în catalog: {references}. Adăugați aceste produse în catalog și exportați din nou."
+
+msgid "Exporting {name} — this can take a while for large projects."
+msgstr "Se exportă {name} — la proiectele mari poate dura un timp."
+
+msgid "Collecting the manufacturer data…"
+msgstr "Se colectează datele producătorilor…"
+
+msgid "Writing the archive…"
+msgstr "Se scrie arhiva…"
+
+msgid "Getting the certificate from MyKNX…"
+msgstr "Se obține certificatul de la MyKNX…"
+
+msgid "Cancelling…"
+msgstr "Se întrerupe…"
+
+msgid "Export cancelled, no file was written"
+msgstr "Export întrerupt, nu s-a scris niciun fișier"
+
+msgid "Sign In"
+msgstr "Autentificare"
+
+msgid "Disconnected. Reconnecting…"
+msgstr "Deconectat. Se reconectează…"
+
+msgid "Access denied. Please sign in again."
+msgstr "Acces refuzat. Autentificați-vă din nou."
+
+msgid "Upload from This Computer…"
+msgstr "Încărcare de pe acest computer…"
+
+msgid "Or drop files here."
+msgstr "Sau plasați fișierele aici."
+
+msgid "Files on the Server"
+msgstr "Fișiere pe server"
+
+msgid "No files yet."
+msgstr "Încă nu există fișiere."
+
+msgid "Open"
+msgstr "Deschidere"
+
+msgid "Select"
+msgstr "Selectare"
+
+msgid "File Name"
+msgstr "Nume fișier"
+
+msgid "Folder Name"
+msgstr "Nume folder"
+
+msgid "File Type"
+msgstr "Tip fișier"
+
+msgid "Download to This Computer"
+msgstr "Descărcare pe acest computer"
+
+msgid "Uploading {name}…"
+msgstr "Se încarcă {name}…"
+
+msgid "Upload failed: {error}"
+msgstr "Încărcarea a eșuat: {error}"
+
+msgid "Show"
+msgstr "Afișare"
+
+msgid "Folder on the Server"
+msgstr "Folder pe server"
+
+msgid "View only: another browser controls the editor."
+msgstr "Doar vizualizare: alt browser controlează editorul."
+
+msgid "Take Control"
+msgstr "Preluare control"
+
+msgid "Open Link"
+msgstr "Deschidere link"
+
+msgid "Name"
+msgstr "Nume"
+
+msgid "Size"
+msgstr "Dimensiune"
+
+msgid "Modified"
+msgstr "Modificat"
+
+msgid "The browser did not open it by itself."
+msgstr "Browserul nu l-a deschis singur."
+
+msgid "Download started: {name}"
+msgstr "Descărcare pornită: {name}"
+
+msgid "Choose File…"
+msgstr "Alegere fișier…"
+
+msgid "{name} is ready."
+msgstr "{name} este gata."
+
+msgid "Enter the password for access to the editor."
+msgstr "Introduceți parola pentru acces la editor."
+
+msgid "Wrong password."
+msgstr "Parolă greșită."
+
+msgid "ETS 6: needs a licensed .knxproj through a MyKNX login or a dongle.\nETS 5: just use 'Export Without Certificate'."
+msgstr "ETS 6: necesită un fișier .knxproj licențiat prin autentificare MyKNX sau cu dongle.\nETS 5: folosiți simplu 'Export fără certificat'."
+
+msgid "Sign with MyKNX Login"
+msgstr "Semnare cu autentificare MyKNX"
+
+msgid "License with a Dongle"
+msgstr "Licențiere cu dongle"
+
+msgid "ETS must not be running on any computer with this MyKNX account while you log in and export here."
+msgstr "ETS nu trebuie să ruleze pe niciun computer cu acest cont MyKNX cât timp vă autentificați și exportați aici."
+
+msgid "Log in"
+msgstr "Autentificare"
+
+msgid "(only in the export, the project stays unchanged)"
+msgstr "(doar în export, proiectul rămâne neschimbat)"
+
+msgid "To export without it, choose 'Export Without Certificate' or the 'License with a Dongle' tab in the Sign Export window."
+msgstr "Pentru a exporta fără certificat, alegeți în fereastra „Semnare export” opțiunea „Export fără certificat” sau fila „Licențiere cu dongle”."
+
+msgid "Re-license the project through your own licensed ETS, which re-signs the copy with your dongle license:\n\nETS 6 - use the local project store:\n1. Click 'Export to ProjectStore'. It writes the project's 'P-XXXX' folder straight into your ETS 6 project store. If ETS is not installed on this computer, you are asked for the store folder (or any folder you then copy over manually).\n2. The export needs your 'installer.guid' from C:\\ProgramData\\KNX\\ETS6\\Installer. If it cannot be found automatically, you are asked to select it.\n3. Restart ETS 6 - the project appears in the project overview.\n4. Make a copy of it there (Copy in the overview). The copy is re-signed with your license - open it, then use or export it normally.\n\nETS 5 - no project store is needed:\nChoose 'Export Without Certificate' (with ETS 5 as version) and an active signing key to save a .knxproj, then import that file into ETS 5.\n\nThis is bounded by the device-per-project limit of your license."
+msgstr "Relicențiați proiectul prin propriul ETS licențiat, care resemnează copia cu licența dongle-ului dumneavoastră:\n\nETS 6 - folosiți ProjectStore-ul local:\n1. Faceți clic pe 'Export în ProjectStore'. Folderul 'P-XXXX' al proiectului este scris direct în ProjectStore-ul ETS 6. Dacă ETS nu este instalat pe acest computer, vi se cere folderul store-ului (sau orice folder din care îl copiați apoi manual).\n2. Exportul are nevoie de fișierul 'installer.guid' din C:\\ProgramData\\KNX\\ETS6\\Installer. Dacă nu poate fi găsit automat, vi se cere să-l selectați.\n3. Reporniți ETS 6 - proiectul apare în prezentarea generală a proiectelor.\n4. Faceți acolo o copie a lui (Copy în prezentarea generală). Copia este resemnată cu licența dumneavoastră - deschideți-o, apoi folosiți-o sau exportați-o normal.\n\nETS 5 - nu este nevoie de ProjectStore:\nAlegeți 'Export fără certificat' (cu ETS 5 ca versiune) și o cheie de semnare activă pentru a salva un fișier .knxproj, apoi importați acest fișier în ETS 5.\n\nAcest lucru este limitat de numărul maxim de dispozitive per proiect al licenței dumneavoastră."
+
+msgid "Needed only for accounts with two-factor authentication. The 2FA sign-in opens in your browser automatically when a normal login is rejected. Enter the OAuth client id/secret, or extract them from your installed ETS: pick 'Knx.Ets.MyKnx.dll' from the ETS program folder (e.g. C:\\Program Files (x86)\\ETS6\\Knx.Ets.MyKnx.dll).\n\nAlternatively, if you have any licensed ETS installed, skip online signing entirely and use the local project store instead - see the 'License with a Dongle' tab."
+msgstr "Necesar doar pentru conturile cu autentificare cu doi factori. Autentificarea 2FA se deschide automat în browser când o autentificare normală este respinsă. Introduceți ID-ul/secretul clientului OAuth sau extrageți-le din ETS-ul instalat: alegeți 'Knx.Ets.MyKnx.dll' din folderul de program ETS (de ex. C:\\Program Files (x86)\\ETS6\\Knx.Ets.MyKnx.dll).\n\nAlternativ, dacă aveți instalat orice ETS licențiat, renunțați complet la semnarea online și folosiți în schimb ProjectStore-ul local - vedeți fila 'Licențiere cu dongle'."
+
+msgid "Checking for updates…"
+msgstr "Se caută actualizări…"
+
+msgid "The check for updates failed: {error}"
+msgstr "Căutarea actualizărilor a eșuat: {error}"
+
+msgid "The project has no group addresses to export."
+msgstr "Proiectul nu conține adrese de grup de exportat."
+
+msgid "Clear Cache…"
+msgstr "Golire cache…"
+
+msgid "Clear Cache"
+msgstr "Golire cache"
+
+msgid "The cache holds {size} of parsed product data and of documentation fetched for the AI tools. All of it is made again when needed; afterwards only the first use of each product takes longer."
+msgstr "Cache-ul conține {size} de date de produs procesate și de documentație preluată pentru instrumentele AI. Totul se recreează la nevoie; după aceea doar prima utilizare a fiecărui produs durează mai mult."
+
+msgid "Cache cleared, {size} freed"
+msgstr "Cache golit, eliberat: {size}"
+
+msgid "KNX Secure"
+msgstr "KNX Secure"
+
+msgid "Zoom In"
+msgstr "Mărire"
+
+msgid "Zoom Out"
+msgstr "Micșorare"
+
+msgid "Reset Zoom"
+msgstr "Resetare zoom"
+
+msgid "Cut"
+msgstr "Decupare"
+
+msgid "Paste"
+msgstr "Lipire"
+
+msgid "Select All"
+msgstr "Selectare totală"
+
+msgid "Long-press in the field below and choose Paste."
+msgstr "Apăsați lung în câmpul de mai jos și alegeți Lipire."
+
+msgid "Too many wrong passwords. Please try again in a few minutes."
+msgstr "Prea multe parole greșite. Încercați din nou peste câteva minute."
+
+msgid "Port {port} is already in use by another program, so the browser UI cannot start there. Start it with another port (e.g. --web={example}) or without a port to take a free one."
+msgstr "Portul {port} este deja folosit de alt program, așa că interfața din browser nu poate porni acolo. Porniți-o cu alt port (de ex. --web={example}) sau fără port pentru a lua unul liber."
+
+msgid "Load OpenKNX from URL or Folder…"
+msgstr "Încărcare OpenKNX de la URL sau din folder…"
+
+msgid "Load OpenKNX from URL or Folder"
+msgstr "Încărcare OpenKNX de la URL sau din folder"
+
+msgid "Or choose a local folder with product files (.knxprod, OpenKNX release .zip, or KNX product XML) to import all of them."
+msgstr "Sau alegeți un folder local cu fișiere de produs (.knxprod, .zip de release OpenKNX sau XML de produs KNX) pentru a le importa pe toate."
+
+msgid "Choose Folder…"
+msgstr "Alegere folder…"
+
+msgid "Choose a Folder with KNX Product Files"
+msgstr "Alegeți un folder cu fișiere de produs KNX"
+
+msgid "Importing from folder…"
+msgstr "Se importă din folder…"
+
+msgid "Imported {count} new product version(s) from folder"
+msgstr "Versiuni noi de produs importate din folder: {count}"
+
+msgid "Nothing new imported from folder (no product files found, or already in the catalog)"
+msgstr "Nu s-a importat nimic nou din folder (nu s-au găsit fișiere de produs sau există deja în catalog)"
+
+msgid "Import from folder failed: {error}"
+msgstr "Importul din folder a eșuat: {error}"
+
+msgid "Load OpenKNX from URL or Files…"
+msgstr "Încărcare OpenKNX de la URL sau din fișiere…"
+
+msgid "Load OpenKNX from URL or Files"
+msgstr "Încărcare OpenKNX de la URL sau din fișiere"
+
+msgid "Or upload product files (.knxprod, OpenKNX release .zip, or KNX product XML) from this computer to import all of them."
+msgstr "Sau încărcați fișiere de produs (.knxprod, .zip de release OpenKNX sau XML de produs KNX) de pe acest computer pentru a le importa pe toate."
+
+msgid "Choose Files…"
+msgstr "Alegere fișiere…"
+
+msgid "Choose KNX Product Files"
+msgstr "Alegeți fișiere de produs KNX"
+
+msgid "KNX Product Files (*.knxprod, *.zip, *.xml)"
+msgstr "Fișiere de produs KNX (*.knxprod, *.zip, *.xml)"
+
+msgid "Importing files…"
+msgstr "Se importă fișierele…"
+
+msgid "Nothing new imported from the files (no product files, or already in the catalog)"
+msgstr "Nu s-a importat nimic nou din fișiere (niciun fișier de produs sau există deja în catalog)"
+
+msgid "Import of the files failed: {error}"
+msgstr "Importul fișierelor a eșuat: {error}"
+
+msgid "DIN rail"
+msgstr "Șină DIN"
+
+msgid "Flush-mounted"
+msgstr "Montaj îngropat"
+
+msgid "Registered: {info}"
+msgstr "Înregistrat: {info}"
+
+msgid "Manufacturer"
+msgstr "Producător"
+
+msgid "Product"
+msgstr "Produs"
+
+msgid "Order no."
+msgstr "Cod comandă"
+
+msgid "Application"
+msgstr "Aplicație"
+
+msgid "Version"
+msgstr "Versiune"
+
+msgid "Mask"
+msgstr "Mască"
+
+msgid "Registered"
+msgstr "Înregistrat"
+
+msgid "Port {port} is already in use by another program, so the MCP server cannot start. Choose another port, or end the other program."
+msgstr "Portul {port} este deja folosit de alt program, așa că serverul MCP nu poate porni. Alegeți alt port sau închideți celălalt program."
+
+msgid "The MCP server could not start: {error}"
+msgstr "Serverul MCP nu a putut porni: {error}"
+
+msgid "Open in Browser"
+msgstr "Deschidere în browser"
+
+msgid "Stop XKNX Editor"
+msgstr "Oprire XKNX Editor"
+
+msgid "XKNX Editor Already Running"
+msgstr "XKNX Editor rulează deja"
+
+msgid "XKNX Editor is already running on this computer. Switch to it, or start another one, e.g. to work on a second project or with another bus connection."
+msgstr "XKNX Editor rulează deja pe acest computer. Comutați la el sau porniți încă unul, de ex. pentru a lucra la un al doilea proiect sau cu altă conexiune la magistrală."
+
+msgid "Window"
+msgstr "Fereastră"
+
+msgid "Browser UI ({url})"
+msgstr "Interfață browser ({url})"
+
+msgid "{kind}: {project}"
+msgstr "{kind}: {project}"
+
+msgid "Switch to It"
+msgstr "Comutare la el"
+
+msgid "Start Another"
+msgstr "Pornire încă unul"
+
+msgid "That XKNX Editor has ended in the meantime."
+msgstr "Acel XKNX Editor s-a închis între timp."
+
+msgid "Project Already Open"
+msgstr "Proiect deja deschis"
+
+msgid "{name} is already open in another XKNX Editor. Editing it in two editors at once can overwrite changes."
+msgstr "{name} este deja deschis în alt XKNX Editor. Editarea lui în două editoare simultan poate suprascrie modificări."
+
+msgid "Open Anyway"
+msgstr "Deschidere oricum"
+
+msgid "C"
+msgstr "C"
+
+msgid "R"
+msgstr "R"
+
+msgid "W"
+msgstr "W"
+
+msgid "T"
+msgstr "T"
+
+msgid "U"
+msgstr "U"
+
+msgid "I"
+msgstr "I"
+
+msgid "Communication"
+msgstr "Comunicare"
+
+msgid "Read"
+msgstr "Citire"
+
+msgid "Write"
+msgstr "Scriere"
+
+msgid "Transmit"
+msgstr "Transmitere"
+
+msgid "Update"
+msgstr "Actualizare"
+
+msgid "Read on Init"
+msgstr "Citire la inițializare"
+
+msgid "English"
+msgstr "Engleză"
+
+msgid "German"
+msgstr "Germană"
+
+msgid "Dutch"
+msgstr "Neerlandeză"
+
+msgid "{name} ({native})"
+msgstr "{name} ({native})"
+
+msgid "Spanish"
+msgstr "Spaniolă"
+
+msgid "Greek"
+msgstr "Greacă"
+
+msgid "Simplified Chinese"
+msgstr "Chineză simplificată"
+
+msgid "Japanese"
+msgstr "Japoneză"
+
+msgid "Czech"
+msgstr "Cehă"
+
+msgid "Danish"
+msgstr "Daneză"
+
+msgid "Finnish"
+msgstr "Finlandeză"
+
+msgid "French"
+msgstr "Franceză"
+
+msgid "Italian"
+msgstr "Italiană"
+
+msgid "Norwegian"
+msgstr "Norvegiană bokmål"
+
+msgid "Polish"
+msgstr "Poloneză"
+
+msgid "Portuguese"
+msgstr "Portugheză"
+
+msgid "Russian"
+msgstr "Rusă"
+
+msgid "Swedish"
+msgstr "Suedeză"
+
+msgid "Turkish"
+msgstr "Turcă"
+
+msgid "Ukrainian"
+msgstr "Ucraineană"
+
+msgid "Albanian"
+msgstr "Albaneză"
+
+msgid "Preferred Product Language"
+msgstr "Limbă preferată pentru produse"
+
+msgid "Hungarian"
+msgstr "Maghiară"
+
+msgid "Romanian"
+msgstr "Română"
+
+msgid "Slovak"
+msgstr "Slovacă"
+
+msgid "Slovenian"
+msgstr "Slovenă"
+
+msgid "Icelandic"
+msgstr "Islandeză"
+
+msgid "Ctrl"
+msgstr "Ctrl"
+
+msgid "Del"
+msgstr "Del"
+
+msgid "This Machine Only"
+msgstr "Doar acest computer"
+
+msgid "On the Network"
+msgstr "În rețea"
+
+msgid "This editor is controllable by an AI assistant through the built-in MCP server: it exposes the catalog and project as tools over Streamable HTTP. Register its endpoint in your AI tool."
+msgstr "Acest editor poate fi controlat de un asistent AI prin serverul MCP integrat: acesta pune la dispoziție catalogul și proiectul ca instrumente prin Streamable HTTP. Înregistrați endpoint-ul lui în instrumentul AI."
+
+msgid "Example: register the MCP server in your AI tool:"
+msgstr "Exemplu: înregistrați serverul MCP în instrumentul AI:"
+
+msgid "Example: register the MCP server in your AI tool, with your token in place of HOME_ASSISTANT_TOKEN:"
+msgstr "Exemplu: înregistrați serverul MCP în instrumentul AI, cu tokenul dumneavoastră în locul HOME_ASSISTANT_TOKEN:"
+
+msgid "Home Assistant provides the MCP server: AI tools sign in with a long-lived access token of a Home Assistant user who may use the editor (Profile > Security)."
+msgstr "Home Assistant pune la dispoziție serverul MCP: instrumentele AI se autentifică cu un token de acces de lungă durată al unui utilizator Home Assistant care are voie să folosească editorul (Profil > Securitate)."
+
+msgid "The program that started XKNX Editor set up its MCP server."
+msgstr "Programul care a pornit XKNX Editor i-a configurat serverul MCP."
+
+msgid "Home Assistant updates XKNX Editor with its integration: check Home Assistant for an update of the XKNX Editor integration. It may follow this release a little later."
+msgstr "Home Assistant actualizează XKNX Editor prin integrarea sa: verificați în Home Assistant dacă există o actualizare a integrării XKNX Editor. Aceasta poate apărea puțin după această versiune."

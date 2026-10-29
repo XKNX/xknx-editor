@@ -1,0 +1,131 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor recover 1.0\n"
+"Language: hu\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Recover"
+msgstr "Visszaállítás"
+
+msgid "Recover from Bus…"
+msgstr "Visszaállítás a buszról…"
+
+msgid "Recover Project from Bus"
+msgstr "Projekt visszaállítása a buszról"
+
+msgid "From Address"
+msgstr "Kezdőcím"
+
+msgid "To Address"
+msgstr "Zárócím"
+
+msgid "Scan"
+msgstr "Keresés"
+
+msgid "Stop"
+msgstr "Leállítás"
+
+msgid "Add to Open Project as Read"
+msgstr "Hozzáadás a megnyitott projekthez beolvasott állapotban"
+
+msgid "Recover Selected"
+msgstr "Kijelöltek visszaállítása"
+
+msgid "Create New Project"
+msgstr "Új projekt létrehozása"
+
+msgid "Add to Open Project"
+msgstr "Hozzáadás a megnyitott projekthez"
+
+msgid "Verify (Read-Only)"
+msgstr "Ellenőrzés (csak olvasás)"
+
+msgid "Export Snapshot"
+msgstr "Pillanatkép exportálása"
+
+msgid "Verifying (re-reading and comparing)…"
+msgstr "Ellenőrzés (újraolvasás és összehasonlítás)…"
+
+msgid "%(count)d group address(es) have no sender or multiple senders."
+msgstr "Küldő nélküli vagy több küldővel rendelkező csoportcímek: %(count)d."
+
+msgid "Address"
+msgstr "Cím"
+
+msgid "Mask"
+msgstr "Maszk"
+
+msgid "Product / Application"
+msgstr "Termék / alkalmazás"
+
+msgid "Status"
+msgstr "Állapot"
+
+msgid "Set an address range and scan the bus."
+msgstr "Adjon meg egy címtartományt, és vizsgálja át a buszt."
+
+msgid "Scanning the bus…"
+msgstr "A busz átvizsgálása…"
+
+msgid "Scanning %(address)s  (%(done)d/%(total)d, %(found)d found)"
+msgstr "Keresés: %(address)s  (%(done)d/%(total)d, talált: %(found)d)"
+
+msgid "Loading missing products from online catalog: %(what)s"
+msgstr "Hiányzó termékek betöltése az online katalógusból: %(what)s"
+
+msgid "Reading devices…"
+msgstr "Készülékek beolvasása…"
+
+msgid "Reading %(address)s  (%(done)d/%(total)d)  -  %(stage)s"
+msgstr "Olvasás: %(address)s  (%(done)d/%(total)d)  -  %(stage)s"
+
+msgid "group communication tables"
+msgstr "csoportkommunikációs táblák"
+
+msgid "parameter memory"
+msgstr "paramétermemória"
+
+msgid "Recovered %(devices)d device(s): %(group_addresses)d group addresses, %(links)d links, %(unknown)d parameter(s) not recoverable."
+msgstr "Visszaállított készülékek: %(devices)d; csoportcímek: %(group_addresses)d, összekapcsolások: %(links)d, vissza nem állítható paraméterek: %(unknown)d."
+
+msgid "Recovered"
+msgstr "Visszaállítva"
+
+msgid "Added %(count)d device(s) to the open project (%(target)s)."
+msgstr "A megnyitott projekthez (%(target)s) hozzáadott készülékek: %(count)d."
+
+msgid "Created new project %(target)s with %(count)d device(s)."
+msgstr "Új projekt létrehozva: %(target)s, készülékek: %(count)d."
+
+msgid "Not connected to a KNX bus."
+msgstr "Nincs kapcsolat KNX-busszal."
+
+msgid "Open or create a project to add recovered devices."
+msgstr "A visszaállított készülékek hozzáadásához nyisson meg vagy hozzon létre egy projektet."
+
+msgid "matched"
+msgstr "egyezik"
+
+msgid "confirm product/version, then tick"
+msgstr "erősítse meg a terméket/verziót, majd jelölje be"
+
+msgid "not in catalog - import via Catalog"
+msgstr "nincs a katalógusban – importálja a Katalógusból"
+
+msgid "unprogrammed"
+msgstr "programozatlan"
+
+msgid "recovered"
+msgstr "visszaállítva"
+
+msgid "error"
+msgstr "hiba"
+
+msgid "%d parameters could not be recovered"
+msgstr "Vissza nem állítható paraméterek: %d"
+
+msgid "already in project - skipped"
+msgstr "már a projektben van – kihagyva"

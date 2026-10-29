@@ -166,13 +166,17 @@ def test_the_language_menu_is_alphabetical_as_it_reads() -> None:
             "Deutsch",
             "Englisch (English)",
         ]
-        assert labels[-2:] == ["Türkisch (Türkçe)", "Ukrainisch (українська)"]
+        assert labels[-3:] == [
+            "Türkisch (Türkçe)",
+            "Ukrainisch (українська)",
+            "Ungarisch (magyar)",
+        ]
         set_locale("es")
         labels = [label for _code, label in _language_items()]
-        # Sorted without accents and case: "Español" right after "Danés", before "Finés".
+        # Sorted without accents and case: "Español" after "Esloveno", before "Finés".
         position = labels.index("Español (español)")
         assert labels[position - 1 : position + 2] == [
-            "Danés (dansk)",
+            "Esloveno (slovenščina)",
             "Español (español)",
             "Finés (suomi)",
         ]

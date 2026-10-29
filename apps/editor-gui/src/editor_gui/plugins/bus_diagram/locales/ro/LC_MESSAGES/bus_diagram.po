@@ -1,0 +1,176 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor bus_diagram 1.0\n"
+"Language: ro\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Bus Diagram"
+msgstr "Diagramă magistrală"
+
+msgid "No project open"
+msgstr "Niciun proiect deschis"
+
+msgid "Unassigned"
+msgstr "Nealocat"
+
+msgid "Area -> Line -> Device. Click a device to open it."
+msgstr "Zonă -> Linie -> Dispozitiv. Faceți clic pe un dispozitiv pentru a-l deschide."
+
+msgid "Ctrl+scroll to zoom. Click a device to open it."
+msgstr "Ctrl+derulare pentru zoom. Faceți clic pe un dispozitiv pentru a-l deschide."
+
+msgid "Building View"
+msgstr "Vizualizare clădire"
+
+msgid "Links"
+msgstr "Legături"
+
+msgid "Physical"
+msgstr "Fizic"
+
+msgid "Building"
+msgstr "Clădire"
+
+msgid "Matrix"
+msgstr "Matrice"
+
+msgid "A device x group-address matrix: amber = the device sends on that group address, blue = it receives. Hover a column for the group address, a row to open the device."
+msgstr "O matrice dispozitive x adrese de grup: chihlimbar = dispozitivul transmite pe acea adresă de grup, albastru = recepționează. Treceți cu mouse-ul peste o coloană pentru adresa de grup, peste un rând pentru a deschide dispozitivul."
+
+msgid "sends"
+msgstr "transmite"
+
+msgid "receives"
+msgstr "recepționează"
+
+msgid "sends & receives"
+msgstr "transmite și recepționează"
+
+msgid "Each group address is a hub node; devices link to it (sender into the hub, hub out to receivers). Hover a device to see its group addresses, or a hub to see every device on it. Click a device to open it."
+msgstr "Fiecare adresă de grup este un nod central; dispozitivele sunt legate de el (emițătorul spre nod, nodul spre receptoare). Treceți cu mouse-ul peste un dispozitiv pentru a-i vedea adresele de grup sau peste un nod pentru a vedea toate dispozitivele de pe el. Faceți clic pe un dispozitiv pentru a-l deschide."
+
+msgid "No linked devices to show."
+msgstr "Nu există dispozitive legate de afișat."
+
+msgid "Room"
+msgstr "Cameră"
+
+msgid "Group"
+msgstr "Grup"
+
+msgid "All"
+msgstr "Toate"
+
+msgid "Ctrl/Cmd+scroll to zoom. Click a device to open it."
+msgstr "Ctrl/Cmd+derulare pentru zoom. Faceți clic pe un dispozitiv pentru a-l deschide."
+
+msgid "Area {area}"
+msgstr "Zona {area}"
+
+msgid "L {line}"
+msgstr "L {line}"
+
+msgid "Zoom with two fingers. Tap a device to open it."
+msgstr "Zoom cu două degete. Atingeți un dispozitiv pentru a-l deschide."
+
+msgid "(unnamed)"
+msgstr "(fără nume)"
+
+msgid "Address: {address}"
+msgstr "Adresă: {address}"
+
+msgid "Application: {application}"
+msgstr "Aplicație: {application}"
+
+msgid "Which devices talk to which over their group addresses: sending devices on the left, receiving devices on the right."
+msgstr "Ce dispozitive comunică între ele prin adresele lor de grup: dispozitivele care transmit în stânga, cele care recepționează în dreapta."
+
+msgid "Click to follow a device, channel or group address, double-click to open a device, click the arrow of a device to list its group objects. Drag to move, {key}+scroll to zoom."
+msgstr "Clic pentru a urmări un dispozitiv, un canal sau o adresă de grup, dublu clic pentru a deschide un dispozitiv, clic pe săgeata unui dispozitiv pentru a-i lista obiectele de comunicare. Trageți pentru a muta, {key}+derulare pentru zoom."
+
+msgid "Tap to follow a device, channel or group address, double-tap to open a device, tap the arrow of a device to list its group objects. Zoom with two fingers."
+msgstr "Atingeți pentru a urmări un dispozitiv, un canal sau o adresă de grup, atingeți de două ori pentru a deschide un dispozitiv, atingeți săgeata unui dispozitiv pentru a-i lista obiectele de comunicare. Zoom cu două degete."
+
+msgid "Channels"
+msgstr "Canale"
+
+msgid "Channel: {channel} ({device})"
+msgstr "Canal: {channel} ({device})"
+
+msgid "List the group objects"
+msgstr "Listare obiecte de comunicare"
+
+msgid "Hide the group objects"
+msgstr "Ascundere obiecte de comunicare"
+
+msgid "Group object {number}: {name}"
+msgstr "Obiect de comunicare {number}: {name}"
+
+msgid "Channel: {channel}"
+msgstr "Canal: {channel}"
+
+msgid "Drag to move, {key}+scroll to zoom. Click a device to open it."
+msgstr "Trageți pentru a muta, {key}+derulare pentru zoom. Faceți clic pe un dispozitiv pentru a-l deschide."
+
+msgid "Show"
+msgstr "Afișare"
+
+msgid "Choose…"
+msgstr "Alegere…"
+
+msgid "Choose above what to show: the whole project, a room or a main group."
+msgstr "Alegeți mai sus ce se afișează: întregul proiect, o cameră sau o grupă principală."
+
+msgid "Whole Project"
+msgstr "Întregul proiect"
+
+msgid "Rooms"
+msgstr "Camere"
+
+msgid "Main Groups"
+msgstr "Grupe principale"
+
+msgid "Device: {device}"
+msgstr "Dispozitiv: {device}"
+
+msgid "Group Address: {address}"
+msgstr "Adresă de grup: {address}"
+
+msgid "Back"
+msgstr "Înapoi"
+
+msgid "Fit"
+msgstr "Încadrare"
+
+msgid "Sending"
+msgstr "Emițătoare"
+
+msgid "Group Addresses"
+msgstr "Adrese de grup"
+
+msgid "Receiving"
+msgstr "Receptoare"
+
+msgid "+ {count} more"
+msgstr "+ încă {count}"
+
+msgid "{count} more devices outside the selection. Click to show them."
+msgstr "Dispozitive în afara selecției: {count}. Faceți clic pentru a le afișa."
+
+msgid "{address}\n{senders} sending, {receivers} receiving"
+msgstr "{address}\nEmițătoare: {senders}, receptoare: {receivers}"
+
+msgid "Areas"
+msgstr "Zone"
+
+msgid "Lines"
+msgstr "Linii"
+
+msgid "Devices"
+msgstr "Dispozitive"
+
+msgid "Buildings"
+msgstr "Clădiri"

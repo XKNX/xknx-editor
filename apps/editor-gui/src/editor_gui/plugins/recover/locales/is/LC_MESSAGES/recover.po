@@ -1,0 +1,131 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor recover 1.0\n"
+"Language: is\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Recover"
+msgstr "Endurheimta"
+
+msgid "Recover from Bus…"
+msgstr "Endurheimta af tengibraut…"
+
+msgid "Recover Project from Bus"
+msgstr "Endurheimta verkefni af tengibraut"
+
+msgid "From Address"
+msgstr "Frá vistfangi"
+
+msgid "To Address"
+msgstr "Til vistfangs"
+
+msgid "Scan"
+msgstr "Leita"
+
+msgid "Stop"
+msgstr "Stöðva"
+
+msgid "Add to Open Project as Read"
+msgstr "Bæta við opna verkefnið eins og lesið"
+
+msgid "Recover Selected"
+msgstr "Endurheimta valin"
+
+msgid "Create New Project"
+msgstr "Búa til nýtt verkefni"
+
+msgid "Add to Open Project"
+msgstr "Bæta við opna verkefnið"
+
+msgid "Verify (Read-Only)"
+msgstr "Sannprófa (aðeins lestur)"
+
+msgid "Export Snapshot"
+msgstr "Flytja út skyndimynd"
+
+msgid "Verifying (re-reading and comparing)…"
+msgstr "Sannprófar (les aftur og ber saman)…"
+
+msgid "%(count)d group address(es) have no sender or multiple senders."
+msgstr "Hópvistföng án sendanda eða með fleiri en einn sendanda: %(count)d"
+
+msgid "Address"
+msgstr "Vistfang"
+
+msgid "Mask"
+msgstr "Maski"
+
+msgid "Product / Application"
+msgstr "Vara / verkforrit"
+
+msgid "Status"
+msgstr "Staða"
+
+msgid "Set an address range and scan the bus."
+msgstr "Settu vistfangasvið og leitaðu á tengibrautinni."
+
+msgid "Scanning the bus…"
+msgstr "Leitar á tengibrautinni…"
+
+msgid "Scanning %(address)s  (%(done)d/%(total)d, %(found)d found)"
+msgstr "Leitar á %(address)s  (%(done)d/%(total)d, fundust: %(found)d)"
+
+msgid "Loading missing products from online catalog: %(what)s"
+msgstr "Sækir vörur sem vantar úr vörulista á netinu: %(what)s"
+
+msgid "Reading devices…"
+msgstr "Les tæki…"
+
+msgid "Reading %(address)s  (%(done)d/%(total)d)  -  %(stage)s"
+msgstr "Les %(address)s  (%(done)d/%(total)d)  -  %(stage)s"
+
+msgid "group communication tables"
+msgstr "töflur hópsamskipta"
+
+msgid "parameter memory"
+msgstr "færibreytuminni"
+
+msgid "Recovered %(devices)d device(s): %(group_addresses)d group addresses, %(links)d links, %(unknown)d parameter(s) not recoverable."
+msgstr "Endurheimt tæki: %(devices)d; hópvistföng: %(group_addresses)d, tengingar: %(links)d, færibreytur sem ekki var hægt að endurheimta: %(unknown)d."
+
+msgid "Recovered"
+msgstr "Endurheimt"
+
+msgid "Added %(count)d device(s) to the open project (%(target)s)."
+msgstr "Tækjum bætt við opna verkefnið (%(target)s): %(count)d."
+
+msgid "Created new project %(target)s with %(count)d device(s)."
+msgstr "Nýtt verkefni %(target)s búið til; tæki: %(count)d."
+
+msgid "Not connected to a KNX bus."
+msgstr "Ekki tengt við KNX-tengibraut."
+
+msgid "Open or create a project to add recovered devices."
+msgstr "Opnaðu eða búðu til verkefni til að bæta við endurheimtum tækjum."
+
+msgid "matched"
+msgstr "samsvarar"
+
+msgid "confirm product/version, then tick"
+msgstr "staðfestu vöru/útgáfu og hakaðu svo við"
+
+msgid "not in catalog - import via Catalog"
+msgstr "ekki í vörulista - fluttu inn í gegnum Vörulista"
+
+msgid "unprogrammed"
+msgstr "óforritað"
+
+msgid "recovered"
+msgstr "endurheimt"
+
+msgid "error"
+msgstr "villa"
+
+msgid "%d parameters could not be recovered"
+msgstr "Færibreytur sem ekki var hægt að endurheimta: %d"
+
+msgid "already in project - skipped"
+msgstr "þegar í verkefni - sleppt"

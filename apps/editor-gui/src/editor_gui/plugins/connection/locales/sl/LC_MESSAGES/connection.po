@@ -1,0 +1,197 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor connection 1.0\n"
+"Language: sl\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Gateway"
+msgstr "Prehod"
+
+msgid "Connect"
+msgstr "Poveži"
+
+msgid "Disconnect"
+msgstr "Prekini povezavo"
+
+msgid "Discovered Gateways"
+msgstr "Najdeni prehodi"
+
+msgid "Diagnostics"
+msgstr "Diagnostika"
+
+msgid "Check for Devices in Programming Mode"
+msgstr "Poišči naprave v načinu programiranja"
+
+msgid "No gateways found"
+msgstr "Ni najdenih prehodov"
+
+msgid "Manual Connection"
+msgstr "Ročna povezava"
+
+msgid "Connected: {ip}"
+msgstr "Povezano: {ip}"
+
+msgid "Connected to {ip}"
+msgstr "Povezano z {ip}"
+
+msgid "Disconnected"
+msgstr "Ni povezave"
+
+msgid "Connecting…"
+msgstr "Povezovanje…"
+
+msgid "Connection failed"
+msgstr "Povezava ni uspela"
+
+msgid "Scan"
+msgstr "Išči"
+
+msgid "Settings"
+msgstr "Nastavitve"
+
+msgid "Use multicast routing (instead of tunneling)"
+msgstr "Uporabi usmerjanje multicast (namesto tuneliranja)"
+
+msgid "Gateway IP"
+msgstr "IP prehoda"
+
+msgid "Multicast Group"
+msgstr "Skupina multicast"
+
+msgid "Apply"
+msgstr "Uporabi"
+
+msgid "Use Serial Number for Downloads"
+msgstr "Pri programiranju uporabi serijsko številko"
+
+msgid "Bus monitor: {ip}"
+msgstr "Monitor vodila: {ip}"
+
+msgid "The gateway is connected in bus monitor mode. Nothing can be sent or downloaded until the bus monitor is stopped."
+msgstr "Prehod je povezan v načinu monitorja vodila. Dokler monitorja vodila ne ustavite, ni mogoče ničesar poslati ali programirati."
+
+msgid "Stop Bus Monitor"
+msgstr "Ustavi monitor vodila"
+
+msgid "Not possible while the bus monitor is running"
+msgstr "Ni mogoče, dokler deluje monitor vodila"
+
+msgid "Answered the scan, but reading its details failed: {error}"
+msgstr "Naprava se je odzvala na iskanje, vendar branje njenih podrobnosti ni uspelo: {error}"
+
+msgid "Application"
+msgstr "Aplikacija"
+
+msgid "Application Version"
+msgstr "Različica aplikacije"
+
+msgid "Devices in Programming Mode"
+msgstr "Naprave v načinu programiranja"
+
+msgid "Hardware Type"
+msgstr "Vrsta strojne opreme"
+
+msgid "In this project: {name}"
+msgstr "V tem projektu: {name}"
+
+msgid "Manufacturer"
+msgstr "Proizvajalec"
+
+msgid "Mask Version"
+msgstr "Različica maske"
+
+msgid "No device is in programming mode."
+msgstr "Nobena naprava ni v načinu programiranja."
+
+msgid "No fault"
+msgstr "Brez napake"
+
+msgid "Not in this project"
+msgstr "Ni v tem projektu"
+
+msgid "Order Number"
+msgstr "Naročilna številka"
+
+msgid "Press the programming button on a device to put it into programming mode, then rescan."
+msgstr "Pritisnite tipko za programiranje na napravi, da jo preklopite v način programiranja, nato znova iščite."
+
+msgid "Product (Catalog)"
+msgstr "Izdelek (katalog)"
+
+msgid "Programming mode active"
+msgstr "Način programiranja je vklopljen"
+
+msgid "Rescan"
+msgstr "Išči znova"
+
+msgid "Searching the bus…"
+msgstr "Iskanje po vodilu…"
+
+msgid "Select in Project"
+msgstr "Izberi v projektu"
+
+msgid "Serial Number"
+msgstr "Serijska številka"
+
+msgid "Status"
+msgstr "Stanje"
+
+msgid "The interface did not confirm the scan request (bus busy or interface overloaded). Please try again."
+msgstr "Vmesnik ni potrdil zahteve za iskanje (vodilo je zasedeno ali vmesnik preobremenjen). Poskusite znova."
+
+msgid "The scan could not be completed: {error}"
+msgstr "Iskanja ni bilo mogoče dokončati: {error}"
+
+msgid "Unprogrammed device (factory default address 15.15.255)"
+msgstr "Neprogramirana naprava (tovarniški naslov 15.15.255)"
+
+msgid "{count} device(s) in programming mode"
+msgstr "Naprave v načinu programiranja: {count}"
+
+msgid "The interface requires KNX IP Secure, but neither the project nor a loaded keyring has its passwords."
+msgstr "Vmesnik zahteva KNX IP Secure, vendar njegovih gesel nima niti projekt niti naložena zbirka ključev."
+
+msgid "Error: {error}"
+msgstr "Napaka: {error}"
+
+msgid "Unknown error"
+msgstr "Neznana napaka"
+
+msgid "Name: {name}"
+msgstr "Ime: {name}"
+
+msgid "KNX Address: {address}"
+msgstr "Naslov KNX: {address}"
+
+msgid "Core Version: {version}"
+msgstr "Različica jedra: {version}"
+
+msgid "Services: {services}"
+msgstr "Storitve: {services}"
+
+msgid "Retry"
+msgstr "Poskusi znova"
+
+msgid "Select Connection"
+msgstr "Izbira povezave"
+
+msgid "XKNX Editor could not determine an available connection."
+msgstr "XKNX Editor ni mogel najti razpoložljive povezave."
+
+msgid "The connection {name} is not available."
+msgstr "Povezava {name} ni na voljo."
+
+msgid "You may use any of the connections listed below, instead."
+msgstr "Namesto nje lahko uporabite katero koli od spodaj navedenih povezav."
+
+msgid "{name}: {error}"
+msgstr "{name}: {error}"
+
+msgid "Cancel"
+msgstr "Prekliči"
+
+msgid "This kind of connection is not supported."
+msgstr "Ta vrsta povezave ni podprta."

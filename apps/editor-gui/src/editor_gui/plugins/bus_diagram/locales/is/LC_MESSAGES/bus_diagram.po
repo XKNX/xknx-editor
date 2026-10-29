@@ -1,0 +1,176 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor bus_diagram 1.0\n"
+"Language: is\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Bus Diagram"
+msgstr "Tengibrautarmynd"
+
+msgid "No project open"
+msgstr "Ekkert verkefni opið"
+
+msgid "Unassigned"
+msgstr "Óúthlutað"
+
+msgid "Area -> Line -> Device. Click a device to open it."
+msgstr "Svæði -> Lína -> Tæki. Smelltu á tæki til að opna það."
+
+msgid "Ctrl+scroll to zoom. Click a device to open it."
+msgstr "Ctrl+skrun til að þysja. Smelltu á tæki til að opna það."
+
+msgid "Building View"
+msgstr "Byggingaryfirlit"
+
+msgid "Links"
+msgstr "Tengingar"
+
+msgid "Physical"
+msgstr "Efnislegt"
+
+msgid "Building"
+msgstr "Bygging"
+
+msgid "Matrix"
+msgstr "Fylki"
+
+msgid "A device x group-address matrix: amber = the device sends on that group address, blue = it receives. Hover a column for the group address, a row to open the device."
+msgstr "Fylki tækja og hópvistfanga: gulbrúnt = tækið sendir á þessu hópvistfangi, blátt = það tekur við. Haltu bendlinum yfir dálki til að sjá hópvistfangið, yfir línu til að opna tækið."
+
+msgid "sends"
+msgstr "sendir"
+
+msgid "receives"
+msgstr "tekur við"
+
+msgid "sends & receives"
+msgstr "sendir og tekur við"
+
+msgid "Each group address is a hub node; devices link to it (sender into the hub, hub out to receivers). Hover a device to see its group addresses, or a hub to see every device on it. Click a device to open it."
+msgstr "Hvert hópvistfang er miðhnútur; tæki tengjast honum (sendandi inn í hnútinn, frá hnútnum út til viðtakenda). Haltu bendlinum yfir tæki til að sjá hópvistföng þess, eða yfir hnút til að sjá öll tæki á honum. Smelltu á tæki til að opna það."
+
+msgid "No linked devices to show."
+msgstr "Engin tengd tæki til að sýna."
+
+msgid "Room"
+msgstr "Herbergi"
+
+msgid "Group"
+msgstr "Hópur"
+
+msgid "All"
+msgstr "Allt"
+
+msgid "Ctrl/Cmd+scroll to zoom. Click a device to open it."
+msgstr "Ctrl/Cmd+skrun til að þysja. Smelltu á tæki til að opna það."
+
+msgid "Area {area}"
+msgstr "Svæði {area}"
+
+msgid "L {line}"
+msgstr "L {line}"
+
+msgid "Zoom with two fingers. Tap a device to open it."
+msgstr "Þysjaðu með tveimur fingrum. Ýttu á tæki til að opna það."
+
+msgid "(unnamed)"
+msgstr "(ónefnt)"
+
+msgid "Address: {address}"
+msgstr "Vistfang: {address}"
+
+msgid "Application: {application}"
+msgstr "Verkforrit: {application}"
+
+msgid "Which devices talk to which over their group addresses: sending devices on the left, receiving devices on the right."
+msgstr "Hvaða tæki eiga samskipti við hvaða tæki í gegnum hópvistföng sín: sendandi tæki til vinstri, móttakandi tæki til hægri."
+
+msgid "Click to follow a device, channel or group address, double-click to open a device, click the arrow of a device to list its group objects. Drag to move, {key}+scroll to zoom."
+msgstr "Smelltu til að fylgja tæki, rás eða hópvistfangi, tvísmelltu til að opna tæki, smelltu á ör tækis til að birta samskiptahluti þess. Dragðu til að færa, {key}+skrun til að þysja."
+
+msgid "Tap to follow a device, channel or group address, double-tap to open a device, tap the arrow of a device to list its group objects. Zoom with two fingers."
+msgstr "Ýttu til að fylgja tæki, rás eða hópvistfangi, ýttu tvisvar til að opna tæki, ýttu á ör tækis til að birta samskiptahluti þess. Þysjaðu með tveimur fingrum."
+
+msgid "Channels"
+msgstr "Rásir"
+
+msgid "Channel: {channel} ({device})"
+msgstr "Rás: {channel} ({device})"
+
+msgid "List the group objects"
+msgstr "Birta samskiptahlutina"
+
+msgid "Hide the group objects"
+msgstr "Fela samskiptahlutina"
+
+msgid "Group object {number}: {name}"
+msgstr "Samskiptahlutur {number}: {name}"
+
+msgid "Channel: {channel}"
+msgstr "Rás: {channel}"
+
+msgid "Drag to move, {key}+scroll to zoom. Click a device to open it."
+msgstr "Dragðu til að færa, {key}+skrun til að þysja. Smelltu á tæki til að opna það."
+
+msgid "Show"
+msgstr "Sýna"
+
+msgid "Choose…"
+msgstr "Velja…"
+
+msgid "Choose above what to show: the whole project, a room or a main group."
+msgstr "Veldu hér fyrir ofan hvað á að sýna: allt verkefnið, herbergi eða aðalhóp."
+
+msgid "Whole Project"
+msgstr "Allt verkefnið"
+
+msgid "Rooms"
+msgstr "Herbergi"
+
+msgid "Main Groups"
+msgstr "Aðalhópar"
+
+msgid "Device: {device}"
+msgstr "Tæki: {device}"
+
+msgid "Group Address: {address}"
+msgstr "Hópvistfang: {address}"
+
+msgid "Back"
+msgstr "Til baka"
+
+msgid "Fit"
+msgstr "Laga að"
+
+msgid "Sending"
+msgstr "Sendandi"
+
+msgid "Group Addresses"
+msgstr "Hópvistföng"
+
+msgid "Receiving"
+msgstr "Móttakandi"
+
+msgid "+ {count} more"
+msgstr "+ {count} í viðbót"
+
+msgid "{count} more devices outside the selection. Click to show them."
+msgstr "{count} tæki í viðbót utan valsins. Smelltu til að sýna þau."
+
+msgid "{address}\n{senders} sending, {receivers} receiving"
+msgstr "{address}\nSendandi: {senders}, móttakandi: {receivers}"
+
+msgid "Areas"
+msgstr "Svæði"
+
+msgid "Lines"
+msgstr "Línur"
+
+msgid "Devices"
+msgstr "Tæki"
+
+msgid "Buildings"
+msgstr "Byggingar"

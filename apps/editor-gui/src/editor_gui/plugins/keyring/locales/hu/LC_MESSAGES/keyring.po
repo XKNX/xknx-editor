@@ -1,0 +1,86 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor keyring 1.0\n"
+"Language: hu\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "KNX Secure"
+msgstr "KNX Secure"
+
+msgid "Show Window"
+msgstr "Ablak megjelenítése"
+
+msgid "No keyring loaded"
+msgstr "Nincs betöltött kulcskarika"
+
+msgid "Import Keyring…"
+msgstr "Kulcskarika importálása…"
+
+msgid "KNX Keyring (*.knxkeys)"
+msgstr "KNX-kulcskarika (*.knxkeys)"
+
+msgid "All Files"
+msgstr "Minden fájl"
+
+msgid "Load"
+msgstr "Betöltés"
+
+msgid "Cancel"
+msgstr "Mégse"
+
+msgid "Close"
+msgstr "Bezárás"
+
+msgid "{project} — created by {by}"
+msgstr "{project} — létrehozta: {by}"
+
+msgid "Backbone"
+msgstr "Gerincvonal"
+
+msgid "Interfaces ({count})"
+msgstr "Interfészek ({count})"
+
+msgid "Group Address Keys ({count})"
+msgstr "Csoportcímkulcsok ({count})"
+
+msgid "Devices ({count})"
+msgstr "Készülékek ({count})"
+
+msgid "Export"
+msgstr "Exportálás"
+
+msgid "Export Keyring…"
+msgstr "Kulcskarika exportálása…"
+
+msgid "Set the password for the exported keyring:"
+msgstr "Adja meg az exportált kulcskarika jelszavát:"
+
+msgid "Export Keyring from Project…"
+msgstr "Kulcskarika exportálása a projektből…"
+
+msgid "Type"
+msgstr "Típus"
+
+msgid "Address"
+msgstr "Cím"
+
+msgid "Host"
+msgstr "Gazdagép"
+
+msgid "User"
+msgstr "Felhasználó"
+
+msgid "Key"
+msgstr "Kulcs"
+
+msgid "In Project"
+msgstr "A projektben"
+
+msgid "Tool Key"
+msgstr "Eszközkulcs"
+
+msgid "{address}   key {key}"
+msgstr "{address}   kulcs: {key}"

@@ -30,11 +30,16 @@ LANGUAGES: tuple[Language, ...] = (
     Language("da", "da-DK", "dansk", lambda: S.LANGUAGE_DANISH),
     Language("fi", "fi-FI", "suomi", lambda: S.LANGUAGE_FINNISH),
     Language("fr", "fr-FR", "français", lambda: S.LANGUAGE_FRENCH),
+    Language("hu", "hu-HU", "magyar", lambda: S.LANGUAGE_HUNGARIAN),
+    Language("is", "is-IS", "íslenska", lambda: S.LANGUAGE_ICELANDIC),
     Language("it", "it-IT", "italiano", lambda: S.LANGUAGE_ITALIAN),
     Language("nb", "nb-NO", "norsk bokmål", lambda: S.LANGUAGE_NORWEGIAN),
     Language("pl", "pl-PL", "polski", lambda: S.LANGUAGE_POLISH),
     Language("pt", "pt-PT", "português", lambda: S.LANGUAGE_PORTUGUESE),
+    Language("ro", "ro-RO", "română", lambda: S.LANGUAGE_ROMANIAN),
     Language("ru", "ru-RU", "русский", lambda: S.LANGUAGE_RUSSIAN),
+    Language("sk", "sk-SK", "slovenčina", lambda: S.LANGUAGE_SLOVAK),
+    Language("sl", "sl-SI", "slovenščina", lambda: S.LANGUAGE_SLOVENIAN),
     # The KNX master data has no Albanian: products and master data show in English.
     Language("sq", "en-US", "shqip", lambda: S.LANGUAGE_ALBANIAN),
     Language("sv", "sv-SE", "svenska", lambda: S.LANGUAGE_SWEDISH),
@@ -73,18 +78,11 @@ class ProductLanguage:
 
 
 # The languages product data comes in, the languages of the KNX master data: those of the user
-# interface that have one of their own, and five more.
-PRODUCT_LANGUAGES: tuple[ProductLanguage, ...] = (
-    *(
-        ProductLanguage(lang.culture, lang.native, lang.name)
-        for lang in LANGUAGES
-        if lang.culture.split("-")[0] == lang.code
-    ),
-    ProductLanguage("hu-HU", "magyar", lambda: S.LANGUAGE_HUNGARIAN),
-    ProductLanguage("ro-RO", "română", lambda: S.LANGUAGE_ROMANIAN),
-    ProductLanguage("sk-SK", "slovenčina", lambda: S.LANGUAGE_SLOVAK),
-    ProductLanguage("sl-SI", "slovenščina", lambda: S.LANGUAGE_SLOVENIAN),
-    ProductLanguage("is-IS", "íslenska", lambda: S.LANGUAGE_ICELANDIC),
+# interface that have one of their own.
+PRODUCT_LANGUAGES: tuple[ProductLanguage, ...] = tuple(
+    ProductLanguage(lang.culture, lang.native, lang.name)
+    for lang in LANGUAGES
+    if lang.culture.split("-")[0] == lang.code
 )
 
 # The preferred product language chosen in the Language menu; None follows the UI language.

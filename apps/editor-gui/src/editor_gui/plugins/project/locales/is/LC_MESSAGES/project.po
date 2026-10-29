@@ -1,0 +1,3041 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor project 1.0\n"
+"Language: is\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Devices"
+msgstr "Tæki"
+
+msgid "Configure"
+msgstr "Stilla"
+
+msgid "History"
+msgstr "Saga"
+
+msgid "Editor"
+msgstr "Ritill"
+
+msgid "Group Addresses"
+msgstr "Hópvistföng"
+
+msgid "Buildings"
+msgstr "Byggingar"
+
+msgid "Project"
+msgstr "Verkefni"
+
+msgid "No buildings/rooms in this project"
+msgstr "Engar byggingar/herbergi í þessu verkefni"
+
+msgid "No project"
+msgstr "Ekkert verkefni"
+
+msgid "Name"
+msgstr "Heiti"
+
+msgid "Open Project"
+msgstr "Opið verkefni"
+
+msgid "Reading the projects…"
+msgstr "Les verkefnin…"
+
+msgid "Comparing devices: {done} of {total}"
+msgstr "Ber saman tæki: {done} af {total}"
+
+msgid "File"
+msgstr "Skrá"
+
+msgid "Group Address Style"
+msgstr "Framsetning hópvistfanga"
+
+msgid "Created by"
+msgstr "Búið til af"
+
+msgid "Tool Version"
+msgstr "Útgáfa tóls"
+
+msgid "Schema Version"
+msgstr "Útgáfa skema"
+
+msgid "Last Modified"
+msgstr "Síðast breytt"
+
+msgid "GUID"
+msgstr "GUID"
+
+msgid "Project ID"
+msgstr "Auðkenni verkefnis"
+
+msgid "Original Project ID"
+msgstr "Upprunalegt auðkenni verkefnis"
+
+msgid "Master Data (Signed)"
+msgstr "Grunngögn (undirrituð)"
+
+msgid "Validation File"
+msgstr "Staðfestingarskrá"
+
+msgid "Project Certificate"
+msgstr "Vottorð verkefnis"
+
+msgid "none"
+msgstr "ekkert"
+
+msgid "present ({size} bytes)"
+msgstr "til staðar ({size} bæti)"
+
+msgid "Order Number"
+msgstr "Pöntunarnúmer"
+
+msgid "Description"
+msgstr "Lýsing"
+
+msgid "Comment"
+msgstr "Athugasemd"
+
+msgid "Parameters ({count})"
+msgstr "Færibreytur ({count})"
+
+msgid "Group Objects ({count})"
+msgstr "Samskiptahlutir ({count})"
+
+msgid "Assigned Objects"
+msgstr "Úthlutaðir hlutir"
+
+msgid "No devices"
+msgstr "Engin tæki"
+
+msgid "Loading application program…"
+msgstr "Hleður verkforriti…"
+
+msgid "This product has no application program."
+msgstr "Þessi vara hefur ekkert verkforrit."
+
+msgid "Individual Address"
+msgstr "Einstaklingsvistfang"
+
+msgid "Program Device"
+msgstr "Forrita tæki"
+
+msgid "Test Programming"
+msgstr "Prófa forritun"
+
+msgid "Program device?"
+msgstr "Forrita tæki?"
+
+msgid "This writes to the device at {address} (scope: {scope}) and changes its configuration. Continue?"
+msgstr "Þetta skrifar í tækið á {address} (umfang: {scope}) og breytir stillingum þess. Halda áfram?"
+
+msgid "Download"
+msgstr "Niðurhleðsla"
+
+msgid "Full"
+msgstr "Full"
+
+msgid "Application Program"
+msgstr "Verkforrit"
+
+msgid "Unload"
+msgstr "Afhlaða"
+
+msgid "Unload Application and Address"
+msgstr "Afhlaða verkforrit og vistfang"
+
+msgid "Partial: Parameters"
+msgstr "Að hluta: færibreytur"
+
+msgid "Partial: Group Communication"
+msgstr "Að hluta: hópsamskipti"
+
+msgid "Manufacturer"
+msgstr "Framleiðandi"
+
+msgid "Manufacturer Info"
+msgstr "Upplýsingar framleiðanda"
+
+msgid "Application"
+msgstr "Verkforrit"
+
+msgid "Program Version"
+msgstr "Útgáfa forrits"
+
+msgid "Application Version"
+msgstr "Útgáfa verkforrits"
+
+msgid "Read from Device"
+msgstr "Lesa úr tæki"
+
+msgid "Set an individual address and connect to the bus first"
+msgstr "Settu fyrst einstaklingsvistfang og tengstu tengibrautinni"
+
+msgid "Mask Version"
+msgstr "Útgáfa masks"
+
+msgid "Serial Number"
+msgstr "Raðnúmer"
+
+msgid "Order Info"
+msgstr "Pöntunarupplýsingar"
+
+msgid "Hardware Type"
+msgstr "Gerð vélbúnaðar"
+
+msgid "differs from project V{version} — program to apply"
+msgstr "frábrugðið verkefni V{version} — forritaðu til að virkja"
+
+msgid "Filter parameters…"
+msgstr "Sía færibreytur…"
+
+msgid "Hardware"
+msgstr "Vélbúnaður"
+
+msgid "Firmware"
+msgstr "Fastbúnaður"
+
+msgid "Com Flags ({count})"
+msgstr "Samskiptaflögg ({count})"
+
+msgid "Load Procedures ({count})"
+msgstr "Hleðsluferli ({count})"
+
+msgid "Preview Memory"
+msgstr "Forskoða minni"
+
+msgid "Memory Preview"
+msgstr "Forskoðun minnis"
+
+msgid "Programming Test Result"
+msgstr "Niðurstaða forritunarprófs"
+
+msgid "Evaluation failed"
+msgstr "Mat mistókst"
+
+msgid "Read-only test: checks that the download function generates the same image as what is already programmed on the device. Nothing is written to the device."
+msgstr "Próf sem aðeins les: athugar hvort niðurhleðsluaðgerðin búi til sömu mynd og þá sem þegar er forrituð í tækið. Ekkert er skrifað í tækið."
+
+msgid "Cannot run: no KNX connection. Connect to a gateway (Connection menu) and make sure the device is reachable at its individual address."
+msgstr "Ekki hægt að keyra: engin KNX-tenging. Tengstu við gátt (valmyndin Gátt) og gakktu úr skugga um að hægt sé að ná í tækið á einstaklingsvistfangi þess."
+
+msgid "Match: the generated image is identical to what is on the device"
+msgstr "Samsvörun: myndin sem búin var til er eins og sú sem er í tækinu"
+
+msgid "Mismatch: {bytes} byte(s) differ from the device in {locations} location(s)"
+msgstr "Misræmi: bæti sem eru frábrugðin tækinu: {bytes}, á stöðum: {locations}"
+
+msgid "{matched} matched, {changed} would change"
+msgstr "Samsvarandi: {matched}, myndu breytast: {changed}"
+
+msgid "Location"
+msgstr "Staðsetning"
+
+msgid "Size"
+msgstr "Stærð"
+
+msgid "Status"
+msgstr "Staða"
+
+msgid "Changed"
+msgstr "Breytt"
+
+msgid "match"
+msgstr "samsvörun"
+
+msgid "would change"
+msgstr "myndi breytast"
+
+msgid "device-managed"
+msgstr "stýrt af tæki"
+
+msgid "System byte the device sets itself at runtime (e.g. a download detection byte reset by the application after a download). A difference here is expected and does not indicate a bad download."
+msgstr "Kerfisbæti sem tækið setur sjálft við keyrslu (t.d. bæti sem greinir niðurhleðslu og verkforritið endurstillir eftir niðurhleðslu). Mismunur hér er eðlilegur og bendir ekki til misheppnaðrar niðurhleðslu."
+
+msgid "plus {bytes} device-managed runtime byte(s) (expected, benign)"
+msgstr "auk keyrslubæta sem tækið stýrir: {bytes} (eðlilegt, skaðlaust)"
+
+msgid "No configured differences: the device already carries this configuration. The differences below are benign (see notes)."
+msgstr "Enginn stilltur mismunur: tækið er þegar með þessar stillingar. Mismunurinn hér fyrir neðan er skaðlaus (sjá athugasemdir)."
+
+msgid "sets default"
+msgstr "setur sjálfgefið gildi"
+
+msgid "This byte is written for a neighbouring parameter; the differing bit is not driven by any active parameter and is only reset to the application default. The device holds an older value (e.g. from a previous configuration or mode) that programming will normalise. Benign."
+msgstr "Þetta bæti er skrifað vegna aðliggjandi færibreytu; bitinn sem er frábrugðinn er ekki stýrður af neinni virkri færibreytu og er aðeins endurstilltur á sjálfgefið gildi verkforritsins. Tækið geymir eldra gildi (t.d. úr fyrri stillingu eða ham) sem forritunin færir í eðlilegt horf. Skaðlaust."
+
+msgid "plus {bytes} byte(s) reset to the application default (the device holds an older value; benign, will be normalised on programming)"
+msgstr "auk bæta sem eru endurstillt á sjálfgefið gildi verkforritsins: {bytes} (tækið geymir eldra gildi; skaðlaust, fært í eðlilegt horf við forritun)"
+
+msgid "Export Ist/Soll…"
+msgstr "Flytja út Ist/Soll…"
+
+msgid "Export Path:"
+msgstr "Útflutningsslóð:"
+
+msgid "memory {address}"
+msgstr "minni {address}"
+
+msgid "object {object} property {property}"
+msgstr "hlutur {object} eiginleiki {property}"
+
+msgid "Filter devices (name, address)…"
+msgstr "Sía tæki (heiti, vistfang)…"
+
+msgid "No devices. Open or import a project (File menu), or right-click here to add an area."
+msgstr "Engin tæki. Opnaðu eða fluttu inn verkefni (valmyndin Skrá), eða hægrismelltu hér til að bæta við svæði."
+
+msgid "Filter group addresses (address, name)…"
+msgstr "Sía hópvistföng (vistfang, heiti)…"
+
+msgid "Filter rooms, devices, functions…"
+msgstr "Sía herbergi, tæki, aðgerðir…"
+
+msgid "Unassigned ({count})"
+msgstr "Óúthlutað ({count})"
+
+msgid "Delete"
+msgstr "Eyða"
+
+msgid "Number"
+msgstr "Númer"
+
+msgid "Add"
+msgstr "Bæta við"
+
+msgid "OK"
+msgstr "OK"
+
+msgid "Save"
+msgstr "Vista"
+
+msgid "Copy Log"
+msgstr "Afrita annál"
+
+msgid "Cancel"
+msgstr "Hætta við"
+
+msgid "Address"
+msgstr "Vistfang"
+
+msgid "Project: {name}"
+msgstr "Verkefni: {name}"
+
+msgid "(unsaved)"
+msgstr "(óvistað)"
+
+msgid "No history"
+msgstr "Engin saga"
+
+msgid "Restore"
+msgstr "Endurheimta"
+
+msgid "Add device: {name}"
+msgstr "Bæta við tæki: {name}"
+
+msgid "Remove device: {name}"
+msgstr "Fjarlægja tæki: {name}"
+
+msgid "Address: {old} -> {new}"
+msgstr "Vistfang: {old} -> {new}"
+
+msgid "Name: {old} -> {new}"
+msgstr "Heiti: {old} -> {new}"
+
+msgid "Parameter: {old} -> {new}"
+msgstr "Færibreyta: {old} -> {new}"
+
+msgid "DPT: {old} -> {new}"
+msgstr "DPT: {old} -> {new}"
+
+msgid "Flag: {flag} -> {state}"
+msgstr "Flagg: {flag} -> {state}"
+
+msgid "Group address {address} created"
+msgstr "Hópvistfang {address} búið til"
+
+msgid "Group address {address} removed"
+msgstr "Hópvistfang {address} fjarlægt"
+
+msgid "Group address: {old} -> {new}"
+msgstr "Hópvistfang: {old} -> {new}"
+
+msgid "Group object linked to group address"
+msgstr "Samskiptahlutur tengdur við hópvistfang"
+
+msgid "Group object unlinked from group address"
+msgstr "Samskiptahlutur aftengdur frá hópvistfangi"
+
+msgid "Area {number} created"
+msgstr "Svæði {number} búið til"
+
+msgid "Area {number} removed"
+msgstr "Svæði {number} fjarlægt"
+
+msgid "Area: {old} -> {new}"
+msgstr "Svæði: {old} -> {new}"
+
+msgid "Line {number} created"
+msgstr "Lína {number} búin til"
+
+msgid "Line {number} removed"
+msgstr "Lína {number} fjarlægð"
+
+msgid "Line: {old} -> {new}"
+msgstr "Lína: {old} -> {new}"
+
+msgid "Cannot run: the project was changed since it was opened. This test compares the generated image against the device's programmed state, which only matches the project as it was opened. Undo your changes in this session to test."
+msgstr "Ekki hægt að keyra: verkefninu hefur verið breytt síðan það var opnað. Þetta próf ber myndina sem búin er til saman við forritaða stöðu tækisins, sem samsvarar aðeins verkefninu eins og það var opnað. Afturkallaðu breytingarnar í þessari lotu til að prófa."
+
+msgid "Duplicate"
+msgstr "Tvöfalda"
+
+msgid "Apply Changes to All {count} Identical Devices"
+msgstr "Nota breytingar á öll eins tæki ({count})"
+
+msgid "Editing {count} devices — edits apply to all, diverging values show <differs>"
+msgstr "Breytir tækjum: {count} — breytingar gilda um öll, ólík gildi sýna <differs>"
+
+msgid "Mass Linker"
+msgstr "Fjöldatenging"
+
+msgid "Object <> GA"
+msgstr "Hlutur <> GA"
+
+msgid "Object <> Object"
+msgstr "Hlutur <> hlutur"
+
+msgid "Log"
+msgstr "Annáll"
+
+msgid "Open a project to use the Mass Linker."
+msgstr "Opnaðu verkefni til að nota fjöldatengingu."
+
+msgid "Pairs are matched by list order (1st with 1st, …). Surplus items on the longer side are ignored. Reorder a list via its right-click menu."
+msgstr "Pör eru mynduð eftir röð í lista (1. við 1., …). Umframatriðum á lengri hliðinni er sleppt. Breyttu röð lista með hægrismellivalmynd hans."
+
+msgid "Source (objects)"
+msgstr "Uppruni (hlutir)"
+
+msgid "Target (Group Addresses)"
+msgstr "Markmið (hópvistföng)"
+
+msgid "Target (objects)"
+msgstr "Markmið (hlutir)"
+
+msgid "Preview & Link"
+msgstr "Forskoða og tengja"
+
+msgid "Add Group Objects…"
+msgstr "Bæta við samskiptahlutum…"
+
+msgid "Add Group Addresses…"
+msgstr "Bæta við hópvistföngum…"
+
+msgid "Add Selected"
+msgstr "Bæta við völdu"
+
+msgid "Clear"
+msgstr "Hreinsa"
+
+msgid "Remove"
+msgstr "Fjarlægja"
+
+msgid "Move up"
+msgstr "Færa upp"
+
+msgid "Move Down"
+msgstr "Færa niður"
+
+msgid "{count} items"
+msgstr "Atriði: {count}"
+
+msgid "{count} pairs"
+msgstr "Pör: {count}"
+
+msgid "{count} unpaired (ignored)"
+msgstr "Án pars: {count} (hunsað)"
+
+msgid "Link"
+msgstr "Tengja"
+
+msgid "GA Name ({source}, {target}, {n})"
+msgstr "Heiti GA ({source}, {target}, {n})"
+
+msgid "Start Address"
+msgstr "Upphafsvistfang"
+
+msgid "Filter…"
+msgstr "Sía…"
+
+msgid "Add Group Objects"
+msgstr "Bæta við samskiptahlutum"
+
+msgid "Add Group Addresses"
+msgstr "Bæta við hópvistföngum"
+
+msgid "Linked {count} object(s) to group addresses"
+msgstr "Hlutir tengdir við hópvistföng: {count}"
+
+msgid "Linked {count} object pair(s) via new group addresses"
+msgstr "Hlutapör tengd með nýjum hópvistföngum: {count}"
+
+msgid "{count} error(s)"
+msgstr "Villur: {count}"
+
+msgid "Clear All"
+msgstr "Hreinsa allt"
+
+msgid "No operations yet."
+msgstr "Engar aðgerðir enn."
+
+msgid "Mass Linker Result"
+msgstr "Niðurstaða fjöldatengingar"
+
+msgid "Tools"
+msgstr "Verkfæri"
+
+msgid "Open a project to use the tools."
+msgstr "Opnaðu verkefni til að nota verkfærin."
+
+msgid "No devices in this project."
+msgstr "Engin tæki í þessu verkefni."
+
+msgid "Extended Copy"
+msgstr "Ítarleg afritun"
+
+msgid "Shift Addresses"
+msgstr "Hliðra vistföngum"
+
+msgid "Labels"
+msgstr "Merkimiðar"
+
+msgid "Topology Check"
+msgstr "Athugun grannfræði"
+
+msgid "Source Device"
+msgstr "Upprunatæki"
+
+msgid "Copies"
+msgstr "Afrit"
+
+msgid "Find in Name"
+msgstr "Finna í heiti"
+
+msgid "Replace with"
+msgstr "Skipta út fyrir"
+
+msgid "Create Group Addresses for Each Copy"
+msgstr "Búa til hópvistföng fyrir hvert afrit"
+
+msgid "Copy Name: {name}"
+msgstr "Heiti afrits: {name}"
+
+msgid "Copy"
+msgstr "Afrita"
+
+msgid "Created {count} copy/copies"
+msgstr "Afrit búin til: {count}"
+
+msgid "Shifts the device part of each individual address. Group addresses are not shifted."
+msgstr "Hliðrar tækjahluta hvers einstaklingsvistfangs. Hópvistföngum er ekki hliðrað."
+
+msgid "Offset"
+msgstr "Hliðrun"
+
+msgid "Selected source device only (from Extended Copy)"
+msgstr "Aðeins valið upprunatæki (úr ítarlegri afritun)"
+
+msgid "(out of range)"
+msgstr "(utan sviðs)"
+
+msgid "Shifted {count} address(es)"
+msgstr "Vistföngum hliðrað: {count}"
+
+msgid "Export {count} device(s) to a CSV for on-site labelling."
+msgstr "Flytja tæki út í CSV-skrá fyrir merkingar á staðnum (fjöldi: {count})."
+
+msgid "Export CSV…"
+msgstr "Flytja út CSV…"
+
+msgid "Exported to {path}"
+msgstr "Flutt út í {path}"
+
+msgid "No topology issues found."
+msgstr "Engin vandamál í grannfræði fundust."
+
+msgid "{count} issue(s)"
+msgstr "Vandamál: {count}"
+
+msgid "{count} address(es) will change"
+msgstr "Vistföng sem breytast: {count}"
+
+msgid "Click a finding to jump to the device."
+msgstr "Smelltu á niðurstöðu til að fara í tækið."
+
+msgid "Link many group objects to existing group addresses at once. 1) Add objects: '+ Selected device' (all objects of the device selected in the tree) or 'Add objects…'. 2) Set each row's target address in its dropdown — or fill them fast with 'Assign sequential' (next free addresses from the given start) or 'Match by name'. 3) 'Link all' links every row that has a target."
+msgstr "Tengdu marga samskiptahluti við fyrirliggjandi hópvistföng í einu. 1) Bættu við hlutum: '+ Valið tæki' (allir hlutir tækisins sem er valið í trénu) eða 'Bæta við samskiptahlutum…'. 2) Veldu markvistfang hverrar línu í fellilista hennar — eða fylltu hratt út með 'Úthluta í röð' (næstu lausu vistföng frá gefnu upphafi) eða 'Para eftir heiti'. 3) 'Tengja allt' tengir hverja línu sem hefur markmið."
+
+msgid "Link group objects to each other. 1) Add the source objects. 2) Pick a partner object per row. Each pair gets a NEW group address (source sends, target receives): the address and name are suggested (first free address, name template below) but can be edited per row. 3) 'Link all' creates and links them."
+msgstr "Tengdu samskiptahluti hvern við annan. 1) Bættu við upprunahlutunum. 2) Veldu mótaðila fyrir hverja línu. Hvert par fær NÝTT hópvistfang (uppruninn sendir, markmiðið tekur við): lagt er til vistfang og heiti (fyrsta lausa vistfang, heitasniðmát hér fyrir neðan) en hægt er að breyta þeim í hverri línu. 3) 'Tengja allt' býr þau til og tengir."
+
+msgid "Chronological record of every mass-link operation in this session."
+msgstr "Tímaröð allra fjöldatenginga í þessari lotu."
+
+msgid "Duplicate a device several times. Optionally rewrite the copy name (find/replace) and create a group address for each of its objects."
+msgstr "Tvöfalda tæki nokkrum sinnum. Valfrjálst er að endurskrifa heiti afritsins (finna/skipta út) og búa til hópvistfang fyrir hvern hlut þess."
+
+msgid "Renumber devices by adding an offset to the device part of their individual addresses, e.g. to open gaps for new devices. Group addresses are untouched."
+msgstr "Endurnúmera tæki með því að bæta hliðrun við tækjahluta einstaklingsvistfanga þeirra, t.d. til að búa til bil fyrir ný tæki. Hópvistföngum er ekki breytt."
+
+msgid "Export the device list (address, name, order number, manufacturer, description) to a CSV you can print as on-site labels."
+msgstr "Flytja tækjalistann (vistfang, heiti, pöntunarnúmer, framleiðandi, lýsing) út í CSV-skrá sem hægt er að prenta sem merkimiða á staðnum."
+
+msgid "Read-only scan: lists devices with a missing, malformed or duplicate individual address."
+msgstr "Leit sem aðeins les: birtir tæki með einstaklingsvistfang sem vantar, er ógilt eða tvítekið."
+
+msgid "All"
+msgstr "Allt"
+
+msgid "None"
+msgstr "Ekkert"
+
+msgid "{sel} of {total} selected"
+msgstr "{sel} af {total} valin"
+
+msgid "Filter devices…"
+msgstr "Sía tæki…"
+
+msgid "Replace Device"
+msgstr "Skipta út tæki"
+
+msgid "Swap a device for another model (a template device already in the project), keeping its group-address links. Group objects are matched by number and size; unmatched ones are reported. Parameters are not carried over."
+msgstr "Skipta tæki út fyrir aðra gerð (sniðmátstæki sem er þegar í verkefninu) og halda tengingum þess við hópvistföng. Samskiptahlutir eru paraðir eftir númeri og stærð; tilkynnt er um þá sem ekki parast. Færibreytur eru ekki fluttar yfir."
+
+msgid "Device to Replace"
+msgstr "Tæki sem á að skipta út"
+
+msgid "Replace with (Template)"
+msgstr "Skipta út fyrir (sniðmát)"
+
+msgid "Group Object Mapping (by Number)"
+msgstr "Vörpun samskiptahluta (eftir númeri)"
+
+msgid "{count} object(s) will be re-mapped"
+msgstr "Hlutir sem verða endurvarpaðir: {count}"
+
+msgid "Replaced; re-mapped {count} group object(s)"
+msgstr "Skipt út; samskiptahlutir endurvarpaðir: {count}"
+
+msgid "Device"
+msgstr "Tæki"
+
+msgid "Group Object"
+msgstr "Samskiptahlutur"
+
+msgid "DPT"
+msgstr "DPT"
+
+msgid "Target Group Address"
+msgstr "Markhópvistfang"
+
+msgid "Target Group Object"
+msgstr "Marksamskiptahlutur"
+
+msgid "Group Address"
+msgstr "Hópvistfang"
+
+msgid "Group Address Name"
+msgstr "Heiti hópvistfangs"
+
+msgid "(none)"
+msgstr "(ekkert)"
+
+msgid "+ Selected Device"
+msgstr "+ Valið tæki"
+
+msgid "Select All"
+msgstr "Velja allt"
+
+msgid "No objects yet — add the selected device or pick objects."
+msgstr "Engir hlutir enn — bættu við völdu tæki eða veldu hluti."
+
+msgid "From"
+msgstr "Frá"
+
+msgid "Assign Sequential"
+msgstr "Úthluta í röð"
+
+msgid "Match by Name"
+msgstr "Para eftir heiti"
+
+msgid "Link All ({count})"
+msgstr "Tengja allt ({count})"
+
+msgid "{ready} ready · {amb} ambiguous · {bad} incompatible · {none} unmatched"
+msgstr "Tilbúin: {ready} · tvíræð: {amb} · ósamhæf: {bad} · án samsvörunar: {none}"
+
+msgid "Only Problems"
+msgstr "Aðeins vandamál"
+
+msgid "Only for ETS 6 devices: this test compares the device against an image generated the ETS 6 way. A device last programmed with ETS 5 uses a different byte layout and will show large false differences - the result is only meaningful for a device last programmed with ETS 6."
+msgstr "Aðeins fyrir ETS 6-tæki: þetta próf ber tækið saman við mynd sem búin er til á sama hátt og ETS 6 gerir. Tæki sem síðast var forritað með ETS 5 notar aðra bætauppsetningu og sýnir mikinn ranglegan mismun - niðurstaðan er aðeins marktæk fyrir tæki sem síðast var forritað með ETS 6."
+
+msgid "Structural differences (whole tables differ) can mean the device was last programmed with ETS 5, whose byte layout differs. Differences in values only usually mean the device holds a different configuration."
+msgstr "Mismunur í uppbyggingu (heilar töflur ólíkar) getur þýtt að tækið hafi síðast verið forritað með ETS 5, sem hefur aðra bætauppsetningu. Mismunur á gildum eingöngu þýðir yfirleitt að tækið hefur aðrar stillingar."
+
+msgid "Test/Program mirror an ETS 6 programming. If a test reports whole tables as different, the device was likely last programmed with ETS 5 (different byte layout)."
+msgstr "Prófun/forritun líkir eftir ETS 6-forritun. Ef próf sýnir heilar töflur sem ólíkar var tækið líklega síðast forritað með ETS 5 (önnur bætauppsetning)."
+
+msgid "Product"
+msgstr "Vara"
+
+msgid "Product Ref"
+msgstr "Vörutilvísun"
+
+msgid "Program Ref"
+msgstr "Forritstilvísun"
+
+msgid "Copied"
+msgstr "Afritað"
+
+msgid "Click to copy"
+msgstr "Smelltu til að afrita"
+
+msgid "Update to V{version}"
+msgstr "Uppfæra í V{version}"
+
+msgid "Type"
+msgstr "Gerð"
+
+msgid "Create"
+msgstr "Búa til"
+
+msgid "Custom"
+msgstr "Sérsniðið"
+
+msgid "Switchable Light"
+msgstr "Rofið ljós"
+
+msgid "Dimmable Light"
+msgstr "Deyfanlegt ljós"
+
+msgid "Sun Protection"
+msgstr "Sólarvörn"
+
+msgid "Heating (Switching Variable)"
+msgstr "Hitun (rofin stýribreyta)"
+
+msgid "Heating (Continuous Variable)"
+msgstr "Hitun (samfelld stýribreyta)"
+
+msgid "Switchable Socket"
+msgstr "Rofinn tengill"
+
+msgid "Confirmed Restart"
+msgstr "Staðfest endurræsing"
+
+msgid "Delete Application Program"
+msgstr "Eyða verkforriti"
+
+msgid "Factory Reset"
+msgstr "Endurstilla á verksmiðjustillingar"
+
+msgid "Factory Reset (Keep Address)"
+msgstr "Endurstilla á verksmiðjustillingar (halda vistfangi)"
+
+msgid "I understand this resets the device"
+msgstr "Ég skil að þetta endurstillir tækið"
+
+msgid "Master Reset"
+msgstr "Aðalendurstilling"
+
+msgid "Reset Device"
+msgstr "Endurstilla tæki"
+
+msgid "Reset Group Address Links"
+msgstr "Endurstilla tengingar hópvistfanga"
+
+msgid "Reset Individual Address"
+msgstr "Endurstilla einstaklingsvistfang"
+
+msgid "Reset Parameters"
+msgstr "Endurstilla færibreytur"
+
+msgid "Reset Type"
+msgstr "Gerð endurstillingar"
+
+msgid "Reset…"
+msgstr "Endurstilla…"
+
+msgid "Restart"
+msgstr "Endurræsa"
+
+msgid "no fault reported"
+msgstr "engin villa tilkynnt"
+
+msgid "(Top Level)"
+msgstr "(efsta stig)"
+
+msgid "Assign a Device to This Space"
+msgstr "Úthluta tæki á þetta rými"
+
+msgid "Building"
+msgstr "Bygging"
+
+msgid "Building Part"
+msgstr "Byggingarhluti"
+
+msgid "Corridor"
+msgstr "Gangur"
+
+msgid "Delete this space and everything in it? Devices are only unassigned, not deleted."
+msgstr "Eyða þessu rými og öllu sem í því er? Tækin eru aðeins tekin úr úthlutun, ekki eytt."
+
+msgid "Floor"
+msgstr "Hæð"
+
+msgid "Move to"
+msgstr "Færa í"
+
+msgid "No unassigned devices"
+msgstr "Engin óúthlutuð tæki"
+
+msgid "Room"
+msgstr "Herbergi"
+
+msgid "Stairway"
+msgstr "Stigagangur"
+
+msgid "Without Space"
+msgstr "Án rýmis"
+
+msgid "Delete Folder"
+msgstr "Eyða möppu"
+
+msgid "Delete this folder and every group address in it? This can be undone."
+msgstr "Eyða þessari möppu og öllum hópvistföngum í henni? Hægt er að afturkalla þetta."
+
+msgid "Apply Changes to All Channels"
+msgstr "Nota breytingar á allar rásir"
+
+msgid "S"
+msgstr "S"
+
+msgid "S = Sending. This object sends its value to the group address; the others only receive it."
+msgstr "S = Sendandi. Þessi hlutur sendir gildi sitt á hópvistfangið; hinir taka aðeins við því."
+
+msgid "Click to open this device in the editor"
+msgstr "Smelltu til að opna þetta tæki í ritlinum"
+
+msgid "Copy Configuration"
+msgstr "Afrita stillingar"
+
+msgid "Paste Configuration"
+msgstr "Líma stillingar"
+
+msgid "Paste configuration onto '{name}':"
+msgstr "Líma stillingar á '{name}':"
+
+msgid "Paste configuration onto {count} selected devices:"
+msgstr "Líma stillingar á valin tæki ({count}):"
+
+msgid "Duplicate '{name}':"
+msgstr "Tvöfalda '{name}':"
+
+msgid "Parameters"
+msgstr "Færibreytur"
+
+msgid "Group Address Links"
+msgstr "Tengingar hópvistfanga"
+
+msgid "Paste"
+msgstr "Líma"
+
+msgid "This action can only be performed when the individual address of the device is already downloaded."
+msgstr "Aðeins er hægt að framkvæma þessa aðgerð þegar einstaklingsvistfang tækisins hefur þegar verið hlaðið niður."
+
+msgid "Button {0} executed. "
+msgstr "Hnappur {0} framkvæmdur. "
+
+msgid "A parameter script is running for this device."
+msgstr "Færibreytuforskrift er í gangi fyrir þetta tæki."
+
+msgid "The Device has no valid address or is not linked to an area or line."
+msgstr "Tækið hefur ekkert gilt vistfang eða er ekki tengt svæði eða línu."
+
+msgid "Parameter Script"
+msgstr "Færibreytuforskrift"
+
+msgid "Executing Script"
+msgstr "Forskrift í keyrslu"
+
+msgid "Script not responding"
+msgstr "Forskrift svarar ekki"
+
+msgid "Force Stop"
+msgstr "Þvinga stöðvun"
+
+msgid "The script was stopped."
+msgstr "Forskriftin var stöðvuð."
+
+msgid "Canceling…"
+msgstr "Hættir við…"
+
+msgid "No connection to the bus."
+msgstr "Engin tenging við tengibraut."
+
+msgid "Parameter value cannot be set, because validation failed."
+msgstr "Ekki er hægt að setja gildi færibreytunnar því staðfesting mistókst."
+
+msgid "Operations"
+msgstr "Aðgerðir"
+
+msgid "Active"
+msgstr "Virkar"
+
+msgid "Cancel All"
+msgstr "Hætta við allar"
+
+msgid "Clear History"
+msgstr "Hreinsa sögu"
+
+msgid "No operations."
+msgstr "Engar aðgerðir."
+
+msgid "Downloading"
+msgstr "Hleður niður"
+
+msgid "Waiting"
+msgstr "Í bið"
+
+msgid "Finished"
+msgstr "Lokið"
+
+msgid "Canceled"
+msgstr "Hætt við"
+
+msgid "failed"
+msgstr "mistókst"
+
+msgid "No details available"
+msgstr "Engar nánari upplýsingar tiltækar"
+
+msgid "Connection: {connection}"
+msgstr "Tenging: {connection}"
+
+msgid "Start: {time}"
+msgstr "Upphaf: {time}"
+
+msgid "End: {time}"
+msgstr "Lok: {time}"
+
+msgid "The product data of this device is missing - its application program is not in the catalog. Import its product to edit the device."
+msgstr "Vörugögn þessa tækis vantar - verkforrit þess er ekki í vörulistanum. Fluttu vöru þess inn til að breyta tækinu."
+
+msgid "Device Info"
+msgstr "Tækjaupplýsingar"
+
+msgid "Device Info (With Group Communication)"
+msgstr "Tækjaupplýsingar (með hópsamskiptum)"
+
+msgid "Reading"
+msgstr "Les"
+
+msgid "General"
+msgstr "Almennt"
+
+msgid "Group Communication"
+msgstr "Hópsamskipti"
+
+msgid "Device Manufacturer"
+msgstr "Framleiðandi tækis"
+
+msgid "Firmware Version"
+msgstr "Útgáfa fastbúnaðar"
+
+msgid "Programming Mode"
+msgstr "Forritunarhamur"
+
+msgid "Load State"
+msgstr "Hleðslustaða"
+
+msgid "Address Table Load State"
+msgstr "Hleðslustaða vistfangatöflu"
+
+msgid "Association Table Load State"
+msgstr "Hleðslustaða tengitöflu"
+
+msgid "Group Object Table Load State"
+msgstr "Hleðslustaða töflu samskiptahluta"
+
+msgid "Reading the tables failed: {error}"
+msgstr "Lestur taflnanna mistókst: {error}"
+
+msgid "On"
+msgstr "Kveikt"
+
+msgid "Off"
+msgstr "Slökkt"
+
+msgid "Unloaded"
+msgstr "Afhlaðið"
+
+msgid "Loaded"
+msgstr "Hlaðið"
+
+msgid "Loading"
+msgstr "Hleður"
+
+msgid "Error"
+msgstr "Villa"
+
+msgid "Unloading"
+msgstr "Afhleður"
+
+msgid "Load Completing"
+msgstr "Lýkur hleðslu"
+
+msgid "Yes"
+msgstr "Já"
+
+msgid "Also read the group communication?"
+msgstr "Lesa einnig hópsamskiptin?"
+
+msgid "No"
+msgstr "Nei"
+
+msgid "The application on the device is not in the catalog, so its tables cannot be located"
+msgstr "Verkforritið í tækinu er ekki í vörulistanum, svo ekki er hægt að finna töflur þess"
+
+msgid "This device can only be programmed with the manufacturer's plugin, which is not available here."
+msgstr "Aðeins er hægt að forrita þetta tæki með viðbót framleiðandans, sem er ekki tiltæk hér."
+
+msgid "The manufacturer configures this device with its own plugin dialog; settings made there are not shown here."
+msgstr "Framleiðandinn stillir þetta tæki með eigin viðbótarglugga; stillingar sem gerðar eru þar eru ekki sýndar hér."
+
+msgid "The manufacturer programs this device with its own plugin; the standard download is used here."
+msgstr "Framleiðandinn forritar þetta tæki með eigin viðbót; hér er notuð hefðbundin niðurhleðsla."
+
+msgid "The manufacturer keeps part of this device's data with its own plugin, which is not available here."
+msgstr "Framleiðandinn geymir hluta af gögnum þessa tækis með eigin viðbót, sem er ekki tiltæk hér."
+
+msgid "This device is also configured with separate software from the manufacturer."
+msgstr "Þetta tæki er einnig stillt með sérstökum hugbúnaði frá framleiðandanum."
+
+msgid "This device includes a manufacturer configuration app (“{name}”) that XKNX Editor can't run. The device's standard parameters can still be programmed, but not the extra functionality that app provides."
+msgstr "Þetta tæki inniheldur stillingarforrit frá framleiðanda („{name}“) sem XKNX Editor getur ekki keyrt. Samt er hægt að forrita hefðbundnar færibreytur tækisins, en ekki þá viðbótarvirkni sem forritið veitir."
+
+msgid "This device includes a manufacturer configuration app (“{name}”) that can't be run directly in XKNX Editor — but it has been ported, so its most important functions are usable here (see the DALI tab)."
+msgstr "Þetta tæki inniheldur stillingarforrit frá framleiðanda („{name}“) sem ekki er hægt að keyra beint í XKNX Editor — en það hefur verið flutt yfir, svo mikilvægustu aðgerðir þess eru nothæfar hér (sjá DALI-flipann)."
+
+msgid "The manufacturer allows programming this device only with its plugin, which is not available here. Programming it without the plugin may leave the device misconfigured or in an error state."
+msgstr "Framleiðandinn leyfir aðeins forritun þessa tækis með viðbót sinni, sem er ekki tiltæk hér. Forritun án viðbótarinnar getur skilið tækið eftir rangt stillt eða í villuástandi."
+
+msgid "Program Without the Manufacturer's Plugin Anyway"
+msgstr "Forrita samt án viðbótar framleiðandans"
+
+msgid "Overwrite Individual Address"
+msgstr "Skrifa yfir einstaklingsvistfang"
+
+msgid "This writes the individual address {address} to the device whose programming button is pressed. Continue?"
+msgstr "Þetta skrifar einstaklingsvistfangið {address} í tækið sem ýtt er á forritunarhnappinn á. Halda áfram?"
+
+msgid "This overwrites the individual address of the device at its current address with {address}. Its programming button does not need to be pressed."
+msgstr "Þetta skrifar yfir einstaklingsvistfang tækisins á núverandi vistfangi þess með {address}. Ekki þarf að ýta á forritunarhnapp þess."
+
+msgid "Current Individual Address"
+msgstr "Núverandi einstaklingsvistfang"
+
+msgid "Enter the device's current individual address, e.g. 1.1.5."
+msgstr "Sláðu inn núverandi einstaklingsvistfang tækisins, t.d. 1.1.5."
+
+msgid "The device already has the individual address {address}."
+msgstr "Tækið hefur þegar einstaklingsvistfangið {address}."
+
+msgid "Please press the programming button"
+msgstr "Ýttu á forritunarhnappinn"
+
+msgid "Individual Address via Serial Number"
+msgstr "Einstaklingsvistfang um raðnúmer"
+
+msgid "This writes the individual address {address} to the device with the serial number {serial}. Its programming button does not need to be pressed."
+msgstr "Þetta skrifar einstaklingsvistfangið {address} í tækið með raðnúmerið {serial}. Ekki þarf að ýta á forritunarhnapp þess."
+
+msgid "Use Serial Number"
+msgstr "Nota raðnúmer"
+
+msgid "The serial number is already associated with device {device}."
+msgstr "Raðnúmerið er þegar tengt tækinu {device}."
+
+msgid "Enter the serial number as 12 hexadecimal digits, e.g. 0083:7AA2039C."
+msgstr "Sláðu inn raðnúmerið sem 12 sextándakerfistölustafi, t.d. 0083:7AA2039C."
+
+msgid "The reported value matches {devices} in this project."
+msgstr "Tilkynnta gildið samsvarar {devices} í þessu verkefni."
+
+msgid "Waiting for confirmation"
+msgstr "Bíður staðfestingar"
+
+msgid "The application program currently loaded in the device is different from the projected application program"
+msgstr "Verkforritið sem er hlaðið í tækið er annað en verkforritið í verkefninu"
+
+msgid "Do you want to overwrite the application program (this may take several minutes)?"
+msgstr "Viltu skrifa yfir verkforritið (þetta getur tekið nokkrar mínútur)?"
+
+msgid "The application program currently loaded in the device does not comply with the projected application program. You may try a full instead of a partial download."
+msgstr "Verkforritið sem er hlaðið í tækið samræmist ekki verkforritinu í verkefninu. Þú getur reynt fulla niðurhleðslu í stað hlutaniðurhleðslu."
+
+msgid "Incompatible mask version: {found} instead of {expected}"
+msgstr "Ósamhæf útgáfa masks: {found} í stað {expected}"
+
+msgid "Change Application Program"
+msgstr "Skipta um verkforrit"
+
+msgid "Update Application Program Version"
+msgstr "Uppfæra útgáfu verkforrits"
+
+msgid "Update"
+msgstr "Uppfæra"
+
+msgid "Changing the application program failed"
+msgstr "Ekki tókst að skipta um verkforrit"
+
+msgid "Updating the application program failed"
+msgstr "Ekki tókst að uppfæra verkforritið"
+
+msgid "Updating the application program…"
+msgstr "Uppfærir verkforritið…"
+
+msgid "Changing the application program…"
+msgstr "Skiptir um verkforrit…"
+
+msgid "Delete Space"
+msgstr "Eyða rými"
+
+msgid "Load Reference File"
+msgstr "Hlaða tilvísunarskrá"
+
+msgid "Save Memory Dump"
+msgstr "Vista minnisafrit"
+
+msgid "Export Programming Test Result"
+msgstr "Flytja út niðurstöðu forritunarprófs"
+
+msgid "Load"
+msgstr "Hlaða"
+
+msgid "DIN Rail Mounting"
+msgstr "DIN-teinafesting"
+
+msgid "Bus Current"
+msgstr "Straumur af tengibraut"
+
+msgid "Read Value"
+msgstr "Lesa gildi"
+
+msgid "Write Value…"
+msgstr "Skrifa gildi…"
+
+msgid "Write Value"
+msgstr "Skrifa gildi"
+
+msgid "Data Type"
+msgstr "Gagnagerð"
+
+msgid "Value"
+msgstr "Gildi"
+
+msgid "Set the data type of the group address to write a value."
+msgstr "Settu gagnagerð hópvistfangsins til að skrifa gildi."
+
+msgid "Write"
+msgstr "Skrifa"
+
+msgid "Not connected to the bus."
+msgstr "Ekki tengt við tengibraut."
+
+msgid "Export Group Addresses…"
+msgstr "Flytja út hópvistföng…"
+
+msgid "Import Group Addresses…"
+msgstr "Flytja inn hópvistföng…"
+
+msgid "Import Group Addresses"
+msgstr "Flytja inn hópvistföng"
+
+msgid "Group Address Files (XML, CSV)"
+msgstr "Skrár með hópvistföngum (XML, CSV)"
+
+msgid "All Files"
+msgstr "Allar skrár"
+
+msgid "{added} group addresses added, {updated} updated."
+msgstr "Hópvistföngum bætt við: {added}, uppfærð: {updated}."
+
+msgid "{count} group addresses could not be placed in a group."
+msgstr "Hópvistföng sem ekki var hægt að setja í hóp: {count}"
+
+msgid "The file could not be imported: {error}"
+msgstr "Ekki tókst að flytja skrána inn: {error}"
+
+msgid "The file uses {file} group addresses, but the project uses {project} group addresses."
+msgstr "Framsetning hópvistfanga í skránni: {file}, en í verkefninu: {project}."
+
+msgid "3-level"
+msgstr "3 stig"
+
+msgid "2-level"
+msgstr "2 stig"
+
+msgid "free"
+msgstr "frjáls"
+
+msgid "Export"
+msgstr "Flytja út"
+
+msgid "Import"
+msgstr "Flytja inn"
+
+msgid "Based on OpenKNXproducer"
+msgstr "Byggt á OpenKNXproducer"
+
+msgid "CSV"
+msgstr "CSV"
+
+msgid "Channels ({count})"
+msgstr "Rásir ({count})"
+
+msgid "Choose Project to Compare"
+msgstr "Veldu verkefni til samanburðar"
+
+msgid "Choose Project to Compare…"
+msgstr "Velja verkefni til samanburðar…"
+
+msgid "Columns"
+msgstr "Dálkar"
+
+msgid "Comments are encrypted"
+msgstr "Athugasemdir eru dulritaðar"
+
+msgid "Compare the open project with another project file (.knxproj, .xknx or a backup): which devices and group addresses were added, removed or changed. The other project is read-only; nothing is modified."
+msgstr "Bera opna verkefnið saman við aðra verkefnisskrá (.knxproj, .xknx eða öryggisafrit): hvaða tækjum og hópvistföngum var bætt við, þau fjarlægð eða breytt. Hitt verkefnið er aðeins lesið; engu er breytt."
+
+msgid "Custom Grid"
+msgstr "Sérsniðið net"
+
+msgid "DALI (Bus)"
+msgstr "DALI (braut)"
+
+msgid "Date"
+msgstr "Dagsetning"
+
+msgid "Decrypt Comments"
+msgstr "Afkóða athugasemdir"
+
+msgid "Default Gateway"
+msgstr "Sjálfgefin gátt"
+
+msgid "Delete '{name}'? Its group objects and group-address links are removed and its individual address is freed. This can be undone."
+msgstr "Eyða '{name}'? Samskiptahlutir þess og tengingar við hópvistföng eru fjarlægð og einstaklingsvistfang þess losað. Hægt er að afturkalla þetta."
+
+msgid "Delete Device"
+msgstr "Eyða tæki"
+
+msgid "Destructive: the device is reset over the bus and must be commissioned again. In KNX Secure mode this deactivates device security."
+msgstr "Óafturkræft: tækið er endurstillt um tengibrautina og þarf að gangsetja það aftur. Í KNX Secure-ham gerir þetta öryggi tækisins óvirkt."
+
+msgid "Download PDF Manual"
+msgstr "Sækja PDF-handbók"
+
+msgid "ETS encrypts the log comments. Extract the decryption key from your own ETS installation's Knx.Ets.Common.dll to read them; nothing is sent anywhere."
+msgstr "ETS dulritar athugasemdirnar í annálnum. Dragðu afkóðunarlykilinn út úr Knx.Ets.Common.dll í þinni eigin ETS-uppsetningu til að lesa þær; ekkert er sent neitt."
+
+msgid "Export HTML…"
+msgstr "Flytja út HTML…"
+
+msgid "Extract from Knx.Ets.Common.dll…"
+msgstr "Draga út úr Knx.Ets.Common.dll…"
+
+msgid "Extracting key…"
+msgstr "Dregur út lykil…"
+
+msgid "Fields"
+msgstr "Reitir"
+
+msgid "Filter log"
+msgstr "Sía annál"
+
+msgid "Find this device's manual (via the KNX device database, else a manufacturer search) and open it in your browser. Best effort - opens the KNX device search if no direct document is found."
+msgstr "Finna handbók þessa tækis (í KNX-tækjagagnagrunninum, annars með leit hjá framleiðanda) og opna hana í vafranum. Eftir bestu getu - opnar KNX-tækjaleitina ef ekkert beint skjal finnst."
+
+msgid "Gap X / Y (mm)"
+msgstr "Bil X / Y (mm)"
+
+msgid "Obtain an IP address automatically"
+msgstr "Fá IP-tölu sjálfkrafa"
+
+msgid "Use a static IP address"
+msgstr "Nota fasta IP-tölu"
+
+msgid "Assigned IP Address"
+msgstr "Úthlutuð IP-tala"
+
+msgid "An invalid IP address was specified."
+msgstr "Ógild IP-tala var gefin upp."
+
+msgid "Change assigned IP address of '{0}' to '{1}'."
+msgstr "Breyta úthlutaðri IP-tölu '{0}' í '{1}'."
+
+msgid "IP configuration of device '{0}' changed."
+msgstr "IP-stillingum tækisins '{0}' breytt."
+
+msgid "IP Address"
+msgstr "IP-tala"
+
+msgid "IP Configuration"
+msgstr "IP-stillingar"
+
+msgid "Individual Addresses"
+msgstr "Einstaklingsvistföng"
+
+msgid "Installation"
+msgstr "Uppsetning"
+
+msgid "Invalid address or already in use."
+msgstr "Ógilt vistfang eða þegar í notkun."
+
+msgid "KNX Common Assembly"
+msgstr "KNX Common Assembly"
+
+msgid "KNX project (*.knxproj *.xknx *.zip)"
+msgstr "KNX-verkefni (*.knxproj *.xknx *.zip)"
+
+msgid "Key extracted; comments decrypted"
+msgstr "Lykill dreginn út; athugasemdir afkóðaðar"
+
+msgid "Label Sheet"
+msgstr "Merkimiðaörk"
+
+msgid "Label W x H (mm)"
+msgstr "Merkimiði B x H (mm)"
+
+msgid "Legend (Full Page)"
+msgstr "Skýringar (heil síða)"
+
+msgid "MAC Address"
+msgstr "MAC-vistfang"
+
+msgid "Margin Top / Left (mm)"
+msgstr "Spássía efst / vinstri (mm)"
+
+msgid "No .NET runtime found (install the .NET SDK, or run on Windows with ETS)."
+msgstr "Ekkert .NET-keyrsluumhverfi fannst (settu upp .NET SDK, eða keyrðu á Windows með ETS)."
+
+msgid "No differences in devices or group addresses."
+msgstr "Enginn munur á tækjum eða hópvistföngum."
+
+msgid "No project log entries"
+msgstr "Engar færslur í verkefnisannál"
+
+msgid "Output"
+msgstr "Úttak"
+
+msgid "Pick the fields and an output: a CSV, printable label sheets (Avery), or a full-page legend. HTML output opens in your browser to print or save as PDF."
+msgstr "Veldu reitina og úttak: CSV, prentanlegar merkimiðaarkir (Avery) eða skýringar á heilli síðu. HTML-úttak opnast í vafranum til að prenta eða vista sem PDF."
+
+msgid "Project Diff"
+msgstr "Samanburður verkefna"
+
+msgid "Project Log"
+msgstr "Verkefnisannáll"
+
+msgid "Renumber group addresses by adding an offset to their raw value, e.g. to open gaps. Group object links move with each address. Nothing is written if any move would collide or leave the valid range."
+msgstr "Endurnúmera hópvistföng með því að bæta hliðrun við hrágildi þeirra, t.d. til að búa til bil. Tengingar samskiptahluta færast með hverju vistfangi. Ekkert er skrifað ef einhver færsla myndi rekast á eða fara út fyrir gilt svið."
+
+msgid "Rows"
+msgstr "Raðir"
+
+msgid "Searching Manual…"
+msgstr "Leitar að handbók…"
+
+msgid "Select at least one field."
+msgstr "Veldu að minnsta kosti einn reit."
+
+msgid "Sheet"
+msgstr "Örk"
+
+msgid "Shift Group Addresses"
+msgstr "Hliðra hópvistföngum"
+
+msgid "Shifted {count} group address(es)"
+msgstr "Hópvistföngum hliðrað: {count}"
+
+msgid "Subnet Mask"
+msgstr "Netmaski"
+
+msgid "The offset is added to the raw 16-bit value, so it may change the main/middle group as addresses cross a boundary."
+msgstr "Hliðruninni er bætt við 16 bita hrágildið, svo hún getur breytt aðal-/miðhóp þegar vistföng fara yfir mörk."
+
+msgid "This project has no group addresses."
+msgstr "Þetta verkefni hefur engin hópvistföng."
+
+msgid "User"
+msgstr "Notandi"
+
+msgid "added"
+msgstr "bætt við"
+
+msgid "changed"
+msgstr "breytt"
+
+msgid "Compared with {name}:"
+msgstr "Borið saman við {name}:"
+
+msgid "removed"
+msgstr "fjarlægt"
+
+msgid "{count} difference(s)"
+msgstr "Mismunur: {count}"
+
+msgid "Save…"
+msgstr "Vista…"
+
+msgid "Diff…"
+msgstr "Bera saman…"
+
+msgid "Clear Diff"
+msgstr "Hreinsa samanburð"
+
+msgid "Memory Dumps (*.bin)"
+msgstr "Minnisafrit (*.bin)"
+
+msgid "{count} bytes"
+msgstr "{count} bæti"
+
+msgid "No memory segments."
+msgstr "Engir minnishlutar."
+
+msgid "Cannot encode memory image: {error}"
+msgstr "Ekki hægt að kóða minnismynd: {error}"
+
+msgid "The file could not be read or written: {error}"
+msgstr "Ekki tókst að lesa eða skrifa skrána: {error}"
+
+msgid "Password"
+msgstr "Aðgangsorð"
+
+msgid "Protected"
+msgstr "Varið"
+
+msgid "Not protected"
+msgstr "Ekki varið"
+
+msgid "Set Password"
+msgstr "Setja aðgangsorð"
+
+msgid "Change Password"
+msgstr "Breyta aðgangsorði"
+
+msgid "Remove Password"
+msgstr "Fjarlægja aðgangsorð"
+
+msgid "Project Password"
+msgstr "Aðgangsorð verkefnis"
+
+msgid "The project and its exports are protected with this password; opening or importing them asks for it. A password change cannot be undone."
+msgstr "Verkefnið og útflutningar þess eru varin með þessu aðgangsorði; beðið er um það þegar þau eru opnuð eða flutt inn. Ekki er hægt að afturkalla breytingu á aðgangsorði."
+
+msgid "Repeat Password"
+msgstr "Endurtaka aðgangsorð"
+
+msgid "The passwords do not match."
+msgstr "Aðgangsorðin passa ekki saman."
+
+msgid "A project with KNX Secure devices needs a password: it protects their keys in the project and in its exports."
+msgstr "Verkefni með KNX Secure-tækjum þarf aðgangsorð: það ver lykla þeirra í verkefninu og í útflutningum þess."
+
+msgid "The other project is protected with a password. Enter it to compare:"
+msgstr "Hitt verkefnið er varið með aðgangsorði. Sláðu það inn til að bera saman:"
+
+msgid "Compare"
+msgstr "Bera saman"
+
+msgid "Wrong password, please try again."
+msgstr "Rangt aðgangsorð, reyndu aftur."
+
+msgid "Add Device Certificate"
+msgstr "Bæta við tækjavottorði"
+
+msgid "Device Certificate"
+msgstr "Tækjavottorð"
+
+msgid "This device already uses its own key from this project. Its certificate is only needed again after a factory reset."
+msgstr "Þetta tæki notar þegar eigin lykil úr þessu verkefni. Vottorð þess þarf aðeins aftur eftir endurstillingu á verksmiðjustillingar."
+
+msgid "This device still uses its factory key: its first secure download needs its certificate."
+msgstr "Þetta tæki notar enn verksmiðjulykil sinn: fyrsta örugga niðurhleðsla þess þarf vottorð þess."
+
+msgid "Stored Certificate: {serial}"
+msgstr "Vistað vottorð: {serial}"
+
+msgid "Enter the FDSK from its label or certificate (36 characters):"
+msgstr "Sláðu inn FDSK af merkimiða þess eða vottorði (36 stafir):"
+
+msgid "To replace it, enter the new FDSK (36 characters):"
+msgstr "Til að skipta því út skaltu slá inn nýja FDSK (36 stafir):"
+
+msgid "Remove the stored certificate? After a factory reset, the device can then only be reached again with the code from its label."
+msgstr "Fjarlægja vistaða vottorðið? Eftir endurstillingu á verksmiðjustillingar er þá aðeins hægt að ná í tækið aftur með kóðanum af merkimiða þess."
+
+msgid "Device Certificate…"
+msgstr "Tækjavottorð…"
+
+msgid "The device certificate (FDSK) is missing."
+msgstr "Tækjavottorðið (FDSK) vantar."
+
+msgid "This is not a valid FDSK; please check it."
+msgstr "Þetta er ekki gilt FDSK; athugaðu það."
+
+msgid "This certificate belongs to the device with serial number {serial}."
+msgstr "Þetta vottorð tilheyrir tækinu með raðnúmerið {serial}."
+
+msgid "Set a project password first: it protects the device keys."
+msgstr "Settu fyrst aðgangsorð á verkefnið: það ver lykla tækjanna."
+
+msgid "Security"
+msgstr "Öryggi"
+
+msgid "Automatic"
+msgstr "Sjálfvirkt"
+
+msgid "Plain"
+msgstr "Ódulritað"
+
+msgid "Deactivate Secure Commissioning"
+msgstr "Gera örugga gangsetningu óvirka"
+
+msgid "These group addresses will then communicate in the clear:"
+msgstr "Þessi hópvistföng munu þá eiga ódulrituð samskipti:"
+
+msgid "The device's group objects will be removed from these secured group addresses:"
+msgstr "Samskiptahlutir tækisins verða fjarlægðir af þessum öruggu hópvistföngum:"
+
+msgid "Deactivate"
+msgstr "Gera óvirkt"
+
+msgid "Secure Commissioning"
+msgstr "Örugg gangsetning"
+
+msgid "Add Device Certificate…"
+msgstr "Bæta við tækjavottorði…"
+
+msgid "Activated"
+msgstr "Virkt"
+
+msgid "Deactivated"
+msgstr "Óvirkt"
+
+msgid "A secured group address can only be linked to devices that are commissioned securely."
+msgstr "Aðeins er hægt að tengja öruggt hópvistfang við tæki sem eru gangsett á öruggan hátt."
+
+msgid "Not every device linked to this group address is commissioned securely, so it cannot be secured."
+msgstr "Ekki eru öll tæki sem tengd eru þessu hópvistfangi gangsett á öruggan hátt, svo ekki er hægt að gera það öruggt."
+
+msgid "A group object that requires secure communication would end up on a group address in the clear."
+msgstr "Samskiptahlutur sem krefst öruggra samskipta myndi lenda á ódulrituðu hópvistfangi."
+
+msgid "Later"
+msgstr "Síðar"
+
+msgid "Don't Ask When Adding Devices"
+msgstr "Ekki spyrja þegar tækjum er bætt við"
+
+msgid "KNX IP Secure"
+msgstr "KNX IP Secure"
+
+msgid "Show Passwords"
+msgstr "Sýna aðgangsorð"
+
+msgid "Secure Tunneling"
+msgstr "Öruggt smug"
+
+msgid "Commissioning Password"
+msgstr "Aðgangsorð gangsetningar"
+
+msgid "Authentication Code"
+msgstr "Sannvottunarkóði"
+
+msgid "Interface"
+msgstr "Skil"
+
+msgid "Routing"
+msgstr "Beining"
+
+msgid "Tunnel {address}"
+msgstr "Smugrás {address}"
+
+msgid "A password needs 1 to 20 Latin-1 characters."
+msgstr "Aðgangsorð þarf 1 til 20 Latin-1-stafi."
+
+msgid "Close"
+msgstr "Loka"
+
+msgid "Device Certificates"
+msgstr "Tækjavottorð"
+
+msgid "Manage…"
+msgstr "Stjórna…"
+
+msgid "The project has no device certificates."
+msgstr "Verkefnið hefur engin tækjavottorð."
+
+msgid "The security tables of {device} cannot hold this link."
+msgstr "Öryggistöflur {device} rúma ekki þessa tengingu."
+
+msgid "Point-to-Point and Broadcast"
+msgstr "Punkt-til-punkts og útsending"
+
+msgid "Blocked"
+msgstr "Lokað"
+
+msgid "Routed"
+msgstr "Áframsent"
+
+msgid "Compare Devices"
+msgstr "Bera saman tæki"
+
+msgid "Compare with…"
+msgstr "Bera saman við…"
+
+msgid "Show in Bus Diagram"
+msgstr "Sýna í tengibrautarmynd"
+
+msgid "Device A"
+msgstr "Tæki A"
+
+msgid "Device B"
+msgstr "Tæki B"
+
+msgid "Field"
+msgstr "Reitur"
+
+msgid "Filter devices by address, name or description…"
+msgstr "Sía tæki eftir vistfangi, heiti eða lýsingu…"
+
+msgid "Group Objects"
+msgstr "Samskiptahlutir"
+
+msgid "No differences"
+msgstr "Enginn munur"
+
+msgid "Only Differences"
+msgstr "Aðeins mismunur"
+
+msgid "Open a project with at least two devices to compare."
+msgstr "Opnaðu verkefni með að minnsta kosti tveimur tækjum til að bera saman."
+
+msgid "{count} differences"
+msgstr "Mismunur: {count}"
+
+msgid "The manufacturer plugin is not available here:"
+msgstr "Viðbót framleiðandans er ekki tiltæk hér:"
+
+msgid "Only it can program the device."
+msgstr "Aðeins hún getur forritað tækið."
+
+msgid "Settings made in its dialog are not shown."
+msgstr "Stillingar sem gerðar eru í glugga hennar eru ekki sýndar."
+
+msgid "The standard download is used instead."
+msgstr "Hefðbundin niðurhleðsla er notuð í staðinn."
+
+msgid "Part of the device data is not available."
+msgstr "Hluti af gögnum tækisins er ekki tiltækur."
+
+msgid "Connect to a KNX interface to commission the DALI bus."
+msgstr "Tengstu við KNX-skil til að gangsetja DALI-brautina."
+
+msgid "This gateway's commissioning protocol has not been verified against a capture; writes may misbehave. Proceed with care."
+msgstr "Gangsetningarsamskiptaregla þessarar gáttar hefur ekki verið sannreynd með upptöku; skrif geta hegðað sér óeðlilega. Farðu varlega."
+
+msgid "DALI commissioning writes the gateway on the bus but does not update the project parameters; re-export the .knxproj after a DCA-side edit."
+msgstr "DALI-gangsetning skrifar í gáttina á tengibrautinni en uppfærir ekki færibreytur verkefnisins; fluttu .knxproj út aftur eftir breytingu á DCA-hliðinni."
+
+msgid "Scan Bus"
+msgstr "Leita á braut"
+
+msgid "All ECGs On"
+msgstr "Kveikja á öllum straumfestum"
+
+msgid "All Off"
+msgstr "Slökkva á öllu"
+
+msgid "New Installation…"
+msgstr "Ný uppsetning…"
+
+msgid "Post Installation…"
+msgstr "Viðbótaruppsetning…"
+
+msgid "Running: {task}"
+msgstr "Í gangi: {task}"
+
+msgid "scanning the bus"
+msgstr "leitar á brautinni"
+
+msgid "switching all ECGs"
+msgstr "rofar alla straumfesta"
+
+msgid "blinking"
+msgstr "blikkar"
+
+msgid "stopping the blinking"
+msgstr "stöðvar blikkið"
+
+msgid "new installation"
+msgstr "ný uppsetning"
+
+msgid "post installation"
+msgstr "viðbótaruppsetning"
+
+msgid "programming the groups"
+msgstr "forritar hópana"
+
+msgid "programming the scenes"
+msgstr "forritar senurnar"
+
+msgid "{count} found"
+msgstr "Fundust: {count}"
+
+msgid "Use 'Scan Bus' to read the DALI bus."
+msgstr "Notaðu 'Leita á braut' til að lesa DALI-brautina."
+
+msgid "Firmware {version}"
+msgstr "Fastbúnaður {version}"
+
+msgid "Confirm DALI Programming"
+msgstr "Staðfesta DALI-forritun"
+
+msgid "Continue"
+msgstr "Halda áfram"
+
+msgid "New installation scans the DALI bus again and REASSIGNS the short\naddress of every ballast. This cannot be undone. Continue?"
+msgstr "Ný uppsetning leitar aftur á DALI-brautinni og ÚTHLUTAR AÐ NÝJU stuttu\nvistfangi hvers straumfestis. Ekki er hægt að afturkalla þetta. Halda áfram?"
+
+msgid "Post installation scans the bus for new ballasts and updates their addressing.\nThis changes the device. Continue?"
+msgstr "Viðbótaruppsetning leitar að nýjum straumfestum á brautinni og uppfærir vistföng þeirra.\nÞetta breytir tækinu. Halda áfram?"
+
+msgid "Write the group assignment to the DALI bus. This applies the groups to the\ngateway and its ballasts. Continue?"
+msgstr "Skrifa hópaúthlutunina á DALI-brautina. Þetta setur hópana í\ngáttina og straumfesta hennar. Halda áfram?"
+
+msgid "Write the scene values to the DALI bus. Continue?"
+msgstr "Skrifa gildi sena á DALI-brautina. Halda áfram?"
+
+msgid "{count} ECG(s) present"
+msgstr "Straumfestar til staðar: {count}"
+
+msgid "Group"
+msgstr "Hópur"
+
+msgid "Long Address"
+msgstr "Langt vistfang"
+
+msgid "Alarm"
+msgstr "Viðvörun"
+
+msgid "Blink"
+msgstr "Blikka"
+
+msgid "Stop"
+msgstr "Stöðva"
+
+msgid "Program Groups…"
+msgstr "Forrita hópa…"
+
+msgid "Scenes"
+msgstr "Senur"
+
+msgid "Assign the ECGs to groups above to define scenes."
+msgstr "Úthlutaðu straumfestunum á hópa hér fyrir ofan til að skilgreina senur."
+
+msgid "Scene"
+msgstr "Sena"
+
+msgid "Scene {number}"
+msgstr "Sena {number}"
+
+msgid "Group {number}"
+msgstr "Hópur {number}"
+
+msgid "Program Scenes…"
+msgstr "Forrita senur…"
+
+msgid "Single"
+msgstr "Stakur"
+
+msgid "Unassigned"
+msgstr "Óúthlutað"
+
+msgid "Procedure {number}  ({count} steps)"
+msgstr "Ferli {number}  (skref: {count})"
+
+msgid "Kind"
+msgstr "Tegund"
+
+msgid "Applies To"
+msgstr "Gildir um"
+
+msgid "Details"
+msgstr "Nánar"
+
+msgid "Scope: {scope}"
+msgstr "Umfang: {scope}"
+
+msgid "Unload Application Program"
+msgstr "Afhlaða verkforrit"
+
+msgid "This unloads the application program of the device at {address}. The device stops working until its application program is downloaded again."
+msgstr "Þetta afhleður verkforrit tækisins á {address}. Tækið hættir að virka þar til verkforrit þess hefur verið hlaðið niður aftur."
+
+msgid "This unloads the application program of the device at {address} and then resets its individual address to 15.15.255; for that, its programming button has to be pressed. The device stops working until it is commissioned again."
+msgstr "Þetta afhleður verkforrit tækisins á {address} og endurstillir síðan einstaklingsvistfang þess á 15.15.255; til þess þarf að ýta á forritunarhnapp þess. Tækið hættir að virka þar til það hefur verið gangsett aftur."
+
+msgid "Overwrite Address"
+msgstr "Skrifa yfir vistfang"
+
+msgid "Manufacturer's Plugin Not Available"
+msgstr "Viðbót framleiðandans ekki tiltæk"
+
+msgid "Serial Number Already Used"
+msgstr "Raðnúmer þegar í notkun"
+
+msgid "Cancelled by user."
+msgstr "Notandi hætti við."
+
+msgid "Additional Individual Addresses"
+msgstr "Viðbótareinstaklingsvistföng"
+
+msgid "Additional Individual Address"
+msgstr "Viðbótareinstaklingsvistfang"
+
+msgid "Assign Missing Addresses"
+msgstr "Úthluta vistföngum sem vantar"
+
+msgid "The line does not provide enough addresses for all necessary additional addresses."
+msgstr "Línan hefur ekki nógu mörg vistföng fyrir öll nauðsynleg viðbótarvistföng."
+
+msgid "Enter a device number from 1 to 255 or a full individual address in the device's line."
+msgstr "Sláðu inn tækjanúmer frá 1 til 255 eða fullt einstaklingsvistfang í línu tækisins."
+
+msgid "An additional address must be in the device's line {line}."
+msgstr "Viðbótarvistfang verður að vera í línu tækisins, {line}."
+
+msgid "The individual address {address} is already used in this line."
+msgstr "Einstaklingsvistfangið {address} er þegar notað í þessari línu."
+
+msgid "Changed additional address of device '{0}' from '{1}' to '{2}'."
+msgstr "Viðbótarvistfangi tækisins '{0}' breytt úr '{1}' í '{2}'."
+
+msgid "Change additional address names"
+msgstr "Breyta heitum viðbótarvistfanga"
+
+msgid "Change additional address descriptions"
+msgstr "Breyta lýsingum viðbótarvistfanga"
+
+msgid "Assign additional addresses"
+msgstr "Úthluta viðbótarvistföngum"
+
+msgid "Change additional addresses"
+msgstr "Breyta viðbótarvistföngum"
+
+msgid "Started by an MCP client."
+msgstr "Ræst af MCP-biðlara."
+
+msgid "Parameters in the Manufacturer's Plugin"
+msgstr "Færibreytur í viðbót framleiðandans"
+
+msgid "The manufacturer sets this device's parameters in its own plugin dialog, which XKNX Editor cannot run, so they cannot be changed here. A download writes their current values unchanged; the group objects can be linked as usual."
+msgstr "Framleiðandinn stillir færibreytur þessa tækis í eigin viðbótarglugga, sem XKNX Editor getur ekki keyrt, svo ekki er hægt að breyta þeim hér. Niðurhleðsla skrifar núverandi gildi þeirra óbreytt; samskiptahlutina er hægt að tengja eins og venjulega."
+
+msgid "Edit parameters anyway"
+msgstr "Breyta færibreytum samt"
+
+msgid "Matching DPT Only"
+msgstr "Aðeins samsvarandi DPT"
+
+msgid "Only group addresses with the object's main datapoint type, and those without one (they take the object's type when linked)."
+msgstr "Aðeins hópvistföng með aðalgagnapunktsgerð hlutarins, og þau sem hafa enga (þau fá gerð hlutarins þegar þau eru tengd)."
+
+msgid "no DPT"
+msgstr "engin DPT"
+
+msgid "Only objects with the same main datapoint type, and those without one."
+msgstr "Aðeins hlutir með sömu aðalgagnapunktsgerð, og þeir sem hafa enga."
+
+msgid "Select a device in the tree first."
+msgstr "Veldu fyrst tæki í trénu."
+
+msgid "{device} has no group objects."
+msgstr "{device} hefur enga samskiptahluti."
+
+msgid "All objects of {device} are in the list already."
+msgstr "Allir hlutir {device} eru þegar í listanum."
+
+msgid "Link group objects to existing group addresses."
+msgstr "Tengja samskiptahluti við fyrirliggjandi hópvistföng."
+
+msgid "Add objects with \"{add_device}\" or \"{add_objects}\"."
+msgstr "Bættu við hlutum með \"{add_device}\" eða \"{add_objects}\"."
+
+msgid "Pick a group address per row, or fill all with \"{match}\" or \"{sequential}\"."
+msgstr "Veldu hópvistfang fyrir hverja línu, eða fylltu allar út með \"{match}\" eða \"{sequential}\"."
+
+msgid "\"{link_all}\" links every row that has one."
+msgstr "\"{link_all}\" tengir hverja línu sem hefur hópvistfang."
+
+msgid "Link objects to each other through a new group address each: the source sends, the target receives."
+msgstr "Tengja hluti hvern við annan með nýju hópvistfangi fyrir hvert par: uppruninn sendir, markmiðið tekur við."
+
+msgid "Add the source objects with \"{add_device}\" or \"{add_objects}\"."
+msgstr "Bættu við upprunahlutunum með \"{add_device}\" eða \"{add_objects}\"."
+
+msgid "Pick a target object per row. Address and name are suggested and can be changed."
+msgstr "Veldu markhlut fyrir hverja línu. Lagt er til vistfang og heiti sem hægt er að breyta."
+
+msgid "\"{link_all}\" creates the group addresses and links them."
+msgstr "\"{link_all}\" býr til hópvistföngin og tengir þau."
+
+msgid "Link All"
+msgstr "Tengja allt"
+
+msgid "Object"
+msgstr "Hlutur"
+
+msgid "Ready to link."
+msgstr "Tilbúið til tengingar."
+
+msgid "Check the group address: several match, or a datapoint type is unknown."
+msgstr "Athugaðu hópvistfangið: fleiri en eitt passar, eða gagnapunktsgerð er óþekkt."
+
+msgid "The datapoint types do not match; this row is not linked."
+msgstr "Gagnapunktsgerðirnar passa ekki saman; þessi lína er ekki tengd."
+
+msgid "No group address chosen yet."
+msgstr "Ekkert hópvistfang valið enn."
+
+msgid "Add device {name}"
+msgstr "Bæta við tæki {name}"
+
+msgid "Set {ref} = {value}"
+msgstr "Setja {ref} = {value}"
+
+msgid "Change"
+msgstr "Breyting"
+
+msgid "Create area {address}"
+msgstr "Búa til svæði {address}"
+
+msgid "Create line {address}"
+msgstr "Búa til línu {address}"
+
+msgid "Add segment"
+msgstr "Bæta við bút"
+
+msgid "Create group address {address}"
+msgstr "Búa til hópvistfang {address}"
+
+msgid "Import group addresses"
+msgstr "Flytja inn hópvistföng"
+
+msgid "Import group addresses from {file}"
+msgstr "Flytja inn hópvistföng úr {file}"
+
+msgid "Link group object"
+msgstr "Tengja samskiptahlut"
+
+msgid "Unlink group object"
+msgstr "Aftengja samskiptahlut"
+
+msgid "Rename area to {name}"
+msgstr "Endurnefna svæði í {name}"
+
+msgid "Rename project to {name}"
+msgstr "Endurnefna verkefni í {name}"
+
+msgid "Rename line to {name}"
+msgstr "Endurnefna línu í {name}"
+
+msgid "Rename device to {name}"
+msgstr "Endurnefna tæki í {name}"
+
+msgid "Move device"
+msgstr "Færa tæki"
+
+msgid "Set flag"
+msgstr "Setja flagg"
+
+msgid "Set datapoint type"
+msgstr "Setja gagnapunktsgerð"
+
+msgid "Set priority"
+msgstr "Setja forgang"
+
+msgid "Set description"
+msgstr "Setja lýsingu"
+
+msgid "Set sending group address"
+msgstr "Setja sendandi hópvistfang"
+
+msgid "Add installation"
+msgstr "Bæta við uppsetningu"
+
+msgid "Remove device"
+msgstr "Fjarlægja tæki"
+
+msgid "Remove area"
+msgstr "Fjarlægja svæði"
+
+msgid "Remove line"
+msgstr "Fjarlægja línu"
+
+msgid "Remove segment"
+msgstr "Fjarlægja bút"
+
+msgid "Remove group address"
+msgstr "Fjarlægja hópvistfang"
+
+msgid "Remove function"
+msgstr "Fjarlægja aðgerð"
+
+msgid "Remove group address from function"
+msgstr "Fjarlægja hópvistfang úr aðgerð"
+
+msgid "Remove building part"
+msgstr "Fjarlægja byggingarhluta"
+
+msgid "Remove group range"
+msgstr "Fjarlægja hópasvið"
+
+msgid "Update application program"
+msgstr "Uppfæra verkforrit"
+
+msgid "Change application program"
+msgstr "Skipta um verkforrit"
+
+msgid "Update group objects"
+msgstr "Uppfæra samskiptahluti"
+
+msgid "Update module instances"
+msgstr "Uppfæra einingatilvik"
+
+msgid "Set group address security"
+msgstr "Setja öryggi hópvistfangs"
+
+msgid "Set secure commissioning"
+msgstr "Setja örugga gangsetningu"
+
+msgid "Rename group address to {name}"
+msgstr "Endurnefna hópvistfang í {name}"
+
+msgid "Change group address"
+msgstr "Breyta hópvistfangi"
+
+msgid "Set device certificates"
+msgstr "Setja tækjavottorð"
+
+msgid "Set device description"
+msgstr "Setja lýsingu tækis"
+
+msgid "Create function {name}"
+msgstr "Búa til aðgerð {name}"
+
+msgid "Rename function to {name}"
+msgstr "Endurnefna aðgerð í {name}"
+
+msgid "Set function type"
+msgstr "Setja gerð aðgerðar"
+
+msgid "Add group address to function"
+msgstr "Bæta hópvistfangi við aðgerð"
+
+msgid "Create building part {name}"
+msgstr "Búa til byggingarhluta {name}"
+
+msgid "Rename building part to {name}"
+msgstr "Endurnefna byggingarhluta í {name}"
+
+msgid "Set building part number"
+msgstr "Setja númer byggingarhluta"
+
+msgid "Set building part description"
+msgstr "Setja lýsingu byggingarhluta"
+
+msgid "Set building part type"
+msgstr "Setja gerð byggingarhluta"
+
+msgid "Move building part"
+msgstr "Færa byggingarhluta"
+
+msgid "Assign device to building part"
+msgstr "Úthluta tæki á byggingarhluta"
+
+msgid "Set commissioning state"
+msgstr "Setja gangsetningarstöðu"
+
+msgid "Create group range {name}"
+msgstr "Búa til hópasvið {name}"
+
+msgid "Rename group range to {name}"
+msgstr "Endurnefna hópasvið í {name}"
+
+msgid "{device}: no individual address"
+msgstr "{device}: ekkert einstaklingsvistfang"
+
+msgid "{device}: malformed address '{address}'"
+msgstr "{device}: ógilt vistfang '{address}'"
+
+msgid "{device}: duplicate address {address}"
+msgstr "{device}: tvítekið vistfang {address}"
+
+msgid "Installation Hints"
+msgstr "Uppsetningarleiðbeiningar"
+
+msgid "Select an element in a tree to see its comment."
+msgstr "Veldu atriði í tré til að sjá athugasemd þess."
+
+msgid "Set comment"
+msgstr "Setja athugasemd"
+
+msgid "Set installation hints"
+msgstr "Setja uppsetningarleiðbeiningar"
+
+msgid "Area"
+msgstr "Svæði"
+
+msgid "Line"
+msgstr "Lína"
+
+msgid "The address is a number from 0 to 15."
+msgstr "Vistfangið er tala frá 0 til 15."
+
+msgid "Address {address} is already in use."
+msgstr "Vistfangið {address} er þegar í notkun."
+
+msgid "Set area description"
+msgstr "Setja lýsingu svæðis"
+
+msgid "Set line description"
+msgstr "Setja lýsingu línu"
+
+msgid "Set area address"
+msgstr "Setja vistfang svæðis"
+
+msgid "Set line address"
+msgstr "Setja vistfang línu"
+
+msgid "Main Group"
+msgstr "Aðalhópur"
+
+msgid "Middle Group"
+msgstr "Miðhópur"
+
+msgid "Group Range"
+msgstr "Hópasvið"
+
+msgid "The main group is a number from 0 to 31."
+msgstr "Aðalhópurinn er tala frá 0 til 31."
+
+msgid "The middle group is a number from 0 to 7."
+msgstr "Miðhópurinn er tala frá 0 til 7."
+
+msgid "Set group address description"
+msgstr "Setja lýsingu hópvistfangs"
+
+msgid "Set group range description"
+msgstr "Setja lýsingu hópasviðs"
+
+msgid "Set group range address"
+msgstr "Setja vistfang hópasviðs"
+
+msgid "DALI (Siemens)"
+msgstr "DALI (Siemens)"
+
+msgid "Connect to a KNX interface to read the Siemens DALI bus."
+msgstr "Tengstu við KNX-skil til að lesa Siemens DALI-brautina."
+
+msgid "Read DALI Bus"
+msgstr "Lesa DALI-braut"
+
+msgid "Reading the DALI bus from object {object_index}…"
+msgstr "Les DALI-brautina frá hlut {object_index}…"
+
+msgid "Press 'Read DALI Bus' to list the ECGs on the gateway."
+msgstr "Ýttu á 'Lesa DALI-braut' til að birta straumfestana á gáttinni."
+
+msgid "{count} ECG(s) present on line {line}"
+msgstr "Straumfestar til staðar á línu {line}: {count}"
+
+msgid "Read-only snapshot. Writing group assignments, scenes or firmware is not available yet and remains in the manufacturer's plugin."
+msgstr "Skyndimynd sem aðeins er lesin. Ekki er enn hægt að skrifa hópaúthlutanir, senur eða fastbúnað; það er áfram gert í viðbót framleiðandans."
+
+msgid "Short Address"
+msgstr "Stutt vistfang"
+
+msgid "Random Address"
+msgstr "Slembivistfang"
+
+msgid "Min Dim"
+msgstr "Lágm. deyfing"
+
+msgid "Colour Temp (K)"
+msgstr "Litahitastig (K)"
+
+msgid "Slot"
+msgstr "Rauf"
+
+msgid "Plugin Config"
+msgstr "Stillingar viðbótar"
+
+msgid "No plugin mapping is available for this device yet. The vendor plugin's parameters stay unreachable from here."
+msgstr "Engin vörpun viðbótar er enn til fyrir þetta tæki. Ekki er hægt að ná í færibreytur viðbótar framleiðandans héðan."
+
+msgid "The application has no static parameters."
+msgstr "Verkforritið hefur engar fastar færibreytur."
+
+msgid "Read-only view. The hierarchy is a best-effort reconstruction from parameter name prefixes; names and groupings may be rough. Writing values is not available yet."
+msgstr "Sýn sem aðeins er lesin. Stigveldið er endurgert eftir bestu getu út frá forskeytum færibreytuheita; heiti og flokkun geta verið ónákvæm. Ekki er enn hægt að skrifa gildi."
+
+msgid "##plugin_params_filter"
+msgstr "##plugin_params_filter"
+
+msgid "No parameter matches the filter."
+msgstr "Engin færibreyta passar við síuna."
+
+msgid "Parameter"
+msgstr "Færibreyta"
+
+msgid "Default"
+msgstr "Sjálfgefið"
+
+msgid "Editable fallback for parameters whose manufacturer plugin is not available here. The hierarchy is reconstructed from parameter name prefixes; labels and groupings may be rough. Edits are written to the project and transferred by a normal download."
+msgstr "Breytanleg varaleið fyrir færibreytur þar sem viðbót framleiðandans er ekki tiltæk hér. Stigveldið er endurgert út frá forskeytum færibreytuheita; merkingar og flokkun geta verið ónákvæm. Breytingar eru skrifaðar í verkefnið og fluttar með venjulegri niðurhleðslu."
+
+msgid "DALI commissioning"
+msgstr "DALI-gangsetning"
+
+msgid "DALI Channel"
+msgstr "DALI-rás"
+
+msgid "Channel {n}"
+msgstr "Rás {n}"
+
+msgid "Program DCA State"
+msgstr "Forrita DCA-stöðu"
+
+msgid "Sends the DALI device settings to the gateway as property values."
+msgstr "Sendir stillingar DALI-tækjanna í gáttina sem eiginleikagildi."
+
+msgid "Add to {section}:"
+msgstr "Bæta við {section}:"
+
+msgid "No entries."
+msgstr "Engar færslur."
+
+msgid "Entry"
+msgstr "Færsla"
+
+msgid "Store plugin data {name}"
+msgstr "Vista gögn viðbótar {name}"
+
+msgid "Unknown"
+msgstr "Óþekkt"
+
+msgid "Editing"
+msgstr "Í vinnslu"
+
+msgid "Finished design"
+msgstr "Hönnun lokið"
+
+msgid "Finished commissioning"
+msgstr "Gangsetningu lokið"
+
+msgid "Tested"
+msgstr "Prófað"
+
+msgid "Accepted"
+msgstr "Samþykkt"
+
+msgid "Locked"
+msgstr "Læst"
+
+msgid "Function"
+msgstr "Aðgerð"
+
+msgid "Use"
+msgstr "Notkun"
+
+msgid "Set room use"
+msgstr "Setja notkun herbergis"
+
+msgid "Set status to {status}"
+msgstr "Setja stöðu: {status}"
+
+msgid "Set function description"
+msgstr "Setja lýsingu aðgerðar"
+
+msgid "Current Line"
+msgstr "Núverandi lína"
+
+msgid "{line} (inherits from {space})"
+msgstr "{line} (erft frá {space})"
+
+msgid "Set current line"
+msgstr "Setja núverandi línu"
+
+msgid "Segment"
+msgstr "Bútur"
+
+msgid "Medium"
+msgstr "Miðill"
+
+msgid "Domain Address"
+msgstr "Lénsvistfang"
+
+msgid "The medium of a segment can only change while it holds no device."
+msgstr "Aðeins er hægt að breyta miðli búts meðan ekkert tæki er í honum."
+
+msgid "The medium type of the segment '{segment}' cannot be changed to IoT, because its parent line '{line}' is not of medium type IP."
+msgstr "Ekki er hægt að breyta gerð miðils bútsins '{segment}' í IoT, því yfirlína hans '{line}' er ekki af miðilsgerðinni IP."
+
+msgid "The maximum number of segments has been reached."
+msgstr "Hámarksfjölda búta hefur verið náð."
+
+msgid "The main segment cannot be deleted."
+msgstr "Ekki er hægt að eyða aðalbútnum."
+
+msgid "Device '{device}' is incompatible with line's medium type."
+msgstr "Tækið '{device}' er ekki samhæft miðilsgerð línunnar."
+
+msgid "Device '{device}' is incompatible with segment's medium type."
+msgstr "Tækið '{device}' er ekki samhæft miðilsgerð bútsins."
+
+msgid "Rename segment to {name}"
+msgstr "Endurnefna bút í {name}"
+
+msgid "Set medium to {medium}"
+msgstr "Setja miðil: {medium}"
+
+msgid "Forced on"
+msgstr "Þvingað á"
+
+msgid "Forced off"
+msgstr "Þvingað af"
+
+msgid "Overridden by '{name}': {mode}"
+msgstr "Hnekkt af '{name}': {mode}"
+
+msgid "Central"
+msgstr "Miðlægt"
+
+msgid "Not every device linked to a group address of this group is commissioned securely, so it cannot be secured."
+msgstr "Ekki eru öll tæki sem tengd eru hópvistfangi í þessum hópi gangsett á öruggan hátt, svo ekki er hægt að gera hann öruggan."
+
+msgid "Set group security"
+msgstr "Setja öryggi hóps"
+
+msgid "Mark group address as central"
+msgstr "Merkja hópvistfang sem miðlægt"
+
+msgid "Remove central mark from group address"
+msgstr "Fjarlægja miðlæga merkingu af hópvistfangi"
+
+msgid "Topology"
+msgstr "Grannfræði"
+
+msgid "{medium} backbone line"
+msgstr "Grunnlína {medium}"
+
+msgid "{medium} main line"
+msgstr "Aðallína {medium}"
+
+msgid "Backbone"
+msgstr "Grunnlína"
+
+msgid "Network Latency"
+msgstr "Biðtími nets"
+
+msgid "LAN (< 400ms)"
+msgstr "LAN (< 400ms)"
+
+msgid "WLAN (< 1s)"
+msgstr "WLAN (< 1s)"
+
+msgid "WAN (< 2s)"
+msgstr "WAN (< 2s)"
+
+msgid "Mobile (< 4s)"
+msgstr "Farsímanet (< 4s)"
+
+msgid "Satellite (< 8s)"
+msgstr "Gervihnöttur (< 8s)"
+
+msgid "The network latency must be a number of milliseconds from 1 to 65535."
+msgstr "Biðtími nets verður að vera fjöldi millisekúnda frá 1 til 65535."
+
+msgid "Multicast Address"
+msgstr "Margvarpsvistfang"
+
+msgid "Enter a multicast address from 224.0.0.0 to 239.255.255.255."
+msgstr "Sláðu inn margvarpsvistfang frá 224.0.0.0 til 239.255.255.255."
+
+msgid "Bus Connection"
+msgstr "Brautartenging"
+
+msgid "Set IP routing of the backbone"
+msgstr "Setja IP-beiningu grunnlínunnar"
+
+msgid "As long as a coupler exists at a sub line or sub segment, a change of the medium type is not possible."
+msgstr "Meðan tengi er til staðar á undirlínu eða undirbút er ekki hægt að breyta miðilsgerðinni."
+
+msgid "A main line of a project cannot have medium type RF."
+msgstr "Aðallína verkefnis getur ekki haft miðilsgerðina RF."
+
+msgid "The operation could not be executed, because as medium type of the backbone only IP and TP are allowed."
+msgstr "Ekki var hægt að framkvæma aðgerðina, því aðeins IP og TP eru leyfð sem miðilsgerð grunnlínunnar."
+
+msgid "A sub-segment of KNX medium type IP or PL is not allowed."
+msgstr "Undirbútur af KNX-miðilsgerðinni IP eða PL er ekki leyfður."
+
+msgid "The medium type of the main line '{line}' can no longer be changed to PL, because it already contains lines or segments that are not allowed in PL main lines."
+msgstr "Ekki er lengur hægt að breyta miðilsgerð aðallínunnar '{line}' í PL, því hún inniheldur þegar línur eða búta sem eru ekki leyfðir í PL-aðallínum."
+
+msgid "The medium type of the main line '{line}' cannot be changed to IoT, because the backbone line '{backbone}' is not of medium type IP."
+msgstr "Ekki er hægt að breyta miðilsgerð aðallínunnar '{line}' í IoT, því grunnlínan '{backbone}' er ekki af miðilsgerðinni IP."
+
+msgid "The medium type of the main line '{line}' can no longer be changed to IoT, because it already contains lines or segments that are not allowed in IoT main lines."
+msgstr "Ekki er lengur hægt að breyta miðilsgerð aðallínunnar '{line}' í IoT, því hún inniheldur þegar línur eða búta sem eru ekki leyfðir í IoT-aðallínum."
+
+msgid "The medium type of the line '{line}' cannot be changed, because it already contains lines or segments that require an IoT or IP main line."
+msgstr "Ekki er hægt að breyta miðilsgerð línunnar '{line}', því hún inniheldur þegar línur eða búta sem krefjast IoT- eða IP-aðallínu."
+
+msgid "A sub-segment is not allowed below a main segment of KNX medium type RF."
+msgstr "Undirbútur er ekki leyfður undir aðalbút af KNX-miðilsgerðinni RF."
+
+msgid "A sub-segment is not allowed below a main segment of KNX medium type PL."
+msgstr "Undirbútur er ekki leyfður undir aðalbút af KNX-miðilsgerðinni PL."
+
+msgid "A sub-segment of KNX medium type IoT is not allowed below a main segment of the same type."
+msgstr "Undirbútur af KNX-miðilsgerðinni IoT er ekki leyfður undir aðalbút af sömu gerð."
+
+msgid "The operation could not be executed, because a RF main line '{line}' requires all other lines in the area to be RF lines as well."
+msgstr "Ekki var hægt að framkvæma aðgerðina, því RF-aðallínan '{line}' krefst þess að allar aðrar línur á svæðinu séu líka RF-línur."
+
+msgid "The operation could not be executed, because a PL main line '{line}' requires all other lines in the area to be PL lines as well."
+msgstr "Ekki var hægt að framkvæma aðgerðina, því PL-aðallínan '{line}' krefst þess að allar aðrar línur á svæðinu séu líka PL-línur."
+
+msgid "The operation could not be executed, because a IoT main line '{line}' requires all other lines in the area to be IoT lines as well."
+msgstr "Ekki var hægt að framkvæma aðgerðina, því IoT-aðallínan '{line}' krefst þess að allar aðrar línur á svæðinu séu líka IoT-línur."
+
+msgid "The medium type of the line '{line}' cannot be changed to IoT, because its main line '{main}' is not of medium type IP."
+msgstr "Ekki er hægt að breyta miðilsgerð línunnar '{line}' í IoT, því aðallína hennar '{main}' er ekki af miðilsgerðinni IP."
+
+msgid "The medium type of the line '{line}' can no longer be changed to IoT, because it already contains segments that are not allowed in IoT lines."
+msgstr "Ekki er lengur hægt að breyta miðilsgerð línunnar '{line}' í IoT, því hún inniheldur þegar búta sem eru ekki leyfðir í IoT-línum."
+
+msgid "The operation could not be executed, because the line is the IP backbone line and the project contains KNXnet/IP routers. KNXnet/IP routers require an IP backbone line."
+msgstr "Ekki var hægt að framkvæma aðgerðina, því línan er IP-grunnlínan og verkefnið inniheldur KNXnet/IP-beina. KNXnet/IP-beinar þurfa IP-grunnlínu."
+
+msgid "The operation could not be executed, because the line is the IP main line and the project contains KNXnet/IP routers. KNXnet/IP routers require an IP main line."
+msgstr "Ekki var hægt að framkvæma aðgerðina, því línan er IP-aðallínan og verkefnið inniheldur KNXnet/IP-beina. KNXnet/IP-beinar þurfa IP-aðallínu."
+
+msgid "The operation could not be executed, because the line is the IP backbone line and the project contains IoT or IP lines."
+msgstr "Ekki var hægt að framkvæma aðgerðina, því línan er IP-grunnlínan og verkefnið inniheldur IoT- eða IP-línur."
+
+msgid "The operation could not be executed, because the medium type of the line can only be set to IP if an IP main line exists."
+msgstr "Ekki var hægt að framkvæma aðgerðina, því aðeins er hægt að setja miðilsgerð línunnar á IP ef IP-aðallína er til."
+
+msgid "The operation could not be executed, because the medium type of the line can only be set to IP if an IP backbone line exists."
+msgstr "Ekki var hægt að framkvæma aðgerðina, því aðeins er hægt að setja miðilsgerð línunnar á IP ef IP-grunnlína er til."
+
+msgid "The operation could not be executed, because below a TP main segment only segments of KNX medium type TP, RF or PL can exist."
+msgstr "Ekki var hægt að framkvæma aðgerðina, því undir TP-aðalbút geta aðeins verið bútar af KNX-miðilsgerðinni TP, RF eða PL."
+
+msgid "Below a main segment of KNX medium type IP only segments of medium type TP or RF can exist."
+msgstr "Undir aðalbút af KNX-miðilsgerðinni IP geta aðeins verið bútar af miðilsgerðinni TP eða RF."
+
+msgid "A sub-segment of KNX medium type PL is not allowed below a main segment."
+msgstr "Undirbútur af KNX-miðilsgerðinni PL er ekki leyfður undir aðalbút."
+
+msgid "Set bus connection of the backbone"
+msgstr "Setja brautartengingu grunnlínunnar"
+
+msgid "Set domain address"
+msgstr "Setja lénsvistfang"
+
+msgid "Generate New"
+msgstr "Búa til nýtt"
+
+msgid "The given domain address is invalid."
+msgstr "Uppgefna lénsvistfangið er ógilt."
+
+msgid "Domain address is not valid! Valid values are 1 to 255."
+msgstr "Lénsvistfangið er ógilt! Gild gildi eru 1 til 255."
+
+msgid "DomainAddress of mediumType 'RF' is lower than the minimum value of 0001:00000000."
+msgstr "Lénsvistfang miðilsgerðarinnar 'RF' er lægra en lágmarksgildið 0001:00000000."
+
+msgid "DomainAddress of medium type '{medium}' exceeds the maximum valid value of {maximum}"
+msgstr "Lénsvistfang miðilsgerðarinnar '{medium}' er hærra en hámarksgildið {maximum}"
+
+msgid "DomainAddress of RF sublines must be equal to DomainAdress of main line."
+msgstr "Lénsvistfang RF-undirlína verður að vera það sama og lénsvistfang aðallínunnar."
+
+msgid "Domain Address of IoT sublines must be equal to Domain Address of main line."
+msgstr "Lénsvistfang IoT-undirlína verður að vera það sama og lénsvistfang aðallínunnar."
+
+msgid "Each line in a project must have a unique domain address."
+msgstr "Hver lína í verkefni verður að hafa einkvæmt lénsvistfang."
+
+msgid "Last Downloaded"
+msgstr "Síðast hlaðið niður"
+
+msgid "Create trade {name}"
+msgstr "Búa til iðngrein {name}"
+
+msgid "Rename trade to {name}"
+msgstr "Endurnefna iðngrein í {name}"
+
+msgid "Set trade number"
+msgstr "Setja númer iðngreinar"
+
+msgid "Set trade description"
+msgstr "Setja lýsingu iðngreinar"
+
+msgid "Move trade"
+msgstr "Færa iðngrein"
+
+msgid "Remove trade"
+msgstr "Fjarlægja iðngrein"
+
+msgid "Add device to trade"
+msgstr "Bæta tæki við iðngrein"
+
+msgid "Remove device from trade"
+msgstr "Fjarlægja tæki úr iðngrein"
+
+msgid "Trades"
+msgstr "Iðngreinar"
+
+msgid "Building Parts…"
+msgstr "Byggingarhlutar…"
+
+msgid "Floors…"
+msgstr "Hæðir…"
+
+msgid "Stairways…"
+msgstr "Stigagangar…"
+
+msgid "Rooms…"
+msgstr "Herbergi…"
+
+msgid "Corridors…"
+msgstr "Gangar…"
+
+msgid "Cabinets…"
+msgstr "Rafmagnsskápar…"
+
+msgid "Devices…"
+msgstr "Tæki…"
+
+msgid "Functions…"
+msgstr "Aðgerðir…"
+
+msgid "Trades…"
+msgstr "Iðngreinar…"
+
+msgid "Add Buildings…"
+msgstr "Bæta við byggingum…"
+
+msgid "Add Trades…"
+msgstr "Bæta við iðngreinum…"
+
+msgid "Add Buildings"
+msgstr "Bæta við byggingum"
+
+msgid "Add Building Parts"
+msgstr "Bæta við byggingarhlutum"
+
+msgid "Add Floors"
+msgstr "Bæta við hæðum"
+
+msgid "Add Rooms"
+msgstr "Bæta við herbergjum"
+
+msgid "Add Corridors"
+msgstr "Bæta við göngum"
+
+msgid "Add Stairways"
+msgstr "Bæta við stigagöngum"
+
+msgid "Add Cabinets"
+msgstr "Bæta við rafmagnsskápum"
+
+msgid "Add Trades"
+msgstr "Bæta við iðngreinum"
+
+msgid "Add Devices"
+msgstr "Bæta við tækjum"
+
+msgid "Count"
+msgstr "Fjöldi"
+
+msgid "to \"{name}\""
+msgstr "í \"{name}\""
+
+msgid "Cabinet"
+msgstr "Rafmagnsskápur"
+
+msgid "New building"
+msgstr "Ný bygging"
+
+msgid "New building part"
+msgstr "Nýr byggingarhluti"
+
+msgid "New floor"
+msgstr "Ný hæð"
+
+msgid "New room"
+msgstr "Nýtt herbergi"
+
+msgid "New corridor"
+msgstr "Nýr gangur"
+
+msgid "New stairway"
+msgstr "Nýr stigagangur"
+
+msgid "New cabinet"
+msgstr "Nýr rafmagnsskápur"
+
+msgid "New trade"
+msgstr "Ný iðngrein"
+
+msgid "A building part of this type cannot be added here."
+msgstr "Ekki er hægt að bæta byggingarhluta af þessari gerð við hér."
+
+msgid "A building part of this type cannot be added here.\nCabinets can be added inside of rooms, corridors, or stairways only. If applicable the corridors have to be moved into the corresponding building parts."
+msgstr "Ekki er hægt að bæta byggingarhluta af þessari gerð við hér.\nAðeins er hægt að bæta rafmagnsskápum við inni í herbergjum, göngum eða stigagöngum. Ef við á þarf að færa gangana inn í viðkomandi byggingarhluta."
+
+msgid "The target is a child building part."
+msgstr "Markmiðið er undirbyggingarhluti."
+
+msgid "Devices can only be added to stairways, rooms, corridors and cabinets."
+msgstr "Aðeins er hægt að bæta tækjum við í stigaganga, herbergi, ganga og rafmagnsskápa."
+
+msgid "Trade"
+msgstr "Iðngrein"
+
+msgid "(estimated)"
+msgstr "(áætlað)"
+
+msgid "Number of Devices"
+msgstr "Fjöldi tækja"
+
+msgid "Unlink"
+msgstr "Aftengja"
+
+msgid "An IP router requires an IP backbone line."
+msgstr "IP-beinir þarf IP-grunnlínu."
+
+msgid "The operation could not be executed, because a coupler needs a main line."
+msgstr "Ekki var hægt að framkvæma aðgerðina, því tengi þarf aðallínu."
+
+msgid "The operation could not be executed, because an area coupler requires a backbone line."
+msgstr "Ekki var hægt að framkvæma aðgerðina, því svæðistengi þarf grunnlínu."
+
+msgid "The operation could not be executed, because this coupler needs a main line with the medium type '{medium}' ."
+msgstr "Ekki var hægt að framkvæma aðgerðina, því þetta tengi þarf aðallínu með miðilsgerðina '{medium}' ."
+
+msgid "The operation could not be executed, because only one IP router is allowed as a world coupler."
+msgstr "Ekki var hægt að framkvæma aðgerðina, því aðeins einn IP-beinir er leyfður sem heimstengi."
+
+msgid "The operation could not be executed, because only IP router area allowed as a world coupler."
+msgstr "Ekki var hægt að framkvæma aðgerðina, því aðeins IP-beinar eru leyfðir sem heimstengi."
+
+msgid "The backbone line contains a world coupler. It is not possible to use an IP router below another IP router."
+msgstr "Grunnlínan inniheldur heimstengi. Ekki er hægt að nota IP-beini undir öðrum IP-beini."
+
+msgid "It is not possible to use a world coupler, when there are already IP routers in the project."
+msgstr "Ekki er hægt að nota heimstengi þegar IP-beinar eru þegar í verkefninu."
+
+msgid "A world coupler can only be used, when the medium type of the backbone is TP."
+msgstr "Aðeins er hægt að nota heimstengi þegar miðilsgerð grunnlínunnar er TP."
+
+msgid "The coupler does not support segment coupling, so the sub-segment must be of the same KNX medium type as the main segment."
+msgstr "Tengið styður ekki tengingu búta, svo undirbúturinn verður að vera af sömu KNX-miðilsgerð og aðalbúturinn."
+
+msgid "The operation could not be executed, because this device couples medium '{above}' (above) to medium '{below}' (below), but the segment above is '{segment}'."
+msgstr "Ekki var hægt að framkvæma aðgerðina, því þetta tæki tengir miðilinn '{above}' (fyrir ofan) við miðilinn '{below}' (fyrir neðan), en búturinn fyrir ofan er '{segment}'."
+
+msgid "The operation could not be executed, because medium type of coupler device matches only sub segment, but maximum amount of segments reached."
+msgstr "Ekki var hægt að framkvæma aðgerðina, því miðilsgerð tengisins passar aðeins við undirbút, en hámarksfjölda búta hefur verið náð."
+
+msgid "The operation could not be executed, because this device couples medium '{above}' (above) to medium '{below}' (below), but the medium type of the lower segment is '{segment}'."
+msgstr "Ekki var hægt að framkvæma aðgerðina, því þetta tæki tengir miðilinn '{above}' (fyrir ofan) við miðilinn '{below}' (fyrir neðan), en miðilsgerð neðri bútsins er '{segment}'."
+
+msgid "Recover Project from Bus"
+msgstr "Endurheimta verkefni af tengibraut"
+
+msgid "Devices in Programming Mode"
+msgstr "Tæki í forritunarham"
+
+msgid "Connecting"
+msgstr "Tengist"
+
+msgid "Move middle group"
+msgstr "Færa miðhóp"
+
+msgid "The group has no free group address."
+msgstr "Hópurinn hefur ekkert laust hópvistfang."
+
+msgid "The main group has no free middle group."
+msgstr "Aðalhópurinn hefur engan lausan miðhóp."
+
+msgid "{count} devices"
+msgstr "{count} tæki"
+
+msgid "The main segment cannot be moved."
+msgstr "Ekki er hægt að færa aðalbútinn."
+
+msgid "The maximum number of lines has been reached."
+msgstr "Hámarksfjölda lína hefur verið náð."
+
+msgid "The line is already assigned to an area."
+msgstr "Línunni hefur þegar verið úthlutað á svæði."
+
+msgid "The main line cannot be moved."
+msgstr "Ekki er hægt að færa aðallínuna."
+
+msgid "Move line"
+msgstr "Færa línu"
+
+msgid "Move segment"
+msgstr "Færa bút"
+
+msgid "Move function"
+msgstr "Færa aðgerð"
+
+msgid "Paste Special"
+msgstr "Sérstök líming"
+
+msgid "Number of Items"
+msgstr "Fjöldi atriða"
+
+msgid "Don't copy"
+msgstr "Ekki afrita"
+
+msgid "Keep"
+msgstr "Halda"
+
+msgid "Create new group address in middle group"
+msgstr "Búa til nýtt hópvistfang í miðhópi"
+
+msgid "Create new group address in main group"
+msgstr "Búa til nýtt hópvistfang í aðalhópi"
+
+msgid "Create new group address in group range"
+msgstr "Búa til nýtt hópvistfang í hópasviði"
+
+msgid "Generate Address"
+msgstr "Búa til vistfang"
+
+msgid "Fill up (use first free)"
+msgstr "Fylla upp í (nota fyrsta lausa)"
+
+msgid "Append"
+msgstr "Bæta aftan við"
+
+msgid "Start with"
+msgstr "Byrja á"
+
+msgid "Enter a middle group, e.g. 1/2."
+msgstr "Sláðu inn miðhóp, t.d. 1/2."
+
+msgid "Enter a main group, e.g. 1."
+msgstr "Sláðu inn aðalhóp, t.d. 1."
+
+msgid "The group has too few free group addresses for the copies."
+msgstr "Hópurinn hefur of fá laus hópvistföng fyrir afritin."
+
+msgid "The maximum number of group ranges has been reached."
+msgstr "Hámarksfjölda hópasviða hefur verið náð."
+
+msgid "There is no group for the new group addresses."
+msgstr "Enginn hópur er til fyrir nýju hópvistföngin."
+
+msgid "Copied '{name}' to '{target}'."
+msgstr "'{name}' afritað í '{target}'."
+
+msgid "Copied {count} devices to '{target}'."
+msgstr "Tæki afrituð í '{target}': {count}."
+
+msgid "Copied {count} building parts to '{target}'."
+msgstr "Byggingarhlutar afritaðir í '{target}': {count}."
+
+msgid "Copied {count} trades to '{target}'."
+msgstr "Iðngreinar afritaðar í '{target}': {count}."
+
+msgid "Copied {count} functions to '{target}'."
+msgstr "Aðgerðir afritaðar í '{target}': {count}."
+
+msgid "Copied {count} group addresses to '{target}'."
+msgstr "Hópvistföng afrituð í '{target}': {count}."
+
+msgid "Copied {count} middle groups to '{target}'."
+msgstr "Miðhópar afritaðir í '{target}': {count}."
+
+msgid "Copied {count} main groups to '{target}'."
+msgstr "Aðalhópar afritaðir í '{target}': {count}."
+
+msgid "Copied {count} lines to '{target}'."
+msgstr "Línur afritaðar í '{target}': {count}."
+
+msgid "Copied {count} segments to '{target}'."
+msgstr "Bútar afritaðir í '{target}': {count}."
+
+msgid "Paste Special…"
+msgstr "Sérstök líming…"
+
+msgid "Add Row"
+msgstr "Bæta við línu"
+
+msgid "Remove this row"
+msgstr "Fjarlægja þessa línu"
+
+msgid "Generate Addresses"
+msgstr "Búa til vistföng"
+
+msgid "Unlink device"
+msgstr "Aftengja tæki"
+
+msgid "The device is on no line: put it on a line first."
+msgstr "Tækið er ekki á neinni línu: settu það fyrst á línu."
+
+msgid "Areas…"
+msgstr "Svæði…"
+
+msgid "Lines…"
+msgstr "Línur…"
+
+msgid "Segments…"
+msgstr "Bútar…"
+
+msgid "Add Areas"
+msgstr "Bæta við svæðum"
+
+msgid "Add Lines"
+msgstr "Bæta við línum"
+
+msgid "Add Segments"
+msgstr "Bæta við bútum"
+
+msgid "The limit to add was reached."
+msgstr "Hámarkinu var náð."
+
+msgid "Cannot add any line to the area {area} because of topology constraints. Please check the medium type of the backbone and main lines."
+msgstr "Ekki er hægt að bæta neinni línu við svæðið {area} vegna takmarkana grannfræðinnar. Athugaðu miðilsgerð grunnlínunnar og aðallínanna."
+
+msgid "Added {count} areas to '{target}'."
+msgstr "Svæðum bætt við '{target}': {count}."
+
+msgid "Added {count} lines to '{target}'."
+msgstr "Línum bætt við '{target}': {count}."
+
+msgid "Added {count} segments to '{target}'."
+msgstr "Bútum bætt við '{target}': {count}."
+
+msgid "Added {count} building parts to '{target}'."
+msgstr "Byggingarhlutum bætt við '{target}': {count}."
+
+msgid "Added {count} trades to '{target}'."
+msgstr "Iðngreinum bætt við '{target}': {count}."
+
+msgid "Added {count} main groups to '{target}'."
+msgstr "Aðalhópum bætt við '{target}': {count}."
+
+msgid "Added {count} middle groups to '{target}'."
+msgstr "Miðhópum bætt við '{target}': {count}."
+
+msgid "Added {count} group addresses to '{target}'."
+msgstr "Hópvistföngum bætt við '{target}': {count}."
+
+msgid "Add Main Groups…"
+msgstr "Bæta við aðalhópum…"
+
+msgid "Add Middle Groups…"
+msgstr "Bæta við miðhópum…"
+
+msgid "Add Main Groups"
+msgstr "Bæta við aðalhópum"
+
+msgid "Add Middle Groups"
+msgstr "Bæta við miðhópum"
+
+msgid "New main group"
+msgstr "Nýr aðalhópur"
+
+msgid "New middle group"
+msgstr "Nýr miðhópur"
+
+msgid "New group address"
+msgstr "Nýtt hópvistfang"
+
+msgid "Cut"
+msgstr "Klippa"
+
+msgid "What was cut cannot be moved there."
+msgstr "Ekki er hægt að færa það sem var klippt þangað."
+
+msgid "Park"
+msgstr "Leggja til hliðar"
+
+msgid "Park device"
+msgstr "Leggja tæki til hliðar"
+
+msgid "Add Functions"
+msgstr "Bæta við aðgerðum"
+
+msgid "New function"
+msgstr "Ný aðgerð"
+
+msgid "Added {count} functions to '{target}'."
+msgstr "Aðgerðum bætt við '{target}': {count}."
+
+msgid "Added {count} group ranges to '{target}'."
+msgstr "Hópasviðum bætt við '{target}': {count}."
+
+msgid "Add Group Ranges…"
+msgstr "Bæta við hópasviðum…"
+
+msgid "Add Group Ranges"
+msgstr "Bæta við hópasviðum"
+
+msgid "New group range"
+msgstr "Nýtt hópasvið"
+
+msgid "Capacity"
+msgstr "Rúmtak"
+
+msgid "Link with…"
+msgstr "Tengja við…"
+
+msgid "Link with Group Address"
+msgstr "Tengja við hópvistfang"
+
+msgid "There is no group to add group addresses to."
+msgstr "Enginn hópur er til að bæta hópvistföngum við."
+
+msgid "Add Subtrade"
+msgstr "Bæta við undiriðngrein"
+
+msgid "The group range does not fit there."
+msgstr "Hópasviðið passar ekki þar."
+
+msgid "A group range cannot go into itself or a range in it."
+msgstr "Hópasvið getur ekki farið inn í sjálft sig eða svið innan þess."
+
+msgid "A group address of the range is already in use there."
+msgstr "Hópvistfang sviðsins er þegar í notkun þar."
+
+msgid "Copied {count} group ranges to '{target}'."
+msgstr "Hópasvið afrituð í '{target}': {count}."
+
+msgid "Add Areas…"
+msgstr "Bæta við svæðum…"
+
+msgid "{medium} segment"
+msgstr "Bútur {medium}"
+
+msgid "Copy Individual Address"
+msgstr "Afrita einstaklingsvistfang"
+
+msgid "Copy Group Address"
+msgstr "Afrita hópvistfang"
+
+msgid "Existing Devices…"
+msgstr "Fyrirliggjandi tæki…"
+
+msgid "Delete the {count} selected devices? Their group objects and group-address links are removed and their individual addresses are freed. This can be undone."
+msgstr "Eyða völdum tækjum ({count})? Samskiptahlutir þeirra og tengingar við hópvistföng eru fjarlægð og einstaklingsvistföng þeirra losuð. Hægt er að afturkalla þetta."
+
+msgid "Remove {count} devices"
+msgstr "Fjarlægja tæki ({count})"
+
+msgid "Delete Devices"
+msgstr "Eyða tækjum"
+
+msgid "{medium} line"
+msgstr "Lína {medium}"
+
+msgid "From Backups…"
+msgstr "Úr öryggisafritum…"
+
+msgid "Compare with a backup of this project"
+msgstr "Bera saman við öryggisafrit af þessu verkefni"
+
+msgid "In the browser, choose Knx.Ets.Common.dll together with log4net.dll from the same folder."
+msgstr "Í vafranum skaltu velja Knx.Ets.Common.dll ásamt log4net.dll úr sömu möppu."
+
+msgid "Knx.Ets.Common.dll needs log4net.dll from its folder: choose both files together."
+msgstr "Knx.Ets.Common.dll þarf log4net.dll úr möppu sinni: veldu báðar skrárnar saman."
+
+msgid "Codepage"
+msgstr "Kóðasíða"
+
+msgid "Choose in which language the project texts are entered"
+msgstr "Veldu á hvaða tungumáli texti verkefnisins er sleginn inn"
+
+msgid "System language"
+msgstr "Tungumál kerfis"
+
+msgid "Western European (ISO 8859-1)"
+msgstr "Vestur-evrópskt (ISO 8859-1)"
+
+msgid "Central European (ISO 8859-2)"
+msgstr "Mið-evrópskt (ISO 8859-2)"
+
+msgid "South European (ISO 8859-3)"
+msgstr "Suður-evrópskt (ISO 8859-3)"
+
+msgid "North European (ISO 8859-4)"
+msgstr "Norður-evrópskt (ISO 8859-4)"
+
+msgid "Cyrillic (ISO 8859-5)"
+msgstr "Kýrillískt (ISO 8859-5)"
+
+msgid "Arabic (ISO 8859-6)"
+msgstr "Arabískt (ISO 8859-6)"
+
+msgid "Greek (ISO 8859-7)"
+msgstr "Grískt (ISO 8859-7)"
+
+msgid "Hebrew (ISO 8859-8)"
+msgstr "Hebreskt (ISO 8859-8)"
+
+msgid "Turkish (ISO 8859-9)"
+msgstr "Tyrkneskt (ISO 8859-9)"
+
+msgid "Nordic (ISO 8859-10)"
+msgstr "Norrænt (ISO 8859-10)"
+
+msgid "Baltic Rim (ISO 8859-13)"
+msgstr "Eystrasalt (ISO 8859-13)"
+
+msgid "Western European (ISO 8859-15)"
+msgstr "Vestur-evrópskt (ISO 8859-15)"
+
+msgid "Set codepage to {code_page}"
+msgstr "Setja kóðasíðu: {code_page}"
+
+msgid "Encrypted"
+msgstr "Dulritað"

@@ -1,0 +1,41 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor health 1.0\n"
+"Language: sl\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Health"
+msgstr "Stanje"
+
+msgid "No project open"
+msgstr "Noben projekt ni odprt"
+
+msgid "No issues found"
+msgstr "Ni najdenih težav"
+
+msgid "{errors} errors, {warnings} warnings"
+msgstr "Napake: {errors}, opozorila: {warnings}"
+
+msgid "{device}: no individual address"
+msgstr "{device}: ni fizičnega naslova"
+
+msgid "Duplicate individual address {address} ({device})"
+msgstr "Podvojen fizični naslov {address} ({device})"
+
+msgid "{count} device(s) skipped: application not in catalog"
+msgstr "Preskočene naprave: {count} (aplikacije ni v katalogu)"
+
+msgid "{device}: {count} unlinked group object(s)"
+msgstr "{device}: nepovezani komunikacijski objekti: {count}"
+
+msgid "{address} {name}: no datapoint type"
+msgstr "{address} {name}: ni tipa podatkovne točke"
+
+msgid "{address} {name}: no sending group object"
+msgstr "{address} {name}: ni komunikacijskega objekta, ki pošilja"
+
+msgid "{address} {name}: {count} sending group objects"
+msgstr "{address} {name}: komunikacijski objekti, ki pošiljajo: {count}"

@@ -1,0 +1,86 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor keyring 1.0\n"
+"Language: ro\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "KNX Secure"
+msgstr "KNX Secure"
+
+msgid "Show Window"
+msgstr "Afișare fereastră"
+
+msgid "No keyring loaded"
+msgstr "Niciun keyring încărcat"
+
+msgid "Import Keyring…"
+msgstr "Import keyring…"
+
+msgid "KNX Keyring (*.knxkeys)"
+msgstr "Keyring KNX (*.knxkeys)"
+
+msgid "All Files"
+msgstr "Toate fișierele"
+
+msgid "Load"
+msgstr "Încărcare"
+
+msgid "Cancel"
+msgstr "Revocare"
+
+msgid "Close"
+msgstr "Închidere"
+
+msgid "{project} — created by {by}"
+msgstr "{project} — creat de {by}"
+
+msgid "Backbone"
+msgstr "Backbone"
+
+msgid "Interfaces ({count})"
+msgstr "Interfețe ({count})"
+
+msgid "Group Address Keys ({count})"
+msgstr "Chei adrese de grup ({count})"
+
+msgid "Devices ({count})"
+msgstr "Dispozitive ({count})"
+
+msgid "Export"
+msgstr "Export"
+
+msgid "Export Keyring…"
+msgstr "Export keyring…"
+
+msgid "Set the password for the exported keyring:"
+msgstr "Setați parola pentru keyring-ul exportat:"
+
+msgid "Export Keyring from Project…"
+msgstr "Export keyring din proiect…"
+
+msgid "Type"
+msgstr "Tip"
+
+msgid "Address"
+msgstr "Adresă"
+
+msgid "Host"
+msgstr "Gazdă"
+
+msgid "User"
+msgstr "Utilizator"
+
+msgid "Key"
+msgstr "Cheie"
+
+msgid "In Project"
+msgstr "În proiect"
+
+msgid "Tool Key"
+msgstr "Cheie de instrument"
+
+msgid "{address}   key {key}"
+msgstr "{address}   cheie {key}"

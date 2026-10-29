@@ -1,0 +1,3041 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor project 1.0\n"
+"Language: sk\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Devices"
+msgstr "Zariadenia"
+
+msgid "Configure"
+msgstr "Konfigurovať"
+
+msgid "History"
+msgstr "História"
+
+msgid "Editor"
+msgstr "Editor"
+
+msgid "Group Addresses"
+msgstr "Skupinové adresy"
+
+msgid "Buildings"
+msgstr "Budovy"
+
+msgid "Project"
+msgstr "Projekt"
+
+msgid "No buildings/rooms in this project"
+msgstr "V tomto projekte nie sú žiadne budovy/miestnosti"
+
+msgid "No project"
+msgstr "Žiadny projekt"
+
+msgid "Name"
+msgstr "Názov"
+
+msgid "Open Project"
+msgstr "Otvorený projekt"
+
+msgid "Reading the projects…"
+msgstr "Načítavajú sa projekty…"
+
+msgid "Comparing devices: {done} of {total}"
+msgstr "Porovnávajú sa zariadenia: {done} z {total}"
+
+msgid "File"
+msgstr "Súbor"
+
+msgid "Group Address Style"
+msgstr "Štýl skupinových adries"
+
+msgid "Created by"
+msgstr "Vytvoril"
+
+msgid "Tool Version"
+msgstr "Verzia nástroja"
+
+msgid "Schema Version"
+msgstr "Verzia schémy"
+
+msgid "Last Modified"
+msgstr "Naposledy zmenené"
+
+msgid "GUID"
+msgstr "GUID"
+
+msgid "Project ID"
+msgstr "ID projektu"
+
+msgid "Original Project ID"
+msgstr "Pôvodné ID projektu"
+
+msgid "Master Data (Signed)"
+msgstr "Kmeňové údaje (podpísané)"
+
+msgid "Validation File"
+msgstr "Overovací súbor"
+
+msgid "Project Certificate"
+msgstr "Certifikát projektu"
+
+msgid "none"
+msgstr "žiadny"
+
+msgid "present ({size} bytes)"
+msgstr "k dispozícii (bajty: {size})"
+
+msgid "Order Number"
+msgstr "Objednávacie číslo"
+
+msgid "Description"
+msgstr "Popis"
+
+msgid "Comment"
+msgstr "Komentár"
+
+msgid "Parameters ({count})"
+msgstr "Parametre ({count})"
+
+msgid "Group Objects ({count})"
+msgstr "Skupinové objekty ({count})"
+
+msgid "Assigned Objects"
+msgstr "Priradené objekty"
+
+msgid "No devices"
+msgstr "Žiadne zariadenia"
+
+msgid "Loading application program…"
+msgstr "Načítava sa aplikačný program…"
+
+msgid "This product has no application program."
+msgstr "Tento produkt nemá žiadny aplikačný program."
+
+msgid "Individual Address"
+msgstr "Individuálna adresa"
+
+msgid "Program Device"
+msgstr "Programovať zariadenie"
+
+msgid "Test Programming"
+msgstr "Testovať programovanie"
+
+msgid "Program device?"
+msgstr "Programovať zariadenie?"
+
+msgid "This writes to the device at {address} (scope: {scope}) and changes its configuration. Continue?"
+msgstr "Týmto sa zapíše do zariadenia s adresou {address} (rozsah: {scope}) a zmení sa jeho konfigurácia. Pokračovať?"
+
+msgid "Download"
+msgstr "Nahrať"
+
+msgid "Full"
+msgstr "Úplné"
+
+msgid "Application Program"
+msgstr "Aplikačný program"
+
+msgid "Unload"
+msgstr "Uvoľniť"
+
+msgid "Unload Application and Address"
+msgstr "Uvoľniť aplikáciu a adresu"
+
+msgid "Partial: Parameters"
+msgstr "Čiastočne: parametre"
+
+msgid "Partial: Group Communication"
+msgstr "Čiastočne: skupinová komunikácia"
+
+msgid "Manufacturer"
+msgstr "Výrobca"
+
+msgid "Manufacturer Info"
+msgstr "Informácie výrobcu"
+
+msgid "Application"
+msgstr "Aplikácia"
+
+msgid "Program Version"
+msgstr "Verzia programu"
+
+msgid "Application Version"
+msgstr "Verzia aplikácie"
+
+msgid "Read from Device"
+msgstr "Načítať zo zariadenia"
+
+msgid "Set an individual address and connect to the bus first"
+msgstr "Najprv nastavte individuálnu adresu a pripojte sa k zbernici"
+
+msgid "Mask Version"
+msgstr "Verzia masky"
+
+msgid "Serial Number"
+msgstr "Sériové číslo"
+
+msgid "Order Info"
+msgstr "Informácie o objednávke"
+
+msgid "Hardware Type"
+msgstr "Typ hardvéru"
+
+msgid "differs from project V{version} — program to apply"
+msgstr "líši sa od projektu V{version} – na použitie naprogramujte"
+
+msgid "Filter parameters…"
+msgstr "Filtrovať parametre…"
+
+msgid "Hardware"
+msgstr "Hardvér"
+
+msgid "Firmware"
+msgstr "Firmvér"
+
+msgid "Com Flags ({count})"
+msgstr "Kom. príznaky ({count})"
+
+msgid "Load Procedures ({count})"
+msgstr "Procedúry nahrávania ({count})"
+
+msgid "Preview Memory"
+msgstr "Náhľad pamäte"
+
+msgid "Memory Preview"
+msgstr "Náhľad pamäte"
+
+msgid "Programming Test Result"
+msgstr "Výsledok testu programovania"
+
+msgid "Evaluation failed"
+msgstr "Vyhodnotenie zlyhalo"
+
+msgid "Read-only test: checks that the download function generates the same image as what is already programmed on the device. Nothing is written to the device."
+msgstr "Test len na čítanie: kontroluje, či funkcia nahrávania vytvorí rovnaký obraz, aký je už naprogramovaný v zariadení. Do zariadenia sa nič nezapisuje."
+
+msgid "Cannot run: no KNX connection. Connect to a gateway (Connection menu) and make sure the device is reachable at its individual address."
+msgstr "Nedá sa spustiť: žiadne pripojenie KNX. Pripojte sa k bráne (ponuka Pripojenie) a uistite sa, že zariadenie je dostupné na svojej individuálnej adrese."
+
+msgid "Match: the generated image is identical to what is on the device"
+msgstr "Zhoda: vytvorený obraz je totožný s obsahom zariadenia"
+
+msgid "Mismatch: {bytes} byte(s) differ from the device in {locations} location(s)"
+msgstr "Nezhoda: počet bajtov odlišných od zariadenia: {bytes}, počet miest: {locations}"
+
+msgid "{matched} matched, {changed} would change"
+msgstr "Zhodné: {matched}, zmenilo by sa: {changed}"
+
+msgid "Location"
+msgstr "Umiestnenie"
+
+msgid "Size"
+msgstr "Veľkosť"
+
+msgid "Status"
+msgstr "Stav"
+
+msgid "Changed"
+msgstr "Zmenené"
+
+msgid "match"
+msgstr "zhoda"
+
+msgid "would change"
+msgstr "zmenilo by sa"
+
+msgid "device-managed"
+msgstr "spravované zariadením"
+
+msgid "System byte the device sets itself at runtime (e.g. a download detection byte reset by the application after a download). A difference here is expected and does not indicate a bad download."
+msgstr "Systémový bajt, ktorý si zariadenie nastavuje samo počas behu (napr. bajt detekcie nahratia, ktorý aplikácia po nahratí vynuluje). Rozdiel tu je očakávaný a neznamená chybné nahratie."
+
+msgid "plus {bytes} device-managed runtime byte(s) (expected, benign)"
+msgstr "plus bajty počas behu spravované zariadením: {bytes} (očakávané, neškodné)"
+
+msgid "No configured differences: the device already carries this configuration. The differences below are benign (see notes)."
+msgstr "Žiadne nakonfigurované rozdiely: zariadenie už túto konfiguráciu obsahuje. Rozdiely nižšie sú neškodné (pozri poznámky)."
+
+msgid "sets default"
+msgstr "nastaví predvolené"
+
+msgid "This byte is written for a neighbouring parameter; the differing bit is not driven by any active parameter and is only reset to the application default. The device holds an older value (e.g. from a previous configuration or mode) that programming will normalise. Benign."
+msgstr "Tento bajt sa zapisuje kvôli susednému parametru; odlišný bit neovláda žiadny aktívny parameter a len sa vracia na predvolenú hodnotu aplikácie. Zariadenie obsahuje staršiu hodnotu (napr. z predchádzajúcej konfigurácie alebo režimu), ktorú programovanie zjednotí. Neškodné."
+
+msgid "plus {bytes} byte(s) reset to the application default (the device holds an older value; benign, will be normalised on programming)"
+msgstr "plus bajty vrátené na predvolenú hodnotu aplikácie: {bytes} (zariadenie obsahuje staršiu hodnotu; neškodné, pri programovaní sa zjednotí)"
+
+msgid "Export Ist/Soll…"
+msgstr "Export Ist/Soll…"
+
+msgid "Export Path:"
+msgstr "Cesta exportu:"
+
+msgid "memory {address}"
+msgstr "pamäť {address}"
+
+msgid "object {object} property {property}"
+msgstr "objekt {object} vlastnosť {property}"
+
+msgid "Filter devices (name, address)…"
+msgstr "Filtrovať zariadenia (názov, adresa)…"
+
+msgid "No devices. Open or import a project (File menu), or right-click here to add an area."
+msgstr "Žiadne zariadenia. Otvorte alebo importujte projekt (ponuka Súbor), alebo sem kliknite pravým tlačidlom a pridajte oblasť."
+
+msgid "Filter group addresses (address, name)…"
+msgstr "Filtrovať skupinové adresy (adresa, názov)…"
+
+msgid "Filter rooms, devices, functions…"
+msgstr "Filtrovať miestnosti, zariadenia, funkcie…"
+
+msgid "Unassigned ({count})"
+msgstr "Nepriradené ({count})"
+
+msgid "Delete"
+msgstr "Odstrániť"
+
+msgid "Number"
+msgstr "Číslo"
+
+msgid "Add"
+msgstr "Pridať"
+
+msgid "OK"
+msgstr "OK"
+
+msgid "Save"
+msgstr "Uložiť"
+
+msgid "Copy Log"
+msgstr "Kopírovať denník"
+
+msgid "Cancel"
+msgstr "Zrušiť"
+
+msgid "Address"
+msgstr "Adresa"
+
+msgid "Project: {name}"
+msgstr "Projekt: {name}"
+
+msgid "(unsaved)"
+msgstr "(neuložené)"
+
+msgid "No history"
+msgstr "Žiadna história"
+
+msgid "Restore"
+msgstr "Obnoviť"
+
+msgid "Add device: {name}"
+msgstr "Pridať zariadenie: {name}"
+
+msgid "Remove device: {name}"
+msgstr "Odstrániť zariadenie: {name}"
+
+msgid "Address: {old} -> {new}"
+msgstr "Adresa: {old} -> {new}"
+
+msgid "Name: {old} -> {new}"
+msgstr "Názov: {old} -> {new}"
+
+msgid "Parameter: {old} -> {new}"
+msgstr "Parameter: {old} -> {new}"
+
+msgid "DPT: {old} -> {new}"
+msgstr "DPT: {old} -> {new}"
+
+msgid "Flag: {flag} -> {state}"
+msgstr "Príznak: {flag} -> {state}"
+
+msgid "Group address {address} created"
+msgstr "Skupinová adresa {address} vytvorená"
+
+msgid "Group address {address} removed"
+msgstr "Skupinová adresa {address} odstránená"
+
+msgid "Group address: {old} -> {new}"
+msgstr "Skupinová adresa: {old} -> {new}"
+
+msgid "Group object linked to group address"
+msgstr "Skupinový objekt prepojený so skupinovou adresou"
+
+msgid "Group object unlinked from group address"
+msgstr "Skupinový objekt odpojený od skupinovej adresy"
+
+msgid "Area {number} created"
+msgstr "Oblasť {number} vytvorená"
+
+msgid "Area {number} removed"
+msgstr "Oblasť {number} odstránená"
+
+msgid "Area: {old} -> {new}"
+msgstr "Oblasť: {old} -> {new}"
+
+msgid "Line {number} created"
+msgstr "Línia {number} vytvorená"
+
+msgid "Line {number} removed"
+msgstr "Línia {number} odstránená"
+
+msgid "Line: {old} -> {new}"
+msgstr "Línia: {old} -> {new}"
+
+msgid "Cannot run: the project was changed since it was opened. This test compares the generated image against the device's programmed state, which only matches the project as it was opened. Undo your changes in this session to test."
+msgstr "Nedá sa spustiť: projekt sa od otvorenia zmenil. Tento test porovnáva vytvorený obraz s naprogramovaným stavom zariadenia, ktorý zodpovedá len projektu v stave pri otvorení. Na test vráťte svoje zmeny v tejto relácii späť."
+
+msgid "Duplicate"
+msgstr "Duplikovať"
+
+msgid "Apply Changes to All {count} Identical Devices"
+msgstr "Použiť zmeny na všetky rovnaké zariadenia ({count})"
+
+msgid "Editing {count} devices — edits apply to all, diverging values show <differs>"
+msgstr "Úprava zariadení ({count}) – zmeny platia pre všetky, odlišné hodnoty sa zobrazia ako <líši sa>"
+
+msgid "Mass Linker"
+msgstr "Hromadné prepojenie"
+
+msgid "Object <> GA"
+msgstr "Objekt <> GA"
+
+msgid "Object <> Object"
+msgstr "Objekt <> objekt"
+
+msgid "Log"
+msgstr "Denník"
+
+msgid "Open a project to use the Mass Linker."
+msgstr "Na použitie hromadného prepojenia otvorte projekt."
+
+msgid "Pairs are matched by list order (1st with 1st, …). Surplus items on the longer side are ignored. Reorder a list via its right-click menu."
+msgstr "Páry sa tvoria podľa poradia v zozname (1. s 1., …). Prebytočné položky dlhšieho zoznamu sa ignorujú. Poradie v zozname zmeníte v jeho kontextovej ponuke."
+
+msgid "Source (objects)"
+msgstr "Zdroj (objekty)"
+
+msgid "Target (Group Addresses)"
+msgstr "Cieľ (skupinové adresy)"
+
+msgid "Target (objects)"
+msgstr "Cieľ (objekty)"
+
+msgid "Preview & Link"
+msgstr "Náhľad a prepojenie"
+
+msgid "Add Group Objects…"
+msgstr "Pridať skupinové objekty…"
+
+msgid "Add Group Addresses…"
+msgstr "Pridať skupinové adresy…"
+
+msgid "Add Selected"
+msgstr "Pridať vybrané"
+
+msgid "Clear"
+msgstr "Vymazať"
+
+msgid "Remove"
+msgstr "Vyradiť"
+
+msgid "Move up"
+msgstr "Posunúť nahor"
+
+msgid "Move Down"
+msgstr "Posunúť nadol"
+
+msgid "{count} items"
+msgstr "Položky: {count}"
+
+msgid "{count} pairs"
+msgstr "Páry: {count}"
+
+msgid "{count} unpaired (ignored)"
+msgstr "Bez páru (ignorované): {count}"
+
+msgid "Link"
+msgstr "Prepojiť"
+
+msgid "GA Name ({source}, {target}, {n})"
+msgstr "Názov GA ({source}, {target}, {n})"
+
+msgid "Start Address"
+msgstr "Počiatočná adresa"
+
+msgid "Filter…"
+msgstr "Filtrovať…"
+
+msgid "Add Group Objects"
+msgstr "Pridať skupinové objekty"
+
+msgid "Add Group Addresses"
+msgstr "Pridať skupinové adresy"
+
+msgid "Linked {count} object(s) to group addresses"
+msgstr "Objekty prepojené so skupinovými adresami: {count}"
+
+msgid "Linked {count} object pair(s) via new group addresses"
+msgstr "Páry objektov prepojené cez nové skupinové adresy: {count}"
+
+msgid "{count} error(s)"
+msgstr "Chyby: {count}"
+
+msgid "Clear All"
+msgstr "Vymazať všetko"
+
+msgid "No operations yet."
+msgstr "Zatiaľ žiadne operácie."
+
+msgid "Mass Linker Result"
+msgstr "Výsledok hromadného prepojenia"
+
+msgid "Tools"
+msgstr "Nástroje"
+
+msgid "Open a project to use the tools."
+msgstr "Na použitie nástrojov otvorte projekt."
+
+msgid "No devices in this project."
+msgstr "V tomto projekte nie sú žiadne zariadenia."
+
+msgid "Extended Copy"
+msgstr "Rozšírené kopírovanie"
+
+msgid "Shift Addresses"
+msgstr "Posunúť adresy"
+
+msgid "Labels"
+msgstr "Štítky"
+
+msgid "Topology Check"
+msgstr "Kontrola topológie"
+
+msgid "Source Device"
+msgstr "Zdrojové zariadenie"
+
+msgid "Copies"
+msgstr "Kópie"
+
+msgid "Find in Name"
+msgstr "Hľadať v názve"
+
+msgid "Replace with"
+msgstr "Nahradiť čím"
+
+msgid "Create Group Addresses for Each Copy"
+msgstr "Vytvoriť skupinové adresy pre každú kópiu"
+
+msgid "Copy Name: {name}"
+msgstr "Názov kópie: {name}"
+
+msgid "Copy"
+msgstr "Kopírovať"
+
+msgid "Created {count} copy/copies"
+msgstr "Vytvorené kópie: {count}"
+
+msgid "Shifts the device part of each individual address. Group addresses are not shifted."
+msgstr "Posunie časť zariadenia každej individuálnej adresy. Skupinové adresy sa neposúvajú."
+
+msgid "Offset"
+msgstr "Posun"
+
+msgid "Selected source device only (from Extended Copy)"
+msgstr "Len vybrané zdrojové zariadenie (z rozšíreného kopírovania)"
+
+msgid "(out of range)"
+msgstr "(mimo rozsahu)"
+
+msgid "Shifted {count} address(es)"
+msgstr "Posunuté adresy: {count}"
+
+msgid "Export {count} device(s) to a CSV for on-site labelling."
+msgstr "Export zariadení do CSV na označenie na mieste (zariadenia: {count})."
+
+msgid "Export CSV…"
+msgstr "Exportovať CSV…"
+
+msgid "Exported to {path}"
+msgstr "Exportované do {path}"
+
+msgid "No topology issues found."
+msgstr "Nenašli sa žiadne problémy topológie."
+
+msgid "{count} issue(s)"
+msgstr "Problémy: {count}"
+
+msgid "{count} address(es) will change"
+msgstr "Adresy, ktoré sa zmenia: {count}"
+
+msgid "Click a finding to jump to the device."
+msgstr "Kliknutím na nález prejdete na zariadenie."
+
+msgid "Link many group objects to existing group addresses at once. 1) Add objects: '+ Selected device' (all objects of the device selected in the tree) or 'Add objects…'. 2) Set each row's target address in its dropdown — or fill them fast with 'Assign sequential' (next free addresses from the given start) or 'Match by name'. 3) 'Link all' links every row that has a target."
+msgstr "Prepojiť naraz veľa skupinových objektov s existujúcimi skupinovými adresami. 1) Pridajte objekty: '+ Vybrané zariadenie' (všetky objekty zariadenia vybraného v strome) alebo 'Pridať objekty…'. 2) Nastavte cieľovú adresu každého riadka v jeho rozbaľovacom zozname – alebo ich rýchlo vyplňte pomocou 'Priradiť postupne' (ďalšie voľné adresy od zadaného začiatku) alebo 'Priradiť podľa názvu'. 3) 'Prepojiť všetko' prepojí každý riadok, ktorý má cieľ."
+
+msgid "Link group objects to each other. 1) Add the source objects. 2) Pick a partner object per row. Each pair gets a NEW group address (source sends, target receives): the address and name are suggested (first free address, name template below) but can be edited per row. 3) 'Link all' creates and links them."
+msgstr "Prepojiť skupinové objekty navzájom. 1) Pridajte zdrojové objekty. 2) Pre každý riadok vyberte partnerský objekt. Každý pár dostane NOVÚ skupinovú adresu (zdroj vysiela, cieľ prijíma): adresa a názov sa navrhnú (prvá voľná adresa, šablóna názvu nižšie), ale dajú sa upraviť v každom riadku. 3) 'Prepojiť všetko' ich vytvorí a prepojí."
+
+msgid "Chronological record of every mass-link operation in this session."
+msgstr "Chronologický záznam všetkých hromadných prepojení v tejto relácii."
+
+msgid "Duplicate a device several times. Optionally rewrite the copy name (find/replace) and create a group address for each of its objects."
+msgstr "Viackrát duplikovať zariadenie. Voliteľne prepísať názov kópie (hľadať/nahradiť) a pre každý jeho objekt vytvoriť skupinovú adresu."
+
+msgid "Renumber devices by adding an offset to the device part of their individual addresses, e.g. to open gaps for new devices. Group addresses are untouched."
+msgstr "Prečíslovať zariadenia pripočítaním posunu k časti zariadenia ich individuálnych adries, napr. na uvoľnenie miesta pre nové zariadenia. Skupinové adresy zostanú bez zmeny."
+
+msgid "Export the device list (address, name, order number, manufacturer, description) to a CSV you can print as on-site labels."
+msgstr "Exportovať zoznam zariadení (adresa, názov, objednávacie číslo, výrobca, popis) do CSV, ktoré môžete vytlačiť ako štítky na mieste."
+
+msgid "Read-only scan: lists devices with a missing, malformed or duplicate individual address."
+msgstr "Kontrola len na čítanie: vypíše zariadenia s chýbajúcou, chybnou alebo duplicitnou individuálnou adresou."
+
+msgid "All"
+msgstr "Všetko"
+
+msgid "None"
+msgstr "Nič"
+
+msgid "{sel} of {total} selected"
+msgstr "Vybrané {sel} z {total}"
+
+msgid "Filter devices…"
+msgstr "Filtrovať zariadenia…"
+
+msgid "Replace Device"
+msgstr "Vymeniť zariadenie"
+
+msgid "Swap a device for another model (a template device already in the project), keeping its group-address links. Group objects are matched by number and size; unmatched ones are reported. Parameters are not carried over."
+msgstr "Nahradiť zariadenie iným modelom (vzorovým zariadením, ktoré už je v projekte) so zachovaním prepojení so skupinovými adresami. Skupinové objekty sa priraďujú podľa čísla a veľkosti; nepriradené sa nahlásia. Parametre sa neprenášajú."
+
+msgid "Device to Replace"
+msgstr "Zariadenie na výmenu"
+
+msgid "Replace with (Template)"
+msgstr "Nahradiť (vzor)"
+
+msgid "Group Object Mapping (by Number)"
+msgstr "Priradenie skupinových objektov (podľa čísla)"
+
+msgid "{count} object(s) will be re-mapped"
+msgstr "Objekty, ktoré sa znova priradia: {count}"
+
+msgid "Replaced; re-mapped {count} group object(s)"
+msgstr "Vymenené; znova priradené skupinové objekty: {count}"
+
+msgid "Device"
+msgstr "Zariadenie"
+
+msgid "Group Object"
+msgstr "Skupinový objekt"
+
+msgid "DPT"
+msgstr "DPT"
+
+msgid "Target Group Address"
+msgstr "Cieľová skupinová adresa"
+
+msgid "Target Group Object"
+msgstr "Cieľový skupinový objekt"
+
+msgid "Group Address"
+msgstr "Skupinová adresa"
+
+msgid "Group Address Name"
+msgstr "Názov skupinovej adresy"
+
+msgid "(none)"
+msgstr "(žiadna)"
+
+msgid "+ Selected Device"
+msgstr "+ Vybrané zariadenie"
+
+msgid "Select All"
+msgstr "Vybrať všetko"
+
+msgid "No objects yet — add the selected device or pick objects."
+msgstr "Zatiaľ žiadne objekty – pridajte vybrané zariadenie alebo vyberte objekty."
+
+msgid "From"
+msgstr "Od"
+
+msgid "Assign Sequential"
+msgstr "Priradiť postupne"
+
+msgid "Match by Name"
+msgstr "Priradiť podľa názvu"
+
+msgid "Link All ({count})"
+msgstr "Prepojiť všetko ({count})"
+
+msgid "{ready} ready · {amb} ambiguous · {bad} incompatible · {none} unmatched"
+msgstr "Pripravené: {ready} · nejednoznačné: {amb} · nekompatibilné: {bad} · bez priradenia: {none}"
+
+msgid "Only Problems"
+msgstr "Len problémy"
+
+msgid "Only for ETS 6 devices: this test compares the device against an image generated the ETS 6 way. A device last programmed with ETS 5 uses a different byte layout and will show large false differences - the result is only meaningful for a device last programmed with ETS 6."
+msgstr "Len pre zariadenia ETS 6: tento test porovnáva zariadenie s obrazom vytvoreným spôsobom ETS 6. Zariadenie naposledy naprogramované v ETS 5 používa iné rozloženie bajtov a ukáže veľké falošné rozdiely – výsledok má zmysel len pre zariadenie naposledy naprogramované v ETS 6."
+
+msgid "Structural differences (whole tables differ) can mean the device was last programmed with ETS 5, whose byte layout differs. Differences in values only usually mean the device holds a different configuration."
+msgstr "Štrukturálne rozdiely (líšia sa celé tabuľky) môžu znamenať, že zariadenie bolo naposledy naprogramované v ETS 5, ktorého rozloženie bajtov je iné. Rozdiely len v hodnotách zvyčajne znamenajú, že zariadenie obsahuje inú konfiguráciu."
+
+msgid "Test/Program mirror an ETS 6 programming. If a test reports whole tables as different, the device was likely last programmed with ETS 5 (different byte layout)."
+msgstr "Test/Programovanie napodobňujú programovanie v ETS 6. Ak test hlási celé tabuľky ako odlišné, zariadenie bolo pravdepodobne naposledy naprogramované v ETS 5 (iné rozloženie bajtov)."
+
+msgid "Product"
+msgstr "Produkt"
+
+msgid "Product Ref"
+msgstr "Ref. produktu"
+
+msgid "Program Ref"
+msgstr "Ref. programu"
+
+msgid "Copied"
+msgstr "Skopírované"
+
+msgid "Click to copy"
+msgstr "Kliknutím skopírujete"
+
+msgid "Update to V{version}"
+msgstr "Aktualizovať na V{version}"
+
+msgid "Type"
+msgstr "Typ"
+
+msgid "Create"
+msgstr "Vytvoriť"
+
+msgid "Custom"
+msgstr "Vlastný"
+
+msgid "Switchable Light"
+msgstr "Spínané svietidlo"
+
+msgid "Dimmable Light"
+msgstr "Stmievateľné svietidlo"
+
+msgid "Sun Protection"
+msgstr "Ochrana proti slnku"
+
+msgid "Heating (Switching Variable)"
+msgstr "Vykurovanie (spínacia akčná veličina)"
+
+msgid "Heating (Continuous Variable)"
+msgstr "Vykurovanie (spojitá akčná veličina)"
+
+msgid "Switchable Socket"
+msgstr "Spínaná zásuvka"
+
+msgid "Confirmed Restart"
+msgstr "Potvrdený reštart"
+
+msgid "Delete Application Program"
+msgstr "Odstrániť aplikačný program"
+
+msgid "Factory Reset"
+msgstr "Obnovenie výrobných nastavení"
+
+msgid "Factory Reset (Keep Address)"
+msgstr "Obnovenie výrobných nastavení (zachovať adresu)"
+
+msgid "I understand this resets the device"
+msgstr "Beriem na vedomie, že sa tým zariadenie resetuje"
+
+msgid "Master Reset"
+msgstr "Master reset"
+
+msgid "Reset Device"
+msgstr "Resetovať zariadenie"
+
+msgid "Reset Group Address Links"
+msgstr "Resetovať prepojenia so skupinovými adresami"
+
+msgid "Reset Individual Address"
+msgstr "Resetovať individuálnu adresu"
+
+msgid "Reset Parameters"
+msgstr "Resetovať parametre"
+
+msgid "Reset Type"
+msgstr "Typ resetu"
+
+msgid "Reset…"
+msgstr "Resetovať…"
+
+msgid "Restart"
+msgstr "Reštartovať"
+
+msgid "no fault reported"
+msgstr "nehlásená žiadna chyba"
+
+msgid "(Top Level)"
+msgstr "(najvyššia úroveň)"
+
+msgid "Assign a Device to This Space"
+msgstr "Priradiť zariadenie k tomuto priestoru"
+
+msgid "Building"
+msgstr "Budova"
+
+msgid "Building Part"
+msgstr "Časť budovy"
+
+msgid "Corridor"
+msgstr "Chodba"
+
+msgid "Delete this space and everything in it? Devices are only unassigned, not deleted."
+msgstr "Odstrániť tento priestor a všetko v ňom? Zariadenia sa len zrušia z priradenia, neodstránia sa."
+
+msgid "Floor"
+msgstr "Podlažie"
+
+msgid "Move to"
+msgstr "Presunúť do"
+
+msgid "No unassigned devices"
+msgstr "Žiadne nepriradené zariadenia"
+
+msgid "Room"
+msgstr "Miestnosť"
+
+msgid "Stairway"
+msgstr "Schodisko"
+
+msgid "Without Space"
+msgstr "Bez priestoru"
+
+msgid "Delete Folder"
+msgstr "Odstrániť priečinok"
+
+msgid "Delete this folder and every group address in it? This can be undone."
+msgstr "Odstrániť tento priečinok a všetky skupinové adresy v ňom? Túto akciu je možné vrátiť späť."
+
+msgid "Apply Changes to All Channels"
+msgstr "Použiť zmeny na všetky kanály"
+
+msgid "S"
+msgstr "V"
+
+msgid "S = Sending. This object sends its value to the group address; the others only receive it."
+msgstr "V = Vysielajúci. Tento objekt odosiela svoju hodnotu na skupinovú adresu; ostatné ju len prijímajú."
+
+msgid "Click to open this device in the editor"
+msgstr "Kliknutím otvoríte toto zariadenie v editore"
+
+msgid "Copy Configuration"
+msgstr "Kopírovať konfiguráciu"
+
+msgid "Paste Configuration"
+msgstr "Prilepiť konfiguráciu"
+
+msgid "Paste configuration onto '{name}':"
+msgstr "Prilepiť konfiguráciu do '{name}':"
+
+msgid "Paste configuration onto {count} selected devices:"
+msgstr "Prilepiť konfiguráciu do vybraných zariadení ({count}):"
+
+msgid "Duplicate '{name}':"
+msgstr "Duplikovať '{name}':"
+
+msgid "Parameters"
+msgstr "Parametre"
+
+msgid "Group Address Links"
+msgstr "Prepojenia so skupinovými adresami"
+
+msgid "Paste"
+msgstr "Prilepiť"
+
+msgid "This action can only be performed when the individual address of the device is already downloaded."
+msgstr "Túto akciu je možné vykonať až potom, ako bola nahratá individuálna adresa zariadenia."
+
+msgid "Button {0} executed. "
+msgstr "Tlačidlo {0} bolo vykonané. "
+
+msgid "A parameter script is running for this device."
+msgstr "Pre toto zariadenie beží skript parametrov."
+
+msgid "The Device has no valid address or is not linked to an area or line."
+msgstr "Zariadenie nemá platnú adresu alebo nie je pripojené k žiadnej oblasti ani línii."
+
+msgid "Parameter Script"
+msgstr "Skript parametrov"
+
+msgid "Executing Script"
+msgstr "Vykonáva sa skript"
+
+msgid "Script not responding"
+msgstr "Skript nereaguje"
+
+msgid "Force Stop"
+msgstr "Vynútiť ukončenie"
+
+msgid "The script was stopped."
+msgstr "Skript bol zastavený."
+
+msgid "Canceling…"
+msgstr "Ruší sa…"
+
+msgid "No connection to the bus."
+msgstr "Žiadne pripojenie k zbernici."
+
+msgid "Parameter value cannot be set, because validation failed."
+msgstr "Hodnotu parametra nie je možné nastaviť, pretože overenie zlyhalo."
+
+msgid "Operations"
+msgstr "Operácie"
+
+msgid "Active"
+msgstr "Aktívne"
+
+msgid "Cancel All"
+msgstr "Zrušiť všetko"
+
+msgid "Clear History"
+msgstr "Vymazať históriu"
+
+msgid "No operations."
+msgstr "Žiadne operácie."
+
+msgid "Downloading"
+msgstr "Nahráva sa"
+
+msgid "Waiting"
+msgstr "Čaká sa"
+
+msgid "Finished"
+msgstr "Dokončené"
+
+msgid "Canceled"
+msgstr "Zrušené"
+
+msgid "failed"
+msgstr "zlyhalo"
+
+msgid "No details available"
+msgstr "Nie sú dostupné žiadne podrobnosti"
+
+msgid "Connection: {connection}"
+msgstr "Pripojenie: {connection}"
+
+msgid "Start: {time}"
+msgstr "Začiatok: {time}"
+
+msgid "End: {time}"
+msgstr "Koniec: {time}"
+
+msgid "The product data of this device is missing - its application program is not in the catalog. Import its product to edit the device."
+msgstr "Chýbajú produktové údaje tohto zariadenia – jeho aplikačný program nie je v katalógu. Na úpravu zariadenia importujte jeho produkt."
+
+msgid "Device Info"
+msgstr "Info o zariadení"
+
+msgid "Device Info (With Group Communication)"
+msgstr "Info o zariadení (so skupinovou komunikáciou)"
+
+msgid "Reading"
+msgstr "Číta sa"
+
+msgid "General"
+msgstr "Všeobecné"
+
+msgid "Group Communication"
+msgstr "Skupinová komunikácia"
+
+msgid "Device Manufacturer"
+msgstr "Výrobca zariadenia"
+
+msgid "Firmware Version"
+msgstr "Verzia firmvéru"
+
+msgid "Programming Mode"
+msgstr "Programovací režim"
+
+msgid "Load State"
+msgstr "Stav načítania"
+
+msgid "Address Table Load State"
+msgstr "Stav načítania tabuľky adries"
+
+msgid "Association Table Load State"
+msgstr "Stav načítania tabuľky asociácií"
+
+msgid "Group Object Table Load State"
+msgstr "Stav načítania tabuľky skupinových objektov"
+
+msgid "Reading the tables failed: {error}"
+msgstr "Čítanie tabuliek zlyhalo: {error}"
+
+msgid "On"
+msgstr "Zap."
+
+msgid "Off"
+msgstr "Vyp."
+
+msgid "Unloaded"
+msgstr "Uvoľnené"
+
+msgid "Loaded"
+msgstr "Načítané"
+
+msgid "Loading"
+msgstr "Načítava sa"
+
+msgid "Error"
+msgstr "Chyba"
+
+msgid "Unloading"
+msgstr "Uvoľňuje sa"
+
+msgid "Load Completing"
+msgstr "Dokončuje sa načítanie"
+
+msgid "Yes"
+msgstr "Áno"
+
+msgid "Also read the group communication?"
+msgstr "Čítať aj skupinovú komunikáciu?"
+
+msgid "No"
+msgstr "Nie"
+
+msgid "The application on the device is not in the catalog, so its tables cannot be located"
+msgstr "Aplikácia zariadenia nie je v katalógu, preto sa nedajú nájsť jeho tabuľky"
+
+msgid "This device can only be programmed with the manufacturer's plugin, which is not available here."
+msgstr "Toto zariadenie sa dá programovať len pomocou pluginu výrobcu, ktorý tu nie je k dispozícii."
+
+msgid "The manufacturer configures this device with its own plugin dialog; settings made there are not shown here."
+msgstr "Výrobca konfiguruje toto zariadenie vlastným dialógom pluginu; nastavenia vykonané v ňom sa tu nezobrazujú."
+
+msgid "The manufacturer programs this device with its own plugin; the standard download is used here."
+msgstr "Výrobca programuje toto zariadenie vlastným pluginom; tu sa použije štandardné nahratie."
+
+msgid "The manufacturer keeps part of this device's data with its own plugin, which is not available here."
+msgstr "Výrobca spravuje časť údajov tohto zariadenia vlastným pluginom, ktorý tu nie je k dispozícii."
+
+msgid "This device is also configured with separate software from the manufacturer."
+msgstr "Toto zariadenie sa navyše konfiguruje samostatným softvérom výrobcu."
+
+msgid "This device includes a manufacturer configuration app (“{name}”) that XKNX Editor can't run. The device's standard parameters can still be programmed, but not the extra functionality that app provides."
+msgstr "Toto zariadenie obsahuje konfiguračnú aplikáciu výrobcu („{name}“), ktorú XKNX Editor nemôže spustiť. Štandardné parametre zariadenia sa dajú naďalej programovať, ale nie doplnkové funkcie, ktoré táto aplikácia poskytuje."
+
+msgid "This device includes a manufacturer configuration app (“{name}”) that can't be run directly in XKNX Editor — but it has been ported, so its most important functions are usable here (see the DALI tab)."
+msgstr "Toto zariadenie obsahuje konfiguračnú aplikáciu výrobcu („{name}“), ktorú nemožno v XKNX Editor spustiť priamo – bola však portovaná, takže jej najdôležitejšie funkcie sú tu použiteľné (pozri kartu DALI)."
+
+msgid "The manufacturer allows programming this device only with its plugin, which is not available here. Programming it without the plugin may leave the device misconfigured or in an error state."
+msgstr "Výrobca povoľuje programovať toto zariadenie len jeho pluginom, ktorý tu nie je k dispozícii. Programovanie bez pluginu môže zariadenie nechať chybne nakonfigurované alebo v chybovom stave."
+
+msgid "Program Without the Manufacturer's Plugin Anyway"
+msgstr "Napriek tomu programovať bez pluginu výrobcu"
+
+msgid "Overwrite Individual Address"
+msgstr "Prepísať individuálnu adresu"
+
+msgid "This writes the individual address {address} to the device whose programming button is pressed. Continue?"
+msgstr "Týmto sa individuálna adresa {address} zapíše do zariadenia, ktorého programovacie tlačidlo je stlačené. Pokračovať?"
+
+msgid "This overwrites the individual address of the device at its current address with {address}. Its programming button does not need to be pressed."
+msgstr "Týmto sa individuálna adresa zariadenia na jeho aktuálnej adrese prepíše na {address}. Jeho programovacie tlačidlo netreba stlačiť."
+
+msgid "Current Individual Address"
+msgstr "Aktuálna individuálna adresa"
+
+msgid "Enter the device's current individual address, e.g. 1.1.5."
+msgstr "Zadajte aktuálnu individuálnu adresu zariadenia, napr. 1.1.5."
+
+msgid "The device already has the individual address {address}."
+msgstr "Zariadenie už má individuálnu adresu {address}."
+
+msgid "Please press the programming button"
+msgstr "Stlačte programovacie tlačidlo"
+
+msgid "Individual Address via Serial Number"
+msgstr "Individuálna adresa cez sériové číslo"
+
+msgid "This writes the individual address {address} to the device with the serial number {serial}. Its programming button does not need to be pressed."
+msgstr "Týmto sa individuálna adresa {address} zapíše do zariadenia so sériovým číslom {serial}. Jeho programovacie tlačidlo netreba stlačiť."
+
+msgid "Use Serial Number"
+msgstr "Použiť sériové číslo"
+
+msgid "The serial number is already associated with device {device}."
+msgstr "Sériové číslo je už priradené zariadeniu {device}."
+
+msgid "Enter the serial number as 12 hexadecimal digits, e.g. 0083:7AA2039C."
+msgstr "Zadajte sériové číslo ako 12 šestnástkových číslic, napr. 0083:7AA2039C."
+
+msgid "The reported value matches {devices} in this project."
+msgstr "Hlásená hodnota zodpovedá v tomto projekte: {devices}."
+
+msgid "Waiting for confirmation"
+msgstr "Čaká sa na potvrdenie"
+
+msgid "The application program currently loaded in the device is different from the projected application program"
+msgstr "Aplikačný program aktuálne nahratý v zariadení je iný ako projektovaný aplikačný program"
+
+msgid "Do you want to overwrite the application program (this may take several minutes)?"
+msgstr "Chcete prepísať aplikačný program (môže to trvať niekoľko minút)?"
+
+msgid "The application program currently loaded in the device does not comply with the projected application program. You may try a full instead of a partial download."
+msgstr "Aplikačný program nahratý v zariadení nezodpovedá projektovanému aplikačnému programu. Namiesto čiastočného môžete skúsiť úplné nahratie."
+
+msgid "Incompatible mask version: {found} instead of {expected}"
+msgstr "Nekompatibilná verzia masky: {found} namiesto {expected}"
+
+msgid "Change Application Program"
+msgstr "Zmeniť aplikačný program"
+
+msgid "Update Application Program Version"
+msgstr "Aktualizovať verziu aplikačného programu"
+
+msgid "Update"
+msgstr "Aktualizovať"
+
+msgid "Changing the application program failed"
+msgstr "Zmena aplikačného programu zlyhala"
+
+msgid "Updating the application program failed"
+msgstr "Aktualizácia aplikačného programu zlyhala"
+
+msgid "Updating the application program…"
+msgstr "Aktualizuje sa aplikačný program…"
+
+msgid "Changing the application program…"
+msgstr "Mení sa aplikačný program…"
+
+msgid "Delete Space"
+msgstr "Odstrániť priestor"
+
+msgid "Load Reference File"
+msgstr "Načítať referenčný súbor"
+
+msgid "Save Memory Dump"
+msgstr "Uložiť výpis pamäte"
+
+msgid "Export Programming Test Result"
+msgstr "Exportovať výsledok testu programovania"
+
+msgid "Load"
+msgstr "Načítať"
+
+msgid "DIN Rail Mounting"
+msgstr "Montáž na lištu DIN"
+
+msgid "Bus Current"
+msgstr "Prúd zo zbernice"
+
+msgid "Read Value"
+msgstr "Čítať hodnotu"
+
+msgid "Write Value…"
+msgstr "Zapísať hodnotu…"
+
+msgid "Write Value"
+msgstr "Zapísať hodnotu"
+
+msgid "Data Type"
+msgstr "Dátový typ"
+
+msgid "Value"
+msgstr "Hodnota"
+
+msgid "Set the data type of the group address to write a value."
+msgstr "Na zápis hodnoty nastavte dátový typ skupinovej adresy."
+
+msgid "Write"
+msgstr "Zapísať"
+
+msgid "Not connected to the bus."
+msgstr "Nepripojené k zbernici."
+
+msgid "Export Group Addresses…"
+msgstr "Exportovať skupinové adresy…"
+
+msgid "Import Group Addresses…"
+msgstr "Importovať skupinové adresy…"
+
+msgid "Import Group Addresses"
+msgstr "Import skupinových adries"
+
+msgid "Group Address Files (XML, CSV)"
+msgstr "Súbory skupinových adries (XML, CSV)"
+
+msgid "All Files"
+msgstr "Všetky súbory"
+
+msgid "{added} group addresses added, {updated} updated."
+msgstr "Pridané skupinové adresy: {added}, aktualizované: {updated}."
+
+msgid "{count} group addresses could not be placed in a group."
+msgstr "Skupinové adresy, ktoré sa nepodarilo zaradiť do skupiny: {count}."
+
+msgid "The file could not be imported: {error}"
+msgstr "Súbor sa nepodarilo importovať: {error}"
+
+msgid "The file uses {file} group addresses, but the project uses {project} group addresses."
+msgstr "Súbor používa skupinové adresy typu {file}, projekt však typu {project}."
+
+msgid "3-level"
+msgstr "3-úrovňové"
+
+msgid "2-level"
+msgstr "2-úrovňové"
+
+msgid "free"
+msgstr "voľné"
+
+msgid "Export"
+msgstr "Exportovať"
+
+msgid "Import"
+msgstr "Importovať"
+
+msgid "Based on OpenKNXproducer"
+msgstr "Založené na OpenKNXproducer"
+
+msgid "CSV"
+msgstr "CSV"
+
+msgid "Channels ({count})"
+msgstr "Kanály ({count})"
+
+msgid "Choose Project to Compare"
+msgstr "Výber projektu na porovnanie"
+
+msgid "Choose Project to Compare…"
+msgstr "Vybrať projekt na porovnanie…"
+
+msgid "Columns"
+msgstr "Stĺpce"
+
+msgid "Comments are encrypted"
+msgstr "Komentáre sú šifrované"
+
+msgid "Compare the open project with another project file (.knxproj, .xknx or a backup): which devices and group addresses were added, removed or changed. The other project is read-only; nothing is modified."
+msgstr "Porovnať otvorený projekt s iným súborom projektu (.knxproj, .xknx alebo záloha): ktoré zariadenia a skupinové adresy boli pridané, odstránené alebo zmenené. Druhý projekt sa len číta; nič sa nemení."
+
+msgid "Custom Grid"
+msgstr "Vlastná mriežka"
+
+msgid "DALI (Bus)"
+msgstr "DALI (zbernica)"
+
+msgid "Date"
+msgstr "Dátum"
+
+msgid "Decrypt Comments"
+msgstr "Dešifrovať komentáre"
+
+msgid "Default Gateway"
+msgstr "Predvolená brána"
+
+msgid "Delete '{name}'? Its group objects and group-address links are removed and its individual address is freed. This can be undone."
+msgstr "Odstrániť '{name}'? Jeho skupinové objekty a prepojenia so skupinovými adresami sa odstránia a jeho individuálna adresa sa uvoľní. Túto akciu je možné vrátiť späť."
+
+msgid "Delete Device"
+msgstr "Odstrániť zariadenie"
+
+msgid "Destructive: the device is reset over the bus and must be commissioned again. In KNX Secure mode this deactivates device security."
+msgstr "Deštruktívne: zariadenie sa resetuje cez zbernicu a musí sa znova uviesť do prevádzky. V režime KNX Secure sa tým deaktivuje zabezpečenie zariadenia."
+
+msgid "Download PDF Manual"
+msgstr "Stiahnuť príručku PDF"
+
+msgid "ETS encrypts the log comments. Extract the decryption key from your own ETS installation's Knx.Ets.Common.dll to read them; nothing is sent anywhere."
+msgstr "ETS šifruje komentáre v denníku. Na ich čítanie extrahujte dešifrovací kľúč zo súboru Knx.Ets.Common.dll vašej vlastnej inštalácie ETS; nič sa nikam neodosiela."
+
+msgid "Export HTML…"
+msgstr "Exportovať HTML…"
+
+msgid "Extract from Knx.Ets.Common.dll…"
+msgstr "Extrahovať z Knx.Ets.Common.dll…"
+
+msgid "Extracting key…"
+msgstr "Extrahuje sa kľúč…"
+
+msgid "Fields"
+msgstr "Polia"
+
+msgid "Filter log"
+msgstr "Filtrovať denník"
+
+msgid "Find this device's manual (via the KNX device database, else a manufacturer search) and open it in your browser. Best effort - opens the KNX device search if no direct document is found."
+msgstr "Vyhľadať príručku tohto zariadenia (cez databázu zariadení KNX, inak vyhľadávaním u výrobcu) a otvoriť ju v prehliadači. Bez záruky – ak sa nenájde priamy dokument, otvorí sa vyhľadávanie zariadení KNX."
+
+msgid "Gap X / Y (mm)"
+msgstr "Medzera X / Y (mm)"
+
+msgid "Obtain an IP address automatically"
+msgstr "Získať IP adresu automaticky"
+
+msgid "Use a static IP address"
+msgstr "Použiť statickú IP adresu"
+
+msgid "Assigned IP Address"
+msgstr "Priradená IP adresa"
+
+msgid "An invalid IP address was specified."
+msgstr "Bola zadaná neplatná IP adresa."
+
+msgid "Change assigned IP address of '{0}' to '{1}'."
+msgstr "Priradená IP adresa zariadenia '{0}' zmenená na '{1}'."
+
+msgid "IP configuration of device '{0}' changed."
+msgstr "Konfigurácia IP zariadenia '{0}' zmenená."
+
+msgid "IP Address"
+msgstr "IP adresa"
+
+msgid "IP Configuration"
+msgstr "Konfigurácia IP"
+
+msgid "Individual Addresses"
+msgstr "Individuálne adresy"
+
+msgid "Installation"
+msgstr "Inštalácia"
+
+msgid "Invalid address or already in use."
+msgstr "Neplatná adresa alebo sa už používa."
+
+msgid "KNX Common Assembly"
+msgstr "Zostava KNX Common"
+
+msgid "KNX project (*.knxproj *.xknx *.zip)"
+msgstr "Projekt KNX (*.knxproj *.xknx *.zip)"
+
+msgid "Key extracted; comments decrypted"
+msgstr "Kľúč extrahovaný; komentáre dešifrované"
+
+msgid "Label Sheet"
+msgstr "Hárok štítkov"
+
+msgid "Label W x H (mm)"
+msgstr "Štítok Š x V (mm)"
+
+msgid "Legend (Full Page)"
+msgstr "Legenda (celá strana)"
+
+msgid "MAC Address"
+msgstr "MAC adresa"
+
+msgid "Margin Top / Left (mm)"
+msgstr "Okraj hore / vľavo (mm)"
+
+msgid "No .NET runtime found (install the .NET SDK, or run on Windows with ETS)."
+msgstr "Nenašlo sa prostredie runtime .NET (nainštalujte .NET SDK alebo spustite vo Windows s ETS)."
+
+msgid "No differences in devices or group addresses."
+msgstr "Žiadne rozdiely v zariadeniach ani skupinových adresách."
+
+msgid "No project log entries"
+msgstr "Žiadne záznamy v denníku projektu"
+
+msgid "Output"
+msgstr "Výstup"
+
+msgid "Pick the fields and an output: a CSV, printable label sheets (Avery), or a full-page legend. HTML output opens in your browser to print or save as PDF."
+msgstr "Vyberte polia a výstup: CSV, tlačiteľné hárky štítkov (Avery) alebo celostranovú legendu. Výstup HTML sa otvorí v prehliadači na tlač alebo uloženie ako PDF."
+
+msgid "Project Diff"
+msgstr "Porovnanie projektov"
+
+msgid "Project Log"
+msgstr "Denník projektu"
+
+msgid "Renumber group addresses by adding an offset to their raw value, e.g. to open gaps. Group object links move with each address. Nothing is written if any move would collide or leave the valid range."
+msgstr "Prečíslovať skupinové adresy pripočítaním posunu k ich nespracovanej hodnote, napr. na uvoľnenie miesta. Prepojenia skupinových objektov sa presúvajú s každou adresou. Nič sa nezapíše, ak by niektorý posun kolidoval alebo opustil platný rozsah."
+
+msgid "Rows"
+msgstr "Riadky"
+
+msgid "Searching Manual…"
+msgstr "Hľadá sa príručka…"
+
+msgid "Select at least one field."
+msgstr "Vyberte aspoň jedno pole."
+
+msgid "Sheet"
+msgstr "Hárok"
+
+msgid "Shift Group Addresses"
+msgstr "Posunúť skupinové adresy"
+
+msgid "Shifted {count} group address(es)"
+msgstr "Posunuté skupinové adresy: {count}"
+
+msgid "Subnet Mask"
+msgstr "Maska podsiete"
+
+msgid "The offset is added to the raw 16-bit value, so it may change the main/middle group as addresses cross a boundary."
+msgstr "Posun sa pripočítava k nespracovanej 16-bitovej hodnote, takže sa môže zmeniť hlavná/stredná skupina, keď adresy prekročia hranicu."
+
+msgid "This project has no group addresses."
+msgstr "Tento projekt nemá žiadne skupinové adresy."
+
+msgid "User"
+msgstr "Používateľ"
+
+msgid "added"
+msgstr "pridané"
+
+msgid "changed"
+msgstr "zmenené"
+
+msgid "Compared with {name}:"
+msgstr "Porovnané s {name}:"
+
+msgid "removed"
+msgstr "odstránené"
+
+msgid "{count} difference(s)"
+msgstr "Rozdiely: {count}"
+
+msgid "Save…"
+msgstr "Uložiť…"
+
+msgid "Diff…"
+msgstr "Porovnať…"
+
+msgid "Clear Diff"
+msgstr "Zrušiť porovnanie"
+
+msgid "Memory Dumps (*.bin)"
+msgstr "Výpisy pamäte (*.bin)"
+
+msgid "{count} bytes"
+msgstr "Bajty: {count}"
+
+msgid "No memory segments."
+msgstr "Žiadne segmenty pamäte."
+
+msgid "Cannot encode memory image: {error}"
+msgstr "Obraz pamäte sa nedá vytvoriť: {error}"
+
+msgid "The file could not be read or written: {error}"
+msgstr "Súbor sa nepodarilo prečítať alebo zapísať: {error}"
+
+msgid "Password"
+msgstr "Heslo"
+
+msgid "Protected"
+msgstr "Chránený"
+
+msgid "Not protected"
+msgstr "Nechránený"
+
+msgid "Set Password"
+msgstr "Nastaviť heslo"
+
+msgid "Change Password"
+msgstr "Zmeniť heslo"
+
+msgid "Remove Password"
+msgstr "Odstrániť heslo"
+
+msgid "Project Password"
+msgstr "Heslo projektu"
+
+msgid "The project and its exports are protected with this password; opening or importing them asks for it. A password change cannot be undone."
+msgstr "Projekt a jeho exporty sú chránené týmto heslom; pri otváraní alebo importe sa naň zobrazí výzva. Zmenu hesla nie je možné vrátiť späť."
+
+msgid "Repeat Password"
+msgstr "Zopakovať heslo"
+
+msgid "The passwords do not match."
+msgstr "Heslá sa nezhodujú."
+
+msgid "A project with KNX Secure devices needs a password: it protects their keys in the project and in its exports."
+msgstr "Projekt so zariadeniami KNX Secure potrebuje heslo: chráni ich kľúče v projekte a v jeho exportoch."
+
+msgid "The other project is protected with a password. Enter it to compare:"
+msgstr "Druhý projekt je chránený heslom. Na porovnanie ho zadajte:"
+
+msgid "Compare"
+msgstr "Porovnať"
+
+msgid "Wrong password, please try again."
+msgstr "Nesprávne heslo, skúste to znova."
+
+msgid "Add Device Certificate"
+msgstr "Pridať certifikát zariadenia"
+
+msgid "Device Certificate"
+msgstr "Certifikát zariadenia"
+
+msgid "This device already uses its own key from this project. Its certificate is only needed again after a factory reset."
+msgstr "Toto zariadenie už používa vlastný kľúč z tohto projektu. Jeho certifikát bude znova potrebný až po obnovení výrobných nastavení."
+
+msgid "This device still uses its factory key: its first secure download needs its certificate."
+msgstr "Toto zariadenie stále používa svoj výrobný kľúč: jeho prvé zabezpečené nahratie vyžaduje jeho certifikát."
+
+msgid "Stored Certificate: {serial}"
+msgstr "Uložený certifikát: {serial}"
+
+msgid "Enter the FDSK from its label or certificate (36 characters):"
+msgstr "Zadajte FDSK z jeho štítka alebo certifikátu (36 znakov):"
+
+msgid "To replace it, enter the new FDSK (36 characters):"
+msgstr "Na nahradenie zadajte nový FDSK (36 znakov):"
+
+msgid "Remove the stored certificate? After a factory reset, the device can then only be reached again with the code from its label."
+msgstr "Odstrániť uložený certifikát? Po obnovení výrobných nastavení bude potom zariadenie dostupné len s kódom z jeho štítka."
+
+msgid "Device Certificate…"
+msgstr "Certifikát zariadenia…"
+
+msgid "The device certificate (FDSK) is missing."
+msgstr "Chýba certifikát zariadenia (FDSK)."
+
+msgid "This is not a valid FDSK; please check it."
+msgstr "Toto nie je platný FDSK; skontrolujte ho."
+
+msgid "This certificate belongs to the device with serial number {serial}."
+msgstr "Tento certifikát patrí zariadeniu so sériovým číslom {serial}."
+
+msgid "Set a project password first: it protects the device keys."
+msgstr "Najprv nastavte heslo projektu: chráni kľúče zariadení."
+
+msgid "Security"
+msgstr "Zabezpečenie"
+
+msgid "Automatic"
+msgstr "Automaticky"
+
+msgid "Plain"
+msgstr "Nešifrované"
+
+msgid "Deactivate Secure Commissioning"
+msgstr "Deaktivovať zabezpečené uvedenie do prevádzky"
+
+msgid "These group addresses will then communicate in the clear:"
+msgstr "Tieto skupinové adresy potom budú komunikovať nešifrovane:"
+
+msgid "The device's group objects will be removed from these secured group addresses:"
+msgstr "Skupinové objekty zariadenia sa odstránia z týchto zabezpečených skupinových adries:"
+
+msgid "Deactivate"
+msgstr "Deaktivovať"
+
+msgid "Secure Commissioning"
+msgstr "Zabezpečené uvedenie do prevádzky"
+
+msgid "Add Device Certificate…"
+msgstr "Pridať certifikát zariadenia…"
+
+msgid "Activated"
+msgstr "Aktivované"
+
+msgid "Deactivated"
+msgstr "Deaktivované"
+
+msgid "A secured group address can only be linked to devices that are commissioned securely."
+msgstr "Zabezpečenú skupinovú adresu je možné prepojiť len so zariadeniami, ktoré sa uvádzajú do prevádzky zabezpečene."
+
+msgid "Not every device linked to this group address is commissioned securely, so it cannot be secured."
+msgstr "Nie všetky zariadenia prepojené s touto skupinovou adresou sa uvádzajú do prevádzky zabezpečene, preto ju nemožno zabezpečiť."
+
+msgid "A group object that requires secure communication would end up on a group address in the clear."
+msgstr "Skupinový objekt, ktorý vyžaduje zabezpečenú komunikáciu, by sa ocitol na nešifrovanej skupinovej adrese."
+
+msgid "Later"
+msgstr "Neskôr"
+
+msgid "Don't Ask When Adding Devices"
+msgstr "Nepýtať sa pri pridávaní zariadení"
+
+msgid "KNX IP Secure"
+msgstr "KNX IP Secure"
+
+msgid "Show Passwords"
+msgstr "Zobraziť heslá"
+
+msgid "Secure Tunneling"
+msgstr "Zabezpečené tunelovanie"
+
+msgid "Commissioning Password"
+msgstr "Heslo na uvedenie do prevádzky"
+
+msgid "Authentication Code"
+msgstr "Overovací kód"
+
+msgid "Interface"
+msgstr "Rozhranie"
+
+msgid "Routing"
+msgstr "Smerovanie"
+
+msgid "Tunnel {address}"
+msgstr "Tunel {address}"
+
+msgid "A password needs 1 to 20 Latin-1 characters."
+msgstr "Heslo musí mať 1 až 20 znakov Latin-1."
+
+msgid "Close"
+msgstr "Zavrieť"
+
+msgid "Device Certificates"
+msgstr "Certifikáty zariadení"
+
+msgid "Manage…"
+msgstr "Spravovať…"
+
+msgid "The project has no device certificates."
+msgstr "Projekt nemá žiadne certifikáty zariadení."
+
+msgid "The security tables of {device} cannot hold this link."
+msgstr "Tabuľky zabezpečenia zariadenia {device} toto prepojenie nepojmú."
+
+msgid "Point-to-Point and Broadcast"
+msgstr "Bod-bod a broadcast"
+
+msgid "Blocked"
+msgstr "Blokované"
+
+msgid "Routed"
+msgstr "Smerované"
+
+msgid "Compare Devices"
+msgstr "Porovnať zariadenia"
+
+msgid "Compare with…"
+msgstr "Porovnať s…"
+
+msgid "Show in Bus Diagram"
+msgstr "Zobraziť v diagrame zbernice"
+
+msgid "Device A"
+msgstr "Zariadenie A"
+
+msgid "Device B"
+msgstr "Zariadenie B"
+
+msgid "Field"
+msgstr "Pole"
+
+msgid "Filter devices by address, name or description…"
+msgstr "Filtrovať zariadenia podľa adresy, názvu alebo popisu…"
+
+msgid "Group Objects"
+msgstr "Skupinové objekty"
+
+msgid "No differences"
+msgstr "Žiadne rozdiely"
+
+msgid "Only Differences"
+msgstr "Len rozdiely"
+
+msgid "Open a project with at least two devices to compare."
+msgstr "Na porovnanie otvorte projekt aspoň s dvoma zariadeniami."
+
+msgid "{count} differences"
+msgstr "Rozdiely: {count}"
+
+msgid "The manufacturer plugin is not available here:"
+msgstr "Plugin výrobcu tu nie je k dispozícii:"
+
+msgid "Only it can program the device."
+msgstr "Len on môže zariadenie naprogramovať."
+
+msgid "Settings made in its dialog are not shown."
+msgstr "Nastavenia z jeho dialógu sa nezobrazujú."
+
+msgid "The standard download is used instead."
+msgstr "Namiesto toho sa použije štandardné nahratie."
+
+msgid "Part of the device data is not available."
+msgstr "Časť údajov zariadenia nie je k dispozícii."
+
+msgid "Connect to a KNX interface to commission the DALI bus."
+msgstr "Na uvedenie zbernice DALI do prevádzky sa pripojte k rozhraniu KNX."
+
+msgid "This gateway's commissioning protocol has not been verified against a capture; writes may misbehave. Proceed with care."
+msgstr "Protokol uvedenia tejto brány do prevádzky nebol overený voči záznamu; zápisy sa môžu správať chybne. Postupujte opatrne."
+
+msgid "DALI commissioning writes the gateway on the bus but does not update the project parameters; re-export the .knxproj after a DCA-side edit."
+msgstr "Uvedenie DALI do prevádzky zapíše bránu na zbernici, ale neaktualizuje parametre projektu; po úprave v DCA znova exportujte .knxproj."
+
+msgid "Scan Bus"
+msgstr "Prehľadať zbernicu"
+
+msgid "All ECGs On"
+msgstr "Všetky predradníky zap."
+
+msgid "All Off"
+msgstr "Všetko vyp."
+
+msgid "New Installation…"
+msgstr "Nová inštalácia…"
+
+msgid "Post Installation…"
+msgstr "Doinštalovanie…"
+
+msgid "Running: {task}"
+msgstr "Prebieha: {task}"
+
+msgid "scanning the bus"
+msgstr "prehľadávanie zbernice"
+
+msgid "switching all ECGs"
+msgstr "spínanie všetkých predradníkov"
+
+msgid "blinking"
+msgstr "blikanie"
+
+msgid "stopping the blinking"
+msgstr "zastavovanie blikania"
+
+msgid "new installation"
+msgstr "nová inštalácia"
+
+msgid "post installation"
+msgstr "doinštalovanie"
+
+msgid "programming the groups"
+msgstr "programovanie skupín"
+
+msgid "programming the scenes"
+msgstr "programovanie scén"
+
+msgid "{count} found"
+msgstr "Nájdené: {count}"
+
+msgid "Use 'Scan Bus' to read the DALI bus."
+msgstr "Zbernicu DALI načítate pomocou „Prehľadať zbernicu“."
+
+msgid "Firmware {version}"
+msgstr "Firmvér {version}"
+
+msgid "Confirm DALI Programming"
+msgstr "Potvrdiť programovanie DALI"
+
+msgid "Continue"
+msgstr "Pokračovať"
+
+msgid "New installation scans the DALI bus again and REASSIGNS the short\naddress of every ballast. This cannot be undone. Continue?"
+msgstr "Nová inštalácia znova prehľadá zbernicu DALI a ZNOVA PRIDELÍ krátku\nadresu každému predradníku. Túto akciu nie je možné vrátiť späť. Pokračovať?"
+
+msgid "Post installation scans the bus for new ballasts and updates their addressing.\nThis changes the device. Continue?"
+msgstr "Doinštalovanie prehľadá zbernicu, či neobsahuje nové predradníky, a aktualizuje ich adresovanie.\nTým sa zariadenie zmení. Pokračovať?"
+
+msgid "Write the group assignment to the DALI bus. This applies the groups to the\ngateway and its ballasts. Continue?"
+msgstr "Zapísať priradenie skupín na zbernicu DALI. Tým sa skupiny prenesú do\nbrány a jej predradníkov. Pokračovať?"
+
+msgid "Write the scene values to the DALI bus. Continue?"
+msgstr "Zapísať hodnoty scén na zbernicu DALI. Pokračovať?"
+
+msgid "{count} ECG(s) present"
+msgstr "Prítomné predradníky: {count}"
+
+msgid "Group"
+msgstr "Skupina"
+
+msgid "Long Address"
+msgstr "Dlhá adresa"
+
+msgid "Alarm"
+msgstr "Alarm"
+
+msgid "Blink"
+msgstr "Blikať"
+
+msgid "Stop"
+msgstr "Zastaviť"
+
+msgid "Program Groups…"
+msgstr "Programovať skupiny…"
+
+msgid "Scenes"
+msgstr "Scény"
+
+msgid "Assign the ECGs to groups above to define scenes."
+msgstr "Na definovanie scén priraďte predradníky vyššie do skupín."
+
+msgid "Scene"
+msgstr "Scéna"
+
+msgid "Scene {number}"
+msgstr "Scéna {number}"
+
+msgid "Group {number}"
+msgstr "Skupina {number}"
+
+msgid "Program Scenes…"
+msgstr "Programovať scény…"
+
+msgid "Single"
+msgstr "Jednotlivo"
+
+msgid "Unassigned"
+msgstr "Nepriradené"
+
+msgid "Procedure {number}  ({count} steps)"
+msgstr "Procedúra {number}  (kroky: {count})"
+
+msgid "Kind"
+msgstr "Druh"
+
+msgid "Applies To"
+msgstr "Platí pre"
+
+msgid "Details"
+msgstr "Podrobnosti"
+
+msgid "Scope: {scope}"
+msgstr "Rozsah: {scope}"
+
+msgid "Unload Application Program"
+msgstr "Uvoľniť aplikačný program"
+
+msgid "This unloads the application program of the device at {address}. The device stops working until its application program is downloaded again."
+msgstr "Týmto sa uvoľní aplikačný program zariadenia s adresou {address}. Zariadenie prestane fungovať, kým sa jeho aplikačný program znova nenahrá."
+
+msgid "This unloads the application program of the device at {address} and then resets its individual address to 15.15.255; for that, its programming button has to be pressed. The device stops working until it is commissioned again."
+msgstr "Týmto sa uvoľní aplikačný program zariadenia s adresou {address} a potom sa jeho individuálna adresa vráti na 15.15.255; na to treba stlačiť jeho programovacie tlačidlo. Zariadenie prestane fungovať, kým sa znova neuvedie do prevádzky."
+
+msgid "Overwrite Address"
+msgstr "Prepísať adresu"
+
+msgid "Manufacturer's Plugin Not Available"
+msgstr "Plugin výrobcu nie je k dispozícii"
+
+msgid "Serial Number Already Used"
+msgstr "Sériové číslo sa už používa"
+
+msgid "Cancelled by user."
+msgstr "Zrušené používateľom."
+
+msgid "Additional Individual Addresses"
+msgstr "Ďalšie individuálne adresy"
+
+msgid "Additional Individual Address"
+msgstr "Ďalšia individuálna adresa"
+
+msgid "Assign Missing Addresses"
+msgstr "Priradiť chýbajúce adresy"
+
+msgid "The line does not provide enough addresses for all necessary additional addresses."
+msgstr "Línia neposkytuje dostatok adries pre všetky potrebné ďalšie adresy."
+
+msgid "Enter a device number from 1 to 255 or a full individual address in the device's line."
+msgstr "Zadajte číslo zariadenia od 1 do 255 alebo úplnú individuálnu adresu v línii zariadenia."
+
+msgid "An additional address must be in the device's line {line}."
+msgstr "Ďalšia adresa musí byť v línii zariadenia {line}."
+
+msgid "The individual address {address} is already used in this line."
+msgstr "Individuálna adresa {address} sa v tejto línii už používa."
+
+msgid "Changed additional address of device '{0}' from '{1}' to '{2}'."
+msgstr "Zmenená ďalšia adresa zariadenia '{0}' z '{1}' na '{2}'."
+
+msgid "Change additional address names"
+msgstr "Zmeniť názvy ďalších adries"
+
+msgid "Change additional address descriptions"
+msgstr "Zmeniť popisy ďalších adries"
+
+msgid "Assign additional addresses"
+msgstr "Priradiť ďalšie adresy"
+
+msgid "Change additional addresses"
+msgstr "Zmeniť ďalšie adresy"
+
+msgid "Started by an MCP client."
+msgstr "Spustené klientom MCP."
+
+msgid "Parameters in the Manufacturer's Plugin"
+msgstr "Parametre v plugine výrobcu"
+
+msgid "The manufacturer sets this device's parameters in its own plugin dialog, which XKNX Editor cannot run, so they cannot be changed here. A download writes their current values unchanged; the group objects can be linked as usual."
+msgstr "Výrobca nastavuje parametre tohto zariadenia vo vlastnom dialógu pluginu, ktorý XKNX Editor nemôže spustiť, preto sa tu nedajú meniť. Nahratie zapíše ich aktuálne hodnoty bez zmeny; skupinové objekty sa dajú prepojiť ako zvyčajne."
+
+msgid "Edit parameters anyway"
+msgstr "Napriek tomu upraviť parametre"
+
+msgid "Matching DPT Only"
+msgstr "Len zodpovedajúci DPT"
+
+msgid "Only group addresses with the object's main datapoint type, and those without one (they take the object's type when linked)."
+msgstr "Len skupinové adresy s hlavným typom dátového bodu objektu a adresy bez typu (pri prepojení prevezmú typ objektu)."
+
+msgid "no DPT"
+msgstr "bez DPT"
+
+msgid "Only objects with the same main datapoint type, and those without one."
+msgstr "Len objekty s rovnakým hlavným typom dátového bodu a objekty bez typu."
+
+msgid "Select a device in the tree first."
+msgstr "Najprv vyberte zariadenie v strome."
+
+msgid "{device} has no group objects."
+msgstr "{device} nemá žiadne skupinové objekty."
+
+msgid "All objects of {device} are in the list already."
+msgstr "Všetky objekty zariadenia {device} už sú v zozname."
+
+msgid "Link group objects to existing group addresses."
+msgstr "Prepojiť skupinové objekty s existujúcimi skupinovými adresami."
+
+msgid "Add objects with \"{add_device}\" or \"{add_objects}\"."
+msgstr "Pridajte objekty pomocou „{add_device}“ alebo „{add_objects}“."
+
+msgid "Pick a group address per row, or fill all with \"{match}\" or \"{sequential}\"."
+msgstr "Vyberte skupinovú adresu pre každý riadok alebo vyplňte všetky pomocou „{match}“ alebo „{sequential}“."
+
+msgid "\"{link_all}\" links every row that has one."
+msgstr "„{link_all}“ prepojí každý riadok, ktorý ju má."
+
+msgid "Link objects to each other through a new group address each: the source sends, the target receives."
+msgstr "Prepojiť objekty navzájom, každý pár cez novú skupinovú adresu: zdroj vysiela, cieľ prijíma."
+
+msgid "Add the source objects with \"{add_device}\" or \"{add_objects}\"."
+msgstr "Pridajte zdrojové objekty pomocou „{add_device}“ alebo „{add_objects}“."
+
+msgid "Pick a target object per row. Address and name are suggested and can be changed."
+msgstr "Vyberte cieľový objekt pre každý riadok. Adresa a názov sa navrhnú a dajú sa zmeniť."
+
+msgid "\"{link_all}\" creates the group addresses and links them."
+msgstr "„{link_all}“ vytvorí skupinové adresy a prepojí ich."
+
+msgid "Link All"
+msgstr "Prepojiť všetko"
+
+msgid "Object"
+msgstr "Objekt"
+
+msgid "Ready to link."
+msgstr "Pripravené na prepojenie."
+
+msgid "Check the group address: several match, or a datapoint type is unknown."
+msgstr "Skontrolujte skupinovú adresu: zodpovedá ich viac alebo je typ dátového bodu neznámy."
+
+msgid "The datapoint types do not match; this row is not linked."
+msgstr "Typy dátových bodov si nezodpovedajú; tento riadok sa neprepojí."
+
+msgid "No group address chosen yet."
+msgstr "Zatiaľ nie je vybraná žiadna skupinová adresa."
+
+msgid "Add device {name}"
+msgstr "Pridať zariadenie {name}"
+
+msgid "Set {ref} = {value}"
+msgstr "Nastaviť {ref} = {value}"
+
+msgid "Change"
+msgstr "Zmena"
+
+msgid "Create area {address}"
+msgstr "Vytvoriť oblasť {address}"
+
+msgid "Create line {address}"
+msgstr "Vytvoriť líniu {address}"
+
+msgid "Add segment"
+msgstr "Pridať segment"
+
+msgid "Create group address {address}"
+msgstr "Vytvoriť skupinovú adresu {address}"
+
+msgid "Import group addresses"
+msgstr "Importovať skupinové adresy"
+
+msgid "Import group addresses from {file}"
+msgstr "Importovať skupinové adresy z {file}"
+
+msgid "Link group object"
+msgstr "Prepojiť skupinový objekt"
+
+msgid "Unlink group object"
+msgstr "Odpojiť skupinový objekt"
+
+msgid "Rename area to {name}"
+msgstr "Premenovať oblasť na {name}"
+
+msgid "Rename project to {name}"
+msgstr "Premenovať projekt na {name}"
+
+msgid "Rename line to {name}"
+msgstr "Premenovať líniu na {name}"
+
+msgid "Rename device to {name}"
+msgstr "Premenovať zariadenie na {name}"
+
+msgid "Move device"
+msgstr "Presunúť zariadenie"
+
+msgid "Set flag"
+msgstr "Nastaviť príznak"
+
+msgid "Set datapoint type"
+msgstr "Nastaviť typ dátového bodu"
+
+msgid "Set priority"
+msgstr "Nastaviť prioritu"
+
+msgid "Set description"
+msgstr "Nastaviť popis"
+
+msgid "Set sending group address"
+msgstr "Nastaviť vysielaciu skupinovú adresu"
+
+msgid "Add installation"
+msgstr "Pridať inštaláciu"
+
+msgid "Remove device"
+msgstr "Odstrániť zariadenie"
+
+msgid "Remove area"
+msgstr "Odstrániť oblasť"
+
+msgid "Remove line"
+msgstr "Odstrániť líniu"
+
+msgid "Remove segment"
+msgstr "Odstrániť segment"
+
+msgid "Remove group address"
+msgstr "Odstrániť skupinovú adresu"
+
+msgid "Remove function"
+msgstr "Odstrániť funkciu"
+
+msgid "Remove group address from function"
+msgstr "Odstrániť skupinovú adresu z funkcie"
+
+msgid "Remove building part"
+msgstr "Odstrániť časť budovy"
+
+msgid "Remove group range"
+msgstr "Odstrániť skupinový rozsah"
+
+msgid "Update application program"
+msgstr "Aktualizovať aplikačný program"
+
+msgid "Change application program"
+msgstr "Zmeniť aplikačný program"
+
+msgid "Update group objects"
+msgstr "Aktualizovať skupinové objekty"
+
+msgid "Update module instances"
+msgstr "Aktualizovať inštancie modulov"
+
+msgid "Set group address security"
+msgstr "Nastaviť zabezpečenie skupinovej adresy"
+
+msgid "Set secure commissioning"
+msgstr "Nastaviť zabezpečené uvedenie do prevádzky"
+
+msgid "Rename group address to {name}"
+msgstr "Premenovať skupinovú adresu na {name}"
+
+msgid "Change group address"
+msgstr "Zmeniť skupinovú adresu"
+
+msgid "Set device certificates"
+msgstr "Nastaviť certifikáty zariadení"
+
+msgid "Set device description"
+msgstr "Nastaviť popis zariadenia"
+
+msgid "Create function {name}"
+msgstr "Vytvoriť funkciu {name}"
+
+msgid "Rename function to {name}"
+msgstr "Premenovať funkciu na {name}"
+
+msgid "Set function type"
+msgstr "Nastaviť typ funkcie"
+
+msgid "Add group address to function"
+msgstr "Pridať skupinovú adresu do funkcie"
+
+msgid "Create building part {name}"
+msgstr "Vytvoriť časť budovy {name}"
+
+msgid "Rename building part to {name}"
+msgstr "Premenovať časť budovy na {name}"
+
+msgid "Set building part number"
+msgstr "Nastaviť číslo časti budovy"
+
+msgid "Set building part description"
+msgstr "Nastaviť popis časti budovy"
+
+msgid "Set building part type"
+msgstr "Nastaviť typ časti budovy"
+
+msgid "Move building part"
+msgstr "Presunúť časť budovy"
+
+msgid "Assign device to building part"
+msgstr "Priradiť zariadenie k časti budovy"
+
+msgid "Set commissioning state"
+msgstr "Nastaviť stav uvedenia do prevádzky"
+
+msgid "Create group range {name}"
+msgstr "Vytvoriť skupinový rozsah {name}"
+
+msgid "Rename group range to {name}"
+msgstr "Premenovať skupinový rozsah na {name}"
+
+msgid "{device}: no individual address"
+msgstr "{device}: bez individuálnej adresy"
+
+msgid "{device}: malformed address '{address}'"
+msgstr "{device}: chybná adresa '{address}'"
+
+msgid "{device}: duplicate address {address}"
+msgstr "{device}: duplicitná adresa {address}"
+
+msgid "Installation Hints"
+msgstr "Pokyny na inštaláciu"
+
+msgid "Select an element in a tree to see its comment."
+msgstr "Vyberte prvok v strome, aby ste videli jeho komentár."
+
+msgid "Set comment"
+msgstr "Nastaviť komentár"
+
+msgid "Set installation hints"
+msgstr "Nastaviť pokyny na inštaláciu"
+
+msgid "Area"
+msgstr "Oblasť"
+
+msgid "Line"
+msgstr "Línia"
+
+msgid "The address is a number from 0 to 15."
+msgstr "Adresa je číslo od 0 do 15."
+
+msgid "Address {address} is already in use."
+msgstr "Adresa {address} sa už používa."
+
+msgid "Set area description"
+msgstr "Nastaviť popis oblasti"
+
+msgid "Set line description"
+msgstr "Nastaviť popis línie"
+
+msgid "Set area address"
+msgstr "Nastaviť adresu oblasti"
+
+msgid "Set line address"
+msgstr "Nastaviť adresu línie"
+
+msgid "Main Group"
+msgstr "Hlavná skupina"
+
+msgid "Middle Group"
+msgstr "Stredná skupina"
+
+msgid "Group Range"
+msgstr "Skupinový rozsah"
+
+msgid "The main group is a number from 0 to 31."
+msgstr "Hlavná skupina je číslo od 0 do 31."
+
+msgid "The middle group is a number from 0 to 7."
+msgstr "Stredná skupina je číslo od 0 do 7."
+
+msgid "Set group address description"
+msgstr "Nastaviť popis skupinovej adresy"
+
+msgid "Set group range description"
+msgstr "Nastaviť popis skupinového rozsahu"
+
+msgid "Set group range address"
+msgstr "Nastaviť adresu skupinového rozsahu"
+
+msgid "DALI (Siemens)"
+msgstr "DALI (Siemens)"
+
+msgid "Connect to a KNX interface to read the Siemens DALI bus."
+msgstr "Na čítanie zbernice Siemens DALI sa pripojte k rozhraniu KNX."
+
+msgid "Read DALI Bus"
+msgstr "Čítať zbernicu DALI"
+
+msgid "Reading the DALI bus from object {object_index}…"
+msgstr "Číta sa zbernica DALI z objektu {object_index}…"
+
+msgid "Press 'Read DALI Bus' to list the ECGs on the gateway."
+msgstr "Stlačením „Čítať zbernicu DALI“ zobrazíte predradníky na bráne."
+
+msgid "{count} ECG(s) present on line {line}"
+msgstr "Predradníky na línii {line}: {count}"
+
+msgid "Read-only snapshot. Writing group assignments, scenes or firmware is not available yet and remains in the manufacturer's plugin."
+msgstr "Snímka len na čítanie. Zápis priradení skupín, scén alebo firmvéru tu zatiaľ nie je k dispozícii a zostáva v plugine výrobcu."
+
+msgid "Short Address"
+msgstr "Krátka adresa"
+
+msgid "Random Address"
+msgstr "Náhodná adresa"
+
+msgid "Min Dim"
+msgstr "Min. stmievanie"
+
+msgid "Colour Temp (K)"
+msgstr "Teplota farby (K)"
+
+msgid "Slot"
+msgstr "Slot"
+
+msgid "Plugin Config"
+msgstr "Konfigurácia pluginu"
+
+msgid "No plugin mapping is available for this device yet. The vendor plugin's parameters stay unreachable from here."
+msgstr "Pre toto zariadenie zatiaľ nie je k dispozícii mapovanie pluginu. Parametre pluginu výrobcu odtiaľto zostávajú nedostupné."
+
+msgid "The application has no static parameters."
+msgstr "Aplikácia nemá žiadne statické parametre."
+
+msgid "Read-only view. The hierarchy is a best-effort reconstruction from parameter name prefixes; names and groupings may be rough. Writing values is not available yet."
+msgstr "Zobrazenie len na čítanie. Hierarchia je rekonštruovaná z predpôn názvov parametrov; názvy a zoskupenia môžu byť približné. Zápis hodnôt zatiaľ nie je k dispozícii."
+
+msgid "##plugin_params_filter"
+msgstr "##plugin_params_filter"
+
+msgid "No parameter matches the filter."
+msgstr "Filtru nezodpovedá žiadny parameter."
+
+msgid "Parameter"
+msgstr "Parameter"
+
+msgid "Default"
+msgstr "Predvolené"
+
+msgid "Editable fallback for parameters whose manufacturer plugin is not available here. The hierarchy is reconstructed from parameter name prefixes; labels and groupings may be rough. Edits are written to the project and transferred by a normal download."
+msgstr "Upraviteľná náhrada pre parametre, ktorých plugin výrobcu tu nie je k dispozícii. Hierarchia je rekonštruovaná z predpôn názvov parametrov; popisy a zoskupenia môžu byť približné. Zmeny sa zapisujú do projektu a prenášajú bežným nahratím."
+
+msgid "DALI commissioning"
+msgstr "Uvedenie DALI do prevádzky"
+
+msgid "DALI Channel"
+msgstr "Kanál DALI"
+
+msgid "Channel {n}"
+msgstr "Kanál {n}"
+
+msgid "Program DCA State"
+msgstr "Naprogramovať stav DCA"
+
+msgid "Sends the DALI device settings to the gateway as property values."
+msgstr "Odošle nastavenia zariadení DALI do brány ako hodnoty vlastností."
+
+msgid "Add to {section}:"
+msgstr "Pridať do {section}:"
+
+msgid "No entries."
+msgstr "Žiadne položky."
+
+msgid "Entry"
+msgstr "Položka"
+
+msgid "Store plugin data {name}"
+msgstr "Uložiť údaje pluginu {name}"
+
+msgid "Unknown"
+msgstr "Neznáme"
+
+msgid "Editing"
+msgstr "Úpravy"
+
+msgid "Finished design"
+msgstr "Dokončený návrh"
+
+msgid "Finished commissioning"
+msgstr "Dokončené uvedenie do prevádzky"
+
+msgid "Tested"
+msgstr "Otestované"
+
+msgid "Accepted"
+msgstr "Prevzaté"
+
+msgid "Locked"
+msgstr "Zamknuté"
+
+msgid "Function"
+msgstr "Funkcia"
+
+msgid "Use"
+msgstr "Využitie"
+
+msgid "Set room use"
+msgstr "Nastaviť využitie miestnosti"
+
+msgid "Set status to {status}"
+msgstr "Nastaviť stav na {status}"
+
+msgid "Set function description"
+msgstr "Nastaviť popis funkcie"
+
+msgid "Current Line"
+msgstr "Aktuálna línia"
+
+msgid "{line} (inherits from {space})"
+msgstr "{line} (zdedené z {space})"
+
+msgid "Set current line"
+msgstr "Nastaviť aktuálnu líniu"
+
+msgid "Segment"
+msgstr "Segment"
+
+msgid "Medium"
+msgstr "Médium"
+
+msgid "Domain Address"
+msgstr "Adresa domény"
+
+msgid "The medium of a segment can only change while it holds no device."
+msgstr "Médium segmentu sa dá zmeniť, len keď neobsahuje žiadne zariadenie."
+
+msgid "The medium type of the segment '{segment}' cannot be changed to IoT, because its parent line '{line}' is not of medium type IP."
+msgstr "Typ média segmentu '{segment}' nemožno zmeniť na IoT, pretože jeho nadradená línia '{line}' nie je médium typu IP."
+
+msgid "The maximum number of segments has been reached."
+msgstr "Dosiahol sa maximálny počet segmentov."
+
+msgid "The main segment cannot be deleted."
+msgstr "Hlavný segment nemožno odstrániť."
+
+msgid "Device '{device}' is incompatible with line's medium type."
+msgstr "Zariadenie '{device}' nie je kompatibilné s typom média línie."
+
+msgid "Device '{device}' is incompatible with segment's medium type."
+msgstr "Zariadenie '{device}' nie je kompatibilné s typom média segmentu."
+
+msgid "Rename segment to {name}"
+msgstr "Premenovať segment na {name}"
+
+msgid "Set medium to {medium}"
+msgstr "Nastaviť médium na {medium}"
+
+msgid "Forced on"
+msgstr "Vynútene zapnuté"
+
+msgid "Forced off"
+msgstr "Vynútene vypnuté"
+
+msgid "Overridden by '{name}': {mode}"
+msgstr "Prepísané skupinou '{name}': {mode}"
+
+msgid "Central"
+msgstr "Centrálna"
+
+msgid "Not every device linked to a group address of this group is commissioned securely, so it cannot be secured."
+msgstr "Nie všetky zariadenia prepojené so skupinovou adresou tejto skupiny sa uvádzajú do prevádzky zabezpečene, preto ju nemožno zabezpečiť."
+
+msgid "Set group security"
+msgstr "Nastaviť zabezpečenie skupiny"
+
+msgid "Mark group address as central"
+msgstr "Označiť skupinovú adresu ako centrálnu"
+
+msgid "Remove central mark from group address"
+msgstr "Odstrániť označenie centrálnej zo skupinovej adresy"
+
+msgid "Topology"
+msgstr "Topológia"
+
+msgid "{medium} backbone line"
+msgstr "{medium} chrbticová línia"
+
+msgid "{medium} main line"
+msgstr "{medium} hlavná línia"
+
+msgid "Backbone"
+msgstr "Chrbticová línia"
+
+msgid "Network Latency"
+msgstr "Oneskorenie siete"
+
+msgid "LAN (< 400ms)"
+msgstr "LAN (< 400 ms)"
+
+msgid "WLAN (< 1s)"
+msgstr "WLAN (< 1 s)"
+
+msgid "WAN (< 2s)"
+msgstr "WAN (< 2 s)"
+
+msgid "Mobile (< 4s)"
+msgstr "Mobilná sieť (< 4 s)"
+
+msgid "Satellite (< 8s)"
+msgstr "Satelit (< 8 s)"
+
+msgid "The network latency must be a number of milliseconds from 1 to 65535."
+msgstr "Oneskorenie siete musí byť počet milisekúnd od 1 do 65535."
+
+msgid "Multicast Address"
+msgstr "Adresa multicast"
+
+msgid "Enter a multicast address from 224.0.0.0 to 239.255.255.255."
+msgstr "Zadajte adresu multicast od 224.0.0.0 do 239.255.255.255."
+
+msgid "Bus Connection"
+msgstr "Pripojenie k zbernici"
+
+msgid "Set IP routing of the backbone"
+msgstr "Nastaviť IP smerovanie chrbticovej línie"
+
+msgid "As long as a coupler exists at a sub line or sub segment, a change of the medium type is not possible."
+msgstr "Kým v podriadenej línii alebo podsegmente existuje spojka, zmena typu média nie je možná."
+
+msgid "A main line of a project cannot have medium type RF."
+msgstr "Hlavná línia projektu nemôže mať médium typu RF."
+
+msgid "The operation could not be executed, because as medium type of the backbone only IP and TP are allowed."
+msgstr "Operáciu sa nepodarilo vykonať, pretože ako typ média chrbticovej línie sú povolené len IP a TP."
+
+msgid "A sub-segment of KNX medium type IP or PL is not allowed."
+msgstr "Podsegment média KNX typu IP alebo PL nie je povolený."
+
+msgid "The medium type of the main line '{line}' can no longer be changed to PL, because it already contains lines or segments that are not allowed in PL main lines."
+msgstr "Typ média hlavnej línie '{line}' už nemožno zmeniť na PL, pretože už obsahuje línie alebo segmenty, ktoré nie sú v hlavných líniách PL povolené."
+
+msgid "The medium type of the main line '{line}' cannot be changed to IoT, because the backbone line '{backbone}' is not of medium type IP."
+msgstr "Typ média hlavnej línie '{line}' nemožno zmeniť na IoT, pretože chrbticová línia '{backbone}' nie je médium typu IP."
+
+msgid "The medium type of the main line '{line}' can no longer be changed to IoT, because it already contains lines or segments that are not allowed in IoT main lines."
+msgstr "Typ média hlavnej línie '{line}' už nemožno zmeniť na IoT, pretože už obsahuje línie alebo segmenty, ktoré nie sú v hlavných líniách IoT povolené."
+
+msgid "The medium type of the line '{line}' cannot be changed, because it already contains lines or segments that require an IoT or IP main line."
+msgstr "Typ média línie '{line}' nemožno zmeniť, pretože už obsahuje línie alebo segmenty, ktoré vyžadujú hlavnú líniu IoT alebo IP."
+
+msgid "A sub-segment is not allowed below a main segment of KNX medium type RF."
+msgstr "Pod hlavným segmentom média KNX typu RF nie je podsegment povolený."
+
+msgid "A sub-segment is not allowed below a main segment of KNX medium type PL."
+msgstr "Pod hlavným segmentom média KNX typu PL nie je podsegment povolený."
+
+msgid "A sub-segment of KNX medium type IoT is not allowed below a main segment of the same type."
+msgstr "Podsegment média KNX typu IoT nie je povolený pod hlavným segmentom rovnakého typu."
+
+msgid "The operation could not be executed, because a RF main line '{line}' requires all other lines in the area to be RF lines as well."
+msgstr "Operáciu sa nepodarilo vykonať, pretože hlavná línia RF '{line}' vyžaduje, aby aj všetky ostatné línie v oblasti boli líniami RF."
+
+msgid "The operation could not be executed, because a PL main line '{line}' requires all other lines in the area to be PL lines as well."
+msgstr "Operáciu sa nepodarilo vykonať, pretože hlavná línia PL '{line}' vyžaduje, aby aj všetky ostatné línie v oblasti boli líniami PL."
+
+msgid "The operation could not be executed, because a IoT main line '{line}' requires all other lines in the area to be IoT lines as well."
+msgstr "Operáciu sa nepodarilo vykonať, pretože hlavná línia IoT '{line}' vyžaduje, aby aj všetky ostatné línie v oblasti boli líniami IoT."
+
+msgid "The medium type of the line '{line}' cannot be changed to IoT, because its main line '{main}' is not of medium type IP."
+msgstr "Typ média línie '{line}' nemožno zmeniť na IoT, pretože jej hlavná línia '{main}' nie je médium typu IP."
+
+msgid "The medium type of the line '{line}' can no longer be changed to IoT, because it already contains segments that are not allowed in IoT lines."
+msgstr "Typ média línie '{line}' už nemožno zmeniť na IoT, pretože už obsahuje segmenty, ktoré nie sú v líniách IoT povolené."
+
+msgid "The operation could not be executed, because the line is the IP backbone line and the project contains KNXnet/IP routers. KNXnet/IP routers require an IP backbone line."
+msgstr "Operáciu sa nepodarilo vykonať, pretože línia je chrbticová línia IP a projekt obsahuje routery KNXnet/IP. Routery KNXnet/IP vyžadujú chrbticovú líniu IP."
+
+msgid "The operation could not be executed, because the line is the IP main line and the project contains KNXnet/IP routers. KNXnet/IP routers require an IP main line."
+msgstr "Operáciu sa nepodarilo vykonať, pretože línia je hlavná línia IP a projekt obsahuje routery KNXnet/IP. Routery KNXnet/IP vyžadujú hlavnú líniu IP."
+
+msgid "The operation could not be executed, because the line is the IP backbone line and the project contains IoT or IP lines."
+msgstr "Operáciu sa nepodarilo vykonať, pretože línia je chrbticová línia IP a projekt obsahuje línie IoT alebo IP."
+
+msgid "The operation could not be executed, because the medium type of the line can only be set to IP if an IP main line exists."
+msgstr "Operáciu sa nepodarilo vykonať, pretože typ média línie možno nastaviť na IP, len ak existuje hlavná línia IP."
+
+msgid "The operation could not be executed, because the medium type of the line can only be set to IP if an IP backbone line exists."
+msgstr "Operáciu sa nepodarilo vykonať, pretože typ média línie možno nastaviť na IP, len ak existuje chrbticová línia IP."
+
+msgid "The operation could not be executed, because below a TP main segment only segments of KNX medium type TP, RF or PL can exist."
+msgstr "Operáciu sa nepodarilo vykonať, pretože pod hlavným segmentom TP môžu existovať len segmenty média KNX typu TP, RF alebo PL."
+
+msgid "Below a main segment of KNX medium type IP only segments of medium type TP or RF can exist."
+msgstr "Pod hlavným segmentom média KNX typu IP môžu existovať len segmenty média typu TP alebo RF."
+
+msgid "A sub-segment of KNX medium type PL is not allowed below a main segment."
+msgstr "Podsegment média KNX typu PL nie je pod hlavným segmentom povolený."
+
+msgid "Set bus connection of the backbone"
+msgstr "Nastaviť pripojenie chrbticovej línie k zbernici"
+
+msgid "Set domain address"
+msgstr "Nastaviť adresu domény"
+
+msgid "Generate New"
+msgstr "Vytvoriť novú"
+
+msgid "The given domain address is invalid."
+msgstr "Zadaná adresa domény je neplatná."
+
+msgid "Domain address is not valid! Valid values are 1 to 255."
+msgstr "Adresa domény nie je platná! Platné hodnoty sú 1 až 255."
+
+msgid "DomainAddress of mediumType 'RF' is lower than the minimum value of 0001:00000000."
+msgstr "Adresa domény média typu 'RF' je nižšia ako minimálna hodnota 0001:00000000."
+
+msgid "DomainAddress of medium type '{medium}' exceeds the maximum valid value of {maximum}"
+msgstr "Adresa domény média typu '{medium}' prekračuje maximálnu platnú hodnotu {maximum}"
+
+msgid "DomainAddress of RF sublines must be equal to DomainAdress of main line."
+msgstr "Adresa domény podriadených línií RF sa musí zhodovať s adresou domény hlavnej línie."
+
+msgid "Domain Address of IoT sublines must be equal to Domain Address of main line."
+msgstr "Adresa domény podriadených línií IoT sa musí zhodovať s adresou domény hlavnej línie."
+
+msgid "Each line in a project must have a unique domain address."
+msgstr "Každá línia v projekte musí mať jedinečnú adresu domény."
+
+msgid "Last Downloaded"
+msgstr "Naposledy nahraté"
+
+msgid "Create trade {name}"
+msgstr "Vytvoriť profesiu {name}"
+
+msgid "Rename trade to {name}"
+msgstr "Premenovať profesiu na {name}"
+
+msgid "Set trade number"
+msgstr "Nastaviť číslo profesie"
+
+msgid "Set trade description"
+msgstr "Nastaviť popis profesie"
+
+msgid "Move trade"
+msgstr "Presunúť profesiu"
+
+msgid "Remove trade"
+msgstr "Odstrániť profesiu"
+
+msgid "Add device to trade"
+msgstr "Pridať zariadenie do profesie"
+
+msgid "Remove device from trade"
+msgstr "Odstrániť zariadenie z profesie"
+
+msgid "Trades"
+msgstr "Profesie"
+
+msgid "Building Parts…"
+msgstr "Časti budovy…"
+
+msgid "Floors…"
+msgstr "Podlažia…"
+
+msgid "Stairways…"
+msgstr "Schodiská…"
+
+msgid "Rooms…"
+msgstr "Miestnosti…"
+
+msgid "Corridors…"
+msgstr "Chodby…"
+
+msgid "Cabinets…"
+msgstr "Rozvádzače…"
+
+msgid "Devices…"
+msgstr "Zariadenia…"
+
+msgid "Functions…"
+msgstr "Funkcie…"
+
+msgid "Trades…"
+msgstr "Profesie…"
+
+msgid "Add Buildings…"
+msgstr "Pridať budovy…"
+
+msgid "Add Trades…"
+msgstr "Pridať profesie…"
+
+msgid "Add Buildings"
+msgstr "Pridať budovy"
+
+msgid "Add Building Parts"
+msgstr "Pridať časti budovy"
+
+msgid "Add Floors"
+msgstr "Pridať podlažia"
+
+msgid "Add Rooms"
+msgstr "Pridať miestnosti"
+
+msgid "Add Corridors"
+msgstr "Pridať chodby"
+
+msgid "Add Stairways"
+msgstr "Pridať schodiská"
+
+msgid "Add Cabinets"
+msgstr "Pridať rozvádzače"
+
+msgid "Add Trades"
+msgstr "Pridať profesie"
+
+msgid "Add Devices"
+msgstr "Pridať zariadenia"
+
+msgid "Count"
+msgstr "Počet"
+
+msgid "to \"{name}\""
+msgstr "do „{name}“"
+
+msgid "Cabinet"
+msgstr "Rozvádzač"
+
+msgid "New building"
+msgstr "Nová budova"
+
+msgid "New building part"
+msgstr "Nová časť budovy"
+
+msgid "New floor"
+msgstr "Nové podlažie"
+
+msgid "New room"
+msgstr "Nová miestnosť"
+
+msgid "New corridor"
+msgstr "Nová chodba"
+
+msgid "New stairway"
+msgstr "Nové schodisko"
+
+msgid "New cabinet"
+msgstr "Nový rozvádzač"
+
+msgid "New trade"
+msgstr "Nová profesia"
+
+msgid "A building part of this type cannot be added here."
+msgstr "Časť budovy tohto typu sem nemožno pridať."
+
+msgid "A building part of this type cannot be added here.\nCabinets can be added inside of rooms, corridors, or stairways only. If applicable the corridors have to be moved into the corresponding building parts."
+msgstr "Časť budovy tohto typu sem nemožno pridať.\nRozvádzače možno pridať len do miestností, chodieb alebo schodísk. Ak treba, chodby sa musia presunúť do zodpovedajúcich častí budovy."
+
+msgid "The target is a child building part."
+msgstr "Cieľ je podriadená časť budovy."
+
+msgid "Devices can only be added to stairways, rooms, corridors and cabinets."
+msgstr "Zariadenia možno pridať len do schodísk, miestností, chodieb a rozvádzačov."
+
+msgid "Trade"
+msgstr "Profesia"
+
+msgid "(estimated)"
+msgstr "(odhad)"
+
+msgid "Number of Devices"
+msgstr "Počet zariadení"
+
+msgid "Unlink"
+msgstr "Odpojiť"
+
+msgid "An IP router requires an IP backbone line."
+msgstr "IP router vyžaduje chrbticovú líniu IP."
+
+msgid "The operation could not be executed, because a coupler needs a main line."
+msgstr "Operáciu sa nepodarilo vykonať, pretože spojka potrebuje hlavnú líniu."
+
+msgid "The operation could not be executed, because an area coupler requires a backbone line."
+msgstr "Operáciu sa nepodarilo vykonať, pretože oblastná spojka vyžaduje chrbticovú líniu."
+
+msgid "The operation could not be executed, because this coupler needs a main line with the medium type '{medium}' ."
+msgstr "Operáciu sa nepodarilo vykonať, pretože táto spojka potrebuje hlavnú líniu s typom média '{medium}' ."
+
+msgid "The operation could not be executed, because only one IP router is allowed as a world coupler."
+msgstr "Operáciu sa nepodarilo vykonať, pretože ako globálna spojka je povolený len jeden IP router."
+
+msgid "The operation could not be executed, because only IP router area allowed as a world coupler."
+msgstr "Operáciu sa nepodarilo vykonať, pretože ako globálna spojka je povolený len oblastný IP router."
+
+msgid "The backbone line contains a world coupler. It is not possible to use an IP router below another IP router."
+msgstr "Chrbticová línia obsahuje globálnu spojku. Nie je možné použiť IP router pod iným IP routerom."
+
+msgid "It is not possible to use a world coupler, when there are already IP routers in the project."
+msgstr "Globálnu spojku nie je možné použiť, keď už sú v projekte IP routery."
+
+msgid "A world coupler can only be used, when the medium type of the backbone is TP."
+msgstr "Globálnu spojku možno použiť, len keď je typ média chrbticovej línie TP."
+
+msgid "The coupler does not support segment coupling, so the sub-segment must be of the same KNX medium type as the main segment."
+msgstr "Spojka nepodporuje spájanie segmentov, takže podsegment musí mať rovnaký typ média KNX ako hlavný segment."
+
+msgid "The operation could not be executed, because this device couples medium '{above}' (above) to medium '{below}' (below), but the segment above is '{segment}'."
+msgstr "Operáciu sa nepodarilo vykonať, pretože toto zariadenie spája médium '{above}' (vyššie) s médiom '{below}' (nižšie), ale segment vyššie je '{segment}'."
+
+msgid "The operation could not be executed, because medium type of coupler device matches only sub segment, but maximum amount of segments reached."
+msgstr "Operáciu sa nepodarilo vykonať, pretože typ média spojky zodpovedá len podsegmentu, ale dosiahol sa maximálny počet segmentov."
+
+msgid "The operation could not be executed, because this device couples medium '{above}' (above) to medium '{below}' (below), but the medium type of the lower segment is '{segment}'."
+msgstr "Operáciu sa nepodarilo vykonať, pretože toto zariadenie spája médium '{above}' (vyššie) s médiom '{below}' (nižšie), ale typ média nižšieho segmentu je '{segment}'."
+
+msgid "Recover Project from Bus"
+msgstr "Obnoviť projekt zo zbernice"
+
+msgid "Devices in Programming Mode"
+msgstr "Zariadenia v programovacom režime"
+
+msgid "Connecting"
+msgstr "Pripája sa"
+
+msgid "Move middle group"
+msgstr "Presunúť strednú skupinu"
+
+msgid "The group has no free group address."
+msgstr "Skupina nemá voľnú skupinovú adresu."
+
+msgid "The main group has no free middle group."
+msgstr "Hlavná skupina nemá voľnú strednú skupinu."
+
+msgid "{count} devices"
+msgstr "Zariadenia: {count}"
+
+msgid "The main segment cannot be moved."
+msgstr "Hlavný segment nemožno presunúť."
+
+msgid "The maximum number of lines has been reached."
+msgstr "Dosiahol sa maximálny počet línií."
+
+msgid "The line is already assigned to an area."
+msgstr "Línia je už priradená k oblasti."
+
+msgid "The main line cannot be moved."
+msgstr "Hlavnú líniu nemožno presunúť."
+
+msgid "Move line"
+msgstr "Presunúť líniu"
+
+msgid "Move segment"
+msgstr "Presunúť segment"
+
+msgid "Move function"
+msgstr "Presunúť funkciu"
+
+msgid "Paste Special"
+msgstr "Prilepiť špeciálne"
+
+msgid "Number of Items"
+msgstr "Počet položiek"
+
+msgid "Don't copy"
+msgstr "Nekopírovať"
+
+msgid "Keep"
+msgstr "Ponechať"
+
+msgid "Create new group address in middle group"
+msgstr "Vytvoriť novú skupinovú adresu v strednej skupine"
+
+msgid "Create new group address in main group"
+msgstr "Vytvoriť novú skupinovú adresu v hlavnej skupine"
+
+msgid "Create new group address in group range"
+msgstr "Vytvoriť novú skupinovú adresu v skupinovom rozsahu"
+
+msgid "Generate Address"
+msgstr "Generovať adresu"
+
+msgid "Fill up (use first free)"
+msgstr "Doplniť (prvá voľná)"
+
+msgid "Append"
+msgstr "Pripojiť na koniec"
+
+msgid "Start with"
+msgstr "Začať od"
+
+msgid "Enter a middle group, e.g. 1/2."
+msgstr "Zadajte strednú skupinu, napr. 1/2."
+
+msgid "Enter a main group, e.g. 1."
+msgstr "Zadajte hlavnú skupinu, napr. 1."
+
+msgid "The group has too few free group addresses for the copies."
+msgstr "Skupina nemá dosť voľných skupinových adries pre kópie."
+
+msgid "The maximum number of group ranges has been reached."
+msgstr "Dosiahol sa maximálny počet skupinových rozsahov."
+
+msgid "There is no group for the new group addresses."
+msgstr "Pre nové skupinové adresy neexistuje žiadna skupina."
+
+msgid "Copied '{name}' to '{target}'."
+msgstr "'{name}' skopírované do '{target}'."
+
+msgid "Copied {count} devices to '{target}'."
+msgstr "Do '{target}' skopírované zariadenia: {count}."
+
+msgid "Copied {count} building parts to '{target}'."
+msgstr "Do '{target}' skopírované časti budovy: {count}."
+
+msgid "Copied {count} trades to '{target}'."
+msgstr "Do '{target}' skopírované profesie: {count}."
+
+msgid "Copied {count} functions to '{target}'."
+msgstr "Do '{target}' skopírované funkcie: {count}."
+
+msgid "Copied {count} group addresses to '{target}'."
+msgstr "Do '{target}' skopírované skupinové adresy: {count}."
+
+msgid "Copied {count} middle groups to '{target}'."
+msgstr "Do '{target}' skopírované stredné skupiny: {count}."
+
+msgid "Copied {count} main groups to '{target}'."
+msgstr "Do '{target}' skopírované hlavné skupiny: {count}."
+
+msgid "Copied {count} lines to '{target}'."
+msgstr "Do '{target}' skopírované línie: {count}."
+
+msgid "Copied {count} segments to '{target}'."
+msgstr "Do '{target}' skopírované segmenty: {count}."
+
+msgid "Paste Special…"
+msgstr "Prilepiť špeciálne…"
+
+msgid "Add Row"
+msgstr "Pridať riadok"
+
+msgid "Remove this row"
+msgstr "Odstrániť tento riadok"
+
+msgid "Generate Addresses"
+msgstr "Generovať adresy"
+
+msgid "Unlink device"
+msgstr "Odpojiť zariadenie"
+
+msgid "The device is on no line: put it on a line first."
+msgstr "Zariadenie nie je na žiadnej línii: najprv ho umiestnite na líniu."
+
+msgid "Areas…"
+msgstr "Oblasti…"
+
+msgid "Lines…"
+msgstr "Línie…"
+
+msgid "Segments…"
+msgstr "Segmenty…"
+
+msgid "Add Areas"
+msgstr "Pridať oblasti"
+
+msgid "Add Lines"
+msgstr "Pridať línie"
+
+msgid "Add Segments"
+msgstr "Pridať segmenty"
+
+msgid "The limit to add was reached."
+msgstr "Dosiahol sa limit na pridanie."
+
+msgid "Cannot add any line to the area {area} because of topology constraints. Please check the medium type of the backbone and main lines."
+msgstr "Pre obmedzenia topológie nemožno do oblasti {area} pridať žiadnu líniu. Skontrolujte typ média chrbticovej a hlavných línií."
+
+msgid "Added {count} areas to '{target}'."
+msgstr "Do '{target}' pridané oblasti: {count}."
+
+msgid "Added {count} lines to '{target}'."
+msgstr "Do '{target}' pridané línie: {count}."
+
+msgid "Added {count} segments to '{target}'."
+msgstr "Do '{target}' pridané segmenty: {count}."
+
+msgid "Added {count} building parts to '{target}'."
+msgstr "Do '{target}' pridané časti budovy: {count}."
+
+msgid "Added {count} trades to '{target}'."
+msgstr "Do '{target}' pridané profesie: {count}."
+
+msgid "Added {count} main groups to '{target}'."
+msgstr "Do '{target}' pridané hlavné skupiny: {count}."
+
+msgid "Added {count} middle groups to '{target}'."
+msgstr "Do '{target}' pridané stredné skupiny: {count}."
+
+msgid "Added {count} group addresses to '{target}'."
+msgstr "Do '{target}' pridané skupinové adresy: {count}."
+
+msgid "Add Main Groups…"
+msgstr "Pridať hlavné skupiny…"
+
+msgid "Add Middle Groups…"
+msgstr "Pridať stredné skupiny…"
+
+msgid "Add Main Groups"
+msgstr "Pridať hlavné skupiny"
+
+msgid "Add Middle Groups"
+msgstr "Pridať stredné skupiny"
+
+msgid "New main group"
+msgstr "Nová hlavná skupina"
+
+msgid "New middle group"
+msgstr "Nová stredná skupina"
+
+msgid "New group address"
+msgstr "Nová skupinová adresa"
+
+msgid "Cut"
+msgstr "Vystrihnúť"
+
+msgid "What was cut cannot be moved there."
+msgstr "Vystrihnutý prvok sem nemožno presunúť."
+
+msgid "Park"
+msgstr "Odstaviť"
+
+msgid "Park device"
+msgstr "Odstaviť zariadenie"
+
+msgid "Add Functions"
+msgstr "Pridať funkcie"
+
+msgid "New function"
+msgstr "Nová funkcia"
+
+msgid "Added {count} functions to '{target}'."
+msgstr "Do '{target}' pridané funkcie: {count}."
+
+msgid "Added {count} group ranges to '{target}'."
+msgstr "Do '{target}' pridané skupinové rozsahy: {count}."
+
+msgid "Add Group Ranges…"
+msgstr "Pridať skupinové rozsahy…"
+
+msgid "Add Group Ranges"
+msgstr "Pridať skupinové rozsahy"
+
+msgid "New group range"
+msgstr "Nový skupinový rozsah"
+
+msgid "Capacity"
+msgstr "Kapacita"
+
+msgid "Link with…"
+msgstr "Prepojiť s…"
+
+msgid "Link with Group Address"
+msgstr "Prepojiť so skupinovou adresou"
+
+msgid "There is no group to add group addresses to."
+msgstr "Neexistuje skupina, do ktorej by sa dali pridať skupinové adresy."
+
+msgid "Add Subtrade"
+msgstr "Pridať podprofesiu"
+
+msgid "The group range does not fit there."
+msgstr "Skupinový rozsah sa sem nezmestí."
+
+msgid "A group range cannot go into itself or a range in it."
+msgstr "Skupinový rozsah nemožno vložiť do seba ani do rozsahu v ňom."
+
+msgid "A group address of the range is already in use there."
+msgstr "Skupinová adresa rozsahu sa tam už používa."
+
+msgid "Copied {count} group ranges to '{target}'."
+msgstr "Do '{target}' skopírované skupinové rozsahy: {count}."
+
+msgid "Add Areas…"
+msgstr "Pridať oblasti…"
+
+msgid "{medium} segment"
+msgstr "{medium} segment"
+
+msgid "Copy Individual Address"
+msgstr "Kopírovať individuálnu adresu"
+
+msgid "Copy Group Address"
+msgstr "Kopírovať skupinovú adresu"
+
+msgid "Existing Devices…"
+msgstr "Existujúce zariadenia…"
+
+msgid "Delete the {count} selected devices? Their group objects and group-address links are removed and their individual addresses are freed. This can be undone."
+msgstr "Odstrániť vybrané zariadenia ({count})? Ich skupinové objekty a prepojenia so skupinovými adresami sa odstránia a ich individuálne adresy sa uvoľnia. Túto akciu je možné vrátiť späť."
+
+msgid "Remove {count} devices"
+msgstr "Odstrániť zariadenia ({count})"
+
+msgid "Delete Devices"
+msgstr "Odstrániť zariadenia"
+
+msgid "{medium} line"
+msgstr "{medium} línia"
+
+msgid "From Backups…"
+msgstr "Zo záloh…"
+
+msgid "Compare with a backup of this project"
+msgstr "Porovnať so zálohou tohto projektu"
+
+msgid "In the browser, choose Knx.Ets.Common.dll together with log4net.dll from the same folder."
+msgstr "V prehliadači vyberte Knx.Ets.Common.dll spolu s log4net.dll z rovnakého priečinka."
+
+msgid "Knx.Ets.Common.dll needs log4net.dll from its folder: choose both files together."
+msgstr "Knx.Ets.Common.dll potrebuje log4net.dll zo svojho priečinka: vyberte oba súbory naraz."
+
+msgid "Codepage"
+msgstr "Kódová stránka"
+
+msgid "Choose in which language the project texts are entered"
+msgstr "Vyberte, v akom jazyku sa zadávajú texty projektu"
+
+msgid "System language"
+msgstr "Jazyk systému"
+
+msgid "Western European (ISO 8859-1)"
+msgstr "Západná Európa (ISO 8859-1)"
+
+msgid "Central European (ISO 8859-2)"
+msgstr "Stredná Európa (ISO 8859-2)"
+
+msgid "South European (ISO 8859-3)"
+msgstr "Južná Európa (ISO 8859-3)"
+
+msgid "North European (ISO 8859-4)"
+msgstr "Severná Európa (ISO 8859-4)"
+
+msgid "Cyrillic (ISO 8859-5)"
+msgstr "Cyrilika (ISO 8859-5)"
+
+msgid "Arabic (ISO 8859-6)"
+msgstr "Arabčina (ISO 8859-6)"
+
+msgid "Greek (ISO 8859-7)"
+msgstr "Gréčtina (ISO 8859-7)"
+
+msgid "Hebrew (ISO 8859-8)"
+msgstr "Hebrejčina (ISO 8859-8)"
+
+msgid "Turkish (ISO 8859-9)"
+msgstr "Turečtina (ISO 8859-9)"
+
+msgid "Nordic (ISO 8859-10)"
+msgstr "Severské jazyky (ISO 8859-10)"
+
+msgid "Baltic Rim (ISO 8859-13)"
+msgstr "Pobaltie (ISO 8859-13)"
+
+msgid "Western European (ISO 8859-15)"
+msgstr "Západná Európa (ISO 8859-15)"
+
+msgid "Set codepage to {code_page}"
+msgstr "Nastaviť kódovú stránku na {code_page}"
+
+msgid "Encrypted"
+msgstr "Šifrované"

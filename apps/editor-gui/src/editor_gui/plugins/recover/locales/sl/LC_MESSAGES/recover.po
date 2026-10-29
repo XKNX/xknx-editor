@@ -1,0 +1,131 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor recover 1.0\n"
+"Language: sl\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Recover"
+msgstr "Obnovi"
+
+msgid "Recover from Bus…"
+msgstr "Obnovi z vodila…"
+
+msgid "Recover Project from Bus"
+msgstr "Obnovitev projekta z vodila"
+
+msgid "From Address"
+msgstr "Od naslova"
+
+msgid "To Address"
+msgstr "Do naslova"
+
+msgid "Scan"
+msgstr "Išči"
+
+msgid "Stop"
+msgstr "Ustavi"
+
+msgid "Add to Open Project as Read"
+msgstr "Dodaj v odprti projekt, kot je prebrano"
+
+msgid "Recover Selected"
+msgstr "Obnovi izbrane"
+
+msgid "Create New Project"
+msgstr "Ustvari nov projekt"
+
+msgid "Add to Open Project"
+msgstr "Dodaj v odprti projekt"
+
+msgid "Verify (Read-Only)"
+msgstr "Preveri (samo branje)"
+
+msgid "Export Snapshot"
+msgstr "Izvozi posnetek stanja"
+
+msgid "Verifying (re-reading and comparing)…"
+msgstr "Preverjanje (ponovno branje in primerjava)…"
+
+msgid "%(count)d group address(es) have no sender or multiple senders."
+msgstr "Skupinski naslovi brez pošiljatelja ali z več pošiljatelji: %(count)d."
+
+msgid "Address"
+msgstr "Naslov"
+
+msgid "Mask"
+msgstr "Maska"
+
+msgid "Product / Application"
+msgstr "Izdelek / aplikacija"
+
+msgid "Status"
+msgstr "Stanje"
+
+msgid "Set an address range and scan the bus."
+msgstr "Nastavite obseg naslovov in preiščite vodilo."
+
+msgid "Scanning the bus…"
+msgstr "Iskanje po vodilu…"
+
+msgid "Scanning %(address)s  (%(done)d/%(total)d, %(found)d found)"
+msgstr "Iskanje %(address)s  (%(done)d/%(total)d, najdeno: %(found)d)"
+
+msgid "Loading missing products from online catalog: %(what)s"
+msgstr "Nalaganje manjkajočih izdelkov iz spletnega kataloga: %(what)s"
+
+msgid "Reading devices…"
+msgstr "Branje naprav…"
+
+msgid "Reading %(address)s  (%(done)d/%(total)d)  -  %(stage)s"
+msgstr "Branje %(address)s  (%(done)d/%(total)d)  -  %(stage)s"
+
+msgid "group communication tables"
+msgstr "tabele skupinske komunikacije"
+
+msgid "parameter memory"
+msgstr "pomnilnik parametrov"
+
+msgid "Recovered %(devices)d device(s): %(group_addresses)d group addresses, %(links)d links, %(unknown)d parameter(s) not recoverable."
+msgstr "Obnovljene naprave: %(devices)d – skupinski naslovi: %(group_addresses)d, povezave: %(links)d, parametri, ki jih ni mogoče obnoviti: %(unknown)d."
+
+msgid "Recovered"
+msgstr "Obnovljeno"
+
+msgid "Added %(count)d device(s) to the open project (%(target)s)."
+msgstr "Naprave, dodane v odprti projekt (%(target)s): %(count)d."
+
+msgid "Created new project %(target)s with %(count)d device(s)."
+msgstr "Ustvarjen je nov projekt %(target)s (naprave: %(count)d)."
+
+msgid "Not connected to a KNX bus."
+msgstr "Ni povezave z vodilom KNX."
+
+msgid "Open or create a project to add recovered devices."
+msgstr "Odprite ali ustvarite projekt, da dodate obnovljene naprave."
+
+msgid "matched"
+msgstr "ujemanje"
+
+msgid "confirm product/version, then tick"
+msgstr "potrdite izdelek/različico, nato označite"
+
+msgid "not in catalog - import via Catalog"
+msgstr "ni v katalogu – uvozite prek kataloga"
+
+msgid "unprogrammed"
+msgstr "neprogramirano"
+
+msgid "recovered"
+msgstr "obnovljeno"
+
+msgid "error"
+msgstr "napaka"
+
+msgid "%d parameters could not be recovered"
+msgstr "Parametri, ki jih ni bilo mogoče obnoviti: %d"
+
+msgid "already in project - skipped"
+msgstr "že v projektu – preskočeno"

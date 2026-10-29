@@ -1,0 +1,86 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor keyring 1.0\n"
+"Language: sl\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "KNX Secure"
+msgstr "KNX Secure"
+
+msgid "Show Window"
+msgstr "Pokaži okno"
+
+msgid "No keyring loaded"
+msgstr "Ni naložene zbirke ključev"
+
+msgid "Import Keyring…"
+msgstr "Uvozi zbirko ključev…"
+
+msgid "KNX Keyring (*.knxkeys)"
+msgstr "Zbirka ključev KNX (*.knxkeys)"
+
+msgid "All Files"
+msgstr "Vse datoteke"
+
+msgid "Load"
+msgstr "Naloži"
+
+msgid "Cancel"
+msgstr "Prekliči"
+
+msgid "Close"
+msgstr "Zapri"
+
+msgid "{project} — created by {by}"
+msgstr "{project} – ustvaril: {by}"
+
+msgid "Backbone"
+msgstr "Hrbtenica"
+
+msgid "Interfaces ({count})"
+msgstr "Vmesniki ({count})"
+
+msgid "Group Address Keys ({count})"
+msgstr "Ključi skupinskih naslovov ({count})"
+
+msgid "Devices ({count})"
+msgstr "Naprave ({count})"
+
+msgid "Export"
+msgstr "Izvozi"
+
+msgid "Export Keyring…"
+msgstr "Izvozi zbirko ključev…"
+
+msgid "Set the password for the exported keyring:"
+msgstr "Nastavite geslo za izvoženo zbirko ključev:"
+
+msgid "Export Keyring from Project…"
+msgstr "Izvozi zbirko ključev iz projekta…"
+
+msgid "Type"
+msgstr "Vrsta"
+
+msgid "Address"
+msgstr "Naslov"
+
+msgid "Host"
+msgstr "Gostitelj"
+
+msgid "User"
+msgstr "Uporabnik"
+
+msgid "Key"
+msgstr "Ključ"
+
+msgid "In Project"
+msgstr "V projektu"
+
+msgid "Tool Key"
+msgstr "Ključ orodja"
+
+msgid "{address}   key {key}"
+msgstr "{address}   ključ {key}"

@@ -1,0 +1,197 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor connection 1.0\n"
+"Language: ro\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Gateway"
+msgstr "Gateway"
+
+msgid "Connect"
+msgstr "Conectare"
+
+msgid "Disconnect"
+msgstr "Deconectare"
+
+msgid "Discovered Gateways"
+msgstr "Gateway-uri detectate"
+
+msgid "Diagnostics"
+msgstr "Diagnoză"
+
+msgid "Check for Devices in Programming Mode"
+msgstr "Căutare dispozitive în modul de programare"
+
+msgid "No gateways found"
+msgstr "Nu s-a găsit niciun gateway"
+
+msgid "Manual Connection"
+msgstr "Conexiune manuală"
+
+msgid "Connected: {ip}"
+msgstr "Conectat: {ip}"
+
+msgid "Connected to {ip}"
+msgstr "Conectat la {ip}"
+
+msgid "Disconnected"
+msgstr "Deconectat"
+
+msgid "Connecting…"
+msgstr "Se conectează…"
+
+msgid "Connection failed"
+msgstr "Conectarea a eșuat"
+
+msgid "Scan"
+msgstr "Scanare"
+
+msgid "Settings"
+msgstr "Setări"
+
+msgid "Use multicast routing (instead of tunneling)"
+msgstr "Se utilizează rutarea multicast (în loc de tunelare)"
+
+msgid "Gateway IP"
+msgstr "IP gateway"
+
+msgid "Multicast Group"
+msgstr "Grup multicast"
+
+msgid "Apply"
+msgstr "Aplicare"
+
+msgid "Use Serial Number for Downloads"
+msgstr "Se utilizează numărul de serie la programare"
+
+msgid "Bus monitor: {ip}"
+msgstr "Monitor de magistrală: {ip}"
+
+msgid "The gateway is connected in bus monitor mode. Nothing can be sent or downloaded until the bus monitor is stopped."
+msgstr "Gateway-ul este conectat în modul monitor de magistrală. Nu se poate transmite sau programa nimic până când monitorul de magistrală nu este oprit."
+
+msgid "Stop Bus Monitor"
+msgstr "Oprire monitor de magistrală"
+
+msgid "Not possible while the bus monitor is running"
+msgstr "Nu este posibil cât timp rulează monitorul de magistrală"
+
+msgid "Answered the scan, but reading its details failed: {error}"
+msgstr "A răspuns la scanare, dar citirea detaliilor a eșuat: {error}"
+
+msgid "Application"
+msgstr "Aplicație"
+
+msgid "Application Version"
+msgstr "Versiune aplicație"
+
+msgid "Devices in Programming Mode"
+msgstr "Dispozitive în modul de programare"
+
+msgid "Hardware Type"
+msgstr "Tip hardware"
+
+msgid "In this project: {name}"
+msgstr "În acest proiect: {name}"
+
+msgid "Manufacturer"
+msgstr "Producător"
+
+msgid "Mask Version"
+msgstr "Versiune mască"
+
+msgid "No device is in programming mode."
+msgstr "Niciun dispozitiv nu este în modul de programare."
+
+msgid "No fault"
+msgstr "Nicio eroare"
+
+msgid "Not in this project"
+msgstr "Nu este în acest proiect"
+
+msgid "Order Number"
+msgstr "Cod de comandă"
+
+msgid "Press the programming button on a device to put it into programming mode, then rescan."
+msgstr "Apăsați butonul de programare al unui dispozitiv pentru a-l trece în modul de programare, apoi scanați din nou."
+
+msgid "Product (Catalog)"
+msgstr "Produs (catalog)"
+
+msgid "Programming mode active"
+msgstr "Mod de programare activ"
+
+msgid "Rescan"
+msgstr "Rescanare"
+
+msgid "Searching the bus…"
+msgstr "Se scanează magistrala…"
+
+msgid "Select in Project"
+msgstr "Selectare în proiect"
+
+msgid "Serial Number"
+msgstr "Număr de serie"
+
+msgid "Status"
+msgstr "Stare"
+
+msgid "The interface did not confirm the scan request (bus busy or interface overloaded). Please try again."
+msgstr "Interfața nu a confirmat cererea de scanare (magistrală ocupată sau interfață supraîncărcată). Încercați din nou."
+
+msgid "The scan could not be completed: {error}"
+msgstr "Scanarea nu a putut fi finalizată: {error}"
+
+msgid "Unprogrammed device (factory default address 15.15.255)"
+msgstr "Dispozitiv neprogramat (adresa implicită din fabrică 15.15.255)"
+
+msgid "{count} device(s) in programming mode"
+msgstr "Dispozitive în modul de programare: {count}"
+
+msgid "The interface requires KNX IP Secure, but neither the project nor a loaded keyring has its passwords."
+msgstr "Interfața necesită KNX IP Secure, dar nici proiectul, nici un keyring încărcat nu conține parolele ei."
+
+msgid "Error: {error}"
+msgstr "Eroare: {error}"
+
+msgid "Unknown error"
+msgstr "Eroare necunoscută"
+
+msgid "Name: {name}"
+msgstr "Nume: {name}"
+
+msgid "KNX Address: {address}"
+msgstr "Adresă KNX: {address}"
+
+msgid "Core Version: {version}"
+msgstr "Versiune core: {version}"
+
+msgid "Services: {services}"
+msgstr "Servicii: {services}"
+
+msgid "Retry"
+msgstr "Reîncercare"
+
+msgid "Select Connection"
+msgstr "Selectare conexiune"
+
+msgid "XKNX Editor could not determine an available connection."
+msgstr "XKNX Editor nu a putut determina o conexiune disponibilă."
+
+msgid "The connection {name} is not available."
+msgstr "Conexiunea {name} nu este disponibilă."
+
+msgid "You may use any of the connections listed below, instead."
+msgstr "Puteți folosi în schimb oricare dintre conexiunile de mai jos."
+
+msgid "{name}: {error}"
+msgstr "{name}: {error}"
+
+msgid "Cancel"
+msgstr "Revocare"
+
+msgid "This kind of connection is not supported."
+msgstr "Acest tip de conexiune nu este acceptat."
