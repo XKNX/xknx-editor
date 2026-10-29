@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<KNX xmlns="http://knx.org/xml/project/20" CreatedBy="test" ToolVersion="1">
+  <ManufacturerData>
+    <Manufacturer RefId="M-00FA">
+      <ApplicationPrograms>
+        <ApplicationProgram Id="M-00FA_A-0004-01-0000" ApplicationNumber="4" ApplicationVersion="1"
+            ProgramType="ApplicationProgram" MaskVersion="MV-07B0" Name="Allocators"
+            LoadProcedureStyle="MergedProcedure" PeiType="0" DefaultLanguage="en-US"
+            DynamicTableManagement="false" Linkable="false" MinEtsVersion="5.0">
+          <Static>
+            <ParameterTypes>
+              <ParameterType Id="M-00FA_A-0004-01-0000_PT-YN" Name="YesNo">
+                <TypeRestriction Base="Value" SizeInBit="8">
+                  <Enumeration Text="First" Value="0" Id="M-00FA_A-0004-01-0000_PT-YN_EN-0" />
+                  <Enumeration Text="Second" Value="1" Id="M-00FA_A-0004-01-0000_PT-YN_EN-1" />
+                </TypeRestriction>
+              </ParameterType>
+              <ParameterType Id="M-00FA_A-0004-01-0000_PT-N" Name="N">
+                <TypeNumber SizeInBit="8" Type="unsignedInt" minInclusive="0" maxInclusive="100" />
+              </ParameterType>
+            </ParameterTypes>
+            <Parameters>
+              <Parameter Id="M-00FA_A-0004-01-0000_P-1" Name="Variant" ParameterType="M-00FA_A-0004-01-0000_PT-YN" Text="Variant" Value="0" />
+            </Parameters>
+            <ParameterRefs>
+              <ParameterRef Id="M-00FA_A-0004-01-0000_P-1_R-1" RefId="M-00FA_A-0004-01-0000_P-1" />
+            </ParameterRefs>
+            <Allocators>
+              <!-- Room for exactly the two channels of the repeat. -->
+              <Allocator Id="M-00FA_A-0004-01-0000_L-1" Name="Channels" Start="10" maxInclusive="13" />
+              <!-- Room for one channel: either variant's. -->
+              <Allocator Id="M-00FA_A-0004-01-0000_L-2" Name="Variants" Start="20" maxInclusive="21" />
+            </Allocators>
+          </Static>
+          <ModuleDefs>
+            <ModuleDef Id="M-00FA_A-0004-01-0000_MD-1" Name="Channel">
+              <Arguments>
+                <Argument Id="M-00FA_A-0004-01-0000_MD-1_A-1" Name="Base" Allocates="2" />
+              </Arguments>
+              <Static>
+                <Parameters>
+                  <Parameter Id="M-00FA_A-0004-01-0000_MD-1_P-1" Name="Extra" ParameterType="M-00FA_A-0004-01-0000_PT-N" Text="Extra" Value="0" />
+                </Parameters>
+                <ParameterRefs>
+                  <ParameterRef Id="M-00FA_A-0004-01-0000_MD-1_P-1_R-1" RefId="M-00FA_A-0004-01-0000_MD-1_P-1" />
+                </ParameterRefs>
+              </Static>
+              <Dynamic>
+                <ParameterBlock Id="M-00FA_A-0004-01-0000_MD-1_PB-1" Text="Channel at {{Base}}">
+                  <ParameterRefRef RefId="M-00FA_A-0004-01-0000_MD-1_P-1_R-1" />
+                </ParameterBlock>
+              </Dynamic>
+            </ModuleDef>
+          </ModuleDefs>
+          <Dynamic>
+            <ChannelIndependentBlock>
+              <ParameterBlock Id="M-00FA_A-0004-01-0000_PB-1" Text="General">
+                <ParameterRefRef RefId="M-00FA_A-0004-01-0000_P-1_R-1" />
+                <choose ParamRefId="M-00FA_A-0004-01-0000_P-1_R-1">
+                  <when test="0">
+                    <Module Id="M-00FA_A-0004-01-0000_MD-1_M-2" RefId="M-00FA_A-0004-01-0000_MD-1"><NumericArg RefId="M-00FA_A-0004-01-0000_MD-1_A-1" AllocatorRefId="M-00FA_A-0004-01-0000_L-2" /></Module>
+                  </when>
+                  <when test="1">
+                    <Module Id="M-00FA_A-0004-01-0000_MD-1_M-3" RefId="M-00FA_A-0004-01-0000_MD-1"><NumericArg RefId="M-00FA_A-0004-01-0000_MD-1_A-1" AllocatorRefId="M-00FA_A-0004-01-0000_L-2" /></Module>
+                  </when>
+                </choose>
+                <Repeat Id="M-00FA_A-0004-01-0000_X-1" Name="" Count="2">
+                  <Module Id="M-00FA_A-0004-01-0000_MD-1_M-1" RefId="M-00FA_A-0004-01-0000_MD-1"><NumericArg RefId="M-00FA_A-0004-01-0000_MD-1_A-1" AllocatorRefId="M-00FA_A-0004-01-0000_L-1" /></Module>
+                </Repeat>
+              </ParameterBlock>
+            </ChannelIndependentBlock>
+          </Dynamic>
+        </ApplicationProgram>
+      </ApplicationPrograms>
+    </Manufacturer>
+  </ManufacturerData>
+</KNX>

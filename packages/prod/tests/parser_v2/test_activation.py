@@ -157,3 +157,40 @@ def test_a_gate_the_user_cannot_set() -> None:
 def test_an_unknown_parameter() -> None:
     with pytest.raises(ActivationError, match="not a parameter of this device"):
         plan_activation(_ui(), f"{APP}_P-99_R-99")
+
+
+def _allocator_ui() -> DynamicUI:
+    """Two channels fill allocator ``Channels``; either variant's channel fills ``Variants``."""
+    xml = (
+        Path(__file__).parents[1] / "fixtures" / "allocator_application.xml"
+    ).read_bytes()
+    return DynamicUI(parse_application_xml(xml, "M-00FA")[0].program)
+
+
+def _channel_bases(ui: DynamicUI) -> dict[str, str]:
+    return {
+        p.parameter.ref_id.split("_MD-1_")[1].split("_P-")[0]: p.sections[-1]
+        for p in ui.explore_parameters()
+        if p.parameter.label == "Extra"
+    }
+
+
+def test_exploring_allocates_from_the_start_after_an_evaluation() -> None:
+    ui = _allocator_ui()
+    ui.ui()
+    expected = {
+        "M-2_MI-1": "Channel at 20",
+        "M-3_MI-1": "Channel at 20",
+        "M-1_MI-1": "Channel at 10",
+        "M-1_MI-2": "Channel at 12",
+    }
+    assert _channel_bases(ui) == expected
+    # Again: exploring leaves the allocators of the device as they were.
+    assert _channel_bases(ui) == expected
+
+
+def test_a_hidden_branch_with_an_allocated_module() -> None:
+    ui = _allocator_ui()
+    ui.ui()
+    second = "M-00FA_A-0004-01-0000_MD-1_M-3_MI-1_P-1_R-1"
+    assert _steps(ui, second) == [("Variant", "1")]

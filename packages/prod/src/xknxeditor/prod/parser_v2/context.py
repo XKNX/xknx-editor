@@ -262,6 +262,12 @@ class EvalContext:
         self._scope.set_alloc_position(alloc_id, next_position)
         return address
 
+    def alloc_positions(self) -> dict[str, int]:
+        return self._scope.alloc_positions()
+
+    def set_alloc_positions(self, positions: dict[str, int]) -> None:
+        self._scope.set_alloc_positions(positions)
+
     @property
     def repeat_idx(self) -> int:
         return self._repeat_idx

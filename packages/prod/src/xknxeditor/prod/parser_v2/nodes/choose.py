@@ -77,7 +77,9 @@ class ChooseWhenNode(DynamicNode):
         )
 
     def _explore(self, ctx: EvalContext, explorer: Explorer) -> list[UiNode]:
-        """Evaluate every branch, each under the gate that selects it."""
+        """Evaluate every branch, each under the gate that selects it and from the allocator
+        positions in front of the choose, as only one of them is ever taken. What follows the
+        choose allocates behind the branch that allocated most."""
         param = ctx.qualify_local(self._param_ref_id)
         conditions = tuple(self._condition_to_nodes)
         branches: list[tuple[Gate, list[DynamicNode | None]]] = [
@@ -87,12 +89,18 @@ class ChooseWhenNode(DynamicNode):
         if self._default_nodes is not None:
             branches.append((Gate(param, None, conditions), self._default_nodes))
         result: list[UiNode] = []
+        start = ctx.alloc_positions()
+        furthest = dict(start)
         for gate, nodes in branches:
+            ctx.set_alloc_positions(start)
             explorer.push_gate(gate)
             try:
                 result.extend(u for n in nodes if n for u in n.eval(ctx))
             finally:
                 explorer.pop_gate()
+            for alloc_id, position in ctx.alloc_positions().items():
+                furthest[alloc_id] = max(position, furthest.get(alloc_id, position))
+        ctx.set_alloc_positions(furthest)
         return result
 
     def eval(self, ctx: EvalContext) -> list[UiNode]:
