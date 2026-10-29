@@ -3282,6 +3282,13 @@ class ProjectService:
             return None
         return key, _int_or(installation.get("IPRoutingLatencyTolerance"), 2000)
 
+    def access_key(self) -> int:
+        """The project's access key (BCU key) devices with access protection are authorized
+        with; the free access key without a project."""
+        if self._pid is None:
+            return 0xFFFFFFFF
+        return self._svc.bcu_key(self._pid)
+
     def data_secure_tables(self) -> tuple[dict[int, bytes], dict[int, int]] | None:
         """The project's Data Secure tables for a connection: the keys of the secured group
         addresses and every device that can send on them with its last valid Sequence Number."""
@@ -4230,20 +4237,24 @@ class ProjectService:
         mac_address: bytes | None = None,
     ) -> None:
         """Record a successful download of ``scope_value`` (a DownloadScope value): its loaded
-        flags, the serial number and MAC address read and, except for an unload, the time."""
+        flags, the serial number and MAC address read and, except for an unload, the time. An
+        unload clears the image of the last download, an unload of everything also the serial
+        number, MAC and IP address."""
         flags = _COMMISSIONING_BY_SCOPE.get(scope_value)
         if flags is None:
             return
-        now = None if scope_value in ("unload", "unload_all") else project_timestamp()
+        unload = scope_value in ("unload", "unload_all")
         self.set_device_commissioning(
             node_id,
-            serial_number=serial_to_project(serial) if serial else None,
-            last_download=now,
+            serial_number=serial_to_project(serial) if serial and not unload else None,
+            last_download=None if unload else project_timestamp(),
             mac_address=":".join(f"{b:02X}" for b in mac_address)
-            if mac_address
+            if mac_address and not unload
             else None,
             download=True,
             ip_address=None,
+            clear_load_data=unload,
+            clear_network=scope_value == "unload_all",
             **flags,
         )
 
@@ -4261,10 +4272,13 @@ class ProjectService:
         mac_address: str | None = None,
         download: bool = False,
         ip_address: str | None = None,
+        clear_load_data: bool = False,
+        clear_network: bool = False,
     ) -> None:
         """Record a device's commissioning state (loaded ticks / serial / last download / MAC
         address / the IP address it was found at); ``download`` for what a download recorded
-        (the device's "Last Modified" stays).
+        (the device's "Last Modified" stays); ``clear_load_data`` / ``clear_network`` for what an
+        unload removed.
 
         Called after programming a device. Non-structural: the device's parameter/com-object UI is
         unchanged, so the expensive device cache is preserved (only the revision bumps)."""
@@ -4283,6 +4297,8 @@ class ProjectService:
             mac_address=mac_address,
             download=download,
             ip_address=ip_address,
+            clear_load_data=clear_load_data,
+            clear_network=clear_network,
         )
         self._bump(structural=False)
 

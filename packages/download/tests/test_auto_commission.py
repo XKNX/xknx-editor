@@ -44,12 +44,16 @@ async def _run(
     ) -> None:
         trace.append(f"assign:{address}")
 
-    async def fake_reset(xknx: XKNX) -> None:
-        trace.append("reset")
+    async def fake_after_unload(
+        *args: Any, unload_address: bool, **kwargs: Any
+    ) -> None:
+        trace.append("reset" if unload_address else "unload")
 
     class FakeRunner:
         def __init__(self, *args: Any, **kwargs: Any) -> None:
             pass
+
+        restarted = False
 
         async def run(self, progress: Any = None) -> None:
             trace.append("run")
@@ -68,7 +72,7 @@ async def _run(
 
     monkeypatch.setattr(dl, "_device_present", fake_present)
     monkeypatch.setattr(commissioning, "program_individual_address", fake_program)
-    monkeypatch.setattr(commissioning, "reset_individual_address", fake_reset)
+    monkeypatch.setattr(dl, "_after_unload_procedure", fake_after_unload)
     monkeypatch.setattr(dl, "_resolve_controls", fake_resolve)
     monkeypatch.setattr(dl, "_device_association_format", same_image)
     monkeypatch.setattr(dl, "_partial_scope", same_scope)
@@ -143,7 +147,7 @@ async def test_plain_unload_leaves_address(
     trace = await _run(
         monkeypatch, present=True, scope=DownloadScope.UNLOAD, commission=False
     )
-    assert trace == ["run"]
+    assert trace == ["run", "unload"]
 
 
 async def test_unload_all_of_a_secure_device_is_a_factory_reset(

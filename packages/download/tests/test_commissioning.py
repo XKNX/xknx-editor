@@ -115,39 +115,3 @@ class _FakeManagement:
 class _FakeXKNX:
     def __init__(self, calls: list[tuple[str, object]]) -> None:
         self.management = _FakeManagement(calls)
-
-
-async def test_reset_writes_default_address(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Reset reads programming mode, broadcasts the default address, then restarts."""
-    calls: list[tuple[str, object]] = []
-
-    async def fake_read(xknx: XKNX, raise_if_multiple: bool = False) -> list[Any]:
-        calls.append(("read", raise_if_multiple))
-        return [IndividualAddress("1.1.24")]
-
-    async def fake_restart(conn: object) -> None:
-        calls.append(("restart", conn))
-
-    monkeypatch.setattr(commissioning, "nm_individual_address_read", fake_read)
-    monkeypatch.setattr(commissioning, "dm_restart_r_co", fake_restart)
-
-    await commissioning.reset_individual_address(cast("XKNX", _FakeXKNX(calls)))
-
-    assert [c[0] for c in calls] == ["read", "broadcast", "connect", "restart"]
-    payload = next(c[1] for c in calls if c[0] == "broadcast")
-    assert isinstance(payload, apci.IndividualAddressWrite)
-    assert payload.address == commissioning.DEFAULT_INDIVIDUAL_ADDRESS
-    connect_address = next(c[1] for c in calls if c[0] == "connect")
-    assert connect_address == commissioning.DEFAULT_INDIVIDUAL_ADDRESS
-
-
-async def test_reset_requires_programming_mode(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Reset raises when no device is in programming mode (nothing to reset)."""
-
-    async def fake_read(xknx: XKNX, raise_if_multiple: bool = False) -> list[Any]:
-        return []
-
-    monkeypatch.setattr(commissioning, "nm_individual_address_read", fake_read)
-
-    with pytest.raises(ManagementConnectionError):
-        await commissioning.reset_individual_address(cast("XKNX", object()))

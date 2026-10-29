@@ -42,6 +42,9 @@ def test_partial_scopes_set_only_their_part() -> None:
         "download": True,
         # The address it is found at comes later (see record_found_ip).
         "ip_address": None,
+        # Only an unload clears what the device no longer holds.
+        "clear_load_data": False,
+        "clear_network": False,
     }
     ((_, kwargs),) = _record("ia").call_args_list
     assert kwargs["individual_address_loaded"] is True
@@ -72,3 +75,12 @@ def test_a_factory_reset_by_an_unload_gives_the_device_its_fdsk_back() -> None:
 
 def test_unknown_scope_records_nothing() -> None:
     _record("eval").assert_not_called()
+
+
+def test_an_unload_clears_what_the_device_no_longer_holds() -> None:
+    ((_, kwargs),) = _record("unload", b"\x00\xfa\x01\x02\x03\x04").call_args_list
+    assert (kwargs["clear_load_data"], kwargs["clear_network"]) == (True, False)
+    # Nothing read during an unload is recorded.
+    assert kwargs["serial_number"] is None
+    ((_, kwargs),) = _record("unload_all").call_args_list
+    assert (kwargs["clear_load_data"], kwargs["clear_network"]) == (True, True)

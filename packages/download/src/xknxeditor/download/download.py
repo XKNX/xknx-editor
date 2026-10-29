@@ -24,6 +24,7 @@ from .errors import (
     MemoryReadNotAnswered,
     MemoryWriteNotAcknowledged,
     PartialDownloadError,
+    ProgrammingModeError,
     UnsupportedProcedureError,
 )
 from .group_communication import materialize_group_communication_controls
@@ -46,8 +47,10 @@ from .merge import (
 from .procedure import LoadProcedureRunner, memory_services
 from .programmer import (
     DEFAULT_MAX_APDU_LENGTH,
+    FREE_ACCESS_KEY,
     MAX_COMMUNICATION_APDU_LENGTH,
     MEMORY_SERVICE_FALLBACKS,
+    DeviceProgrammer,
 )
 from .resources import property_group_tables
 from .scope import DownloadScope, mask_configuration, mask_object_types
@@ -430,6 +433,63 @@ def _with_mask_memory(
     return replace(image, mask_memory=ranges) if ranges else image
 
 
+_UNLOAD_SCOPES = frozenset({DownloadScope.UNLOAD, DownloadScope.UNLOAD_ALL})
+
+
+async def _after_unload_procedure(
+    xknx: XKNX,
+    address: IndividualAddress,
+    security: DeviceSecurity | None,
+    application: Application,
+    master: MasterData | None,
+    access_key: int,
+    *,
+    unload_address: bool,
+    in_programming_mode: bool,
+    restarted: bool,
+) -> None:
+    """What an unload does after the Unload procedure (see :mod:`.unload`): on the device
+    connection it removes the project's access key, and the programming mode, the additional
+    addresses and the serial number are seen to; then the address of an unload of everything
+    is written."""
+    from .resources import mask_resources
+    from .unload import (
+        on_device_connection,
+        unloaded_address,
+        write_unloaded_address,
+    )
+
+    mask = device_mask_version(application)
+    raw = master.raw if master is not None else None
+    levels = _authorize_levels(application, master, security)
+    unlock = access_key != FREE_ACCESS_KEY and levels > 0
+    serial: bytes | None = None
+    if unload_address or unlock or not restarted:
+        manager = _connection_manager(xknx, address, security)
+        try:
+            programmer = DeviceProgrammer(
+                await manager.open(), apdu_overhead=_apdu_overhead(security)
+            )
+            if levels > 0:
+                level = await programmer.authorize(access_key)
+                if unlock:
+                    logger.info("download: unlocking %s", address)
+                    for locked in range(level, levels):
+                        await programmer.key_write(locked, FREE_ACCESS_KEY)
+            serial = await on_device_connection(
+                programmer,
+                mask_resources(master, mask),
+                unload_address=unload_address,
+                in_programming_mode=in_programming_mode,
+                restarted=restarted,
+                own_address=xknx.current_address,
+            )
+        finally:
+            await manager.close()
+    if unload_address:
+        await write_unloaded_address(xknx, unloaded_address(raw, mask), serial)
+
+
 # Erase codes of a Master Reset: the factory state, with and without the individual address.
 _FACTORY_RESET = 2
 _FACTORY_RESET_KEEP_ADDRESS = 7
@@ -511,6 +571,9 @@ async def download(
     memory_service_count: int | None = None,
     interface_max_apdu_length: int | None = None,
     application2: Application | None = None,
+    access_key: int = FREE_ACCESS_KEY,
+    in_programming_mode: bool = False,
+    waiting: Callable[[], None] | None = None,
 ) -> DownloadResult:
     """Download ``application`` into the device at ``individual_address``.
 
@@ -572,6 +635,14 @@ async def download(
     ``application2`` is the product's second application program (the PEI program of a
     Hardware2Program with two ApplicationProgramRefs): a full download loads it with the
     application, a partial one checks that the device runs it.
+
+    ``access_key`` is the project's key a device with access protection is authorized with;
+    an unload removes it from the device again. Around the Unload procedure (see
+    :mod:`.unload`), an unload of everything writes the mask's unloaded address by the serial
+    number read from the device, else to the device in programming mode: with
+    ``in_programming_mode`` the user puts it there first (``waiting`` is called while none is,
+    and it has to be the device at ``individual_address``), otherwise the unload switches it
+    on itself.
     """
     if tool_key is not None and security is None:
         raise DownloadError("writing the Tool Key needs a secured download")
@@ -627,6 +698,16 @@ async def download(
         await program_individual_address(
             xknx, address, serial_number=commission_serial_number
         )
+    master_reset = scope in _UNLOAD_SCOPES and unloads_by_master_reset(application)
+    if scope is DownloadScope.UNLOAD_ALL and in_programming_mode and not master_reset:
+        from .commissioning import wait_for_programming_mode
+
+        logger.info("download: waiting for the device in programming mode")
+        (found,) = await wait_for_programming_mode(xknx, waiting)
+        if found != address:
+            raise ProgrammingModeError(
+                f"Unexpected device in programming mode: {found} instead of {address}"
+            )
     checked = await _partial_scope(
         xknx,
         address,
@@ -715,6 +796,7 @@ async def download(
             property_services=_property_services(application, master),
             application_loaded=application_loaded,
             application2=application2,
+            access_key=access_key,
         )
         try:
             await runner.run(progress)
@@ -770,16 +852,19 @@ async def download(
             used_memory_cap,
         )
     # The factory reset of an unload of everything took the individual address too.
-    factory_reset = scope is DownloadScope.UNLOAD_ALL and unloads_by_master_reset(
-        application
-    )
-    if scope is DownloadScope.UNLOAD_ALL and not factory_reset:
-        logger.info(
-            "download: unload complete; resetting %s to the default address", address
+    factory_reset = scope is DownloadScope.UNLOAD_ALL and master_reset
+    if scope in _UNLOAD_SCOPES and not master_reset:
+        await _after_unload_procedure(
+            xknx,
+            address,
+            security,
+            application,
+            master,
+            access_key,
+            unload_address=scope is DownloadScope.UNLOAD_ALL,
+            in_programming_mode=in_programming_mode,
+            restarted=runner.restarted,
         )
-        from .commissioning import reset_individual_address
-
-        await reset_individual_address(xknx)
     mac = runner.captured_property(IP_PARAMETER_OBJECT, PID_MAC_ADDRESS)
     return DownloadResult(
         mac_address=mac
@@ -811,6 +896,7 @@ async def preflight(
     ip_config: IpDeviceConfig | None = None,
     interface_max_apdu_length: int | None = None,
     application2: Application | None = None,
+    access_key: int = FREE_ACCESS_KEY,
 ) -> PreflightReport:
     """Report what :func:`download` would change on the device, changing nothing.
 
@@ -823,7 +909,7 @@ async def preflight(
     ``interface_max_apdu_length`` limits the negotiated APDU length as for
     :func:`download`; a long memory read that gets no response is repeated with
     smaller blocks. ``xknx`` has to be started. ``application2`` is the product's second
-    application program, as for :func:`download`.
+    application program and ``access_key`` the project's access key, as for :func:`download`.
     """
     _reject_address_scope(scope)
     if image is None:
@@ -869,6 +955,7 @@ async def preflight(
             property_services=_property_services(application, master),
             application_loaded=application_loaded,
             application2=application2,
+            access_key=access_key,
         )
         try:
             return await runner.preflight()

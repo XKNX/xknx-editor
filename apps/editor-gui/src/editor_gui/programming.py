@@ -414,6 +414,7 @@ async def eval_device(
     interface_max_apdu_length: int | None = None,
     factory_image: FactoryData | None = None,
     second_application: Application | None = None,
+    access_key: int = 0xFFFFFFFF,
 ) -> PreflightReport:
     """Dry run: report what programming ``device`` would change, writing nothing.
 
@@ -423,7 +424,8 @@ async def eval_device(
     device is commissioned secure; ``None`` reads in the clear.
     ``interface_max_apdu_length`` (the connected interface's maximum) limits the frames.
     ``factory_image`` is the product's ``LoadedImage`` (see ``Device.factory_image``),
-    ``second_application`` its second application program (``Device.second_application``).
+    ``second_application`` its second application program (``Device.second_application``),
+    ``access_key`` the project's access key.
     """
     return await preflight(
         xknx,
@@ -436,6 +438,7 @@ async def eval_device(
         ip_config=ip_config,
         interface_max_apdu_length=interface_max_apdu_length,
         application2=second_application,
+        access_key=access_key,
     )
 
 
@@ -458,6 +461,9 @@ async def download_device(
     interface_max_apdu_length: int | None = None,
     factory_image: FactoryData | None = None,
     second_application: Application | None = None,
+    access_key: int = 0xFFFFFFFF,
+    in_programming_mode: bool = False,
+    waiting: Callable[[], None] | None = None,
 ) -> DownloadResult:
     """Program ``device``: build its image and run the load procedure on the bus.
 
@@ -482,7 +488,10 @@ async def download_device(
     communication. ``interface_max_apdu_length`` (the connected interface's maximum)
     limits the frames. ``factory_image`` is the product's ``LoadedImage`` (see
     ``Device.factory_image``), ``second_application`` its second application program, loaded
-    with the application (see ``Device.second_application``).
+    with the application (see ``Device.second_application``). ``access_key`` is the project's
+    access key; ``in_programming_mode`` and ``waiting`` belong to an unload of everything, for
+    which the user puts the device into programming mode (see
+    :func:`xknxeditor.download.download`).
     """
     return await download(
         xknx,
@@ -504,4 +513,7 @@ async def download_device(
         memory_service_count=memory_service_count,
         interface_max_apdu_length=interface_max_apdu_length,
         application2=second_application,
+        access_key=access_key,
+        in_programming_mode=in_programming_mode,
+        waiting=waiting,
     )

@@ -4235,6 +4235,10 @@ _COMMISSIONING_FIELDS = (
     "medium_config_loaded",
     "parameters_loaded",
 )
+# What an unload of the address clears from the IP configuration, and an unload from the
+# device attributes the last download left.
+_NETWORK_IP_KEYS = ("MACAddress", "IPAddress", "MulticastAddress")
+_LOAD_DATA_KEYS = ("LoadedImage", "CheckSums")
 
 
 @_register
@@ -4246,6 +4250,10 @@ class SetDeviceCommissioning(Event):
 
     Each field is optional; ``None`` leaves it unchanged (so e.g. programming can set only the
     flags for its scope). The previous values of the changed fields are captured for undo.
+
+    An unload clears what the device no longer holds: ``clear_load_data`` the image and the
+    check sums of its last download, ``clear_network`` (its address went too) the serial number,
+    the MAC address and the IP address it was given (not a fixed one).
     """
 
     event_type: ClassVar[str] = "SetDeviceCommissioning"
@@ -4263,6 +4271,8 @@ class SetDeviceCommissioning(Event):
     # Recorded by a download, which leaves the device's "Last Modified" as it was.
     download: bool = False
     ip_address: str | None = None
+    clear_load_data: bool = False
+    clear_network: bool = False
 
     def changed(self) -> bool:
         """Whether applying it changed a value (the old ones are in ``_old``)."""
@@ -4272,9 +4282,13 @@ class SetDeviceCommissioning(Event):
             if name in self._old
         ):
             return True
+        if "extra_attributes" in self._old:
+            return True
         if "ip_config" not in self._old:
             return False
         old_config = cast("dict[str, str] | None", self._old["ip_config"]) or {}
+        if self.clear_network:
+            return any(key in old_config for key in _NETWORK_IP_KEYS)
         return any(
             new is not None and old_config.get(key) != new
             for key, new in (
@@ -4301,6 +4315,29 @@ class SetDeviceCommissioning(Event):
             if self.ip_address is not None:
                 config["IPAddress"] = self.ip_address
             device.ip_config = config
+        if self.clear_network:
+            if device.serial_number and "serial_number" not in self._old:
+                self._old["serial_number"] = device.serial_number
+                device.serial_number = ""
+            config = dict(device.ip_config or {})
+            keys = [
+                key
+                for key in _NETWORK_IP_KEYS
+                if key in config
+                and not (key == "IPAddress" and config.get("Assign") == "Fixed")
+            ]
+            if keys:
+                self._old.setdefault("ip_config", device.ip_config)
+                for key in keys:
+                    del config[key]
+                device.ip_config = config
+        if self.clear_load_data:
+            extra = dict(device.extra_attributes or {})
+            if any(key in extra for key in _LOAD_DATA_KEYS):
+                self._old["extra_attributes"] = device.extra_attributes
+                for key in _LOAD_DATA_KEYS:
+                    extra.pop(key, None)
+                device.extra_attributes = extra
 
     def revert(self, session: Session) -> None:
         device = session.get(Device, self.device_id)
@@ -4317,6 +4354,8 @@ class SetDeviceCommissioning(Event):
             "ip_address": self.ip_address,
             "_old": self._old,
             "download": self.download,
+            "clear_load_data": self.clear_load_data,
+            "clear_network": self.clear_network,
         }
 
     @classmethod

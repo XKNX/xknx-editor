@@ -200,6 +200,8 @@ class ConnectionService:
         self.keyring: KeyringService | None = None
         # The device's tool keys from the open project; they take precedence over the keyring.
         self.project_keys: Callable[[Device], DeviceKeys | None] | None = None
+        # The open project's access key (BCU key) for devices with access protection.
+        self.project_access_key: Callable[[], int] | None = None
         # The open project's KNX IP Secure tunnels of an interface (by its individual address),
         # its routing backbone ``(key, latency ms)`` and its Data Secure tables ``(group keys,
         # senders with their last valid Sequence Number)``; they take precedence over the keyring.
@@ -947,6 +949,7 @@ class ConnectionService:
         ip_secure: IpSecureConfig | None = None,
         disable_security: bool = False,
         routing_blocking: bool | None = None,
+        in_programming_mode: bool = False,
     ) -> Future[Any] | None:
         """Download the device's configured application/parameters onto the bus.
 
@@ -959,7 +962,8 @@ class ConnectionService:
         overwrite to the device at ``current_address``. A full download of a device that does not
         answer yet gets its address by ``serial_number`` when given. ``tool_key`` commissions the
         device securely; ``disable_security`` switches it to plain communication with the key it
-        holds.
+        holds. For an unload of everything, ``in_programming_mode`` has the user put the device
+        into programming mode first (``waiting`` is called while none is).
         """
         if self.not_connected("program_device"):
             return None
@@ -1033,6 +1037,9 @@ class ConnectionService:
                 interface_max_apdu_length=self.interface_max_apdu_length,
                 factory_image=_factory_image(device),
                 second_application=_second_application(device),
+                access_key=self._access_key(),
+                in_programming_mode=in_programming_mode,
+                waiting=waiting,
             )
         )
         if future is not None:
@@ -1126,6 +1133,11 @@ class ConnectionService:
         else:
             self._clear_busy()
         return future
+
+    def _access_key(self) -> int:
+        """The project's access key, read here (not on the bus thread)."""
+        getter = self.project_access_key
+        return getter() if getter is not None else 0xFFFFFFFF
 
     def _download_security(
         self, device: Device, tool_key: bytes | None
@@ -1303,6 +1315,7 @@ class ConnectionService:
                 interface_max_apdu_length=self.interface_max_apdu_length,
                 factory_image=_factory_image(device),
                 second_application=_second_application(device),
+                access_key=self._access_key(),
             )
         )
         if future is not None:

@@ -72,7 +72,7 @@ def application_id(application: Application, length: int = 5) -> bytes:
     )
 
 
-async def _read(
+async def read_resource(
     programmer: DeviceProgrammer, resources: MaskResources, name: ResourceName
 ) -> bytes | None:
     """The resource's value, or ``None`` when the mask or the device does not have it
@@ -113,13 +113,15 @@ async def partial_download_mismatch(
         raise IncompatibleMaskVersion(mask, program.mask_version)
     if resources is None:
         return None
-    status = await _read(programmer, resources, ResourceName.APPLICATION_LOAD_STATUS)
+    status = await read_resource(
+        programmer, resources, ResourceName.APPLICATION_LOAD_STATUS
+    )
     if status is not None and status[:1] != bytes([_LOADED]):
         return (
             "Partial download not possible because application program not loaded: "
             f"load status={status[0] if status else None}"
         )
-    loaded = await _read(programmer, resources, ResourceName.APPLICATION_ID)
+    loaded = await read_resource(programmer, resources, ResourceName.APPLICATION_ID)
     if loaded is not None:
         found, expected = program_id(loaded), program_id_of(application)
         options = program.static.options
@@ -145,14 +147,14 @@ async def partial_download_mismatch(
     options = program.static.options
     if options is not None and options.legacy_allow_partial_download_if_ap2_mismatch:
         return None
-    pei = await _read(programmer, resources, ResourceName.PEIPROG_LOAD_STATUS)
+    pei = await read_resource(programmer, resources, ResourceName.PEIPROG_LOAD_STATUS)
     if application2 is not None:
         if pei is not None and pei[:1] != bytes([_LOADED]):
             return (
                 "Partial download not possible because PEI program not loaded: "
                 f"load status={pei[0] if pei else None}"
             )
-        pei_id = await _read(programmer, resources, ResourceName.PEIPROG_ID)
+        pei_id = await read_resource(programmer, resources, ResourceName.PEIPROG_ID)
         if pei_id is not None:
             found, expected = program_id(pei_id), program_id_of(application2)
             if found != expected:
@@ -172,7 +174,7 @@ async def partial_download_mismatch(
         "Partial download without PEI program, but PEI program in device is not unloaded: "
         f"load status={pei[0] if pei else None}"
     )
-    pei_id = await _read(programmer, resources, ResourceName.PEIPROG_ID)
+    pei_id = await read_resource(programmer, resources, ResourceName.PEIPROG_ID)
     if pei_id is not None and program_id(pei_id) == (0, 0, 0):
         logger.warning(reason)
         logger.warning("Accepted because loaded PEI program is 00 0000 00")

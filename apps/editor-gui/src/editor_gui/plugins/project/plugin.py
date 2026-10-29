@@ -2722,6 +2722,9 @@ class ProjectPlugin:
                 ip_secure=ip_secure,
                 disable_security=self._api.project.download_disables_security(device),
                 routing_blocking=self._api.project.download_routing_blocking(device),
+                # An unload of everything from the editor waits for the user's programming
+                # mode; over MCP it writes the address by serial number or switches it on.
+                in_programming_mode=True,
             )
         except DeviceCertificateRequired:
             item.message = S.DEVICE_CERTIFICATE_REQUIRED
