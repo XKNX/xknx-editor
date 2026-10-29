@@ -340,7 +340,9 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         - FULL: the full application load; for a device not yet answering it can also assign the
           project address first (optionally via ``use_serial_number``).
         - UNLOAD: remove the application. UNLOAD_ALL also resets the single device in programming mode
-          to 15.15.255 — make sure that is the intended device.
+          to 15.15.255 — make sure that is the intended device. A device with KNX Data Secure is
+          reset to its factory state instead (UNLOAD_ALL: with its address; it uses its FDSK
+          again, so its next secure download needs its device certificate).
         - INDIVIDUAL_ADDRESS: write ONLY the project address to the single device in programming mode
           (waits until its programming button is pressed, up to ``timeout``); refused when another
           device already uses the address. OVERWRITE_INDIVIDUAL_ADDRESS writes it to the device

@@ -16,6 +16,7 @@ from typing import TYPE_CHECKING, NamedTuple
 from xknx.exceptions import ManagementConnectionError
 from xknx.telegram import IndividualAddress
 
+from xknxeditor.namespaces.intermediate.ld_ctrl_master_reset_t import LdCtrlMasterReset
 from xknxeditor.namespaces.intermediate.resource_addr_space_t import ResourceAddrSpace
 
 from .errors import (
@@ -114,6 +115,9 @@ class DownloadResult:
     # caller can remember this per application to seed the next download and skip
     # the discovery retry.
     memory_service_count: int | None = None
+    # Whether an unload reset the device to its factory state with its individual address
+    # (a secure device then uses its FDSK again).
+    factory_reset: bool = False
 
 
 _IP_CONFIG_SCOPES = frozenset({DownloadScope.FULL, DownloadScope.APPLICATION})
@@ -203,6 +207,16 @@ def _resolve_procedure(
     if scope in (DownloadScope.UNLOAD, DownloadScope.UNLOAD_ALL):
         from xknxeditor.namespaces.intermediate.procedure_type_t import ProcedureType
 
+        if unloads_by_master_reset(application):
+            # A factory reset, with the individual address for an unload of everything.
+            return [
+                LdCtrlMasterReset(
+                    erase_code=_FACTORY_RESET
+                    if scope is DownloadScope.UNLOAD_ALL
+                    else _FACTORY_RESET_KEEP_ADDRESS,
+                    channel_number=0,
+                )
+            ]
         # The mask's Unload procedure unloads the second program too.
         return resolve_download_controls(
             application,
@@ -416,6 +430,23 @@ def _with_mask_memory(
     return replace(image, mask_memory=ranges) if ranges else image
 
 
+# Erase codes of a Master Reset: the factory state, with and without the individual address.
+_FACTORY_RESET = 2
+_FACTORY_RESET_KEEP_ADDRESS = 7
+# The mask of a device that only takes secured management.
+_LOCKED_SECURE_MASK = "MV-FFFF"
+
+
+def unloads_by_master_reset(application: Application) -> bool:
+    """Whether an unload resets the device to its factory state (a Master Reset) instead of
+    running the mask's Unload procedure: a device with KNX Data Secure, which has to give up its
+    Tool Key."""
+    program = application.program
+    return bool(getattr(program, "is_secure_enabled", False)) or (
+        device_mask_version(application) == _LOCKED_SECURE_MASK
+    )
+
+
 def _with_second_program(
     image: DownloadImage, application2: Application | None
 ) -> DownloadImage:
@@ -514,7 +545,9 @@ async def download(
     A :data:`~.scope.DownloadScope.UNLOAD_ALL` download runs the Unload procedure
     over the device address and then resets the individual address to the default
     (15.15.255); the single device in programming mode is reset. ``master`` is
-    required to resolve the Unload procedure.
+    required to resolve the Unload procedure. A device with KNX Data Secure is reset to
+    its factory state instead (a Master Reset; with its individual address for
+    ``UNLOAD_ALL``, which the result reports as ``factory_reset``).
 
     A partial download first checks that the device runs the application and fails with
     :class:`~.partial.DifferentProgramLoaded` otherwise. An application that prefers a
@@ -736,7 +769,11 @@ async def download(
             address,
             used_memory_cap,
         )
-    if scope is DownloadScope.UNLOAD_ALL:
+    # The factory reset of an unload of everything took the individual address too.
+    factory_reset = scope is DownloadScope.UNLOAD_ALL and unloads_by_master_reset(
+        application
+    )
+    if scope is DownloadScope.UNLOAD_ALL and not factory_reset:
         logger.info(
             "download: unload complete; resetting %s to the default address", address
         )
@@ -753,6 +790,7 @@ async def download(
         sequence_number=getattr(manager, "device_sequence_number", None),
         secured=security is not None,
         memory_service_count=used_memory_cap,
+        factory_reset=factory_reset,
     )
 
 

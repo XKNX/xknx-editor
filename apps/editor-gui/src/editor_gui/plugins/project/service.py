@@ -163,8 +163,8 @@ class UpdateApplicationResult:
 
 
 # Which commissioning "loaded" flags a successful download of each scope sets (keyed by
-# DownloadScope.value). FULL/UNLOAD set all true/false; partial scopes set only their part. Flags
-# not listed are left unchanged.
+# DownloadScope.value). FULL/UNLOAD_ALL set all true/false, UNLOAD clears the application's part
+# (not the address); partial scopes set only their part. Flags not listed are left unchanged.
 _ALL_LOADED = (
     "individual_address_loaded",
     "application_program_loaded",
@@ -174,7 +174,12 @@ _ALL_LOADED = (
 )
 _COMMISSIONING_BY_SCOPE: dict[str, dict[str, bool]] = {
     "full": dict.fromkeys(_ALL_LOADED, True),
-    "unload": dict.fromkeys(_ALL_LOADED, False),
+    "unload": {
+        "application_program_loaded": False,
+        "communication_part_loaded": False,
+        "parameters_loaded": False,
+    },
+    "unload_all": dict.fromkeys(_ALL_LOADED, False),
     "ap1": {  # APPLICATION: parameters + application + group communication (not the address)
         "application_program_loaded": True,
         "communication_part_loaded": True,
@@ -3607,8 +3612,12 @@ class ProjectService:
 
     def record_secure_download(self, device: Device, result: object) -> None:
         """Record what a secured download left in the device (its ``DownloadResult``): the Tool
-        Key it uses now and its next Sequence Number Sending."""
+        Key it uses now and its next Sequence Number Sending, or the FDSK again after an
+        unload that reset it to its factory state."""
         if self._pid is None:
+            return
+        if getattr(result, "factory_reset", False):
+            self.record_factory_reset(device)
             return
         if getattr(result, "tool_key_loaded", False):
             self.set_tool_key_loaded(device)
@@ -4225,7 +4234,7 @@ class ProjectService:
         flags = _COMMISSIONING_BY_SCOPE.get(scope_value)
         if flags is None:
             return
-        now = None if scope_value == "unload" else project_timestamp()
+        now = None if scope_value in ("unload", "unload_all") else project_timestamp()
         self.set_device_commissioning(
             node_id,
             serial_number=serial_to_project(serial) if serial else None,

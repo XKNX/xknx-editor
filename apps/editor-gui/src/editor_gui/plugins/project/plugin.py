@@ -2822,7 +2822,7 @@ class ProjectPlugin:
                 # IP Secure settings are only written over a secured connection.
                 if ip_secure is not None and getattr(result, "secured", False):
                     self._api.project.record_ip_secure_download(device, ip_secure)
-            if scope_value != "unload":
+            if scope_value not in ("unload", "unload_all"):
                 self._find_ip_after_download(node_id)
 
         if self._api.main_thread is not None:
