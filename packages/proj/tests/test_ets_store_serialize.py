@@ -476,3 +476,27 @@ def test_traversal_product_member_dropped(tmp_path: Path) -> None:
         )
     assert not (tmp_path / "escape.xml").exists()
     assert (tmp_path / PID / "M-0083" / "ok.xml").read_bytes() == b"y"
+
+
+def test_a_newly_active_object_needs_its_tree() -> None:
+    with _session() as session:
+        project, inst = _project(session)
+        device = session.query(Device).one()
+        device.com_objects.append(
+            ComObject(ref_id="O-3_R-3", instance_ref_id="O-3_R-3", channel_id="CH-1")
+        )
+        session.flush()
+        # The stored tree lacks the new object: its activity is calculated again.
+        stale = build_store_streams(project, inst)
+        tree = (
+            '<GroupObjectTree GroupObjectInstances="O-1_R-1 O-2_R-2">'
+            '<Nodes><Node Type="Channel" RefId="CH-1" GroupObjectInstances="O-2_R-2 O-3_R-3" />'
+            "</Nodes></GroupObjectTree>"
+        )
+        given = build_store_streams(project, inst, group_object_trees={device.id: tree})
+    assert _di(stale.streams, f"{PID}-0_A-2").get("IsActivityCalculated") == "false"
+    di = _di(given.streams, f"{PID}-0_A-2")
+    assert di.get("IsActivityCalculated") == "true"
+    node = di.find("GrpObjTree/Nodes/Node")
+    assert node is not None
+    assert node.get("GroupObjectInstances") == "O-2_R-2 O-3_R-3"

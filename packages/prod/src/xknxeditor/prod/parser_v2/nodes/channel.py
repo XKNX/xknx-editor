@@ -52,11 +52,28 @@ class ChannelNode(DynamicNode):
         explorer = ctx.explore
         if explorer is not None:
             explorer.enter_section(self._heading(ctx) or "")
+        tree = ctx.object_tree
+        # The channel-independent block and a converted application's dummy channel are no
+        # node of the group object tree: their objects belong to the level around them.
+        if tree is not None and (
+            self._independent
+            or (
+                tree.pre_ets4_style
+                and self._name == "Generic"
+                and not self._text
+                and self._number == "0"
+            )
+        ):
+            tree = None
+        if tree is not None:
+            tree.enter("Channel", ctx.qualify(self._id or ""))
         try:
             items = [u for c in self._children if c for u in c.eval(ctx)]
         finally:
             if explorer is not None:
                 explorer.leave_section()
+            if tree is not None:
+                tree.leave()
         text = self._heading(ctx)
         return [
             UiTab(

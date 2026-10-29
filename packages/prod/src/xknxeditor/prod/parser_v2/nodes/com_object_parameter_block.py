@@ -47,11 +47,16 @@ class ComObjectParameterBlockNode(DynamicNode):
                 fill_name(apply_text_args(heading or "", ctx.text_args()), ""),
                 hidden=hidden,
             )
+        tree = ctx.object_tree if self._elem.show_in_com_object_tree else None
+        if tree is not None:
+            tree.enter("Folder", ctx.qualify(self._elem.id))
         try:
             items = [u for c in self._children if c for u in c.eval(ctx)]
         finally:
             if explorer is not None:
                 explorer.leave_section(hidden=hidden)
+            if tree is not None:
+                tree.leave()
         arg_defaults = ctx.text_args()
         text_ref = self._elem.text_parameter_ref_id
         name_value = ctx.get(text_ref) if text_ref else None

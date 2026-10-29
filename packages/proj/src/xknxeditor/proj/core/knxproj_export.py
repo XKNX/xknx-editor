@@ -61,7 +61,7 @@ import re
 import time
 import xml.etree.ElementTree as ET
 import zipfile
-from collections.abc import Callable, Mapping, Sequence
+from collections.abc import Callable, Iterable, Mapping, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
 from urllib.request import Request, urlopen
@@ -719,6 +719,7 @@ def export_knxproj(
     cancelled: Callable[[], bool] | None = None,
     module_arguments: Mapping[int, Mapping[str, Sequence[tuple[str, str]]]]
     | None = None,
+    group_object_trees: Mapping[int, str] | None = None,
 ) -> ExportResult:
     """Read the project at ``source`` (a ``.xknx``) and write a ``.knxproj`` archive to ``dest``.
 
@@ -773,6 +774,11 @@ def export_knxproj(
       module_arguments: The arguments of module instances the project has none stored for (a device
         added in the editor), by device id and instance id: ``(argument ref id, value)`` each. An
         importer numbers the instance's group objects from them.
+      group_object_trees: The ``<GroupObjectTree>`` of devices whose stored one does not list all
+        their active group objects (objects the editor activated), by device id, as the stored
+        trees are kept (namespace-free XML). The importer takes the objects a tree lists as the
+        device's active ones; a device whose tree still misses one is exported to have its
+        activity calculated again (``IsActivityCalculated="false"``).
     """
     ns = _ns_for(schema)  # validate the requested schema early
     logger.debug(
@@ -852,7 +858,11 @@ def export_knxproj(
             project_name_out = project.name
             created_by, tool_version = _SCHEMA_TOOLS[schema]
             audit, missing_refs, signed, certificate = _Writer(
-                ns, created_by, tool_version, module_arguments=module_arguments
+                ns,
+                created_by,
+                tool_version,
+                module_arguments=module_arguments,
+                group_object_trees=group_object_trees,
             ).write_archive(
                 Path(dest),
                 project,
@@ -1074,6 +1084,15 @@ def _group_object_tree_instances(raw: str) -> set[str]:
     for el in root.iter():
         out.update((el.get("GroupObjectInstances") or "").split())
     return out
+
+
+def tree_covers(raw: str, com_objects: Iterable[ComObject]) -> bool:
+    """Whether the ``<GroupObjectTree>`` ``raw`` lists every one of the device's active
+    ``com_objects`` (the importer takes the ones it lists as the active ones)."""
+    listed = _group_object_tree_instances(raw)
+    return all(
+        _relidref(co.instance_ref_id or co.ref_id) in listed for co in com_objects
+    )
 
 
 class _ExportIds:
@@ -1350,9 +1369,11 @@ class _Writer:
         *,
         module_arguments: Mapping[int, Mapping[str, Sequence[tuple[str, str]]]]
         | None = None,
+        group_object_trees: Mapping[int, str] | None = None,
     ) -> None:
         self._ns = ns
         self._module_arguments = module_arguments or {}
+        self._group_object_trees = group_object_trees or {}
         self._created_by = created_by
         self._tool_version = tool_version
         # Ids and Puids of the written elements, set per archive in write_archive.
@@ -2035,6 +2056,13 @@ class _Writer:
             for key, value in (device.extra_attributes or {}).items():
                 if key not in ("InstallationHints", "CompletionStatus"):
                     di.set(key, value)
+        # The importer takes the objects the group object tree lists as the active ones when the
+        # activity counts as calculated; a tree that misses one has it calculated again.
+        tree = self._device_tree(device)
+        if di.get("IsActivityCalculated") == "true" and not tree_covers(
+            tree, device.com_objects
+        ):
+            di.set("IsActivityCalculated", "false")
         # Genuine exports order the device's children ParameterInstanceRefs, then
         # ComObjectInstanceRefs.
         # NOTE: unlike ComObjectInstanceRef (a RELIDREF), ParameterInstanceRef/@RefId is the FULL
@@ -2058,7 +2086,7 @@ class _Writer:
         # so writing a COIR for it too would diverge from genuine exports. Fallback: an object the
         # tree does NOT cover (a from-scratch device has no tree) is still emitted so its
         # instantiation is not lost.
-        tree_instances = _group_object_tree_instances(device.group_object_tree)
+        tree_instances = _group_object_tree_instances(tree)
         pending: list[tuple[ComObject, str, str]] = []
         for co in device.com_objects:
             # Genuine exports order the sending link first; our ComObjectLink.is_sending marks it.
@@ -2219,6 +2247,10 @@ class _Writer:
         self._refs.remap(src, self._pid)
         self._graft(di, src)
 
+    def _device_tree(self, device: Device) -> str:
+        """The device's ``<GroupObjectTree>``: the one given for it, else the stored one."""
+        return self._group_object_trees.get(device.id) or device.group_object_tree
+
     def _build_group_object_tree(self, di: ET.Element, device: Device) -> None:
         """Re-emit the device's captured ``<GroupObjectTree>`` under ``di`` in the target namespace.
 
@@ -2227,7 +2259,7 @@ class _Writer:
         (Type/RefId/Text/GroupObjectInstances) are preserved exactly. Best-effort: a malformed
         stored tree is skipped rather than aborting the export.
         """
-        raw = device.group_object_tree
+        raw = self._device_tree(device)
         if not raw:
             return
         # DeviceInstance/GroupObjectTree only exists from project/20 onward; project/14 (ETS4/5 old

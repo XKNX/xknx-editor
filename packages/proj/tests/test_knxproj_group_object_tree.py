@@ -261,3 +261,87 @@ def test_import_captures_application_program_ref(tmp_path: Path) -> None:
     with Session(make_engine(url_for(xknx))) as s:
         refs = [d.application_program_ref_id for d in s.query(Device).all()]
     assert refs and all(r and "_A-" in r for r in refs)
+
+
+def _device_with_a_newly_active_object(tmp_path: Path) -> Path:
+    """A device whose stored tree (from an import) lacks O-25, which the editor activated."""
+    src = tmp_path / "src.xknx"
+    svc = ProjectService()
+    pid = svc.create(src, "P-GOT")
+    area_id = svc.create_area(pid, 0, 2, "Area 1")
+    line_id = svc.create_line(pid, area_id, 1, "Line 1")
+    segment_id = next(
+        line.segments[0].id
+        for area in svc.topology(pid, 0).areas
+        if area.id == area_id
+        for line in area.lines
+        if line.id == line_id
+    )
+    svc.add_device(
+        pid,
+        segment_id,
+        "M-1_H-1_P-1",
+        address=5,
+        name="Dev",
+        hardware2program_ref_id="M-1_H-1_HP-1",
+        com_objects=[
+            ("M-1_A-1_O-0_R-1", None),
+            ("M-1_A-1_O-25_R-72", "CH-4"),
+        ],
+    )
+    svc.close(pid)
+    engine = make_engine(url_for(src))
+    try:
+        with Session(engine) as session:
+            device = session.query(Device).one()
+            device.group_object_tree = (
+                '<GroupObjectTree GroupObjectInstances="O-0_R-1">'
+                '<Nodes><Node Type="Channel" RefId="CH-4" Text="Renamed" /></Nodes>'
+                "</GroupObjectTree>"
+            )
+            device.extra_attributes = {"IsActivityCalculated": "true"}
+            session.commit()
+            device_id = device.id
+    finally:
+        engine.dispose()
+    (tmp_path / "device_id").write_text(str(device_id))
+    return src
+
+
+def _device_instance(knxproj: Path) -> ET.Element:
+    with zipfile.ZipFile(knxproj) as zf:
+        for name in zf.namelist():
+            if name.endswith("/0.xml"):
+                for element in ET.fromstring(zf.read(name)).iter():
+                    if _localname(element.tag) == "DeviceInstance":
+                        return element
+    raise AssertionError("no device")
+
+
+def test_a_tree_without_an_active_object_has_the_activity_calculated_again(
+    tmp_path: Path,
+) -> None:
+    src = _device_with_a_newly_active_object(tmp_path)
+    out = tmp_path / "out.knxproj"
+    export_knxproj(src, out)
+    assert _device_instance(out).get("IsActivityCalculated") == "false"
+
+
+def test_the_tree_given_for_a_device_is_exported(tmp_path: Path) -> None:
+    src = _device_with_a_newly_active_object(tmp_path)
+    device_id = int((tmp_path / "device_id").read_text())
+    tree = (
+        '<GroupObjectTree GroupObjectInstances="O-0_R-1">'
+        '<Nodes><Node Type="Channel" RefId="CH-4" Text="Renamed" '
+        'GroupObjectInstances="O-25_R-72" /></Nodes>'
+        "</GroupObjectTree>"
+    )
+    out = tmp_path / "out.knxproj"
+    export_knxproj(src, out, group_object_trees={device_id: tree})
+    device = _device_instance(out)
+    assert device.get("IsActivityCalculated") == "true"
+    (exported,) = _group_object_trees(out)
+    assert _norm(exported) == _norm(ET.fromstring(tree))
+    # The tree carries the newly active, unlinked object: it needs no instance of its own.
+    refs = [c for c in device.iter() if _localname(c.tag) == "ComObjectInstanceRef"]
+    assert [r.get("RefId") for r in refs] == []

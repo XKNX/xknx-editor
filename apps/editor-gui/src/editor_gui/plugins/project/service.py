@@ -4314,6 +4314,32 @@ class ProjectService:
                 result[device.node_id] = device.get_module_instance_arguments()
         return result
 
+    def group_object_trees(self) -> dict[int, str]:
+        """The group object trees of the devices whose stored tree does not list all their active
+        group objects (objects the editor activated), by device id, for the exports: evaluated
+        from their parameters (see ``object_tree``)."""
+        from editor_gui.plugins.project.object_tree import group_object_tree_xml
+        from xknxeditor.proj.core.knxproj_export import tree_covers
+
+        if self._pid is None:
+            return {}
+        result: dict[int, str] = {}
+        with self._io_lock:
+            rows = [
+                (row.id, row.group_object_tree, list(row.com_objects))
+                for row in self._svc.devices(self._pid)
+            ]
+        for device_id, stored, com_objects in rows:
+            if not com_objects or tree_covers(stored, com_objects):
+                continue
+            device = self.find_device_by_node_id(device_id)
+            ui = device.dynamic_ui if device is not None and device.app else None
+            if ui is not None:
+                result[device_id] = group_object_tree_xml(
+                    ui.group_object_tree(), stored
+                )
+        return result
+
     @io_guarded(list)
     def missing_program_refs(self) -> list[str]:
         """Hardware-program refs of devices whose application is NOT in the local catalog.

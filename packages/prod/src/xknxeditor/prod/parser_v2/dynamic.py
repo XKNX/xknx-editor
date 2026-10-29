@@ -50,7 +50,14 @@ from .calculation import (
     run_calculations_many,
     run_validations,
 )
-from .context import EvalCapture, EvalContext, Explorer, Placement
+from .context import (
+    EvalCapture,
+    EvalContext,
+    Explorer,
+    ObjectTreeCapture,
+    ObjectTreeNode,
+    Placement,
+)
 from .converted_pages import place_hidden_parameters
 from .encode import (
     MaskedProperty,
@@ -1533,6 +1540,16 @@ class DynamicUI:
             EvalContext(state, idx=self._idx, union_suppress=False, explore=explorer)
         )
         return explorer.placements
+
+    def group_object_tree(self) -> ObjectTreeNode:
+        """The device's group object tree as the current values select it (see
+        :class:`ObjectTreeCapture`). Evaluated on a copy of the settled state."""
+        self.ui()
+        capture = ObjectTreeCapture(pre_ets4_style=self._app.pre_ets4_style)
+        state = copy.deepcopy(self._state)
+        state.reset_alloc_positions()
+        self._tree.eval(EvalContext(state, idx=self._idx, object_tree=capture))
+        return capture.root
 
     @contextlib.contextmanager
     def simulation(self) -> Generator[None]:

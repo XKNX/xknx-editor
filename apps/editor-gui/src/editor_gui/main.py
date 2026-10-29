@@ -1387,6 +1387,7 @@ class KnxGuiApp:
         # mid-export can't pair project A's file with project B's manufacturer bundle.
         program_refs = self._project_service.program_refs()
         module_arguments = self._project_service.module_arguments()
+        group_object_trees = self._project_service.group_object_trees()
         remove_unused = self._export_remove_unused
         password = self._project_service.project_password
         # Set by the progress window's Cancel; the export stops at its next step.
@@ -1462,6 +1463,7 @@ class KnxGuiApp:
                     remove_unused_products=remove_unused,
                     cancelled=cancel_requested.is_set,
                     module_arguments=module_arguments,
+                    group_object_trees=group_object_trees,
                 )
                 used_schema = result.schema
                 self._last_export_path = dest
@@ -1673,6 +1675,7 @@ class KnxGuiApp:
             return
         program_refs = self._project_service.program_refs()
         reveal = self._project_service.reveal
+        group_object_trees = self._project_service.group_object_trees()
 
         def _run() -> None:
             try:
@@ -1721,6 +1724,7 @@ class KnxGuiApp:
                         overwrite=not create_copy,
                         reveal=reveal,
                         store_format=self._projectstore_format,
+                        group_object_trees=group_object_trees,
                     )
                 ets = (
                     "ETS 5"

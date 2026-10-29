@@ -79,6 +79,50 @@ class Explorer:
         )
 
 
+@dataclass(slots=True)
+class ObjectTreeNode:
+    """A node of a device's group object tree: a channel or a parameter block shown in the group
+    object tree (``kind`` "Channel" or "Folder", ``ref_id`` its instance-qualified id), with its
+    group objects (instance-qualified ComObjectRef ids) and its nodes, both in document order.
+    The tree's root has neither kind nor id."""
+
+    kind: str
+    ref_id: str
+    objects: list[str]
+    nodes: list[ObjectTreeNode]
+
+
+class ObjectTreeCapture:
+    """Records a device's group object tree while its parameters are evaluated, as the KNX tool
+    builds a device's ``GroupObjectTree``: each active channel is a node (also without objects),
+    each active parameter block shown in the group object tree a folder (dropped when it stays
+    empty), and each active group object belongs to the nearest of these, else to the tree
+    itself, once, in document order."""
+
+    __slots__ = ("_stack", "pre_ets4_style", "root")
+
+    def __init__(self, *, pre_ets4_style: bool = False) -> None:
+        self.root = ObjectTreeNode("", "", [], [])
+        self._stack = [self.root]
+        # A converted application's single "Generic" channel is no node.
+        self.pre_ets4_style = pre_ets4_style
+
+    def enter(self, kind: str, ref_id: str) -> None:
+        node = ObjectTreeNode(kind, ref_id, [], [])
+        self._stack[-1].nodes.append(node)
+        self._stack.append(node)
+
+    def leave(self) -> None:
+        node = self._stack.pop()
+        if node.kind == "Folder" and not node.objects and not node.nodes:
+            self._stack[-1].nodes.remove(node)
+
+    def record(self, ref_id: str) -> None:
+        objects = self._stack[-1].objects
+        if ref_id not in objects:
+            objects.append(ref_id)
+
+
 class EvalCapture:
     """Records, per emitted com-object, the set of gating parameters on its emission path (its "gate
     chain") during a full tree eval.
@@ -164,6 +208,7 @@ class EvalContext:
         "_capture",
         "_explore",
         "_idx",
+        "_object_tree",
         "_repeat_idx",
         "_scope",
         "_union_suppress",
@@ -177,6 +222,7 @@ class EvalContext:
         capture: EvalCapture | None = None,
         union_suppress: bool = True,
         explore: Explorer | None = None,
+        object_tree: ObjectTreeCapture | None = None,
     ) -> None:
         self._scope = scope
         self._repeat_idx = repeat_idx
@@ -187,6 +233,8 @@ class EvalContext:
         self._union_suppress = union_suppress
         # Set for an explore pass (see Explorer): every branch is evaluated and recorded.
         self._explore = explore
+        # Set to record the device's group object tree (see ObjectTreeCapture).
+        self._object_tree = object_tree
 
     @property
     def capture(self) -> EvalCapture | None:
@@ -195,6 +243,10 @@ class EvalContext:
     @property
     def explore(self) -> Explorer | None:
         return self._explore
+
+    @property
+    def object_tree(self) -> ObjectTreeCapture | None:
+        return self._object_tree
 
     @property
     def union_suppress(self) -> bool:
@@ -280,6 +332,7 @@ class EvalContext:
             self._capture,
             self._union_suppress,
             self._explore,
+            self._object_tree,
         )
 
     def get_arg_value(self, ref_id: str) -> int:
@@ -340,4 +393,5 @@ class EvalContext:
             capture=self._capture,
             union_suppress=self._union_suppress,
             explore=self._explore,
+            object_tree=self._object_tree,
         )
