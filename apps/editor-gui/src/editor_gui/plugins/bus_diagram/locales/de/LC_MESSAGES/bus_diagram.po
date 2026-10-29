@@ -14,10 +14,10 @@ msgid "Unassigned"
 msgstr "nicht zugeordnet"
 
 msgid "Area -> Line -> Device. Click a device to open it."
-msgstr "Bereich -> Linie -> Gerät. Klicke ein Gerät, um es zu öffnen."
+msgstr "Bereich -> Linie -> Gerät. Klicken Sie auf ein Gerät, um es zu öffnen."
 
 msgid "Ctrl+scroll to zoom. Click a device to open it."
-msgstr "Strg+Scrollen zum Zoomen. Klicke ein Gerät, um es zu öffnen."
+msgstr "Strg+Scrollen zum Zoomen. Klicken Sie auf ein Gerät, um es zu öffnen."
 
 msgid "Building View"
 msgstr "Gebäudeansicht"
@@ -62,7 +62,7 @@ msgid "All"
 msgstr "Alle"
 
 msgid "Ctrl/Cmd+scroll to zoom. Click a device to open it."
-msgstr "Strg/Cmd+Scrollen zum Zoomen. Klicke ein Gerät, um es zu öffnen."
+msgstr "Strg/Cmd+Scrollen zum Zoomen. Klicken Sie auf ein Gerät, um es zu öffnen."
 
 msgid "Area {area}"
 msgstr "Bereich {area}"
@@ -110,7 +110,7 @@ msgid "Channel: {channel}"
 msgstr "Kanal: {channel}"
 
 msgid "Drag to move, {key}+scroll to zoom. Click a device to open it."
-msgstr "Ziehen zum Verschieben, {key}+Scrollen zum Zoomen. Klicke ein Gerät, um es zu öffnen."
+msgstr "Ziehen zum Verschieben, {key}+Scrollen zum Zoomen. Klicken Sie auf ein Gerät, um es zu öffnen."
 
 msgid "Show"
 msgstr "Anzeigen"

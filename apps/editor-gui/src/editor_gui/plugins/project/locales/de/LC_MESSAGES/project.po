@@ -469,7 +469,7 @@ msgid "Log"
 msgstr "Protokoll"
 
 msgid "Open a project to use the Mass Linker."
-msgstr "Öffne ein Projekt, um die Massenverknüpfung zu nutzen."
+msgstr "Öffnen Sie ein Projekt, um die Massenverknüpfung zu nutzen."
 
 msgid ""
 "Pairs are matched by list order (1st with 1st, …). Surplus items on the "
@@ -561,7 +561,7 @@ msgid "Tools"
 msgstr "Werkzeuge"
 
 msgid "Open a project to use the tools."
-msgstr "Öffne ein Projekt, um die Werkzeuge zu nutzen."
+msgstr "Öffnen Sie ein Projekt, um die Werkzeuge zu nutzen."
 
 msgid "No devices in this project."
 msgstr "Keine Geräte in diesem Projekt."
@@ -3142,10 +3142,10 @@ msgid "Compare with a backup of this project"
 msgstr "Mit einer Sicherung dieses Projekts vergleichen"
 
 msgid "In the browser, choose Knx.Ets.Common.dll together with log4net.dll from the same folder."
-msgstr "Wähle im Browser Knx.Ets.Common.dll zusammen mit log4net.dll aus demselben Ordner."
+msgstr "Wählen Sie im Browser Knx.Ets.Common.dll zusammen mit log4net.dll aus demselben Ordner."
 
 msgid "Knx.Ets.Common.dll needs log4net.dll from its folder: choose both files together."
-msgstr "Knx.Ets.Common.dll braucht log4net.dll aus seinem Ordner: wähle beide Dateien zusammen."
+msgstr "Knx.Ets.Common.dll braucht log4net.dll aus seinem Ordner: wählen Sie beide Dateien zusammen."
 
 msgid "Codepage"
 msgstr "Codepage"
