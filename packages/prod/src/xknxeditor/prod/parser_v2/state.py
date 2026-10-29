@@ -227,6 +227,19 @@ class ParameterState:
     def set_alloc_position(self, alloc_id: str, position: int) -> None:
         self._alloc_positions[alloc_id] = position
 
+    def alloc_positions(self) -> dict[str, int]:
+        """A copy of this scope's allocator positions."""
+        return dict(self._alloc_positions)
+
+    def set_alloc_positions(self, positions: dict[str, int]) -> None:
+        self._alloc_positions = dict(positions)
+
+    def reset_alloc_positions(self) -> None:
+        """Start every allocator of this scope and the module scopes below at its start again."""
+        self._alloc_positions.clear()
+        for child in self._children.values():
+            child.reset_alloc_positions()
+
     def reset_active(self) -> None:
         """Reset active ref sets ahead of the next traversal.
 

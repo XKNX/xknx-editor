@@ -1527,6 +1527,8 @@ class DynamicUI:
         the gates leading there (see :class:`Explorer`). Evaluated on a copy of the state."""
         explorer = Explorer()
         state = copy.deepcopy(self._state)
+        # The copy holds the allocator positions where the last evaluation ended.
+        state.reset_alloc_positions()
         self._tree.eval(
             EvalContext(state, idx=self._idx, union_suppress=False, explore=explorer)
         )
