@@ -29,7 +29,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import TypeGuard, cast
 
-from editor_gui.languages import LANGUAGES, culture
+from editor_gui.languages import culture, ui_cultures
 
 DEFAULT_BASE_URL = "https://onlinecatalog.knx.org"
 MASTER_DATA_URL = "https://update.knx.org/data/XML/project-23/knx_master.xml"
@@ -49,7 +49,7 @@ def download_languages(locale: str) -> list[str]:
     """The languages products are downloaded in for the editor language ``locale``: that one
     first, then the editor's other languages, so the texts are there after switching."""
     first = culture(locale)
-    return [first, *(lang.culture for lang in LANGUAGES if lang.culture != first)]
+    return [first, *(c for c in ui_cultures() if c != first)]
 
 
 # The market of each country the online catalog has one for (ISO 3166 code -> its market's name).

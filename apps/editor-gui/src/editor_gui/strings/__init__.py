@@ -2273,6 +2273,10 @@ class _CombinedStrings(BaseStrings, MenuStrings):
         return _("Ukrainian")
 
     @property
+    def LANGUAGE_ALBANIAN(self) -> str:
+        return _("Albanian")
+
+    @property
     def MENU_PRODUCT_LANGUAGE(self) -> str:
         return _("Preferred Product Language")
 

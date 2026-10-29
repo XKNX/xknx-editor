@@ -1,0 +1,125 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor recover 1.0\n"
+"Language: sq\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Recover Project from Bus"
+msgstr "Rikupero projektin nga busi"
+
+msgid "From Address"
+msgstr "Nga adresa"
+
+msgid "To Address"
+msgstr "Deri te adresa"
+
+msgid "Scan"
+msgstr "Kërko"
+
+msgid "Stop"
+msgstr "Ndalo"
+
+msgid "Add to Open Project as Read"
+msgstr "Shto në projektin e hapur si të lexuara"
+
+msgid "Recover Selected"
+msgstr "Rikupero të zgjedhurat"
+
+msgid "Create New Project"
+msgstr "Krijo projekt të ri"
+
+msgid "Add to Open Project"
+msgstr "Shto në projektin e hapur"
+
+msgid "Verify (Read-Only)"
+msgstr "Verifiko (vetëm lexim)"
+
+msgid "Export Snapshot"
+msgstr "Eksporto pamjen e çastit"
+
+msgid "Verifying (re-reading and comparing)…"
+msgstr "Po verifikohet (rilexim dhe krahasim)…"
+
+msgid "%(count)d group address(es) have no sender or multiple senders."
+msgstr "%(count)d adresë(a) grupi nuk kanë dërgues ose kanë disa dërgues."
+
+msgid "Address"
+msgstr "Adresa"
+
+msgid "Mask"
+msgstr "Maska"
+
+msgid "Product / Application"
+msgstr "Produkti / Aplikacioni"
+
+msgid "Status"
+msgstr "Gjendja"
+
+msgid "Set an address range and scan the bus."
+msgstr "Përcaktoni një diapazon adresash dhe kërkoni në bus."
+
+msgid "Scanning the bus…"
+msgstr "Po kërkohet në bus…"
+
+msgid "Scanning %(address)s  (%(done)d/%(total)d, %(found)d found)"
+msgstr "Po kërkohet %(address)s  (%(done)d/%(total)d, %(found)d të gjetura)"
+
+msgid "Loading missing products from online catalog: %(what)s"
+msgstr "Po ngarkohen produktet që mungojnë nga katalogu online: %(what)s"
+
+msgid "Reading devices…"
+msgstr "Po lexohen pajisjet…"
+
+msgid "Reading %(address)s  (%(done)d/%(total)d)  -  %(stage)s"
+msgstr "Po lexohet %(address)s  (%(done)d/%(total)d)  -  %(stage)s"
+
+msgid "group communication tables"
+msgstr "tabelat e komunikimit në grup"
+
+msgid "parameter memory"
+msgstr "memoria e parametrave"
+
+msgid "Recovered %(devices)d device(s): %(group_addresses)d group addresses, %(links)d links, %(unknown)d parameter(s) not recoverable."
+msgstr "U rikuperuan %(devices)d pajisje: %(group_addresses)d adresa grupi, %(links)d lidhje, %(unknown)d parametër(a) të parikuperueshëm."
+
+msgid "Recovered"
+msgstr "Rikuperuar"
+
+msgid "Added %(count)d device(s) to the open project (%(target)s)."
+msgstr "U shtuan %(count)d pajisje në projektin e hapur (%(target)s)."
+
+msgid "Created new project %(target)s with %(count)d device(s)."
+msgstr "U krijua projekti i ri %(target)s me %(count)d pajisje."
+
+msgid "Not connected to a KNX bus."
+msgstr "Nuk jeni i lidhur me një bus KNX."
+
+msgid "Open or create a project to add recovered devices."
+msgstr "Hapni ose krijoni një projekt për të shtuar pajisjet e rikuperuara."
+
+msgid "matched"
+msgstr "përputhet"
+
+msgid "confirm product/version, then tick"
+msgstr "konfirmoni produktin/versionin, pastaj shënojeni"
+
+msgid "not in catalog - import via Catalog"
+msgstr "nuk është në katalog - importojeni përmes Katalogut"
+
+msgid "unprogrammed"
+msgstr "e paprogramuar"
+
+msgid "recovered"
+msgstr "rikuperuar"
+
+msgid "already in project - skipped"
+msgstr "tashmë në projekt - u anashkalua"
+
+msgid "error"
+msgstr "gabim"
+
+msgid "%d parameters could not be recovered"
+msgstr "%d parametra nuk u rikuperuan"

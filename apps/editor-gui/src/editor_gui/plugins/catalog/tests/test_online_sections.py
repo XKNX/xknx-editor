@@ -105,3 +105,5 @@ def test_products_download_in_the_editor_language_first() -> None:
     assert download_languages("nl") == ["nl-NL", "en-US", "de-DE", *others]
     # A language the editor has no catalog language for: English first.
     assert download_languages("hu") == ["en-US", "de-DE", "nl-NL", *others]
+    # A UI language the KNX master data has none for (Albanian): English first, and only once.
+    assert download_languages("sq") == ["en-US", "de-DE", "nl-NL", *others]

@@ -1,0 +1,65 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor signing 1.0\n"
+"Language: sq\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Signing"
+msgstr "Nënshkrimi"
+
+msgid "Signing Key…"
+msgstr "Çelësi i nënshkrimit…"
+
+msgid "A signing key is set (exports are signed)."
+msgstr "Ka një çelës nënshkrimi (eksportet nënshkruhen)."
+
+msgid "Placeholder key in use — signatures are not ETS-valid."
+msgstr "Çelës vendmbajtës në përdorim — nënshkrimet nuk vlejnë për ETS."
+
+msgid "Modulus (hex)"
+msgstr "Moduli (hex)"
+
+msgid "Private Exponent (hex)"
+msgstr "Eksponenti privat (hex)"
+
+msgid "Public Exponent (hex)"
+msgstr "Eksponenti publik (hex)"
+
+msgid "Extract from Knx.Ets.XmlSigning.dll…"
+msgstr "Nxirre nga Knx.Ets.XmlSigning.dll…"
+
+msgid "Save"
+msgstr "Ruaj"
+
+msgid "Reset to Placeholder"
+msgstr "Kthe te vendmbajtësi"
+
+msgid "All DLLs"
+msgstr "Të gjitha DLL-të"
+
+msgid "All Files"
+msgstr "Të gjithë skedarët"
+
+msgid "Select \"Knx.Ets.XmlSigning.dll\" from your ETS installation (e.g. C:\\Program Files (x86)\\ETS6)."
+msgstr "Zgjidhni \"Knx.Ets.XmlSigning.dll\" nga instalimi juaj i ETS (p.sh. C:\\Program Files (x86)\\ETS6)."
+
+msgid "Extracting key from the assembly…"
+msgstr "Po nxirret çelësi nga assembly-ja…"
+
+msgid "Signing key saved."
+msgstr "Çelësi i nënshkrimit u ruajt."
+
+msgid "Reverted to the placeholder key."
+msgstr "U kthye te çelësi vendmbajtës."
+
+msgid "No .NET runtime found. Install the .NET SDK (macOS: `brew install dotnet-sdk`; Fedora: `sudo dnf install dotnet-sdk-8.0`) to extract the key, or paste it manually below."
+msgstr "Nuk u gjet runtime .NET. Instaloni .NET SDK (macOS: `brew install dotnet-sdk`; Fedora: `sudo dnf install dotnet-sdk-8.0`) për të nxjerrë çelësin, ose ngjiteni me dorë më poshtë."
+
+msgid "The key is read from your own licensed ETS assembly and stored per-user, never in the project."
+msgstr "Çelësi lexohet nga assembly-ja juaj e licencuar e ETS dhe ruhet për çdo përdorues, kurrë në projekt."
+
+msgid "Based on OpenKNXproducer (github.com/OpenKNX/OpenKNXproducer)."
+msgstr "Bazuar në OpenKNXproducer (github.com/OpenKNX/OpenKNXproducer)."

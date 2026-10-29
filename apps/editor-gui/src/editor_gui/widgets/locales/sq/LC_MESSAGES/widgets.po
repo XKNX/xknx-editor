@@ -1,0 +1,296 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor widgets 1.0\n"
+"Language: sq\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "(image)"
+msgstr "(imazh)"
+
+msgid "Search…"
+msgstr "Kërko…"
+
+msgid "{name} (locked)"
+msgstr "{name} (i kyçur)"
+
+msgid "Create Group Addresses ({count})"
+msgstr "Krijo adresa grupi ({count})"
+
+msgid "All"
+msgstr "Të gjitha"
+
+msgid "None"
+msgstr "Asnjë"
+
+msgid "Copy Links ({count})"
+msgstr "Kopjo lidhjet ({count})"
+
+msgid "Paste Links ({count})"
+msgstr "Ngjit lidhjet ({count})"
+
+msgid "Assigns the copied links and flags to the checked objects in order (1st to 1st, 2nd to 2nd, …), replacing each target's current links."
+msgstr "U cakton lidhjet dhe flamujt e kopjuar objekteve të shënuara sipas radhës (i 1-ri te i 1-ri, i 2-ti te i 2-ti, …), duke zëvendësuar lidhjet aktuale të secilit objektiv."
+
+msgid "Merge"
+msgstr "Bashko"
+
+msgid "Keep each target's existing links and only add the copied ones."
+msgstr "Ruaj lidhjet ekzistuese të secilit objektiv dhe shto vetëm ato të kopjuarat."
+
+msgid "Copy Links"
+msgstr "Kopjo lidhjet"
+
+msgid "Default (Inherit)"
+msgstr "Parazgjedhje (e trashëguar)"
+
+msgid "Edit Description…"
+msgstr "Ndrysho përshkrimin…"
+
+msgid "Edit Description"
+msgstr "Ndrysho përshkrimin"
+
+msgid "OK"
+msgstr "OK"
+
+msgid "Cancel"
+msgstr "Anulo"
+
+msgid "Paste Links"
+msgstr "Ngjit lidhjet"
+
+msgid "Copy Addresses as Text"
+msgstr "Kopjo adresat si tekst"
+
+msgid "Create Group Addresses"
+msgstr "Krijo adresa grupi"
+
+msgid "{n}  Sequential index ({n:02} zero-pads)"
+msgstr "{n}  Indeks rendor ({n:02} plotëson me zero)"
+
+msgid "Name Template"
+msgstr "Shablloni i emrit"
+
+msgid "Start Address"
+msgstr "Adresa fillestare"
+
+msgid "automatic"
+msgstr "automatike"
+
+msgid "Sending Group Address"
+msgstr "Adresa e grupit dërguese"
+
+msgid "Receiving Group Address"
+msgstr "Adresa e grupit marrëse"
+
+msgid "sent"
+msgstr "dërguar"
+
+msgid "received"
+msgstr "marrë"
+
+msgid "sent & received"
+msgstr "dërguar & marrë"
+
+msgid "older"
+msgstr "më e vjetër"
+
+msgid "Link Group Address"
+msgstr "Lidh adresë grupi"
+
+msgid "New Group Address"
+msgstr "Adresë grupi e re"
+
+msgid "Address"
+msgstr "Adresa"
+
+msgid "Name"
+msgstr "Emri"
+
+msgid "Create & Link"
+msgstr "Krijo & lidh"
+
+msgid "Name template"
+msgstr "Shablloni i emrit"
+
+msgid "Placeholders"
+msgstr "Vendmbajtësit"
+
+msgid "{building}  Building\n{floor}  Floor\n{room}  Room\n{device}  Device name or description\n{devicename}  Device name\n{devicedescription}  Device description\n{product}  Product\n{manufacturer}  Manufacturer\n{order}  Order number\n{address}  Individual address\n{object}  Object name\n{ganame}  Object name\n{function}  Function\n{number}  Object number\n{dpt}  Datapoint type"
+msgstr "{building}  Ndërtesa\n{floor}  Kati\n{room}  Dhoma\n{device}  Emri ose përshkrimi i pajisjes\n{devicename}  Emri i pajisjes\n{devicedescription}  Përshkrimi i pajisjes\n{product}  Produkti\n{manufacturer}  Prodhuesi\n{order}  Numri i porosisë\n{address}  Adresa individuale\n{object}  Emri i objektit\n{ganame}  Emri i objektit\n{function}  Funksioni\n{number}  Numri i objektit\n{dpt}  Lloji i pikës së të dhënave"
+
+msgid "Changed from default ({default}) — right-click to reset"
+msgstr "Ndryshuar nga parazgjedhja ({default}) — klikim i djathtë për ta rivendosur"
+
+msgid "Reset to Default"
+msgstr "Rivendos parazgjedhjen"
+
+msgid "<differs>"
+msgstr "<ndryshon>"
+
+msgid "Off"
+msgstr "Fikur"
+
+msgid "On"
+msgstr "Ndezur"
+
+msgid "Standard"
+msgstr "Standard"
+
+msgid "Advanced"
+msgstr "I avancuar"
+
+msgid "Theme Colors"
+msgstr "Ngjyrat e temës"
+
+msgid "Standard Colors"
+msgstr "Ngjyrat standarde"
+
+msgid "Mo Tu We Th Fr Sa Su"
+msgstr "Hë Ma Më En Pr Sh Di"
+
+msgid "General"
+msgstr "Të përgjithshme"
+
+msgid "Enter a number."
+msgstr "Vendosni një numër."
+
+msgid "Enter a whole number."
+msgstr "Vendosni një numër të plotë."
+
+msgid "Enter a value from {minimum} to {maximum}."
+msgstr "Vendosni një vlerë nga {minimum} deri në {maximum}."
+
+msgid "Enter at most {count} characters."
+msgstr "Vendosni më së shumti {count} karaktere."
+
+msgid "Enter a value."
+msgstr "Vendosni një vlerë."
+
+msgid "This value cannot be sent with this data type."
+msgstr "Kjo vlerë nuk mund të dërgohet me këtë lloj të dhënash."
+
+msgid "No value can be entered for this data type."
+msgstr "Ky lloj të dhënash nuk lejon vendosjen e vlerës."
+
+msgid "Edit…"
+msgstr "Ndrysho…"
+
+msgid "The text may take at most {count} bytes."
+msgstr "Teksti mund të ketë më së shumti {count} bajte."
+
+msgid "Value {number}"
+msgstr "Vlera {number}"
+
+msgid "Edit Value"
+msgstr "Ndrysho vlerën"
+
+msgid "Size Column to Fit"
+msgstr "Përshtat gjerësinë e kolonës"
+
+msgid "Size All Columns to Fit"
+msgstr "Përshtat gjerësinë e të gjitha kolonave"
+
+msgid "Reset Column Order"
+msgstr "Rivendos renditjen e kolonave"
+
+msgid "Reset Column Visibility"
+msgstr "Rivendos dukshmërinë e kolonave"
+
+msgid "Reset All Columns"
+msgstr "Rivendos të gjitha kolonat"
+
+msgid "DPT"
+msgstr "DPT"
+
+msgid "Length"
+msgstr "Gjatësia"
+
+msgid "Prio"
+msgstr "Prio"
+
+msgid "Group Addresses"
+msgstr "Adresat e grupit"
+
+msgid "(empty)"
+msgstr "(bosh)"
+
+msgid "Options"
+msgstr "Opsionet"
+
+msgid "Columns"
+msgstr "Kolonat"
+
+msgid "Grey Out Zeros"
+msgstr "Zbeh zerot"
+
+msgid "Uppercase Hex"
+msgstr "Hex me shkronja të mëdha"
+
+msgid "Show ASCII"
+msgstr "Shfaq ASCII"
+
+msgid "Copy"
+msgstr "Kopjo"
+
+msgid "Copy {count} B"
+msgstr "Kopjo {count} B"
+
+msgid "Go To:"
+msgstr "Shko te:"
+
+msgid "{count} difference(s)"
+msgstr "{count} ndryshim(e)"
+
+msgid "no differences"
+msgstr "asnjë ndryshim"
+
+msgid "Parameter:"
+msgstr "Parametri:"
+
+msgid "search…"
+msgstr "kërko…"
+
+msgid "Low"
+msgstr "I ulët"
+
+msgid "High"
+msgstr "I lartë"
+
+msgid "Alert"
+msgstr "Alarm"
+
+msgid "Hours"
+msgstr "Orë"
+
+msgid "Minutes"
+msgstr "Minuta"
+
+msgid "Seconds"
+msgstr "Sekonda"
+
+msgid "x 100 ms"
+msgstr "x 100 ms"
+
+msgid "x 10 ms"
+msgstr "x 10 ms"
+
+msgid "Milliseconds"
+msgstr "Milisekonda"
+
+msgid "Bold"
+msgstr "I trashë"
+
+msgid "Italic"
+msgstr "I pjerrët"
+
+msgid "Underline"
+msgstr "I nënvizuar"
+
+msgid "Cut"
+msgstr "Prit"
+
+msgid "Paste"
+msgstr "Ngjit"

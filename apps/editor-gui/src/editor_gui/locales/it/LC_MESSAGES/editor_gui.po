@@ -1405,6 +1405,9 @@ msgstr "Turco"
 msgid "Ukrainian"
 msgstr "Ucraino"
 
+msgid "Albanian"
+msgstr "Albanese"
+
 msgid "Preferred Product Language"
 msgstr "Lingua Prodotti Preferita"
 
