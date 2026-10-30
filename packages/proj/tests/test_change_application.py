@@ -167,3 +167,42 @@ def test_undoing_a_change_keeps_the_tool_keys(tmp_path: Path) -> None:
     assert keys is not None
     assert (keys.tool_key, keys.loaded_tool_key) == (tool_key, tool_key)
     svc.close(pid)
+
+
+def test_an_unload_clears_what_the_device_no_longer_holds(tmp_path: Path) -> None:
+    svc, pid, device_id, _ = _project(tmp_path)
+    svc.set_device_commissioning(
+        pid, device_id, mac_address="E8:F6:0A:E0:62:3D", ip_address="192.168.1.5"
+    )
+    row = svc.devices(pid)[0]
+    row.extra_attributes = {"LoadedImage": "AAEC", "CheckSums": "AQ==", "Keep": "1"}
+    svc.set_device_commissioning(
+        pid,
+        device_id,
+        individual_address_loaded=False,
+        clear_load_data=True,
+        clear_network=True,
+    )
+    row = svc.devices(pid)[0]
+    assert row.serial_number == ""
+    assert row.ip_config == {}
+    assert row.extra_attributes == {"Keep": "1"}
+    assert svc.undo(pid)
+    row = svc.devices(pid)[0]
+    assert row.serial_number == "AAECAwQF"
+    assert row.ip_config == {
+        "MACAddress": "E8:F6:0A:E0:62:3D",
+        "IPAddress": "192.168.1.5",
+    }
+    assert row.extra_attributes == {
+        "LoadedImage": "AAEC",
+        "CheckSums": "AQ==",
+        "Keep": "1",
+    }
+
+
+def test_an_unload_keeps_a_fixed_ip_address(tmp_path: Path) -> None:
+    svc, pid, device_id, _ = _project(tmp_path)
+    svc.devices(pid)[0].ip_config = {"Assign": "Fixed", "IPAddress": "10.0.0.2"}
+    svc.set_device_commissioning(pid, device_id, clear_network=True)
+    assert svc.devices(pid)[0].ip_config == {"Assign": "Fixed", "IPAddress": "10.0.0.2"}

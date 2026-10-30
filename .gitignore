@@ -48,6 +48,7 @@ scan_repeats.py
 packages/*/src/**/*.json
 !packages/prod/src/xknxeditor/prod/script/compat/casemap.json
 !packages/download/src/xknxeditor/download/mask_resources.json
+!packages/download/src/xknxeditor/download/suspicious_serials.json
 
 # Local runtime data (settings + imgui layout, catalog .knxprod store)
 config/

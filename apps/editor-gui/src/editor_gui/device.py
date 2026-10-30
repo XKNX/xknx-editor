@@ -306,6 +306,11 @@ class Device:
     factory_image: Callable[[], FactoryData | None] | None = field(
         default=None, repr=False, compare=False, init=False
     )
+    # Gives the product's second application program (its PEI program), which a download loads
+    # with the application; read when a download needs it.
+    second_application: Callable[[], Application | None] | None = field(
+        default=None, repr=False, compare=False, init=False
+    )
     # Name of a device configuration app the project carries for this device's application.
     configuration_app: str | None = field(
         default=None, repr=False, compare=False, init=False

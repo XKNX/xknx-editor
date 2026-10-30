@@ -34,6 +34,8 @@ from xknx.telegram.apci import (
     FunctionPropertyCommand,
     FunctionPropertyStateRead,
     FunctionPropertyStateResponse,
+    KeyResponse,
+    KeyWrite,
     MemoryExtendedRead,
     MemoryExtendedReadResponse,
     MemoryExtendedWrite,
@@ -479,6 +481,17 @@ class DeviceProgrammer:
         payload = telegram.payload
         if not isinstance(payload, AuthorizeResponse):
             raise VerificationError("no authorize response received")
+        return payload.level
+
+    async def key_write(self, level: int, key: int) -> int:
+        """Set the key of access ``level`` (A_Key_Write; the free access key removes it) and
+        return the level the device set it for: 0xFF when it refused."""
+        telegram = await self.connection.request(
+            KeyWrite(level=level, key=key), KeyResponse
+        )
+        payload = telegram.payload
+        if not isinstance(payload, KeyResponse):
+            raise VerificationError("no key response received")
         return payload.level
 
     def _block_count(self, address: int, remaining: int) -> int:

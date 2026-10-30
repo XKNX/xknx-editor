@@ -22,7 +22,6 @@ import logging
 from typing import TYPE_CHECKING
 
 from xknx.exceptions import ManagementConnectionError
-from xknx.management.procedures.device.dm_restart_r_co import dm_restart_r_co
 from xknx.management.procedures.network.nm_individual_address_check import (
     nm_individual_address_check,
     nm_individual_address_check_conn,
@@ -57,6 +56,8 @@ if TYPE_CHECKING:
     from xknxeditor.prod import MasterData
 
     from .data_secure import DeviceSecurity
+    from .programmer import DeviceProgrammer
+    from .resources import MaskResources
 
 logger = logging.getLogger(__name__)
 
@@ -163,26 +164,33 @@ async def switch_programming_mode(
             master.raw if master is not None else None, mask_id
         ):
             await programmer.authorize()
-        prop = resources.property_ref(ResourceName.PROGRAMMING_MODE)
-        memory = resources.memory_address(ResourceName.PROGRAMMING_MODE)
-        if prop is not None:
-            await programmer.write_property(*prop, bytes([int(enable)]))
-        elif memory is not None:
-            (current,) = await programmer.read_memory(memory, 1)
-            if bool(current & _PROG_MODE_BIT) != enable:
-                value = current ^ (_PROG_MODE_BIT | _PROG_MODE_PARITY)
-                await connection.send_data(
-                    apci.MemoryWrite(address=memory, data=bytes([value]))
-                )
-        else:
-            raise UnsupportedProcedureError(
-                f"mask {mask_id} has no programming mode resource"
-            )
+        await set_programming_mode(programmer, resources, enable)
         logger.debug(
             "Switched programming mode of %s %s.", address, "on" if enable else "off"
         )
     finally:
         await manager.close()
+
+
+async def set_programming_mode(
+    programmer: DeviceProgrammer, resources: MaskResources, enable: bool
+) -> None:
+    """Switch the programming mode over an open connection: the mask's ``ProgrammingMode``
+    resource is the Device Object property PID_PROGMODE or the memory octet at 60h (read,
+    modify, write)."""
+    prop = resources.property_ref(ResourceName.PROGRAMMING_MODE)
+    memory = resources.memory_address(ResourceName.PROGRAMMING_MODE)
+    if prop is not None:
+        await programmer.write_property(*prop, bytes([int(enable)]))
+    elif memory is not None:
+        (current,) = await programmer.read_memory(memory, 1)
+        if bool(current & _PROG_MODE_BIT) != enable:
+            value = current ^ (_PROG_MODE_BIT | _PROG_MODE_PARITY)
+            await programmer.connection.send_data(
+                apci.MemoryWrite(address=memory, data=bytes([value]))
+            )
+    else:
+        raise UnsupportedProcedureError("the mask has no programming mode resource")
 
 
 async def download_individual_address(
@@ -230,7 +238,7 @@ async def download_individual_address(
         await switch_programming_mode(
             xknx, current, True, security=current_security, master=master
         )
-    devices = await _wait_for_programming_mode(
+    devices = await wait_for_programming_mode(
         xknx, waiting if current is None else None
     )
     if current is not None and devices[0] != current:
@@ -276,7 +284,7 @@ async def _write_by_serial_number(
     await nm_individual_address_serial_number_write(xknx, serial_number, address)
 
 
-async def _wait_for_programming_mode(
+async def wait_for_programming_mode(
     xknx: XKNX, waiting: Callable[[], None] | None
 ) -> list[IndividualAddress]:
     """Poll until exactly one device is in programming mode; without ``waiting``, poll once."""
@@ -321,32 +329,3 @@ async def _verify_and_restart(
         ) from exc
     finally:
         await manager.close()
-
-
-async def reset_individual_address(xknx: XKNX) -> None:
-    """Reset the individual address of the single device in programming mode to
-    the default (15.15.255), returning it to the unprogrammed state.
-
-    Exactly one device must be in programming mode. ``xknx`` has to be started.
-
-    This does not go through :func:`nm_individual_address_write`: that procedure
-    first checks whether the target address is occupied and aborts on a conflict,
-    but the default address is the "unprogrammed" marker and answers/refuses on
-    many buses, so the check misfires. The address is written directly instead.
-    """
-    devices = await nm_individual_address_read(xknx, raise_if_multiple=True)
-    if not devices:
-        raise ManagementConnectionError("No device in programming mode detected.")
-
-    await xknx.management.broadcast.send(
-        payload=apci.IndividualAddressWrite(address=DEFAULT_INDIVIDUAL_ADDRESS),
-    )
-    logger.debug("Reset device %s to the default address.", devices[0])
-
-    # Restart the device to leave programming mode. Writing the address above is
-    # the essential step, so a restart that does not complete is not fatal.
-    with contextlib.suppress(ManagementConnectionError):
-        async with xknx.management.connection(
-            address=DEFAULT_INDIVIDUAL_ADDRESS
-        ) as connection:
-            await dm_restart_r_co(connection)

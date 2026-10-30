@@ -124,13 +124,16 @@ async def test_memory_load_status() -> None:
     ("status", "pei_id", "legacy", "accepted"),
     [
         (b"\x00", None, False, True),
-        (b"\x01", b"\x00\x00\x00\x00\x00", False, True),
-        (b"\x01", b"\x00\xfa\x00\x01\x02", False, False),
+        # Loaded, but the product has no PEI program: only a warning.
+        (b"\x01", b"\x00\xfa\x00\x01\x02", False, True),
+        # Neither loaded nor unloaded: only an empty PEI program is accepted.
+        (b"\x02", b"\x00\x00\x00\x00\x00", False, True),
+        (b"\x02", b"\x00\x00\x00\x00\x01", False, False),
         (b"\x02", None, False, False),
         (b"\x02", None, True, True),
     ],
 )
-async def test_pei_program(
+async def test_pei_program_without_one_in_the_product(
     status: bytes, pei_id: bytes | None, legacy: bool, accepted: bool
 ) -> None:
     app = _application(legacy_allow_partial_download_if_ap2_mismatch=legacy)
@@ -138,7 +141,39 @@ async def test_pei_program(
     device.load_states[5] = LoadState(status[0])
     if pei_id is not None:
         device.properties[5, 13] = pei_id
-    assert (await _mismatch(device, app) is None) is accepted
+    reason = await _mismatch(device, app)
+    assert (reason is None) is accepted
+    if not accepted:
+        assert "without PEI program, but PEI program in device is not unloaded" in str(
+            reason
+        )
+
+
+def _pei_program(app: Application) -> Application:
+    """``app`` as the product's second application program (number 0x1234, version 0x43)."""
+    program = deepcopy(app.program)
+    program.application_number = 0x1234
+    program.application_version = 0x43
+    return cast(Application, SimpleNamespace(program=program, manufacturer_id="M-00FA"))
+
+
+async def test_pei_program_of_the_product() -> None:
+    app = _application()
+    pei = _pei_program(app)
+    device = _device(app)
+    device.load_states[5] = LoadState.LOADED
+    device.properties[5, 13] = b"\x00\xfa\x12\x34\x43"
+    programmer = DeviceProgrammer(device)
+    assert await partial_download_mismatch(programmer, app, _SYSTEM_B, pei) is None
+    device.properties[5, 13] = b"\x00\xfa\x12\x34\x42"
+    assert await partial_download_mismatch(programmer, app, _SYSTEM_B, pei) == (
+        "Partial download not possible because different PEI program: "
+        "250 1234 42 instead of 250 1234 43"
+    )
+    device.load_states[5] = LoadState.UNLOADED
+    assert await partial_download_mismatch(programmer, app, _SYSTEM_B, pei) == (
+        "Partial download not possible because PEI program not loaded: load status=0"
+    )
 
 
 async def test_patched_manufacturer_is_accepted() -> None:
@@ -146,6 +181,11 @@ async def test_patched_manufacturer_is_accepted() -> None:
     device = _device(app)
     device.properties[4, 13] = b"\x00\x02" + application_id(app)[2:]
     assert await _mismatch(device, app) is None
+    # Also in the four-octet form.
+    device.properties[4, 13] = b"\x02" + application_id(app)[2:]
+    assert await _mismatch(device, app) is None
+    device.properties[4, 13] = b"\x03" + application_id(app)[2:]
+    assert "different application program: 3 " in str(await _mismatch(device, app))
 
 
 def test_four_octet_application_id() -> None:

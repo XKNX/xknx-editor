@@ -231,6 +231,8 @@ from xknxeditor.proj.models import (
 # (time, date, day/night, weather) rather than part of a single load, and is excluded from function
 # suggestions. Real loads are linked by only a handful of devices (actuator + a sensor or two).
 _CENTRAL_GA_MIN_DEVICES = 4
+# The key of free access (no access protection).
+_FREE_ACCESS_KEY = 0xFFFFFFFF
 # The KNXnet/IP routing multicast address a backbone has unless it sets another.
 DEFAULT_MULTICAST_ADDRESS = "224.0.23.12"
 
@@ -2361,13 +2363,17 @@ class ProjectService:
         mac_address: str | None = None,
         download: bool = False,
         ip_address: str | None = None,
+        clear_load_data: bool = False,
+        clear_network: bool = False,
     ) -> None:
         """Update a device's commissioning state (loaded ticks, serial, last download, the MAC
         address read from an IP device and the IP address it was found at).
 
         Each field is optional; ``None`` leaves it unchanged. Typically called after programming to
         record what was loaded (``download``: then its "Last Modified" stays), and by the
-        importer's round-trip (the ``.knxproj`` carries it)."""
+        importer's round-trip (the ``.knxproj`` carries it). After an unload, ``clear_load_data``
+        and ``clear_network`` clear what the device no longer holds (see
+        :class:`SetDeviceCommissioning`)."""
         self._state(project_id).store.append(
             SetDeviceCommissioning(
                 device_id=device_id,
@@ -2381,6 +2387,8 @@ class ProjectService:
                 mac_address=mac_address,
                 download=download,
                 ip_address=ip_address,
+                clear_load_data=clear_load_data,
+                clear_network=clear_network,
             )
         )
 
@@ -2728,6 +2736,21 @@ class ProjectService:
         if value and state.cipher is not None:
             value = state.cipher.value(value)
         return _key(value)
+
+    def bcu_key(self, project_id: str) -> int:
+        """The installation's access key (``BCUKey``) devices with access protection are
+        authorized with, decrypted; the free access key 0xFFFFFFFF when the project has none."""
+        state = self._state(project_id)
+        installation = state.session.query(Installation).first()
+        attrs = installation.extra_attributes if installation is not None else None
+        value = (attrs or {}).get("BCUKey")
+        if value and state.cipher is not None:
+            value = state.cipher.value(value)
+        try:
+            key = int(value or "")
+        except ValueError:
+            return _FREE_ACCESS_KEY
+        return key if 0 <= key <= _FREE_ACCESS_KEY else _FREE_ACCESS_KEY
 
     def ip_secrets(self, project_id: str, device_id: int) -> IpSecrets:
         """The device's KNX IP Secure passwords from its ``<Security>`` and ``<BusInterfaces>``."""

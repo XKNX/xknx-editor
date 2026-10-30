@@ -136,7 +136,7 @@ async def test_preflight_retries_with_smaller_blocks_within_the_interface(
     monkeypatch.setattr(download_module, "_connection_manager", lambda *a: _Manager())
     monkeypatch.setattr(download_module, "_device_association_format", same_image)
     monkeypatch.setattr(download_module, "_partial_scope", same_scope)
-    monkeypatch.setattr(download_module, "_resolve_controls", lambda *a: [])
+    monkeypatch.setattr(download_module, "_resolve_controls", lambda *a, **k: [])
     monkeypatch.setattr(download_module, "_object_types", lambda *a: {})
     monkeypatch.setattr(download_module, "_authorize_levels", lambda *a: 0)
 

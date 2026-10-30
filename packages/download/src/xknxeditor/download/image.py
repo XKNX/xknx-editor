@@ -784,6 +784,54 @@ def build_image(
     )
 
 
+def with_second_program(
+    image: DownloadImage, application2: Application
+) -> DownloadImage:
+    """``image`` with the code segments of the product's second application program (its PEI
+    program, which has no parameters): their data, written in a full download. Relative
+    segments belong to the program's load state machine, absolute ones to their address."""
+    code = application2.program.static.code
+    if code is None:
+        return image
+
+    def memory(address: int, size: int, seed: bytes | None, seed_mask: bytes | None):
+        data = (seed or b"")[:size]
+        initialized = bytes([0xFF]) * len(data)
+        if seed_mask is not None:
+            mask = seed_mask.ljust(len(data), b"\x00")[: len(data)]
+            initialized = bytes(a & b for a, b in zip(initialized, mask, strict=True))
+        return MemorySegment(
+            address,
+            data.ljust(size, b"\x00"),
+            bytes(size),
+            initialized.ljust(size, b"\x00"),
+        )
+
+    relative = [
+        ObjectMemorySegment(
+            s.load_state_machine, memory(s.offset, s.size, s.data, s.mask)
+        )
+        for s in code.relative_segment
+    ]
+    absolute = [
+        memory(s.address, s.size, s.data, s.mask)
+        for s in code.absolute_segment
+        if s.size
+    ]
+    if not relative and not absolute:
+        return image
+    object_segments = dict(image.object_segments)
+    for segment in relative:
+        if segment.memory.address == 0:
+            object_segments.setdefault(segment.object_index, segment.memory.data)
+    return replace(
+        image,
+        segments=(*image.segments, *absolute),
+        application_segments=(*image.application_segments, *relative),
+        object_segments=MappingProxyType(object_segments),
+    )
+
+
 def _procedure_parameters(application: Application, ui: DynamicUI) -> dict[str, str]:
     """The current values of the active parameters a ``choose`` in the load procedure tests;
     an inactive one has none, so its ``choose`` selects no controls."""

@@ -119,6 +119,7 @@ from .merge import device_mask_version, resolve_download_controls
 from .preflight import PreflightReport, PropertyDiff, SegmentDiff
 from .programmer import (
     DEFAULT_MAX_APDU_LENGTH,
+    FREE_ACCESS_KEY,
     PID_TABLE_REFERENCE,
     DeviceProgrammer,
     negotiated_apdu_length,
@@ -478,6 +479,8 @@ class LoadProcedureRunner:
         memory_service_count: int | None = None,
         property_services: bool = True,
         application_loaded: bool = False,
+        application2: Application | None = None,
+        access_key: int = FREE_ACCESS_KEY,
     ) -> None:
         """Initialize the runner.
 
@@ -500,10 +503,16 @@ class LoadProcedureRunner:
         ``application_loaded`` runs a full procedure on a device that already has
         the application loaded (``PreferPartialDownloadIfApplicationLoaded``): the
         segments' code seed is not written, only the tables and the parameters.
+
+        ``application2`` is the product's second application program: its id is the one
+        written to the second program's object. ``access_key`` is the project's key a device
+        with access protection is authorized with.
         """
         if programmer is None and connection_manager is None:
             raise DownloadError("provide a programmer or a connection manager")
         self.application = application
+        self.application2 = application2
+        self._access_key = access_key
         self.image = image
         self.scope = scope
         self.application_loaded = application_loaded
@@ -1030,16 +1039,16 @@ class LoadProcedureRunner:
             programmer.max_apdu_length = self._negotiated_apdu
         if self._authorize_levels > 0:
             # Access protection is per connection, so authorize on every open (a
-            # Restart drops the connection and the next control reconnects). No
-            # per-device access key is available here, so free access is used; a
-            # device with no key set grants full access (level 0) for it.
-            level = await programmer.authorize()
+            # Restart drops the connection and the next control reconnects), with the
+            # project's key; a device with no key set grants full access (level 0) for
+            # any key.
+            level = await programmer.authorize(self._access_key)
             if level == 0:
-                logger.debug("authorized with free access (level 0)")
+                logger.debug("authorized with full access (level 0)")
             else:
                 logger.warning(
-                    "device granted only access level %d for the free access key; "
-                    "it may be locked with an access key and refuse writes",
+                    "device granted only access level %d for the project's access key; "
+                    "it may be locked with another key and refuse writes",
                     level,
                 )
 
@@ -1702,6 +1711,9 @@ class LoadProcedureRunner:
         if control.prop_id == 13 and object_type in (3, 4):
             if control.start_element != 1 or control.count != 1:
                 raise ImageError("application identity requires element 1, count 1")
+            # The second program's object (type 4) holds that program's id.
+            if object_type == 4 and self.application2 is not None:
+                return _application_id(self.application2), None
             return _application_id(self.application), None
         width = self._property_widths.get(
             (index, control.prop_id), STANDARD_WRITE_WIDTHS.get(control.prop_id)

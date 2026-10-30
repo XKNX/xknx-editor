@@ -162,6 +162,44 @@ def get_application_detail(
     return app
 
 
+def get_second_application_detail(
+    db: Session,
+    program_id: str,
+    language: str | None = None,
+    cache_dir: Path | None = None,
+) -> ProductApplication | None:
+    """The second application program of a hardware program (its PEI program, the second
+    ``ApplicationProgramRef``), parsed; ``None`` when it has none or it is not in the archive."""
+    program = db.scalars(
+        select(HardwareProgram)
+        .options(selectinload(HardwareProgram.hardware))
+        .where(HardwareProgram.id == program_id)
+    ).first()
+    if not program:
+        return None
+    from xknxeditor.prod.archive import Archive
+    from xknxeditor.prod.errors import ArchiveError
+    from xknxeditor.prod.hardware import parse_hardware_xml
+
+    manufacturer_id = program.hardware.manufacturer_id
+    try:
+        with Archive(program.knxprod_path, require_catalog=False) as archive:
+            hardware = parse_hardware_xml(archive.get_hardware_xml(manufacturer_id))
+    except (ArchiveError, OSError, KeyError, ValueError) as exc:
+        logger.debug("hardware of %s not readable: %s", program_id, exc)
+        return None
+    found = hardware.programs.get(program_id)
+    if found is None or len(found.application_ref_ids) < 2:
+        return None
+    return _load_application(
+        program.knxprod_path,
+        manufacturer_id,
+        found.application_ref_ids[1],
+        language,
+        cache_dir,
+    )
+
+
 def _load_application(
     knxprod_path: str,
     manufacturer_id: str,

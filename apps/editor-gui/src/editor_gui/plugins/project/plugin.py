@@ -2722,6 +2722,9 @@ class ProjectPlugin:
                 ip_secure=ip_secure,
                 disable_security=self._api.project.download_disables_security(device),
                 routing_blocking=self._api.project.download_routing_blocking(device),
+                # An unload of everything from the editor waits for the user's programming
+                # mode; over MCP it writes the address by serial number or switches it on.
+                in_programming_mode=True,
             )
         except DeviceCertificateRequired:
             item.message = S.DEVICE_CERTIFICATE_REQUIRED
@@ -2822,7 +2825,7 @@ class ProjectPlugin:
                 # IP Secure settings are only written over a secured connection.
                 if ip_secure is not None and getattr(result, "secured", False):
                     self._api.project.record_ip_secure_download(device, ip_secure)
-            if scope_value != "unload":
+            if scope_value not in ("unload", "unload_all"):
                 self._find_ip_after_download(node_id)
 
         if self._api.main_thread is not None:

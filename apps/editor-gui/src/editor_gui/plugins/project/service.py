@@ -163,8 +163,8 @@ class UpdateApplicationResult:
 
 
 # Which commissioning "loaded" flags a successful download of each scope sets (keyed by
-# DownloadScope.value). FULL/UNLOAD set all true/false; partial scopes set only their part. Flags
-# not listed are left unchanged.
+# DownloadScope.value). FULL/UNLOAD_ALL set all true/false, UNLOAD clears the application's part
+# (not the address); partial scopes set only their part. Flags not listed are left unchanged.
 _ALL_LOADED = (
     "individual_address_loaded",
     "application_program_loaded",
@@ -174,7 +174,12 @@ _ALL_LOADED = (
 )
 _COMMISSIONING_BY_SCOPE: dict[str, dict[str, bool]] = {
     "full": dict.fromkeys(_ALL_LOADED, True),
-    "unload": dict.fromkeys(_ALL_LOADED, False),
+    "unload": {
+        "application_program_loaded": False,
+        "communication_part_loaded": False,
+        "parameters_loaded": False,
+    },
+    "unload_all": dict.fromkeys(_ALL_LOADED, False),
     "ap1": {  # APPLICATION: parameters + application + group communication (not the address)
         "application_program_loaded": True,
         "communication_part_loaded": True,
@@ -367,6 +372,8 @@ class _DeviceInputs:
     binary_data: tuple[Any, ...] = ()
     # Gives the product's factory image (see Device.factory_image).
     factory_image: Callable[[], FactoryData | None] | None = None
+    # Gives the product's second application program (see Device.second_application).
+    second_application: Callable[[], Application | None] | None = None
     # Gives the project's codepage (see Device.project_code_page).
     project_code_page: Callable[[], str | None] | None = None
 
@@ -388,6 +395,7 @@ def _compute_device(inputs: _DeviceInputs, app: Application) -> Device:
     )
     device.download_plugin_required = inputs.download_plugin_required
     device.factory_image = inputs.factory_image
+    device.second_application = inputs.second_application
     device.project_code_page = inputs.project_code_page
     device.configuration_app = inputs.configuration_app
     for row in inputs.com_objects:
@@ -2055,6 +2063,16 @@ class ProjectService:
         catalog = self._catalog
         return lambda: catalog.factory_image(program_ref)
 
+    def _second_application_source(
+        self, program_ref: str | None
+    ) -> Callable[[], Application | None] | None:
+        """Gives the second application program of the product ``program_ref`` loads, read
+        when needed."""
+        if not program_ref:
+            return None
+        catalog = self._catalog
+        return lambda: catalog.second_application(program_ref)
+
     def _build_device(self, row: Any) -> Device | None:
         """The device of ``row``: from its snapshot when nothing it was derived from changed, else
         evaluated from its application (and a new snapshot made)."""
@@ -2171,6 +2189,7 @@ class ProjectService:
             return None
         device.download_plugin_required = self._requires_download_plugin(program_ref)
         device.factory_image = self._factory_image_source(program_ref)
+        device.second_application = self._second_application_source(program_ref)
         device.project_code_page = self.project_code_page
         device.configuration_app = next(
             (a.name for a in self._configuration_apps() if a.applies_to(app.id)),
@@ -2357,6 +2376,9 @@ class ProjectService:
             and self._requires_download_plugin(program_ref),
             binary_data=tuple(getattr(row, "binary_data", []) or []),
             factory_image=None if compared else self._factory_image_source(program_ref),
+            second_application=None
+            if compared
+            else self._second_application_source(program_ref),
             project_code_page=None if compared else self.project_code_page,
             configuration_app=None
             if compared
@@ -3260,6 +3282,13 @@ class ProjectService:
             return None
         return key, _int_or(installation.get("IPRoutingLatencyTolerance"), 2000)
 
+    def access_key(self) -> int:
+        """The project's access key (BCU key) devices with access protection are authorized
+        with; the free access key without a project."""
+        if self._pid is None:
+            return 0xFFFFFFFF
+        return self._svc.bcu_key(self._pid)
+
     def data_secure_tables(self) -> tuple[dict[int, bytes], dict[int, int]] | None:
         """The project's Data Secure tables for a connection: the keys of the secured group
         addresses and every device that can send on them with its last valid Sequence Number."""
@@ -3590,8 +3619,12 @@ class ProjectService:
 
     def record_secure_download(self, device: Device, result: object) -> None:
         """Record what a secured download left in the device (its ``DownloadResult``): the Tool
-        Key it uses now and its next Sequence Number Sending."""
+        Key it uses now and its next Sequence Number Sending, or the FDSK again after an
+        unload that reset it to its factory state."""
         if self._pid is None:
+            return
+        if getattr(result, "factory_reset", False):
+            self.record_factory_reset(device)
             return
         if getattr(result, "tool_key_loaded", False):
             self.set_tool_key_loaded(device)
@@ -4204,20 +4237,24 @@ class ProjectService:
         mac_address: bytes | None = None,
     ) -> None:
         """Record a successful download of ``scope_value`` (a DownloadScope value): its loaded
-        flags, the serial number and MAC address read and, except for an unload, the time."""
+        flags, the serial number and MAC address read and, except for an unload, the time. An
+        unload clears the image of the last download, an unload of everything also the serial
+        number, MAC and IP address."""
         flags = _COMMISSIONING_BY_SCOPE.get(scope_value)
         if flags is None:
             return
-        now = None if scope_value == "unload" else project_timestamp()
+        unload = scope_value in ("unload", "unload_all")
         self.set_device_commissioning(
             node_id,
-            serial_number=serial_to_project(serial) if serial else None,
-            last_download=now,
+            serial_number=serial_to_project(serial) if serial and not unload else None,
+            last_download=None if unload else project_timestamp(),
             mac_address=":".join(f"{b:02X}" for b in mac_address)
-            if mac_address
+            if mac_address and not unload
             else None,
             download=True,
             ip_address=None,
+            clear_load_data=unload,
+            clear_network=scope_value == "unload_all",
             **flags,
         )
 
@@ -4235,10 +4272,13 @@ class ProjectService:
         mac_address: str | None = None,
         download: bool = False,
         ip_address: str | None = None,
+        clear_load_data: bool = False,
+        clear_network: bool = False,
     ) -> None:
         """Record a device's commissioning state (loaded ticks / serial / last download / MAC
         address / the IP address it was found at); ``download`` for what a download recorded
-        (the device's "Last Modified" stays).
+        (the device's "Last Modified" stays); ``clear_load_data`` / ``clear_network`` for what an
+        unload removed.
 
         Called after programming a device. Non-structural: the device's parameter/com-object UI is
         unchanged, so the expensive device cache is preserved (only the revision bumps)."""
@@ -4257,6 +4297,8 @@ class ProjectService:
             mac_address=mac_address,
             download=download,
             ip_address=ip_address,
+            clear_load_data=clear_load_data,
+            clear_network=clear_network,
         )
         self._bump(structural=False)
 
