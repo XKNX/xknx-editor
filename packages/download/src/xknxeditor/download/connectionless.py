@@ -1,8 +1,8 @@
 """Connectionless point-to-point communication (T_Data_Individual, no T_Connect).
 
 xknx sends T_Data_Individual for any individual destination, but drops incoming
-connectionless frames when no connection to the sender is open. The manager
-routes them to the waiting request while it is open.
+connectionless frames when no connection to the sender is open. While a manager is
+open, ``Management.process`` routes the device's frames to its channel.
 """
 
 from __future__ import annotations
@@ -12,8 +12,11 @@ from collections.abc import Callable
 from typing import TYPE_CHECKING
 
 from xknx.exceptions import ManagementConnectionTimeout
+from xknx.management.management import Management
 from xknx.telegram import IndividualAddress, Telegram
 from xknx.telegram.tpci import TDataIndividual
+
+from .response_matching import answers
 
 if TYPE_CHECKING:
     from xknx import XKNX
@@ -61,8 +64,35 @@ class ConnectionlessConnection:
                 raise ManagementConnectionTimeout(
                     f"No response from {self._address} for {payload}"
                 ) from exc
-            if expected is None or isinstance(telegram.payload, expected):
+            if (expected is None or isinstance(telegram.payload, expected)) and answers(
+                payload, telegram.payload
+            ):
                 return telegram
+
+
+# The open channels by the ``Management`` they receive through (its id: ``Management`` has
+# ``__slots__``, so it can neither carry them nor be referenced weakly) and the device.
+_CHANNELS: dict[int, dict[IndividualAddress, ConnectionlessConnection]] = {}
+_management_process: Callable[[Management, Telegram], None] | None = None
+
+
+def _process(management: Management, telegram: Telegram) -> None:
+    """``Management.process`` that hands a device's connectionless frames to its channel."""
+    channels = _CHANNELS.get(id(management), {})
+    channel = channels.get(telegram.source_address)
+    if channel is not None and isinstance(telegram.tpci, TDataIndividual):
+        channel.process(telegram)
+        return
+    assert _management_process is not None
+    _management_process(management, telegram)
+
+
+def _route_connectionless_frames() -> None:
+    """Put :func:`_process` on ``Management`` once."""
+    global _management_process
+    if _management_process is None:
+        _management_process = Management.process
+        Management.process = _process  # type: ignore[method-assign]
 
 
 class ConnectionlessManager:
@@ -71,34 +101,20 @@ class ConnectionlessManager:
     def __init__(self, xknx: XKNX, address: IndividualAddress) -> None:
         self._xknx = xknx
         self._address = address
-        self._installed = False
-        self._own: Callable[[Telegram], None] | None = None
+        self._management: Management | None = None
 
     async def open(self) -> ConnectionlessConnection:
+        _route_connectionless_frames()
         connection = ConnectionlessConnection(self._xknx, self._address)
-        management = self._xknx.management
-        previous = vars(management).get("process")
-        forward: Callable[[Telegram], None] = management.process
-
-        def process(telegram: Telegram) -> None:
-            if telegram.source_address == self._address and isinstance(
-                telegram.tpci, TDataIndividual
-            ):
-                connection.process(telegram)
-                return
-            forward(telegram)
-
-        self._own = previous
-        management.process = process  # type: ignore[method-assign]
-        self._installed = True
+        self._management = self._xknx.management
+        _CHANNELS.setdefault(id(self._management), {})[self._address] = connection
         return connection
 
     async def close(self) -> None:
-        if not self._installed:
+        if self._management is None:
             return
-        management = self._xknx.management
-        if self._own is None:
-            vars(management).pop("process", None)
-        else:
-            management.process = self._own  # type: ignore[method-assign]
-        self._installed = False
+        channels = _CHANNELS.get(id(self._management), {})
+        channels.pop(self._address, None)
+        if not channels:
+            _CHANNELS.pop(id(self._management), None)
+        self._management = None

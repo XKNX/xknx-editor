@@ -3,12 +3,15 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 import threading
 from collections.abc import Coroutine, Iterator
 from concurrent.futures import Future
 from typing import Any
+from unittest.mock import AsyncMock
 
 import pytest
+from xknx import XKNX
 from xknx.telegram import IndividualAddress, Telegram
 from xknx.telegram.apci import (
     APCI,
@@ -29,42 +32,36 @@ from .conftest import FakeDevice
 DEVICE = IndividualAddress("1.1.5")
 
 
-class _Management:
-    def __init__(self) -> None:
-        self.unhandled: list[Telegram] = []
+def _from_device(payload: APCI, source: IndividualAddress = DEVICE) -> Telegram:
+    return Telegram(
+        destination_address=IndividualAddress("0.0.1"),
+        source_address=source,
+        tpci=TDataIndividual(),
+        payload=payload,
+    )
 
-    def process(self, telegram: Telegram) -> None:
-        self.unhandled.append(telegram)
 
+def _answering_xknx() -> tuple[XKNX, list[Telegram]]:
+    """An xknx whose bus answers a device descriptor read of ``DEVICE`` connectionless."""
+    xknx = XKNX()
+    sent: list[Telegram] = []
 
-class _CemiHandler:
-    def __init__(self, xknx: _Xknx) -> None:
-        self._xknx = xknx
-        self.sent: list[Telegram] = []
-
-    async def send_telegram(self, telegram: Telegram) -> None:
-        self.sent.append(telegram)
+    async def send_telegram(telegram: Telegram) -> None:
+        sent.append(telegram)
         if isinstance(telegram.payload, DeviceDescriptorRead):
-            reply = Telegram(
-                destination_address=IndividualAddress("0.0.1"),
-                source_address=DEVICE,
-                tpci=TDataIndividual(),
-                payload=DeviceDescriptorResponse(descriptor=0, value=0x07B0),
-            )
-            asyncio.get_running_loop().call_soon(self._xknx.management.process, reply)
+            reply = _from_device(DeviceDescriptorResponse(descriptor=0, value=0x07B0))
+            asyncio.get_running_loop().call_soon(xknx.management.process, reply)
 
-
-class _Xknx:
-    def __init__(self) -> None:
-        self.management = _Management()
-        self.cemi_handler = _CemiHandler(self)
+    xknx.cemi_handler = AsyncMock(send_telegram=send_telegram)
+    return xknx, sent
 
 
 def test_connectionless_request_uses_individual_data() -> None:
-    xknx = _Xknx()
+    # A real xknx: its Management has __slots__, so the routing cannot sit on the instance.
+    xknx, sent = _answering_xknx()
 
     async def run() -> int:
-        manager = ConnectionlessManager(xknx, DEVICE)  # type: ignore[arg-type]
+        manager = ConnectionlessManager(xknx, DEVICE)
         connection = await manager.open()
         telegram = await connection.request(
             DeviceDescriptorRead(descriptor=0), DeviceDescriptorResponse
@@ -74,12 +71,55 @@ def test_connectionless_request_uses_individual_data() -> None:
         return telegram.payload.value
 
     assert asyncio.run(run()) == 0x07B0
-    assert all(isinstance(t.tpci, TDataIndividual) for t in xknx.cemi_handler.sent)
-    assert not any(isinstance(t.tpci, TConnect) for t in xknx.cemi_handler.sent)
-    assert "process" not in vars(xknx.management)
-    other = Telegram(destination_address=DEVICE, payload=DeviceDescriptorRead())
-    xknx.management.process(other)
-    assert xknx.management.unhandled == [other]
+    assert all(isinstance(t.tpci, TDataIndividual) for t in sent)
+    assert not any(isinstance(t.tpci, TConnect) for t in sent)
+
+
+def test_connectionless_routes_only_the_devices_frames_while_open(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    xknx = XKNX()
+    other_device = IndividualAddress("1.1.6")
+
+    async def run() -> list[Telegram]:
+        manager = ConnectionlessManager(xknx, DEVICE)
+        connection = await manager.open()
+        xknx.management.process(_from_device(DeviceDescriptorRead(), other_device))
+        xknx.management.process(_from_device(DeviceDescriptorRead()))
+        await manager.close()
+        await manager.close()  # closing twice is harmless
+        xknx.management.process(_from_device(DeviceDescriptorRead()))
+        received: list[Telegram] = []
+        while not connection._received.empty():  # pyright: ignore[reportPrivateUsage]
+            received.append(connection._received.get_nowait())  # pyright: ignore[reportPrivateUsage]
+        return received
+
+    with caplog.at_level(logging.DEBUG, logger="xknx.management"):
+        received = asyncio.run(run())
+    assert [t.source_address for t in received] == [DEVICE]
+    # the other device's frame and the one after closing went to xknx as before
+    assert caplog.text.count("Unhandled management telegram") == 2
+
+
+def test_connectionless_channels_of_two_devices() -> None:
+    xknx = XKNX()
+    second = IndividualAddress("1.1.6")
+
+    async def run() -> tuple[int, int]:
+        first_manager = ConnectionlessManager(xknx, DEVICE)
+        second_manager = ConnectionlessManager(xknx, second)
+        first = await first_manager.open()
+        other = await second_manager.open()
+        xknx.management.process(_from_device(DeviceDescriptorRead(), second))
+        await first_manager.close()
+        xknx.management.process(_from_device(DeviceDescriptorRead(), second))
+        await second_manager.close()
+        return (
+            first._received.qsize(),  # pyright: ignore[reportPrivateUsage]
+            other._received.qsize(),  # pyright: ignore[reportPrivateUsage]
+        )
+
+    assert asyncio.run(run()) == (0, 2)
 
 
 class _Manager:
