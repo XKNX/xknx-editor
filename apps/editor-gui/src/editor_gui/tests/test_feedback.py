@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
-import os
 import platform
 import sys
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Any
 from urllib.parse import parse_qs, urlsplit
 
@@ -13,6 +13,7 @@ import pytest
 import yaml
 
 from editor_gui import __version__, feedback, host, self_update, web
+from editor_gui.main import KnxGuiApp
 
 
 def _forms_dir() -> Path:
@@ -206,4 +207,35 @@ def test_the_forms_set_the_issue_type() -> None:
 
 def test_the_issues_list() -> None:
     assert feedback.ISSUES_URL == "https://github.com/XKNX/xknx-editor/issues"
-    assert os.path.basename(feedback.ISSUES_URL) == "issues"
+
+
+class _Log:
+    def __init__(self) -> None:
+        self.errors: list[tuple[str, dict[str, Any]]] = []
+
+    def error(self, message: str, **fields: Any) -> None:
+        self.errors.append((message, fields))
+
+
+def test_the_menu_opens_the_link(monkeypatch: pytest.MonkeyPatch) -> None:
+    opened: list[str] = []
+    monkeypatch.setattr("editor_gui.main.open_url", opened.append)
+    log = _Log()
+    KnxGuiApp._open_feedback(SimpleNamespace(_log=log), feedback.ISSUES_URL)  # type: ignore[arg-type]
+    assert opened == [feedback.ISSUES_URL]
+    assert log.errors == []
+
+
+def test_a_link_that_does_not_open_is_logged(monkeypatch: pytest.MonkeyPatch) -> None:
+    def fail(url: str) -> None:
+        raise OSError("no browser")
+
+    monkeypatch.setattr("editor_gui.main.open_url", fail)
+    log = _Log()
+    KnxGuiApp._open_feedback(SimpleNamespace(_log=log), feedback.ISSUES_URL)  # type: ignore[arg-type]
+    assert log.errors == [
+        (
+            "could not open feedback page",
+            {"url": feedback.ISSUES_URL, "error": "no browser"},
+        )
+    ]
