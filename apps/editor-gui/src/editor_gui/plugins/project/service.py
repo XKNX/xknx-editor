@@ -4789,7 +4789,7 @@ class ProjectService:
         product_ref_id: str,
         hardware2program_ref_id: str | None,
         name: str,
-        app: Application,
+        app: Application | None,
         *,
         segment_id: int | None = None,
         address: int | None = None,
@@ -4811,10 +4811,11 @@ class ProjectService:
         Line when no ``segment_id`` is given, in the same undo step. Without ``address`` it gets
         the next free one of the line, none with ``no_address``; ``unassigned`` adds it on no
         line. Raises ``MediumError`` when the device's hardware does not support the medium of
-        the segment."""
+        the segment. ``app`` is ``None`` for a product without an application program (e.g. a
+        power supply): the device has its name and address only."""
         if self._pid is None:
             return None
-        if not app.program.is_secure_enabled:
+        if app is None or not app.program.is_secure_enabled:
             secure_commissioning = False
         elif secure_commissioning is None:
             secure_commissioning = self.project_password is not None
@@ -4829,7 +4830,7 @@ class ProjectService:
             self.check_device_medium(
                 hardware2program_ref_id,
                 segment_id,
-                name or product.product_name or app.name,
+                name or product.product_name or (app.name if app is not None else ""),
             )
         if address is None and not no_address and segment_id is not None:
             # Assign the next free individual address on the target line (standard behaviour), instead of
@@ -4841,7 +4842,9 @@ class ProjectService:
                 )
             except ValueError:
                 address = None
-        module_instances, init_objects = self._initial_rows(name, app, parameters)
+        module_instances, init_objects = (
+            self._initial_rows(name, app, parameters) if app is not None else ([], [])
+        )
         com_objects: list[tuple[str, str | None]] = [
             (co.id, None) for co in init_objects
         ]
@@ -4855,7 +4858,7 @@ class ProjectService:
                 name=name,
                 address=address,
                 hardware2program_ref_id=hardware2program_ref_id,
-                application_program_ref_id=app.id,
+                application_program_ref_id=app.id if app is not None else None,
                 parameters=parameters or None,
                 com_objects=com_objects,
                 module_instances=module_instances if module_instances else None,
@@ -4870,7 +4873,7 @@ class ProjectService:
 
         additional = (
             app.program.additional_addresses_count or 0
-            if with_additional_addresses and address is not None
+            if app is not None and with_additional_addresses and address is not None
             else 0
         )
         try:
@@ -4882,9 +4885,9 @@ class ProjectService:
                 error=str(exc),
             )
             device_id = add(0)
-        if secure_commissioning:
+        if secure_commissioning and app is not None:
             self._ensure_ip_secrets(device_id, app, hardware2program_ref_id)
-        if hardware2program_ref_id is not None:
+        if hardware2program_ref_id is not None and app is not None:
             self._app_cache[hardware2program_ref_id] = app
         self._bump()
         return device_id
