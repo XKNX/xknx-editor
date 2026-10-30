@@ -40,6 +40,7 @@ from editor_gui.widgets.value_pickers import (
     render_date_param,
 )
 from editor_gui.widgets.wrapping import (
+    LINE_GAP,
     text_height,
     vertical_space,
     wrap_lines,
@@ -246,20 +247,41 @@ def _shows_as_text(param: UiParameter) -> bool:
     )
 
 
-# How much lower a row showing only texts is than one with a field (at 100 % scaling): the
-# reference tool lays out a text line 25 px high beside a field line of 31 px.
-_TEXT_ROW_SHORTER = 5.0
+# A parameter row as the reference tool lays it out (at 100 % scaling): its content is a field
+# (22 px) or a line of text (16 px), or the lines of its label (16 px each) when they take more,
+# with 9 px around it. Text rows are 25 px apart, field rows 31 px.
+_ROW_MARGIN = 9.0
+_FIELD_CONTENT = 22.0
 
 
-def _align_row_text(offset: float | None) -> None:
-    """Place the next text as in a row with a field (``None``), or ``offset`` down in a text row."""
-    if offset is None:
-        imgui.align_text_to_frame_padding()
-        return
-    padding = imgui.get_style().frame_padding
-    imgui.push_style_var(imgui.StyleVar_.frame_padding, imgui.ImVec2(padding.x, offset))
-    imgui.align_text_to_frame_padding()
-    imgui.pop_style_var()
+@dataclass(frozen=True, slots=True)
+class _RowLayout:
+    """A parameter row's height, and the tops of its label and its value from the row's top."""
+
+    height: float
+    label_top: float
+    value_top: float
+
+
+def _row_layout(param: UiParameter, text_row: bool, label_width: float) -> _RowLayout:
+    """The layout of ``param``'s row beside its label ``label_width`` wide. Label and value are
+    centred in the row; a one-line label beside a field is level with the field's text."""
+    if param.value != param.default_value and _highlight_changes:
+        label_width -= imgui.calc_text_size("*").x + px(4)
+    labels = max(len(wrap_lines(param.label, max(label_width, 1.0))), 1)
+    gap = px(LINE_GAP)
+    line = imgui.get_text_line_height()
+    content = max(
+        px(_FIELD_CONTENT) if not text_row else line + gap, labels * (line + gap)
+    )
+    height = content + px(_ROW_MARGIN)
+    label_top = math.floor((height - (labels * (line + gap) - gap)) / 2)
+    if text_row:
+        return _RowLayout(height, label_top, math.floor((height - line) / 2))
+    field_top = math.ceil((height - imgui.get_frame_height()) / 2)
+    if labels == 1:
+        label_top = field_top + imgui.get_style().frame_padding.y
+    return _RowLayout(height, label_top, field_top)
 
 
 def _text_row(param: UiParameter) -> bool:
@@ -2270,33 +2292,42 @@ def _render_param_table(
             imgui.TableColumnFlags_.width_stretch | imgui.TableColumnFlags_.no_clip,
         )
         value_column = 0 if above else 1
-        # A row is as high as one with an input field; one showing only texts (a read-only value,
-        # or no field at all) as high as a line of text.
+        # Above each other (a phone), a row is as high as one with an input field.
         row_height = imgui.get_frame_height() + 2 * padding.y
-        text_row_height = row_height - px(_TEXT_ROW_SHORTER)
-        # The texts of such a row are centred in it.
-        text_offset = max(
-            (text_row_height - 2 * padding.y - imgui.get_text_line_height()) / 2, 0.0
-        )
         for param in params:
             text_row = not isinstance(param, UiButton) and _text_row(param)
+            indent = (
+                0.0
+                if isinstance(param, UiButton)
+                else param.indent_level * px(_INDENT_STEP)
+            )
+            # Side by side, a row is laid out as the reference tool lays it out (see _row_layout).
+            layout = (
+                None
+                if above or isinstance(param, UiButton)
+                else _row_layout(param, text_row, label_width - indent)
+            )
             imgui.table_next_row(
                 imgui.TableRowFlags_.none,
-                0.0 if above else text_row_height if text_row else row_height,
+                layout.height if layout is not None else 0.0,
             )
             if isinstance(param, UiButton):
                 imgui.table_set_column_index(value_column)
                 _render_button(device, param, prefix, buttons)
                 continue
             imgui.table_set_column_index(0)
+            # The row's top, above the cell padding the table puts in front of a cell's content.
+            row_top = imgui.get_cursor_pos_y() - padding.y
             # Each level indents by one step, the levels space-indented grid labels are placed on
             # (see _indented_cell_text).
-            indent = param.indent_level * px(_INDENT_STEP)
             if indent > 0:
                 imgui.indent(indent)
             label = param.label
             differs = param.ref_id in differing_refs
-            _align_row_text(text_offset if text_row else None)
+            if layout is not None:
+                imgui.set_cursor_pos_y(row_top + layout.label_top)
+            elif not text_row:
+                imgui.align_text_to_frame_padding()
             # In multi-edit a diverging value has no single "changed vs default" state to show.
             changed = not differs and param.value != param.default_value
             # Changed parameters stand out. A leading marker plus the colour means the
@@ -2326,16 +2357,16 @@ def _render_param_table(
                 imgui.unindent(indent)
             if above:
                 imgui.table_next_row(
-                    imgui.TableRowFlags_.none,
-                    text_row_height if text_row else row_height,
+                    imgui.TableRowFlags_.none, 0.0 if text_row else row_height
                 )
             imgui.table_set_column_index(value_column)
+            if layout is not None:
+                imgui.set_cursor_pos_y(row_top + layout.value_top)
             # Above each other, the field is indented like its label.
             value_indent = indent if above else 0.0
             if value_indent > 0:
                 imgui.indent(value_indent)
             if _shows_as_text(param):
-                _align_row_text(text_offset)
                 imgui.text(_value_display(param, param.value))
                 _render_suffix(param.suffix)
                 _track_help(param.help_context)

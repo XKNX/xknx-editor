@@ -1,10 +1,12 @@
-"""Rows of a parameter page that show only texts: a read-only value and a parameter without a field
-(TypeNone, e.g. an empty line between parameters) take the height of a line of text, not of a
-field, and a TypeNone parameter gets no field."""
+"""The rows of a parameter page as the reference tool lays them out: a text row (a read-only value,
+or a TypeNone parameter such as an empty line) is a line high, a field row a field high, a
+multi-line label makes its row higher, label and value are centred in their row, and a TypeNone
+parameter gets no field."""
 
 from __future__ import annotations
 
 from collections.abc import Iterator
+from dataclasses import replace
 from types import SimpleNamespace
 from typing import Any, cast
 
@@ -26,6 +28,8 @@ def frame() -> Iterator[None]:
     ctx = imgui.create_context()
     imgui.get_io().display_size = imgui.ImVec2(800, 600)
     imgui.get_io().backend_flags |= imgui.BackendFlags_.renderer_has_textures
+    # The app's 14 px font.
+    imgui.get_style().font_size_base = 14.0
     imgui.new_frame()
     imgui.set_next_window_size(imgui.ImVec2(700, 500))
     imgui.begin("Parameters", None, imgui.WindowFlags_.no_saved_settings)
@@ -53,7 +57,8 @@ def _height(params: list[UiParameter]) -> float:
     parameter_widgets._render_param_table(  # pyright: ignore[reportPrivateUsage]
         device, list(params), lambda *_a: None, False, "p"
     )
-    return imgui.get_cursor_pos_y() - top
+    # Without the spacing after the table.
+    return imgui.get_cursor_pos_y() - top - imgui.get_style().item_spacing.y
 
 
 @pytest.mark.usefixtures("frame")
@@ -70,7 +75,9 @@ def test_a_parameter_without_a_field_draws_none() -> None:
 
 
 @pytest.mark.usefixtures("frame")
-def test_rows_of_texts_are_as_high_as_a_line() -> None:
+def test_rows_are_as_high_as_in_the_reference_tool() -> None:
+    # A text row is 25 px, a field row 31 px, a row with a two-line label 41 px, as the reference
+    # tool lays them out at 100 %.
     texts = [
         _parameter("P-5900", _ENUM, Access.READ),
         _parameter("P-5901", _ENUM, Access.READ),
@@ -79,6 +86,25 @@ def test_rows_of_texts_are_as_high_as_a_line() -> None:
     fields = [
         _parameter(f"P-{n}", TextWidget(max_length=14)) for n in (5900, 5901, 5906)
     ]
-    text_height, field_height = _height(texts), _height(fields)
-    # 5 px lower each: the reference tool's 25 px text line beside its 31 px field line.
-    assert text_height == pytest.approx(field_height - 3 * px(5), abs=1.0)
+    info = replace(
+        _parameter("P-5899", _ENUM, Access.READ), label="Info:\r\nWippenfunktion"
+    )
+    assert _height(texts) == pytest.approx(3 * px(25))
+    assert _height(fields) == pytest.approx(3 * px(31))
+    assert _height([info]) == pytest.approx(px(41))
+
+
+@pytest.mark.usefixtures("frame")
+def test_label_and_value_are_centred_in_their_row() -> None:
+    info = replace(
+        _parameter("P-5899", _ENUM, Access.READ), label="Info:\r\nWippenfunktion"
+    )
+    layout = parameter_widgets._row_layout(info, True, 300.0)  # pyright: ignore[reportPrivateUsage]
+    # The value 8 px below the label's first line, in the middle of its two lines.
+    assert (layout.height, layout.value_top - layout.label_top) == (px(41), px(8))
+    field = parameter_widgets._row_layout(  # pyright: ignore[reportPrivateUsage]
+        _parameter("P-1643", _ENUM), False, 300.0
+    )
+    # A one-line label is level with the field's text.
+    frame_padding = imgui.get_style().frame_padding.y
+    assert field.label_top == field.value_top + frame_padding
