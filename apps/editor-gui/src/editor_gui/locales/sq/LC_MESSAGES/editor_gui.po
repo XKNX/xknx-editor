@@ -929,7 +929,7 @@ msgid "Order no."
 msgstr "Nr. porosie"
 
 msgid "Application"
-msgstr "Aplikacioni"
+msgstr "Programi aplikativ"
 
 msgid "Version"
 msgstr "Versioni"
@@ -938,7 +938,7 @@ msgid "Mask"
 msgstr "Maska"
 
 msgid "Hardware"
-msgstr "Harduer"
+msgstr "Hardueri"
 
 msgid "Registered"
 msgstr "I regjistruar"

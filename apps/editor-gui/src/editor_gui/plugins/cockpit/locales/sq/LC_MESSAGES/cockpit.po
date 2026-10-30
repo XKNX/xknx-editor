@@ -68,4 +68,4 @@ msgid "Serial: {serial}"
 msgstr "Nr. serial: {serial}"
 
 msgid "Last Download: {when}"
-msgstr "Programimi i fundit: {when}"
+msgstr "Programuar së fundi: {when}"

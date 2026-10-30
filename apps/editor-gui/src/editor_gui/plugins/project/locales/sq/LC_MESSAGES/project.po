@@ -842,10 +842,10 @@ msgid "Manufacturer Info"
 msgstr "Info e prodhuesit"
 
 msgid "Application"
-msgstr "Aplikacioni"
+msgstr "Programi aplikativ"
 
 msgid "Application Version"
-msgstr "Versioni i aplikacionit"
+msgstr "Versioni i programit aplikativ"
 
 msgid "Read from Device"
 msgstr "Lexo nga pajisja"
@@ -902,7 +902,7 @@ msgid "Mask Version"
 msgstr "Versioni i maskës"
 
 msgid "Order Info"
-msgstr "Info e porosisë"
+msgstr "Informacioni i porosisë"
 
 msgid "Hardware Type"
 msgstr "Lloji i harduerit"
@@ -920,10 +920,10 @@ msgid "Product"
 msgstr "Produkti"
 
 msgid "Product Ref"
-msgstr "Ref. e produktit"
+msgstr "Referenca e produktit"
 
 msgid "Program Ref"
-msgstr "Ref. e programit"
+msgstr "Referenca e programit"
 
 msgid "IP Configuration"
 msgstr "Konfigurimi IP"
@@ -1010,7 +1010,7 @@ msgid "Editing {count} devices — edits apply to all, diverging values show <di
 msgstr "Po ndryshohen {count} pajisje — ndryshimet vlejnë për të gjitha, vlerat që ndryshojnë shfaqin <ndryshon>"
 
 msgid "Hardware"
-msgstr "Harduer"
+msgstr "Hardueri"
 
 msgid "Firmware"
 msgstr "Firmware"
@@ -1709,10 +1709,10 @@ msgid "Point-to-Point and Broadcast"
 msgstr "Pikë-me-pikë dhe broadcast"
 
 msgid "Blocked"
-msgstr "I bllokuar"
+msgstr "Të bllokuara"
 
 msgid "Routed"
-msgstr "I përcjellë"
+msgstr "Të përcjella"
 
 msgid "Connect to a KNX interface to commission the DALI bus."
 msgstr "Lidhuni me një ndërfaqe KNX për të vënë në punë busin DALI."
@@ -2471,7 +2471,7 @@ msgid "Each line in a project must have a unique domain address."
 msgstr "Çdo linjë në një projekt duhet të ketë një adresë domeni unike."
 
 msgid "Last Downloaded"
-msgstr "Programimi i fundit"
+msgstr "Programuar së fundi"
 
 msgid "Create trade {name}"
 msgstr "Krijo sektorin {name}"

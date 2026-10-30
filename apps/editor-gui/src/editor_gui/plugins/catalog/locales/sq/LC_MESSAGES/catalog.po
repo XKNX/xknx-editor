@@ -83,7 +83,7 @@ msgid "Manufacturer"
 msgstr "Prodhuesi"
 
 msgid "Application"
-msgstr "Aplikacioni"
+msgstr "Programi aplikativ"
 
 msgid "Program Version"
 msgstr "Versioni i programit"
