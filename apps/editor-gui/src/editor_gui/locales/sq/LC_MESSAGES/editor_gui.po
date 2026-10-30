@@ -566,7 +566,7 @@ msgid "Export Without Certificate"
 msgstr "Eksporto pa certifikatë"
 
 msgid "Export ETS Project"
-msgstr "Eksporto projekt ETS"
+msgstr "Eksporto projektin ETS"
 
 msgid "Load .knxprod…"
 msgstr "Ngarko .knxprod…"
@@ -623,7 +623,7 @@ msgid "Import from folder failed: {error}"
 msgstr "Importimi nga dosja dështoi: {error}"
 
 msgid "Choose KNX Product Files"
-msgstr "Zgjidhni skedarë produktesh KNX"
+msgstr "Zgjidh skedarët e produkteve KNX"
 
 msgid "KNX Product Files (*.knxprod, *.zip, *.xml)"
 msgstr "Skedarë produktesh KNX (*.knxprod, *.zip, *.xml)"
@@ -842,7 +842,7 @@ msgid "Redo"
 msgstr "Ribëj"
 
 msgid "Open KNX Product Archive"
-msgstr "Hap arkiv produkti KNX"
+msgstr "Hap arkivin e produkteve KNX"
 
 msgid "KNX Product (*.knxprod, *.vd1-*.vd5)"
 msgstr "Produkt KNX (*.knxprod, *.vd1-*.vd5)"
@@ -860,7 +860,7 @@ msgid "ETS 5 Project (*.knxproj)"
 msgstr "Projekt ETS 5 (*.knxproj)"
 
 msgid "Group Address Exports (*.xml, *.csv)"
-msgstr "Eksporte adresash grupi (*.xml, *.csv)"
+msgstr "Eksportet e adresave të grupeve (*.xml, *.csv)"
 
 msgid "Group Address Export (*.xml)"
 msgstr "Eksport i adresave të grupeve (*.xml)"
@@ -1280,7 +1280,7 @@ msgid "XKNX Editor Already Running"
 msgstr "XKNX Editor është tashmë në punë"
 
 msgid "XKNX Editor is already running on this computer. Switch to it, or start another one, e.g. to work on a second project or with another bus connection."
-msgstr "XKNX Editor është tashmë në punë në këtë kompjuter. Kaloni te ai, ose nisni një tjetër, p.sh. për të punuar me një projekt të dytë ose me një lidhje tjetër me busin."
+msgstr "XKNX Editor është tashmë në punë në këtë kompjuter. Kaloni te ai, ose nisni një instancë tjetër, p.sh. për të punuar me një projekt të dytë ose me një lidhje tjetër me busin."
 
 msgid "Window"
 msgstr "Dritarja"
@@ -1298,13 +1298,13 @@ msgid "Start Another"
 msgstr "Nis një tjetër"
 
 msgid "That XKNX Editor has ended in the meantime."
-msgstr "Ai XKNX Editor është mbyllur ndërkohë."
+msgstr "Ndërkohë, ai XKNX Editor është mbyllur."
 
 msgid "Project Already Open"
 msgstr "Projekti është tashmë i hapur"
 
 msgid "{name} is already open in another XKNX Editor. Editing it in two editors at once can overwrite changes."
-msgstr "{name} është tashmë i hapur në një XKNX Editor tjetër. Ndryshimi i tij njëkohësisht në dy editorë mund të mbishkruajë ndryshimet."
+msgstr "{name} është tashmë i hapur në një instancë tjetër të XKNX Editor. Ndryshimi i tij njëkohësisht në dy editorë mund të mbishkruajë ndryshimet."
 
 msgid "Open Anyway"
 msgstr "Hape gjithsesi"
