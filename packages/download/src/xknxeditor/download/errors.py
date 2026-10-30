@@ -63,6 +63,7 @@ class CompareMismatch(VerificationError):
         expected: bytes | None = None,
         read: bytes | None = None,
         mask: bytes | None = None,
+        object_label: str | None = None,
     ) -> None:
         super().__init__(message)
         self.object_index = object_index
@@ -70,6 +71,9 @@ class CompareMismatch(VerificationError):
         self.expected = expected
         self.read = read
         self.mask = mask
+        # The object as messages show it (e.g. "type 40960 instance 1" for an object addressed
+        # by type); None shows the object index.
+        self.object_label = object_label
 
     def with_message(self, message: str) -> CompareMismatch:
         """The same mismatch with another message."""
@@ -80,6 +84,7 @@ class CompareMismatch(VerificationError):
             expected=self.expected,
             read=self.read,
             mask=self.mask,
+            object_label=self.object_label,
         )
 
     @property
@@ -91,7 +96,8 @@ class CompareMismatch(VerificationError):
         name = _PROPERTY_NAMES.get(self.property_id) if self.object_index == 0 else None
         if self.property_id == _PID_PROGRAM_VERSION:
             name = "application version"
-        what = name or f"property {self.property_id} of object {self.object_index}"
+        obj = self.object_label if self.object_label is not None else self.object_index
+        what = name or f"property {self.property_id} of object {obj}"
         mask = self.mask or b""
         mask += b"\xff" * max(0, len(self.expected) - len(mask))
         expected = " ".join(

@@ -591,6 +591,11 @@ class LoadProcedureRunner:
         self._factory_registered: set[str] = set()
         # The properties a preflight previews as procedure steps (see _procedure_steps).
         self._procedure_steps: set[_PropertyKey] = set()
+        # What a preflight left unwritten so far: (object index, PID) of properties and
+        # [start, end) ranges of memory. A later compare there checks the device's reaction
+        # to the write, which a preview cannot see.
+        self._preview_properties: set[tuple[int, int]] = set()
+        self._preview_memory: list[tuple[int, int]] = []
 
     async def run(self, progress: Callable[[int, int], None] | None = None) -> None:
         """Execute the Load Procedure, honouring the selected download scope.
@@ -716,7 +721,9 @@ class LoadProcedureRunner:
         and drives no Load State Machine: for each control that would write, the
         device's current bytes are read and compared against the data the download
         would write. Compare controls (the application fingerprint gate) still run
-        - they only read. The connection is opened read-only and closed again.
+        - they only read - except a compare of what the preview left unwritten before:
+        it checks the device's reaction to that write (e.g. the load state after an
+        unload), not its configuration. The connection is opened read-only and closed again.
         """
         segments: list[SegmentDiff] = []
         properties: list[PropertyDiff] = []
@@ -733,6 +740,8 @@ class LoadProcedureRunner:
         self._memory_captures.clear()
         self._factory_registered.clear()
         self._procedure_steps = _procedure_steps(in_scope)
+        self._preview_properties = set()
+        self._preview_memory = []
         self._enable_segment_write = True
         self._enable_verify_on_write_direct = True
         self._error_mappings.clear()
@@ -1720,7 +1729,7 @@ class LoadProcedureRunner:
         )
         if width is None:
             raise ImageError(
-                f"missing element width for object {index} property {control.prop_id}"
+                f"missing element width for object {self._object_label(index)} property {control.prop_id}"
             )
         size = control.count * width
         if (
@@ -2015,9 +2024,9 @@ class LoadProcedureRunner:
             for byte, held, bits in zip(data, factory, covered, strict=True)
         ):
             logger.info(
-                "download: object %d property %d of %s holds its factory contents; "
+                "download: object %s property %d of %s holds its factory contents; "
                 "not written",
-                index,
+                self._object_label(index),
                 control.prop_id,
                 self._target(),
             )
@@ -2225,6 +2234,31 @@ class LoadProcedureRunner:
         programmer = await self._bus()
         return await programmer.locate_object(target[0], target[1] - 1)
 
+    def _preview_wrote_memory(self, address: int, size: int) -> bool:
+        """Whether the preflight left a write into ``size`` bytes at ``address`` out before, so a
+        compare there is not checked (see :meth:`preflight`)."""
+        end = address + size
+        if not any(
+            start < end and address < stop for start, stop in self._preview_memory
+        ):
+            return False
+        logger.info(
+            "preflight: %s compares memory %#06x..%#06x after a write the preview left out; "
+            "not checked",
+            self._target(),
+            address,
+            end,
+        )
+        return True
+
+    def _object_label(self, index: int) -> str:
+        """``index`` as messages show it: object type and instance for a key of the extended
+        property services (see :meth:`_resolve_index`), otherwise the object index."""
+        target = self._extended_targets.get(index)
+        if target is None:
+            return str(index)
+        return f"type {target[0]} instance {target[1]}"
+
     def _property_width(self, index: int, property_id: int) -> int | None:
         return self._property_widths.get(
             (index, property_id), STANDARD_WRITE_WIDTHS.get(property_id)
@@ -2379,9 +2413,9 @@ class LoadProcedureRunner:
         if covered is not None:
             if not any(covered):
                 logger.info(
-                    "download: no parameter of %s covers object %d property %d; not written",
+                    "download: no parameter of %s covers object %s property %d; not written",
                     self._target(),
-                    index,
+                    self._object_label(index),
                     control.prop_id,
                 )
                 return
@@ -2466,10 +2500,10 @@ class LoadProcedureRunner:
         index = await self._resolve_index(control, extended=True)
         data = await self._read_property(index, control)
         logger.debug(
-            "property capture: %s object-index=%d pid=%d count=%d start-index=%d "
+            "property capture: %s object=%s pid=%d count=%d start-index=%d "
             "octets=%d data=%s",
             self._diagnostic_context(),
-            index,
+            self._object_label(index),
             control.prop_id,
             control.count,
             control.start_element,
@@ -2478,7 +2512,7 @@ class LoadProcedureRunner:
         )
         if not data or len(data) % control.count:
             raise VerificationError(
-                f"property capture for object {index} property {control.prop_id}: "
+                f"property capture for object {self._object_label(index)} property {control.prop_id}: "
                 f"received {len(data)} octet(s) for {control.count} element(s)"
             )
         width = len(data) // control.count
@@ -2488,7 +2522,7 @@ class LoadProcedureRunner:
             and width not in (2, 4)
         ):
             raise VerificationError(
-                f"invalid table reference capture for object {index}: "
+                f"invalid table reference capture for object {self._object_label(index)}: "
                 f"expected 2 or 4 octets per element, received {width}"
             )
         for offset in range(control.count):
@@ -2497,7 +2531,7 @@ class LoadProcedureRunner:
             previous = self._property_captures.get(key)
             if previous is not None and len(previous) != width:
                 raise VerificationError(
-                    f"property capture width changed for object {index} "
+                    f"property capture width changed for object {self._object_label(index)} "
                     f"property {control.prop_id} element {key[2]}"
                 )
             self._property_captures.setdefault(key, element)
@@ -2522,7 +2556,7 @@ class LoadProcedureRunner:
         widths = {len(data) for data in captured if data is not None}
         if len(widths) > 1:
             raise VerificationError(
-                f"inconsistent captured element widths for object {index} "
+                f"inconsistent captured element widths for object {self._object_label(index)} "
                 f"property {control.prop_id}"
             )
         captured_width = next(iter(widths), None)
@@ -2609,10 +2643,10 @@ class LoadProcedureRunner:
         expected, captured_width, source = self._property_compare_data(index, control)
         read_back = await self._read_property(index, control)
         logger.debug(
-            "property compare: %s object-index=%d pid=%d count=%d start-index=%d "
+            "property compare: %s object=%s pid=%d count=%d start-index=%d "
             "source=%s captured-element-width=%s inline=%s expected=%s read=%s mask=%s",
             self._diagnostic_context(),
-            index,
+            self._object_label(index),
             control.prop_id,
             control.count,
             control.start_element,
@@ -2628,7 +2662,7 @@ class LoadProcedureRunner:
         # would otherwise match against an empty prefix.
         if not read_back:
             raise VerificationError(
-                f"property compare for object {index} property {control.prop_id} "
+                f"property compare for object {self._object_label(index)} property {control.prop_id} "
                 "read no data from the device"
             )
         if (
@@ -2636,7 +2670,7 @@ class LoadProcedureRunner:
             and len(read_back) != captured_width * control.count
         ):
             raise VerificationError(
-                f"property compare for object {index} property {control.prop_id}: "
+                f"property compare for object {self._object_label(index)} property {control.prop_id}: "
                 f"device returned {len(read_back)} octet(s), captured range requires "
                 f"{captured_width * control.count}; expected {expected.hex()} "
                 f"read {read_back.hex()}"
@@ -2648,7 +2682,7 @@ class LoadProcedureRunner:
                 4 * control.count,
             ):
                 raise VerificationError(
-                    f"invalid table reference for object {index}: "
+                    f"invalid table reference for object {self._object_label(index)}: "
                     f"expected 2 or 4 octets per element, received {len(read_back)} "
                     f"for {control.count} element(s)"
                 )
@@ -2657,10 +2691,10 @@ class LoadProcedureRunner:
             # runtime capture provides a baseline (e.g. par detects relocation).
             if captured_width is None:
                 logger.debug(
-                    "runtime table reference: %s object-index=%d pid=%d data=%s; "
+                    "runtime table reference: %s object=%s pid=%d data=%s; "
                     "no captured baseline, skipping static compare",
                     self._diagnostic_context(),
-                    index,
+                    self._object_label(index),
                     control.prop_id,
                     read_back.hex(),
                 )
@@ -2678,7 +2712,7 @@ class LoadProcedureRunner:
         uncovered = _significant_octets(expected, mask, start=len(read_back))
         if uncovered:
             raise VerificationError(
-                f"property compare for object {index} property {control.prop_id}: "
+                f"property compare for object {self._object_label(index)} property {control.prop_id}: "
                 f"device returned {len(read_back)} octet(s) but {len(expected)} were expected "
                 f"and {uncovered} octet(s) beyond the response still carry data to check. "
                 f"Expected {expected.hex()}, read {read_back.hex()}"
@@ -2686,15 +2720,15 @@ class LoadProcedureRunner:
         length = min(len(read_back), len(expected))
         matched = _bytes_match(read_back, expected, mask, length)
         logger.debug(
-            "property compare result: %s object-index=%d pid=%d -> %s",
+            "property compare result: %s object=%s pid=%d -> %s",
             self._diagnostic_context(),
-            index,
+            self._object_label(index),
             control.prop_id,
             "match" if matched else "MISMATCH",
         )
         if not matched:
             raise CompareMismatch(
-                f"property compare failed for object {index} property "
+                f"property compare failed for object {self._object_label(index)} property "
                 f"{control.prop_id}: expected {expected.hex()} "
                 f"read {read_back.hex()}",
                 object_index=index,
@@ -2702,6 +2736,7 @@ class LoadProcedureRunner:
                 expected=expected,
                 read=read_back,
                 mask=mask,
+                object_label=self._object_label(index),
             )
 
     async def _compare_prop_range(
@@ -2712,14 +2747,14 @@ class LoadProcedureRunner:
         read_back = await self._read_property(index, control)
         if not read_back:
             raise VerificationError(
-                f"property compare for object {index} property {control.prop_id} "
+                f"property compare for object {self._object_label(index)} property {control.prop_id} "
                 "read no data from the device"
             )
         matched = _value_in_range(value_range, read_back, control.mask)
         logger.debug(
-            "property range compare: %s object-index=%d pid=%d range=%s read=%s -> %s",
+            "property range compare: %s object=%s pid=%d range=%s read=%s -> %s",
             self._diagnostic_context(),
-            index,
+            self._object_label(index),
             control.prop_id,
             value_range,
             read_back.hex(),
@@ -2727,12 +2762,13 @@ class LoadProcedureRunner:
         )
         if not matched:
             raise CompareMismatch(
-                f"property compare failed for object {index} property "
+                f"property compare failed for object {self._object_label(index)} property "
                 f"{control.prop_id}: read {read_back.hex()} is outside {value_range}",
                 object_index=index,
                 property_id=control.prop_id,
                 read=read_back,
                 mask=control.mask,
+                object_label=self._object_label(index),
             )
 
     async def _abs_segment(self, control: LdCtrlAbsSegment) -> None:
@@ -2883,12 +2919,15 @@ class LoadProcedureRunner:
                 )
             for address, planned in runs:
                 await self._diff_memory(address, planned, segments)
+                self._preview_memory.append((address, address + len(planned)))
             return
         if isinstance(control, LdCtrlWriteRelMem):
             index = await self._resolve_index(control)
             programmer = await self._bus()
             base = await programmer.read_table_reference(index)
             await self._diff_masked_rel(base, control, segments, index=index)
+            start = base + control.offset
+            self._preview_memory.append((start, start + control.size))
             return
         if isinstance(control, LdCtrlAbsSegment):
             # An allocation whose range the image covers is an image backed write;
@@ -2904,6 +2943,7 @@ class LoadProcedureRunner:
                     missing_ok=True,
                     include_initialized=self._writes_seed(segment=True),
                 )
+                self._preview_memory.append((address, address + size))
             return
         if isinstance(control, LdCtrlWriteProp):
             index = await self._resolve_index(control, extended=True)
@@ -2921,9 +2961,12 @@ class LoadProcedureRunner:
                 covered=covered,
                 procedure_step=_property_key(control) in self._procedure_steps,
             )
+            self._preview_properties.add((index, control.prop_id))
             return
         if isinstance(control, LdCtrlCompareMem):
             _require_standard(control.address_space)
+            if self._preview_wrote_memory(control.address, control.size):
+                return
             await self._compare_mem(
                 control.address, self._memory_compare_data(control), control.mask
             )
@@ -2932,6 +2975,8 @@ class LoadProcedureRunner:
             index = await self._resolve_index(control)
             programmer = await self._bus()
             base = await programmer.read_table_reference(index)
+            if self._preview_wrote_memory(base + control.offset, control.size):
+                return
             await self._compare_mem(
                 base + control.offset,
                 self._memory_compare_data(control, index),
@@ -2939,6 +2984,16 @@ class LoadProcedureRunner:
             )
             return
         if isinstance(control, LdCtrlCompareProp):
+            index = await self._resolve_index(control, extended=True)
+            if (index, control.prop_id) in self._preview_properties:
+                logger.info(
+                    "preflight: %s compares object %s property %d after a write the "
+                    "preview left out; not checked",
+                    self._target(),
+                    self._object_label(index),
+                    control.prop_id,
+                )
+                return
             await self._compare_prop(control)
             return
         if isinstance(control, LdCtrlLoadImageProp):
