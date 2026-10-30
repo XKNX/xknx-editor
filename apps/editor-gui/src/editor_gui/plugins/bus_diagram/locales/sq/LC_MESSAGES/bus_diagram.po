@@ -29,7 +29,7 @@ msgid "Links"
 msgstr "Lidhjet"
 
 msgid "Which devices talk to which over their group addresses: sending devices on the left, receiving devices on the right."
-msgstr "Cilat pajisje komunikojnë me cilat përmes adresave të grupit: pajisjet dërguese majtas, pajisjet marrëse djathtas."
+msgstr "Cilat pajisje komunikojnë me cilat përmes adresave të grupeve: pajisjet dërguese majtas, pajisjet marrëse djathtas."
 
 msgid "Click to follow a device, channel or group address, double-click to open a device, click the arrow of a device to list its group objects. Drag to move, {key}+scroll to zoom."
 msgstr "Klikoni për të ndjekur një pajisje, kanal ose adresë grupi, klikoni dy herë për të hapur një pajisje, klikoni shigjetën e një pajisjeje për të listuar objektet e saj të grupit. Tërhiqni për të lëvizur, {key}+rrotullim për zmadhim."
@@ -86,7 +86,7 @@ msgid "Sending"
 msgstr "Dërguese"
 
 msgid "Group Addresses"
-msgstr "Adresat e grupit"
+msgstr "Adresat e grupeve"
 
 msgid "Receiving"
 msgstr "Marrëse"

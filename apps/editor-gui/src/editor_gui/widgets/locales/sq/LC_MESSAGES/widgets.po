@@ -212,7 +212,7 @@ msgid "Prio"
 msgstr "Prio"
 
 msgid "Group Addresses"
-msgstr "Adresat e grupit"
+msgstr "Adresat e grupeve"
 
 msgid "(empty)"
 msgstr "(bosh)"

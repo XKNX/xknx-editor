@@ -20,7 +20,7 @@ msgid "Help"
 msgstr "Ndihmë"
 
 msgid "Feedback"
-msgstr "Komente"
+msgstr "Dërgo përshtypje"
 
 msgid "About"
 msgstr "Rreth"
@@ -65,7 +65,7 @@ msgid "Project Name"
 msgstr "Emri i projektit"
 
 msgid "Group Address Style"
-msgstr "Stili i adresave të grupit"
+msgstr "Stili i adresave të grupeve"
 
 msgid "Free"
 msgstr "I lirë"
@@ -128,7 +128,7 @@ msgid "Saved as {name}"
 msgstr "U ruajt si {name}"
 
 msgid "Open Recent"
-msgstr "Hap të fundit"
+msgstr "Projektet e fundit"
 
 msgid "Settings…"
 msgstr "Cilësimet…"
@@ -242,16 +242,16 @@ msgid "Export to ETS 5 ProjectStore"
 msgstr "Eksporto në ProjectStore të ETS 5"
 
 msgid "Export Group Addresses…"
-msgstr "Eksporto adresat e grupit…"
+msgstr "Eksporto adresat e grupeve…"
 
 msgid "Import Group Addresses…"
-msgstr "Importo adresat e grupit…"
+msgstr "Importo adresat e grupeve…"
 
 msgid "Exported {count} group address(es)"
 msgstr "U eksportuan {count} adresë(a) grupi"
 
 msgid "Export Group Addresses"
-msgstr "Eksporto adresat e grupit"
+msgstr "Eksporto adresat e grupeve"
 
 msgid "Output Format"
 msgstr "Formati i daljes"
@@ -290,7 +290,7 @@ msgid "Export"
 msgstr "Eksporto"
 
 msgid "Group Address Export (*.csv)"
-msgstr "Eksport i adresave të grupit (*.csv)"
+msgstr "Eksport i adresave të grupeve (*.csv)"
 
 msgid "Exported to {path} ({size}) as {schema}"
 msgstr "U eksportua në {path} ({size}) si {schema}"
@@ -317,7 +317,7 @@ msgid "Buildings"
 msgstr "Ndërtesat"
 
 msgid "Group Addresses"
-msgstr "Adresat e grupit"
+msgstr "Adresat e grupeve"
 
 msgid "Group Object Links"
 msgstr "Lidhjet e objekteve të grupit"
@@ -668,13 +668,13 @@ msgid "FPS in Status Bar"
 msgstr "FPS në shiritin e gjendjes"
 
 msgid "Enable Idling"
-msgstr "Aktivizo pushimin"
+msgstr "Kursim energjie në pritje"
 
 msgid "FPS: {fps:.1f}{idling}"
 msgstr "FPS: {fps:.1f}{idling}"
 
 msgid " (Idling)"
-msgstr " (në pushim)"
+msgstr " (në pritje)"
 
 msgid "Theme"
 msgstr "Tema"
@@ -863,7 +863,7 @@ msgid "Group Address Exports (*.xml, *.csv)"
 msgstr "Eksporte adresash grupi (*.xml, *.csv)"
 
 msgid "Group Address Export (*.xml)"
-msgstr "Eksport i adresave të grupit (*.xml)"
+msgstr "Eksport i adresave të grupeve (*.xml)"
 
 msgid "Open XKNX Project"
 msgstr "Hap projekt XKNX"
@@ -953,7 +953,7 @@ msgid "Opening project…"
 msgstr "Po hapet projekti…"
 
 msgid "Importing group addresses…"
-msgstr "Po importohen adresat e grupit…"
+msgstr "Po importohen adresat e grupeve…"
 
 msgid "Switching language…"
 msgstr "Po ndërrohet gjuha…"
@@ -1037,7 +1037,7 @@ msgid "Open Config Folder"
 msgstr "Hap dosjen e konfigurimit"
 
 msgid "Open Cache Folder"
-msgstr "Hap dosjen e cache-it"
+msgstr "Hap dosjen e memories së përkohshme"
 
 msgid "Open Log Folder"
 msgstr "Hap dosjen e regjistrave"
@@ -1232,16 +1232,16 @@ msgid "The project has no group addresses to export."
 msgstr "Projekti nuk ka adresa grupi për të eksportuar."
 
 msgid "Clear Cache…"
-msgstr "Pastro cache-in…"
+msgstr "Pastro memorien e përkohshme…"
 
 msgid "Clear Cache"
-msgstr "Pastro cache-in"
+msgstr "Pastro memorien e përkohshme"
 
 msgid "The cache holds {size} of parsed product data and of documentation fetched for the AI tools. All of it is made again when needed; afterwards only the first use of each product takes longer."
-msgstr "Cache-i përmban {size} të dhëna produktesh të përpunuara dhe dokumentacion të marrë për veglat AI. Të gjitha krijohen përsëri kur nevojiten; pas kësaj vetëm përdorimi i parë i çdo produkti zgjat më shumë."
+msgstr "Memoria e përkohshme përmban {size} të dhëna produktesh të përpunuara dhe dokumentacion të marrë për veglat AI. Të gjitha krijohen përsëri kur nevojiten; pas kësaj vetëm përdorimi i parë i çdo produkti zgjat më shumë."
 
 msgid "Cache cleared, {size} freed"
-msgstr "Cache-i u pastrua, u liruan {size}"
+msgstr "Memoria e përkohshme u pastrua, u liruan {size}"
 
 msgid "Zoom In"
 msgstr "Zmadho"

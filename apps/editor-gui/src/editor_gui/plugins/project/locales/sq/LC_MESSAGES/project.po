@@ -26,7 +26,7 @@ msgid "Editor"
 msgstr "Editori"
 
 msgid "Group Addresses"
-msgstr "Adresat e grupit"
+msgstr "Adresat e grupeve"
 
 msgid "Buildings"
 msgstr "Ndërtesat"
@@ -77,7 +77,7 @@ msgid "Pick a target object per row. Address and name are suggested and can be c
 msgstr "Zgjidhni një objekt objektiv për çdo rresht. Adresa dhe emri sugjerohen dhe mund të ndryshohen."
 
 msgid "\"{link_all}\" creates the group addresses and links them."
-msgstr "\"{link_all}\" krijon adresat e grupit dhe i lidh ato."
+msgstr "\"{link_all}\" krijon adresat e grupeve dhe i lidh ato."
 
 msgid "Link All"
 msgstr "Lidh të gjitha"
@@ -188,7 +188,7 @@ msgid "Matching DPT Only"
 msgstr "Vetëm DPT që përputhet"
 
 msgid "Only group addresses with the object's main datapoint type, and those without one (they take the object's type when linked)."
-msgstr "Vetëm adresat e grupit me llojin kryesor të pikës së të dhënave të objektit, dhe ato pa lloj (marrin llojin e objektit kur lidhen)."
+msgstr "Vetëm adresat e grupeve me llojin kryesor të pikës së të dhënave të objektit, dhe ato pa lloj (marrin llojin e objektit kur lidhen)."
 
 msgid "no DPT"
 msgstr "pa DPT"
@@ -266,7 +266,7 @@ msgid "Replace Device"
 msgstr "Zëvendëso pajisjen"
 
 msgid "Swap a device for another model (a template device already in the project), keeping its group-address links. Group objects are matched by number and size; unmatched ones are reported. Parameters are not carried over."
-msgstr "Ndërroni një pajisje me një model tjetër (një pajisje shabllon që është tashmë në projekt), duke ruajtur lidhjet e saj me adresat e grupit. Objektet e grupit përputhen sipas numrit dhe madhësisë; ato pa përputhje raportohen. Parametrat nuk barten."
+msgstr "Ndërroni një pajisje me një model tjetër (një pajisje shabllon që është tashmë në projekt), duke ruajtur lidhjet e saj me adresat e grupeve. Objektet e grupit përputhen sipas numrit dhe madhësisë; ato pa përputhje raportohen. Parametrat nuk barten."
 
 msgid "Device to Replace"
 msgstr "Pajisja që do të zëvendësohet"
@@ -311,7 +311,7 @@ msgid "Compared with {name}:"
 msgstr "Krahasuar me {name}:"
 
 msgid "No differences in devices or group addresses."
-msgstr "Nuk ka ndryshime te pajisjet ose adresat e grupit."
+msgstr "Nuk ka ndryshime te pajisjet ose adresat e grupeve."
 
 msgid "{count} difference(s)"
 msgstr "{count} ndryshim(e)"
@@ -368,7 +368,7 @@ msgid "Duplicate a device several times. Optionally rewrite the copy name (find/
 msgstr "Shumëfishoni një pajisje disa herë. Sipas dëshirës, rishkruani emrin e kopjes (gjej/zëvendëso) dhe krijoni një adresë grupi për secilin nga objektet e saj."
 
 msgid "Renumber devices by adding an offset to the device part of their individual addresses, e.g. to open gaps for new devices. Group addresses are untouched."
-msgstr "Rinumërtoni pajisjet duke i shtuar një zhvendosje pjesës së pajisjes në adresat e tyre individuale, p.sh. për të hapur boshllëqe për pajisje të reja. Adresat e grupit nuk preken."
+msgstr "Rinumërtoni pajisjet duke i shtuar një zhvendosje pjesës së pajisjes në adresat e tyre individuale, p.sh. për të hapur boshllëqe për pajisje të reja. Adresat e grupeve nuk preken."
 
 msgid "Pick the fields and an output: a CSV, printable label sheets (Avery), or a full-page legend. HTML output opens in your browser to print or save as PDF."
 msgstr "Zgjidhni fushat dhe një dalje: një CSV, fleta etiketash për printim (Avery) ose një legjendë në faqe të plotë. Dalja HTML hapet në shfletuesin tuaj për ta printuar ose ruajtur si PDF."
@@ -401,7 +401,7 @@ msgid "Created {count} copy/copies"
 msgstr "U krijuan {count} kopje"
 
 msgid "Shifts the device part of each individual address. Group addresses are not shifted."
-msgstr "Zhvendos pjesën e pajisjes në çdo adresë individuale. Adresat e grupit nuk zhvendosen."
+msgstr "Zhvendos pjesën e pajisjes në çdo adresë individuale. Adresat e grupeve nuk zhvendosen."
 
 msgid "Offset"
 msgstr "Zhvendosja"
@@ -434,10 +434,10 @@ msgid "This project has no group addresses."
 msgstr "Ky projekt nuk ka adresa grupi."
 
 msgid "Shift Group Addresses"
-msgstr "Zhvendos adresat e grupit"
+msgstr "Zhvendos adresat e grupeve"
 
 msgid "Renumber group addresses by adding an offset to their raw value, e.g. to open gaps. Group object links move with each address. Nothing is written if any move would collide or leave the valid range."
-msgstr "Rinumërtoni adresat e grupit duke i shtuar një zhvendosje vlerës së tyre të papërpunuar, p.sh. për të hapur boshllëqe. Lidhjet e objekteve të grupit lëvizin bashkë me çdo adresë. Asgjë nuk shkruhet nëse ndonjë zhvendosje do të përplasej ose do të dilte jashtë diapazonit të vlefshëm."
+msgstr "Rinumërtoni adresat e grupeve duke i shtuar një zhvendosje vlerës së tyre të papërpunuar, p.sh. për të hapur boshllëqe. Lidhjet e objekteve të grupit lëvizin bashkë me çdo adresë. Asgjë nuk shkruhet nëse ndonjë zhvendosje do të përplasej ose do të dilte jashtë diapazonit të vlefshëm."
 
 msgid "The offset is added to the raw 16-bit value, so it may change the main/middle group as addresses cross a boundary."
 msgstr "Zhvendosja i shtohet vlerës së papërpunuar 16-bitëshe, prandaj mund të ndryshojë grupin kryesor/të mesëm kur adresat kalojnë një kufi."
@@ -596,7 +596,7 @@ msgid "Installation"
 msgstr "Instalimi"
 
 msgid "Group Address Style"
-msgstr "Stili i adresave të grupit"
+msgstr "Stili i adresave të grupeve"
 
 msgid "Created by"
 msgstr "Krijuar nga"
@@ -887,7 +887,7 @@ msgid "Reset Parameters"
 msgstr "Rivendos parametrat"
 
 msgid "Reset Group Address Links"
-msgstr "Rivendos lidhjet e adresave të grupit"
+msgstr "Rivendos lidhjet e adresave të grupeve"
 
 msgid "Confirmed Restart"
 msgstr "Rinisje e konfirmuar"
@@ -1145,7 +1145,7 @@ msgid "No devices. Open or import a project (File menu), or right-click here to 
 msgstr "Nuk ka pajisje. Hapni ose importoni një projekt (menyja Skedari), ose klikoni djathtas këtu për të shtuar një zonë."
 
 msgid "Filter group addresses (address, name)…"
-msgstr "Filtro adresat e grupit (adresa, emri)…"
+msgstr "Filtro adresat e grupeve (adresa, emri)…"
 
 msgid "Filter rooms, devices, functions…"
 msgstr "Filtro dhomat, pajisjet, funksionet…"
@@ -1211,7 +1211,7 @@ msgid "Duplicate '{name}':"
 msgstr "Dyfisho '{name}':"
 
 msgid "Group Address Links"
-msgstr "Lidhjet e adresave të grupit"
+msgstr "Lidhjet e adresave të grupeve"
 
 msgid "Paste"
 msgstr "Ngjit"
@@ -1220,7 +1220,7 @@ msgid "Delete Device"
 msgstr "Fshi pajisjen"
 
 msgid "Delete '{name}'? Its group objects and group-address links are removed and its individual address is freed. This can be undone."
-msgstr "Ta fshini '{name}'? Objektet e saj të grupit dhe lidhjet me adresat e grupit hiqen, dhe adresa e saj individuale lirohet. Ky veprim mund të zhbëhet."
+msgstr "Ta fshini '{name}'? Objektet e saj të grupit dhe lidhjet me adresat e grupeve hiqen, dhe adresa e saj individuale lirohet. Ky veprim mund të zhbëhet."
 
 msgid "Number"
 msgstr "Numri"
@@ -1589,13 +1589,13 @@ msgid "Not connected to the bus."
 msgstr "Nuk jeni i lidhur me busin."
 
 msgid "Export Group Addresses…"
-msgstr "Eksporto adresat e grupit…"
+msgstr "Eksporto adresat e grupeve…"
 
 msgid "Import Group Addresses…"
-msgstr "Importo adresat e grupit…"
+msgstr "Importo adresat e grupeve…"
 
 msgid "Import Group Addresses"
-msgstr "Importo adresat e grupit"
+msgstr "Importo adresat e grupeve"
 
 msgid "Group Address Files (XML, CSV)"
 msgstr "Skedarë adresash grupi (XML, CSV)"
@@ -1904,10 +1904,10 @@ msgid "Create group address {address}"
 msgstr "Krijo adresën e grupit {address}"
 
 msgid "Import group addresses"
-msgstr "Importo adresat e grupit"
+msgstr "Importo adresat e grupeve"
 
 msgid "Import group addresses from {file}"
-msgstr "Importo adresat e grupit nga {file}"
+msgstr "Importo adresat e grupeve nga {file}"
 
 msgid "Link group object"
 msgstr "Lidh objektin e grupit"
@@ -2939,7 +2939,7 @@ msgid "Existing Devices…"
 msgstr "Pajisje ekzistuese…"
 
 msgid "Delete the {count} selected devices? Their group objects and group-address links are removed and their individual addresses are freed. This can be undone."
-msgstr "Të fshihen {count} pajisjet e zgjedhura? Objektet e tyre të grupit dhe lidhjet me adresat e grupit hiqen, dhe adresat e tyre individuale lirohen. Ky veprim mund të zhbëhet."
+msgstr "Të fshihen {count} pajisjet e zgjedhura? Objektet e tyre të grupit dhe lidhjet me adresat e grupeve hiqen, dhe adresat e tyre individuale lirohen. Ky veprim mund të zhbëhet."
 
 msgid "Remove {count} devices"
 msgstr "Hiq {count} pajisje"
