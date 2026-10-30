@@ -864,12 +864,51 @@ def require_editable_param(device: Any, ref_id: str) -> Any:
                     "(not user-editable); its value is set internally"
                 )
             return p
-    hint = _activation_hint(device, ref_id)
+    # The parameter may be shown under another of its refs now (e.g. a time base switched).
+    shown = _shown_refs(device, _parameter_of(ref_id))
+    hint = (
+        f"its parameter is shown as {', '.join(shown)} now (or pass parameter_id "
+        f"{_parameter_of(ref_id)!r})"
+        if shown
+        else _activation_hint(device, ref_id)
+    )
     raise ToolError(
         f"parameter {ref_id!r} is not visible on device {device.node_id} "
         "(not instantiated or deactivated by the current configuration); "
         + (f"{hint}; " if hint else "")
         + "call project_list_parameters for the currently editable parameters"
+    )
+
+
+def _parameter_of(ref_id: str) -> str:
+    """The parameter a ParameterRef id refers to: the id without its trailing ``_R-…``."""
+    return ref_id.rsplit("_R-", 1)[0]
+
+
+def _shown_refs(device: Any, parameter_id: str) -> list[str]:
+    return [
+        p.ref_id
+        for p in _collect_ui_parameters(device.get_ui())
+        if _parameter_of(p.ref_id) == parameter_id
+    ]
+
+
+def resolve_parameter_id(device: Any, parameter_id: str) -> str:
+    """The ref the device shows its parameter ``parameter_id`` with now (a ``parameter_ref_id``
+    without its ``_R-…``), else raises ToolError: a switch of e.g. a time base can show the same
+    parameter under another ParameterRef."""
+    shown = _shown_refs(device, parameter_id)
+    if len(shown) == 1:
+        return shown[0]
+    if shown:
+        raise ToolError(
+            f"parameter {parameter_id!r} is shown as {', '.join(shown)} on device "
+            f"{device.node_id}; pass one of them as parameter_ref_id"
+        )
+    raise ToolError(
+        f"parameter {parameter_id!r} is not visible on device {device.node_id} "
+        "(not instantiated or deactivated by the current configuration); "
+        "call project_list_parameters for the currently editable parameters"
     )
 
 
@@ -3262,15 +3301,21 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     @tool("write")
     def project_set_parameter(
-        parameter_ref_id: str,
         value: str,
+        parameter_ref_id: str | None = None,
         node_id: int | None = None,
         device_address: str | None = None,
+        parameter_id: str | None = None,
     ) -> dict[str, Any]:
         """Set an application parameter. Identify the device by ``node_id`` OR ``device_address`` (an
         individual address like "1.0.30"); pass exactly one. Pass the parameter's `ref_id` (from
         project_list_parameters, or project_parameter_tree) as the `parameter_ref_id` argument; use a
         `value` permitted by that parameter's `widget`.
+
+        Or pass ``parameter_id`` instead: the ref_id without its trailing ``_R-…`` (e.g.
+        "M-0008_A-…_MD-1_M-100_MI-1_UP-4" for "…_UP-4_R-7"). It names the parameter, and resolves
+        to the ref the device shows it with now: a switch of e.g. a time base can show the same
+        parameter under another ref, which a ref_id read before the switch no longer reaches.
 
         When you configure a device's push-button / display function (e.g. a glass push button, room
         controller), ALWAYS also set its display symbols and key labels/name — do not leave them at
@@ -3300,7 +3345,10 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             device = _require_device(node_id, device_address)
             if parameters_in_plugin(device):
                 raise ToolError(PLUGIN_PARAMETERS_ERROR.format(node_id=device.node_id))
-            return apply_parameter(project, device, parameter_ref_id, value)
+            if (parameter_ref_id is None) == (parameter_id is None):
+                raise ToolError("pass exactly one of parameter_ref_id or parameter_id")
+            ref = parameter_ref_id or resolve_parameter_id(device, parameter_id or "")
+            return apply_parameter(project, device, ref, value)
 
         return ctx.run_locked(_set)
 

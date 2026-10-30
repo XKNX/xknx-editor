@@ -30,6 +30,7 @@ from editor_gui.plugins.mcp.tools.project import (
     link_id_between,
     perform_link,
     resolve_in_scope,
+    resolve_parameter_id,
 )
 from editor_gui.plugins.project.service import DeviceProduct
 
@@ -41,6 +42,15 @@ _FLAGS = ("communication", "read", "write", "transmit", "update", "read_on_init"
 _COMMENT_KINDS: tuple[str, ...] = get_args(CommentKind)
 _STATUS_KINDS: tuple[str, ...] = get_args(StatusKind)
 _STATUSES: tuple[str, ...] = get_args(Status)
+
+
+def _placeholder(p: dict[str, Any], name: str) -> str:
+    """The hint for a param named like the op list's placeholder ``name`` ("device", "ga")."""
+    if name not in p:
+        return ""
+    return (
+        f"; {name!r} in the op list stands for that pair, it is not a param of its own"
+    )
 
 
 def register(mcp: FastMCP, ctx: McpContext) -> None:
@@ -56,6 +66,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         if (node_id is None) == (device_address is None):
             raise ValueError(
                 "pass exactly one of node_id (int) or device_address (str, e.g. '1.0.30')"
+                + _placeholder(p, "device")
             )
         if device_address is not None:
             matches = [
@@ -84,6 +95,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         if (gid is None) == (g is None):
             raise ValueError(
                 "pass exactly one of group_address_id (int) or group_address (str, e.g. '10/1/2')"
+                + _placeholder(p, "ga")
             )
         if g is not None:
             matches = [a for a in project.group_addresses if a.address == g]
@@ -163,6 +175,9 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         # set, the effective read-back value + side effects + what the edit showed or hid.
         device = _parameters_device(p)
         ref = p.get("parameter_ref_id")
+        if not ref and p.get("parameter_id"):
+            # The parameter's ref NOW: an earlier op of the batch may show it under another.
+            ref = resolve_parameter_id(device, p["parameter_id"])
         value = p.get("value")
         # Apply-time semantic addressing: resolve {label, subtree_id, value_label} NOW, against the
         # device state AFTER any earlier ops in this batch, so a child a prior op just activated
@@ -171,7 +186,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             label = p.get("label")
             if not label:
                 raise ValueError(
-                    "set_parameter needs parameter_ref_id, or a label to resolve"
+                    "set_parameter needs parameter_ref_id, parameter_id, or a label to resolve"
                 )
             resolved = resolve_in_scope(
                 list(device.get_ui()),
@@ -438,7 +453,9 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         Device-scoped ops accept either ``node_id`` (int) OR ``device_address`` (str, e.g. "1.0.30");
         GA-scoped ops accept either ``group_address_id`` (int) OR ``group_address`` (str, e.g.
-        "10/1/2"). Pass exactly one of each pair. Below "device" / "ga" stand for either form.
+        "10/1/2"). Pass exactly one of each pair. In the list below, "device" and "ga" are
+        placeholders for these pairs, not param names: write e.g. {"device_address": "1.0.30"},
+        never {"device": "1.0.30"}.
 
         Supported ops with required params (optional params in brackets) and success result fields:
         - add_device: product_ref_id [name, space_id] -> {node_id}; uses the first matching
@@ -450,10 +467,13 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         - remove_device: device -> {node_id}; as project_remove_device (several devices in one
           batch, as "Delete" of a multi-selection does).
         - set_individual_address: device, address -> {node_id, address}.
-        - set_parameter: device, (parameter_ref_id | label [subtree_id tree_token] [value_label]),
-          value? -> {node_id, ref_id, requested, value, active, tree_token, changed?, lost_links?}
-          (tree_token as for project_set_parameter: the tree after this op). Address the
-          parameter by parameter_ref_id, or by label (resolved AT THIS OP'S TURN within subtree_id,
+        - set_parameter: device, (parameter_ref_id | parameter_id | label [subtree_id tree_token]
+          [value_label]), value? -> {node_id, ref_id, requested, value, active, tree_token,
+          changed?, lost_links?} (tree_token as for project_set_parameter: the tree after this op).
+          Address the parameter by parameter_ref_id; by parameter_id (the ref_id without its
+          trailing "_R-…", resolved AT THIS OP'S TURN to the ref the device shows the parameter
+          with, so a value after an op that switched e.g. its time base reaches the parameter's
+          new ref); or by label (resolved AT THIS OP'S TURN within subtree_id,
           so a child a prior op in the batch just activated resolves; a SCOPED label requires
           tree_token from the project_parameter_tree response its subtree_id came from, so an op
           whose scope an earlier batch op invalidated fails explicitly instead of silently retargeting;
