@@ -1,6 +1,6 @@
 """Serialize a project document into the ETS6 internal project-store streams.
 
-Companion to :mod:`ets_store` (the integrity sidecars). A ``.knxproj`` is the interchange format;
+Companion to :mod:`project_store` (the integrity sidecars). A ``.knxproj`` is the interchange format;
 the local project store is a different, internal shape: one XML stream per object-model section --
 ``P`` (project), ``B`` (buildings), ``I`` (installation), ``U`` (unassigned devices), ``G`` (group
 addresses), ``PT`` (traces) and one ``P-XXXX-0_A-N`` per topology area (devices live there).
@@ -32,13 +32,6 @@ from uuid import uuid4
 from sqlalchemy.orm import object_session
 
 from xknxeditor.proj.core.dpt import normalize_datapoint_type
-from xknxeditor.proj.core.ets_store import (
-    StoreFormat,
-    project_mask,
-    write_store_descriptor,
-    write_store_stream,
-    write_store_version,
-)
 from xknxeditor.proj.core.ga_security import secured_group_addresses
 from xknxeditor.proj.core.knxproj_export import (
     assign_ids,
@@ -47,6 +40,14 @@ from xknxeditor.proj.core.knxproj_export import (
     has_override,
     localname,
     relidref,
+    tree_covers,
+)
+from xknxeditor.proj.core.project_store import (
+    StoreFormat,
+    project_mask,
+    write_store_descriptor,
+    write_store_stream,
+    write_store_version,
 )
 from xknxeditor.proj.models import (
     UNDEFINED_STATUS,
@@ -122,11 +123,13 @@ class _StoreBuilder:
         *,
         name: str | None = None,
         store_format: StoreFormat = StoreFormat.ETS6,
+        group_object_trees: Mapping[int, str] | None = None,
     ) -> None:
         self._project = project
         self._installation = installation
         self._pid = pid
         self._format = store_format
+        self._group_object_trees = group_object_trees or {}
         self._name = name if name is not None else project.name
         # Persistent-unique-id per object, assigned in the order a genuine store does: the whole
         # topology skeleton, then spaces, then devices, then the group-address tree. Keyed by
@@ -496,7 +499,11 @@ class _StoreBuilder:
             Hardware2ProgramRefId=device.hardware2program_ref_id,
             Comment=device.comment or "",
             Description=device.description or "",
-            IsActivityCalculated="true",
+            # The objects the group object tree lists count as the active ones when the activity
+            # counts as calculated; a tree that misses one has it calculated again.
+            IsActivityCalculated="true"
+            if tree_covers(self._device_tree(device), device.com_objects)
+            else "false",
             LastModified=device.last_modified or None,
             Puid=self._p("DI", device.id),
         )
@@ -545,7 +552,7 @@ class _StoreBuilder:
     def _build_com_objects(self, di: ET.Element, device: Device) -> None:
         # Same write gate as the .knxproj export: emit an instance only for a linked or overridden
         # object; an active-but-unlinked object is carried by the group-object tree instead.
-        tree_instances = group_object_tree_instances(device.group_object_tree)
+        tree_instances = group_object_tree_instances(self._device_tree(device))
         pending: list[tuple[ComObject, str, str, bool]] = []
         for co in device.com_objects:
             ordered = sorted(co.links, key=lambda link: not link.is_sending)
@@ -613,11 +620,15 @@ class _StoreBuilder:
                         Value=arg.get("value"),
                     )
 
+    def _device_tree(self, device: Device) -> str:
+        """The device's ``<GroupObjectTree>``: the one given for it, else the stored one."""
+        return self._group_object_trees.get(device.id) or device.group_object_tree
+
     def _build_group_object_tree(self, di: ET.Element, device: Device) -> None:
         # The stored tree is the .knxproj <GroupObjectTree> verbatim; the store renames the root to
         # <GrpObjTree> and keeps the <Nodes>/<Node> children. Drop @GroupObjectInstances tokens no
         # longer active, as the exporter does.
-        raw = device.group_object_tree
+        raw = self._device_tree(device)
         if not raw:
             return
         try:
@@ -675,16 +686,24 @@ def build_store_streams(
     pid: str | None = None,
     name: str | None = None,
     store_format: StoreFormat = StoreFormat.ETS6,
+    group_object_trees: Mapping[int, str] | None = None,
 ) -> StoreStreams:
     """Serialize ``project`` into the ETS store streams (no files written).
 
     ``name`` overrides the stored project name (e.g. to tag a new copy); ``None`` keeps it.
     ``store_format`` selects the target ETS generation's stream shapes -- the two are not
-    interchangeable, see :class:`xknxeditor.proj.core.ets_store.StoreFormat`.
+    interchangeable, see :class:`xknxeditor.proj.core.project_store.StoreFormat`.
+    ``group_object_trees`` are trees of devices whose stored one is out of date, as for the
+    ``.knxproj`` export (:func:`xknxeditor.proj.core.knxproj_export.export_knxproj`).
     """
     resolved_pid = pid or project.id
     builder = _StoreBuilder(
-        project, installation, resolved_pid, name=name, store_format=store_format
+        project,
+        installation,
+        resolved_pid,
+        name=name,
+        store_format=store_format,
+        group_object_trees=group_object_trees,
     )
     streams = builder.build()
     return StoreStreams(pid=resolved_pid, guid=builder.guid, streams=streams)
@@ -702,6 +721,7 @@ def write_project_store(
     overwrite: bool = True,
     reveal: Callable[[bytes], bytes] | None = None,
     store_format: StoreFormat = StoreFormat.ETS6,
+    group_object_trees: Mapping[int, str] | None = None,
 ) -> StoreStreams:
     """Write a complete ``P-XXXX`` store directory the target ETS can open.
 
@@ -709,7 +729,7 @@ def write_project_store(
     ``{pid}.store`` descriptor bound to ``installer_guid`` (the target machine's ETS installation
     GUID). Manufacturer product data (``M-XXXX/*`` members) is written loose so device product/
     application refs resolve, each folder getting its own ``M-XXXX.store`` descriptor the same way
-    the project folder does (see :func:`xknxeditor.proj.core.ets_store.store_descriptor` -- verified
+    the project folder does (see :func:`xknxeditor.proj.core.project_store.store_descriptor` -- verified
     against a genuine ProjectStore, a manufacturer folder without one is treated as missing/untrusted
     even though its files and hashes are otherwise correct); empty ``BinaryData``/``UserFiles``/
     ``AddinData`` folders complete the layout. ``dest_dir`` is the ``P-XXXX`` folder itself (use
@@ -730,9 +750,15 @@ def write_project_store(
     ``reveal`` turns a stream with the project's encrypted secrets into one with them in the clear
     (see :meth:`ProjectService.reveal`). ``store_format`` must match the ETS generation owning
     ``dest_dir``: a store written for the other one opens but comes up empty.
+    ``group_object_trees`` see :func:`build_store_streams`.
     """
     built = build_store_streams(
-        project, installation, pid=pid, name=project_name, store_format=store_format
+        project,
+        installation,
+        pid=pid,
+        name=project_name,
+        store_format=store_format,
+        group_object_trees=group_object_trees,
     )
     if reveal is not None:
         built.streams.update(

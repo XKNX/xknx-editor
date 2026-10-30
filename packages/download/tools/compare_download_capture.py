@@ -2,7 +2,7 @@
 
 Run from the repository root:
 
-  uv run python packages/download/tools/compare_ets_download.py \
+  uv run python packages/download/tools/compare_download_capture.py \
     --ets /path/to/ets-group-monitor.xml \
     --project /path/to/project.xknx \
     --device 1.1.4

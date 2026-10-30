@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<KNX xmlns="http://knx.org/xml/project/20" CreatedBy="test" ToolVersion="1">
+  <ManufacturerData>
+    <Manufacturer RefId="M-00FA">
+      <ApplicationPrograms>
+        <ApplicationProgram Id="M-00FA_A-0005-01-0000" ApplicationNumber="5" ApplicationVersion="1"
+            ProgramType="ApplicationProgram" MaskVersion="MV-07B0" Name="Object Tree"
+            LoadProcedureStyle="MergedProcedure" PeiType="0" DefaultLanguage="en-US"
+            DynamicTableManagement="false" Linkable="false" MinEtsVersion="5.0">
+          <Static>
+            <ParameterTypes>
+              <ParameterType Id="M-00FA_A-0005-01-0000_PT-YN" Name="YesNo">
+                <TypeRestriction Base="Value" SizeInBit="8">
+                  <Enumeration Text="No" Value="0" Id="M-00FA_A-0005-01-0000_PT-YN_EN-0" />
+                  <Enumeration Text="Yes" Value="1" Id="M-00FA_A-0005-01-0000_PT-YN_EN-1" />
+                </TypeRestriction>
+              </ParameterType>
+            </ParameterTypes>
+            <Parameters>
+              <Parameter Id="M-00FA_A-0005-01-0000_P-1" Name="Extended" ParameterType="M-00FA_A-0005-01-0000_PT-YN" Text="Extended" Value="0" />
+            </Parameters>
+            <ParameterRefs>
+              <ParameterRef Id="M-00FA_A-0005-01-0000_P-1_R-1" RefId="M-00FA_A-0005-01-0000_P-1" />
+            </ParameterRefs>
+            <ComObjectTable>
+              <ComObject Id="M-00FA_A-0005-01-0000_O-1" Name="Central" Text="Central" Number="1" FunctionText="Switch" ObjectSize="1 Bit" ReadFlag="Disabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Disabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" />
+              <ComObject Id="M-00FA_A-0005-01-0000_O-2" Name="Switch" Text="Switch" Number="2" FunctionText="Switch" ObjectSize="1 Bit" ReadFlag="Disabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Disabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" />
+              <ComObject Id="M-00FA_A-0005-01-0000_O-3" Name="Status" Text="Status" Number="3" FunctionText="Status" ObjectSize="1 Bit" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" />
+              <ComObject Id="M-00FA_A-0005-01-0000_O-4" Name="Extra" Text="Extra" Number="4" FunctionText="Switch" ObjectSize="1 Bit" ReadFlag="Disabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Disabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" />
+              <ComObject Id="M-00FA_A-0005-01-0000_O-5" Name="Third" Text="Third" Number="5" FunctionText="Switch" ObjectSize="1 Bit" ReadFlag="Disabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Disabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" />
+              <ComObject Id="M-00FA_A-0005-01-0000_O-6" Name="Lock" Text="Lock" Number="6" FunctionText="Lock" ObjectSize="1 Bit" ReadFlag="Disabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Disabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" />
+            </ComObjectTable>
+            <ComObjectRefs>
+              <ComObjectRef Id="M-00FA_A-0005-01-0000_O-1_R-1" RefId="M-00FA_A-0005-01-0000_O-1" />
+              <ComObjectRef Id="M-00FA_A-0005-01-0000_O-2_R-2" RefId="M-00FA_A-0005-01-0000_O-2" />
+              <ComObjectRef Id="M-00FA_A-0005-01-0000_O-3_R-3" RefId="M-00FA_A-0005-01-0000_O-3" />
+              <ComObjectRef Id="M-00FA_A-0005-01-0000_O-4_R-4" RefId="M-00FA_A-0005-01-0000_O-4" />
+              <ComObjectRef Id="M-00FA_A-0005-01-0000_O-5_R-5" RefId="M-00FA_A-0005-01-0000_O-5" />
+              <ComObjectRef Id="M-00FA_A-0005-01-0000_O-6_R-6" RefId="M-00FA_A-0005-01-0000_O-6" />
+            </ComObjectRefs>
+          </Static>
+          <Dynamic>
+            <ChannelIndependentBlock>
+              <ParameterBlock Id="M-00FA_A-0005-01-0000_PB-1" Text="General">
+                <ParameterRefRef RefId="M-00FA_A-0005-01-0000_P-1_R-1" />
+                <ComObjectRefRef RefId="M-00FA_A-0005-01-0000_O-1_R-1" />
+              </ParameterBlock>
+            </ChannelIndependentBlock>
+            <Channel Id="M-00FA_A-0005-01-0000_CH-1" Name="A" Text="Channel A" Number="1">
+              <ParameterBlock Id="M-00FA_A-0005-01-0000_PB-2" Text="Output">
+                <ComObjectRefRef RefId="M-00FA_A-0005-01-0000_O-6_R-6" />
+                <ComObjectRefRef RefId="M-00FA_A-0005-01-0000_O-2_R-2" />
+              </ParameterBlock>
+              <ParameterBlock Id="M-00FA_A-0005-01-0000_PB-3" Text="Status" ShowInComObjectTree="true">
+                <ComObjectRefRef RefId="M-00FA_A-0005-01-0000_O-3_R-3" />
+              </ParameterBlock>
+              <ParameterBlock Id="M-00FA_A-0005-01-0000_PB-4" Text="Extra" ShowInComObjectTree="true">
+                <choose ParamRefId="M-00FA_A-0005-01-0000_P-1_R-1">
+                  <when test="1">
+                    <ComObjectRefRef RefId="M-00FA_A-0005-01-0000_O-4_R-4" />
+                  </when>
+                </choose>
+              </ParameterBlock>
+            </Channel>
+            <Channel Id="M-00FA_A-0005-01-0000_CH-2" Name="B" Text="Channel B" Number="2">
+              <ParameterBlock Id="M-00FA_A-0005-01-0000_PB-5" Text="Nothing" />
+            </Channel>
+            <choose ParamRefId="M-00FA_A-0005-01-0000_P-1_R-1">
+              <when test="1">
+                <Channel Id="M-00FA_A-0005-01-0000_CH-3" Name="C" Text="Channel C" Number="3">
+                  <ParameterBlock Id="M-00FA_A-0005-01-0000_PB-6" Text="Third">
+                    <ComObjectRefRef RefId="M-00FA_A-0005-01-0000_O-5_R-5" />
+                  </ParameterBlock>
+                </Channel>
+              </when>
+            </choose>
+          </Dynamic>
+        </ApplicationProgram>
+      </ApplicationPrograms>
+    </Manufacturer>
+  </ManufacturerData>
+</KNX>

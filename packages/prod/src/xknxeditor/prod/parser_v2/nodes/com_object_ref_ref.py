@@ -137,6 +137,8 @@ class ComObjectRefRefNode(DynamicNode):
             # Snapshot the gate chain (the Choose/Repeat parameters this emission sits under) for the
             # chain-AND activeness test in DynamicUI.active_parameter_driven_com_object_ref_ids.
             ctx.capture.record_object(qualified_ref_id)
+        if ctx.object_tree is not None:
+            ctx.object_tree.record(qualified_ref_id)
         name_value = (
             ctx.get(self._text_param_ref_id) if self._text_param_ref_id else None
         )

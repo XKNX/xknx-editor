@@ -1658,6 +1658,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                 fetch_master=True,
                 master_cache_dir=config_dir(),
                 module_arguments=project.module_arguments(),
+                group_object_trees=project.group_object_trees(),
             )
             if result.unverifiable_folders:
                 warnings.append(
