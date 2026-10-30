@@ -2648,8 +2648,19 @@ class LoadProcedureRunner:
                     data = prop.data[
                         start : start + min(len(expected), width * control.count)
                     ]
-                    if data:
-                        expected[: len(data)] = data
+                    # The image's bytes count where a parameter covers them; elsewhere the
+                    # inline data stays (e.g. a parameter in the last octets of the hardware
+                    # type).
+                    covered = (
+                        prop.covered[start : start + len(data)]
+                        if prop.covered is not None
+                        else b"\xff" * len(data)
+                    )
+                    if any(covered):
+                        for i, (value, bits) in enumerate(
+                            zip(data, covered, strict=False)
+                        ):
+                            expected[i] = (expected[i] & ~bits & 0xFF) | (value & bits)
                         sources.append("image")
                     break
         return bytes(expected), captured_width, "+".join(sources)

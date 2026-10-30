@@ -864,6 +864,49 @@ async def test_compare_prop_mask_ignores_unmarked_octets() -> None:
     await runner.run()  # must not raise: manufacturer and version are masked out
 
 
+async def test_compare_prop_takes_the_image_only_where_a_parameter_covers_it() -> None:
+    from xknxeditor.download.errors import CompareMismatch
+    from xknxeditor.namespaces.intermediate.ld_ctrl_compare_prop_t import (
+        LdCtrlCompareProp,
+    )
+
+    def run(covered: bytes | None) -> LoadProcedureRunner:
+        # The hardware type: a parameter in the last octet selects the variant.
+        image = DownloadImage(
+            segments=(),
+            properties=(
+                PropertyValue(
+                    object_index=0,
+                    property_id=78,
+                    occurrence=0,
+                    data=b"\x00\x00\x00\x00\x00\x63",
+                    covered=covered,
+                ),
+            ),
+        )
+        application = _application(
+            LdCtrlCompareProp(
+                obj_idx=0,
+                prop_id=78,
+                start_element=1,
+                count=1,
+                inline_data=b"\x00\x01\x00\x00\x00\x54",
+            )
+        )
+        return LoadProcedureRunner(application, image, DeviceProgrammer(device))
+
+    device = FakeDevice()
+    device.properties[(0, 78)] = b"\x00\x01\x00\x00\x00\x63"
+    # The parameter covers the last octet: it is checked, the others are the inline data.
+    await run(b"\x00\x00\x00\x00\x00\xff").run()
+    # Covering none of the octets, the inline data is checked as it is.
+    with pytest.raises(CompareMismatch):
+        await run(bytes(6)).run()
+    # Without a mask the image is the property's data.
+    device.properties[(0, 78)] = b"\x00\x00\x00\x00\x00\x00"
+    await run(None).run()
+
+
 async def test_compare_prop_mask_still_detects_marked_mismatch() -> None:
     from xknxeditor.download.errors import VerificationError
     from xknxeditor.namespaces.intermediate.ld_ctrl_compare_prop_t import (
