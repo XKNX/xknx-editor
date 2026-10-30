@@ -66,10 +66,9 @@ class ComObjectParameterBlockNode(DynamicNode):
             or self._elem.text
             or self._elem.name
         )
-        text = (
-            fill_name(apply_text_args(template or "", arg_defaults), name_value or "")
-            or None
-        )
+        raw_text = apply_text_args(template or "", arg_defaults)
+        text = fill_name(raw_text, name_value or "") or None
+        text_indent = len(raw_text) - len(raw_text.lstrip(" ")) if text else 0
         rows = self._elem.rows.row if self._elem.rows else []
         cols = self._elem.columns.column if self._elem.columns else []
 
@@ -102,5 +101,6 @@ class ComObjectParameterBlockNode(DynamicNode):
                 cell=self._elem.cell,
                 icon=self._elem.icon,
                 param_ref_id=self._elem.param_ref_id,
+                text_indent=text_indent,
             )
         ]
