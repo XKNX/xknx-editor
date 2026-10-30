@@ -88,10 +88,56 @@ class _Device:
 
 
 def test_installed_for_every_connection() -> None:
-    assert (
-        P2PConnection.request
-        is response_matching._MatchingP2PConnection.answered_request  # pyright: ignore[reportPrivateUsage]
+    matching = response_matching._MatchingP2PConnection  # pyright: ignore[reportPrivateUsage]
+    assert P2PConnection.request is matching.answered_request
+    assert P2PConnection.process is matching.queueing_process
+    # installing again changes nothing
+    assert response_matching.install() is True
+    assert matching.xknx_process is not matching.queueing_process
+
+
+def test_not_installed_with_an_xknx_that_matches_itself(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        apci.APCIRequest, "is_response", lambda self, payload: True, raising=False
     )
+    original = P2PConnection.request
+    assert response_matching.install() is False
+    assert P2PConnection.request is original
+
+
+async def test_back_to_back_responses_are_both_kept() -> None:
+    # e.g. two frames of one TCP segment, handled before the request runs again
+    device = _Device()
+    connection = await device.connect()
+    device.replies = [_LATE_MEMORY_ANSWER, _PROPERTY_ANSWER]
+    telegram = await connection.request(_PROPERTY_WRITE)
+    assert telegram.payload == _PROPERTY_ANSWER
+    assert id(connection) not in response_matching._QUEUED  # pyright: ignore[reportPrivateUsage]
+
+
+async def test_all_responses_from_before_the_request_are_ignored() -> None:
+    device = _Device()
+    connection = await device.connect()
+    device.answer(_LATE_MEMORY_ANSWER)
+    device.answer(_PROPERTY_ANSWER)
+    fresh = apci.PropertyValueResponse(
+        object_index=1, property_id=5, count=1, start_index=1, data=b"\x03"
+    )
+    device.replies = [fresh]
+    telegram = await connection.request(_PROPERTY_WRITE)
+    assert telegram.payload == fresh
+
+
+async def test_a_capped_memory_response_answers() -> None:
+    # A device that caps its replies answers a 10-octet read with fewer octets.
+    device = _Device()
+    connection = await device.connect()
+    capped = apci.MemoryResponse(address=0x4003, data=bytes(4))
+    device.replies = [capped]
+    telegram = await connection.request(apci.MemoryRead(address=0x4003, count=10))
+    assert telegram.payload == capped
 
 
 async def test_a_response_from_before_the_request_is_ignored(
@@ -258,7 +304,7 @@ def test_answer_type(request_: apci.APCI, expected: type[apci.APCI] | None) -> N
 @pytest.mark.parametrize(
     ("request_", "response", "answered"),
     [
-        # memory: the same address and byte count, or none
+        # memory: the same address; the number of octets is the caller's
         (
             apci.MemoryRead(address=0x4003, count=10),
             apci.MemoryResponse(address=0x4003, data=bytes(10)),
@@ -272,7 +318,7 @@ def test_answer_type(request_: apci.APCI, expected: type[apci.APCI] | None) -> N
         (
             apci.MemoryRead(address=0x4003, count=10),
             apci.MemoryResponse(address=0x4003, data=bytes(4)),
-            False,
+            True,
         ),
         (
             apci.MemoryRead(address=0x4003, count=10),
@@ -307,6 +353,11 @@ def test_answer_type(request_: apci.APCI, expected: type[apci.APCI] | None) -> N
         (
             apci.MemoryExtendedRead(count=4, address=0x20000),
             apci.MemoryExtendedReadResponse(0, 0x20000, bytes(2)),
+            True,
+        ),
+        (
+            apci.MemoryExtendedRead(count=4, address=0x20000),
+            apci.MemoryExtendedReadResponse(0, 0x20004, bytes(4)),
             False,
         ),
         (
@@ -324,7 +375,7 @@ def test_answer_type(request_: apci.APCI, expected: type[apci.APCI] | None) -> N
             apci.MemoryExtendedWriteResponse(0, 0x20004),
             False,
         ),
-        # property values: the same object, property and start index, and count or none
+        # property values: the same object, property and start index
         (_PROPERTY_WRITE, _PROPERTY_ANSWER, True),
         (_PROPERTY_WRITE, _LATE_MEMORY_ANSWER, False),
         (
@@ -349,7 +400,7 @@ def test_answer_type(request_: apci.APCI, expected: type[apci.APCI] | None) -> N
             apci.PropertyValueResponse(
                 object_index=0, property_id=11, count=1, start_index=1
             ),
-            False,
+            True,
         ),
         (
             apci.PropertyExtValueRead(11, 1, 52, 1, 1),
@@ -430,7 +481,7 @@ def test_answer_type(request_: apci.APCI, expected: type[apci.APCI] | None) -> N
             apci.FunctionPropertyExtStateResponse(12, 1, 52, apci.ReturnCode.E_SUCCESS),
             False,
         ),
-        # A/D converter: the same channel and count
+        # A/D converter: the same channel
         (apci.ADCRead(channel=1, count=2), apci.ADCResponse(channel=1, count=2), True),
         (apci.ADCRead(channel=1, count=2), apci.ADCResponse(channel=2, count=2), False),
         # services answered by their response type alone
