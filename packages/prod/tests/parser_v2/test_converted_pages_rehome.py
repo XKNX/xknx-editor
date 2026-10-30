@@ -78,3 +78,23 @@ def test_a_converted_application_with_its_own_dialog_keeps_the_editor_layout() -
     assert pages["Threshold"] == ["Use threshold"]
     # but not off a page the chain populated: "Filter" (25) stays on its channel
     assert pages["Channel"] == ["Scan rate", "Filter"]
+
+
+def test_spaces_in_front_of_a_page_title_indent_it() -> None:
+    xml = XML.replace(b'Text="Measurement"', b'Text="   Measurement"')
+    program = parse_application_xml(xml, "M-00FA")[0].program
+    program.pre_ets4_style = False
+    indents: dict[str, int] = {}
+
+    def walk(nodes: list[UiNode] | tuple[UiNode, ...]) -> None:
+        for node in nodes:
+            if isinstance(node, UiParameterBlock):
+                indents[node.text or ""] = node.text_indent
+                walk(node.children)
+            elif isinstance(node, UiTab):
+                walk(node.children)
+
+    walk(DynamicUI(program).ui())
+    # The title itself has no spaces in front: the page tree indents it.
+    assert indents["Measurement"] == 3
+    assert indents["Controller"] == 0

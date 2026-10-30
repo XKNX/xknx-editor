@@ -246,6 +246,12 @@ def _shows_as_text(param: UiParameter) -> bool:
     )
 
 
+def _text_row(param: UiParameter) -> bool:
+    """Whether ``param``'s row shows only texts: its value as text, or no field at all
+    (TypeNone). Such a row is as high as a line of text, not as a field."""
+    return _shows_as_text(param) or param.widget is None
+
+
 # Loads the picture of a TypePicture baggage while a parameter tree is drawn.
 _get_picture: Callable[[str], Picture | None] | None = None
 # Loads an icon of the product's IconFile baggage while a parameter tree is drawn.
@@ -508,6 +514,8 @@ def render_param_widget(
             pass
         case PictureWidget() as w:
             _render_picture(w, imgui.get_content_region_avail().x)
+        case None:
+            pass  # TypeNone: its text only, e.g. an empty line between parameters
         case _:
             _render_text_param(widget_id, param.value, on_change, differs)
     return None
@@ -1532,6 +1540,9 @@ def _render_page_tree(
             imgui.set_next_item_open(True, imgui.Cond_.once)
         icon = get_icon(page.icon) if get_icon is not None and page.icon else None
         pad = " " * math.ceil((icon_size + space) / space) if icon is not None else ""
+        # Spaces in front of a page's text indent it, as the product data lays out its pages.
+        if page.block is not None:
+            pad += " " * page.block.text_indent
         is_selected = page.key == selected
         is_group = top_level and bool(page.children)
         row_top, row_bottom = _row_band()
@@ -2236,11 +2247,15 @@ def _render_param_table(
             imgui.TableColumnFlags_.width_stretch | imgui.TableColumnFlags_.no_clip,
         )
         value_column = 0 if above else 1
-        # Every row is as high as one with an input field.
+        # A row is as high as one with an input field; one showing only texts (a read-only value,
+        # or no field at all) as high as a line of text.
         row_height = imgui.get_frame_height() + 2 * padding.y
+        text_row_height = imgui.get_text_line_height() + 2 * padding.y
         for param in params:
+            text_row = not isinstance(param, UiButton) and _text_row(param)
             imgui.table_next_row(
-                imgui.TableRowFlags_.none, 0.0 if above else row_height
+                imgui.TableRowFlags_.none,
+                0.0 if above else text_row_height if text_row else row_height,
             )
             if isinstance(param, UiButton):
                 imgui.table_set_column_index(value_column)
@@ -2254,7 +2269,8 @@ def _render_param_table(
                 imgui.indent(indent)
             label = param.label
             differs = param.ref_id in differing_refs
-            imgui.align_text_to_frame_padding()
+            if not text_row:
+                imgui.align_text_to_frame_padding()
             # In multi-edit a diverging value has no single "changed vs default" state to show.
             changed = not differs and param.value != param.default_value
             # Changed parameters stand out. A leading marker plus the colour means the
@@ -2283,14 +2299,16 @@ def _render_param_table(
             if indent > 0:
                 imgui.unindent(indent)
             if above:
-                imgui.table_next_row(imgui.TableRowFlags_.none, row_height)
+                imgui.table_next_row(
+                    imgui.TableRowFlags_.none,
+                    text_row_height if text_row else row_height,
+                )
             imgui.table_set_column_index(value_column)
             # Above each other, the field is indented like its label.
             value_indent = indent if above else 0.0
             if value_indent > 0:
                 imgui.indent(value_indent)
             if _shows_as_text(param):
-                imgui.align_text_to_frame_padding()
                 imgui.text(_value_display(param, param.value))
                 _render_suffix(param.suffix)
                 _track_help(param.help_context)
