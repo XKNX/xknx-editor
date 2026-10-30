@@ -731,7 +731,7 @@ msgid "DALI (Bus)"
 msgstr "DALI (bus)"
 
 msgid "Assigned Objects"
-msgstr "Objektet e caktuara"
+msgstr "Objektet e lidhura"
 
 msgid "Object"
 msgstr "Objekti"
@@ -1241,7 +1241,7 @@ msgid "Delete Folder"
 msgstr "Fshi dosjen"
 
 msgid "Delete this folder and every group address in it? This can be undone."
-msgstr "Ta fshini këtë dosje dhe çdo adresë grupi brenda saj? Ky veprim mund të zhbëhet."
+msgstr "Të fshihet kjo dosje dhe çdo adresë grupi brenda saj? Ky veprim mund të zhbëhet."
 
 msgid "Invalid address or already in use."
 msgstr "Adresë e pavlefshme ose tashmë në përdorim."
@@ -1598,7 +1598,7 @@ msgid "Import Group Addresses"
 msgstr "Importo adresat e grupeve"
 
 msgid "Group Address Files (XML, CSV)"
-msgstr "Skedarë adresash grupi (XML, CSV)"
+msgstr "Skedarët e adresave të grupeve (XML, CSV)"
 
 msgid "{added} group addresses added, {updated} updated."
 msgstr "U shtuan {added} adresa grupi, u përditësuan {updated}."
