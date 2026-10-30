@@ -56,6 +56,13 @@ instructions.
    project_list_group_addresses(group_addresses=["1/1/30", "1/1/31"])
    ```
 
+   To see what a main or middle group already holds, list it by its printed address, e.g. its
+   switching addresses only:
+
+   ```
+   project_list_group_addresses(group_range="1/1", dpt="1", compact=True)
+   ```
+
    Create the missing ones with their datapoint type and link the objects in one batch. A group
    address created earlier in the batch can be linked by its printed address. Mark the object
    that transmits with `is_sending=true`; link each status/feedback object to its status address
