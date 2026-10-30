@@ -253,3 +253,117 @@ async def test_linking_a_hidden_com_object_says_so(tmp_path: Path) -> None:
             ],
         )
         assert batch["results"][0]["result"]["hidden"] is True
+
+
+# On the Gira push-button, the contact type 5 of a key shows its contact action parameter (UP-4)
+# under another ref: ..._UP-4_R-7 becomes ..._UP-4_R-144.
+_MODULE = "M-0008_A-7072-21-5CC3-O000A_MD-1_M-100_MI-1"
+_CONTACT_TYPE = f"{_MODULE}_P-149_R-142"
+_ACTION = f"{_MODULE}_UP-4"
+
+
+async def _switched_action_value(client: Client, node_id: int) -> str:
+    """A value of the contact action under its ref after the switch (the switch is undone)."""
+    await _data(
+        client,
+        "project_set_parameter",
+        node_id=node_id,
+        parameter_ref_id=_CONTACT_TYPE,
+        value="5",
+    )
+    action = await _data(
+        client,
+        "project_get_parameter",
+        node_id=node_id,
+        parameter_ref_id=f"{_ACTION}_R-144",
+    )
+    value = next(
+        str(c["value"])
+        for c in action["widget"]["choices"]
+        if str(c["value"]) != action["value"]
+    )
+    await _data(client, "project_undo")
+    return value
+
+
+async def test_a_parameter_is_set_by_its_id_after_its_ref_switched(
+    tmp_path: Path,
+) -> None:
+    mcp, _project = _build(tmp_path)
+    async with Client(mcp) as client:
+        node_id = await _device(client, tmp_path)
+        value = await _switched_action_value(client, node_id)
+        batch = await _data(
+            client,
+            "project_batch",
+            operations=[
+                {
+                    "op": "set_parameter",
+                    "params": {
+                        "node_id": node_id,
+                        "parameter_ref_id": _CONTACT_TYPE,
+                        "value": "5",
+                    },
+                },
+                {
+                    "op": "set_parameter",
+                    "params": {
+                        "node_id": node_id,
+                        "parameter_id": _ACTION,
+                        "value": value,
+                    },
+                },
+            ],
+        )
+        result = batch["results"][1]["result"]
+        assert (result["ref_id"], result["value"]) == (f"{_ACTION}_R-144", value)
+
+        # The ref read before the switch names the one the parameter is shown with now.
+        with pytest.raises(Exception, match=f"shown as {_ACTION}_R-144"):
+            await client.call_tool(
+                "project_set_parameter",
+                {
+                    "node_id": node_id,
+                    "parameter_ref_id": f"{_ACTION}_R-7",
+                    "value": value,
+                },
+            )
+        alone = await _data(
+            client,
+            "project_set_parameter",
+            node_id=node_id,
+            parameter_id=_ACTION,
+            value=value,
+        )
+        assert alone["ref_id"] == f"{_ACTION}_R-144"
+
+
+async def test_a_parameter_needs_one_way_to_name_it(tmp_path: Path) -> None:
+    mcp, _project = _build(tmp_path)
+    async with Client(mcp) as client:
+        node_id = await _device(client, tmp_path)
+        for names in ({}, {"parameter_ref_id": _COMBINE, "parameter_id": _ACTION}):
+            with pytest.raises(Exception, match="exactly one of parameter_ref_id"):
+                await client.call_tool(
+                    "project_set_parameter", {"node_id": node_id, "value": "1", **names}
+                )
+        with pytest.raises(Exception, match="is not visible"):
+            await client.call_tool(
+                "project_set_parameter",
+                {"node_id": node_id, "parameter_id": f"{_MODULE}_UP-999", "value": "1"},
+            )
+
+
+async def test_a_placeholder_of_the_op_list_is_named(tmp_path: Path) -> None:
+    mcp, _project = _build(tmp_path)
+    async with Client(mcp) as client:
+        await _device(client, tmp_path)
+        for op, params in (
+            ("rename_device", {"device": "1.1.1", "name": "A"}),
+            ("rename_group_address", {"ga": "0/0/1", "name": "A"}),
+        ):
+            batch = await _data(
+                client, "project_batch", operations=[{"op": op, "params": params}]
+            )
+            text = str(batch)
+            assert "in the op list stands for that pair" in text, text
