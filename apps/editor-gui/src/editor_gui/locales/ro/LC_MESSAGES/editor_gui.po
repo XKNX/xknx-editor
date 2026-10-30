@@ -1527,3 +1527,12 @@ msgstr "Programul care a pornit XKNX Editor i-a configurat serverul MCP."
 
 msgid "Home Assistant updates XKNX Editor with its integration: check Home Assistant for an update of the XKNX Editor integration. It may follow this release a little later."
 msgstr "Home Assistant actualizează XKNX Editor prin integrarea sa: verificați în Home Assistant dacă există o actualizare a integrării XKNX Editor. Aceasta poate apărea puțin după această versiune."
+
+msgid "Report a Bug"
+msgstr "Raportează o eroare"
+
+msgid "Suggest a Feature"
+msgstr "Sugerează o funcție"
+
+msgid "Show All Issues"
+msgstr "Afișează toate tichetele"

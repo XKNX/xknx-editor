@@ -25,7 +25,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 from xknxproject.exceptions import InvalidPasswordException, XknxProjectException
 
-from editor_gui import __version__, file_dialogs, host, self_update, web
+from editor_gui import __version__, feedback, file_dialogs, host, self_update, web
 from editor_gui import signing_key as signing_key_store
 from editor_gui import trace_key as trace_key_store
 from editor_gui.cache import (
@@ -3899,12 +3899,19 @@ class KnxGuiApp:
                 self._about_requested = True
             imgui.end_menu()
 
-        if imgui.menu_item(S.MENU_FEEDBACK, "", False)[0]:
-            self._open_feedback()
+        if imgui.begin_menu(S.MENU_FEEDBACK):
+            if imgui.menu_item(S.MENU_REPORT_BUG, "", False)[0]:
+                self._open_feedback(feedback.bug_report_url())
+            if imgui.menu_item(S.MENU_SUGGEST_FEATURE, "", False)[0]:
+                self._open_feedback(feedback.feature_request_url())
+            imgui.separator()
+            if imgui.menu_item(S.MENU_SHOW_ISSUES, "", False)[0]:
+                self._open_feedback(feedback.ISSUES_URL)
+            imgui.end_menu()
 
-    def _open_feedback(self) -> None:
-        """Open the project's GitHub issues page in the default browser."""
-        url = "https://github.com/xknx/xknx-editor/issues"
+    def _open_feedback(self, url: str) -> None:
+        """Open a page of the project's GitHub issues in the default browser: a new report with
+        what the editor knows about itself filled in (see :mod:`editor_gui.feedback`), or the list."""
         try:
             open_url(url)
         except Exception as e:

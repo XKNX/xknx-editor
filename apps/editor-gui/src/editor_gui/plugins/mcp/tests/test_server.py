@@ -20,6 +20,7 @@ from xknx.dpt import DPTBinary
 from xknx.telegram import GroupAddress, IndividualAddress, Telegram
 from xknx.telegram.apci import DeviceDescriptorRead, GroupValueWrite
 
+from editor_gui import __version__, feedback
 from editor_gui.plugins.base import API_VERSION, Logger, PluginAPI
 from editor_gui.plugins.catalog.service import CatalogService
 from editor_gui.plugins.connection.service import ConnectionService
@@ -198,10 +199,23 @@ async def test_full_edit_flow(tmp_path: Path) -> None:
         )["items"]
         assert not any(a["com_object_db_id"] == db_id for a in assignments)
 
-        # status aggregates project + capabilities.
+        # status aggregates editor + project + capabilities.
         st = await _data(client, "status")
         assert st["project"]["open"] is True
         assert "FULL" in st["capabilities"]["download_scopes"]
+        assert st["editor"] == {
+            "version": __version__,
+            "installation": feedback.installation(),
+            "operating_system": feedback.operating_system(),
+        }
+
+        # The Feedback menu's links, for the user to open.
+        links = await _data(client, "feedback_links")
+        assert links["bug_report_url"] == feedback.bug_report_url()
+        assert links["feature_request_url"] == feedback.feature_request_url()
+        assert links["issues_url"] == feedback.ISSUES_URL
+        assert links["version"] == __version__
+        assert links["environment"] == feedback.environment()
 
         # Export to a .knxproj archive.
         dest = tmp_path / "out.knxproj"

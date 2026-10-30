@@ -1455,3 +1455,12 @@ msgstr "Το πρόγραμμα που εκκίνησε το XKNX Editor ρύθ�
 
 msgid "Home Assistant updates XKNX Editor with its integration: check Home Assistant for an update of the XKNX Editor integration. It may follow this release a little later."
 msgstr "Το Home Assistant ενημερώνει το XKNX Editor μέσω της ενσωμάτωσής του: ελέγξτε στο Home Assistant για ενημέρωση της ενσωμάτωσης XKNX Editor. Μπορεί να ακολουθήσει λίγο μετά από αυτή την έκδοση."
+
+msgid "Report a Bug"
+msgstr "Αναφορά σφάλματος"
+
+msgid "Suggest a Feature"
+msgstr "Πρόταση λειτουργίας"
+
+msgid "Show All Issues"
+msgstr "Εμφάνιση όλων των αναφορών"

@@ -16,6 +16,7 @@ from .test_server import _build, _build_ctx
 # A few tools of each kind, as the client sees them: (read only, destructive, open world).
 _EXPECTED = {
     "status": (True, False, False),
+    "feedback_links": (True, False, False),
     "project_list_parameters": (True, False, False),
     "connection_evaluate_device": (True, False, True),
     "monitor_read_value": (True, False, True),

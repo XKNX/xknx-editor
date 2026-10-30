@@ -1455,3 +1455,12 @@ msgstr "Programmet som startet XKNX Editor, har satt opp MCP-serveren."
 
 msgid "Home Assistant updates XKNX Editor with its integration: check Home Assistant for an update of the XKNX Editor integration. It may follow this release a little later."
 msgstr "Home Assistant oppdaterer XKNX Editor med sin integrasjon: se etter en oppdatering av XKNX Editor-integrasjonen i Home Assistant. Den kan komme litt etter denne utgivelsen."
+
+msgid "Report a Bug"
+msgstr "Rapporter en feil"
+
+msgid "Suggest a Feature"
+msgstr "Foreslå en funksjon"
+
+msgid "Show All Issues"
+msgstr "Vis alle saker"

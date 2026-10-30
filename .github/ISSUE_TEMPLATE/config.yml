@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Home Assistant integration
+    url: https://github.com/XKNX/xknx-editor-ha-integration/issues
+    about: Problems with installing the integration or its panel in Home Assistant

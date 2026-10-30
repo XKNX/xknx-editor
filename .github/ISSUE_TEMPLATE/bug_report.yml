@@ -1,0 +1,175 @@
+name: Bug report
+description: Report a problem with XKNX Editor
+type: Bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a problem! The fields below help us reproduce it quickly.
+
+        For a problem with the Home Assistant integration itself (installing it, the panel in Home Assistant), please open the issue in [xknx-editor-ha-integration](https://github.com/XKNX/xknx-editor-ha-integration/issues) instead.
+
+  - type: input
+    id: version
+    attributes:
+      label: XKNX Editor version
+      description: Shown under **Help → About**, e.g. `0.9.1`. With the Home Assistant integration, it is the editor's version from Help → About, not the integration's.
+      placeholder: "0.9.1"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: installation
+    attributes:
+      label: Installation
+      description: How XKNX Editor runs - for a download from the releases, the file you installed.
+      options:
+        - Windows installer, x64
+        - Windows installer, ARM64
+        - Windows portable, x64
+        - Windows portable, x64, software OpenGL
+        - Windows portable, ARM64
+        - macOS
+        - Linux AppImage
+        - Linux tar.gz
+        - Docker / Unraid
+        - Home Assistant
+        - From source
+    validations:
+      required: true
+
+  - type: input
+    id: os
+    attributes:
+      label: Operating system
+      description: The system it runs on, and for Docker the host and the container's network mode (`host` or a bridge network).
+      placeholder: "Windows 11 24H2 / macOS 15.1 / Ubuntu 24.04 / Docker on a Synology NAS, network mode host"
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Filled in by XKNX Editor when you start the report from its **Feedback** menu - please pick the installation and the way you used it above to match.
+      render: text
+    validations:
+      required: false
+
+  - type: dropdown
+    id: usage
+    attributes:
+      label: Used through
+      description: Where the problem showed up.
+      multiple: true
+      options:
+        - The editor's window
+        - The browser (web interface)
+        - An AI assistant through the MCP server
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      multiple: true
+      options:
+        - Project import (.knxproj)
+        - Project export
+        - Catalog and product import (.knxprod)
+        - Device parameters
+        - Group objects and group addresses
+        - Topology and buildings
+        - Download (programming)
+        - Test Programming
+        - Group monitor and bus monitor
+        - Bus connection and interfaces
+        - KNX Secure and keyrings
+        - MCP tools
+        - User interface
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What went wrong, including the exact error message if there is one.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect?
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1.
+        2.
+        3.
+    validations:
+      required: true
+
+  - type: textarea
+    id: devices
+    attributes:
+      label: Devices
+      description: For a problem with a device (download, parameters, group objects), its manufacturer, product name, **Order Number** and **Application ID**, as shown in the device's properties.
+      placeholder: "MDT DALI Control IP 64, SCN-DALI64.03, M-0083_A-0053-10-E76F-O00EF"
+    validations:
+      required: false
+
+  - type: textarea
+    id: connection
+    attributes:
+      label: Bus connection
+      description: For a problem on the bus (download, Test Programming, monitor), the interface model, how the editor connects (tunnelling over UDP or TCP, routing, USB, KNX Secure) and whether anything else uses the same interface at the same time, e.g. Home Assistant's KNX integration.
+      placeholder: "MDT SCN-IP100.03, tunnelling over TCP, Home Assistant connected to the same interface"
+    validations:
+      required: false
+
+  - type: dropdown
+    id: other-tool
+    attributes:
+      label: Does it work with another KNX tool?
+      description: E.g. the same download from the manufacturer's or another commissioning tool, through the same interface.
+      options:
+        - "Yes"
+        - "No"
+        - Not tried
+        - Not applicable
+    validations:
+      required: false
+
+  - type: textarea
+    id: log
+    attributes:
+      label: Log
+      description: In the **Logs** panel, set the level to **Debug**, reproduce the problem, then click **Copy Log** and paste it here.
+      render: text
+    validations:
+      required: false
+
+  - type: textarea
+    id: project
+    attributes:
+      label: Demo project
+      description: A small .knxproj or .xknx that reproduces the problem helps a lot. GitHub blocks these file types, so zip the file first and drag the .zip here.
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before submitting
+      options:
+        - label: I searched the existing issues and found none about this problem.
+          required: true
