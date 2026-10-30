@@ -16,7 +16,11 @@ from xknx.telegram.apci import (
     PropertyValueWrite,
 )
 
-from xknxeditor.download.errors import DownloadError, PropertyAccessRejected
+from xknxeditor.download.errors import (
+    DownloadError,
+    ImageError,
+    PropertyAccessRejected,
+)
 from xknxeditor.download.image import (
     DownloadImage,
     MemorySegment,
@@ -590,6 +594,34 @@ async def test_filter_table_field_feeds_systemb_and_bcu1() -> None:
     runner2, device2 = _runner(app2, image)
     await runner2.run()
     assert bytes(device2.memory[512 + i] for i in range(len(table))) == table
+
+
+@pytest.mark.parametrize("preview", [False, True])
+async def test_a_coupler_without_its_filter_table_fails_before_any_write(
+    preview: bool,
+) -> None:
+    from xknxeditor.namespaces.intermediate.ld_ctrl_mem_addr_space_t import (
+        LdCtrlMemAddrSpace,
+    )
+
+    # A KNX IP router of mask MV-091A at a device address: the project computes no filter
+    # table for it, and its procedure writes the configuration before the filter table.
+    app = _application(
+        LdCtrlConnect(),
+        LdCtrlWriteMem(address=269, size=1, verify=False, inline_data=b"\xff"),
+        LdCtrlWriteMem(
+            address=512,
+            size=8192,
+            verify=False,
+            inline_data=None,
+            address_space=LdCtrlMemAddrSpace.LC_FILTER,
+        ),
+        LdCtrlDisconnect(),
+    )
+    runner, device = _runner(app, DownloadImage(segments=(), properties=()))
+    with pytest.raises(ImageError, match="coupler address"):
+        await (runner.preflight() if preview else runner.run())
+    assert device.sent == []
 
 
 async def test_clear_lcfilter_table_alone_is_noop() -> None:
