@@ -1220,7 +1220,7 @@ msgid "Delete Device"
 msgstr "Fshi pajisjen"
 
 msgid "Delete '{name}'? Its group objects and group-address links are removed and its individual address is freed. This can be undone."
-msgstr "Ta fshini '{name}'? Objektet e saj të grupit dhe lidhjet me adresat e grupeve hiqen, dhe adresa e saj individuale lirohet. Ky veprim mund të zhbëhet."
+msgstr "Të fshihet '{name}'? Objektet e saj të grupit dhe lidhjet me adresat e grupeve hiqen dhe adresa e saj individuale lirohet. Ky veprim mund të zhbëhet."
 
 msgid "Number"
 msgstr "Numri"
@@ -2939,7 +2939,7 @@ msgid "Existing Devices…"
 msgstr "Pajisje ekzistuese…"
 
 msgid "Delete the {count} selected devices? Their group objects and group-address links are removed and their individual addresses are freed. This can be undone."
-msgstr "Të fshihen {count} pajisjet e zgjedhura? Objektet e tyre të grupit dhe lidhjet me adresat e grupeve hiqen, dhe adresat e tyre individuale lirohen. Ky veprim mund të zhbëhet."
+msgstr "Të fshihen {count} pajisje të zgjedhura? Objektet e tyre të grupit dhe lidhjet me adresat e grupeve hiqen dhe adresat e tyre individuale lirohen. Ky veprim mund të zhbëhet."
 
 msgid "Remove {count} devices"
 msgstr "Hiq {count} pajisje"
