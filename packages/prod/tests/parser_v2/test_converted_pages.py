@@ -6,7 +6,10 @@ own, in display order (the rocker pages of the Gira Tastsensor 3 Basis, issue #9
 from __future__ import annotations
 
 from xknxeditor.namespaces.intermediate.access_t import Access
-from xknxeditor.prod.parser_v2.converted_pages import place_hidden_parameters
+from xknxeditor.prod.parser_v2.converted_pages import (
+    pages_by_display_order,
+    place_hidden_parameters,
+)
 from xknxeditor.prod.parser_v2.ui import (
     UiNode,
     UiParameter,
@@ -115,3 +118,85 @@ def test_a_separator_keeps_its_place() -> None:
     assert isinstance(placed, UiParameterBlock)
     assert placed.children[0] == separator
     assert _labels(placed) == ["function-1", "led-1"]
+
+
+def _flat(channel: UiTab) -> dict[str, list[str]]:
+    (placed,) = pages_by_display_order([channel], _order)
+    assert isinstance(placed, UiTab)
+    pages: dict[str, list[str]] = {}
+    for node in placed.children:
+        assert isinstance(node, UiParameterBlock), node
+        pages[node.name or node.id] = [
+            n.ref_id if isinstance(n, UiParameter) else "~" for n in node.children
+        ]
+    return pages
+
+
+def test_pages_by_display_order() -> None:
+    # The hidden block is no page, but its shown parameters are; "Wippe 2" is nested in "Wippe 1"
+    # in the document, a page of its own by display order; "internal" is not shown.
+    channel = UiTab(
+        id="channel",
+        text="Generic",
+        children=(
+            UiParameterBlock(
+                id="hidden",
+                name="Tastenauswahl",
+                hidden=True,
+                children=(
+                    _parameter("led-1"),
+                    _parameter("internal", Access.NONE),
+                    _parameter("function-2"),
+                    _parameter("command-1"),
+                ),
+            ),
+            _page(
+                "Wippe 1",
+                "page-1",
+                _parameter("function-1"),
+                _page("Wippe 2", "page-2"),
+                UiSeparator(id="separator", text="Status"),
+            ),
+            _page("Full", "page-full", _parameter("own"), _parameter("function-full")),
+            _page("Empty", "page-empty"),
+        ),
+    )
+    assert _flat(channel) == {
+        "Wippe 1": ["function-1", "led-1", "command-1"],
+        # The separator has no display order: it follows "Wippe 2", in front of it in the document.
+        "Wippe 2": ["~", "function-2"],
+        "Full": ["function-full", "own"],
+    }
+
+
+def test_equal_display_orders_keep_the_document_order() -> None:
+    # Two pages at 3000: the later one takes what comes after both.
+    channel = UiTab(
+        id="channel",
+        children=(
+            _page("Wippe 2", "page-2"),
+            _page("Display", "page-2", _parameter("function-2")),
+        ),
+    )
+    assert _flat(channel) == {"Display": ["function-2"]}
+
+
+def test_before_the_first_page_a_parameter_stays_on_its_channel() -> None:
+    (placed,) = pages_by_display_order(
+        [
+            UiTab(
+                id="channel", children=(_page("Full", "page-full"), _parameter("led-1"))
+            )
+        ],
+        _order,
+    )
+    assert isinstance(placed, UiTab)
+    assert [getattr(n, "ref_id", None) for n in placed.children] == ["led-1"]
+
+
+def test_without_a_channel_the_nodes_are_one() -> None:
+    nodes = pages_by_display_order(
+        [_page("Wippe 1", "page-1"), _parameter("function-1")], _order
+    )
+    (page,) = nodes
+    assert _labels(page) == ["function-1"]

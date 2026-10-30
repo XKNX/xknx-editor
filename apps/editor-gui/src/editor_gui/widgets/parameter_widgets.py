@@ -40,6 +40,7 @@ from editor_gui.widgets.value_pickers import (
     render_date_param,
 )
 from editor_gui.widgets.wrapping import (
+    LINE_GAP,
     text_height,
     vertical_space,
     wrap_lines,
@@ -244,6 +245,49 @@ def _shows_as_text(param: UiParameter) -> bool:
     return param.access == Access.READ and not isinstance(
         param.widget, CheckBoxWidget | PictureWidget
     )
+
+
+# A parameter row as the reference tool lays it out (at 100 % scaling): its content is a field
+# (22 px) or a line of text (16 px), or the lines of its label (16 px each) when they take more,
+# with 9 px around it. Text rows are 25 px apart, field rows 31 px.
+_ROW_MARGIN = 9.0
+_FIELD_CONTENT = 22.0
+
+
+@dataclass(frozen=True, slots=True)
+class _RowLayout:
+    """A parameter row's height, and the tops of its label and its value from the row's top."""
+
+    height: float
+    label_top: float
+    value_top: float
+
+
+def _row_layout(param: UiParameter, text_row: bool, label_width: float) -> _RowLayout:
+    """The layout of ``param``'s row beside its label ``label_width`` wide. Label and value are
+    centred in the row; a one-line label beside a field is level with the field's text."""
+    if param.value != param.default_value and _highlight_changes:
+        label_width -= imgui.calc_text_size("*").x + px(4)
+    labels = max(len(wrap_lines(param.label, max(label_width, 1.0))), 1)
+    gap = px(LINE_GAP)
+    line = imgui.get_text_line_height()
+    content = max(
+        px(_FIELD_CONTENT) if not text_row else line + gap, labels * (line + gap)
+    )
+    height = content + px(_ROW_MARGIN)
+    label_top = math.floor((height - (labels * (line + gap) - gap)) / 2)
+    if text_row:
+        return _RowLayout(height, label_top, math.floor((height - line) / 2))
+    field_top = math.ceil((height - imgui.get_frame_height()) / 2)
+    if labels == 1:
+        label_top = field_top + imgui.get_style().frame_padding.y
+    return _RowLayout(height, label_top, field_top)
+
+
+def _text_row(param: UiParameter) -> bool:
+    """Whether ``param``'s row shows only texts: its value as text, or no field at all
+    (TypeNone). Such a row is as high as a line of text, not as a field."""
+    return _shows_as_text(param) or param.widget is None
 
 
 # Loads the picture of a TypePicture baggage while a parameter tree is drawn.
@@ -508,6 +552,8 @@ def render_param_widget(
             pass
         case PictureWidget() as w:
             _render_picture(w, imgui.get_content_region_avail().x)
+        case None:
+            pass  # TypeNone: its text only, e.g. an empty line between parameters
         case _:
             _render_text_param(widget_id, param.value, on_change, differs)
     return None
@@ -1532,6 +1578,9 @@ def _render_page_tree(
             imgui.set_next_item_open(True, imgui.Cond_.once)
         icon = get_icon(page.icon) if get_icon is not None and page.icon else None
         pad = " " * math.ceil((icon_size + space) / space) if icon is not None else ""
+        # Spaces in front of a page's text indent it, as the product data lays out its pages.
+        if page.block is not None:
+            pad += " " * page.block.text_indent
         is_selected = page.key == selected
         is_group = top_level and bool(page.children)
         row_top, row_bottom = _row_band()
@@ -1570,6 +1619,11 @@ def _render_page_tree(
         if page.block is not None:
             _track_help(page.block.help_context)
         if is_open and page.children:
+            # The pages of a group (a channel) are not indented below it; only the levels
+            # below them are.
+            step = imgui.get_style().indent_spacing if is_group else 0.0
+            if step:
+                imgui.unindent(step)
             below = _render_page_tree(
                 page.children,
                 selected,
@@ -1579,6 +1633,8 @@ def _render_page_tree(
                 top_level=False,
                 channel_menu=channel_menu,
             )
+            if step:
+                imgui.indent(step)
             clicked = clicked or below
             imgui.tree_pop()
             if is_group:
@@ -2236,25 +2292,42 @@ def _render_param_table(
             imgui.TableColumnFlags_.width_stretch | imgui.TableColumnFlags_.no_clip,
         )
         value_column = 0 if above else 1
-        # Every row is as high as one with an input field.
+        # Above each other (a phone), a row is as high as one with an input field.
         row_height = imgui.get_frame_height() + 2 * padding.y
         for param in params:
+            text_row = not isinstance(param, UiButton) and _text_row(param)
+            indent = (
+                0.0
+                if isinstance(param, UiButton)
+                else param.indent_level * px(_INDENT_STEP)
+            )
+            # Side by side, a row is laid out as the reference tool lays it out (see _row_layout).
+            layout = (
+                None
+                if above or isinstance(param, UiButton)
+                else _row_layout(param, text_row, label_width - indent)
+            )
             imgui.table_next_row(
-                imgui.TableRowFlags_.none, 0.0 if above else row_height
+                imgui.TableRowFlags_.none,
+                layout.height if layout is not None else 0.0,
             )
             if isinstance(param, UiButton):
                 imgui.table_set_column_index(value_column)
                 _render_button(device, param, prefix, buttons)
                 continue
             imgui.table_set_column_index(0)
+            # The row's top, above the cell padding the table puts in front of a cell's content.
+            row_top = imgui.get_cursor_pos_y() - padding.y
             # Each level indents by one step, the levels space-indented grid labels are placed on
             # (see _indented_cell_text).
-            indent = param.indent_level * px(_INDENT_STEP)
             if indent > 0:
                 imgui.indent(indent)
             label = param.label
             differs = param.ref_id in differing_refs
-            imgui.align_text_to_frame_padding()
+            if layout is not None:
+                imgui.set_cursor_pos_y(row_top + layout.label_top)
+            elif not text_row:
+                imgui.align_text_to_frame_padding()
             # In multi-edit a diverging value has no single "changed vs default" state to show.
             changed = not differs and param.value != param.default_value
             # Changed parameters stand out. A leading marker plus the colour means the
@@ -2283,14 +2356,17 @@ def _render_param_table(
             if indent > 0:
                 imgui.unindent(indent)
             if above:
-                imgui.table_next_row(imgui.TableRowFlags_.none, row_height)
+                imgui.table_next_row(
+                    imgui.TableRowFlags_.none, 0.0 if text_row else row_height
+                )
             imgui.table_set_column_index(value_column)
+            if layout is not None:
+                imgui.set_cursor_pos_y(row_top + layout.value_top)
             # Above each other, the field is indented like its label.
             value_indent = indent if above else 0.0
             if value_indent > 0:
                 imgui.indent(value_indent)
             if _shows_as_text(param):
-                imgui.align_text_to_frame_padding()
                 imgui.text(_value_display(param, param.value))
                 _render_suffix(param.suffix)
                 _track_help(param.help_context)

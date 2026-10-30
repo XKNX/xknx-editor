@@ -58,7 +58,7 @@ from .context import (
     ObjectTreeNode,
     Placement,
 )
-from .converted_pages import place_hidden_parameters
+from .converted_pages import pages_by_display_order, place_hidden_parameters
 from .encode import (
     MaskedProperty,
     MemWrite,
@@ -635,6 +635,12 @@ def _as_int(value: object) -> int | None:
     return int(number) if number.is_integer() else None
 
 
+def _has_parameter_dialog(app: ApplicationProgram) -> bool:
+    """Whether the application brings its own parameter dialog (a manufacturer UI plug-in)."""
+    extension = app.static.extension
+    return bool(extension is not None and extension.ets_ui_plugin)
+
+
 def _param_page_ids(
     nodes: Sequence[UiNode],
     page: str | None = None,
@@ -868,25 +874,28 @@ class DynamicUI:
             active = frozenset(self._state.active_param_refs() or set())
             self._active_snapshot = (result, active)
         self._prune_inactive_channels()
-        # Final presentation step: assign each parameter to its page. State/activeness are already
-        # settled above, so this only reorders the displayed tree. A parameter's page is named by
-        # its selector chain where the chain places it on a different page than the block it is
-        # nested under in the raw XML.
+        # Final presentation step: a parameter is on the page it is nested in. An application
+        # converted from the older product format builds its pages by display order instead.
+        if not self._app.pre_ets4_style:
+            return
+        if not _has_parameter_dialog(self._app):
+            self._ui = pages_by_display_order(self._ui, self._display_order)
+            return
+        # A converted application with a parameter dialog of its own (a UI plug-in) has no generic
+        # pages to follow; its display orders do not express its pages. It keeps the editor's own
+        # layout: a parameter's page is named by its selector chain where the chain places it on
+        # another page than the block it is nested under, and display order places the parameters
+        # the chain did not move (e.g. a threshold setting left inline on its channel).
         before = _param_page_ids(self._ui)
         self._ui = _rehome_to_pages(self._ui, self._page_for, self._display_order)
-        if self._app.pre_ets4_style:
-            # Converted-from-older-format applications also carry a display order: a parameter the
-            # selector chain did not move belongs to the page heading in front of it by display
-            # order (e.g. a threshold setting left inline on its channel). Re-bucket those, keeping
-            # the ones the re-home already placed on their page.
-            rehomed = frozenset(
-                ref
-                for ref, page in _param_page_ids(self._ui).items()
-                if before.get(ref) != page
-            )
-            self._ui = place_hidden_parameters(
-                self._ui, self._display_order, pinned=rehomed
-            )
+        rehomed = frozenset(
+            ref
+            for ref, page in _param_page_ids(self._ui).items()
+            if before.get(ref) != page
+        )
+        self._ui = place_hidden_parameters(
+            self._ui, self._display_order, pinned=rehomed
+        )
 
     def ui(self) -> list[UiNode]:
         if self._ui is None:

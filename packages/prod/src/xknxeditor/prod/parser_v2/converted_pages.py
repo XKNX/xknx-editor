@@ -1,19 +1,20 @@
 """Parameter pages of applications converted from the older product format (``PreEts4Style``).
 
-In that format a page is a heading in one list of parameters ordered by display order: a parameter
-belongs to the page in front of it (the page whose heading display order is the greatest not above
-the parameter's own). ``ParameterBlock``s carry no display order themselves - the heading
-``ParameterRef``'s does. The converted dynamic section keeps the pages as blocks but does not always
-nest the parameters under the right one: it may leave a page empty and put its parameters in a
-hidden block beside it (e.g. the rocker pages of the Gira Tastsensor 3 Basis), or leave a parameter
-on the channel page whose display order belongs to an empty sub-page (e.g. the "Use threshold" of
-the ABB AE/S4 analogue inputs belongs to the empty "Threshold" page).
+In that format a page is a heading in one list of parameters ordered by display order, and the
+converted dynamic section's nesting does not decide the pages (:func:`pages_by_display_order`).
+Per channel, the shown blocks, parameters and separators go into one list, sorted by display order
+(a stable sort, so the document order decides between equal ones). A block starts a page, and every
+parameter or separator after it is on that page, until the next block. Pages are not nested, and a
+page without anything on it is not shown. A block hidden by its access is no page, but its shown
+parameters are in the list. A block's display order is that of its heading ``ParameterRef`` (its
+``ParamRefId``), 0 without one; a parameter's is that of its own ``ParameterRef``. A node without one
+(a separator) keeps its place behind the node in front of it.
 
-This runs after the selector-chain re-home (``dynamic._rehome_to_pages``), which handles the pages
-expressed through the dynamic section's dependencies. What is left is filled by display order:
-a hidden block's parameters move onto the page in front of them, and a parameter whose display order
-belongs to a page the re-home left EMPTY is drawn onto that page. A page the re-home already
-populated keeps its parameters; display order never reshuffles them.
+A converted application with a parameter dialog of its own (a UI plug-in) has no generic pages to
+follow. It keeps the editor's own layout (:func:`place_hidden_parameters`), which runs after the
+selector-chain re-home (``dynamic._rehome_to_pages``): a hidden block's parameters move onto the page
+in front of them by display order, and a parameter whose display order belongs to a page the re-home
+left EMPTY is drawn onto that page. A page the re-home already populated keeps its parameters.
 """
 
 from __future__ import annotations
@@ -174,3 +175,61 @@ def _in_display_order(
         keyed.append((order, start + offset, parameter))
     keyed.sort(key=lambda item: (item[0], item[1]))
     return tuple(node for _, _, node in keyed)
+
+
+def pages_by_display_order(
+    nodes: Sequence[UiNode], display_order: DisplayOrder
+) -> list[UiNode]:
+    """``nodes`` with each channel's (tab's) pages built by display order (see the module); without
+    any tab, ``nodes`` are the one channel."""
+    if not any(isinstance(node, UiTab) for node in nodes):
+        return list(_flat_pages(nodes, display_order))
+    return [
+        replace(node, children=_flat_pages(node.children, display_order))
+        if isinstance(node, UiTab)
+        else node
+        for node in nodes
+    ]
+
+
+def _flat_pages(
+    nodes: Sequence[UiNode], display_order: DisplayOrder
+) -> tuple[UiNode, ...]:
+    items: list[tuple[int, int, UiNode]] = []
+    previous = 0
+
+    def collect(ns: Sequence[UiNode]) -> None:
+        nonlocal previous
+        for node in ns:
+            if isinstance(node, UiParameterBlock) and not node.inline:
+                if not node.hidden:
+                    order = (
+                        display_order(node.param_ref_id) if node.param_ref_id else None
+                    )
+                    previous = order if order is not None else 0
+                    items.append((previous, len(items), replace(node, children=())))
+                collect(node.children)
+                continue
+            if isinstance(node, UiParameter):
+                if node.access == Access.NONE:
+                    continue
+                order = display_order(node.ref_id)
+                if order is not None:
+                    previous = order
+            items.append((previous, len(items), node))
+
+    collect(nodes)
+    items.sort(key=lambda item: (item[0], item[1]))
+    # Before the first page, a node stays on the channel itself.
+    channel: list[UiNode] = []
+    pages: list[tuple[UiParameterBlock, list[UiNode]]] = []
+    for _order, _position, node in items:
+        if isinstance(node, UiParameterBlock) and not node.inline:
+            pages.append((node, []))
+        elif pages:
+            pages[-1][1].append(node)
+        else:
+            channel.append(node)
+    return tuple(channel) + tuple(
+        replace(page, children=tuple(children)) for page, children in pages if children
+    )

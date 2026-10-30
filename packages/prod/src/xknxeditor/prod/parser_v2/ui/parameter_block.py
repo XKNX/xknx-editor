@@ -31,3 +31,5 @@ class UiParameterBlock:
     # The ParameterRef naming the page (ParamRefId); its display order places parameters of
     # applications in the older converted format (see converted_pages).
     param_ref_id: str | None = None
+    # The spaces in front of the page's text, an indent in the page tree.
+    text_indent: int = 0
