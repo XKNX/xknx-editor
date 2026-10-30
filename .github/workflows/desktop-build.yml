@@ -130,8 +130,13 @@ jobs:
           # AppStream metainfo: lets software centres list the app and clears appimagetool's
           # "AppStream metadata is missing" warning. appimagetool expects the file named after the
           # desktop file (xknx-editor.desktop -> xknx-editor.appdata.xml).
+          # Its release entry is the version being built, dated today.
+          version=$(sed -n 's/^__version__ = "\(.*\)"$/\1/p' src/editor_gui/__init__.py)
           install -D packaging/xknx-editor.appdata.xml \
             AppDir/usr/share/metainfo/xknx-editor.appdata.xml
+          sed -i "s|<!-- The AppImage build puts the version it builds here. -->|<release version=\"$version\" date=\"$(date -u +%F)\"/>|" \
+            AppDir/usr/share/metainfo/xknx-editor.appdata.xml
+          grep -q "<release version=\"$version\"" AppDir/usr/share/metainfo/xknx-editor.appdata.xml
           cat > AppDir/xknx-editor.desktop <<'DESKTOP'
           [Desktop Entry]
           Type=Application

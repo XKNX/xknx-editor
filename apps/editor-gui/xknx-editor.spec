@@ -127,6 +127,50 @@ if sys.platform == "linux":
 
 pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
 
+# The app version: the macOS bundle reports it (CFBundleShortVersionString, else "0.0.0") and
+# the Windows executable carries it in its version resource (file properties).
+import re as _re
+
+from editor_gui import __version__ as _version
+
+_version_numbers = tuple(int(n) for n in _re.findall(r"\d+", _version)[:4])
+_version_numbers += (0,) * (4 - len(_version_numbers))
+
+_version_resource = None
+if sys.platform == "win32":
+    from PyInstaller.utils.win32.versioninfo import (
+        FixedFileInfo,
+        StringFileInfo,
+        StringStruct,
+        StringTable,
+        VarFileInfo,
+        VarStruct,
+        VSVersionInfo,
+    )
+
+    _version_resource = VSVersionInfo(
+        ffi=FixedFileInfo(filevers=_version_numbers, prodvers=_version_numbers),
+        kids=[
+            StringFileInfo(
+                [
+                    StringTable(
+                        "040904B0",
+                        [
+                            StringStruct("CompanyName", "XKNX"),
+                            StringStruct("FileDescription", "XKNX Editor"),
+                            StringStruct("FileVersion", _version),
+                            StringStruct("InternalName", "XKNX-Editor"),
+                            StringStruct("OriginalFilename", "XKNX-Editor.exe"),
+                            StringStruct("ProductName", "XKNX Editor"),
+                            StringStruct("ProductVersion", _version),
+                        ],
+                    )
+                ]
+            ),
+            VarFileInfo([VarStruct("Translation", [0x0409, 1200])]),
+        ],
+    )
+
 exe = EXE(
     pyz,
     a.scripts,
@@ -141,6 +185,7 @@ exe = EXE(
     console=False,  # windowed app (no terminal)
     # Platform icon (macOS .icns / Windows .ico) — the XKNX logo, drawn by tools/make_icon.py.
     icon=_icon,
+    version=_version_resource,
 )
 # UPX disabled (see EXE above): it corrupted the bundled python3xx.dll / MSVC runtime on Windows,
 # so the app failed to start. macOS/Linux ignored UPX anyway.
@@ -152,4 +197,6 @@ app = BUNDLE(
     name="XKNX-Editor.app",
     icon="icon.icns",  # XKNX logo for the dock/Finder icon
     bundle_identifier="org.xknx.editor",
+    version=_version,
+    info_plist={"CFBundleVersion": _version},
 )
