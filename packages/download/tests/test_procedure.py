@@ -903,8 +903,11 @@ async def test_compare_prop_takes_the_image_only_where_a_parameter_covers_it() -
     with pytest.raises(CompareMismatch):
         await run(bytes(6)).run()
     # Without a mask the image is the property's data.
-    device.properties[(0, 78)] = b"\x00\x00\x00\x00\x00\x00"
+    device.properties[(0, 78)] = b"\x00\x00\x00\x00\x00\x63"
     await run(None).run()
+    device.properties[(0, 78)] = b"\x00\x01\x00\x00\x00\x63"
+    with pytest.raises(CompareMismatch):
+        await run(None).run()
 
 
 async def test_compare_prop_mask_still_detects_marked_mismatch() -> None:
