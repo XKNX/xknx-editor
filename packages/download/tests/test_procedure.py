@@ -729,22 +729,21 @@ async def test_compare_mem_mask() -> None:
         await runner2.run()
 
 
-async def test_compare_mem_invert_and_retry_rejected_upfront() -> None:
+async def test_compare_mem_range_rejected_upfront() -> None:
     from xknxeditor.download.errors import UnsupportedProcedureError
 
-    # Invert / RetryInterval semantics are not implemented; a compare using them must be rejected
-    # in prevalidation (before any bus access), not silently mis-verified.
-    for extra in ({"invert": True}, {"retry_interval": 100, "time_out": 1000}):
-        app = _application(
-            LdCtrlConnect(),
-            _compare_mem_ctrl(0x100, b"\x00", **extra),
-            LdCtrlDisconnect(),
-        )
-        runner, device = _runner(app, DownloadImage(segments=(), properties=()))
-        device.memory[0x100] = 0x00
-        with pytest.raises(UnsupportedProcedureError):
-            await runner.run()
-        assert device.memory.get(0x100) == 0x00  # untouched; rejected up front
+    # A Range on a memory compare is not implemented; it must be rejected in prevalidation
+    # (before any bus access), not silently mis-verified.
+    app = _application(
+        LdCtrlConnect(),
+        _compare_mem_ctrl(0x100, b"\x00", range="[1,5]"),
+        LdCtrlDisconnect(),
+    )
+    runner, device = _runner(app, DownloadImage(segments=(), properties=()))
+    device.memory[0x100] = 0x00
+    with pytest.raises(UnsupportedProcedureError, match="Range"):
+        await runner.run()
+    assert device.memory.get(0x100) == 0x00  # untouched; rejected up front
 
 
 async def test_write_prop_inline_data() -> None:

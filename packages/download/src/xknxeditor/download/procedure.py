@@ -30,7 +30,7 @@ import asyncio
 import logging
 import re
 import time
-from collections.abc import Callable, Mapping, Sequence
+from collections.abc import Awaitable, Callable, Mapping, Sequence
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
@@ -271,20 +271,15 @@ def _significant_octets(expected: bytes, mask: bytes | None, *, start: int) -> i
 def _unsupported_compare_reason(control: object) -> str | None:
     """A reason string if a Compare control uses a semantic this engine does not implement, else None.
 
-    Plain (optionally masked) equality compares are executed, and a property compare with a Range.
-    The Invert and RetryInterval/TimeOut semantics (KNX Standard v3.0.0, 3/5/1 Compare controls),
-    and a Range on other compares, are NOT, so a control that sets any of them is rejected up front
-    rather than silently verified with the wrong result (Invert would invert the outcome; Range/Retry
-    change what "match" means)."""
+    Plain (optionally masked) equality compares are executed, a property compare with a Range,
+    and all of them inverted or polled (Invert, RetryInterval/TimeOut). A Range on other compares
+    is NOT, so such a control is rejected up front rather than silently verified with the wrong
+    result."""
     if not isinstance(control, LdCtrlCompareBase):
         return None
     unsupported: list[str] = []
-    if control.invert:
-        unsupported.append("Invert (compare passes on inequality)")
     if control.range is not None and not isinstance(control, LdCtrlCompareProp):
         unsupported.append("Range (value-in-interval compare)")
-    if control.retry_interval or control.time_out:
-        unsupported.append("RetryInterval/TimeOut (poll until the state is reached)")
     if not unsupported:
         return None
     return (
@@ -1425,8 +1420,11 @@ class LoadProcedureRunner:
             return
         if isinstance(control, LdCtrlCompareMem):
             _require_standard(control.address_space)
-            await self._compare_mem(
-                control.address, self._memory_compare_data(control), control.mask
+            await self._polled_compare(
+                control,
+                lambda: self._compare_mem(
+                    control.address, self._memory_compare_data(control), control.mask
+                ),
             )
             return
         if isinstance(control, LdCtrlWriteRelMem):
@@ -1436,10 +1434,13 @@ class LoadProcedureRunner:
             index = await self._resolve_index(control)
             programmer = await self._bus()
             base = await programmer.read_table_reference(index)
-            await self._compare_mem(
-                base + control.offset,
-                self._memory_compare_data(control, index),
-                control.mask,
+            await self._polled_compare(
+                control,
+                lambda: self._compare_mem(
+                    base + control.offset,
+                    self._memory_compare_data(control, index),
+                    control.mask,
+                ),
             )
             return
         if isinstance(control, LdCtrlLoadImageRelMem):
@@ -1460,7 +1461,7 @@ class LoadProcedureRunner:
             await self._load_image_prop(control)
             return
         if isinstance(control, LdCtrlCompareProp):
-            await self._compare_prop(control)
+            await self._polled_compare(control, lambda: self._compare_prop(control))
             return
         if isinstance(control, LdCtrlInvokeFunctionProp):
             index = await self._resolve_index(control)
@@ -1710,6 +1711,37 @@ class LoadProcedureRunner:
             partial=not self._writes_seed(),
         )
         return self._overlay_memory_capture(index, control.offset, control.size, runs)
+
+    async def _polled_compare(
+        self,
+        control: LdCtrlCompareBase,
+        compare: Callable[[], Awaitable[None]],
+        *,
+        poll: bool = True,
+    ) -> None:
+        """Run ``compare`` as ``control`` says: ``Invert`` passes on a mismatch; with a
+        ``TimeOut`` (seconds) a failed compare is read again every ``RetryInterval``
+        milliseconds until it passes or the time is up, e.g. a device that finishes a step
+        of its own before the procedure goes on. A preview (``poll`` false) reads once."""
+        started = time.monotonic()
+        while True:
+            try:
+                await compare()
+            except CompareMismatch as mismatch:
+                if control.invert:
+                    return
+                failure: CompareMismatch = mismatch
+            else:
+                if not control.invert:
+                    return
+                failure = CompareMismatch(
+                    f"inverted compare failed: {type(control).__name__} read the value "
+                    "it must differ from"
+                )
+            timeout = (control.time_out or 0) * 1000
+            if not poll or not timeout or (time.monotonic() - started) * 1000 > timeout:
+                raise failure
+            await asyncio.sleep((control.retry_interval or 0) / 1000)
 
     async def _compare_mem(
         self, address: int, expected: bytes, mask: bytes | None = None
@@ -3004,8 +3036,12 @@ class LoadProcedureRunner:
             _require_standard(control.address_space)
             if self._preview_wrote_memory(control.address, control.size):
                 return
-            await self._compare_mem(
-                control.address, self._memory_compare_data(control), control.mask
+            await self._polled_compare(
+                control,
+                lambda: self._compare_mem(
+                    control.address, self._memory_compare_data(control), control.mask
+                ),
+                poll=False,
             )
             return
         if isinstance(control, LdCtrlCompareRelMem):
@@ -3014,10 +3050,14 @@ class LoadProcedureRunner:
             base = await programmer.read_table_reference(index)
             if self._preview_wrote_memory(base + control.offset, control.size):
                 return
-            await self._compare_mem(
-                base + control.offset,
-                self._memory_compare_data(control, index),
-                control.mask,
+            await self._polled_compare(
+                control,
+                lambda: self._compare_mem(
+                    base + control.offset,
+                    self._memory_compare_data(control, index),
+                    control.mask,
+                ),
+                poll=False,
             )
             return
         if isinstance(control, LdCtrlCompareProp):
@@ -3031,7 +3071,9 @@ class LoadProcedureRunner:
                     control.prop_id,
                 )
                 return
-            await self._compare_prop(control)
+            await self._polled_compare(
+                control, lambda: self._compare_prop(control), poll=False
+            )
             return
         if isinstance(control, LdCtrlLoadImageProp):
             await self._load_image_prop(control)
