@@ -95,6 +95,26 @@ def test_merged_procedure_splices_fragments_into_default() -> None:
     ]
 
 
+def test_fragments_are_merged_one_level_deep() -> None:
+    # A Hager TXC515: fragment 4 ends with a merge point of its own id. It is not merged
+    # again; the point is left in the procedure, where it does nothing.
+    master = _master_with_default(LdCtrlConnect(), LdCtrlMerge(merge_id=4))
+    write = LdCtrlWriteMem(address=0x10, size=1, verify=False, inline_data=b"\x01")
+    application = _application(
+        LoadProcedureStyle.MERGED_PROCEDURE,
+        _fragment(4, write, LdCtrlMerge(merge_id=4), LdCtrlMerge(merge_id=100)),
+    )
+
+    controls = resolve_download_controls(cast("object", application), master)  # type: ignore[arg-type]
+
+    assert [type(c).__name__ for c in controls] == [
+        "LdCtrlConnect",
+        "LdCtrlWriteMem",
+        "LdCtrlMerge",
+        "LdCtrlMerge",
+    ]
+
+
 def test_default_procedure_drops_unmatched_merge_placeholders() -> None:
     master = _master_with_default(
         LdCtrlConnect(), LdCtrlMerge(merge_id=9), LdCtrlRestart()

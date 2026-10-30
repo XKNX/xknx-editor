@@ -82,6 +82,7 @@ from xknxeditor.namespaces.intermediate.ld_ctrl_max_length_t import LdCtrlMaxLen
 from xknxeditor.namespaces.intermediate.ld_ctrl_mem_addr_space_t import (
     LdCtrlMemAddrSpace,
 )
+from xknxeditor.namespaces.intermediate.ld_ctrl_merge_t import LdCtrlMerge
 from xknxeditor.namespaces.intermediate.ld_ctrl_read_function_prop_t import (
     LdCtrlReadFunctionProp,
 )
@@ -341,6 +342,8 @@ _SUPPORTED_CONTROLS = frozenset(
         "LdCtrlSetControlVariable",
         # xsdata class name (type(control).__name__), not the XML "LdCtrlClearLCFilterTable".
         "LdCtrlClearLcfilterTable",
+        # A merge point left inside a merged fragment does nothing (see _execute).
+        "LdCtrlMerge",
     }
 )
 
@@ -1525,6 +1528,10 @@ class LoadProcedureRunner:
             # does not perform. The filter-table bytes themselves must be supplied in the
             # image (see GroupCommunication.filter_table); otherwise the following
             # WriteRelMem/WriteMem fails with "no image data".
+            return
+        if isinstance(control, LdCtrlMerge):
+            # A merge point inside a merged fragment: fragments are merged one level deep
+            # (a fragment may name its own merge id), the point left over does nothing.
             return
         if isinstance(control, LdCtrlMapError):
             # Arm or reset tolerance of a specific error. The mapped value carries

@@ -60,6 +60,7 @@ from xknxeditor.namespaces.intermediate.ld_ctrl_load_image_mem_t import (
 from xknxeditor.namespaces.intermediate.ld_ctrl_load_t import LdCtrlLoad
 from xknxeditor.namespaces.intermediate.ld_ctrl_map_error_t import LdCtrlMapError
 from xknxeditor.namespaces.intermediate.ld_ctrl_master_reset_t import LdCtrlMasterReset
+from xknxeditor.namespaces.intermediate.ld_ctrl_merge_t import LdCtrlMerge
 from xknxeditor.namespaces.intermediate.ld_ctrl_read_function_prop_t import (
     LdCtrlReadFunctionProp,
 )
@@ -622,6 +623,19 @@ async def test_a_coupler_without_its_filter_table_fails_before_any_write(
     with pytest.raises(ImageError, match="coupler address"):
         await (runner.preflight() if preview else runner.run())
     assert device.sent == []
+
+
+async def test_a_merge_point_left_in_the_procedure_does_nothing() -> None:
+    application = _application(
+        LdCtrlConnect(), LdCtrlMerge(merge_id=100), LdCtrlDisconnect()
+    )
+    image = DownloadImage(segments=(), properties=())
+    runner, device = _runner(application, image)
+    await runner.run()
+    assert device.memory == {}
+    runner, device = _runner(application, image)
+    report = await runner.preflight()
+    assert not report.segments and not report.properties
 
 
 async def test_clear_lcfilter_table_alone_is_noop() -> None:
