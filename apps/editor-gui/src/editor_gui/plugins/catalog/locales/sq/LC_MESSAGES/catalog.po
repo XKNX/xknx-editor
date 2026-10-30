@@ -17,7 +17,7 @@ msgid "Loaded: {path}"
 msgstr "U ngarkua: {path}"
 
 msgid "Found {count} application(s)"
-msgstr "Aplikacione të gjetura: {count}"
+msgstr "Programe aplikative të gjetura: {count}"
 
 msgid "({count} group objects)"
 msgstr "({count} objekte grupi)"
@@ -89,7 +89,7 @@ msgid "Program Version"
 msgstr "Versioni i programit"
 
 msgid "Application ID"
-msgstr "ID e aplikacionit"
+msgstr "ID e programit aplikativ"
 
 msgid "DIN Rail Mounting"
 msgstr "Montim në shinë DIN"
@@ -134,10 +134,10 @@ msgid "No products imported yet — import a .knxprod or use the Online tab."
 msgstr "Ende pa produkte — importoni një .knxprod ose përdorni skedën Online."
 
 msgid "Fetch {count} Missing Application(s) Online"
-msgstr "Merr online aplikacionet që mungojnë ({count})"
+msgstr "Merr online programet aplikative që mungojnë ({count})"
 
 msgid "Fetching missing applications…"
-msgstr "Po merren aplikacionet që mungojnë…"
+msgstr "Po merren programet aplikative që mungojnë…"
 
 msgid "Delete"
 msgstr "Fshi"

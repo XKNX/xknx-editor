@@ -128,4 +128,4 @@ msgid "Address: {address}"
 msgstr "Adresa: {address}"
 
 msgid "Application: {application}"
-msgstr "Aplikacioni: {application}"
+msgstr "Programi aplikativ: {application}"

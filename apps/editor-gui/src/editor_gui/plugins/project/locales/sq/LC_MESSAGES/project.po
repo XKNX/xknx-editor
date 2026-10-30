@@ -794,7 +794,7 @@ msgid "Unload"
 msgstr "Çngarko"
 
 msgid "Unload Application and Address"
-msgstr "Çngarko aplikacionin dhe adresën"
+msgstr "Çngarko programin aplikativ dhe adresën"
 
 msgid "Partial: Parameters"
 msgstr "Pjesërisht: parametrat"
@@ -839,7 +839,7 @@ msgid "Enter the serial number as 12 hexadecimal digits, e.g. 0083:7AA2039C."
 msgstr "Vendosni numrin serial si 12 shifra heksadecimale, p.sh. 0083:7AA2039C."
 
 msgid "Manufacturer Info"
-msgstr "Info e prodhuesit"
+msgstr "Informacioni i prodhuesit"
 
 msgid "Application"
 msgstr "Programi aplikativ"
@@ -1106,7 +1106,7 @@ msgid "device-managed"
 msgstr "e menaxhuar nga pajisja"
 
 msgid "System byte the device sets itself at runtime (e.g. a download detection byte reset by the application after a download). A difference here is expected and does not indicate a bad download."
-msgstr "Bajt sistemi që pajisja e vendos vetë gjatë punës (p.sh. një bajt zbulimi programimi që aplikacioni e rivendos pas një programimi). Një ndryshim këtu është i pritshëm dhe nuk tregon programim të dështuar."
+msgstr "Bajt sistemi që pajisja e vendos vetë gjatë punës (p.sh. një bajt zbulimi programimi që programi aplikativ e rivendos pas një programimi). Një ndryshim këtu është i pritshëm dhe nuk tregon programim të dështuar."
 
 msgid "plus {bytes} device-managed runtime byte(s) (expected, benign)"
 msgstr "plus {bytes} bajt(e) pune të pajisjes (të pritshëm, të padëmshëm)"
@@ -1118,10 +1118,10 @@ msgid "sets default"
 msgstr "vendos parazgjedhjen"
 
 msgid "This byte is written for a neighbouring parameter; the differing bit is not driven by any active parameter and is only reset to the application default. The device holds an older value (e.g. from a previous configuration or mode) that programming will normalise. Benign."
-msgstr "Ky bajt shkruhet për një parametër fqinj; biti që ndryshon nuk drejtohet nga asnjë parametër aktiv dhe vetëm rivendoset në parazgjedhjen e aplikacionit. Pajisja mban një vlerë më të vjetër (p.sh. nga një konfigurim ose modalitet i mëparshëm) që programimi do ta normalizojë. I padëmshëm."
+msgstr "Ky bajt shkruhet për një parametër fqinj; biti që ndryshon nuk drejtohet nga asnjë parametër aktiv dhe vetëm rivendoset në parazgjedhjen e programit aplikativ. Pajisja mban një vlerë më të vjetër (p.sh. nga një konfigurim ose modalitet i mëparshëm) që programimi do ta normalizojë. I padëmshëm."
 
 msgid "plus {bytes} byte(s) reset to the application default (the device holds an older value; benign, will be normalised on programming)"
-msgstr "plus {bytes} bajt(e) të rivendosur në parazgjedhjen e aplikacionit (pajisja mban një vlerë më të vjetër; e padëmshme, do të normalizohet gjatë programimit)"
+msgstr "plus {bytes} bajt(e) të rivendosur në parazgjedhjen e programit aplikativ (pajisja mban një vlerë më të vjetër; e padëmshme, do të normalizohet gjatë programimit)"
 
 msgid "Export Ist/Soll…"
 msgstr "Eksporto Ist/Soll…"
@@ -1379,10 +1379,10 @@ msgid "No operations."
 msgstr "Asnjë veprim."
 
 msgid "Device Info"
-msgstr "Info e pajisjes"
+msgstr "Informacioni i pajisjes"
 
 msgid "Device Info (With Group Communication)"
-msgstr "Info e pajisjes (me komunikimin në grup)"
+msgstr "Informacioni i pajisjes (me komunikimin në grup)"
 
 msgid "Reading"
 msgstr "Po lexohet"
@@ -1451,7 +1451,7 @@ msgid "Also read the group communication?"
 msgstr "Të lexohet edhe komunikimi në grup?"
 
 msgid "The application on the device is not in the catalog, so its tables cannot be located"
-msgstr "Aplikacioni në pajisje nuk është në katalog, prandaj tabelat e tij nuk mund të gjenden"
+msgstr "Programi aplikativ në pajisje nuk është në katalog, prandaj tabelat e tij nuk mund të gjenden"
 
 msgid "This device can only be programmed with the manufacturer's plugin, which is not available here."
 msgstr "Kjo pajisje mund të programohet vetëm me plugin-in e prodhuesit, i cili nuk është i disponueshëm këtu."
@@ -2195,7 +2195,7 @@ msgid "Slot"
 msgstr "Slot"
 
 msgid "The application has no static parameters."
-msgstr "Aplikacioni nuk ka parametra statikë."
+msgstr "Programi aplikativ nuk ka parametra statikë."
 
 msgid "This gateway's commissioning protocol has not been verified against a capture; writes may misbehave. Proceed with care."
 msgstr "Protokolli i vënies në punë i këtij gateway-i nuk është verifikuar me një regjistrim; shkrimet mund të sillen gabim. Vazhdoni me kujdes."
