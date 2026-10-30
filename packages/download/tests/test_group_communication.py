@@ -248,6 +248,24 @@ async def test_invalid_plan_fails_before_bus_access() -> None:
     assert not runner.state_mutated
 
 
+def test_a_restart_while_a_table_is_unloaded_is_kept() -> None:
+    # A second program's fragment (M-0077 ACA-AC-KNX) restarts the device after the unloads,
+    # before the tables load.
+    controls = _lifecycle()
+    controls.insert(1, LdCtrlRestart())
+    prepared = materialize_group_communication_controls(
+        _image(RelativeSegment(1, b"ADDR")), controls, MAPPING
+    )
+    assert [type(c) for c in prepared] == [type(c) for c in controls]
+    # In the middle of a table's load it is refused.
+    controls = _lifecycle()
+    controls.insert(3, LdCtrlRestart())
+    with pytest.raises(UnsupportedProcedureError, match="restart before"):
+        materialize_group_communication_controls(
+            _image(RelativeSegment(1, b"ADDR")), controls, MAPPING
+        )
+
+
 def test_the_first_allocation_of_a_table_gets_its_size() -> None:
     controls = _lifecycle()
     controls.insert(2, LdCtrlRelSegment(lsm_idx=1, size=2, mode=1, fill=0xFF))
