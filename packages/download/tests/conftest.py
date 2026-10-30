@@ -102,6 +102,9 @@ class FakeDevice:
         # with a ZERO-length MemoryResponse (as observed on BIM M112 / mask 0701), forcing the
         # reader to back the block size off. None = always serve the full requested count.
         self.memory_read_zero_above: int | None = None
+        # The end of the memory the device lets a tool read (e.g. of an allocated table):
+        # an A_Memory_Read from there on answers with no octets. None = no end.
+        self.readable_end: int | None = None
         # A_MemoryExtended_Write_Response return code: 0 success, 1 success with the CRC over
         # count, address and data in the confirmation (``extended_crc`` replaces that CRC).
         self.extended_write_code = 0
@@ -177,7 +180,10 @@ class FakeDevice:
             ):
                 # Device quirk: too-large read -> empty reply (not a short one).
                 return self._telegram(MemoryResponse(address=payload.address, data=b""))
-            data = self._read_memory(payload.address, payload.count)
+            count = payload.count
+            if self.readable_end is not None:
+                count = max(0, min(count, self.readable_end - payload.address))
+            data = self._read_memory(payload.address, count)
             return self._telegram(MemoryResponse(address=payload.address, data=data))
         if isinstance(payload, UserMemoryRead):
             data = bytes(

@@ -16,6 +16,7 @@ It talks to any object implementing :class:`BusConnection`; at runtime this is
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import logging
 from collections.abc import Awaitable, Callable
 from typing import TYPE_CHECKING, Protocol, TypeVar
@@ -554,6 +555,18 @@ class DeviceProgrammer:
             )
         return await self._read_standard(address, size)
 
+    async def read_memory_until_refused(self, address: int, size: int) -> bytes:
+        """Read like :meth:`read_memory`, but only up to where the device refuses to answer.
+
+        A device answers a read past the end of an allocated segment (a System B table
+        loaded smaller than the one a download would write) with no octets; the octets
+        before that are returned, so the result may be shorter than ``size``.
+        """
+        if self._reads_extended(address, size):
+            with contextlib.suppress(VerificationError):
+                return await self.read_memory(address, size)
+        return await self._read_standard(address, size, until_refused=True)
+
     async def _read_extended(self, address: int, size: int) -> bytes:
         """Read with A_MemoryExtended_Read; a return code from 0x80 on is an error."""
         self._validate_memory_range(address, size, _EXTENDED_MEMORY_END)
@@ -600,18 +613,22 @@ class DeviceProgrammer:
             _EXTENDED_MEMORY_OVERHEAD, _MAX_EXTENDED_MEMORY_CHUNK
         )
 
-    async def _read_standard(self, address: int, size: int) -> bytes:
+    async def _read_standard(
+        self, address: int, size: int, *, until_refused: bool = False
+    ) -> bytes:
         """Read with A_Memory_Read / A_UserMemory_Read.
 
         Tolerant of a device that answers an A_Memory_Read with fewer octets than
         requested (some cap the reply below the negotiated APDU): the returned
         octets are valid, so the read advances by however many came back and asks
         for the rest, remembering the cap so it does not keep over-asking. Only a
-        completely empty reply (no progress) is an error.
+        completely empty reply (no progress) is an error, or with ``until_refused``
+        the end of the read.
         """
         self._validate_memory_range(address, size)
         result = bytearray()
         offset = 0
+        cap_before = self._memory_read_cap
         logger.debug("read_memory: addr=%#06x size=%d", address, size)
         while offset < size:
             block_address = address + offset
@@ -628,6 +645,13 @@ class DeviceProgrammer:
                     count = max(1, count // 2)
                     self._memory_read_cap = count
                     data = await self._read_block(block_address, count)
+                if not data:
+                    # The end of what the device holds: the short replies before it were
+                    # that end too, not a block size the device cannot serve.
+                    self._memory_read_cap = cap_before
+                if not data and until_refused:
+                    logger.debug("read_memory: refused from %#06x", block_address)
+                    break
                 if not data:
                     raise VerificationError(
                         f"no memory response for address {block_address:#06x}"

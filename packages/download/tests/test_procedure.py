@@ -440,6 +440,48 @@ async def test_write_rel_mem_relative_segment_by_object_type() -> None:
     assert bytes(device.memory[0x3400 + i] for i in range(4)) == b"\x00\x02\x0b\x08"
 
 
+async def test_preflight_reads_a_smaller_loaded_table_as_far_as_it_goes() -> None:
+    # The device holds a 4-octet address table and answers no read past it; the download
+    # would allocate and write a 6-octet one.
+    planned = b"\x00\x02\x0b\x08\x0b\x09"
+    image = DownloadImage(
+        segments=(),
+        properties=(),
+        relative_segments=(
+            RelativeSegment(
+                object_type=_ADDRESS_TABLE_TYPE, data=planned, mask=b"\xff" * 6
+            ),
+        ),
+    )
+    application = _application(
+        LdCtrlLoad(obj_type=1),
+        LdCtrlRelSegment(obj_type=1, size=2, mode=0, fill=0),
+        LdCtrlWriteRelMem(
+            obj_type=_ADDRESS_TABLE_TYPE,
+            occurrence=0,
+            offset=0,
+            size=0x100000,
+            verify=False,
+            inline_data=None,
+        ),
+        LdCtrlLoadCompleted(obj_type=1),
+    )
+    device = _device({0: 0x0000, 1: _ADDRESS_TABLE_TYPE})
+    device.table_references[1] = 0x3400
+    for i, octet in enumerate(b"\x00\x01\x0b\x08"):
+        device.memory[0x3400 + i] = octet
+    device.readable_end = 0x3404
+    runner = LoadProcedureRunner(application, image, DeviceProgrammer(device))
+
+    report = await runner.preflight()
+
+    (diff,) = report.segments
+    assert diff.address == 0x3400
+    assert diff.current == b"\x00\x01\x0b\x08"
+    assert diff.planned == planned
+    assert [(r.start, r.length) for r in diff.changed_ranges] == [(1, 1), (4, 2)]
+
+
 async def test_coupler_filter_table_clear_is_noop_and_write_lands() -> None:
     # A coupler load procedure clears the filter table then writes the full table into the Router
     # object (object type 6) relative memory. The clear is a no-op (the full write follows); the

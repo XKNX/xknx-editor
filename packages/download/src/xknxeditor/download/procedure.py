@@ -3053,6 +3053,9 @@ class LoadProcedureRunner:
         relative address space, and the device address adds the run-time table base.
         ``None`` (no image data) is an error there, so it must be one here too; see
         :meth:`_diff_masked`.
+
+        The download allocates the segment anew, so the device's current one may be
+        smaller than the planned data: it is read as far as the device answers.
         """
         runs = self._memory_write_runs(control, index=index)
         if runs is None:
@@ -3064,7 +3067,9 @@ class LoadProcedureRunner:
             return
         programmer = await self._bus()
         for run_offset, planned in runs:
-            current = await programmer.read_memory(base + run_offset, len(planned))
+            current = await programmer.read_memory_until_refused(
+                base + run_offset, len(planned)
+            )
             await self._note_device_written(
                 programmer, base + run_offset, current, bytes(planned)
             )
