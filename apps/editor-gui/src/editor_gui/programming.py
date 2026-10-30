@@ -35,7 +35,11 @@ if TYPE_CHECKING:
     from xknxeditor.download.image import DownloadImage, GroupCommunication
     from xknxeditor.download.ip_config import IpDeviceConfig
     from xknxeditor.download.ip_secure import IpSecureConfig
-    from xknxeditor.download.preflight import PreflightReport, SegmentDiff
+    from xknxeditor.download.preflight import (
+        PreflightReport,
+        PropertyDiff,
+        SegmentDiff,
+    )
     from xknxeditor.prod import Application, MasterData
 
 
@@ -355,6 +359,35 @@ def preflight_segment_counts(
             else:
                 default += 1
     return config, default, runtime
+
+
+def preflight_segment_category(
+    segment: SegmentDiff,
+    runtime_addresses: AbstractSet[int],
+    driven_bits: Mapping[int, int],
+) -> str | None:
+    """The most actionable class of a memory segment's changed bytes (config, then default,
+    then runtime), ``None`` when the download would not change it."""
+    if not segment.changed:
+        return None
+    config, default, runtime = preflight_segment_counts(
+        segment, runtime_addresses, driven_bits
+    )
+    if config:
+        return PREFLIGHT_CONFIG
+    if default:
+        return PREFLIGHT_DEFAULT
+    if runtime:
+        return PREFLIGHT_RUNTIME
+    return None
+
+
+def preflight_property_category(prop: PropertyDiff) -> str | None:
+    """A changed property write is a configured value, unless it is a step of the procedure;
+    ``None`` when the download would not change it."""
+    if not prop.changed:
+        return None
+    return PREFLIGHT_RUNTIME if prop.procedure_step else PREFLIGHT_CONFIG
 
 
 @dataclass(frozen=True, slots=True)

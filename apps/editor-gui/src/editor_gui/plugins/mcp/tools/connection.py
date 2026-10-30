@@ -20,6 +20,8 @@ from editor_gui.plugins.mcp.context import McpContext, make_tool
 from editor_gui.plugins.mcp.tools.project import require_device
 
 if TYPE_CHECKING:
+    from collections.abc import Mapping
+    from collections.abc import Set as AbstractSet
     from concurrent.futures import Future
 
     from fastmcp import FastMCP
@@ -27,6 +29,7 @@ if TYPE_CHECKING:
     from editor_gui.device import Device
     from editor_gui.plugins.connection.service import ConnectionService
     from editor_gui.plugins.project.program_queue import QueueItem
+    from xknxeditor.download.preflight import ByteRange, PreflightReport
 
 # Download scopes (schema enum); maps to xknxeditor.download.scope.DownloadScope in _resolve_scope.
 Scope = Literal[
@@ -123,6 +126,59 @@ def _resolve_scope(scope: str | None) -> Any:
     except KeyError as exc:
         valid = ", ".join(s.name for s in DownloadScope)
         raise ToolError(f"unknown scope {scope!r}; expected one of: {valid}") from exc
+
+
+def _changes(
+    current: bytes, planned: bytes, ranges: tuple[ByteRange, ...]
+) -> list[dict[str, Any]]:
+    return [
+        {
+            "offset": r.start,
+            "current": current[r.start : r.start + r.length].hex(),
+            "planned": planned[r.start : r.start + r.length].hex(),
+        }
+        for r in ranges
+    ]
+
+
+def preflight_locations(
+    report: PreflightReport,
+    runtime_addresses: AbstractSet[int],
+    driven_bits: Mapping[int, int],
+) -> list[dict[str, Any]]:
+    """The locations a pre-flight found changed, as the pre-flight window lists them: each with
+    its class and, per changed range, the device's (current) and the download's (planned) bytes
+    in hex."""
+    from editor_gui.programming import (
+        preflight_property_category,
+        preflight_segment_category,
+    )
+
+    runtime = set(runtime_addresses) | report.device_written
+    locations: list[dict[str, Any]] = [
+        {
+            "memory": f"{segment.address:#06x}",
+            "size": len(segment.planned),
+            "changed_bytes": segment.changed_bytes,
+            "category": preflight_segment_category(segment, runtime, driven_bits),
+            "changes": _changes(
+                segment.current, segment.planned, segment.changed_ranges
+            ),
+        }
+        for segment in report.changed_segments
+    ]
+    locations += [
+        {
+            "object": prop.object_label,
+            "property": prop.property_id,
+            "size": len(prop.planned),
+            "changed_bytes": prop.changed_bytes,
+            "category": preflight_property_category(prop),
+            "changes": _changes(prop.current, prop.planned, prop.changed_ranges),
+        }
+        for prop in report.changed_properties
+    ]
+    return locations
 
 
 def register(mcp: FastMCP, ctx: McpContext) -> None:
@@ -478,7 +534,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         cancel it.
 
         Returns {node_id, changed_bytes, config_bytes, default_bytes, runtime_bytes, config_locations,
-        changed_segments, changed_properties, summary}. ``changed_bytes`` is the raw total; it is split
+        changed_segments, changed_properties, summary, locations}. ``changed_bytes`` is the raw total; it is split
         into three classes, and ONLY ``config_bytes`` is a real configuration change you would push:
         - config_bytes: bytes carrying a configured parameter value / a property write (flags, tables).
         - default_bytes: bytes merely reset to the application default (the device holds an older value)
@@ -489,7 +545,16 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
           successful download.
         So a non-zero ``changed_bytes`` with ``config_bytes == 0`` (``config_locations == 0``) means the
         device already carries the configuration; do not treat that as a pending change. changed_segments/
-        changed_properties are counts and do not describe unload/restart or address-reset effects."""
+        changed_properties are counts and do not describe unload/restart or address-reset effects.
+        ``locations`` lists every changed location, as the pre-flight window does: a memory segment
+        as {memory: "0x4400", ...} or a property write as {object: "5" (index) or "type 40960"
+        (addressed by type), property: PID, ...}, each with size, changed_bytes, category ("config",
+        "default" or "runtime", as above) and changes: [{offset, current, planned}] per changed
+        range, offset from the location's start and the device's (current) and the download's
+        (planned) bytes in hex.
+
+        A compare of the procedure that checks the device's reaction to one of its own writes (e.g.
+        the load state after an unload) is not checked: the preview writes nothing."""
         device, group_communication = _programmable_device(node_id, device_address)
         resolved = _resolve_scope(scope)
         if resolved.individual_address_only:
@@ -534,6 +599,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             "changed_segments": len(report.changed_segments),
             "changed_properties": len(report.changed_properties),
             "summary": report.summary(),
+            "locations": preflight_locations(report, runtime_addresses, driven_bits),
         }
 
     @tool("destructive", open_world=True)

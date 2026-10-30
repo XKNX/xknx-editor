@@ -22,7 +22,8 @@ from editor_gui.programming import (
     PREFLIGHT_DEFAULT,
     PREFLIGHT_RUNTIME,
     classify_preflight,
-    preflight_segment_counts,
+    preflight_property_category,
+    preflight_segment_category,
 )
 from editor_gui.widgets.dialog import (
     begin_dialog,
@@ -266,24 +267,14 @@ class PreflightResultWindow:
     @staticmethod
     def _property_category(prop: PropertyDiff) -> str:
         """A property write is a configured value, unless it is a step of the procedure."""
-        if not prop.changed:
-            return _CAT_MATCH
-        return _CAT_RUNTIME if prop.procedure_step else _CAT_CONFIG
+        return preflight_property_category(prop) or _CAT_MATCH
 
     def _segment_category(self, segment: SegmentDiff) -> str:
         """The segment's overall category, taking the most actionable of its bytes."""
-        if not segment.changed:
-            return _CAT_MATCH
-        config, default, runtime = preflight_segment_counts(
-            segment, self._runtime, self._driven
+        return (
+            preflight_segment_category(segment, self._runtime, self._driven)
+            or _CAT_MATCH
         )
-        if config:
-            return _CAT_CONFIG
-        if default:
-            return _CAT_DEFAULT
-        if runtime:
-            return _CAT_RUNTIME
-        return _CAT_MATCH
 
     def _render_row(
         self,
