@@ -481,6 +481,7 @@ class LoadProcedureRunner:
         application_loaded: bool = False,
         application2: Application | None = None,
         access_key: int = FREE_ACCESS_KEY,
+        full_controls: Sequence[object] | None = None,
     ) -> None:
         """Initialize the runner.
 
@@ -507,6 +508,10 @@ class LoadProcedureRunner:
         ``application2`` is the product's second application program: its id is the one
         written to the second program's object. ``access_key`` is the project's key a device
         with access protection is authorized with.
+
+        ``full_controls`` is the application's full procedure when ``controls`` is a part of
+        it (a partial one): a preflight tells the steps of the procedure from it (see
+        :func:`_procedure_steps`), which the part alone may write only once.
         """
         if programmer is None and connection_manager is None:
             raise DownloadError("provide a programmer or a connection manager")
@@ -516,6 +521,7 @@ class LoadProcedureRunner:
         self.image = image
         self.scope = scope
         self.application_loaded = application_loaded
+        self._full_controls = list(full_controls) if full_controls is not None else None
         self._object_types = dict(object_types or {})
         self._active_control: object | None = None
         # LoadImageProp fills missing runtime-image data; later CompareProp
@@ -740,6 +746,8 @@ class LoadProcedureRunner:
         self._memory_captures.clear()
         self._factory_registered.clear()
         self._procedure_steps = _procedure_steps(in_scope)
+        if self._full_controls is not None:
+            self._procedure_steps |= _procedure_steps(self._full_controls)
         self._preview_properties = set()
         self._preview_memory = []
         self._enable_segment_write = True
@@ -897,6 +905,21 @@ class LoadProcedureRunner:
                 and control.inline_data is not None
             ):
                 _inline_memory_data(control.inline_data, control.size)
+            if (
+                isinstance(control, LdCtrlWriteMem)
+                and control.address_space is LdCtrlMemAddrSpace.LC_FILTER
+                and control.inline_data is None
+                and self._memory_runs(
+                    control.address, control.size, control.address_space
+                )
+                is None
+            ):
+                # The filter table is computed for the line the coupler couples; without it the
+                # download would stop at this write, after the ones before it.
+                raise ImageError(
+                    "no filter table for this coupler: a filter table is computed for a coupler "
+                    "at a coupler address (x.y.0)"
+                )
             if (
                 isinstance(control, (LdCtrlCompareMem, LdCtrlCompareRelMem))
                 and control.inline_data

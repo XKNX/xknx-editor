@@ -244,6 +244,28 @@ def _resolve_procedure(
     )
 
 
+def _full_procedure(
+    application: Application,
+    master: MasterData | None,
+    image: DownloadImage,
+    application2: Application | None,
+) -> list[object] | None:
+    """The application's full Load procedure, for a preview of a partial one: a property it
+    writes with different values is a step of the procedure even where the partial one writes
+    it once (e.g. a handshake whose start is left out). ``None`` when it does not resolve."""
+    try:
+        return resolve_download_controls(
+            application,
+            master.raw if master is not None else None,
+            scope=DownloadScope.FULL,
+            parameter_values=image.procedure_parameters,
+            application2=application2,
+        )
+    except DownloadError as exc:
+        logger.debug("preflight: full procedure not resolved: %s", exc)
+        return None
+
+
 _PARTIAL_SCOPES = frozenset(
     {
         DownloadScope.PARAMETERS,
@@ -933,6 +955,11 @@ async def preflight(
     controls = _resolve_controls(
         application, master, image, scope, ip_config, application2=application2
     )
+    full_controls = (
+        _full_procedure(application, master, image, application2)
+        if scope is not DownloadScope.FULL
+        else None
+    )
     apdu_ceiling, negotiate_apdu = _apdu_settings(
         max_apdu_length, interface_max_apdu_length
     )
@@ -956,6 +983,7 @@ async def preflight(
             application_loaded=application_loaded,
             application2=application2,
             access_key=access_key,
+            full_controls=full_controls,
         )
         try:
             return await runner.preflight()
