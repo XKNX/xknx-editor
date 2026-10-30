@@ -15,6 +15,8 @@ from xknx.exceptions import ManagementConnectionTimeout
 from xknx.telegram import IndividualAddress, Telegram
 from xknx.telegram.tpci import TDataIndividual
 
+from .response_matching import answers
+
 if TYPE_CHECKING:
     from xknx import XKNX
     from xknx.telegram.apci import APCI
@@ -61,7 +63,9 @@ class ConnectionlessConnection:
                 raise ManagementConnectionTimeout(
                     f"No response from {self._address} for {payload}"
                 ) from exc
-            if expected is None or isinstance(telegram.payload, expected):
+            if (expected is None or isinstance(telegram.payload, expected)) and answers(
+                payload, telegram.payload
+            ):
                 return telegram
 
 

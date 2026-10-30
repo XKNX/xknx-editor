@@ -66,6 +66,7 @@ from .project_data import (
     parameter_instance_refs_from_device,
     parameter_values_from_device,
 )
+from .response_matching import install as _install_response_matching
 from .scope import DownloadScope
 from .secure_keyring import device_security_from_keyring, load_device_security
 from .tables import (
@@ -76,8 +77,10 @@ from .tables import (
 from .transport_repetitions import install as _install_transport_repetitions
 
 # Every point-to-point connection of the editor repeats a lost telegram as often as the
-# transport layer does, also the ones xknx's own procedures open.
+# transport layer does and takes only the response that answers a request, also the
+# ones xknx's own procedures open.
 _install_transport_repetitions()
+_install_response_matching()
 
 __version__ = "0.1.0"
 
