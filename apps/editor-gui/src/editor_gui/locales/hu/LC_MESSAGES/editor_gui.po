@@ -1527,3 +1527,12 @@ msgstr "Az XKNX Editort elindító program állította be az MCP-kiszolgálójá
 
 msgid "Home Assistant updates XKNX Editor with its integration: check Home Assistant for an update of the XKNX Editor integration. It may follow this release a little later."
 msgstr "A Home Assistant az integrációjával frissíti az XKNX Editort: ellenőrizze a Home Assistantben, hogy elérhető-e frissítés az XKNX Editor-integrációhoz. Ez kicsivel a jelen kiadás után érkezhet."
+
+msgid "Report a Bug"
+msgstr "Hiba bejelentése"
+
+msgid "Suggest a Feature"
+msgstr "Funkció javaslása"
+
+msgid "Show All Issues"
+msgstr "Összes bejelentés megtekintése"

@@ -47,6 +47,15 @@ body:
     validations:
       required: true
 
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Filled in by XKNX Editor when you start the report from its **Feedback** menu - please pick the installation and the way you used it above to match.
+      render: text
+    validations:
+      required: false
+
   - type: dropdown
     id: usage
     attributes:

@@ -23,10 +23,13 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     @tool("read")
     def status() -> dict[str, Any]:
-        """One-call overview: project, connection, keyring, capture state, plus valid enums.
+        """One-call overview: editor, project, connection, keyring, capture state, plus valid enums.
 
-        Call this first. ``capabilities`` lists the download scopes, com-object flags, and (when a
-        project is open) the group-address style that other tools accept."""
+        Call this first. ``editor`` is {version, installation, operating_system}: the XKNX Editor
+        version, how it runs and where (the values a bug report asks for, see
+        ``feedback_links``). ``capabilities`` lists the download scopes, com-object flags, and (when
+        a project is open) the group-address style that other tools accept."""
+        from editor_gui import __version__, feedback
         from xknxeditor.download.scope import DownloadScope
 
         def _project() -> dict[str, Any]:
@@ -41,6 +44,11 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         project = ctx.run_locked(_project)
         return {
+            "editor": {
+                "version": __version__,
+                "installation": feedback.installation(),
+                "operating_system": feedback.operating_system(),
+            },
             "project": project,
             "connection": {
                 "state": ctx.connection_plugin.state.value,
@@ -65,4 +73,28 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                 ),
                 "group_address_style": project["group_address_style"],
             },
+        }
+
+    @tool("read")
+    def feedback_links() -> dict[str, Any]:
+        """Links to report a problem with XKNX Editor or to suggest a feature, as its Feedback menu
+        opens them.
+
+        Returns {bug_report_url, feature_request_url, issues_url, version, installation,
+        operating_system, environment}. ``bug_report_url`` opens the repository's bug report form
+        with the version, the operating system and ``environment`` (installation, browser or
+        window, interface language, Python and xknx versions) filled in; the reporter still picks
+        the installation and the area in the form's drop-downs. ``feature_request_url`` opens the
+        feature request form with the version filled in; ``issues_url`` lists the existing issues
+        (search them first). Nothing is sent: hand the link to the user."""
+        from editor_gui import __version__, feedback
+
+        return {
+            "bug_report_url": feedback.bug_report_url(),
+            "feature_request_url": feedback.feature_request_url(),
+            "issues_url": feedback.ISSUES_URL,
+            "version": __version__,
+            "installation": feedback.installation(),
+            "operating_system": feedback.operating_system(),
+            "environment": feedback.environment(),
         }
