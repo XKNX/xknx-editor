@@ -1753,3 +1753,53 @@ async def test_abs_segment_keeps_the_parameter_mask_for_property_mapped_masks() 
     await runner.run()
 
     assert all(0x4B20 + i not in device.memory for i in range(4))
+
+
+_MCB = 27
+
+
+def _mcb_write(**kwargs: object) -> LdCtrlWriteProp:
+    return LdCtrlWriteProp(obj_idx=4, prop_id=_MCB, count=1, verify=False, **kwargs)  # type: ignore[arg-type]
+
+
+def _mcb_writes(device: FakeDevice) -> list[str]:
+    return [
+        p.data.hex()
+        for p in device.sent
+        if isinstance(p, PropertyValueWrite) and p.property_id == _MCB
+    ]
+
+
+async def test_an_mcb_write_without_data_is_not_sent() -> None:
+    # A Gira System B application writes the MCB with inline data after the allocation, and
+    # once more without inline data after the segment, before any capture of the MCB.
+    app = _application(
+        LdCtrlConnect(),
+        _mcb_write(inline_data=bytes.fromhex("0000070c003300000000")),
+        _mcb_write(),
+        LdCtrlDisconnect(),
+    )
+    runner, device = _runner(app, DownloadImage(segments=(), properties=()))
+    device.property_element_sizes[4, _MCB] = 8
+    await runner.run()
+    assert _mcb_writes(device) == ["0000070c00330000"]
+    assert device.properties[4, _MCB] == bytes.fromhex("0000070c00330000")
+
+
+async def test_an_mcb_write_takes_the_capture_as_it_is() -> None:
+    from xknxeditor.namespaces.intermediate.ld_ctrl_load_image_prop_t import (
+        LdCtrlLoadImageProp,
+    )
+
+    app = _application(
+        LdCtrlConnect(),
+        LdCtrlLoadImageProp(obj_idx=4, prop_id=_MCB, count=1),
+        _mcb_write(),
+        LdCtrlDisconnect(),
+    )
+    runner, device = _runner(app, DownloadImage(segments=(), properties=()))
+    device.property_element_sizes[4, _MCB] = 8
+    device.properties[4, _MCB] = bytes.fromhex("0000070c0033abcd")
+    await runner.run()
+    # The CRC is written back as captured.
+    assert _mcb_writes(device) == ["0000070c0033abcd"]

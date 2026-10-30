@@ -1725,7 +1725,7 @@ class LoadProcedureRunner:
     ) -> tuple[bytes, bytes | None]:
         """The data ``control`` writes and the bits of it to write, ``None`` for all of it.
 
-        Image elements are laid over inline data, keeping device-owned CRCs zero. Every
+        Image elements are laid over inline data. Every
         download, a full one too, writes only the bits the inline data, captured elements and
         parameters cover, and the device keeps the rest.
         """
@@ -1784,13 +1784,12 @@ class LoadProcedureRunner:
                 index, object_type, control, width, data, covered
             )
         if control.prop_id == _PID_MCB_TABLE:
-            data = data[: control.count * _MCB_ENTRY_SIZE]
-            if len(data) != control.count * _MCB_ENTRY_SIZE:
+            # The MCB takes its bytes from the inline data or a capture, as they are (no size,
+            # access or CRC is computed); without either it is not written.
+            size = control.count * _MCB_ENTRY_SIZE
+            data, covered = data[:size], covered[:size]
+            if len(data) != size:
                 raise ImageError("incomplete MCB entry")
-            entries = bytearray(data)
-            for start in range(0, len(entries), _MCB_ENTRY_SIZE):
-                entries[start + 6 : start + 8] = b"\x00\x00"
-            return bytes(entries), None
         if all(bits == 0xFF for bits in covered):
             return bytes(data), None
         return bytes(data), bytes(covered)
