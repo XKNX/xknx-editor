@@ -139,6 +139,27 @@ async def test_preflight_reports_no_change_when_matching() -> None:
     assert report.segments[0].changed is False
 
 
+async def test_preflight_marks_memory_written_with_different_values_as_a_step() -> None:
+    # A download handshake flag: 01 at the start, 02 at the end; a value written once is a
+    # setting.
+    image = DownloadImage(segments=(), properties=())
+    application = _application(
+        LdCtrlWriteMem(address=0x80, size=1, verify=False, inline_data=b"\x01"),
+        LdCtrlWriteMem(address=0x90, size=1, verify=False, inline_data=b"\x05"),
+        LdCtrlWriteMem(address=0x80, size=1, verify=False, inline_data=b"\x02"),
+    )
+    runner, device = _runner(application, image)
+    device.memory.update({0x80: 0x02, 0x90: 0x00})
+
+    report = await runner.preflight()
+
+    assert [(s.address, s.planned, s.procedure_step) for s in report.segments] == [
+        (0x80, b"\x01", True),
+        (0x90, b"\x05", False),
+        (0x80, b"\x02", True),
+    ]
+
+
 async def test_preflight_previews_abs_segment_without_allocating() -> None:
     image = DownloadImage(
         segments=(MemorySegment(address=0x4400, data=b"\x11\x22\x33"),),

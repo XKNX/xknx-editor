@@ -56,6 +56,10 @@ class SegmentDiff:
     address: int
     current: bytes
     planned: bytes
+    # A step of the procedure, not a setting: the procedure writes this memory more than once
+    # with different inline data (e.g. a download handshake flag set to 01 at the start and 02
+    # at the end), so the device can never hold what one of the writes plans.
+    procedure_step: bool = False
 
     @property
     def changed_ranges(self) -> tuple[ByteRange, ...]:
@@ -162,6 +166,7 @@ class PreflightReport:
             lines.append(
                 f"  memory {segment.address:#06x}: "
                 f"{segment.changed_bytes}/{len(segment.planned)} changed"
+                + (" (procedure step)" if segment.procedure_step else "")
             )
         for prop in changed_properties:
             lines.append(

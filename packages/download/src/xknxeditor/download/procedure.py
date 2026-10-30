@@ -595,8 +595,10 @@ class LoadProcedureRunner:
         # The factory image segments a Master Reset left in place (see _register_factory):
         # _FACTORY_TABLE for the group object table, _FACTORY_OTHER for the rest.
         self._factory_registered: set[str] = set()
-        # The properties a preflight previews as procedure steps (see _procedure_steps).
+        # The properties and memory ranges a preflight previews as procedure steps (see
+        # _procedure_steps and _memory_procedure_steps).
         self._procedure_steps: set[_PropertyKey] = set()
+        self._memory_steps: set[tuple[int, int]] = set()
         # What a preflight left unwritten so far: (object index, PID) of properties and
         # [start, end) ranges of memory. A later compare there checks the device's reaction
         # to the write, which a preview cannot see.
@@ -746,8 +748,10 @@ class LoadProcedureRunner:
         self._memory_captures.clear()
         self._factory_registered.clear()
         self._procedure_steps = _procedure_steps(in_scope)
+        self._memory_steps = _memory_procedure_steps(in_scope)
         if self._full_controls is not None:
             self._procedure_steps |= _procedure_steps(self._full_controls)
+            self._memory_steps |= _memory_procedure_steps(self._full_controls)
         self._preview_properties = set()
         self._preview_memory = []
         self._enable_segment_write = True
@@ -2939,8 +2943,12 @@ class LoadProcedureRunner:
                 raise ImageError(
                     f"no image data for address range {control.address:#06x}"
                 )
+            step = (
+                control.inline_data is not None
+                and (control.address, control.size) in self._memory_steps
+            )
             for address, planned in runs:
-                await self._diff_memory(address, planned, segments)
+                await self._diff_memory(address, planned, segments, procedure_step=step)
                 self._preview_memory.append((address, address + len(planned)))
             return
         if isinstance(control, LdCtrlWriteRelMem):
@@ -3062,14 +3070,26 @@ class LoadProcedureRunner:
                 self._device_written.add(address + i)
 
     async def _diff_memory(
-        self, address: int, planned: bytes, segments: list[SegmentDiff]
+        self,
+        address: int,
+        planned: bytes,
+        segments: list[SegmentDiff],
+        *,
+        procedure_step: bool = False,
     ) -> None:
-        """Read current memory at ``address`` and record a diff against ``planned``."""
+        """Read current memory at ``address`` and record a diff against ``planned``;
+        ``procedure_step`` marks it as a step of the procedure (see
+        :attr:`SegmentDiff.procedure_step`)."""
         programmer = await self._bus()
         current = await programmer.read_memory(address, len(planned))
         await self._note_device_written(programmer, address, current, bytes(planned))
         segments.append(
-            SegmentDiff(address=address, current=current, planned=bytes(planned))
+            SegmentDiff(
+                address=address,
+                current=current,
+                planned=bytes(planned),
+                procedure_step=procedure_step,
+            )
         )
 
     async def _diff_masked(
@@ -3271,6 +3291,18 @@ def _procedure_steps(controls: Sequence[object]) -> set[_PropertyKey]:
     for control in controls:
         if isinstance(control, LdCtrlWriteProp) and control.inline_data is not None:
             values.setdefault(_property_key(control), set()).add(control.inline_data)
+    return {key for key, data in values.items() if len(data) > 1}
+
+
+def _memory_procedure_steps(controls: Sequence[object]) -> set[tuple[int, int]]:
+    """The ``(address, size)`` ranges ``controls`` write more than once with different inline
+    data: steps of the procedure, as :func:`_procedure_steps` for properties."""
+    values: dict[tuple[int, int], set[bytes]] = {}
+    for control in controls:
+        if isinstance(control, LdCtrlWriteMem) and control.inline_data is not None:
+            values.setdefault((control.address, control.size), set()).add(
+                control.inline_data
+            )
     return {key for key, data in values.items() if len(data) > 1}
 
 

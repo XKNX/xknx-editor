@@ -341,7 +341,10 @@ def preflight_segment_counts(
     runtime_addresses: AbstractSet[int],
     driven_bits: Mapping[int, int],
 ) -> tuple[int, int, int]:
-    """Return ``(config, default, runtime)`` changed-byte counts for one memory segment."""
+    """Return ``(config, default, runtime)`` changed-byte counts for one memory segment; a
+    step of the procedure (see ``SegmentDiff.procedure_step``) is device-managed."""
+    if segment.procedure_step:
+        return 0, 0, segment.changed_bytes
     config = default = runtime = 0
     for byte_range in segment.changed_ranges:
         for i in range(byte_range.length):
