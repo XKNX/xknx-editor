@@ -12,6 +12,7 @@ import pytest
 from imgui_bundle import imgui
 
 from editor_gui.widgets import parameter_widgets
+from editor_gui.widgets.dpi import px
 from xknxeditor.namespaces.intermediate.access_t import Access
 from xknxeditor.namespaces.intermediate.parameter_type_t_type_restriction_base import (
     ParameterTypeTypeRestrictionBase,
@@ -79,5 +80,5 @@ def test_rows_of_texts_are_as_high_as_a_line() -> None:
         _parameter(f"P-{n}", TextWidget(max_length=14)) for n in (5900, 5901, 5906)
     ]
     text_height, field_height = _height(texts), _height(fields)
-    padding = imgui.get_style().frame_padding.y
-    assert text_height == pytest.approx(field_height - 3 * 2 * padding, abs=1.0)
+    # 5 px lower each: the reference tool's 25 px text line beside its 31 px field line.
+    assert text_height == pytest.approx(field_height - 3 * px(5), abs=1.0)

@@ -246,6 +246,22 @@ def _shows_as_text(param: UiParameter) -> bool:
     )
 
 
+# How much lower a row showing only texts is than one with a field (at 100 % scaling): the
+# reference tool lays out a text line 25 px high beside a field line of 31 px.
+_TEXT_ROW_SHORTER = 5.0
+
+
+def _align_row_text(offset: float | None) -> None:
+    """Place the next text as in a row with a field (``None``), or ``offset`` down in a text row."""
+    if offset is None:
+        imgui.align_text_to_frame_padding()
+        return
+    padding = imgui.get_style().frame_padding
+    imgui.push_style_var(imgui.StyleVar_.frame_padding, imgui.ImVec2(padding.x, offset))
+    imgui.align_text_to_frame_padding()
+    imgui.pop_style_var()
+
+
 def _text_row(param: UiParameter) -> bool:
     """Whether ``param``'s row shows only texts: its value as text, or no field at all
     (TypeNone). Such a row is as high as a line of text, not as a field."""
@@ -1581,6 +1597,11 @@ def _render_page_tree(
         if page.block is not None:
             _track_help(page.block.help_context)
         if is_open and page.children:
+            # The pages of a group (a channel) are not indented below it; only the levels
+            # below them are.
+            step = imgui.get_style().indent_spacing if is_group else 0.0
+            if step:
+                imgui.unindent(step)
             below = _render_page_tree(
                 page.children,
                 selected,
@@ -1590,6 +1611,8 @@ def _render_page_tree(
                 top_level=False,
                 channel_menu=channel_menu,
             )
+            if step:
+                imgui.indent(step)
             clicked = clicked or below
             imgui.tree_pop()
             if is_group:
@@ -2250,7 +2273,11 @@ def _render_param_table(
         # A row is as high as one with an input field; one showing only texts (a read-only value,
         # or no field at all) as high as a line of text.
         row_height = imgui.get_frame_height() + 2 * padding.y
-        text_row_height = imgui.get_text_line_height() + 2 * padding.y
+        text_row_height = row_height - px(_TEXT_ROW_SHORTER)
+        # The texts of such a row are centred in it.
+        text_offset = max(
+            (text_row_height - 2 * padding.y - imgui.get_text_line_height()) / 2, 0.0
+        )
         for param in params:
             text_row = not isinstance(param, UiButton) and _text_row(param)
             imgui.table_next_row(
@@ -2269,8 +2296,7 @@ def _render_param_table(
                 imgui.indent(indent)
             label = param.label
             differs = param.ref_id in differing_refs
-            if not text_row:
-                imgui.align_text_to_frame_padding()
+            _align_row_text(text_offset if text_row else None)
             # In multi-edit a diverging value has no single "changed vs default" state to show.
             changed = not differs and param.value != param.default_value
             # Changed parameters stand out. A leading marker plus the colour means the
@@ -2309,6 +2335,7 @@ def _render_param_table(
             if value_indent > 0:
                 imgui.indent(value_indent)
             if _shows_as_text(param):
+                _align_row_text(text_offset)
                 imgui.text(_value_display(param, param.value))
                 _render_suffix(param.suffix)
                 _track_help(param.help_context)
