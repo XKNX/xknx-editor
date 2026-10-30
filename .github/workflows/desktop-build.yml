@@ -455,3 +455,25 @@ jobs:
           curl.exe -fsSL -o wingetcreate.exe https://aka.ms/wingetcreate/latest
           $dir = (Get-ChildItem winget-manifests -Recurse -Filter *.installer.yaml | Select-Object -First 1).DirectoryName
           ./wingetcreate.exe submit --token $env:WINGET_TOKEN $dir
+
+  # Home Assistant: start the integration's "Editor Release" workflow, which releases the integration
+  # for this editor version. Its own schedule only looks every few hours. Needs the repository secret
+  # HA_INTEGRATION_TOKEN (a fine-grained token for XKNX/xknx-editor-ha-integration with Actions:
+  # Read and write); without it the schedule picks the release up later.
+  home-assistant:
+    name: Home Assistant integration
+    runs-on: ubuntu-latest
+    if: >-
+      github.event_name == 'release' &&
+      (startsWith(github.event.release.tag_name, 'v') ||
+       startsWith(github.event.release.tag_name, 'xknx-editor-v'))
+    steps:
+      - name: Start the integration's release
+        env:
+          GH_TOKEN: ${{ secrets.HA_INTEGRATION_TOKEN }}
+        run: |
+          if [ -z "$GH_TOKEN" ]; then
+            echo "HA_INTEGRATION_TOKEN is not set: the integration's schedule picks the release up"
+            exit 0
+          fi
+          gh workflow run editor-release.yml -R XKNX/xknx-editor-ha-integration
