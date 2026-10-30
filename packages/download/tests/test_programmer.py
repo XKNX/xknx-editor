@@ -80,6 +80,32 @@ async def test_read_memory_raises_on_empty_reply() -> None:
         await programmer.read_memory(0, 8)
 
 
+async def test_read_until_refused_stops_where_the_device_does() -> None:
+    device = FakeDevice()
+    for i in range(20):
+        device.memory[0x2000 + i] = i
+    device.readable_end = 0x2000 + 14
+    programmer = DeviceProgrammer(device, max_apdu_length=15)  # 12-octet blocks
+    with pytest.raises(
+        VerificationError, match="no memory response for address 0x200e"
+    ):
+        await programmer.read_memory(0x2000, 20)
+    assert await programmer.read_memory_until_refused(0x2000, 20) == bytes(range(14))
+    # the end of the table does not shrink the block size of later reads
+    device.readable_end = None
+    device.sent.clear()
+    assert await programmer.read_memory(0x2000, 20) == bytes(range(20))
+    reads = [p for p in device.sent if isinstance(p, MemoryRead)]
+    assert [r.count for r in reads] == [12, 8]
+
+
+async def test_read_until_refused_of_nothing_readable_is_empty() -> None:
+    device = FakeDevice()
+    device.readable_end = 0x2000
+    programmer = DeviceProgrammer(device, max_apdu_length=15)
+    assert await programmer.read_memory_until_refused(0x2000, 8) == b""
+
+
 def test_memory_chunk_size_follows_apdu_by_default() -> None:
     # By default the classic memory chunk follows the negotiated APDU; a device that
     # cannot accept the full amount is handled by the no-ACK fallback, not a flat cap.
