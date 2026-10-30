@@ -19,7 +19,7 @@ import re
 from pathlib import Path
 
 PACKAGE_ID = "XKNX.Editor"
-MANIFEST_VERSION = "1.10.0"
+MANIFEST_VERSION = "1.28.0"
 # Releases are tagged ``v<version>``; older ones used ``xknx-editor-v<version>``. Accept both.
 TAG_PREFIXES = ("xknx-editor-v", "v")
 REPO_URL = "https://github.com/XKNX/xknx-editor"

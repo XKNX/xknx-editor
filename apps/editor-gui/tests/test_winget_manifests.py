@@ -59,6 +59,15 @@ def test_one_version_installer_and_locale_manifest_each(files: dict[str, str]):
     assert "ManifestType: locale" in files["XKNX.Editor.locale.de-DE.yaml"]
 
 
+def test_every_manifest_names_the_schema_winget_pkgs_asks_for(files: dict[str, str]):
+    for name, text in files.items():
+        schema = re.search(r"winget-manifest\.(\w+)\.([\d.]+)\.schema\.json", text)
+        assert schema is not None, name
+        kind, version = schema.groups()
+        assert version == "1.28.0", name
+        assert f"ManifestType: {kind}\nManifestVersion: {version}\n" in text, name
+
+
 def test_each_architecture_installs_per_user_or_for_all_users(files: dict[str, str]):
     installer = files["XKNX.Editor.installer.yaml"]
     for arch in ("x64", "arm64"):
