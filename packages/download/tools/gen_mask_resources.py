@@ -18,9 +18,13 @@ from xknxeditor.prod.master import parse_master_xml
 # Locations the download reads, plus the three group tables and the individual
 # address. The table flavours and the individual-address octets are how the
 # image decides layout; the load-control locations are how the procedure
-# addresses a mask. PeiprogLoadStatus stays out: publishing it would make
-# MV-0705 poll an LSM 5 the devices we have do not answer.
+# addresses a mask; the identity locations are where the image puts the
+# application id and PEI type. PeiprogLoadStatus stays out: publishing it would
+# make MV-0705 poll an LSM 5 the devices we have do not answer.
 RELEVANT = {
+    N.APPLICATION_ID,
+    N.APPLICATION_PEI_TYPE,
+    N.PEIPROG_ID,
     N.APPLICATION_LOAD_CONTROL,
     N.APPLICATION_LOAD_STATUS,
     N.APPLICATION_RUN_CONTROL,
