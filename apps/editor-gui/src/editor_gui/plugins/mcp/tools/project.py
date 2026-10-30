@@ -685,6 +685,44 @@ def _dotted_dpt(value: str | None) -> str | None:
         return value
 
 
+def _dpt_filter(value: str | None) -> tuple[int, int | None] | None:
+    """The datapoint type a ``dpt`` filter asks for, as (main, subtype); the subtype is None for
+    a main type alone, which matches each of its subtypes. (0, None) for "none", the addresses
+    without a type; None for no filter."""
+    if value is None:
+        return None
+    text = value.strip()
+    if text.casefold() == "none":
+        return (0, None)
+    from editor_gui.dpt import dpt_from_token
+
+    parsed = dpt_from_token(text)
+    if not parsed.major:
+        raise ToolError(
+            f"unrecognized datapoint type {value!r}; use e.g. 1.001, DPST-1-1, 16, DPT-16 "
+            "or none"
+        )
+    return (parsed.major, parsed.minor if parsed.has_subtype else None)
+
+
+def _dpt_matches(datapoint_type: str | None, wanted: tuple[int, int | None]) -> bool:
+    """Whether a group address's datapoint type (one token or several, space-separated)
+    matches a ``_dpt_filter`` result."""
+    from editor_gui.dpt import dpt_from_token
+
+    major, minor = wanted
+    tokens = (datapoint_type or "").split()
+    if not major:
+        return not tokens
+    for token in tokens:
+        parsed = dpt_from_token(token)
+        if parsed.major == major and (
+            minor is None or (parsed.has_subtype and parsed.minor == minor)
+        ):
+            return True
+    return False
+
+
 def _link_annotations(
     co_dpt_token: str | None,
     co_dpt_code: str | None,
@@ -2288,6 +2326,8 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         group_address_ids: list[int] | None = None,
         group_addresses: list[str] | None = None,
         group_range_id: int | None = None,
+        group_range: str | None = None,
+        dpt: str | None = None,
         compact: bool = False,
     ) -> dict[str, Any]:
         """List project group addresses, optionally filtering names by a case-insensitive substring.
@@ -2301,17 +2341,30 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         ``group_address_ids`` and/or ``group_addresses`` (printed addresses like "0/7/4") list
         only those; the result then also carries ``not_found``, the requested ids and addresses
         the project does not have (empty when all exist). ``group_range_id`` (an id from
-        project_list_group_ranges) keeps the addresses in that main or middle group, its middle
-        groups included. Filters combine. ``compact`` gives each item only id, address, name and
-        datapoint_type."""
+        project_list_group_ranges) OR ``group_range`` (its printed address, e.g. "0" for a main
+        group or "0/7" for a middle group; "0/7/*" works as well) keeps the addresses in that main
+        or middle group, its middle groups included. ``dpt`` keeps the addresses of that datapoint
+        type, as a dotted code ("16.001") or a token ("DPST-16-1"); a main type alone ("16" or
+        "DPT-16") also matches its subtypes, and "none" keeps the addresses without a type.
+        Filters combine. ``compact`` gives each item only id, address, name and datapoint_type."""
 
-        def _find_range(nodes: list[Any]) -> Any | None:
+        if group_range_id is not None and group_range is not None:
+            raise ToolError("pass group_range_id or group_range, not both")
+        printed_range = (group_range or "").strip().removesuffix("/*")
+        wanted_dpt = _dpt_filter(dpt)
+
+        def _find_ranges(nodes: list[Any]) -> list[Any]:
+            found: list[Any] = []
             for r in nodes:
-                if r.id == group_range_id:
-                    return r
-                if (found := _find_range(r.children)) is not None:
-                    return found
-            return None
+                if (
+                    r.id == group_range_id
+                    if group_range is None
+                    else r.address == printed_range
+                ):
+                    found.append(r)
+                else:
+                    found += _find_ranges(r.children)
+            return found
 
         def _range_ids(r: Any) -> set[int]:
             """The group addresses of the range ``r`` and of the ranges below it."""
@@ -2326,15 +2379,20 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             needle = (name_contains or "").lower()
             every = project.group_addresses
             rows = [g for g in every if not needle or needle in g.name.lower()]
-            if group_range_id is not None:
-                found = _find_range(project.get_group_range_tree())
-                if found is None:
+            if group_range_id is not None or group_range is not None:
+                found = _find_ranges(project.get_group_range_tree())
+                if not found:
                     raise ToolError(
                         f"no group range with id {group_range_id}; call "
                         "project_list_group_ranges for valid ids"
+                        if group_range is None
+                        else f"no main or middle group {group_range!r}; call "
+                        "project_list_group_ranges for the project's groups"
                     )
-                in_range = _range_ids(found)
+                in_range = set[int]().union(*(_range_ids(r) for r in found))
                 rows = [g for g in rows if g.id in in_range]
+            if wanted_dpt is not None:
+                rows = [g for g in rows if _dpt_matches(g.datapoint_type, wanted_dpt)]
             not_found: list[int | str] = []
             if listed:
                 ids = set(group_address_ids or ())

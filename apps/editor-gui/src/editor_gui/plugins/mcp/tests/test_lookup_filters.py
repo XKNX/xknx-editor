@@ -174,10 +174,65 @@ async def test_group_addresses_by_address_and_group(tmp_path: Path) -> None:
         with pytest.raises(Exception, match="no group range with id"):
             await _data(client, "project_list_group_addresses", group_range_id=99999)
 
+        # A main or middle group by its printed address, as project_list_group_ranges shows it.
+        for printed, expected in (
+            ("1", ["1/1/1", "1/1/2", "1/2/1"]),
+            ("1/1", ["1/1/1", "1/1/2"]),
+            ("1/1/*", ["1/1/1", "1/1/2"]),
+            ("2/*", ["2/0/1"]),
+        ):
+            by_address = await _data(
+                client, "project_list_group_addresses", group_range=printed
+            )
+            assert _addresses(by_address) == expected, printed
+        with pytest.raises(Exception, match="no main or middle group '1/5'"):
+            await _data(client, "project_list_group_addresses", group_range="1/5")
+        with pytest.raises(Exception, match="not both"):
+            await _data(
+                client,
+                "project_list_group_addresses",
+                group_range_id=ranges["1"],
+                group_range="1",
+            )
+
         compact = await _data(client, "project_list_group_addresses", compact=True)
         assert {tuple(g) for g in compact["items"]} == {
             ("id", "address", "name", "datapoint_type")
         }
+
+
+async def test_group_addresses_by_datapoint_type(tmp_path: Path) -> None:
+    mcp, _project = _build(tmp_path)
+    async with Client(mcp) as client:
+        await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
+        for address, dpt in (
+            ("0/7/1", "1.001"),
+            ("0/7/2", "1.008"),
+            ("0/7/3", "16.001"),
+            ("0/7/4", "DPT-16"),
+            ("0/7/5", None),
+        ):
+            await _data(
+                client, "project_create_group_address", address=address, dpt=dpt
+            )
+
+        async def _by(dpt: str, **filters: Any) -> list[str]:
+            result = await _data(
+                client, "project_list_group_addresses", dpt=dpt, **filters
+            )
+            return sorted(g["address"] for g in result["items"])
+
+        # A subtype matches only itself, as a code or a token.
+        assert await _by("1.001") == ["0/7/1"]
+        assert await _by("DPST-16-1") == ["0/7/3"]
+        # A main type matches its subtypes and the main type without one.
+        assert await _by("1") == ["0/7/1", "0/7/2"]
+        assert await _by("DPT-16") == ["0/7/3", "0/7/4"]
+        assert await _by("None") == ["0/7/5"]
+        assert await _by("5.001") == []
+        assert await _by("1", group_addresses=["0/7/2", "0/7/3"]) == ["0/7/2"]
+        with pytest.raises(Exception, match="unrecognized datapoint type"):
+            await _by("light")
 
 
 async def test_a_group_address_is_created_with_its_datapoint_type(

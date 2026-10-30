@@ -72,6 +72,20 @@ def test_start_runs_the_server_on_its_thread_until_stopped(
     assert not mcp.is_running
 
 
+def test_an_idle_connection_outlives_the_clients_reuse_time(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Clients reuse an idle connection for up to 5 s; the server must not close it first."""
+    mcp = _plugin(monkeypatch, threading.Event())
+    mcp.start("127.0.0.1", 0)
+    try:
+        _wait(lambda: mcp._server is not None and mcp._server.started)
+        assert mcp._server.config.timeout_keep_alive == plugin.KEEP_ALIVE_SECONDS
+        assert plugin.KEEP_ALIVE_SECONDS > 5
+    finally:
+        mcp.stop()
+
+
 def test_a_stop_before_the_server_is_built_leaves_none_running(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
