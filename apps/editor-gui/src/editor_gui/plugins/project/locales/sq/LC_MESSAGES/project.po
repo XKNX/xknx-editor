@@ -539,7 +539,7 @@ msgid "(Top Level)"
 msgstr "(Niveli më i lartë)"
 
 msgid "Delete this space and everything in it? Devices are only unassigned, not deleted."
-msgstr "Ta fshini këtë hapësirë dhe gjithçka që ka brenda? Pajisjet vetëm hiqen nga caktimi, nuk fshihen."
+msgstr "Të fshihet kjo hapësirë dhe gjithçka që ka brenda? Pajisjet vetëm hiqen nga caktimi, nuk fshihen."
 
 msgid "Assign a Device to This Space"
 msgstr "Cakto një pajisje në këtë hapësirë"
@@ -581,10 +581,10 @@ msgid "Sun Protection"
 msgstr "Mbrojtje nga dielli"
 
 msgid "Heating (Switching Variable)"
-msgstr "Ngrohje (variabël ndezje/fikjeje)"
+msgstr "Ngrohje (komandë binare ON/OFF)"
 
 msgid "Heating (Continuous Variable)"
-msgstr "Ngrohje (variabël e vazhdueshme)"
+msgstr "Ngrohje (komandë proporcionale 0–100%)"
 
 msgid "Switchable Socket"
 msgstr "Prizë me ndezje/fikje"
@@ -2501,7 +2501,7 @@ msgid "Trades"
 msgstr "Sektorët"
 
 msgid "Building Parts…"
-msgstr "Pjesë të ndërtesës…"
+msgstr "Pjesë ndërtese…"
 
 msgid "Floors…"
 msgstr "Kate…"
@@ -2537,7 +2537,7 @@ msgid "Add Buildings"
 msgstr "Shto ndërtesa"
 
 msgid "Add Building Parts"
-msgstr "Shto pjesë të ndërtesës"
+msgstr "Shto pjesë ndërtese"
 
 msgid "Add Floors"
 msgstr "Shto kate"
@@ -2573,7 +2573,7 @@ msgid "New building"
 msgstr "Ndërtesë e re"
 
 msgid "New building part"
-msgstr "Pjesë e re ndërtese"
+msgstr "Pjesë ndërtese e re"
 
 msgid "New floor"
 msgstr "Kat i ri"
