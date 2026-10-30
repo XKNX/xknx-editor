@@ -54,6 +54,11 @@ def _primary_lan_address() -> str | None:
 
 _WILDCARD_BIND_HOSTS = frozenset({"0.0.0.0", "::", "::0", ""})
 
+# How long an idle client connection stays open. uvicorn's 5 s equals the time clients keep
+# idle connections for reuse, so a call after a pause of about 5 s could go out on a
+# connection the server was just closing and fail with EOF.
+KEEP_ALIVE_SECONDS = 120
+
 
 def advertise_url(host: str, port: str | int, path: str = "/mcp") -> str:
     """Build the URL to SHOW the user as the server address.
@@ -192,6 +197,7 @@ class McpServerPlugin:
                     host=host,
                     port=port,
                     log_level="warning",
+                    timeout_keep_alive=KEEP_ALIVE_SECONDS,
                 )
                 server = uvicorn.Server(config)
             except Exception as e:
