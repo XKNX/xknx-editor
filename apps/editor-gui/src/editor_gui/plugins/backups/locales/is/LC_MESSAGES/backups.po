@@ -1,0 +1,245 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor backups 1.0\n"
+"Language: is\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Backups"
+msgstr "Öryggisafrit"
+
+msgid "Create Backup…"
+msgstr "Búa til öryggisafrit…"
+
+msgid "Show Backups…"
+msgstr "Sýna öryggisafrit…"
+
+msgid "Comment: {comment}"
+msgstr "Athugasemd: {comment}"
+
+msgid "Settings…"
+msgstr "Stillingar…"
+
+msgid "Open a project to see its backups."
+msgstr "Opnaðu verkefni til að sjá öryggisafrit þess."
+
+msgid "This project has no backups yet."
+msgstr "Engin öryggisafrit eru enn til af þessu verkefni."
+
+msgid "Folder: {path}"
+msgstr "Mappa: {path}"
+
+msgid "Open Folder"
+msgstr "Opna möppu"
+
+msgid "Compare"
+msgstr "Bera saman"
+
+msgid "Restore…"
+msgstr "Endurheimta…"
+
+msgid "Export as .xknx…"
+msgstr "Flytja út sem .xknx…"
+
+msgid "Pin"
+msgstr "Festa"
+
+msgid "Unpin"
+msgstr "Losa"
+
+msgid "Check"
+msgstr "Athuga"
+
+msgid "Delete…"
+msgstr "Eyða…"
+
+msgid "Show what differs between the project now and this backup"
+msgstr "Sýna hvað er ólíkt með verkefninu eins og það er núna og þessu öryggisafriti"
+
+msgid "A pinned backup is never deleted automatically"
+msgstr "Fest öryggisafrit er aldrei eytt sjálfkrafa"
+
+msgid "Check that the backup can be restored"
+msgstr "Athuga hvort hægt sé að endurheimta öryggisafritið"
+
+msgid "Created"
+msgstr "Búið til"
+
+msgid "Kind"
+msgstr "Tegund"
+
+msgid "Comment"
+msgstr "Athugasemd"
+
+msgid "Computer"
+msgstr "Tölva"
+
+msgid "User"
+msgstr "Notandi"
+
+msgid "Size"
+msgstr "Stærð"
+
+msgid "Manual"
+msgstr "Handvirkt"
+
+msgid "On close"
+msgstr "Við lokun"
+
+msgid "Interval"
+msgstr "Með millibili"
+
+msgid "Before restore"
+msgstr "Fyrir endurheimt"
+
+msgid "Pinned"
+msgstr "Fest"
+
+msgid "{size} MB"
+msgstr "{size} MB"
+
+msgid "Creating a backup: copying the project…"
+msgstr "Býr til öryggisafrit: afritar verkefnið…"
+
+msgid "Creating a backup: checking the project…"
+msgstr "Býr til öryggisafrit: athugar verkefnið…"
+
+msgid "Creating a backup: compressing…"
+msgstr "Býr til öryggisafrit: þjappar…"
+
+msgid "Create Backup"
+msgstr "Búa til öryggisafrit"
+
+msgid "The backup holds the project as it is now."
+msgstr "Öryggisafritið geymir verkefnið eins og það er núna."
+
+msgid "Create"
+msgstr "Búa til"
+
+msgid "Cancel"
+msgstr "Hætta við"
+
+msgid "OK"
+msgstr "OK"
+
+msgid "Backup created: {name}"
+msgstr "Öryggisafrit búið til: {name}"
+
+msgid "The backup failed: {error}"
+msgstr "Öryggisafritun mistókst: {error}"
+
+msgid "Restore Backup"
+msgstr "Endurheimta öryggisafrit"
+
+msgid "Restore the project to its state of {created}?\n\nThe project as it is now is saved as a backup first, so you can go back to it."
+msgstr "Endurheimta verkefnið í stöðuna frá {created}?\n\nVerkefnið eins og það er núna er fyrst vistað sem öryggisafrit svo hægt sé að snúa aftur til þess."
+
+msgid "Restore"
+msgstr "Endurheimta"
+
+msgid "The project had another password when this backup was made. Enter that password:"
+msgstr "Verkefnið hafði annað aðgangsorð þegar þetta öryggisafrit var búið til. Sláðu inn það aðgangsorð:"
+
+msgid "Wrong password"
+msgstr "Rangt aðgangsorð"
+
+msgid "Restoring the backup…"
+msgstr "Endurheimtir öryggisafrit…"
+
+msgid "Project restored to its state of {created}"
+msgstr "Verkefnið endurheimt í stöðuna frá {created}"
+
+msgid "The backup could not be restored: {error}"
+msgstr "Ekki tókst að endurheimta öryggisafritið: {error}"
+
+msgid "Delete Backup"
+msgstr "Eyða öryggisafriti"
+
+msgid "Delete the backup of {created}? This cannot be undone."
+msgstr "Eyða öryggisafritinu frá {created}? Ekki er hægt að afturkalla þetta."
+
+msgid "Delete"
+msgstr "Eyða"
+
+msgid "Export Backup as Project File"
+msgstr "Flytja öryggisafrit út sem verkefnisskrá"
+
+msgid "XKNX Editor projects"
+msgstr "XKNX Editor-verkefni"
+
+msgid "Exporting the backup…"
+msgstr "Flytur út öryggisafrit…"
+
+msgid "Backup exported: {name}"
+msgstr "Öryggisafrit flutt út: {name}"
+
+msgid "Checking the backup…"
+msgstr "Athugar öryggisafrit…"
+
+msgid "The backup is intact and can be restored."
+msgstr "Öryggisafritið er heilt og hægt er að endurheimta það."
+
+msgid "The backup is damaged: {error}"
+msgstr "Öryggisafritið er skemmt: {error}"
+
+msgid "Backup of {created}"
+msgstr "Öryggisafrit frá {created}"
+
+msgid "Restore from Backup"
+msgstr "Endurheimta úr öryggisafriti"
+
+msgid "The project {name} could not be opened: {error}"
+msgstr "Ekki tókst að opna verkefnið {name}: {error}"
+
+msgid "The project file {name} no longer exists."
+msgstr "Verkefnisskráin {name} er ekki lengur til."
+
+msgid "Its newest backup is from {created}. Restore the project from it? A file that is there now is kept under another name."
+msgstr "Nýjasta öryggisafrit þess er frá {created}. Endurheimta verkefnið úr því? Skrá sem er þar núna er geymd undir öðru nafni."
+
+msgid "The damaged file was kept as {name}."
+msgstr "Skemmda skráin var geymd sem {name}."
+
+msgid "Backup Settings"
+msgstr "Stillingar öryggisafrita"
+
+msgid "A backup is one file with the complete project, which can be restored on its own. Each project has a folder of its own in the backup folder. A network drive or a folder synchronized with a cloud service keeps the backups off this computer."
+msgstr "Öryggisafrit er ein skrá með öllu verkefninu sem hægt er að endurheimta eitt og sér. Hvert verkefni hefur sína eigin möppu í möppu öryggisafrita. Netdrif eða mappa sem er samstillt við skýjaþjónustu geymir öryggisafritin utan þessarar tölvu."
+
+msgid "Backup Folder"
+msgstr "Mappa öryggisafrita"
+
+msgid "Choose Folder…"
+msgstr "Velja möppu…"
+
+msgid "Default"
+msgstr "Sjálfgefið"
+
+msgid "Choose the Backup Folder"
+msgstr "Veldu möppu öryggisafrita"
+
+msgid "Create a backup when a project is closed"
+msgstr "Búa til öryggisafrit þegar verkefni er lokað"
+
+msgid "Create backups at regular intervals while a project is open"
+msgstr "Búa til öryggisafrit með reglulegu millibili meðan verkefni er opið"
+
+msgid "Interval in Minutes"
+msgstr "Millibil í mínútum"
+
+msgid "Delete old automatic backups"
+msgstr "Eyða gömlum sjálfvirkum öryggisafritum"
+
+msgid "Delete After (Days)"
+msgstr "Eyða eftir (daga)"
+
+msgid "Always Keep the Newest"
+msgstr "Halda alltaf því nýjasta"
+
+msgid "An automatic backup is only made when the project changed since its newest backup. Backups you create yourself and pinned backups are never deleted automatically."
+msgstr "Sjálfvirkt öryggisafrit er aðeins búið til þegar verkefnið hefur breyst frá nýjasta öryggisafriti þess. Handvirkum og festum öryggisafritum er aldrei eytt sjálfkrafa."
+
+msgid "Backups you create yourself are never deleted automatically"
+msgstr "Handvirkum öryggisafritum er aldrei eytt sjálfkrafa"

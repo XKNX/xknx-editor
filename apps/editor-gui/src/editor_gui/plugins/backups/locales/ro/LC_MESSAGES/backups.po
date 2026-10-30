@@ -1,0 +1,245 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor backups 1.0\n"
+"Language: ro\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Backups"
+msgstr "Copii de rezervă"
+
+msgid "Create Backup…"
+msgstr "Creare copie de rezervă…"
+
+msgid "Show Backups…"
+msgstr "Afișare copii de rezervă…"
+
+msgid "Comment: {comment}"
+msgstr "Comentariu: {comment}"
+
+msgid "Settings…"
+msgstr "Setări…"
+
+msgid "Open a project to see its backups."
+msgstr "Deschideți un proiect pentru a vedea copiile lui de rezervă."
+
+msgid "This project has no backups yet."
+msgstr "Acest proiect nu are încă nicio copie de rezervă."
+
+msgid "Folder: {path}"
+msgstr "Folder: {path}"
+
+msgid "Open Folder"
+msgstr "Deschidere folder"
+
+msgid "Compare"
+msgstr "Comparare"
+
+msgid "Restore…"
+msgstr "Restaurare…"
+
+msgid "Export as .xknx…"
+msgstr "Export ca .xknx…"
+
+msgid "Pin"
+msgstr "Fixare"
+
+msgid "Unpin"
+msgstr "Anulare fixare"
+
+msgid "Check"
+msgstr "Verificare"
+
+msgid "Delete…"
+msgstr "Ștergere…"
+
+msgid "Show what differs between the project now and this backup"
+msgstr "Afișează diferențele dintre proiectul actual și această copie de rezervă"
+
+msgid "A pinned backup is never deleted automatically"
+msgstr "O copie de rezervă fixată nu este niciodată ștearsă automat"
+
+msgid "Check that the backup can be restored"
+msgstr "Verifică dacă se poate restaura copia de rezervă"
+
+msgid "Created"
+msgstr "Creată"
+
+msgid "Kind"
+msgstr "Tip"
+
+msgid "Comment"
+msgstr "Comentariu"
+
+msgid "Computer"
+msgstr "Computer"
+
+msgid "User"
+msgstr "Utilizator"
+
+msgid "Size"
+msgstr "Dimensiune"
+
+msgid "Manual"
+msgstr "Manuală"
+
+msgid "On close"
+msgstr "La închidere"
+
+msgid "Interval"
+msgstr "Periodică"
+
+msgid "Before restore"
+msgstr "Înainte de restaurare"
+
+msgid "Pinned"
+msgstr "Fixată"
+
+msgid "{size} MB"
+msgstr "{size} MB"
+
+msgid "Creating a backup: copying the project…"
+msgstr "Creare copie de rezervă: se copiază proiectul…"
+
+msgid "Creating a backup: checking the project…"
+msgstr "Creare copie de rezervă: se verifică proiectul…"
+
+msgid "Creating a backup: compressing…"
+msgstr "Creare copie de rezervă: se comprimă…"
+
+msgid "Create Backup"
+msgstr "Creare copie de rezervă"
+
+msgid "The backup holds the project as it is now."
+msgstr "Copia de rezervă conține proiectul în starea lui actuală."
+
+msgid "Create"
+msgstr "Creare"
+
+msgid "Cancel"
+msgstr "Revocare"
+
+msgid "OK"
+msgstr "OK"
+
+msgid "Backup created: {name}"
+msgstr "Copie de rezervă creată: {name}"
+
+msgid "The backup failed: {error}"
+msgstr "Crearea copiei de rezervă a eșuat: {error}"
+
+msgid "Restore Backup"
+msgstr "Restaurare copie de rezervă"
+
+msgid "Restore the project to its state of {created}?\n\nThe project as it is now is saved as a backup first, so you can go back to it."
+msgstr "Readuceți proiectul la starea din {created}?\n\nStarea actuală a proiectului se salvează mai întâi ca o copie de rezervă, ca să puteți reveni la ea."
+
+msgid "Restore"
+msgstr "Restaurare"
+
+msgid "The project had another password when this backup was made. Enter that password:"
+msgstr "Proiectul avea altă parolă când a fost creată această copie de rezervă. Introduceți parola respectivă:"
+
+msgid "Wrong password"
+msgstr "Parolă greșită"
+
+msgid "Restoring the backup…"
+msgstr "Se restaurează copia de rezervă…"
+
+msgid "Project restored to its state of {created}"
+msgstr "Proiectul a fost readus la starea din {created}"
+
+msgid "The backup could not be restored: {error}"
+msgstr "Copia de rezervă nu a putut fi restaurată: {error}"
+
+msgid "Delete Backup"
+msgstr "Ștergere copie de rezervă"
+
+msgid "Delete the backup of {created}? This cannot be undone."
+msgstr "Ștergeți copia de rezervă din {created}? Operația nu poate fi anulată."
+
+msgid "Delete"
+msgstr "Ștergere"
+
+msgid "Export Backup as Project File"
+msgstr "Export copie de rezervă ca fișier de proiect"
+
+msgid "XKNX Editor projects"
+msgstr "Proiecte XKNX Editor"
+
+msgid "Exporting the backup…"
+msgstr "Se exportă copia de rezervă…"
+
+msgid "Backup exported: {name}"
+msgstr "Copie de rezervă exportată: {name}"
+
+msgid "Checking the backup…"
+msgstr "Se verifică copia de rezervă…"
+
+msgid "The backup is intact and can be restored."
+msgstr "Copia de rezervă este intactă și poate fi restaurată."
+
+msgid "The backup is damaged: {error}"
+msgstr "Copia de rezervă este deteriorată: {error}"
+
+msgid "Backup of {created}"
+msgstr "Copia de rezervă din {created}"
+
+msgid "Restore from Backup"
+msgstr "Restaurare din copia de rezervă"
+
+msgid "The project {name} could not be opened: {error}"
+msgstr "Proiectul {name} nu a putut fi deschis: {error}"
+
+msgid "The project file {name} no longer exists."
+msgstr "Fișierul de proiect {name} nu mai există."
+
+msgid "Its newest backup is from {created}. Restore the project from it? A file that is there now is kept under another name."
+msgstr "Cea mai nouă copie de rezervă a lui este din {created}. Restaurați proiectul din ea? Un fișier aflat acum acolo se păstrează sub alt nume."
+
+msgid "The damaged file was kept as {name}."
+msgstr "Fișierul deteriorat a fost păstrat ca {name}."
+
+msgid "Backup Settings"
+msgstr "Setări copii de rezervă"
+
+msgid "A backup is one file with the complete project, which can be restored on its own. Each project has a folder of its own in the backup folder. A network drive or a folder synchronized with a cloud service keeps the backups off this computer."
+msgstr "O copie de rezervă este un singur fișier cu întregul proiect, care poate fi restaurat de sine stătător. Fiecare proiect are propriul folder în folderul copiilor de rezervă. O unitate de rețea sau un folder sincronizat cu un serviciu cloud păstrează copiile de rezervă în afara acestui computer."
+
+msgid "Backup Folder"
+msgstr "Folder copii de rezervă"
+
+msgid "Choose Folder…"
+msgstr "Alegere folder…"
+
+msgid "Default"
+msgstr "Implicit"
+
+msgid "Choose the Backup Folder"
+msgstr "Alegeți folderul copiilor de rezervă"
+
+msgid "Create a backup when a project is closed"
+msgstr "Se creează o copie de rezervă la închiderea unui proiect"
+
+msgid "Create backups at regular intervals while a project is open"
+msgstr "Se creează copii de rezervă la intervale regulate cât timp un proiect este deschis"
+
+msgid "Interval in Minutes"
+msgstr "Interval în minute"
+
+msgid "Delete old automatic backups"
+msgstr "Se șterg copiile de rezervă automate vechi"
+
+msgid "Delete After (Days)"
+msgstr "Ștergere după (zile)"
+
+msgid "Always Keep the Newest"
+msgstr "Se păstrează mereu cele mai noi"
+
+msgid "An automatic backup is only made when the project changed since its newest backup. Backups you create yourself and pinned backups are never deleted automatically."
+msgstr "O copie de rezervă automată se creează numai dacă proiectul s-a modificat de la cea mai nouă copie de rezervă. Copiile create de dumneavoastră și cele fixate nu sunt niciodată șterse automat."
+
+msgid "Backups you create yourself are never deleted automatically"
+msgstr "Copiile de rezervă create de dumneavoastră nu sunt niciodată șterse automat"

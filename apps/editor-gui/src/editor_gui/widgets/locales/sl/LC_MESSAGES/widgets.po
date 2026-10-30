@@ -1,0 +1,305 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor widgets 1.0\n"
+"Language: sl\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "(image)"
+msgstr "(slika)"
+
+msgid "Search…"
+msgstr "Iskanje…"
+
+msgid "{name} (locked)"
+msgstr "{name} (zaklenjeno)"
+
+msgid "Create Group Addresses ({count})"
+msgstr "Ustvari skupinske naslove ({count})"
+
+msgid "All"
+msgstr "Vse"
+
+msgid "None"
+msgstr "Nič"
+
+msgid "Copy Links ({count})"
+msgstr "Kopiraj povezave ({count})"
+
+msgid "Paste Links ({count})"
+msgstr "Prilepi povezave ({count})"
+
+msgid "Assigns the copied links and flags to the checked objects in order (1st to 1st, 2nd to 2nd, …), replacing each target's current links."
+msgstr "Kopirane povezave in zastavice po vrsti dodeli označenim objektom (1. k 1., 2. k 2., …) in pri tem nadomesti trenutne povezave vsakega cilja."
+
+msgid "Merge"
+msgstr "Združi"
+
+msgid "Keep each target's existing links and only add the copied ones."
+msgstr "Ohrani obstoječe povezave vsakega cilja in le dodaj kopirane."
+
+msgid "Copy Links"
+msgstr "Kopiraj povezave"
+
+msgid "Paste Links"
+msgstr "Prilepi povezave"
+
+msgid "Copy Addresses as Text"
+msgstr "Kopiraj naslove kot besedilo"
+
+msgid "Create Group Addresses"
+msgstr "Ustvarjanje skupinskih naslovov"
+
+msgid "Name template placeholders: {object}, {device}, {room}, {function}, {number}, {dpt}, {n} (index; {n:02} zero-pads)"
+msgstr "Nadomestni znaki predloge imena: {object}, {device}, {room}, {function}, {number}, {dpt}, {n} (indeks; {n:02} doda vodilne ničle)"
+
+msgid "Name Template"
+msgstr "Predloga imena"
+
+msgid "Start Address"
+msgstr "Začetni naslov"
+
+msgid "Cancel"
+msgstr "Prekliči"
+
+msgid "Sending Group Address"
+msgstr "Skupinski naslov za pošiljanje"
+
+msgid "Receiving Group Address"
+msgstr "Skupinski naslov za prejemanje"
+
+msgid "current value"
+msgstr "trenutna vrednost"
+
+msgid "older"
+msgstr "starejše"
+
+msgid "sent"
+msgstr "poslano"
+
+msgid "received"
+msgstr "prejeto"
+
+msgid "sent & received"
+msgstr "poslano in prejeto"
+
+msgid "Changed from default ({default})"
+msgstr "Spremenjeno glede na privzeto ({default})"
+
+msgid "Changed from default ({default}) — right-click to reset"
+msgstr "Spremenjeno glede na privzeto ({default}) – za ponastavitev kliknite z desno tipko miške"
+
+msgid "Reset to Default"
+msgstr "Ponastavi na privzeto"
+
+msgid "New Group Address"
+msgstr "Nov skupinski naslov"
+
+msgid "Address"
+msgstr "Naslov"
+
+msgid "Name"
+msgstr "Ime"
+
+msgid "Create & Link"
+msgstr "Ustvari in poveži"
+
+msgid "Link Group Address"
+msgstr "Povezava skupinskega naslova"
+
+msgid "<differs>"
+msgstr "<različno>"
+
+msgid "Off"
+msgstr "Izklopljeno"
+
+msgid "On"
+msgstr "Vklopljeno"
+
+msgid "Standard"
+msgstr "Standardno"
+
+msgid "Advanced"
+msgstr "Napredno"
+
+msgid "Theme Colors"
+msgstr "Barve teme"
+
+msgid "Standard Colors"
+msgstr "Standardne barve"
+
+msgid "Mo Tu We Th Fr Sa Su"
+msgstr "Po To Sr Če Pe So Ne"
+
+msgid "Hours"
+msgstr "Ure"
+
+msgid "Minutes"
+msgstr "Minute"
+
+msgid "Seconds"
+msgstr "Sekunde"
+
+msgid "x 100 ms"
+msgstr "x 100 ms"
+
+msgid "x 10 ms"
+msgstr "x 10 ms"
+
+msgid "Milliseconds"
+msgstr "Milisekunde"
+
+msgid "General"
+msgstr "Splošno"
+
+msgid "Default (Inherit)"
+msgstr "Privzeto (podedovano)"
+
+msgid "Edit Description…"
+msgstr "Uredi opis…"
+
+msgid "Edit Description"
+msgstr "Urejanje opisa"
+
+msgid "OK"
+msgstr "OK"
+
+msgid "Enter a number."
+msgstr "Vnesite število."
+
+msgid "Enter a whole number."
+msgstr "Vnesite celo število."
+
+msgid "Enter a value from {minimum} to {maximum}."
+msgstr "Vnesite vrednost od {minimum} do {maximum}."
+
+msgid "Enter at most {count} characters."
+msgstr "Največje dovoljeno število znakov: {count}."
+
+msgid "Enter a value."
+msgstr "Vnesite vrednost."
+
+msgid "This value cannot be sent with this data type."
+msgstr "Te vrednosti s tem podatkovnim tipom ni mogoče poslati."
+
+msgid "No value can be entered for this data type."
+msgstr "Za ta podatkovni tip ni mogoče vnesti vrednosti."
+
+msgid "Edit…"
+msgstr "Uredi…"
+
+msgid "The text may take at most {count} bytes."
+msgstr "Največja dovoljena dolžina besedila v bajtih: {count}."
+
+msgid "Value {number}"
+msgstr "Vrednost {number}"
+
+msgid "Edit Value"
+msgstr "Urejanje vrednosti"
+
+msgid "Name template"
+msgstr "Predloga imena"
+
+msgid "Placeholders"
+msgstr "Nadomestni znaki"
+
+msgid "{building}  Building\n{floor}  Floor\n{room}  Room\n{device}  Device name or description\n{devicename}  Device name\n{devicedescription}  Device description\n{product}  Product\n{manufacturer}  Manufacturer\n{order}  Order number\n{address}  Individual address\n{object}  Object name\n{ganame}  Object name\n{function}  Function\n{number}  Object number\n{dpt}  Datapoint type"
+msgstr "{building}  Stavba\n{floor}  Nadstropje\n{room}  Prostor\n{device}  Ime ali opis naprave\n{devicename}  Ime naprave\n{devicedescription}  Opis naprave\n{product}  Izdelek\n{manufacturer}  Proizvajalec\n{order}  Naročilna številka\n{address}  Fizični naslov\n{object}  Ime objekta\n{ganame}  Ime objekta\n{function}  Funkcija\n{number}  Številka objekta\n{dpt}  Tip podatkovne točke"
+
+msgid "{n}  Sequential index ({n:02} zero-pads)"
+msgstr "{n}  Zaporedni indeks ({n:02} doda vodilne ničle)"
+
+msgid "Size Column to Fit"
+msgstr "Prilagodi širino stolpca"
+
+msgid "Size All Columns to Fit"
+msgstr "Prilagodi širino vseh stolpcev"
+
+msgid "Reset Column Order"
+msgstr "Ponastavi vrstni red stolpcev"
+
+msgid "Reset Column Visibility"
+msgstr "Ponastavi vidnost stolpcev"
+
+msgid "Reset All Columns"
+msgstr "Ponastavi vse stolpce"
+
+msgid "DPT"
+msgstr "DPT"
+
+msgid "Length"
+msgstr "Dolžina"
+
+msgid "Prio"
+msgstr "Prio."
+
+msgid "Group Addresses"
+msgstr "Skupinski naslovi"
+
+msgid "(empty)"
+msgstr "(prazno)"
+
+msgid "Options"
+msgstr "Možnosti"
+
+msgid "Columns"
+msgstr "Stolpci"
+
+msgid "Grey Out Zeros"
+msgstr "Zatemni ničle"
+
+msgid "Uppercase Hex"
+msgstr "Šestnajstiško z velikimi črkami"
+
+msgid "Show ASCII"
+msgstr "Pokaži ASCII"
+
+msgid "Copy"
+msgstr "Kopiraj"
+
+msgid "Copy {count} B"
+msgstr "Kopiraj {count} B"
+
+msgid "Go To:"
+msgstr "Pojdi na:"
+
+msgid "{count} difference(s)"
+msgstr "Razlike: {count}"
+
+msgid "no differences"
+msgstr "ni razlik"
+
+msgid "Parameter:"
+msgstr "Parameter:"
+
+msgid "search…"
+msgstr "iskanje…"
+
+msgid "automatic"
+msgstr "samodejno"
+
+msgid "Low"
+msgstr "Nizka"
+
+msgid "High"
+msgstr "Visoka"
+
+msgid "Alert"
+msgstr "Alarm"
+
+msgid "Bold"
+msgstr "Krepko"
+
+msgid "Italic"
+msgstr "Ležeče"
+
+msgid "Underline"
+msgstr "Podčrtano"
+
+msgid "Cut"
+msgstr "Izreži"
+
+msgid "Paste"
+msgstr "Prilepi"

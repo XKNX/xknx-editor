@@ -1,0 +1,395 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor monitor 1.0\n"
+"Language: sl\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Cancel"
+msgstr "Prekliči"
+
+msgid "No"
+msgstr "Ne"
+
+msgid "OK"
+msgstr "OK"
+
+msgid "Yes"
+msgstr "Da"
+
+msgid "The interface rejected bus monitor mode: another client holds a connection to it."
+msgstr "Vmesnik je zavrnil način monitorja vodila: z njim je povezan drug odjemalec."
+
+msgid "The bus monitor connects the interface in bus monitor mode. The normal connection is closed while the bus monitor runs: nothing can be sent or downloaded in that time. Stopping the bus monitor restores the normal connection.\n\nStart the bus monitor?"
+msgstr "Monitor vodila poveže vmesnik v načinu monitorja vodila. Med delovanjem monitorja vodila je običajna povezava zaprta: v tem času ni mogoče ničesar poslati ali programirati. Ko monitor vodila ustavite, se običajna povezava obnovi.\n\nŽelite zagnati monitor vodila?"
+
+msgid "Start Bus Monitor"
+msgstr "Zagon monitorja vodila"
+
+msgid "The bus monitor connection could not be established."
+msgstr "Povezave monitorja vodila ni bilo mogoče vzpostaviti."
+
+msgid "The normal connection is restored."
+msgstr "Običajna povezava je obnovljena."
+
+msgid "The interface does not support bus monitor mode."
+msgstr "Vmesnik ne podpira načina monitorja vodila."
+
+msgid "The bus monitor is not supported for this connection type. It needs a tunnelling connection."
+msgstr "Monitor vodila za to vrsto povezave ni podprt. Potrebuje povezavo s tuneliranjem."
+
+msgid "Building Function"
+msgstr "Funkcija stavbe"
+
+msgid "Building Part"
+msgstr "Del stavbe"
+
+msgid "Destination Address"
+msgstr "Ciljni naslov"
+
+msgid "Destination Name"
+msgstr "Ime cilja"
+
+msgid "DPT"
+msgstr "DPT"
+
+msgid "Flags"
+msgstr "Zastavice"
+
+msgid "Frame Format"
+msgstr "Oblika okvirja"
+
+msgid "Hop Count"
+msgstr "Števec skokov"
+
+msgid "Iack"
+msgstr "Iack"
+
+msgid "Info"
+msgstr "Informacije"
+
+msgid "Message Code"
+msgstr "Koda sporočila"
+
+msgid "#"
+msgstr "#"
+
+msgid "Prio"
+msgstr "Prio."
+
+msgid "Raw Data"
+msgstr "Neobdelani podatki"
+
+msgid "Raw Value"
+msgstr "Neobdelana vrednost"
+
+msgid "Repeated"
+msgstr "Ponovljeno"
+
+msgid "Service"
+msgstr "Storitev"
+
+msgid "Source Address"
+msgstr "Izvorni naslov"
+
+msgid "Source Name"
+msgstr "Ime izvora"
+
+msgid "System Broadcast"
+msgstr "Sistemsko oddajanje"
+
+msgid "Time"
+msgstr "Čas"
+
+msgid "Date"
+msgstr "Datum"
+
+msgid "Value"
+msgstr "Vrednost"
+
+msgid "Show Extended Information"
+msgstr "Pokaži razširjene informacije"
+
+msgid "Hide Extended Information"
+msgstr "Skrij razširjene informacije"
+
+msgid "{count} telegrams exported to {path}"
+msgstr "Telegrami, izvoženi v {path}: {count}"
+
+msgid "Export failed: {error}"
+msgstr "Izvoz ni uspel: {error}"
+
+msgid "All files"
+msgstr "Vse datoteke"
+
+msgid "Telegram recordings"
+msgstr "Posnetki telegramov"
+
+msgid "Extended"
+msgstr "Razširjen"
+
+msgid "Standard"
+msgstr "Standarden"
+
+msgid "{count} entries loaded from {path}"
+msgstr "Vnosi, naloženi iz {path}: {count}"
+
+msgid "Loading failed: {error}"
+msgstr "Nalaganje ni uspelo: {error}"
+
+msgid "{count} telegrams in another frame format were skipped"
+msgstr "Preskočeni telegrami v drugi obliki okvirja: {count}"
+
+msgid "Connection was established"
+msgstr "Povezava je bila vzpostavljena"
+
+msgid "Connection was lost"
+msgstr "Povezava je bila prekinjena"
+
+msgid "Recording was started, Host={host}, Connection={connection}, Mode={mode}"
+msgstr "Snemanje se je začelo, gostitelj={host}, povezava={connection}, način={mode}"
+
+msgid "Recording was stopped"
+msgstr "Snemanje je bilo ustavljeno"
+
+msgid "e.g. 1/2/3"
+msgstr "npr. 1/2/3"
+
+msgid "Group Address:"
+msgstr "Skupinski naslov:"
+
+msgid "{rate} t/s"
+msgstr "{rate} tel./s"
+
+msgid "Clear"
+msgstr "Počisti"
+
+msgid "Not Connected"
+msgstr "Ni povezave"
+
+msgid "Filter by address or name…"
+msgstr "Filtriraj po naslovu ali imenu…"
+
+msgid "No group addresses (open or import a project)"
+msgstr "Ni skupinskih naslovov (odprite ali uvozite projekt)"
+
+msgid "Read"
+msgstr "Beri"
+
+msgid "Bus Activity"
+msgstr "Dejavnost vodila"
+
+msgid "Bus Monitor"
+msgstr "Monitor vodila"
+
+msgid "Group Monitor"
+msgstr "Skupinski monitor"
+
+msgid "Group Objects"
+msgstr "Komunikacijski objekti"
+
+msgid "{count} telg."
+msgstr "tel.: {count}"
+
+msgid "Enter a group address of the project to send to it."
+msgstr "Vnesite skupinski naslov projekta, da pošljete nanj."
+
+msgid "value (e.g. on / 21.5 / 50)"
+msgstr "vrednost (npr. on / 21.5 / 50)"
+
+msgid "Value:"
+msgstr "Vrednost:"
+
+msgid "Write"
+msgstr "Piši"
+
+msgid "Monitor"
+msgstr "Monitor"
+
+msgid "Printing failed: {error}"
+msgstr "Tiskanje ni uspelo: {error}"
+
+msgid "Page {page}"
+msgstr "Stran {page}"
+
+msgid "Low"
+msgstr "Nizka"
+
+msgid "Normal"
+msgstr "Normalna"
+
+msgid "System"
+msgstr "Sistemska"
+
+msgid "Urgent"
+msgstr "Nujna"
+
+msgid "The telegrams have not been exported. Clear them anyway?"
+msgstr "Telegrami niso bili izvoženi. Jih želite vseeno počistiti?"
+
+msgid "Loading a recording replaces the telegrams and stops the recording. Continue?"
+msgstr "Nalaganje posnetka nadomesti telegrame in ustavi snemanje. Želite nadaljevati?"
+
+msgid "The telegrams have not been exported. Loading a recording replaces them and stops the recording. Continue?"
+msgstr "Telegrami niso bili izvoženi. Nalaganje posnetka jih nadomesti in ustavi snemanje. Želite nadaljevati?"
+
+msgid "Unsaved Telegrams"
+msgstr "Neshranjeni telegrami"
+
+msgid "Replay cancelled: {count} telegrams sent"
+msgstr "Predvajanje je preklicano, poslani telegrami: {count}"
+
+msgid "Replay finished: {count} telegrams sent"
+msgstr "Predvajanje je končano, poslani telegrami: {count}"
+
+msgid "There are no group telegrams to replay"
+msgstr "Ni skupinskih telegramov za predvajanje"
+
+msgid "{count} Data Secure telegrams are not replayed"
+msgstr "Telegrami Data Secure, ki se ne predvajajo: {count}"
+
+msgid "Comment"
+msgstr "Komentar"
+
+msgid "Connection event"
+msgstr "Dogodek povezave"
+
+msgid "from bus"
+msgstr "z vodila"
+
+msgid "Start"
+msgstr "Začni"
+
+msgid "Stop"
+msgstr "Ustavi"
+
+msgid "to bus"
+msgstr "na vodilo"
+
+msgid "All Telegrams ({count})"
+msgstr "Vsi telegrami ({count})"
+
+msgid "Export Telegrams"
+msgstr "Izvoz telegramov"
+
+msgid "Filtered Telegrams ({count})"
+msgstr "Filtrirani telegrami ({count})"
+
+msgid "Which telegrams?"
+msgstr "Kateri telegrami?"
+
+msgid "Print Telegrams"
+msgstr "Tiskanje telegramov"
+
+msgid "Selected Telegrams ({count})"
+msgstr "Izbrani telegrami ({count})"
+
+msgid "Bus monitor mode: the normal connection is closed. Nothing can be sent or downloaded until the bus monitor is stopped."
+msgstr "Način monitorja vodila: običajna povezava je zaprta. Dokler monitorja vodila ne ustavite, ni mogoče ničesar poslati ali programirati."
+
+msgid "Connecting in bus monitor mode…"
+msgstr "Povezovanje v načinu monitorja vodila…"
+
+msgid "Closing the bus monitor connection…"
+msgstr "Zapiranje povezave monitorja vodila…"
+
+msgid "Rec."
+msgstr "Snem."
+
+msgid "Replaying {done}/{total}"
+msgstr "Predvajanje {done}/{total}"
+
+msgid "Stopped"
+msgstr "Ustavljeno"
+
+msgid "Remove all telegrams"
+msgstr "Odstrani vse telegrame"
+
+msgid "Export"
+msgstr "Izvozi"
+
+msgid "Save the telegrams to a file"
+msgstr "Shrani telegrame v datoteko"
+
+msgid "Import"
+msgstr "Uvozi"
+
+msgid "Load a recording"
+msgstr "Naloži posnetek"
+
+msgid "Print"
+msgstr "Natisni"
+
+msgid "Print the telegrams as a PDF document"
+msgstr "Natisni telegrame kot dokument PDF"
+
+msgid "Replay Telegrams"
+msgstr "Predvajaj telegrame"
+
+msgid "Send the selected group telegrams (all if none is selected) again with their original timing"
+msgstr "Izbrane skupinske telegrame (če ni izbran noben, vse) znova pošlje z izvirnim časovnim potekom"
+
+msgid "Start recording the connection's communication other than group telegrams, including every frame this app sends"
+msgstr "Začne snemati komunikacijo povezave razen skupinskih telegramov, vključno z vsemi okvirji, ki jih pošilja ta program"
+
+msgid "Connect the interface in bus monitor mode and record every frame"
+msgstr "Poveže vmesnik v načinu monitorja vodila in posname vsak okvir"
+
+msgid "Start recording the group telegrams"
+msgstr "Začne snemati skupinske telegrame"
+
+msgid "Close the bus monitor connection and restore the normal connection"
+msgstr "Zapre povezavo monitorja vodila in obnovi običajno povezavo"
+
+msgid "Stop recording"
+msgstr "Ustavi snemanje"
+
+msgid "Stop Replay"
+msgstr "Ustavi predvajanje"
+
+msgid "Cancel the replay"
+msgstr "Prekliče predvajanje"
+
+msgid "Copy"
+msgstr "Kopiraj"
+
+msgid "Copy the selected telegrams (all shown if none is selected) to the clipboard ({shortcut}). Double-click a telegram to select its source device."
+msgstr "Kopira izbrane telegrame (če ni izbran noben, vse prikazane) v odložišče ({shortcut}). Dvokliknite telegram, da izberete njegovo izvorno napravo."
+
+msgid "Invalid frame"
+msgstr "Neveljaven okvir"
+
+msgid "Security"
+msgstr "Varnost"
+
+msgid "Interface"
+msgstr "Vmesnik"
+
+msgid "MediumInfo"
+msgstr "MediumInfo"
+
+msgid "Source Description"
+msgstr "Opis izvora"
+
+msgid "Destination Description"
+msgstr "Opis cilja"
+
+msgid "Telegram Type"
+msgstr "Vrsta telegrama"
+
+msgid "Telegram Type (Short)"
+msgstr "Vrsta telegrama (kratko)"
+
+msgid "Address"
+msgstr "Naslov"
+
+msgid "Name"
+msgstr "Ime"
+
+msgid "Max"
+msgstr "Največ"
+
+msgid "Maximum telegrams this monitor keeps. The oldest tenth is dropped when the cap is exceeded."
+msgstr "Največje število telegramov, ki jih ta monitor hrani. Ko je meja presežena, se zavrže najstarejša desetina."

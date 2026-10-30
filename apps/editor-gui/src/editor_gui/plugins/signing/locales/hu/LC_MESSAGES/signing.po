@@ -1,0 +1,68 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor signing 1.0\n"
+"Language: hu\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Signing"
+msgstr "Aláírás"
+
+msgid "Signing Key…"
+msgstr "Aláírókulcs…"
+
+msgid "Signing Key"
+msgstr "Aláírókulcs"
+
+msgid "A signing key is set (exports are signed)."
+msgstr "Aláírókulcs beállítva (az exportok alá vannak írva)."
+
+msgid "Placeholder key in use — signatures are not ETS-valid."
+msgstr "Helyőrző kulcs van használatban – az aláírások az ETS számára nem érvényesek."
+
+msgid "Modulus (hex)"
+msgstr "Modulus (hex)"
+
+msgid "Private Exponent (hex)"
+msgstr "Privát kitevő (hex)"
+
+msgid "Public Exponent (hex)"
+msgstr "Nyilvános kitevő (hex)"
+
+msgid "Extract from Knx.Ets.XmlSigning.dll…"
+msgstr "Kinyerés a Knx.Ets.XmlSigning.dll fájlból…"
+
+msgid "Save"
+msgstr "Mentés"
+
+msgid "Reset to Placeholder"
+msgstr "Visszaállítás helyőrzőre"
+
+msgid "All DLLs"
+msgstr "Minden DLL"
+
+msgid "All Files"
+msgstr "Minden fájl"
+
+msgid "Select \"Knx.Ets.XmlSigning.dll\" from your ETS installation (e.g. C:\\Program Files (x86)\\ETS6)."
+msgstr "Válassza ki a „Knx.Ets.XmlSigning.dll” fájlt az ETS-telepítéséből (pl. C:\\Program Files (x86)\\ETS6)."
+
+msgid "Extracting key from the assembly…"
+msgstr "A kulcs kinyerése a szerelvényből…"
+
+msgid "Signing key saved."
+msgstr "Az aláírókulcs mentve."
+
+msgid "Reverted to the placeholder key."
+msgstr "Visszaállítva a helyőrző kulcsra."
+
+msgid "No .NET runtime found. Install the .NET SDK (macOS: `brew install dotnet-sdk`; Fedora: `sudo dnf install dotnet-sdk-8.0`) to extract the key, or paste it manually below."
+msgstr "Nem található .NET-futtatókörnyezet. A kulcs kinyeréséhez telepítse a .NET SDK-t (macOS: `brew install dotnet-sdk`; Fedora: `sudo dnf install dotnet-sdk-8.0`), vagy illessze be kézzel lent."
+
+msgid "The key is read from your own licensed ETS assembly and stored per-user, never in the project."
+msgstr "A kulcs a saját licencelt ETS-szerelvényéből kerül kiolvasásra, és felhasználónként tárolódik, soha nem a projektben."
+
+msgid "Based on OpenKNXproducer (github.com/OpenKNX/OpenKNXproducer)."
+msgstr "Az OpenKNXproducer alapján (github.com/OpenKNX/OpenKNXproducer)."

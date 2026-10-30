@@ -1,0 +1,245 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor backups 1.0\n"
+"Language: sl\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Backups"
+msgstr "Varnostne kopije"
+
+msgid "Create Backup…"
+msgstr "Ustvari varnostno kopijo…"
+
+msgid "Show Backups…"
+msgstr "Pokaži varnostne kopije…"
+
+msgid "Comment: {comment}"
+msgstr "Komentar: {comment}"
+
+msgid "Settings…"
+msgstr "Nastavitve…"
+
+msgid "Open a project to see its backups."
+msgstr "Odprite projekt, da vidite njegove varnostne kopije."
+
+msgid "This project has no backups yet."
+msgstr "Ta projekt še nima varnostnih kopij."
+
+msgid "Folder: {path}"
+msgstr "Mapa: {path}"
+
+msgid "Open Folder"
+msgstr "Odpri mapo"
+
+msgid "Compare"
+msgstr "Primerjaj"
+
+msgid "Restore…"
+msgstr "Obnovi…"
+
+msgid "Export as .xknx…"
+msgstr "Izvozi kot .xknx…"
+
+msgid "Pin"
+msgstr "Pripni"
+
+msgid "Unpin"
+msgstr "Odpni"
+
+msgid "Check"
+msgstr "Preveri"
+
+msgid "Delete…"
+msgstr "Izbriši…"
+
+msgid "Show what differs between the project now and this backup"
+msgstr "Pokaže, v čem se trenutni projekt razlikuje od te varnostne kopije"
+
+msgid "A pinned backup is never deleted automatically"
+msgstr "Pripeta varnostna kopija se nikoli ne izbriše samodejno"
+
+msgid "Check that the backup can be restored"
+msgstr "Preveri, ali je varnostno kopijo mogoče obnoviti"
+
+msgid "Created"
+msgstr "Ustvarjeno"
+
+msgid "Kind"
+msgstr "Vrsta"
+
+msgid "Comment"
+msgstr "Komentar"
+
+msgid "Computer"
+msgstr "Računalnik"
+
+msgid "User"
+msgstr "Uporabnik"
+
+msgid "Size"
+msgstr "Velikost"
+
+msgid "Manual"
+msgstr "Ročno"
+
+msgid "On close"
+msgstr "Ob zaprtju"
+
+msgid "Interval"
+msgstr "Interval"
+
+msgid "Before restore"
+msgstr "Pred obnovitvijo"
+
+msgid "Pinned"
+msgstr "Pripeto"
+
+msgid "{size} MB"
+msgstr "{size} MB"
+
+msgid "Creating a backup: copying the project…"
+msgstr "Ustvarjanje varnostne kopije: kopiranje projekta…"
+
+msgid "Creating a backup: checking the project…"
+msgstr "Ustvarjanje varnostne kopije: preverjanje projekta…"
+
+msgid "Creating a backup: compressing…"
+msgstr "Ustvarjanje varnostne kopije: stiskanje…"
+
+msgid "Create Backup"
+msgstr "Ustvari varnostno kopijo"
+
+msgid "The backup holds the project as it is now."
+msgstr "Varnostna kopija vsebuje projekt v trenutnem stanju."
+
+msgid "Create"
+msgstr "Ustvari"
+
+msgid "Cancel"
+msgstr "Prekliči"
+
+msgid "OK"
+msgstr "OK"
+
+msgid "Backup created: {name}"
+msgstr "Varnostna kopija ustvarjena: {name}"
+
+msgid "The backup failed: {error}"
+msgstr "Varnostno kopiranje ni uspelo: {error}"
+
+msgid "Restore Backup"
+msgstr "Obnovitev varnostne kopije"
+
+msgid "Restore the project to its state of {created}?\n\nThe project as it is now is saved as a backup first, so you can go back to it."
+msgstr "Želite projekt obnoviti na stanje z dne {created}?\n\nTrenutno stanje projekta se najprej shrani kot varnostna kopija, tako da se lahko vrnete nanj."
+
+msgid "Restore"
+msgstr "Obnovi"
+
+msgid "The project had another password when this backup was made. Enter that password:"
+msgstr "Projekt je imel ob izdelavi te varnostne kopije drugo geslo. Vnesite to geslo:"
+
+msgid "Wrong password"
+msgstr "Napačno geslo"
+
+msgid "Restoring the backup…"
+msgstr "Obnavljanje varnostne kopije…"
+
+msgid "Project restored to its state of {created}"
+msgstr "Projekt je obnovljen na stanje z dne {created}"
+
+msgid "The backup could not be restored: {error}"
+msgstr "Varnostne kopije ni bilo mogoče obnoviti: {error}"
+
+msgid "Delete Backup"
+msgstr "Brisanje varnostne kopije"
+
+msgid "Delete the backup of {created}? This cannot be undone."
+msgstr "Želite izbrisati varnostno kopijo z dne {created}? Tega ni mogoče razveljaviti."
+
+msgid "Delete"
+msgstr "Izbriši"
+
+msgid "Export Backup as Project File"
+msgstr "Izvoz varnostne kopije kot projektne datoteke"
+
+msgid "XKNX Editor projects"
+msgstr "Projekti XKNX Editor"
+
+msgid "Exporting the backup…"
+msgstr "Izvažanje varnostne kopije…"
+
+msgid "Backup exported: {name}"
+msgstr "Varnostna kopija izvožena: {name}"
+
+msgid "Checking the backup…"
+msgstr "Preverjanje varnostne kopije…"
+
+msgid "The backup is intact and can be restored."
+msgstr "Varnostna kopija je nepoškodovana in jo je mogoče obnoviti."
+
+msgid "The backup is damaged: {error}"
+msgstr "Varnostna kopija je poškodovana: {error}"
+
+msgid "Backup of {created}"
+msgstr "Varnostna kopija z dne {created}"
+
+msgid "Restore from Backup"
+msgstr "Obnovitev iz varnostne kopije"
+
+msgid "The project {name} could not be opened: {error}"
+msgstr "Projekta {name} ni bilo mogoče odpreti: {error}"
+
+msgid "The project file {name} no longer exists."
+msgstr "Projektna datoteka {name} ne obstaja več."
+
+msgid "Its newest backup is from {created}. Restore the project from it? A file that is there now is kept under another name."
+msgstr "Njegova najnovejša varnostna kopija je z dne {created}. Želite projekt obnoviti iz nje? Datoteka, ki je zdaj tam, se ohrani pod drugim imenom."
+
+msgid "The damaged file was kept as {name}."
+msgstr "Poškodovana datoteka je ohranjena kot {name}."
+
+msgid "Backup Settings"
+msgstr "Nastavitve varnostnih kopij"
+
+msgid "A backup is one file with the complete project, which can be restored on its own. Each project has a folder of its own in the backup folder. A network drive or a folder synchronized with a cloud service keeps the backups off this computer."
+msgstr "Varnostna kopija je ena datoteka s celotnim projektom, ki jo je mogoče obnoviti samostojno. Vsak projekt ima v mapi varnostnih kopij svojo mapo. Omrežni pogon ali mapa, sinhronizirana s storitvijo v oblaku, hrani varnostne kopije zunaj tega računalnika."
+
+msgid "Backup Folder"
+msgstr "Mapa varnostnih kopij"
+
+msgid "Choose Folder…"
+msgstr "Izberi mapo…"
+
+msgid "Default"
+msgstr "Privzeto"
+
+msgid "Choose the Backup Folder"
+msgstr "Izbira mape varnostnih kopij"
+
+msgid "Create a backup when a project is closed"
+msgstr "Ustvari varnostno kopijo ob zaprtju projekta"
+
+msgid "Create backups at regular intervals while a project is open"
+msgstr "Ustvarjaj varnostne kopije v rednih presledkih, dokler je projekt odprt"
+
+msgid "Interval in Minutes"
+msgstr "Interval v minutah"
+
+msgid "Delete old automatic backups"
+msgstr "Briši stare samodejne varnostne kopije"
+
+msgid "Delete After (Days)"
+msgstr "Izbriši po (dneh)"
+
+msgid "Always Keep the Newest"
+msgstr "Vedno ohrani najnovejše"
+
+msgid "An automatic backup is only made when the project changed since its newest backup. Backups you create yourself and pinned backups are never deleted automatically."
+msgstr "Samodejna varnostna kopija se ustvari le, če se je projekt od zadnje varnostne kopije spremenil. Varnostne kopije, ki jih ustvarite sami, in pripete varnostne kopije se nikoli ne izbrišejo samodejno."
+
+msgid "Backups you create yourself are never deleted automatically"
+msgstr "Varnostne kopije, ki jih ustvarite sami, se nikoli ne izbrišejo samodejno"

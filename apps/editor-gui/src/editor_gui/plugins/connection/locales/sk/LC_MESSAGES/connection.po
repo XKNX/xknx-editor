@@ -1,0 +1,197 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor connection 1.0\n"
+"Language: sk\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Gateway"
+msgstr "Brána"
+
+msgid "Connect"
+msgstr "Pripojiť"
+
+msgid "Disconnect"
+msgstr "Odpojiť"
+
+msgid "Discovered Gateways"
+msgstr "Nájdené brány"
+
+msgid "Diagnostics"
+msgstr "Diagnostika"
+
+msgid "Check for Devices in Programming Mode"
+msgstr "Vyhľadať zariadenia v programovacom režime"
+
+msgid "No gateways found"
+msgstr "Nenašli sa žiadne brány"
+
+msgid "Manual Connection"
+msgstr "Ručné pripojenie"
+
+msgid "Connected: {ip}"
+msgstr "Pripojené: {ip}"
+
+msgid "Connected to {ip}"
+msgstr "Pripojené k {ip}"
+
+msgid "Disconnected"
+msgstr "Odpojené"
+
+msgid "Connecting…"
+msgstr "Pripája sa…"
+
+msgid "Connection failed"
+msgstr "Pripojenie zlyhalo"
+
+msgid "Scan"
+msgstr "Hľadať"
+
+msgid "Settings"
+msgstr "Nastavenia"
+
+msgid "Use multicast routing (instead of tunneling)"
+msgstr "Použiť multicastové smerovanie (namiesto tunelovania)"
+
+msgid "Gateway IP"
+msgstr "IP brány"
+
+msgid "Multicast Group"
+msgstr "Skupina multicast"
+
+msgid "Apply"
+msgstr "Použiť"
+
+msgid "Use Serial Number for Downloads"
+msgstr "Použiť sériové číslo pri nahrávaní"
+
+msgid "Bus monitor: {ip}"
+msgstr "Monitor zbernice: {ip}"
+
+msgid "The gateway is connected in bus monitor mode. Nothing can be sent or downloaded until the bus monitor is stopped."
+msgstr "Brána je pripojená v režime monitora zbernice. Kým sa monitor zbernice nezastaví, nedá sa nič odosielať ani nahrávať."
+
+msgid "Stop Bus Monitor"
+msgstr "Zastaviť monitor zbernice"
+
+msgid "Not possible while the bus monitor is running"
+msgstr "Nie je možné, kým beží monitor zbernice"
+
+msgid "Answered the scan, but reading its details failed: {error}"
+msgstr "Na vyhľadávanie odpovedalo, ale čítanie podrobností zlyhalo: {error}"
+
+msgid "Application"
+msgstr "Aplikácia"
+
+msgid "Application Version"
+msgstr "Verzia aplikácie"
+
+msgid "Devices in Programming Mode"
+msgstr "Zariadenia v programovacom režime"
+
+msgid "Hardware Type"
+msgstr "Typ hardvéru"
+
+msgid "In this project: {name}"
+msgstr "V tomto projekte: {name}"
+
+msgid "Manufacturer"
+msgstr "Výrobca"
+
+msgid "Mask Version"
+msgstr "Verzia masky"
+
+msgid "No device is in programming mode."
+msgstr "Žiadne zariadenie nie je v programovacom režime."
+
+msgid "No fault"
+msgstr "Bez chyby"
+
+msgid "Not in this project"
+msgstr "Nie je v tomto projekte"
+
+msgid "Order Number"
+msgstr "Objednávacie číslo"
+
+msgid "Press the programming button on a device to put it into programming mode, then rescan."
+msgstr "Stlačte programovacie tlačidlo na zariadení, aby ste ho prepli do programovacieho režimu, a potom hľadajte znova."
+
+msgid "Product (Catalog)"
+msgstr "Produkt (katalóg)"
+
+msgid "Programming mode active"
+msgstr "Programovací režim aktívny"
+
+msgid "Rescan"
+msgstr "Hľadať znova"
+
+msgid "Searching the bus…"
+msgstr "Prehľadáva sa zbernica…"
+
+msgid "Select in Project"
+msgstr "Vybrať v projekte"
+
+msgid "Serial Number"
+msgstr "Sériové číslo"
+
+msgid "Status"
+msgstr "Stav"
+
+msgid "The interface did not confirm the scan request (bus busy or interface overloaded). Please try again."
+msgstr "Rozhranie nepotvrdilo požiadavku na vyhľadávanie (zbernica obsadená alebo rozhranie preťažené). Skúste to znova."
+
+msgid "The scan could not be completed: {error}"
+msgstr "Vyhľadávanie sa nepodarilo dokončiť: {error}"
+
+msgid "Unprogrammed device (factory default address 15.15.255)"
+msgstr "Nenaprogramované zariadenie (výrobná adresa 15.15.255)"
+
+msgid "{count} device(s) in programming mode"
+msgstr "Zariadenia v programovacom režime: {count}"
+
+msgid "The interface requires KNX IP Secure, but neither the project nor a loaded keyring has its passwords."
+msgstr "Rozhranie vyžaduje KNX IP Secure, ale jeho heslá neobsahuje projekt ani načítaný zväzok kľúčov."
+
+msgid "Error: {error}"
+msgstr "Chyba: {error}"
+
+msgid "Unknown error"
+msgstr "Neznáma chyba"
+
+msgid "Name: {name}"
+msgstr "Názov: {name}"
+
+msgid "KNX Address: {address}"
+msgstr "Adresa KNX: {address}"
+
+msgid "Core Version: {version}"
+msgstr "Verzia jadra: {version}"
+
+msgid "Services: {services}"
+msgstr "Služby: {services}"
+
+msgid "Retry"
+msgstr "Skúsiť znova"
+
+msgid "Select Connection"
+msgstr "Výber pripojenia"
+
+msgid "XKNX Editor could not determine an available connection."
+msgstr "XKNX Editor nedokázal určiť dostupné pripojenie."
+
+msgid "The connection {name} is not available."
+msgstr "Pripojenie {name} nie je dostupné."
+
+msgid "You may use any of the connections listed below, instead."
+msgstr "Namiesto toho môžete použiť ktorékoľvek z pripojení uvedených nižšie."
+
+msgid "{name}: {error}"
+msgstr "{name}: {error}"
+
+msgid "Cancel"
+msgstr "Zrušiť"
+
+msgid "This kind of connection is not supported."
+msgstr "Tento druh pripojenia nie je podporovaný."

@@ -1,0 +1,176 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor bus_diagram 1.0\n"
+"Language: sl\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Bus Diagram"
+msgstr "Diagram vodila"
+
+msgid "No project open"
+msgstr "Noben projekt ni odprt"
+
+msgid "Unassigned"
+msgstr "Nedodeljeno"
+
+msgid "Area -> Line -> Device. Click a device to open it."
+msgstr "Področje -> Linija -> Naprava. Kliknite napravo, da jo odprete."
+
+msgid "Ctrl+scroll to zoom. Click a device to open it."
+msgstr "Ctrl+drsenje za povečavo. Kliknite napravo, da jo odprete."
+
+msgid "Building View"
+msgstr "Pogled stavbe"
+
+msgid "Links"
+msgstr "Povezave"
+
+msgid "Physical"
+msgstr "Fizično"
+
+msgid "Building"
+msgstr "Stavba"
+
+msgid "Matrix"
+msgstr "Matrika"
+
+msgid "A device x group-address matrix: amber = the device sends on that group address, blue = it receives. Hover a column for the group address, a row to open the device."
+msgstr "Matrika naprav in skupinskih naslovov: jantarno = naprava pošilja na ta skupinski naslov, modro = prejema. Postavite kazalec na stolpec za skupinski naslov, na vrstico pa za napravo, ki jo odprete s klikom."
+
+msgid "sends"
+msgstr "pošilja"
+
+msgid "receives"
+msgstr "prejema"
+
+msgid "sends & receives"
+msgstr "pošilja in prejema"
+
+msgid "Each group address is a hub node; devices link to it (sender into the hub, hub out to receivers). Hover a device to see its group addresses, or a hub to see every device on it. Click a device to open it."
+msgstr "Vsak skupinski naslov je vozlišče; naprave so povezane z njim (pošiljatelj v vozlišče, iz vozlišča do prejemnikov). Postavite kazalec na napravo, da vidite njene skupinske naslove, ali na vozlišče, da vidite vse naprave na njem. Kliknite napravo, da jo odprete."
+
+msgid "No linked devices to show."
+msgstr "Ni povezanih naprav za prikaz."
+
+msgid "Room"
+msgstr "Prostor"
+
+msgid "Group"
+msgstr "Skupina"
+
+msgid "All"
+msgstr "Vse"
+
+msgid "Ctrl/Cmd+scroll to zoom. Click a device to open it."
+msgstr "Ctrl/Cmd+drsenje za povečavo. Kliknite napravo, da jo odprete."
+
+msgid "Area {area}"
+msgstr "Področje {area}"
+
+msgid "L {line}"
+msgstr "L {line}"
+
+msgid "Zoom with two fingers. Tap a device to open it."
+msgstr "Povečujte z dvema prstoma. Tapnite napravo, da jo odprete."
+
+msgid "(unnamed)"
+msgstr "(neimenovano)"
+
+msgid "Address: {address}"
+msgstr "Naslov: {address}"
+
+msgid "Application: {application}"
+msgstr "Aplikacija: {application}"
+
+msgid "Which devices talk to which over their group addresses: sending devices on the left, receiving devices on the right."
+msgstr "Katere naprave komunicirajo med seboj prek svojih skupinskih naslovov: naprave, ki pošiljajo, so levo, naprave, ki prejemajo, desno."
+
+msgid "Click to follow a device, channel or group address, double-click to open a device, click the arrow of a device to list its group objects. Drag to move, {key}+scroll to zoom."
+msgstr "Kliknite, da sledite napravi, kanalu ali skupinskemu naslovu, dvokliknite, da odprete napravo, kliknite puščico naprave za seznam njenih komunikacijskih objektov. Vlecite za premik, {key}+drsenje za povečavo."
+
+msgid "Tap to follow a device, channel or group address, double-tap to open a device, tap the arrow of a device to list its group objects. Zoom with two fingers."
+msgstr "Tapnite, da sledite napravi, kanalu ali skupinskemu naslovu, dvakrat tapnite, da odprete napravo, tapnite puščico naprave za seznam njenih komunikacijskih objektov. Povečujte z dvema prstoma."
+
+msgid "Channels"
+msgstr "Kanali"
+
+msgid "Channel: {channel} ({device})"
+msgstr "Kanal: {channel} ({device})"
+
+msgid "List the group objects"
+msgstr "Pokaži komunikacijske objekte"
+
+msgid "Hide the group objects"
+msgstr "Skrij komunikacijske objekte"
+
+msgid "Group object {number}: {name}"
+msgstr "Komunikacijski objekt {number}: {name}"
+
+msgid "Channel: {channel}"
+msgstr "Kanal: {channel}"
+
+msgid "Drag to move, {key}+scroll to zoom. Click a device to open it."
+msgstr "Vlecite za premik, {key}+drsenje za povečavo. Kliknite napravo, da jo odprete."
+
+msgid "Show"
+msgstr "Prikaz"
+
+msgid "Choose…"
+msgstr "Izberi…"
+
+msgid "Choose above what to show: the whole project, a room or a main group."
+msgstr "Zgoraj izberite, kaj naj se prikaže: celoten projekt, prostor ali glavno skupino."
+
+msgid "Whole Project"
+msgstr "Celoten projekt"
+
+msgid "Rooms"
+msgstr "Prostori"
+
+msgid "Main Groups"
+msgstr "Glavne skupine"
+
+msgid "Device: {device}"
+msgstr "Naprava: {device}"
+
+msgid "Group Address: {address}"
+msgstr "Skupinski naslov: {address}"
+
+msgid "Back"
+msgstr "Nazaj"
+
+msgid "Fit"
+msgstr "Prilagodi"
+
+msgid "Sending"
+msgstr "Pošiljatelji"
+
+msgid "Group Addresses"
+msgstr "Skupinski naslovi"
+
+msgid "Receiving"
+msgstr "Prejemniki"
+
+msgid "+ {count} more"
+msgstr "+ še {count}"
+
+msgid "{count} more devices outside the selection. Click to show them."
+msgstr "Število dodatnih naprav zunaj izbora: {count}. Kliknite, da jih prikažete."
+
+msgid "{address}\n{senders} sending, {receivers} receiving"
+msgstr "{address}\nPošiljatelji: {senders}, prejemniki: {receivers}"
+
+msgid "Areas"
+msgstr "Področja"
+
+msgid "Lines"
+msgstr "Linije"
+
+msgid "Devices"
+msgstr "Naprave"
+
+msgid "Buildings"
+msgstr "Stavbe"

@@ -1,0 +1,395 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor monitor 1.0\n"
+"Language: hu\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Cancel"
+msgstr "Mégse"
+
+msgid "No"
+msgstr "Nem"
+
+msgid "OK"
+msgstr "OK"
+
+msgid "Yes"
+msgstr "Igen"
+
+msgid "The interface rejected bus monitor mode: another client holds a connection to it."
+msgstr "Az interfész elutasította a buszmonitor módot: egy másik kliens kapcsolódik hozzá."
+
+msgid "The bus monitor connects the interface in bus monitor mode. The normal connection is closed while the bus monitor runs: nothing can be sent or downloaded in that time. Stopping the bus monitor restores the normal connection.\n\nStart the bus monitor?"
+msgstr "A buszmonitor buszmonitor módban csatlakoztatja az interfészt. Amíg a buszmonitor fut, a normál kapcsolat zárva van: ez idő alatt semmi sem küldhető és semmi sem programozható. A buszmonitor leállításakor a normál kapcsolat helyreáll.\n\nElindítja a buszmonitort?"
+
+msgid "Start Bus Monitor"
+msgstr "Buszmonitor indítása"
+
+msgid "The bus monitor connection could not be established."
+msgstr "A buszmonitor-kapcsolat nem hozható létre."
+
+msgid "The normal connection is restored."
+msgstr "A normál kapcsolat helyreállt."
+
+msgid "The interface does not support bus monitor mode."
+msgstr "Az interfész nem támogatja a buszmonitor módot."
+
+msgid "The bus monitor is not supported for this connection type. It needs a tunnelling connection."
+msgstr "Ennél a kapcsolattípusnál a buszmonitor nem támogatott. Tunneling kapcsolat szükséges hozzá."
+
+msgid "Building Function"
+msgstr "Épületfunkció"
+
+msgid "Building Part"
+msgstr "Épületrész"
+
+msgid "Destination Address"
+msgstr "Célcím"
+
+msgid "Destination Name"
+msgstr "Cél neve"
+
+msgid "DPT"
+msgstr "DPT"
+
+msgid "Flags"
+msgstr "Flagek"
+
+msgid "Frame Format"
+msgstr "Keretformátum"
+
+msgid "Hop Count"
+msgstr "Routing-számláló"
+
+msgid "Iack"
+msgstr "Iack"
+
+msgid "Info"
+msgstr "Információ"
+
+msgid "Message Code"
+msgstr "Üzenetkód"
+
+msgid "#"
+msgstr "#"
+
+msgid "Prio"
+msgstr "Prio."
+
+msgid "Raw Data"
+msgstr "Nyers adatok"
+
+msgid "Raw Value"
+msgstr "Nyers érték"
+
+msgid "Repeated"
+msgstr "Ismételt"
+
+msgid "Service"
+msgstr "Szolgáltatás"
+
+msgid "Source Address"
+msgstr "Forráscím"
+
+msgid "Source Name"
+msgstr "Forrás neve"
+
+msgid "System Broadcast"
+msgstr "Rendszerszintű üzenetszórás"
+
+msgid "Time"
+msgstr "Idő"
+
+msgid "Date"
+msgstr "Dátum"
+
+msgid "Value"
+msgstr "Érték"
+
+msgid "Show Extended Information"
+msgstr "Bővített információk megjelenítése"
+
+msgid "Hide Extended Information"
+msgstr "Bővített információk elrejtése"
+
+msgid "{count} telegrams exported to {path}"
+msgstr "Exportált táviratok: {count}, cél: {path}"
+
+msgid "Export failed: {error}"
+msgstr "Az exportálás nem sikerült: {error}"
+
+msgid "All files"
+msgstr "Minden fájl"
+
+msgid "Telegram recordings"
+msgstr "Távirat-felvételek"
+
+msgid "Extended"
+msgstr "Bővített"
+
+msgid "Standard"
+msgstr "Normál"
+
+msgid "{count} entries loaded from {path}"
+msgstr "Betöltött bejegyzések: {count}, forrás: {path}"
+
+msgid "Loading failed: {error}"
+msgstr "A betöltés nem sikerült: {error}"
+
+msgid "{count} telegrams in another frame format were skipped"
+msgstr "Más keretformátumú, kihagyott táviratok: {count}"
+
+msgid "Connection was established"
+msgstr "A kapcsolat létrejött"
+
+msgid "Connection was lost"
+msgstr "A kapcsolat megszakadt"
+
+msgid "Recording was started, Host={host}, Connection={connection}, Mode={mode}"
+msgstr "A felvétel elindult, gazdagép={host}, kapcsolat={connection}, mód={mode}"
+
+msgid "Recording was stopped"
+msgstr "A felvétel leállt"
+
+msgid "e.g. 1/2/3"
+msgstr "pl. 1/2/3"
+
+msgid "Group Address:"
+msgstr "Csoportcím:"
+
+msgid "{rate} t/s"
+msgstr "{rate} távirat/s"
+
+msgid "Clear"
+msgstr "Törlés"
+
+msgid "Not Connected"
+msgstr "Nincs kapcsolat"
+
+msgid "Filter by address or name…"
+msgstr "Szűrés cím vagy név szerint…"
+
+msgid "No group addresses (open or import a project)"
+msgstr "Nincsenek csoportcímek (nyisson meg vagy importáljon egy projektet)"
+
+msgid "Read"
+msgstr "Olvasás"
+
+msgid "Bus Activity"
+msgstr "Buszaktivitás"
+
+msgid "Bus Monitor"
+msgstr "Buszmonitor"
+
+msgid "Group Monitor"
+msgstr "Csoportmonitor"
+
+msgid "Group Objects"
+msgstr "Kommunikációs objektumok"
+
+msgid "{count} telg."
+msgstr "{count} távirat"
+
+msgid "Enter a group address of the project to send to it."
+msgstr "Adja meg a projekt egy csoportcímét, hogy küldhessen rá."
+
+msgid "value (e.g. on / 21.5 / 50)"
+msgstr "érték (pl. on / 21.5 / 50)"
+
+msgid "Value:"
+msgstr "Érték:"
+
+msgid "Write"
+msgstr "Írás"
+
+msgid "Monitor"
+msgstr "Monitor"
+
+msgid "Printing failed: {error}"
+msgstr "A nyomtatás nem sikerült: {error}"
+
+msgid "Page {page}"
+msgstr "Oldal: {page}"
+
+msgid "Low"
+msgstr "Alacsony"
+
+msgid "Normal"
+msgstr "Normál"
+
+msgid "System"
+msgstr "Rendszer"
+
+msgid "Urgent"
+msgstr "Sürgős"
+
+msgid "The telegrams have not been exported. Clear them anyway?"
+msgstr "A táviratok nincsenek exportálva. Ennek ellenére törli őket?"
+
+msgid "Loading a recording replaces the telegrams and stops the recording. Continue?"
+msgstr "Felvétel betöltésekor a táviratok lecserélődnek, és a felvétel leáll. Folytatja?"
+
+msgid "The telegrams have not been exported. Loading a recording replaces them and stops the recording. Continue?"
+msgstr "A táviratok nincsenek exportálva. Felvétel betöltésekor lecserélődnek, és a felvétel leáll. Folytatja?"
+
+msgid "Unsaved Telegrams"
+msgstr "Nem mentett táviratok"
+
+msgid "Replay cancelled: {count} telegrams sent"
+msgstr "Visszajátszás megszakítva, elküldött táviratok: {count}"
+
+msgid "Replay finished: {count} telegrams sent"
+msgstr "Visszajátszás befejezve, elküldött táviratok: {count}"
+
+msgid "There are no group telegrams to replay"
+msgstr "Nincsenek visszajátszható csoporttáviratok"
+
+msgid "{count} Data Secure telegrams are not replayed"
+msgstr "Data Secure táviratok, amelyek nem kerülnek visszajátszásra: {count}"
+
+msgid "Comment"
+msgstr "Megjegyzés"
+
+msgid "Connection event"
+msgstr "Kapcsolati esemény"
+
+msgid "from bus"
+msgstr "a buszról"
+
+msgid "Start"
+msgstr "Indítás"
+
+msgid "Stop"
+msgstr "Leállítás"
+
+msgid "to bus"
+msgstr "a buszra"
+
+msgid "All Telegrams ({count})"
+msgstr "Minden távirat ({count})"
+
+msgid "Export Telegrams"
+msgstr "Táviratok exportálása"
+
+msgid "Filtered Telegrams ({count})"
+msgstr "Szűrt táviratok ({count})"
+
+msgid "Which telegrams?"
+msgstr "Mely táviratok?"
+
+msgid "Print Telegrams"
+msgstr "Táviratok nyomtatása"
+
+msgid "Selected Telegrams ({count})"
+msgstr "Kijelölt táviratok ({count})"
+
+msgid "Bus monitor mode: the normal connection is closed. Nothing can be sent or downloaded until the bus monitor is stopped."
+msgstr "Buszmonitor mód: a normál kapcsolat zárva van. Amíg a buszmonitor le nem áll, semmi sem küldhető és semmi sem programozható."
+
+msgid "Connecting in bus monitor mode…"
+msgstr "Csatlakozás buszmonitor módban…"
+
+msgid "Closing the bus monitor connection…"
+msgstr "A buszmonitor-kapcsolat bontása…"
+
+msgid "Rec."
+msgstr "Felv."
+
+msgid "Replaying {done}/{total}"
+msgstr "Visszajátszás: {done}/{total}"
+
+msgid "Stopped"
+msgstr "Leállítva"
+
+msgid "Remove all telegrams"
+msgstr "Az összes távirat eltávolítása"
+
+msgid "Export"
+msgstr "Exportálás"
+
+msgid "Save the telegrams to a file"
+msgstr "A táviratok mentése fájlba"
+
+msgid "Import"
+msgstr "Importálás"
+
+msgid "Load a recording"
+msgstr "Felvétel betöltése"
+
+msgid "Print"
+msgstr "Nyomtatás"
+
+msgid "Print the telegrams as a PDF document"
+msgstr "A táviratok nyomtatása PDF-dokumentumként"
+
+msgid "Replay Telegrams"
+msgstr "Táviratok visszajátszása"
+
+msgid "Send the selected group telegrams (all if none is selected) again with their original timing"
+msgstr "A kijelölt csoporttáviratok (ha nincs kijelölés, mindegyik) újbóli elküldése az eredeti időzítéssel"
+
+msgid "Start recording the connection's communication other than group telegrams, including every frame this app sends"
+msgstr "A kapcsolat csoporttáviratokon kívüli kommunikációjának rögzítése, beleértve az alkalmazás által küldött összes keretet"
+
+msgid "Connect the interface in bus monitor mode and record every frame"
+msgstr "Az interfész csatlakoztatása buszmonitor módban, és minden keret rögzítése"
+
+msgid "Start recording the group telegrams"
+msgstr "A csoporttáviratok rögzítésének indítása"
+
+msgid "Close the bus monitor connection and restore the normal connection"
+msgstr "A buszmonitor-kapcsolat bontása és a normál kapcsolat helyreállítása"
+
+msgid "Stop recording"
+msgstr "A rögzítés leállítása"
+
+msgid "Stop Replay"
+msgstr "Visszajátszás leállítása"
+
+msgid "Cancel the replay"
+msgstr "A visszajátszás megszakítása"
+
+msgid "Copy"
+msgstr "Másolás"
+
+msgid "Copy the selected telegrams (all shown if none is selected) to the clipboard ({shortcut}). Double-click a telegram to select its source device."
+msgstr "A kijelölt táviratok (ha nincs kijelölés, az összes megjelenített) másolása a vágólapra ({shortcut}). Egy táviratra duplán kattintva kijelölheti a forráskészülékét."
+
+msgid "Invalid frame"
+msgstr "Érvénytelen keret"
+
+msgid "Security"
+msgstr "Biztonság"
+
+msgid "Interface"
+msgstr "Interfész"
+
+msgid "MediumInfo"
+msgstr "MediumInfo"
+
+msgid "Source Description"
+msgstr "Forrás leírása"
+
+msgid "Destination Description"
+msgstr "Cél leírása"
+
+msgid "Telegram Type"
+msgstr "Távirattípus"
+
+msgid "Telegram Type (Short)"
+msgstr "Távirattípus (rövid)"
+
+msgid "Address"
+msgstr "Cím"
+
+msgid "Name"
+msgstr "Név"
+
+msgid "Max"
+msgstr "Max."
+
+msgid "Maximum telegrams this monitor keeps. The oldest tenth is dropped when the cap is exceeded."
+msgstr "A monitor által megőrzött táviratok legnagyobb száma. A korlát túllépésekor a legrégebbi tizedük törlődik."

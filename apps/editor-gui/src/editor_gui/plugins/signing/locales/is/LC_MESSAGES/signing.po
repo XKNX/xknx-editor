@@ -1,0 +1,68 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor signing 1.0\n"
+"Language: is\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Signing"
+msgstr "Undirritun"
+
+msgid "Signing Key…"
+msgstr "Undirritunarlykill…"
+
+msgid "Signing Key"
+msgstr "Undirritunarlykill"
+
+msgid "A signing key is set (exports are signed)."
+msgstr "Undirritunarlykill er settur (útflutningar eru undirritaðir)."
+
+msgid "Placeholder key in use — signatures are not ETS-valid."
+msgstr "Staðgengilslykill í notkun — undirskriftir eru ekki gildar í ETS."
+
+msgid "Modulus (hex)"
+msgstr "Stuðull (hex)"
+
+msgid "Private Exponent (hex)"
+msgstr "Einkaveldisvísir (hex)"
+
+msgid "Public Exponent (hex)"
+msgstr "Opinber veldisvísir (hex)"
+
+msgid "Extract from Knx.Ets.XmlSigning.dll…"
+msgstr "Draga út úr Knx.Ets.XmlSigning.dll…"
+
+msgid "Save"
+msgstr "Vista"
+
+msgid "Reset to Placeholder"
+msgstr "Endurstilla á staðgengil"
+
+msgid "All DLLs"
+msgstr "Allar DLL-skrár"
+
+msgid "All Files"
+msgstr "Allar skrár"
+
+msgid "Select \"Knx.Ets.XmlSigning.dll\" from your ETS installation (e.g. C:\\Program Files (x86)\\ETS6)."
+msgstr "Veldu \"Knx.Ets.XmlSigning.dll\" úr ETS-uppsetningunni þinni (t.d. C:\\Program Files (x86)\\ETS6)."
+
+msgid "Extracting key from the assembly…"
+msgstr "Dregur lykil út úr safninu…"
+
+msgid "Signing key saved."
+msgstr "Undirritunarlykill vistaður."
+
+msgid "Reverted to the placeholder key."
+msgstr "Fært aftur í staðgengilslykilinn."
+
+msgid "No .NET runtime found. Install the .NET SDK (macOS: `brew install dotnet-sdk`; Fedora: `sudo dnf install dotnet-sdk-8.0`) to extract the key, or paste it manually below."
+msgstr "Ekkert .NET-keyrsluumhverfi fannst. Settu upp .NET SDK (macOS: `brew install dotnet-sdk`; Fedora: `sudo dnf install dotnet-sdk-8.0`) til að draga lykilinn út, eða límdu hann inn handvirkt hér fyrir neðan."
+
+msgid "The key is read from your own licensed ETS assembly and stored per-user, never in the project."
+msgstr "Lykillinn er lesinn úr þínu eigin ETS-safni með leyfi og geymdur fyrir hvern notanda, aldrei í verkefninu."
+
+msgid "Based on OpenKNXproducer (github.com/OpenKNX/OpenKNXproducer)."
+msgstr "Byggt á OpenKNXproducer (github.com/OpenKNX/OpenKNXproducer)."

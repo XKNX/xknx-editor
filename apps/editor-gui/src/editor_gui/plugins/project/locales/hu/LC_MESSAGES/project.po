@@ -1,0 +1,3041 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor project 1.0\n"
+"Language: hu\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Devices"
+msgstr "Készülékek"
+
+msgid "Configure"
+msgstr "Konfigurálás"
+
+msgid "History"
+msgstr "Előzmények"
+
+msgid "Editor"
+msgstr "Szerkesztő"
+
+msgid "Group Addresses"
+msgstr "Csoportcímek"
+
+msgid "Buildings"
+msgstr "Épületek"
+
+msgid "Project"
+msgstr "Projekt"
+
+msgid "No buildings/rooms in this project"
+msgstr "Ebben a projektben nincsenek épületek/helyiségek"
+
+msgid "No project"
+msgstr "Nincs projekt"
+
+msgid "Name"
+msgstr "Név"
+
+msgid "Open Project"
+msgstr "Megnyitott projekt"
+
+msgid "Reading the projects…"
+msgstr "A projektek beolvasása…"
+
+msgid "Comparing devices: {done} of {total}"
+msgstr "Készülékek összehasonlítása: {done}/{total}"
+
+msgid "File"
+msgstr "Fájl"
+
+msgid "Group Address Style"
+msgstr "Csoportcím-struktúra"
+
+msgid "Created by"
+msgstr "Létrehozta"
+
+msgid "Tool Version"
+msgstr "Eszköz verziója"
+
+msgid "Schema Version"
+msgstr "Sémaverzió"
+
+msgid "Last Modified"
+msgstr "Utolsó módosítás"
+
+msgid "GUID"
+msgstr "GUID"
+
+msgid "Project ID"
+msgstr "Projektazonosító"
+
+msgid "Original Project ID"
+msgstr "Eredeti projektazonosító"
+
+msgid "Master Data (Signed)"
+msgstr "Törzsadatok (aláírt)"
+
+msgid "Validation File"
+msgstr "Ellenőrzőfájl"
+
+msgid "Project Certificate"
+msgstr "Projekttanúsítvány"
+
+msgid "none"
+msgstr "nincs"
+
+msgid "present ({size} bytes)"
+msgstr "van ({size} bájt)"
+
+msgid "Order Number"
+msgstr "Rendelési szám"
+
+msgid "Description"
+msgstr "Leírás"
+
+msgid "Comment"
+msgstr "Megjegyzés"
+
+msgid "Parameters ({count})"
+msgstr "Paraméterek ({count})"
+
+msgid "Group Objects ({count})"
+msgstr "Kommunikációs objektumok ({count})"
+
+msgid "Assigned Objects"
+msgstr "Hozzárendelt objektumok"
+
+msgid "No devices"
+msgstr "Nincsenek készülékek"
+
+msgid "Loading application program…"
+msgstr "Az alkalmazási program betöltése…"
+
+msgid "This product has no application program."
+msgstr "Ennek a terméknek nincs alkalmazási programja."
+
+msgid "Individual Address"
+msgstr "Fizikai cím"
+
+msgid "Program Device"
+msgstr "Készülék programozása"
+
+msgid "Test Programming"
+msgstr "Programozás tesztelése"
+
+msgid "Program device?"
+msgstr "Programozza a készüléket?"
+
+msgid "This writes to the device at {address} (scope: {scope}) and changes its configuration. Continue?"
+msgstr "Ez a művelet ír a készülékre ({address}, terjedelem: {scope}), és módosítja a konfigurációját. Folytatja?"
+
+msgid "Download"
+msgstr "Programozás"
+
+msgid "Full"
+msgstr "Teljes"
+
+msgid "Application Program"
+msgstr "Alkalmazási program"
+
+msgid "Unload"
+msgstr "Kiürítés"
+
+msgid "Unload Application and Address"
+msgstr "Alkalmazás és cím kiürítése"
+
+msgid "Partial: Parameters"
+msgstr "Részleges: paraméterek"
+
+msgid "Partial: Group Communication"
+msgstr "Részleges: csoportkommunikáció"
+
+msgid "Manufacturer"
+msgstr "Gyártó"
+
+msgid "Manufacturer Info"
+msgstr "Gyártói információk"
+
+msgid "Application"
+msgstr "Alkalmazás"
+
+msgid "Program Version"
+msgstr "Programverzió"
+
+msgid "Application Version"
+msgstr "Alkalmazás verziója"
+
+msgid "Read from Device"
+msgstr "Kiolvasás a készülékből"
+
+msgid "Set an individual address and connect to the bus first"
+msgstr "Előbb állítson be fizikai címet, és csatlakozzon a buszhoz"
+
+msgid "Mask Version"
+msgstr "Maszkverzió"
+
+msgid "Serial Number"
+msgstr "Sorozatszám"
+
+msgid "Order Info"
+msgstr "Rendelési információ"
+
+msgid "Hardware Type"
+msgstr "Hardvertípus"
+
+msgid "differs from project V{version} — program to apply"
+msgstr "eltér a projekttől (V{version}) – az alkalmazáshoz programozza"
+
+msgid "Filter parameters…"
+msgstr "Paraméterek szűrése…"
+
+msgid "Hardware"
+msgstr "Hardver"
+
+msgid "Firmware"
+msgstr "Firmware"
+
+msgid "Com Flags ({count})"
+msgstr "Kommunikációs flagek ({count})"
+
+msgid "Load Procedures ({count})"
+msgstr "Betöltési eljárások ({count})"
+
+msgid "Preview Memory"
+msgstr "Memória előnézete"
+
+msgid "Memory Preview"
+msgstr "Memória-előnézet"
+
+msgid "Programming Test Result"
+msgstr "A programozási teszt eredménye"
+
+msgid "Evaluation failed"
+msgstr "A kiértékelés nem sikerült"
+
+msgid "Read-only test: checks that the download function generates the same image as what is already programmed on the device. Nothing is written to the device."
+msgstr "Csak olvasó teszt: ellenőrzi, hogy a programozási funkció ugyanazt a memóriaképet állítja-e elő, mint ami már a készülékbe van programozva. A készülékre semmi sem íródik."
+
+msgid "Cannot run: no KNX connection. Connect to a gateway (Connection menu) and make sure the device is reachable at its individual address."
+msgstr "Nem futtatható: nincs KNX-kapcsolat. Csatlakozzon egy átjáróhoz (Átjáró menü), és győződjön meg róla, hogy a készülék elérhető a fizikai címén."
+
+msgid "Match: the generated image is identical to what is on the device"
+msgstr "Egyezés: az előállított memóriakép megegyezik a készüléken lévővel"
+
+msgid "Mismatch: {bytes} byte(s) differ from the device in {locations} location(s)"
+msgstr "Eltérés: a készüléktől eltérő bájtok: {bytes}, helyek: {locations}"
+
+msgid "{matched} matched, {changed} would change"
+msgstr "Egyező: {matched}, változna: {changed}"
+
+msgid "Location"
+msgstr "Hely"
+
+msgid "Size"
+msgstr "Méret"
+
+msgid "Status"
+msgstr "Állapot"
+
+msgid "Changed"
+msgstr "Változott"
+
+msgid "match"
+msgstr "egyezik"
+
+msgid "would change"
+msgstr "változna"
+
+msgid "device-managed"
+msgstr "készülék kezeli"
+
+msgid "System byte the device sets itself at runtime (e.g. a download detection byte reset by the application after a download). A difference here is expected and does not indicate a bad download."
+msgstr "Rendszerbájt, amelyet a készülék futás közben maga állít be (pl. programozásérzékelő bájt, amelyet az alkalmazás a programozás után visszaállít). Az itteni eltérés várható, és nem hibás programozásra utal."
+
+msgid "plus {bytes} device-managed runtime byte(s) (expected, benign)"
+msgstr "továbbá a készülék által kezelt futásidejű bájtok: {bytes} (várható, ártalmatlan)"
+
+msgid "No configured differences: the device already carries this configuration. The differences below are benign (see notes)."
+msgstr "Nincsenek konfigurált eltérések: a készülék már ezt a konfigurációt tartalmazza. Az alábbi eltérések ártalmatlanok (lásd a megjegyzéseket)."
+
+msgid "sets default"
+msgstr "alapértéket állít be"
+
+msgid "This byte is written for a neighbouring parameter; the differing bit is not driven by any active parameter and is only reset to the application default. The device holds an older value (e.g. from a previous configuration or mode) that programming will normalise. Benign."
+msgstr "Ez a bájt egy szomszédos paraméter miatt íródik; az eltérő bitet egyetlen aktív paraméter sem vezérli, csak visszaáll az alkalmazás alapértékére. A készülékben egy régebbi érték van (pl. egy korábbi konfigurációból vagy üzemmódból), amelyet a programozás rendbe tesz. Ártalmatlan."
+
+msgid "plus {bytes} byte(s) reset to the application default (the device holds an older value; benign, will be normalised on programming)"
+msgstr "továbbá az alkalmazás alapértékére visszaállított bájtok: {bytes} (a készülékben régebbi érték van; ártalmatlan, a programozás rendbe teszi)"
+
+msgid "Export Ist/Soll…"
+msgstr "Ist/Soll exportálása…"
+
+msgid "Export Path:"
+msgstr "Exportálás helye:"
+
+msgid "memory {address}"
+msgstr "memória: {address}"
+
+msgid "object {object} property {property}"
+msgstr "objektum: {object}, tulajdonság: {property}"
+
+msgid "Filter devices (name, address)…"
+msgstr "Készülékek szűrése (név, cím)…"
+
+msgid "No devices. Open or import a project (File menu), or right-click here to add an area."
+msgstr "Nincsenek készülékek. Nyisson meg vagy importáljon egy projektet (Fájl menü), vagy kattintson ide a jobb gombbal egy terület hozzáadásához."
+
+msgid "Filter group addresses (address, name)…"
+msgstr "Csoportcímek szűrése (cím, név)…"
+
+msgid "Filter rooms, devices, functions…"
+msgstr "Helyiségek, készülékek, funkciók szűrése…"
+
+msgid "Unassigned ({count})"
+msgstr "Nincs hozzárendelve ({count})"
+
+msgid "Delete"
+msgstr "Törlés"
+
+msgid "Number"
+msgstr "Szám"
+
+msgid "Add"
+msgstr "Hozzáadás"
+
+msgid "OK"
+msgstr "OK"
+
+msgid "Save"
+msgstr "Mentés"
+
+msgid "Copy Log"
+msgstr "Napló másolása"
+
+msgid "Cancel"
+msgstr "Mégse"
+
+msgid "Address"
+msgstr "Cím"
+
+msgid "Project: {name}"
+msgstr "Projekt: {name}"
+
+msgid "(unsaved)"
+msgstr "(nincs mentve)"
+
+msgid "No history"
+msgstr "Nincsenek előzmények"
+
+msgid "Restore"
+msgstr "Visszaállítás"
+
+msgid "Add device: {name}"
+msgstr "Készülék hozzáadása: {name}"
+
+msgid "Remove device: {name}"
+msgstr "Készülék eltávolítása: {name}"
+
+msgid "Address: {old} -> {new}"
+msgstr "Cím: {old} -> {new}"
+
+msgid "Name: {old} -> {new}"
+msgstr "Név: {old} -> {new}"
+
+msgid "Parameter: {old} -> {new}"
+msgstr "Paraméter: {old} -> {new}"
+
+msgid "DPT: {old} -> {new}"
+msgstr "DPT: {old} -> {new}"
+
+msgid "Flag: {flag} -> {state}"
+msgstr "Flag: {flag} -> {state}"
+
+msgid "Group address {address} created"
+msgstr "Csoportcím létrehozva: {address}"
+
+msgid "Group address {address} removed"
+msgstr "Csoportcím eltávolítva: {address}"
+
+msgid "Group address: {old} -> {new}"
+msgstr "Csoportcím: {old} -> {new}"
+
+msgid "Group object linked to group address"
+msgstr "Kommunikációs objektum összekapcsolva a csoportcímmel"
+
+msgid "Group object unlinked from group address"
+msgstr "Kommunikációs objektum összekapcsolása a csoportcímmel megszüntetve"
+
+msgid "Area {number} created"
+msgstr "Terület létrehozva: {number}"
+
+msgid "Area {number} removed"
+msgstr "Terület eltávolítva: {number}"
+
+msgid "Area: {old} -> {new}"
+msgstr "Terület: {old} -> {new}"
+
+msgid "Line {number} created"
+msgstr "Vonal létrehozva: {number}"
+
+msgid "Line {number} removed"
+msgstr "Vonal eltávolítva: {number}"
+
+msgid "Line: {old} -> {new}"
+msgstr "Vonal: {old} -> {new}"
+
+msgid "Cannot run: the project was changed since it was opened. This test compares the generated image against the device's programmed state, which only matches the project as it was opened. Undo your changes in this session to test."
+msgstr "Nem futtatható: a projekt a megnyitása óta megváltozott. A teszt az előállított memóriaképet a készülék programozott állapotával hasonlítja össze, amely csak a megnyitáskori projekttel egyezik. A teszthez vonja vissza az ebben a munkamenetben végzett módosításait."
+
+msgid "Duplicate"
+msgstr "Duplikálás"
+
+msgid "Apply Changes to All {count} Identical Devices"
+msgstr "Módosítások alkalmazása az összes azonos készülékre ({count})"
+
+msgid "Editing {count} devices — edits apply to all, diverging values show <differs>"
+msgstr "Készülékek szerkesztése: {count} – a módosítások mindegyikre vonatkoznak, az eltérő értékek helyén <eltér> látható"
+
+msgid "Mass Linker"
+msgstr "Tömeges összekapcsolás"
+
+msgid "Object <> GA"
+msgstr "Objektum <> csoportcím"
+
+msgid "Object <> Object"
+msgstr "Objektum <> objektum"
+
+msgid "Log"
+msgstr "Napló"
+
+msgid "Open a project to use the Mass Linker."
+msgstr "A tömeges összekapcsolás használatához nyisson meg egy projektet."
+
+msgid "Pairs are matched by list order (1st with 1st, …). Surplus items on the longer side are ignored. Reorder a list via its right-click menu."
+msgstr "A párok a listák sorrendje szerint képződnek (1. az 1.-vel, …). A hosszabb lista fölösleges elemei figyelmen kívül maradnak. A lista sorrendjét a jobb gombos menüben módosíthatja."
+
+msgid "Source (objects)"
+msgstr "Forrás (objektumok)"
+
+msgid "Target (Group Addresses)"
+msgstr "Cél (csoportcímek)"
+
+msgid "Target (objects)"
+msgstr "Cél (objektumok)"
+
+msgid "Preview & Link"
+msgstr "Előnézet és összekapcsolás"
+
+msgid "Add Group Objects…"
+msgstr "Kommunikációs objektumok hozzáadása…"
+
+msgid "Add Group Addresses…"
+msgstr "Csoportcímek hozzáadása…"
+
+msgid "Add Selected"
+msgstr "Kijelöltek hozzáadása"
+
+msgid "Clear"
+msgstr "Törlés"
+
+msgid "Remove"
+msgstr "Eltávolítás"
+
+msgid "Move up"
+msgstr "Feljebb"
+
+msgid "Move Down"
+msgstr "Lejjebb"
+
+msgid "{count} items"
+msgstr "Elemek: {count}"
+
+msgid "{count} pairs"
+msgstr "Párok: {count}"
+
+msgid "{count} unpaired (ignored)"
+msgstr "Pár nélkül (figyelmen kívül hagyva): {count}"
+
+msgid "Link"
+msgstr "Összekapcsolás"
+
+msgid "GA Name ({source}, {target}, {n})"
+msgstr "Csoportcím neve ({source}, {target}, {n})"
+
+msgid "Start Address"
+msgstr "Kezdőcím"
+
+msgid "Filter…"
+msgstr "Szűrő…"
+
+msgid "Add Group Objects"
+msgstr "Kommunikációs objektumok hozzáadása"
+
+msgid "Add Group Addresses"
+msgstr "Csoportcímek hozzáadása"
+
+msgid "Linked {count} object(s) to group addresses"
+msgstr "Csoportcímekkel összekapcsolt objektumok: {count}"
+
+msgid "Linked {count} object pair(s) via new group addresses"
+msgstr "Új csoportcímekkel összekapcsolt objektumpárok: {count}"
+
+msgid "{count} error(s)"
+msgstr "Hibák: {count}"
+
+msgid "Clear All"
+msgstr "Az összes törlése"
+
+msgid "No operations yet."
+msgstr "Még nincsenek műveletek."
+
+msgid "Mass Linker Result"
+msgstr "A tömeges összekapcsolás eredménye"
+
+msgid "Tools"
+msgstr "Eszközök"
+
+msgid "Open a project to use the tools."
+msgstr "Az eszközök használatához nyisson meg egy projektet."
+
+msgid "No devices in this project."
+msgstr "Ebben a projektben nincsenek készülékek."
+
+msgid "Extended Copy"
+msgstr "Bővített másolás"
+
+msgid "Shift Addresses"
+msgstr "Címek eltolása"
+
+msgid "Labels"
+msgstr "Címkék"
+
+msgid "Topology Check"
+msgstr "Topológia-ellenőrzés"
+
+msgid "Source Device"
+msgstr "Forráskészülék"
+
+msgid "Copies"
+msgstr "Másolatok"
+
+msgid "Find in Name"
+msgstr "Keresés a névben"
+
+msgid "Replace with"
+msgstr "Csere erre"
+
+msgid "Create Group Addresses for Each Copy"
+msgstr "Csoportcímek létrehozása minden másolathoz"
+
+msgid "Copy Name: {name}"
+msgstr "Másolat neve: {name}"
+
+msgid "Copy"
+msgstr "Másolás"
+
+msgid "Created {count} copy/copies"
+msgstr "Létrehozott másolatok: {count}"
+
+msgid "Shifts the device part of each individual address. Group addresses are not shifted."
+msgstr "Eltolja minden fizikai cím készülékrészét. A csoportcímek nem tolódnak el."
+
+msgid "Offset"
+msgstr "Eltolás"
+
+msgid "Selected source device only (from Extended Copy)"
+msgstr "Csak a kijelölt forráskészülék (a Bővített másolásból)"
+
+msgid "(out of range)"
+msgstr "(tartományon kívül)"
+
+msgid "Shifted {count} address(es)"
+msgstr "Eltolt címek: {count}"
+
+msgid "Export {count} device(s) to a CSV for on-site labelling."
+msgstr "Készülékek exportálása CSV-be a helyszíni címkézéshez ({count} készülék)."
+
+msgid "Export CSV…"
+msgstr "CSV exportálása…"
+
+msgid "Exported to {path}"
+msgstr "Exportálva ide: {path}"
+
+msgid "No topology issues found."
+msgstr "Nem található topológiai probléma."
+
+msgid "{count} issue(s)"
+msgstr "Problémák: {count}"
+
+msgid "{count} address(es) will change"
+msgstr "Megváltozó címek: {count}"
+
+msgid "Click a finding to jump to the device."
+msgstr "Kattintson egy találatra a készülékhez ugráshoz."
+
+msgid "Link many group objects to existing group addresses at once. 1) Add objects: '+ Selected device' (all objects of the device selected in the tree) or 'Add objects…'. 2) Set each row's target address in its dropdown — or fill them fast with 'Assign sequential' (next free addresses from the given start) or 'Match by name'. 3) 'Link all' links every row that has a target."
+msgstr "Sok kommunikációs objektum összekapcsolása meglévő csoportcímekkel egyszerre. 1) Objektumok hozzáadása: „+ Kijelölt készülék” (a fában kijelölt készülék összes objektuma) vagy „Objektumok hozzáadása…”. 2) Állítsa be minden sor célcímét a legördülő listában – vagy töltse ki gyorsan a „Sorszám szerinti hozzárendelés” (a megadott kezdőcímtől a következő szabad címek) vagy a „Név szerinti egyeztetés” gombbal. 3) Az „Összes összekapcsolása” minden olyan sort összekapcsol, amelynek van célja."
+
+msgid "Link group objects to each other. 1) Add the source objects. 2) Pick a partner object per row. Each pair gets a NEW group address (source sends, target receives): the address and name are suggested (first free address, name template below) but can be edited per row. 3) 'Link all' creates and links them."
+msgstr "Kommunikációs objektumok összekapcsolása egymással. 1) Adja hozzá a forrásobjektumokat. 2) Válasszon minden sorhoz egy partnerobjektumot. Minden pár ÚJ csoportcímet kap (a forrás küld, a cél fogad): a cím és a név javaslat (első szabad cím, lenti névsablon), de soronként szerkeszthető. 3) Az „Összes összekapcsolása” létrehozza és összekapcsolja őket."
+
+msgid "Chronological record of every mass-link operation in this session."
+msgstr "A munkamenetben végzett összes tömeges összekapcsolási művelet időrendi naplója."
+
+msgid "Duplicate a device several times. Optionally rewrite the copy name (find/replace) and create a group address for each of its objects."
+msgstr "Egy készülék többszöri duplikálása. Igény szerint a másolat neve átírható (keresés/csere), és minden objektumához csoportcím hozható létre."
+
+msgid "Renumber devices by adding an offset to the device part of their individual addresses, e.g. to open gaps for new devices. Group addresses are untouched."
+msgstr "Készülékek átszámozása a fizikai címük készülékrészéhez adott eltolással, pl. hogy hely legyen új készülékeknek. A csoportcímek nem változnak."
+
+msgid "Export the device list (address, name, order number, manufacturer, description) to a CSV you can print as on-site labels."
+msgstr "A készüléklista (cím, név, rendelési szám, gyártó, leírás) exportálása CSV-be, amely helyszíni címkékként nyomtatható."
+
+msgid "Read-only scan: lists devices with a missing, malformed or duplicate individual address."
+msgstr "Csak olvasó vizsgálat: felsorolja a hiányzó, hibás formátumú vagy ismétlődő fizikai címmel rendelkező készülékeket."
+
+msgid "All"
+msgstr "Összes"
+
+msgid "None"
+msgstr "Egyik sem"
+
+msgid "{sel} of {total} selected"
+msgstr "{sel}/{total} kijelölve"
+
+msgid "Filter devices…"
+msgstr "Készülékek szűrése…"
+
+msgid "Replace Device"
+msgstr "Készülék cseréje"
+
+msgid "Swap a device for another model (a template device already in the project), keeping its group-address links. Group objects are matched by number and size; unmatched ones are reported. Parameters are not carried over."
+msgstr "Egy készülék lecserélése másik típusra (egy, a projektben már meglévő mintakészülékre), a csoportcím-összekapcsolások megtartásával. A kommunikációs objektumok párosítása szám és méret szerint történik; a párosíthatatlanokról jelentés készül. A paraméterek nem kerülnek át."
+
+msgid "Device to Replace"
+msgstr "Cserélendő készülék"
+
+msgid "Replace with (Template)"
+msgstr "Csere erre (minta)"
+
+msgid "Group Object Mapping (by Number)"
+msgstr "Kommunikációs objektumok megfeleltetése (szám szerint)"
+
+msgid "{count} object(s) will be re-mapped"
+msgstr "Újra megfeleltetendő objektumok: {count}"
+
+msgid "Replaced; re-mapped {count} group object(s)"
+msgstr "Lecserélve; újra megfeleltetett kommunikációs objektumok: {count}"
+
+msgid "Device"
+msgstr "Készülék"
+
+msgid "Group Object"
+msgstr "Kommunikációs objektum"
+
+msgid "DPT"
+msgstr "DPT"
+
+msgid "Target Group Address"
+msgstr "Célcsoportcím"
+
+msgid "Target Group Object"
+msgstr "Cél kommunikációs objektum"
+
+msgid "Group Address"
+msgstr "Csoportcím"
+
+msgid "Group Address Name"
+msgstr "Csoportcím neve"
+
+msgid "(none)"
+msgstr "(nincs)"
+
+msgid "+ Selected Device"
+msgstr "+ Kijelölt készülék"
+
+msgid "Select All"
+msgstr "Az összes kijelölése"
+
+msgid "No objects yet — add the selected device or pick objects."
+msgstr "Még nincsenek objektumok – adja hozzá a kijelölt készüléket, vagy válasszon objektumokat."
+
+msgid "From"
+msgstr "Kezdete"
+
+msgid "Assign Sequential"
+msgstr "Sorszám szerinti hozzárendelés"
+
+msgid "Match by Name"
+msgstr "Név szerinti egyeztetés"
+
+msgid "Link All ({count})"
+msgstr "Összes összekapcsolása ({count})"
+
+msgid "{ready} ready · {amb} ambiguous · {bad} incompatible · {none} unmatched"
+msgstr "Kész: {ready} · kétértelmű: {amb} · inkompatibilis: {bad} · párosítatlan: {none}"
+
+msgid "Only Problems"
+msgstr "Csak a problémák"
+
+msgid "Only for ETS 6 devices: this test compares the device against an image generated the ETS 6 way. A device last programmed with ETS 5 uses a different byte layout and will show large false differences - the result is only meaningful for a device last programmed with ETS 6."
+msgstr "Csak ETS 6-os készülékekhez: a teszt a készüléket az ETS 6 módján előállított memóriaképpel hasonlítja össze. Az utoljára ETS 5-tel programozott készülék más bájtelrendezést használ, és nagy, téves eltéréseket mutat – az eredmény csak utoljára ETS 6-tal programozott készüléknél értelmezhető."
+
+msgid "Structural differences (whole tables differ) can mean the device was last programmed with ETS 5, whose byte layout differs. Differences in values only usually mean the device holds a different configuration."
+msgstr "A szerkezeti eltérések (teljes táblák térnek el) arra utalhatnak, hogy a készüléket utoljára ETS 5-tel programozták, amelynek eltér a bájtelrendezése. A csak értékbeli eltérések általában azt jelentik, hogy a készülékben más konfiguráció van."
+
+msgid "Test/Program mirror an ETS 6 programming. If a test reports whole tables as different, the device was likely last programmed with ETS 5 (different byte layout)."
+msgstr "A tesztelés/programozás az ETS 6-os programozást követi. Ha egy teszt teljes táblákat jelez eltérőnek, a készüléket valószínűleg utoljára ETS 5-tel programozták (eltérő bájtelrendezés)."
+
+msgid "Product"
+msgstr "Termék"
+
+msgid "Product Ref"
+msgstr "Termékhivatkozás"
+
+msgid "Program Ref"
+msgstr "Programhivatkozás"
+
+msgid "Copied"
+msgstr "Másolva"
+
+msgid "Click to copy"
+msgstr "Kattintson a másoláshoz"
+
+msgid "Update to V{version}"
+msgstr "Frissítés erre: V{version}"
+
+msgid "Type"
+msgstr "Típus"
+
+msgid "Create"
+msgstr "Létrehozás"
+
+msgid "Custom"
+msgstr "Egyéni"
+
+msgid "Switchable Light"
+msgstr "Kapcsolható világítás"
+
+msgid "Dimmable Light"
+msgstr "Dimmelhető világítás"
+
+msgid "Sun Protection"
+msgstr "Napvédelem"
+
+msgid "Heating (Switching Variable)"
+msgstr "Fűtés (kapcsoló állítójel)"
+
+msgid "Heating (Continuous Variable)"
+msgstr "Fűtés (folyamatos állítójel)"
+
+msgid "Switchable Socket"
+msgstr "Kapcsolható aljzat"
+
+msgid "Confirmed Restart"
+msgstr "Nyugtázott újraindítás"
+
+msgid "Delete Application Program"
+msgstr "Alkalmazási program törlése"
+
+msgid "Factory Reset"
+msgstr "Gyári alaphelyzet"
+
+msgid "Factory Reset (Keep Address)"
+msgstr "Gyári alaphelyzet (cím megtartásával)"
+
+msgid "I understand this resets the device"
+msgstr "Tudomásul veszem, hogy ez alaphelyzetbe állítja a készüléket"
+
+msgid "Master Reset"
+msgstr "Master reset"
+
+msgid "Reset Device"
+msgstr "Készülék alaphelyzetbe állítása"
+
+msgid "Reset Group Address Links"
+msgstr "Csoportcím-összekapcsolások alaphelyzetbe állítása"
+
+msgid "Reset Individual Address"
+msgstr "Fizikai cím alaphelyzetbe állítása"
+
+msgid "Reset Parameters"
+msgstr "Paraméterek alaphelyzetbe állítása"
+
+msgid "Reset Type"
+msgstr "Alaphelyzetbe állítás típusa"
+
+msgid "Reset…"
+msgstr "Alaphelyzetbe állítás…"
+
+msgid "Restart"
+msgstr "Újraindítás"
+
+msgid "no fault reported"
+msgstr "nincs jelentett hiba"
+
+msgid "(Top Level)"
+msgstr "(legfelső szint)"
+
+msgid "Assign a Device to This Space"
+msgstr "Készülék hozzárendelése ehhez az épületrészhez"
+
+msgid "Building"
+msgstr "Épület"
+
+msgid "Building Part"
+msgstr "Épületrész"
+
+msgid "Corridor"
+msgstr "Folyosó"
+
+msgid "Delete this space and everything in it? Devices are only unassigned, not deleted."
+msgstr "Törli ezt az épületrészt és a teljes tartalmát? A készülékek csak a hozzárendelésüket veszítik el, nem törlődnek."
+
+msgid "Floor"
+msgstr "Emelet"
+
+msgid "Move to"
+msgstr "Áthelyezés ide"
+
+msgid "No unassigned devices"
+msgstr "Nincsenek hozzárendeletlen készülékek"
+
+msgid "Room"
+msgstr "Helyiség"
+
+msgid "Stairway"
+msgstr "Lépcsőház"
+
+msgid "Without Space"
+msgstr "Épületrész nélkül"
+
+msgid "Delete Folder"
+msgstr "Mappa törlése"
+
+msgid "Delete this folder and every group address in it? This can be undone."
+msgstr "Törli ezt a mappát és a benne lévő összes csoportcímet? Ez visszavonható."
+
+msgid "Apply Changes to All Channels"
+msgstr "Módosítások alkalmazása az összes csatornára"
+
+msgid "S"
+msgstr "K"
+
+msgid "S = Sending. This object sends its value to the group address; the others only receive it."
+msgstr "K = Küldő. Ez az objektum küldi az értékét a csoportcímre; a többi csak fogadja."
+
+msgid "Click to open this device in the editor"
+msgstr "Kattintson a készülék megnyitásához a szerkesztőben"
+
+msgid "Copy Configuration"
+msgstr "Konfiguráció másolása"
+
+msgid "Paste Configuration"
+msgstr "Konfiguráció beillesztése"
+
+msgid "Paste configuration onto '{name}':"
+msgstr "Konfiguráció beillesztése ide: „{name}”:"
+
+msgid "Paste configuration onto {count} selected devices:"
+msgstr "Konfiguráció beillesztése a kijelölt készülékekre ({count}):"
+
+msgid "Duplicate '{name}':"
+msgstr "Duplikálás: „{name}”:"
+
+msgid "Parameters"
+msgstr "Paraméterek"
+
+msgid "Group Address Links"
+msgstr "Csoportcím-összekapcsolások"
+
+msgid "Paste"
+msgstr "Beillesztés"
+
+msgid "This action can only be performed when the individual address of the device is already downloaded."
+msgstr "Ez a művelet csak akkor hajtható végre, ha a készülék fizikai címe már be van programozva."
+
+msgid "Button {0} executed. "
+msgstr "Gomb végrehajtva: {0}. "
+
+msgid "A parameter script is running for this device."
+msgstr "Ehhez a készülékhez paraméterszkript fut."
+
+msgid "The Device has no valid address or is not linked to an area or line."
+msgstr "A készüléknek nincs érvényes címe, vagy nincs területhez vagy vonalhoz rendelve."
+
+msgid "Parameter Script"
+msgstr "Paraméterszkript"
+
+msgid "Executing Script"
+msgstr "Futó szkript"
+
+msgid "Script not responding"
+msgstr "A szkript nem válaszol"
+
+msgid "Force Stop"
+msgstr "Kényszerített leállítás"
+
+msgid "The script was stopped."
+msgstr "A szkript leállt."
+
+msgid "Canceling…"
+msgstr "Megszakítás…"
+
+msgid "No connection to the bus."
+msgstr "Nincs kapcsolat a busszal."
+
+msgid "Parameter value cannot be set, because validation failed."
+msgstr "A paraméterérték nem állítható be, mert az ellenőrzés sikertelen."
+
+msgid "Operations"
+msgstr "Műveletek"
+
+msgid "Active"
+msgstr "Aktív"
+
+msgid "Cancel All"
+msgstr "Összes megszakítása"
+
+msgid "Clear History"
+msgstr "Előzmények törlése"
+
+msgid "No operations."
+msgstr "Nincsenek műveletek."
+
+msgid "Downloading"
+msgstr "Programozás folyamatban"
+
+msgid "Waiting"
+msgstr "Várakozik"
+
+msgid "Finished"
+msgstr "Befejezve"
+
+msgid "Canceled"
+msgstr "Megszakítva"
+
+msgid "failed"
+msgstr "sikertelen"
+
+msgid "No details available"
+msgstr "Nincsenek elérhető részletek"
+
+msgid "Connection: {connection}"
+msgstr "Kapcsolat: {connection}"
+
+msgid "Start: {time}"
+msgstr "Kezdés: {time}"
+
+msgid "End: {time}"
+msgstr "Befejezés: {time}"
+
+msgid "The product data of this device is missing - its application program is not in the catalog. Import its product to edit the device."
+msgstr "A készülék termékadatai hiányoznak – az alkalmazási programja nincs a katalógusban. A készülék szerkesztéséhez importálja a termékét."
+
+msgid "Device Info"
+msgstr "Készülékinformáció"
+
+msgid "Device Info (With Group Communication)"
+msgstr "Készülékinformáció (csoportkommunikációval)"
+
+msgid "Reading"
+msgstr "Olvasás folyamatban"
+
+msgid "General"
+msgstr "Általános"
+
+msgid "Group Communication"
+msgstr "Csoportkommunikáció"
+
+msgid "Device Manufacturer"
+msgstr "Készülék gyártója"
+
+msgid "Firmware Version"
+msgstr "Firmware-verzió"
+
+msgid "Programming Mode"
+msgstr "Programozási mód"
+
+msgid "Load State"
+msgstr "Betöltési állapot"
+
+msgid "Address Table Load State"
+msgstr "Címtábla betöltési állapota"
+
+msgid "Association Table Load State"
+msgstr "Társítási tábla betöltési állapota"
+
+msgid "Group Object Table Load State"
+msgstr "Kommunikációsobjektum-tábla betöltési állapota"
+
+msgid "Reading the tables failed: {error}"
+msgstr "A táblák olvasása nem sikerült: {error}"
+
+msgid "On"
+msgstr "Be"
+
+msgid "Off"
+msgstr "Ki"
+
+msgid "Unloaded"
+msgstr "Kiürítve"
+
+msgid "Loaded"
+msgstr "Betöltve"
+
+msgid "Loading"
+msgstr "Betöltés folyamatban"
+
+msgid "Error"
+msgstr "Hiba"
+
+msgid "Unloading"
+msgstr "Kiürítés folyamatban"
+
+msgid "Load Completing"
+msgstr "Betöltés befejezése"
+
+msgid "Yes"
+msgstr "Igen"
+
+msgid "Also read the group communication?"
+msgstr "A csoportkommunikációt is beolvassa?"
+
+msgid "No"
+msgstr "Nem"
+
+msgid "The application on the device is not in the catalog, so its tables cannot be located"
+msgstr "A készüléken lévő alkalmazás nincs a katalógusban, ezért a táblái nem kereshetők meg"
+
+msgid "This device can only be programmed with the manufacturer's plugin, which is not available here."
+msgstr "Ez a készülék csak a gyártó beépülő moduljával programozható, amely itt nem érhető el."
+
+msgid "The manufacturer configures this device with its own plugin dialog; settings made there are not shown here."
+msgstr "A gyártó saját beépülőmodul-párbeszédpanellel konfigurálja ezt a készüléket; az ott végzett beállítások itt nem jelennek meg."
+
+msgid "The manufacturer programs this device with its own plugin; the standard download is used here."
+msgstr "A gyártó saját beépülő modullal programozza ezt a készüléket; itt a szabványos programozás történik."
+
+msgid "The manufacturer keeps part of this device's data with its own plugin, which is not available here."
+msgstr "A gyártó a készülék adatainak egy részét saját beépülő modullal kezeli, amely itt nem érhető el."
+
+msgid "This device is also configured with separate software from the manufacturer."
+msgstr "Ez a készülék a gyártó külön szoftverével is konfigurálandó."
+
+msgid "This device includes a manufacturer configuration app (“{name}”) that XKNX Editor can't run. The device's standard parameters can still be programmed, but not the extra functionality that app provides."
+msgstr "Ez a készülék tartalmaz egy gyártói konfigurációs alkalmazást („{name}”), amelyet az XKNX Editor nem tud futtatni. A készülék szabványos paraméterei továbbra is programozhatók, de az alkalmazás által nyújtott további funkciók nem."
+
+msgid "This device includes a manufacturer configuration app (“{name}”) that can't be run directly in XKNX Editor — but it has been ported, so its most important functions are usable here (see the DALI tab)."
+msgstr "Ez a készülék tartalmaz egy gyártói konfigurációs alkalmazást („{name}”), amely közvetlenül nem futtatható az XKNX Editorban – de át lett ültetve, így a legfontosabb funkciói itt is használhatók (lásd a DALI lapot)."
+
+msgid "The manufacturer allows programming this device only with its plugin, which is not available here. Programming it without the plugin may leave the device misconfigured or in an error state."
+msgstr "A gyártó ezt a készüléket csak a beépülő moduljával engedi programozni, amely itt nem érhető el. A beépülő modul nélküli programozás után a készülék hibásan konfigurált vagy hibaállapotban maradhat."
+
+msgid "Program Without the Manufacturer's Plugin Anyway"
+msgstr "Programozás mégis a gyártó beépülő modulja nélkül"
+
+msgid "Overwrite Individual Address"
+msgstr "Fizikai cím felülírása"
+
+msgid "This writes the individual address {address} to the device whose programming button is pressed. Continue?"
+msgstr "Ez a művelet beírja ezt a fizikai címet abba a készülékbe, amelynek a programozó gombja meg van nyomva: {address}. Folytatja?"
+
+msgid "This overwrites the individual address of the device at its current address with {address}. Its programming button does not need to be pressed."
+msgstr "Ez a művelet felülírja a készülék fizikai címét a jelenlegi címén erre: {address}. A programozó gombot nem kell megnyomni."
+
+msgid "Current Individual Address"
+msgstr "Jelenlegi fizikai cím"
+
+msgid "Enter the device's current individual address, e.g. 1.1.5."
+msgstr "Adja meg a készülék jelenlegi fizikai címét, pl. 1.1.5."
+
+msgid "The device already has the individual address {address}."
+msgstr "A készülék fizikai címe már ez: {address}"
+
+msgid "Please press the programming button"
+msgstr "Nyomja meg a programozó gombot"
+
+msgid "Individual Address via Serial Number"
+msgstr "Fizikai cím sorozatszám alapján"
+
+msgid "This writes the individual address {address} to the device with the serial number {serial}. Its programming button does not need to be pressed."
+msgstr "Ez a művelet a fizikai címet a sorozatszám alapján azonosított készülékbe írja. Cím: {address}, sorozatszám: {serial}. A programozó gombot nem kell megnyomni."
+
+msgid "Use Serial Number"
+msgstr "Sorozatszám használata"
+
+msgid "The serial number is already associated with device {device}."
+msgstr "A sorozatszám már egy másik készülékhez van rendelve: {device}"
+
+msgid "Enter the serial number as 12 hexadecimal digits, e.g. 0083:7AA2039C."
+msgstr "A sorozatszámot 12 hexadecimális számjeggyel adja meg, pl. 0083:7AA2039C."
+
+msgid "The reported value matches {devices} in this project."
+msgstr "A jelentett érték egyezik ebben a projektben: {devices}"
+
+msgid "Waiting for confirmation"
+msgstr "Várakozás nyugtázásra"
+
+msgid "The application program currently loaded in the device is different from the projected application program"
+msgstr "A készülékbe jelenleg betöltött alkalmazási program eltér a projektben tervezett alkalmazási programtól"
+
+msgid "Do you want to overwrite the application program (this may take several minutes)?"
+msgstr "Felülírja az alkalmazási programot (ez több percig is tarthat)?"
+
+msgid "The application program currently loaded in the device does not comply with the projected application program. You may try a full instead of a partial download."
+msgstr "A készülékbe betöltött alkalmazási program nem egyezik a projektben tervezett alkalmazási programmal. Részleges helyett próbálkozhat teljes programozással."
+
+msgid "Incompatible mask version: {found} instead of {expected}"
+msgstr "Inkompatibilis maszkverzió: {found} a várt {expected} helyett"
+
+msgid "Change Application Program"
+msgstr "Alkalmazási program módosítása"
+
+msgid "Update Application Program Version"
+msgstr "Alkalmazási program verziójának frissítése"
+
+msgid "Update"
+msgstr "Frissítés"
+
+msgid "Changing the application program failed"
+msgstr "Az alkalmazási program módosítása nem sikerült"
+
+msgid "Updating the application program failed"
+msgstr "Az alkalmazási program frissítése nem sikerült"
+
+msgid "Updating the application program…"
+msgstr "Az alkalmazási program frissítése…"
+
+msgid "Changing the application program…"
+msgstr "Az alkalmazási program módosítása…"
+
+msgid "Delete Space"
+msgstr "Épületrész törlése"
+
+msgid "Load Reference File"
+msgstr "Referenciafájl betöltése"
+
+msgid "Save Memory Dump"
+msgstr "Memóriakép mentése"
+
+msgid "Export Programming Test Result"
+msgstr "A programozási teszt eredményének exportálása"
+
+msgid "Load"
+msgstr "Betöltés"
+
+msgid "DIN Rail Mounting"
+msgstr "Kalapsínre szerelhető"
+
+msgid "Bus Current"
+msgstr "Buszáram"
+
+msgid "Read Value"
+msgstr "Érték olvasása"
+
+msgid "Write Value…"
+msgstr "Érték írása…"
+
+msgid "Write Value"
+msgstr "Érték írása"
+
+msgid "Data Type"
+msgstr "Adattípus"
+
+msgid "Value"
+msgstr "Érték"
+
+msgid "Set the data type of the group address to write a value."
+msgstr "Érték írásához állítsa be a csoportcím adattípusát."
+
+msgid "Write"
+msgstr "Írás"
+
+msgid "Not connected to the bus."
+msgstr "Nincs kapcsolat a busszal."
+
+msgid "Export Group Addresses…"
+msgstr "Csoportcímek exportálása…"
+
+msgid "Import Group Addresses…"
+msgstr "Csoportcímek importálása…"
+
+msgid "Import Group Addresses"
+msgstr "Csoportcímek importálása"
+
+msgid "Group Address Files (XML, CSV)"
+msgstr "Csoportcímfájlok (XML, CSV)"
+
+msgid "All Files"
+msgstr "Minden fájl"
+
+msgid "{added} group addresses added, {updated} updated."
+msgstr "Hozzáadott csoportcímek: {added}, frissített: {updated}."
+
+msgid "{count} group addresses could not be placed in a group."
+msgstr "Csoporthoz nem rendelhető csoportcímek: {count}."
+
+msgid "The file could not be imported: {error}"
+msgstr "A fájl nem importálható: {error}"
+
+msgid "The file uses {file} group addresses, but the project uses {project} group addresses."
+msgstr "A fájl {file} csoportcímeket használ, a projekt viszont {project} csoportcímeket."
+
+msgid "3-level"
+msgstr "háromszintű"
+
+msgid "2-level"
+msgstr "kétszintű"
+
+msgid "free"
+msgstr "szabad"
+
+msgid "Export"
+msgstr "Exportálás"
+
+msgid "Import"
+msgstr "Importálás"
+
+msgid "Based on OpenKNXproducer"
+msgstr "Az OpenKNXproducer alapján"
+
+msgid "CSV"
+msgstr "CSV"
+
+msgid "Channels ({count})"
+msgstr "Csatornák ({count})"
+
+msgid "Choose Project to Compare"
+msgstr "Az összehasonlítandó projekt kiválasztása"
+
+msgid "Choose Project to Compare…"
+msgstr "Összehasonlítandó projekt kiválasztása…"
+
+msgid "Columns"
+msgstr "Oszlopok"
+
+msgid "Comments are encrypted"
+msgstr "A megjegyzések titkosítva vannak"
+
+msgid "Compare the open project with another project file (.knxproj, .xknx or a backup): which devices and group addresses were added, removed or changed. The other project is read-only; nothing is modified."
+msgstr "A megnyitott projekt összehasonlítása egy másik projektfájllal (.knxproj, .xknx vagy biztonsági mentés): mely készülékek és csoportcímek lettek hozzáadva, eltávolítva vagy módosítva. A másik projekt csak olvasható; semmi sem módosul."
+
+msgid "Custom Grid"
+msgstr "Egyéni rács"
+
+msgid "DALI (Bus)"
+msgstr "DALI (busz)"
+
+msgid "Date"
+msgstr "Dátum"
+
+msgid "Decrypt Comments"
+msgstr "Megjegyzések visszafejtése"
+
+msgid "Default Gateway"
+msgstr "Alapértelmezett átjáró"
+
+msgid "Delete '{name}'? Its group objects and group-address links are removed and its individual address is freed. This can be undone."
+msgstr "Törli ezt: „{name}”? A kommunikációs objektumai és csoportcím-összekapcsolásai eltávolításra kerülnek, a fizikai címe pedig felszabadul. Ez visszavonható."
+
+msgid "Delete Device"
+msgstr "Készülék törlése"
+
+msgid "Destructive: the device is reset over the bus and must be commissioned again. In KNX Secure mode this deactivates device security."
+msgstr "Romboló művelet: a készülék a buszon keresztül alaphelyzetbe áll, és újra üzembe kell helyezni. KNX Secure módban ez kikapcsolja a készülék biztonsági funkcióit."
+
+msgid "Download PDF Manual"
+msgstr "PDF-kézikönyv letöltése"
+
+msgid "ETS encrypts the log comments. Extract the decryption key from your own ETS installation's Knx.Ets.Common.dll to read them; nothing is sent anywhere."
+msgstr "Az ETS titkosítja a napló megjegyzéseit. Az olvasásukhoz nyerje ki a visszafejtő kulcsot a saját ETS-telepítése Knx.Ets.Common.dll fájljából; semmi sem kerül továbbításra."
+
+msgid "Export HTML…"
+msgstr "HTML exportálása…"
+
+msgid "Extract from Knx.Ets.Common.dll…"
+msgstr "Kinyerés a Knx.Ets.Common.dll fájlból…"
+
+msgid "Extracting key…"
+msgstr "A kulcs kinyerése…"
+
+msgid "Fields"
+msgstr "Mezők"
+
+msgid "Filter log"
+msgstr "Napló szűrése"
+
+msgid "Find this device's manual (via the KNX device database, else a manufacturer search) and open it in your browser. Best effort - opens the KNX device search if no direct document is found."
+msgstr "A készülék kézikönyvének megkeresése (a KNX készülékadatbázisában, ennek hiányában gyártói kereséssel) és megnyitása a böngészőben. Nem garantált – ha nem talál közvetlen dokumentumot, a KNX készülékkeresőjét nyitja meg."
+
+msgid "Gap X / Y (mm)"
+msgstr "Térköz X / Y (mm)"
+
+msgid "Obtain an IP address automatically"
+msgstr "IP-cím automatikus kérése"
+
+msgid "Use a static IP address"
+msgstr "Statikus IP-cím használata"
+
+msgid "Assigned IP Address"
+msgstr "Kiosztott IP-cím"
+
+msgid "An invalid IP address was specified."
+msgstr "Érvénytelen IP-címet adott meg."
+
+msgid "Change assigned IP address of '{0}' to '{1}'."
+msgstr "Kiosztott IP-cím módosítva („{0}”): „{1}”."
+
+msgid "IP configuration of device '{0}' changed."
+msgstr "Készülék IP-konfigurációja módosítva: „{0}”."
+
+msgid "IP Address"
+msgstr "IP-cím"
+
+msgid "IP Configuration"
+msgstr "IP-konfiguráció"
+
+msgid "Individual Addresses"
+msgstr "Fizikai címek"
+
+msgid "Installation"
+msgstr "Telepítés"
+
+msgid "Invalid address or already in use."
+msgstr "Érvénytelen vagy már foglalt cím."
+
+msgid "KNX Common Assembly"
+msgstr "KNX Common szerelvény"
+
+msgid "KNX project (*.knxproj *.xknx *.zip)"
+msgstr "KNX-projekt (*.knxproj *.xknx *.zip)"
+
+msgid "Key extracted; comments decrypted"
+msgstr "A kulcs kinyerve; a megjegyzések visszafejtve"
+
+msgid "Label Sheet"
+msgstr "Címkeív"
+
+msgid "Label W x H (mm)"
+msgstr "Címke Sz × M (mm)"
+
+msgid "Legend (Full Page)"
+msgstr "Jelmagyarázat (teljes oldal)"
+
+msgid "MAC Address"
+msgstr "MAC-cím"
+
+msgid "Margin Top / Left (mm)"
+msgstr "Margó fent / balra (mm)"
+
+msgid "No .NET runtime found (install the .NET SDK, or run on Windows with ETS)."
+msgstr "Nem található .NET-futtatókörnyezet (telepítse a .NET SDK-t, vagy futtassa Windowson az ETS-sel)."
+
+msgid "No differences in devices or group addresses."
+msgstr "Nincs eltérés a készülékekben és a csoportcímekben."
+
+msgid "No project log entries"
+msgstr "Nincsenek projektnapló-bejegyzések"
+
+msgid "Output"
+msgstr "Kimenet"
+
+msgid "Pick the fields and an output: a CSV, printable label sheets (Avery), or a full-page legend. HTML output opens in your browser to print or save as PDF."
+msgstr "Válassza ki a mezőket és a kimenetet: CSV, nyomtatható címkeívek (Avery) vagy teljes oldalas jelmagyarázat. A HTML-kimenet a böngészőben nyílik meg nyomtatáshoz vagy PDF-mentéshez."
+
+msgid "Project Diff"
+msgstr "Projektek összehasonlítása"
+
+msgid "Project Log"
+msgstr "Projektnapló"
+
+msgid "Renumber group addresses by adding an offset to their raw value, e.g. to open gaps. Group object links move with each address. Nothing is written if any move would collide or leave the valid range."
+msgstr "Csoportcímek átszámozása a nyers értékükhöz adott eltolással, pl. hogy hely legyen. A kommunikációs objektumok összekapcsolásai a címekkel együtt mozognak. Semmi sem íródik ki, ha bármely eltolás ütközne vagy kilépne az érvényes tartományból."
+
+msgid "Rows"
+msgstr "Sorok"
+
+msgid "Searching Manual…"
+msgstr "Kézikönyv keresése…"
+
+msgid "Select at least one field."
+msgstr "Válasszon ki legalább egy mezőt."
+
+msgid "Sheet"
+msgstr "Ív"
+
+msgid "Shift Group Addresses"
+msgstr "Csoportcímek eltolása"
+
+msgid "Shifted {count} group address(es)"
+msgstr "Eltolt csoportcímek: {count}"
+
+msgid "Subnet Mask"
+msgstr "Alhálózati maszk"
+
+msgid "The offset is added to the raw 16-bit value, so it may change the main/middle group as addresses cross a boundary."
+msgstr "Az eltolás a 16 bites nyers értékhez adódik, ezért megváltozhat a fő-/középcsoport, ha a címek átlépnek egy határt."
+
+msgid "This project has no group addresses."
+msgstr "Ebben a projektben nincsenek csoportcímek."
+
+msgid "User"
+msgstr "Felhasználó"
+
+msgid "added"
+msgstr "hozzáadva"
+
+msgid "changed"
+msgstr "módosítva"
+
+msgid "Compared with {name}:"
+msgstr "Összehasonlítva ezzel: {name}"
+
+msgid "removed"
+msgstr "eltávolítva"
+
+msgid "{count} difference(s)"
+msgstr "Eltérések: {count}"
+
+msgid "Save…"
+msgstr "Mentés…"
+
+msgid "Diff…"
+msgstr "Összehasonlítás…"
+
+msgid "Clear Diff"
+msgstr "Összehasonlítás törlése"
+
+msgid "Memory Dumps (*.bin)"
+msgstr "Memóriaképek (*.bin)"
+
+msgid "{count} bytes"
+msgstr "{count} bájt"
+
+msgid "No memory segments."
+msgstr "Nincsenek memóriaszegmensek."
+
+msgid "Cannot encode memory image: {error}"
+msgstr "A memóriakép nem kódolható: {error}"
+
+msgid "The file could not be read or written: {error}"
+msgstr "A fájl nem olvasható vagy írható: {error}"
+
+msgid "Password"
+msgstr "Jelszó"
+
+msgid "Protected"
+msgstr "Védett"
+
+msgid "Not protected"
+msgstr "Nem védett"
+
+msgid "Set Password"
+msgstr "Jelszó beállítása"
+
+msgid "Change Password"
+msgstr "Jelszó módosítása"
+
+msgid "Remove Password"
+msgstr "Jelszó eltávolítása"
+
+msgid "Project Password"
+msgstr "Projektjelszó"
+
+msgid "The project and its exports are protected with this password; opening or importing them asks for it. A password change cannot be undone."
+msgstr "A projektet és az exportjait ez a jelszó védi; megnyitásukkor vagy importálásukkor a program bekéri. A jelszómódosítás nem vonható vissza."
+
+msgid "Repeat Password"
+msgstr "Jelszó megismétlése"
+
+msgid "The passwords do not match."
+msgstr "A jelszavak nem egyeznek."
+
+msgid "A project with KNX Secure devices needs a password: it protects their keys in the project and in its exports."
+msgstr "A KNX Secure készülékeket tartalmazó projektnek jelszó kell: ez védi a készülékek kulcsait a projektben és az exportokban."
+
+msgid "The other project is protected with a password. Enter it to compare:"
+msgstr "A másik projekt jelszóval védett. Az összehasonlításhoz adja meg a jelszót:"
+
+msgid "Compare"
+msgstr "Összehasonlítás"
+
+msgid "Wrong password, please try again."
+msgstr "Hibás jelszó, próbálja újra."
+
+msgid "Add Device Certificate"
+msgstr "Készüléktanúsítvány hozzáadása"
+
+msgid "Device Certificate"
+msgstr "Készüléktanúsítvány"
+
+msgid "This device already uses its own key from this project. Its certificate is only needed again after a factory reset."
+msgstr "Ez a készülék már a projekt saját kulcsát használja. A tanúsítványára csak gyári alaphelyzetbe állítás után lesz ismét szükség."
+
+msgid "This device still uses its factory key: its first secure download needs its certificate."
+msgstr "Ez a készülék még a gyári kulcsát használja: az első biztonságos programozásához szükség van a tanúsítványára."
+
+msgid "Stored Certificate: {serial}"
+msgstr "Tárolt tanúsítvány: {serial}"
+
+msgid "Enter the FDSK from its label or certificate (36 characters):"
+msgstr "Adja meg az FDSK-t a készülék címkéjéről vagy tanúsítványáról (36 karakter):"
+
+msgid "To replace it, enter the new FDSK (36 characters):"
+msgstr "A cseréjéhez adja meg az új FDSK-t (36 karakter):"
+
+msgid "Remove the stored certificate? After a factory reset, the device can then only be reached again with the code from its label."
+msgstr "Eltávolítja a tárolt tanúsítványt? Gyári alaphelyzetbe állítás után a készülék ezután csak a címkéjén lévő kóddal lesz ismét elérhető."
+
+msgid "Device Certificate…"
+msgstr "Készüléktanúsítvány…"
+
+msgid "The device certificate (FDSK) is missing."
+msgstr "Hiányzik a készüléktanúsítvány (FDSK)."
+
+msgid "This is not a valid FDSK; please check it."
+msgstr "Ez nem érvényes FDSK; ellenőrizze."
+
+msgid "This certificate belongs to the device with serial number {serial}."
+msgstr "Ez a tanúsítvány egy másik készülékhez tartozik, sorozatszám: {serial}"
+
+msgid "Set a project password first: it protects the device keys."
+msgstr "Előbb állítson be projektjelszót: ez védi a készülékkulcsokat."
+
+msgid "Security"
+msgstr "Biztonság"
+
+msgid "Automatic"
+msgstr "Automatikus"
+
+msgid "Plain"
+msgstr "Titkosítatlan"
+
+msgid "Deactivate Secure Commissioning"
+msgstr "Biztonságos üzembe helyezés kikapcsolása"
+
+msgid "These group addresses will then communicate in the clear:"
+msgstr "Ezek a csoportcímek ezután titkosítás nélkül kommunikálnak:"
+
+msgid "The device's group objects will be removed from these secured group addresses:"
+msgstr "A készülék kommunikációs objektumai eltávolításra kerülnek ezekről a biztonságos csoportcímekről:"
+
+msgid "Deactivate"
+msgstr "Kikapcsolás"
+
+msgid "Secure Commissioning"
+msgstr "Biztonságos üzembe helyezés"
+
+msgid "Add Device Certificate…"
+msgstr "Készüléktanúsítvány hozzáadása…"
+
+msgid "Activated"
+msgstr "Bekapcsolva"
+
+msgid "Deactivated"
+msgstr "Kikapcsolva"
+
+msgid "A secured group address can only be linked to devices that are commissioned securely."
+msgstr "Biztonságos csoportcím csak biztonságosan üzembe helyezett készülékekkel kapcsolható össze."
+
+msgid "Not every device linked to this group address is commissioned securely, so it cannot be secured."
+msgstr "Nem minden, ehhez a csoportcímhez kapcsolt készülék van biztonságosan üzembe helyezve, ezért a csoportcím nem tehető biztonságossá."
+
+msgid "A group object that requires secure communication would end up on a group address in the clear."
+msgstr "Egy biztonságos kommunikációt igénylő kommunikációs objektum titkosítatlan csoportcímre kerülne."
+
+msgid "Later"
+msgstr "Később"
+
+msgid "Don't Ask When Adding Devices"
+msgstr "Ne kérdezzen rá készülékek hozzáadásakor"
+
+msgid "KNX IP Secure"
+msgstr "KNX IP Secure"
+
+msgid "Show Passwords"
+msgstr "Jelszavak megjelenítése"
+
+msgid "Secure Tunneling"
+msgstr "Biztonságos tunneling"
+
+msgid "Commissioning Password"
+msgstr "Üzembe helyezési jelszó"
+
+msgid "Authentication Code"
+msgstr "Hitelesítési kód"
+
+msgid "Interface"
+msgstr "Interfész"
+
+msgid "Routing"
+msgstr "Routing"
+
+msgid "Tunnel {address}"
+msgstr "Tunnel: {address}"
+
+msgid "A password needs 1 to 20 Latin-1 characters."
+msgstr "A jelszó 1–20 Latin-1 karakterből állhat."
+
+msgid "Close"
+msgstr "Bezárás"
+
+msgid "Device Certificates"
+msgstr "Készüléktanúsítványok"
+
+msgid "Manage…"
+msgstr "Kezelés…"
+
+msgid "The project has no device certificates."
+msgstr "A projektben nincsenek készüléktanúsítványok."
+
+msgid "The security tables of {device} cannot hold this link."
+msgstr "A készülék biztonsági táblái nem tudják befogadni ezt az összekapcsolást: {device}"
+
+msgid "Point-to-Point and Broadcast"
+msgstr "Pont-pont és üzenetszórás"
+
+msgid "Blocked"
+msgstr "Letiltva"
+
+msgid "Routed"
+msgstr "Továbbítva"
+
+msgid "Compare Devices"
+msgstr "Készülékek összehasonlítása"
+
+msgid "Compare with…"
+msgstr "Összehasonlítás ezzel…"
+
+msgid "Show in Bus Diagram"
+msgstr "Megjelenítés a buszdiagramon"
+
+msgid "Device A"
+msgstr "„A” készülék"
+
+msgid "Device B"
+msgstr "„B” készülék"
+
+msgid "Field"
+msgstr "Mező"
+
+msgid "Filter devices by address, name or description…"
+msgstr "Készülékek szűrése cím, név vagy leírás szerint…"
+
+msgid "Group Objects"
+msgstr "Kommunikációs objektumok"
+
+msgid "No differences"
+msgstr "Nincs eltérés"
+
+msgid "Only Differences"
+msgstr "Csak az eltérések"
+
+msgid "Open a project with at least two devices to compare."
+msgstr "Az összehasonlításhoz nyisson meg egy legalább két készüléket tartalmazó projektet."
+
+msgid "{count} differences"
+msgstr "Eltérések: {count}"
+
+msgid "The manufacturer plugin is not available here:"
+msgstr "A gyártói beépülő modul itt nem érhető el:"
+
+msgid "Only it can program the device."
+msgstr "Csak az tudja programozni a készüléket."
+
+msgid "Settings made in its dialog are not shown."
+msgstr "A párbeszédpanelén végzett beállítások nem jelennek meg."
+
+msgid "The standard download is used instead."
+msgstr "Helyette a szabványos programozás történik."
+
+msgid "Part of the device data is not available."
+msgstr "A készülékadatok egy része nem érhető el."
+
+msgid "Connect to a KNX interface to commission the DALI bus."
+msgstr "A DALI-busz üzembe helyezéséhez csatlakozzon egy KNX-interfészhez."
+
+msgid "This gateway's commissioning protocol has not been verified against a capture; writes may misbehave. Proceed with care."
+msgstr "Az átjáró üzembe helyezési protokollja nincs felvétellel ellenőrizve; az írási műveletek hibásan működhetnek. Óvatosan folytassa."
+
+msgid "DALI commissioning writes the gateway on the bus but does not update the project parameters; re-export the .knxproj after a DCA-side edit."
+msgstr "A DALI üzembe helyezése a buszon lévő átjárót írja, de a projekt paramétereit nem frissíti; DCA-oldali módosítás után exportálja újra a .knxproj fájlt."
+
+msgid "Scan Bus"
+msgstr "Busz átvizsgálása"
+
+msgid "All ECGs On"
+msgstr "Összes előtét be"
+
+msgid "All Off"
+msgstr "Összes ki"
+
+msgid "New Installation…"
+msgstr "Új telepítés…"
+
+msgid "Post Installation…"
+msgstr "Utólagos telepítés…"
+
+msgid "Running: {task}"
+msgstr "Fut: {task}"
+
+msgid "scanning the bus"
+msgstr "busz átvizsgálása"
+
+msgid "switching all ECGs"
+msgstr "összes előtét kapcsolása"
+
+msgid "blinking"
+msgstr "villogtatás"
+
+msgid "stopping the blinking"
+msgstr "villogtatás leállítása"
+
+msgid "new installation"
+msgstr "új telepítés"
+
+msgid "post installation"
+msgstr "utólagos telepítés"
+
+msgid "programming the groups"
+msgstr "csoportok programozása"
+
+msgid "programming the scenes"
+msgstr "jelenetek programozása"
+
+msgid "{count} found"
+msgstr "Talált: {count}"
+
+msgid "Use 'Scan Bus' to read the DALI bus."
+msgstr "A DALI-busz beolvasásához használja a „Busz átvizsgálása” gombot."
+
+msgid "Firmware {version}"
+msgstr "Firmware {version}"
+
+msgid "Confirm DALI Programming"
+msgstr "DALI-programozás megerősítése"
+
+msgid "Continue"
+msgstr "Folytatás"
+
+msgid "New installation scans the DALI bus again and REASSIGNS the short\naddress of every ballast. This cannot be undone. Continue?"
+msgstr "Az új telepítés újra átvizsgálja a DALI-buszt, és MINDEN előtét rövid\ncímét ÚJRAOSZTJA. Ez nem vonható vissza. Folytatja?"
+
+msgid "Post installation scans the bus for new ballasts and updates their addressing.\nThis changes the device. Continue?"
+msgstr "Az utólagos telepítés új előtéteket keres a buszon, és frissíti a címzésüket.\nEz módosítja a készüléket. Folytatja?"
+
+msgid "Write the group assignment to the DALI bus. This applies the groups to the\ngateway and its ballasts. Continue?"
+msgstr "A csoport-hozzárendelés írása a DALI-buszra. Ez alkalmazza a csoportokat az\nátjáróra és az előtéteire. Folytatja?"
+
+msgid "Write the scene values to the DALI bus. Continue?"
+msgstr "A jelenetértékek írása a DALI-buszra. Folytatja?"
+
+msgid "{count} ECG(s) present"
+msgstr "Jelen lévő előtétek: {count}"
+
+msgid "Group"
+msgstr "Csoport"
+
+msgid "Long Address"
+msgstr "Hosszú cím"
+
+msgid "Alarm"
+msgstr "Riasztás"
+
+msgid "Blink"
+msgstr "Villogtatás"
+
+msgid "Stop"
+msgstr "Leállítás"
+
+msgid "Program Groups…"
+msgstr "Csoportok programozása…"
+
+msgid "Scenes"
+msgstr "Jelenetek"
+
+msgid "Assign the ECGs to groups above to define scenes."
+msgstr "A jelenetek megadásához rendelje fent csoportokhoz az előtéteket."
+
+msgid "Scene"
+msgstr "Jelenet"
+
+msgid "Scene {number}"
+msgstr "Jelenet {number}"
+
+msgid "Group {number}"
+msgstr "Csoport {number}"
+
+msgid "Program Scenes…"
+msgstr "Jelenetek programozása…"
+
+msgid "Single"
+msgstr "Egyedi"
+
+msgid "Unassigned"
+msgstr "Nincs hozzárendelve"
+
+msgid "Procedure {number}  ({count} steps)"
+msgstr "Eljárás {number}  (lépések: {count})"
+
+msgid "Kind"
+msgstr "Fajta"
+
+msgid "Applies To"
+msgstr "Érvényesség"
+
+msgid "Details"
+msgstr "Részletek"
+
+msgid "Scope: {scope}"
+msgstr "Terjedelem: {scope}"
+
+msgid "Unload Application Program"
+msgstr "Alkalmazási program kiürítése"
+
+msgid "This unloads the application program of the device at {address}. The device stops working until its application program is downloaded again."
+msgstr "Ez a művelet kiüríti a készülék alkalmazási programját ({address}). A készülék addig nem működik, amíg az alkalmazási programját újra be nem programozzák."
+
+msgid "This unloads the application program of the device at {address} and then resets its individual address to 15.15.255; for that, its programming button has to be pressed. The device stops working until it is commissioned again."
+msgstr "Ez a művelet kiüríti a készülék alkalmazási programját ({address}), majd a fizikai címét visszaállítja 15.15.255-re; ehhez meg kell nyomni a programozó gombját. A készülék addig nem működik, amíg újra üzembe nem helyezik."
+
+msgid "Overwrite Address"
+msgstr "Cím felülírása"
+
+msgid "Manufacturer's Plugin Not Available"
+msgstr "A gyártó beépülő modulja nem érhető el"
+
+msgid "Serial Number Already Used"
+msgstr "A sorozatszám már használatban van"
+
+msgid "Cancelled by user."
+msgstr "A felhasználó megszakította."
+
+msgid "Additional Individual Addresses"
+msgstr "További fizikai címek"
+
+msgid "Additional Individual Address"
+msgstr "További fizikai cím"
+
+msgid "Assign Missing Addresses"
+msgstr "Hiányzó címek kiosztása"
+
+msgid "The line does not provide enough addresses for all necessary additional addresses."
+msgstr "A vonalon nincs elég szabad cím az összes szükséges további címhez."
+
+msgid "Enter a device number from 1 to 255 or a full individual address in the device's line."
+msgstr "Adjon meg egy 1 és 255 közötti készülékszámot vagy egy teljes fizikai címet a készülék vonalán."
+
+msgid "An additional address must be in the device's line {line}."
+msgstr "A további címnek a készülék vonalán kell lennie: {line}"
+
+msgid "The individual address {address} is already used in this line."
+msgstr "Ez a fizikai cím már használatban van ezen a vonalon: {address}"
+
+msgid "Changed additional address of device '{0}' from '{1}' to '{2}'."
+msgstr "„{0}” készülék további címe módosítva: „{1}” → „{2}”."
+
+msgid "Change additional address names"
+msgstr "További címek nevének módosítása"
+
+msgid "Change additional address descriptions"
+msgstr "További címek leírásának módosítása"
+
+msgid "Assign additional addresses"
+msgstr "További címek kiosztása"
+
+msgid "Change additional addresses"
+msgstr "További címek módosítása"
+
+msgid "Started by an MCP client."
+msgstr "Egy MCP-kliens indította."
+
+msgid "Parameters in the Manufacturer's Plugin"
+msgstr "Paraméterek a gyártó beépülő moduljában"
+
+msgid "The manufacturer sets this device's parameters in its own plugin dialog, which XKNX Editor cannot run, so they cannot be changed here. A download writes their current values unchanged; the group objects can be linked as usual."
+msgstr "A gyártó a készülék paramétereit saját beépülőmodul-párbeszédpanelen állítja be, amelyet az XKNX Editor nem tud futtatni, ezért itt nem módosíthatók. A programozás a jelenlegi értékeiket változatlanul írja be; a kommunikációs objektumok a szokásos módon összekapcsolhatók."
+
+msgid "Edit parameters anyway"
+msgstr "Paraméterek szerkesztése mégis"
+
+msgid "Matching DPT Only"
+msgstr "Csak egyező DPT"
+
+msgid "Only group addresses with the object's main datapoint type, and those without one (they take the object's type when linked)."
+msgstr "Csak az objektum fő adatponttípusával rendelkező és az adatponttípus nélküli csoportcímek (ezek összekapcsoláskor átveszik az objektum típusát)."
+
+msgid "no DPT"
+msgstr "nincs DPT"
+
+msgid "Only objects with the same main datapoint type, and those without one."
+msgstr "Csak az azonos fő adatponttípusú és az adatponttípus nélküli objektumok."
+
+msgid "Select a device in the tree first."
+msgstr "Előbb jelöljön ki egy készüléket a fában."
+
+msgid "{device} has no group objects."
+msgstr "A készüléknek nincsenek kommunikációs objektumai: {device}"
+
+msgid "All objects of {device} are in the list already."
+msgstr "A készülék összes objektuma már a listában van: {device}"
+
+msgid "Link group objects to existing group addresses."
+msgstr "Kommunikációs objektumok összekapcsolása meglévő csoportcímekkel."
+
+msgid "Add objects with \"{add_device}\" or \"{add_objects}\"."
+msgstr "Adjon hozzá objektumokat a „{add_device}” vagy az „{add_objects}” gombbal."
+
+msgid "Pick a group address per row, or fill all with \"{match}\" or \"{sequential}\"."
+msgstr "Válasszon soronként egy csoportcímet, vagy töltse ki az összeset a „{match}” vagy a „{sequential}” gombbal."
+
+msgid "\"{link_all}\" links every row that has one."
+msgstr "„{link_all}”: minden olyan sort összekapcsol, amelyhez van csoportcím."
+
+msgid "Link objects to each other through a new group address each: the source sends, the target receives."
+msgstr "Objektumok összekapcsolása egymással, mindegyik egy-egy új csoportcímen keresztül: a forrás küld, a cél fogad."
+
+msgid "Add the source objects with \"{add_device}\" or \"{add_objects}\"."
+msgstr "Adja hozzá a forrásobjektumokat a „{add_device}” vagy az „{add_objects}” gombbal."
+
+msgid "Pick a target object per row. Address and name are suggested and can be changed."
+msgstr "Válasszon soronként egy célobjektumot. A cím és a név javaslat, módosítható."
+
+msgid "\"{link_all}\" creates the group addresses and links them."
+msgstr "„{link_all}”: létrehozza a csoportcímeket, és összekapcsolja őket."
+
+msgid "Link All"
+msgstr "Összes összekapcsolása"
+
+msgid "Object"
+msgstr "Objektum"
+
+msgid "Ready to link."
+msgstr "Összekapcsolásra kész."
+
+msgid "Check the group address: several match, or a datapoint type is unknown."
+msgstr "Ellenőrizze a csoportcímet: több is illeszkedik, vagy ismeretlen egy adatponttípus."
+
+msgid "The datapoint types do not match; this row is not linked."
+msgstr "Az adatponttípusok nem egyeznek; ez a sor nem lesz összekapcsolva."
+
+msgid "No group address chosen yet."
+msgstr "Még nincs kiválasztott csoportcím."
+
+msgid "Add device {name}"
+msgstr "Készülék hozzáadása: {name}"
+
+msgid "Set {ref} = {value}"
+msgstr "Beállítás: {ref} = {value}"
+
+msgid "Change"
+msgstr "Módosítás"
+
+msgid "Create area {address}"
+msgstr "Terület létrehozása: {address}"
+
+msgid "Create line {address}"
+msgstr "Vonal létrehozása: {address}"
+
+msgid "Add segment"
+msgstr "Szakasz hozzáadása"
+
+msgid "Create group address {address}"
+msgstr "Csoportcím létrehozása: {address}"
+
+msgid "Import group addresses"
+msgstr "Csoportcímek importálása"
+
+msgid "Import group addresses from {file}"
+msgstr "Csoportcímek importálása, forrás: {file}"
+
+msgid "Link group object"
+msgstr "Kommunikációs objektum összekapcsolása"
+
+msgid "Unlink group object"
+msgstr "Kommunikációs objektum összekapcsolásának bontása"
+
+msgid "Rename area to {name}"
+msgstr "Terület átnevezése: {name}"
+
+msgid "Rename project to {name}"
+msgstr "Projekt átnevezése: {name}"
+
+msgid "Rename line to {name}"
+msgstr "Vonal átnevezése: {name}"
+
+msgid "Rename device to {name}"
+msgstr "Készülék átnevezése: {name}"
+
+msgid "Move device"
+msgstr "Készülék áthelyezése"
+
+msgid "Set flag"
+msgstr "Flag beállítása"
+
+msgid "Set datapoint type"
+msgstr "Adatponttípus beállítása"
+
+msgid "Set priority"
+msgstr "Prioritás beállítása"
+
+msgid "Set description"
+msgstr "Leírás beállítása"
+
+msgid "Set sending group address"
+msgstr "Küldő csoportcím beállítása"
+
+msgid "Add installation"
+msgstr "Telepítés hozzáadása"
+
+msgid "Remove device"
+msgstr "Készülék eltávolítása"
+
+msgid "Remove area"
+msgstr "Terület eltávolítása"
+
+msgid "Remove line"
+msgstr "Vonal eltávolítása"
+
+msgid "Remove segment"
+msgstr "Szakasz eltávolítása"
+
+msgid "Remove group address"
+msgstr "Csoportcím eltávolítása"
+
+msgid "Remove function"
+msgstr "Funkció eltávolítása"
+
+msgid "Remove group address from function"
+msgstr "Csoportcím eltávolítása a funkcióból"
+
+msgid "Remove building part"
+msgstr "Épületrész eltávolítása"
+
+msgid "Remove group range"
+msgstr "Csoporttartomány eltávolítása"
+
+msgid "Update application program"
+msgstr "Alkalmazási program frissítése"
+
+msgid "Change application program"
+msgstr "Alkalmazási program módosítása"
+
+msgid "Update group objects"
+msgstr "Kommunikációs objektumok frissítése"
+
+msgid "Update module instances"
+msgstr "Modulpéldányok frissítése"
+
+msgid "Set group address security"
+msgstr "Csoportcím biztonsági beállítása"
+
+msgid "Set secure commissioning"
+msgstr "Biztonságos üzembe helyezés beállítása"
+
+msgid "Rename group address to {name}"
+msgstr "Csoportcím átnevezése: {name}"
+
+msgid "Change group address"
+msgstr "Csoportcím módosítása"
+
+msgid "Set device certificates"
+msgstr "Készüléktanúsítványok beállítása"
+
+msgid "Set device description"
+msgstr "Készülékleírás beállítása"
+
+msgid "Create function {name}"
+msgstr "Funkció létrehozása: {name}"
+
+msgid "Rename function to {name}"
+msgstr "Funkció átnevezése: {name}"
+
+msgid "Set function type"
+msgstr "Funkciótípus beállítása"
+
+msgid "Add group address to function"
+msgstr "Csoportcím hozzáadása a funkcióhoz"
+
+msgid "Create building part {name}"
+msgstr "Épületrész létrehozása: {name}"
+
+msgid "Rename building part to {name}"
+msgstr "Épületrész átnevezése: {name}"
+
+msgid "Set building part number"
+msgstr "Épületrész számának beállítása"
+
+msgid "Set building part description"
+msgstr "Épületrész leírásának beállítása"
+
+msgid "Set building part type"
+msgstr "Épületrész típusának beállítása"
+
+msgid "Move building part"
+msgstr "Épületrész áthelyezése"
+
+msgid "Assign device to building part"
+msgstr "Készülék hozzárendelése épületrészhez"
+
+msgid "Set commissioning state"
+msgstr "Üzembe helyezési állapot beállítása"
+
+msgid "Create group range {name}"
+msgstr "Csoporttartomány létrehozása: {name}"
+
+msgid "Rename group range to {name}"
+msgstr "Csoporttartomány átnevezése: {name}"
+
+msgid "{device}: no individual address"
+msgstr "{device}: nincs fizikai cím"
+
+msgid "{device}: malformed address '{address}'"
+msgstr "{device}: hibás formátumú cím: „{address}”"
+
+msgid "{device}: duplicate address {address}"
+msgstr "{device}: ismétlődő cím: {address}"
+
+msgid "Installation Hints"
+msgstr "Telepítési tudnivalók"
+
+msgid "Select an element in a tree to see its comment."
+msgstr "A megjegyzés megtekintéséhez jelöljön ki egy elemet valamelyik fában."
+
+msgid "Set comment"
+msgstr "Megjegyzés beállítása"
+
+msgid "Set installation hints"
+msgstr "Telepítési tudnivalók beállítása"
+
+msgid "Area"
+msgstr "Terület"
+
+msgid "Line"
+msgstr "Vonal"
+
+msgid "The address is a number from 0 to 15."
+msgstr "A cím egy 0 és 15 közötti szám."
+
+msgid "Address {address} is already in use."
+msgstr "A cím már foglalt: {address}"
+
+msgid "Set area description"
+msgstr "Terület leírásának beállítása"
+
+msgid "Set line description"
+msgstr "Vonal leírásának beállítása"
+
+msgid "Set area address"
+msgstr "Terület címének beállítása"
+
+msgid "Set line address"
+msgstr "Vonal címének beállítása"
+
+msgid "Main Group"
+msgstr "Főcsoport"
+
+msgid "Middle Group"
+msgstr "Középcsoport"
+
+msgid "Group Range"
+msgstr "Csoporttartomány"
+
+msgid "The main group is a number from 0 to 31."
+msgstr "A főcsoport egy 0 és 31 közötti szám."
+
+msgid "The middle group is a number from 0 to 7."
+msgstr "A középcsoport egy 0 és 7 közötti szám."
+
+msgid "Set group address description"
+msgstr "Csoportcím leírásának beállítása"
+
+msgid "Set group range description"
+msgstr "Csoporttartomány leírásának beállítása"
+
+msgid "Set group range address"
+msgstr "Csoporttartomány címének beállítása"
+
+msgid "DALI (Siemens)"
+msgstr "DALI (Siemens)"
+
+msgid "Connect to a KNX interface to read the Siemens DALI bus."
+msgstr "A Siemens DALI-busz olvasásához csatlakozzon egy KNX-interfészhez."
+
+msgid "Read DALI Bus"
+msgstr "DALI-busz olvasása"
+
+msgid "Reading the DALI bus from object {object_index}…"
+msgstr "A DALI-busz olvasása ebből az objektumból: {object_index}…"
+
+msgid "Press 'Read DALI Bus' to list the ECGs on the gateway."
+msgstr "Az átjáró előtéteinek listázásához nyomja meg a „DALI-busz olvasása” gombot."
+
+msgid "{count} ECG(s) present on line {line}"
+msgstr "Jelen lévő előtétek: {count}, vonal: {line}"
+
+msgid "Read-only snapshot. Writing group assignments, scenes or firmware is not available yet and remains in the manufacturer's plugin."
+msgstr "Csak olvasható pillanatkép. A csoport-hozzárendelések, jelenetek vagy firmware írása még nem érhető el, ez továbbra is a gyártó beépülő moduljában történik."
+
+msgid "Short Address"
+msgstr "Rövid cím"
+
+msgid "Random Address"
+msgstr "Véletlen cím"
+
+msgid "Min Dim"
+msgstr "Min. fényerő"
+
+msgid "Colour Temp (K)"
+msgstr "Színhőm. (K)"
+
+msgid "Slot"
+msgstr "Hely"
+
+msgid "Plugin Config"
+msgstr "Beépülő modul konfigurációja"
+
+msgid "No plugin mapping is available for this device yet. The vendor plugin's parameters stay unreachable from here."
+msgstr "Ehhez a készülékhez még nincs elérhető beépülőmodul-leképezés. A gyártói beépülő modul paraméterei innen nem érhetők el."
+
+msgid "The application has no static parameters."
+msgstr "Az alkalmazásnak nincsenek statikus paraméterei."
+
+msgid "Read-only view. The hierarchy is a best-effort reconstruction from parameter name prefixes; names and groupings may be rough. Writing values is not available yet."
+msgstr "Csak olvasható nézet. A hierarchia a paraméternevek előtagjaiból lehetőség szerint helyreállított szerkezet; a nevek és csoportosítások pontatlanok lehetnek. Az értékek írása még nem érhető el."
+
+msgid "##plugin_params_filter"
+msgstr "##plugin_params_filter"
+
+msgid "No parameter matches the filter."
+msgstr "Egy paraméter sem felel meg a szűrőnek."
+
+msgid "Parameter"
+msgstr "Paraméter"
+
+msgid "Default"
+msgstr "Alapérték"
+
+msgid "Editable fallback for parameters whose manufacturer plugin is not available here. The hierarchy is reconstructed from parameter name prefixes; labels and groupings may be rough. Edits are written to the project and transferred by a normal download."
+msgstr "Szerkeszthető tartaléknézet azokhoz a paraméterekhez, amelyek gyártói beépülő modulja itt nem érhető el. A hierarchia a paraméternevek előtagjaiból van helyreállítva; a feliratok és csoportosítások pontatlanok lehetnek. A módosítások a projektbe íródnak, és normál programozással kerülnek át."
+
+msgid "DALI commissioning"
+msgstr "DALI üzembe helyezése"
+
+msgid "DALI Channel"
+msgstr "DALI-csatorna"
+
+msgid "Channel {n}"
+msgstr "Csatorna {n}"
+
+msgid "Program DCA State"
+msgstr "DCA-állapot programozása"
+
+msgid "Sends the DALI device settings to the gateway as property values."
+msgstr "A DALI-készülékbeállításokat tulajdonságértékekként küldi az átjárónak."
+
+msgid "Add to {section}:"
+msgstr "Hozzáadás ehhez: {section}"
+
+msgid "No entries."
+msgstr "Nincsenek bejegyzések."
+
+msgid "Entry"
+msgstr "Bejegyzés"
+
+msgid "Store plugin data {name}"
+msgstr "Beépülőmodul-adatok tárolása: {name}"
+
+msgid "Unknown"
+msgstr "Ismeretlen"
+
+msgid "Editing"
+msgstr "Szerkesztés alatt"
+
+msgid "Finished design"
+msgstr "Tervezés befejezve"
+
+msgid "Finished commissioning"
+msgstr "Üzembe helyezés befejezve"
+
+msgid "Tested"
+msgstr "Tesztelve"
+
+msgid "Accepted"
+msgstr "Jóváhagyva"
+
+msgid "Locked"
+msgstr "Zárolva"
+
+msgid "Function"
+msgstr "Funkció"
+
+msgid "Use"
+msgstr "Használat"
+
+msgid "Set room use"
+msgstr "Helyiséghasználat beállítása"
+
+msgid "Set status to {status}"
+msgstr "Állapot beállítása: {status}"
+
+msgid "Set function description"
+msgstr "Funkció leírásának beállítása"
+
+msgid "Current Line"
+msgstr "Aktuális vonal"
+
+msgid "{line} (inherits from {space})"
+msgstr "{line} (öröklés innen: {space})"
+
+msgid "Set current line"
+msgstr "Aktuális vonal beállítása"
+
+msgid "Segment"
+msgstr "Szakasz"
+
+msgid "Medium"
+msgstr "Átviteli közeg"
+
+msgid "Domain Address"
+msgstr "Domaincím"
+
+msgid "The medium of a segment can only change while it holds no device."
+msgstr "Egy szakasz átviteli közege csak akkor módosítható, ha nincs benne készülék."
+
+msgid "The medium type of the segment '{segment}' cannot be changed to IoT, because its parent line '{line}' is not of medium type IP."
+msgstr "A szakasz („{segment}”) közegtípusa nem módosítható IoT-ra, mert a szülővonala („{line}”) nem IP közegtípusú."
+
+msgid "The maximum number of segments has been reached."
+msgstr "Elérte a szakaszok maximális számát."
+
+msgid "The main segment cannot be deleted."
+msgstr "A főszakasz nem törölhető."
+
+msgid "Device '{device}' is incompatible with line's medium type."
+msgstr "A készülék nem kompatibilis a vonal közegtípusával: „{device}”"
+
+msgid "Device '{device}' is incompatible with segment's medium type."
+msgstr "A készülék nem kompatibilis a szakasz közegtípusával: „{device}”"
+
+msgid "Rename segment to {name}"
+msgstr "Szakasz átnevezése: {name}"
+
+msgid "Set medium to {medium}"
+msgstr "Átviteli közeg beállítása: {medium}"
+
+msgid "Forced on"
+msgstr "Kényszerítve be"
+
+msgid "Forced off"
+msgstr "Kényszerítve ki"
+
+msgid "Overridden by '{name}': {mode}"
+msgstr "Felülbírálta: „{name}”: {mode}"
+
+msgid "Central"
+msgstr "Központi"
+
+msgid "Not every device linked to a group address of this group is commissioned securely, so it cannot be secured."
+msgstr "Ennek a csoportnak a csoportcímeihez kapcsolt készülékek közül nem mindegyik van biztonságosan üzembe helyezve, ezért a csoport nem tehető biztonságossá."
+
+msgid "Set group security"
+msgstr "Csoport biztonsági beállítása"
+
+msgid "Mark group address as central"
+msgstr "Csoportcím megjelölése központiként"
+
+msgid "Remove central mark from group address"
+msgstr "Központi jelölés eltávolítása a csoportcímről"
+
+msgid "Topology"
+msgstr "Topológia"
+
+msgid "{medium} backbone line"
+msgstr "{medium} gerincvonal"
+
+msgid "{medium} main line"
+msgstr "{medium} fővonal"
+
+msgid "Backbone"
+msgstr "Gerincvonal"
+
+msgid "Network Latency"
+msgstr "Hálózati késleltetés"
+
+msgid "LAN (< 400ms)"
+msgstr "LAN (< 400ms)"
+
+msgid "WLAN (< 1s)"
+msgstr "WLAN (< 1s)"
+
+msgid "WAN (< 2s)"
+msgstr "WAN (< 2s)"
+
+msgid "Mobile (< 4s)"
+msgstr "Mobil (< 4s)"
+
+msgid "Satellite (< 8s)"
+msgstr "Műhold (< 8s)"
+
+msgid "The network latency must be a number of milliseconds from 1 to 65535."
+msgstr "A hálózati késleltetésnek 1 és 65535 közötti ezredmásodperc-értéknek kell lennie."
+
+msgid "Multicast Address"
+msgstr "Multicast cím"
+
+msgid "Enter a multicast address from 224.0.0.0 to 239.255.255.255."
+msgstr "Adjon meg egy 224.0.0.0 és 239.255.255.255 közötti multicast címet."
+
+msgid "Bus Connection"
+msgstr "Buszkapcsolat"
+
+msgid "Set IP routing of the backbone"
+msgstr "A gerincvonal IP-routingjának beállítása"
+
+msgid "As long as a coupler exists at a sub line or sub segment, a change of the medium type is not possible."
+msgstr "Amíg egy alárendelt vonalon vagy alszakaszon csatoló van, a közegtípus nem módosítható."
+
+msgid "A main line of a project cannot have medium type RF."
+msgstr "A projekt fővonala nem lehet RF közegtípusú."
+
+msgid "The operation could not be executed, because as medium type of the backbone only IP and TP are allowed."
+msgstr "A művelet nem hajtható végre, mert a gerincvonal közegtípusa csak IP vagy TP lehet."
+
+msgid "A sub-segment of KNX medium type IP or PL is not allowed."
+msgstr "IP vagy PL közegtípusú alszakasz nem engedélyezett."
+
+msgid "The medium type of the main line '{line}' can no longer be changed to PL, because it already contains lines or segments that are not allowed in PL main lines."
+msgstr "A fővonal („{line}”) közegtípusa már nem módosítható PL-re, mert már tartalmaz olyan vonalakat vagy szakaszokat, amelyek PL fővonalakban nem engedélyezettek."
+
+msgid "The medium type of the main line '{line}' cannot be changed to IoT, because the backbone line '{backbone}' is not of medium type IP."
+msgstr "A fővonal („{line}”) közegtípusa nem módosítható IoT-ra, mert a gerincvonal („{backbone}”) nem IP közegtípusú."
+
+msgid "The medium type of the main line '{line}' can no longer be changed to IoT, because it already contains lines or segments that are not allowed in IoT main lines."
+msgstr "A fővonal („{line}”) közegtípusa már nem módosítható IoT-ra, mert már tartalmaz olyan vonalakat vagy szakaszokat, amelyek IoT fővonalakban nem engedélyezettek."
+
+msgid "The medium type of the line '{line}' cannot be changed, because it already contains lines or segments that require an IoT or IP main line."
+msgstr "A vonal („{line}”) közegtípusa nem módosítható, mert már tartalmaz olyan vonalakat vagy szakaszokat, amelyekhez IoT vagy IP fővonal szükséges."
+
+msgid "A sub-segment is not allowed below a main segment of KNX medium type RF."
+msgstr "RF közegtípusú főszakasz alatt alszakasz nem engedélyezett."
+
+msgid "A sub-segment is not allowed below a main segment of KNX medium type PL."
+msgstr "PL közegtípusú főszakasz alatt alszakasz nem engedélyezett."
+
+msgid "A sub-segment of KNX medium type IoT is not allowed below a main segment of the same type."
+msgstr "IoT közegtípusú alszakasz nem engedélyezett azonos típusú főszakasz alatt."
+
+msgid "The operation could not be executed, because a RF main line '{line}' requires all other lines in the area to be RF lines as well."
+msgstr "A művelet nem hajtható végre, mert az RF fővonal („{line}”) megköveteli, hogy a terület összes többi vonala is RF vonal legyen."
+
+msgid "The operation could not be executed, because a PL main line '{line}' requires all other lines in the area to be PL lines as well."
+msgstr "A művelet nem hajtható végre, mert a PL fővonal („{line}”) megköveteli, hogy a terület összes többi vonala is PL vonal legyen."
+
+msgid "The operation could not be executed, because a IoT main line '{line}' requires all other lines in the area to be IoT lines as well."
+msgstr "A művelet nem hajtható végre, mert az IoT fővonal („{line}”) megköveteli, hogy a terület összes többi vonala is IoT vonal legyen."
+
+msgid "The medium type of the line '{line}' cannot be changed to IoT, because its main line '{main}' is not of medium type IP."
+msgstr "A vonal („{line}”) közegtípusa nem módosítható IoT-ra, mert a fővonala („{main}”) nem IP közegtípusú."
+
+msgid "The medium type of the line '{line}' can no longer be changed to IoT, because it already contains segments that are not allowed in IoT lines."
+msgstr "A vonal („{line}”) közegtípusa már nem módosítható IoT-ra, mert már tartalmaz olyan szakaszokat, amelyek IoT vonalakban nem engedélyezettek."
+
+msgid "The operation could not be executed, because the line is the IP backbone line and the project contains KNXnet/IP routers. KNXnet/IP routers require an IP backbone line."
+msgstr "A művelet nem hajtható végre, mert a vonal az IP gerincvonal, és a projekt KNXnet/IP routereket tartalmaz. A KNXnet/IP routereknek IP gerincvonal kell."
+
+msgid "The operation could not be executed, because the line is the IP main line and the project contains KNXnet/IP routers. KNXnet/IP routers require an IP main line."
+msgstr "A művelet nem hajtható végre, mert a vonal az IP fővonal, és a projekt KNXnet/IP routereket tartalmaz. A KNXnet/IP routereknek IP fővonal kell."
+
+msgid "The operation could not be executed, because the line is the IP backbone line and the project contains IoT or IP lines."
+msgstr "A művelet nem hajtható végre, mert a vonal az IP gerincvonal, és a projekt IoT vagy IP vonalakat tartalmaz."
+
+msgid "The operation could not be executed, because the medium type of the line can only be set to IP if an IP main line exists."
+msgstr "A művelet nem hajtható végre, mert a vonal közegtípusa csak akkor állítható IP-re, ha van IP fővonal."
+
+msgid "The operation could not be executed, because the medium type of the line can only be set to IP if an IP backbone line exists."
+msgstr "A művelet nem hajtható végre, mert a vonal közegtípusa csak akkor állítható IP-re, ha van IP gerincvonal."
+
+msgid "The operation could not be executed, because below a TP main segment only segments of KNX medium type TP, RF or PL can exist."
+msgstr "A művelet nem hajtható végre, mert TP főszakasz alatt csak TP, RF vagy PL közegtípusú szakaszok lehetnek."
+
+msgid "Below a main segment of KNX medium type IP only segments of medium type TP or RF can exist."
+msgstr "IP közegtípusú főszakasz alatt csak TP vagy RF közegtípusú szakaszok lehetnek."
+
+msgid "A sub-segment of KNX medium type PL is not allowed below a main segment."
+msgstr "PL közegtípusú alszakasz nem engedélyezett főszakasz alatt."
+
+msgid "Set bus connection of the backbone"
+msgstr "A gerincvonal buszkapcsolatának beállítása"
+
+msgid "Set domain address"
+msgstr "Domaincím beállítása"
+
+msgid "Generate New"
+msgstr "Új generálása"
+
+msgid "The given domain address is invalid."
+msgstr "A megadott domaincím érvénytelen."
+
+msgid "Domain address is not valid! Valid values are 1 to 255."
+msgstr "A domaincím érvénytelen! Az érvényes értékek: 1–255."
+
+msgid "DomainAddress of mediumType 'RF' is lower than the minimum value of 0001:00000000."
+msgstr "Az RF közegtípus domaincíme kisebb a minimális értéknél (0001:00000000)."
+
+msgid "DomainAddress of medium type '{medium}' exceeds the maximum valid value of {maximum}"
+msgstr "A közegtípus domaincíme meghaladja a legnagyobb érvényes értéket. Közegtípus: „{medium}”, maximum: {maximum}"
+
+msgid "DomainAddress of RF sublines must be equal to DomainAdress of main line."
+msgstr "Az RF alvonalak domaincímének meg kell egyeznie a fővonal domaincímével."
+
+msgid "Domain Address of IoT sublines must be equal to Domain Address of main line."
+msgstr "Az IoT alvonalak domaincímének meg kell egyeznie a fővonal domaincímével."
+
+msgid "Each line in a project must have a unique domain address."
+msgstr "A projekt minden vonalának egyedi domaincímmel kell rendelkeznie."
+
+msgid "Last Downloaded"
+msgstr "Utolsó programozás"
+
+msgid "Create trade {name}"
+msgstr "Szakág létrehozása: {name}"
+
+msgid "Rename trade to {name}"
+msgstr "Szakág átnevezése: {name}"
+
+msgid "Set trade number"
+msgstr "Szakág számának beállítása"
+
+msgid "Set trade description"
+msgstr "Szakág leírásának beállítása"
+
+msgid "Move trade"
+msgstr "Szakág áthelyezése"
+
+msgid "Remove trade"
+msgstr "Szakág eltávolítása"
+
+msgid "Add device to trade"
+msgstr "Készülék hozzáadása a szakághoz"
+
+msgid "Remove device from trade"
+msgstr "Készülék eltávolítása a szakágból"
+
+msgid "Trades"
+msgstr "Szakágak"
+
+msgid "Building Parts…"
+msgstr "Épületrészek…"
+
+msgid "Floors…"
+msgstr "Emeletek…"
+
+msgid "Stairways…"
+msgstr "Lépcsőházak…"
+
+msgid "Rooms…"
+msgstr "Helyiségek…"
+
+msgid "Corridors…"
+msgstr "Folyosók…"
+
+msgid "Cabinets…"
+msgstr "Elosztók…"
+
+msgid "Devices…"
+msgstr "Készülékek…"
+
+msgid "Functions…"
+msgstr "Funkciók…"
+
+msgid "Trades…"
+msgstr "Szakágak…"
+
+msgid "Add Buildings…"
+msgstr "Épületek hozzáadása…"
+
+msgid "Add Trades…"
+msgstr "Szakágak hozzáadása…"
+
+msgid "Add Buildings"
+msgstr "Épületek hozzáadása"
+
+msgid "Add Building Parts"
+msgstr "Épületrészek hozzáadása"
+
+msgid "Add Floors"
+msgstr "Emeletek hozzáadása"
+
+msgid "Add Rooms"
+msgstr "Helyiségek hozzáadása"
+
+msgid "Add Corridors"
+msgstr "Folyosók hozzáadása"
+
+msgid "Add Stairways"
+msgstr "Lépcsőházak hozzáadása"
+
+msgid "Add Cabinets"
+msgstr "Elosztók hozzáadása"
+
+msgid "Add Trades"
+msgstr "Szakágak hozzáadása"
+
+msgid "Add Devices"
+msgstr "Készülékek hozzáadása"
+
+msgid "Count"
+msgstr "Darabszám"
+
+msgid "to \"{name}\""
+msgstr "ide: „{name}”"
+
+msgid "Cabinet"
+msgstr "Elosztó"
+
+msgid "New building"
+msgstr "Új épület"
+
+msgid "New building part"
+msgstr "Új épületrész"
+
+msgid "New floor"
+msgstr "Új emelet"
+
+msgid "New room"
+msgstr "Új helyiség"
+
+msgid "New corridor"
+msgstr "Új folyosó"
+
+msgid "New stairway"
+msgstr "Új lépcsőház"
+
+msgid "New cabinet"
+msgstr "Új elosztó"
+
+msgid "New trade"
+msgstr "Új szakág"
+
+msgid "A building part of this type cannot be added here."
+msgstr "Ilyen típusú épületrész itt nem adható hozzá."
+
+msgid "A building part of this type cannot be added here.\nCabinets can be added inside of rooms, corridors, or stairways only. If applicable the corridors have to be moved into the corresponding building parts."
+msgstr "Ilyen típusú épületrész itt nem adható hozzá.\nElosztók csak helyiségekbe, folyosókba vagy lépcsőházakba vehetők fel. Szükség esetén az elosztókat át kell helyezni a megfelelő épületrészekbe."
+
+msgid "The target is a child building part."
+msgstr "A cél egy alárendelt épületrész."
+
+msgid "Devices can only be added to stairways, rooms, corridors and cabinets."
+msgstr "Készülékek csak lépcsőházakhoz, helyiségekhez, folyosókhoz és elosztókhoz adhatók hozzá."
+
+msgid "Trade"
+msgstr "Szakág"
+
+msgid "(estimated)"
+msgstr "(becsült)"
+
+msgid "Number of Devices"
+msgstr "Készülékek száma"
+
+msgid "Unlink"
+msgstr "Leválasztás"
+
+msgid "An IP router requires an IP backbone line."
+msgstr "Az IP routerhez IP gerincvonal szükséges."
+
+msgid "The operation could not be executed, because a coupler needs a main line."
+msgstr "A művelet nem hajtható végre, mert a csatolóhoz fővonal szükséges."
+
+msgid "The operation could not be executed, because an area coupler requires a backbone line."
+msgstr "A művelet nem hajtható végre, mert a területcsatolóhoz gerincvonal szükséges."
+
+msgid "The operation could not be executed, because this coupler needs a main line with the medium type '{medium}' ."
+msgstr "A művelet nem hajtható végre, mert ehhez a csatolóhoz „{medium}” közegtípusú fővonal szükséges."
+
+msgid "The operation could not be executed, because only one IP router is allowed as a world coupler."
+msgstr "A művelet nem hajtható végre, mert világcsatolóként csak egy IP router engedélyezett."
+
+msgid "The operation could not be executed, because only IP router area allowed as a world coupler."
+msgstr "A művelet nem hajtható végre, mert világcsatolóként csak IP router engedélyezett."
+
+msgid "The backbone line contains a world coupler. It is not possible to use an IP router below another IP router."
+msgstr "A gerincvonal világcsatolót tartalmaz. Nem használható IP router egy másik IP router alatt."
+
+msgid "It is not possible to use a world coupler, when there are already IP routers in the project."
+msgstr "Világcsatoló nem használható, ha a projektben már vannak IP routerek."
+
+msgid "A world coupler can only be used, when the medium type of the backbone is TP."
+msgstr "Világcsatoló csak akkor használható, ha a gerincvonal közegtípusa TP."
+
+msgid "The coupler does not support segment coupling, so the sub-segment must be of the same KNX medium type as the main segment."
+msgstr "A csatoló nem támogatja a szakaszok csatolását, ezért az alszakasznak a főszakasszal azonos KNX közegtípusúnak kell lennie."
+
+msgid "The operation could not be executed, because this device couples medium '{above}' (above) to medium '{below}' (below), but the segment above is '{segment}'."
+msgstr "A művelet nem hajtható végre, mert a készülék a felső közeget („{above}”) az alsó közeghez („{below}”) csatolja, de a felső szakasz: „{segment}”."
+
+msgid "The operation could not be executed, because medium type of coupler device matches only sub segment, but maximum amount of segments reached."
+msgstr "A művelet nem hajtható végre, mert a csatolókészülék közegtípusa csak alszakasszal egyezik, de a szakaszok száma elérte a maximumot."
+
+msgid "The operation could not be executed, because this device couples medium '{above}' (above) to medium '{below}' (below), but the medium type of the lower segment is '{segment}'."
+msgstr "A művelet nem hajtható végre, mert a készülék a felső közeget („{above}”) az alsó közeghez („{below}”) csatolja, de az alsó szakasz közegtípusa: „{segment}”."
+
+msgid "Recover Project from Bus"
+msgstr "Projekt visszaállítása a buszról"
+
+msgid "Devices in Programming Mode"
+msgstr "Programozási módban lévő készülékek"
+
+msgid "Connecting"
+msgstr "Csatlakozás folyamatban"
+
+msgid "Move middle group"
+msgstr "Középcsoport áthelyezése"
+
+msgid "The group has no free group address."
+msgstr "A csoportban nincs szabad csoportcím."
+
+msgid "The main group has no free middle group."
+msgstr "A főcsoportban nincs szabad középcsoport."
+
+msgid "{count} devices"
+msgstr "{count} készülék"
+
+msgid "The main segment cannot be moved."
+msgstr "A főszakasz nem helyezhető át."
+
+msgid "The maximum number of lines has been reached."
+msgstr "Elérte a vonalak maximális számát."
+
+msgid "The line is already assigned to an area."
+msgstr "A vonal már hozzá van rendelve egy területhez."
+
+msgid "The main line cannot be moved."
+msgstr "A fővonal nem helyezhető át."
+
+msgid "Move line"
+msgstr "Vonal áthelyezése"
+
+msgid "Move segment"
+msgstr "Szakasz áthelyezése"
+
+msgid "Move function"
+msgstr "Funkció áthelyezése"
+
+msgid "Paste Special"
+msgstr "Irányított beillesztés"
+
+msgid "Number of Items"
+msgstr "Elemek száma"
+
+msgid "Don't copy"
+msgstr "Nincs másolás"
+
+msgid "Keep"
+msgstr "Megtartás"
+
+msgid "Create new group address in middle group"
+msgstr "Új csoportcím létrehozása a középcsoportban"
+
+msgid "Create new group address in main group"
+msgstr "Új csoportcím létrehozása a főcsoportban"
+
+msgid "Create new group address in group range"
+msgstr "Új csoportcím létrehozása a csoporttartományban"
+
+msgid "Generate Address"
+msgstr "Cím generálása"
+
+msgid "Fill up (use first free)"
+msgstr "Feltöltés (első szabad)"
+
+msgid "Append"
+msgstr "Hozzáfűzés"
+
+msgid "Start with"
+msgstr "Kezdés ettől"
+
+msgid "Enter a middle group, e.g. 1/2."
+msgstr "Adjon meg egy középcsoportot, pl. 1/2."
+
+msgid "Enter a main group, e.g. 1."
+msgstr "Adjon meg egy főcsoportot, pl. 1."
+
+msgid "The group has too few free group addresses for the copies."
+msgstr "A csoportban túl kevés a szabad csoportcím a másolatokhoz."
+
+msgid "The maximum number of group ranges has been reached."
+msgstr "Elérte a csoporttartományok maximális számát."
+
+msgid "There is no group for the new group addresses."
+msgstr "Nincs csoport az új csoportcímekhez."
+
+msgid "Copied '{name}' to '{target}'."
+msgstr "„{name}” átmásolva ide: „{target}”."
+
+msgid "Copied {count} devices to '{target}'."
+msgstr "Készülékek átmásolva ide: „{target}” ({count} db)."
+
+msgid "Copied {count} building parts to '{target}'."
+msgstr "Épületrészek átmásolva ide: „{target}” ({count} db)."
+
+msgid "Copied {count} trades to '{target}'."
+msgstr "Szakágak átmásolva ide: „{target}” ({count} db)."
+
+msgid "Copied {count} functions to '{target}'."
+msgstr "Funkciók átmásolva ide: „{target}” ({count} db)."
+
+msgid "Copied {count} group addresses to '{target}'."
+msgstr "Csoportcímek átmásolva ide: „{target}” ({count} db)."
+
+msgid "Copied {count} middle groups to '{target}'."
+msgstr "Középcsoportok átmásolva ide: „{target}” ({count} db)."
+
+msgid "Copied {count} main groups to '{target}'."
+msgstr "Főcsoportok átmásolva ide: „{target}” ({count} db)."
+
+msgid "Copied {count} lines to '{target}'."
+msgstr "Vonalak átmásolva ide: „{target}” ({count} db)."
+
+msgid "Copied {count} segments to '{target}'."
+msgstr "Szakaszok átmásolva ide: „{target}” ({count} db)."
+
+msgid "Paste Special…"
+msgstr "Irányított beillesztés…"
+
+msgid "Add Row"
+msgstr "Sor hozzáadása"
+
+msgid "Remove this row"
+msgstr "A sor eltávolítása"
+
+msgid "Generate Addresses"
+msgstr "Címek generálása"
+
+msgid "Unlink device"
+msgstr "Készülék leválasztása"
+
+msgid "The device is on no line: put it on a line first."
+msgstr "A készülék nincs vonalon: előbb helyezze egy vonalra."
+
+msgid "Areas…"
+msgstr "Területek…"
+
+msgid "Lines…"
+msgstr "Vonalak…"
+
+msgid "Segments…"
+msgstr "Szakaszok…"
+
+msgid "Add Areas"
+msgstr "Területek hozzáadása"
+
+msgid "Add Lines"
+msgstr "Vonalak hozzáadása"
+
+msgid "Add Segments"
+msgstr "Szakaszok hozzáadása"
+
+msgid "The limit to add was reached."
+msgstr "Elérte a hozzáadható elemek korlátját."
+
+msgid "Cannot add any line to the area {area} because of topology constraints. Please check the medium type of the backbone and main lines."
+msgstr "Topológiai korlátozások miatt nem adható vonal ehhez a területhez: {area}. Ellenőrizze a gerincvonal és a fővonalak közegtípusát."
+
+msgid "Added {count} areas to '{target}'."
+msgstr "Területek hozzáadva ide: „{target}” ({count} db)."
+
+msgid "Added {count} lines to '{target}'."
+msgstr "Vonalak hozzáadva ide: „{target}” ({count} db)."
+
+msgid "Added {count} segments to '{target}'."
+msgstr "Szakaszok hozzáadva ide: „{target}” ({count} db)."
+
+msgid "Added {count} building parts to '{target}'."
+msgstr "Épületrészek hozzáadva ide: „{target}” ({count} db)."
+
+msgid "Added {count} trades to '{target}'."
+msgstr "Szakágak hozzáadva ide: „{target}” ({count} db)."
+
+msgid "Added {count} main groups to '{target}'."
+msgstr "Főcsoportok hozzáadva ide: „{target}” ({count} db)."
+
+msgid "Added {count} middle groups to '{target}'."
+msgstr "Középcsoportok hozzáadva ide: „{target}” ({count} db)."
+
+msgid "Added {count} group addresses to '{target}'."
+msgstr "Csoportcímek hozzáadva ide: „{target}” ({count} db)."
+
+msgid "Add Main Groups…"
+msgstr "Főcsoportok hozzáadása…"
+
+msgid "Add Middle Groups…"
+msgstr "Középcsoportok hozzáadása…"
+
+msgid "Add Main Groups"
+msgstr "Főcsoportok hozzáadása"
+
+msgid "Add Middle Groups"
+msgstr "Középcsoportok hozzáadása"
+
+msgid "New main group"
+msgstr "Új főcsoport"
+
+msgid "New middle group"
+msgstr "Új középcsoport"
+
+msgid "New group address"
+msgstr "Új csoportcím"
+
+msgid "Cut"
+msgstr "Kivágás"
+
+msgid "What was cut cannot be moved there."
+msgstr "A kivágott elem nem helyezhető át oda."
+
+msgid "Park"
+msgstr "Félretétel"
+
+msgid "Park device"
+msgstr "Készülék félretétele"
+
+msgid "Add Functions"
+msgstr "Funkciók hozzáadása"
+
+msgid "New function"
+msgstr "Új funkció"
+
+msgid "Added {count} functions to '{target}'."
+msgstr "Funkciók hozzáadva ide: „{target}” ({count} db)."
+
+msgid "Added {count} group ranges to '{target}'."
+msgstr "Csoporttartományok hozzáadva ide: „{target}” ({count} db)."
+
+msgid "Add Group Ranges…"
+msgstr "Csoporttartományok hozzáadása…"
+
+msgid "Add Group Ranges"
+msgstr "Csoporttartományok hozzáadása"
+
+msgid "New group range"
+msgstr "Új csoporttartomány"
+
+msgid "Capacity"
+msgstr "Kapacitás"
+
+msgid "Link with…"
+msgstr "Összekapcsolás ezzel…"
+
+msgid "Link with Group Address"
+msgstr "Összekapcsolás csoportcímmel"
+
+msgid "There is no group to add group addresses to."
+msgstr "Nincs csoport, amelyhez csoportcímek adhatók."
+
+msgid "Add Subtrade"
+msgstr "Alszakág hozzáadása"
+
+msgid "The group range does not fit there."
+msgstr "A csoporttartomány nem fér el ott."
+
+msgid "A group range cannot go into itself or a range in it."
+msgstr "Csoporttartomány nem helyezhető önmagába vagy egy benne lévő tartományba."
+
+msgid "A group address of the range is already in use there."
+msgstr "A tartomány egyik csoportcíme ott már foglalt."
+
+msgid "Copied {count} group ranges to '{target}'."
+msgstr "Csoporttartományok átmásolva ide: „{target}” ({count} db)."
+
+msgid "Add Areas…"
+msgstr "Területek hozzáadása…"
+
+msgid "{medium} segment"
+msgstr "{medium} szakasz"
+
+msgid "Copy Individual Address"
+msgstr "Fizikai cím másolása"
+
+msgid "Copy Group Address"
+msgstr "Csoportcím másolása"
+
+msgid "Existing Devices…"
+msgstr "Meglévő készülékek…"
+
+msgid "Delete the {count} selected devices? Their group objects and group-address links are removed and their individual addresses are freed. This can be undone."
+msgstr "Törli a kijelölt készülékeket ({count} db)? A kommunikációs objektumaik és csoportcím-összekapcsolásaik eltávolításra kerülnek, a fizikai címeik pedig felszabadulnak. Ez visszavonható."
+
+msgid "Remove {count} devices"
+msgstr "Készülékek eltávolítása ({count} db)"
+
+msgid "Delete Devices"
+msgstr "Készülékek törlése"
+
+msgid "{medium} line"
+msgstr "{medium} vonal"
+
+msgid "From Backups…"
+msgstr "Biztonsági mentésekből…"
+
+msgid "Compare with a backup of this project"
+msgstr "Összehasonlítás a projekt egy biztonsági mentésével"
+
+msgid "In the browser, choose Knx.Ets.Common.dll together with log4net.dll from the same folder."
+msgstr "A böngészőben válassza ki a Knx.Ets.Common.dll fájlt az ugyanabban a mappában lévő log4net.dll fájllal együtt."
+
+msgid "Knx.Ets.Common.dll needs log4net.dll from its folder: choose both files together."
+msgstr "A Knx.Ets.Common.dll fájlnak szüksége van a mappájában lévő log4net.dll fájlra: válassza ki a két fájlt együtt."
+
+msgid "Codepage"
+msgstr "Kódlap"
+
+msgid "Choose in which language the project texts are entered"
+msgstr "Válassza ki, milyen nyelven adják meg a projekt szövegeit"
+
+msgid "System language"
+msgstr "Rendszernyelv"
+
+msgid "Western European (ISO 8859-1)"
+msgstr "Nyugat-európai (ISO 8859-1)"
+
+msgid "Central European (ISO 8859-2)"
+msgstr "Közép-európai (ISO 8859-2)"
+
+msgid "South European (ISO 8859-3)"
+msgstr "Dél-európai (ISO 8859-3)"
+
+msgid "North European (ISO 8859-4)"
+msgstr "Észak-európai (ISO 8859-4)"
+
+msgid "Cyrillic (ISO 8859-5)"
+msgstr "Cirill (ISO 8859-5)"
+
+msgid "Arabic (ISO 8859-6)"
+msgstr "Arab (ISO 8859-6)"
+
+msgid "Greek (ISO 8859-7)"
+msgstr "Görög (ISO 8859-7)"
+
+msgid "Hebrew (ISO 8859-8)"
+msgstr "Héber (ISO 8859-8)"
+
+msgid "Turkish (ISO 8859-9)"
+msgstr "Török (ISO 8859-9)"
+
+msgid "Nordic (ISO 8859-10)"
+msgstr "Északi (ISO 8859-10)"
+
+msgid "Baltic Rim (ISO 8859-13)"
+msgstr "Balti (ISO 8859-13)"
+
+msgid "Western European (ISO 8859-15)"
+msgstr "Nyugat-európai (ISO 8859-15)"
+
+msgid "Set codepage to {code_page}"
+msgstr "Kódlap beállítása: {code_page}"
+
+msgid "Encrypted"
+msgstr "Titkosítva"

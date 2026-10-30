@@ -1,0 +1,41 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor health 1.0\n"
+"Language: ro\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Health"
+msgstr "Verificare stare"
+
+msgid "No project open"
+msgstr "Niciun proiect deschis"
+
+msgid "No issues found"
+msgstr "Nu s-au găsit probleme"
+
+msgid "{errors} errors, {warnings} warnings"
+msgstr "Erori: {errors}, avertismente: {warnings}"
+
+msgid "{device}: no individual address"
+msgstr "{device}: nicio adresă fizică"
+
+msgid "Duplicate individual address {address} ({device})"
+msgstr "Adresă fizică duplicată {address} ({device})"
+
+msgid "{count} device(s) skipped: application not in catalog"
+msgstr "Dispozitive omise: {count} (aplicația nu este în catalog)"
+
+msgid "{device}: {count} unlinked group object(s)"
+msgstr "{device}: obiecte de comunicare nelegate: {count}"
+
+msgid "{address} {name}: no datapoint type"
+msgstr "{address} {name}: niciun tip de punct de date"
+
+msgid "{address} {name}: no sending group object"
+msgstr "{address} {name}: niciun obiect de comunicare care transmite"
+
+msgid "{address} {name}: {count} sending group objects"
+msgstr "{address} {name}: obiecte de comunicare care transmit: {count}"

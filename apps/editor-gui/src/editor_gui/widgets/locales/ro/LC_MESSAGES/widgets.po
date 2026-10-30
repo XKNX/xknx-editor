@@ -1,0 +1,305 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor widgets 1.0\n"
+"Language: ro\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "(image)"
+msgstr "(imagine)"
+
+msgid "Search…"
+msgstr "Căutare…"
+
+msgid "{name} (locked)"
+msgstr "{name} (blocat)"
+
+msgid "Create Group Addresses ({count})"
+msgstr "Creare adrese de grup ({count})"
+
+msgid "All"
+msgstr "Toate"
+
+msgid "None"
+msgstr "Niciunul"
+
+msgid "Copy Links ({count})"
+msgstr "Copiere legături ({count})"
+
+msgid "Paste Links ({count})"
+msgstr "Lipire legături ({count})"
+
+msgid "Assigns the copied links and flags to the checked objects in order (1st to 1st, 2nd to 2nd, …), replacing each target's current links."
+msgstr "Alocă legăturile și indicatorii copiați obiectelor bifate, în ordine (primul la primul, al doilea la al doilea, …), înlocuind legăturile actuale ale fiecărei ținte."
+
+msgid "Merge"
+msgstr "Combinare"
+
+msgid "Keep each target's existing links and only add the copied ones."
+msgstr "Păstrează legăturile existente ale fiecărei ținte și adaugă doar pe cele copiate."
+
+msgid "Copy Links"
+msgstr "Copiere legături"
+
+msgid "Paste Links"
+msgstr "Lipire legături"
+
+msgid "Copy Addresses as Text"
+msgstr "Copiere adrese ca text"
+
+msgid "Create Group Addresses"
+msgstr "Creare adrese de grup"
+
+msgid "Name template placeholders: {object}, {device}, {room}, {function}, {number}, {dpt}, {n} (index; {n:02} zero-pads)"
+msgstr "Substituenți pentru șablonul de nume: {object}, {device}, {room}, {function}, {number}, {dpt}, {n} (index; {n:02} completează cu zerouri)"
+
+msgid "Name Template"
+msgstr "Șablon de nume"
+
+msgid "Start Address"
+msgstr "Adresă de început"
+
+msgid "Cancel"
+msgstr "Revocare"
+
+msgid "Sending Group Address"
+msgstr "Adresă de grup de transmisie"
+
+msgid "Receiving Group Address"
+msgstr "Adresă de grup de recepție"
+
+msgid "current value"
+msgstr "valoare curentă"
+
+msgid "older"
+msgstr "mai veche"
+
+msgid "sent"
+msgstr "transmisă"
+
+msgid "received"
+msgstr "recepționată"
+
+msgid "sent & received"
+msgstr "transmisă și recepționată"
+
+msgid "Changed from default ({default})"
+msgstr "Modificat față de valoarea implicită ({default})"
+
+msgid "Changed from default ({default}) — right-click to reset"
+msgstr "Modificat față de valoarea implicită ({default}) — clic dreapta pentru resetare"
+
+msgid "Reset to Default"
+msgstr "Resetare la valoarea implicită"
+
+msgid "New Group Address"
+msgstr "Adresă de grup nouă"
+
+msgid "Address"
+msgstr "Adresă"
+
+msgid "Name"
+msgstr "Nume"
+
+msgid "Create & Link"
+msgstr "Creare și legare"
+
+msgid "Link Group Address"
+msgstr "Legare adresă de grup"
+
+msgid "<differs>"
+msgstr "<diferă>"
+
+msgid "Off"
+msgstr "Oprit"
+
+msgid "On"
+msgstr "Pornit"
+
+msgid "Standard"
+msgstr "Standard"
+
+msgid "Advanced"
+msgstr "Avansat"
+
+msgid "Theme Colors"
+msgstr "Culori temă"
+
+msgid "Standard Colors"
+msgstr "Culori standard"
+
+msgid "Mo Tu We Th Fr Sa Su"
+msgstr "Lu Ma Mi Jo Vi Sâ Du"
+
+msgid "Hours"
+msgstr "Ore"
+
+msgid "Minutes"
+msgstr "Minute"
+
+msgid "Seconds"
+msgstr "Secunde"
+
+msgid "x 100 ms"
+msgstr "x 100 ms"
+
+msgid "x 10 ms"
+msgstr "x 10 ms"
+
+msgid "Milliseconds"
+msgstr "Milisecunde"
+
+msgid "General"
+msgstr "General"
+
+msgid "Default (Inherit)"
+msgstr "Implicit (moștenit)"
+
+msgid "Edit Description…"
+msgstr "Editare descriere…"
+
+msgid "Edit Description"
+msgstr "Editare descriere"
+
+msgid "OK"
+msgstr "OK"
+
+msgid "Enter a number."
+msgstr "Introduceți un număr."
+
+msgid "Enter a whole number."
+msgstr "Introduceți un număr întreg."
+
+msgid "Enter a value from {minimum} to {maximum}."
+msgstr "Introduceți o valoare de la {minimum} la {maximum}."
+
+msgid "Enter at most {count} characters."
+msgstr "Numărul maxim de caractere: {count}."
+
+msgid "Enter a value."
+msgstr "Introduceți o valoare."
+
+msgid "This value cannot be sent with this data type."
+msgstr "Această valoare nu poate fi transmisă cu acest tip de date."
+
+msgid "No value can be entered for this data type."
+msgstr "Pentru acest tip de date nu se poate introduce nicio valoare."
+
+msgid "Edit…"
+msgstr "Editare…"
+
+msgid "The text may take at most {count} bytes."
+msgstr "Textul poate avea cel mult {count} B."
+
+msgid "Value {number}"
+msgstr "Valoarea {number}"
+
+msgid "Edit Value"
+msgstr "Editare valoare"
+
+msgid "Name template"
+msgstr "Șablon de nume"
+
+msgid "Placeholders"
+msgstr "Substituenți"
+
+msgid "{building}  Building\n{floor}  Floor\n{room}  Room\n{device}  Device name or description\n{devicename}  Device name\n{devicedescription}  Device description\n{product}  Product\n{manufacturer}  Manufacturer\n{order}  Order number\n{address}  Individual address\n{object}  Object name\n{ganame}  Object name\n{function}  Function\n{number}  Object number\n{dpt}  Datapoint type"
+msgstr "{building}  Clădire\n{floor}  Etaj\n{room}  Cameră\n{device}  Nume sau descriere dispozitiv\n{devicename}  Nume dispozitiv\n{devicedescription}  Descriere dispozitiv\n{product}  Produs\n{manufacturer}  Producător\n{order}  Cod de comandă\n{address}  Adresă fizică\n{object}  Nume obiect\n{ganame}  Nume obiect\n{function}  Funcție\n{number}  Număr obiect\n{dpt}  Tip de punct de date"
+
+msgid "{n}  Sequential index ({n:02} zero-pads)"
+msgstr "{n}  Index secvențial ({n:02} completează cu zerouri)"
+
+msgid "Size Column to Fit"
+msgstr "Ajustare lățime coloană"
+
+msgid "Size All Columns to Fit"
+msgstr "Ajustare lățime toate coloanele"
+
+msgid "Reset Column Order"
+msgstr "Resetare ordine coloane"
+
+msgid "Reset Column Visibility"
+msgstr "Resetare vizibilitate coloane"
+
+msgid "Reset All Columns"
+msgstr "Resetare toate coloanele"
+
+msgid "DPT"
+msgstr "DPT"
+
+msgid "Length"
+msgstr "Lungime"
+
+msgid "Prio"
+msgstr "Prio"
+
+msgid "Group Addresses"
+msgstr "Adrese de grup"
+
+msgid "(empty)"
+msgstr "(gol)"
+
+msgid "Options"
+msgstr "Opțiuni"
+
+msgid "Columns"
+msgstr "Coloane"
+
+msgid "Grey Out Zeros"
+msgstr "Estompare zerouri"
+
+msgid "Uppercase Hex"
+msgstr "Hex cu majuscule"
+
+msgid "Show ASCII"
+msgstr "Afișare ASCII"
+
+msgid "Copy"
+msgstr "Copiere"
+
+msgid "Copy {count} B"
+msgstr "Copiere {count} B"
+
+msgid "Go To:"
+msgstr "Salt la:"
+
+msgid "{count} difference(s)"
+msgstr "Diferențe: {count}"
+
+msgid "no differences"
+msgstr "nicio diferență"
+
+msgid "Parameter:"
+msgstr "Parametru:"
+
+msgid "search…"
+msgstr "căutare…"
+
+msgid "automatic"
+msgstr "automat"
+
+msgid "Low"
+msgstr "Scăzută"
+
+msgid "High"
+msgstr "Ridicată"
+
+msgid "Alert"
+msgstr "Alarmă"
+
+msgid "Bold"
+msgstr "Aldin"
+
+msgid "Italic"
+msgstr "Cursiv"
+
+msgid "Underline"
+msgstr "Subliniere"
+
+msgid "Cut"
+msgstr "Decupare"
+
+msgid "Paste"
+msgstr "Lipire"

@@ -1,0 +1,395 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor monitor 1.0\n"
+"Language: is\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Cancel"
+msgstr "Hætta við"
+
+msgid "No"
+msgstr "Nei"
+
+msgid "OK"
+msgstr "OK"
+
+msgid "Yes"
+msgstr "Já"
+
+msgid "The interface rejected bus monitor mode: another client holds a connection to it."
+msgstr "Skilin höfnuðu brautarvöktunarham: annar biðlari heldur tengingu við þau."
+
+msgid "The bus monitor connects the interface in bus monitor mode. The normal connection is closed while the bus monitor runs: nothing can be sent or downloaded in that time. Stopping the bus monitor restores the normal connection.\n\nStart the bus monitor?"
+msgstr "Brautarvöktun tengir skilin í brautarvöktunarham. Venjulegu tengingunni er lokað meðan brautarvöktun er í gangi: ekkert er hægt að senda eða hlaða niður á meðan. Þegar brautarvöktun er stöðvuð er venjulega tengingin endurheimt.\n\nRæsa brautarvöktun?"
+
+msgid "Start Bus Monitor"
+msgstr "Ræsa brautarvöktun"
+
+msgid "The bus monitor connection could not be established."
+msgstr "Ekki tókst að koma á tengingu fyrir brautarvöktun."
+
+msgid "The normal connection is restored."
+msgstr "Venjulega tengingin er endurheimt."
+
+msgid "The interface does not support bus monitor mode."
+msgstr "Skilin styðja ekki brautarvöktunarham."
+
+msgid "The bus monitor is not supported for this connection type. It needs a tunnelling connection."
+msgstr "Brautarvöktun er ekki studd fyrir þessa gerð tengingar. Hún þarf smugtengingu."
+
+msgid "Building Function"
+msgstr "Byggingaraðgerð"
+
+msgid "Building Part"
+msgstr "Byggingarhluti"
+
+msgid "Destination Address"
+msgstr "Viðtökuvistfang"
+
+msgid "Destination Name"
+msgstr "Heiti viðtakanda"
+
+msgid "DPT"
+msgstr "DPT"
+
+msgid "Flags"
+msgstr "Flögg"
+
+msgid "Frame Format"
+msgstr "Rammasnið"
+
+msgid "Hop Count"
+msgstr "Hoppteljari"
+
+msgid "Iack"
+msgstr "Iack"
+
+msgid "Info"
+msgstr "Upplýsingar"
+
+msgid "Message Code"
+msgstr "Skilaboðakóði"
+
+msgid "#"
+msgstr "#"
+
+msgid "Prio"
+msgstr "Forg."
+
+msgid "Raw Data"
+msgstr "Hrágögn"
+
+msgid "Raw Value"
+msgstr "Hrágildi"
+
+msgid "Repeated"
+msgstr "Endurtekið"
+
+msgid "Service"
+msgstr "Þjónusta"
+
+msgid "Source Address"
+msgstr "Upprunavistfang"
+
+msgid "Source Name"
+msgstr "Heiti uppruna"
+
+msgid "System Broadcast"
+msgstr "Kerfisútsending"
+
+msgid "Time"
+msgstr "Tími"
+
+msgid "Date"
+msgstr "Dagsetning"
+
+msgid "Value"
+msgstr "Gildi"
+
+msgid "Show Extended Information"
+msgstr "Sýna ítarlegri upplýsingar"
+
+msgid "Hide Extended Information"
+msgstr "Fela ítarlegri upplýsingar"
+
+msgid "{count} telegrams exported to {path}"
+msgstr "Skeyti flutt út í {path}: {count}"
+
+msgid "Export failed: {error}"
+msgstr "Útflutningur mistókst: {error}"
+
+msgid "All files"
+msgstr "Allar skrár"
+
+msgid "Telegram recordings"
+msgstr "Upptökur skeyta"
+
+msgid "Extended"
+msgstr "Útvíkkað"
+
+msgid "Standard"
+msgstr "Staðlað"
+
+msgid "{count} entries loaded from {path}"
+msgstr "Færslur hlaðnar úr {path}: {count}"
+
+msgid "Loading failed: {error}"
+msgstr "Hleðsla mistókst: {error}"
+
+msgid "{count} telegrams in another frame format were skipped"
+msgstr "Skeytum með öðru rammasniði sleppt: {count}"
+
+msgid "Connection was established"
+msgstr "Tengingu var komið á"
+
+msgid "Connection was lost"
+msgstr "Tenging rofnaði"
+
+msgid "Recording was started, Host={host}, Connection={connection}, Mode={mode}"
+msgstr "Upptaka hafin, hýsill={host}, tenging={connection}, hamur={mode}"
+
+msgid "Recording was stopped"
+msgstr "Upptöku var hætt"
+
+msgid "e.g. 1/2/3"
+msgstr "t.d. 1/2/3"
+
+msgid "Group Address:"
+msgstr "Hópvistfang:"
+
+msgid "{rate} t/s"
+msgstr "{rate} sk/s"
+
+msgid "Clear"
+msgstr "Hreinsa"
+
+msgid "Not Connected"
+msgstr "Ekki tengt"
+
+msgid "Filter by address or name…"
+msgstr "Sía eftir vistfangi eða heiti…"
+
+msgid "No group addresses (open or import a project)"
+msgstr "Engin hópvistföng (opnaðu eða fluttu inn verkefni)"
+
+msgid "Read"
+msgstr "Lesa"
+
+msgid "Bus Activity"
+msgstr "Virkni á tengibraut"
+
+msgid "Bus Monitor"
+msgstr "Brautarvöktun"
+
+msgid "Group Monitor"
+msgstr "Hópvöktun"
+
+msgid "Group Objects"
+msgstr "Samskiptahlutir"
+
+msgid "{count} telg."
+msgstr "{count} sk."
+
+msgid "Enter a group address of the project to send to it."
+msgstr "Sláðu inn hópvistfang í verkefninu til að senda á það."
+
+msgid "value (e.g. on / 21.5 / 50)"
+msgstr "gildi (t.d. on / 21.5 / 50)"
+
+msgid "Value:"
+msgstr "Gildi:"
+
+msgid "Write"
+msgstr "Skrifa"
+
+msgid "Monitor"
+msgstr "Vöktun"
+
+msgid "Printing failed: {error}"
+msgstr "Prentun mistókst: {error}"
+
+msgid "Page {page}"
+msgstr "Síða {page}"
+
+msgid "Low"
+msgstr "Lágur"
+
+msgid "Normal"
+msgstr "Venjulegur"
+
+msgid "System"
+msgstr "Kerfi"
+
+msgid "Urgent"
+msgstr "Áríðandi"
+
+msgid "The telegrams have not been exported. Clear them anyway?"
+msgstr "Skeytin hafa ekki verið flutt út. Hreinsa þau samt?"
+
+msgid "Loading a recording replaces the telegrams and stops the recording. Continue?"
+msgstr "Ef upptaka er hlaðin kemur hún í stað skeytanna og upptakan stöðvast. Halda áfram?"
+
+msgid "The telegrams have not been exported. Loading a recording replaces them and stops the recording. Continue?"
+msgstr "Skeytin hafa ekki verið flutt út. Ef upptaka er hlaðin kemur hún í stað þeirra og upptakan stöðvast. Halda áfram?"
+
+msgid "Unsaved Telegrams"
+msgstr "Óvistuð skeyti"
+
+msgid "Replay cancelled: {count} telegrams sent"
+msgstr "Hætt við endurspilun; send skeyti: {count}"
+
+msgid "Replay finished: {count} telegrams sent"
+msgstr "Endurspilun lokið; send skeyti: {count}"
+
+msgid "There are no group telegrams to replay"
+msgstr "Engin hópskeyti til að endurspila"
+
+msgid "{count} Data Secure telegrams are not replayed"
+msgstr "Data Secure-skeyti eru ekki endurspiluð: {count}"
+
+msgid "Comment"
+msgstr "Athugasemd"
+
+msgid "Connection event"
+msgstr "Tengingaratburður"
+
+msgid "from bus"
+msgstr "frá tengibraut"
+
+msgid "Start"
+msgstr "Hefja"
+
+msgid "Stop"
+msgstr "Stöðva"
+
+msgid "to bus"
+msgstr "á tengibraut"
+
+msgid "All Telegrams ({count})"
+msgstr "Öll skeyti ({count})"
+
+msgid "Export Telegrams"
+msgstr "Flytja út skeyti"
+
+msgid "Filtered Telegrams ({count})"
+msgstr "Síuð skeyti ({count})"
+
+msgid "Which telegrams?"
+msgstr "Hvaða skeyti?"
+
+msgid "Print Telegrams"
+msgstr "Prenta skeyti"
+
+msgid "Selected Telegrams ({count})"
+msgstr "Valin skeyti ({count})"
+
+msgid "Bus monitor mode: the normal connection is closed. Nothing can be sent or downloaded until the bus monitor is stopped."
+msgstr "Brautarvöktunarhamur: venjulegu tengingunni er lokað. Ekkert er hægt að senda eða hlaða niður fyrr en brautarvöktun hefur verið stöðvuð."
+
+msgid "Connecting in bus monitor mode…"
+msgstr "Tengist í brautarvöktunarham…"
+
+msgid "Closing the bus monitor connection…"
+msgstr "Lokar tengingu brautarvöktunar…"
+
+msgid "Rec."
+msgstr "Upptaka"
+
+msgid "Replaying {done}/{total}"
+msgstr "Endurspilar {done}/{total}"
+
+msgid "Stopped"
+msgstr "Stöðvað"
+
+msgid "Remove all telegrams"
+msgstr "Fjarlægja öll skeyti"
+
+msgid "Export"
+msgstr "Flytja út"
+
+msgid "Save the telegrams to a file"
+msgstr "Vista skeytin í skrá"
+
+msgid "Import"
+msgstr "Flytja inn"
+
+msgid "Load a recording"
+msgstr "Hlaða upptöku"
+
+msgid "Print"
+msgstr "Prenta"
+
+msgid "Print the telegrams as a PDF document"
+msgstr "Prenta skeytin sem PDF-skjal"
+
+msgid "Replay Telegrams"
+msgstr "Endurspila skeyti"
+
+msgid "Send the selected group telegrams (all if none is selected) again with their original timing"
+msgstr "Senda völdu hópskeytin (öll ef ekkert er valið) aftur með upprunalegri tímasetningu"
+
+msgid "Start recording the connection's communication other than group telegrams, including every frame this app sends"
+msgstr "Hefja upptöku á samskiptum tengingarinnar öðrum en hópskeytum, þar á meðal öllum römmum sem þetta forrit sendir"
+
+msgid "Connect the interface in bus monitor mode and record every frame"
+msgstr "Tengja skilin í brautarvöktunarham og taka upp alla ramma"
+
+msgid "Start recording the group telegrams"
+msgstr "Hefja upptöku hópskeyta"
+
+msgid "Close the bus monitor connection and restore the normal connection"
+msgstr "Loka tengingu brautarvöktunar og endurheimta venjulegu tenginguna"
+
+msgid "Stop recording"
+msgstr "Stöðva upptöku"
+
+msgid "Stop Replay"
+msgstr "Stöðva endurspilun"
+
+msgid "Cancel the replay"
+msgstr "Hætta við endurspilunina"
+
+msgid "Copy"
+msgstr "Afrita"
+
+msgid "Copy the selected telegrams (all shown if none is selected) to the clipboard ({shortcut}). Double-click a telegram to select its source device."
+msgstr "Afrita völdu skeytin (öll sýnd ef ekkert er valið) á klemmuspjaldið ({shortcut}). Tvísmelltu á skeyti til að velja upprunatæki þess."
+
+msgid "Invalid frame"
+msgstr "Ógildur rammi"
+
+msgid "Security"
+msgstr "Öryggi"
+
+msgid "Interface"
+msgstr "Skil"
+
+msgid "MediumInfo"
+msgstr "MediumInfo"
+
+msgid "Source Description"
+msgstr "Lýsing uppruna"
+
+msgid "Destination Description"
+msgstr "Lýsing viðtakanda"
+
+msgid "Telegram Type"
+msgstr "Gerð skeytis"
+
+msgid "Telegram Type (Short)"
+msgstr "Gerð skeytis (stutt)"
+
+msgid "Address"
+msgstr "Vistfang"
+
+msgid "Name"
+msgstr "Heiti"
+
+msgid "Max"
+msgstr "Hám."
+
+msgid "Maximum telegrams this monitor keeps. The oldest tenth is dropped when the cap is exceeded."
+msgstr "Hámarksfjöldi skeyta sem þessi vöktun geymir. Elsta tíunda hlutanum er hent þegar farið er yfir hámarkið."

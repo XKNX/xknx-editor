@@ -1,0 +1,176 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor bus_diagram 1.0\n"
+"Language: sk\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Bus Diagram"
+msgstr "Diagram zbernice"
+
+msgid "No project open"
+msgstr "Nie je otvorený žiadny projekt"
+
+msgid "Unassigned"
+msgstr "Nepriradené"
+
+msgid "Area -> Line -> Device. Click a device to open it."
+msgstr "Oblasť -> Línia -> Zariadenie. Kliknutím na zariadenie ho otvoríte."
+
+msgid "Ctrl+scroll to zoom. Click a device to open it."
+msgstr "Ctrl+koliesko mení priblíženie. Kliknutím na zariadenie ho otvoríte."
+
+msgid "Building View"
+msgstr "Zobrazenie budovy"
+
+msgid "Links"
+msgstr "Prepojenia"
+
+msgid "Physical"
+msgstr "Fyzické"
+
+msgid "Building"
+msgstr "Budova"
+
+msgid "Matrix"
+msgstr "Matica"
+
+msgid "A device x group-address matrix: amber = the device sends on that group address, blue = it receives. Hover a column for the group address, a row to open the device."
+msgstr "Matica zariadenie × skupinová adresa: jantárová = zariadenie vysiela na tejto skupinovej adrese, modrá = prijíma. Ukázaním na stĺpec zobrazíte skupinovú adresu, kliknutím na riadok otvoríte zariadenie."
+
+msgid "sends"
+msgstr "vysiela"
+
+msgid "receives"
+msgstr "prijíma"
+
+msgid "sends & receives"
+msgstr "vysiela a prijíma"
+
+msgid "Each group address is a hub node; devices link to it (sender into the hub, hub out to receivers). Hover a device to see its group addresses, or a hub to see every device on it. Click a device to open it."
+msgstr "Každá skupinová adresa je uzol; zariadenia sú s ním prepojené (vysielač do uzla, z uzla k prijímačom). Ukázaním na zariadenie zobrazíte jeho skupinové adresy, ukázaním na uzol všetky zariadenia na ňom. Kliknutím na zariadenie ho otvoríte."
+
+msgid "No linked devices to show."
+msgstr "Žiadne prepojené zariadenia na zobrazenie."
+
+msgid "Room"
+msgstr "Miestnosť"
+
+msgid "Group"
+msgstr "Skupina"
+
+msgid "All"
+msgstr "Všetko"
+
+msgid "Ctrl/Cmd+scroll to zoom. Click a device to open it."
+msgstr "Ctrl/Cmd+koliesko mení priblíženie. Kliknutím na zariadenie ho otvoríte."
+
+msgid "Area {area}"
+msgstr "Oblasť {area}"
+
+msgid "L {line}"
+msgstr "L {line}"
+
+msgid "Zoom with two fingers. Tap a device to open it."
+msgstr "Priblíženie dvoma prstami. Ťuknutím na zariadenie ho otvoríte."
+
+msgid "(unnamed)"
+msgstr "(bez názvu)"
+
+msgid "Address: {address}"
+msgstr "Adresa: {address}"
+
+msgid "Application: {application}"
+msgstr "Aplikácia: {application}"
+
+msgid "Which devices talk to which over their group addresses: sending devices on the left, receiving devices on the right."
+msgstr "Ktoré zariadenia spolu komunikujú cez svoje skupinové adresy: vysielajúce zariadenia vľavo, prijímajúce vpravo."
+
+msgid "Click to follow a device, channel or group address, double-click to open a device, click the arrow of a device to list its group objects. Drag to move, {key}+scroll to zoom."
+msgstr "Kliknutím sledujete zariadenie, kanál alebo skupinovú adresu, dvojitým kliknutím otvoríte zariadenie, kliknutím na šípku zariadenia zobrazíte jeho skupinové objekty. Presúvajte ťahaním, {key}+koliesko mení priblíženie."
+
+msgid "Tap to follow a device, channel or group address, double-tap to open a device, tap the arrow of a device to list its group objects. Zoom with two fingers."
+msgstr "Ťuknutím sledujete zariadenie, kanál alebo skupinovú adresu, dvojitým ťuknutím otvoríte zariadenie, ťuknutím na šípku zariadenia zobrazíte jeho skupinové objekty. Priblíženie dvoma prstami."
+
+msgid "Channels"
+msgstr "Kanály"
+
+msgid "Channel: {channel} ({device})"
+msgstr "Kanál: {channel} ({device})"
+
+msgid "List the group objects"
+msgstr "Zobraziť skupinové objekty"
+
+msgid "Hide the group objects"
+msgstr "Skryť skupinové objekty"
+
+msgid "Group object {number}: {name}"
+msgstr "Skupinový objekt {number}: {name}"
+
+msgid "Channel: {channel}"
+msgstr "Kanál: {channel}"
+
+msgid "Drag to move, {key}+scroll to zoom. Click a device to open it."
+msgstr "Presúvajte ťahaním, {key}+koliesko mení priblíženie. Kliknutím na zariadenie ho otvoríte."
+
+msgid "Show"
+msgstr "Zobraziť"
+
+msgid "Choose…"
+msgstr "Vybrať…"
+
+msgid "Choose above what to show: the whole project, a room or a main group."
+msgstr "Vyberte vyššie, čo sa má zobraziť: celý projekt, miestnosť alebo hlavnú skupinu."
+
+msgid "Whole Project"
+msgstr "Celý projekt"
+
+msgid "Rooms"
+msgstr "Miestnosti"
+
+msgid "Main Groups"
+msgstr "Hlavné skupiny"
+
+msgid "Device: {device}"
+msgstr "Zariadenie: {device}"
+
+msgid "Group Address: {address}"
+msgstr "Skupinová adresa: {address}"
+
+msgid "Back"
+msgstr "Späť"
+
+msgid "Fit"
+msgstr "Prispôsobiť"
+
+msgid "Sending"
+msgstr "Vysielajúce"
+
+msgid "Group Addresses"
+msgstr "Skupinové adresy"
+
+msgid "Receiving"
+msgstr "Prijímajúce"
+
+msgid "+ {count} more"
+msgstr "+ ďalšie: {count}"
+
+msgid "{count} more devices outside the selection. Click to show them."
+msgstr "Ďalšie zariadenia mimo výberu: {count}. Kliknutím ich zobrazíte."
+
+msgid "{address}\n{senders} sending, {receivers} receiving"
+msgstr "{address}\nvysielajúce: {senders}, prijímajúce: {receivers}"
+
+msgid "Areas"
+msgstr "Oblasti"
+
+msgid "Lines"
+msgstr "Línie"
+
+msgid "Devices"
+msgstr "Zariadenia"
+
+msgid "Buildings"
+msgstr "Budovy"

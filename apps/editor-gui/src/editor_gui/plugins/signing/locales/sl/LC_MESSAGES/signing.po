@@ -1,0 +1,68 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor signing 1.0\n"
+"Language: sl\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Signing"
+msgstr "Podpisovanje"
+
+msgid "Signing Key…"
+msgstr "Ključ za podpisovanje…"
+
+msgid "Signing Key"
+msgstr "Ključ za podpisovanje"
+
+msgid "A signing key is set (exports are signed)."
+msgstr "Ključ za podpisovanje je nastavljen (izvozi so podpisani)."
+
+msgid "Placeholder key in use — signatures are not ETS-valid."
+msgstr "Uporablja se nadomestni ključ – podpisi za ETS niso veljavni."
+
+msgid "Modulus (hex)"
+msgstr "Modul (hex)"
+
+msgid "Private Exponent (hex)"
+msgstr "Zasebni eksponent (hex)"
+
+msgid "Public Exponent (hex)"
+msgstr "Javni eksponent (hex)"
+
+msgid "Extract from Knx.Ets.XmlSigning.dll…"
+msgstr "Izvleci iz Knx.Ets.XmlSigning.dll…"
+
+msgid "Save"
+msgstr "Shrani"
+
+msgid "Reset to Placeholder"
+msgstr "Ponastavi na nadomestni ključ"
+
+msgid "All DLLs"
+msgstr "Vse datoteke DLL"
+
+msgid "All Files"
+msgstr "Vse datoteke"
+
+msgid "Select \"Knx.Ets.XmlSigning.dll\" from your ETS installation (e.g. C:\\Program Files (x86)\\ETS6)."
+msgstr "Izberite »Knx.Ets.XmlSigning.dll« iz svoje namestitve ETS (npr. C:\\Program Files (x86)\\ETS6)."
+
+msgid "Extracting key from the assembly…"
+msgstr "Izvlačenje ključa iz sklopa…"
+
+msgid "Signing key saved."
+msgstr "Ključ za podpisovanje je shranjen."
+
+msgid "Reverted to the placeholder key."
+msgstr "Povrnjeno na nadomestni ključ."
+
+msgid "No .NET runtime found. Install the .NET SDK (macOS: `brew install dotnet-sdk`; Fedora: `sudo dnf install dotnet-sdk-8.0`) to extract the key, or paste it manually below."
+msgstr "Izvajalnega okolja .NET ni bilo mogoče najti. Namestite .NET SDK (macOS: `brew install dotnet-sdk`; Fedora: `sudo dnf install dotnet-sdk-8.0`), da izvlečete ključ, ali pa ga spodaj prilepite ročno."
+
+msgid "The key is read from your own licensed ETS assembly and stored per-user, never in the project."
+msgstr "Ključ se prebere iz vašega lastnega licenciranega sklopa ETS in shrani za vsakega uporabnika posebej, nikoli v projekt."
+
+msgid "Based on OpenKNXproducer (github.com/OpenKNX/OpenKNXproducer)."
+msgstr "Na osnovi OpenKNXproducer (github.com/OpenKNX/OpenKNXproducer)."

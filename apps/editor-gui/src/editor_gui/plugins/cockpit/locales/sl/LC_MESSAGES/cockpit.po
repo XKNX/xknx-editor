@@ -1,0 +1,74 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor cockpit 1.0\n"
+"Language: sl\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Overview"
+msgstr "Pregled"
+
+msgid "No project open"
+msgstr "Noben projekt ni odprt"
+
+msgid "Filter devices…"
+msgstr "Filtriraj naprave…"
+
+msgid "Needs Attention Only"
+msgstr "Samo potrebni ukrepi"
+
+msgid "{count} device(s) not in catalog"
+msgstr "Naprave, ki jih ni v katalogu: {count}"
+
+msgid "Address"
+msgstr "Naslov"
+
+msgid "Name"
+msgstr "Ime"
+
+msgid "Product"
+msgstr "Izdelek"
+
+msgid "Status"
+msgstr "Stanje"
+
+msgid "OK"
+msgstr "OK"
+
+msgid "Device Overview"
+msgstr "Pregled naprav"
+
+msgid "Application Program"
+msgstr "Aplikacijski program"
+
+msgid "Communication Part"
+msgstr "Komunikacijski del"
+
+msgid "Individual Address"
+msgstr "Fizični naslov"
+
+msgid "Last Download: {when}"
+msgstr "Zadnje programiranje: {when}"
+
+msgid "Loaded"
+msgstr "Naloženo"
+
+msgid "Medium Config"
+msgstr "Konfiguracija medija"
+
+msgid "Parameters"
+msgstr "Parametri"
+
+msgid "Serial: {serial}"
+msgstr "Serijska številka: {serial}"
+
+msgid "loaded"
+msgstr "naloženo"
+
+msgid "not loaded"
+msgstr "ni naloženo"
+
+msgid "partial ({done}/{total})"
+msgstr "delno ({done}/{total})"

@@ -1,0 +1,176 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor bus_diagram 1.0\n"
+"Language: hu\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Bus Diagram"
+msgstr "Buszdiagram"
+
+msgid "No project open"
+msgstr "Nincs megnyitott projekt"
+
+msgid "Unassigned"
+msgstr "Nincs hozzárendelve"
+
+msgid "Area -> Line -> Device. Click a device to open it."
+msgstr "Terület -> Vonal -> Készülék. Kattintson egy készülékre a megnyitásához."
+
+msgid "Ctrl+scroll to zoom. Click a device to open it."
+msgstr "Nagyítás: Ctrl+görgetés. Kattintson egy készülékre a megnyitásához."
+
+msgid "Building View"
+msgstr "Épületnézet"
+
+msgid "Links"
+msgstr "Összekapcsolások"
+
+msgid "Physical"
+msgstr "Fizikai"
+
+msgid "Building"
+msgstr "Épület"
+
+msgid "Matrix"
+msgstr "Mátrix"
+
+msgid "A device x group-address matrix: amber = the device sends on that group address, blue = it receives. Hover a column for the group address, a row to open the device."
+msgstr "Készülék × csoportcím mátrix: borostyánsárga = a készülék küld az adott csoportcímen, kék = fogad. Vigye az egeret egy oszlop fölé a csoportcímért, egy sor fölé a készülék megnyitásához."
+
+msgid "sends"
+msgstr "küld"
+
+msgid "receives"
+msgstr "fogad"
+
+msgid "sends & receives"
+msgstr "küld és fogad"
+
+msgid "Each group address is a hub node; devices link to it (sender into the hub, hub out to receivers). Hover a device to see its group addresses, or a hub to see every device on it. Click a device to open it."
+msgstr "Minden csoportcím egy csomópont; a készülékek ehhez kapcsolódnak (a küldő a csomópontba, a csomópontból a fogadókhoz). Vigye az egeret egy készülék fölé a csoportcímei megtekintéséhez, vagy egy csomópont fölé a hozzá tartozó összes készülékért. Kattintson egy készülékre a megnyitásához."
+
+msgid "No linked devices to show."
+msgstr "Nincs megjeleníthető összekapcsolt készülék."
+
+msgid "Room"
+msgstr "Helyiség"
+
+msgid "Group"
+msgstr "Csoport"
+
+msgid "All"
+msgstr "Összes"
+
+msgid "Ctrl/Cmd+scroll to zoom. Click a device to open it."
+msgstr "Nagyítás: Ctrl/Cmd+görgetés. Kattintson egy készülékre a megnyitásához."
+
+msgid "Area {area}"
+msgstr "Terület: {area}"
+
+msgid "L {line}"
+msgstr "V {line}"
+
+msgid "Zoom with two fingers. Tap a device to open it."
+msgstr "Nagyítás két ujjal. Koppintson egy készülékre a megnyitásához."
+
+msgid "(unnamed)"
+msgstr "(névtelen)"
+
+msgid "Address: {address}"
+msgstr "Cím: {address}"
+
+msgid "Application: {application}"
+msgstr "Alkalmazás: {application}"
+
+msgid "Which devices talk to which over their group addresses: sending devices on the left, receiving devices on the right."
+msgstr "Mely készülékek kommunikálnak egymással a csoportcímeiken keresztül: a küldő készülékek bal oldalt, a fogadók jobb oldalt."
+
+msgid "Click to follow a device, channel or group address, double-click to open a device, click the arrow of a device to list its group objects. Drag to move, {key}+scroll to zoom."
+msgstr "Kattintással követhet egy készüléket, csatornát vagy csoportcímet, dupla kattintással megnyithat egy készüléket, a készülék nyilára kattintva listázhatja a kommunikációs objektumait. Mozgatás: húzás, nagyítás: {key}+görgetés."
+
+msgid "Tap to follow a device, channel or group address, double-tap to open a device, tap the arrow of a device to list its group objects. Zoom with two fingers."
+msgstr "Koppintással követhet egy készüléket, csatornát vagy csoportcímet, dupla koppintással megnyithat egy készüléket, a készülék nyilára koppintva listázhatja a kommunikációs objektumait. Nagyítás két ujjal."
+
+msgid "Channels"
+msgstr "Csatornák"
+
+msgid "Channel: {channel} ({device})"
+msgstr "Csatorna: {channel} ({device})"
+
+msgid "List the group objects"
+msgstr "Kommunikációs objektumok listázása"
+
+msgid "Hide the group objects"
+msgstr "Kommunikációs objektumok elrejtése"
+
+msgid "Group object {number}: {name}"
+msgstr "Kommunikációs objektum {number}: {name}"
+
+msgid "Channel: {channel}"
+msgstr "Csatorna: {channel}"
+
+msgid "Drag to move, {key}+scroll to zoom. Click a device to open it."
+msgstr "Mozgatás: húzás, nagyítás: {key}+görgetés. Kattintson egy készülékre a megnyitásához."
+
+msgid "Show"
+msgstr "Megjelenítés"
+
+msgid "Choose…"
+msgstr "Kiválasztás…"
+
+msgid "Choose above what to show: the whole project, a room or a main group."
+msgstr "Fent válassza ki, mi jelenjen meg: a teljes projekt, egy helyiség vagy egy főcsoport."
+
+msgid "Whole Project"
+msgstr "Teljes projekt"
+
+msgid "Rooms"
+msgstr "Helyiségek"
+
+msgid "Main Groups"
+msgstr "Főcsoportok"
+
+msgid "Device: {device}"
+msgstr "Készülék: {device}"
+
+msgid "Group Address: {address}"
+msgstr "Csoportcím: {address}"
+
+msgid "Back"
+msgstr "Vissza"
+
+msgid "Fit"
+msgstr "Igazítás"
+
+msgid "Sending"
+msgstr "Küldők"
+
+msgid "Group Addresses"
+msgstr "Csoportcímek"
+
+msgid "Receiving"
+msgstr "Fogadók"
+
+msgid "+ {count} more"
+msgstr "+ további {count}"
+
+msgid "{count} more devices outside the selection. Click to show them."
+msgstr "További készülékek a kijelölésen kívül: {count}. Kattintson a megjelenítésükhöz."
+
+msgid "{address}\n{senders} sending, {receivers} receiving"
+msgstr "{address}\nKüldők: {senders}, fogadók: {receivers}"
+
+msgid "Areas"
+msgstr "Területek"
+
+msgid "Lines"
+msgstr "Vonalak"
+
+msgid "Devices"
+msgstr "Készülékek"
+
+msgid "Buildings"
+msgstr "Épületek"

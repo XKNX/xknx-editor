@@ -1,0 +1,131 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor recover 1.0\n"
+"Language: ro\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Recover"
+msgstr "Recuperare"
+
+msgid "Recover from Bus…"
+msgstr "Recuperare de pe magistrală…"
+
+msgid "Recover Project from Bus"
+msgstr "Recuperare proiect de pe magistrală"
+
+msgid "From Address"
+msgstr "De la adresa"
+
+msgid "To Address"
+msgstr "Până la adresa"
+
+msgid "Scan"
+msgstr "Scanare"
+
+msgid "Stop"
+msgstr "Oprire"
+
+msgid "Add to Open Project as Read"
+msgstr "Adăugare la proiectul deschis așa cum au fost citite"
+
+msgid "Recover Selected"
+msgstr "Recuperare selecție"
+
+msgid "Create New Project"
+msgstr "Creare proiect nou"
+
+msgid "Add to Open Project"
+msgstr "Adăugare la proiectul deschis"
+
+msgid "Verify (Read-Only)"
+msgstr "Verificare (doar citire)"
+
+msgid "Export Snapshot"
+msgstr "Export instantaneu"
+
+msgid "Verifying (re-reading and comparing)…"
+msgstr "Se verifică (recitire și comparare)…"
+
+msgid "%(count)d group address(es) have no sender or multiple senders."
+msgstr "Adrese de grup fără emițător sau cu mai mulți emițători: %(count)d."
+
+msgid "Address"
+msgstr "Adresă"
+
+msgid "Mask"
+msgstr "Mască"
+
+msgid "Product / Application"
+msgstr "Produs / aplicație"
+
+msgid "Status"
+msgstr "Stare"
+
+msgid "Set an address range and scan the bus."
+msgstr "Setați un interval de adrese și scanați magistrala."
+
+msgid "Scanning the bus…"
+msgstr "Se scanează magistrala…"
+
+msgid "Scanning %(address)s  (%(done)d/%(total)d, %(found)d found)"
+msgstr "Se scanează %(address)s  (%(done)d/%(total)d, găsite: %(found)d)"
+
+msgid "Loading missing products from online catalog: %(what)s"
+msgstr "Se încarcă produsele lipsă din catalogul online: %(what)s"
+
+msgid "Reading devices…"
+msgstr "Se citesc dispozitivele…"
+
+msgid "Reading %(address)s  (%(done)d/%(total)d)  -  %(stage)s"
+msgstr "Se citește %(address)s  (%(done)d/%(total)d)  -  %(stage)s"
+
+msgid "group communication tables"
+msgstr "tabelele de comunicare de grup"
+
+msgid "parameter memory"
+msgstr "memoria de parametri"
+
+msgid "Recovered %(devices)d device(s): %(group_addresses)d group addresses, %(links)d links, %(unknown)d parameter(s) not recoverable."
+msgstr "Dispozitive recuperate: %(devices)d; adrese de grup: %(group_addresses)d, legături: %(links)d, parametri nerecuperabili: %(unknown)d."
+
+msgid "Recovered"
+msgstr "Recuperat"
+
+msgid "Added %(count)d device(s) to the open project (%(target)s)."
+msgstr "Dispozitive adăugate la proiectul deschis (%(target)s): %(count)d."
+
+msgid "Created new project %(target)s with %(count)d device(s)."
+msgstr "Proiect nou creat: %(target)s (dispozitive: %(count)d)."
+
+msgid "Not connected to a KNX bus."
+msgstr "Neconectat la o magistrală KNX."
+
+msgid "Open or create a project to add recovered devices."
+msgstr "Deschideți sau creați un proiect pentru a adăuga dispozitivele recuperate."
+
+msgid "matched"
+msgstr "potrivit"
+
+msgid "confirm product/version, then tick"
+msgstr "confirmați produsul/versiunea, apoi bifați"
+
+msgid "not in catalog - import via Catalog"
+msgstr "nu este în catalog - importați prin Catalog"
+
+msgid "unprogrammed"
+msgstr "neprogramat"
+
+msgid "recovered"
+msgstr "recuperat"
+
+msgid "error"
+msgstr "eroare"
+
+msgid "%d parameters could not be recovered"
+msgstr "Parametri care nu au putut fi recuperați: %d"
+
+msgid "already in project - skipped"
+msgstr "există deja în proiect - omis"

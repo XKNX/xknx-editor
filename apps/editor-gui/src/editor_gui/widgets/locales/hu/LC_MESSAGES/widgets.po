@@ -1,0 +1,305 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor widgets 1.0\n"
+"Language: hu\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "(image)"
+msgstr "(kép)"
+
+msgid "Search…"
+msgstr "Keresés…"
+
+msgid "{name} (locked)"
+msgstr "{name} (zárolva)"
+
+msgid "Create Group Addresses ({count})"
+msgstr "Csoportcímek létrehozása ({count})"
+
+msgid "All"
+msgstr "Összes"
+
+msgid "None"
+msgstr "Egyik sem"
+
+msgid "Copy Links ({count})"
+msgstr "Összekapcsolások másolása ({count})"
+
+msgid "Paste Links ({count})"
+msgstr "Összekapcsolások beillesztése ({count})"
+
+msgid "Assigns the copied links and flags to the checked objects in order (1st to 1st, 2nd to 2nd, …), replacing each target's current links."
+msgstr "A másolt összekapcsolásokat és flageket sorrendben hozzárendeli a bejelölt objektumokhoz (1. az 1.-höz, 2. a 2.-hoz, …), lecserélve a célok jelenlegi összekapcsolásait."
+
+msgid "Merge"
+msgstr "Egyesítés"
+
+msgid "Keep each target's existing links and only add the copied ones."
+msgstr "A célok meglévő összekapcsolásai megmaradnak, csak a másoltak kerülnek hozzáadásra."
+
+msgid "Copy Links"
+msgstr "Összekapcsolások másolása"
+
+msgid "Paste Links"
+msgstr "Összekapcsolások beillesztése"
+
+msgid "Copy Addresses as Text"
+msgstr "Címek másolása szövegként"
+
+msgid "Create Group Addresses"
+msgstr "Csoportcímek létrehozása"
+
+msgid "Name template placeholders: {object}, {device}, {room}, {function}, {number}, {dpt}, {n} (index; {n:02} zero-pads)"
+msgstr "Névsablon helyőrzői: {object}, {device}, {room}, {function}, {number}, {dpt}, {n} (sorszám; {n:02} nullákkal kiegészítve)"
+
+msgid "Name Template"
+msgstr "Névsablon"
+
+msgid "Start Address"
+msgstr "Kezdőcím"
+
+msgid "Cancel"
+msgstr "Mégse"
+
+msgid "Sending Group Address"
+msgstr "Küldő csoportcím"
+
+msgid "Receiving Group Address"
+msgstr "Fogadó csoportcím"
+
+msgid "current value"
+msgstr "jelenlegi érték"
+
+msgid "older"
+msgstr "régebbi"
+
+msgid "sent"
+msgstr "elküldve"
+
+msgid "received"
+msgstr "fogadva"
+
+msgid "sent & received"
+msgstr "elküldve és fogadva"
+
+msgid "Changed from default ({default})"
+msgstr "Eltér az alapértéktől ({default})"
+
+msgid "Changed from default ({default}) — right-click to reset"
+msgstr "Eltér az alapértéktől ({default}) – visszaállítás jobb kattintással"
+
+msgid "Reset to Default"
+msgstr "Alapérték visszaállítása"
+
+msgid "New Group Address"
+msgstr "Új csoportcím"
+
+msgid "Address"
+msgstr "Cím"
+
+msgid "Name"
+msgstr "Név"
+
+msgid "Create & Link"
+msgstr "Létrehozás és összekapcsolás"
+
+msgid "Link Group Address"
+msgstr "Csoportcím összekapcsolása"
+
+msgid "<differs>"
+msgstr "<eltér>"
+
+msgid "Off"
+msgstr "Ki"
+
+msgid "On"
+msgstr "Be"
+
+msgid "Standard"
+msgstr "Normál"
+
+msgid "Advanced"
+msgstr "Speciális"
+
+msgid "Theme Colors"
+msgstr "Témaszínek"
+
+msgid "Standard Colors"
+msgstr "Alapszínek"
+
+msgid "Mo Tu We Th Fr Sa Su"
+msgstr "H K Sze Cs P Szo V"
+
+msgid "Hours"
+msgstr "Óra"
+
+msgid "Minutes"
+msgstr "Perc"
+
+msgid "Seconds"
+msgstr "Másodperc"
+
+msgid "x 100 ms"
+msgstr "x 100 ms"
+
+msgid "x 10 ms"
+msgstr "x 10 ms"
+
+msgid "Milliseconds"
+msgstr "Ezredmásodperc"
+
+msgid "General"
+msgstr "Általános"
+
+msgid "Default (Inherit)"
+msgstr "Alapértelmezett (örökölt)"
+
+msgid "Edit Description…"
+msgstr "Leírás szerkesztése…"
+
+msgid "Edit Description"
+msgstr "Leírás szerkesztése"
+
+msgid "OK"
+msgstr "OK"
+
+msgid "Enter a number."
+msgstr "Adjon meg egy számot."
+
+msgid "Enter a whole number."
+msgstr "Adjon meg egy egész számot."
+
+msgid "Enter a value from {minimum} to {maximum}."
+msgstr "Adjon meg egy értéket a következő tartományban: {minimum}–{maximum}."
+
+msgid "Enter at most {count} characters."
+msgstr "Legfeljebb ennyi karaktert adjon meg: {count}"
+
+msgid "Enter a value."
+msgstr "Adjon meg egy értéket."
+
+msgid "This value cannot be sent with this data type."
+msgstr "Ez az érték nem küldhető ezzel az adattípussal."
+
+msgid "No value can be entered for this data type."
+msgstr "Ehhez az adattípushoz nem adható meg érték."
+
+msgid "Edit…"
+msgstr "Szerkesztés…"
+
+msgid "The text may take at most {count} bytes."
+msgstr "A szöveg legfeljebb ennyi bájt lehet: {count}"
+
+msgid "Value {number}"
+msgstr "Érték {number}"
+
+msgid "Edit Value"
+msgstr "Érték szerkesztése"
+
+msgid "Name template"
+msgstr "Névsablon"
+
+msgid "Placeholders"
+msgstr "Helyőrzők"
+
+msgid "{building}  Building\n{floor}  Floor\n{room}  Room\n{device}  Device name or description\n{devicename}  Device name\n{devicedescription}  Device description\n{product}  Product\n{manufacturer}  Manufacturer\n{order}  Order number\n{address}  Individual address\n{object}  Object name\n{ganame}  Object name\n{function}  Function\n{number}  Object number\n{dpt}  Datapoint type"
+msgstr "{building}  Épület\n{floor}  Emelet\n{room}  Helyiség\n{device}  Készülék neve vagy leírása\n{devicename}  Készülék neve\n{devicedescription}  Készülék leírása\n{product}  Termék\n{manufacturer}  Gyártó\n{order}  Rendelési szám\n{address}  Fizikai cím\n{object}  Objektum neve\n{ganame}  Objektum neve\n{function}  Funkció\n{number}  Objektum száma\n{dpt}  Adatponttípus"
+
+msgid "{n}  Sequential index ({n:02} zero-pads)"
+msgstr "{n}  Folyamatos sorszám ({n:02} nullákkal kiegészítve)"
+
+msgid "Size Column to Fit"
+msgstr "Oszlopszélesség igazítása"
+
+msgid "Size All Columns to Fit"
+msgstr "Minden oszlopszélesség igazítása"
+
+msgid "Reset Column Order"
+msgstr "Oszlopsorrend alaphelyzetbe állítása"
+
+msgid "Reset Column Visibility"
+msgstr "Oszlopok láthatóságának alaphelyzetbe állítása"
+
+msgid "Reset All Columns"
+msgstr "Minden oszlop alaphelyzetbe állítása"
+
+msgid "DPT"
+msgstr "DPT"
+
+msgid "Length"
+msgstr "Hossz"
+
+msgid "Prio"
+msgstr "Prio."
+
+msgid "Group Addresses"
+msgstr "Csoportcímek"
+
+msgid "(empty)"
+msgstr "(üres)"
+
+msgid "Options"
+msgstr "Beállítások"
+
+msgid "Columns"
+msgstr "Oszlopok"
+
+msgid "Grey Out Zeros"
+msgstr "Nullák szürkítése"
+
+msgid "Uppercase Hex"
+msgstr "Nagybetűs hex"
+
+msgid "Show ASCII"
+msgstr "ASCII megjelenítése"
+
+msgid "Copy"
+msgstr "Másolás"
+
+msgid "Copy {count} B"
+msgstr "{count} B másolása"
+
+msgid "Go To:"
+msgstr "Ugrás:"
+
+msgid "{count} difference(s)"
+msgstr "Eltérések: {count}"
+
+msgid "no differences"
+msgstr "nincs eltérés"
+
+msgid "Parameter:"
+msgstr "Paraméter:"
+
+msgid "search…"
+msgstr "keresés…"
+
+msgid "automatic"
+msgstr "automatikus"
+
+msgid "Low"
+msgstr "Alacsony"
+
+msgid "High"
+msgstr "Magas"
+
+msgid "Alert"
+msgstr "Riasztás"
+
+msgid "Bold"
+msgstr "Félkövér"
+
+msgid "Italic"
+msgstr "Dőlt"
+
+msgid "Underline"
+msgstr "Aláhúzott"
+
+msgid "Cut"
+msgstr "Kivágás"
+
+msgid "Paste"
+msgstr "Beillesztés"

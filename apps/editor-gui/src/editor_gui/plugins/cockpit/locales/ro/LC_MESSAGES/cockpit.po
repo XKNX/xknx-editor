@@ -1,0 +1,74 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor cockpit 1.0\n"
+"Language: ro\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Overview"
+msgstr "Prezentare generală"
+
+msgid "No project open"
+msgstr "Niciun proiect deschis"
+
+msgid "Filter devices…"
+msgstr "Filtrare dispozitive…"
+
+msgid "Needs Attention Only"
+msgstr "Numai cele care necesită atenție"
+
+msgid "{count} device(s) not in catalog"
+msgstr "Dispozitive care nu sunt în catalog: {count}"
+
+msgid "Address"
+msgstr "Adresă"
+
+msgid "Name"
+msgstr "Nume"
+
+msgid "Product"
+msgstr "Produs"
+
+msgid "Status"
+msgstr "Stare"
+
+msgid "OK"
+msgstr "OK"
+
+msgid "Device Overview"
+msgstr "Prezentare dispozitive"
+
+msgid "Application Program"
+msgstr "Program de aplicație"
+
+msgid "Communication Part"
+msgstr "Partea de comunicare"
+
+msgid "Individual Address"
+msgstr "Adresă fizică"
+
+msgid "Last Download: {when}"
+msgstr "Ultima programare: {when}"
+
+msgid "Loaded"
+msgstr "Încărcat"
+
+msgid "Medium Config"
+msgstr "Configurație mediu"
+
+msgid "Parameters"
+msgstr "Parametri"
+
+msgid "Serial: {serial}"
+msgstr "Număr de serie: {serial}"
+
+msgid "loaded"
+msgstr "încărcat"
+
+msgid "not loaded"
+msgstr "neîncărcat"
+
+msgid "partial ({done}/{total})"
+msgstr "parțial ({done}/{total})"

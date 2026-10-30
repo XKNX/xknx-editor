@@ -1,0 +1,305 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor widgets 1.0\n"
+"Language: sk\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "(image)"
+msgstr "(obrázok)"
+
+msgid "Search…"
+msgstr "Hľadať…"
+
+msgid "{name} (locked)"
+msgstr "{name} (zamknuté)"
+
+msgid "Create Group Addresses ({count})"
+msgstr "Vytvoriť skupinové adresy ({count})"
+
+msgid "All"
+msgstr "Všetko"
+
+msgid "None"
+msgstr "Nič"
+
+msgid "Copy Links ({count})"
+msgstr "Kopírovať prepojenia ({count})"
+
+msgid "Paste Links ({count})"
+msgstr "Prilepiť prepojenia ({count})"
+
+msgid "Assigns the copied links and flags to the checked objects in order (1st to 1st, 2nd to 2nd, …), replacing each target's current links."
+msgstr "Priradí skopírované prepojenia a príznaky označeným objektom v poradí (1. k 1., 2. k 2., …) a nahradí aktuálne prepojenia každého cieľa."
+
+msgid "Merge"
+msgstr "Zlúčiť"
+
+msgid "Keep each target's existing links and only add the copied ones."
+msgstr "Zachovať existujúce prepojenia cieľov a len pridať skopírované."
+
+msgid "Copy Links"
+msgstr "Kopírovať prepojenia"
+
+msgid "Paste Links"
+msgstr "Prilepiť prepojenia"
+
+msgid "Copy Addresses as Text"
+msgstr "Kopírovať adresy ako text"
+
+msgid "Create Group Addresses"
+msgstr "Vytvoriť skupinové adresy"
+
+msgid "Name template placeholders: {object}, {device}, {room}, {function}, {number}, {dpt}, {n} (index; {n:02} zero-pads)"
+msgstr "Zástupné symboly šablóny názvu: {object}, {device}, {room}, {function}, {number}, {dpt}, {n} (index; {n:02} doplní nulami)"
+
+msgid "Name Template"
+msgstr "Šablóna názvu"
+
+msgid "Start Address"
+msgstr "Počiatočná adresa"
+
+msgid "Cancel"
+msgstr "Zrušiť"
+
+msgid "Sending Group Address"
+msgstr "Vysielacia skupinová adresa"
+
+msgid "Receiving Group Address"
+msgstr "Prijímacia skupinová adresa"
+
+msgid "current value"
+msgstr "aktuálna hodnota"
+
+msgid "older"
+msgstr "staršia"
+
+msgid "sent"
+msgstr "odoslané"
+
+msgid "received"
+msgstr "prijaté"
+
+msgid "sent & received"
+msgstr "odoslané a prijaté"
+
+msgid "Changed from default ({default})"
+msgstr "Zmenené oproti predvolenej hodnote ({default})"
+
+msgid "Changed from default ({default}) — right-click to reset"
+msgstr "Zmenené oproti predvolenej hodnote ({default}) – obnovíte kliknutím pravým tlačidlom"
+
+msgid "Reset to Default"
+msgstr "Obnoviť predvolenú hodnotu"
+
+msgid "New Group Address"
+msgstr "Nová skupinová adresa"
+
+msgid "Address"
+msgstr "Adresa"
+
+msgid "Name"
+msgstr "Názov"
+
+msgid "Create & Link"
+msgstr "Vytvoriť a prepojiť"
+
+msgid "Link Group Address"
+msgstr "Prepojiť skupinovú adresu"
+
+msgid "<differs>"
+msgstr "<líši sa>"
+
+msgid "Off"
+msgstr "Vyp."
+
+msgid "On"
+msgstr "Zap."
+
+msgid "Standard"
+msgstr "Štandardné"
+
+msgid "Advanced"
+msgstr "Rozšírené"
+
+msgid "Theme Colors"
+msgstr "Farby motívu"
+
+msgid "Standard Colors"
+msgstr "Štandardné farby"
+
+msgid "Mo Tu We Th Fr Sa Su"
+msgstr "Po Ut St Št Pi So Ne"
+
+msgid "Hours"
+msgstr "Hodiny"
+
+msgid "Minutes"
+msgstr "Minúty"
+
+msgid "Seconds"
+msgstr "Sekundy"
+
+msgid "x 100 ms"
+msgstr "x 100 ms"
+
+msgid "x 10 ms"
+msgstr "x 10 ms"
+
+msgid "Milliseconds"
+msgstr "Milisekundy"
+
+msgid "General"
+msgstr "Všeobecné"
+
+msgid "Default (Inherit)"
+msgstr "Predvolené (zdedené)"
+
+msgid "Edit Description…"
+msgstr "Upraviť popis…"
+
+msgid "Edit Description"
+msgstr "Upraviť popis"
+
+msgid "OK"
+msgstr "OK"
+
+msgid "Enter a number."
+msgstr "Zadajte číslo."
+
+msgid "Enter a whole number."
+msgstr "Zadajte celé číslo."
+
+msgid "Enter a value from {minimum} to {maximum}."
+msgstr "Zadajte hodnotu od {minimum} do {maximum}."
+
+msgid "Enter at most {count} characters."
+msgstr "Zadajte najviac {count} znakov."
+
+msgid "Enter a value."
+msgstr "Zadajte hodnotu."
+
+msgid "This value cannot be sent with this data type."
+msgstr "Túto hodnotu nemožno s týmto dátovým typom odoslať."
+
+msgid "No value can be entered for this data type."
+msgstr "Pre tento dátový typ nemožno zadať žiadnu hodnotu."
+
+msgid "Edit…"
+msgstr "Upraviť…"
+
+msgid "The text may take at most {count} bytes."
+msgstr "Text môže mať najviac {count} bajtov."
+
+msgid "Value {number}"
+msgstr "Hodnota {number}"
+
+msgid "Edit Value"
+msgstr "Upraviť hodnotu"
+
+msgid "Name template"
+msgstr "Šablóna názvu"
+
+msgid "Placeholders"
+msgstr "Zástupné symboly"
+
+msgid "{building}  Building\n{floor}  Floor\n{room}  Room\n{device}  Device name or description\n{devicename}  Device name\n{devicedescription}  Device description\n{product}  Product\n{manufacturer}  Manufacturer\n{order}  Order number\n{address}  Individual address\n{object}  Object name\n{ganame}  Object name\n{function}  Function\n{number}  Object number\n{dpt}  Datapoint type"
+msgstr "{building}  Budova\n{floor}  Podlažie\n{room}  Miestnosť\n{device}  Názov alebo popis zariadenia\n{devicename}  Názov zariadenia\n{devicedescription}  Popis zariadenia\n{product}  Produkt\n{manufacturer}  Výrobca\n{order}  Objednávacie číslo\n{address}  Individuálna adresa\n{object}  Názov objektu\n{ganame}  Názov objektu\n{function}  Funkcia\n{number}  Číslo objektu\n{dpt}  Typ dátového bodu"
+
+msgid "{n}  Sequential index ({n:02} zero-pads)"
+msgstr "{n}  Poradový index ({n:02} doplní nulami)"
+
+msgid "Size Column to Fit"
+msgstr "Prispôsobiť šírku stĺpca"
+
+msgid "Size All Columns to Fit"
+msgstr "Prispôsobiť šírku všetkých stĺpcov"
+
+msgid "Reset Column Order"
+msgstr "Obnoviť poradie stĺpcov"
+
+msgid "Reset Column Visibility"
+msgstr "Obnoviť viditeľnosť stĺpcov"
+
+msgid "Reset All Columns"
+msgstr "Obnoviť všetky stĺpce"
+
+msgid "DPT"
+msgstr "DPT"
+
+msgid "Length"
+msgstr "Dĺžka"
+
+msgid "Prio"
+msgstr "Priorita"
+
+msgid "Group Addresses"
+msgstr "Skupinové adresy"
+
+msgid "(empty)"
+msgstr "(prázdne)"
+
+msgid "Options"
+msgstr "Možnosti"
+
+msgid "Columns"
+msgstr "Stĺpce"
+
+msgid "Grey Out Zeros"
+msgstr "Zošednúť nuly"
+
+msgid "Uppercase Hex"
+msgstr "Hex veľkými písmenami"
+
+msgid "Show ASCII"
+msgstr "Zobraziť ASCII"
+
+msgid "Copy"
+msgstr "Kopírovať"
+
+msgid "Copy {count} B"
+msgstr "Kopírovať {count} B"
+
+msgid "Go To:"
+msgstr "Prejsť na:"
+
+msgid "{count} difference(s)"
+msgstr "Rozdiely: {count}"
+
+msgid "no differences"
+msgstr "žiadne rozdiely"
+
+msgid "Parameter:"
+msgstr "Parameter:"
+
+msgid "search…"
+msgstr "hľadať…"
+
+msgid "automatic"
+msgstr "automaticky"
+
+msgid "Low"
+msgstr "Nízka"
+
+msgid "High"
+msgstr "Vysoká"
+
+msgid "Alert"
+msgstr "Alarmová"
+
+msgid "Bold"
+msgstr "Tučné"
+
+msgid "Italic"
+msgstr "Kurzíva"
+
+msgid "Underline"
+msgstr "Podčiarknuté"
+
+msgid "Cut"
+msgstr "Vystrihnúť"
+
+msgid "Paste"
+msgstr "Prilepiť"

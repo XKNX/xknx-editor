@@ -1,0 +1,197 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor connection 1.0\n"
+"Language: is\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Gateway"
+msgstr "Gátt"
+
+msgid "Connect"
+msgstr "Tengjast"
+
+msgid "Disconnect"
+msgstr "Aftengjast"
+
+msgid "Discovered Gateways"
+msgstr "Gáttir sem fundust"
+
+msgid "Diagnostics"
+msgstr "Greining"
+
+msgid "Check for Devices in Programming Mode"
+msgstr "Leita að tækjum í forritunarham"
+
+msgid "No gateways found"
+msgstr "Engar gáttir fundust"
+
+msgid "Manual Connection"
+msgstr "Handvirk tenging"
+
+msgid "Connected: {ip}"
+msgstr "Tengt: {ip}"
+
+msgid "Connected to {ip}"
+msgstr "Tengt við {ip}"
+
+msgid "Disconnected"
+msgstr "Ekki tengt"
+
+msgid "Connecting…"
+msgstr "Tengist…"
+
+msgid "Connection failed"
+msgstr "Tenging mistókst"
+
+msgid "Scan"
+msgstr "Leita"
+
+msgid "Settings"
+msgstr "Stillingar"
+
+msgid "Use multicast routing (instead of tunneling)"
+msgstr "Nota margvarpsbeiningu (í stað smugs)"
+
+msgid "Gateway IP"
+msgstr "IP-tala gáttar"
+
+msgid "Multicast Group"
+msgstr "Margvarpshópur"
+
+msgid "Apply"
+msgstr "Nota"
+
+msgid "Use Serial Number for Downloads"
+msgstr "Nota raðnúmer við niðurhleðslu"
+
+msgid "Bus monitor: {ip}"
+msgstr "Brautarvöktun: {ip}"
+
+msgid "The gateway is connected in bus monitor mode. Nothing can be sent or downloaded until the bus monitor is stopped."
+msgstr "Gáttin er tengd í brautarvöktunarham. Ekkert er hægt að senda eða hlaða niður fyrr en brautarvöktun hefur verið stöðvuð."
+
+msgid "Stop Bus Monitor"
+msgstr "Stöðva brautarvöktun"
+
+msgid "Not possible while the bus monitor is running"
+msgstr "Ekki hægt meðan brautarvöktun er í gangi"
+
+msgid "Answered the scan, but reading its details failed: {error}"
+msgstr "Svaraði leitinni, en ekki tókst að lesa nánari upplýsingar: {error}"
+
+msgid "Application"
+msgstr "Verkforrit"
+
+msgid "Application Version"
+msgstr "Útgáfa verkforrits"
+
+msgid "Devices in Programming Mode"
+msgstr "Tæki í forritunarham"
+
+msgid "Hardware Type"
+msgstr "Gerð vélbúnaðar"
+
+msgid "In this project: {name}"
+msgstr "Í þessu verkefni: {name}"
+
+msgid "Manufacturer"
+msgstr "Framleiðandi"
+
+msgid "Mask Version"
+msgstr "Útgáfa masks"
+
+msgid "No device is in programming mode."
+msgstr "Ekkert tæki er í forritunarham."
+
+msgid "No fault"
+msgstr "Engin villa"
+
+msgid "Not in this project"
+msgstr "Ekki í þessu verkefni"
+
+msgid "Order Number"
+msgstr "Pöntunarnúmer"
+
+msgid "Press the programming button on a device to put it into programming mode, then rescan."
+msgstr "Ýttu á forritunarhnappinn á tæki til að setja það í forritunarham og leitaðu svo aftur."
+
+msgid "Product (Catalog)"
+msgstr "Vara (vörulisti)"
+
+msgid "Programming mode active"
+msgstr "Forritunarhamur virkur"
+
+msgid "Rescan"
+msgstr "Leita aftur"
+
+msgid "Searching the bus…"
+msgstr "Leitar á tengibrautinni…"
+
+msgid "Select in Project"
+msgstr "Velja í verkefni"
+
+msgid "Serial Number"
+msgstr "Raðnúmer"
+
+msgid "Status"
+msgstr "Staða"
+
+msgid "The interface did not confirm the scan request (bus busy or interface overloaded). Please try again."
+msgstr "Skilin staðfestu ekki leitarbeiðnina (tengibrautin upptekin eða skilin yfirhlaðin). Reyndu aftur."
+
+msgid "The scan could not be completed: {error}"
+msgstr "Ekki tókst að ljúka leitinni: {error}"
+
+msgid "Unprogrammed device (factory default address 15.15.255)"
+msgstr "Óforritað tæki (sjálfgefið vistfang frá framleiðanda 15.15.255)"
+
+msgid "{count} device(s) in programming mode"
+msgstr "Tæki í forritunarham: {count}"
+
+msgid "The interface requires KNX IP Secure, but neither the project nor a loaded keyring has its passwords."
+msgstr "Skilin krefjast KNX IP Secure, en hvorki verkefnið né hlaðin lyklakippa hafa aðgangsorð þeirra."
+
+msgid "Error: {error}"
+msgstr "Villa: {error}"
+
+msgid "Unknown error"
+msgstr "Óþekkt villa"
+
+msgid "Name: {name}"
+msgstr "Heiti: {name}"
+
+msgid "KNX Address: {address}"
+msgstr "KNX-vistfang: {address}"
+
+msgid "Core Version: {version}"
+msgstr "Kjarnaútgáfa: {version}"
+
+msgid "Services: {services}"
+msgstr "Þjónustur: {services}"
+
+msgid "Retry"
+msgstr "Reyna aftur"
+
+msgid "Select Connection"
+msgstr "Velja tengingu"
+
+msgid "XKNX Editor could not determine an available connection."
+msgstr "XKNX Editor fann enga tiltæka tengingu."
+
+msgid "The connection {name} is not available."
+msgstr "Tengingin {name} er ekki tiltæk."
+
+msgid "You may use any of the connections listed below, instead."
+msgstr "Þú getur notað einhverja af tengingunum hér fyrir neðan í staðinn."
+
+msgid "{name}: {error}"
+msgstr "{name}: {error}"
+
+msgid "Cancel"
+msgstr "Hætta við"
+
+msgid "This kind of connection is not supported."
+msgstr "Þessi gerð tengingar er ekki studd."

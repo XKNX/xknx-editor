@@ -1,0 +1,86 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor keyring 1.0\n"
+"Language: is\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "KNX Secure"
+msgstr "KNX Secure"
+
+msgid "Show Window"
+msgstr "Sýna glugga"
+
+msgid "No keyring loaded"
+msgstr "Engin lyklakippa hlaðin"
+
+msgid "Import Keyring…"
+msgstr "Flytja inn lyklakippu…"
+
+msgid "KNX Keyring (*.knxkeys)"
+msgstr "KNX-lyklakippa (*.knxkeys)"
+
+msgid "All Files"
+msgstr "Allar skrár"
+
+msgid "Load"
+msgstr "Hlaða"
+
+msgid "Cancel"
+msgstr "Hætta við"
+
+msgid "Close"
+msgstr "Loka"
+
+msgid "{project} — created by {by}"
+msgstr "{project} — búið til af {by}"
+
+msgid "Backbone"
+msgstr "Grunnlína"
+
+msgid "Interfaces ({count})"
+msgstr "Skil ({count})"
+
+msgid "Group Address Keys ({count})"
+msgstr "Lyklar hópvistfanga ({count})"
+
+msgid "Devices ({count})"
+msgstr "Tæki ({count})"
+
+msgid "Export"
+msgstr "Flytja út"
+
+msgid "Export Keyring…"
+msgstr "Flytja út lyklakippu…"
+
+msgid "Set the password for the exported keyring:"
+msgstr "Settu aðgangsorð fyrir útfluttu lyklakippuna:"
+
+msgid "Export Keyring from Project…"
+msgstr "Flytja út lyklakippu úr verkefni…"
+
+msgid "Type"
+msgstr "Gerð"
+
+msgid "Address"
+msgstr "Vistfang"
+
+msgid "Host"
+msgstr "Hýsill"
+
+msgid "User"
+msgstr "Notandi"
+
+msgid "Key"
+msgstr "Lykill"
+
+msgid "In Project"
+msgstr "Í verkefni"
+
+msgid "Tool Key"
+msgstr "Verkfæralykill"
+
+msgid "{address}   key {key}"
+msgstr "{address}   lykill {key}"

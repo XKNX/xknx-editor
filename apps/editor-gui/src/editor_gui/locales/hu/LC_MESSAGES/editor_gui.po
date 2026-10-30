@@ -1,0 +1,1529 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor editor_gui 1.0\n"
+"Language: hu\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "XKNX Editor"
+msgstr "XKNX Editor"
+
+msgid "Help"
+msgstr "Súgó"
+
+msgid "About"
+msgstr "Névjegy"
+
+msgid "Language"
+msgstr "Nyelv"
+
+msgid "Version {version}"
+msgstr "Verzió: {version}"
+
+msgid "A desktop editor for building-automation installation projects, built on the open-source xknx library. Not affiliated with or endorsed by the KNX Association."
+msgstr "Asztali szerkesztő épületautomatizálási telepítési projektekhez, a nyílt forráskódú xknx könyvtárra épül. Nem kapcsolódik a KNX Associationhöz, és az nem is támogatja."
+
+msgid "Add"
+msgstr "Hozzáadás"
+
+msgid "Close"
+msgstr "Bezárás"
+
+msgid "Cancel"
+msgstr "Mégse"
+
+msgid "Clear"
+msgstr "Törlés"
+
+msgid "Stop"
+msgstr "Leállítás"
+
+msgid "All Files"
+msgstr "Minden fájl"
+
+msgid "Project: {name}  ·  {devices} devices  ·  {gas} GAs"
+msgstr "Projekt: {name}  ·  {devices} készülék  ·  {gas} csoportcím"
+
+msgid "No project open"
+msgstr "Nincs megnyitott projekt"
+
+msgid "Programming {address}…"
+msgstr "Programozás: {address}…"
+
+msgid "Programming complete"
+msgstr "A programozás befejeződött"
+
+msgid "Programming failed"
+msgstr "A programozás nem sikerült"
+
+msgid "No KNX connection"
+msgstr "Nincs KNX-kapcsolat"
+
+msgid "KNX Master v{version} ({date})"
+msgstr "KNX Master v{version} ({date})"
+
+msgid "File"
+msgstr "Fájl"
+
+msgid "New Project"
+msgstr "Új projekt"
+
+msgid "Open Project (.knxproj/.xknx)"
+msgstr "Projekt megnyitása (.knxproj/.xknx)"
+
+msgid "Open Recent"
+msgstr "Legutóbbiak megnyitása"
+
+msgid "Settings…"
+msgstr "Beállítások…"
+
+msgid "MCP"
+msgstr "MCP"
+
+msgid "Settings"
+msgstr "Beállítások"
+
+msgid "Gateway"
+msgstr "Átjáró"
+
+msgid "Catalog"
+msgstr "Katalógus"
+
+msgid "Use multicast routing (instead of tunneling)"
+msgstr "Multicast routing használata (tunneling helyett)"
+
+msgid "Gateway IP"
+msgstr "Átjáró IP-címe"
+
+msgid "Multicast Group"
+msgstr "Multicast csoport"
+
+msgid "Run the MCP server so an LLM can drive the editor over Streamable HTTP. It shares this app's catalog database."
+msgstr "Az MCP-kiszolgáló futtatásával egy LLM Streamable HTTP-n keresztül vezérelheti a szerkesztőt. A kiszolgáló az alkalmazás katalógus-adatbázisát használja."
+
+msgid "MCP Host"
+msgstr "MCP-gazdagép"
+
+msgid "MCP Port"
+msgstr "MCP-port"
+
+msgid "Server: Running"
+msgstr "Kiszolgáló: fut"
+
+msgid "Server: Stopped"
+msgstr "Kiszolgáló: leállítva"
+
+msgid "Start Server"
+msgstr "Kiszolgáló indítása"
+
+msgid "Stop Server"
+msgstr "Kiszolgáló leállítása"
+
+msgid "Download Language"
+msgstr "Letöltési nyelv"
+
+msgid "MCP running"
+msgstr "MCP fut"
+
+msgid "Welcome"
+msgstr "Üdvözöljük"
+
+msgid "Create a new project or open an existing one to get started."
+msgstr "Kezdésként hozzon létre egy új projektet, vagy nyisson meg egy meglévőt."
+
+msgid "Recent Projects"
+msgstr "Legutóbbi projektek"
+
+msgid "Export .knxproj…"
+msgstr "Exportálás .knxproj fájlként…"
+
+msgid "Sign Export"
+msgstr "Export aláírása"
+
+msgid "You can sign the .knxproj with your license so it can be opened in ETS. Log in to sign it, or save the .knxproj without a license."
+msgstr "A .knxproj fájlt aláírhatja a licencével, hogy az ETS-ben megnyitható legyen. Jelentkezzen be az aláíráshoz, vagy mentse a .knxproj fájlt licenc nélkül."
+
+msgid "MyKNX Username"
+msgstr "MyKNX-felhasználónév"
+
+msgid "MyKNX Password"
+msgstr "MyKNX-jelszó"
+
+msgid "Logging in…"
+msgstr "Bejelentkezés…"
+
+msgid "License"
+msgstr "Licenc"
+
+msgid "No licenses found on this account"
+msgstr "Ehhez a fiókhoz nem található licenc"
+
+msgid "Login failed: {error}"
+msgstr "A bejelentkezés nem sikerült: {error}"
+
+msgid "Sign & Export"
+msgstr "Aláírás és exportálás"
+
+msgid "Export Without Certificate"
+msgstr "Exportálás tanúsítvány nélkül"
+
+msgid "Export ETS Project"
+msgstr "ETS-projekt exportálása"
+
+msgid "Load .knxprod…"
+msgstr ".knxprod betöltése…"
+
+msgid "Exit"
+msgstr "Kilépés"
+
+msgid "Edit"
+msgstr "Szerkesztés"
+
+msgid "Undo"
+msgstr "Visszavonás"
+
+msgid "Redo"
+msgstr "Mégis"
+
+msgid "Open KNX Product Archive"
+msgstr "KNX-termékarchívum megnyitása"
+
+msgid "KNX Product (*.knxprod)"
+msgstr "KNX-termék (*.knxprod)"
+
+msgid "ETS Project (*.knxproj)"
+msgstr "ETS-projekt (*.knxproj)"
+
+msgid "ETS 6 Project (*.knxproj)"
+msgstr "ETS 6-projekt (*.knxproj)"
+
+msgid "ETS 5 Project (*.knxproj)"
+msgstr "ETS 5-projekt (*.knxproj)"
+
+msgid "Open XKNX Project"
+msgstr "XKNX-projekt megnyitása"
+
+msgid "Save XKNX Project"
+msgstr "XKNX-projekt mentése"
+
+msgid "XKNX Project (*.xknx)"
+msgstr "XKNX-projekt (*.xknx)"
+
+msgid "Projects (*.xknx, *.knxproj)"
+msgstr "Projektek (*.xknx, *.knxproj)"
+
+msgid "Working…"
+msgstr "Feldolgozás…"
+
+msgid "Importing project — this can take a while for large projects."
+msgstr "A projekt importálása – nagy projekteknél ez eltarthat egy ideig."
+
+msgid "Loading product catalog…"
+msgstr "A termékkatalógus betöltése…"
+
+msgid "Opening project…"
+msgstr "A projekt megnyitása…"
+
+msgid "Project Password"
+msgstr "Projektjelszó"
+
+msgid "This ETS project is password protected. Enter its password:"
+msgstr "Ez az ETS-projekt jelszóval védett. Adja meg a jelszót:"
+
+msgid "Wrong password, please try again."
+msgstr "Hibás jelszó, próbálja újra."
+
+msgid "OK"
+msgstr "OK"
+
+msgid "{done}/{total} devices"
+msgstr "{done}/{total} készülék"
+
+msgid "Recover from Bus…"
+msgstr "Visszaállítás a buszról…"
+
+msgid "No matches"
+msgstr "Nincs találat"
+
+msgid "Bearer Token (Optional)"
+msgstr "Bearer token (nem kötelező)"
+
+msgid "License with a Dongle…"
+msgstr "Licencelés donglével…"
+
+msgid "If you have a licensed ETS (dongle or local license), you can license this project in your own ETS instead of signing it online. Export it here without a certificate, then bring it into ETS.\n\nStep 1 - Export: choose 'Export without certificate' below and save the .knxproj.\n\nStep 2 - Import into ETS (try this first):\nETS 5: on the dashboard, click 'Project import', pick the .knxproj and open it.\nETS 6: on the dashboard, click 'Import Project' under the 'Overview' tab (also on the 'Local Projects' list or the taskbar context menu).\n\nA licensed ETS may refuse the import: the file carries only the normal folder signature, not the online project certificate a licensed ETS writes on export. If the import is rejected, use Step 3.\n\nStep 3 - Copy into the ProjectStore (fallback that always works):\n1. A .knxproj is a ZIP; unzip it to get the project folder named P-XXXX.\n2. Copy that P-XXXX folder into your ETS ProjectStore:\n   ETS 5: C:\\ProgramData\\KNX\\ETS5\\ProjectStore\n   ETS 6: C:\\ProgramData\\KNX\\ETS6\\ProjectStore\n   (ProgramData is hidden - enable 'Hidden items' in Explorer.)\n3. ETS 6 only: inside the copied folder create an empty file named P-XXXX_M-dummy (no file extension) so ETS 6 lists the project.\n4. Start ETS with the dongle plugged in; the project appears in the local project list and your license applies.\n\nTip: to confirm a folder's project name, open the 'P' (P.xml) file inside P-XXXX in a text editor - the name is near the top.\n\nNote: license device limits still apply to what you can commission - ETS Demo up to 5 devices, Lite up to 20, Professional unlimited."
+msgstr "Ha licencelt ETS-sel rendelkezik (dongle vagy helyi licenc), a projektet online aláírás helyett a saját ETS-ében is licencelheti. Exportálja itt tanúsítvány nélkül, majd vigye át az ETS-be.\n\n1. lépés – Exportálás: válassza lent az „Exportálás tanúsítvány nélkül” lehetőséget, és mentse a .knxproj fájlt.\n\n2. lépés – Importálás az ETS-be (először ezt próbálja):\nETS 5: az irányítópulton kattintson a „Project import” gombra, válassza ki a .knxproj fájlt, és nyissa meg.\nETS 6: az irányítópulton kattintson az „Overview” lapon az „Import Project” gombra (a „Local Projects” listában vagy a tálca helyi menüjében is elérhető).\n\nA licencelt ETS elutasíthatja az importálást: a fájl csak a szokásos mappa-aláírást tartalmazza, nem azt az online projekttanúsítványt, amelyet a licencelt ETS exportáláskor ír bele. Ha az importálást elutasítja, használja a 3. lépést.\n\n3. lépés – Másolás a ProjectStore-ba (tartalék megoldás, mindig működik):\n1. A .knxproj egy ZIP-fájl; csomagolja ki, így megkapja a P-XXXX nevű projektmappát.\n2. Másolja ezt a P-XXXX mappát az ETS ProjectStore mappájába:\n   ETS 5: C:\\ProgramData\\KNX\\ETS5\\ProjectStore\n   ETS 6: C:\\ProgramData\\KNX\\ETS6\\ProjectStore\n   (A ProgramData rejtett – a Fájlkezelőben kapcsolja be a „Rejtett elemek” beállítást.)\n3. Csak ETS 6 esetén: a bemásolt mappában hozzon létre egy P-XXXX_M-dummy nevű üres fájlt (kiterjesztés nélkül), hogy az ETS 6 megjelenítse a projektet.\n4. Indítsa el az ETS-t a csatlakoztatott donglével; a projekt megjelenik a helyi projektlistában, és érvényes rá a licence.\n\nTipp: egy mappa projektnevének ellenőrzéséhez nyissa meg a P-XXXX mappában lévő „P” (P.xml) fájlt egy szövegszerkesztőben – a név a fájl elején található.\n\nMegjegyzés: a licenc készülékszám-korlátai továbbra is érvényesek az üzembe helyezésre – ETS Demo legfeljebb 5 készülék, Lite legfeljebb 20, Professional korlátlan."
+
+msgid "Format Version"
+msgstr "Formátumverzió"
+
+msgid "ETS 6 (schema 20)"
+msgstr "ETS 6 (20-as séma)"
+
+msgid "ETS 5 (schema 14)"
+msgstr "ETS 5 (14-es séma)"
+
+msgid "MCP Server"
+msgstr "MCP-kiszolgáló"
+
+msgid "Re-license the project through your own licensed ETS, which re-signs the copy with your dongle license:\n\nETS 6 - use the local project store below:\n   1. Click 'Export to ProjectStore'. It writes the project's 'P-XXXX' folder straight into your ETS 6 project store. If ETS is not installed on this computer, you are asked for the store folder (or any folder you then copy over manually).\n   2. The export needs your 'installer.guid' from C:\\ProgramData\\KNX\\ETS6\\Installer. If it cannot be found automatically, you are asked to select it.\n   3. Restart ETS 6 - the project appears in the project overview.\n   4. Make a copy of it there (Copy in the overview). The copy is re-signed with your license - open it, then use or export it normally.\n\nETS 5 - no project store is needed: go Back and choose 'Export without Certificate' (with ETS 5 as the file type) to save a .knxproj, then import that file into ETS 5. It opens unsigned and is re-licensed when you save it there.\n\nThis is bounded by the device-per-project limit of your license."
+msgstr "Licencelje újra a projektet a saját licencelt ETS-ével, amely a másolatot a dongle-licencével újra aláírja:\n\nETS 6 – az alábbi helyi projekttár használatával:\n   1. Kattintson az „Exportálás a ProjectStore-ba” gombra. Ez a projekt „P-XXXX” mappáját közvetlenül az ETS 6 projekttárába írja. Ha az ETS nincs telepítve erre a számítógépre, a program bekéri a tár mappáját (vagy bármely mappát, ahonnan utána kézzel átmásolja).\n   2. Az exportáláshoz szükség van az „installer.guid” fájlra a C:\\ProgramData\\KNX\\ETS6\\Installer mappából. Ha a program nem találja meg automatikusan, kéri, hogy válassza ki.\n   3. Indítsa újra az ETS 6-ot – a projekt megjelenik a projektáttekintésben.\n   4. Ott készítsen róla másolatot (Copy az áttekintésben). A másolatot a program az Ön licencével újra aláírja – nyissa meg, majd használja vagy exportálja a szokásos módon.\n\nETS 5 – nincs szükség projekttárra: lépjen vissza, és válassza az „Exportálás tanúsítvány nélkül” lehetőséget (ETS 5 fájltípussal) egy .knxproj fájl mentéséhez, majd importálja ezt a fájlt az ETS 5-be. A fájl aláírás nélkül nyílik meg, és az ott történő mentéskor újra licencelődik.\n\nEzt a licenc projektenkénti készülékszám-korlátja határolja be."
+
+msgid "Select the ETS installer.guid file"
+msgstr "Válassza ki az ETS installer.guid fájlját"
+
+msgid "ETS installer id"
+msgstr "ETS-telepítésazonosító"
+
+msgid "Project Already in the Store"
+msgstr "A projekt már a tárban van"
+
+msgid "A project folder '{pid}' already exists in this ETS ProjectStore. Overwrite it, or add it as a separate copy?"
+msgstr "Ebben az ETS ProjectStore-ban már létezik ilyen projektmappa: {pid}. Felülírja, vagy külön másolatként adja hozzá?"
+
+msgid "Overwrite"
+msgstr "Felülírás"
+
+msgid "Add Copy"
+msgstr "Másolat hozzáadása"
+
+msgid "XKNX Export"
+msgstr "XKNX-export"
+
+msgid "Exported to {path} ({size})"
+msgstr "Exportálva ide: {path} ({size})"
+
+msgid "ETS 6 (schema 22)"
+msgstr "ETS 6 (22-es séma)"
+
+msgid "ETS 5 (schema 20)"
+msgstr "ETS 5 (20-as séma)"
+
+msgid "ETS 6 (schema 23)"
+msgstr "ETS 6 (23-as séma)"
+
+msgid "AI MCP"
+msgstr "MI – MCP"
+
+msgid "This editor is controllable by an AI assistant (Claude, Codex, …) through the built-in MCP server: it exposes the catalog and project as tools over Streamable HTTP. Start the server below, then register its endpoint in your AI tool."
+msgstr "Ez a szerkesztő egy MI-asszisztenssel (Claude, Codex, …) vezérelhető a beépített MCP-kiszolgálón keresztül: a katalógust és a projektet eszközökként teszi elérhetővé Streamable HTTP-n keresztül. Indítsa el lent a kiszolgálót, majd regisztrálja a végpontját az MI-eszközében."
+
+msgid "MCP Endpoint"
+msgstr "MCP-végpont"
+
+msgid "Example: register the MCP server in your AI tool (adjust host/port):"
+msgstr "Példa: az MCP-kiszolgáló regisztrálása az MI-eszközben (a gazdagépet/portot igazítsa):"
+
+msgid "Copied"
+msgstr "Másolva"
+
+msgid "Copy"
+msgstr "Másolás"
+
+msgid "Use host 0.0.0.0 to make the server reachable from other devices on the network; 127.0.0.1/localhost only allows this machine."
+msgstr "A 0.0.0.0 gazdagép használatával a kiszolgáló a hálózat más eszközeiről is elérhető; a 127.0.0.1/localhost csak erről a gépről engedi."
+
+msgid "Switching language…"
+msgstr "Nyelv váltása…"
+
+msgid "Load OpenKNX from URL…"
+msgstr "OpenKNX betöltése URL-ről…"
+
+msgid "Load OpenKNX from URL"
+msgstr "OpenKNX betöltése URL-ről"
+
+msgid "Paste an OpenKNX release link (e.g. a GitHub release .zip). A .knxprod or a KNX product XML URL also works."
+msgstr "Illesszen be egy OpenKNX kiadási hivatkozást (pl. egy GitHub kiadási .zip fájlt). Egy .knxprod vagy KNX-termék XML URL-je is megfelel."
+
+msgid "Load"
+msgstr "Betöltés"
+
+msgid "Downloading and importing…"
+msgstr "Letöltés és importálás…"
+
+msgid "Imported {count} new product version(s) from URL"
+msgstr "Az URL-ről importált új termékverziók: {count}"
+
+msgid "Nothing new imported (already in the catalog)"
+msgstr "Semmi új nem lett importálva (már a katalógusban van)"
+
+msgid "Import from URL failed: {error}"
+msgstr "Az importálás URL-ről nem sikerült: {error}"
+
+msgid "Paste an OpenKNX GitHub release URL (the release page works — the .zip asset is found automatically). A direct .knxprod or KNX product XML link also works."
+msgstr "Illessze be egy OpenKNX GitHub-kiadás URL-jét (a kiadás oldala is megfelel – a .zip mellékletet a program automatikusan megtalálja). Közvetlen .knxprod vagy KNX-termék XML hivatkozás is megfelel."
+
+msgid "Paste an OpenKNX GitHub release URL (the release page works — the .zip asset is found automatically). A direct .knxprod or KNX product XML link also works.\n\nExamples:\n  https://github.com/OpenKNX/OAM-RaumController/releases/tag/v5.4.3\n  https://github.com/OpenKNX/OAM-RaumController/releases/latest"
+msgstr "Illessze be egy OpenKNX GitHub-kiadás URL-jét (a kiadás oldala is megfelel – a .zip mellékletet a program automatikusan megtalálja). Közvetlen .knxprod vagy KNX-termék XML hivatkozás is megfelel.\n\nPéldák:\n  https://github.com/OpenKNX/OAM-RaumController/releases/tag/v5.4.3\n  https://github.com/OpenKNX/OAM-RaumController/releases/latest"
+
+msgid "Save As…"
+msgstr "Mentés másként…"
+
+msgid "Saved as {name}"
+msgstr "Mentve ezen a néven: {name}"
+
+msgid "Save Project As"
+msgstr "Projekt mentése másként"
+
+msgid "Good to Know"
+msgstr "Jó tudni"
+
+msgid "Your project opened fine and everything you need to work with is here. A few extra details from the original file are shown a bit more simply:"
+msgstr "A projekt rendben megnyílt, és minden megvan, ami a munkához kell. Az eredeti fájl néhány további adata kissé egyszerűbben jelenik meg:"
+
+msgid "This project came from a file with a few extra details this editor does not use. The export leaves these out:"
+msgstr "Ez a projekt olyan fájlból származik, amely néhány olyan további adatot tartalmaz, amelyet ez a szerkesztő nem használ. Az exportálás ezeket kihagyja:"
+
+msgid "The original file had {count} installations. They were combined into one."
+msgstr "Az eredeti fájl több telepítést tartalmazott ({count}). Ezek egybe lettek vonva."
+
+msgid "{count} device(s) had no place in the original file, so they were left out."
+msgstr "Az eredeti fájlban ennyi készüléknek nem volt helye, ezért kimaradtak: {count}"
+
+msgid "{count} group object(s) had an extra description in the original file. The custom name and function are kept; only that description is not shown here."
+msgstr "Kommunikációs objektumok további leírással az eredeti fájlban: {count}. Az egyedi név és funkció megmarad; csak ez a leírás nem jelenik meg itt."
+
+msgid "{count} IP or function setting(s) from the original file are not used here."
+msgstr "Az eredeti fájl IP- vagy funkcióbeállításai közül ennyit itt nem használ a program: {count}"
+
+msgid "{count} line(s) use several segments. In a schema 14/20 export they are shown at line level only."
+msgstr "Több szakaszt használó vonalak: {count}. A 14/20-as sémájú exportban ezek csak vonalszinten jelennek meg."
+
+msgid "{count} line(s) had the same address in different installations. One of each was kept when combining."
+msgstr "Különböző telepítésekben azonos címmel rendelkező vonalak: {count}. Az egyesítéskor mindegyikből egy maradt meg."
+
+msgid "For example: {examples}"
+msgstr "Például: {examples}"
+
+msgid "Product catalog imported: {count} new product version(s) from {name}"
+msgstr "Termékkatalógus importálva: új termékverziók: {count}, forrás: {name}"
+
+msgid "Imported {count} product version(s) from {name}:"
+msgstr "Importált termékverziók: {count}, forrás: {name}:"
+
+msgid "{name} was already in the catalog, nothing new imported"
+msgstr "Már a katalógusban volt, semmi új nem lett importálva: {name}"
+
+msgid "Product Catalog Import"
+msgstr "Termékkatalógus importálása"
+
+msgid "Export Complete"
+msgstr "Az exportálás befejeződött"
+
+msgid "Successfully created {name}"
+msgstr "Sikeresen létrehozva: {name}"
+
+msgid "File Size"
+msgstr "Fájlméret"
+
+msgid "Project"
+msgstr "Projekt"
+
+msgid "Format"
+msgstr "Formátum"
+
+msgid "Devices"
+msgstr "Készülékek"
+
+msgid "Buildings"
+msgstr "Épületek"
+
+msgid "Group Addresses"
+msgstr "Csoportcímek"
+
+msgid "Group Object Links"
+msgstr "Kommunikációsobjektum-összekapcsolások"
+
+msgid "Areas / Lines"
+msgstr "Területek / vonalak"
+
+msgid "Floors / Rooms"
+msgstr "Emeletek / helyiségek"
+
+msgid "Functions"
+msgstr "Funkciók"
+
+msgid "KNX Master Version"
+msgstr "KNX Master verzió"
+
+msgid "Exported at"
+msgstr "Exportálás ideje"
+
+msgid "Manufacturer Data (M Folders)"
+msgstr "Gyártói adatok (M mappák)"
+
+msgid "Signed"
+msgstr "Aláírva"
+
+msgid "Certificate"
+msgstr "Tanúsítvány"
+
+msgid "yes"
+msgstr "igen"
+
+msgid "no"
+msgstr "nem"
+
+msgid "Open Folder"
+msgstr "Mappa megnyitása"
+
+msgid "Signing Key…"
+msgstr "Aláírókulcs…"
+
+msgid "Signing Key"
+msgstr "Aláírókulcs"
+
+msgid "Folder signature uses a placeholder key. Enter a valid signature under 'Signing Key…' or use the 'License with a Dongle' way."
+msgstr "A mappa-aláírás helyőrző kulcsot használ. Adjon meg érvényes aláírást az „Aláírókulcs…” alatt, vagy használja a „Licencelés donglével” módszert."
+
+msgid "View"
+msgstr "Nézet"
+
+msgid "Restore Default Layout"
+msgstr "Alapértelmezett elrendezés visszaállítása"
+
+msgid "Show All"
+msgstr "Az összes megjelenítése"
+
+msgid "Hide All"
+msgstr "Az összes elrejtése"
+
+msgid "Status Bar"
+msgstr "Állapotsor"
+
+msgid "FPS in Status Bar"
+msgstr "FPS az állapotsorban"
+
+msgid "Context Help"
+msgstr "Környezetfüggő súgó"
+
+msgid "Enable Idling"
+msgstr "Üresjárati mód engedélyezése"
+
+msgid "Theme"
+msgstr "Téma"
+
+msgid "Reading {address}…"
+msgstr "Olvasás: {address}…"
+
+msgid "FPS: {fps:.1f}{idling}"
+msgstr "FPS: {fps:.1f}{idling}"
+
+msgid " (Idling)"
+msgstr " (üresjárat)"
+
+msgid "Compact Project…"
+msgstr "Projekt tömörítése…"
+
+msgid "Compact Project"
+msgstr "Projekt tömörítése"
+
+msgid "Analysing project…"
+msgstr "A projekt elemzése…"
+
+msgid "Compacting project…"
+msgstr "A projekt tömörítése…"
+
+msgid "Analysing devices"
+msgstr "Készülékek elemzése"
+
+msgid "Analysing product data ({manufacturer})"
+msgstr "Termékadatok elemzése ({manufacturer})"
+
+msgid "Removing unused product data ({manufacturer})"
+msgstr "Nem használt termékadatok eltávolítása ({manufacturer})"
+
+msgid "Saving product data"
+msgstr "Termékadatok mentése"
+
+msgid "Compacting project file"
+msgstr "A projektfájl tömörítése"
+
+msgid "The following product data is not used by any device in this project and will be removed:"
+msgstr "A következő termékadatokat a projekt egyik készüléke sem használja, ezért eltávolításra kerülnek:"
+
+msgid "All product data in this project is used by its devices, nothing to remove. The project file can still be compacted to free unused space."
+msgstr "A projekt összes termékadatát használják a készülékei, nincs mit eltávolítani. A projektfájl ettől még tömöríthető a nem használt hely felszabadításához."
+
+msgid "Application Programs"
+msgstr "Alkalmazási programok"
+
+msgid "Device Types (Products)"
+msgstr "Készüléktípusok (termékek)"
+
+msgid "Hardware"
+msgstr "Hardver"
+
+msgid "Manufacturers"
+msgstr "Gyártók"
+
+msgid "Catalog Entries"
+msgstr "Katalógusbejegyzések"
+
+msgid "Help and Plug-in Files"
+msgstr "Súgó- és beépülőmodul-fájlok"
+
+msgid "Details"
+msgstr "Részletek"
+
+msgid "Current File Size"
+msgstr "Jelenlegi fájlméret"
+
+msgid "Estimated Size Afterwards"
+msgstr "Becsült méret utána"
+
+msgid "This cannot be undone. Removed product data has to be imported again if these products are added to the project later."
+msgstr "Ez nem vonható vissza. Az eltávolított termékadatokat újra importálni kell, ha ezeket a termékeket később ismét hozzáadja a projekthez."
+
+msgid "Compact"
+msgstr "Tömörítés"
+
+msgid "Project Compacted"
+msgstr "A projekt tömörítve"
+
+msgid "The project file was compacted."
+msgstr "A projektfájl tömörítése megtörtént."
+
+msgid "Size before"
+msgstr "Méret előtte"
+
+msgid "Size after"
+msgstr "Méret utána"
+
+msgid "Compacting cancelled, the project was not changed"
+msgstr "A tömörítés megszakítva, a projekt nem változott"
+
+msgid "Remove Unused Product Data"
+msgstr "Nem használt termékadatok eltávolítása"
+
+msgid "ETS 6 needs a signed and licensed .knxproj: log in to license it and set a signing key - or use the 'License with a Dongle' way below.\nETS 5: just use 'Export without Certificate'."
+msgstr "Az ETS 6-nak aláírt és licencelt .knxproj fájl kell: jelentkezzen be a licenceléshez, és állítson be aláírókulcsot – vagy használja lent a „Licencelés donglével” módszert.\nETS 5: egyszerűen használja az „Exportálás tanúsítvány nélkül” lehetőséget."
+
+msgid "Complete sign-in in your browser. Code: {code}"
+msgstr "Fejezze be a bejelentkezést a böngészőben. Kód: {code}"
+
+msgid "Login failed (HTTP 401). Either the password is wrong, or this account uses two-factor authentication - the server does not say which."
+msgstr "A bejelentkezés nem sikerült (HTTP 401). Vagy hibás a jelszó, vagy a fiók kétlépcsős hitelesítést használ – a kiszolgáló nem árulja el, melyik."
+
+msgid "Re-enter Credentials"
+msgstr "Hitelesítő adatok újbóli megadása"
+
+msgid "Start 2FA Sign-In"
+msgstr "Kétlépcsős bejelentkezés indítása"
+
+msgid "MyKNX OAuth Credentials (2FA)"
+msgstr "MyKNX OAuth hitelesítő adatok (2FA)"
+
+msgid "Client ID"
+msgstr "Ügyfél-azonosító"
+
+msgid "Client Secret"
+msgstr "Ügyfélkulcs"
+
+msgid "Extract from ETS…"
+msgstr "Kinyerés az ETS-ből…"
+
+msgid "Extracting…"
+msgstr "Kinyerés…"
+
+msgid "Save"
+msgstr "Mentés"
+
+msgid "All files"
+msgstr "Minden fájl"
+
+msgid "Export to ETS 5 ProjectStore"
+msgstr "Exportálás az ETS 5 ProjectStore-ba"
+
+msgid "Export to ProjectStore"
+msgstr "Exportálás a ProjectStore-ba"
+
+msgid "Select the {ets} ProjectStore folder"
+msgstr "Válassza ki a ProjectStore mappát ({ets})"
+
+msgid "{project} - {app}"
+msgstr "{project} - {app}"
+
+msgid "{project} – {file} - {app}"
+msgstr "{project} – {file} - {app}"
+
+msgid "Highlight Changes"
+msgstr "Változások kiemelése"
+
+msgid "Group Address Export (*.xml)"
+msgstr "Csoportcím-export (*.xml)"
+
+msgid "Group Address Exports (*.xml, *.csv)"
+msgstr "Csoportcím-exportok (*.xml, *.csv)"
+
+msgid "Projects (*.xknx, *.knxproj, *.xml, *.csv)"
+msgstr "Projektek (*.xknx, *.knxproj, *.xml, *.csv)"
+
+msgid "Import Group Addresses…"
+msgstr "Csoportcímek importálása…"
+
+msgid "Feedback"
+msgstr "Visszajelzés"
+
+msgid "A desktop editor for building-automation installation projects, built on the open-source xknx library and based on xknxtoolkit by kewde. Not affiliated with or endorsed by the KNX Association."
+msgstr "Asztali szerkesztő épületautomatizálási telepítési projektekhez, a nyílt forráskódú xknx könyvtárra és kewde xknxtoolkit projektjére épül. Nem kapcsolódik a KNX Associationhöz, és az nem is támogatja."
+
+msgid "Network Location"
+msgstr "Hálózati hely"
+
+msgid "This location is on a network drive:\n{home}\n\nKNX project files use a database that cannot run reliably on network shares. The editor can work on a local copy instead and write it back to the network location when you close the project."
+msgstr "Ez a hely hálózati meghajtón van:\n{home}\n\nA KNX-projektfájlok olyan adatbázist használnak, amely hálózati megosztáson nem működik megbízhatóan. A szerkesztő ehelyett egy helyi másolaton dolgozhat, és a projekt bezárásakor visszaírja azt a hálózati helyre."
+
+msgid "Use a Local Copy"
+msgstr "Helyi másolat használata"
+
+msgid "Working on a local copy; written back to {home} when you close the project."
+msgstr "Munka egy helyi másolaton; a projekt bezárásakor visszaírásra kerül ide: {home}"
+
+msgid "Project Name"
+msgstr "Projektnév"
+
+msgid "Group Address Style"
+msgstr "Csoportcím-struktúra"
+
+msgid "Free"
+msgstr "Szabad"
+
+msgid "Two-level"
+msgstr "Kétszintű"
+
+msgid "Three-level"
+msgstr "Háromszintű"
+
+msgid "Create…"
+msgstr "Létrehozás…"
+
+msgid "claude mcp add --transport http xknx-editor {url}"
+msgstr "claude mcp add --transport http xknx-editor {url}"
+
+msgid "claude mcp add --transport http xknx-editor {url} --header \"Authorization: Bearer {token}\""
+msgstr "claude mcp add --transport http xknx-editor {url} --header \"Authorization: Bearer {token}\""
+
+msgid "codex mcp add xknx-editor --url {url}"
+msgstr "codex mcp add xknx-editor --url {url}"
+
+msgid "export XKNX_MCP_TOKEN='{token}'\ncodex mcp add xknx-editor --url {url} --bearer-token-env-var XKNX_MCP_TOKEN"
+msgstr "export XKNX_MCP_TOKEN='{token}'\ncodex mcp add xknx-editor --url {url} --bearer-token-env-var XKNX_MCP_TOKEN"
+
+msgid "Export Group Addresses…"
+msgstr "Csoportcímek exportálása…"
+
+msgid "Export Group Addresses"
+msgstr "Csoportcímek exportálása"
+
+msgid "Output Format"
+msgstr "Kimeneti formátum"
+
+msgid "CSV Format"
+msgstr "CSV-formátum"
+
+msgid "3/1 - three columns, Main/Middle/Sub group separated"
+msgstr "3/1 – három oszlop, fő-/közép-/alcsoport külön"
+
+msgid "1/3 - Group address name/Main - Middle - Sub group"
+msgstr "1/3 – csoportcím neve/fő – közép – alcsoport"
+
+msgid "1/1 - Name/Address"
+msgstr "1/1 – név/cím"
+
+msgid "3/3 - Main - Middle - Sub group name/Main - Middle - Sub group address"
+msgstr "3/3 – fő – közép – alcsoport neve/fő – közép – alcsoport címe"
+
+msgid "Export with Header Line"
+msgstr "Exportálás fejléccel"
+
+msgid "CSV Separator"
+msgstr "CSV-elválasztó"
+
+msgid "Tabulator"
+msgstr "Tabulátor"
+
+msgid "Comma"
+msgstr "Vessző"
+
+msgid "Semicolon"
+msgstr "Pontosvessző"
+
+msgid "Export"
+msgstr "Exportálás"
+
+msgid "Group Address Export (*.csv)"
+msgstr "Csoportcím-export (*.csv)"
+
+msgid "Exported {count} group address(es)"
+msgstr "Exportált csoportcímek: {count}"
+
+msgid "Exported to {path} ({size}) as {schema}"
+msgstr "Exportálva ide: {path} ({size}), formátum: {schema}"
+
+msgid "{count} device(s) aren't assigned to a line. They're kept in the project and included on export, but can't be edited here yet."
+msgstr "Vonalhoz nem rendelt készülékek: {count}. Ezek a projektben maradnak, és az exportba is bekerülnek, de itt még nem szerkeszthetők."
+
+msgid "no online certificate"
+msgstr "nincs online tanúsítvány"
+
+msgid "expired"
+msgstr "lejárt"
+
+msgid "None of these licenses can sign online. Only ETS6 (or a cloud-enabled ETS app) licenses produce a certificate; ETS5/older licenses cannot. Use 'License with a dongle' instead."
+msgstr "Ezek közül egyik licenc sem tud online aláírni. Csak az ETS6-licencek (vagy felhőképes ETS-alkalmazások licencei) állítanak ki tanúsítványt; az ETS5- és régebbi licencek nem. Használja helyette a „Licencelés donglével” módszert."
+
+msgid "KNX Product (*.knxprod, *.vd1-*.vd5)"
+msgstr "KNX-termék (*.knxprod, *.vd1-*.vd5)"
+
+msgid "Legacy ETS product databases (.vd1-.vd5) are not imported directly.\n\nConvert the file to .knxprod first with the conversion tools that ship with ETS5/ETS6 - open the product file in ETS, or use its command-line converter - then import the resulting .knxprod here."
+msgstr "A régi ETS-termékadatbázisok (.vd1-.vd5) közvetlenül nem importálhatók.\n\nElőbb alakítsa át a fájlt .knxprod formátumra az ETS5/ETS6 konvertáló eszközeivel – nyissa meg a termékfájlt az ETS-ben, vagy használja a parancssori konvertálóját –, majd importálja itt a létrejött .knxprod fájlt."
+
+msgid "ETS Group-Address Export (*.xml)"
+msgstr "ETS csoportcím-export (*.xml)"
+
+msgid "Replace File"
+msgstr "Fájl cseréje"
+
+msgid "{name} already exists."
+msgstr "Már létezik: {name}"
+
+msgid "It is in {dir}. Replacing it overwrites its current content; this cannot be undone."
+msgstr "Helye: {dir}. A csere felülírja a jelenlegi tartalmát; ez nem vonható vissza."
+
+msgid "Replace"
+msgstr "Csere"
+
+msgid "Projects (*.xknx, *.knxproj, *.xml)"
+msgstr "Projektek (*.xknx, *.knxproj, *.xml)"
+
+msgid "Importing group addresses…"
+msgstr "Csoportcímek importálása…"
+
+msgid "Check for Updates"
+msgstr "Frissítések keresése"
+
+msgid "Check for Updates on Startup"
+msgstr "Frissítések keresése indításkor"
+
+msgid "Update Available"
+msgstr "Frissítés érhető el"
+
+msgid "Version {latest} is available. You have {current}."
+msgstr "Új verzió érhető el: {latest}. Az Ön verziója: {current}."
+
+msgid "You are up to date (version {version})."
+msgstr "A program naprakész (verzió: {version})."
+
+msgid "Download"
+msgstr "Letöltés"
+
+msgid "Skip This Version"
+msgstr "Verzió kihagyása"
+
+msgid "Later"
+msgstr "Később"
+
+msgid "Release Notes:"
+msgstr "Kiadási megjegyzések:"
+
+msgid "License: GPL-2.0-only"
+msgstr "Licenc: GPL-2.0-only"
+
+msgid "Website:"
+msgstr "Webhely:"
+
+msgid "Open Config Folder"
+msgstr "Konfigurációs mappa megnyitása"
+
+msgid "Open Cache Folder"
+msgstr "Gyorsítótár-mappa megnyitása"
+
+msgid "Open Log Folder"
+msgstr "Naplómappa megnyitása"
+
+msgid "This project is protected with a password. Enter it to open the project:"
+msgstr "Ez a projekt jelszóval védett. A megnyitáshoz adja meg a jelszót:"
+
+msgid "This project contains KNX Secure keys. Set a project password to protect them; the project can then only be opened with it."
+msgstr "Ez a projekt KNX Secure kulcsokat tartalmaz. Állítson be projektjelszót a védelmükhöz; a projekt ezután csak ezzel nyitható meg."
+
+msgid "Password"
+msgstr "Jelszó"
+
+msgid "Repeat Password"
+msgstr "Jelszó megismétlése"
+
+msgid "The passwords do not match."
+msgstr "A jelszavak nem egyeznek."
+
+msgid "Protecting the project with the password…"
+msgstr "A projekt védelme jelszóval…"
+
+msgid "Light Theme"
+msgstr "Világos téma"
+
+msgid "Dark Theme"
+msgstr "Sötét téma"
+
+msgid "Customize Theme…"
+msgstr "Téma testreszabása…"
+
+msgid "Customize Theme"
+msgstr "Téma testreszabása"
+
+msgid "Sizes"
+msgstr "Méretek"
+
+msgid "Colors"
+msgstr "Színek"
+
+msgid "Rendering"
+msgstr "Megjelenítés"
+
+msgid "Adjustments"
+msgstr "Módosítások"
+
+msgid "Theme Default"
+msgstr "A téma alapértéke"
+
+msgid "Reset to Theme"
+msgstr "Visszaállítás a témára"
+
+msgid "Rounding"
+msgstr "Lekerekítés"
+
+msgid "Scrollbar Rounding Ratio"
+msgstr "Görgetősáv lekerekítési aránya"
+
+msgid "Opacity"
+msgstr "Átlátszatlanság"
+
+msgid "Hue"
+msgstr "Színárnyalat"
+
+msgid "Saturation"
+msgstr "Telítettség"
+
+msgid "Brightness of Controls"
+msgstr "Vezérlők fényereje"
+
+msgid "Brightness of Backgrounds"
+msgstr "Hátterek fényereje"
+
+msgid "Brightness of Text"
+msgstr "Szöveg fényereje"
+
+msgid "Brightness of Input Fields"
+msgstr "Beviteli mezők fényereje"
+
+msgid "Spacing"
+msgstr "Térközök"
+
+msgid "Borders"
+msgstr "Szegélyek"
+
+msgid "Alignment"
+msgstr "Igazítás"
+
+msgid "Window Padding"
+msgstr "Ablak belső margója"
+
+msgid "Field Padding"
+msgstr "Mező belső margója"
+
+msgid "Cell Padding"
+msgstr "Cella belső margója"
+
+msgid "Item Spacing"
+msgstr "Elemek közötti térköz"
+
+msgid "Item Inner Spacing"
+msgstr "Elemek belső térköze"
+
+msgid "Extra Touch Padding"
+msgstr "További érintési margó"
+
+msgid "Indent"
+msgstr "Behúzás"
+
+msgid "Scrollbar Width"
+msgstr "Görgetősáv szélessége"
+
+msgid "Minimum Slider Grip Size"
+msgstr "Csúszkafogantyú minimális mérete"
+
+msgid "Windows"
+msgstr "Ablakok"
+
+msgid "Child Windows"
+msgstr "Gyermekablakok"
+
+msgid "Popups"
+msgstr "Előugró ablakok"
+
+msgid "Fields"
+msgstr "Mezők"
+
+msgid "Tabs"
+msgstr "Lapok"
+
+msgid "Tab Bar"
+msgstr "Lapsáv"
+
+msgid "Scrollbars"
+msgstr "Görgetősávok"
+
+msgid "Slider Grips"
+msgstr "Csúszkafogantyúk"
+
+msgid "Window Title"
+msgstr "Ablakcím"
+
+msgid "Button Text"
+msgstr "Gomb szövege"
+
+msgid "List Entry Text"
+msgstr "Listaelem szövege"
+
+msgid "Separator Text"
+msgstr "Elválasztó szövege"
+
+msgid "Font Scale"
+msgstr "Betűméret-arány"
+
+msgid "Anti-Aliased Lines"
+msgstr "Élsimított vonalak"
+
+msgid "Anti-Aliased Fills"
+msgstr "Élsimított kitöltések"
+
+msgid "Maximum Curve Tessellation Error"
+msgstr "Görbefelosztás maximális hibája"
+
+msgid "Maximum Circle Tessellation Error"
+msgstr "Körfelosztás maximális hibája"
+
+msgid "Global Opacity"
+msgstr "Globális átlátszatlanság"
+
+msgid "Opacity of Disabled Items"
+msgstr "Letiltott elemek átlátszatlansága"
+
+msgid "Show ImGui Demo Window"
+msgstr "ImGui bemutatóablak megjelenítése"
+
+msgid "Filter colors"
+msgstr "Színek szűrése"
+
+msgid "Device not compatible with this ETS version"
+msgstr "A készülék nem kompatibilis ezzel az ETS-verzióval"
+
+msgid "This project cannot be imported into the chosen ETS version. The product data of the device(s) below exists only for a newer ETS (e.g. an ETS 6 product in an ETS 5 export), so ETS rejects the whole project with 'created with a newer version'.\n\nRemove these device(s) and export again, or cancel and export for the newer ETS instead."
+msgstr "Ez a projekt nem importálható a kiválasztott ETS-verzióba. Az alább felsorolt készülékek termékadatai csak újabb ETS-hez léteznek (pl. ETS 6-termék ETS 5-exportban), ezért az ETS a teljes projektet elutasítja a „created with a newer version” üzenettel.\n\nTávolítsa el ezeket a készülékeket, és exportáljon újra, vagy szakítsa meg, és exportáljon inkább az újabb ETS-hez."
+
+msgid "Remove device(s) & re-export"
+msgstr "Készülékek eltávolítása és újraexportálás"
+
+msgid "Removed {count} incompatible device(s); re-exporting"
+msgstr "Eltávolított inkompatibilis készülékek: {count}; újraexportálás"
+
+msgid "This file will NOT import into the chosen ETS version: the product data of these manufacturers only exists for a newer ETS (e.g. an ETS 6 product in an ETS 5 export), so ETS rejects the whole project. Remove the affected device(s) or export for the newer ETS."
+msgstr "Ez a fájl NEM importálható a kiválasztott ETS-verzióba: ezeknek a gyártóknak a termékadatai csak újabb ETS-hez léteznek (pl. ETS 6-termék ETS 5-exportban), ezért az ETS a teljes projektet elutasítja. Távolítsa el az érintett készülékeket, vagy exportáljon az újabb ETS-hez."
+
+msgid "Hide Tab Bar"
+msgstr "Lapsáv elrejtése"
+
+msgid "Open {url}"
+msgstr "Megnyitás: {url}"
+
+msgid "Copy Link"
+msgstr "Hivatkozás másolása"
+
+msgid "Install Update"
+msgstr "Frissítés telepítése"
+
+msgid "Install Update downloads the installer, closes XKNX Editor and starts it again with the open project."
+msgstr "A „Frissítés telepítése” letölti a telepítőt, bezárja az XKNX Editort, majd újraindítja a megnyitott projekttel."
+
+msgid "Downloading the update…"
+msgstr "A frissítés letöltése…"
+
+msgid "{done} of {total} MB"
+msgstr "{done}/{total} MB"
+
+msgid "Export Failed"
+msgstr "Az exportálás nem sikerült"
+
+msgid "The project could not be exported to {name}."
+msgstr "A projektet nem sikerült exportálni ide: {name}"
+
+msgid "MyKNX did not issue the certificate for the project:"
+msgstr "A MyKNX nem állította ki a projekt tanúsítványát:"
+
+msgid "{name} cannot be imported."
+msgstr "Nem importálható: {name}"
+
+msgid "The file was written, but it refers to product data that is not in the catalog: {references}. Add these products to the catalog and export again."
+msgstr "A fájl elkészült, de olyan termékadatokra hivatkozik, amelyek nincsenek a katalógusban: {references}. Adja hozzá ezeket a termékeket a katalógushoz, és exportáljon újra."
+
+msgid "Exporting {name} — this can take a while for large projects."
+msgstr "Exportálás: {name} – nagy projekteknél ez eltarthat egy ideig."
+
+msgid "Collecting the manufacturer data…"
+msgstr "A gyártói adatok összegyűjtése…"
+
+msgid "Writing the archive…"
+msgstr "Az archívum írása…"
+
+msgid "Getting the certificate from MyKNX…"
+msgstr "A tanúsítvány lekérése a MyKNX-től…"
+
+msgid "Cancelling…"
+msgstr "Megszakítás…"
+
+msgid "Export cancelled, no file was written"
+msgstr "Az exportálás megszakítva, nem készült fájl"
+
+msgid "Sign In"
+msgstr "Bejelentkezés"
+
+msgid "Disconnected. Reconnecting…"
+msgstr "A kapcsolat megszakadt. Újracsatlakozás…"
+
+msgid "Access denied. Please sign in again."
+msgstr "Hozzáférés megtagadva. Jelentkezzen be újra."
+
+msgid "Upload from This Computer…"
+msgstr "Feltöltés erről a számítógépről…"
+
+msgid "Or drop files here."
+msgstr "Vagy húzza ide a fájlokat."
+
+msgid "Files on the Server"
+msgstr "Fájlok a kiszolgálón"
+
+msgid "No files yet."
+msgstr "Még nincsenek fájlok."
+
+msgid "Open"
+msgstr "Megnyitás"
+
+msgid "Select"
+msgstr "Kiválasztás"
+
+msgid "File Name"
+msgstr "Fájlnév"
+
+msgid "Folder Name"
+msgstr "Mappanév"
+
+msgid "File Type"
+msgstr "Fájltípus"
+
+msgid "Download to This Computer"
+msgstr "Letöltés erre a számítógépre"
+
+msgid "Uploading {name}…"
+msgstr "Feltöltés: {name}…"
+
+msgid "Upload failed: {error}"
+msgstr "A feltöltés nem sikerült: {error}"
+
+msgid "Show"
+msgstr "Megjelenítés"
+
+msgid "Folder on the Server"
+msgstr "Mappa a kiszolgálón"
+
+msgid "View only: another browser controls the editor."
+msgstr "Csak megtekintés: egy másik böngésző vezérli a szerkesztőt."
+
+msgid "Take Control"
+msgstr "Vezérlés átvétele"
+
+msgid "Open Link"
+msgstr "Hivatkozás megnyitása"
+
+msgid "Name"
+msgstr "Név"
+
+msgid "Size"
+msgstr "Méret"
+
+msgid "Modified"
+msgstr "Módosítva"
+
+msgid "The browser did not open it by itself."
+msgstr "A böngésző nem nyitotta meg magától."
+
+msgid "Download started: {name}"
+msgstr "A letöltés elindult: {name}"
+
+msgid "Choose File…"
+msgstr "Fájl kiválasztása…"
+
+msgid "{name} is ready."
+msgstr "Elkészült: {name}"
+
+msgid "Enter the password for access to the editor."
+msgstr "Adja meg a szerkesztő eléréséhez szükséges jelszót."
+
+msgid "Wrong password."
+msgstr "Hibás jelszó."
+
+msgid "ETS 6: needs a licensed .knxproj through a MyKNX login or a dongle.\nETS 5: just use 'Export Without Certificate'."
+msgstr "ETS 6: licencelt .knxproj fájl kell, MyKNX-bejelentkezéssel vagy donglével.\nETS 5: egyszerűen használja az „Exportálás tanúsítvány nélkül” lehetőséget."
+
+msgid "Sign with MyKNX Login"
+msgstr "Aláírás MyKNX-bejelentkezéssel"
+
+msgid "License with a Dongle"
+msgstr "Licencelés donglével"
+
+msgid "ETS must not be running on any computer with this MyKNX account while you log in and export here."
+msgstr "Amíg itt bejelentkezik és exportál, ezzel a MyKNX-fiókkal egyik számítógépen sem futhat az ETS."
+
+msgid "Log in"
+msgstr "Bejelentkezés"
+
+msgid "(only in the export, the project stays unchanged)"
+msgstr "(csak az exportban, a projekt nem változik)"
+
+msgid "To export without it, choose 'Export Without Certificate' or the 'License with a Dongle' tab in the Sign Export window."
+msgstr "A tanúsítvány nélküli exportáláshoz válassza az „Export aláírása” ablakban az „Exportálás tanúsítvány nélkül” lehetőséget vagy a „Licencelés donglével” lapot."
+
+msgid "Re-license the project through your own licensed ETS, which re-signs the copy with your dongle license:\n\nETS 6 - use the local project store:\n1. Click 'Export to ProjectStore'. It writes the project's 'P-XXXX' folder straight into your ETS 6 project store. If ETS is not installed on this computer, you are asked for the store folder (or any folder you then copy over manually).\n2. The export needs your 'installer.guid' from C:\\ProgramData\\KNX\\ETS6\\Installer. If it cannot be found automatically, you are asked to select it.\n3. Restart ETS 6 - the project appears in the project overview.\n4. Make a copy of it there (Copy in the overview). The copy is re-signed with your license - open it, then use or export it normally.\n\nETS 5 - no project store is needed:\nChoose 'Export Without Certificate' (with ETS 5 as version) and an active signing key to save a .knxproj, then import that file into ETS 5.\n\nThis is bounded by the device-per-project limit of your license."
+msgstr "Licencelje újra a projektet a saját licencelt ETS-ével, amely a másolatot a dongle-licencével újra aláírja:\n\nETS 6 – használja a helyi projekttárat:\n1. Kattintson az „Exportálás a ProjectStore-ba” gombra. Ez a projekt „P-XXXX” mappáját közvetlenül az ETS 6 projekttárába írja. Ha az ETS nincs telepítve erre a számítógépre, a program bekéri a tár mappáját (vagy bármely mappát, ahonnan utána kézzel átmásolja).\n2. Az exportáláshoz szükség van az „installer.guid” fájlra a C:\\ProgramData\\KNX\\ETS6\\Installer mappából. Ha a program nem találja meg automatikusan, kéri, hogy válassza ki.\n3. Indítsa újra az ETS 6-ot – a projekt megjelenik a projektáttekintésben.\n4. Ott készítsen róla másolatot (Copy az áttekintésben). A másolatot a program az Ön licencével újra aláírja – nyissa meg, majd használja vagy exportálja a szokásos módon.\n\nETS 5 – nincs szükség projekttárra:\nVálassza az „Exportálás tanúsítvány nélkül” lehetőséget (ETS 5 verzióval) aktív aláírókulccsal egy .knxproj fájl mentéséhez, majd importálja ezt a fájlt az ETS 5-be.\n\nEzt a licenc projektenkénti készülékszám-korlátja határolja be."
+
+msgid "Needed only for accounts with two-factor authentication. The 2FA sign-in opens in your browser automatically when a normal login is rejected. Enter the OAuth client id/secret, or extract them from your installed ETS: pick 'Knx.Ets.MyKnx.dll' from the ETS program folder (e.g. C:\\Program Files (x86)\\ETS6\\Knx.Ets.MyKnx.dll).\n\nAlternatively, if you have any licensed ETS installed, skip online signing entirely and use the local project store instead - see the 'License with a Dongle' tab."
+msgstr "Csak kétlépcsős hitelesítést használó fiókokhoz szükséges. A kétlépcsős bejelentkezés automatikusan megnyílik a böngészőben, ha a szokásos bejelentkezést a kiszolgáló elutasítja. Adja meg az OAuth ügyfél-azonosítót és -kulcsot, vagy nyerje ki őket a telepített ETS-ből: válassza ki a „Knx.Ets.MyKnx.dll” fájlt az ETS programmappájából (pl. C:\\Program Files (x86)\\ETS6\\Knx.Ets.MyKnx.dll).\n\nMásik lehetőség: ha bármilyen licencelt ETS telepítve van, hagyja ki teljesen az online aláírást, és használja helyette a helyi projekttárat – lásd a „Licencelés donglével” lapot."
+
+msgid "Checking for updates…"
+msgstr "Frissítések keresése…"
+
+msgid "The check for updates failed: {error}"
+msgstr "A frissítések keresése nem sikerült: {error}"
+
+msgid "The project has no group addresses to export."
+msgstr "A projektben nincsenek exportálható csoportcímek."
+
+msgid "Clear Cache…"
+msgstr "Gyorsítótár törlése…"
+
+msgid "Clear Cache"
+msgstr "Gyorsítótár törlése"
+
+msgid "The cache holds {size} of parsed product data and of documentation fetched for the AI tools. All of it is made again when needed; afterwards only the first use of each product takes longer."
+msgstr "A gyorsítótár mérete: {size}. Feldolgozott termékadatokat és az MI-eszközök számára letöltött dokumentációt tartalmaz. Szükség esetén minden újra létrejön; utána csak az egyes termékek első használata tart tovább."
+
+msgid "Cache cleared, {size} freed"
+msgstr "Gyorsítótár törölve, felszabadítva: {size}"
+
+msgid "KNX Secure"
+msgstr "KNX Secure"
+
+msgid "Zoom In"
+msgstr "Nagyítás"
+
+msgid "Zoom Out"
+msgstr "Kicsinyítés"
+
+msgid "Reset Zoom"
+msgstr "Nagyítás alaphelyzetbe"
+
+msgid "Cut"
+msgstr "Kivágás"
+
+msgid "Paste"
+msgstr "Beillesztés"
+
+msgid "Select All"
+msgstr "Az összes kijelölése"
+
+msgid "Long-press in the field below and choose Paste."
+msgstr "Nyomja hosszan a lenti mezőt, és válassza a Beillesztés parancsot."
+
+msgid "Too many wrong passwords. Please try again in a few minutes."
+msgstr "Túl sok hibás jelszó. Próbálja újra néhány perc múlva."
+
+msgid "Port {port} is already in use by another program, so the browser UI cannot start there. Start it with another port (e.g. --web={example}) or without a port to take a free one."
+msgstr "A port már használatban van egy másik programnál, ezért a böngészős felület nem indulhat el rajta: {port}. Indítsa más porttal (pl. --web={example}), vagy port nélkül, hogy szabad portot válasszon."
+
+msgid "Load OpenKNX from URL or Folder…"
+msgstr "OpenKNX betöltése URL-ről vagy mappából…"
+
+msgid "Load OpenKNX from URL or Folder"
+msgstr "OpenKNX betöltése URL-ről vagy mappából"
+
+msgid "Or choose a local folder with product files (.knxprod, OpenKNX release .zip, or KNX product XML) to import all of them."
+msgstr "Vagy válasszon egy termékfájlokat (.knxprod, OpenKNX kiadási .zip vagy KNX-termék XML) tartalmazó helyi mappát az összes importálásához."
+
+msgid "Choose Folder…"
+msgstr "Mappa kiválasztása…"
+
+msgid "Choose a Folder with KNX Product Files"
+msgstr "KNX-termékfájlokat tartalmazó mappa kiválasztása"
+
+msgid "Importing from folder…"
+msgstr "Importálás mappából…"
+
+msgid "Imported {count} new product version(s) from folder"
+msgstr "A mappából importált új termékverziók: {count}"
+
+msgid "Nothing new imported from folder (no product files found, or already in the catalog)"
+msgstr "Semmi új nem lett importálva a mappából (nem található termékfájl, vagy már a katalógusban van)"
+
+msgid "Import from folder failed: {error}"
+msgstr "Az importálás mappából nem sikerült: {error}"
+
+msgid "Load OpenKNX from URL or Files…"
+msgstr "OpenKNX betöltése URL-ről vagy fájlokból…"
+
+msgid "Load OpenKNX from URL or Files"
+msgstr "OpenKNX betöltése URL-ről vagy fájlokból"
+
+msgid "Or upload product files (.knxprod, OpenKNX release .zip, or KNX product XML) from this computer to import all of them."
+msgstr "Vagy töltsön fel termékfájlokat (.knxprod, OpenKNX kiadási .zip vagy KNX-termék XML) erről a számítógépről az összes importálásához."
+
+msgid "Choose Files…"
+msgstr "Fájlok kiválasztása…"
+
+msgid "Choose KNX Product Files"
+msgstr "KNX-termékfájlok kiválasztása"
+
+msgid "KNX Product Files (*.knxprod, *.zip, *.xml)"
+msgstr "KNX-termékfájlok (*.knxprod, *.zip, *.xml)"
+
+msgid "Importing files…"
+msgstr "Fájlok importálása…"
+
+msgid "Nothing new imported from the files (no product files, or already in the catalog)"
+msgstr "Semmi új nem lett importálva a fájlokból (nincs termékfájl, vagy már a katalógusban van)"
+
+msgid "Import of the files failed: {error}"
+msgstr "A fájlok importálása nem sikerült: {error}"
+
+msgid "DIN rail"
+msgstr "Kalapsín"
+
+msgid "Flush-mounted"
+msgstr "Süllyesztett szerelésű"
+
+msgid "Registered: {info}"
+msgstr "Regisztrálva: {info}"
+
+msgid "Manufacturer"
+msgstr "Gyártó"
+
+msgid "Product"
+msgstr "Termék"
+
+msgid "Order no."
+msgstr "Rend. szám"
+
+msgid "Application"
+msgstr "Alkalmazás"
+
+msgid "Version"
+msgstr "Verzió"
+
+msgid "Mask"
+msgstr "Maszk"
+
+msgid "Registered"
+msgstr "Regisztrálva"
+
+msgid "Port {port} is already in use by another program, so the MCP server cannot start. Choose another port, or end the other program."
+msgstr "A port már használatban van egy másik programnál, ezért az MCP-kiszolgáló nem indulhat el: {port}. Válasszon másik portot, vagy zárja be a másik programot."
+
+msgid "The MCP server could not start: {error}"
+msgstr "Az MCP-kiszolgáló nem indulhatott el: {error}"
+
+msgid "Open in Browser"
+msgstr "Megnyitás böngészőben"
+
+msgid "Stop XKNX Editor"
+msgstr "XKNX Editor leállítása"
+
+msgid "XKNX Editor Already Running"
+msgstr "Az XKNX Editor már fut"
+
+msgid "XKNX Editor is already running on this computer. Switch to it, or start another one, e.g. to work on a second project or with another bus connection."
+msgstr "Az XKNX Editor már fut ezen a számítógépen. Váltson rá, vagy indítson egy újabbat, pl. egy második projekthez vagy másik buszkapcsolathoz."
+
+msgid "Window"
+msgstr "Ablak"
+
+msgid "Browser UI ({url})"
+msgstr "Böngészős felület ({url})"
+
+msgid "{kind}: {project}"
+msgstr "{kind}: {project}"
+
+msgid "Switch to It"
+msgstr "Váltás rá"
+
+msgid "Start Another"
+msgstr "Újabb indítása"
+
+msgid "That XKNX Editor has ended in the meantime."
+msgstr "Az az XKNX Editor időközben leállt."
+
+msgid "Project Already Open"
+msgstr "A projekt már meg van nyitva"
+
+msgid "{name} is already open in another XKNX Editor. Editing it in two editors at once can overwrite changes."
+msgstr "Ez a projekt már meg van nyitva egy másik XKNX Editorban: {name}. Ha egyszerre két szerkesztőben módosítja, a változások felülíródhatnak."
+
+msgid "Open Anyway"
+msgstr "Megnyitás mégis"
+
+msgid "C"
+msgstr "C"
+
+msgid "R"
+msgstr "R"
+
+msgid "W"
+msgstr "W"
+
+msgid "T"
+msgstr "T"
+
+msgid "U"
+msgstr "U"
+
+msgid "I"
+msgstr "I"
+
+msgid "Communication"
+msgstr "Kommunikáció"
+
+msgid "Read"
+msgstr "Olvasás"
+
+msgid "Write"
+msgstr "Írás"
+
+msgid "Transmit"
+msgstr "Átvitel"
+
+msgid "Update"
+msgstr "Aktualizálás"
+
+msgid "Read on Init"
+msgstr "Olvasás inicializáláskor"
+
+msgid "English"
+msgstr "Angol"
+
+msgid "German"
+msgstr "Német"
+
+msgid "Dutch"
+msgstr "Holland"
+
+msgid "{name} ({native})"
+msgstr "{name} ({native})"
+
+msgid "Spanish"
+msgstr "Spanyol"
+
+msgid "Greek"
+msgstr "Görög"
+
+msgid "Simplified Chinese"
+msgstr "Egyszerűsített kínai"
+
+msgid "Japanese"
+msgstr "Japán"
+
+msgid "Czech"
+msgstr "Cseh"
+
+msgid "Danish"
+msgstr "Dán"
+
+msgid "Finnish"
+msgstr "Finn"
+
+msgid "French"
+msgstr "Francia"
+
+msgid "Italian"
+msgstr "Olasz"
+
+msgid "Norwegian"
+msgstr "Norvég (bokmål)"
+
+msgid "Polish"
+msgstr "Lengyel"
+
+msgid "Portuguese"
+msgstr "Portugál"
+
+msgid "Russian"
+msgstr "Orosz"
+
+msgid "Swedish"
+msgstr "Svéd"
+
+msgid "Turkish"
+msgstr "Török"
+
+msgid "Ukrainian"
+msgstr "Ukrán"
+
+msgid "Albanian"
+msgstr "Albán"
+
+msgid "Preferred Product Language"
+msgstr "Előnyben részesített terméknyelv"
+
+msgid "Hungarian"
+msgstr "Magyar"
+
+msgid "Romanian"
+msgstr "Román"
+
+msgid "Slovak"
+msgstr "Szlovák"
+
+msgid "Slovenian"
+msgstr "Szlovén"
+
+msgid "Icelandic"
+msgstr "Izlandi"
+
+msgid "Ctrl"
+msgstr "Ctrl"
+
+msgid "Del"
+msgstr "Del"
+
+msgid "This Machine Only"
+msgstr "Csak ez a gép"
+
+msgid "On the Network"
+msgstr "A hálózaton"
+
+msgid "This editor is controllable by an AI assistant through the built-in MCP server: it exposes the catalog and project as tools over Streamable HTTP. Register its endpoint in your AI tool."
+msgstr "Ez a szerkesztő egy MI-asszisztenssel vezérelhető a beépített MCP-kiszolgálón keresztül: a katalógust és a projektet eszközökként teszi elérhetővé Streamable HTTP-n keresztül. Regisztrálja a végpontját az MI-eszközében."
+
+msgid "Example: register the MCP server in your AI tool:"
+msgstr "Példa: az MCP-kiszolgáló regisztrálása az MI-eszközben:"
+
+msgid "Example: register the MCP server in your AI tool, with your token in place of HOME_ASSISTANT_TOKEN:"
+msgstr "Példa: az MCP-kiszolgáló regisztrálása az MI-eszközben, a HOME_ASSISTANT_TOKEN helyén a saját tokenjével:"
+
+msgid "Home Assistant provides the MCP server: AI tools sign in with a long-lived access token of a Home Assistant user who may use the editor (Profile > Security)."
+msgstr "Az MCP-kiszolgálót a Home Assistant biztosítja: az MI-eszközök egy olyan Home Assistant-felhasználó hosszú élettartamú hozzáférési tokenjével jelentkeznek be, aki használhatja a szerkesztőt (Profil > Biztonság)."
+
+msgid "The program that started XKNX Editor set up its MCP server."
+msgstr "Az XKNX Editort elindító program állította be az MCP-kiszolgálóját."
+
+msgid "Home Assistant updates XKNX Editor with its integration: check Home Assistant for an update of the XKNX Editor integration. It may follow this release a little later."
+msgstr "A Home Assistant az integrációjával frissíti az XKNX Editort: ellenőrizze a Home Assistantben, hogy elérhető-e frissítés az XKNX Editor-integrációhoz. Ez kicsivel a jelen kiadás után érkezhet."

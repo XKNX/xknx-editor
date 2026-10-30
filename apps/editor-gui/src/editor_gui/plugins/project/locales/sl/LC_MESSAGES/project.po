@@ -1,0 +1,3041 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor project 1.0\n"
+"Language: sl\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Devices"
+msgstr "Naprave"
+
+msgid "Configure"
+msgstr "Konfiguracija"
+
+msgid "History"
+msgstr "Zgodovina"
+
+msgid "Editor"
+msgstr "Urejevalnik"
+
+msgid "Group Addresses"
+msgstr "Skupinski naslovi"
+
+msgid "Buildings"
+msgstr "Stavbe"
+
+msgid "Project"
+msgstr "Projekt"
+
+msgid "No buildings/rooms in this project"
+msgstr "V tem projektu ni stavb/prostorov"
+
+msgid "No project"
+msgstr "Ni projekta"
+
+msgid "Name"
+msgstr "Ime"
+
+msgid "Open Project"
+msgstr "Odprti projekt"
+
+msgid "Reading the projects…"
+msgstr "Branje projektov…"
+
+msgid "Comparing devices: {done} of {total}"
+msgstr "Primerjava naprav: {done} od {total}"
+
+msgid "File"
+msgstr "Datoteka"
+
+msgid "Group Address Style"
+msgstr "Oblika skupinskih naslovov"
+
+msgid "Created by"
+msgstr "Ustvaril"
+
+msgid "Tool Version"
+msgstr "Različica orodja"
+
+msgid "Schema Version"
+msgstr "Različica sheme"
+
+msgid "Last Modified"
+msgstr "Zadnja sprememba"
+
+msgid "GUID"
+msgstr "GUID"
+
+msgid "Project ID"
+msgstr "ID projekta"
+
+msgid "Original Project ID"
+msgstr "Izvirni ID projekta"
+
+msgid "Master Data (Signed)"
+msgstr "Matični podatki (podpisani)"
+
+msgid "Validation File"
+msgstr "Datoteka za preverjanje"
+
+msgid "Project Certificate"
+msgstr "Potrdilo projekta"
+
+msgid "none"
+msgstr "brez"
+
+msgid "present ({size} bytes)"
+msgstr "prisotno (bajti: {size})"
+
+msgid "Order Number"
+msgstr "Naročilna številka"
+
+msgid "Description"
+msgstr "Opis"
+
+msgid "Comment"
+msgstr "Komentar"
+
+msgid "Parameters ({count})"
+msgstr "Parametri ({count})"
+
+msgid "Group Objects ({count})"
+msgstr "Komunikacijski objekti ({count})"
+
+msgid "Assigned Objects"
+msgstr "Dodeljeni objekti"
+
+msgid "No devices"
+msgstr "Ni naprav"
+
+msgid "Loading application program…"
+msgstr "Nalaganje aplikacijskega programa…"
+
+msgid "This product has no application program."
+msgstr "Ta izdelek nima aplikacijskega programa."
+
+msgid "Individual Address"
+msgstr "Fizični naslov"
+
+msgid "Program Device"
+msgstr "Programiraj napravo"
+
+msgid "Test Programming"
+msgstr "Preizkusi programiranje"
+
+msgid "Program device?"
+msgstr "Želite programirati napravo?"
+
+msgid "This writes to the device at {address} (scope: {scope}) and changes its configuration. Continue?"
+msgstr "S tem se zapiše v napravo na naslovu {address} (obseg: {scope}) in spremeni njena konfiguracija. Želite nadaljevati?"
+
+msgid "Download"
+msgstr "Programiranje"
+
+msgid "Full"
+msgstr "Popolno"
+
+msgid "Application Program"
+msgstr "Aplikacijski program"
+
+msgid "Unload"
+msgstr "Izprazni"
+
+msgid "Unload Application and Address"
+msgstr "Izprazni aplikacijo in naslov"
+
+msgid "Partial: Parameters"
+msgstr "Delno: parametri"
+
+msgid "Partial: Group Communication"
+msgstr "Delno: skupinska komunikacija"
+
+msgid "Manufacturer"
+msgstr "Proizvajalec"
+
+msgid "Manufacturer Info"
+msgstr "Podatki proizvajalca"
+
+msgid "Application"
+msgstr "Aplikacija"
+
+msgid "Program Version"
+msgstr "Različica programa"
+
+msgid "Application Version"
+msgstr "Različica aplikacije"
+
+msgid "Read from Device"
+msgstr "Preberi iz naprave"
+
+msgid "Set an individual address and connect to the bus first"
+msgstr "Najprej nastavite fizični naslov in se povežite z vodilom"
+
+msgid "Mask Version"
+msgstr "Različica maske"
+
+msgid "Serial Number"
+msgstr "Serijska številka"
+
+msgid "Order Info"
+msgstr "Podatki za naročilo"
+
+msgid "Hardware Type"
+msgstr "Vrsta strojne opreme"
+
+msgid "differs from project V{version} — program to apply"
+msgstr "razlikuje se od projekta V{version} – programirajte za uveljavitev"
+
+msgid "Filter parameters…"
+msgstr "Filtriraj parametre…"
+
+msgid "Hardware"
+msgstr "Strojna oprema"
+
+msgid "Firmware"
+msgstr "Vdelana programska oprema"
+
+msgid "Com Flags ({count})"
+msgstr "Zastavice obj. ({count})"
+
+msgid "Load Procedures ({count})"
+msgstr "Postopki nalaganja ({count})"
+
+msgid "Preview Memory"
+msgstr "Predogled pomnilnika"
+
+msgid "Memory Preview"
+msgstr "Predogled pomnilnika"
+
+msgid "Programming Test Result"
+msgstr "Rezultat preizkusa programiranja"
+
+msgid "Evaluation failed"
+msgstr "Vrednotenje ni uspelo"
+
+msgid "Read-only test: checks that the download function generates the same image as what is already programmed on the device. Nothing is written to the device."
+msgstr "Preizkus samo z branjem: preveri, ali funkcija programiranja ustvari enako sliko, kot je že programirana v napravi. V napravo se ne zapiše nič."
+
+msgid "Cannot run: no KNX connection. Connect to a gateway (Connection menu) and make sure the device is reachable at its individual address."
+msgstr "Ni mogoče zagnati: ni povezave KNX. Povežite se s prehodom (meni Prehod) in se prepričajte, da je naprava dosegljiva na svojem fizičnem naslovu."
+
+msgid "Match: the generated image is identical to what is on the device"
+msgstr "Ujemanje: ustvarjena slika je enaka tisti v napravi"
+
+msgid "Mismatch: {bytes} byte(s) differ from the device in {locations} location(s)"
+msgstr "Neujemanje: razlikujoči se bajti: {bytes}, mesta: {locations}"
+
+msgid "{matched} matched, {changed} would change"
+msgstr "Ujemajoči se: {matched}, bi se spremenili: {changed}"
+
+msgid "Location"
+msgstr "Mesto"
+
+msgid "Size"
+msgstr "Velikost"
+
+msgid "Status"
+msgstr "Stanje"
+
+msgid "Changed"
+msgstr "Spremenjeno"
+
+msgid "match"
+msgstr "ujemanje"
+
+msgid "would change"
+msgstr "bi se spremenilo"
+
+msgid "device-managed"
+msgstr "upravlja naprava"
+
+msgid "System byte the device sets itself at runtime (e.g. a download detection byte reset by the application after a download). A difference here is expected and does not indicate a bad download."
+msgstr "Sistemski bajt, ki ga naprava med delovanjem nastavi sama (npr. bajt za zaznavanje programiranja, ki ga aplikacija po programiranju ponastavi). Razlika tukaj je pričakovana in ne pomeni napačnega programiranja."
+
+msgid "plus {bytes} device-managed runtime byte(s) (expected, benign)"
+msgstr "in še bajti, ki jih med delovanjem upravlja naprava: {bytes} (pričakovano, neškodljivo)"
+
+msgid "No configured differences: the device already carries this configuration. The differences below are benign (see notes)."
+msgstr "Ni konfiguriranih razlik: naprava že ima to konfiguracijo. Spodnje razlike so neškodljive (glejte opombe)."
+
+msgid "sets default"
+msgstr "nastavi privzeto"
+
+msgid "This byte is written for a neighbouring parameter; the differing bit is not driven by any active parameter and is only reset to the application default. The device holds an older value (e.g. from a previous configuration or mode) that programming will normalise. Benign."
+msgstr "Ta bajt se zapiše zaradi sosednjega parametra; različnega bita ne krmili noben aktiven parameter in se samo ponastavi na privzeto vrednost aplikacije. Naprava hrani starejšo vrednost (npr. iz prejšnje konfiguracije ali načina), ki jo bo programiranje poenotilo. Neškodljivo."
+
+msgid "plus {bytes} byte(s) reset to the application default (the device holds an older value; benign, will be normalised on programming)"
+msgstr "in še bajti, ponastavljeni na privzeto vrednost aplikacije: {bytes} (naprava hrani starejšo vrednost; neškodljivo, pri programiranju se poenoti)"
+
+msgid "Export Ist/Soll…"
+msgstr "Izvozi dejansko/želeno…"
+
+msgid "Export Path:"
+msgstr "Pot izvoza:"
+
+msgid "memory {address}"
+msgstr "pomnilnik {address}"
+
+msgid "object {object} property {property}"
+msgstr "objekt {object} lastnost {property}"
+
+msgid "Filter devices (name, address)…"
+msgstr "Filtriraj naprave (ime, naslov)…"
+
+msgid "No devices. Open or import a project (File menu), or right-click here to add an area."
+msgstr "Ni naprav. Odprite ali uvozite projekt (meni Datoteka) ali pa tukaj kliknite z desno tipko miške, da dodate področje."
+
+msgid "Filter group addresses (address, name)…"
+msgstr "Filtriraj skupinske naslove (naslov, ime)…"
+
+msgid "Filter rooms, devices, functions…"
+msgstr "Filtriraj prostore, naprave, funkcije…"
+
+msgid "Unassigned ({count})"
+msgstr "Nedodeljeno ({count})"
+
+msgid "Delete"
+msgstr "Izbriši"
+
+msgid "Number"
+msgstr "Številka"
+
+msgid "Add"
+msgstr "Dodaj"
+
+msgid "OK"
+msgstr "OK"
+
+msgid "Save"
+msgstr "Shrani"
+
+msgid "Copy Log"
+msgstr "Kopiraj dnevnik"
+
+msgid "Cancel"
+msgstr "Prekliči"
+
+msgid "Address"
+msgstr "Naslov"
+
+msgid "Project: {name}"
+msgstr "Projekt: {name}"
+
+msgid "(unsaved)"
+msgstr "(ni shranjeno)"
+
+msgid "No history"
+msgstr "Ni zgodovine"
+
+msgid "Restore"
+msgstr "Obnovi"
+
+msgid "Add device: {name}"
+msgstr "Dodajanje naprave: {name}"
+
+msgid "Remove device: {name}"
+msgstr "Odstranitev naprave: {name}"
+
+msgid "Address: {old} -> {new}"
+msgstr "Naslov: {old} -> {new}"
+
+msgid "Name: {old} -> {new}"
+msgstr "Ime: {old} -> {new}"
+
+msgid "Parameter: {old} -> {new}"
+msgstr "Parameter: {old} -> {new}"
+
+msgid "DPT: {old} -> {new}"
+msgstr "DPT: {old} -> {new}"
+
+msgid "Flag: {flag} -> {state}"
+msgstr "Zastavica: {flag} -> {state}"
+
+msgid "Group address {address} created"
+msgstr "Skupinski naslov {address} je ustvarjen"
+
+msgid "Group address {address} removed"
+msgstr "Skupinski naslov {address} je odstranjen"
+
+msgid "Group address: {old} -> {new}"
+msgstr "Skupinski naslov: {old} -> {new}"
+
+msgid "Group object linked to group address"
+msgstr "Komunikacijski objekt je povezan s skupinskim naslovom"
+
+msgid "Group object unlinked from group address"
+msgstr "Komunikacijski objekt je ločen od skupinskega naslova"
+
+msgid "Area {number} created"
+msgstr "Področje {number} je ustvarjeno"
+
+msgid "Area {number} removed"
+msgstr "Področje {number} je odstranjeno"
+
+msgid "Area: {old} -> {new}"
+msgstr "Področje: {old} -> {new}"
+
+msgid "Line {number} created"
+msgstr "Linija {number} je ustvarjena"
+
+msgid "Line {number} removed"
+msgstr "Linija {number} je odstranjena"
+
+msgid "Line: {old} -> {new}"
+msgstr "Linija: {old} -> {new}"
+
+msgid "Cannot run: the project was changed since it was opened. This test compares the generated image against the device's programmed state, which only matches the project as it was opened. Undo your changes in this session to test."
+msgstr "Ni mogoče zagnati: projekt je bil od odprtja spremenjen. Ta preizkus primerja ustvarjeno sliko s programiranim stanjem naprave, ki se ujema le s projektom, kakršen je bil ob odprtju. Za preizkus razveljavite spremembe v tej seji."
+
+msgid "Duplicate"
+msgstr "Podvoji"
+
+msgid "Apply Changes to All {count} Identical Devices"
+msgstr "Uporabi spremembe za vse enake naprave ({count})"
+
+msgid "Editing {count} devices — edits apply to all, diverging values show <differs>"
+msgstr "Urejanje več naprav ({count}) – spremembe veljajo za vse, različne vrednosti so prikazane kot <različno>"
+
+msgid "Mass Linker"
+msgstr "Množično povezovanje"
+
+msgid "Object <> GA"
+msgstr "Objekt <> naslov"
+
+msgid "Object <> Object"
+msgstr "Objekt <> objekt"
+
+msgid "Log"
+msgstr "Dnevnik"
+
+msgid "Open a project to use the Mass Linker."
+msgstr "Odprite projekt, da uporabite množično povezovanje."
+
+msgid "Pairs are matched by list order (1st with 1st, …). Surplus items on the longer side are ignored. Reorder a list via its right-click menu."
+msgstr "Pari se tvorijo po vrstnem redu na seznamu (1. s 1. …). Odvečni elementi na daljši strani so prezrti. Vrstni red seznama spremenite prek njegovega priročnega menija."
+
+msgid "Source (objects)"
+msgstr "Vir (objekti)"
+
+msgid "Target (Group Addresses)"
+msgstr "Cilj (skupinski naslovi)"
+
+msgid "Target (objects)"
+msgstr "Cilj (objekti)"
+
+msgid "Preview & Link"
+msgstr "Predogled in povezava"
+
+msgid "Add Group Objects…"
+msgstr "Dodaj komunikacijske objekte…"
+
+msgid "Add Group Addresses…"
+msgstr "Dodaj skupinske naslove…"
+
+msgid "Add Selected"
+msgstr "Dodaj izbrano"
+
+msgid "Clear"
+msgstr "Počisti"
+
+msgid "Remove"
+msgstr "Odstrani"
+
+msgid "Move up"
+msgstr "Premakni gor"
+
+msgid "Move Down"
+msgstr "Premakni dol"
+
+msgid "{count} items"
+msgstr "Elementi: {count}"
+
+msgid "{count} pairs"
+msgstr "Pari: {count}"
+
+msgid "{count} unpaired (ignored)"
+msgstr "Brez para (prezrto): {count}"
+
+msgid "Link"
+msgstr "Poveži"
+
+msgid "GA Name ({source}, {target}, {n})"
+msgstr "Ime skupinskega naslova ({source}, {target}, {n})"
+
+msgid "Start Address"
+msgstr "Začetni naslov"
+
+msgid "Filter…"
+msgstr "Filtriraj…"
+
+msgid "Add Group Objects"
+msgstr "Dodajanje komunikacijskih objektov"
+
+msgid "Add Group Addresses"
+msgstr "Dodajanje skupinskih naslovov"
+
+msgid "Linked {count} object(s) to group addresses"
+msgstr "Objekti, povezani s skupinskimi naslovi: {count}"
+
+msgid "Linked {count} object pair(s) via new group addresses"
+msgstr "Pari objektov, povezani prek novih skupinskih naslovov: {count}"
+
+msgid "{count} error(s)"
+msgstr "Napake: {count}"
+
+msgid "Clear All"
+msgstr "Počisti vse"
+
+msgid "No operations yet."
+msgstr "Operacij še ni."
+
+msgid "Mass Linker Result"
+msgstr "Rezultat množičnega povezovanja"
+
+msgid "Tools"
+msgstr "Orodja"
+
+msgid "Open a project to use the tools."
+msgstr "Odprite projekt, da uporabite orodja."
+
+msgid "No devices in this project."
+msgstr "V tem projektu ni naprav."
+
+msgid "Extended Copy"
+msgstr "Razširjeno kopiranje"
+
+msgid "Shift Addresses"
+msgstr "Premik naslovov"
+
+msgid "Labels"
+msgstr "Nalepke"
+
+msgid "Topology Check"
+msgstr "Preverjanje topologije"
+
+msgid "Source Device"
+msgstr "Izvorna naprava"
+
+msgid "Copies"
+msgstr "Kopije"
+
+msgid "Find in Name"
+msgstr "Najdi v imenu"
+
+msgid "Replace with"
+msgstr "Zamenjaj z"
+
+msgid "Create Group Addresses for Each Copy"
+msgstr "Ustvari skupinske naslove za vsako kopijo"
+
+msgid "Copy Name: {name}"
+msgstr "Ime kopije: {name}"
+
+msgid "Copy"
+msgstr "Kopiraj"
+
+msgid "Created {count} copy/copies"
+msgstr "Ustvarjene kopije: {count}"
+
+msgid "Shifts the device part of each individual address. Group addresses are not shifted."
+msgstr "Premakne del naprave v vsakem fizičnem naslovu. Skupinski naslovi se ne premaknejo."
+
+msgid "Offset"
+msgstr "Zamik"
+
+msgid "Selected source device only (from Extended Copy)"
+msgstr "Samo izbrana izvorna naprava (iz razširjenega kopiranja)"
+
+msgid "(out of range)"
+msgstr "(zunaj obsega)"
+
+msgid "Shifted {count} address(es)"
+msgstr "Premaknjeni naslovi: {count}"
+
+msgid "Export {count} device(s) to a CSV for on-site labelling."
+msgstr "Izvoz naprav v CSV za označevanje na mestu (število: {count})."
+
+msgid "Export CSV…"
+msgstr "Izvozi CSV…"
+
+msgid "Exported to {path}"
+msgstr "Izvoženo v {path}"
+
+msgid "No topology issues found."
+msgstr "Ni najdenih težav s topologijo."
+
+msgid "{count} issue(s)"
+msgstr "Težave: {count}"
+
+msgid "{count} address(es) will change"
+msgstr "Naslovi, ki se bodo spremenili: {count}"
+
+msgid "Click a finding to jump to the device."
+msgstr "Kliknite ugotovitev, da skočite na napravo."
+
+msgid "Link many group objects to existing group addresses at once. 1) Add objects: '+ Selected device' (all objects of the device selected in the tree) or 'Add objects…'. 2) Set each row's target address in its dropdown — or fill them fast with 'Assign sequential' (next free addresses from the given start) or 'Match by name'. 3) 'Link all' links every row that has a target."
+msgstr "Povežite veliko komunikacijskih objektov z obstoječimi skupinskimi naslovi hkrati. 1) Dodajte objekte: »+ Izbrana naprava« (vsi objekti naprave, izbrane v drevesu) ali »Dodaj komunikacijske objekte…«. 2) Ciljni naslov vsake vrstice nastavite v njenem spustnem seznamu – ali jih hitro izpolnite z »Dodeli zaporedno« (naslednji prosti naslovi od podanega začetka) ali »Uskladi po imenu«. 3) »Poveži vse« poveže vsako vrstico, ki ima cilj."
+
+msgid "Link group objects to each other. 1) Add the source objects. 2) Pick a partner object per row. Each pair gets a NEW group address (source sends, target receives): the address and name are suggested (first free address, name template below) but can be edited per row. 3) 'Link all' creates and links them."
+msgstr "Povežite komunikacijske objekte med seboj. 1) Dodajte izvorne objekte. 2) Za vsako vrstico izberite partnerski objekt. Vsak par dobi NOV skupinski naslov (vir pošilja, cilj prejema): naslov in ime sta predlagana (prvi prosti naslov, spodnja predloga imena), vendar ju lahko uredite v vsaki vrstici. 3) »Poveži vse« jih ustvari in poveže."
+
+msgid "Chronological record of every mass-link operation in this session."
+msgstr "Kronološki zapis vseh operacij množičnega povezovanja v tej seji."
+
+msgid "Duplicate a device several times. Optionally rewrite the copy name (find/replace) and create a group address for each of its objects."
+msgstr "Napravo večkrat podvojite. Po želji spremenite ime kopije (iskanje/zamenjava) in ustvarite skupinski naslov za vsakega od njenih objektov."
+
+msgid "Renumber devices by adding an offset to the device part of their individual addresses, e.g. to open gaps for new devices. Group addresses are untouched."
+msgstr "Preštevilčite naprave tako, da delu naprave v njihovih fizičnih naslovih prištejete zamik, npr. da naredite vrzeli za nove naprave. Skupinski naslovi ostanejo nespremenjeni."
+
+msgid "Export the device list (address, name, order number, manufacturer, description) to a CSV you can print as on-site labels."
+msgstr "Izvozite seznam naprav (naslov, ime, naročilna številka, proizvajalec, opis) v CSV, ki ga lahko natisnete kot nalepke za montažo."
+
+msgid "Read-only scan: lists devices with a missing, malformed or duplicate individual address."
+msgstr "Pregled samo z branjem: navede naprave z manjkajočim, napačno oblikovanim ali podvojenim fizičnim naslovom."
+
+msgid "All"
+msgstr "Vse"
+
+msgid "None"
+msgstr "Nič"
+
+msgid "{sel} of {total} selected"
+msgstr "Izbrano: {sel} od {total}"
+
+msgid "Filter devices…"
+msgstr "Filtriraj naprave…"
+
+msgid "Replace Device"
+msgstr "Zamenjaj napravo"
+
+msgid "Swap a device for another model (a template device already in the project), keeping its group-address links. Group objects are matched by number and size; unmatched ones are reported. Parameters are not carried over."
+msgstr "Napravo zamenjajte z drugim modelom (napravo predlogo, ki je že v projektu) in pri tem ohranite povezave s skupinskimi naslovi. Komunikacijski objekti se povežejo po številki in velikosti; o tistih, ki se ne ujemajo, prejmete poročilo. Parametri se ne prenesejo."
+
+msgid "Device to Replace"
+msgstr "Naprava za zamenjavo"
+
+msgid "Replace with (Template)"
+msgstr "Zamenjaj z (predloga)"
+
+msgid "Group Object Mapping (by Number)"
+msgstr "Preslikava komunikacijskih objektov (po številki)"
+
+msgid "{count} object(s) will be re-mapped"
+msgstr "Objekti, ki bodo znova preslikani: {count}"
+
+msgid "Replaced; re-mapped {count} group object(s)"
+msgstr "Zamenjano; znova preslikani komunikacijski objekti: {count}"
+
+msgid "Device"
+msgstr "Naprava"
+
+msgid "Group Object"
+msgstr "Komunikacijski objekt"
+
+msgid "DPT"
+msgstr "DPT"
+
+msgid "Target Group Address"
+msgstr "Ciljni skupinski naslov"
+
+msgid "Target Group Object"
+msgstr "Ciljni komunikacijski objekt"
+
+msgid "Group Address"
+msgstr "Skupinski naslov"
+
+msgid "Group Address Name"
+msgstr "Ime skupinskega naslova"
+
+msgid "(none)"
+msgstr "(brez)"
+
+msgid "+ Selected Device"
+msgstr "+ Izbrana naprava"
+
+msgid "Select All"
+msgstr "Izberi vse"
+
+msgid "No objects yet — add the selected device or pick objects."
+msgstr "Objektov še ni – dodajte izbrano napravo ali izberite objekte."
+
+msgid "From"
+msgstr "Od"
+
+msgid "Assign Sequential"
+msgstr "Dodeli zaporedno"
+
+msgid "Match by Name"
+msgstr "Uskladi po imenu"
+
+msgid "Link All ({count})"
+msgstr "Poveži vse ({count})"
+
+msgid "{ready} ready · {amb} ambiguous · {bad} incompatible · {none} unmatched"
+msgstr "pripravljeno: {ready} · dvoumno: {amb} · nezdružljivo: {bad} · brez para: {none}"
+
+msgid "Only Problems"
+msgstr "Samo težave"
+
+msgid "Only for ETS 6 devices: this test compares the device against an image generated the ETS 6 way. A device last programmed with ETS 5 uses a different byte layout and will show large false differences - the result is only meaningful for a device last programmed with ETS 6."
+msgstr "Samo za naprave ETS 6: ta preizkus napravo primerja s sliko, ustvarjeno na način ETS 6. Naprava, ki je bila nazadnje programirana z ETS 5, uporablja drugačno razporeditev bajtov in bo pokazala velike lažne razlike – rezultat je smiseln le za napravo, ki je bila nazadnje programirana z ETS 6."
+
+msgid "Structural differences (whole tables differ) can mean the device was last programmed with ETS 5, whose byte layout differs. Differences in values only usually mean the device holds a different configuration."
+msgstr "Strukturne razlike (razlikujejo se cele tabele) lahko pomenijo, da je bila naprava nazadnje programirana z ETS 5, katerega razporeditev bajtov je drugačna. Razlike samo v vrednostih običajno pomenijo, da ima naprava drugačno konfiguracijo."
+
+msgid "Test/Program mirror an ETS 6 programming. If a test reports whole tables as different, the device was likely last programmed with ETS 5 (different byte layout)."
+msgstr "Preizkus/programiranje posnema programiranje z ETS 6. Če preizkus javi cele tabele kot različne, je bila naprava verjetno nazadnje programirana z ETS 5 (drugačna razporeditev bajtov)."
+
+msgid "Product"
+msgstr "Izdelek"
+
+msgid "Product Ref"
+msgstr "Referenca izdelka"
+
+msgid "Program Ref"
+msgstr "Referenca programa"
+
+msgid "Copied"
+msgstr "Kopirano"
+
+msgid "Click to copy"
+msgstr "Kliknite za kopiranje"
+
+msgid "Update to V{version}"
+msgstr "Posodobi na V{version}"
+
+msgid "Type"
+msgstr "Vrsta"
+
+msgid "Create"
+msgstr "Ustvari"
+
+msgid "Custom"
+msgstr "Po meri"
+
+msgid "Switchable Light"
+msgstr "Stikana luč"
+
+msgid "Dimmable Light"
+msgstr "Zatemnilna luč"
+
+msgid "Sun Protection"
+msgstr "Zaščita pred soncem"
+
+msgid "Heating (Switching Variable)"
+msgstr "Ogrevanje (preklopna regulirna veličina)"
+
+msgid "Heating (Continuous Variable)"
+msgstr "Ogrevanje (zvezna regulirna veličina)"
+
+msgid "Switchable Socket"
+msgstr "Stikana vtičnica"
+
+msgid "Confirmed Restart"
+msgstr "Potrjen ponovni zagon"
+
+msgid "Delete Application Program"
+msgstr "Izbriši aplikacijski program"
+
+msgid "Factory Reset"
+msgstr "Tovarniška ponastavitev"
+
+msgid "Factory Reset (Keep Address)"
+msgstr "Tovarniška ponastavitev (ohrani naslov)"
+
+msgid "I understand this resets the device"
+msgstr "Zavedam se, da to ponastavi napravo"
+
+msgid "Master Reset"
+msgstr "Glavna ponastavitev"
+
+msgid "Reset Device"
+msgstr "Ponastavi napravo"
+
+msgid "Reset Group Address Links"
+msgstr "Ponastavi povezave skupinskih naslovov"
+
+msgid "Reset Individual Address"
+msgstr "Ponastavi fizični naslov"
+
+msgid "Reset Parameters"
+msgstr "Ponastavi parametre"
+
+msgid "Reset Type"
+msgstr "Vrsta ponastavitve"
+
+msgid "Reset…"
+msgstr "Ponastavi…"
+
+msgid "Restart"
+msgstr "Ponovni zagon"
+
+msgid "no fault reported"
+msgstr "ni javljene napake"
+
+msgid "(Top Level)"
+msgstr "(najvišja raven)"
+
+msgid "Assign a Device to This Space"
+msgstr "Dodelitev naprave tej lokaciji"
+
+msgid "Building"
+msgstr "Stavba"
+
+msgid "Building Part"
+msgstr "Del stavbe"
+
+msgid "Corridor"
+msgstr "Hodnik"
+
+msgid "Delete this space and everything in it? Devices are only unassigned, not deleted."
+msgstr "Želite izbrisati to lokacijo in vse v njej? Naprave se le odstranijo iz nje, ne izbrišejo."
+
+msgid "Floor"
+msgstr "Nadstropje"
+
+msgid "Move to"
+msgstr "Premakni v"
+
+msgid "No unassigned devices"
+msgstr "Ni nedodeljenih naprav"
+
+msgid "Room"
+msgstr "Prostor"
+
+msgid "Stairway"
+msgstr "Stopnišče"
+
+msgid "Without Space"
+msgstr "Brez lokacije"
+
+msgid "Delete Folder"
+msgstr "Izbriši mapo"
+
+msgid "Delete this folder and every group address in it? This can be undone."
+msgstr "Želite izbrisati to mapo in vse skupinske naslove v njej? To je mogoče razveljaviti."
+
+msgid "Apply Changes to All Channels"
+msgstr "Uporabi spremembe za vse kanale"
+
+msgid "S"
+msgstr "P"
+
+msgid "S = Sending. This object sends its value to the group address; the others only receive it."
+msgstr "P = pošilja. Ta objekt pošilja svojo vrednost na skupinski naslov; drugi jo le prejemajo."
+
+msgid "Click to open this device in the editor"
+msgstr "Kliknite, da odprete to napravo v urejevalniku"
+
+msgid "Copy Configuration"
+msgstr "Kopiraj konfiguracijo"
+
+msgid "Paste Configuration"
+msgstr "Prilepi konfiguracijo"
+
+msgid "Paste configuration onto '{name}':"
+msgstr "Prilepi konfiguracijo v »{name}«:"
+
+msgid "Paste configuration onto {count} selected devices:"
+msgstr "Prilepi konfiguracijo v izbrane naprave ({count}):"
+
+msgid "Duplicate '{name}':"
+msgstr "Podvoji »{name}«:"
+
+msgid "Parameters"
+msgstr "Parametri"
+
+msgid "Group Address Links"
+msgstr "Povezave skupinskih naslovov"
+
+msgid "Paste"
+msgstr "Prilepi"
+
+msgid "This action can only be performed when the individual address of the device is already downloaded."
+msgstr "To dejanje je mogoče izvesti le, če je fizični naslov naprave že programiran."
+
+msgid "Button {0} executed. "
+msgstr "Gumb {0} je izveden. "
+
+msgid "A parameter script is running for this device."
+msgstr "Za to napravo se izvaja skript parametrov."
+
+msgid "The Device has no valid address or is not linked to an area or line."
+msgstr "Naprava nima veljavnega naslova ali ni povezana s področjem ali linijo."
+
+msgid "Parameter Script"
+msgstr "Skript parametrov"
+
+msgid "Executing Script"
+msgstr "Izvajanje skripta"
+
+msgid "Script not responding"
+msgstr "Skript se ne odziva"
+
+msgid "Force Stop"
+msgstr "Prisilno ustavi"
+
+msgid "The script was stopped."
+msgstr "Skript je bil ustavljen."
+
+msgid "Canceling…"
+msgstr "Preklicevanje…"
+
+msgid "No connection to the bus."
+msgstr "Ni povezave z vodilom."
+
+msgid "Parameter value cannot be set, because validation failed."
+msgstr "Vrednosti parametra ni mogoče nastaviti, ker preverjanje ni uspelo."
+
+msgid "Operations"
+msgstr "Operacije"
+
+msgid "Active"
+msgstr "Aktivno"
+
+msgid "Cancel All"
+msgstr "Prekliči vse"
+
+msgid "Clear History"
+msgstr "Počisti zgodovino"
+
+msgid "No operations."
+msgstr "Ni operacij."
+
+msgid "Downloading"
+msgstr "Programiranje"
+
+msgid "Waiting"
+msgstr "Čaka"
+
+msgid "Finished"
+msgstr "Končano"
+
+msgid "Canceled"
+msgstr "Preklicano"
+
+msgid "failed"
+msgstr "ni uspelo"
+
+msgid "No details available"
+msgstr "Ni podrobnosti"
+
+msgid "Connection: {connection}"
+msgstr "Povezava: {connection}"
+
+msgid "Start: {time}"
+msgstr "Začetek: {time}"
+
+msgid "End: {time}"
+msgstr "Konec: {time}"
+
+msgid "The product data of this device is missing - its application program is not in the catalog. Import its product to edit the device."
+msgstr "Podatkov izdelka za to napravo ni – njenega aplikacijskega programa ni v katalogu. Za urejanje naprave uvozite njen izdelek."
+
+msgid "Device Info"
+msgstr "Podatki o napravi"
+
+msgid "Device Info (With Group Communication)"
+msgstr "Podatki o napravi (s skupinsko komunikacijo)"
+
+msgid "Reading"
+msgstr "Branje"
+
+msgid "General"
+msgstr "Splošno"
+
+msgid "Group Communication"
+msgstr "Skupinska komunikacija"
+
+msgid "Device Manufacturer"
+msgstr "Proizvajalec naprave"
+
+msgid "Firmware Version"
+msgstr "Različica vdelane programske opreme"
+
+msgid "Programming Mode"
+msgstr "Način programiranja"
+
+msgid "Load State"
+msgstr "Stanje nalaganja"
+
+msgid "Address Table Load State"
+msgstr "Stanje nalaganja tabele naslovov"
+
+msgid "Association Table Load State"
+msgstr "Stanje nalaganja tabele povezav"
+
+msgid "Group Object Table Load State"
+msgstr "Stanje nalaganja tabele komunikacijskih objektov"
+
+msgid "Reading the tables failed: {error}"
+msgstr "Branje tabel ni uspelo: {error}"
+
+msgid "On"
+msgstr "Vklopljeno"
+
+msgid "Off"
+msgstr "Izklopljeno"
+
+msgid "Unloaded"
+msgstr "Izpraznjeno"
+
+msgid "Loaded"
+msgstr "Naloženo"
+
+msgid "Loading"
+msgstr "Nalaganje"
+
+msgid "Error"
+msgstr "Napaka"
+
+msgid "Unloading"
+msgstr "Praznjenje"
+
+msgid "Load Completing"
+msgstr "Zaključevanje nalaganja"
+
+msgid "Yes"
+msgstr "Da"
+
+msgid "Also read the group communication?"
+msgstr "Želite prebrati tudi skupinsko komunikacijo?"
+
+msgid "No"
+msgstr "Ne"
+
+msgid "The application on the device is not in the catalog, so its tables cannot be located"
+msgstr "Aplikacije v napravi ni v katalogu, zato njenih tabel ni mogoče najti"
+
+msgid "This device can only be programmed with the manufacturer's plugin, which is not available here."
+msgstr "To napravo je mogoče programirati samo z vtičnikom proizvajalca, ki tukaj ni na voljo."
+
+msgid "The manufacturer configures this device with its own plugin dialog; settings made there are not shown here."
+msgstr "Proizvajalec to napravo konfigurira s svojim pogovornim oknom vtičnika; tam narejene nastavitve tukaj niso prikazane."
+
+msgid "The manufacturer programs this device with its own plugin; the standard download is used here."
+msgstr "Proizvajalec to napravo programira s svojim vtičnikom; tukaj se uporablja standardno programiranje."
+
+msgid "The manufacturer keeps part of this device's data with its own plugin, which is not available here."
+msgstr "Proizvajalec del podatkov te naprave upravlja s svojim vtičnikom, ki tukaj ni na voljo."
+
+msgid "This device is also configured with separate software from the manufacturer."
+msgstr "Ta naprava se konfigurira tudi z ločeno programsko opremo proizvajalca."
+
+msgid "This device includes a manufacturer configuration app (“{name}”) that XKNX Editor can't run. The device's standard parameters can still be programmed, but not the extra functionality that app provides."
+msgstr "Ta naprava vsebuje konfiguracijsko aplikacijo proizvajalca (»{name}«), ki je XKNX Editor ne more zagnati. Standardne parametre naprave je še vedno mogoče programirati, dodatnih funkcij te aplikacije pa ne."
+
+msgid "This device includes a manufacturer configuration app (“{name}”) that can't be run directly in XKNX Editor — but it has been ported, so its most important functions are usable here (see the DALI tab)."
+msgstr "Ta naprava vsebuje konfiguracijsko aplikacijo proizvajalca (»{name}«), ki je ni mogoče zagnati neposredno v XKNX Editor – vendar je bila prenesena, zato so njene najpomembnejše funkcije uporabne tukaj (glejte zavihek DALI)."
+
+msgid "The manufacturer allows programming this device only with its plugin, which is not available here. Programming it without the plugin may leave the device misconfigured or in an error state."
+msgstr "Proizvajalec dovoljuje programiranje te naprave samo z njegovim vtičnikom, ki tukaj ni na voljo. Programiranje brez vtičnika lahko pusti napravo napačno konfigurirano ali v stanju napake."
+
+msgid "Program Without the Manufacturer's Plugin Anyway"
+msgstr "Vseeno programiraj brez vtičnika proizvajalca"
+
+msgid "Overwrite Individual Address"
+msgstr "Prepiši fizični naslov"
+
+msgid "This writes the individual address {address} to the device whose programming button is pressed. Continue?"
+msgstr "S tem se fizični naslov {address} zapiše v napravo, na kateri je pritisnjena tipka za programiranje. Želite nadaljevati?"
+
+msgid "This overwrites the individual address of the device at its current address with {address}. Its programming button does not need to be pressed."
+msgstr "S tem se fizični naslov naprave na njenem trenutnem naslovu prepiše z {address}. Tipke za programiranje ni treba pritisniti."
+
+msgid "Current Individual Address"
+msgstr "Trenutni fizični naslov"
+
+msgid "Enter the device's current individual address, e.g. 1.1.5."
+msgstr "Vnesite trenutni fizični naslov naprave, npr. 1.1.5."
+
+msgid "The device already has the individual address {address}."
+msgstr "Naprava že ima fizični naslov {address}."
+
+msgid "Please press the programming button"
+msgstr "Pritisnite tipko za programiranje"
+
+msgid "Individual Address via Serial Number"
+msgstr "Fizični naslov prek serijske številke"
+
+msgid "This writes the individual address {address} to the device with the serial number {serial}. Its programming button does not need to be pressed."
+msgstr "S tem se fizični naslov {address} zapiše v napravo s serijsko številko {serial}. Tipke za programiranje ni treba pritisniti."
+
+msgid "Use Serial Number"
+msgstr "Uporabi serijsko številko"
+
+msgid "The serial number is already associated with device {device}."
+msgstr "Serijska številka je že povezana z napravo {device}."
+
+msgid "Enter the serial number as 12 hexadecimal digits, e.g. 0083:7AA2039C."
+msgstr "Serijsko številko vnesite kot 12 šestnajstiških števk, npr. 0083:7AA2039C."
+
+msgid "The reported value matches {devices} in this project."
+msgstr "Javljena vrednost se ujema z naslednjim v tem projektu: {devices}."
+
+msgid "Waiting for confirmation"
+msgstr "Čakanje na potrditev"
+
+msgid "The application program currently loaded in the device is different from the projected application program"
+msgstr "Aplikacijski program, ki je trenutno naložen v napravi, se razlikuje od projektiranega aplikacijskega programa"
+
+msgid "Do you want to overwrite the application program (this may take several minutes)?"
+msgstr "Želite prepisati aplikacijski program (to lahko traja več minut)?"
+
+msgid "The application program currently loaded in the device does not comply with the projected application program. You may try a full instead of a partial download."
+msgstr "Aplikacijski program, ki je trenutno naložen v napravi, se ne ujema s projektiranim aplikacijskim programom. Namesto delnega lahko poskusite popolno programiranje."
+
+msgid "Incompatible mask version: {found} instead of {expected}"
+msgstr "Nezdružljiva različica maske: {found} namesto {expected}"
+
+msgid "Change Application Program"
+msgstr "Spremeni aplikacijski program"
+
+msgid "Update Application Program Version"
+msgstr "Posodobi različico aplikacijskega programa"
+
+msgid "Update"
+msgstr "Posodobi"
+
+msgid "Changing the application program failed"
+msgstr "Sprememba aplikacijskega programa ni uspela"
+
+msgid "Updating the application program failed"
+msgstr "Posodobitev aplikacijskega programa ni uspela"
+
+msgid "Updating the application program…"
+msgstr "Posodabljanje aplikacijskega programa…"
+
+msgid "Changing the application program…"
+msgstr "Spreminjanje aplikacijskega programa…"
+
+msgid "Delete Space"
+msgstr "Brisanje lokacije"
+
+msgid "Load Reference File"
+msgstr "Nalaganje referenčne datoteke"
+
+msgid "Save Memory Dump"
+msgstr "Shranjevanje izpisa pomnilnika"
+
+msgid "Export Programming Test Result"
+msgstr "Izvoz rezultata preizkusa programiranja"
+
+msgid "Load"
+msgstr "Naloži"
+
+msgid "DIN Rail Mounting"
+msgstr "Montaža na DIN-letev"
+
+msgid "Bus Current"
+msgstr "Tok vodila"
+
+msgid "Read Value"
+msgstr "Preberi vrednost"
+
+msgid "Write Value…"
+msgstr "Zapiši vrednost…"
+
+msgid "Write Value"
+msgstr "Zapis vrednosti"
+
+msgid "Data Type"
+msgstr "Podatkovni tip"
+
+msgid "Value"
+msgstr "Vrednost"
+
+msgid "Set the data type of the group address to write a value."
+msgstr "Če želite zapisati vrednost, nastavite podatkovni tip skupinskega naslova."
+
+msgid "Write"
+msgstr "Zapiši"
+
+msgid "Not connected to the bus."
+msgstr "Ni povezave z vodilom."
+
+msgid "Export Group Addresses…"
+msgstr "Izvozi skupinske naslove…"
+
+msgid "Import Group Addresses…"
+msgstr "Uvozi skupinske naslove…"
+
+msgid "Import Group Addresses"
+msgstr "Uvoz skupinskih naslovov"
+
+msgid "Group Address Files (XML, CSV)"
+msgstr "Datoteke skupinskih naslovov (XML, CSV)"
+
+msgid "All Files"
+msgstr "Vse datoteke"
+
+msgid "{added} group addresses added, {updated} updated."
+msgstr "Dodani skupinski naslovi: {added}, posodobljeni: {updated}."
+
+msgid "{count} group addresses could not be placed in a group."
+msgstr "Skupinski naslovi, ki jih ni bilo mogoče uvrstiti v skupino: {count}."
+
+msgid "The file could not be imported: {error}"
+msgstr "Datoteke ni bilo mogoče uvoziti: {error}"
+
+msgid "The file uses {file} group addresses, but the project uses {project} group addresses."
+msgstr "Datoteka uporablja skupinske naslove v obliki: {file}, projekt pa v obliki: {project}."
+
+msgid "3-level"
+msgstr "3-nivojska"
+
+msgid "2-level"
+msgstr "2-nivojska"
+
+msgid "free"
+msgstr "prosta"
+
+msgid "Export"
+msgstr "Izvozi"
+
+msgid "Import"
+msgstr "Uvozi"
+
+msgid "Based on OpenKNXproducer"
+msgstr "Na osnovi OpenKNXproducer"
+
+msgid "CSV"
+msgstr "CSV"
+
+msgid "Channels ({count})"
+msgstr "Kanali ({count})"
+
+msgid "Choose Project to Compare"
+msgstr "Izbira projekta za primerjavo"
+
+msgid "Choose Project to Compare…"
+msgstr "Izberi projekt za primerjavo…"
+
+msgid "Columns"
+msgstr "Stolpci"
+
+msgid "Comments are encrypted"
+msgstr "Komentarji so šifrirani"
+
+msgid "Compare the open project with another project file (.knxproj, .xknx or a backup): which devices and group addresses were added, removed or changed. The other project is read-only; nothing is modified."
+msgstr "Primerjajte odprti projekt z drugo projektno datoteko (.knxproj, .xknx ali varnostno kopijo): katere naprave in skupinski naslovi so bili dodani, odstranjeni ali spremenjeni. Drugi projekt se samo bere; nič se ne spremeni."
+
+msgid "Custom Grid"
+msgstr "Mreža po meri"
+
+msgid "DALI (Bus)"
+msgstr "DALI (vodilo)"
+
+msgid "Date"
+msgstr "Datum"
+
+msgid "Decrypt Comments"
+msgstr "Dešifriraj komentarje"
+
+msgid "Default Gateway"
+msgstr "Privzeti prehod"
+
+msgid "Delete '{name}'? Its group objects and group-address links are removed and its individual address is freed. This can be undone."
+msgstr "Želite izbrisati »{name}«? Njeni komunikacijski objekti in povezave s skupinskimi naslovi se odstranijo, njen fizični naslov pa se sprosti. To je mogoče razveljaviti."
+
+msgid "Delete Device"
+msgstr "Brisanje naprave"
+
+msgid "Destructive: the device is reset over the bus and must be commissioned again. In KNX Secure mode this deactivates device security."
+msgstr "Uničujoče: naprava se prek vodila ponastavi in jo je treba znova zagnati. V načinu KNX Secure to izklopi varnost naprave."
+
+msgid "Download PDF Manual"
+msgstr "Prenesi priročnik PDF"
+
+msgid "ETS encrypts the log comments. Extract the decryption key from your own ETS installation's Knx.Ets.Common.dll to read them; nothing is sent anywhere."
+msgstr "ETS šifrira komentarje v dnevniku. Če jih želite prebrati, izvlecite ključ za dešifriranje iz datoteke Knx.Ets.Common.dll lastne namestitve ETS; nič se ne pošlje nikamor."
+
+msgid "Export HTML…"
+msgstr "Izvozi HTML…"
+
+msgid "Extract from Knx.Ets.Common.dll…"
+msgstr "Izvleci iz Knx.Ets.Common.dll…"
+
+msgid "Extracting key…"
+msgstr "Izvlačenje ključa…"
+
+msgid "Fields"
+msgstr "Polja"
+
+msgid "Filter log"
+msgstr "Filtriraj dnevnik"
+
+msgid "Find this device's manual (via the KNX device database, else a manufacturer search) and open it in your browser. Best effort - opens the KNX device search if no direct document is found."
+msgstr "Poišče priročnik te naprave (prek zbirke podatkov naprav KNX, sicer z iskanjem pri proizvajalcu) in ga odpre v brskalniku. Brez jamstva – če neposrednega dokumenta ni mogoče najti, odpre iskanje naprav KNX."
+
+msgid "Gap X / Y (mm)"
+msgstr "Razmik X / Y (mm)"
+
+msgid "Obtain an IP address automatically"
+msgstr "Samodejno pridobi naslov IP"
+
+msgid "Use a static IP address"
+msgstr "Uporabi statični naslov IP"
+
+msgid "Assigned IP Address"
+msgstr "Dodeljeni naslov IP"
+
+msgid "An invalid IP address was specified."
+msgstr "Naveden je bil neveljaven naslov IP."
+
+msgid "Change assigned IP address of '{0}' to '{1}'."
+msgstr "Dodeljeni naslov IP za »{0}« je spremenjen v »{1}«."
+
+msgid "IP configuration of device '{0}' changed."
+msgstr "Konfiguracija IP naprave »{0}« je spremenjena."
+
+msgid "IP Address"
+msgstr "Naslov IP"
+
+msgid "IP Configuration"
+msgstr "Konfiguracija IP"
+
+msgid "Individual Addresses"
+msgstr "Fizični naslovi"
+
+msgid "Installation"
+msgstr "Inštalacija"
+
+msgid "Invalid address or already in use."
+msgstr "Neveljaven naslov ali že v uporabi."
+
+msgid "KNX Common Assembly"
+msgstr "Sklop KNX Common"
+
+msgid "KNX project (*.knxproj *.xknx *.zip)"
+msgstr "Projekt KNX (*.knxproj *.xknx *.zip)"
+
+msgid "Key extracted; comments decrypted"
+msgstr "Ključ je izvlečen; komentarji so dešifrirani"
+
+msgid "Label Sheet"
+msgstr "Pola z nalepkami"
+
+msgid "Label W x H (mm)"
+msgstr "Nalepka Š x V (mm)"
+
+msgid "Legend (Full Page)"
+msgstr "Legenda (cela stran)"
+
+msgid "MAC Address"
+msgstr "Naslov MAC"
+
+msgid "Margin Top / Left (mm)"
+msgstr "Rob zgoraj / levo (mm)"
+
+msgid "No .NET runtime found (install the .NET SDK, or run on Windows with ETS)."
+msgstr "Ni najdenega izvajalnega okolja .NET (namestite .NET SDK ali zaženite v sistemu Windows z ETS)."
+
+msgid "No differences in devices or group addresses."
+msgstr "Ni razlik v napravah ali skupinskih naslovih."
+
+msgid "No project log entries"
+msgstr "Ni vnosov v dnevniku projekta"
+
+msgid "Output"
+msgstr "Izhod"
+
+msgid "Pick the fields and an output: a CSV, printable label sheets (Avery), or a full-page legend. HTML output opens in your browser to print or save as PDF."
+msgstr "Izberite polja in izhod: CSV, pole z nalepkami za tiskanje (Avery) ali legendo na celi strani. Izhod HTML se odpre v brskalniku, kjer ga lahko natisnete ali shranite kot PDF."
+
+msgid "Project Diff"
+msgstr "Primerjava projektov"
+
+msgid "Project Log"
+msgstr "Dnevnik projekta"
+
+msgid "Renumber group addresses by adding an offset to their raw value, e.g. to open gaps. Group object links move with each address. Nothing is written if any move would collide or leave the valid range."
+msgstr "Preštevilčite skupinske naslove tako, da njihovi neobdelani vrednosti prištejete zamik, npr. da naredite vrzeli. Povezave komunikacijskih objektov se premaknejo skupaj z vsakim naslovom. Nič se ne zapiše, če bi kateri koli premik povzročil prekrivanje ali zapustil veljavni obseg."
+
+msgid "Rows"
+msgstr "Vrstice"
+
+msgid "Searching Manual…"
+msgstr "Iskanje priročnika…"
+
+msgid "Select at least one field."
+msgstr "Izberite vsaj eno polje."
+
+msgid "Sheet"
+msgstr "Pola"
+
+msgid "Shift Group Addresses"
+msgstr "Premik skupinskih naslovov"
+
+msgid "Shifted {count} group address(es)"
+msgstr "Premaknjeni skupinski naslovi: {count}"
+
+msgid "Subnet Mask"
+msgstr "Maska podomrežja"
+
+msgid "The offset is added to the raw 16-bit value, so it may change the main/middle group as addresses cross a boundary."
+msgstr "Zamik se prišteje 16-bitni neobdelani vrednosti, zato se lahko glavna/srednja skupina spremeni, ko naslovi prestopijo mejo."
+
+msgid "This project has no group addresses."
+msgstr "Ta projekt nima skupinskih naslovov."
+
+msgid "User"
+msgstr "Uporabnik"
+
+msgid "added"
+msgstr "dodano"
+
+msgid "changed"
+msgstr "spremenjeno"
+
+msgid "Compared with {name}:"
+msgstr "V primerjavi z {name}:"
+
+msgid "removed"
+msgstr "odstranjeno"
+
+msgid "{count} difference(s)"
+msgstr "Razlike: {count}"
+
+msgid "Save…"
+msgstr "Shrani…"
+
+msgid "Diff…"
+msgstr "Primerjaj…"
+
+msgid "Clear Diff"
+msgstr "Počisti primerjavo"
+
+msgid "Memory Dumps (*.bin)"
+msgstr "Izpisi pomnilnika (*.bin)"
+
+msgid "{count} bytes"
+msgstr "Bajti: {count}"
+
+msgid "No memory segments."
+msgstr "Ni segmentov pomnilnika."
+
+msgid "Cannot encode memory image: {error}"
+msgstr "Slike pomnilnika ni mogoče kodirati: {error}"
+
+msgid "The file could not be read or written: {error}"
+msgstr "Datoteke ni bilo mogoče prebrati ali zapisati: {error}"
+
+msgid "Password"
+msgstr "Geslo"
+
+msgid "Protected"
+msgstr "Zaščiteno"
+
+msgid "Not protected"
+msgstr "Ni zaščiteno"
+
+msgid "Set Password"
+msgstr "Nastavi geslo"
+
+msgid "Change Password"
+msgstr "Spremeni geslo"
+
+msgid "Remove Password"
+msgstr "Odstrani geslo"
+
+msgid "Project Password"
+msgstr "Geslo projekta"
+
+msgid "The project and its exports are protected with this password; opening or importing them asks for it. A password change cannot be undone."
+msgstr "Projekt in njegovi izvozi so zaščiteni s tem geslom; pri odpiranju ali uvozu se zahteva. Spremembe gesla ni mogoče razveljaviti."
+
+msgid "Repeat Password"
+msgstr "Ponovite geslo"
+
+msgid "The passwords do not match."
+msgstr "Gesli se ne ujemata."
+
+msgid "A project with KNX Secure devices needs a password: it protects their keys in the project and in its exports."
+msgstr "Projekt z napravami KNX Secure potrebuje geslo: ščiti njihove ključe v projektu in v njegovih izvozih."
+
+msgid "The other project is protected with a password. Enter it to compare:"
+msgstr "Drugi projekt je zaščiten z geslom. Vnesite ga za primerjavo:"
+
+msgid "Compare"
+msgstr "Primerjaj"
+
+msgid "Wrong password, please try again."
+msgstr "Napačno geslo, poskusite znova."
+
+msgid "Add Device Certificate"
+msgstr "Dodajanje potrdila naprave"
+
+msgid "Device Certificate"
+msgstr "Potrdilo naprave"
+
+msgid "This device already uses its own key from this project. Its certificate is only needed again after a factory reset."
+msgstr "Ta naprava že uporablja svoj ključ iz tega projekta. Njeno potrdilo bo znova potrebno šele po tovarniški ponastavitvi."
+
+msgid "This device still uses its factory key: its first secure download needs its certificate."
+msgstr "Ta naprava še uporablja tovarniški ključ: za njeno prvo varno programiranje je potrebno njeno potrdilo."
+
+msgid "Stored Certificate: {serial}"
+msgstr "Shranjeno potrdilo: {serial}"
+
+msgid "Enter the FDSK from its label or certificate (36 characters):"
+msgstr "Vnesite FDSK z nalepke ali potrdila naprave (36 znakov):"
+
+msgid "To replace it, enter the new FDSK (36 characters):"
+msgstr "Če ga želite zamenjati, vnesite nov FDSK (36 znakov):"
+
+msgid "Remove the stored certificate? After a factory reset, the device can then only be reached again with the code from its label."
+msgstr "Želite odstraniti shranjeno potrdilo? Po tovarniški ponastavitvi bo napravo nato mogoče znova doseči samo s kodo z njene nalepke."
+
+msgid "Device Certificate…"
+msgstr "Potrdilo naprave…"
+
+msgid "The device certificate (FDSK) is missing."
+msgstr "Potrdilo naprave (FDSK) manjka."
+
+msgid "This is not a valid FDSK; please check it."
+msgstr "To ni veljaven FDSK; preverite ga."
+
+msgid "This certificate belongs to the device with serial number {serial}."
+msgstr "To potrdilo pripada napravi s serijsko številko {serial}."
+
+msgid "Set a project password first: it protects the device keys."
+msgstr "Najprej nastavite geslo projekta: ščiti ključe naprav."
+
+msgid "Security"
+msgstr "Varnost"
+
+msgid "Automatic"
+msgstr "Samodejno"
+
+msgid "Plain"
+msgstr "Nešifrirano"
+
+msgid "Deactivate Secure Commissioning"
+msgstr "Izklop varnega zagona"
+
+msgid "These group addresses will then communicate in the clear:"
+msgstr "Ti skupinski naslovi bodo nato komunicirali nešifrirano:"
+
+msgid "The device's group objects will be removed from these secured group addresses:"
+msgstr "Komunikacijski objekti naprave bodo odstranjeni s teh zaščitenih skupinskih naslovov:"
+
+msgid "Deactivate"
+msgstr "Izklopi"
+
+msgid "Secure Commissioning"
+msgstr "Varni zagon"
+
+msgid "Add Device Certificate…"
+msgstr "Dodaj potrdilo naprave…"
+
+msgid "Activated"
+msgstr "Vklopljeno"
+
+msgid "Deactivated"
+msgstr "Izklopljeno"
+
+msgid "A secured group address can only be linked to devices that are commissioned securely."
+msgstr "Zaščiten skupinski naslov je mogoče povezati samo z napravami, ki so zagnane varno."
+
+msgid "Not every device linked to this group address is commissioned securely, so it cannot be secured."
+msgstr "Vse naprave, povezane s tem skupinskim naslovom, niso zagnane varno, zato ga ni mogoče zaščititi."
+
+msgid "A group object that requires secure communication would end up on a group address in the clear."
+msgstr "Komunikacijski objekt, ki zahteva varno komunikacijo, bi pristal na nešifriranem skupinskem naslovu."
+
+msgid "Later"
+msgstr "Pozneje"
+
+msgid "Don't Ask When Adding Devices"
+msgstr "Ne sprašuj pri dodajanju naprav"
+
+msgid "KNX IP Secure"
+msgstr "KNX IP Secure"
+
+msgid "Show Passwords"
+msgstr "Pokaži gesla"
+
+msgid "Secure Tunneling"
+msgstr "Varno tuneliranje"
+
+msgid "Commissioning Password"
+msgstr "Geslo za zagon"
+
+msgid "Authentication Code"
+msgstr "Koda za preverjanje pristnosti"
+
+msgid "Interface"
+msgstr "Vmesnik"
+
+msgid "Routing"
+msgstr "Usmerjanje"
+
+msgid "Tunnel {address}"
+msgstr "Tunel {address}"
+
+msgid "A password needs 1 to 20 Latin-1 characters."
+msgstr "Geslo mora imeti od 1 do 20 znakov Latin-1."
+
+msgid "Close"
+msgstr "Zapri"
+
+msgid "Device Certificates"
+msgstr "Potrdila naprav"
+
+msgid "Manage…"
+msgstr "Upravljaj…"
+
+msgid "The project has no device certificates."
+msgstr "Projekt nima potrdil naprav."
+
+msgid "The security tables of {device} cannot hold this link."
+msgstr "Varnostne tabele naprave {device} ne morejo sprejeti te povezave."
+
+msgid "Point-to-Point and Broadcast"
+msgstr "Točka–točka in oddajanje vsem"
+
+msgid "Blocked"
+msgstr "Blokirano"
+
+msgid "Routed"
+msgstr "Posredovano"
+
+msgid "Compare Devices"
+msgstr "Primerjava naprav"
+
+msgid "Compare with…"
+msgstr "Primerjaj z…"
+
+msgid "Show in Bus Diagram"
+msgstr "Pokaži v diagramu vodila"
+
+msgid "Device A"
+msgstr "Naprava A"
+
+msgid "Device B"
+msgstr "Naprava B"
+
+msgid "Field"
+msgstr "Polje"
+
+msgid "Filter devices by address, name or description…"
+msgstr "Filtriraj naprave po naslovu, imenu ali opisu…"
+
+msgid "Group Objects"
+msgstr "Komunikacijski objekti"
+
+msgid "No differences"
+msgstr "Ni razlik"
+
+msgid "Only Differences"
+msgstr "Samo razlike"
+
+msgid "Open a project with at least two devices to compare."
+msgstr "Za primerjavo odprite projekt z vsaj dvema napravama."
+
+msgid "{count} differences"
+msgstr "Razlike: {count}"
+
+msgid "The manufacturer plugin is not available here:"
+msgstr "Vtičnik proizvajalca tukaj ni na voljo:"
+
+msgid "Only it can program the device."
+msgstr "Samo z njim je mogoče programirati napravo."
+
+msgid "Settings made in its dialog are not shown."
+msgstr "Nastavitve iz njegovega pogovornega okna niso prikazane."
+
+msgid "The standard download is used instead."
+msgstr "Namesto tega se uporabi standardno programiranje."
+
+msgid "Part of the device data is not available."
+msgstr "Del podatkov naprave ni na voljo."
+
+msgid "Connect to a KNX interface to commission the DALI bus."
+msgstr "Za zagon vodila DALI se povežite z vmesnikom KNX."
+
+msgid "This gateway's commissioning protocol has not been verified against a capture; writes may misbehave. Proceed with care."
+msgstr "Protokol zagona tega prehoda ni bil preverjen s posnetkom; zapisovanje se lahko obnaša nepravilno. Nadaljujte previdno."
+
+msgid "DALI commissioning writes the gateway on the bus but does not update the project parameters; re-export the .knxproj after a DCA-side edit."
+msgstr "Zagon DALI zapiše v prehod na vodilu, ne posodobi pa parametrov projekta; po spremembi na strani DCA znova izvozite .knxproj."
+
+msgid "Scan Bus"
+msgstr "Preišči vodilo"
+
+msgid "All ECGs On"
+msgstr "Vklopi vse predstikalne naprave"
+
+msgid "All Off"
+msgstr "Izklopi vse"
+
+msgid "New Installation…"
+msgstr "Nova namestitev…"
+
+msgid "Post Installation…"
+msgstr "Naknadna namestitev…"
+
+msgid "Running: {task}"
+msgstr "Izvaja se: {task}"
+
+msgid "scanning the bus"
+msgstr "iskanje po vodilu"
+
+msgid "switching all ECGs"
+msgstr "preklapljanje vseh predstikalnih naprav"
+
+msgid "blinking"
+msgstr "utripanje"
+
+msgid "stopping the blinking"
+msgstr "ustavljanje utripanja"
+
+msgid "new installation"
+msgstr "nova namestitev"
+
+msgid "post installation"
+msgstr "naknadna namestitev"
+
+msgid "programming the groups"
+msgstr "programiranje skupin"
+
+msgid "programming the scenes"
+msgstr "programiranje scen"
+
+msgid "{count} found"
+msgstr "Najdeno: {count}"
+
+msgid "Use 'Scan Bus' to read the DALI bus."
+msgstr "Uporabite »Preišči vodilo«, da preberete vodilo DALI."
+
+msgid "Firmware {version}"
+msgstr "Vdelana programska oprema {version}"
+
+msgid "Confirm DALI Programming"
+msgstr "Potrditev programiranja DALI"
+
+msgid "Continue"
+msgstr "Nadaljuj"
+
+msgid "New installation scans the DALI bus again and REASSIGNS the short\naddress of every ballast. This cannot be undone. Continue?"
+msgstr "Nova namestitev znova preišče vodilo DALI in ZNOVA DODELI kratki\nnaslov vsaki predstikalni napravi. Tega ni mogoče razveljaviti. Želite nadaljevati?"
+
+msgid "Post installation scans the bus for new ballasts and updates their addressing.\nThis changes the device. Continue?"
+msgstr "Naknadna namestitev na vodilu poišče nove predstikalne naprave in posodobi njihovo naslavljanje.\nTo spremeni napravo. Želite nadaljevati?"
+
+msgid "Write the group assignment to the DALI bus. This applies the groups to the\ngateway and its ballasts. Continue?"
+msgstr "Zapišite dodelitev skupin na vodilo DALI. S tem se skupine prenesejo v\nprehod in njegove predstikalne naprave. Želite nadaljevati?"
+
+msgid "Write the scene values to the DALI bus. Continue?"
+msgstr "Zapišite vrednosti scen na vodilo DALI. Želite nadaljevati?"
+
+msgid "{count} ECG(s) present"
+msgstr "Prisotne predstikalne naprave: {count}"
+
+msgid "Group"
+msgstr "Skupina"
+
+msgid "Long Address"
+msgstr "Dolgi naslov"
+
+msgid "Alarm"
+msgstr "Alarm"
+
+msgid "Blink"
+msgstr "Utripaj"
+
+msgid "Stop"
+msgstr "Ustavi"
+
+msgid "Program Groups…"
+msgstr "Programiraj skupine…"
+
+msgid "Scenes"
+msgstr "Scene"
+
+msgid "Assign the ECGs to groups above to define scenes."
+msgstr "Za določitev scen zgoraj dodelite predstikalne naprave skupinam."
+
+msgid "Scene"
+msgstr "Scena"
+
+msgid "Scene {number}"
+msgstr "Scena {number}"
+
+msgid "Group {number}"
+msgstr "Skupina {number}"
+
+msgid "Program Scenes…"
+msgstr "Programiraj scene…"
+
+msgid "Single"
+msgstr "Posamezno"
+
+msgid "Unassigned"
+msgstr "Nedodeljeno"
+
+msgid "Procedure {number}  ({count} steps)"
+msgstr "Postopek {number}  (koraki: {count})"
+
+msgid "Kind"
+msgstr "Vrsta"
+
+msgid "Applies To"
+msgstr "Velja za"
+
+msgid "Details"
+msgstr "Podrobnosti"
+
+msgid "Scope: {scope}"
+msgstr "Obseg: {scope}"
+
+msgid "Unload Application Program"
+msgstr "Izpraznitev aplikacijskega programa"
+
+msgid "This unloads the application program of the device at {address}. The device stops working until its application program is downloaded again."
+msgstr "S tem se izprazni aplikacijski program naprave na naslovu {address}. Naprava ne deluje, dokler njen aplikacijski program ni znova programiran."
+
+msgid "This unloads the application program of the device at {address} and then resets its individual address to 15.15.255; for that, its programming button has to be pressed. The device stops working until it is commissioned again."
+msgstr "S tem se izprazni aplikacijski program naprave na naslovu {address}, nato se njen fizični naslov ponastavi na 15.15.255; za to je treba pritisniti njeno tipko za programiranje. Naprava ne deluje, dokler ni znova zagnana."
+
+msgid "Overwrite Address"
+msgstr "Prepiši naslov"
+
+msgid "Manufacturer's Plugin Not Available"
+msgstr "Vtičnik proizvajalca ni na voljo"
+
+msgid "Serial Number Already Used"
+msgstr "Serijska številka je že uporabljena"
+
+msgid "Cancelled by user."
+msgstr "Preklical uporabnik."
+
+msgid "Additional Individual Addresses"
+msgstr "Dodatni fizični naslovi"
+
+msgid "Additional Individual Address"
+msgstr "Dodatni fizični naslov"
+
+msgid "Assign Missing Addresses"
+msgstr "Dodeli manjkajoče naslove"
+
+msgid "The line does not provide enough addresses for all necessary additional addresses."
+msgstr "Linija nima dovolj prostih naslovov za vse potrebne dodatne naslove."
+
+msgid "Enter a device number from 1 to 255 or a full individual address in the device's line."
+msgstr "Vnesite številko naprave od 1 do 255 ali celoten fizični naslov v liniji naprave."
+
+msgid "An additional address must be in the device's line {line}."
+msgstr "Dodatni naslov mora biti v liniji naprave {line}."
+
+msgid "The individual address {address} is already used in this line."
+msgstr "Fizični naslov {address} je v tej liniji že uporabljen."
+
+msgid "Changed additional address of device '{0}' from '{1}' to '{2}'."
+msgstr "Dodatni naslov naprave »{0}« je spremenjen iz »{1}« v »{2}«."
+
+msgid "Change additional address names"
+msgstr "Sprememba imen dodatnih naslovov"
+
+msgid "Change additional address descriptions"
+msgstr "Sprememba opisov dodatnih naslovov"
+
+msgid "Assign additional addresses"
+msgstr "Dodelitev dodatnih naslovov"
+
+msgid "Change additional addresses"
+msgstr "Sprememba dodatnih naslovov"
+
+msgid "Started by an MCP client."
+msgstr "Zagnal odjemalec MCP."
+
+msgid "Parameters in the Manufacturer's Plugin"
+msgstr "Parametri v vtičniku proizvajalca"
+
+msgid "The manufacturer sets this device's parameters in its own plugin dialog, which XKNX Editor cannot run, so they cannot be changed here. A download writes their current values unchanged; the group objects can be linked as usual."
+msgstr "Proizvajalec parametre te naprave nastavlja v svojem pogovornem oknu vtičnika, ki ga XKNX Editor ne more zagnati, zato jih tukaj ni mogoče spremeniti. Programiranje zapiše njihove trenutne vrednosti nespremenjene; komunikacijske objekte je mogoče povezati kot običajno."
+
+msgid "Edit parameters anyway"
+msgstr "Vseeno uredi parametre"
+
+msgid "Matching DPT Only"
+msgstr "Samo ujemajoči se DPT"
+
+msgid "Only group addresses with the object's main datapoint type, and those without one (they take the object's type when linked)."
+msgstr "Samo skupinski naslovi z glavnim tipom podatkovne točke objekta in tisti brez njega (ob povezavi prevzamejo tip objekta)."
+
+msgid "no DPT"
+msgstr "brez DPT"
+
+msgid "Only objects with the same main datapoint type, and those without one."
+msgstr "Samo objekti z enakim glavnim tipom podatkovne točke in tisti brez njega."
+
+msgid "Select a device in the tree first."
+msgstr "Najprej izberite napravo v drevesu."
+
+msgid "{device} has no group objects."
+msgstr "{device} nima komunikacijskih objektov."
+
+msgid "All objects of {device} are in the list already."
+msgstr "Vsi objekti naprave {device} so že na seznamu."
+
+msgid "Link group objects to existing group addresses."
+msgstr "Povežite komunikacijske objekte z obstoječimi skupinskimi naslovi."
+
+msgid "Add objects with \"{add_device}\" or \"{add_objects}\"."
+msgstr "Dodajte objekte z »{add_device}« ali »{add_objects}«."
+
+msgid "Pick a group address per row, or fill all with \"{match}\" or \"{sequential}\"."
+msgstr "Za vsako vrstico izberite skupinski naslov ali pa vse izpolnite z »{match}« ali »{sequential}«."
+
+msgid "\"{link_all}\" links every row that has one."
+msgstr "»{link_all}« poveže vsako vrstico, ki ga ima."
+
+msgid "Link objects to each other through a new group address each: the source sends, the target receives."
+msgstr "Povežite objekte med seboj, vsakič prek novega skupinskega naslova: vir pošilja, cilj prejema."
+
+msgid "Add the source objects with \"{add_device}\" or \"{add_objects}\"."
+msgstr "Dodajte izvorne objekte z »{add_device}« ali »{add_objects}«."
+
+msgid "Pick a target object per row. Address and name are suggested and can be changed."
+msgstr "Za vsako vrstico izberite ciljni objekt. Naslov in ime sta predlagana in ju je mogoče spremeniti."
+
+msgid "\"{link_all}\" creates the group addresses and links them."
+msgstr "»{link_all}« ustvari skupinske naslove in jih poveže."
+
+msgid "Link All"
+msgstr "Poveži vse"
+
+msgid "Object"
+msgstr "Objekt"
+
+msgid "Ready to link."
+msgstr "Pripravljeno za povezavo."
+
+msgid "Check the group address: several match, or a datapoint type is unknown."
+msgstr "Preverite skupinski naslov: ujema se jih več ali pa tip podatkovne točke ni znan."
+
+msgid "The datapoint types do not match; this row is not linked."
+msgstr "Tipi podatkovnih točk se ne ujemajo; ta vrstica ne bo povezana."
+
+msgid "No group address chosen yet."
+msgstr "Skupinski naslov še ni izbran."
+
+msgid "Add device {name}"
+msgstr "Dodajanje naprave {name}"
+
+msgid "Set {ref} = {value}"
+msgstr "Nastavitev {ref} = {value}"
+
+msgid "Change"
+msgstr "Sprememba"
+
+msgid "Create area {address}"
+msgstr "Ustvarjanje področja {address}"
+
+msgid "Create line {address}"
+msgstr "Ustvarjanje linije {address}"
+
+msgid "Add segment"
+msgstr "Dodajanje segmenta"
+
+msgid "Create group address {address}"
+msgstr "Ustvarjanje skupinskega naslova {address}"
+
+msgid "Import group addresses"
+msgstr "Uvoz skupinskih naslovov"
+
+msgid "Import group addresses from {file}"
+msgstr "Uvoz skupinskih naslovov iz {file}"
+
+msgid "Link group object"
+msgstr "Povezava komunikacijskega objekta"
+
+msgid "Unlink group object"
+msgstr "Prekinitev povezave komunikacijskega objekta"
+
+msgid "Rename area to {name}"
+msgstr "Preimenovanje področja v {name}"
+
+msgid "Rename project to {name}"
+msgstr "Preimenovanje projekta v {name}"
+
+msgid "Rename line to {name}"
+msgstr "Preimenovanje linije v {name}"
+
+msgid "Rename device to {name}"
+msgstr "Preimenovanje naprave v {name}"
+
+msgid "Move device"
+msgstr "Premik naprave"
+
+msgid "Set flag"
+msgstr "Nastavitev zastavice"
+
+msgid "Set datapoint type"
+msgstr "Nastavitev tipa podatkovne točke"
+
+msgid "Set priority"
+msgstr "Nastavitev prioritete"
+
+msgid "Set description"
+msgstr "Nastavitev opisa"
+
+msgid "Set sending group address"
+msgstr "Nastavitev skupinskega naslova za pošiljanje"
+
+msgid "Add installation"
+msgstr "Dodajanje inštalacije"
+
+msgid "Remove device"
+msgstr "Odstranitev naprave"
+
+msgid "Remove area"
+msgstr "Odstranitev področja"
+
+msgid "Remove line"
+msgstr "Odstranitev linije"
+
+msgid "Remove segment"
+msgstr "Odstranitev segmenta"
+
+msgid "Remove group address"
+msgstr "Odstranitev skupinskega naslova"
+
+msgid "Remove function"
+msgstr "Odstranitev funkcije"
+
+msgid "Remove group address from function"
+msgstr "Odstranitev skupinskega naslova iz funkcije"
+
+msgid "Remove building part"
+msgstr "Odstranitev dela stavbe"
+
+msgid "Remove group range"
+msgstr "Odstranitev obsega skupin"
+
+msgid "Update application program"
+msgstr "Posodobitev aplikacijskega programa"
+
+msgid "Change application program"
+msgstr "Sprememba aplikacijskega programa"
+
+msgid "Update group objects"
+msgstr "Posodobitev komunikacijskih objektov"
+
+msgid "Update module instances"
+msgstr "Posodobitev primerkov modulov"
+
+msgid "Set group address security"
+msgstr "Nastavitev varnosti skupinskega naslova"
+
+msgid "Set secure commissioning"
+msgstr "Nastavitev varnega zagona"
+
+msgid "Rename group address to {name}"
+msgstr "Preimenovanje skupinskega naslova v {name}"
+
+msgid "Change group address"
+msgstr "Sprememba skupinskega naslova"
+
+msgid "Set device certificates"
+msgstr "Nastavitev potrdil naprav"
+
+msgid "Set device description"
+msgstr "Nastavitev opisa naprave"
+
+msgid "Create function {name}"
+msgstr "Ustvarjanje funkcije {name}"
+
+msgid "Rename function to {name}"
+msgstr "Preimenovanje funkcije v {name}"
+
+msgid "Set function type"
+msgstr "Nastavitev vrste funkcije"
+
+msgid "Add group address to function"
+msgstr "Dodajanje skupinskega naslova funkciji"
+
+msgid "Create building part {name}"
+msgstr "Ustvarjanje dela stavbe {name}"
+
+msgid "Rename building part to {name}"
+msgstr "Preimenovanje dela stavbe v {name}"
+
+msgid "Set building part number"
+msgstr "Nastavitev številke dela stavbe"
+
+msgid "Set building part description"
+msgstr "Nastavitev opisa dela stavbe"
+
+msgid "Set building part type"
+msgstr "Nastavitev vrste dela stavbe"
+
+msgid "Move building part"
+msgstr "Premik dela stavbe"
+
+msgid "Assign device to building part"
+msgstr "Dodelitev naprave delu stavbe"
+
+msgid "Set commissioning state"
+msgstr "Nastavitev stanja zagona"
+
+msgid "Create group range {name}"
+msgstr "Ustvarjanje obsega skupin {name}"
+
+msgid "Rename group range to {name}"
+msgstr "Preimenovanje obsega skupin v {name}"
+
+msgid "{device}: no individual address"
+msgstr "{device}: ni fizičnega naslova"
+
+msgid "{device}: malformed address '{address}'"
+msgstr "{device}: napačno oblikovan naslov »{address}«"
+
+msgid "{device}: duplicate address {address}"
+msgstr "{device}: podvojen naslov {address}"
+
+msgid "Installation Hints"
+msgstr "Navodila za montažo"
+
+msgid "Select an element in a tree to see its comment."
+msgstr "Izberite element v drevesu, da vidite njegov komentar."
+
+msgid "Set comment"
+msgstr "Nastavitev komentarja"
+
+msgid "Set installation hints"
+msgstr "Nastavitev navodil za montažo"
+
+msgid "Area"
+msgstr "Področje"
+
+msgid "Line"
+msgstr "Linija"
+
+msgid "The address is a number from 0 to 15."
+msgstr "Naslov je število od 0 do 15."
+
+msgid "Address {address} is already in use."
+msgstr "Naslov {address} je že v uporabi."
+
+msgid "Set area description"
+msgstr "Nastavitev opisa področja"
+
+msgid "Set line description"
+msgstr "Nastavitev opisa linije"
+
+msgid "Set area address"
+msgstr "Nastavitev naslova področja"
+
+msgid "Set line address"
+msgstr "Nastavitev naslova linije"
+
+msgid "Main Group"
+msgstr "Glavna skupina"
+
+msgid "Middle Group"
+msgstr "Srednja skupina"
+
+msgid "Group Range"
+msgstr "Obseg skupin"
+
+msgid "The main group is a number from 0 to 31."
+msgstr "Glavna skupina je število od 0 do 31."
+
+msgid "The middle group is a number from 0 to 7."
+msgstr "Srednja skupina je število od 0 do 7."
+
+msgid "Set group address description"
+msgstr "Nastavitev opisa skupinskega naslova"
+
+msgid "Set group range description"
+msgstr "Nastavitev opisa obsega skupin"
+
+msgid "Set group range address"
+msgstr "Nastavitev naslova obsega skupin"
+
+msgid "DALI (Siemens)"
+msgstr "DALI (Siemens)"
+
+msgid "Connect to a KNX interface to read the Siemens DALI bus."
+msgstr "Povežite se z vmesnikom KNX, da preberete vodilo DALI Siemens."
+
+msgid "Read DALI Bus"
+msgstr "Preberi vodilo DALI"
+
+msgid "Reading the DALI bus from object {object_index}…"
+msgstr "Branje vodila DALI iz objekta {object_index}…"
+
+msgid "Press 'Read DALI Bus' to list the ECGs on the gateway."
+msgstr "Pritisnite »Preberi vodilo DALI«, da prikažete predstikalne naprave prehoda."
+
+msgid "{count} ECG(s) present on line {line}"
+msgstr "Predstikalne naprave na liniji {line}: {count}"
+
+msgid "Read-only snapshot. Writing group assignments, scenes or firmware is not available yet and remains in the manufacturer's plugin."
+msgstr "Posnetek samo za branje. Zapisovanje dodelitev skupin, scen ali vdelane programske opreme še ni na voljo in ostaja v vtičniku proizvajalca."
+
+msgid "Short Address"
+msgstr "Kratki naslov"
+
+msgid "Random Address"
+msgstr "Naključni naslov"
+
+msgid "Min Dim"
+msgstr "Najm. zatemnitev"
+
+msgid "Colour Temp (K)"
+msgstr "Barvna temp. (K)"
+
+msgid "Slot"
+msgstr "Reža"
+
+msgid "Plugin Config"
+msgstr "Konfiguracija vtičnika"
+
+msgid "No plugin mapping is available for this device yet. The vendor plugin's parameters stay unreachable from here."
+msgstr "Za to napravo še ni na voljo preslikave vtičnika. Parametri vtičnika proizvajalca od tukaj ostajajo nedosegljivi."
+
+msgid "The application has no static parameters."
+msgstr "Aplikacija nima statičnih parametrov."
+
+msgid "Read-only view. The hierarchy is a best-effort reconstruction from parameter name prefixes; names and groupings may be rough. Writing values is not available yet."
+msgstr "Pogled samo za branje. Hierarhija je po najboljših močeh rekonstruirana iz predpon imen parametrov; imena in skupine so lahko približni. Zapisovanje vrednosti še ni na voljo."
+
+msgid "##plugin_params_filter"
+msgstr "##plugin_params_filter"
+
+msgid "No parameter matches the filter."
+msgstr "Noben parameter se ne ujema s filtrom."
+
+msgid "Parameter"
+msgstr "Parameter"
+
+msgid "Default"
+msgstr "Privzeto"
+
+msgid "Editable fallback for parameters whose manufacturer plugin is not available here. The hierarchy is reconstructed from parameter name prefixes; labels and groupings may be rough. Edits are written to the project and transferred by a normal download."
+msgstr "Nadomestni pogled z možnostjo urejanja za parametre, katerih vtičnik proizvajalca tukaj ni na voljo. Hierarhija je rekonstruirana iz predpon imen parametrov; oznake in skupine so lahko približne. Spremembe se zapišejo v projekt in prenesejo z običajnim programiranjem."
+
+msgid "DALI commissioning"
+msgstr "Zagon DALI"
+
+msgid "DALI Channel"
+msgstr "Kanal DALI"
+
+msgid "Channel {n}"
+msgstr "Kanal {n}"
+
+msgid "Program DCA State"
+msgstr "Programiraj stanje DCA"
+
+msgid "Sends the DALI device settings to the gateway as property values."
+msgstr "Pošlje nastavitve naprav DALI prehodu kot vrednosti lastnosti."
+
+msgid "Add to {section}:"
+msgstr "Dodaj v {section}:"
+
+msgid "No entries."
+msgstr "Ni vnosov."
+
+msgid "Entry"
+msgstr "Vnos"
+
+msgid "Store plugin data {name}"
+msgstr "Shranjevanje podatkov vtičnika {name}"
+
+msgid "Unknown"
+msgstr "Neznano"
+
+msgid "Editing"
+msgstr "Urejanje"
+
+msgid "Finished design"
+msgstr "Načrtovanje končano"
+
+msgid "Finished commissioning"
+msgstr "Zagon končan"
+
+msgid "Tested"
+msgstr "Preizkušeno"
+
+msgid "Accepted"
+msgstr "Odobreno"
+
+msgid "Locked"
+msgstr "Zaklenjeno"
+
+msgid "Function"
+msgstr "Funkcija"
+
+msgid "Use"
+msgstr "Namen"
+
+msgid "Set room use"
+msgstr "Nastavitev namena prostora"
+
+msgid "Set status to {status}"
+msgstr "Nastavitev stanja na {status}"
+
+msgid "Set function description"
+msgstr "Nastavitev opisa funkcije"
+
+msgid "Current Line"
+msgstr "Trenutna linija"
+
+msgid "{line} (inherits from {space})"
+msgstr "{line} (podedovano od {space})"
+
+msgid "Set current line"
+msgstr "Nastavitev trenutne linije"
+
+msgid "Segment"
+msgstr "Segment"
+
+msgid "Medium"
+msgstr "Medij"
+
+msgid "Domain Address"
+msgstr "Naslov domene"
+
+msgid "The medium of a segment can only change while it holds no device."
+msgstr "Medij segmenta je mogoče spremeniti le, dokler ne vsebuje nobene naprave."
+
+msgid "The medium type of the segment '{segment}' cannot be changed to IoT, because its parent line '{line}' is not of medium type IP."
+msgstr "Vrste medija segmenta »{segment}« ni mogoče spremeniti v IoT, ker njegova nadrejena linija »{line}« ni vrste medija IP."
+
+msgid "The maximum number of segments has been reached."
+msgstr "Doseženo je največje število segmentov."
+
+msgid "The main segment cannot be deleted."
+msgstr "Glavnega segmenta ni mogoče izbrisati."
+
+msgid "Device '{device}' is incompatible with line's medium type."
+msgstr "Naprava »{device}« ni združljiva z vrsto medija linije."
+
+msgid "Device '{device}' is incompatible with segment's medium type."
+msgstr "Naprava »{device}« ni združljiva z vrsto medija segmenta."
+
+msgid "Rename segment to {name}"
+msgstr "Preimenovanje segmenta v {name}"
+
+msgid "Set medium to {medium}"
+msgstr "Nastavitev medija na {medium}"
+
+msgid "Forced on"
+msgstr "Prisilno vklopljeno"
+
+msgid "Forced off"
+msgstr "Prisilno izklopljeno"
+
+msgid "Overridden by '{name}': {mode}"
+msgstr "Preglašeno z »{name}«: {mode}"
+
+msgid "Central"
+msgstr "Centralno"
+
+msgid "Not every device linked to a group address of this group is commissioned securely, so it cannot be secured."
+msgstr "Vse naprave, povezane s skupinskim naslovom te skupine, niso zagnane varno, zato je ni mogoče zaščititi."
+
+msgid "Set group security"
+msgstr "Nastavitev varnosti skupine"
+
+msgid "Mark group address as central"
+msgstr "Označitev skupinskega naslova kot centralnega"
+
+msgid "Remove central mark from group address"
+msgstr "Odstranitev centralne oznake s skupinskega naslova"
+
+msgid "Topology"
+msgstr "Topologija"
+
+msgid "{medium} backbone line"
+msgstr "Hrbtenična linija {medium}"
+
+msgid "{medium} main line"
+msgstr "Glavna linija {medium}"
+
+msgid "Backbone"
+msgstr "Hrbtenica"
+
+msgid "Network Latency"
+msgstr "Zakasnitev omrežja"
+
+msgid "LAN (< 400ms)"
+msgstr "LAN (< 400ms)"
+
+msgid "WLAN (< 1s)"
+msgstr "WLAN (< 1s)"
+
+msgid "WAN (< 2s)"
+msgstr "WAN (< 2s)"
+
+msgid "Mobile (< 4s)"
+msgstr "Mobilno (< 4s)"
+
+msgid "Satellite (< 8s)"
+msgstr "Satelit (< 8s)"
+
+msgid "The network latency must be a number of milliseconds from 1 to 65535."
+msgstr "Zakasnitev omrežja mora biti število milisekund od 1 do 65535."
+
+msgid "Multicast Address"
+msgstr "Naslov multicast"
+
+msgid "Enter a multicast address from 224.0.0.0 to 239.255.255.255."
+msgstr "Vnesite naslov multicast od 224.0.0.0 do 239.255.255.255."
+
+msgid "Bus Connection"
+msgstr "Povezava z vodilom"
+
+msgid "Set IP routing of the backbone"
+msgstr "Nastavitev usmerjanja IP hrbtenice"
+
+msgid "As long as a coupler exists at a sub line or sub segment, a change of the medium type is not possible."
+msgstr "Dokler v podrejeni liniji ali podrejenem segmentu obstaja spojnik, vrste medija ni mogoče spremeniti."
+
+msgid "A main line of a project cannot have medium type RF."
+msgstr "Glavna linija projekta ne more imeti vrste medija RF."
+
+msgid "The operation could not be executed, because as medium type of the backbone only IP and TP are allowed."
+msgstr "Operacije ni bilo mogoče izvesti, ker sta kot vrsta medija hrbtenice dovoljena le IP in TP."
+
+msgid "A sub-segment of KNX medium type IP or PL is not allowed."
+msgstr "Podsegment vrste medija KNX IP ali PL ni dovoljen."
+
+msgid "The medium type of the main line '{line}' can no longer be changed to PL, because it already contains lines or segments that are not allowed in PL main lines."
+msgstr "Vrste medija glavne linije »{line}« ni več mogoče spremeniti v PL, ker že vsebuje linije ali segmente, ki v glavnih linijah PL niso dovoljeni."
+
+msgid "The medium type of the main line '{line}' cannot be changed to IoT, because the backbone line '{backbone}' is not of medium type IP."
+msgstr "Vrste medija glavne linije »{line}« ni mogoče spremeniti v IoT, ker hrbtenična linija »{backbone}« ni vrste medija IP."
+
+msgid "The medium type of the main line '{line}' can no longer be changed to IoT, because it already contains lines or segments that are not allowed in IoT main lines."
+msgstr "Vrste medija glavne linije »{line}« ni več mogoče spremeniti v IoT, ker že vsebuje linije ali segmente, ki v glavnih linijah IoT niso dovoljeni."
+
+msgid "The medium type of the line '{line}' cannot be changed, because it already contains lines or segments that require an IoT or IP main line."
+msgstr "Vrste medija linije »{line}« ni mogoče spremeniti, ker že vsebuje linije ali segmente, ki zahtevajo glavno linijo IoT ali IP."
+
+msgid "A sub-segment is not allowed below a main segment of KNX medium type RF."
+msgstr "Pod glavnim segmentom vrste medija KNX RF podsegment ni dovoljen."
+
+msgid "A sub-segment is not allowed below a main segment of KNX medium type PL."
+msgstr "Pod glavnim segmentom vrste medija KNX PL podsegment ni dovoljen."
+
+msgid "A sub-segment of KNX medium type IoT is not allowed below a main segment of the same type."
+msgstr "Podsegment vrste medija KNX IoT pod glavnim segmentom iste vrste ni dovoljen."
+
+msgid "The operation could not be executed, because a RF main line '{line}' requires all other lines in the area to be RF lines as well."
+msgstr "Operacije ni bilo mogoče izvesti, ker glavna linija RF »{line}« zahteva, da so tudi vse druge linije v področju linije RF."
+
+msgid "The operation could not be executed, because a PL main line '{line}' requires all other lines in the area to be PL lines as well."
+msgstr "Operacije ni bilo mogoče izvesti, ker glavna linija PL »{line}« zahteva, da so tudi vse druge linije v področju linije PL."
+
+msgid "The operation could not be executed, because a IoT main line '{line}' requires all other lines in the area to be IoT lines as well."
+msgstr "Operacije ni bilo mogoče izvesti, ker glavna linija IoT »{line}« zahteva, da so tudi vse druge linije v področju linije IoT."
+
+msgid "The medium type of the line '{line}' cannot be changed to IoT, because its main line '{main}' is not of medium type IP."
+msgstr "Vrste medija linije »{line}« ni mogoče spremeniti v IoT, ker njena glavna linija »{main}« ni vrste medija IP."
+
+msgid "The medium type of the line '{line}' can no longer be changed to IoT, because it already contains segments that are not allowed in IoT lines."
+msgstr "Vrste medija linije »{line}« ni več mogoče spremeniti v IoT, ker že vsebuje segmente, ki v linijah IoT niso dovoljeni."
+
+msgid "The operation could not be executed, because the line is the IP backbone line and the project contains KNXnet/IP routers. KNXnet/IP routers require an IP backbone line."
+msgstr "Operacije ni bilo mogoče izvesti, ker je linija hrbtenična linija IP, projekt pa vsebuje usmerjevalnike KNXnet/IP. Usmerjevalniki KNXnet/IP zahtevajo hrbtenično linijo IP."
+
+msgid "The operation could not be executed, because the line is the IP main line and the project contains KNXnet/IP routers. KNXnet/IP routers require an IP main line."
+msgstr "Operacije ni bilo mogoče izvesti, ker je linija glavna linija IP, projekt pa vsebuje usmerjevalnike KNXnet/IP. Usmerjevalniki KNXnet/IP zahtevajo glavno linijo IP."
+
+msgid "The operation could not be executed, because the line is the IP backbone line and the project contains IoT or IP lines."
+msgstr "Operacije ni bilo mogoče izvesti, ker je linija hrbtenična linija IP, projekt pa vsebuje linije IoT ali IP."
+
+msgid "The operation could not be executed, because the medium type of the line can only be set to IP if an IP main line exists."
+msgstr "Operacije ni bilo mogoče izvesti, ker je vrsto medija linije mogoče nastaviti na IP le, če obstaja glavna linija IP."
+
+msgid "The operation could not be executed, because the medium type of the line can only be set to IP if an IP backbone line exists."
+msgstr "Operacije ni bilo mogoče izvesti, ker je vrsto medija linije mogoče nastaviti na IP le, če obstaja hrbtenična linija IP."
+
+msgid "The operation could not be executed, because below a TP main segment only segments of KNX medium type TP, RF or PL can exist."
+msgstr "Operacije ni bilo mogoče izvesti, ker lahko pod glavnim segmentom TP obstajajo le segmenti vrste medija KNX TP, RF ali PL."
+
+msgid "Below a main segment of KNX medium type IP only segments of medium type TP or RF can exist."
+msgstr "Pod glavnim segmentom vrste medija KNX IP lahko obstajajo le segmenti vrste medija TP ali RF."
+
+msgid "A sub-segment of KNX medium type PL is not allowed below a main segment."
+msgstr "Podsegment vrste medija KNX PL pod glavnim segmentom ni dovoljen."
+
+msgid "Set bus connection of the backbone"
+msgstr "Nastavitev povezave hrbtenice z vodilom"
+
+msgid "Set domain address"
+msgstr "Nastavitev naslova domene"
+
+msgid "Generate New"
+msgstr "Ustvari novega"
+
+msgid "The given domain address is invalid."
+msgstr "Podani naslov domene ni veljaven."
+
+msgid "Domain address is not valid! Valid values are 1 to 255."
+msgstr "Naslov domene ni veljaven! Veljavne vrednosti so od 1 do 255."
+
+msgid "DomainAddress of mediumType 'RF' is lower than the minimum value of 0001:00000000."
+msgstr "Naslov domene vrste medija 'RF' je manjši od najmanjše vrednosti 0001:00000000."
+
+msgid "DomainAddress of medium type '{medium}' exceeds the maximum valid value of {maximum}"
+msgstr "Naslov domene vrste medija »{medium}« presega največjo veljavno vrednost {maximum}"
+
+msgid "DomainAddress of RF sublines must be equal to DomainAdress of main line."
+msgstr "Naslov domene podlinij RF mora biti enak naslovu domene glavne linije."
+
+msgid "Domain Address of IoT sublines must be equal to Domain Address of main line."
+msgstr "Naslov domene podlinij IoT mora biti enak naslovu domene glavne linije."
+
+msgid "Each line in a project must have a unique domain address."
+msgstr "Vsaka linija v projektu mora imeti enoličen naslov domene."
+
+msgid "Last Downloaded"
+msgstr "Zadnje programiranje"
+
+msgid "Create trade {name}"
+msgstr "Ustvarjanje stroke {name}"
+
+msgid "Rename trade to {name}"
+msgstr "Preimenovanje stroke v {name}"
+
+msgid "Set trade number"
+msgstr "Nastavitev številke stroke"
+
+msgid "Set trade description"
+msgstr "Nastavitev opisa stroke"
+
+msgid "Move trade"
+msgstr "Premik stroke"
+
+msgid "Remove trade"
+msgstr "Odstranitev stroke"
+
+msgid "Add device to trade"
+msgstr "Dodajanje naprave stroki"
+
+msgid "Remove device from trade"
+msgstr "Odstranitev naprave iz stroke"
+
+msgid "Trades"
+msgstr "Stroke"
+
+msgid "Building Parts…"
+msgstr "Deli stavbe…"
+
+msgid "Floors…"
+msgstr "Nadstropja…"
+
+msgid "Stairways…"
+msgstr "Stopnišča…"
+
+msgid "Rooms…"
+msgstr "Prostori…"
+
+msgid "Corridors…"
+msgstr "Hodniki…"
+
+msgid "Cabinets…"
+msgstr "Razdelilniki…"
+
+msgid "Devices…"
+msgstr "Naprave…"
+
+msgid "Functions…"
+msgstr "Funkcije…"
+
+msgid "Trades…"
+msgstr "Stroke…"
+
+msgid "Add Buildings…"
+msgstr "Dodaj stavbe…"
+
+msgid "Add Trades…"
+msgstr "Dodaj stroke…"
+
+msgid "Add Buildings"
+msgstr "Dodajanje stavb"
+
+msgid "Add Building Parts"
+msgstr "Dodajanje delov stavbe"
+
+msgid "Add Floors"
+msgstr "Dodajanje nadstropij"
+
+msgid "Add Rooms"
+msgstr "Dodajanje prostorov"
+
+msgid "Add Corridors"
+msgstr "Dodajanje hodnikov"
+
+msgid "Add Stairways"
+msgstr "Dodajanje stopnišč"
+
+msgid "Add Cabinets"
+msgstr "Dodajanje razdelilnikov"
+
+msgid "Add Trades"
+msgstr "Dodajanje strok"
+
+msgid "Add Devices"
+msgstr "Dodajanje naprav"
+
+msgid "Count"
+msgstr "Število"
+
+msgid "to \"{name}\""
+msgstr "v »{name}«"
+
+msgid "Cabinet"
+msgstr "Razdelilnik"
+
+msgid "New building"
+msgstr "Nova stavba"
+
+msgid "New building part"
+msgstr "Nov del stavbe"
+
+msgid "New floor"
+msgstr "Novo nadstropje"
+
+msgid "New room"
+msgstr "Nov prostor"
+
+msgid "New corridor"
+msgstr "Nov hodnik"
+
+msgid "New stairway"
+msgstr "Novo stopnišče"
+
+msgid "New cabinet"
+msgstr "Nov razdelilnik"
+
+msgid "New trade"
+msgstr "Nova stroka"
+
+msgid "A building part of this type cannot be added here."
+msgstr "Dela stavbe te vrste tukaj ni mogoče dodati."
+
+msgid "A building part of this type cannot be added here.\nCabinets can be added inside of rooms, corridors, or stairways only. If applicable the corridors have to be moved into the corresponding building parts."
+msgstr "Dela stavbe te vrste tukaj ni mogoče dodati.\nRazdelilnike je mogoče dodati samo v prostore, hodnike ali stopnišča. Po potrebi je treba hodnike premakniti v ustrezne dele stavbe."
+
+msgid "The target is a child building part."
+msgstr "Cilj je podrejeni del stavbe."
+
+msgid "Devices can only be added to stairways, rooms, corridors and cabinets."
+msgstr "Naprave je mogoče dodati samo v stopnišča, prostore, hodnike in razdelilnike."
+
+msgid "Trade"
+msgstr "Stroka"
+
+msgid "(estimated)"
+msgstr "(ocenjeno)"
+
+msgid "Number of Devices"
+msgstr "Število naprav"
+
+msgid "Unlink"
+msgstr "Odstrani povezavo"
+
+msgid "An IP router requires an IP backbone line."
+msgstr "IP-usmerjevalnik zahteva hrbtenično linijo IP."
+
+msgid "The operation could not be executed, because a coupler needs a main line."
+msgstr "Operacije ni bilo mogoče izvesti, ker spojnik potrebuje glavno linijo."
+
+msgid "The operation could not be executed, because an area coupler requires a backbone line."
+msgstr "Operacije ni bilo mogoče izvesti, ker področni spojnik zahteva hrbtenično linijo."
+
+msgid "The operation could not be executed, because this coupler needs a main line with the medium type '{medium}' ."
+msgstr "Operacije ni bilo mogoče izvesti, ker ta spojnik potrebuje glavno linijo z vrsto medija »{medium}« ."
+
+msgid "The operation could not be executed, because only one IP router is allowed as a world coupler."
+msgstr "Operacije ni bilo mogoče izvesti, ker je kot svetovni spojnik dovoljen le en IP-usmerjevalnik."
+
+msgid "The operation could not be executed, because only IP router area allowed as a world coupler."
+msgstr "Operacije ni bilo mogoče izvesti, ker so kot svetovni spojnik dovoljeni le IP-usmerjevalniki."
+
+msgid "The backbone line contains a world coupler. It is not possible to use an IP router below another IP router."
+msgstr "Hrbtenična linija vsebuje svetovni spojnik. IP-usmerjevalnika ni mogoče uporabiti pod drugim IP-usmerjevalnikom."
+
+msgid "It is not possible to use a world coupler, when there are already IP routers in the project."
+msgstr "Svetovnega spojnika ni mogoče uporabiti, če so v projektu že IP-usmerjevalniki."
+
+msgid "A world coupler can only be used, when the medium type of the backbone is TP."
+msgstr "Svetovni spojnik je mogoče uporabiti le, če je vrsta medija hrbtenice TP."
+
+msgid "The coupler does not support segment coupling, so the sub-segment must be of the same KNX medium type as the main segment."
+msgstr "Spojnik ne podpira spajanja segmentov, zato mora biti podsegment iste vrste medija KNX kot glavni segment."
+
+msgid "The operation could not be executed, because this device couples medium '{above}' (above) to medium '{below}' (below), but the segment above is '{segment}'."
+msgstr "Operacije ni bilo mogoče izvesti, ker ta naprava spaja medij »{above}« (zgoraj) z medijem »{below}« (spodaj), zgornji segment pa je »{segment}«."
+
+msgid "The operation could not be executed, because medium type of coupler device matches only sub segment, but maximum amount of segments reached."
+msgstr "Operacije ni bilo mogoče izvesti, ker se vrsta medija spojnika ujema le s podsegmentom, doseženo pa je največje število segmentov."
+
+msgid "The operation could not be executed, because this device couples medium '{above}' (above) to medium '{below}' (below), but the medium type of the lower segment is '{segment}'."
+msgstr "Operacije ni bilo mogoče izvesti, ker ta naprava spaja medij »{above}« (zgoraj) z medijem »{below}« (spodaj), vrsta medija spodnjega segmenta pa je »{segment}«."
+
+msgid "Recover Project from Bus"
+msgstr "Obnovitev projekta z vodila"
+
+msgid "Devices in Programming Mode"
+msgstr "Naprave v načinu programiranja"
+
+msgid "Connecting"
+msgstr "Povezovanje"
+
+msgid "Move middle group"
+msgstr "Premik srednje skupine"
+
+msgid "The group has no free group address."
+msgstr "Skupina nima prostega skupinskega naslova."
+
+msgid "The main group has no free middle group."
+msgstr "Glavna skupina nima proste srednje skupine."
+
+msgid "{count} devices"
+msgstr "Naprave: {count}"
+
+msgid "The main segment cannot be moved."
+msgstr "Glavnega segmenta ni mogoče premakniti."
+
+msgid "The maximum number of lines has been reached."
+msgstr "Doseženo je največje število linij."
+
+msgid "The line is already assigned to an area."
+msgstr "Linija je že dodeljena področju."
+
+msgid "The main line cannot be moved."
+msgstr "Glavne linije ni mogoče premakniti."
+
+msgid "Move line"
+msgstr "Premik linije"
+
+msgid "Move segment"
+msgstr "Premik segmenta"
+
+msgid "Move function"
+msgstr "Premik funkcije"
+
+msgid "Paste Special"
+msgstr "Posebno lepljenje"
+
+msgid "Number of Items"
+msgstr "Število elementov"
+
+msgid "Don't copy"
+msgstr "Ne kopiraj"
+
+msgid "Keep"
+msgstr "Ohrani"
+
+msgid "Create new group address in middle group"
+msgstr "Ustvari nov skupinski naslov v srednji skupini"
+
+msgid "Create new group address in main group"
+msgstr "Ustvari nov skupinski naslov v glavni skupini"
+
+msgid "Create new group address in group range"
+msgstr "Ustvari nov skupinski naslov v obsegu skupin"
+
+msgid "Generate Address"
+msgstr "Ustvari naslov"
+
+msgid "Fill up (use first free)"
+msgstr "Zapolni (uporabi prvega prostega)"
+
+msgid "Append"
+msgstr "Dodaj na konec"
+
+msgid "Start with"
+msgstr "Začni z"
+
+msgid "Enter a middle group, e.g. 1/2."
+msgstr "Vnesite srednjo skupino, npr. 1/2."
+
+msgid "Enter a main group, e.g. 1."
+msgstr "Vnesite glavno skupino, npr. 1."
+
+msgid "The group has too few free group addresses for the copies."
+msgstr "Skupina nima dovolj prostih skupinskih naslovov za kopije."
+
+msgid "The maximum number of group ranges has been reached."
+msgstr "Doseženo je največje število obsegov skupin."
+
+msgid "There is no group for the new group addresses."
+msgstr "Za nove skupinske naslove ni nobene skupine."
+
+msgid "Copied '{name}' to '{target}'."
+msgstr "»{name}« je kopirano v »{target}«."
+
+msgid "Copied {count} devices to '{target}'."
+msgstr "Naprave, kopirane v »{target}«: {count}."
+
+msgid "Copied {count} building parts to '{target}'."
+msgstr "Deli stavbe, kopirani v »{target}«: {count}."
+
+msgid "Copied {count} trades to '{target}'."
+msgstr "Stroke, kopirane v »{target}«: {count}."
+
+msgid "Copied {count} functions to '{target}'."
+msgstr "Funkcije, kopirane v »{target}«: {count}."
+
+msgid "Copied {count} group addresses to '{target}'."
+msgstr "Skupinski naslovi, kopirani v »{target}«: {count}."
+
+msgid "Copied {count} middle groups to '{target}'."
+msgstr "Srednje skupine, kopirane v »{target}«: {count}."
+
+msgid "Copied {count} main groups to '{target}'."
+msgstr "Glavne skupine, kopirane v »{target}«: {count}."
+
+msgid "Copied {count} lines to '{target}'."
+msgstr "Linije, kopirane v »{target}«: {count}."
+
+msgid "Copied {count} segments to '{target}'."
+msgstr "Segmenti, kopirani v »{target}«: {count}."
+
+msgid "Paste Special…"
+msgstr "Posebno lepljenje…"
+
+msgid "Add Row"
+msgstr "Dodaj vrstico"
+
+msgid "Remove this row"
+msgstr "Odstrani to vrstico"
+
+msgid "Generate Addresses"
+msgstr "Ustvari naslove"
+
+msgid "Unlink device"
+msgstr "Prekinitev povezave naprave"
+
+msgid "The device is on no line: put it on a line first."
+msgstr "Naprava ni na nobeni liniji: najprej jo postavite na linijo."
+
+msgid "Areas…"
+msgstr "Področja…"
+
+msgid "Lines…"
+msgstr "Linije…"
+
+msgid "Segments…"
+msgstr "Segmenti…"
+
+msgid "Add Areas"
+msgstr "Dodajanje področij"
+
+msgid "Add Lines"
+msgstr "Dodajanje linij"
+
+msgid "Add Segments"
+msgstr "Dodajanje segmentov"
+
+msgid "The limit to add was reached."
+msgstr "Dosežena je omejitev dodajanja."
+
+msgid "Cannot add any line to the area {area} because of topology constraints. Please check the medium type of the backbone and main lines."
+msgstr "Zaradi omejitev topologije v področje {area} ni mogoče dodati nobene linije. Preverite vrsto medija hrbtenice in glavnih linij."
+
+msgid "Added {count} areas to '{target}'."
+msgstr "Področja, dodana v »{target}«: {count}."
+
+msgid "Added {count} lines to '{target}'."
+msgstr "Linije, dodane v »{target}«: {count}."
+
+msgid "Added {count} segments to '{target}'."
+msgstr "Segmenti, dodani v »{target}«: {count}."
+
+msgid "Added {count} building parts to '{target}'."
+msgstr "Deli stavbe, dodani v »{target}«: {count}."
+
+msgid "Added {count} trades to '{target}'."
+msgstr "Stroke, dodane v »{target}«: {count}."
+
+msgid "Added {count} main groups to '{target}'."
+msgstr "Glavne skupine, dodane v »{target}«: {count}."
+
+msgid "Added {count} middle groups to '{target}'."
+msgstr "Srednje skupine, dodane v »{target}«: {count}."
+
+msgid "Added {count} group addresses to '{target}'."
+msgstr "Skupinski naslovi, dodani v »{target}«: {count}."
+
+msgid "Add Main Groups…"
+msgstr "Dodaj glavne skupine…"
+
+msgid "Add Middle Groups…"
+msgstr "Dodaj srednje skupine…"
+
+msgid "Add Main Groups"
+msgstr "Dodajanje glavnih skupin"
+
+msgid "Add Middle Groups"
+msgstr "Dodajanje srednjih skupin"
+
+msgid "New main group"
+msgstr "Nova glavna skupina"
+
+msgid "New middle group"
+msgstr "Nova srednja skupina"
+
+msgid "New group address"
+msgstr "Nov skupinski naslov"
+
+msgid "Cut"
+msgstr "Izreži"
+
+msgid "What was cut cannot be moved there."
+msgstr "Izrezanega tja ni mogoče premakniti."
+
+msgid "Park"
+msgstr "Parkiraj"
+
+msgid "Park device"
+msgstr "Parkiranje naprave"
+
+msgid "Add Functions"
+msgstr "Dodajanje funkcij"
+
+msgid "New function"
+msgstr "Nova funkcija"
+
+msgid "Added {count} functions to '{target}'."
+msgstr "Funkcije, dodane v »{target}«: {count}."
+
+msgid "Added {count} group ranges to '{target}'."
+msgstr "Obsegi skupin, dodani v »{target}«: {count}."
+
+msgid "Add Group Ranges…"
+msgstr "Dodaj obsege skupin…"
+
+msgid "Add Group Ranges"
+msgstr "Dodajanje obsegov skupin"
+
+msgid "New group range"
+msgstr "Nov obseg skupin"
+
+msgid "Capacity"
+msgstr "Zmogljivost"
+
+msgid "Link with…"
+msgstr "Poveži z…"
+
+msgid "Link with Group Address"
+msgstr "Povezava s skupinskim naslovom"
+
+msgid "There is no group to add group addresses to."
+msgstr "Ni skupine, v katero bi lahko dodali skupinske naslove."
+
+msgid "Add Subtrade"
+msgstr "Dodajanje podstroke"
+
+msgid "The group range does not fit there."
+msgstr "Obseg skupin tja ne ustreza."
+
+msgid "A group range cannot go into itself or a range in it."
+msgstr "Obsega skupin ni mogoče premakniti vase ali v obseg v njem."
+
+msgid "A group address of the range is already in use there."
+msgstr "Skupinski naslov iz obsega je tam že v uporabi."
+
+msgid "Copied {count} group ranges to '{target}'."
+msgstr "Obsegi skupin, kopirani v »{target}«: {count}."
+
+msgid "Add Areas…"
+msgstr "Dodaj področja…"
+
+msgid "{medium} segment"
+msgstr "Segment {medium}"
+
+msgid "Copy Individual Address"
+msgstr "Kopiraj fizični naslov"
+
+msgid "Copy Group Address"
+msgstr "Kopiraj skupinski naslov"
+
+msgid "Existing Devices…"
+msgstr "Obstoječe naprave…"
+
+msgid "Delete the {count} selected devices? Their group objects and group-address links are removed and their individual addresses are freed. This can be undone."
+msgstr "Želite izbrisati izbrane naprave ({count})? Njihovi komunikacijski objekti in povezave s skupinskimi naslovi se odstranijo, njihovi fizični naslovi pa se sprostijo. To je mogoče razveljaviti."
+
+msgid "Remove {count} devices"
+msgstr "Odstranitev naprav ({count})"
+
+msgid "Delete Devices"
+msgstr "Brisanje naprav"
+
+msgid "{medium} line"
+msgstr "Linija {medium}"
+
+msgid "From Backups…"
+msgstr "Iz varnostnih kopij…"
+
+msgid "Compare with a backup of this project"
+msgstr "Primerjaj z varnostno kopijo tega projekta"
+
+msgid "In the browser, choose Knx.Ets.Common.dll together with log4net.dll from the same folder."
+msgstr "V brskalniku izberite Knx.Ets.Common.dll skupaj z log4net.dll iz iste mape."
+
+msgid "Knx.Ets.Common.dll needs log4net.dll from its folder: choose both files together."
+msgstr "Knx.Ets.Common.dll potrebuje log4net.dll iz svoje mape: izberite obe datoteki hkrati."
+
+msgid "Codepage"
+msgstr "Kodna stran"
+
+msgid "Choose in which language the project texts are entered"
+msgstr "Izberite, v katerem jeziku se vnašajo besedila projekta"
+
+msgid "System language"
+msgstr "Jezik sistema"
+
+msgid "Western European (ISO 8859-1)"
+msgstr "Zahodnoevropska (ISO 8859-1)"
+
+msgid "Central European (ISO 8859-2)"
+msgstr "Srednjeevropska (ISO 8859-2)"
+
+msgid "South European (ISO 8859-3)"
+msgstr "Južnoevropska (ISO 8859-3)"
+
+msgid "North European (ISO 8859-4)"
+msgstr "Severnoevropska (ISO 8859-4)"
+
+msgid "Cyrillic (ISO 8859-5)"
+msgstr "Cirilica (ISO 8859-5)"
+
+msgid "Arabic (ISO 8859-6)"
+msgstr "Arabska (ISO 8859-6)"
+
+msgid "Greek (ISO 8859-7)"
+msgstr "Grška (ISO 8859-7)"
+
+msgid "Hebrew (ISO 8859-8)"
+msgstr "Hebrejska (ISO 8859-8)"
+
+msgid "Turkish (ISO 8859-9)"
+msgstr "Turška (ISO 8859-9)"
+
+msgid "Nordic (ISO 8859-10)"
+msgstr "Nordijska (ISO 8859-10)"
+
+msgid "Baltic Rim (ISO 8859-13)"
+msgstr "Baltska (ISO 8859-13)"
+
+msgid "Western European (ISO 8859-15)"
+msgstr "Zahodnoevropska (ISO 8859-15)"
+
+msgid "Set codepage to {code_page}"
+msgstr "Nastavitev kodne strani na {code_page}"
+
+msgid "Encrypted"
+msgstr "Šifrirano"
