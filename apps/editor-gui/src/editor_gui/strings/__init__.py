@@ -96,6 +96,18 @@ class BaseStrings:
         return _("Feedback")
 
     @property
+    def MENU_REPORT_BUG(self) -> str:
+        return _("Report a Bug")
+
+    @property
+    def MENU_SUGGEST_FEATURE(self) -> str:
+        return _("Suggest a Feature")
+
+    @property
+    def MENU_SHOW_ISSUES(self) -> str:
+        return _("Show All Issues")
+
+    @property
     def MENU_ABOUT(self) -> str:
         return _("About")
 
