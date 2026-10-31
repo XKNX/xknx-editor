@@ -136,20 +136,18 @@ def metrics(face: str) -> FontMetrics:
     return FontMetrics((_ASSETS / face).read_bytes())
 
 
-# The font files measured here; ImGui names a font after the file it was loaded from.
-FACES = ("XKNXSans-Regular.ttf", "XKNXSans-Bold.ttf")
+# The font files measured here. ImGui names a font after the file it was loaded from: by the
+# file's name ("XKNXSans-Regular.ttf"), or by its stem and size as hello_imgui loads it
+# ("XKNXSans-Regular 14").
+FACES = ("XKNXSans-Regular.ttf", "XKNXSans-Semilight.ttf", "XKNXSans-Bold.ttf")
+_STEMS = {face.removesuffix(".ttf"): face for face in FACES}
 
 
 def _face(font: imgui.ImFont) -> str | None:
     """The font file of ``font`` if it is measured here (its slanted variants as well)."""
-    name = (
-        font.get_debug_name()
-        .replace("\\", "/")
-        .rsplit("/", 1)[-1]
-        .split(",")[0]
-        .strip()
-    )
-    return name if name in FACES else None
+    name = font.get_debug_name().replace("\\", "/").rsplit("/", 1)[-1]
+    stem = name.split(",")[0].split(" ")[0].strip().removesuffix(".ttf")
+    return _STEMS.get(stem)
 
 
 def _current() -> FontMetrics | None:

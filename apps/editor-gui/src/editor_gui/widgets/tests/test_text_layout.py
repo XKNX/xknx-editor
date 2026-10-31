@@ -1,9 +1,10 @@
-"""Text in XKNX Sans is as wide and breaks into the same lines as in WPF (Segoe UI Semilight 12 and
-Semibold 14, measured there), and is drawn with its kerning."""
+"""Text in XKNX Sans is as wide and breaks into the same lines as in WPF (Segoe UI 12, Semilight 12
+and Semibold 14, measured there), and is drawn with its kerning."""
 
 from __future__ import annotations
 
 from collections.abc import Iterator
+from typing import cast
 
 import pytest
 from imgui_bundle import imgui
@@ -12,9 +13,10 @@ from editor_gui.widgets import text_layout
 from editor_gui.widgets.text_layout import metrics, wrap
 
 _REGULAR = "fonts/XKNXSans-Regular.ttf"
+_SEMILIGHT = "fonts/XKNXSans-Semilight.ttf"
 _BOLD = "fonts/XKNXSans-Bold.ttf"
-# FreeType's own hinting (no flags), as the editor loads its fonts.
-_HINTING = 0
+# FreeType's LightHinting flag, as the editor loads its fonts.
+_HINTING = 1 << 3
 
 
 @pytest.fixture
@@ -24,7 +26,7 @@ def fonts() -> Iterator[dict[str, imgui.ImFont]]:
     io.display_size = imgui.ImVec2(800, 600)
     io.backend_flags |= imgui.BackendFlags_.renderer_has_textures
     loaded: dict[str, imgui.ImFont] = {}
-    for face in (_REGULAR, _BOLD):
+    for face in (_REGULAR, _SEMILIGHT, _BOLD):
         config = imgui.ImFontConfig()
         config.font_loader_flags = _HINTING
         path = str(text_layout._ASSETS / face)  # pyright: ignore[reportPrivateUsage]
@@ -43,32 +45,40 @@ def _in(font: imgui.ImFont, size: float = 14.0) -> None:
 
 
 def test_the_font_files_hold_widths_and_kerning() -> None:
-    regular = metrics(_REGULAR)
-    assert regular.units_per_em == 6144
+    light = metrics(_SEMILIGHT)
+    assert light.units_per_em == 6144
     # Segoe UI Semilight's advance of "A" (1303 of 2048 units), three times.
-    assert regular.advances[ord("A")] == 3 * 1303
-    assert regular.kerning[ord("T"), ord("o")] < 0
+    assert light.advances[ord("A")] == 3 * 1303
+    assert light.kerning[ord("T"), ord("o")] < 0
     # A hyphen-minus is never kerned with the character before it.
-    assert not any(right == ord("-") for _left, right in regular.kerning)
-    assert metrics(_BOLD).advances[ord("A")] != regular.advances[ord("A")]
+    assert not any(right == ord("-") for _left, right in light.kerning)
+    # Each face has the widths of its own Segoe UI face.
+    widths = {
+        metrics(face).advances[ord("A")] for face in (_REGULAR, _SEMILIGHT, _BOLD)
+    }
+    assert len(widths) == 3
 
 
 @pytest.mark.parametrize(
-    ("text", "width"),
+    ("face", "text", "width"),
     [
         # FormattedText.WidthIncludingTrailingWhitespace in Segoe UI Semilight 12.
-        ("AV", 14.2967),
-        ("To", 11.8533),
-        ("Verhalten bei Busspannungswiederkehr", 201.4967),
-        ("ii", 5.3667),
+        (_SEMILIGHT, "AV", 14.2967),
+        (_SEMILIGHT, "To", 11.8533),
+        (_SEMILIGHT, "Verhalten bei Busspannungswiederkehr", 201.4967),
+        (_SEMILIGHT, "ii", 5.3667),
         # A character Segoe UI lacks, as wide as WPF's fallback font draws it.
-        ("31℃", 22.7767),
+        (_SEMILIGHT, "31℃", 22.7767),
+        # In Segoe UI 12.
+        (_REGULAR, "AV", 14.3733),
+        (_REGULAR, "To", 12.1467),
+        (_REGULAR, "Sommerzeit ermitteln durch", 147.94),
     ],
 )
 def test_widths_are_those_of_wpf(
-    fonts: dict[str, imgui.ImFont], text: str, width: float
+    fonts: dict[str, imgui.ImFont], face: str, text: str, width: float
 ) -> None:
-    _in(fonts[_REGULAR])
+    _in(fonts[face])
     assert text_layout.text_width(text) == pytest.approx(width, abs=0.0001)
     imgui.pop_font()
 
@@ -116,7 +126,7 @@ def test_bold_widths_are_those_of_wpf(fonts: dict[str, imgui.ImFont]) -> None:
 def test_lines_break_where_wpf_breaks(
     fonts: dict[str, imgui.ImFont], text: str, width: float, lines: list[str]
 ) -> None:
-    _in(fonts[_REGULAR])
+    _in(fonts[_SEMILIGHT])
     assert wrap(text, width) == lines
     imgui.pop_font()
 
@@ -132,7 +142,7 @@ def test_wrapping_follows_the_display_scaling(
     fonts: dict[str, imgui.ImFont], monkeypatch: pytest.MonkeyPatch
 ) -> None:
     monkeypatch.setattr(text_layout, "px", lambda value: value * 1.5)
-    _in(fonts[_REGULAR], 21.0)
+    _in(fonts[_SEMILIGHT], 21.0)
     assert text_layout.text_width("To") == pytest.approx(11.8533 * 1.5, abs=0.001)
     assert wrap("Cycle interval for sunrise/sunset times", 154.8 * 1.5) == [
         "Cycle interval for sunrise/",
@@ -177,3 +187,29 @@ def test_other_fonts_are_measured_by_imgui() -> None:
     finally:
         imgui.end_frame()
         imgui.destroy_context(ctx)
+
+
+class _Named:
+    def __init__(self, name: str) -> None:
+        self.name = name
+
+    def get_debug_name(self) -> str:
+        return self.name
+
+
+@pytest.mark.parametrize(
+    ("name", "face"),
+    [
+        # As hello_imgui loads a font (its file's stem and size), and as ImGui itself does.
+        ("XKNXSans-Regular 14", "XKNXSans-Regular.ttf"),
+        ("XKNXSans-Semilight 14", "XKNXSans-Semilight.ttf"),
+        ("fonts/XKNXSans-Bold.ttf", "XKNXSans-Bold.ttf"),
+        ("ProggyClean.ttf, 13px", None),
+        ("NotoSansSC-Regular 14", None),
+    ],
+)
+def test_the_fonts_are_known_by_the_names_imgui_gives_them(
+    name: str, face: str | None
+) -> None:
+    font = cast(imgui.ImFont, _Named(name))
+    assert text_layout._face(font) == face  # pyright: ignore[reportPrivateUsage]

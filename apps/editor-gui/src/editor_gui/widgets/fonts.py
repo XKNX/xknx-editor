@@ -1,5 +1,5 @@
-"""The default font plus bold (headlines), italic (placeholders) and bold italic (formatted
-comments) variants of it."""
+"""The default font plus semilight (texts between parameters), bold (headlines), italic
+(placeholders) and bold italic (formatted comments) variants of it."""
 
 from __future__ import annotations
 
@@ -10,25 +10,25 @@ from imgui_bundle import hello_imgui, imgui
 
 from editor_gui.strings import get_locale
 
-# XKNX Sans (Noto Sans with the widths, kerning and stem weight of Segoe UI Semilight; the bold face
-# those of Segoe UI Semibold), built by tools/xknx_sans/build.py; ``text_layout`` measures text in
-# it (and in the slanted variants, which keep its advance widths) as WPF does.
+# XKNX Sans (Selawik and Noto Sans with the widths, kerning and stem weight of Segoe UI, Segoe UI
+# Semilight and Semibold), built by tools/xknx_sans/build.py; ``text_layout`` measures text in it
+# (and in the slanted variants, which keep its advance widths) as WPF does.
 _DEFAULT_FONT = "fonts/XKNXSans-Regular.ttf"
+_SEMILIGHT_FONT = "fonts/XKNXSans-Semilight.ttf"
 _BOLD_FONT = "fonts/XKNXSans-Bold.ttf"
 # Letters 12 px high (the em of the font is 12 px; an ImGui font size counts ascent plus descent),
 # the size of the 9 pt text of Windows dialogs, so labels and values written for those fit the same
 # fields.
 _FONT_SIZE = 14.0
-# FreeType's own hinting (no ImGuiFreeTypeLoaderFlags): glyphs fitted to the pixel grid both ways,
-# so each stem is one column of pixels, as Windows draws them, and stems close together (an "m")
-# stay apart. ImGui rounds their advances to whole pixels then; ``text_layout`` places the glyphs
-# of wrapped text itself, as WPF does.
-_FREETYPE_HINTING = 0
+# ImGuiFreeTypeLoaderFlags_LightHinting: glyphs fitted to the pixel grid vertically only, so their
+# lines are crisp and their shapes keep their smooth edges. ImGui rounds their advances to whole
+# pixels then; ``text_layout`` places the glyphs of wrapped text itself, as WPF does.
+_FREETYPE_HINTING = 1 << 3
 # ImGuiFreeTypeLoaderFlags_Oblique: slanted glyphs of the same face.
 _FREETYPE_OBLIQUE = 1 << 6
 # How dark each face draws its glyphs' edges: with this the text of each face is as dark in sum
 # as the reference's (measured on the labels and headlines of a parameter page).
-_CONTRAST = {_DEFAULT_FONT: 1.3, _BOLD_FONT: 0.93}
+_CONTRAST = {_DEFAULT_FONT: 1.32, _SEMILIGHT_FONT: 1.12, _BOLD_FONT: 1.05}
 
 # Chinese and Japanese characters (Noto Sans SC and JP, SIL Open Font License): fallbacks merged
 # into each font. Both scripts share most characters but draw them differently, so the font of the
@@ -39,6 +39,7 @@ _CJK_FONTS = {
 }
 
 _default: imgui.ImFont | None = None
+_semilight: imgui.ImFont | None = None
 _bold: imgui.ImFont | None = None
 _italic: imgui.ImFont | None = None
 _bold_italic: imgui.ImFont | None = None
@@ -48,7 +49,7 @@ _cjk_order: tuple[str, ...] = ()
 def load_fonts() -> None:
     """Load the default fonts and the bold and italic variants; the ``load_additional_fonts``
     callback."""
-    global _default, _bold, _italic, _bold_italic, _cjk_order
+    global _default, _semilight, _bold, _italic, _bold_italic, _cjk_order
     order = _wanted_cjk_order()
     config = imgui.ImFontConfig()
     config.font_loader_flags = _FREETYPE_HINTING
@@ -56,6 +57,8 @@ def load_fonts() -> None:
     _default = hello_imgui.load_font_ttf_with_font_awesome_icons(
         _DEFAULT_FONT, _FONT_SIZE, config
     )
+    _merge_cjk(order, bold=False)
+    _semilight = _load_variant(_SEMILIGHT_FONT)
     _merge_cjk(order, bold=False)
     _bold = _load_variant(_BOLD_FONT)
     _merge_cjk(order, bold=True)
@@ -73,7 +76,7 @@ def follow_language() -> None:
     if not _cjk_order or _wanted_cjk_order() == _cjk_order:
         return
     fonts = imgui.get_io().fonts
-    for font in (_default, _bold, _italic, _bold_italic):
+    for font in (_default, _semilight, _bold, _italic, _bold_italic):
         if font is not None:
             fonts.remove_font(font)
     # The regular font is the first one again, which ImGui takes as the default font.
@@ -101,6 +104,16 @@ def _load_variant(path: str, flags: int = 0) -> imgui.ImFont | None:
         return hello_imgui.load_font(path, _FONT_SIZE, params)
     except RuntimeError:
         return None
+
+
+@contextmanager
+def semilight() -> Generator[None]:
+    """Draw in the semilight font at the normal text size (the texts between parameters)."""
+    imgui.push_font(_semilight, imgui.get_style().font_size_base)
+    try:
+        yield
+    finally:
+        imgui.pop_font()
 
 
 @contextmanager

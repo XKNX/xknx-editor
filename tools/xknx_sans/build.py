@@ -1,34 +1,40 @@
-"""Build XKNX Sans: Noto Sans at the weights of Segoe UI Semilight and Semibold, with their widths.
+"""Build XKNX Sans: Selawik and Noto Sans at the weights of Segoe UI Semilight and Semibold, with
+their widths.
 
 Run on Windows (it reads Segoe UI from the system's font folder):
 
-    uv run --with fonttools --with uharfbuzz python tools/xknx_sans/build.py --noto <NotoSans[wdth,wght].ttf>
+    uv run --with fonttools --with uharfbuzz --with skia-pathops python tools/xknx_sans/build.py         --noto <NotoSans[wdth,wght].ttf> --selawik <folder>
 
 It writes, to ``apps/editor-gui/src/editor_gui/assets/fonts``:
 
-- ``XKNXSans-Regular.ttf`` and ``XKNXSans-Bold.ttf``: Noto Sans instanced at the weight whose
-  stems are as thick as those of Segoe UI Semilight (regular) and Semibold (bold). Each letter
+- ``XKNXSans-Regular.ttf``, ``XKNXSans-Semilight.ttf`` and ``XKNXSans-Bold.ttf``: the Latin
+  letters of Selawik Regular, Semilight and Semibold (Microsoft's open counterpart of Segoe UI; its
+  Semibold thinned to the stems of Segoe UI Semibold), and the others of Noto Sans instanced at the
+  weight whose stems are as thick as those of Segoe UI Regular, Semilight and Semibold. Each letter
   Segoe UI also has gets Segoe UI's advance width; its outline is stretched by half the difference
   (at most 8 %) and placed in the new width with the old ratio of its side bearings (half the
   change on each side for a glyph reaching over the edges of its advance). The kerning
   of Segoe UI goes into the font twice: as the "kern" feature (GPOS) for other programs, and as a
   "kern" table (format 0), which the editor reads to lay out text (``widgets/text_layout.py``).
-- ``XKNXSans-OFL.txt``: the licence of Noto Sans, which XKNX Sans keeps.
+- ``XKNXSans-OFL.txt``: the licences of Selawik and Noto Sans, which XKNX Sans keeps (both the
+  SIL Open Font License; "Selawik" is a reserved font name, so the font has a name of its own).
 """
 
 from __future__ import annotations
 
 import argparse
-import shutil
 import subprocess
 import tempfile
 import unicodedata
 from pathlib import Path
 
+import pathops
 import uharfbuzz as hb
 from fontTools import subset
 from fontTools.feaLib.builder import addOpenTypeFeaturesFromString
+from fontTools.pens.cu2quPen import Cu2QuPen
 from fontTools.pens.recordingPen import DecomposingRecordingPen
+from fontTools.pens.transformPen import TransformPen
 from fontTools.pens.ttGlyphPen import TTGlyphPen
 from fontTools.ttLib import TTFont, newTable
 from fontTools.ttLib.scaleUpem import scale_upem
@@ -36,6 +42,11 @@ from fontTools.ttLib.tables._k_e_r_n import KernTable_format_0
 from fontTools.varLib.instancer import instantiateVariableFont
 
 REPO = Path(__file__).resolve().parents[2]
+SELAWIK_COPYRIGHT = (
+    "Copyright 2015, Microsoft Corporation (www.microsoft.com), with Reserved Font Name "
+    "Selawik. Selawik is a trademark of Microsoft Corporation in the United States and/or "
+    "other countries."
+)
 OUT = REPO / "apps" / "editor-gui" / "src" / "editor_gui" / "assets" / "fonts"
 
 # 3 x the 2048 units of Segoe UI, so its widths stay whole numbers, and a multiple of 6, so the
@@ -50,13 +61,22 @@ STRETCH_LIMIT = 0.08
 
 FACES = {
     "regular": {
-        "segoe": "segoeuisl.ttf",
-        "family": "Segoe UI Semilight",
+        "segoe": "segoeui.ttf",
+        "selawik": "selawk.ttf",
+        "family": "Segoe UI",
         "style": "Regular",
+        "bold": False,
+    },
+    "semilight": {
+        "segoe": "segoeuisl.ttf",
+        "selawik": "selawksl.ttf",
+        "family": "Segoe UI Semilight",
+        "style": "Semilight",
         "bold": False,
     },
     "bold": {
         "segoe": "seguisb.ttf",
+        "selawik": "selawksb.ttf",
         "family": "Segoe UI Semibold",
         "style": "Bold",
         "bold": True,
@@ -130,6 +150,51 @@ def _decompose(font: TTFont) -> None:
             glyf[name] = pen.glyph()
     font["maxp"].maxComponentElements = 0
     font["maxp"].maxComponentDepth = 0
+
+
+def _selawik(path: Path, stem: float) -> TTFont:
+    """Selawik ``path`` in XKNX Sans units, its stems thinned to ``stem`` (in ems) where they
+    are thicker: each outline shrinks by half the difference on every side, and is then stretched
+    back to its x-height."""
+    font = TTFont(path)
+    scale_upem(font, UNITS_PER_EM)
+    _decompose(font)
+    inset = (_stem(font) - stem) * UNITS_PER_EM / 2
+    if inset <= 0:
+        return font
+    x_height = font["OS/2"].sxHeight
+    grow = x_height / (x_height - 2 * inset)
+    glyf = font["glyf"]
+    glyphs = font.getGlyphSet()
+    for name in font.getGlyphOrder():
+        if not glyf[name].numberOfContours:
+            continue
+        outline = pathops.Path()
+        glyphs[name].draw(pathops.PathPen(outline, glyphs))
+        edge = pathops.Path()
+        glyphs[name].draw(pathops.PathPen(edge, glyphs))
+        edge.stroke(2 * inset, pathops.LineCap.BUTT_CAP, pathops.LineJoin.MITER_JOIN, 4)
+        thinned = pathops.op(outline, edge, pathops.PathOp.DIFFERENCE)
+        pen = TTGlyphPen(None)
+        thinned.draw(
+            Cu2QuPen(TransformPen(pen, (1, 0, 0, grow, 0, -inset * grow)), max_err=1)
+        )
+        glyf[name] = pen.glyph()
+    return font
+
+
+def _take_latin(font: TTFont, selawik: TTFont) -> None:
+    """The letters Selawik has, drawn as Selawik draws them, in ``font``."""
+    cmap = font.getBestCmap()
+    glyphs = selawik.getGlyphSet()
+    for code, name in selawik.getBestCmap().items():
+        if code not in cmap:
+            continue
+        pen = TTGlyphPen(None)
+        glyphs[name].draw(pen)
+        font["glyf"][cmap[code]] = pen.glyph()
+        font["hmtx"][cmap[code]] = selawik["hmtx"][name]
+        font["glyf"][cmap[code]].recalcBounds(font["glyf"])
 
 
 def _clone(font: TTFont, name: str) -> str:
@@ -350,7 +415,9 @@ def _name(font: TTFont, style: str, bold: bool, weight: int) -> None:
     copyright_text = names.getDebugName(0) or ""
     keep = {0, 13, 14}
     names.names = [n for n in names.names if n.nameID in keep]
-    names.setName(f"{copyright_text} Copyright 2026 xknx.", 0, 3, 1, 0x409)
+    names.setName(
+        f"{SELAWIK_COPYRIGHT} {copyright_text} Copyright 2026 xknx.", 0, 3, 1, 0x409
+    )
     for name_id, text in (
         (1, family),
         (2, style),
@@ -360,7 +427,7 @@ def _name(font: TTFont, style: str, bold: bool, weight: int) -> None:
         (6, postscript),
         (
             10,
-            "Noto Sans with the widths and stem weight of Segoe UI "
+            "Selawik and Noto Sans with the widths and stem weight of Segoe UI "
             + ("Semibold" if bold else "Semilight")
             + ".",
         ),
@@ -369,7 +436,9 @@ def _name(font: TTFont, style: str, bold: bool, weight: int) -> None:
         names.setName(text, name_id, 1, 0, 0)
     os2 = font["OS/2"]
     os2.usWeightClass = weight
-    os2.fsSelection = (os2.fsSelection & ~0b1100001) | (0b100000 if bold else 0b1000000)
+    # Bold, regular, or neither (Semilight).
+    selection = 0b100000 if bold else 0b1000000 if style == "Regular" else 0
+    os2.fsSelection = (os2.fsSelection & ~0b1100001) | selection
     font["head"].macStyle = 1 if bold else 0
     font["post"].italicAngle = 0
 
@@ -387,6 +456,12 @@ def main() -> None:
     parser.add_argument(
         "--noto", type=Path, required=True, help="NotoSans[wdth,wght].ttf"
     )
+    parser.add_argument(
+        "--selawik",
+        type=Path,
+        required=True,
+        help="folder with selawk.ttf, selawksl.ttf, selawksb.ttf and LICENSE.txt (Selawik 1.01)",
+    )
     parser.add_argument("--segoe-dir", type=Path, default=Path("C:/Windows/Fonts"))
     parser.add_argument("--out", type=Path, default=OUT)
     args = parser.parse_args()
@@ -395,6 +470,7 @@ def main() -> None:
         segoe = TTFont(segoe_path)
         weight = _weight_for(args.noto, _stem(segoe))
         font = _instance(args.noto, weight)
+        _take_latin(font, _selawik(args.selawik / str(face["selawik"]), _stem(segoe)))
         advances = _apply_widths(font, segoe, str(face["family"]))
         segoe_codes = segoe.getBestCmap()
         codes = sorted(
@@ -414,7 +490,18 @@ def main() -> None:
         print(
             f"{face['style']}: weight {weight}, {len(advances)} characters, {pairs} kerned pairs"
         )
-    shutil.copyfile(args.noto.with_name("OFL.txt"), args.out / "XKNXSans-OFL.txt")
+    licences = "\n\n".join(
+        (
+            "XKNX Sans contains Selawik and Noto Sans, both under the SIL Open Font License.",
+            "Selawik:",
+            (args.selawik / "LICENSE.txt").read_text(encoding="utf-8").strip(),
+            "Noto Sans:",
+            args.noto.with_name("OFL.txt").read_text(encoding="utf-8").strip(),
+        )
+    )
+    (args.out / "XKNXSans-OFL.txt").write_text(
+        licences + "\n", encoding="utf-8", newline="\n"
+    )
 
 
 if __name__ == "__main__":

@@ -23,7 +23,7 @@ from editor_gui.widgets.checkbox import checkbox, radio_button
 from editor_gui.widgets.combo import begin_combo
 from editor_gui.widgets.dpi import px
 from editor_gui.widgets.float_format import format_float, general_float, parse_float
-from editor_gui.widgets.fonts import bold
+from editor_gui.widgets.fonts import bold, semilight
 from editor_gui.widgets.icons import Icon, Picture, draw_icon
 from editor_gui.widgets.strings import S
 from editor_gui.widgets.tables import data_table_id
@@ -2206,7 +2206,8 @@ def _celltext_height(sep: UiSeparator, width: float | None) -> float:
     if sep.hint == "Headline":
         with bold(_HEADLINE_SCALE):
             return text_height(len(wrap_lines(text, wrap)))
-    return text_height(len(wrap_lines(text, wrap)))
+    with semilight():
+        return text_height(len(wrap_lines(text, wrap)))
 
 
 def _render_cell_separator(
@@ -2232,7 +2233,8 @@ def _render_cell_separator(
             with bold(_HEADLINE_SCALE):
                 wrapped_text(text, wrap)
         else:
-            wrapped_text(text, wrap)
+            with semilight():
+                wrapped_text(text, wrap)
         return imgui.get_item_rect_size().y
     _render_separator(sep)
     return 0.0
@@ -2547,7 +2549,8 @@ def _render_hint(
     icon = imgui.get_font_size() * 1.25
     width = _wrap_width()
     text_width = width - pad * 3 - icon
-    lines_height = text_height(len(wrap_lines(text, text_width)))
+    with semilight():
+        lines_height = text_height(len(wrap_lines(text, text_width)))
     top = imgui.get_cursor_screen_pos()
     box_max = imgui.ImVec2(top.x + width, top.y + max(lines_height, icon) + pad * 2)
     draw = imgui.get_window_draw_list()
@@ -2573,7 +2576,8 @@ def _render_hint(
                 px(1.6),
             )
     imgui.set_cursor_screen_pos(imgui.ImVec2(top.x + pad * 2 + icon, top.y + pad))
-    wrapped_text(text, text_width)
+    with semilight():
+        wrapped_text(text, text_width)
     imgui.set_cursor_screen_pos(imgui.ImVec2(top.x, box_max.y))
     imgui.dummy(imgui.ImVec2(width, 0))
 
@@ -2608,7 +2612,8 @@ def _render_separator(sep: UiSeparator) -> None:
         vertical_space(px(_HINT_BELOW))
     else:
         vertical_space(px(_TEXT_ROOM))
-        _aligned_text(sep.text, sep.alignment)
+        with semilight():
+            _aligned_text(sep.text, sep.alignment)
         vertical_space(px(_TEXT_ROOM))
 
 
