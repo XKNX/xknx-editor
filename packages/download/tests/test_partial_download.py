@@ -110,6 +110,15 @@ async def test_another_mask_version_stops_the_download() -> None:
         await _mismatch(_device(app, 0x0705), app)
 
 
+async def test_a_mask_version_with_its_configuration_fits_the_device() -> None:
+    # A Siemens Synco (System 300) application names the configuration with the mask; the
+    # device descriptor is the mask alone.
+    app = _application("MV-0300-01000001000000000000")
+    assert await _mismatch(_device(app, 0x0300), app, MaskResources({})) is None
+    with pytest.raises(IncompatibleMaskVersion, match="MV-07B0 instead of MV-0300"):
+        await _mismatch(_device(app, 0x07B0), app, MaskResources({}))
+
+
 async def test_memory_load_status() -> None:
     app = _application("MV-0705")
     device = FakeDevice(descriptor=0x0705)
