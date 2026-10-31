@@ -21,7 +21,14 @@ from xknx.exceptions import XKNXException
 from xknx.profile.const import ResourceObjectType
 
 from xknxeditor.download.errors import LoadStateError, VerificationError
+from xknxeditor.download.merge import device_mask_version
+from xknxeditor.download.resources import bundled_mask_resources
 from xknxeditor.download.tables_systemb import association_table_wide
+from xknxeditor.namespaces.intermediate.hawk_configuration_data_t_resources_resource_resource_type_flavour import (
+    HawkConfigurationDataResourcesResourceResourceTypeFlavour as ResourceFlavour,
+)
+from xknxeditor.namespaces.intermediate.resource_addr_space_t import ResourceAddrSpace
+from xknxeditor.namespaces.intermediate.resource_name_t import ResourceName
 
 from .errors import RecoverError
 from .tables_decode import (
@@ -204,6 +211,36 @@ async def _read_count_table(
     return await programmer.read_memory(address, count_width + count * entry_width)
 
 
+async def _association_table_address(
+    programmer: DeviceProgrammer, application: Application
+) -> int | None:
+    """The association table's address the device reports through the mask's pointer to
+    it (``GroupAssociationTablePtr``: the table reference of object 2 on BIM M112, the octet
+    at 0111h plus 100h on BCU1); ``None`` when the mask has no pointer or it reads 0."""
+    resources = bundled_mask_resources(device_mask_version(application))
+    if resources is None:
+        return None
+    location = resources.location(ResourceName.GROUP_ASSOCIATION_TABLE)
+    if location is None or location.address_space != ResourceAddrSpace.POINTER:
+        return None
+    pointer = ResourceName.GROUP_ASSOCIATION_TABLE_PTR
+    try:
+        reference = resources.property_ref(pointer)
+        if reference is not None:
+            data = await programmer.read_property(*reference)
+        else:
+            address = resources.memory_address(pointer)
+            if address is None:
+                return None
+            data = await programmer.read_memory(address, resources.length(pointer) or 1)
+    except (LoadStateError, VerificationError, XKNXException):
+        return None
+    value = int.from_bytes(data[:2], "big")
+    if resources.flavour(pointer) is ResourceFlavour.PTR_STANDARD_MEMORY100:
+        value += 0x100
+    return value or None
+
+
 async def _read_memory_mapped(
     programmer: DeviceProgrammer, application: Application
 ) -> RawGroupCommunication:
@@ -227,7 +264,11 @@ async def _read_memory_mapped(
     links: list[DecodedLink] = []
     association_table = static.association_table
     if association_table is not None and association_table.code_segment is not None:
-        assoc_address = base_addresses[association_table.code_segment] + (
+        # Where the device keeps it, when the mask points to it (a download with dynamic
+        # table management packs it right after the address table); else as declared.
+        assoc_address = await _association_table_address(
+            programmer, application
+        ) or base_addresses[association_table.code_segment] + (
             association_table.offset or 0
         )
         assoc_bytes = await _read_count_table(
