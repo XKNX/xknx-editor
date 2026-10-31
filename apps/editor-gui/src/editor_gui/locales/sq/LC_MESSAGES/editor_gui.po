@@ -191,7 +191,7 @@ msgid "AI MCP"
 msgstr "AI MCP"
 
 msgid "This editor is controllable by an AI assistant (Claude, Codex, …) through the built-in MCP server: it exposes the catalog and project as tools over Streamable HTTP. Start the server below, then register its endpoint in your AI tool."
-msgstr "Ky editor mund të drejtohet nga një asistent AI (Claude, Codex, …) përmes serverit MCP të integruar: ai e ofron katalogun dhe projektin si vegla përmes Streamable HTTP. Nisni serverin më poshtë, pastaj regjistroni pikën e tij fundore në veglën tuaj AI."
+msgstr "Ky editor mund të drejtohet nga një asistent AI (Claude, Codex, …) përmes serverit MCP të integruar: ai i ofron katalogun dhe projektin si vegla përmes Streamable HTTP. Nisni serverin më poshtë, pastaj regjistroni pikën e tij fundore në veglën tuaj AI."
 
 msgid "MCP Endpoint"
 msgstr "Pika fundore MCP"
