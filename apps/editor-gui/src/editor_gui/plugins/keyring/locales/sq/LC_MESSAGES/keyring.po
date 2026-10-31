@@ -53,7 +53,7 @@ msgid "Interfaces ({count})"
 msgstr "Ndërfaqet ({count})"
 
 msgid "Group Address Keys ({count})"
-msgstr "Çelësat e adresave të grupit ({count})"
+msgstr "Çelësat e adresave të grupeve ({count})"
 
 msgid "Devices ({count})"
 msgstr "Pajisjet ({count})"

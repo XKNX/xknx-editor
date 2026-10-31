@@ -74,10 +74,10 @@ msgid "Product (Catalog)"
 msgstr "Produkti (katalogu)"
 
 msgid "Application"
-msgstr "Aplikacioni"
+msgstr "Programi aplikativ"
 
 msgid "Application Version"
-msgstr "Versioni i aplikacionit"
+msgstr "Versioni i programit aplikativ"
 
 msgid "Mask Version"
 msgstr "Versioni i maskës"

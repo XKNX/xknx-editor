@@ -53,7 +53,7 @@ msgid "Mask"
 msgstr "Maska"
 
 msgid "Product / Application"
-msgstr "Produkti / Aplikacioni"
+msgstr "Produkti / Programi aplikativ"
 
 msgid "Status"
 msgstr "Gjendja"

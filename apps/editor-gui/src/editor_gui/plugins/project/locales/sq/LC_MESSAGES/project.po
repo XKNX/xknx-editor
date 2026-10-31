@@ -26,7 +26,7 @@ msgid "Editor"
 msgstr "Editori"
 
 msgid "Group Addresses"
-msgstr "Adresat e grupit"
+msgstr "Adresat e grupeve"
 
 msgid "Buildings"
 msgstr "Ndërtesat"
@@ -77,7 +77,7 @@ msgid "Pick a target object per row. Address and name are suggested and can be c
 msgstr "Zgjidhni një objekt objektiv për çdo rresht. Adresa dhe emri sugjerohen dhe mund të ndryshohen."
 
 msgid "\"{link_all}\" creates the group addresses and links them."
-msgstr "\"{link_all}\" krijon adresat e grupit dhe i lidh ato."
+msgstr "\"{link_all}\" krijon adresat e grupeve dhe i lidh ato."
 
 msgid "Link All"
 msgstr "Lidh të gjitha"
@@ -188,7 +188,7 @@ msgid "Matching DPT Only"
 msgstr "Vetëm DPT që përputhet"
 
 msgid "Only group addresses with the object's main datapoint type, and those without one (they take the object's type when linked)."
-msgstr "Vetëm adresat e grupit me llojin kryesor të pikës së të dhënave të objektit, dhe ato pa lloj (marrin llojin e objektit kur lidhen)."
+msgstr "Vetëm adresat e grupeve me llojin kryesor të pikës së të dhënave të objektit, dhe ato pa lloj (marrin llojin e objektit kur lidhen)."
 
 msgid "no DPT"
 msgstr "pa DPT"
@@ -266,7 +266,7 @@ msgid "Replace Device"
 msgstr "Zëvendëso pajisjen"
 
 msgid "Swap a device for another model (a template device already in the project), keeping its group-address links. Group objects are matched by number and size; unmatched ones are reported. Parameters are not carried over."
-msgstr "Ndërroni një pajisje me një model tjetër (një pajisje shabllon që është tashmë në projekt), duke ruajtur lidhjet e saj me adresat e grupit. Objektet e grupit përputhen sipas numrit dhe madhësisë; ato pa përputhje raportohen. Parametrat nuk barten."
+msgstr "Ndërroni një pajisje me një model tjetër (një pajisje shabllon që është tashmë në projekt), duke ruajtur lidhjet e saj me adresat e grupeve. Objektet e grupit përputhen sipas numrit dhe madhësisë; ato pa përputhje raportohen. Parametrat nuk barten."
 
 msgid "Device to Replace"
 msgstr "Pajisja që do të zëvendësohet"
@@ -311,7 +311,7 @@ msgid "Compared with {name}:"
 msgstr "Krahasuar me {name}:"
 
 msgid "No differences in devices or group addresses."
-msgstr "Nuk ka ndryshime te pajisjet ose adresat e grupit."
+msgstr "Nuk ka ndryshime te pajisjet ose adresat e grupeve."
 
 msgid "{count} difference(s)"
 msgstr "{count} ndryshim(e)"
@@ -323,7 +323,7 @@ msgid "Device Certificate"
 msgstr "Certifikata e pajisjes"
 
 msgid "This device already uses its own key from this project. Its certificate is only needed again after a factory reset."
-msgstr "Kjo pajisje përdor tashmë çelësin e vet nga ky projekt. Certifikata e saj nevojitet sërish vetëm pas një rikthimi në cilësimet e fabrikës."
+msgstr "Kjo pajisje përdor tashmë çelësin e vet nga ky projekt. Certifikata e saj nevojitet sërish vetëm pas një rivendosjeje fabrike."
 
 msgid "This device still uses its factory key: its first secure download needs its certificate."
 msgstr "Kjo pajisje përdor ende çelësin e fabrikës: programimi i saj i parë i sigurt kërkon certifikatën e saj."
@@ -338,7 +338,7 @@ msgid "To replace it, enter the new FDSK (36 characters):"
 msgstr "Për ta zëvendësuar, vendosni FDSK-në e re (36 karaktere):"
 
 msgid "Remove the stored certificate? After a factory reset, the device can then only be reached again with the code from its label."
-msgstr "Ta hiqni certifikatën e ruajtur? Pas një rikthimi në cilësimet e fabrikës, pajisja mund të arrihet sërish vetëm me kodin nga etiketa e saj."
+msgstr "Të hiqet certifikata e ruajtur? Pas një rivendosjeje fabrike, pajisja mund të arrihet sërish vetëm me kodin nga etiketa e saj."
 
 msgid "Device Certificate…"
 msgstr "Certifikata e pajisjes…"
@@ -368,7 +368,7 @@ msgid "Duplicate a device several times. Optionally rewrite the copy name (find/
 msgstr "Shumëfishoni një pajisje disa herë. Sipas dëshirës, rishkruani emrin e kopjes (gjej/zëvendëso) dhe krijoni një adresë grupi për secilin nga objektet e saj."
 
 msgid "Renumber devices by adding an offset to the device part of their individual addresses, e.g. to open gaps for new devices. Group addresses are untouched."
-msgstr "Rinumërtoni pajisjet duke i shtuar një zhvendosje pjesës së pajisjes në adresat e tyre individuale, p.sh. për të hapur boshllëqe për pajisje të reja. Adresat e grupit nuk preken."
+msgstr "Rinumërtoni pajisjet duke i shtuar një zhvendosje pjesës së pajisjes në adresat e tyre individuale, p.sh. për të hapur boshllëqe për pajisje të reja. Adresat e grupeve nuk preken."
 
 msgid "Pick the fields and an output: a CSV, printable label sheets (Avery), or a full-page legend. HTML output opens in your browser to print or save as PDF."
 msgstr "Zgjidhni fushat dhe një dalje: një CSV, fleta etiketash për printim (Avery) ose një legjendë në faqe të plotë. Dalja HTML hapet në shfletuesin tuaj për ta printuar ose ruajtur si PDF."
@@ -401,7 +401,7 @@ msgid "Created {count} copy/copies"
 msgstr "U krijuan {count} kopje"
 
 msgid "Shifts the device part of each individual address. Group addresses are not shifted."
-msgstr "Zhvendos pjesën e pajisjes në çdo adresë individuale. Adresat e grupit nuk zhvendosen."
+msgstr "Zhvendos pjesën e pajisjes në çdo adresë individuale. Adresat e grupeve nuk zhvendosen."
 
 msgid "Offset"
 msgstr "Zhvendosja"
@@ -434,10 +434,10 @@ msgid "This project has no group addresses."
 msgstr "Ky projekt nuk ka adresa grupi."
 
 msgid "Shift Group Addresses"
-msgstr "Zhvendos adresat e grupit"
+msgstr "Zhvendos adresat e grupeve"
 
 msgid "Renumber group addresses by adding an offset to their raw value, e.g. to open gaps. Group object links move with each address. Nothing is written if any move would collide or leave the valid range."
-msgstr "Rinumërtoni adresat e grupit duke i shtuar një zhvendosje vlerës së tyre të papërpunuar, p.sh. për të hapur boshllëqe. Lidhjet e objekteve të grupit lëvizin bashkë me çdo adresë. Asgjë nuk shkruhet nëse ndonjë zhvendosje do të përplasej ose do të dilte jashtë diapazonit të vlefshëm."
+msgstr "Rinumërtoni adresat e grupeve duke i shtuar një zhvendosje vlerës së tyre të papërpunuar, p.sh. për të hapur boshllëqe. Lidhjet e objekteve të grupit lëvizin bashkë me çdo adresë. Asgjë nuk shkruhet nëse ndonjë zhvendosje do të përplasej ose do të dilte jashtë diapazonit të vlefshëm."
 
 msgid "The offset is added to the raw 16-bit value, so it may change the main/middle group as addresses cross a boundary."
 msgstr "Zhvendosja i shtohet vlerës së papërpunuar 16-bitëshe, prandaj mund të ndryshojë grupin kryesor/të mesëm kur adresat kalojnë një kufi."
@@ -539,7 +539,7 @@ msgid "(Top Level)"
 msgstr "(Niveli më i lartë)"
 
 msgid "Delete this space and everything in it? Devices are only unassigned, not deleted."
-msgstr "Ta fshini këtë hapësirë dhe gjithçka që ka brenda? Pajisjet vetëm hiqen nga caktimi, nuk fshihen."
+msgstr "Të fshihet kjo hapësirë dhe gjithçka që ka brenda? Pajisjet vetëm hiqen nga caktimi, nuk fshihen."
 
 msgid "Assign a Device to This Space"
 msgstr "Cakto një pajisje në këtë hapësirë"
@@ -581,10 +581,10 @@ msgid "Sun Protection"
 msgstr "Mbrojtje nga dielli"
 
 msgid "Heating (Switching Variable)"
-msgstr "Ngrohje (variabël ndezje/fikjeje)"
+msgstr "Ngrohje (komandë binare ON/OFF)"
 
 msgid "Heating (Continuous Variable)"
-msgstr "Ngrohje (variabël e vazhdueshme)"
+msgstr "Ngrohje (komandë proporcionale 0–100%)"
 
 msgid "Switchable Socket"
 msgstr "Prizë me ndezje/fikje"
@@ -596,7 +596,7 @@ msgid "Installation"
 msgstr "Instalimi"
 
 msgid "Group Address Style"
-msgstr "Stili i adresave të grupit"
+msgstr "Stili i adresave të grupeve"
 
 msgid "Created by"
 msgstr "Krijuar nga"
@@ -728,10 +728,10 @@ msgid "Channels ({count})"
 msgstr "Kanalet ({count})"
 
 msgid "DALI (Bus)"
-msgstr "DALI (bus)"
+msgstr "DALI (busi)"
 
 msgid "Assigned Objects"
-msgstr "Objektet e caktuara"
+msgstr "Objektet e lidhura"
 
 msgid "Object"
 msgstr "Objekti"
@@ -794,22 +794,22 @@ msgid "Unload"
 msgstr "Çngarko"
 
 msgid "Unload Application and Address"
-msgstr "Çngarko aplikacionin dhe adresën"
+msgstr "Çngarko programin aplikativ dhe adresën"
 
 msgid "Partial: Parameters"
-msgstr "Pjesërisht: parametrat"
+msgstr "I pjesshëm: parametrat"
 
 msgid "Partial: Group Communication"
-msgstr "Pjesërisht: komunikimi në grup"
+msgstr "I pjesshëm: komunikimi në grup"
 
 msgid "Overwrite Individual Address"
 msgstr "Mbishkruaj adresën individuale"
 
 msgid "This writes the individual address {address} to the device whose programming button is pressed. Continue?"
-msgstr "Kjo e shkruan adresën individuale {address} në pajisjen të cilës i është shtypur butoni i programimit. Të vazhdoj?"
+msgstr "Kjo e shkruan adresën individuale {address} në pajisjen të cilës i është shtypur butoni i programimit. Të vazhdohet?"
 
 msgid "This overwrites the individual address of the device at its current address with {address}. Its programming button does not need to be pressed."
-msgstr "Kjo e mbishkruan adresën individuale të pajisjes në adresën e saj aktuale me {address}. Nuk është e nevojshme të shtypet butoni i saj i programimit."
+msgstr "Kjo e mbishkruan adresën individuale aktuale të pajisjes me {address}. Nuk është e nevojshme të shtypet butoni i saj i programimit."
 
 msgid "Current Individual Address"
 msgstr "Adresa individuale aktuale"
@@ -839,28 +839,28 @@ msgid "Enter the serial number as 12 hexadecimal digits, e.g. 0083:7AA2039C."
 msgstr "Vendosni numrin serial si 12 shifra heksadecimale, p.sh. 0083:7AA2039C."
 
 msgid "Manufacturer Info"
-msgstr "Info e prodhuesit"
+msgstr "Informacioni i prodhuesit"
 
 msgid "Application"
-msgstr "Aplikacioni"
+msgstr "Programi aplikativ"
 
 msgid "Application Version"
-msgstr "Versioni i aplikacionit"
+msgstr "Versioni i programit aplikativ"
 
 msgid "Read from Device"
 msgstr "Lexo nga pajisja"
 
 msgid "Restart"
-msgstr "Rinis"
+msgstr "Rinis pajisjen"
 
 msgid "Reset…"
-msgstr "Rivendos…"
+msgstr "Rivendos pajisjen…"
 
 msgid "Master Reset"
 msgstr "Master Reset"
 
 msgid "Destructive: the device is reset over the bus and must be commissioned again. In KNX Secure mode this deactivates device security."
-msgstr "Shkatërruese: pajisja rivendoset përmes busit dhe duhet vënë sërish në punë. Në modalitetin KNX Secure kjo çaktivizon sigurinë e pajisjes."
+msgstr "Veprim shkatërrues: pajisja rivendoset përmes busit dhe duhet të vihet sërish në punë. Në modalitetin KNX Secure, kjo çaktivizon sigurinë e pajisjes."
 
 msgid "Reset Type"
 msgstr "Lloji i rivendosjes"
@@ -887,7 +887,7 @@ msgid "Reset Parameters"
 msgstr "Rivendos parametrat"
 
 msgid "Reset Group Address Links"
-msgstr "Rivendos lidhjet e adresave të grupit"
+msgstr "Rivendos lidhjet e adresave të grupeve"
 
 msgid "Confirmed Restart"
 msgstr "Rinisje e konfirmuar"
@@ -902,7 +902,7 @@ msgid "Mask Version"
 msgstr "Versioni i maskës"
 
 msgid "Order Info"
-msgstr "Info e porosisë"
+msgstr "Informacioni i porosisë"
 
 msgid "Hardware Type"
 msgstr "Lloji i harduerit"
@@ -920,10 +920,10 @@ msgid "Product"
 msgstr "Produkti"
 
 msgid "Product Ref"
-msgstr "Ref. e produktit"
+msgstr "Referenca e produktit"
 
 msgid "Program Ref"
-msgstr "Ref. e programit"
+msgstr "Referenca e programit"
 
 msgid "IP Configuration"
 msgstr "Konfigurimi IP"
@@ -1010,7 +1010,7 @@ msgid "Editing {count} devices — edits apply to all, diverging values show <di
 msgstr "Po ndryshohen {count} pajisje — ndryshimet vlejnë për të gjitha, vlerat që ndryshojnë shfaqin <ndryshon>"
 
 msgid "Hardware"
-msgstr "Harduer"
+msgstr "Hardueri"
 
 msgid "Firmware"
 msgstr "Firmware"
@@ -1061,7 +1061,7 @@ msgid "Programming Test Result"
 msgstr "Rezultati i testit të programimit"
 
 msgid "Evaluation failed"
-msgstr "Vlerësimi dështoi"
+msgstr "Testi dështoi"
 
 msgid "Read-only test: checks that the download function generates the same image as what is already programmed on the device. Nothing is written to the device."
 msgstr "Test vetëm për lexim: kontrollon që funksioni i programimit prodhon të njëjtin imazh me atë që është tashmë i programuar në pajisje. Asgjë nuk shkruhet në pajisje."
@@ -1082,7 +1082,7 @@ msgid "{matched} matched, {changed} would change"
 msgstr "{matched} përputhen, {changed} do të ndryshonin"
 
 msgid "Only for ETS 6 devices: this test compares the device against an image generated the ETS 6 way. A device last programmed with ETS 5 uses a different byte layout and will show large false differences - the result is only meaningful for a device last programmed with ETS 6."
-msgstr "Vetëm për pajisje ETS 6: ky test e krahason pajisjen me një imazh të prodhuar sipas mënyrës së ETS 6. Një pajisje e programuar për herë të fundit me ETS 5 përdor një renditje tjetër bajtesh dhe do të shfaqë ndryshime të mëdha të rreme - rezultati ka kuptim vetëm për një pajisje të programuar për herë të fundit me ETS 6."
+msgstr "Vetëm për pajisjet e programuara me ETS 6: ky test e krahason pajisjen me një imazh të prodhuar sipas mënyrës së ETS 6. Një pajisje e programuar për herë të fundit me ETS 5 përdor një renditje tjetër bajtesh dhe do të shfaqë ndryshime të mëdha të rreme - rezultati ka kuptim vetëm për një pajisje të programuar për herë të fundit me ETS 6."
 
 msgid "Structural differences (whole tables differ) can mean the device was last programmed with ETS 5, whose byte layout differs. Differences in values only usually mean the device holds a different configuration."
 msgstr "Ndryshimet strukturore (ndryshojnë tabela të tëra) mund të nënkuptojnë që pajisja është programuar për herë të fundit me ETS 5, renditja e bajteve të të cilit ndryshon. Ndryshimet vetëm në vlera zakonisht nënkuptojnë që pajisja mban një konfigurim tjetër."
@@ -1106,22 +1106,22 @@ msgid "device-managed"
 msgstr "e menaxhuar nga pajisja"
 
 msgid "System byte the device sets itself at runtime (e.g. a download detection byte reset by the application after a download). A difference here is expected and does not indicate a bad download."
-msgstr "Bajt sistemi që pajisja e vendos vetë gjatë punës (p.sh. një bajt zbulimi programimi që aplikacioni e rivendos pas një programimi). Një ndryshim këtu është i pritshëm dhe nuk tregon programim të dështuar."
+msgstr "Bajt sistemi që pajisja e vendos vetë gjatë punës (p.sh. një bajt zbulimi programimi që programi aplikativ e rivendos pas një programimi). Një ndryshim këtu është i pritshëm dhe nuk tregon programim të dështuar."
 
 msgid "plus {bytes} device-managed runtime byte(s) (expected, benign)"
-msgstr "plus {bytes} bajt(e) pune të pajisjes (të pritshëm, të padëmshëm)"
+msgstr "dhe {bytes} bajt(e) që i menaxhon vetë pajisja (të pritshëm, të padëmshëm)"
 
 msgid "No configured differences: the device already carries this configuration. The differences below are benign (see notes)."
-msgstr "Nuk ka ndryshime të konfiguruara: pajisja e mban tashmë këtë konfigurim. Ndryshimet më poshtë janë të padëmshme (shihni shënimet)."
+msgstr "Nuk ka ndryshime në konfigurim: pajisja e mban tashmë këtë konfigurim. Ndryshimet më poshtë janë të padëmshme (shihni shënimet)."
 
 msgid "sets default"
 msgstr "vendos parazgjedhjen"
 
 msgid "This byte is written for a neighbouring parameter; the differing bit is not driven by any active parameter and is only reset to the application default. The device holds an older value (e.g. from a previous configuration or mode) that programming will normalise. Benign."
-msgstr "Ky bajt shkruhet për një parametër fqinj; biti që ndryshon nuk drejtohet nga asnjë parametër aktiv dhe vetëm rivendoset në parazgjedhjen e aplikacionit. Pajisja mban një vlerë më të vjetër (p.sh. nga një konfigurim ose modalitet i mëparshëm) që programimi do ta normalizojë. I padëmshëm."
+msgstr "Ky bajt shkruhet për një parametër fqinj; biti që ndryshon nuk drejtohet nga asnjë parametër aktiv dhe vetëm rivendoset në parazgjedhjen e programit aplikativ. Pajisja mban një vlerë më të vjetër (p.sh. nga një konfigurim ose modalitet i mëparshëm) që programimi do ta normalizojë. I padëmshëm."
 
 msgid "plus {bytes} byte(s) reset to the application default (the device holds an older value; benign, will be normalised on programming)"
-msgstr "plus {bytes} bajt(e) të rivendosur në parazgjedhjen e aplikacionit (pajisja mban një vlerë më të vjetër; e padëmshme, do të normalizohet gjatë programimit)"
+msgstr "dhe {bytes} bajt(e) të rivendosur në parazgjedhjen e programit aplikativ (pajisja mban një vlerë më të vjetër; e padëmshme, do të normalizohet gjatë programimit)"
 
 msgid "Export Ist/Soll…"
 msgstr "Eksporto Ist/Soll…"
@@ -1145,7 +1145,7 @@ msgid "No devices. Open or import a project (File menu), or right-click here to 
 msgstr "Nuk ka pajisje. Hapni ose importoni një projekt (menyja Skedari), ose klikoni djathtas këtu për të shtuar një zonë."
 
 msgid "Filter group addresses (address, name)…"
-msgstr "Filtro adresat e grupit (adresa, emri)…"
+msgstr "Filtro adresat e grupeve (adresa, emri)…"
 
 msgid "Filter rooms, devices, functions…"
 msgstr "Filtro dhomat, pajisjet, funksionet…"
@@ -1205,13 +1205,13 @@ msgid "Paste configuration onto '{name}':"
 msgstr "Ngjit konfigurimin te '{name}':"
 
 msgid "Paste configuration onto {count} selected devices:"
-msgstr "Ngjit konfigurimin te {count} pajisjet e zgjedhura:"
+msgstr "Ngjit konfigurimin te {count} pajisje të zgjedhura:"
 
 msgid "Duplicate '{name}':"
 msgstr "Dyfisho '{name}':"
 
 msgid "Group Address Links"
-msgstr "Lidhjet e adresave të grupit"
+msgstr "Lidhjet e adresave të grupeve"
 
 msgid "Paste"
 msgstr "Ngjit"
@@ -1220,7 +1220,7 @@ msgid "Delete Device"
 msgstr "Fshi pajisjen"
 
 msgid "Delete '{name}'? Its group objects and group-address links are removed and its individual address is freed. This can be undone."
-msgstr "Ta fshini '{name}'? Objektet e saj të grupit dhe lidhjet me adresat e grupit hiqen, dhe adresa e saj individuale lirohet. Ky veprim mund të zhbëhet."
+msgstr "Të fshihet '{name}'? Objektet e saj të grupit dhe lidhjet me adresat e grupeve hiqen dhe adresa e saj individuale lirohet. Ky veprim mund të zhbëhet."
 
 msgid "Number"
 msgstr "Numri"
@@ -1241,7 +1241,7 @@ msgid "Delete Folder"
 msgstr "Fshi dosjen"
 
 msgid "Delete this folder and every group address in it? This can be undone."
-msgstr "Ta fshini këtë dosje dhe çdo adresë grupi brenda saj? Ky veprim mund të zhbëhet."
+msgstr "Të fshihet kjo dosje dhe çdo adresë grupi brenda saj? Ky veprim mund të zhbëhet."
 
 msgid "Invalid address or already in use."
 msgstr "Adresë e pavlefshme ose tashmë në përdorim."
@@ -1343,13 +1343,13 @@ msgid "Parameter Script"
 msgstr "Skripti i parametrave"
 
 msgid "Executing Script"
-msgstr "Skripti në ekzekutim"
+msgstr "Po ekzekutohet skripti"
 
 msgid "Script not responding"
 msgstr "Skripti nuk përgjigjet"
 
 msgid "Force Stop"
-msgstr "Ndalo me detyrim"
+msgstr "Ndalo me forcë"
 
 msgid "The script was stopped."
 msgstr "Skripti u ndal."
@@ -1379,10 +1379,10 @@ msgid "No operations."
 msgstr "Asnjë veprim."
 
 msgid "Device Info"
-msgstr "Info e pajisjes"
+msgstr "Informacioni i pajisjes"
 
 msgid "Device Info (With Group Communication)"
-msgstr "Info e pajisjes (me komunikimin në grup)"
+msgstr "Informacioni i pajisjes (me komunikimin në grup)"
 
 msgid "Reading"
 msgstr "Po lexohet"
@@ -1451,7 +1451,7 @@ msgid "Also read the group communication?"
 msgstr "Të lexohet edhe komunikimi në grup?"
 
 msgid "The application on the device is not in the catalog, so its tables cannot be located"
-msgstr "Aplikacioni në pajisje nuk është në katalog, prandaj tabelat e tij nuk mund të gjenden"
+msgstr "Programi aplikativ në pajisje nuk është në katalog, prandaj tabelat e tij nuk mund të gjenden"
 
 msgid "This device can only be programmed with the manufacturer's plugin, which is not available here."
 msgstr "Kjo pajisje mund të programohet vetëm me plugin-in e prodhuesit, i cili nuk është i disponueshëm këtu."
@@ -1517,7 +1517,7 @@ msgid "The application program currently loaded in the device is different from 
 msgstr "Programi aplikativ i ngarkuar aktualisht në pajisje ndryshon nga programi aplikativ i projektuar"
 
 msgid "Do you want to overwrite the application program (this may take several minutes)?"
-msgstr "Doni ta mbishkruani programin aplikativ (kjo mund të zgjasë disa minuta)?"
+msgstr "Të mbishkruhet programi aplikativ (kjo mund të zgjasë disa minuta)?"
 
 msgid "The application program currently loaded in the device does not comply with the projected application program. You may try a full instead of a partial download."
 msgstr "Programi aplikativ i ngarkuar aktualisht në pajisje nuk përputhet me programin aplikativ të projektuar. Mund të provoni një programim të plotë në vend të një të pjesshmi."
@@ -1589,16 +1589,16 @@ msgid "Not connected to the bus."
 msgstr "Nuk jeni i lidhur me busin."
 
 msgid "Export Group Addresses…"
-msgstr "Eksporto adresat e grupit…"
+msgstr "Eksporto adresat e grupeve…"
 
 msgid "Import Group Addresses…"
-msgstr "Importo adresat e grupit…"
+msgstr "Importo adresat e grupeve…"
 
 msgid "Import Group Addresses"
-msgstr "Importo adresat e grupit"
+msgstr "Importo adresat e grupeve"
 
 msgid "Group Address Files (XML, CSV)"
-msgstr "Skedarë adresash grupi (XML, CSV)"
+msgstr "Skedarët e adresave të grupeve (XML, CSV)"
 
 msgid "{added} group addresses added, {updated} updated."
 msgstr "U shtuan {added} adresa grupi, u përditësuan {updated}."
@@ -1709,10 +1709,10 @@ msgid "Point-to-Point and Broadcast"
 msgstr "Pikë-me-pikë dhe broadcast"
 
 msgid "Blocked"
-msgstr "I bllokuar"
+msgstr "Të bllokuara"
 
 msgid "Routed"
-msgstr "I përcjellë"
+msgstr "Të përcjella"
 
 msgid "Connect to a KNX interface to commission the DALI bus."
 msgstr "Lidhuni me një ndërfaqe KNX për të vënë në punë busin DALI."
@@ -1775,16 +1775,16 @@ msgid "Continue"
 msgstr "Vazhdo"
 
 msgid "New installation scans the DALI bus again and REASSIGNS the short\naddress of every ballast. This cannot be undone. Continue?"
-msgstr "Instalimi i ri e skanon sërish busin DALI dhe RICAKTON adresën e shkurtër\ntë çdo ballasti. Ky veprim nuk mund të zhbëhet. Të vazhdoj?"
+msgstr "Instalimi i ri e skanon sërish busin DALI dhe RICAKTON adresën e shkurtër\ntë çdo ballasti. Ky veprim nuk mund të zhbëhet. Të vazhdohet?"
 
 msgid "Post installation scans the bus for new ballasts and updates their addressing.\nThis changes the device. Continue?"
-msgstr "Instalimi shtesë kërkon në bus ballaste të reja dhe përditëson adresimin e tyre.\nKjo e ndryshon pajisjen. Të vazhdoj?"
+msgstr "Instalimi shtesë kërkon në bus ballaste të reja dhe përditëson adresimin e tyre.\nKjo e ndryshon pajisjen. Të vazhdohet?"
 
 msgid "Write the group assignment to the DALI bus. This applies the groups to the\ngateway and its ballasts. Continue?"
-msgstr "Shkruaj caktimin e grupeve në busin DALI. Kjo i zbaton grupet në\ngateway dhe në ballastet e tij. Të vazhdoj?"
+msgstr "Shkruaj caktimin e grupeve në busin DALI. Kjo i zbaton grupet në\ngateway dhe në ballastet e tij. Të vazhdohet?"
 
 msgid "Write the scene values to the DALI bus. Continue?"
-msgstr "Shkruaj vlerat e skenave në busin DALI. Të vazhdoj?"
+msgstr "Shkruaj vlerat e skenave në busin DALI. Të vazhdohet?"
 
 msgid "{count} ECG(s) present"
 msgstr "{count} ECG të pranishme"
@@ -1838,13 +1838,13 @@ msgid "Kind"
 msgstr "Lloji"
 
 msgid "Applies To"
-msgstr "Vlen për"
+msgstr "Zbatohet për"
 
 msgid "Details"
 msgstr "Detajet"
 
 msgid "Scope: {scope}"
-msgstr "Shtrirja: {scope}"
+msgstr "Lloji i programimit: {scope}"
 
 msgid "Additional Individual Addresses"
 msgstr "Adresat individuale shtesë"
@@ -1904,10 +1904,10 @@ msgid "Create group address {address}"
 msgstr "Krijo adresën e grupit {address}"
 
 msgid "Import group addresses"
-msgstr "Importo adresat e grupit"
+msgstr "Importo adresat e grupeve"
 
 msgid "Import group addresses from {file}"
-msgstr "Importo adresat e grupit nga {file}"
+msgstr "Importo adresat e grupeve nga {file}"
 
 msgid "Link group object"
 msgstr "Lidh objektin e grupit"
@@ -1943,7 +1943,7 @@ msgid "Set description"
 msgstr "Vendos përshkrimin"
 
 msgid "Set sending group address"
-msgstr "Cakto adresën e grupit dërguese"
+msgstr "Cakto adresën dërguese të grupit"
 
 msgid "Add installation"
 msgstr "Shto instalim"
@@ -2162,7 +2162,7 @@ msgid "No parameter matches the filter."
 msgstr "Asnjë parametër nuk përputhet me filtrin."
 
 msgid "No plugin mapping is available for this device yet. The vendor plugin's parameters stay unreachable from here."
-msgstr "Për këtë pajisje ende nuk ka përputhje me plugin-in. Parametrat e plugin-it të prodhuesit mbeten të paarritshëm nga këtu."
+msgstr "Për këtë pajisje ende nuk është përcaktuar lidhja e parametrave të plugin-it. Parametrat e plugin-it të prodhuesit mbeten të paarritshëm nga këtu."
 
 msgid "Parameter"
 msgstr "Parametri"
@@ -2195,7 +2195,7 @@ msgid "Slot"
 msgstr "Slot"
 
 msgid "The application has no static parameters."
-msgstr "Aplikacioni nuk ka parametra statikë."
+msgstr "Programi aplikativ nuk ka parametra statikë."
 
 msgid "This gateway's commissioning protocol has not been verified against a capture; writes may misbehave. Proceed with care."
 msgstr "Protokolli i vënies në punë i këtij gateway-i nuk është verifikuar me një regjistrim; shkrimet mund të sillen gabim. Vazhdoni me kujdes."
@@ -2207,7 +2207,7 @@ msgid "Program DCA State"
 msgstr "Programo gjendjen DCA"
 
 msgid "Sends the DALI device settings to the gateway as property values."
-msgstr "Dërgon cilësimet e pajisjeve DALI te gateway-i si vlera të vetive."
+msgstr "Dërgon cilësimet e pajisjes DALI te gateway-i në formën e vlerave të vetive."
 
 msgid "Add to {section}:"
 msgstr "Shto në {section}:"
@@ -2471,7 +2471,7 @@ msgid "Each line in a project must have a unique domain address."
 msgstr "Çdo linjë në një projekt duhet të ketë një adresë domeni unike."
 
 msgid "Last Downloaded"
-msgstr "Programimi i fundit"
+msgstr "Programuar së fundi"
 
 msgid "Create trade {name}"
 msgstr "Krijo sektorin {name}"
@@ -2501,7 +2501,7 @@ msgid "Trades"
 msgstr "Sektorët"
 
 msgid "Building Parts…"
-msgstr "Pjesë të ndërtesës…"
+msgstr "Pjesë ndërtese…"
 
 msgid "Floors…"
 msgstr "Kate…"
@@ -2537,7 +2537,7 @@ msgid "Add Buildings"
 msgstr "Shto ndërtesa"
 
 msgid "Add Building Parts"
-msgstr "Shto pjesë të ndërtesës"
+msgstr "Shto pjesë ndërtese"
 
 msgid "Add Floors"
 msgstr "Shto kate"
@@ -2573,7 +2573,7 @@ msgid "New building"
 msgstr "Ndërtesë e re"
 
 msgid "New building part"
-msgstr "Pjesë e re ndërtese"
+msgstr "Pjesë ndërtese e re"
 
 msgid "New floor"
 msgstr "Kat i ri"
@@ -2939,7 +2939,7 @@ msgid "Existing Devices…"
 msgstr "Pajisje ekzistuese…"
 
 msgid "Delete the {count} selected devices? Their group objects and group-address links are removed and their individual addresses are freed. This can be undone."
-msgstr "Të fshihen {count} pajisjet e zgjedhura? Objektet e tyre të grupit dhe lidhjet me adresat e grupit hiqen, dhe adresat e tyre individuale lirohen. Ky veprim mund të zhbëhet."
+msgstr "Të fshihen {count} pajisje të zgjedhura? Objektet e tyre të grupit dhe lidhjet me adresat e grupeve hiqen dhe adresat e tyre individuale lirohen. Ky veprim mund të zhbëhet."
 
 msgid "Remove {count} devices"
 msgstr "Hiq {count} pajisje"

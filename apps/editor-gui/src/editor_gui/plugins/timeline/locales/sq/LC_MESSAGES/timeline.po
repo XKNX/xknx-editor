@@ -14,10 +14,10 @@ msgid "No project open"
 msgstr "Asnjë projekt i hapur"
 
 msgid "Filter group addresses…"
-msgstr "Filtro adresat e grupit…"
+msgstr "Filtro adresat e grupeve…"
 
 msgid "Tick group addresses on the left to plot their values over time."
-msgstr "Shënoni adresat e grupit majtas për të vizatuar vlerat e tyre në kohë."
+msgstr "Shënoni adresat e grupeve majtas për të vizatuar vlerat e tyre në kohë."
 
 msgid "No numeric values captured yet for the selected addresses."
 msgstr "Ende nuk janë kapur vlera numerike për adresat e zgjedhura."

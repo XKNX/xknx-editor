@@ -26,7 +26,7 @@ msgid "Duplicate individual address {address} ({device})"
 msgstr "Adresë individuale e dyfishtë {address} ({device})"
 
 msgid "{count} device(s) skipped: application not in catalog"
-msgstr "{count} pajisje u anashkaluan: aplikacioni nuk është në katalog"
+msgstr "{count} pajisje u anashkaluan: programi aplikativ nuk është në katalog"
 
 msgid "{device}: {count} unlinked group object(s)"
 msgstr "{device}: {count} objekt(e) grupi pa lidhje"
