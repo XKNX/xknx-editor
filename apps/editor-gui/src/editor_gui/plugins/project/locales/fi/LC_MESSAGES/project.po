@@ -3012,3 +3012,15 @@ msgstr "Aseta koodisivuksi {code_page}"
 
 msgid "Encrypted"
 msgstr "Salattu"
+
+msgid "The device did not respond ({detail})."
+msgstr "Laite ei vastannut ({detail})."
+
+msgid "Check that the device is powered and can be reached from this interface (line, coupler)."
+msgstr "Tarkista, että laitteessa on virta ja että siihen saadaan yhteys tästä rajapinnasta (linja, kytkin)."
+
+msgid "For a new device, put exactly one device into programming mode. Otherwise check that the device is powered and can be reached from this interface (line, coupler)."
+msgstr "Aseta uutta laitetta varten täsmälleen yksi laite ohjelmointitilaan. Muussa tapauksessa tarkista, että laitteessa on virta ja että siihen saadaan yhteys tästä rajapinnasta (linja, kytkin)."
+
+msgid "The download failed after it had begun to write the device, so the device may be partially loaded. Program it again to restore a working state. Cause: {cause}"
+msgstr "Lataus epäonnistui sen jälkeen, kun se oli alkanut kirjoittaa laitteeseen, joten laite voi olla vain osittain ladattu. Ohjelmoi se uudelleen toimivan tilan palauttamiseksi. Syy: {cause}"

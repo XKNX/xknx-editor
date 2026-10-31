@@ -204,7 +204,6 @@ class ProjectPlugin:
             api.connection,
             api.main_thread.submit if api.main_thread is not None else _run_now,
             Logger(api.log, "project"),
-            api.tell_refused,
         )
 
         self._memory_preview = MemoryPreviewWindow(
@@ -2535,9 +2534,13 @@ class ProjectPlugin:
         finally:
             item.full_download_question = None
 
-    def _program_error_text(self, error: BaseException) -> str | None:
+    @staticmethod
+    def _program_error_text(error: BaseException) -> str | None:
         """Translated text of the download errors the editor explains itself."""
+        from xknx.exceptions import ManagementConnectionTimeout
+
         from editor_gui.plugins.connection.service import DeviceCertificateRequired
+        from xknxeditor.download.errors import PartialDownloadError
         from xknxeditor.download.partial import (
             DifferentProgramLoaded,
             IncompatibleMaskVersion,
@@ -2551,21 +2554,43 @@ class ProjectPlugin:
             return S.INCOMPATIBLE_MASK_VERSION.format(
                 found=error.found, expected=error.expected
             )
+        if isinstance(error, ManagementConnectionTimeout):
+            return S.DEVICE_NOT_RESPONDING.format(detail=str(error))
+        if isinstance(error, PartialDownloadError) and error.__cause__ is not None:
+            cause = error.__cause__
+            return S.PARTIAL_DOWNLOAD_FAILED.format(
+                cause=ProjectPlugin._program_error_text(cause) or str(cause)
+            )
         return None
 
     def _describe_program_error(
         self, item: QueueItem, error: BaseException
     ) -> str | None:
-        """For a failed device check, the project devices the reported value belongs to. A
-        download that found the device's certificate missing only once it had connected for it
-        asks for the certificate, as one that found it before."""
+        """For a failed device check, the project devices the reported value belongs to; for a
+        device that did not respond, what to check. A download that found the device's
+        certificate missing only once it had connected for it asks for the certificate, as one
+        that found it before."""
+        from xknx.exceptions import ManagementConnectionTimeout
+
         from editor_gui.plugins.connection.service import DeviceCertificateRequired
+        from xknxeditor.download.scope import DownloadScope
 
         if isinstance(error, DeviceCertificateRequired):
             device = self._api.project.find_device_by_node_id(item.node_id)
             if device is not None and item.origin is None:
                 self._ask_certificate(device, item)
             return None
+        if isinstance(error, ManagementConnectionTimeout):
+            # A full download of a new device first writes its address to the one device in
+            # programming mode when nothing answers at the address.
+            new_device = (
+                item.scope is DownloadScope.FULL
+                and not item.test
+                and item.device_info is None
+            )
+            return S.NO_RESPONSE_NEW_DEVICE_HINT if new_device else S.NO_RESPONSE_HINT
+        if isinstance(error.__cause__, ManagementConnectionTimeout):
+            return S.NO_RESPONSE_HINT
         mismatch = compare_mismatch(error)
         if mismatch is None:
             return None

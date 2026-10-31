@@ -3050,3 +3050,15 @@ msgstr "Codepagina instellen op {code_page}"
 
 msgid "Encrypted"
 msgstr "Versleuteld"
+
+msgid "The device did not respond ({detail})."
+msgstr "Het apparaat heeft niet geantwoord ({detail})."
+
+msgid "Check that the device is powered and can be reached from this interface (line, coupler)."
+msgstr "Controleer of het apparaat voeding heeft en vanaf deze interface bereikbaar is (lijn, koppelaar)."
+
+msgid "For a new device, put exactly one device into programming mode. Otherwise check that the device is powered and can be reached from this interface (line, coupler)."
+msgstr "Zet bij een nieuw apparaat precies één apparaat in de programmeermodus. Controleer anders of het apparaat voeding heeft en vanaf deze interface bereikbaar is (lijn, koppelaar)."
+
+msgid "The download failed after it had begun to write the device, so the device may be partially loaded. Program it again to restore a working state. Cause: {cause}"
+msgstr "Het downloaden is mislukt nadat het al naar het apparaat was begonnen te schrijven, dus het apparaat is mogelijk maar gedeeltelijk geladen. Programmeer het opnieuw om een werkende toestand te herstellen. Oorzaak: {cause}"

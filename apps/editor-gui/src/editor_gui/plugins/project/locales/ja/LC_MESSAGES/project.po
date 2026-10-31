@@ -3012,3 +3012,15 @@ msgstr "コード・ページを{code_page}に設定"
 
 msgid "Encrypted"
 msgstr "暗号化済み"
+
+msgid "The device did not respond ({detail})."
+msgstr "デバイスが応答しませんでした ({detail})。"
+
+msgid "Check that the device is powered and can be reached from this interface (line, coupler)."
+msgstr "デバイスに電源が入っていて、このインターフェイスから到達できること (ライン、カプラ) を確認してください。"
+
+msgid "For a new device, put exactly one device into programming mode. Otherwise check that the device is powered and can be reached from this interface (line, coupler)."
+msgstr "新しいデバイスの場合は、ちょうど 1 台のデバイスをプログラミング・モードにしてください。それ以外の場合は、デバイスに電源が入っていて、このインターフェイスから到達できること (ライン、カプラ) を確認してください。"
+
+msgid "The download failed after it had begun to write the device, so the device may be partially loaded. Program it again to restore a working state. Cause: {cause}"
+msgstr "デバイスへの書き込みを開始した後でダウンロードに失敗したため、デバイスは一部しかロードされていない可能性があります。正常な状態に戻すには、もう一度プログラムしてください。原因: {cause}"

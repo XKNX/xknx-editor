@@ -3039,3 +3039,15 @@ msgstr "Nastaviť kódovú stránku na {code_page}"
 
 msgid "Encrypted"
 msgstr "Šifrované"
+
+msgid "The device did not respond ({detail})."
+msgstr "Zariadenie neodpovedalo ({detail})."
+
+msgid "Check that the device is powered and can be reached from this interface (line, coupler)."
+msgstr "Skontrolujte, či je zariadenie napájané a dosiahnuteľné z tohto rozhrania (línia, spojka)."
+
+msgid "For a new device, put exactly one device into programming mode. Otherwise check that the device is powered and can be reached from this interface (line, coupler)."
+msgstr "Pri novom zariadení prepnite do programovacieho režimu práve jedno zariadenie. Inak skontrolujte, či je zariadenie napájané a dosiahnuteľné z tohto rozhrania (línia, spojka)."
+
+msgid "The download failed after it had begun to write the device, so the device may be partially loaded. Program it again to restore a working state. Cause: {cause}"
+msgstr "Sťahovanie zlyhalo po tom, čo začalo zapisovať do zariadenia, takže zariadenie môže byť načítané len čiastočne. Naprogramujte ho znova, aby opäť fungovalo. Príčina: {cause}"

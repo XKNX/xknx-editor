@@ -3012,3 +3012,15 @@ msgstr "Definir o código de página para {code_page}"
 
 msgid "Encrypted"
 msgstr "Encriptado"
+
+msgid "The device did not respond ({detail})."
+msgstr "O dispositivo não respondeu ({detail})."
+
+msgid "Check that the device is powered and can be reached from this interface (line, coupler)."
+msgstr "Verifique se o dispositivo está alimentado e acessível a partir desta interface (linha, acoplador)."
+
+msgid "For a new device, put exactly one device into programming mode. Otherwise check that the device is powered and can be reached from this interface (line, coupler)."
+msgstr "Para um dispositivo novo, coloque exatamente um dispositivo em modo de programação. Caso contrário, verifique se o dispositivo está alimentado e acessível a partir desta interface (linha, acoplador)."
+
+msgid "The download failed after it had begun to write the device, so the device may be partially loaded. Program it again to restore a working state. Cause: {cause}"
+msgstr "A transferência falhou depois de ter começado a escrever no dispositivo, pelo que o dispositivo pode estar apenas parcialmente carregado. Programe-o novamente para repor um estado funcional. Causa: {cause}"

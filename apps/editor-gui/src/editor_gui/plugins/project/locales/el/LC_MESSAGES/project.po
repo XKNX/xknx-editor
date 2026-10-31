@@ -3012,3 +3012,15 @@ msgstr "Ορισμός κωδικοσελίδας σε {code_page}"
 
 msgid "Encrypted"
 msgstr "Κρυπτογραφημένο"
+
+msgid "The device did not respond ({detail})."
+msgstr "Η συσκευή δεν απάντησε ({detail})."
+
+msgid "Check that the device is powered and can be reached from this interface (line, coupler)."
+msgstr "Ελέγξτε ότι η συσκευή τροφοδοτείται και είναι προσβάσιμη από αυτή τη θύρα επικοινωνίας (γραμμή, συζεύκτης)."
+
+msgid "For a new device, put exactly one device into programming mode. Otherwise check that the device is powered and can be reached from this interface (line, coupler)."
+msgstr "Για νέα συσκευή, θέστε ακριβώς μία συσκευή σε λειτουργία προγραμματισμού. Διαφορετικά ελέγξτε ότι η συσκευή τροφοδοτείται και είναι προσβάσιμη από αυτή τη θύρα επικοινωνίας (γραμμή, συζεύκτης)."
+
+msgid "The download failed after it had begun to write the device, so the device may be partially loaded. Program it again to restore a working state. Cause: {cause}"
+msgstr "Η λήψη απέτυχε αφού είχε αρχίσει να γράφει στη συσκευή, οπότε η συσκευή μπορεί να είναι μερικώς φορτωμένη. Προγραμματίστε την ξανά για να επανέλθει σε λειτουργική κατάσταση. Αιτία: {cause}"

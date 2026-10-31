@@ -3012,3 +3012,15 @@ msgstr "Nastavit kódovou stranu na {code_page}"
 
 msgid "Encrypted"
 msgstr "Šifrováno"
+
+msgid "The device did not respond ({detail})."
+msgstr "Zařízení neodpovědělo ({detail})."
+
+msgid "Check that the device is powered and can be reached from this interface (line, coupler)."
+msgstr "Zkontrolujte, zda je zařízení napájeno a dosažitelné z tohoto rozhraní (linie, spojka)."
+
+msgid "For a new device, put exactly one device into programming mode. Otherwise check that the device is powered and can be reached from this interface (line, coupler)."
+msgstr "U nového zařízení přepněte do programovacího režimu právě jedno zařízení. Jinak zkontrolujte, zda je zařízení napájeno a dosažitelné z tohoto rozhraní (linie, spojka)."
+
+msgid "The download failed after it had begun to write the device, so the device may be partially loaded. Program it again to restore a working state. Cause: {cause}"
+msgstr "Stahování selhalo poté, co začalo zapisovat do zařízení, takže zařízení může být načteno jen částečně. Naprogramujte ho znovu, aby opět fungovalo. Příčina: {cause}"
