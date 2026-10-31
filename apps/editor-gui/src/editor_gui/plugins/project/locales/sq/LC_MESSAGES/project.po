@@ -1205,7 +1205,7 @@ msgid "Paste configuration onto '{name}':"
 msgstr "Ngjit konfigurimin te '{name}':"
 
 msgid "Paste configuration onto {count} selected devices:"
-msgstr "Ngjit konfigurimin te {count} pajisjet e zgjedhura:"
+msgstr "Ngjit konfigurimin te {count} pajisje të zgjedhura:"
 
 msgid "Duplicate '{name}':"
 msgstr "Dyfisho '{name}':"
@@ -2162,7 +2162,7 @@ msgid "No parameter matches the filter."
 msgstr "Asnjë parametër nuk përputhet me filtrin."
 
 msgid "No plugin mapping is available for this device yet. The vendor plugin's parameters stay unreachable from here."
-msgstr "Për këtë pajisje ende nuk ka përputhje me plugin-in. Parametrat e plugin-it të prodhuesit mbeten të paarritshëm nga këtu."
+msgstr "Për këtë pajisje ende nuk është përcaktuar lidhja e parametrave të plugin-it. Parametrat e plugin-it të prodhuesit mbeten të paarritshëm nga këtu."
 
 msgid "Parameter"
 msgstr "Parametri"
@@ -2207,7 +2207,7 @@ msgid "Program DCA State"
 msgstr "Programo gjendjen DCA"
 
 msgid "Sends the DALI device settings to the gateway as property values."
-msgstr "Dërgon cilësimet e pajisjeve DALI te gateway-i si vlera të vetive."
+msgstr "Dërgon cilësimet e pajisjes DALI te gateway-i në formën e vlerave të vetive."
 
 msgid "Add to {section}:"
 msgstr "Shto në {section}:"

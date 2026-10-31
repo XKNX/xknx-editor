@@ -131,10 +131,10 @@ msgid "<differs>"
 msgstr "<ndryshon>"
 
 msgid "Off"
-msgstr "Fikur"
+msgstr "Çaktivizuar"
 
 msgid "On"
-msgstr "Ndezur"
+msgstr "Aktivizuar"
 
 msgid "Standard"
 msgstr "Standard"
