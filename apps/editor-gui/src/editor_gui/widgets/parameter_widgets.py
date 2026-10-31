@@ -40,7 +40,6 @@ from editor_gui.widgets.value_pickers import (
     render_date_param,
 )
 from editor_gui.widgets.wrapping import (
-    LINE_GAP,
     text_height,
     vertical_space,
     wrap_lines,
@@ -247,11 +246,21 @@ def _shows_as_text(param: UiParameter) -> bool:
     )
 
 
-# A parameter row as the reference tool lays it out (at 100 % scaling): its content is a field
-# (22 px) or a line of text (16 px), or the lines of its label (16 px each) when they take more,
-# with 9 px around it. Text rows are 25 px apart, field rows 31 px.
+# A parameter row as the reference tool lays it out (at 100 % scaling): its content is its value's
+# control or the lines of its label (16 px each) when they take more, with 9 px around it. The
+# controls are a line of text (16 px), radio buttons (24 px), a float without steps (a plain text
+# box, 18 px) or another field (22 px). Label and control are centred in the content.
 _ROW_MARGIN = 9.0
+_LINE_CONTENT = 16.0
 _FIELD_CONTENT = 22.0
+_RADIO_CONTENT = 24.0
+_STEPLESS_CONTENT = 18.0
+# Where the content starts below the row's top: the reference puts its 9 px as 3 px above the
+# content and 6 px below, and draws its text 2 px lower in a line than the editor does; the
+# grids' rows are placed so, too.
+_CONTENT_TOP = 4.0
+# How much shorter a stepless float's field is than other fields (its frame padding is less).
+_STEPLESS_SHRINK = 2.0
 
 
 @dataclass(frozen=True, slots=True)
@@ -263,25 +272,47 @@ class _RowLayout:
     value_top: float
 
 
+def _stepless(param: UiParameter) -> bool:
+    """Whether ``param`` is a float without steps, shown in a plain text box."""
+    return isinstance(param.widget, FloatWidget) and not param.widget.increment
+
+
+def _control(param: UiParameter, text_row: bool) -> tuple[float, float]:
+    """The height of ``param``'s control in its row, and how far its text is below its top."""
+    pad = imgui.get_style().frame_padding.y
+    if text_row:
+        return px(_LINE_CONTENT), 0.0
+    if isinstance(param.widget, EnumWidget) and param.widget.radio:
+        return px(_RADIO_CONTENT), pad
+    if _stepless(param):
+        return px(_STEPLESS_CONTENT), pad - px(_STEPLESS_SHRINK)
+    return px(_FIELD_CONTENT), pad
+
+
 def _row_layout(param: UiParameter, text_row: bool, label_width: float) -> _RowLayout:
-    """The layout of ``param``'s row beside its label ``label_width`` wide. Label and value are
-    centred in the row; a one-line label beside a field is level with the field's text."""
+    """The layout of ``param``'s row beside its label ``label_width`` wide. Label and control
+    are centred in the row's content; a one-line label is level with the control's text."""
     if param.value != param.default_value and _highlight_changes:
         label_width -= imgui.calc_text_size("*").x + px(4)
     labels = max(len(wrap_lines(param.label, max(label_width, 1.0))), 1)
-    gap = px(LINE_GAP)
-    line = imgui.get_text_line_height()
-    content = max(
-        px(_FIELD_CONTENT) if not text_row else line + gap, labels * (line + gap)
+    lines = labels * px(_LINE_CONTENT)
+    control, text_offset = _control(param, text_row)
+    content = max(control, lines)
+    top = px(_CONTENT_TOP)
+    label_top = top + _round(max(0.0, (content - lines) / 2))
+    # The control's text is level with where a one-line label beside it would be.
+    value_top = (
+        top
+        + _round((content - control) / 2)
+        + _round((control - px(_LINE_CONTENT)) / 2)
+        - text_offset
     )
-    height = content + px(_ROW_MARGIN)
-    label_top = math.floor((height - (labels * (line + gap) - gap)) / 2)
-    if text_row:
-        return _RowLayout(height, label_top, math.floor((height - line) / 2))
-    field_top = math.ceil((height - imgui.get_frame_height()) / 2)
-    if labels == 1:
-        label_top = field_top + imgui.get_style().frame_padding.y
-    return _RowLayout(height, label_top, field_top)
+    return _RowLayout(content + px(_ROW_MARGIN), label_top, value_top)
+
+
+def _round(value: float) -> float:
+    """``value`` to whole pixels, halves up (as the reference lays out)."""
+    return float(math.floor(value + 0.5))
 
 
 def _text_row(param: UiParameter) -> bool:
@@ -2377,6 +2408,14 @@ def _render_param_table(
             imgui.begin_group()
             imgui.set_next_item_width(-1 - _suffix_width(param.suffix))
             imgui.begin_disabled(read_only)
+            # A float without steps is a plain text box, shorter than other fields.
+            compact = layout is not None and _stepless(param)
+            if compact:
+                frame = imgui.get_style().frame_padding
+                imgui.push_style_var(
+                    imgui.StyleVar_.frame_padding,
+                    imgui.ImVec2(frame.x, frame.y - px(_STEPLESS_SHRINK)),
+                )
             req = _render_device_param(
                 device,
                 param,
@@ -2385,6 +2424,8 @@ def _render_param_table(
                 deferred_enum=deferred_enum,
                 differs=differs,
             )
+            if compact:
+                imgui.pop_style_var()
             imgui.end_disabled()
             _track_help(param.help_context)
             _render_suffix(param.suffix)
@@ -2431,6 +2472,11 @@ _CELL_GAP = 6.0
 _BUTTON_MARGIN = 7.0
 # Size of a headline over the text: 14 px semibold over the 12 px text.
 _HEADLINE_SCALE = 14.0 / 12.0
+# Room at 100 % scaling above and below a headline's text beyond the usual spacing: a headline
+# is 29 px high, its baseline 20 px below its top (as the reference draws them, measured against
+# its parameter rows).
+_HEADLINE_ABOVE = 1.0
+_HEADLINE_BELOW = 4.0
 # Room at 100 % scaling beyond the usual spacing above and below a separator line and above and
 # below an information or error box. A headline takes the usual spacing only, as its first row
 # follows it one row pitch further down.
@@ -2547,8 +2593,9 @@ def _render_separator(sep: UiSeparator) -> None:
         vertical_space(px(_RULER_BELOW))
     elif sep.hint == "Headline":
         with bold(_HEADLINE_SCALE):
-            imgui.align_text_to_frame_padding()
+            imgui.set_cursor_pos_y(imgui.get_cursor_pos_y() + px(_HEADLINE_ABOVE))
             _aligned_text(sep.text, sep.alignment)
+        vertical_space(px(_HEADLINE_BELOW))
     elif sep.hint == "Information":
         vertical_space(px(_HINT_ABOVE))
         fill = _mix(content_background(), _INFO_BORDER, _INFO_TINT)

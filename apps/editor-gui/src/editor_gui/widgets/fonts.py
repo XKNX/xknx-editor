@@ -19,16 +19,16 @@ _BOLD_FONT = "fonts/XKNXSans-Bold.ttf"
 # the size of the 9 pt text of Windows dialogs, so labels and values written for those fit the same
 # fields.
 _FONT_SIZE = 14.0
-# ImGuiFreeTypeLoaderFlags_LightHinting: glyphs fitted to the pixel grid vertically only, so their
-# edges and lines are crisp and their shapes and stem weight stay. ImGui rounds their advances to
-# whole pixels then; ``text_layout`` places the glyphs of wrapped text itself, as WPF does.
-_FREETYPE_HINTING = 1 << 3
+# FreeType's own hinting (no ImGuiFreeTypeLoaderFlags): glyphs fitted to the pixel grid both ways,
+# so each stem is one column of pixels, as Windows draws them, and stems close together (an "m")
+# stay apart. ImGui rounds their advances to whole pixels then; ``text_layout`` places the glyphs
+# of wrapped text itself, as WPF does.
+_FREETYPE_HINTING = 0
 # ImGuiFreeTypeLoaderFlags_Oblique: slanted glyphs of the same face.
 _FREETYPE_OBLIQUE = 1 << 6
-# How much darker each face draws its glyphs' edges: Windows draws the thin stems of the regular
-# face in full color where FreeType spreads them over two pixels at part coverage; with this the
-# text of each face is as dark in sum (measured on the labels and headlines of a parameter page).
-_CONTRAST = {_DEFAULT_FONT: 1.36, _BOLD_FONT: 1.0}
+# How dark each face draws its glyphs' edges: with this the text of each face is as dark in sum
+# as the reference's (measured on the labels and headlines of a parameter page).
+_CONTRAST = {_DEFAULT_FONT: 1.3, _BOLD_FONT: 0.93}
 
 # Chinese and Japanese characters (Noto Sans SC and JP, SIL Open Font License): fallbacks merged
 # into each font. Both scripts share most characters but draw them differently, so the font of the

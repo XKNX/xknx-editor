@@ -104,3 +104,21 @@ def test_grid_labels_break_after_hyphens() -> None:
     height = parameter_widgets._celltext_height  # pyright: ignore[reportPrivateUsage]
     assert height(sep, narrow) == pytest.approx(text_height(2))
     assert height(sep, None) == pytest.approx(text_height(1))
+
+
+@pytest.mark.usefixtures("frame")
+def test_a_headline_is_placed_as_in_the_reference(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # Its text 1 px below its top and 4 px of room below the text: a headline is 29 px high
+    # with its baseline 20 px down, measured against the rows around it.
+    monkeypatch.setattr(parameter_widgets, "_wrap_width", lambda: 1000.0)
+    top = imgui.get_cursor_pos_y()
+    parameter_widgets._render_separator(  # pyright: ignore[reportPrivateUsage]
+        UiSeparator(id="S-1", text="Uhrzeit & Datum", hint="Headline")
+    )
+    # The text's lines are LINE_GAP apart, and so is what follows them.
+    line = imgui.get_text_line_height()
+    assert imgui.get_cursor_pos_y() - top == pytest.approx(1 + line + LINE_GAP + 4)
+    # The room below the text is the last item.
+    assert imgui.get_item_rect_size().y == pytest.approx(4)

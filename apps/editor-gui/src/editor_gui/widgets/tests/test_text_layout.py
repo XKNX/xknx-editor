@@ -13,8 +13,8 @@ from editor_gui.widgets.text_layout import metrics, wrap
 
 _REGULAR = "fonts/XKNXSans-Regular.ttf"
 _BOLD = "fonts/XKNXSans-Bold.ttf"
-# FreeType's LightHinting flag, as the editor loads its fonts.
-_HINTING = 1 << 3
+# FreeType's own hinting (no flags), as the editor loads its fonts.
+_HINTING = 0
 
 
 @pytest.fixture
