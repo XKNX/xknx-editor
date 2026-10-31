@@ -12,6 +12,7 @@ from imgui_bundle.imgui import internal
 
 from editor_gui.device import Device
 from editor_gui.regional import regional_format
+from editor_gui.widgets import text_layout
 from editor_gui.widgets.backgrounds import (
     box_line,
     child_background,
@@ -2460,6 +2461,16 @@ _ERROR_TINT = 0.15
 _MIN_STRETCH_COLUMN = 80.0
 # Page width at 100 % scaling that percentage column widths of a grid refer to.
 _GRID_REFERENCE_WIDTH = 540.0
+# Width at 100 % scaling of a separator's text, line or box: its row of 535 px less the 3 px it
+# keeps from the row's left edge.
+_SEPARATOR_WIDTH = 532.0
+# An information or error box at 100 % scaling: its text starts 37 px from the box's left edge
+# (border 1 px, margin 5 px, a 16 px icon with 5 px before and 10 px after it) and ends 6 px from
+# its right edge (margin and border).
+_HINT_ICON = 16.0
+_HINT_ICON_LEFT = 11.0
+_HINT_TEXT_LEFT = 37.0
+_HINT_TEXT_RIGHT = 6.0
 # Heights of grid labels as last drawn, per row and per cell (see _render_grid_cells).
 _label_heights: dict[str, float] = {}
 # Narrowest a grid column may get (a declared width of 1 % is about 5 px).
@@ -2479,16 +2490,22 @@ _HEADLINE_SCALE = 14.0 / 12.0
 # its parameter rows).
 _HEADLINE_ABOVE = 1.0
 _HEADLINE_BELOW = 4.0
-# Room at 100 % scaling beyond the usual spacing above and below a separator line and above and
-# below an information or error box. A headline takes the usual spacing only, as its first row
-# follows it one row pitch further down.
-_RULER_ABOVE = 14.0
-_RULER_BELOW = 7.0
-_HINT_ABOVE = 9.0
-_HINT_BELOW = 5.0
-# Room at 100 % scaling above and below a separator's text: with the line gap a text ends with,
-# two texts in a row are 10 px apart (5 px above and below each).
-_TEXT_ROOM = 4.0
+# Room at 100 % scaling beyond the usual spacing above and below a separator line, above an
+# information or error box and below it (less than the usual spacing), and above and below a
+# separator's text. The reference keeps 5 px above and below each separator, centres a line in a
+# row of 21 px and draws a text in lines of 16 px; measured from baseline to baseline (or line)
+# that is 26 px between two texts, 27 px from a headline to a text, 19 px from a text to a line,
+# 30 px from a line to a headline, 14 px from a text to a box and 23 px from a box to a text.
+_RULER_ABOVE = 10.0
+_RULER_BELOW = 10.0
+_HINT_ABOVE = 5.0
+_HINT_BELOW = -1.0
+_TEXT_ABOVE = 6.0
+_TEXT_BELOW = 4.0
+# The room in an information or error box above its text and below it (with its last line's gap,
+# 6 px around the text as in the reference).
+_HINT_PAD = 8.0
+_HINT_PAD_BELOW = 6.0
 
 
 def _wrap_width() -> float:
@@ -2504,8 +2521,8 @@ def _wrap_width() -> float:
 
 
 def _page_width() -> float:
-    """Width of the page's rows of labels and fields, where text and separators end, too."""
-    return min(imgui.get_content_region_avail().x, px(_GRID_REFERENCE_WIDTH))
+    """Width of the page's separators: their texts, lines and boxes."""
+    return min(imgui.get_content_region_avail().x, px(_SEPARATOR_WIDTH))
 
 
 def _render_ruler() -> None:
@@ -2528,7 +2545,7 @@ def _wrapped_label(label: str) -> None:
 
 def _aligned_text(text: str, alignment: str | None) -> None:
     avail = _wrap_width()
-    width = imgui.calc_text_size(text).x
+    width = text_layout.text_width(text)
     if alignment in ("Center", "Right") and "\n" not in text and width < avail:
         offset = (avail - width) / 2 if alignment == "Center" else avail - width
         imgui.set_cursor_pos_x(imgui.get_cursor_pos_x() + offset)
@@ -2545,20 +2562,24 @@ def _render_hint(
 ) -> None:
     """An information or error text in a box of ``fill`` with a ``border``, and a round icon of
     ``color`` showing ``glyph``, or a cross without one."""
-    pad = px(8)
-    icon = imgui.get_font_size() * 1.25
+    pad = px(_HINT_PAD)
+    icon = px(_HINT_ICON)
     width = _wrap_width()
-    text_width = width - pad * 3 - icon
+    text_width = width - px(_HINT_TEXT_LEFT) - px(_HINT_TEXT_RIGHT)
     with semilight():
         lines_height = text_height(len(wrap_lines(text, text_width)))
     top = imgui.get_cursor_screen_pos()
-    box_max = imgui.ImVec2(top.x + width, top.y + max(lines_height, icon) + pad * 2)
+    box_max = imgui.ImVec2(
+        top.x + width, top.y + pad + max(lines_height, icon) + px(_HINT_PAD_BELOW)
+    )
     draw = imgui.get_window_draw_list()
     # Corners as round as those of fields.
     rounding = imgui.get_style().frame_rounding
     draw.add_rect_filled(top, box_max, imgui.get_color_u32(fill), rounding)
     draw.add_rect(top, box_max, imgui.get_color_u32(border), rounding)
-    centre = imgui.ImVec2(top.x + pad + icon / 2, top.y + pad + icon / 2)
+    centre = imgui.ImVec2(
+        top.x + px(_HINT_ICON_LEFT) + icon / 2, top.y + pad + icon / 2
+    )
     draw.add_circle_filled(centre, icon / 2, imgui.get_color_u32(color))
     white = imgui.get_color_u32(imgui.ImVec4(1, 1, 1, 1))
     if glyph:
@@ -2575,10 +2596,11 @@ def _render_hint(
                 white,
                 px(1.6),
             )
-    imgui.set_cursor_screen_pos(imgui.ImVec2(top.x + pad * 2 + icon, top.y + pad))
+    imgui.set_cursor_screen_pos(imgui.ImVec2(top.x + px(_HINT_TEXT_LEFT), top.y + pad))
     with semilight():
         wrapped_text(text, text_width)
-    imgui.set_cursor_screen_pos(imgui.ImVec2(top.x, box_max.y))
+    # The next item follows the usual spacing plus _HINT_BELOW (which may be less than none).
+    imgui.set_cursor_screen_pos(imgui.ImVec2(top.x, box_max.y + px(_HINT_BELOW)))
     imgui.dummy(imgui.ImVec2(width, 0))
 
 
@@ -2604,17 +2626,15 @@ def _render_separator(sep: UiSeparator) -> None:
         vertical_space(px(_HINT_ABOVE))
         fill = _mix(content_background(), _INFO_BORDER, _INFO_TINT)
         _render_hint(sep.text, _INFO_BORDER, fill, _INFO_ICON, "i")
-        vertical_space(px(_HINT_BELOW))
     elif sep.hint == "Error":
         vertical_space(px(_HINT_ABOVE))
         fill = _mix(content_background(), _ERROR_BORDER, _ERROR_TINT)
         _render_hint(sep.text, _ERROR_BORDER, fill, _ERROR_ICON, "")
-        vertical_space(px(_HINT_BELOW))
     else:
-        vertical_space(px(_TEXT_ROOM))
+        vertical_space(px(_TEXT_ABOVE))
         with semilight():
             _aligned_text(sep.text, sep.alignment)
-        vertical_space(px(_TEXT_ROOM))
+        vertical_space(px(_TEXT_BELOW))
 
 
 class EnumPopup:

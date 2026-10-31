@@ -89,11 +89,12 @@ def test_texts_in_a_row_have_room_between() -> None:
     parameter_widgets._render_separator(  # pyright: ignore[reportPrivateUsage]
         UiSeparator(id="S-1", text="Note")
     )
-    # One line of text (the window is narrow) with 4 px above and the line gap and 4 px below:
-    # two texts in a row are 10 px apart.
-    pitch = 4.0 + imgui.get_text_line_height() + LINE_GAP + 4.0
+    # One line of text (the window is narrow) with 6 px above and the line gap and 4 px below:
+    # two texts in a row are 12 px further apart than a line is high (26 px at the app's 14 px
+    # line, as the reference's 16 px lines with 5 px above and below).
+    pitch = 6.0 + imgui.get_text_line_height() + LINE_GAP + 4.0
     assert imgui.get_cursor_pos_y() - top == pytest.approx(pitch)
-    assert pitch - imgui.get_text_line_height() == 10.0
+    assert pitch - imgui.get_text_line_height() == 12.0
 
 
 @pytest.mark.usefixtures("frame")
