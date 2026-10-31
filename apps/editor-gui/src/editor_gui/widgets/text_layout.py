@@ -361,29 +361,36 @@ def _wrap(
 
 
 def draw_text(text: str) -> None:
-    """``text`` (one line) at the cursor as one item, at the size of the current font before
-    rounding (see ``font_size``) and with the gaps WPF gives its letters: in runs between kerned
-    pairs, each where the advances before it end (as ImGui text if it needs neither)."""
-    font = _current()
-    pairs = font.kerning if font else {}
-    cuts = [
-        index + 1
-        for index in range(len(text) - 1)
-        if (ord(text[index]), ord(text[index + 1])) in pairs
-    ]
-    size = font_size()
-    if not cuts and size == imgui.get_font_size():
+    """``text`` (one line) at the cursor as one item, laid out at the size of the current font
+    before rounding (see ``font_size``) with the gaps WPF gives its letters.
+
+    Each glyph starts at the whole pixel nearest to where WPF places it and keeps the size ImGui
+    rasterized it at, so its bitmap is drawn as rasterized (not blurred across two pixels);
+    glyphs whose own advances lead to those pixels are drawn together."""
+    if _current() is None:
         imgui.text_unformatted(text)
         return
     paragraph = _Paragraph(text)
     origin = imgui.get_cursor_screen_pos()
+    font = imgui.get_font()
+    baked = font.get_font_baked(font_size())
+    size = baked.size
     draw = imgui.get_window_draw_list()
     color = imgui.get_color_u32(imgui.Col_.text)
-    for start, end in zip([0, *cuts], [*cuts, len(text)], strict=True):
-        x = origin.x + paragraph.width(0, start)
-        draw.add_text(
-            imgui.get_font(), size, imgui.ImVec2(x, origin.y), color, text[start:end]
-        )
+    y = round(origin.y)
+    places = [round(origin.x + paragraph.width(0, index)) for index in range(len(text))]
+    start = 0
+    reached = 0.0
+    for index in range(len(text) + 1):
+        if index < len(text) and index > start and places[index] == round(reached):
+            reached += baked.find_glyph(ord(text[index])).advance_x
+            continue
+        if index > start:
+            pos = imgui.ImVec2(places[start], y)
+            draw.add_text(font, size, pos, color, text[start:index])
+        if index < len(text):
+            start = index
+            reached = places[index] + baked.find_glyph(ord(text[index])).advance_x
     imgui.dummy(
         imgui.ImVec2(paragraph.width(0, len(text)), imgui.get_text_line_height())
     )

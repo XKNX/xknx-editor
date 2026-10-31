@@ -13,8 +13,8 @@ from editor_gui.widgets.text_layout import metrics, wrap
 
 _REGULAR = "fonts/XKNXSans-Regular.ttf"
 _BOLD = "fonts/XKNXSans-Bold.ttf"
-# FreeType's NoHinting flag, as the editor loads its fonts.
-_NO_HINTING = 1 << 0
+# FreeType's LightHinting flag, as the editor loads its fonts.
+_HINTING = 1 << 3
 
 
 @pytest.fixture
@@ -26,7 +26,7 @@ def fonts() -> Iterator[dict[str, imgui.ImFont]]:
     loaded: dict[str, imgui.ImFont] = {}
     for face in (_REGULAR, _BOLD):
         config = imgui.ImFontConfig()
-        config.font_loader_flags = _NO_HINTING
+        config.font_loader_flags = _HINTING
         path = str(text_layout._ASSETS / face)  # pyright: ignore[reportPrivateUsage]
         font = io.fonts.add_font_from_file_ttf(path, 14.0, config)
         loaded[face] = font
@@ -141,16 +141,24 @@ def test_wrapping_follows_the_display_scaling(
     imgui.pop_font()
 
 
-def test_kerned_text_is_drawn_in_runs(fonts: dict[str, imgui.ImFont]) -> None:
-    _in(fonts[_REGULAR])
-    imgui.set_cursor_pos(imgui.ImVec2(10, 10))
-    before = imgui.get_window_draw_list().vtx_buffer.size()
+@pytest.mark.parametrize("size", [14.0, 14.0 * 14.0 / 12.0])
+def test_text_is_drawn_kerned_on_whole_pixels(
+    fonts: dict[str, imgui.ImFont], size: float
+) -> None:
+    _in(fonts[_REGULAR], size)
+    imgui.set_cursor_pos(imgui.ImVec2(10.3, 10))
+    draw = imgui.get_window_draw_list()
+    before = draw.vtx_buffer.size()
     text_layout.draw_text("To be")
     # The item is as wide as the kerned text.
     assert imgui.get_item_rect_size().x == pytest.approx(
         text_layout.text_width("To be")
     )
-    assert imgui.get_window_draw_list().vtx_buffer.size() > before
+    # Each glyph starts on a whole pixel, so it is drawn as rasterized.
+    vertices = draw.vtx_buffer
+    xs = [vertices[i].pos.x for i in range(before, vertices.size())]
+    assert xs
+    assert all(x == pytest.approx(round(x), abs=0.001) for x in xs)
     imgui.pop_font()
 
 

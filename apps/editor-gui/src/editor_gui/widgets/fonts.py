@@ -19,15 +19,16 @@ _BOLD_FONT = "fonts/XKNXSans-Bold.ttf"
 # the size of the 9 pt text of Windows dialogs, so labels and values written for those fit the same
 # fields.
 _FONT_SIZE = 14.0
-# ImGuiFreeTypeLoaderFlags_NoHinting: glyphs keep the advance widths of the font (hinting rounds
-# them to whole pixels) and the stems their weight (hinting widens them to whole pixels).
-_FREETYPE_NO_HINTING = 1 << 0
+# ImGuiFreeTypeLoaderFlags_LightHinting: glyphs fitted to the pixel grid vertically only, so their
+# edges and lines are crisp and their shapes and stem weight stay. ImGui rounds their advances to
+# whole pixels then; ``text_layout`` places the glyphs of wrapped text itself, as WPF does.
+_FREETYPE_HINTING = 1 << 3
 # ImGuiFreeTypeLoaderFlags_Oblique: slanted glyphs of the same face.
 _FREETYPE_OBLIQUE = 1 << 6
-# How much darker each face draws its glyphs' edges: WPF draws thin stems crisply, in full color,
-# where unhinted glyphs spread them over two pixels at part coverage; with this the text of each
-# face is as dark in sum (measured on the labels and headlines of a parameter page).
-_CONTRAST = {_DEFAULT_FONT: 1.42, _BOLD_FONT: 1.1}
+# How much darker each face draws its glyphs' edges: Windows draws the thin stems of the regular
+# face in full color where FreeType spreads them over two pixels at part coverage; with this the
+# text of each face is as dark in sum (measured on the labels and headlines of a parameter page).
+_CONTRAST = {_DEFAULT_FONT: 1.36, _BOLD_FONT: 1.0}
 
 # Chinese and Japanese characters (Noto Sans SC and JP, SIL Open Font License): fallbacks merged
 # into each font. Both scripts share most characters but draw them differently, so the font of the
@@ -50,7 +51,7 @@ def load_fonts() -> None:
     global _default, _bold, _italic, _bold_italic, _cjk_order
     order = _wanted_cjk_order()
     config = imgui.ImFontConfig()
-    config.font_loader_flags = _FREETYPE_NO_HINTING
+    config.font_loader_flags = _FREETYPE_HINTING
     config.rasterizer_multiply = _CONTRAST[_DEFAULT_FONT]
     _default = hello_imgui.load_font_ttf_with_font_awesome_icons(
         _DEFAULT_FONT, _FONT_SIZE, config
@@ -87,14 +88,14 @@ def _merge_cjk(order: tuple[str, ...], *, bold: bool, flags: int = 0) -> None:
     for script in order:
         params = hello_imgui.FontLoadingParams()
         params.merge_to_last_font = True
-        params.font_config.font_loader_flags = flags | _FREETYPE_NO_HINTING
+        params.font_config.font_loader_flags = flags | _FREETYPE_HINTING
         with suppress(RuntimeError):
             hello_imgui.load_font(_CJK_FONTS[script][bold], _FONT_SIZE, params)
 
 
 def _load_variant(path: str, flags: int = 0) -> imgui.ImFont | None:
     params = hello_imgui.FontLoadingParams()
-    params.font_config.font_loader_flags = flags | _FREETYPE_NO_HINTING
+    params.font_config.font_loader_flags = flags | _FREETYPE_HINTING
     params.font_config.rasterizer_multiply = _CONTRAST[path]
     try:
         return hello_imgui.load_font(path, _FONT_SIZE, params)
