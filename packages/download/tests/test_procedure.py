@@ -874,6 +874,30 @@ async def test_compare_prop_detects_real_mismatch() -> None:
         await runner.run()
 
 
+async def test_compare_prop_compares_the_elements_of_the_property_only() -> None:
+    from xknxeditor.namespaces.intermediate.ld_ctrl_compare_prop_t import (
+        LdCtrlCompareProp,
+    )
+
+    # A hardware type compare with 9 octets of inline data ("CM-46XX" and padding) for the
+    # 6-octet PID 78: the octets past the property's element are not compared.
+    device = FakeDevice()
+    device.properties[(0, 78)] = b"CM-46X"
+    application = _application(
+        LdCtrlCompareProp(
+            obj_idx=0,
+            prop_id=78,
+            start_element=1,
+            count=1,
+            inline_data=b"CM-46XX\x00\x00",
+        )
+    )
+    runner = LoadProcedureRunner(
+        application, DownloadImage(segments=(), properties=()), DeviceProgrammer(device)
+    )
+    await runner.run()
+
+
 async def test_compare_prop_mask_ignores_unmarked_octets() -> None:
     from xknxeditor.namespaces.intermediate.ld_ctrl_compare_prop_t import (
         LdCtrlCompareProp,

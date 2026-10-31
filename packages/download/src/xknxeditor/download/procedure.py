@@ -2808,6 +2808,16 @@ class LoadProcedureRunner:
                 )
                 return
         mask = control.mask
+        if control.start_element > 0 and captured_width is None:
+            # The compare checks ``count`` elements of the property's element size (declared, or
+            # as the device describes the property): inline data past them is not compared (a
+            # hardware type compare carrying 9 octets for the 6-octet PID 78).
+            await self._ensure_property_width(index, control)
+            width = self._property_width(index, control.prop_id)
+            if width:
+                expected = expected[: width * control.count]
+                if mask is not None:
+                    mask = mask[: width * control.count]
         if mask is not None and len(mask) < len(expected):
             # An omitted mask suffix checks every bit; only the supplied prefix
             # limits the comparison.
