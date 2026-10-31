@@ -1010,7 +1010,7 @@ msgid "Install Update"
 msgstr "Instalo përditësimin"
 
 msgid "Install Update downloads the installer, closes XKNX Editor and starts it again with the open project."
-msgstr "Instalo përditësimin shkarkon instaluesin, mbyll XKNX Editor dhe e nis përsëri me projektin e hapur."
+msgstr "Butoni 'Instalo përditësimin' shkarkon instaluesin, mbyll XKNX Editor dhe e nis përsëri me projektin e hapur."
 
 msgid "Downloading the update…"
 msgstr "Po shkarkohet përditësimi…"
@@ -1088,7 +1088,7 @@ msgid "Catalog Entries"
 msgstr "Hyrjet e katalogut"
 
 msgid "Help and Plug-in Files"
-msgstr "Skedarë ndihme dhe plug-in"
+msgstr "Skedarët e ndihmës dhe të plugin-eve"
 
 msgid "Details"
 msgstr "Detajet"
@@ -1097,7 +1097,7 @@ msgid "Current File Size"
 msgstr "Madhësia aktuale e skedarit"
 
 msgid "Estimated Size Afterwards"
-msgstr "Madhësia e vlerësuar pas"
+msgstr "Madhësia e vlerësuar pas ngjeshjes"
 
 msgid "This cannot be undone. Removed product data has to be imported again if these products are added to the project later."
 msgstr "Ky veprim nuk mund të zhbëhet. Të dhënat e hequra të produkteve duhet të importohen sërish nëse këto produkte shtohen më vonë në projekt."
@@ -1112,10 +1112,10 @@ msgid "The project file was compacted."
 msgstr "Skedari i projektit u ngjesh."
 
 msgid "Size before"
-msgstr "Madhësia para"
+msgstr "Madhësia para ngjeshjes"
 
 msgid "Size after"
-msgstr "Madhësia pas"
+msgstr "Madhësia pas ngjeshjes"
 
 msgid "Compacting cancelled, the project was not changed"
 msgstr "Ngjeshja u anulua, projekti nuk ndryshoi"
