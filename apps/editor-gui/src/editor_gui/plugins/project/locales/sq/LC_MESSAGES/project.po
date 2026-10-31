@@ -380,7 +380,7 @@ msgid "Source Device"
 msgstr "Pajisja burimore"
 
 msgid "Copies"
-msgstr "Kopjet"
+msgstr "Numri i kopjeve"
 
 msgid "Find in Name"
 msgstr "Gjej në emër"
