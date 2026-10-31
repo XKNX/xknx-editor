@@ -1736,28 +1736,28 @@ msgid "Running: {task}"
 msgstr "Në punë: {task}"
 
 msgid "scanning the bus"
-msgstr "po skanohet busi"
+msgstr "skanimi i busit"
 
 msgid "switching all ECGs"
-msgstr "po komandohen të gjitha ECG-të"
+msgstr "ndezja/fikja e të gjitha ECG-ve"
 
 msgid "blinking"
-msgstr "pulsim"
+msgstr "pulsimi"
 
 msgid "stopping the blinking"
-msgstr "po ndalohet pulsimi"
+msgstr "ndalimi i pulsimit"
 
 msgid "new installation"
-msgstr "instalim i ri"
+msgstr "instalimi i ri"
 
 msgid "post installation"
-msgstr "instalim shtesë"
+msgstr "instalimi shtesë"
 
 msgid "programming the groups"
-msgstr "po programohen grupet"
+msgstr "programimi i grupeve"
 
 msgid "programming the scenes"
-msgstr "po programohen skenat"
+msgstr "programimi i skenave"
 
 msgid "{count} found"
 msgstr "{count} të gjetura"
