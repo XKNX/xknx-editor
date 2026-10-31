@@ -198,6 +198,12 @@ async def read_parameter_memory(
             except (LoadStateError, VerificationError, XKNXException):
                 continue
         return result
+    code = application.program.static.code
+    # A relative segment can start further into its object's memory (Offset 4096).
+    offsets = {
+        segment.id: segment.offset or 0
+        for segment in (code.relative_segment if code is not None else [])
+    }
     for segment_id, size in sizes.items():
         if not size:
             continue
@@ -207,7 +213,9 @@ async def read_parameter_memory(
         object_index = int(match.group(1))
         try:
             base = await programmer.read_table_reference(object_index)
-            result[segment_id] = await programmer.read_memory(base, size)
+            result[segment_id] = await programmer.read_memory(
+                base + offsets.get(segment_id, 0), size
+            )
         except (LoadStateError, VerificationError, XKNXException):
             # Segment not allocated / no table reference / unreadable: skip it.
             continue
