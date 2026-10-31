@@ -263,7 +263,7 @@ msgid "3/1 - three columns, Main/Middle/Sub group separated"
 msgstr "3/1 - tri kolona, grupi kryesor/i mesëm/nëngrupi të ndara"
 
 msgid "1/3 - Group address name/Main - Middle - Sub group"
-msgstr "1/3 - Emri i adresës së grupit/Kryesor - I mesëm - Nëngrup"
+msgstr "1/3 - Emri i adresës së grupit/grupi kryesor - i mesëm - nëngrupi"
 
 msgid "1/1 - Name/Address"
 msgstr "1/1 - Emri/Adresa"
@@ -338,7 +338,7 @@ msgid "Exported at"
 msgstr "Eksportuar më"
 
 msgid "Manufacturer Data (M Folders)"
-msgstr "Të dhënat e prodhuesit (dosjet M)"
+msgstr "Të dhënat e prodhuesve (dosjet M)"
 
 msgid "Signed"
 msgstr "I nënshkruar"
@@ -389,7 +389,7 @@ msgid "Exporting {name} — this can take a while for large projects."
 msgstr "Po eksportohet {name} — për projekte të mëdha kjo mund të zgjasë pak."
 
 msgid "Collecting the manufacturer data…"
-msgstr "Po mblidhen të dhënat e prodhuesit…"
+msgstr "Po mblidhen të dhënat e prodhuesve…"
 
 msgid "Writing the archive…"
 msgstr "Po shkruhet arkivi…"
