@@ -272,7 +272,7 @@ msgid "Connection was established"
 msgstr "Lidhja u vendos"
 
 msgid "Connection was lost"
-msgstr "Lidhja humbi"
+msgstr "Lidhja u ndërpre"
 
 msgid "System"
 msgstr "Sistem"
