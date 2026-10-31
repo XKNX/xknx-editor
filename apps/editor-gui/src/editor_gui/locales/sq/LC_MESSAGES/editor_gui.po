@@ -776,7 +776,7 @@ msgid "Windows"
 msgstr "Dritaret"
 
 msgid "Child Windows"
-msgstr "Dritaret bijë"
+msgstr "Nëndritaret"
 
 msgid "Popups"
 msgstr "Dritaret kërcyese"
