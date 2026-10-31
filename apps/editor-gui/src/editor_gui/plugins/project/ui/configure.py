@@ -188,7 +188,7 @@ def edit_being_stored() -> bool:
     )
 
 
-def _reset_presets() -> list[tuple[str, int]]:
+def reset_presets() -> list[tuple[str, int]]:
     """(label, KNX A_Restart_Master_Reset erase code). Codes per the KNX Application Layer spec
     (verified: 2=FactoryReset, 7=FactoryResetWithoutIA, 3=ResetIA, 4=ResetAP, 5=ResetParam,
     6=ResetLinks, 1=ConfirmedRestart)."""
@@ -1391,7 +1391,7 @@ class ConfigurePanel:
         imgui.push_text_wrap_pos(px(360.0))
         imgui.text_colored(imgui.ImVec4(0.95, 0.55, 0.35, 1.0), S.RESET_WARNING)
         imgui.pop_text_wrap_pos()
-        presets = _reset_presets()
+        presets = reset_presets()
         # The label left of the drop-down, which ends where the warning wraps.
         imgui.align_text_to_frame_padding()
         imgui.text(S.RESET_TYPE)

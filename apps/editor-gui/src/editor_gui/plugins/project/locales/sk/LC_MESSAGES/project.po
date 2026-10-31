@@ -3051,3 +3051,12 @@ msgstr "Pri novom zariadení prepnite do programovacieho režimu práve jedno za
 
 msgid "The download failed after it had begun to write the device, so the device may be partially loaded. Program it again to restore a working state. Cause: {cause}"
 msgstr "Sťahovanie zlyhalo po tom, čo začalo zapisovať do zariadenia, takže zariadenie môže byť načítané len čiastočne. Naprogramujte ho znova, aby opäť fungovalo. Príčina: {cause}"
+
+msgid "Running"
+msgstr "Prebieha"
+
+msgid "Switch On"
+msgstr "Zapnúť"
+
+msgid "Switch Off"
+msgstr "Vypnúť"

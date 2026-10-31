@@ -3024,3 +3024,12 @@ msgstr "Aseta uutta laitetta varten täsmälleen yksi laite ohjelmointitilaan. M
 
 msgid "The download failed after it had begun to write the device, so the device may be partially loaded. Program it again to restore a working state. Cause: {cause}"
 msgstr "Lataus epäonnistui sen jälkeen, kun se oli alkanut kirjoittaa laitteeseen, joten laite voi olla vain osittain ladattu. Ohjelmoi se uudelleen toimivan tilan palauttamiseksi. Syy: {cause}"
+
+msgid "Running"
+msgstr "Käynnissä"
+
+msgid "Switch On"
+msgstr "Päälle"
+
+msgid "Switch Off"
+msgstr "Pois"

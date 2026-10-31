@@ -3024,3 +3024,12 @@ msgstr "Për një pajisje të re, vendosni saktësisht një pajisje në modalite
 
 msgid "The download failed after it had begun to write the device, so the device may be partially loaded. Program it again to restore a working state. Cause: {cause}"
 msgstr "Shkarkimi dështoi pasi kishte filluar të shkruante në pajisje, prandaj pajisja mund të jetë e ngarkuar vetëm pjesërisht. Programojeni përsëri për të rikthyer një gjendje funksionale. Shkaku: {cause}"
+
+msgid "Running"
+msgstr "Po ekzekutohet"
+
+msgid "Switch On"
+msgstr "Ndiz"
+
+msgid "Switch Off"
+msgstr "Fik"

@@ -3062,3 +3062,12 @@ msgstr "Zet bij een nieuw apparaat precies één apparaat in de programmeermodus
 
 msgid "The download failed after it had begun to write the device, so the device may be partially loaded. Program it again to restore a working state. Cause: {cause}"
 msgstr "Het downloaden is mislukt nadat het al naar het apparaat was begonnen te schrijven, dus het apparaat is mogelijk maar gedeeltelijk geladen. Programmeer het opnieuw om een werkende toestand te herstellen. Oorzaak: {cause}"
+
+msgid "Running"
+msgstr "Wordt uitgevoerd"
+
+msgid "Switch On"
+msgstr "Inschakelen"
+
+msgid "Switch Off"
+msgstr "Uitschakelen"

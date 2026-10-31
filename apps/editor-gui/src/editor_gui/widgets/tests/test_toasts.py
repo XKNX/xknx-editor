@@ -42,8 +42,9 @@ def _failed(error: BaseException) -> Future[Any]:
 
 
 def test_a_failed_operation_raises_no_toast() -> None:
-    """Programming, its test and a device info readout end in the operations history, which
-    shows the failure; their log records raise no toast."""
+    """Programming, its test, a device info readout, a restart, a master reset and a DALI run
+    end in the operations history, which shows the failure; their log records raise no
+    toast."""
     logs = LogService()
     service = cast(
         Any,
@@ -60,12 +61,15 @@ def test_a_failed_operation_raises_no_toast() -> None:
         ConnectionService._log_program_result(service, _failed(error))  # pyright: ignore[reportPrivateUsage]
     ConnectionService._log_evaluate_result(service, _failed(timeout), "1.1.1")  # pyright: ignore[reportPrivateUsage]
     ConnectionService._end_device_info(service, _failed(timeout), "1.1.1")  # pyright: ignore[reportPrivateUsage]
+    ConnectionService._log_restart_result(service, _failed(timeout), "1.1.1")  # pyright: ignore[reportPrivateUsage]
+    ConnectionService._log_reset_result(service, _failed(timeout), "1.1.1")  # pyright: ignore[reportPrivateUsage]
+    ConnectionService._log_dali_result(service, _failed(timeout), "1.1.1")  # pyright: ignore[reportPrivateUsage]
     records = [r for r in logs.get_records() if r.plugin == "connection"]
-    assert len(records) == 8
+    assert len(records) == 11
     assert all(r.level == "error" for r in records)
     assert [log_toast(r.level, r.plugin, r.event, r.payload) for r in records] == [
         None
-    ] * 8
+    ] * 11
 
 
 @pytest.fixture

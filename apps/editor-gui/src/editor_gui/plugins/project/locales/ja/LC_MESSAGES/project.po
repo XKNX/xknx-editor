@@ -3024,3 +3024,12 @@ msgstr "新しいデバイスの場合は、ちょうど 1 台のデバイスを
 
 msgid "The download failed after it had begun to write the device, so the device may be partially loaded. Program it again to restore a working state. Cause: {cause}"
 msgstr "デバイスへの書き込みを開始した後でダウンロードに失敗したため、デバイスは一部しかロードされていない可能性があります。正常な状態に戻すには、もう一度プログラムしてください。原因: {cause}"
+
+msgid "Running"
+msgstr "実行中"
+
+msgid "Switch On"
+msgstr "オン"
+
+msgid "Switch Off"
+msgstr "オフ"

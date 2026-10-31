@@ -3024,3 +3024,12 @@ msgstr "For en ny enhet setter du nøyaktig én enhet i programmeringsmodus. Ell
 
 msgid "The download failed after it had begun to write the device, so the device may be partially loaded. Program it again to restore a working state. Cause: {cause}"
 msgstr "Nedlastingen mislyktes etter at den hadde begynt å skrive til enheten, så enheten kan være bare delvis lastet. Programmer den på nytt for å gjenopprette en fungerende tilstand. Årsak: {cause}"
+
+msgid "Running"
+msgstr "Kjører"
+
+msgid "Switch On"
+msgstr "Slå på"
+
+msgid "Switch Off"
+msgstr "Slå av"

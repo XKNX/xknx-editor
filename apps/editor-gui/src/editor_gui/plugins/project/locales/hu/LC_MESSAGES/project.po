@@ -3051,3 +3051,12 @@ msgstr "Új készüléknél pontosan egy készüléket kapcsoljon programozási 
 
 msgid "The download failed after it had begun to write the device, so the device may be partially loaded. Program it again to restore a working state. Cause: {cause}"
 msgstr "A letöltés azután hiúsult meg, hogy már elkezdett írni a készülékbe, ezért a készülék csak részben lehet betöltve. Programozza újra a működőképes állapot helyreállításához. Ok: {cause}"
+
+msgid "Running"
+msgstr "Folyamatban"
+
+msgid "Switch On"
+msgstr "Bekapcsolás"
+
+msgid "Switch Off"
+msgstr "Kikapcsolás"

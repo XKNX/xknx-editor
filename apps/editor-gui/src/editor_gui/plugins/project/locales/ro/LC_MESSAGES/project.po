@@ -3051,3 +3051,12 @@ msgstr "Pentru un dispozitiv nou, treceți exact un dispozitiv în modul de prog
 
 msgid "The download failed after it had begun to write the device, so the device may be partially loaded. Program it again to restore a working state. Cause: {cause}"
 msgstr "Descărcarea a eșuat după ce începuse să scrie în dispozitiv, așa că dispozitivul poate fi încărcat doar parțial. Programați-l din nou pentru a restabili o stare funcțională. Cauză: {cause}"
+
+msgid "Running"
+msgstr "Se execută"
+
+msgid "Switch On"
+msgstr "Pornire"
+
+msgid "Switch Off"
+msgstr "Oprire"

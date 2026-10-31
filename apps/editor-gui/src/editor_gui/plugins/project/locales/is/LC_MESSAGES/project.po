@@ -3051,3 +3051,12 @@ msgstr "Fyrir nýtt tæki skaltu setja nákvæmlega eitt tæki í forritunarham.
 
 msgid "The download failed after it had begun to write the device, so the device may be partially loaded. Program it again to restore a working state. Cause: {cause}"
 msgstr "Niðurhalið mistókst eftir að það var byrjað að skrifa í tækið, svo tækið gæti verið aðeins hlaðið að hluta. Forritaðu það aftur til að koma því í virkt ástand. Orsök: {cause}"
+
+msgid "Running"
+msgstr "Í gangi"
+
+msgid "Switch On"
+msgstr "Kveikja"
+
+msgid "Switch Off"
+msgstr "Slökkva"

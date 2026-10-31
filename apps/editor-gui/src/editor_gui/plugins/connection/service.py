@@ -84,8 +84,8 @@ class LinkInfo:
 
 
 # Log records of an operation that ends in the operations history (a programming, its test, a
-# device info readout, a parameter script): the user sees its failure there, so it raises no
-# toast (``widgets.toasts.log_toast``).
+# device info readout, a parameter script, a restart, a master reset, a DALI run): the user sees
+# its failure there, so it raises no toast (``widgets.toasts.log_toast``).
 SHOWN_IN_OPERATIONS = "operations"
 
 
@@ -737,7 +737,12 @@ class ConnectionService:
             return
         exc = future.exception()
         if exc is not None:
-            self._log.error("Restart failed", address=address, error=str(exc))
+            self._log.error(
+                "Restart failed",
+                address=address,
+                error=str(exc),
+                shown=SHOWN_IN_OPERATIONS,
+            )
             return
         self._log.info("Device restarted", address=address)
 
@@ -758,7 +763,10 @@ class ConnectionService:
             self._log.warning("A bus operation is already running", device=device.name)
             return None
         self._log.warning(
-            "Master reset (destructive)", device=device.name, erase_code=erase_code
+            "Master reset (destructive)",
+            device=device.name,
+            erase_code=erase_code,
+            shown=SHOWN_IN_OPERATIONS,
         )
         security = self._security_for(device)
         if security is not None:
@@ -833,7 +841,12 @@ class ConnectionService:
             return
         exc = future.exception()
         if exc is not None:
-            self._log.error("Master reset failed", address=address, error=str(exc))
+            self._log.error(
+                "Master reset failed",
+                address=address,
+                error=str(exc),
+                shown=SHOWN_IN_OPERATIONS,
+            )
             return
         self._log.info("Master reset sent", address=address)
 
@@ -1497,7 +1510,10 @@ class ConnectionService:
         exc = future.exception()
         if exc is not None:
             self._log.error(
-                "DALI commissioning failed", address=address, error=str(exc)
+                "DALI commissioning failed",
+                address=address,
+                error=str(exc),
+                shown=SHOWN_IN_OPERATIONS,
             )
             return
         # Defensive against future helpers that keep returning False instead of raising:

@@ -3024,3 +3024,12 @@ msgstr "Για νέα συσκευή, θέστε ακριβώς μία συσκ�
 
 msgid "The download failed after it had begun to write the device, so the device may be partially loaded. Program it again to restore a working state. Cause: {cause}"
 msgstr "Η λήψη απέτυχε αφού είχε αρχίσει να γράφει στη συσκευή, οπότε η συσκευή μπορεί να είναι μερικώς φορτωμένη. Προγραμματίστε την ξανά για να επανέλθει σε λειτουργική κατάσταση. Αιτία: {cause}"
+
+msgid "Running"
+msgstr "Εκτέλεση σε εξέλιξη"
+
+msgid "Switch On"
+msgstr "Ενεργοποίηση"
+
+msgid "Switch Off"
+msgstr "Απενεργοποίηση"

@@ -3466,6 +3466,10 @@ class ProjectStrings:
         return _("Reading")
 
     @property
+    def OPERATION_RUNNING(self) -> str:
+        return _("Running")
+
+    @property
     def OPERATION_RECOVER(self) -> str:
         return _("Recover Project from Bus")
 
@@ -4103,6 +4107,14 @@ class ProjectStrings:
     @property
     def DALI_ALL_OFF(self) -> str:
         return _("All Off")
+
+    @property
+    def DALI_SWITCH_ON(self) -> str:
+        return _("Switch On")
+
+    @property
+    def DALI_SWITCH_OFF(self) -> str:
+        return _("Switch Off")
 
     @property
     def DALI_NEW_INSTALLATION(self) -> str:

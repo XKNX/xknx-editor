@@ -3024,3 +3024,12 @@ msgstr "对于新设备，请将恰好一个设备置于编程模式。否则请
 
 msgid "The download failed after it had begun to write the device, so the device may be partially loaded. Program it again to restore a working state. Cause: {cause}"
 msgstr "下载在开始写入设备后失败，因此设备可能只加载了一部分。请重新编程以恢复正常工作状态。原因：{cause}"
+
+msgid "Running"
+msgstr "正在运行"
+
+msgid "Switch On"
+msgstr "打开"
+
+msgid "Switch Off"
+msgstr "关闭"

@@ -3024,3 +3024,12 @@ msgstr "En un dispositivo nuevo, ponga exactamente un dispositivo en modo progra
 
 msgid "The download failed after it had begun to write the device, so the device may be partially loaded. Program it again to restore a working state. Cause: {cause}"
 msgstr "La descarga falló después de haber empezado a escribir en el dispositivo, por lo que el dispositivo puede estar cargado solo en parte. Vuelva a programarlo para restablecer un estado operativo. Causa: {cause}"
+
+msgid "Running"
+msgstr "En ejecución"
+
+msgid "Switch On"
+msgstr "Encender"
+
+msgid "Switch Off"
+msgstr "Apagar"

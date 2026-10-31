@@ -3024,3 +3024,12 @@ msgstr "U nového zařízení přepněte do programovacího režimu právě jedn
 
 msgid "The download failed after it had begun to write the device, so the device may be partially loaded. Program it again to restore a working state. Cause: {cause}"
 msgstr "Stahování selhalo poté, co začalo zapisovat do zařízení, takže zařízení může být načteno jen částečně. Naprogramujte ho znovu, aby opět fungovalo. Příčina: {cause}"
+
+msgid "Running"
+msgstr "Probíhá"
+
+msgid "Switch On"
+msgstr "Zapnout"
+
+msgid "Switch Off"
+msgstr "Vypnout"

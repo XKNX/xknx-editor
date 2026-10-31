@@ -116,6 +116,53 @@ def await_operation(
         ) from exc
 
 
+def wait_for_operation(ctx: McpContext, item: QueueItem, timeout: float) -> QueueItem:
+    """The operation of the queue once it has ended. One that does not end within ``timeout`` s
+    is canceled (ToolError)."""
+    assert item.ended is not None
+    try:
+        return item.ended.result(timeout=timeout)
+    except TimeoutError as exc:
+        cancel = ctx.api.cancel_operation
+        if cancel is not None:
+            ctx.run_on_ui(lambda: cancel(item))
+        raise ToolError(
+            f"the operation did not finish within {timeout} s and was canceled"
+        ) from exc
+
+
+def finished(ended: QueueItem) -> QueueItem:
+    """``ended`` when it finished; ToolError with its message when it was canceled or failed."""
+    from editor_gui.plugins.project.program_queue import OperationState
+    from editor_gui.plugins.project.strings import S
+
+    if ended.state is OperationState.FINISHED:
+        return ended
+    if ended.state is OperationState.CANCELED:
+        raise ToolError(ended.message or S.OPERATION_CANCELED_BY_USER)
+    raise ToolError(ended.message or "the operation failed")
+
+
+def run_queued_action(
+    ctx: McpContext, node_id: int, kind: str, timeout: float, **options: Any
+) -> QueueItem | None:
+    """Run a bus operation other than a programming (``kind``: "restart", "reset", "dali",
+    "siemens_dali", "siemens_dca"; ``options`` as ``PluginAPI.queue_action`` takes them) in the
+    editor's operations queue, labelled as started by an MCP client, so the user sees it there
+    and can cancel it. Returns the finished item (its ``result`` is the operation's), or None
+    when the editor has no queue (a headless server), so the caller runs it directly. Raises
+    ToolError when it fails, is canceled, or does not end within ``timeout``."""
+    queue = ctx.api.queue_action
+    if queue is None:
+        return None
+    from editor_gui.plugins.project.program_queue import ORIGIN_MCP
+
+    item = ctx.run_locked(lambda: queue(node_id, kind, origin=ORIGIN_MCP, **options))
+    if item is None or item.ended is None:
+        raise ToolError(f"no device with node_id {node_id}")
+    return finished(wait_for_operation(ctx, item, timeout))
+
+
 def _resolve_scope(scope: str | None) -> Any:
     from xknxeditor.download.scope import DownloadScope
 
@@ -247,7 +294,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         queue = ctx.api.queue_program
         if queue is None:
             return None
-        from editor_gui.plugins.project.program_queue import ORIGIN_MCP, OperationState
+        from editor_gui.plugins.project.program_queue import ORIGIN_MCP
         from editor_gui.plugins.project.strings import S
 
         item = ctx.run_locked(
@@ -255,22 +302,10 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         )
         if item is None or item.ended is None:
             raise ToolError(f"no device with node_id {node_id}")
-        try:
-            ended = item.ended.result(timeout=timeout)
-        except TimeoutError as exc:
-            cancel = ctx.api.cancel_operation
-            if cancel is not None:
-                ctx.run_on_ui(lambda: cancel(item))
-            raise ToolError(
-                f"the operation did not finish within {timeout} s and was canceled"
-            ) from exc
-        if ended.state is OperationState.FINISHED:
-            return ended
+        ended = wait_for_operation(ctx, item, timeout)
         if ended.message == S.DEVICE_CERTIFICATE_REQUIRED:
             raise _certificate_error(node_id)
-        if ended.state is OperationState.CANCELED:
-            raise ToolError(ended.message or S.OPERATION_CANCELED_BY_USER)
-        raise ToolError(ended.message or "the operation failed")
+        return finished(ended)
 
     def _project_serial(node_id: int) -> bytes | None:
         from editor_gui.device_info import serial_from_project
@@ -665,16 +700,18 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         """Restart the device over the bus: a basic restart, which changes nothing in the device.
         Identify it by ``node_id`` OR ``device_address`` (its individual address like "1.0.30");
         pass exactly one. Needs an open connection and the device's individual address; a
-        securely commissioned device is restarted with its Tool Key. Returns
-        {status: "restarted", node_id}."""
+        securely commissioned device is restarted with its Tool Key. It runs in the editor's
+        Operations queue (after the operations already waiting there) and shows in its history.
+        Returns {status: "restarted", node_id}."""
         _ensure_connected()
         device = _device(node_id, device_address)
         if not device.individual_address:
             raise ToolError(f"device {device.node_id} has no individual address")
-        future = ctx.run_locked(lambda: service.restart_device(device))
-        if future is None:
-            raise _not_started("the restart")
-        _await(future, timeout, "the restart")
+        if run_queued_action(ctx, device.node_id, "restart", timeout) is None:
+            future = ctx.run_locked(lambda: service.restart_device(device))
+            if future is None:
+                raise _not_started("the restart")
+            _await(future, timeout, "the restart")
         return {"status": "restarted", "node_id": device.node_id}
 
     @tool("destructive", open_world=True)
@@ -690,18 +727,29 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         individual address; a secure device gets its FDSK back), FACTORY_RESET_KEEP_ADDRESS,
         RESET_ADDRESS, RESET_APPLICATION, RESET_PARAMETERS, RESET_LINKS or CONFIRMED_RESTART. The
         device has to be programmed again afterwards. Run it only when the user asked for this
-        reset of this device. Returns {status: "reset", node_id, reset}."""
+        reset of this device. It runs in the editor's Operations queue (after the operations
+        already waiting there) and shows in its history. Returns {status: "reset", node_id,
+        reset}."""
         _ensure_connected()
         device = _device(node_id, device_address)
         if not device.individual_address:
             raise ToolError(f"device {device.node_id} has no individual address")
         erase_code = _ERASE_CODES[reset]
-        future = ctx.run_locked(lambda: service.master_reset_device(device, erase_code))
-        if future is None:
-            raise _not_started("the reset")
-        _await(future, timeout, "the reset")
-        if reset == "FACTORY_RESET":
-            # The device holds no Tool Key any more: its next secure download needs its
-            # certificate.
-            ctx.run_locked(lambda: ctx.api.project.record_factory_reset(device))
+        # Queued, the editor records a factory reset itself.
+        if (
+            run_queued_action(
+                ctx, device.node_id, "reset", timeout, erase_code=erase_code
+            )
+            is None
+        ):
+            future = ctx.run_locked(
+                lambda: service.master_reset_device(device, erase_code)
+            )
+            if future is None:
+                raise _not_started("the reset")
+            _await(future, timeout, "the reset")
+            if reset == "FACTORY_RESET":
+                # The device holds no Tool Key any more: its next secure download needs its
+                # certificate.
+                ctx.run_locked(lambda: ctx.api.project.record_factory_reset(device))
         return {"status": "reset", "node_id": device.node_id, "reset": reset}

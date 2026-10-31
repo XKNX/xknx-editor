@@ -3024,3 +3024,12 @@ msgstr "W przypadku nowego urządzenia przełącz dokładnie jedno urządzenie w
 
 msgid "The download failed after it had begun to write the device, so the device may be partially loaded. Program it again to restore a working state. Cause: {cause}"
 msgstr "Pobieranie nie powiodło się po rozpoczęciu zapisu do urządzenia, więc urządzenie może być załadowane tylko częściowo. Zaprogramuj je ponownie, aby przywrócić stan działania. Przyczyna: {cause}"
+
+msgid "Running"
+msgstr "W toku"
+
+msgid "Switch On"
+msgstr "Włącz"
+
+msgid "Switch Off"
+msgstr "Wyłącz"

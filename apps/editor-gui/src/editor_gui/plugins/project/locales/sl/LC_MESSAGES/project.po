@@ -3051,3 +3051,12 @@ msgstr "Pri novi napravi preklopite v način programiranja natanko eno napravo. 
 
 msgid "The download failed after it had begun to write the device, so the device may be partially loaded. Program it again to restore a working state. Cause: {cause}"
 msgstr "Prenos ni uspel, potem ko je že začel pisati v napravo, zato je naprava morda naložena le delno. Znova jo programirajte, da obnovite delujoče stanje. Vzrok: {cause}"
+
+msgid "Running"
+msgstr "Izvajanje"
+
+msgid "Switch On"
+msgstr "Vklopi"
+
+msgid "Switch Off"
+msgstr "Izklopi"

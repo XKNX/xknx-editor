@@ -3024,3 +3024,12 @@ msgstr "Для нового устройства переведите в реж�
 
 msgid "The download failed after it had begun to write the device, so the device may be partially loaded. Program it again to restore a working state. Cause: {cause}"
 msgstr "Загрузка прервалась после того, как началась запись в устройство, поэтому устройство может быть загружено лишь частично. Запрограммируйте его снова, чтобы восстановить рабочее состояние. Причина: {cause}"
+
+msgid "Running"
+msgstr "Выполняется"
+
+msgid "Switch On"
+msgstr "Включить"
+
+msgid "Switch Off"
+msgstr "Выключить"

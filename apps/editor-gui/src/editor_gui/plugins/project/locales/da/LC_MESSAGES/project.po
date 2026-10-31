@@ -3024,3 +3024,12 @@ msgstr "For en ny enhed skal præcis én enhed sættes i programmeringstilstand.
 
 msgid "The download failed after it had begun to write the device, so the device may be partially loaded. Program it again to restore a working state. Cause: {cause}"
 msgstr "Download mislykkedes, efter at den var begyndt at skrive til enheden, så enheden kan være delvist indlæst. Programmér den igen for at genoprette en fungerende tilstand. Årsag: {cause}"
+
+msgid "Running"
+msgstr "Kører"
+
+msgid "Switch On"
+msgstr "Tænd"
+
+msgid "Switch Off"
+msgstr "Sluk"

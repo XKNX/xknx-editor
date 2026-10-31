@@ -19,8 +19,13 @@ from typing import TYPE_CHECKING, Any, Literal
 from fastmcp.exceptions import ToolError
 
 from editor_gui.plugins.mcp.context import McpContext, make_tool
-from editor_gui.plugins.mcp.tools.connection import await_operation, not_started
+from editor_gui.plugins.mcp.tools.connection import (
+    await_operation,
+    not_started,
+    run_queued_action,
+)
 from editor_gui.plugins.mcp.tools.project import require_device
+from editor_gui.plugins.project.strings import S
 
 if TYPE_CHECKING:
     from fastmcp import FastMCP
@@ -160,8 +165,14 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             raise ToolError(f"the gateway has DALI channel 0 to {count - 1}")
         return device
 
-    def _run(device: Device, op: Any, channel: int, timeout: float) -> Any:
+    def _run(device: Device, op: Any, channel: int, timeout: float, text: str) -> Any:
+        """Run ``op`` in the Operations queue, named ``text`` there as the tab's button."""
         _ensure_connected()
+        ended = run_queued_action(
+            ctx, device.node_id, "dali", timeout, op=op, channel=channel, text=text
+        )
+        if ended is not None:
+            return ended.result
         future = ctx.run_locked(lambda: service.run_dali(device, op, channel=channel))
         if future is None:
             raise not_started(service, "the DALI operation")
@@ -170,7 +181,6 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
     def _persist(device: Device, channel: int) -> bool:
         """Save the channel's state into the project's backup data, as the tab does after a
         groups or scenes write; False without a scan to save."""
-        from editor_gui.plugins.project.strings import S
         from editor_gui.programming_dali import persist_dali_backup
 
         state = channels.get((device.node_id, channel))
@@ -223,7 +233,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         def op(c: Any) -> Any:
             return c.scan()
 
-        scan = _run(device, op, channel, timeout)
+        scan = _run(device, op, channel, timeout, S.DALI_SCAN)
         state = channels.setdefault((device.node_id, channel), _Channel())
         state.scan = scan
         return scan_dict(device.node_id, channel, scan)
@@ -271,7 +281,13 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             def op(c: Any) -> Any:
                 return c.broadcast(start)
 
-        _run(device, op, channel, timeout)
+        if action in ("blink", "stop_blink"):
+            text = S.DALI_BLINK if start else S.DALI_STOP
+        elif slot is None and group is None:
+            text = S.DALI_ALL_ON if start else S.DALI_ALL_OFF
+        else:
+            text = S.DALI_SWITCH_ON if start else S.DALI_SWITCH_OFF
+        _run(device, op, channel, timeout, text)
         return {
             "node_id": device.node_id,
             "channel": channel,
@@ -303,7 +319,12 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             def op(c: Any) -> Any:
                 return c.post_installation(on_progress=None)
 
-        scan = _run(device, op, channel, timeout)
+        text = (
+            S.DALI_NEW_INSTALLATION
+            if installation == "new"
+            else S.DALI_POST_INSTALLATION
+        )
+        scan = _run(device, op, channel, timeout, text)
         state = channels.setdefault((device.node_id, channel), _Channel())
         state.scan = scan
         return scan_dict(device.node_id, channel, scan)
@@ -340,7 +361,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         def op(c: Any) -> Any:
             return c.commission(assignments)
 
-        _run(device, op, channel, timeout)
+        _run(device, op, channel, timeout, S.DALI_PROGRAM_GROUPS)
         for e in state.scan.present_ecgs:
             if e.slot in changes:
                 e.group_index = changes[e.slot]
@@ -398,7 +419,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         def op(c: Any) -> Any:
             return c.write_scenes(planned)
 
-        _run(device, op, channel, timeout)
+        _run(device, op, channel, timeout, S.DALI_PROGRAM_SCENES)
         state = channels.setdefault((device.node_id, channel), _Channel())
         state.scenes = planned
         saved = _persist(device, channel)
@@ -437,9 +458,21 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         device = _siemens_gateway(node_id, device_address)
         _ensure_connected()
-        future = ctx.run_locked(
-            lambda: service.run_siemens_dali(device, lambda p: scan_n141_03(p, line=0))
+
+        def op(p: Any) -> Any:
+            return scan_n141_03(p, line=0)
+
+        ended = run_queued_action(
+            ctx,
+            device.node_id,
+            "siemens_dali",
+            timeout,
+            op=op,
+            text=S.SIEMENS_DALI_SCAN_BUS,
         )
+        if ended is not None:
+            return siemens_scan_dict(device.node_id, ended.result)
+        future = ctx.run_locked(lambda: service.run_siemens_dali(device, op))
         if future is None:
             raise not_started(service, "the DALI scan")
         return siemens_scan_dict(
@@ -470,9 +503,13 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                 f"device {device.node_id} has no DALI device data in the project"
             )
         _ensure_connected()
-        future = ctx.run_locked(
-            lambda: service.run_siemens_dca_program(device, entry.data)
+        data = entry.data
+        ended = run_queued_action(
+            ctx, device.node_id, "siemens_dca", timeout, data=data
         )
+        if ended is not None:
+            return {"node_id": device.node_id, "writes": ended.result}
+        future = ctx.run_locked(lambda: service.run_siemens_dca_program(device, data))
         if future is None:
             raise not_started(service, "programming")
         writes = await_operation(service, future, timeout, "programming")

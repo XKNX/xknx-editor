@@ -3209,3 +3209,12 @@ msgstr "Versetzen Sie bei einem neuen Gerät genau ein Gerät in den Programmier
 
 msgid "The download failed after it had begun to write the device, so the device may be partially loaded. Program it again to restore a working state. Cause: {cause}"
 msgstr "Die Programmierung ist fehlgeschlagen, nachdem sie bereits in das Gerät geschrieben hatte. Das Gerät ist daher möglicherweise nur teilweise geladen. Programmieren Sie es erneut, um einen funktionierenden Zustand herzustellen. Ursache: {cause}"
+
+msgid "Running"
+msgstr "Wird ausgeführt"
+
+msgid "Switch On"
+msgstr "Einschalten"
+
+msgid "Switch Off"
+msgstr "Ausschalten"
