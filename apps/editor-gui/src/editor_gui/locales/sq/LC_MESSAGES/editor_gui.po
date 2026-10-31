@@ -587,13 +587,13 @@ msgid "Paste an OpenKNX GitHub release URL (the release page works — the .zip 
 msgstr "Ngjitni URL-në e një release-i OpenKNX në GitHub (funksionon edhe faqja e release-it — skedari .zip gjendet automatikisht). Funksionon edhe një lidhje e drejtpërdrejtë .knxprod ose XML produkti KNX.\n\nShembuj:\n  https://github.com/OpenKNX/OAM-RaumController/releases/tag/v5.4.3\n  https://github.com/OpenKNX/OAM-RaumController/releases/latest"
 
 msgid "Or choose a local folder with product files (.knxprod, OpenKNX release .zip, or KNX product XML) to import all of them."
-msgstr "Ose zgjidhni një dosje lokale me skedarë produktesh (.knxprod, .zip release OpenKNX ose XML produkti KNX) për t'i importuar të gjithë."
+msgstr "Ose zgjidhni një dosje lokale me skedarë produktesh (.knxprod, .zip i një release-i OpenKNX ose XML produkti KNX) për t'i importuar të gjithë."
 
 msgid "Choose Folder…"
 msgstr "Zgjidh dosjen…"
 
 msgid "Or upload product files (.knxprod, OpenKNX release .zip, or KNX product XML) from this computer to import all of them."
-msgstr "Ose ngarkoni skedarë produktesh (.knxprod, .zip release OpenKNX ose XML produkti KNX) nga ky kompjuter për t'i importuar të gjithë."
+msgstr "Ose ngarkoni skedarë produktesh (.knxprod, .zip i një release-i OpenKNX ose XML produkti KNX) nga ky kompjuter për t'i importuar të gjithë."
 
 msgid "Choose Files…"
 msgstr "Zgjidh skedarët…"
@@ -611,7 +611,7 @@ msgid "Import from URL failed: {error}"
 msgstr "Importimi nga URL dështoi: {error}"
 
 msgid "Choose a Folder with KNX Product Files"
-msgstr "Zgjidhni një dosje me skedarë produktesh KNX"
+msgstr "Zgjidh një dosje me skedarë produktesh KNX"
 
 msgid "Importing from folder…"
 msgstr "Po importohet nga dosja…"
@@ -914,7 +914,7 @@ msgid "DIN rail"
 msgstr "Shinë DIN"
 
 msgid "Flush-mounted"
-msgstr "Montim në mur"
+msgstr "Montim nën suva"
 
 msgid "Registered: {info}"
 msgstr "I regjistruar: {info}"
@@ -941,7 +941,7 @@ msgid "Hardware"
 msgstr "Hardueri"
 
 msgid "Registered"
-msgstr "I regjistruar"
+msgstr "Regjistrimi"
 
 msgid "{name} was already in the catalog, nothing new imported"
 msgstr "{name} ishte tashmë në katalog, nuk u importua asgjë e re"
