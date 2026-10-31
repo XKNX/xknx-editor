@@ -311,7 +311,7 @@ msgid "Prio"
 msgstr "Prio"
 
 msgid "Source Address"
-msgstr "Adresa burimore"
+msgstr "Adresa e burimit"
 
 msgid "Source Name"
 msgstr "Emri i burimit"
@@ -365,7 +365,7 @@ msgid "Frame Format"
 msgstr "Formati i kornizës"
 
 msgid "System Broadcast"
-msgstr "System Broadcast"
+msgstr "Broadcast i sistemit"
 
 msgid "Interface"
 msgstr "Ndërfaqja"
