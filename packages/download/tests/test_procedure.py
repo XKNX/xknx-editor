@@ -374,6 +374,26 @@ async def test_write_rel_mem_uses_table_reference() -> None:
     assert bytes(device.memory[0x4004 + i] for i in range(2)) == b"\x11\x22"
 
 
+async def test_write_rel_mem_of_no_octets_writes_nothing() -> None:
+    # An application without parameter memory (an ABB 2CDG 110 192) writes 0 octets to its
+    # application object; there is no image data for that, and none is needed.
+    write = LdCtrlWriteRelMem(obj_type=3, occurrence=0, offset=0, size=0, verify=True)
+    device = _device({0: 0x0000, 1: 3})
+    device.table_references[1] = 0x4000
+    image = DownloadImage(segments=(), properties=())
+    runner = LoadProcedureRunner(_application(write), image, DeviceProgrammer(device))
+    await runner.run()
+    assert device.memory == {}
+    runner = LoadProcedureRunner(_application(write), image, DeviceProgrammer(device))
+    report = await runner.preflight()
+    assert not report.segments
+    # With octets to write, missing data is still an error.
+    sized = LdCtrlWriteRelMem(obj_type=3, occurrence=0, offset=0, size=2, verify=True)
+    runner = LoadProcedureRunner(_application(sized), image, DeviceProgrammer(device))
+    with pytest.raises(ImageError, match="no image data for relative range"):
+        await runner.run()
+
+
 async def test_write_rel_mem_image_backed_uses_relative_lookup() -> None:
     # The image mirrors a relative segment in its own relative address space
     # (base 0x0); the device write adds the table base read at run time. Only the

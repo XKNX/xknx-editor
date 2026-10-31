@@ -1605,11 +1605,13 @@ class LoadProcedureRunner:
             control.size,
         )
         runs = self._memory_write_runs(control, index=index)
-        if runs is None:
+        if runs is None and control.size:
             raise ImageError(
                 f"no image data for relative range {control.offset:#06x}.."
                 f"{control.offset + control.size:#06x}"
             )
+        # A write of no octets (an application without parameter memory) writes nothing.
+        runs = runs or []
         if runs:
             programmer = await self._memory_programmer()
         for run_offset, data in runs:
@@ -3300,7 +3302,7 @@ class LoadProcedureRunner:
         smaller than the planned data: it is read as far as the device answers.
         """
         runs = self._memory_write_runs(control, index=index)
-        if runs is None:
+        if runs is None and control.size:
             raise ImageError(
                 f"no image data for relative range {control.offset:#06x}.."
                 f"{control.offset + control.size:#06x}"
