@@ -50,7 +50,7 @@ msgid "Log"
 msgstr "Regjistri"
 
 msgid "Open a project to use the Mass Linker."
-msgstr "Hapni një projekt për të përdorur Lidhjet masive."
+msgstr "Hapni një projekt për të përdorur panelin \"Lidhje masive\"."
 
 msgid "Pairs are matched by list order (1st with 1st, …). Surplus items on the longer side are ignored. Reorder a list via its right-click menu."
 msgstr "Çiftet formohen sipas radhës në listë (i 1-ri me të 1-rin, …). Elementet e tepërta në anën më të gjatë shpërfillen. Renditjen e një liste e ndryshoni nga menyja e klikimit të djathtë."
@@ -68,13 +68,13 @@ msgid "\"{link_all}\" links every row that has one."
 msgstr "\"{link_all}\" lidh çdo rresht që ka një të tillë."
 
 msgid "Link objects to each other through a new group address each: the source sends, the target receives."
-msgstr "Lidh objektet me njëri-tjetrin, secilin përmes një adrese grupi të re: burimi dërgon, objektivi merr."
+msgstr "Lidh objektet me njëri-tjetrin, secilin përmes një adrese grupi të re: burimi dërgon, objekti përkatës merr."
 
 msgid "Add the source objects with \"{add_device}\" or \"{add_objects}\"."
 msgstr "Shtoni objektet burimore me \"{add_device}\" ose \"{add_objects}\"."
 
 msgid "Pick a target object per row. Address and name are suggested and can be changed."
-msgstr "Zgjidhni një objekt objektiv për çdo rresht. Adresa dhe emri sugjerohen dhe mund të ndryshohen."
+msgstr "Zgjidhni një objekt përkatës për çdo rresht. Adresa dhe emri sugjerohen dhe mund të ndryshohen."
 
 msgid "\"{link_all}\" creates the group addresses and links them."
 msgstr "\"{link_all}\" krijon adresat e grupeve dhe i lidh ato."
@@ -152,7 +152,7 @@ msgid "Linked {count} object(s) to group addresses"
 msgstr "U lidhën {count} objekt(e) me adresa grupi"
 
 msgid "Linked {count} object pair(s) via new group addresses"
-msgstr "U lidhën {count} çift(e) objektesh përmes adresave të reja të grupit"
+msgstr "U lidhën {count} çift(e) objektesh përmes adresave të reja të grupeve"
 
 msgid "{count} error(s)"
 msgstr "{count} gabim(e)"
@@ -170,10 +170,10 @@ msgid "DPT"
 msgstr "DPT"
 
 msgid "Target Group Address"
-msgstr "Adresa e grupit objektiv"
+msgstr "Adresa përkatëse e grupit"
 
 msgid "Target Group Object"
-msgstr "Objekti i grupit objektiv"
+msgstr "Objekti përkatës i grupit"
 
 msgid "Group Address"
 msgstr "Adresa e grupit"
