@@ -2744,7 +2744,7 @@ msgid "The maximum number of group ranges has been reached."
 msgstr "U arrit numri maksimal i diapazoneve të grupeve."
 
 msgid "There is no group for the new group addresses."
-msgstr "Nuk ka asnjë grup për adresat e reja të grupit."
+msgstr "Nuk ka asnjë grup për adresat e reja të grupeve."
 
 msgid "Copied '{name}' to '{target}'."
 msgstr "'{name}' u kopjua në '{target}'."
