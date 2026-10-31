@@ -1568,10 +1568,10 @@ msgid "Read Value"
 msgstr "Lexo vlerën"
 
 msgid "Write Value…"
-msgstr "Shkruaj vlerë…"
+msgstr "Shkruaj vlerën…"
 
 msgid "Write Value"
-msgstr "Shkruaj vlerë"
+msgstr "Shkruaj vlerën"
 
 msgid "Data Type"
 msgstr "Lloji i të dhënave"
@@ -1586,7 +1586,7 @@ msgid "Write"
 msgstr "Shkruaj"
 
 msgid "Not connected to the bus."
-msgstr "Nuk jeni i lidhur me busin."
+msgstr "Nuk ka lidhje me busin."
 
 msgid "Export Group Addresses…"
 msgstr "Eksporto adresat e grupeve…"
@@ -2300,10 +2300,10 @@ msgid "Set medium to {medium}"
 msgstr "Cakto mediumin në {medium}"
 
 msgid "Forced on"
-msgstr "Ndezur me detyrim"
+msgstr "Aktivizuar me detyrim"
 
 msgid "Forced off"
-msgstr "Fikur me detyrim"
+msgstr "Çaktivizuar me detyrim"
 
 msgid "Overridden by '{name}': {mode}"
 msgstr "Mbishkruar nga '{name}': {mode}"
