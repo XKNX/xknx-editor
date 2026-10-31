@@ -728,7 +728,7 @@ msgid "Channels ({count})"
 msgstr "Kanalet ({count})"
 
 msgid "DALI (Bus)"
-msgstr "DALI (bus)"
+msgstr "DALI (busi)"
 
 msgid "Assigned Objects"
 msgstr "Objektet e lidhura"
@@ -1343,13 +1343,13 @@ msgid "Parameter Script"
 msgstr "Skripti i parametrave"
 
 msgid "Executing Script"
-msgstr "Skripti në ekzekutim"
+msgstr "Po ekzekutohet skripti"
 
 msgid "Script not responding"
 msgstr "Skripti nuk përgjigjet"
 
 msgid "Force Stop"
-msgstr "Ndalo me detyrim"
+msgstr "Ndalo me forcë"
 
 msgid "The script was stopped."
 msgstr "Skripti u ndal."
@@ -1517,7 +1517,7 @@ msgid "The application program currently loaded in the device is different from 
 msgstr "Programi aplikativ i ngarkuar aktualisht në pajisje ndryshon nga programi aplikativ i projektuar"
 
 msgid "Do you want to overwrite the application program (this may take several minutes)?"
-msgstr "Doni ta mbishkruani programin aplikativ (kjo mund të zgjasë disa minuta)?"
+msgstr "Të mbishkruhet programi aplikativ (kjo mund të zgjasë disa minuta)?"
 
 msgid "The application program currently loaded in the device does not comply with the projected application program. You may try a full instead of a partial download."
 msgstr "Programi aplikativ i ngarkuar aktualisht në pajisje nuk përputhet me programin aplikativ të projektuar. Mund të provoni një programim të plotë në vend të një të pjesshmi."
