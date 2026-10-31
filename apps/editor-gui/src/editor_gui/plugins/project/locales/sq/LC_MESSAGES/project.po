@@ -1061,7 +1061,7 @@ msgid "Programming Test Result"
 msgstr "Rezultati i testit të programimit"
 
 msgid "Evaluation failed"
-msgstr "Vlerësimi dështoi"
+msgstr "Testi dështoi"
 
 msgid "Read-only test: checks that the download function generates the same image as what is already programmed on the device. Nothing is written to the device."
 msgstr "Test vetëm për lexim: kontrollon që funksioni i programimit prodhon të njëjtin imazh me atë që është tashmë i programuar në pajisje. Asgjë nuk shkruhet në pajisje."
@@ -1082,7 +1082,7 @@ msgid "{matched} matched, {changed} would change"
 msgstr "{matched} përputhen, {changed} do të ndryshonin"
 
 msgid "Only for ETS 6 devices: this test compares the device against an image generated the ETS 6 way. A device last programmed with ETS 5 uses a different byte layout and will show large false differences - the result is only meaningful for a device last programmed with ETS 6."
-msgstr "Vetëm për pajisje ETS 6: ky test e krahason pajisjen me një imazh të prodhuar sipas mënyrës së ETS 6. Një pajisje e programuar për herë të fundit me ETS 5 përdor një renditje tjetër bajtesh dhe do të shfaqë ndryshime të mëdha të rreme - rezultati ka kuptim vetëm për një pajisje të programuar për herë të fundit me ETS 6."
+msgstr "Vetëm për pajisjet e programuara me ETS 6: ky test e krahason pajisjen me një imazh të prodhuar sipas mënyrës së ETS 6. Një pajisje e programuar për herë të fundit me ETS 5 përdor një renditje tjetër bajtesh dhe do të shfaqë ndryshime të mëdha të rreme - rezultati ka kuptim vetëm për një pajisje të programuar për herë të fundit me ETS 6."
 
 msgid "Structural differences (whole tables differ) can mean the device was last programmed with ETS 5, whose byte layout differs. Differences in values only usually mean the device holds a different configuration."
 msgstr "Ndryshimet strukturore (ndryshojnë tabela të tëra) mund të nënkuptojnë që pajisja është programuar për herë të fundit me ETS 5, renditja e bajteve të të cilit ndryshon. Ndryshimet vetëm në vlera zakonisht nënkuptojnë që pajisja mban një konfigurim tjetër."
@@ -1109,10 +1109,10 @@ msgid "System byte the device sets itself at runtime (e.g. a download detection 
 msgstr "Bajt sistemi që pajisja e vendos vetë gjatë punës (p.sh. një bajt zbulimi programimi që programi aplikativ e rivendos pas një programimi). Një ndryshim këtu është i pritshëm dhe nuk tregon programim të dështuar."
 
 msgid "plus {bytes} device-managed runtime byte(s) (expected, benign)"
-msgstr "plus {bytes} bajt(e) pune të pajisjes (të pritshëm, të padëmshëm)"
+msgstr "dhe {bytes} bajt(e) që i menaxhon vetë pajisja (të pritshëm, të padëmshëm)"
 
 msgid "No configured differences: the device already carries this configuration. The differences below are benign (see notes)."
-msgstr "Nuk ka ndryshime të konfiguruara: pajisja e mban tashmë këtë konfigurim. Ndryshimet më poshtë janë të padëmshme (shihni shënimet)."
+msgstr "Nuk ka ndryshime në konfigurim: pajisja e mban tashmë këtë konfigurim. Ndryshimet më poshtë janë të padëmshme (shihni shënimet)."
 
 msgid "sets default"
 msgstr "vendos parazgjedhjen"
@@ -1121,7 +1121,7 @@ msgid "This byte is written for a neighbouring parameter; the differing bit is n
 msgstr "Ky bajt shkruhet për një parametër fqinj; biti që ndryshon nuk drejtohet nga asnjë parametër aktiv dhe vetëm rivendoset në parazgjedhjen e programit aplikativ. Pajisja mban një vlerë më të vjetër (p.sh. nga një konfigurim ose modalitet i mëparshëm) që programimi do ta normalizojë. I padëmshëm."
 
 msgid "plus {bytes} byte(s) reset to the application default (the device holds an older value; benign, will be normalised on programming)"
-msgstr "plus {bytes} bajt(e) të rivendosur në parazgjedhjen e programit aplikativ (pajisja mban një vlerë më të vjetër; e padëmshme, do të normalizohet gjatë programimit)"
+msgstr "dhe {bytes} bajt(e) të rivendosur në parazgjedhjen e programit aplikativ (pajisja mban një vlerë më të vjetër; e padëmshme, do të normalizohet gjatë programimit)"
 
 msgid "Export Ist/Soll…"
 msgstr "Eksporto Ist/Soll…"
@@ -1844,7 +1844,7 @@ msgid "Details"
 msgstr "Detajet"
 
 msgid "Scope: {scope}"
-msgstr "Shtrirja: {scope}"
+msgstr "Lloji i programimit: {scope}"
 
 msgid "Additional Individual Addresses"
 msgstr "Adresat individuale shtesë"
