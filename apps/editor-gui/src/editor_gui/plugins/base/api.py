@@ -44,6 +44,10 @@ class PluginAPI:
     # ``ended`` future resolves once it has ended, or None for a device not in the project. Set by
     # the project plugin.
     queue_program: Callable[..., "QueueItem | None"] | None = None
+    # Queues another bus operation on a project device (node id, kind: "restart", "reset",
+    # "dali", "siemens_dali" or "siemens_dca", origin and options) the same way. Set by the
+    # project plugin.
+    queue_action: Callable[..., "QueueItem | None"] | None = None
     # Cancels a queued or running operation. Set by the project plugin.
     cancel_operation: Callable[["QueueItem"], None] | None = None
 

@@ -1,17 +1,75 @@
 """Toasts: a confirmation for a moment, a refusal in an orange box for longer, and a click on one
-closes it at once; refusals reach the app through ``PluginAPI.tell_refused``."""
+closes it at once; refusals reach the app through ``PluginAPI.tell_refused``, warnings and errors
+of the log as toasts unless the user sees them elsewhere."""
 
 from __future__ import annotations
 
 from collections.abc import Iterator
+from concurrent.futures import Future
+from types import SimpleNamespace
 from typing import Any, cast
 
 import pytest
 from imgui_bundle import imgui
+from xknx.exceptions import ManagementConnectionTimeout
 
+from editor_gui.plugins.base import Logger
 from editor_gui.plugins.base.api import PluginAPI
+from editor_gui.plugins.connection.service import ConnectionService
+from editor_gui.plugins.logger.service import LogService
 from editor_gui.widgets import toasts as toasts_module
-from editor_gui.widgets.toasts import Toasts
+from editor_gui.widgets.toasts import Toasts, log_toast
+from xknxeditor.download.errors import PartialDownloadError
+
+
+def test_warnings_and_errors_of_the_log_get_a_toast() -> None:
+    assert log_toast("error", "connection", "Restart failed", {"error": "timeout"}) == (
+        "[connection] Restart failed: timeout"
+    )
+    assert log_toast("warning", "project", "Nothing to do", {}) == (
+        "[project] Nothing to do"
+    )
+    assert log_toast("info", "project", "Programming complete", {}) is None
+    # Shown in a dialog, or in the operations history: no toast.
+    assert log_toast("error", "app", "export failed", {"shown": "dialog"}) is None
+    assert log_toast("error", "connection", "x", {"shown": "operations"}) is None
+
+
+def _failed(error: BaseException) -> Future[Any]:
+    future: Future[Any] = Future()
+    future.set_exception(error)
+    return future
+
+
+def test_a_failed_operation_raises_no_toast() -> None:
+    """Programming, its test, a device info readout, a restart, a master reset and a DALI run
+    end in the operations history, which shows the failure; their log records raise no
+    toast."""
+    logs = LogService()
+    service = cast(
+        Any,
+        SimpleNamespace(
+            _log=Logger(logs, "connection"),
+            _clear_busy=lambda: None,
+            _set_program_notice=lambda ok: None,
+        ),
+    )
+    timeout = ManagementConnectionTimeout("No ACK received for repeated telegram.")
+    partial = PartialDownloadError("failed after writing")
+    partial.__cause__ = timeout
+    for error in (timeout, partial):
+        ConnectionService._log_program_result(service, _failed(error))  # pyright: ignore[reportPrivateUsage]
+    ConnectionService._log_evaluate_result(service, _failed(timeout), "1.1.1")  # pyright: ignore[reportPrivateUsage]
+    ConnectionService._end_device_info(service, _failed(timeout), "1.1.1")  # pyright: ignore[reportPrivateUsage]
+    ConnectionService._log_restart_result(service, _failed(timeout), "1.1.1")  # pyright: ignore[reportPrivateUsage]
+    ConnectionService._log_reset_result(service, _failed(timeout), "1.1.1")  # pyright: ignore[reportPrivateUsage]
+    ConnectionService._log_dali_result(service, _failed(timeout), "1.1.1")  # pyright: ignore[reportPrivateUsage]
+    records = [r for r in logs.get_records() if r.plugin == "connection"]
+    assert len(records) == 11
+    assert all(r.level == "error" for r in records)
+    assert [log_toast(r.level, r.plugin, r.event, r.payload) for r in records] == [
+        None
+    ] * 11
 
 
 @pytest.fixture

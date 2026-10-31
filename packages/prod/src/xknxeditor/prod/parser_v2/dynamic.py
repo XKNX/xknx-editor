@@ -3,7 +3,7 @@ from __future__ import annotations
 import contextlib
 import copy
 import logging
-from collections.abc import Callable, Generator, Iterable, Mapping, Sequence
+from collections.abc import Callable, Generator, Iterable, Iterator, Mapping, Sequence
 from typing import TYPE_CHECKING
 
 from xknxeditor.namespaces.intermediate import (
@@ -223,6 +223,21 @@ class _UnionCompetitors:
         return self._cache[mid]
 
 
+def _modules(elems: Iterable[object]) -> Iterator[Module]:
+    """Every Module element in ``elems`` and below them (choose branches, repeats, blocks), not
+    inside the module definitions they instantiate."""
+    for elem in elems:
+        if isinstance(elem, Module):
+            yield elem
+        elif isinstance(
+            elem, (DependentChannelChoose, ChannelChoose, ComObjectParameterChoose)
+        ):
+            for when in elem.when:
+                yield from _modules(when.choice)
+        else:
+            yield from _modules(getattr(elem, "choice", None) or [])
+
+
 class DynamicTreeBuilder:
     """Constructs an ApplicationProgram's eval tree, pre-resolving Module refs into
     subtrees so evaluation never re-reads the IR."""
@@ -263,6 +278,92 @@ class DynamicTreeBuilder:
         # outside any choose has no entry and keeps its XML-nested placement (it is never re-homed
         # from where a choose merely USES it). Computed once; used by :meth:`page_param_for`.
         self._page_params, self._nearest_placement = self._build_page_maps(app)
+        # Param-refs (local to their application or module definition) whose value can change
+        # which allocating module instances the tree makes; no other value can make an allocator
+        # overflow.
+        self.allocation_param_refs: frozenset[str] = self._build_allocation_param_refs(
+            app
+        )
+
+    def _build_allocation_param_refs(self, app: ApplicationProgram) -> frozenset[str]:
+        """The selectors (choose parameters, repeat counts) on the way to a module that
+        allocates (an argument with an Allocator, or such a module inside it), closed over what
+        makes a selector count: a choose renders only while its parameter is active, so the
+        selectors on the way to the parameter's placements and assigns count too, as do the
+        sources of its assigns and its union siblings (a choose on an inactive union member
+        renders nothing)."""
+        defs = self.idx.module_defs
+        allocates: dict[str, bool] = {}
+
+        def module_allocates(module: Module) -> bool:
+            if any(getattr(arg, "allocator_ref_id", None) for arg in module.choice):
+                return True
+            def_id = module.ref_id
+            if def_id not in allocates:
+                allocates[def_id] = (
+                    False  # a definition that contains itself allocates nothing
+                )
+                definition = defs.get(def_id)
+                allocates[def_id] = definition is not None and any(
+                    module_allocates(m)
+                    for m in _modules(getattr(definition.dynamic, "choice", None) or [])
+                )
+            return allocates[def_id]
+
+        seeds: set[str] = set()
+        placements: dict[str, set[str]] = {}
+        sources: dict[str, set[str]] = {}
+
+        def walk(elem: object, gates: tuple[str, ...]) -> None:
+            if isinstance(
+                elem, (DependentChannelChoose, ChannelChoose, ComObjectParameterChoose)
+            ):
+                inner = (*gates, elem.param_ref_id)
+                for when in elem.when:
+                    for child in when.choice:
+                        walk(child, inner)
+                return
+            if isinstance(elem, Repeat):
+                inner = (
+                    (*gates, elem.parameter_ref_id) if elem.parameter_ref_id else gates
+                )
+                for child in elem.choice:
+                    walk(child, inner)
+                return
+            if isinstance(elem, Module):
+                if module_allocates(elem):
+                    seeds.update(gates)
+                return
+            if isinstance(elem, ParameterRefRef):
+                placements.setdefault(elem.ref_id, set()).update(gates)
+                return
+            if isinstance(elem, Assign):
+                target = elem.target_param_ref_ref
+                placements.setdefault(target, set()).update(gates)
+                if elem.source_param_ref_ref is not None:
+                    placements.setdefault(elem.source_param_ref_ref, set()).update(
+                        gates
+                    )
+                    sources.setdefault(target, set()).add(elem.source_param_ref_ref)
+                return
+            children: Iterable[object] = getattr(elem, "choice", None) or []
+            for child in children:
+                walk(child, gates)
+
+        walk(app.dynamic, ())
+        for definition in defs.values():
+            walk(definition.dynamic, ())
+        relevant: set[str] = set()
+        pending = list(seeds)
+        while pending:
+            ref = pending.pop()
+            if ref in relevant:
+                continue
+            relevant.add(ref)
+            pending.extend(placements.get(ref, ()))
+            pending.extend(sources.get(ref, ()))
+            pending.extend(self._union_sibling_refs.get(ref) or ())
+        return frozenset(relevant)
 
     def _build_page_maps(
         self, app: ApplicationProgram
@@ -777,6 +878,7 @@ def _rehome_to_pages(
 class DynamicUI:
     __slots__ = (
         "_active_snapshot",
+        "_allocation_param_refs",
         "_app",
         "_idx",
         "_page_for",
@@ -807,6 +909,7 @@ class DynamicUI:
         self.project_code_page = project_code_page
         self._tree = builder.tree
         self._idx = builder.idx
+        self._allocation_param_refs = builder.allocation_param_refs
         self._page_for = builder.page_param_for
         self._state = GlobalState.from_project(
             parameter_instance_refs=parameter_instance_refs,
@@ -1247,6 +1350,20 @@ class DynamicUI:
         """The codec of this device's ``Text`` parameters (see :func:`text_parameter_encoding`)."""
         return text_parameter_encoding(self._app, self.project_code_page)
 
+    def _can_change_allocation(self, local: str) -> bool:
+        """Whether a write of ``local``, or a calculation it runs, can change the allocating
+        module instances (see :attr:`DynamicTreeBuilder.allocation_param_refs`)."""
+        allocation = self._allocation_param_refs
+        if local in allocation:
+            return True
+        return any(
+            ref.ref_id in allocation
+            for calc, direction in self._idx.calculation_plan(local)
+            for ref in (
+                calc.rparameters if direction == "LR" else calc.lparameters
+            ).parameter_ref_ref
+        )
+
     def _journal(self) -> Journal:
         def explicit(ref_id: str) -> str | None:
             scope, local = self._locate(ref_id)
@@ -1310,9 +1427,14 @@ class DynamicUI:
                 raise ValueError(
                     f"parameter ref {ref_id!r} is not active in the current UI state"
                 )
+        # A script write (no ``require_active``) settles only where it can make an allocator
+        # overflow. The next read settles anyway, and a script writing many values in a row (a
+        # DALI gateway's "select all" button sets 64) would otherwise evaluate the tree once per
+        # value.
+        settle = strict and (require_active or self._can_change_allocation(local))
         # The settle below also runs the Assigns of what the value turns on; a rejection returns
         # to this state, as the journal undoes only the values the change wrote.
-        before = copy.deepcopy(self._state) if strict else None
+        before = copy.deepcopy(self._state) if settle else None
         journal = self._journal()
         try:
             if validate:
@@ -1328,7 +1450,7 @@ class DynamicUI:
                 abort=self.script_abort,
             )
             self._invalidate()
-            if strict:
+            if settle:
                 # A value that leaves an allocator too few numbers (e.g. more channels than it
                 # holds) is rejected with the allocator's message, as a failed validation. The
                 # settle is the one the next read needs anyway.

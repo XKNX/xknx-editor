@@ -20,6 +20,8 @@ from editor_gui.plugins.mcp.context import McpContext, make_tool
 from editor_gui.plugins.mcp.tools.project import require_device
 
 if TYPE_CHECKING:
+    from collections.abc import Mapping
+    from collections.abc import Set as AbstractSet
     from concurrent.futures import Future
 
     from fastmcp import FastMCP
@@ -27,6 +29,7 @@ if TYPE_CHECKING:
     from editor_gui.device import Device
     from editor_gui.plugins.connection.service import ConnectionService
     from editor_gui.plugins.project.program_queue import QueueItem
+    from xknxeditor.download.preflight import ByteRange, PreflightReport
 
 # Download scopes (schema enum); maps to xknxeditor.download.scope.DownloadScope in _resolve_scope.
 Scope = Literal[
@@ -113,6 +116,53 @@ def await_operation(
         ) from exc
 
 
+def wait_for_operation(ctx: McpContext, item: QueueItem, timeout: float) -> QueueItem:
+    """The operation of the queue once it has ended. One that does not end within ``timeout`` s
+    is canceled (ToolError)."""
+    assert item.ended is not None
+    try:
+        return item.ended.result(timeout=timeout)
+    except TimeoutError as exc:
+        cancel = ctx.api.cancel_operation
+        if cancel is not None:
+            ctx.run_on_ui(lambda: cancel(item))
+        raise ToolError(
+            f"the operation did not finish within {timeout} s and was canceled"
+        ) from exc
+
+
+def finished(ended: QueueItem) -> QueueItem:
+    """``ended`` when it finished; ToolError with its message when it was canceled or failed."""
+    from editor_gui.plugins.project.program_queue import OperationState
+    from editor_gui.plugins.project.strings import S
+
+    if ended.state is OperationState.FINISHED:
+        return ended
+    if ended.state is OperationState.CANCELED:
+        raise ToolError(ended.message or S.OPERATION_CANCELED_BY_USER)
+    raise ToolError(ended.message or "the operation failed")
+
+
+def run_queued_action(
+    ctx: McpContext, node_id: int, kind: str, timeout: float, **options: Any
+) -> QueueItem | None:
+    """Run a bus operation other than a programming (``kind``: "restart", "reset", "dali",
+    "siemens_dali", "siemens_dca"; ``options`` as ``PluginAPI.queue_action`` takes them) in the
+    editor's operations queue, labelled as started by an MCP client, so the user sees it there
+    and can cancel it. Returns the finished item (its ``result`` is the operation's), or None
+    when the editor has no queue (a headless server), so the caller runs it directly. Raises
+    ToolError when it fails, is canceled, or does not end within ``timeout``."""
+    queue = ctx.api.queue_action
+    if queue is None:
+        return None
+    from editor_gui.plugins.project.program_queue import ORIGIN_MCP
+
+    item = ctx.run_locked(lambda: queue(node_id, kind, origin=ORIGIN_MCP, **options))
+    if item is None or item.ended is None:
+        raise ToolError(f"no device with node_id {node_id}")
+    return finished(wait_for_operation(ctx, item, timeout))
+
+
 def _resolve_scope(scope: str | None) -> Any:
     from xknxeditor.download.scope import DownloadScope
 
@@ -123,6 +173,59 @@ def _resolve_scope(scope: str | None) -> Any:
     except KeyError as exc:
         valid = ", ".join(s.name for s in DownloadScope)
         raise ToolError(f"unknown scope {scope!r}; expected one of: {valid}") from exc
+
+
+def _changes(
+    current: bytes, planned: bytes, ranges: tuple[ByteRange, ...]
+) -> list[dict[str, Any]]:
+    return [
+        {
+            "offset": r.start,
+            "current": current[r.start : r.start + r.length].hex(),
+            "planned": planned[r.start : r.start + r.length].hex(),
+        }
+        for r in ranges
+    ]
+
+
+def preflight_locations(
+    report: PreflightReport,
+    runtime_addresses: AbstractSet[int],
+    driven_bits: Mapping[int, int],
+) -> list[dict[str, Any]]:
+    """The locations a pre-flight found changed, as the pre-flight window lists them: each with
+    its class and, per changed range, the device's (current) and the download's (planned) bytes
+    in hex."""
+    from editor_gui.programming import (
+        preflight_property_category,
+        preflight_segment_category,
+    )
+
+    runtime = set(runtime_addresses) | report.device_written
+    locations: list[dict[str, Any]] = [
+        {
+            "memory": f"{segment.address:#06x}",
+            "size": len(segment.planned),
+            "changed_bytes": segment.changed_bytes,
+            "category": preflight_segment_category(segment, runtime, driven_bits),
+            "changes": _changes(
+                segment.current, segment.planned, segment.changed_ranges
+            ),
+        }
+        for segment in report.changed_segments
+    ]
+    locations += [
+        {
+            "object": prop.object_label,
+            "property": prop.property_id,
+            "size": len(prop.planned),
+            "changed_bytes": prop.changed_bytes,
+            "category": preflight_property_category(prop),
+            "changes": _changes(prop.current, prop.planned, prop.changed_ranges),
+        }
+        for prop in report.changed_properties
+    ]
+    return locations
 
 
 def register(mcp: FastMCP, ctx: McpContext) -> None:
@@ -191,7 +294,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         queue = ctx.api.queue_program
         if queue is None:
             return None
-        from editor_gui.plugins.project.program_queue import ORIGIN_MCP, OperationState
+        from editor_gui.plugins.project.program_queue import ORIGIN_MCP
         from editor_gui.plugins.project.strings import S
 
         item = ctx.run_locked(
@@ -199,22 +302,10 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         )
         if item is None or item.ended is None:
             raise ToolError(f"no device with node_id {node_id}")
-        try:
-            ended = item.ended.result(timeout=timeout)
-        except TimeoutError as exc:
-            cancel = ctx.api.cancel_operation
-            if cancel is not None:
-                ctx.run_on_ui(lambda: cancel(item))
-            raise ToolError(
-                f"the operation did not finish within {timeout} s and was canceled"
-            ) from exc
-        if ended.state is OperationState.FINISHED:
-            return ended
+        ended = wait_for_operation(ctx, item, timeout)
         if ended.message == S.DEVICE_CERTIFICATE_REQUIRED:
             raise _certificate_error(node_id)
-        if ended.state is OperationState.CANCELED:
-            raise ToolError(ended.message or S.OPERATION_CANCELED_BY_USER)
-        raise ToolError(ended.message or "the operation failed")
+        return finished(ended)
 
     def _project_serial(node_id: int) -> bytes | None:
         from editor_gui.device_info import serial_from_project
@@ -478,7 +569,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         cancel it.
 
         Returns {node_id, changed_bytes, config_bytes, default_bytes, runtime_bytes, config_locations,
-        changed_segments, changed_properties, summary}. ``changed_bytes`` is the raw total; it is split
+        changed_segments, changed_properties, summary, locations}. ``changed_bytes`` is the raw total; it is split
         into three classes, and ONLY ``config_bytes`` is a real configuration change you would push:
         - config_bytes: bytes carrying a configured parameter value / a property write (flags, tables).
         - default_bytes: bytes merely reset to the application default (the device holds an older value)
@@ -489,7 +580,16 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
           successful download.
         So a non-zero ``changed_bytes`` with ``config_bytes == 0`` (``config_locations == 0``) means the
         device already carries the configuration; do not treat that as a pending change. changed_segments/
-        changed_properties are counts and do not describe unload/restart or address-reset effects."""
+        changed_properties are counts and do not describe unload/restart or address-reset effects.
+        ``locations`` lists every changed location, as the pre-flight window does: a memory segment
+        as {memory: "0x4400", ...} or a property write as {object: "5" (index) or "type 40960"
+        (addressed by type), property: PID, ...}, each with size, changed_bytes, category ("config",
+        "default" or "runtime", as above) and changes: [{offset, current, planned}] per changed
+        range, offset from the location's start and the device's (current) and the download's
+        (planned) bytes in hex.
+
+        A compare of the procedure that checks the device's reaction to one of its own writes (e.g.
+        the load state after an unload) is not checked: the preview writes nothing."""
         device, group_communication = _programmable_device(node_id, device_address)
         resolved = _resolve_scope(scope)
         if resolved.individual_address_only:
@@ -534,6 +634,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             "changed_segments": len(report.changed_segments),
             "changed_properties": len(report.changed_properties),
             "summary": report.summary(),
+            "locations": preflight_locations(report, runtime_addresses, driven_bits),
         }
 
     @tool("destructive", open_world=True)
@@ -599,16 +700,18 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         """Restart the device over the bus: a basic restart, which changes nothing in the device.
         Identify it by ``node_id`` OR ``device_address`` (its individual address like "1.0.30");
         pass exactly one. Needs an open connection and the device's individual address; a
-        securely commissioned device is restarted with its Tool Key. Returns
-        {status: "restarted", node_id}."""
+        securely commissioned device is restarted with its Tool Key. It runs in the editor's
+        Operations queue (after the operations already waiting there) and shows in its history.
+        Returns {status: "restarted", node_id}."""
         _ensure_connected()
         device = _device(node_id, device_address)
         if not device.individual_address:
             raise ToolError(f"device {device.node_id} has no individual address")
-        future = ctx.run_locked(lambda: service.restart_device(device))
-        if future is None:
-            raise _not_started("the restart")
-        _await(future, timeout, "the restart")
+        if run_queued_action(ctx, device.node_id, "restart", timeout) is None:
+            future = ctx.run_locked(lambda: service.restart_device(device))
+            if future is None:
+                raise _not_started("the restart")
+            _await(future, timeout, "the restart")
         return {"status": "restarted", "node_id": device.node_id}
 
     @tool("destructive", open_world=True)
@@ -624,18 +727,29 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         individual address; a secure device gets its FDSK back), FACTORY_RESET_KEEP_ADDRESS,
         RESET_ADDRESS, RESET_APPLICATION, RESET_PARAMETERS, RESET_LINKS or CONFIRMED_RESTART. The
         device has to be programmed again afterwards. Run it only when the user asked for this
-        reset of this device. Returns {status: "reset", node_id, reset}."""
+        reset of this device. It runs in the editor's Operations queue (after the operations
+        already waiting there) and shows in its history. Returns {status: "reset", node_id,
+        reset}."""
         _ensure_connected()
         device = _device(node_id, device_address)
         if not device.individual_address:
             raise ToolError(f"device {device.node_id} has no individual address")
         erase_code = _ERASE_CODES[reset]
-        future = ctx.run_locked(lambda: service.master_reset_device(device, erase_code))
-        if future is None:
-            raise _not_started("the reset")
-        _await(future, timeout, "the reset")
-        if reset == "FACTORY_RESET":
-            # The device holds no Tool Key any more: its next secure download needs its
-            # certificate.
-            ctx.run_locked(lambda: ctx.api.project.record_factory_reset(device))
+        # Queued, the editor records a factory reset itself.
+        if (
+            run_queued_action(
+                ctx, device.node_id, "reset", timeout, erase_code=erase_code
+            )
+            is None
+        ):
+            future = ctx.run_locked(
+                lambda: service.master_reset_device(device, erase_code)
+            )
+            if future is None:
+                raise _not_started("the reset")
+            _await(future, timeout, "the reset")
+            if reset == "FACTORY_RESET":
+                # The device holds no Tool Key any more: its next secure download needs its
+                # certificate.
+                ctx.run_locked(lambda: ctx.api.project.record_factory_reset(device))
         return {"status": "reset", "node_id": device.node_id, "reset": reset}

@@ -30,9 +30,9 @@ import asyncio
 import logging
 import re
 import time
-from collections.abc import Callable, Mapping, Sequence
-from dataclasses import dataclass
-from typing import TYPE_CHECKING
+from collections.abc import Awaitable, Callable, Mapping, Sequence
+from dataclasses import dataclass, replace
+from typing import TYPE_CHECKING, cast
 
 from xknx.profile.const import ResourceGenericPropertyId, ResourceObjectType
 
@@ -82,6 +82,7 @@ from xknxeditor.namespaces.intermediate.ld_ctrl_max_length_t import LdCtrlMaxLen
 from xknxeditor.namespaces.intermediate.ld_ctrl_mem_addr_space_t import (
     LdCtrlMemAddrSpace,
 )
+from xknxeditor.namespaces.intermediate.ld_ctrl_merge_t import LdCtrlMerge
 from xknxeditor.namespaces.intermediate.ld_ctrl_read_function_prop_t import (
     LdCtrlReadFunctionProp,
 )
@@ -270,20 +271,15 @@ def _significant_octets(expected: bytes, mask: bytes | None, *, start: int) -> i
 def _unsupported_compare_reason(control: object) -> str | None:
     """A reason string if a Compare control uses a semantic this engine does not implement, else None.
 
-    Plain (optionally masked) equality compares are executed, and a property compare with a Range.
-    The Invert and RetryInterval/TimeOut semantics (KNX Standard v3.0.0, 3/5/1 Compare controls),
-    and a Range on other compares, are NOT, so a control that sets any of them is rejected up front
-    rather than silently verified with the wrong result (Invert would invert the outcome; Range/Retry
-    change what "match" means)."""
+    Plain (optionally masked) equality compares are executed, a property compare with a Range,
+    and all of them inverted or polled (Invert, RetryInterval/TimeOut). A Range on other compares
+    is NOT, so such a control is rejected up front rather than silently verified with the wrong
+    result."""
     if not isinstance(control, LdCtrlCompareBase):
         return None
     unsupported: list[str] = []
-    if control.invert:
-        unsupported.append("Invert (compare passes on inequality)")
     if control.range is not None and not isinstance(control, LdCtrlCompareProp):
         unsupported.append("Range (value-in-interval compare)")
-    if control.retry_interval or control.time_out:
-        unsupported.append("RetryInterval/TimeOut (poll until the state is reached)")
     if not unsupported:
         return None
     return (
@@ -341,6 +337,8 @@ _SUPPORTED_CONTROLS = frozenset(
         "LdCtrlSetControlVariable",
         # xsdata class name (type(control).__name__), not the XML "LdCtrlClearLCFilterTable".
         "LdCtrlClearLcfilterTable",
+        # A merge point left inside a merged fragment does nothing (see _execute).
+        "LdCtrlMerge",
     }
 )
 
@@ -481,6 +479,7 @@ class LoadProcedureRunner:
         application_loaded: bool = False,
         application2: Application | None = None,
         access_key: int = FREE_ACCESS_KEY,
+        full_controls: Sequence[object] | None = None,
     ) -> None:
         """Initialize the runner.
 
@@ -507,6 +506,10 @@ class LoadProcedureRunner:
         ``application2`` is the product's second application program: its id is the one
         written to the second program's object. ``access_key`` is the project's key a device
         with access protection is authorized with.
+
+        ``full_controls`` is the application's full procedure when ``controls`` is a part of
+        it (a partial one): a preflight tells the steps of the procedure from it (see
+        :func:`_procedure_steps`), which the part alone may write only once.
         """
         if programmer is None and connection_manager is None:
             raise DownloadError("provide a programmer or a connection manager")
@@ -516,6 +519,7 @@ class LoadProcedureRunner:
         self.image = image
         self.scope = scope
         self.application_loaded = application_loaded
+        self._full_controls = list(full_controls) if full_controls is not None else None
         self._object_types = dict(object_types or {})
         self._active_control: object | None = None
         # LoadImageProp fills missing runtime-image data; later CompareProp
@@ -589,8 +593,15 @@ class LoadProcedureRunner:
         # The factory image segments a Master Reset left in place (see _register_factory):
         # _FACTORY_TABLE for the group object table, _FACTORY_OTHER for the rest.
         self._factory_registered: set[str] = set()
-        # The properties a preflight previews as procedure steps (see _procedure_steps).
+        # The properties and memory ranges a preflight previews as procedure steps (see
+        # _procedure_steps and _memory_procedure_steps).
         self._procedure_steps: set[_PropertyKey] = set()
+        self._memory_steps: set[tuple[int, int]] = set()
+        # What a preflight left unwritten so far: (object index, PID) of properties and
+        # [start, end) ranges of memory. A later compare there checks the device's reaction
+        # to the write, which a preview cannot see.
+        self._preview_properties: set[tuple[int, int]] = set()
+        self._preview_memory: list[tuple[int, int]] = []
 
     async def run(self, progress: Callable[[int, int], None] | None = None) -> None:
         """Execute the Load Procedure, honouring the selected download scope.
@@ -716,7 +727,9 @@ class LoadProcedureRunner:
         and drives no Load State Machine: for each control that would write, the
         device's current bytes are read and compared against the data the download
         would write. Compare controls (the application fingerprint gate) still run
-        - they only read. The connection is opened read-only and closed again.
+        - they only read - except a compare of what the preview left unwritten before:
+        it checks the device's reaction to that write (e.g. the load state after an
+        unload), not its configuration. The connection is opened read-only and closed again.
         """
         segments: list[SegmentDiff] = []
         properties: list[PropertyDiff] = []
@@ -733,6 +746,12 @@ class LoadProcedureRunner:
         self._memory_captures.clear()
         self._factory_registered.clear()
         self._procedure_steps = _procedure_steps(in_scope)
+        self._memory_steps = _memory_procedure_steps(in_scope)
+        if self._full_controls is not None:
+            self._procedure_steps |= _procedure_steps(self._full_controls)
+            self._memory_steps |= _memory_procedure_steps(self._full_controls)
+        self._preview_properties = set()
+        self._preview_memory = []
         self._enable_segment_write = True
         self._enable_verify_on_write_direct = True
         self._error_mappings.clear()
@@ -888,6 +907,21 @@ class LoadProcedureRunner:
                 and control.inline_data is not None
             ):
                 _inline_memory_data(control.inline_data, control.size)
+            if (
+                isinstance(control, LdCtrlWriteMem)
+                and control.address_space is LdCtrlMemAddrSpace.LC_FILTER
+                and control.inline_data is None
+                and self._memory_runs(
+                    control.address, control.size, control.address_space
+                )
+                is None
+            ):
+                # The filter table is computed for the line the coupler couples; without it the
+                # download would stop at this write, after the ones before it.
+                raise ImageError(
+                    "no filter table for this coupler: a filter table is computed for a coupler "
+                    "at a coupler address (x.y.0)"
+                )
             if (
                 isinstance(control, (LdCtrlCompareMem, LdCtrlCompareRelMem))
                 and control.inline_data
@@ -1386,8 +1420,11 @@ class LoadProcedureRunner:
             return
         if isinstance(control, LdCtrlCompareMem):
             _require_standard(control.address_space)
-            await self._compare_mem(
-                control.address, self._memory_compare_data(control), control.mask
+            await self._polled_compare(
+                control,
+                lambda: self._compare_mem(
+                    control.address, self._memory_compare_data(control), control.mask
+                ),
             )
             return
         if isinstance(control, LdCtrlWriteRelMem):
@@ -1397,10 +1434,13 @@ class LoadProcedureRunner:
             index = await self._resolve_index(control)
             programmer = await self._bus()
             base = await programmer.read_table_reference(index)
-            await self._compare_mem(
-                base + control.offset,
-                self._memory_compare_data(control, index),
-                control.mask,
+            await self._polled_compare(
+                control,
+                lambda: self._compare_mem(
+                    base + control.offset,
+                    self._memory_compare_data(control, index),
+                    control.mask,
+                ),
             )
             return
         if isinstance(control, LdCtrlLoadImageRelMem):
@@ -1421,7 +1461,7 @@ class LoadProcedureRunner:
             await self._load_image_prop(control)
             return
         if isinstance(control, LdCtrlCompareProp):
-            await self._compare_prop(control)
+            await self._polled_compare(control, lambda: self._compare_prop(control))
             return
         if isinstance(control, LdCtrlInvokeFunctionProp):
             index = await self._resolve_index(control)
@@ -1489,6 +1529,10 @@ class LoadProcedureRunner:
             # does not perform. The filter-table bytes themselves must be supplied in the
             # image (see GroupCommunication.filter_table); otherwise the following
             # WriteRelMem/WriteMem fails with "no image data".
+            return
+        if isinstance(control, LdCtrlMerge):
+            # A merge point inside a merged fragment: fragments are merged one level deep
+            # (a fragment may name its own merge id), the point left over does nothing.
             return
         if isinstance(control, LdCtrlMapError):
             # Arm or reset tolerance of a specific error. The mapped value carries
@@ -1561,11 +1605,13 @@ class LoadProcedureRunner:
             control.size,
         )
         runs = self._memory_write_runs(control, index=index)
-        if runs is None:
+        if runs is None and control.size:
             raise ImageError(
                 f"no image data for relative range {control.offset:#06x}.."
                 f"{control.offset + control.size:#06x}"
             )
+        # A write of no octets (an application without parameter memory) writes nothing.
+        runs = runs or []
         if runs:
             programmer = await self._memory_programmer()
         for run_offset, data in runs:
@@ -1668,10 +1714,49 @@ class LoadProcedureRunner:
         )
         return self._overlay_memory_capture(index, control.offset, control.size, runs)
 
-    async def _compare_mem(
-        self, address: int, expected: bytes, mask: bytes | None = None
+    async def _polled_compare(
+        self,
+        control: LdCtrlCompareBase,
+        compare: Callable[[], Awaitable[None]],
+        *,
+        poll: bool = True,
     ) -> None:
-        """Read memory and compare it against expected data (mask-aware, like _compare_prop)."""
+        """Run ``compare`` as ``control`` says: ``Invert`` passes on a mismatch; with a
+        ``TimeOut`` (seconds) a failed compare is read again every ``RetryInterval``
+        milliseconds until it passes or the time is up, e.g. a device that finishes a step
+        of its own before the procedure goes on. A preview (``poll`` false) reads once."""
+        started = time.monotonic()
+        while True:
+            try:
+                await compare()
+            except CompareMismatch as mismatch:
+                if control.invert:
+                    return
+                failure: CompareMismatch = mismatch
+            else:
+                if not control.invert:
+                    return
+                failure = CompareMismatch(
+                    f"inverted compare failed: {type(control).__name__} read the value "
+                    "it must differ from"
+                )
+            timeout = (control.time_out or 0) * 1000
+            if not poll or not timeout or (time.monotonic() - started) * 1000 > timeout:
+                raise failure
+            await asyncio.sleep((control.retry_interval or 0) / 1000)
+
+    async def _compare_mem(
+        self, address: int, expected: bytes | None, mask: bytes | None = None
+    ) -> None:
+        """Read memory and compare it against expected data (mask-aware, like _compare_prop);
+        ``None``: there is nothing to compare."""
+        if expected is None:
+            logger.info(
+                "download: %s compares memory %#06x without data to compare; not checked",
+                self._target(),
+                address,
+            )
+            return
         programmer = await self._bus()
         read_back = await programmer.read_memory(address, len(expected))
         matched = _bytes_match(read_back, expected, mask, len(expected))
@@ -1693,7 +1778,7 @@ class LoadProcedureRunner:
     ) -> tuple[bytes, bytes | None]:
         """The data ``control`` writes and the bits of it to write, ``None`` for all of it.
 
-        Image elements are laid over inline data, keeping device-owned CRCs zero. Every
+        Image elements are laid over inline data. Every
         download, a full one too, writes only the bits the inline data, captured elements and
         parameters cover, and the device keeps the rest.
         """
@@ -1720,7 +1805,7 @@ class LoadProcedureRunner:
         )
         if width is None:
             raise ImageError(
-                f"missing element width for object {index} property {control.prop_id}"
+                f"missing element width for object {self._object_label(index)} property {control.prop_id}"
             )
         size = control.count * width
         if (
@@ -1752,13 +1837,12 @@ class LoadProcedureRunner:
                 index, object_type, control, width, data, covered
             )
         if control.prop_id == _PID_MCB_TABLE:
-            data = data[: control.count * _MCB_ENTRY_SIZE]
-            if len(data) != control.count * _MCB_ENTRY_SIZE:
+            # The MCB takes its bytes from the inline data or a capture, as they are (no size,
+            # access or CRC is computed); without either it is not written.
+            size = control.count * _MCB_ENTRY_SIZE
+            data, covered = data[:size], covered[:size]
+            if len(data) != size:
                 raise ImageError("incomplete MCB entry")
-            entries = bytearray(data)
-            for start in range(0, len(entries), _MCB_ENTRY_SIZE):
-                entries[start + 6 : start + 8] = b"\x00\x00"
-            return bytes(entries), None
         if all(bits == 0xFF for bits in covered):
             return bytes(data), None
         return bytes(data), bytes(covered)
@@ -2015,9 +2099,9 @@ class LoadProcedureRunner:
             for byte, held, bits in zip(data, factory, covered, strict=True)
         ):
             logger.info(
-                "download: object %d property %d of %s holds its factory contents; "
+                "download: object %s property %d of %s holds its factory contents; "
                 "not written",
-                index,
+                self._object_label(index),
                 control.prop_id,
                 self._target(),
             )
@@ -2225,6 +2309,31 @@ class LoadProcedureRunner:
         programmer = await self._bus()
         return await programmer.locate_object(target[0], target[1] - 1)
 
+    def _preview_wrote_memory(self, address: int, size: int) -> bool:
+        """Whether the preflight left a write into ``size`` bytes at ``address`` out before, so a
+        compare there is not checked (see :meth:`preflight`)."""
+        end = address + size
+        if not any(
+            start < end and address < stop for start, stop in self._preview_memory
+        ):
+            return False
+        logger.info(
+            "preflight: %s compares memory %#06x..%#06x after a write the preview left out; "
+            "not checked",
+            self._target(),
+            address,
+            end,
+        )
+        return True
+
+    def _object_label(self, index: int) -> str:
+        """``index`` as messages show it: object type and instance for a key of the extended
+        property services (see :meth:`_resolve_index`), otherwise the object index."""
+        target = self._extended_targets.get(index)
+        if target is None:
+            return str(index)
+        return f"type {target[0]} instance {target[1]}"
+
     def _property_width(self, index: int, property_id: int) -> int | None:
         return self._property_widths.get(
             (index, property_id), STANDARD_WRITE_WIDTHS.get(property_id)
@@ -2374,14 +2483,22 @@ class LoadProcedureRunner:
     async def _write_prop(self, control: LdCtrlWriteProp) -> None:
         """Write addressed image elements and verify each property response."""
         index = await self._resolve_index(control, extended=True)
+        if _writes_no_elements(control):
+            logger.info(
+                "download: %s writes no element of object %s property %d; not written",
+                self._target(),
+                self._object_label(index),
+                control.prop_id,
+            )
+            return
         await self._ensure_property_width(index, control)
         data, covered = self._property_write_plan(index, control)
         if covered is not None:
             if not any(covered):
                 logger.info(
-                    "download: no parameter of %s covers object %d property %d; not written",
+                    "download: no parameter of %s covers object %s property %d; not written",
                     self._target(),
-                    index,
+                    self._object_label(index),
                     control.prop_id,
                 )
                 return
@@ -2466,10 +2583,10 @@ class LoadProcedureRunner:
         index = await self._resolve_index(control, extended=True)
         data = await self._read_property(index, control)
         logger.debug(
-            "property capture: %s object-index=%d pid=%d count=%d start-index=%d "
+            "property capture: %s object=%s pid=%d count=%d start-index=%d "
             "octets=%d data=%s",
             self._diagnostic_context(),
-            index,
+            self._object_label(index),
             control.prop_id,
             control.count,
             control.start_element,
@@ -2478,7 +2595,7 @@ class LoadProcedureRunner:
         )
         if not data or len(data) % control.count:
             raise VerificationError(
-                f"property capture for object {index} property {control.prop_id}: "
+                f"property capture for object {self._object_label(index)} property {control.prop_id}: "
                 f"received {len(data)} octet(s) for {control.count} element(s)"
             )
         width = len(data) // control.count
@@ -2488,7 +2605,7 @@ class LoadProcedureRunner:
             and width not in (2, 4)
         ):
             raise VerificationError(
-                f"invalid table reference capture for object {index}: "
+                f"invalid table reference capture for object {self._object_label(index)}: "
                 f"expected 2 or 4 octets per element, received {width}"
             )
         for offset in range(control.count):
@@ -2497,7 +2614,7 @@ class LoadProcedureRunner:
             previous = self._property_captures.get(key)
             if previous is not None and len(previous) != width:
                 raise VerificationError(
-                    f"property capture width changed for object {index} "
+                    f"property capture width changed for object {self._object_label(index)} "
                     f"property {control.prop_id} element {key[2]}"
                 )
             self._property_captures.setdefault(key, element)
@@ -2512,7 +2629,7 @@ class LoadProcedureRunner:
         images begin at element one; element zero is a separate count resource.
         The returned width is authoritative only when an element was captured.
         """
-        expected = bytearray(control.inline_data)
+        expected = bytearray(control.inline_data or b"")
         captured = [
             self._property_captures.get((index, control.prop_id, element))
             for element in range(
@@ -2522,7 +2639,7 @@ class LoadProcedureRunner:
         widths = {len(data) for data in captured if data is not None}
         if len(widths) > 1:
             raise VerificationError(
-                f"inconsistent captured element widths for object {index} "
+                f"inconsistent captured element widths for object {self._object_label(index)} "
                 f"property {control.prop_id}"
             )
         captured_width = next(iter(widths), None)
@@ -2549,15 +2666,29 @@ class LoadProcedureRunner:
                     data = prop.data[
                         start : start + min(len(expected), width * control.count)
                     ]
-                    if data:
-                        expected[: len(data)] = data
+                    # The image's bytes count where a parameter covers them; elsewhere the
+                    # inline data stays (e.g. a parameter in the last octets of the hardware
+                    # type).
+                    covered = (
+                        prop.covered[start : start + len(data)]
+                        if prop.covered is not None
+                        else b"\xff" * len(data)
+                    )
+                    if any(covered):
+                        for i, (value, bits) in enumerate(
+                            zip(data, covered, strict=False)
+                        ):
+                            expected[i] = (expected[i] & ~bits & 0xFF) | (value & bits)
                         sources.append("image")
                     break
         return bytes(expected), captured_width, "+".join(sources)
 
     def _memory_compare_data(
         self, control: LdCtrlCompareMem | LdCtrlCompareRelMem, index: int | None = None
-    ) -> bytes:
+    ) -> bytes | None:
+        """The data ``control`` compares: its inline data with the image's data laid over it.
+        Without inline data the image's own data, as far as the image goes from the address;
+        ``None`` when it has none there (nothing to compare)."""
         if isinstance(control, LdCtrlCompareRelMem):
             address = control.offset
             runs = self._relative_runs(
@@ -2582,6 +2713,13 @@ class LoadProcedureRunner:
         }
         for start, data in runs or []:
             values.update({start + n: value for n, value in enumerate(data)})
+        # Typed bytes, but a control without the attribute carries None.
+        inline = cast("bytes | None", control.inline_data)
+        if inline is None:
+            size = 0
+            while size < control.size and address + size in values:
+                size += 1
+            return bytes(values[address + n] for n in range(size)) or None
         if any(address + n not in values for n in range(control.size)):
             raise ImageError("incomplete memory comparison image")
         return bytes(values[address + n] for n in range(control.size))
@@ -2606,19 +2744,23 @@ class LoadProcedureRunner:
         if control.range is not None:
             await self._compare_prop_range(index, control, control.range)
             return
+        from_image = await self._compare_from_image(index, control)
+        if from_image is None:
+            return
+        control = from_image
         expected, captured_width, source = self._property_compare_data(index, control)
         read_back = await self._read_property(index, control)
         logger.debug(
-            "property compare: %s object-index=%d pid=%d count=%d start-index=%d "
+            "property compare: %s object=%s pid=%d count=%d start-index=%d "
             "source=%s captured-element-width=%s inline=%s expected=%s read=%s mask=%s",
             self._diagnostic_context(),
-            index,
+            self._object_label(index),
             control.prop_id,
             control.count,
             control.start_element,
             source,
             captured_width,
-            control.inline_data.hex(),
+            (control.inline_data or b"").hex(),
             expected.hex(),
             read_back.hex(),
             control.mask.hex() if control.mask is not None else "none",
@@ -2628,7 +2770,7 @@ class LoadProcedureRunner:
         # would otherwise match against an empty prefix.
         if not read_back:
             raise VerificationError(
-                f"property compare for object {index} property {control.prop_id} "
+                f"property compare for object {self._object_label(index)} property {control.prop_id} "
                 "read no data from the device"
             )
         if (
@@ -2636,7 +2778,7 @@ class LoadProcedureRunner:
             and len(read_back) != captured_width * control.count
         ):
             raise VerificationError(
-                f"property compare for object {index} property {control.prop_id}: "
+                f"property compare for object {self._object_label(index)} property {control.prop_id}: "
                 f"device returned {len(read_back)} octet(s), captured range requires "
                 f"{captured_width * control.count}; expected {expected.hex()} "
                 f"read {read_back.hex()}"
@@ -2648,7 +2790,7 @@ class LoadProcedureRunner:
                 4 * control.count,
             ):
                 raise VerificationError(
-                    f"invalid table reference for object {index}: "
+                    f"invalid table reference for object {self._object_label(index)}: "
                     f"expected 2 or 4 octets per element, received {len(read_back)} "
                     f"for {control.count} element(s)"
                 )
@@ -2657,15 +2799,25 @@ class LoadProcedureRunner:
             # runtime capture provides a baseline (e.g. par detects relocation).
             if captured_width is None:
                 logger.debug(
-                    "runtime table reference: %s object-index=%d pid=%d data=%s; "
+                    "runtime table reference: %s object=%s pid=%d data=%s; "
                     "no captured baseline, skipping static compare",
                     self._diagnostic_context(),
-                    index,
+                    self._object_label(index),
                     control.prop_id,
                     read_back.hex(),
                 )
                 return
         mask = control.mask
+        if control.start_element > 0 and captured_width is None:
+            # The compare checks ``count`` elements of the property's element size (declared, or
+            # as the device describes the property): inline data past them is not compared (a
+            # hardware type compare carrying 9 octets for the 6-octet PID 78).
+            await self._ensure_property_width(index, control)
+            width = self._property_width(index, control.prop_id)
+            if width:
+                expected = expected[: width * control.count]
+                if mask is not None:
+                    mask = mask[: width * control.count]
         if mask is not None and len(mask) < len(expected):
             # An omitted mask suffix checks every bit; only the supplied prefix
             # limits the comparison.
@@ -2678,7 +2830,7 @@ class LoadProcedureRunner:
         uncovered = _significant_octets(expected, mask, start=len(read_back))
         if uncovered:
             raise VerificationError(
-                f"property compare for object {index} property {control.prop_id}: "
+                f"property compare for object {self._object_label(index)} property {control.prop_id}: "
                 f"device returned {len(read_back)} octet(s) but {len(expected)} were expected "
                 f"and {uncovered} octet(s) beyond the response still carry data to check. "
                 f"Expected {expected.hex()}, read {read_back.hex()}"
@@ -2686,15 +2838,15 @@ class LoadProcedureRunner:
         length = min(len(read_back), len(expected))
         matched = _bytes_match(read_back, expected, mask, length)
         logger.debug(
-            "property compare result: %s object-index=%d pid=%d -> %s",
+            "property compare result: %s object=%s pid=%d -> %s",
             self._diagnostic_context(),
-            index,
+            self._object_label(index),
             control.prop_id,
             "match" if matched else "MISMATCH",
         )
         if not matched:
             raise CompareMismatch(
-                f"property compare failed for object {index} property "
+                f"property compare failed for object {self._object_label(index)} property "
                 f"{control.prop_id}: expected {expected.hex()} "
                 f"read {read_back.hex()}",
                 object_index=index,
@@ -2702,7 +2854,71 @@ class LoadProcedureRunner:
                 expected=expected,
                 read=read_back,
                 mask=mask,
+                object_label=self._object_label(index),
             )
+
+    async def _compare_from_image(
+        self, index: int, control: LdCtrlCompareProp
+    ) -> LdCtrlCompareProp | None:
+        """``control`` as it compares when its inline data is shorter than its elements and
+        the image holds the property: the image's data, as far as the image goes, and only
+        the bits a parameter covers (``None``: none, nothing to compare). A compare without
+        inline data, image or captured value has nothing to compare either. Otherwise
+        ``control`` itself."""
+        prop = next(
+            (
+                p
+                for p in self.image.properties
+                if p.property_id == control.prop_id
+                and self._image_property_applies(p, index, control)
+            ),
+            None,
+        )
+        captured = any(
+            (index, control.prop_id, element) in self._property_captures
+            for element in range(
+                control.start_element, control.start_element + control.count
+            )
+        )
+        # Typed bytes, but a control without the attribute carries None.
+        inline = cast("bytes | None", control.inline_data)
+        if inline is None and prop is None and not captured:
+            logger.info(
+                "download: %s compares object %s property %d without data to compare; "
+                "not checked",
+                self._target(),
+                self._object_label(index),
+                control.prop_id,
+            )
+            return None
+        if control.start_element == 0 or control.prop_id == PID_TABLE_REFERENCE:
+            return control
+        if prop is None:
+            return control
+        await self._ensure_property_width(index, control)
+        width = self._property_width(index, control.prop_id)
+        if not width or len(control.inline_data or b"") >= width * control.count:
+            return control
+        start = (control.start_element - 1) * width
+        count = min(control.count, (len(prop.data) - start) // width)
+        data = prop.data[start : start + count * width]
+        covered = (
+            prop.covered[start : start + len(data)]
+            if prop.covered is not None
+            else b"\xff" * len(data)
+        )
+        bits = (control.mask or b"").ljust(len(data), b"\xff")
+        mask = bytes(c & m for c, m in zip(covered, bits, strict=False))
+        if count <= 0 or not any(mask):
+            logger.info(
+                "download: %s compares object %s property %d without data to compare; "
+                "not checked",
+                self._target(),
+                self._object_label(index),
+                control.prop_id,
+            )
+            return None
+        return replace(control, inline_data=data, count=count, mask=mask)
 
     async def _compare_prop_range(
         self, index: int, control: LdCtrlCompareProp, value_range: str
@@ -2712,14 +2928,14 @@ class LoadProcedureRunner:
         read_back = await self._read_property(index, control)
         if not read_back:
             raise VerificationError(
-                f"property compare for object {index} property {control.prop_id} "
+                f"property compare for object {self._object_label(index)} property {control.prop_id} "
                 "read no data from the device"
             )
         matched = _value_in_range(value_range, read_back, control.mask)
         logger.debug(
-            "property range compare: %s object-index=%d pid=%d range=%s read=%s -> %s",
+            "property range compare: %s object=%s pid=%d range=%s read=%s -> %s",
             self._diagnostic_context(),
-            index,
+            self._object_label(index),
             control.prop_id,
             value_range,
             read_back.hex(),
@@ -2727,12 +2943,13 @@ class LoadProcedureRunner:
         )
         if not matched:
             raise CompareMismatch(
-                f"property compare failed for object {index} property "
+                f"property compare failed for object {self._object_label(index)} property "
                 f"{control.prop_id}: read {read_back.hex()} is outside {value_range}",
                 object_index=index,
                 property_id=control.prop_id,
                 read=read_back,
                 mask=control.mask,
+                object_label=self._object_label(index),
             )
 
     async def _abs_segment(self, control: LdCtrlAbsSegment) -> None:
@@ -2881,14 +3098,21 @@ class LoadProcedureRunner:
                 raise ImageError(
                     f"no image data for address range {control.address:#06x}"
                 )
+            step = (
+                control.inline_data is not None
+                and (control.address, control.size) in self._memory_steps
+            )
             for address, planned in runs:
-                await self._diff_memory(address, planned, segments)
+                await self._diff_memory(address, planned, segments, procedure_step=step)
+                self._preview_memory.append((address, address + len(planned)))
             return
         if isinstance(control, LdCtrlWriteRelMem):
             index = await self._resolve_index(control)
             programmer = await self._bus()
             base = await programmer.read_table_reference(index)
             await self._diff_masked_rel(base, control, segments, index=index)
+            start = base + control.offset
+            self._preview_memory.append((start, start + control.size))
             return
         if isinstance(control, LdCtrlAbsSegment):
             # An allocation whose range the image covers is an image backed write;
@@ -2904,9 +3128,12 @@ class LoadProcedureRunner:
                     missing_ok=True,
                     include_initialized=self._writes_seed(segment=True),
                 )
+                self._preview_memory.append((address, address + size))
             return
         if isinstance(control, LdCtrlWriteProp):
             index = await self._resolve_index(control, extended=True)
+            if _writes_no_elements(control):
+                return
             await self._ensure_property_width(index, control)
             planned, covered = self._property_write_plan(index, control)
             if covered is not None and not any(covered):
@@ -2921,25 +3148,50 @@ class LoadProcedureRunner:
                 covered=covered,
                 procedure_step=_property_key(control) in self._procedure_steps,
             )
+            self._preview_properties.add((index, control.prop_id))
             return
         if isinstance(control, LdCtrlCompareMem):
             _require_standard(control.address_space)
-            await self._compare_mem(
-                control.address, self._memory_compare_data(control), control.mask
+            if self._preview_wrote_memory(control.address, control.size):
+                return
+            await self._polled_compare(
+                control,
+                lambda: self._compare_mem(
+                    control.address, self._memory_compare_data(control), control.mask
+                ),
+                poll=False,
             )
             return
         if isinstance(control, LdCtrlCompareRelMem):
             index = await self._resolve_index(control)
             programmer = await self._bus()
             base = await programmer.read_table_reference(index)
-            await self._compare_mem(
-                base + control.offset,
-                self._memory_compare_data(control, index),
-                control.mask,
+            if self._preview_wrote_memory(base + control.offset, control.size):
+                return
+            await self._polled_compare(
+                control,
+                lambda: self._compare_mem(
+                    base + control.offset,
+                    self._memory_compare_data(control, index),
+                    control.mask,
+                ),
+                poll=False,
             )
             return
         if isinstance(control, LdCtrlCompareProp):
-            await self._compare_prop(control)
+            index = await self._resolve_index(control, extended=True)
+            if (index, control.prop_id) in self._preview_properties:
+                logger.info(
+                    "preflight: %s compares object %s property %d after a write the "
+                    "preview left out; not checked",
+                    self._target(),
+                    self._object_label(index),
+                    control.prop_id,
+                )
+                return
+            await self._polled_compare(
+                control, lambda: self._compare_prop(control), poll=False
+            )
             return
         if isinstance(control, LdCtrlLoadImageProp):
             await self._load_image_prop(control)
@@ -2985,14 +3237,26 @@ class LoadProcedureRunner:
                 self._device_written.add(address + i)
 
     async def _diff_memory(
-        self, address: int, planned: bytes, segments: list[SegmentDiff]
+        self,
+        address: int,
+        planned: bytes,
+        segments: list[SegmentDiff],
+        *,
+        procedure_step: bool = False,
     ) -> None:
-        """Read current memory at ``address`` and record a diff against ``planned``."""
+        """Read current memory at ``address`` and record a diff against ``planned``;
+        ``procedure_step`` marks it as a step of the procedure (see
+        :attr:`SegmentDiff.procedure_step`)."""
         programmer = await self._bus()
         current = await programmer.read_memory(address, len(planned))
         await self._note_device_written(programmer, address, current, bytes(planned))
         segments.append(
-            SegmentDiff(address=address, current=current, planned=bytes(planned))
+            SegmentDiff(
+                address=address,
+                current=current,
+                planned=bytes(planned),
+                procedure_step=procedure_step,
+            )
         )
 
     async def _diff_masked(
@@ -3058,7 +3322,7 @@ class LoadProcedureRunner:
         smaller than the planned data: it is read as far as the device answers.
         """
         runs = self._memory_write_runs(control, index=index)
-        if runs is None:
+        if runs is None and control.size:
             raise ImageError(
                 f"no image data for relative range {control.offset:#06x}.."
                 f"{control.offset + control.size:#06x}"
@@ -3194,6 +3458,24 @@ def _procedure_steps(controls: Sequence[object]) -> set[_PropertyKey]:
     for control in controls:
         if isinstance(control, LdCtrlWriteProp) and control.inline_data is not None:
             values.setdefault(_property_key(control), set()).add(control.inline_data)
+    return {key for key, data in values.items() if len(data) > 1}
+
+
+def _writes_no_elements(control: LdCtrlWriteProp) -> bool:
+    """Whether ``control`` writes no element: a count of 0 from element 1 on, without
+    inline data (element 0, the number of elements, is a write of its own)."""
+    return control.count == 0 and control.start_element > 0 and not control.inline_data
+
+
+def _memory_procedure_steps(controls: Sequence[object]) -> set[tuple[int, int]]:
+    """The ``(address, size)`` ranges ``controls`` write more than once with different inline
+    data: steps of the procedure, as :func:`_procedure_steps` for properties."""
+    values: dict[tuple[int, int], set[bytes]] = {}
+    for control in controls:
+        if isinstance(control, LdCtrlWriteMem) and control.inline_data is not None:
+            values.setdefault((control.address, control.size), set()).add(
+                control.inline_data
+            )
     return {key for key, data in values.items() if len(data) > 1}
 
 

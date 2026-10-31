@@ -443,6 +443,138 @@ async def test_dali_commissioning_of_a_gateway(
     assert saved == [(7, [(0, 1), (1, 4)], 0, 0), (7, [(0, 1), (1, 4)], 1, 0)]
 
 
+async def test_restart_reset_and_dali_run_in_the_operations_queue(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """With the editor's Operations queue, the tools queue their bus operation there (labelled
+    as started by an MCP client) and return its result; nothing goes to the bus directly."""
+    import asyncio
+
+    from editor_gui.plugins.project.program_queue import (
+        ORIGIN_MCP,
+        OperationState,
+        QueueItem,
+    )
+
+    ctx = _build_ctx(tmp_path)
+    mcp = build_server(ctx)
+    service = ctx.api.connection
+    project = ctx.api.project
+    commissioner = _Commissioner()
+    gateway = SimpleNamespace(
+        node_id=7,
+        individual_address="1.1.20",
+        app=SimpleNamespace(id="M-0083_A-0153-11-ABCD"),
+    )
+    siemens = SimpleNamespace(
+        node_id=9,
+        individual_address="1.1.22",
+        app=SimpleNamespace(id="M-0001_A-9837-11-0001"),
+        binary_data=[SimpleNamespace(name="BLOB_PARA", data=b"<DaliDevice/>")],
+    )
+    monkeypatch.setattr(service, "_xknx", object())
+    monkeypatch.setattr(
+        project,
+        "find_device_by_node_id",
+        lambda node_id: {7: gateway, 9: siemens}.get(node_id),
+    )
+    monkeypatch.setattr(
+        project,
+        "get_device_info",
+        lambda node_id: SimpleNamespace(order_number="SCN-DA641.03"),
+    )
+    direct: list[str] = []
+    for name in (
+        "restart_device",
+        "master_reset_device",
+        "run_dali",
+        "run_siemens_dca_program",
+    ):
+        monkeypatch.setattr(service, name, lambda *a, _n=name, **k: direct.append(_n))
+    recorded: list[int] = []
+    monkeypatch.setattr(
+        project, "record_factory_reset", lambda device: recorded.append(device.node_id)
+    )
+    queued: list[tuple[int, str, str, dict[str, Any]]] = []
+    outcome: dict[str, Any] = {"state": OperationState.FINISHED, "message": None}
+
+    def queue_action(
+        node_id: int, kind: str, *, origin: str, **options: Any
+    ) -> QueueItem | None:
+        if project.find_device_by_node_id(node_id) is None:
+            return None
+        item = QueueItem(
+            node_id=node_id,
+            address="",
+            name="",
+            scope=None,
+            origin=origin,
+            ended=Future(),
+        )
+        queued.append(
+            (node_id, kind, origin, {k: v for k, v in options.items() if k != "op"})
+        )
+        if "op" in options:
+            item.result = asyncio.run(options["op"](commissioner))
+        elif kind == "siemens_dca":
+            item.result = 4
+        item.state = outcome["state"]
+        item.message = outcome["message"]
+        assert item.ended is not None
+        item.ended.set_result(item)
+        return item
+
+    ctx.api.queue_action = queue_action
+    async with Client(mcp) as client:
+        restarted = await _data(client, "connection_restart_device", node_id=7)
+        assert restarted == {"status": "restarted", "node_id": 7}
+        await _data(
+            client,
+            "connection_master_reset_device",
+            node_id=7,
+            reset="FACTORY_RESET",
+        )
+        scan = await _data(client, "connection_dali_scan", node_id=7)
+        assert scan["firmware"] == "1.2.3"
+        await _data(client, "connection_dali_identify", node_id=7, action="on")
+        await _data(
+            client, "connection_dali_identify", node_id=7, action="off", group=3
+        )
+        await _data(
+            client, "connection_dali_installation", node_id=7, installation="new"
+        )
+        programmed = await _data(client, "connection_siemens_dali_program", node_id=9)
+        assert programmed == {"node_id": 9, "writes": 4}
+        outcome.update(
+            state=OperationState.FAILED, message="The device did not respond"
+        )
+        await _error(client, "connection_restart_device", "did not respond", node_id=7)
+    assert direct == []
+    # The editor's queue records a factory reset itself.
+    assert recorded == []
+    assert [(n, k, o) for n, k, o, _ in queued] == [
+        (7, "restart", ORIGIN_MCP),
+        (7, "reset", ORIGIN_MCP),
+        (7, "dali", ORIGIN_MCP),
+        (7, "dali", ORIGIN_MCP),
+        (7, "dali", ORIGIN_MCP),
+        (7, "dali", ORIGIN_MCP),
+        (9, "siemens_dca", ORIGIN_MCP),
+        (7, "restart", ORIGIN_MCP),
+    ]
+    options = [o for _, _, _, o in queued]
+    assert options[1] == {"erase_code": 2}
+    # Named in the queue as the tab's buttons.
+    assert [o.get("text") for o in options[2:6]] == [
+        PROJECT_S.DALI_SCAN,
+        PROJECT_S.DALI_ALL_ON,
+        PROJECT_S.DALI_SWITCH_OFF,
+        PROJECT_S.DALI_NEW_INSTALLATION,
+    ]
+    assert options[6] == {"data": b"<DaliDevice/>"}
+    assert ("switch_group", 3, False) in commissioner.calls
+
+
 async def test_a_function_moves_into_another_space(tmp_path: Path) -> None:
     mcp, _project = _build(tmp_path)
     async with Client(mcp) as client:

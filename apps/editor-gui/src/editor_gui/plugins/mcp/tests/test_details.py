@@ -10,6 +10,8 @@ from typing import Any
 import pytest
 from fastmcp import Client
 
+from editor_gui.plugins.mcp.server import build_server
+
 from .test_server import _FIXTURE, _build, _data
 
 _needs_fixture = pytest.mark.skipif(
@@ -438,3 +440,51 @@ async def test_catalog_product_details_and_export(tmp_path: Path) -> None:
             hardware2program_ref_id="M-0000_H-x_HP-0000-00-0000",
             dest=str(dest),
         )
+
+
+@_needs_fixture
+async def test_a_product_without_application_is_added(tmp_path: Path) -> None:
+    from dataclasses import replace
+
+    from .test_server import _build_ctx
+
+    ctx = _build_ctx(tmp_path)
+    catalog, project = ctx.api.catalog, ctx.api.project
+    products = catalog.get_products
+    # As a power supply: the product has no application program.
+    catalog.get_products = lambda: [  # type: ignore[method-assign]
+        replace(p, application_id=None) for p in products()
+    ]
+    apps: list[Any] = []
+    add_device = project.add_device
+
+    def spy(*args: Any, **kwargs: Any) -> int | None:
+        apps.append(kwargs["app"])
+        return add_device(*args, **kwargs)
+
+    project.add_device = spy  # type: ignore[method-assign]
+    async with Client(build_server(ctx)) as client:
+        await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
+        await _data(client, "catalog_import_knxprod", path=str(_FIXTURE))
+        product = (await _data(client, "catalog_list_products"))["items"][0]
+        added = await _data(
+            client,
+            "project_add_device",
+            product_ref_id=product["product_ref_id"],
+            name="Supply",
+        )
+        batch = await _data(
+            client,
+            "project_batch",
+            operations=[
+                {
+                    "op": "add_device",
+                    "params": {"product_ref_id": product["product_ref_id"]},
+                }
+            ],
+        )
+        assert apps == [None, None]
+        for node_id in (added["node_id"], batch["results"][0]["result"]["node_id"]):
+            device = project.find_device_by_node_id(node_id)
+            assert device is not None and device.individual_address
+        assert added["name"] == "Supply"

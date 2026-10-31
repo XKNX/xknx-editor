@@ -3466,6 +3466,10 @@ class ProjectStrings:
         return _("Reading")
 
     @property
+    def OPERATION_RUNNING(self) -> str:
+        return _("Running")
+
+    @property
     def OPERATION_RECOVER(self) -> str:
         return _("Recover Project from Bus")
 
@@ -3720,6 +3724,33 @@ class ProjectStrings:
     @property
     def INCOMPATIBLE_MASK_VERSION(self) -> str:
         return _("Incompatible mask version: {found} instead of {expected}")
+
+    @property
+    def DEVICE_NOT_RESPONDING(self) -> str:
+        return _("The device did not respond ({detail}).")
+
+    @property
+    def NO_RESPONSE_HINT(self) -> str:
+        return _(
+            "Check that the device is powered and can be reached from this interface "
+            "(line, coupler)."
+        )
+
+    @property
+    def NO_RESPONSE_NEW_DEVICE_HINT(self) -> str:
+        return _(
+            "For a new device, put exactly one device into programming mode. Otherwise "
+            "check that the device is powered and can be reached from this interface "
+            "(line, coupler)."
+        )
+
+    @property
+    def PARTIAL_DOWNLOAD_FAILED(self) -> str:
+        return _(
+            "The download failed after it had begun to write the device, so the device "
+            "may be partially loaded. Program it again to restore a working state. "
+            "Cause: {cause}"
+        )
 
     @property
     def OPERATION_WAITING(self) -> str:
@@ -4076,6 +4107,14 @@ class ProjectStrings:
     @property
     def DALI_ALL_OFF(self) -> str:
         return _("All Off")
+
+    @property
+    def DALI_SWITCH_ON(self) -> str:
+        return _("Switch On")
+
+    @property
+    def DALI_SWITCH_OFF(self) -> str:
+        return _("Switch Off")
 
     @property
     def DALI_NEW_INSTALLATION(self) -> str:

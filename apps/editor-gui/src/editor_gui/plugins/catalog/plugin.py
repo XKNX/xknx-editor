@@ -93,10 +93,9 @@ class CatalogPlugin:
             self._api.tell_refused(S.CATALOG_ADD_NEEDS_PROJECT)
             return
         if product.application_id is None:
-            self._log.warning(
-                "product has no application", product=product.product_ref_id
-            )
-            self._api.tell_refused(S.CATALOG_ADD_NO_APP)
+            # A product without an application program (e.g. a power supply) is a device with a
+            # name and an address only.
+            self._add(product, None, space_id, segment_id)
             return
         app = self._api.catalog.get_application(product.application_id)
         if app is None:
@@ -129,7 +128,7 @@ class CatalogPlugin:
     def _add(
         self,
         product: ProductSummary,
-        app: Application,
+        app: Application | None,
         space_id: int | None,
         segment_id: int | None = None,
         *,
@@ -159,7 +158,7 @@ class CatalogPlugin:
             ask = self._api.ask_device_certificate
             if ask is not None and self._api.project.secure_commissioning_of(device_id):
                 ask(device_id)
-            label = product.name or app.name
+            label = product.name or (app.name if app is not None else "")
             self._log.info("device added", name=label, id=device_id)
             self._notify(S.CATALOG_ADD_OK.format(name=label))
 

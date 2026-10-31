@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from functools import lru_cache
+
 from ..context import EvalContext, Explorer, Gate
 from ..ui import UiNode
 from .base import DynamicNode
@@ -41,6 +43,9 @@ def _value_matches(value: str, test_values: list[str]) -> bool:
     return any(_token_matches(value, t) for t in test_values)
 
 
+# Every settle of a large application tests the same few conditions against the same few
+# values tens of thousands of times (a DALI gateway: 8500 tests per evaluation).
+@lru_cache(maxsize=65536)
 def satisfies(condition: str | None, value: str) -> bool:
     if condition is None:
         return False

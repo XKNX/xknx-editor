@@ -590,6 +590,19 @@ def _raw_data_written_octets(str_value: str, max_size: int) -> int | None:
     return 4 + len(data)
 
 
+_REF_NUMBER = re.compile(r"_R-(\d+)$")
+
+
+def parameter_ref_order(ref_id: str, tag: str | None) -> tuple[int, int]:
+    """Where a ParameterRef comes when a download applies a parameter's refs one after the
+    other (the last active one sets the value): the refs without a numeric ``Tag`` by their
+    ref number first, then the others by their tag."""
+    if tag is not None and tag.strip().isdigit() and int(tag) <= 0xFFFFFFFF:
+        return 1, int(tag)
+    number = _REF_NUMBER.search(ref_id)
+    return 0, int(number.group(1)) if number else 0
+
+
 def resolve_param_values(idx: ApplicationIndexer, state: GlobalState) -> dict[str, str]:
     """Build {referenced_id: effective_value} for the ACTIVE ParameterRefs.
 
@@ -603,17 +616,21 @@ def resolve_param_values(idx: ApplicationIndexer, state: GlobalState) -> dict[st
     Module-qualified active refs are not in ``idx.parameter_refs``; the module
     collection path resolves those from its own instance state instead.
     """
-    # When several active refs target the same parameter cell (the evaluator can
-    # reach more than one in overlapping conditional branches), the KNX standard
-    # keeps the first one in definition order. Iterate parameter_refs in
-    # their (XML/insertion) order and take the first active ref per parameter.
+    # When several active refs target the same parameter (one shown on a page, one in a
+    # hidden block), the download writes each in turn: the last in parameter_ref_order sets
+    # the value (definition order between equal tags).
     active = state.active_param_refs()
     overrides: dict[str, str] = {}
+    order: dict[str, tuple[int, int]] = {}
     for ref_id, pr in idx.parameter_refs.items():
-        if ref_id not in active or pr.ref_id in overrides:
+        if ref_id not in active:
             continue
         value = state.get(ref_id)
-        if value is not None:
+        if value is None:
+            continue
+        rank = parameter_ref_order(ref_id, pr.tag)
+        if pr.ref_id not in order or rank >= order[pr.ref_id]:
+            order[pr.ref_id] = rank
             overrides[pr.ref_id] = value
     # Explicitly configured union alternatives drive the union selection even if
     # the evaluator did not mark their ref active; carry them too.
@@ -688,12 +705,17 @@ def _build_instance_overrides(
     ms: ModuleState, idx: ApplicationIndexer
 ) -> dict[str, str]:
     overrides: dict[str, str] = {}
+    order: dict[str, tuple[int, int]] = {}
     for pr_id, value in ms.param_ref_id_to_value.items():
         pr = idx.parameter_refs.get(pr_id)
         if pr is not None:
             param = idx.parameters.get(pr.ref_id)
             if param is not None:
-                overrides[param.id] = value
+                # As in resolve_param_values: the last ref in parameter_ref_order wins.
+                rank = parameter_ref_order(pr_id, pr.tag)
+                if param.id not in order or rank >= order[param.id]:
+                    order[param.id] = rank
+                    overrides[param.id] = value
     return overrides
 
 

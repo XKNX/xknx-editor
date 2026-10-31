@@ -158,3 +158,46 @@ def test_allocator_overflow_rejects_the_edit(
     assert ui.get_value(_ref(1)) == "1"
     assert ui.get_value(_ref(2)) == "2"
     assert ui.get_value(f"{MD}_M-2_MI-1_P-1_R-1") == "0"  # the Assign is undone as well
+
+
+@pytest.mark.parametrize(
+    ("ref", "value", "allocation", "settles"),
+    [
+        (_ref(7), "K123", set(), False),
+        (_ref(7), "K123", {_ref(7)}, True),
+        # The calculations of P-1 write P-2.
+        (_ref(1), "5", {_ref(2)}, True),
+        (_ref(1), "5", {_ref(7)}, False),
+    ],
+)
+def test_a_script_write_settles_only_where_an_allocator_can_overflow(
+    ui: DynamicUI,
+    monkeypatch: pytest.MonkeyPatch,
+    ref: str,
+    value: str,
+    allocation: set[str],
+    settles: bool,
+) -> None:
+    # A script writing many values in a row evaluates the tree once, at the next read, unless a
+    # value it writes (or a calculation writes) can change the allocating module instances: that
+    # write is settled and an overflow rejects it.
+    build = DynamicUI._build_ui  # pyright: ignore[reportPrivateUsage]
+    settled: list[bool] = []
+
+    def overflowing(self: DynamicUI, *, capture_active: bool) -> None:
+        if capture_active:
+            settled.append(True)
+            raise AllocatorOverflow("overflow", "L-1", f"{APP}_M-1")
+        build(self, capture_active=capture_active)
+
+    before = ui.get_value(ref)
+    monkeypatch.setattr(ui, "_allocation_param_refs", frozenset(allocation))
+    monkeypatch.setattr(DynamicUI, "_build_ui", overflowing)
+    if settles:
+        with pytest.raises(ParameterValidationError):
+            ui.write_parameter(ref, value)
+        assert ui.get_value(ref) == before
+    else:
+        ui.write_parameter(ref, value)
+        assert ui.get_value(ref) == value
+    assert settled == ([True] if settles else [])

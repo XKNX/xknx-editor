@@ -3039,3 +3039,24 @@ msgstr "Kódlap beállítása: {code_page}"
 
 msgid "Encrypted"
 msgstr "Titkosítva"
+
+msgid "The device did not respond ({detail})."
+msgstr "A készülék nem válaszolt ({detail})."
+
+msgid "Check that the device is powered and can be reached from this interface (line, coupler)."
+msgstr "Ellenőrizze, hogy a készülék kap-e tápellátást, és elérhető-e erről az interfészről (vonal, csatoló)."
+
+msgid "For a new device, put exactly one device into programming mode. Otherwise check that the device is powered and can be reached from this interface (line, coupler)."
+msgstr "Új készüléknél pontosan egy készüléket kapcsoljon programozási módba. Ellenkező esetben ellenőrizze, hogy a készülék kap-e tápellátást, és elérhető-e erről az interfészről (vonal, csatoló)."
+
+msgid "The download failed after it had begun to write the device, so the device may be partially loaded. Program it again to restore a working state. Cause: {cause}"
+msgstr "A letöltés azután hiúsult meg, hogy már elkezdett írni a készülékbe, ezért a készülék csak részben lehet betöltve. Programozza újra a működőképes állapot helyreállításához. Ok: {cause}"
+
+msgid "Running"
+msgstr "Folyamatban"
+
+msgid "Switch On"
+msgstr "Bekapcsolás"
+
+msgid "Switch Off"
+msgstr "Kikapcsolás"

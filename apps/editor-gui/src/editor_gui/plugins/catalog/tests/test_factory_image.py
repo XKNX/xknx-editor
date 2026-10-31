@@ -93,3 +93,15 @@ def test_the_download_image_carries_the_factory_stamp(tmp_path: Path) -> None:
     )
     with pytest.raises(DeviceProgrammingError, match="factory image is invalid"):
         _image_for(device, factory_image=FactoryData(_loaded_image(), stamp[:-1]))
+
+
+def test_a_device_without_a_dynamic_ui_gets_an_image(tmp_path: Path) -> None:
+    # An application without parameters (a USB interface) has no dynamic UI; its procedure
+    # still loads it.
+    _, project, _ = _project_with_device(tmp_path)
+    (device,) = project.devices
+    bare = cast(Any, SimpleNamespace(app=device.app, dynamic_ui=None))
+    image = _image_for(bare)
+    assert image.factory_image is None
+    with pytest.raises(DeviceProgrammingError, match="no application program"):
+        _image_for(cast(Any, SimpleNamespace(app=None, dynamic_ui=None)))

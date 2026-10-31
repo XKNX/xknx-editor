@@ -3036,6 +3036,8 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         ``space_id`` (an ``id`` from project_spaces) the device is added to that space and,
         without ``segment_id``, placed on its Current Line (see project_get_current_line);
         otherwise, and when the space has no Current Line, it goes on the first TP line.
+        A product without an application program (e.g. a power supply) is added as a device with
+        a name and an address only.
         Undoable with project_undo; commissioning hardware requires separate connection tools.
 
         Returns {node_id, name, individual_address, description}, or only {node_id} if the created
@@ -3063,12 +3065,12 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                 raise ToolError(
                     f"no catalog product {product_ref_id!r}; call catalog_list_products"
                 )
-            if product.application_id is None:
-                raise ToolError(
-                    f"product {product_ref_id!r} has no application and cannot be added"
-                )
-            app = ctx.api.catalog.get_application(product.application_id)
-            if app is None:
+            app = (
+                ctx.api.catalog.get_application(product.application_id)
+                if product.application_id is not None
+                else None
+            )
+            if product.application_id is not None and app is None:
                 raise ToolError(
                     f"application {product.application_id!r} for product {product_ref_id!r} "
                     "is not in the catalog"

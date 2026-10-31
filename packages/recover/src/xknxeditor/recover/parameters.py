@@ -32,6 +32,10 @@ class RecoveredParameters:
     unknown: list[str]
 
 
+# Decoding rounds at most: each one can only change which alternatives own memory.
+_DECODE_ROUNDS = 8
+
+
 def _parameter_to_refs(application: Application) -> dict[str, list[str]]:
     """Map each parameter id to the reference ids that point at it."""
     from xknxeditor.prod.parser_v2.application_indexer import ApplicationIndexer
@@ -59,30 +63,42 @@ def recover_parameters(
     for every parameter reference whose type is reconstructable, and the parameter
     ids whose value is unknown (lossy types / absent data).
     """
+    from .recover import seed_dynamic_ui
+
     ui = application.dynamic_ui()
     if ui is None:
         return RecoveredParameters(values={}, unknown=[])
     ui.project_code_page = project_code_page
-    decoded = dict(ui.decode_memory_parameters(parameter_segments))
-    if property_values:
-        # Memory and property parameters are disjoint, so a plain merge is safe.
-        decoded.update(ui.decode_property_parameters(property_values))
     parameter_to_refs = _parameter_to_refs(application)
     values: dict[str, str] = {}
     unknown: list[str] = []
-    for parameter_id, value in decoded.items():
-        if value is None:
-            unknown.append(parameter_id)
-            continue
-        for ref_id in parameter_to_refs.get(parameter_id, []):
-            values[ref_id] = value
+    # Which parameters own a memory field depends on the values (the active alternative of
+    # a union): decode again with a UI seeded with what was read until nothing changes.
+    for _ in range(_DECODE_ROUNDS):
+        decoded = dict(ui.decode_memory_parameters(parameter_segments))
+        if property_values:
+            # Memory and property parameters are disjoint, so a plain merge is safe.
+            decoded.update(ui.decode_property_parameters(property_values))
+        read: dict[str, str] = {}
+        unknown = []
+        for parameter_id, value in decoded.items():
+            if value is None:
+                unknown.append(parameter_id)
+                continue
+            for ref_id in parameter_to_refs.get(parameter_id, []):
+                read[ref_id] = value
+        if read == values:
+            break
+        values = read
+        seeded_ui = seed_dynamic_ui(application, values, project_code_page)
+        if seeded_ui is None:
+            break
+        ui = seeded_ui
 
     # Module-instance parameters: decode against a UI seeded with the just-recovered
     # top-level values so the module instances match the device. The module decoder
     # already returns instance-qualified reference ids, which is what a project
     # stores, so they merge straight into values.
-    from .recover import seed_dynamic_ui
-
     seeded = seed_dynamic_ui(application, values, project_code_page)
     if seeded is not None:
         for ref_id, value in seeded.decode_module_parameters(

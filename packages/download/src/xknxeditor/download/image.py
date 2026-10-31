@@ -448,6 +448,10 @@ class DownloadImage:
     mask_memory: tuple[tuple[int, int], ...] = ()
     # The allocations of a BCU2 download that places the group tables itself.
     moved_tables: MovedTables | None = None
+    # Code segments in the device's user memory (``UserMemory``): an address space of its
+    # own, which the standard memory writes (``segments``) never reach, even at the same
+    # address.
+    user_segments: tuple[MemorySegment, ...] = ()
 
     def relative_segment(self, object_type: int) -> RelativeSegment | None:
         """Return the relative segment for an interface object type, if any."""
@@ -636,6 +640,7 @@ def build_image(
     }
     reserved = reserved_memory(device_mask_version(application))
     segments: list[MemorySegment] = []
+    user_segments: list[MemorySegment] = []
     application_segments: list[ObjectMemorySegment] = []
     for segment_id, (data, mask) in encoded.items():
         if not data or segment_id not in base_addresses:
@@ -682,6 +687,8 @@ def build_image(
             application_segments.append(
                 ObjectMemorySegment(declaration.load_state_machine, memory)
             )
+        elif declaration is not None and declaration.user_memory:
+            user_segments.append(memory)
         else:
             segments.append(memory)
 
@@ -720,6 +727,10 @@ def build_image(
                     application, ui, group_communication, factory_image
                 )
             )
+    for address, octets in _identity_octets(
+        application, device_mask_version(application)
+    ):
+        _patch_identity(segments, address, octets)
     # A coupler's filter table is a distinct interface object (the Router object), not one of the
     # three group-communication tables; it is carried as its own image field and written by the
     # coupler's own load procedure (System B relative memory or BCU1 LcFilter absolute memory).
@@ -781,6 +792,7 @@ def build_image(
         procedure_parameters=MappingProxyType(_procedure_parameters(application, ui)),
         property_tables=tables,
         moved_tables=moved,
+        user_segments=tuple(user_segments),
     )
 
 
@@ -816,9 +828,14 @@ def with_second_program(
     absolute = [
         memory(s.address, s.size, s.data, s.mask)
         for s in code.absolute_segment
-        if s.size
+        if s.size and not s.user_memory
     ]
-    if not relative and not absolute:
+    user = [
+        memory(s.address, s.size, s.data, s.mask)
+        for s in code.absolute_segment
+        if s.size and s.user_memory
+    ]
+    if not relative and not absolute and not user:
         return image
     object_segments = dict(image.object_segments)
     for segment in relative:
@@ -827,6 +844,7 @@ def with_second_program(
     return replace(
         image,
         segments=(*image.segments, *absolute),
+        user_segments=(*image.user_segments, *user),
         application_segments=(*image.application_segments, *relative),
         object_segments=MappingProxyType(object_segments),
     )
@@ -1348,6 +1366,53 @@ def _invalidate(segments: list[MemorySegment], start: int, end: int) -> None:
         valid = bytearray(initialized)
         valid[low - segment.address : high - segment.address] = bytes(high - low)
         segments[i] = replace(segment, initialized_mask=bytes(valid))
+
+
+def _identity_octets(
+    application: Application, mask_version: str
+) -> list[tuple[int, bytes]]:
+    """``(address, octets)`` of the application's identity where the mask keeps it in
+    memory: the application id (4 octets with a one-octet manufacturer, or 5) and the
+    PEI type (e.g. BCU1 at 0x0104 and 0x0109)."""
+    from .partial import application_id
+
+    resources = bundled_mask_resources(mask_version)
+    if resources is None:
+        return []
+    octets: list[tuple[int, bytes]] = []
+    address = resources.memory_address(ResourceName.APPLICATION_ID)
+    length = resources.length(ResourceName.APPLICATION_ID)
+    if address is not None and length in (4, 5):
+        octets.append((address, application_id(application, length)))
+    address = resources.memory_address(ResourceName.APPLICATION_PEI_TYPE)
+    if address is not None:
+        octets.append((address, bytes([application.program.pei_type & 0xFF])))
+    return octets
+
+
+def _patch_identity(segments: list[MemorySegment], address: int, octets: bytes) -> None:
+    """Put ``octets`` at ``address`` into the segments that cover it (a code segment and a
+    table segment can share the memory): a full download writes them; a download that
+    writes any of these octets writes them all. Without such a segment nothing is
+    patched."""
+    for i, segment in enumerate(segments):
+        offset = address - segment.address
+        if offset < 0 or offset + len(octets) > len(segment.data):
+            continue
+        span = slice(offset, offset + len(octets))
+        data = bytearray(segment.data)
+        data[span] = octets
+        whole = b"\xff" * len(octets)
+        mask = segment.mask
+        if mask is not None and any(mask[span]):
+            patched = bytearray(mask)
+            patched[span] = whole
+            mask = bytes(patched)
+        initialized = bytearray(segment.initialized_mask or bytes(len(data)))
+        initialized[span] = whole
+        segments[i] = replace(
+            segment, data=bytes(data), mask=mask, initialized_mask=bytes(initialized)
+        )
 
 
 def _set_octet(segments: list[MemorySegment], address: int, value: int) -> None:

@@ -95,6 +95,26 @@ def test_merged_procedure_splices_fragments_into_default() -> None:
     ]
 
 
+def test_fragments_are_merged_one_level_deep() -> None:
+    # A Hager TXC515: fragment 4 ends with a merge point of its own id. It is not merged
+    # again; the point is left in the procedure, where it does nothing.
+    master = _master_with_default(LdCtrlConnect(), LdCtrlMerge(merge_id=4))
+    write = LdCtrlWriteMem(address=0x10, size=1, verify=False, inline_data=b"\x01")
+    application = _application(
+        LoadProcedureStyle.MERGED_PROCEDURE,
+        _fragment(4, write, LdCtrlMerge(merge_id=4), LdCtrlMerge(merge_id=100)),
+    )
+
+    controls = resolve_download_controls(cast("object", application), master)  # type: ignore[arg-type]
+
+    assert [type(c).__name__ for c in controls] == [
+        "LdCtrlConnect",
+        "LdCtrlWriteMem",
+        "LdCtrlMerge",
+        "LdCtrlMerge",
+    ]
+
+
 def test_default_procedure_drops_unmatched_merge_placeholders() -> None:
     master = _master_with_default(
         LdCtrlConnect(), LdCtrlMerge(merge_id=9), LdCtrlRestart()
@@ -118,6 +138,25 @@ def test_merged_without_master_rejected() -> None:
 
     with pytest.raises(UnsupportedProcedureError, match="master data is required"):
         resolve_download_controls(application)  # type: ignore[arg-type]
+
+
+def test_a_mask_without_a_procedure_in_the_master_data_is_named() -> None:
+    import pytest
+
+    from xknxeditor.download.errors import UnsupportedProcedureError
+
+    # The "Dummy" mask MV-0001 of products that are not programmed has no procedure.
+    application = SimpleNamespace(
+        load_procedure_style=LoadProcedureStyle.DEFAULT_PROCEDURE,
+        load_procedures=None,
+        program=SimpleNamespace(mask_version="MV-0001"),
+    )
+    master = _master_with_default(LdCtrlConnect())
+    with pytest.raises(
+        UnsupportedProcedureError,
+        match="no load procedure for mask MV-0001: a device with it cannot be programmed",
+    ):
+        resolve_download_controls(cast("object", application), master)  # type: ignore[arg-type]
 
 
 def _master_with_unload(*controls: object) -> MasterData:

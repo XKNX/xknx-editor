@@ -21,9 +21,19 @@ from xknx.exceptions import XKNXException
 from xknx.profile.const import ResourceObjectType
 
 from xknxeditor.download.errors import LoadStateError, VerificationError
+from xknxeditor.download.merge import device_mask_version
+from xknxeditor.download.resources import (
+    bundled_mask_resources,
+    property_group_tables,
+)
+from xknxeditor.download.tables_system300 import ADDRESS_TABLE, ASSOCIATION_TABLE
 from xknxeditor.download.tables_systemb import association_table_wide
+from xknxeditor.namespaces.intermediate.hawk_configuration_data_t_resources_resource_resource_type_flavour import (
+    HawkConfigurationDataResourcesResourceResourceTypeFlavour as ResourceFlavour,
+)
+from xknxeditor.namespaces.intermediate.resource_addr_space_t import ResourceAddrSpace
+from xknxeditor.namespaces.intermediate.resource_name_t import ResourceName
 
-from .errors import RecoverError
 from .tables_decode import (
     DecodedGroupObject,
     DecodedLink,
@@ -39,7 +49,6 @@ from .tables_decode import (
 if TYPE_CHECKING:
     from xknxeditor.download import DeviceProgrammer
     from xknxeditor.prod import Application
-    from xknxeditor.prod.parser_v2.dynamic import DynamicUI
 
 # Memory-mapped com object table record layout (see download.image).
 _COM_OBJECT_HEADER = 5
@@ -65,20 +74,36 @@ class RawConfiguration:
     parameter_segments: dict[str, bytes]
 
 
-def _require_ui(application: Application) -> DynamicUI:
+def _segment_layout(application: Application) -> tuple[dict[str, int], dict[str, int]]:
+    """The base address and the size of each code segment. An application without a dynamic
+    section (an interface without parameters) still has its segments, tables included."""
     ui = application.dynamic_ui()
-    if ui is None:
-        raise RecoverError(
-            f"application {application.id} has no dynamic section to locate its "
-            "segments"
-        )
-    return ui
+    if ui is not None:
+        return ui.segment_base_addrs(), ui.segment_sizes()
+    from xknxeditor.prod.parser_v2.application_indexer import ApplicationIndexer
+    from xknxeditor.prod.parser_v2.encode import segment_seed
+
+    indexer = ApplicationIndexer(application.program)
+    return (
+        {sid: indexer.segment_base_addr(sid) for sid in indexer.code_segments},
+        {
+            sid: len(segment_seed(segment))
+            for sid, segment in indexer.code_segments.items()
+        },
+    )
 
 
 def _is_memory_mapped(application: Application) -> bool:
     """Whether the application uses fixed segment addresses (vs System B relative)."""
     address_table = application.program.static.address_table
     return address_table is not None and address_table.code_segment is not None
+
+
+def _has_com_objects(application: Application) -> bool:
+    """Whether the application defines any com object (its numbers can start at 0)."""
+    from xknxeditor.prod.parser_v2.application_indexer import ApplicationIndexer
+
+    return bool(ApplicationIndexer(application.program).com_objects)
 
 
 def _highest_com_object_number(application: Application) -> int:
@@ -104,6 +129,14 @@ async def read_group_communication(
     are. With ``linked_objects_only``, a System B group object table is read only where
     the association table links an object, instead of for every object number.
     """
+    if application is not None:
+        if not _has_com_objects(application):
+            # No group objects (a coupler, an IP router): nothing linked, nothing to read.
+            return RawGroupCommunication(
+                device_address=None, group_addresses=[], links=[], group_objects={}
+            )
+        if property_group_tables(device_mask_version(application)):
+            return await _read_system_300(programmer)
     if application is not None and _is_memory_mapped(application):
         return await _read_memory_mapped(programmer, application)
     return await _read_system_b(
@@ -159,26 +192,37 @@ async def read_parameter_memory(
     the memory-mapped model each segment is read at its fixed base address; for
     System B a relative segment (id ``..._RS-<objidx>-...``) is read through that
     object's table reference. Segments whose location cannot be resolved are
-    skipped. This is the raw material parameter recovery matches against.
+    skipped, and so are the segments in the device's user memory: an address space of its
+    own, which a standard memory read at the same address does not reach (and the
+    download does not write). This is the raw material parameter recovery matches against.
     """
-    ui = _require_ui(application)
-    sizes = ui.segment_sizes()
+    base_addresses, sizes = _segment_layout(application)
     memory_mapped = _is_memory_mapped(application)
+    code = application.program.static.code
     result: dict[str, bytes] = {}
     # A single unreadable segment (a realisation whose memory map we do not fully
     # model, or a transient timeout) is skipped, not fatal: the device still
     # recovers the parameters from the segments that could be read.
     if memory_mapped:
-        base_addresses = ui.segment_base_addrs()
+        user_memory = {
+            segment.id
+            for segment in (code.absolute_segment if code is not None else [])
+            if segment.user_memory
+        }
         for segment_id, size in sizes.items():
             base = base_addresses.get(segment_id)
-            if not size or base is None:
+            if not size or base is None or segment_id in user_memory:
                 continue
             try:
                 result[segment_id] = await programmer.read_memory(base, size)
             except (LoadStateError, VerificationError, XKNXException):
                 continue
         return result
+    # A relative segment can start further into its object's memory (Offset 4096).
+    offsets = {
+        segment.id: segment.offset or 0
+        for segment in (code.relative_segment if code is not None else [])
+    }
     for segment_id, size in sizes.items():
         if not size:
             continue
@@ -188,7 +232,9 @@ async def read_parameter_memory(
         object_index = int(match.group(1))
         try:
             base = await programmer.read_table_reference(object_index)
-            result[segment_id] = await programmer.read_memory(base, size)
+            result[segment_id] = await programmer.read_memory(
+                base + offsets.get(segment_id, 0), size
+            )
         except (LoadStateError, VerificationError, XKNXException):
             # Segment not allocated / no table reference / unreadable: skip it.
             continue
@@ -204,13 +250,93 @@ async def _read_count_table(
     return await programmer.read_memory(address, count_width + count * entry_width)
 
 
+async def _read_property_array(
+    programmer: DeviceProgrammer, object_index: int, property_id: int, width: int
+) -> bytes:
+    """Every element of an array property: its count (element 0), then the elements in
+    frames that fit the APDU."""
+    count = int.from_bytes(
+        await programmer.read_property(object_index, property_id, start_index=0),
+        "big",
+    )
+    per_frame = max(programmer.property_chunk_size(width), 1)
+    data = b""
+    start = 1
+    while start <= count:
+        frame = min(per_frame, count - start + 1)
+        data += await programmer.read_property(
+            object_index, property_id, count=frame, start_index=start
+        )
+        start += frame
+    return data
+
+
+async def _read_system_300(programmer: DeviceProgrammer) -> RawGroupCommunication:
+    """The group addresses and links of a System 300 device, which keeps its tables as
+    properties (see :mod:`xknxeditor.download.tables_system300`): the address table and the
+    association table elements without their count. Its group object elements carry the
+    flags but no size, so the group objects are not read."""
+    address_object = await programmer.locate_object(ADDRESS_TABLE[0])
+    addresses = await _read_property_array(
+        programmer, address_object, ADDRESS_TABLE[1], 2
+    )
+    group_addresses = decode_group_address_table_b(
+        (len(addresses) // 2).to_bytes(2, "big") + addresses
+    )
+    association_object = await programmer.locate_object(ASSOCIATION_TABLE[0])
+    width = await programmer.read_property_element_size(
+        association_object, ASSOCIATION_TABLE[1]
+    )
+    associations = await _read_property_array(
+        programmer, association_object, ASSOCIATION_TABLE[1], width
+    )
+    links = decode_association_table_b(
+        (len(associations) // max(width, 1)).to_bytes(2, "big") + associations,
+        group_addresses,
+    )
+    return RawGroupCommunication(
+        device_address=None,
+        group_addresses=group_addresses,
+        links=links,
+        group_objects={},
+    )
+
+
+async def _association_table_address(
+    programmer: DeviceProgrammer, application: Application
+) -> int | None:
+    """The association table's address the device reports through the mask's pointer to
+    it (``GroupAssociationTablePtr``: the table reference of object 2 on BIM M112, the octet
+    at 0111h plus 100h on BCU1); ``None`` when the mask has no pointer or it reads 0."""
+    resources = bundled_mask_resources(device_mask_version(application))
+    if resources is None:
+        return None
+    location = resources.location(ResourceName.GROUP_ASSOCIATION_TABLE)
+    if location is None or location.address_space != ResourceAddrSpace.POINTER:
+        return None
+    pointer = ResourceName.GROUP_ASSOCIATION_TABLE_PTR
+    try:
+        reference = resources.property_ref(pointer)
+        if reference is not None:
+            data = await programmer.read_property(*reference)
+        else:
+            address = resources.memory_address(pointer)
+            if address is None:
+                return None
+            data = await programmer.read_memory(address, resources.length(pointer) or 1)
+    except (LoadStateError, VerificationError, XKNXException):
+        return None
+    value = int.from_bytes(data[:2], "big")
+    if resources.flavour(pointer) is ResourceFlavour.PTR_STANDARD_MEMORY100:
+        value += 0x100
+    return value or None
+
+
 async def _read_memory_mapped(
     programmer: DeviceProgrammer, application: Application
 ) -> RawGroupCommunication:
     static = application.program.static
-    ui = _require_ui(application)
-    base_addresses = ui.segment_base_addrs()
-    sizes = ui.segment_sizes()
+    base_addresses, sizes = _segment_layout(application)
 
     address_table = static.address_table
     assert address_table is not None and address_table.code_segment is not None
@@ -227,7 +353,11 @@ async def _read_memory_mapped(
     links: list[DecodedLink] = []
     association_table = static.association_table
     if association_table is not None and association_table.code_segment is not None:
-        assoc_address = base_addresses[association_table.code_segment] + (
+        # Where the device keeps it, when the mask points to it (a download with dynamic
+        # table management packs it right after the address table); else as declared.
+        assoc_address = await _association_table_address(
+            programmer, application
+        ) or base_addresses[association_table.code_segment] + (
             association_table.offset or 0
         )
         assoc_bytes = await _read_count_table(

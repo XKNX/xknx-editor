@@ -34,6 +34,7 @@ from editor_gui.plugins.project.paste import (
     paste_error_text,
 )
 from editor_gui.plugins.project.program_queue import (
+    BusAction,
     ProgramQueue,
     QueueItem,
     ScriptRun,
@@ -58,7 +59,7 @@ from editor_gui.plugins.project.ui import (
     name_focus,
 )
 from editor_gui.plugins.project.ui.comment import CommentPanel
-from editor_gui.plugins.project.ui.configure import edit_being_stored
+from editor_gui.plugins.project.ui.configure import edit_being_stored, reset_presets
 from editor_gui.plugins.project.ui.dali_commissioning import DaliCommissioningPanel
 from editor_gui.plugins.project.ui.device_certificate import (
     CertificateState,
@@ -129,7 +130,19 @@ def _run_now(fn: Callable[[], None]) -> None:
 
 
 # Bus operations the programming queue starts and shows as its own entries.
-_QUEUED_OPERATIONS = frozenset({"script", "program", "device_info", "test"})
+_QUEUED_OPERATIONS = frozenset(
+    {
+        "script",
+        "program",
+        "device_info",
+        "test",
+        "restart",
+        "reset",
+        "dali",
+        "siemens_dali",
+        "siemens_dca",
+    }
+)
 
 
 def _unqueued(operation: tuple[str, str] | None) -> tuple[str, str] | None:
@@ -204,7 +217,6 @@ class ProjectPlugin:
             api.connection,
             api.main_thread.submit if api.main_thread is not None else _run_now,
             Logger(api.log, "project"),
-            api.tell_refused,
         )
 
         self._memory_preview = MemoryPreviewWindow(
@@ -219,6 +231,7 @@ class ProjectPlugin:
         )
         api.ask_device_certificate = self._ask_certificate_on_add
         api.queue_program = self._queue_program
+        api.queue_action = self._queue_bus_action
         api.cancel_operation = self._program_queue.cancel_item
         self._secure_commissioning_dialog = SecureCommissioningDialog()
         # Live device readouts (read-only "read from device" action), keyed by node id. Written on
@@ -1061,17 +1074,111 @@ class ProjectPlugin:
 
         self._in_background(S.CHANGING_APPLICATION, work)
 
+    def _queue_bus_action(
+        self,
+        node_id: int,
+        kind: str,
+        *,
+        origin: str | None = None,
+        ended: Callable[[], None] | None = None,
+        **options: Any,
+    ) -> QueueItem | None:
+        """Queue a bus operation on the device other than a download, a test, a device info
+        readout or a parameter script, as the Operations panel shows it:
+
+        - ``"restart"``: a basic restart;
+        - ``"reset"``: a master reset with ``erase_code``;
+        - ``"dali"``: the DALI run ``op`` (a coroutine of the commissioner) on ``channel``, named
+          ``text`` (what the user started, e.g. "Scan");
+        - ``"siemens_dali"``: the Siemens DALI run ``op``, named ``text``;
+        - ``"siemens_dca"``: programming the DALI device data ``data``.
+
+        ``origin`` names who started it when not the editor's own UI (an MCP client);
+        ``ended`` is called on the UI thread once it has ended, also when it never ran. Returns
+        the item, whose ``ended`` future resolves once it has ended (its ``result`` is the
+        operation's), or None for a device not in the project."""
+        from concurrent.futures import Future
+
+        device = self._api.project.find_device_by_node_id(node_id)
+        if device is None:
+            return None
+        conn = self._api.connection
+        start: Callable[[Device], Future[Any] | None]
+        match kind:
+            case "restart":
+                text, start = S.BTN_RESTART_DEVICE, conn.restart_device
+            case "reset":
+                erase_code: int = options["erase_code"]
+                reset = next(
+                    (label for label, code in reset_presets() if code == erase_code),
+                    str(erase_code),
+                )
+                text = f"{S.RESET_POPUP_TITLE} ({reset})"
+                start = functools.partial(
+                    self._start_master_reset, erase_code=erase_code
+                )
+            case "dali":
+                channel: int = options.get("channel", 0)
+                # The button that started it, without the "…" of one that asks first.
+                text = f"{S.EDITOR_TAB_DALI}: {options['text'].removesuffix('…')}"
+                if self._dali_channel_count(device) > 1:
+                    text += f" ({S.DALI_CHANNEL_N.format(n=channel + 1)})"
+                op = options["op"]
+                start = functools.partial(conn.run_dali, op=op, channel=channel)
+            case "siemens_dali":
+                text = (
+                    f"{S.EDITOR_TAB_SIEMENS_DALI}: {options['text'].removesuffix('…')}"
+                )
+                start = functools.partial(conn.run_siemens_dali, op=options["op"])
+            case "siemens_dca":
+                text = S.PLUGIN_PARAMS_PROGRAM_DCA
+                start = functools.partial(
+                    conn.run_siemens_dca_program, blob_xml=options["data"]
+                )
+            case _:
+                raise ValueError(f"unknown bus operation {kind!r}")
+        item = QueueItem(
+            node_id=device.node_id,
+            address=device.individual_address or "",
+            name=device.name,
+            scope=None,
+            origin=origin,
+            ended=Future(),
+        )
+
+        def begin() -> Future[Any] | None:
+            # The device as it is now (the project may have been reloaded meanwhile).
+            current = self._api.project.find_device_by_node_id(node_id)
+            if current is None:
+                return None
+            future = start(current)
+            if future is None and conn.xknx is None:
+                item.message = S.SCRIPT_NOT_CONNECTED
+            return future
+
+        item.action = BusAction(kind, text, begin)
+        if ended is not None:
+            assert item.ended is not None
+            item.ended.add_done_callback(lambda _f: ended())
+        self._program_queue.enqueue(item)
+        return item
+
     def _restart_device(self, device: "Device") -> None:
         """Restart (reboot) the device over the bus (non-destructive)."""
-        self._api.connection.restart_device(device)
+        self._queue_bus_action(device.node_id, "restart")
 
     def _master_reset_device(self, device: "Device", erase_code: int) -> None:
-        """DESTRUCTIVE: master-reset the device (factory reset etc.) over the bus. A factory reset
-        with its address (erase code 2) gives a secure device its FDSK back, which the project
-        records."""
+        """DESTRUCTIVE: master-reset the device (factory reset etc.) over the bus."""
+        self._queue_bus_action(device.node_id, "reset", erase_code=erase_code)
+
+    def _start_master_reset(
+        self, device: "Device", erase_code: int
+    ) -> "Future[Any] | None":
+        """Send the master reset. A factory reset with its address (erase code 2) gives a secure
+        device its FDSK back, which the project records."""
         future = self._api.connection.master_reset_device(device, erase_code)
         if future is None or erase_code != _FACTORY_RESET:
-            return
+            return future
 
         def done(f: "Future[Any]") -> None:
             if f.cancelled() or f.exception() is not None:
@@ -1083,14 +1190,24 @@ class ProjectPlugin:
                 apply()
 
         future.add_done_callback(done)
+        return future
 
     def _render_dali_tab(self, device: "Device") -> None:
         """Render the DALI commissioning tab body (MDT DALI devices), passing bus-connected state."""
         self._dali_panel.render(device, connected=self._api.connection.can_reach_bus())
 
-    def _run_dali(self, device: "Device", op: "Any", channel: int = 0) -> bool:
-        """Start a DALI commissioning coroutine over the bus; True if it was accepted (bus free)."""
-        return self._api.connection.run_dali(device, op, channel=channel) is not None
+    def _run_dali(
+        self,
+        device: "Device",
+        op: "Any",
+        channel: int,
+        text: str,
+        ended: Callable[[], None],
+    ) -> None:
+        """Queue a DALI commissioning coroutine named ``text``; ``ended`` once it has ended."""
+        self._queue_bus_action(
+            device.node_id, "dali", op=op, channel=channel, text=text, ended=ended
+        )
 
     def _dali_channel_count(self, device: "Device") -> int:
         """How many DALI bus channels this gateway has (1 for a 1x64, 2 for a 2x64)."""
@@ -1128,9 +1245,13 @@ class ProjectPlugin:
             device, connected=self._api.connection.can_reach_bus()
         )
 
-    def _run_siemens_dali(self, device: "Device", op: "Any") -> bool:
-        """Start a Siemens DALI read coroutine over the bus; True if the bus slot was free."""
-        return self._api.connection.run_siemens_dali(device, op) is not None
+    def _run_siemens_dali(
+        self, device: "Device", op: "Any", text: str, ended: Callable[[], None]
+    ) -> None:
+        """Queue a Siemens DALI read coroutine named ``text``; ``ended`` once it has ended."""
+        self._queue_bus_action(
+            device.node_id, "siemens_dali", op=op, text=text, ended=ended
+        )
 
     def _render_plugin_params_tab(self, device: "Device") -> None:
         """Render the generic sectioned view of the device's raw plugin parameters."""
@@ -1242,9 +1363,9 @@ class ProjectPlugin:
         )
 
     def _handle_program_dca(self, device: "Device") -> None:
-        """Program the Siemens N141/03 DaliDevice property-image onto the device over the
-        live bus. The project plugin forwards this to ``ConnectionService``; the actual
-        write pass lives in ``plugin_blob_readers.siemens_dali.download``."""
+        """Queue programming the Siemens N141/03 DaliDevice property-image onto the device.
+        ``ConnectionService`` runs it; the actual write pass lives in
+        ``plugin_blob_readers.siemens_dali.download``."""
         entry = next(
             (
                 e
@@ -1260,13 +1381,7 @@ class ProjectPlugin:
                 device=device.individual_address,
             )
             return
-        future = self._api.connection.run_siemens_dca_program(device, entry.data)
-        if future is None:
-            self._api.log.warning(
-                "program DCA: cannot start (bus busy or not connected)",
-                plugin="project",
-                device=device.individual_address,
-            )
+        self._queue_bus_action(device.node_id, "siemens_dca", data=entry.data)
 
     def _read_device_info(self, device: "Device") -> None:
         self._open_read_dialog(device.node_id)
@@ -2535,9 +2650,13 @@ class ProjectPlugin:
         finally:
             item.full_download_question = None
 
-    def _program_error_text(self, error: BaseException) -> str | None:
+    @staticmethod
+    def _program_error_text(error: BaseException) -> str | None:
         """Translated text of the download errors the editor explains itself."""
+        from xknx.exceptions import ManagementConnectionTimeout
+
         from editor_gui.plugins.connection.service import DeviceCertificateRequired
+        from xknxeditor.download.errors import PartialDownloadError
         from xknxeditor.download.partial import (
             DifferentProgramLoaded,
             IncompatibleMaskVersion,
@@ -2551,21 +2670,43 @@ class ProjectPlugin:
             return S.INCOMPATIBLE_MASK_VERSION.format(
                 found=error.found, expected=error.expected
             )
+        if isinstance(error, ManagementConnectionTimeout):
+            return S.DEVICE_NOT_RESPONDING.format(detail=str(error))
+        if isinstance(error, PartialDownloadError) and error.__cause__ is not None:
+            cause = error.__cause__
+            return S.PARTIAL_DOWNLOAD_FAILED.format(
+                cause=ProjectPlugin._program_error_text(cause) or str(cause)
+            )
         return None
 
     def _describe_program_error(
         self, item: QueueItem, error: BaseException
     ) -> str | None:
-        """For a failed device check, the project devices the reported value belongs to. A
-        download that found the device's certificate missing only once it had connected for it
-        asks for the certificate, as one that found it before."""
+        """For a failed device check, the project devices the reported value belongs to; for a
+        device that did not respond, what to check. A download that found the device's
+        certificate missing only once it had connected for it asks for the certificate, as one
+        that found it before."""
+        from xknx.exceptions import ManagementConnectionTimeout
+
         from editor_gui.plugins.connection.service import DeviceCertificateRequired
+        from xknxeditor.download.scope import DownloadScope
 
         if isinstance(error, DeviceCertificateRequired):
             device = self._api.project.find_device_by_node_id(item.node_id)
             if device is not None and item.origin is None:
                 self._ask_certificate(device, item)
             return None
+        if isinstance(error, ManagementConnectionTimeout):
+            # A full download of a new device first writes its address to the one device in
+            # programming mode when nothing answers at the address.
+            new_device = (
+                item.scope is DownloadScope.FULL
+                and not item.test
+                and item.device_info is None
+            )
+            return S.NO_RESPONSE_NEW_DEVICE_HINT if new_device else S.NO_RESPONSE_HINT
+        if isinstance(error.__cause__, ManagementConnectionTimeout):
+            return S.NO_RESPONSE_HINT
         mismatch = compare_mismatch(error)
         if mismatch is None:
             return None
@@ -2680,6 +2821,8 @@ class ProjectPlugin:
         Future, or None if it could not start (not connected / device gone)."""
         if item.script is not None:
             return self._online_runner.start(item)
+        if item.action is not None:
+            return item.action.start()
         if item.device_info is not None:
             return self._start_device_info(item)
         if item.scope is None:

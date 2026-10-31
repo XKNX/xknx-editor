@@ -115,6 +115,31 @@ def test_a_device_goes_on_the_line_chosen() -> None:
     assert len(notices) == 2
 
 
+def test_a_product_without_an_application_is_added() -> None:
+    # A power supply: no application program, a device with a name and an address only.
+    added: list[dict[str, Any]] = []
+
+    def add_device(**kwargs: Any) -> int:
+        added.append(kwargs)
+        return 8
+
+    project = SimpleNamespace(
+        is_open=True,
+        add_device=add_device,
+        device_target_segment=12,
+        secure_commissioning_of=lambda _d: False,
+    )
+    notices: list[str] = []
+    refused: list[str] = []
+    plugin = _plugin(project, notices, refused)
+    product = ProductSummary("P", "H", "Power Supply", None, None, "M-1", None)
+    plugin._on_select(product, 3)  # pyright: ignore[reportPrivateUsage]
+    assert [(a["app"], a["space_id"], a["segment_id"]) for a in added] == [
+        (None, 3, 12)
+    ]
+    assert refused == [] and notices == [S.CATALOG_ADD_OK.format(name="Power Supply")]
+
+
 @pytest.fixture
 def context() -> Iterator[None]:
     from imgui_bundle import imgui

@@ -3012,3 +3012,24 @@ msgstr "Ustaw stronę kodową na {code_page}"
 
 msgid "Encrypted"
 msgstr "Zaszyfrowany"
+
+msgid "The device did not respond ({detail})."
+msgstr "Urządzenie nie odpowiedziało ({detail})."
+
+msgid "Check that the device is powered and can be reached from this interface (line, coupler)."
+msgstr "Sprawdź, czy urządzenie jest zasilane i osiągalne z tego interfejsu (linia, sprzęgło)."
+
+msgid "For a new device, put exactly one device into programming mode. Otherwise check that the device is powered and can be reached from this interface (line, coupler)."
+msgstr "W przypadku nowego urządzenia przełącz dokładnie jedno urządzenie w tryb programowania. W przeciwnym razie sprawdź, czy urządzenie jest zasilane i osiągalne z tego interfejsu (linia, sprzęgło)."
+
+msgid "The download failed after it had begun to write the device, so the device may be partially loaded. Program it again to restore a working state. Cause: {cause}"
+msgstr "Pobieranie nie powiodło się po rozpoczęciu zapisu do urządzenia, więc urządzenie może być załadowane tylko częściowo. Zaprogramuj je ponownie, aby przywrócić stan działania. Przyczyna: {cause}"
+
+msgid "Running"
+msgstr "W toku"
+
+msgid "Switch On"
+msgstr "Włącz"
+
+msgid "Switch Off"
+msgstr "Wyłącz"
