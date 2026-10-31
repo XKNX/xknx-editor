@@ -83,10 +83,10 @@ msgid "Print"
 msgstr "Printo"
 
 msgid "Replay Telegrams"
-msgstr "Riluaj telegramet"
+msgstr "Ridërgo telegramet"
 
 msgid "Stop Replay"
-msgstr "Ndalo riluajtjen"
+msgstr "Ndalo ridërgimin"
 
 msgid "Start recording the group telegrams"
 msgstr "Nis regjistrimin e telegrameve të grupit"
@@ -119,7 +119,7 @@ msgid "Send the selected group telegrams (all if none is selected) again with th
 msgstr "Dërgo përsëri telegramet e grupit të zgjedhura (të gjitha, nëse nuk është zgjedhur asnjë) me kohët e tyre origjinale"
 
 msgid "Cancel the replay"
-msgstr "Anulo riluajtjen"
+msgstr "Anulo ridërgimin"
 
 msgid "Copy"
 msgstr "Kopjo"
@@ -134,7 +134,7 @@ msgid "Stopped"
 msgstr "Ndalur"
 
 msgid "Replaying {done}/{total}"
-msgstr "Po riluhet {done}/{total}"
+msgstr "Po ridërgohen {done}/{total}"
 
 msgid "Connecting in bus monitor mode…"
 msgstr "Po lidhet në modalitetin e monitorit të busit…"
@@ -149,7 +149,7 @@ msgid "Start Bus Monitor"
 msgstr "Nis monitorin e busit"
 
 msgid "The bus monitor connects the interface in bus monitor mode. The normal connection is closed while the bus monitor runs: nothing can be sent or downloaded in that time. Stopping the bus monitor restores the normal connection.\n\nStart the bus monitor?"
-msgstr "Monitori i busit e lidh ndërfaqen në modalitetin e monitorit të busit. Lidhja normale mbyllet sa kohë që monitori i busit është në punë: gjatë kësaj kohe asgjë nuk mund të dërgohet ose programohet. Ndalimi i monitorit të busit e rikthen lidhjen normale.\n\nTa nis monitorin e busit?"
+msgstr "Monitori i busit e lidh ndërfaqen në modalitetin e monitorit të busit. Lidhja normale mbyllet sa kohë që monitori i busit është në punë: gjatë kësaj kohe asgjë nuk mund të dërgohet ose programohet. Ndalimi i monitorit të busit e rikthen lidhjen normale.\n\nTë niset monitori i busit?"
 
 msgid "The bus monitor is not supported for this connection type. It needs a tunnelling connection."
 msgstr "Monitori i busit nuk mbështetet për këtë lloj lidhjeje. Ai kërkon një lidhje tunneling."
@@ -170,7 +170,7 @@ msgid "Unsaved Telegrams"
 msgstr "Telegrame të paruajtura"
 
 msgid "The telegrams have not been exported. Clear them anyway?"
-msgstr "Telegramet nuk janë eksportuar. T'i pastroj gjithsesi?"
+msgstr "Telegramet nuk janë eksportuar. Të pastrohen gjithsesi?"
 
 msgid "The telegrams have not been exported. Loading a recording replaces them and stops the recording. Continue?"
 msgstr "Telegramet nuk janë eksportuar. Ngarkimi i një regjistrimi i zëvendëson ato dhe ndalon regjistrimin. Të vazhdohet?"
@@ -236,16 +236,16 @@ msgid "Page {page}"
 msgstr "Faqja {page}"
 
 msgid "{count} Data Secure telegrams are not replayed"
-msgstr "{count} telegrame Data Secure nuk riluhen"
+msgstr "{count} telegrame Data Secure nuk ridërgohen"
 
 msgid "There are no group telegrams to replay"
-msgstr "Nuk ka telegrame grupi për t'u riluajtur"
+msgstr "Nuk ka telegrame grupi për t'u ridërguar"
 
 msgid "Replay finished: {count} telegrams sent"
-msgstr "Riluajtja përfundoi: {count} telegrame u dërguan"
+msgstr "Ridërgimi përfundoi: {count} telegrame u dërguan"
 
 msgid "Replay cancelled: {count} telegrams sent"
-msgstr "Riluajtja u anulua: {count} telegrame u dërguan"
+msgstr "Ridërgimi u anulua: {count} telegrame u dërguan"
 
 msgid "from bus"
 msgstr "nga busi"
