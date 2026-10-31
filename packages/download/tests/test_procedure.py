@@ -910,6 +910,55 @@ async def test_compare_prop_takes_the_image_only_where_a_parameter_covers_it() -
         await run(None).run()
 
 
+async def test_compare_prop_with_short_inline_data_compares_the_image() -> None:
+    from xknxeditor.download.errors import CompareMismatch
+    from xknxeditor.namespaces.intermediate.ld_ctrl_compare_prop_t import (
+        LdCtrlCompareProp,
+    )
+
+    def run(covered: bytes) -> LoadProcedureRunner:
+        # A Gira 2029: six 6-octet elements of the hardware type with 7 octets of inline
+        # data; the image holds one element.
+        image = DownloadImage(
+            segments=(),
+            properties=(
+                PropertyValue(
+                    object_index=0,
+                    property_id=78,
+                    occurrence=0,
+                    data=b"\x00\x00\x00\x20\x00\x03",
+                    element_size=6,
+                    covered=covered,
+                ),
+            ),
+        )
+        application = _application(
+            LdCtrlCompareProp(
+                obj_idx=0,
+                prop_id=78,
+                start_element=1,
+                count=6,
+                inline_data=b"\x00\x00\x00\x00\x20\x00\x03",
+            )
+        )
+        return LoadProcedureRunner(application, image, DeviceProgrammer(device))
+
+    device = FakeDevice()
+    device.properties[(0, 78)] = b"\x00\x00\x00\x20\x00\x03"
+    await run(b"\xff" * 6).run()
+    reads = [p for p in device.sent if isinstance(p, PropertyValueRead)]
+    assert [(p.start_index, p.count) for p in reads] == [(1, 1)]
+    # Only the covered bits count.
+    device.properties[(0, 78)] = b"\x11\x00\x00\x20\x00\x03"
+    await run(b"\x00" + b"\xff" * 5).run()
+    with pytest.raises(CompareMismatch):
+        await run(b"\xff" * 6).run()
+    # Nothing covered: nothing to compare.
+    device.sent.clear()
+    await run(bytes(6)).run()
+    assert not [p for p in device.sent if isinstance(p, PropertyValueRead)]
+
+
 async def test_compare_prop_mask_still_detects_marked_mismatch() -> None:
     from xknxeditor.download.errors import VerificationError
     from xknxeditor.namespaces.intermediate.ld_ctrl_compare_prop_t import (

@@ -31,7 +31,7 @@ import logging
 import re
 import time
 from collections.abc import Awaitable, Callable, Mapping, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import TYPE_CHECKING
 
 from xknx.profile.const import ResourceGenericPropertyId, ResourceObjectType
@@ -2716,6 +2716,10 @@ class LoadProcedureRunner:
         if control.range is not None:
             await self._compare_prop_range(index, control, control.range)
             return
+        from_image = await self._compare_from_image(index, control)
+        if from_image is None:
+            return
+        control = from_image
         expected, captured_width, source = self._property_compare_data(index, control)
         read_back = await self._read_property(index, control)
         logger.debug(
@@ -2814,6 +2818,51 @@ class LoadProcedureRunner:
                 mask=mask,
                 object_label=self._object_label(index),
             )
+
+    async def _compare_from_image(
+        self, index: int, control: LdCtrlCompareProp
+    ) -> LdCtrlCompareProp | None:
+        """``control`` as it compares when its inline data is shorter than its elements and
+        the image holds the property: the image's data, as far as the image goes, and only
+        the bits a parameter covers (``None``: none, nothing to compare). Otherwise
+        ``control`` itself."""
+        if control.start_element == 0 or control.prop_id == PID_TABLE_REFERENCE:
+            return control
+        prop = next(
+            (
+                p
+                for p in self.image.properties
+                if p.property_id == control.prop_id
+                and self._image_property_applies(p, index, control)
+            ),
+            None,
+        )
+        if prop is None:
+            return control
+        await self._ensure_property_width(index, control)
+        width = self._property_width(index, control.prop_id)
+        if not width or len(control.inline_data or b"") >= width * control.count:
+            return control
+        start = (control.start_element - 1) * width
+        count = min(control.count, (len(prop.data) - start) // width)
+        data = prop.data[start : start + count * width]
+        covered = (
+            prop.covered[start : start + len(data)]
+            if prop.covered is not None
+            else b"\xff" * len(data)
+        )
+        bits = (control.mask or b"").ljust(len(data), b"\xff")
+        mask = bytes(c & m for c, m in zip(covered, bits, strict=False))
+        if count <= 0 or not any(mask):
+            logger.info(
+                "download: %s compares object %s property %d without data to compare; "
+                "not checked",
+                self._target(),
+                self._object_label(index),
+                control.prop_id,
+            )
+            return None
+        return replace(control, inline_data=data, count=count, mask=mask)
 
     async def _compare_prop_range(
         self, index: int, control: LdCtrlCompareProp, value_range: str
