@@ -374,6 +374,20 @@ async def test_write_rel_mem_uses_table_reference() -> None:
     assert bytes(device.memory[0x4004 + i] for i in range(2)) == b"\x11\x22"
 
 
+async def test_write_prop_of_no_elements_writes_nothing() -> None:
+    # A Busch-Jaeger 6128 procedure writes object 1 PID 53 with Count 0 and no data.
+    write = LdCtrlWriteProp(
+        obj_idx=1, prop_id=53, start_element=1, count=0, verify=False
+    )
+    image = DownloadImage(segments=(), properties=())
+    runner, device = _runner(_application(write), image)
+    await runner.run()
+    assert not [p for p in device.sent if isinstance(p, PropertyValueWrite)]
+    runner, device = _runner(_application(write), image)
+    report = await runner.preflight()
+    assert not report.properties
+
+
 async def test_write_rel_mem_of_no_octets_writes_nothing() -> None:
     # An application without parameter memory (an ABB 2CDG 110 192) writes 0 octets to its
     # application object; there is no image data for that, and none is needed.

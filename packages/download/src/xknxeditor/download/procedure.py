@@ -2483,6 +2483,14 @@ class LoadProcedureRunner:
     async def _write_prop(self, control: LdCtrlWriteProp) -> None:
         """Write addressed image elements and verify each property response."""
         index = await self._resolve_index(control, extended=True)
+        if _writes_no_elements(control):
+            logger.info(
+                "download: %s writes no element of object %s property %d; not written",
+                self._target(),
+                self._object_label(index),
+                control.prop_id,
+            )
+            return
         await self._ensure_property_width(index, control)
         data, covered = self._property_write_plan(index, control)
         if covered is not None:
@@ -3114,6 +3122,8 @@ class LoadProcedureRunner:
             return
         if isinstance(control, LdCtrlWriteProp):
             index = await self._resolve_index(control, extended=True)
+            if _writes_no_elements(control):
+                return
             await self._ensure_property_width(index, control)
             planned, covered = self._property_write_plan(index, control)
             if covered is not None and not any(covered):
@@ -3439,6 +3449,12 @@ def _procedure_steps(controls: Sequence[object]) -> set[_PropertyKey]:
         if isinstance(control, LdCtrlWriteProp) and control.inline_data is not None:
             values.setdefault(_property_key(control), set()).add(control.inline_data)
     return {key for key, data in values.items() if len(data) > 1}
+
+
+def _writes_no_elements(control: LdCtrlWriteProp) -> bool:
+    """Whether ``control`` writes no element: a count of 0 from element 1 on, without
+    inline data (element 0, the number of elements, is a write of its own)."""
+    return control.count == 0 and control.start_element > 0 and not control.inline_data
 
 
 def _memory_procedure_steps(controls: Sequence[object]) -> set[tuple[int, int]]:
