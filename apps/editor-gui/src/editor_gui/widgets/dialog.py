@@ -290,7 +290,9 @@ def dialog_buttons(
     enabled: Sequence[bool] | None = None,
     rects: list[tuple[float, float, float, float]] | None = None,
 ) -> int | None:
-    """A row of equal-width buttons below a separator, the primary one first.
+    """A row of equal-width buttons below a separator, the primary one first. Where equal widths
+    do not fit the dialog (long labels, a narrow screen), each button is as wide as its label, and
+    a button that does not fit the row any more starts a new one.
 
     The last label is the button that dismisses the dialog: it sits at the right edge and Escape
     triggers it while the dialog has focus. The others sit left-aligned; Enter triggers the first
@@ -299,31 +301,47 @@ def dialog_buttons(
     ``None``. ``rects`` receives each button's screen rectangle (x, y, width, height).
     """
     style = imgui.get_style()
-    width = max(
-        px(_MIN_BUTTON_WIDTH),
-        *(
+    own = [
+        max(
+            px(_MIN_BUTTON_WIDTH),
             imgui.calc_text_size(label, hide_text_after_double_hash=True).x
-            + 2 * style.frame_padding.x
-            for label in labels
-        ),
-    )
+            + 2 * style.frame_padding.x,
+        )
+        for label in labels
+    ]
     imgui.spacing()
     imgui.separator()
     imgui.spacing()
     row_x = imgui.get_cursor_pos_x()
-    dismiss_x = row_x + max(0.0, imgui.get_content_region_avail().x - width)
+    room = imgui.get_content_region_avail().x
+    gap = style.item_spacing.x
+    equal = max(own)
+    widths = (
+        [equal] * len(labels)
+        if len(labels) * equal + (len(labels) - 1) * gap <= room
+        else own
+    )
     dismiss = len(labels) - 1
     clicked: int | None = None
+    x = row_x
     for index, label in enumerate(labels):
-        if index:
+        width = widths[index]
+        if index and x + gap + width <= row_x + room:
             imgui.same_line()
+            x += gap
+        elif index:
+            x = row_x
         if index == dismiss:
-            imgui.set_cursor_pos_x(max(dismiss_x, imgui.get_cursor_pos_x()))
+            right = row_x + max(0.0, room - width)
+            if right > x:
+                imgui.set_cursor_pos_x(right)
+                x = right
         disabled = enabled is not None and not enabled[index]
         imgui.begin_disabled(disabled)
         if imgui.button(label, imgui.ImVec2(width, 0.0)):
             clicked = index
         imgui.end_disabled()
+        x += width
         if rects is not None:
             low, high = imgui.get_item_rect_min(), imgui.get_item_rect_max()
             rects.append((low.x, low.y, high.x - low.x, high.y - low.y))

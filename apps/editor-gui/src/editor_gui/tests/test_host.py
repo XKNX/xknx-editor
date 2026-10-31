@@ -145,6 +145,9 @@ def test_session_starts_the_managed_mcp_server(
     assert started == ([False] if starts else [])
 
 
+_NOTES = "## New\n\n- **Things**"
+
+
 def test_update_found_inside_home_assistant(monkeypatch: pytest.MonkeyPatch) -> None:
     """The new version and its notes, and where to update; no install or download."""
     host.set_current(HostOptions(home_assistant=True))
@@ -171,18 +174,19 @@ def test_update_found_inside_home_assistant(monkeypatch: pytest.MonkeyPatch) -> 
     monkeypatch.setattr(main.imgui, "text_disabled", lambda *a, **k: None)
     monkeypatch.setattr(main.imgui, "begin_child", lambda *a, **k: True)
     monkeypatch.setattr(main.imgui, "text_wrapped", shown.append)
+    notes: list[str] = []
+    monkeypatch.setattr(main, "render_markdown", notes.append)
     stub = SimpleNamespace(
         _update_prompt_requested=False,
-        _update_info=SimpleNamespace(
-            version="9.9.0", notes="New things", url="", assets=[]
-        ),
+        _update_info=SimpleNamespace(version="9.9.0", notes=_NOTES, url="", assets=[]),
         _skip_update_version=skipped.append,
     )
 
     KnxGuiApp._render_update_modal(stub)  # type: ignore[arg-type]
 
     assert S.UPDATE_HOME_ASSISTANT_INTEGRATION in shown
-    assert "New things" in shown
+    # The release notes are Markdown, rendered as such.
+    assert notes == [_NOTES]
     # Only informs: one button; closed, the check at start does not show it again.
     assert buttons == [(S.BTN_CLOSE,)]
     assert skipped == ["9.9.0"]
