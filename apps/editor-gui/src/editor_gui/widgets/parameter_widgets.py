@@ -1572,6 +1572,10 @@ def _show_page_help(device: Device, page: ParameterPage) -> None:
         _selected_help[:] = [page.block.help_context]
 
 
+# Size at 100 % scaling of a page's icon in the page tree (16 px, as in the reference).
+_PAGE_ICON = 16.0
+
+
 def _render_page_tree(
     pages: tuple[ParameterPage, ...],
     selected: str | None,
@@ -1586,7 +1590,7 @@ def _render_page_tree(
     page with pages below is a group, boxed with them. ``channel_menu`` draws the items of a
     channel page's context menu."""
     clicked: str | None = None
-    icon_size = imgui.get_font_size()
+    icon_size = px(_PAGE_ICON)
     if top_level:
         _hovered_page[1] = None
     for page in pages:

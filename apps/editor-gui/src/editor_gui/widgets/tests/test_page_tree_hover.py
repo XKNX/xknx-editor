@@ -1,13 +1,16 @@
-"""A page in the page tree is bold while the mouse is over it, and while it is selected."""
+"""A page in the page tree is bold while the mouse is over it, and while it is selected; its icon
+is 16 px."""
 
 from __future__ import annotations
 
 from collections.abc import Iterator
+from typing import cast
 
 import pytest
 from imgui_bundle import imgui
 
 from editor_gui.widgets import parameter_widgets
+from editor_gui.widgets.icons import Icon
 from editor_gui.widgets.parameter_widgets import build_pages
 from xknxeditor.prod.parser_v2.ui import NumberWidget, UiParameter, UiParameterBlock
 
@@ -76,3 +79,22 @@ def test_hovered_and_selected_pages_are_bold(monkeypatch: pytest.MonkeyPatch) ->
 
 def _last(drawn: dict[str, bool]) -> str:
     return next(reversed(drawn))
+
+
+@pytest.mark.usefixtures("frame")
+def test_page_icons_are_16_px(monkeypatch: pytest.MonkeyPatch) -> None:
+    page = UiParameterBlock(
+        id="PB-1",
+        text="Kanalkopie",
+        children=_page("PB-9", "x").children,
+        icon="copy",
+    )
+    pages = build_pages([page], "1")
+    sizes: list[float] = []
+    monkeypatch.setattr(
+        parameter_widgets, "draw_icon", lambda _icon, _pos, size: sizes.append(size)
+    )
+    tree = parameter_widgets._render_page_tree  # pyright: ignore[reportPrivateUsage]
+    tree(pages, None, frozenset(), True, lambda _name: cast(Icon, object()))
+    # As large as in the reference, whatever the text size.
+    assert sizes == [16.0]
