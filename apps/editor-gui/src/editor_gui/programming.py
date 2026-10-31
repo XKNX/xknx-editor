@@ -20,6 +20,7 @@ from editor_gui.device import address_order
 # so ``from xknxeditor.download import preflight`` is ambiguous to type checkers.
 from xknxeditor.download.download import download, preflight
 from xknxeditor.download.image import build_image
+from xknxeditor.download.preflight import ByteRange
 from xknxeditor.download.scope import DownloadScope
 
 if TYPE_CHECKING:
@@ -336,16 +337,17 @@ def _segment_changed_bits(segment: SegmentDiff, offset: int) -> int:
     return planned ^ current
 
 
-def preflight_segment_counts(
+def preflight_segment_ranges(
     segment: SegmentDiff,
     runtime_addresses: AbstractSet[int],
     driven_bits: Mapping[int, int],
-) -> tuple[int, int, int]:
-    """Return ``(config, default, runtime)`` changed-byte counts for one memory segment; a
-    step of the procedure (see ``SegmentDiff.procedure_step``) is device-managed."""
+) -> list[tuple[ByteRange, str]]:
+    """The changed ranges of one memory segment with their class, a range split where the
+    class of its bytes changes; a step of the procedure (see ``SegmentDiff.procedure_step``)
+    is device-managed."""
     if segment.procedure_step:
-        return 0, 0, segment.changed_bytes
-    config = default = runtime = 0
+        return [(r, PREFLIGHT_RUNTIME) for r in segment.changed_ranges]
+    result: list[tuple[ByteRange, str]] = []
     for byte_range in segment.changed_ranges:
         for i in range(byte_range.length):
             offset = byte_range.start + i
@@ -355,13 +357,31 @@ def preflight_segment_counts(
                 runtime_addresses,
                 driven_bits,
             )
-            if category == PREFLIGHT_CONFIG:
-                config += 1
-            elif category == PREFLIGHT_RUNTIME:
-                runtime += 1
+            if result and i and result[-1][1] == category:
+                last = result[-1][0]
+                result[-1] = (ByteRange(last.start, last.length + 1), category)
             else:
-                default += 1
-    return config, default, runtime
+                result.append((ByteRange(offset, 1), category))
+    return result
+
+
+def preflight_segment_counts(
+    segment: SegmentDiff,
+    runtime_addresses: AbstractSet[int],
+    driven_bits: Mapping[int, int],
+) -> tuple[int, int, int]:
+    """Return ``(config, default, runtime)`` changed-byte counts for one memory segment; a
+    step of the procedure (see ``SegmentDiff.procedure_step``) is device-managed."""
+    counts = {PREFLIGHT_CONFIG: 0, PREFLIGHT_DEFAULT: 0, PREFLIGHT_RUNTIME: 0}
+    for byte_range, category in preflight_segment_ranges(
+        segment, runtime_addresses, driven_bits
+    ):
+        counts[category] += byte_range.length
+    return (
+        counts[PREFLIGHT_CONFIG],
+        counts[PREFLIGHT_DEFAULT],
+        counts[PREFLIGHT_RUNTIME],
+    )
 
 
 def preflight_segment_category(

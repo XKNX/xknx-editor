@@ -3218,3 +3218,6 @@ msgstr "Einschalten"
 
 msgid "Switch Off"
 msgstr "Ausschalten"
+
+msgid "Show the memory a download writes, segment by segment"
+msgstr "Zeigt den Speicher, den ein Download schreibt, Segment für Segment"

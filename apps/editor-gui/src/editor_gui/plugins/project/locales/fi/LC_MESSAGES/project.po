@@ -3033,3 +3033,6 @@ msgstr "Päälle"
 
 msgid "Switch Off"
 msgstr "Pois"
+
+msgid "Show the memory a download writes, segment by segment"
+msgstr "Näyttää muistin, jonka lataus kirjoittaa, segmentti kerrallaan"

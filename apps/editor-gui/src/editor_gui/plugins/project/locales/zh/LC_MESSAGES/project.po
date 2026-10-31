@@ -3033,3 +3033,6 @@ msgstr "打开"
 
 msgid "Switch Off"
 msgstr "关闭"
+
+msgid "Show the memory a download writes, segment by segment"
+msgstr "按段显示下载写入的内存"

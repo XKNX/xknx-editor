@@ -3033,3 +3033,6 @@ msgstr "Увімкнути"
 
 msgid "Switch Off"
 msgstr "Вимкнути"
+
+msgid "Show the memory a download writes, segment by segment"
+msgstr "Показує пам'ять, яку записує завантаження, посегментно"

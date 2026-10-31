@@ -3033,3 +3033,6 @@ msgstr "Ενεργοποίηση"
 
 msgid "Switch Off"
 msgstr "Απενεργοποίηση"
+
+msgid "Show the memory a download writes, segment by segment"
+msgstr "Εμφάνιση της μνήμης που γράφει μια φόρτιση, τμήμα προς τμήμα"

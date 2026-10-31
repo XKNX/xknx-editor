@@ -3033,3 +3033,6 @@ msgstr "Aç"
 
 msgid "Switch Off"
 msgstr "Kapat"
+
+msgid "Show the memory a download writes, segment by segment"
+msgstr "Bir yüklemenin yazdığı belleği segment segment gösterir"

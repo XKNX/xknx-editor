@@ -3071,3 +3071,6 @@ msgstr "Inschakelen"
 
 msgid "Switch Off"
 msgstr "Uitschakelen"
+
+msgid "Show the memory a download writes, segment by segment"
+msgstr "Toont het geheugen dat een download schrijft, segment voor segment"

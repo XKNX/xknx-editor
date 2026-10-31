@@ -3060,3 +3060,6 @@ msgstr "Vklopi"
 
 msgid "Switch Off"
 msgstr "Izklopi"
+
+msgid "Show the memory a download writes, segment by segment"
+msgstr "Prikaže pomnilnik, ki ga zapiše programiranje, segment za segmentom"

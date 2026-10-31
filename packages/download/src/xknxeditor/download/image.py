@@ -543,9 +543,15 @@ class DownloadImage:
         produced, exactly as a shorter WriteMem/AbsSegment should. (Callers relying
         on a single fully-containing segment - e.g. ``_relative_runs`` - are
         unaffected: a contained range still overlaps exactly that one segment.)
+
+        Segments that overlap each other (a BIM M112 group object table built on the
+        code segment that also holds the parameters) are merged: every octet is written
+        once, with the data of the last segment that writes it, so the device ends up
+        as if the runs had been written one after the other.
         """
         end = address + size
-        out: list[tuple[int, bytes]] = []
+        data = bytearray(size)
+        written = bytearray(size)
         covered = False
         for segment in sorted(self.segments, key=lambda s: s.address):
             if segment.address >= end or segment.end <= address:
@@ -557,14 +563,19 @@ class DownloadImage:
                 lo = max(run_address, address)
                 hi = min(run_address + len(run_data), end)
                 if lo < hi:
-                    out.append((lo, run_data[lo - run_address : hi - run_address]))
+                    data[lo - address : hi - address] = run_data[
+                        lo - run_address : hi - run_address
+                    ]
+                    written[lo - address : hi - address] = b"\xff" * (hi - lo)
         if not covered and any(
             start <= address and end <= start + length
             for start, length in self.mask_memory
         ):
             # The mask's own memory is part of every image, with nothing to write.
             covered = True
-        return out if covered else None
+        if not covered:
+            return None
+        return MemorySegment(address, bytes(data), bytes(written)).masked_runs()
 
 
 def build_image(

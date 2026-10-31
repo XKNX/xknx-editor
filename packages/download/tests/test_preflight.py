@@ -395,3 +395,49 @@ async def test_only_an_eeprom_segment_gets_its_data_written() -> None:
     writes = [p for p in device.sent if isinstance(p, MemoryWrite)]
     assert [w.address for w in writes] == [0x4400]
     assert device.memory.get(0x0700) is None
+
+
+async def test_overlapping_segments_are_written_and_previewed_once() -> None:
+    """A group object table built on the code segment that also holds the parameters (BIM
+    M112) covers the parameter segment: the download writes each octet once, and the preview
+    lists and counts a changed octet once."""
+    image = DownloadImage(
+        segments=(
+            MemorySegment(
+                address=0x4400,
+                data=b"\x00\xa1\x00\xb1",
+                mask=b"\x00\xff\x00\xff",
+            ),
+            MemorySegment(
+                address=0x4400,
+                data=b"\x08\xa1\x30\xb1",
+                mask=b"\xff\x00\x00\x00",
+                initialized_mask=b"\xff" * 4,
+            ),
+        ),
+        properties=(),
+    )
+    application = _application(
+        LdCtrlAbsSegment(
+            obj_type=_ADDRESS_TABLE_TYPE,
+            occurrence=0,
+            seg_type=0,
+            address=0x4400,
+            size=4,
+            access=0xFF,
+            mem_type=3,
+            seg_flags=0x80,
+        )
+    )
+    runner, device = _runner(application, image)
+    device.memory.update({0x4400: 0x08, 0x4401: 0x00, 0x4402: 0x30, 0x4403: 0x00})
+    report = await runner.preflight()
+    (segment,) = report.segments
+    assert (segment.address, segment.planned) == (0x4400, b"\x08\xa1\x30\xb1")
+    assert report.total_changed_bytes == 2
+
+    runner, device = _runner(application, image)
+    await runner.run()
+    writes = [p for p in device.sent if isinstance(p, MemoryWrite)]
+    assert sum(w.count for w in writes) == 4
+    assert [device.memory[0x4400 + i] for i in range(4)] == [0x08, 0xA1, 0x30, 0xB1]

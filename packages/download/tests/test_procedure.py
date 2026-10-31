@@ -1351,6 +1351,7 @@ async def test_bcu1_skips_property_probes() -> None:
         negotiate_apdu=True,
         property_services=False,
     )
+    manager.device.memory[0x10D] = 0x55
 
     await runner.run()
 

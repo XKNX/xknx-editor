@@ -2682,6 +2682,10 @@ class ProjectStrings:
         return _("Preview Memory")
 
     @property
+    def PREVIEW_MEMORY_HINT(self) -> str:
+        return _("Show the memory a download writes, segment by segment")
+
+    @property
     def CONFIGURE_MEMORY_PREVIEW(self) -> str:
         return _("Memory Preview")
 

@@ -3060,3 +3060,6 @@ msgstr "Kveikja"
 
 msgid "Switch Off"
 msgstr "Slökkva"
+
+msgid "Show the memory a download writes, segment by segment"
+msgstr "Sýnir minnið sem niðurhleðsla skrifar, hluta fyrir hluta"
