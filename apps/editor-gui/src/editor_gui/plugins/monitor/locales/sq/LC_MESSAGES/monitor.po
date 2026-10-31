@@ -65,7 +65,7 @@ msgid "e.g. 1/2/3"
 msgstr "p.sh. 1/2/3"
 
 msgid "Enter a group address of the project to send to it."
-msgstr "Vendosni një adresë grupi të projektit për të dërguar drejt saj."
+msgstr "Vendosni një adresë grupi të projektit për t'i dërguar një vlerë."
 
 msgid "Start"
 msgstr "Nis"
