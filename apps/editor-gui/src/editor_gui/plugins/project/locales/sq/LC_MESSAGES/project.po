@@ -2702,13 +2702,13 @@ msgid "Paste Special"
 msgstr "Ngjitje e veçantë"
 
 msgid "Number of Items"
-msgstr "Numri i elementeve"
+msgstr "Numri i kopjeve"
 
 msgid "Don't copy"
 msgstr "Mos kopjo"
 
 msgid "Keep"
-msgstr "Mbaj"
+msgstr "Mbaj të njëjtat adresa"
 
 msgid "Create new group address in middle group"
 msgstr "Krijo adresë të re grupi në grupin e mesëm"
@@ -2723,7 +2723,7 @@ msgid "Generate Address"
 msgstr "Gjenero adresën"
 
 msgid "Fill up (use first free)"
-msgstr "Mbush (përdor të parën e lirë)"
+msgstr "Mbush boshllëqet (përdor numrin e parë të lirë)"
 
 msgid "Append"
 msgstr "Shto në fund"
