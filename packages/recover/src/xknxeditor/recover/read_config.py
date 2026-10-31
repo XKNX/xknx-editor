@@ -185,27 +185,34 @@ async def read_parameter_memory(
     the memory-mapped model each segment is read at its fixed base address; for
     System B a relative segment (id ``..._RS-<objidx>-...``) is read through that
     object's table reference. Segments whose location cannot be resolved are
-    skipped. This is the raw material parameter recovery matches against.
+    skipped, and so are the segments in the device's user memory: an address space of its
+    own, which a standard memory read at the same address does not reach (and the
+    download does not write). This is the raw material parameter recovery matches against.
     """
     ui = _require_ui(application)
     sizes = ui.segment_sizes()
     memory_mapped = _is_memory_mapped(application)
+    code = application.program.static.code
     result: dict[str, bytes] = {}
     # A single unreadable segment (a realisation whose memory map we do not fully
     # model, or a transient timeout) is skipped, not fatal: the device still
     # recovers the parameters from the segments that could be read.
     if memory_mapped:
         base_addresses = ui.segment_base_addrs()
+        user_memory = {
+            segment.id
+            for segment in (code.absolute_segment if code is not None else [])
+            if segment.user_memory
+        }
         for segment_id, size in sizes.items():
             base = base_addresses.get(segment_id)
-            if not size or base is None:
+            if not size or base is None or segment_id in user_memory:
                 continue
             try:
                 result[segment_id] = await programmer.read_memory(base, size)
             except (LoadStateError, VerificationError, XKNXException):
                 continue
         return result
-    code = application.program.static.code
     # A relative segment can start further into its object's memory (Offset 4096).
     offsets = {
         segment.id: segment.offset or 0
