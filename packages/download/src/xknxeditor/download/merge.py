@@ -224,13 +224,22 @@ def _resolve_controls(
         has_application_program2=has_application_program2,
     )
     if default is None:
+        mask = application.program.mask_version
+        if master_data is not None:
+            # The master data is there, but the mask has no such procedure (e.g. the
+            # "Dummy" mask MV-0001 of products that are not programmed).
+            raise UnsupportedProcedureError(
+                f"the master data has no {procedure_type.value.lower()} procedure for mask "
+                f"{mask}: "
+                "a device with it cannot be programmed"
+            )
         if procedure_type is not ProcedureType.LOAD:
             raise UnsupportedProcedureError(
                 f"no {procedure_type.value} procedure available for mask "
-                f"{application.program.mask_version}; master data is required"
+                f"{mask}; master data is required"
             )
         raise UnsupportedProcedureError(
-            f"master data is required for {style} on mask {application.program.mask_version}"
+            f"master data is required for {style} on mask {mask}"
         )
 
     fragments = {

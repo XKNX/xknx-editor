@@ -140,6 +140,25 @@ def test_merged_without_master_rejected() -> None:
         resolve_download_controls(application)  # type: ignore[arg-type]
 
 
+def test_a_mask_without_a_procedure_in_the_master_data_is_named() -> None:
+    import pytest
+
+    from xknxeditor.download.errors import UnsupportedProcedureError
+
+    # The "Dummy" mask MV-0001 of products that are not programmed has no procedure.
+    application = SimpleNamespace(
+        load_procedure_style=LoadProcedureStyle.DEFAULT_PROCEDURE,
+        load_procedures=None,
+        program=SimpleNamespace(mask_version="MV-0001"),
+    )
+    master = _master_with_default(LdCtrlConnect())
+    with pytest.raises(
+        UnsupportedProcedureError,
+        match="no load procedure for mask MV-0001: a device with it cannot be programmed",
+    ):
+        resolve_download_controls(cast("object", application), master)  # type: ignore[arg-type]
+
+
 def _master_with_unload(*controls: object) -> MasterData:
     unload = SimpleNamespace(
         procedure_type=ProcedureType.UNLOAD,
