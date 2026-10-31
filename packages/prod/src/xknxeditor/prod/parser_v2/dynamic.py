@@ -936,12 +936,20 @@ class DynamicUI:
         reached Union member is marked active, then freeze that as the discovery snapshot. The render
         pass reads it (is_discovered_active) to pick each Union's active overlay order-independently —
         the reached member wins, not a sibling carrying a stale explicit value from an inactive
-        branch (which would drop a freshly-activated member's content)."""
+        branch (which would drop a freshly-activated member's content).
+
+        The discovery is settled like the render loop (same bounded gate passes): a member whose
+        selecting value is only produced by an Assign evaluated later in the tree is reached once that
+        value has propagated, so a single traversal order no longer decides which overlay wins."""
         self._state.clear_gate()
-        self._state.reset_active()
-        self._tree.eval(EvalContext(self._state, idx=self._idx, union_suppress=False))
+        for _ in range(_MAX_GATE_PASSES):
+            self._state.reset_active()
+            self._tree.eval(
+                EvalContext(self._state, idx=self._idx, union_suppress=False)
+            )
+            if not self._state.update_gate_active():
+                break
         self._state.snapshot_discovered_active()
-        self._state.update_gate_active()
 
     def _eval_settled(
         self, capture: Callable[[], EvalCapture] | None = None
