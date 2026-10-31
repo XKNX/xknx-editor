@@ -67,9 +67,9 @@ def _image_for(
     )
 
     application = _application(device)
+    # An application without parameters (e.g. a USB interface) has no dynamic UI: the image
+    # has nothing to encode, the procedure still loads it.
     ui = device.dynamic_ui
-    if ui is None:
-        raise DeviceProgrammingError("device has no dynamic application to program")
     try:
         factory = parse_factory_image(factory_image.image if factory_image else None)
         if factory is not None and factory_image is not None:
