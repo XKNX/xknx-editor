@@ -205,6 +205,8 @@ def reset_presets() -> list[tuple[str, int]]:
 
 # The dialog of a Program press keeps its identity while its title follows the case.
 _PROGRAM_DIALOG_ID = "###program_device"
+# The memory preview's button: FontAwesome 4 "microchip" (the icon font the app loads).
+MEMORY_PREVIEW_BUTTON = "###preview_memory"
 
 
 @dataclass(frozen=True, slots=True)
@@ -632,7 +634,7 @@ class ConfigurePanel:
         if self._on_program_device is not None:
             labels.append(S.BTN_PROGRAM_DEVICE)
         if self._open_memory_preview is not None:
-            labels.append(S.BTN_PREVIEW_MEMORY)
+            labels.append(MEMORY_PREVIEW_BUTTON)
         return labels
 
     def _render_title_row(self, device: Device) -> None:
@@ -648,12 +650,7 @@ class ConfigurePanel:
             imgui.calc_text_size(S.CONFIGURE_DOWNLOAD_SCOPE).x
             + style.item_spacing.x
             + self._scope_combo_width()
-            + sum(
-                style.item_spacing.x
-                + imgui.calc_text_size(label).x
-                + style.frame_padding.x * 2
-                for label in buttons
-            )
+            + sum(style.item_spacing.x + button_width(label) for label in buttons)
         )
         imgui.same_line()
         free = imgui.get_content_region_avail().x - width
@@ -705,11 +702,12 @@ class ConfigurePanel:
                 )
 
         if self._open_memory_preview is not None:
-            _same_line_if_fits(S.BTN_PREVIEW_MEMORY)
+            _same_line_if_fits(MEMORY_PREVIEW_BUTTON)
             imgui.begin_disabled(not device.has_application)
-            if imgui.button(S.BTN_PREVIEW_MEMORY):
+            if imgui.button(MEMORY_PREVIEW_BUTTON):
                 self._open_memory_preview(device)
             imgui.end_disabled()
+            imgui.set_item_tooltip(f"{S.BTN_PREVIEW_MEMORY}\n{S.PREVIEW_MEMORY_HINT}")
             _no_application_tooltip(device)
 
         if self._on_program_device is not None:
