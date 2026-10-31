@@ -1070,7 +1070,7 @@ msgid "Cannot run: the project was changed since it was opened. This test compar
 msgstr "Nuk mund të ekzekutohet: projekti është ndryshuar që kur u hap. Ky test e krahason imazhin e prodhuar me gjendjen e programuar të pajisjes, e cila përputhet vetëm me projektin siç ishte kur u hap. Për të testuar, zhbëni ndryshimet tuaja në këtë seancë."
 
 msgid "Cannot run: no KNX connection. Connect to a gateway (Connection menu) and make sure the device is reachable at its individual address."
-msgstr "Nuk mund të ekzekutohet: pa lidhje KNX. Lidhuni me një gateway (menyja Lidhja) dhe sigurohuni që pajisja arrihet në adresën e saj individuale."
+msgstr "Nuk mund të ekzekutohet: pa lidhje KNX. Lidhuni me një gateway (menyja Gateway) dhe sigurohuni që pajisja arrihet në adresën e saj individuale."
 
 msgid "Match: the generated image is identical to what is on the device"
 msgstr "Përputhje: imazhi i prodhuar është identik me atë në pajisje"
