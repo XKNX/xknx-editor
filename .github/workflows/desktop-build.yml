@@ -450,21 +450,19 @@ jobs:
           name: winget-manifests
           path: winget-manifests
           if-no-files-found: error
+      # Opens "New version: XKNX.Editor version <version>" from the WINGET_TOKEN owner's fork. It
+      # submits nothing (and succeeds) without the token, while XKNX.Editor is not in winget-pkgs yet,
+      # and when the version is there or proposed already.
       - name: Submit to microsoft/winget-pkgs
-        shell: pwsh
         env:
           WINGET_TOKEN: ${{ secrets.WINGET_TOKEN }}
-        run: |
-          $ErrorActionPreference = "Stop"
-          if (-not $env:WINGET_TOKEN) { Write-Host "WINGET_TOKEN is not set: the manifests are kept as an artifact only"; exit 0 }
-          curl.exe -fsSL -o wingetcreate.exe https://aka.ms/wingetcreate/latest
-          $dir = (Get-ChildItem winget-manifests -Recurse -Filter *.installer.yaml | Select-Object -First 1).DirectoryName
-          ./wingetcreate.exe submit --token $env:WINGET_TOKEN $dir
+        run: python apps/editor-gui/packaging/winget/submit_manifests.py winget-manifests
 
   # Home Assistant: start the integration's "Editor Release" workflow, which releases the integration
   # for this editor version. Its own schedule only looks every few hours. Needs the repository secret
   # HA_INTEGRATION_TOKEN (a fine-grained token for XKNX/xknx-editor-ha-integration with Actions:
-  # Read and write); without it the schedule picks the release up later.
+  # Read and write); without it, or while GitHub refuses it (e.g. an organization owner has not
+  # approved it yet), the job leaves a notice and the schedule picks the release up later.
   home-assistant:
     name: Home Assistant integration
     runs-on: ubuntu-latest
@@ -481,4 +479,6 @@ jobs:
             echo "HA_INTEGRATION_TOKEN is not set: the integration's schedule picks the release up"
             exit 0
           fi
-          gh workflow run editor-release.yml -R XKNX/xknx-editor-ha-integration
+          if ! output=$(gh workflow run editor-release.yml -R XKNX/xknx-editor-ha-integration 2>&1); then
+            echo "::notice title=Home Assistant integration::Could not start the integration's release, its schedule picks the release up later: $output"
+          fi

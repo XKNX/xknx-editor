@@ -5,7 +5,7 @@
         --arm64 XKNX-Editor-windows-installer-arm64.exe --out winget-manifests
 
 The manifests land in <out>/manifests/x/XKNX/Editor/<version>/, the folder layout of
-microsoft/winget-pkgs, ready for `wingetcreate submit` or a pull request there. The installers are
+microsoft/winget-pkgs, ready for a pull request there (submit_manifests.py). The installers are
 the release assets; their SHA-256 is taken from the local files. Standard library only, so it runs
 on a bare CI runner.
 """
