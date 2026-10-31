@@ -22,7 +22,11 @@ from xknx.profile.const import ResourceObjectType
 
 from xknxeditor.download.errors import LoadStateError, VerificationError
 from xknxeditor.download.merge import device_mask_version
-from xknxeditor.download.resources import bundled_mask_resources
+from xknxeditor.download.resources import (
+    bundled_mask_resources,
+    property_group_tables,
+)
+from xknxeditor.download.tables_system300 import ADDRESS_TABLE, ASSOCIATION_TABLE
 from xknxeditor.download.tables_systemb import association_table_wide
 from xknxeditor.namespaces.intermediate.hawk_configuration_data_t_resources_resource_resource_type_flavour import (
     HawkConfigurationDataResourcesResourceResourceTypeFlavour as ResourceFlavour,
@@ -111,6 +115,14 @@ async def read_group_communication(
     are. With ``linked_objects_only``, a System B group object table is read only where
     the association table links an object, instead of for every object number.
     """
+    if application is not None:
+        if not _highest_com_object_number(application):
+            # No group objects (a coupler, an IP router): nothing linked, nothing to read.
+            return RawGroupCommunication(
+                device_address=None, group_addresses=[], links=[], group_objects={}
+            )
+        if property_group_tables(device_mask_version(application)):
+            return await _read_system_300(programmer)
     if application is not None and _is_memory_mapped(application):
         return await _read_memory_mapped(programmer, application)
     return await _read_system_b(
@@ -209,6 +221,58 @@ async def _read_count_table(
     header = await programmer.read_memory(address, count_width)
     count = int.from_bytes(header, "big")
     return await programmer.read_memory(address, count_width + count * entry_width)
+
+
+async def _read_property_array(
+    programmer: DeviceProgrammer, object_index: int, property_id: int, width: int
+) -> bytes:
+    """Every element of an array property: its count (element 0), then the elements in
+    frames that fit the APDU."""
+    count = int.from_bytes(
+        await programmer.read_property(object_index, property_id, start_index=0),
+        "big",
+    )
+    per_frame = max(programmer.property_chunk_size(width), 1)
+    data = b""
+    start = 1
+    while start <= count:
+        frame = min(per_frame, count - start + 1)
+        data += await programmer.read_property(
+            object_index, property_id, count=frame, start_index=start
+        )
+        start += frame
+    return data
+
+
+async def _read_system_300(programmer: DeviceProgrammer) -> RawGroupCommunication:
+    """The group addresses and links of a System 300 device, which keeps its tables as
+    properties (see :mod:`xknxeditor.download.tables_system300`): the address table and the
+    association table elements without their count. Its group object elements carry the
+    flags but no size, so the group objects are not read."""
+    address_object = await programmer.locate_object(ADDRESS_TABLE[0])
+    addresses = await _read_property_array(
+        programmer, address_object, ADDRESS_TABLE[1], 2
+    )
+    group_addresses = decode_group_address_table_b(
+        (len(addresses) // 2).to_bytes(2, "big") + addresses
+    )
+    association_object = await programmer.locate_object(ASSOCIATION_TABLE[0])
+    width = await programmer.read_property_element_size(
+        association_object, ASSOCIATION_TABLE[1]
+    )
+    associations = await _read_property_array(
+        programmer, association_object, ASSOCIATION_TABLE[1], width
+    )
+    links = decode_association_table_b(
+        (len(associations) // max(width, 1)).to_bytes(2, "big") + associations,
+        group_addresses,
+    )
+    return RawGroupCommunication(
+        device_address=None,
+        group_addresses=group_addresses,
+        links=links,
+        group_objects={},
+    )
 
 
 async def _association_table_address(
