@@ -77,7 +77,7 @@ msgid "Pick a target object per row. Address and name are suggested and can be c
 msgstr "Zgjidhni një objekt përkatës për çdo rresht. Adresa dhe emri sugjerohen dhe mund të ndryshohen."
 
 msgid "\"{link_all}\" creates the group addresses and links them."
-msgstr "\"{link_all}\" krijon adresat e grupeve dhe i lidh ato."
+msgstr "\"{link_all}\" krijon adresat e grupeve dhe i lidh."
 
 msgid "Link All"
 msgstr "Lidh të gjitha"
@@ -185,7 +185,7 @@ msgid "(none)"
 msgstr "(asnjë)"
 
 msgid "Matching DPT Only"
-msgstr "Vetëm DPT që përputhet"
+msgstr "Vetëm me DPT që përputhet"
 
 msgid "Only group addresses with the object's main datapoint type, and those without one (they take the object's type when linked)."
 msgstr "Vetëm adresat e grupeve me llojin kryesor të pikës së të dhënave të objektit, dhe ato pa lloj (marrin llojin e objektit kur lidhen)."
@@ -203,7 +203,7 @@ msgid "{device} has no group objects."
 msgstr "{device} nuk ka objekte grupi."
 
 msgid "All objects of {device} are in the list already."
-msgstr "Të gjitha objektet e {device} janë tashmë në listë."
+msgstr "Të gjitha objektet e pajisjes {device} janë tashmë në listë."
 
 msgid "+ Selected Device"
 msgstr "+ Pajisja e zgjedhur"
