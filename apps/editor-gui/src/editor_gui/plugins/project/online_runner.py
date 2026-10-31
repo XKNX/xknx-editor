@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING, Any
 
 from xknx.telegram import IndividualAddress
 
+from editor_gui.plugins.connection.service import SHOWN_IN_OPERATIONS
 from editor_gui.plugins.project.strings import S
 from xknxeditor.download.errors import DownloadError
 from xknxeditor.download.procedure import memory_services
@@ -56,13 +57,11 @@ class OnlineButtonRunner:
         connection: ConnectionService,
         submit: Callable[[Callable[[], None]], Any],
         log: Logger,
-        notify: Callable[[str], None] | None = None,
     ) -> None:
         self._project = project
         self._connection = connection
         self._submit = submit
         self._log = log
-        self._notify = notify
 
     def start(self, item: QueueItem) -> Future[Any] | None:
         conn = self._connection
@@ -178,12 +177,14 @@ class OnlineButtonRunner:
         self._log.info("script log", level=level, message=message)
 
     def _fail(self, device: Device, run: ScriptRun, message: str) -> None:
+        # Shown on the button and in the operations history.
         device.param_errors[run.button.id] = message
         self._log.warning(
-            "parameter script failed", button=run.button.id, error=message
+            "parameter script failed",
+            button=run.button.id,
+            error=message,
+            shown=SHOWN_IN_OPERATIONS,
         )
-        if self._notify is not None:
-            self._notify(f"{S.SCRIPT_OPERATION}: {message}")
 
     def _finish(
         self,

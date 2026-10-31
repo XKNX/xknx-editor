@@ -9,6 +9,7 @@ assignment, scenes) is built from the scan plus the user's edits held in :class:
 
 from __future__ import annotations
 
+import functools
 import threading
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
@@ -33,9 +34,17 @@ from xknxeditor.dali.model import (
 )
 from xknxeditor.dali.profiles import profile_for
 
-# Type of the injected runner: (device, op, channel) -> started?  (op gets a commissioner.)
+# Type of the injected runner, which queues the operation: (device, op, channel, its name in
+# the Operations panel, called once it has ended).  (op gets a commissioner.)
 DaliRunner = Callable[
-    [Device, Callable[[MdtDaliCommissioner], Awaitable[object]], int], bool
+    [
+        Device,
+        Callable[[MdtDaliCommissioner], Awaitable[object]],
+        int,
+        str,
+        Callable[[], None],
+    ],
+    None,
 ]
 
 # Persist the commissioning result into the project blob for one channel:
@@ -126,7 +135,9 @@ class _DeviceUi:
     """Per-device commissioning state (keyed by individual address)."""
 
     scan: DaliBusState | None = None
-    busy: str = ""  # non-empty = an operation label is running
+    busy: str = ""  # non-empty = an operation label is queued or running
+    # Counts the operations started, so the end of an older one does not free a newer one.
+    run: int = 0
     error: str = ""
     progress: str = ""
     group_edits: dict[int, int] = field(default_factory=dict[int, int])  # slot -> group
@@ -175,10 +186,13 @@ class DaliCommissioningPanel:
         self,
         device: Device,
         label: str,
+        text: str,
         op: Callable[[MdtDaliCommissioner], Awaitable[object]],
         *,
         store_scan: bool = False,
     ) -> None:
+        """Queue ``op`` as the operation ``label``, named ``text`` (the button that started it)
+        in the Operations panel."""
         ia = device.individual_address
         channel = self._current_channel(ia)
         with self._lock:
@@ -188,10 +202,24 @@ class DaliCommissioningPanel:
             state.busy = label
             state.error = ""
             state.progress = ""
+            state.run += 1
+            run = state.run
         wrapped = self._wrap(ia, channel, label, op, store_scan)
-        if not self._run(device, wrapped, channel):
-            with self._lock:
-                self._state(ia, channel).busy = ""
+        self._run(
+            device,
+            wrapped,
+            channel,
+            text,
+            functools.partial(self._ended, ia, channel, run),
+        )
+
+    def _ended(self, ia: str, channel: int, run: int) -> None:
+        """The operation ``run`` has ended: free the channel also when it never ran (canceled
+        while it waited, or it could not start) or was canceled while it ran."""
+        with self._lock:
+            state = self._state(ia, channel)
+            if state.run == run:
+                state.busy = ""
 
     def _wrap(
         self,
@@ -290,13 +318,17 @@ class DaliCommissioningPanel:
 
         imgui.begin_disabled(bool(busy))
         if imgui.button(S.DALI_SCAN):
-            self._start(device, "scan", lambda c: c.scan(), store_scan=True)
+            self._start(
+                device, "scan", S.DALI_SCAN, lambda c: c.scan(), store_scan=True
+            )
         imgui.same_line()
         if imgui.button(S.DALI_ALL_ON):
-            self._start(device, "broadcast", lambda c: c.broadcast(True))
+            self._start(device, "broadcast", S.DALI_ALL_ON, lambda c: c.broadcast(True))
         imgui.same_line()
         if imgui.button(S.DALI_ALL_OFF):
-            self._start(device, "broadcast", lambda c: c.broadcast(False))
+            self._start(
+                device, "broadcast", S.DALI_ALL_OFF, lambda c: c.broadcast(False)
+            )
         imgui.same_line()
         if imgui.button(S.DALI_NEW_INSTALLATION):
             self._pending = "new"
@@ -363,6 +395,7 @@ class DaliCommissioningPanel:
             self._start(
                 device,
                 "new-install",
+                S.DALI_NEW_INSTALLATION,
                 lambda c: c.new_installation(on_progress=progress),
                 store_scan=True,
             )
@@ -370,6 +403,7 @@ class DaliCommissioningPanel:
             self._start(
                 device,
                 "post-install",
+                S.DALI_POST_INSTALLATION,
                 lambda c: c.post_installation(on_progress=progress),
                 store_scan=True,
             )
@@ -381,14 +415,24 @@ class DaliCommissioningPanel:
         assignments = _assignments_from(st.scan, st.group_edits)
         if not assignments:
             return
-        self._start(device, "program-groups", lambda c: c.commission(assignments))
+        self._start(
+            device,
+            "program-groups",
+            S.DALI_PROGRAM_GROUPS,
+            lambda c: c.commission(assignments),
+        )
 
     def _start_program_scenes(self, device: Device, ia: str) -> None:
         st = self._state(ia, self._current_channel(ia))
         scenes = _scenes_from(st.scene_edits)
         if not scenes:
             return
-        self._start(device, "program-scenes", lambda c: c.write_scenes(scenes))
+        self._start(
+            device,
+            "program-scenes",
+            S.DALI_PROGRAM_SCENES,
+            lambda c: c.write_scenes(scenes),
+        )
 
     def _render_ecg_table(
         self, device: Device, scan: DaliBusState, state: _DeviceUi, *, busy: bool
@@ -435,11 +479,19 @@ class DaliCommissioningPanel:
             imgui.table_next_column()
             imgui.begin_disabled(busy)
             if imgui.button(f"{S.DALI_BLINK}##blink{ecg.slot}"):
-                self._start(device, "blink", lambda c, s=ecg.slot: c.blink_ecg(s, True))
+                self._start(
+                    device,
+                    "blink",
+                    S.DALI_BLINK,
+                    lambda c, s=ecg.slot: c.blink_ecg(s, True),
+                )
             imgui.same_line()
             if imgui.button(f"{S.DALI_STOP}##stop{ecg.slot}"):
                 self._start(
-                    device, "blink-stop", lambda c, s=ecg.slot: c.blink_ecg(s, False)
+                    device,
+                    "blink-stop",
+                    S.DALI_STOP,
+                    lambda c, s=ecg.slot: c.blink_ecg(s, False),
                 )
             imgui.end_disabled()
         imgui.end_table()

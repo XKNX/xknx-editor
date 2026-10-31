@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import copy
 import re
+from typing import Any, ClassVar, Self
 
 from xknxeditor.namespaces.intermediate import (
     ComObjectInstanceRef,
@@ -107,6 +109,25 @@ class ParameterState:
         "_text",
         "param_ref_id_to_value",
     )
+
+    # Fields that are replaced, never changed in place (the static defaults of an application or
+    # a module definition, tens of thousands of entries): a copy of the state shares them.
+    _SHARED_FIELDS: ClassVar[frozenset[str]] = frozenset({"_param_ref_defaults"})
+
+    def __deepcopy__(self, memo: dict[int, Any]) -> Self:
+        cls = type(self)
+        new = cls.__new__(cls)
+        memo[id(self)] = new
+        for name in (
+            n for klass in cls.__mro__ for n in getattr(klass, "__slots__", ())
+        ):
+            if hasattr(self, name):
+                value = getattr(self, name)
+                shared = name in self._SHARED_FIELDS
+                setattr(new, name, value if shared else copy.deepcopy(value, memo))
+        for name, value in getattr(self, "__dict__", {}).items():
+            setattr(new, name, copy.deepcopy(value, memo))
+        return new
 
     def __init__(
         self,
@@ -536,6 +557,11 @@ class ModuleState(ParameterState):
         "param_ref_bases",
         "ref_id",
     )
+
+    _SHARED_FIELDS: ClassVar[frozenset[str]] = ParameterState._SHARED_FIELDS | {
+        "_arg_defaults",
+        "param_ref_bases",
+    }
 
     def __init__(
         self,

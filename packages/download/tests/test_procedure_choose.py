@@ -172,3 +172,37 @@ async def test_a_property_written_with_different_values_is_a_procedure_step() ->
     report = await runner.preflight()
     steps = {(p.property_id, p.planned): p.procedure_step for p in report.properties}
     assert steps == {(51, b"\x01"): True, (51, b"\x02"): True, (52, b"\x01"): False}
+
+
+async def test_a_step_is_one_in_a_partial_preview_too() -> None:
+    # A Hager TYM632C (PreferPartialDownloadIfApplicationLoaded): the preview of a loaded
+    # device runs the partial procedure, which writes object 6 property 51 only with 02.
+    device = FakeDevice(object_types={0: 0})
+    device.properties[6, 51] = b"\x01"
+    device.property_element_sizes[6, 51] = 1
+    start, end = _handshake(b"\x01"), _handshake(b"\x02")
+    for control in (start, end):
+        control.obj_idx = 6
+    runner = LoadProcedureRunner(
+        _application(LdCtrlConnect(), start, end),
+        DownloadImage((), ()),
+        connection_manager=_FakeManager(device),
+        controls=[LdCtrlConnect(), end],
+        full_controls=[LdCtrlConnect(), start, end],
+    )
+    (step,) = (await runner.preflight()).properties
+    assert (step.planned, step.procedure_step) == (b"\x02", True)
+
+
+def test_the_full_procedure_of_a_partial_preview() -> None:
+    from xknxeditor.download.download import (
+        _full_procedure,  # pyright: ignore[reportPrivateUsage]
+    )
+
+    application = _application(LdCtrlConnect(), _handshake(b"\x01"))
+    controls = _full_procedure(application, None, DownloadImage((), ()), None)
+    assert controls is not None
+    assert [type(c).__name__ for c in controls] == ["LdCtrlConnect", "LdCtrlWriteProp"]
+    # A merged procedure needs the master data: nothing to tell the steps from.
+    merged = _styled_application(LoadProcedureStyle.MERGED_PROCEDURE)
+    assert _full_procedure(cast(Any, merged), None, DownloadImage((), ()), None) is None

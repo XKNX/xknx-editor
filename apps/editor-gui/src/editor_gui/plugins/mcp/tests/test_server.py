@@ -1713,6 +1713,7 @@ async def test_programming_runs_in_the_operations_queue(
             client, "connection_evaluate_device", node_id=node_id, scope="PARAMETERS"
         )
         assert (evaluated["changed_bytes"], evaluated["config_bytes"]) == (0, 0)
+        assert evaluated["locations"] == []
         tested = queued.pop()
         assert (tested.test, tested.scope, tested.origin) == (
             True,

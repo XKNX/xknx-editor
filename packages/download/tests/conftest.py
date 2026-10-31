@@ -127,8 +127,8 @@ class FakeDevice:
         self.sent.append(payload)
         if isinstance(payload, PropertyDescriptionRead):
             width = self.property_element_sizes.get(
-                (payload.object_index, payload.property_id), 1
-            )
+                (payload.object_index, payload.property_id)
+            ) or self._element_size(payload.object_index, payload.property_id)
             return self._telegram(
                 PropertyDescriptionResponse(
                     object_index=payload.object_index,
@@ -293,6 +293,11 @@ class FakeDevice:
         data[start:end] = payload.data
         self.properties[key] = bytes(data)
         self.property_element_sizes[key] = width
+
+    def _element_size(self, object_index: int, property_id: int) -> int:
+        """The element size the device describes an undeclared property with: the size of
+        what it holds there (a test stores one element), 1 when it holds nothing."""
+        return len(self.properties.get((object_index, property_id), b"")) or 1
 
     def _handle_property_read(
         self, payload: PropertyValueRead

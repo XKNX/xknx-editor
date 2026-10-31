@@ -13,6 +13,7 @@ sets the state).
 
 from __future__ import annotations
 
+import functools
 import threading
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
@@ -30,9 +31,12 @@ from xknxeditor.dali.siemens import (
     scan_n141_03,
 )
 
-# (device, operation) -> started. The runner invokes ``op`` with a raw Programmer because Siemens
-# N141/03 has no vendor-specific commissioner wrapper.
-SiemensDaliRunner = Callable[[Device, Callable[[Programmer], Awaitable[object]]], bool]
+# (device, operation, its name in the Operations panel, called once it has ended); the runner
+# queues the operation. It invokes ``op`` with a raw Programmer because Siemens N141/03 has no
+# vendor-specific commissioner wrapper.
+SiemensDaliRunner = Callable[
+    [Device, Callable[[Programmer], Awaitable[object]], str, Callable[[], None]], None
+]
 
 
 @dataclass
@@ -41,6 +45,8 @@ class _DeviceUi:
 
     scan: SiemensN141BusState | None = None
     busy: str = ""
+    # Counts the operations started, so the end of an older one does not free a newer one.
+    run: int = 0
     error: str = ""
 
 
@@ -80,8 +86,10 @@ class SiemensDaliPanel:
         self,
         device: Device,
         label: str,
+        text: str,
         op: Callable[[Programmer], Awaitable[object]],
     ) -> None:
+        """Queue ``op`` as the operation ``label``, named ``text`` in the Operations panel."""
         ia = device.individual_address
         with self._lock:
             state = self._state(ia)
@@ -89,10 +97,18 @@ class SiemensDaliPanel:
                 return
             state.busy = label
             state.error = ""
+            state.run += 1
+            run = state.run
         wrapped = self._wrap(ia, op)
-        if not self._run(device, wrapped):
-            with self._lock:
-                self._state(ia).busy = ""
+        self._run(device, wrapped, text, functools.partial(self._ended, ia, run))
+
+    def _ended(self, ia: str, run: int) -> None:
+        """The operation ``run`` has ended: free the device also when it never ran or was
+        canceled."""
+        with self._lock:
+            state = self._state(ia)
+            if state.run == run:
+                state.busy = ""
 
     def _wrap(
         self,
@@ -129,7 +145,12 @@ class SiemensDaliPanel:
 
         imgui.begin_disabled(bool(busy))
         if imgui.button(S.SIEMENS_DALI_SCAN_BUS):
-            self._start(device, "scan", lambda p: scan_n141_03(p, line=0))
+            self._start(
+                device,
+                "scan",
+                S.SIEMENS_DALI_SCAN_BUS,
+                lambda p: scan_n141_03(p, line=0),
+            )
         imgui.end_disabled()
 
         if busy:

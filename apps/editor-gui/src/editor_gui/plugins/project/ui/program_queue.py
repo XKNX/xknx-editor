@@ -308,6 +308,8 @@ def operation_text(item: QueueItem) -> str:
     """What an operation of the queue does, as its entry names it ("Download (Parameters)")."""
     if item.script is not None:
         return S.SCRIPT_OPERATION
+    if item.action is not None:
+        return item.action.text
     if item.device_info is not None:
         return S.DEVICE_INFO_GROUPS if item.device_info else S.DEVICE_INFO
     if item.test:
@@ -330,6 +332,8 @@ def state_text(item: QueueItem, connecting: bool = False) -> str:
                 return S.OPERATION_CONNECTING
             if item.device_info is not None or item.test:
                 return S.OPERATION_READING
+            if item.action is not None:
+                return S.OPERATION_RUNNING
             if item.script is None:
                 if item.waiting_for_button:
                     return S.OPERATION_PRESS_PROGRAMMING_BUTTON

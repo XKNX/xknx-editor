@@ -3039,3 +3039,24 @@ msgstr "Setja kóðasíðu: {code_page}"
 
 msgid "Encrypted"
 msgstr "Dulritað"
+
+msgid "The device did not respond ({detail})."
+msgstr "Tækið svaraði ekki ({detail})."
+
+msgid "Check that the device is powered and can be reached from this interface (line, coupler)."
+msgstr "Athugaðu hvort tækið fái straum og náist frá þessu skili (lína, tengir)."
+
+msgid "For a new device, put exactly one device into programming mode. Otherwise check that the device is powered and can be reached from this interface (line, coupler)."
+msgstr "Fyrir nýtt tæki skaltu setja nákvæmlega eitt tæki í forritunarham. Annars skaltu athuga hvort tækið fái straum og náist frá þessu skili (lína, tengir)."
+
+msgid "The download failed after it had begun to write the device, so the device may be partially loaded. Program it again to restore a working state. Cause: {cause}"
+msgstr "Niðurhalið mistókst eftir að það var byrjað að skrifa í tækið, svo tækið gæti verið aðeins hlaðið að hluta. Forritaðu það aftur til að koma því í virkt ástand. Orsök: {cause}"
+
+msgid "Running"
+msgstr "Í gangi"
+
+msgid "Switch On"
+msgstr "Kveikja"
+
+msgid "Switch Off"
+msgstr "Slökkva"

@@ -30,6 +30,9 @@ from .tables_system300 import (
     GROUP_OBJECT_TABLE,
 )
 
+# The phases of a table's load between its Load and its LoadCompleted.
+_LOADING_PHASES = frozenset({"loading", "allocated", "written"})
+
 
 def materialize_group_communication_controls(
     image: DownloadImage,
@@ -71,8 +74,10 @@ def materialize_group_communication_controls(
     sized: set[tuple[int, type]] = set()
     result: list[object] = []
     for position, control in enumerate(selected, 1):
+        # A restart while a table is unloaded is fine (a second program's fragment restarts
+        # the device before the tables load); one in the middle of a table's load is not.
         if isinstance(control, LdCtrlRestart) and any(
-            p != "completed" for p in phases.values()
+            p in _LOADING_PHASES for p in phases.values()
         ):
             raise UnsupportedProcedureError("restart before table load completion")
         if not isinstance(

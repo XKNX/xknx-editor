@@ -18,6 +18,7 @@ from editor_gui.plugins.logger.service import LogService
 from editor_gui.plugins.project.online_runner import OnlineButtonRunner
 from editor_gui.plugins.project.program_queue import QueueItem, ScriptRun
 from editor_gui.plugins.project.service import ProjectService
+from editor_gui.widgets.toasts import log_toast
 from xknxeditor.download import script_online
 from xknxeditor.prod.application import parse_application_xml
 from xknxeditor.prod.parser_v2.ui import UiButton
@@ -109,11 +110,12 @@ def test_online_writes_are_kept_one_step_each(
 
     pending: list[Callable[[], None]] = []
     conn = _Connection(loop)
+    logs = LogService()
     runner = OnlineButtonRunner(
         proj,
         conn,
         pending.append,
-        Logger(LogService(), "project"),  # type: ignore[arg-type]
+        Logger(logs, "project"),  # type: ignore[arg-type]
     )
     button = UiButton(
         id=f"{APP}_B-2",
@@ -139,6 +141,13 @@ def test_online_writes_are_kept_one_step_each(
     device = proj.find_device_by_node_id(node_id)
     assert device is not None and not device.script_running
     assert device.param_errors[button.id] == "late"
+    # Shown on the button and in the operations history, so not as a toast.
+    failed = [r for r in logs.get_records() if r.event == "parameter script failed"]
+    assert len(failed) == 1
+    assert (
+        log_toast(failed[0].level, failed[0].plugin, failed[0].event, failed[0].payload)
+        is None
+    )
     stored = {p.ref_id: p.value for p in device.parameter_instance_refs}
     assert (stored[_ref(3)], stored[_ref(4)]) == ("10", "20")
     assert len(proj.history()) == history + 2

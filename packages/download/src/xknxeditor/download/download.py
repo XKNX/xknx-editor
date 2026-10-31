@@ -40,9 +40,11 @@ from .ip_config import applies as ip_config_applies
 from .ip_secure import IpSecureConfig, ip_secure_controls
 from .merge import (
     device_mask_version,
+    learn_device_mask,
     mask_authorize_levels,
     mask_has_property_services,
     resolve_download_controls,
+    system300_mask_unresolved,
 )
 from .procedure import LoadProcedureRunner, memory_services
 from .programmer import (
@@ -125,6 +127,8 @@ class DownloadResult:
 
 _IP_CONFIG_SCOPES = frozenset({DownloadScope.FULL, DownloadScope.APPLICATION})
 _MAC_ADDRESS_LENGTH = 6
+# The device object's management descriptor: the configuration of a System 300 device.
+_PID_MANAGEMENT_DESCRIPTOR = 72
 
 
 def _memory_cap_ladder(seed: int | None) -> tuple[int | None, ...]:
@@ -242,6 +246,28 @@ def _resolve_procedure(
         scope,
         property_tables=property_group_tables(device_mask_version(application)),
     )
+
+
+def _full_procedure(
+    application: Application,
+    master: MasterData | None,
+    image: DownloadImage,
+    application2: Application | None,
+) -> list[object] | None:
+    """The application's full Load procedure, for a preview of a partial one: a property it
+    writes with different values is a step of the procedure even where the partial one writes
+    it once (e.g. a handshake whose start is left out). ``None`` when it does not resolve."""
+    try:
+        return resolve_download_controls(
+            application,
+            master.raw if master is not None else None,
+            scope=DownloadScope.FULL,
+            parameter_values=image.procedure_parameters,
+            application2=application2,
+        )
+    except DownloadError as exc:
+        logger.debug("preflight: full procedure not resolved: %s", exc)
+        return None
 
 
 _PARTIAL_SCOPES = frozenset(
@@ -545,6 +571,35 @@ async def _device_present(
         await manager.close()
 
 
+async def _learn_device_mask(
+    xknx: XKNX,
+    individual_address: IndividualAddressableType,
+    security: DeviceSecurity | None,
+    application: Application,
+) -> None:
+    """For a System 300 application that does not name its configuration, read the device's
+    management descriptor (PID 72), which selects it: the mask's procedures and resources
+    are those of the configuration."""
+    if not system300_mask_unresolved(application):
+        return
+    from .programmer import DeviceProgrammer
+
+    manager = _connection_manager(xknx, IndividualAddress(individual_address), security)
+    try:
+        descriptor = await DeviceProgrammer(await manager.open()).read_property(
+            0, _PID_MANAGEMENT_DESCRIPTOR
+        )
+    except (ManagementConnectionError, DownloadError) as exc:
+        logger.debug("download: management descriptor not readable: %s", exc)
+        return
+    finally:
+        await manager.close()
+    learn_device_mask(application, descriptor)
+    logger.info(
+        "download: System 300 configuration %s", device_mask_version(application)
+    )
+
+
 async def download(
     xknx: XKNX,
     individual_address: IndividualAddressableType,
@@ -653,6 +708,7 @@ async def download(
             "switching a device to plain communication needs its key and no new Tool Key"
         )
     _reject_address_scope(scope)
+    await _learn_device_mask(xknx, individual_address, security, application)
     if image is None:
         logger.debug("download: assembling image (scope=%s)", scope.name)
         image = build_image(
@@ -912,6 +968,7 @@ async def preflight(
     application program and ``access_key`` the project's access key, as for :func:`download`.
     """
     _reject_address_scope(scope)
+    await _learn_device_mask(xknx, individual_address, security, application)
     if image is None:
         image = build_image(
             application,
@@ -932,6 +989,11 @@ async def preflight(
     image = await _device_association_format(xknx, address, security, image, scope)
     controls = _resolve_controls(
         application, master, image, scope, ip_config, application2=application2
+    )
+    full_controls = (
+        _full_procedure(application, master, image, application2)
+        if scope is not DownloadScope.FULL
+        else None
     )
     apdu_ceiling, negotiate_apdu = _apdu_settings(
         max_apdu_length, interface_max_apdu_length
@@ -956,6 +1018,7 @@ async def preflight(
             application_loaded=application_loaded,
             application2=application2,
             access_key=access_key,
+            full_controls=full_controls,
         )
         try:
             return await runner.preflight()

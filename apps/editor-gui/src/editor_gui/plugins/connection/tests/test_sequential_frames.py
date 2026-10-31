@@ -78,9 +78,15 @@ async def test_a_missing_confirmation_releases_the_next_frame(
     handler, interface = _handler()
     ack = asyncio.create_task(handler.send_telegram(_ack()))
     read = asyncio.create_task(handler.send_telegram(_read()))
+    while not interface.sent:
+        await asyncio.sleep(0)
+    # The acknowledgement waits with the short timeout, the read sent after it with a long one,
+    # so that a busy test machine still confirms the read in time.
+    monkeypatch.setattr(cemi_handler, "REQUEST_TO_CONFIRMATION_TIMEOUT", 10)
     with pytest.raises(ConfirmationError):
         await ack
-    await asyncio.sleep(0.02)
-    assert len(interface.sent) == 2
+    async with asyncio.timeout(5):
+        while len(interface.sent) < 2:
+            await asyncio.sleep(0.01)
     _confirm(handler, interface.sent[1])
     await read

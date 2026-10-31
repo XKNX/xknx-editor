@@ -3012,3 +3012,24 @@ msgstr "Sett kodeside til {code_page}"
 
 msgid "Encrypted"
 msgstr "Kryptert"
+
+msgid "The device did not respond ({detail})."
+msgstr "Enheten svarte ikke ({detail})."
+
+msgid "Check that the device is powered and can be reached from this interface (line, coupler)."
+msgstr "Kontroller at enheten har strøm og kan nås fra dette grensesnittet (linje, kobler)."
+
+msgid "For a new device, put exactly one device into programming mode. Otherwise check that the device is powered and can be reached from this interface (line, coupler)."
+msgstr "For en ny enhet setter du nøyaktig én enhet i programmeringsmodus. Ellers kontrollerer du at enheten har strøm og kan nås fra dette grensesnittet (linje, kobler)."
+
+msgid "The download failed after it had begun to write the device, so the device may be partially loaded. Program it again to restore a working state. Cause: {cause}"
+msgstr "Nedlastingen mislyktes etter at den hadde begynt å skrive til enheten, så enheten kan være bare delvis lastet. Programmer den på nytt for å gjenopprette en fungerende tilstand. Årsak: {cause}"
+
+msgid "Running"
+msgstr "Kjører"
+
+msgid "Switch On"
+msgstr "Slå på"
+
+msgid "Switch Off"
+msgstr "Slå av"

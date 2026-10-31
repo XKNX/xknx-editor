@@ -62,8 +62,10 @@ def test_queued_operations_are_left_to_their_queue_entries() -> None:
     assert _unqueued(("script", "1.1.5")) is None
     assert _unqueued(("device_info", "1.1.5")) is None
     assert _unqueued(("test", "1.1.5")) is None
-    assert _unqueued(("restart", "1.1.5")) == ("restart", "1.1.5")
+    for kind in ("restart", "reset", "dali", "siemens_dali", "siemens_dca"):
+        assert _unqueued((kind, "1.1.5")) is None
     assert _unqueued(("scan_progmode", "broadcast")) == ("scan_progmode", "broadcast")
+    assert _unqueued(("recover", "1.1.1..1.1.9")) == ("recover", "1.1.1..1.1.9")
 
 
 def test_operations_come_to_front_when_a_bus_operation_starts() -> None:
@@ -80,15 +82,16 @@ def test_operations_come_to_front_when_a_bus_operation_starts() -> None:
         select_active=lambda: selected.append(1)
     )
     assert not plugin.take_operations_focus()
-    connection.busy_operation = ("restart", "1.1.5")
+    connection.busy_operation = ("scan_progmode", "broadcast")
     assert plugin.take_operations_focus()
     # Once per operation: the user may switch to another panel while it runs.
     assert not plugin.take_operations_focus()
-    connection.busy_operation = ("reset", "1.1.5")
+    connection.busy_operation = ("recover", "1.1.1..1.1.9")
     assert plugin.take_operations_focus()
     # The queue shows its own operations, and brings the panel to the front itself.
-    connection.busy_operation = ("program", "1.1.5")
-    assert not plugin.take_operations_focus()
+    for kind in ("program", "restart"):
+        connection.busy_operation = (kind, "1.1.5")
+        assert not plugin.take_operations_focus()
     requests.append(True)
     assert plugin.take_operations_focus()
     assert len(selected) == 3

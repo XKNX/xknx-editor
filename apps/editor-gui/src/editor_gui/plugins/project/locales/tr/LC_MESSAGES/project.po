@@ -3012,3 +3012,24 @@ msgstr "Kod sayfasını {code_page} olarak ayarla"
 
 msgid "Encrypted"
 msgstr "Şifreli"
+
+msgid "The device did not respond ({detail})."
+msgstr "Cihaz yanıt vermedi ({detail})."
+
+msgid "Check that the device is powered and can be reached from this interface (line, coupler)."
+msgstr "Cihazın enerjili olduğunu ve bu arabirimden erişilebildiğini kontrol edin (linye, kuplör)."
+
+msgid "For a new device, put exactly one device into programming mode. Otherwise check that the device is powered and can be reached from this interface (line, coupler)."
+msgstr "Yeni bir cihaz için tam olarak bir cihazı programlama moduna alın. Aksi halde cihazın enerjili olduğunu ve bu arabirimden erişilebildiğini kontrol edin (linye, kuplör)."
+
+msgid "The download failed after it had begun to write the device, so the device may be partially loaded. Program it again to restore a working state. Cause: {cause}"
+msgstr "İndirme, cihaza yazmaya başladıktan sonra başarısız oldu; bu nedenle cihaz yalnızca kısmen yüklenmiş olabilir. Çalışır bir duruma getirmek için cihazı yeniden programlayın. Neden: {cause}"
+
+msgid "Running"
+msgstr "Çalışıyor"
+
+msgid "Switch On"
+msgstr "Aç"
+
+msgid "Switch Off"
+msgstr "Kapat"

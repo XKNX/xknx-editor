@@ -47,6 +47,8 @@ PREFLIGHT_NO_WRITE: frozenset[str] = frozenset(
         "LdCtrlMaxLength",
         "LdCtrlSetControlVariable",
         "LdCtrlMapError",
+        # A merge point left inside a merged fragment does nothing.
+        "LdCtrlMerge",
         "LdCtrlProgressText",
         "LdCtrlClearCachedObjectTypes",
         "LdCtrlDeclarePropDesc",

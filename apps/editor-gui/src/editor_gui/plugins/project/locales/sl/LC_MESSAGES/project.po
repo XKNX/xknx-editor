@@ -3039,3 +3039,24 @@ msgstr "Nastavitev kodne strani na {code_page}"
 
 msgid "Encrypted"
 msgstr "Šifrirano"
+
+msgid "The device did not respond ({detail})."
+msgstr "Naprava se ni odzvala ({detail})."
+
+msgid "Check that the device is powered and can be reached from this interface (line, coupler)."
+msgstr "Preverite, ali je naprava napajana in dosegljiva iz tega vmesnika (linija, spojnik)."
+
+msgid "For a new device, put exactly one device into programming mode. Otherwise check that the device is powered and can be reached from this interface (line, coupler)."
+msgstr "Pri novi napravi preklopite v način programiranja natanko eno napravo. Sicer preverite, ali je naprava napajana in dosegljiva iz tega vmesnika (linija, spojnik)."
+
+msgid "The download failed after it had begun to write the device, so the device may be partially loaded. Program it again to restore a working state. Cause: {cause}"
+msgstr "Prenos ni uspel, potem ko je že začel pisati v napravo, zato je naprava morda naložena le delno. Znova jo programirajte, da obnovite delujoče stanje. Vzrok: {cause}"
+
+msgid "Running"
+msgstr "Izvajanje"
+
+msgid "Switch On"
+msgstr "Vklopi"
+
+msgid "Switch Off"
+msgstr "Izklopi"

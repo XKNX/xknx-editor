@@ -56,6 +56,16 @@ class PropertyDevice(FakeDevice):
         self.elements: dict[tuple[int, int, int], bytes] = {}
         self.move_reference = False
         self.capture_count = 1
+        # The elements say how wide a property's elements are.
+        del self.property_element_sizes[4, 50]
+
+    def _element_size(self, object_index: int, property_id: int) -> int:
+        element = self.elements.get((object_index, property_id, 1))
+        return (
+            len(element)
+            if element
+            else super()._element_size(object_index, property_id)
+        )
 
     def _handle_property_read(
         self, payload: PropertyValueRead

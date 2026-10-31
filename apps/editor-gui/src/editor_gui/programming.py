@@ -35,7 +35,11 @@ if TYPE_CHECKING:
     from xknxeditor.download.image import DownloadImage, GroupCommunication
     from xknxeditor.download.ip_config import IpDeviceConfig
     from xknxeditor.download.ip_secure import IpSecureConfig
-    from xknxeditor.download.preflight import PreflightReport, SegmentDiff
+    from xknxeditor.download.preflight import (
+        PreflightReport,
+        PropertyDiff,
+        SegmentDiff,
+    )
     from xknxeditor.prod import Application, MasterData
 
 
@@ -63,9 +67,9 @@ def _image_for(
     )
 
     application = _application(device)
+    # An application without parameters (e.g. a USB interface) has no dynamic UI: the image
+    # has nothing to encode, the procedure still loads it.
     ui = device.dynamic_ui
-    if ui is None:
-        raise DeviceProgrammingError("device has no dynamic application to program")
     try:
         factory = parse_factory_image(factory_image.image if factory_image else None)
         if factory is not None and factory_image is not None:
@@ -337,7 +341,10 @@ def preflight_segment_counts(
     runtime_addresses: AbstractSet[int],
     driven_bits: Mapping[int, int],
 ) -> tuple[int, int, int]:
-    """Return ``(config, default, runtime)`` changed-byte counts for one memory segment."""
+    """Return ``(config, default, runtime)`` changed-byte counts for one memory segment; a
+    step of the procedure (see ``SegmentDiff.procedure_step``) is device-managed."""
+    if segment.procedure_step:
+        return 0, 0, segment.changed_bytes
     config = default = runtime = 0
     for byte_range in segment.changed_ranges:
         for i in range(byte_range.length):
@@ -355,6 +362,35 @@ def preflight_segment_counts(
             else:
                 default += 1
     return config, default, runtime
+
+
+def preflight_segment_category(
+    segment: SegmentDiff,
+    runtime_addresses: AbstractSet[int],
+    driven_bits: Mapping[int, int],
+) -> str | None:
+    """The most actionable class of a memory segment's changed bytes (config, then default,
+    then runtime), ``None`` when the download would not change it."""
+    if not segment.changed:
+        return None
+    config, default, runtime = preflight_segment_counts(
+        segment, runtime_addresses, driven_bits
+    )
+    if config:
+        return PREFLIGHT_CONFIG
+    if default:
+        return PREFLIGHT_DEFAULT
+    if runtime:
+        return PREFLIGHT_RUNTIME
+    return None
+
+
+def preflight_property_category(prop: PropertyDiff) -> str | None:
+    """A changed property write is a configured value, unless it is a step of the procedure;
+    ``None`` when the download would not change it."""
+    if not prop.changed:
+        return None
+    return PREFLIGHT_RUNTIME if prop.procedure_step else PREFLIGHT_CONFIG
 
 
 @dataclass(frozen=True, slots=True)

@@ -120,3 +120,55 @@ def test_segment_sizes_match_encoded_seed_lengths(application) -> None:  # type:
     mapping = com_object_ref_by_number(application)
     assert defined
     assert defined <= set(mapping), sorted(defined - set(mapping))
+
+
+def test_recovery_decodes_again_with_the_values_read(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # Which parameter owns a memory field depends on the values (the active alternative of
+    # a union): decoded with the defaults only the selector is found, decoded with it the
+    # alternative's value too.
+    from types import SimpleNamespace
+    from typing import Any, cast
+
+    import xknxeditor.recover.parameters as parameters
+    import xknxeditor.recover.recover as recover
+
+    class UI:
+        project_code_page: str | None = None
+
+        def __init__(self, seeded: dict[str, str]) -> None:
+            self.seeded = seeded
+
+        def decode_memory_parameters(self, _segments: object) -> dict[str, str | None]:
+            if self.seeded.get("R-selector") == "1":
+                return {"P-selector": "1", "P-alternative": "7"}
+            return {"P-selector": "1", "P-default": "3"}
+
+        def decode_module_parameters(self, *_args: object) -> dict[str, str | None]:
+            return {}
+
+    seeds: list[dict[str, str]] = []
+
+    def seed(_application: object, values: dict[str, str], _code_page: object) -> UI:
+        seeds.append(dict(values))
+        return UI(dict(values))
+
+    monkeypatch.setattr(recover, "seed_dynamic_ui", seed)
+    monkeypatch.setattr(
+        parameters,
+        "_parameter_to_refs",
+        lambda _app: {
+            "P-selector": ["R-selector"],
+            "P-alternative": ["R-alternative"],
+            "P-default": ["R-default"],
+        },
+    )
+    application = cast(Any, SimpleNamespace(dynamic_ui=lambda: UI({})))
+    recovered = recover_parameters(application, {})
+    assert recovered.values == {"R-selector": "1", "R-alternative": "7"}
+    # Defaults first, then the values read, until they no longer change.
+    assert seeds[:2] == [
+        {"R-selector": "1", "R-default": "3"},
+        {"R-selector": "1", "R-alternative": "7"},
+    ]

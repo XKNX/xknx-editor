@@ -137,10 +137,15 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             ),
             None,
         )
-        if product is None or product.application_id is None:
-            raise ValueError(f"unknown/addable product {p['product_ref_id']!r}")
-        app = ctx.api.catalog.get_application(product.application_id)
-        if app is None:
+        if product is None:
+            raise ValueError(f"unknown product {p['product_ref_id']!r}")
+        # A product without an application program (e.g. a power supply) has none to load.
+        app = (
+            ctx.api.catalog.get_application(product.application_id)
+            if product.application_id is not None
+            else None
+        )
+        if product.application_id is not None and app is None:
             raise ValueError(f"application for {p['product_ref_id']!r} not in catalog")
         space_id = p.get("space_id")
         if space_id is not None and project.find_space(space_id) is None:

@@ -5,7 +5,7 @@ a warning (an edit refused, and why) in an orange box for longer, an error in a 
 from __future__ import annotations
 
 import time
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
 from itertools import count
 
@@ -28,6 +28,18 @@ class Toast:
     level: str
     expires: float
     key: int = field(default_factory=lambda: next(_keys))
+
+
+def log_toast(
+    level: str, plugin: str, event: str, payload: Mapping[str, str]
+) -> str | None:
+    """The toast text of a log record, None when it gets none: below a warning, or shown where
+    the user sees it anyway (``shown``: in a dialog, or in the history of the operations as a
+    failed programming)."""
+    if level not in ("warning", "error", "critical") or payload.get("shown"):
+        return None
+    detail = payload.get("error") or ""
+    return f"[{plugin}] {event}" + (f": {detail}" if detail else "")
 
 
 def _boxed(level: str) -> tuple[imgui.ImVec4, imgui.ImVec4] | None:

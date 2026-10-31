@@ -113,6 +113,37 @@ def test_product_without_application_is_a_device(tmp_path: Path) -> None:
     proj.close()
 
 
+def test_a_product_without_application_is_added(tmp_path: Path) -> None:
+    cat = CatalogService(tmp_path / "c.xknxcatalog")
+    cat.import_knxprod(_fixture())
+    product = next(p for p in cat.get_products() if p.application_id == _APP_ID)
+    with sqlite3.connect(tmp_path / "c.xknxcatalog") as db:
+        db.execute(
+            "UPDATE hardware_programs SET application_id = NULL WHERE id = ?",
+            (product.hardware2program_ref_id,),
+        )
+    proj = ProjectService(cat)
+    proj.set_logger(Logger(LogService(), "project"))
+    proj.new(tmp_path / "p.xknx")
+    device_id = proj.add_device(
+        product.product_ref_id,
+        product.hardware2program_ref_id,
+        "",
+        None,
+        product=DeviceProduct(product_name="Power Supply"),
+    )
+    assert device_id is not None
+    device = proj.find_device_by_node_id(device_id)
+    assert device is not None
+    assert (device.app, device.display_name) == (None, "Power Supply")
+    assert device.individual_address
+    assert device.get_visible_com_objects() == []
+    assert proj.secure_commissioning_of(device_id) is False
+    proj.undo()
+    assert proj.find_device_by_node_id(device_id) is None
+    proj.close()
+
+
 def test_display_name_prefers_product_name(tmp_path: Path) -> None:
     cat = CatalogService(tmp_path / "c.xknxcatalog")
     cat.import_knxprod(_fixture())

@@ -225,8 +225,10 @@ def parse_factory_stamp(raw: bytes | None) -> FactoryStamp | None:
         (count,) = struct.unpack_from("<i", raw, 8)
         pos = 12
         if flavour == _STAMP_OBJECT_CRCS:
-            # The older layout adds two octets to every CRC: told apart by the length.
-            wide = (len(raw) - 12 - count * 5) % 3 != 0
+            # The older layout adds two octets to every CRC: told apart by the length, the
+            # three-octet layout first.
+            rest = len(raw) - 12 - count * 5
+            wide = rest % 3 != 0 and rest % 5 == 0
             objects: list[ObjectStamp] = []
             for _ in range(count):
                 index = raw[pos]
@@ -256,6 +258,5 @@ def parse_factory_stamp(raw: bytes | None) -> FactoryStamp | None:
             return None
     except (struct.error, IndexError) as exc:
         raise FactoryImageError(f"factory stamp truncated: {exc}") from exc
-    if pos != len(raw):
-        raise FactoryImageError("factory stamp has trailing data")
+    # Octets after the stamp's entries are not part of it (a stamp can end in zeros).
     return stamp

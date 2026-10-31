@@ -1,5 +1,6 @@
-"""A tiny FIFO that serialises repeated "Program" and "Test Programming" presses onto the single
-KNX bus slot.
+"""A tiny FIFO that serialises the bus operations on devices ("Program", "Test Programming", a
+device info readout, a parameter script, a restart, a master reset, a DALI run) onto the single KNX
+bus slot.
 
 The bus has one exclusive operation slot (``ConnectionService.begin_operation``), so a second
 programming started while one runs would be rejected. This queue instead appends it and drains the
@@ -58,6 +59,17 @@ class ScriptRun:
         return time.monotonic() - self.cancel_requested_at
 
 
+@dataclass
+class BusAction:
+    """Any other bus operation on the device: a restart, a master reset, a DALI run. ``start``
+    starts it (None: it could not start), ``text`` names it in the Operations panel, ``kind`` is
+    its bus operation (``ConnectionService.begin_operation``)."""
+
+    kind: str
+    text: str
+    start: Callable[[], Future[Any] | None] = field(repr=False)
+
+
 class OperationState(Enum):
     WAITING = "waiting"
     RUNNING = "running"
@@ -73,6 +85,8 @@ class QueueItem:
     name: str
     scope: DownloadScope | None
     script: ScriptRun | None = None
+    # A restart, a master reset or a DALI run instead of a download.
+    action: BusAction | None = None
     state: OperationState = OperationState.WAITING
     message: str | None = None
     connection: str | None = None
@@ -177,6 +191,8 @@ class ProgramQueue:
                 queued.node_id == item.node_id
                 and queued.script is None
                 and item.script is None
+                and queued.action is None
+                and item.action is None
                 and queued.device_info is None
                 and item.device_info is None
                 and queued.test == item.test
@@ -236,7 +252,7 @@ class ProgramQueue:
     def cancel_current(self) -> None:
         """Cancel the running operation. A parameter script is asked to stop and decides itself
         when to return; any other operation (a download, an address download, a device info
-        read) is stopped at its next bus exchange and ends once it has closed its connection, so
+        read, a restart, a DALI run …) is stopped at its next bus exchange and ends once it has closed its connection, so
         the next one does not start on a bus still in use. A device whose download was canceled
         needs a new download."""
         current = self._current

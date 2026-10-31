@@ -16,7 +16,11 @@ from xknx.telegram.apci import (
     PropertyValueWrite,
 )
 
-from xknxeditor.download.errors import DownloadError, PropertyAccessRejected
+from xknxeditor.download.errors import (
+    DownloadError,
+    ImageError,
+    PropertyAccessRejected,
+)
 from xknxeditor.download.image import (
     DownloadImage,
     MemorySegment,
@@ -56,6 +60,7 @@ from xknxeditor.namespaces.intermediate.ld_ctrl_load_image_mem_t import (
 from xknxeditor.namespaces.intermediate.ld_ctrl_load_t import LdCtrlLoad
 from xknxeditor.namespaces.intermediate.ld_ctrl_map_error_t import LdCtrlMapError
 from xknxeditor.namespaces.intermediate.ld_ctrl_master_reset_t import LdCtrlMasterReset
+from xknxeditor.namespaces.intermediate.ld_ctrl_merge_t import LdCtrlMerge
 from xknxeditor.namespaces.intermediate.ld_ctrl_read_function_prop_t import (
     LdCtrlReadFunctionProp,
 )
@@ -369,6 +374,40 @@ async def test_write_rel_mem_uses_table_reference() -> None:
     assert bytes(device.memory[0x4004 + i] for i in range(2)) == b"\x11\x22"
 
 
+async def test_write_prop_of_no_elements_writes_nothing() -> None:
+    # A Busch-Jaeger 6128 procedure writes object 1 PID 53 with Count 0 and no data.
+    write = LdCtrlWriteProp(
+        obj_idx=1, prop_id=53, start_element=1, count=0, verify=False
+    )
+    image = DownloadImage(segments=(), properties=())
+    runner, device = _runner(_application(write), image)
+    await runner.run()
+    assert not [p for p in device.sent if isinstance(p, PropertyValueWrite)]
+    runner, device = _runner(_application(write), image)
+    report = await runner.preflight()
+    assert not report.properties
+
+
+async def test_write_rel_mem_of_no_octets_writes_nothing() -> None:
+    # An application without parameter memory (an ABB 2CDG 110 192) writes 0 octets to its
+    # application object; there is no image data for that, and none is needed.
+    write = LdCtrlWriteRelMem(obj_type=3, occurrence=0, offset=0, size=0, verify=True)
+    device = _device({0: 0x0000, 1: 3})
+    device.table_references[1] = 0x4000
+    image = DownloadImage(segments=(), properties=())
+    runner = LoadProcedureRunner(_application(write), image, DeviceProgrammer(device))
+    await runner.run()
+    assert device.memory == {}
+    runner = LoadProcedureRunner(_application(write), image, DeviceProgrammer(device))
+    report = await runner.preflight()
+    assert not report.segments
+    # With octets to write, missing data is still an error.
+    sized = LdCtrlWriteRelMem(obj_type=3, occurrence=0, offset=0, size=2, verify=True)
+    runner = LoadProcedureRunner(_application(sized), image, DeviceProgrammer(device))
+    with pytest.raises(ImageError, match="no image data for relative range"):
+        await runner.run()
+
+
 async def test_write_rel_mem_image_backed_uses_relative_lookup() -> None:
     # The image mirrors a relative segment in its own relative address space
     # (base 0x0); the device write adds the table base read at run time. Only the
@@ -592,6 +631,47 @@ async def test_filter_table_field_feeds_systemb_and_bcu1() -> None:
     assert bytes(device2.memory[512 + i] for i in range(len(table))) == table
 
 
+@pytest.mark.parametrize("preview", [False, True])
+async def test_a_coupler_without_its_filter_table_fails_before_any_write(
+    preview: bool,
+) -> None:
+    from xknxeditor.namespaces.intermediate.ld_ctrl_mem_addr_space_t import (
+        LdCtrlMemAddrSpace,
+    )
+
+    # A KNX IP router of mask MV-091A at a device address: the project computes no filter
+    # table for it, and its procedure writes the configuration before the filter table.
+    app = _application(
+        LdCtrlConnect(),
+        LdCtrlWriteMem(address=269, size=1, verify=False, inline_data=b"\xff"),
+        LdCtrlWriteMem(
+            address=512,
+            size=8192,
+            verify=False,
+            inline_data=None,
+            address_space=LdCtrlMemAddrSpace.LC_FILTER,
+        ),
+        LdCtrlDisconnect(),
+    )
+    runner, device = _runner(app, DownloadImage(segments=(), properties=()))
+    with pytest.raises(ImageError, match="coupler address"):
+        await (runner.preflight() if preview else runner.run())
+    assert device.sent == []
+
+
+async def test_a_merge_point_left_in_the_procedure_does_nothing() -> None:
+    application = _application(
+        LdCtrlConnect(), LdCtrlMerge(merge_id=100), LdCtrlDisconnect()
+    )
+    image = DownloadImage(segments=(), properties=())
+    runner, device = _runner(application, image)
+    await runner.run()
+    assert device.memory == {}
+    runner, device = _runner(application, image)
+    report = await runner.preflight()
+    assert not report.segments and not report.properties
+
+
 async def test_clear_lcfilter_table_alone_is_noop() -> None:
     # The clear control on its own must run without touching the bus (no unsupported-control error).
     application = _application(
@@ -683,22 +763,21 @@ async def test_compare_mem_mask() -> None:
         await runner2.run()
 
 
-async def test_compare_mem_invert_and_retry_rejected_upfront() -> None:
+async def test_compare_mem_range_rejected_upfront() -> None:
     from xknxeditor.download.errors import UnsupportedProcedureError
 
-    # Invert / RetryInterval semantics are not implemented; a compare using them must be rejected
-    # in prevalidation (before any bus access), not silently mis-verified.
-    for extra in ({"invert": True}, {"retry_interval": 100, "time_out": 1000}):
-        app = _application(
-            LdCtrlConnect(),
-            _compare_mem_ctrl(0x100, b"\x00", **extra),
-            LdCtrlDisconnect(),
-        )
-        runner, device = _runner(app, DownloadImage(segments=(), properties=()))
-        device.memory[0x100] = 0x00
-        with pytest.raises(UnsupportedProcedureError):
-            await runner.run()
-        assert device.memory.get(0x100) == 0x00  # untouched; rejected up front
+    # A Range on a memory compare is not implemented; it must be rejected in prevalidation
+    # (before any bus access), not silently mis-verified.
+    app = _application(
+        LdCtrlConnect(),
+        _compare_mem_ctrl(0x100, b"\x00", range="[1,5]"),
+        LdCtrlDisconnect(),
+    )
+    runner, device = _runner(app, DownloadImage(segments=(), properties=()))
+    device.memory[0x100] = 0x00
+    with pytest.raises(UnsupportedProcedureError, match="Range"):
+        await runner.run()
+    assert device.memory.get(0x100) == 0x00  # untouched; rejected up front
 
 
 async def test_write_prop_inline_data() -> None:
@@ -795,6 +874,30 @@ async def test_compare_prop_detects_real_mismatch() -> None:
         await runner.run()
 
 
+async def test_compare_prop_compares_the_elements_of_the_property_only() -> None:
+    from xknxeditor.namespaces.intermediate.ld_ctrl_compare_prop_t import (
+        LdCtrlCompareProp,
+    )
+
+    # A hardware type compare with 9 octets of inline data ("CM-46XX" and padding) for the
+    # 6-octet PID 78: the octets past the property's element are not compared.
+    device = FakeDevice()
+    device.properties[(0, 78)] = b"CM-46X"
+    application = _application(
+        LdCtrlCompareProp(
+            obj_idx=0,
+            prop_id=78,
+            start_element=1,
+            count=1,
+            inline_data=b"CM-46XX\x00\x00",
+        )
+    )
+    runner = LoadProcedureRunner(
+        application, DownloadImage(segments=(), properties=()), DeviceProgrammer(device)
+    )
+    await runner.run()
+
+
 async def test_compare_prop_mask_ignores_unmarked_octets() -> None:
     from xknxeditor.namespaces.intermediate.ld_ctrl_compare_prop_t import (
         LdCtrlCompareProp,
@@ -817,6 +920,101 @@ async def test_compare_prop_mask_ignores_unmarked_octets() -> None:
         application, DownloadImage(segments=(), properties=()), DeviceProgrammer(device)
     )
     await runner.run()  # must not raise: manufacturer and version are masked out
+
+
+async def test_compare_prop_takes_the_image_only_where_a_parameter_covers_it() -> None:
+    from xknxeditor.download.errors import CompareMismatch
+    from xknxeditor.namespaces.intermediate.ld_ctrl_compare_prop_t import (
+        LdCtrlCompareProp,
+    )
+
+    def run(covered: bytes | None) -> LoadProcedureRunner:
+        # The hardware type: a parameter in the last octet selects the variant.
+        image = DownloadImage(
+            segments=(),
+            properties=(
+                PropertyValue(
+                    object_index=0,
+                    property_id=78,
+                    occurrence=0,
+                    data=b"\x00\x00\x00\x00\x00\x63",
+                    covered=covered,
+                ),
+            ),
+        )
+        application = _application(
+            LdCtrlCompareProp(
+                obj_idx=0,
+                prop_id=78,
+                start_element=1,
+                count=1,
+                inline_data=b"\x00\x01\x00\x00\x00\x54",
+            )
+        )
+        return LoadProcedureRunner(application, image, DeviceProgrammer(device))
+
+    device = FakeDevice()
+    device.properties[(0, 78)] = b"\x00\x01\x00\x00\x00\x63"
+    # The parameter covers the last octet: it is checked, the others are the inline data.
+    await run(b"\x00\x00\x00\x00\x00\xff").run()
+    # Covering none of the octets, the inline data is checked as it is.
+    with pytest.raises(CompareMismatch):
+        await run(bytes(6)).run()
+    # Without a mask the image is the property's data.
+    device.properties[(0, 78)] = b"\x00\x00\x00\x00\x00\x63"
+    await run(None).run()
+    device.properties[(0, 78)] = b"\x00\x01\x00\x00\x00\x63"
+    with pytest.raises(CompareMismatch):
+        await run(None).run()
+
+
+async def test_compare_prop_with_short_inline_data_compares_the_image() -> None:
+    from xknxeditor.download.errors import CompareMismatch
+    from xknxeditor.namespaces.intermediate.ld_ctrl_compare_prop_t import (
+        LdCtrlCompareProp,
+    )
+
+    def run(covered: bytes) -> LoadProcedureRunner:
+        # A Gira 2029: six 6-octet elements of the hardware type with 7 octets of inline
+        # data; the image holds one element.
+        image = DownloadImage(
+            segments=(),
+            properties=(
+                PropertyValue(
+                    object_index=0,
+                    property_id=78,
+                    occurrence=0,
+                    data=b"\x00\x00\x00\x20\x00\x03",
+                    element_size=6,
+                    covered=covered,
+                ),
+            ),
+        )
+        application = _application(
+            LdCtrlCompareProp(
+                obj_idx=0,
+                prop_id=78,
+                start_element=1,
+                count=6,
+                inline_data=b"\x00\x00\x00\x00\x20\x00\x03",
+            )
+        )
+        return LoadProcedureRunner(application, image, DeviceProgrammer(device))
+
+    device = FakeDevice()
+    device.properties[(0, 78)] = b"\x00\x00\x00\x20\x00\x03"
+    await run(b"\xff" * 6).run()
+    reads = [p for p in device.sent if isinstance(p, PropertyValueRead)]
+    assert [(p.start_index, p.count) for p in reads] == [(1, 1)]
+    # Only the covered bits count.
+    device.properties[(0, 78)] = b"\x11\x00\x00\x20\x00\x03"
+    await run(b"\x00" + b"\xff" * 5).run()
+    with pytest.raises(CompareMismatch):
+        await run(b"\xff" * 6).run()
+    # Nothing covered: nothing to compare.
+    device.sent.clear()
+    await run(bytes(6)).run()
+    assert not [p for p in device.sent if isinstance(p, PropertyValueRead)]
 
 
 async def test_compare_prop_mask_still_detects_marked_mismatch() -> None:
@@ -1721,3 +1919,53 @@ async def test_abs_segment_keeps_the_parameter_mask_for_property_mapped_masks() 
     await runner.run()
 
     assert all(0x4B20 + i not in device.memory for i in range(4))
+
+
+_MCB = 27
+
+
+def _mcb_write(**kwargs: object) -> LdCtrlWriteProp:
+    return LdCtrlWriteProp(obj_idx=4, prop_id=_MCB, count=1, verify=False, **kwargs)  # type: ignore[arg-type]
+
+
+def _mcb_writes(device: FakeDevice) -> list[str]:
+    return [
+        p.data.hex()
+        for p in device.sent
+        if isinstance(p, PropertyValueWrite) and p.property_id == _MCB
+    ]
+
+
+async def test_an_mcb_write_without_data_is_not_sent() -> None:
+    # A Gira System B application writes the MCB with inline data after the allocation, and
+    # once more without inline data after the segment, before any capture of the MCB.
+    app = _application(
+        LdCtrlConnect(),
+        _mcb_write(inline_data=bytes.fromhex("0000070c003300000000")),
+        _mcb_write(),
+        LdCtrlDisconnect(),
+    )
+    runner, device = _runner(app, DownloadImage(segments=(), properties=()))
+    device.property_element_sizes[4, _MCB] = 8
+    await runner.run()
+    assert _mcb_writes(device) == ["0000070c00330000"]
+    assert device.properties[4, _MCB] == bytes.fromhex("0000070c00330000")
+
+
+async def test_an_mcb_write_takes_the_capture_as_it_is() -> None:
+    from xknxeditor.namespaces.intermediate.ld_ctrl_load_image_prop_t import (
+        LdCtrlLoadImageProp,
+    )
+
+    app = _application(
+        LdCtrlConnect(),
+        LdCtrlLoadImageProp(obj_idx=4, prop_id=_MCB, count=1),
+        _mcb_write(),
+        LdCtrlDisconnect(),
+    )
+    runner, device = _runner(app, DownloadImage(segments=(), properties=()))
+    device.property_element_sizes[4, _MCB] = 8
+    device.properties[4, _MCB] = bytes.fromhex("0000070c0033abcd")
+    await runner.run()
+    # The CRC is written back as captured.
+    assert _mcb_writes(device) == ["0000070c0033abcd"]

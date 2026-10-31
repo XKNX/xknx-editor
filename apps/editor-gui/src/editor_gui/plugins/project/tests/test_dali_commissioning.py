@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
+from collections.abc import Callable
 from types import SimpleNamespace
 from typing import Any
 
@@ -58,15 +59,20 @@ def _device() -> Any:
     return SimpleNamespace(individual_address="1.1.1", name="Gateway")
 
 
-def _runner(commissioner: Any, *, started: bool = True):
-    """A fake ConnectionService.run_dali: executes the wrapped coroutine (like the async loop would),
-    swallowing exceptions (the real future captures them), and reports whether it was accepted."""
+def _runner(commissioner: Any, *, started: bool = True, texts: list[str] | None = None):
+    """A fake of the queue the panel hands its operations to: runs the wrapped coroutine (like
+    the async loop would), swallowing exceptions (the real future captures them), then reports
+    the end; ``started=False`` ends it without running it (canceled while it waited)."""
 
-    def run(device: Any, wrapped: Any, channel: int = 0) -> bool:
+    def run(
+        device: Any, wrapped: Any, channel: int, text: str, ended: Callable[[], None]
+    ) -> None:
+        if texts is not None:
+            texts.append(text)
         if started:
             with contextlib.suppress(Exception):  # the real future captures the error
                 asyncio.run(wrapped(commissioner))
-        return started
+        ended()
 
     return run
 
@@ -74,14 +80,17 @@ def _runner(commissioner: Any, *, started: bool = True):
 def test_scan_stashes_result_and_clears_busy() -> None:
     bus = DaliBusState(channel=0, ecgs=[EcgState(slot=0, present=True, group_index=5)])
     commissioner = SimpleNamespace(scan=lambda: _coro(bus))
-    panel = DaliCommissioningPanel(_runner(commissioner))
+    texts: list[str] = []
+    panel = DaliCommissioningPanel(_runner(commissioner, texts=texts))
 
-    panel._start(_device(), "scan", lambda c: c.scan(), store_scan=True)
+    panel._start(_device(), "scan", "Scan Bus", lambda c: c.scan(), store_scan=True)
 
     state = panel._state("1.1.1", 0)
     assert state.busy == ""  # released
     assert state.error == ""
     assert state.scan is bus
+    # Named in the Operations panel as the button that started it.
+    assert texts == ["Scan Bus"]
 
 
 def test_error_is_surfaced_and_busy_released() -> None:
@@ -90,17 +99,41 @@ def test_error_is_surfaced_and_busy_released() -> None:
 
     commissioner = SimpleNamespace()
     panel = DaliCommissioningPanel(_runner(commissioner))
-    panel._start(_device(), "commission", boom)
+    panel._start(_device(), "commission", "Program Groups…", boom)
 
     state = panel._state("1.1.1", 0)
     assert state.busy == ""
     assert "no ack" in state.error
 
 
-def test_not_started_when_runner_rejects() -> None:
+def test_released_when_it_never_ran() -> None:
     panel = DaliCommissioningPanel(_runner(SimpleNamespace(), started=False))
-    panel._start(_device(), "scan", lambda c: c.scan(), store_scan=True)
-    assert panel._state("1.1.1", 0).busy == ""  # rolled back when the bus was busy
+    panel._start(_device(), "scan", "Scan Bus", lambda c: c.scan(), store_scan=True)
+    assert panel._state("1.1.1", 0).busy == ""  # canceled while it waited in the queue
+
+
+def test_the_end_of_an_older_operation_keeps_a_newer_one() -> None:
+    ends: list[Callable[[], None]] = []
+
+    def run(
+        device: Any, wrapped: Any, channel: int, text: str, ended: Callable[[], None]
+    ) -> None:
+        ends.append(ended)
+
+    panel = DaliCommissioningPanel(run)
+    panel._start(_device(), "scan", "Scan Bus", lambda c: c.scan())
+    state = panel._state("1.1.1", 0)
+    assert state.busy == "scan"
+    # A second start while the first is queued is ignored.
+    panel._start(_device(), "broadcast", "All Off", lambda c: c.broadcast(False))
+    assert len(ends) == 1
+    ends[0]()
+    assert state.busy == ""
+    panel._start(_device(), "broadcast", "All Off", lambda c: c.broadcast(False))
+    ends[0]()  # the first one's end, once more
+    assert state.busy == "broadcast"
+    ends[1]()
+    assert state.busy == ""
 
 
 async def _coro(value: Any) -> Any:
@@ -143,6 +176,6 @@ def test_new_scan_clears_stale_group_edits() -> None:
     panel = DaliCommissioningPanel(_runner(commissioner))
     panel._state("1.1.1", 0).group_edits[0] = 9  # stale edit from a prior scan
 
-    panel._start(_device(), "scan", lambda c: c.scan(), store_scan=True)
+    panel._start(_device(), "scan", "Scan Bus", lambda c: c.scan(), store_scan=True)
 
     assert panel._state("1.1.1", 0).group_edits == {}  # dropped on fresh bus state

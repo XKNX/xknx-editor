@@ -3012,3 +3012,24 @@ msgstr "Sæt tegntabel til {code_page}"
 
 msgid "Encrypted"
 msgstr "Krypteret"
+
+msgid "The device did not respond ({detail})."
+msgstr "Enheden svarede ikke ({detail})."
+
+msgid "Check that the device is powered and can be reached from this interface (line, coupler)."
+msgstr "Kontrollér, at enheden har strøm og kan nås fra dette interface (linje, kobler)."
+
+msgid "For a new device, put exactly one device into programming mode. Otherwise check that the device is powered and can be reached from this interface (line, coupler)."
+msgstr "For en ny enhed skal præcis én enhed sættes i programmeringstilstand. Ellers skal du kontrollere, at enheden har strøm og kan nås fra dette interface (linje, kobler)."
+
+msgid "The download failed after it had begun to write the device, so the device may be partially loaded. Program it again to restore a working state. Cause: {cause}"
+msgstr "Download mislykkedes, efter at den var begyndt at skrive til enheden, så enheden kan være delvist indlæst. Programmér den igen for at genoprette en fungerende tilstand. Årsag: {cause}"
+
+msgid "Running"
+msgstr "Kører"
+
+msgid "Switch On"
+msgstr "Tænd"
+
+msgid "Switch Off"
+msgstr "Sluk"

@@ -83,6 +83,12 @@ class LinkInfo:
         return f"{self.name} ({self.host}:{self.port}{suffix})"
 
 
+# Log records of an operation that ends in the operations history (a programming, its test, a
+# device info readout, a parameter script, a restart, a master reset, a DALI run): the user sees
+# its failure there, so it raises no toast (``widgets.toasts.log_toast``).
+SHOWN_IN_OPERATIONS = "operations"
+
+
 class DeviceCertificateRequired(Exception):
     """A secure download needs the device's FDSK: it still uses its factory key, which the
     project does not know (no device certificate for its serial number)."""
@@ -731,7 +737,12 @@ class ConnectionService:
             return
         exc = future.exception()
         if exc is not None:
-            self._log.error("Restart failed", address=address, error=str(exc))
+            self._log.error(
+                "Restart failed",
+                address=address,
+                error=str(exc),
+                shown=SHOWN_IN_OPERATIONS,
+            )
             return
         self._log.info("Device restarted", address=address)
 
@@ -752,7 +763,10 @@ class ConnectionService:
             self._log.warning("A bus operation is already running", device=device.name)
             return None
         self._log.warning(
-            "Master reset (destructive)", device=device.name, erase_code=erase_code
+            "Master reset (destructive)",
+            device=device.name,
+            erase_code=erase_code,
+            shown=SHOWN_IN_OPERATIONS,
         )
         security = self._security_for(device)
         if security is not None:
@@ -827,7 +841,12 @@ class ConnectionService:
             return
         exc = future.exception()
         if exc is not None:
-            self._log.error("Master reset failed", address=address, error=str(exc))
+            self._log.error(
+                "Master reset failed",
+                address=address,
+                error=str(exc),
+                shown=SHOWN_IN_OPERATIONS,
+            )
             return
         self._log.info("Master reset sent", address=address)
 
@@ -1225,6 +1244,8 @@ class ConnectionService:
         if exc is not None:
             from xknxeditor.download.errors import PartialDownloadError
 
+            # The operations history shows the failure (with what to do), so these records
+            # raise no toast.
             if isinstance(exc, PartialDownloadError):
                 # Report the actual failure (the chained cause), then make the
                 # recovery step explicit. The wrapper alone would hide the root
@@ -1234,15 +1255,20 @@ class ConnectionService:
                     "Programming failed",
                     error=str(cause),
                     traceback=_exc_traceback(exc),
+                    shown=SHOWN_IN_OPERATIONS,
                 )
                 self._log.error(
                     "The device may now be in an inconsistent, partially loaded "
                     "state. Re-run programming (full download) once the cause above "
-                    "is resolved to restore a working state."
+                    "is resolved to restore a working state.",
+                    shown=SHOWN_IN_OPERATIONS,
                 )
             else:
                 self._log.error(
-                    "Programming failed", error=str(exc), traceback=_exc_traceback(exc)
+                    "Programming failed",
+                    error=str(exc),
+                    traceback=_exc_traceback(exc),
+                    shown=SHOWN_IN_OPERATIONS,
                 )
                 if isinstance(exc, ManagementConnectionError):
                     # A full download of a virgin device first writes its address to the single
@@ -1251,7 +1277,8 @@ class ConnectionService:
                     self._log.error(
                         "No device responded at the address — for a new device put exactly "
                         "one device into programming mode; otherwise check it is powered and "
-                        "reachable from this interface (line/coupler)"
+                        "reachable from this interface (line/coupler)",
+                        shown=SHOWN_IN_OPERATIONS,
                     )
             self._set_program_notice(False)
         else:
@@ -1341,6 +1368,7 @@ class ConnectionService:
                 address=address,
                 error=str(exc),
                 traceback=_exc_traceback(exc),
+                shown=SHOWN_IN_OPERATIONS,
             )
             if isinstance(exc, ManagementConnectionError):
                 # A dry run still reads the live device over a point-to-point connection.
@@ -1349,6 +1377,7 @@ class ConnectionService:
                     "Device did not respond on the bus — check it is powered and "
                     "reachable from this interface (line/coupler) at the address",
                     address=address,
+                    shown=SHOWN_IN_OPERATIONS,
                 )
             return
         report = future.result()
@@ -1408,12 +1437,18 @@ class ConnectionService:
         exc = future.exception()
         if exc is None:
             return
-        self._log.error("Reading device info failed", address=address, error=str(exc))
+        self._log.error(
+            "Reading device info failed",
+            address=address,
+            error=str(exc),
+            shown=SHOWN_IN_OPERATIONS,
+        )
         if isinstance(exc, ManagementConnectionError):
             self._log.error(
                 "Device did not respond on the bus — check it is powered and "
                 "reachable from this interface (line/coupler) at the address",
                 address=address,
+                shown=SHOWN_IN_OPERATIONS,
             )
 
     @_connects("dali_commissioning")
@@ -1475,7 +1510,10 @@ class ConnectionService:
         exc = future.exception()
         if exc is not None:
             self._log.error(
-                "DALI commissioning failed", address=address, error=str(exc)
+                "DALI commissioning failed",
+                address=address,
+                error=str(exc),
+                shown=SHOWN_IN_OPERATIONS,
             )
             return
         # Defensive against future helpers that keep returning False instead of raising:

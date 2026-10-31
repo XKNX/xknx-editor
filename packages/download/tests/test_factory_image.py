@@ -153,6 +153,19 @@ def test_a_stamp_of_object_crcs(wide: bool) -> None:
     )
 
 
+def test_a_stamp_is_read_three_octets_per_crc_when_the_length_allows_it() -> None:
+    # Object 3 with three CRCs and six zeros after them: 15 octets fit both layouts, the
+    # three-octet one is read and the rest is not part of the stamp.
+    raw = struct.pack("<IIi", 0x00010001, 1, 1) + struct.pack("<Bi", 3, 3)
+    raw += bytes.fromhex("000171e8000001118f") + bytes(6)
+    assert parse_factory_stamp(raw) == FactoryStamp(
+        objects=(ObjectStamp(3, ((False, 0x7101), (True, 0x0000), (True, 0x8F11))),)
+    )
+    assert parse_factory_stamp(struct.pack("<IIi", 0x00010001, 3, 0) + b"\x00") == (
+        FactoryStamp(properties=())
+    )
+
+
 def test_no_stamp_or_one_of_another_flavour_checks_nothing() -> None:
     assert parse_factory_stamp(None) is None
     assert parse_factory_stamp(b"") is None
@@ -164,7 +177,6 @@ def test_no_stamp_or_one_of_another_flavour_checks_nothing() -> None:
     [
         (struct.pack("<IIi", 0x00020001, 3, 0), "unknown factory stamp version"),
         (struct.pack("<IIi", 0x00010001, 3, 1), "truncated"),
-        (struct.pack("<IIi", 0x00010001, 3, 0) + b"\x00", "trailing"),
         (
             struct.pack("<IIi", 0x00010001, 3, 1)
             + struct.pack("<IHHIi", 5, 0, 53, 0, 4)

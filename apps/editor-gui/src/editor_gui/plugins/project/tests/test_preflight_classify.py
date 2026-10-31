@@ -137,3 +137,22 @@ def test_a_procedure_step_property_is_device_managed() -> None:
         object_index=5, property_id=52, current=b"\x01", planned=b"\x01"
     )
     assert PreflightResultWindow._property_category(same) == _CAT_MATCH
+
+
+def test_a_procedure_step_in_memory_is_device_managed() -> None:
+    # A Hager TXA/TYF on MV-07B0: the procedure writes 0x0080 with 01 at the start and 02 at
+    # the end, so the device holds 02 and the first write always plans a change.
+    step = SegmentDiff(
+        address=0x80, current=b"\x02", planned=b"\x01", procedure_step=True
+    )
+    w = _window(driven={0x80: 0xFF})
+    assert w._segment_category(step) == _CAT_RUNTIME
+    assert preflight_segment_counts(step, w._runtime, w._driven) == (0, 0, 1)
+    report = PreflightReport(segments=(step,), properties=())
+    classes = classify_preflight(report, frozenset(), {0x80: 0xFF})
+    assert (classes.config_bytes, classes.runtime_bytes, classes.actionable) == (
+        0,
+        1,
+        False,
+    )
+    assert "memory 0x0080: 1/1 changed (procedure step)" in report.summary()

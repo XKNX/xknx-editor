@@ -109,7 +109,9 @@ async def partial_download_mismatch(
     """
     program = application.program
     mask = f"MV-{await programmer.read_device_descriptor():04X}"
-    if not mask.startswith(program.mask_version) and not program.linkable:
+    # A System 300 application names its mask with the configuration
+    # (MV-0300-01000001000000000000); the device descriptor is the mask alone (0300).
+    if not program.mask_version.startswith(mask) and not program.linkable:
         raise IncompatibleMaskVersion(mask, program.mask_version)
     if resources is None:
         return None

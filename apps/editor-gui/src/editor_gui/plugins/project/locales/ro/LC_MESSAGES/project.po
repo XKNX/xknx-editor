@@ -3039,3 +3039,24 @@ msgstr "Setare pagină de cod la {code_page}"
 
 msgid "Encrypted"
 msgstr "Criptat"
+
+msgid "The device did not respond ({detail})."
+msgstr "Dispozitivul nu a răspuns ({detail})."
+
+msgid "Check that the device is powered and can be reached from this interface (line, coupler)."
+msgstr "Verificați dacă dispozitivul este alimentat și accesibil din această interfață (linie, cuplor)."
+
+msgid "For a new device, put exactly one device into programming mode. Otherwise check that the device is powered and can be reached from this interface (line, coupler)."
+msgstr "Pentru un dispozitiv nou, treceți exact un dispozitiv în modul de programare. Altfel verificați dacă dispozitivul este alimentat și accesibil din această interfață (linie, cuplor)."
+
+msgid "The download failed after it had begun to write the device, so the device may be partially loaded. Program it again to restore a working state. Cause: {cause}"
+msgstr "Descărcarea a eșuat după ce începuse să scrie în dispozitiv, așa că dispozitivul poate fi încărcat doar parțial. Programați-l din nou pentru a restabili o stare funcțională. Cauză: {cause}"
+
+msgid "Running"
+msgstr "Se execută"
+
+msgid "Switch On"
+msgstr "Pornire"
+
+msgid "Switch Off"
+msgstr "Oprire"

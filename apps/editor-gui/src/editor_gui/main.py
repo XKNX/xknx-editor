@@ -142,7 +142,7 @@ from editor_gui.widgets.tables import (
 )
 from editor_gui.widgets.tabs import begin_tab_bar
 from editor_gui.widgets.text_util import fit_text, human_size, text_clipped_tooltip
-from editor_gui.widgets.toasts import Toasts
+from editor_gui.widgets.toasts import Toasts, log_toast
 from editor_gui.widgets.tree import collapsing_header
 from editor_gui.window_title import bring_to_front, set_window_title, wake
 from xknxeditor.catalog import ProductSummary
@@ -1524,7 +1524,7 @@ class KnxGuiApp:
                         "the import (add the missing product to the catalog)",
                         references=", ".join(result.missing_references),
                         path=dest,
-                        dialog=True,
+                        shown="dialog",
                     )
                     self._show_export_failure(
                         dest,
@@ -1566,7 +1566,7 @@ class KnxGuiApp:
                     status=e.status,
                     detail=e.detail,
                     exception=f"{type(e).__name__}: {e}",
-                    dialog=True,
+                    shown="dialog",
                 )
                 self._show_export_failure(dest, e.user_message, signing=True)
             except (
@@ -1576,7 +1576,7 @@ class KnxGuiApp:
                     "export failed",
                     path=dest,
                     error=f"{type(e).__name__}: {e}",
-                    dialog=True,
+                    shown="dialog",
                 )
                 self._show_export_failure(dest, str(e) or type(e).__name__)
 
@@ -5167,12 +5167,8 @@ class KnxGuiApp:
             if rec.timestamp <= self._toast_seen_ts:
                 continue
             self._toast_seen_ts = rec.timestamp
-            # Records also shown in a dialog (e.g. a failed export) get no toast.
-            if rec.level in ("warning", "error", "critical") and not rec.payload.get(
-                "dialog"
-            ):
-                detail = rec.payload.get("error") or ""
-                text = f"[{rec.plugin}] {rec.event}" + (f": {detail}" if detail else "")
+            text = log_toast(rec.level, rec.plugin, rec.event, rec.payload)
+            if text is not None:
                 self._toasts.add(text, rec.level, 6.0)
         self._toasts.render()
 
