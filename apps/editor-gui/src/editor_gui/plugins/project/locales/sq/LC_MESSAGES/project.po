@@ -797,19 +797,19 @@ msgid "Unload Application and Address"
 msgstr "Çngarko programin aplikativ dhe adresën"
 
 msgid "Partial: Parameters"
-msgstr "Pjesërisht: parametrat"
+msgstr "I pjesshëm: parametrat"
 
 msgid "Partial: Group Communication"
-msgstr "Pjesërisht: komunikimi në grup"
+msgstr "I pjesshëm: komunikimi në grup"
 
 msgid "Overwrite Individual Address"
 msgstr "Mbishkruaj adresën individuale"
 
 msgid "This writes the individual address {address} to the device whose programming button is pressed. Continue?"
-msgstr "Kjo e shkruan adresën individuale {address} në pajisjen të cilës i është shtypur butoni i programimit. Të vazhdoj?"
+msgstr "Kjo e shkruan adresën individuale {address} në pajisjen të cilës i është shtypur butoni i programimit. Të vazhdohet?"
 
 msgid "This overwrites the individual address of the device at its current address with {address}. Its programming button does not need to be pressed."
-msgstr "Kjo e mbishkruan adresën individuale të pajisjes në adresën e saj aktuale me {address}. Nuk është e nevojshme të shtypet butoni i saj i programimit."
+msgstr "Kjo e mbishkruan adresën individuale aktuale të pajisjes me {address}. Nuk është e nevojshme të shtypet butoni i saj i programimit."
 
 msgid "Current Individual Address"
 msgstr "Adresa individuale aktuale"
@@ -851,16 +851,16 @@ msgid "Read from Device"
 msgstr "Lexo nga pajisja"
 
 msgid "Restart"
-msgstr "Rinis"
+msgstr "Rinis pajisjen"
 
 msgid "Reset…"
-msgstr "Rivendos…"
+msgstr "Rivendos pajisjen…"
 
 msgid "Master Reset"
 msgstr "Master Reset"
 
 msgid "Destructive: the device is reset over the bus and must be commissioned again. In KNX Secure mode this deactivates device security."
-msgstr "Shkatërruese: pajisja rivendoset përmes busit dhe duhet vënë sërish në punë. Në modalitetin KNX Secure kjo çaktivizon sigurinë e pajisjes."
+msgstr "Veprim shkatërrues: pajisja rivendoset përmes busit dhe duhet të vihet sërish në punë. Në modalitetin KNX Secure, kjo çaktivizon sigurinë e pajisjes."
 
 msgid "Reset Type"
 msgstr "Lloji i rivendosjes"
@@ -1775,16 +1775,16 @@ msgid "Continue"
 msgstr "Vazhdo"
 
 msgid "New installation scans the DALI bus again and REASSIGNS the short\naddress of every ballast. This cannot be undone. Continue?"
-msgstr "Instalimi i ri e skanon sërish busin DALI dhe RICAKTON adresën e shkurtër\ntë çdo ballasti. Ky veprim nuk mund të zhbëhet. Të vazhdoj?"
+msgstr "Instalimi i ri e skanon sërish busin DALI dhe RICAKTON adresën e shkurtër\ntë çdo ballasti. Ky veprim nuk mund të zhbëhet. Të vazhdohet?"
 
 msgid "Post installation scans the bus for new ballasts and updates their addressing.\nThis changes the device. Continue?"
-msgstr "Instalimi shtesë kërkon në bus ballaste të reja dhe përditëson adresimin e tyre.\nKjo e ndryshon pajisjen. Të vazhdoj?"
+msgstr "Instalimi shtesë kërkon në bus ballaste të reja dhe përditëson adresimin e tyre.\nKjo e ndryshon pajisjen. Të vazhdohet?"
 
 msgid "Write the group assignment to the DALI bus. This applies the groups to the\ngateway and its ballasts. Continue?"
-msgstr "Shkruaj caktimin e grupeve në busin DALI. Kjo i zbaton grupet në\ngateway dhe në ballastet e tij. Të vazhdoj?"
+msgstr "Shkruaj caktimin e grupeve në busin DALI. Kjo i zbaton grupet në\ngateway dhe në ballastet e tij. Të vazhdohet?"
 
 msgid "Write the scene values to the DALI bus. Continue?"
-msgstr "Shkruaj vlerat e skenave në busin DALI. Të vazhdoj?"
+msgstr "Shkruaj vlerat e skenave në busin DALI. Të vazhdohet?"
 
 msgid "{count} ECG(s) present"
 msgstr "{count} ECG të pranishme"
@@ -1838,7 +1838,7 @@ msgid "Kind"
 msgstr "Lloji"
 
 msgid "Applies To"
-msgstr "Vlen për"
+msgstr "Zbatohet për"
 
 msgid "Details"
 msgstr "Detajet"

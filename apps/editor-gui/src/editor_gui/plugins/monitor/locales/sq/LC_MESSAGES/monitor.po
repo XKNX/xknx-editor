@@ -173,10 +173,10 @@ msgid "The telegrams have not been exported. Clear them anyway?"
 msgstr "Telegramet nuk janë eksportuar. T'i pastroj gjithsesi?"
 
 msgid "The telegrams have not been exported. Loading a recording replaces them and stops the recording. Continue?"
-msgstr "Telegramet nuk janë eksportuar. Ngarkimi i një regjistrimi i zëvendëson ato dhe ndalon regjistrimin. Të vazhdoj?"
+msgstr "Telegramet nuk janë eksportuar. Ngarkimi i një regjistrimi i zëvendëson ato dhe ndalon regjistrimin. Të vazhdohet?"
 
 msgid "Loading a recording replaces the telegrams and stops the recording. Continue?"
-msgstr "Ngarkimi i një regjistrimi zëvendëson telegramet dhe ndalon regjistrimin. Të vazhdoj?"
+msgstr "Ngarkimi i një regjistrimi zëvendëson telegramet dhe ndalon regjistrimin. Të vazhdohet?"
 
 msgid "Yes"
 msgstr "Po"
