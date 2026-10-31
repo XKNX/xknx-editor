@@ -99,6 +99,24 @@ def device_mask_version(application: Application) -> str:
     return resolved
 
 
+def system300_mask_unresolved(application: Application) -> bool:
+    """Whether ``application`` is a System 300 application whose procedure does not say
+    which configuration it expects: only the device's management descriptor tells."""
+    program = getattr(application, "program", None)
+    if getattr(program, "mask_version", None) != _SYSTEM_300:
+        return False
+    return device_mask_version(application) == _SYSTEM_300
+
+
+def learn_device_mask(application: Application, descriptor: bytes) -> None:
+    """Take the configuration of a System 300 application from the management descriptor
+    (PID 72) the device reported, when the application does not name it."""
+    if descriptor and system300_mask_unresolved(application):
+        _device_masks[getattr(application, "id", "")] = (
+            f"{_SYSTEM_300}-{descriptor.hex().upper()}"
+        )
+
+
 def resolve_download_controls(
     application: Application,
     master_data: MasterData | None = None,

@@ -40,9 +40,11 @@ from .ip_config import applies as ip_config_applies
 from .ip_secure import IpSecureConfig, ip_secure_controls
 from .merge import (
     device_mask_version,
+    learn_device_mask,
     mask_authorize_levels,
     mask_has_property_services,
     resolve_download_controls,
+    system300_mask_unresolved,
 )
 from .procedure import LoadProcedureRunner, memory_services
 from .programmer import (
@@ -125,6 +127,8 @@ class DownloadResult:
 
 _IP_CONFIG_SCOPES = frozenset({DownloadScope.FULL, DownloadScope.APPLICATION})
 _MAC_ADDRESS_LENGTH = 6
+# The device object's management descriptor: the configuration of a System 300 device.
+_PID_MANAGEMENT_DESCRIPTOR = 72
 
 
 def _memory_cap_ladder(seed: int | None) -> tuple[int | None, ...]:
@@ -567,6 +571,35 @@ async def _device_present(
         await manager.close()
 
 
+async def _learn_device_mask(
+    xknx: XKNX,
+    individual_address: IndividualAddressableType,
+    security: DeviceSecurity | None,
+    application: Application,
+) -> None:
+    """For a System 300 application that does not name its configuration, read the device's
+    management descriptor (PID 72), which selects it: the mask's procedures and resources
+    are those of the configuration."""
+    if not system300_mask_unresolved(application):
+        return
+    from .programmer import DeviceProgrammer
+
+    manager = _connection_manager(xknx, IndividualAddress(individual_address), security)
+    try:
+        descriptor = await DeviceProgrammer(await manager.open()).read_property(
+            0, _PID_MANAGEMENT_DESCRIPTOR
+        )
+    except (ManagementConnectionError, DownloadError) as exc:
+        logger.debug("download: management descriptor not readable: %s", exc)
+        return
+    finally:
+        await manager.close()
+    learn_device_mask(application, descriptor)
+    logger.info(
+        "download: System 300 configuration %s", device_mask_version(application)
+    )
+
+
 async def download(
     xknx: XKNX,
     individual_address: IndividualAddressableType,
@@ -675,6 +708,7 @@ async def download(
             "switching a device to plain communication needs its key and no new Tool Key"
         )
     _reject_address_scope(scope)
+    await _learn_device_mask(xknx, individual_address, security, application)
     if image is None:
         logger.debug("download: assembling image (scope=%s)", scope.name)
         image = build_image(
@@ -934,6 +968,7 @@ async def preflight(
     application program and ``access_key`` the project's access key, as for :func:`download`.
     """
     _reject_address_scope(scope)
+    await _learn_device_mask(xknx, individual_address, security, application)
     if image is None:
         image = build_image(
             application,
