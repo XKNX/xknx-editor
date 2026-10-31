@@ -77,7 +77,7 @@ async def test_wide_association_elements_are_read_as_such() -> None:
 async def test_an_application_without_group_objects_reads_nothing(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    monkeypatch.setattr(read_config, "_highest_com_object_number", lambda _app: 0)
+    monkeypatch.setattr(read_config, "_has_com_objects", lambda _app: False)
     programmer = _Programmer({})
     application = cast(Any, SimpleNamespace())
     read = await read_group_communication(cast(Any, programmer), application)

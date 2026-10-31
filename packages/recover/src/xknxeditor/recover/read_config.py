@@ -92,6 +92,13 @@ def _is_memory_mapped(application: Application) -> bool:
     return address_table is not None and address_table.code_segment is not None
 
 
+def _has_com_objects(application: Application) -> bool:
+    """Whether the application defines any com object (its numbers can start at 0)."""
+    from xknxeditor.prod.parser_v2.application_indexer import ApplicationIndexer
+
+    return bool(ApplicationIndexer(application.program).com_objects)
+
+
 def _highest_com_object_number(application: Application) -> int:
     """The largest com object number the application defines (0 if none)."""
     from xknxeditor.prod.parser_v2.application_indexer import ApplicationIndexer
@@ -116,7 +123,7 @@ async def read_group_communication(
     the association table links an object, instead of for every object number.
     """
     if application is not None:
-        if not _highest_com_object_number(application):
+        if not _has_com_objects(application):
             # No group objects (a coupler, an IP router): nothing linked, nothing to read.
             return RawGroupCommunication(
                 device_address=None, group_addresses=[], links=[], group_objects={}
