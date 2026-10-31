@@ -145,7 +145,7 @@ def test_relative_objects_offsets_and_complete_object_data() -> None:
     )
     assert r._relative_runs(
         LdCtrlWriteRelMem(obj_idx=4, offset=2, size=4, verify=True)
-    ) == [(2, b"AA"), (4, b"CC")]
+    ) == [(2, b"AACC")]
     assert r._relative_runs(
         LdCtrlWriteRelMem(obj_idx=5, offset=0, size=4, verify=True)
     ) == [(0, b"BBBB")]
