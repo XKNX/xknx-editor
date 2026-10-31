@@ -24,7 +24,7 @@ from editor_gui.widgets.checkbox import checkbox, radio_button
 from editor_gui.widgets.combo import begin_combo
 from editor_gui.widgets.dpi import px
 from editor_gui.widgets.float_format import format_float, general_float, parse_float
-from editor_gui.widgets.fonts import bold, semilight
+from editor_gui.widgets.fonts import bold, bold_font, semilight
 from editor_gui.widgets.icons import Icon, Picture, draw_icon
 from editor_gui.widgets.strings import S
 from editor_gui.widgets.tables import data_table_id
@@ -1587,7 +1587,8 @@ def _render_page_tree(
     channel page's context menu."""
     clicked: str | None = None
     icon_size = imgui.get_font_size()
-    space = imgui.calc_text_size(" ").x
+    if top_level:
+        _hovered_page[1] = None
     for page in pages:
         # A row spans the tree's width, so the selected one joins the page beside it, and is as
         # high as a field.
@@ -1607,12 +1608,17 @@ def _render_page_tree(
             imgui.set_next_item_open(True, imgui.Cond_.always)
         elif page.key in opened:
             imgui.set_next_item_open(True, imgui.Cond_.once)
+        is_selected = page.key == selected
+        # The selected page and the one under the mouse (in the frame before) are bold.
+        emphasis = is_selected or page.key == _hovered_page[0]
+        if emphasis:
+            imgui.push_font(bold_font(), imgui.get_style().font_size_base)
+        space = imgui.calc_text_size(" ").x
         icon = get_icon(page.icon) if get_icon is not None and page.icon else None
         pad = " " * math.ceil((icon_size + space) / space) if icon is not None else ""
         # Spaces in front of a page's text indent it, as the product data lays out its pages.
         if page.block is not None:
             pad += " " * page.block.text_indent
-        is_selected = page.key == selected
         is_group = top_level and bool(page.children)
         row_top, row_bottom = _row_band()
         if is_group:
@@ -1627,6 +1633,10 @@ def _render_page_tree(
         # Where the row's own content starts: its rect spans the tree's full width.
         row_x = imgui.get_cursor_screen_pos().x
         is_open = imgui.tree_node_ex(f"{pad}{page.label}###{page.key}", flags)
+        if emphasis:
+            imgui.pop_font()
+        if imgui.is_item_hovered():
+            _hovered_page[1] = page.key
         if is_selected:
             imgui.pop_style_color(2)
         if icon is not None:
@@ -1671,7 +1681,13 @@ def _render_page_tree(
             if is_group:
                 # The line closing the group's box below its last page.
                 _draw_box_line(_row_band()[0])
+    if top_level:
+        _hovered_page[0] = _hovered_page[1]
     return clicked
+
+
+# The page under the mouse in the frame before, and the one found in this frame so far.
+_hovered_page: list[str | None] = [None, None]
 
 
 def _row_band() -> tuple[float, float]:

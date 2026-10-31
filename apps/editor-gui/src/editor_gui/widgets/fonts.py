@@ -127,6 +127,11 @@ def bold(scale: float = 1.0) -> Generator[None]:
         imgui.pop_font()
 
 
+def bold_font() -> imgui.ImFont | None:
+    """The bold font, for code that pushes it itself."""
+    return _bold
+
+
 @contextmanager
 def heading() -> Generator[None]:
     """Draw in the bold font at a larger headline size (for prominent intro text)."""
