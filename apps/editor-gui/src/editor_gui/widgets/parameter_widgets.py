@@ -1366,16 +1366,15 @@ def render_ui_tree(
             _get_icon = get_icon
             _narrow_page[0] = stacked
             try:
-                with _page_colors():
-                    request = _render_page(
-                        device,
-                        selected,
-                        on_change,
-                        deferred_enum,
-                        needle,
-                        differing_refs,
-                        buttons,
-                    )
+                request = _render_page(
+                    device,
+                    selected,
+                    on_change,
+                    deferred_enum,
+                    needle,
+                    differing_refs,
+                    buttons,
+                )
             finally:
                 _get_picture = None
                 _get_icon = None
@@ -2196,10 +2195,10 @@ def _render_cell_separator(
             - px(_CELL_GAP)
         )
         text = _indented_cell_text(sep.text, origin)
-        # Broken into lines as other texts are (at spaces and after hyphens).
+        # Broken into lines as other texts are.
         wrap = max(right - imgui.get_cursor_pos_x(), 1.0)
         if sep.hint == "Headline":
-            with bold(_HEADLINE_SCALE), _headline_color():
+            with bold(_HEADLINE_SCALE):
                 wrapped_text(text, wrap)
         else:
             wrapped_text(text, wrap)
@@ -2430,9 +2429,8 @@ _LIST_LABEL_SHARE = 0.45
 _CELL_GAP = 6.0
 # Space left and right of a button in a grid cell.
 _BUTTON_MARGIN = 7.0
-# Size of a headline over the text: the semibold 10.5 pt over 9 pt of Windows dialogs, as wide as
-# that with the emboldened font.
-_HEADLINE_SCALE = 1.1
+# Size of a headline over the text: 14 px semibold over the 12 px text.
+_HEADLINE_SCALE = 14.0 / 12.0
 # Room at 100 % scaling beyond the usual spacing above and below a separator line and above and
 # below an information or error box. A headline takes the usual spacing only, as its first row
 # follows it one row pitch further down.
@@ -2440,11 +2438,6 @@ _RULER_ABOVE = 14.0
 _RULER_BELOW = 7.0
 _HINT_ABOVE = 9.0
 _HINT_BELOW = 5.0
-# How far the texts and check marks of a page and its headlines lean from their color towards the
-# page's background: the reference draws its text in thin type (thinner than its headlines), so
-# it looks lighter on a light page than ours in the same color would.
-_TEXT_SOFTEN = 0.13
-_HEADLINE_SOFTEN = 0.06
 # Room at 100 % scaling above and below a separator's text: with the line gap a text ends with,
 # two texts in a row are 10 px apart (5 px above and below each).
 _TEXT_ROOM = 4.0
@@ -2545,40 +2538,6 @@ def _mix(a: imgui.ImVec4, b: imgui.ImVec4, t: float) -> imgui.ImVec4:
     )
 
 
-# The text color before _page_colors leans it, for the headlines inside (see _headline_color).
-_page_base_text: list[imgui.ImVec4 | None] = [None]
-
-
-@contextmanager
-def _page_colors() -> Generator[None]:
-    """A page drawn inside has its texts (labels, fields, drop-downs, checkboxes and radio
-    buttons) and check marks in their color leaning _TEXT_SOFTEN towards the page's background:
-    lighter on a light page, darker on a dark one."""
-    background = content_background()
-    text = imgui.get_style_color_vec4(imgui.Col_.text)
-    _page_base_text[0] = imgui.ImVec4(text.x, text.y, text.z, text.w)
-    mark = imgui.get_style_color_vec4(imgui.Col_.check_mark)
-    imgui.push_style_color(imgui.Col_.text, _mix(text, background, _TEXT_SOFTEN))
-    imgui.push_style_color(imgui.Col_.check_mark, _mix(mark, background, _TEXT_SOFTEN))
-    try:
-        yield
-    finally:
-        imgui.pop_style_color(2)
-        _page_base_text[0] = None
-
-
-@contextmanager
-def _headline_color() -> Generator[None]:
-    """A headline drawn inside leans only _HEADLINE_SOFTEN from the text color."""
-    base = _page_base_text[0] or imgui.get_style_color_vec4(imgui.Col_.text)
-    color = _mix(base, content_background(), _HEADLINE_SOFTEN)
-    imgui.push_style_color(imgui.Col_.text, color)
-    try:
-        yield
-    finally:
-        imgui.pop_style_color()
-
-
 def _render_separator(sep: UiSeparator) -> None:
     """A separator without a text is a line, whatever its hint; one with a text is a headline, an
     information or error box, or else (also a horizontal ruler with a text) the text alone."""
@@ -2587,7 +2546,7 @@ def _render_separator(sep: UiSeparator) -> None:
         _render_ruler()
         vertical_space(px(_RULER_BELOW))
     elif sep.hint == "Headline":
-        with bold(_HEADLINE_SCALE), _headline_color():
+        with bold(_HEADLINE_SCALE):
             imgui.align_text_to_frame_padding()
             _aligned_text(sep.text, sep.alignment)
     elif sep.hint == "Information":

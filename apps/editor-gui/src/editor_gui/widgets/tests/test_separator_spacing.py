@@ -55,6 +55,9 @@ def _lines(monkeypatch: pytest.MonkeyPatch) -> list[float]:
         ) -> None:
             lines.append(low.y)
 
+        def add_text(self, *_args: object) -> None:
+            pass
+
     monkeypatch.setattr(parameter_widgets.imgui, "get_window_draw_list", Recorder)
     return lines
 

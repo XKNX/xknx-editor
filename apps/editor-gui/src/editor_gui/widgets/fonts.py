@@ -10,15 +10,24 @@ from imgui_bundle import hello_imgui, imgui
 
 from editor_gui.strings import get_locale
 
-_DEFAULT_FONT = "fonts/DroidSans.ttf"
-# The bold face of the same font (Droid Sans Bold, the same build as the regular face).
-_BOLD_FONT = "fonts/DroidSans-Bold.ttf"
+# XKNX Sans (Noto Sans with the widths, kerning and stem weight of Segoe UI Semilight; the bold face
+# those of Segoe UI Semibold), built by tools/xknx_sans/build.py; ``text_layout`` measures text in
+# it (and in the slanted variants, which keep its advance widths) as WPF does.
+_DEFAULT_FONT = "fonts/XKNXSans-Regular.ttf"
+_BOLD_FONT = "fonts/XKNXSans-Bold.ttf"
 # Letters 12 px high (the em of the font is 12 px; an ImGui font size counts ascent plus descent),
 # the size of the 9 pt text of Windows dialogs, so labels and values written for those fit the same
 # fields.
 _FONT_SIZE = 14.0
+# ImGuiFreeTypeLoaderFlags_NoHinting: glyphs keep the advance widths of the font (hinting rounds
+# them to whole pixels) and the stems their weight (hinting widens them to whole pixels).
+_FREETYPE_NO_HINTING = 1 << 0
 # ImGuiFreeTypeLoaderFlags_Oblique: slanted glyphs of the same face.
 _FREETYPE_OBLIQUE = 1 << 6
+# How much darker each face draws its glyphs' edges: WPF draws thin stems crisply, in full color,
+# where unhinted glyphs spread them over two pixels at part coverage; with this the text of each
+# face is as dark in sum (measured on the labels and headlines of a parameter page).
+_CONTRAST = {_DEFAULT_FONT: 1.42, _BOLD_FONT: 1.1}
 
 # Chinese and Japanese characters (Noto Sans SC and JP, SIL Open Font License): fallbacks merged
 # into each font. Both scripts share most characters but draw them differently, so the font of the
@@ -27,10 +36,6 @@ _CJK_FONTS = {
     "sc": ("fonts/NotoSansSC-Regular.otf", "fonts/NotoSansSC-Bold.otf"),
     "jp": ("fonts/NotoSansJP-Regular.otf", "fonts/NotoSansJP-Bold.otf"),
 }
-
-# Letters the regular Droid Sans face lacks, drawn with a nearly identical glyph it has: the
-# Romanian t with a comma below as the t with a cedilla (the bold face has both).
-_SIMILAR_GLYPHS = ((0x021A, 0x0162), (0x021B, 0x0163))
 
 _default: imgui.ImFont | None = None
 _bold: imgui.ImFont | None = None
@@ -44,21 +49,20 @@ def load_fonts() -> None:
     callback."""
     global _default, _bold, _italic, _bold_italic, _cjk_order
     order = _wanted_cjk_order()
+    config = imgui.ImFontConfig()
+    config.font_loader_flags = _FREETYPE_NO_HINTING
+    config.rasterizer_multiply = _CONTRAST[_DEFAULT_FONT]
     _default = hello_imgui.load_font_ttf_with_font_awesome_icons(
-        _DEFAULT_FONT, _FONT_SIZE
+        _DEFAULT_FONT, _FONT_SIZE, config
     )
     _merge_cjk(order, bold=False)
     _bold = _load_variant(_BOLD_FONT)
     _merge_cjk(order, bold=True)
-    # Droid Sans has no italic face: the regular one, slanted.
+    # XKNX Sans has no italic face: the regular one, slanted.
     _italic = _load_variant(_DEFAULT_FONT, _FREETYPE_OBLIQUE)
     _merge_cjk(order, bold=False, flags=_FREETYPE_OBLIQUE)
     _bold_italic = _load_variant(_BOLD_FONT, _FREETYPE_OBLIQUE)
     _merge_cjk(order, bold=True, flags=_FREETYPE_OBLIQUE)
-    for font in (_default, _italic):
-        if font is not None:
-            for missing, similar in _SIMILAR_GLYPHS:
-                font.add_remap_codepoint(missing, similar)
     _cjk_order = order
 
 
@@ -83,14 +87,15 @@ def _merge_cjk(order: tuple[str, ...], *, bold: bool, flags: int = 0) -> None:
     for script in order:
         params = hello_imgui.FontLoadingParams()
         params.merge_to_last_font = True
-        params.font_config.font_loader_flags = flags
+        params.font_config.font_loader_flags = flags | _FREETYPE_NO_HINTING
         with suppress(RuntimeError):
             hello_imgui.load_font(_CJK_FONTS[script][bold], _FONT_SIZE, params)
 
 
 def _load_variant(path: str, flags: int = 0) -> imgui.ImFont | None:
     params = hello_imgui.FontLoadingParams()
-    params.font_config.font_loader_flags = flags
+    params.font_config.font_loader_flags = flags | _FREETYPE_NO_HINTING
+    params.font_config.rasterizer_multiply = _CONTRAST[path]
     try:
         return hello_imgui.load_font(path, _FONT_SIZE, params)
     except RuntimeError:

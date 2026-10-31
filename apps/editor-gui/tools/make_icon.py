@@ -10,8 +10,9 @@ Writes, all from the same drawing:
   - icon.ico                                     (Windows .exe icon, multi-size)
   - icon.icns                                    (macOS .app icon, multi-size)
 
-The icon is "XKNX" over "editor" in white on a near-black rounded square, in the editor's own bold
-font (assets/fonts/DroidSans-Bold.ttf), so every OS draws the same pixels. Smaller sizes drop
+The icon is "XKNX" over "editor" in white on a near-black rounded square, in Droid Sans Bold (the
+editor's bold font when the icon was drawn, kept beside this script), so every OS draws the same
+pixels. Smaller sizes drop
 words that would be an unreadable smear: below 64 px only "XKNX", at 24 px and less only "X".
 """
 
@@ -25,7 +26,7 @@ BG = (17, 17, 17, 255)  # near-black rounded square
 FG = (255, 255, 255, 255)  # white wordmark
 
 APP = Path(__file__).resolve().parent.parent
-FONT = APP / "src" / "editor_gui" / "assets" / "fonts" / "DroidSans-Bold.ttf"
+FONT = Path(__file__).resolve().with_name("DroidSans-Bold.ttf")
 
 # The layout, in pixels of the 512 px icon: transparent margin, corner radius (share of the
 # square), ink widths of the lines, letter spacing of "editor" (share of its font size), the gap
