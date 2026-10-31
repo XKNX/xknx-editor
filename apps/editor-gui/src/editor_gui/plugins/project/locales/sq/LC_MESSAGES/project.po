@@ -374,7 +374,7 @@ msgid "Pick the fields and an output: a CSV, printable label sheets (Avery), or 
 msgstr "Zgjidhni fushat dhe një dalje: një CSV, fleta etiketash për printim (Avery) ose një legjendë në faqe të plotë. Dalja HTML hapet në shfletuesin tuaj për ta printuar ose ruajtur si PDF."
 
 msgid "Read-only scan: lists devices with a missing, malformed or duplicate individual address."
-msgstr "Kontroll vetëm për lexim: liston pajisjet me adresë individuale që mungon, të pasaktë ose të dyfishtë."
+msgstr "Kontroll vetëm për lexim: liston pajisjet me adresë individuale që mungon, të pavlefshme ose të dyfishtë."
 
 msgid "Source Device"
 msgstr "Pajisja burimore"
@@ -2051,7 +2051,7 @@ msgid "{device}: no individual address"
 msgstr "{device}: pa adresë individuale"
 
 msgid "{device}: malformed address '{address}'"
-msgstr "{device}: adresë e pasaktë '{address}'"
+msgstr "{device}: adresë e pavlefshme '{address}'"
 
 msgid "{device}: duplicate address {address}"
 msgstr "{device}: adresë e dyfishtë {address}"
