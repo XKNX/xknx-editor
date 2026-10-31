@@ -3033,3 +3033,6 @@ msgstr "Zapnout"
 
 msgid "Switch Off"
 msgstr "Vypnout"
+
+msgid "Show the memory a download writes, segment by segment"
+msgstr "Zobrazí paměť, kterou zapisuje nahrání, segment po segmentu"

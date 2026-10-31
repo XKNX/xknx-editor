@@ -3033,3 +3033,6 @@ msgstr "Accendi"
 
 msgid "Switch Off"
 msgstr "Spegni"
+
+msgid "Show the memory a download writes, segment by segment"
+msgstr "Mostra la memoria che uno scaricamento scrive, segmento per segmento"

@@ -3060,3 +3060,6 @@ msgstr "Bekapcsolás"
 
 msgid "Switch Off"
 msgstr "Kikapcsolás"
+
+msgid "Show the memory a download writes, segment by segment"
+msgstr "Megjeleníti a programozás által írt memóriát, szegmensenként"
