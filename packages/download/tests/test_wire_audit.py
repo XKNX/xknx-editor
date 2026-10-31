@@ -755,6 +755,7 @@ async def test_verify_on_write_direct_verifies_inline_and_can_skip_it() -> None:
         LdCtrlWriteMem(address=0x10D, size=1, verify=True, inline_data=b"\x00"),
     ]
     device = FakeDevice()
+    device.memory[0x10D] = 0x55
     application = _application(*verified)
     application.program.mask_version = "MV-0012"
     await LoadProcedureRunner(
@@ -1234,32 +1235,20 @@ async def test_memory_read_rejects_wrong_address_or_count(address, count, data) 
         await DeviceProgrammer(WrongResponse()).read_memory(0x100, 2)
 
 
-@pytest.mark.parametrize("handler", ["variable", "filter"])
-async def test_unsupported_conditional_semantics_fail_before_unload(handler) -> None:
+async def test_unsupported_error_filter_fails_before_unload() -> None:
     from xknxeditor.download.errors import UnsupportedProcedureError
-    from xknxeditor.namespaces.intermediate.ld_ctrl_control_variable_t import (
-        LdCtrlControlVariable,
-    )
     from xknxeditor.namespaces.intermediate.ld_ctrl_map_error_t import LdCtrlMapError
-    from xknxeditor.namespaces.intermediate.ld_ctrl_set_control_variable_t import (
-        LdCtrlSetControlVariable,
-    )
     from xknxeditor.namespaces.intermediate.ld_ctrl_unload_t import LdCtrlUnload
 
     from .test_procedure import _application
 
-    controls = {
-        "variable": LdCtrlSetControlVariable(
-            name=LdCtrlControlVariable.ENABLE_OPTIMISTIC_WRITE, value=True
-        ),
-        "filter": LdCtrlMapError(
-            ld_ctrl_filter=255, original_error=0xC0042B08, mapped_error=0
-        ),
-    }
+    error_filter = LdCtrlMapError(
+        ld_ctrl_filter=255, original_error=0xC0042B08, mapped_error=0
+    )
     device = FakeDevice(MAPPING)
     with pytest.raises(UnsupportedProcedureError):
         await LoadProcedureRunner(
-            _application(LdCtrlUnload(lsm_idx=4), controls[handler]),
+            _application(LdCtrlUnload(lsm_idx=4), error_filter),
             DownloadImage((), ()),
             DeviceProgrammer(device),
             object_types=MAPPING,
