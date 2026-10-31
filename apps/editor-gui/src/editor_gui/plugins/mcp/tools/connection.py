@@ -176,15 +176,16 @@ def _resolve_scope(scope: str | None) -> Any:
 
 
 def _changes(
-    current: bytes, planned: bytes, ranges: tuple[ByteRange, ...]
+    current: bytes, planned: bytes, ranges: list[tuple[ByteRange, str | None]]
 ) -> list[dict[str, Any]]:
     return [
         {
             "offset": r.start,
             "current": current[r.start : r.start + r.length].hex(),
             "planned": planned[r.start : r.start + r.length].hex(),
+            "category": category,
         }
-        for r in ranges
+        for r, category in ranges
     ]
 
 
@@ -194,11 +195,13 @@ def preflight_locations(
     driven_bits: Mapping[int, int],
 ) -> list[dict[str, Any]]:
     """The locations a pre-flight found changed, as the pre-flight window lists them: each with
-    its class and, per changed range, the device's (current) and the download's (planned) bytes
-    in hex."""
+    its class (the most significant one of its bytes) and, per changed range, its own class and
+    the device's (current) and the download's (planned) bytes in hex. A changed range is split
+    where the class of its bytes changes."""
     from editor_gui.programming import (
         preflight_property_category,
         preflight_segment_category,
+        preflight_segment_ranges,
     )
 
     runtime = set(runtime_addresses) | report.device_written
@@ -209,22 +212,29 @@ def preflight_locations(
             "changed_bytes": segment.changed_bytes,
             "category": preflight_segment_category(segment, runtime, driven_bits),
             "changes": _changes(
-                segment.current, segment.planned, segment.changed_ranges
+                segment.current,
+                segment.planned,
+                list(preflight_segment_ranges(segment, runtime, driven_bits)),
             ),
         }
         for segment in report.changed_segments
     ]
-    locations += [
-        {
-            "object": prop.object_label,
-            "property": prop.property_id,
-            "size": len(prop.planned),
-            "changed_bytes": prop.changed_bytes,
-            "category": preflight_property_category(prop),
-            "changes": _changes(prop.current, prop.planned, prop.changed_ranges),
-        }
-        for prop in report.changed_properties
-    ]
+    for prop in report.changed_properties:
+        category = preflight_property_category(prop)
+        locations.append(
+            {
+                "object": prop.object_label,
+                "property": prop.property_id,
+                "size": len(prop.planned),
+                "changed_bytes": prop.changed_bytes,
+                "category": category,
+                "changes": _changes(
+                    prop.current,
+                    prop.planned,
+                    [(r, category) for r in prop.changed_ranges],
+                ),
+            }
+        )
     return locations
 
 
@@ -584,9 +594,11 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         ``locations`` lists every changed location, as the pre-flight window does: a memory segment
         as {memory: "0x4400", ...} or a property write as {object: "5" (index) or "type 40960"
         (addressed by type), property: PID, ...}, each with size, changed_bytes, category ("config",
-        "default" or "runtime", as above) and changes: [{offset, current, planned}] per changed
-        range, offset from the location's start and the device's (current) and the download's
-        (planned) bytes in hex.
+        "default" or "runtime", as above; the most significant class of its bytes) and changes:
+        [{offset, current, planned, category}] per changed range, offset from the location's start,
+        the device's (current) and the download's (planned) bytes in hex and the class of these
+        bytes (a range is split where the class changes). Memory written by more than one
+        segment of the image is one location: each byte is listed and counted once.
 
         A compare of the procedure that checks the device's reaction to one of its own writes (e.g.
         the load state after an unload) is not checked: the preview writes nothing."""
