@@ -2441,7 +2441,7 @@ msgid "A sub-segment of KNX medium type PL is not allowed below a main segment."
 msgstr "Një nënsegment me llojin e mediumit KNX PL nuk lejohet nën një segment kryesor."
 
 msgid "Set bus connection of the backbone"
-msgstr "Cakto lidhjen me busin të backbone-it"
+msgstr "Cakto lidhjen e backbone-it me busin"
 
 msgid "Set domain address"
 msgstr "Cakto adresën e domenit"
