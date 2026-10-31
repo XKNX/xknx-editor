@@ -1205,7 +1205,7 @@ msgid "Size"
 msgstr "Madhësia"
 
 msgid "Modified"
-msgstr "Ndryshuar"
+msgstr "Ndryshuar më"
 
 msgid "The browser did not open it by itself."
 msgstr "Shfletuesi nuk e hapi vetë."
