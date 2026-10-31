@@ -461,7 +461,7 @@ msgid "MyKNX OAuth Credentials (2FA)"
 msgstr "Kredencialet OAuth të MyKNX (2FA)"
 
 msgid "Needed only for accounts with two-factor authentication. The 2FA sign-in opens in your browser automatically when a normal login is rejected. Enter the OAuth client id/secret, or extract them from your installed ETS: pick 'Knx.Ets.MyKnx.dll' from the ETS program folder (e.g. C:\\Program Files (x86)\\ETS6\\Knx.Ets.MyKnx.dll).\n\nAlternatively, if you have any licensed ETS installed, skip online signing entirely and use the local project store instead - see the 'License with a Dongle' tab."
-msgstr "Nevojitet vetëm për llogari me vërtetim me dy faktorë. Hyrja me 2FA hapet automatikisht në shfletues kur një hyrje normale refuzohet. Vendosni ID-në/sekretin e klientit OAuth, ose nxirrini nga ETS-i juaj i instaluar: zgjidhni 'Knx.Ets.MyKnx.dll' nga dosja e programit ETS (p.sh. C:\\Program Files (x86)\\ETS6\\Knx.Ets.MyKnx.dll).\n\nPërndryshe, nëse keni të instaluar ndonjë ETS të licencuar, anashkaloni krejt nënshkrimin online dhe përdorni në vend të tij project store-in lokal - shihni skedën 'Licenco me dongle'."
+msgstr "Nevojitet vetëm për llogari me vërtetim me dy faktorë. Hyrja me 2FA hapet automatikisht në shfletues kur një hyrje normale refuzohet. Vendosni ID-në/sekretin e klientit OAuth, ose nxirrini nga ETS-i juaj i instaluar: zgjidhni 'Knx.Ets.MyKnx.dll' nga dosja e programit ETS (p.sh. C:\\Program Files (x86)\\ETS6\\Knx.Ets.MyKnx.dll).\n\nSi alternativë, nëse keni të instaluar ndonjë ETS të licencuar, anashkaloni krejt nënshkrimin online dhe përdorni në vend të tij project store-in lokal - shihni skedën 'Licenco me dongle'."
 
 msgid "Client ID"
 msgstr "ID e klientit"
@@ -542,10 +542,10 @@ msgid "ETS installer id"
 msgstr "ID e instaluesit ETS"
 
 msgid "Project Already in the Store"
-msgstr "Projekti është tashmë në Store"
+msgstr "Projekti është tashmë në ProjectStore"
 
 msgid "A project folder '{pid}' already exists in this ETS ProjectStore. Overwrite it, or add it as a separate copy?"
-msgstr "Një dosje projekti '{pid}' ekziston tashmë në këtë ProjectStore të ETS. Ta mbishkruaj apo ta shtoj si kopje më vete?"
+msgstr "Një dosje projekti '{pid}' ekziston tashmë në këtë ProjectStore të ETS. Të mbishkruhet apo të shtohet si kopje më vete?"
 
 msgid "Overwrite"
 msgstr "Mbishkruaj"
