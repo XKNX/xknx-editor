@@ -41,7 +41,7 @@ msgid "Network Location"
 msgstr "Vendndodhje në rrjet"
 
 msgid "This location is on a network drive:\n{home}\n\nKNX project files use a database that cannot run reliably on network shares. The editor can work on a local copy instead and write it back to the network location when you close the project."
-msgstr "Kjo vendndodhje ndodhet në një disk rrjeti:\n{home}\n\nSkedarët e projekteve KNX përdorin një bazë të dhënash që nuk funksionon me siguri në dosje të ndara në rrjet. Në vend të kësaj, editori mund të punojë me një kopje lokale dhe ta shkruajë atë përsëri në vendndodhjen e rrjetit kur ta mbyllni projektin."
+msgstr "Kjo vendndodhje ndodhet në një disk rrjeti:\n{home}\n\nSkedarët e projekteve KNX përdorin një bazë të dhënash që nuk funksionon në mënyrë të besueshme në dosje të ndara në rrjet. Në vend të kësaj, editori mund të punojë me një kopje lokale dhe ta shkruajë atë përsëri në vendndodhjen e rrjetit kur ta mbyllni projektin."
 
 msgid "Use a Local Copy"
 msgstr "Përdor një kopje lokale"
@@ -1439,16 +1439,16 @@ msgid "On the Network"
 msgstr "Në rrjet"
 
 msgid "This editor is controllable by an AI assistant through the built-in MCP server: it exposes the catalog and project as tools over Streamable HTTP. Register its endpoint in your AI tool."
-msgstr "Ky editor mund të drejtohet nga një asistent AI përmes serverit të integruar MCP: ai ofron katalogun dhe projektin si mjete përmes Streamable HTTP. Regjistroni endpoint-in e tij në mjetin tuaj AI."
+msgstr "Ky editor mund të drejtohet nga një asistent AI përmes serverit MCP të integruar: ai i ofron katalogun dhe projektin si vegla përmes Streamable HTTP. Regjistroni pikën e tij fundore në veglën tuaj AI."
 
 msgid "Example: register the MCP server in your AI tool:"
-msgstr "Shembull: regjistroni serverin MCP në mjetin tuaj AI:"
+msgstr "Shembull: regjistroni serverin MCP në veglën tuaj AI:"
 
 msgid "Example: register the MCP server in your AI tool, with your token in place of HOME_ASSISTANT_TOKEN:"
-msgstr "Shembull: regjistroni serverin MCP në mjetin tuaj AI, me token-in tuaj në vend të HOME_ASSISTANT_TOKEN:"
+msgstr "Shembull: regjistroni serverin MCP në veglën tuaj AI, me token-in tuaj në vend të HOME_ASSISTANT_TOKEN:"
 
 msgid "Home Assistant provides the MCP server: AI tools sign in with a long-lived access token of a Home Assistant user who may use the editor (Profile > Security)."
-msgstr "Serverin MCP e ofron Home Assistant: mjetet AI hyjnë me një token aksesi afatgjatë të një përdoruesi të Home Assistant që ka të drejtë të përdorë editorin (Profili > Siguria)."
+msgstr "Serverin MCP e ofron Home Assistant: veglat AI hyjnë me një token aksesi afatgjatë të një përdoruesi të Home Assistant që ka të drejtë të përdorë editorin (Profili > Siguria)."
 
 msgid "The program that started XKNX Editor set up its MCP server."
 msgstr "Programi që nisi XKNX Editor e ka konfiguruar serverin e tij MCP."
