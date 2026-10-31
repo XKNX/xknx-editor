@@ -34,7 +34,6 @@ from xknxeditor.namespaces.intermediate.hawk_configuration_data_t_resources_reso
 from xknxeditor.namespaces.intermediate.resource_addr_space_t import ResourceAddrSpace
 from xknxeditor.namespaces.intermediate.resource_name_t import ResourceName
 
-from .errors import RecoverError
 from .tables_decode import (
     DecodedGroupObject,
     DecodedLink,
@@ -50,7 +49,6 @@ from .tables_decode import (
 if TYPE_CHECKING:
     from xknxeditor.download import DeviceProgrammer
     from xknxeditor.prod import Application
-    from xknxeditor.prod.parser_v2.dynamic import DynamicUI
 
 # Memory-mapped com object table record layout (see download.image).
 _COM_OBJECT_HEADER = 5
@@ -76,14 +74,23 @@ class RawConfiguration:
     parameter_segments: dict[str, bytes]
 
 
-def _require_ui(application: Application) -> DynamicUI:
+def _segment_layout(application: Application) -> tuple[dict[str, int], dict[str, int]]:
+    """The base address and the size of each code segment. An application without a dynamic
+    section (an interface without parameters) still has its segments, tables included."""
     ui = application.dynamic_ui()
-    if ui is None:
-        raise RecoverError(
-            f"application {application.id} has no dynamic section to locate its "
-            "segments"
-        )
-    return ui
+    if ui is not None:
+        return ui.segment_base_addrs(), ui.segment_sizes()
+    from xknxeditor.prod.parser_v2.application_indexer import ApplicationIndexer
+    from xknxeditor.prod.parser_v2.encode import segment_seed
+
+    indexer = ApplicationIndexer(application.program)
+    return (
+        {sid: indexer.segment_base_addr(sid) for sid in indexer.code_segments},
+        {
+            sid: len(segment_seed(segment))
+            for sid, segment in indexer.code_segments.items()
+        },
+    )
 
 
 def _is_memory_mapped(application: Application) -> bool:
@@ -189,8 +196,7 @@ async def read_parameter_memory(
     own, which a standard memory read at the same address does not reach (and the
     download does not write). This is the raw material parameter recovery matches against.
     """
-    ui = _require_ui(application)
-    sizes = ui.segment_sizes()
+    base_addresses, sizes = _segment_layout(application)
     memory_mapped = _is_memory_mapped(application)
     code = application.program.static.code
     result: dict[str, bytes] = {}
@@ -198,7 +204,6 @@ async def read_parameter_memory(
     # model, or a transient timeout) is skipped, not fatal: the device still
     # recovers the parameters from the segments that could be read.
     if memory_mapped:
-        base_addresses = ui.segment_base_addrs()
         user_memory = {
             segment.id
             for segment in (code.absolute_segment if code is not None else [])
@@ -331,9 +336,7 @@ async def _read_memory_mapped(
     programmer: DeviceProgrammer, application: Application
 ) -> RawGroupCommunication:
     static = application.program.static
-    ui = _require_ui(application)
-    base_addresses = ui.segment_base_addrs()
-    sizes = ui.segment_sizes()
+    base_addresses, sizes = _segment_layout(application)
 
     address_table = static.address_table
     assert address_table is not None and address_table.code_segment is not None

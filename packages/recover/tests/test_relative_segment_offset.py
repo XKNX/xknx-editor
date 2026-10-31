@@ -29,7 +29,9 @@ async def test_a_relative_segment_is_read_at_its_offset() -> None:
     application = cast(
         Any,
         SimpleNamespace(
-            dynamic_ui=lambda: SimpleNamespace(segment_sizes=lambda: segments),
+            dynamic_ui=lambda: SimpleNamespace(
+                segment_sizes=lambda: segments, segment_base_addrs=lambda: {}
+            ),
             program=SimpleNamespace(
                 static=SimpleNamespace(
                     address_table=None,
