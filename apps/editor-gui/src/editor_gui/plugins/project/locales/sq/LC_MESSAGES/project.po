@@ -1943,7 +1943,7 @@ msgid "Set description"
 msgstr "Vendos përshkrimin"
 
 msgid "Set sending group address"
-msgstr "Cakto adresën e grupit dërguese"
+msgstr "Cakto adresën dërguese të grupit"
 
 msgid "Add installation"
 msgstr "Shto instalim"

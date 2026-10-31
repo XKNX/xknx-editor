@@ -32,19 +32,19 @@ msgid "Paste Links ({count})"
 msgstr "Ngjit lidhjet ({count})"
 
 msgid "Assigns the copied links and flags to the checked objects in order (1st to 1st, 2nd to 2nd, …), replacing each target's current links."
-msgstr "U cakton lidhjet dhe flamujt e kopjuar objekteve të shënuara sipas radhës (i 1-ri te i 1-ri, i 2-ti te i 2-ti, …), duke zëvendësuar lidhjet aktuale të secilit objektiv."
+msgstr "U cakton lidhjet dhe flamujt e kopjuar objekteve të shënuara sipas radhës (i 1-ri te i 1-ri, i 2-ti te i 2-ti, …), duke zëvendësuar lidhjet aktuale të secilit objekt."
 
 msgid "Merge"
 msgstr "Bashko"
 
 msgid "Keep each target's existing links and only add the copied ones."
-msgstr "Ruaj lidhjet ekzistuese të secilit objektiv dhe shto vetëm ato të kopjuarat."
+msgstr "Ruaj lidhjet ekzistuese të secilit objekt dhe shto vetëm lidhjet e kopjuara."
 
 msgid "Copy Links"
 msgstr "Kopjo lidhjet"
 
 msgid "Default (Inherit)"
-msgstr "Parazgjedhje (e trashëguar)"
+msgstr "Parazgjedhja (e trashëguar)"
 
 msgid "Edit Description…"
 msgstr "Ndrysho përshkrimin…"
@@ -68,7 +68,7 @@ msgid "Create Group Addresses"
 msgstr "Krijo adresa grupi"
 
 msgid "{n}  Sequential index ({n:02} zero-pads)"
-msgstr "{n}  Indeks rendor ({n:02} plotëson me zero)"
+msgstr "{n}  Indeks rendor ({n:02} plotësohet me zero)"
 
 msgid "Name Template"
 msgstr "Shablloni i emrit"
@@ -80,10 +80,10 @@ msgid "automatic"
 msgstr "automatike"
 
 msgid "Sending Group Address"
-msgstr "Adresa e grupit dërguese"
+msgstr "Adresa dërguese e grupit"
 
 msgid "Receiving Group Address"
-msgstr "Adresa e grupit marrëse"
+msgstr "Adresa marrëse e grupit"
 
 msgid "sent"
 msgstr "dërguar"
@@ -92,7 +92,7 @@ msgid "received"
 msgstr "marrë"
 
 msgid "sent & received"
-msgstr "dërguar & marrë"
+msgstr "dërguar dhe marrë"
 
 msgid "older"
 msgstr "më e vjetër"
@@ -110,7 +110,7 @@ msgid "Name"
 msgstr "Emri"
 
 msgid "Create & Link"
-msgstr "Krijo & lidh"
+msgstr "Krijo adresën dhe lidhe"
 
 msgid "Name template"
 msgstr "Shablloni i emrit"
