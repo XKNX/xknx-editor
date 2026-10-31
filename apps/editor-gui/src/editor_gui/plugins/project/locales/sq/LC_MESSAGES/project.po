@@ -323,7 +323,7 @@ msgid "Device Certificate"
 msgstr "Certifikata e pajisjes"
 
 msgid "This device already uses its own key from this project. Its certificate is only needed again after a factory reset."
-msgstr "Kjo pajisje përdor tashmë çelësin e vet nga ky projekt. Certifikata e saj nevojitet sërish vetëm pas një rikthimi në cilësimet e fabrikës."
+msgstr "Kjo pajisje përdor tashmë çelësin e vet nga ky projekt. Certifikata e saj nevojitet sërish vetëm pas një rivendosjeje fabrike."
 
 msgid "This device still uses its factory key: its first secure download needs its certificate."
 msgstr "Kjo pajisje përdor ende çelësin e fabrikës: programimi i saj i parë i sigurt kërkon certifikatën e saj."
@@ -338,7 +338,7 @@ msgid "To replace it, enter the new FDSK (36 characters):"
 msgstr "Për ta zëvendësuar, vendosni FDSK-në e re (36 karaktere):"
 
 msgid "Remove the stored certificate? After a factory reset, the device can then only be reached again with the code from its label."
-msgstr "Ta hiqni certifikatën e ruajtur? Pas një rikthimi në cilësimet e fabrikës, pajisja mund të arrihet sërish vetëm me kodin nga etiketa e saj."
+msgstr "Të hiqet certifikata e ruajtur? Pas një rivendosjeje fabrike, pajisja mund të arrihet sërish vetëm me kodin nga etiketa e saj."
 
 msgid "Device Certificate…"
 msgstr "Certifikata e pajisjes…"
