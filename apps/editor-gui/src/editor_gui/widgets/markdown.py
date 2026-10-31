@@ -9,7 +9,7 @@ from dataclasses import dataclass
 from imgui_bundle import imgui
 
 from editor_gui.widgets.dpi import px
-from editor_gui.widgets.fonts import bold
+from editor_gui.widgets.fonts import bold, semilight
 from editor_gui.widgets.wrapping import LINE_GAP, vertical_space, wrapped_text
 
 _HEADING = re.compile(r"^(#{1,6})\s+(.*)$")
@@ -18,12 +18,17 @@ _NUMBERED = re.compile(r"^\s*(\d+)[.)]\s+(.*)$")
 _IMAGE = re.compile(r"!\[[^\]]*\]\([^)]*\)")
 _LINK = re.compile(r"\[([^\]]*)\]\([^)]*\)")
 _EMPHASIS = re.compile(r"(\*\*|__|\*|_|`)(.+?)\1")
-# Size of a heading over the text, and whether it is bold, by its level (#, ##, ###, deeper):
-# level 2 and 3 are about 16 px over text of 12 px, level 2 semibold.
-_HEADINGS = ((1.6, True), (1.28, True), (1.28, False), (1.0, True))
+# Size of a heading over the text of 12 px, and its face, by its level (#, ##, ###, deeper): 18 px
+# semilight, 16 px semibold, 16 px regular, 12 px semibold.
+_HEADINGS = (
+    (18.0 / 12.0, "semilight"),
+    (16.0 / 12.0, "bold"),
+    (16.0 / 12.0, "regular"),
+    (1.0, "bold"),
+)
 # Room at 100 % scaling above and below a heading, and around other blocks (paragraphs, lists);
 # of two blocks the larger of their rooms parts them.
-_HEADING_ABOVE = 25.0
+_HEADING_ABOVE = 24.0
 _HEADING_BELOW = 23.0
 _BLOCK_ROOM = 12.0
 # Where a list item's marker and its text start, at 100 % scaling, and the bullet's radius.
@@ -109,10 +114,13 @@ def render_markdown(text: str) -> None:
 
 
 def _render_heading(block: _Block) -> None:
-    scale, is_bold = _HEADINGS[min(block.level, len(_HEADINGS)) - 1]
+    scale, face = _HEADINGS[min(block.level, len(_HEADINGS)) - 1]
     width = imgui.get_content_region_avail().x
-    if is_bold:
+    if face == "bold":
         with bold(scale):
+            wrapped_text(block.text, width)
+    elif face == "semilight":
+        with semilight(scale):
             wrapped_text(block.text, width)
     else:
         imgui.push_font(None, imgui.get_style().font_size_base * scale)

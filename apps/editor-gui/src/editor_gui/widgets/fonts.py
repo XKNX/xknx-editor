@@ -107,9 +107,10 @@ def _load_variant(path: str, flags: int = 0) -> imgui.ImFont | None:
 
 
 @contextmanager
-def semilight() -> Generator[None]:
-    """Draw in the semilight font at the normal text size (the texts between parameters)."""
-    imgui.push_font(_semilight, imgui.get_style().font_size_base)
+def semilight(scale: float = 1.0) -> Generator[None]:
+    """Draw in the semilight font (the texts between parameters) at the normal text size, or
+    ``scale`` times it."""
+    imgui.push_font(_semilight, imgui.get_style().font_size_base * scale)
     try:
         yield
     finally:
