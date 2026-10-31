@@ -98,3 +98,29 @@ def test_page_icons_are_16_px(monkeypatch: pytest.MonkeyPatch) -> None:
     tree(pages, None, frozenset(), True, lambda _name: cast(Icon, object()))
     # As large as in the reference, whatever the text size.
     assert sizes == [16.0]
+
+
+@pytest.mark.usefixtures("frame")
+def test_page_rows_are_higher_than_fields(monkeypatch: pytest.MonkeyPatch) -> None:
+    pages = build_pages([_page("PB-1", "Allgemein"), _page("PB-2", "Kanalkopie")], "1")
+    rows: list[tuple[float, float]] = []
+    tree_node_ex = imgui.tree_node_ex
+
+    def record(label: str, flags: int) -> bool:
+        opened = tree_node_ex(label, flags)
+        rows.append((imgui.get_item_rect_min().y, imgui.get_item_rect_max().y))
+        return opened
+
+    monkeypatch.setattr(parameter_widgets.imgui, "tree_node_ex", record)
+    band = parameter_widgets._row_band  # pyright: ignore[reportPrivateUsage]
+    top, bottom = band()
+    tree = parameter_widgets._render_page_tree  # pyright: ignore[reportPrivateUsage]
+    tree(pages, None, frozenset(), True, None)
+    style = imgui.get_style()
+    # 1 px more above and below the text than a field (rows 30 px apart at 100 %) ...
+    height = imgui.get_frame_height() + 2.0
+    assert [b - t for t, b in rows] == pytest.approx([height, height])
+    assert rows[1][0] - rows[0][0] == pytest.approx(height + style.item_spacing.y)
+    # ... and the band behind a row reaches half the spacing past it on both sides.
+    half = style.item_spacing.y / 2
+    assert (top, bottom) == pytest.approx((rows[0][0] - half, rows[0][1] + half))

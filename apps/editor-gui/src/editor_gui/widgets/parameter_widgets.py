@@ -1574,6 +1574,9 @@ def _show_page_help(device: Device, page: ParameterPage) -> None:
 
 # Size at 100 % scaling of a page's icon in the page tree (16 px, as in the reference).
 _PAGE_ICON = 16.0
+# Room above and below a page's text in the page tree beyond a field's, at 100 % scaling: rows
+# 30 px apart.
+_PAGE_ROW_EXTRA = 1.0
 
 
 def _render_page_tree(
@@ -1594,8 +1597,8 @@ def _render_page_tree(
     if top_level:
         _hovered_page[1] = None
     for page in pages:
-        # A row spans the tree's width, so the selected one joins the page beside it, and is as
-        # high as a field.
+        # A row spans the tree's width, so the selected one joins the page beside it, and is a
+        # little higher than a field.
         flags = (
             imgui.TreeNodeFlags_.span_full_width | imgui.TreeNodeFlags_.frame_padding
         )
@@ -1636,7 +1639,13 @@ def _render_page_tree(
             imgui.push_style_color(imgui.Col_.header_active, imgui.ImVec4(0, 0, 0, 0))
         # Where the row's own content starts: its rect spans the tree's full width.
         row_x = imgui.get_cursor_screen_pos().x
+        frame = imgui.get_style().frame_padding
+        imgui.push_style_var(
+            imgui.StyleVar_.frame_padding,
+            imgui.ImVec2(frame.x, frame.y + px(_PAGE_ROW_EXTRA)),
+        )
         is_open = imgui.tree_node_ex(f"{pad}{page.label}###{page.key}", flags)
+        imgui.pop_style_var()
         if emphasis:
             imgui.pop_font()
         if imgui.is_item_hovered():
@@ -1699,7 +1708,12 @@ def _row_band() -> tuple[float, float]:
     above and below it, so the bands of neighbouring rows touch."""
     half = imgui.get_style().item_spacing.y / 2
     top = imgui.get_cursor_screen_pos().y
-    return top - half, top + imgui.get_frame_height() + half
+    return top - half, top + _page_row_height() + half
+
+
+def _page_row_height() -> float:
+    """Height of a row of the page tree, without the spacing to the next one."""
+    return imgui.get_frame_height() + 2 * px(_PAGE_ROW_EXTRA)
 
 
 def _draw_band(top: float, bottom: float, color: imgui.ImVec4, inset: float) -> None:
