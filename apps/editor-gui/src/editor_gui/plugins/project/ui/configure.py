@@ -205,8 +205,8 @@ def reset_presets() -> list[tuple[str, int]]:
 
 # The dialog of a Program press keeps its identity while its title follows the case.
 _PROGRAM_DIALOG_ID = "###program_device"
-# The memory preview's button: FontAwesome 4 "microchip" (the icon font the app loads).
-MEMORY_PREVIEW_BUTTON = "###preview_memory"
+# The memory preview's button: FontAwesome 4 "eye" (the icon font the app loads).
+MEMORY_PREVIEW_BUTTON = "###preview_memory"
 
 
 @dataclass(frozen=True, slots=True)

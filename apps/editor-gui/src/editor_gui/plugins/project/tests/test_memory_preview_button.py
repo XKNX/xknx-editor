@@ -85,7 +85,7 @@ def test_the_button_shows_an_icon_and_names_itself_in_its_tooltip(
 
     assert recorded.buttons == [(MEMORY_PREVIEW_BUTTON, False)]
     # Only the icon is drawn: the text after "###" is the button's id.
-    assert MEMORY_PREVIEW_BUTTON.split("###")[0] == ""
+    assert MEMORY_PREVIEW_BUTTON.split("###")[0] == ""
     assert recorded.tooltips == [f"{S.BTN_PREVIEW_MEMORY}\n{S.PREVIEW_MEMORY_HINT}"]
     assert opened == [device]
 
