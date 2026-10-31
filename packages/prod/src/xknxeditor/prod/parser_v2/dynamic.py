@@ -235,6 +235,10 @@ class DynamicTreeBuilder:
         # active, so it must not gate the capture chain (would wrongly disqualify every object under it).
         # This set is shared by reference into the Choose/Repeat nodes and is complete once _build ends.
         self._widget_param_refs: set[str] = set()
+        # Param-refs (local to their application or module definition) whose value shapes the
+        # tree: a choose's selector, a repeat's count, an assign's source. Any other value
+        # changes no branch, module instance or allocation. Complete once _build ends.
+        self.structural_param_refs: set[str] = set()
         self._plugin_warned: set[str] = set()
         # A module definition's subtree, built once and shared by all its instances: nodes hold no
         # per-instance state (the instance comes from the evaluation context).
@@ -438,6 +442,7 @@ class DynamicTreeBuilder:
                     default_nodes = (default_nodes or []) + built
                 if when.test is not None:
                     condition_to_nodes.setdefault(when.test, []).extend(built)
+            self.structural_param_refs.add(elem.param_ref_id)
             return ChooseWhenNode(
                 elem.param_ref_id,
                 condition_to_nodes,
@@ -447,6 +452,8 @@ class DynamicTreeBuilder:
             )
         elif isinstance(elem, Repeat):
             # TODO: index substitution for non-Module children still missing
+            if elem.parameter_ref_id:
+                self.structural_param_refs.add(elem.parameter_ref_id)
             return RepeatNode(
                 elem,
                 [self._build(child) for child in elem.choice],
@@ -518,6 +525,8 @@ class DynamicTreeBuilder:
             return BinaryDataRefNode(elem)
         elif isinstance(elem, Assign):
             # Leaf: pins a parameter to a fixed value; state-only, no UI
+            if elem.source_param_ref_ref is not None:
+                self.structural_param_refs.add(elem.source_param_ref_ref)
             return AssignNode(elem)
         elif isinstance(elem, Rename):
             # Leaf: renames a channel or element inside a choose branch
@@ -781,6 +790,7 @@ class DynamicUI:
         "_idx",
         "_page_for",
         "_state",
+        "_structural_param_refs",
         "_tree",
         "_ui",
         "project_code_page",
@@ -807,6 +817,7 @@ class DynamicUI:
         self.project_code_page = project_code_page
         self._tree = builder.tree
         self._idx = builder.idx
+        self._structural_param_refs = builder.structural_param_refs
         self._page_for = builder.page_param_for
         self._state = GlobalState.from_project(
             parameter_instance_refs=parameter_instance_refs,
@@ -1247,6 +1258,11 @@ class DynamicUI:
         """The codec of this device's ``Text`` parameters (see :func:`text_parameter_encoding`)."""
         return text_parameter_encoding(self._app, self.project_code_page)
 
+    @property
+    def _has_allocators(self) -> bool:
+        """Whether the application or one of its module definitions declares an allocator."""
+        return bool(self._idx.app_allocators) or any(self._idx.allocators.values())
+
     def _journal(self) -> Journal:
         def explicit(ref_id: str) -> str | None:
             scope, local = self._locate(ref_id)
@@ -1310,9 +1326,24 @@ class DynamicUI:
                 raise ValueError(
                     f"parameter ref {ref_id!r} is not active in the current UI state"
                 )
+        # A script write (no ``require_active``) settles only where it can make an allocator
+        # overflow: in an application with allocators, for a value that shapes the tree (or
+        # runs calculations, which may write one). The next read settles anyway, and a script
+        # writing many values in a row (a DALI gateway's "select all" button sets 64) would
+        # otherwise evaluate the tree once per value.
+        settle = strict and (
+            require_active
+            or (
+                self._has_allocators
+                and (
+                    local in self._structural_param_refs
+                    or bool(self._idx.calculation_plan(local))
+                )
+            )
+        )
         # The settle below also runs the Assigns of what the value turns on; a rejection returns
         # to this state, as the journal undoes only the values the change wrote.
-        before = copy.deepcopy(self._state) if strict else None
+        before = copy.deepcopy(self._state) if settle else None
         journal = self._journal()
         try:
             if validate:
@@ -1328,7 +1359,7 @@ class DynamicUI:
                 abort=self.script_abort,
             )
             self._invalidate()
-            if strict:
+            if settle:
                 # A value that leaves an allocator too few numbers (e.g. more channels than it
                 # holds) is rejected with the allocator's message, as a failed validation. The
                 # settle is the one the next read needs anyway.

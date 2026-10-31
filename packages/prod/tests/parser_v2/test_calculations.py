@@ -158,3 +158,54 @@ def test_allocator_overflow_rejects_the_edit(
     assert ui.get_value(_ref(1)) == "1"
     assert ui.get_value(_ref(2)) == "2"
     assert ui.get_value(f"{MD}_M-2_MI-1_P-1_R-1") == "0"  # the Assign is undone as well
+
+
+@pytest.mark.parametrize(
+    ("allocators", "structural", "settles"),
+    [(False, True, False), (True, False, False), (True, True, True)],
+)
+def test_a_script_write_settles_only_where_an_allocator_can_overflow(
+    ui: DynamicUI,
+    monkeypatch: pytest.MonkeyPatch,
+    allocators: bool,
+    structural: bool,
+    settles: bool,
+) -> None:
+    # A script writing many values in a row evaluates the tree once, at the next read, unless a
+    # value shapes the tree (a selector, a repeat count, an assign's source) of an application
+    # with allocators: that write is settled and an overflow rejects it.
+    build = DynamicUI._build_ui  # pyright: ignore[reportPrivateUsage]
+    settled: list[bool] = []
+
+    def overflowing(self: DynamicUI, *, capture_active: bool) -> None:
+        if capture_active:
+            settled.append(True)
+            raise AllocatorOverflow("overflow", "L-1", f"{APP}_M-1")
+        build(self, capture_active=capture_active)
+
+    if allocators:
+        monkeypatch.setattr(DynamicUI, "_has_allocators", property(lambda _: True))
+    if structural:
+        monkeypatch.setattr(ui, "_structural_param_refs", {_ref(7)})
+    monkeypatch.setattr(DynamicUI, "_build_ui", overflowing)
+    if settles:
+        with pytest.raises(ParameterValidationError):
+            ui.write_parameter(_ref(7), "K123")
+        assert ui.get_value(_ref(7)) == ""
+    else:
+        ui.write_parameter(_ref(7), "K123")
+        assert ui.get_value(_ref(7)) == "K123"
+    assert settled == ([True] if settles else [])
+
+
+def test_the_tree_records_the_values_that_shape_it() -> None:
+    from xknxeditor.prod import load
+
+    fixture = (
+        Path(__file__).parents[1] / "fixtures" / "gira_2gang_button_interface.knxprod"
+    )
+    app = load(fixture.read_bytes()).applications["M-0008_A-7072-21-5CC3-O000A"]
+    structural = DynamicTreeBuilder(app.program).structural_param_refs
+    # A choose's selector is one, a plain value shown in a module is not.
+    assert "M-0008_A-7072-21-5CC3-O000A_P-496_R-106" in structural
+    assert "M-0008_A-7072-21-5CC3-O000A_MD-1_P-100024_R-100030" not in structural
