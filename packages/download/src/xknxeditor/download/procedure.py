@@ -32,7 +32,7 @@ import re
 import time
 from collections.abc import Awaitable, Callable, Mapping, Sequence
 from dataclasses import dataclass, replace
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 from xknx.profile.const import ResourceGenericPropertyId, ResourceObjectType
 
@@ -1744,9 +1744,17 @@ class LoadProcedureRunner:
             await asyncio.sleep((control.retry_interval or 0) / 1000)
 
     async def _compare_mem(
-        self, address: int, expected: bytes, mask: bytes | None = None
+        self, address: int, expected: bytes | None, mask: bytes | None = None
     ) -> None:
-        """Read memory and compare it against expected data (mask-aware, like _compare_prop)."""
+        """Read memory and compare it against expected data (mask-aware, like _compare_prop);
+        ``None``: there is nothing to compare."""
+        if expected is None:
+            logger.info(
+                "download: %s compares memory %#06x without data to compare; not checked",
+                self._target(),
+                address,
+            )
+            return
         programmer = await self._bus()
         read_back = await programmer.read_memory(address, len(expected))
         matched = _bytes_match(read_back, expected, mask, len(expected))
@@ -2611,7 +2619,7 @@ class LoadProcedureRunner:
         images begin at element one; element zero is a separate count resource.
         The returned width is authoritative only when an element was captured.
         """
-        expected = bytearray(control.inline_data)
+        expected = bytearray(control.inline_data or b"")
         captured = [
             self._property_captures.get((index, control.prop_id, element))
             for element in range(
@@ -2667,7 +2675,10 @@ class LoadProcedureRunner:
 
     def _memory_compare_data(
         self, control: LdCtrlCompareMem | LdCtrlCompareRelMem, index: int | None = None
-    ) -> bytes:
+    ) -> bytes | None:
+        """The data ``control`` compares: its inline data with the image's data laid over it.
+        Without inline data the image's own data, as far as the image goes from the address;
+        ``None`` when it has none there (nothing to compare)."""
         if isinstance(control, LdCtrlCompareRelMem):
             address = control.offset
             runs = self._relative_runs(
@@ -2692,6 +2703,13 @@ class LoadProcedureRunner:
         }
         for start, data in runs or []:
             values.update({start + n: value for n, value in enumerate(data)})
+        # Typed bytes, but a control without the attribute carries None.
+        inline = cast("bytes | None", control.inline_data)
+        if inline is None:
+            size = 0
+            while size < control.size and address + size in values:
+                size += 1
+            return bytes(values[address + n] for n in range(size)) or None
         if any(address + n not in values for n in range(control.size)):
             raise ImageError("incomplete memory comparison image")
         return bytes(values[address + n] for n in range(control.size))
@@ -2732,7 +2750,7 @@ class LoadProcedureRunner:
             control.start_element,
             source,
             captured_width,
-            control.inline_data.hex(),
+            (control.inline_data or b"").hex(),
             expected.hex(),
             read_back.hex(),
             control.mask.hex() if control.mask is not None else "none",
@@ -2824,10 +2842,9 @@ class LoadProcedureRunner:
     ) -> LdCtrlCompareProp | None:
         """``control`` as it compares when its inline data is shorter than its elements and
         the image holds the property: the image's data, as far as the image goes, and only
-        the bits a parameter covers (``None``: none, nothing to compare). Otherwise
+        the bits a parameter covers (``None``: none, nothing to compare). A compare without
+        inline data, image or captured value has nothing to compare either. Otherwise
         ``control`` itself."""
-        if control.start_element == 0 or control.prop_id == PID_TABLE_REFERENCE:
-            return control
         prop = next(
             (
                 p
@@ -2837,6 +2854,25 @@ class LoadProcedureRunner:
             ),
             None,
         )
+        captured = any(
+            (index, control.prop_id, element) in self._property_captures
+            for element in range(
+                control.start_element, control.start_element + control.count
+            )
+        )
+        # Typed bytes, but a control without the attribute carries None.
+        inline = cast("bytes | None", control.inline_data)
+        if inline is None and prop is None and not captured:
+            logger.info(
+                "download: %s compares object %s property %d without data to compare; "
+                "not checked",
+                self._target(),
+                self._object_label(index),
+                control.prop_id,
+            )
+            return None
+        if control.start_element == 0 or control.prop_id == PID_TABLE_REFERENCE:
+            return control
         if prop is None:
             return control
         await self._ensure_property_width(index, control)
