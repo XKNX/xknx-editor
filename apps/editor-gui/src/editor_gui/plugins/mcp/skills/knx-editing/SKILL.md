@@ -137,6 +137,17 @@ Changing a button's function replaces its group objects, and the links of the ol
    ])
    ```
 
+   A setting such as a time base can show another parameter under a new ref (`…_P-222_R-102`
+   becomes `…_P-222_R-235`). To set that parameter in the same batch, address it by
+   `parameter_id`, its ref without `_R-…`: it resolves when its op runs.
+
+   ```
+   project_batch(operations=[
+     {"op": "set_parameter", "params": {"device_address": "1.1.20", "parameter_ref_id": "M-0008_..._P-221_R-101", "value": "1"}},
+     {"op": "set_parameter", "params": {"device_address": "1.1.20", "parameter_id": "M-0008_..._P-222", "value": "20"}}
+   ])
+   ```
+
 4. Check both ends, then download parameters and links together:
 
    ```

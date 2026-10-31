@@ -1527,3 +1527,12 @@ msgstr "Forritið sem ræsti XKNX Editor setti upp MCP-þjón hans."
 
 msgid "Home Assistant updates XKNX Editor with its integration: check Home Assistant for an update of the XKNX Editor integration. It may follow this release a little later."
 msgstr "Home Assistant uppfærir XKNX Editor með samþættingu sinni: leitaðu í Home Assistant að uppfærslu á XKNX Editor-samþættingunni. Hún gæti komið aðeins síðar en þessi útgáfa."
+
+msgid "Report a Bug"
+msgstr "Tilkynna villu"
+
+msgid "Suggest a Feature"
+msgstr "Stinga upp á eiginleika"
+
+msgid "Show All Issues"
+msgstr "Sýna allar tilkynningar"

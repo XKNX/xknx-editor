@@ -1,0 +1,44 @@
+name: Feature request
+description: Suggest a new feature or an improvement for XKNX Editor
+type: Feature
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What do you want to do?
+      description: The task you want to do in XKNX Editor, and what makes it hard today.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Your suggestion
+      description: How XKNX Editor could support it. Screenshots or examples from other tools are welcome.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives
+      description: Other ways you considered or use today.
+    validations:
+      required: false
+
+  - type: input
+    id: version
+    attributes:
+      label: XKNX Editor version
+      description: Shown under **Help → About**, e.g. `0.9.1`.
+      placeholder: "0.9.1"
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before submitting
+      options:
+        - label: I searched the existing issues and found no request for this feature.
+          required: true
