@@ -1069,8 +1069,8 @@ msgstr "Skrivskyddat test: kontrollerar att programmeringsfunktionen genererar s
 msgid "Cannot run: the project was changed since it was opened. This test compares the generated image against the device's programmed state, which only matches the project as it was opened. Undo your changes in this session to test."
 msgstr "Kan inte köras: projektet har ändrats sedan det öppnades. Det här testet jämför den genererade avbildningen med apparatens programmerade tillstånd, som bara matchar projektet så som det öppnades. Ångra dina ändringar i den här sessionen för att testa."
 
-msgid "Cannot run: no KNX connection. Connect to a gateway (Connection menu) and make sure the device is reachable at its individual address."
-msgstr "Kan inte köras: ingen KNX-anslutning. Anslut till en gateway (menyn Anslutning) och se till att apparaten kan nås på sin individuella adress."
+msgid "Cannot run: no KNX connection. Connect to a gateway ({menu} menu) and make sure the device is reachable at its individual address."
+msgstr "Kan inte köras: ingen KNX-anslutning. Anslut till en gateway (menyn {menu}) och se till att apparaten kan nås på sin individuella adress."
 
 msgid "Match: the generated image is identical to what is on the device"
 msgstr "Överensstämmer: den genererade avbildningen är identisk med den i apparaten"
@@ -1141,8 +1141,8 @@ msgstr "objekt {object} egenskap {property}"
 msgid "Filter devices (name, address)…"
 msgstr "Filtrera apparater (namn, adress)…"
 
-msgid "No devices. Open or import a project (File menu), or right-click here to add an area."
-msgstr "Inga apparater. Öppna eller importera ett projekt (menyn Fil) eller högerklicka här för att lägga till ett område."
+msgid "No devices. Open or import a project ({menu} menu), or right-click here to add an area."
+msgstr "Inga apparater. Öppna eller importera ett projekt (menyn {menu}) eller högerklicka här för att lägga till ett område."
 
 msgid "Filter group addresses (address, name)…"
 msgstr "Filtrera gruppadresser (adress, namn)…"

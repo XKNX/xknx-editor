@@ -1069,8 +1069,8 @@ msgstr "Prueba de solo lectura: comprueba que la función de programación gener
 msgid "Cannot run: the project was changed since it was opened. This test compares the generated image against the device's programmed state, which only matches the project as it was opened. Undo your changes in this session to test."
 msgstr "No se puede ejecutar: el proyecto se ha modificado desde que se abrió. Esta prueba compara la imagen generada con el estado programado del dispositivo, que solo coincide con el proyecto tal como se abrió. Deshaga sus cambios en esta sesión para realizar la prueba."
 
-msgid "Cannot run: no KNX connection. Connect to a gateway (Connection menu) and make sure the device is reachable at its individual address."
-msgstr "No se puede ejecutar: no hay conexión KNX. Conéctese a una pasarela (menú Conexión) y asegúrese de que el dispositivo es accesible en su dirección individual."
+msgid "Cannot run: no KNX connection. Connect to a gateway ({menu} menu) and make sure the device is reachable at its individual address."
+msgstr "No se puede ejecutar: no hay conexión KNX. Conéctese a una pasarela (menú {menu}) y asegúrese de que el dispositivo es accesible en su dirección individual."
 
 msgid "Match: the generated image is identical to what is on the device"
 msgstr "Coincide: la imagen generada es idéntica a la del dispositivo"
@@ -1141,8 +1141,8 @@ msgstr "objeto {object} propiedad {property}"
 msgid "Filter devices (name, address)…"
 msgstr "Filtrar dispositivos (nombre, dirección)…"
 
-msgid "No devices. Open or import a project (File menu), or right-click here to add an area."
-msgstr "No hay dispositivos. Abra o importe un proyecto (menú Archivo), o haga clic con el botón derecho aquí para añadir un área."
+msgid "No devices. Open or import a project ({menu} menu), or right-click here to add an area."
+msgstr "No hay dispositivos. Abra o importe un proyecto (menú {menu}), o haga clic con el botón derecho aquí para añadir un área."
 
 msgid "Filter group addresses (address, name)…"
 msgstr "Filtrar direcciones de grupo (dirección, nombre)…"
