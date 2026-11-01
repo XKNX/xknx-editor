@@ -15,6 +15,7 @@ from imgui_bundle import imgui
 from editor_gui.widgets import parameter_widgets
 from xknxeditor.prod.parser_v2.ui import (
     EnumWidget,
+    NumberWidget,
     UiButton,
     UiParameter,
     UiParameterBlock,
@@ -141,3 +142,30 @@ def test_a_row_with_a_button_is_as_high_as_a_row_of_labels(
     assert height == 24
     assert low - left == pytest.approx(255.36 + 4, abs=1.0)
     assert high - left == pytest.approx(255.36 + 127.68 - 10, abs=1.0)
+
+
+@pytest.mark.usefixtures("frame")
+def test_a_row_with_a_number_field_is_as_high_as_a_row_of_labels() -> None:
+    # A number field with spin arrows is 2 px higher than other fields; it reaches into the
+    # row's spacing instead of making the row higher.
+    style = imgui.get_style()
+    # The editor's sizes.
+    style.frame_padding = imgui.ImVec2(8.0, 4.0)
+    style.item_spacing = imgui.ImVec2(8.0, 6.0)
+    style.cell_padding = imgui.ImVec2(6.0, 4.0)
+    style.frame_border_size = 1.0
+    field = UiParameter(
+        ref_id="P-1",
+        label="",
+        value="4477",
+        default_value="4477",
+        widget=NumberWidget(min=0, max=65535),
+        cell="1,3",
+    )
+    block = _grid("Trigger", widths=("25%", "12%", "12%"), field=field)
+    device: Any = SimpleNamespace(node_id="D-1", param_errors={})
+    top = imgui.get_cursor_pos_y()
+    parameter_widgets._render_grid_block(  # pyright: ignore[reportPrivateUsage]
+        device, block, lambda *_: None, False, "numbers"
+    )
+    assert imgui.get_cursor_pos_y() - top == pytest.approx(_height(_grid("Halten")))

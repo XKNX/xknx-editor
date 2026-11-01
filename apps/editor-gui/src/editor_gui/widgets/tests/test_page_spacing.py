@@ -12,6 +12,7 @@ from typing import Any
 
 import pytest
 from imgui_bundle import imgui
+from imgui_bundle.imgui import internal
 
 from editor_gui.widgets import backgrounds, parameter_widgets
 from editor_gui.widgets.parameter_widgets import ParameterPage
@@ -133,7 +134,7 @@ def test_a_grid_keeps_less_room_to_the_top_of_the_page(
     _page(_label_grid())
     imgui.set_cursor_screen_pos(imgui.ImVec2(imgui.get_cursor_screen_pos().x, top))
     _page(UiSeparator(id="PS-H", text="HF-Sensor", hint="Headline"))
-    assert grids[0] == top - 5
+    assert grids[0] == top - 6
     assert texts[0] == top + 1
 
 
@@ -152,10 +153,10 @@ def test_a_grid_keeps_less_room_to_a_grid_of_lines(
     monkeypatch.setattr(parameter_widgets, "_render_grid_block", wrapper)
     _page(_label_grid(), _lines_grid(), _label_grid(), _label_grid())
     # After a grid the next one joins it row against row (one spacing up); after one of lines
-    # it comes 5 px closer still.
+    # it comes 6 px closer still.
     (_, end1), (start2, end2), (start3, end3), (start4, _) = calls
     assert start2 - end1 == -6
-    assert start3 - end2 == -6 - 5
+    assert start3 - end2 == -6 - 6
     assert start4 - end3 == -6
 
 
@@ -258,7 +259,7 @@ def test_a_button_has_a_border_and_its_icon_is_16_px(
     assert icons == [16.0]
 
 
-def test_spin_arrows_are_5_by_3_px_9_px_from_the_right_edge(
+def test_a_number_field_with_spin_arrows_as_the_reference_draws_it(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     triangles: list[tuple[imgui.ImVec2, imgui.ImVec2, imgui.ImVec2]] = []
@@ -275,11 +276,22 @@ def test_spin_arrows_are_5_by_3_px_9_px_from_the_right_edge(
         draw(self, a, b, c, col)
 
     monkeypatch.setattr(imgui.ImDrawList, "add_triangle_filled", record)
+    top = imgui.get_cursor_screen_pos().y
+    field = imgui.get_frame_height()
     imgui.set_next_item_width(60)
-    imgui.input_text("##n", "4477")
-    right = imgui.get_item_rect_max().x
-    parameter_widgets._spin_buttons("n", enabled=True)  # pyright: ignore[reportPrivateUsage]
-    for tip, left, base_right in triangles:
-        assert base_right.x - left.x == 5
-        assert abs(left.y - tip.y) == 3
-        assert right - tip.x == 9
+    with parameter_widgets._spin_field() as frame:  # pyright: ignore[reportPrivateUsage]
+        imgui.input_text("##n", "4477")
+    parameter_widgets._spin_buttons("n", enabled=True, frame=frame)  # pyright: ignore[reportPrivateUsage]
+    # The frame a pixel above and below where a field is; the row keeps a field's height.
+    low, high = frame
+    assert (low.y, high.y) == (top - 1, top + field + 1)
+    assert internal.get_current_window().dc.cursor_max_pos.y == top + field
+    # Arrows 5 px wide and 3.5 px high, their middle 11 px from the right edge, their bases 9 px
+    # below the top and 8 px above the bottom.
+    (up_tip, up_left, _), (down_tip, down_left, _) = triangles
+    for tip, left, right in triangles:
+        assert right.x - left.x == 5
+        assert abs(left.y - tip.y) == 3.5
+        assert high.x - tip.x == 11
+    assert up_left.y - low.y == 9 and up_tip.y < up_left.y
+    assert high.y - down_left.y == 8 and down_tip.y > down_left.y

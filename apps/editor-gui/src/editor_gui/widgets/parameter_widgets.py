@@ -4,7 +4,7 @@ import math
 import re
 from collections import Counter
 from collections.abc import Callable, Generator, Iterable
-from contextlib import contextmanager
+from contextlib import contextmanager, nullcontext
 from dataclasses import dataclass, replace
 
 from imgui_bundle import imgui
@@ -28,6 +28,7 @@ from editor_gui.widgets.dpi import px
 from editor_gui.widgets.float_format import format_float, general_float, parse_float
 from editor_gui.widgets.fonts import bold, bold_font, semilight
 from editor_gui.widgets.icons import Icon, Picture, draw_icon
+from editor_gui.widgets.star_columns import star_widths
 from editor_gui.widgets.strings import S
 from editor_gui.widgets.tables import data_table_id
 from editor_gui.widgets.time_format import (
@@ -776,11 +777,17 @@ def _spin_width() -> float:
     return imgui.get_frame_height() * 0.6
 
 
-# A spin arrow at 100 % scaling: its width, its height, and how far its middle is from the right
-# edge of its field.
+# A spin arrow at 100 % scaling: its width, its height, how far its middle is from the right edge
+# of its field, and how far its base is from the field's top (the up arrow) or bottom (the down
+# arrow).
 _SPIN_ARROW_WIDTH = 5.0
-_SPIN_ARROW_HEIGHT = 3.0
-_SPIN_ARROW_RIGHT = 9.0
+_SPIN_ARROW_HEIGHT = 3.5
+_SPIN_ARROW_RIGHT = 11.0
+_SPIN_ARROW_TOP = 9.0
+_SPIN_ARROW_BOTTOM = 8.0
+# How much higher a number field with spin arrows is than other fields, at 100 % scaling, half of
+# it above them and half below; its text is a pixel below its middle.
+_SPIN_FIELD_TALLER = 2.0
 
 
 def _set_number_field_width(*, spin: bool = True) -> None:
@@ -790,21 +797,88 @@ def _set_number_field_width(*, spin: bool = True) -> None:
         imgui.set_next_item_allow_overlap()
 
 
-def _spin_buttons(widget_id: str, *, enabled: bool) -> int:
-    """Up/down arrows inside the right end of the previous field: +1 or -1 while pressed."""
-    rect_min = imgui.get_item_rect_min()
-    rect_max = imgui.get_item_rect_max()
-    size = imgui.ImVec2(_spin_width(), (rect_max.y - rect_min.y) / 2)
+@contextmanager
+def _spin_field() -> Generator[list[imgui.ImVec2]]:
+    """A number field with spin arrows as the reference draws it: as high as a button, reaching
+    a pixel above and below where the row's fields are, its text a pixel below its middle. The
+    field drawn inside is that much higher a pixel lower (so its text is), cut off at the frame's
+    bottom; the frame's top row and its border are drawn here. The row keeps its height. Yields
+    a list that receives the frame's corners."""
+    window = internal.get_current_window()
+    style = imgui.get_style()
+    top = imgui.get_cursor_screen_pos().y
+    content_bottom = window.dc.cursor_max_pos.y
+    half = px(_SPIN_FIELD_TALLER) / 2
+    frame_top = top - half
+    frame_bottom = top + imgui.get_frame_height() + half
+    imgui.push_clip_rect(
+        imgui.ImVec2(-1e6, frame_top), imgui.ImVec2(1e6, frame_bottom), True
+    )
+    imgui.push_style_var(
+        imgui.StyleVar_.frame_padding,
+        imgui.ImVec2(style.frame_padding.x, style.frame_padding.y + half),
+    )
+    imgui.push_style_color(imgui.Col_.border, imgui.ImVec4(0, 0, 0, 0))
+    corners: list[imgui.ImVec2] = []
+    try:
+        yield corners
+    finally:
+        imgui.pop_style_color()
+        imgui.pop_style_var()
+        imgui.pop_clip_rect()
+    low, high = imgui.get_item_rect_min(), imgui.get_item_rect_max()
+    frame_min = imgui.ImVec2(low.x, frame_top)
+    frame_max = imgui.ImVec2(high.x, frame_bottom)
+    draw = imgui.get_window_draw_list()
+    fill = (
+        imgui.Col_.frame_bg_active
+        if imgui.is_item_active()
+        else imgui.Col_.frame_bg_hovered
+        if imgui.is_item_hovered()
+        else imgui.Col_.frame_bg
+    )
+    draw.add_rect_filled(
+        frame_min, imgui.ImVec2(frame_max.x, low.y), imgui.get_color_u32(fill)
+    )
+    if style.frame_border_size > 0:
+        draw.add_rect(
+            frame_min,
+            frame_max,
+            imgui.get_color_u32(imgui.Col_.border),
+            rounding=style.frame_rounding,
+            thickness=style.frame_border_size,
+        )
+    window.dc.cursor_max_pos = imgui.ImVec2(
+        window.dc.cursor_max_pos.x,
+        max(content_bottom, top + imgui.get_frame_height()),
+    )
+    corners.extend((frame_min, frame_max))
+
+
+def _spin_buttons(
+    widget_id: str, *, enabled: bool, frame: list[imgui.ImVec2] | None = None
+) -> int:
+    """Up/down arrows inside the right end of the previous field (or of ``frame``, its corners,
+    see :func:`_spin_field`): +1 or -1 while pressed. Within a frame the arrows are clicked
+    where the field is, so they do not reach past the row's fields either."""
+    if frame:
+        rect_min, rect_max = frame
+        half = px(_SPIN_FIELD_TALLER) / 2
+        hit_top, hit_bottom = rect_min.y + half, rect_max.y - half
+    else:
+        rect_min, rect_max = imgui.get_item_rect_min(), imgui.get_item_rect_max()
+        hit_top, hit_bottom = rect_min.y, rect_max.y
+    size = imgui.ImVec2(_spin_width(), (hit_bottom - hit_top) / 2)
     left = rect_max.x - size.x
     draw = imgui.get_window_draw_list()
     rounding = imgui.get_style().frame_rounding
     steps = 0
-    imgui.set_cursor_screen_pos(imgui.ImVec2(left, rect_min.y))
+    imgui.set_cursor_screen_pos(imgui.ImVec2(left, hit_top))
     imgui.begin_group()
     imgui.begin_disabled(not enabled)
     imgui.push_item_flag(imgui.ItemFlags_.button_repeat, True)
     for row, step in enumerate((1, -1)):
-        top = imgui.ImVec2(left, rect_min.y + row * size.y)
+        top = imgui.ImVec2(left, hit_top + row * size.y)
         imgui.set_cursor_screen_pos(top)
         if imgui.invisible_button(f"##spin{row}_{widget_id}", size):
             steps = step
@@ -821,10 +895,13 @@ def _spin_buttons(widget_id: str, *, enabled: bool) -> int:
                 rounding,
             )
         mid_x = rect_max.x - px(_SPIN_ARROW_RIGHT)
-        mid_y = top.y + size.y / 2
         half = px(_SPIN_ARROW_WIDTH) / 2
-        tip = mid_y - px(_SPIN_ARROW_HEIGHT) / 2 * step
-        base = mid_y + px(_SPIN_ARROW_HEIGHT) / 2 * step
+        base = (
+            rect_min.y + px(_SPIN_ARROW_TOP)
+            if step > 0
+            else rect_max.y - px(_SPIN_ARROW_BOTTOM)
+        )
+        tip = base - px(_SPIN_ARROW_HEIGHT) * step
         draw.add_triangle_filled(
             imgui.ImVec2(mid_x, tip),
             imgui.ImVec2(mid_x - half, base),
@@ -861,17 +938,21 @@ def _render_int_param(
     # small are hard to hit with a finger, and the keyboard types the number.
     spin = not _narrow_page[0]
     _set_number_field_width(spin=spin)
-    if differs:
-        _, new_text = imgui.input_text_with_hint(
-            f"##{widget_id}", S.PARAM_DIFFERS, "", imgui.InputTextFlags_.chars_decimal
-        )
-        edited = imgui.is_item_deactivated_after_edit() and bool(new_text)
-    else:
-        _, new_text = imgui.input_text(
-            f"##{widget_id}", value, imgui.InputTextFlags_.chars_decimal
-        )
-        edited = imgui.is_item_deactivated_after_edit()
-    steps = _spin_buttons(widget_id, enabled=not differs) if spin else 0
+    with _spin_field() if spin else nullcontext([]) as frame:
+        if differs:
+            _, new_text = imgui.input_text_with_hint(
+                f"##{widget_id}",
+                S.PARAM_DIFFERS,
+                "",
+                imgui.InputTextFlags_.chars_decimal,
+            )
+            edited = imgui.is_item_deactivated_after_edit() and bool(new_text)
+        else:
+            _, new_text = imgui.input_text(
+                f"##{widget_id}", value, imgui.InputTextFlags_.chars_decimal
+            )
+            edited = imgui.is_item_deactivated_after_edit()
+    steps = _spin_buttons(widget_id, enabled=not differs, frame=frame) if spin else 0
     if steps:
         try:
             new_text = str(int(value) + steps * (increment or 1))
@@ -1826,26 +1907,17 @@ _TOP = "top"
 _LINE = "line"
 _LINES = "lines"
 _drawn_last = [""]
-# Room at 100 % scaling a grid keeps less than a separator does to the top of a page and to a
-# grid of lines above it, and a grid or an information or error box to a separator line above it.
-_GRID_AFTER_TOP = 5.0
-_GRID_AFTER_LINES = 5.0
-_AFTER_LINE = 6.0
+# Room at 100 % scaling a grid keeps less than a separator does to the top of a page, to a
+# separator line and to a grid of lines above it; an information or error box to a line.
+_CLOSER = 6.0
 
 
 def _closer_to_last(*, grid: bool) -> None:
     """Move the next item up to where the reference puts a grid (``grid``), or an information
     or error box, after what the page drew last (headlines, texts and fields keep their room)."""
     last = _drawn_last[0]
-    if last == _LINE:
-        distance = _AFTER_LINE
-    elif grid and last == _TOP:
-        distance = _GRID_AFTER_TOP
-    elif grid and last == _LINES:
-        distance = _GRID_AFTER_LINES
-    else:
-        return
-    imgui.set_cursor_pos_y(imgui.get_cursor_pos_y() - px(distance))
+    if last == _LINE or (grid and last in (_TOP, _LINES)):
+        imgui.set_cursor_pos_y(imgui.get_cursor_pos_y() - px(_CLOSER))
 
 
 def _only_lines(block: UiParameterBlock) -> bool:
@@ -2111,6 +2183,20 @@ def _grid_pos(
     return row, col
 
 
+def _percentages(specs: tuple[str, ...]) -> list[float] | None:
+    """The percentages of Column ``Width`` specs, or None unless every one is a percentage."""
+    found: list[float] = []
+    for spec in specs:
+        spec = spec.strip()
+        if not spec.endswith("%"):
+            return None
+        try:
+            found.append(float(spec[:-1]))
+        except ValueError:
+            return None
+    return found
+
+
 def _column_width(spec: str, avail: float) -> float | None:
     """Pixel width of a Column ``Width`` ("45%" of the block, or plain pixels)."""
     spec = spec.strip()
@@ -2223,13 +2309,26 @@ def _render_grid_cells(
     avail = imgui.get_content_region_avail().x
     # Percentage widths refer to the same page width on every grid, so grids line up.
     reference = min(avail, px(_GRID_REFERENCE_WIDTH))
-    widths = [
-        _column_width(block.column_widths[col], reference)
-        if col < len(block.column_widths)
-        else None
-        for col in range(declared_cols)
-    ]
-    widths = _whole_pixel_starts(_keep_column_starts(widths, _MIN_GRID_COLUMN))
+    percents = _percentages(block.column_widths)
+    widths: list[float | None]
+    if percents is not None and len(percents) == declared_cols:
+        # Whole pixels, as the reference rounds its star columns.
+        unit = (
+            _GRID_REFERENCE_WIDTH / 100.0
+            if reference >= px(_GRID_REFERENCE_WIDTH)
+            else reference / px(1.0) / 100.0
+        )
+        widths = _keep_column_starts(
+            list(star_widths(percents, unit, px(1.0))), _MIN_GRID_COLUMN
+        )
+    else:
+        widths = [
+            _column_width(block.column_widths[col], reference)
+            if col < len(block.column_widths)
+            else None
+            for col in range(declared_cols)
+        ]
+        widths = _whole_pixel_starts(_keep_column_starts(widths, _MIN_GRID_COLUMN))
     # Columns keep their declared widths, so a grid whose widths add up to more than the
     # page extends past its right edge instead of squeezing the last columns.
     stretch_cols = sum(w is None for w in widths) + col_offset
@@ -2395,8 +2494,8 @@ def _render_cell_separator(
             return drawn, _cell_text_height(len(wrap_lines(text, wrap)))
     if not sep.text:
         # A line ends where the fields of its cell end, so the lines of neighbouring cells keep
-        # that gap between them.
-        vertical_space(px(_RULER_ABOVE))
+        # that gap between them; it is a pixel lower in its row than a line between items.
+        vertical_space(px(_RULER_ABOVE + _CELL_RULER_LOWER))
         _render_ruler(max(imgui.get_content_region_avail().x - px(_CELL_GAP), 1.0))
         vertical_space(px(_RULER_BELOW))
         return 0.0, 0.0
@@ -2678,6 +2777,7 @@ _HEADLINE_BELOW = 4.0
 # 30 px from a line to a headline, 14 px from a text to a box and 23 px from a box to a text.
 _RULER_ABOVE = 10.0
 _RULER_BELOW = 10.0
+_CELL_RULER_LOWER = 1.0
 _HINT_ABOVE = 5.0
 _HINT_BELOW = -1.0
 _TEXT_ABOVE = 6.0
