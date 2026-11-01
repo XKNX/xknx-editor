@@ -115,6 +115,7 @@ from editor_gui.widgets.combo import begin_combo
 from editor_gui.widgets.description import set_secure_devices
 from editor_gui.widgets.dialog import (
     begin_dialog,
+    closed_from_tab,
     dialog_buttons,
     dialog_room,
     end_dialog,
@@ -132,6 +133,7 @@ from editor_gui.widgets.fonts import (
     heading,
     load_fonts,
 )
+from editor_gui.widgets.markdown import render_markdown
 from editor_gui.widgets.parameter_widgets import set_highlight_changes
 from editor_gui.widgets.password_form import NewPasswordForm
 from editor_gui.widgets.tables import (
@@ -4094,7 +4096,8 @@ class KnxGuiApp:
             imgui.separator()
             imgui.text_disabled(S.UPDATE_NOTES_HEADER)
             if imgui.begin_child("##update-notes", px_vec2(0.0, 220.0), True):
-                imgui.text_wrapped(info.notes)
+                # The release notes are Markdown, rendered as help pages are.
+                render_markdown(info.notes)
             imgui.end_child()
         if host.home_assistant():
             # Home Assistant updates the editor with its integration.
@@ -5651,6 +5654,8 @@ class KnxGuiApp:
         # p_open=True gives the window a close (X) button; when clicked it returns open=False.
         with floating_window_border():
             expanded, still_open = imgui.begin(S.WELCOME_TITLE, True, flags)
+        # Docked, its tab's close button closes it.
+        still_open = still_open and not closed_from_tab(S.WELCOME_TITLE)
         if expanded:
             imgui.text_wrapped(S.WELCOME_HINT)
             imgui.spacing()

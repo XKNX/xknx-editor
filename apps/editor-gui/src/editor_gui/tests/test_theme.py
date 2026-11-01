@@ -108,6 +108,9 @@ def test_the_editor_style_keeps_an_adjusted_rounding(
     theme.apply_style()
     assert style.frame_rounding == (4.0 if rounding < 0 else 9.0)
     assert style.frame_padding.x == 8.0
+    # imgui's close buttons on tabs never show (``dock_menus`` draws them).
+    assert style.tab_close_button_min_width_selected > 1e20
+    assert style.tab_close_button_min_width_unselected > 1e20
 
 
 @pytest.mark.parametrize(

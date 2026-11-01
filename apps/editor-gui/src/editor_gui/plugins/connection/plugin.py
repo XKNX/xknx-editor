@@ -8,7 +8,7 @@ from concurrent.futures import Future
 from enum import Enum
 from typing import TYPE_CHECKING, Any
 
-from imgui_bundle import imgui, imspinner
+from imgui_bundle import imgui
 from xknx import XKNX
 from xknx.core.connection_state import XknxConnectionState
 from xknx.exceptions import ConfirmationError, RequestResponseError
@@ -44,6 +44,7 @@ from editor_gui.widgets.dialog import (
     end_dialog,
 )
 from editor_gui.widgets.dpi import label_column_width, px, px_vec2
+from editor_gui.widgets.spinner import spinner
 from editor_gui.widgets.tree import collapsing_header
 from xknxeditor.prod.app_id import parse_app_id
 
@@ -242,6 +243,10 @@ class ConnectionPlugin:
         self._awaiting_credentials: GatewayDescriptor | None = None
         self._retry_on_credentials = False
         self._credentials_check_at = 0.0
+        # The connection made at startup: missing credentials are no error while no project has
+        # opened yet (the one being opened may have them). The error then waits for a project.
+        self._startup_connect = False
+        self._credentials_error: str | None = None
         # Counts the connects and disconnects the user asked for; a reopen of an older one stops.
         self._session = 0
         # The bus monitor connection while it runs (the normal connection is closed then).
@@ -405,8 +410,8 @@ class ConnectionPlugin:
             },
         )
 
-    def connect(self) -> None:
-        """Manual IP connect (tunneling)."""
+    def connect(self, *, startup: bool = False) -> None:
+        """Manual IP connect (tunneling); ``startup``: the connection made at startup."""
         if self._state in (ConnectionState.CONNECTING, ConnectionState.CONNECTED):
             return
         if self._busmonitor_blocks("connect"):
@@ -415,13 +420,18 @@ class ConnectionPlugin:
         self._selected_gateway = None
         self._session += 1
         self._retry_on_credentials = False
+        self._startup_connect = startup
+        self._credentials_error = None
         self._state = ConnectionState.CONNECTING
         self._error_message = None
         self._save_current_settings()
         self._run_async(self._connect_async())
 
-    def connect_to_gateway(self, gateway: GatewayDescriptor) -> None:
-        """Connect to a scanned gateway (tunneling preferred, routing fallback)."""
+    def connect_to_gateway(
+        self, gateway: GatewayDescriptor, *, startup: bool = False
+    ) -> None:
+        """Connect to a scanned gateway (tunneling preferred, routing fallback); ``startup``: the
+        connection made at startup."""
         if self._state in (ConnectionState.CONNECTING, ConnectionState.CONNECTED):
             return
         if self._busmonitor_blocks("connect"):
@@ -436,6 +446,8 @@ class ConnectionPlugin:
         self._preferred_gateway_ip = gateway.ip_addr
         self._session += 1
         self._retry_on_credentials = False
+        self._startup_connect = startup
+        self._credentials_error = None
         self._state = ConnectionState.CONNECTING
         self._error_message = None
         self._save_current_settings()
@@ -519,6 +531,7 @@ class ConnectionPlugin:
                 self._api.connection.dispatch_link_state(True)
             else:
                 self._api.connection.dispatch_connected()
+            self._startup_connect = False
             self._log.info(
                 "connected",
                 target=self._connection_target,
@@ -543,6 +556,7 @@ class ConnectionPlugin:
                     services=",".join(services),
                 )
         except Exception as e:
+            startup, self._startup_connect = self._startup_connect, False
             if isinstance(e, MissingCredentialsError):
                 self._awaiting_credentials = e.gateway
                 self._retry_on_credentials = True
@@ -551,12 +565,37 @@ class ConnectionPlugin:
             self._interface = None
             self._gateway_info = None
             self._xknx = None
-            self._log.error(
-                "connection failed",
+            self._report_failure(e, startup=startup)
+
+    def _report_failure(self, error: Exception, *, startup: bool) -> None:
+        """Log a failed connect as an error (shown as a toast); missing credentials at startup
+        only once a project has opened without them (see _connect_with_credentials)."""
+        text = f"{type(error).__name__}: {error}"
+        if (
+            isinstance(error, MissingCredentialsError)
+            and startup
+            and self._no_project_yet()
+        ):
+            self._credentials_error = text
+            self._log.info(
+                "connection waits for a project with the credentials",
                 target=self._connection_target,
-                mode=self._connection_type.name.lower(),
-                error=f"{type(e).__name__}: {e}",
             )
+            return
+        self._log_failure(text)
+
+    def _log_failure(self, error: str) -> None:
+        self._log.error(
+            "connection failed",
+            target=self._connection_target,
+            mode=self._connection_type.name.lower(),
+            error=error,
+        )
+
+    def _no_project_yet(self) -> bool:
+        """Whether no project has opened yet, or one is still opening."""
+        project = self._api.project
+        return project.loading or not project.is_open
 
     async def _on_main_thread[T](self, fn: Callable[[], T]) -> T:
         """``fn`` run on the main thread, where the project's data is read (its reads elsewhere
@@ -653,7 +692,12 @@ class ConnectionPlugin:
         try:
             self._connection_config(self._awaiting_credentials)
         except ConnectionError:
+            # The project opened at startup has no credentials either: now it is an error.
+            if self._credentials_error is not None and not self._no_project_yet():
+                self._log_failure(self._credentials_error)
+                self._credentials_error = None
             return
+        self._credentials_error = None
         self._retry_on_credentials = False
         self._log.info("the credentials the interface requires are available now")
         self._state = ConnectionState.CONNECTING
@@ -850,14 +894,7 @@ class ConnectionPlugin:
         imgui.text_disabled(S.SECTION_DISCOVERED)
         if self._scanning or connecting:
             imgui.same_line()
-            imspinner.spinner_ang(
-                "##select-spinner",
-                px(6),
-                px(2),
-                color=imgui.ImColor(
-                    imgui.get_style_color_vec4(imgui.Col_.tab_selected)
-                ),
-            )
+            spinner("##select-spinner")
         for gateway in self._gateways:
             label = f"{gateway.name}  ({gateway.ip_addr})"
             if imgui.selectable(f"{label}##select_{gateway.ip_addr}", False)[0]:
@@ -894,6 +931,7 @@ class ConnectionPlugin:
             self._restore_connection_settings()
         self._session += 1
         self._retry_on_credentials = False
+        self._credentials_error = None
         self._state = ConnectionState.DISCONNECTING
         self._run_async(self._disconnect_async())
 
@@ -1176,7 +1214,7 @@ class ConnectionPlugin:
                         ip=fallback_ip,
                     )
                     self._controller_ip = fallback_ip
-                    self.connect()
+                    self.connect(startup=True)
                 if (
                     not self._autostart_retry_done
                     and self._state == ConnectionState.DISCONNECTED
@@ -1207,7 +1245,7 @@ class ConnectionPlugin:
                     ip=target.ip_addr,
                     preferred=target.ip_addr == self._preferred_gateway_ip,
                 )
-                self.connect_to_gateway(target)
+                self.connect_to_gateway(target, startup=True)
         except Exception as e:
             self._log.error("gateway scan failed", error=f"{type(e).__name__}: {e}")
         finally:
@@ -1355,14 +1393,7 @@ class ConnectionPlugin:
         imgui.end_disabled()
         if self._progmode_scanning:
             imgui.same_line()
-            imspinner.spinner_ang(
-                "##progmode-spinner",
-                px(7),
-                px(2),
-                color=imgui.ImColor(
-                    imgui.get_style_color_vec4(imgui.Col_.tab_selected)
-                ),
-            )
+            spinner("##progmode-spinner")
             imgui.same_line()
             imgui.text_disabled(S.PROGMODE_SEARCHING)
         imgui.push_text_wrap_pos(0.0)
@@ -1591,14 +1622,7 @@ class ConnectionPlugin:
         imgui.text_disabled(S.SECTION_DISCOVERED)
         if self._scanning:
             imgui.same_line()
-            imspinner.spinner_ang(
-                "##scan-spinner",
-                px(6),
-                px(2),
-                color=imgui.ImColor(
-                    imgui.get_style_color_vec4(imgui.Col_.tab_selected)
-                ),
-            )
+            spinner("##scan-spinner")
         if self._gateways:
             for gw in self._gateways:
                 tags: list[str] = []

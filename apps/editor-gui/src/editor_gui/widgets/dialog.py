@@ -20,6 +20,7 @@ from imgui_bundle import imgui
 
 from editor_gui.widgets.backgrounds import window_border
 from editor_gui.widgets.dpi import px, px_vec2
+from editor_gui.widgets.tree import title_gap
 
 _MIN_BUTTON_WIDTH = 90.0
 # The frame in which Escape last dismissed a dialog, and Enter last accepted one.
@@ -290,7 +291,9 @@ def dialog_buttons(
     enabled: Sequence[bool] | None = None,
     rects: list[tuple[float, float, float, float]] | None = None,
 ) -> int | None:
-    """A row of equal-width buttons below a separator, the primary one first.
+    """A row of equal-width buttons below a separator, the primary one first. Where equal widths
+    do not fit the dialog (long labels, a narrow screen), each button is as wide as its label, and
+    a button that does not fit the row any more starts a new one.
 
     The last label is the button that dismisses the dialog: it sits at the right edge and Escape
     triggers it while the dialog has focus. The others sit left-aligned; Enter triggers the first
@@ -299,31 +302,47 @@ def dialog_buttons(
     ``None``. ``rects`` receives each button's screen rectangle (x, y, width, height).
     """
     style = imgui.get_style()
-    width = max(
-        px(_MIN_BUTTON_WIDTH),
-        *(
+    own = [
+        max(
+            px(_MIN_BUTTON_WIDTH),
             imgui.calc_text_size(label, hide_text_after_double_hash=True).x
-            + 2 * style.frame_padding.x
-            for label in labels
-        ),
-    )
+            + 2 * style.frame_padding.x,
+        )
+        for label in labels
+    ]
     imgui.spacing()
     imgui.separator()
     imgui.spacing()
     row_x = imgui.get_cursor_pos_x()
-    dismiss_x = row_x + max(0.0, imgui.get_content_region_avail().x - width)
+    room = imgui.get_content_region_avail().x
+    gap = style.item_spacing.x
+    equal = max(own)
+    widths = (
+        [equal] * len(labels)
+        if len(labels) * equal + (len(labels) - 1) * gap <= room
+        else own
+    )
     dismiss = len(labels) - 1
     clicked: int | None = None
+    x = row_x
     for index, label in enumerate(labels):
-        if index:
+        width = widths[index]
+        if index and x + gap + width <= row_x + room:
             imgui.same_line()
+            x += gap
+        elif index:
+            x = row_x
         if index == dismiss:
-            imgui.set_cursor_pos_x(max(dismiss_x, imgui.get_cursor_pos_x()))
+            right = row_x + max(0.0, room - width)
+            if right > x:
+                imgui.set_cursor_pos_x(right)
+                x = right
         disabled = enabled is not None and not enabled[index]
         imgui.begin_disabled(disabled)
         if imgui.button(label, imgui.ImVec2(width, 0.0)):
             clicked = index
         imgui.end_disabled()
+        x += width
         if rects is not None:
             low, high = imgui.get_item_rect_min(), imgui.get_item_rect_max()
             rects.append((low.x, low.y, high.x - low.x, high.y - low.y))
@@ -415,5 +434,57 @@ def begin_tool_window(
     _center_next_window()
     imgui.set_next_window_size(px_vec2(width, height), imgui.Cond_.first_use_ever)
     flags |= follow_screen(title, width, height)
-    with floating_window_border():
-        return imgui.begin(title, p_open, flags)
+    with floating_window_border(), _title_bar_gaps(title):
+        expanded, still_open = imgui.begin(title, p_open, flags)
+    if still_open and closed_from_tab(title):
+        still_open = False
+    return expanded, still_open
+
+
+# Windows whose tab was closed with its close button (drawn by ``dock_menus``, not by imgui, so
+# imgui does not report it).
+_tab_closes: set[str] = set()
+
+
+def close_from_tab(title: str) -> None:
+    """Close the window ``title`` when it begins next (its tab's close button was pressed)."""
+    _tab_closes.add(title)
+
+
+def closed_from_tab(title: str) -> bool:
+    """Whether the tab of the window ``title`` was closed since it began last."""
+    if title not in _tab_closes:
+        return False
+    _tab_closes.discard(title)
+    return True
+
+
+@contextmanager
+def _title_bar_gaps(title: str) -> Generator[None]:
+    """While the window ``title`` begins: its title bar's arrow and close button as far from its
+    left and right edges as from its top and bottom (imgui keeps the frame padding there), and its
+    title as far from the arrow as in a section header. Not while the window is docked: its
+    section draws its tab bar then, with the usual padding."""
+    window = imgui.internal.find_window_by_name(title)
+    if window is not None and window.dock_node is not None:  # pyright: ignore[reportUnnecessaryComparison]
+        yield
+        return
+    style = imgui.get_style()
+    # imgui places the buttons the frame padding inside the border at the sides, but from the
+    # window's outer edge at the top (the border covers the first row there, the line below the
+    # title bar its last); and it puts the inner spacing twice between the arrow and the title.
+    imgui.push_style_var(
+        imgui.StyleVar_.frame_padding,
+        imgui.ImVec2(
+            max(style.frame_padding.y - style.window_border_size, 0.0),
+            style.frame_padding.y,
+        ),
+    )
+    imgui.push_style_var(
+        imgui.StyleVar_.item_inner_spacing,
+        imgui.ImVec2(title_gap() / 2, style.item_inner_spacing.y),
+    )
+    try:
+        yield
+    finally:
+        imgui.pop_style_var(2)

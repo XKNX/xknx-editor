@@ -17,6 +17,9 @@ from editor_gui.widgets.dpi import px
 _ARROW_MARGIN = 3.0
 # How far a row without an arrow starts right of its parent's label, at 100 % scaling.
 _LEAF_INSET = 8.0
+# Room a row has above and below its label besides the spacing to the next row, at 100 % scaling:
+# rows 24 px apart.
+_ROW_EXTRA = 4.0
 # imgui's arrow in a box of the font size: the closed one reaches from 0.2 to 0.8 of it
 # across and has 0.15 of it free above and below (a triangle of radius 0.4, see RenderArrow).
 _ARROW_START = 0.2
@@ -48,10 +51,10 @@ def row_chosen() -> bool:
 
 def tree_node(label: str, flags: int = 0) -> bool:
     """``imgui.tree_node_ex`` with the narrow arrow margin. The row takes the spacing to the next
-    one as room above and below its label, so that its highlight (selected, hovered) reaches the
-    next row's: several selected rows make one area. The rows stay as far apart."""
+    one, and a little more, as room above and below its label, so that its highlight (selected,
+    hovered) reaches the next row's: several selected rows make one area."""
     spacing = imgui.get_style().item_spacing
-    padding = imgui.ImVec2(px(_ARROW_MARGIN), spacing.y / 2)
+    padding = imgui.ImVec2(px(_ARROW_MARGIN), _row_room() / 2)
     imgui.push_style_var(imgui.StyleVar_.frame_padding, padding)
     imgui.push_style_var(imgui.StyleVar_.item_spacing, imgui.ImVec2(spacing.x, 0.0))
     try:
@@ -64,7 +67,8 @@ def row_selectable(label: str, selected: bool, flags: int = 0) -> tuple[bool, bo
     """``imgui.selectable`` for a tree row without an arrow, laid out as a :func:`tree_node` row:
     as high, with its label as far down, and its highlight reaching the next row."""
     spacing = imgui.get_style().item_spacing
-    height = imgui.get_text_line_height() + spacing.y
+    room = _row_room()
+    height = imgui.get_text_line_height() + room
     imgui.push_style_var(imgui.StyleVar_.item_spacing, imgui.ImVec2(spacing.x, 0.0))
     imgui.push_style_var(
         imgui.StyleVar_.selectable_text_align,
@@ -75,8 +79,13 @@ def row_selectable(label: str, selected: bool, flags: int = 0) -> tuple[bool, bo
     finally:
         imgui.pop_style_var(2)
     # Texts after it on its line (see same_row) sit on its label's line.
-    internal.get_current_window().dc.prev_line_text_base_offset = spacing.y / 2
+    internal.get_current_window().dc.prev_line_text_base_offset = room / 2
     return result
+
+
+def _row_room() -> float:
+    """Room of a tree row above and below its label together."""
+    return imgui.get_style().item_spacing.y + px(_ROW_EXTRA)
 
 
 @contextmanager
@@ -104,7 +113,7 @@ def collapsing_header(label: str, flags: int = 0) -> bool:
     ident = label[label.index("###") :] if "###" in label else label
     style = imgui.get_style()
     font = imgui.get_font_size()
-    margin = style.frame_padding.y + _ARROW_FREE_HEIGHT * font
+    margin = arrow_margin()
     # imgui widens the frame into the window padding by this much, but places the arrow from where
     # the content starts (the cursor).
     reach = int(internal.get_current_window().window_padding.x * 0.5 - 1.0)
@@ -130,6 +139,20 @@ def collapsing_header(label: str, flags: int = 0) -> bool:
     )
     draw.pop_clip_rect()
     return opened
+
+
+def arrow_margin() -> float:
+    """Distance of a section header's arrow from the header's top and bottom, and from its left
+    and its title (see :func:`collapsing_header`)."""
+    return (
+        imgui.get_style().frame_padding.y + _ARROW_FREE_HEIGHT * imgui.get_font_size()
+    )
+
+
+def title_gap() -> float:
+    """Gap between the box of imgui's arrow, as large as the font, and the title after it, so that
+    the title is as far from the arrow as in a section header."""
+    return arrow_margin() - (1.0 - _ARROW_END) * imgui.get_font_size()
 
 
 def label_offset() -> float:

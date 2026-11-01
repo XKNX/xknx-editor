@@ -1,66 +1,26 @@
 """Wrapped text with its lines as far apart as in Windows dialogs, and vertical room between items.
 
 The font's own line height leaves less room between lines than the text of Windows dialogs has,
-and ImGui's wrapped text has no line spacing, so the text is broken into lines here.
+and ImGui's wrapped text has no line spacing, so the text is broken into lines here (where a WPF
+TextBlock breaks it, see ``text_layout``).
 """
 
 from __future__ import annotations
 
 from imgui_bundle import imgui
 
+from editor_gui.widgets import text_layout
 from editor_gui.widgets.dpi import px
 
 # Gap at 100 % scaling between the lines of a wrapped text, beyond the font's line height.
 LINE_GAP = 2.0
 
 
-def _hyphen_parts(word: str) -> list[str]:
-    """``word`` cut after each hyphen a line may break at: a single one inside the word, not
-    before a digit ("Kanaltransfer-|Operation", but "-5", "1-2" and "a--b" stay whole)."""
-    parts: list[str] = []
-    start = 0
-    for i, char in enumerate(word):
-        if (
-            char == "-"
-            and 0 < i < len(word) - 1
-            and word[i - 1] not in "- "
-            and word[i + 1] != "-"
-            and not word[i + 1].isdigit()
-        ):
-            parts.append(word[start : i + 1])
-            start = i + 1
-    parts.append(word[start:])
-    return parts
-
-
 def wrap_lines(text: str, width: float) -> list[str]:
-    """``text`` broken into lines at most ``width`` wide, in the current font: at spaces and
-    after hyphens within words, and within a word only when the word alone is wider. The spaces a
-    line starts with stay (an indent)."""
-    lines: list[str] = []
-    for paragraph in text.split("\n"):
-        words = paragraph.split(" ")
-        indent = len(paragraph) - len(paragraph.lstrip(" "))
-        words = [" " * indent + words[indent], *words[indent + 1 :]]
-        line = ""
-        for word in words:
-            for index, part in enumerate(_hyphen_parts(word)):
-                # The first part follows a space, the others the hyphen before them.
-                glue = " " if index == 0 and line else ""
-                candidate = f"{line}{glue}{part}"
-                if not line or imgui.calc_text_size(candidate).x <= width:
-                    line = candidate
-                    continue
-                lines.append(line)
-                line = part
-        while len(line) > 1 and imgui.calc_text_size(line).x > width:
-            cut = len(line) - 1
-            while cut > 1 and imgui.calc_text_size(line[:cut]).x > width:
-                cut -= 1
-            lines.append(line[:cut])
-            line = line[cut:]
-        lines.append(line)
-    return lines
+    """``text`` broken into lines at most ``width`` wide, in the current font, where a WPF
+    TextBlock breaks it (see ``text_layout.wrap``). The spaces a line starts with stay (an
+    indent)."""
+    return text_layout.wrap(text, width)
 
 
 def text_height(lines: int) -> float:
@@ -76,7 +36,7 @@ def wrapped_text(text: str, width: float) -> None:
     )
     imgui.begin_group()
     for line in wrap_lines(text, width):
-        imgui.text_unformatted(line)
+        text_layout.draw_text(line)
     imgui.end_group()
     imgui.pop_style_var()
 

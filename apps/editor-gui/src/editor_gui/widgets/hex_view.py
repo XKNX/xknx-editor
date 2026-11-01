@@ -6,7 +6,24 @@ from imgui_bundle import imgui
 
 from editor_gui.widgets.checkbox import checkbox
 from editor_gui.widgets.combo import begin_combo, combo
+from editor_gui.widgets.dpi import px
+from editor_gui.widgets.fonts import monospace, monospace_font
 from editor_gui.widgets.strings import S
+
+# Layout of the dump at 100 % scaling: rows 18 px apart, bytes 22 px apart and 6 px more between
+# the two halves of a row, 22 px from the end of the address to the first byte, the characters 9 px
+# further than a byte after the last one would be.
+_ROW_GAP = 4.0
+_BYTE_PITCH = 22.0
+_HALF_GAP = 6.0
+_ADDRESS_GAP = 22.0
+_TEXT_GAP = 9.0
+
+
+def _character(byte: int) -> str:
+    """``byte`` as a character of the text beside the bytes: printable ASCII as itself, anything
+    else as a dot."""
+    return chr(byte) if 32 <= byte < 127 else "."
 
 
 class HexView:
@@ -40,19 +57,26 @@ class HexView:
             return
 
         line_h = imgui.get_text_line_height()
+        row_gap = px(_ROW_GAP)
+        row_h = line_h + row_gap
         glyph_w = imgui.calc_text_size("F").x + 1.0
+        # Addresses, bytes and characters are in the font of fixed width; the characters in its
+        # columns.
+        with monospace():
+            char_w = imgui.calc_text_size("F").x
         addr_digits = max(4, len(f"{base_addr + n - 1:X}"))
-        hex_cell_w = glyph_w * 3.0
-        mid_gap = glyph_w * 0.75
+        pitch = px(_BYTE_PITCH)
         n_mid = self.cols // 2
 
         def hex_x(col: int) -> float:
-            x = glyph_w * (addr_digits + 2) + col * hex_cell_w
+            x = char_w * addr_digits + px(_ADDRESS_GAP) + col * pitch
             if col >= n_mid:
-                x += mid_gap
+                x += px(_HALF_GAP)
             return x
 
-        ascii_x0 = hex_x(self.cols) + glyph_w if self.show_ascii else 0.0
+        # A byte's highlight fills the room between it and its neighbours.
+        room = (pitch - 2 * char_w) / 2
+        ascii_x0 = hex_x(self.cols) + px(_TEXT_GAP) if self.show_ascii else 0.0
         n_rows = (n + self.cols - 1) // self.cols
 
         # Diff stats
@@ -109,38 +133,48 @@ class HexView:
         self._hover_addr = None
 
         fmt_b = "{:02X}" if self.uppercase else "{:02x}"
-        fmt_a = f"{{:0{addr_digits}X}}:" if self.uppercase else f"{{:0{addr_digits}x}}:"
+        fmt_a = f"{{:0{addr_digits}X}}" if self.uppercase else f"{{:0{addr_digits}x}}"
 
         col_normal = imgui.get_color_u32(imgui.Col_.text)
         col_dim = imgui.get_color_u32(imgui.Col_.text_disabled)
         col_sel = imgui.get_color_u32(imgui.Col_.text_selected_bg)
-        col_hover = imgui.get_color_u32(imgui.ImVec4(1.0, 1.0, 1.0, 0.12))
+        # The byte under the mouse as a row of a tree under it.
+        col_hover = imgui.get_color_u32(imgui.Col_.header_hovered)
         col_diff = imgui.get_color_u32(imgui.ImVec4(0.9, 0.25, 0.1, 0.55))
         col_param = imgui.get_color_u32(imgui.ImVec4(0.85, 0.6, 0.1, 0.5))
         highlighted_param = self._goto_param_buf if self._goto_param_buf else None
         draw_list = imgui.get_window_draw_list()
 
-        imgui.push_style_var(imgui.StyleVar_.item_spacing, imgui.ImVec2(0.0, 0.0))
+        imgui.push_style_var(imgui.StyleVar_.item_spacing, imgui.ImVec2(0.0, row_gap))
         imgui.push_style_var(imgui.StyleVar_.frame_padding, imgui.ImVec2(0.0, 0.0))
+        imgui.push_font(monospace_font(), imgui.get_style().font_size_base)
 
         clipper = imgui.ListClipper()
-        clipper.begin(n_rows, line_h)
+        clipper.begin(n_rows, row_h)
         while clipper.step():
             for row in range(clipper.display_start, clipper.display_end):
                 start = row * self.cols
                 chunk = data[start : start + self.cols]
                 pos = imgui.get_cursor_screen_pos()
                 row_x, row_y = pos.x, pos.y
+                # The row's band: its text with half the gap to the next row above and below.
+                top, bottom = row_y - row_gap / 2, row_y + line_h + row_gap / 2
 
                 imgui.text_disabled(fmt_a.format(base_addr + start))
 
                 for i, b in enumerate(chunk):
                     byte_idx = start + i
                     bx = row_x + hex_x(i)
-                    p_min = imgui.ImVec2(bx, row_y)
-                    p_max = imgui.ImVec2(bx + glyph_w * 2, row_y + line_h)
-                    is_hov = (
-                        bx <= mouse.x < p_max.x and row_y <= mouse.y < row_y + line_h
+                    p_min = imgui.ImVec2(bx - room, top)
+                    p_max = imgui.ImVec2(bx + 2 * char_w + room, bottom)
+                    # The byte's character in the text on the right.
+                    cx = row_x + ascii_x0 + i * char_w
+                    c_min = imgui.ImVec2(cx, top)
+                    c_max = imgui.ImVec2(cx + char_w, bottom)
+                    in_row = top <= mouse.y < bottom
+                    is_hov = in_row and (
+                        p_min.x <= mouse.x < p_max.x
+                        or (self.show_ascii and cx <= mouse.x < c_max.x)
                     )
                     in_sel = (
                         sel_lo is not None
@@ -170,28 +204,32 @@ class HexView:
                         ):
                             self._sel_cursor = byte_idx
 
+                    background: int | None = None
                     if in_sel:
-                        draw_list.add_rect_filled(p_min, p_max, col_sel)
+                        background = col_sel
                     elif is_diff:
-                        draw_list.add_rect_filled(p_min, p_max, col_diff)
+                        background = col_diff
                     elif is_param:
-                        draw_list.add_rect_filled(p_min, p_max, col_param)
+                        background = col_param
                     elif is_hov:
-                        draw_list.add_rect_filled(p_min, p_max, col_hover)
+                        background = col_hover
+                    if background is not None:
+                        draw_list.add_rect_filled(p_min, p_max, background)
+                        if self.show_ascii:
+                            draw_list.add_rect_filled(c_min, c_max, background)
 
                     col = (
                         col_dim
                         if (b == 0 and self.grey_zeros and not in_sel and not is_diff)
                         else col_normal
                     )
-                    draw_list.add_text(p_min, col, fmt_b.format(b))
+                    draw_list.add_text(imgui.ImVec2(bx, row_y), col, fmt_b.format(b))
+                    if self.show_ascii:
+                        draw_list.add_text(
+                            imgui.ImVec2(cx, row_y), col_dim, _character(b)
+                        )
 
-                if self.show_ascii:
-                    imgui.same_line(ascii_x0)
-                    imgui.text_disabled(
-                        "".join(chr(b) if 32 <= b < 128 else "." for b in chunk)
-                    )
-
+        imgui.pop_font()
         imgui.pop_style_var(2)
         imgui.end_child()
         footer_top = imgui.get_cursor_pos_y()
@@ -241,7 +279,7 @@ class HexView:
             try:
                 rel = max(0, int(self._goto_buf, 16) - base_addr)
                 row = rel // self.cols
-                self._scroll_to = max(0.0, row * line_h - self._child_h * 0.5)
+                self._scroll_to = max(0.0, row * row_h - self._child_h * 0.5)
             except ValueError:
                 pass
 
@@ -284,7 +322,7 @@ class HexView:
                     if imgui.selectable(pid, False)[0]:
                         self._goto_param_buf = pid
                         row = byte_off // self.cols
-                        self._scroll_to = max(0.0, row * line_h - self._child_h * 0.5)
+                        self._scroll_to = max(0.0, row * row_h - self._child_h * 0.5)
                         imgui.close_current_popup()
             imgui.end_combo()
         imgui.end_disabled()

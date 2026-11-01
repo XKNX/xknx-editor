@@ -16,11 +16,19 @@ from imgui_bundle import imgui
 from editor_gui.widgets import parameter_widgets
 from editor_gui.widgets.dpi import px
 from xknxeditor.namespaces.intermediate.access_t import Access
+from xknxeditor.namespaces.intermediate.parameter_type_t_type_float_encoding import (
+    ParameterTypeTypeFloatEncoding,
+)
 from xknxeditor.namespaces.intermediate.parameter_type_t_type_restriction_base import (
     ParameterTypeTypeRestrictionBase,
 )
 from xknxeditor.prod.parser_v2.ui import UiParameter
-from xknxeditor.prod.parser_v2.ui.parameter import EnumChoice, EnumWidget, TextWidget
+from xknxeditor.prod.parser_v2.ui.parameter import (
+    EnumChoice,
+    EnumWidget,
+    FloatWidget,
+    TextWidget,
+)
 
 
 @pytest.fixture
@@ -108,3 +116,45 @@ def test_label_and_value_are_centred_in_their_row() -> None:
     # A one-line label is level with the field's text.
     frame_padding = imgui.get_style().frame_padding.y
     assert field.label_top == field.value_top + frame_padding
+
+
+_RADIO = EnumWidget(
+    (
+        EnumChoice(value=0, label="Nein", id="EN-0"),
+        EnumChoice(value=1, label="Ja", id="EN-1"),
+    ),
+    ParameterTypeTypeRestrictionBase.VALUE,
+    radio=True,
+)
+
+
+def _float(increment: float | None) -> FloatWidget:
+    return FloatWidget(
+        -90.0, 90.0, ParameterTypeTypeFloatEncoding.IEEE_754_SINGLE, increment
+    )
+
+
+@pytest.mark.usefixtures("frame")
+@pytest.mark.parametrize(
+    ("widget", "height", "control", "offset"),
+    [
+        # Radio buttons are 24 px, a float without steps a plain text box of 18 px, other
+        # fields 22 px; each with 9 px around it.
+        (_RADIO, 33, 24, 0),
+        (_float(None), 27, 18, 2),
+        (_float(0.5), 31, 22, 0),
+        (TextWidget(max_length=14), 31, 22, 0),
+    ],
+)
+def test_a_row_is_as_high_as_its_control(
+    widget: Any, height: float, control: float, offset: float
+) -> None:
+    param = _parameter("P-1", widget)
+    layout = parameter_widgets._row_layout(param, False, 300.0)  # pyright: ignore[reportPrivateUsage]
+    assert _height([param]) == pytest.approx(px(height))
+    assert layout.height == pytest.approx(px(height))
+    # The label is level with the control's text (a stepless float's field has less padding),
+    # half the control's room above a line of text below the content's top.
+    frame_padding = imgui.get_style().frame_padding.y
+    assert layout.label_top == layout.value_top + frame_padding - px(offset)
+    assert layout.label_top == px(4) + (px(control) - px(16)) // 2

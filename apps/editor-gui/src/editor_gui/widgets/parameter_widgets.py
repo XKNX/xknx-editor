@@ -12,18 +12,20 @@ from imgui_bundle.imgui import internal
 
 from editor_gui.device import Device
 from editor_gui.regional import regional_format
+from editor_gui.widgets import text_layout
 from editor_gui.widgets.backgrounds import (
     box_line,
     child_background,
     content_background,
     group_background,
+    page_line,
     side_background,
 )
 from editor_gui.widgets.checkbox import checkbox, radio_button
 from editor_gui.widgets.combo import begin_combo
 from editor_gui.widgets.dpi import px
 from editor_gui.widgets.float_format import format_float, general_float, parse_float
-from editor_gui.widgets.fonts import bold
+from editor_gui.widgets.fonts import bold, bold_font, semilight
 from editor_gui.widgets.icons import Icon, Picture, draw_icon
 from editor_gui.widgets.strings import S
 from editor_gui.widgets.tables import data_table_id
@@ -247,11 +249,21 @@ def _shows_as_text(param: UiParameter) -> bool:
     )
 
 
-# A parameter row as the reference tool lays it out (at 100 % scaling): its content is a field
-# (22 px) or a line of text (16 px), or the lines of its label (16 px each) when they take more,
-# with 9 px around it. Text rows are 25 px apart, field rows 31 px.
+# A parameter row as the reference tool lays it out (at 100 % scaling): its content is its value's
+# control or the lines of its label (16 px each) when they take more, with 9 px around it. The
+# controls are a line of text (16 px), radio buttons (24 px), a float without steps (a plain text
+# box, 18 px) or another field (22 px). Label and control are centred in the content.
 _ROW_MARGIN = 9.0
+_LINE_CONTENT = 16.0
 _FIELD_CONTENT = 22.0
+_RADIO_CONTENT = 24.0
+_STEPLESS_CONTENT = 18.0
+# Where the content starts below the row's top: the reference puts its 9 px as 3 px above the
+# content and 6 px below, and draws its text 2 px lower in a line than the editor does; the
+# grids' rows are placed so, too.
+_CONTENT_TOP = 4.0
+# How much shorter a stepless float's field is than other fields (its frame padding is less).
+_STEPLESS_SHRINK = 2.0
 
 
 @dataclass(frozen=True, slots=True)
@@ -263,25 +275,47 @@ class _RowLayout:
     value_top: float
 
 
+def _stepless(param: UiParameter) -> bool:
+    """Whether ``param`` is a float without steps, shown in a plain text box."""
+    return isinstance(param.widget, FloatWidget) and not param.widget.increment
+
+
+def _control(param: UiParameter, text_row: bool) -> tuple[float, float]:
+    """The height of ``param``'s control in its row, and how far its text is below its top."""
+    pad = imgui.get_style().frame_padding.y
+    if text_row:
+        return px(_LINE_CONTENT), 0.0
+    if isinstance(param.widget, EnumWidget) and param.widget.radio:
+        return px(_RADIO_CONTENT), pad
+    if _stepless(param):
+        return px(_STEPLESS_CONTENT), pad - px(_STEPLESS_SHRINK)
+    return px(_FIELD_CONTENT), pad
+
+
 def _row_layout(param: UiParameter, text_row: bool, label_width: float) -> _RowLayout:
-    """The layout of ``param``'s row beside its label ``label_width`` wide. Label and value are
-    centred in the row; a one-line label beside a field is level with the field's text."""
+    """The layout of ``param``'s row beside its label ``label_width`` wide. Label and control
+    are centred in the row's content; a one-line label is level with the control's text."""
     if param.value != param.default_value and _highlight_changes:
         label_width -= imgui.calc_text_size("*").x + px(4)
     labels = max(len(wrap_lines(param.label, max(label_width, 1.0))), 1)
-    gap = px(LINE_GAP)
-    line = imgui.get_text_line_height()
-    content = max(
-        px(_FIELD_CONTENT) if not text_row else line + gap, labels * (line + gap)
+    lines = labels * px(_LINE_CONTENT)
+    control, text_offset = _control(param, text_row)
+    content = max(control, lines)
+    top = px(_CONTENT_TOP)
+    label_top = top + _round(max(0.0, (content - lines) / 2))
+    # The control's text is level with where a one-line label beside it would be.
+    value_top = (
+        top
+        + _round((content - control) / 2)
+        + _round((control - px(_LINE_CONTENT)) / 2)
+        - text_offset
     )
-    height = content + px(_ROW_MARGIN)
-    label_top = math.floor((height - (labels * (line + gap) - gap)) / 2)
-    if text_row:
-        return _RowLayout(height, label_top, math.floor((height - line) / 2))
-    field_top = math.ceil((height - imgui.get_frame_height()) / 2)
-    if labels == 1:
-        label_top = field_top + imgui.get_style().frame_padding.y
-    return _RowLayout(height, label_top, field_top)
+    return _RowLayout(content + px(_ROW_MARGIN), label_top, value_top)
+
+
+def _round(value: float) -> float:
+    """``value`` to whole pixels, halves up (as the reference lays out)."""
+    return float(math.floor(value + 0.5))
 
 
 def _text_row(param: UiParameter) -> bool:
@@ -414,9 +448,10 @@ def _render_enum_combo(
     colour across the row. ``current`` None: ``preview`` is shown (e.g. "<differs>")."""
     icon = _choice_icon(current)
     style = imgui.get_style()
+    inset = px(_COMBO_TEXT_INSET)
     # The box the chosen entry is drawn in, left of the arrow.
     start = imgui.get_cursor_screen_pos()
-    low = imgui.ImVec2(start.x + style.frame_padding.x, start.y)
+    low = imgui.ImVec2(start.x + inset, start.y)
     high = imgui.ImVec2(
         start.x + imgui.calc_item_width() - imgui.get_frame_height(),
         start.y + imgui.get_frame_height(),
@@ -424,7 +459,12 @@ def _render_enum_combo(
     draw = imgui.get_window_draw_list()
     custom = current is not None and icon is not None
     shown = "" if custom else (choice_text(current) if current else preview)
-    if begin_combo(f"##{widget_id}", shown):
+    imgui.push_style_var(
+        imgui.StyleVar_.frame_padding, imgui.ImVec2(inset, style.frame_padding.y)
+    )
+    opened = begin_combo(f"##{widget_id}", shown)
+    imgui.pop_style_var()
+    if opened:
         for i, choice in enumerate(widget.choices):
             selected = current is not None and choice.value == current.value
             choice_icon = _choice_icon(choice)
@@ -1361,21 +1401,21 @@ def render_ui_tree(
             )
         if content_open:
             _draw_page_top_line()
+            imgui.set_cursor_pos_y(imgui.get_cursor_pos_y() + px(_PAGE_TOP))
         if content_open and selected is not None:
             _get_picture = get_picture
             _get_icon = get_icon
             _narrow_page[0] = stacked
             try:
-                with _page_colors():
-                    request = _render_page(
-                        device,
-                        selected,
-                        on_change,
-                        deferred_enum,
-                        needle,
-                        differing_refs,
-                        buttons,
-                    )
+                request = _render_page(
+                    device,
+                    selected,
+                    on_change,
+                    deferred_enum,
+                    needle,
+                    differing_refs,
+                    buttons,
+                )
             finally:
                 _get_picture = None
                 _get_icon = None
@@ -1541,6 +1581,15 @@ def _show_page_help(device: Device, page: ParameterPage) -> None:
         _selected_help[:] = [page.block.help_context]
 
 
+# Room at 100 % scaling above a page's content besides the window padding (14 px in all).
+_PAGE_TOP = 4.0
+# Size at 100 % scaling of a page's icon in the page tree (16 px, as in the reference).
+_PAGE_ICON = 16.0
+# Room above and below a page's text in the page tree beyond a field's, at 100 % scaling: rows
+# 30 px apart.
+_PAGE_ROW_EXTRA = 1.0
+
+
 def _render_page_tree(
     pages: tuple[ParameterPage, ...],
     selected: str | None,
@@ -1555,11 +1604,12 @@ def _render_page_tree(
     page with pages below is a group, boxed with them. ``channel_menu`` draws the items of a
     channel page's context menu."""
     clicked: str | None = None
-    icon_size = imgui.get_font_size()
-    space = imgui.calc_text_size(" ").x
+    icon_size = px(_PAGE_ICON)
+    if top_level:
+        _hovered_page[1] = None
     for page in pages:
-        # A row spans the tree's width, so the selected one joins the page beside it, and is as
-        # high as a field.
+        # A row spans the tree's width, so the selected one joins the page beside it, and is a
+        # little higher than a field.
         flags = (
             imgui.TreeNodeFlags_.span_full_width | imgui.TreeNodeFlags_.frame_padding
         )
@@ -1576,12 +1626,17 @@ def _render_page_tree(
             imgui.set_next_item_open(True, imgui.Cond_.always)
         elif page.key in opened:
             imgui.set_next_item_open(True, imgui.Cond_.once)
+        is_selected = page.key == selected
+        # The selected page and the one under the mouse (in the frame before) are bold.
+        emphasis = is_selected or page.key == _hovered_page[0]
+        if emphasis:
+            imgui.push_font(bold_font(), imgui.get_style().font_size_base)
+        space = imgui.calc_text_size(" ").x
         icon = get_icon(page.icon) if get_icon is not None and page.icon else None
         pad = " " * math.ceil((icon_size + space) / space) if icon is not None else ""
         # Spaces in front of a page's text indent it, as the product data lays out its pages.
         if page.block is not None:
             pad += " " * page.block.text_indent
-        is_selected = page.key == selected
         is_group = top_level and bool(page.children)
         row_top, row_bottom = _row_band()
         if is_group:
@@ -1595,7 +1650,17 @@ def _render_page_tree(
             imgui.push_style_color(imgui.Col_.header_active, imgui.ImVec4(0, 0, 0, 0))
         # Where the row's own content starts: its rect spans the tree's full width.
         row_x = imgui.get_cursor_screen_pos().x
+        frame = imgui.get_style().frame_padding
+        imgui.push_style_var(
+            imgui.StyleVar_.frame_padding,
+            imgui.ImVec2(frame.x, frame.y + px(_PAGE_ROW_EXTRA)),
+        )
         is_open = imgui.tree_node_ex(f"{pad}{page.label}###{page.key}", flags)
+        imgui.pop_style_var()
+        if emphasis:
+            imgui.pop_font()
+        if imgui.is_item_hovered():
+            _hovered_page[1] = page.key
         if is_selected:
             imgui.pop_style_color(2)
         if icon is not None:
@@ -1640,7 +1705,13 @@ def _render_page_tree(
             if is_group:
                 # The line closing the group's box below its last page.
                 _draw_box_line(_row_band()[0])
+    if top_level:
+        _hovered_page[0] = _hovered_page[1]
     return clicked
+
+
+# The page under the mouse in the frame before, and the one found in this frame so far.
+_hovered_page: list[str | None] = [None, None]
 
 
 def _row_band() -> tuple[float, float]:
@@ -1648,7 +1719,12 @@ def _row_band() -> tuple[float, float]:
     above and below it, so the bands of neighbouring rows touch."""
     half = imgui.get_style().item_spacing.y / 2
     top = imgui.get_cursor_screen_pos().y
-    return top - half, top + imgui.get_frame_height() + half
+    return top - half, top + _page_row_height() + half
+
+
+def _page_row_height() -> float:
+    """Height of a row of the page tree, without the spacing to the next one."""
+    return imgui.get_frame_height() + 2 * px(_PAGE_ROW_EXTRA)
 
 
 def _draw_band(top: float, bottom: float, color: imgui.ImVec4, inset: float) -> None:
@@ -1728,6 +1804,9 @@ def _render_children(
     # Whether the last thing drawn was a table (a grid or a list of parameters): the next one
     # then joins it row against row.
     after_grid = False
+    # Whether it was a grid: its last row already holds the spacing below its fields, so a
+    # separator after it does without the usual spacing too.
+    after_cells = False
 
     def join_rows() -> None:
         if after_grid:
@@ -1736,11 +1815,12 @@ def _render_children(
             )
 
     def flush() -> None:
-        nonlocal popup_request, table_idx, after_grid
+        nonlocal popup_request, table_idx, after_grid, after_cells
         if not pending_params:
             return
         join_rows()
         after_grid = True
+        after_cells = False
         req = _render_param_table(
             device,
             pending_params,
@@ -1762,7 +1842,7 @@ def _render_children(
             flush()
             width = min(imgui.get_content_region_avail().x, px(_GRID_REFERENCE_WIDTH))
             _render_picture(node.widget, width)
-            after_grid = False
+            after_grid = after_cells = False
         elif isinstance(node, UiParameter):
             if not needle or needle in node.label.lower():
                 pending_params.append(node)
@@ -1789,15 +1869,17 @@ def _render_children(
                 buttons,
                 repeated,
             )
-            after_grid = is_grid
+            after_grid = after_cells = is_grid
             if req is not None:
                 popup_request = req
         elif isinstance(node, UiSeparator):
             if needle:
                 continue  # separators are noise while filtering
             flush()
+            if after_cells:
+                join_rows()
             _render_separator(node)
-            after_grid = False
+            after_grid = after_cells = False
         elif isinstance(node, UiButton):
             if not needle or needle in node.text.lower():
                 pending_params.append(node)
@@ -1892,6 +1974,23 @@ def _indented_cell_text(text: str, origin: float) -> str:
         )
     )
     return "\n".join(line.lstrip(" ") for line in text.split("\n"))
+
+
+def _whole_pixel_starts(widths: list[float | None]) -> list[float | None]:
+    """Widths in whole pixels that start each column at its declared start, rounded: imgui cuts
+    each width down to whole pixels, which adds up over the columns. A column without a width
+    (it stretches) starts the count again."""
+    whole: list[float | None] = []
+    end = 0.0
+    for width in widths:
+        if width is None:
+            whole.append(None)
+            end = 0.0
+            continue
+        start = round(end)
+        end += width
+        whole.append(float(round(end) - start))
+    return whole
 
 
 def _keep_column_starts(
@@ -2050,7 +2149,7 @@ def _render_grid_cells(
         else None
         for col in range(declared_cols)
     ]
-    widths = _keep_column_starts(widths, _MIN_GRID_COLUMN)
+    widths = _whole_pixel_starts(_keep_column_starts(widths, _MIN_GRID_COLUMN))
     # Columns keep their declared widths, so a grid whose widths add up to more than the
     # page extends past its right edge instead of squeezing the last columns.
     stretch_cols = sum(w is None for w in widths) + col_offset
@@ -2070,9 +2169,10 @@ def _render_grid_cells(
     imgui.push_style_var(
         imgui.StyleVar_.frame_padding, imgui.ImVec2(_MIN_GRID_COLUMN, frame_padding.y)
     )
+    cell_padding_y = padding.y / 4
     imgui.push_style_var(
         imgui.StyleVar_.cell_padding,
-        imgui.ImVec2(padding.x if is_table else 0, padding.y / 4),
+        imgui.ImVec2(padding.x if is_table else 0, cell_padding_y),
     )
     origin = imgui.get_cursor_screen_pos().x
     opened = imgui.begin_table(
@@ -2098,14 +2198,6 @@ def _render_grid_cells(
     for row in range(1, max_row + 1):
         if row in block.collapsed_rows and not any(r == row for r, _ in occupied):
             continue
-        imgui.table_next_row()
-        if layout_padding:
-            imgui.pop_style_var()
-            layout_padding = False
-        if has_row_labels:
-            imgui.table_set_column_index(0)
-            label = block.row_labels[row - 1] if row - 1 < len(block.row_labels) else ""
-            imgui.text_disabled(label)
         # The cells of a row are centred on its tallest one (e.g. a label of two lines). A
         # label's height is known once it is drawn at its cell's width, so the row uses the
         # heights its labels had in the previous frame.
@@ -2120,6 +2212,17 @@ def _render_grid_cells(
             ]
         )
         row_height = max(frame_height, _label_heights.get(row_key, estimate))
+        # A row of labels only is as high as one with fields, as the grid rows of the page are
+        # (a cell with a field counts the spacing below it).
+        spacing = imgui.get_style().item_spacing.y
+        imgui.table_next_row(0, row_height + spacing + 2 * cell_padding_y)
+        if layout_padding:
+            imgui.pop_style_var()
+            layout_padding = False
+        if has_row_labels:
+            imgui.table_set_column_index(0)
+            label = block.row_labels[row - 1] if row - 1 < len(block.row_labels) else ""
+            imgui.text_disabled(label)
         drawn_height = 0.0
         for col in range(1, max_col + 1):
             imgui.table_set_column_index(col - 1 + col_offset)
@@ -2154,10 +2257,9 @@ def _render_grid_cells(
                 own = _label_heights.get(
                     cell_key, _celltext_height(sep, imgui.get_content_region_avail().x)
                 )
-                _label_heights[cell_key] = _render_cell_separator(
-                    sep, origin, row_height, own
-                )
-                drawn_height = max(drawn_height, _label_heights[cell_key])
+                drawn, room = _render_cell_separator(sep, origin, row_height, own)
+                _label_heights[cell_key] = drawn
+                drawn_height = max(drawn_height, room)
             if req is not None:
                 popup_request = req
         _label_heights[row_key] = drawn_height
@@ -2175,20 +2277,29 @@ def _celltext_height(sep: UiSeparator, width: float | None) -> float:
     wrap = max(width - px(_CELL_GAP), 1.0) if width else math.inf
     if sep.hint == "Headline":
         with bold(_HEADLINE_SCALE):
-            return text_height(len(wrap_lines(text, wrap)))
-    return text_height(len(wrap_lines(text, wrap)))
+            return _cell_text_height(len(wrap_lines(text, wrap)))
+    with semilight():
+        return _cell_text_height(len(wrap_lines(text, wrap)))
+
+
+def _cell_text_height(lines: int) -> float:
+    """Room a grid cell's text of ``lines`` lines in the current font takes in its row: that many
+    lines of the reference's line spacing (Segoe UI's, 1.33 em), less the gap below the last
+    one, which the row's spacing holds. In whole pixels, as the reference lays out."""
+    return round(lines * text_layout.font_size() * _CELL_LINE - px(LINE_GAP))
 
 
 def _render_cell_separator(
     sep: UiSeparator, origin: float, row_height: float, height: float
-) -> float:
+) -> tuple[float, float]:
     """A separator in a grid cell: a headline in bold, a label as plain text, a ruler across.
     Text wraps where the fields of the cell end (the cell's right edge less the gap to the next
     column); a label ``height`` high is centred in a row ``row_height`` high. Returns the height
-    of the text as drawn."""
+    of the text as drawn, and the room it takes in its row (see :func:`_cell_text_height`)."""
     if sep.text and sep.hint in ("Headline", None):
+        # On a whole pixel, as the reference lays out.
         imgui.set_cursor_pos_y(
-            imgui.get_cursor_pos_y() + max(0.0, (row_height - height) / 2)
+            imgui.get_cursor_pos_y() + max(0.0, math.floor((row_height - height) / 2))
         )
         right = (
             imgui.get_cursor_pos_x()
@@ -2196,16 +2307,14 @@ def _render_cell_separator(
             - px(_CELL_GAP)
         )
         text = _indented_cell_text(sep.text, origin)
-        # Broken into lines as other texts are (at spaces and after hyphens).
+        # Broken into lines as other texts are.
         wrap = max(right - imgui.get_cursor_pos_x(), 1.0)
-        if sep.hint == "Headline":
-            with bold(_HEADLINE_SCALE), _headline_color():
-                wrapped_text(text, wrap)
-        else:
+        with bold(_HEADLINE_SCALE) if sep.hint == "Headline" else semilight():
             wrapped_text(text, wrap)
-        return imgui.get_item_rect_size().y
+            drawn = imgui.get_item_rect_size().y
+            return drawn, _cell_text_height(len(wrap_lines(text, wrap)))
     _render_separator(sep)
-    return 0.0
+    return 0.0, 0.0
 
 
 def _render_grid_param(
@@ -2270,9 +2379,11 @@ def _render_param_table(
         return None
     popup_request: EnumPopupRequest | None = None
     table_flags = imgui.TableFlags_.no_saved_settings
-    # Labels and values sit at the same positions as the columns of grids on the page.
-    reference = min(imgui.get_content_region_avail().x, px(_GRID_REFERENCE_WIDTH))
-    label_width = reference * _LIST_LABEL_SHARE
+    # A row as wide as a separator's row; the labels take their share of it, the fields the
+    # rest up to where the separators end.
+    reference = min(imgui.get_content_region_avail().x, px(_LIST_ROW_WIDTH))
+    # On a whole pixel, as the reference lays out (imgui would cut it down).
+    label_width = round(reference * _LIST_LABEL_SHARE)
     # On a narrow page (a phone) each label is above its field, which gets the whole width.
     above = reference < px(_LABELS_ABOVE_WIDTH)
     padding = imgui.get_style().cell_padding
@@ -2376,8 +2487,16 @@ def _render_param_table(
             widget_id = f"{device.node_id}_{param.ref_id}"
             read_only = param.access == Access.READ
             imgui.begin_group()
-            imgui.set_next_item_width(-1 - _suffix_width(param.suffix))
+            imgui.set_next_item_width(-px(_LIST_ROW_END) - _suffix_width(param.suffix))
             imgui.begin_disabled(read_only)
+            # A float without steps is a plain text box, shorter than other fields.
+            compact = layout is not None and _stepless(param)
+            if compact:
+                frame = imgui.get_style().frame_padding
+                imgui.push_style_var(
+                    imgui.StyleVar_.frame_padding,
+                    imgui.ImVec2(frame.x, frame.y - px(_STEPLESS_SHRINK)),
+                )
             req = _render_device_param(
                 device,
                 param,
@@ -2386,6 +2505,8 @@ def _render_param_table(
                 deferred_enum=deferred_enum,
                 differs=differs,
             )
+            if compact:
+                imgui.pop_style_var()
             imgui.end_disabled()
             _track_help(param.help_context)
             _render_suffix(param.suffix)
@@ -2416,38 +2537,62 @@ _ERROR_ICON = imgui.ImVec4(210 / 255, 52 / 255, 52 / 255, 1.0)
 _ERROR_TINT = 0.15
 # Width at 100 % scaling a grid column without a declared width keeps when the grid is too wide.
 _MIN_STRETCH_COLUMN = 80.0
-# Page width at 100 % scaling that percentage column widths of a grid refer to.
-_GRID_REFERENCE_WIDTH = 540.0
+# Page width at 100 % scaling that percentage column widths of a grid refer to: as wide as a
+# separator (see _SEPARATOR_WIDTH).
+_GRID_REFERENCE_WIDTH = 532.0
+# Width at 100 % scaling of a separator's text, line or box: its row of 535 px less the 3 px it
+# keeps from the row's left edge.
+_SEPARATOR_WIDTH = 532.0
+# An information or error box at 100 % scaling: its text starts 37 px from the box's left edge
+# (border 1 px, margin 5 px, a 16 px icon with 5 px before and 10 px after it) and ends 6 px from
+# its right edge (margin and border).
+_HINT_ICON = 16.0
+_HINT_ICON_LEFT = 11.0
+_HINT_TEXT_LEFT = 37.0
+_HINT_TEXT_RIGHT = 6.0
 # Heights of grid labels as last drawn, per row and per cell (see _render_grid_cells).
 _label_heights: dict[str, float] = {}
 # Narrowest a grid column may get (a declared width of 1 % is about 5 px).
 _MIN_GRID_COLUMN = 1.0
 # Indent of a parameter label per IndentLevel.
 _INDENT_STEP = 8.0
-# Share of that width the labels of a parameter list take.
+# Width at 100 % scaling of a row of a parameter list (that of a separator's row), the share of it
+# the labels take, and the room its fields leave at its end (the separators end there too).
+_LIST_ROW_WIDTH = 535.0
 _LIST_LABEL_SHARE = 0.45
+_LIST_ROW_END = _LIST_ROW_WIDTH - _SEPARATOR_WIDTH
 # Gap at 100 % scaling a field in a grid cell leaves to the next column.
 _CELL_GAP = 6.0
+# Distance at 100 % scaling of the text of a drop-down from its left edge.
+_COMBO_TEXT_INSET = 5.0
+# Line spacing of the reference's texts (Segoe UI: ascent and descent 2724 / 2048 of the em) per
+# ImGui font size (of which the em is 12/14).
+_CELL_LINE = 2724 / 2048 * 12 / 14
 # Space left and right of a button in a grid cell.
 _BUTTON_MARGIN = 7.0
-# Size of a headline over the text: the semibold 10.5 pt over 9 pt of Windows dialogs, as wide as
-# that with the emboldened font.
-_HEADLINE_SCALE = 1.1
-# Room at 100 % scaling beyond the usual spacing above and below a separator line and above and
-# below an information or error box. A headline takes the usual spacing only, as its first row
-# follows it one row pitch further down.
-_RULER_ABOVE = 14.0
-_RULER_BELOW = 7.0
-_HINT_ABOVE = 9.0
-_HINT_BELOW = 5.0
-# How far the texts and check marks of a page and its headlines lean from their color towards the
-# page's background: the reference draws its text in thin type (thinner than its headlines), so
-# it looks lighter on a light page than ours in the same color would.
-_TEXT_SOFTEN = 0.13
-_HEADLINE_SOFTEN = 0.06
-# Room at 100 % scaling above and below a separator's text: with the line gap a text ends with,
-# two texts in a row are 10 px apart (5 px above and below each).
-_TEXT_ROOM = 4.0
+# Size of a headline over the text: 14 px semibold over the 12 px text.
+_HEADLINE_SCALE = 14.0 / 12.0
+# Room at 100 % scaling above and below a headline's text beyond the usual spacing: a headline
+# is 29 px high, its baseline 20 px below its top (as the reference draws them, measured against
+# its parameter rows).
+_HEADLINE_ABOVE = 1.0
+_HEADLINE_BELOW = 4.0
+# Room at 100 % scaling beyond the usual spacing above and below a separator line, above an
+# information or error box and below it (less than the usual spacing), and above and below a
+# separator's text. The reference keeps 5 px above and below each separator, centres a line in a
+# row of 21 px and draws a text in lines of 16 px; measured from baseline to baseline (or line)
+# that is 26 px between two texts, 27 px from a headline to a text, 19 px from a text to a line,
+# 30 px from a line to a headline, 14 px from a text to a box and 23 px from a box to a text.
+_RULER_ABOVE = 10.0
+_RULER_BELOW = 10.0
+_HINT_ABOVE = 5.0
+_HINT_BELOW = -1.0
+_TEXT_ABOVE = 6.0
+_TEXT_BELOW = 4.0
+# The room in an information or error box above its text and below it (with its last line's gap,
+# 6 px around the text as in the reference).
+_HINT_PAD = 8.0
+_HINT_PAD_BELOW = 6.0
 
 
 def _wrap_width() -> float:
@@ -2463,8 +2608,8 @@ def _wrap_width() -> float:
 
 
 def _page_width() -> float:
-    """Width of the page's rows of labels and fields, where text and separators end, too."""
-    return min(imgui.get_content_region_avail().x, px(_GRID_REFERENCE_WIDTH))
+    """Width of the page's separators: their texts, lines and boxes."""
+    return min(imgui.get_content_region_avail().x, px(_SEPARATOR_WIDTH))
 
 
 def _render_ruler() -> None:
@@ -2472,7 +2617,7 @@ def _render_ruler() -> None:
     the window's edge."""
     width = _page_width()
     top = imgui.get_cursor_screen_pos()
-    color = imgui.get_color_u32(imgui.Col_.separator)
+    color = imgui.get_color_u32(page_line())
     imgui.get_window_draw_list().add_rect_filled(
         top, imgui.ImVec2(top.x + width, top.y + 1.0), color
     )
@@ -2487,7 +2632,7 @@ def _wrapped_label(label: str) -> None:
 
 def _aligned_text(text: str, alignment: str | None) -> None:
     avail = _wrap_width()
-    width = imgui.calc_text_size(text).x
+    width = text_layout.text_width(text)
     if alignment in ("Center", "Right") and "\n" not in text and width < avail:
         offset = (avail - width) / 2 if alignment == "Center" else avail - width
         imgui.set_cursor_pos_x(imgui.get_cursor_pos_x() + offset)
@@ -2504,19 +2649,24 @@ def _render_hint(
 ) -> None:
     """An information or error text in a box of ``fill`` with a ``border``, and a round icon of
     ``color`` showing ``glyph``, or a cross without one."""
-    pad = px(8)
-    icon = imgui.get_font_size() * 1.25
+    pad = px(_HINT_PAD)
+    icon = px(_HINT_ICON)
     width = _wrap_width()
-    text_width = width - pad * 3 - icon
-    lines_height = text_height(len(wrap_lines(text, text_width)))
+    text_width = width - px(_HINT_TEXT_LEFT) - px(_HINT_TEXT_RIGHT)
+    with semilight():
+        lines_height = text_height(len(wrap_lines(text, text_width)))
     top = imgui.get_cursor_screen_pos()
-    box_max = imgui.ImVec2(top.x + width, top.y + max(lines_height, icon) + pad * 2)
+    box_max = imgui.ImVec2(
+        top.x + width, top.y + pad + max(lines_height, icon) + px(_HINT_PAD_BELOW)
+    )
     draw = imgui.get_window_draw_list()
     # Corners as round as those of fields.
     rounding = imgui.get_style().frame_rounding
     draw.add_rect_filled(top, box_max, imgui.get_color_u32(fill), rounding)
     draw.add_rect(top, box_max, imgui.get_color_u32(border), rounding)
-    centre = imgui.ImVec2(top.x + pad + icon / 2, top.y + pad + icon / 2)
+    centre = imgui.ImVec2(
+        top.x + px(_HINT_ICON_LEFT) + icon / 2, top.y + pad + icon / 2
+    )
     draw.add_circle_filled(centre, icon / 2, imgui.get_color_u32(color))
     white = imgui.get_color_u32(imgui.ImVec4(1, 1, 1, 1))
     if glyph:
@@ -2533,9 +2683,11 @@ def _render_hint(
                 white,
                 px(1.6),
             )
-    imgui.set_cursor_screen_pos(imgui.ImVec2(top.x + pad * 2 + icon, top.y + pad))
-    wrapped_text(text, text_width)
-    imgui.set_cursor_screen_pos(imgui.ImVec2(top.x, box_max.y))
+    imgui.set_cursor_screen_pos(imgui.ImVec2(top.x + px(_HINT_TEXT_LEFT), top.y + pad))
+    with semilight():
+        wrapped_text(text, text_width)
+    # The next item follows the usual spacing plus _HINT_BELOW (which may be less than none).
+    imgui.set_cursor_screen_pos(imgui.ImVec2(top.x, box_max.y + px(_HINT_BELOW)))
     imgui.dummy(imgui.ImVec2(width, 0))
 
 
@@ -2543,40 +2695,6 @@ def _mix(a: imgui.ImVec4, b: imgui.ImVec4, t: float) -> imgui.ImVec4:
     return imgui.ImVec4(
         a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t, a.z + (b.z - a.z) * t, 1.0
     )
-
-
-# The text color before _page_colors leans it, for the headlines inside (see _headline_color).
-_page_base_text: list[imgui.ImVec4 | None] = [None]
-
-
-@contextmanager
-def _page_colors() -> Generator[None]:
-    """A page drawn inside has its texts (labels, fields, drop-downs, checkboxes and radio
-    buttons) and check marks in their color leaning _TEXT_SOFTEN towards the page's background:
-    lighter on a light page, darker on a dark one."""
-    background = content_background()
-    text = imgui.get_style_color_vec4(imgui.Col_.text)
-    _page_base_text[0] = imgui.ImVec4(text.x, text.y, text.z, text.w)
-    mark = imgui.get_style_color_vec4(imgui.Col_.check_mark)
-    imgui.push_style_color(imgui.Col_.text, _mix(text, background, _TEXT_SOFTEN))
-    imgui.push_style_color(imgui.Col_.check_mark, _mix(mark, background, _TEXT_SOFTEN))
-    try:
-        yield
-    finally:
-        imgui.pop_style_color(2)
-        _page_base_text[0] = None
-
-
-@contextmanager
-def _headline_color() -> Generator[None]:
-    """A headline drawn inside leans only _HEADLINE_SOFTEN from the text color."""
-    base = _page_base_text[0] or imgui.get_style_color_vec4(imgui.Col_.text)
-    color = _mix(base, content_background(), _HEADLINE_SOFTEN)
-    imgui.push_style_color(imgui.Col_.text, color)
-    try:
-        yield
-    finally:
-        imgui.pop_style_color()
 
 
 def _render_separator(sep: UiSeparator) -> None:
@@ -2587,23 +2705,23 @@ def _render_separator(sep: UiSeparator) -> None:
         _render_ruler()
         vertical_space(px(_RULER_BELOW))
     elif sep.hint == "Headline":
-        with bold(_HEADLINE_SCALE), _headline_color():
-            imgui.align_text_to_frame_padding()
+        with bold(_HEADLINE_SCALE):
+            imgui.set_cursor_pos_y(imgui.get_cursor_pos_y() + px(_HEADLINE_ABOVE))
             _aligned_text(sep.text, sep.alignment)
+        vertical_space(px(_HEADLINE_BELOW))
     elif sep.hint == "Information":
         vertical_space(px(_HINT_ABOVE))
         fill = _mix(content_background(), _INFO_BORDER, _INFO_TINT)
         _render_hint(sep.text, _INFO_BORDER, fill, _INFO_ICON, "i")
-        vertical_space(px(_HINT_BELOW))
     elif sep.hint == "Error":
         vertical_space(px(_HINT_ABOVE))
         fill = _mix(content_background(), _ERROR_BORDER, _ERROR_TINT)
         _render_hint(sep.text, _ERROR_BORDER, fill, _ERROR_ICON, "")
-        vertical_space(px(_HINT_BELOW))
     else:
-        vertical_space(px(_TEXT_ROOM))
-        _aligned_text(sep.text, sep.alignment)
-        vertical_space(px(_TEXT_ROOM))
+        vertical_space(px(_TEXT_ABOVE))
+        with semilight():
+            _aligned_text(sep.text, sep.alignment)
+        vertical_space(px(_TEXT_BELOW))
 
 
 class EnumPopup:
