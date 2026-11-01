@@ -330,6 +330,49 @@ async def test_plugin_parameters(
         )
 
 
+async def test_plugin_parameter_item_name_is_exposed_and_searchable(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # A BLOB row's item name lives in ``group`` (the label is just the field). The tool must
+    # expose ``group`` and search it, so a client can still find a row by the item's name.
+    from editor_gui import plugin_params
+
+    mcp, _project = _server(tmp_path)
+    async with Client(mcp) as client:
+        await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
+        node_id = await _device(client)
+        mapping = plugin_params.mapping_for("M-0008_A-C030-21-AA50-O000A")
+        monkeypatch.setattr(plugin_params, "mapping_for", lambda app_id: mapping)
+        section = plugin_params.PluginSectionView(
+            section="DALI Groups",
+            parameters=[
+                plugin_params.PluginParameter(
+                    ref_id="dali_backup:b:groups:2:description",
+                    name="x",
+                    label="Name",
+                    value="Sauna",
+                    default_value="",
+                    section="",
+                    display_order=0,
+                    writable=True,
+                    group="[2] Group 'Sauna'",
+                    group_key="groups:2",
+                )
+            ],
+        )
+        monkeypatch.setattr(
+            plugin_params, "collect_from_device", lambda device, m: [section]
+        )
+        listed = await _data(client, "project_plugin_parameters", node_id=node_id)
+        row = listed["sections"][0]["parameters"][0]
+        assert row["group"] == "[2] Group 'Sauna'"
+        # Searching the item name keeps the row even though its label is only "Name".
+        found = await _data(
+            client, "project_plugin_parameters", node_id=node_id, search="sauna"
+        )
+        assert found["sections"] and found["sections"][0]["parameters"]
+
+
 async def test_the_actions_need_the_project_plugin(tmp_path: Path) -> None:
     mcp, _project = _server(tmp_path, with_plugin=False)
     async with Client(mcp) as client:

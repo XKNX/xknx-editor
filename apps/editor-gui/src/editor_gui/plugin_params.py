@@ -83,6 +83,14 @@ class PluginParameter:
     # shows a combo when non-empty. Keeps the raw token under the display label so the write
     # path can route the original value back to the DOM.
     choices: tuple[tuple[str, str], ...] = ()
+    # Optional grouping key within a section. When set, the panel nests the row under a
+    # collapsible tree node with this label, so a long list (e.g. 16 scenes x many values)
+    # becomes a short, browsable tree instead of one flat table. Empty = ungrouped (flat).
+    group: str = ""
+    # Stable identity of the group, independent of its displayed ``group`` text. The panel keys
+    # the tree node's imgui id off this so editing an item's name (which changes ``group``) does
+    # not collapse its expanded node. Falls back to ``group`` when empty.
+    group_key: str = ""
 
 
 @dataclass(frozen=True, slots=True)

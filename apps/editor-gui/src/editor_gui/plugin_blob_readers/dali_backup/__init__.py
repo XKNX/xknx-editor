@@ -36,8 +36,45 @@ _CONTAINERS: tuple[tuple[str, str, str], ...] = (
 _SKIP_ITEM_ATTRS = frozenset({"index", "isDirty"})
 _DEFAULT_VALUES = frozenset({"", "0", "-1", "255", "FFFFFF", "False"})
 
-# Known enum fields -> (raw value, label) choices. Rendered as a select box and made editable.
-# Only verified value sets are listed (no guessed vendor tables).
+# Human labels for the blob's short attribute names, so the rows read as words instead of codes
+# (``ctype`` -> "Colour type"). An unmapped name falls back to the raw name.
+_ATTR_LABELS: dict[str, str] = {
+    "description": "Name",
+    "cmode": "Colour mode",
+    "couple": "Couple index",
+    "ctype": "Colour type",
+    "color-type": "Colour type",
+    "color": "Colour",
+    "setting": "Setting",
+    "value": "Value",
+    "knxScene": "KNX scene",
+    "fadeTime": "Fade time",
+    "fadetime": "Fade time",
+    "fadeIn": "Fade in",
+    "groupindex": "Group",
+    "short-address": "Short address",
+    "long-address": "Long address",
+    "min-value": "Min value",
+    "min-ctemp": "Min colour temp.",
+    "max-ctemp": "Max colour temp.",
+    "flags": "Commissioning flag",
+    "subtype": "Sub-type",
+    "type": "Type",
+    "mode": "Mode",
+    "func": "Function",
+    "time": "Time",
+    "weekdays": "Weekdays",
+    "delay": "Delay",
+    "isOverwritable": "Overwritable",
+}
+
+
+def _attr_label(attr: str) -> str:
+    return _ATTR_LABELS.get(attr, attr)
+
+
+# Known enum fields -> (raw value, label) choices. Rendered as a select box. Only verified value
+# sets are listed (no guessed vendor tables).
 _DALI_DEVICE_TYPE = {
     "0": "Control gear (ECG)",
     "1": "Emergency inverter",
@@ -51,16 +88,50 @@ _DALI_DEVICE_TYPE = {
     "9": "Sequencer",
 }
 _TPL_MODE = {"Disabled": "Disabled", "Enabled": "Enabled"}
-# Enum fields that ALSO exist as KNX parameters (ECG device type, template mode): shown as a
-# read-only humanised label, because editing only the blob copy would desync from the programmed
-# parameter - the user edits those in the parameter sections. ``type`` is also a scanned physical
-# property, not a free choice.
+# Group colour mode (GroupCMode) and the group's ETS colour type (EtsColorType).
+_GROUP_COLOUR_MODE = {"0": "Normal", "1": "Master", "2": "Slave"}
+_GROUP_COLOUR_TYPE = {
+    "0": "No colour",
+    "4": "Colour temperature",
+    "5": "Colour XY",
+    "6": "RGBW",
+    "7": "RGB",
+    "8": "HSV",
+    "9": "HSVW",
+    "10": "Temperature + RGBW",
+    "11": "Temperature + RGB",
+    "12": "Temperature + HSV",
+    "13": "Temperature + HSVW",
+    "14": "Master",
+    "15": "Slave",
+}
+# A scene item's colour-value type (ColorValueType).
+_SCENE_COLOUR_TYPE = {
+    "0": "No colour",
+    "1": "Colour XY",
+    "2": "Colour temperature",
+    "4": "RGB",
+    "8": "RGBW",
+    "16": "HSV",
+    "32": "HSVW",
+}
+# Enum fields shown as a read-only humanised label, for one of two reasons:
+#   * they mirror a KNX parameter (``type``/``mode``, and the group colour mode/type ``cmode``/
+#     ``ctype`` which mirror the per-channel DCA colour parameters) - editing only the blob copy
+#     would desync from the programmed value; the user edits those in the parameter sections;
+#   * ``color-type`` is a scene item's colour space: changing it alone would leave the colour
+#     value and the ``setting`` flags inconsistent (the DCA couples all three), so switching the
+#     colour space needs a dedicated picker we do not have yet. The colour VALUE stays editable
+#     for same-space tweaks (see ``_EDITABLE_SCALARS``). ``type`` is also a scanned property.
 _READONLY_LABEL_ENUMS: dict[str, dict[str, str]] = {
     "type": _DALI_DEVICE_TYPE,
     "mode": _TPL_MODE,
+    "cmode": _GROUP_COLOUR_MODE,
+    "ctype": _GROUP_COLOUR_TYPE,
+    "color-type": _SCENE_COLOUR_TYPE,
 }
-# Blob-only enum fields (no parameter mirror): editable select boxes. Template command functions
-# are stored by name; offer the verified set.
+# Blob-only enum fields (no parameter mirror, no coupled state): editable select boxes. Template
+# command functions are stored by name; offer the verified set.
 _TPL_FUNC = {
     n: n
     for n in (
@@ -83,14 +154,18 @@ _EDITABLE_ENUMS: dict[str, dict[str, str]] = {"func": _TPL_FUNC}
 # Boolean attributes become a True/False select box.
 _BOOL_CHOICES = (("True", "True"), ("False", "False"))
 
-# Free-scalar attributes the user may edit directly as text (plain config numbers / times, not
-# physical scan results like long-address or commissioning flags).
+# Free-scalar attributes the user may edit directly as text (plain config numbers / times / scene
+# colour values, not physical scan results like long-address or commissioning flags). A scene
+# colour is the Kelvin value for colour-temperature items and a value CSV otherwise; it lives only
+# in the blob, so editing it as text is safe (the bytes are written back verbatim).
 _EDITABLE_SCALARS = frozenset(
     {
         "description",
         "knxScene",
         "fadeTime",
         "value",
+        "color",
+        "setting",
         "time",
         "weekdays",
         "fadetime",
@@ -200,6 +275,8 @@ def _row(
     *,
     writable: bool = False,
     choices: tuple[tuple[str, str], ...] = (),
+    group: str = "",
+    group_key: str = "",
 ) -> PluginParameter:
     return PluginParameter(
         ref_id=ref,
@@ -211,6 +288,8 @@ def _row(
         display_order=0,
         writable=writable,
         choices=choices,
+        group=group,
+        group_key=group_key,
     )
 
 
@@ -250,9 +329,13 @@ def _container_rows(
             continue
         idx = item.get("index", "?")
         desc = item.get("description", "")
+        # ``head`` labels the collapsible tree node the panel builds per item; the row labels
+        # below are just the field names, so each item's fields read as a short, nested list.
+        # ``gkey`` is the node's stable identity (survives a rename of ``desc``).
         head = f"[{idx}] {noun}"
         if desc:
             head = f"{head} {desc!r}"
+        gkey = f"{tag}:{idx}"
         own = [
             k for k in item.attrib if k not in _SKIP_ITEM_ATTRS and k != "description"
         ]
@@ -261,9 +344,11 @@ def _container_rows(
             rows.append(
                 _row(
                     f"{_REF_PREFIX}:{name}:{tag}:{idx}:description",
-                    f"{head}: name",
+                    _attr_label("description"),
                     desc,
                     writable=True,
+                    group=head,
+                    group_key=gkey,
                 )
             )
         for key in own:
@@ -276,10 +361,12 @@ def _container_rows(
             rows.append(
                 _row(
                     ref,
-                    f"{head}: {key}",
+                    _attr_label(key),
                     shown,
                     writable=writable,
                     choices=choices,
+                    group=head,
+                    group_key=gkey,
                 )
             )
         # Nested scene items / effect steps / template commands: one row per attribute, so the
@@ -299,10 +386,12 @@ def _container_rows(
                 rows.append(
                     _row(
                         ref,
-                        f"{head}: {target} {key}",
+                        f"{target}: {_attr_label(key)}",
                         shown,
                         writable=writable,
                         choices=choices,
+                        group=head,
+                        group_key=gkey,
                     )
                 )
     return rows

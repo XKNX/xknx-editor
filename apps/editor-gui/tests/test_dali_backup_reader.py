@@ -12,28 +12,31 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
-from editor_gui.plugin_blob_readers.dali_backup import read
+from editor_gui.plugin_blob_readers.dali_backup import PluginParameter, read
 
 _FIXTURES = Path(__file__).parent / "fixtures"
 
 
-def _sections(name: str) -> dict[str, list[tuple[str, str]]]:
-    secs = read((_FIXTURES / name).read_bytes())
-    return {s.section: [(p.label, p.value) for p in s.parameters] for s in secs}
+def _sections(name: str, blob: str = "") -> dict[str, list[PluginParameter]]:
+    return {
+        s.section: list(s.parameters)
+        for s in read((_FIXTURES / name).read_bytes(), name=blob)
+    }
 
 
 def test_gc16_blob_surfaces_scenes_ecgs_and_templates() -> None:
     secs = _sections("dali_gc16_backup.dat")
     assert {"DALI ECGs", "DALI Scenes", "DALI Time Control (Templates)"} <= set(secs)
     # Coloured scene items expose their colour on its own labelled row (previously invisible).
-    scene_labels = " ".join(label for label, _ in secs["DALI Scenes"])
-    assert "color" in scene_labels
+    scene_labels = " ".join(p.label for p in secs["DALI Scenes"])
+    assert "Colour" in scene_labels
     # Template time-control commands expose function, time and the weekday schedule, each on a
     # readable row (not a cryptic compound dump).
-    tpl_labels = " ".join(label for label, _ in secs["DALI Time Control (Templates)"])
-    assert "func" in tpl_labels
-    assert "time" in tpl_labels and "weekdays" in tpl_labels
-    assert "ECG" in " ".join(label for label, _ in secs["DALI ECGs"])
+    tpl_labels = " ".join(p.label for p in secs["DALI Time Control (Templates)"])
+    assert "Function" in tpl_labels
+    assert "Time" in tpl_labels and "Weekdays" in tpl_labels
+    # The ECG item it belongs to names the item in its group (tree node), not the field label.
+    assert any("ECG" in p.group for p in secs["DALI ECGs"])
 
 
 def test_e64pro_blob_surfaces_every_container() -> None:
@@ -49,15 +52,41 @@ def test_e64pro_blob_surfaces_every_container() -> None:
         "DALI Time Control (Templates)",
     ):
         assert expected in secs, expected
-    # Effect steps carry their per-step fade time and delay on their own rows.
-    effect_labels = " ".join(label for label, _ in secs["DALI Effects"])
-    assert "fadetime" in effect_labels and "delay" in effect_labels
+    # Effect steps carry their per-step fade time and delay on their own readable rows.
+    effect_labels = " ".join(p.label for p in secs["DALI Effects"])
+    assert "Fade time" in effect_labels and "Delay" in effect_labels
 
 
-def test_group_name_surfaced() -> None:
+def test_rows_carry_a_group_so_the_panel_can_build_a_tree() -> None:
+    # Every blob row belongs to an item group (``[N] Scene 'name'`` etc.) so the panel nests the
+    # long list under one collapsible node per item instead of one endless flat table.
     secs = _sections("dali_e64pro_backup.dat")
-    group_labels = " ".join(label for label, _ in secs["DALI Groups"])
-    assert "'" in group_labels  # named items render a quoted description in the head
+    for section in ("DALI Groups", "DALI Scenes"):
+        rows = secs[section]
+        assert rows
+        assert all(p.group for p in rows), section
+        # A section has several groups (several items), otherwise a tree buys nothing.
+        assert len({p.group for p in rows}) > 1, section
+
+
+def test_group_name_surfaced_in_group_head() -> None:
+    secs = _sections("dali_e64pro_backup.dat")
+    heads = " ".join({p.group for p in secs["DALI Groups"]})
+    assert "'" in heads  # named items render a quoted description in the tree-node head
+
+
+def test_group_colour_fields_are_readable_readonly_labels() -> None:
+    # ``cmode`` / ``ctype`` mirror the per-channel DCA colour parameters, so they stay read-only
+    # but are resolved from the cryptic integer to a label ("Colour type" = "Temperature + HSV").
+    secs = _sections("dali_e64pro_backup.dat")
+    groups = secs["DALI Groups"]
+    ctype = [p for p in groups if p.label == "Colour type"]
+    assert ctype, "no group colour-type row surfaced"
+    assert all(not p.writable for p in ctype)
+    # The raw integers in the fixture resolve to their EtsColorType names, never a bare number.
+    assert all(not p.value.isdigit() for p in ctype), [p.value for p in ctype]
+    cmode = [p for p in groups if p.label == "Colour mode"]
+    assert cmode and all(p.value in ("Normal", "Master", "Slave") for p in cmode)
 
 
 def test_writable_rows_are_names_enums_bools_or_editable_scalars() -> None:
@@ -75,6 +104,28 @@ def test_writable_rows_are_names_enums_bools_or_editable_scalars() -> None:
             assert p.choices or attr in _EDITABLE_SCALARS, p.label
             # Every writable row carries a routable dali_backup ref.
             assert p.ref_id.startswith("dali_backup:")
+
+
+def test_scene_colour_value_is_editable_but_type_is_a_readonly_label() -> None:
+    # The scene colour VALUE lives only in the blob, so it is editable (a same-space tweak, e.g.
+    # the Kelvin number, round-trips verbatim). The colour-TYPE (``color-type``) is read-only: it
+    # is shown as a humanised label, but changing the colour space alone would leave the value and
+    # the ``setting`` flags inconsistent, so switching it needs a dedicated picker, not a raw
+    # dropdown. ``color`` keeps the ``dali_backup:`` ref so an edit routes back to the blob.
+    rows = [
+        p
+        for s in read(
+            (_FIXTURES / "dali_gc16_backup.dat").read_bytes(),
+            name="DaliGC16-Backup-Store",
+        )
+        for p in s.parameters
+    ]
+    colour_types = [p for p in rows if p.ref_id.endswith(":color-type")]
+    assert colour_types, "no scene colour-type row surfaced"
+    assert all(not p.writable and not p.value.isdigit() for p in colour_types)
+    colours = [p for p in rows if p.ref_id.endswith(":color")]
+    assert colours
+    assert all(p.writable and p.ref_id.startswith("dali_backup:") for p in colours)
 
 
 def test_nested_scene_value_is_editable_and_round_trips() -> None:
@@ -135,19 +186,11 @@ def test_blob_only_enum_is_editable_select_box() -> None:
 def test_param_mirrored_enum_is_readonly_label() -> None:
     # ECG "type" and template "mode" also exist as KNX parameters; editing only the blob copy
     # would desync, so they are read-only and show the humanised label (not the raw integer).
-    secs = {
-        s.section: s.parameters
-        for s in read(
-            (_FIXTURES / "dali_gc16_backup.dat").read_bytes(),
-            name="DaliGC16-Backup-Store",
-        )
-    }
-    ecg_type = next(p for p in secs["DALI ECGs"] if p.label.endswith(": type"))
+    secs = _sections("dali_gc16_backup.dat", "DaliGC16-Backup-Store")
+    ecg_type = next(p for p in secs["DALI ECGs"] if p.label == "Type")
     assert not ecg_type.writable
     assert ecg_type.value == "LED module"  # raw 6 resolved to its label
-    mode = next(
-        p for p in secs["DALI Time Control (Templates)"] if p.label.endswith(": mode")
-    )
+    mode = next(p for p in secs["DALI Time Control (Templates)"] if p.label == "Mode")
     assert not mode.writable
     assert mode.value in ("Enabled", "Disabled")
 
