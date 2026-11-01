@@ -32,6 +32,7 @@ from xknxeditor.prod.script import AbortToken, ScriptAborted
 
 if TYPE_CHECKING:
     from xknxeditor.download.scope import DownloadScope
+    from xknxeditor.prod.parser_v2.calculation import ChangeSet
     from xknxeditor.prod.parser_v2.ui import UiButton
 
 
@@ -44,6 +45,17 @@ class ScriptRun:
     text: str = ""
     cancel_requested_at: float | None = None
     abort: AbortToken = field(default_factory=AbortToken)
+    # The parameters the handler stored so far, each with its value before the run and its last
+    # value, by ref id; filled on the UI thread.
+    changes: ChangeSet = field(default_factory=dict[str, tuple[str | None, str | None]])
+    # What the handler logged (info/warn/error), as (level, message).
+    log: list[tuple[str, str]] = field(default_factory=list[tuple[str, str]])
+
+    def record(self, changes: ChangeSet) -> None:
+        """Add stored ``changes``, keeping the value a parameter had before the run."""
+        for ref, (old, new) in changes.items():
+            first = self.changes.get(ref)
+            self.changes[ref] = (first[0] if first is not None else old, new)
 
     @property
     def canceled(self) -> bool:
