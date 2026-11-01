@@ -8,7 +8,7 @@ from concurrent.futures import Future
 from enum import Enum
 from typing import TYPE_CHECKING, Any
 
-from imgui_bundle import imgui, imspinner
+from imgui_bundle import imgui
 from xknx import XKNX
 from xknx.core.connection_state import XknxConnectionState
 from xknx.exceptions import ConfirmationError, RequestResponseError
@@ -44,6 +44,7 @@ from editor_gui.widgets.dialog import (
     end_dialog,
 )
 from editor_gui.widgets.dpi import label_column_width, px, px_vec2
+from editor_gui.widgets.spinner import spinner
 from editor_gui.widgets.tree import collapsing_header
 from xknxeditor.prod.app_id import parse_app_id
 
@@ -893,14 +894,7 @@ class ConnectionPlugin:
         imgui.text_disabled(S.SECTION_DISCOVERED)
         if self._scanning or connecting:
             imgui.same_line()
-            imspinner.spinner_ang(
-                "##select-spinner",
-                px(6),
-                px(2),
-                color=imgui.ImColor(
-                    imgui.get_style_color_vec4(imgui.Col_.tab_selected)
-                ),
-            )
+            spinner("##select-spinner")
         for gateway in self._gateways:
             label = f"{gateway.name}  ({gateway.ip_addr})"
             if imgui.selectable(f"{label}##select_{gateway.ip_addr}", False)[0]:
@@ -1399,14 +1393,7 @@ class ConnectionPlugin:
         imgui.end_disabled()
         if self._progmode_scanning:
             imgui.same_line()
-            imspinner.spinner_ang(
-                "##progmode-spinner",
-                px(7),
-                px(2),
-                color=imgui.ImColor(
-                    imgui.get_style_color_vec4(imgui.Col_.tab_selected)
-                ),
-            )
+            spinner("##progmode-spinner")
             imgui.same_line()
             imgui.text_disabled(S.PROGMODE_SEARCHING)
         imgui.push_text_wrap_pos(0.0)
@@ -1635,14 +1622,7 @@ class ConnectionPlugin:
         imgui.text_disabled(S.SECTION_DISCOVERED)
         if self._scanning:
             imgui.same_line()
-            imspinner.spinner_ang(
-                "##scan-spinner",
-                px(6),
-                px(2),
-                color=imgui.ImColor(
-                    imgui.get_style_color_vec4(imgui.Col_.tab_selected)
-                ),
-            )
+            spinner("##scan-spinner")
         if self._gateways:
             for gw in self._gateways:
                 tags: list[str] = []
