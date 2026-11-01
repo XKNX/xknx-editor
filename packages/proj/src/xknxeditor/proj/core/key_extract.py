@@ -329,17 +329,29 @@ _ETS_EXPORT_APP_CONFIG = (
 )
 
 
+def _prebuilt_exe(assembly: str) -> Path | None:
+    """A prebuilt helper exe shipped next to this module (bundled in releases), or ``None``.
+
+    A release builds the net48 helpers in CI and places them in ``_prebuilt/`` so the desktop app
+    runs the export with only the .NET Framework runtime present -- no dotnet SDK on the user's PC.
+    """
+    candidate = Path(__file__).with_name("_prebuilt") / f"{assembly}.exe"
+    return candidate if candidate.is_file() else None
+
+
 def _build_net48_exe(
     source: Path, subdir: str, assembly: str, env_override: str
 ) -> Path:
-    """Compile ``source`` into a net48 ``.exe`` via the dotnet SDK and return its path.
+    """Return the net48 helper ``.exe``: an env override, a bundled prebuilt, else a dotnet build.
 
-    Honours ``env_override`` (a prebuilt helper). Raises :class:`KeyExtractionError` when the dotnet
-    SDK is absent and no prebuilt helper is set.
+    Raises :class:`KeyExtractionError` when the dotnet SDK is absent and no prebuilt helper exists.
     """
     prebuilt = os.environ.get(env_override)
     if prebuilt and Path(prebuilt).is_file():
         return Path(prebuilt)
+    bundled = _prebuilt_exe(assembly)
+    if bundled is not None:
+        return bundled
     if not dotnet_available():
         raise KeyExtractionError(
             "the dotnet SDK was not found; the local ETS export needs it to build the helper "
@@ -388,13 +400,21 @@ def _build_net48_exe(
 
 
 def ets_export_backend_available() -> bool:
-    """Whether the ETS 6 export helper can be obtained (its prebuilt exe, or the dotnet SDK)."""
-    return os.environ.get("XKNX_ETSEXPORT_EXE") is not None or dotnet_available()
+    """Whether the ETS 6 export helper can be obtained (env override, bundled prebuilt, or SDK)."""
+    return (
+        os.environ.get("XKNX_ETSEXPORT_EXE") is not None
+        or _prebuilt_exe("xknxetsx") is not None
+        or dotnet_available()
+    )
 
 
 def ets5_export_backend_available() -> bool:
-    """Whether the ETS 5 export helper can be obtained (its prebuilt exe, or the dotnet SDK)."""
-    return os.environ.get("XKNX_ETS5EXPORT_EXE") is not None or dotnet_available()
+    """Whether the ETS 5 export helper can be obtained (env override, bundled prebuilt, or SDK)."""
+    return (
+        os.environ.get("XKNX_ETS5EXPORT_EXE") is not None
+        or _prebuilt_exe("xknxets5x") is not None
+        or dotnet_available()
+    )
 
 
 def build_ets_export_exe() -> Path:
