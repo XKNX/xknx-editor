@@ -5,13 +5,15 @@ from __future__ import annotations
 
 import contextlib
 from collections.abc import Iterator
+from typing import Any, cast
 
 import pytest
 from imgui_bundle import imgui
 
-from editor_gui.widgets import parameter_widgets
+from editor_gui.widgets import backgrounds, parameter_widgets
 from editor_gui.widgets.wrapping import LINE_GAP, text_height
-from xknxeditor.prod.parser_v2.ui import UiSeparator
+from xknxeditor.prod.parser_v2.ui import UiParameterBlock, UiSeparator
+from xknxeditor.prod.parser_v2.ui.parameter_block import ParameterBlockLayout
 
 
 @pytest.fixture
@@ -123,3 +125,48 @@ def test_a_headline_is_placed_as_in_the_reference(
     assert imgui.get_cursor_pos_y() - top == pytest.approx(1 + line + LINE_GAP + 4)
     # The room below the text is the last item.
     assert imgui.get_item_rect_size().y == pytest.approx(4)
+
+
+@pytest.mark.usefixtures("frame")
+def test_a_line_after_a_grid_keeps_the_room_of_its_last_row(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # The grid's last row already holds the spacing below its fields (as a row of fields does):
+    # the line follows it with its own room above only.
+    tops: list[float] = []
+    monkeypatch.setattr(
+        parameter_widgets,
+        "_render_ruler",
+        lambda: tops.append(imgui.get_cursor_pos_y()),
+    )
+    grid = UiParameterBlock(
+        id="PB-1",
+        layout=ParameterBlockLayout.GRID,
+        row_labels=("",),
+        column_widths=("4%", "96%"),
+        children=(UiSeparator(id="S-1", text="F", cell="1,2"),),
+    )
+    top = imgui.get_cursor_pos_y()
+    parameter_widgets._render_children(  # pyright: ignore[reportPrivateUsage]
+        cast(Any, None),
+        (grid, UiSeparator(id="S-2", text="")),
+        lambda *_: None,
+        False,
+        "p",
+    )
+    style = imgui.get_style()
+    row = imgui.get_frame_height() + style.item_spacing.y + style.cell_padding.y / 2
+    above = parameter_widgets._RULER_ABOVE  # pyright: ignore[reportPrivateUsage]
+    assert tops == [pytest.approx(top + row + above)]
+
+
+@pytest.mark.usefixtures("frame")
+@pytest.mark.parametrize(("page", "line"), [(1.0, 0.8), (0.1, 0.28)])
+def test_the_line_is_black_at_20_percent_over_the_page(
+    monkeypatch: pytest.MonkeyPatch, page: float, line: float
+) -> None:
+    # White on a dark page.
+    color = imgui.ImVec4(page, page, page, 1.0)
+    monkeypatch.setattr(backgrounds, "content_background", lambda: color)
+    drawn = backgrounds.page_line()
+    assert (drawn.x, drawn.y, drawn.z) == pytest.approx((line, line, line))

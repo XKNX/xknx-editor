@@ -18,6 +18,7 @@ from editor_gui.widgets.backgrounds import (
     child_background,
     content_background,
     group_background,
+    page_line,
     side_background,
 )
 from editor_gui.widgets.checkbox import checkbox, radio_button
@@ -1799,6 +1800,9 @@ def _render_children(
     # Whether the last thing drawn was a table (a grid or a list of parameters): the next one
     # then joins it row against row.
     after_grid = False
+    # Whether it was a grid: its last row already holds the spacing below its fields, so a
+    # separator after it does without the usual spacing too.
+    after_cells = False
 
     def join_rows() -> None:
         if after_grid:
@@ -1807,11 +1811,12 @@ def _render_children(
             )
 
     def flush() -> None:
-        nonlocal popup_request, table_idx, after_grid
+        nonlocal popup_request, table_idx, after_grid, after_cells
         if not pending_params:
             return
         join_rows()
         after_grid = True
+        after_cells = False
         req = _render_param_table(
             device,
             pending_params,
@@ -1833,7 +1838,7 @@ def _render_children(
             flush()
             width = min(imgui.get_content_region_avail().x, px(_GRID_REFERENCE_WIDTH))
             _render_picture(node.widget, width)
-            after_grid = False
+            after_grid = after_cells = False
         elif isinstance(node, UiParameter):
             if not needle or needle in node.label.lower():
                 pending_params.append(node)
@@ -1860,15 +1865,17 @@ def _render_children(
                 buttons,
                 repeated,
             )
-            after_grid = is_grid
+            after_grid = after_cells = is_grid
             if req is not None:
                 popup_request = req
         elif isinstance(node, UiSeparator):
             if needle:
                 continue  # separators are noise while filtering
             flush()
+            if after_cells:
+                join_rows()
             _render_separator(node)
-            after_grid = False
+            after_grid = after_cells = False
         elif isinstance(node, UiButton):
             if not needle or needle in node.text.lower():
                 pending_params.append(node)
@@ -2594,7 +2601,7 @@ def _render_ruler() -> None:
     the window's edge."""
     width = _page_width()
     top = imgui.get_cursor_screen_pos()
-    color = imgui.get_color_u32(imgui.Col_.separator)
+    color = imgui.get_color_u32(page_line())
     imgui.get_window_draw_list().add_rect_filled(
         top, imgui.ImVec2(top.x + width, top.y + 1.0), color
     )
