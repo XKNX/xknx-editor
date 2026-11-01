@@ -5,7 +5,7 @@ from __future__ import annotations
 import time
 from concurrent.futures import Future
 from concurrent.futures import TimeoutError as FutureTimeout
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
 from imgui_bundle import imgui
@@ -27,6 +27,17 @@ _POPUP_ID = "###button_script_running"
 
 
 @dataclass
+class ButtonOutcome:
+    """How an offline handler ended: the parameters it stored (each with its value before and
+    after, by ref id; none when it failed), its error (None: it succeeded) and what it logged, as
+    (level, message)."""
+
+    changes: ChangeSet
+    error: str | None
+    log: list[tuple[str, str]]
+
+
+@dataclass
 class _Run:
     device: Device
     button: UiButton
@@ -34,6 +45,12 @@ class _Run:
     abort: AbortToken
     started: float
     old_active: set[str]
+    log: list[tuple[str, str]] = field(default_factory=list[tuple[str, str]])
+    ended: Future[ButtonOutcome] | None = None
+
+    def end(self, changes: ChangeSet, error: str | None) -> None:
+        if self.ended is not None:
+            self.ended.set_result(ButtonOutcome(changes, error, self.log))
 
 
 class ButtonRunner:
@@ -51,30 +68,44 @@ class ButtonRunner:
     def busy(self) -> bool:
         return self._run is not None
 
-    def start(self, device: Device, button: UiButton) -> None:
+    def start(
+        self,
+        device: Device,
+        button: UiButton,
+        *,
+        ended: Future[ButtonOutcome] | None = None,
+    ) -> bool:
+        """Run ``button``'s handler on ``device``; ``ended`` is resolved with its outcome. False
+        when it could not start: another handler runs, or one runs on the device."""
         if self._run is not None or device.script_running:
-            return
+            return False
         old_active = self._project.parameter_driven_com_objects(device)
         ui = device.begin_script()
         if ui is None:
             device.end_script()
-            return
+            return False
         device.param_errors.pop(button.id, None)
         abort = AbortToken()
+        log: list[tuple[str, str]] = []
+
+        def script_log(level: str, message: str) -> None:
+            log.append((level, message))
+            self._log.info("script log", level=level, message=message)
+
         future = default_worker().submit(
-            lambda: run_offline_button(ui, button, abort=abort, on_log=self._script_log)
+            lambda: run_offline_button(ui, button, abort=abort, on_log=script_log)
         )
-        self._run = _Run(device, button, future, abort, time.monotonic(), old_active)
+        self._run = _Run(
+            device, button, future, abort, time.monotonic(), old_active, log, ended
+        )
         try:
             future.result(timeout=self.WAIT)
         except FutureTimeout:
-            return
+            return True
         except BaseException:
             pass
         self.poll()
-
-    def _script_log(self, level: str, message: str) -> None:
-        self._log.info("script log", level=level, message=message)
+        return True
 
     def poll(self) -> None:
         run = self._run
@@ -86,18 +117,21 @@ class ButtonRunner:
             changes = run.future.result()
         except ScriptAborted:
             run.device.param_errors[run.button.id] = S.SCRIPT_ABORTED
+            run.end({}, S.SCRIPT_ABORTED)
             return
         except ScriptError as exc:
             run.device.param_errors[run.button.id] = exc.message
             self._log.warning(
                 "button script failed", button=run.button.id, error=exc.message
             )
+            run.end({}, exc.message)
             return
         except Exception as exc:
             run.device.param_errors[run.button.id] = str(exc)
             self._log.error(
                 "button script failed", button=run.button.id, error=str(exc)
             )
+            run.end({}, str(exc))
             return
         self._project.commit_param_changes(
             run.device,
@@ -105,6 +139,7 @@ class ButtonRunner:
             run.old_active,
             label=S.BUTTON_EXECUTED.format(run.button.text),
         )
+        run.end(changes, None)
 
     def render(self) -> None:
         run = self._run

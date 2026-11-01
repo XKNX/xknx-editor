@@ -121,11 +121,17 @@ class OnlineButtonRunner:
         generation = self._project.generation
 
         def commit(changes: ChangeSet, description: str | None) -> None:
-            self._submit(
-                lambda: self._project.persist_script_changes(
+            def persist() -> None:
+                self._project.persist_script_changes(
                     node_id, changes, description, generation=generation
                 )
-            )
+                run.record(changes)
+
+            self._submit(persist)
+
+        def script_log(level: str, message: str) -> None:
+            run.log.append((level, message))
+            self._script_log(level, message)
 
         access = ParameterAccess(ui, on_commit=commit)
         button = run.button
@@ -139,7 +145,7 @@ class OnlineButtonRunner:
                     online=online.functions(),
                     progress=self._progress(run),
                     abort=run.abort,
-                    on_log=self._script_log,
+                    on_log=script_log,
                 )
             finally:
                 access.rollback()

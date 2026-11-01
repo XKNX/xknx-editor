@@ -31,6 +31,7 @@ _EXPECTED = {
     "project_export_knxproj": (False, True, False),
     "project_batch": (False, True, False),
     "connection_program_device": (False, True, True),
+    "project_press_button": (False, True, True),
     "monitor_send_write": (False, True, True),
 }
 

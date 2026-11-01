@@ -18,7 +18,7 @@ from editor_gui.device_info import (
 )
 from editor_gui.dpt_formats import cached_master_formats, cached_master_names
 from editor_gui.plugins.base import Logger, PanelDefinition, PluginAPI
-from editor_gui.plugins.project.button_runner import ButtonRunner
+from editor_gui.plugins.project.button_runner import ButtonOutcome, ButtonRunner
 from editor_gui.plugins.project.compare_match import compare_mismatch, matching_devices
 from editor_gui.plugins.project.device_info_view import device_info_sections
 from editor_gui.plugins.project.ga_name_template import (
@@ -364,7 +364,7 @@ class ProjectPlugin:
             ga_menu=self._group_object_ga_menu,
             buttons=ButtonActions(
                 on_click=self._handle_button,
-                state=self._button_state,
+                state=self.button_state,
                 error=lambda device, button: device.param_errors.get(button.id),
             ),
             get_help=self._help_text,
@@ -2179,25 +2179,45 @@ class ProjectPlugin:
         )
 
     def _handle_button(self, device: "Device", button: "UiButton") -> None:
+        self.press_button(device, button)
+
+    def press_button(
+        self, device: "Device", button: "UiButton", *, origin: str | None = None
+    ) -> "Future[ButtonOutcome] | QueueItem | None":
+        """Press ``button`` of ``device`` as a click in the parameter view does (``origin``: who
+        pressed it when not the editor's own UI, e.g. an MCP client). An offline handler runs
+        right away: returns a future resolved with its outcome, or None when it could not start
+        (another handler runs). An online handler is queued as a "Parameter Script" operation:
+        returns its queue item, whose ``ended`` future resolves once it has ended."""
+        from concurrent.futures import Future
+
         self._api.log.info(
-            "button clicked", plugin="project", button=button.id, handler=button.handler
+            "button clicked",
+            plugin="project",
+            button=button.id,
+            handler=button.handler,
+            origin=origin,
         )
         if button.online is None:
-            self._button_runner.start(device, button)
-            return
-        self._program_queue.enqueue(
-            QueueItem(
-                node_id=device.node_id,
-                address=device.individual_address or "",
-                name=device.name,
-                scope=None,
-                script=ScriptRun(button),
-            )
+            outcome: Future[ButtonOutcome] = Future()
+            started = self._button_runner.start(device, button, ended=outcome)
+            return outcome if started else None
+        item = QueueItem(
+            node_id=device.node_id,
+            address=device.individual_address or "",
+            name=device.name,
+            scope=None,
+            script=ScriptRun(button),
+            origin=origin,
+            ended=Future() if origin is not None else None,
         )
+        self._program_queue.enqueue(item)
+        return item
 
-    def _button_state(
+    def button_state(
         self, device: "Device", button: "UiButton"
     ) -> tuple[bool, str | None]:
+        """Whether ``button`` of ``device`` can be pressed, and the reason when not."""
         if device.script_running:
             return False, S.BUTTON_DEVICE_BUSY
         if button.online is not None:
