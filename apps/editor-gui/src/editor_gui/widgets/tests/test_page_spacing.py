@@ -281,7 +281,7 @@ def test_a_number_field_with_spin_arrows_as_the_reference_draws_it(
     top = imgui.get_cursor_screen_pos().y
     field = imgui.get_frame_height()
     imgui.set_next_item_width(60)
-    with parameter_widgets._spin_field() as frame:  # pyright: ignore[reportPrivateUsage]
+    with parameter_widgets._text_box(inset=6, lower=True) as frame:  # pyright: ignore[reportPrivateUsage]
         imgui.input_text("##n", "4477")
     parameter_widgets._spin_buttons("n", enabled=True, frame=frame)  # pyright: ignore[reportPrivateUsage]
     # The frame a pixel above and below where a field is; the row keeps a field's height.
@@ -402,3 +402,30 @@ def test_the_line_beside_the_page_tree_is_highlighted_while_resized(
         100, 102, 0, 300, imgui.Col_.separator_hovered
     )
     assert rects == [imgui.get_color_u32(imgui.Col_.separator_hovered)]
+
+
+def test_a_text_field_as_the_reference_draws_its_text_boxes(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # As high as a number field, its text 3 px in and not lowered, black.
+    seen: list[tuple[float, float, float]] = []
+    original = imgui.input_text
+
+    def record(label: str, value: str, *args: Any) -> tuple[bool, str]:
+        style = imgui.get_style()
+        seen.append(
+            (
+                style.frame_padding.x,
+                style.frame_padding.y,
+                style.color_(imgui.Col_.text).x,
+            )
+        )
+        return original(label, value, *args)
+
+    monkeypatch.setattr(imgui, "input_text", record)
+    imgui.style_colors_light(imgui.get_style())
+    padding = imgui.get_style().frame_padding.y
+    parameter_widgets._render_text_param(  # pyright: ignore[reportPrivateUsage]
+        "t", "M1", lambda _v: None, False
+    )
+    assert seen == [(3.0, padding, 0.0)]

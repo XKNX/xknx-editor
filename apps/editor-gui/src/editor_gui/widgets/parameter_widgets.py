@@ -637,11 +637,15 @@ def _render_text_param(
     on_change: Callable[[str], None],
     differs: bool,
 ) -> None:
-    if differs:
-        _, new_value = imgui.input_text_with_hint(f"##{widget_id}", S.PARAM_DIFFERS, "")
-    else:
-        _, new_value = imgui.input_text(f"##{widget_id}", value)
-    if imgui.is_item_deactivated_after_edit() and (not differs or new_value):
+    with _text_box(inset=_TEXT_INSET, lower=False):
+        if differs:
+            _, new_value = imgui.input_text_with_hint(
+                f"##{widget_id}", S.PARAM_DIFFERS, ""
+            )
+        else:
+            _, new_value = imgui.input_text(f"##{widget_id}", value)
+        edited = imgui.is_item_deactivated_after_edit()
+    if edited and (not differs or new_value):
         on_change(new_value)
 
 
@@ -797,11 +801,12 @@ _SPIN_ARROW_RIGHT = 11.0
 _SPIN_ARROW_TOP = 9.0
 _SPIN_ARROW_BOTTOM = 8.0
 _SPIN_ARROW_LIGHTER = 0.2
-# How much higher a number field with spin arrows is than other fields, at 100 % scaling, half of
-# it above them and half below (its text is a pixel below its middle), and how far its text is
-# from its left edge.
-_SPIN_FIELD_TALLER = 2.0
-_SPIN_TEXT_INSET = 6.0
+# How much higher a field the user types into is than other fields, at 100 % scaling, half of it
+# above them and half below (see _text_box), and how far its text is from its left edge: in a
+# number field with spin arrows, and in a text field.
+_TEXT_BOX_TALLER = 2.0
+_NUMBER_INSET = 6.0
+_TEXT_INSET = 3.0
 
 
 def _set_number_field_width(*, spin: bool = True) -> None:
@@ -822,17 +827,18 @@ def _field_text(color: imgui.ImVec4) -> imgui.ImVec4:
 
 
 @contextmanager
-def _spin_field() -> Generator[list[imgui.ImVec2]]:
-    """A number field with spin arrows as the reference draws it: as high as a button, reaching
-    a pixel above and below where the row's fields are, its text a pixel below its middle. The
-    field drawn inside is that much higher a pixel lower (so its text is), cut off at the frame's
-    bottom; the frame's top row and its border are drawn here. The row keeps its height. Yields
-    a list that receives the frame's corners."""
+def _text_box(*, inset: float, lower: bool) -> Generator[list[imgui.ImVec2]]:
+    """A field the user types into (a number or a text) as the reference's text boxes are: as
+    high as a button, reaching a pixel above and below where the row's fields are, its text
+    black, ``inset`` from its left edge and, ``lower``, a pixel below its middle. The field drawn
+    inside is then that much higher a pixel lower (so its text is), cut off at the frame's
+    bottom; the frame's rows the field leaves and its border are drawn here. The row keeps its
+    height. Yields a list that receives the frame's corners."""
     window = internal.get_current_window()
     style = imgui.get_style()
     top = imgui.get_cursor_screen_pos().y
     content_bottom = window.dc.cursor_max_pos.y
-    half = px(_SPIN_FIELD_TALLER) / 2
+    half = px(_TEXT_BOX_TALLER) / 2
     frame_top = top - half
     frame_bottom = top + imgui.get_frame_height() + half
     imgui.push_clip_rect(
@@ -840,7 +846,7 @@ def _spin_field() -> Generator[list[imgui.ImVec2]]:
     )
     imgui.push_style_var(
         imgui.StyleVar_.frame_padding,
-        imgui.ImVec2(px(_SPIN_TEXT_INSET), style.frame_padding.y + half),
+        imgui.ImVec2(px(inset), style.frame_padding.y + (half if lower else 0.0)),
     )
     imgui.push_style_color(imgui.Col_.border, imgui.ImVec4(0, 0, 0, 0))
     imgui.push_style_color(imgui.Col_.text, _field_text(style.color_(imgui.Col_.text)))
@@ -865,6 +871,10 @@ def _spin_field() -> Generator[list[imgui.ImVec2]]:
     draw.add_rect_filled(
         frame_min, imgui.ImVec2(frame_max.x, low.y), imgui.get_color_u32(fill)
     )
+    if high.y < frame_bottom:
+        draw.add_rect_filled(
+            imgui.ImVec2(frame_min.x, high.y), frame_max, imgui.get_color_u32(fill)
+        )
     if style.frame_border_size > 0:
         draw.add_rect(
             frame_min,
@@ -884,11 +894,11 @@ def _spin_buttons(
     widget_id: str, *, enabled: bool, frame: list[imgui.ImVec2] | None = None
 ) -> int:
     """Up/down arrows inside the right end of the previous field (or of ``frame``, its corners,
-    see :func:`_spin_field`): +1 or -1 while pressed. Within a frame the arrows are clicked
+    see :func:`_text_box`): +1 or -1 while pressed. Within a frame the arrows are clicked
     where the field is, so they do not reach past the row's fields either."""
     if frame:
         rect_min, rect_max = frame
-        half = px(_SPIN_FIELD_TALLER) / 2
+        half = px(_TEXT_BOX_TALLER) / 2
         hit_top, hit_bottom = rect_min.y + half, rect_max.y - half
     else:
         rect_min, rect_max = imgui.get_item_rect_min(), imgui.get_item_rect_max()
@@ -985,7 +995,9 @@ def _render_int_param(
     # small are hard to hit with a finger, and the keyboard types the number.
     spin = not _narrow_page[0]
     _set_number_field_width(spin=spin)
-    with _spin_field() if spin else nullcontext([]) as frame:
+    with (
+        _text_box(inset=_NUMBER_INSET, lower=True) if spin else nullcontext([])
+    ) as frame:
         if differs:
             _, new_text = imgui.input_text_with_hint(
                 f"##{widget_id}",
