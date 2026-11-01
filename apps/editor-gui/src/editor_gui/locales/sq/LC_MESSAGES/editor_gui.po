@@ -1469,7 +1469,7 @@ msgid "License Through Installed ETS"
 msgstr "Licenco përmes ETS-së të instaluar"
 
 msgid "Export Through ETS"
-msgstr "Eksporto përmes ETS"
+msgstr "Eksporto përmes ETS-së"
 
 msgid "Found ETS {version}."
 msgstr "U gjet ETS {version}."
@@ -1487,13 +1487,13 @@ msgid "Use this untested ETS version anyway"
 msgstr "Përdor gjithsesi këtë version të patestuar të ETS"
 
 msgid "Exported through ETS and certified for {name}."
-msgstr "U eksportua përmes ETS dhe u certifikua për {name}."
+msgstr "U eksportua përmes ETS-së dhe u certifikua për {name}."
 
 msgid "Exported through ETS, but without a certificate (no licence was found)."
-msgstr "U eksportua përmes ETS, por pa certifikatë (nuk u gjet asnjë licencë)."
+msgstr "U eksportua përmes ETS-së, por pa certifikatë (nuk u gjet asnjë licencë)."
 
 msgid "No installed ETS was found, or this is not Windows."
-msgstr "Nuk u gjet asnjë ETS i instaluar, ose ky nuk është Windows."
+msgstr "Nuk u gjet asnjë ETS e instaluar, ose ky sistem nuk është Windows."
 
 msgid "ETS 5 needs a physical dongle to write the certificate; without one the project is exported uncertified."
 msgstr "ETS 5 ka nevojë për një dongle fizik për të shkruar certifikatën; pa të projekti eksportohet i pacertifikuar."
