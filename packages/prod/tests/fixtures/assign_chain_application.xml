@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<KNX xmlns="http://knx.org/xml/project/20" CreatedBy="test" ToolVersion="1">
+  <ManufacturerData>
+    <Manufacturer RefId="M-00FA">
+      <ApplicationPrograms>
+        <ApplicationProgram Id="M-00FA_A-0006-01-0000" ApplicationNumber="6" ApplicationVersion="1"
+            ProgramType="ApplicationProgram" MaskVersion="MV-07B0" Name="AssignChain"
+            LoadProcedureStyle="MergedProcedure" PeiType="0" DefaultLanguage="en-US"
+            DynamicTableManagement="false" Linkable="false" MinEtsVersion="5.0">
+          <Static>
+            <ParameterTypes>
+              <ParameterType Id="M-00FA_A-0006-01-0000_PT-N" Name="Number">
+                <TypeNumber SizeInBit="8" Type="unsignedInt" minInclusive="0" maxInclusive="2" />
+              </ParameterType>
+            </ParameterTypes>
+            <Parameters>
+              <!-- Source is shown; its value reaches Selector through a chain of four Assigns, each
+                   placed after the one that reads its target, so each pass moves the value one
+                   step. The active parameters are the same in every pass: only the values change
+                   until Selector is 1 and Shown appears. -->
+              <Parameter Id="M-00FA_A-0006-01-0000_P-1" Name="Source" ParameterType="M-00FA_A-0006-01-0000_PT-N" Text="Source" Value="1" />
+              <Parameter Id="M-00FA_A-0006-01-0000_P-2" Name="Step3" ParameterType="M-00FA_A-0006-01-0000_PT-N" Text="Step 3" Value="0" />
+              <Parameter Id="M-00FA_A-0006-01-0000_P-3" Name="Step2" ParameterType="M-00FA_A-0006-01-0000_PT-N" Text="Step 2" Value="0" />
+              <Parameter Id="M-00FA_A-0006-01-0000_P-4" Name="Step1" ParameterType="M-00FA_A-0006-01-0000_PT-N" Text="Step 1" Value="0" />
+              <Parameter Id="M-00FA_A-0006-01-0000_P-5" Name="Selector" ParameterType="M-00FA_A-0006-01-0000_PT-N" Text="Selector" Value="0" />
+              <Parameter Id="M-00FA_A-0006-01-0000_P-6" Name="Shown" ParameterType="M-00FA_A-0006-01-0000_PT-N" Text="Shown" Value="0" />
+            </Parameters>
+            <ParameterRefs>
+              <ParameterRef Id="M-00FA_A-0006-01-0000_P-1_R-1" RefId="M-00FA_A-0006-01-0000_P-1" />
+              <ParameterRef Id="M-00FA_A-0006-01-0000_P-2_R-2" RefId="M-00FA_A-0006-01-0000_P-2" />
+              <ParameterRef Id="M-00FA_A-0006-01-0000_P-3_R-3" RefId="M-00FA_A-0006-01-0000_P-3" />
+              <ParameterRef Id="M-00FA_A-0006-01-0000_P-4_R-4" RefId="M-00FA_A-0006-01-0000_P-4" />
+              <ParameterRef Id="M-00FA_A-0006-01-0000_P-5_R-5" RefId="M-00FA_A-0006-01-0000_P-5" />
+              <ParameterRef Id="M-00FA_A-0006-01-0000_P-6_R-6" RefId="M-00FA_A-0006-01-0000_P-6" />
+            </ParameterRefs>
+          </Static>
+          <Dynamic>
+            <ChannelIndependentBlock>
+              <ParameterBlock Id="M-00FA_A-0006-01-0000_PB-1" Text="General">
+                <ParameterRefRef RefId="M-00FA_A-0006-01-0000_P-1_R-1" />
+                <choose ParamRefId="M-00FA_A-0006-01-0000_P-5_R-5">
+                  <when test="1">
+                    <ParameterRefRef RefId="M-00FA_A-0006-01-0000_P-6_R-6" />
+                  </when>
+                </choose>
+                <Assign TargetParamRefRef="M-00FA_A-0006-01-0000_P-5_R-5" SourceParamRefRef="M-00FA_A-0006-01-0000_P-4_R-4" />
+                <Assign TargetParamRefRef="M-00FA_A-0006-01-0000_P-4_R-4" SourceParamRefRef="M-00FA_A-0006-01-0000_P-3_R-3" />
+                <Assign TargetParamRefRef="M-00FA_A-0006-01-0000_P-3_R-3" SourceParamRefRef="M-00FA_A-0006-01-0000_P-2_R-2" />
+                <Assign TargetParamRefRef="M-00FA_A-0006-01-0000_P-2_R-2" SourceParamRefRef="M-00FA_A-0006-01-0000_P-1_R-1" />
+              </ParameterBlock>
+            </ChannelIndependentBlock>
+          </Dynamic>
+        </ApplicationProgram>
+      </ApplicationPrograms>
+    </Manufacturer>
+  </ManufacturerData>
+</KNX>
