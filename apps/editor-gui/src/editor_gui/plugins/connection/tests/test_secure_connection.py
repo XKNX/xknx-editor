@@ -62,6 +62,7 @@ def _plugin(gateway: Any, *, routing: bool = False, **connection: Any) -> Any:
     plugin._controller_ip = "192.0.2.1"
     plugin._multicast_group = "224.0.23.12"
     plugin._api = SimpleNamespace(connection=SimpleNamespace(**connection))
+    plugin._credentials_error = None
     return plugin
 
 
@@ -182,3 +183,53 @@ def test_connected_once_the_credentials_are_there() -> None:
     plugin._connect_with_credentials()
     assert len(started) == 1
     assert plugin._state is ConnectionState.CONNECTING
+
+
+def _waiting(project: Any) -> tuple[Any, list[tuple[str, str]]]:
+    """A plugin whose connection failed for missing credentials, logging into the list."""
+    from editor_gui.plugins.connection.plugin import ConnectionState
+
+    logged: list[tuple[str, str]] = []
+    plugin = _plugin(None, secure_tunnel=lambda host, free: None)
+    plugin._api.project = project
+    plugin._state = ConnectionState.ERROR
+    plugin._awaiting_credentials = _gateway(tunnelling_requires_secure=True)
+    plugin._retry_on_credentials = True
+    plugin._credentials_check_at = 0.0
+    plugin._log = SimpleNamespace(
+        info=lambda event, **_: logged.append(("info", event)),
+        error=lambda event, **_: logged.append(("error", event)),
+    )
+    return plugin, logged
+
+
+def test_missing_credentials_at_startup_wait_for_the_project() -> None:
+    from editor_gui.plugins.connection.plugin import MissingCredentialsError
+
+    # The project given at startup is still opening: no error (a toast) yet.
+    project = SimpleNamespace(loading=True, is_open=False)
+    plugin, logged = _waiting(project)
+    plugin._report_failure(MissingCredentialsError(None), startup=True)
+    assert [level for level, _ in logged] == ["info"]
+    plugin._connect_with_credentials()
+    assert [level for level, _ in logged] == ["info"]
+    # It opened without them: now it is an error, once.
+    project.loading, project.is_open = False, True
+    plugin._credentials_check_at = 0.0
+    plugin._connect_with_credentials()
+    plugin._credentials_check_at = 0.0
+    plugin._connect_with_credentials()
+    assert [level for level, _ in logged] == ["info", "error"]
+
+
+def test_missing_credentials_are_an_error_when_connecting_later() -> None:
+    from editor_gui.plugins.connection.plugin import MissingCredentialsError
+
+    # Connected by the user, or at startup with the project already open.
+    for startup, project in (
+        (False, SimpleNamespace(loading=True, is_open=False)),
+        (True, SimpleNamespace(loading=False, is_open=True)),
+    ):
+        plugin, logged = _waiting(project)
+        plugin._report_failure(MissingCredentialsError(None), startup=startup)
+        assert logged == [("error", "connection failed")]

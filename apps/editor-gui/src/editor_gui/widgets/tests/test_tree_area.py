@@ -140,13 +140,14 @@ def test_rows_touch_so_that_selected_rows_make_one_area() -> None:
     imgui.begin("Panel")
     if begin_tree_area("##area"):
         style = imgui.get_style()
-        pitch = imgui.get_text_line_height() + style.item_spacing.y
+        pitch = imgui.get_text_line_height() + style.item_spacing.y + 4.0
         tree_node("Area", imgui.TreeNodeFlags_.leaf)
         rows.append((imgui.get_item_rect_min().y, imgui.get_item_rect_max().y))
         imgui.tree_pop()
         # A note after the label on its line takes no room below the row.
         with same_row():
             imgui.text("note")
+            note = imgui.get_item_rect_min().y
         row_selectable("Device", True)
         rows.append((imgui.get_item_rect_min().y, imgui.get_item_rect_max().y))
         tree_node("Line", imgui.TreeNodeFlags_.leaf)
@@ -157,5 +158,9 @@ def test_rows_touch_so_that_selected_rows_make_one_area() -> None:
     imgui.end_frame()
     for (_top, bottom), (top, _bottom) in itertools.pairwise(rows):
         assert top == pytest.approx(bottom)
-    # As far apart as text rows with the usual spacing.
+    # 4 px further apart than text rows with the usual spacing (24 px at 100 %), and the note
+    # on the label's line, in the middle of its row.
+    assert note == pytest.approx(
+        rows[0][0] + (pitch - imgui.get_text_line_height()) / 2
+    )
     assert [bottom - top for top, bottom in rows] == pytest.approx([pitch] * 3)

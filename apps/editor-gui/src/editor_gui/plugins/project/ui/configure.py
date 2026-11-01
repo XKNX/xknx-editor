@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
 import structlog
-from imgui_bundle import imgui, imspinner
+from imgui_bundle import imgui
 from xknx.exceptions import CouldNotParseAddress
 from xknx.telegram import IndividualAddress
 
@@ -29,6 +29,7 @@ from editor_gui.widgets.dpi import label_column_width, px, px_vec2
 from editor_gui.widgets.filter_box import filter_box
 from editor_gui.widgets.flow import button_width, same_line_if_fits
 from editor_gui.widgets.fonts import heading, italic
+from editor_gui.widgets.spinner import loading
 from editor_gui.widgets.tables import begin_data_table, data_table_headers
 from editor_gui.widgets.tree import collapsing_header
 from xknxeditor.download.scope import DownloadScope
@@ -268,14 +269,7 @@ def _timestamp_field(stamp: str | None) -> None:
 def _render_loading_application() -> None:
     """Shown while the device's application loads in the background."""
     imgui.spacing()
-    imspinner.spinner_ang(
-        "##application-loading",
-        px(6),
-        px(2),
-        color=imgui.ImColor(imgui.get_style_color_vec4(imgui.Col_.tab_selected)),
-    )
-    imgui.same_line()
-    imgui.text_disabled(S.CONFIGURE_LOADING_APPLICATION)
+    loading("##application-loading", S.CONFIGURE_LOADING_APPLICATION)
 
 
 class ConfigurePanel:

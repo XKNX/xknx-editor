@@ -28,6 +28,7 @@ from editor_gui.widgets.flow import (
     fits_beside,
     same_line_if_fits,
 )
+from editor_gui.widgets.spinner import loading
 from editor_gui.widgets.tabs import begin_tab_bar
 from editor_gui.widgets.tree import (
     begin_tree_area,
@@ -708,7 +709,7 @@ class CatalogPanel:
             self._start_online_refresh()
         if self._online_loading:
             imgui.same_line()
-            imgui.text_disabled(S.ONLINE_LOADING)
+            loading("##online-loading", S.ONLINE_LOADING)
         elif self._online_error:
             imgui.same_line()
             imgui.text_colored(imgui.ImVec4(1.0, 0.4, 0.4, 1.0), S.ONLINE_FAILED)
@@ -790,12 +791,12 @@ class CatalogPanel:
         ``query`` (the online search text) filters the products by name / order number."""
         with self._online_lock:
             items = self._online_items.get(manufacturer_id)
-            loading = manufacturer_id in self._online_items_loading
+            fetching = manufacturer_id in self._online_items_loading
             downloading = set(self._online_downloading)
         if items is None:
-            if not loading:
+            if not fetching:
                 self._start_fetch_items(manufacturer_id)
-            imgui.text_disabled(S.ONLINE_LOADING_PRODUCTS)
+            loading(f"##products-loading-{manufacturer_id}", S.ONLINE_LOADING_PRODUCTS)
             return
         tree = self._section_tree(manufacturer_id, items, query)
         if not tree.children and not tree.items:

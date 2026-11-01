@@ -44,9 +44,10 @@ def _plugin() -> Any:
     plugin.connect_calls = 0
     plugin.rescan_scheduled = False
 
-    def _connect() -> None:
+    def _connect(*, startup: bool = False) -> None:
         # Mirror the real ``connect()`` just enough that the retry below picks up the state
-        # transition and skips its own scan.
+        # transition and skips its own scan. The fallback is the connection made at startup.
+        assert startup
         plugin.connect_calls += 1
         plugin._state = ConnectionState.CONNECTING
 

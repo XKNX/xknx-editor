@@ -1283,7 +1283,7 @@ class GroupAddressesPanel:
             text_clipped_tooltip(co_name, disabled=True)
             imgui.table_set_column_index(2)
             if a.is_sending:
-                # Font-safe accent marker (DroidSans has no U+2192 arrow glyph).
+                # Font-safe accent marker (XKNX Sans has no U+2192 arrow glyph).
                 # The sending marker, in the Group Objects table's colour.
                 imgui.text_colored(sending_green(), "»")
                 if imgui.is_item_hovered():

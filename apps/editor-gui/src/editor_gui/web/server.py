@@ -73,7 +73,7 @@ _PAGE_BUILD = hashlib.blake2b(
     b"".join((_STATIC / name).read_bytes() for name in ("index.html", "client.js")),
     digest_size=8,
 ).hexdigest()
-_FONT = Path(__file__).parent.parent / "assets" / "fonts" / "DroidSans.ttf"
+_FONT = Path(__file__).parent.parent / "assets" / "fonts" / "XKNXSans-Regular.ttf"
 # The app icon, the page's icon in the browser tab.
 _ICON = Path(__file__).parent.parent / "assets" / "app_settings" / "icon.png"
 _COOKIE = "xknx_web_session"

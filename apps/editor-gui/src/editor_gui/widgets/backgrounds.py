@@ -37,6 +37,8 @@ _LINE_CONTRAST = 0.09
 # The least the border of a floating window (a dialog) differs from the window, in luminance:
 # the light field borders of Microsoft Style would leave a dialog without a visible outline.
 _WINDOW_BORDER_CONTRAST = 0.35
+# How far the line of a page's separator moves from the page toward black (white on a dark page).
+_PAGE_LINE = 0.2
 
 
 def _mix(a: imgui.ImVec4, b: imgui.ImVec4, t: float) -> imgui.ImVec4:
@@ -102,6 +104,14 @@ def box_line() -> imgui.ImVec4:
     separator = imgui.get_style().color_(imgui.Col_.separator)
     text = imgui.get_style().color_(imgui.Col_.text)
     return _apart(side, _mix(side, separator, _BOX_LINE), text, _LINE_CONTRAST)
+
+
+def page_line() -> imgui.ImVec4:
+    """The line of a parameter page's separator without text: black at 20 % over the page (white
+    on a dark one)."""
+    content = content_background()
+    other = _BLACK if _luminance(content) >= 0.5 else _WHITE
+    return _mix(content, other, _PAGE_LINE)
 
 
 def window_border() -> imgui.ImVec4:

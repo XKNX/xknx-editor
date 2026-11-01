@@ -5,13 +5,15 @@ from __future__ import annotations
 
 import contextlib
 from collections.abc import Iterator
+from typing import Any, cast
 
 import pytest
 from imgui_bundle import imgui
 
-from editor_gui.widgets import parameter_widgets
-from editor_gui.widgets.wrapping import LINE_GAP, text_height
-from xknxeditor.prod.parser_v2.ui import UiSeparator
+from editor_gui.widgets import backgrounds, parameter_widgets
+from editor_gui.widgets.wrapping import LINE_GAP
+from xknxeditor.prod.parser_v2.ui import UiParameterBlock, UiSeparator
+from xknxeditor.prod.parser_v2.ui.parameter_block import ParameterBlockLayout
 
 
 @pytest.fixture
@@ -55,6 +57,9 @@ def _lines(monkeypatch: pytest.MonkeyPatch) -> list[float]:
         ) -> None:
             lines.append(low.y)
 
+        def add_text(self, *_args: object) -> None:
+            pass
+
     monkeypatch.setattr(parameter_widgets.imgui, "get_window_draw_list", Recorder)
     return lines
 
@@ -86,11 +91,12 @@ def test_texts_in_a_row_have_room_between() -> None:
     parameter_widgets._render_separator(  # pyright: ignore[reportPrivateUsage]
         UiSeparator(id="S-1", text="Note")
     )
-    # One line of text (the window is narrow) with 4 px above and the line gap and 4 px below:
-    # two texts in a row are 10 px apart.
-    pitch = 4.0 + imgui.get_text_line_height() + LINE_GAP + 4.0
+    # One line of text (the window is narrow) with 6 px above and the line gap and 4 px below:
+    # two texts in a row are 12 px further apart than a line is high (26 px at the app's 14 px
+    # line, as the reference's 16 px lines with 5 px above and below).
+    pitch = 6.0 + imgui.get_text_line_height() + LINE_GAP + 4.0
     assert imgui.get_cursor_pos_y() - top == pytest.approx(pitch)
-    assert pitch - imgui.get_text_line_height() == 10.0
+    assert pitch - imgui.get_text_line_height() == 12.0
 
 
 @pytest.mark.usefixtures("frame")
@@ -99,5 +105,79 @@ def test_grid_labels_break_after_hyphens() -> None:
     gap = parameter_widgets._CELL_GAP  # pyright: ignore[reportPrivateUsage]
     narrow = imgui.calc_text_size("Kanaltransfer-").x + gap + 1.0
     height = parameter_widgets._celltext_height  # pyright: ignore[reportPrivateUsage]
-    assert height(sep, narrow) == pytest.approx(text_height(2))
-    assert height(sep, None) == pytest.approx(text_height(1))
+    lines = parameter_widgets._cell_text_height  # pyright: ignore[reportPrivateUsage]
+    assert height(sep, narrow) == pytest.approx(lines(2))
+    assert height(sep, None) == pytest.approx(lines(1))
+
+
+@pytest.mark.usefixtures("frame")
+def test_grid_labels_take_the_line_spacing_of_the_reference() -> None:
+    # Lines 1.33 em apart (Segoe UI's spacing; the em is 12/14 of the font size), less the gap
+    # below the last line, which the row's spacing holds: a two-line headline of the 14 px em
+    # takes 2 x 18.62 px less 2 px.
+    lines = parameter_widgets._cell_text_height  # pyright: ignore[reportPrivateUsage]
+    em = imgui.get_font_size() * 12 / 14
+    assert lines(2) == round(2 * em * 2724 / 2048 - LINE_GAP)
+
+
+@pytest.mark.usefixtures("frame")
+def test_a_headline_is_placed_as_in_the_reference(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # Its text 1 px below its top and 4 px of room below the text: a headline is 29 px high
+    # with its baseline 20 px down, measured against the rows around it.
+    monkeypatch.setattr(parameter_widgets, "_wrap_width", lambda: 1000.0)
+    top = imgui.get_cursor_pos_y()
+    parameter_widgets._render_separator(  # pyright: ignore[reportPrivateUsage]
+        UiSeparator(id="S-1", text="Uhrzeit & Datum", hint="Headline")
+    )
+    # The text's lines are LINE_GAP apart, and so is what follows them.
+    line = imgui.get_text_line_height()
+    assert imgui.get_cursor_pos_y() - top == pytest.approx(1 + line + LINE_GAP + 4)
+    # The room below the text is the last item.
+    assert imgui.get_item_rect_size().y == pytest.approx(4)
+
+
+@pytest.mark.usefixtures("frame")
+def test_a_line_after_a_grid_keeps_the_room_of_its_last_row(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # The grid's last row already holds the spacing below its fields (as a row of fields does):
+    # the line follows it with its own room above only.
+    tops: list[float] = []
+    monkeypatch.setattr(
+        parameter_widgets,
+        "_render_ruler",
+        lambda: tops.append(imgui.get_cursor_pos_y()),
+    )
+    grid = UiParameterBlock(
+        id="PB-1",
+        layout=ParameterBlockLayout.GRID,
+        row_labels=("",),
+        column_widths=("4%", "96%"),
+        children=(UiSeparator(id="S-1", text="F", cell="1,2"),),
+    )
+    top = imgui.get_cursor_pos_y()
+    parameter_widgets._render_children(  # pyright: ignore[reportPrivateUsage]
+        cast(Any, None),
+        (grid, UiSeparator(id="S-2", text="")),
+        lambda *_: None,
+        False,
+        "p",
+    )
+    style = imgui.get_style()
+    row = imgui.get_frame_height() + style.item_spacing.y + style.cell_padding.y / 2
+    above = parameter_widgets._RULER_ABOVE  # pyright: ignore[reportPrivateUsage]
+    assert tops == [pytest.approx(top + row + above)]
+
+
+@pytest.mark.usefixtures("frame")
+@pytest.mark.parametrize(("page", "line"), [(1.0, 0.8), (0.1, 0.28)])
+def test_the_line_is_black_at_20_percent_over_the_page(
+    monkeypatch: pytest.MonkeyPatch, page: float, line: float
+) -> None:
+    # White on a dark page.
+    color = imgui.ImVec4(page, page, page, 1.0)
+    monkeypatch.setattr(backgrounds, "content_background", lambda: color)
+    drawn = backgrounds.page_line()
+    assert (drawn.x, drawn.y, drawn.z) == pytest.approx((line, line, line))

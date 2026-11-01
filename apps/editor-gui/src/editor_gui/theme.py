@@ -156,6 +156,10 @@ _LINK_ON_LIGHT = imgui.ImVec4(0.0, 102 / 255, 204 / 255, 1.0)
 _LINK_ON_DARK = imgui.ImVec4(110 / 255, 168 / 255, 254 / 255, 1.0)
 
 
+# A minimum width no tab reaches.
+_NEVER = 1e30
+
+
 def apply_theme(tweaked: hello_imgui.ImGuiTweakedTheme) -> None:
     """Apply ``tweaked`` with the editor's own style on top, as the editor starts with it."""
     hello_imgui.apply_tweaked_theme(tweaked)
@@ -182,6 +186,10 @@ def apply_style() -> None:
         style.tab_rounding = rounding
         style.scrollbar_rounding = rounding
     style.frame_border_size = 1.0
+    # imgui's close buttons on tabs never show: ``dock_menus`` draws them, closer to a tab's right
+    # edge (imgui keeps the frame padding there, as left of the label).
+    style.tab_close_button_min_width_selected = _NEVER
+    style.tab_close_button_min_width_unselected = _NEVER
     style.window_padding = imgui.ImVec2(10.0, 10.0)
     style.frame_padding = imgui.ImVec2(8.0, 4.0)
     style.item_spacing = imgui.ImVec2(8.0, 6.0)
