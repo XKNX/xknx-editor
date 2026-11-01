@@ -113,7 +113,7 @@ def collapsing_header(label: str, flags: int = 0) -> bool:
     ident = label[label.index("###") :] if "###" in label else label
     style = imgui.get_style()
     font = imgui.get_font_size()
-    margin = style.frame_padding.y + _ARROW_FREE_HEIGHT * font
+    margin = arrow_margin()
     # imgui widens the frame into the window padding by this much, but places the arrow from where
     # the content starts (the cursor).
     reach = int(internal.get_current_window().window_padding.x * 0.5 - 1.0)
@@ -139,6 +139,20 @@ def collapsing_header(label: str, flags: int = 0) -> bool:
     )
     draw.pop_clip_rect()
     return opened
+
+
+def arrow_margin() -> float:
+    """Distance of a section header's arrow from the header's top and bottom, and from its left
+    and its title (see :func:`collapsing_header`)."""
+    return (
+        imgui.get_style().frame_padding.y + _ARROW_FREE_HEIGHT * imgui.get_font_size()
+    )
+
+
+def title_gap() -> float:
+    """Gap between the box of imgui's arrow, as large as the font, and the title after it, so that
+    the title is as far from the arrow as in a section header."""
+    return arrow_margin() - (1.0 - _ARROW_END) * imgui.get_font_size()
 
 
 def label_offset() -> float:

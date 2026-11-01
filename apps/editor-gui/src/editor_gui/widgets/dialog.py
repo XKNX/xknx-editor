@@ -20,6 +20,7 @@ from imgui_bundle import imgui
 
 from editor_gui.widgets.backgrounds import window_border
 from editor_gui.widgets.dpi import px, px_vec2
+from editor_gui.widgets.tree import title_gap
 
 _MIN_BUTTON_WIDTH = 90.0
 # The frame in which Escape last dismissed a dialog, and Enter last accepted one.
@@ -433,5 +434,57 @@ def begin_tool_window(
     _center_next_window()
     imgui.set_next_window_size(px_vec2(width, height), imgui.Cond_.first_use_ever)
     flags |= follow_screen(title, width, height)
-    with floating_window_border():
-        return imgui.begin(title, p_open, flags)
+    with floating_window_border(), _title_bar_gaps(title):
+        expanded, still_open = imgui.begin(title, p_open, flags)
+    if still_open and closed_from_tab(title):
+        still_open = False
+    return expanded, still_open
+
+
+# Windows whose tab was closed with its close button (drawn by ``dock_menus``, not by imgui, so
+# imgui does not report it).
+_tab_closes: set[str] = set()
+
+
+def close_from_tab(title: str) -> None:
+    """Close the window ``title`` when it begins next (its tab's close button was pressed)."""
+    _tab_closes.add(title)
+
+
+def closed_from_tab(title: str) -> bool:
+    """Whether the tab of the window ``title`` was closed since it began last."""
+    if title not in _tab_closes:
+        return False
+    _tab_closes.discard(title)
+    return True
+
+
+@contextmanager
+def _title_bar_gaps(title: str) -> Generator[None]:
+    """While the window ``title`` begins: its title bar's arrow and close button as far from its
+    left and right edges as from its top and bottom (imgui keeps the frame padding there), and its
+    title as far from the arrow as in a section header. Not while the window is docked: its
+    section draws its tab bar then, with the usual padding."""
+    window = imgui.internal.find_window_by_name(title)
+    if window is not None and window.dock_node is not None:  # pyright: ignore[reportUnnecessaryComparison]
+        yield
+        return
+    style = imgui.get_style()
+    # imgui places the buttons the frame padding inside the border at the sides, but from the
+    # window's outer edge at the top (the border covers the first row there, the line below the
+    # title bar its last); and it puts the inner spacing twice between the arrow and the title.
+    imgui.push_style_var(
+        imgui.StyleVar_.frame_padding,
+        imgui.ImVec2(
+            max(style.frame_padding.y - style.window_border_size, 0.0),
+            style.frame_padding.y,
+        ),
+    )
+    imgui.push_style_var(
+        imgui.StyleVar_.item_inner_spacing,
+        imgui.ImVec2(title_gap() / 2, style.item_inner_spacing.y),
+    )
+    try:
+        yield
+    finally:
+        imgui.pop_style_var(2)

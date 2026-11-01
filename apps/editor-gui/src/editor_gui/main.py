@@ -115,6 +115,7 @@ from editor_gui.widgets.combo import begin_combo
 from editor_gui.widgets.description import set_secure_devices
 from editor_gui.widgets.dialog import (
     begin_dialog,
+    closed_from_tab,
     dialog_buttons,
     dialog_room,
     end_dialog,
@@ -5653,6 +5654,8 @@ class KnxGuiApp:
         # p_open=True gives the window a close (X) button; when clicked it returns open=False.
         with floating_window_border():
             expanded, still_open = imgui.begin(S.WELCOME_TITLE, True, flags)
+        # Docked, its tab's close button closes it.
+        still_open = still_open and not closed_from_tab(S.WELCOME_TITLE)
         if expanded:
             imgui.text_wrapped(S.WELCOME_HINT)
             imgui.spacing()
