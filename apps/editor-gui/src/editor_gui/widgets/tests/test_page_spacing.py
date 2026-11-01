@@ -213,8 +213,8 @@ def test_a_field_with_a_unit_in_a_cell_keeps_room_after_the_unit(
     _page(grid)
     unit = text_layout.text_width("Sekunden")
     # The cell (22 % of 532 px, 117 px), less its gap, and the unit (as wide as WPF lays it
-    # out) with 5 px before and 4 px after it, on the nearest whole pixel.
-    assert widths[0] == round(117 - (6 + 5 + unit + 4))
+    # out) with 4 px before and 5 px after it, on the nearest whole pixel.
+    assert widths[0] == round(117 - (6 + 4 + unit + 5))
 
 
 @pytest.mark.parametrize(("page", "face"), [(1.0, 0.95), (0.1, 0.145)])
@@ -364,3 +364,20 @@ def test_a_number_field_shows_its_text_black_on_a_light_theme(
         imgui.ImVec4(*text, 1.0)
     )
     assert (color.x, color.y, color.z) == pytest.approx(shown)
+
+
+def test_a_button_label_is_centred_on_whole_pixels_as_wpf_centres_it(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # Its width rounded (86.31 -> 86), then the room beside it halved and rounded: in a button
+    # 114 px wide the label starts 14 px in, where the reference puts "Ermitteln (sofort)".
+    starts: list[float] = []
+    monkeypatch.setattr(text_layout, "text_width", lambda _text: 86.31)
+    monkeypatch.setattr(
+        text_layout, "draw_text_at", lambda _text, origin: starts.append(origin.x)
+    )
+    left = imgui.get_cursor_screen_pos().x
+    parameter_widgets._page_button(  # pyright: ignore[reportPrivateUsage]
+        None, "Ermitteln (sofort)", "###b", imgui.ImVec2(114, 24)
+    )
+    assert starts == [left + 14]

@@ -180,7 +180,8 @@ def _page_button(
         imgui.ImVec2(size.x or content + style.frame_padding.x * 2, size.y),
     )
     low, high = imgui.get_item_rect_min(), imgui.get_item_rect_max()
-    x = low.x + (high.x - low.x - content) / 2
+    # Centred on whole pixels as WPF centres it: its width rounded, then the room beside it.
+    x = low.x + round((high.x - low.x - round(content)) / 2)
     if icon is not None:
         draw_icon(icon, imgui.ImVec2(x, low.y + (high.y - low.y - side) / 2), side)
     if text:
@@ -748,8 +749,8 @@ def _render_time_param(
 
 # Gap between a field and the suffix (e.g. a unit) after it, at 100 % scaling, and the room a
 # suffix in a grid cell keeps after it (besides the cell's gap).
-_SUFFIX_GAP = 5.0
-_CELL_SUFFIX_AFTER = 4.0
+_SUFFIX_GAP = 4.0
+_CELL_SUFFIX_AFTER = 5.0
 
 
 def _suffix_width(suffix: str | None) -> float:
@@ -764,7 +765,10 @@ def _render_suffix(suffix: str | None) -> None:
     if suffix:
         imgui.same_line(0.0, px(_SUFFIX_GAP))
         imgui.align_text_to_frame_padding()
-        imgui.text(suffix)
+        # Laid out as WPF lays out text, on the line's text (which draw_text does not move it to).
+        offset = internal.get_current_window().dc.curr_line_text_base_offset
+        imgui.set_cursor_pos_y(imgui.get_cursor_pos_y() + offset)
+        text_layout.draw_text(suffix)
 
 
 def _hint(widget: TimeWidget) -> str | None:
