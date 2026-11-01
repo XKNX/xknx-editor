@@ -146,6 +146,9 @@ _WINDOWS_COLORS = {
     imgui.Col_.header_active: _rgb(204, 228, 247),
 }
 
+# The window background of Microsoft Style.
+_MICROSOFT_WINDOW = _rgb(245, 246, 247)
+
 
 # The Windows selection blue over a white field: (179, 214, 243), dark text stays readable on it.
 _SELECTION = imgui.ImVec4(0.0, 120 / 255, 215 / 255, 0.3)
@@ -202,6 +205,10 @@ def apply_style() -> None:
         _clamp_colors(style)
         for col, color in _WINDOWS_COLORS.items():
             style.set_color_(col, color)
+    if square:
+        # A light gray with a touch of blue: the page tree and the help have it (see
+        # backgrounds.side_background), and with them the windows around.
+        style.set_color_(imgui.Col_.window_bg, _MICROSOFT_WINDOW)
     # The themes leave the text cursor at imgui's default, the white of its dark colors, which
     # disappears in the white fields of the light themes. imgui's own color sets draw it in the
     # text color.

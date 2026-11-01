@@ -368,8 +368,26 @@ def draw_text(text: str) -> None:
     if _current() is None:
         imgui.text_unformatted(text)
         return
+    paragraph = _draw(text, imgui.get_cursor_screen_pos())
+    imgui.dummy(
+        imgui.ImVec2(paragraph.width(0, len(text)), imgui.get_text_line_height())
+    )
+
+
+def draw_text_at(text: str, origin: imgui.ImVec2) -> None:
+    """``text`` (one line) at ``origin``, laid out as :func:`draw_text` lays it out, but drawn
+    only (no item), e.g. as the label of a button."""
+    if _current() is None:
+        imgui.get_window_draw_list().add_text(
+            origin, imgui.get_color_u32(imgui.Col_.text), text
+        )
+        return
+    _draw(text, origin)
+
+
+def _draw(text: str, origin: imgui.ImVec2) -> _Paragraph:
+    """Draw ``text`` at ``origin`` (see :func:`draw_text`); returns its layout."""
     paragraph = _Paragraph(text)
-    origin = imgui.get_cursor_screen_pos()
     font = imgui.get_font()
     baked = font.get_font_baked(font_size())
     size = baked.size
@@ -389,6 +407,4 @@ def draw_text(text: str) -> None:
         if index < len(text):
             start = index
             reached = places[index] + baked.find_glyph(ord(text[index])).advance_x
-    imgui.dummy(
-        imgui.ImVec2(paragraph.width(0, len(text)), imgui.get_text_line_height())
-    )
+    return paragraph

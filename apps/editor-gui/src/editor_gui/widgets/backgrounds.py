@@ -37,8 +37,10 @@ _LINE_CONTRAST = 0.09
 # The least the border of a floating window (a dialog) differs from the window, in luminance:
 # the light field borders of Microsoft Style would leave a dialog without a visible outline.
 _WINDOW_BORDER_CONTRAST = 0.35
-# How far the line of a page's separator moves from the page toward black (white on a dark page).
+# How far the line of a page's separator moves from the page toward black (white on a dark page),
+# and a button on the page.
 _PAGE_LINE = 0.2
+_PAGE_BUTTON = 0.05
 
 
 def _mix(a: imgui.ImVec4, b: imgui.ImVec4, t: float) -> imgui.ImVec4:
@@ -112,6 +114,14 @@ def page_line() -> imgui.ImVec4:
     content = content_background()
     other = _BLACK if _luminance(content) >= 0.5 else _WHITE
     return _mix(content, other, _PAGE_LINE)
+
+
+def page_button() -> imgui.ImVec4:
+    """The face of a button on a parameter page: a light grey, black at 5 % over the page (white on
+    a dark one); its border is a separator's line (:func:`page_line`)."""
+    content = content_background()
+    other = _BLACK if _luminance(content) >= 0.5 else _WHITE
+    return _mix(content, other, _PAGE_BUTTON)
 
 
 def window_border() -> imgui.ImVec4:

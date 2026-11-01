@@ -26,14 +26,18 @@ import argparse
 import subprocess
 import tempfile
 import unicodedata
+from collections.abc import Iterable
+from itertools import pairwise
 from pathlib import Path
+from typing import Any
 
 import pathops
 import uharfbuzz as hb
 from fontTools import subset
 from fontTools.feaLib.builder import addOpenTypeFeaturesFromString
+from fontTools.pens.boundsPen import BoundsPen
 from fontTools.pens.cu2quPen import Cu2QuPen
-from fontTools.pens.recordingPen import DecomposingRecordingPen
+from fontTools.pens.recordingPen import DecomposingRecordingPen, RecordingPen
 from fontTools.pens.transformPen import TransformPen
 from fontTools.pens.ttGlyphPen import TTGlyphPen
 from fontTools.ttLib import TTFont, newTable
@@ -195,6 +199,66 @@ def _take_latin(font: TTFont, selawik: TTFont) -> None:
         font["glyf"][cmap[code]] = pen.glyph()
         font["hmtx"][cmap[code]] = selawik["hmtx"][name]
         font["glyf"][cmap[code]].recalcBounds(font["glyf"])
+
+
+def _segoe_heights(font: TTFont, segoe: TTFont, codes: Iterable[int]) -> None:
+    """The glyphs of ``codes`` as high and as deep as Segoe UI draws them: each outline stretched
+    vertically, piecewise, so that its x-height (where it reaches above it), its top and its
+    bottom are those of Segoe UI's glyph, the baseline staying. Thinning a face's outlines and
+    stretching them back to its x-height (see _selawik) lifts its capitals and ascenders, which
+    would then reach a pixel higher than Segoe UI's."""
+    scale = font["head"].unitsPerEm / segoe["head"].unitsPerEm
+    ours, theirs = font.getGlyphSet(), segoe.getGlyphSet()
+    cmap, segoe_cmap = font.getBestCmap(), segoe.getBestCmap()
+
+    def bounds(
+        glyphs: Any, name: str, factor: float = 1.0
+    ) -> tuple[float, float] | None:
+        pen = BoundsPen(glyphs)
+        glyphs[name].draw(pen)
+        if pen.bounds is None:
+            return None
+        return pen.bounds[1] * factor, pen.bounds[3] * factor
+
+    x_ours = bounds(ours, cmap[ord("x")])
+    x_theirs = bounds(theirs, segoe_cmap[ord("x")], scale)
+    assert x_ours is not None and x_theirs is not None
+    x_height, segoe_x_height = x_ours[1], x_theirs[1]
+    glyf = font["glyf"]
+    for code in sorted(set(codes) & set(cmap) & set(segoe_cmap)):
+        name = cmap[code]
+        own = bounds(ours, name)
+        target = bounds(theirs, segoe_cmap[code], scale)
+        if own is None or target is None:
+            continue
+        (bottom, top), (segoe_bottom, segoe_top) = own, target
+        knots = [(0.0, 0.0)]
+        if top > x_height and segoe_top > segoe_x_height:
+            knots.append((x_height, segoe_x_height))
+        if top > 0 and segoe_top > 0:
+            knots.append((top, segoe_top))
+        if bottom < 0 and segoe_bottom < 0:
+            knots.insert(0, (bottom, segoe_bottom))
+
+        if len(knots) < 2:
+            continue
+
+        def lift(y: float, knots: list[tuple[float, float]] = knots) -> float:
+            # Linear between the knots (and beyond the first and the last one).
+            segment = knots[0], knots[1]
+            for segment in pairwise(knots):
+                if y <= segment[1][0]:
+                    break
+            (y0, t0), (y1, t1) = segment
+            return t0 + (y - y0) * (t1 - t0) / (y1 - y0)
+
+        recording = RecordingPen()
+        ours[name].draw(recording)
+        pen = TTGlyphPen(None)
+        for operator, points in recording.value:
+            getattr(pen, operator)(*((x, lift(y)) for x, y in points))
+        glyf[name] = pen.glyph()
+        glyf[name].recalcBounds(glyf)
 
 
 def _clone(font: TTFont, name: str) -> str:
@@ -470,7 +534,11 @@ def main() -> None:
         segoe = TTFont(segoe_path)
         weight = _weight_for(args.noto, _stem(segoe))
         font = _instance(args.noto, weight)
-        _take_latin(font, _selawik(args.selawik / str(face["selawik"]), _stem(segoe)))
+        selawik = _selawik(args.selawik / str(face["selawik"]), _stem(segoe))
+        _take_latin(font, selawik)
+        if face["bold"]:
+            # The face whose outlines are thinned.
+            _segoe_heights(font, segoe, selawik.getBestCmap())
         advances = _apply_widths(font, segoe, str(face["family"]))
         segoe_codes = segoe.getBestCmap()
         codes = sorted(

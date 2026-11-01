@@ -8,6 +8,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from imgui_bundle import imgui
+from imgui_bundle.imgui import internal
 
 from editor_gui.color import sending_green, themed
 from editor_gui.device import (
@@ -30,7 +31,6 @@ from editor_gui.widgets.dpi import px
 from editor_gui.widgets.flow import button_width, checkbox_width, same_line_if_fits
 from editor_gui.widgets.strings import S
 from editor_gui.widgets.tables import begin_data_table, data_table_headers
-from editor_gui.widgets.x_button import small_x_size, x_button
 from xknxeditor.proj.core.addressing import GroupAddressStyle
 
 # One com-object → group-address link: (assignment_id, group_address_id, text, is_sending).
@@ -63,6 +63,105 @@ _RECEIVED_COLOR = (
 )
 _BOTH_COLOR = (imgui.ImVec4(0.45, 0.82, 0.72, 1.0), imgui.ImVec4(0.0, 0.5, 0.42, 1.0))
 _LIVE_COLOR = (imgui.ImVec4(0.6, 0.6, 0.66, 1.0), imgui.ImVec4(0.4, 0.4, 0.46, 1.0))
+
+
+# The line above a table row takes the row's first pixel.
+_ROW_LINE = 1
+
+
+def _sign_size() -> tuple[int, int]:
+    """The side of the "x" and the "+" of the link buttons and the width of their strokes, in
+    whole pixels: a stroke as wide as the sign's middle, so it has a middle pixel row."""
+    stroke = max(1, round(px(1.0)))
+    side = round(px(5.0))
+    return side + (side - stroke) % 2, stroke
+
+
+def _row_room() -> int:
+    """The height of a row of fields below its line."""
+    style = imgui.get_style()
+    return round(imgui.get_frame_height() + 2 * style.cell_padding.y) - _ROW_LINE
+
+
+def _link_button_size() -> imgui.ImVec2:
+    """The "x" of a linked group address and the "+" below them: one size for both, with the
+    sign in its middle on whole pixels; a text line high (one more pixel where that leaves as
+    much room above as below it in a row of fields)."""
+    side, _ = _sign_size()
+    width = round(imgui.calc_text_size("+").x + 2 * imgui.get_style().frame_padding.x)
+    height = round(imgui.get_text_line_height())
+    if (_row_room() - height) % 2:
+        height += 1
+    return imgui.ImVec2(width + (width - side) % 2, height + (height - side) % 2)
+
+
+def _link_gap() -> int:
+    """The room above, beside, between and below the link buttons of a cell."""
+    return (_row_room() - round(_link_button_size().y)) // 2
+
+
+def _link_button(str_id: str, sign: str) -> bool:
+    """A link button with an "x" or a "+" of whole pixels in its middle; whether it was
+    pressed."""
+    size = _link_button_size()
+    pressed = imgui.button(f"##{str_id}", size)
+    low = imgui.get_item_rect_min()
+    side, stroke = _sign_size()
+    x = round(low.x + (size.x - side) / 2)
+    y = round(low.y + (size.y - side) / 2)
+    draw = imgui.get_window_draw_list()
+    color = imgui.get_color_u32(imgui.Col_.text)
+
+    def dot(left: float, top: float, width: float, height: float) -> None:
+        draw.add_rect_filled(
+            imgui.ImVec2(x + left, y + top),
+            imgui.ImVec2(x + left + width, y + top + height),
+            color,
+        )
+
+    if sign == "+":
+        middle = (side - stroke) // 2
+        dot(0, middle, side, stroke)
+        dot(middle, 0, stroke, side)
+    else:
+        for step in range(side - stroke + 1):
+            dot(step, step, stroke, stroke)
+            dot(side - stroke - step, step, stroke, stroke)
+    return pressed
+
+
+def _begin_link_buttons() -> None:
+    """Start the group addresses cell: its buttons are as far from each other as the first one
+    from the cell's top and left edge and the last one from its bottom, a lone "+" in the
+    middle of a row of fields."""
+    style = imgui.get_style()
+    gap = _link_gap()
+    imgui.set_cursor_pos_y(
+        imgui.get_cursor_pos_y() + gap + _ROW_LINE - style.cell_padding.y
+    )
+    imgui.indent(gap - style.cell_padding.x)
+    imgui.push_style_var(
+        imgui.StyleVar_.item_spacing, imgui.ImVec2(style.item_spacing.x, gap)
+    )
+
+
+def _end_link_buttons() -> None:
+    """End the cell ``_begin_link_buttons`` started: the row reaches as far below the last
+    button."""
+    style = imgui.get_style()
+    imgui.pop_style_var()
+    gap = _link_gap()
+    imgui.unindent(gap - style.cell_padding.x)
+    below = _row_room() - gap - round(_link_button_size().y)
+    window = internal.get_current_window()
+    bottom = imgui.get_item_rect_max().y + below - style.cell_padding.y
+    window.dc.cursor_max_pos.y = max(window.dc.cursor_max_pos.y, bottom)
+
+
+def _text_beside() -> None:
+    """Texts after a link button on its line start at its top, so that they sit in its middle
+    (a button would put them a frame padding lower)."""
+    internal.get_current_window().dc.prev_line_text_base_offset = 0.0
 
 
 def _dim(color: imgui.ImVec4) -> imgui.ImVec4:
@@ -472,9 +571,13 @@ class GroupObjectsTable:
         newest = max((at for _text, _time, at in values.values()), default=None)
         direction, value_color = _value_role(com_object)
         older = S.GROUP_OBJECTS_VALUE_OLDER
+        # Only a saved object has links, and its "+".
+        if db_id is not None:
+            _begin_link_buttons()
         for assignment_id, ga_id, text, is_sending in ordered:
-            if x_button(f"unlink{assignment_id}", small_x_size()):
+            if _link_button(f"unlink{assignment_id}", "x"):
                 self._on_unlink(assignment_id)
+            _text_beside()
             imgui.same_line()
             if is_sending:
                 # The sending group address is emphasised.
@@ -512,6 +615,7 @@ class GroupObjectsTable:
                     )
         if db_id is not None:
             self._render_add(device, com_object, db_id, links, get_all_group_addresses)
+            _end_link_buttons()
 
         for col, (attr, _letter, _name) in enumerate(FLAG_LABELS, start=6):
             full_name = flag_name(attr)
@@ -760,7 +864,7 @@ class GroupObjectsTable:
     ) -> None:
         # The "+" only targets this object and opens the persistent dialog; the dialog itself is
         # drawn once per frame in _render_add_window (so it does not vanish on a click elsewhere).
-        if imgui.small_button(f"+##add{db_id}"):
+        if _link_button(f"add{db_id}", "+"):
             self._picker_filter = ""
             self._add_device = device
             self._add_co = com_object
