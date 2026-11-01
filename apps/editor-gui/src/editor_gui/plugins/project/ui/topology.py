@@ -36,6 +36,7 @@ from editor_gui.plugins.project.ui.paste_special import (
     render_delete_item,
 )
 from editor_gui.plugins.project.ui.tree_drag import Dragged, drag_source, drop_target
+from editor_gui.strings import S as APP_S
 from editor_gui.widgets.description import render_description, render_device_marks
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
 from editor_gui.widgets.tree import (
@@ -297,7 +298,7 @@ class TopologyPanel:
         """The topology below the filter box, with its menus and dialogs; the devices on no
         line (``unassigned_devices``) at the end."""
         if not areas and not devices:
-            imgui.text_disabled(S.DEVICE_EMPTY_HINT)
+            imgui.text_disabled(S.DEVICE_EMPTY_HINT.format(menu=APP_S.MENU_FILE))
 
         # Below the elements only areas are added (lines, segments and devices in their
         # elements' menus).

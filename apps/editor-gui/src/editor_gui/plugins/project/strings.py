@@ -2758,8 +2758,9 @@ class ProjectStrings:
 
     @property
     def PREFLIGHT_NO_CONNECTION(self) -> str:
+        # {menu}: the label of the Gateway menu
         return _(
-            "Cannot run: no KNX connection. Connect to a gateway (Connection menu) "
+            "Cannot run: no KNX connection. Connect to a gateway ({menu} menu) "
             "and make sure the device is reachable at its individual address."
         )
 
@@ -2887,8 +2888,9 @@ class ProjectStrings:
 
     @property
     def DEVICE_EMPTY_HINT(self) -> str:
+        # {menu}: the label of the File menu
         return _(
-            "No devices. Open or import a project (File menu), "
+            "No devices. Open or import a project ({menu} menu), "
             "or right-click here to add an area."
         )
 

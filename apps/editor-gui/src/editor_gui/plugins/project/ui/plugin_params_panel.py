@@ -112,7 +112,7 @@ class PluginParamsPanel:
             if not rows:
                 continue
             total_rows += len(rows)
-            self._render_section(device, section.section, rows)
+            self._render_section(device, section.section, rows, filtering=bool(needle))
         if total_rows == 0:
             imgui.text_disabled(S.PLUGIN_PARAMS_FILTER_EMPTY)
 
@@ -137,10 +137,23 @@ class PluginParamsPanel:
         return sections
 
     def _render_section(
-        self, device: Device, section_label: str, rows: list[_SectionRow]
+        self,
+        device: Device,
+        section_label: str,
+        rows: list[_SectionRow],
+        *,
+        filtering: bool = False,
     ) -> None:
         device_key = device.individual_address
         closed = self._closed_sections.setdefault(device_key, set())
+        if filtering:
+            # While a filter is active, force every matching section open so the matches are
+            # visible, without touching the user's remembered collapse state (it is restored the
+            # moment the filter is cleared).
+            imgui.set_next_item_open(True)
+            if imgui.collapsing_header(f"{section_label}  ({len(rows)})"):
+                self._render_standard_table(device, section_label, rows, filtering=True)
+            return
         is_open = section_label not in closed
         if is_open:
             imgui.set_next_item_open(True, imgui.Cond_.appearing)
@@ -251,8 +264,20 @@ class PluginParamsPanel:
         imgui.end_table()
 
     def _render_standard_table(
-        self, device: Device, section_label: str, rows: list[_SectionRow]
+        self,
+        device: Device,
+        section_label: str,
+        rows: list[_SectionRow],
+        *,
+        filtering: bool = False,
     ) -> None:
+        # Grouped rows (BLOB sections: scenes, groups, ECGs, templates) nest under a collapsible
+        # tree node per item, so a 170-row section is a short list of items the user expands one
+        # at a time instead of one endless flat table. Flat sections (KNX parameters) keep the
+        # clipped fixed-height table so a huge application stays O(viewport) to scroll.
+        if any(r.group for r in rows):
+            self._render_grouped_table(device, section_label, rows, filtering=filtering)
+            return
         flags = (
             imgui.TableFlags_.borders
             | imgui.TableFlags_.row_bg
@@ -274,6 +299,70 @@ class PluginParamsPanel:
             imgui.ImVec2(0.0, max_table_h),
         ):
             return
+        self._setup_param_columns()
+        imgui.table_setup_scroll_freeze(0, 1)
+        imgui.table_headers_row()
+        clipper = imgui.ListClipper()
+        clipper.begin(len(rows))
+        while clipper.step():
+            for idx in range(clipper.display_start, clipper.display_end):
+                self._render_row(device, rows[idx])
+        imgui.end_table()
+
+    def _render_grouped_table(
+        self,
+        device: Device,
+        section_label: str,
+        rows: list[_SectionRow],
+        *,
+        filtering: bool = False,
+    ) -> None:
+        """Render rows carrying a ``group`` key as a tree: one collapsible node per group.
+
+        The table auto-sizes (no scroll_y / clipper) because collapsed nodes render nothing, so a
+        section with 16 groups shows just 16 node rows until the user expands one. Rows arrive
+        pre-sorted by the reader, so same-group rows are contiguous and keep their order. While
+        ``filtering``, every node is forced open so the matches a search left in it are visible.
+        """
+        flags = (
+            imgui.TableFlags_.borders
+            | imgui.TableFlags_.row_bg
+            | imgui.TableFlags_.resizable
+        )
+        if not imgui.begin_table(f"##plugin_params_{section_label}", 3, flags):
+            return
+        self._setup_param_columns()
+        imgui.table_headers_row()
+        idx = 0
+        n = len(rows)
+        while idx < n:
+            group = rows[idx].group
+            end = idx
+            while end < n and rows[end].group == group:
+                end += 1
+            run = rows[idx:end]
+            if not group:
+                for row in run:
+                    self._render_row(device, row)
+            else:
+                imgui.table_next_row()
+                imgui.table_next_column()
+                # Key the node's imgui id off the stable group_key (falling back to the display
+                # text) so renaming an item does not change the id and collapse its open node.
+                node_id = run[0].group_key or group
+                if filtering:
+                    imgui.set_next_item_open(True)
+                node_open = imgui.tree_node_ex(
+                    f"{group}##grp_{node_id}", imgui.TreeNodeFlags_.span_full_width
+                )
+                if node_open:
+                    for row in run:
+                        self._render_row(device, row)
+                    imgui.tree_pop()
+            idx = end
+        imgui.end_table()
+
+    def _setup_param_columns(self) -> None:
         imgui.table_setup_column(
             S.PLUGIN_PARAMS_COL_NAME, imgui.TableColumnFlags_.width_stretch, 0.6
         )
@@ -283,14 +372,6 @@ class PluginParamsPanel:
         imgui.table_setup_column(
             S.PLUGIN_PARAMS_COL_DEFAULT, imgui.TableColumnFlags_.width_stretch, 0.15
         )
-        imgui.table_setup_scroll_freeze(0, 1)
-        imgui.table_headers_row()
-        clipper = imgui.ListClipper()
-        clipper.begin(len(rows))
-        while clipper.step():
-            for idx in range(clipper.display_start, clipper.display_end):
-                self._render_row(device, rows[idx])
-        imgui.end_table()
 
     def _render_row(self, device: Device, row: _SectionRow) -> None:
         imgui.table_next_row()
@@ -303,7 +384,7 @@ class PluginParamsPanel:
             # just print the value.
             imgui.text(row.value)
             imgui.table_next_column()
-            imgui.text_disabled(row.default or "-")
+            imgui.text_disabled(_default_label(row))
             return
         # The edit buffer wins over the DOM value while the user is typing; the commit
         # happens on Enter / focus-lost. For BLOB-backed rows we drop ``enter_returns_true``
@@ -336,7 +417,7 @@ class PluginParamsPanel:
                 self._edit_buffers.pop(row.ref_id, None)
                 self._sections_cache.pop(device.individual_address, None)
             imgui.table_next_column()
-            imgui.text_disabled(row.default or "-")
+            imgui.text_disabled(_default_label(row))
             return
         # BLOB-rows go through apply_edit which is cheap, so commit on every keystroke
         # (``input_text`` without ``enter_returns_true`` returns ``changed=True`` whenever
@@ -363,7 +444,7 @@ class PluginParamsPanel:
         elif new_value != current:
             self._edit_buffers[row.ref_id] = new_value
         imgui.table_next_column()
-        imgui.text_disabled(row.default or "-")
+        imgui.text_disabled(_default_label(row))
 
 
 @dataclass(frozen=True, slots=True)
@@ -374,6 +455,23 @@ class _SectionRow:
     default: str
     writable: bool
     choices: tuple[tuple[str, str], ...] = ()
+    group: str = ""
+    group_key: str = ""
+
+
+def _default_label(row: _SectionRow) -> str:
+    """The "Vorgabe" (default) cell text: an enum default resolved to its humanized label.
+
+    For a dropdown row the stored default is a raw token (e.g. ``3``); showing that number is as
+    cryptic as the old raw value column was, so map it through the row's choices to the label the
+    dropdown itself shows (``RGBW Colour``). Non-enum rows, or a default not in the choice set,
+    fall back to the raw default (or ``-`` when empty).
+    """
+    if row.choices and row.default:
+        for token, label in row.choices:
+            if token == row.default:
+                return label
+    return row.default or "-"
 
 
 def _filter_rows(section: PluginSectionView, needle: str) -> list[_SectionRow]:
@@ -389,6 +487,7 @@ def _filter_rows(section: PluginSectionView, needle: str) -> list[_SectionRow]:
             and needle not in p.name.lower()
             and needle not in p.label.lower()
             and needle not in p.value.lower()
+            and needle not in p.group.lower()
         ):
             continue
         out.append(
@@ -399,6 +498,8 @@ def _filter_rows(section: PluginSectionView, needle: str) -> list[_SectionRow]:
                 default=p.default_value,
                 writable=p.writable,
                 choices=p.choices,
+                group=p.group,
+                group_key=p.group_key,
             )
         )
     return out

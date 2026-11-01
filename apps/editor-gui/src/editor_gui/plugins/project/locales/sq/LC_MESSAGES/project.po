@@ -1069,8 +1069,8 @@ msgstr "Test vetëm për lexim: kontrollon që funksioni i programimit prodhon t
 msgid "Cannot run: the project was changed since it was opened. This test compares the generated image against the device's programmed state, which only matches the project as it was opened. Undo your changes in this session to test."
 msgstr "Nuk mund të ekzekutohet: projekti është ndryshuar që kur u hap. Ky test e krahason imazhin e prodhuar me gjendjen e programuar të pajisjes, e cila përputhet vetëm me projektin siç ishte kur u hap. Për të testuar, zhbëni ndryshimet tuaja në këtë seancë."
 
-msgid "Cannot run: no KNX connection. Connect to a gateway (Connection menu) and make sure the device is reachable at its individual address."
-msgstr "Nuk mund të ekzekutohet: pa lidhje KNX. Lidhuni me një gateway (menyja Gateway) dhe sigurohuni që pajisja arrihet në adresën e saj individuale."
+msgid "Cannot run: no KNX connection. Connect to a gateway ({menu} menu) and make sure the device is reachable at its individual address."
+msgstr "Nuk mund të ekzekutohet: pa lidhje KNX. Lidhuni me një gateway (menyja {menu}) dhe sigurohuni që pajisja arrihet në adresën e saj individuale."
 
 msgid "Match: the generated image is identical to what is on the device"
 msgstr "Përputhje: imazhi i prodhuar është identik me atë në pajisje"
@@ -1141,8 +1141,8 @@ msgstr "objekti {object} vetia {property}"
 msgid "Filter devices (name, address)…"
 msgstr "Filtro pajisjet (emri, adresa)…"
 
-msgid "No devices. Open or import a project (File menu), or right-click here to add an area."
-msgstr "Nuk ka pajisje. Hapni ose importoni një projekt (menyja Skedari), ose klikoni djathtas këtu për të shtuar një zonë."
+msgid "No devices. Open or import a project ({menu} menu), or right-click here to add an area."
+msgstr "Nuk ka pajisje. Hapni ose importoni një projekt (menyja {menu}), ose klikoni djathtas këtu për të shtuar një zonë."
 
 msgid "Filter group addresses (address, name)…"
 msgstr "Filtro adresat e grupeve (adresa, emri)…"

@@ -1542,7 +1542,7 @@ class ConnectionPlugin:
             imgui.text_colored(imgui.ImVec4(0.95, 0.75, 0.35, 1.0), S.PROGMODE_FLAG_ON)
 
     def render_menu(self) -> None:
-        if imgui.begin_menu(S.MENU_CONNECTION):
+        if imgui.begin_menu(S.MENU_GATEWAY):
             if self.busmonitor_active:
                 imgui.text(S.STATUS_BUSMONITOR.format(ip=self._controller_ip))
                 imgui.text_disabled(S.STATUS_BUSMONITOR_HINT)
