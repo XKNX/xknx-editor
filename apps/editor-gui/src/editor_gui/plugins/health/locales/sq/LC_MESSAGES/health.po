@@ -8,7 +8,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 
 msgid "Health"
-msgstr "Gjendja"
+msgstr "Shëndeti"
 
 msgid "No project open"
 msgstr "Asnjë projekt i hapur"

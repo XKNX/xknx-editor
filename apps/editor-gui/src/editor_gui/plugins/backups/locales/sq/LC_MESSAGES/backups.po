@@ -134,7 +134,7 @@ msgid "Restore Backup"
 msgstr "Rikthe kopjen rezervë"
 
 msgid "Restore the project to its state of {created}?\n\nThe project as it is now is saved as a backup first, so you can go back to it."
-msgstr "Ta riktheni projektin në gjendjen e {created}?\n\nProjekti ashtu siç është tani ruhet më parë si kopje rezervë, që të mund të ktheheni te ai."
+msgstr "Të rikthehet projekti në gjendjen e {created}?\n\nProjekti ashtu siç është tani ruhet më parë si kopje rezervë, që të mund të ktheheni te ai."
 
 msgid "Restore"
 msgstr "Rikthe"
@@ -158,7 +158,7 @@ msgid "Delete Backup"
 msgstr "Fshi kopjen rezervë"
 
 msgid "Delete the backup of {created}? This cannot be undone."
-msgstr "Ta fshini kopjen rezervë të {created}? Ky veprim nuk mund të zhbëhet."
+msgstr "Të fshihet kopja rezervë e {created}? Ky veprim nuk mund të zhbëhet."
 
 msgid "Delete"
 msgstr "Fshi"
@@ -179,7 +179,7 @@ msgid "Checking the backup…"
 msgstr "Po kontrollohet kopja rezervë…"
 
 msgid "The backup is intact and can be restored."
-msgstr "Kopja rezervë është e paprekur dhe mund të rikthehet."
+msgstr "Kopja rezervë është e padëmtuar dhe mund të rikthehet."
 
 msgid "The backup is damaged: {error}"
 msgstr "Kopja rezervë është e dëmtuar: {error}"
@@ -197,7 +197,7 @@ msgid "The project file {name} no longer exists."
 msgstr "Skedari i projektit {name} nuk ekziston më."
 
 msgid "Its newest backup is from {created}. Restore the project from it? A file that is there now is kept under another name."
-msgstr "Kopja e tij rezervë më e re është e {created}. Ta riktheni projektin prej saj? Një skedar që ndodhet tani aty ruhet me një emër tjetër."
+msgstr "Kopja e tij rezervë më e re është e {created}. Të rikthehet projekti prej saj? Një skedar që ndodhet tani aty ruhet me një emër tjetër."
 
 msgid "The damaged file was kept as {name}."
 msgstr "Skedari i dëmtuar u ruajt si {name}."

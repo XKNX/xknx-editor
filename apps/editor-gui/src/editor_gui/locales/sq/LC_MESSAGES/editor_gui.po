@@ -41,7 +41,7 @@ msgid "Network Location"
 msgstr "Vendndodhje në rrjet"
 
 msgid "This location is on a network drive:\n{home}\n\nKNX project files use a database that cannot run reliably on network shares. The editor can work on a local copy instead and write it back to the network location when you close the project."
-msgstr "Kjo vendndodhje ndodhet në një disk rrjeti:\n{home}\n\nSkedarët e projekteve KNX përdorin një bazë të dhënash që nuk funksionon me siguri në dosje të ndara në rrjet. Në vend të kësaj, editori mund të punojë me një kopje lokale dhe ta shkruajë atë përsëri në vendndodhjen e rrjetit kur ta mbyllni projektin."
+msgstr "Kjo vendndodhje ndodhet në një disk rrjeti:\n{home}\n\nSkedarët e projekteve KNX përdorin një bazë të dhënash që nuk funksionon në mënyrë të besueshme në dosje të ndara në rrjet. Në vend të kësaj, editori mund të punojë me një kopje lokale dhe ta shkruajë atë përsëri në vendndodhjen e rrjetit kur ta mbyllni projektin."
 
 msgid "Use a Local Copy"
 msgstr "Përdor një kopje lokale"
@@ -191,7 +191,7 @@ msgid "AI MCP"
 msgstr "AI MCP"
 
 msgid "This editor is controllable by an AI assistant (Claude, Codex, …) through the built-in MCP server: it exposes the catalog and project as tools over Streamable HTTP. Start the server below, then register its endpoint in your AI tool."
-msgstr "Ky editor mund të drejtohet nga një asistent AI (Claude, Codex, …) përmes serverit MCP të integruar: ai e ofron katalogun dhe projektin si vegla përmes Streamable HTTP. Nisni serverin më poshtë, pastaj regjistroni pikën e tij fundore në veglën tuaj AI."
+msgstr "Ky editor mund të drejtohet nga një asistent AI (Claude, Codex, …) përmes serverit MCP të integruar: ai i ofron katalogun dhe projektin si vegla përmes Streamable HTTP. Nisni serverin më poshtë, pastaj regjistroni pikën e tij fundore në veglën tuaj AI."
 
 msgid "MCP Endpoint"
 msgstr "Pika fundore MCP"
@@ -263,7 +263,7 @@ msgid "3/1 - three columns, Main/Middle/Sub group separated"
 msgstr "3/1 - tri kolona, grupi kryesor/i mesëm/nëngrupi të ndara"
 
 msgid "1/3 - Group address name/Main - Middle - Sub group"
-msgstr "1/3 - Emri i adresës së grupit/Kryesor - I mesëm - Nëngrup"
+msgstr "1/3 - Emri i adresës së grupit/grupi kryesor - i mesëm - nëngrupi"
 
 msgid "1/1 - Name/Address"
 msgstr "1/1 - Emri/Adresa"
@@ -338,7 +338,7 @@ msgid "Exported at"
 msgstr "Eksportuar më"
 
 msgid "Manufacturer Data (M Folders)"
-msgstr "Të dhënat e prodhuesit (dosjet M)"
+msgstr "Të dhënat e prodhuesve (dosjet M)"
 
 msgid "Signed"
 msgstr "I nënshkruar"
@@ -389,7 +389,7 @@ msgid "Exporting {name} — this can take a while for large projects."
 msgstr "Po eksportohet {name} — për projekte të mëdha kjo mund të zgjasë pak."
 
 msgid "Collecting the manufacturer data…"
-msgstr "Po mblidhen të dhënat e prodhuesit…"
+msgstr "Po mblidhen të dhënat e prodhuesve…"
 
 msgid "Writing the archive…"
 msgstr "Po shkruhet arkivi…"
@@ -461,7 +461,7 @@ msgid "MyKNX OAuth Credentials (2FA)"
 msgstr "Kredencialet OAuth të MyKNX (2FA)"
 
 msgid "Needed only for accounts with two-factor authentication. The 2FA sign-in opens in your browser automatically when a normal login is rejected. Enter the OAuth client id/secret, or extract them from your installed ETS: pick 'Knx.Ets.MyKnx.dll' from the ETS program folder (e.g. C:\\Program Files (x86)\\ETS6\\Knx.Ets.MyKnx.dll).\n\nAlternatively, if you have any licensed ETS installed, skip online signing entirely and use the local project store instead - see the 'License with a Dongle' tab."
-msgstr "Nevojitet vetëm për llogari me vërtetim me dy faktorë. Hyrja me 2FA hapet automatikisht në shfletues kur një hyrje normale refuzohet. Vendosni ID-në/sekretin e klientit OAuth, ose nxirrini nga ETS-i juaj i instaluar: zgjidhni 'Knx.Ets.MyKnx.dll' nga dosja e programit ETS (p.sh. C:\\Program Files (x86)\\ETS6\\Knx.Ets.MyKnx.dll).\n\nPërndryshe, nëse keni të instaluar ndonjë ETS të licencuar, anashkaloni krejt nënshkrimin online dhe përdorni në vend të tij project store-in lokal - shihni skedën 'Licenco me dongle'."
+msgstr "Nevojitet vetëm për llogari me vërtetim me dy faktorë. Hyrja me 2FA hapet automatikisht në shfletues kur një hyrje normale refuzohet. Vendosni ID-në/sekretin e klientit OAuth, ose nxirrini nga ETS-i juaj i instaluar: zgjidhni 'Knx.Ets.MyKnx.dll' nga dosja e programit ETS (p.sh. C:\\Program Files (x86)\\ETS6\\Knx.Ets.MyKnx.dll).\n\nSi alternativë, nëse keni të instaluar ndonjë ETS të licencuar, anashkaloni krejt nënshkrimin online dhe përdorni në vend të tij project store-in lokal - shihni skedën 'Licenco me dongle'."
 
 msgid "Client ID"
 msgstr "ID e klientit"
@@ -542,10 +542,10 @@ msgid "ETS installer id"
 msgstr "ID e instaluesit ETS"
 
 msgid "Project Already in the Store"
-msgstr "Projekti është tashmë në Store"
+msgstr "Projekti është tashmë në ProjectStore"
 
 msgid "A project folder '{pid}' already exists in this ETS ProjectStore. Overwrite it, or add it as a separate copy?"
-msgstr "Një dosje projekti '{pid}' ekziston tashmë në këtë ProjectStore të ETS. Ta mbishkruaj apo ta shtoj si kopje më vete?"
+msgstr "Një dosje projekti '{pid}' ekziston tashmë në këtë ProjectStore të ETS. Të mbishkruhet apo të shtohet si kopje më vete?"
 
 msgid "Overwrite"
 msgstr "Mbishkruaj"
@@ -587,13 +587,13 @@ msgid "Paste an OpenKNX GitHub release URL (the release page works — the .zip 
 msgstr "Ngjitni URL-në e një release-i OpenKNX në GitHub (funksionon edhe faqja e release-it — skedari .zip gjendet automatikisht). Funksionon edhe një lidhje e drejtpërdrejtë .knxprod ose XML produkti KNX.\n\nShembuj:\n  https://github.com/OpenKNX/OAM-RaumController/releases/tag/v5.4.3\n  https://github.com/OpenKNX/OAM-RaumController/releases/latest"
 
 msgid "Or choose a local folder with product files (.knxprod, OpenKNX release .zip, or KNX product XML) to import all of them."
-msgstr "Ose zgjidhni një dosje lokale me skedarë produktesh (.knxprod, .zip release OpenKNX ose XML produkti KNX) për t'i importuar të gjithë."
+msgstr "Ose zgjidhni një dosje lokale me skedarë produktesh (.knxprod, .zip i një release-i OpenKNX ose XML produkti KNX) për t'i importuar të gjithë."
 
 msgid "Choose Folder…"
 msgstr "Zgjidh dosjen…"
 
 msgid "Or upload product files (.knxprod, OpenKNX release .zip, or KNX product XML) from this computer to import all of them."
-msgstr "Ose ngarkoni skedarë produktesh (.knxprod, .zip release OpenKNX ose XML produkti KNX) nga ky kompjuter për t'i importuar të gjithë."
+msgstr "Ose ngarkoni skedarë produktesh (.knxprod, .zip i një release-i OpenKNX ose XML produkti KNX) nga ky kompjuter për t'i importuar të gjithë."
 
 msgid "Choose Files…"
 msgstr "Zgjidh skedarët…"
@@ -611,7 +611,7 @@ msgid "Import from URL failed: {error}"
 msgstr "Importimi nga URL dështoi: {error}"
 
 msgid "Choose a Folder with KNX Product Files"
-msgstr "Zgjidhni një dosje me skedarë produktesh KNX"
+msgstr "Zgjidh një dosje me skedarë produktesh KNX"
 
 msgid "Importing from folder…"
 msgstr "Po importohet nga dosja…"
@@ -776,7 +776,7 @@ msgid "Windows"
 msgstr "Dritaret"
 
 msgid "Child Windows"
-msgstr "Dritaret bijë"
+msgstr "Nëndritaret"
 
 msgid "Popups"
 msgstr "Dritaret kërcyese"
@@ -914,7 +914,7 @@ msgid "DIN rail"
 msgstr "Shinë DIN"
 
 msgid "Flush-mounted"
-msgstr "Montim në mur"
+msgstr "Montim nën suva"
 
 msgid "Registered: {info}"
 msgstr "I regjistruar: {info}"
@@ -941,7 +941,7 @@ msgid "Hardware"
 msgstr "Hardueri"
 
 msgid "Registered"
-msgstr "I regjistruar"
+msgstr "Regjistrimi"
 
 msgid "{name} was already in the catalog, nothing new imported"
 msgstr "{name} ishte tashmë në katalog, nuk u importua asgjë e re"
@@ -1010,7 +1010,7 @@ msgid "Install Update"
 msgstr "Instalo përditësimin"
 
 msgid "Install Update downloads the installer, closes XKNX Editor and starts it again with the open project."
-msgstr "Instalo përditësimin shkarkon instaluesin, mbyll XKNX Editor dhe e nis përsëri me projektin e hapur."
+msgstr "Butoni 'Instalo përditësimin' shkarkon instaluesin, mbyll XKNX Editor dhe e nis përsëri me projektin e hapur."
 
 msgid "Downloading the update…"
 msgstr "Po shkarkohet përditësimi…"
@@ -1088,7 +1088,7 @@ msgid "Catalog Entries"
 msgstr "Hyrjet e katalogut"
 
 msgid "Help and Plug-in Files"
-msgstr "Skedarë ndihme dhe plug-in"
+msgstr "Skedarët e ndihmës dhe të plugin-eve"
 
 msgid "Details"
 msgstr "Detajet"
@@ -1097,7 +1097,7 @@ msgid "Current File Size"
 msgstr "Madhësia aktuale e skedarit"
 
 msgid "Estimated Size Afterwards"
-msgstr "Madhësia e vlerësuar pas"
+msgstr "Madhësia e vlerësuar pas ngjeshjes"
 
 msgid "This cannot be undone. Removed product data has to be imported again if these products are added to the project later."
 msgstr "Ky veprim nuk mund të zhbëhet. Të dhënat e hequra të produkteve duhet të importohen sërish nëse këto produkte shtohen më vonë në projekt."
@@ -1112,10 +1112,10 @@ msgid "The project file was compacted."
 msgstr "Skedari i projektit u ngjesh."
 
 msgid "Size before"
-msgstr "Madhësia para"
+msgstr "Madhësia para ngjeshjes"
 
 msgid "Size after"
-msgstr "Madhësia pas"
+msgstr "Madhësia pas ngjeshjes"
 
 msgid "Compacting cancelled, the project was not changed"
 msgstr "Ngjeshja u anulua, projekti nuk ndryshoi"
@@ -1205,7 +1205,7 @@ msgid "Size"
 msgstr "Madhësia"
 
 msgid "Modified"
-msgstr "Ndryshuar"
+msgstr "Ndryshuar më"
 
 msgid "The browser did not open it by itself."
 msgstr "Shfletuesi nuk e hapi vetë."
@@ -1439,16 +1439,16 @@ msgid "On the Network"
 msgstr "Në rrjet"
 
 msgid "This editor is controllable by an AI assistant through the built-in MCP server: it exposes the catalog and project as tools over Streamable HTTP. Register its endpoint in your AI tool."
-msgstr "Ky editor mund të drejtohet nga një asistent AI përmes serverit të integruar MCP: ai ofron katalogun dhe projektin si mjete përmes Streamable HTTP. Regjistroni endpoint-in e tij në mjetin tuaj AI."
+msgstr "Ky editor mund të drejtohet nga një asistent AI përmes serverit MCP të integruar: ai i ofron katalogun dhe projektin si vegla përmes Streamable HTTP. Regjistroni pikën e tij fundore në veglën tuaj AI."
 
 msgid "Example: register the MCP server in your AI tool:"
-msgstr "Shembull: regjistroni serverin MCP në mjetin tuaj AI:"
+msgstr "Shembull: regjistroni serverin MCP në veglën tuaj AI:"
 
 msgid "Example: register the MCP server in your AI tool, with your token in place of HOME_ASSISTANT_TOKEN:"
-msgstr "Shembull: regjistroni serverin MCP në mjetin tuaj AI, me token-in tuaj në vend të HOME_ASSISTANT_TOKEN:"
+msgstr "Shembull: regjistroni serverin MCP në veglën tuaj AI, me token-in tuaj në vend të HOME_ASSISTANT_TOKEN:"
 
 msgid "Home Assistant provides the MCP server: AI tools sign in with a long-lived access token of a Home Assistant user who may use the editor (Profile > Security)."
-msgstr "Serverin MCP e ofron Home Assistant: mjetet AI hyjnë me një token aksesi afatgjatë të një përdoruesi të Home Assistant që ka të drejtë të përdorë editorin (Profili > Siguria)."
+msgstr "Serverin MCP e ofron Home Assistant: veglat AI hyjnë me një token aksesi afatgjatë të një përdoruesi të Home Assistant që ka të drejtë të përdorë editorin (Profili > Siguria)."
 
 msgid "The program that started XKNX Editor set up its MCP server."
 msgstr "Programi që nisi XKNX Editor e ka konfiguruar serverin e tij MCP."

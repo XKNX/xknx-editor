@@ -14,7 +14,7 @@ msgid "Filter…"
 msgstr "Filtro…"
 
 msgid "Time"
-msgstr "Koha"
+msgstr "Ora"
 
 msgid "Level"
 msgstr "Niveli"
