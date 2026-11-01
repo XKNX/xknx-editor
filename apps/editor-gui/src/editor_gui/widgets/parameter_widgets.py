@@ -18,6 +18,7 @@ from editor_gui.widgets.backgrounds import (
     child_background,
     content_background,
     group_background,
+    page_button,
     page_line,
     side_background,
 )
@@ -137,12 +138,18 @@ def _render_button(
             - (px(_BUTTON_HEIGHT) - imgui.get_frame_height()) / 2
         )
     size = imgui.ImVec2(width, px(_BUTTON_HEIGHT))
+    # A light face with a thin border, as the page's fields are light.
+    imgui.push_style_color(imgui.Col_.button, page_button())
+    imgui.push_style_color(imgui.Col_.border, page_line())
+    imgui.push_style_var(imgui.StyleVar_.frame_border_size, 1.0)
     imgui.begin_disabled(not enabled)
     if icon is None:
         clicked = imgui.button(f"{button.text}###btn_{prefix}_{button.id}", size)
     else:
         clicked = _icon_button(icon, button.text, f"###btn_{prefix}_{button.id}", size)
     imgui.end_disabled()
+    imgui.pop_style_var()
+    imgui.pop_style_color(2)
     if fill:
         window.dc.cursor_max_pos = imgui.ImVec2(
             window.dc.cursor_max_pos.x, max(content_bottom, field_bottom)
@@ -159,9 +166,10 @@ def _render_button(
 
 
 def _icon_button(icon: Icon, text: str, button_id: str, size: imgui.ImVec2) -> bool:
-    """A button showing ``icon`` before ``text``; a ``size.x`` of 0 sizes it to its content."""
+    """A button showing a 16 px ``icon`` before ``text``; a ``size.x`` of 0 sizes it to its
+    content."""
     style = imgui.get_style()
-    side = imgui.get_text_line_height()
+    side = px(_BUTTON_ICON)
     gap = style.item_inner_spacing.x if text else 0.0
     content = side + gap + (imgui.calc_text_size(text).x if text else 0.0)
     clicked = imgui.button(
@@ -768,7 +776,10 @@ def _spin_width() -> float:
     return imgui.get_frame_height() * 0.6
 
 
-# How far the middle of a spin arrow is from the right edge of its field, at 100 % scaling.
+# A spin arrow at 100 % scaling: its width, its height, and how far its middle is from the right
+# edge of its field.
+_SPIN_ARROW_WIDTH = 5.0
+_SPIN_ARROW_HEIGHT = 3.0
 _SPIN_ARROW_RIGHT = 9.0
 
 
@@ -811,9 +822,9 @@ def _spin_buttons(widget_id: str, *, enabled: bool) -> int:
             )
         mid_x = rect_max.x - px(_SPIN_ARROW_RIGHT)
         mid_y = top.y + size.y / 2
-        half = min(size.x, size.y) * 0.35
-        tip = mid_y - half * 0.6 * step
-        base = mid_y + half * 0.6 * step
+        half = px(_SPIN_ARROW_WIDTH) / 2
+        tip = mid_y - px(_SPIN_ARROW_HEIGHT) / 2 * step
+        base = mid_y + px(_SPIN_ARROW_HEIGHT) / 2 * step
         draw.add_triangle_filled(
             imgui.ImVec2(mid_x, tip),
             imgui.ImVec2(mid_x - half, base),
@@ -2646,11 +2657,12 @@ _COMBO_TEXT_INSET = 5.0
 # Line spacing of the reference's texts (Segoe UI: ascent and descent 2724 / 2048 of the em) per
 # ImGui font size (of which the em is 12/14).
 _CELL_LINE = 2724 / 2048 * 12 / 14
-# Space at 100 % scaling left and right of a button in a grid cell, and its height (2 px more than
-# a field's).
+# Space at 100 % scaling left and right of a button in a grid cell, its height (2 px more than a
+# field's), and the size of its icon.
 _BUTTON_MARGIN_LEFT = 4.0
 _BUTTON_MARGIN_RIGHT = 10.0
 _BUTTON_HEIGHT = 24.0
+_BUTTON_ICON = 16.0
 # Size of a headline over the text: 14 px semibold over the 12 px text.
 _HEADLINE_SCALE = 14.0 / 12.0
 # Room at 100 % scaling above and below a headline's text beyond the usual spacing: a headline

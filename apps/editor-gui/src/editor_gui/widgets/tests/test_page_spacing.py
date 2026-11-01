@@ -13,10 +13,11 @@ from typing import Any
 import pytest
 from imgui_bundle import imgui
 
-from editor_gui.widgets import parameter_widgets
+from editor_gui.widgets import backgrounds, parameter_widgets
 from editor_gui.widgets.parameter_widgets import ParameterPage
 from xknxeditor.prod.parser_v2.ui import (
     NumberWidget,
+    UiButton,
     UiParameter,
     UiParameterBlock,
     UiSeparator,
@@ -212,3 +213,73 @@ def test_a_field_with_a_unit_in_a_cell_keeps_room_after_the_unit(
     unit = imgui.calc_text_size("Sekunden").x
     # The cell's gap, the unit with 5 px before and after it.
     assert widths[0] == pytest.approx(-(6 + 5 + unit + 5))
+
+
+@pytest.mark.parametrize(("page", "face"), [(1.0, 0.95), (0.1, 0.145)])
+def test_a_button_is_light_grey_over_the_page(
+    monkeypatch: pytest.MonkeyPatch, page: float, face: float
+) -> None:
+    # Black at 5 % over a light page, white at 5 % over a dark one.
+    color = imgui.ImVec4(page, page, page, 1.0)
+    monkeypatch.setattr(backgrounds, "content_background", lambda: color)
+    drawn = backgrounds.page_button()
+    assert (drawn.x, drawn.y, drawn.z) == pytest.approx((face, face, face))
+
+
+def test_a_button_has_a_border_and_its_icon_is_16_px(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    borders: list[float] = []
+    icons: list[float] = []
+    original = imgui.button
+
+    def record(label: str, size: imgui.ImVec2) -> bool:
+        borders.append(imgui.get_style().frame_border_size)
+        return original(label, size)
+
+    monkeypatch.setattr(imgui, "button", record)
+    monkeypatch.setattr(parameter_widgets, "_get_icon", lambda _name: object())
+    monkeypatch.setattr(
+        parameter_widgets, "draw_icon", lambda _icon, _pos, side: icons.append(side)
+    )
+    actions = parameter_widgets.ButtonActions(
+        on_click=lambda *_: None,
+        state=lambda *_: (True, None),
+        error=lambda *_: None,
+    )
+    for button in (
+        UiButton(id="B-1", text="Ermitteln (sofort)"),
+        UiButton(id="B-2", text="", icon="content-copy"),
+    ):
+        parameter_widgets._render_button(  # pyright: ignore[reportPrivateUsage]
+            _DEVICE, button, "page", actions
+        )
+    assert borders == [1.0, 1.0]
+    assert icons == [16.0]
+
+
+def test_spin_arrows_are_5_by_3_px_9_px_from_the_right_edge(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    triangles: list[tuple[imgui.ImVec2, imgui.ImVec2, imgui.ImVec2]] = []
+    draw = imgui.ImDrawList.add_triangle_filled
+
+    def record(
+        self: imgui.ImDrawList,
+        a: imgui.ImVec2,
+        b: imgui.ImVec2,
+        c: imgui.ImVec2,
+        col: int,
+    ) -> None:
+        triangles.append((a, b, c))
+        draw(self, a, b, c, col)
+
+    monkeypatch.setattr(imgui.ImDrawList, "add_triangle_filled", record)
+    imgui.set_next_item_width(60)
+    imgui.input_text("##n", "4477")
+    right = imgui.get_item_rect_max().x
+    parameter_widgets._spin_buttons("n", enabled=True)  # pyright: ignore[reportPrivateUsage]
+    for tip, left, base_right in triangles:
+        assert base_right.x - left.x == 5
+        assert abs(left.y - tip.y) == 3
+        assert right - tip.x == 9
