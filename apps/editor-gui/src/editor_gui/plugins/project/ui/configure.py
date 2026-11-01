@@ -61,7 +61,11 @@ from editor_gui.widgets import (
     stacked_layout,
     take_selected_help,
 )
-from editor_gui.widgets.backgrounds import child_background, side_background
+from editor_gui.widgets.backgrounds import (
+    child_background,
+    page_line,
+    side_background,
+)
 from editor_gui.widgets.checkbox import checkbox, radio_button
 from editor_gui.widgets.combo import begin_combo, combo
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
@@ -1551,20 +1555,19 @@ class ConfigurePanel:
             )
         if imgui.is_item_deactivated():
             self._save_help_height()
-        color = (
+        # In the color of the page's separator lines; the theme's while hovered or dragged.
+        color = imgui.get_color_u32(
             imgui.Col_.separator_active
             if active
             else imgui.Col_.separator_hovered
             if hovered
-            else imgui.Col_.separator
+            else page_line()
         )
         # The line right below the parameters, the rest on the help's background.
         line_bottom = top_left.y + px(_HELP_LINE)
         draw_list = imgui.get_window_draw_list()
         draw_list.add_rect_filled(
-            top_left,
-            imgui.ImVec2(top_left.x + width, line_bottom),
-            imgui.get_color_u32(color),
+            top_left, imgui.ImVec2(top_left.x + width, line_bottom), color
         )
         draw_list.add_rect_filled(
             imgui.ImVec2(top_left.x, line_bottom),
