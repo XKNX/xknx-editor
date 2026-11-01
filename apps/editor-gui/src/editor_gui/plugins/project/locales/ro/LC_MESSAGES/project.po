@@ -145,6 +145,9 @@ msgstr "Dezinstalare"
 msgid "Unload Application and Address"
 msgstr "Dezinstalare aplicație și adresă"
 
+msgid "Partial"
+msgstr "Parțial"
+
 msgid "Partial: Parameters"
 msgstr "Parțial: parametri"
 

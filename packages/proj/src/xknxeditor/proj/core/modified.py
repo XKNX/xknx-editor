@@ -2,8 +2,8 @@
 
 It is stamped (UTC, as the project stores it) by a change of a parameter value, of a group
 object's flags (also when undone or redone), by adding the device, and by a change of what was
-downloaded to it (its "loaded" ticks: linking a group address marks its group communication not
-loaded), of its serial number or MAC address, of its IP settings (also when undone or redone),
+downloaded to it (its "loaded" ticks: linking a group address or changing a group object's
+priority marks its group communication not loaded), of its serial number or MAC address, of its IP settings (also when undone or redone),
 or of its application. Undoing a parameter
 change leaves it, and so does a download. It is not part of the undo history: undo never sets it
 back.

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
+from dataclasses import dataclass
 from enum import Enum
 from typing import TYPE_CHECKING
 
@@ -64,9 +65,11 @@ _ROUTER_OBJECT = 6
 
 
 class DownloadScope(Enum):
-    """The loadable parts to program; unload scopes select the Unload procedure."""
+    """The loadable parts to program; unload scopes select the Unload procedure. ``PARTIAL``
+    is what a device still needs, resolved by ``partial_scope`` before anything is loaded."""
 
     FULL = "full"
+    PARTIAL = "partial"
     PARAMETERS = "par"
     GROUP_COMMUNICATION = "grp"
     PARAMETERS_AND_GROUP_COMMUNICATION = "par,grp"
@@ -92,6 +95,42 @@ _PARTIAL_SCOPES = frozenset(
         DownloadScope.PARAMETERS_AND_GROUP_COMMUNICATION,
     }
 )
+
+
+@dataclass(frozen=True, slots=True)
+class PartialDownload:
+    """What a partial download of a device loads: ``scope`` and, with ``medium_config``,
+    the device's medium configuration (its IP settings) too."""
+
+    scope: DownloadScope
+    medium_config: bool = False
+
+
+def partial_scope(
+    *,
+    individual_address_loaded: bool,
+    application_program_loaded: bool,
+    parameters_loaded: bool,
+    communication_part_loaded: bool,
+    medium_config_loaded: bool,
+) -> PartialDownload:
+    """The parts a partial download loads, from what the device is marked as having loaded.
+
+    A device without its individual address gets a full download, one without its application
+    program the application. Otherwise the parameters and the group communication are loaded
+    when they changed, the medium configuration too when it changed. With nothing changed the
+    parameters are loaded: the application's memory is written either way, as a partial
+    download that selects neither part still writes it."""
+    if not individual_address_loaded:
+        return PartialDownload(DownloadScope.FULL)
+    if not application_program_loaded:
+        return PartialDownload(DownloadScope.APPLICATION)
+    medium = not medium_config_loaded
+    if parameters_loaded and not communication_part_loaded:
+        return PartialDownload(DownloadScope.GROUP_COMMUNICATION, medium)
+    if not communication_part_loaded:
+        return PartialDownload(DownloadScope.PARAMETERS_AND_GROUP_COMMUNICATION, medium)
+    return PartialDownload(DownloadScope.PARAMETERS, medium)
 
 
 def mask_configuration(

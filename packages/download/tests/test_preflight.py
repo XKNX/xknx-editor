@@ -441,3 +441,24 @@ async def test_overlapping_segments_are_written_and_previewed_once() -> None:
     writes = [p for p in device.sent if isinstance(p, MemoryWrite)]
     assert sum(w.count for w in writes) == 4
     assert [device.memory[0x4400 + i] for i in range(4)] == [0x08, 0xA1, 0x30, 0xB1]
+
+
+async def test_preflight_marks_the_bytes_of_a_group_table() -> None:
+    # An address table at 0x4002..0x4006 inside a write of a whole segment: its bytes are
+    # configuration whether or not a parameter writes them.
+    image = DownloadImage(
+        segments=(MemorySegment(address=0x4000, data=bytes(8)),),
+        properties=(),
+        group_table_memory=((0x4002, 0x4006),),
+    )
+    application = _application(
+        LdCtrlWriteMem(address=0x4000, size=8, verify=False, inline_data=None)
+    )
+    runner, device = _runner(application, image)
+    device.memory.update(dict.fromkeys(range(0x4000, 0x4008), 0xFF))
+
+    (segment,) = (await runner.preflight()).segments
+
+    assert segment.table_bytes == frozenset({2, 3, 4, 5})
+    assert image.in_group_tables(0x4005)
+    assert not image.in_group_tables(0x4006)

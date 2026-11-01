@@ -796,6 +796,9 @@ msgstr "Вивантажити"
 msgid "Unload Application and Address"
 msgstr "Вивантажити додаток та адресу"
 
+msgid "Partial"
+msgstr "Частково"
+
 msgid "Partial: Parameters"
 msgstr "Частково: параметри"
 

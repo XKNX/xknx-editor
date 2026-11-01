@@ -796,6 +796,9 @@ msgstr "Fjern"
 msgid "Unload Application and Address"
 msgstr "Fjern applikation og adresse"
 
+msgid "Partial"
+msgstr "Delvis"
+
 msgid "Partial: Parameters"
 msgstr "Delvis: parametre"
 

@@ -199,3 +199,38 @@ def test_unknown_application_is_reported_in_group_communication() -> None:
     )
     assert sections[-1][0] == "Group Communication"
     assert "not in the catalog" in sections[-1][1][-1][1]
+
+
+def test_objects_the_device_has_no_group_address_for_differ() -> None:
+    # The project links objects 45 and 133; the device holds only 133's group address.
+    info = DeviceInfo(
+        individual_address="1.0.47",
+        group_objects=[GroupObjectInfo(133, "1 bit", "", (0x1820,))],
+        group_objects_read=True,
+    )
+    sections = device_info_sections(
+        info,
+        manufacturers={},
+        application_name=None,
+        group_address=str,
+        expected={45: {0x0016}, 133: {0x1820}, 200: set()},
+    )
+    objects = sections[-1][1]
+    assert [label for label, _ in objects] == ["Obj#45", "Obj#133 (1 bit)"]
+    missing = dict(objects)["Obj#45"]
+    assert missing == "-"
+    assert isinstance(missing, Toned) and missing.tone == "differs"
+
+
+def test_without_the_tables_read_no_object_is_listed() -> None:
+    info = DeviceInfo(individual_address="1.0.47", group_communication_error="timeout")
+    sections = device_info_sections(
+        info,
+        manufacturers={},
+        application_name=None,
+        group_address=str,
+        expected={45: {0x0016}},
+    )
+    assert not any(
+        label.startswith("Obj#") for _, rows in sections for label, _ in rows
+    )

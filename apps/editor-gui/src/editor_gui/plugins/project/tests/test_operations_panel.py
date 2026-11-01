@@ -22,6 +22,7 @@ from editor_gui.plugins.project.ui.program_queue import (
 )
 from editor_gui.strings import set_locale
 from editor_gui.widgets.tabs import forget_shown_tab_bars
+from xknxeditor.download.scope import PartialDownload
 
 
 @pytest.fixture
@@ -218,7 +219,8 @@ def _test_plugin(
             edited_since_open=lambda: False,
             find_device_by_node_id=lambda _n: device,
             group_communication_for=lambda _d: None,
-            ip_download_config=lambda _d: None,
+            download_parts=lambda _n, scope: PartialDownload(scope),
+            download_ip_config=lambda _d, _parts: None,
         ),
     )
     plugin._preflight_result = SimpleNamespace(  # pyright: ignore[reportPrivateUsage, reportAttributeAccessIssue]
@@ -350,3 +352,33 @@ def test_an_operation_waiting_for_its_connection_shows_no_bus_progress() -> None
     connecting[0] = False
     _frames(panel, 2)
     assert reads
+
+
+def test_a_partial_download_queues_what_the_device_needs() -> None:
+    from editor_gui.plugins.project.program_queue import QueueItem
+    from editor_gui.plugins.project.ui.configure import ProgramRequest
+    from xknxeditor.download.scope import DownloadScope
+
+    queued: list[QueueItem] = []
+    device = SimpleNamespace(node_id=1, name="Dimmer", individual_address="1.1.5")
+    plugin = ProjectPlugin.__new__(ProjectPlugin)
+    plugin._api = SimpleNamespace(  # pyright: ignore[reportPrivateUsage, reportAttributeAccessIssue]
+        connection=SimpleNamespace(use_serial_number=False),
+        project=SimpleNamespace(
+            download_parts=lambda _n, _scope: PartialDownload(
+                DownloadScope.GROUP_COMMUNICATION, medium_config=True
+            ),
+            find_device_by_node_id=lambda _n: device,
+        ),
+        log=SimpleNamespace(debug=lambda *_a, **_k: None),
+    )
+    plugin._program_queue = SimpleNamespace(enqueue=queued.append)  # pyright: ignore[reportPrivateUsage, reportAttributeAccessIssue]
+    plugin._program_device(  # pyright: ignore[reportPrivateUsage]
+        device,  # pyright: ignore[reportArgumentType]
+        ProgramRequest(scope=DownloadScope.PARTIAL),
+    )
+    plugin._queue_program(1, DownloadScope.PARTIAL, origin="MCP")  # pyright: ignore[reportPrivateUsage]
+    assert [(i.scope, i.medium_config) for i in queued] == [
+        (DownloadScope.GROUP_COMMUNICATION, True),
+        (DownloadScope.GROUP_COMMUNICATION, True),
+    ]

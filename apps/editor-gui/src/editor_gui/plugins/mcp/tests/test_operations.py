@@ -189,3 +189,47 @@ async def test_force_stop_a_script_that_ignores_its_cancel(tmp_path: Path) -> No
             client, "connection_cancel_operations", node_ids=[node_id], force=True
         ) == {"canceled": 1}
         assert run.abort.requested
+
+
+async def test_read_device_info_runs_in_the_queue_and_returns_its_rows(
+    tmp_path: Path,
+) -> None:
+    from editor_gui.plugins.project.device_info_view import Toned
+
+    _ctx, mcp, plugin, _started = _setup(tmp_path)
+    read: list[QueueItem] = []
+
+    def start(item: QueueItem) -> Future[Any]:
+        read.append(item)
+        future: Future[Any] = Future()
+        future.set_result("info")
+        return future
+
+    def show(item: QueueItem, _result: Any) -> None:
+        item.details = [
+            (
+                "Group Communication",
+                [("Obj#45", Toned("-", "differs")), ("Obj#133 (1 bit)", "3/0/32")],
+            )
+        ]
+
+    plugin._program_queue = ProgramQueue(  # pyright: ignore[reportPrivateUsage]
+        is_busy=lambda: False, start=start, on_finished=show
+    )
+    async with Client(mcp) as client:
+        (node_id,) = await _devices(client, tmp_path, "1.1.47")
+        result = await _data(
+            client, "connection_read_device_info", device_address="1.1.47"
+        )
+    ((item),) = read
+    assert (item.node_id, item.device_info, item.origin) == (node_id, True, "MCP")
+    assert result["state"] == "finished"
+    assert result["details"] == [
+        {
+            "section": "Group Communication",
+            "rows": [
+                {"label": "Obj#45", "value": "-", "tone": "differs"},
+                {"label": "Obj#133 (1 bit)", "value": "3/0/32"},
+            ],
+        }
+    ]

@@ -128,6 +128,7 @@ def overwrite_current_address(
 
 _SCOPE_ORDER = [
     DownloadScope.FULL,
+    DownloadScope.PARTIAL,
     DownloadScope.PARAMETERS,
     DownloadScope.GROUP_COMMUNICATION,
     DownloadScope.APPLICATION,
@@ -142,6 +143,7 @@ def _scope_labels() -> list[str]:
     """Labels of ``_SCOPE_ORDER``."""
     return [
         S.SCOPE_FULL,
+        S.SCOPE_PARTIAL,
         S.SCOPE_PARAMETERS,
         S.SCOPE_GROUP_COMMUNICATION,
         S.SCOPE_APPLICATION,
@@ -449,7 +451,7 @@ class ConfigurePanel:
         self._address_buffer: str = ""
         self._description_buffer: str = ""
         self._buffer_device_id: int | None = None
-        self._download_scope: DownloadScope = DownloadScope.PARAMETERS
+        self._download_scope: DownloadScope = DownloadScope.PARTIAL
         self._confirm_program_open: bool = False
         # Confirmed to program a device whose hardware needs the manufacturer's plugin.
         self._program_without_plugin: bool = False

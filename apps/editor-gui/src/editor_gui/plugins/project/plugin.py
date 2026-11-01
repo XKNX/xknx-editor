@@ -2345,7 +2345,8 @@ class ProjectPlugin:
         appended to the programming queue (dedupe per device) and drained one at a time."""
         from xknxeditor.download.scope import DownloadScope
 
-        scope = request.scope
+        parts = self._api.project.download_parts(device.node_id, request.scope)
+        scope = parts.scope
         serial = (
             self._project_serial(device.node_id)
             if request.use_serial_number
@@ -2364,6 +2365,7 @@ class ProjectPlugin:
                 address=device.individual_address or "",
                 name=device.name,
                 scope=scope,
+                medium_config=parts.medium_config,
                 without_plugin=request.without_plugin,
                 current_address=request.current_address,
                 serial_number=serial,
@@ -2390,11 +2392,13 @@ class ProjectPlugin:
         device = self._api.project.find_device_by_node_id(node_id)
         if device is None:
             return None
+        parts = self._api.project.download_parts(device.node_id, scope)
         item = QueueItem(
             node_id=device.node_id,
             address=device.individual_address or "",
             name=device.name,
-            scope=scope,
+            scope=parts.scope,
+            medium_config=parts.medium_config,
             without_plugin=without_plugin,
             current_address=current_address,
             serial_number=serial_number,
@@ -2419,6 +2423,7 @@ class ProjectPlugin:
                     address=item.address,
                     name=item.name,
                     scope=item.scope,
+                    medium_config=item.medium_config,
                     without_plugin=item.without_plugin,
                     current_address=item.current_address,
                     serial_number=item.serial_number,
@@ -2631,18 +2636,31 @@ class ProjectPlugin:
 
     def _request_device_info(self, node_id: int, group_communication: bool) -> None:
         """Queue a device info readout; its result shows in the Operations panel."""
+        self.queue_device_info(node_id, group_communication)
+
+    def queue_device_info(
+        self, node_id: int, group_communication: bool, *, origin: str | None = None
+    ) -> QueueItem | None:
+        """Queue a device info readout, with ``group_communication`` also of its tables;
+        ``origin`` names who started it when not the editor's own UI (an MCP client). Returns the
+        item, whose ``ended`` future resolves once it has ended (its ``details`` hold the
+        readout), or None for a device not in the project."""
+        from concurrent.futures import Future
+
         device = self._api.project.find_device_by_node_id(node_id)
         if device is None:
-            return
-        self._program_queue.enqueue(
-            QueueItem(
-                node_id=device.node_id,
-                address=device.individual_address or "",
-                name=device.name,
-                scope=None,
-                device_info=group_communication,
-            )
+            return None
+        item = QueueItem(
+            node_id=device.node_id,
+            address=device.individual_address or "",
+            name=device.name,
+            scope=None,
+            device_info=group_communication,
+            origin=origin,
+            ended=Future(),
         )
+        self._program_queue.enqueue(item)
+        return item
 
     def _start_device_info(self, item: QueueItem) -> "Future[Any] | None":
         device = self._api.project.find_device_by_node_id(item.node_id)
@@ -2859,6 +2877,7 @@ class ProjectPlugin:
             )
             return None
         from editor_gui.plugins.connection.service import DeviceCertificateRequired
+        from xknxeditor.download.scope import PartialDownload
         from xknxeditor.proj import ProjectPasswordRequired
 
         try:
@@ -2869,10 +2888,11 @@ class ProjectPlugin:
         ip_secure = self._api.project.ip_secure_config(
             device, self._api.connection.keyring
         )
+        parts = PartialDownload(item.scope, item.medium_config)
         try:
             future = self._api.connection.program_device(
                 device,
-                item.scope,
+                parts.scope,
                 self._group_communication_for(device),
                 without_plugin=item.without_plugin,
                 current_address=item.current_address,
@@ -2881,7 +2901,7 @@ class ProjectPlugin:
                 confirm_full_download=functools.partial(
                     self._confirm_full_download, item
                 ),
-                ip_config=self._api.project.ip_download_config(device),
+                ip_config=self._api.project.download_ip_config(device, parts),
                 tool_key=tool_key,
                 ip_secure=ip_secure,
                 disable_security=self._api.project.download_disables_security(device),
@@ -2940,6 +2960,7 @@ class ProjectPlugin:
                 getattr(result, "mac_address", None),
                 result=result,
                 ip_secure=ip_secure,
+                medium_config=parts.medium_config,
             )
 
         future.add_done_callback(_on_done)
@@ -2980,9 +3001,12 @@ class ProjectPlugin:
         *,
         result: object = None,
         ip_secure: "IpSecureConfig | None" = None,
+        medium_config: bool = False,
     ) -> None:
         def _apply() -> None:
-            self._api.project.record_download(node_id, scope_value, serial, mac_address)
+            self._api.project.record_download(
+                node_id, scope_value, serial, mac_address, medium_config=medium_config
+            )
             device = self._api.project.find_device_by_node_id(node_id)
             if result is not None and device is not None:
                 self._api.project.record_secure_download(device, result)
@@ -3040,12 +3064,14 @@ class ProjectPlugin:
             )
             return
         # Like a programming it waits in the operations queue while the bus is busy.
+        parts = self._api.project.download_parts(device.node_id, scope)
         self._program_queue.enqueue(
             QueueItem(
                 node_id=device.node_id,
                 address=device.individual_address or "",
                 name=device.name,
-                scope=scope,
+                scope=parts.scope,
+                medium_config=parts.medium_config,
                 test=True,
             )
         )
@@ -3053,6 +3079,8 @@ class ProjectPlugin:
     def _start_test(self, item: QueueItem) -> "Future[Any] | None":
         """Start a queued test; one started in the editor shows its report in the result
         window."""
+        from xknxeditor.download.scope import PartialDownload
+
         device = self._api.project.find_device_by_node_id(item.node_id)
         if device is None or item.scope is None:
             return None
@@ -3063,7 +3091,9 @@ class ProjectPlugin:
             device,
             item.scope,
             self._group_communication_for(device),
-            self._api.project.ip_download_config(device),
+            self._api.project.download_ip_config(
+                device, PartialDownload(item.scope, item.medium_config)
+            ),
         )
         if future is None:
             if self._api.connection.xknx is None:

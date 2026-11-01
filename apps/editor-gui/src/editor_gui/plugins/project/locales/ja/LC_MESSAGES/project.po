@@ -796,6 +796,9 @@ msgstr "アンロード"
 msgid "Unload Application and Address"
 msgstr "アプリケーションとアドレスをアンロードする"
 
+msgid "Partial"
+msgstr "部分"
+
 msgid "Partial: Parameters"
 msgstr "部分：パラメータ"
 

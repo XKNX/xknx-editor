@@ -145,6 +145,9 @@ msgstr "Izprazni"
 msgid "Unload Application and Address"
 msgstr "Izprazni aplikacijo in naslov"
 
+msgid "Partial"
+msgstr "Delno"
+
 msgid "Partial: Parameters"
 msgstr "Delno: parametri"
 

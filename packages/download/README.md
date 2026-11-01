@@ -167,7 +167,10 @@ procedure is merged with the application's fragments; `ProductProcedure`
 applications carry the full procedure and work without it. For a partial
 download pass `scope=DownloadScope.PARAMETERS`,
 `DownloadScope.GROUP_COMMUNICATION`, or
-`DownloadScope.PARAMETERS_AND_GROUP_COMMUNICATION` for both.
+`DownloadScope.PARAMETERS_AND_GROUP_COMMUNICATION` for both. `partial_scope`
+picks them from what the device is marked as having loaded (a download of
+`DownloadScope.PARTIAL`); pass `ip_config` to a partial download only when the
+device's IP settings changed.
 
 The device must already carry the target individual address; program a virgin
 device's individual address first via `program_individual_address`.

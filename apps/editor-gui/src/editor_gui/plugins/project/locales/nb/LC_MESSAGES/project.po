@@ -796,6 +796,9 @@ msgstr "Avinstaller"
 msgid "Unload Application and Address"
 msgstr "Avinstaller applikasjon og adresse"
 
+msgid "Partial"
+msgstr "Delvis"
+
 msgid "Partial: Parameters"
 msgstr "Delvis: parametre"
 

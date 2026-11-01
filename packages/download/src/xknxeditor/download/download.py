@@ -125,7 +125,15 @@ class DownloadResult:
     factory_reset: bool = False
 
 
-_IP_CONFIG_SCOPES = frozenset({DownloadScope.FULL, DownloadScope.APPLICATION})
+_IP_CONFIG_SCOPES = frozenset(
+    {
+        DownloadScope.FULL,
+        DownloadScope.APPLICATION,
+        DownloadScope.PARAMETERS,
+        DownloadScope.GROUP_COMMUNICATION,
+        DownloadScope.PARAMETERS_AND_GROUP_COMMUNICATION,
+    }
+)
 _MAC_ADDRESS_LENGTH = 6
 # The device object's management descriptor: the configuration of a System 300 device.
 _PID_MANAGEMENT_DESCRIPTOR = 72
@@ -161,7 +169,9 @@ def _resolve_controls(
     A secured download of a device with secured group addresses writes its security tables
     before the final restart; with ``tool_key`` it starts with the Security Mode and the Tool
     Key, with ``disable_security`` it ends with emptied tables and the Security Mode off (see
-    :mod:`.secure_config`). ``application2`` is the product's second application program."""
+    :mod:`.secure_config`). ``application2`` is the product's second application program.
+    ``ip_config`` is written by a full or application download and by a partial one it is
+    passed to (the medium configuration changed since the device was loaded)."""
     controls = _resolve_procedure(application, master, image, scope, application2)
     if (
         ip_config is not None
@@ -210,6 +220,10 @@ def _resolve_procedure(
     scope: DownloadScope,
     application2: Application | None = None,
 ) -> list[object]:
+    if scope is DownloadScope.PARTIAL:
+        raise ValueError(
+            "a partial download is resolved to its parts first (partial_scope)"
+        )
     master_raw = master.raw if master is not None else None
     if scope in (DownloadScope.UNLOAD, DownloadScope.UNLOAD_ALL):
         from xknxeditor.namespaces.intermediate.procedure_type_t import ProcedureType

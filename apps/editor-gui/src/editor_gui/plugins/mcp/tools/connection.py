@@ -34,6 +34,7 @@ if TYPE_CHECKING:
 # Download scopes (schema enum); maps to xknxeditor.download.scope.DownloadScope in _resolve_scope.
 Scope = Literal[
     "FULL",
+    "PARTIAL",
     "PARAMETERS",
     "GROUP_COMMUNICATION",
     "PARAMETERS_AND_GROUP_COMMUNICATION",
@@ -432,6 +433,11 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         ``scope`` (default FULL) selects which loadable parts run; the procedure may reload/restart
         the device, so do not assume only changed bytes are written:
+        - PARTIAL: what the device still needs since its last download, as the editor's Partial
+          download: FULL for a device whose individual address is not loaded, APPLICATION for one
+          whose application program is not, else the parameters and/or the group communication
+          that changed (the parameters when nothing changed), plus the IP settings of an IP device
+          when they changed. The usual scope after editing an already-programmed device.
         - PARAMETERS: parameter values only.
         - GROUP_COMMUNICATION: the group-address link tables (address/association/group-object).
         - PARAMETERS_AND_GROUP_COMMUNICATION: both of the above — the scope for a change that touches
@@ -460,10 +466,13 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         The programming runs in the editor's operations queue, labelled MCP: the user sees it there
         and in its history, it waits behind operations already queued, and the user can cancel it
-        (the call then fails with the cancel message). Returns {status, node_id}."""
+        (the call then fails with the cancel message). Returns {status, node_id, scope}: the scope
+        that ran (for PARTIAL the one it resolved to)."""
         device, group_communication = _programmable_device(node_id, device_address)
         nid = device.node_id
-        resolved = _resolve_scope(scope)
+        requested = _resolve_scope(scope)
+        parts = ctx.run_locked(lambda: ctx.api.project.download_parts(nid, requested))
+        resolved = parts.scope
         if resolved.name == "OVERWRITE_INDIVIDUAL_ADDRESS" and not current_address:
             raise ToolError("OVERWRITE_INDIVIDUAL_ADDRESS needs current_address")
         serial = None
@@ -497,10 +506,11 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             raise ToolError(
                 "the device is commissioned securely: set a project password first"
             ) from exc
+        programmed = {"status": "programmed", "node_id": nid, "scope": resolved.name}
         if (
             _run_queued(
                 nid,
-                resolved,
+                requested,
                 timeout,
                 without_plugin=without_plugin,
                 current_address=current_address,
@@ -508,7 +518,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             )
             is not None
         ):
-            return {"status": "programmed", "node_id": nid}
+            return programmed
         ip_secure = ctx.run_locked(
             lambda: ctx.api.project.ip_secure_config(device, service.keyring)
         )
@@ -516,7 +526,9 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         # itself under the same lock: its synchronous security lookup reads the (non-thread-safe)
         # project session, which must not run on this MCP worker thread. The args are already plain
         # here, so there is no nested run_locked. The bus Future is awaited OUTSIDE the lock below.
-        ip_config = ctx.run_locked(lambda: ctx.api.project.ip_download_config(device))
+        ip_config = ctx.run_locked(
+            lambda: ctx.api.project.download_ip_config(device, parts)
+        )
         disable_security = ctx.run_locked(
             lambda: ctx.api.project.download_disables_security(device)
         )
@@ -547,14 +559,16 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         serial = result if isinstance(result, bytes) else None
         mac = getattr(result, "mac_address", None)
         ctx.run_locked(
-            lambda: ctx.api.project.record_download(nid, resolved.value, serial, mac)
+            lambda: ctx.api.project.record_download(
+                nid, resolved.value, serial, mac, medium_config=parts.medium_config
+            )
         )
         ctx.run_locked(lambda: ctx.api.project.record_secure_download(device, result))
         if ip_secure is not None and getattr(result, "secured", False):
             ctx.run_locked(
                 lambda: ctx.api.project.record_ip_secure_download(device, ip_secure)
             )
-        return {"status": "programmed", "node_id": nid}
+        return programmed
 
     @tool("read", open_world=True)
     def connection_evaluate_device(
@@ -603,10 +617,14 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         A compare of the procedure that checks the device's reaction to one of its own writes (e.g.
         the load state after an unload) is not checked: the preview writes nothing."""
         device, group_communication = _programmable_device(node_id, device_address)
-        resolved = _resolve_scope(scope)
+        requested = _resolve_scope(scope)
+        parts = ctx.run_locked(
+            lambda: ctx.api.project.download_parts(device.node_id, requested)
+        )
+        resolved = parts.scope
         if resolved.individual_address_only:
             raise ToolError("an individual address download cannot be evaluated")
-        queued = _run_queued(device.node_id, resolved, timeout, test=True)
+        queued = _run_queued(device.node_id, requested, timeout, test=True)
         if queued is not None:
             report = queued.result
         else:
@@ -614,7 +632,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             # lookup reads the non-thread-safe project session and must not run on this MCP
             # worker thread. The bus Future is awaited outside the lock below.
             ip_config = ctx.run_locked(
-                lambda: ctx.api.project.ip_download_config(device)
+                lambda: ctx.api.project.download_ip_config(device, parts)
             )
             future = ctx.run_locked(
                 lambda: service.evaluate_device(

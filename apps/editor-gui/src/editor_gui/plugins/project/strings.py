@@ -2334,6 +2334,10 @@ class ProjectStrings:
         return _("Unload Application and Address")
 
     @property
+    def SCOPE_PARTIAL(self) -> str:
+        return _("Partial")
+
+    @property
     def SCOPE_PARAMETERS(self) -> str:
         return _("Partial: Parameters")
 

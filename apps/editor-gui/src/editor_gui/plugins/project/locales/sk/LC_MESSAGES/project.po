@@ -145,6 +145,9 @@ msgstr "Uvoľniť"
 msgid "Unload Application and Address"
 msgstr "Uvoľniť aplikáciu a adresu"
 
+msgid "Partial"
+msgstr "Čiastočne"
+
 msgid "Partial: Parameters"
 msgstr "Čiastočne: parametre"
 

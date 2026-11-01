@@ -796,6 +796,9 @@ msgstr "Desprogramar"
 msgid "Unload Application and Address"
 msgstr "Desprogramar Aplicación y Dirección"
 
+msgid "Partial"
+msgstr "Parcial"
+
 msgid "Partial: Parameters"
 msgstr "Parcial: Parámetros"
 

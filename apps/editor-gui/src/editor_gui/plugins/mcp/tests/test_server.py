@@ -1606,7 +1606,7 @@ async def test_programming_tools_record_the_download(
     monkeypatch.setattr(
         ctx.api.project,
         "record_download",
-        lambda *args: recorded.append(args),
+        lambda *args, **_kwargs: recorded.append(args),
     )
     async with Client(build_server(ctx)) as client:
         await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
@@ -1704,7 +1704,11 @@ async def test_programming_runs_in_the_operations_queue(
         programmed = await _data(
             client, "connection_program_device", node_id=node_id, scope="PARAMETERS"
         )
-        assert programmed == {"status": "programmed", "node_id": node_id}
+        assert programmed == {
+            "status": "programmed",
+            "node_id": node_id,
+            "scope": "PARAMETERS",
+        }
         assigned = await _data(
             client, "connection_assign_individual_address", node_id=node_id
         )
@@ -1720,6 +1724,13 @@ async def test_programming_runs_in_the_operations_queue(
             DownloadScope.PARAMETERS,
             ORIGIN_MCP,
         )
+        # A partial download of a device never downloaded is a full one; the queue gets
+        # the partial request and resolves it the same way.
+        partial = await _data(
+            client, "connection_program_device", node_id=node_id, scope="PARTIAL"
+        )
+        assert partial["scope"] == "FULL"
+        assert queued.pop().scope is DownloadScope.PARTIAL
         outcome.update(state=OperationState.CANCELED, message="Cancelled by user.")
         with pytest.raises(Exception, match="Cancelled by user"):
             await client.call_tool("connection_program_device", {"node_id": node_id})

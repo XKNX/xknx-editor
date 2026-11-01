@@ -796,6 +796,9 @@ msgstr "Çngarko"
 msgid "Unload Application and Address"
 msgstr "Çngarko programin aplikativ dhe adresën"
 
+msgid "Partial"
+msgstr "I pjesshëm"
+
 msgid "Partial: Parameters"
 msgstr "I pjesshëm: parametrat"
 

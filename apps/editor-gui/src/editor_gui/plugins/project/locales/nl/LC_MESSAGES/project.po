@@ -1223,6 +1223,9 @@ msgstr "Uitvoer"
 msgid "Partial: Group Communication"
 msgstr "Gedeeltelijk: groepscommunicatie"
 
+msgid "Partial"
+msgstr "Gedeeltelijk"
+
 msgid "Partial: Parameters"
 msgstr "Gedeeltelijk: parameters"
 

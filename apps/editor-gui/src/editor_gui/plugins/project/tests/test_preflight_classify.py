@@ -156,3 +156,20 @@ def test_a_procedure_step_in_memory_is_device_managed() -> None:
         False,
     )
     assert "memory 0x0080: 1/1 changed (procedure step)" in report.summary()
+
+
+def test_group_table_bytes_are_config() -> None:
+    # The 1.0.47 case: the device's address table holds one group address, the project four.
+    # No parameter writes these bytes, and still they are the change a download makes.
+    w = _window()
+    seg = SegmentDiff(
+        address=0x5B04,
+        current=bytes.fromhex("0001182000010001"),
+        planned=bytes.fromhex("0004001200160017"),
+        table_bytes=frozenset(range(8)),
+    )
+    assert w._segment_category(seg) == _CAT_CONFIG
+    report = PreflightReport(segments=(seg,), properties=())
+    classes = classify_preflight(report, w._runtime, w._driven)
+    assert (classes.config_bytes, classes.default_bytes) == (seg.changed_bytes, 0)
+    assert classes.config_locations == 1

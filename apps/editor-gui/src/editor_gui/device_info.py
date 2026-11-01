@@ -67,6 +67,8 @@ class DeviceInfo:
     association_table_load_state: LoadState | None = None
     group_object_table_load_state: LoadState | None = None
     group_objects: list[GroupObjectInfo] = field(default_factory=list[GroupObjectInfo])
+    # The group communication tables were read: ``group_objects`` holds every linked object.
+    group_objects_read: bool = False
     group_communication_error: str | None = None
     # The tables were not read: the device's application is unknown and it is not System B.
     application_unknown: bool = False
@@ -327,6 +329,7 @@ async def read_device_info(
                 info.group_communication_error = str(exc) or type(exc).__name__
             else:
                 info.group_objects = group_objects(tables)
+                info.group_objects_read = True
     finally:
         with contextlib.suppress(Exception):
             await manager.close()
