@@ -23,7 +23,7 @@ msgid "Stop"
 msgstr "Ndalo"
 
 msgid "Add to Open Project as Read"
-msgstr "Shto në projektin e hapur si të lexuara"
+msgstr "Shto në projektin e hapur sapo të lexohen"
 
 msgid "Recover Selected"
 msgstr "Rikupero të zgjedhurat"
@@ -95,7 +95,7 @@ msgid "Created new project %(target)s with %(count)d device(s)."
 msgstr "U krijua projekti i ri %(target)s me %(count)d pajisje."
 
 msgid "Not connected to a KNX bus."
-msgstr "Nuk jeni i lidhur me një bus KNX."
+msgstr "Nuk ka lidhje me një bus KNX."
 
 msgid "Open or create a project to add recovered devices."
 msgstr "Hapni ose krijoni një projekt për të shtuar pajisjet e rikuperuara."

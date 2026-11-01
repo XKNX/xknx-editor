@@ -1571,10 +1571,10 @@ msgid "Read Value"
 msgstr "Lexo vlerën"
 
 msgid "Write Value…"
-msgstr "Shkruaj vlerë…"
+msgstr "Shkruaj vlerën…"
 
 msgid "Write Value"
-msgstr "Shkruaj vlerë"
+msgstr "Shkruaj vlerën"
 
 msgid "Data Type"
 msgstr "Lloji i të dhënave"
@@ -1589,7 +1589,7 @@ msgid "Write"
 msgstr "Shkruaj"
 
 msgid "Not connected to the bus."
-msgstr "Nuk jeni i lidhur me busin."
+msgstr "Nuk ka lidhje me busin."
 
 msgid "Export Group Addresses…"
 msgstr "Eksporto adresat e grupeve…"
@@ -1739,28 +1739,28 @@ msgid "Running: {task}"
 msgstr "Në punë: {task}"
 
 msgid "scanning the bus"
-msgstr "po skanohet busi"
+msgstr "skanimi i busit"
 
 msgid "switching all ECGs"
-msgstr "po komandohen të gjitha ECG-të"
+msgstr "ndezja/fikja e të gjitha ECG-ve"
 
 msgid "blinking"
-msgstr "pulsim"
+msgstr "pulsimi"
 
 msgid "stopping the blinking"
-msgstr "po ndalohet pulsimi"
+msgstr "ndalimi i pulsimit"
 
 msgid "new installation"
-msgstr "instalim i ri"
+msgstr "instalimi i ri"
 
 msgid "post installation"
-msgstr "instalim shtesë"
+msgstr "instalimi shtesë"
 
 msgid "programming the groups"
-msgstr "po programohen grupet"
+msgstr "programimi i grupeve"
 
 msgid "programming the scenes"
-msgstr "po programohen skenat"
+msgstr "programimi i skenave"
 
 msgid "{count} found"
 msgstr "{count} të gjetura"
@@ -2303,10 +2303,10 @@ msgid "Set medium to {medium}"
 msgstr "Cakto mediumin në {medium}"
 
 msgid "Forced on"
-msgstr "Ndezur me detyrim"
+msgstr "Aktivizuar me detyrim"
 
 msgid "Forced off"
-msgstr "Fikur me detyrim"
+msgstr "Çaktivizuar me detyrim"
 
 msgid "Overridden by '{name}': {mode}"
 msgstr "Mbishkruar nga '{name}': {mode}"
@@ -2444,7 +2444,7 @@ msgid "A sub-segment of KNX medium type PL is not allowed below a main segment."
 msgstr "Një nënsegment me llojin e mediumit KNX PL nuk lejohet nën një segment kryesor."
 
 msgid "Set bus connection of the backbone"
-msgstr "Cakto lidhjen me busin të backbone-it"
+msgstr "Cakto lidhjen e backbone-it me busin"
 
 msgid "Set domain address"
 msgstr "Cakto adresën e domenit"
@@ -2747,7 +2747,7 @@ msgid "The maximum number of group ranges has been reached."
 msgstr "U arrit numri maksimal i diapazoneve të grupeve."
 
 msgid "There is no group for the new group addresses."
-msgstr "Nuk ka asnjë grup për adresat e reja të grupit."
+msgstr "Nuk ka asnjë grup për adresat e reja të grupeve."
 
 msgid "Copied '{name}' to '{target}'."
 msgstr "'{name}' u kopjua në '{target}'."
@@ -3020,13 +3020,13 @@ msgid "The device did not respond ({detail})."
 msgstr "Pajisja nuk u përgjigj ({detail})."
 
 msgid "Check that the device is powered and can be reached from this interface (line, coupler)."
-msgstr "Kontrolloni që pajisja të ketë energji dhe të jetë e arritshme nga kjo ndërfaqe (linja, bashkuesi)."
+msgstr "Kontrolloni që pajisja të jetë e ushqyer me tension dhe e arritshme nga kjo ndërfaqe (linja, çiftuesi)."
 
 msgid "For a new device, put exactly one device into programming mode. Otherwise check that the device is powered and can be reached from this interface (line, coupler)."
-msgstr "Për një pajisje të re, vendosni saktësisht një pajisje në modalitetin e programimit. Përndryshe kontrolloni që pajisja të ketë energji dhe të jetë e arritshme nga kjo ndërfaqe (linja, bashkuesi)."
+msgstr "Për një pajisje të re, vendosni saktësisht një pajisje në modalitetin e programimit. Përndryshe kontrolloni që pajisja të jetë e ushqyer me tension dhe e arritshme nga kjo ndërfaqe (linja, çiftuesi)."
 
 msgid "The download failed after it had begun to write the device, so the device may be partially loaded. Program it again to restore a working state. Cause: {cause}"
-msgstr "Shkarkimi dështoi pasi kishte filluar të shkruante në pajisje, prandaj pajisja mund të jetë e ngarkuar vetëm pjesërisht. Programojeni përsëri për të rikthyer një gjendje funksionale. Shkaku: {cause}"
+msgstr "Programimi dështoi pasi kishte nisur shkrimi në pajisje, prandaj pajisja mund të jetë e ngarkuar vetëm pjesërisht. Programojeni përsëri për të rikthyer një gjendje funksionale. Shkaku: {cause}"
 
 msgid "Running"
 msgstr "Po ekzekutohet"
@@ -3038,4 +3038,4 @@ msgid "Switch Off"
 msgstr "Fik"
 
 msgid "Show the memory a download writes, segment by segment"
-msgstr "Shfaq memorien që shkruan një programim, segment pas segmenti"
+msgstr "Shfaq përmbajtjen e memories që do të shkruhet gjatë programimit, segment pas segmenti"

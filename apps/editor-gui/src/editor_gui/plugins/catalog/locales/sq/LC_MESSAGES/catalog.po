@@ -146,7 +146,7 @@ msgid "Delete from Local Catalog"
 msgstr "Fshi nga katalogu lokal"
 
 msgid "Are you sure you want to delete the selected device? This cannot be undone."
-msgstr "Jeni të sigurt që doni ta fshini pajisjen e zgjedhur? Ky veprim nuk mund të zhbëhet."
+msgstr "Të fshihet pajisja e zgjedhur? Ky veprim nuk mund të zhbëhet."
 
 msgid "{count} device(s) in the open project use this product. They can't be loaded until the product is imported again."
 msgstr "{count} pajisje në projektin e hapur e përdorin këtë produkt. Ato nuk mund të ngarkohen derisa produkti të importohet sërish."
