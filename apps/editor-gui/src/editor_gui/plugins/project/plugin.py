@@ -2636,18 +2636,31 @@ class ProjectPlugin:
 
     def _request_device_info(self, node_id: int, group_communication: bool) -> None:
         """Queue a device info readout; its result shows in the Operations panel."""
+        self.queue_device_info(node_id, group_communication)
+
+    def queue_device_info(
+        self, node_id: int, group_communication: bool, *, origin: str | None = None
+    ) -> QueueItem | None:
+        """Queue a device info readout, with ``group_communication`` also of its tables;
+        ``origin`` names who started it when not the editor's own UI (an MCP client). Returns the
+        item, whose ``ended`` future resolves once it has ended (its ``details`` hold the
+        readout), or None for a device not in the project."""
+        from concurrent.futures import Future
+
         device = self._api.project.find_device_by_node_id(node_id)
         if device is None:
-            return
-        self._program_queue.enqueue(
-            QueueItem(
-                node_id=device.node_id,
-                address=device.individual_address or "",
-                name=device.name,
-                scope=None,
-                device_info=group_communication,
-            )
+            return None
+        item = QueueItem(
+            node_id=device.node_id,
+            address=device.individual_address or "",
+            name=device.name,
+            scope=None,
+            device_info=group_communication,
+            origin=origin,
+            ended=Future(),
         )
+        self._program_queue.enqueue(item)
+        return item
 
     def _start_device_info(self, item: QueueItem) -> "Future[Any] | None":
         device = self._api.project.find_device_by_node_id(item.node_id)
