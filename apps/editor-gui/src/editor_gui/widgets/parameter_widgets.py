@@ -42,6 +42,7 @@ from editor_gui.widgets.value_pickers import (
     render_date_param,
 )
 from editor_gui.widgets.wrapping import (
+    LINE_GAP,
     text_height,
     vertical_space,
     wrap_lines,
@@ -1400,6 +1401,7 @@ def render_ui_tree(
             )
         if content_open:
             _draw_page_top_line()
+            imgui.set_cursor_pos_y(imgui.get_cursor_pos_y() + px(_PAGE_TOP))
         if content_open and selected is not None:
             _get_picture = get_picture
             _get_icon = get_icon
@@ -1579,6 +1581,8 @@ def _show_page_help(device: Device, page: ParameterPage) -> None:
         _selected_help[:] = [page.block.help_context]
 
 
+# Room at 100 % scaling above a page's content besides the window padding (14 px in all).
+_PAGE_TOP = 4.0
 # Size at 100 % scaling of a page's icon in the page tree (16 px, as in the reference).
 _PAGE_ICON = 16.0
 # Room above and below a page's text in the page tree beyond a field's, at 100 % scaling: rows
@@ -2253,10 +2257,9 @@ def _render_grid_cells(
                 own = _label_heights.get(
                     cell_key, _celltext_height(sep, imgui.get_content_region_avail().x)
                 )
-                _label_heights[cell_key] = _render_cell_separator(
-                    sep, origin, row_height, own
-                )
-                drawn_height = max(drawn_height, _label_heights[cell_key])
+                drawn, room = _render_cell_separator(sep, origin, row_height, own)
+                _label_heights[cell_key] = drawn
+                drawn_height = max(drawn_height, room)
             if req is not None:
                 popup_request = req
         _label_heights[row_key] = drawn_height
@@ -2274,21 +2277,29 @@ def _celltext_height(sep: UiSeparator, width: float | None) -> float:
     wrap = max(width - px(_CELL_GAP), 1.0) if width else math.inf
     if sep.hint == "Headline":
         with bold(_HEADLINE_SCALE):
-            return text_height(len(wrap_lines(text, wrap)))
+            return _cell_text_height(len(wrap_lines(text, wrap)))
     with semilight():
-        return text_height(len(wrap_lines(text, wrap)))
+        return _cell_text_height(len(wrap_lines(text, wrap)))
+
+
+def _cell_text_height(lines: int) -> float:
+    """Room a grid cell's text of ``lines`` lines in the current font takes in its row: that many
+    lines of the reference's line spacing (Segoe UI's, 1.33 em), less the gap below the last
+    one, which the row's spacing holds. In whole pixels, as the reference lays out."""
+    return round(lines * text_layout.font_size() * _CELL_LINE - px(LINE_GAP))
 
 
 def _render_cell_separator(
     sep: UiSeparator, origin: float, row_height: float, height: float
-) -> float:
+) -> tuple[float, float]:
     """A separator in a grid cell: a headline in bold, a label as plain text, a ruler across.
     Text wraps where the fields of the cell end (the cell's right edge less the gap to the next
     column); a label ``height`` high is centred in a row ``row_height`` high. Returns the height
-    of the text as drawn."""
+    of the text as drawn, and the room it takes in its row (see :func:`_cell_text_height`)."""
     if sep.text and sep.hint in ("Headline", None):
+        # On a whole pixel, as the reference lays out.
         imgui.set_cursor_pos_y(
-            imgui.get_cursor_pos_y() + max(0.0, (row_height - height) / 2)
+            imgui.get_cursor_pos_y() + max(0.0, math.floor((row_height - height) / 2))
         )
         right = (
             imgui.get_cursor_pos_x()
@@ -2298,15 +2309,12 @@ def _render_cell_separator(
         text = _indented_cell_text(sep.text, origin)
         # Broken into lines as other texts are.
         wrap = max(right - imgui.get_cursor_pos_x(), 1.0)
-        if sep.hint == "Headline":
-            with bold(_HEADLINE_SCALE):
-                wrapped_text(text, wrap)
-        else:
-            with semilight():
-                wrapped_text(text, wrap)
-        return imgui.get_item_rect_size().y
+        with bold(_HEADLINE_SCALE) if sep.hint == "Headline" else semilight():
+            wrapped_text(text, wrap)
+            drawn = imgui.get_item_rect_size().y
+            return drawn, _cell_text_height(len(wrap_lines(text, wrap)))
     _render_separator(sep)
-    return 0.0
+    return 0.0, 0.0
 
 
 def _render_grid_param(
@@ -2552,6 +2560,9 @@ _LIST_LABEL_SHARE = 0.45
 _CELL_GAP = 6.0
 # Distance at 100 % scaling of the text of a drop-down from its left edge.
 _COMBO_TEXT_INSET = 5.0
+# Line spacing of the reference's texts (Segoe UI: ascent and descent 2724 / 2048 of the em) per
+# ImGui font size (of which the em is 12/14).
+_CELL_LINE = 2724 / 2048 * 12 / 14
 # Space left and right of a button in a grid cell.
 _BUTTON_MARGIN = 7.0
 # Size of a headline over the text: 14 px semibold over the 12 px text.

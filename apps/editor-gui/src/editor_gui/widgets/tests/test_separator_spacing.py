@@ -11,7 +11,7 @@ import pytest
 from imgui_bundle import imgui
 
 from editor_gui.widgets import backgrounds, parameter_widgets
-from editor_gui.widgets.wrapping import LINE_GAP, text_height
+from editor_gui.widgets.wrapping import LINE_GAP
 from xknxeditor.prod.parser_v2.ui import UiParameterBlock, UiSeparator
 from xknxeditor.prod.parser_v2.ui.parameter_block import ParameterBlockLayout
 
@@ -105,8 +105,19 @@ def test_grid_labels_break_after_hyphens() -> None:
     gap = parameter_widgets._CELL_GAP  # pyright: ignore[reportPrivateUsage]
     narrow = imgui.calc_text_size("Kanaltransfer-").x + gap + 1.0
     height = parameter_widgets._celltext_height  # pyright: ignore[reportPrivateUsage]
-    assert height(sep, narrow) == pytest.approx(text_height(2))
-    assert height(sep, None) == pytest.approx(text_height(1))
+    lines = parameter_widgets._cell_text_height  # pyright: ignore[reportPrivateUsage]
+    assert height(sep, narrow) == pytest.approx(lines(2))
+    assert height(sep, None) == pytest.approx(lines(1))
+
+
+@pytest.mark.usefixtures("frame")
+def test_grid_labels_take_the_line_spacing_of_the_reference() -> None:
+    # Lines 1.33 em apart (Segoe UI's spacing; the em is 12/14 of the font size), less the gap
+    # below the last line, which the row's spacing holds: a two-line headline of the 14 px em
+    # takes 2 x 18.62 px less 2 px.
+    lines = parameter_widgets._cell_text_height  # pyright: ignore[reportPrivateUsage]
+    em = imgui.get_font_size() * 12 / 14
+    assert lines(2) == round(2 * em * 2724 / 2048 - LINE_GAP)
 
 
 @pytest.mark.usefixtures("frame")
