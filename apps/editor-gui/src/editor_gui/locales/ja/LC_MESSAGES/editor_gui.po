@@ -1464,3 +1464,36 @@ msgstr "機能を提案"
 
 msgid "Show All Issues"
 msgstr "すべての Issue を表示"
+
+msgid "License Through Installed ETS"
+msgstr "インストール済み ETS でライセンス"
+
+msgid "Export Through ETS"
+msgstr "ETS 経由でエクスポート"
+
+msgid "Found ETS {version}."
+msgstr "ETS {version} が見つかりました。"
+
+msgid "(unknown version)"
+msgstr "(不明なバージョン)"
+
+msgid "No installed ETS was found."
+msgstr "インストール済みの ETS が見つかりませんでした。"
+
+msgid "The installed ETS imports and re-exports the project and writes the certificate from your licence (cloud or dongle). Start ETS once first so the licence is available locally. No login or network is used."
+msgstr "インストール済みの ETS がプロジェクトをインポートして再エクスポートし、ライセンス（クラウドまたはドングル）から証明書を書き込みます。ライセンスがローカルで利用できるよう、先に一度 ETS を起動してください。ログインやネットワークは使用しません。"
+
+msgid "Use this untested ETS version anyway"
+msgstr "このテストされていない ETS バージョンをそのまま使用する"
+
+msgid "Exported through ETS and certified for {name}."
+msgstr "ETS 経由でエクスポートし、{name} 用に証明しました。"
+
+msgid "Exported through ETS, but without a certificate (no licence was found)."
+msgstr "ETS 経由でエクスポートしましたが、証明書はありません（ライセンスが見つかりませんでした）。"
+
+msgid "No installed ETS was found, or this is not Windows."
+msgstr "インストール済みの ETS が見つからないか、これは Windows ではありません。"
+
+msgid "ETS 5 needs a physical dongle to write the certificate; without one the project is exported uncertified."
+msgstr "ETS 5 は証明書を書き込むのに物理ドングルが必要です。ドングルがない場合、プロジェクトは未証明でエクスポートされます。"

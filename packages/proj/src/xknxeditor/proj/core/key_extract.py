@@ -35,6 +35,8 @@ from typing import Any
 _EXTRACT_CS = Path(__file__).with_name("_extract.cs")
 _EXTRACT_TRACE_CS = Path(__file__).with_name("_extract_trace.cs")
 _EXTRACT_OAUTH_CS = Path(__file__).with_name("_extract_oauth.cs")
+_ETS_EXPORT_CS = Path(__file__).with_name("_ets_export.cs")
+_ETS5_EXPORT_CS = Path(__file__).with_name("_ets5_export.cs")
 _TIMEOUT = 120.0
 
 #: A directory of prebuilt extractors (``<key>/xknxkeyx.dll``). When set (the container ships them),
@@ -293,6 +295,119 @@ def extract_converter_key(dll_path: str | Path) -> tuple[int, int, int]:
         "no .NET runtime available to read the assembly. Install the .NET SDK "
         "(`brew install dotnet-sdk` on macOS, your package manager on Linux) or run on Windows "
         "with pythonnet installed."
+    )
+
+
+# --- local ETS export helper (Windows / .NET Framework) ----------------------------------------
+#
+# The helper runs a licensed ETS 6 in-place to re-export a .knxproj signed with the user's own
+# licence certificate. It targets .NET Framework 4.8 (WPF dispatcher, AppDomain) but uses modern C#,
+# so it is built with the dotnet SDK (Roslyn) targeting net48, with the reference assemblies pulled
+# from NuGet -- the in-box framework csc only understands C# 5. The built exe runs only on Windows.
+
+#: Reference assemblies for the net48 target, restored from NuGet so the build needs no local pack.
+_ETS_EXPORT_PACKAGES = {"Microsoft.NETFramework.ReferenceAssemblies.net48": "1.0.3"}
+
+#: Framework assemblies the helper references (resolved from the reference-assemblies package).
+_ETS_EXPORT_REFS = (
+    "System.Xml",
+    "System.Xaml",
+    "WindowsBase",
+    "PresentationCore",
+    "PresentationFramework",
+    "System.IO.Compression",
+    "System.IO.Compression.FileSystem",
+)
+
+_ETS_EXPORT_APP_CONFIG = (
+    '<?xml version="1.0" encoding="utf-8"?>\n'
+    "<configuration>\n"
+    '  <startup useLegacyV2RuntimeActivationPolicy="true">\n'
+    '    <supportedRuntime version="v4.0" sku=".NETFramework,Version=v4.8" />\n'
+    "  </startup>\n"
+    "</configuration>\n"
+)
+
+
+def _build_net48_exe(
+    source: Path, subdir: str, assembly: str, env_override: str
+) -> Path:
+    """Compile ``source`` into a net48 ``.exe`` via the dotnet SDK and return its path.
+
+    Honours ``env_override`` (a prebuilt helper). Raises :class:`KeyExtractionError` when the dotnet
+    SDK is absent and no prebuilt helper is set.
+    """
+    prebuilt = os.environ.get(env_override)
+    if prebuilt and Path(prebuilt).is_file():
+        return Path(prebuilt)
+    if not dotnet_available():
+        raise KeyExtractionError(
+            "the dotnet SDK was not found; the local ETS export needs it to build the helper "
+            f"(or set {env_override} to a prebuilt helper)."
+        )
+    proj_dir = Path(tempfile.gettempdir()) / subdir
+    proj_dir.mkdir(exist_ok=True)
+    packages = "".join(
+        f'    <PackageReference Include="{name}" Version="{ver}" />\n'
+        for name, ver in _ETS_EXPORT_PACKAGES.items()
+    )
+    references = "".join(
+        f'    <Reference Include="{name}" />\n' for name in _ETS_EXPORT_REFS
+    )
+    (proj_dir / "app.config").write_text(_ETS_EXPORT_APP_CONFIG, encoding="utf-8")
+    csproj = proj_dir / f"{assembly}.csproj"
+    csproj.write_text(
+        '<Project Sdk="Microsoft.NET.Sdk">\n'
+        "  <PropertyGroup>\n"
+        "    <OutputType>Exe</OutputType>\n"
+        "    <TargetFramework>net48</TargetFramework>\n"
+        "    <Nullable>disable</Nullable>\n"
+        "    <ImplicitUsings>disable</ImplicitUsings>\n"
+        f"    <AssemblyName>{assembly}</AssemblyName>\n"
+        "    <AppConfig>app.config</AppConfig>\n"
+        "    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>\n"
+        "  </PropertyGroup>\n"
+        "  <ItemGroup>\n"
+        f'    <Compile Include="{source}" />\n'
+        f"{packages}{references}"
+        "  </ItemGroup>\n"
+        "</Project>\n",
+        encoding="utf-8",
+    )
+    build = _run(
+        ["dotnet", "build", "-c", "Release", "-v", "q", "-nologo", str(csproj)]
+    )
+    if build.returncode != 0:
+        raise KeyExtractionError(
+            f"dotnet build failed:\n{build.stdout or build.stderr}"
+        )
+    exe = proj_dir / "bin" / "Release" / "net48" / f"{assembly}.exe"
+    if not exe.is_file():
+        raise KeyExtractionError(f"helper build produced no exe at {exe}")
+    return exe
+
+
+def ets_export_backend_available() -> bool:
+    """Whether the ETS 6 export helper can be obtained (its prebuilt exe, or the dotnet SDK)."""
+    return os.environ.get("XKNX_ETSEXPORT_EXE") is not None or dotnet_available()
+
+
+def ets5_export_backend_available() -> bool:
+    """Whether the ETS 5 export helper can be obtained (its prebuilt exe, or the dotnet SDK)."""
+    return os.environ.get("XKNX_ETS5EXPORT_EXE") is not None or dotnet_available()
+
+
+def build_ets_export_exe() -> Path:
+    """Build the ETS 6 export helper (``_ets_export.cs``); honours ``XKNX_ETSEXPORT_EXE``."""
+    return _build_net48_exe(
+        _ETS_EXPORT_CS, "xknx_etsexport", "xknxetsx", "XKNX_ETSEXPORT_EXE"
+    )
+
+
+def build_ets5_export_exe() -> Path:
+    """Build the ETS 5 export helper (``_ets5_export.cs``); honours ``XKNX_ETS5EXPORT_EXE``."""
+    return _build_net48_exe(
+        _ETS5_EXPORT_CS, "xknx_ets5export", "xknxets5x", "XKNX_ETS5EXPORT_EXE"
     )
 
 

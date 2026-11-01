@@ -1464,3 +1464,36 @@ msgstr "建议功能"
 
 msgid "Show All Issues"
 msgstr "查看所有问题"
+
+msgid "License Through Installed ETS"
+msgstr "通过已安装的 ETS 授权"
+
+msgid "Export Through ETS"
+msgstr "通过 ETS 导出"
+
+msgid "Found ETS {version}."
+msgstr "找到 ETS {version}。"
+
+msgid "(unknown version)"
+msgstr "(未知版本)"
+
+msgid "No installed ETS was found."
+msgstr "未找到已安装的 ETS。"
+
+msgid "The installed ETS imports and re-exports the project and writes the certificate from your licence (cloud or dongle). Start ETS once first so the licence is available locally. No login or network is used."
+msgstr "已安装的 ETS 会导入项目并重新导出，并根据您的许可证（云或加密狗）写入证书。请先启动一次 ETS，使许可证在本地可用。不使用登录或网络。"
+
+msgid "Use this untested ETS version anyway"
+msgstr "仍然使用此未经测试的 ETS 版本"
+
+msgid "Exported through ETS and certified for {name}."
+msgstr "已通过 ETS 导出并为 {name} 认证。"
+
+msgid "Exported through ETS, but without a certificate (no licence was found)."
+msgstr "已通过 ETS 导出，但没有证书（未找到许可证）。"
+
+msgid "No installed ETS was found, or this is not Windows."
+msgstr "未找到已安装的 ETS，或此系统不是 Windows。"
+
+msgid "ETS 5 needs a physical dongle to write the certificate; without one the project is exported uncertified."
+msgstr "ETS 5 需要物理加密狗才能写入证书；没有加密狗时项目将以未认证方式导出。"

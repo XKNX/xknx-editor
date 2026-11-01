@@ -1464,3 +1464,36 @@ msgstr "Özellik öner"
 
 msgid "Show All Issues"
 msgstr "Tüm bildirimleri göster"
+
+msgid "License Through Installed ETS"
+msgstr "Kurulu ETS ile lisansla"
+
+msgid "Export Through ETS"
+msgstr "ETS ile dışa aktar"
+
+msgid "Found ETS {version}."
+msgstr "ETS {version} bulundu."
+
+msgid "(unknown version)"
+msgstr "(bilinmeyen sürüm)"
+
+msgid "No installed ETS was found."
+msgstr "Kurulu bir ETS bulunamadı."
+
+msgid "The installed ETS imports and re-exports the project and writes the certificate from your licence (cloud or dongle). Start ETS once first so the licence is available locally. No login or network is used."
+msgstr "Kurulu ETS projeyi içe aktarır, yeniden dışa aktarır ve sertifikayı lisansınızdan (bulut veya dongle) yazar. Lisansın yerel olarak kullanılabilmesi için önce ETS'yi bir kez başlatın. Oturum açma veya ağ kullanılmaz."
+
+msgid "Use this untested ETS version anyway"
+msgstr "Bu test edilmemiş ETS sürümünü yine de kullan"
+
+msgid "Exported through ETS and certified for {name}."
+msgstr "ETS ile dışa aktarıldı ve {name} için sertifikalandı."
+
+msgid "Exported through ETS, but without a certificate (no licence was found)."
+msgstr "ETS ile dışa aktarıldı, ancak sertifika olmadan (lisans bulunamadı)."
+
+msgid "No installed ETS was found, or this is not Windows."
+msgstr "Kurulu bir ETS bulunamadı veya bu bir Windows değil."
+
+msgid "ETS 5 needs a physical dongle to write the certificate; without one the project is exported uncertified."
+msgstr "ETS 5 sertifikayı yazmak için fiziksel bir dongle gerektirir; dongle olmadan proje sertifikasız dışa aktarılır."

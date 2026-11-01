@@ -154,6 +154,8 @@ from xknxeditor.proj import (
     MYKNX_DLL_NAME,
     CompactCancelled,
     CompactResult,
+    EtsExportError,
+    EtsInstall,
     ExportCancelled,
     ExportResult,
     InvalidProjectPassword,
@@ -162,6 +164,12 @@ from xknxeditor.proj import (
     ProjectPasswordRequired,
     ProjectStorageError,
     default_myknx_dll_path,
+    detect_ets,
+    detect_ets5,
+    ets5_local_available,
+    ets5_local_sign,
+    ets_local_available,
+    ets_local_sign,
     export_knxproj,
     extract_oauth_credentials,
     fetch_myknx_products,
@@ -543,6 +551,12 @@ class KnxGuiApp:
         self._myknx_open_oauth_config = False
         # The dongle steps wrapped to the width of their box: ((text, width), wrapped text).
         self._dongle_steps_wrapped: tuple[tuple[str, float], str] = (("", 0.0), "")
+        # Local-ETS re-export: the detected installation (probed once; None once probed and absent),
+        # whether it is an ETS 5 (dongle-only cert), and whether the user accepted an untested version.
+        self._ets_install_checked = False
+        self._ets_install: EtsInstall | None = None
+        self._ets_is5 = False
+        self._ets_accept_untested = False
         # Width of the Sign Export fields' titles column (set each frame the dialog shows).
         self._sign_title_w = 0.0
         # OAuth client credentials (client id/secret) for the device-code flow: entered by hand or
@@ -1969,8 +1983,30 @@ class KnxGuiApp:
             + style.item_spacing.y
             + 2 * style.window_padding.y  # the tab page's own padding
         )
+        # Local-ETS re-export drives the installed tool, so it makes no sense on a server (web mode):
+        # hidden there. On a desktop the tab always shows -- first and default when an installation
+        # was found, otherwise last with a hint why it is unavailable. ETS 6 is preferred; ETS 5 is
+        # used only if no ETS 6 is present (its certificate needs a physical dongle).
+        if not self._ets_install_checked:
+            self._ets_install_checked = True
+            self._ets_install = None
+            self._ets_is5 = False
+            if web.active_hub is None:
+                if ets_local_available():
+                    self._ets_install = detect_ets()
+                elif ets5_local_available():
+                    self._ets_install = detect_ets5()
+                    self._ets_is5 = True
+        ets_available = self._ets_install is not None
+        ets_unavailable = web.active_hub is None and self._ets_install is None
+        ets_local = False
         with outlined_tabs():
             if begin_tab_bar("##export_license"):
+                if ets_available and imgui.begin_tab_item(S.MYKNX_ETS_TAB)[0]:
+                    ets_local = True
+                    with tab_page("##ets_page", tab_page_h):
+                        self._render_ets_local_tab()
+                    imgui.end_tab_item()
                 if imgui.begin_tab_item(S.MYKNX_SIGN_TAB)[0]:
                     with tab_page("##myknx_page", tab_page_h):
                         selected_pid = self._render_myknx_login_tab(logging_in)
@@ -1979,6 +2015,11 @@ class KnxGuiApp:
                     dongle = True
                     with tab_page("##dongle_page", tab_page_h):
                         self._render_dongle_tab()
+                    imgui.end_tab_item()
+                if ets_unavailable and imgui.begin_tab_item(S.MYKNX_ETS_TAB)[0]:
+                    ets_local = True
+                    with tab_page("##ets_page", tab_page_h):
+                        self._render_ets_local_tab()
                     imgui.end_tab_item()
                 imgui.end_tab_bar()
         imgui.spacing()
@@ -1998,6 +2039,21 @@ class KnxGuiApp:
             self._myknx_open_oauth_config = False
         self._render_myknx_oauth_modal()
 
+        if ets_local:
+            # The installed tool imports and re-exports the project, so it writes the certificate.
+            # Confirm is disabled when no installation was found (the tab only explains why then).
+            clicked = dialog_buttons(
+                S.MYKNX_ETS_CONFIRM, S.BTN_CANCEL, enabled=[ets_available, True]
+            )
+            if clicked == 0 and ets_available and dest is not None:
+                self._do_export_via_ets(dest, accept_untested=self._ets_accept_untested)
+                self._export_pending_dest = None
+                imgui.close_current_popup()
+            elif clicked == 1:
+                self._export_pending_dest = None
+                imgui.close_current_popup()
+            end_dialog()
+            return
         if dongle:
             # The dongle way writes the project into the ETS 6 ProjectStore instead of a file.
             clicked = dialog_buttons(
@@ -4974,6 +5030,171 @@ class KnxGuiApp:
         )
         if imgui.button(S.BTN_COPY):
             imgui.set_clipboard_text(S.MYKNX_DONGLE_STEPS)
+
+    def _render_ets_local_tab(self) -> None:
+        """'License through the installed ETS' tab: show the detected install and run the re-export."""
+        install = self._ets_install
+        if install is None:
+            imgui.push_style_color(imgui.Col_.text, imgui.ImVec4(0.85, 0.7, 0.3, 1.0))
+            imgui.text_wrapped(S.MYKNX_ETS_UNAVAILABLE)
+            imgui.pop_style_color()
+            return
+        version = install.version or S.MYKNX_ETS_VERSION_UNKNOWN
+        imgui.text_colored(
+            imgui.ImVec4(0.4, 0.8, 0.4, 1.0),
+            S.MYKNX_ETS_FOUND.format(version=version),
+        )
+        imgui.text_wrapped(S.MYKNX_ETS_HINT)
+        if self._ets_is5:
+            imgui.text_wrapped(S.MYKNX_ETS5_DONGLE_HINT)
+        if not install.tested:
+            _, self._ets_accept_untested = checkbox(
+                S.MYKNX_ETS_ACCEPT_UNTESTED, self._ets_accept_untested
+            )
+
+    def _do_export_via_ets(self, dest: str, *, accept_untested: bool) -> None:
+        """Export the project to a temp file, then re-export it through the installed ETS to ``dest``.
+
+        The installed tool resolves the licence locally (cloud or dongle) and writes the certificate.
+        Runs off the UI thread because a run can take minutes.
+        """
+        source = self._project_service.working_path
+        if source is None or (self._myknx_thread and self._myknx_thread.is_alive()):
+            return
+        program_refs = self._project_service.program_refs()
+        module_arguments = self._project_service.module_arguments()
+        group_object_trees = self._project_service.group_object_trees()
+        remove_unused = self._export_remove_unused
+        password = self._project_service.project_password
+        # ETS 5 reads only project/20; stage at 20 for it regardless of the chosen export format.
+        schema = "20" if self._ets_is5 else self._export_schema
+        # Pick the matching helper for the detected version (captured on the UI thread).
+        sign_local = ets5_local_sign if self._ets_is5 else ets_local_sign
+        cancel_requested = threading.Event()
+
+        def stage(text: str) -> None:
+            if not cancel_requested.is_set():
+                self.set_progress(None, text)
+
+        def cancel_export() -> None:
+            cancel_requested.set()
+            self.set_progress(None, S.EXPORT_STAGE_CANCELLING)
+
+        def _run() -> None:
+            try:
+                _export()
+            finally:
+                self._progress_running = False
+
+        def _export() -> None:
+            stage(S.EXPORT_STAGE_BUNDLE)
+            extra_files: dict[str, bytes] = {}
+            master_xml: bytes | None = None
+            try:
+                bundle = collect_manufacturer_bundle(
+                    program_refs, self._catalog_service
+                )
+                extra_files, master_xml = bundle.extra_files, bundle.master_xml
+            except Exception as e:
+                self._log.warning(
+                    "manufacturer bundle failed", error=f"{type(e).__name__}: {e}"
+                )
+            work: Path | None = None
+            try:
+                work = Path(tempfile.mkdtemp(prefix="xknx_etsexport_"))
+                staged = work / Path(dest).name
+                stage(S.EXPORT_STAGE_WRITE)
+                result = export_knxproj(
+                    source,
+                    staged,
+                    password=password,
+                    schema=schema,
+                    extra_files=extra_files,
+                    master_xml=master_xml,
+                    fetch_master=True,
+                    master_cache_dir=config_dir(),
+                    remove_unused_products=remove_unused,
+                    cancelled=cancel_requested.is_set,
+                    module_arguments=module_arguments,
+                    group_object_trees=group_object_trees,
+                )
+                if result.missing_references:
+                    self._log.error(
+                        "export: references missing from the manufacturer bundle; ETS will reject "
+                        "the import (add the missing product to the catalog)",
+                        references=", ".join(result.missing_references),
+                        path=dest,
+                        shown="dialog",
+                    )
+                    self._show_export_failure(
+                        dest,
+                        S.EXPORT_FAILED_MISSING.format(
+                            references=", ".join(result.missing_references)
+                        ),
+                        heading=S.EXPORT_FAILED_NOT_IMPORTABLE,
+                    )
+                    return
+                # The ETS run itself cannot be interrupted; honour a cancel issued during the
+                # staging export before it starts.
+                if cancel_requested.is_set():
+                    raise ExportCancelled
+                sign = sign_local(
+                    staged,
+                    dest,
+                    password=password or None,
+                    accept_untested=accept_untested,
+                    progress=stage,
+                )
+                self._last_export_path = dest
+                self._log.info(
+                    "project exported through the installed ETS",
+                    path=dest,
+                    certificate=sign.certificate_written,
+                    validation=sign.validation_ok,
+                    license=sign.license_name,
+                    devices=sign.licensed_devices,
+                    notes="; ".join(sign.notes),
+                )
+                # Only a written AND validated certificate counts as certified; surface notes/a
+                # validation failure so a half-signed export is not announced as a success.
+                if sign.certificate_written and sign.validation_ok:
+                    self._flash_toast(
+                        S.MYKNX_ETS_DONE_CERT.format(name=sign.license_name)
+                    )
+                else:
+                    self._flash_toast(S.MYKNX_ETS_DONE_NOCERT)
+                    if sign.certificate_written or sign.notes:
+                        self._log.warning(
+                            "ETS export: certificate not confirmed",
+                            path=dest,
+                            certificate=sign.certificate_written,
+                            validation=sign.validation_ok,
+                            notes="; ".join(sign.notes),
+                        )
+            except ExportCancelled:
+                self._log.info("export cancelled", path=dest)
+                self._flash_toast(S.EXPORT_CANCELLED)
+            except EtsExportError as e:
+                self._log.error(
+                    "ETS export failed", path=dest, error=str(e), shown="dialog"
+                )
+                self._show_export_failure(dest, str(e))
+            except Exception as e:
+                self._log.error(
+                    "export failed",
+                    path=dest,
+                    error=f"{type(e).__name__}: {e}",
+                    shown="dialog",
+                )
+                self._show_export_failure(dest, str(e) or type(e).__name__)
+            finally:
+                if work is not None:
+                    shutil.rmtree(work, ignore_errors=True)
+
+        self._begin_progress(S.EXPORT_PROGRESS_TEXT.format(name=Path(dest).name))
+        self._progress_cancel = cancel_export
+        self._myknx_thread = threading.Thread(target=_run, daemon=True)
+        self._myknx_thread.start()
 
     def _render_signing_key_modal(self) -> None:
         """Signing-key manager (view/edit/save/extract) as a dialog, opened from the Signing menu

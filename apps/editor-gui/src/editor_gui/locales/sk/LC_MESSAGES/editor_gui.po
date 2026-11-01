@@ -1536,3 +1536,36 @@ msgstr "Navrhnúť funkciu"
 
 msgid "Show All Issues"
 msgstr "Zobraziť všetky hlásenia"
+
+msgid "License Through Installed ETS"
+msgstr "Licencovať cez nainštalovaný ETS"
+
+msgid "Export Through ETS"
+msgstr "Exportovať cez ETS"
+
+msgid "Found ETS {version}."
+msgstr "Nájdený ETS {version}."
+
+msgid "(unknown version)"
+msgstr "(neznáma verzia)"
+
+msgid "No installed ETS was found."
+msgstr "Nenašiel sa žiadny nainštalovaný ETS."
+
+msgid "The installed ETS imports and re-exports the project and writes the certificate from your licence (cloud or dongle). Start ETS once first so the licence is available locally. No login or network is used."
+msgstr "Nainštalovaný ETS naimportuje projekt, znova ho vyexportuje a zapíše certifikát z vašej licencie (cloud alebo dongle). Najprv raz spustite ETS, aby bola licencia dostupná lokálne. Nepoužíva sa prihlásenie ani sieť."
+
+msgid "Use this untested ETS version anyway"
+msgstr "Napriek tomu použiť túto neotestovanú verziu ETS"
+
+msgid "Exported through ETS and certified for {name}."
+msgstr "Exportované cez ETS a certifikované pre {name}."
+
+msgid "Exported through ETS, but without a certificate (no licence was found)."
+msgstr "Exportované cez ETS, ale bez certifikátu (nenašla sa žiadna licencia)."
+
+msgid "No installed ETS was found, or this is not Windows."
+msgstr "Nenašiel sa žiadny nainštalovaný ETS alebo toto nie je Windows."
+
+msgid "ETS 5 needs a physical dongle to write the certificate; without one the project is exported uncertified."
+msgstr "ETS 5 potrebuje fyzický dongle na zápis certifikátu; bez neho sa projekt exportuje bez certifikácie."

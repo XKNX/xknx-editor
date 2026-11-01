@@ -1757,6 +1757,92 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             out["warning"] = "ETS may reject the import — " + "; ".join(warnings)
         return out
 
+    @tool("destructive", open_world=True)
+    def project_export_via_ets(
+        dest: str, accept_untested: bool = False
+    ) -> dict[str, Any]:
+        """Export the open project through a locally installed, licensed ETS so it is signed and
+        certified with your own licence, lifting the import device cap. ETS 6 uses a cloud account or
+        a dongle; ETS 5 needs a physical dongle (without one the export is uncertified).
+
+        Only works on this same machine when it runs on Windows with an ETS installation; otherwise
+        it returns an error. Set ``accept_untested=True`` to allow an ETS version that is not the
+        known-good one. Returns {status, dest, certificate, validation, license, devices}."""
+        require_project(ctx)
+        import shutil
+        import tempfile
+
+        from editor_gui.plugins.project.knxproj_manufacturer import (
+            collect_manufacturer_bundle,
+        )
+        from xknxeditor.proj import (
+            ets5_local_available,
+            ets5_local_sign,
+            ets_local_available,
+            ets_local_sign,
+            export_knxproj,
+        )
+
+        # ETS 6 is preferred (cloud or dongle); fall back to ETS 5 (dongle only).
+        if ets_local_available():
+            sign_local = ets_local_sign
+        elif ets5_local_available():
+            sign_local = ets5_local_sign
+        else:
+            raise ToolError(
+                "no local ETS export available here (needs Windows with an ETS installation)"
+            )
+        work = Path(tempfile.mkdtemp(prefix="xknx_etsexport_"))
+        staged = work / Path(dest).name
+        captured: dict[str, Any] = {}
+
+        def _stage() -> None:
+            # Reads project state, so it runs on the UI thread under the lock. The slow ETS run
+            # happens afterwards, off the lock, so the GUI is not blocked for minutes.
+            source = project.working_path
+            if source is None:
+                raise ToolError("no project is open")
+            bundle = collect_manufacturer_bundle(
+                project.program_refs(), ctx.api.catalog
+            )
+            export_knxproj(
+                source,
+                staged,
+                password=project.project_password,
+                extra_files=bundle.extra_files,
+                master_xml=bundle.master_xml,
+                fetch_master=True,
+                master_cache_dir=config_dir(),
+                module_arguments=project.module_arguments(),
+                group_object_trees=project.group_object_trees(),
+            )
+            captured["password"] = project.project_password
+
+        try:
+            ctx.run_locked(_stage, timeout=_SLOW)
+            sign = sign_local(
+                staged,
+                dest,
+                password=captured.get("password") or None,
+                accept_untested=accept_untested,
+            )
+        finally:
+            shutil.rmtree(work, ignore_errors=True)
+
+        result: dict[str, Any] = {
+            "status": "exported",
+            "dest": dest,
+            "certificate": sign.certificate_written,
+            "validation": sign.validation_ok,
+            "license": sign.license_name,
+            "devices": sign.licensed_devices,
+        }
+        if sign.notes:
+            result["notes"] = list(sign.notes)
+        if not (sign.certificate_written and sign.validation_ok):
+            result["warning"] = "no validated licence certificate was written"
+        return result
+
     @tool("destructive")
     def project_compact(dry_run: bool = True) -> dict[str, Any]:
         """Remove product data no device uses from the open project and compact its file.

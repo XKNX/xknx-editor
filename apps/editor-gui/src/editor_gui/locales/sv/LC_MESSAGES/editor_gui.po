@@ -1464,3 +1464,36 @@ msgstr "Föreslå en funktion"
 
 msgid "Show All Issues"
 msgstr "Visa alla ärenden"
+
+msgid "License Through Installed ETS"
+msgstr "Licensiera via installerad ETS"
+
+msgid "Export Through ETS"
+msgstr "Exportera via ETS"
+
+msgid "Found ETS {version}."
+msgstr "Hittade ETS {version}."
+
+msgid "(unknown version)"
+msgstr "(okänd version)"
+
+msgid "No installed ETS was found."
+msgstr "Ingen installerad ETS hittades."
+
+msgid "The installed ETS imports and re-exports the project and writes the certificate from your licence (cloud or dongle). Start ETS once first so the licence is available locally. No login or network is used."
+msgstr "Den installerade ETS importerar projektet, exporterar det igen och skriver certifikatet från din licens (moln eller dongle). Starta ETS en gång först så att licensen är tillgänglig lokalt. Varken inloggning eller nätverk används."
+
+msgid "Use this untested ETS version anyway"
+msgstr "Använd den här otestade ETS-versionen ändå"
+
+msgid "Exported through ETS and certified for {name}."
+msgstr "Exporterad via ETS och certifierad för {name}."
+
+msgid "Exported through ETS, but without a certificate (no licence was found)."
+msgstr "Exporterad via ETS, men utan certifikat (ingen licens hittades)."
+
+msgid "No installed ETS was found, or this is not Windows."
+msgstr "Ingen installerad ETS hittades, eller så är detta inte Windows."
+
+msgid "ETS 5 needs a physical dongle to write the certificate; without one the project is exported uncertified."
+msgstr "ETS 5 behöver en fysisk dongle för att skriva certifikatet; utan den exporteras projektet ocertifierat."

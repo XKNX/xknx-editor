@@ -1536,3 +1536,36 @@ msgstr "Sugerează o funcție"
 
 msgid "Show All Issues"
 msgstr "Afișează toate tichetele"
+
+msgid "License Through Installed ETS"
+msgstr "Licențiere prin ETS instalat"
+
+msgid "Export Through ETS"
+msgstr "Exportă prin ETS"
+
+msgid "Found ETS {version}."
+msgstr "ETS {version} găsit."
+
+msgid "(unknown version)"
+msgstr "(versiune necunoscută)"
+
+msgid "No installed ETS was found."
+msgstr "Nu a fost găsit niciun ETS instalat."
+
+msgid "The installed ETS imports and re-exports the project and writes the certificate from your licence (cloud or dongle). Start ETS once first so the licence is available locally. No login or network is used."
+msgstr "ETS-ul instalat importă proiectul, îl reexportă și scrie certificatul din licența dvs. (cloud sau dongle). Porniți mai întâi ETS o dată pentru ca licența să fie disponibilă local. Nu se folosesc autentificare sau rețea."
+
+msgid "Use this untested ETS version anyway"
+msgstr "Folosește oricum această versiune ETS netestată"
+
+msgid "Exported through ETS and certified for {name}."
+msgstr "Exportat prin ETS și certificat pentru {name}."
+
+msgid "Exported through ETS, but without a certificate (no licence was found)."
+msgstr "Exportat prin ETS, dar fără certificat (nu a fost găsită nicio licență)."
+
+msgid "No installed ETS was found, or this is not Windows."
+msgstr "Nu a fost găsit niciun ETS instalat sau acesta nu este Windows."
+
+msgid "ETS 5 needs a physical dongle to write the certificate; without one the project is exported uncertified."
+msgstr "ETS 5 are nevoie de un dongle fizic pentru a scrie certificatul; fără el proiectul este exportat necertificat."

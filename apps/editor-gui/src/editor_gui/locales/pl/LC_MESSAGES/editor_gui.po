@@ -1464,3 +1464,36 @@ msgstr "Zaproponuj funkcję"
 
 msgid "Show All Issues"
 msgstr "Pokaż wszystkie zgłoszenia"
+
+msgid "License Through Installed ETS"
+msgstr "Licencjonuj przez zainstalowaną ETS"
+
+msgid "Export Through ETS"
+msgstr "Eksportuj przez ETS"
+
+msgid "Found ETS {version}."
+msgstr "Znaleziono ETS {version}."
+
+msgid "(unknown version)"
+msgstr "(nieznana wersja)"
+
+msgid "No installed ETS was found."
+msgstr "Nie znaleziono zainstalowanej ETS."
+
+msgid "The installed ETS imports and re-exports the project and writes the certificate from your licence (cloud or dongle). Start ETS once first so the licence is available locally. No login or network is used."
+msgstr "Zainstalowana ETS importuje projekt, eksportuje go ponownie i zapisuje certyfikat na podstawie Twojej licencji (chmura lub dongle). Najpierw uruchom ETS raz, aby licencja była dostępna lokalnie. Nie jest używane logowanie ani sieć."
+
+msgid "Use this untested ETS version anyway"
+msgstr "Mimo to użyj tej nieprzetestowanej wersji ETS"
+
+msgid "Exported through ETS and certified for {name}."
+msgstr "Wyeksportowano przez ETS i certyfikowano dla {name}."
+
+msgid "Exported through ETS, but without a certificate (no licence was found)."
+msgstr "Wyeksportowano przez ETS, ale bez certyfikatu (nie znaleziono licencji)."
+
+msgid "No installed ETS was found, or this is not Windows."
+msgstr "Nie znaleziono zainstalowanej ETS lub to nie jest system Windows."
+
+msgid "ETS 5 needs a physical dongle to write the certificate; without one the project is exported uncertified."
+msgstr "ETS 5 wymaga fizycznego klucza (dongle), aby zapisać certyfikat; bez niego projekt jest eksportowany bez certyfikatu."

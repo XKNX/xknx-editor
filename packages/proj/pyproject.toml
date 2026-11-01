@@ -19,5 +19,11 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/xknxeditor"]
-# Ship the C# key extractors (read by core.key_extract to compile via .NET/Mono at runtime).
-artifacts = ["src/xknxeditor/proj/core/_extract.cs", "src/xknxeditor/proj/core/_extract_trace.cs"]
+# Ship the C# helpers (read by core.key_extract to compile at runtime).
+artifacts = [
+    "src/xknxeditor/proj/core/_extract.cs",
+    "src/xknxeditor/proj/core/_extract_trace.cs",
+    "src/xknxeditor/proj/core/_extract_oauth.cs",
+    "src/xknxeditor/proj/core/_ets_export.cs",
+    "src/xknxeditor/proj/core/_ets5_export.cs",
+]

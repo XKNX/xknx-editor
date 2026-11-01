@@ -1,6 +1,17 @@
 """Core project domain: a SQLite-backed store mutated via a command/event log."""
 
 from xknxeditor.proj.core.compact import CompactCancelled, CompactResult
+from xknxeditor.proj.core.ets_export import (
+    EtsExportError,
+    EtsInstall,
+    EtsSignResult,
+    detect_ets,
+    detect_ets5,
+    ets5_local_available,
+    ets5_local_sign,
+    ets_local_available,
+    ets_local_sign,
+)
 from xknxeditor.proj.core.event_store import EventStore
 from xknxeditor.proj.core.ga_export import (
     GaExport,
@@ -79,6 +90,9 @@ __all__ = [
     "AdditionalAddressInfo",
     "CompactCancelled",
     "CompactResult",
+    "EtsExportError",
+    "EtsInstall",
+    "EtsSignResult",
     "EventStore",
     "ExportCancelled",
     "ExportResult",
@@ -95,7 +109,13 @@ __all__ = [
     "default_dll_path",
     "default_myknx_dll_path",
     "default_trace_dll_path",
+    "detect_ets",
+    "detect_ets5",
     "encrypt_comment",
+    "ets5_local_available",
+    "ets5_local_sign",
+    "ets_local_available",
+    "ets_local_sign",
     "export_knxproj",
     "extract_converter_key",
     "extract_oauth_credentials",
