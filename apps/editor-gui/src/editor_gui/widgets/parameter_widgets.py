@@ -2379,9 +2379,11 @@ def _render_param_table(
         return None
     popup_request: EnumPopupRequest | None = None
     table_flags = imgui.TableFlags_.no_saved_settings
-    # Labels and values sit at the same positions as the columns of grids on the page.
-    reference = min(imgui.get_content_region_avail().x, px(_GRID_REFERENCE_WIDTH))
-    label_width = reference * _LIST_LABEL_SHARE
+    # A row as wide as a separator's row; the labels take their share of it, the fields the
+    # rest up to where the separators end.
+    reference = min(imgui.get_content_region_avail().x, px(_LIST_ROW_WIDTH))
+    # On a whole pixel, as the reference lays out (imgui would cut it down).
+    label_width = round(reference * _LIST_LABEL_SHARE)
     # On a narrow page (a phone) each label is above its field, which gets the whole width.
     above = reference < px(_LABELS_ABOVE_WIDTH)
     padding = imgui.get_style().cell_padding
@@ -2485,7 +2487,7 @@ def _render_param_table(
             widget_id = f"{device.node_id}_{param.ref_id}"
             read_only = param.access == Access.READ
             imgui.begin_group()
-            imgui.set_next_item_width(-1 - _suffix_width(param.suffix))
+            imgui.set_next_item_width(-px(_LIST_ROW_END) - _suffix_width(param.suffix))
             imgui.begin_disabled(read_only)
             # A float without steps is a plain text box, shorter than other fields.
             compact = layout is not None and _stepless(param)
@@ -2554,8 +2556,11 @@ _label_heights: dict[str, float] = {}
 _MIN_GRID_COLUMN = 1.0
 # Indent of a parameter label per IndentLevel.
 _INDENT_STEP = 8.0
-# Share of that width the labels of a parameter list take.
+# Width at 100 % scaling of a row of a parameter list (that of a separator's row), the share of it
+# the labels take, and the room its fields leave at its end (the separators end there too).
+_LIST_ROW_WIDTH = 535.0
 _LIST_LABEL_SHARE = 0.45
+_LIST_ROW_END = _LIST_ROW_WIDTH - _SEPARATOR_WIDTH
 # Gap at 100 % scaling a field in a grid cell leaves to the next column.
 _CELL_GAP = 6.0
 # Distance at 100 % scaling of the text of a drop-down from its left edge.
