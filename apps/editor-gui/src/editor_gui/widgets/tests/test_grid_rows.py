@@ -15,6 +15,7 @@ from imgui_bundle import imgui
 from editor_gui.widgets import parameter_widgets
 from xknxeditor.prod.parser_v2.ui import (
     EnumWidget,
+    UiButton,
     UiParameter,
     UiParameterBlock,
     UiSeparator,
@@ -104,3 +105,39 @@ def test_columns_refer_to_the_width_of_a_separator(
     _height(_grid("LED", "Funktion"))
     # 2 % and 20 % of 532 px, on whole pixels.
     assert [x - left for x in starts] == pytest.approx([10.64, 117.04], abs=1.0)
+
+
+@pytest.mark.usefixtures("frame")
+def test_a_row_with_a_button_is_as_high_as_a_row_of_labels(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # A button is 2 px higher than a field; it reaches into the row's spacing instead of making
+    # the row higher, so a grid of buttons stacks as evenly as the grids around it.
+    drawn: list[tuple[float, float, float]] = []
+    button = imgui.button
+
+    def record(label: str, size: imgui.ImVec2) -> bool:
+        clicked = button(label, size)
+        low, high = imgui.get_item_rect_min(), imgui.get_item_rect_max()
+        drawn.append((low.x, high.x, high.y - low.y))
+        return clicked
+
+    monkeypatch.setattr(imgui, "button", record)
+    block = _grid("Stichprobe 1", widths=("24%", "24%", "24%"))
+    block = UiParameterBlock(
+        id=block.id,
+        layout=block.layout,
+        row_labels=block.row_labels,
+        column_widths=block.column_widths,
+        children=(
+            *block.children,
+            UiButton(id="B-1", text="Ermitteln (sofort)", cell="1,3"),
+        ),
+    )
+    left = imgui.get_cursor_screen_pos().x
+    assert _height(block) == pytest.approx(_height(_grid("Maximum")))
+    # 24 px high, 4 px into its cell (at 48 % of 532 px) and 10 px before its end.
+    [(low, high, height)] = drawn
+    assert height == 24
+    assert low - left == pytest.approx(255.36 + 4, abs=1.0)
+    assert high - left == pytest.approx(255.36 + 127.68 - 10, abs=1.0)

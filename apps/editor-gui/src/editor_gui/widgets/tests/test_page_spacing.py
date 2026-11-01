@@ -1,0 +1,214 @@
+"""The room between the items of a parameter page where it differs by kind: a grid or an
+information box keeps less room to a separator line above it than a headline or a text does, and
+a grid less to the top of the page and to a grid of lines above it; lines in grid cells end where
+the cells' fields end."""
+
+from __future__ import annotations
+
+import contextlib
+from collections.abc import Callable, Iterator
+from types import SimpleNamespace
+from typing import Any
+
+import pytest
+from imgui_bundle import imgui
+
+from editor_gui.widgets import parameter_widgets
+from editor_gui.widgets.parameter_widgets import ParameterPage
+from xknxeditor.prod.parser_v2.ui import (
+    NumberWidget,
+    UiParameter,
+    UiParameterBlock,
+    UiSeparator,
+)
+from xknxeditor.prod.parser_v2.ui.parameter_block import ParameterBlockLayout
+
+_DEVICE: Any = SimpleNamespace(node_id="D-1", param_errors={})
+
+
+@pytest.fixture(autouse=True)
+def frame(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
+    ctx = imgui.create_context()
+    imgui.get_io().display_size = imgui.ImVec2(1400, 900)
+    imgui.get_io().backend_flags |= imgui.BackendFlags_.renderer_has_textures
+    # The editor's spacing between items.
+    imgui.get_style().item_spacing = imgui.ImVec2(8, 6)
+    monkeypatch.setattr(
+        parameter_widgets, "bold", lambda _scale=1.0: contextlib.nullcontext()
+    )
+    imgui.new_frame()
+    imgui.set_next_window_size(imgui.ImVec2(1400, 900))
+    imgui.begin("Parameters")
+    yield
+    imgui.end()
+    imgui.end_frame()
+    imgui.destroy_context(ctx)
+
+
+def _line() -> UiSeparator:
+    return UiSeparator(id="PS-L", text="", hint="HorizontalRuler")
+
+
+def _grid(
+    *cells: UiSeparator, widths: tuple[str, ...] = ("25%", "51%")
+) -> UiParameterBlock:
+    return UiParameterBlock(
+        id=f"PB-{len(cells)}-{cells[0].id}",
+        inline=True,
+        layout=ParameterBlockLayout.GRID,
+        row_labels=("",),
+        column_widths=widths,
+        children=cells,
+    )
+
+
+def _label_grid() -> UiParameterBlock:
+    return _grid(UiSeparator(id="PS-T", text="Testen", cell="1,1"))
+
+
+def _lines_grid() -> UiParameterBlock:
+    return _grid(
+        UiSeparator(id="PS-1", text="", hint="HorizontalRuler", cell="1,1"),
+        UiSeparator(id="PS-2", text="", hint="HorizontalRuler", cell="1,2"),
+        widths=("25%", "96%"),
+    )
+
+
+def _record(
+    monkeypatch: pytest.MonkeyPatch, name: str, tops: list[float]
+) -> Callable[..., Any]:
+    """Note the screen y at which ``parameter_widgets.<name>`` is called."""
+    original = getattr(parameter_widgets, name)
+
+    def wrapper(*args: Any, **kwargs: Any) -> Any:
+        tops.append(imgui.get_cursor_screen_pos().y)
+        return original(*args, **kwargs)
+
+    monkeypatch.setattr(parameter_widgets, name, wrapper)
+    return original
+
+
+def _page(*content: Any) -> None:
+    parameter_widgets._render_page(  # pyright: ignore[reportPrivateUsage]
+        _DEVICE,
+        ParameterPage(key="page", label="Page", icon=None, content=content),
+        lambda *_: None,
+        False,
+        "",
+        frozenset(),
+        None,
+    )
+
+
+def test_a_box_and_a_grid_after_a_line_keep_less_room_than_a_headline(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    lines: list[float] = []
+    boxes: list[float] = []
+    grids: list[float] = []
+    texts: list[float] = []
+    _record(monkeypatch, "_render_ruler", lines)
+    _record(monkeypatch, "_render_hint", boxes)
+    _record(monkeypatch, "_render_grid_block", grids)
+    _record(monkeypatch, "_aligned_text", texts)
+    info = UiSeparator(id="PS-I", text="Falls diese Applikation …", hint="Information")
+    headline = UiSeparator(id="PS-H", text="Hilfsfunktionen", hint="Headline")
+    _page(_line(), info, _line(), _label_grid(), _line(), headline)
+    # The box border 16 px below the line's top, the grid's row 11 px; a headline keeps the
+    # 17 px of a separator's room (and its own 1 px above).
+    assert boxes[0] - lines[0] == 16
+    assert grids[0] - lines[1] == 11
+    assert texts[-1] - lines[2] == 18
+
+
+def test_a_grid_keeps_less_room_to_the_top_of_the_page(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    grids: list[float] = []
+    texts: list[float] = []
+    _record(monkeypatch, "_render_grid_block", grids)
+    _record(monkeypatch, "_aligned_text", texts)
+    top = imgui.get_cursor_screen_pos().y
+    _page(_label_grid())
+    imgui.set_cursor_screen_pos(imgui.ImVec2(imgui.get_cursor_screen_pos().x, top))
+    _page(UiSeparator(id="PS-H", text="HF-Sensor", hint="Headline"))
+    assert grids[0] == top - 5
+    assert texts[0] == top + 1
+
+
+def test_a_grid_keeps_less_room_to_a_grid_of_lines(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    calls: list[tuple[float, float]] = []
+    original = parameter_widgets._render_grid_block  # pyright: ignore[reportPrivateUsage]
+
+    def wrapper(*args: Any, **kwargs: Any) -> Any:
+        before = imgui.get_cursor_screen_pos().y
+        result = original(*args, **kwargs)
+        calls.append((before, imgui.get_cursor_screen_pos().y))
+        return result
+
+    monkeypatch.setattr(parameter_widgets, "_render_grid_block", wrapper)
+    _page(_label_grid(), _lines_grid(), _label_grid(), _label_grid())
+    # After a grid the next one joins it row against row (one spacing up); after one of lines
+    # it comes 5 px closer still.
+    (_, end1), (start2, end2), (start3, end3), (start4, _) = calls
+    assert start2 - end1 == -6
+    assert start3 - end2 == -6 - 5
+    assert start4 - end3 == -6
+
+
+def test_lines_in_cells_end_where_the_fields_of_their_cells_end(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    spans: list[tuple[float, float]] = []
+    draw = imgui.ImDrawList.add_rect_filled
+
+    def record(
+        self: imgui.ImDrawList, low: imgui.ImVec2, high: imgui.ImVec2, *args: Any
+    ) -> None:
+        if high.y - low.y == 1.0:
+            spans.append((low.x, high.x))
+        draw(self, low, high, *args)
+
+    monkeypatch.setattr(imgui.ImDrawList, "add_rect_filled", record)
+    left = imgui.get_cursor_screen_pos().x
+    _page(_lines_grid())
+    # The cells start at 0 and 25 % of 532 px; each line ends 6 px before its cell does.
+    assert [x - left for span in spans for x in span] == pytest.approx(
+        [0, 133 - 6, 133, 133 + 510.72 - 6], abs=1.0
+    )
+
+
+def test_a_field_with_a_unit_in_a_cell_keeps_room_after_the_unit(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    widths: list[float] = []
+    original = imgui.set_next_item_width
+
+    def record(width: float) -> None:
+        widths.append(width)
+        original(width)
+
+    monkeypatch.setattr(imgui, "set_next_item_width", record)
+    field = UiParameter(
+        ref_id="P-1",
+        label="",
+        value="5",
+        default_value="5",
+        widget=NumberWidget(min=0, max=255),
+        cell="1,2",
+        suffix="Sekunden",
+    )
+    grid = UiParameterBlock(
+        id="PB-F",
+        inline=True,
+        layout=ParameterBlockLayout.GRID,
+        row_labels=("",),
+        column_widths=("25%", "22%"),
+        children=(field,),
+    )
+    _page(grid)
+    unit = imgui.calc_text_size("Sekunden").x
+    # The cell's gap, the unit with 5 px before and after it.
+    assert widths[0] == pytest.approx(-(6 + 5 + unit + 5))
