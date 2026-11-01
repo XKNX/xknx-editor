@@ -349,6 +349,11 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             "default_value": parameter.default_value,
             "writable": parameter.writable,
         }
+        # The item a row belongs to (e.g. "[2] Group 'Sauna'"): the label alone is just the field
+        # name, so the item name lives here. Exposed and searched so a client can still find a row
+        # by its item name.
+        if parameter.group:
+            data["group"] = parameter.group
         if parameter.choices:
             data["choices"] = [
                 {"value": value, "label": label} for value, label in parameter.choices
@@ -385,10 +390,11 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         """The parameters a device's manufacturer plugin manages, as its Plugin Parameters tab
         shows them (devices with such a tab only, e.g. the Siemens KNX/DALI Gateway plus
         N 141/03). Identify the device by node_id OR device_address; ``search`` keeps the
-        sections or parameters whose name contains it. Returns {title, sections}: each section
-        has {section, parameters} and, for a list the user can add items to, {collection:
-        {label, item_types, needs_name}}; each parameter has {ref_id, label, value,
-        default_value, writable, choices?, item_id?} (item_id: for project_remove_plugin_item)."""
+        sections or parameters whose name or item name contains it. Returns {title, sections}:
+        each section has {section, parameters} and, for a list the user can add items to,
+        {collection: {label, item_types, needs_name}}; each parameter has {ref_id, label, value,
+        default_value, writable, group?, choices?, item_id?} (group: the item the row belongs to,
+        e.g. "[2] Group 'Sauna'"; item_id: for project_remove_plugin_item)."""
         require_project(ctx)
 
         def _read() -> dict[str, Any]:
@@ -400,7 +406,10 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                 data = _section_dict(section)
                 if needle and needle not in section.section.lower():
                     data["parameters"] = [
-                        p for p in data["parameters"] if needle in p["label"].lower()
+                        p
+                        for p in data["parameters"]
+                        if needle in p["label"].lower()
+                        or needle in p.get("group", "").lower()
                     ]
                     if not data["parameters"] and "collection" not in data:
                         continue
