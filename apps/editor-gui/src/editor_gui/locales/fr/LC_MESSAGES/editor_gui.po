@@ -1497,3 +1497,12 @@ msgstr "Aucune ETS installée n’a été trouvée, ou ce n’est pas Windows."
 
 msgid "ETS 5 needs a physical dongle to write the certificate; without one the project is exported uncertified."
 msgstr "ETS 5 a besoin d’un dongle physique pour écrire le certificat ; sans lui, le projet est exporté sans certificat."
+
+msgid "This runs only on Windows with an installed ETS; this system is not Windows."
+msgstr "Fonctionne uniquement sous Windows avec une ETS installée ; ce système n’est pas Windows."
+
+msgid "No installed ETS was found in the usual locations."
+msgstr "Aucune ETS installée n’a été trouvée aux emplacements habituels."
+
+msgid "ETS was found, but the .NET SDK (or a prebuilt helper) is needed to run the export."
+msgstr "ETS a été trouvée, mais le SDK .NET (ou un assistant précompilé) est nécessaire pour exécuter l’export."

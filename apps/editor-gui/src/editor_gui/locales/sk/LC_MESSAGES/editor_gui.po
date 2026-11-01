@@ -1569,3 +1569,12 @@ msgstr "Nenašiel sa žiadny nainštalovaný ETS alebo toto nie je Windows."
 
 msgid "ETS 5 needs a physical dongle to write the certificate; without one the project is exported uncertified."
 msgstr "ETS 5 potrebuje fyzický dongle na zápis certifikátu; bez neho sa projekt exportuje bez certifikácie."
+
+msgid "This runs only on Windows with an installed ETS; this system is not Windows."
+msgstr "Funguje len na Windows s nainštalovaným ETS; tento systém nie je Windows."
+
+msgid "No installed ETS was found in the usual locations."
+msgstr "Na obvyklých miestach sa nenašiel žiadny nainštalovaný ETS."
+
+msgid "ETS was found, but the .NET SDK (or a prebuilt helper) is needed to run the export."
+msgstr "ETS sa našiel, ale na spustenie exportu je potrebný .NET SDK (alebo predpripravený pomocník)."

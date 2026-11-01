@@ -1497,3 +1497,12 @@ msgstr "未找到已安装的 ETS，或此系统不是 Windows。"
 
 msgid "ETS 5 needs a physical dongle to write the certificate; without one the project is exported uncertified."
 msgstr "ETS 5 需要物理加密狗才能写入证书；没有加密狗时项目将以未认证方式导出。"
+
+msgid "This runs only on Windows with an installed ETS; this system is not Windows."
+msgstr "仅在安装了 ETS 的 Windows 上运行；当前系统不是 Windows。"
+
+msgid "No installed ETS was found in the usual locations."
+msgstr "在常用位置未找到已安装的 ETS。"
+
+msgid "ETS was found, but the .NET SDK (or a prebuilt helper) is needed to run the export."
+msgstr "已找到 ETS，但运行导出需要 .NET SDK（或预构建的助手）。"

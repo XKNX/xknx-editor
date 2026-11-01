@@ -1497,3 +1497,12 @@ msgstr "Встановлений ETS не знайдено або це не Wind
 
 msgid "ETS 5 needs a physical dongle to write the certificate; without one the project is exported uncertified."
 msgstr "ETS 5 потребує фізичний донгл для запису сертифіката; без нього проєкт експортується без сертифіката."
+
+msgid "This runs only on Windows with an installed ETS; this system is not Windows."
+msgstr "Працює лише у Windows зі встановленим ETS; ця система не Windows."
+
+msgid "No installed ETS was found in the usual locations."
+msgstr "Встановлений ETS не знайдено у звичайних розташуваннях."
+
+msgid "ETS was found, but the .NET SDK (or a prebuilt helper) is needed to run the export."
+msgstr "ETS знайдено, але для запуску експорту потрібен .NET SDK (або попередньо зібраний помічник)."
