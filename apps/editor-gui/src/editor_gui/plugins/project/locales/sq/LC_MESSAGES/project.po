@@ -3035,4 +3035,4 @@ msgid "Switch Off"
 msgstr "Fik"
 
 msgid "Show the memory a download writes, segment by segment"
-msgstr "Shfaq memorien që shkruan një programim, segment pas segmenti"
+msgstr "Shfaq përmbajtjen e memories që do të shkruhet gjatë programimit, segment pas segmenti"
