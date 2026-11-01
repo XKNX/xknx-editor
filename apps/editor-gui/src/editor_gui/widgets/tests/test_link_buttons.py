@@ -4,6 +4,7 @@ the row), and the texts beside them start at their top."""
 
 from __future__ import annotations
 
+import itertools
 from collections.abc import Iterator
 
 import pytest
@@ -83,7 +84,7 @@ def test_buttons_are_as_far_apart_as_from_the_cell_edges(links: int) -> None:
     cell, buttons, _texts = _row(links)
     left, top, _, bottom = cell
     gaps = [buttons[0][1] - top, buttons[0][0] - left]
-    gaps += [b[1] - a[3] for a, b in zip(buttons, buttons[1:], strict=False)]
+    gaps += [b[1] - a[3] for a, b in itertools.pairwise(buttons)]
     gaps.append(bottom - buttons[-1][3])
     assert len(set(gaps)) == 1, gaps
     # One size for "x" and "+".
