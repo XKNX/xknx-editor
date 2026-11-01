@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import importlib.util
 import threading
 import time
 from collections.abc import Callable, Coroutine, Iterator
@@ -91,10 +92,15 @@ def loop() -> Iterator[asyncio.AbstractEventLoop]:
 def test_online_writes_are_kept_one_step_each(
     tmp_path: Path, loop: asyncio.AbstractEventLoop, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    import sys
-
-    sys.path.insert(0, str(_fixture("download") / "tests"))
-    from conftest import FakeDevice  # type: ignore[import-not-found]
+    # The download package's fake device, loaded by its path: a plain ``import conftest`` gets
+    # whichever conftest module the run imported first.
+    spec = importlib.util.spec_from_file_location(
+        "download_test_fakes", _fixture("download") / "tests" / "conftest.py"
+    )
+    assert spec is not None and spec.loader is not None
+    fakes = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(fakes)
+    FakeDevice = fakes.FakeDevice
 
     manager = _Manager(FakeDevice(descriptor=0x07B0))
     monkeypatch.setattr(script_online, "management_session", lambda *a, **k: manager)

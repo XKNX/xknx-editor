@@ -1069,8 +1069,8 @@ msgstr "Тест только для чтения: проверяет, что ф
 msgid "Cannot run: the project was changed since it was opened. This test compares the generated image against the device's programmed state, which only matches the project as it was opened. Undo your changes in this session to test."
 msgstr "Невозможно выполнить: проект был изменён после открытия. Этот тест сравнивает сформированный образ с запрограммированным состоянием устройства, которое соответствует только проекту в момент открытия. Отмените изменения в этом сеансе, чтобы выполнить тест."
 
-msgid "Cannot run: no KNX connection. Connect to a gateway (Connection menu) and make sure the device is reachable at its individual address."
-msgstr "Невозможно выполнить: нет подключения KNX. Подключитесь к шлюзу (меню «Подключение») и убедитесь, что устройство доступно по своему индивидуальному адресу."
+msgid "Cannot run: no KNX connection. Connect to a gateway ({menu} menu) and make sure the device is reachable at its individual address."
+msgstr "Невозможно выполнить: нет подключения KNX. Подключитесь к шлюзу (меню «{menu}») и убедитесь, что устройство доступно по своему индивидуальному адресу."
 
 msgid "Match: the generated image is identical to what is on the device"
 msgstr "Совпадение: сформированный образ идентичен содержимому устройства"
@@ -1141,8 +1141,8 @@ msgstr "объект {object} свойство {property}"
 msgid "Filter devices (name, address)…"
 msgstr "Фильтр устройств (имя, адрес)…"
 
-msgid "No devices. Open or import a project (File menu), or right-click here to add an area."
-msgstr "Нет устройств. Откройте или импортируйте проект (меню «Файл») или щёлкните здесь правой кнопкой мыши, чтобы добавить область."
+msgid "No devices. Open or import a project ({menu} menu), or right-click here to add an area."
+msgstr "Нет устройств. Откройте или импортируйте проект (меню «{menu}») или щёлкните здесь правой кнопкой мыши, чтобы добавить область."
 
 msgid "Filter group addresses (address, name)…"
 msgstr "Фильтр групповых адресов (адрес, имя)…"

@@ -1069,8 +1069,8 @@ msgstr "Δοκιμή μόνο για ανάγνωση: ελέγχει ότι η 
 msgid "Cannot run: the project was changed since it was opened. This test compares the generated image against the device's programmed state, which only matches the project as it was opened. Undo your changes in this session to test."
 msgstr "Δεν είναι δυνατή η εκτέλεση: το έργο άλλαξε από τη στιγμή που άνοιξε. Αυτή η δοκιμή συγκρίνει την παραγόμενη εικόνα με την προγραμματισμένη κατάσταση της συσκευής, η οποία αντιστοιχεί μόνο στο έργο όπως άνοιξε. Αναιρέστε τις αλλαγές σας σε αυτήν τη συνεδρία για να εκτελέσετε τη δοκιμή."
 
-msgid "Cannot run: no KNX connection. Connect to a gateway (Connection menu) and make sure the device is reachable at its individual address."
-msgstr "Δεν είναι δυνατή η εκτέλεση: δεν υπάρχει σύνδεση KNX. Συνδεθείτε σε ένα gateway (μενού Σύνδεση) και βεβαιωθείτε ότι η συσκευή είναι προσβάσιμη στην ατομική της διεύθυνση."
+msgid "Cannot run: no KNX connection. Connect to a gateway ({menu} menu) and make sure the device is reachable at its individual address."
+msgstr "Δεν είναι δυνατή η εκτέλεση: δεν υπάρχει σύνδεση KNX. Συνδεθείτε σε ένα gateway (μενού {menu}) και βεβαιωθείτε ότι η συσκευή είναι προσβάσιμη στην ατομική της διεύθυνση."
 
 msgid "Match: the generated image is identical to what is on the device"
 msgstr "Ταύτιση: η παραγόμενη εικόνα είναι ίδια με αυτή στη συσκευή"
@@ -1141,8 +1141,8 @@ msgstr "αντικείμενο {object} ιδιότητα {property}"
 msgid "Filter devices (name, address)…"
 msgstr "Φιλτράρισμα συσκευών (όνομα, διεύθυνση)…"
 
-msgid "No devices. Open or import a project (File menu), or right-click here to add an area."
-msgstr "Δεν υπάρχουν συσκευές. Ανοίξτε ή εισαγάγετε ένα έργο (μενού Αρχείο) ή κάντε δεξί κλικ εδώ για να προσθέσετε μια περιοχή."
+msgid "No devices. Open or import a project ({menu} menu), or right-click here to add an area."
+msgstr "Δεν υπάρχουν συσκευές. Ανοίξτε ή εισαγάγετε ένα έργο (μενού {menu}) ή κάντε δεξί κλικ εδώ για να προσθέσετε μια περιοχή."
 
 msgid "Filter group addresses (address, name)…"
 msgstr "Φιλτράρισμα διευθύνσεων ομάδων (διεύθυνση, όνομα)…"

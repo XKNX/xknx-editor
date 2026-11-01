@@ -8,7 +8,7 @@ _ = create_translator("connection", _locale_dir)
 
 class ConnectionStrings:
     @property
-    def MENU_CONNECTION(self) -> str:
+    def MENU_GATEWAY(self) -> str:
         return _("Gateway")
 
     @property

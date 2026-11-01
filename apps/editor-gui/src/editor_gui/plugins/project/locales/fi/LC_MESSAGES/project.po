@@ -1069,8 +1069,8 @@ msgstr "Vain luku -testi: tarkistaa, että lataustoiminto muodostaa saman kuvan 
 msgid "Cannot run: the project was changed since it was opened. This test compares the generated image against the device's programmed state, which only matches the project as it was opened. Undo your changes in this session to test."
 msgstr "Ei voi suorittaa: projektia on muutettu sen avaamisen jälkeen. Tämä testi vertaa muodostettua kuvaa laitteen ohjelmoituun tilaan, joka vastaa vain projektia sellaisena kuin se avattiin. Kumoa tämän istunnon muutokset testataksesi."
 
-msgid "Cannot run: no KNX connection. Connect to a gateway (Connection menu) and make sure the device is reachable at its individual address."
-msgstr "Ei voi suorittaa: ei KNX-yhteyttä. Yhdistä yhdyskäytävään (Yhteys-valikko) ja varmista, että laite on tavoitettavissa yksilöllisessä osoitteessaan."
+msgid "Cannot run: no KNX connection. Connect to a gateway ({menu} menu) and make sure the device is reachable at its individual address."
+msgstr "Ei voi suorittaa: ei KNX-yhteyttä. Yhdistä yhdyskäytävään ({menu}-valikko) ja varmista, että laite on tavoitettavissa yksilöllisessä osoitteessaan."
 
 msgid "Match: the generated image is identical to what is on the device"
 msgstr "Vastaa: muodostettu kuva on identtinen laitteessa olevan kanssa"
@@ -1141,8 +1141,8 @@ msgstr "objekti {object} ominaisuus {property}"
 msgid "Filter devices (name, address)…"
 msgstr "Suodata laitteita (nimi, osoite)…"
 
-msgid "No devices. Open or import a project (File menu), or right-click here to add an area."
-msgstr "Ei laitteita. Avaa tai tuo projekti (Tiedosto-valikko) tai lisää alue napsauttamalla tätä hiiren kakkospainikkeella."
+msgid "No devices. Open or import a project ({menu} menu), or right-click here to add an area."
+msgstr "Ei laitteita. Avaa tai tuo projekti ({menu}-valikko) tai lisää alue napsauttamalla tätä hiiren kakkospainikkeella."
 
 msgid "Filter group addresses (address, name)…"
 msgstr "Suodata ryhmäosoitteita (osoite, nimi)…"

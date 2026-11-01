@@ -217,8 +217,8 @@ msgstr "A kiértékelés nem sikerült"
 msgid "Read-only test: checks that the download function generates the same image as what is already programmed on the device. Nothing is written to the device."
 msgstr "Csak olvasó teszt: ellenőrzi, hogy a programozási funkció ugyanazt a memóriaképet állítja-e elő, mint ami már a készülékbe van programozva. A készülékre semmi sem íródik."
 
-msgid "Cannot run: no KNX connection. Connect to a gateway (Connection menu) and make sure the device is reachable at its individual address."
-msgstr "Nem futtatható: nincs KNX-kapcsolat. Csatlakozzon egy átjáróhoz (Átjáró menü), és győződjön meg róla, hogy a készülék elérhető a fizikai címén."
+msgid "Cannot run: no KNX connection. Connect to a gateway ({menu} menu) and make sure the device is reachable at its individual address."
+msgstr "Nem futtatható: nincs KNX-kapcsolat. Csatlakozzon egy átjáróhoz ({menu} menü), és győződjön meg róla, hogy a készülék elérhető a fizikai címén."
 
 msgid "Match: the generated image is identical to what is on the device"
 msgstr "Egyezés: az előállított memóriakép megegyezik a készüléken lévővel"
@@ -283,8 +283,8 @@ msgstr "objektum: {object}, tulajdonság: {property}"
 msgid "Filter devices (name, address)…"
 msgstr "Készülékek szűrése (név, cím)…"
 
-msgid "No devices. Open or import a project (File menu), or right-click here to add an area."
-msgstr "Nincsenek készülékek. Nyisson meg vagy importáljon egy projektet (Fájl menü), vagy kattintson ide a jobb gombbal egy terület hozzáadásához."
+msgid "No devices. Open or import a project ({menu} menu), or right-click here to add an area."
+msgstr "Nincsenek készülékek. Nyisson meg vagy importáljon egy projektet ({menu} menü), vagy kattintson ide a jobb gombbal egy terület hozzáadásához."
 
 msgid "Filter group addresses (address, name)…"
 msgstr "Csoportcímek szűrése (cím, név)…"

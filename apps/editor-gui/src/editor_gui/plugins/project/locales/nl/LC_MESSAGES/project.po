@@ -891,8 +891,8 @@ msgstr "Gebouwen"
 msgid "CSV"
 msgstr "CSV"
 
-msgid "Cannot run: no KNX connection. Connect to a gateway (Connection menu) and make sure the device is reachable at its individual address."
-msgstr "Kan niet worden uitgevoerd: geen KNX-verbinding. Maak verbinding met een gateway (menu Verbinding) en zorg dat het apparaat bereikbaar is op zijn individuele adres."
+msgid "Cannot run: no KNX connection. Connect to a gateway ({menu} menu) and make sure the device is reachable at its individual address."
+msgstr "Kan niet worden uitgevoerd: geen KNX-verbinding. Maak verbinding met een gateway (menu {menu}) en zorg dat het apparaat bereikbaar is op zijn individuele adres."
 
 msgid "Cannot run: the project was changed since it was opened. This test compares the generated image against the device's programmed state, which only matches the project as it was opened. Undo your changes in this session to test."
 msgstr "Kan niet worden uitgevoerd: het project is gewijzigd sinds het werd geopend. Deze test vergelijkt het gegenereerde geheugenbeeld met de geprogrammeerde toestand van het apparaat, die alleen overeenkomt met het project zoals het werd geopend. Maak je wijzigingen in deze sessie ongedaan om te testen."
@@ -1187,8 +1187,8 @@ msgstr "Geen gebouwen/ruimtes in dit project"
 msgid "No configured differences: the device already carries this configuration. The differences below are benign (see notes)."
 msgstr "Geen geconfigureerde verschillen: het apparaat heeft deze configuratie al. De verschillen hieronder zijn onschuldig (zie toelichting)."
 
-msgid "No devices. Open or import a project (File menu), or right-click here to add an area."
-msgstr "Geen apparaten. Open of importeer een project (menu Bestand), of klik hier met de rechtermuisknop om een gebied toe te voegen."
+msgid "No devices. Open or import a project ({menu} menu), or right-click here to add an area."
+msgstr "Geen apparaten. Open of importeer een project (menu {menu}), of klik hier met de rechtermuisknop om een gebied toe te voegen."
 
 msgid "No differences in devices or group addresses."
 msgstr "Geen verschillen in apparaten of groepsadressen."

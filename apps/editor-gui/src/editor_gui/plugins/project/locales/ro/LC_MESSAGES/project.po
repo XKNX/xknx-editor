@@ -217,8 +217,8 @@ msgstr "Evaluarea a eșuat"
 msgid "Read-only test: checks that the download function generates the same image as what is already programmed on the device. Nothing is written to the device."
 msgstr "Test doar în citire: verifică dacă funcția de programare generează aceeași imagine ca cea deja programată în dispozitiv. Nu se scrie nimic în dispozitiv."
 
-msgid "Cannot run: no KNX connection. Connect to a gateway (Connection menu) and make sure the device is reachable at its individual address."
-msgstr "Nu se poate executa: nicio conexiune KNX. Conectați-vă la un gateway (meniul Conexiune) și asigurați-vă că dispozitivul este accesibil la adresa lui fizică."
+msgid "Cannot run: no KNX connection. Connect to a gateway ({menu} menu) and make sure the device is reachable at its individual address."
+msgstr "Nu se poate executa: nicio conexiune KNX. Conectați-vă la un gateway (meniul {menu}) și asigurați-vă că dispozitivul este accesibil la adresa lui fizică."
 
 msgid "Match: the generated image is identical to what is on the device"
 msgstr "Potrivire: imaginea generată este identică cu cea din dispozitiv"
@@ -283,8 +283,8 @@ msgstr "obiect {object} proprietate {property}"
 msgid "Filter devices (name, address)…"
 msgstr "Filtrare dispozitive (nume, adresă)…"
 
-msgid "No devices. Open or import a project (File menu), or right-click here to add an area."
-msgstr "Niciun dispozitiv. Deschideți sau importați un proiect (meniul Fișier) sau faceți clic dreapta aici pentru a adăuga o zonă."
+msgid "No devices. Open or import a project ({menu} menu), or right-click here to add an area."
+msgstr "Niciun dispozitiv. Deschideți sau importați un proiect (meniul {menu}) sau faceți clic dreapta aici pentru a adăuga o zonă."
 
 msgid "Filter group addresses (address, name)…"
 msgstr "Filtrare adrese de grup (adresă, nume)…"

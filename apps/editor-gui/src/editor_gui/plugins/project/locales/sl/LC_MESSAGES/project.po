@@ -217,8 +217,8 @@ msgstr "Vrednotenje ni uspelo"
 msgid "Read-only test: checks that the download function generates the same image as what is already programmed on the device. Nothing is written to the device."
 msgstr "Preizkus samo z branjem: preveri, ali funkcija programiranja ustvari enako sliko, kot je že programirana v napravi. V napravo se ne zapiše nič."
 
-msgid "Cannot run: no KNX connection. Connect to a gateway (Connection menu) and make sure the device is reachable at its individual address."
-msgstr "Ni mogoče zagnati: ni povezave KNX. Povežite se s prehodom (meni Prehod) in se prepričajte, da je naprava dosegljiva na svojem fizičnem naslovu."
+msgid "Cannot run: no KNX connection. Connect to a gateway ({menu} menu) and make sure the device is reachable at its individual address."
+msgstr "Ni mogoče zagnati: ni povezave KNX. Povežite se s prehodom (meni {menu}) in se prepričajte, da je naprava dosegljiva na svojem fizičnem naslovu."
 
 msgid "Match: the generated image is identical to what is on the device"
 msgstr "Ujemanje: ustvarjena slika je enaka tisti v napravi"
@@ -283,8 +283,8 @@ msgstr "objekt {object} lastnost {property}"
 msgid "Filter devices (name, address)…"
 msgstr "Filtriraj naprave (ime, naslov)…"
 
-msgid "No devices. Open or import a project (File menu), or right-click here to add an area."
-msgstr "Ni naprav. Odprite ali uvozite projekt (meni Datoteka) ali pa tukaj kliknite z desno tipko miške, da dodate področje."
+msgid "No devices. Open or import a project ({menu} menu), or right-click here to add an area."
+msgstr "Ni naprav. Odprite ali uvozite projekt (meni {menu}) ali pa tukaj kliknite z desno tipko miške, da dodate področje."
 
 msgid "Filter group addresses (address, name)…"
 msgstr "Filtriraj skupinske naslove (naslov, ime)…"

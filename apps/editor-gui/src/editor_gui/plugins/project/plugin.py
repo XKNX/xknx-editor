@@ -18,6 +18,7 @@ from editor_gui.device_info import (
 )
 from editor_gui.dpt_formats import cached_master_formats, cached_master_names
 from editor_gui.plugins.base import Logger, PanelDefinition, PluginAPI
+from editor_gui.plugins.connection.strings import S as CONNECTION_S
 from editor_gui.plugins.project.button_runner import ButtonOutcome, ButtonRunner
 from editor_gui.plugins.project.compare_match import compare_mismatch, matching_devices
 from editor_gui.plugins.project.device_info_view import device_info_sections
@@ -3025,7 +3026,9 @@ class ProjectPlugin:
         # to open for it) there is nothing to compare against.
         if not self._api.connection.can_reach_bus():
             self._preflight_result.submit_error(
-                label, scope.name, S.PREFLIGHT_NO_CONNECTION
+                label,
+                scope.name,
+                S.PREFLIGHT_NO_CONNECTION.format(menu=CONNECTION_S.MENU_GATEWAY),
             )
             return
         # The test validates our image generation against the device's programmed state, which

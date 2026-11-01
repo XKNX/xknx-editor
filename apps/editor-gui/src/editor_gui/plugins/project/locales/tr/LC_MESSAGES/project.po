@@ -1069,8 +1069,8 @@ msgstr "Salt okunur test: yükleme işlevinin, cihazda zaten programlı olanla a
 msgid "Cannot run: the project was changed since it was opened. This test compares the generated image against the device's programmed state, which only matches the project as it was opened. Undo your changes in this session to test."
 msgstr "Çalıştırılamıyor: proje açıldığından beri değiştirildi. Bu test, oluşturulan görüntüyü cihazın programlanmış durumuyla karşılaştırır; bu durum yalnızca projenin açıldığı haliyle eşleşir. Test etmek için bu oturumdaki değişikliklerinizi geri alın."
 
-msgid "Cannot run: no KNX connection. Connect to a gateway (Connection menu) and make sure the device is reachable at its individual address."
-msgstr "Çalıştırılamıyor: KNX bağlantısı yok. Bir ağ geçidine bağlanın (Bağlantı menüsü) ve cihaza bireysel adresinden erişilebildiğinden emin olun."
+msgid "Cannot run: no KNX connection. Connect to a gateway ({menu} menu) and make sure the device is reachable at its individual address."
+msgstr "Çalıştırılamıyor: KNX bağlantısı yok. Bir ağ geçidine bağlanın ({menu} menüsü) ve cihaza bireysel adresinden erişilebildiğinden emin olun."
 
 msgid "Match: the generated image is identical to what is on the device"
 msgstr "Eşleşme: oluşturulan görüntü cihazdakiyle aynı"
@@ -1141,8 +1141,8 @@ msgstr "nesne {object} özellik {property}"
 msgid "Filter devices (name, address)…"
 msgstr "Cihazları filtrele (ad, adres)…"
 
-msgid "No devices. Open or import a project (File menu), or right-click here to add an area."
-msgstr "Cihaz yok. Bir proje açın veya içe aktarın (Dosya menüsü) ya da alan eklemek için buraya sağ tıklayın."
+msgid "No devices. Open or import a project ({menu} menu), or right-click here to add an area."
+msgstr "Cihaz yok. Bir proje açın veya içe aktarın ({menu} menüsü) ya da alan eklemek için buraya sağ tıklayın."
 
 msgid "Filter group addresses (address, name)…"
 msgstr "Grup adreslerini filtrele (adres, ad)…"

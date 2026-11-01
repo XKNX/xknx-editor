@@ -1069,8 +1069,8 @@ msgstr "Test jen pro čtení: kontroluje, zda funkce nahrávání vytvoří stej
 msgid "Cannot run: the project was changed since it was opened. This test compares the generated image against the device's programmed state, which only matches the project as it was opened. Undo your changes in this session to test."
 msgstr "Nelze spustit: projekt byl od otevření změněn. Tento test porovnává vytvořený obraz s naprogramovaným stavem zařízení, který odpovídá jen projektu ve stavu při otevření. Pro test vraťte své změny v této relaci zpět."
 
-msgid "Cannot run: no KNX connection. Connect to a gateway (Connection menu) and make sure the device is reachable at its individual address."
-msgstr "Nelze spustit: žádné připojení KNX. Připojte se k bráně (nabídka Připojení) a ujistěte se, že je zařízení dosažitelné na své individuální adrese."
+msgid "Cannot run: no KNX connection. Connect to a gateway ({menu} menu) and make sure the device is reachable at its individual address."
+msgstr "Nelze spustit: žádné připojení KNX. Připojte se k bráně (nabídka {menu}) a ujistěte se, že je zařízení dosažitelné na své individuální adrese."
 
 msgid "Match: the generated image is identical to what is on the device"
 msgstr "Shoda: vytvořený obraz je totožný s obsahem zařízení"
@@ -1141,8 +1141,8 @@ msgstr "objekt {object} vlastnost {property}"
 msgid "Filter devices (name, address)…"
 msgstr "Filtrovat zařízení (název, adresa)…"
 
-msgid "No devices. Open or import a project (File menu), or right-click here to add an area."
-msgstr "Žádná zařízení. Otevřete nebo importujte projekt (nabídka Soubor), nebo sem klikněte pravým tlačítkem a přidejte oblast."
+msgid "No devices. Open or import a project ({menu} menu), or right-click here to add an area."
+msgstr "Žádná zařízení. Otevřete nebo importujte projekt (nabídka {menu}), nebo sem klikněte pravým tlačítkem a přidejte oblast."
 
 msgid "Filter group addresses (address, name)…"
 msgstr "Filtrovat skupinové adresy (adresa, název)…"

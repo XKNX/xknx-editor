@@ -20,6 +20,7 @@ from editor_gui.plugins.project.ui.program_queue import (
     ProgramQueuePanel,
     bus_operation_text,
 )
+from editor_gui.strings import set_locale
 from editor_gui.widgets.tabs import forget_shown_tab_bars
 
 
@@ -277,8 +278,19 @@ def test_test_programming_without_a_bus_connection_is_not_queued() -> None:
     plugin._api.connection.can_reach_bus = lambda: False  # pyright: ignore[reportPrivateUsage]
     device: Any = plugin._api.project.find_device_by_node_id(1)  # pyright: ignore[reportPrivateUsage]
     plugin._eval_device(device, DownloadScope.FULL)  # pyright: ignore[reportPrivateUsage]
-    assert shown == [("error", "Dimmer", "FULL", S.PREFLIGHT_NO_CONNECTION)]
+    # The hint names the menu with its label, in every language.
+    assert shown == [
+        ("error", "Dimmer", "FULL", S.PREFLIGHT_NO_CONNECTION.format(menu="Gateway"))
+    ]
+    assert "(Gateway menu)" in shown[0][3]
     assert plugin.program_queue.active == [] and evaluations == []
+    shown.clear()
+    set_locale("de")
+    try:
+        plugin._eval_device(device, DownloadScope.FULL)  # pyright: ignore[reportPrivateUsage]
+    finally:
+        set_locale("en")
+    assert "(Menü Gateway)" in shown[0][3]
 
 
 def test_a_test_names_its_scope_and_reads_while_it_runs() -> None:

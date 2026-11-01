@@ -1069,8 +1069,8 @@ msgstr "Prova in sola lettura: verifica che la funzione di scaricamento generi l
 msgid "Cannot run: the project was changed since it was opened. This test compares the generated image against the device's programmed state, which only matches the project as it was opened. Undo your changes in this session to test."
 msgstr "Impossibile eseguire: il progetto è stato modificato dopo l'apertura. Questa prova confronta l'immagine generata con lo stato programmato del dispositivo, che corrisponde solo al progetto così come è stato aperto. Annullare le modifiche di questa sessione per eseguire la prova."
 
-msgid "Cannot run: no KNX connection. Connect to a gateway (Connection menu) and make sure the device is reachable at its individual address."
-msgstr "Impossibile eseguire: nessuna connessione KNX. Connettersi a un gateway (menu Connessione) e assicurarsi che il dispositivo sia raggiungibile al suo indirizzo individuale."
+msgid "Cannot run: no KNX connection. Connect to a gateway ({menu} menu) and make sure the device is reachable at its individual address."
+msgstr "Impossibile eseguire: nessuna connessione KNX. Connettersi a un gateway (menu {menu}) e assicurarsi che il dispositivo sia raggiungibile al suo indirizzo individuale."
 
 msgid "Match: the generated image is identical to what is on the device"
 msgstr "Corrispondenza: l'immagine generata è identica a quella nel dispositivo"
@@ -1141,8 +1141,8 @@ msgstr "oggetto {object} proprietà {property}"
 msgid "Filter devices (name, address)…"
 msgstr "Filtra dispositivi (nome, indirizzo)…"
 
-msgid "No devices. Open or import a project (File menu), or right-click here to add an area."
-msgstr "Nessun dispositivo. Aprire o importare un progetto (menu File) oppure fare clic con il tasto destro qui per aggiungere un'area."
+msgid "No devices. Open or import a project ({menu} menu), or right-click here to add an area."
+msgstr "Nessun dispositivo. Aprire o importare un progetto (menu {menu}) oppure fare clic con il tasto destro qui per aggiungere un'area."
 
 msgid "Filter group addresses (address, name)…"
 msgstr "Filtra indirizzi di gruppo (indirizzo, nome)…"
