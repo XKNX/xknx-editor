@@ -105,7 +105,7 @@ _HELP_HEIGHT_SETTING = "help_height"
 _HELP_HEIGHT_NARROW = 100.0
 _HELP_HEIGHT_NARROW_SETTING = "help_height_narrow"
 # Room at 100 % scaling between the help's edges and its text.
-_HELP_PADDING = (18.0, 13.0)
+_HELP_PADDING = (17.0, 13.0)
 # Product ids of OpenKNX devices (manufacturer KNX Association, 0x00FA).
 _OPENKNX_PRODUCT_PREFIX = "M-00FA_"
 

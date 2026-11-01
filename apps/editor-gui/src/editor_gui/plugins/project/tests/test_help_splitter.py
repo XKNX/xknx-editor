@@ -71,3 +71,23 @@ def test_the_line_above_the_help_has_the_color_of_the_page_lines(
     monkeypatch.setattr(imgui.ImDrawList, "add_rect_filled", record)
     _panel()._render_help_splitter()  # pyright: ignore[reportPrivateUsage]
     assert colors[0] == imgui.get_color_u32(page_line())
+
+
+@pytest.mark.usefixtures("frame")
+def test_the_help_text_starts_as_far_in_as_in_the_reference(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    insets: list[tuple[float, float]] = []
+
+    def record(_text: str) -> None:
+        cursor = imgui.get_cursor_screen_pos()
+        window = imgui.get_window_pos()
+        insets.append((cursor.x - window.x, cursor.y - window.y))
+        imgui.dummy(imgui.ImVec2(1, 1))
+
+    monkeypatch.setattr(
+        "editor_gui.plugins.project.ui.configure.render_markdown", record
+    )
+    _panel()._render_help("# Informationen zum Sensor", 200)  # pyright: ignore[reportPrivateUsage]
+    # 17 px from the help's left edge, 13 px below its top.
+    assert insets == [(17, 13)]
