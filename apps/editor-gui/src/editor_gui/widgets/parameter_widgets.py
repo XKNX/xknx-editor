@@ -144,10 +144,9 @@ def _render_button(
     imgui.push_style_color(imgui.Col_.border, page_line())
     imgui.push_style_var(imgui.StyleVar_.frame_border_size, 1.0)
     imgui.begin_disabled(not enabled)
-    if icon is None:
-        clicked = imgui.button(f"{button.text}###btn_{prefix}_{button.id}", size)
-    else:
-        clicked = _icon_button(icon, button.text, f"###btn_{prefix}_{button.id}", size)
+    # Its text in the semilight face, as the reference's buttons have it.
+    with semilight():
+        clicked = _page_button(icon, button.text, f"###btn_{prefix}_{button.id}", size)
     imgui.end_disabled()
     imgui.pop_style_var()
     imgui.pop_style_color(2)
@@ -166,27 +165,28 @@ def _render_button(
         imgui.pop_style_color()
 
 
-def _icon_button(icon: Icon, text: str, button_id: str, size: imgui.ImVec2) -> bool:
-    """A button showing a 16 px ``icon`` before ``text``; a ``size.x`` of 0 sizes it to its
-    content."""
+def _page_button(
+    icon: Icon | None, text: str, button_id: str, size: imgui.ImVec2
+) -> bool:
+    """A button of a parameter page: its 16 px ``icon`` (if any) before its ``text``, centred
+    together, the text laid out as the page's other texts are (as WPF lays it out, which
+    imgui's own button labels are not); a ``size.x`` of 0 sizes it to its content."""
     style = imgui.get_style()
-    side = px(_BUTTON_ICON)
-    gap = style.item_inner_spacing.x if text else 0.0
-    content = side + gap + (imgui.calc_text_size(text).x if text else 0.0)
+    side = px(_BUTTON_ICON) if icon is not None else 0.0
+    gap = style.item_inner_spacing.x if icon is not None and text else 0.0
+    content = side + gap + (text_layout.text_width(text) if text else 0.0)
     clicked = imgui.button(
         button_id,
         imgui.ImVec2(size.x or content + style.frame_padding.x * 2, size.y),
     )
     low, high = imgui.get_item_rect_min(), imgui.get_item_rect_max()
     x = low.x + (high.x - low.x - content) / 2
-    y = low.y + (high.y - low.y - side) / 2
-    draw_icon(icon, imgui.ImVec2(x, y), side)
+    if icon is not None:
+        draw_icon(icon, imgui.ImVec2(x, low.y + (high.y - low.y - side) / 2), side)
     if text:
         line = imgui.get_text_line_height()
-        imgui.get_window_draw_list().add_text(
-            imgui.ImVec2(x + side + gap, low.y + (high.y - low.y - line) / 2),
-            imgui.get_color_u32(imgui.Col_.text),
-            text,
+        text_layout.draw_text_at(
+            text, imgui.ImVec2(x + side + gap, low.y + (high.y - low.y - line) / 2)
         )
     return clicked
 
@@ -746,15 +746,17 @@ def _render_time_param(
             on_change(stored)
 
 
-# Gap between a field and the suffix (e.g. a unit) after it, at 100 % scaling.
+# Gap between a field and the suffix (e.g. a unit) after it, at 100 % scaling, and the room a
+# suffix in a grid cell keeps after it (besides the cell's gap).
 _SUFFIX_GAP = 5.0
+_CELL_SUFFIX_AFTER = 4.0
 
 
 def _suffix_width(suffix: str | None) -> float:
-    """Room a suffix shown after a field takes."""
+    """Room a suffix shown after a field takes: the gap and the text as wide as WPF lays it out."""
     if not suffix:
         return 0.0
-    return imgui.calc_text_size(suffix).x + px(_SUFFIX_GAP)
+    return text_layout.text_width(suffix) + px(_SUFFIX_GAP)
 
 
 def _render_suffix(suffix: str | None) -> None:
@@ -777,17 +779,25 @@ def _spin_width() -> float:
     return imgui.get_frame_height() * 0.6
 
 
-# A spin arrow at 100 % scaling: its width, its height, how far its middle is from the right edge
-# of its field, and how far its base is from the field's top (the up arrow) or bottom (the down
-# arrow).
-_SPIN_ARROW_WIDTH = 5.0
-_SPIN_ARROW_HEIGHT = 3.5
+# A spin arrow as the reference draws it, pixel by pixel at 100 % scaling: how much of each pixel
+# it covers, row by row from its tip to its base (the down arrow is the up arrow mirrored). Its
+# middle is this far from the right edge of its field, its base this far from the field's top
+# (the up arrow) or bottom (the down arrow), and its color the text's, this much toward the page.
+_SPIN_ARROW = (
+    (0.0, 0.0, 0.38, 0.38, 0.0, 0.0),
+    (0.0, 0.17, 0.95, 0.95, 0.17, 0.0),
+    (0.14, 0.72, 1.0, 1.0, 0.72, 0.14),
+    (0.58, 1.0, 1.0, 1.0, 1.0, 0.58),
+)
 _SPIN_ARROW_RIGHT = 11.0
 _SPIN_ARROW_TOP = 9.0
 _SPIN_ARROW_BOTTOM = 8.0
+_SPIN_ARROW_LIGHTER = 0.2
 # How much higher a number field with spin arrows is than other fields, at 100 % scaling, half of
-# it above them and half below; its text is a pixel below its middle.
+# it above them and half below (its text is a pixel below its middle), and how far its text is
+# from its left edge.
 _SPIN_FIELD_TALLER = 2.0
+_SPIN_TEXT_INSET = 6.0
 
 
 def _set_number_field_width(*, spin: bool = True) -> None:
@@ -795,6 +805,16 @@ def _set_number_field_width(*, spin: bool = True) -> None:
     its right end."""
     if spin:
         imgui.set_next_item_allow_overlap()
+
+
+def _field_text(color: imgui.ImVec4) -> imgui.ImVec4:
+    """The text color of a number field: black where the page's text is grey, as the
+    reference's text boxes draw their text (white on a dark theme); a tinted text (a changed
+    value) keeps its tint."""
+    if max(color.x, color.y, color.z) - min(color.x, color.y, color.z) > 0.05:
+        return color
+    value = 0.0 if (color.x + color.y + color.z) / 3 < 0.5 else 1.0
+    return imgui.ImVec4(value, value, value, color.w)
 
 
 @contextmanager
@@ -816,14 +836,15 @@ def _spin_field() -> Generator[list[imgui.ImVec2]]:
     )
     imgui.push_style_var(
         imgui.StyleVar_.frame_padding,
-        imgui.ImVec2(style.frame_padding.x, style.frame_padding.y + half),
+        imgui.ImVec2(px(_SPIN_TEXT_INSET), style.frame_padding.y + half),
     )
     imgui.push_style_color(imgui.Col_.border, imgui.ImVec4(0, 0, 0, 0))
+    imgui.push_style_color(imgui.Col_.text, _field_text(style.color_(imgui.Col_.text)))
     corners: list[imgui.ImVec2] = []
     try:
         yield corners
     finally:
-        imgui.pop_style_color()
+        imgui.pop_style_color(2)
         imgui.pop_style_var()
         imgui.pop_clip_rect()
     low, high = imgui.get_item_rect_min(), imgui.get_item_rect_max()
@@ -894,24 +915,46 @@ def _spin_buttons(
                 imgui.get_color_u32(color),
                 rounding,
             )
-        mid_x = rect_max.x - px(_SPIN_ARROW_RIGHT)
-        half = px(_SPIN_ARROW_WIDTH) / 2
         base = (
             rect_min.y + px(_SPIN_ARROW_TOP)
             if step > 0
             else rect_max.y - px(_SPIN_ARROW_BOTTOM)
         )
-        tip = base - px(_SPIN_ARROW_HEIGHT) * step
-        draw.add_triangle_filled(
-            imgui.ImVec2(mid_x, tip),
-            imgui.ImVec2(mid_x - half, base),
-            imgui.ImVec2(mid_x + half, base),
-            imgui.get_color_u32(imgui.Col_.text),
-        )
+        _draw_spin_arrow(draw, rect_max.x - px(_SPIN_ARROW_RIGHT), base, up=step > 0)
     imgui.pop_item_flag()
     imgui.end_disabled()
     imgui.end_group()
     return steps
+
+
+def _draw_spin_arrow(
+    draw: imgui.ImDrawList, middle: float, base: float, *, up: bool
+) -> None:
+    """A spin arrow pixel by pixel (see _SPIN_ARROW), its base on the line ``base``, centred on
+    ``middle``; an up arrow above its base, a down arrow below it."""
+    text = imgui.get_style().color_(imgui.Col_.text)
+    page = content_background()
+    color = imgui.ImVec4(
+        text.x + (page.x - text.x) * _SPIN_ARROW_LIGHTER,
+        text.y + (page.y - text.y) * _SPIN_ARROW_LIGHTER,
+        text.z + (page.z - text.z) * _SPIN_ARROW_LIGHTER,
+        text.w,
+    )
+    cell = px(1.0)
+    rows = len(_SPIN_ARROW)
+    left = round(middle) - cell * len(_SPIN_ARROW[0]) / 2
+    for row, coverage in enumerate(_SPIN_ARROW):
+        top = base - (rows - row) * cell if up else base + (rows - 1 - row) * cell
+        for column, amount in enumerate(coverage):
+            if amount:
+                x = left + column * cell
+                draw.add_rect_filled(
+                    imgui.ImVec2(x, top),
+                    imgui.ImVec2(x + cell, top + cell),
+                    imgui.get_color_u32(
+                        imgui.ImVec4(color.x, color.y, color.z, color.w * amount)
+                    ),
+                )
 
 
 def _render_differs_text(widget_id: str, on_change: Callable[[str], None]) -> None:
@@ -2109,25 +2152,6 @@ def _render_block(
     return popup_request
 
 
-def _indented_cell_text(text: str, origin: float) -> str:
-    """``text`` without the leading spaces of its lines, the cursor moved to the indent level
-    they stand for. Authors indent grid labels with spaces to line them up with the indented
-    parameters of the list; how far spaces reach depends on the font, so the text goes to the
-    nearest indent level (counted from the grid's left edge ``origin``) instead."""
-    spaces = len(text) - len(text.lstrip(" "))
-    if not spaces:
-        return text
-    x = imgui.get_cursor_screen_pos().x
-    natural = x - origin + spaces * imgui.calc_text_size(" ").x
-    step = px(_INDENT_STEP)
-    imgui.set_cursor_screen_pos(
-        imgui.ImVec2(
-            origin + round(natural / step) * step, imgui.get_cursor_screen_pos().y
-        )
-    )
-    return "\n".join(line.lstrip(" ") for line in text.split("\n"))
-
-
 def _whole_pixel_starts(widths: list[float | None]) -> list[float | None]:
     """Widths in whole pixels that start each column at its declared start, rounded: imgui cuts
     each width down to whole pixels, which adds up over the columns. A column without a width
@@ -2353,7 +2377,6 @@ def _render_grid_cells(
         imgui.StyleVar_.cell_padding,
         imgui.ImVec2(padding.x if is_table else 0, cell_padding_y),
     )
-    origin = imgui.get_cursor_screen_pos().x
     opened = imgui.begin_table(
         f"##grid_{prefix}", total_cols, table_flags, imgui.ImVec2(outer_width, 0)
     )
@@ -2436,7 +2459,7 @@ def _render_grid_cells(
                 own = _label_heights.get(
                     cell_key, _celltext_height(sep, imgui.get_content_region_avail().x)
                 )
-                drawn, room = _render_cell_separator(sep, origin, row_height, own)
+                drawn, room = _render_cell_separator(sep, row_height, own)
                 _label_heights[cell_key] = drawn
                 drawn_height = max(drawn_height, room)
             if req is not None:
@@ -2452,7 +2475,7 @@ def _celltext_height(sep: UiSeparator, width: float | None) -> float:
     """Height of a label separator's text in a cell ``width`` wide (0 for other separators)."""
     if not sep.text or sep.hint not in ("Headline", None):
         return 0.0
-    text = "\n".join(line.lstrip(" ") for line in sep.text.split("\n"))
+    text = sep.text
     wrap = max(width - px(_CELL_GAP), 1.0) if width else math.inf
     if sep.hint == "Headline":
         with bold(_HEADLINE_SCALE):
@@ -2469,7 +2492,7 @@ def _cell_text_height(lines: int) -> float:
 
 
 def _render_cell_separator(
-    sep: UiSeparator, origin: float, row_height: float, height: float
+    sep: UiSeparator, row_height: float, height: float
 ) -> tuple[float, float]:
     """A separator in a grid cell: a headline in bold, a label as plain text, a ruler across.
     Text wraps where the fields of the cell end (the cell's right edge less the gap to the next
@@ -2485,8 +2508,9 @@ def _render_cell_separator(
             + imgui.get_content_region_avail().x
             - px(_CELL_GAP)
         )
-        text = _indented_cell_text(sep.text, origin)
-        # Broken into lines as other texts are.
+        # Leading spaces move the text as far as they are wide, as in the reference (authors
+        # indent labels with them). Broken into lines as other texts are.
+        text = sep.text
         wrap = max(right - imgui.get_cursor_pos_x(), 1.0)
         with bold(_HEADLINE_SCALE) if sep.hint == "Headline" else semilight():
             wrapped_text(text, wrap)
@@ -2525,9 +2549,14 @@ def _render_grid_param(
         imgui.push_style_color(imgui.Col_.text, _CHANGED_COLOR)
     read_only = param.access == Access.READ
     imgui.begin_group()
-    # In a cell a suffix keeps its gap after it too.
-    suffix = _suffix_width(param.suffix) + (px(_SUFFIX_GAP) if param.suffix else 0.0)
-    imgui.set_next_item_width(-px(_CELL_GAP) - suffix)
+    # In a cell a suffix keeps room after it too.
+    suffix = _suffix_width(param.suffix) + (
+        px(_CELL_SUFFIX_AFTER) if param.suffix else 0.0
+    )
+    # On the nearest whole pixel (imgui would cut it down).
+    imgui.set_next_item_width(
+        max(round(imgui.get_content_region_avail().x - px(_CELL_GAP) - suffix), 1)
+    )
     imgui.begin_disabled(read_only)
     req = _render_device_param(
         device,
@@ -2617,8 +2646,7 @@ def _render_param_table(
             imgui.table_set_column_index(0)
             # The row's top, above the cell padding the table puts in front of a cell's content.
             row_top = imgui.get_cursor_pos_y() - padding.y
-            # Each level indents by one step, the levels space-indented grid labels are placed on
-            # (see _indented_cell_text).
+            # Each level indents by one step.
             if indent > 0:
                 imgui.indent(indent)
             label = param.label
@@ -2738,6 +2766,12 @@ _HINT_ICON = 16.0
 _HINT_ICON_LEFT = 11.0
 _HINT_TEXT_LEFT = 37.0
 _HINT_TEXT_RIGHT = 6.0
+# The icon's top below the box's top edge, and its "i": 2 px wide, the dot and the stem from and
+# to these rows of the icon.
+_HINT_ICON_TOP = 11.0
+_HINT_I_WIDTH = 2.0
+_HINT_I_DOT = (3.0, 5.0)
+_HINT_I_STEM = (7.0, 13.0)
 # Heights of grid labels as last drawn, per row and per cell (see _render_grid_cells).
 _label_heights: dict[str, float] = {}
 # Narrowest a grid column may get (a declared width of 1 % is about 5 px).
@@ -2782,10 +2816,9 @@ _HINT_ABOVE = 5.0
 _HINT_BELOW = -1.0
 _TEXT_ABOVE = 6.0
 _TEXT_BELOW = 4.0
-# The room in an information or error box above its text and below it (with its last line's gap,
-# 6 px around the text as in the reference).
-_HINT_PAD = 8.0
-_HINT_PAD_BELOW = 6.0
+# The room in an information or error box above its text and below it (with its last line's gap).
+_HINT_PAD = 7.0
+_HINT_PAD_BELOW = 7.0
 
 
 def _wrap_width() -> float:
@@ -2842,7 +2875,7 @@ def _render_hint(
     glyph: str,
 ) -> None:
     """An information or error text in a box of ``fill`` with a ``border``, and a round icon of
-    ``color`` showing ``glyph``, or a cross without one."""
+    ``color`` showing an "i" (``glyph``), or a cross without one."""
     pad = px(_HINT_PAD)
     icon = px(_HINT_ICON)
     width = _wrap_width()
@@ -2859,15 +2892,20 @@ def _render_hint(
     draw.add_rect_filled(top, box_max, imgui.get_color_u32(fill), rounding)
     draw.add_rect(top, box_max, imgui.get_color_u32(border), rounding)
     centre = imgui.ImVec2(
-        top.x + px(_HINT_ICON_LEFT) + icon / 2, top.y + pad + icon / 2
+        top.x + px(_HINT_ICON_LEFT) + icon / 2, top.y + px(_HINT_ICON_TOP) + icon / 2
     )
     draw.add_circle_filled(centre, icon / 2, imgui.get_color_u32(color))
     white = imgui.get_color_u32(imgui.ImVec4(1, 1, 1, 1))
     if glyph:
-        size = imgui.calc_text_size(glyph)
-        draw.add_text(
-            imgui.ImVec2(centre.x - size.x / 2, centre.y - size.y / 2), white, glyph
-        )
+        # The "i" as the reference draws it: a dot and a stem 2 px wide.
+        icon_top = centre.y - icon / 2
+        half = px(_HINT_I_WIDTH) / 2
+        for start, end in (_HINT_I_DOT, _HINT_I_STEM):
+            draw.add_rect_filled(
+                imgui.ImVec2(centre.x - half, icon_top + px(start)),
+                imgui.ImVec2(centre.x + half, icon_top + px(end)),
+                white,
+            )
     else:
         arm = icon * 0.2
         for sign in (1.0, -1.0):

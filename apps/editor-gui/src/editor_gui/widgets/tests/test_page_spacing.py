@@ -14,7 +14,7 @@ import pytest
 from imgui_bundle import imgui
 from imgui_bundle.imgui import internal
 
-from editor_gui.widgets import backgrounds, parameter_widgets
+from editor_gui.widgets import backgrounds, parameter_widgets, text_layout
 from editor_gui.widgets.parameter_widgets import ParameterPage
 from xknxeditor.prod.parser_v2.ui import (
     NumberWidget,
@@ -211,9 +211,10 @@ def test_a_field_with_a_unit_in_a_cell_keeps_room_after_the_unit(
         children=(field,),
     )
     _page(grid)
-    unit = imgui.calc_text_size("Sekunden").x
-    # The cell's gap, the unit with 5 px before and after it.
-    assert widths[0] == pytest.approx(-(6 + 5 + unit + 5))
+    unit = text_layout.text_width("Sekunden")
+    # The cell (22 % of 532 px, 117 px), less its gap, and the unit (as wide as WPF lays it
+    # out) with 5 px before and 4 px after it, on the nearest whole pixel.
+    assert widths[0] == round(117 - (6 + 5 + unit + 4))
 
 
 @pytest.mark.parametrize(("page", "face"), [(1.0, 0.95), (0.1, 0.145)])
@@ -262,20 +263,21 @@ def test_a_button_has_a_border_and_its_icon_is_16_px(
 def test_a_number_field_with_spin_arrows_as_the_reference_draws_it(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    triangles: list[tuple[imgui.ImVec2, imgui.ImVec2, imgui.ImVec2]] = []
-    draw = imgui.ImDrawList.add_triangle_filled
+    pixels: list[tuple[float, float, float]] = []
+    draw = imgui.ImDrawList.add_rect_filled
 
     def record(
         self: imgui.ImDrawList,
-        a: imgui.ImVec2,
-        b: imgui.ImVec2,
-        c: imgui.ImVec2,
+        low: imgui.ImVec2,
+        high: imgui.ImVec2,
         col: int,
+        *args: Any,
     ) -> None:
-        triangles.append((a, b, c))
-        draw(self, a, b, c, col)
+        if (high.x - low.x, high.y - low.y) == (1.0, 1.0):
+            pixels.append((low.x, low.y, ((col >> 24) & 0xFF) / 255))
+        draw(self, low, high, col, *args)
 
-    monkeypatch.setattr(imgui.ImDrawList, "add_triangle_filled", record)
+    monkeypatch.setattr(imgui.ImDrawList, "add_rect_filled", record)
     top = imgui.get_cursor_screen_pos().y
     field = imgui.get_frame_height()
     imgui.set_next_item_width(60)
@@ -286,12 +288,79 @@ def test_a_number_field_with_spin_arrows_as_the_reference_draws_it(
     low, high = frame
     assert (low.y, high.y) == (top - 1, top + field + 1)
     assert internal.get_current_window().dc.cursor_max_pos.y == top + field
-    # Arrows 5 px wide and 3.5 px high, their middle 11 px from the right edge, their bases 9 px
-    # below the top and 8 px above the bottom.
-    (up_tip, up_left, _), (down_tip, down_left, _) = triangles
-    for tip, left, right in triangles:
-        assert right.x - left.x == 5
-        assert abs(left.y - tip.y) == 3.5
-        assert high.x - tip.x == 11
-    assert up_left.y - low.y == 9 and up_tip.y < up_left.y
-    assert high.y - down_left.y == 8 and down_tip.y > down_left.y
+    # Arrows 6 px wide and 4 px high, centred 11 px from the right edge, their bases 9 px below
+    # the top and 8 px above the bottom; the up arrow is the down arrow mirrored.
+    up_base, down_base = low.y + 9, high.y - 8
+    up = {(x, y): a for x, y, a in pixels if y < up_base}
+    down = {(x, y): a for x, y, a in pixels if y >= down_base}
+    assert len(up) + len(down) == len(pixels)
+    assert {x for x, _ in up} == {x for x, _ in down}
+    assert min(x for x, _ in up) == high.x - 11 - 3
+    assert max(x for x, _ in up) == high.x - 11 + 2
+    assert {y for _, y in up} == {up_base - 4, up_base - 3, up_base - 2, up_base - 1}
+    # Mirrored: each row as far from its base, the same pixels.
+    mirrored = {(x, down_base + (up_base - 1 - y)): a for (x, y), a in up.items()}
+    assert down == pytest.approx(mirrored)
+
+
+def test_an_information_box_places_its_icon_and_text_as_the_reference(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    circles: list[imgui.ImVec2] = []
+    rects: list[tuple[float, float, float, float]] = []
+    texts: list[float] = []
+    circle = imgui.ImDrawList.add_circle_filled
+    rect = imgui.ImDrawList.add_rect_filled
+
+    def record_circle(self: imgui.ImDrawList, centre: imgui.ImVec2, *args: Any) -> None:
+        circles.append(centre)
+        circle(self, centre, *args)
+
+    def record_rect(
+        self: imgui.ImDrawList, low: imgui.ImVec2, high: imgui.ImVec2, *args: Any
+    ) -> None:
+        rects.append((low.x, low.y, high.x, high.y))
+        rect(self, low, high, *args)
+
+    monkeypatch.setattr(imgui.ImDrawList, "add_circle_filled", record_circle)
+    monkeypatch.setattr(imgui.ImDrawList, "add_rect_filled", record_rect)
+    monkeypatch.setattr(
+        parameter_widgets,
+        "wrapped_text",
+        lambda _text, _width: texts.append(imgui.get_cursor_screen_pos().y),
+    )
+    top = imgui.get_cursor_screen_pos()
+    parameter_widgets._render_hint(  # pyright: ignore[reportPrivateUsage]
+        "Falls diese Applikation …",
+        imgui.ImVec4(0, 0, 1, 1),
+        imgui.ImVec4(1, 1, 1, 1),
+        imgui.ImVec4(0, 0, 1, 1),
+        "i",
+    )
+    # The 16 px icon 11 px from the box's left and top edges, the text 7 px below the top.
+    [centre] = circles
+    assert (centre.x - top.x, centre.y - top.y) == (19, 19)
+    assert texts == [top.y + 7]
+    # Its "i": a dot of 2 x 2 px 3 px below the icon's top, a stem of 2 x 6 px 7 px below it.
+    dot, stem = rects[-2:]
+    icon_top = top.y + 11
+    assert dot == (centre.x - 1, icon_top + 3, centre.x + 1, icon_top + 5)
+    assert stem == (centre.x - 1, icon_top + 7, centre.x + 1, icon_top + 13)
+
+
+@pytest.mark.parametrize(
+    ("text", "shown"),
+    [
+        ((0.2, 0.2, 0.2), (0.0, 0.0, 0.0)),
+        ((0.9, 0.9, 0.9), (1.0, 1.0, 1.0)),
+        # A changed value keeps its tint.
+        ((0.36, 0.71, 1.0), (0.36, 0.71, 1.0)),
+    ],
+)
+def test_a_number_field_shows_its_text_black_on_a_light_theme(
+    text: tuple[float, float, float], shown: tuple[float, float, float]
+) -> None:
+    color = parameter_widgets._field_text(  # pyright: ignore[reportPrivateUsage]
+        imgui.ImVec4(*text, 1.0)
+    )
+    assert (color.x, color.y, color.z) == pytest.approx(shown)

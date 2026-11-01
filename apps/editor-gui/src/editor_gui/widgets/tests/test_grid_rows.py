@@ -97,9 +97,9 @@ def test_columns_refer_to_the_width_of_a_separator(
     starts: list[float] = []
     draw = parameter_widgets._render_cell_separator  # pyright: ignore[reportPrivateUsage]
 
-    def record(sep: UiSeparator, origin: float, row: float, height: float) -> float:
+    def record(sep: UiSeparator, row: float, height: float) -> tuple[float, float]:
         starts.append(imgui.get_cursor_screen_pos().x)
-        return draw(sep, origin, row, height)
+        return draw(sep, row, height)
 
     monkeypatch.setattr(parameter_widgets, "_render_cell_separator", record)
     left = imgui.get_cursor_screen_pos().x
@@ -169,3 +169,20 @@ def test_a_row_with_a_number_field_is_as_high_as_a_row_of_labels() -> None:
         device, block, lambda *_: None, False, "numbers"
     )
     assert imgui.get_cursor_pos_y() - top == pytest.approx(_height(_grid("Halten")))
+
+
+@pytest.mark.usefixtures("frame")
+def test_leading_spaces_move_a_label_as_far_as_they_are_wide(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # "    minus": authors line labels up with spaces; the reference draws them as spaces.
+    drawn: list[str] = []
+    wrapped = parameter_widgets.wrapped_text
+
+    def record(text: str, width: float) -> None:
+        drawn.append(text)
+        wrapped(text, width)
+
+    monkeypatch.setattr(parameter_widgets, "wrapped_text", record)
+    _height(_grid("    minus", "  bis"))
+    assert drawn == ["    minus", "  bis"]
