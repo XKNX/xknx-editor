@@ -144,7 +144,7 @@ def _render_button(
     imgui.push_style_color(imgui.Col_.border, page_line())
     imgui.push_style_var(imgui.StyleVar_.frame_border_size, 1.0)
     imgui.begin_disabled(not enabled)
-    # Its text in the semilight face, as the reference's buttons have it.
+    # Its text in the semilight face.
     with semilight():
         clicked = _page_button(icon, button.text, f"###btn_{prefix}_{button.id}", size)
     imgui.end_disabled()
@@ -787,7 +787,7 @@ def _spin_width() -> float:
     return imgui.get_frame_height() * 0.6
 
 
-# A spin arrow as the reference draws it, pixel by pixel at 100 % scaling: how much of each pixel
+# A spin arrow, drawn pixel by pixel at 100 % scaling: how much of each pixel
 # it covers, row by row from its tip to its base (the down arrow is the up arrow mirrored). Its
 # middle is this far from the right edge of its field, its base this far from the field's top
 # (the up arrow) or bottom (the down arrow), and its color the text's, this much toward the page.
@@ -817,9 +817,8 @@ def _set_number_field_width(*, spin: bool = True) -> None:
 
 
 def _field_text(color: imgui.ImVec4) -> imgui.ImVec4:
-    """The text color of a number field: black where the page's text is grey, as the
-    reference's text boxes draw their text (white on a dark theme); a tinted text (a changed
-    value) keeps its tint."""
+    """The text color of a field the user types into: black where the page's text is grey
+    (white on a dark theme); a tinted text (a changed value) keeps its tint."""
     if max(color.x, color.y, color.z) - min(color.x, color.y, color.z) > 0.05:
         return color
     value = 0.0 if (color.x + color.y + color.z) / 3 < 0.5 else 1.0
@@ -828,8 +827,7 @@ def _field_text(color: imgui.ImVec4) -> imgui.ImVec4:
 
 @contextmanager
 def _text_box(*, inset: float, lower: bool) -> Generator[list[imgui.ImVec2]]:
-    """A field the user types into (a number or a text) as the reference's text boxes are: as
-    high as a button, reaching a pixel above and below where the row's fields are, its text
+    """A field the user types into (a number or a text): as high as a button, reaching a pixel above and below where the row's fields are, its text
     black, ``inset`` from its left edge and, ``lower``, a pixel below its middle. The field drawn
     inside is then that much higher a pixel lower (so its text is), cut off at the frame's
     bottom; the frame's rows the field leaves and its border are drawn here. The row keeps its
@@ -1591,8 +1589,8 @@ def render_ui_tree(
                 _get_picture = None
                 _get_icon = None
                 _narrow_page[0] = False
-            # Scrolled to its end, the page ends with its last row, as in the reference: without
-            # the window's padding below it.
+            # Scrolled to its end, the page ends with its last row, without the window's padding
+            # below it.
             inner_window = internal.get_current_window()
             inner_window.dc.cursor_max_pos = imgui.ImVec2(
                 inner_window.dc.cursor_max_pos.x,
@@ -1999,8 +1997,8 @@ _CLOSER = 6.0
 
 
 def _closer_to_last(*, grid: bool) -> None:
-    """Move the next item up to where the reference puts a grid (``grid``), or an information
-    or error box, after what the page drew last (headlines, texts and fields keep their room)."""
+    """Move a grid (``grid``), or an information or error box, up by the room it keeps less
+    than other items to what the page drew last (headlines, texts and fields keep their room)."""
     last = _drawn_last[0]
     if last == _LINE or (grid and last in (_TOP, _LINES)):
         imgui.set_cursor_pos_y(imgui.get_cursor_pos_y() - px(_CLOSER))
@@ -2292,8 +2290,8 @@ def _render_grid_block(
     uncelled_blocks: list[UiParameterBlock] = []
     rows, columns = len(block.row_labels), len(block.column_widths)
 
-    # Of several things in one cell the last one shows, as in the reference (e.g. a button or a
-    # label placed in the cell of a read-only parameter).
+    # Of several things in one cell the last one shows (e.g. a button or a label placed in the
+    # cell of a read-only parameter).
     for node in block.children:
         if isinstance(node, UiParameter | UiButton | UiParameterBlock):
             pos = _grid_pos(node.cell, rows, columns)
@@ -2383,7 +2381,7 @@ def _render_grid_cells(
     percents = _percentages(block.column_widths)
     widths: list[float | None]
     if percents is not None and len(percents) == declared_cols:
-        # Whole pixels, as the reference rounds its star columns.
+        # Whole pixels, rounded as WPF rounds star columns.
         unit = (
             _GRID_REFERENCE_WIDTH / 100.0
             if reference >= px(_GRID_REFERENCE_WIDTH)
@@ -2555,8 +2553,8 @@ def _render_cell_separator(
             + imgui.get_content_region_avail().x
             - px(_CELL_GAP)
         )
-        # Leading spaces move the text as far as they are wide, as in the reference (authors
-        # indent labels with them). Broken into lines as other texts are.
+        # Leading spaces move the text as far as they are wide (authors indent labels with
+        # them). Broken into lines as other texts are.
         text = sep.text
         wrap = max(right - imgui.get_cursor_pos_x(), 1.0)
         with bold(_HEADLINE_SCALE) if sep.hint == "Headline" else semilight():
@@ -2944,7 +2942,7 @@ def _render_hint(
     draw.add_circle_filled(centre, icon / 2, imgui.get_color_u32(color))
     white = imgui.get_color_u32(imgui.ImVec4(1, 1, 1, 1))
     if glyph:
-        # The "i" as the reference draws it: a dot and a stem 2 px wide.
+        # The "i": a dot and a stem 2 px wide.
         icon_top = centre.y - icon / 2
         half = px(_HINT_I_WIDTH) / 2
         for start, end in (_HINT_I_DOT, _HINT_I_STEM):

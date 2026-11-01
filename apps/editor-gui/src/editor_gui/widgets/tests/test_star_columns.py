@@ -1,6 +1,6 @@
-"""Percentage columns in whole pixels as the reference rounds them: a column of several equal ones
-is a pixel narrower where the reference takes it, so fields and buttons start where it puts them
-(measured in its HF-Sensor page of the OpenKNX RaumController, at 100 %)."""
+"""Percentage columns in whole pixels as WPF rounds star columns: of several equal columns, the
+ones WPF's sort leaves last are a pixel narrower (the HF-Sensor page of the OpenKNX
+RaumController at 100 %)."""
 
 from __future__ import annotations
 
@@ -20,7 +20,7 @@ def _starts(weights: list[float], scale: float = 1.0) -> list[float]:
     return starts
 
 
-def test_twelve_percent_columns_as_the_reference_has_them() -> None:
+def test_twelve_percent_columns_on_whole_pixels() -> None:
     # Trigger and Halten: 25 %, then 16 columns of 12 %; the fields at 211, 275 ... on the page
     # (15 px in), two of the first eight columns a pixel narrower.
     starts = _starts([25.0] + [12.0] * 16)

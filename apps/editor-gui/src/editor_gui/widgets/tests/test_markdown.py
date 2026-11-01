@@ -92,7 +92,7 @@ def test_list_items_lie_as_close_as_lines() -> None:
 
 
 @pytest.mark.usefixtures("frame")
-def test_paragraphs_are_parted_as_in_the_reference() -> None:
+def test_paragraphs_are_parted_by_18_px() -> None:
     # 18 px between two paragraphs (a line pitch of 16 px and a gap of 16 px at 100 %).
     top = imgui.get_cursor_pos_y()
     markdown.render_markdown("One")
@@ -103,7 +103,7 @@ def test_paragraphs_are_parted_as_in_the_reference() -> None:
 
 
 @pytest.mark.usefixtures("frame")
-def test_a_numbered_item_as_the_reference_lists_it(
+def test_a_numbered_item_ends_its_number_before_its_text(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     # The text 48 px in, its number ending 8 px before it.

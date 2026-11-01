@@ -175,7 +175,7 @@ def test_a_row_with_a_number_field_is_as_high_as_a_row_of_labels() -> None:
 def test_leading_spaces_move_a_label_as_far_as_they_are_wide(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    # "    minus": authors line labels up with spaces; the reference draws them as spaces.
+    # "    minus": authors line labels up with spaces, which are drawn as spaces.
     drawn: list[str] = []
     wrapped = parameter_widgets.wrapped_text
 
@@ -193,7 +193,7 @@ def test_of_several_things_in_one_cell_the_last_shows(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     # The HF-Sensor page puts a read-only flag and the label "leer" into one cell, and the flag
-    # of another and a button into the next: the reference shows the label and the button.
+    # of another and a button into the next: the label and the button show.
     shown: list[str] = []
     label = parameter_widgets._render_cell_separator  # pyright: ignore[reportPrivateUsage]
 

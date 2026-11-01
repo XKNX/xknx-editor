@@ -206,7 +206,7 @@ def _segoe_heights(font: TTFont, segoe: TTFont, codes: Iterable[int]) -> None:
     vertically, piecewise, so that its x-height (where it reaches above it), its top and its
     bottom are those of Segoe UI's glyph, the baseline staying. Thinning a face's outlines and
     stretching them back to its x-height (see _selawik) lifts its capitals and ascenders, which
-    then reach a pixel higher than the reference's."""
+    would then reach a pixel higher than Segoe UI's."""
     scale = font["head"].unitsPerEm / segoe["head"].unitsPerEm
     ours, theirs = font.getGlyphSet(), segoe.getGlyphSet()
     cmap, segoe_cmap = font.getBestCmap(), segoe.getBestCmap()

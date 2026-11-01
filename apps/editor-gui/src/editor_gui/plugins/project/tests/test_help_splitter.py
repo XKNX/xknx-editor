@@ -74,7 +74,7 @@ def test_the_line_above_the_help_has_the_color_of_the_page_lines(
 
 
 @pytest.mark.usefixtures("frame")
-def test_the_help_text_starts_as_far_in_as_in_the_reference(
+def test_the_help_text_starts_17_px_in(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     insets: list[tuple[float, float]] = []

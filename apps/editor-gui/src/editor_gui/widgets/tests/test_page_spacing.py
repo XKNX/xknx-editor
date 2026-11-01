@@ -260,7 +260,7 @@ def test_a_button_has_a_border_and_its_icon_is_16_px(
     assert icons == [16.0]
 
 
-def test_a_number_field_with_spin_arrows_as_the_reference_draws_it(
+def test_a_number_field_with_spin_arrows(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     pixels: list[tuple[float, float, float]] = []
@@ -303,7 +303,7 @@ def test_a_number_field_with_spin_arrows_as_the_reference_draws_it(
     assert down == pytest.approx(mirrored)
 
 
-def test_an_information_box_places_its_icon_and_text_as_the_reference(
+def test_an_information_box_places_its_icon_and_text(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     circles: list[imgui.ImVec2] = []
@@ -370,7 +370,7 @@ def test_a_button_label_is_centred_on_whole_pixels_as_wpf_centres_it(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     # Its width rounded (86.31 -> 86), then the room beside it halved and rounded: in a button
-    # 114 px wide the label starts 14 px in, where the reference puts "Ermitteln (sofort)".
+    # 114 px wide the label "Ermitteln (sofort)" starts 14 px in.
     starts: list[float] = []
     monkeypatch.setattr(text_layout, "text_width", lambda _text: 86.31)
     monkeypatch.setattr(
@@ -404,7 +404,7 @@ def test_the_line_beside_the_page_tree_is_highlighted_while_resized(
     assert rects == [imgui.get_color_u32(imgui.Col_.separator_hovered)]
 
 
-def test_a_text_field_as_the_reference_draws_its_text_boxes(
+def test_a_text_field_as_high_as_a_number_field_with_black_text(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     # As high as a number field, its text 3 px in and not lowered, black.
