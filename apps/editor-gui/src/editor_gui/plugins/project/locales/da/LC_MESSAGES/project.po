@@ -1069,8 +1069,8 @@ msgstr "Skrivebeskyttet test: kontrollerer, at downloadfunktionen danner samme b
 msgid "Cannot run: the project was changed since it was opened. This test compares the generated image against the device's programmed state, which only matches the project as it was opened. Undo your changes in this session to test."
 msgstr "Kan ikke køres: projektet er ændret, siden det blev åbnet. Denne test sammenligner det dannede billede med enhedens programmerede tilstand, som kun passer til projektet, som det var, da det blev åbnet. Fortryd dine ændringer i denne session for at teste."
 
-msgid "Cannot run: no KNX connection. Connect to a gateway (Connection menu) and make sure the device is reachable at its individual address."
-msgstr "Kan ikke køres: ingen KNX-forbindelse. Opret forbindelse til en gateway (menuen Forbindelse), og sørg for, at enheden kan nås på sin individuelle adresse."
+msgid "Cannot run: no KNX connection. Connect to a gateway ({menu} menu) and make sure the device is reachable at its individual address."
+msgstr "Kan ikke køres: ingen KNX-forbindelse. Opret forbindelse til en gateway (menuen {menu}), og sørg for, at enheden kan nås på sin individuelle adresse."
 
 msgid "Match: the generated image is identical to what is on the device"
 msgstr "Match: det dannede billede er identisk med indholdet i enheden"
@@ -1141,8 +1141,8 @@ msgstr "objekt {object} egenskab {property}"
 msgid "Filter devices (name, address)…"
 msgstr "Filtrer enheder (navn, adresse)…"
 
-msgid "No devices. Open or import a project (File menu), or right-click here to add an area."
-msgstr "Ingen enheder. Åbn eller importer et projekt (menuen Fil), eller højreklik her for at tilføje et område."
+msgid "No devices. Open or import a project ({menu} menu), or right-click here to add an area."
+msgstr "Ingen enheder. Åbn eller importer et projekt (menuen {menu}), eller højreklik her for at tilføje et område."
 
 msgid "Filter group addresses (address, name)…"
 msgstr "Filtrer gruppeadresser (adresse, navn)…"

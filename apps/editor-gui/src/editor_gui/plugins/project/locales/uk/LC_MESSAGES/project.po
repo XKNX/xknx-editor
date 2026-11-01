@@ -1069,8 +1069,8 @@ msgstr "Перевірка лише для читання: перевіряє, �
 msgid "Cannot run: the project was changed since it was opened. This test compares the generated image against the device's programmed state, which only matches the project as it was opened. Undo your changes in this session to test."
 msgstr "Неможливо виконати: проєкт змінено після відкриття. Ця перевірка порівнює створений образ із запрограмованим станом пристрою, який відповідає лише проєкту в тому вигляді, у якому його відкрито. Щоб виконати перевірку, скасуйте зміни, зроблені в цьому сеансі."
 
-msgid "Cannot run: no KNX connection. Connect to a gateway (Connection menu) and make sure the device is reachable at its individual address."
-msgstr "Неможливо виконати: немає з'єднання KNX. Під'єднайтеся до шлюзу (меню «З'єднання») і переконайтеся, що пристрій доступний за своєю індивідуальною адресою."
+msgid "Cannot run: no KNX connection. Connect to a gateway ({menu} menu) and make sure the device is reachable at its individual address."
+msgstr "Неможливо виконати: немає з'єднання KNX. Під'єднайтеся до шлюзу (меню «{menu}») і переконайтеся, що пристрій доступний за своєю індивідуальною адресою."
 
 msgid "Match: the generated image is identical to what is on the device"
 msgstr "Збіг: створений образ ідентичний тому, що в пристрої"
@@ -1141,8 +1141,8 @@ msgstr "об'єкт {object} властивість {property}"
 msgid "Filter devices (name, address)…"
 msgstr "Фільтрувати пристрої (ім'я, адреса)…"
 
-msgid "No devices. Open or import a project (File menu), or right-click here to add an area."
-msgstr "Немає пристроїв. Відкрийте або імпортуйте проєкт (меню «Файл») або клацніть тут правою кнопкою, щоб додати область."
+msgid "No devices. Open or import a project ({menu} menu), or right-click here to add an area."
+msgstr "Немає пристроїв. Відкрийте або імпортуйте проєкт (меню «{menu}») або клацніть тут правою кнопкою, щоб додати область."
 
 msgid "Filter group addresses (address, name)…"
 msgstr "Фільтрувати групові адреси (адреса, ім'я)…"

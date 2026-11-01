@@ -1069,8 +1069,8 @@ msgstr "只读测试：检查下载功能生成的映像是否与设备上已编
 msgid "Cannot run: the project was changed since it was opened. This test compares the generated image against the device's programmed state, which only matches the project as it was opened. Undo your changes in this session to test."
 msgstr "无法运行：项目自打开以来已被更改。此测试将生成的映像与设备的已编程状态进行比较，而该状态只与打开时的项目相符。请撤消本次会话中的更改后再测试。"
 
-msgid "Cannot run: no KNX connection. Connect to a gateway (Connection menu) and make sure the device is reachable at its individual address."
-msgstr "无法运行：没有 KNX 连接。请连接到网关（“连接”菜单），并确保设备可通过其物理地址访问。"
+msgid "Cannot run: no KNX connection. Connect to a gateway ({menu} menu) and make sure the device is reachable at its individual address."
+msgstr "无法运行：没有 KNX 连接。请连接到网关（“{menu}”菜单），并确保设备可通过其物理地址访问。"
 
 msgid "Match: the generated image is identical to what is on the device"
 msgstr "匹配：生成的映像与设备上的内容完全相同"
@@ -1141,8 +1141,8 @@ msgstr "对象 {object} 属性 {property}"
 msgid "Filter devices (name, address)…"
 msgstr "过滤设备（名称、地址）…"
 
-msgid "No devices. Open or import a project (File menu), or right-click here to add an area."
-msgstr "没有设备。请打开或导入项目（“文件”菜单），或在此处右击以添加区域。"
+msgid "No devices. Open or import a project ({menu} menu), or right-click here to add an area."
+msgstr "没有设备。请打开或导入项目（“{menu}”菜单），或在此处右击以添加区域。"
 
 msgid "Filter group addresses (address, name)…"
 msgstr "过滤组地址（地址、名称）…"
