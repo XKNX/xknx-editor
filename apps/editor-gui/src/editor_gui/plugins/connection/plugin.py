@@ -44,7 +44,7 @@ from editor_gui.widgets.dialog import (
     end_dialog,
 )
 from editor_gui.widgets.dpi import label_column_width, px, px_vec2
-from editor_gui.widgets.spinner import spinner
+from editor_gui.widgets.spinner import loading, spinner
 from editor_gui.widgets.tree import collapsing_header
 from xknxeditor.prod.app_id import parse_app_id
 
@@ -1393,9 +1393,7 @@ class ConnectionPlugin:
         imgui.end_disabled()
         if self._progmode_scanning:
             imgui.same_line()
-            spinner("##progmode-spinner")
-            imgui.same_line()
-            imgui.text_disabled(S.PROGMODE_SEARCHING)
+            loading("##progmode-spinner", S.PROGMODE_SEARCHING)
         imgui.push_text_wrap_pos(0.0)
         imgui.text_disabled(S.PROGMODE_HINT)
         imgui.pop_text_wrap_pos()
