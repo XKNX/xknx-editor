@@ -796,6 +796,9 @@ msgstr "Uvolnit"
 msgid "Unload Application and Address"
 msgstr "Uvolnit aplikaci a adresu"
 
+msgid "Partial"
+msgstr "Částečně"
+
 msgid "Partial: Parameters"
 msgstr "Částečně: parametry"
 

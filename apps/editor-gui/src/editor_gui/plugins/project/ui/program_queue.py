@@ -351,6 +351,8 @@ def state_text(item: QueueItem, connecting: bool = False) -> str:
 
 def _scope_label(scope: DownloadScope | None) -> str:
     match scope:
+        case DownloadScope.PARTIAL:
+            return S.SCOPE_PARTIAL
         case DownloadScope.PARAMETERS:
             return S.SCOPE_PARAMETERS
         case DownloadScope.GROUP_COMMUNICATION:

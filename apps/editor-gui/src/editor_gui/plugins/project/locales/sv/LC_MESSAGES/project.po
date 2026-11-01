@@ -796,6 +796,9 @@ msgstr "Avprogrammera"
 msgid "Unload Application and Address"
 msgstr "Avprogrammera applikation och adress"
 
+msgid "Partial"
+msgstr "Delvis"
+
 msgid "Partial: Parameters"
 msgstr "Delvis: parametrar"
 

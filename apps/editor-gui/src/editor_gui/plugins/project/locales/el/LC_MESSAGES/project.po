@@ -796,6 +796,9 @@ msgstr "Αποφόρτιση"
 msgid "Unload Application and Address"
 msgstr "Αποφόρτιση Εφαρμογής και Διεύθυνσης"
 
+msgid "Partial"
+msgstr "Μερική"
+
 msgid "Partial: Parameters"
 msgstr "Μερική: Παράμετροι"
 

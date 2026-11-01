@@ -145,6 +145,9 @@ msgstr "Afhlaða"
 msgid "Unload Application and Address"
 msgstr "Afhlaða verkforrit og vistfang"
 
+msgid "Partial"
+msgstr "Að hluta"
+
 msgid "Partial: Parameters"
 msgstr "Að hluta: færibreytur"
 

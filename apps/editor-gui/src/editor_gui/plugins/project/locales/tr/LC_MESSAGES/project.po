@@ -796,6 +796,9 @@ msgstr "Boşalt"
 msgid "Unload Application and Address"
 msgstr "Uygulama ve Adresi Boşalt"
 
+msgid "Partial"
+msgstr "Kısmi"
+
 msgid "Partial: Parameters"
 msgstr "Kısmi: Parametreler"
 
