@@ -1497,3 +1497,12 @@ msgstr "Asennettua ETS:ää ei löytynyt, tai tämä ei ole Windows."
 
 msgid "ETS 5 needs a physical dongle to write the certificate; without one the project is exported uncertified."
 msgstr "ETS 5 tarvitsee fyysisen donglen varmenteen kirjoittamiseen; ilman sitä projekti viedään varmentamattomana."
+
+msgid "This runs only on Windows with an installed ETS; this system is not Windows."
+msgstr "Toimii vain Windowsissa, johon on asennettu ETS; tämä järjestelmä ei ole Windows."
+
+msgid "No installed ETS was found in the usual locations."
+msgstr "Asennettua ETS:ää ei löytynyt tavallisista sijainneista."
+
+msgid "ETS was found, but the .NET SDK (or a prebuilt helper) is needed to run the export."
+msgstr "ETS löytyi, mutta viennin suorittamiseen tarvitaan .NET SDK (tai esikäännetty apuohjelma)."

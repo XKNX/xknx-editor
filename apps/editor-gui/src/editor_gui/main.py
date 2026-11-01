@@ -154,6 +154,7 @@ from xknxeditor.proj import (
     MYKNX_DLL_NAME,
     CompactCancelled,
     CompactResult,
+    EtsDetection,
     EtsExportError,
     EtsInstall,
     ExportCancelled,
@@ -164,11 +165,8 @@ from xknxeditor.proj import (
     ProjectPasswordRequired,
     ProjectStorageError,
     default_myknx_dll_path,
-    detect_ets,
-    detect_ets5,
-    ets5_local_available,
+    detect_local_ets,
     ets5_local_sign,
-    ets_local_available,
     ets_local_sign,
     export_knxproj,
     extract_oauth_credentials,
@@ -551,11 +549,14 @@ class KnxGuiApp:
         self._myknx_open_oauth_config = False
         # The dongle steps wrapped to the width of their box: ((text, width), wrapped text).
         self._dongle_steps_wrapped: tuple[tuple[str, float], str] = (("", 0.0), "")
-        # Local-ETS re-export: the detected installation (probed once; None once probed and absent),
-        # whether it is an ETS 5 (dongle-only cert), and whether the user accepted an untested version.
+        # Local-ETS re-export: the detected installation (probed per dialog open), whether it is an
+        # ETS 5 (dongle-only cert), whether the build backend is present, the full probe report (for
+        # the message + log), and whether the user accepted an untested version.
         self._ets_install_checked = False
         self._ets_install: EtsInstall | None = None
         self._ets_is5 = False
+        self._ets_backend_ok = False
+        self._ets_detection: EtsDetection | None = None
         self._ets_accept_untested = False
         # Width of the Sign Export fields' titles column (set each frame the dialog shows).
         self._sign_title_w = 0.0
@@ -1386,6 +1387,9 @@ class KnxGuiApp:
         """Ask about MyKnx certificate signing before running the export to ``dest``."""
         self._export_pending_dest = dest
         self._myknx_prompt_requested = True
+        # Re-probe for a local ETS each time the dialog opens, so installing ETS (or the .NET SDK)
+        # between opens is picked up without restarting the app.
+        self._ets_install_checked = False
 
     def _do_export_knxproj(
         self, dest: str, signer: Callable[[str, bytes, str], bytes | None] | None = None
@@ -1985,20 +1989,15 @@ class KnxGuiApp:
         )
         # Local-ETS re-export drives the installed tool, so it makes no sense on a server (web mode):
         # hidden there. On a desktop the tab always shows -- first and default when an installation
-        # was found, otherwise last with a hint why it is unavailable. ETS 6 is preferred; ETS 5 is
-        # used only if no ETS 6 is present (its certificate needs a physical dongle).
+        # was found, otherwise last with a hint why. Detection is independent of the build backend so
+        # the message can tell "no ETS" apart from "ETS found but no .NET SDK" and "not Windows".
         if not self._ets_install_checked:
             self._ets_install_checked = True
-            self._ets_install = None
-            self._ets_is5 = False
-            if web.active_hub is None:
-                if ets_local_available():
-                    self._ets_install = detect_ets()
-                elif ets5_local_available():
-                    self._ets_install = detect_ets5()
-                    self._ets_is5 = True
-        ets_available = self._ets_install is not None
-        ets_unavailable = web.active_hub is None and self._ets_install is None
+            self._probe_ets()
+        ets_found = self._ets_install is not None
+        ets_ready = ets_found and self._ets_backend_ok
+        ets_available = ets_found and web.active_hub is None
+        ets_unavailable = web.active_hub is None and not ets_found
         ets_local = False
         with outlined_tabs():
             if begin_tab_bar("##export_license"):
@@ -2041,11 +2040,11 @@ class KnxGuiApp:
 
         if ets_local:
             # The installed tool imports and re-exports the project, so it writes the certificate.
-            # Confirm is disabled when no installation was found (the tab only explains why then).
+            # Confirm is disabled unless an install was found AND its build backend is present.
             clicked = dialog_buttons(
-                S.MYKNX_ETS_CONFIRM, S.BTN_CANCEL, enabled=[ets_available, True]
+                S.MYKNX_ETS_CONFIRM, S.BTN_CANCEL, enabled=[ets_ready, True]
             )
-            if clicked == 0 and ets_available and dest is not None:
+            if clicked == 0 and ets_ready and dest is not None:
                 self._do_export_via_ets(dest, accept_untested=self._ets_accept_untested)
                 self._export_pending_dest = None
                 imgui.close_current_popup()
@@ -5031,13 +5030,45 @@ class KnxGuiApp:
         if imgui.button(S.BTN_COPY):
             imgui.set_clipboard_text(S.MYKNX_DONGLE_STEPS)
 
+    def _probe_ets(self) -> None:
+        """Detect a local ETS install (backend-independent) and record the outcome + a log line.
+
+        Skipped in the browser UI (the server has no local ETS). The probe details go to the log so
+        the reason for an unavailable export (not Windows / no ETS / missing .NET SDK) is visible.
+        """
+        if web.active_hub is not None:
+            self._ets_install, self._ets_is5, self._ets_detection = None, False, None
+            self._ets_backend_ok = False
+            return
+        det = detect_local_ets()
+        self._ets_detection = det
+        self._ets_install = det.install
+        self._ets_is5 = det.is_ets5
+        self._ets_backend_ok = det.backend_available
+        self._log.info(
+            "local ETS detection",
+            windows=det.is_windows,
+            found=self._ets_install.directory if self._ets_install else None,
+            backend=self._ets_backend_ok,
+            detail=" | ".join(det.probed),
+        )
+
     def _render_ets_local_tab(self) -> None:
         """'License through the installed ETS' tab: show the detected install and run the re-export."""
+        amber = imgui.ImVec4(0.85, 0.7, 0.3, 1.0)
         install = self._ets_install
         if install is None:
-            imgui.push_style_color(imgui.Col_.text, imgui.ImVec4(0.85, 0.7, 0.3, 1.0))
-            imgui.text_wrapped(S.MYKNX_ETS_UNAVAILABLE)
+            det = self._ets_detection
+            imgui.push_style_color(imgui.Col_.text, amber)
+            if det is not None and not det.is_windows:
+                imgui.text_wrapped(S.MYKNX_ETS_NOT_WINDOWS)
+            else:
+                imgui.text_wrapped(S.MYKNX_ETS_NONE_FOUND)
             imgui.pop_style_color()
+            # Debug detail: the probed locations and why each failed (raw paths, not translated).
+            if det is not None:
+                for line in det.probed:
+                    imgui.text_disabled(line)
             return
         version = install.version or S.MYKNX_ETS_VERSION_UNKNOWN
         imgui.text_colored(
@@ -5047,6 +5078,10 @@ class KnxGuiApp:
         imgui.text_wrapped(S.MYKNX_ETS_HINT)
         if self._ets_is5:
             imgui.text_wrapped(S.MYKNX_ETS5_DONGLE_HINT)
+        if not self._ets_backend_ok:
+            imgui.push_style_color(imgui.Col_.text, amber)
+            imgui.text_wrapped(S.MYKNX_ETS_NO_BACKEND)
+            imgui.pop_style_color()
         if not install.tested:
             _, self._ets_accept_untested = checkbox(
                 S.MYKNX_ETS_ACCEPT_UNTESTED, self._ets_accept_untested

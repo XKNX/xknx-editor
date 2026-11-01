@@ -835,8 +835,20 @@ class MenuStrings:
         return _("(unknown version)")
 
     @property
-    def MYKNX_ETS_UNAVAILABLE(self) -> str:
-        return _("No installed ETS was found, or this is not Windows.")
+    def MYKNX_ETS_NOT_WINDOWS(self) -> str:
+        return _(
+            "This runs only on Windows with an installed ETS; this system is not Windows."
+        )
+
+    @property
+    def MYKNX_ETS_NONE_FOUND(self) -> str:
+        return _("No installed ETS was found in the usual locations.")
+
+    @property
+    def MYKNX_ETS_NO_BACKEND(self) -> str:
+        return _(
+            "ETS was found, but the .NET SDK (or a prebuilt helper) is needed to run the export."
+        )
 
     @property
     def MYKNX_ETS5_DONGLE_HINT(self) -> str:
