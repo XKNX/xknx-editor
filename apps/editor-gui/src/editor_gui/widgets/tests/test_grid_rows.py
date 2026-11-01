@@ -186,3 +186,51 @@ def test_leading_spaces_move_a_label_as_far_as_they_are_wide(
     monkeypatch.setattr(parameter_widgets, "wrapped_text", record)
     _height(_grid("    minus", "  bis"))
     assert drawn == ["    minus", "  bis"]
+
+
+@pytest.mark.usefixtures("frame")
+def test_of_several_things_in_one_cell_the_last_shows(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # The HF-Sensor page puts a read-only flag and the label "leer" into one cell, and the flag
+    # of another and a button into the next: the reference shows the label and the button.
+    shown: list[str] = []
+    label = parameter_widgets._render_cell_separator  # pyright: ignore[reportPrivateUsage]
+
+    def record_label(
+        sep: UiSeparator, row: float, height: float
+    ) -> tuple[float, float]:
+        shown.append(f"label {sep.text.strip() if sep.text else ''}")
+        return label(sep, row, height)
+
+    def record_param(_device: Any, param: UiParameter, *_args: Any) -> None:
+        shown.append(f"param {param.ref_id}")
+
+    def record_button(_device: Any, button: UiButton, *_args: Any, **_kw: Any) -> None:
+        shown.append(f"button {button.id}")
+
+    monkeypatch.setattr(parameter_widgets, "_render_cell_separator", record_label)
+    monkeypatch.setattr(parameter_widgets, "_render_grid_param", record_param)
+    monkeypatch.setattr(parameter_widgets, "_render_button", record_button)
+
+    def flag(ref: str, cell: str) -> UiParameter:
+        choices = (EnumChoice(0, "Nein", "C-0"), EnumChoice(1, "Ja", "C-1"))
+        widget = EnumWidget(choices=choices, base=None)  # type: ignore[arg-type]
+        return UiParameter(
+            ref_id=ref, label="", value="0", default_value="0", widget=widget, cell=cell
+        )
+
+    block = UiParameterBlock(
+        id="PB-M",
+        layout=ParameterBlockLayout.GRID,
+        row_labels=("",),
+        column_widths=("25%", "14%", "14%"),
+        children=(
+            flag("P-99901", "1,2"),
+            flag("P-99902", "1,3"),
+            UiButton(id="B-1", text="", cell="1,2"),
+            UiSeparator(id="PS-1", text="       leer", cell="1,3"),
+        ),
+    )
+    _height(block)
+    assert shown == ["button B-1", "label leer"]

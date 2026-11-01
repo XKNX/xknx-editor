@@ -2253,11 +2253,14 @@ def _render_grid_block(
     uncelled_blocks: list[UiParameterBlock] = []
     rows, columns = len(block.row_labels), len(block.column_widths)
 
+    # Of several things in one cell the last one shows, as in the reference (e.g. a button or a
+    # label placed in the cell of a read-only parameter).
     for node in block.children:
         if isinstance(node, UiParameter | UiButton | UiParameterBlock):
             pos = _grid_pos(node.cell, rows, columns)
             if pos is not None:
                 cells_by_pos[pos] = node
+                labels_by_pos.pop(pos, None)
             elif isinstance(node, UiParameterBlock):
                 uncelled_blocks.append(node)
             else:
@@ -2266,6 +2269,7 @@ def _render_grid_block(
             pos = _grid_pos(node.cell, rows, columns)
             if pos is not None:
                 labels_by_pos[pos] = node
+                cells_by_pos.pop(pos, None)
 
     if cells_by_pos or labels_by_pos:
         req = _render_grid_cells(
