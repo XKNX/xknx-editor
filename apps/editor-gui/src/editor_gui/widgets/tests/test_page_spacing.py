@@ -381,3 +381,24 @@ def test_a_button_label_is_centred_on_whole_pixels_as_wpf_centres_it(
         None, "Ermitteln (sofort)", "###b", imgui.ImVec2(114, 24)
     )
     assert starts == [left + 14]
+
+
+def test_the_line_beside_the_page_tree_is_highlighted_while_resized(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # As the line above the help: hovered or dragged, the whole line in the theme's highlight.
+    rects: list[int] = []
+    draw = imgui.ImDrawList.add_rect_filled
+
+    def record(
+        self: imgui.ImDrawList, low: imgui.ImVec2, high: imgui.ImVec2, col: int, *a: Any
+    ) -> None:
+        rects.append(col)
+        draw(self, low, high, col, *a)
+
+    monkeypatch.setattr(imgui.ImDrawList, "add_rect_filled", record)
+    monkeypatch.setattr(parameter_widgets, "_selected_row", [(10.0, 30.0)])
+    parameter_widgets._draw_page_line(  # pyright: ignore[reportPrivateUsage]
+        100, 102, 0, 300, imgui.Col_.separator_hovered
+    )
+    assert rects == [imgui.get_color_u32(imgui.Col_.separator_hovered)]

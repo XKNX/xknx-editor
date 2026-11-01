@@ -89,3 +89,40 @@ def test_list_items_lie_as_close_as_lines() -> None:
     markdown.render_markdown("- one\n- two")
     line = imgui.get_text_line_height()
     assert imgui.get_cursor_pos_y() - top == pytest.approx(2 * (line + LINE_GAP))
+
+
+@pytest.mark.usefixtures("frame")
+def test_paragraphs_are_parted_as_in_the_reference() -> None:
+    # 18 px between two paragraphs (a line pitch of 16 px and a gap of 16 px at 100 %).
+    top = imgui.get_cursor_pos_y()
+    markdown.render_markdown("One")
+    one = imgui.get_cursor_pos_y() - top
+    top = imgui.get_cursor_pos_y()
+    markdown.render_markdown("One\n\nTwo")
+    assert imgui.get_cursor_pos_y() - top == pytest.approx(2 * one + 18 - LINE_GAP)
+
+
+@pytest.mark.usefixtures("frame")
+def test_a_numbered_item_as_the_reference_lists_it(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # The text 48 px in, its number ending 8 px before it.
+    drawn: list[tuple[str, float]] = []
+    monkeypatch.setattr(
+        markdown.text_layout,
+        "draw_text_at",
+        lambda text, origin: drawn.append((text, origin.x)),
+    )
+
+    def wrapped(text: str, _width: float) -> None:
+        drawn.append((text, imgui.get_cursor_screen_pos().x))
+        imgui.dummy(imgui.ImVec2(1, 1))
+
+    monkeypatch.setattr(markdown, "wrapped_text", wrapped)
+    monkeypatch.setattr(markdown.text_layout, "text_width", lambda _text: 9.0)
+    left = imgui.get_cursor_screen_pos().x
+    markdown.render_markdown("1. Einen oberen Trigger-Wert")
+    assert drawn == [
+        ("1.", left + 48 - 8 - 9),
+        ("Einen oberen Trigger-Wert", left + 48),
+    ]

@@ -1579,6 +1579,13 @@ def render_ui_tree(
                 _get_picture = None
                 _get_icon = None
                 _narrow_page[0] = False
+            # Scrolled to its end, the page ends with its last row, as in the reference: without
+            # the window's padding below it.
+            inner_window = internal.get_current_window()
+            inner_window.dc.cursor_max_pos = imgui.ImVec2(
+                inner_window.dc.cursor_max_pos.x,
+                inner_window.dc.cursor_max_pos.y - imgui.get_style().window_padding.y,
+            )
         imgui.end_child()
         return request
 
@@ -1664,8 +1671,18 @@ def render_ui_tree(
             if footer is not None:
                 _move_cursor_right(px(1.0))
                 footer(bottom - imgui.get_cursor_screen_pos().y)
+            # The line is where the tree is resized: highlighted while hovered or dragged, as the
+            # line above the help is.
+            table = internal.get_current_table()
+            highlight = (
+                imgui.Col_.separator_active
+                if table.resized_column == 0
+                else imgui.Col_.separator_hovered
+                if table.hovered_column_border == 0
+                else None
+            )
             imgui.end_table()
-            _draw_page_line(line_left, line_right, line_top, line_bottom)
+            _draw_page_line(line_left, line_right, line_top, line_bottom, highlight)
     imgui.pop_clip_rect()
     # The area ends at the window's edges, in its padding: it leaves nothing to scroll to (but
     # downwards where it is narrow, when the page reaches below the window).
@@ -1704,10 +1721,20 @@ def _move_cursor_right(distance: float) -> None:
     imgui.set_cursor_screen_pos(imgui.ImVec2(pos.x + distance, pos.y))
 
 
-def _draw_page_line(left: float, right: float, top: float, bottom: float) -> None:
+def _draw_page_line(
+    left: float, right: float, top: float, bottom: float, highlight: int | None = None
+) -> None:
     """The line between the page tree and the page, open beside the selected page, which has the
-    page's background, so the two join."""
+    page's background, so the two join; in the color ``highlight`` along its whole length while
+    it is hovered or dragged to resize the tree."""
     draw_list = imgui.get_window_draw_list()
+    if highlight is not None:
+        draw_list.add_rect_filled(
+            imgui.ImVec2(left, top),
+            imgui.ImVec2(right, bottom),
+            imgui.get_color_u32(highlight),
+        )
+        return
     if _tree_scrolls and _tree_scrolls[0]:
         # The tree's scrollbar parts it from the page.
         draw_list.add_rect_filled(
