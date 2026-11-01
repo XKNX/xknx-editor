@@ -65,3 +65,6 @@ imgui.ini
 
 # Scratch iconset produced by tools/make_icon.py when regenerating icon.icns (macOS)
 apps/editor-gui/icon.iconset/
+
+# Prebuilt net48 ETS export helpers (built in CI, bundled into the release)
+packages/proj/src/xknxeditor/proj/core/_prebuilt/

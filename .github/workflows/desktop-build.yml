@@ -56,6 +56,14 @@ jobs:
         with:
           enable-cache: true
       - run: uv sync --all-packages
+      # Prebuild the net48 ETS export helpers so the Windows release runs the export without a
+      # dotnet SDK on the user's PC (the spec bundles core/_prebuilt/ via collect_data_files).
+      # Non-fatal: without it the app just reports "needs .NET SDK". No-op on non-Windows (the
+      # feature is Windows-only).
+      - name: Prebuild ETS export helpers
+        if: runner.os == 'Windows'
+        continue-on-error: true
+        run: uv run python scripts/build_ets_helpers.py
       - name: Package with PyInstaller
         working-directory: apps/editor-gui
         run: >-
@@ -229,6 +237,11 @@ jobs:
           enable-cache: true
       - run: uv sync --all-packages
 
+      - name: Prebuild ETS export helpers
+        if: runner.os == 'Windows'
+        continue-on-error: true
+        run: uv run python scripts/build_ets_helpers.py
+
       - name: Package with PyInstaller
         working-directory: apps/editor-gui
         run: >-
@@ -346,6 +359,11 @@ jobs:
         with:
           enable-cache: true
       - run: uv sync --all-packages
+
+      - name: Prebuild ETS export helpers
+        if: runner.os == 'Windows'
+        continue-on-error: true
+        run: uv run python scripts/build_ets_helpers.py
 
       - name: Package with PyInstaller
         working-directory: apps/editor-gui
