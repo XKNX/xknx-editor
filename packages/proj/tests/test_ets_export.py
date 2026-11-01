@@ -92,11 +92,32 @@ def _patch_run(
     monkeypatch.setattr(ets_export.subprocess, "Popen", _popen)
 
 
-def test_detect_requires_every_file(tmp_path: Path) -> None:
+def test_detect_keys_off_host_exe(tmp_path: Path) -> None:
     directory = _fake_install(tmp_path, "ETS6", _REQUIRED)
     assert detect_ets(str(directory)) is not None
+    # A missing runtime dependency no longer hides the install (the helper verifies it at run time).
     (directory / "Autofac.dll").unlink()
+    assert detect_ets(str(directory)) is not None
+    # The host executable is the defining signal.
+    (directory / "ETS6N.exe").unlink()
     assert detect_ets(str(directory)) is None
+
+
+def test_detect_local_ets_reports_diagnostics(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    directory = _fake_install(tmp_path, "ETS6", _REQUIRED)
+    monkeypatch.setattr(ets_export, "_ets_roots", lambda: [str(directory)])
+    report = ets_export.detect_local_ets()
+    assert report.ets6 is not None
+    assert report.install is report.ets6
+    assert report.is_ets5 is False
+    assert any("ETS 6 detected" in line for line in report.probed)
+    # A missing dependency is reported but does not suppress detection.
+    (directory / "Autofac.dll").unlink()
+    report = ets_export.detect_local_ets()
+    assert report.ets6 is not None
+    assert any("missing dependencies" in line for line in report.probed)
 
 
 def test_detect_ets5_requires_every_file(tmp_path: Path) -> None:

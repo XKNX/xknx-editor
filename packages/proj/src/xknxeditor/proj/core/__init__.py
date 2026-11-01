@@ -2,11 +2,13 @@
 
 from xknxeditor.proj.core.compact import CompactCancelled, CompactResult
 from xknxeditor.proj.core.ets_export import (
+    EtsDetection,
     EtsExportError,
     EtsInstall,
     EtsSignResult,
     detect_ets,
     detect_ets5,
+    detect_local_ets,
     ets5_local_available,
     ets5_local_sign,
     ets_local_available,
@@ -90,6 +92,7 @@ __all__ = [
     "AdditionalAddressInfo",
     "CompactCancelled",
     "CompactResult",
+    "EtsDetection",
     "EtsExportError",
     "EtsInstall",
     "EtsSignResult",
@@ -111,6 +114,7 @@ __all__ = [
     "default_trace_dll_path",
     "detect_ets",
     "detect_ets5",
+    "detect_local_ets",
     "encrypt_comment",
     "ets5_local_available",
     "ets5_local_sign",
