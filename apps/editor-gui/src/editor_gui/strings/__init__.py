@@ -819,6 +819,55 @@ class MenuStrings:
         return _("License with a Dongle")
 
     @property
+    def MYKNX_ETS_TAB(self) -> str:
+        return _("License Through Installed ETS")
+
+    @property
+    def MYKNX_ETS_CONFIRM(self) -> str:
+        return _("Export Through ETS")
+
+    @property
+    def MYKNX_ETS_FOUND(self) -> str:
+        return _("Found ETS {version}.")
+
+    @property
+    def MYKNX_ETS_VERSION_UNKNOWN(self) -> str:
+        return _("(unknown version)")
+
+    @property
+    def MYKNX_ETS_UNAVAILABLE(self) -> str:
+        return _("No installed ETS was found, or this is not Windows.")
+
+    @property
+    def MYKNX_ETS5_DONGLE_HINT(self) -> str:
+        return _(
+            "ETS 5 needs a physical dongle to write the certificate; without one the project is "
+            "exported uncertified."
+        )
+
+    @property
+    def MYKNX_ETS_HINT(self) -> str:
+        return _(
+            "The installed ETS imports and re-exports the project and writes the certificate from "
+            "your licence (cloud or dongle). Start ETS once first so the licence is available "
+            "locally. No login or network is used."
+        )
+
+    @property
+    def MYKNX_ETS_ACCEPT_UNTESTED(self) -> str:
+        return _("Use this untested ETS version anyway")
+
+    @property
+    def MYKNX_ETS_DONE_CERT(self) -> str:
+        return _("Exported through ETS and certified for {name}.")
+
+    @property
+    def MYKNX_ETS_DONE_NOCERT(self) -> str:
+        return _(
+            "Exported through ETS, but without a certificate (no licence was found)."
+        )
+
+    @property
     def MYKNX_SIGN_ETS_RUNNING(self) -> str:
         return _(
             "ETS must not be running on any computer with this MyKNX account while you log in "

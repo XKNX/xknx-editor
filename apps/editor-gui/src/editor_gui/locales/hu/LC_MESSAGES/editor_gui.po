@@ -1536,3 +1536,36 @@ msgstr "Funkció javaslása"
 
 msgid "Show All Issues"
 msgstr "Összes bejelentés megtekintése"
+
+msgid "License Through Installed ETS"
+msgstr "Licencelés a telepített ETS-sel"
+
+msgid "Export Through ETS"
+msgstr "Exportálás ETS-sel"
+
+msgid "Found ETS {version}."
+msgstr "ETS {version} megtalálva."
+
+msgid "(unknown version)"
+msgstr "(ismeretlen verzió)"
+
+msgid "No installed ETS was found."
+msgstr "Nem található telepített ETS."
+
+msgid "The installed ETS imports and re-exports the project and writes the certificate from your licence (cloud or dongle). Start ETS once first so the licence is available locally. No login or network is used."
+msgstr "A telepített ETS importálja a projektet, újraexportálja, és a licencéből (felhő vagy dongle) írja a tanúsítványt. Előbb indítsa el egyszer az ETS-t, hogy a licenc helyben elérhető legyen. Nem használ bejelentkezést vagy hálózatot."
+
+msgid "Use this untested ETS version anyway"
+msgstr "A nem tesztelt ETS-verzió használata mindenképp"
+
+msgid "Exported through ETS and certified for {name}."
+msgstr "ETS-sel exportálva és tanúsítva ehhez: {name}."
+
+msgid "Exported through ETS, but without a certificate (no licence was found)."
+msgstr "ETS-sel exportálva, de tanúsítvány nélkül (nem található licenc)."
+
+msgid "No installed ETS was found, or this is not Windows."
+msgstr "Nem található telepített ETS, vagy ez nem Windows."
+
+msgid "ETS 5 needs a physical dongle to write the certificate; without one the project is exported uncertified."
+msgstr "Az ETS 5 fizikai donglet igényel a tanúsítvány írásához; enélkül a projekt tanúsítvány nélkül kerül exportálásra."

@@ -29,6 +29,7 @@ _EXPECTED = {
     "project_unlink_com_object": (False, True, False),
     "project_copy_device_configuration": (False, True, False),
     "project_export_knxproj": (False, True, False),
+    "project_export_via_ets": (False, True, True),
     "project_batch": (False, True, False),
     "connection_program_device": (False, True, True),
     "project_press_button": (False, True, True),

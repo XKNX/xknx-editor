@@ -1536,3 +1536,36 @@ msgstr "Stinga upp á eiginleika"
 
 msgid "Show All Issues"
 msgstr "Sýna allar tilkynningar"
+
+msgid "License Through Installed ETS"
+msgstr "Leyfa með uppsettri ETS"
+
+msgid "Export Through ETS"
+msgstr "Flytja út með ETS"
+
+msgid "Found ETS {version}."
+msgstr "ETS {version} fannst."
+
+msgid "(unknown version)"
+msgstr "(óþekkt útgáfa)"
+
+msgid "No installed ETS was found."
+msgstr "Engin uppsett ETS fannst."
+
+msgid "The installed ETS imports and re-exports the project and writes the certificate from your licence (cloud or dongle). Start ETS once first so the licence is available locally. No login or network is used."
+msgstr "Uppsetta ETS flytur inn verkefnið, flytur það út aftur og skrifar vottorðið út frá leyfinu þínu (ský eða dongle). Ræstu ETS einu sinni fyrst svo leyfið sé tiltækt staðbundið. Engin innskráning eða netkerfi er notað."
+
+msgid "Use this untested ETS version anyway"
+msgstr "Nota þessa óprófuðu ETS-útgáfu samt"
+
+msgid "Exported through ETS and certified for {name}."
+msgstr "Flutt út með ETS og vottað fyrir {name}."
+
+msgid "Exported through ETS, but without a certificate (no licence was found)."
+msgstr "Flutt út með ETS, en án vottorðs (ekkert leyfi fannst)."
+
+msgid "No installed ETS was found, or this is not Windows."
+msgstr "Engin uppsett ETS fannst, eða þetta er ekki Windows."
+
+msgid "ETS 5 needs a physical dongle to write the certificate; without one the project is exported uncertified."
+msgstr "ETS 5 þarf vélbúnaðardongle til að skrifa vottorðið; án hans er verkefnið flutt út óvottað."

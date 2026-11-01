@@ -1464,3 +1464,36 @@ msgstr "Πρόταση λειτουργίας"
 
 msgid "Show All Issues"
 msgstr "Εμφάνιση όλων των αναφορών"
+
+msgid "License Through Installed ETS"
+msgstr "Αδειοδότηση μέσω της εγκατεστημένης ETS"
+
+msgid "Export Through ETS"
+msgstr "Εξαγωγή μέσω ETS"
+
+msgid "Found ETS {version}."
+msgstr "Βρέθηκε ETS {version}."
+
+msgid "(unknown version)"
+msgstr "(άγνωστη έκδοση)"
+
+msgid "No installed ETS was found."
+msgstr "Δεν βρέθηκε εγκατεστημένη ETS."
+
+msgid "The installed ETS imports and re-exports the project and writes the certificate from your licence (cloud or dongle). Start ETS once first so the licence is available locally. No login or network is used."
+msgstr "Η εγκατεστημένη ETS εισάγει το έργο, το εξάγει ξανά και γράφει το πιστοποιητικό από την άδειά σας (cloud ή dongle). Εκκινήστε πρώτα μία φορά την ETS ώστε η άδεια να είναι διαθέσιμη τοπικά. Δεν χρησιμοποιείται σύνδεση ή δίκτυο."
+
+msgid "Use this untested ETS version anyway"
+msgstr "Χρήση αυτής της μη δοκιμασμένης έκδοσης ETS ούτως ή άλλως"
+
+msgid "Exported through ETS and certified for {name}."
+msgstr "Εξήχθη μέσω ETS και πιστοποιήθηκε για {name}."
+
+msgid "Exported through ETS, but without a certificate (no licence was found)."
+msgstr "Εξήχθη μέσω ETS, αλλά χωρίς πιστοποιητικό (δεν βρέθηκε άδεια)."
+
+msgid "No installed ETS was found, or this is not Windows."
+msgstr "Δεν βρέθηκε εγκατεστημένη ETS ή αυτό δεν είναι Windows."
+
+msgid "ETS 5 needs a physical dongle to write the certificate; without one the project is exported uncertified."
+msgstr "Το ETS 5 χρειάζεται φυσικό dongle για να γράψει το πιστοποιητικό· χωρίς αυτό το έργο εξάγεται χωρίς πιστοποίηση."

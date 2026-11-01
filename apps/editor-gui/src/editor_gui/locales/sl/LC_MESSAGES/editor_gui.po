@@ -1536,3 +1536,36 @@ msgstr "Predlagaj funkcijo"
 
 msgid "Show All Issues"
 msgstr "Prikaži vse prijave"
+
+msgid "License Through Installed ETS"
+msgstr "Licenciranje prek nameščenega ETS"
+
+msgid "Export Through ETS"
+msgstr "Izvozi prek ETS"
+
+msgid "Found ETS {version}."
+msgstr "Najden ETS {version}."
+
+msgid "(unknown version)"
+msgstr "(neznana različica)"
+
+msgid "No installed ETS was found."
+msgstr "Nameščenega ETS ni bilo mogoče najti."
+
+msgid "The installed ETS imports and re-exports the project and writes the certificate from your licence (cloud or dongle). Start ETS once first so the licence is available locally. No login or network is used."
+msgstr "Nameščeni ETS uvozi projekt, ga znova izvozi in zapiše potrdilo iz vaše licence (oblak ali ključ dongle). Najprej enkrat zaženite ETS, da bo licenca na voljo lokalno. Prijava ali omrežje se ne uporabljata."
+
+msgid "Use this untested ETS version anyway"
+msgstr "Vseeno uporabi to nepreizkušeno različico ETS"
+
+msgid "Exported through ETS and certified for {name}."
+msgstr "Izvoženo prek ETS in potrjeno za {name}."
+
+msgid "Exported through ETS, but without a certificate (no licence was found)."
+msgstr "Izvoženo prek ETS, vendar brez potrdila (licence ni bilo mogoče najti)."
+
+msgid "No installed ETS was found, or this is not Windows."
+msgstr "Nameščenega ETS ni bilo mogoče najti ali pa to ni Windows."
+
+msgid "ETS 5 needs a physical dongle to write the certificate; without one the project is exported uncertified."
+msgstr "ETS 5 za zapis potrdila potrebuje fizični ključ (dongle); brez njega se projekt izvozi brez potrdila."

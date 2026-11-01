@@ -1464,3 +1464,36 @@ msgstr "Sugjero një veçori"
 
 msgid "Show All Issues"
 msgstr "Shfaq të gjitha raportimet"
+
+msgid "License Through Installed ETS"
+msgstr "Licenco përmes ETS-së të instaluar"
+
+msgid "Export Through ETS"
+msgstr "Eksporto përmes ETS"
+
+msgid "Found ETS {version}."
+msgstr "U gjet ETS {version}."
+
+msgid "(unknown version)"
+msgstr "(version i panjohur)"
+
+msgid "No installed ETS was found."
+msgstr "Nuk u gjet asnjë ETS i instaluar."
+
+msgid "The installed ETS imports and re-exports the project and writes the certificate from your licence (cloud or dongle). Start ETS once first so the licence is available locally. No login or network is used."
+msgstr "ETS-ja e instaluar importon projektin, e rieksporton atë dhe shkruan certifikatën nga licenca juaj (cloud ose dongle). Nisni fillimisht një herë ETS-në që licenca të jetë e disponueshme lokalisht. Nuk përdoret asnjë hyrje apo rrjet."
+
+msgid "Use this untested ETS version anyway"
+msgstr "Përdor gjithsesi këtë version të patestuar të ETS"
+
+msgid "Exported through ETS and certified for {name}."
+msgstr "U eksportua përmes ETS dhe u certifikua për {name}."
+
+msgid "Exported through ETS, but without a certificate (no licence was found)."
+msgstr "U eksportua përmes ETS, por pa certifikatë (nuk u gjet asnjë licencë)."
+
+msgid "No installed ETS was found, or this is not Windows."
+msgstr "Nuk u gjet asnjë ETS i instaluar, ose ky nuk është Windows."
+
+msgid "ETS 5 needs a physical dongle to write the certificate; without one the project is exported uncertified."
+msgstr "ETS 5 ka nevojë për një dongle fizik për të shkruar certifikatën; pa të projekti eksportohet i pacertifikuar."
