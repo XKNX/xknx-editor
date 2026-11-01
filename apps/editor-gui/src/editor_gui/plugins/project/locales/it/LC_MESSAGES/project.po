@@ -796,6 +796,9 @@ msgstr "Ripulire"
 msgid "Unload Application and Address"
 msgstr "Ripulire l'applicazione e l'indirizzo individuale"
 
+msgid "Partial"
+msgstr "Parziale"
+
 msgid "Partial: Parameters"
 msgstr "Parziale: parametri"
 

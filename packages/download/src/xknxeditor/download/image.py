@@ -452,6 +452,12 @@ class DownloadImage:
     # own, which the standard memory writes (``segments``) never reach, even at the same
     # address.
     user_segments: tuple[MemorySegment, ...] = ()
+    # The memory (start, end) of the group communication tables at absolute addresses.
+    group_table_memory: tuple[tuple[int, int], ...] = ()
+
+    def in_group_tables(self, address: int) -> bool:
+        """Whether ``address`` lies in a group communication table at an absolute address."""
+        return any(start <= address < end for start, end in self.group_table_memory)
 
     def relative_segment(self, object_type: int) -> RelativeSegment | None:
         """Return the relative segment for an interface object type, if any."""
@@ -706,6 +712,7 @@ def build_image(
     relative_segments: list[RelativeSegment] = []
     tables: PropertyTables | None = None
     moved: MovedTables | None = None
+    table_memory: list[tuple[int, int]] = []
     if group_communication is not None:
         static = application.program.static
         memory_mapped = (
@@ -731,6 +738,9 @@ def build_image(
                 factory_image,
             )
             segments.extend(group_tables.segments)
+            table_memory.extend(
+                (s.address, s.address + len(s.data)) for s in group_tables.segments
+            )
             moved = group_tables.moved
         else:
             relative_segments.extend(
@@ -804,6 +814,7 @@ def build_image(
         property_tables=tables,
         moved_tables=moved,
         user_segments=tuple(user_segments),
+        group_table_memory=tuple(table_memory),
     )
 
 

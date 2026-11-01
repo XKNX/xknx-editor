@@ -3284,7 +3284,17 @@ class LoadProcedureRunner:
                 current=current,
                 planned=bytes(planned),
                 procedure_step=procedure_step,
+                table_bytes=self._table_bytes(address, len(planned)),
             )
+        )
+
+    def _table_bytes(self, address: int, size: int) -> frozenset[int]:
+        """The offsets of ``[address, address + size)`` in a group communication table at an
+        absolute address."""
+        if not self.image.group_table_memory:
+            return frozenset()
+        return frozenset(
+            i for i in range(size) if self.image.in_group_tables(address + i)
         )
 
     async def _diff_masked(
@@ -3327,7 +3337,10 @@ class LoadProcedureRunner:
             )
             segments.append(
                 SegmentDiff(
-                    address=run_address, current=current, planned=bytes(planned)
+                    address=run_address,
+                    current=current,
+                    planned=bytes(planned),
+                    table_bytes=self._table_bytes(run_address, len(planned)),
                 )
             )
 
@@ -3358,6 +3371,10 @@ class LoadProcedureRunner:
         if not runs:
             return
         programmer = await self._bus()
+        table = (
+            target_object_type(control, self._object_types)
+            in GROUP_COMMUNICATION_OBJECTS
+        )
         for run_offset, planned in runs:
             current = await programmer.read_memory_until_refused(
                 base + run_offset, len(planned)
@@ -3370,6 +3387,9 @@ class LoadProcedureRunner:
                     address=base + run_offset,
                     current=current,
                     planned=bytes(planned),
+                    table_bytes=frozenset(range(len(planned)))
+                    if table
+                    else frozenset(),
                 )
             )
 

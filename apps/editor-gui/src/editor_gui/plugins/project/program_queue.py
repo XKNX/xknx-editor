@@ -96,6 +96,8 @@ class QueueItem:
     address: str
     name: str
     scope: DownloadScope | None
+    # A partial download loads the medium configuration (the IP settings) too.
+    medium_config: bool = False
     script: ScriptRun | None = None
     # A restart, a master reset or a DALI run instead of a download.
     action: BusAction | None = None

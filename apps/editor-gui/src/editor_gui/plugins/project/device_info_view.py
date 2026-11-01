@@ -131,16 +131,24 @@ def device_info_sections(
         (S.DEVICE_INFO_ASSOCIATION_TABLE, _state(info.association_table_load_state)),
         (S.DEVICE_INFO_GROUP_OBJECT_TABLE, _state(info.group_object_table_load_state)),
     )
-    for group_object in info.group_objects:
-        details = ", ".join(
-            part for part in (group_object.size, group_object.flags) if part
-        )
-        label = f"Obj#{group_object.number}" + (f" ({details})" if details else "")
-        text = ", ".join(group_address(ga) for ga in group_object.group_addresses)
-        if expected is not None:
-            matches = set(group_object.group_addresses) == expected.get(
-                group_object.number, set()
+    read = {group_object.number: group_object for group_object in info.group_objects}
+    # The project's linked objects the device has no group address for are listed too.
+    numbers = set(read)
+    if expected is not None and info.group_objects_read:
+        numbers |= {number for number, addresses in expected.items() if addresses}
+    for number in sorted(numbers):
+        group_object = read.get(number)
+        label = f"Obj#{number}"
+        addresses: tuple[int, ...] = ()
+        if group_object is not None:
+            details = ", ".join(
+                part for part in (group_object.size, group_object.flags) if part
             )
+            label += f" ({details})" if details else ""
+            addresses = group_object.group_addresses
+        text = ", ".join(group_address(ga) for ga in addresses)
+        if expected is not None:
+            matches = set(addresses) == expected.get(number, set())
             text = Toned(text or "-", "ok" if matches else "differs")
         group.append((label, text))
     if info.application_unknown:

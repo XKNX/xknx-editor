@@ -178,10 +178,11 @@ Work from the project to the bus; stop at the first finding.
    switched off by the device's parameters: find and set the activating parameter.
 
 3. Does the device hold the project? A preview with `config_bytes > 0` means it does not;
-   download it with the scope that covers the difference:
+   download what changed since its last download:
 
    ```
    connection_evaluate_device(node_id=12, scope="PARAMETERS_AND_GROUP_COMMUNICATION")
+   connection_program_device(node_id=12, scope="PARTIAL")
    ```
 
 4. Does the telegram reach the bus? Operate the sender, then look for a Write on the address

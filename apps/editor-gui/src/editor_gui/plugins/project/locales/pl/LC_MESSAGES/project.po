@@ -796,6 +796,9 @@ msgstr "Rozprogramuj"
 msgid "Unload Application and Address"
 msgstr "Rozprogramuj aplikację i adres"
 
+msgid "Partial"
+msgstr "Częściowo"
+
 msgid "Partial: Parameters"
 msgstr "Częściowo: parametry"
 

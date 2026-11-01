@@ -19,6 +19,16 @@ if TYPE_CHECKING:
     from editor_gui.plugins.project.program_queue import QueueItem
 
 
+def _row(label: str, value: str) -> dict[str, Any]:
+    """A row of a result section; a value the readout compares carries its ``tone``: "ok"
+    (as the project has it) or "differs"."""
+    row: dict[str, Any] = {"label": label, "value": str(value)}
+    tone = getattr(value, "tone", None)
+    if tone is not None:
+        row["tone"] = tone
+    return row
+
+
 def item_dict(
     item: QueueItem, progress: tuple[int, int] | None, connecting: bool = False
 ) -> dict[str, Any]:
@@ -43,7 +53,7 @@ def item_dict(
         "origin": item.origin,
         "message": item.message,
         "details": [
-            {"section": title, "rows": [{"label": k, "value": v} for k, v in rows]}
+            {"section": title, "rows": [_row(k, v) for k, v in rows]}
             for title, rows in item.details
         ],
         "connection": item.connection,
@@ -88,7 +98,8 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         "Download (Parameters)"), state (waiting, running, finished, canceled, failed),
         state_text (e.g. "Connecting" while a running one waits for the connection opened for
         it through the backbone's Bus Connection), origin ("MCP" when an MCP client started it), message (the error), details
-        (the result sections of a device info), connection, started_at, ended_at,
+        (the result sections of a device info: [{section, rows: [{label, value, tone?}]}], tone
+        "ok" or "differs" where the value is compared with the project), connection, started_at, ended_at,
         canceled_by_user, awaiting_overwrite_answer (a download asks whether to overwrite the
         application in the device: answer with connection_answer_overwrite), and while running
         progress [done, total] or, for a parameter script, progress_percent, script_text and
@@ -127,6 +138,42 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             return result
 
         return ctx.run_on_ui(_read)
+
+    @tool("read", open_world=True)
+    def connection_read_device_info(
+        node_id: int | None = None,
+        device_address: str | None = None,
+        group_communication: bool = True,
+        timeout: float = 120.0,
+    ) -> dict[str, Any]:
+        """Read what the device on the bus reports about itself, as "Read from Device" does.
+        Identify the project device by ``node_id`` OR ``device_address`` (its individual address
+        like "1.0.30"); pass exactly one. Needs an open connection. With ``group_communication``
+        (default) it also reads the group address, association and group object tables and
+        compares each linked object's group addresses with the project. It runs in the
+        editor's operations queue, labelled MCP: it waits behind the operations already queued
+        (the wait counts toward ``timeout`` seconds) and the user can cancel it. Writes nothing.
+
+        Returns the ended operation as connection_operations lists it; its ``details`` are the
+        readout's sections ("General", "Application Program", "Group Communication"), each
+        {section, rows: [{label, value, tone?}]}; ``tone`` is "ok" or "differs" where the value
+        is compared with the project. A group object row is labelled "Obj#<number> (<size>,
+        <flags>)" with the device's group addresses as value; an object the project links but the
+        device holds no group address for is labelled "Obj#<number>" with value "-"."""
+        from editor_gui.plugins.mcp.tools.connection import finished, wait_for_operation
+        from editor_gui.plugins.project.program_queue import ORIGIN_MCP
+
+        plugin = _plugin()
+        nid = require_device(ctx.api.project, node_id, device_address).node_id
+        item = ctx.run_locked(
+            lambda: plugin.queue_device_info(
+                nid, group_communication, origin=ORIGIN_MCP
+            )
+        )
+        if item is None or item.ended is None:
+            raise ToolError(f"no device with node_id {nid}")
+        ended = finished(wait_for_operation(ctx, item, timeout))
+        return ctx.run_on_ui(lambda: item_dict(ended, None))
 
     @tool("write", open_world=True)
     def connection_cancel_operations(

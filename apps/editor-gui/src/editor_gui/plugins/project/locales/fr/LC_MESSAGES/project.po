@@ -796,6 +796,9 @@ msgstr "Décharger"
 msgid "Unload Application and Address"
 msgstr "Décharger l'Application et l'Adresse"
 
+msgid "Partial"
+msgstr "Partiel"
+
 msgid "Partial: Parameters"
 msgstr "Partiel : paramètres"
 

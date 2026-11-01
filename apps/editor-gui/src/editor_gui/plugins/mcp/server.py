@@ -135,7 +135,9 @@ INSTRUCTIONS = (
     "finds another application in the device waits for connection_answer_overwrite. "
     "project_press_button presses a button of the parameter view; an online one runs there as a "
     '"Parameter Script" operation.\n'
-    "DOWNLOAD SCOPE — match it to the change: PARAMETERS (parameter values only), "
+    "DOWNLOAD SCOPE — PARTIAL loads what the device still needs since its last download (the "
+    "parameters and/or the group communication that changed, as the editor's Partial download); "
+    "or match it to the change: PARAMETERS (parameter values only), "
     "GROUP_COMMUNICATION (group-address links only), APPLICATION (the full application load, incl. "
     "the GA link tables), PARAMETERS_AND_GROUP_COMMUNICATION (a change touching both, e.g. a new "
     "function type AND relinked objects), FULL (first commissioning or the application itself). A new "

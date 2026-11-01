@@ -796,6 +796,9 @@ msgstr "Выгрузить"
 msgid "Unload Application and Address"
 msgstr "Выгрузить программу и адрес"
 
+msgid "Partial"
+msgstr "Частично"
+
 msgid "Partial: Parameters"
 msgstr "Частично: параметры"
 
