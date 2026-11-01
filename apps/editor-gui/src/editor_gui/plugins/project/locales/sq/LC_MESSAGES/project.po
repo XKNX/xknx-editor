@@ -50,7 +50,7 @@ msgid "Log"
 msgstr "Regjistri"
 
 msgid "Open a project to use the Mass Linker."
-msgstr "Hapni një projekt për të përdorur Lidhjet masive."
+msgstr "Hapni një projekt për të përdorur panelin \"Lidhje masive\"."
 
 msgid "Pairs are matched by list order (1st with 1st, …). Surplus items on the longer side are ignored. Reorder a list via its right-click menu."
 msgstr "Çiftet formohen sipas radhës në listë (i 1-ri me të 1-rin, …). Elementet e tepërta në anën më të gjatë shpërfillen. Renditjen e një liste e ndryshoni nga menyja e klikimit të djathtë."
@@ -68,16 +68,16 @@ msgid "\"{link_all}\" links every row that has one."
 msgstr "\"{link_all}\" lidh çdo rresht që ka një të tillë."
 
 msgid "Link objects to each other through a new group address each: the source sends, the target receives."
-msgstr "Lidh objektet me njëri-tjetrin, secilin përmes një adrese grupi të re: burimi dërgon, objektivi merr."
+msgstr "Lidh objektet me njëri-tjetrin, secilin përmes një adrese grupi të re: burimi dërgon, objekti përkatës merr."
 
 msgid "Add the source objects with \"{add_device}\" or \"{add_objects}\"."
 msgstr "Shtoni objektet burimore me \"{add_device}\" ose \"{add_objects}\"."
 
 msgid "Pick a target object per row. Address and name are suggested and can be changed."
-msgstr "Zgjidhni një objekt objektiv për çdo rresht. Adresa dhe emri sugjerohen dhe mund të ndryshohen."
+msgstr "Zgjidhni një objekt përkatës për çdo rresht. Adresa dhe emri sugjerohen dhe mund të ndryshohen."
 
 msgid "\"{link_all}\" creates the group addresses and links them."
-msgstr "\"{link_all}\" krijon adresat e grupeve dhe i lidh ato."
+msgstr "\"{link_all}\" krijon adresat e grupeve dhe i lidh."
 
 msgid "Link All"
 msgstr "Lidh të gjitha"
@@ -152,7 +152,7 @@ msgid "Linked {count} object(s) to group addresses"
 msgstr "U lidhën {count} objekt(e) me adresa grupi"
 
 msgid "Linked {count} object pair(s) via new group addresses"
-msgstr "U lidhën {count} çift(e) objektesh përmes adresave të reja të grupit"
+msgstr "U lidhën {count} çift(e) objektesh përmes adresave të reja të grupeve"
 
 msgid "{count} error(s)"
 msgstr "{count} gabim(e)"
@@ -170,10 +170,10 @@ msgid "DPT"
 msgstr "DPT"
 
 msgid "Target Group Address"
-msgstr "Adresa e grupit objektiv"
+msgstr "Adresa përkatëse e grupit"
 
 msgid "Target Group Object"
-msgstr "Objekti i grupit objektiv"
+msgstr "Objekti përkatës i grupit"
 
 msgid "Group Address"
 msgstr "Adresa e grupit"
@@ -185,7 +185,7 @@ msgid "(none)"
 msgstr "(asnjë)"
 
 msgid "Matching DPT Only"
-msgstr "Vetëm DPT që përputhet"
+msgstr "Vetëm me DPT që përputhet"
 
 msgid "Only group addresses with the object's main datapoint type, and those without one (they take the object's type when linked)."
 msgstr "Vetëm adresat e grupeve me llojin kryesor të pikës së të dhënave të objektit, dhe ato pa lloj (marrin llojin e objektit kur lidhen)."
@@ -203,7 +203,7 @@ msgid "{device} has no group objects."
 msgstr "{device} nuk ka objekte grupi."
 
 msgid "All objects of {device} are in the list already."
-msgstr "Të gjitha objektet e {device} janë tashmë në listë."
+msgstr "Të gjitha objektet e pajisjes {device} janë tashmë në listë."
 
 msgid "+ Selected Device"
 msgstr "+ Pajisja e zgjedhur"
@@ -374,13 +374,13 @@ msgid "Pick the fields and an output: a CSV, printable label sheets (Avery), or 
 msgstr "Zgjidhni fushat dhe një dalje: një CSV, fleta etiketash për printim (Avery) ose një legjendë në faqe të plotë. Dalja HTML hapet në shfletuesin tuaj për ta printuar ose ruajtur si PDF."
 
 msgid "Read-only scan: lists devices with a missing, malformed or duplicate individual address."
-msgstr "Kontroll vetëm për lexim: liston pajisjet me adresë individuale që mungon, të pasaktë ose të dyfishtë."
+msgstr "Kontroll vetëm për lexim: liston pajisjet me adresë individuale që mungon, të pavlefshme ose të dyfishtë."
 
 msgid "Source Device"
 msgstr "Pajisja burimore"
 
 msgid "Copies"
-msgstr "Kopjet"
+msgstr "Numri i kopjeve"
 
 msgid "Find in Name"
 msgstr "Gjej në emër"
@@ -482,7 +482,7 @@ msgid "Label W x H (mm)"
 msgstr "Etiketa Gj x L (mm)"
 
 msgid "Margin Top / Left (mm)"
-msgstr "Kufiri sipër / majtas (mm)"
+msgstr "Mënjanat e sipërme / të majta (mm)"
 
 msgid "Gap X / Y (mm)"
 msgstr "Hapësira X / Y (mm)"
@@ -2051,7 +2051,7 @@ msgid "{device}: no individual address"
 msgstr "{device}: pa adresë individuale"
 
 msgid "{device}: malformed address '{address}'"
-msgstr "{device}: adresë e pasaktë '{address}'"
+msgstr "{device}: adresë e pavlefshme '{address}'"
 
 msgid "{device}: duplicate address {address}"
 msgstr "{device}: adresë e dyfishtë {address}"
@@ -2702,13 +2702,13 @@ msgid "Paste Special"
 msgstr "Ngjitje e veçantë"
 
 msgid "Number of Items"
-msgstr "Numri i elementeve"
+msgstr "Numri i kopjeve"
 
 msgid "Don't copy"
 msgstr "Mos kopjo"
 
 msgid "Keep"
-msgstr "Mbaj"
+msgstr "Mbaj të njëjtat adresa"
 
 msgid "Create new group address in middle group"
 msgstr "Krijo adresë të re grupi në grupin e mesëm"
@@ -2723,7 +2723,7 @@ msgid "Generate Address"
 msgstr "Gjenero adresën"
 
 msgid "Fill up (use first free)"
-msgstr "Mbush (përdor të parën e lirë)"
+msgstr "Mbush boshllëqet (përdor numrin e parë të lirë)"
 
 msgid "Append"
 msgstr "Shto në fund"
