@@ -114,10 +114,11 @@ def test_the_editor_style_keeps_an_adjusted_rounding(
 
 
 @pytest.mark.parametrize(
-    ("applied", "rounding"),
+    ("applied", "rounding", "window"),
     [
-        (hello_imgui.ImGuiTheme_.microsoft_style, 0.0),
-        (hello_imgui.ImGuiTheme_.white_is_white, 4.0),
+        # A light gray with a touch of blue.
+        (hello_imgui.ImGuiTheme_.microsoft_style, 0.0, (245, 246, 247)),
+        (hello_imgui.ImGuiTheme_.white_is_white, 4.0, (255, 255, 255)),
     ],
 )
 def test_windows_themes_have_the_dark_gray_text_of_windows_dialogs(
@@ -125,6 +126,7 @@ def test_windows_themes_have_the_dark_gray_text_of_windows_dialogs(
     monkeypatch: pytest.MonkeyPatch,
     applied: hello_imgui.ImGuiTheme_,
     rounding: float,
+    window: tuple[int, int, int],
 ) -> None:
     _use_theme(monkeypatch, hello_imgui.ImGuiThemeTweaks(), applied)
     style = imgui.get_style()
@@ -138,7 +140,12 @@ def test_windows_themes_have_the_dark_gray_text_of_windows_dialogs(
         51,
     )
     assert style.frame_rounding == rounding
-    assert style.color_(imgui.Col_.window_bg).x == 1.0
+    background = style.color_(imgui.Col_.window_bg)
+    assert (
+        round(background.x * 255),
+        round(background.y * 255),
+        round(background.z * 255),
+    ) == window
 
 
 @pytest.mark.parametrize(

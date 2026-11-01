@@ -62,6 +62,42 @@ def test_loading_puts_the_text_after_the_animation(
 ) -> None:
     calls: list[str] = []
     monkeypatch.setattr(spinner, "spinner", lambda str_id: calls.append(str_id))
-    monkeypatch.setattr(spinner.imgui, "text_disabled", calls.append)
+    text = spinner.imgui.text_disabled
+    monkeypatch.setattr(
+        spinner.imgui, "text_disabled", lambda value: (calls.append(value), text(""))
+    )
     spinner.loading("##loading", "Loading application program…")
     assert calls == ["##loading", "Loading application program…"]
+
+
+@pytest.mark.usefixtures("frame")
+def test_the_ring_is_centred_on_its_text_and_turns_once_a_second(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    rings: list[float] = []
+    texts: list[float] = []
+    speeds: list[float] = []
+    draw = spinner.imspinner.spinner_ang
+
+    def ring(label: str, radius: float, thickness: float, **kwargs: Any) -> None:
+        speeds.append(kwargs["speed"])
+        draw(label, radius, thickness, **kwargs)
+        low, high = imgui.get_item_rect_min(), imgui.get_item_rect_max()
+        rings.append((low.y + high.y) / 2)
+
+    text = spinner.imgui.text_disabled
+
+    def label(value: str) -> None:
+        text(value)
+        low, high = imgui.get_item_rect_min(), imgui.get_item_rect_max()
+        texts.append((low.y + high.y) / 2)
+
+    monkeypatch.setattr(spinner.imspinner, "spinner_ang", ring)
+    monkeypatch.setattr(spinner.imgui, "text_disabled", label)
+    # A text after the ring, and a ring after a text.
+    spinner.loading("##loading", "Applikationsprogramm wird geladen…")
+    spinner.imgui.text_disabled("Gefundene Gateways")
+    imgui.same_line()
+    spinner.spinner("##scan")
+    assert rings == pytest.approx(texts, abs=0.5)
+    assert speeds == pytest.approx([2 * 3.14159265, 2 * 3.14159265])

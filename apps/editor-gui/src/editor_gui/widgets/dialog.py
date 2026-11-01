@@ -6,8 +6,10 @@ content loads later), until the user moves it. When the screen changes its size 
 resized, a phone turned), it is centred and fitted to it again. It has a title bar and does not
 remember a position it was moved to. Its buttons sit in one row of equal-width buttons: the actions
 left-aligned (the first triggered by Enter), the button that dismisses the dialog (Cancel, Close,
-No, ...) right-aligned and triggered by Escape. Tool windows open centred too while they float, and are centred again on a
-screen that changed its size; they can be docked and keep their dock place and size.
+No, ...) right-aligned and triggered by Escape. A dialog is at least as wide as that row; only on a
+screen too narrow for it the buttons take more rows. Tool windows open centred too while they
+float, and are centred again on a screen that changed its size; they can be docked and keep their
+dock place and size.
 """
 
 from __future__ import annotations
@@ -17,6 +19,7 @@ from contextlib import contextmanager
 from dataclasses import dataclass
 
 from imgui_bundle import imgui
+from imgui_bundle.imgui import internal
 
 from editor_gui.widgets.backgrounds import window_border
 from editor_gui.widgets.dpi import px, px_vec2
@@ -45,6 +48,9 @@ class _Placement:
 
 # The open dialogs' placements, by dialog id.
 _placements: dict[str, _Placement] = {}
+# The width (pixels, with the window padding) the row of buttons of an open dialog needs, by
+# dialog id: the dialog is at least that wide where the screen has the room.
+_button_rows: dict[str, float] = {}
 
 
 def _screen_size() -> tuple[float, float]:
@@ -175,11 +181,14 @@ def begin_dialog(
     width and the height follows the content; with ``height`` as well the dialog starts at that
     size and can be resized. Without either it fits its content, at least ``min_width`` (unscaled
     pixels) wide. On a screen narrower than ``width`` or ``min_width`` (a phone) the dialog gets the
-    width there is, so its wrapped text reflows.
+    width there is, so its wrapped text reflows. It is at least as wide as its row of
+    :func:`dialog_buttons` (as measured in the last frame).
     """
     _center_next_window(title)
+    buttons = _button_rows.get(title, 0.0) / px(1.0)
+    min_width = max(min_width, buttons)
     if width is not None:
-        width = min(width, _screen_room_width())
+        width = min(max(width, buttons), _screen_room_width())
     flags |= _fit_screen(title, px(width) if width is not None else None, px(min_width))
     if width is not None and height is not None:
         imgui.set_next_window_size(px_vec2(width, height), imgui.Cond_.appearing)
@@ -194,6 +203,7 @@ def begin_dialog(
         _track_placement(title)
     else:
         _placements.pop(title, None)
+        _button_rows.pop(title, None)
     return opened
 
 
@@ -291,9 +301,10 @@ def dialog_buttons(
     enabled: Sequence[bool] | None = None,
     rects: list[tuple[float, float, float, float]] | None = None,
 ) -> int | None:
-    """A row of equal-width buttons below a separator, the primary one first. Where equal widths
-    do not fit the dialog (long labels, a narrow screen), each button is as wide as its label, and
-    a button that does not fit the row any more starts a new one.
+    """A row of equal-width buttons below a separator, the primary one first. A dialog of
+    :func:`begin_dialog` grows to the row's width; where equal widths do not fit the room there is
+    (a narrow screen, or a window that cannot grow), each button is as wide as its label, and a
+    button that does not fit the row any more starts a new one.
 
     The last label is the button that dismisses the dialog: it sits at the right edge and Escape
     triggers it while the dialog has focus. The others sit left-aligned; Enter triggers the first
@@ -315,19 +326,25 @@ def dialog_buttons(
     imgui.spacing()
     row_x = imgui.get_cursor_pos_x()
     room = imgui.get_content_region_avail().x
+    # A dialog grows to its buttons (see begin_dialog), up to the width of the screen.
+    title = internal.get_current_window().root_window.name
+    padding = 2 * style.window_padding.x
+    fit = max(room, screen_room() - padding) if title in _placements else room
     gap = style.item_spacing.x
     equal = max(own)
     widths = (
         [equal] * len(labels)
-        if len(labels) * equal + (len(labels) - 1) * gap <= room
+        if len(labels) * equal + (len(labels) - 1) * gap <= fit
         else own
     )
+    if title in _placements:
+        _button_rows[title] = min(sum(widths) + (len(labels) - 1) * gap, fit) + padding
     dismiss = len(labels) - 1
     clicked: int | None = None
     x = row_x
     for index, label in enumerate(labels):
         width = widths[index]
-        if index and x + gap + width <= row_x + room:
+        if index and x + gap + width <= row_x + fit:
             imgui.same_line()
             x += gap
         elif index:
