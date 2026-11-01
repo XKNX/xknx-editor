@@ -143,6 +143,15 @@ _STANDARD_MEMORY_END = 0x100000
 # a CRC over the written count, address and data in the confirmation.
 _RETURN_CODE_ERROR = 0x80
 _RETURN_CODE_SUCCESS_WITH_CRC = 0x01
+# An optimistic memory write (see DeviceProgrammer.write_memory_optimistic) compares blocks of
+# at most this many octets with the standard memory services, and of 12 octets with the user
+# memory services.
+_OPTIMISTIC_MEMORY_BLOCK = 63
+_OPTIMISTIC_USER_MEMORY_BLOCK = 12
+# It writes the rest as a whole once at least this many octets were compared and more than a
+# third of them differed, or once this many blocks in a row differed.
+_OPTIMISTIC_MIN_COMPARED = 32
+_OPTIMISTIC_MAX_DIFFERENT_BLOCKS = 4
 
 
 def negotiated_apdu_length(
@@ -716,6 +725,63 @@ class DeviceProgrammer:
             )
             return
         await self._write_standard(address, data, verify=verify)
+
+    def _optimistic_block(self, address: int) -> int:
+        """Octets an optimistic write compares per read (see :meth:`write_memory_optimistic`)."""
+        if self.extended_memory:
+            return max(1, self.max_apdu_length - _EXTENDED_MEMORY_OVERHEAD)
+        if address >= _USER_MEMORY_BOUNDARY:
+            return _OPTIMISTIC_USER_MEMORY_BLOCK
+        return min(
+            _OPTIMISTIC_MEMORY_BLOCK,
+            max(DEFAULT_MAX_APDU_LENGTH, self.max_apdu_length) - _MEMORY_OVERHEAD,
+        )
+
+    async def write_memory_optimistic(self, address: int, data: bytes) -> bool:
+        """Write ``data`` at ``address`` only where the device differs, verified.
+
+        The memory is read block by block; a block that differs is written from its first
+        to its last differing octet, a block that matches is not written. Once at least 32
+        octets were compared and more than a third of them differed, or four blocks in a row
+        differed, the rest is written as a whole. Returns whether the write stayed
+        optimistic to the end (``False`` once the rest was written as a whole)."""
+        block = self._optimistic_block(address)
+        matched = mismatched = different_blocks = 0
+        offset = 0
+        while offset < len(data):
+            size = min(block, len(data) - offset)
+            planned = data[offset : offset + size]
+            current = await self.read_memory(address + offset, size)
+            differs = [current[i] != planned[i] for i in range(size)]
+            mismatched += sum(differs)
+            matched += size - sum(differs)
+            if any(differs):
+                first = differs.index(True)
+                last = size - differs[::-1].index(True)
+                await self.write_memory(
+                    address + offset + first, planned[first:last], verify=True
+                )
+                different_blocks += 1
+            else:
+                different_blocks = 0
+            offset += size
+            if offset >= len(data):
+                break
+            if (
+                matched + mismatched >= _OPTIMISTIC_MIN_COMPARED
+                and 2 * mismatched > matched
+            ) or different_blocks >= _OPTIMISTIC_MAX_DIFFERENT_BLOCKS:
+                logger.info(
+                    "optimistic write at %#06x: %d of %d octets differ, writing the rest "
+                    "[%s]",
+                    address,
+                    mismatched,
+                    matched + mismatched,
+                    self.diagnostic_context,
+                )
+                await self.write_memory(address + offset, data[offset:], verify=True)
+                return False
+        return True
 
     async def _write_extended(
         self, address: int, data: bytes, *, verify: bool = False

@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<KNX xmlns="http://knx.org/xml/project/20" CreatedBy="test" ToolVersion="1">
+  <ManufacturerData>
+    <Manufacturer RefId="M-00FA">
+      <ApplicationPrograms>
+        <ApplicationProgram Id="M-00FA_A-0005-01-0000" ApplicationNumber="5" ApplicationVersion="1"
+            ProgramType="ApplicationProgram" MaskVersion="MV-07B0" Name="UnionLateAssign"
+            LoadProcedureStyle="MergedProcedure" PeiType="0" DefaultLanguage="en-US"
+            DynamicTableManagement="false" Linkable="false" MinEtsVersion="5.0">
+          <Static>
+            <ParameterTypes>
+              <ParameterType Id="M-00FA_A-0005-01-0000_PT-L" Name="Layout">
+                <TypeNumber SizeInBit="8" Type="unsignedInt" minInclusive="0" maxInclusive="2" />
+              </ParameterType>
+              <ParameterType Id="M-00FA_A-0005-01-0000_PT-ONE" Name="OnOff">
+                <TypeRestriction Base="Value" SizeInBit="8">
+                  <Enumeration Text="Off" Value="0" Id="M-00FA_A-0005-01-0000_PT-ONE_EN-0" />
+                  <Enumeration Text="On" Value="1" Id="M-00FA_A-0005-01-0000_PT-ONE_EN-1" />
+                </TypeRestriction>
+              </ParameterType>
+              <ParameterType Id="M-00FA_A-0005-01-0000_PT-F" Name="Func">
+                <TypeNumber SizeInBit="8" Type="unsignedInt" minInclusive="0" maxInclusive="100" />
+              </ParameterType>
+            </ParameterTypes>
+            <Parameters>
+              <!-- Layout is user-set; its value reaches Selector only through the Assign at the end
+                   of the tree, i.e. after the Choose that reads Selector has already run. -->
+              <Parameter Id="M-00FA_A-0005-01-0000_P-1" Name="Layout" ParameterType="M-00FA_A-0005-01-0000_PT-L" Text="Layout" Value="2" />
+              <Parameter Id="M-00FA_A-0005-01-0000_P-2" Name="Selector" ParameterType="M-00FA_A-0005-01-0000_PT-L" Text="Selector" Value="0" />
+              <!-- A and B overlay the same octet: they are union competitors. Only the shown one
+                   may keep its module; the other's module must be suppressed. -->
+              <Union SizeInBit="8">
+                <Parameter Id="M-00FA_A-0005-01-0000_P-3" Name="A" ParameterType="M-00FA_A-0005-01-0000_PT-ONE" Text="A" Value="1" Offset="0" BitOffset="0" />
+                <Parameter Id="M-00FA_A-0005-01-0000_P-4" Name="B" ParameterType="M-00FA_A-0005-01-0000_PT-ONE" Text="B" Value="1" Offset="0" BitOffset="0" />
+              </Union>
+            </Parameters>
+            <ParameterRefs>
+              <ParameterRef Id="M-00FA_A-0005-01-0000_P-1_R-1" RefId="M-00FA_A-0005-01-0000_P-1" />
+              <ParameterRef Id="M-00FA_A-0005-01-0000_P-2_R-2" RefId="M-00FA_A-0005-01-0000_P-2" />
+              <ParameterRef Id="M-00FA_A-0005-01-0000_P-3_R-3" RefId="M-00FA_A-0005-01-0000_P-3" />
+              <ParameterRef Id="M-00FA_A-0005-01-0000_P-4_R-4" RefId="M-00FA_A-0005-01-0000_P-4" />
+            </ParameterRefs>
+          </Static>
+          <ModuleDefs>
+            <ModuleDef Id="M-00FA_A-0005-01-0000_MD-1" Name="Single">
+              <Arguments>
+                <Argument Id="M-00FA_A-0005-01-0000_MD-1_A-1" Name="Ch" />
+              </Arguments>
+              <Static>
+                <Parameters>
+                  <Parameter Id="M-00FA_A-0005-01-0000_MD-1_P-1" Name="SingleFunc" ParameterType="M-00FA_A-0005-01-0000_PT-F" Text="Single-button function" Value="0" />
+                </Parameters>
+                <ParameterRefs>
+                  <ParameterRef Id="M-00FA_A-0005-01-0000_MD-1_P-1_R-1" RefId="M-00FA_A-0005-01-0000_MD-1_P-1" />
+                </ParameterRefs>
+              </Static>
+              <Dynamic>
+                <ParameterBlock Id="M-00FA_A-0005-01-0000_MD-1_PB-1" Text="Single">
+                  <ParameterRefRef RefId="M-00FA_A-0005-01-0000_MD-1_P-1_R-1" />
+                </ParameterBlock>
+              </Dynamic>
+            </ModuleDef>
+            <ModuleDef Id="M-00FA_A-0005-01-0000_MD-2" Name="Rocker">
+              <Arguments>
+                <Argument Id="M-00FA_A-0005-01-0000_MD-2_A-1" Name="Ch" />
+              </Arguments>
+              <Static>
+                <Parameters>
+                  <Parameter Id="M-00FA_A-0005-01-0000_MD-2_P-1" Name="RockerFunc" ParameterType="M-00FA_A-0005-01-0000_PT-F" Text="Rocker function" Value="0" />
+                </Parameters>
+                <ParameterRefs>
+                  <ParameterRef Id="M-00FA_A-0005-01-0000_MD-2_P-1_R-1" RefId="M-00FA_A-0005-01-0000_MD-2_P-1" />
+                </ParameterRefs>
+              </Static>
+              <Dynamic>
+                <ParameterBlock Id="M-00FA_A-0005-01-0000_MD-2_PB-1" Text="Rocker">
+                  <ParameterRefRef RefId="M-00FA_A-0005-01-0000_MD-2_P-1_R-1" />
+                </ParameterBlock>
+              </Dynamic>
+            </ModuleDef>
+          </ModuleDefs>
+          <Dynamic>
+            <ChannelIndependentBlock>
+              <ParameterBlock Id="M-00FA_A-0005-01-0000_PB-1" Text="General">
+                <ParameterRefRef RefId="M-00FA_A-0005-01-0000_P-1_R-1" />
+                <choose ParamRefId="M-00FA_A-0005-01-0000_P-2_R-2">
+                  <when test="0">
+                    <ParameterRefRef RefId="M-00FA_A-0005-01-0000_P-4_R-4" />
+                  </when>
+                  <when test="2">
+                    <ParameterRefRef RefId="M-00FA_A-0005-01-0000_P-3_R-3" />
+                  </when>
+                </choose>
+                <choose ParamRefId="M-00FA_A-0005-01-0000_P-3_R-3">
+                  <when test="1">
+                    <Module Id="M-00FA_A-0005-01-0000_MD-1_M-9" RefId="M-00FA_A-0005-01-0000_MD-1"><NumericArg RefId="M-00FA_A-0005-01-0000_MD-1_A-1" Value="9" /></Module>
+                  </when>
+                </choose>
+                <choose ParamRefId="M-00FA_A-0005-01-0000_P-4_R-4">
+                  <when test="1">
+                    <Module Id="M-00FA_A-0005-01-0000_MD-2_M-16" RefId="M-00FA_A-0005-01-0000_MD-2"><NumericArg RefId="M-00FA_A-0005-01-0000_MD-2_A-1" Value="16" /></Module>
+                  </when>
+                </choose>
+                <Assign TargetParamRefRef="M-00FA_A-0005-01-0000_P-2_R-2" SourceParamRefRef="M-00FA_A-0005-01-0000_P-1_R-1" />
+              </ParameterBlock>
+            </ChannelIndependentBlock>
+          </Dynamic>
+        </ApplicationProgram>
+      </ApplicationPrograms>
+    </Manufacturer>
+  </ManufacturerData>
+</KNX>

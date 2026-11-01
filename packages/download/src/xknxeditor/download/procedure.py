@@ -534,6 +534,11 @@ class LoadProcedureRunner:
         # Inline WriteMem (ADM1 WriteDirect) is read back when this stays true.
         # Procedures that never set the variable keep today's Verify behaviour.
         self._enable_verify_on_write_direct = True
+        # A verified memory write compares the device first and writes only what differs
+        # (see DeviceProgrammer.write_memory_optimistic) while this stays true.
+        self._enable_optimistic_write = True
+        # EnableMemoryAutoVerify as the procedure set it; None leaves it to the mask.
+        self._memory_auto_verify: bool | None = None
         self._property_widths: dict[tuple[int, int], int] = {}
         # Property controls addressed by object type use the extended property services when
         # the application supports them; they get a negative key in place of an object index,
@@ -623,6 +628,8 @@ class LoadProcedureRunner:
         self._factory_registered.clear()
         self._enable_segment_write = True
         self._enable_verify_on_write_direct = True
+        self._enable_optimistic_write = True
+        self._memory_auto_verify = None
         self._error_mappings.clear()
         total = len(in_scope)
         logger.info(
@@ -754,6 +761,8 @@ class LoadProcedureRunner:
         self._preview_memory = []
         self._enable_segment_write = True
         self._enable_verify_on_write_direct = True
+        self._enable_optimistic_write = True
+        self._memory_auto_verify = None
         self._error_mappings.clear()
         logger.info(
             "download preflight start: %s, %d of %d load controls in scope",
@@ -895,13 +904,6 @@ class LoadProcedureRunner:
                 )
             if isinstance(control, LdCtrlLoadImageRelMem):
                 captured_objects.add(control.obj_idx)
-            if isinstance(control, LdCtrlSetControlVariable) and control.name not in (
-                LdCtrlControlVariable.ENABLE_SEGMENT_WRITE,
-                LdCtrlControlVariable.ENABLE_VERIFY_ON_WRITE_DIRECT,
-            ):
-                raise UnsupportedProcedureError(
-                    f"unsupported control variable {control.name.value}"
-                )
             if (
                 isinstance(control, (LdCtrlWriteMem, LdCtrlWriteRelMem))
                 and control.inline_data is not None
@@ -1328,12 +1330,12 @@ class LoadProcedureRunner:
         if isinstance(control, LdCtrlSetControlVariable):
             if control.name is LdCtrlControlVariable.ENABLE_VERIFY_ON_WRITE_DIRECT:
                 self._enable_verify_on_write_direct = control.value
-                return
-            if control.name is not LdCtrlControlVariable.ENABLE_SEGMENT_WRITE:
-                raise UnsupportedProcedureError(
-                    f"unsupported control variable {control.name.value}"
-                )
-            self._enable_segment_write = control.value
+            elif control.name is LdCtrlControlVariable.ENABLE_OPTIMISTIC_WRITE:
+                self._enable_optimistic_write = control.value
+            elif control.name is LdCtrlControlVariable.ENABLE_MEMORY_AUTO_VERIFY:
+                self._memory_auto_verify = control.value
+            else:
+                self._enable_segment_write = control.value
             return
         if isinstance(control, LdCtrlMaxLength):
             index = await self._resolve_index(control)
@@ -1583,8 +1585,28 @@ class LoadProcedureRunner:
             len(runs),
             verify,
         )
+        await self._write_memory_runs(programmer, runs, verify=verify)
+
+    async def _write_memory_runs(
+        self,
+        programmer: DeviceProgrammer,
+        runs: list[tuple[int, bytes]],
+        *,
+        verify: bool,
+    ) -> None:
+        """Write the runs of one WriteMem or segment allocation. A verified write compares
+        the device first and writes only what differs (``EnableOptimisticWrite``, on unless
+        the procedure turns it off), except where the device verifies its memory writes
+        itself; once a run turns out mostly different, it and the runs after it are written
+        whole."""
+        optimistic = (
+            verify and self._enable_optimistic_write and not self._uses_auto_verify()
+        )
         for address, data in runs:
-            await programmer.write_memory(address, data, verify=verify)
+            if optimistic:
+                optimistic = await programmer.write_memory_optimistic(address, data)
+            else:
+                await programmer.write_memory(address, data, verify=verify)
 
     async def _write_rel_mem(self, control: LdCtrlWriteRelMem) -> None:
         """Write a WriteRelMem control relative to the object's table base.
@@ -1619,12 +1641,19 @@ class LoadProcedureRunner:
                 base + run_offset, data, verify=control.verify
             )
 
-    async def _memory_programmer(self) -> DeviceProgrammer:
-        programmer = await self._bus()
-        if (
+    def _uses_auto_verify(self) -> bool:
+        """Whether the device verifies memory writes itself: as ``EnableMemoryAutoVerify``
+        says, else for the System B mask with property services."""
+        if self._memory_auto_verify is not None:
+            return self._memory_auto_verify
+        return (
             self._property_services
             and self.application.program.mask_version == "MV-07B0"
-        ):
+        )
+
+    async def _memory_programmer(self) -> DeviceProgrammer:
+        programmer = await self._bus()
+        if self._uses_auto_verify():
             await programmer.enable_memory_auto_verify()
         return programmer
 
@@ -3017,8 +3046,7 @@ class LoadProcedureRunner:
         )
         if runs:
             programmer = await self._memory_programmer()
-            for address, data in runs:
-                await programmer.write_memory(address, data, verify=True)
+            await self._write_memory_runs(programmer, runs, verify=True)
 
     def _writes_segment_data(self, control: LdCtrlAbsSegment) -> bool:
         """Whether the image data of an allocated segment is written: only into EEPROM (memory

@@ -3033,3 +3033,6 @@ msgstr "Allumer"
 
 msgid "Switch Off"
 msgstr "Éteindre"
+
+msgid "Show the memory a download writes, segment by segment"
+msgstr "Affiche la mémoire qu'écrit un téléchargement, segment par segment"

@@ -3060,3 +3060,6 @@ msgstr "Zapnúť"
 
 msgid "Switch Off"
 msgstr "Vypnúť"
+
+msgid "Show the memory a download writes, segment by segment"
+msgstr "Zobrazí pamäť, ktorú zapisuje nahratie, segment po segmente"

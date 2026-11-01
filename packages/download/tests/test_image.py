@@ -78,6 +78,41 @@ def test_masked_writes_allocation_larger_than_segment_clips() -> None:
     assert runs == [(0x4000, b"\x04\x11\x27\x11\x2a")]
 
 
+def test_masked_writes_overlapping_segments_write_each_octet_once() -> None:
+    """A group object table built on the code segment that also holds the parameters
+    (BIM M112) covers the parameter segment: each octet is written once, not per segment."""
+    parameters = MemorySegment(
+        address=0x43FE,
+        data=bytes([0, 0, 0xA1, 0xA2, 0, 0, 0xB1, 0]),
+        mask=bytes([0, 0, 0xFF, 0xFF, 0, 0, 0xFF, 0]),
+    )
+    table = MemorySegment(
+        address=0x43FE,
+        data=bytes([0x08, 0x01, 0xA1, 0xA2, 0x30, 0x31, 0xB1, 0x32]),
+        mask=bytes([0xFF, 0xFF, 0, 0, 0, 0, 0, 0]),
+        initialized_mask=b"\xff" * 8,
+    )
+    image = DownloadImage(segments=(parameters, table), properties=())
+    assert image.masked_writes(0x43FE, 8, include_initialized=True) == [
+        (0x43FE, bytes([0x08, 0x01, 0xA1, 0xA2, 0x30, 0x31, 0xB1, 0x32]))
+    ]
+    # Without the seed only the masked octets of both are written, still once each.
+    assert image.masked_writes(0x43FE, 8) == [
+        (0x43FE, bytes([0x08, 0x01, 0xA1, 0xA2])),
+        (0x4404, bytes([0xB1])),
+    ]
+
+
+def test_masked_writes_later_segment_wins_an_overlapping_octet() -> None:
+    """Where overlapping segments disagree, the octet of the later one is written, as the
+    device would hold it after both writes."""
+    first = MemorySegment(address=0x100, data=b"\x01\x02\x03\x04")
+    second = MemorySegment(address=0x102, data=b"\xaa\xbb\xcc")
+    image = DownloadImage(segments=(first, second), properties=())
+    assert image.masked_writes(0x100, 5) == [(0x100, b"\x01\x02\xaa\xbb\xcc")]
+    assert image.masked_writes(0x101, 2) == [(0x101, b"\x02\xaa")]
+
+
 def test_build_image_from_project_device() -> None:
     from types import SimpleNamespace
     from typing import cast
