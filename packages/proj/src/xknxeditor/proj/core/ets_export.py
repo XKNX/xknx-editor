@@ -12,6 +12,7 @@ Windows only: the helper needs the .NET Framework. Off Windows, :func:`ets_local
 from __future__ import annotations
 
 import ctypes
+import os
 import subprocess
 import sys
 import threading
@@ -20,7 +21,6 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-from xknxeditor.proj.core._dll_signer import ETS_ROOTS
 from xknxeditor.proj.core.key_extract import (
     build_ets5_export_exe,
     build_ets_export_exe,
@@ -54,9 +54,38 @@ _ETS5_REQUIRED_FILES = (
     "Knx.Ets.XmlSigning.dll",
 )
 
+#: The host executable + its config define an installation; the other files above are runtime
+#: dependencies the helper needs (reported separately), so a missing one does not hide the install.
+_ETS6_SIGNATURE = ("ETS6N.exe", "ETS6N.exe.config")
+_ETS5_SIGNATURE = ("ets5n.exe", "ETS5N.exe.config")
+
 #: The versions each helper is known to match; others need ``accept_untested``.
 _TESTED_PREFIX = "6.4."
 _ETS5_TESTED_PREFIX = "5.7.1428"
+
+
+def _ets_roots() -> list[str]:
+    """Candidate ETS 6/5 install directories, derived from the real Program Files locations.
+
+    Covers non-``C:`` system drives and 64/32-bit Program Files via the environment, with the
+    documented fixed paths as a fallback. Order prefers the environment-derived locations.
+    """
+    bases: list[str] = []
+    for var in ("ProgramW6432", "PROGRAMFILES", "PROGRAMFILES(X86)"):
+        value = os.environ.get(var)
+        if value:
+            bases.append(value)
+    bases += [r"C:\Program Files", r"C:\Program Files (x86)"]
+    roots: list[str] = []
+    seen: set[str] = set()
+    for base in bases:
+        for name in ("ETS6", "ETS5"):
+            path = str(Path(base) / name)
+            if path.lower() not in seen:
+                seen.add(path.lower())
+                roots.append(path)
+    return roots
+
 
 #: A run can take minutes (the licence manager alone waits up to 30 s).
 _RUN_TIMEOUT = 1800.0
@@ -132,14 +161,14 @@ def _file_version(exe: Path) -> str:
 
 
 def _detect(
-    required: tuple[str, ...], main_exe: str, tested_prefix: str, ets_dir: str | None
+    signature: tuple[str, ...], main_exe: str, tested_prefix: str, ets_dir: str | None
 ) -> EtsInstall | None:
-    roots = [ets_dir] if ets_dir else list(ETS_ROOTS)
+    roots = [ets_dir] if ets_dir else _ets_roots()
     for root in roots:
         if not root:
             continue
         directory = Path(root)
-        if not all((directory / name).is_file() for name in required):
+        if not all((directory / name).is_file() for name in signature):
             continue
         version = _file_version(directory / main_exe)
         return EtsInstall(str(directory), version, version.startswith(tested_prefix))
@@ -147,13 +176,16 @@ def _detect(
 
 
 def detect_ets(ets_dir: str | None = None) -> EtsInstall | None:
-    """Return the first usable ETS 6 installation (optionally forced to ``ets_dir``), or ``None``."""
-    return _detect(_REQUIRED_FILES, "ETS6N.exe", _TESTED_PREFIX, ets_dir)
+    """Return the first ETS 6 installation (optionally forced to ``ets_dir``), or ``None``.
+
+    Keys off the host executable + config; the helper re-checks the runtime dependencies at run time.
+    """
+    return _detect(_ETS6_SIGNATURE, "ETS6N.exe", _TESTED_PREFIX, ets_dir)
 
 
 def detect_ets5(ets_dir: str | None = None) -> EtsInstall | None:
-    """Return the first usable ETS 5 installation (optionally forced to ``ets_dir``), or ``None``."""
-    return _detect(_ETS5_REQUIRED_FILES, "ets5n.exe", _ETS5_TESTED_PREFIX, ets_dir)
+    """Return the first ETS 5 installation (optionally forced to ``ets_dir``), or ``None``."""
+    return _detect(_ETS5_SIGNATURE, "ets5n.exe", _ETS5_TESTED_PREFIX, ets_dir)
 
 
 def ets_local_available() -> bool:
@@ -164,6 +196,81 @@ def ets_local_available() -> bool:
 def ets5_local_available() -> bool:
     """Whether a local ETS 5 re-export can run here (dotnet/prebuilt + a detected install)."""
     return ets5_export_backend_available() and detect_ets5() is not None
+
+
+@dataclass(frozen=True)
+class EtsDetection:
+    """Diagnostic outcome of local-ETS detection, for the UI and the log."""
+
+    is_windows: bool
+    ets6: EtsInstall | None
+    ets5: EtsInstall | None
+    ets6_backend: bool
+    ets5_backend: bool
+    probed: tuple[str, ...]  # human-readable lines explaining each probed location
+
+    @property
+    def install(self) -> EtsInstall | None:
+        """The installation to use (ETS 6 preferred), independent of the build backend."""
+        return self.ets6 or self.ets5
+
+    @property
+    def is_ets5(self) -> bool:
+        return self.ets6 is None and self.ets5 is not None
+
+    @property
+    def backend_available(self) -> bool:
+        """Whether the helper for the chosen installation can actually be built/run."""
+        return self.ets6_backend if self.ets6 is not None else self.ets5_backend
+
+
+def detect_local_ets() -> EtsDetection:
+    """Probe the known install locations and report the outcome with diagnostics.
+
+    Unlike :func:`ets_local_available`, this reports an installation even when the build backend is
+    missing, so the UI can tell "no ETS found" apart from "ETS found but no .NET SDK" and "not
+    Windows", and log exactly which location failed and why.
+    """
+    probed: list[str] = []
+    is_windows = sys.platform == "win32"
+    if not is_windows:
+        probed.append(
+            f"platform is {sys.platform!r}, not Windows (the export is Windows-only)"
+        )
+    ets6: EtsInstall | None = None
+    ets5: EtsInstall | None = None
+    for root in _ets_roots():
+        directory = Path(root)
+        if not directory.is_dir():
+            probed.append(f"{root}: directory not present")
+            continue
+        has6 = all((directory / n).is_file() for n in _ETS6_SIGNATURE)
+        has5 = all((directory / n).is_file() for n in _ETS5_SIGNATURE)
+        if has6:
+            v = _file_version(directory / "ETS6N.exe")
+            missing = [n for n in _REQUIRED_FILES if not (directory / n).is_file()]
+            note = f" (missing dependencies: {', '.join(missing)})" if missing else ""
+            probed.append(f"{root}: ETS 6 detected (version {v or 'unknown'}){note}")
+            if ets6 is None:
+                ets6 = EtsInstall(str(directory), v, v.startswith(_TESTED_PREFIX))
+        elif has5:
+            v = _file_version(directory / "ets5n.exe")
+            missing = [n for n in _ETS5_REQUIRED_FILES if not (directory / n).is_file()]
+            note = f" (missing dependencies: {', '.join(missing)})" if missing else ""
+            probed.append(f"{root}: ETS 5 detected (version {v or 'unknown'}){note}")
+            if ets5 is None:
+                ets5 = EtsInstall(str(directory), v, v.startswith(_ETS5_TESTED_PREFIX))
+        else:
+            probed.append(f"{root}: no ETS host (ETS6N.exe/ets5n.exe absent)")
+    ets6_backend = ets_export_backend_available()
+    ets5_backend = ets5_export_backend_available()
+    if not (ets6_backend or ets5_backend):
+        probed.append(
+            "build backend missing: no dotnet SDK on PATH and no prebuilt helper set"
+        )
+    return EtsDetection(
+        is_windows, ets6, ets5, ets6_backend, ets5_backend, tuple(probed)
+    )
 
 
 def _parse_result(output_path: str, stdout: str, returncode: int) -> EtsSignResult:
