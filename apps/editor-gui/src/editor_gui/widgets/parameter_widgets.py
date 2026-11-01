@@ -446,9 +446,10 @@ def _render_enum_combo(
     colour across the row. ``current`` None: ``preview`` is shown (e.g. "<differs>")."""
     icon = _choice_icon(current)
     style = imgui.get_style()
+    inset = px(_COMBO_TEXT_INSET)
     # The box the chosen entry is drawn in, left of the arrow.
     start = imgui.get_cursor_screen_pos()
-    low = imgui.ImVec2(start.x + style.frame_padding.x, start.y)
+    low = imgui.ImVec2(start.x + inset, start.y)
     high = imgui.ImVec2(
         start.x + imgui.calc_item_width() - imgui.get_frame_height(),
         start.y + imgui.get_frame_height(),
@@ -456,7 +457,12 @@ def _render_enum_combo(
     draw = imgui.get_window_draw_list()
     custom = current is not None and icon is not None
     shown = "" if custom else (choice_text(current) if current else preview)
-    if begin_combo(f"##{widget_id}", shown):
+    imgui.push_style_var(
+        imgui.StyleVar_.frame_padding, imgui.ImVec2(inset, style.frame_padding.y)
+    )
+    opened = begin_combo(f"##{widget_id}", shown)
+    imgui.pop_style_var()
+    if opened:
         for i, choice in enumerate(widget.choices):
             selected = current is not None and choice.value == current.value
             choice_icon = _choice_icon(choice)
@@ -1959,6 +1965,23 @@ def _indented_cell_text(text: str, origin: float) -> str:
     return "\n".join(line.lstrip(" ") for line in text.split("\n"))
 
 
+def _whole_pixel_starts(widths: list[float | None]) -> list[float | None]:
+    """Widths in whole pixels that start each column at its declared start, rounded: imgui cuts
+    each width down to whole pixels, which adds up over the columns. A column without a width
+    (it stretches) starts the count again."""
+    whole: list[float | None] = []
+    end = 0.0
+    for width in widths:
+        if width is None:
+            whole.append(None)
+            end = 0.0
+            continue
+        start = round(end)
+        end += width
+        whole.append(float(round(end) - start))
+    return whole
+
+
 def _keep_column_starts(
     widths: list[float | None], min_width: float
 ) -> list[float | None]:
@@ -2115,7 +2138,7 @@ def _render_grid_cells(
         else None
         for col in range(declared_cols)
     ]
-    widths = _keep_column_starts(widths, _MIN_GRID_COLUMN)
+    widths = _whole_pixel_starts(_keep_column_starts(widths, _MIN_GRID_COLUMN))
     # Columns keep their declared widths, so a grid whose widths add up to more than the
     # page extends past its right edge instead of squeezing the last columns.
     stretch_cols = sum(w is None for w in widths) + col_offset
@@ -2135,9 +2158,10 @@ def _render_grid_cells(
     imgui.push_style_var(
         imgui.StyleVar_.frame_padding, imgui.ImVec2(_MIN_GRID_COLUMN, frame_padding.y)
     )
+    cell_padding_y = padding.y / 4
     imgui.push_style_var(
         imgui.StyleVar_.cell_padding,
-        imgui.ImVec2(padding.x if is_table else 0, padding.y / 4),
+        imgui.ImVec2(padding.x if is_table else 0, cell_padding_y),
     )
     origin = imgui.get_cursor_screen_pos().x
     opened = imgui.begin_table(
@@ -2163,14 +2187,6 @@ def _render_grid_cells(
     for row in range(1, max_row + 1):
         if row in block.collapsed_rows and not any(r == row for r, _ in occupied):
             continue
-        imgui.table_next_row()
-        if layout_padding:
-            imgui.pop_style_var()
-            layout_padding = False
-        if has_row_labels:
-            imgui.table_set_column_index(0)
-            label = block.row_labels[row - 1] if row - 1 < len(block.row_labels) else ""
-            imgui.text_disabled(label)
         # The cells of a row are centred on its tallest one (e.g. a label of two lines). A
         # label's height is known once it is drawn at its cell's width, so the row uses the
         # heights its labels had in the previous frame.
@@ -2185,6 +2201,17 @@ def _render_grid_cells(
             ]
         )
         row_height = max(frame_height, _label_heights.get(row_key, estimate))
+        # A row of labels only is as high as one with fields, as the grid rows of the page are
+        # (a cell with a field counts the spacing below it).
+        spacing = imgui.get_style().item_spacing.y
+        imgui.table_next_row(0, row_height + spacing + 2 * cell_padding_y)
+        if layout_padding:
+            imgui.pop_style_var()
+            layout_padding = False
+        if has_row_labels:
+            imgui.table_set_column_index(0)
+            label = block.row_labels[row - 1] if row - 1 < len(block.row_labels) else ""
+            imgui.text_disabled(label)
         drawn_height = 0.0
         for col in range(1, max_col + 1):
             imgui.table_set_column_index(col - 1 + col_offset)
@@ -2493,8 +2520,9 @@ _ERROR_ICON = imgui.ImVec4(210 / 255, 52 / 255, 52 / 255, 1.0)
 _ERROR_TINT = 0.15
 # Width at 100 % scaling a grid column without a declared width keeps when the grid is too wide.
 _MIN_STRETCH_COLUMN = 80.0
-# Page width at 100 % scaling that percentage column widths of a grid refer to.
-_GRID_REFERENCE_WIDTH = 540.0
+# Page width at 100 % scaling that percentage column widths of a grid refer to: as wide as a
+# separator (see _SEPARATOR_WIDTH).
+_GRID_REFERENCE_WIDTH = 532.0
 # Width at 100 % scaling of a separator's text, line or box: its row of 535 px less the 3 px it
 # keeps from the row's left edge.
 _SEPARATOR_WIDTH = 532.0
@@ -2515,6 +2543,8 @@ _INDENT_STEP = 8.0
 _LIST_LABEL_SHARE = 0.45
 # Gap at 100 % scaling a field in a grid cell leaves to the next column.
 _CELL_GAP = 6.0
+# Distance at 100 % scaling of the text of a drop-down from its left edge.
+_COMBO_TEXT_INSET = 5.0
 # Space left and right of a button in a grid cell.
 _BUTTON_MARGIN = 7.0
 # Size of a headline over the text: 14 px semibold over the 12 px text.
