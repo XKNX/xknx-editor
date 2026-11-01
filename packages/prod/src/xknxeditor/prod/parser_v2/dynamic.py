@@ -938,39 +938,47 @@ class DynamicUI:
         the reached member wins, not a sibling carrying a stale explicit value from an inactive
         branch (which would drop a freshly-activated member's content).
 
-        The discovery is settled like the render loop (same bounded gate passes): a member whose
-        selecting value is only produced by an Assign evaluated later in the tree is reached once that
-        value has propagated, so a single traversal order no longer decides which overlay wins."""
+        The discovery is settled like the render pass (see :meth:`_settle`), so the members
+        reached are those of the settled values and active parameters: a Choose on a parameter
+        that is not active selects nothing here either, and a member selected by a value an Assign
+        writes later in the tree is reached; a single traversal order does not decide which
+        overlay wins."""
         self._state.clear_gate()
+        self._settle(
+            lambda: EvalContext(self._state, idx=self._idx, union_suppress=False)
+        )
+        self._state.snapshot_discovered_active()
+
+    def _settle(self, make_ctx: Callable[[], EvalContext]) -> list[UiNode]:
+        """Evaluate the tree until a pass changes neither the active parameters nor a value or
+        text that an Assign or a Rename writes, at most ``_MAX_GATE_PASSES`` times; the tree of
+        the last pass. Each pass gates Chooses by the parameters active in the pass before, so a
+        Choose renders nothing when its parameter is not active, wherever in the tree it is shown
+        or assigned; and a node read before a write saw the old value, so the pass after it sees
+        the new one."""
+        tree: list[UiNode] = []
         for _ in range(_MAX_GATE_PASSES):
             self._state.reset_active()
-            self._tree.eval(
-                EvalContext(self._state, idx=self._idx, union_suppress=False)
-            )
-            if not self._state.update_gate_active():
+            tree = self._tree.eval(make_ctx())
+            gate_changed = self._state.update_gate_active()
+            if not gate_changed and not self._state.pass_changed_state():
                 break
-        self._state.snapshot_discovered_active()
+        return tree
 
     def _eval_settled(
         self, capture: Callable[[], EvalCapture] | None = None
     ) -> tuple[list[UiNode], EvalCapture | None]:
-        """Evaluate until the active parameters no longer change.
-
-        Each pass gates Chooses by the params active in the pass before, so a Choose renders
-        nothing when its param is not active, regardless of where in the tree the param is
-        shown or assigned. ``capture`` makes a fresh capture for each pass.
-        """
+        """Evaluate until settled (see :meth:`_settle`), after the union discovery.
+        ``capture`` makes a fresh capture for each pass; the one of the last pass is returned."""
         self._discover_union_activity()
-        tree: list[UiNode] = []
         result: EvalCapture | None = None
-        for _ in range(_MAX_GATE_PASSES):
-            self._state.reset_active()
+
+        def make_ctx() -> EvalContext:
+            nonlocal result
             result = capture() if capture is not None else None
-            tree = self._tree.eval(
-                EvalContext(self._state, idx=self._idx, capture=result)
-            )
-            if not self._state.update_gate_active():
-                break
+            return EvalContext(self._state, idx=self._idx, capture=result)
+
+        tree = self._settle(make_ctx)
         return tree, result
 
     def _build_ui(self, *, capture_active: bool) -> None:
