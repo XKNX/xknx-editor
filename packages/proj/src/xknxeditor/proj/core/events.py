@@ -1247,6 +1247,8 @@ class SetParameter(Event):
     existed: bool | None = None
     old_value: str | None = None
     parameter_id: int | None = None
+    # The device's parameters were loaded before: a changed value marks them not loaded.
+    parameters_were_loaded: bool = False
 
     def _find(self, session: Session) -> Parameter | None:
         return (
@@ -1257,6 +1259,13 @@ class SetParameter(Event):
 
     def apply(self, session: Session) -> None:
         param = self._find(session)
+        if param is None or param.value != self.value:
+            device = session.get(Device, self.device_id)
+            self.parameters_were_loaded = (
+                device is not None and device.parameters_loaded
+            )
+            if device is not None:
+                device.parameters_loaded = False
         if param is not None:
             self.existed = True
             self.old_value = param.value
@@ -1281,6 +1290,10 @@ class SetParameter(Event):
             param = session.get(Parameter, self.parameter_id)
             if param is not None:
                 session.delete(param)
+        if self.parameters_were_loaded:
+            device = session.get(Device, self.device_id)
+            if device is not None:
+                device.parameters_loaded = True
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -1290,6 +1303,7 @@ class SetParameter(Event):
             "existed": self.existed,
             "old_value": self.old_value,
             "parameter_id": self.parameter_id,
+            "parameters_were_loaded": self.parameters_were_loaded,
         }
 
     @classmethod
@@ -1581,6 +1595,8 @@ class SetComObjectFlag(Event):
     captured: bool = False
     old: bool | None = None
     old_override: bool | None = None
+    # Devices whose group communication was loaded before (see _clear_communication_loaded).
+    cleared: dict[str, bool] = field(default_factory=dict[str, bool])
 
     def apply(self, session: Session) -> None:
         com_object = session.get(ComObject, self.com_object_id)
@@ -1588,6 +1604,11 @@ class SetComObjectFlag(Event):
             self.old = getattr(com_object, self.flag)
             self.old_override = getattr(com_object, f"{self.flag}_override")
             self.captured = True
+            # The flags are part of the group object table.
+            if self.old != self.value:
+                self.cleared = _clear_communication_loaded(
+                    session, {com_object.device_id}
+                )
             # Forcing a flag is both the effective value the device download programs AND an explicit
             # override the export must re-emit, so set the effective column and its ``_override`` twin.
             setattr(com_object, self.flag, self.value)
@@ -1598,6 +1619,7 @@ class SetComObjectFlag(Event):
         if com_object is not None and self.captured:
             setattr(com_object, self.flag, self.old)
             setattr(com_object, f"{self.flag}_override", self.old_override)
+        _restore_communication_loaded(session, self.cleared)
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -1607,6 +1629,7 @@ class SetComObjectFlag(Event):
             "captured": self.captured,
             "old": self.old,
             "old_override": self.old_override,
+            "cleared": self.cleared,
         }
 
     @classmethod
@@ -1664,18 +1687,26 @@ class SetComObjectPriority(Event):
     priority: str | None
     captured: bool = False
     old: str | None = None
+    # Devices whose group communication was loaded before (see _clear_communication_loaded).
+    cleared: dict[str, bool] = field(default_factory=dict[str, bool])
 
     def apply(self, session: Session) -> None:
         com_object = session.get(ComObject, self.com_object_id)
         if com_object is not None:
             self.old = com_object.priority
             self.captured = True
+            # The priority is part of the group object table.
+            if self.old != self.priority:
+                self.cleared = _clear_communication_loaded(
+                    session, {com_object.device_id}
+                )
             com_object.priority = self.priority
 
     def revert(self, session: Session) -> None:
         com_object = session.get(ComObject, self.com_object_id)
         if com_object is not None and self.captured:
             com_object.priority = self.old
+        _restore_communication_loaded(session, self.cleared)
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -1683,6 +1714,7 @@ class SetComObjectPriority(Event):
             "priority": self.priority,
             "captured": self.captured,
             "old": self.old,
+            "cleared": self.cleared,
         }
 
     @classmethod

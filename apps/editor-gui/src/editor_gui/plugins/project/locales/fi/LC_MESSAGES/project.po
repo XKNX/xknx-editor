@@ -796,6 +796,9 @@ msgstr "Pura"
 msgid "Unload Application and Address"
 msgstr "Pura Sovellus ja Osoite"
 
+msgid "Partial"
+msgstr "Osittainen"
+
 msgid "Partial: Parameters"
 msgstr "Osittainen: parametrit"
 

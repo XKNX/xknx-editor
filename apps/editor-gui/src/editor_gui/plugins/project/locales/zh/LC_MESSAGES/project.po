@@ -796,6 +796,9 @@ msgstr "卸载"
 msgid "Unload Application and Address"
 msgstr "卸载应用和地址"
 
+msgid "Partial"
+msgstr "部分"
+
 msgid "Partial: Parameters"
 msgstr "部分：参数"
 

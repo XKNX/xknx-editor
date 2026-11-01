@@ -60,6 +60,9 @@ class SegmentDiff:
     # with different inline data (e.g. a download handshake flag set to 01 at the start and 02
     # at the end), so the device can never hold what one of the writes plans.
     procedure_step: bool = False
+    # Offsets (from ``address``) of the bytes that belong to a group communication table (the
+    # group address, association or group object table): configuration, as a parameter's.
+    table_bytes: frozenset[int] = frozenset()
 
     @property
     def changed_ranges(self) -> tuple[ByteRange, ...]:

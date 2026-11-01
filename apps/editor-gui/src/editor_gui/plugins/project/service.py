@@ -116,6 +116,7 @@ if TYPE_CHECKING:
     from xknxeditor.download.image import GroupCommunication
     from xknxeditor.download.ip_config import IpDeviceConfig
     from xknxeditor.download.ip_secure import IpSecureConfig
+    from xknxeditor.download.scope import DownloadScope, PartialDownload
     from xknxeditor.download.secure_config import GroupSecurity
     from xknxeditor.prod.parser_v2.calculation import ChangeSet
     from xknxeditor.proj.core.compact import CompactResult
@@ -4137,6 +4138,45 @@ class ProjectService:
             ),
         )
 
+    def download_parts(self, node_id: int, scope: "DownloadScope") -> "PartialDownload":
+        """What a download of ``scope`` loads into the device: a partial one
+        (``DownloadScope.PARTIAL``) what the device still needs, from its loaded flags (see
+        ``partial_scope``); any other scope as it is."""
+        from xknxeditor.download.scope import (
+            DownloadScope,
+            PartialDownload,
+            partial_scope,
+        )
+
+        if scope is not DownloadScope.PARTIAL:
+            return PartialDownload(scope)
+        info = self.get_device_info(node_id)
+        return partial_scope(
+            individual_address_loaded=info is not None
+            and info.individual_address_loaded,
+            application_program_loaded=info is not None
+            and info.application_program_loaded,
+            parameters_loaded=info is not None and info.parameters_loaded,
+            communication_part_loaded=info is not None
+            and info.communication_part_loaded,
+            medium_config_loaded=info is not None and info.medium_config_loaded,
+        )
+
+    def download_ip_config(
+        self, device: Device, parts: "PartialDownload"
+    ) -> "IpDeviceConfig | None":
+        """The IP settings a download of ``parts`` writes to ``device``: those of a full or
+        application download, of a partial one only when its medium configuration is loaded
+        too (see ``ip_download_config``)."""
+        from xknxeditor.download.scope import DownloadScope
+
+        if parts.medium_config or parts.scope in (
+            DownloadScope.FULL,
+            DownloadScope.APPLICATION,
+        ):
+            return self.ip_download_config(device)
+        return None
+
     def ip_secure_config(
         self, device: Device, keyring: "KeyringService | None" = None
     ) -> "IpSecureConfig | None":
@@ -4235,14 +4275,19 @@ class ProjectService:
         scope_value: str,
         serial: bytes | None = None,
         mac_address: bytes | None = None,
+        *,
+        medium_config: bool = False,
     ) -> None:
         """Record a successful download of ``scope_value`` (a DownloadScope value): its loaded
         flags, the serial number and MAC address read and, except for an unload, the time. An
         unload clears the image of the last download, an unload of everything also the serial
-        number, MAC and IP address."""
+        number, MAC and IP address. ``medium_config``: a partial download loaded the medium
+        configuration too."""
         flags = _COMMISSIONING_BY_SCOPE.get(scope_value)
         if flags is None:
             return
+        if medium_config:
+            flags = {**flags, "medium_config_loaded": True}
         unload = scope_value in ("unload", "unload_all")
         self.set_device_commissioning(
             node_id,

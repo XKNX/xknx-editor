@@ -24,7 +24,9 @@ uv run python tools/xknx_sans/record_line_breaks.py
 
 - `build.py` writes `assets/fonts/XKNXSans-Regular.ttf`, `XKNXSans-Semilight.ttf`,
   `XKNXSans-Bold.ttf` and `XKNXSans-OFL.txt` of the editor. Characters Segoe UI lacks get the width WPF's fallback fonts
-  give them (`wpf_widths.ps1`).
+  give them (`wpf_widths.ps1`). The bold face, whose outlines are thinned to Segoe UI Semibold's stems, gets Segoe UI
+  Semibold's heights back (x-height, top and bottom of each letter), so its capitals and ascenders end on the same pixel
+  rows.
 - `record_line_breaks.py` writes `widgets/line_break_table.py`: for each class of characters, the
   classes a line may start with after it, directly or after spaces, probed in WPF TextBlocks
   (`wpf_line_starts.ps1`). It reads the built font, so it runs after `build.py`.

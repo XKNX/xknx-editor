@@ -61,7 +61,11 @@ from editor_gui.widgets import (
     stacked_layout,
     take_selected_help,
 )
-from editor_gui.widgets.backgrounds import child_background, side_background
+from editor_gui.widgets.backgrounds import (
+    child_background,
+    page_line,
+    side_background,
+)
 from editor_gui.widgets.checkbox import checkbox, radio_button
 from editor_gui.widgets.combo import begin_combo, combo
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
@@ -101,7 +105,7 @@ _HELP_HEIGHT_SETTING = "help_height"
 _HELP_HEIGHT_NARROW = 100.0
 _HELP_HEIGHT_NARROW_SETTING = "help_height_narrow"
 # Room at 100 % scaling between the help's edges and its text.
-_HELP_PADDING = (18.0, 13.0)
+_HELP_PADDING = (17.0, 13.0)
 # Product ids of OpenKNX devices (manufacturer KNX Association, 0x00FA).
 _OPENKNX_PRODUCT_PREFIX = "M-00FA_"
 
@@ -124,6 +128,7 @@ def overwrite_current_address(
 
 _SCOPE_ORDER = [
     DownloadScope.FULL,
+    DownloadScope.PARTIAL,
     DownloadScope.PARAMETERS,
     DownloadScope.GROUP_COMMUNICATION,
     DownloadScope.APPLICATION,
@@ -138,6 +143,7 @@ def _scope_labels() -> list[str]:
     """Labels of ``_SCOPE_ORDER``."""
     return [
         S.SCOPE_FULL,
+        S.SCOPE_PARTIAL,
         S.SCOPE_PARAMETERS,
         S.SCOPE_GROUP_COMMUNICATION,
         S.SCOPE_APPLICATION,
@@ -445,7 +451,7 @@ class ConfigurePanel:
         self._address_buffer: str = ""
         self._description_buffer: str = ""
         self._buffer_device_id: int | None = None
-        self._download_scope: DownloadScope = DownloadScope.PARAMETERS
+        self._download_scope: DownloadScope = DownloadScope.PARTIAL
         self._confirm_program_open: bool = False
         # Confirmed to program a device whose hardware needs the manufacturer's plugin.
         self._program_without_plugin: bool = False
@@ -1551,20 +1557,19 @@ class ConfigurePanel:
             )
         if imgui.is_item_deactivated():
             self._save_help_height()
-        color = (
+        # In the color of the page's separator lines; the theme's while hovered or dragged.
+        color = imgui.get_color_u32(
             imgui.Col_.separator_active
             if active
             else imgui.Col_.separator_hovered
             if hovered
-            else imgui.Col_.separator
+            else page_line()
         )
         # The line right below the parameters, the rest on the help's background.
         line_bottom = top_left.y + px(_HELP_LINE)
         draw_list = imgui.get_window_draw_list()
         draw_list.add_rect_filled(
-            top_left,
-            imgui.ImVec2(top_left.x + width, line_bottom),
-            imgui.get_color_u32(color),
+            top_left, imgui.ImVec2(top_left.x + width, line_bottom), color
         )
         draw_list.add_rect_filled(
             imgui.ImVec2(top_left.x, line_bottom),

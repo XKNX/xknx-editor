@@ -213,3 +213,13 @@ def test_the_fonts_are_known_by_the_names_imgui_gives_them(
 ) -> None:
     font = cast(imgui.ImFont, _Named(name))
     assert text_layout._face(font) == face  # pyright: ignore[reportPrivateUsage]
+
+
+def test_bold_capitals_and_ascenders_reach_the_same_row(
+    fonts: dict[str, imgui.ImFont],
+) -> None:
+    # As Segoe UI Semibold at a headline's size: the "l", "f", "d" and the dot of the "i" are no
+    # higher than the capitals.
+    baked = fonts[_BOLD].get_font_baked(14.0 * 14.0 / 12.0)
+    tops = {char: baked.find_glyph(ord(char)).y0 for char in "HTlfidkb"}
+    assert len(set(tops.values())) == 1, tops

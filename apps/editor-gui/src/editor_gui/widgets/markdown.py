@@ -8,6 +8,7 @@ from dataclasses import dataclass
 
 from imgui_bundle import imgui
 
+from editor_gui.widgets import text_layout
 from editor_gui.widgets.dpi import px
 from editor_gui.widgets.fonts import bold, semilight
 from editor_gui.widgets.wrapping import LINE_GAP, vertical_space, wrapped_text
@@ -30,10 +31,11 @@ _HEADINGS = (
 # of two blocks the larger of their rooms parts them.
 _HEADING_ABOVE = 24.0
 _HEADING_BELOW = 23.0
-_BLOCK_ROOM = 12.0
-# Where a list item's marker and its text start, at 100 % scaling, and the bullet's radius.
-_MARKER_X = 18.0
-_ITEM_X = 30.0
+_BLOCK_ROOM = 18.0
+# Where a list item's text starts, at 100 % scaling, the room between its marker (a bullet or its
+# number, ending there) and its text, and the bullet's radius.
+_ITEM_X = 48.0
+_MARKER_GAP = 8.0
 _BULLET_RADIUS = 2.2
 
 
@@ -136,16 +138,18 @@ def _render_item(block: _Block) -> None:
     if block.kind == "bullet":
         draw_list.add_circle_filled(
             imgui.ImVec2(
-                left.x + px(_MARKER_X), left.y + imgui.get_text_line_height() / 2
+                left.x + px(_ITEM_X - _MARKER_GAP - _BULLET_RADIUS),
+                left.y + imgui.get_text_line_height() / 2,
             ),
             px(_BULLET_RADIUS),
             color,
         )
     else:
-        draw_list.add_text(
-            imgui.ImVec2(left.x + px(_MARKER_X) - px(_BULLET_RADIUS), left.y),
-            color,
-            f"{block.number}.",
+        # Its number ends where a bullet would.
+        number = f"{block.number}."
+        end = left.x + px(_ITEM_X) - px(_MARKER_GAP)
+        text_layout.draw_text_at(
+            number, imgui.ImVec2(end - text_layout.text_width(number), left.y)
         )
     imgui.set_cursor_screen_pos(imgui.ImVec2(left.x + px(_ITEM_X), left.y))
     wrapped_text(block.text, imgui.get_content_region_avail().x)
