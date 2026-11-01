@@ -16,6 +16,7 @@ from fastmcp.server.providers.skills import SkillsDirectoryProvider
 from editor_gui.plugins.mcp.tools import (
     backups,
     batch,
+    buttons,
     catalog,
     connection,
     dali,
@@ -131,7 +132,9 @@ INSTRUCTIONS = (
     "OVERWRITE_INDIVIDUAL_ADDRESS and its current_address.\n"
     "OPERATIONS: programmings run in the editor's Operations panel; connection_operations shows "
     "what runs, waits and has ended, connection_cancel_operations cancels, and a download that "
-    "finds another application in the device waits for connection_answer_overwrite.\n"
+    "finds another application in the device waits for connection_answer_overwrite. "
+    "project_press_button presses a button of the parameter view; an online one runs there as a "
+    '"Parameter Script" operation.\n'
     "DOWNLOAD SCOPE — match it to the change: PARAMETERS (parameter values only), "
     "GROUP_COMMUNICATION (group-address links only), APPLICATION (the full application load, incl. "
     "the GA link tables), PARAMETERS_AND_GROUP_COMMUNICATION (a change touching both, e.g. a new "
@@ -185,6 +188,7 @@ def build_server(ctx: McpContext, auth: Any = None) -> FastMCP:
         catalog,
         connection,
         operations,
+        buttons,
         dali,
         monitor,
         keyring,
