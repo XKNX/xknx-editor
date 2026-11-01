@@ -106,6 +106,8 @@ class ParameterState:
         "_known_param_ref_values",
         "_param_ref_defaults",
         "_parent",
+        "_pass_texts",
+        "_pass_values",
         "_text",
         "param_ref_id_to_value",
     )
@@ -159,6 +161,11 @@ class ParameterState:
         self._alloc_positions: dict[str, int] = {}
         self._param_ref_defaults: dict[str, str] = param_ref_defaults or {}
         self._com_obj_instance_refs: dict[str, ComObjectInstanceRef] = {}
+        # The values and texts the current pass wrote (an Assign, a Rename), each with what it
+        # was before the pass's first write to it: a pass that leaves one different has to be
+        # followed by another, as a node read before the write saw the old value.
+        self._pass_values: dict[str, str | None] = {}
+        self._pass_texts: dict[str, str | None] = {}
 
     def get(self, ref_id: str) -> str | None:
         # Prefer the durable known value: it survives trim_to_active(), so an inactive block's
@@ -198,11 +205,25 @@ class ParameterState:
         return {}
 
     def set(self, ref_id: str, value: str) -> None:
+        if ref_id not in self._pass_values:
+            self._pass_values[ref_id] = self._known_param_ref_values.get(ref_id)
         self.param_ref_id_to_value[ref_id] = value
         self._known_param_ref_values[ref_id] = value
 
     def set_text(self, ref_id: str, text: str) -> None:
+        if ref_id not in self._pass_texts:
+            self._pass_texts[ref_id] = self._text.get(ref_id)
         self._text[ref_id] = text
+
+    def pass_changed_state(self) -> bool:
+        """Whether the pass since :meth:`reset_active` left a value or a text different from
+        what it was before the pass (this scope or a module scope below)."""
+        if any(
+            self._known_param_ref_values.get(ref) != old
+            for ref, old in self._pass_values.items()
+        ) or any(self._text.get(ref) != old for ref, old in self._pass_texts.items()):
+            return True
+        return any(child.pass_changed_state() for child in self._children.values())
 
     def get_text(self, ref_id: str) -> str | None:
         return self._text.get(ref_id)
@@ -271,6 +292,8 @@ class ParameterState:
         self._active_module_keys.clear()
         self._active_com_object_refs.clear()
         self._alloc_positions.clear()
+        self._pass_values.clear()
+        self._pass_texts.clear()
         for child in self._children.values():
             child.reset_active()
 

@@ -8,7 +8,7 @@ from xknxeditor.namespaces.intermediate.parameter_ref_t import ParameterRef
 from .._name import apply_text_args
 from ..context import EvalContext
 from ..ui import UiNode
-from ..ui.parameter import UiParameter, resolve_widget
+from ..ui.parameter import UiParameter, Widget, resolve_widget
 from .base import DynamicNode
 
 
@@ -26,6 +26,16 @@ class ParameterRefRefNode(DynamicNode):
         self._param_ref = param_ref
         self._param = param
         self._param_type = param_type
+        # Built on first use: it depends on the parameter type only, and each settle evaluates
+        # the tree several times.
+        self._widget: Widget = None
+        self._widget_resolved = False
+
+    def _get_widget(self) -> Widget:
+        if not self._widget_resolved:
+            self._widget = resolve_widget(self._param_type)
+            self._widget_resolved = True
+        return self._widget
 
     def eval(self, ctx: EvalContext) -> list[UiNode]:
         ctx.mark_active_param(self._elem.ref_id)
@@ -62,7 +72,7 @@ class ParameterRefRefNode(DynamicNode):
             ref_id=ctx.qualify(local_ref_id),
             label=label,
             value=value,
-            widget=resolve_widget(self._param_type),
+            widget=self._get_widget(),
             default_value=default_value,
             indent_level=self._elem.indent_level,
             suffix=suffix,
