@@ -5138,6 +5138,7 @@ class KnxGuiApp:
         imgui.text_wrapped(S.MYKNX_ETS_HINT)
         if self._ets_is5:
             imgui.text_wrapped(S.MYKNX_ETS5_DONGLE_HINT)
+            imgui.text_wrapped(S.MYKNX_ETS5_SLOW_HINT.format(tab=S.MYKNX_DONGLE_TAB))
         if not self._ets_backend_ok:
             imgui.push_style_color(imgui.Col_.text, amber)
             imgui.text_wrapped(S.MYKNX_ETS_NO_BACKEND)
