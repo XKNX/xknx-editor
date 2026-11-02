@@ -855,6 +855,14 @@ class MenuStrings:
         return _("Two ETS versions are installed — choose which one signs the export:")
 
     @property
+    def MYKNX_ETS_PICK_ETS6(self) -> str:
+        return _("ETS 6 ({version})")
+
+    @property
+    def MYKNX_ETS_PICK_ETS5(self) -> str:
+        return _("ETS 5 ({version})")
+
+    @property
     def MYKNX_ETS5_DONGLE_HINT(self) -> str:
         return _(
             "ETS 5 needs a physical dongle to write the certificate; without one the project is "

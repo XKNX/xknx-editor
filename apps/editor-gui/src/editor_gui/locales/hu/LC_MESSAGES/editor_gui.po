@@ -1581,3 +1581,9 @@ msgstr "Az ETS megtalálva, de az exportálás futtatásához .NET SDK (vagy el�
 
 msgid "Two ETS versions are installed — choose which one signs the export:"
 msgstr "Két ETS-verzió van telepítve — válaszd ki, melyik írja alá az exportot:"
+
+msgid "ETS 6 ({version})"
+msgstr "ETS 6 ({version})"
+
+msgid "ETS 5 ({version})"
+msgstr "ETS 5 ({version})"

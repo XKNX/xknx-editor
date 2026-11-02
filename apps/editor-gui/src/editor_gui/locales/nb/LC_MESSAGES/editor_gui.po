@@ -1509,3 +1509,9 @@ msgstr "ETS ble funnet, men for å kjøre eksporten kreves .NET SDK (eller en fo
 
 msgid "Two ETS versions are installed — choose which one signs the export:"
 msgstr "To ETS-versjoner er installert — velg hvilken som signerer eksporten:"
+
+msgid "ETS 6 ({version})"
+msgstr "ETS 6 ({version})"
+
+msgid "ETS 5 ({version})"
+msgstr "ETS 5 ({version})"

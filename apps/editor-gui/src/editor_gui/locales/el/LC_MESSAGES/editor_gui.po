@@ -1509,3 +1509,9 @@ msgstr "Βρέθηκε ETS, αλλά για την εκτέλεση της εξ�
 
 msgid "Two ETS versions are installed — choose which one signs the export:"
 msgstr "Είναι εγκατεστημένες δύο εκδόσεις ETS — επίλεξε ποια υπογράφει την εξαγωγή:"
+
+msgid "ETS 6 ({version})"
+msgstr "ETS 6 ({version})"
+
+msgid "ETS 5 ({version})"
+msgstr "ETS 5 ({version})"

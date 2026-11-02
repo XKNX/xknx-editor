@@ -1509,3 +1509,9 @@ msgstr "ETS trovata, ma per eseguire l’esportazione serve l’SDK .NET (o un h
 
 msgid "Two ETS versions are installed — choose which one signs the export:"
 msgstr "Sono installate due versioni di ETS — scegli quale firma l’esportazione:"
+
+msgid "ETS 6 ({version})"
+msgstr "ETS 6 ({version})"
+
+msgid "ETS 5 ({version})"
+msgstr "ETS 5 ({version})"

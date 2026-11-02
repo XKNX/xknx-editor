@@ -1509,3 +1509,9 @@ msgstr "ETS は見つかりましたが、エクスポートの実行には .NET
 
 msgid "Two ETS versions are installed — choose which one signs the export:"
 msgstr "2 つの ETS バージョンがインストールされています。エクスポートに署名する方を選択してください:"
+
+msgid "ETS 6 ({version})"
+msgstr "ETS 6 ({version})"
+
+msgid "ETS 5 ({version})"
+msgstr "ETS 5 ({version})"
