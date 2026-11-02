@@ -31,7 +31,7 @@ def _server(tmp_path: Path, *, with_plugin: bool = True) -> tuple[Any, Any]:
 async def _device(client: Client, address: str | None = None) -> int:
     products = (await _data(client, "catalog_list_products"))["items"]
     if not products:
-        await _data(client, "catalog_import_knxprod", path=str(_FIXTURE))
+        await _data(client, "catalog_import_product", path=str(_FIXTURE))
         products = (await _data(client, "catalog_list_products"))["items"]
     node_id = (
         await _data(

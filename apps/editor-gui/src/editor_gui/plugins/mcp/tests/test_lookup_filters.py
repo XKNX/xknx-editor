@@ -17,7 +17,7 @@ pytestmark = pytest.mark.skipif(not _FIXTURE.exists(), reason="knxprod fixture m
 
 async def _project_with_device(client: Client, tmp_path: Path) -> int:
     await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
-    await _data(client, "catalog_import_knxprod", path=str(_FIXTURE))
+    await _data(client, "catalog_import_product", path=str(_FIXTURE))
     product = (await _data(client, "catalog_list_products"))["items"][0][
         "product_ref_id"
     ]

@@ -38,7 +38,7 @@ _MAX_DOC_BYTES = (
 )  # refuse to pull absurdly large files into the process
 # Cap for an inline (base64) .knxprod upload. A single-device knxprod is usually < 1 MB; only large
 # manufacturer bundles approach this. Keeps a remote client from streaming an unbounded blob into RAM.
-_MAX_KNXPROD_BYTES = 25 * 1024 * 1024
+_MAX_PRODUCT_BYTES = 25 * 1024 * 1024
 # Documentation file extensions we read as plain text/markdown (besides PDF), e.g. OpenKNX
 # Applikationsbeschreibungen hosted as .md in the GitHub module repos.
 _TEXT_EXTS = (".md", ".markdown", ".txt")
@@ -543,11 +543,11 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         return {"items": items, "count": len(items)}
 
     @tool("write")
-    def catalog_import_knxprod(path: str) -> dict[str, Any]:
+    def catalog_import_product(path: str) -> dict[str, Any]:
         """Import a .knxprod, or an older .vd1-.vd5 product database (converted to the same product
         data first; a large database takes minutes), at path on the editor host into the local
         catalog, keeping existing versions. For a file on a remote client, use
-        catalog_import_knxprod_bytes.
+        catalog_import_product_bytes.
         Returns {added_refs, added_versions}: added_refs lists distinct product refs for added versions;
         each added_versions item has {product_ref_id, hardware2program_ref_id, application_id,
         application_version}. Pass product_ref_id and optional hardware2program_ref_id to
@@ -559,10 +559,10 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         return _added(added)
 
     @tool("write")
-    def catalog_import_knxprod_bytes(filename: str, data_base64: str) -> dict[str, Any]:
+    def catalog_import_product_bytes(filename: str, data_base64: str) -> dict[str, Any]:
         """Import a .knxprod (or an older .vd1-.vd5 product database, converted first) from a remote
         client: pass its filename and base64 bytes as data_base64 (decoded size at most 25 MB).
-        Prefer catalog_import_knxprod for files on the editor host.
+        Prefer catalog_import_product for files on the editor host.
         Returns {added_refs, added_versions, filename, size_bytes}; filename is sanitized and
         size_bytes is the decoded size. added_refs lists distinct product refs for added versions;
         each added_versions item has {product_ref_id, hardware2program_ref_id, application_id,
@@ -574,9 +574,9 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             raise ToolError(f"data_base64 is not valid base64: {exc}") from exc
         if not raw:
             raise ToolError("data_base64 is empty")
-        if len(raw) > _MAX_KNXPROD_BYTES:
+        if len(raw) > _MAX_PRODUCT_BYTES:
             raise ToolError(
-                f"knxprod is larger than {_MAX_KNXPROD_BYTES // (1024 * 1024)} MB"
+                f"the product file is larger than {_MAX_PRODUCT_BYTES // (1024 * 1024)} MB"
             )
         if raw[:2] != b"PK":  # .knxprod and .vd1-.vd5 are ZIP archives
             raise ToolError(
