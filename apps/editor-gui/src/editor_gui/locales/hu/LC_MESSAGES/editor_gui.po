@@ -70,8 +70,8 @@ msgstr "Fájl"
 msgid "New Project"
 msgstr "Új projekt"
 
-msgid "Open Project (.knxproj/.xknx)"
-msgstr "Projekt megnyitása (.knxproj/.xknx)"
+msgid "Open Project (.knxproj/.xknx)…"
+msgstr "Projekt megnyitása (.knxproj/.xknx)…"
 
 msgid "Open Recent"
 msgstr "Legutóbbiak megnyitása"
@@ -172,8 +172,8 @@ msgstr "Exportálás tanúsítvány nélkül"
 msgid "Export ETS Project"
 msgstr "ETS-projekt exportálása"
 
-msgid "Load KNX Product…"
-msgstr "KNX-termék betöltése…"
+msgid "Load KNX Product (.knxprod/.vd1-.vd5)…"
+msgstr "KNX-termék betöltése (.knxprod/.vd1-.vd5)…"
 
 msgid "Exit"
 msgstr "Kilépés"

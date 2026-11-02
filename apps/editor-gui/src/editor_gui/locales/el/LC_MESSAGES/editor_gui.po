@@ -118,8 +118,8 @@ msgstr "KNX Master v{version} ({date})"
 msgid "File"
 msgstr "Αρχείο"
 
-msgid "Open Project (.knxproj/.xknx)"
-msgstr "Άνοιγμα Έργου (.knxproj/.xknx)"
+msgid "Open Project (.knxproj/.xknx)…"
+msgstr "Άνοιγμα Έργου (.knxproj/.xknx)…"
 
 msgid "Save As…"
 msgstr "Αποθήκευση ως…"
@@ -568,8 +568,8 @@ msgstr "Εξαγωγή Χωρίς Πιστοποιητικό"
 msgid "Export ETS Project"
 msgstr "Εξαγωγή Έργου ETS"
 
-msgid "Load KNX Product…"
-msgstr "Φόρτωση προϊόντος KNX…"
+msgid "Load KNX Product (.knxprod/.vd1-.vd5)…"
+msgstr "Φόρτωση προϊόντος KNX (.knxprod/.vd1-.vd5)…"
 
 msgid "Load OpenKNX from URL or Folder…"
 msgstr "Φόρτωση OpenKNX από URL ή Φάκελο…"

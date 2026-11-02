@@ -118,8 +118,8 @@ msgstr "KNX Master v{version} ({date})"
 msgid "File"
 msgstr "Fichier"
 
-msgid "Open Project (.knxproj/.xknx)"
-msgstr "Ouvrir un projet (.knxproj/.xknx)"
+msgid "Open Project (.knxproj/.xknx)…"
+msgstr "Ouvrir un projet (.knxproj/.xknx)…"
 
 msgid "Save As…"
 msgstr "Sauvegarder sous…"
@@ -568,8 +568,8 @@ msgstr "Exporter sans certificat"
 msgid "Export ETS Project"
 msgstr "Exporter le projet ETS"
 
-msgid "Load KNX Product…"
-msgstr "Charger un produit KNX…"
+msgid "Load KNX Product (.knxprod/.vd1-.vd5)…"
+msgstr "Charger un produit KNX (.knxprod/.vd1-.vd5)…"
 
 msgid "Load OpenKNX from URL or Folder…"
 msgstr "Charger OpenKNX depuis une URL ou un dossier…"

@@ -70,8 +70,8 @@ msgstr "Fișier"
 msgid "New Project"
 msgstr "Proiect nou"
 
-msgid "Open Project (.knxproj/.xknx)"
-msgstr "Deschidere proiect (.knxproj/.xknx)"
+msgid "Open Project (.knxproj/.xknx)…"
+msgstr "Deschidere proiect (.knxproj/.xknx)…"
 
 msgid "Open Recent"
 msgstr "Deschise recent"
@@ -172,8 +172,8 @@ msgstr "Export fără certificat"
 msgid "Export ETS Project"
 msgstr "Export proiect ETS"
 
-msgid "Load KNX Product…"
-msgstr "Încărcare produs KNX…"
+msgid "Load KNX Product (.knxprod/.vd1-.vd5)…"
+msgstr "Încărcare produs KNX (.knxprod/.vd1-.vd5)…"
 
 msgid "Exit"
 msgstr "Ieșire"

@@ -70,8 +70,8 @@ msgstr "Súbor"
 msgid "New Project"
 msgstr "Nový projekt"
 
-msgid "Open Project (.knxproj/.xknx)"
-msgstr "Otvoriť projekt (.knxproj/.xknx)"
+msgid "Open Project (.knxproj/.xknx)…"
+msgstr "Otvoriť projekt (.knxproj/.xknx)…"
 
 msgid "Open Recent"
 msgstr "Naposledy otvorené"
@@ -172,8 +172,8 @@ msgstr "Exportovať bez certifikátu"
 msgid "Export ETS Project"
 msgstr "Exportovať projekt ETS"
 
-msgid "Load KNX Product…"
-msgstr "Načítať produkt KNX…"
+msgid "Load KNX Product (.knxprod/.vd1-.vd5)…"
+msgstr "Načítať produkt KNX (.knxprod/.vd1-.vd5)…"
 
 msgid "Exit"
 msgstr "Ukončiť"

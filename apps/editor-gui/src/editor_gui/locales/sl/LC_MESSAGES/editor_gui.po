@@ -70,8 +70,8 @@ msgstr "Datoteka"
 msgid "New Project"
 msgstr "Nov projekt"
 
-msgid "Open Project (.knxproj/.xknx)"
-msgstr "Odpri projekt (.knxproj/.xknx)"
+msgid "Open Project (.knxproj/.xknx)…"
+msgstr "Odpri projekt (.knxproj/.xknx)…"
 
 msgid "Open Recent"
 msgstr "Odpri nedavne"
@@ -172,8 +172,8 @@ msgstr "Izvozi brez potrdila"
 msgid "Export ETS Project"
 msgstr "Izvoz projekta ETS"
 
-msgid "Load KNX Product…"
-msgstr "Naloži izdelek KNX…"
+msgid "Load KNX Product (.knxprod/.vd1-.vd5)…"
+msgstr "Naloži izdelek KNX (.knxprod/.vd1-.vd5)…"
 
 msgid "Exit"
 msgstr "Izhod"

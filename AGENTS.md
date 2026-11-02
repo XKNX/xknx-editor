@@ -56,7 +56,7 @@ These rules apply to every English text the GUI shows (the msgids in each `strin
   - Write abbreviations and names as they are spelled: URL, KNX, OpenKNX, .knxprod.
   - Examples: "Load OpenKNX from URL or Folder…", "Choose Folder…", "Restore Default Layout", "Replace with (Template)", "Index of Access Identification Code".
 - **Sentence case** for everything else: option texts in radio buttons and drop-downs, checkbox texts, hints, tooltips, messages, toasts and log texts. They start with an upper case letter, and the rest stays as written ("Not accepted", "Nothing new imported (already in the catalog)").
-- **Ellipsis:** a button or menu item that opens a dialog or a file picker ends with "…" (the single character U+2026, not three dots), e.g. "Save…", "Load KNX Product…".
+- **Ellipsis:** a button or menu item that opens a dialog or a file picker ends with "…" (the single character U+2026, not three dots), e.g. "Save…", "Load KNX Product (.knxprod/.vd1-.vd5)…".
 - **Texts from data** (KNX master data, xknx field names) shown as labels go through `editor_gui.widgets.dpt_value.title_case`.
 - **Translations** (`locales/<language>`, one folder per UI language in `editor_gui.languages`) follow the conventions of their own language, not these rules.
   - When a msgid changes, update the entry in the `.po` file of every language and compile them to `.mo` again.

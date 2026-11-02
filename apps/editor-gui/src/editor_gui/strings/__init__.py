@@ -290,7 +290,7 @@ class MenuStrings:
 
     @property
     def MENU_OPEN_PROJECT(self) -> str:
-        return _("Open Project (.knxproj/.xknx)")
+        return _("Open Project (.knxproj/.xknx)…")
 
     @property
     def MENU_SAVE_AS(self) -> str:
@@ -1141,7 +1141,7 @@ class MenuStrings:
 
     @property
     def MENU_LOAD_PRODUCT(self) -> str:
-        return _("Load KNX Product…")
+        return _("Load KNX Product (.knxprod/.vd1-.vd5)…")
 
     @property
     def MENU_LOAD_FROM_URL(self) -> str:

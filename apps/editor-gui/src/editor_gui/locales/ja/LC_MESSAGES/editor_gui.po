@@ -118,8 +118,8 @@ msgstr "KNX Master v{version}（{date}）"
 msgid "File"
 msgstr "ファイル"
 
-msgid "Open Project (.knxproj/.xknx)"
-msgstr "プロジェクトを開く（.knxproj/.xknx）"
+msgid "Open Project (.knxproj/.xknx)…"
+msgstr "プロジェクトを開く（.knxproj/.xknx）…"
 
 msgid "Save As…"
 msgstr "名前を付けて保存…"
@@ -568,8 +568,8 @@ msgstr "証明書なしでエクスポート"
 msgid "Export ETS Project"
 msgstr "ETSプロジェクトのエクスポート"
 
-msgid "Load KNX Product…"
-msgstr "KNX製品を読み込む…"
+msgid "Load KNX Product (.knxprod/.vd1-.vd5)…"
+msgstr "KNX製品を読み込む（.knxprod/.vd1-.vd5）…"
 
 msgid "Load OpenKNX from URL or Folder…"
 msgstr "URLまたはフォルダーからOpenKNXを読み込む…"

@@ -70,8 +70,8 @@ msgstr "Skrá"
 msgid "New Project"
 msgstr "Nýtt verkefni"
 
-msgid "Open Project (.knxproj/.xknx)"
-msgstr "Opna verkefni (.knxproj/.xknx)"
+msgid "Open Project (.knxproj/.xknx)…"
+msgstr "Opna verkefni (.knxproj/.xknx)…"
 
 msgid "Open Recent"
 msgstr "Opna nýlegt"
@@ -172,8 +172,8 @@ msgstr "Flytja út án vottorðs"
 msgid "Export ETS Project"
 msgstr "Flytja út ETS-verkefni"
 
-msgid "Load KNX Product…"
-msgstr "Hlaða KNX-vöru…"
+msgid "Load KNX Product (.knxprod/.vd1-.vd5)…"
+msgstr "Hlaða KNX-vöru (.knxprod/.vd1-.vd5)…"
 
 msgid "Exit"
 msgstr "Hætta"

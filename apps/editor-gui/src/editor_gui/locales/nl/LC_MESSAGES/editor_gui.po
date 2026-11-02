@@ -77,8 +77,8 @@ msgstr "{name} stond al in de catalogus, niets nieuws geïmporteerd"
 msgid "Product Catalog Import"
 msgstr "Productcatalogus importeren"
 
-msgid "Open Project (.knxproj/.xknx)"
-msgstr "Project openen (.knxproj/.xknx)"
+msgid "Open Project (.knxproj/.xknx)…"
+msgstr "Project openen (.knxproj/.xknx)…"
 
 msgid "Export Complete"
 msgstr "Export voltooid"
@@ -699,8 +699,8 @@ msgstr "Zonder certificaat exporteren"
 msgid "Export ETS Project"
 msgstr "ETS-project exporteren"
 
-msgid "Load KNX Product…"
-msgstr "KNX-product laden…"
+msgid "Load KNX Product (.knxprod/.vd1-.vd5)…"
+msgstr "KNX-product laden (.knxprod/.vd1-.vd5)…"
 
 msgid "Exit"
 msgstr "Afsluiten"

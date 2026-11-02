@@ -77,8 +77,8 @@ msgstr "Datei"
 msgid "New Project"
 msgstr "Neues Projekt"
 
-msgid "Open Project (.knxproj/.xknx)"
-msgstr "Projekt öffnen (.knxproj/.xknx)"
+msgid "Open Project (.knxproj/.xknx)…"
+msgstr "Projekt öffnen (.knxproj/.xknx)…"
 
 msgid "Open Recent"
 msgstr "Zuletzt geöffnet"
@@ -190,8 +190,8 @@ msgstr "Ohne Zertifikat exportieren"
 msgid "Export ETS Project"
 msgstr "ETS-Projekt exportieren"
 
-msgid "Load KNX Product…"
-msgstr "KNX-Produkt laden…"
+msgid "Load KNX Product (.knxprod/.vd1-.vd5)…"
+msgstr "KNX-Produkt laden (.knxprod/.vd1-.vd5)…"
 
 msgid "Exit"
 msgstr "Beenden"

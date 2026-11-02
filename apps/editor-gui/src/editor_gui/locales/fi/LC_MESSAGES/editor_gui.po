@@ -118,8 +118,8 @@ msgstr "KNX Master v{version} ({date})"
 msgid "File"
 msgstr "Tiedosto"
 
-msgid "Open Project (.knxproj/.xknx)"
-msgstr "Avaa projekti (.knxproj/.xknx)"
+msgid "Open Project (.knxproj/.xknx)…"
+msgstr "Avaa projekti (.knxproj/.xknx)…"
 
 msgid "Save As…"
 msgstr "Talleta nimellä…"
@@ -568,8 +568,8 @@ msgstr "Vie ilman sertifikaattia"
 msgid "Export ETS Project"
 msgstr "Vie ETS-projekti"
 
-msgid "Load KNX Product…"
-msgstr "Lataa KNX-tuote…"
+msgid "Load KNX Product (.knxprod/.vd1-.vd5)…"
+msgstr "Lataa KNX-tuote (.knxprod/.vd1-.vd5)…"
 
 msgid "Load OpenKNX from URL or Folder…"
 msgstr "Lataa OpenKNX URL-osoitteesta tai kansiosta…"

@@ -118,8 +118,8 @@ msgstr "KNX Master v{version} ({date})"
 msgid "File"
 msgstr "Soubor"
 
-msgid "Open Project (.knxproj/.xknx)"
-msgstr "Otevřít projekt (.knxproj/.xknx)"
+msgid "Open Project (.knxproj/.xknx)…"
+msgstr "Otevřít projekt (.knxproj/.xknx)…"
 
 msgid "Save As…"
 msgstr "Uložit jako…"
@@ -568,8 +568,8 @@ msgstr "Exportovat bez certifikátu"
 msgid "Export ETS Project"
 msgstr "Exportovat projekt ETS"
 
-msgid "Load KNX Product…"
-msgstr "Načíst produkt KNX…"
+msgid "Load KNX Product (.knxprod/.vd1-.vd5)…"
+msgstr "Načíst produkt KNX (.knxprod/.vd1-.vd5)…"
 
 msgid "Load OpenKNX from URL or Folder…"
 msgstr "Načíst OpenKNX z URL nebo složky…"

@@ -118,8 +118,8 @@ msgstr "KNX Master v{version} ({date})"
 msgid "File"
 msgstr "Skedari"
 
-msgid "Open Project (.knxproj/.xknx)"
-msgstr "Hap projekt (.knxproj/.xknx)"
+msgid "Open Project (.knxproj/.xknx)…"
+msgstr "Hap projekt (.knxproj/.xknx)…"
 
 msgid "Save As…"
 msgstr "Ruaj si…"
@@ -568,8 +568,8 @@ msgstr "Eksporto pa certifikatë"
 msgid "Export ETS Project"
 msgstr "Eksporto projektin ETS"
 
-msgid "Load KNX Product…"
-msgstr "Ngarko produkt KNX…"
+msgid "Load KNX Product (.knxprod/.vd1-.vd5)…"
+msgstr "Ngarko produkt KNX (.knxprod/.vd1-.vd5)…"
 
 msgid "Load OpenKNX from URL or Folder…"
 msgstr "Ngarko OpenKNX nga URL ose dosje…"
