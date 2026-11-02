@@ -1795,7 +1795,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         work = Path(tempfile.mkdtemp(prefix="xknx_etsexport_"))
         staged = work / Path(dest).name
 
-        def _stage() -> None:
+        def _stage() -> str | None:
             # Reads project state, so it runs on the UI thread under the lock. The slow ETS run
             # happens afterwards, off the lock, so the GUI is not blocked for minutes.
             source = project.working_path
@@ -1804,13 +1804,10 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             bundle = collect_manufacturer_bundle(
                 project.program_refs(), ctx.api.catalog
             )
-            # Stage without the project password: the throwaway file goes straight to the local
-            # ETS, and a password would only force ETS through its password-unlock path (obfuscated
-            # security types differ per build). The ETS-exported .knxproj is therefore unprotected.
             export_knxproj(
                 source,
                 staged,
-                password=None,
+                password=project.project_password,
                 extra_files=bundle.extra_files,
                 master_xml=bundle.master_xml,
                 fetch_master=True,
@@ -1818,13 +1815,14 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                 module_arguments=project.module_arguments(),
                 group_object_trees=project.group_object_trees(),
             )
+            return project.project_password
 
         try:
-            ctx.run_locked(_stage, timeout=_SLOW)
+            password = ctx.run_locked(_stage, timeout=_SLOW)
             sign = sign_local(
                 staged,
                 dest,
-                password=None,
+                password=password or None,
                 accept_untested=accept_untested,
             )
         finally:

@@ -643,6 +643,12 @@ namespace EtsSignExport
     private object _importSource;
     private object _accessKey;
     private object _keyProviders;
+    private Type _keyType;
+    private Type _accessType;
+    private Type _providersType;
+    private Type _licenceType;
+    private MethodInfo _importMethod;
+    private MethodInfo _exportMethod;
     private object _licence;
     private bool _inputProtected;
     private ArchiveShape _shape;
@@ -696,6 +702,7 @@ namespace EtsSignExport
         try
         {
           _progress.Report("importing");
+          DiscoverProjectApi();
           InspectArchive();
           if (_inputProtected)
           {
@@ -907,23 +914,35 @@ namespace EtsSignExport
       }
     }
 
-    private void UnlockProtectedProject()
+    private void DiscoverProjectApi()
     {
-      var providersObject = Reflect.Call(
-        Reflect.Method(Reflect.FindType(_etsDirectory, "Knx.Ets.Common.Security.KeyProviderHelper"), "GetKeyProvidersForPassword", true, "System.String"),
-        null, _request.Password) ?? throw new FailureException("KeyProviderHelper.GetKeyProvidersForPassword returned null");
-      var providers = ((IEnumerable)providersObject).Cast<object>().ToList();
-      if (providers.Count == 0)
+      var exporterType = Reflect.Type(A("Knx.Ets.ObjectModel"), "Knx.Ets.ObjectModel.Import.IExporter");
+      _exportMethod = Reflect.MethodWithArity(exporterType, "ExportZipped", 8);
+      _keyType = _exportMethod.GetParameters()[3].ParameterType;
+      _licenceType = _exportMethod.GetParameters()[2].ParameterType;
+      _providersType = typeof(IEnumerable<>).MakeGenericType(_keyType);
+
+      var collectionType = Reflect.Type(A("Knx.Ets.ObjectModel"), "Knx.Ets.ObjectModel.Project.ProjectCollection");
+      var dataStoreType = Reflect.Type(A("Knx.Ets.ObjectModel"), "Knx.Ets.ObjectModel.IDataStore");
+      var imports = collectionType.GetMethods(BindingFlags.Instance | BindingFlags.Public)
+        .Where(m => m.Name == "Import" && !m.IsGenericMethod && m.GetParameters().Length == 12
+          && m.GetParameters()[0].ParameterType == dataStoreType).ToArray();
+      if (imports.Length != 1)
       {
-        throw new FailureException("ETS built no key provider from the project password", 5);
+        throw new FailureException("a unique ProjectCollection.Import(IDataStore, ...) with 12 parameters was not found");
       }
-      _keyProviders = providersObject;
-      _secrets.AddRange(providers.Select(KeyOf));
+      _importMethod = imports[0];
+      _accessType = _importMethod.GetParameters()[10].ParameterType;
+      if (!_keyType.IsInterface || !_accessType.IsInterface || !_keyType.IsAssignableFrom(_accessType))
+      {
+        throw new FailureException("the project import and export key provider interfaces are incompatible");
+      }
+    }
 
-      var conversionType = Reflect.Type(A("Knx.Ets.ViewModel"), "Knx.Ets.ViewModel.Application.Wizards.ImportWizard.IProjectConversionService");
-      var conversion = _autofac.Resolve(_container, conversionType);
-
-      var tempFolderCtor = Reflect.Ctor(Reflect.FindType(_etsDirectory, "Knx.Ets.Common.Utils.TempFolder"), "System.String", "System.Boolean", "System.String");
+    private object CreateExtractionFolder(MethodInfo extract)
+    {
+      var tempType = extract.GetParameters()[2].ParameterType;
+      var tempFolderCtor = Reflect.Ctor(tempType, "System.String", "System.Boolean", "System.String");
       var tempFolderArgs = tempFolderCtor.GetParameters().Select(p => p.HasDefaultValue ? p.DefaultValue : null).ToArray();
       var tempFolder = Reflect.New(tempFolderCtor, tempFolderArgs);
       _extractionFolder = tempFolder as IDisposable;
@@ -932,13 +951,46 @@ namespace EtsSignExport
       {
         throw new FailureException("ETS created its temporary folder outside the isolated work directory; stopping");
       }
+      return tempFolder;
+    }
 
-      var extract = Reflect.Call(
-        Reflect.Method(conversion.GetType(), "ExtractProtectedProjectExportToTemporaryDirectory", false,
-          "System.String",
-          "System.Collections.Generic.IEnumerable<Knx.Ets.Common.Security.IKeyProvider>",
-          "Knx.Ets.Common.Utils.TempFolder"),
-        conversion, _inputFull, providersObject, tempFolder)
+    private void UnlockProtectedProject()
+    {
+      Type[] securityTypes;
+      try
+      {
+        securityTypes = _keyType.Assembly.GetTypes();
+      }
+      catch (ReflectionTypeLoadException ex)
+      {
+        securityTypes = ex.Types.Where(t => t != null).ToArray();
+      }
+      var factories = securityTypes
+        .SelectMany(t => t.GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly))
+        .Where(m => !m.IsGenericMethod && m.ReturnType == _providersType
+          && m.GetParameters().Length == 1 && m.GetParameters()[0].ParameterType == typeof(string)).ToArray();
+      if (factories.Length != 1)
+      {
+        throw new FailureException("a unique password key provider factory was not found");
+      }
+      var typedProviders = (IEnumerable)(Reflect.Call(factories[0], null, _request.Password)
+        ?? throw new FailureException("the password key provider factory returned null"));
+      _keyProviders = typedProviders;
+      _secrets.AddRange(typedProviders.Cast<object>().Select(KeyOf));
+      try
+      {
+        _accessKey = typedProviders.Cast<object>().Single(_accessType.IsInstanceOfType);
+      }
+      catch (InvalidOperationException)
+      {
+        throw new FailureException("the password key provider factory did not return exactly one access key provider");
+      }
+
+      var conversionType = Reflect.Type(A("Knx.Ets.ViewModel"), "Knx.Ets.ViewModel.Application.Wizards.ImportWizard.IProjectConversionService");
+      var conversion = _autofac.Resolve(_container, conversionType);
+      var extractMethod = Reflect.MethodWithArity(conversionType, "ExtractProtectedProjectExportToTemporaryDirectory", 3);
+      var tempFolder = CreateExtractionFolder(extractMethod);
+      var extract = Reflect.Call(extractMethod, conversion, _inputFull, typedProviders, tempFolder)
         ?? throw new FailureException("ExtractProtectedProjectExportToTemporaryDirectory returned null");
       if (IsFailed(extract))
       {
@@ -953,16 +1005,12 @@ namespace EtsSignExport
       }
 
       _importSource = Reflect.Call(
-        Reflect.Method(conversion.GetType(), "GetDataStoreForTempDirectory", false, "Knx.Ets.Common.Utils.TempFolder"),
+        Reflect.MethodWithArity(conversionType, "GetDataStoreForTempDirectory", 1),
         conversion, tempFolder) ?? throw new FailureException("GetDataStoreForTempDirectory returned null");
       if (_importSource is IDisposable disposable)
       {
         _disposables.Add(disposable);
       }
-
-      var accessInterface = Reflect.FindType(_etsDirectory, "Knx.Ets.Common.Security.IAccessKeyProvider");
-      _accessKey = providers.FirstOrDefault(p => accessInterface.IsInstanceOfType(p))
-        ?? throw new FailureException("ETS built no IAccessKeyProvider from the project password");
     }
 
     private void CountInputElements()
@@ -1041,13 +1089,7 @@ namespace EtsSignExport
     {
       var source = _importSource ?? throw new FailureException("no ETS data store to import from");
       var projects = Reflect.Get(_root, "Projects") ?? throw new FailureException("Root.Projects is null");
-      var import = projects.GetType()
-        .GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
-        .FirstOrDefault(m => m.Name == "Import" && m.GetParameters().Length == 12
-          && Reflect.Format(m.GetParameters()[0].ParameterType) == "Knx.Ets.ObjectModel.IDataStore")
-        ?? throw new FailureException("ProjectCollection.Import(IDataStore, ...) with 12 parameters was not found");
-
-      var parameters = import.GetParameters();
+      var parameters = _importMethod.GetParameters();
       var arguments = new object[parameters.Length];
       var boundKey = false;
       for (var i = 0; i < parameters.Length; i++)
@@ -1065,7 +1107,7 @@ namespace EtsSignExport
         {
           arguments[i] = ImportCallback(parameters[i]);
         }
-        else if (Reflect.Format(type) == "Knx.Ets.Common.Security.IAccessKeyProvider")
+        else if (type == _accessType)
         {
           arguments[i] = _accessKey;
           boundKey = _accessKey != null;
@@ -1081,7 +1123,7 @@ namespace EtsSignExport
       }
 
       var imported = new List<object>();
-      foreach (var item in (IEnumerable)(Reflect.Call(import, projects, arguments)
+      foreach (var item in (IEnumerable)(Reflect.Call(_importMethod, projects, arguments)
         ?? throw new FailureException("ProjectCollection.Import returned null")))
       {
         imported.Add(item);
@@ -1211,20 +1253,22 @@ namespace EtsSignExport
 
       var open = project.GetType().GetMethods(BindingFlags.Instance | BindingFlags.Public)
         .FirstOrDefault(m => m.Name == "Open" && m.GetParameters().Length == 1
-          && Reflect.Format(m.GetParameters()[0].ParameterType) == "Knx.Ets.Common.Security.IKeyProvider")
+          && m.GetParameters()[0].ParameterType == _keyType)
         ?? throw new FailureException("Project.Open(IKeyProvider) was not found");
 
       object openKey = null;
       if (protectedFlag)
       {
-        if (_keyProviders == null)
+        if (_accessKey == null)
         {
           throw new FailureException("ETS reports the imported project as password protected, but no project password was given", 5);
         }
-        var access = Reflect.Call(
-          Reflect.Method(project.GetType(), "CheckAccess", false,
-            "System.Collections.Generic.IEnumerable<Knx.Ets.Common.Security.IKeyProvider>", "System.Boolean"),
-          project, _keyProviders, true) ?? throw new FailureException("Project.CheckAccess returned null");
+        var checkAccess = project.GetType().GetMethods(BindingFlags.Instance | BindingFlags.Public)
+          .FirstOrDefault(m => m.Name == "CheckAccess" && m.GetParameters().Select(p => p.ParameterType)
+            .SequenceEqual(new[] { _keyType, typeof(bool) }))
+          ?? throw new FailureException("Project.CheckAccess(IKeyProvider, bool) was not found");
+        var access = Reflect.Call(checkAccess, project, _accessKey, true)
+          ?? throw new FailureException("Project.CheckAccess returned null");
         if (IsFailed(access))
         {
           throw new FailureException("ETS rejected the project password when opening the project (" + ErrorsOf(access) + ")", 5);
@@ -1261,9 +1305,7 @@ namespace EtsSignExport
 
       var exporterType = Reflect.Type(A("Knx.Ets.ObjectModel"), "Knx.Ets.ObjectModel.Import.IExporter");
       var exporter = _autofac.Resolve(_container, exporterType);
-      var export = exporterType.GetMethods().FirstOrDefault(m => m.Name == "ExportZipped")
-        ?? throw new FailureException("IExporter.ExportZipped was not found");
-      var parameters = export.GetParameters();
+      var parameters = _exportMethod.GetParameters();
       var arguments = new object[parameters.Length];
       arguments[0] = project;
       arguments[1] = outputPath;
@@ -1272,12 +1314,12 @@ namespace EtsSignExport
         : null;
       for (var i = 2; i < parameters.Length; i++)
       {
-        var formatted = Reflect.Format(parameters[i].ParameterType);
-        if (formatted == "Knx.Ets.Common.Security.IKeyProvider")
+        var type = parameters[i].ParameterType;
+        if (type == _keyType)
         {
           arguments[i] = exportKey;
         }
-        else if (formatted == "Knx.Ets.Common.Licensing.License")
+        else if (type == _licenceType)
         {
           arguments[i] = _licence;
         }
@@ -1289,7 +1331,7 @@ namespace EtsSignExport
 
       try
       {
-        OnDispatcher(() => Reflect.Call(export, exporter, arguments));
+        OnDispatcher(() => Reflect.Call(_exportMethod, exporter, arguments));
       }
       catch (EtsInvocationException ex)
       {
@@ -1340,7 +1382,7 @@ namespace EtsSignExport
     {
       var file = Path.Combine(_workDirectory, "out", "export.knxproj");
       string directory;
-      var states = CheckArchive(file, "check-output", out directory);
+      var states = CheckArchive(file, out directory);
       if (states.Count == 0)
       {
         throw new FailureException("ETS's export contains no directory to check");
@@ -1371,39 +1413,24 @@ namespace EtsSignExport
           }
         }
       }
-      TryDeleteDirectory(directory);
+      DeleteExtractionFolder();
     }
 
-    private List<KeyValuePair<string, string>> CheckArchive(string file, string folder, out string directory)
+    private List<KeyValuePair<string, string>> CheckArchive(string file, out string directory)
     {
-      directory = Path.Combine(_workDirectory, folder);
-      Directory.CreateDirectory(directory);
-      var extractorType = Reflect.Type(A("Knx.Ets.Common"), "Knx.Ets.Common.Security.EtsZipExtractor");
-      var extractor = Reflect.New(Reflect.Ctor(extractorType, "System.String"), file);
-
-      object extract;
+      var conversionType = Reflect.Type(A("Knx.Ets.ViewModel"), "Knx.Ets.ViewModel.Application.Wizards.ImportWizard.IProjectConversionService");
+      var conversion = _autofac.Resolve(_container, conversionType);
+      var extractMethod = Reflect.MethodWithArity(conversionType, "ExtractProtectedProjectExportToTemporaryDirectory", 3);
+      var tempFolder = CreateExtractionFolder(extractMethod);
+      directory = _extractionRoot;
+      object providers = Array.CreateInstance(_keyType, 0);
       if (ArchiveShape.Inspect(file).IsProtected)
       {
-        if (_keyProviders == null)
-        {
-          throw new FailureException("the archive to check is protected, but no key providers exist", 5);
-        }
-        extract = Reflect.Call(
-          Reflect.Method(extractorType, "Extract", false,
-            "System.IO.DirectoryInfo",
-            "System.Collections.Generic.IEnumerable<Knx.Ets.Common.Security.IKeyProvider>",
-            "System.Boolean"),
-          extractor, new DirectoryInfo(directory), _keyProviders, false)
-          ?? throw new FailureException("EtsZipExtractor.Extract returned null");
+        providers = _keyProviders
+          ?? throw new FailureException("the archive to check is protected, but no key providers exist", 5);
       }
-      else
-      {
-        extract = Reflect.Call(
-          Reflect.Method(extractorType, "Extract", false,
-            "System.IO.DirectoryInfo", "Knx.Ets.Common.Security.IKeyProvider", "System.Boolean"),
-          extractor, new DirectoryInfo(directory), null, false)
-          ?? throw new FailureException("EtsZipExtractor.Extract returned null");
-      }
+      var extract = Reflect.Call(extractMethod, conversion, file, providers, tempFolder)
+        ?? throw new FailureException("ExtractProtectedProjectExportToTemporaryDirectory returned null");
       if (IsFailed(extract))
       {
         throw new FailureException("ETS's extractor could not read the archive for the signature check (" + ErrorsOf(extract) + ")");
@@ -1588,11 +1615,11 @@ namespace EtsSignExport
       return messages.Count != 0 ? string.Join("; ", messages) : "no error reported";
     }
 
-    private static string KeyOf(object provider)
+    private string KeyOf(object provider)
     {
       try
       {
-        return Reflect.Get(provider, "Key") as string;
+        return _keyType.GetProperty("Key").GetValue(provider, null) as string;
       }
       catch (Exception)
       {
@@ -1665,50 +1692,18 @@ namespace EtsSignExport
       return assembly.GetType(fullName, false) ?? throw new FailureException("ETS type " + fullName + " was not found in " + assembly.GetName().Name);
     }
 
-    // Find a type whose home assembly is not stable across ETS builds (e.g. KeyProviderHelper moved
-    // between Knx.Ets.Common and a security assembly). Try loaded assemblies by full name, then scan
-    // the ETS directory for the DLL that defines it, then fall back to the short name alone (the
-    // namespace can shift too). Only used on paths where a hard-coded assembly would be brittle.
-    public static Type FindType(string etsDir, string fullName)
+    public static MethodInfo MethodWithArity(Type type, string name, int arity)
     {
-      foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+      var methods = new[] { type }.Concat(type.GetInterfaces())
+        .SelectMany(t => t.GetMethods(AnyInstance))
+        .Where(m => m.Name == name && !m.IsGenericMethod && m.GetParameters().Length == arity)
+        .Distinct().ToArray();
+      if (methods.Length != 1)
       {
-        var type = assembly.GetType(fullName, false);
-        if (type != null)
-        {
-          return type;
-        }
+        throw new FailureException("a unique method " + type.FullName + "." + name
+          + " with " + arity + " parameters was not found");
       }
-      var shortName = fullName.Substring(fullName.LastIndexOf('.') + 1);
-      Type byShortName = null;
-      foreach (var dll in Directory.GetFiles(etsDir, "*.dll"))
-      {
-        Assembly assembly;
-        try
-        {
-          assembly = Assembly.UnsafeLoadFrom(dll);
-        }
-        catch (Exception)
-        {
-          continue;
-        }
-        var type = assembly.GetType(fullName, false);
-        if (type != null)
-        {
-          return type;
-        }
-        if (byShortName == null)
-        {
-          try
-          {
-            byShortName = assembly.GetTypes().FirstOrDefault(t => t.Name == shortName);
-          }
-          catch (Exception)
-          {
-          }
-        }
-      }
-      return byShortName ?? throw new FailureException("ETS type " + fullName + " was not found in any ETS assembly");
+      return methods[0];
     }
 
     public static ConstructorInfo Ctor(Type type, params string[] parameterTypes)
