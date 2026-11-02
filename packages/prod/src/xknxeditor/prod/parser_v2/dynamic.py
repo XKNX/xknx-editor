@@ -1529,11 +1529,18 @@ class DynamicUI:
             text_encoding=self.text_encoding,
         )
 
-    def recalculate(self, ref_ids: Iterable[str]) -> ChangeSet:
+    def recalculate(self, ref_ids: Iterable[str], *, stored: bool = False) -> ChangeSet:
         """Run the calculation plans of ``ref_ids`` without changing them; errors are logged.
 
         One union plan per scope, so a calculation shared by several of ``ref_ids`` runs once over
-        their combined state instead of once per ref (which would feed intermediates back in)."""
+        their combined state instead of once per ref (which would feed intermediates back in).
+        ``stored``: the values of ``ref_ids`` were read from a device, and the settings a
+        calculation computes them from are set to values it gives them back from (see
+        ``run_calculations_many``)."""
+        ref_ids = list(ref_ids)
+        # A value the device holds for a parameter it is not given (an inactive one) says
+        # nothing about the settings it is computed from.
+        active = self.active_parameter_ref_ids() if stored else frozenset[str]()
         journal = self._journal()
         for scope, locals_ in self._group_by_scope(ref_ids):
             run_calculations_many(
@@ -1544,6 +1551,11 @@ class DynamicUI:
                 self.script_env,
                 raise_errors=False,
                 abort=self.script_abort,
+                stored={
+                    local for local in locals_ if scope.qualify_local(local) in active
+                }
+                if stored
+                else None,
             )
         self._invalidate()
         return journal.changes()

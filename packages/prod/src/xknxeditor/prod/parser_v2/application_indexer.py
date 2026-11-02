@@ -40,6 +40,7 @@ class ApplicationIndexer:
         "allocators",
         "app_allocators",
         "arg_alloc",
+        "calculation_results",
         "code_segments",
         "com_object_refs",
         "com_objects",
@@ -68,6 +69,9 @@ class ApplicationIndexer:
             tuple[str, ...], tuple[tuple[ParameterCalculation, str], ...]
         ] = {}
         self._validations: dict[str, list[ParameterValidation]] = {}
+        # What calculations computed from given values, for searches that try many values (a
+        # calculation is a function of its values: each run starts in a fresh script context).
+        self.calculation_results: dict[tuple[object, ...], object] = {}
         self.ref_owner: dict[str, str | None] = {}
         self.refs_by_name: dict[str | None, dict[str, str]] = {}
         self.refs_by_number: dict[str | None, dict[int, str]] = {}

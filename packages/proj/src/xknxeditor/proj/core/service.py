@@ -4954,6 +4954,17 @@ class ProjectService:
                     additional.add(value)
         return unfiltered, sorted(additional)
 
+    def find_group_address(self, project_id: str, address: int) -> int | None:
+        """The id of the first group address with the raw value ``address``, or None."""
+        return (
+            self._state(project_id)
+            .session.query(GroupAddress.id)
+            .filter(GroupAddress.address == address)
+            .order_by(GroupAddress.id)
+            .limit(1)
+            .scalar()
+        )
+
     def group_address(self, project_id: str, group_address_id: int) -> GroupAddressInfo:
         state = self._state(project_id)
         ga = state.session.get(GroupAddress, group_address_id)
