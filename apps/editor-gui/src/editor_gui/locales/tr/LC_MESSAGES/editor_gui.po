@@ -1506,3 +1506,6 @@ msgstr "Her zamanki konumlarda kurulu bir ETS bulunamadı."
 
 msgid "ETS was found, but the .NET SDK (or a prebuilt helper) is needed to run the export."
 msgstr "ETS bulundu, ancak dışa aktarmayı çalıştırmak için .NET SDK (veya önceden derlenmiş bir yardımcı) gerekir."
+
+msgid "Two ETS versions are installed — choose which one signs the export:"
+msgstr "İki ETS sürümü kurulu — dışa aktarmayı hangisinin imzalayacağını seçin:"
