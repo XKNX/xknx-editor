@@ -1578,3 +1578,6 @@ msgstr "Nu a fost găsit niciun ETS instalat în locațiile obișnuite."
 
 msgid "ETS was found, but the .NET SDK (or a prebuilt helper) is needed to run the export."
 msgstr "ETS a fost găsit, dar pentru a rula exportul este necesar .NET SDK (sau un ajutor precompilat)."
+
+msgid "Two ETS versions are installed — choose which one signs the export:"
+msgstr "Sunt instalate două versiuni ETS — alege care semnează exportul:"

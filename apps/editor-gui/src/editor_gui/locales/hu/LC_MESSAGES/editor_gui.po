@@ -1578,3 +1578,6 @@ msgstr "A szokásos helyeken nem található telepített ETS."
 
 msgid "ETS was found, but the .NET SDK (or a prebuilt helper) is needed to run the export."
 msgstr "Az ETS megtalálva, de az exportálás futtatásához .NET SDK (vagy előre elkészített segéd) szükséges."
+
+msgid "Two ETS versions are installed — choose which one signs the export:"
+msgstr "Két ETS-verzió van telepítve — válaszd ki, melyik írja alá az exportot:"

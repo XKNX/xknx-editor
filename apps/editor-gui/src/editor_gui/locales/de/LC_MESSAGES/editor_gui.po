@@ -1668,3 +1668,6 @@ msgstr "Keine installierte ETS an den üblichen Orten gefunden."
 
 msgid "ETS was found, but the .NET SDK (or a prebuilt helper) is needed to run the export."
 msgstr "ETS gefunden, aber zum Ausführen des Exports wird das .NET-SDK (oder ein vorgebauter Helfer) benötigt."
+
+msgid "Two ETS versions are installed — choose which one signs the export:"
+msgstr "Zwei ETS-Versionen sind installiert — wähle, welche den Export signiert:"

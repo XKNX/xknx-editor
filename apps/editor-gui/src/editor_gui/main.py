@@ -1995,7 +1995,6 @@ class KnxGuiApp:
             self._ets_install_checked = True
             self._probe_ets()
         ets_found = self._ets_install is not None
-        ets_ready = ets_found and self._ets_backend_ok
         ets_available = ets_found and web.active_hub is None
         ets_unavailable = web.active_hub is None and not ets_found
         ets_local = False
@@ -2022,14 +2021,16 @@ class KnxGuiApp:
                     imgui.end_tab_item()
                 imgui.end_tab_bar()
         imgui.spacing()
-        # The folder-signing key signs every .knxproj export, with and without certificate (the
-        # dongle way re-signs in ETS). A child modal: closing it returns to the export dialog.
-        if signing_key_is_placeholder():
-            imgui.push_style_color(imgui.Col_.text, imgui.ImVec4(0.85, 0.7, 0.3, 1.0))
-            imgui.text_wrapped(S.SIGNING_KEY_PLACEHOLDER_HINT)
-            imgui.pop_style_color()
-        if imgui.button(S.SIGNING_KEY_BUTTON, imgui.ImVec2(-1, 0)):
-            imgui.open_popup(S.SIGNING_KEY_TITLE)
+        # The folder-signing key signs every .knxproj export, with and without certificate. The
+        # local-ETS way re-signs inside ETS, so the placeholder-key hint/button is irrelevant there
+        # and only hidden on that tab. A child modal: closing it returns to the export dialog.
+        if not ets_local:
+            if signing_key_is_placeholder():
+                imgui.push_style_color(imgui.Col_.text, imgui.ImVec4(0.85, 0.7, 0.3, 1.0))
+                imgui.text_wrapped(S.SIGNING_KEY_PLACEHOLDER_HINT)
+                imgui.pop_style_color()
+            if imgui.button(S.SIGNING_KEY_BUTTON, imgui.ImVec2(-1, 0)):
+                imgui.open_popup(S.SIGNING_KEY_TITLE)
         self._render_signing_key_modal()
         # OAuth-credentials config modal: opened automatically from "Start 2FA sign-in" when no
         # credentials are available yet (no manual button).
@@ -2041,6 +2042,8 @@ class KnxGuiApp:
         if ets_local:
             # The installed tool imports and re-exports the project, so it writes the certificate.
             # Confirm is disabled unless an install was found AND its build backend is present.
+            # Read after the tab render so a changed ETS 6/5 choice applies on the same frame.
+            ets_ready = self._ets_install is not None and self._ets_backend_ok
             clicked = dialog_buttons(
                 S.MYKNX_ETS_CONFIRM, S.BTN_CANCEL, enabled=[ets_ready, True]
             )
@@ -5042,9 +5045,8 @@ class KnxGuiApp:
             return
         det = detect_local_ets()
         self._ets_detection = det
-        self._ets_install = det.install
-        self._ets_is5 = det.is_ets5
-        self._ets_backend_ok = det.backend_available
+        # Default to ETS 6 when present (its cert works with cloud or dongle); else ETS 5.
+        self._apply_ets_choice(det.ets6 is None)
         self._log.info(
             "local ETS detection",
             windows=det.is_windows,
@@ -5053,12 +5055,27 @@ class KnxGuiApp:
             detail=" | ".join(det.probed),
         )
 
+    def _apply_ets_choice(self, use5: bool) -> None:
+        """Select ETS 6 or ETS 5 from the probe, clamping to what was actually found."""
+        det = self._ets_detection
+        if det is None:
+            self._ets_install, self._ets_is5, self._ets_backend_ok = None, False, False
+            return
+        if use5 and det.ets5 is None:
+            use5 = False
+        if not use5 and det.ets6 is None:
+            use5 = det.ets5 is not None
+        self._ets_is5 = use5
+        self._ets_install = det.ets5 if use5 else det.ets6
+        self._ets_backend_ok = det.ets5_backend if use5 else det.ets6_backend
+
     def _render_ets_local_tab(self) -> None:
         """'License through the installed ETS' tab: show the detected install and run the re-export."""
         amber = imgui.ImVec4(0.85, 0.7, 0.3, 1.0)
+        green = imgui.ImVec4(0.4, 0.8, 0.4, 1.0)
+        det = self._ets_detection
         install = self._ets_install
         if install is None:
-            det = self._ets_detection
             imgui.push_style_color(imgui.Col_.text, amber)
             if det is not None and not det.is_windows:
                 imgui.text_wrapped(S.MYKNX_ETS_NOT_WINDOWS)
@@ -5070,11 +5087,17 @@ class KnxGuiApp:
                 for line in det.probed:
                     imgui.text_disabled(line)
             return
-        version = install.version or S.MYKNX_ETS_VERSION_UNKNOWN
-        imgui.text_colored(
-            imgui.ImVec4(0.4, 0.8, 0.4, 1.0),
-            S.MYKNX_ETS_FOUND.format(version=version),
-        )
+        # When both ETS 6 and ETS 5 are installed, let the user pick which one signs.
+        if det is not None and det.ets6 is not None and det.ets5 is not None:
+            imgui.text_wrapped(S.MYKNX_ETS_PICK)
+            if imgui.radio_button(f"ETS 6 ({det.ets6.version or '?'})", not self._ets_is5):
+                self._apply_ets_choice(False)
+            imgui.same_line()
+            if imgui.radio_button(f"ETS 5 ({det.ets5.version or '?'})", self._ets_is5):
+                self._apply_ets_choice(True)
+        else:
+            version = install.version or S.MYKNX_ETS_VERSION_UNKNOWN
+            imgui.text_colored(green, S.MYKNX_ETS_FOUND.format(version=version))
         imgui.text_wrapped(S.MYKNX_ETS_HINT)
         if self._ets_is5:
             imgui.text_wrapped(S.MYKNX_ETS5_DONGLE_HINT)

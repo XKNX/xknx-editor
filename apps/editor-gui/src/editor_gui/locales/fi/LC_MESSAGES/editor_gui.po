@@ -1506,3 +1506,6 @@ msgstr "Asennettua ETS:ää ei löytynyt tavallisista sijainneista."
 
 msgid "ETS was found, but the .NET SDK (or a prebuilt helper) is needed to run the export."
 msgstr "ETS löytyi, mutta viennin suorittamiseen tarvitaan .NET SDK (tai esikäännetty apuohjelma)."
+
+msgid "Two ETS versions are installed — choose which one signs the export:"
+msgstr "Kaksi ETS-versiota on asennettu — valitse, kumpi allekirjoittaa viennin:"

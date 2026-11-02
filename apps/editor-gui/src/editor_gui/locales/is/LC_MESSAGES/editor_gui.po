@@ -1578,3 +1578,6 @@ msgstr "Engin uppsett ETS fannst á venjulegum stöðum."
 
 msgid "ETS was found, but the .NET SDK (or a prebuilt helper) is needed to run the export."
 msgstr "ETS fannst, en til að keyra útflutninginn þarf .NET SDK (eða forbyggðan hjálpara)."
+
+msgid "Two ETS versions are installed — choose which one signs the export:"
+msgstr "Tvær ETS-útgáfur eru uppsettar — veldu hvor undirritar útflutninginn:"
