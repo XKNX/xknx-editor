@@ -651,6 +651,7 @@ namespace Ets5SignExport
     private ArchiveShape _shape;
     private string _previousDirectory;
     private Assembly _signing;
+    private string _stage = "startup";
 
     public ExportSession(ExportRequest request, ExportResult result, Dispatcher dispatcher,
       Application application, Progress progress, SecretScanner secrets)
@@ -676,7 +677,7 @@ namespace Ets5SignExport
     {
       try
       {
-        _progress.Report("loading");
+        Stage("loading");
         LoadAssemblies();
         BuildContainer();
         StartupServices();
@@ -696,16 +697,17 @@ namespace Ets5SignExport
       {
         try
         {
+          Stage("importing");
           InspectArchive();
           ImportProject();
 
-          _progress.Report("licence");
+          Stage("licence");
           ReadLicence();
 
-          _progress.Report("exporting");
+          Stage("exporting");
           ExportProject();
 
-          _progress.Report("verifying");
+          Stage("verifying");
           VerifyOutput();
 
           _result.Success = true;
@@ -738,6 +740,12 @@ namespace Ets5SignExport
       }
     }
 
+    private void Stage(string stage)
+    {
+      _stage = stage;
+      _progress.Report(stage);
+    }
+
     private void RecordFailure(Exception ex)
     {
       _result.Success = false;
@@ -745,13 +753,26 @@ namespace Ets5SignExport
       {
         _result.Message = Text.OneLine(_secrets.Redact(failure.Message));
         _result.ExitCode = failure.ExitCode;
+        return;
       }
-      else
+      // A plain exception (often a NullReferenceException deep in ETS, wrapped by reflection) has a
+      // generic message. Unwrap to the innermost exception and include the stage + its top stack
+      // frames so the failing step is identifiable from the one-line ERROR the GUI shows.
+      var inner = ex;
+      while (inner.InnerException != null)
       {
-        var message = string.IsNullOrEmpty(ex.Message) ? ex.GetType().Name : ex.Message;
-        _result.Message = Text.OneLine(_secrets.Redact(message));
-        _result.ExitCode = 1;
+        inner = inner.InnerException;
       }
+      var frames = (inner.StackTrace ?? "")
+        .Split('\n')
+        .Select(line => line.Trim())
+        .Where(line => line.Length > 0)
+        .Take(4);
+      var detail = "[" + _stage + "] " + inner.GetType().Name + ": "
+        + (string.IsNullOrEmpty(inner.Message) ? "(no message)" : inner.Message)
+        + " | " + string.Join(" <- ", frames);
+      _result.Message = Text.OneLine(_secrets.Redact(detail));
+      _result.ExitCode = 1;
     }
 
     private void LoadAssemblies()
