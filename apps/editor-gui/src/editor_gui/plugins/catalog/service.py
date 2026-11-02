@@ -35,6 +35,35 @@ if TYPE_CHECKING:
     )
 
 
+def _as_knxprod(data: bytes) -> bytes:
+    """``data`` as ``.knxprod`` bytes: a ``.vd1``-``.vd5`` product database is converted with the
+    app's master data, anything else is returned as is."""
+    import io
+    import zipfile
+
+    from xknxeditor.prod.errors import ArchiveError
+    from xknxeditor.prod.vd import holds_vd_dump, vd_to_knxprod
+
+    if data[:2] != b"PK":
+        return data
+    try:
+        with zipfile.ZipFile(io.BytesIO(data)) as zf:
+            names = zf.namelist()
+    except zipfile.BadZipFile:
+        return data  # the loader reports the broken archive
+    if not holds_vd_dump(names):
+        return data
+    from editor_gui.master_data import master_xml_bytes
+
+    master = master_xml_bytes()
+    if master is None:
+        raise ArchiveError(
+            "KNX master data unavailable (offline and not cached): connect to the internet once "
+            "so it can be downloaded, then retry"
+        )
+    return vd_to_knxprod(data, master)
+
+
 def _forget_stored_language() -> None:
     """Remove the download language earlier versions let the user choose and stored: the
     editor's language decides it now. Its file goes when nothing else is in it."""
@@ -144,8 +173,20 @@ class CatalogService:
         return self._product_index.get(product_ref_id)
 
     def import_knxprod(self, path: Path) -> list[ProductSummary]:
-        """Import a .knxprod file; returns the newly added product versions."""
-        return self._import_knxprod_bytes(path.read_bytes())
+        """Import a .knxprod file or a .vd1-.vd5 product database (converted with the app's master
+        data); returns the newly added product versions."""
+        return self._import_knxprod_bytes(_as_knxprod(path.read_bytes()))
+
+    @staticmethod
+    def knxprod_bytes(data: bytes) -> bytes:
+        """``data`` as ``.knxprod`` bytes: a ``.vd1``-``.vd5`` product database is converted with
+        the app's master data, a ``.knxprod`` is returned as is. Converting a big database takes
+        minutes: call it on a worker thread, without the IO lock."""
+        return _as_knxprod(data)
+
+    def import_knxprod_data(self, data: bytes) -> list[ProductSummary]:
+        """Import ``.knxprod`` bytes; returns the newly added product versions."""
+        return self._import_knxprod_bytes(data)
 
     def import_project_products(self, path: Path) -> list[ProductSummary]:
         """Ingest the product data embedded in a ``.knxproj`` (which omits ``Catalog.xml``), so the
@@ -156,19 +197,23 @@ class CatalogService:
     def import_product_source(
         self, data: bytes, master_xml: bytes
     ) -> list[ProductSummary]:
-        """Ingest product data from any supported source: a ``.knxprod``, an OpenKNX release ZIP, or
-        a raw monolithic KNX product XML (OpenKNXproducer output). ``master_xml`` supplies the
-        ``knx_master.xml`` the latter two do not embed. Returns the newly added product versions."""
+        """Ingest product data from any supported source: a ``.knxprod``, an OpenKNX release ZIP, a
+        ``.vd1``-``.vd5`` product database, or a raw monolithic KNX product XML (OpenKNXproducer
+        output). ``master_xml`` supplies the ``knx_master.xml`` the others do not embed. Returns the
+        newly added product versions."""
         from xknxeditor.prod import knxprod_from_source
 
         return self._import_knxprod_bytes(knxprod_from_source(data, master_xml))
 
     def import_knxprod_contents(self, path: Path) -> list[ProductSummary]:
-        """Import a ``.knxprod`` and return every product version it provides, new or already in the
-        catalog. Unlike :meth:`import_knxprod` (which returns only the newly added versions), this
-        lets a re-import still list the file's products instead of dead-ending at "nothing new"."""
+        """Import a ``.knxprod`` (or a ``.vd1``-``.vd5`` product database) and return every product
+        version it provides, new or already in the catalog. Unlike :meth:`import_knxprod` (which
+        returns only the newly added versions), this lets a re-import still list the file's products
+        instead of dead-ending at "nothing new"."""
+        # A product database is converted before the lock is taken: that takes long for a big one.
+        data = _as_knxprod(path.read_bytes())
         with self._io_lock:
-            stored = self._service.import_knxprod(path.read_bytes())
+            stored = self._service.import_knxprod(data)
             self._forget_products()
             return self._service.products_for_path(str(stored))
 
@@ -179,8 +224,10 @@ class CatalogService:
         (new or already present), so a re-import still lists the file's products."""
         from xknxeditor.prod import knxprod_from_source
 
+        # Converted outside the lock (a product database takes long), stored under it.
+        knxprod = knxprod_from_source(data, master_xml)
         with self._io_lock:
-            stored = self._service.import_knxprod(knxprod_from_source(data, master_xml))
+            stored = self._service.import_knxprod(knxprod)
             self._forget_products()
             return self._service.products_for_path(str(stored))
 

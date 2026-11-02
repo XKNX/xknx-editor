@@ -5,7 +5,18 @@ product data a ``.knxprod`` holds: the dump is first brought to the newest datab
 catalog, hardware and application programs are written as XML.
 """
 
-from .archive import is_vd_file, read_dump
+from .archive import holds_vd_dump, is_vd_file, read_dump
 from .dump import Column, Dump, Record, Table, Value
+from .package import vd_to_knxprod
 
-__all__ = ["Column", "Dump", "Record", "Table", "Value", "is_vd_file", "read_dump"]
+__all__ = [
+    "Column",
+    "Dump",
+    "Record",
+    "Table",
+    "Value",
+    "holds_vd_dump",
+    "is_vd_file",
+    "read_dump",
+    "vd_to_knxprod",
+]

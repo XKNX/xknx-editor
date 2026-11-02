@@ -586,14 +586,14 @@ msgstr "OpenKNX'i URL'den veya Dosyalardan Yükle"
 msgid "Paste an OpenKNX GitHub release URL (the release page works — the .zip asset is found automatically). A direct .knxprod or KNX product XML link also works.\n\nExamples:\n  https://github.com/OpenKNX/OAM-RaumController/releases/tag/v5.4.3\n  https://github.com/OpenKNX/OAM-RaumController/releases/latest"
 msgstr "Bir OpenKNX GitHub sürüm URL'si yapıştırın (sürüm sayfası da çalışır — .zip dosyası otomatik bulunur). Doğrudan bir .knxprod veya KNX ürün XML bağlantısı da çalışır.\n\nÖrnekler:\n  https://github.com/OpenKNX/OAM-RaumController/releases/tag/v5.4.3\n  https://github.com/OpenKNX/OAM-RaumController/releases/latest"
 
-msgid "Or choose a local folder with product files (.knxprod, OpenKNX release .zip, or KNX product XML) to import all of them."
-msgstr "Veya tümünü içe aktarmak için ürün dosyaları (.knxprod, OpenKNX sürüm .zip dosyası veya KNX ürün XML) içeren yerel bir klasör seçin."
+msgid "Or choose a local folder with product files (.knxprod, .vd1-.vd5, OpenKNX release .zip, or KNX product XML) to import all of them."
+msgstr "Veya tümünü içe aktarmak için ürün dosyaları (.knxprod, .vd1-.vd5, OpenKNX sürüm .zip dosyası veya KNX ürün XML) içeren yerel bir klasör seçin."
 
 msgid "Choose Folder…"
 msgstr "Klasör Seç…"
 
-msgid "Or upload product files (.knxprod, OpenKNX release .zip, or KNX product XML) from this computer to import all of them."
-msgstr "Veya tümünü içe aktarmak için ürün dosyalarını (.knxprod, OpenKNX sürüm .zip dosyası veya KNX ürün XML) bu bilgisayardan karşıya yükleyin."
+msgid "Or upload product files (.knxprod, .vd1-.vd5, OpenKNX release .zip, or KNX product XML) from this computer to import all of them."
+msgstr "Veya tümünü içe aktarmak için ürün dosyalarını (.knxprod, .vd1-.vd5, OpenKNX sürüm .zip dosyası veya KNX ürün XML) bu bilgisayardan karşıya yükleyin."
 
 msgid "Choose Files…"
 msgstr "Dosya Seç…"
@@ -625,8 +625,8 @@ msgstr "Klasörden içe aktarma başarısız: {error}"
 msgid "Choose KNX Product Files"
 msgstr "KNX Ürün Dosyalarını Seçin"
 
-msgid "KNX Product Files (*.knxprod, *.zip, *.xml)"
-msgstr "KNX Ürün Dosyaları (*.knxprod, *.zip, *.xml)"
+msgid "KNX Product Files (*.knxprod, *.vd1-*.vd5, *.zip, *.xml)"
+msgstr "KNX Ürün Dosyaları (*.knxprod, *.vd1-*.vd5, *.zip, *.xml)"
 
 msgid "Importing files…"
 msgstr "Dosyalar içe aktarılıyor…"
@@ -847,9 +847,6 @@ msgstr "KNX Ürün Arşivini Aç"
 msgid "KNX Product (*.knxprod, *.vd1-*.vd5)"
 msgstr "KNX Ürünü (*.knxprod, *.vd1-*.vd5)"
 
-msgid "Legacy ETS product databases (.vd1-.vd5) are not imported directly.\n\nConvert the file to .knxprod first with the conversion tools that ship with ETS5/ETS6 - open the product file in ETS, or use its command-line converter - then import the resulting .knxprod here."
-msgstr "Eski ETS ürün veritabanları (.vd1-.vd5) doğrudan içe aktarılmaz.\n\nDosyayı önce ETS5/ETS6 ile birlikte gelen dönüştürme araçlarıyla .knxprod biçimine dönüştürün - ürün dosyasını ETS'de açın veya komut satırı dönüştürücüsünü kullanın - ardından elde edilen .knxprod dosyasını buraya içe aktarın."
-
 msgid "ETS Project (*.knxproj)"
 msgstr "ETS Projesi (*.knxproj)"
 
@@ -903,6 +900,9 @@ msgstr "{done}/{total} cihaz"
 
 msgid "Loading product catalog…"
 msgstr "Ürün kataloğu yükleniyor…"
+
+msgid "Converting product database…"
+msgstr "Ürün veritabanı dönüştürülüyor…"
 
 msgid "Imported {count} product version(s) from {name}:"
 msgstr "{name} dosyasından {count} ürün sürümü içe aktarıldı:"

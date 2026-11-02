@@ -223,6 +223,9 @@ msgstr "Uvažanje projekta – pri velikih projektih lahko to traja nekaj časa.
 msgid "Loading product catalog…"
 msgstr "Nalaganje kataloga izdelkov…"
 
+msgid "Converting product database…"
+msgstr "Pretvarjanje zbirke podatkov o izdelkih…"
+
 msgid "Opening project…"
 msgstr "Odpiranje projekta…"
 
@@ -778,9 +781,6 @@ msgstr "Nobena od teh licenc ne more podpisovati na spletu. Potrdilo ustvarijo s
 msgid "KNX Product (*.knxprod, *.vd1-*.vd5)"
 msgstr "Izdelek KNX (*.knxprod, *.vd1-*.vd5)"
 
-msgid "Legacy ETS product databases (.vd1-.vd5) are not imported directly.\n\nConvert the file to .knxprod first with the conversion tools that ship with ETS5/ETS6 - open the product file in ETS, or use its command-line converter - then import the resulting .knxprod here."
-msgstr "Starejše zbirke podatkov izdelkov ETS (.vd1-.vd5) se ne uvozijo neposredno.\n\nDatoteko najprej pretvorite v .knxprod z orodji za pretvorbo, ki so priložena ETS5/ETS6 – odprite datoteko izdelka v ETS ali uporabite njegov pretvornik v ukazni vrstici – nato tukaj uvozite nastalo datoteko .knxprod."
-
 msgid "ETS Group-Address Export (*.xml)"
 msgstr "Izvoz skupinskih naslovov ETS (*.xml)"
 
@@ -1258,8 +1258,8 @@ msgstr "Naloži OpenKNX z URL-ja ali iz mape…"
 msgid "Load OpenKNX from URL or Folder"
 msgstr "Nalaganje OpenKNX z URL-ja ali iz mape"
 
-msgid "Or choose a local folder with product files (.knxprod, OpenKNX release .zip, or KNX product XML) to import all of them."
-msgstr "Ali pa izberite lokalno mapo z datotekami izdelkov (.knxprod, .zip izdaje OpenKNX ali XML izdelka KNX), da jih uvozite vse."
+msgid "Or choose a local folder with product files (.knxprod, .vd1-.vd5, OpenKNX release .zip, or KNX product XML) to import all of them."
+msgstr "Ali pa izberite lokalno mapo z datotekami izdelkov (.knxprod, .vd1-.vd5, .zip izdaje OpenKNX ali XML izdelka KNX), da jih uvozite vse."
 
 msgid "Choose Folder…"
 msgstr "Izberi mapo…"
@@ -1285,8 +1285,8 @@ msgstr "Naloži OpenKNX z URL-ja ali iz datotek…"
 msgid "Load OpenKNX from URL or Files"
 msgstr "Nalaganje OpenKNX z URL-ja ali iz datotek"
 
-msgid "Or upload product files (.knxprod, OpenKNX release .zip, or KNX product XML) from this computer to import all of them."
-msgstr "Ali pa iz tega računalnika naložite datoteke izdelkov (.knxprod, .zip izdaje OpenKNX ali XML izdelka KNX), da jih uvozite vse."
+msgid "Or upload product files (.knxprod, .vd1-.vd5, OpenKNX release .zip, or KNX product XML) from this computer to import all of them."
+msgstr "Ali pa iz tega računalnika naložite datoteke izdelkov (.knxprod, .vd1-.vd5, .zip izdaje OpenKNX ali XML izdelka KNX), da jih uvozite vse."
 
 msgid "Choose Files…"
 msgstr "Izberi datoteke…"
@@ -1294,8 +1294,8 @@ msgstr "Izberi datoteke…"
 msgid "Choose KNX Product Files"
 msgstr "Izbira datotek izdelkov KNX"
 
-msgid "KNX Product Files (*.knxprod, *.zip, *.xml)"
-msgstr "Datoteke izdelkov KNX (*.knxprod, *.zip, *.xml)"
+msgid "KNX Product Files (*.knxprod, *.vd1-*.vd5, *.zip, *.xml)"
+msgstr "Datoteke izdelkov KNX (*.knxprod, *.vd1-*.vd5, *.zip, *.xml)"
 
 msgid "Importing files…"
 msgstr "Uvažanje datotek…"

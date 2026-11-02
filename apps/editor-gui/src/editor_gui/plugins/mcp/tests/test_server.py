@@ -1184,7 +1184,7 @@ async def test_import_knxprod_bytes(tmp_path: Path) -> None:
         assert (await _data(client, "catalog_list_products"))["count"] >= 1
 
         # a non-ZIP payload is rejected before any import is attempted
-        with pytest.raises(Exception, match=r"not a \.knxprod archive"):
+        with pytest.raises(Exception, match=r"not a \.knxprod or \.vd1-\.vd5 archive"):
             await client.call_tool(
                 "catalog_import_knxprod_bytes",
                 {

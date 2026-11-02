@@ -223,6 +223,9 @@ msgstr "Flytur inn verkefni — það getur tekið nokkra stund fyrir stór verk
 msgid "Loading product catalog…"
 msgstr "Hleður vörulista…"
 
+msgid "Converting product database…"
+msgstr "Umbreytir vörugagnagrunni…"
+
 msgid "Opening project…"
 msgstr "Opnar verkefni…"
 
@@ -778,9 +781,6 @@ msgstr "Ekkert þessara leyfa getur undirritað á netinu. Aðeins ETS6-leyfi (e
 msgid "KNX Product (*.knxprod, *.vd1-*.vd5)"
 msgstr "KNX-vara (*.knxprod, *.vd1-*.vd5)"
 
-msgid "Legacy ETS product databases (.vd1-.vd5) are not imported directly.\n\nConvert the file to .knxprod first with the conversion tools that ship with ETS5/ETS6 - open the product file in ETS, or use its command-line converter - then import the resulting .knxprod here."
-msgstr "Eldri ETS-vörugagnagrunnar (.vd1-.vd5) eru ekki fluttir inn beint.\n\nBreyttu skránni fyrst í .knxprod með umbreytingartólunum sem fylgja ETS5/ETS6 - opnaðu vöruskrána í ETS eða notaðu skipanalínubreyti þess - og fluttu síðan .knxprod-skrána sem verður til inn hér."
-
 msgid "ETS Group-Address Export (*.xml)"
 msgstr "ETS-útflutningur hópvistfanga (*.xml)"
 
@@ -1258,8 +1258,8 @@ msgstr "Hlaða OpenKNX af URL-slóð eða úr möppu…"
 msgid "Load OpenKNX from URL or Folder"
 msgstr "Hlaða OpenKNX af URL-slóð eða úr möppu"
 
-msgid "Or choose a local folder with product files (.knxprod, OpenKNX release .zip, or KNX product XML) to import all of them."
-msgstr "Eða veldu staðbundna möppu með vöruskrám (.knxprod, OpenKNX-útgáfu .zip eða KNX-vöru-XML) til að flytja þær allar inn."
+msgid "Or choose a local folder with product files (.knxprod, .vd1-.vd5, OpenKNX release .zip, or KNX product XML) to import all of them."
+msgstr "Eða veldu staðbundna möppu með vöruskrám (.knxprod, .vd1-.vd5, OpenKNX-útgáfu .zip eða KNX-vöru-XML) til að flytja þær allar inn."
 
 msgid "Choose Folder…"
 msgstr "Velja möppu…"
@@ -1285,8 +1285,8 @@ msgstr "Hlaða OpenKNX af URL-slóð eða úr skrám…"
 msgid "Load OpenKNX from URL or Files"
 msgstr "Hlaða OpenKNX af URL-slóð eða úr skrám"
 
-msgid "Or upload product files (.knxprod, OpenKNX release .zip, or KNX product XML) from this computer to import all of them."
-msgstr "Eða hladdu upp vöruskrám (.knxprod, OpenKNX-útgáfu .zip eða KNX-vöru-XML) úr þessari tölvu til að flytja þær allar inn."
+msgid "Or upload product files (.knxprod, .vd1-.vd5, OpenKNX release .zip, or KNX product XML) from this computer to import all of them."
+msgstr "Eða hladdu upp vöruskrám (.knxprod, .vd1-.vd5, OpenKNX-útgáfu .zip eða KNX-vöru-XML) úr þessari tölvu til að flytja þær allar inn."
 
 msgid "Choose Files…"
 msgstr "Velja skrár…"
@@ -1294,8 +1294,8 @@ msgstr "Velja skrár…"
 msgid "Choose KNX Product Files"
 msgstr "Veldu KNX-vöruskrár"
 
-msgid "KNX Product Files (*.knxprod, *.zip, *.xml)"
-msgstr "KNX-vöruskrár (*.knxprod, *.zip, *.xml)"
+msgid "KNX Product Files (*.knxprod, *.vd1-*.vd5, *.zip, *.xml)"
+msgstr "KNX-vöruskrár (*.knxprod, *.vd1-*.vd5, *.zip, *.xml)"
 
 msgid "Importing files…"
 msgstr "Flytur inn skrár…"

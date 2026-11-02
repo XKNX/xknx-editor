@@ -223,6 +223,9 @@ msgstr "A projekt importálása – nagy projekteknél ez eltarthat egy ideig."
 msgid "Loading product catalog…"
 msgstr "A termékkatalógus betöltése…"
 
+msgid "Converting product database…"
+msgstr "A termékadatbázis konvertálása…"
+
 msgid "Opening project…"
 msgstr "A projekt megnyitása…"
 
@@ -778,9 +781,6 @@ msgstr "Ezek közül egyik licenc sem tud online aláírni. Csak az ETS6-licence
 msgid "KNX Product (*.knxprod, *.vd1-*.vd5)"
 msgstr "KNX-termék (*.knxprod, *.vd1-*.vd5)"
 
-msgid "Legacy ETS product databases (.vd1-.vd5) are not imported directly.\n\nConvert the file to .knxprod first with the conversion tools that ship with ETS5/ETS6 - open the product file in ETS, or use its command-line converter - then import the resulting .knxprod here."
-msgstr "A régi ETS-termékadatbázisok (.vd1-.vd5) közvetlenül nem importálhatók.\n\nElőbb alakítsa át a fájlt .knxprod formátumra az ETS5/ETS6 konvertáló eszközeivel – nyissa meg a termékfájlt az ETS-ben, vagy használja a parancssori konvertálóját –, majd importálja itt a létrejött .knxprod fájlt."
-
 msgid "ETS Group-Address Export (*.xml)"
 msgstr "ETS csoportcím-export (*.xml)"
 
@@ -1258,8 +1258,8 @@ msgstr "OpenKNX betöltése URL-ről vagy mappából…"
 msgid "Load OpenKNX from URL or Folder"
 msgstr "OpenKNX betöltése URL-ről vagy mappából"
 
-msgid "Or choose a local folder with product files (.knxprod, OpenKNX release .zip, or KNX product XML) to import all of them."
-msgstr "Vagy válasszon egy termékfájlokat (.knxprod, OpenKNX kiadási .zip vagy KNX-termék XML) tartalmazó helyi mappát az összes importálásához."
+msgid "Or choose a local folder with product files (.knxprod, .vd1-.vd5, OpenKNX release .zip, or KNX product XML) to import all of them."
+msgstr "Vagy válasszon egy termékfájlokat (.knxprod, .vd1-.vd5, OpenKNX kiadási .zip vagy KNX-termék XML) tartalmazó helyi mappát az összes importálásához."
 
 msgid "Choose Folder…"
 msgstr "Mappa kiválasztása…"
@@ -1285,8 +1285,8 @@ msgstr "OpenKNX betöltése URL-ről vagy fájlokból…"
 msgid "Load OpenKNX from URL or Files"
 msgstr "OpenKNX betöltése URL-ről vagy fájlokból"
 
-msgid "Or upload product files (.knxprod, OpenKNX release .zip, or KNX product XML) from this computer to import all of them."
-msgstr "Vagy töltsön fel termékfájlokat (.knxprod, OpenKNX kiadási .zip vagy KNX-termék XML) erről a számítógépről az összes importálásához."
+msgid "Or upload product files (.knxprod, .vd1-.vd5, OpenKNX release .zip, or KNX product XML) from this computer to import all of them."
+msgstr "Vagy töltsön fel termékfájlokat (.knxprod, .vd1-.vd5, OpenKNX kiadási .zip vagy KNX-termék XML) erről a számítógépről az összes importálásához."
 
 msgid "Choose Files…"
 msgstr "Fájlok kiválasztása…"
@@ -1294,8 +1294,8 @@ msgstr "Fájlok kiválasztása…"
 msgid "Choose KNX Product Files"
 msgstr "KNX-termékfájlok kiválasztása"
 
-msgid "KNX Product Files (*.knxprod, *.zip, *.xml)"
-msgstr "KNX-termékfájlok (*.knxprod, *.zip, *.xml)"
+msgid "KNX Product Files (*.knxprod, *.vd1-*.vd5, *.zip, *.xml)"
+msgstr "KNX-termékfájlok (*.knxprod, *.vd1-*.vd5, *.zip, *.xml)"
 
 msgid "Importing files…"
 msgstr "Fájlok importálása…"

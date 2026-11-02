@@ -150,6 +150,7 @@ from editor_gui.window_title import bring_to_front, set_window_title, wake
 from xknxeditor.catalog import ProductSummary
 from xknxeditor.prod.app_id import parse_app_id
 from xknxeditor.prod.errors import ArchiveError
+from xknxeditor.prod.vd import is_vd_file
 from xknxeditor.proj import (
     MYKNX_DLL_NAME,
     CompactCancelled,
@@ -2647,7 +2648,7 @@ class KnxGuiApp:
                     "",
                     [
                         S.FILES_IMPORT_FILTER,
-                        "*.knxprod *.zip *.xml",
+                        "*.knxprod *.vd1 *.vd2 *.vd3 *.vd4 *.vd5 *.zip *.xml",
                         S.FILE_DIALOG_ALL_FILES,
                         "*",
                     ],
@@ -2721,12 +2722,11 @@ class KnxGuiApp:
                         "internet once so it can be downloaded, then retry"
                     )
                 data = _download_bytes(_resolve_download_url(url))
-                # Hold the shared IO lock while ingesting so per-frame catalog reads bail (the
-                # established pattern for background imports); then rebuild device resolution.
-                with self._catalog_service.io_lock:
-                    added = self._catalog_service.import_product_source_contents(
-                        data, master
-                    )
+                # The import holds the shared IO lock while it writes (per-frame catalog reads
+                # bail meanwhile), not while it converts; then device resolution is rebuilt.
+                added = self._catalog_service.import_product_source_contents(
+                    data, master
+                )
                 self._project_service.refresh_catalog_resolution(rebuild=True)
             except Exception as e:
                 self._log.error(
@@ -2747,14 +2747,18 @@ class KnxGuiApp:
 
     def _start_folder_import(self, folder: str) -> None:
         """Import every supported product source found under ``folder`` on a worker thread: a
-        .knxprod, an OpenKNX release ZIP, or a raw KNX product XML. Files that are not a product
-        source are skipped."""
+        .knxprod, a .vd1-.vd5 product database, an OpenKNX release ZIP, or a raw KNX product XML.
+        Files that are not a product source are skipped."""
 
         def candidates() -> list[Path]:
             return sorted(
                 p
                 for p in Path(folder).rglob("*")
-                if p.is_file() and p.suffix.lower() in (".knxprod", ".zip", ".xml")
+                if p.is_file()
+                and (
+                    p.suffix.lower() in (".knxprod", ".zip", ".xml")
+                    or is_vd_file(p.name)
+                )
             )
 
         self._start_product_files_import(
@@ -2795,12 +2799,10 @@ class KnxGuiApp:
                 for path in candidates():
                     try:
                         data = path.read_bytes()
-                        with self._catalog_service.io_lock:
-                            added = (
-                                self._catalog_service.import_product_source_contents(
-                                    data, master
-                                )
-                            )
+                        # Takes the IO lock to write, after converting (see _start_url_import).
+                        added = self._catalog_service.import_product_source_contents(
+                            data, master
+                        )
                     except Exception as e:
                         self._log.debug(
                             "skipped file in product import",
@@ -3448,50 +3450,44 @@ class KnxGuiApp:
             self._prompt_import_dest(path)
             return
 
-        # Legacy ETS3-era product databases (.vd1-.vd5) are not read directly; point the user at
-        # ETS's own conversion tools, which turn them into the .knxprod this importer accepts.
-        if path.lower().endswith((".vd1", ".vd2", ".vd3", ".vd4", ".vd5", ".vdx")):
-            self._knxprod_result = S.LEGACY_VD_HINT
-            return
-
         def worker() -> None:
-            # Hold the catalog lock so per-frame catalog reads bail while it writes (see io_guarded).
-            with self._catalog_service.io_lock:
-                self._log.info("loading knxprod", path=path)
-                try:
-                    added = self._catalog_service.import_knxprod_contents(Path(path))
-                    name = Path(path).name
-                    if added:
-                        self._log.info(
-                            "added applications to catalog", count=len(added)
-                        )
-                        self._import_rows_result = (
-                            S.KNXPROD_IMPORT_SUMMARY.format(
-                                count=len(added), name=name
-                            ),
-                            self._product_import_rows(added),
-                        )
-                    else:
-                        self._log.info("knxprod held no products", path=path)
-                        self._knxprod_result = S.KNXPROD_IMPORT_NOTHING_NEW.format(
-                            name=name
-                        )
-                except ArchiveError as e:
-                    self._log.error("archive error", path=path, error=str(e))
-                except (OSError, ValueError) as e:
-                    self._log.error(
-                        "import error", path=path, error=f"{type(e).__name__}: {e}"
+            # The import holds the catalog lock while it writes, so per-frame catalog reads bail
+            # (see io_guarded); a product database is converted before, without the lock.
+            self._log.info("loading knxprod", path=path)
+            try:
+                added = self._catalog_service.import_knxprod_contents(Path(path))
+                name = Path(path).name
+                if added:
+                    self._log.info("added applications to catalog", count=len(added))
+                    self._import_rows_result = (
+                        S.KNXPROD_IMPORT_SUMMARY.format(count=len(added), name=name),
+                        self._product_import_rows(added),
                     )
-                except Exception as e:
-                    # A product-parser bug on an odd .knxprod (e.g. AssertionError/KeyError, not an
-                    # OSError/ValueError) must be reported in the log, not crash the editor.
-                    self._log.error(
-                        "knxprod load failed (unsupported product data?)",
-                        path=path,
-                        error=f"{type(e).__name__}: {e}",
+                else:
+                    self._log.info("knxprod held no products", path=path)
+                    self._knxprod_result = S.KNXPROD_IMPORT_NOTHING_NEW.format(
+                        name=name
                     )
+            except ArchiveError as e:
+                self._log.error("archive error", path=path, error=str(e))
+            except (OSError, ValueError) as e:
+                self._log.error(
+                    "import error", path=path, error=f"{type(e).__name__}: {e}"
+                )
+            except Exception as e:
+                # A product-parser bug on an odd .knxprod (e.g. AssertionError/KeyError, not an
+                # OSError/ValueError) must be reported in the log, not crash the editor.
+                self._log.error(
+                    "knxprod load failed (unsupported product data?)",
+                    path=path,
+                    error=f"{type(e).__name__}: {e}",
+                )
 
-        self._run_bg(S.PROGRESS_LOAD_KNXPROD, worker)
+        # A .vd1-.vd5 product database is converted first, which takes a while for a big one.
+        progress = (
+            S.PROGRESS_CONVERT_VD if is_vd_file(path) else S.PROGRESS_LOAD_KNXPROD
+        )
+        self._run_bg(progress, worker)
 
     def _sync_device_section(self) -> None:
         """While a space is selected in the Buildings tree, an area or a line in the Topology tree,
@@ -3918,7 +3914,7 @@ class KnxGuiApp:
                     "",
                     [
                         S.FILE_DIALOG_KNXPROD_FILTER,
-                        "*.knxprod *.vd1 *.vd2 *.vd3 *.vd4 *.vd5 *.vdx",
+                        "*.knxprod *.vd1 *.vd2 *.vd3 *.vd4 *.vd5",
                         S.FILE_DIALOG_ALL_FILES,
                         "*",
                     ],

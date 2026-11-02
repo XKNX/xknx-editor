@@ -29,6 +29,12 @@ def is_vd_file(name: str) -> bool:
     return VD_SUFFIX.search(name) is not None
 
 
+def holds_vd_dump(names: list[str]) -> bool:
+    """Whether a ZIP with the entry ``names`` is a product database: it holds a table dump (a file
+    whose extension ends with ``_``) and no ``knx_master.xml``."""
+    return "knx_master.xml" not in names and any(_DUMP_NAME.search(n) for n in names)
+
+
 def read_dump(source: str | Path | bytes) -> Dump:
     """Read the table dump of a ``.vd*`` file (path or raw bytes)."""
     data = source if isinstance(source, bytes) else Path(source).read_bytes()

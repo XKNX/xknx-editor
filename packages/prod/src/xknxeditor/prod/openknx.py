@@ -94,17 +94,25 @@ def openknx_release_to_knxprod(release_zip: bytes, master_xml: bytes) -> bytes:
 def knxprod_from_source(data: bytes, master_xml: bytes) -> bytes:
     """Return ``.knxprod`` bytes for any supported source, ready for :func:`~.loader.load`.
 
-    Accepts a real ``.knxprod`` (returned unchanged), an OpenKNX release ZIP, or a raw monolithic KNX
-    product XML. ``master_xml`` supplies ``knx_master.xml`` for the XML/release cases."""
-    if data[:2] == b"PK":  # a ZIP: either a real .knxprod or an OpenKNX release
+    Accepts a real ``.knxprod`` (returned unchanged), an OpenKNX release ZIP, a ``.vd1`` … ``.vd5``
+    product database (converted), or a raw monolithic KNX product XML. ``master_xml`` supplies
+    ``knx_master.xml`` for the other cases."""
+    if (
+        data[:2] == b"PK"
+    ):  # a ZIP: a real .knxprod, an OpenKNX release or a .vd* database
         with zipfile.ZipFile(io.BytesIO(data)) as zf:
             names = zf.namelist()
         if "knx_master.xml" in names:
             return data  # already a .knxprod (signatures are ignored on load)
         if _find_entry(names, "content.xml") is not None:
             return openknx_release_to_knxprod(data, master_xml)
+        from xknxeditor.prod.vd import holds_vd_dump, vd_to_knxprod
+
+        if holds_vd_dump(names):
+            return vd_to_knxprod(data, master_xml)
         raise ArchiveError(
-            "ZIP is neither a .knxprod (no knx_master.xml) nor an OpenKNX release (no content.xml)"
+            "ZIP is neither a .knxprod (no knx_master.xml), an OpenKNX release (no content.xml) "
+            "nor a product database (.vd1-.vd5)"
         )
     if b"<KNX" in data[:4096]:  # a raw monolithic product XML
         return monolithic_to_knxprod(data, master_xml)

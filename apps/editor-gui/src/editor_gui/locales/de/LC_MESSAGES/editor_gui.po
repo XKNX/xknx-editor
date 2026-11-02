@@ -242,6 +242,9 @@ msgstr ""
 msgid "Loading product catalog…"
 msgstr "Produktkatalog wird geladen…"
 
+msgid "Converting product database…"
+msgstr "Produktdatenbank wird konvertiert…"
+
 msgid "Opening project…"
 msgstr "Projekt wird geöffnet…"
 
@@ -859,9 +862,6 @@ msgstr "Keine dieser Lizenzen kann online signieren. Nur ETS6-Lizenzen (oder Liz
 msgid "KNX Product (*.knxprod, *.vd1-*.vd5)"
 msgstr "KNX-Produkt (*.knxprod, *.vd1-*.vd5)"
 
-msgid "Legacy ETS product databases (.vd1-.vd5) are not imported directly.\n\nConvert the file to .knxprod first with the conversion tools that ship with ETS5/ETS6 - open the product file in ETS, or use its command-line converter - then import the resulting .knxprod here."
-msgstr "Ältere ETS-Produktdatenbanken (.vd1-.vd5) werden nicht direkt importiert.\n\nKonvertieren Sie die Datei zuerst mit den Konvertierungswerkzeugen von ETS5/ETS6 in eine .knxprod - öffnen Sie die Produktdatei in ETS oder verwenden Sie dessen Kommandozeilen-Konverter - und importieren Sie dann die erzeugte .knxprod hier."
-
 msgid "ETS Group-Address Export (*.xml)"
 msgstr "ETS-Gruppenadressen-Export (*.xml)"
 
@@ -1345,8 +1345,8 @@ msgstr "OpenKNX von URL oder Ordner laden…"
 msgid "Load OpenKNX from URL or Folder"
 msgstr "OpenKNX von URL oder Ordner laden"
 
-msgid "Or choose a local folder with product files (.knxprod, OpenKNX release .zip, or KNX product XML) to import all of them."
-msgstr "Oder einen lokalen Ordner mit Produktdateien (.knxprod, OpenKNX-Release-.zip oder KNX-Produkt-XML) wählen, um alle zu importieren."
+msgid "Or choose a local folder with product files (.knxprod, .vd1-.vd5, OpenKNX release .zip, or KNX product XML) to import all of them."
+msgstr "Oder einen lokalen Ordner mit Produktdateien (.knxprod, .vd1-.vd5, OpenKNX-Release-.zip oder KNX-Produkt-XML) wählen, um alle zu importieren."
 
 msgid "Choose Folder…"
 msgstr "Ordner wählen…"
@@ -1372,8 +1372,8 @@ msgstr "OpenKNX von URL oder aus Dateien laden…"
 msgid "Load OpenKNX from URL or Files"
 msgstr "OpenKNX von URL oder aus Dateien laden"
 
-msgid "Or upload product files (.knxprod, OpenKNX release .zip, or KNX product XML) from this computer to import all of them."
-msgstr "Oder Produktdateien (.knxprod, OpenKNX-Release-.zip oder KNX-Produkt-XML) von diesem Computer hochladen, um alle zu importieren."
+msgid "Or upload product files (.knxprod, .vd1-.vd5, OpenKNX release .zip, or KNX product XML) from this computer to import all of them."
+msgstr "Oder Produktdateien (.knxprod, .vd1-.vd5, OpenKNX-Release-.zip oder KNX-Produkt-XML) von diesem Computer hochladen, um alle zu importieren."
 
 msgid "Choose Files…"
 msgstr "Dateien wählen…"
@@ -1381,8 +1381,8 @@ msgstr "Dateien wählen…"
 msgid "Choose KNX Product Files"
 msgstr "KNX-Produktdateien wählen"
 
-msgid "KNX Product Files (*.knxprod, *.zip, *.xml)"
-msgstr "KNX-Produktdateien (*.knxprod, *.zip, *.xml)"
+msgid "KNX Product Files (*.knxprod, *.vd1-*.vd5, *.zip, *.xml)"
+msgstr "KNX-Produktdateien (*.knxprod, *.vd1-*.vd5, *.zip, *.xml)"
 
 msgid "Importing files…"
 msgstr "Dateien importieren…"
