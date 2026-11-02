@@ -610,19 +610,21 @@ def document(manufacturer: El) -> El:
     return root
 
 
-def serialize(root: El, *, bom: bool = True) -> bytes:
+def serialize(root: El, *, bom: bool = True, tool_info: bool = True) -> bytes:
     """The file bytes of a document with ``root`` as ``KNX`` element.
 
     ``bom=False`` writes the variant of the baggage list: no byte order mark and no encoding in the
-    XML declaration.
+    XML declaration. ``tool_info=False`` leaves out ``CreatedBy`` and ``ToolVersion``.
     """
     out: list[str] = []
     for child in root.children:
         _write(child, 1, out)
+    info = (
+        f' CreatedBy="{CREATED_BY}" ToolVersion="{TOOL_VERSION}"' if tool_info else ""
+    )
     head = (
         '<KNX xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"'
-        ' xmlns:xsd="http://www.w3.org/2001/XMLSchema"'
-        f' CreatedBy="{CREATED_BY}" ToolVersion="{TOOL_VERSION}" xmlns="{NAMESPACE}">'
+        f' xmlns:xsd="http://www.w3.org/2001/XMLSchema"{info} xmlns="{NAMESPACE}">'
     )
     decl = '<?xml version="1.0" encoding="utf-8"?>' if bom else '<?xml version="1.0"?>'
     text = "\r\n".join([decl, head, *out, "</KNX>"])

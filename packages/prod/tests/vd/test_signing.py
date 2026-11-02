@@ -473,11 +473,28 @@ def test_inconsistent_children_are_rejected() -> None:
         sign({f"M-00FA/{_A}.xml": dup.encode()})
 
 
-def test_missing_program_reference_fails() -> None:
+def test_hardware2program_of_a_missing_program_is_dropped() -> None:
+    # a program that failed to convert: its Hardware2Program, catalog item and the item's
+    # translations go, products and sections stay (the accessory's go as they are unregistered)
     files = package()
     del files[f"M-00FA/{_A}.xml"]
-    with pytest.raises(KeyError):
-        sign(files)
+    out = sign(files)
+    hardware = out["M-00FA/Hardware.xml"]
+    assert _attr(hardware, "Hardware2Program", "Id") == []
+    assert _attr(hardware, "Product", "Id") == ["M-00FA_H-1-1_P-1", "M-00FA_H-2-1_P-2"]
+    assert b"<Hardware2Programs" not in hardware
+    catalog = out["M-00FA/Catalog.xml"]
+    assert _attr(catalog, "CatalogItem", "Id") == []
+    assert _attr(catalog, "CatalogSection", "Id") == ["M-00FA_CS-1", "M-00FA_CS-2"]
+    assert b"Device one" not in catalog
+    assert b"Accessoire" not in catalog
+    # (the program no Hardware2Program refers to anymore goes as well)
+    assert sorted(out) == [
+        "M-00FA/Baggages.xml",
+        "M-00FA/Baggages/x/y.txt",
+        "M-00FA/Catalog.xml",
+        "M-00FA/Hardware.xml",
+    ]
 
 
 _MASTER = Path(r"C:\ProgramData\KNX\XML\project-14\knx_master.xml")

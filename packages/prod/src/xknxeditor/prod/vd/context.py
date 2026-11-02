@@ -6,10 +6,11 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 from .ids import manufacturer_id
-from .replacers import Replacer, byte_swapper, comfort_plugin
+from .replacers import Replacer, byte_swapper, comfort_plugin, optimized_download
 from .text import culture_name, two_letter
 
 if TYPE_CHECKING:
+    from .baggage import BaggageDoc
     from .database import Database, Row
     from .dump import Value
     from .master import MasterData
@@ -76,6 +77,8 @@ class Context:
     ip_programs: set[str]
     byte_swapper: Replacer
     comfort_plugin: Replacer
+    optimized_download: Replacer
+    baggage_docs: list[BaggageDoc]
     _groups: dict[tuple[str, str], dict[Value, list[Row]]]
     _primary_keys: dict[str, str | None]
     _texts: dict[int, list[TextAttr]] | None
@@ -91,6 +94,9 @@ class Context:
         self.ip_programs = set()
         self.byte_swapper = byte_swapper()
         self.comfort_plugin = comfort_plugin()
+        self.optimized_download = optimized_download()
+        # the baggages converted so far (programs move some to their manufacturer)
+        self.baggage_docs = []
         self._groups = {}
         self._primary_keys = {}
         self._texts = None

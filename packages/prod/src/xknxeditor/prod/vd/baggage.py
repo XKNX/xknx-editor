@@ -128,6 +128,8 @@ class BaggageDoc:
         self.folders: dict[str, str] = {}
         self.on_disk: dict[str, tuple[str, str]] = {}
         self.paths: dict[str, str] = {}
+        # a list a program created (moving a baggage to its manufacturer) has no tool info
+        self.tool_info = True
 
     def to_xml(self) -> El:
         m = El("Manufacturer", {"RefId": self.manufacturer})
@@ -458,3 +460,126 @@ def convert_baggages(ctx: Context) -> list[BaggageDoc]:
             current = number
         append_baggage(ctx, doc, row)
     return docs
+
+
+# programs that refer to baggages of their original manufacturer: the converter moves these to
+# the program's manufacturer (old, new manufacturer, number the other users are compared with)
+FOREIGN_BAGGAGES = {
+    "M-0004_A-C00A-02-0000-O0001": ("M-0001", "M-0004", 4),
+    "M-0019_A-5700-11-0000-O000C": ("M-000C", "M-0019", 25),
+    "M-0009_A-2F01-34-0000-O0002": ("M-0002", "M-0009", 9),
+}
+
+
+def _doc(ctx: Context, manufacturer: str) -> BaggageDoc | None:
+    return next(
+        (d for d in ctx.baggage_docs if d.manufacturer.lower() == manufacturer.lower()),
+        None,
+    )
+
+
+def _in_folder(doc: BaggageDoc, folder: str) -> tuple[list[str], bool]:
+    """The files directly in a folder below ``Baggages`` and whether it has sub folders."""
+    base = (
+        f"{doc.manufacturer}/Baggages/{folder}/"
+        if folder
+        else f"{doc.manufacturer}/Baggages/"
+    )
+    files: list[str] = []
+    nested = False
+    for path in doc.files:
+        if path.lower().startswith(base.lower()):
+            if "/" in path[len(base) :]:
+                nested = True
+            else:
+                files.append(path)
+    return files, nested
+
+
+def move_to_manufacturer(
+    ctx: Context, ref: str, old: str, new: str, must_stay: bool, owner: str
+) -> str:
+    """Moves (or copies, when other programs need it where it is) the baggage ``ref`` from
+    manufacturer ``old`` to ``new``; returns the reference for the program of ``owner``.
+
+    Like the converter, which works on the files written so far, this fails (raising
+    ValueError, so the program fails) where the converter's file operations fail: the old
+    baggage folder left with other folders, a copy that exists already."""
+    found = next(
+        ((d, b) for d in ctx.baggage_docs for b in d.baggages if b.get("Id") == ref),
+        None,
+    )
+    if found is None:
+        raise ValueError("Object reference not set to an instance of an object.")
+    holder, baggage = found
+    old_doc = _doc(ctx, old)
+    if old_doc is None:
+        raise ValueError(f"Could not find a part of the path '{old}'.")
+    target_path = baggage.get("TargetPath") or ""
+    name = baggage.get("Name") or ""
+    parts = [p for p in re.split(r"[\\/]+", target_path) if p]
+    old_folder = old_doc.folders.get("/".join(parts).lower(), "/".join(parts))
+    source = f"{old}/Baggages/{old_folder + '/' if old_folder else ''}{name}"
+    source_file = old_doc.on_disk.get(source.lower())
+    new_doc = _doc(ctx, new)
+    if new_doc is None:
+        new_doc = BaggageDoc(new)
+        new_doc.tool_info = False
+    new_folder = new_doc.folder(target_path)
+    dest = f"{new}/Baggages/{new_folder + '/' if new_folder else ''}{name}"
+    if must_stay or dest.lower() not in new_doc.on_disk:
+        if source_file is None:
+            raise ValueError(f"Could not find file '{source}'.")
+        if must_stay and dest.lower() in new_doc.on_disk:
+            raise ValueError(f"The file '{dest}' already exists.")
+        new_doc.files[dest] = old_doc.files[source_file[0]]
+        new_doc.on_disk[dest.lower()] = (dest, source_file[1])
+    if not must_stay and source_file is not None:
+        old_doc.files.pop(source_file[0], None)
+        old_doc.on_disk.pop(source.lower(), None)
+    if new_doc not in ctx.baggage_docs:
+        ctx.baggage_docs.append(new_doc)
+    copy = El("Baggage", {"TargetPath": target_path, "Name": name})
+    info = baggage.find("FileInfo")
+    if info is not None:
+        copy.children.append(El("FileInfo", dict(info.attrs)))
+    copy["Id"] = f"{new}_BG-{fragment(target_path)}-{fragment(name)}"
+    if not must_stay:
+        holder.baggages.remove(baggage)
+        holder.paths.pop(ref, None)
+        if not holder.baggages:
+            ctx.baggage_docs.remove(holder)
+    if not any(
+        b.get("Name") == name and b.get("TargetPath") == target_path
+        for b in new_doc.baggages
+    ):
+        new_doc.baggages.append(copy)
+        new_doc.paths[copy["Id"]] = dest
+    # the folder of the baggage goes when it has no files, then the baggages folder (and
+    # ``Baggages.xml``) of the old manufacturer when that has none; a folder that still holds
+    # folders cannot be deleted
+    files, nested = _in_folder(old_doc, old_folder)
+    if not files and nested:
+        raise ValueError("The directory is not empty.")
+    if old_folder:
+        files, nested = _in_folder(old_doc, "")
+        if not files:
+            # (the parents of a nested folder stay)
+            if nested or "/" in old_folder:
+                raise ValueError("The directory is not empty.")
+            if old_doc in ctx.baggage_docs:
+                ctx.baggage_docs.remove(old_doc)
+    return ref.replace(ref[:6], owner)
+
+
+def referenced_elsewhere(ctx: Context, baggage: int, manufacturer: int) -> bool:
+    """Whether a program of another manufacturer uses the baggage (database id)."""
+    for use in ctx.select("applicationprogrambaggage", "BAGGAGEID", baggage):
+        row = ctx.first(
+            "application_program", "PROGRAM_ID", use["APPLICATIONPROGRAMID"]
+        )
+        if row is None:
+            raise ValueError("Object reference not set to an instance of an object.")
+        if int(row["MANUFACTURER_ID"] or 0) != manufacturer:
+            return True
+    return False

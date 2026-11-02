@@ -1046,6 +1046,27 @@ def _clean_hardware(root: _Element) -> list[str]:
     return removed
 
 
+def _drop_dangling_hardware2programs(
+    root: _Element, app_ids: dict[str, str]
+) -> list[str]:
+    """Removes the Hardware2Program elements that refer to a program the package does not
+    hold (one that failed to convert); returns their ids.
+
+    The converter stops the whole conversion there (it cannot hash such an element); without
+    them the rest of the package stays usable."""
+    removed: list[str] = []
+    containers = root.path(
+        "ManufacturerData", "Manufacturer", "Hardware", "Hardware", "Hardware2Programs"
+    )
+    for container in containers:
+        for h2p in list(container.elements("Hardware2Program")):
+            refs = [r.get("RefId") or "" for r in h2p.elements("ApplicationProgramRef")]
+            if any(ref not in app_ids for ref in refs):
+                removed.append(h2p.get("Id") or "")
+                container.remove(h2p)
+    return removed
+
+
 def _clean_catalog(root: _Element, removed_h2p: list[str]) -> None:
     for h2p in removed_h2p:
         for catalog in root.path("ManufacturerData", "Manufacturer", "Catalog"):
@@ -1163,12 +1184,15 @@ def sign(
         if hardware_path not in files:
             continue
         hardware = _parse(files[hardware_path])
-        h2p_ids = _patch_hardware(hardware, app_ids_of.get(directory, {}), app_hashes)
+        app_ids = app_ids_of.get(directory, {})
+        dangling = _drop_dangling_hardware2programs(hardware, app_ids)
+        h2p_ids = _patch_hardware(hardware, app_ids, app_hashes)
         removed = _clean_hardware(hardware)
         out[hardware_path] = _serialize(hardware, raw_tab=True)
         catalog_path = f"{directory}/Catalog.xml"
         if catalog_path in files:
             catalog = _parse(files[catalog_path])
+            _clean_catalog(catalog, dangling)
             _patch_catalog(catalog, h2p_ids)
             _clean_catalog(catalog, removed)
             out[catalog_path] = _serialize(catalog, raw_tab=True)

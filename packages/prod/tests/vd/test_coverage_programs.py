@@ -703,14 +703,8 @@ def test_replaced_abb_plugins() -> None:
     assert "NoDownloadWithoutPlugin" not in hardware.attrib
 
 
-@pytest.mark.xfail(
-    reason="not ported: the converter also replaces the optimized download plugins of Hager "
-    "(000B8A16-..., 8EF0B7D0-..., B385ADFE-..., EE07B2F0-...): load controls of masks 0701 and "
-    "07B0 become master resets, the OptimizeDL baggages leave the programs and their data "
-    "becomes the LoadedImage of the Hardware2Program",
-    strict=True,
-)
 def test_optimized_download_plugin_is_replaced() -> None:
+    # (see test_coverage_plugins for the rest of the replacement)
     files, _warnings, _errors = run(
         abb_tables("{000B8A16-FD82-4319-88A9-29EBBAF186DE}")
     )

@@ -7,12 +7,14 @@ import re
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
+from .baggage import FOREIGN_BAGGAGES, move_to_manufacturer, referenced_elsewhere
 from .compat import APPLICATION_COMPATIBILITY
 from .context import ConversionError, sort_rows
 from .ids import application_id, fragment
 from .language import Translations, translate_descriptions, translate_entity
 from .loadctl import LoadControls
 from .netsort import list_sort
+from .optimized import replace_load_controls
 from .replacers import plugin_must_remain
 from .text import from_db, lcid_of
 from .xmlout import El, boolean
@@ -99,6 +101,44 @@ _EXTERNAL_SOFTWARE = frozenset(
         (244, 24833, 16), (244, 45062, 1), (244, 45062, 2), (244, 49158, 1), (249, 24833, 1),
     ]
 )  # fmt: skip
+
+# the PowerTool plugins: a program with one is broken when it ships a tool older than 1.1.54
+_POWER_TOOL_PLUGINS = frozenset(
+    {"{2BD47AB3-253C-47F1-A82C-55328D479B09}", "{86F09BDE-5F13-4E08-8B5C-1C6F85ADAD90}"}
+)
+_POWER_TOOLS = frozenset({"aetoolb.dll", "betoolb.dll"})
+_FIXED_POWER_TOOL = (1, 1, 54, 0)
+
+
+def dotnet_version(text: str) -> tuple[int, ...]:
+    """A version as .NET compares it: 2 to 4 numbers, missing ones are -1."""
+    parts = text.split(".")
+    if not 2 <= len(parts) <= 4 or not all(
+        re.fullmatch(r"\s*\+?\d+\s*", p) for p in parts
+    ):
+        raise ValueError(f"Version string portion was too short or too long: {text}")
+    numbers = [int(p) for p in parts]
+    if any(n > 0x7FFFFFFF for n in numbers):
+        raise ValueError(f"Value was either too large or too small: {text}")
+    return tuple(numbers + [-1] * (4 - len(numbers)))
+
+
+def _broken_power_tool(ctx: Context, ref: str) -> bool:
+    """Whether the baggage ``ref`` is a PowerTool older than the fixed version."""
+    baggage = next(
+        (b for doc in ctx.baggage_docs for b in doc.baggages if b.get("Id") == ref),
+        None,
+    )
+    if baggage is None or (baggage.get("TargetPath") or "").lower() != "toolb":
+        return False
+    if (baggage.get("Name") or "").lower() not in _POWER_TOOLS:
+        return False
+    info = baggage.find("FileInfo")
+    version = info.get("Version") if info is not None else None
+    if not version:
+        return False
+    return dotnet_version(version) < _FIXED_POWER_TOOL
+
 
 _LOW_ACCESS = frozenset(
     [
@@ -1893,14 +1933,22 @@ class AppConverter:
         plugins = ctx.select("program_plugin", "PROGRAM_ID", self.row["PROGRAM_ID"])
         swapper = ctx.byte_swapper
         comfort = ctx.comfort_plugin
+        optimized = ctx.optimized_download
         keep_plugins = plugin_must_remain(self.app_id, self.manufacturer, self.original)
+        power_tool = False
         if plugins:
             self.extension = El("Extension")
             for p in plugins:
                 clsid = (p.str("PLUGIN_CLSID") or "").upper()
+                if clsid in _POWER_TOOL_PLUGINS:
+                    power_tool = True
                 kind = int(p["PLUGIN_TYPE"] or 0)
                 if kind == 1:
-                    if swapper.replaces(clsid) and not keep_plugins:
+                    if optimized.replaces(clsid):
+                        # replaced by master resets and the default data of the hardware
+                        optimized.add_application(self.app_id)
+                        replace_load_controls(self.load_procedures, self.mask)
+                    elif swapper.replaces(clsid) and not keep_plugins:
                         # replaced by options and a check of the program number
                         swapper.add_application(self.app_id)
                         self._insert_program_number_check()
@@ -1942,18 +1990,34 @@ class AppConverter:
                 ctx.errors.append(
                     f"InvalidBaggageRefId: {self.app_id} {b['BAGGAGEID']}"
                 )
+            elif (
+                ref[2:6] != f"{self.manu_number:04X}"
+                and self.app_id in FOREIGN_BAGGAGES
+            ):
+                old, new, number = FOREIGN_BAGGAGES[self.app_id]
+                dbid = int(b["BAGGAGEID"] or 0)
+                must_stay = referenced_elsewhere(ctx, dbid, number)
+                ref = move_to_manufacturer(
+                    ctx, ref, old, new, must_stay, self.manufacturer
+                )
             assert self.extension is not None
-            for replacer in (comfort, swapper):
+            for replacer in (optimized, comfort, swapper):
                 replacer.add_ref(self.app_id, ref)
             # (a baggage referred to twice stays once)
             skip = any(c.get("RefId") == ref for c in self.extension.children)
-            # the baggages of replaced plugins leave every program (unless its plugins stay)
+            # the baggages of replaced plugins leave every program (the ABB ones unless the
+            # program's plugins stay)
+            if optimized.is_baggage(ref):
+                optimized.remove_ref(self.app_id, ref)
+                skip = True
             for replacer in (comfort, swapper):
                 if replacer.is_baggage(ref) and not keep_plugins:
                     replacer.remove_ref(self.app_id, ref)
                     skip = True
             if not skip:
                 self.extension.sub("Baggage", {"RefId": ref})
+                if power_tool and _broken_power_tool(ctx, ref):
+                    self.broken = True
         ext = self.extension
         if (
             ext is not None

@@ -17,6 +17,7 @@ from .catalog import convert_catalog
 from .context import Context, ConversionError
 from .hardware import convert_hardware
 from .master import MasterData
+from .optimized import add_ex_factory_images
 from .xmlout import document, serialize
 
 if TYPE_CHECKING:
@@ -61,7 +62,8 @@ def convert_with_report(
     ctx = Context(db, MasterData(master_xml))
     ctx.init_manufacturer_languages()
     files: dict[str, bytes] = {}
-    baggage_docs = convert_baggages(ctx)
+    # (programs may move baggages to their manufacturer)
+    ctx.baggage_docs = convert_baggages(ctx)
     apps: dict[str, tuple[bytes, tuple[int, int, int]]] = {}
     programs = ctx.rows("application_program")
     for done, row in enumerate(programs):
@@ -95,15 +97,18 @@ def convert_with_report(
     if progress is not None:
         progress(len(programs), len(programs))
     hardware_docs = convert_hardware(ctx)
-    # replaced plugins: their baggages and the plugin flag of their hardware go
-    for replacer in (ctx.byte_swapper, ctx.comfort_plugin):
+    baggage_docs = ctx.baggage_docs
+    # replaced plugins: their data goes into the hardware, their baggages and the plugin flag
+    # of their hardware go
+    add_ex_factory_images(ctx, ctx.optimized_download, baggage_docs, hardware_docs)
+    for replacer in (ctx.byte_swapper, ctx.comfort_plugin, ctx.optimized_download):
         baggage_docs = replacer.remove_unused_baggages(baggage_docs)
     for replacer in (ctx.byte_swapper, ctx.comfort_plugin):
         replacer.reset_no_download_without_plugin(hardware_docs)
     for doc in baggage_docs:
         # (also without baggages, when all of the manufacturer's failed)
         files[f"{doc.manufacturer}/Baggages.xml"] = serialize(
-            document(doc.to_xml()), bom=False
+            document(doc.to_xml()), bom=False, tool_info=doc.tool_info
         )
         files.update(doc.files)
     for app_id, (data, _info) in apps.items():

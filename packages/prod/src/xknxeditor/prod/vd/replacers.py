@@ -1,6 +1,8 @@
 """Plugins of the old tool the converter replaces by options: the byte swapper download plugin
-and the comfort UI plugin. Their baggages are removed from the programs, and from the package
-where no program uses them anymore; the hardware of such programs no longer needs the plugin.
+and the comfort UI plugin of ABB, the optimized download plugin of Hager (see
+:mod:`.optimized`). Their baggages are removed from the programs, and from the package where no
+program of the manufacturer uses them anymore; the hardware of programs whose ABB plugin was
+replaced no longer needs the plugin.
 """
 
 from __future__ import annotations
@@ -100,7 +102,11 @@ class Replacer:
                     if ref in done:
                         continue
                     done.append(ref)
-                    if any(ref in used for used in self.uses.values()):
+                    if any(
+                        ref in used
+                        for other, used in self.uses.items()
+                        if other.startswith(manufacturer)
+                    ):
                         continue
                     for baggage in doc.baggages:
                         if baggage.get("Id") == ref:
@@ -163,5 +169,26 @@ def comfort_plugin() -> Replacer:
             "M-0007_BG--ABB.5FMC10",
             "M-0007_BG--DeviceConfigurationConverter",
             "M-0007_BG-StdParamDialogMitKonv",
+        ),
+    )
+
+
+def optimized_download() -> Replacer:
+    return Replacer(
+        frozenset(
+            {
+                "000B8A16FD82431988A929EBBAF186DE",
+                "8EF0B7D0DF4549A49E92001EE739B968",
+                "B385ADFEA7D245039657D49E97FF9FF4",
+                "EE07B2F083074D7EB51C7FD982981BA3",
+            }
+        ),
+        (
+            "OptimizeDownload.2EInstaller",
+            "OptimizeDownload2.2EInstaller",
+            "OptimizeDownload.2EPlugin",
+            "OptimizeDownload2.2EPlugin",
+            "OptimizeDL-Data",
+            "OptimizeDL2-Data",
         ),
     )
