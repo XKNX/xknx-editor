@@ -2055,14 +2055,23 @@ class KnxGuiApp:
             # Confirm is disabled unless an install was found AND its build backend is present.
             # Read after the tab render so a changed ETS 6/5 choice applies on the same frame.
             ets_ready = self._ets_install is not None and self._ets_backend_ok
+            # "Export Without Certificate" is the plain .knxproj route (folder-signed, no
+            # certificate), the same as on the other tabs and the fast way out of the slow ETS run.
             clicked = dialog_buttons(
-                S.MYKNX_ETS_CONFIRM, S.BTN_CANCEL, enabled=[ets_ready, True]
+                S.MYKNX_ETS_CONFIRM,
+                S.MYKNX_SIGN_SKIP,
+                S.BTN_CANCEL,
+                enabled=[ets_ready, True, True],
             )
             if clicked == 0 and ets_ready and dest is not None:
                 self._do_export_via_ets(dest, accept_untested=self._ets_accept_untested)
                 self._export_pending_dest = None
                 imgui.close_current_popup()
-            elif clicked == 1:
+            elif clicked == 1 and dest is not None:
+                self._do_export_knxproj(dest)
+                self._export_pending_dest = None
+                imgui.close_current_popup()
+            elif clicked == 2:
                 self._export_pending_dest = None
                 imgui.close_current_popup()
             end_dialog()
