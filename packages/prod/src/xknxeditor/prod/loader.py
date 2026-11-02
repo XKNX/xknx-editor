@@ -57,13 +57,19 @@ def load(
             )
 
         for manufacturer_id in sorted(archive.manufacturer_ids):
-            doc = parse_hardware_xml(archive.get_hardware_xml(manufacturer_id))
-            registry.hardware.update(doc.hardware)
-            registry.products.update(doc.products)
-            registry.programs.update(doc.programs)
-            registry.hardware_to_product.update(doc.hardware_to_product)
-            registry.hardware_to_program.update(doc.hardware_to_program)
-            registry.manufacturer_to_hardware[manufacturer_id] = list(doc.hardware)
+            # A manufacturer without Hardware.xml only contributes application programs.
+            hardware_count = program_count = 0
+            if archive.has_hardware(manufacturer_id):
+                doc = parse_hardware_xml(archive.get_hardware_xml(manufacturer_id))
+                registry.hardware.update(doc.hardware)
+                registry.products.update(doc.products)
+                registry.programs.update(doc.programs)
+                registry.hardware_to_product.update(doc.hardware_to_product)
+                registry.hardware_to_program.update(doc.hardware_to_program)
+                registry.manufacturer_to_hardware[manufacturer_id] = list(doc.hardware)
+                hardware_count, program_count = len(doc.hardware), len(doc.programs)
+            else:
+                registry.manufacturer_to_hardware[manufacturer_id] = []
 
             apps_before = len(registry.applications)
             for app_xml in archive.get_application_xmls(manufacturer_id).values():
@@ -84,8 +90,8 @@ def load(
             logger.debug(
                 "loaded manufacturer %s: %d hardware, %d programs, %d applications, catalog=%s",
                 manufacturer_id,
-                len(doc.hardware),
-                len(doc.programs),
+                hardware_count,
+                program_count,
                 len(registry.applications) - apps_before,
                 "yes" if has_catalog else "absent (project-embedded)",
             )
