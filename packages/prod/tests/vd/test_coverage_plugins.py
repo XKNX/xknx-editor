@@ -4,6 +4,7 @@ the PowerTool version check, baggages of another manufacturer, programs that fai
 from __future__ import annotations
 
 import base64
+import datetime as dt
 import hashlib
 import io
 import random
@@ -17,6 +18,7 @@ import pytest
 
 from xknxeditor.prod.loader import load
 from xknxeditor.prod.vd import application
+from xknxeditor.prod.vd import baggage as vd_baggage
 from xknxeditor.prod.vd.convert import convert_with_report
 from xknxeditor.prod.vd.deflate import deflate
 from xknxeditor.prod.vd.optimized import ex_factory_image, replace_load_controls
@@ -604,7 +606,9 @@ def _baggage_files(files: dict[str, bytes]) -> dict[str, bytes]:
     return {n: d for n, d in files.items() if "/Baggages/" in n}
 
 
-def test_foreign_baggage_is_moved() -> None:
+def test_foreign_baggage_is_moved(monkeypatch: pytest.MonkeyPatch) -> None:
+    # file times are local times: central European summer time here
+    monkeypatch.setattr(vd_baggage, "utc_offset", lambda _: dt.timedelta(hours=2))
     files, _warnings, errors = run(foreign_baggage_tables("move"))
     assert errors == []
     assert [b.get("RefId") for b in every(_app(files, C00A), "Baggage")] == [
