@@ -43,9 +43,6 @@ namespace Ets5SignExport
     {
       var stdout = new StreamWriter(Console.OpenStandardOutput(), new UTF8Encoding(false)) { AutoFlush = true };
       Console.SetOut(stdout);
-      Con.Line("XKNX Editor - signing the project through the installed ETS.");
-      Con.Line("This window shows progress and closes on its own. Please do not close it.");
-      Con.Line("");
       int code;
       try
       {
@@ -57,7 +54,6 @@ namespace Ets5SignExport
         code = 1;
       }
       Console.Out.Flush();
-      Con.Line(code == 0 ? "Done." : "Finished with an error.");
       Environment.Exit(code);
       return code;
     }
@@ -65,7 +61,6 @@ namespace Ets5SignExport
     private static void Error(string message)
     {
       Console.Out.WriteLine("ERROR=" + message);
-      Con.Line("ERROR: " + message);
     }
 
     private static int Run(string[] args)
@@ -426,72 +421,6 @@ namespace Ets5SignExport
     {
       Console.Out.WriteLine("STAGE=" + stage);
       Console.Out.Flush();
-      Con.Line(Con.Describe(stage));
-    }
-  }
-
-  // Writes human-readable progress to the real console window even though stdout and stderr are
-  // redirected to a pipe by the caller. CONOUT$ is the console output buffer, independent of the
-  // redirected handles; opening it fails (and turns every call into a no-op) when there is no console.
-  internal static class Con
-  {
-    private static readonly object Gate = new object();
-    private static TextWriter _writer;
-    private static bool _tried;
-
-    public static void Line(string text)
-    {
-      var writer = Writer();
-      if (writer == null)
-      {
-        return;
-      }
-      lock (Gate)
-      {
-        try
-        {
-          writer.WriteLine(text);
-          writer.Flush();
-        }
-        catch (Exception)
-        {
-        }
-      }
-    }
-
-    public static string Describe(string stage)
-    {
-      switch (stage)
-      {
-        case "loading": return "Loading ETS assemblies...";
-        case "importing": return "Importing the project...";
-        case "licence": return "Reading the licence...";
-        case "exporting": return "Exporting the signed project...";
-        case "verifying": return "Verifying the signature...";
-        default: return stage;
-      }
-    }
-
-    private static TextWriter Writer()
-    {
-      lock (Gate)
-      {
-        if (_tried)
-        {
-          return _writer;
-        }
-        _tried = true;
-        try
-        {
-          var stream = new FileStream("CONOUT$", FileMode.Open, FileAccess.Write, FileShare.ReadWrite);
-          _writer = new StreamWriter(stream, new UTF8Encoding(false)) { AutoFlush = true };
-        }
-        catch (Exception)
-        {
-          _writer = null;
-        }
-        return _writer;
-      }
     }
   }
 

@@ -325,6 +325,10 @@ def _run_helper(
         cmd += ["--password", password]
     if accept_untested:
         cmd.append("--accept-untested")
+    # The helper is a console app; without this flag Windows pops up an empty console window next
+    # to the GUI (the GUI's own progress dialog already shows the stage). CREATE_NO_WINDOW exists
+    # only on Windows, which is the only place the helper runs.
+    creationflags = getattr(subprocess, "CREATE_NO_WINDOW", 0)
     try:
         proc = subprocess.Popen(
             cmd,
@@ -334,6 +338,7 @@ def _run_helper(
             encoding="utf-8",
             errors="replace",
             cwd=ets_dir,
+            creationflags=creationflags,
         )
     except OSError as exc:
         raise EtsExportError(str(exc)) from exc
