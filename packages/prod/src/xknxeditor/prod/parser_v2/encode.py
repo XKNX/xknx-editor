@@ -1404,6 +1404,11 @@ def _decode_value(
         logical = _apply_byte_order(raw, size_in_bit, little_endian) or 0
         if _is_signed_number(tc) and logical >= (1 << (size_in_bit - 1)):
             logical -= 1 << size_in_bit
+        if not tc.min_inclusive <= logical <= tc.max_inclusive:
+            # Not a value of this type (the bytes of another member of a union, or a
+            # product default outside the range, which the parameter keeps anyway): a
+            # project could not take it.
+            return None
         return str(logical)
     if isinstance(tc, ParameterTypeTypeTime):
         return str(_apply_byte_order(raw, size_in_bit, little_endian) or 0)
