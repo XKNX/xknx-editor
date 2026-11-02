@@ -2026,7 +2026,9 @@ class KnxGuiApp:
         # and only hidden on that tab. A child modal: closing it returns to the export dialog.
         if not ets_local:
             if signing_key_is_placeholder():
-                imgui.push_style_color(imgui.Col_.text, imgui.ImVec4(0.85, 0.7, 0.3, 1.0))
+                imgui.push_style_color(
+                    imgui.Col_.text, imgui.ImVec4(0.85, 0.7, 0.3, 1.0)
+                )
                 imgui.text_wrapped(S.SIGNING_KEY_PLACEHOLDER_HINT)
                 imgui.pop_style_color()
             if imgui.button(S.SIGNING_KEY_BUTTON, imgui.ImVec2(-1, 0)):
@@ -5090,7 +5092,9 @@ class KnxGuiApp:
         # When both ETS 6 and ETS 5 are installed, let the user pick which one signs.
         if det is not None and det.ets6 is not None and det.ets5 is not None:
             imgui.text_wrapped(S.MYKNX_ETS_PICK)
-            if imgui.radio_button(f"ETS 6 ({det.ets6.version or '?'})", not self._ets_is5):
+            if imgui.radio_button(
+                f"ETS 6 ({det.ets6.version or '?'})", not self._ets_is5
+            ):
                 self._apply_ets_choice(False)
             imgui.same_line()
             if imgui.radio_button(f"ETS 5 ({det.ets5.version or '?'})", self._ets_is5):
