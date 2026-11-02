@@ -23,7 +23,7 @@ _INTERNAL = f"{_APP}_P-1_R-2"
 
 async def _device(client: Client, tmp_path: Path) -> int:
     await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
-    await _data(client, "catalog_import_knxprod", path=str(_FIXTURE))
+    await _data(client, "catalog_import_product", path=str(_FIXTURE))
     product = (await _data(client, "catalog_list_products"))["items"][0]
     return (
         await _data(

@@ -290,7 +290,7 @@ class MenuStrings:
 
     @property
     def MENU_OPEN_PROJECT(self) -> str:
-        return _("Open Project (.knxproj/.xknx)")
+        return _("Open Project (.knxproj/.xknx)…")
 
     @property
     def MENU_SAVE_AS(self) -> str:
@@ -1140,8 +1140,8 @@ class MenuStrings:
         return _("Export Group Addresses")
 
     @property
-    def MENU_LOAD_KNXPROD(self) -> str:
-        return _("Load .knxprod…")
+    def MENU_LOAD_PRODUCT(self) -> str:
+        return _("Load KNX Product (.knxprod/.vd1-.vd5)…")
 
     @property
     def MENU_LOAD_FROM_URL(self) -> str:
@@ -1173,8 +1173,8 @@ class MenuStrings:
     @property
     def URL_PROMPT_FOLDER_HINT(self) -> str:
         return _(
-            "Or choose a local folder with product files (.knxprod, OpenKNX release .zip, or "
-            "KNX product XML) to import all of them."
+            "Or choose a local folder with product files (.knxprod, .vd1-.vd5, OpenKNX release "
+            ".zip, or KNX product XML) to import all of them."
         )
 
     @property
@@ -1184,8 +1184,8 @@ class MenuStrings:
     @property
     def URL_PROMPT_FILES_HINT(self) -> str:
         return _(
-            "Or upload product files (.knxprod, OpenKNX release .zip, or KNX product XML) from "
-            "this computer to import all of them."
+            "Or upload product files (.knxprod, .vd1-.vd5, OpenKNX release .zip, or KNX product "
+            "XML) from this computer to import all of them."
         )
 
     @property
@@ -1236,7 +1236,7 @@ class MenuStrings:
 
     @property
     def FILES_IMPORT_FILTER(self) -> str:
-        return _("KNX Product Files (*.knxprod, *.zip, *.xml)")
+        return _("KNX Product Files (*.knxprod, *.vd1-*.vd5, *.zip, *.xml)")
 
     @property
     def FILES_IMPORTING(self) -> str:
@@ -1525,21 +1525,12 @@ class MenuStrings:
         return _("Redo")
 
     @property
-    def FILE_DIALOG_KNXPROD_TITLE(self) -> str:
+    def FILE_DIALOG_PRODUCT_TITLE(self) -> str:
         return _("Open KNX Product Archive")
 
     @property
-    def FILE_DIALOG_KNXPROD_FILTER(self) -> str:
+    def FILE_DIALOG_PRODUCT_FILTER(self) -> str:
         return _("KNX Product (*.knxprod, *.vd1-*.vd5)")
-
-    @property
-    def LEGACY_VD_HINT(self) -> str:
-        return _(
-            "Legacy ETS product databases (.vd1-.vd5) are not imported directly.\n\n"
-            "Convert the file to .knxprod first with the conversion tools that ship with "
-            "ETS5/ETS6 - open the product file in ETS, or use its command-line converter - "
-            "then import the resulting .knxprod here."
-        )
 
     @property
     def FILE_DIALOG_KNXPROJ_FILTER(self) -> str:
@@ -1614,6 +1605,18 @@ class MenuStrings:
     @property
     def PROGRESS_LOAD_KNXPROD(self) -> str:
         return _("Loading product catalog…")
+
+    @property
+    def PROGRESS_CONVERT_VD(self) -> str:
+        return _("Converting product database…")
+
+    @property
+    def PROGRESS_APPLICATION_PROGRAMS(self) -> str:
+        return _("{done}/{total} application programs")
+
+    @property
+    def IMPORT_CANCELLED(self) -> str:
+        return _("Import cancelled, nothing was imported")
 
     @property
     def KNXPROD_IMPORT_SUMMARY(self) -> str:

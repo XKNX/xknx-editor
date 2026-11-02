@@ -223,7 +223,7 @@ async def test_devices_move_onto_segments_of_their_medium(tmp_path: Path) -> Non
     mcp, _project_service = _build(tmp_path)
     async with Client(mcp) as client:
         await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
-        await _data(client, "catalog_import_knxprod", path=str(_FIXTURE))
+        await _data(client, "catalog_import_product", path=str(_FIXTURE))
         product = (await _data(client, "catalog_list_products"))["items"][0]
         device = await _data(
             client, "project_add_device", product_ref_id=product["product_ref_id"]
@@ -276,7 +276,7 @@ async def test_a_device_is_unlinked_from_its_line_and_put_back(tmp_path: Path) -
     mcp, _project_service = _build(tmp_path)
     async with Client(mcp) as client:
         await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
-        await _data(client, "catalog_import_knxprod", path=str(_FIXTURE))
+        await _data(client, "catalog_import_product", path=str(_FIXTURE))
         product = (await _data(client, "catalog_list_products"))["items"][0]
         device = await _data(
             client, "project_add_device", product_ref_id=product["product_ref_id"]
@@ -372,7 +372,7 @@ async def test_a_parked_device_keeps_its_line(tmp_path: Path) -> None:
     mcp, _project_service = _build(tmp_path)
     async with Client(mcp) as client:
         await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
-        await _data(client, "catalog_import_knxprod", path=str(_FIXTURE))
+        await _data(client, "catalog_import_product", path=str(_FIXTURE))
         product = (await _data(client, "catalog_list_products"))["items"][0]
         device = await _data(
             client, "project_add_device", product_ref_id=product["product_ref_id"]
@@ -400,7 +400,7 @@ async def test_several_devices_are_moved_and_removed_in_one_batch(
     mcp, _project_service = _build(tmp_path)
     async with Client(mcp) as client:
         await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
-        await _data(client, "catalog_import_knxprod", path=str(_FIXTURE))
+        await _data(client, "catalog_import_product", path=str(_FIXTURE))
         product = (await _data(client, "catalog_list_products"))["items"][0]
         first, second = [
             await _data(

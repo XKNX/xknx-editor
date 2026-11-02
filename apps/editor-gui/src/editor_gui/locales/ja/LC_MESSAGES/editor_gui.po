@@ -118,8 +118,8 @@ msgstr "KNX Master v{version}（{date}）"
 msgid "File"
 msgstr "ファイル"
 
-msgid "Open Project (.knxproj/.xknx)"
-msgstr "プロジェクトを開く（.knxproj/.xknx）"
+msgid "Open Project (.knxproj/.xknx)…"
+msgstr "プロジェクトを開く（.knxproj/.xknx）…"
 
 msgid "Save As…"
 msgstr "名前を付けて保存…"
@@ -568,8 +568,8 @@ msgstr "証明書なしでエクスポート"
 msgid "Export ETS Project"
 msgstr "ETSプロジェクトのエクスポート"
 
-msgid "Load .knxprod…"
-msgstr ".knxprodを読み込む…"
+msgid "Load KNX Product (.knxprod/.vd1-.vd5)…"
+msgstr "KNX製品を読み込む（.knxprod/.vd1-.vd5）…"
 
 msgid "Load OpenKNX from URL or Folder…"
 msgstr "URLまたはフォルダーからOpenKNXを読み込む…"
@@ -586,14 +586,14 @@ msgstr "URLまたはファイルからOpenKNXを読み込む"
 msgid "Paste an OpenKNX GitHub release URL (the release page works — the .zip asset is found automatically). A direct .knxprod or KNX product XML link also works.\n\nExamples:\n  https://github.com/OpenKNX/OAM-RaumController/releases/tag/v5.4.3\n  https://github.com/OpenKNX/OAM-RaumController/releases/latest"
 msgstr "OpenKNXのGitHubリリースURLを貼り付けてください（リリース・ページで動作します — .zipアセットは自動的に検出されます）。.knxprodまたはKNX製品XMLへの直接リンクも使用できます。\n\n例：\n  https://github.com/OpenKNX/OAM-RaumController/releases/tag/v5.4.3\n  https://github.com/OpenKNX/OAM-RaumController/releases/latest"
 
-msgid "Or choose a local folder with product files (.knxprod, OpenKNX release .zip, or KNX product XML) to import all of them."
-msgstr "または、製品ファイル（.knxprod、OpenKNXリリース.zip、またはKNX製品XML）を含むローカル・フォルダーを選択して、全てインポートします。"
+msgid "Or choose a local folder with product files (.knxprod, .vd1-.vd5, OpenKNX release .zip, or KNX product XML) to import all of them."
+msgstr "または、製品ファイル（.knxprod、.vd1-.vd5、OpenKNXリリース.zip、またはKNX製品XML）を含むローカル・フォルダーを選択して、全てインポートします。"
 
 msgid "Choose Folder…"
 msgstr "フォルダーを選択…"
 
-msgid "Or upload product files (.knxprod, OpenKNX release .zip, or KNX product XML) from this computer to import all of them."
-msgstr "または、このコンピューターから製品ファイル（.knxprod、OpenKNXリリース.zip、またはKNX製品XML）をアップロードして、全てインポートします。"
+msgid "Or upload product files (.knxprod, .vd1-.vd5, OpenKNX release .zip, or KNX product XML) from this computer to import all of them."
+msgstr "または、このコンピューターから製品ファイル（.knxprod、.vd1-.vd5、OpenKNXリリース.zip、またはKNX製品XML）をアップロードして、全てインポートします。"
 
 msgid "Choose Files…"
 msgstr "ファイルを選択…"
@@ -625,8 +625,8 @@ msgstr "フォルダーからのインポートに失敗しました：{error}"
 msgid "Choose KNX Product Files"
 msgstr "KNX製品ファイルを選択"
 
-msgid "KNX Product Files (*.knxprod, *.zip, *.xml)"
-msgstr "KNX製品ファイル（*.knxprod、*.zip、*.xml）"
+msgid "KNX Product Files (*.knxprod, *.vd1-*.vd5, *.zip, *.xml)"
+msgstr "KNX製品ファイル（*.knxprod、*.vd1-*.vd5、*.zip、*.xml）"
 
 msgid "Importing files…"
 msgstr "ファイルをインポート中…"
@@ -847,9 +847,6 @@ msgstr "KNX製品アーカイブを開く"
 msgid "KNX Product (*.knxprod, *.vd1-*.vd5)"
 msgstr "KNX製品（*.knxprod、*.vd1-*.vd5）"
 
-msgid "Legacy ETS product databases (.vd1-.vd5) are not imported directly.\n\nConvert the file to .knxprod first with the conversion tools that ship with ETS5/ETS6 - open the product file in ETS, or use its command-line converter - then import the resulting .knxprod here."
-msgstr "旧形式のETS製品データベース（.vd1-.vd5）は直接インポートできません。\n\nまずETS5/ETS6付属の変換ツールでファイルを.knxprodに変換してください（ETSで製品ファイルを開くか、そのコマンドライン・コンバーターを使用します）。その後、作成された.knxprodをここでインポートしてください。"
-
 msgid "ETS Project (*.knxproj)"
 msgstr "ETSプロジェクト（*.knxproj）"
 
@@ -903,6 +900,15 @@ msgstr "{done}/{total}デバイス"
 
 msgid "Loading product catalog…"
 msgstr "製品カタログを読み込み中…"
+
+msgid "Converting product database…"
+msgstr "製品データベースを変換中…"
+
+msgid "{done}/{total} application programs"
+msgstr "{done}/{total}アプリケーションプログラム"
+
+msgid "Import cancelled, nothing was imported"
+msgstr "インポートはキャンセルされ、何もインポートされませんでした"
 
 msgid "Imported {count} product version(s) from {name}:"
 msgstr "{name}から{count}個の製品バージョンをインポートしました："

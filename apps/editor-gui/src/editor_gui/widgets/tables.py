@@ -82,9 +82,20 @@ def begin_data_table(
 
 
 def data_table_headers() -> None:
-    """The header row of a table begun with :func:`begin_data_table`, and its menu."""
+    """The header row of a table begun with :func:`begin_data_table`, and its menu. In a table
+    that scrolls vertically, the header row stays at the top (columns the caller froze stay
+    frozen)."""
+    freeze_header()
     imgui.table_headers_row()
     table_header_menu()
+
+
+def freeze_header() -> None:
+    """Keep the header row of the current table at the top while its rows scroll vertically;
+    call it after the columns are set up, before the header row."""
+    table = internal.get_current_table()
+    if table.flags & imgui.TableFlags_.scroll_y and table.freeze_rows_request == 0:
+        imgui.table_setup_scroll_freeze(table.freeze_columns_request, 1)
 
 
 def text_table_height(rows: int) -> float:

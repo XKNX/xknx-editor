@@ -21,7 +21,7 @@ async def _error(client: Client, tool: str, match: str, **args: Any) -> None:
 
 async def _project(client: Client, tmp_path: Path) -> dict[str, Any]:
     await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
-    await _data(client, "catalog_import_knxprod", path=str(_FIXTURE))
+    await _data(client, "catalog_import_product", path=str(_FIXTURE))
     product = (await _data(client, "catalog_list_products"))["items"][0]
     node_id = (
         await _data(

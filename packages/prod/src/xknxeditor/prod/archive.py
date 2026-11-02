@@ -84,14 +84,20 @@ class Archive:
             raise ArchiveError("Missing required file: knx_master.xml")
 
         for manufacturer_id in self._manufacturer_ids:
+            # A manufacturer may contribute only application programs or baggages that the
+            # hardware of another manufacturer in the archive uses: no Hardware.xml, no catalog.
+            if not self.has_hardware(manufacturer_id):
+                continue
             if self._require_catalog:
                 catalog_path = f"{manufacturer_id}/Catalog.xml"
                 if catalog_path not in self._entries:
                     raise ArchiveError(f"Missing required file: {catalog_path}")
 
-            hardware_path = f"{manufacturer_id}/Hardware.xml"
-            if hardware_path not in self._entries:
-                raise ArchiveError(f"Missing required file: {hardware_path}")
+    def has_hardware(self, manufacturer_id: str) -> bool:
+        """Whether this manufacturer ships a ``Hardware.xml`` (one with only application programs
+        does not)."""
+        self._validate_manufacturer_id(manufacturer_id)
+        return f"{manufacturer_id}/Hardware.xml" in self._entries
 
     def has_catalog(self, manufacturer_id: str) -> bool:
         """Whether this manufacturer ships a ``Catalog.xml`` (project-embedded data omits it)."""

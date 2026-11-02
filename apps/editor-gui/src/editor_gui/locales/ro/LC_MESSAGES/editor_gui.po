@@ -70,8 +70,8 @@ msgstr "Fișier"
 msgid "New Project"
 msgstr "Proiect nou"
 
-msgid "Open Project (.knxproj/.xknx)"
-msgstr "Deschidere proiect (.knxproj/.xknx)"
+msgid "Open Project (.knxproj/.xknx)…"
+msgstr "Deschidere proiect (.knxproj/.xknx)…"
 
 msgid "Open Recent"
 msgstr "Deschise recent"
@@ -172,8 +172,8 @@ msgstr "Export fără certificat"
 msgid "Export ETS Project"
 msgstr "Export proiect ETS"
 
-msgid "Load .knxprod…"
-msgstr "Încărcare .knxprod…"
+msgid "Load KNX Product (.knxprod/.vd1-.vd5)…"
+msgstr "Încărcare produs KNX (.knxprod/.vd1-.vd5)…"
 
 msgid "Exit"
 msgstr "Ieșire"
@@ -222,6 +222,15 @@ msgstr "Se importă proiectul — la proiectele mari poate dura un timp."
 
 msgid "Loading product catalog…"
 msgstr "Se încarcă catalogul de produse…"
+
+msgid "Converting product database…"
+msgstr "Se convertește baza de date de produse…"
+
+msgid "{done}/{total} application programs"
+msgstr "Programe de aplicație: {done}/{total}"
+
+msgid "Import cancelled, nothing was imported"
+msgstr "Import întrerupt, nu s-a importat nimic"
 
 msgid "Opening project…"
 msgstr "Se deschide proiectul…"
@@ -778,9 +787,6 @@ msgstr "Niciuna dintre aceste licențe nu poate semna online. Doar licențele ET
 msgid "KNX Product (*.knxprod, *.vd1-*.vd5)"
 msgstr "Produs KNX (*.knxprod, *.vd1-*.vd5)"
 
-msgid "Legacy ETS product databases (.vd1-.vd5) are not imported directly.\n\nConvert the file to .knxprod first with the conversion tools that ship with ETS5/ETS6 - open the product file in ETS, or use its command-line converter - then import the resulting .knxprod here."
-msgstr "Bazele de date de produse ETS mai vechi (.vd1-.vd5) nu sunt importate direct.\n\nConvertiți mai întâi fișierul în .knxprod cu instrumentele de conversie livrate cu ETS5/ETS6 - deschideți fișierul de produs în ETS sau folosiți convertorul lui din linia de comandă - apoi importați aici fișierul .knxprod rezultat."
-
 msgid "ETS Group-Address Export (*.xml)"
 msgstr "Export adrese de grup ETS (*.xml)"
 
@@ -1258,8 +1264,8 @@ msgstr "Încărcare OpenKNX de la URL sau din folder…"
 msgid "Load OpenKNX from URL or Folder"
 msgstr "Încărcare OpenKNX de la URL sau din folder"
 
-msgid "Or choose a local folder with product files (.knxprod, OpenKNX release .zip, or KNX product XML) to import all of them."
-msgstr "Sau alegeți un folder local cu fișiere de produs (.knxprod, .zip de release OpenKNX sau XML de produs KNX) pentru a le importa pe toate."
+msgid "Or choose a local folder with product files (.knxprod, .vd1-.vd5, OpenKNX release .zip, or KNX product XML) to import all of them."
+msgstr "Sau alegeți un folder local cu fișiere de produs (.knxprod, .vd1-.vd5, .zip de release OpenKNX sau XML de produs KNX) pentru a le importa pe toate."
 
 msgid "Choose Folder…"
 msgstr "Alegere folder…"
@@ -1285,8 +1291,8 @@ msgstr "Încărcare OpenKNX de la URL sau din fișiere…"
 msgid "Load OpenKNX from URL or Files"
 msgstr "Încărcare OpenKNX de la URL sau din fișiere"
 
-msgid "Or upload product files (.knxprod, OpenKNX release .zip, or KNX product XML) from this computer to import all of them."
-msgstr "Sau încărcați fișiere de produs (.knxprod, .zip de release OpenKNX sau XML de produs KNX) de pe acest computer pentru a le importa pe toate."
+msgid "Or upload product files (.knxprod, .vd1-.vd5, OpenKNX release .zip, or KNX product XML) from this computer to import all of them."
+msgstr "Sau încărcați fișiere de produs (.knxprod, .vd1-.vd5, .zip de release OpenKNX sau XML de produs KNX) de pe acest computer pentru a le importa pe toate."
 
 msgid "Choose Files…"
 msgstr "Alegere fișiere…"
@@ -1294,8 +1300,8 @@ msgstr "Alegere fișiere…"
 msgid "Choose KNX Product Files"
 msgstr "Alegeți fișiere de produs KNX"
 
-msgid "KNX Product Files (*.knxprod, *.zip, *.xml)"
-msgstr "Fișiere de produs KNX (*.knxprod, *.zip, *.xml)"
+msgid "KNX Product Files (*.knxprod, *.vd1-*.vd5, *.zip, *.xml)"
+msgstr "Fișiere de produs KNX (*.knxprod, *.vd1-*.vd5, *.zip, *.xml)"
 
 msgid "Importing files…"
 msgstr "Se importă fișierele…"

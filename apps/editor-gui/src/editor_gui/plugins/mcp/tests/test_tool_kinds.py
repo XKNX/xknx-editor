@@ -23,7 +23,7 @@ _EXPECTED = {
     "catalog_online_items": (True, False, True),
     "project_set_parameter": (False, False, False),
     "project_link_com_object": (False, False, False),
-    "catalog_import_knxprod": (False, False, False),
+    "catalog_import_product": (False, False, False),
     "connection_connect": (False, False, True),
     "project_remove_device": (False, True, False),
     "project_unlink_com_object": (False, True, False),
