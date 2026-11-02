@@ -85,6 +85,28 @@ def test_header_tables_and_values() -> None:
         record.str("BLOCK_ID")
 
 
+def test_memo_columns_keep_escapes_and_text_is_cut_to_size() -> None:
+    dump = Dump(
+        "\r\n".join(
+            [
+                "EX-IM",
+                "V 6.3",
+                "-----",
+                "T 1 texts",
+                "C1 T1 3 5 Y SHORT",
+                "C2 T1 4 32767 Y MEMO",
+                "C3 T1 3 3 N CUT",
+                "R 1 T 1 texts",
+                "1234567890",
+                "a" + BS + "nb" + BS + BS,
+                "ab" + BS + "nc",
+                "XXX",
+            ]
+        ).encode("cp1252")
+    )
+    assert dump.tables["texts"].rows == [("12345", "a" + BS + "nb" + BS + BS, "ab\n")]
+
+
 def test_old_header_and_errors() -> None:
     old = _DUMP.replace(b"V 6.3", b"V EXIM A")
     assert Dump(old).version == 0x10000

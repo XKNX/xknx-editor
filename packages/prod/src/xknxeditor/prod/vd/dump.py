@@ -53,6 +53,7 @@ _ESCAPES = {"n": "\n", "r": "\r", "t": "\t", "'": "'", "\\": "\\"}
 # (3, 4, 5, 7: text, memo, floating point and date) stay text.
 _INTEGER_TYPES = frozenset({1, 2})
 _BINARY_TYPES = frozenset({6, 8})
+_MEMO_SIZE = 32767
 
 
 @dataclass(frozen=True, slots=True)
@@ -260,8 +261,12 @@ def _convert(raw: bytes, column: Column, strings: dict[str, str]) -> Value:
     if column.kind in _INTEGER_TYPES:
         return int(raw)
     text = raw.decode(_ENCODING)
-    if "\\" in text:
-        text = _unescape(text)
+    # Memo columns (size 32767 and more) keep their backslashes as written; the others are
+    # unescaped and cut to their size.
+    if column.size < _MEMO_SIZE:
+        if "\\" in text:
+            text = _unescape(text)
+        text = text[: column.size]
     return strings.setdefault(text, text)
 
 
