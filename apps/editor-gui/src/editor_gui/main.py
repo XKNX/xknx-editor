@@ -5261,7 +5261,10 @@ class KnxGuiApp:
         module_arguments = self._project_service.module_arguments()
         group_object_trees = self._project_service.group_object_trees()
         remove_unused = self._export_remove_unused
-        password = self._project_service.project_password
+        # Stage the intermediate file without the project password. It is a throwaway handed
+        # straight to the installed ETS on the same machine; a password would only force ETS
+        # through its password-unlock path (whose obfuscated security types differ per build and
+        # break the reflection), for no gain. The ETS-exported .knxproj is therefore unprotected.
         # ETS 5 reads only project/20; stage at 20 for it regardless of the chosen export format.
         schema = "20" if self._ets_is5 else self._export_schema
         # Pick the matching helper for the detected version (captured on the UI thread).
@@ -5303,7 +5306,7 @@ class KnxGuiApp:
                 result = export_knxproj(
                     source,
                     staged,
-                    password=password,
+                    password=None,
                     schema=schema,
                     extra_files=extra_files,
                     master_xml=master_xml,
@@ -5337,7 +5340,7 @@ class KnxGuiApp:
                 sign = sign_local(
                     staged,
                     dest,
-                    password=password or None,
+                    password=None,
                     accept_untested=accept_untested,
                     progress=stage,
                 )
