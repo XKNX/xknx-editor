@@ -2030,18 +2030,15 @@ class KnxGuiApp:
                     imgui.end_tab_item()
                 imgui.end_tab_bar()
         imgui.spacing()
-        # The folder-signing key signs every .knxproj export, with and without certificate. The
-        # local-ETS way re-signs inside ETS, so the placeholder-key hint/button is irrelevant there
-        # and only hidden on that tab. A child modal: closing it returns to the export dialog.
-        if not ets_local:
-            if signing_key_is_placeholder():
-                imgui.push_style_color(
-                    imgui.Col_.text, imgui.ImVec4(0.85, 0.7, 0.3, 1.0)
-                )
-                imgui.text_wrapped(S.SIGNING_KEY_PLACEHOLDER_HINT)
-                imgui.pop_style_color()
-            if imgui.button(S.SIGNING_KEY_BUTTON, imgui.ImVec2(-1, 0)):
-                imgui.open_popup(S.SIGNING_KEY_TITLE)
+        # The folder-signing key signs every .knxproj export, with and without certificate --
+        # including Export Without Certificate on the ETS tab -- so the hint/button is shown on
+        # every tab. A child modal: closing it returns to the export dialog.
+        if signing_key_is_placeholder():
+            imgui.push_style_color(imgui.Col_.text, imgui.ImVec4(0.85, 0.7, 0.3, 1.0))
+            imgui.text_wrapped(S.SIGNING_KEY_PLACEHOLDER_HINT)
+            imgui.pop_style_color()
+        if imgui.button(S.SIGNING_KEY_BUTTON, imgui.ImVec2(-1, 0)):
+            imgui.open_popup(S.SIGNING_KEY_TITLE)
         self._render_signing_key_modal()
         # OAuth-credentials config modal: opened automatically from "Start 2FA sign-in" when no
         # credentials are available yet (no manual button).
