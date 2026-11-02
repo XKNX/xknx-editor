@@ -1515,3 +1515,6 @@ msgstr "ETS 6 ({version})"
 
 msgid "ETS 5 ({version})"
 msgstr "ETS 5 ({version})"
+
+msgid "Exporting through ETS 5 is slow: about 3 minutes for 80 devices and 800 group addresses, and longer for bigger projects. The \"{tab}\" tab is the faster way."
+msgstr "Експорт через ETS 5 повільний: близько 3 хвилин для 80 пристроїв і 800 групових адрес, довше для більших проєктів. Вкладка \"{tab}\" є швидшим способом."

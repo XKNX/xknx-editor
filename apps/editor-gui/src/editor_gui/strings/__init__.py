@@ -870,6 +870,13 @@ class MenuStrings:
         )
 
     @property
+    def MYKNX_ETS5_SLOW_HINT(self) -> str:
+        return _(
+            "Exporting through ETS 5 is slow: about 3 minutes for 80 devices and 800 group "
+            'addresses, and longer for bigger projects. The "{tab}" tab is the faster way.'
+        )
+
+    @property
     def MYKNX_ETS_HINT(self) -> str:
         return _(
             "The installed ETS imports and re-exports the project and writes the certificate from "
