@@ -1509,3 +1509,9 @@ msgstr "ETS byla nalezena, ale ke spuštění exportu je potřeba .NET SDK (nebo
 
 msgid "Two ETS versions are installed — choose which one signs the export:"
 msgstr "Jsou nainstalovány dvě verze ETS — vyberte, která podepíše export:"
+
+msgid "ETS 6 ({version})"
+msgstr "ETS 6 ({version})"
+
+msgid "ETS 5 ({version})"
+msgstr "ETS 5 ({version})"

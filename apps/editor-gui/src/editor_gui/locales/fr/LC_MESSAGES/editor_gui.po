@@ -1509,3 +1509,9 @@ msgstr "ETS a été trouvée, mais le SDK .NET (ou un assistant précompilé) es
 
 msgid "Two ETS versions are installed — choose which one signs the export:"
 msgstr "Deux versions d’ETS sont installées — choisissez celle qui signe l’export :"
+
+msgid "ETS 6 ({version})"
+msgstr "ETS 6 ({version})"
+
+msgid "ETS 5 ({version})"
+msgstr "ETS 5 ({version})"

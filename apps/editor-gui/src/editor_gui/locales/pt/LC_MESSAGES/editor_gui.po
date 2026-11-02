@@ -1509,3 +1509,9 @@ msgstr "A ETS foi encontrada, mas para executar a exportação é necessário o 
 
 msgid "Two ETS versions are installed — choose which one signs the export:"
 msgstr "Estão instaladas duas versões do ETS — escolha qual assina a exportação:"
+
+msgid "ETS 6 ({version})"
+msgstr "ETS 6 ({version})"
+
+msgid "ETS 5 ({version})"
+msgstr "ETS 5 ({version})"

@@ -1509,3 +1509,9 @@ msgstr "ETS знайдено, але для запуску експорту по
 
 msgid "Two ETS versions are installed — choose which one signs the export:"
 msgstr "Встановлено дві версії ETS — виберіть, яка підписуватиме експорт:"
+
+msgid "ETS 6 ({version})"
+msgstr "ETS 6 ({version})"
+
+msgid "ETS 5 ({version})"
+msgstr "ETS 5 ({version})"

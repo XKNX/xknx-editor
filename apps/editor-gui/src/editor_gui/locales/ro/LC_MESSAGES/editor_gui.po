@@ -1581,3 +1581,9 @@ msgstr "ETS a fost găsit, dar pentru a rula exportul este necesar .NET SDK (sau
 
 msgid "Two ETS versions are installed — choose which one signs the export:"
 msgstr "Sunt instalate două versiuni ETS — alege care semnează exportul:"
+
+msgid "ETS 6 ({version})"
+msgstr "ETS 6 ({version})"
+
+msgid "ETS 5 ({version})"
+msgstr "ETS 5 ({version})"

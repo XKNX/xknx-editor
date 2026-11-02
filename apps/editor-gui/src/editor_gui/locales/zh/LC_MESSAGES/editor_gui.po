@@ -1509,3 +1509,9 @@ msgstr "已找到 ETS，但运行导出需要 .NET SDK（或预构建的助手�
 
 msgid "Two ETS versions are installed — choose which one signs the export:"
 msgstr "安装了两个 ETS 版本——选择由哪个来签署导出："
+
+msgid "ETS 6 ({version})"
+msgstr "ETS 6 ({version})"
+
+msgid "ETS 5 ({version})"
+msgstr "ETS 5 ({version})"
