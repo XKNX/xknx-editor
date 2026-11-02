@@ -659,6 +659,9 @@ class KnxGuiApp:
         # failed). Set by the export worker; the Export Failed window shows it.
         self._export_failure: tuple[str, str, bool] | None = None
         self._export_failure_requested = False
+        # The result of an export through the installed ETS, shown in its own window (not a toast).
+        self._ets_result: str | None = None
+        self._ets_result_requested = False
         # The certificate signer used for the export, kept so the export-complete window can
         # re-export after removing a device whose product data is too new for the chosen ETS.
         self._export_summary_signer: (
@@ -1619,6 +1622,12 @@ class KnxGuiApp:
         text = (heading or S.EXPORT_FAILED_TEXT).format(name=name)
         self._export_failure = (text, reason, signing)
         self._export_failure_requested = True
+
+    def _show_ets_result(self, message: str) -> None:
+        """Open the Export Complete window for an ETS export with ``message`` on the next frame
+        (called on the export worker thread), instead of a toast."""
+        self._ets_result = message
+        self._ets_result_requested = True
 
     def _set_export_schema(self, code: str) -> None:
         """Set and persist the .knxproj export schema (ETS version format), so it sticks."""
@@ -4430,6 +4439,25 @@ class KnxGuiApp:
             imgui.close_current_popup()
         end_dialog()
 
+    def _render_ets_result_modal(self) -> None:
+        """The Export Complete window for an export through the installed ETS: whether it was
+        certified, or exported without a certificate."""
+        if self._ets_result_requested:
+            imgui.open_popup(S.EXPORT_SUMMARY_TITLE)
+            self._ets_result_requested = False
+        if not begin_dialog(S.EXPORT_SUMMARY_TITLE, width=520.0):
+            return
+        message = self._ets_result
+        if message is None:
+            imgui.close_current_popup()
+            end_dialog()
+            return
+        imgui.text_wrapped(message)
+        if dialog_buttons(S.EXPORT_SUMMARY_CLOSE) == 0:
+            self._ets_result = None
+            imgui.close_current_popup()
+        end_dialog()
+
     # --- compact project ---------------------------------------------------
 
     def _can_compact(self) -> bool:
@@ -4904,6 +4932,7 @@ class KnxGuiApp:
         self._render_import_notes_modal()
         self._render_export_summary_modal()
         self._render_export_failure_modal()
+        self._render_ets_result_modal()
         self._render_compact_modal()
         self._render_compact_result_modal()
         self._render_knxprod_result_modal()
@@ -5224,11 +5253,11 @@ class KnxGuiApp:
                 # Only a written AND validated certificate counts as certified; surface notes/a
                 # validation failure so a half-signed export is not announced as a success.
                 if sign.certificate_written and sign.validation_ok:
-                    self._flash_toast(
+                    self._show_ets_result(
                         S.MYKNX_ETS_DONE_CERT.format(name=sign.license_name)
                     )
                 else:
-                    self._flash_toast(S.MYKNX_ETS_DONE_NOCERT)
+                    self._show_ets_result(S.MYKNX_ETS_DONE_NOCERT)
                     if sign.certificate_written or sign.notes:
                         self._log.warning(
                             "ETS export: certificate not confirmed",
