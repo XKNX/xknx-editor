@@ -1590,3 +1590,6 @@ msgstr "ETS 5 ({version})"
 
 msgid "Exporting through ETS 5 is slow: about 3 minutes for 80 devices and 800 group addresses, and longer for bigger projects. The \"{tab}\" tab is the faster way."
 msgstr "Az ETS 5-ön keresztüli exportálás lassú: körülbelül 3 perc 80 eszközhöz és 800 csoportcímhez, nagyobb projekteknél hosszabb. A gyorsabb út a \"{tab}\" lap."
+
+msgid "No signing key is needed for \"{action}\"; it only signs \"{skip}\"."
+msgstr "A(z) \"{action}\" nem igényel aláíró kulcsot; az csak a(z) \"{skip}\" lehetőséget írja alá."

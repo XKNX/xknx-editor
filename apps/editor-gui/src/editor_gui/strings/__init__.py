@@ -877,6 +877,10 @@ class MenuStrings:
         )
 
     @property
+    def MYKNX_ETS_KEY_NOTE(self) -> str:
+        return _('No signing key is needed for "{action}"; it only signs "{skip}".')
+
+    @property
     def MYKNX_ETS_HINT(self) -> str:
         return _(
             "The installed ETS imports and re-exports the project and writes the certificate from "

@@ -1590,3 +1590,6 @@ msgstr "ETS 5 ({version})"
 
 msgid "Exporting through ETS 5 is slow: about 3 minutes for 80 devices and 800 group addresses, and longer for bigger projects. The \"{tab}\" tab is the faster way."
 msgstr "Export cez ETS 5 je pomalý: približne 3 minúty pre 80 zariadení a 800 skupinových adries, pri väčších projektoch dlhšie. Rýchlejší spôsob je karta \"{tab}\"."
+
+msgid "No signing key is needed for \"{action}\"; it only signs \"{skip}\"."
+msgstr "Pre \"{action}\" nie je potrebný podpisový kľúč; podpisuje iba \"{skip}\"."

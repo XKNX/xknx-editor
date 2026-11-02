@@ -1590,3 +1590,6 @@ msgstr "ETS 5 ({version})"
 
 msgid "Exporting through ETS 5 is slow: about 3 minutes for 80 devices and 800 group addresses, and longer for bigger projects. The \"{tab}\" tab is the faster way."
 msgstr "Exportul prin ETS 5 este lent: aproximativ 3 minute pentru 80 de dispozitive și 800 de adrese de grup, și mai mult pentru proiecte mai mari. Fila \"{tab}\" este calea mai rapidă."
+
+msgid "No signing key is needed for \"{action}\"; it only signs \"{skip}\"."
+msgstr "Nu este necesară o cheie de semnare pentru \"{action}\"; aceasta semnează doar \"{skip}\"."

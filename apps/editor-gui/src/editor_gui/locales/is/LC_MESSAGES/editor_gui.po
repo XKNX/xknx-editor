@@ -1590,3 +1590,6 @@ msgstr "ETS 5 ({version})"
 
 msgid "Exporting through ETS 5 is slow: about 3 minutes for 80 devices and 800 group addresses, and longer for bigger projects. The \"{tab}\" tab is the faster way."
 msgstr "Útflutningur í gegnum ETS 5 er hægur: um 3 mínútur fyrir 80 tæki og 800 hópvistföng, og lengur fyrir stærri verkefni. Flipinn \"{tab}\" er fljótlegri leiðin."
+
+msgid "No signing key is needed for \"{action}\"; it only signs \"{skip}\"."
+msgstr "Það þarf engan undirritunarlykil fyrir \"{action}\"; hann undirritar aðeins \"{skip}\"."
