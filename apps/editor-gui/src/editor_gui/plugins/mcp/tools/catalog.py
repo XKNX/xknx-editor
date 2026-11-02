@@ -10,12 +10,10 @@ freeze the UI frame.
 from __future__ import annotations
 
 import base64
-import contextlib
 import hashlib
 import io
 import json
 import re
-import tempfile
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 from urllib.parse import quote_plus, urlparse
@@ -27,6 +25,7 @@ from editor_gui.doc_links import MANUFACTURER_DOMAINS as _MANUFACTURER_DOMAINS
 from editor_gui.doc_links import domain_for as _domain_for
 from editor_gui.doc_links import resolve_manual_url as _resolve_manual_url
 from editor_gui.plugins.mcp.context import McpContext, make_tool
+from xknxeditor.prod.vd import is_vd_file
 
 if TYPE_CHECKING:
     from fastmcp import FastMCP
@@ -39,7 +38,7 @@ _MAX_DOC_BYTES = (
 )  # refuse to pull absurdly large files into the process
 # Cap for an inline (base64) .knxprod upload. A single-device knxprod is usually < 1 MB; only large
 # manufacturer bundles approach this. Keeps a remote client from streaming an unbounded blob into RAM.
-_MAX_KNXPROD_BYTES = 25 * 1024 * 1024
+_MAX_PRODUCT_BYTES = 25 * 1024 * 1024
 # Documentation file extensions we read as plain text/markdown (besides PDF), e.g. OpenKNX
 # Applikationsbeschreibungen hosted as .md in the GitHub module repos.
 _TEXT_EXTS = (".md", ".markdown", ".txt")
@@ -544,23 +543,26 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         return {"items": items, "count": len(items)}
 
     @tool("write")
-    def catalog_import_knxprod(path: str) -> dict[str, Any]:
-        """Import a .knxprod at path on the editor host into the local catalog, keeping existing
-        versions. For a file on a remote client, use catalog_import_knxprod_bytes.
+    def catalog_import_product(path: str) -> dict[str, Any]:
+        """Import a .knxprod, or an older .vd1-.vd5 product database (converted to the same product
+        data first; a large database takes minutes), at path on the editor host into the local
+        catalog, keeping existing versions. For a file on a remote client, use
+        catalog_import_product_bytes.
         Returns {added_refs, added_versions}: added_refs lists distinct product refs for added versions;
         each added_versions item has {product_ref_id, hardware2program_ref_id, application_id,
         application_version}. Pass product_ref_id and optional hardware2program_ref_id to
         project_add_device. Catalog imports are outside project_undo history and do not program
         devices."""
-        added = ctx.run_locked(
-            lambda: catalog.import_knxprod(Path(path)), timeout=_SLOW
-        )
+        # Converted here, not on the UI thread the import runs on.
+        data = catalog.knxprod_bytes(Path(path).read_bytes())
+        added = ctx.run_locked(lambda: catalog.import_knxprod_data(data), timeout=_SLOW)
         return _added(added)
 
     @tool("write")
-    def catalog_import_knxprod_bytes(filename: str, data_base64: str) -> dict[str, Any]:
-        """Import a .knxprod from a remote client: pass its filename and base64 bytes as data_base64
-        (decoded size at most 25 MB). Prefer catalog_import_knxprod for files on the editor host.
+    def catalog_import_product_bytes(filename: str, data_base64: str) -> dict[str, Any]:
+        """Import a .knxprod (or an older .vd1-.vd5 product database, converted first) from a remote
+        client: pass its filename and base64 bytes as data_base64 (decoded size at most 25 MB).
+        Prefer catalog_import_product for files on the editor host.
         Returns {added_refs, added_versions, filename, size_bytes}; filename is sanitized and
         size_bytes is the decoded size. added_refs lists distinct product refs for added versions;
         each added_versions item has {product_ref_id, hardware2program_ref_id, application_id,
@@ -572,24 +574,20 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             raise ToolError(f"data_base64 is not valid base64: {exc}") from exc
         if not raw:
             raise ToolError("data_base64 is empty")
-        if len(raw) > _MAX_KNXPROD_BYTES:
+        if len(raw) > _MAX_PRODUCT_BYTES:
             raise ToolError(
-                f"knxprod is larger than {_MAX_KNXPROD_BYTES // (1024 * 1024)} MB"
+                f"the product file is larger than {_MAX_PRODUCT_BYTES // (1024 * 1024)} MB"
             )
-        if raw[:2] != b"PK":  # .knxprod is a ZIP archive
-            raise ToolError("data is not a .knxprod archive (ZIP signature missing)")
+        if raw[:2] != b"PK":  # .knxprod and .vd1-.vd5 are ZIP archives
+            raise ToolError(
+                "data is not a .knxprod or .vd1-.vd5 archive (ZIP signature missing)"
+            )
         safe = re.sub(r"[^A-Za-z0-9._-]", "_", filename.rsplit("/", 1)[-1]) or "upload"
-        if not safe.lower().endswith(".knxprod"):
+        if not safe.lower().endswith(".knxprod") and not is_vd_file(safe):
             safe += ".knxprod"
-        tmp_dir = Path(tempfile.mkdtemp(prefix="xknxeditor-mcp-"))
-        tmp = tmp_dir / safe
-        try:
-            tmp.write_bytes(raw)
-            added = ctx.run_locked(lambda: catalog.import_knxprod(tmp), timeout=_SLOW)
-        finally:
-            tmp.unlink(missing_ok=True)
-            with contextlib.suppress(OSError):
-                tmp_dir.rmdir()
+        # Converted here, not on the UI thread the import runs on.
+        data = catalog.knxprod_bytes(raw)
+        added = ctx.run_locked(lambda: catalog.import_knxprod_data(data), timeout=_SLOW)
         return {**_added(added), "filename": safe, "size_bytes": len(raw)}
 
     @tool("destructive")

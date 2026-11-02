@@ -77,8 +77,8 @@ msgstr "{name} stond al in de catalogus, niets nieuws geïmporteerd"
 msgid "Product Catalog Import"
 msgstr "Productcatalogus importeren"
 
-msgid "Open Project (.knxproj/.xknx)"
-msgstr "Project openen (.knxproj/.xknx)"
+msgid "Open Project (.knxproj/.xknx)…"
+msgstr "Project openen (.knxproj/.xknx)…"
 
 msgid "Export Complete"
 msgstr "Export voltooid"
@@ -699,8 +699,8 @@ msgstr "Zonder certificaat exporteren"
 msgid "Export ETS Project"
 msgstr "ETS-project exporteren"
 
-msgid "Load .knxprod…"
-msgstr ".knxprod laden…"
+msgid "Load KNX Product (.knxprod/.vd1-.vd5)…"
+msgstr "KNX-product laden (.knxprod/.vd1-.vd5)…"
 
 msgid "Exit"
 msgstr "Afsluiten"
@@ -719,9 +719,6 @@ msgstr "KNX-productarchief openen"
 
 msgid "KNX Product (*.knxprod, *.vd1-*.vd5)"
 msgstr "KNX-product (*.knxprod, *.vd1-*.vd5)"
-
-msgid "Legacy ETS product databases (.vd1-.vd5) are not imported directly.\n\nConvert the file to .knxprod first with the conversion tools that ship with ETS5/ETS6 - open the product file in ETS, or use its command-line converter - then import the resulting .knxprod here."
-msgstr "Oudere ETS-productdatabases (.vd1-.vd5) worden niet direct geïmporteerd.\n\nConverteer het bestand eerst naar .knxprod met de conversietools die bij ETS5/ETS6 worden geleverd - open het productbestand in ETS, of gebruik de opdrachtregelconverter daarvan - en importeer daarna de resulterende .knxprod hier."
 
 msgid "ETS Project (*.knxproj)"
 msgstr "ETS-project (*.knxproj)"
@@ -770,6 +767,15 @@ msgstr "{done}/{total} apparaten"
 
 msgid "Loading product catalog…"
 msgstr "Productcatalogus wordt geladen…"
+
+msgid "Converting product database…"
+msgstr "Productdatabase wordt geconverteerd…"
+
+msgid "{done}/{total} application programs"
+msgstr "{done}/{total} applicatieprogramma's"
+
+msgid "Import cancelled, nothing was imported"
+msgstr "Importeren geannuleerd, er is niets geïmporteerd"
 
 msgid "Opening project…"
 msgstr "Project wordt geopend…"
@@ -1248,8 +1254,8 @@ msgstr "OpenKNX van URL of map laden…"
 msgid "Load OpenKNX from URL or Folder"
 msgstr "OpenKNX van URL of map laden"
 
-msgid "Or choose a local folder with product files (.knxprod, OpenKNX release .zip, or KNX product XML) to import all of them."
-msgstr "Of kies een lokale map met productbestanden (.knxprod, OpenKNX-release-.zip of KNX-product-XML) om ze allemaal te importeren."
+msgid "Or choose a local folder with product files (.knxprod, .vd1-.vd5, OpenKNX release .zip, or KNX product XML) to import all of them."
+msgstr "Of kies een lokale map met productbestanden (.knxprod, .vd1-.vd5, OpenKNX-release-.zip of KNX-product-XML) om ze allemaal te importeren."
 
 msgid "Choose Folder…"
 msgstr "Map kiezen…"
@@ -1275,8 +1281,8 @@ msgstr "OpenKNX van URL of uit bestanden laden…"
 msgid "Load OpenKNX from URL or Files"
 msgstr "OpenKNX van URL of uit bestanden laden"
 
-msgid "Or upload product files (.knxprod, OpenKNX release .zip, or KNX product XML) from this computer to import all of them."
-msgstr "Of upload productbestanden (.knxprod, OpenKNX-release-.zip of KNX-product-XML) van deze computer om ze allemaal te importeren."
+msgid "Or upload product files (.knxprod, .vd1-.vd5, OpenKNX release .zip, or KNX product XML) from this computer to import all of them."
+msgstr "Of upload productbestanden (.knxprod, .vd1-.vd5, OpenKNX-release-.zip of KNX-product-XML) van deze computer om ze allemaal te importeren."
 
 msgid "Choose Files…"
 msgstr "Bestanden kiezen…"
@@ -1284,8 +1290,8 @@ msgstr "Bestanden kiezen…"
 msgid "Choose KNX Product Files"
 msgstr "Kies KNX-productbestanden"
 
-msgid "KNX Product Files (*.knxprod, *.zip, *.xml)"
-msgstr "KNX-productbestanden (*.knxprod, *.zip, *.xml)"
+msgid "KNX Product Files (*.knxprod, *.vd1-*.vd5, *.zip, *.xml)"
+msgstr "KNX-productbestanden (*.knxprod, *.vd1-*.vd5, *.zip, *.xml)"
 
 msgid "Importing files…"
 msgstr "Bestanden importeren…"

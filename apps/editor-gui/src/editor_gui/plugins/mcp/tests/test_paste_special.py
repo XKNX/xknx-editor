@@ -26,7 +26,7 @@ async def test_devices_are_copied_by_their_address(tmp_path: Path) -> None:
     mcp, project = _build(tmp_path)
     async with Client(mcp) as client:
         await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
-        await _data(client, "catalog_import_knxprod", path=str(_FIXTURE))
+        await _data(client, "catalog_import_product", path=str(_FIXTURE))
         product = (await _data(client, "catalog_list_products"))["items"][0]
         node_id = (
             await _data(

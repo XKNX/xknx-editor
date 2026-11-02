@@ -118,8 +118,8 @@ msgstr "KNX Master v{version} ({date})"
 msgid "File"
 msgstr "Soubor"
 
-msgid "Open Project (.knxproj/.xknx)"
-msgstr "Otevřít projekt (.knxproj/.xknx)"
+msgid "Open Project (.knxproj/.xknx)…"
+msgstr "Otevřít projekt (.knxproj/.xknx)…"
 
 msgid "Save As…"
 msgstr "Uložit jako…"
@@ -568,8 +568,8 @@ msgstr "Exportovat bez certifikátu"
 msgid "Export ETS Project"
 msgstr "Exportovat projekt ETS"
 
-msgid "Load .knxprod…"
-msgstr "Načíst .knxprod…"
+msgid "Load KNX Product (.knxprod/.vd1-.vd5)…"
+msgstr "Načíst produkt KNX (.knxprod/.vd1-.vd5)…"
 
 msgid "Load OpenKNX from URL or Folder…"
 msgstr "Načíst OpenKNX z URL nebo složky…"
@@ -586,14 +586,14 @@ msgstr "Načíst OpenKNX z URL nebo souborů"
 msgid "Paste an OpenKNX GitHub release URL (the release page works — the .zip asset is found automatically). A direct .knxprod or KNX product XML link also works.\n\nExamples:\n  https://github.com/OpenKNX/OAM-RaumController/releases/tag/v5.4.3\n  https://github.com/OpenKNX/OAM-RaumController/releases/latest"
 msgstr "Vložte URL vydání OpenKNX na GitHubu (funguje i stránka vydání — příloha .zip se najde automaticky). Funguje i přímý odkaz na .knxprod nebo produktové XML KNX.\n\nPříklady:\n  https://github.com/OpenKNX/OAM-RaumController/releases/tag/v5.4.3\n  https://github.com/OpenKNX/OAM-RaumController/releases/latest"
 
-msgid "Or choose a local folder with product files (.knxprod, OpenKNX release .zip, or KNX product XML) to import all of them."
-msgstr "Nebo vyberte místní složku s produktovými soubory (.knxprod, .zip vydání OpenKNX nebo produktové XML KNX) a importujte je všechny."
+msgid "Or choose a local folder with product files (.knxprod, .vd1-.vd5, OpenKNX release .zip, or KNX product XML) to import all of them."
+msgstr "Nebo vyberte místní složku s produktovými soubory (.knxprod, .vd1-.vd5, .zip vydání OpenKNX nebo produktové XML KNX) a importujte je všechny."
 
 msgid "Choose Folder…"
 msgstr "Vybrat složku…"
 
-msgid "Or upload product files (.knxprod, OpenKNX release .zip, or KNX product XML) from this computer to import all of them."
-msgstr "Nebo nahrajte produktové soubory (.knxprod, .zip vydání OpenKNX nebo produktové XML KNX) z tohoto počítače a importujte je všechny."
+msgid "Or upload product files (.knxprod, .vd1-.vd5, OpenKNX release .zip, or KNX product XML) from this computer to import all of them."
+msgstr "Nebo nahrajte produktové soubory (.knxprod, .vd1-.vd5, .zip vydání OpenKNX nebo produktové XML KNX) z tohoto počítače a importujte je všechny."
 
 msgid "Choose Files…"
 msgstr "Vybrat soubory…"
@@ -625,8 +625,8 @@ msgstr "Import ze složky selhal: {error}"
 msgid "Choose KNX Product Files"
 msgstr "Vyberte produktové soubory KNX"
 
-msgid "KNX Product Files (*.knxprod, *.zip, *.xml)"
-msgstr "Produktové soubory KNX (*.knxprod, *.zip, *.xml)"
+msgid "KNX Product Files (*.knxprod, *.vd1-*.vd5, *.zip, *.xml)"
+msgstr "Produktové soubory KNX (*.knxprod, *.vd1-*.vd5, *.zip, *.xml)"
 
 msgid "Importing files…"
 msgstr "Import souborů…"
@@ -847,9 +847,6 @@ msgstr "Otevřít produktový archiv KNX"
 msgid "KNX Product (*.knxprod, *.vd1-*.vd5)"
 msgstr "Produkt KNX (*.knxprod, *.vd1-*.vd5)"
 
-msgid "Legacy ETS product databases (.vd1-.vd5) are not imported directly.\n\nConvert the file to .knxprod first with the conversion tools that ship with ETS5/ETS6 - open the product file in ETS, or use its command-line converter - then import the resulting .knxprod here."
-msgstr "Starší produktové databáze ETS (.vd1-.vd5) se neimportují přímo.\n\nNejprve soubor převeďte na .knxprod pomocí převodních nástrojů dodávaných s ETS5/ETS6 – otevřete produktový soubor v ETS nebo použijte jeho převodník pro příkazový řádek – a poté zde importujte výsledný soubor .knxprod."
-
 msgid "ETS Project (*.knxproj)"
 msgstr "Projekt ETS (*.knxproj)"
 
@@ -903,6 +900,15 @@ msgstr "Zařízení {done}/{total}"
 
 msgid "Loading product catalog…"
 msgstr "Načítání produktového katalogu…"
+
+msgid "Converting product database…"
+msgstr "Převod produktové databáze…"
+
+msgid "{done}/{total} application programs"
+msgstr "Aplikační programy {done}/{total}"
+
+msgid "Import cancelled, nothing was imported"
+msgstr "Import zrušen, nic nebylo importováno"
 
 msgid "Imported {count} product version(s) from {name}:"
 msgstr "Verze produktů importované z {name}: {count}"

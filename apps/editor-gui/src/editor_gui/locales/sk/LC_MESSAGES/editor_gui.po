@@ -70,8 +70,8 @@ msgstr "Súbor"
 msgid "New Project"
 msgstr "Nový projekt"
 
-msgid "Open Project (.knxproj/.xknx)"
-msgstr "Otvoriť projekt (.knxproj/.xknx)"
+msgid "Open Project (.knxproj/.xknx)…"
+msgstr "Otvoriť projekt (.knxproj/.xknx)…"
 
 msgid "Open Recent"
 msgstr "Naposledy otvorené"
@@ -172,8 +172,8 @@ msgstr "Exportovať bez certifikátu"
 msgid "Export ETS Project"
 msgstr "Exportovať projekt ETS"
 
-msgid "Load .knxprod…"
-msgstr "Načítať .knxprod…"
+msgid "Load KNX Product (.knxprod/.vd1-.vd5)…"
+msgstr "Načítať produkt KNX (.knxprod/.vd1-.vd5)…"
 
 msgid "Exit"
 msgstr "Ukončiť"
@@ -222,6 +222,15 @@ msgstr "Importuje sa projekt – pri veľkých projektoch to môže chvíľu trv
 
 msgid "Loading product catalog…"
 msgstr "Načítava sa produktový katalóg…"
+
+msgid "Converting product database…"
+msgstr "Konvertuje sa produktová databáza…"
+
+msgid "{done}/{total} application programs"
+msgstr "Aplikačné programy {done}/{total}"
+
+msgid "Import cancelled, nothing was imported"
+msgstr "Import zrušený, nič sa neimportovalo"
 
 msgid "Opening project…"
 msgstr "Otvára sa projekt…"
@@ -778,9 +787,6 @@ msgstr "Žiadna z týchto licencií nemôže podpisovať online. Certifikát vyt
 msgid "KNX Product (*.knxprod, *.vd1-*.vd5)"
 msgstr "Produkt KNX (*.knxprod, *.vd1-*.vd5)"
 
-msgid "Legacy ETS product databases (.vd1-.vd5) are not imported directly.\n\nConvert the file to .knxprod first with the conversion tools that ship with ETS5/ETS6 - open the product file in ETS, or use its command-line converter - then import the resulting .knxprod here."
-msgstr "Staršie produktové databázy ETS (.vd1-.vd5) sa neimportujú priamo.\n\nNajprv súbor skonvertujte na .knxprod pomocou konverzných nástrojov dodávaných s ETS5/ETS6 – otvorte produktový súbor v ETS alebo použite jeho konvertor pre príkazový riadok – a potom tu importujte výsledný súbor .knxprod."
-
 msgid "ETS Group-Address Export (*.xml)"
 msgstr "Export skupinových adries ETS (*.xml)"
 
@@ -1258,8 +1264,8 @@ msgstr "Načítať OpenKNX z URL alebo priečinka…"
 msgid "Load OpenKNX from URL or Folder"
 msgstr "Načítať OpenKNX z URL alebo priečinka"
 
-msgid "Or choose a local folder with product files (.knxprod, OpenKNX release .zip, or KNX product XML) to import all of them."
-msgstr "Alebo vyberte lokálny priečinok s produktovými súbormi (.knxprod, .zip vydania OpenKNX alebo produktové XML KNX) a importujte ich všetky."
+msgid "Or choose a local folder with product files (.knxprod, .vd1-.vd5, OpenKNX release .zip, or KNX product XML) to import all of them."
+msgstr "Alebo vyberte lokálny priečinok s produktovými súbormi (.knxprod, .vd1-.vd5, .zip vydania OpenKNX alebo produktové XML KNX) a importujte ich všetky."
 
 msgid "Choose Folder…"
 msgstr "Vybrať priečinok…"
@@ -1285,8 +1291,8 @@ msgstr "Načítať OpenKNX z URL alebo súborov…"
 msgid "Load OpenKNX from URL or Files"
 msgstr "Načítať OpenKNX z URL alebo súborov"
 
-msgid "Or upload product files (.knxprod, OpenKNX release .zip, or KNX product XML) from this computer to import all of them."
-msgstr "Alebo nahrajte produktové súbory (.knxprod, .zip vydania OpenKNX alebo produktové XML KNX) z tohto počítača a importujte ich všetky."
+msgid "Or upload product files (.knxprod, .vd1-.vd5, OpenKNX release .zip, or KNX product XML) from this computer to import all of them."
+msgstr "Alebo nahrajte produktové súbory (.knxprod, .vd1-.vd5, .zip vydania OpenKNX alebo produktové XML KNX) z tohto počítača a importujte ich všetky."
 
 msgid "Choose Files…"
 msgstr "Vybrať súbory…"
@@ -1294,8 +1300,8 @@ msgstr "Vybrať súbory…"
 msgid "Choose KNX Product Files"
 msgstr "Výber produktových súborov KNX"
 
-msgid "KNX Product Files (*.knxprod, *.zip, *.xml)"
-msgstr "Produktové súbory KNX (*.knxprod, *.zip, *.xml)"
+msgid "KNX Product Files (*.knxprod, *.vd1-*.vd5, *.zip, *.xml)"
+msgstr "Produktové súbory KNX (*.knxprod, *.vd1-*.vd5, *.zip, *.xml)"
 
 msgid "Importing files…"
 msgstr "Importujú sa súbory…"

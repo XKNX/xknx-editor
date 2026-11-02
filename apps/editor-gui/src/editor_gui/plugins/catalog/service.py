@@ -35,6 +35,73 @@ if TYPE_CHECKING:
     )
 
 
+def _stored_strings(raw: object) -> list[str]:
+    from typing import cast
+
+    if not isinstance(raw, list):
+        return []
+    return [p for p in cast("list[object]", raw) if isinstance(p, str) and p]
+
+
+def stored_vd_passwords() -> list[bytes]:
+    """Product-database passwords the user has entered before, kept in the catalog settings."""
+    from editor_gui.settings import load_settings
+
+    raw = load_settings(_CATALOG_SETTINGS).get("vd_passwords", [])
+    return [p.encode() for p in _stored_strings(raw)]
+
+
+def store_vd_password(password: str) -> None:
+    """Add a product-database password to the catalog settings (kept for later imports)."""
+    from editor_gui.settings import load_settings, save_settings
+
+    data = load_settings(_CATALOG_SETTINGS)
+    kept = _stored_strings(data.get("vd_passwords"))
+    if password and password not in kept:
+        kept.append(password)
+    data["vd_passwords"] = kept
+    save_settings(_CATALOG_SETTINGS, data)
+
+
+def _as_knxprod(
+    data: bytes,
+    *,
+    passwords: list[bytes] | None = None,
+    cancel: threading.Event | None = None,
+    progress: Callable[[int, int], None] | None = None,
+) -> bytes:
+    """``data`` as ``.knxprod`` bytes: a ``.vd1``-``.vd5`` product database is converted with the
+    app's master data (``cancel`` and ``progress`` go to the conversion), anything else is returned
+    as is."""
+    import io
+    import zipfile
+
+    from xknxeditor.prod.errors import ArchiveError
+    from xknxeditor.prod.vd import holds_vd_dump, vd_to_knxprod
+
+    if data[:2] != b"PK":
+        return data
+    try:
+        with zipfile.ZipFile(io.BytesIO(data)) as zf:
+            names = zf.namelist()
+    except zipfile.BadZipFile:
+        return data  # the loader reports the broken archive
+    if not holds_vd_dump(names):
+        return data
+    from editor_gui.master_data import master_xml_bytes
+
+    master = master_xml_bytes()
+    if master is None:
+        raise ArchiveError(
+            "KNX master data unavailable (offline and not cached): connect to the internet once "
+            "so it can be downloaded, then retry"
+        )
+    pwds = [*(passwords or ()), *stored_vd_passwords()]
+    return vd_to_knxprod(
+        data, master, passwords=pwds or None, cancel=cancel, progress=progress
+    )
+
+
 def _forget_stored_language() -> None:
     """Remove the download language earlier versions let the user choose and stored: the
     editor's language decides it now. Its file goes when nothing else is in it."""
@@ -143,55 +210,111 @@ class CatalogService:
             self._product_index = index
         return self._product_index.get(product_ref_id)
 
-    def import_knxprod(self, path: Path) -> list[ProductSummary]:
-        """Import a .knxprod file; returns the newly added product versions."""
-        return self._import_knxprod_bytes(path.read_bytes())
+    # The imports below take ``cancel``: once it is set, they stop with ``ImportCancelled`` before
+    # anything is stored. ``progress`` reports the conversion of a product database (application
+    # programs done, all).
 
-    def import_project_products(self, path: Path) -> list[ProductSummary]:
+    def import_knxprod(
+        self, path: Path, *, cancel: threading.Event | None = None
+    ) -> list[ProductSummary]:
+        """Import a .knxprod file or a .vd1-.vd5 product database (converted with the app's master
+        data); returns the newly added product versions."""
+        data = _as_knxprod(path.read_bytes(), cancel=cancel)
+        return self._import_knxprod_bytes(data, cancel=cancel)
+
+    @staticmethod
+    def knxprod_bytes(
+        data: bytes,
+        *,
+        cancel: threading.Event | None = None,
+        progress: Callable[[int, int], None] | None = None,
+    ) -> bytes:
+        """``data`` as ``.knxprod`` bytes: a ``.vd1``-``.vd5`` product database is converted with
+        the app's master data, a ``.knxprod`` is returned as is. Converting a big database takes
+        minutes: call it on a worker thread, without the IO lock."""
+        return _as_knxprod(data, cancel=cancel, progress=progress)
+
+    def import_knxprod_data(
+        self, data: bytes, *, cancel: threading.Event | None = None
+    ) -> list[ProductSummary]:
+        """Import ``.knxprod`` bytes; returns the newly added product versions."""
+        return self._import_knxprod_bytes(data, cancel=cancel)
+
+    def import_project_products(
+        self, path: Path, *, cancel: threading.Event | None = None
+    ) -> list[ProductSummary]:
         """Ingest the product data embedded in a ``.knxproj`` (which omits ``Catalog.xml``), so the
         imported project's devices resolve their applications. Returns the newly added product
         versions."""
-        return self._import_knxprod_bytes(path.read_bytes(), require_catalog=False)
+        return self._import_knxprod_bytes(
+            path.read_bytes(), require_catalog=False, cancel=cancel
+        )
 
     def import_product_source(
-        self, data: bytes, master_xml: bytes
+        self, data: bytes, master_xml: bytes, *, cancel: threading.Event | None = None
     ) -> list[ProductSummary]:
-        """Ingest product data from any supported source: a ``.knxprod``, an OpenKNX release ZIP, or
-        a raw monolithic KNX product XML (OpenKNXproducer output). ``master_xml`` supplies the
-        ``knx_master.xml`` the latter two do not embed. Returns the newly added product versions."""
+        """Ingest product data from any supported source: a ``.knxprod``, an OpenKNX release ZIP, a
+        ``.vd1``-``.vd5`` product database, or a raw monolithic KNX product XML (OpenKNXproducer
+        output). ``master_xml`` supplies the ``knx_master.xml`` the others do not embed. Returns the
+        newly added product versions."""
         from xknxeditor.prod import knxprod_from_source
 
-        return self._import_knxprod_bytes(knxprod_from_source(data, master_xml))
+        knxprod = knxprod_from_source(data, master_xml, cancel=cancel)
+        return self._import_knxprod_bytes(knxprod, cancel=cancel)
 
-    def import_knxprod_contents(self, path: Path) -> list[ProductSummary]:
-        """Import a ``.knxprod`` and return every product version it provides, new or already in the
-        catalog. Unlike :meth:`import_knxprod` (which returns only the newly added versions), this
-        lets a re-import still list the file's products instead of dead-ending at "nothing new"."""
+    def import_knxprod_contents(
+        self,
+        path: Path,
+        *,
+        cancel: threading.Event | None = None,
+        progress: Callable[[int, int], None] | None = None,
+    ) -> list[ProductSummary]:
+        """Import a ``.knxprod`` (or a ``.vd1``-``.vd5`` product database) and return every product
+        version it provides, new or already in the catalog. Unlike :meth:`import_knxprod` (which
+        returns only the newly added versions), this lets a re-import still list the file's products
+        instead of dead-ending at "nothing new"."""
+        # A product database is converted before the lock is taken: that takes long for a big one.
+        data = _as_knxprod(path.read_bytes(), cancel=cancel, progress=progress)
         with self._io_lock:
-            stored = self._service.import_knxprod(path.read_bytes())
+            stored = self._service.import_knxprod(data, cancel=cancel)
             self._forget_products()
             return self._service.products_for_path(str(stored))
 
     def import_product_source_contents(
-        self, data: bytes, master_xml: bytes
+        self,
+        data: bytes,
+        master_xml: bytes,
+        *,
+        cancel: threading.Event | None = None,
+        progress: Callable[[int, int], None] | None = None,
     ) -> list[ProductSummary]:
         """Like :meth:`import_product_source`, but returns every product version the source provides
         (new or already present), so a re-import still lists the file's products."""
         from xknxeditor.prod import knxprod_from_source
 
+        # Converted outside the lock (a product database takes long), stored under it.
+        knxprod = knxprod_from_source(
+            data, master_xml, cancel=cancel, progress=progress
+        )
         with self._io_lock:
-            stored = self._service.import_knxprod(knxprod_from_source(data, master_xml))
+            stored = self._service.import_knxprod(knxprod, cancel=cancel)
             self._forget_products()
             return self._service.products_for_path(str(stored))
 
     def _import_knxprod_bytes(
-        self, data: bytes, *, require_catalog: bool = True
+        self,
+        data: bytes,
+        *,
+        require_catalog: bool = True,
+        cancel: threading.Event | None = None,
     ) -> list[ProductSummary]:
         """Each product version (product and hardware program) new in the catalog."""
         before = {
             (p.product_ref_id, p.hardware2program_ref_id) for p in self.get_products()
         }
-        self._service.import_knxprod(data, require_catalog=require_catalog)
+        self._service.import_knxprod(
+            data, require_catalog=require_catalog, cancel=cancel
+        )
         self._forget_products()
         added: dict[tuple[str, str], ProductSummary] = {}
         for product in self.get_products():

@@ -1239,6 +1239,8 @@ class GroupAddressesPanel:
             | imgui.TableFlags_.sizing_stretch_prop
             | imgui.TableFlags_.resizable
             | imgui.TableFlags_.reorderable
+            # Fills the rest of the panel and scrolls under its header row.
+            | imgui.TableFlags_.scroll_y
         )
         if not begin_data_table("##ga_assignments", 3, flags):
             return

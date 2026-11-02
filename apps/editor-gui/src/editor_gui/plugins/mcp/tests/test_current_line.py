@@ -99,7 +99,7 @@ async def test_a_device_added_to_a_space_goes_on_its_current_line(
         lines = await _lines(client)
         # A new line takes the medium of its area's main line (IP); make it a TP line.
         await _data(client, "project_set_medium", line_id=lines["1.2"], medium="TP")
-        await _data(client, "catalog_import_knxprod", path=str(_FIXTURE))
+        await _data(client, "catalog_import_product", path=str(_FIXTURE))
         product = (await _data(client, "catalog_list_products"))["items"][0]
         # A TP device does not fit the IP line 1.0.
         await _data(
@@ -183,7 +183,7 @@ async def test_a_device_goes_on_the_segment_asked_for(tmp_path: Path) -> None:
         await _data(client, "project_create_line", area_id=area, line_number=2)
         lines = await _lines(client)
         await _data(client, "project_set_medium", line_id=lines["1.2"], medium="TP")
-        await _data(client, "catalog_import_knxprod", path=str(_FIXTURE))
+        await _data(client, "catalog_import_product", path=str(_FIXTURE))
         product = (await _data(client, "catalog_list_products"))["items"][0]
         line = next(
             ln

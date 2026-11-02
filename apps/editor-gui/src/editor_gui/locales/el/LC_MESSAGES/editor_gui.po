@@ -118,8 +118,8 @@ msgstr "KNX Master v{version} ({date})"
 msgid "File"
 msgstr "Αρχείο"
 
-msgid "Open Project (.knxproj/.xknx)"
-msgstr "Άνοιγμα Έργου (.knxproj/.xknx)"
+msgid "Open Project (.knxproj/.xknx)…"
+msgstr "Άνοιγμα Έργου (.knxproj/.xknx)…"
 
 msgid "Save As…"
 msgstr "Αποθήκευση ως…"
@@ -568,8 +568,8 @@ msgstr "Εξαγωγή Χωρίς Πιστοποιητικό"
 msgid "Export ETS Project"
 msgstr "Εξαγωγή Έργου ETS"
 
-msgid "Load .knxprod…"
-msgstr "Φόρτωση .knxprod…"
+msgid "Load KNX Product (.knxprod/.vd1-.vd5)…"
+msgstr "Φόρτωση προϊόντος KNX (.knxprod/.vd1-.vd5)…"
 
 msgid "Load OpenKNX from URL or Folder…"
 msgstr "Φόρτωση OpenKNX από URL ή Φάκελο…"
@@ -586,14 +586,14 @@ msgstr "Φόρτωση OpenKNX από URL ή Αρχεία"
 msgid "Paste an OpenKNX GitHub release URL (the release page works — the .zip asset is found automatically). A direct .knxprod or KNX product XML link also works.\n\nExamples:\n  https://github.com/OpenKNX/OAM-RaumController/releases/tag/v5.4.3\n  https://github.com/OpenKNX/OAM-RaumController/releases/latest"
 msgstr "Επικολλήστε μια διεύθυνση URL έκδοσης OpenKNX στο GitHub (λειτουργεί και η σελίδα της έκδοσης — το αρχείο .zip εντοπίζεται αυτόματα). Λειτουργεί επίσης ένας απευθείας σύνδεσμος .knxprod ή XML προϊόντος KNX.\n\nΠαραδείγματα:\n  https://github.com/OpenKNX/OAM-RaumController/releases/tag/v5.4.3\n  https://github.com/OpenKNX/OAM-RaumController/releases/latest"
 
-msgid "Or choose a local folder with product files (.knxprod, OpenKNX release .zip, or KNX product XML) to import all of them."
-msgstr "Ή επιλέξτε έναν τοπικό φάκελο με αρχεία προϊόντων (.knxprod, .zip έκδοσης OpenKNX ή XML προϊόντος KNX) για να τα εισαγάγετε όλα."
+msgid "Or choose a local folder with product files (.knxprod, .vd1-.vd5, OpenKNX release .zip, or KNX product XML) to import all of them."
+msgstr "Ή επιλέξτε έναν τοπικό φάκελο με αρχεία προϊόντων (.knxprod, .vd1-.vd5, .zip έκδοσης OpenKNX ή XML προϊόντος KNX) για να τα εισαγάγετε όλα."
 
 msgid "Choose Folder…"
 msgstr "Επιλογή Φακέλου…"
 
-msgid "Or upload product files (.knxprod, OpenKNX release .zip, or KNX product XML) from this computer to import all of them."
-msgstr "Ή ανεβάστε αρχεία προϊόντων (.knxprod, .zip έκδοσης OpenKNX ή XML προϊόντος KNX) από αυτόν τον υπολογιστή για να τα εισαγάγετε όλα."
+msgid "Or upload product files (.knxprod, .vd1-.vd5, OpenKNX release .zip, or KNX product XML) from this computer to import all of them."
+msgstr "Ή ανεβάστε αρχεία προϊόντων (.knxprod, .vd1-.vd5, .zip έκδοσης OpenKNX ή XML προϊόντος KNX) από αυτόν τον υπολογιστή για να τα εισαγάγετε όλα."
 
 msgid "Choose Files…"
 msgstr "Επιλογή Αρχείων…"
@@ -625,8 +625,8 @@ msgstr "Η εισαγωγή από φάκελο απέτυχε: {error}"
 msgid "Choose KNX Product Files"
 msgstr "Επιλέξτε Αρχεία Προϊόντων KNX"
 
-msgid "KNX Product Files (*.knxprod, *.zip, *.xml)"
-msgstr "Αρχεία Προϊόντων KNX (*.knxprod, *.zip, *.xml)"
+msgid "KNX Product Files (*.knxprod, *.vd1-*.vd5, *.zip, *.xml)"
+msgstr "Αρχεία Προϊόντων KNX (*.knxprod, *.vd1-*.vd5, *.zip, *.xml)"
 
 msgid "Importing files…"
 msgstr "Εισαγωγή αρχείων…"
@@ -847,9 +847,6 @@ msgstr "Άνοιγμα Αρχείου Προϊόντων KNX"
 msgid "KNX Product (*.knxprod, *.vd1-*.vd5)"
 msgstr "Προϊόν KNX (*.knxprod, *.vd1-*.vd5)"
 
-msgid "Legacy ETS product databases (.vd1-.vd5) are not imported directly.\n\nConvert the file to .knxprod first with the conversion tools that ship with ETS5/ETS6 - open the product file in ETS, or use its command-line converter - then import the resulting .knxprod here."
-msgstr "Οι παλαιότερες βάσεις δεδομένων προϊόντων ETS (.vd1-.vd5) δεν εισάγονται απευθείας.\n\nΜετατρέψτε πρώτα το αρχείο σε .knxprod με τα εργαλεία μετατροπής που συνοδεύουν το ETS5/ETS6 - ανοίξτε το αρχείο προϊόντος στο ETS ή χρησιμοποιήστε τον μετατροπέα γραμμής εντολών του - και, στη συνέχεια, εισαγάγετε εδώ το .knxprod που προκύπτει."
-
 msgid "ETS Project (*.knxproj)"
 msgstr "Έργο ETS (*.knxproj)"
 
@@ -903,6 +900,15 @@ msgstr "{done}/{total} συσκευές"
 
 msgid "Loading product catalog…"
 msgstr "Φόρτωση καταλόγου προϊόντων…"
+
+msgid "Converting product database…"
+msgstr "Μετατροπή βάσης δεδομένων προϊόντων…"
+
+msgid "{done}/{total} application programs"
+msgstr "{done}/{total} προγράμματα εφαρμογής"
+
+msgid "Import cancelled, nothing was imported"
+msgstr "Η εισαγωγή ακυρώθηκε, δεν εισήχθη τίποτα"
 
 msgid "Imported {count} product version(s) from {name}:"
 msgstr "Εισήχθησαν {count} έκδοση(-εις) προϊόντος από το {name}:"

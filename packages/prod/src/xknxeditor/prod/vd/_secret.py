@@ -1,0 +1,1 @@
+PASSWORDS: tuple[bytes, ...] = ()

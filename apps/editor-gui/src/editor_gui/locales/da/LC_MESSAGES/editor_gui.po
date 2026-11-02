@@ -118,8 +118,8 @@ msgstr "KNX Master v{version} ({date})"
 msgid "File"
 msgstr "Fil"
 
-msgid "Open Project (.knxproj/.xknx)"
-msgstr "Åbn projekt (.knxproj/.xknx)"
+msgid "Open Project (.knxproj/.xknx)…"
+msgstr "Åbn projekt (.knxproj/.xknx)…"
 
 msgid "Save As…"
 msgstr "Gem som…"
@@ -568,8 +568,8 @@ msgstr "Eksporter uden certifikat"
 msgid "Export ETS Project"
 msgstr "Eksporter ETS-projekt"
 
-msgid "Load .knxprod…"
-msgstr "Indlæs .knxprod…"
+msgid "Load KNX Product (.knxprod/.vd1-.vd5)…"
+msgstr "Indlæs KNX-produkt (.knxprod/.vd1-.vd5)…"
 
 msgid "Load OpenKNX from URL or Folder…"
 msgstr "Indlæs OpenKNX fra URL eller mappe…"
@@ -586,14 +586,14 @@ msgstr "Indlæs OpenKNX fra URL eller filer"
 msgid "Paste an OpenKNX GitHub release URL (the release page works — the .zip asset is found automatically). A direct .knxprod or KNX product XML link also works.\n\nExamples:\n  https://github.com/OpenKNX/OAM-RaumController/releases/tag/v5.4.3\n  https://github.com/OpenKNX/OAM-RaumController/releases/latest"
 msgstr "Indsæt en OpenKNX GitHub-release-URL (release-siden virker — .zip-filen findes automatisk). Et direkte link til en .knxprod eller en KNX-produkt-XML virker også.\n\nEksempler:\n  https://github.com/OpenKNX/OAM-RaumController/releases/tag/v5.4.3\n  https://github.com/OpenKNX/OAM-RaumController/releases/latest"
 
-msgid "Or choose a local folder with product files (.knxprod, OpenKNX release .zip, or KNX product XML) to import all of them."
-msgstr "Eller vælg en lokal mappe med produktfiler (.knxprod, OpenKNX-release-.zip eller KNX-produkt-XML) for at importere dem alle."
+msgid "Or choose a local folder with product files (.knxprod, .vd1-.vd5, OpenKNX release .zip, or KNX product XML) to import all of them."
+msgstr "Eller vælg en lokal mappe med produktfiler (.knxprod, .vd1-.vd5, OpenKNX-release-.zip eller KNX-produkt-XML) for at importere dem alle."
 
 msgid "Choose Folder…"
 msgstr "Vælg mappe…"
 
-msgid "Or upload product files (.knxprod, OpenKNX release .zip, or KNX product XML) from this computer to import all of them."
-msgstr "Eller upload produktfiler (.knxprod, OpenKNX-release-.zip eller KNX-produkt-XML) fra denne computer for at importere dem alle."
+msgid "Or upload product files (.knxprod, .vd1-.vd5, OpenKNX release .zip, or KNX product XML) from this computer to import all of them."
+msgstr "Eller upload produktfiler (.knxprod, .vd1-.vd5, OpenKNX-release-.zip eller KNX-produkt-XML) fra denne computer for at importere dem alle."
 
 msgid "Choose Files…"
 msgstr "Vælg filer…"
@@ -625,8 +625,8 @@ msgstr "Import fra mappe mislykkedes: {error}"
 msgid "Choose KNX Product Files"
 msgstr "Vælg KNX-produktfiler"
 
-msgid "KNX Product Files (*.knxprod, *.zip, *.xml)"
-msgstr "KNX-produktfiler (*.knxprod, *.zip, *.xml)"
+msgid "KNX Product Files (*.knxprod, *.vd1-*.vd5, *.zip, *.xml)"
+msgstr "KNX-produktfiler (*.knxprod, *.vd1-*.vd5, *.zip, *.xml)"
 
 msgid "Importing files…"
 msgstr "Importerer filer…"
@@ -847,9 +847,6 @@ msgstr "Åbn KNX-produktarkiv"
 msgid "KNX Product (*.knxprod, *.vd1-*.vd5)"
 msgstr "KNX-produkt (*.knxprod, *.vd1-*.vd5)"
 
-msgid "Legacy ETS product databases (.vd1-.vd5) are not imported directly.\n\nConvert the file to .knxprod first with the conversion tools that ship with ETS5/ETS6 - open the product file in ETS, or use its command-line converter - then import the resulting .knxprod here."
-msgstr "Ældre ETS-produktdatabaser (.vd1-.vd5) importeres ikke direkte.\n\nKonverter først filen til .knxprod med de konverteringsværktøjer, der følger med ETS5/ETS6 - åbn produktfilen i ETS, eller brug dens kommandolinjekonverter - og importer derefter den resulterende .knxprod her."
-
 msgid "ETS Project (*.knxproj)"
 msgstr "ETS-projekt (*.knxproj)"
 
@@ -903,6 +900,15 @@ msgstr "{done}/{total} enheder"
 
 msgid "Loading product catalog…"
 msgstr "Indlæser produktkatalog…"
+
+msgid "Converting product database…"
+msgstr "Konverterer produktdatabase…"
+
+msgid "{done}/{total} application programs"
+msgstr "{done}/{total} applikationsprogrammer"
+
+msgid "Import cancelled, nothing was imported"
+msgstr "Import annulleret, intet blev importeret"
 
 msgid "Imported {count} product version(s) from {name}:"
 msgstr "{count} produktversion(er) importeret fra {name}:"

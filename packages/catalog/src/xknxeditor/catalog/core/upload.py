@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import logging
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session
@@ -20,6 +21,10 @@ from xknxeditor.catalog.models import (
     Manufacturer,
 )
 from xknxeditor.prod import DeviceProgram, Registry, load
+from xknxeditor.prod.errors import check_cancelled
+
+if TYPE_CHECKING:
+    import threading
 
 logger = logging.getLogger(__name__)
 
@@ -168,8 +173,12 @@ def upload_knxprod(
     *,
     require_catalog: bool = True,
     cache_dir: Path | None = None,
+    cancel: threading.Event | None = None,
 ) -> Path:
     """Ingest .knxprod bytes into the database behind ``engine``. Returns the path where the file was saved.
+
+    Setting ``cancel`` stops the ingest with :class:`ImportCancelled` up to the moment it writes;
+    nothing is stored then.
 
     ``require_catalog=False`` ingests product data embedded in a ``.knxproj`` (which omits
     ``Catalog.xml``): hardware and applications are stored so devices resolve, only the catalog
@@ -189,7 +198,10 @@ def upload_knxprod(
         )
         if not in_db:
             registry = load(
-                content, require_catalog=require_catalog, cache_dir=cache_dir
+                content,
+                require_catalog=require_catalog,
+                cache_dir=cache_dir,
+                cancel=cancel,
             )
             logger.debug(
                 "catalog import: %d bytes, %d manufacturers, %d hardware",
@@ -203,6 +215,8 @@ def upload_knxprod(
                 session, registry, str(path), project_mode=not require_catalog
             )
             _ingest_catalog(session, registry)
+            # The last moment to stop: the session is not committed yet, so nothing is stored.
+            check_cancelled(cancel)
             # Write the file BEFORE committing so a committed row never references a missing
             # archive (resolution reads it by path). A stray file from a failed commit is
             # harmless: dedup is DB-driven, so the next import re-ingests it.

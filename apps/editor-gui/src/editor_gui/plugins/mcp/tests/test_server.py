@@ -110,7 +110,7 @@ async def test_full_edit_flow(tmp_path: Path) -> None:
         ] is True
 
         # Import a product into the catalog and find it (list tools return {items, count}).
-        added = await _data(client, "catalog_import_knxprod", path=str(_FIXTURE))
+        added = await _data(client, "catalog_import_product", path=str(_FIXTURE))
         assert added["added_refs"]
         products = await _data(client, "catalog_list_products")
         assert products["count"] >= 1
@@ -256,7 +256,7 @@ async def test_parameter_tree_outline_and_subtree(tmp_path: Path) -> None:
     mcp, _project = _build(tmp_path)
     async with Client(mcp) as client:
         await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
-        await _data(client, "catalog_import_knxprod", path=str(_FIXTURE))
+        await _data(client, "catalog_import_product", path=str(_FIXTURE))
         product_ref = (await _data(client, "catalog_list_products"))["items"][0][
             "product_ref_id"
         ]
@@ -330,7 +330,7 @@ async def test_set_parameter_result_and_no_silent_retry(tmp_path: Path) -> None:
     mcp, _project = _build(tmp_path)
     async with Client(mcp) as client:
         await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
-        await _data(client, "catalog_import_knxprod", path=str(_FIXTURE))
+        await _data(client, "catalog_import_product", path=str(_FIXTURE))
         product_ref = (await _data(client, "catalog_list_products"))["items"][0][
             "product_ref_id"
         ]
@@ -407,7 +407,7 @@ async def test_find_potential_com_objects(tmp_path: Path) -> None:
     mcp, _project = _build(tmp_path)
     async with Client(mcp) as client:
         await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
-        await _data(client, "catalog_import_knxprod", path=str(_FIXTURE))
+        await _data(client, "catalog_import_product", path=str(_FIXTURE))
         product_ref = (await _data(client, "catalog_list_products"))["items"][0][
             "product_ref_id"
         ]
@@ -437,7 +437,7 @@ async def test_resolve_parameter_by_label(tmp_path: Path) -> None:
     mcp, _project = _build(tmp_path)
     async with Client(mcp) as client:
         await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
-        await _data(client, "catalog_import_knxprod", path=str(_FIXTURE))
+        await _data(client, "catalog_import_product", path=str(_FIXTURE))
         product_ref = (await _data(client, "catalog_list_products"))["items"][0][
             "product_ref_id"
         ]
@@ -514,7 +514,7 @@ async def test_set_parameter_requires_editable_target(tmp_path: Path) -> None:
     mcp, _project = _build(tmp_path)
     async with Client(mcp) as client:
         await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
-        await _data(client, "catalog_import_knxprod", path=str(_FIXTURE))
+        await _data(client, "catalog_import_product", path=str(_FIXTURE))
         product_ref = (await _data(client, "catalog_list_products"))["items"][0][
             "product_ref_id"
         ]
@@ -599,7 +599,7 @@ async def test_tools_accept_device_address_and_group_address_strings(
     mcp, _project = _build(tmp_path)
     async with Client(mcp) as client:
         await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
-        await _data(client, "catalog_import_knxprod", path=str(_FIXTURE))
+        await _data(client, "catalog_import_product", path=str(_FIXTURE))
         product_ref = (await _data(client, "catalog_list_products"))["items"][0][
             "product_ref_id"
         ]
@@ -710,7 +710,7 @@ async def test_tree_token_detects_stale_scope(tmp_path: Path) -> None:
     mcp, _project = _build(tmp_path)
     async with Client(mcp) as client:
         await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
-        await _data(client, "catalog_import_knxprod", path=str(_FIXTURE))
+        await _data(client, "catalog_import_product", path=str(_FIXTURE))
         product_ref = (await _data(client, "catalog_list_products"))["items"][0][
             "product_ref_id"
         ]
@@ -795,7 +795,7 @@ async def test_tree_token_survives_ordinary_edit(tmp_path: Path) -> None:
     mcp, _project = _build(tmp_path)
     async with Client(mcp) as client:
         await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
-        await _data(client, "catalog_import_knxprod", path=str(_FIXTURE))
+        await _data(client, "catalog_import_product", path=str(_FIXTURE))
         product_ref = (await _data(client, "catalog_list_products"))["items"][0][
             "product_ref_id"
         ]
@@ -840,7 +840,7 @@ async def test_tree_token_is_per_device(tmp_path: Path) -> None:
     mcp, _project = _build(tmp_path)
     async with Client(mcp) as client:
         await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
-        await _data(client, "catalog_import_knxprod", path=str(_FIXTURE))
+        await _data(client, "catalog_import_product", path=str(_FIXTURE))
         product_ref = (await _data(client, "catalog_list_products"))["items"][0][
             "product_ref_id"
         ]
@@ -872,7 +872,7 @@ async def test_batch_activates_child_in_order(tmp_path: Path) -> None:
     mcp, _project = _build(tmp_path)
     async with Client(mcp) as client:
         await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
-        await _data(client, "catalog_import_knxprod", path=str(_FIXTURE))
+        await _data(client, "catalog_import_product", path=str(_FIXTURE))
         product_ref = (await _data(client, "catalog_list_products"))["items"][0][
             "product_ref_id"
         ]
@@ -943,7 +943,7 @@ async def test_batch_resolves_child_by_label_at_apply_time(tmp_path: Path) -> No
     mcp, _project = _build(tmp_path)
     async with Client(mcp) as client:
         await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
-        await _data(client, "catalog_import_knxprod", path=str(_FIXTURE))
+        await _data(client, "catalog_import_product", path=str(_FIXTURE))
         product_ref = (await _data(client, "catalog_list_products"))["items"][0][
             "product_ref_id"
         ]
@@ -989,7 +989,7 @@ async def test_link_feedback_dedup_dpt_and_sending(tmp_path: Path) -> None:
     mcp, _project = _build(tmp_path)
     async with Client(mcp) as client:
         await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
-        await _data(client, "catalog_import_knxprod", path=str(_FIXTURE))
+        await _data(client, "catalog_import_product", path=str(_FIXTURE))
         product_ref = (await _data(client, "catalog_list_products"))["items"][0][
             "product_ref_id"
         ]
@@ -1071,7 +1071,7 @@ async def test_delete_product(tmp_path: Path) -> None:
     mcp, project = _build(tmp_path)
     async with Client(mcp) as client:
         await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
-        await _data(client, "catalog_import_knxprod", path=str(_FIXTURE))
+        await _data(client, "catalog_import_product", path=str(_FIXTURE))
         ref = (await _data(client, "catalog_list_products"))["items"][0][
             "product_ref_id"
         ]
@@ -1097,7 +1097,7 @@ async def test_additional_address_tools(tmp_path: Path) -> None:
     mcp, _project = _build(tmp_path)
     async with Client(mcp) as client:
         await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
-        await _data(client, "catalog_import_knxprod", path=str(_FIXTURE))
+        await _data(client, "catalog_import_product", path=str(_FIXTURE))
         ref = (await _data(client, "catalog_list_products"))["items"][0][
             "product_ref_id"
         ]
@@ -1176,7 +1176,7 @@ async def test_import_knxprod_bytes(tmp_path: Path) -> None:
         payload = _b64.b64encode(_FIXTURE.read_bytes()).decode()
         added = await _data(
             client,
-            "catalog_import_knxprod_bytes",
+            "catalog_import_product_bytes",
             filename="dev.knxprod",
             data_base64=payload,
         )
@@ -1184,9 +1184,9 @@ async def test_import_knxprod_bytes(tmp_path: Path) -> None:
         assert (await _data(client, "catalog_list_products"))["count"] >= 1
 
         # a non-ZIP payload is rejected before any import is attempted
-        with pytest.raises(Exception, match=r"not a \.knxprod archive"):
+        with pytest.raises(Exception, match=r"not a \.knxprod or \.vd1-\.vd5 archive"):
             await client.call_tool(
-                "catalog_import_knxprod_bytes",
+                "catalog_import_product_bytes",
                 {
                     "filename": "x.knxprod",
                     "data_base64": _b64.b64encode(b"not a zip").decode(),
@@ -1244,7 +1244,7 @@ async def test_catalog_docs_includes_resolved_document_url(
     )
     mcp, _project = _build(tmp_path)
     async with Client(mcp) as client:
-        await _data(client, "catalog_import_knxprod", path=str(_FIXTURE))
+        await _data(client, "catalog_import_product", path=str(_FIXTURE))
         ref = (await _data(client, "catalog_list_products"))["items"][0][
             "product_ref_id"
         ]
@@ -1286,7 +1286,7 @@ async def test_resolved_document_host_becomes_fetchable(
     assert not catalog_tools._host_allowed("https://random-reseller.example/manual.pdf")
     mcp, _project = _build(tmp_path)
     async with Client(mcp) as client:
-        await _data(client, "catalog_import_knxprod", path=str(_FIXTURE))
+        await _data(client, "catalog_import_product", path=str(_FIXTURE))
         ref = (await _data(client, "catalog_list_products"))["items"][0][
             "product_ref_id"
         ]
@@ -1610,7 +1610,7 @@ async def test_programming_tools_record_the_download(
     )
     async with Client(build_server(ctx)) as client:
         await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
-        await _data(client, "catalog_import_knxprod", path=str(_FIXTURE))
+        await _data(client, "catalog_import_product", path=str(_FIXTURE))
         product = (await _data(client, "catalog_list_products"))["items"][0]
         node_id = (
             await _data(
@@ -1691,7 +1691,7 @@ async def test_programming_runs_in_the_operations_queue(
     ctx.api.cancel_operation = canceled.append
     async with Client(build_server(ctx)) as client:
         await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
-        await _data(client, "catalog_import_knxprod", path=str(_FIXTURE))
+        await _data(client, "catalog_import_product", path=str(_FIXTURE))
         product = (await _data(client, "catalog_list_products"))["items"][0]
         node_id = (
             await _data(
@@ -1758,7 +1758,7 @@ async def test_parameters_of_a_plugin_dialog_device_cannot_be_changed(
     mcp, _project = _build(tmp_path)
     async with Client(mcp) as client:
         await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
-        await _data(client, "catalog_import_knxprod", path=str(_FIXTURE))
+        await _data(client, "catalog_import_product", path=str(_FIXTURE))
         products = await _data(client, "catalog_list_products")
         product_ref = products["items"][0]["product_ref_id"]
         node_id = (
@@ -1906,7 +1906,7 @@ async def test_rename_device_sets_name_and_description(tmp_path: Path) -> None:
     mcp, _project = _build(tmp_path)
     async with Client(mcp) as client:
         await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
-        await _data(client, "catalog_import_knxprod", path=str(_FIXTURE))
+        await _data(client, "catalog_import_product", path=str(_FIXTURE))
         product = (await _data(client, "catalog_list_products"))["items"][0]
         node_id = (
             await _data(

@@ -118,8 +118,8 @@ msgstr "KNX Master v{version} ({date})"
 msgid "File"
 msgstr "File"
 
-msgid "Open Project (.knxproj/.xknx)"
-msgstr "Apri progetto (.knxproj/.xknx)"
+msgid "Open Project (.knxproj/.xknx)…"
+msgstr "Apri progetto (.knxproj/.xknx)…"
 
 msgid "Save As…"
 msgstr "Salva con nome…"
@@ -568,8 +568,8 @@ msgstr "Esporta senza certificato"
 msgid "Export ETS Project"
 msgstr "Esporta progetto ETS"
 
-msgid "Load .knxprod…"
-msgstr "Carica .knxprod…"
+msgid "Load KNX Product (.knxprod/.vd1-.vd5)…"
+msgstr "Carica prodotto KNX (.knxprod/.vd1-.vd5)…"
 
 msgid "Load OpenKNX from URL or Folder…"
 msgstr "Carica OpenKNX da URL o cartella…"
@@ -586,14 +586,14 @@ msgstr "Carica OpenKNX da URL o file"
 msgid "Paste an OpenKNX GitHub release URL (the release page works — the .zip asset is found automatically). A direct .knxprod or KNX product XML link also works.\n\nExamples:\n  https://github.com/OpenKNX/OAM-RaumController/releases/tag/v5.4.3\n  https://github.com/OpenKNX/OAM-RaumController/releases/latest"
 msgstr "Incollare l'URL di una release GitHub di OpenKNX (funziona la pagina della release — l'asset .zip viene trovato automaticamente). Funziona anche un link diretto a un .knxprod o a un XML di prodotto KNX.\n\nEsempi:\n  https://github.com/OpenKNX/OAM-RaumController/releases/tag/v5.4.3\n  https://github.com/OpenKNX/OAM-RaumController/releases/latest"
 
-msgid "Or choose a local folder with product files (.knxprod, OpenKNX release .zip, or KNX product XML) to import all of them."
-msgstr "Oppure scegliere una cartella locale con file di prodotto (.knxprod, .zip di release OpenKNX o XML di prodotto KNX) per importarli tutti."
+msgid "Or choose a local folder with product files (.knxprod, .vd1-.vd5, OpenKNX release .zip, or KNX product XML) to import all of them."
+msgstr "Oppure scegliere una cartella locale con file di prodotto (.knxprod, .vd1-.vd5, .zip di release OpenKNX o XML di prodotto KNX) per importarli tutti."
 
 msgid "Choose Folder…"
 msgstr "Scegli cartella…"
 
-msgid "Or upload product files (.knxprod, OpenKNX release .zip, or KNX product XML) from this computer to import all of them."
-msgstr "Oppure caricare file di prodotto (.knxprod, .zip di release OpenKNX o XML di prodotto KNX) da questo computer per importarli tutti."
+msgid "Or upload product files (.knxprod, .vd1-.vd5, OpenKNX release .zip, or KNX product XML) from this computer to import all of them."
+msgstr "Oppure caricare file di prodotto (.knxprod, .vd1-.vd5, .zip di release OpenKNX o XML di prodotto KNX) da questo computer per importarli tutti."
 
 msgid "Choose Files…"
 msgstr "Scegli file…"
@@ -625,8 +625,8 @@ msgstr "Importazione dalla cartella non riuscita: {error}"
 msgid "Choose KNX Product Files"
 msgstr "Scegli file di prodotto KNX"
 
-msgid "KNX Product Files (*.knxprod, *.zip, *.xml)"
-msgstr "File di prodotto KNX (*.knxprod, *.zip, *.xml)"
+msgid "KNX Product Files (*.knxprod, *.vd1-*.vd5, *.zip, *.xml)"
+msgstr "File di prodotto KNX (*.knxprod, *.vd1-*.vd5, *.zip, *.xml)"
 
 msgid "Importing files…"
 msgstr "Importazione dei file…"
@@ -847,9 +847,6 @@ msgstr "Apri archivio prodotti KNX"
 msgid "KNX Product (*.knxprod, *.vd1-*.vd5)"
 msgstr "Prodotto KNX (*.knxprod, *.vd1-*.vd5)"
 
-msgid "Legacy ETS product databases (.vd1-.vd5) are not imported directly.\n\nConvert the file to .knxprod first with the conversion tools that ship with ETS5/ETS6 - open the product file in ETS, or use its command-line converter - then import the resulting .knxprod here."
-msgstr "I database di prodotti ETS meno recenti (.vd1-.vd5) non vengono importati direttamente.\n\nConvertire prima il file in .knxprod con gli strumenti di conversione forniti con ETS5/ETS6 - aprire il file di prodotto in ETS o usarne il convertitore da riga di comando - quindi importare qui il .knxprod risultante."
-
 msgid "ETS Project (*.knxproj)"
 msgstr "Progetto ETS (*.knxproj)"
 
@@ -903,6 +900,15 @@ msgstr "{done}/{total} dispositivi"
 
 msgid "Loading product catalog…"
 msgstr "Caricamento catalogo prodotti…"
+
+msgid "Converting product database…"
+msgstr "Conversione database prodotti…"
+
+msgid "{done}/{total} application programs"
+msgstr "{done}/{total} programmi applicativi"
+
+msgid "Import cancelled, nothing was imported"
+msgstr "Importazione annullata, non è stato importato nulla"
 
 msgid "Imported {count} product version(s) from {name}:"
 msgstr "Versioni di prodotto importate da {name}: {count}"

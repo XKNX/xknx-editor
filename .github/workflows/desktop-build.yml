@@ -56,6 +56,12 @@ jobs:
         with:
           enable-cache: true
       - run: uv sync --all-packages
+      - name: Bundle product-database secret
+        if: ${{ secrets.VD_SECRET != '' }}
+        shell: bash
+        env:
+          VD_SECRET: ${{ secrets.VD_SECRET }}
+        run: printf '%s\n' "$VD_SECRET" > packages/prod/src/xknxeditor/prod/vd/_secret.py
       # Prebuild the net48 ETS export helpers so the Windows release runs the export without a
       # dotnet SDK on the user's PC (the spec bundles core/_prebuilt/ via collect_data_files).
       # Non-fatal: without it the app just reports "needs .NET SDK". No-op on non-Windows (the
@@ -237,6 +243,13 @@ jobs:
           enable-cache: true
       - run: uv sync --all-packages
 
+      - name: Bundle product-database secret
+        if: ${{ secrets.VD_SECRET != '' }}
+        shell: bash
+        env:
+          VD_SECRET: ${{ secrets.VD_SECRET }}
+        run: printf '%s\n' "$VD_SECRET" > packages/prod/src/xknxeditor/prod/vd/_secret.py
+
       - name: Prebuild ETS export helpers
         if: runner.os == 'Windows'
         continue-on-error: true
@@ -359,6 +372,13 @@ jobs:
         with:
           enable-cache: true
       - run: uv sync --all-packages
+
+      - name: Bundle product-database secret
+        if: ${{ secrets.VD_SECRET != '' }}
+        shell: bash
+        env:
+          VD_SECRET: ${{ secrets.VD_SECRET }}
+        run: printf '%s\n' "$VD_SECRET" > packages/prod/src/xknxeditor/prod/vd/_secret.py
 
       - name: Prebuild ETS export helpers
         if: runner.os == 'Windows'

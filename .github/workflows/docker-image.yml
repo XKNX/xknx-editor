@@ -32,6 +32,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Bundle product-database secret
+        if: ${{ secrets.VD_SECRET != '' }}
+        env:
+          VD_SECRET: ${{ secrets.VD_SECRET }}
+        run: printf '%s\n' "$VD_SECRET" > packages/prod/src/xknxeditor/prod/vd/_secret.py
+
       - name: Resolve version, owner and push decision
         id: meta
         run: |

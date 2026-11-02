@@ -34,7 +34,7 @@ def _find_space(spaces: list[dict[str, Any]], space_id: int) -> dict[str, Any]:
 
 
 async def _device(client: Client) -> int:
-    await _data(client, "catalog_import_knxprod", path=str(_FIXTURE))
+    await _data(client, "catalog_import_product", path=str(_FIXTURE))
     product = (await _data(client, "catalog_list_products"))["items"][0]
     return (
         await _data(
@@ -407,7 +407,7 @@ async def test_project_code_page(tmp_path: Path) -> None:
 async def test_catalog_product_details_and_export(tmp_path: Path) -> None:
     mcp, _project = _build(tmp_path)
     async with Client(mcp) as client:
-        await _data(client, "catalog_import_knxprod", path=str(_FIXTURE))
+        await _data(client, "catalog_import_product", path=str(_FIXTURE))
         product = (await _data(client, "catalog_list_products"))["items"][0]
         program = product["hardware2program_ref_id"]
 
@@ -465,7 +465,7 @@ async def test_a_product_without_application_is_added(tmp_path: Path) -> None:
     project.add_device = spy  # type: ignore[method-assign]
     async with Client(build_server(ctx)) as client:
         await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
-        await _data(client, "catalog_import_knxprod", path=str(_FIXTURE))
+        await _data(client, "catalog_import_product", path=str(_FIXTURE))
         product = (await _data(client, "catalog_list_products"))["items"][0]
         added = await _data(
             client,
