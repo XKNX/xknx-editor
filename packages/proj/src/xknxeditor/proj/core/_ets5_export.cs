@@ -786,13 +786,17 @@ namespace Ets5SignExport
       _autofac.RegisterInstance(builder, dispatcherService,
         new[] { Reflect.Type(A("Knx.Ets.ObjectModel"), "Knx.Ets.ObjectModel.IDispatcher") });
 
-      RegisterUiDispatcher(builder);
+      RegisterUiDispatcher(builder, dispatcherService);
 
-      // UNVERIFIED: this module set mirrors the desktop host minus its window/tablet modules; the
-      // exact minimum ETS 5.7 needs for the export/cert path is a Windows-iteration item.
+      // ObjectModel + ViewModel modules are the UI-free graph the export/cert path needs; the
+      // UserControls module is registered only when this build exposes it.
       _autofac.RegisterModule(builder, Reflect.New(Reflect.Ctor(Reflect.Type(A("Knx.Ets.ObjectModel"), "Knx.Ets.ObjectModel.IocModule"))));
       _autofac.RegisterModule(builder, Reflect.New(Reflect.Ctor(Reflect.Type(A("Knx.Ets.ViewModel"), "Knx.Ets.ViewModel.IocModule"))));
-      _autofac.RegisterModule(builder, Reflect.New(Reflect.Ctor(Reflect.Type(A("Knx.Ets.UserControls"), "Knx.Ets.UserControls.IocModule"))));
+      var userControlsModule = Reflect.TypeOrNull(A("Knx.Ets.UserControls"), "Knx.Ets.UserControls.IocModule");
+      if (userControlsModule != null)
+      {
+        _autofac.RegisterModule(builder, Reflect.New(Reflect.Ctor(userControlsModule)));
+      }
 
       var rootType = Reflect.Type(A("Knx.Ets.ObjectModel"), "Knx.Ets.ObjectModel.Root");
       _autofac.RegisterSingleInstance(builder, rootType, new[] { rootType }, CreateIsolatedRoot);
@@ -806,15 +810,20 @@ namespace Ets5SignExport
       }
     }
 
-    private void RegisterUiDispatcher(object builder)
+    private void RegisterUiDispatcher(object builder, object dispatcherService)
     {
-      // UNVERIFIED: the concrete IUiDispatcher lives under an obfuscated name in ets5n; register
-      // the first assignable, parameterless implementation so ViewModel services can resolve it.
+      // The UI dispatcher interface lives in ObjectModel (not ViewModel.Interfaces). Prefer the
+      // WpfDispatcherService already built; otherwise an assignable parameterless ets5n type.
       try
       {
-        var contract = A("Knx.Ets.ViewModel").GetType("Knx.Ets.ViewModel.Interfaces.IUiDispatcher", false);
+        var contract = Reflect.TypeOrNull(A("Knx.Ets.ObjectModel"), "Knx.Ets.ObjectModel.IUiDispatcher");
         if (contract == null)
         {
+          return;
+        }
+        if (contract.IsAssignableFrom(dispatcherService.GetType()))
+        {
+          _autofac.RegisterInstance(builder, dispatcherService, new[] { contract });
           return;
         }
         var impl = Reflect.SafeTypes(A("ets5n")).FirstOrDefault(t => !t.IsAbstract && !t.IsInterface
@@ -830,13 +839,17 @@ namespace Ets5SignExport
     private void RegisterLicenceManager(object builder)
     {
       var manager = Reflect.Type(A("Knx.Ets.ViewModel"), "Knx.Ets.ViewModel.Interfaces.ILicenseAndAppManager");
-      var information = Reflect.Type(A("Knx.Ets.ViewModel"), "Knx.Ets.ViewModel.Interfaces.ILicenseAndAppInformation");
+      // ILicenseAndAppInformation lives in ObjectModel (the Factory resolves that interface) and the
+      // manager inherits it; look it up there and register the instance against it too. Optional so
+      // a build without it still works.
+      var information = Reflect.TypeOrNull(A("Knx.Ets.ObjectModel"), "Knx.Ets.ObjectModel.ILicenseAndAppInformation");
 
-      // UNVERIFIED: the desktop licence manager is an obfuscated ets5n type; pick the richest
-      // non-tablet implementation that exposes both licence interfaces and a parameterless ctor.
+      // The desktop licence manager is an obfuscated ets5n type; pick the richest implementation
+      // that exposes the licence interface(s) and has a parameterless ctor.
       var candidates = Reflect.SafeTypes(A("ets5n"))
         .Where(t => !t.IsAbstract && !t.IsInterface
-          && manager.IsAssignableFrom(t) && information.IsAssignableFrom(t)
+          && manager.IsAssignableFrom(t)
+          && (information == null || information.IsAssignableFrom(t))
           && t.GetConstructor(Type.EmptyTypes) != null)
         .OrderByDescending(t => t.GetMembers(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).Length)
         .ToList();
@@ -845,7 +858,8 @@ namespace Ets5SignExport
         throw new FailureException("no ETS licence manager implementing ILicenseAndAppManager was found");
       }
       var instance = Reflect.New(Reflect.Ctor(candidates[0]));
-      _autofac.RegisterInstance(builder, instance, new[] { manager, information });
+      var contracts = information == null ? new[] { manager } : new[] { manager, information };
+      _autofac.RegisterInstance(builder, instance, contracts);
     }
 
     private object CreateIsolatedRoot(object context)
@@ -1515,6 +1529,11 @@ namespace Ets5SignExport
     public static Type Type(Assembly assembly, string fullName)
     {
       return assembly.GetType(fullName, false) ?? throw new FailureException("ETS type " + fullName + " was not found in " + assembly.GetName().Name);
+    }
+
+    public static Type TypeOrNull(Assembly assembly, string fullName)
+    {
+      return assembly.GetType(fullName, false);
     }
 
     public static Type[] SafeTypes(Assembly assembly)
