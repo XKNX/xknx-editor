@@ -2,11 +2,14 @@
 
 from __future__ import annotations
 
+import contextlib
+from collections.abc import Iterator
 from pathlib import Path
 from typing import Any
 
 import pytest
 
+from editor_gui.device import ComObjectFlags
 from editor_gui.plugins.recover.service import RecoverEntry, RecoverService
 from xknxeditor.prod import load
 from xknxeditor.recover import RecoveredDevice, RecoveredParameters
@@ -27,6 +30,7 @@ class _FakeComObject:
     def __init__(self, ref_id: str, db_id: int) -> None:
         self.id = ref_id
         self.db_id = db_id
+        self.flags = ComObjectFlags()
 
 
 class _FakeDevice:
@@ -52,7 +56,9 @@ class _FakeProject:
         self.descriptions: list[tuple[int, str]] = []
         self.segments_for: list[str] = []
         self.pretend_exists = False
-        self.recalculated: tuple[int, list[str]] | None = None
+        self.recalculated: tuple[int, list[str], bool] | None = None
+        # The edits of each undo step: the number of edits made before it ended.
+        self.undo_steps: list[int] = []
 
     @property
     def devices(self) -> list[_FakeDevice]:
@@ -61,9 +67,16 @@ class _FakeProject:
     def find_device_by_address(self, address: str) -> _FakeDevice | None:
         return self._device if self.pretend_exists else None
 
-    def recalculate_params(self, node_id: int, ref_ids: list[str]) -> dict[str, Any]:
-        self.recalculated = (node_id, ref_ids)
+    def recalculate_params(
+        self, node_id: int, ref_ids: list[str], *, stored: bool = False
+    ) -> dict[str, Any]:
+        self.recalculated = (node_id, ref_ids, stored)
         return {}
+
+    @contextlib.contextmanager
+    def one_undo_step(self, label: str | None = None) -> Iterator[None]:
+        yield
+        self.undo_steps.append(len(self.links) + len(self.flags))
 
     def find_or_create_segment_for_address(self, address: str) -> int:
         self.segments_for.append(address)
@@ -169,7 +182,8 @@ def test_apply_to_project_writes_links_flags_and_params(application) -> None:  #
     added = service.apply_to_project()
 
     assert added == 1
-    assert project.recalculated == (7, [ref_id])
+    # The values were read from the device: calculations give them back.
+    assert project.recalculated == (7, [ref_id], True)
     # Device placed on the segment for its address, with the device octet set.
     assert project.segments_for == ["1.1.5"]
     assert project.addresses == [(1, 5)]
@@ -182,8 +196,13 @@ def test_apply_to_project_writes_links_flags_and_params(application) -> None:  #
     assert project.gas == [0x0B00]  # created once
     assert len(project.links) == 1
     assert project.links[0][2] is True  # sending
-    assert (ref_id, "communication", True) in project.flags
-    assert (ref_id, "write", True) in project.flags
+    # Only the flags the group object does not have already are set.
+    assert sorted(project.flags) == [
+        (ref_id, "transmit", True),
+        (ref_id, "write", True),
+    ]
+    # The device with its flags and links is one undo step.
+    assert project.undo_steps == [3]
 
 
 def test_apply_keeps_read_on_init_a_table_does_not_hold() -> None:

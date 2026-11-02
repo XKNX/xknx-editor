@@ -600,12 +600,15 @@ class Device:
             dyn.apply_parameter_values(values)
             self._touched()
 
-    def recalculate_params(self, ref_ids: Iterable[str]) -> ChangeSet:
-        """Run the calculations depending on ``ref_ids``."""
+    def recalculate_params(
+        self, ref_ids: Iterable[str], *, stored: bool = False
+    ) -> ChangeSet:
+        """Run the calculations depending on ``ref_ids`` (``stored``: values read from the
+        device, see ``DynamicUI.recalculate``)."""
         dyn = self._ensure_dynamic_ui()
         if dyn is None:
             return {}
-        changes = dyn.recalculate(ref_ids)
+        changes = dyn.recalculate(ref_ids, stored=stored)
         self._touched()
         return changes
 

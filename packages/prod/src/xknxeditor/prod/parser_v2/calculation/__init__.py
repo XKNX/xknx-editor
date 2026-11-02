@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import logging
 import re
-from collections.abc import Callable, Iterable
+from collections.abc import Callable, Collection, Iterable, Mapping
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, cast
 
@@ -14,6 +14,18 @@ from xknxeditor.namespaces.intermediate.parameter_calculation_t import (
 )
 from xknxeditor.namespaces.intermediate.parameter_calculation_t_language import (
     ParameterCalculationLanguage,
+)
+from xknxeditor.namespaces.intermediate.parameter_type_t_type_float import (
+    ParameterTypeTypeFloat,
+)
+from xknxeditor.namespaces.intermediate.parameter_type_t_type_number import (
+    ParameterTypeTypeNumber,
+)
+from xknxeditor.namespaces.intermediate.parameter_type_t_type_restriction import (
+    ParameterTypeTypeRestriction,
+)
+from xknxeditor.namespaces.intermediate.parameter_type_t_type_time import (
+    ParameterTypeTypeTime,
 )
 
 from ...script import (
@@ -135,17 +147,56 @@ def run_calculations_many(
     *,
     raise_errors: bool,
     abort: AbortToken | None = None,
+    stored: Collection[str] | None = None,
 ) -> None:
-    """Run the union calculation plan of a batch of changed parameters, each calculation once."""
-    for calc, direction in idx.calculation_plan_many(local_refs):
+    """Run the union calculation plan of a batch of changed parameters, each calculation once.
+
+    Without ``raise_errors`` a failing calculation is logged, and an output it computes that its
+    parameter does not take is left out (the other outputs are written). ``stored``: those of
+    ``local_refs`` whose values were read from a device (and are downloaded); where the RL
+    transformation of a calculation they are on the R side of does not give L values its LR
+    transformation gives them back from, such L values are searched (see :func:`_match_stored`)."""
+    refs = tuple(dict.fromkeys(local_refs))
+    for calc, direction in idx.calculation_plan_many(refs):
+        # What the RL transformation fails to compute is searched for below: not a failure yet.
+        matching = stored is not None and direction == "RL"
         try:
-            _run_one(idx, calc, direction, scope, journal, env, abort)
+            _run_one(
+                idx,
+                calc,
+                direction,
+                scope,
+                journal,
+                env,
+                abort,
+                strict=raise_errors,
+                report=not matching,
+            )
         except CalculationError as exc:
             if raise_errors:
                 raise
-            if (calc.id, str(exc)) not in _failures_logged:
-                _failures_logged.add((calc.id, str(exc)))
-                log.warning("parameter calculation %s failed", calc.id, exc_info=True)
+            if not matching:
+                _log_failure(calc.id, exc)
+        if stored is None or not matching:
+            continue
+        try:
+            unmatched = _match_stored(idx, calc, stored, scope, journal, env, abort)
+        except CalculationError as exc:
+            _log_failure(calc.id, exc)
+            continue
+        if unmatched and (calc.id, str(unmatched)) not in _failures_logged:
+            _failures_logged.add((calc.id, str(unmatched)))
+            log.warning(
+                "parameter calculation %s gives no settings for the stored values %s",
+                calc.id,
+                ", ".join(f"{ref}={scope.get(ref)}" for ref in unmatched),
+            )
+
+
+def _log_failure(calc_id: str, exc: CalculationError) -> None:
+    if (calc_id, str(exc)) not in _failures_logged:
+        _failures_logged.add((calc_id, str(exc)))
+        log.warning("parameter calculation %s failed", calc_id, exc_info=exc)
 
 
 def _run_one(
@@ -156,28 +207,65 @@ def _run_one(
     journal: Journal,
     env: JScriptEnv | None,
     abort: AbortToken | None,
+    *,
+    strict: bool = True,
+    report: bool = True,
 ) -> None:
+    computed = _compute(idx, calc, direction, scope, env, abort)
+    if computed is not None:
+        _write_outputs(
+            idx,
+            calc,
+            direction,
+            computed,
+            scope,
+            journal,
+            strict=strict,
+            report=report,
+        )
+
+
+def _sides(calc: ParameterCalculation, direction: str) -> tuple[list[Any], list[Any]]:
+    """The input and output ParameterRefRefs of ``calc`` in ``direction``."""
+    left = calc.lparameters.parameter_ref_ref
+    right = calc.rparameters.parameter_ref_ref
+    return (left, right) if direction == "LR" else (right, left)
+
+
+def _compute(
+    idx: ApplicationIndexer,
+    calc: ParameterCalculation,
+    direction: str,
+    scope: CalculationScope,
+    env: JScriptEnv | None,
+    abort: AbortToken | None,
+    trial: Mapping[str, str] | None = None,
+) -> dict[str, Any] | None:
+    """What ``calc`` computes in ``direction``, by output alias (None: no code for it), with the
+    values of ``trial`` (by local ref) in place of the current ones."""
+
+    def get(ref_id: str) -> str | None:
+        if trial is not None and ref_id in trial:
+            return trial[ref_id]
+        return scope.get(ref_id)
+
     lr = direction == "LR"
-    ins = (calc.lparameters if lr else calc.rparameters).parameter_ref_ref
-    outs = (calc.rparameters if lr else calc.lparameters).parameter_ref_ref
+    ins, outs = _sides(calc, direction)
     if calc.language == ParameterCalculationLanguage.VBSCRIPT:
         code = calc.lrtransformation if lr else calc.rltransformation
         if not code:
-            return
-        _run_vbscript(idx, calc, code, ins, outs, scope, journal, abort)
-        return
+            return None
+        return _run_vbscript(idx, calc, code, ins, outs, get, scope.locale, abort)
     func = calc.lrtransformation_func if lr else calc.rltransformation_func
     inline = calc.lrtransformation if lr else calc.rltransformation
     params = (
         calc.lrtransformation_parameters if lr else calc.rltransformation_parameters
     )
     inputs = {
-        _alias(idx, pr): to_js(scope.get(pr.ref_id), idx.type_of(pr.ref_id))
-        for pr in ins
+        _alias(idx, pr): to_js(get(pr.ref_id), idx.type_of(pr.ref_id)) for pr in ins
     }
     output = {
-        _alias(idx, pr): to_js(scope.get(pr.ref_id), idx.type_of(pr.ref_id))
-        for pr in outs
+        _alias(idx, pr): to_js(get(pr.ref_id), idx.type_of(pr.ref_id)) for pr in outs
     }
     host = {"a.message": idx.message_text}
     jscript: Any = env if env is not None else True
@@ -195,18 +283,16 @@ def _run_one(
             result = ctx.invoke(
                 func, [inputs, output, _context_object(params, calc.id)], readback=[1]
             )
-            computed = _as_dict(result.readback[0])
-        elif inline:
-            computed = _run_inline(
+            return _as_dict(result.readback[0])
+        if inline:
+            return _run_inline(
                 inline, inputs, output, host, jscript, abort, idx.message_values()
             )
-        else:
-            return
+        return None
     except ScriptAborted:
         raise
     except ScriptError as exc:
         raise CalculationError(exc.message, calculation_id=calc.id) from exc
-    _write_outputs(idx, calc, outs, computed, scope, journal)
 
 
 def _run_vbscript(
@@ -215,26 +301,26 @@ def _run_vbscript(
     code: str,
     ins: list[Any],
     outs: list[Any],
-    scope: CalculationScope,
-    journal: Journal,
+    get: Callable[[str], str | None],
+    locale: str | None,
     abort: AbortToken | None,
-) -> None:
+) -> dict[str, Any]:
     """Run inline VBScript code; the aliases are its variables, the outputs hold their current
     values when it starts."""
     inputs = {
-        _alias(idx, pr): to_vbscript(scope.get(pr.ref_id), idx.type_of(pr.ref_id))
+        _alias(idx, pr): to_vbscript(get(pr.ref_id), idx.type_of(pr.ref_id))
         for pr in ins
     }
     current = {
-        _alias(idx, pr): to_vbscript(scope.get(pr.ref_id), idx.type_of(pr.ref_id))
+        _alias(idx, pr): to_vbscript(get(pr.ref_id), idx.type_of(pr.ref_id))
         for pr in outs
     }
     try:
-        computed: dict[str, Any] = run_script(
+        return run_script(
             code,
             inputs,
             current,
-            culture=culture_for(scope.locale),
+            culture=culture_for(locale),
             abort=abort,
             deadline=_SCRIPT_DEADLINE,
         )
@@ -242,35 +328,198 @@ def _run_vbscript(
         raise
     except ScriptError as exc:
         raise CalculationError(exc.message, calculation_id=calc.id) from exc
-    _write_outputs(idx, calc, outs, computed, scope, journal)
 
 
-def _write_outputs(
+def _coerced_outputs(
     idx: ApplicationIndexer,
     calc: ParameterCalculation,
-    outs: list[Any],
-    computed: dict[str, Any],
+    direction: str,
+    computed: Mapping[str, Any],
     scope: CalculationScope,
-    journal: Journal,
-) -> None:
-    """Coerce the computed outputs to their parameter types and write the changed ones."""
-    for pr in outs:
+) -> dict[str, str | CalculationError]:
+    """The computed outputs as values of their parameters, by local ref; the error for a value
+    its parameter does not take."""
+    result: dict[str, str | CalculationError] = {}
+    for pr in _sides(calc, direction)[1]:
         alias = _alias(idx, pr)
         if alias not in computed or computed[alias] is None:
             continue
         try:
-            value = coerce_script_value(
+            result[pr.ref_id] = coerce_script_value(
                 computed[alias],
                 idx.type_of(pr.ref_id),
                 locale=scope.locale,
                 text_encoding=scope.text_encoding,
             )
         except ScriptValueError as exc:
-            raise CalculationError(exc.message, calculation_id=calc.id) from exc
+            result[pr.ref_id] = CalculationError(exc.message, calculation_id=calc.id)
         except ValueError as exc:
-            raise CalculationError(str(exc), calculation_id=calc.id) from exc
-        if value != scope.get(pr.ref_id):
-            journal.set(scope.qualify(pr.ref_id), value)
+            result[pr.ref_id] = CalculationError(str(exc), calculation_id=calc.id)
+    return result
+
+
+def _write_outputs(
+    idx: ApplicationIndexer,
+    calc: ParameterCalculation,
+    direction: str,
+    computed: Mapping[str, Any],
+    scope: CalculationScope,
+    journal: Journal,
+    *,
+    strict: bool = True,
+    report: bool = True,
+) -> None:
+    """Coerce the computed outputs to their parameter types and write the changed ones.
+
+    ``strict``: an output its parameter does not take fails the calculation before anything is
+    written. Otherwise that output is left out (logged with ``report``), and the others are
+    written."""
+    values = _coerced_outputs(idx, calc, direction, computed, scope)
+    errors = [v for v in values.values() if isinstance(v, CalculationError)]
+    if strict and errors:
+        raise errors[0]
+    for ref_id, value in values.items():
+        if isinstance(value, CalculationError):
+            if report:
+                _log_failure(calc.id, value)
+        elif value != scope.get(ref_id):
+            journal.set(scope.qualify(ref_id), value)
+
+
+# Most values tried for one L parameter in the search of _match_stored, and most results it
+# keeps for the next search.
+_MAX_CANDIDATES = 256
+_MAX_RESULTS = 100_000
+
+
+def _match_stored(
+    idx: ApplicationIndexer,
+    calc: ParameterCalculation,
+    stored: Collection[str],
+    scope: CalculationScope,
+    journal: Journal,
+    env: JScriptEnv | None,
+    abort: AbortToken | None,
+) -> list[str]:
+    """Set the L parameters of ``calc`` to values its LR transformation gives the ``stored`` R
+    values back from, where the current L values (what its RL transformation computed) do not.
+
+    A product may have no RL transformation, or one that is not the inverse of the LR one a
+    download writes the R values with. Each L parameter that changes one of the R values not
+    given back (seen by trying two other values of it) is tried with every value of its domain,
+    when that is small; the value that gives the most R values back is taken when it gives more
+    than before. An R value no L value gives back (one the product cannot download) is left as
+    it is; those are returned."""
+    if not (calc.lrtransformation_func or calc.lrtransformation):
+        return []
+    targets: dict[str, str] = {}
+    for pr in calc.rparameters.parameter_ref_ref:
+        value = scope.get(pr.ref_id)
+        if pr.ref_id in stored and value is not None:
+            targets[pr.ref_id] = value
+    if not targets:
+        return []
+
+    sides = [
+        pr.ref_id
+        for pr in (
+            *calc.lparameters.parameter_ref_ref,
+            *calc.rparameters.parameter_ref_ref,
+        )
+    ]
+
+    def evaluate(trial: Mapping[str, str]) -> dict[str, str | CalculationError]:
+        key = (
+            calc.id,
+            scope.locale,
+            tuple(trial.get(ref, scope.get(ref)) for ref in sides),
+        )
+        cached = idx.calculation_results.get(key)
+        if cached is None:
+            computed = _compute(idx, calc, "LR", scope, env, abort, trial)
+            cached = _coerced_outputs(idx, calc, "LR", computed or {}, scope)
+            if len(idx.calculation_results) >= _MAX_RESULTS:
+                idx.calculation_results.clear()
+            idx.calculation_results[key] = cached
+        return cast("dict[str, str | CalculationError]", cached)
+
+    def given_back(got: Mapping[str, str | CalculationError]) -> set[str]:
+        return {
+            ref
+            for ref, want in targets.items()
+            if isinstance(value := got.get(ref), str) and _same_value(value, want)
+        }
+
+    current: dict[str, str] = {}
+    for pr in calc.lparameters.parameter_ref_ref:
+        value = scope.get(pr.ref_id)
+        if value is not None:
+            current[pr.ref_id] = value
+    base = evaluate(current)
+    matched = given_back(base)
+    if matched == set(targets):
+        return []
+    chosen = dict(current)
+    for ref in current:
+        candidates = _candidates(idx.type_of(ref), current[ref])
+        if not candidates:
+            continue
+        missing = set(targets) - matched
+        affects = set[str]()
+        for probe in {candidates[0], candidates[-1]}:
+            got = evaluate({**chosen, ref: probe})
+            affects |= {r for r in targets if str(got.get(r)) != str(base.get(r))}
+        if not affects & missing:
+            continue
+        best, best_matched = chosen[ref], matched
+        for candidate in candidates:
+            same = given_back(evaluate({**chosen, ref: candidate}))
+            if len(same) > len(best_matched):
+                best, best_matched = candidate, same
+        if best != chosen[ref]:
+            chosen[ref] = best
+            matched = best_matched
+            base = evaluate(chosen)
+            if matched == set(targets):
+                break
+    for ref, value in chosen.items():
+        if value != current[ref]:
+            journal.set(scope.qualify(ref), value)
+    return [ref for ref in targets if ref not in matched]
+
+
+def _same_value(a: str, b: str) -> bool:
+    if a == b:
+        return True
+    try:
+        return float(a) == float(b)
+    except ValueError:
+        return False
+
+
+def _candidates(tc: object, current: str) -> list[str]:
+    """Every value but ``current`` of a parameter type with a small domain (choices, an integer
+    range, a float range with an increment); empty for a larger domain."""
+    values: list[str] = []
+    if isinstance(tc, ParameterTypeTypeRestriction):
+        values = [str(e.value) for e in tc.enumeration]
+    elif isinstance(tc, ParameterTypeTypeNumber | ParameterTypeTypeTime):
+        low, high = int(tc.min_inclusive), int(tc.max_inclusive)
+        if high - low >= _MAX_CANDIDATES:
+            return []
+        values = [str(n) for n in range(low, high + 1)]
+    elif isinstance(tc, ParameterTypeTypeFloat):
+        step = tc.increment
+        if not step or step <= 0:
+            return []
+        count = round((tc.max_inclusive - tc.min_inclusive) / step)
+        if count >= _MAX_CANDIDATES:
+            return []
+        for i in range(count + 1):
+            f = round(tc.min_inclusive + i * step, 10)
+            if f <= tc.max_inclusive:
+                values.append(str(int(f)) if f.is_integer() else repr(f))
+    return [v for v in values if not _same_value(v, current)]
 
 
 def _run_inline(

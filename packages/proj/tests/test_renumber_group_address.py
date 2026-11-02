@@ -122,3 +122,17 @@ def test_renumber_same_address_is_a_noop(tmp_path: Path) -> None:
     before = svc.cursor(pid)
     svc.set_group_address_address(pid, ga, value)  # unchanged -> must append no event
     assert svc.cursor(pid) == before
+
+
+def test_find_group_address_by_value(tmp_path: Path) -> None:
+    svc = ProjectService()
+    pid = svc.create(tmp_path / "p.xknx", "P-0001")
+    first = svc.create_group_address(pid, 0, 0x0B01, "A")
+    svc.create_group_address(pid, 0, 0x0B02, "B")
+
+    assert svc.find_group_address(pid, 0x0B01) == first
+    assert svc.find_group_address(pid, 0x0B03) is None
+    # Renumbered, it is found by its new value.
+    svc.set_group_address_address(pid, first, 0x0B03)
+    assert svc.find_group_address(pid, 0x0B03) == first
+    assert svc.find_group_address(pid, 0x0B01) is None
