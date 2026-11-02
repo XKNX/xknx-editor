@@ -905,7 +905,7 @@ msgid "Converting product database…"
 msgstr "Po konvertohet baza e të dhënave të produkteve…"
 
 msgid "{done}/{total} application programs"
-msgstr "{done}/{total} programe aplikimi"
+msgstr "{done}/{total} programe aplikative"
 
 msgid "Import cancelled, nothing was imported"
 msgstr "Importimi u anulua, nuk u importua asgjë"
@@ -1508,13 +1508,13 @@ msgid "This runs only on Windows with an installed ETS; this system is not Windo
 msgstr "Funksionon vetëm në Windows me një ETS të instaluar; ky sistem nuk është Windows."
 
 msgid "No installed ETS was found in the usual locations."
-msgstr "Nuk u gjet asnjë ETS i instaluar në vendndodhjet e zakonshme."
+msgstr "Nuk u gjet asnjë ETS e instaluar në vendndodhjet e zakonshme."
 
 msgid "ETS was found, but the .NET SDK (or a prebuilt helper) is needed to run the export."
 msgstr "ETS u gjet, por për të ekzekutuar eksportin nevojitet .NET SDK (ose një ndihmës i parandërtuar)."
 
 msgid "Two ETS versions are installed — choose which one signs the export:"
-msgstr "Janë instaluar dy versione të ETS — zgjidh cili e nënshkruan eksportin:"
+msgstr "Janë instaluar dy versione të ETS-së — zgjidhni cilin të përdorni për nënshkrimin e eksportit:"
 
 msgid "ETS 6 ({version})"
 msgstr "ETS 6 ({version})"
