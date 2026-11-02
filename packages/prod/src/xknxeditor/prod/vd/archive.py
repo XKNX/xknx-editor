@@ -14,12 +14,17 @@ import struct
 import zipfile
 import zlib
 from pathlib import Path
+from typing import TYPE_CHECKING
 
-from xknxeditor.prod.errors import ArchiveError
+from xknxeditor.prod.errors import ArchiveError, check_cancelled
 
 from .dump import Dump
 
+if TYPE_CHECKING:
+    import threading
+
 _PASSWORDS = (b"Orleander", b"Felidae")
+_CHUNK = 1 << 20
 _DUMP_NAME = re.compile(r"\.[^./\\]*_$")
 VD_SUFFIX = re.compile(r"\.vd[1-5]$", re.IGNORECASE)
 
@@ -35,8 +40,11 @@ def holds_vd_dump(names: list[str]) -> bool:
     return "knx_master.xml" not in names and any(_DUMP_NAME.search(n) for n in names)
 
 
-def read_dump(source: str | Path | bytes) -> Dump:
-    """Read the table dump of a ``.vd*`` file (path or raw bytes)."""
+def read_dump(
+    source: str | Path | bytes, *, cancel: threading.Event | None = None
+) -> Dump:
+    """Read the table dump of a ``.vd*`` file (path or raw bytes). Setting ``cancel`` stops the
+    decryption with :class:`ImportCancelled`."""
     data = source if isinstance(source, bytes) else Path(source).read_bytes()
     try:
         archive = zipfile.ZipFile(io.BytesIO(data))
@@ -44,7 +52,7 @@ def read_dump(source: str | Path | bytes) -> Dump:
         raise ArchiveError(f"Not a product database (no ZIP archive): {e}") from e
     with archive:
         entry = _dump_entry(archive)
-        return Dump(_read_entry(archive, data, entry))
+        return Dump(_read_entry(archive, data, entry, cancel))
 
 
 def _dump_entry(archive: zipfile.ZipFile) -> zipfile.ZipInfo:
@@ -60,7 +68,12 @@ def _dump_entry(archive: zipfile.ZipFile) -> zipfile.ZipInfo:
     return candidates[0]
 
 
-def _read_entry(archive: zipfile.ZipFile, data: bytes, entry: zipfile.ZipInfo) -> bytes:
+def _read_entry(
+    archive: zipfile.ZipFile,
+    data: bytes,
+    entry: zipfile.ZipInfo,
+    cancel: threading.Event | None = None,
+) -> bytes:
     if not entry.flag_bits & 0x1:
         return archive.read(entry)
     if entry.compress_type not in (zipfile.ZIP_STORED, zipfile.ZIP_DEFLATED):
@@ -81,7 +94,13 @@ def _read_entry(archive: zipfile.ZipFile, data: bytes, entry: zipfile.ZipInfo) -
         header = _decrypt(encrypted[:12], keys)
         if header[11] != check:
             continue
-        plain = _decrypt(encrypted, _keys(password))[12:]
+        plain = bytearray()
+        keys = _keys(password)
+        # In parts, so a cancel takes effect within a fraction of a second.
+        for part in range(0, len(encrypted), _CHUNK):
+            check_cancelled(cancel)
+            plain += _decrypt(encrypted[part : part + _CHUNK], keys)
+        del plain[:12]
         content = (
             zlib.decompress(plain, -15)
             if entry.compress_type == zipfile.ZIP_DEFLATED

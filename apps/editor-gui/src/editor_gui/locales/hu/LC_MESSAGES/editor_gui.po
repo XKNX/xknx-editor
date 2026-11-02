@@ -226,6 +226,12 @@ msgstr "A termékkatalógus betöltése…"
 msgid "Converting product database…"
 msgstr "A termékadatbázis konvertálása…"
 
+msgid "{done}/{total} application programs"
+msgstr "{done}/{total} alkalmazásprogram"
+
+msgid "Import cancelled, nothing was imported"
+msgstr "Az importálás megszakítva, semmi sem lett importálva"
+
 msgid "Opening project…"
 msgstr "A projekt megnyitása…"
 

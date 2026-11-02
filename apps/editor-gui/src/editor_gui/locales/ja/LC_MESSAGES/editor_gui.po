@@ -904,6 +904,12 @@ msgstr "製品カタログを読み込み中…"
 msgid "Converting product database…"
 msgstr "製品データベースを変換中…"
 
+msgid "{done}/{total} application programs"
+msgstr "{done}/{total}アプリケーションプログラム"
+
+msgid "Import cancelled, nothing was imported"
+msgstr "インポートはキャンセルされ、何もインポートされませんでした"
+
 msgid "Imported {count} product version(s) from {name}:"
 msgstr "{name}から{count}個の製品バージョンをインポートしました："
 

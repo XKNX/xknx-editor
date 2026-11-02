@@ -904,6 +904,12 @@ msgstr "Cargando el catálogo de productos…"
 msgid "Converting product database…"
 msgstr "Convirtiendo la base de datos de productos…"
 
+msgid "{done}/{total} application programs"
+msgstr "{done}/{total} programas de aplicación"
+
+msgid "Import cancelled, nothing was imported"
+msgstr "Importación cancelada, no se ha importado nada"
+
 msgid "Imported {count} product version(s) from {name}:"
 msgstr "{count} versión(es) de producto importada(s) desde {name}:"
 

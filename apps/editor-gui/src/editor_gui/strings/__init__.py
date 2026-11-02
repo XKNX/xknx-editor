@@ -1611,6 +1611,14 @@ class MenuStrings:
         return _("Converting product database…")
 
     @property
+    def PROGRESS_APPLICATION_PROGRAMS(self) -> str:
+        return _("{done}/{total} application programs")
+
+    @property
+    def IMPORT_CANCELLED(self) -> str:
+        return _("Import cancelled, nothing was imported")
+
+    @property
     def KNXPROD_IMPORT_SUMMARY(self) -> str:
         return _("Imported {count} product version(s) from {name}:")
 

@@ -9,6 +9,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from xknxeditor.prod.errors import check_cancelled
+
 from .application import AppConverter
 from .baggage import convert_baggages
 from .catalog import convert_catalog
@@ -18,6 +20,9 @@ from .master import MasterData
 from .xmlout import document, serialize
 
 if TYPE_CHECKING:
+    import threading
+    from collections.abc import Callable
+
     from .database import Database, Row
 
 __all__ = ["ConversionError", "convert", "convert_with_report"]
@@ -45,9 +50,14 @@ def _registration(ctx: Context, row: Row) -> tuple[int, int, int]:
 
 
 def convert_with_report(
-    db: Database, master_xml: bytes
+    db: Database,
+    master_xml: bytes,
+    *,
+    cancel: threading.Event | None = None,
+    progress: Callable[[int, int], None] | None = None,
 ) -> tuple[dict[str, bytes], list[str], list[str]]:
     """Like :func:`convert`, also returning the warnings and errors of the conversion."""
+    check_cancelled(cancel)
     ctx = Context(db, MasterData(master_xml))
     ctx.init_manufacturer_languages()
     files: dict[str, bytes] = {}
@@ -58,7 +68,11 @@ def convert_with_report(
             )
         files.update(doc.files)
     apps: dict[str, tuple[bytes, tuple[int, int, int]]] = {}
-    for row in ctx.rows("application_program"):
+    programs = ctx.rows("application_program")
+    for done, row in enumerate(programs):
+        check_cancelled(cancel)
+        if progress is not None:
+            progress(done, len(programs))
         manufacturer = ctx.manufacturer_ref(row["MANUFACTURER_ID"])
         if ctx.master.manufacturer(manufacturer) is None:
             ctx.errors.append(f"UnknownManufacturerId: {manufacturer}")
@@ -82,6 +96,9 @@ def convert_with_report(
         if old is not None and _compare(old[1], info) >= 0:
             continue
         apps[app_id] = (data, info)
+    check_cancelled(cancel)
+    if progress is not None:
+        progress(len(programs), len(programs))
     for app_id, (data, _info) in apps.items():
         files[f"{app_id[:6]}/{app_id}.xml"] = data
     for doc in convert_hardware(ctx):
@@ -102,8 +119,16 @@ def _compare(a: tuple[int, int, int], b: tuple[int, int, int]) -> int:
     return 0
 
 
-def convert(db: Database, master_xml: bytes) -> dict[str, bytes]:
+def convert(
+    db: Database,
+    master_xml: bytes,
+    *,
+    cancel: threading.Event | None = None,
+    progress: Callable[[int, int], None] | None = None,
+) -> dict[str, bytes]:
     """The unsigned package files (``M-XXXX/Catalog.xml``, ``Hardware.xml``, one file per
     application program, ``Baggages.xml`` and the baggage files) of a database in the newest
-    schema; ``master_xml`` is the KNX master data (any schema version)."""
-    return convert_with_report(db, master_xml)[0]
+    schema; ``master_xml`` is the KNX master data (any schema version). ``progress`` is called
+    with the application programs converted so far and their number; setting ``cancel`` stops
+    the conversion with :class:`ImportCancelled`."""
+    return convert_with_report(db, master_xml, cancel=cancel, progress=progress)[0]

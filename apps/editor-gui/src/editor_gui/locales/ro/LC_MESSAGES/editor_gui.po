@@ -226,6 +226,12 @@ msgstr "Se încarcă catalogul de produse…"
 msgid "Converting product database…"
 msgstr "Se convertește baza de date de produse…"
 
+msgid "{done}/{total} application programs"
+msgstr "Programe de aplicație: {done}/{total}"
+
+msgid "Import cancelled, nothing was imported"
+msgstr "Import întrerupt, nu s-a importat nimic"
+
 msgid "Opening project…"
 msgstr "Se deschide proiectul…"
 

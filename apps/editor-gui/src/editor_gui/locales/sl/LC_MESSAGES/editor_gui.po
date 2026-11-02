@@ -226,6 +226,12 @@ msgstr "Nalaganje kataloga izdelkov…"
 msgid "Converting product database…"
 msgstr "Pretvarjanje zbirke podatkov o izdelkih…"
 
+msgid "{done}/{total} application programs"
+msgstr "Aplikacijski programi: {done}/{total}"
+
+msgid "Import cancelled, nothing was imported"
+msgstr "Uvoz je preklican, nič ni bilo uvoženo"
+
 msgid "Opening project…"
 msgstr "Odpiranje projekta…"
 

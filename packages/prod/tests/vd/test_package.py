@@ -30,7 +30,7 @@ def test_holds_vd_dump() -> None:
 def test_product_database_is_converted(monkeypatch: pytest.MonkeyPatch) -> None:
     calls: list[tuple[bytes, bytes]] = []
 
-    def convert(source: bytes, master_xml: bytes) -> bytes:
+    def convert(source: bytes, master_xml: bytes, **_: object) -> bytes:
         calls.append((source, master_xml))
         return b"converted"
 

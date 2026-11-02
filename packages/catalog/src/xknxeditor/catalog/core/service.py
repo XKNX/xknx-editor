@@ -65,6 +65,8 @@ from xknxeditor.catalog.models import (
 from xknxeditor.prod import Application
 
 if TYPE_CHECKING:
+    import threading
+
     from xknxeditor.namespaces.intermediate.application_program_t import (
         ApplicationProgram,
     )
@@ -89,17 +91,25 @@ class CatalogService:
 
     # --- ingest -----------------------------------------------------------
 
-    def import_knxprod(self, content: bytes, *, require_catalog: bool = True) -> Path:
+    def import_knxprod(
+        self,
+        content: bytes,
+        *,
+        require_catalog: bool = True,
+        cancel: threading.Event | None = None,
+    ) -> Path:
         """Store and ingest .knxprod bytes (content-hash dedup). Returns the stored path.
 
         ``require_catalog=False`` ingests ``.knxproj``-embedded product data that omits
-        ``Catalog.xml`` (hardware/applications still resolve devices)."""
+        ``Catalog.xml`` (hardware/applications still resolve devices). Setting ``cancel`` stops the
+        import before it stores anything (:class:`~xknxeditor.prod.errors.ImportCancelled`)."""
         return upload_knxprod(
             content,
             self._knxprod_dir,
             self._engine,
             require_catalog=require_catalog,
             cache_dir=self._parse_cache_dir,
+            cancel=cancel,
         )
 
     def delete_product(

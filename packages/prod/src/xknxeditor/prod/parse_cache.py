@@ -18,7 +18,9 @@ import os
 import pickle
 from collections.abc import Iterable, Sequence
 from concurrent.futures import ProcessPoolExecutor
+from concurrent.futures import TimeoutError as FuturesTimeout
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import psutil
 
@@ -26,8 +28,15 @@ from xknxeditor.namespaces import detect_version
 from xknxeditor.namespaces.intermediate.knx import Knx
 
 from .data import to_ir
+from .errors import ImportCancelled
+
+if TYPE_CHECKING:
+    import threading
 
 logger = logging.getLogger(__name__)
+
+# How often a wait for a worker looks whether the import was cancelled, in seconds.
+_CANCEL_POLL = 0.2
 
 # Bump when the IR shape or pickle compatibility changes, to abandon old cache entries.
 CACHE_VERSION = "1"
@@ -93,12 +102,15 @@ def _parse_into_cache(xml_bytes: bytes, cache_dir: Path) -> None:
     cached_to_ir(xml_bytes, detect_version(xml_bytes), cache_dir)
 
 
-def fill_cache(xmls: Iterable[bytes], cache_dir: Path) -> None:
+def fill_cache(
+    xmls: Iterable[bytes], cache_dir: Path, *, cancel: threading.Event | None = None
+) -> None:
     """Parse the application XMLs not cached yet in worker processes, each into the cache, so the
     caller then reads every parse from the cache.
 
     How many workers, if any, :func:`parse_workers` decides. When they cannot run, the caller's own
-    :func:`cached_to_ir` parses what is still missing."""
+    :func:`cached_to_ir` parses what is still missing. Setting ``cancel`` drops the parses not
+    started yet and raises :class:`~.errors.ImportCancelled` (the started ones finish)."""
     pending = {_cache_path(xml, detect_version(xml), cache_dir): xml for xml in xmls}
     todo = sorted(
         (xml for path, xml in pending.items() if not path.exists()),
@@ -117,6 +129,15 @@ def fill_cache(xmls: Iterable[bytes], cache_dir: Path) -> None:
             for future in [
                 pool.submit(_parse_into_cache, xml, cache_dir) for xml in todo
             ]:
-                future.result()
+                while True:
+                    try:
+                        future.result(timeout=_CANCEL_POLL)
+                        break
+                    except FuturesTimeout:
+                        if cancel is not None and cancel.is_set():
+                            pool.shutdown(wait=False, cancel_futures=True)
+                            raise ImportCancelled from None
+    except ImportCancelled:
+        raise
     except Exception as exc:  # e.g. processes cannot be started: parse in this process
         logger.warning("parallel application parsing failed: %s", exc)

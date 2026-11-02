@@ -39,7 +39,10 @@ import xml.parsers.expat
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
+from xknxeditor.prod.errors import check_cancelled
+
 if TYPE_CHECKING:
+    import threading
     from collections.abc import Callable, Iterator
 
 __all__ = ["sign"]
@@ -1118,12 +1121,15 @@ def _baggage_lookup(files: dict[str, bytes]) -> Callable[[str], str | None]:
     return lookup
 
 
-def sign(files: dict[str, bytes]) -> dict[str, bytes]:
+def sign(
+    files: dict[str, bytes], *, cancel: threading.Event | None = None
+) -> dict[str, bytes]:
     """Applies fingerprints, patches ids and removes unregistered elements, as the converter does.
 
     ``files`` maps package paths (``M-XXXX/Hardware.xml``, ``M-XXXX/M-XXXX_A-NNNN-VV-0000.xml``, …)
     to the bytes the conversion wrote. Returns the files after this step: application programs
-    under their new names, hardware and catalog patched; other files unchanged.
+    under their new names, hardware and catalog patched; other files unchanged. Setting
+    ``cancel`` stops it with :class:`ImportCancelled`.
     """
     out = dict(files)
     baggage = _baggage_lookup(files)
@@ -1132,12 +1138,14 @@ def sign(files: dict[str, bytes]) -> dict[str, bytes]:
         directory, _, name = path.partition("/")
         m = _APP_FILE.fullmatch(name)
         if m and "/" not in name:
+            check_cancelled(cancel)
             programs.setdefault(m.group(1), {})[path] = (directory, _parse(files[path]))
     app_ids_of: dict[str, dict[str, str]] = {}
     app_hashes: dict[str, str] = {}
     for manufacturer, apps in programs.items():
         app_ids = app_ids_of.setdefault(manufacturer, {})
         for path, (directory, root) in apps.items():
+            check_cancelled(cancel)
             old_id, digest = _application_hash(root, baggage)
             fingerprint = f"{digest[0]:02X}{digest[-1]:02X}"
             new_id = _with_fingerprint(old_id, fingerprint)

@@ -28,7 +28,7 @@ def converted(monkeypatch: pytest.MonkeyPatch) -> list[tuple[bytes, bytes]]:
     """Replaces the conversion: records (database, master) and returns the fixture .knxprod."""
     calls: list[tuple[bytes, bytes]] = []
 
-    def convert(source: bytes, master_xml: bytes) -> bytes:
+    def convert(source: bytes, master_xml: bytes, **_: object) -> bytes:
         calls.append((source, master_xml))
         return _fixture().read_bytes()
 

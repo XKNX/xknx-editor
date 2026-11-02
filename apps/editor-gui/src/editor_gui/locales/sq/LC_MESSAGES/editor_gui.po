@@ -904,6 +904,12 @@ msgstr "Po ngarkohet katalogu i produkteve…"
 msgid "Converting product database…"
 msgstr "Po konvertohet baza e të dhënave të produkteve…"
 
+msgid "{done}/{total} application programs"
+msgstr "{done}/{total} programe aplikimi"
+
+msgid "Import cancelled, nothing was imported"
+msgstr "Importimi u anulua, nuk u importua asgjë"
+
 msgid "Imported {count} product version(s) from {name}:"
 msgstr "U importuan {count} version(e) produkti nga {name}:"
 

@@ -226,6 +226,12 @@ msgstr "Načítava sa produktový katalóg…"
 msgid "Converting product database…"
 msgstr "Konvertuje sa produktová databáza…"
 
+msgid "{done}/{total} application programs"
+msgstr "Aplikačné programy {done}/{total}"
+
+msgid "Import cancelled, nothing was imported"
+msgstr "Import zrušený, nič sa neimportovalo"
+
 msgid "Opening project…"
 msgstr "Otvára sa projekt…"
 

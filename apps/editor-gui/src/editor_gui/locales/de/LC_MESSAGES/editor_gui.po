@@ -245,6 +245,12 @@ msgstr "Produktkatalog wird geladen…"
 msgid "Converting product database…"
 msgstr "Produktdatenbank wird konvertiert…"
 
+msgid "{done}/{total} application programs"
+msgstr "{done}/{total} Applikationsprogramme"
+
+msgid "Import cancelled, nothing was imported"
+msgstr "Import abgebrochen, es wurde nichts importiert"
+
 msgid "Opening project…"
 msgstr "Projekt wird geöffnet…"
 

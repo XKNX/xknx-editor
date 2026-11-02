@@ -226,6 +226,12 @@ msgstr "Hleður vörulista…"
 msgid "Converting product database…"
 msgstr "Umbreytir vörugagnagrunni…"
 
+msgid "{done}/{total} application programs"
+msgstr "Notkunarforrit: {done}/{total}"
+
+msgid "Import cancelled, nothing was imported"
+msgstr "Hætt við innflutning, ekkert var flutt inn"
+
 msgid "Opening project…"
 msgstr "Opnar verkefni…"
 

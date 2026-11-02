@@ -149,7 +149,7 @@ from editor_gui.widgets.tree import collapsing_header
 from editor_gui.window_title import bring_to_front, set_window_title, wake
 from xknxeditor.catalog import ProductSummary
 from xknxeditor.prod.app_id import parse_app_id
-from xknxeditor.prod.errors import ArchiveError
+from xknxeditor.prod.errors import ArchiveError, ImportCancelled, check_cancelled
 from xknxeditor.prod.vd import is_vd_file
 from xknxeditor.proj import (
     MYKNX_DLL_NAME,
@@ -338,22 +338,37 @@ def _resolve_download_url(url: str, *, timeout: float = 30.0) -> str:
     return _pick_release_asset(release.get("assets", []))
 
 
+# Bytes a product download reads at a time, between looks whether it was cancelled.
+_DOWNLOAD_CHUNK = 256 * 1024
+
+
 def _download_bytes(
-    url: str, *, timeout: float = 60.0, max_bytes: int = 200 * 1024 * 1024
+    url: str,
+    *,
+    timeout: float = 60.0,
+    max_bytes: int = 200 * 1024 * 1024,
+    cancel: threading.Event | None = None,
 ) -> bytes:
     """Download ``url`` to bytes. Only http(s) is allowed; the response is capped at ``max_bytes``
-    (OpenKNX release ZIPs are a few MB). Follows redirects (GitHub release assets redirect to a CDN)."""
+    (OpenKNX release ZIPs are a few MB). Follows redirects (GitHub release assets redirect to a CDN).
+    Setting ``cancel`` stops the download with ``ImportCancelled``."""
     import urllib.request
     from urllib.parse import urlparse
 
     if urlparse(url).scheme not in ("http", "https"):
         raise ValueError("only http(s) URLs are supported")
     req = urllib.request.Request(url, headers={"User-Agent": "xknx-editor"})
+    data = bytearray()
     with urllib.request.urlopen(req, timeout=timeout) as resp:
-        data = resp.read(max_bytes + 1)
+        while len(data) <= max_bytes:
+            check_cancelled(cancel)
+            chunk = resp.read(min(_DOWNLOAD_CHUNK, max_bytes + 1 - len(data)))
+            if not chunk:
+                break
+            data += chunk
     if len(data) > max_bytes:
         raise ValueError("download exceeds the size limit")
-    return data
+    return bytes(data)
 
 
 def _file_name(name: str) -> str:
@@ -2280,9 +2295,11 @@ class KnxGuiApp:
         self._import_needs_password = False
         self._import_needs_project_password = False
         self._begin_progress(S.IMPORT_PROGRESS_TEXT)
+        cancel = threading.Event()
+        self._offer_cancel(cancel)
         self._import_thread = threading.Thread(
             target=self._run_import,
-            args=(source, dest, password, project_password),
+            args=(source, dest, password, project_password, cancel),
             daemon=True,
             name="knxproj-import",
         )
@@ -2295,11 +2312,12 @@ class KnxGuiApp:
         dest: str,
         password: str | None,
         project_password: str | None,
+        cancel: threading.Event | None = None,
     ) -> None:
         # Worker thread: only touches services + logging (never imgui). Outcome is read in
         # _poll_import on the UI thread once the thread has finished.
         self._import_needs_password = self._try_import_knxproj(
-            source, dest, password, project_password
+            source, dest, password, project_password, cancel
         )
 
     def _poll_import(self) -> None:
@@ -2344,9 +2362,30 @@ class KnxGuiApp:
         self._progress_fraction = fraction
         self._progress_stage = stage
 
-    def _run_bg(self, text: str, fn: "Callable[[], None]") -> None:
+    def _offer_cancel(self, cancel: threading.Event) -> None:
+        """Show Cancel in the progress modal: it sets ``cancel`` (the worker stops at its next
+        check) and says so until the worker ends."""
+
+        def request() -> None:
+            cancel.set()
+            self.set_progress(None, S.PROGRESS_CANCELLING)
+
+        self._progress_cancel = request
+
+    def _cancel_no_longer_possible(self) -> None:
+        """Hide Cancel from the progress modal (called by a worker that started storing)."""
+        self._progress_cancel = None
+
+    def _run_bg(
+        self,
+        text: str,
+        fn: "Callable[[], None]",
+        *,
+        cancel: threading.Event | None = None,
+    ) -> None:
         """Run ``fn`` on a worker thread behind the progress modal. ``fn`` must hold the shared IO
-        lock while it writes so per-frame UI reads bail (see ProjectService/CatalogService)."""
+        lock while it writes so per-frame UI reads bail (see ProjectService/CatalogService). With
+        ``cancel``, the modal offers Cancel, which sets it."""
         if self._bg_thread is not None or self._import_thread is not None:
             busy_threads: dict[str, Any] = {}
             if self._bg_thread is not None:
@@ -2362,6 +2401,8 @@ class KnxGuiApp:
             )
             return
         self._begin_progress(text)
+        if cancel is not None:
+            self._offer_cancel(cancel)
 
         def worker() -> None:
             try:
@@ -2445,9 +2486,11 @@ class KnxGuiApp:
         dest: str,
         password: str | None,
         project_password: str | None = None,
+        cancel: threading.Event | None = None,
     ) -> bool:
         """Attempt the import. Returns ``True`` if a password is required (or wrong) and the caller
-        should prompt; ``False`` on success or on any other failure (which is logged)."""
+        should prompt; ``False`` on success, cancel (``cancel`` set before the new project was
+        installed) or any other failure (which is logged)."""
 
         def report(done: int, total: int, label: str = "") -> None:
             text = S.PROGRESS_DEVICES.format(done=done, total=total)
@@ -2464,6 +2507,8 @@ class KnxGuiApp:
                 Path(dest),
                 password=password,
                 project_password=project_password,
+                cancel=cancel,
+                committing=self._cancel_no_longer_possible,
             )
             # Import opens the freshly built .xknx; record it in Open Recent like a normal open.
             self._add_recent(dest)
@@ -2472,6 +2517,9 @@ class KnxGuiApp:
             self._import_notes = self._project_service.get_import_notes()
             if self._project_service.mirroring_active:
                 self._mirror_notice = str(self._project_service.mirror_home)
+        except ImportCancelled:
+            self._log.info("knxproj import cancelled", source=source)
+            self._knxprod_result = S.IMPORT_CANCELLED
         except InvalidPasswordException:
             return True
         except ProjectPasswordRequired:
@@ -2711,6 +2759,8 @@ class KnxGuiApp:
         """Download ``url`` on a worker thread and import it as a product source (behind the progress
         modal). Handles a .knxprod, an OpenKNX release ZIP, or a raw KNX product XML."""
 
+        cancel = threading.Event()
+
         def worker() -> None:
             try:
                 # OpenKNX/monolithic product XML carries no <MasterData>; we wrap it with the global
@@ -2721,13 +2771,17 @@ class KnxGuiApp:
                         "KNX master data unavailable (offline and not cached) — connect to the "
                         "internet once so it can be downloaded, then retry"
                     )
-                data = _download_bytes(_resolve_download_url(url))
+                data = _download_bytes(_resolve_download_url(url), cancel=cancel)
                 # The import holds the shared IO lock while it writes (per-frame catalog reads
                 # bail meanwhile), not while it converts; then device resolution is rebuilt.
                 added = self._catalog_service.import_product_source_contents(
-                    data, master
+                    data, master, cancel=cancel, progress=self._conversion_progress
                 )
                 self._project_service.refresh_catalog_resolution(rebuild=True)
+            except ImportCancelled:
+                self._log.info("load from url cancelled", url=url)
+                self._knxprod_result = S.IMPORT_CANCELLED
+                return
             except Exception as e:
                 self._log.error(
                     "load from url failed", url=url, error=f"{type(e).__name__}: {e}"
@@ -2743,7 +2797,7 @@ class KnxGuiApp:
             else:
                 self._knxprod_result = S.URL_IMPORT_EMPTY
 
-        self._run_bg(S.URL_DOWNLOADING, worker)
+        self._run_bg(S.URL_DOWNLOADING, worker, cancel=cancel)
 
     def _start_folder_import(self, folder: str) -> None:
         """Import every supported product source found under ``folder`` on a worker thread: a
@@ -2784,8 +2838,10 @@ class KnxGuiApp:
     ) -> None:
         """Import each product source ``candidates()`` lists on a worker thread; files that are not
         a product source are skipped. The imported versions are listed afterwards under ``source``.
-        ``texts``: progress, nothing new, failed."""
+        ``texts``: progress, nothing new, failed. Cancel stops before the next file (and within a
+        file's import, which then stores nothing); the files imported before are kept and listed."""
         importing, empty, failed = texts
+        cancel = threading.Event()
 
         def worker() -> None:
             try:
@@ -2797,12 +2853,19 @@ class KnxGuiApp:
                     )
                 added_all: list[ProductSummary] = []
                 for path in candidates():
+                    if cancel.is_set():
+                        break
                     try:
                         data = path.read_bytes()
                         # Takes the IO lock to write, after converting (see _start_url_import).
                         added = self._catalog_service.import_product_source_contents(
-                            data, master
+                            data,
+                            master,
+                            cancel=cancel,
+                            progress=self._conversion_progress,
                         )
+                    except ImportCancelled:
+                        break
                     except Exception as e:
                         self._log.debug(
                             "skipped file in product import",
@@ -2837,9 +2900,9 @@ class KnxGuiApp:
                     self._product_import_rows(added_all),
                 )
             else:
-                self._knxprod_result = empty
+                self._knxprod_result = S.IMPORT_CANCELLED if cancel.is_set() else empty
 
-        self._run_bg(importing, worker)
+        self._run_bg(importing, worker, cancel=cancel)
 
     def _clear_import_prompt(self) -> None:
         self._import_knxproj_source = None
@@ -3144,14 +3207,24 @@ class KnxGuiApp:
 
     def _do_import_ga_export(self, source: str, dest: str) -> None:
         # A network destination asks for consent (work on a local copy) before the import runs.
+        cancel = threading.Event()
+
         def worker() -> None:
             self._log.info("importing ga export", source=source, dest=dest)
             try:
-                self._project_service.import_ga_export(Path(source), Path(dest))
+                self._project_service.import_ga_export(
+                    Path(source),
+                    Path(dest),
+                    cancel=cancel,
+                    committing=self._cancel_no_longer_possible,
+                )
                 # Import opens the freshly built .xknx; record it in Open Recent like a normal open.
                 self._add_recent(dest)
                 if self._project_service.mirroring_active:
                     self._mirror_notice = str(self._project_service.mirror_home)
+            except ImportCancelled:
+                self._log.info("ga export import cancelled", source=source)
+                self._knxprod_result = S.IMPORT_CANCELLED
             except ProjectStorageError as e:
                 self._log.error(
                     "Cannot save the project here", source=source, error=str(e)
@@ -3160,7 +3233,8 @@ class KnxGuiApp:
                 self._log.error("ga export import failed", source=source, error=str(e))
 
         self._maybe_consent_then(
-            dest, lambda: self._run_bg(S.PROGRESS_IMPORT_GA_EXPORT, worker)
+            dest,
+            lambda: self._run_bg(S.PROGRESS_IMPORT_GA_EXPORT, worker, cancel=cancel),
         )
 
     def _undo(self) -> None:
@@ -3450,12 +3524,16 @@ class KnxGuiApp:
             self._prompt_import_dest(path)
             return
 
+        cancel = threading.Event()
+
         def worker() -> None:
             # The import holds the catalog lock while it writes, so per-frame catalog reads bail
             # (see io_guarded); a product database is converted before, without the lock.
             self._log.info("loading knxprod", path=path)
             try:
-                added = self._catalog_service.import_knxprod_contents(Path(path))
+                added = self._catalog_service.import_knxprod_contents(
+                    Path(path), cancel=cancel, progress=self._conversion_progress
+                )
                 name = Path(path).name
                 if added:
                     self._log.info("added applications to catalog", count=len(added))
@@ -3468,6 +3546,9 @@ class KnxGuiApp:
                     self._knxprod_result = S.KNXPROD_IMPORT_NOTHING_NEW.format(
                         name=name
                     )
+            except ImportCancelled:
+                self._log.info("knxprod import cancelled", path=path)
+                self._knxprod_result = S.IMPORT_CANCELLED
             except ArchiveError as e:
                 self._log.error("archive error", path=path, error=str(e))
             except (OSError, ValueError) as e:
@@ -3487,7 +3568,17 @@ class KnxGuiApp:
         progress = (
             S.PROGRESS_CONVERT_VD if is_vd_file(path) else S.PROGRESS_LOAD_KNXPROD
         )
-        self._run_bg(progress, worker)
+        self._run_bg(progress, worker, cancel=cancel)
+
+    def _conversion_progress(self, done: int, total: int) -> None:
+        """Progress of a product database conversion (application programs converted, all); once
+        it is done, the import of the result follows."""
+        if done >= total:
+            self.set_progress(None, S.PROGRESS_LOAD_KNXPROD)
+            return
+        self.set_progress(
+            done / total, S.PROGRESS_APPLICATION_PROGRAMS.format(done=done, total=total)
+        )
 
     def _sync_device_section(self) -> None:
         """While a space is selected in the Buildings tree, an area or a line in the Topology tree,

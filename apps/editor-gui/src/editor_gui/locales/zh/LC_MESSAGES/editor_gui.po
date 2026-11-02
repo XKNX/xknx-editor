@@ -904,6 +904,12 @@ msgstr "正在加载产品目录…"
 msgid "Converting product database…"
 msgstr "正在转换产品数据库…"
 
+msgid "{done}/{total} application programs"
+msgstr "{done}/{total} 个应用程序"
+
+msgid "Import cancelled, nothing was imported"
+msgstr "导入已取消，未导入任何内容"
+
 msgid "Imported {count} product version(s) from {name}:"
 msgstr "已从 {name} 导入 {count} 个产品版本："
 

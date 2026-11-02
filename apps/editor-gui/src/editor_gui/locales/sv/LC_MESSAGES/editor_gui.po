@@ -904,6 +904,12 @@ msgstr "Läser in produktkatalog…"
 msgid "Converting product database…"
 msgstr "Konverterar produktdatabas…"
 
+msgid "{done}/{total} application programs"
+msgstr "{done}/{total} applikationsprogram"
+
+msgid "Import cancelled, nothing was imported"
+msgstr "Importen avbröts, inget importerades"
+
 msgid "Imported {count} product version(s) from {name}:"
 msgstr "{count} produktversion(er) importerade från {name}:"
 

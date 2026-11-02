@@ -904,6 +904,12 @@ msgstr "Загрузка каталога продуктов…"
 msgid "Converting product database…"
 msgstr "Преобразование базы данных продуктов…"
 
+msgid "{done}/{total} application programs"
+msgstr "{done}/{total} прикладных программ"
+
+msgid "Import cancelled, nothing was imported"
+msgstr "Импорт отменён, ничего не импортировано"
+
 msgid "Imported {count} product version(s) from {name}:"
 msgstr "Из {name} импортировано версий продуктов ({count}):"
 

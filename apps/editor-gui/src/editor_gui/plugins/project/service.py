@@ -61,6 +61,7 @@ from xknxeditor.namespaces.intermediate import (
 )
 from xknxeditor.namespaces.intermediate.enable_t import Enable
 from xknxeditor.prod import Application
+from xknxeditor.prod.errors import ImportCancelled, check_cancelled
 from xknxeditor.prod.gc_pause import gc_paused
 from xknxeditor.prod.parser_v2.calculation import VALIDATION_FAILED
 from xknxeditor.proj import (
@@ -1682,8 +1683,15 @@ class ProjectService:
         *,
         password: str | None = None,
         project_password: str | None = None,
+        cancel: threading.Event | None = None,
+        committing: Callable[[], None] | None = None,
     ) -> None:
         """Import a ``.knxproj`` into a new project at ``dest`` and open it.
+
+        Setting ``cancel`` stops the import with ``ImportCancelled`` up to the moment the new
+        project replaces ``dest``, leaving the open project and ``dest`` unchanged (the catalog keeps
+        the embedded product data only when its import had already finished); ``committing`` is
+        called right before that moment (from then on it runs to the end).
 
         A ``.knxproj`` bundles the (unencrypted) manufacturer/application data for the products it
         uses, so we also ingest it into the catalog — without it the device view cannot resolve the
@@ -1722,9 +1730,11 @@ class ProjectService:
                 # Parse + write into a sibling temp of the WORKING file (never next to a network
                 # dest). On a wrong password this raises before writing, so the currently-open
                 # project is left untouched.
+                check_cancelled(cancel)
                 _import_knxproj(
                     source, tmp, password=password, project_password=project_password
                 )
+                check_cancelled(cancel)
                 self._log.debug(
                     "knxproj parsed",
                     source=str(source),
@@ -1735,14 +1745,19 @@ class ProjectService:
                 # mutates the catalog. Best effort: topology and group addresses load regardless, and
                 # any parser bug on odd product data must not block the project import.
                 try:
-                    added = self._catalog.import_project_products(source)
+                    added = self._catalog.import_project_products(source, cancel=cancel)
                     self._log.info("catalog updated from knxproj", added=len(added))
+                except ImportCancelled:
+                    raise
                 except Exception as e:
                     self._log.warning(
                         "could not populate catalog from knxproj",
                         source=str(source),
                         error=f"{type(e).__name__}: {e}",
                     )
+                check_cancelled(cancel)
+                if committing is not None:
+                    committing()
                 # If we are overwriting the working file the live service currently has open, tear it
                 # down first so no engine holds its inode when we replace it (old-inode/new-file +
                 # pooled-connection hazard). A different working file needs no early close — open()
@@ -1766,13 +1781,21 @@ class ProjectService:
         """Whether ``path`` is an ETS group-address export (routed to import_ga_export)."""
         return _is_ga_export(path)
 
-    def import_ga_export(self, source: Path, dest: Path) -> None:
+    def import_ga_export(
+        self,
+        source: Path,
+        dest: Path,
+        *,
+        cancel: threading.Event | None = None,
+        committing: Callable[[], None] | None = None,
+    ) -> None:
         """Import a GA export (``ga-export/01`` XML) into a new project at ``dest`` and open it.
 
         A GA export carries only the group-address tree (no devices, topology or product
         data), so there is no catalog ingest and no password - unlike import_knxproj. The
         build goes into a sibling temp file and is atomically swapped into place, so the
-        currently-open project keeps reading until the import is complete."""
+        currently-open project keeps reading until the import is complete. ``cancel`` and
+        ``committing`` work as in :meth:`import_knxproj`."""
         if not dest.suffix:
             dest = dest.with_suffix(".xknx")
         working = self._mirror_path(dest) if self._needs_mirror(dest) else dest
@@ -1781,7 +1804,11 @@ class ProjectService:
             tmp = working.with_name(f"{working.name}.import-{os.getpid()}.tmp")
             try:
                 # Name the project after the user-chosen dest, not the temp file we build into.
+                check_cancelled(cancel)
                 _import_ga_export(source, tmp, project_name=dest.stem)
+                check_cancelled(cancel)
+                if committing is not None:
+                    committing()
                 if (
                     self._working_path is not None
                     and self._working_path.resolve() == working.resolve()

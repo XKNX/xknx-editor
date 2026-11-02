@@ -904,6 +904,12 @@ msgstr "Načítání produktového katalogu…"
 msgid "Converting product database…"
 msgstr "Převod produktové databáze…"
 
+msgid "{done}/{total} application programs"
+msgstr "Aplikační programy {done}/{total}"
+
+msgid "Import cancelled, nothing was imported"
+msgstr "Import zrušen, nic nebylo importováno"
+
 msgid "Imported {count} product version(s) from {name}:"
 msgstr "Verze produktů importované z {name}: {count}"
 

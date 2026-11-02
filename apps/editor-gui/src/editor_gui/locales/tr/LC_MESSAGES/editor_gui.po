@@ -904,6 +904,12 @@ msgstr "Ürün kataloğu yükleniyor…"
 msgid "Converting product database…"
 msgstr "Ürün veritabanı dönüştürülüyor…"
 
+msgid "{done}/{total} application programs"
+msgstr "{done}/{total} uygulama programı"
+
+msgid "Import cancelled, nothing was imported"
+msgstr "İçe aktarma iptal edildi, hiçbir şey içe aktarılmadı"
+
 msgid "Imported {count} product version(s) from {name}:"
 msgstr "{name} dosyasından {count} ürün sürümü içe aktarıldı:"
 

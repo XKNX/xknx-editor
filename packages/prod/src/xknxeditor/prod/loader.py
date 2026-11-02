@@ -9,14 +9,19 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from .application import parse_application_xml
 from .archive import Archive
 from .catalog import parse_catalog_xml
+from .errors import check_cancelled
 from .hardware import parse_hardware_xml
 from .master import parse_master_xml
 from .parse_cache import fill_cache
 from .registry import Registry
+
+if TYPE_CHECKING:
+    import threading
 
 logger = logging.getLogger(__name__)
 
@@ -26,6 +31,7 @@ def load(
     *,
     require_catalog: bool = True,
     cache_dir: Path | None = None,
+    cancel: threading.Event | None = None,
 ) -> Registry:
     """Load a .knxprod (path or bytes) into one queryable `Registry`; ids are globally unique.
 
@@ -34,7 +40,8 @@ def load(
     then simply absent for manufacturers without a ``Catalog.xml``, hardware/applications still load.
     ``cache_dir`` stores each application's parse in the parse cache (see :mod:`parse_cache`), so
     loading the application later does not parse it again. With it, the applications are parsed in
-    parallel worker processes (see :func:`parse_cache.fill_cache`).
+    parallel worker processes (see :func:`parse_cache.fill_cache`). Setting ``cancel`` stops the
+    load between applications with :class:`~.errors.ImportCancelled`.
     """
     with Archive(source, require_catalog=require_catalog) as archive:
         registry = Registry(master=parse_master_xml(archive.get_master_xml()))
@@ -46,6 +53,7 @@ def load(
                     for xml in archive.get_application_xmls(manufacturer_id).values()
                 ),
                 cache_dir,
+                cancel=cancel,
             )
 
         for manufacturer_id in sorted(archive.manufacturer_ids):
@@ -59,6 +67,7 @@ def load(
 
             apps_before = len(registry.applications)
             for app_xml in archive.get_application_xmls(manufacturer_id).values():
+                check_cancelled(cancel)
                 for application in parse_application_xml(
                     app_xml, manufacturer_id, cache_dir=cache_dir
                 ):

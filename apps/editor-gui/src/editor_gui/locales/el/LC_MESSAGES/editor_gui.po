@@ -904,6 +904,12 @@ msgstr "Φόρτωση καταλόγου προϊόντων…"
 msgid "Converting product database…"
 msgstr "Μετατροπή βάσης δεδομένων προϊόντων…"
 
+msgid "{done}/{total} application programs"
+msgstr "{done}/{total} προγράμματα εφαρμογής"
+
+msgid "Import cancelled, nothing was imported"
+msgstr "Η εισαγωγή ακυρώθηκε, δεν εισήχθη τίποτα"
+
 msgid "Imported {count} product version(s) from {name}:"
 msgstr "Εισήχθησαν {count} έκδοση(-εις) προϊόντος από το {name}:"
 

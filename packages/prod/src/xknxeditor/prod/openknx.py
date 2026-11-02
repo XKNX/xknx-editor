@@ -18,8 +18,13 @@ from __future__ import annotations
 import io
 import re
 import zipfile
+from typing import TYPE_CHECKING
 
 from xknxeditor.prod.errors import ArchiveError
+
+if TYPE_CHECKING:
+    import threading
+    from collections.abc import Callable
 
 # Manufacturer/application identifiers as they appear in the monolithic XML (and the package paths).
 _MANUFACTURER_RE = re.compile(rb'<Manufacturer\s+RefId="(M-[0-9A-Fa-f]{4})"')
@@ -91,25 +96,31 @@ def openknx_release_to_knxprod(release_zip: bytes, master_xml: bytes) -> bytes:
         return monolithic_to_knxprod(zf.read(product_name), master_xml)
 
 
-def knxprod_from_source(data: bytes, master_xml: bytes) -> bytes:
+def knxprod_from_source(
+    data: bytes,
+    master_xml: bytes,
+    *,
+    cancel: threading.Event | None = None,
+    progress: Callable[[int, int], None] | None = None,
+) -> bytes:
     """Return ``.knxprod`` bytes for any supported source, ready for :func:`~.loader.load`.
 
     Accepts a real ``.knxprod`` (returned unchanged), an OpenKNX release ZIP, a ``.vd1`` … ``.vd5``
     product database (converted), or a raw monolithic KNX product XML. ``master_xml`` supplies
-    ``knx_master.xml`` for the other cases."""
-    if (
-        data[:2] == b"PK"
-    ):  # a ZIP: a real .knxprod, an OpenKNX release or a .vd* database
+    ``knx_master.xml`` for the other cases. ``cancel`` and ``progress`` go to the conversion of a
+    product database (see :func:`~.vd.vd_to_knxprod`)."""
+    # A ZIP is a real .knxprod, an OpenKNX release or a .vd* database.
+    if data[:2] == b"PK":
         with zipfile.ZipFile(io.BytesIO(data)) as zf:
             names = zf.namelist()
         if "knx_master.xml" in names:
             return data  # already a .knxprod (signatures are ignored on load)
         if _find_entry(names, "content.xml") is not None:
             return openknx_release_to_knxprod(data, master_xml)
-        from xknxeditor.prod.vd import holds_vd_dump, vd_to_knxprod
+        from xknxeditor.prod import vd
 
-        if holds_vd_dump(names):
-            return vd_to_knxprod(data, master_xml)
+        if vd.holds_vd_dump(names):
+            return vd.vd_to_knxprod(data, master_xml, cancel=cancel, progress=progress)
         raise ArchiveError(
             "ZIP is neither a .knxprod (no knx_master.xml), an OpenKNX release (no content.xml) "
             "nor a product database (.vd1-.vd5)"

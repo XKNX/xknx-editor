@@ -771,6 +771,12 @@ msgstr "Productcatalogus wordt geladen…"
 msgid "Converting product database…"
 msgstr "Productdatabase wordt geconverteerd…"
 
+msgid "{done}/{total} application programs"
+msgstr "{done}/{total} applicatieprogramma's"
+
+msgid "Import cancelled, nothing was imported"
+msgstr "Importeren geannuleerd, er is niets geïmporteerd"
+
 msgid "Opening project…"
 msgstr "Project wordt geopend…"
 
