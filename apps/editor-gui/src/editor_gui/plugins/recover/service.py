@@ -580,66 +580,72 @@ class RecoverService:
         # This runs on the UI thread (live auto-apply in poll); any failure must be
         # contained, never propagate into the render loop.
         try:
-            # Place the device on the segment for its own area/line (creating them
-            # if needed) and set the address at creation, so no fragile post-hoc
-            # "move".
-            segment_id = project.find_or_create_segment_for_address(entry.address)
-            try:
-                device_octet = int(entry.address.split(".")[-1])
-            except ValueError:
-                device_octet = None
-            # The device carries no human-readable name on the bus (only IA, app id and the
-            # configured image), so default to the matched catalog product name; fall back to
-            # the individual address when no product matched. The ETS clear name is project
-            # metadata and stays unrecoverable.
-            device_name = entry.product_name or entry.address
-            device_id = project.add_device(
-                entry.product_ref_id,
-                entry.hardware2program_ref_id,
-                device_name,
-                application,
-                segment_id=segment_id,
-                address=device_octet,
-                # Recovered values are applied as instance overrides at creation, so
-                # an inactive/conditional parameter is stored (and ignored by the
-                # evaluator) rather than raising mid-device via a live set.
-                parameters=list(recovered.parameters.values.items()),
-                # The addresses the device uses are not read from the bus: picking free ones
-                # could take the numbers of devices recovered later.
-                with_additional_addresses=False,
-            )
-            if device_id is None:
-                return False
-            # The bus carries no ETS clear name/description, so stamp the individual
-            # address as the description to record where the device came from.
-            project.set_device_description(device_id, "", entry.address)
-            device = next((d for d in project.devices if d.node_id == device_id), None)
-            if device is None:
-                return False
-            # Prefer the device-matched map computed during recovery (module
-            # instances seeded from the recovered parameters); fall back to default.
-            number_to_ref = recovered.com_object_refs or com_object_ref_by_number(
-                application
-            )
-            if self._log is not None:
-                persisted = [
-                    co
-                    for co in getattr(device, "com_objects", [])
-                    if getattr(co, "db_id", None) is not None
-                ]
-                self._log.debug(
-                    "recover apply device",
-                    address=entry.address,
-                    device_id=device_id,
-                    com_objects=len(getattr(device, "com_objects", [])),
-                    persisted_com_objects=len(persisted),
-                    number_to_ref=len(number_to_ref),
-                    links=len(recovered.links),
-                    group_objects=len(recovered.group_objects),
+            # The device with its settings, flags, group addresses and links: one undo step.
+            with project.one_undo_step():
+                # Place the device on the segment for its own area/line (creating them
+                # if needed) and set the address at creation, so no fragile post-hoc
+                # "move".
+                segment_id = project.find_or_create_segment_for_address(entry.address)
+                try:
+                    device_octet = int(entry.address.split(".")[-1])
+                except ValueError:
+                    device_octet = None
+                # The device carries no human-readable name on the bus (only IA, app id and the
+                # configured image), so default to the matched catalog product name; fall back to
+                # the individual address when no product matched. The ETS clear name is project
+                # metadata and stays unrecoverable.
+                device_name = entry.product_name or entry.address
+                device_id = project.add_device(
+                    entry.product_ref_id,
+                    entry.hardware2program_ref_id,
+                    device_name,
+                    application,
+                    segment_id=segment_id,
+                    address=device_octet,
+                    # Recovered values are applied as instance overrides at creation, so
+                    # an inactive/conditional parameter is stored (and ignored by the
+                    # evaluator) rather than raising mid-device via a live set.
+                    parameters=list(recovered.parameters.values.items()),
+                    # The addresses the device uses are not read from the bus: picking free ones
+                    # could take the numbers of devices recovered later.
+                    with_additional_addresses=False,
                 )
-            self._apply_flags(device, recovered, number_to_ref)
-            self._apply_links(device, recovered, number_to_ref, ga_ids)
-            project.recalculate_params(device_id, list(recovered.parameters.values))
+                if device_id is None:
+                    return False
+                # The bus carries no ETS clear name/description, so stamp the individual
+                # address as the description to record where the device came from.
+                project.set_device_description(device_id, "", entry.address)
+                device = next(
+                    (d for d in project.devices if d.node_id == device_id), None
+                )
+                if device is None:
+                    return False
+                # Prefer the device-matched map computed during recovery (module
+                # instances seeded from the recovered parameters); fall back to default.
+                number_to_ref = recovered.com_object_refs or com_object_ref_by_number(
+                    application
+                )
+                if self._log is not None:
+                    persisted = [
+                        co
+                        for co in getattr(device, "com_objects", [])
+                        if getattr(co, "db_id", None) is not None
+                    ]
+                    self._log.debug(
+                        "recover apply device",
+                        address=entry.address,
+                        device_id=device_id,
+                        com_objects=len(getattr(device, "com_objects", [])),
+                        persisted_com_objects=len(persisted),
+                        number_to_ref=len(number_to_ref),
+                        links=len(recovered.links),
+                        group_objects=len(recovered.group_objects),
+                    )
+                self._apply_flags(device, recovered, number_to_ref)
+                self._apply_links(device, recovered, number_to_ref, ga_ids)
+                project.recalculate_params(
+                    device_id, list(recovered.parameters.values), stored=True
+                )
         except Exception as exc:  # never crash the render loop / batch on one device
             entry.applied = True  # do not retry this device every frame
             entry.state = S.STATE_ERROR
@@ -657,7 +663,8 @@ class RecoverService:
         project = self._api.project
         for number, group_object in recovered.group_objects.items():
             ref_id = number_to_ref.get(number)
-            if ref_id is None or device.find_com_object(ref_id) is None:
+            com_object = device.find_com_object(ref_id) if ref_id is not None else None
+            if ref_id is None or com_object is None:
                 continue
             for flag, value in (
                 ("communication", group_object.communication),
@@ -667,8 +674,9 @@ class RecoverService:
                 ("update", group_object.update),
                 ("read_on_init", group_object.read_on_init),
             ):
-                # A memory-mapped table holds no read-on-init: the product's stays.
-                if value is not None:
+                # A memory-mapped table holds no read-on-init: the product's stays. A flag
+                # the group object has already is not set again.
+                if value is not None and getattr(com_object.flags, flag) != value:
                     project.set_flag(device, ref_id, flag, value)
 
     def _apply_links(

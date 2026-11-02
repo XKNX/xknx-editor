@@ -149,8 +149,10 @@ def test_recovery_decodes_again_with_the_values_read(
             return {}
 
         def recalculate(
-            self, _refs: object
+            self, _refs: object, *, stored: bool = False
         ) -> dict[str, tuple[str | None, str | None]]:
+            # The values were read from the device.
+            assert stored
             return {}
 
     seeds: list[dict[str, str]] = []

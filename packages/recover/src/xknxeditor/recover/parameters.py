@@ -200,7 +200,7 @@ def _with_calculated(
     ui = seed_dynamic_ui(application, values, project_code_page)
     if ui is None:
         return result
-    for ref_id, (_old, new) in ui.recalculate(list(values)).items():
+    for ref_id, (_old, new) in ui.recalculate(list(values), stored=True).items():
         if new is not None:
             result.setdefault(ref_id, new)
     return result

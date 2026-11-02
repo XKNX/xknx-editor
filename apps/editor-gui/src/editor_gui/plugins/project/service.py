@@ -5006,8 +5006,11 @@ class ProjectService:
         self._persist_param_changes(device, changes, old_active, label=label)
         return changes
 
-    def recalculate_params(self, node_id: int, ref_ids: list[str]) -> "ChangeSet":
-        """Run and persist the calculations depending on ``ref_ids``."""
+    def recalculate_params(
+        self, node_id: int, ref_ids: list[str], *, stored: bool = False
+    ) -> "ChangeSet":
+        """Run and persist the calculations depending on ``ref_ids`` (``stored``: values read
+        from the device, see ``DynamicUI.recalculate``)."""
         device = self.find_device_by_node_id(node_id)
         if self._pid is None or device is None:
             return {}
@@ -5016,7 +5019,7 @@ class ProjectService:
             if self._co_reconcile_enabled
             else set[str]()
         )
-        changes = device.recalculate_params(ref_ids)
+        changes = device.recalculate_params(ref_ids, stored=stored)
         self._persist_param_changes(device, changes, old_active)
         return changes
 
@@ -6221,14 +6224,7 @@ class ProjectService:
         group address does not create duplicate rows (as a plain create would)."""
         if self._pid is None:
             return None
-        existing = next(
-            (
-                ga.id
-                for ga in self._svc.group_addresses(self._pid)
-                if ga.address == value
-            ),
-            None,
-        )
+        existing = self._svc.find_group_address(self._pid, value)
         if existing is not None:
             return existing
         ga_id = self._svc.create_group_address(self._pid, _INSTALLATION, value, name)

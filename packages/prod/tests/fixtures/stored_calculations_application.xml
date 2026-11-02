@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<KNX xmlns="http://knx.org/xml/project/20" CreatedBy="test" ToolVersion="1">
+  <ManufacturerData>
+    <Manufacturer RefId="M-00FA">
+      <ApplicationPrograms>
+        <ApplicationProgram Id="M-00FA_A-0002-01-0000" ApplicationNumber="2" ApplicationVersion="1"
+            ProgramType="ApplicationProgram" MaskVersion="MV-07B0" Name="Stored"
+            LoadProcedureStyle="MergedProcedure" PeiType="0" DefaultLanguage="en-US"
+            DynamicTableManagement="false" Linkable="false" MinEtsVersion="5.0">
+          <Static>
+            <ParameterTypes>
+              <ParameterType Id="M-00FA_A-0002-01-0000_PT-Byte" Name="Byte">
+                <TypeNumber SizeInBit="8" Type="unsignedInt" minInclusive="0" maxInclusive="255" />
+              </ParameterType>
+              <ParameterType Id="M-00FA_A-0002-01-0000_PT-Shift" Name="Shift">
+                <TypeFloat Encoding="DPT 9" minInclusive="0" maxInclusive="10" Increment="0.5" />
+              </ParameterType>
+              <ParameterType Id="M-00FA_A-0002-01-0000_PT-Frost" Name="Frost">
+                <TypeFloat Encoding="DPT 9" minInclusive="3" maxInclusive="12" Increment="0.5" />
+              </ParameterType>
+              <ParameterType Id="M-00FA_A-0002-01-0000_PT-Level" Name="Level">
+                <TypeNumber SizeInBit="8" Type="unsignedInt" minInclusive="0" maxInclusive="20" />
+              </ParameterType>
+              <ParameterType Id="M-00FA_A-0002-01-0000_PT-Mode" Name="Mode">
+                <TypeRestriction Base="Value" SizeInBit="8">
+                  <Enumeration Text="Off" Value="0" Id="M-00FA_A-0002-01-0000_PT-Mode_EN-0" />
+                  <Enumeration Text="On" Value="1" Id="M-00FA_A-0002-01-0000_PT-Mode_EN-1" />
+                </TypeRestriction>
+              </ParameterType>
+            </ParameterTypes>
+            <Parameters>
+              <Parameter Id="M-00FA_A-0002-01-0000_P-1" Name="Shift" ParameterType="M-00FA_A-0002-01-0000_PT-Shift" Text="Shift" Value="3" />
+              <Parameter Id="M-00FA_A-0002-01-0000_P-2" Name="ShiftValue" ParameterType="M-00FA_A-0002-01-0000_PT-Byte" Text="" Access="None" Value="30" />
+              <Parameter Id="M-00FA_A-0002-01-0000_P-3" Name="Frost" ParameterType="M-00FA_A-0002-01-0000_PT-Frost" Text="Frost" Value="7" />
+              <Parameter Id="M-00FA_A-0002-01-0000_P-4" Name="FrostValue" ParameterType="M-00FA_A-0002-01-0000_PT-Byte" Text="" Access="None" Value="14" />
+              <Parameter Id="M-00FA_A-0002-01-0000_P-5" Name="Protection" ParameterType="M-00FA_A-0002-01-0000_PT-Mode" Text="Protection" Value="0" />
+              <Parameter Id="M-00FA_A-0002-01-0000_P-6" Name="Level" ParameterType="M-00FA_A-0002-01-0000_PT-Level" Text="Level" Value="1" />
+              <Parameter Id="M-00FA_A-0002-01-0000_P-7" Name="LevelValue" ParameterType="M-00FA_A-0002-01-0000_PT-Byte" Text="" Access="None" Value="3" />
+            </Parameters>
+            <ParameterRefs>
+              <ParameterRef Id="M-00FA_A-0002-01-0000_P-1_R-1" RefId="M-00FA_A-0002-01-0000_P-1" /><ParameterRef Id="M-00FA_A-0002-01-0000_P-2_R-2" RefId="M-00FA_A-0002-01-0000_P-2" /><ParameterRef Id="M-00FA_A-0002-01-0000_P-3_R-3" RefId="M-00FA_A-0002-01-0000_P-3" /><ParameterRef Id="M-00FA_A-0002-01-0000_P-4_R-4" RefId="M-00FA_A-0002-01-0000_P-4" /><ParameterRef Id="M-00FA_A-0002-01-0000_P-5_R-5" RefId="M-00FA_A-0002-01-0000_P-5" /><ParameterRef Id="M-00FA_A-0002-01-0000_P-6_R-6" RefId="M-00FA_A-0002-01-0000_P-6" /><ParameterRef Id="M-00FA_A-0002-01-0000_P-7_R-7" RefId="M-00FA_A-0002-01-0000_P-7" />
+            </ParameterRefs>
+            <ParameterCalculations>
+              <!-- The RL transformation is not the inverse of the LR one for the shift. -->
+              <ParameterCalculation Id="M-00FA_A-0002-01-0000_PC-1" Name="Setpoints" Language="JavaScript">
+                <RLTransformation>s = sv; f = fv / 2;</RLTransformation>
+                <LRTransformation>sv = s * 10; fv = f * 2;</LRTransformation>
+                <LParameters>
+                  <ParameterRefRef RefId="M-00FA_A-0002-01-0000_P-3_R-3" AliasName="f" />
+                  <ParameterRefRef RefId="M-00FA_A-0002-01-0000_P-1_R-1" AliasName="s" />
+                </LParameters>
+                <RParameters>
+                  <ParameterRefRef RefId="M-00FA_A-0002-01-0000_P-4_R-4" AliasName="fv" />
+                  <ParameterRefRef RefId="M-00FA_A-0002-01-0000_P-2_R-2" AliasName="sv" />
+                </RParameters>
+              </ParameterCalculation>
+              <!-- No RL transformation. -->
+              <ParameterCalculation Id="M-00FA_A-0002-01-0000_PC-2" Name="Level" Language="JavaScript" LRTransformationFunc="triple">
+                <LParameters><ParameterRefRef RefId="M-00FA_A-0002-01-0000_P-6_R-6" AliasName="l" /></LParameters>
+                <RParameters><ParameterRefRef RefId="M-00FA_A-0002-01-0000_P-7_R-7" AliasName="lv" /></RParameters>
+              </ParameterCalculation>
+            </ParameterCalculations>
+            <Script>
+function triple(input, output) { output.lv = input.l * 3; }
+</Script>
+          </Static>
+          <Dynamic>
+            <ChannelIndependentBlock>
+              <ParameterBlock Id="M-00FA_A-0002-01-0000_PB-1" Text="Main">
+                <ParameterRefRef RefId="M-00FA_A-0002-01-0000_P-1_R-1" /><ParameterRefRef RefId="M-00FA_A-0002-01-0000_P-2_R-2" /><ParameterRefRef RefId="M-00FA_A-0002-01-0000_P-5_R-5" /><ParameterRefRef RefId="M-00FA_A-0002-01-0000_P-6_R-6" /><ParameterRefRef RefId="M-00FA_A-0002-01-0000_P-7_R-7" />
+                <choose ParamRefId="M-00FA_A-0002-01-0000_P-5_R-5">
+                  <when test="1">
+                    <ParameterRefRef RefId="M-00FA_A-0002-01-0000_P-3_R-3" /><ParameterRefRef RefId="M-00FA_A-0002-01-0000_P-4_R-4" />
+                  </when>
+                </choose>
+              </ParameterBlock>
+            </ChannelIndependentBlock>
+          </Dynamic>
+        </ApplicationProgram>
+      </ApplicationPrograms>
+    </Manufacturer>
+  </ManufacturerData>
+</KNX>
