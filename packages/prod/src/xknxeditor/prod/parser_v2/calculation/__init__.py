@@ -38,6 +38,9 @@ if TYPE_CHECKING:
     from ..application_indexer import ApplicationIndexer
 
 log = logging.getLogger(__name__)
+# Calculation failures already logged (calculation id, error): a product's broken calculation
+# fails again on every recalculation (each recovery round, each edit), logged once.
+_failures_logged: set[tuple[str, str]] = set()
 
 ChangeSet = dict[str, tuple[str | None, str | None]]
 
@@ -137,10 +140,12 @@ def run_calculations_many(
     for calc, direction in idx.calculation_plan_many(local_refs):
         try:
             _run_one(idx, calc, direction, scope, journal, env, abort)
-        except CalculationError:
+        except CalculationError as exc:
             if raise_errors:
                 raise
-            log.warning("parameter calculation %s failed", calc.id, exc_info=True)
+            if (calc.id, str(exc)) not in _failures_logged:
+                _failures_logged.add((calc.id, str(exc)))
+                log.warning("parameter calculation %s failed", calc.id, exc_info=True)
 
 
 def _run_one(

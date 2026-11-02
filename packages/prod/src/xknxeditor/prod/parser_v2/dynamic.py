@@ -280,18 +280,27 @@ class DynamicTreeBuilder:
         self._page_params, self._nearest_placement = self._build_page_maps(app)
         # Param-refs (local to their application or module definition) whose value can change
         # which allocating module instances the tree makes; no other value can make an allocator
-        # overflow.
-        self.allocation_param_refs: frozenset[str] = self._build_allocation_param_refs(
-            app
-        )
+        # overflow. Those whose value can change which group objects and module instances the
+        # tree makes. And per param-ref, the selectors right on the way to its placements.
+        self.allocation_param_refs: frozenset[str]
+        self.object_param_refs: frozenset[str]
+        self.parameter_gates: dict[str, frozenset[str]]
+        (
+            self.allocation_param_refs,
+            self.object_param_refs,
+            self.parameter_gates,
+        ) = self._build_selector_refs(app)
 
-    def _build_allocation_param_refs(self, app: ApplicationProgram) -> frozenset[str]:
+    def _build_selector_refs(
+        self, app: ApplicationProgram
+    ) -> tuple[frozenset[str], frozenset[str], dict[str, frozenset[str]]]:
         """The selectors (choose parameters, repeat counts) on the way to a module that
-        allocates (an argument with an Allocator, or such a module inside it), closed over what
-        makes a selector count: a choose renders only while its parameter is active, so the
-        selectors on the way to the parameter's placements and assigns count too, as do the
-        sources of its assigns and its union siblings (a choose on an inactive union member
-        renders nothing)."""
+        allocates (an argument with an Allocator, or such a module inside it), and those on the
+        way to a group object or any module. Both closed over what makes a selector count: a
+        choose renders only while its parameter is active, so the selectors on the way to the
+        parameter's placements and assigns count too, as do the sources of its assigns and its
+        union siblings (a choose on an inactive union member renders nothing). Third, per
+        param-ref the selectors on the way to its placements and assigns."""
         defs = self.idx.module_defs
         allocates: dict[str, bool] = {}
 
@@ -311,6 +320,7 @@ class DynamicTreeBuilder:
             return allocates[def_id]
 
         seeds: set[str] = set()
+        object_seeds: set[str] = set()
         placements: dict[str, set[str]] = {}
         sources: dict[str, set[str]] = {}
 
@@ -331,8 +341,12 @@ class DynamicTreeBuilder:
                     walk(child, inner)
                 return
             if isinstance(elem, Module):
+                object_seeds.update(gates)
                 if module_allocates(elem):
                     seeds.update(gates)
+                return
+            if isinstance(elem, ComObjectRefRef):
+                object_seeds.update(gates)
                 return
             if isinstance(elem, ParameterRefRef):
                 placements.setdefault(elem.ref_id, set()).update(gates)
@@ -353,17 +367,22 @@ class DynamicTreeBuilder:
         walk(app.dynamic, ())
         for definition in defs.values():
             walk(definition.dynamic, ())
-        relevant: set[str] = set()
-        pending = list(seeds)
-        while pending:
-            ref = pending.pop()
-            if ref in relevant:
-                continue
-            relevant.add(ref)
-            pending.extend(placements.get(ref, ()))
-            pending.extend(sources.get(ref, ()))
-            pending.extend(self._union_sibling_refs.get(ref) or ())
-        return frozenset(relevant)
+
+        def closed(start: set[str]) -> frozenset[str]:
+            relevant: set[str] = set()
+            pending = list(start)
+            while pending:
+                ref = pending.pop()
+                if ref in relevant:
+                    continue
+                relevant.add(ref)
+                pending.extend(placements.get(ref, ()))
+                pending.extend(sources.get(ref, ()))
+                pending.extend(self._union_sibling_refs.get(ref) or ())
+            return frozenset(relevant)
+
+        gates_by_ref = {ref: frozenset(gates) for ref, gates in placements.items()}
+        return closed(seeds), closed(object_seeds), gates_by_ref
 
     def _build_page_maps(
         self, app: ApplicationProgram
@@ -881,7 +900,9 @@ class DynamicUI:
         "_allocation_param_refs",
         "_app",
         "_idx",
+        "_object_param_refs",
         "_page_for",
+        "_parameter_gates",
         "_state",
         "_tree",
         "_ui",
@@ -910,6 +931,8 @@ class DynamicUI:
         self._tree = builder.tree
         self._idx = builder.idx
         self._allocation_param_refs = builder.allocation_param_refs
+        self._object_param_refs = builder.object_param_refs
+        self._parameter_gates = builder.parameter_gates
         self._page_for = builder.page_param_for
         self._state = GlobalState.from_project(
             parameter_instance_refs=parameter_instance_refs,
@@ -1717,6 +1740,17 @@ class DynamicUI:
     @property
     def indexer(self) -> ApplicationIndexer:
         return self._idx
+
+    @property
+    def object_param_refs(self) -> frozenset[str]:
+        """Param-refs (local to their application or module definition) whose value can change
+        which group objects and module instances the tree makes."""
+        return self._object_param_refs
+
+    def parameter_gates(self, local_ref_id: str) -> frozenset[str]:
+        """The selectors (local param-refs) right on the way to the placements of a param-ref
+        (local to its application or module definition)."""
+        return self._parameter_gates.get(local_ref_id, frozenset())
 
     @property
     def application_name(self) -> str:

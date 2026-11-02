@@ -387,6 +387,13 @@ def test_decode_number_signed() -> None:
     assert _decode_value(raw, 16, tc, little_endian=False) == "-2"
 
 
+def test_decode_number_outside_its_range_is_not_recovered() -> None:
+    # 200 fits 16 bits but not -100..100: the bytes are not a value of this type.
+    tc = _signed_number()
+    assert _decode_value(200, 16, tc, little_endian=False) is None
+    assert _decode_value(100, 16, tc, little_endian=False) == "100"
+
+
 def test_decode_float_dpt9() -> None:
     tc = _float(ParameterTypeTypeFloatEncoding.DPT_9)
     raw = _encode_value("21.0", 16, tc)
