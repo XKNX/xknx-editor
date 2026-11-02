@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from pathlib import Path
-
 import pytest
 
 from xknxeditor.prod.errors import ArchiveError
@@ -11,7 +9,7 @@ from xknxeditor.prod.vd import Dump, read_dump
 from xknxeditor.prod.vd.database import Database
 from xknxeditor.prod.vd.upgrade import SCHEMA_VERSION, upgrade
 
-_SAMPLES = Path(r"C:\Austausch\AB-SmartHouse\XKNX\zReferences")
+from ._samples import SAMPLES as _SAMPLES
 
 Spec = tuple[int, int, bool, str]  # column type, size, nullable, name
 Cell = int | str | None

@@ -11,6 +11,8 @@ import pytest
 from xknxeditor.prod.vd import signing
 from xknxeditor.prod.vd.signing import sign
 
+from ._samples import SAMPLES as _SAMPLES
+
 _HEAD = (
     '<?xml version="1.0"?>\r\n<KNX xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" '
     'xmlns:xsd="http://www.w3.org/2001/XMLSchema" CreatedBy="knxconv" ToolVersion="5.6.241.33672" '
@@ -478,7 +480,6 @@ def test_missing_program_reference_fails() -> None:
         sign(files)
 
 
-_SAMPLES = Path(r"C:\Austausch\AB-SmartHouse\XKNX\zReferences")
 _MASTER = Path(r"C:\ProgramData\KNX\XML\project-14\knx_master.xml")
 
 

@@ -15,7 +15,8 @@ from xknxeditor.prod.vd import baggage as vd_baggage
 from xknxeditor.prod.vd.convert import convert, convert_with_report
 from xknxeditor.prod.vd.database import Database
 
-_SAMPLES = Path(r"C:\Austausch\AB-SmartHouse\XKNX\zReferences")
+from ._samples import SAMPLES as _SAMPLES
+
 _NS = "{http://knx.org/xml/project/14}"
 
 MASTER = b"""<?xml version="1.0" encoding="utf-8"?>
