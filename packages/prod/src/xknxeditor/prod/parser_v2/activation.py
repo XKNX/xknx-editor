@@ -163,9 +163,10 @@ def _candidates(gate: Gate, parameter: UiParameter, current: str) -> list[str]:
     return result
 
 
-def _input_values(parameter: UiParameter, current: str) -> list[str]:
-    """The values worth trying for a calculation input: every choice, or the numbers of a small
-    range (the ends and the neighbours of the current value of a larger one)."""
+def values_to_try(parameter: UiParameter, current: str) -> list[str]:
+    """The values other than ``current`` worth trying for a parameter (a calculation input, a
+    setting a recovered device keeps no copy of): every choice, or the numbers of a small range
+    (the ends and the neighbours of the current value of a larger one)."""
     widget = parameter.widget
     if isinstance(widget, EnumWidget):
         values = [str(choice.value) for choice in widget.choices]
@@ -367,7 +368,7 @@ class _Planner:
             if parameter.access is not Access.READ_WRITE:
                 continue
             for shown in islice(self.plans(source, fixed, stack | {gate.param}), 1):
-                for value in _input_values(parameter, self.current(source)):
+                for value in values_to_try(parameter, self.current(source)):
                     if self._trials >= _MAX_TRIALS:
                         return
                     self._trials += 1

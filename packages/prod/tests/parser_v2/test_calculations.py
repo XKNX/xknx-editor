@@ -105,6 +105,21 @@ def test_script_error_rolls_back_the_edit(ui: DynamicUI) -> None:
     assert _ref(1) not in changes
 
 
+def test_a_failing_recalculation_is_logged_once(
+    ui: DynamicUI, monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
+) -> None:
+    import xknxeditor.prod.parser_v2.calculation as calculation
+
+    monkeypatch.setattr(calculation, "_failures_logged", set())
+    ui.apply_parameter_values({_ref(5): "9"})
+    with caplog.at_level("WARNING", logger=calculation.__name__):
+        ui.recalculate([_ref(5)])
+        ui.recalculate([_ref(5)])
+    assert [r.getMessage() for r in caplog.records].count(
+        f"parameter calculation {APP}_PC-4 failed"
+    ) == 1
+
+
 def test_strict_type_check(ui: DynamicUI) -> None:
     with pytest.raises(ValueError):
         ui.edit_parameter(_ref(1), "5000")

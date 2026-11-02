@@ -148,6 +148,11 @@ def test_recovery_decodes_again_with_the_values_read(
         def decode_module_parameters(self, *_args: object) -> dict[str, str | None]:
             return {}
 
+        def recalculate(
+            self, _refs: object
+        ) -> dict[str, tuple[str | None, str | None]]:
+            return {}
+
     seeds: list[dict[str, str]] = []
 
     def seed(_application: object, values: dict[str, str], _code_page: object) -> UI:

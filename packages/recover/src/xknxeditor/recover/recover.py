@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
-from collections.abc import Callable, Mapping
+from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
@@ -30,6 +30,7 @@ from .dossier import DeviceDossier, read_dossier
 from .identify import AppId, read_application_id
 from .parameters import RecoveredParameters, recover_parameters
 from .read_config import (
+    RawGroupCommunication,
     read_group_communication,
     read_parameter_memory,
     read_property_values,
@@ -73,6 +74,8 @@ def seed_dynamic_ui(
     application: Application,
     parameter_values: Mapping[str, str],
     project_code_page: str | None = None,
+    *,
+    module_instances: Sequence[tuple[str, str]] | None = None,
 ) -> DynamicUI | None:
     """Build a dynamic UI evaluated with recovered parameter reference values.
 
@@ -86,8 +89,11 @@ def seed_dynamic_ui(
     once that scope is materialised, so a first build discovers the module instances
     and a second build is seeded with them; without this the override is ignored and
     the map emits the default ref, which no longer matches the object the project
-    persists once the override applies (links then resolve to nothing). Returns
-    ``None`` when the application has no dynamic section. ``project_code_page`` as for
+    persists once the override applies (links then resolve to nothing). Given the
+    ``module_instances`` (``(instance id, module ref id)``, as
+    :meth:`~xknxeditor.prod.parser_v2.dynamic.DynamicUI.get_module_instances` lists them)
+    the first build is left out. Returns ``None`` when the application has no dynamic
+    section. ``project_code_page`` as for
     :func:`~xknxeditor.recover.parameters.recover_parameters`.
     """
     from xknxeditor.namespaces.intermediate.module_instance_t import ModuleInstance
@@ -96,23 +102,28 @@ def seed_dynamic_ui(
     )
     from xknxeditor.prod.parser_v2.dynamic import DynamicUI
 
-    if application.dynamic_ui() is None:
+    # The evaluation tree depends on the program only: build it once, not per seeding.
+    program, tree_builder = application.resolved()
+    if program.dynamic is None:
         return None
     pirs = [
         ParameterInstanceRef(ref_id=ref_id, value=value)
         for ref_id, value in parameter_values.items()
     ]
-    probe = DynamicUI(
-        application.program,
-        parameter_instance_refs=pirs,
-        project_code_page=project_code_page,
-    )
-    module_instances = probe.get_module_instances()
-    if not (module_instances and pirs):
-        return probe
+    if module_instances is None:
+        probe = DynamicUI(
+            program,
+            parameter_instance_refs=pirs,
+            project_code_page=project_code_page,
+            tree_builder=tree_builder,
+        )
+        module_instances = probe.get_module_instances()
+        if not (module_instances and pirs):
+            return probe
     return DynamicUI(
-        application.program,
+        program,
         parameter_instance_refs=pirs,
+        tree_builder=tree_builder,
         module_instances=[
             ModuleInstance(id=instance_id, ref_id=ref_id)
             for instance_id, ref_id in module_instances
@@ -190,14 +201,16 @@ async def recover_device(
         progress(STAGE_PARAMETERS)
     parameter_segments = await read_parameter_memory(programmer, application)
     property_values = await read_property_values(programmer, application)
-    parameters = recover_parameters(
-        application, parameter_segments, property_values, project_code_page
+    # Decoding takes seconds for a large application: off the event loop, which keeps the
+    # connection to the interface answered meanwhile.
+    parameters, com_object_refs = await asyncio.to_thread(
+        _decode_configuration,
+        application,
+        group_communication,
+        parameter_segments,
+        property_values,
+        project_code_page,
     )
-    # Resolve com object numbers against a UI seeded with the recovered parameters,
-    # so module instances (and their runtime numbers) match the device rather than
-    # the application defaults.
-    seeded_ui = seed_dynamic_ui(application, parameters.values, project_code_page)
-    com_object_refs = com_object_ref_by_number(application, seeded_ui)
     return RecoveredDevice(
         address=address,
         application_id=application.id,
@@ -211,6 +224,34 @@ async def recover_device(
         parameter_segments=parameter_segments,
         com_object_refs=com_object_refs,
     )
+
+
+def _decode_configuration(
+    application: Application,
+    group_communication: RawGroupCommunication,
+    parameter_segments: Mapping[str, bytes],
+    property_values: Mapping[tuple[int | None, int, int], bytes],
+    project_code_page: str | None,
+) -> tuple[RecoveredParameters, dict[int, str]]:
+    """The parameters read off a device, and the reference of each group object number."""
+    linked = {link.group_object_number for link in group_communication.links}
+    parameters = recover_parameters(
+        application,
+        parameter_segments,
+        property_values,
+        project_code_page,
+        linked_objects=linked,
+        object_sizes={
+            number: group_object.object_size
+            for number, group_object in group_communication.group_objects.items()
+            if number in linked and group_object.object_size is not None
+        },
+    )
+    # Resolve com object numbers against a UI seeded with the recovered parameters,
+    # so module instances (and their runtime numbers) match the device rather than
+    # the application defaults.
+    seeded_ui = seed_dynamic_ui(application, parameters.values, project_code_page)
+    return parameters, com_object_ref_by_number(application, seeded_ui)
 
 
 async def identify_device_at(
