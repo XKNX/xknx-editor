@@ -351,11 +351,11 @@ class GroupObjectsTable:
             | imgui.TableFlags_.resizable
             | imgui.TableFlags_.row_bg  # zebra striping for readability across many objects
             | imgui.TableFlags_.reorderable
+            # Fills the rest of the tab and scrolls under its header row.
+            | imgui.TableFlags_.scroll_y
         )
         n_cols = 6 + len(FLAG_LABELS)
-        if not begin_data_table(
-            f"##group_objects_{device.node_id}", n_cols, flags, scroll_when_narrow=True
-        ):
+        if not begin_data_table(f"##group_objects_{device.node_id}", n_cols, flags):
             return
 
         imgui.table_setup_column("#", imgui.TableColumnFlags_.width_fixed, px(64.0))

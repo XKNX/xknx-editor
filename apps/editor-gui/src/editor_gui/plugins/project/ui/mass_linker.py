@@ -427,7 +427,7 @@ class MassLinkerPanel:
             | imgui.TableFlags_.resizable
             | imgui.TableFlags_.reorderable
         )
-        if not begin_data_table("##ml1", 6, flags, scroll_when_narrow=True):
+        if not begin_data_table("##ml1", 6, flags | imgui.TableFlags_.scroll_y):
             return
         imgui.table_setup_column("##st", imgui.TableColumnFlags_.width_fixed, px(22.0))
         imgui.table_setup_column(
@@ -672,7 +672,7 @@ class MassLinkerPanel:
             | imgui.TableFlags_.resizable
             | imgui.TableFlags_.reorderable
         )
-        if not begin_data_table("##ml2", 6, flags, scroll_when_narrow=True):
+        if not begin_data_table("##ml2", 6, flags | imgui.TableFlags_.scroll_y):
             return
         imgui.table_setup_column(
             S.ML_COL_OBJECT, imgui.TableColumnFlags_.width_stretch, 0.34

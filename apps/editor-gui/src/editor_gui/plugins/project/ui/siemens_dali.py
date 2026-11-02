@@ -23,6 +23,7 @@ from imgui_bundle import imgui
 from editor_gui.device import Device
 from editor_gui.plugins.project.strings import S
 from editor_gui.widgets.dpi import px
+from editor_gui.widgets.tables import begin_data_table, data_table_headers
 from xknxeditor.dali.connection import Programmer
 from xknxeditor.dali.siemens import (
     DaliDeviceType,
@@ -178,7 +179,7 @@ class SiemensDaliPanel:
             | imgui.TableFlags_.resizable
             | imgui.TableFlags_.scroll_y
         )
-        if not imgui.begin_table("##siemens_dali_ecgs", 6, flags):
+        if not begin_data_table("##siemens_dali_ecgs", 6, flags):
             return
         imgui.table_setup_column(
             S.SIEMENS_DALI_COL_SLOT, imgui.TableColumnFlags_.width_fixed, px(45.0)
@@ -198,7 +199,7 @@ class SiemensDaliPanel:
         imgui.table_setup_column(
             S.SIEMENS_DALI_COL_COLOUR, imgui.TableColumnFlags_.width_fixed, px(120.0)
         )
-        imgui.table_headers_row()
+        data_table_headers()
         for ecg in present:
             imgui.table_next_row()
             imgui.table_next_column()

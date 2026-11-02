@@ -131,8 +131,12 @@ class RecoverPanel:
             | imgui.TableFlags_.sizing_stretch_prop
             | imgui.TableFlags_.resizable
             | imgui.TableFlags_.reorderable
+            | imgui.TableFlags_.scroll_y
         )
-        if not begin_data_table("##recover_results", 6, flags):
+        # The table scrolls under its header and leaves room for the actions below it.
+        height = imgui.get_content_region_avail().y - self._actions_height()
+        size = imgui.ImVec2(0.0, max(height, px(120.0)))
+        if not begin_data_table("##recover_results", 6, flags, size):
             return
         imgui.table_setup_column("", imgui.TableColumnFlags_.width_fixed)
         for header in (
@@ -164,6 +168,24 @@ class RecoverPanel:
             imgui.table_set_column_index(5)
             imgui.text_disabled(service.entry_detail(entry))
         imgui.end_table()
+
+    def _actions_height(self) -> float:
+        """The height :meth:`_render_actions` takes: a button row, a second one once devices
+        are recovered, and a line of text when no project is open then."""
+        service = self._service
+        if service.phase not in ("scanned", "recovered"):
+            return 0.0
+        rows = 1
+        lines = 0
+        if any(e.recovered is not None for e in service.entries):
+            rows += 1
+            lines = 0 if service.has_project() else 1
+        style = imgui.get_style()
+        return (
+            rows * imgui.get_frame_height_with_spacing()
+            + lines * imgui.get_text_line_height_with_spacing()
+            + style.item_spacing.y
+        )
 
     def _render_actions(self) -> None:
         service = self._service
