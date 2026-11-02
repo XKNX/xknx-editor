@@ -43,6 +43,9 @@ namespace Ets5SignExport
     {
       var stdout = new StreamWriter(Console.OpenStandardOutput(), new UTF8Encoding(false)) { AutoFlush = true };
       Console.SetOut(stdout);
+      Con.Line("XKNX Editor - signing the project through the installed ETS.");
+      Con.Line("This window shows progress and closes on its own. Please do not close it.");
+      Con.Line("");
       int code;
       try
       {
@@ -54,6 +57,7 @@ namespace Ets5SignExport
         code = 1;
       }
       Console.Out.Flush();
+      Con.Line(code == 0 ? "Done." : "Finished with an error.");
       Environment.Exit(code);
       return code;
     }
@@ -61,6 +65,7 @@ namespace Ets5SignExport
     private static void Error(string message)
     {
       Console.Out.WriteLine("ERROR=" + message);
+      Con.Line("ERROR: " + message);
     }
 
     private static int Run(string[] args)
@@ -421,6 +426,72 @@ namespace Ets5SignExport
     {
       Console.Out.WriteLine("STAGE=" + stage);
       Console.Out.Flush();
+      Con.Line(Con.Describe(stage));
+    }
+  }
+
+  // Writes human-readable progress to the real console window even though stdout and stderr are
+  // redirected to a pipe by the caller. CONOUT$ is the console output buffer, independent of the
+  // redirected handles; opening it fails (and turns every call into a no-op) when there is no console.
+  internal static class Con
+  {
+    private static readonly object Gate = new object();
+    private static TextWriter _writer;
+    private static bool _tried;
+
+    public static void Line(string text)
+    {
+      var writer = Writer();
+      if (writer == null)
+      {
+        return;
+      }
+      lock (Gate)
+      {
+        try
+        {
+          writer.WriteLine(text);
+          writer.Flush();
+        }
+        catch (Exception)
+        {
+        }
+      }
+    }
+
+    public static string Describe(string stage)
+    {
+      switch (stage)
+      {
+        case "loading": return "Loading ETS assemblies...";
+        case "importing": return "Importing the project...";
+        case "licence": return "Reading the licence...";
+        case "exporting": return "Exporting the signed project...";
+        case "verifying": return "Verifying the signature...";
+        default: return stage;
+      }
+    }
+
+    private static TextWriter Writer()
+    {
+      lock (Gate)
+      {
+        if (_tried)
+        {
+          return _writer;
+        }
+        _tried = true;
+        try
+        {
+          var stream = new FileStream("CONOUT$", FileMode.Open, FileAccess.Write, FileShare.ReadWrite);
+          _writer = new StreamWriter(stream, new UTF8Encoding(false)) { AutoFlush = true };
+        }
+        catch (Exception)
+        {
+          _writer = null;
+        }
+        return _writer;
+      }
     }
   }
 
@@ -1228,18 +1299,19 @@ namespace Ets5SignExport
       Directory.CreateDirectory(extraDir);
 
       var exporterType = FindExporterType();
-      var zipArchiveType = Reflect.Type(A("SharpCompress"), "SharpCompress.Archives.Zip.ZipArchive");
-      var compressionType = Reflect.Type(A("SharpCompress"), "SharpCompress.Common.CompressionType");
-      var projectStoreType = Reflect.Type(A("Knx.Ets.ObjectModel"), "Knx.Ets.ObjectModel.ZipContainerStore.ZipContainerProjectStore");
       var projectType = Reflect.Type(A("Knx.Ets.ObjectModel"), "Knx.Ets.ObjectModel.Project.Project");
 
       var exporter = _autofac.Resolve(_container, exporterType);
       var export = exporterType.GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
-        .Where(m => m.Name == "Export")
-        .FirstOrDefault(m => m.GetParameters().Length >= 5
-          && Reflect.Format(m.GetParameters()[0].ParameterType) == "Knx.Ets.ObjectModel.IProjectStore"
-          && Reflect.Format(m.GetParameters()[1].ParameterType) == "Knx.Ets.ObjectModel.IProjectStore")
-        ?? throw new FailureException("Exporter.Export(IProjectStore, IProjectStore, ...) was not found");
+        .Where(m => m.Name == "Export" && m.GetParameters().Length >= 3)
+        .FirstOrDefault(m => Reflect.Format(m.GetParameters()[0].ParameterType) == "Knx.Ets.ObjectModel.IProjectStore"
+          && m.GetParameters()[1].ParameterType.Name == "ZipFile"
+          && m.GetParameters()[1].ParameterType.Namespace == "Ionic.Zip")
+        ?? throw new FailureException("Exporter.Export(IProjectStore, ZipFile, ...) was not found");
+
+      var zipType = export.GetParameters()[1].ParameterType;
+      var zipCtor = zipType.GetConstructor(new[] { typeof(string), typeof(Encoding) })
+        ?? throw new FailureException("ZipFile(string, Encoding) was not found");
 
       var deviceCount = 0;
       OnDispatcher(() =>
@@ -1248,48 +1320,34 @@ namespace Ets5SignExport
         deviceCount = Convert.ToInt32(Reflect.Get(project, "DeviceCount"), CultureInfo.InvariantCulture);
         Reflect.Call(Reflect.Method(projectType, "Save", false, "System.Boolean"), project, true);
 
-        var zip = Reflect.Call(Reflect.Method(zipArchiveType, "Create", true), null)
-          ?? throw new FailureException("ZipArchive.Create returned null");
+        var source = Reflect.Get(project, "Store") ?? throw new FailureException("Project.Store is null");
+        var zip = zipCtor.Invoke(new object[] { outputPath, Encoding.UTF8 });
         if (zip is IDisposable zipDisposable)
         {
           _disposables.Add(zipDisposable);
         }
-        var projectId = Reflect.Get(project, "Id") ?? throw new FailureException("Project.Id is null");
-        var zipStore = Reflect.New(Reflect.CtorFor(projectStoreType, projectId.GetType(), zipArchiveType), projectId, zip);
-        var source = Reflect.Get(project, "Store") ?? throw new FailureException("Project.Store is null");
 
-        // With an eligible licence, let ETS create and sign the certificate; without one, pass no
-        // certify action so Exporter skips certification and the export succeeds for any device count.
-        var licence = _licence;
-        Action certify = null;
-        if (licence != null)
-        {
-          var createCert = Reflect.Type(A("Knx.Ets.ViewModel"), "Knx.Ets.ViewModel.Application.Wizards.ExportWizard.ExportFileVM")
-            .GetMethods(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)
-            .FirstOrDefault(m => m.Name == "CreateCertificate" && m.GetParameters().Length == 3
-              && m.GetParameters()[0].ParameterType == projectType)
-            ?? throw new FailureException("ExportFileVM.CreateCertificate(Project, ZipContainerProjectStore, license) was not found");
-          certify = () => Reflect.Call(createCert, null, project, zipStore, licence);
-        }
-
+        // The exporter writes the project into the zip and saves it; the certificate is a side effect
+        // of the licence object (present only with a dongle). Without one the output stays unsigned
+        // and the export succeeds for any device count.
         var parameters = export.GetParameters();
         var arguments = new object[parameters.Length];
         arguments[0] = source;
-        arguments[1] = zipStore;
+        arguments[1] = zip;
         for (var i = 2; i < parameters.Length; i++)
         {
           var formatted = Reflect.Format(parameters[i].ParameterType);
-          if (formatted == "System.Predicate<System.String>")
+          if (_licence != null && parameters[i].ParameterType.IsInstanceOfType(_licence))
+          {
+            arguments[i] = _licence;
+          }
+          else if (formatted == "System.Predicate<System.String>")
           {
             arguments[i] = (Predicate<string>)(_ => true);
           }
           else if (formatted == "System.IO.DirectoryInfo")
           {
             arguments[i] = new DirectoryInfo(extraDir);
-          }
-          else if (formatted == "System.Action")
-          {
-            arguments[i] = certify;
           }
           else
           {
@@ -1298,8 +1356,6 @@ namespace Ets5SignExport
         }
 
         Reflect.Call(export, exporter, arguments);
-
-        SaveZip(zip, compressionType, outputPath);
       });
 
       _result.Devices = deviceCount;
@@ -1315,39 +1371,6 @@ namespace Ets5SignExport
       }
       _result.OutputSha256 = Digest.OfFile(outputPath);
       ReadCertificate(outputPath);
-    }
-
-    private void SaveZip(object zip, Type compressionType, string outputPath)
-    {
-      var deflate = Enum.Parse(compressionType, "Deflate");
-      var fileInfo = new FileInfo(outputPath);
-
-      var instance = zip.GetType()
-        .GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
-        .FirstOrDefault(m => m.Name == "SaveTo" && m.GetParameters().Length == 2
-          && m.GetParameters()[0].ParameterType == typeof(FileInfo)
-          && m.GetParameters()[1].ParameterType == compressionType);
-      if (instance != null)
-      {
-        Reflect.Call(instance, zip, fileInfo, deflate);
-        return;
-      }
-
-      // SaveTo(FileInfo, CompressionType) is a writable-archive extension in this build.
-      foreach (var type in Reflect.SafeTypes(A("SharpCompress")))
-      {
-        var extension = type.GetMethods(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)
-          .FirstOrDefault(m => m.Name == "SaveTo" && m.GetParameters().Length == 3
-            && m.GetParameters()[0].ParameterType.IsInstanceOfType(zip)
-            && m.GetParameters()[1].ParameterType == typeof(FileInfo)
-            && m.GetParameters()[2].ParameterType == compressionType);
-        if (extension != null)
-        {
-          Reflect.Call(extension, null, zip, fileInfo, deflate);
-          return;
-        }
-      }
-      throw new FailureException("SharpCompress SaveTo(FileInfo, CompressionType) was not found");
     }
 
     private Type FindExporterType()
