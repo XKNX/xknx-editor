@@ -18,10 +18,11 @@ if TYPE_CHECKING:
 class DbTable:
     """A table: column names and rows (lists of values in column order)."""
 
-    __slots__ = ("_index", "_rows", "_source", "columns", "name")
+    __slots__ = ("_index", "_rows", "_source", "columns", "name", "nullable")
 
     name: str
     columns: list[str]
+    nullable: frozenset[str]  # the columns the dump declares nullable ("Y")
     _rows: list[list[Value]] | None
     _source: Table | None
     _index: dict[str, int]
@@ -34,10 +35,16 @@ class DbTable:
         *,
         source: Table | None = None,
     ) -> None:
-        """``source`` is a dump table whose rows are read on first access (instead of ``rows``)."""
+        """``source`` is a dump table whose rows are read on first access (instead of ``rows``);
+        its column declarations give :attr:`nullable`."""
         self.name = name
         self.columns = [c.upper() for c in columns]
         self._index = {c: i for i, c in enumerate(self.columns)}
+        self.nullable = (
+            frozenset(c.name.upper() for c in source.columns if c.nullable)
+            if source is not None
+            else frozenset()
+        )
         self._source = source
         self._rows = None if source is not None else [list(r) for r in rows]
 
