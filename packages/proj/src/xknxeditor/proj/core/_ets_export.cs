@@ -909,9 +909,8 @@ namespace EtsSignExport
 
     private void UnlockProtectedProject()
     {
-      var common = A("Knx.Ets.Common");
       var providersObject = Reflect.Call(
-        Reflect.Method(Reflect.Type(common, "Knx.Ets.Common.Security.KeyProviderHelper"), "GetKeyProvidersForPassword", true, "System.String"),
+        Reflect.Method(Reflect.FindType(_etsDirectory, "Knx.Ets.Common.Security.KeyProviderHelper"), "GetKeyProvidersForPassword", true, "System.String"),
         null, _request.Password) ?? throw new FailureException("KeyProviderHelper.GetKeyProvidersForPassword returned null");
       var providers = ((IEnumerable)providersObject).Cast<object>().ToList();
       if (providers.Count == 0)
@@ -924,7 +923,7 @@ namespace EtsSignExport
       var conversionType = Reflect.Type(A("Knx.Ets.ViewModel"), "Knx.Ets.ViewModel.Application.Wizards.ImportWizard.IProjectConversionService");
       var conversion = _autofac.Resolve(_container, conversionType);
 
-      var tempFolderCtor = Reflect.Ctor(Reflect.Type(common, "Knx.Ets.Common.Utils.TempFolder"), "System.String", "System.Boolean", "System.String");
+      var tempFolderCtor = Reflect.Ctor(Reflect.FindType(_etsDirectory, "Knx.Ets.Common.Utils.TempFolder"), "System.String", "System.Boolean", "System.String");
       var tempFolderArgs = tempFolderCtor.GetParameters().Select(p => p.HasDefaultValue ? p.DefaultValue : null).ToArray();
       var tempFolder = Reflect.New(tempFolderCtor, tempFolderArgs);
       _extractionFolder = tempFolder as IDisposable;
@@ -961,7 +960,7 @@ namespace EtsSignExport
         _disposables.Add(disposable);
       }
 
-      var accessInterface = Reflect.Type(common, "Knx.Ets.Common.Security.IAccessKeyProvider");
+      var accessInterface = Reflect.FindType(_etsDirectory, "Knx.Ets.Common.Security.IAccessKeyProvider");
       _accessKey = providers.FirstOrDefault(p => accessInterface.IsInstanceOfType(p))
         ?? throw new FailureException("ETS built no IAccessKeyProvider from the project password");
     }
@@ -1664,6 +1663,52 @@ namespace EtsSignExport
     public static Type Type(Assembly assembly, string fullName)
     {
       return assembly.GetType(fullName, false) ?? throw new FailureException("ETS type " + fullName + " was not found in " + assembly.GetName().Name);
+    }
+
+    // Find a type whose home assembly is not stable across ETS builds (e.g. KeyProviderHelper moved
+    // between Knx.Ets.Common and a security assembly). Try loaded assemblies by full name, then scan
+    // the ETS directory for the DLL that defines it, then fall back to the short name alone (the
+    // namespace can shift too). Only used on paths where a hard-coded assembly would be brittle.
+    public static Type FindType(string etsDir, string fullName)
+    {
+      foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+      {
+        var type = assembly.GetType(fullName, false);
+        if (type != null)
+        {
+          return type;
+        }
+      }
+      var shortName = fullName.Substring(fullName.LastIndexOf('.') + 1);
+      Type byShortName = null;
+      foreach (var dll in Directory.GetFiles(etsDir, "*.dll"))
+      {
+        Assembly assembly;
+        try
+        {
+          assembly = Assembly.UnsafeLoadFrom(dll);
+        }
+        catch (Exception)
+        {
+          continue;
+        }
+        var type = assembly.GetType(fullName, false);
+        if (type != null)
+        {
+          return type;
+        }
+        if (byShortName == null)
+        {
+          try
+          {
+            byShortName = assembly.GetTypes().FirstOrDefault(t => t.Name == shortName);
+          }
+          catch (Exception)
+          {
+          }
+        }
+      }
+      return byShortName ?? throw new FailureException("ETS type " + fullName + " was not found in any ETS assembly");
     }
 
     public static ConstructorInfo Ctor(Type type, params string[] parameterTypes)
