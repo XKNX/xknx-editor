@@ -172,8 +172,8 @@ msgstr "Flytja út án vottorðs"
 msgid "Export ETS Project"
 msgstr "Flytja út ETS-verkefni"
 
-msgid "Load .knxprod…"
-msgstr "Hlaða .knxprod…"
+msgid "Load KNX Product…"
+msgstr "Hlaða KNX-vöru…"
 
 msgid "Exit"
 msgstr "Hætta"

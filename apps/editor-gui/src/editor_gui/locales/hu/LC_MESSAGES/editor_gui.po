@@ -172,8 +172,8 @@ msgstr "Exportálás tanúsítvány nélkül"
 msgid "Export ETS Project"
 msgstr "ETS-projekt exportálása"
 
-msgid "Load .knxprod…"
-msgstr ".knxprod betöltése…"
+msgid "Load KNX Product…"
+msgstr "KNX-termék betöltése…"
 
 msgid "Exit"
 msgstr "Kilépés"

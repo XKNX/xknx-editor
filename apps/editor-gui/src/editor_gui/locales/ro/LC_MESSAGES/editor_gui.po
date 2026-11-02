@@ -172,8 +172,8 @@ msgstr "Export fără certificat"
 msgid "Export ETS Project"
 msgstr "Export proiect ETS"
 
-msgid "Load .knxprod…"
-msgstr "Încărcare .knxprod…"
+msgid "Load KNX Product…"
+msgstr "Încărcare produs KNX…"
 
 msgid "Exit"
 msgstr "Ieșire"

@@ -699,8 +699,8 @@ msgstr "Zonder certificaat exporteren"
 msgid "Export ETS Project"
 msgstr "ETS-project exporteren"
 
-msgid "Load .knxprod…"
-msgstr ".knxprod laden…"
+msgid "Load KNX Product…"
+msgstr "KNX-product laden…"
 
 msgid "Exit"
 msgstr "Afsluiten"

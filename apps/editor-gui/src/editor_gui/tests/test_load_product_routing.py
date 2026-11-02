@@ -3,7 +3,7 @@
 The file filter is only advisory on macOS, so a full project archive (.knxproj) can be selected
 in the catalog-import dialog. Feeding it to the catalog importer only extracts the embedded product
 XMLs and builds no devices, which looks like "the project loaded but has no devices".
-``KnxGuiApp._load_knxprod`` therefore routes a .knxproj to the project importer (as "Open Project"
+``KnxGuiApp._load_product`` therefore routes a .knxproj to the project importer (as "Open Project"
 already does). These tests drive that routing decision against a stub so no imgui app is built.
 """
 
@@ -25,7 +25,7 @@ def _stub() -> SimpleNamespace:
 
 
 def _load(stub: SimpleNamespace, path: str) -> None:
-    KnxGuiApp._load_knxprod(stub, path)  # type: ignore[arg-type]
+    KnxGuiApp._load_product(stub, path)  # type: ignore[arg-type]
 
 
 def test_knxproj_routes_to_project_importer() -> None:

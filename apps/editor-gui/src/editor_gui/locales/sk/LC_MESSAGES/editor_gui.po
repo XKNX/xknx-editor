@@ -172,8 +172,8 @@ msgstr "Exportovať bez certifikátu"
 msgid "Export ETS Project"
 msgstr "Exportovať projekt ETS"
 
-msgid "Load .knxprod…"
-msgstr "Načítať .knxprod…"
+msgid "Load KNX Product…"
+msgstr "Načítať produkt KNX…"
 
 msgid "Exit"
 msgstr "Ukončiť"

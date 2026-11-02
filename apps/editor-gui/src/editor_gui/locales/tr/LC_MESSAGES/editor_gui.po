@@ -568,8 +568,8 @@ msgstr "Sertifikasız Dışa Aktar"
 msgid "Export ETS Project"
 msgstr "ETS Projesini Dışa Aktar"
 
-msgid "Load .knxprod…"
-msgstr ".knxprod Yükle…"
+msgid "Load KNX Product…"
+msgstr "KNX Ürünü Yükle…"
 
 msgid "Load OpenKNX from URL or Folder…"
 msgstr "OpenKNX'i URL'den veya Klasörden Yükle…"

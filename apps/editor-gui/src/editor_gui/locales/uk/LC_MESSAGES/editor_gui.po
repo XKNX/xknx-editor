@@ -568,8 +568,8 @@ msgstr "Експортувати без сертифіката"
 msgid "Export ETS Project"
 msgstr "Експорт проєкту ETS"
 
-msgid "Load .knxprod…"
-msgstr "Завантажити .knxprod…"
+msgid "Load KNX Product…"
+msgstr "Завантажити продукт KNX…"
 
 msgid "Load OpenKNX from URL or Folder…"
 msgstr "Завантажити OpenKNX з URL або папки…"

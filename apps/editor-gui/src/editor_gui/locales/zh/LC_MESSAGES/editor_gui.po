@@ -568,8 +568,8 @@ msgstr "不带证书导出"
 msgid "Export ETS Project"
 msgstr "导出 ETS 项目"
 
-msgid "Load .knxprod…"
-msgstr "加载 .knxprod…"
+msgid "Load KNX Product…"
+msgstr "加载 KNX 产品…"
 
 msgid "Load OpenKNX from URL or Folder…"
 msgstr "从 URL 或文件夹加载 OpenKNX…"

@@ -1140,8 +1140,8 @@ class MenuStrings:
         return _("Export Group Addresses")
 
     @property
-    def MENU_LOAD_KNXPROD(self) -> str:
-        return _("Load .knxprod…")
+    def MENU_LOAD_PRODUCT(self) -> str:
+        return _("Load KNX Product…")
 
     @property
     def MENU_LOAD_FROM_URL(self) -> str:
@@ -1525,11 +1525,11 @@ class MenuStrings:
         return _("Redo")
 
     @property
-    def FILE_DIALOG_KNXPROD_TITLE(self) -> str:
+    def FILE_DIALOG_PRODUCT_TITLE(self) -> str:
         return _("Open KNX Product Archive")
 
     @property
-    def FILE_DIALOG_KNXPROD_FILTER(self) -> str:
+    def FILE_DIALOG_PRODUCT_FILTER(self) -> str:
         return _("KNX Product (*.knxprod, *.vd1-*.vd5)")
 
     @property

@@ -3183,7 +3183,7 @@ class KnxGuiApp:
             result = self._open_file_dialog.result()
             self._open_file_dialog = None
             if result:
-                self._load_knxprod(result[0])
+                self._load_product(result[0])
 
         if self._url_folder_dialog is not None and self._url_folder_dialog.ready():
             folder = self._url_folder_dialog.result()
@@ -3440,7 +3440,7 @@ class KnxGuiApp:
             )
         return rows
 
-    def _load_knxprod(self, path: str) -> None:
+    def _load_product(self, path: str) -> None:
         # A .knxproj is a full project archive, not a product catalog. The file filter is only
         # advisory on macOS, so a .knxproj can be picked in the "Load .knxprod" dialog; route it
         # to the project importer (as "Open Project" already does) so its devices get built.
@@ -3906,14 +3906,14 @@ class KnxGuiApp:
                 self._project_plugin.import_group_addresses()
             imgui.separator()
             if (
-                imgui.menu_item(S.MENU_LOAD_KNXPROD, "", False)[0]
+                imgui.menu_item(S.MENU_LOAD_PRODUCT, "", False)[0]
                 and self._can_launch_file_dialog()
             ):
                 self._open_file_dialog = file_dialogs.open_file(
-                    S.FILE_DIALOG_KNXPROD_TITLE,
+                    S.FILE_DIALOG_PRODUCT_TITLE,
                     "",
                     [
-                        S.FILE_DIALOG_KNXPROD_FILTER,
+                        S.FILE_DIALOG_PRODUCT_FILTER,
                         "*.knxprod *.vd1 *.vd2 *.vd3 *.vd4 *.vd5",
                         S.FILE_DIALOG_ALL_FILES,
                         "*",

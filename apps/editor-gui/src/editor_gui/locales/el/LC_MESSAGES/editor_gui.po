@@ -568,8 +568,8 @@ msgstr "Εξαγωγή Χωρίς Πιστοποιητικό"
 msgid "Export ETS Project"
 msgstr "Εξαγωγή Έργου ETS"
 
-msgid "Load .knxprod…"
-msgstr "Φόρτωση .knxprod…"
+msgid "Load KNX Product…"
+msgstr "Φόρτωση προϊόντος KNX…"
 
 msgid "Load OpenKNX from URL or Folder…"
 msgstr "Φόρτωση OpenKNX από URL ή Φάκελο…"
