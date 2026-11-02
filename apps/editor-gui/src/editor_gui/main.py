@@ -2030,9 +2030,16 @@ class KnxGuiApp:
                     imgui.end_tab_item()
                 imgui.end_tab_bar()
         imgui.spacing()
-        # The folder-signing key signs every .knxproj export, with and without certificate --
-        # including Export Without Certificate on the ETS tab -- so the hint/button is shown on
-        # every tab. A child modal: closing it returns to the export dialog.
+        # The folder-signing key signs plain .knxproj exports. The button is shown on every tab;
+        # on the ETS tab a note says the primary Export Through ETS needs no key (ETS re-signs the
+        # project itself), so the key only matters for Export Without Certificate there. Child
+        # modal: closing it returns to the export dialog.
+        if ets_local:
+            imgui.text_wrapped(
+                S.MYKNX_ETS_KEY_NOTE.format(
+                    action=S.MYKNX_ETS_CONFIRM, skip=S.MYKNX_SIGN_SKIP
+                )
+            )
         if signing_key_is_placeholder():
             imgui.push_style_color(imgui.Col_.text, imgui.ImVec4(0.85, 0.7, 0.3, 1.0))
             imgui.text_wrapped(S.SIGNING_KEY_PLACEHOLDER_HINT)
