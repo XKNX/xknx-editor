@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import datetime as dt
+import math
 import re
 from typing import TYPE_CHECKING
 
@@ -33,8 +34,9 @@ _STATUS_RANK = {
     "FutureUseNotRecommended": 3,
     "FutureUseNotAllowed": 4,
 }
-_DATE = re.compile(r"^\s*(\d{4})-(\d{1,2})-(\d{1,2})")
-_DATE_DE = re.compile(r"^\s*(\d{1,2})\.(\d{1,2})\.(\d{4})")
+_DATE = re.compile(r"^\s*(\d{4})[./-](\d{1,2})[./-](\d{1,2})")
+# a date with the year last is read month first (invariant culture)
+_DATE_MDY = re.compile(r"^\s*(\d{1,2})[./-](\d{1,2})[./-](\d{4})")
 
 
 class HardwareDoc:
@@ -64,10 +66,10 @@ def parse_date(value: Value) -> dt.date | None:
     if m:
         y, mo, d = int(m.group(1)), int(m.group(2)), int(m.group(3))
     else:
-        m = _DATE_DE.match(text)
+        m = _DATE_MDY.match(text)
         if not m:
             return None
-        d, mo, y = int(m.group(1)), int(m.group(2)), int(m.group(3))
+        mo, d, y = int(m.group(1)), int(m.group(2)), int(m.group(3))
     try:
         return dt.date(y, mo, d)
     except ValueError:
@@ -217,10 +219,45 @@ def _width(value: Value) -> float | None:
     text = "" if value is None else str(value)
     if not text:
         return None
-    try:
-        return float(text.replace(",", "."))
-    except ValueError:
+    return xml_double(text)
+
+
+_XML_WHITESPACE = " \t\n\r"
+_XML_DOUBLE = re.compile(
+    r"[ \t\n\r\v\f]*[+-]?(\d+\.?\d*|\.\d+)([eE][+-]?\d+)?[ \t\n\r\v\f]*"
+)
+
+
+def xml_double(text: str) -> float | None:
+    """``text`` as ``XmlConvert.ToDouble`` reads it (invariant culture, no thousands
+    separators), None where that fails."""
+    s = text.strip(_XML_WHITESPACE)
+    if s in _XML_SPECIAL:
+        return _XML_SPECIAL[s]
+    if not _XML_DOUBLE.fullmatch(s):
         return None
+    value = float(s)
+    # out of range is an overflow error there
+    return None if math.isinf(value) else value
+
+
+def _single(value: float) -> float:
+    """``value`` rounded to single precision (infinite out of its range)."""
+    import struct
+
+    try:
+        return struct.unpack("<f", struct.pack("<f", value))[0]
+    except OverflowError:
+        return math.copysign(math.inf, value)
+
+
+_XML_SPECIAL = {
+    "INF": math.inf,
+    "-INF": -math.inf,
+    "Infinity": math.inf,
+    "-Infinity": -math.inf,
+    "NaN": math.nan,
+}
 
 
 def _children(el: El, tag: str) -> El:
@@ -258,10 +295,7 @@ def _append_product(ctx: Context, doc: HardwareDoc, entry: Row) -> El | None:
     ):
         modules = _width(entry["ENTRY_WIDTH_IN_MODULES"])
         if modules is not None:
-            import struct
-
-            m32 = struct.unpack("<f", struct.pack("<f", modules))[0]
-            product["WidthInMillimeter"] = float32(17.5 * m32)
+            product["WidthInMillimeter"] = float32(17.5 * _single(modules))
     hw_ref = ctx.refid(entry["PRODUCT_ID"])
     hardware = doc.by_id.get(hw_ref) if hw_ref else None
     if hardware is None:
@@ -269,9 +303,9 @@ def _append_product(ctx: Context, doc: HardwareDoc, entry: Row) -> El | None:
     product["Id"] = f"{hardware['Id']}_P-{fragment(order)}"
     _children(hardware, "Products").children.append(product)
     _sort_children(hardware, _HW_ORDER)
+    # (the products of M-0069 stay registered: the converter tests a status property of the
+    # product it never sets; only their Hardware2Programs become unregistered)
     info = registration_info(entry, "ENTRY_STATUS_CODE", for_h2p=False)
-    if doc.manufacturer == "M-0069":
-        info["RegistrationStatus"] = "Unregistered"
     product.children.append(info)
     product["DefaultLanguage"] = lang
     ctx.add_refid(int(entry["CATALOG_ENTRY_ID"] or 0), product["Id"])
@@ -296,10 +330,9 @@ def _append_product(ctx: Context, doc: HardwareDoc, entry: Row) -> El | None:
     for row in ctx.select(
         "catalogentrybaggage", "CATALOGENTRYID", entry["CATALOG_ENTRY_ID"]
     ):
-        ref = ctx.refid(row["BAGGAGEID"])
-        if ref is not None and not any(
-            b.get("RefId") == ref for b in baggages.children
-        ):
+        # an unknown baggage is referred to without id (once, like every baggage)
+        ref = ctx.refid(row["BAGGAGEID"]) or ""
+        if not any(b.get("RefId") == ref for b in baggages.children):
             baggages.sub("Baggage", {"RefId": ref})
     if baggages.children:
         product.children.append(baggages)
@@ -320,7 +353,7 @@ def _append_product(ctx: Context, doc: HardwareDoc, entry: Row) -> El | None:
         )
 
     entry_id = int(entry["CATALOG_ENTRY_ID"] or 0)
-    translate_entity(
+    translated = translate_entity(
         ctx,
         doc.translations,
         entry_id,
@@ -330,7 +363,9 @@ def _append_product(ctx: Context, doc: HardwareDoc, entry: Row) -> El | None:
         product["Id"],
         product_attribute=attribute,
     )
-    _product_descriptions(ctx, doc, product, entry_id)
+    # descriptions are only translated for a product with texts
+    if translated is not None:
+        _product_descriptions(ctx, doc, product, entry_id)
     return product
 
 
@@ -421,7 +456,7 @@ def convert_hardware(ctx: Context) -> list[HardwareDoc]:
         if ref is not None and doc is not None and ref in doc.by_id:
             continue
         number = int(hw["MANUFACTURER_ID"] or 0)
-        if ctx.master.manufacturer(number) is None:
+        if not ctx.known_manufacturer(ctx.manufacturer_ref(number)):
             ctx.errors.append(f"UnknownManufacturerId: {number}")
             continue
         if number != current or doc is None:

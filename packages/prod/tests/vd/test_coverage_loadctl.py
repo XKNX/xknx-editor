@@ -4,8 +4,6 @@ from __future__ import annotations
 
 from xml.etree import ElementTree as ET
 
-import pytest
-
 from xknxeditor.prod.vd.loadctl import LoadControls
 
 from .test_coverage_helpers import (
@@ -695,7 +693,6 @@ EXTENDED_EXPECTED: list[tuple[str, dict[str, str]]] = [
     ("LdCtrlMasterReset", {"EraseCode": "1", "ChannelNumber": "2"}),
 ]
 
-# the two records this port writes differently from the converter
 _PROGRESS_TEXT = 25
 _UTF8 = 29
 
@@ -704,28 +701,20 @@ def test_extended_records() -> None:
     app, warnings, errors = _program(extended_tables())
     assert (warnings, errors) == ([], [])
     [procedure] = _procedures(app)
-    assert len(procedure) == len(EXTENDED_EXPECTED)
-    for k, (got, expected) in enumerate(zip(procedure, EXTENDED_EXPECTED, strict=True)):
-        if k not in (_PROGRESS_TEXT, _UTF8):
-            assert got == expected
+    assert procedure == EXTENDED_EXPECTED
 
 
-@pytest.mark.xfail(
-    reason="the converter never sets TextIdSpecified: LdCtrlProgressText has no TextId",
-    strict=True,
-)
 def test_progress_text_has_no_text_id() -> None:
+    # the converter never marks the text id as set
     app, _warnings, _errors = _program(extended_tables())
-    assert _procedures(app)[0][_PROGRESS_TEXT] == EXTENDED_EXPECTED[_PROGRESS_TEXT]
+    assert _procedures(app)[0][_PROGRESS_TEXT] == ("LdCtrlProgressText", {})
+    assert LoadControls(6).process(_r(0xF0, 0x0D, 0x12, 0x34), "auto") is not None
 
 
-@pytest.mark.xfail(
-    reason="property data type 47 is written with its XML name PDT_UTF-8, not PDT_UTF8",
-    strict=True,
-)
 def test_property_type_utf8_xml_name() -> None:
+    # property data type 47 is written with its XML name
     app, _warnings, _errors = _program(extended_tables())
-    assert _procedures(app)[0][_UTF8] == EXTENDED_EXPECTED[_UTF8]
+    assert _procedures(app)[0][_UTF8][1]["PropType"] == "PDT_UTF-8"
 
 
 def test_invalid_records() -> None:

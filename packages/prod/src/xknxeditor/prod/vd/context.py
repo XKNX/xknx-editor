@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 from .ids import manufacturer_id
+from .replacers import Replacer, byte_swapper, comfort_plugin
 from .text import culture_name, two_letter
 
 if TYPE_CHECKING:
@@ -73,6 +74,8 @@ class Context:
     default_language: str
     manufacturer_languages: dict[str, str]
     ip_programs: set[str]
+    byte_swapper: Replacer
+    comfort_plugin: Replacer
     _groups: dict[tuple[str, str], dict[Value, list[Row]]]
     _primary_keys: dict[str, str | None]
     _texts: dict[int, list[TextAttr]] | None
@@ -86,6 +89,8 @@ class Context:
         self.default_language = "en-US"
         self.manufacturer_languages = {}
         self.ip_programs = set()
+        self.byte_swapper = byte_swapper()
+        self.comfort_plugin = comfort_plugin()
         self._groups = {}
         self._primary_keys = {}
         self._texts = None
@@ -184,6 +189,16 @@ class Context:
 
     def manufacturer_ref(self, number: Value) -> str:
         return manufacturer_id(int(number or 0))
+
+    def known_manufacturer(self, ref: str) -> bool:
+        """Whether the master data has manufacturer ``ref``. A database of any other manufacturer
+        the master data lacks cannot be converted (the master data is outdated); only M-0041 and
+        M-0100 are reported and left out."""
+        if self.master.manufacturer(ref) is not None:
+            return True
+        if ref in ("M-0041", "M-0100"):
+            return False
+        raise ConversionError(f"manufacturer id = {ref}")
 
     def init_manufacturer_languages(self) -> None:
         """The conversion language per manufacturer: the master data default when the database has

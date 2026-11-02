@@ -10,6 +10,7 @@ import pytest
 from .test_coverage_helpers import (
     Tables,
     base,
+    block,
     children,
     every,
     find,
@@ -554,13 +555,8 @@ _REPLACED_PLUGIN_OPTIONS = (
 )
 
 
-@pytest.mark.xfail(
-    reason="the converter replaces the byte swapper download plugins 15053D1A-... and "
-    "A81BCB76-...: no EtsDownloadPlugin, options PromptBeforeFullDownload and "
-    "LegacyPatchManufacturerIdInTaskSegment",
-    strict=True,
-)
 def test_byte_swapper_plugin_is_replaced_by_options() -> None:
+    # the byte swapper download plugins are replaced by options
     apps, _warnings, _errors = _apps(programs_tables())
     assert "EtsDownloadPlugin" not in _static(apps[A01], "Extension")
     options = _static(apps[A01], "Options")
@@ -568,6 +564,164 @@ def test_byte_swapper_plugin_is_replaced_by_options() -> None:
         "PromptBeforeFullDownload": "true",
         "LegacyPatchManufacturerIdInTaskSegment": "true",
     }
+    assert options["ParameterByteOrder"] == "LittleEndian"
+
+
+def _abb(t: Tables) -> Tables:
+    for rows in t.values():
+        for r in rows:
+            for column in ("MANUFACTURER_ID", "MANUFACTURERID"):
+                if r.get(column) == 131:
+                    r[column] = 2
+    return t
+
+
+def _bag(ident: int, folder: str, name: str) -> dict[str, Any]:
+    return {
+        "ID": ident,
+        "MANUFACTURERID": 2,
+        "LOCALFILEDIR": folder,
+        "LOCALFILENAME": name,
+        "LOCALFILETIME": "2014-07-01",
+        "DATA": name.encode(),
+    }
+
+
+def abb_tables(swapper: str = "{15053D1A-12DE-462A-AEE9-E967A27EFF5B}") -> Tables:
+    """ABB programs with the plugins the converter replaces (0xA058 keeps its plugins)."""
+    t = _abb(base())
+    t["application_program"] += [
+        program(program_id=41, device_type=0xA058, manufacturer_id=2),
+        program(program_id=42, device_type=0x2002, manufacturer_id=2),
+    ]
+    t["hw_product"][0].update(PRODUCT_HANDLING=2, PRODUCT_DLL="plugin.dll")
+    t["s19_block"] = [
+        block(1, bytes([0x21]).ljust(16, b"\0"), merge=2),
+        block(2, bytes([0x0E]).ljust(16, b"\0"), merge=1),
+        block(3, bytes([0x21]).ljust(16, b"\0"), merge=1),
+    ]
+    t["program_plugin"] = [
+        {
+            "PROGRAM_PLUGIN_ID": 1,
+            "PROGRAM_ID": 40,
+            "PLUGIN_TYPE": 1,
+            "PLUGIN_CLSID": swapper,
+        },
+        {
+            "PROGRAM_PLUGIN_ID": 2,
+            "PROGRAM_ID": 40,
+            "PLUGIN_TYPE": 2,
+            "PLUGIN_CLSID": "{72850951-0dfe-400b-807e-f875c89e4365}",
+        },
+        {
+            "PROGRAM_PLUGIN_ID": 3,
+            "PROGRAM_ID": 41,
+            "PLUGIN_TYPE": 1,
+            "PLUGIN_CLSID": "{A81BCB76-1133-4316-929D-1409CEA0EC4D}",
+        },
+    ]
+    t["baggage"] = [
+        _bag(900, "AbbUsU", "x.dll"),
+        _bag(901, "", "ABB_MC10.dll"),
+        _bag(902, "docs", "keep.txt"),
+        _bag(903, "AbbUsU", "y.dll"),
+    ]
+    t["applicationprogrambaggage"] = [
+        {"ID": i, "APPLICATIONPROGRAMID": p, "BAGGAGEID": b}
+        for i, (p, b) in enumerate(
+            [
+                (40, 900),
+                (40, 901),
+                (40, 902),
+                (40, 903),
+                (41, 900),
+                (42, 901),
+                (42, 902),
+            ]
+        )
+    ]
+    t["catalogentrybaggage"] = [{"ID": 1, "CATALOGENTRYID": 999, "BAGGAGEID": 902}]
+    return t
+
+
+ABB = "M-0002_A-1234-01-0000"
+
+
+def test_replaced_abb_plugins() -> None:
+    files, _warnings, _errors = run(abb_tables())
+    apps = {
+        name: find(xml(files, name), ".//{}ApplicationProgram")
+        for name in files
+        if "_A-" in name
+    }
+    replaced = apps[f"M-0002/{ABB}.xml"]
+    assert "Extension" not in [tag(c) for c in find(replaced, "{}Static")] or not (
+        _static(replaced, "Extension")
+    )
+    # the program number is checked after connecting, else first
+    procedures = [
+        children(p) for p in findall(replaced, ".//{}LoadProcedures/{}LoadProcedure")
+    ]
+    check = (
+        "LdCtrlCompareProp",
+        {
+            "InlineData": "0000123400",
+            "Mask": "0000FFFF00",
+            "ObjIdx": "3",
+            "PropId": "13",
+        },
+    )
+    assert procedures == [
+        [("LdCtrlConnect", {}), check, ("LdCtrlLoad", {"LsmIdx": "2"})],
+        [check, ("LdCtrlLoad", {"LsmIdx": "2"})],
+    ]
+    # the baggages of the replaced plugins leave every program, except where they stay
+    refs = {
+        name.split("/")[1][:-4]: [b.get("RefId") for b in every(app, "Baggage")]
+        for name, app in apps.items()
+    }
+    assert refs == {
+        ABB: ["M-0002_BG-docs-keep.2Etxt"],
+        "M-0002_A-A058-01-0000": ["M-0002_BG-AbbUsU-x.2Edll"],
+        "M-0002_A-2002-01-0000": ["M-0002_BG-docs-keep.2Etxt"],
+    }
+    kept = apps["M-0002/M-0002_A-A058-01-0000.xml"]
+    assert _static(kept, "Extension") == {
+        "EtsDownloadPlugin": "{A81BCB76-1133-4316-929D-1409CEA0EC4D}"
+    }
+    # baggages no program uses anymore leave the package
+    baggages = [
+        b.get("Id") for b in every(xml(files, "M-0002/Baggages.xml"), "Baggage")
+    ]
+    assert baggages == ["M-0002_BG-AbbUsU-x.2Edll", "M-0002_BG-docs-keep.2Etxt"]
+    assert sorted(n for n in files if "/Baggages/" in n) == [
+        "M-0002/Baggages/AbbUsU/x.dll",
+        "M-0002/Baggages/docs/keep.txt",
+    ]
+    # the hardware of the replaced program needs no plugin anymore
+    hardware = find(xml(files, "M-0002/Hardware.xml"), ".//{}Hardware")
+    assert "NoDownloadWithoutPlugin" not in hardware.attrib
+
+
+@pytest.mark.xfail(
+    reason="not ported: the converter also replaces the optimized download plugins of Hager "
+    "(000B8A16-..., 8EF0B7D0-..., B385ADFE-..., EE07B2F0-...): load controls of masks 0701 and "
+    "07B0 become master resets, the OptimizeDL baggages leave the programs and their data "
+    "becomes the LoadedImage of the Hardware2Program",
+    strict=True,
+)
+def test_optimized_download_plugin_is_replaced() -> None:
+    files, _warnings, _errors = run(
+        abb_tables("{000B8A16-FD82-4319-88A9-29EBBAF186DE}")
+    )
+    app = find(xml(files, f"M-0002/{ABB}.xml"), ".//{}ApplicationProgram")
+    assert "EtsDownloadPlugin" not in _static(app, "Extension")
+
+
+def test_invalid_class_id_of_a_plugin_fails_the_program() -> None:
+    files, _warnings, errors = run(abb_tables("not a class id"))
+    assert f"M-0002/{ABB}.xml" not in files
+    assert errors[0].startswith("ApplicationProgramConversionFailed")
 
 
 def test_other_download_plugin_stays() -> None:
@@ -602,16 +756,18 @@ def test_description_without_language_is_reported() -> None:
     ]
 
 
-@pytest.mark.xfail(
-    reason="without any text_attribute rows the converter writes no translations (and no "
-    "HelpFile from help_file) for program descriptions and help files",
-    strict=True,
-)
-def test_no_translations_without_text_attributes() -> None:
-    files, _warnings, _errors = run(no_texts_tables())
+@pytest.mark.parametrize("other_entity", [False, True])
+def test_no_translations_without_text_attributes(other_entity: bool) -> None:
+    # descriptions and help files are only translated for a program with texts of its own
+    tables = no_texts_tables()
+    if other_entity:
+        tables["text_attribute"] = [text(1, 1031, 80, 42, "Anderes")]
+    files, _warnings, _errors = run(tables)
     root = xml(files, f"M-0083/{A01}.xml")
     assert every(root, "Languages") == []
-    assert find(root, ".//{}ApplicationProgram").get("HelpFile") == "help.chm"
+    app = find(root, ".//{}ApplicationProgram")
+    assert app.get("HelpFile") == "help.chm"
+    assert app.get("VisibleDescription") is None
 
 
 def test_parameter_calculation() -> None:
@@ -644,27 +800,51 @@ def test_parameter_calculation() -> None:
     ]
 
 
-@pytest.mark.xfail(
-    reason='the converter writes Name="" for a calculation whose name is NULL',
-    strict=True,
-)
 def test_parameter_calculation_without_name() -> None:
+    # the name is required: a NULL name is written empty
     apps, _warnings, _errors = _apps(programs_tables())
     pc = find(apps["M-0002_A-2007-01-0000"], ".//{}ParameterCalculation")
     assert pc.get("Name") == ""
 
 
-@pytest.mark.xfail(
-    reason="a calculation set other than L/R makes the converter fail the whole program "
-    "(ApplicationProgramConversionFailed, no file)",
-    strict=True,
-)
-def test_illegal_calculation_set_fails_the_program() -> None:
-    files, _warnings, errors = run(calculation_set_tables())
+@pytest.mark.parametrize("calculation_set", ["Q", None])
+def test_illegal_calculation_set_fails_the_program(calculation_set: str | None) -> None:
+    tables = calculation_set_tables()
+    tables["parameter"][3]["CALCULATIONSET"] = calculation_set
+    files, _warnings, errors = run(tables)
     assert "M-0002/M-0002_A-2007-01-0000.xml" not in files
-    assert any(e.startswith("ApplicationProgramConversionFailed") for e in errors)
+    # the program fails before its second calculation reports the unknown language
+    failed = [e for e in errors if "M-0002_A-2007" in e or "Id = 47" in e]
+    assert [e.split(":")[0] for e in failed] == ["ApplicationProgramConversionFailed"]
+    # the other programs are converted
+    assert "M-0083/M-0083_A-2003-01-0000.xml" in files
 
 
-def test_illegal_calculation_set_is_reported() -> None:
-    _files, _warnings, errors = run(calculation_set_tables())
-    assert any(e.startswith("IllegalParameterCalculationSet") for e in errors)
+def _calculation_parameters(tables: Tables, *rows: tuple[str, str | None]) -> Tables:
+    """``tables`` with the parameters of calculation 501 replaced by ``rows`` (set, alias)."""
+    mine = [p for p in tables["parameter"] if p.get("PROGRAM_ID") == 47]
+    for p in mine:
+        p.update({"CALCULATIONID": None, "CALCULATIONSET": None, "ALIASNAME": None})
+    for p, (side, alias) in zip(mine, rows, strict=False):
+        p.update({"CALCULATIONID": 501, "CALCULATIONSET": side, "ALIASNAME": alias})
+    return tables
+
+
+@pytest.mark.parametrize(
+    ("rows", "converted"),
+    [
+        ((("L", "x"), ("R", None)), True),
+        # an alias used twice on one side drops the calculation
+        ((("L", "x"), ("L", "x"), ("R", None)), False),
+        # two parameters without alias count as the same alias
+        ((("L", "x"), ("R", None), ("R", None)), False),
+        ((("L", "x"), ("L", "y"), ("R", None)), True),
+    ],
+)
+def test_calculation_alias_must_be_unique_per_side(
+    rows: tuple[tuple[str, str | None], ...], converted: bool
+) -> None:
+    tables = _calculation_parameters(programs_tables(), *rows)
+    apps, _warnings, _errors = _apps(tables)
+    pcs = findall(apps["M-0002_A-2007-01-0000"], ".//{}ParameterCalculation")
+    assert len(pcs) == (1 if converted else 0)

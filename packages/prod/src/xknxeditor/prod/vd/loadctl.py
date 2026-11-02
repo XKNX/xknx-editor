@@ -34,7 +34,7 @@ PROP_TYPES: dict[int, str] = {
     14: "PDT_SHORT_CHAR_BLOCK",
     15: "PDT_DATE_TIME",
     16: "PDT_VARIABLE_LENGTH",
-    47: "PDT_UTF8",
+    47: "PDT_UTF-8",
     48: "PDT_VERSION",
     49: "PDT_ALARM_INFO",
     50: "PDT_BINARY_INFORMATION",
@@ -369,7 +369,8 @@ class LoadControls:
         if cmd == 11:
             return e("LdCtrlMerge", MergeId=r[2])
         if cmd == 13:
-            return e("LdCtrlProgressText", TextId=_ui(r, 2))
+            # the converter never marks the text id as set, so it is not written
+            return El("LdCtrlProgressText")
         if cmd == 14:
             return None
         if cmd == 15:

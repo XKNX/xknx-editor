@@ -1095,6 +1095,8 @@ def _baggage_lookup(files: dict[str, bytes]) -> Callable[[str], str | None]:
 
     def lookup(ref_id: str) -> str | None:
         if not cache:
+            # baggage folders keep the spelling they were created with
+            by_lower = {path.lower(): data for path, data in files.items()}
             for path, data in files.items():
                 directory, _, name = path.partition("/")
                 if name != "Baggages.xml":
@@ -1106,7 +1108,7 @@ def _baggage_lookup(files: dict[str, bytes]) -> Callable[[str], str | None]:
                         p for p in (baggage.get("TargetPath") or "").split("\\") if p
                     )
                     file = f"{directory}/Baggages/{target + '/' if target else ''}{baggage.get('Name')}"
-                    content = files.get(file)
+                    content = by_lower.get(file.lower())
                     if content is None:
                         continue
                     digest = hashlib.md5(content).digest()

@@ -109,7 +109,8 @@ def devices_tables() -> Tables:
         },
         {
             "PRODUCT_ID": 25,
-            "MANUFACTURER_ID": 99,
+            # (M-0041: the one manufacturer missing in the master data that is left out)
+            "MANUFACTURER_ID": 0x41,
             "PRODUCT_NAME": "Unknown",
             "PRODUCT_SERIAL_NUMBER": "U",
         },
@@ -297,7 +298,16 @@ def test_hardware() -> None:
         "IsIPEnabled": "true",
     }
     assert [w.split(":")[0] for w in warnings] == ["NoDownloadWithoutPlugin"]
-    assert errors == ["UnknownManufacturerId: 99", "CatalogItemNotConvertable: 72"]
+    assert errors == ["UnknownManufacturerId: 65", "CatalogItemNotConvertable: 72"]
+
+
+@pytest.mark.parametrize("table", ["hw_product", "catalog_entry"])
+def test_manufacturer_missing_in_the_master_data_fails(table: str) -> None:
+    # the master data is outdated: the database cannot be converted
+    tables = devices_tables()
+    tables[table][0]["MANUFACTURER_ID"] = 99
+    with pytest.raises(ConversionError, match="manufacturer id = M-0063"):
+        run(tables)
 
 
 def test_products() -> None:
@@ -306,7 +316,7 @@ def test_products() -> None:
         p.get("Id"): p for p in every(xml(files, "M-0083/Hardware.xml"), "Product")
     }
     first = products[P31]
-    assert {k: v for k, v in first.attrib.items() if k != "WidthInMillimeter"} == {
+    assert dict(first.attrib) == {
         "Id": P31,
         "Text": "Entry 31",
         "OrderNumber": "GeneratedOrderNumber-31",
@@ -356,12 +366,8 @@ def test_products() -> None:
     assert translations(root, "ru-RU") == {P31: {"Text": "Прибор"}}
 
 
-@pytest.mark.xfail(
-    reason="the converter reads widths with XmlConvert (invariant): '17,5' mm and '0,5' "
-    "modules give no WidthInMillimeter",
-    strict=True,
-)
 def test_width_with_decimal_comma() -> None:
+    # widths are read invariant: '17,5' mm and '0,5' modules give no width
     files, _warnings, _errors = run(devices_tables())
     products = {
         p.get("Id"): p for p in every(xml(files, "M-0083/Hardware.xml"), "Product")
@@ -370,10 +376,66 @@ def test_width_with_decimal_comma() -> None:
     assert "WidthInMillimeter" not in products["M-0083_H-IP.201-0_P-IP.2D1"].attrib
 
 
-@pytest.mark.xfail(
-    reason="the converter parses dates with the invariant culture: 04.05.2010 is April 5",
-    strict=True,
+@pytest.mark.parametrize(
+    ("millimeters", "modules", "expected"),
+    [
+        (" 17.5 ", None, "17.5"),
+        ("+1e1", None, "10"),
+        (".5", None, "0.5"),
+        ("INF", None, "INF"),
+        ("-Infinity", None, "-INF"),
+        ("NaN", None, "NaN"),
+        ("1e400", None, None),
+        ("1e39", None, "INF"),
+        ("1,000", None, None),
+        ("inf", None, None),
+        # the modules only count without a width in millimeters
+        ("", "2", "35"),
+        (None, "0.3", "5.25"),
+        (None, "1e38", "INF"),
+        ("x", "2", None),
+    ],
 )
+def test_width_is_read_as_xml_double(
+    millimeters: str | None, modules: str | None, expected: str | None
+) -> None:
+    tables = devices_tables()
+    entry = next(e for e in tables["catalog_entry"] if e["CATALOG_ENTRY_ID"] == 31)
+    entry.update(ENTRY_WIDTH_IN_MILLIMETERS=millimeters, ENTRY_WIDTH_IN_MODULES=modules)
+    files, _warnings, _errors = run(tables)
+    products = {
+        p.get("Id"): p for p in every(xml(files, "M-0083/Hardware.xml"), "Product")
+    }
+    assert products[P31].get("WidthInMillimeter") == expected
+
+
+@pytest.mark.parametrize(
+    ("date", "expected"),
+    [
+        ("04.05.2010", "2010-04-05"),
+        ("04/05/2010", "2010-04-05"),
+        ("04.05/2010", "2010-04-05"),
+        ("4-5-2010", "2010-04-05"),
+        ("04.05.2010 12:30", "2010-04-05"),
+        ("2010-05-04 00:00:00", "2010-05-04"),
+        ("2010-05-04T10:00:00", "2010-05-04"),
+        ("2010.5.4", "2010-05-04"),
+        ("2010/05/04", "2010-05-04"),
+        ("13.05.2010", None),
+    ],
+)
+def test_registration_date_formats(date: str, expected: str | None) -> None:
+    tables = devices_tables()
+    entry = next(e for e in tables["catalog_entry"] if e["CATALOG_ENTRY_ID"] == 31)
+    entry["REGISTRATION_DATE"] = date
+    files, _warnings, _errors = run(tables)
+    products = {
+        p.get("Id"): p for p in every(xml(files, "M-0083/Hardware.xml"), "Product")
+    }
+    info = find(products[P31], "{}RegistrationInfo")
+    assert info.get("RegistrationDate") == expected
+
+
 def test_dotted_date_is_month_first() -> None:
     files, _warnings, _errors = run(devices_tables())
     products = {
@@ -423,12 +485,24 @@ def test_hardware2programs() -> None:
     }
 
 
-@pytest.mark.xfail(
-    reason="the converter checks the product's own RegistrationStatus (never set): products "
-    "of M-0069 stay registered",
-    strict=True,
-)
+def no_product_texts_tables() -> Tables:
+    t = devices_tables()
+    t["text_attribute"] = [r for r in t["text_attribute"] if r["ENTITY_ID"] != 31]
+    return t
+
+
+def test_product_descriptions_need_texts_of_the_product() -> None:
+    # the descriptions of a product without texts of its own are not translated
+    files, _warnings, _errors = run(no_product_texts_tables())
+    root = xml(files, "M-0083/Hardware.xml")
+    products = {p.get("Id"): p for p in every(root, "Product")}
+    assert "VisibleDescription" not in products[P31].attrib
+    for language in ("de-DE", "en-US"):
+        assert all(not k.startswith(P31) for k in translations(root, language))
+
+
 def test_products_of_m0069_stay_registered() -> None:
+    # only the Hardware2Programs of M-0069 become unregistered (test_hardware2programs)
     files, _warnings, _errors = run(devices_tables())
     rts = _hardware(files, "M-0069/Hardware.xml")["M-0069_H-R1-1"]
     info = find(rts, ".//{}Product/{}RegistrationInfo")

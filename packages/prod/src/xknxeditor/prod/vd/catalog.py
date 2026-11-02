@@ -214,7 +214,7 @@ def convert_catalog(ctx: Context) -> list[CatalogDoc]:
     doc: CatalogDoc | None = None
     current = -1
     for number, vd in mapping:
-        if ctx.master.manufacturer(number) is None:
+        if not ctx.known_manufacturer(ctx.manufacturer_ref(number)):
             ctx.errors.append(f"UnknownManufacturerId: {number}")
             continue
         if number != current or doc is None:

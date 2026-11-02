@@ -61,12 +61,7 @@ def convert_with_report(
     ctx = Context(db, MasterData(master_xml))
     ctx.init_manufacturer_languages()
     files: dict[str, bytes] = {}
-    for doc in convert_baggages(ctx):
-        if doc.baggages:
-            files[f"{doc.manufacturer}/Baggages.xml"] = serialize(
-                document(doc.to_xml()), bom=False
-            )
-        files.update(doc.files)
+    baggage_docs = convert_baggages(ctx)
     apps: dict[str, tuple[bytes, tuple[int, int, int]]] = {}
     programs = ctx.rows("application_program")
     for done, row in enumerate(programs):
@@ -74,7 +69,7 @@ def convert_with_report(
         if progress is not None:
             progress(done, len(programs))
         manufacturer = ctx.manufacturer_ref(row["MANUFACTURER_ID"])
-        if ctx.master.manufacturer(manufacturer) is None:
+        if not ctx.known_manufacturer(manufacturer):
             ctx.errors.append(f"UnknownManufacturerId: {manufacturer}")
             continue
         ctx.default_language = ctx.language_of(manufacturer)
@@ -99,9 +94,21 @@ def convert_with_report(
     check_cancelled(cancel)
     if progress is not None:
         progress(len(programs), len(programs))
+    hardware_docs = convert_hardware(ctx)
+    # replaced plugins: their baggages and the plugin flag of their hardware go
+    for replacer in (ctx.byte_swapper, ctx.comfort_plugin):
+        baggage_docs = replacer.remove_unused_baggages(baggage_docs)
+    for replacer in (ctx.byte_swapper, ctx.comfort_plugin):
+        replacer.reset_no_download_without_plugin(hardware_docs)
+    for doc in baggage_docs:
+        # (also without baggages, when all of the manufacturer's failed)
+        files[f"{doc.manufacturer}/Baggages.xml"] = serialize(
+            document(doc.to_xml()), bom=False
+        )
+        files.update(doc.files)
     for app_id, (data, _info) in apps.items():
         files[f"{app_id[:6]}/{app_id}.xml"] = data
-    for doc in convert_hardware(ctx):
+    for doc in hardware_docs:
         files[f"{doc.manufacturer}/Hardware.xml"] = serialize(
             document(doc.to_xml()), bom=False
         )

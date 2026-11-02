@@ -714,7 +714,8 @@ def test_baggage_files(monkeypatch: pytest.MonkeyPatch) -> None:
 
 def test_unknown_manufacturer_is_reported() -> None:
     t = _base()
-    t["hw_product"][0]["MANUFACTURER_ID"] = 99
+    # (M-0041: missing in the master data, left out; any other one fails the conversion)
+    t["hw_product"][0]["MANUFACTURER_ID"] = 0x41
     files, _warnings, errors = convert_with_report(_db(t), MASTER)
     assert "M-0083/Hardware.xml" not in files
     assert any("UnknownManufacturerId" in e for e in errors)

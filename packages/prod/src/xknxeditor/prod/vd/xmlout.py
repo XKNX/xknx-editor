@@ -117,6 +117,8 @@ _ATTR_ORDER: dict[str, tuple[str, ...]] = {
         "DeviceInfoIgnoreLoadedState",
         "DeviceCompareAllowCompatibleManufacturerId",
         "LineCoupler0912NewProgrammingStyle",
+        "PromptBeforeFullDownload",
+        "LegacyPatchManufacturerIdInTaskSegment",
     ),
     "AssociationTable": ("CodeSegment", "Offset", "MaxEntries"),
     "Baggage": ("TargetPath", "Name", "FileIntegrity", "Id"),
@@ -234,6 +236,7 @@ _ATTR_ORDER: dict[str, tuple[str, ...]] = {
     "LdCtrlCompareProp": (
         "AppliesTo",
         "InlineData",
+        "Mask",
         "ObjIdx",
         "ObjType",
         "Occurrence",
@@ -639,9 +642,18 @@ def _net_g(value: float, digits: int) -> str:
 
 def float32(value: float) -> str:
     """A single-precision value as the serializer writes it (round-trip format)."""
+    import math
     import struct
 
-    v = struct.unpack("<f", struct.pack("<f", value))[0]
+    try:
+        v = struct.unpack("<f", struct.pack("<f", value))[0]
+    except OverflowError:
+        # out of the single-precision range: infinite
+        v = math.copysign(math.inf, value)
+    if math.isnan(v):
+        return "NaN"
+    if math.isinf(v):
+        return "INF" if v > 0 else "-INF"
     if v == int(v) and abs(v) < 1e7:
         return str(int(v)) if v != 0 or str(v)[0] != "-" else "-0"
     text = _net_g(v, 7)

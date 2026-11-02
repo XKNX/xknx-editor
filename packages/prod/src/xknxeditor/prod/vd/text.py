@@ -8,6 +8,9 @@ with the language's code page, then replaces characters XML cannot hold by space
 from __future__ import annotations
 
 import codecs
+import functools
+
+from . import codepages
 
 # LCID -> (culture name, ANSI code page)
 CULTURES: dict[int, tuple[str, int]] = {
@@ -133,7 +136,81 @@ def _encode_1252(text: str) -> bytes:
     return bytes(out)
 
 
+def _codec(cp: int) -> str:
+    return "gbk" if cp == 936 else f"cp{cp}"
+
+
+@functools.cache
+def _single_table(cp: int) -> str:
+    """The 256 characters of the single bytes of ``cp`` as the converter decodes them."""
+    undefined = codepages.SINGLE[cp]
+    chars: list[str] = []
+    for b in range(256):
+        if b in undefined:
+            chars.append(chr(undefined[b]))
+        else:
+            chars.append(bytes([b]).decode(_codec(cp)))
+    return "".join(chars)
+
+
+@functools.cache
+def _translation(cp: int) -> dict[int, str]:
+    """The characters of the bytes (as code points of Latin-1) of a single-byte code page."""
+    return dict(enumerate(_single_table(cp)))
+
+
+@functools.cache
+def _pair_table(cp: int) -> dict[int, str]:
+    out: dict[int, str] = {}
+    for first, count, code in codepages.PAIRS[cp]:
+        for k in range(count):
+            out[first + k] = chr(code + k)
+    return out
+
+
+@functools.cache
+def _lead_bytes(cp: int) -> frozenset[int]:
+    return frozenset(
+        b for low, high in codepages.LEAD_BYTES[cp] for b in range(low, high + 1)
+    )
+
+
+def _decode_dbcs(data: bytes, cp: int) -> str:
+    single = _single_table(cp)
+    pairs = _pair_table(cp)
+    leads = _lead_bytes(cp)
+    replacement = codepages.REPLACEMENT[cp]
+    out: list[str] = []
+    i = 0
+    n = len(data)
+    while i < n:
+        b = data[i]
+        if b in leads and i + 1 < n:
+            # a lead byte always takes the next byte, also where the pair is undefined
+            key = (b << 8) | data[i + 1]
+            ch = pairs.get(key)
+            if ch is None:
+                try:
+                    ch = data[i : i + 2].decode(_codec(cp))
+                except UnicodeDecodeError:
+                    ch = replacement
+                if len(ch) != 1:
+                    ch = replacement
+            out.append(ch)
+            i += 2
+        else:
+            out.append(single[b])
+            i += 1
+    return "".join(out)
+
+
 def _decode(data: bytes, cp: int) -> str:
+    """``data`` decoded with code page ``cp`` as the converter's runtime does it (the same on every
+    OS: undefined bytes and sequences come from :mod:`.codepages`)."""
+    if cp in codepages.LEAD_BYTES:
+        return _decode_dbcs(data, cp)
+    if cp in codepages.SINGLE:
+        return data.decode("latin-1").translate(_translation(cp))
     name = "cp1252" if cp == 1252 else f"cp{cp}"
     try:
         return data.decode(name, errors="vd-lenient")

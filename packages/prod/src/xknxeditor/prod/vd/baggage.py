@@ -6,6 +6,8 @@ import datetime as dt
 import hashlib
 import io
 import re
+import struct
+import time
 import zipfile
 from typing import TYPE_CHECKING
 
@@ -17,8 +19,14 @@ if TYPE_CHECKING:
     from .database import Row
 
 _TIME = re.compile(
-    r"^\s*(\d{4})-(\d{1,2})-(\d{1,2})(?:[ T](\d{1,2}):(\d{2})(?::(\d{2}))?)?"
+    r"^\s*(?:(\d{4})[./-](\d{1,2})[./-](\d{1,2})|(\d{1,2})[./-](\d{1,2})[./-](\d{4}))"
+    r"(?:[ T](\d{1,2}):(\d{2})(?::(\d{2})(?:\.(\d{1,7}))?)?)?"
 )
+_EPOCH = dt.datetime(1970, 1, 1)
+
+
+class BaggageFailed(Exception):
+    """A baggage the converter cannot create (it is left out)."""
 
 
 def to_utc(local: dt.datetime) -> dt.datetime:
@@ -36,21 +44,51 @@ def utc_offset(local: dt.datetime) -> dt.timedelta:
         return dt.timedelta()
 
 
+def is_dst(local: dt.datetime) -> bool:
+    """Whether daylight saving time applies at the local time ``local`` of this computer."""
+    return utc_offset(local) != dt.timedelta(seconds=-time.timezone)
+
+
+def now() -> dt.datetime:
+    """The local time of this computer."""
+    return dt.datetime.now()
+
+
+def now_utc() -> dt.datetime:
+    return dt.datetime.now(dt.UTC).replace(tzinfo=None)
+
+
 def parse_time(text: str) -> dt.datetime | None:
+    """A date and time as the converter reads it (a year last is read month first), or None."""
     m = _TIME.match(text)
     if not m:
         return None
+    if m.group(1):
+        y, mo, d = int(m.group(1)), int(m.group(2)), int(m.group(3))
+    else:
+        mo, d, y = int(m.group(4)), int(m.group(5)), int(m.group(6))
+    fraction = (m.group(10) or "").ljust(6, "0")[:6]
     try:
         return dt.datetime(
-            int(m.group(1)),
-            int(m.group(2)),
-            int(m.group(3)),
-            int(m.group(4) or 0),
-            int(m.group(5) or 0),
-            int(m.group(6) or 0),
+            y,
+            mo,
+            d,
+            int(m.group(7) or 0),
+            int(m.group(8) or 0),
+            int(m.group(9) or 0),
+            int(fraction),
         )
     except ValueError:
         return None
+
+
+def xml_time(utc: dt.datetime, tick: int = 0) -> str:
+    """A UTC time (and its digit of 100 ns) as the serializer writes it (fractions only where
+    there are some)."""
+    text = utc.strftime("%Y-%m-%dT%H:%M:%S")
+    if utc.microsecond or tick:
+        text += "." + f"{utc.microsecond:06d}{tick}".rstrip("0")
+    return text + "Z"
 
 
 def baggage_version(hi: int, lo: int) -> str:
@@ -85,6 +123,11 @@ class BaggageDoc:
         self.manufacturer = manufacturer
         self.baggages: list[El] = []
         self.files: dict[str, bytes] = {}
+        # the baggage folders as created (folder names do not depend on case: the first
+        # spelling stays), the files in them (lower case path -> path, UTC time)
+        self.folders: dict[str, str] = {}
+        self.on_disk: dict[str, tuple[str, str]] = {}
+        self.paths: dict[str, str] = {}
 
     def to_xml(self) -> El:
         m = El("Manufacturer", {"RefId": self.manufacturer})
@@ -92,40 +135,234 @@ class BaggageDoc:
             m.sub("Baggages").children.extend(self.baggages)
         return m
 
+    def folder(self, target_path: str) -> str:
+        """The folder of ``target_path`` below ``Baggages`` as created on a file system that
+        ignores case."""
+        spelled = ""
+        for part in re.split(r"[\\/]+", target_path):
+            if not part:
+                continue
+            path = f"{spelled}/{part}" if spelled else part
+            spelled = self.folders.setdefault(path.lower(), path)
+        return spelled
 
-def _content(row: Row) -> tuple[bytes | None, dt.datetime | None]:
-    data = row["DATA"]
-    if not isinstance(data, bytes):
-        data = None
-    compression = row["COMPRESSION"]
-    if compression is None:
-        return data, None
-    if str(compression).upper() != "Z" or data is None:
-        return None, None
-    with zipfile.ZipFile(io.BytesIO(data)) as zf:
-        entries = [i for i in zf.infolist() if not i.is_dir()]
-        if len(entries) != 1:
-            return None, None
-        info = entries[0]
-        return zf.read(info), dt.datetime(*info.date_time)
+    def remove(self, baggage: El) -> None:
+        path = self.paths.pop(baggage["Id"], None)
+        if path is not None:
+            self.files.pop(path, None)
+            self.on_disk.pop(path.lower(), None)
+
+
+# characters a path cannot hold; the name and folder of a baggage the object model accepts
+_INVALID_PATH = re.compile(r'[\x00-\x1f"<>|]')
+_NAME = re.compile(r'[^"<>|:*?/\\\t\n\r]+')
+_TARGET_PATH = re.compile(r'(([^"<>|:*?/\\\t\n\r]+\\)*[^"<>|:*?/\\\t\n\r]+)?')
+
+
+def _rooted(path: str) -> bool:
+    return path.startswith(("\\", "/")) or (len(path) >= 2 and path[1] == ":")
+
+
+def _combine(first: str, second: str) -> str:
+    if not first or _rooted(second):
+        return second
+    if first.endswith(("\\", "/", ":")):
+        return first + second
+    return f"{first}\\{second}"
+
+
+def _dos_time(packed: int) -> dt.datetime:
+    """A DOS date and time of a ZIP entry as local time, corrected like the converter's ZIP
+    library."""
+    if packed in (0xFFFF, 0):
+        return dt.datetime(1995, 1, 1)
+    t = packed & 0xFFFF
+    d = (packed >> 16) & 0xFFFF
+    year = 1980 + ((d & 0xFE00) >> 9)
+    month = (d & 0x1E0) >> 5
+    day = d & 0x1F
+    hour = (t & 0xF800) >> 11
+    minute = (t & 0x7E0) >> 5
+    second = (t & 0x1F) * 2
+    if second >= 60:
+        minute += 1
+        second = 0
+    if minute >= 60:
+        hour += 1
+        minute = 0
+    if hour >= 24:
+        day += 1
+        hour = 0
+    try:
+        return dt.datetime(year, month, day, hour, minute, second)
+    except ValueError:
+        pass
+    if year == 1980 and (month == 0 or day == 0):
+        try:
+            return dt.datetime(1980, 1, 1, hour, minute, second)
+        except ValueError:
+            return dt.datetime(1980, 1, 1)
+    year = min(max(year, 1980), 2030)
+    month = min(max(month, 1), 12)
+    day = min(max(day, 1), 28)
+    try:
+        return dt.datetime(year, month, day, hour, minute, second)
+    except ValueError as error:
+        raise BaggageFailed("Bad date/time format in the zip file") from error
+
+
+def _extra_mtime(
+    extra: bytes, local_extra: bytes | None, depth: int = 0
+) -> tuple[bool, tuple[dt.datetime, int] | None]:
+    """(times set, modification time in UTC) from the extra fields of a ZIP entry: NTFS times,
+    extended timestamp or Info-ZIP Unix times. A short extended timestamp of the central
+    directory makes the library read the extra fields of the local header."""
+    found = False
+    mtime: tuple[dt.datetime, int] | None = None
+    i = 0
+    while i + 3 < len(extra):
+        start = i
+        tag, size = struct.unpack_from("<HH", extra, i)
+        i += 4
+        field = extra[i : i + size]
+        if tag == 0x000A:
+            if size != 32 or len(field) < 32:
+                raise BaggageFailed("Unexpected size for NTFS times extra field")
+            if struct.unpack_from("<hh", field, 4) == (1, 24):
+                (filetime,) = struct.unpack_from("<q", field, 8)
+                if filetime < 0:
+                    raise BaggageFailed("NTFS time out of range")
+                mtime = (
+                    dt.datetime(1601, 1, 1) + dt.timedelta(microseconds=filetime // 10),
+                    filetime % 10,
+                )
+                found = True
+        elif tag == 0x5455:
+            if size not in (13, 9, 5):
+                raise BaggageFailed(
+                    "Unexpected size for extended timestamp extra field"
+                )
+            if size == 13 or depth > 0:
+                if len(field) < size:
+                    raise BaggageFailed("Truncated extended timestamp extra field")
+                if field[0] & 1:
+                    seconds = struct.unpack_from("<i", field, 1)[0]
+                    mtime = (_EPOCH + dt.timedelta(seconds=seconds), 0)
+                found = True
+            elif local_extra is not None:
+                more, local_mtime = _extra_mtime(local_extra, None, depth + 1)
+                if more:
+                    found = True
+                    mtime = local_mtime if local_mtime is not None else mtime
+        elif tag == 0x5855:
+            if size not in (12, 8):
+                raise BaggageFailed("Unexpected size for Info-ZIP Unix extra field")
+            if len(field) < 8:
+                raise BaggageFailed("Truncated Info-ZIP Unix extra field")
+            seconds = struct.unpack_from("<i", field, 0)[0]
+            mtime = (_EPOCH + dt.timedelta(seconds=seconds), 0)
+            found = True
+        i = start + size + 4
+    return found, mtime
+
+
+def _local_extra(data: bytes, info: zipfile.ZipInfo) -> bytes | None:
+    offset = info.header_offset
+    if offset + 30 > len(data):
+        return None
+    name_length, extra_length = struct.unpack_from("<HH", data, offset + 26)
+    begin = offset + 30 + name_length
+    return data[begin : begin + extra_length]
+
+
+def entry_time(data: bytes, info: zipfile.ZipInfo) -> tuple[dt.datetime, int]:
+    """The UTC modification time an extracted ZIP entry gets: the time of its extra fields, else
+    its DOS time, which the library moves by an hour when daylight saving time differs between
+    then and now (and the file system reads back as local time)."""
+    found, mtime = _extra_mtime(info.extra, _local_extra(data, info))
+    if found:
+        if mtime is None:
+            raise BaggageFailed("No modification time in the extra field")
+        return mtime
+    y, mo, d, h, mi, s = info.date_time
+    packed = (((y - 1980) << 9 | mo << 5 | d) << 16) | (h << 11 | mi << 5 | s // 2)
+    local = _dos_time(packed)
+    if is_dst(now()) and not is_dst(local):
+        local -= dt.timedelta(hours=1)
+    elif not is_dst(now()) and is_dst(local):
+        local += dt.timedelta(hours=1)
+    return to_utc(local), 0
+
+
+def _unzip(ctx: Context, data: bytes) -> tuple[bytes, tuple[dt.datetime, int]] | None:
+    """The content and UTC time of the one file of a zipped baggage; None (and an error) for an
+    archive of more entries."""
+    try:
+        with zipfile.ZipFile(io.BytesIO(data)) as zf:
+            entries = zf.infolist()
+            # every entry is extracted (and checked) first
+            extracted: list[tuple[zipfile.ZipInfo, bytes, tuple[dt.datetime, int]]] = []
+            for info in entries:
+                content = b"" if info.is_dir() else zf.read(info)
+                extracted.append((info, content, entry_time(data, info)))
+    except BaggageFailed:
+        raise
+    except (
+        zipfile.BadZipFile,
+        NotImplementedError,
+        RuntimeError,
+        ValueError,
+        EOFError,
+    ) as e:
+        raise BaggageFailed(str(e)) from e
+    if len(entries) != 1:
+        # (reported without id: the baggage has none yet)
+        ctx.errors.append(
+            "TooManyBaggagesInArchive: The zipped archive in database contains more than one"
+            " file!"
+        )
+        return None
+    info, content, mtime = extracted[0]
+    if info.is_dir():
+        raise BaggageFailed("The archive holds a folder")
+    return content, mtime
 
 
 def append_baggage(ctx: Context, doc: BaggageDoc, row: Row) -> None:
+    try:
+        _append_baggage(ctx, doc, row)
+    except BaggageFailed as error:
+        ctx.errors.append(
+            f"CreatingBaggageFailed: Creating Baggage failed! TargetPath:"
+            f" {row['LOCALFILEDIR']}, LocalFileName: {row['LOCALFILENAME']}, {error}"
+        )
+
+
+def _append_baggage(ctx: Context, doc: BaggageDoc, row: Row) -> None:
     from .pefile import file_version
 
     name = row.str("LOCALFILENAME") or ""
     path = row.str("LOCALFILEDIR") or ""
-    if re.match(r"^([A-Za-z]:)?[\\/]", path):
+    if not _NAME.fullmatch(name):
+        raise BaggageFailed("Value does not match pattern (Name)")
+    if _INVALID_PATH.search(path):
+        raise BaggageFailed("Illegal characters in path")
+    if _rooted(path):
         path = ""
     path = path.rstrip("\\")
+    if not _TARGET_PATH.fullmatch(path):
+        raise BaggageFailed("Value does not match pattern (TargetPath)")
     baggage = El("Baggage", {"TargetPath": path, "Name": name})
     info = baggage.sub("FileInfo")
-    time = row["LOCALFILETIME"]
+    time_value = row["LOCALFILETIME"]
     utc: dt.datetime | None = None
-    if time is not None:
-        local = parse_time(str(time))
-        if local is not None:
-            utc = to_utc(local)
+    if time_value is not None:
+        local = parse_time(str(time_value))
+        if local is None:
+            raise BaggageFailed(
+                f"String was not recognized as a valid DateTime: {time_value}"
+            )
+        utc = to_utc(local)
     hi = int(row["LOCALFILEVERSIONHI"] or 0)
     lo = int(row["LOCALFILEVERSIONLO"] or 0)
     version: str | None = None
@@ -137,14 +374,9 @@ def append_baggage(ctx: Context, doc: BaggageDoc, row: Row) -> None:
         hidden = bool(int(attributes) & 2)
         readonly = bool(int(attributes) & 1)
     dbid = int(row["ID"] or 0)
-    target = f"{path}\\{name}" if path else name
+    target = _combine(path, name)
     for other in doc.baggages:
-        other_target = (
-            f"{other['TargetPath']}\\{other['Name']}"
-            if other["TargetPath"]
-            else other["Name"]
-        )
-        if other_target.lower() != target.lower():
+        if _combine(other["TargetPath"], other["Name"]).lower() != target.lower():
             continue
         other_info = other.find("FileInfo")
         other_version = other_info.get("Version") if other_info is not None else None
@@ -153,40 +385,58 @@ def append_baggage(ctx: Context, doc: BaggageDoc, row: Row) -> None:
             return
         doc.baggages.remove(other)
         ctx.add_refid(dbid, other["Id"])
-        doc.files.pop(_file_path(doc.manufacturer, other), None)
+        doc.remove(other)
         break
-    content, entry_time = _content(row)
-    if utc is None and entry_time is not None:
-        utc = to_utc(entry_time)
-    if content is not None and version is None:
+    baggage["Id"] = f"{doc.manufacturer}_BG-{fragment(path)}-{fragment(name)}"
+    folder = doc.folder(path)
+    file_path = (
+        f"{doc.manufacturer}/Baggages/{folder}/{name}"
+        if folder
+        else f"{doc.manufacturer}/Baggages/{name}"
+    )
+    existing = doc.on_disk.get(file_path.lower())
+    content: bytes | None = None
+    file_time: str | None = None
+    compression = row["COMPRESSION"]
+    data = row["DATA"]
+    if compression is None:
+        if existing is not None:
+            raise BaggageFailed(f"The file '{file_path}' already exists.")
+        content = data if isinstance(data, bytes) else b""
+        # a new file without time has the time it is written
+        file_time = xml_time(utc) if utc is not None else xml_time(now_utc())
+    elif str(compression).upper() == "Z":
+        if not isinstance(data, bytes):
+            raise BaggageFailed("Unable to cast object of type 'System.DBNull'")
+        unzipped = _unzip(ctx, data)
+        if unzipped is not None:
+            if existing is None:
+                content = unzipped[0]
+                file_time = xml_time(*unzipped[1])
+            else:
+                # a file of the same path stays
+                file_path, file_time = existing
+                content = doc.files.get(file_path)
+    if content is None:
+        # no file was created: its integrity cannot be computed
+        raise BaggageFailed(f"Could not find file '{file_path}'.")
+    if version is None:
         version = file_version(name, content)
     if version is not None:
         info["Version"] = version
-    if utc is not None:
-        info["TimeInfo"] = utc.strftime("%Y-%m-%dT%H:%M:%SZ")
+    info["TimeInfo"] = xml_time(utc) if utc is not None else file_time or ""
     if hidden:
         info["Hidden"] = "true"
     if readonly:
         info["ReadOnly"] = "true"
-    if content is not None:
-        integrity = file_integrity(name, content)
-        if integrity is not None:
-            baggage["FileIntegrity"] = integrity
-    baggage["Id"] = f"{doc.manufacturer}_BG-{fragment(path)}-{fragment(name)}"
+    integrity = file_integrity(name, content)
+    if integrity is not None:
+        baggage["FileIntegrity"] = integrity
     doc.baggages.append(baggage)
     ctx.add_refid(dbid, baggage["Id"])
-    if content is not None:
-        doc.files[_file_path(doc.manufacturer, baggage)] = content
-
-
-def _file_path(manufacturer: str, baggage: El) -> str:
-    path = baggage["TargetPath"].replace("\\", "/")
-    name = baggage["Name"]
-    return (
-        f"{manufacturer}/Baggages/{path}/{name}"
-        if path
-        else f"{manufacturer}/Baggages/{name}"
-    )
+    doc.files[file_path] = content
+    doc.on_disk[file_path.lower()] = (file_path, file_time or info["TimeInfo"])
+    doc.paths[baggage["Id"]] = file_path
 
 
 def convert_baggages(ctx: Context) -> list[BaggageDoc]:
@@ -197,7 +447,7 @@ def convert_baggages(ctx: Context) -> list[BaggageDoc]:
     current = -1
     for row in sort_rows(ctx.rows("baggage"), "MANUFACTURERID"):
         number = int(row["MANUFACTURERID"] or 0)
-        if ctx.master.manufacturer(number) is None:
+        if not ctx.known_manufacturer(ctx.manufacturer_ref(number)):
             ctx.errors.append(
                 f"UnknownManufacturerId: Baggage {row['LOCALFILEDIR']}/{row['LOCALFILENAME']}"
             )

@@ -3,12 +3,14 @@
 from __future__ import annotations
 
 import codecs
+import hashlib
 
 import pytest
 
+from xknxeditor.prod.vd import codepages
 from xknxeditor.prod.vd.convert import ConversionError
 from xknxeditor.prod.vd.database import Database
-from xknxeditor.prod.vd.text import code_page, from_db, two_letter
+from xknxeditor.prod.vd.text import _decode, code_page, from_db, two_letter
 
 from .test_coverage_helpers import Tables, base, program, run, text, translations, xml
 
@@ -72,13 +74,67 @@ def test_text_helpers() -> None:
     assert "一".encode("cp1252", errors="vd-lenient") == b"?"
 
 
-@pytest.mark.xfail(
-    reason="the converter decodes bytes a code page leaves undefined to private use "
-    "characters (Windows-1253 0xAA is U+F8F9), not to the byte's code point",
-    strict=True,
-)
 def test_undefined_byte_of_a_code_page() -> None:
-    assert from_db("el-GR", "aªb") == "ab"
+    # bytes a code page leaves undefined decode as there: private use or C1 characters
+    assert from_db("el-GR", "a\xaab") == "a\uf8f9b"
+    assert from_db("el-GR", "\x81") == "\x81"
+    assert from_db("th-TH", "\xdb") == "\uf8c1"
+    assert from_db("he-IL", "\xca") == "\u05ba"
+    assert from_db("lt-LT", "\xa1") == "\uf8fc"
+    files, _warnings, _errors = run(undefined_byte_tables())
+    root = xml(files, "M-0083/Catalog.xml")
+    assert translations(root, "el-GR")["M-0083_CS-L"]["VisibleDescription"] == (
+        "a\uf8f9b"
+    )
+
+
+@pytest.mark.parametrize(
+    ("language", "text", "expected"),
+    [
+        # a lead byte takes the next byte, also where the pair is undefined (one character)
+        ("ja-JP", "\x81\x0aA", "\u30fbA"),
+        ("ja-JP", _ansi("光", 932) + "\x81", "光\u30fb"),
+        # a byte that is no lead byte stands alone
+        ("ja-JP", "\xa0\xfd", "\uf8f0\uf8f1"),
+        ("zh-CN", "€\x81", "€?"),
+        ("zh-CN", "\xaa\xa1", "\ue000"),
+        ("ko-KR", "\xc9\xa1", "\ue000"),
+        ("zh-TW", "\x81\x40\x80", "\ueeb8\x80"),
+    ],
+)
+def test_double_byte_code_pages(language: str, text: str, expected: str) -> None:
+    assert from_db(language, text) == expected
+
+
+# SHA-256 of the UTF-16LE decodings of every byte, then every pair of each lead byte, as the
+# converter's runtime decodes them
+_DIGESTS = {
+    874: "32f78caea158a0dd47a634082c15619c1f57303152fc76dfff287575d88ee8c8",
+    932: "92467b13c912474d67634cd22e8bceac5a4e5ad7dc9071f399407720a7ea6810",
+    936: "e759cadc3621cc0e5cbd29a673d4a9197c63ed5ba69e3b1bcb5b2e04de169b3d",
+    949: "85697587f80acd919ccee3f6eb1f5e4ddb071bdff8f5e46c8a2da83c65c5cf17",
+    950: "498db6a5323736499cb14b9517b15874c1323ecc4392b3aab038b46d4392f658",
+    1250: "083e8699d4ea3429b02b429a7f25b809849cf81e2116ef4ed0d4b96eb34ef90a",
+    1251: "b1ce72e8de9ab26261094800e12f0eb3cdd2c35a23667aefad6669164a603bf3",
+    1252: "0048a1d8df12622c52e110e4bd0b4da053b1e0be5ba70d92c0233763d1be53f9",
+    1253: "097593b13c9f6206acad41030446caf6f292c9b734a5ab7a4975c21574bfc90b",
+    1254: "52c57e6a29dd1c1bbe58a19de2f94374440080b833a7b2f0ce61164a1e7c851a",
+    1255: "a11dfae23379da61e918f23bbf66f896ac4ef2b2debf032f5e0971085cbe2a90",
+    1256: "544c3592214b8762df16607b99334d4d53df3148f5b79ab787992271f78ba593",
+    1257: "6c47fd11e87361031ba004e3f3ef5056be0bbf97df14f6e3b21377bd30f41d6e",
+    1258: "525ad65d40749cdcd9847fdc09d2d10b8d042deb594df4aa92ad3a33a8c14319",
+}
+
+
+@pytest.mark.parametrize("cp", sorted(_DIGESTS))
+def test_code_page_tables_decode_every_byte(cp: int) -> None:
+    parts = [_decode(bytes([b]), cp) for b in range(256)]
+    if cp in codepages.LEAD_BYTES:
+        for low, high in codepages.LEAD_BYTES[cp]:
+            for lead in range(low, high + 1):
+                parts.extend(_decode(bytes([lead, t]), cp) for t in range(256))
+    digest = hashlib.sha256("".join(parts).encode("utf-16-le")).hexdigest()
+    assert digest == _DIGESTS[cp]
 
 
 def test_database_tables() -> None:
@@ -131,11 +187,25 @@ def _report(tables: Tables) -> tuple[list[str], list[str]]:
 def test_program_of_an_unknown_manufacturer() -> None:
     t = base()
     t["application_program"].append(
-        program(program_id=41, device_type=0x2001, manufacturer_id=99)
+        program(program_id=41, device_type=0x2001, manufacturer_id=0x41)
     )
     names, errors = _report(t)
-    assert "M-0063/M-0063_A-2001-01-0000.xml" not in names
-    assert "UnknownManufacturerId: M-0063" in errors
+    assert "M-0041/M-0041_A-2001-01-0000.xml" not in names
+    assert "UnknownManufacturerId: M-0041" in errors
+
+
+@pytest.mark.parametrize(
+    "columns", [{"MANUFACTURER_ID": 99}, {"ORIGINAL_MANUFACTURER_ID": 99}]
+)
+def test_program_of_a_manufacturer_missing_in_the_master_data(
+    columns: dict[str, int],
+) -> None:
+    t = base()
+    t["application_program"].append(
+        program(program_id=41, device_type=0x2001, **columns)
+    )
+    with pytest.raises(ConversionError, match="manufacturer id = M-0063"):
+        _report(t)
 
 
 def test_failing_program_is_reported_and_skipped() -> None:

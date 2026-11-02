@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import base64
+import re
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
@@ -12,6 +13,7 @@ from .ids import application_id, fragment
 from .language import Translations, translate_descriptions, translate_entity
 from .loadctl import LoadControls
 from .netsort import list_sort
+from .replacers import plugin_must_remain
 from .text import from_db, lcid_of
 from .xmlout import El, boolean
 
@@ -146,6 +148,9 @@ _CO_SIZES = {
     18: "11 Bytes",
     19: "12 Bytes",
 }
+# an integer as .NET parses it with NumberStyles.Integer
+_DOTNET_INT = re.compile(r"[ \t\n\v\f\r]*[+-]?[0-9]+[ \t\n\v\f\r]*")
+
 _PRIORITIES = {0: "Alert", 1: "High", 2: "Alert"}
 _ACCESS = {0: "None", 1: "Read", 2: "ReadWrite"}
 
@@ -407,6 +412,16 @@ class AppConverter:
     def convert(self) -> tuple[str, bytes] | None:
         ctx = self.ctx
         row = self.row
+        if (
+            self.manufacturer == "M-0001"
+            and row["DEVICE_TYPE"] is not None
+            and row["PROGRAM_VERSION"] is not None
+            and not _DOTNET_INT.fullmatch(str(row["PROGRAM_VERSION"]))
+        ):
+            # the converter reads these program versions as integers before converting
+            raise ValueError(
+                f"Input string was not in a correct format: {row['PROGRAM_VERSION']}"
+            )
         self.language = ctx.default_language
         name = from_db(self.language, row.str("PROGRAM_NAME"))
         self.attrs["Name"] = name
@@ -423,7 +438,7 @@ class AppConverter:
                 original = None
             if original in ("M-00DC", "M-00FA"):
                 original = None
-            if original is not None and ctx.master.manufacturer(original) is None:
+            if original is not None and not ctx.known_manufacturer(original):
                 ctx.errors.append(
                     f"UnknownManufacturerId: OriginalManufacturer {original}"
                 )
@@ -494,13 +509,13 @@ class AppConverter:
         self.attrs["DynamicTableManagement"] = boolean(
             dynamic is not None and int(dynamic or 0) == 1
         )
-        if ctx.master.manufacturer(self.manufacturer) is None:
+        if not ctx.known_manufacturer(self.manufacturer):
             ctx.errors.append(f"UnknownManufacturerId: {self.manufacturer}")
             return None
         self._static()
         self._dynamic()
         app_el = El("ApplicationProgram", {"Id": self.app_id})
-        translate_entity(
+        translated = translate_entity(
             ctx,
             self.tr,
             int(row["PROGRAM_ID"] or 0),
@@ -509,17 +524,20 @@ class AppConverter:
             self.app_id,
             self.app_id,
         )
-        descriptions = ctx.select(
-            "program_description", "PROGRAM_ID", row["PROGRAM_ID"]
-        )
-        if descriptions:
-            translate_descriptions(
-                ctx, self.tr, app_el, self.app_id, descriptions, "TEXT"
+        # descriptions and help files are only translated for a program with texts
+        if translated is not None:
+            descriptions = ctx.select(
+                "program_description", "PROGRAM_ID", row["PROGRAM_ID"]
             )
+            if descriptions:
+                translate_descriptions(
+                    ctx, self.tr, app_el, self.app_id, descriptions, "TEXT"
+                )
         for name in ("Name", "VisibleDescription"):
             if name in app_el.attrs:
                 self.attrs[name] = app_el[name]
-        self._help_file_translations()
+        if translated is not None:
+            self._help_file_translations()
         return self.app_id, self._to_bytes()
 
     def _retrieve_mask_version(self) -> int | None:
@@ -921,11 +939,10 @@ class AppConverter:
                 self.types.append(pt)
                 self.types_by_id[pt.ident] = pt
             else:
+                # a redefinition keeps the first row's description
                 pt = existing
                 if pt.kind == "restriction":
                     old_restriction = pt.enums
-                if r["PARAMETER_TYPE_DESCRIPTION"] is not None:
-                    pt.description = from_db(None, r.str("PARAMETER_TYPE_DESCRIPTION"))
             ptid = int(r["PARAMETER_TYPE_ID"] or 0)
             ctx.add_refid(ptid, pt.ident)
             atomic = (
@@ -1502,28 +1519,28 @@ class AppConverter:
             elif name == "ValveType":
                 p.item = Property((8 + first) & 0xFF, None, 0, 156, address, bit_offset)
         if p.item is not None and pt is not None and pt.kind == "none":
+            # every sized definition of the void type counts; only the programs of the
+            # exception list get a replacement type, all others keep the void type
+            key = (self.manufacturer, self.number, self.version, self.original)
             for spt, ssize in self.strange_types:
                 if spt is not pt or ssize == 0:
                     continue
-                key = (self.manufacturer, self.number, self.version, self.original)
-                if key in _UNEXPECTED_TYPE_SIZE:
-                    if (
-                        self.number == 32515
-                        and self.manufacturer == "M-0001"
-                        and name == "Text_"
-                    ):
-                        p.type_id = self._dummy_none_type()
-                        p.item = None
-                        break
-                else:
+                if key not in _UNEXPECTED_TYPE_SIZE:
                     ctx.warnings.append(
                         f"UnexpectedDownloadParameterTypeSize: Param # {number} `{name}' has address"
                         f" and void type of size {ssize}"
                     )
-                dummy = self._dummy_type(ssize)
-                p.type_id = dummy.ident
-                p.value = str(dummy.minimum)
-                break
+                elif (
+                    self.number == 32515
+                    and self.manufacturer == "M-0001"
+                    and name == "Text_"
+                ):
+                    p.type_id = self._dummy_none_type()
+                    p.item = None
+                else:
+                    dummy = self._dummy_type(ssize)
+                    p.type_id = dummy.ident
+                    p.value = str(dummy.minimum)
         return p, is_page
 
     def _dummy_none_type(self) -> str:
@@ -1726,13 +1743,14 @@ class AppConverter:
 
     def _parameter_calculations(self) -> None:
         ctx = self.ctx
+        ref_ids = {ref.ident for ref in self.refs}
         for row in ctx.select(
             "parametercalculation", "PROGRAMID", self.row["PROGRAM_ID"]
         ):
             number = int(row["NUMBER"] or 0)
             pc = El("ParameterCalculation", {"Id": f"{self.app_id}_PC-{number}"})
-            if row["NAME"] is not None:
-                pc["Name"] = row.str("NAME") or ""
+            # the name is required: a missing one is written empty
+            pc["Name"] = row.str("NAME") or ""
             pc["Language"] = "VBScript"
             if row["LANGUAGE"] is not None:
                 language = (row.str("LANGUAGE") or "").upper()
@@ -1750,23 +1768,33 @@ class AppConverter:
                 pc.sub("LRTransformation", text=lr)
             left = El("LParameters")
             right = El("RParameters")
+            unique = True
             for p in ctx.select("parameter", "CALCULATIONID", row["ID"]):
                 if p["PROGRAM_ID"] != self.row["PROGRAM_ID"]:
                     continue
-                refid = ctx.refid(p["PARAMETER_ID"]) or ""
                 side = (p.str("CALCULATIONSET") or "").upper()
                 if side not in ("L", "R"):
-                    ctx.errors.append(
-                        f"IllegalParameterCalculationSet: {self.app_id} {p['PARAMETER_ID']}"
+                    # the converter fails the whole program here (its log message reads a
+                    # column the calculation row does not have)
+                    raise ValueError(
+                        f"CalculationSet of Parameter {p['PARAMETER_ID']} is neither 'L' nor"
+                        f" 'R', but is {p['CALCULATIONSET']}"
                     )
-                    continue
-                el = (left if side == "L" else right).sub(
-                    "ParameterRefRef", {"RefId": refid}
-                )
+                refid = ctx.refid(p["PARAMETER_ID"])
+                if not refid or refid not in ref_ids:
+                    raise ValueError(
+                        f"No ParameterRef for parameter {p['PARAMETER_ID']}"
+                    )
+                alias = p.str("ALIASNAME") if p["ALIASNAME"] is not None else None
+                side_el = left if side == "L" else right
+                # an alias used twice on one side (two without alias, too) drops the calculation
+                if any(c.get("AliasName") == alias for c in side_el.children):
+                    unique = False
+                el = side_el.sub("ParameterRefRef", {"RefId": refid})
                 el.cls = "ParameterCalculationLParameterRefRef"
-                if p["ALIASNAME"] is not None:
-                    el["AliasName"] = p.str("ALIASNAME") or ""
-            if left.children and right.children:
+                if alias is not None:
+                    el["AliasName"] = alias
+            if unique and left.children and right.children:
                 pc.add(left)
                 pc.add(right)
                 self.calculations.append(pc)
@@ -1863,15 +1891,32 @@ class AppConverter:
     def _extensions(self) -> None:
         ctx = self.ctx
         plugins = ctx.select("program_plugin", "PROGRAM_ID", self.row["PROGRAM_ID"])
+        swapper = ctx.byte_swapper
+        comfort = ctx.comfort_plugin
+        keep_plugins = plugin_must_remain(self.app_id, self.manufacturer, self.original)
         if plugins:
             self.extension = El("Extension")
             for p in plugins:
                 clsid = (p.str("PLUGIN_CLSID") or "").upper()
                 kind = int(p["PLUGIN_TYPE"] or 0)
                 if kind == 1:
-                    self.extension["EtsDownloadPlugin"] = clsid
+                    if swapper.replaces(clsid) and not keep_plugins:
+                        # replaced by options and a check of the program number
+                        swapper.add_application(self.app_id)
+                        self._insert_program_number_check()
+                        self.options["ParameterByteOrder"] = "LittleEndian"
+                        self.options["PromptBeforeFullDownload"] = "true"
+                        self.options["PreferPartialDownloadIfApplicationLoaded"] = (
+                            "true"
+                        )
+                        self.options["LegacyPatchManufacturerIdInTaskSegment"] = "true"
+                    else:
+                        self.extension["EtsDownloadPlugin"] = clsid
                 elif kind == 2:
-                    self.extension["EtsUiPlugin"] = clsid
+                    if comfort.replaces(clsid) and not keep_plugins:
+                        comfort.add_application(self.app_id)
+                    else:
+                        self.extension["EtsUiPlugin"] = clsid
                 elif kind == 3:
                     self.extension["EtsDataHandler"] = clsid
                 else:
@@ -1892,17 +1937,23 @@ class AppConverter:
         if baggages and self.extension is None:
             self.extension = El("Extension")
         for b in baggages:
-            ref = ctx.refid(b["BAGGAGEID"])
+            ref = ctx.refid(b["BAGGAGEID"]) or ""
             if not ref:
                 ctx.errors.append(
                     f"InvalidBaggageRefId: {self.app_id} {b['BAGGAGEID']}"
                 )
             assert self.extension is not None
-            if any(c.get("RefId") == ref for c in self.extension.children):
-                continue
-            el = self.extension.sub("Baggage")
-            if ref:
-                el["RefId"] = ref
+            for replacer in (comfort, swapper):
+                replacer.add_ref(self.app_id, ref)
+            # (a baggage referred to twice stays once)
+            skip = any(c.get("RefId") == ref for c in self.extension.children)
+            # the baggages of replaced plugins leave every program (unless its plugins stay)
+            for replacer in (comfort, swapper):
+                if replacer.is_baggage(ref) and not keep_plugins:
+                    replacer.remove_ref(self.app_id, ref)
+                    skip = True
+            if not skip:
+                self.extension.sub("Baggage", {"RefId": ref})
         ext = self.extension
         if (
             ext is not None
@@ -1913,6 +1964,25 @@ class AppConverter:
             and ext.get("RequiresExternalSoftware") != "true"
         ):
             self.extension = None
+
+    def _insert_program_number_check(self) -> None:
+        """Every load procedure compares the program number (property 13 of object 3) right
+        after connecting (first where there is no connect)."""
+        for proc in self.load_procedures:
+            check = El(
+                "LdCtrlCompareProp",
+                {
+                    "ObjIdx": "3",
+                    "PropId": "13",
+                    "InlineData": f"0000{self.number:04X}00",
+                    "Mask": "0000FFFF00",
+                },
+            )
+            connect = next(
+                (i for i, c in enumerate(proc.children) if c.tag == "LdCtrlConnect"),
+                None,
+            )
+            proc.children.insert(0 if connect is None else connect + 1, check)
 
     # ---- dynamic part
 

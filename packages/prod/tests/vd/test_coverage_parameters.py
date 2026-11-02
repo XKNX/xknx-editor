@@ -296,8 +296,7 @@ def _p(
 def test_parameter_types() -> None:
     root, warnings, errors = _app(types_tables())
     types = _types(root)
-    # (DummyParameterTypeNumber8: see the xfail test below)
-    assert [n for n in types if n != "DummyParameterTypeNumber8"] == [
+    assert list(types) == [
         "t_u8",
         "t_s8",
         "t_s16",
@@ -437,22 +436,92 @@ def test_parameters_of_the_types() -> None:
     assert translations(root, "en-US") == {f"{APP}_P-1": {"Text": "Unsigned EN"}}
 
 
-@pytest.mark.xfail(
-    reason="outside the exception list the converter only warns: the parameter keeps its "
-    "void type and the empty value, no DummyParameterTypeNumber8 is added",
-    strict=True,
-)
 def test_memory_parameter_of_void_type_keeps_its_type() -> None:
-    root, _warnings, _errors = _app(types_tables())
+    # outside the exception list the converter only warns
+    root, warnings, _errors = _app(types_tables())
     void = next(p for p in _parameters(root) if p[1]["Id"] == f"{APP}_P-10")
     assert void == _p(10, "Void", "t.5Fvoid", "", _memory(1049))
     assert "DummyParameterTypeNumber8" not in _types(root)
+    assert warnings == [
+        "UnexpectedDownloadParameterTypeSize: Param # 10 `Void' has address and void type"
+        " of size 8"
+    ]
 
 
-@pytest.mark.xfail(
-    reason="the converter keeps the first definition's description of a type defined twice",
-    strict=True,
+def _siemens(tables: Tables, device_type: int) -> Tables:
+    """``tables`` as a program of manufacturer M-0001 with ``device_type``."""
+    for rows in tables.values():
+        for r in rows:
+            for column in ("MANUFACTURER_ID", "manufacturer_id"):
+                if r.get(column) == 131:
+                    r[column] = 1
+    tables["manufacturer"][0]["MANUFACTURER_NAME"] = "Siemens"
+    # (the converter reads the program version of M-0001 as an integer)
+    tables["application_program"][0].update(
+        DEVICE_TYPE=device_type, PROGRAM_VERSION="1"
+    )
+    return tables
+
+
+def _void_tables(device_type: int, name: str) -> Tables:
+    t = _siemens(base(), device_type)
+    t["parameter_type"] = [
+        ptype(100, 1, "t_u8", 8),
+        ptype(101, 0, "t_void", 8),
+        # a second sized definition of the same void type
+        ptype(102, 0, "t_void", 16),
+    ]
+    t["parameter"] = [
+        param(200, 0, "Page", None, space=0, order=1),
+        param(201, 1, name, 101, space=2, address=0x4400, bit=0, order=2),
+        param(202, 2, "Unsigned", 100, space=2, address=0x4402, bit=0, order=3),
+    ]
+    return t
+
+
+@pytest.mark.parametrize(
+    ("device_type", "name", "expected"),
+    [
+        # in the exception list: the last sized definition decides the replacement
+        (32778, "Text_", "DummyParameterTypeNumber16"),
+        (32515, "Value", "DummyParameterTypeNumber16"),
+        # this program's "Text_" parameter gets a type without value and no memory
+        (32515, "Text_", "DummyParameterTypeNone"),
+    ],
 )
+def test_void_type_of_the_exception_list(
+    device_type: int, name: str, expected: str
+) -> None:
+    files, warnings, _errors = run(_void_tables(device_type, name))
+    app = f"M-0001_A-{device_type:04X}-01-0000"
+    root = xml(files, f"M-0001/{app}.xml")
+    assert warnings == []
+    [void] = [p for p in _parameters(root) if p[1]["Id"] == f"{app}_P-1"]
+    types = _types(root)
+    assert void[1]["ParameterType"] == types[expected][0]["Id"]
+    if expected == "DummyParameterTypeNone":
+        assert void[2] == []
+        assert "DummyParameterTypeNumber8" not in types
+    else:
+        assert void[1]["Value"] == "-32768"
+        assert void[2][0][0] == "Memory"
+        # both definitions created their replacement type
+        assert "DummyParameterTypeNumber8" in types
+
+
+@pytest.mark.parametrize(
+    ("version", "converted"), [("1.2", False), (" 3 ", True), ("+1", True)]
+)
+def test_program_version_of_m0001_is_an_integer(version: str, converted: bool) -> None:
+    t = _siemens(base(), 0x1234)
+    t["application_program"][0]["PROGRAM_VERSION"] = version
+    files, _warnings, errors = run(t)
+    assert any("_A-1234-" in name for name in files) == converted
+    assert any(e.startswith("ApplicationProgramConversionFailed") for e in errors) != (
+        converted
+    )
+
+
 def test_second_type_definition_keeps_the_description() -> None:
     root, _warnings, _errors = _app(types_tables())
     assert _types(root)["t_u8"][0] == {"Id": f"{APP}_PT-t.5Fu8", "Name": "t_u8"}
