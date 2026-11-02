@@ -679,6 +679,11 @@ namespace Ets5SignExport
       {
         Stage("loading");
         LoadAssemblies();
+        // ETS's licence manager resolves KNX.package relative to Assembly.GetEntryAssembly().Location.
+        // In this child AppDomain GetEntryAssembly() is null (-> NullReferenceException), and our own
+        // exe lives elsewhere than KNX.package anyway. Point the entry assembly at the loaded ets5n
+        // host, whose Location is <ets-dir>\ets5n.exe -- the directory that holds KNX.package.
+        SetEntryAssembly(A("ets5n"));
         BuildContainer();
         StartupServices();
         CreateRoot();
@@ -744,6 +749,30 @@ namespace Ets5SignExport
     {
       _stage = stage;
       _progress.Report(stage);
+    }
+
+    // Make Assembly.GetEntryAssembly() return the given assembly in this AppDomain. A child AppDomain
+    // has no entry assembly by default; ETS code that reads GetEntryAssembly().Location would NRE.
+    // This sets AppDomain._domainManager.m_entryAssembly, which GetEntryAssembly() reads (.NET FW).
+    private static void SetEntryAssembly(Assembly assembly)
+    {
+      try
+      {
+        var manager = new AppDomainManager();
+        var entryField = typeof(AppDomainManager).GetField(
+          "m_entryAssembly", BindingFlags.Instance | BindingFlags.NonPublic);
+        var managerField = typeof(AppDomain).GetField(
+          "_domainManager", BindingFlags.Instance | BindingFlags.NonPublic);
+        if (entryField == null || managerField == null)
+        {
+          return;
+        }
+        entryField.SetValue(manager, assembly);
+        managerField.SetValue(AppDomain.CurrentDomain, manager);
+      }
+      catch (Exception)
+      {
+      }
     }
 
     private void RecordFailure(Exception ex)
