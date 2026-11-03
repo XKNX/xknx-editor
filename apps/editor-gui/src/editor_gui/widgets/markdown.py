@@ -28,10 +28,11 @@ _HEADINGS = (
     (16.0 / 12.0, "regular"),
     (1.0, "bold"),
 )
-# The room between a list item's marker (a bullet or its number, ending there) and its text at
-# 100 % scaling, and the bullet's radius.
-_MARKER_GAP = 8.0
+# At 100 % scaling: where a bullet's centre lies before its item's text, its radius, and the room
+# between an item's number (ending there) and its text.
+_BULLET_BEFORE_TEXT = 12.2
 _BULLET_RADIUS = 2.2
+_MARKER_GAP = 8.0
 
 
 @dataclass(frozen=True)
@@ -47,7 +48,7 @@ class Layout:
 
 
 # As help pages are laid out in Windows tools.
-HELP_PAGE = Layout(heading_above=24.0, heading_below=23.0, block_room=18.0, item_x=48.0)
+HELP_PAGE = Layout(heading_above=24.0, heading_below=23.0, block_room=18.0, item_x=32.0)
 # Release notes: short sections of short items, closer together and less indented.
 COMPACT = Layout(heading_above=16.0, heading_below=8.0, block_room=8.0, item_x=22.0)
 
@@ -155,7 +156,7 @@ def _render_item(block: _Block, item_x: float) -> None:
     if block.kind == "bullet":
         draw_list.add_circle_filled(
             imgui.ImVec2(
-                left.x + px(item_x - _MARKER_GAP - _BULLET_RADIUS),
+                left.x + px(item_x - _BULLET_BEFORE_TEXT),
                 left.y + imgui.get_text_line_height() / 2,
             ),
             px(_BULLET_RADIUS),
