@@ -1533,3 +1533,6 @@ msgstr "Heslo databáze produktů"
 
 msgid "This product database is password-protected. Enter its password to import it:"
 msgstr "Tato databáze produktů je chráněna heslem. Zadejte heslo pro její import:"
+
+msgid "These files use a fixed, publicly documented password, for example here:"
+msgstr "Tyto soubory používají pevné, veřejně zdokumentované heslo, například zde:"

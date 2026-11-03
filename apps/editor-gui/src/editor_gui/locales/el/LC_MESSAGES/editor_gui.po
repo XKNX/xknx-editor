@@ -1533,3 +1533,6 @@ msgstr "Κωδικός βάσης δεδομένων προϊόντων"
 
 msgid "This product database is password-protected. Enter its password to import it:"
 msgstr "Αυτή η βάση δεδομένων προϊόντων προστατεύεται με κωδικό. Εισαγάγετε τον κωδικό της για να την εισαγάγετε:"
+
+msgid "These files use a fixed, publicly documented password, for example here:"
+msgstr "Αυτά τα αρχεία χρησιμοποιούν έναν σταθερό, δημόσια τεκμηριωμένο κωδικό, για παράδειγμα εδώ:"

@@ -1717,6 +1717,12 @@ class MenuStrings:
         )
 
     @property
+    def VD_PASSWORD_HINT(self) -> str:
+        return _(
+            "These files use a fixed, publicly documented password, for example here:"
+        )
+
+    @property
     def OPEN_PASSWORD_PROMPT(self) -> str:
         return _(
             "This project is protected with a password. Enter it to open the project:"

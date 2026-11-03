@@ -1533,3 +1533,6 @@ msgstr "Fjalëkalimi i bazës së të dhënave të produkteve"
 
 msgid "This product database is password-protected. Enter its password to import it:"
 msgstr "Kjo bazë e të dhënave të produkteve është e mbrojtur me fjalëkalim. Shkruani fjalëkalimin për ta importuar:"
+
+msgid "These files use a fixed, publicly documented password, for example here:"
+msgstr "Këto skedarë përdorin një fjalëkalim fiks, të dokumentuar publikisht, për shembull këtu:"

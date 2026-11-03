@@ -1605,3 +1605,6 @@ msgstr "Parola bazei de date de produse"
 
 msgid "This product database is password-protected. Enter its password to import it:"
 msgstr "Această bază de date de produse este protejată cu parolă. Introduceți parola pentru a o importa:"
+
+msgid "These files use a fixed, publicly documented password, for example here:"
+msgstr "Aceste fișiere folosesc o parolă fixă, documentată public, de exemplu aici:"

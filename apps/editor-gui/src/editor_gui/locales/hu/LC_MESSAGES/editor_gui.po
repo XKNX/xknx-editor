@@ -1605,3 +1605,6 @@ msgstr "Termékadatbázis jelszava"
 
 msgid "This product database is password-protected. Enter its password to import it:"
 msgstr "Ez a termékadatbázis jelszóval védett. Adja meg a jelszavát az importáláshoz:"
+
+msgid "These files use a fixed, publicly documented password, for example here:"
+msgstr "Ezek a fájlok rögzített, nyilvánosan dokumentált jelszót használnak, például itt:"

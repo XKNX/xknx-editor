@@ -1598,3 +1598,6 @@ msgstr "Wachtwoord productdatabase"
 
 msgid "This product database is password-protected. Enter its password to import it:"
 msgstr "Deze productdatabase is met een wachtwoord beveiligd. Voer het wachtwoord in om te importeren:"
+
+msgid "These files use a fixed, publicly documented password, for example here:"
+msgstr "Deze bestanden gebruiken een vast, openbaar gedocumenteerd wachtwoord, bijvoorbeeld hier:"

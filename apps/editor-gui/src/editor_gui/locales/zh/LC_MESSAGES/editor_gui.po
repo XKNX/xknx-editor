@@ -1533,3 +1533,6 @@ msgstr "产品数据库密码"
 
 msgid "This product database is password-protected. Enter its password to import it:"
 msgstr "此产品数据库受密码保护。请输入其密码以导入:"
+
+msgid "These files use a fixed, publicly documented password, for example here:"
+msgstr "这些文件使用固定的、公开记录的密码，例如这里:"

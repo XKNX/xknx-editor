@@ -1533,3 +1533,6 @@ msgstr "Palavra-passe da base de dados de produtos"
 
 msgid "This product database is password-protected. Enter its password to import it:"
 msgstr "Esta base de dados de produtos está protegida por palavra-passe. Introduza a palavra-passe para a importar:"
+
+msgid "These files use a fixed, publicly documented password, for example here:"
+msgstr "Estes ficheiros usam uma palavra-passe fixa e documentada publicamente, por exemplo aqui:"

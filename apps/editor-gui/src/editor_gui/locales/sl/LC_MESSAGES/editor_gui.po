@@ -1605,3 +1605,6 @@ msgstr "Geslo zbirke podatkov o izdelkih"
 
 msgid "This product database is password-protected. Enter its password to import it:"
 msgstr "Ta zbirka podatkov o izdelkih je zaščitena z geslom. Vnesite geslo za uvoz:"
+
+msgid "These files use a fixed, publicly documented password, for example here:"
+msgstr "Te datoteke uporabljajo fiksno, javno dokumentirano geslo, na primer tukaj:"

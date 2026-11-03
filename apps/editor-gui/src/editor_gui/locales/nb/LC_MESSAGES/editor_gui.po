@@ -1533,3 +1533,6 @@ msgstr "Passord for produktdatabase"
 
 msgid "This product database is password-protected. Enter its password to import it:"
 msgstr "Denne produktdatabasen er passordbeskyttet. Skriv inn passordet for å importere den:"
+
+msgid "These files use a fixed, publicly documented password, for example here:"
+msgstr "Disse filene bruker et fast, offentlig dokumentert passord, for eksempel her:"

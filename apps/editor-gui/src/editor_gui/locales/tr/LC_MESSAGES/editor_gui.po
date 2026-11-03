@@ -1533,3 +1533,6 @@ msgstr "Ürün veritabanı parolası"
 
 msgid "This product database is password-protected. Enter its password to import it:"
 msgstr "Bu ürün veritabanı parola korumalı. İçe aktarmak için parolasını girin:"
+
+msgid "These files use a fixed, publicly documented password, for example here:"
+msgstr "Bu dosyalar sabit, herkese açık şekilde belgelenmiş bir parola kullanır, örneğin burada:"

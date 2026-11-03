@@ -1533,3 +1533,6 @@ msgstr "Tuotetietokannan salasana"
 
 msgid "This product database is password-protected. Enter its password to import it:"
 msgstr "Tämä tuotetietokanta on suojattu salasanalla. Anna sen salasana tuodaksesi sen:"
+
+msgid "These files use a fixed, publicly documented password, for example here:"
+msgstr "Nämä tiedostot käyttävät kiinteää, julkisesti dokumentoitua salasanaa, esimerkiksi tässä:"

@@ -394,6 +394,10 @@ def _link(url: str) -> None:
         imgui.end_popup()
 
 
+# A public reference documenting the fixed .vd archive password, shown in the password dialog.
+_VD_PASSWORD_HINT_URL = "https://github.com/christoph2/knx/blob/72b6732322cc2f46df0379719148fb45210e23da/knxReTk/catalogue/vd_exporter.py#L439"
+
+
 # Room at 100 % scaling above and below the status bar's text.
 _STATUS_PADDING = 7.0
 
@@ -3120,6 +3124,11 @@ class KnxGuiApp:
             self._vd_password,
             imgui.InputTextFlags_.password | imgui.InputTextFlags_.enter_returns_true,
         )
+        imgui.spacing()
+        imgui.push_text_wrap_pos(0.0)
+        imgui.text_disabled(S.VD_PASSWORD_HINT)
+        imgui.pop_text_wrap_pos()
+        _link(_VD_PASSWORD_HINT_URL)
         clicked = dialog_buttons(S.BTN_OK, S.BTN_CANCEL)
         retry = self._vd_password_retry
         if (clicked == 0 or submitted) and self._vd_password:
