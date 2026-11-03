@@ -57,11 +57,13 @@ jobs:
           enable-cache: true
       - run: uv sync --all-packages
       - name: Bundle product-database secret
-        if: ${{ secrets.VD_SECRET != '' }}
         shell: bash
         env:
           VD_SECRET: ${{ secrets.VD_SECRET }}
-        run: printf '%s\n' "$VD_SECRET" > packages/prod/src/xknxeditor/prod/vd/_secret.py
+        run: |
+          if [ -n "$VD_SECRET" ]; then
+            printf '%s\n' "$VD_SECRET" > packages/prod/src/xknxeditor/prod/vd/_secret.py
+          fi
       # Prebuild the net48 ETS export helpers so the Windows release runs the export without a
       # dotnet SDK on the user's PC (the spec bundles core/_prebuilt/ via collect_data_files).
       # Non-fatal: without it the app just reports "needs .NET SDK". No-op on non-Windows (the
@@ -244,11 +246,13 @@ jobs:
       - run: uv sync --all-packages
 
       - name: Bundle product-database secret
-        if: ${{ secrets.VD_SECRET != '' }}
         shell: bash
         env:
           VD_SECRET: ${{ secrets.VD_SECRET }}
-        run: printf '%s\n' "$VD_SECRET" > packages/prod/src/xknxeditor/prod/vd/_secret.py
+        run: |
+          if [ -n "$VD_SECRET" ]; then
+            printf '%s\n' "$VD_SECRET" > packages/prod/src/xknxeditor/prod/vd/_secret.py
+          fi
 
       - name: Prebuild ETS export helpers
         if: runner.os == 'Windows'
@@ -281,6 +285,9 @@ jobs:
       # DLL search resolves opengl32 from the app dir before system32, so GLFW loads Mesa instead of
       # the (missing/1.1) system driver. desktop_entry sets GALLIUM_DRIVER=llvmpipe at startup (see
       # tools/desktop_entry.py).
+      # Use the MinGW x64 build, not MSVC: since 26.2.6 the MSVC build ships no opengl32.dll /
+      # libgallium_wgl.dll (upstream regression; the release notes point to the MinGW x64 build as
+      # the workaround). Its x64 DLLs import only Windows system DLLs + the UCRT, so they stand alone.
       - name: Bundle Mesa software OpenGL (softpipe)
         shell: pwsh
         working-directory: apps/editor-gui
@@ -289,8 +296,8 @@ jobs:
         run: |
           $ErrorActionPreference = "Stop"
           $rel = Invoke-RestMethod "https://api.github.com/repos/pal1000/mesa-dist-win/releases/latest" -Headers @{ Authorization = "Bearer $env:GH_TOKEN"; "User-Agent" = "xknx-editor-ci" }
-          $asset = $rel.assets | Where-Object { $_.name -match "release-msvc\.7z$" } | Select-Object -First 1
-          if (-not $asset) { throw "no release-msvc.7z asset in mesa-dist-win latest release" }
+          $asset = $rel.assets | Where-Object { $_.name -match "release-mingw\.7z$" } | Select-Object -First 1
+          if (-not $asset) { throw "no release-mingw.7z asset in mesa-dist-win latest release" }
           Write-Host "Mesa: $($asset.name)"
           curl.exe -fL -o mesa.7z $asset.browser_download_url
           7z x mesa.7z -omesa_extract | Out-Null
@@ -374,11 +381,13 @@ jobs:
       - run: uv sync --all-packages
 
       - name: Bundle product-database secret
-        if: ${{ secrets.VD_SECRET != '' }}
         shell: bash
         env:
           VD_SECRET: ${{ secrets.VD_SECRET }}
-        run: printf '%s\n' "$VD_SECRET" > packages/prod/src/xknxeditor/prod/vd/_secret.py
+        run: |
+          if [ -n "$VD_SECRET" ]; then
+            printf '%s\n' "$VD_SECRET" > packages/prod/src/xknxeditor/prod/vd/_secret.py
+          fi
 
       - name: Prebuild ETS export helpers
         if: runner.os == 'Windows'

@@ -76,3 +76,50 @@ def test_connection_config_stays_udp_otherwise() -> None:
 def test_link_info_records_tcp_protocol() -> None:
     assert _plugin(ConnectionType.TUNNELING_TCP)._link_info().protocol == "Tcp"
     assert _plugin(ConnectionType.TUNNELING)._link_info().protocol == "Udp"
+
+
+def test_manual_tcp_support_follows_a_discovered_gateway() -> None:
+    plugin = _plugin(ConnectionType.TUNNELING)
+    plugin._manual_probe_ip = ""
+    plugin._manual_tcp = None
+    # The entered IP matches a discovered v1 interface (no TCP): the probe result is irrelevant.
+    plugin._gateways = [_gateway(tunnelling=True, tcp=False, routing=False)]
+    plugin._controller_ip = "192.168.1.10"
+    assert plugin._manual_tcp_support() is False
+    plugin._gateways = [_gateway(tunnelling=True, tcp=True, routing=False)]
+    assert plugin._manual_tcp_support() is True
+    # An IP no discovered gateway and no finished probe covers is unknown.
+    plugin._gateways = []
+    assert plugin._manual_tcp_support() is None
+    # A finished probe for exactly this endpoint is used when nothing was discovered.
+    plugin._manual_probe_ip = "192.168.1.10"
+    plugin._manual_tcp = False
+    assert plugin._manual_tcp_support() is False
+
+
+def _switchable(state: Any, connection_type: ConnectionType) -> tuple[Any, list[Any]]:
+    plugin = _plugin(connection_type)
+    ran: list[Any] = []
+    plugin._state = state
+    plugin._session = 0
+    plugin._run_async = lambda coro: (ran.append(coro), coro.close())[0]
+    plugin._busmonitor_blocks = lambda _action: False
+    plugin._save_current_settings = lambda: None
+    return plugin, ran
+
+
+def test_switch_connection_type_reconnects_only_on_a_real_change() -> None:
+    from editor_gui.plugins.connection.plugin import ConnectionState
+
+    plugin, ran = _switchable(ConnectionState.CONNECTED, ConnectionType.TUNNELING)
+    plugin.switch_connection_type(ConnectionType.TUNNELING_TCP)
+    assert plugin._connection_type == ConnectionType.TUNNELING_TCP
+    assert plugin._state == ConnectionState.CONNECTING and len(ran) == 1
+
+    # No-op when already on that type, or when not connected.
+    plugin, ran = _switchable(ConnectionState.CONNECTED, ConnectionType.TUNNELING_TCP)
+    plugin.switch_connection_type(ConnectionType.TUNNELING_TCP)
+    assert not ran
+    plugin, ran = _switchable(ConnectionState.DISCONNECTED, ConnectionType.TUNNELING)
+    plugin.switch_connection_type(ConnectionType.TUNNELING_TCP)
+    assert not ran

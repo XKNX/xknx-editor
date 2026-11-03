@@ -301,6 +301,10 @@ class ConnectionPlugin:
         )
 
         self._gateways: list[GatewayDescriptor] = []
+        # A manually entered interface's TCP support, from a one-shot description probe: the endpoint
+        # probed and its result (True/False, or None while unknown / still checking).
+        self._manual_probe_ip = ""
+        self._manual_tcp: bool | None = None
         # The project revision the connection's Data Secure tables were built from.
         self._data_secure_revision = -1
         self._scanning = False
@@ -515,6 +519,23 @@ class ConnectionPlugin:
         self._error_message = None
         self._save_current_settings()
         self._run_async(self._connect_async())
+
+    def switch_connection_type(self, connection_type: ConnectionType) -> None:
+        """Reconnect the live connection over a different type (same gateway/IP). No-op when not
+        connected or already on it."""
+        if (
+            self._state != ConnectionState.CONNECTED
+            or connection_type == self._connection_type
+        ):
+            return
+        if self._busmonitor_blocks("switch connection type"):
+            return
+        self._connection_type = connection_type
+        self._save_current_settings()
+        self._session += 1
+        self._state = ConnectionState.CONNECTING
+        self._error_message = None
+        self._run_async(self._reopen(self._session, retry=False))
 
     @property
     def _connection_target(self) -> str:
@@ -1656,6 +1677,7 @@ class ConnectionPlugin:
                             "  "
                             + S.GATEWAY_SERVICES.format(services=", ".join(services))
                         )
+                self._render_connected_transport()
                 imgui.separator()
                 imgui.text_disabled(S.SECTION_DIAGNOSTICS)
                 if imgui.menu_item(S.MENU_READ_PROGMODE, "", self._progmode_open)[0]:
@@ -1665,6 +1687,9 @@ class ConnectionPlugin:
                     self.disconnect()
             elif self._state == ConnectionState.CONNECTING:
                 imgui.text_disabled(S.STATUS_CONNECTING)
+                imgui.separator()
+                if imgui.menu_item(S.SELECT_CONNECTION_CANCEL, "", False)[0]:
+                    self.disconnect()
             elif self._state == ConnectionState.ERROR:
                 imgui.text_colored(
                     imgui.ImVec4(0.8, 0.2, 0.2, 1.0), S.STATUS_CONNECTION_FAILED
@@ -1702,24 +1727,96 @@ class ConnectionPlugin:
         imgui.text_disabled(S.SECTION_MANUAL)
         imgui.set_next_item_width(px(180))
         _, self._controller_ip = imgui.input_text("IP##manual", self._controller_ip)
+        self._maybe_probe_manual(editing=imgui.is_item_active())
+        tcp_support = self._manual_tcp_support()
         manual_type = (
             self._connection_type
             if self._connection_type in _TUNNEL_TYPES
             else ConnectionType.TUNNELING
         )
+        if tcp_support is False and manual_type == ConnectionType.TUNNELING_TCP:
+            manual_type = ConnectionType.TUNNELING
         if radio_button(
             f"{S.CONN_TYPE_TUNNELING}##manual_udp",
             manual_type == ConnectionType.TUNNELING,
         ):
             self._connection_type = ConnectionType.TUNNELING
-        imgui.same_line()
-        if radio_button(
-            f"{S.CONN_TYPE_TCP_TUNNELING}##manual_tcp",
-            manual_type == ConnectionType.TUNNELING_TCP,
-        ):
-            self._connection_type = ConnectionType.TUNNELING_TCP
+        # Offer TCP unless the interface is known not to support it (a KNXnet/IP v1 device).
+        if tcp_support is not False:
+            imgui.same_line()
+            if radio_button(
+                f"{S.CONN_TYPE_TCP_TUNNELING}##manual_tcp",
+                manual_type == ConnectionType.TUNNELING_TCP,
+            ):
+                self._connection_type = ConnectionType.TUNNELING_TCP
         if imgui.menu_item(retry_label, "", False)[0]:
             self.connect(connection_type=manual_type)
+
+    def _manual_tcp_support(self) -> bool | None:
+        """Whether the manually entered interface supports TCP tunnelling: True/False from a
+        matching discovered gateway or a finished probe, None while unknown (not yet probed or the
+        device did not answer)."""
+        endpoint = self._controller_ip.strip()
+        if not endpoint:
+            return None
+        host = split_endpoint(endpoint)[0]
+        for gateway in self._gateways:
+            if gateway.ip_addr == host:
+                return gateway.supports_tunnelling_tcp
+        return self._manual_tcp if endpoint == self._manual_probe_ip else None
+
+    def _maybe_probe_manual(self, editing: bool) -> None:
+        """Probe the manually entered interface's capabilities once it is settled (not mid-edit),
+        so the TCP option can hide for a v1 device. Discovered gateways are authoritative and need
+        no probe."""
+        endpoint = self._controller_ip.strip()
+        if editing or not endpoint or endpoint == self._manual_probe_ip:
+            return
+        host = split_endpoint(endpoint)[0]
+        if any(gateway.ip_addr == host for gateway in self._gateways):
+            return
+        self._manual_probe_ip = endpoint
+        self._manual_tcp = None
+        self._run_async(self._probe_manual_tcp(endpoint))
+
+    async def _probe_manual_tcp(self, endpoint: str) -> None:
+        host, port = split_endpoint(endpoint)
+        supported: bool | None = None
+        try:
+            description = await request_description(host, port)
+            supported = description.supports_tunnelling_tcp
+        except Exception as err:
+            self._log.debug(
+                "manual interface description unavailable",
+                endpoint=endpoint,
+                error=f"{type(err).__name__}: {err}",
+            )
+        if self._manual_probe_ip == endpoint:
+            self._manual_tcp = supported
+
+    def _render_connected_transport(self) -> None:
+        """While connected: a radio per connection type the interface offers, so the type in use
+        is visible and switchable. Picking a different one reconnects over it. Shown only when the
+        interface offers more than one."""
+        gateway = self._gateway_info
+        if gateway is None:
+            return
+        transports: list[tuple[ConnectionType, str]] = []
+        if gateway.supports_tunnelling_tcp:
+            transports.append((ConnectionType.TUNNELING_TCP, S.CONN_TYPE_TCP_TUNNELING))
+        if gateway.supports_tunnelling:
+            transports.append((ConnectionType.TUNNELING, S.CONN_TYPE_TUNNELING))
+        if gateway.supports_routing:
+            transports.append((ConnectionType.ROUTING, S.CONN_TYPE_ROUTING))
+        if len(transports) < 2:
+            return
+        imgui.separator()
+        for ctype, label in transports:
+            if radio_button(
+                f"{label}##connected_{ctype.name}",
+                self._connection_type == ctype,
+            ):
+                self.switch_connection_type(ctype)
 
     def _render_gateway_option(self, gw: GatewayDescriptor) -> None:
         """A discovered gateway: its name, then a radio for each connection type it offers.
