@@ -195,3 +195,12 @@ msgstr "İptal"
 
 msgid "This kind of connection is not supported."
 msgstr "Bu tür bağlantı desteklenmiyor."
+
+msgid "UDP tunneling"
+msgstr "UDP tunneling"
+
+msgid "TCP tunneling"
+msgstr "TCP tunneling"
+
+msgid "Routing"
+msgstr "Routing"

@@ -145,6 +145,18 @@ class ConnectionStrings:
         return _("Manual Connection")
 
     @property
+    def CONN_TYPE_TUNNELING(self) -> str:
+        return _("UDP tunneling")
+
+    @property
+    def CONN_TYPE_TCP_TUNNELING(self) -> str:
+        return _("TCP tunneling")
+
+    @property
+    def CONN_TYPE_ROUTING(self) -> str:
+        return _("Routing")
+
+    @property
     def STATUS_CONNECTED(self) -> str:
         return _("Connected: {ip}")
 

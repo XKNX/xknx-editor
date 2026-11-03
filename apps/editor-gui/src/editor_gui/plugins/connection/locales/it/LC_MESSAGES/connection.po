@@ -195,3 +195,12 @@ msgstr "Annulla"
 
 msgid "This kind of connection is not supported."
 msgstr "Questo tipo di connessione non è supportato."
+
+msgid "UDP tunneling"
+msgstr "UDP tunneling"
+
+msgid "TCP tunneling"
+msgstr "TCP tunneling"
+
+msgid "Routing"
+msgstr "Routing"

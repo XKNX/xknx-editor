@@ -37,6 +37,7 @@ from editor_gui.programming import (
     ScannedDevice,
 )
 from editor_gui.settings import load_settings, save_settings
+from editor_gui.widgets.checkbox import radio_button
 from editor_gui.widgets.dialog import (
     begin_dialog,
     begin_tool_window,
@@ -173,6 +174,42 @@ def split_endpoint(address: str) -> tuple[str, int]:
 def join_endpoint(host: str, port: int) -> str:
     """An interface address as entered: the host, with ``:port`` when not 3671."""
     return host if port == DEFAULT_GATEWAY_PORT else f"{host}:{port}"
+
+
+# The tunnelling transports, by their persisted/MCP name. Routing is handled on its own.
+_TUNNEL_TYPES = (ConnectionType.TUNNELING, ConnectionType.TUNNELING_TCP)
+_CONNECTION_TYPE_NAMES: dict[str, ConnectionType] = {
+    "tunneling": ConnectionType.TUNNELING,
+    "tunneling_tcp": ConnectionType.TUNNELING_TCP,
+    "routing": ConnectionType.ROUTING,
+}
+
+
+def parse_connection_type(name: str) -> ConnectionType | None:
+    """The ``ConnectionType`` for an MCP name ("tunneling"/"tunneling_tcp"/"routing"), or None."""
+    return _CONNECTION_TYPE_NAMES.get(name.strip().lower())
+
+
+def connection_type_name(connection_type: ConnectionType) -> str:
+    """The MCP name of a ``ConnectionType`` (the secure variants map to their plain transport)."""
+    if connection_type in (ConnectionType.ROUTING, ConnectionType.ROUTING_SECURE):
+        return "routing"
+    if connection_type in (
+        ConnectionType.TUNNELING_TCP,
+        ConnectionType.TUNNELING_TCP_SECURE,
+    ):
+        return "tunneling_tcp"
+    return "tunneling"
+
+
+def default_transport(gateway: GatewayDescriptor) -> ConnectionType:
+    """The connection type to use for ``gateway`` when none is chosen: TCP tunnelling when it is
+    offered (ETS prefers it for v2 interfaces), else UDP tunnelling, else routing."""
+    if gateway.supports_tunnelling_tcp:
+        return ConnectionType.TUNNELING_TCP
+    if gateway.supports_tunnelling:
+        return ConnectionType.TUNNELING
+    return ConnectionType.ROUTING
 
 
 def tunnel_host(parameter: str) -> str | None:
@@ -322,6 +359,11 @@ class ConnectionPlugin:
         return self._connection_type == ConnectionType.ROUTING
 
     @property
+    def connection_type(self) -> str:
+        """The configured transport as an MCP name: "tunneling", "tunneling_tcp" or "routing"."""
+        return connection_type_name(self._connection_type)
+
+    @property
     def scanning(self) -> bool:
         """Whether a gateway discovery scan is currently running."""
         return self._scanning
@@ -331,29 +373,37 @@ class ConnectionPlugin:
         """The gateways found by the most recent scan."""
         return list(self._gateways)
 
-    def connect_to_gateway_by_ip(self, ip: str) -> bool:
-        """Connect to a previously discovered gateway by IP. Returns ``False`` if none matches."""
+    def connect_to_gateway_by_ip(
+        self, ip: str, connection_type: ConnectionType | None = None
+    ) -> bool:
+        """Connect to a previously discovered gateway by IP, over ``connection_type`` (its best
+        when None). Returns ``False`` if none matches."""
         gateway = next((g for g in self._gateways if g.ip_addr == ip), None)
         if gateway is None:
             return False
-        self.connect_to_gateway(gateway)
+        self.connect_to_gateway(gateway, connection_type=connection_type)
         return True
 
     def configure(
-        self, controller_ip: str, multicast_group: str, routing: bool
+        self,
+        controller_ip: str,
+        multicast_group: str,
+        routing: bool,
+        *,
+        connection_type: ConnectionType | None = None,
     ) -> None:
-        """Apply and persist connection settings from the options dialog (takes effect on next
-        connect)."""
+        """Apply and persist connection settings (take effect on next connect). ``connection_type``
+        sets the transport directly; without it, ``routing`` chooses routing or UDP tunnelling."""
         self._controller_ip = controller_ip.strip() or self._controller_ip
         self._multicast_group = multicast_group.strip() or self._multicast_group
-        self._connection_type = (
+        self._connection_type = connection_type or (
             ConnectionType.ROUTING if routing else ConnectionType.TUNNELING
         )
         self._save_current_settings()
         self._log.info(
             "connection settings saved",
             controller_ip=self._controller_ip,
-            routing=routing,
+            connection_type=self._connection_type.name.lower(),
         )
 
     def _ensure_async_loop(self) -> asyncio.AbstractEventLoop:
@@ -410,13 +460,22 @@ class ConnectionPlugin:
             },
         )
 
-    def connect(self, *, startup: bool = False) -> None:
-        """Manual IP connect (tunneling); ``startup``: the connection made at startup."""
+    def connect(
+        self,
+        *,
+        connection_type: ConnectionType | None = None,
+        startup: bool = False,
+    ) -> None:
+        """Manual IP connect over ``connection_type`` (UDP or TCP tunnelling); without one, the
+        saved tunnelling preference, else UDP. ``startup``: the connection made at startup."""
         if self._state in (ConnectionState.CONNECTING, ConnectionState.CONNECTED):
             return
         if self._busmonitor_blocks("connect"):
             return
-        self._connection_type = ConnectionType.TUNNELING
+        if connection_type in _TUNNEL_TYPES:
+            self._connection_type = connection_type
+        elif self._connection_type not in _TUNNEL_TYPES:
+            self._connection_type = ConnectionType.TUNNELING
         self._selected_gateway = None
         self._session += 1
         self._retry_on_credentials = False
@@ -428,20 +487,24 @@ class ConnectionPlugin:
         self._run_async(self._connect_async())
 
     def connect_to_gateway(
-        self, gateway: GatewayDescriptor, *, startup: bool = False
+        self,
+        gateway: GatewayDescriptor,
+        *,
+        connection_type: ConnectionType | None = None,
+        startup: bool = False,
     ) -> None:
-        """Connect to a scanned gateway (tunneling preferred, routing fallback); ``startup``: the
+        """Connect to a scanned gateway over ``connection_type`` (one the gateway offers); without
+        one, TCP tunnelling when available, else UDP tunnelling, else routing. ``startup``: the
         connection made at startup."""
         if self._state in (ConnectionState.CONNECTING, ConnectionState.CONNECTED):
             return
         if self._busmonitor_blocks("connect"):
             return
-        if gateway.supports_tunnelling:
-            self._connection_type = ConnectionType.TUNNELING
-            self._controller_ip = join_endpoint(gateway.ip_addr, gateway.port)
-        else:
-            self._connection_type = ConnectionType.ROUTING
+        self._connection_type = connection_type or default_transport(gateway)
+        if self._connection_type == ConnectionType.ROUTING:
             self._multicast_group = gateway.multicast_address or DEFAULT_MCAST_GRP
+        else:
+            self._controller_ip = join_endpoint(gateway.ip_addr, gateway.port)
         self._selected_gateway = gateway
         self._preferred_gateway_ip = gateway.ip_addr
         self._session += 1
@@ -473,7 +536,7 @@ class ConnectionPlugin:
             self._xknx.cemi_handler = SequentialCEMIHandler(self._xknx)
             description = (
                 await self._gateway_description()
-                if self._connection_type == ConnectionType.TUNNELING
+                if self._connection_type in _TUNNEL_TYPES
                 else None
             )
             gateway = description or self._selected_gateway
@@ -674,7 +737,11 @@ class ConnectionPlugin:
                 threaded=True,
             )
         return ConnectionConfig(
-            connection_type=ConnectionType.TUNNELING,
+            connection_type=(
+                ConnectionType.TUNNELING_TCP
+                if self._connection_type == ConnectionType.TUNNELING_TCP
+                else ConnectionType.TUNNELING
+            ),
             gateway_ip=host,
             gateway_port=port,
             threaded=True,
@@ -1065,7 +1132,11 @@ class ConnectionPlugin:
             host=host,
             port=port,
             connector="IpTunneling",
-            protocol="Udp",
+            protocol=(
+                "Tcp"
+                if self._connection_type == ConnectionType.TUNNELING_TCP
+                else "Udp"
+            ),
         )
 
     def _endpoint(self) -> tuple[str, int]:
@@ -1623,25 +1694,7 @@ class ConnectionPlugin:
             spinner("##scan-spinner")
         if self._gateways:
             for gw in self._gateways:
-                tags: list[str] = []
-                if gw.supports_tunnelling:
-                    tags.append("T")
-                if gw.supports_routing:
-                    tags.append("R")
-                if gw.supports_secure:
-                    tags.append("S")
-                tag_str = "/".join(tags)
-                label = f"{gw.name}  ({gw.ip_addr})" + (
-                    f"  [{tag_str}]" if tag_str else ""
-                )
-                is_connected_to = (
-                    self._state == ConnectionState.CONNECTED
-                    and self._selected_gateway is not None
-                    and self._selected_gateway.ip_addr == gw.ip_addr
-                    and self._selected_gateway.port == gw.port
-                )
-                if imgui.menu_item(label, "", is_connected_to)[0]:
-                    self.connect_to_gateway(gw)
+                self._render_gateway_option(gw)
         elif not self._scanning:
             imgui.text_disabled(S.NO_GATEWAYS_FOUND)
 
@@ -1649,8 +1702,46 @@ class ConnectionPlugin:
         imgui.text_disabled(S.SECTION_MANUAL)
         imgui.set_next_item_width(px(180))
         _, self._controller_ip = imgui.input_text("IP##manual", self._controller_ip)
+        manual_type = (
+            self._connection_type
+            if self._connection_type in _TUNNEL_TYPES
+            else ConnectionType.TUNNELING
+        )
+        if radio_button(
+            f"{S.CONN_TYPE_TUNNELING}##manual_udp",
+            manual_type == ConnectionType.TUNNELING,
+        ):
+            self._connection_type = ConnectionType.TUNNELING
+        imgui.same_line()
+        if radio_button(
+            f"{S.CONN_TYPE_TCP_TUNNELING}##manual_tcp",
+            manual_type == ConnectionType.TUNNELING_TCP,
+        ):
+            self._connection_type = ConnectionType.TUNNELING_TCP
         if imgui.menu_item(retry_label, "", False)[0]:
-            self.connect()
+            self.connect(connection_type=manual_type)
+
+    def _render_gateway_option(self, gw: GatewayDescriptor) -> None:
+        """A discovered gateway: its name, then a radio for each connection type it offers.
+        Picking one connects to the gateway over that type (the picker shows only while not
+        connected, so a pick always starts a fresh connection)."""
+        imgui.text_disabled(f"{gw.name}  ({gw.ip_addr})")
+        transports: list[tuple[ConnectionType, str]] = []
+        if gw.supports_tunnelling_tcp:
+            transports.append((ConnectionType.TUNNELING_TCP, S.CONN_TYPE_TCP_TUNNELING))
+        if gw.supports_tunnelling:
+            transports.append((ConnectionType.TUNNELING, S.CONN_TYPE_TUNNELING))
+        if gw.supports_routing:
+            transports.append((ConnectionType.ROUTING, S.CONN_TYPE_ROUTING))
+        preferred = gw.ip_addr == self._preferred_gateway_ip
+        imgui.indent()
+        for ctype, label in transports:
+            if radio_button(
+                f"{label}##gw_{gw.ip_addr}_{ctype.name}",
+                preferred and self._connection_type == ctype,
+            ):
+                self.connect_to_gateway(gw, connection_type=ctype)
+        imgui.unindent()
 
     @property
     def panels(self) -> list[PanelDefinition]:

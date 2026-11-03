@@ -333,20 +333,33 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             "controller_ip": conn.controller_ip,
             "multicast_group": conn.multicast_group,
             "routing": conn.is_routing,
+            "connection_type": conn.connection_type,
             "busmonitor": ctx.api.connection.busmonitor_state.value,
         }
 
     @tool("write")
     def connection_configure(
-        controller_ip: str, multicast_group: str = "", routing: bool = False
+        controller_ip: str,
+        multicast_group: str = "",
+        routing: bool = False,
+        connection_type: str = "",
     ) -> dict[str, str]:
         """Persist the gateway/connection settings. Empty or whitespace-only ``controller_ip`` /
         ``multicast_group`` strings keep their previous value; non-empty strings replace them.
-        ``routing`` here is only the stored preference — connection_connect always uses tunnelling,
-        connection_connect_gateway prefers tunnelling and otherwise routing. Disconnect before
-        changing an active connection's target."""
-        conn.configure(controller_ip, multicast_group, routing)
-        return {"status": "configured"}
+        ``connection_type`` sets the transport: "tunneling" (UDP), "tunneling_tcp" (TCP, for a
+        KNXnet/IP Tunnelling v2 interface) or "routing"; empty falls back to ``routing`` (True =
+        routing, False = UDP tunnelling). Disconnect before changing an active connection's
+        target."""
+        from editor_gui.plugins.connection.plugin import parse_connection_type
+
+        parsed = parse_connection_type(connection_type) if connection_type else None
+        if connection_type and parsed is None:
+            raise ToolError(
+                f"unknown connection_type {connection_type!r}; use tunneling, "
+                "tunneling_tcp or routing"
+            )
+        conn.configure(controller_ip, multicast_group, routing, connection_type=parsed)
+        return {"status": "configured", "connection_type": conn.connection_type}
 
     @tool("read", open_world=True)
     def connection_scan(timeout: float = 6.0) -> dict[str, Any]:
@@ -368,6 +381,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                 if g.individual_address
                 else None,
                 "supports_tunnelling": g.supports_tunnelling,
+                "supports_tunnelling_tcp": g.supports_tunnelling_tcp,
                 "supports_routing": g.supports_routing,
                 "supports_secure": g.supports_secure,
             }
@@ -396,9 +410,22 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         return _await_connect(timeout)
 
     @tool("write", open_world=True)
-    def connection_connect_gateway(ip: str, timeout: float = 15.0) -> dict[str, Any]:
-        """Connect to a discovered gateway by IP (run connection_scan first). Waits for the result."""
-        if not conn.connect_to_gateway_by_ip(ip):
+    def connection_connect_gateway(
+        ip: str, connection_type: str = "", timeout: float = 15.0
+    ) -> dict[str, Any]:
+        """Connect to a discovered gateway by IP (run connection_scan first). ``connection_type``
+        picks the transport: "tunneling" (UDP), "tunneling_tcp" (TCP) or "routing"; empty uses the
+        gateway's best (TCP tunnelling when it offers it, else UDP, else routing). Waits for the
+        result."""
+        from editor_gui.plugins.connection.plugin import parse_connection_type
+
+        parsed = parse_connection_type(connection_type) if connection_type else None
+        if connection_type and parsed is None:
+            raise ToolError(
+                f"unknown connection_type {connection_type!r}; use tunneling, "
+                "tunneling_tcp or routing"
+            )
+        if not conn.connect_to_gateway_by_ip(ip, parsed):
             raise ToolError(
                 f"no scanned gateway with ip {ip!r}; run connection_scan first"
             )

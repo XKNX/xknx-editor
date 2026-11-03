@@ -195,3 +195,12 @@ msgstr "Annuler"
 
 msgid "This kind of connection is not supported."
 msgstr "Ce type de connexion n'est pas pris en charge."
+
+msgid "UDP tunneling"
+msgstr "UDP tunneling"
+
+msgid "TCP tunneling"
+msgstr "TCP tunneling"
+
+msgid "Routing"
+msgstr "Routing"
