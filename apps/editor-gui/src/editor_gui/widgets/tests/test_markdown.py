@@ -163,10 +163,10 @@ def test_compact_items_start_further_left(monkeypatch: pytest.MonkeyPatch) -> No
 
 
 @pytest.mark.usefixtures("frame")
-def test_a_bullet_lies_before_its_text_as_on_help_pages(
+def test_a_bullet_lies_before_its_text(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    # The text 32 px in, the bullet's centre 12.2 px before it (as in the reference's help).
+    # The text 32 px in, the bullet's centre 12.2 px before it.
     circles: list[float] = []
     starts: list[float] = []
 
