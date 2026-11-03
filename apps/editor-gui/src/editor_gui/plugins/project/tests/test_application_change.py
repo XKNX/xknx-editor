@@ -74,8 +74,49 @@ def test_targets_and_update(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> 
     assert target is not None and target.id == newer
     assert proj.newer_application_version(device) == 0x22
 
+    # Read again only after the catalog changed (a product imported or removed).
     replaces[newest] = [0x21]
+    assert proj.newer_application_version(device) == 0x22
+    cat.refresh()
     assert proj.newer_application_version(device) == 0x23
+    proj.close()
+
+
+def test_device_settings_reads_are_cached(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # The device settings ask every frame: the project and the catalog are read once per change.
+    cat, proj, _db = _setup(tmp_path)
+    (device,) = proj.devices
+    reads: list[int] = []
+    device_row = proj._svc.device
+
+    def counted(project_id: str, node_id: int) -> object:
+        reads.append(node_id)
+        return device_row(project_id, node_id)
+
+    monkeypatch.setattr(proj._svc, "device", counted)
+
+    def frame() -> tuple[object, ...]:
+        return (
+            proj.security_proxy_coupler(device),
+            [p.id for p in proj.application_change_targets(device)],
+            proj.local_update_target(device),
+        )
+
+    first = frame()
+    count = len(reads)
+    assert count > 0
+    assert frame() == first
+    assert len(reads) == count
+    # An edit or a catalog change reads again.
+    proj._bump(structural=False)
+    assert frame() == first
+    assert len(reads) > count
+    count = len(reads)
+    cat.refresh()
+    assert frame() == first
+    assert len(reads) > count
     proj.close()
 
 

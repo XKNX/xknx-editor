@@ -133,6 +133,10 @@ class CatalogService:
         self._product_index: dict[str, ProductSummary] | None = None
         self._programs: dict[str, list[ProgramSummary]] = {}
         self._replaces: dict[str, list[int]] = {}
+        # Product files by hardware program id (the device page asks every frame for its help).
+        self._sources: dict[str, tuple[str, str] | None] = {}
+        # Counts the changes of the catalog's products, for caches of what is read from them.
+        self.generation = 0
         # Factory images (``LoadedImage`` and ``CheckSums``) by hardware program id, read once.
         self._factory_images: dict[str, FactoryData | None] = {}
         # Second application programs (PEI programs) by hardware program id, read once.
@@ -576,14 +580,19 @@ class CatalogService:
 
     @io_guarded(lambda: None)
     def get_program_source(self, program_id: str) -> tuple[str, str] | None:
-        """Return ``(knxprod_path, manufacturer_id)`` for a hardware program id, or ``None``."""
-        return self._service.get_program_source(program_id)
+        """Return ``(knxprod_path, manufacturer_id)`` for a hardware program id, or ``None``
+        (cached)."""
+        if program_id not in self._sources:
+            self._sources[program_id] = self._service.get_program_source(program_id)
+        return self._sources[program_id]
 
     def refresh(self) -> None:
         self._forget_products()
 
     def _forget_products(self) -> None:
+        self.generation += 1
         self._products = None
         self._product_index = None
         self._programs = {}
         self._replaces = {}
+        self._sources = {}

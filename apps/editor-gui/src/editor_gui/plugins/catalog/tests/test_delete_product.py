@@ -94,3 +94,20 @@ def test_count_without_open_project_is_zero(tmp_path: Path) -> None:
     plan = cat.plan_delete_product(ref)
     assert plan is not None
     assert proj.count_devices_losing_product(plan) == 0
+
+
+def test_program_sources_are_read_again_after_a_catalog_change(tmp_path: Path) -> None:
+    cat = CatalogService(tmp_path / "c.xknxcatalog")
+    cat.import_knxprod(_fixture())
+    (product,) = cat.get_products()
+    program = product.hardware2program_ref_id
+    generation = cat.generation
+    source = cat.get_program_source(program)
+    assert source is not None and Path(source[0]).exists()
+    # Cached: the device page asks every frame.
+    assert cat.get_program_source(program) is source
+
+    deletion = cat.delete_product(product.product_ref_id)
+    assert deletion is not None
+    assert cat.generation > generation
+    assert cat.get_program_source(program) is None

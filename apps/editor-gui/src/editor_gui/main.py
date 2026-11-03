@@ -1,4 +1,5 @@
 import collections
+import functools
 import os
 import platform
 import re
@@ -405,6 +406,17 @@ _STATUS_PADDING = 7.0
 _FPS_IDLE = 6.0
 _FPS_PROGRESS = 30.0
 
+# The user counts as working in the app this long after the last input (seconds): work in the
+# background that would slow the frames down waits for a pause (see ProjectService.ui_busy).
+_BUSY_AFTER_INPUT = 1.0
+
+
+@functools.cache
+def _named_keys() -> tuple[imgui.Key, ...]:
+    """Every key ImGui knows by name (keyboard, gamepad and mouse buttons)."""
+    begin, end = int(imgui.Key.named_key_begin), int(imgui.Key.named_key_end)
+    return tuple(imgui.Key(value) for value in range(begin, end))
+
 
 def _myknx_product_name(product: dict[str, object], pid: str) -> str:
     """Best-effort human-readable name for a MyKnx product/license, else the id.
@@ -750,6 +762,9 @@ class KnxGuiApp:
         self._palette_focus = False
 
         self._project_service = ProjectService(self._catalog_service)
+        # When the user last moved the mouse, clicked or typed (see note_input).
+        self._last_input = 0.0
+        self._project_service.ui_busy = self._ui_busy
         self._connection_service = ConnectionService()
         self._log_service = LogService()
 
@@ -4812,6 +4827,25 @@ class KnxGuiApp:
             imgui.close_current_popup()
         end_dialog()
 
+    def note_input(self) -> None:
+        """Note the time when the last frame had input: the mouse moved, scrolled or held, a key
+        held, or a field in use (once per frame, before it starts)."""
+        io = imgui.get_io()
+        if (
+            io.mouse_delta.x
+            or io.mouse_delta.y
+            or io.mouse_wheel
+            or io.mouse_wheel_h
+            or imgui.is_any_mouse_down()
+            or imgui.is_any_item_active()
+            or any(imgui.is_key_down(key) for key in _named_keys())
+        ):
+            self._last_input = time.monotonic()
+
+    def _ui_busy(self) -> bool:
+        """Whether the user works in the app just now (any thread)."""
+        return time.monotonic() - self._last_input < _BUSY_AFTER_INPUT
+
     def watch_db_frame(self) -> None:
         """Dev watchdog (XKNX_DEBUG_DB_FRAMES=1): log when the render thread keeps issuing DB queries
         across frames in which the project did not change — an uncached per-frame read in a panel."""
@@ -6780,6 +6814,7 @@ def _main() -> None:
         # field, Space and Enter use the one in focus, the arrow keys move through drop-down
         # lists and trees, Escape leaves them.
         imgui.get_io().config_flags |= imgui.ConfigFlags_.nav_enable_keyboard
+        app.note_input()
         if frame_db_profiler.enabled:
             app.watch_db_frame()
 
