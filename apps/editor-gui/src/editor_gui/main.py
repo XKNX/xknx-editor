@@ -134,6 +134,7 @@ from editor_gui.widgets.fonts import (
     heading,
     load_fonts,
 )
+from editor_gui.widgets.markdown import COMPACT as COMPACT_MARKDOWN
 from editor_gui.widgets.markdown import render_markdown
 from editor_gui.widgets.parameter_widgets import set_highlight_changes
 from editor_gui.widgets.password_form import NewPasswordForm
@@ -4344,8 +4345,9 @@ class KnxGuiApp:
             imgui.separator()
             imgui.text_disabled(S.UPDATE_NOTES_HEADER)
             if imgui.begin_child("##update-notes", px_vec2(0.0, 220.0), True):
-                # The release notes are Markdown, rendered as help pages are.
-                render_markdown(info.notes)
+                # The release notes are Markdown: short sections of short items, laid out closer
+                # than help pages.
+                render_markdown(info.notes, COMPACT_MARKDOWN)
             imgui.end_child()
         if host.home_assistant():
             # Home Assistant updates the editor with its integration.
