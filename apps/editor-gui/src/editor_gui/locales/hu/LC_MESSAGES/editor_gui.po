@@ -235,6 +235,9 @@ msgstr "Az importálás megszakítva, semmi sem lett importálva"
 msgid "Opening project…"
 msgstr "A projekt megnyitása…"
 
+msgid "Preparing the views…"
+msgstr "A nézetek előkészítése…"
+
 msgid "Project Password"
 msgstr "Projektjelszó"
 

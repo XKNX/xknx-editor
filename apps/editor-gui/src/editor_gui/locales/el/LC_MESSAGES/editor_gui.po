@@ -958,6 +958,9 @@ msgstr "Εισαγωγή Καταλόγου Προϊόντων"
 msgid "Opening project…"
 msgstr "Άνοιγμα έργου…"
 
+msgid "Preparing the views…"
+msgstr "Προετοιμασία των προβολών…"
+
 msgid "Importing group addresses…"
 msgstr "Εισαγωγή διευθύνσεων ομάδων…"
 

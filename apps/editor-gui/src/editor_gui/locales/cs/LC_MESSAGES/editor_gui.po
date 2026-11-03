@@ -958,6 +958,9 @@ msgstr "Import produktového katalogu"
 msgid "Opening project…"
 msgstr "Otevírání projektu…"
 
+msgid "Preparing the views…"
+msgstr "Příprava zobrazení…"
+
 msgid "Importing group addresses…"
 msgstr "Import skupinových adres…"
 

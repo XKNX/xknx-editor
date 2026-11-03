@@ -235,6 +235,9 @@ msgstr "Uvoz je preklican, nič ni bilo uvoženo"
 msgid "Opening project…"
 msgstr "Odpiranje projekta…"
 
+msgid "Preparing the views…"
+msgstr "Pripravljanje pogledov…"
+
 msgid "Project Password"
 msgstr "Geslo projekta"
 

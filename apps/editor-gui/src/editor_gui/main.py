@@ -2384,6 +2384,12 @@ class KnxGuiApp:
         self._progress_stage = ""
         self._progress_cancel = None
 
+    def _prepare_views(self) -> None:
+        """After a project opened, on its worker: what the views show is read behind the progress
+        dialog, which says so (the devices are all loaded by then)."""
+        self.set_progress(None, S.PROGRESS_PREPARING_VIEWS)
+        self._project_service.prepare_views()
+
     def set_progress(self, fraction: float | None, stage: str = "") -> None:
         """Update the progress modal from a worker: ``fraction`` in [0,1] for a determinate bar,
         or None for the indeterminate animation. ``stage`` is an optional sub-step label."""
@@ -2538,6 +2544,7 @@ class KnxGuiApp:
                 cancel=cancel,
                 committing=self._cancel_no_longer_possible,
             )
+            self._prepare_views()
             # Import opens the freshly built .xknx; record it in Open Recent like a normal open.
             self._add_recent(dest)
             # Lossy-import notes detected during the build; _poll_import raises the readable modal on
@@ -3047,6 +3054,7 @@ class KnxGuiApp:
             self._project_service.build_progress = report
             try:
                 self._project_service.open(Path(path), password)
+                self._prepare_views()
                 self._add_recent(path)
                 if self._project_service.mirroring_active:
                     self._mirror_notice = str(self._project_service.mirror_home)

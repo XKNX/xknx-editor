@@ -235,6 +235,9 @@ msgstr "Hætt við innflutning, ekkert var flutt inn"
 msgid "Opening project…"
 msgstr "Opnar verkefni…"
 
+msgid "Preparing the views…"
+msgstr "Undirbýr yfirlitin…"
+
 msgid "Project Password"
 msgstr "Aðgangsorð verkefnis"
 

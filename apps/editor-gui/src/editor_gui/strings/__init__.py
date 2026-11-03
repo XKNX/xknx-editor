@@ -1603,6 +1603,10 @@ class MenuStrings:
         return _("{done}/{total} devices")
 
     @property
+    def PROGRESS_PREPARING_VIEWS(self) -> str:
+        return _("Preparing the views…")
+
+    @property
     def PROGRESS_LOAD_KNXPROD(self) -> str:
         return _("Loading product catalog…")
 

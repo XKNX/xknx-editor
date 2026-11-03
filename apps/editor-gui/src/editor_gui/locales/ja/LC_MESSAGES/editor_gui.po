@@ -958,6 +958,9 @@ msgstr "製品カタログのインポート"
 msgid "Opening project…"
 msgstr "プロジェクトを開いています…"
 
+msgid "Preparing the views…"
+msgstr "ビューを準備しています…"
+
 msgid "Importing group addresses…"
 msgstr "グループ・アドレスをインポート中…"
 

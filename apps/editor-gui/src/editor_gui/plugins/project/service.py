@@ -1683,6 +1683,22 @@ class ProjectService:
                     group_range_roots=len(self.get_group_range_tree()),
                 )
 
+    def prepare_views(self) -> None:
+        """Read what the views show right after a project opened, on the worker that opened it
+        (behind its progress dialog): the first frame then finds it in the caches instead of
+        reading it while the app does not respond."""
+        if self._pid is None:
+            return
+        with self._io_lock:
+            _ = self.group_addresses
+            _ = self.group_address_style
+            self.device_links()
+            self.device_lines()
+            self.has_project_log()
+            self.get_project_metadata()
+            for device in self.devices:
+                self.get_device_info(device.node_id)
+
     def import_knxproj(
         self,
         source: Path,

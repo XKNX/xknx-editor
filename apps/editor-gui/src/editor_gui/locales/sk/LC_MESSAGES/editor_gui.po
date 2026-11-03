@@ -235,6 +235,9 @@ msgstr "Import zrušený, nič sa neimportovalo"
 msgid "Opening project…"
 msgstr "Otvára sa projekt…"
 
+msgid "Preparing the views…"
+msgstr "Pripravujú sa zobrazenia…"
+
 msgid "Project Password"
 msgstr "Heslo projektu"
 
