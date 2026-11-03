@@ -1527,3 +1527,9 @@ msgstr "ETS 5 üzerinden dışa aktarma yavaştır: 80 cihaz ve 800 grup adresi 
 
 msgid "No signing key is needed for \"{action}\"; it only signs \"{skip}\"."
 msgstr "\"{action}\" için imzalama anahtarı gerekmez; yalnızca \"{skip}\" imzalanır."
+
+msgid "Product Database Password"
+msgstr "Ürün veritabanı parolası"
+
+msgid "This product database is password-protected. Enter its password to import it:"
+msgstr "Bu ürün veritabanı parola korumalı. İçe aktarmak için parolasını girin:"

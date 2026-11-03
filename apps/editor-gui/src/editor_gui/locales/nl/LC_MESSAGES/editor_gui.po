@@ -1592,3 +1592,9 @@ msgstr "Exporteren via ETS 5 is traag: ongeveer 3 minuten voor 80 apparaten en 8
 
 msgid "No signing key is needed for \"{action}\"; it only signs \"{skip}\"."
 msgstr "Voor \"{action}\" is geen ondertekeningssleutel nodig; die ondertekent alleen \"{skip}\"."
+
+msgid "Product Database Password"
+msgstr "Wachtwoord productdatabase"
+
+msgid "This product database is password-protected. Enter its password to import it:"
+msgstr "Deze productdatabase is met een wachtwoord beveiligd. Voer het wachtwoord in om te importeren:"

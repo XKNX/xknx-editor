@@ -1599,3 +1599,9 @@ msgstr "Az ETS 5-ön keresztüli exportálás lassú: körülbelül 3 perc 80 es
 
 msgid "No signing key is needed for \"{action}\"; it only signs \"{skip}\"."
 msgstr "A(z) \"{action}\" nem igényel aláíró kulcsot; az csak a(z) \"{skip}\" lehetőséget írja alá."
+
+msgid "Product Database Password"
+msgstr "Termékadatbázis jelszava"
+
+msgid "This product database is password-protected. Enter its password to import it:"
+msgstr "Ez a termékadatbázis jelszóval védett. Adja meg a jelszavát az importáláshoz:"

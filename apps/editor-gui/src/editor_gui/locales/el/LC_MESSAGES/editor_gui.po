@@ -1527,3 +1527,9 @@ msgstr "Η εξαγωγή μέσω ETS 5 είναι αργή: περίπου 3 �
 
 msgid "No signing key is needed for \"{action}\"; it only signs \"{skip}\"."
 msgstr "Δεν απαιτείται κλειδί υπογραφής για \"{action}\"· υπογράφει μόνο \"{skip}\"."
+
+msgid "Product Database Password"
+msgstr "Κωδικός βάσης δεδομένων προϊόντων"
+
+msgid "This product database is password-protected. Enter its password to import it:"
+msgstr "Αυτή η βάση δεδομένων προϊόντων προστατεύεται με κωδικό. Εισαγάγετε τον κωδικό της για να την εισαγάγετε:"

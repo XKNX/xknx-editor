@@ -149,7 +149,12 @@ from editor_gui.widgets.tree import collapsing_header
 from editor_gui.window_title import bring_to_front, set_window_title, wake
 from xknxeditor.catalog import ProductSummary
 from xknxeditor.prod.app_id import parse_app_id
-from xknxeditor.prod.errors import ArchiveError, ImportCancelled, check_cancelled
+from xknxeditor.prod.errors import (
+    ArchiveError,
+    ImportCancelled,
+    PasswordRequired,
+    check_cancelled,
+)
 from xknxeditor.prod.vd import is_vd_file
 from xknxeditor.proj import (
     MYKNX_DLL_NAME,
@@ -596,6 +601,10 @@ class KnxGuiApp:
         self._open_password_requested = False
         self._open_password = ""
         self._open_password_error: str | None = None
+        # Importing a password-protected product database (.vd): entered password and the retry.
+        self._vd_password_requested = False
+        self._vd_password = ""
+        self._vd_password_retry: Callable[[], None] | None = None
         # The password a project with KNX Secure data needs: set it (``_action``) or give up.
         self._new_password_requested = False
         self._new_password_action: Callable[[str], None] | None = None
@@ -3095,6 +3104,39 @@ class KnxGuiApp:
             imgui.close_current_popup()
         end_dialog()
 
+    def _render_vd_password_modal(self) -> None:
+        title = f"{S.VD_PASSWORD_TITLE}###vd-password"
+        # Opened once the import's worker (and its progress modal) is gone.
+        if self._vd_password_requested and self._bg_thread is None:
+            imgui.open_popup(title)
+            self._vd_password_requested = False
+        if not begin_dialog(title, width=440.0):
+            return
+        imgui.text_wrapped(S.VD_PASSWORD_PROMPT)
+        imgui.set_next_item_width(-1)
+        focus_when_appearing()
+        submitted, self._vd_password = imgui.input_text(
+            "##vd-password",
+            self._vd_password,
+            imgui.InputTextFlags_.password | imgui.InputTextFlags_.enter_returns_true,
+        )
+        clicked = dialog_buttons(S.BTN_OK, S.BTN_CANCEL)
+        retry = self._vd_password_retry
+        if (clicked == 0 or submitted) and self._vd_password:
+            from editor_gui.plugins.catalog.service import store_vd_password
+
+            store_vd_password(self._vd_password)
+            self._vd_password = ""
+            self._vd_password_retry = None
+            imgui.close_current_popup()
+            if retry is not None:
+                retry()
+        elif clicked == 1:
+            self._vd_password = ""
+            self._vd_password_retry = None
+            imgui.close_current_popup()
+        end_dialog()
+
     def _require_password_if_secure(self) -> None:
         """Ask for a password when the open project holds KNX Secure data without one (from an
         earlier version); without it the project is closed again."""
@@ -3549,6 +3591,11 @@ class KnxGuiApp:
             except ImportCancelled:
                 self._log.info("knxprod import cancelled", path=path)
                 self._knxprod_result = S.IMPORT_CANCELLED
+            except PasswordRequired:
+                # A locally built app with no bundled or stored password: ask, store, retry.
+                self._log.info("product database needs a password", path=path)
+                self._vd_password_retry = lambda: self._load_product(path)
+                self._vd_password_requested = True
             except ArchiveError as e:
                 self._log.error("archive error", path=path, error=str(e))
             except (OSError, ValueError) as e:
@@ -5014,6 +5061,7 @@ class KnxGuiApp:
         self._render_progress_modal()
         self._render_import_password_modal()
         self._render_open_password_modal()
+        self._render_vd_password_modal()
         self._render_running_editors_modal()
         self._render_project_elsewhere_modal()
         self._render_new_password_modal()

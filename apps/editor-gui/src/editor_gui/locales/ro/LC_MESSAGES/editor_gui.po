@@ -1599,3 +1599,9 @@ msgstr "Exportul prin ETS 5 este lent: aproximativ 3 minute pentru 80 de dispozi
 
 msgid "No signing key is needed for \"{action}\"; it only signs \"{skip}\"."
 msgstr "Nu este necesară o cheie de semnare pentru \"{action}\"; aceasta semnează doar \"{skip}\"."
+
+msgid "Product Database Password"
+msgstr "Parola bazei de date de produse"
+
+msgid "This product database is password-protected. Enter its password to import it:"
+msgstr "Această bază de date de produse este protejată cu parolă. Introduceți parola pentru a o importa:"

@@ -1527,3 +1527,9 @@ msgstr "Експорт через ETS 5 повільний: близько 3 х�
 
 msgid "No signing key is needed for \"{action}\"; it only signs \"{skip}\"."
 msgstr "Для \"{action}\" ключ підпису не потрібен; він підписує лише \"{skip}\"."
+
+msgid "Product Database Password"
+msgstr "Пароль бази даних продуктів"
+
+msgid "This product database is password-protected. Enter its password to import it:"
+msgstr "Ця база даних продуктів захищена паролем. Введіть пароль, щоб імпортувати її:"

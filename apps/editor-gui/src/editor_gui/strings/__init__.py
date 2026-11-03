@@ -1707,6 +1707,16 @@ class MenuStrings:
         return _("Wrong password, please try again.")
 
     @property
+    def VD_PASSWORD_TITLE(self) -> str:
+        return _("Product Database Password")
+
+    @property
+    def VD_PASSWORD_PROMPT(self) -> str:
+        return _(
+            "This product database is password-protected. Enter its password to import it:"
+        )
+
+    @property
     def OPEN_PASSWORD_PROMPT(self) -> str:
         return _(
             "This project is protected with a password. Enter it to open the project:"

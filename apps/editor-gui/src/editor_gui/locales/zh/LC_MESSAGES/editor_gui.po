@@ -1527,3 +1527,9 @@ msgstr "通过 ETS 5 导出很慢：80 个设备和 800 个组地址约需 3 分
 
 msgid "No signing key is needed for \"{action}\"; it only signs \"{skip}\"."
 msgstr "\"{action}\" 不需要签名密钥；它仅对 \"{skip}\" 签名。"
+
+msgid "Product Database Password"
+msgstr "产品数据库密码"
+
+msgid "This product database is password-protected. Enter its password to import it:"
+msgstr "此产品数据库受密码保护。请输入其密码以导入:"

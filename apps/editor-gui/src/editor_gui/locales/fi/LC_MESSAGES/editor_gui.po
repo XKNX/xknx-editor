@@ -1527,3 +1527,9 @@ msgstr "Vienti ETS 5:n kautta on hidasta: noin 3 minuuttia 80 laitteelle ja 800 
 
 msgid "No signing key is needed for \"{action}\"; it only signs \"{skip}\"."
 msgstr "Allekirjoitusavainta ei tarvita toiminnolle \"{action}\"; se allekirjoittaa vain \"{skip}\"."
+
+msgid "Product Database Password"
+msgstr "Tuotetietokannan salasana"
+
+msgid "This product database is password-protected. Enter its password to import it:"
+msgstr "Tämä tuotetietokanta on suojattu salasanalla. Anna sen salasana tuodaksesi sen:"

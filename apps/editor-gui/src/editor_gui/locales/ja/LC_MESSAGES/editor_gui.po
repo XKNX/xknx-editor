@@ -1527,3 +1527,9 @@ msgstr "ETS 5 経由のエクスポートは遅く、80 台のデバイスと 80
 
 msgid "No signing key is needed for \"{action}\"; it only signs \"{skip}\"."
 msgstr "\"{action}\" に署名キーは不要です。署名キーは \"{skip}\" にのみ使用されます。"
+
+msgid "Product Database Password"
+msgstr "製品データベースのパスワード"
+
+msgid "This product database is password-protected. Enter its password to import it:"
+msgstr "この製品データベースはパスワードで保護されています。インポートするにはパスワードを入力してください:"

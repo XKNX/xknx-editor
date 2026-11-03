@@ -1527,3 +1527,9 @@ msgstr "Export přes ETS 5 je pomalý: přibližně 3 minuty pro 80 zařízení 
 
 msgid "No signing key is needed for \"{action}\"; it only signs \"{skip}\"."
 msgstr "Pro \"{action}\" není potřeba podpisový klíč; podepisuje pouze \"{skip}\"."
+
+msgid "Product Database Password"
+msgstr "Heslo databáze produktů"
+
+msgid "This product database is password-protected. Enter its password to import it:"
+msgstr "Tato databáze produktů je chráněna heslem. Zadejte heslo pro její import:"

@@ -1527,3 +1527,9 @@ msgstr "Eksportimi përmes ETS 5 është i ngadaltë: rreth 3 minuta për 80 paj
 
 msgid "No signing key is needed for \"{action}\"; it only signs \"{skip}\"."
 msgstr "Nuk nevojitet çelës nënshkrimi për \"{action}\"; ai nënshkruan vetëm \"{skip}\"."
+
+msgid "Product Database Password"
+msgstr "Fjalëkalimi i bazës së të dhënave të produkteve"
+
+msgid "This product database is password-protected. Enter its password to import it:"
+msgstr "Kjo bazë e të dhënave të produkteve është e mbrojtur me fjalëkalim. Shkruani fjalëkalimin për ta importuar:"

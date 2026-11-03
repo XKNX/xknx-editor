@@ -1527,3 +1527,9 @@ msgstr "Export via ETS 5 är långsam: ungefär 3 minuter för 80 enheter och 80
 
 msgid "No signing key is needed for \"{action}\"; it only signs \"{skip}\"."
 msgstr "Ingen signeringsnyckel behövs för \"{action}\"; den signerar bara \"{skip}\"."
+
+msgid "Product Database Password"
+msgstr "Lösenord för produktdatabas"
+
+msgid "This product database is password-protected. Enter its password to import it:"
+msgstr "Den här produktdatabasen är lösenordsskyddad. Ange lösenordet för att importera den:"

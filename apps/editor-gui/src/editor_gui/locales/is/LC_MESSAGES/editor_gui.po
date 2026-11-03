@@ -1599,3 +1599,9 @@ msgstr "Útflutningur í gegnum ETS 5 er hægur: um 3 mínútur fyrir 80 tæki o
 
 msgid "No signing key is needed for \"{action}\"; it only signs \"{skip}\"."
 msgstr "Það þarf engan undirritunarlykil fyrir \"{action}\"; hann undirritar aðeins \"{skip}\"."
+
+msgid "Product Database Password"
+msgstr "Lykilorð vörugagnagrunns"
+
+msgid "This product database is password-protected. Enter its password to import it:"
+msgstr "Þessi vörugagnagrunnur er varinn með lykilorði. Sláðu inn lykilorðið til að flytja hann inn:"

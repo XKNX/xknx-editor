@@ -1527,3 +1527,9 @@ msgstr "Eksport via ETS 5 er langsom: omkring 3 minutter for 80 enheder og 800 g
 
 msgid "No signing key is needed for \"{action}\"; it only signs \"{skip}\"."
 msgstr "Der kræves ingen signeringsnøgle til \"{action}\"; den signerer kun \"{skip}\"."
+
+msgid "Product Database Password"
+msgstr "Adgangskode til produktdatabase"
+
+msgid "This product database is password-protected. Enter its password to import it:"
+msgstr "Denne produktdatabase er beskyttet med adgangskode. Indtast adgangskoden for at importere den:"

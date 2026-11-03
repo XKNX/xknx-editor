@@ -1599,3 +1599,9 @@ msgstr "Izvoz prek ETS 5 je počasen: približno 3 minute za 80 naprav in 800 sk
 
 msgid "No signing key is needed for \"{action}\"; it only signs \"{skip}\"."
 msgstr "Za \"{action}\" podpisni ključ ni potreben; podpiše samo \"{skip}\"."
+
+msgid "Product Database Password"
+msgstr "Geslo zbirke podatkov o izdelkih"
+
+msgid "This product database is password-protected. Enter its password to import it:"
+msgstr "Ta zbirka podatkov o izdelkih je zaščitena z geslom. Vnesite geslo za uvoz:"

@@ -1527,3 +1527,9 @@ msgstr "La exportación a través de ETS 5 es lenta: unos 3 minutos para 80 disp
 
 msgid "No signing key is needed for \"{action}\"; it only signs \"{skip}\"."
 msgstr "No se necesita clave de firma para \"{action}\"; solo firma \"{skip}\"."
+
+msgid "Product Database Password"
+msgstr "Contraseña de la base de datos de productos"
+
+msgid "This product database is password-protected. Enter its password to import it:"
+msgstr "Esta base de datos de productos está protegida con contraseña. Introduzca su contraseña para importarla:"
