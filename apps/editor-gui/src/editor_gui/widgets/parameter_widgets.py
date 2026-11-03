@@ -1589,17 +1589,18 @@ def render_ui_tree(
                 _get_picture = None
                 _get_icon = None
                 _narrow_page[0] = False
-            # A zero-size item so the SetCursorPos()/pixel-exact positioning above and inside the
-            # page does not trip ImGui's "used SetCursorPos to extend boundaries" assert when the
-            # child ends (it fires when a cursor move is the last thing before end_child). Submit it
-            # before trimming cursor_max_pos so the trim stays the final word on the scroll extent.
+            # Capture the page's real extent BEFORE the guard dummy below: the dummy only clears
+            # ImGui's "SetCursorPos extends boundaries" state (asserted in end_child when a cursor
+            # move is the last thing submitted), but it would otherwise re-extend cursor_max_pos by
+            # a row's item spacing and leave extra scroll room at the bottom.
+            inner_window = internal.get_current_window()
+            reached_y = inner_window.dc.cursor_max_pos.y
             imgui.dummy(imgui.ImVec2(0.0, 0.0))
             # Scrolled to its end, the page ends with its last row, without the window's padding
-            # below it.
-            inner_window = internal.get_current_window()
+            # below it (from the pre-dummy extent, not the dummy's).
             inner_window.dc.cursor_max_pos = imgui.ImVec2(
                 inner_window.dc.cursor_max_pos.x,
-                inner_window.dc.cursor_max_pos.y - imgui.get_style().window_padding.y,
+                reached_y - imgui.get_style().window_padding.y,
             )
         elif content_open:
             # An empty page: the top line moved the cursor with no item after it; close it the same
