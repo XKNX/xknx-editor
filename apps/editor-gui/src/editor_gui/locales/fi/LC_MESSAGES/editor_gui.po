@@ -958,6 +958,9 @@ msgstr "Tuoteluettelon tuonti"
 msgid "Opening project…"
 msgstr "Avataan projektia…"
 
+msgid "Preparing the views…"
+msgstr "Valmistellaan näkymiä…"
+
 msgid "Importing group addresses…"
 msgstr "Tuodaan ryhmäosoitteita…"
 

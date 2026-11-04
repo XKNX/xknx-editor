@@ -144,6 +144,8 @@ if TYPE_CHECKING:
     from xknxeditor.proj.models import Device as DeviceRow
 
 _INSTALLATION = 0
+# How often the evaluation in the background looks whether the user paused (seconds).
+_RECHECK_IDLE_POLL = 0.1
 
 ParamMode = Literal["edit", "transfer", "raw"]
 """How a parameter change is applied: ``edit`` runs calculations and validations, ``transfer``
@@ -1227,6 +1229,9 @@ class ProjectService:
         self._recheck_queue: dict[int, _Recheck] = {}
         self._rechecked: list[tuple[_Recheck, Device]] = []
         self._recheck_generation = -1
+        # Whether the user works in the app just now (set by the app): the evaluation in the
+        # background waits for a pause, its Python code would slow every frame down.
+        self.ui_busy: Callable[[], bool] = lambda: False
         self._areas_cache: list[_Area] | None = None
         self._lines_cache: dict[int, list[_Line]] | None = None
         self._ga_cache: list[GroupAddressInfo] | None = None
@@ -1236,6 +1241,8 @@ class ProjectService:
         # idling and churned the GC). Cleared on _reset so one project's cache is never reused for the
         # next. Adding a new per-frame read is now just the decorator, no bespoke cache fields.
         self._revision_cache: dict[str, tuple[int, object]] = {}
+        # Reads per device that depend on the catalog too (see _device_read).
+        self._device_reads: dict[tuple[str, int], tuple[tuple[int, int], object]] = {}
         # Each lazy cache tracks the project version it was built at, independently. A single shared
         # counter is wrong: after an edit only the first cache read would rebuild (and stamp the
         # shared version), leaving the others returning stale data until the next edit.
@@ -1676,6 +1683,22 @@ class ProjectService:
                     group_range_roots=len(self.get_group_range_tree()),
                 )
 
+    def prepare_views(self) -> None:
+        """Read what the views show right after a project opened, on the worker that opened it
+        (behind its progress dialog): the first frame then finds it in the caches instead of
+        reading it while the app does not respond."""
+        if self._pid is None:
+            return
+        with self._io_lock:
+            _ = self.group_addresses
+            _ = self.group_address_style
+            self.device_links()
+            self.device_lines()
+            self.has_project_log()
+            self.get_project_metadata()
+            for device in self.devices:
+                self.get_device_info(device.node_id)
+
     def import_knxproj(
         self,
         source: Path,
@@ -1921,6 +1944,7 @@ class ProjectService:
         self._lines_cache = None
         self._ga_cache = None
         self._revision_cache.clear()
+        self._device_reads.clear()
         self._devices_cache_version = -1
         self._topology_cache_version = -1
         self._ga_cache_version = -1
@@ -2251,8 +2275,11 @@ class ProjectService:
 
     def _recheck_devices(self, generation: int) -> None:
         """Evaluate the queued devices of project ``generation`` one after the other, the selected
-        device first; the main thread takes the results over (see take_rechecked_devices)."""
+        device first; the main thread takes the results over (see take_rechecked_devices). Each
+        device waits until the user pauses: the devices are shown from their snapshots meanwhile."""
         while True:
+            while self.ui_busy() and generation == self._load_generation:
+                time.sleep(_RECHECK_IDLE_POLL)
             with self._recheck_lock:
                 if generation != self._load_generation or not self._recheck_queue:
                     if self._recheck_generation == generation:
@@ -3573,16 +3600,25 @@ class ProjectService:
 
     def security_proxy_coupler(self, device: Device) -> bool:
         """Whether the device is a coupler with the security extensions (its hardware program's
-        ``CouplerCapabilities`` has ``SecurityProxy``) commissioned securely."""
+        ``CouplerCapabilities`` has ``SecurityProxy``) commissioned securely. Cached (see
+        _device_read): the device settings ask every frame."""
         if self._pid is None or device.app is None:
             return False
+        return self._device_read(
+            "security_proxy_coupler",
+            device.node_id,
+            lambda: self._security_proxy_coupler(device.node_id),
+        )
+
+    def _security_proxy_coupler(self, node_id: int) -> bool:
+        assert self._pid is not None
         try:
-            ref = self._svc.device(self._pid, device.node_id).hardware2program_ref_id
+            ref = self._svc.device(self._pid, node_id).hardware2program_ref_id
         except KeyError:
             return False
         if not ref or "SecurityProxy" not in self._catalog.coupler_capabilities(ref):
             return False
-        return self._svc.secure_commissioning(self._pid, device.node_id)
+        return self._svc.secure_commissioning(self._pid, node_id)
 
     def unicast_broadcast_blocking(self, device: Device) -> str | None:
         """The coupler's blocking setting (``"On"``/``"Off"``, ``None`` = Auto)."""
@@ -4605,17 +4641,25 @@ class ProjectService:
 
     # --- application update ("Update Application Program") -------------
 
-    def _device_program(self, device: Device) -> str | None:
+    def _device_program(self, node_id: int) -> str | None:
         if self._pid is None:
             return None
-        return self._svc.device(self._pid, device.node_id).hardware2program_ref_id
+        return self._svc.device(self._pid, node_id).hardware2program_ref_id
 
     @io_guarded(list)
     def application_change_targets(self, device: Device) -> "list[ProgramSummary]":
         """The other application programs of the device's hardware in the local catalog, for
         "Change Application Program": every program that loads an application and is not
-        unregistered, older or newer."""
-        current = self._device_program(device)
+        unregistered, older or newer. Cached (see _device_read): the device settings ask every
+        frame."""
+        return self._device_read(
+            "application_change_targets",
+            device.node_id,
+            lambda: self._application_change_targets(device.node_id),
+        )
+
+    def _application_change_targets(self, node_id: int) -> "list[ProgramSummary]":
+        current = self._device_program(node_id)
         if current is None or "_HP-" not in current:
             return []
         hardware_id = current.split("_HP-", 1)[0]
@@ -4631,9 +4675,18 @@ class ProjectService:
     @io_guarded(lambda: None)
     def local_update_target(self, device: Device) -> "ProgramSummary | None":
         """The local program "Update Application Program Version" switches to: the highest
-        version of the same application whose ``ReplacesVersions`` names the current version."""
+        version of the same application whose ``ReplacesVersions`` names the current version.
+        Cached (see _device_read): the device settings ask every frame."""
         if device.app is None:
             return None
+        return self._device_read(
+            "local_update_target",
+            device.node_id,
+            lambda: self._local_update_target(device),
+        )
+
+    def _local_update_target(self, device: Device) -> "ProgramSummary | None":
+        assert device.app is not None
         current = device.app.program
         candidates = [
             program
@@ -4647,6 +4700,19 @@ class ProjectService:
             key=lambda program: program.application_version or 0,
             default=None,
         )
+
+    def _device_read[T](self, name: str, node_id: int, read: Callable[[], T]) -> T:
+        """``read()`` for a device, cached until the project or the catalog changes: for reads
+        from both that the device settings make every frame. Changing a device's application is
+        an edit, importing or removing a product a catalog change."""
+        stamp = (self.revision, self._catalog.generation)
+        key = (name, node_id)
+        hit = self._device_reads.get(key)
+        if hit is not None and hit[0] == stamp:
+            return cast("T", hit[1])
+        value = read()
+        self._device_reads[key] = (stamp, value)
+        return value
 
     @io_guarded(lambda: None)
     def newer_application_version(self, device: Device) -> int | None:

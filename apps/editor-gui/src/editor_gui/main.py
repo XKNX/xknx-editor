@@ -1,4 +1,5 @@
 import collections
+import functools
 import os
 import platform
 import re
@@ -133,6 +134,7 @@ from editor_gui.widgets.fonts import (
     heading,
     load_fonts,
 )
+from editor_gui.widgets.markdown import COMPACT as COMPACT_MARKDOWN
 from editor_gui.widgets.markdown import render_markdown
 from editor_gui.widgets.parameter_widgets import set_highlight_changes
 from editor_gui.widgets.password_form import NewPasswordForm
@@ -404,6 +406,17 @@ _STATUS_PADDING = 7.0
 # Refresh rate (Hz) once input stops, and while a progress dialog shows work going on.
 _FPS_IDLE = 6.0
 _FPS_PROGRESS = 30.0
+
+# The user counts as working in the app this long after the last input (seconds): work in the
+# background that would slow the frames down waits for a pause (see ProjectService.ui_busy).
+_BUSY_AFTER_INPUT = 1.0
+
+
+@functools.cache
+def _named_keys() -> tuple[imgui.Key, ...]:
+    """Every key ImGui knows by name (keyboard, gamepad and mouse buttons)."""
+    begin, end = int(imgui.Key.named_key_begin), int(imgui.Key.named_key_end)
+    return tuple(imgui.Key(value) for value in range(begin, end))
 
 
 def _myknx_product_name(product: dict[str, object], pid: str) -> str:
@@ -750,6 +763,9 @@ class KnxGuiApp:
         self._palette_focus = False
 
         self._project_service = ProjectService(self._catalog_service)
+        # When the user last moved the mouse, clicked or typed (see note_input).
+        self._last_input = 0.0
+        self._project_service.ui_busy = self._ui_busy
         self._connection_service = ConnectionService()
         self._log_service = LogService()
 
@@ -2369,6 +2385,12 @@ class KnxGuiApp:
         self._progress_stage = ""
         self._progress_cancel = None
 
+    def _prepare_views(self) -> None:
+        """After a project opened, on its worker: what the views show is read behind the progress
+        dialog, which says so (the devices are all loaded by then)."""
+        self.set_progress(None, S.PROGRESS_PREPARING_VIEWS)
+        self._project_service.prepare_views()
+
     def set_progress(self, fraction: float | None, stage: str = "") -> None:
         """Update the progress modal from a worker: ``fraction`` in [0,1] for a determinate bar,
         or None for the indeterminate animation. ``stage`` is an optional sub-step label."""
@@ -2523,6 +2545,7 @@ class KnxGuiApp:
                 cancel=cancel,
                 committing=self._cancel_no_longer_possible,
             )
+            self._prepare_views()
             # Import opens the freshly built .xknx; record it in Open Recent like a normal open.
             self._add_recent(dest)
             # Lossy-import notes detected during the build; _poll_import raises the readable modal on
@@ -3032,6 +3055,7 @@ class KnxGuiApp:
             self._project_service.build_progress = report
             try:
                 self._project_service.open(Path(path), password)
+                self._prepare_views()
                 self._add_recent(path)
                 if self._project_service.mirroring_active:
                     self._mirror_notice = str(self._project_service.mirror_home)
@@ -4321,8 +4345,9 @@ class KnxGuiApp:
             imgui.separator()
             imgui.text_disabled(S.UPDATE_NOTES_HEADER)
             if imgui.begin_child("##update-notes", px_vec2(0.0, 220.0), True):
-                # The release notes are Markdown, rendered as help pages are.
-                render_markdown(info.notes)
+                # The release notes are Markdown: short sections of short items, laid out closer
+                # than help pages.
+                render_markdown(info.notes, COMPACT_MARKDOWN)
             imgui.end_child()
         if host.home_assistant():
             # Home Assistant updates the editor with its integration.
@@ -4811,6 +4836,25 @@ class KnxGuiApp:
             self._compact_result = None
             imgui.close_current_popup()
         end_dialog()
+
+    def note_input(self) -> None:
+        """Note the time when the last frame had input: the mouse moved, scrolled or held, a key
+        held, or a field in use (once per frame, before it starts)."""
+        io = imgui.get_io()
+        if (
+            io.mouse_delta.x
+            or io.mouse_delta.y
+            or io.mouse_wheel
+            or io.mouse_wheel_h
+            or imgui.is_any_mouse_down()
+            or imgui.is_any_item_active()
+            or any(imgui.is_key_down(key) for key in _named_keys())
+        ):
+            self._last_input = time.monotonic()
+
+    def _ui_busy(self) -> bool:
+        """Whether the user works in the app just now (any thread)."""
+        return time.monotonic() - self._last_input < _BUSY_AFTER_INPUT
 
     def watch_db_frame(self) -> None:
         """Dev watchdog (XKNX_DEBUG_DB_FRAMES=1): log when the render thread keeps issuing DB queries
@@ -6780,6 +6824,7 @@ def _main() -> None:
         # field, Space and Enter use the one in focus, the arrow keys move through drop-down
         # lists and trees, Escape leaves them.
         imgui.get_io().config_flags |= imgui.ConfigFlags_.nav_enable_keyboard
+        app.note_input()
         if frame_db_profiler.enabled:
             app.watch_db_frame()
 

@@ -4806,7 +4806,16 @@ class ProjectService:
     def group_addresses(self, project_id: str) -> list[GroupAddressInfo]:
         state = self._state(project_id)
         style = self._style(state)
-        rows = state.session.query(GroupAddress).order_by(GroupAddress.id).all()
+        # The links and groups of all of them in one query each, not one per group address.
+        rows = (
+            state.session.query(GroupAddress)
+            .options(
+                selectinload(GroupAddress.links),
+                selectinload(GroupAddress.group_range),
+            )
+            .order_by(GroupAddress.id)
+            .all()
+        )
         secured = secured_group_addresses(state.session)
         return [self._ga_info(row, style, secured) for row in rows]
 

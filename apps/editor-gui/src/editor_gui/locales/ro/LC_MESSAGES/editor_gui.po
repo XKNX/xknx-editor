@@ -235,6 +235,9 @@ msgstr "Import întrerupt, nu s-a importat nimic"
 msgid "Opening project…"
 msgstr "Se deschide proiectul…"
 
+msgid "Preparing the views…"
+msgstr "Se pregătesc vizualizările…"
+
 msgid "Project Password"
 msgstr "Parolă proiect"
 

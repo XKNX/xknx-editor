@@ -5,6 +5,7 @@ project revision so the panel can call :meth:`findings` every frame cheaply."""
 
 from __future__ import annotations
 
+from collections import Counter
 from dataclasses import dataclass
 from enum import Enum
 from typing import TYPE_CHECKING
@@ -16,6 +17,7 @@ from editor_gui.strings import get_locale
 if TYPE_CHECKING:
     from editor_gui.device import Device
     from editor_gui.plugins.project.service import ProjectService
+    from xknxeditor.proj.core.service import DeviceLinkInfo
 
 
 class Severity(Enum):
@@ -57,10 +59,15 @@ class HealthService:
             return []
         out: list[Finding] = []
         devices = self._project.devices
+        # Every link of the project in one read: one per group object and group address would be
+        # thousands of queries after each edit.
+        links = self._project.device_links()
         out.extend(self._check_addresses(devices))
         out.extend(self._check_missing_apps())
-        out.extend(self._check_com_objects(devices))
-        out.extend(self._check_group_addresses())
+        out.extend(
+            self._check_com_objects(devices, {link.com_object_id for link in links})
+        )
+        out.extend(self._check_group_addresses(links))
         return out
 
     def _check_addresses(self, devices: list[Device]) -> list[Finding]:
@@ -104,14 +111,18 @@ class HealthService:
             )
         ]
 
-    def _check_com_objects(self, devices: list[Device]) -> list[Finding]:
+    def _check_com_objects(
+        self, devices: list[Device], linked: set[int]
+    ) -> list[Finding]:
+        """Devices with group objects that communicate but have no group address; ``linked`` are
+        the group objects (their ``db_id``) that have one."""
         out: list[Finding] = []
         for d in devices:
             unlinked = 0
             for co in d.get_visible_com_objects():
                 if not co.flags.communication or co.db_id is None:
                     continue
-                if not self._project.get_links_for_com_object(co.db_id):
+                if co.db_id not in linked:
                     unlinked += 1
             if unlinked:
                 out.append(
@@ -126,7 +137,11 @@ class HealthService:
                 )
         return out
 
-    def _check_group_addresses(self) -> list[Finding]:
+    def _check_group_addresses(self, links: list[DeviceLinkInfo]) -> list[Finding]:
+        """Group addresses without a datapoint type, and linked ones without exactly one
+        sender."""
+        assigned = {link.group_address_id for link in links}
+        senders_of = Counter(link.group_address_id for link in links if link.is_sending)
         out: list[Finding] = []
         for ga in self._project.group_addresses:
             if not ga.datapoint_type:
@@ -138,9 +153,8 @@ class HealthService:
                         ga_id=ga.id,
                     )
                 )
-            assignments = self._project.get_assignments_for_ga(ga.id)
-            if assignments:
-                senders = sum(1 for a in assignments if a.is_sending)
+            if ga.id in assigned:
+                senders = senders_of[ga.id]
                 if senders == 0:
                     out.append(
                         Finding(

@@ -958,6 +958,9 @@ msgstr "Importazione catalogo prodotti"
 msgid "Opening project…"
 msgstr "Apertura del progetto…"
 
+msgid "Preparing the views…"
+msgstr "Preparazione delle viste…"
+
 msgid "Importing group addresses…"
 msgstr "Importazione indirizzi di gruppo…"
 

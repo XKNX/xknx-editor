@@ -958,6 +958,9 @@ msgstr "Ürün Kataloğu İçe Aktarma"
 msgid "Opening project…"
 msgstr "Proje açılıyor…"
 
+msgid "Preparing the views…"
+msgstr "Görünümler hazırlanıyor…"
+
 msgid "Importing group addresses…"
 msgstr "Grup adresleri içe aktarılıyor…"
 

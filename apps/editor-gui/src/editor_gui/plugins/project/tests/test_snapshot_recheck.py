@@ -181,3 +181,59 @@ def test_a_device_changed_meanwhile_is_not_replaced(tmp_path: Any) -> None:
     _rechecked(proj)
     assert next(d for d in proj.devices if d.node_id == a) is opened
     proj.close()
+
+
+def test_the_evaluation_waits_while_the_user_works(
+    tmp_path: Any, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    cat, path, ids = _project(tmp_path)
+    proj = _service(cat)
+    proj.open(path)
+    _from_other_code(proj)
+    proj.close()
+
+    evaluated: list[int] = []
+    compute = service_module._compute_device
+
+    def recorded(inputs: Any, app: Any) -> Any:
+        evaluated.append(inputs.node_id)
+        return compute(inputs, app)
+
+    monkeypatch.setattr(service_module, "_compute_device", recorded)
+    monkeypatch.setattr(service_module, "_RECHECK_IDLE_POLL", 0.01)
+    busy = [True]
+    proj = _service(cat)
+    proj.ui_busy = lambda: busy[0]
+    proj.open(path)
+    _ = proj.devices
+    time.sleep(0.3)
+    assert evaluated == []
+    # The user pauses: the devices are evaluated.
+    busy[0] = False
+    _rechecked(proj)
+    assert sorted(evaluated) == sorted(ids)
+    assert _stored_fingerprints(proj) == {code_fingerprint()}
+    proj.close()
+
+
+def test_a_waiting_evaluation_ends_with_its_project(
+    tmp_path: Any, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    cat, path, _ids = _project(tmp_path)
+    proj = _service(cat)
+    proj.open(path)
+    _from_other_code(proj)
+    proj.close()
+
+    monkeypatch.setattr(service_module, "_RECHECK_IDLE_POLL", 0.01)
+    proj = _service(cat)
+    proj.ui_busy = lambda: True
+    proj.open(path)
+    _ = proj.devices
+    with proj._recheck_lock:
+        assert proj._recheck_queue
+    proj.close()
+    end = time.monotonic() + 5
+    while proj._recheck_generation != -1:
+        assert time.monotonic() < end, "the evaluation did not end"
+        time.sleep(0.01)

@@ -780,6 +780,9 @@ msgstr "Importeren geannuleerd, er is niets geïmporteerd"
 msgid "Opening project…"
 msgstr "Project wordt geopend…"
 
+msgid "Preparing the views…"
+msgstr "Weergaven worden voorbereid…"
+
 msgid "Importing group addresses…"
 msgstr "Groepsadressen worden geïmporteerd…"
 

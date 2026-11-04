@@ -254,6 +254,9 @@ msgstr "Import abgebrochen, es wurde nichts importiert"
 msgid "Opening project…"
 msgstr "Projekt wird geöffnet…"
 
+msgid "Preparing the views…"
+msgstr "Ansichten werden vorbereitet…"
+
 msgid "Project Password"
 msgstr "Projektpasswort"
 

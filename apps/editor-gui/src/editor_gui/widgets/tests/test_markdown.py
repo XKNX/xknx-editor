@@ -106,7 +106,7 @@ def test_paragraphs_are_parted_by_18_px() -> None:
 def test_a_numbered_item_ends_its_number_before_its_text(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    # The text 48 px in, its number ending 8 px before it.
+    # The text 32 px in, its number ending 8 px before it.
     drawn: list[tuple[str, float]] = []
     monkeypatch.setattr(
         markdown.text_layout,
@@ -123,6 +123,64 @@ def test_a_numbered_item_ends_its_number_before_its_text(
     left = imgui.get_cursor_screen_pos().x
     markdown.render_markdown("1. Einen oberen Trigger-Wert")
     assert drawn == [
-        ("1.", left + 48 - 8 - 9),
-        ("Einen oberen Trigger-Wert", left + 48),
+        ("1.", left + 32 - 8 - 9),
+        ("Einen oberen Trigger-Wert", left + 32),
     ]
+
+
+@pytest.mark.usefixtures("frame")
+@pytest.mark.parametrize(
+    ("layout", "below"), [(markdown.HELP_PAGE, 23.0), (markdown.COMPACT, 8.0)]
+)
+def test_a_heading_leaves_its_room_below(layout: markdown.Layout, below: float) -> None:
+    top = imgui.get_cursor_pos_y()
+    markdown.render_markdown("## Fixed", layout)
+    heading = imgui.get_cursor_pos_y() - top
+    top = imgui.get_cursor_pos_y()
+    markdown.render_markdown("## Fixed\n- An item", layout)
+    item = imgui.get_text_line_height() + LINE_GAP
+    assert imgui.get_cursor_pos_y() - top == pytest.approx(
+        heading + below - LINE_GAP + item
+    )
+
+
+@pytest.mark.usefixtures("frame")
+def test_compact_items_start_further_left(monkeypatch: pytest.MonkeyPatch) -> None:
+    # The release notes: the text 22 px in, its bullet ending 8 px before it.
+    starts: list[float] = []
+
+    def wrapped(_text: str, _width: float) -> None:
+        starts.append(imgui.get_cursor_screen_pos().x)
+        imgui.dummy(imgui.ImVec2(1, 1))
+
+    monkeypatch.setattr(markdown, "wrapped_text", wrapped)
+    left = imgui.get_cursor_screen_pos().x
+    draw_list = imgui.get_window_draw_list()
+    count = draw_list.vtx_buffer.size()
+    markdown.render_markdown("- One item", markdown.COMPACT)
+    assert draw_list.vtx_buffer.size() > count  # its bullet
+    assert starts == [pytest.approx(left + 22)]
+
+
+@pytest.mark.usefixtures("frame")
+def test_a_bullet_lies_before_its_text(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # The text 32 px in, the bullet's centre 12.2 px before it.
+    circles: list[float] = []
+    starts: list[float] = []
+
+    class DrawList:
+        def add_circle_filled(self, center: imgui.ImVec2, *_args: object) -> None:
+            circles.append(center.x)
+
+    def wrapped(_text: str, _width: float) -> None:
+        starts.append(imgui.get_cursor_screen_pos().x)
+        imgui.dummy(imgui.ImVec2(1, 1))
+
+    monkeypatch.setattr(markdown, "wrapped_text", wrapped)
+    monkeypatch.setattr(markdown.imgui, "get_window_draw_list", DrawList)
+    left = imgui.get_cursor_screen_pos().x
+    markdown.render_markdown("- UND")
+    assert starts == [pytest.approx(left + 32)]
+    assert circles == [pytest.approx(left + 32 - 12.2)]

@@ -958,6 +958,9 @@ msgstr "产品目录导入"
 msgid "Opening project…"
 msgstr "正在打开项目…"
 
+msgid "Preparing the views…"
+msgstr "正在准备视图…"
+
 msgid "Importing group addresses…"
 msgstr "正在导入组地址…"
 
