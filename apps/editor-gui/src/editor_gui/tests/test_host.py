@@ -12,6 +12,7 @@ from editor_gui import host, main
 from editor_gui.host import HostOptions, host_options
 from editor_gui.main import KnxGuiApp
 from editor_gui.strings import S
+from editor_gui.widgets.markdown import COMPACT, Layout
 
 
 @pytest.fixture(autouse=True)
@@ -174,8 +175,10 @@ def test_update_found_inside_home_assistant(monkeypatch: pytest.MonkeyPatch) -> 
     monkeypatch.setattr(main.imgui, "text_disabled", lambda *a, **k: None)
     monkeypatch.setattr(main.imgui, "begin_child", lambda *a, **k: True)
     monkeypatch.setattr(main.imgui, "text_wrapped", shown.append)
-    notes: list[str] = []
-    monkeypatch.setattr(main, "render_markdown", notes.append)
+    notes: list[tuple[str, Layout]] = []
+    monkeypatch.setattr(
+        main, "render_markdown", lambda text, layout: notes.append((text, layout))
+    )
     stub = SimpleNamespace(
         _update_prompt_requested=False,
         _update_info=SimpleNamespace(version="9.9.0", notes=_NOTES, url="", assets=[]),
@@ -185,8 +188,8 @@ def test_update_found_inside_home_assistant(monkeypatch: pytest.MonkeyPatch) -> 
     KnxGuiApp._render_update_modal(stub)  # type: ignore[arg-type]
 
     assert S.UPDATE_HOME_ASSISTANT_INTEGRATION in shown
-    # The release notes are Markdown, rendered as such.
-    assert notes == [_NOTES]
+    # The release notes are Markdown, rendered as such and laid out closer than a help page.
+    assert notes == [(_NOTES, COMPACT)]
     # Only informs: one button; closed, the check at start does not show it again.
     assert buttons == [(S.BTN_CLOSE,)]
     assert skipped == ["9.9.0"]
