@@ -15,7 +15,11 @@ from xknx.knxip import (
     TunnellingFeatureType,
 )
 
-from editor_gui.plugins.connection.interface import read_tunnel_max_apdu_length
+from editor_gui.plugins.connection.interface import (
+    STANDARD_FRAME_APDU_LENGTH,
+    interface_apdu_limit,
+    read_tunnel_max_apdu_length,
+)
 
 
 class _Transport(TCPTransport):
@@ -67,3 +71,19 @@ def test_no_answer_gives_none() -> None:
 
     assert asyncio.run(run()) is None
     assert asyncio.run(read_tunnel_max_apdu_length(None)) is None
+
+
+def test_reported_length_is_the_limit() -> None:
+    assert interface_apdu_limit(248, tunnelling=True) == 248
+    assert interface_apdu_limit(15, tunnelling=False) == 15
+
+
+def test_tunnel_without_report_uses_standard_frames() -> None:
+    # Tunnelling v1 (knxd) cannot report its maximum; a long frame can take its TP link down.
+    assert (
+        interface_apdu_limit(None, tunnelling=True) == STANDARD_FRAME_APDU_LENGTH == 15
+    )
+
+
+def test_routing_without_report_stays_unlimited() -> None:
+    assert interface_apdu_limit(None, tunnelling=False) is None
