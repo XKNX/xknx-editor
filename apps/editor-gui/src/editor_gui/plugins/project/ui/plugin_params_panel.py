@@ -27,11 +27,30 @@ from editor_gui.plugin_params import (
 )
 from editor_gui.plugins.project.strings import S
 from editor_gui.widgets.dpi import px
+from xknxeditor.vendor.triton import DeviceType
 
 if TYPE_CHECKING:
     from editor_gui.device import Device
 
 _HEADING_COLOR = imgui.ImVec4(0.75, 0.85, 0.95, 1.0)
+
+# The triton LCD display types the setup dropdown offers, as (enum value, product label). The
+# labels are product names and stay untranslated.
+_TRITON_DISPLAY_TYPES: tuple[tuple[str, str], ...] = (
+    (DeviceType.INTERFACE_6136UP.value, "6136UP"),
+    (DeviceType.TRITON_6323.value, "triton 6323"),
+    (DeviceType.TRITON_6325.value, "triton 6325"),
+)
+_TRITON_DEFAULT_TYPE = DeviceType.TRITON_6325.value
+
+
+def _display_type_index(value: str | None) -> int:
+    """Index of ``value`` in the display-type dropdown, falling back to the triton 6325."""
+    values = [type_value for type_value, _label in _TRITON_DISPLAY_TYPES]
+    if value in values:
+        return values.index(value)
+    return values.index(_TRITON_DEFAULT_TYPE)
+
 
 ParamEditHandler = Callable[["Device", str, str], None]
 # Generic structural handlers for list-containers: the panel calls these with the
@@ -42,6 +61,12 @@ RemoveItemHandler = Callable[["Device", "CollectionBinding", str], None]
 # Optional "program the plug-in state onto the device" action, enabled only when the
 # project-plugin wires it for a device that has a vendor BLOB (Siemens N141/03 today).
 ProgramDcaHandler = Callable[["Device"], None]
+# Setup actions for a blob-only triton LCD display that has no configuration yet. The project
+# plugin wires these; the panel stays pure-imgui and only calls them.
+SetupDisplayHandler = Callable[["Device", str], None]
+ImportPrjHandler = Callable[["Device"], None]
+ExportPrjHandler = Callable[["Device"], None]
+DetectDisplayType = Callable[["Device"], "str | None"]
 
 # Fallback extractor for a row's displayable item id, in case the row label is "#N: ..." or
 # a plain scalar.
@@ -56,6 +81,11 @@ class PluginParamsPanel:
     _on_add_item: AddItemHandler | None = None
     _on_remove_item: RemoveItemHandler | None = None
     _on_program_dca: ProgramDcaHandler | None = None
+    # Triton LCD setup area (shown for a blob-only triton display with no config yet).
+    _on_setup_display: SetupDisplayHandler | None = None
+    _on_import_prj: ImportPrjHandler | None = None
+    _on_export_prj: ExportPrjHandler | None = None
+    _detect_display_type: DetectDisplayType | None = None
     _filter: str = ""
     _closed_sections: dict[str, set[str]] = field(default_factory=dict[str, "set[str]"])
     # Per-ref edit buffer; cleared when the device commits a value back to the DOM.
@@ -72,6 +102,9 @@ class PluginParamsPanel:
     _new_name: dict[tuple[str, str], str] = field(
         default_factory=dict[tuple[str, str], str]
     )
+    # Per-device display-type dropdown index for the triton LCD setup area, keyed by the
+    # device's individual address; seeded once from auto-detection on first render.
+    _setup_type_idx: dict[str, int] = field(default_factory=dict[str, int])
 
     def render(self, device: Device) -> None:
         app_id = device.app.id if device.app is not None else None
@@ -81,10 +114,18 @@ class PluginParamsPanel:
             return
         sections = self._cached_sections(device, mapping)
         if not sections:
+            if (
+                mapping.blob_reader == "triton_lcd"
+                and self._on_setup_display is not None
+            ):
+                self._render_triton_setup(device)
+                return
             imgui.text_disabled(S.PLUGIN_PARAMS_EMPTY)
             return
         imgui.text_colored(_HEADING_COLOR, mapping.title)
         imgui.text_wrapped(S.PLUGIN_PARAMS_EDIT_NOTE)
+        if mapping.blob_reader == "triton_lcd":
+            self._render_triton_actions(device)
         # "Program DCA" shortcut: visible when the project plugin exposes the handler and
         # the device actually carries a vendor BLOB. One-click upload of the plug-in's
         # property-image to the gateway, bypassing the generic Parameters download.
@@ -115,6 +156,51 @@ class PluginParamsPanel:
             self._render_section(device, section.section, rows, filtering=bool(needle))
         if total_rows == 0:
             imgui.text_disabled(S.PLUGIN_PARAMS_FILTER_EMPTY)
+
+    def _render_triton_setup(self, device: Device) -> None:
+        """Setup area for a blob-only triton LCD display with no configuration yet: a hint, a
+        display-type dropdown (pre-selected from auto-detection) and the two setup actions."""
+        assert self._on_setup_display is not None
+        key = device.individual_address or "?"
+        if key not in self._setup_type_idx:
+            detected = (
+                self._detect_display_type(device)
+                if self._detect_display_type is not None
+                else None
+            )
+            self._setup_type_idx[key] = _display_type_index(detected)
+        imgui.text_wrapped(S.PLUGIN_PARAMS_SETUP_HINT)
+        labels = [label for _value, label in _TRITON_DISPLAY_TYPES]
+        idx = self._setup_type_idx[key]
+        if idx >= len(labels):
+            idx = 0
+        imgui.set_next_item_width(px(240.0))
+        changed, idx = imgui.combo(
+            f"{S.PLUGIN_PARAMS_SETUP_TYPE}##triton_type_{key}", idx, labels
+        )
+        if changed:
+            self._setup_type_idx[key] = idx
+        if imgui.button(f"{S.PLUGIN_PARAMS_SETUP_BUTTON}##triton_setup_{key}"):
+            self._on_setup_display(device, _TRITON_DISPLAY_TYPES[idx][0])
+        if self._on_import_prj is not None:
+            imgui.same_line()
+            if imgui.button(f"{S.PLUGIN_PARAMS_LOAD_PRJ}##triton_prj_{key}"):
+                self._on_import_prj(device)
+
+    def _render_triton_actions(self, device: Device) -> None:
+        """Import/export row shown above a configured triton LCD display, so a ".prj" can be loaded
+        or saved after the display is already set up (the setup area is gone by then)."""
+        key = device.individual_address or "?"
+        acted = False
+        if self._on_import_prj is not None:
+            if imgui.button(f"{S.PLUGIN_PARAMS_LOAD_PRJ}##triton_prj_{key}"):
+                self._on_import_prj(device)
+            acted = True
+        if self._on_export_prj is not None:
+            if acted:
+                imgui.same_line()
+            if imgui.button(f"{S.PLUGIN_PARAMS_EXPORT_PRJ}##triton_prj_export_{key}"):
+                self._on_export_prj(device)
 
     def invalidate(self, device: Device) -> None:
         """Drop the cached section list for ``device`` so the next render reads fresh values."""

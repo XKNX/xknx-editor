@@ -7,6 +7,7 @@ so they behave exactly as in the GUI."""
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 from fastmcp.exceptions import ToolError
@@ -451,7 +452,15 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                 )
             if not parameter.writable:
                 raise ToolError(f"plugin parameter {ref_id!r} cannot be changed")
-            plugin.handle_param_change(device, ref_id, value)
+            if ref_id.startswith("triton_lcd:"):
+                try:
+                    plugin.handle_param_change(
+                        device, ref_id, value, raise_on_error=True
+                    )
+                except ValueError as exc:
+                    raise ToolError(str(exc)) from exc
+            else:
+                plugin.handle_param_change(device, ref_id, value)
             # A parameter edit can rebuild the device: read the value back from the new one.
             _mapping, after = _plugin_sections(require_device(project, device.node_id))
             now = next(
@@ -461,6 +470,119 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             return {"ref_id": ref_id, "value": now, "changed": now != parameter.value}
 
         return ctx.run_locked(_set)
+
+    @tool("write")
+    def project_setup_triton_display(
+        node_id: int | None = None,
+        device_address: str | None = None,
+        device_type: str = "",
+    ) -> dict[str, Any]:
+        """Create a default Busch-Jaeger triton LCD display configuration on a display device.
+
+        Needed once before the display lines can be read/edited via project_plugin_parameters /
+        project_set_plugin_parameter (every line starts unused). Identify the device by node_id OR
+        device_address. Requires a triton LCD plugin mapping. The display type is guessed from the
+        application id, then the device's naming; pass ``device_type``
+        (one of "6136UP", "triton-6323", "triton-6325") to set it explicitly or when the guess
+        fails. No-op when a valid configuration already exists. Returns {ready, device_type, lines}
+        from the stored configuration, including on a no-op."""
+        require_project(ctx)
+
+        def _setup() -> dict[str, Any]:
+            from editor_gui.plugin_blob_readers.triton_lcd import BLOB_NAME
+            from xknxeditor.vendor.triton import DeviceType, from_json_bytes
+
+            device = require_device(project, node_id, device_address)
+            chosen: DeviceType | None = None
+            if device_type:
+                try:
+                    chosen = DeviceType(device_type)
+                except ValueError as exc:
+                    allowed = ", ".join(d.value for d in DeviceType)
+                    raise ToolError(
+                        f"unknown device_type {device_type!r}; one of: {allowed}"
+                    ) from exc
+            mapping, _sections = _plugin_sections(device)
+            if mapping.blob_reader != "triton_lcd":
+                raise ToolError(
+                    f"device {device.node_id} has no plugin parameters the editor can show"
+                )
+            try:
+                blob = project.setup_triton_display(
+                    device, BLOB_NAME, device_type=chosen
+                )
+            except ValueError as exc:
+                raise ToolError(str(exc)) from exc
+            if blob is None:
+                raise ToolError(
+                    "device is not a recognised triton LCD display; pass device_type to force"
+                )
+            config = from_json_bytes(blob)
+            return {
+                "ready": True,
+                "device_type": config.device_type.value,
+                "lines": len(config.lines),
+            }
+
+        return ctx.run_locked(_setup)
+
+    @tool("write")
+    def project_import_triton_prj(path: str) -> dict[str, Any]:
+        """Import a Busch-Jaeger LVS 2 ".prj" project file onto the matching project devices.
+
+        Reads the ".prj" file at ``path`` (on the editor's machine) and writes each display's
+        configuration onto the project device whose individual address equals the display's
+        physical address, as the Plugin Parameters tab would show and edit it afterwards. A display
+        with no device at its address is skipped. Each imported display is one undo step (undoable
+        with project_undo). Returns {imported, skipped}: ``imported`` is the list of individual
+        addresses written, ``skipped`` a list of {address, reason} for missing or ambiguous devices.
+        Duplicate source addresses use the last record. Byte-identical configurations are omitted;
+        all configurations are validated before any write."""
+        require_project(ctx)
+
+        def _import() -> dict[str, Any]:
+            from xknxeditor.vendor.triton import PrjError
+
+            try:
+                data = Path(path).read_bytes()
+            except (OSError, ValueError) as exc:
+                raise ToolError(f"cannot read {path!r}: {exc}") from exc
+            try:
+                return project.import_triton_prj(data)
+            except PrjError as exc:
+                raise ToolError(f"not a valid LVS 2 '.prj' file: {exc}") from exc
+
+        return ctx.run_locked(_import)
+
+    @tool("write")
+    def project_export_triton_prj(
+        path: str,
+        node_id: int | None = None,
+        device_address: str | None = None,
+    ) -> dict[str, Any]:
+        """Export a device's triton LCD display configuration to a Busch-Jaeger LVS 2 ".prj" file.
+
+        Writes a ".prj" to ``path`` (on the editor's machine) from the stored configuration of the
+        device identified by node_id OR device_address. The file re-reads to the same configuration;
+        the bytes the format analysis left unresolved are zero, so it is not a byte-copy of a file
+        the LVS program itself saved. Returns {path, bytes}. Fails when the device has no triton LCD
+        configuration (create one first with project_setup_triton_display or project_import_triton_prj)."""
+        require_project(ctx)
+
+        def _export() -> dict[str, Any]:
+            device = require_device(project, node_id, device_address)
+            data = project.export_triton_prj(device)
+            if data is None:
+                raise ToolError(
+                    f"device {device.node_id} has no triton LCD configuration to export"
+                )
+            try:
+                Path(path).write_bytes(data)
+            except OSError as exc:
+                raise ToolError(f"cannot write {path!r}: {exc}") from exc
+            return {"path": path, "bytes": len(data)}
+
+        return ctx.run_locked(_export)
 
     @tool("write")
     def project_add_plugin_item(
