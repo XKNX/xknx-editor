@@ -353,26 +353,20 @@ class CatalogPlugin:
                 continue
             for ref in mrefs:
                 matches = [it for it in items if it.id.startswith(ref)]
-                downloadable = next((it for it in matches if it.downloadable), None)
-                if downloadable is not None:
-                    item_ids.append(downloadable.id)
-                elif matches:
-                    # Found online but download-gated (plugin / external software / incomplete /
-                    # in no market). Attempting the download anyway returns HTTP 400 (issue #51), so
-                    # skip it and report the specific reason the index gave.
-                    reason = next(
-                        (
-                            it.download_block_reason
-                            for it in matches
-                            if it.download_block_reason
-                        ),
-                        "server policy",
-                    )
-                    self._log.warning(
-                        "online product is not downloadable",
-                        ref=ref,
-                        reason=reason,
-                    )
+                # Never block a download client-side: prefer a freely-downloadable match, else
+                # attempt the first match anyway (gated by plugin/market). The server decides; a
+                # refusal surfaces as a normal download error rather than a hidden product.
+                chosen = next((it for it in matches if it.downloadable), None) or (
+                    matches[0] if matches else None
+                )
+                if chosen is not None:
+                    item_ids.append(chosen.id)
+                    if not chosen.downloadable:
+                        self._log.info(
+                            "online product download-gated; attempting anyway",
+                            ref=ref,
+                            reason=chosen.download_block_reason or "server policy",
+                        )
                 else:
                     self._log.warning("no online product for application", ref=ref)
         if item_ids:

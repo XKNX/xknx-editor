@@ -29,6 +29,7 @@ from editor_gui.widgets.flow import (
     same_line_if_fits,
 )
 from editor_gui.widgets.spinner import loading
+from editor_gui.widgets.strings import S as WIDGET_S
 from editor_gui.widgets.tabs import begin_tab_bar
 from editor_gui.widgets.tree import (
     begin_tree_area,
@@ -281,6 +282,10 @@ class CatalogPanel:
         self._find_local_product = find_local_product
         self._can_add_to_project = can_add_to_project
         self._pending_add: tuple[str, int | None] | None = None
+        # A failed online download: its error text (set by the worker under _online_lock), shown
+        # in a modal window on the GUI thread instead of failing silently.
+        self._download_error: str | None = None
+        self._open_download_error = False
         # Delete a local product: the planner returns the number of project devices that would
         # lose their product data (None when the product is gone); the delete runs on a worker.
         self._plan_delete_product = plan_delete_product
@@ -324,6 +329,7 @@ class CatalogPanel:
             imgui.end_tab_bar()
         self._add_downloaded()
         self._render_delete_modal()
+        self._render_download_error_modal()
         self._poll_export()
 
     def _render_local_catalog(self) -> None:
@@ -548,6 +554,26 @@ class CatalogPanel:
         self._delete_target = product
         self._delete_affected = affected
         self._open_delete_popup = True
+
+    def _render_download_error_modal(self) -> None:
+        """A modal window shown when an online download failed (e.g. the server refuses a
+        plugin-gated product), instead of failing silently."""
+        title = S.ONLINE_DOWNLOAD
+        with self._online_lock:
+            if self._open_download_error:
+                imgui.open_popup(title)
+                self._open_download_error = False
+            message = self._download_error
+        if not begin_dialog(title):
+            return
+        imgui.dummy(px_vec2(440, 0))  # anchor the minimum content width
+        imgui.text_wrapped(S.ONLINE_NOT_DOWNLOADABLE)
+        if message:
+            imgui.spacing()
+            imgui.text_disabled(message)
+        if dialog_buttons(WIDGET_S.OK) == 0:
+            imgui.close_current_popup()
+        end_dialog()
 
     def _render_delete_modal(self) -> None:
         title = S.DELETE_TITLE
@@ -870,11 +896,14 @@ class CatalogPanel:
                 S.ONLINE_DOWNLOADING.format(name=item.name_in(product_text_languages()))
             )
             return
-        if not item.downloadable:
-            imgui.text_disabled(f"{label}  {S.ONLINE_NOT_DOWNLOADABLE}")
-            return
+        # Never block a download client-side: a gated product (plugin/market) stays a normal,
+        # clickable row and only shows a hint; the actual download is still attempted and the
+        # server decides.
+        hint = "" if item.downloadable else f"  {S.ONLINE_NOT_DOWNLOADABLE}"
         with leaf_rows(nodes=True):
-            self._render_online_row(f"{label}##online_item_{item.id}", item, leaf_flags)
+            self._render_online_row(
+                f"{label}{hint}##online_item_{item.id}", item, leaf_flags
+            )
 
     def _render_online_row(
         self, label: str, item: OnlineCatalogItem, flags: int
@@ -963,17 +992,21 @@ class CatalogPanel:
     def _download_item(self, item_id: str, add: tuple[str, int | None] | None) -> None:
         assert self._download_online_item is not None
         ok = False
+        err: str | None = None
         try:
             self._download_online_item(item_id)
             ok = True
-        except Exception:
-            pass  # error already logged by the plugin
+        except Exception as exc:
+            err = str(exc)  # error also logged by the plugin
         finally:
             with self._online_lock:
                 self._online_downloading.discard(item_id)
                 # Added on the GUI thread (_add_downloaded), only after a successful import.
                 if ok and add is not None:
                     self._pending_add = add
+                if err is not None:
+                    self._download_error = err
+                    self._open_download_error = True
 
     def _add_downloaded(self) -> None:
         """Add the online product whose download (to add it) just finished."""
@@ -1108,10 +1141,8 @@ class CatalogPanel:
                     S.ONLINE_DOWNLOADING.format(name=item.name_in(locale))
                 )
                 continue
-            if not item.downloadable:
-                imgui.text_disabled(f"{label}  {S.ONLINE_NOT_DOWNLOADABLE}")
-                continue
-            self._render_online_row(f"{label}##flat_{item.id}", item, leaf_flags)
+            hint = "" if item.downloadable else f"  {S.ONLINE_NOT_DOWNLOADABLE}"
+            self._render_online_row(f"{label}{hint}##flat_{item.id}", item, leaf_flags)
 
     def _local_versions_by_order(self) -> dict[str, set[int | None]]:
         """Map order number (lower-case) -> set of application versions already in the local
