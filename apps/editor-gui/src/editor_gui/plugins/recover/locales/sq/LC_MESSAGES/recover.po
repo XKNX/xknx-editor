@@ -123,3 +123,6 @@ msgstr "gabim"
 
 msgid "%d parameters could not be recovered"
 msgstr "%d parametra nuk u rikuperuan"
+
+msgid "%(count)d device(s) could not be added; the reason is in the Recovered column."
+msgstr "%(count)d pajisje nuk mund të shtoheshin; arsyeja është në kolonën „Rikuperuar”."

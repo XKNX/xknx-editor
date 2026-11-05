@@ -123,3 +123,6 @@ msgstr "erreur"
 
 msgid "%d parameters could not be recovered"
 msgstr "%d paramètres n'ont pas pu être récupérés"
+
+msgid "%(count)d device(s) could not be added; the reason is in the Recovered column."
+msgstr "Impossible d’ajouter %(count)d participant(s) ; la raison figure dans la colonne « Récupéré »."

@@ -123,3 +123,6 @@ msgstr "エラー"
 
 msgid "%d parameters could not be recovered"
 msgstr "%d個のパラメータを復元できませんでした"
+
+msgid "%(count)d device(s) could not be added; the reason is in the Recovered column."
+msgstr "%(count)d台のデバイスを追加できませんでした。理由は「復元済み」列に表示されます。"

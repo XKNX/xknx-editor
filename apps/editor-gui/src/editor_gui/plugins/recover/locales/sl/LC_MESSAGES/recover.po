@@ -129,3 +129,6 @@ msgstr "Parametri, ki jih ni bilo mogoče obnoviti: %d"
 
 msgid "already in project - skipped"
 msgstr "že v projektu – preskočeno"
+
+msgid "%(count)d device(s) could not be added; the reason is in the Recovered column."
+msgstr "Naprav ni bilo mogoče dodati: %(count)d; razlog je v stolpcu »Obnovljeno«."

@@ -15,6 +15,7 @@ from concurrent.futures import Future
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
+from xknxeditor.proj.core.medium import MediumError
 from xknxeditor.recover import (
     AppId,
     iter_addresses,
@@ -58,10 +59,24 @@ class RecoverEntry:
     # True once this device has been written into the open project (so it is not
     # added twice by live auto-apply and a later explicit apply).
     applied: bool = False
+    # True once live auto-apply has tried this device: a failed one is not retried every
+    # frame, only by an explicit add.
+    auto_tried: bool = False
+    # Why the last attempt to add it to a project failed, shown in its details.
+    error: str | None = None
 
     @property
     def recoverable(self) -> bool:
         return self.application is not None
+
+
+def _error_text(error: Exception) -> str:
+    """The text of a failed add, as the editor shows it (a medium rule translated)."""
+    from editor_gui.plugins.project.medium_text import medium_error_text
+
+    if isinstance(error, MediumError):
+        return medium_error_text(error)
+    return str(error)
 
 
 class RecoverService:
@@ -87,6 +102,8 @@ class RecoverService:
         self._fetch_thread: threading.Thread | None = None
         # Outcome of the last add-to-project action, shown in the window.
         self.apply_status = ""
+        # The devices the last add-to-project action could not add, shown in the window.
+        self.apply_error = ""
         # Cooperative cancel flag for a running scan/recover/verify.
         self._cancel = False
         # Add recovered devices to the open project as soon as they are read.
@@ -246,6 +263,7 @@ class RecoverService:
             return
         self._cancel = False
         self.apply_status = ""
+        self.apply_error = ""
         self.recover_done = 0
         self.recover_total = len(targets)
         self.recover_current = ""
@@ -339,6 +357,8 @@ class RecoverService:
                 if entry.verify_changed == 0
                 else f" | verify: {entry.verify_changed} B differ"
             )
+        if entry.error:
+            detail += f" | {entry.error}"
         return detail
 
     # --- polling (UI thread) ----------------------------------------------
@@ -522,14 +542,24 @@ class RecoverService:
             return
         ga_ids: dict[int, int] = {}
         for entry in self.entries:
-            if entry.applied or entry.recovered is None or entry.product_ref_id is None:
+            if entry.applied or entry.auto_tried:
                 continue
+            if entry.recovered is None or entry.product_ref_id is None:
+                continue
+            entry.auto_tried = True
             self._add_recovered(entry, ga_ids)
 
     def apply_to_project(self) -> int:
-        """Write every not-yet-added recovered device into the open project."""
+        """Write every not-yet-added recovered device into the open project, retrying the
+        ones an earlier attempt could not add; returns how many were added."""
+        added, _failed = self._apply_pending()
+        return added
+
+    def _apply_pending(self) -> tuple[int, int]:
+        """Add every not-yet-added recovered device; returns (added, failed)."""
         ga_ids: dict[int, int] = {}
         added = 0
+        failed = 0
         for entry in self.entries:
             if entry.applied or entry.recovered is None or entry.application is None:
                 continue
@@ -537,16 +567,25 @@ class RecoverService:
                 continue
             if self._add_recovered(entry, ga_ids):
                 added += 1
-        return added
+            elif entry.error is not None:
+                failed += 1
+        return added, failed
+
+    def _report_apply(self, status: str, failed: int) -> None:
+        """Show the outcome of an add-to-project action, and the devices it could not add."""
+        from editor_gui.plugins.recover.strings import S
+
+        self.apply_status = status
+        self.apply_error = S.APPLY_FAILED % {"count": failed} if failed else ""
 
     def apply_to_open_project(self) -> int:
         """Add recovered devices to the currently open project, with a status message."""
         from editor_gui.plugins.recover.strings import S
 
-        added = self.apply_to_project()
+        added, failed = self._apply_pending()
         path = self._api.project.path
         target = path.name if path is not None else "?"
-        self.apply_status = S.APPLY_MERGED % {"count": added, "target": target}
+        self._report_apply(S.APPLY_MERGED % {"count": added, "target": target}, failed)
         return added
 
     def create_project_and_apply(self, path: Any) -> int:
@@ -558,8 +597,10 @@ class RecoverService:
         self._api.project.new(path)
         for entry in self.entries:
             entry.applied = False
-        added = self.apply_to_project()
-        self.apply_status = S.APPLY_NEW % {"count": added, "target": path.name}
+            entry.auto_tried = False
+            entry.error = None
+        added, failed = self._apply_pending()
+        self._report_apply(S.APPLY_NEW % {"count": added, "target": path.name}, failed)
         return added
 
     def _add_recovered(self, entry: RecoverEntry, ga_ids: dict[int, int]) -> bool:
@@ -585,7 +626,11 @@ class RecoverService:
                 # Place the device on the segment for its own area/line (creating them
                 # if needed) and set the address at creation, so no fragile post-hoc
                 # "move".
-                segment_id = project.find_or_create_segment_for_address(entry.address)
+                # Always the line of its address, on a segment of a medium its hardware
+                # supports (an empty line of another medium is changed to one).
+                segment_id = project.find_or_create_segment_for_address(
+                    entry.address, entry.hardware2program_ref_id
+                )
                 try:
                     device_octet = int(entry.address.split(".")[-1])
                 except ValueError:
@@ -647,14 +692,17 @@ class RecoverService:
                     device_id, list(recovered.parameters.values), stored=True
                 )
         except Exception as exc:  # never crash the render loop / batch on one device
-            entry.applied = True  # do not retry this device every frame
+            # Not marked applied: an explicit add tries it again (live auto-apply does
+            # not, see ``auto_tried``).
             entry.state = S.STATE_ERROR
+            entry.error = _error_text(exc)
             if self._log is not None:
                 self._log.warning(
                     "add to project failed", address=entry.address, error=str(exc)
                 )
             return False
         entry.applied = True
+        entry.error = None
         return True
 
     def _apply_flags(

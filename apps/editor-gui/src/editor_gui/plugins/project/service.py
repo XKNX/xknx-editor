@@ -88,6 +88,7 @@ from xknxeditor.proj.core.identity import qualified_com_object_ref
 from xknxeditor.proj.core.ip_secure import PASSWORD_ACCESS_TYPES
 from xknxeditor.proj.core.medium import (
     IP_ROUTER_MASKS,
+    MEDIUM_NAMES,
     MEDIUM_TP,
     MediumError,
     device_fits,
@@ -205,6 +206,14 @@ _FLAG_COLUMNS: dict[str, str] = {
     "update": "update_flag",
     "read_on_init": "read_on_init_flag",
 }
+
+
+def _preferred_medium(media: set[str]) -> str:
+    """The medium a new line for a device supporting ``media`` gets: TP when the device supports
+    it, else the first of them in the order lines offer media."""
+    if MEDIUM_TP in media:
+        return MEDIUM_TP
+    return next((medium for medium in MEDIUM_NAMES if medium in media), min(media))
 
 
 def _parse_individual_address(text: str) -> int | None:
@@ -4837,13 +4846,22 @@ class ProjectService:
         )
         return True
 
-    def find_or_create_segment_for_address(self, individual_address: str) -> int | None:
+    def find_or_create_segment_for_address(
+        self, individual_address: str, hardware2program_ref_id: str | None = None
+    ) -> int | None:
         """Return the segment id for an address' area/line, creating them if absent.
 
         A fresh project only has area/line ``0.0``; recovering a device at e.g.
         ``1.1.5`` needs that area and line to exist first, otherwise setting the
-        address silently fails. Parses ``area.line.device`` and ensures the area
-        and line (which comes with a segment) exist, returning that segment's id."""
+        address silently fails. Parses ``area.line.device``: the device always goes on
+        the line of its address, which is created when missing.
+
+        With ``hardware2program_ref_id``, the segment suits the media the device's
+        hardware supports: a new line gets such a medium (TP when the device supports
+        it), an empty line of another medium is changed to it, and on a line with
+        devices a sub-segment of a suitable medium is used. Otherwise it is the line's
+        main segment, and adding a device it does not fit is refused as before. Raises
+        ``MediumError`` for a medium the rules of the topology refuse."""
         if self._pid is None:
             return None
         try:
@@ -4852,6 +4870,8 @@ class ProjectService:
             )
         except ValueError:
             return None
+        media = self._device_media(hardware2program_ref_id)
+        preferred = _preferred_medium(media) if media else None
         topo = self._svc.topology(self._pid, _INSTALLATION)
         area = next((a for a in topo.areas if a.address == area_num), None)
         if area is None:
@@ -4862,18 +4882,44 @@ class ProjectService:
             return None
         line = next((line for line in area.lines if line.address == line_num), None)
         if line is None:
-            self._svc.create_line(self._pid, area.id, line_num, "")
-            topo = self._svc.topology(self._pid, _INSTALLATION)
-            area = next((a for a in topo.areas if a.address == area_num), None)
-            line = (
-                next((line for line in area.lines if line.address == line_num), None)
-                if area is not None
-                else None
+            self._svc.create_line(
+                self._pid, area.id, line_num, "", medium_type=preferred
             )
+        elif preferred is not None and line.segments:
+            main = min(line.segments, key=lambda s: (s.number, s.id))
+            empty = not any(segment.devices for segment in line.segments)
+            if empty and not device_fits(main.medium_type, media):
+                self.set_line_medium(line.id, preferred)
+        topo = self._svc.topology(self._pid, _INSTALLATION)
+        area = next((a for a in topo.areas if a.address == area_num), None)
+        line = (
+            next((line for line in area.lines if line.address == line_num), None)
+            if area is not None
+            else None
+        )
         if line is None or not line.segments:
             return None
         self._bump()
-        return line.segments[0].id
+        segments = sorted(line.segments, key=lambda s: (s.number, s.id))
+        if media:
+            fitting = next(
+                (s for s in segments if device_fits(s.medium_type, media)), None
+            )
+            if fitting is not None:
+                return fitting.id
+        return segments[0].id
+
+    def _device_media(self, hardware2program_ref_id: str | None) -> set[str]:
+        """The media a device's hardware supports; empty when the catalog lacks the program,
+        lists no media for it, or it is a coupler (whose placement the coupler rules
+        decide)."""
+        if not hardware2program_ref_id:
+            return set()
+        profile = self._catalog.program_media(hardware2program_ref_id)
+        if profile is None:
+            return set()
+        media, coupler = profile
+        return set() if coupler else set(media)
 
     def _initial_rows(
         self, name: str, app: Application, parameters: list[tuple[str, str]] | None

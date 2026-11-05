@@ -11,7 +11,9 @@ import pytest
 
 from editor_gui.device import ComObjectFlags
 from editor_gui.plugins.recover.service import RecoverEntry, RecoverService
+from editor_gui.plugins.recover.strings import S
 from xknxeditor.prod import load
+from xknxeditor.proj.core.medium import MediumError
 from xknxeditor.recover import RecoveredDevice, RecoveredParameters
 from xknxeditor.recover.recover import com_object_ref_by_number
 from xknxeditor.recover.tables_decode import DecodedGroupObject, DecodedLink
@@ -55,6 +57,11 @@ class _FakeProject:
         self.names: list[str] = []
         self.descriptions: list[tuple[int, str]] = []
         self.segments_for: list[str] = []
+        self.programs_for: list[str | None] = []
+        self.path = Path("site.xknx")
+        # The error the next ``add_device`` calls raise (None: they add the device).
+        self.add_error: Exception | None = None
+        self.add_calls = 0
         self.pretend_exists = False
         self.recalculated: tuple[int, list[str], bool] | None = None
         # The edits of each undo step: the number of edits made before it ended.
@@ -78,8 +85,11 @@ class _FakeProject:
         yield
         self.undo_steps.append(len(self.links) + len(self.flags))
 
-    def find_or_create_segment_for_address(self, address: str) -> int:
+    def find_or_create_segment_for_address(
+        self, address: str, hardware2program_ref_id: str | None = None
+    ) -> int:
         self.segments_for.append(address)
+        self.programs_for.append(hardware2program_ref_id)
         return 1
 
     def add_device(
@@ -95,6 +105,9 @@ class _FakeProject:
         with_additional_addresses: bool = True,
     ) -> int:
         assert not with_additional_addresses
+        self.add_calls += 1
+        if self.add_error is not None:
+            raise self.add_error
         self.addresses.append((segment_id, address))
         self.names.append(name)
         self.params.extend(parameters or [])
@@ -186,6 +199,8 @@ def test_apply_to_project_writes_links_flags_and_params(application) -> None:  #
     assert project.recalculated == (7, [ref_id], True)
     # Device placed on the segment for its address, with the device octet set.
     assert project.segments_for == ["1.1.5"]
+    # The segment is chosen for the media of the device's hardware.
+    assert project.programs_for == ["HP-1"]
     assert project.addresses == [(1, 5)]
     # The bus has no clear name, so the device is named after the matched product.
     assert project.names == ["AKH-0400.03"]
@@ -263,3 +278,88 @@ def test_apply_skips_device_already_in_project(application) -> None:  # type: ig
     assert added == 0  # skipped, not crashed
     assert project.addresses == []  # add_device never called
     assert entry.applied is True  # not retried each frame
+
+
+def _rf_entry(application: Any) -> RecoverEntry:
+    recovered = RecoveredDevice(
+        address="1.1.3",
+        application_id=application.id,
+        device_address=0x1103,
+        group_addresses=[],
+        links=[],
+        group_objects={},
+        parameters=RecoveredParameters(values={}, unknown=[]),
+    )
+    return RecoverEntry(
+        address="1.1.3",
+        mask_version=0x27B0,
+        application=application,
+        product_ref_id="P-1",
+        hardware2program_ref_id="HP-rf",
+        product_name="JU 1 S RF",
+        recovered=recovered,
+    )
+
+
+def test_a_failed_add_is_shown_and_can_be_retried(application) -> None:  # type: ignore[no-untyped-def]
+    project = _FakeProject(refs=[])
+    project.add_error = MediumError("device_line_medium", device="JU 1 S RF")
+    service = RecoverService(_FakeAPI(project))  # type: ignore[arg-type]
+    entry = _rf_entry(application)
+    service.entries = [entry]
+
+    assert service.apply_to_open_project() == 0
+
+    # The reason is kept and shown with the device, and the window says it failed.
+    assert entry.error == "Device 'JU 1 S RF' is incompatible with line's medium type."
+    assert entry.state == S.STATE_ERROR
+    assert entry.error in service.entry_detail(entry)
+    assert service.apply_error == S.APPLY_FAILED % {"count": 1}
+    assert entry.applied is False
+
+    # Once the project accepts it, the next add tries it again.
+    project.add_error = None
+    assert service.apply_to_open_project() == 1
+    assert entry.applied is True
+    assert entry.error is None
+    assert service.apply_error == ""
+
+
+def test_auto_apply_tries_a_device_once(application) -> None:  # type: ignore[no-untyped-def]
+    project = _FakeProject(refs=[])
+    project.add_error = RuntimeError("refused")
+    service = RecoverService(_FakeAPI(project))  # type: ignore[arg-type]
+    entry = _rf_entry(application)
+    service.entries = [entry]
+
+    # Live auto-apply runs every frame: a device it could not add is not tried again ...
+    service.poll()
+    service.poll()
+    assert project.add_calls == 1
+    assert entry.error == "refused"
+    # ... but an explicit add is.
+    project.add_error = None
+    assert service.apply_to_project() == 1
+    assert project.add_calls == 2
+
+
+def test_a_new_project_tries_failed_devices_again(
+    application,
+    tmp_path: Path,  # type: ignore[no-untyped-def]
+) -> None:
+    project = _FakeProject(refs=[])
+    project.add_error = RuntimeError("refused")
+    created: list[Path] = []
+    project.new = created.append  # type: ignore[attr-defined]
+    service = RecoverService(_FakeAPI(project))  # type: ignore[arg-type]
+    entry = _rf_entry(application)
+    service.entries = [entry]
+    service.apply_to_project()
+    assert entry.error == "refused"
+
+    project.add_error = None
+    target = tmp_path / "recovered.xknx"
+    assert service.create_project_and_apply(target) == 1
+    assert created == [target]
+    assert entry.applied is True and entry.error is None
+    assert service.apply_error == ""
