@@ -608,6 +608,11 @@ class LoadProcedureRunner:
         self._preview_properties: set[tuple[int, int]] = set()
         self._preview_memory: list[tuple[int, int]] = []
 
+    @property
+    def negotiated_apdu_length(self) -> int | None:
+        """The APDU length negotiated with the device, once a connection was opened."""
+        return self._negotiated_apdu
+
     async def run(self, progress: Callable[[int, int], None] | None = None) -> None:
         """Execute the Load Procedure, honouring the selected download scope.
 

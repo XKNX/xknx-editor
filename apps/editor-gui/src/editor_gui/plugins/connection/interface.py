@@ -25,9 +25,6 @@ from xknx.telegram.apci import ReturnCode
 
 # Seconds to wait for a tunnelling feature response.
 _FEATURE_TIMEOUT = 2.0
-# APDU length every KNX medium and interface has to carry (a standard frame). A tunnelling
-# server that does not report its maximum (tunnelling v1, e.g. knxd) is limited to it.
-STANDARD_FRAME_APDU_LENGTH = 15
 
 if TYPE_CHECKING:
     from xknx import XKNX
@@ -118,20 +115,6 @@ class ObservableKNXIPInterfaceThreaded(KNXIPInterfaceThreaded):
         return await self._await_from_connection_thread(
             read_tunnel_max_apdu_length(self._interface)
         )
-
-
-def interface_apdu_limit(reported: int | None, *, tunnelling: bool) -> int | None:
-    """The maximum APDU length to send through the connected interface.
-
-    ``reported`` is what a tunnelling (v2) server answered to the feature query, or
-    ``None``. A tunnelling server that does not answer (tunnelling v1, such as knxd) may
-    sit in front of a TP interface without long frame support: a longer frame is then
-    lost, or (knxd with a TPUART) takes the link down. Such a connection stays at the
-    standard frame length, as ETS does. Routing is left unlimited (``None``).
-    """
-    if reported is not None:
-        return reported
-    return STANDARD_FRAME_APDU_LENGTH if tunnelling else None
 
 
 async def read_tunnel_max_apdu_length(interface: Interface | None) -> int | None:

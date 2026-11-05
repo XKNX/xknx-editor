@@ -192,8 +192,12 @@ class ConnectionService:
         # Global KNX master data (mask-version default procedures), injected at
         # startup. Required to resolve an UNLOAD scope and default/merged procedures.
         self.master: MasterData | None = None
-        # Maximum APDU length the connected interface reports, if it does.
+        # Maximum APDU length the connected interface reports, if it does (or the one a
+        # download learned for it, see interface_apdu_cache).
         self.interface_max_apdu_length: int | None = None
+        # The connected interface's target (its IP address, or the routing multicast group):
+        # the key a learned maximum APDU length is stored under.
+        self.interface_target: str | None = None
         # Display name of the connected interface.
         self.interface_name: str | None = None
         # The individual address of the interface the connection runs through.
@@ -525,6 +529,7 @@ class ConnectionService:
         self._loop = loop
         if xknx is None:
             self.interface_max_apdu_length = None
+            self.interface_target = None
             self.interface_name = None
             self.interface_address = None
             self.link_info = None
@@ -1066,6 +1071,7 @@ class ConnectionService:
             future.add_done_callback(
                 functools.partial(self._remember_memory_cap, application_id=app_id)
             )
+            future.add_done_callback(self._remember_interface_apdu)
             if device.individual_address == self.interface_address:
                 future.add_done_callback(self._reopen_after_interface_download)
         else:
@@ -1093,6 +1099,25 @@ class ConnectionService:
             "discovery retry",
             application=application_id,
             cap=cap,
+        )
+
+    def _remember_interface_apdu(self, future: Future[Any]) -> None:
+        """Keep the maximum APDU length a download found the interface to carry (its retry
+        with standard frames worked), for this connection and the next ones to it."""
+        if future.cancelled() or future.exception() is not None:
+            return
+        length = getattr(future.result(), "interface_max_apdu_length", None)
+        if not isinstance(length, int):
+            return
+        from editor_gui.interface_apdu_cache import remember_interface_apdu
+
+        self.interface_max_apdu_length = length
+        remember_interface_apdu(self.interface_target, length)
+        self._log.info(
+            "The interface does not carry long frames; later downloads through it use "
+            "standard frames",
+            interface=self.interface_target,
+            length=length,
         )
 
     def _reopen_after_interface_download(self, future: Future[Any]) -> None:

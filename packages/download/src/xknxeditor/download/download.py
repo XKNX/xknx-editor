@@ -8,12 +8,14 @@ the partial download procedure (section 3.5.3).
 
 from __future__ import annotations
 
+import asyncio
+import contextlib
 import logging
 from collections.abc import Awaitable, Callable, Mapping
 from dataclasses import dataclass, replace
 from typing import TYPE_CHECKING, NamedTuple
 
-from xknx.exceptions import ManagementConnectionError
+from xknx.exceptions import CommunicationError, ManagementConnectionError
 from xknx.telegram import IndividualAddress
 
 from xknxeditor.namespaces.intermediate.ld_ctrl_master_reset_t import LdCtrlMasterReset
@@ -123,6 +125,11 @@ class DownloadResult:
     # Whether an unload reset the device to its factory state with its individual address
     # (a secure device then uses its FDSK again).
     factory_reset: bool = False
+    # The maximum APDU length the download found the interface to carry: set when the
+    # interface does not report its maximum, a run with longer frames failed and the retry
+    # with standard frames worked. A caller can remember it for the interface, so later
+    # downloads through it start with standard frames.
+    interface_max_apdu_length: int | None = None
 
 
 _IP_CONFIG_SCOPES = frozenset(
@@ -137,6 +144,69 @@ _IP_CONFIG_SCOPES = frozenset(
 _MAC_ADDRESS_LENGTH = 6
 # The device object's management descriptor: the configuration of a System 300 device.
 _PID_MANAGEMENT_DESCRIPTOR = 72
+
+
+# Errors of the link to the device: a frame the interface could not carry is lost (no
+# acknowledgement), or takes the interface's link down (knxd with a TPUART), which ends
+# the tunnel.
+_LINK_ERRORS: tuple[type[BaseException], ...] = (
+    ManagementConnectionError,
+    MemoryWriteNotAcknowledged,
+    MemoryReadNotAnswered,
+    CommunicationError,
+    ConnectionError,
+    TimeoutError,
+)
+# Seconds to wait for the connection to the interface to come back before the retry.
+_RECONNECT_TIMEOUT = 60.0
+
+
+def _is_link_error(exc: BaseException) -> bool:
+    """Whether ``exc``, or an error it was raised from, is a failure of the link."""
+    seen: set[int] = set()
+    current: BaseException | None = exc
+    while current is not None and id(current) not in seen:
+        if isinstance(current, _LINK_ERRORS):
+            return True
+        seen.add(id(current))
+        current = current.__cause__ or current.__context__
+    return False
+
+
+def _interface_may_drop_long_frames(
+    exc: BaseException,
+    interface_max_apdu_length: int | None,
+    negotiate_apdu: bool,
+    last_negotiated_apdu: list[int],
+) -> bool:
+    """Whether a failed download is worth a retry with standard frames.
+
+    Only when the interface did not report its maximum APDU length (tunnelling v1, e.g.
+    knxd), the APDU was negotiated (not fixed by the caller) to more than the standard
+    15 octets, and the failure is one of the link. A TP interface without long frame
+    support loses such frames, and knxd with a TPUART even takes its link down.
+    """
+    return (
+        interface_max_apdu_length is None
+        and negotiate_apdu
+        and last_negotiated_apdu[0] > DEFAULT_MAX_APDU_LENGTH
+        and _is_link_error(exc)
+    )
+
+
+def _negotiated_apdu(runner: object) -> int:
+    """The APDU length ``runner`` negotiated with the device, 0 before it negotiated one."""
+    value = getattr(runner, "negotiated_apdu_length", None)
+    return value if isinstance(value, int) else 0
+
+
+async def _wait_for_connection(xknx: XKNX) -> None:
+    """Wait until the connection to the interface is up again (a server that dropped the
+    tunnel is reconnected by xknx), at most ``_RECONNECT_TIMEOUT`` seconds."""
+    with contextlib.suppress(TimeoutError):
+        await asyncio.wait_for(
+            xknx.connection_manager.connected.wait(), _RECONNECT_TIMEOUT
+        )
 
 
 def _memory_cap_ladder(seed: int | None) -> tuple[int | None, ...]:
@@ -845,74 +915,108 @@ async def download(
             address,
             memory_service_count,
         )
-    runner: LoadProcedureRunner | None = None
-    manager: ConnectionManager | None = None
-    used_memory_cap: int | None = None
-    for attempt, memory_cap in enumerate(memory_caps):
-        manager = _connection_manager(xknx, address, security)
-        runner = LoadProcedureRunner(
-            application,
-            image,
-            connection_manager=manager,
-            max_apdu_length=apdu_ceiling,
-            controls=controls,
-            object_types=object_types,
-            scope=scope,
-            expected_descriptor=expected_descriptor,
-            negotiate_apdu=negotiate_apdu,
-            apdu_overhead=_apdu_overhead(security),
-            authorize_levels=authorize_levels,
-            memory_service_count=memory_cap,
-            property_services=_property_services(application, master),
-            application_loaded=application_loaded,
-            application2=application2,
-            access_key=access_key,
-        )
-        try:
-            await runner.run(progress)
-            used_memory_cap = memory_cap
-            break
-        except (MemoryWriteNotAcknowledged, MemoryReadNotAnswered) as exc:
-            next_cap = (
-                memory_caps[attempt + 1] if attempt + 1 < len(memory_caps) else None
+    # The largest APDU length a run negotiated, so a failure can tell whether long
+    # frames were in flight (see _interface_may_drop_long_frames).
+    last_negotiated_apdu = [0]
+
+    async def run_procedure(
+        ceiling: int,
+    ) -> tuple[LoadProcedureRunner, ConnectionManager, int | None]:
+        """Run the Load Procedure within the APDU ``ceiling``, walking the memory caps."""
+        runner: LoadProcedureRunner | None = None
+        manager: ConnectionManager | None = None
+        used_memory_cap: int | None = None
+        for attempt, memory_cap in enumerate(memory_caps):
+            manager = _connection_manager(xknx, address, security)
+            runner = LoadProcedureRunner(
+                application,
+                image,
+                connection_manager=manager,
+                max_apdu_length=ceiling,
+                controls=controls,
+                object_types=object_types,
+                scope=scope,
+                expected_descriptor=expected_descriptor,
+                negotiate_apdu=negotiate_apdu,
+                apdu_overhead=_apdu_overhead(security),
+                authorize_levels=authorize_levels,
+                memory_service_count=memory_cap,
+                property_services=_property_services(application, master),
+                application_loaded=application_loaded,
+                application2=application2,
+                access_key=access_key,
             )
-            if next_cap is not None:
-                logger.warning(
-                    "download: %s left a long memory service unanswered; retrying with a "
-                    "%d-octet memory-service cap. Cause: %s",
-                    address,
-                    next_cap,
-                    exc,
+            try:
+                await runner.run(progress)
+                used_memory_cap = memory_cap
+                break
+            except (MemoryWriteNotAcknowledged, MemoryReadNotAnswered) as exc:
+                next_cap = (
+                    memory_caps[attempt + 1] if attempt + 1 < len(memory_caps) else None
                 )
-                continue
-            raise PartialDownloadError(
-                f"Downloading {address} failed after it had started writing the "
-                f"device, so it may be left in an inconsistent, partially loaded "
-                f"state - re-download it to restore a working state. Cause: {exc}"
-            ) from exc
-        except Exception as exc:
-            # A failure after the procedure began writing the device may leave it in a
-            # partially loaded, inconsistent state. Flag that for load scopes so the
-            # caller can warn the user; an unload is meant to clear the device, so its
-            # failures pass through unwrapped. The original failure is kept both as the
-            # cause and inside the message so it is never lost from any log sink.
-            if runner.state_mutated and scope not in (
-                DownloadScope.UNLOAD,
-                DownloadScope.UNLOAD_ALL,
-            ):
+                if next_cap is not None:
+                    logger.warning(
+                        "download: %s left a long memory service unanswered; retrying with a "
+                        "%d-octet memory-service cap. Cause: %s",
+                        address,
+                        next_cap,
+                        exc,
+                    )
+                    continue
                 raise PartialDownloadError(
                     f"Downloading {address} failed after it had started writing the "
                     f"device, so it may be left in an inconsistent, partially loaded "
                     f"state - re-download it to restore a working state. Cause: {exc}"
                 ) from exc
-            raise
-        finally:
-            # Ensure the connection is closed even if the procedure omits a trailing
-            # Disconnect or fails partway through.
-            await manager.close()
+            except Exception as exc:
+                # A failure after the procedure began writing the device may leave it in a
+                # partially loaded, inconsistent state. Flag that for load scopes so the
+                # caller can warn the user; an unload is meant to clear the device, so its
+                # failures pass through unwrapped. The original failure is kept both as the
+                # cause and inside the message so it is never lost from any log sink.
+                if runner.state_mutated and scope not in (
+                    DownloadScope.UNLOAD,
+                    DownloadScope.UNLOAD_ALL,
+                ):
+                    raise PartialDownloadError(
+                        f"Downloading {address} failed after it had started writing the "
+                        f"device, so it may be left in an inconsistent, partially loaded "
+                        f"state - re-download it to restore a working state. Cause: {exc}"
+                    ) from exc
+                raise
+            finally:
+                last_negotiated_apdu[0] = max(
+                    last_negotiated_apdu[0], _negotiated_apdu(runner)
+                )
+                # Ensure the connection is closed even if the procedure omits a trailing
+                # Disconnect or fails partway through.
+                await manager.close()
 
-    # The loop only reaches here via a successful run (every other path raises).
-    assert runner is not None and manager is not None
+        # The loop only reaches here via a successful run (every other path raises).
+        assert runner is not None and manager is not None
+        return runner, manager, used_memory_cap
+
+    learned_interface_apdu: int | None = None
+    try:
+        runner, manager, used_memory_cap = await run_procedure(apdu_ceiling)
+    except Exception as exc:
+        long_frames = _interface_may_drop_long_frames(
+            exc, interface_max_apdu_length, negotiate_apdu, last_negotiated_apdu
+        )
+        if not long_frames:
+            raise
+        logger.warning(
+            "download: %s failed while sending frames of up to %d octets through an "
+            "interface that does not report its maximum; retrying with standard frames "
+            "(%d octets). Cause: %s",
+            address,
+            last_negotiated_apdu[0],
+            DEFAULT_MAX_APDU_LENGTH,
+            exc,
+        )
+        await _wait_for_connection(xknx)
+        learned_interface_apdu = DEFAULT_MAX_APDU_LENGTH
+        runner, manager, used_memory_cap = await run_procedure(DEFAULT_MAX_APDU_LENGTH)
 
     if used_memory_cap is not None:
         logger.info(
@@ -946,6 +1050,7 @@ async def download(
         secured=security is not None,
         memory_service_count=used_memory_cap,
         factory_reset=factory_reset,
+        interface_max_apdu_length=learned_interface_apdu,
     )
 
 

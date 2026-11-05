@@ -19,6 +19,7 @@ from xknx.io.self_description import request_description
 
 from editor_gui.color import color_u32
 from editor_gui.device_info import application_version_text
+from editor_gui.interface_apdu_cache import learned_interface_apdu
 from editor_gui.plugins.base import Logger, PanelDefinition, PluginAPI
 from editor_gui.plugins.connection.busmonitor import (
     DEFAULT_GATEWAY_PORT,
@@ -28,7 +29,6 @@ from editor_gui.plugins.connection.busmonitor import (
 from editor_gui.plugins.connection.interface import (
     ObservableKNXIPInterfaceThreaded,
     SequentialCEMIHandler,
-    interface_apdu_limit,
 )
 from editor_gui.plugins.connection.service import BusmonitorState, LinkInfo
 from editor_gui.plugins.connection.strings import S
@@ -594,15 +594,14 @@ class ConnectionPlugin:
             if interface_apdu is not None:
                 self._log.info("interface max APDU length", length=interface_apdu)
             else:
-                interface_apdu = interface_apdu_limit(
-                    None, tunnelling=self._connection_type in _TUNNEL_TYPES
-                )
+                interface_apdu = learned_interface_apdu(self._connection_target)
                 if interface_apdu is not None:
                     self._log.info(
-                        "interface max APDU length not reported, using standard frames",
+                        "interface max APDU length learned by an earlier download",
                         length=interface_apdu,
                     )
             self._api.connection.interface_max_apdu_length = interface_apdu
+            self._api.connection.interface_target = self._connection_target
             self._api.connection.interface_name = (
                 self._gateway_info.name
                 if self._gateway_info
