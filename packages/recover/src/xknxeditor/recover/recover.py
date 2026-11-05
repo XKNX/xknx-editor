@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
-from collections.abc import Callable, Mapping, Sequence
+from collections.abc import Awaitable, Callable, Mapping, Sequence
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
@@ -182,6 +182,7 @@ async def recover_device(
     address: str,
     progress: Callable[[str], None] | None = None,
     project_code_page: str | None = None,
+    reads_done: Callable[[], Awaitable[None]] | None = None,
 ) -> RecoveredDevice:
     """Read and decode one device's configuration over an open connection.
 
@@ -190,7 +191,10 @@ async def recover_device(
     and the parameter memory and decodes them. ``progress`` is called with the
     current stage (``STAGE_GROUP_COMMUNICATION``/``STAGE_PARAMETERS``) so a UI can
     show what the device read is doing. ``project_code_page`` as for
-    :func:`~xknxeditor.recover.parameters.recover_parameters`. Read-only.
+    :func:`~xknxeditor.recover.parameters.recover_parameters`. ``reads_done`` is awaited
+    once everything is read, before the decoding (which takes seconds for a large
+    application): the connection can be closed there, before the device closes it for
+    being idle. Read-only.
     """
     mask_version = await programmer.read_device_descriptor()
     dossier = await read_dossier(programmer)
@@ -201,6 +205,8 @@ async def recover_device(
         progress(STAGE_PARAMETERS)
     parameter_segments = await read_parameter_memory(programmer, application)
     property_values = await read_property_values(programmer, application)
+    if reads_done is not None:
+        await reads_done()
     # Decoding takes seconds for a large application: off the event loop, which keeps the
     # connection to the interface answered meanwhile.
     parameters, com_object_refs = await asyncio.to_thread(
@@ -304,10 +310,19 @@ async def recover_device_at(
     """
     target = IndividualAddress(address)
     last_exc: Exception | None = None
+    connected = False
+
+    async def disconnect() -> None:
+        nonlocal connected
+        if connected:
+            connected = False
+            with contextlib.suppress(ManagementConnectionError, XKNXException):
+                await xknx.management.disconnect(target)
+
     for attempt in range(max(attempts, 1)):
-        connection = None
         try:
             connection = await connect(xknx, target)
+            connected = True
             programmer = DeviceProgrammer(connection)
             if negotiate_apdu:
                 if attempt == 0:
@@ -326,6 +341,9 @@ async def recover_device_at(
                 address=str(target),
                 progress=progress,
                 project_code_page=project_code_page,
+                # Closed before the decoding: idle meanwhile, the device would close it
+                # itself, and closing it afterwards fails.
+                reads_done=disconnect,
             )
         except (ManagementConnectionError, XKNXException, MemoryReadNotAnswered) as exc:
             # Transport hiccup, or a long read the interface dropped (raised as
@@ -333,9 +351,7 @@ async def recover_device_at(
             # the next attempt at the 15-octet fallback.
             last_exc = exc
         finally:
-            if connection is not None:
-                with contextlib.suppress(ManagementConnectionError, XKNXException):
-                    await xknx.management.disconnect(target)
+            await disconnect()
         if attempt + 1 < attempts:
             await asyncio.sleep(retry_delay)
     assert last_exc is not None

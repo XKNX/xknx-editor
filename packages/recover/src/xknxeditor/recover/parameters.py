@@ -85,10 +85,13 @@ def recover_parameters(
     parameter reference whose type is reconstructable, and the parameter ids whose
     value is unknown (lossy types / absent data).
     """
-    if application.dynamic_ui() is None:
+    ui = application.dynamic_ui()
+    if ui is None:
         return RecoveredParameters(values={}, unknown=[])
     linked = set(linked_objects)
     sizes = dict(object_sizes or {})
+    # Only the inference from linked objects tells settings apart by them.
+    fixed = _fixed_values(application, ui) if linked else {}
     inferred: _ValueMap = {}
     dead: set[tuple[str, str]] = set()
     values, unknown = _decode(
@@ -97,7 +100,14 @@ def recover_parameters(
     for _ in range(_INFER_ROUNDS):
         chosen = (
             _infer_unstored(
-                application, values, linked, sizes, project_code_page, dead=dead
+                application,
+                values,
+                linked,
+                sizes,
+                project_code_page,
+                dead=dead,
+                fixed=fixed,
+                segments=parameter_segments,
             )
             if linked
             else {}
@@ -228,6 +238,14 @@ def _shown_objects(ui: DynamicUI, sizes: Mapping[int, str] | None = None) -> set
 def _is_unstored(ui: DynamicUI, ref_id: str) -> bool:
     """Whether the device keeps no copy of a parameter: no memory, no property, not in a
     union. One that a calculation computes from the values read is in the values already."""
+    indexer = ui.indexer
+    ref = indexer.parameter_refs.get(ui.local_ref_id(ref_id))
+    parameter = indexer.parameters.get(ref.ref_id) if ref is not None else None
+    return _keeps_no_copy(parameter)
+
+
+def _keeps_no_copy(parameter: object) -> bool:
+    """Whether a parameter has no memory, no property and is no member of a union."""
     from xknxeditor.namespaces.intermediate.application_program_static_t_parameters_parameter import (
         ApplicationProgramStaticParametersParameter,
     )
@@ -235,9 +253,6 @@ def _is_unstored(ui: DynamicUI, ref_id: str) -> bool:
         ModuleDefStaticParametersParameter,
     )
 
-    indexer = ui.indexer
-    ref = indexer.parameter_refs.get(ui.local_ref_id(ref_id))
-    parameter = indexer.parameters.get(ref.ref_id) if ref is not None else None
     return (
         isinstance(
             parameter,
@@ -246,6 +261,86 @@ def _is_unstored(ui: DynamicUI, ref_id: str) -> bool:
         )
         and parameter.choice is None
     )
+
+
+def _fixed_values(application: Application, ui: DynamicUI) -> _ValueMap:
+    """The values the application fixes for settings the device stores but nobody edits
+    (local param-ref -> value): a hidden setting whose references each carry their own value,
+    which tells the device what a setting it keeps no copy of chose (e.g. the datapoint type
+    of a status value, the kind of a button function). References an assign or a calculation
+    writes are left out, their value is not the fixed one."""
+    from xknxeditor.namespaces.intermediate import Assign
+    from xknxeditor.namespaces.intermediate.access_t import Access
+
+    indexer = ui.indexer
+    assigned: set[str] = set()
+    stack: list[object] = [
+        application.program.dynamic,
+        *(definition.dynamic for definition in indexer.module_defs.values()),
+    ]
+    while stack:
+        element = stack.pop()
+        if isinstance(element, Assign):
+            assigned.add(element.target_param_ref_ref)
+            continue
+        stack.extend(getattr(element, "choice", None) or [])
+        stack.extend(getattr(element, "when", None) or [])
+    fixed: _ValueMap = {}
+    for ref_id, ref in indexer.parameter_refs.items():
+        parameter = indexer.parameters.get(ref.ref_id)
+        if (
+            parameter is None
+            or (ref.access or parameter.access) is not Access.NONE
+            or ref_id in assigned
+            or indexer.calculations_for_l(ref_id)
+            or indexer.calculations_for_r(ref_id)
+            or _keeps_no_copy(parameter)
+        ):
+            continue
+        value = indexer.default_value(ref_id)
+        if value is not None:
+            fixed[ref_id] = value
+    return fixed
+
+
+def _fixed_conflicts(
+    ui: DynamicUI, parameter_segments: Mapping[str, bytes], fixed: _ValueMap
+) -> int:
+    """How many bytes of the active hidden settings with a fixed value (see
+    :func:`_fixed_values`) the device holds otherwise than ``ui`` writes them: a configuration
+    with any is not the device's. Compared as written, so that the members of a union in a
+    module instance count too."""
+    from xknxeditor.prod.errors import EncodingError
+
+    indexer = ui.indexer
+    active = {ui.local_ref_id(ref_id) for ref_id in ui.active_parameter_ref_ids()}
+    parameters = {indexer.parameter_refs[ref].ref_id for ref in active & fixed.keys()}
+    # A parameter another active reference of writes (an assign, a calculation) is left out.
+    parameters -= {
+        indexer.parameter_refs[ref].ref_id
+        for ref in active - fixed.keys()
+        if ref in indexer.parameter_refs
+    }
+    if not parameters:
+        return 0
+    try:
+        encoded = ui.encode_to_memory()
+    except (EncodingError, ValueError):
+        return 0
+    count = 0
+    for segment_id, cells in ui.memory_param_map().items():
+        device = parameter_segments.get(segment_id)
+        mine = encoded.get(segment_id)
+        if device is None or mine is None:
+            continue
+        for offset, (parameter_id, _value) in cells.items():
+            if (
+                parameter_id in parameters
+                and offset < min(len(device), len(mine))
+                and device[offset] != mine[offset]
+            ):
+                count += 1
+    return count
 
 
 def _infer_unstored(
@@ -258,13 +353,17 @@ def _infer_unstored(
     known: frozenset[str] = frozenset(),
     look_ahead: bool = True,
     dead: set[tuple[str, str]] | None = None,
+    fixed: _ValueMap | None = None,
+    segments: Mapping[str, bytes] | None = None,
 ) -> _ValueMap:
     """Values for shown settings the device keeps no copy of, chosen to show more of the
     ``linked`` group objects (in their ``sizes``) than ``values`` alone.
 
     Every other value of each such setting (but those in ``known``) is tried; a setting takes
-    the one that shows the most linked objects more (net of the ones it hides), of those the one
-    that shows the fewest objects that are not linked. Best first, each is taken that shows
+    the one that shows the most linked objects more (net of the ones it hides). Of several
+    that show as many, it takes the one whose hidden settings with a ``fixed`` value hold that
+    value in the memory ``segments`` read, then the one that shows the fewest objects that are
+    not linked, then the first. Best first, each is taken that shows
     more together with those taken before it. When no value shows more, a value that shows
     other such settings is taken together with theirs if those show more (``look_ahead``: a
     channel whose own objects are not linked, but one behind a setting inside it; the first
@@ -306,6 +405,19 @@ def _infer_unstored(
         )
         return objects & linked, len(objects - linked), reveals
 
+    def conflicts(trial: Mapping[str, str]) -> int:
+        """How many hidden settings with a fixed value ``trial`` makes active hold another
+        value on the device."""
+        assert fixed is not None and segments is not None
+        seeded = seed_dynamic_ui(
+            application,
+            {**values, **trial},
+            project_code_page,
+            module_instances=instances,
+        )
+        assert seeded is not None
+        return _fixed_conflicts(seeded, segments, fixed)
+
     best: list[tuple[tuple[int, int], str, str]] = []
     neutral: list[tuple[str, str]] = []
     for ref_id, parameter in shown_settings.items():
@@ -317,20 +429,33 @@ def _infer_unstored(
         ):
             continue
         current = ui.get_value(ref_id) or parameter.default_value
-        score, value = (0, 0), ""
+        gaining: list[tuple[int, int, str]] = []
         for candidate in values_to_try(parameter, current):
             if dead is not None and (ref_id, candidate) in dead:
                 continue
             objects, unlinked, reveals = shown({ref_id: candidate})
             gain = len(objects - base) - len(base - objects)
-            if gain > 0 and (gain, -unlinked) > score:
-                score, value = (gain, -unlinked), candidate
+            if gain > 0:
+                gaining.append((gain, -unlinked, candidate))
             elif objects == base and reveals:
                 neutral.append((ref_id, candidate))
-            elif gain <= 0 and dead is not None:
+            elif dead is not None:
                 dead.add((ref_id, candidate))
-        if value:
-            best.append((score, ref_id, value))
+        if not gaining:
+            continue
+        top = max(gain for gain, _, _ in gaining)
+        ties = [entry for entry in gaining if entry[0] == top]
+        # Several values show the same objects (datapoint types of the same size, a pair of
+        # buttons or two single ones): the hidden settings they come with tell them apart.
+        clashes: dict[str, int] = (
+            {candidate: conflicts({ref_id: candidate}) for _, _, candidate in ties}
+            if fixed and segments is not None and len(ties) > 1
+            else {}
+        )
+        gain, fewest, value = max(
+            ties, key=lambda entry: (-clashes.get(entry[2], 0), entry[1])
+        )
+        best.append(((gain, fewest), ref_id, value))
     if best:
         # Settings that show the same objects (several channels each showing a shared
         # object) are not all taken: only the one that shows them first.
@@ -350,6 +475,7 @@ def _infer_unstored(
     seen = known | shown_settings.keys()
     found: _ValueMap = {}
     found_count = len(base)
+    found_clash: int | None = None
     for ref_id, candidate in neutral[:_LOOK_AHEAD_TRIES]:
         nested = _infer_unstored(
             application,
@@ -359,12 +485,23 @@ def _infer_unstored(
             project_code_page,
             known=seen,
             look_ahead=False,
+            fixed=fixed,
+            segments=segments,
         )
-        if nested:
-            trial = {ref_id: candidate, **nested}
-            count = len(shown(trial)[0])
-            if count > found_count:
-                found, found_count = trial, count
+        if not nested:
+            continue
+        trial = {ref_id: candidate, **nested}
+        count = len(shown(trial)[0])
+        if count > found_count:
+            found, found_count, found_clash = trial, count, None
+        elif count == found_count and found and fixed and segments is not None:
+            # As many shown either way (a pair of buttons or two single ones): the hidden
+            # settings with a fixed value tell them apart.
+            if found_clash is None:
+                found_clash = conflicts(found)
+            clash = conflicts(trial)
+            if clash < found_clash:
+                found, found_clash = trial, clash
     return found
 
 
