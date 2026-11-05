@@ -498,16 +498,6 @@ class ConnectionService:
 
         self._dispatch_cemi(raw_cemi, TelegramSource.CONNECTION)
 
-    def dispatch_proxy_cemi(self, raw_cemi: bytes) -> None:
-        from editor_gui.net import TelegramSource
-
-        self._dispatch_cemi(raw_cemi, TelegramSource.PROXY)
-
-    def dispatch_virtual_cemi(self, raw_cemi: bytes) -> None:
-        from editor_gui.net import TelegramSource
-
-        self._dispatch_cemi(raw_cemi, TelegramSource.VIRTUAL)
-
     def _dispatch_cemi(self, raw_cemi: bytes, source: TelegramSource) -> None:
         for cb in self._raw_cemi_listeners:
             cb(raw_cemi, source)
