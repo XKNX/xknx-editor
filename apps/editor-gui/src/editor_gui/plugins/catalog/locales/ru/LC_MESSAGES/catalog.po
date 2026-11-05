@@ -210,3 +210,66 @@ msgstr "Автоматически: устройство попадает на �
 
 msgid "Download to Local Catalog"
 msgstr "Загрузить в локальный каталог"
+
+msgid "Filename"
+msgstr "Имя файла"
+
+msgid "Mask Version"
+msgstr "Версия маски"
+
+msgid "Size"
+msgstr "Размер"
+
+msgid "Updated"
+msgstr "Обновлено"
+
+msgid "Alternative"
+msgstr "Альтернативный"
+
+msgid "Server URL"
+msgstr "URL сервера"
+
+msgid "Username"
+msgstr "Имя пользователя"
+
+msgid "Email"
+msgstr "Электронная почта"
+
+msgid "Save"
+msgstr "Сохранить"
+
+msgid "Register"
+msgstr "Регистрация"
+
+msgid "Continue Registration"
+msgstr "Продолжить регистрацию"
+
+msgid "Verification Code"
+msgstr "Код подтверждения"
+
+msgid "Verify Email"
+msgstr "Подтвердить почту"
+
+msgid "Resend Code"
+msgstr "Отправить код повторно"
+
+msgid "Open Website"
+msgstr "Открыть сайт"
+
+msgid "Imported {count} product versions. Find them in the Local tab."
+msgstr "Импортировано версий продуктов: {count}. Они находятся на вкладке «Локальные»."
+
+msgid "Login is saved on this computer. Leave the password empty to keep it for the same server and user."
+msgstr "Данные входа сохраняются на этом компьютере. Оставьте пароль пустым, чтобы сохранить его для того же сервера и пользователя."
+
+msgid "Registration sends an email code. Password: at least 10 characters, uppercase, lowercase, digit and special character; at most 72 UTF-8 bytes."
+msgstr "При регистрации код отправляется по почте. Пароль: не менее 10 символов, заглавная и строчная буквы, цифра и спецсимвол; не более 72 байт UTF-8."
+
+msgid "Enter the six-digit code from your email to complete registration."
+msgstr "Введите шестизначный код из письма, чтобы завершить регистрацию."
+
+msgid "Email verified. Downloads become available after administrator approval."
+msgstr "Почта подтверждена. Загрузки станут доступны после одобрения администратора."
+
+msgid "Version"
+msgstr "Версия"

@@ -14,6 +14,7 @@ from fastmcp import FastMCP
 from fastmcp.server.providers.skills import SkillsDirectoryProvider
 
 from editor_gui.plugins.mcp.tools import (
+    alternative_catalog,
     backups,
     batch,
     buttons,
@@ -188,6 +189,7 @@ def build_server(ctx: McpContext, auth: Any = None) -> FastMCP:
         project_tools,
         batch,
         catalog,
+        alternative_catalog,
         connection,
         operations,
         buttons,

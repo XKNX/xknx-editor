@@ -213,3 +213,66 @@ msgstr "Automat: dispozitivul ajunge pe linia curentă a camerei alese, iar făr
 
 msgid "Download to Local Catalog"
 msgstr "Descărcare în catalogul local"
+
+msgid "Filename"
+msgstr "Nume fișier"
+
+msgid "Mask Version"
+msgstr "Versiune mască"
+
+msgid "Size"
+msgstr "Dimensiune"
+
+msgid "Updated"
+msgstr "Actualizat"
+
+msgid "Alternative"
+msgstr "Alternativ"
+
+msgid "Server URL"
+msgstr "URL server"
+
+msgid "Username"
+msgstr "Nume de utilizator"
+
+msgid "Email"
+msgstr "E-mail"
+
+msgid "Save"
+msgstr "Salvează"
+
+msgid "Register"
+msgstr "Înregistrare"
+
+msgid "Continue Registration"
+msgstr "Continuă înregistrarea"
+
+msgid "Verification Code"
+msgstr "Cod de verificare"
+
+msgid "Verify Email"
+msgstr "Verifică e-mailul"
+
+msgid "Resend Code"
+msgstr "Retrimite codul"
+
+msgid "Open Website"
+msgstr "Deschide site-ul"
+
+msgid "Imported {count} product versions. Find them in the Local tab."
+msgstr "S-au importat {count} versiuni de produs. Le găsești în fila Local."
+
+msgid "Login is saved on this computer. Leave the password empty to keep it for the same server and user."
+msgstr "Datele de autentificare sunt salvate pe acest calculator. Lasă parola goală pentru a o păstra pentru același server și utilizator."
+
+msgid "Registration sends an email code. Password: at least 10 characters, uppercase, lowercase, digit and special character; at most 72 UTF-8 bytes."
+msgstr "Înregistrarea trimite un cod prin e-mail. Parola: minimum 10 caractere, majusculă, minusculă, cifră și caracter special; maximum 72 de octeți UTF-8."
+
+msgid "Enter the six-digit code from your email to complete registration."
+msgstr "Introdu codul de șase cifre din e-mail pentru a finaliza înregistrarea."
+
+msgid "Email verified. Downloads become available after administrator approval."
+msgstr "E-mail verificat. Descărcările devin disponibile după aprobarea administratorului."
+
+msgid "Version"
+msgstr "Versiune"

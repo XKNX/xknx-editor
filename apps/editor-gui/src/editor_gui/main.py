@@ -913,6 +913,7 @@ class KnxGuiApp:
 
     def setup(self) -> None:
         self._log.info("editor started", installation=self._update_scope or "none")
+        self._catalog_plugin.start_alternative()
         self._can_launch_file_dialog()
         # In the browser UI, notes about downloads show as this app's toasts.
         if web.active_hub is not None:
@@ -1139,6 +1140,7 @@ class KnxGuiApp:
         # Stop the MCP server first so in-flight tool calls stop before the bus loop and project they
         # depend on are torn down.
         self._mcp_plugin.stop()
+        self._catalog_plugin.stop_alternative()
         self._connection_plugin.shutdown()
         if self._project_service.is_open:
             self._project_service.close()

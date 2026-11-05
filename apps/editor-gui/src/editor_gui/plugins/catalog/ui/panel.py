@@ -299,6 +299,7 @@ class CatalogPanel:
         self._export_product_cb = export_product
         self._export_dialog: file_dialogs.SaveFileDialog | None = None
         self._export_target: ProductSummary | None = None
+        self.render_alternative: Callable[[], None] | None = None
 
     def _keep_space(self, space_id: int | None) -> None:
         """Keep the room chosen in the panel (when no ``set_space`` keeps it elsewhere)."""
@@ -325,6 +326,12 @@ class CatalogPanel:
                 and imgui.begin_tab_item(S.TAB_ONLINE)[0]
             ):
                 self._render_online_catalog()
+                imgui.end_tab_item()
+            if (
+                self.render_alternative is not None
+                and imgui.begin_tab_item(S.TAB_ALTERNATIVE)[0]
+            ):
+                self.render_alternative()
                 imgui.end_tab_item()
             imgui.end_tab_bar()
         self._add_downloaded()

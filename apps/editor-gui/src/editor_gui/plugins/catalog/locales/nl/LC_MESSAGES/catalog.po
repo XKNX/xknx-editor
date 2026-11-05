@@ -210,3 +210,66 @@ msgstr "Automatisch: het apparaat komt op de huidige lijn van de gekozen ruimte,
 
 msgid "Download to Local Catalog"
 msgstr "Downloaden naar Lokale Catalogus"
+
+msgid "Filename"
+msgstr "Bestandsnaam"
+
+msgid "Mask Version"
+msgstr "Maskerversie"
+
+msgid "Size"
+msgstr "Grootte"
+
+msgid "Updated"
+msgstr "Bijgewerkt"
+
+msgid "Alternative"
+msgstr "Alternatief"
+
+msgid "Server URL"
+msgstr "Server-URL"
+
+msgid "Username"
+msgstr "Gebruikersnaam"
+
+msgid "Email"
+msgstr "E-mail"
+
+msgid "Save"
+msgstr "Opslaan"
+
+msgid "Register"
+msgstr "Registreren"
+
+msgid "Continue Registration"
+msgstr "Registratie voortzetten"
+
+msgid "Verification Code"
+msgstr "Verificatiecode"
+
+msgid "Verify Email"
+msgstr "E-mail bevestigen"
+
+msgid "Resend Code"
+msgstr "Code opnieuw verzenden"
+
+msgid "Open Website"
+msgstr "Website openen"
+
+msgid "Imported {count} product versions. Find them in the Local tab."
+msgstr "{count} productversies geïmporteerd. Je vindt ze op het tabblad Lokaal."
+
+msgid "Login is saved on this computer. Leave the password empty to keep it for the same server and user."
+msgstr "De inloggegevens worden op deze computer opgeslagen. Laat het wachtwoord leeg om het voor dezelfde server en gebruiker te behouden."
+
+msgid "Registration sends an email code. Password: at least 10 characters, uppercase, lowercase, digit and special character; at most 72 UTF-8 bytes."
+msgstr "Bij registratie ontvang je een code per e-mail. Wachtwoord: minstens 10 tekens, hoofdletter, kleine letter, cijfer en speciaal teken; maximaal 72 UTF-8-bytes."
+
+msgid "Enter the six-digit code from your email to complete registration."
+msgstr "Voer de zescijferige code uit je e-mail in om de registratie te voltooien."
+
+msgid "Email verified. Downloads become available after administrator approval."
+msgstr "E-mail bevestigd. Downloads zijn beschikbaar na goedkeuring door de beheerder."
+
+msgid "Version"
+msgstr "Versie"

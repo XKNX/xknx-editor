@@ -210,3 +210,66 @@ msgstr "Automatico: il dispositivo va sulla Linea Corrente della stanza scelta, 
 
 msgid "Download to Local Catalog"
 msgstr "Scarica nel catalogo locale"
+
+msgid "Filename"
+msgstr "Nome file"
+
+msgid "Mask Version"
+msgstr "Versione maschera"
+
+msgid "Size"
+msgstr "Dimensione"
+
+msgid "Updated"
+msgstr "Aggiornato"
+
+msgid "Alternative"
+msgstr "Alternativo"
+
+msgid "Server URL"
+msgstr "URL del server"
+
+msgid "Username"
+msgstr "Nome utente"
+
+msgid "Email"
+msgstr "E-mail"
+
+msgid "Save"
+msgstr "Salva"
+
+msgid "Register"
+msgstr "Registrati"
+
+msgid "Continue Registration"
+msgstr "Continua registrazione"
+
+msgid "Verification Code"
+msgstr "Codice di verifica"
+
+msgid "Verify Email"
+msgstr "Verifica e-mail"
+
+msgid "Resend Code"
+msgstr "Invia di nuovo il codice"
+
+msgid "Open Website"
+msgstr "Apri sito web"
+
+msgid "Imported {count} product versions. Find them in the Local tab."
+msgstr "Importate {count} versioni di prodotto. Sono nella scheda Locale."
+
+msgid "Login is saved on this computer. Leave the password empty to keep it for the same server and user."
+msgstr "Le credenziali sono salvate su questo computer. Lascia vuota la password per mantenerla per lo stesso server e utente."
+
+msgid "Registration sends an email code. Password: at least 10 characters, uppercase, lowercase, digit and special character; at most 72 UTF-8 bytes."
+msgstr "La registrazione invia un codice via e-mail. Password: almeno 10 caratteri, maiuscola, minuscola, cifra e carattere speciale; massimo 72 byte UTF-8."
+
+msgid "Enter the six-digit code from your email to complete registration."
+msgstr "Inserisci il codice di sei cifre ricevuto via e-mail per completare la registrazione."
+
+msgid "Email verified. Downloads become available after administrator approval."
+msgstr "E-mail verificata. I download saranno disponibili dopo l’approvazione dell’amministratore."
+
+msgid "Version"
+msgstr "Versione"

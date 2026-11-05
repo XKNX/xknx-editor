@@ -210,3 +210,66 @@ msgstr "Automatike: pajisja vendoset në linjën aktuale të dhomës së zgjedhu
 
 msgid "Download to Local Catalog"
 msgstr "Shkarko në katalogun lokal"
+
+msgid "Filename"
+msgstr "Emri i skedarit"
+
+msgid "Mask Version"
+msgstr "Versioni i maskës"
+
+msgid "Size"
+msgstr "Madhësia"
+
+msgid "Updated"
+msgstr "Përditësuar"
+
+msgid "Alternative"
+msgstr "Alternativ"
+
+msgid "Server URL"
+msgstr "URL-ja e serverit"
+
+msgid "Username"
+msgstr "Emri i përdoruesit"
+
+msgid "Email"
+msgstr "Email"
+
+msgid "Save"
+msgstr "Ruaj"
+
+msgid "Register"
+msgstr "Regjistrohu"
+
+msgid "Continue Registration"
+msgstr "Vazhdo regjistrimin"
+
+msgid "Verification Code"
+msgstr "Kodi i verifikimit"
+
+msgid "Verify Email"
+msgstr "Verifiko emailin"
+
+msgid "Resend Code"
+msgstr "Ridërgo kodin"
+
+msgid "Open Website"
+msgstr "Hap faqen e internetit"
+
+msgid "Imported {count} product versions. Find them in the Local tab."
+msgstr "U importuan {count} versione produktesh. I gjeni te skeda Lokale."
+
+msgid "Login is saved on this computer. Leave the password empty to keep it for the same server and user."
+msgstr "Të dhënat e hyrjes ruhen në këtë kompjuter. Lëreni fjalëkalimin bosh për ta mbajtur për të njëjtin server dhe përdorues."
+
+msgid "Registration sends an email code. Password: at least 10 characters, uppercase, lowercase, digit and special character; at most 72 UTF-8 bytes."
+msgstr "Regjistrimi dërgon një kod me email. Fjalëkalimi: të paktën 10 karaktere, shkronjë e madhe dhe e vogël, shifër dhe karakter i veçantë; maksimumi 72 bajte UTF-8."
+
+msgid "Enter the six-digit code from your email to complete registration."
+msgstr "Shkruani kodin gjashtëshifror nga emaili për të përfunduar regjistrimin."
+
+msgid "Email verified. Downloads become available after administrator approval."
+msgstr "Emaili u verifikua. Shkarkimet bëhen të disponueshme pas miratimit nga administratori."
+
+msgid "Version"
+msgstr "Versioni"

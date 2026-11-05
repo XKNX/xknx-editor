@@ -9,6 +9,7 @@ from editor_gui.plugins.catalog.online_catalog import (
 )
 from editor_gui.plugins.catalog.strings import S
 from editor_gui.plugins.catalog.ui import CatalogPanel
+from editor_gui.plugins.catalog.ui.alternative import AlternativeCatalogPanel
 from editor_gui.plugins.project.medium_text import medium_error_text
 from editor_gui.plugins.project.service import DeviceProduct
 from xknxeditor.proj.core.medium import MediumError
@@ -57,17 +58,36 @@ class CatalogPlugin:
             get_space=lambda: api.project.device_target_space,
             set_space=self._set_space,
         )
+        self._alternative = AlternativeCatalogPanel(
+            api.catalog.alternative, self._import_alternative
+        )
+        self._panel.render_alternative = self._alternative.render
         self._panels = [
             PanelDefinition(
                 name="catalog",
                 label=S.PANEL_CATALOG,
                 dock="LeftSpace",
-                render=self._panel.render,
+                render=self._render,
             ),
         ]
 
     def _set_line(self, segment_id: int | None) -> None:
         self._api.project.device_target_segment = segment_id
+
+    def _import_alternative(self, data: bytes) -> int:
+        added = self._api.catalog.import_alternative_product(data)
+        self._api.project.refresh_catalog_resolution()
+        return len(added)
+
+    def _render(self) -> None:
+        self._alternative.poll()
+        self._panel.render()
+
+    def start_alternative(self) -> None:
+        self._alternative.start()
+
+    def stop_alternative(self) -> None:
+        self._alternative.stop()
 
     def _set_space(self, space_id: int | None) -> None:
         self._api.project.device_target_space = space_id

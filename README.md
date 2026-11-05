@@ -91,6 +91,11 @@ project whose group-address tree mirrors the export.
 applications, independent of any project, and drag entries in as new devices. You can also browse the
 online catalog, cached locally for offline use.
 
+The **Alternative** tab searches [KNX Product Search Database](https://reko.x3muha.de)
+with full product metadata and imports `.knxprod` files into the local catalog. The index is
+cached for offline search and checked hourly for updates. Login and registration are available
+directly in the editor.
+
 <img src="docs/images/catalog.png" alt="Product catalog" width="598">
 
 **Programming real devices** — commission a device end-to-end over a live connection (tunneling or

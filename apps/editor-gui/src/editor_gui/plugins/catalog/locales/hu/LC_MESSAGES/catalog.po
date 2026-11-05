@@ -213,3 +213,66 @@ msgstr "Automatikus: a készülék a kiválasztott helyiség aktuális vonalára
 
 msgid "Download to Local Catalog"
 msgstr "Letöltés a helyi katalógusba"
+
+msgid "Filename"
+msgstr "Fájlnév"
+
+msgid "Mask Version"
+msgstr "Maszkverzió"
+
+msgid "Size"
+msgstr "Méret"
+
+msgid "Updated"
+msgstr "Frissítve"
+
+msgid "Alternative"
+msgstr "Alternatív"
+
+msgid "Server URL"
+msgstr "Kiszolgáló URL-je"
+
+msgid "Username"
+msgstr "Felhasználónév"
+
+msgid "Email"
+msgstr "E-mail"
+
+msgid "Save"
+msgstr "Mentés"
+
+msgid "Register"
+msgstr "Regisztráció"
+
+msgid "Continue Registration"
+msgstr "Regisztráció folytatása"
+
+msgid "Verification Code"
+msgstr "Ellenőrző kód"
+
+msgid "Verify Email"
+msgstr "E-mail megerősítése"
+
+msgid "Resend Code"
+msgstr "Kód újraküldése"
+
+msgid "Open Website"
+msgstr "Webhely megnyitása"
+
+msgid "Imported {count} product versions. Find them in the Local tab."
+msgstr "{count} termékverzió importálva. A Helyi lapon találhatók."
+
+msgid "Login is saved on this computer. Leave the password empty to keep it for the same server and user."
+msgstr "A bejelentkezési adatok ezen a számítógépen tárolódnak. Hagyja üresen a jelszót, hogy megmaradjon ugyanahhoz a kiszolgálóhoz és felhasználóhoz."
+
+msgid "Registration sends an email code. Password: at least 10 characters, uppercase, lowercase, digit and special character; at most 72 UTF-8 bytes."
+msgstr "A regisztráció kódot küld e-mailben. Jelszó: legalább 10 karakter, nagybetű, kisbetű, számjegy és különleges karakter; legfeljebb 72 UTF-8-bájt."
+
+msgid "Enter the six-digit code from your email to complete registration."
+msgstr "A regisztráció befejezéséhez adja meg az e-mailben kapott hatjegyű kódot."
+
+msgid "Email verified. Downloads become available after administrator approval."
+msgstr "E-mail megerősítve. A letöltések a rendszergazda jóváhagyása után érhetők el."
+
+msgid "Version"
+msgstr "Verzió"

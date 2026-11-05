@@ -210,3 +210,66 @@ msgstr "Автоматично: пристрій потрапляє на пот�
 
 msgid "Download to Local Catalog"
 msgstr "Завантажити до локального каталогу"
+
+msgid "Filename"
+msgstr "Ім’я файлу"
+
+msgid "Mask Version"
+msgstr "Версія маски"
+
+msgid "Size"
+msgstr "Розмір"
+
+msgid "Updated"
+msgstr "Оновлено"
+
+msgid "Alternative"
+msgstr "Альтернативний"
+
+msgid "Server URL"
+msgstr "URL сервера"
+
+msgid "Username"
+msgstr "Ім’я користувача"
+
+msgid "Email"
+msgstr "Електронна пошта"
+
+msgid "Save"
+msgstr "Зберегти"
+
+msgid "Register"
+msgstr "Реєстрація"
+
+msgid "Continue Registration"
+msgstr "Продовжити реєстрацію"
+
+msgid "Verification Code"
+msgstr "Код підтвердження"
+
+msgid "Verify Email"
+msgstr "Підтвердити пошту"
+
+msgid "Resend Code"
+msgstr "Надіслати код повторно"
+
+msgid "Open Website"
+msgstr "Відкрити сайт"
+
+msgid "Imported {count} product versions. Find them in the Local tab."
+msgstr "Імпортовано версій продуктів: {count}. Вони на вкладці «Локальні»."
+
+msgid "Login is saved on this computer. Leave the password empty to keep it for the same server and user."
+msgstr "Дані входу зберігаються на цьому комп’ютері. Залиште пароль порожнім, щоб зберегти його для того самого сервера й користувача."
+
+msgid "Registration sends an email code. Password: at least 10 characters, uppercase, lowercase, digit and special character; at most 72 UTF-8 bytes."
+msgstr "Під час реєстрації код надсилається поштою. Пароль: щонайменше 10 символів, велика й мала літери, цифра та спеціальний символ; не більше 72 байтів UTF-8."
+
+msgid "Enter the six-digit code from your email to complete registration."
+msgstr "Введіть шестизначний код із листа, щоб завершити реєстрацію."
+
+msgid "Email verified. Downloads become available after administrator approval."
+msgstr "Пошту підтверджено. Завантаження стануть доступні після схвалення адміністратора."
+
+msgid "Version"
+msgstr "Версія"

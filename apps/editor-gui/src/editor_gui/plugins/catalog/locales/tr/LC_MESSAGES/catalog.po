@@ -210,3 +210,66 @@ msgstr "Otomatik: cihaz seçilen odanın geçerli linyesine, yoksa ilk TP linyes
 
 msgid "Download to Local Catalog"
 msgstr "Yerel Kataloğa İndir"
+
+msgid "Filename"
+msgstr "Dosya adı"
+
+msgid "Mask Version"
+msgstr "Maske sürümü"
+
+msgid "Size"
+msgstr "Boyut"
+
+msgid "Updated"
+msgstr "Güncellendi"
+
+msgid "Alternative"
+msgstr "Alternatif"
+
+msgid "Server URL"
+msgstr "Sunucu URL’si"
+
+msgid "Username"
+msgstr "Kullanıcı adı"
+
+msgid "Email"
+msgstr "E-posta"
+
+msgid "Save"
+msgstr "Kaydet"
+
+msgid "Register"
+msgstr "Kayıt ol"
+
+msgid "Continue Registration"
+msgstr "Kayda devam et"
+
+msgid "Verification Code"
+msgstr "Doğrulama kodu"
+
+msgid "Verify Email"
+msgstr "E-postayı doğrula"
+
+msgid "Resend Code"
+msgstr "Kodu yeniden gönder"
+
+msgid "Open Website"
+msgstr "Web sitesini aç"
+
+msgid "Imported {count} product versions. Find them in the Local tab."
+msgstr "{count} ürün sürümü içe aktarıldı. Yerel sekmesinde bulabilirsiniz."
+
+msgid "Login is saved on this computer. Leave the password empty to keep it for the same server and user."
+msgstr "Giriş bilgileri bu bilgisayarda saklanır. Aynı sunucu ve kullanıcı için parolayı korumak üzere boş bırakın."
+
+msgid "Registration sends an email code. Password: at least 10 characters, uppercase, lowercase, digit and special character; at most 72 UTF-8 bytes."
+msgstr "Kayıt işlemi e-postayla kod gönderir. Parola: en az 10 karakter, büyük harf, küçük harf, rakam ve özel karakter; en fazla 72 UTF-8 baytı."
+
+msgid "Enter the six-digit code from your email to complete registration."
+msgstr "Kaydı tamamlamak için e-postanızdaki altı haneli kodu girin."
+
+msgid "Email verified. Downloads become available after administrator approval."
+msgstr "E-posta doğrulandı. İndirmeler yönetici onayından sonra kullanılabilir."
+
+msgid "Version"
+msgstr "Sürüm"
