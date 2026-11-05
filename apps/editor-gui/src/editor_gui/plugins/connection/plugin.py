@@ -591,6 +591,7 @@ class ConnectionPlugin:
                     "interface max APDU length unavailable",
                     error=f"{type(feature_err).__name__}: {feature_err}",
                 )
+            reported_apdu = interface_apdu is not None
             if interface_apdu is not None:
                 self._log.info("interface max APDU length", length=interface_apdu)
             else:
@@ -601,6 +602,7 @@ class ConnectionPlugin:
                         length=interface_apdu,
                     )
             self._api.connection.interface_max_apdu_length = interface_apdu
+            self._api.connection.interface_reports_apdu = reported_apdu
             self._api.connection.interface_target = self._connection_target
             self._api.connection.interface_name = (
                 self._gateway_info.name
@@ -1640,6 +1642,20 @@ class ConnectionPlugin:
             imgui.same_line()
             imgui.text_colored(imgui.ImVec4(0.95, 0.75, 0.35, 1.0), S.PROGMODE_FLAG_ON)
 
+    def _render_frame_size_item(self) -> None:
+        """Standard frames only, for an interface that does not report its maximum APDU
+        length (e.g. knxd): a TP interface without long frame support loses long frames."""
+        connection = self._api.connection
+        if not connection.can_set_frame_size:
+            return
+        changed, enabled = imgui.menu_item(
+            S.MENU_STANDARD_FRAMES_ONLY, "", connection.standard_frames_only
+        )
+        if imgui.is_item_hovered():
+            imgui.set_tooltip(S.TOOLTIP_STANDARD_FRAMES_ONLY)
+        if changed:
+            connection.set_standard_frames_only(enabled)
+
     def render_menu(self) -> None:
         if imgui.begin_menu(S.MENU_GATEWAY):
             if self.busmonitor_active:
@@ -1687,6 +1703,7 @@ class ConnectionPlugin:
                             + S.GATEWAY_SERVICES.format(services=", ".join(services))
                         )
                 self._render_connected_transport()
+                self._render_frame_size_item()
                 imgui.separator()
                 imgui.text_disabled(S.SECTION_DIAGNOSTICS)
                 if imgui.menu_item(S.MENU_READ_PROGMODE, "", self._progmode_open)[0]:

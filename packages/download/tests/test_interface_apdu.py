@@ -20,6 +20,7 @@ from xknxeditor.download.download import (
 )
 from xknxeditor.download.errors import (
     MemoryReadNotAnswered,
+    MemoryWriteNotAcknowledged,
     PartialDownloadError,
     VerificationError,
 )
@@ -167,7 +168,12 @@ class _LinkDroppingRunner:
     frame it works."""
 
     attempts: ClassVar[list[int]] = []
+    memory_caps: ClassVar[list[int | None]] = []
     negotiated: ClassVar[int] = 63
+    # What a long frame fails with: the link going down, or the write going unacknowledged.
+    failure: ClassVar[type[Exception]] = ManagementConnectionError
+    # Whether standard frames fail as well (the retry does not help either).
+    standard_fails: ClassVar[bool] = False
     restarted = False
 
     def __init__(self, *args: object, **kwargs: Any) -> None:
@@ -175,21 +181,25 @@ class _LinkDroppingRunner:
         self.negotiated_apdu_length: int | None = None
         self.state_mutated = False
         _LinkDroppingRunner.attempts.append(self.ceiling)
+        _LinkDroppingRunner.memory_caps.append(kwargs.get("memory_service_count"))
 
     async def run(self, progress: object = None) -> None:
         self.negotiated_apdu_length = min(_LinkDroppingRunner.negotiated, self.ceiling)
-        if self.negotiated_apdu_length > 15:
+        if self.negotiated_apdu_length > 15 or _LinkDroppingRunner.standard_fails:
             self.state_mutated = True
-            raise ManagementConnectionError("No ACK received for repeated telegram.")
+            raise _LinkDroppingRunner.failure("No ACK received for repeated telegram.")
 
     def captured_property(self, object_type: int, property_id: int) -> None:
         return None
 
 
 async def _download_through(
-    monkeypatch: pytest.MonkeyPatch, interface_max_apdu_length: int | None
+    monkeypatch: pytest.MonkeyPatch,
+    interface_max_apdu_length: int | None,
+    found: list[int] | None = None,
 ) -> Any:
     _LinkDroppingRunner.attempts = []
+    _LinkDroppingRunner.memory_caps = []
     _Manager.closed = 0
 
     async def same_image(*args: Any) -> Any:
@@ -218,6 +228,7 @@ async def _download_through(
         image=cast(Any, object()),
         scope=DownloadScope.PARAMETERS,
         interface_max_apdu_length=interface_max_apdu_length,
+        interface_limit_found=None if found is None else found.append,
     )
 
 
@@ -259,3 +270,70 @@ def test_only_link_failures_with_long_frames_are_retried() -> None:
     assert not may_drop(link, None, True, [15])
     # A device refusing something is not a link failure.
     assert not may_drop(VerificationError("refused"), None, True, [63])
+
+
+async def test_the_limit_is_reported_before_the_retry(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    found: list[int] = []
+    await _download_through(monkeypatch, None, found)
+    assert found == [15]
+
+
+async def test_the_limit_is_kept_when_the_retry_fails_too(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # The device stops answering whatever the frames: the limit was still found, so the
+    # next download starts with standard frames instead of failing on a long one first.
+    monkeypatch.setattr(_LinkDroppingRunner, "standard_fails", True)
+    found: list[int] = []
+    with pytest.raises(PartialDownloadError):
+        await _download_through(monkeypatch, None, found)
+    assert found == [15]
+    assert _LinkDroppingRunner.attempts == [239, 15]
+
+
+async def test_a_failing_callback_does_not_end_the_download(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    calls: list[int] = []
+
+    class _BrokenStore(list[int]):
+        """A caller whose store fails (e.g. a settings folder that is not writable)."""
+
+        def append(self, length: int) -> None:
+            calls.append(length)
+            raise OSError("settings not writable")
+
+    result = await _download_through(monkeypatch, None, _BrokenStore())
+    assert calls == [15]
+    assert result.interface_max_apdu_length == 15
+
+
+async def test_an_unacknowledged_long_write_goes_straight_to_standard_frames(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # Through knxd the long write goes unacknowledged. A lower memory cap would still send
+    # long frames (and take knxd's TPUART link down again), so the download skips the
+    # memory-cap ladder and retries with standard frames at once.
+    monkeypatch.setattr(_LinkDroppingRunner, "failure", MemoryWriteNotAcknowledged)
+    found: list[int] = []
+    result = await _download_through(monkeypatch, None, found)
+    assert _LinkDroppingRunner.attempts == [239, 15]
+    assert _LinkDroppingRunner.memory_caps == [None, None]
+    assert found == [15]
+    assert result.interface_max_apdu_length == 15
+
+
+async def test_an_interface_reporting_its_maximum_keeps_the_memory_cap_ladder(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # A device rejecting long memory writes behind an interface that reports long frames:
+    # the memory-cap ladder still applies, and no interface limit is reported.
+    monkeypatch.setattr(_LinkDroppingRunner, "failure", MemoryWriteNotAcknowledged)
+    found: list[int] = []
+    with pytest.raises(PartialDownloadError):
+        await _download_through(monkeypatch, 55, found)
+    assert _LinkDroppingRunner.attempts == [55, 55, 55]
+    assert _LinkDroppingRunner.memory_caps == [None, 15, 12]
+    assert found == []

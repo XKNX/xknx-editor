@@ -204,3 +204,9 @@ msgstr "TCP tunneling"
 
 msgid "Routing"
 msgstr "Routing"
+
+msgid "Standard Frames Only for Downloads"
+msgstr "Vain vakiokehykset latauksiin"
+
+msgid "This interface does not report the longest frame it carries. Tick this when downloads through it fail (e.g. knxd with a TPUART): they then send standard frames only, which is slower but works with every interface."
+msgstr "Tämä liitäntä ei ilmoita pisintä kehystä, jonka se välittää. Valitse tämä, kun lataukset sen kautta epäonnistuvat (esim. knxd ja TPUART): ne lähettävät silloin vain vakiokehyksiä, mikä on hitaampaa mutta toimii jokaisen liitännän kanssa."

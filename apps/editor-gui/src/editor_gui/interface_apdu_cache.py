@@ -24,11 +24,24 @@ def learned_interface_apdu(interface: str | None) -> int | None:
 
 
 def remember_interface_apdu(interface: str | None, length: int | None) -> None:
-    """Store the maximum APDU length a download found ``interface`` to carry."""
+    """Store the maximum APDU length ``interface`` carries (found by a download, or set by
+    the user)."""
     if not interface or length is None:
         return
     data = load_settings(_STORE)
     if data.get(interface) == length:
         return
     data[interface] = length
+    save_settings(_STORE, data)
+
+
+def forget_interface_apdu(interface: str | None) -> None:
+    """Drop the maximum APDU length stored for ``interface``: downloads through it negotiate
+    the length from the device again."""
+    if not interface:
+        return
+    data = load_settings(_STORE)
+    if interface not in data:
+        return
+    del data[interface]
     save_settings(_STORE, data)

@@ -93,7 +93,9 @@ _MEMORY_OVERHEAD = 3
 # retried with a lowered cap set via ``max_memory_service_count``.
 _MAX_MEMORY_CHUNK = 0x3F
 # Fallback memory-service caps tried, in order, after a memory write is not
-# acknowledged. 15 is the conservative standard-frame default; 12 the smallest fallback.
+# acknowledged. 15 octets still need a long frame (an 18-octet APDU with the 3-octet
+# memory header); 12 is the most a standard frame carries. An interface that drops long
+# frames is not helped by this ladder: the download retries with standard frames instead.
 MEMORY_SERVICE_FALLBACKS = (15, 12)
 # A lost acknowledgement or response on a still-open connection can be transient; the
 # operation is resent a few times before it is treated as failed. Memory reads and

@@ -713,6 +713,7 @@ async def download(
     access_key: int = FREE_ACCESS_KEY,
     in_programming_mode: bool = False,
     waiting: Callable[[], None] | None = None,
+    interface_limit_found: Callable[[int], None] | None = None,
 ) -> DownloadResult:
     """Download ``application`` into the device at ``individual_address``.
 
@@ -730,6 +731,11 @@ async def download(
     descriptor type 0, e.g. ``0x07B0`` for a System B device) is checked against
     the device before any write when given, guarding against programming the wrong
     device.
+
+    When the interface does not report its maximum and a download with long frames fails
+    on the link, the download is retried with standard frames. ``interface_limit_found``
+    is then called with that length before the retry, so a caller can remember it for
+    the interface even when the retry fails as well.
 
     Pass a pre-built ``image`` to skip assembly (e.g. one an editor built from its
     live evaluator); otherwise it is built from ``device``/``parameter_values``.
@@ -954,6 +960,17 @@ async def download(
                 next_cap = (
                     memory_caps[attempt + 1] if attempt + 1 < len(memory_caps) else None
                 )
+                # Through an interface that does not report its maximum, an unanswered long
+                # memory service is more likely the interface dropping the long frame than the
+                # device: a lower memory cap still sends long frames (a 15-octet write is an
+                # 18-octet APDU), so go straight to the standard frame retry instead.
+                if _interface_may_drop_long_frames(
+                    exc,
+                    interface_max_apdu_length,
+                    negotiate_apdu,
+                    [max(last_negotiated_apdu[0], _negotiated_apdu(runner))],
+                ):
+                    raise
                 if next_cap is not None:
                     logger.warning(
                         "download: %s left a long memory service unanswered; retrying with a "
@@ -1014,8 +1031,15 @@ async def download(
             DEFAULT_MAX_APDU_LENGTH,
             exc,
         )
-        await _wait_for_connection(xknx)
         learned_interface_apdu = DEFAULT_MAX_APDU_LENGTH
+        if interface_limit_found is not None:
+            # Reported before the retry, so it is kept even when the retry fails too:
+            # a later download then starts with standard frames instead of failing first.
+            try:
+                interface_limit_found(learned_interface_apdu)
+            except Exception:  # a caller's callback must not end the download
+                logger.exception("download: interface_limit_found callback failed")
+        await _wait_for_connection(xknx)
         runner, manager, used_memory_cap = await run_procedure(DEFAULT_MAX_APDU_LENGTH)
 
     if used_memory_cap is not None:

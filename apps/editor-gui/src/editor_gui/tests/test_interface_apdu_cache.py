@@ -2,15 +2,13 @@
 
 from __future__ import annotations
 
-from concurrent.futures import Future
 from pathlib import Path
-from types import SimpleNamespace
-from typing import Any
 
 import pytest
 
 from editor_gui import settings
 from editor_gui.interface_apdu_cache import (
+    forget_interface_apdu,
     learned_interface_apdu,
     remember_interface_apdu,
 )
@@ -37,15 +35,21 @@ def test_nothing_is_stored_without_an_interface_or_a_length() -> None:
     assert settings.load_settings("interface_apdu") == {}
 
 
+def test_a_forgotten_length_is_negotiated_again() -> None:
+    remember_interface_apdu("192.168.3.13", 15)
+    remember_interface_apdu("192.168.3.14", 15)
+    forget_interface_apdu("192.168.3.13")
+    assert learned_interface_apdu("192.168.3.13") is None
+    assert learned_interface_apdu("192.168.3.14") == 15
+    # Forgetting what is not stored, or without an interface, changes nothing.
+    forget_interface_apdu("192.168.3.13")
+    forget_interface_apdu(None)
+    assert settings.load_settings("interface_apdu") == {"192.168.3.14": 15}
+
+
 class _Logger:
     def info(self, event: str, **kwargs: object) -> None:
         pass
-
-
-def _done(result: Any) -> Future[Any]:
-    future: Future[Any] = Future()
-    future.set_result(result)
-    return future
 
 
 def _service() -> ConnectionService:
@@ -55,23 +59,45 @@ def _service() -> ConnectionService:
     return service
 
 
-def test_a_download_that_learned_the_limit_keeps_it_for_the_interface() -> None:
+def test_a_limit_a_download_found_is_kept_at_once() -> None:
     service = _service()
-    service._remember_interface_apdu(  # pyright: ignore[reportPrivateUsage]
-        _done(SimpleNamespace(interface_max_apdu_length=15))
-    )
-    # This connection and the next ones to the interface use standard frames.
+    service._interface_limit_found(15)  # pyright: ignore[reportPrivateUsage]
+    # This connection and the next ones to the interface use standard frames, even if the
+    # download that found the limit goes on to fail.
     assert service.interface_max_apdu_length == 15
+    assert service.standard_frames_only
     assert learned_interface_apdu("192.168.3.13") == 15
 
 
-def test_a_download_that_learned_nothing_changes_nothing() -> None:
+def test_standard_frames_can_be_set_and_cleared_for_the_interface() -> None:
     service = _service()
-    service._remember_interface_apdu(  # pyright: ignore[reportPrivateUsage]
-        _done(SimpleNamespace(interface_max_apdu_length=None))
-    )
-    failed: Future[Any] = Future()
-    failed.set_exception(RuntimeError("download failed"))
-    service._remember_interface_apdu(failed)  # pyright: ignore[reportPrivateUsage]
+    assert service.can_set_frame_size
+    assert not service.standard_frames_only
+    assert service.set_standard_frames_only(True)
+    assert service.standard_frames_only
+    assert service.interface_max_apdu_length == 15
+    assert learned_interface_apdu("192.168.3.13") == 15
+    assert service.set_standard_frames_only(False)
+    assert not service.standard_frames_only
     assert service.interface_max_apdu_length is None
     assert learned_interface_apdu("192.168.3.13") is None
+
+
+def test_the_frame_size_of_an_interface_that_reports_it_is_not_set() -> None:
+    service = _service()
+    service.interface_reports_apdu = True
+    service.interface_max_apdu_length = 15
+    # A reported maximum is not a user setting, and cannot be changed.
+    assert not service.can_set_frame_size
+    assert not service.standard_frames_only
+    assert not service.set_standard_frames_only(False)
+    assert service.interface_max_apdu_length == 15
+    assert settings.load_settings("interface_apdu") == {}
+
+
+def test_the_frame_size_needs_a_connection() -> None:
+    service = _service()
+    service.interface_target = None
+    assert not service.can_set_frame_size
+    assert not service.set_standard_frames_only(True)
+    assert service.interface_max_apdu_length is None

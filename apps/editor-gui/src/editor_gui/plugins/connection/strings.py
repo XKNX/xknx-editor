@@ -24,6 +24,18 @@ class ConnectionStrings:
         return _("Use Serial Number for Downloads")
 
     @property
+    def MENU_STANDARD_FRAMES_ONLY(self) -> str:
+        return _("Standard Frames Only for Downloads")
+
+    @property
+    def TOOLTIP_STANDARD_FRAMES_ONLY(self) -> str:
+        return _(
+            "This interface does not report the longest frame it carries. Tick this when "
+            "downloads through it fail (e.g. knxd with a TPUART): they then send standard "
+            "frames only, which is slower but works with every interface."
+        )
+
+    @property
     def SECTION_DISCOVERED(self) -> str:
         return _("Discovered Gateways")
 

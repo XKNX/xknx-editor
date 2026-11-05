@@ -204,3 +204,9 @@ msgstr "TCP-Tunneling"
 
 msgid "Routing"
 msgstr "Routing"
+
+msgid "Standard Frames Only for Downloads"
+msgstr "Nur Standard-Telegramme für Downloads"
+
+msgid "This interface does not report the longest frame it carries. Tick this when downloads through it fail (e.g. knxd with a TPUART): they then send standard frames only, which is slower but works with every interface."
+msgstr "Diese Schnittstelle meldet nicht, welches längste Telegramm sie überträgt. Aktivieren, wenn Downloads über sie fehlschlagen (z. B. knxd mit TPUART): Sie senden dann nur Standard-Telegramme – langsamer, aber mit jeder Schnittstelle möglich."
