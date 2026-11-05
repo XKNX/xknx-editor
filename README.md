@@ -100,6 +100,15 @@ written. Vendor-independent by design.
 
 <img src="docs/images/programming.png" alt="Programming and preflight" width="384">
 
+**DALI** — for DALI gateways (MDT, and the shared MDT/Theben/IPAS platform), read and edit the
+gateway's DALI configuration — control gear, groups, scenes, time control and effects — in a table
+view, and, over the bus, scan, address and commission the connected control gear from a **DALI
+(Bus)** tab. Still maturing — verify against your own installation.
+
+**Displays without parameters** — some devices, such as the Busch-Jaeger Triton, keep their
+configuration in a blob instead of classic parameters. Configure them in the **Plugin Parameters**
+panel, choose the display type, and load or export the display's LVS project (`.prj`).
+
 **Cockpit and health checks** — a site-wide device table with live status, plus a panel that flags
 issues (missing or duplicate addresses, applications missing from the catalog, unlinked objects,
 group addresses without a type or sender); click a finding to jump to the device.
