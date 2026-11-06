@@ -8,6 +8,96 @@ _ = create_translator("catalog", _locale_dir)
 
 class CatalogStrings:
     @property
+    def ALTERNATIVE_VERSION(self) -> str:
+        return _("Version")
+
+    @property
+    def ALTERNATIVE_FILE(self) -> str:
+        return _("Filename")
+
+    @property
+    def ALTERNATIVE_MASK(self) -> str:
+        return _("Mask Version")
+
+    @property
+    def ALTERNATIVE_SIZE(self) -> str:
+        return _("Size")
+
+    @property
+    def ALTERNATIVE_UPDATED(self) -> str:
+        return _("Updated")
+
+    @property
+    def TAB_ALTERNATIVE(self) -> str:
+        return _("Alternative")
+
+    @property
+    def ALTERNATIVE_URL(self) -> str:
+        return _("Server URL")
+
+    @property
+    def ALTERNATIVE_USER(self) -> str:
+        return _("Username")
+
+    @property
+    def ALTERNATIVE_EMAIL(self) -> str:
+        return _("Email")
+
+    @property
+    def ALTERNATIVE_SAVE(self) -> str:
+        return _("Save")
+
+    @property
+    def ALTERNATIVE_REGISTER(self) -> str:
+        return _("Register")
+
+    @property
+    def ALTERNATIVE_RESUME(self) -> str:
+        return _("Continue Registration")
+
+    @property
+    def ALTERNATIVE_CODE(self) -> str:
+        return _("Verification Code")
+
+    @property
+    def ALTERNATIVE_VERIFY(self) -> str:
+        return _("Verify Email")
+
+    @property
+    def ALTERNATIVE_RESEND(self) -> str:
+        return _("Resend Code")
+
+    @property
+    def ALTERNATIVE_WEBSITE(self) -> str:
+        return _("Open Website")
+
+    @property
+    def ALTERNATIVE_IMPORTED(self) -> str:
+        return _("Imported {count} product versions. Find them in the Local tab.")
+
+    @property
+    def ALTERNATIVE_PASSWORD_HINT(self) -> str:
+        return _(
+            "Login is saved on this computer. Leave the password empty to keep it for the same server and user."
+        )
+
+    @property
+    def ALTERNATIVE_REGISTRATION_HINT(self) -> str:
+        return _(
+            "Registration sends an email code. Password: at least 10 characters, uppercase, lowercase, digit and special character; at most 72 UTF-8 bytes."
+        )
+
+    @property
+    def ALTERNATIVE_VERIFY_HINT(self) -> str:
+        return _("Enter the six-digit code from your email to complete registration.")
+
+    @property
+    def ALTERNATIVE_PENDING(self) -> str:
+        return _(
+            "Email verified. Downloads become available after administrator approval."
+        )
+
+    @property
     def PANEL_CATALOG(self) -> str:
         return _("Catalog")
 

@@ -210,3 +210,66 @@ msgstr "Automático: o dispositivo vai para a linha atual da divisão escolhida;
 
 msgid "Download to Local Catalog"
 msgstr "Transferir para o Catálogo Local"
+
+msgid "Filename"
+msgstr "Nome do ficheiro"
+
+msgid "Mask Version"
+msgstr "Versão da máscara"
+
+msgid "Size"
+msgstr "Tamanho"
+
+msgid "Updated"
+msgstr "Atualizado"
+
+msgid "Alternative"
+msgstr "Alternativo"
+
+msgid "Server URL"
+msgstr "URL do servidor"
+
+msgid "Username"
+msgstr "Nome de utilizador"
+
+msgid "Email"
+msgstr "E-mail"
+
+msgid "Save"
+msgstr "Guardar"
+
+msgid "Register"
+msgstr "Registar"
+
+msgid "Continue Registration"
+msgstr "Continuar registo"
+
+msgid "Verification Code"
+msgstr "Código de verificação"
+
+msgid "Verify Email"
+msgstr "Verificar e-mail"
+
+msgid "Resend Code"
+msgstr "Reenviar código"
+
+msgid "Open Website"
+msgstr "Abrir site"
+
+msgid "Imported {count} product versions. Find them in the Local tab."
+msgstr "Importadas {count} versões de produto. Estão no separador Local."
+
+msgid "Login is saved on this computer. Leave the password empty to keep it for the same server and user."
+msgstr "As credenciais são guardadas neste computador. Deixe a palavra-passe vazia para a manter para o mesmo servidor e utilizador."
+
+msgid "Registration sends an email code. Password: at least 10 characters, uppercase, lowercase, digit and special character; at most 72 UTF-8 bytes."
+msgstr "O registo envia um código por e-mail. Palavra-passe: pelo menos 10 caracteres, maiúscula, minúscula, algarismo e carácter especial; máximo de 72 bytes UTF-8."
+
+msgid "Enter the six-digit code from your email to complete registration."
+msgstr "Introduza o código de seis dígitos do e-mail para concluir o registo."
+
+msgid "Email verified. Downloads become available after administrator approval."
+msgstr "E-mail verificado. As transferências ficam disponíveis após aprovação do administrador."
+
+msgid "Version"
+msgstr "Versão"

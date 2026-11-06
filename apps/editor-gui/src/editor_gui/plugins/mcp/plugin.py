@@ -198,6 +198,8 @@ class McpServerPlugin:
                     port=port,
                     log_level="warning",
                     timeout_keep_alive=KEEP_ALIVE_SECONDS,
+                    # The client is the transport peer, never an address from a header.
+                    proxy_headers=False,
                 )
                 server = uvicorn.Server(config)
             except Exception as e:

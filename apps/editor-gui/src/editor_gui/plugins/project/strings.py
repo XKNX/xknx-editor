@@ -2141,6 +2141,49 @@ class ProjectStrings:
         return _("Sends the DALI device settings to the gateway as property values.")
 
     @property
+    def PLUGIN_PARAMS_SETUP_HINT(self) -> str:
+        return _(
+            "This display has no configuration yet. Choose its type and set it up, or load an "
+            "LVS project."
+        )
+
+    @property
+    def PLUGIN_PARAMS_SETUP_TYPE(self) -> str:
+        return _("Display Type")
+
+    @property
+    def PLUGIN_PARAMS_SETUP_BUTTON(self) -> str:
+        return _("Set Up Display")
+
+    @property
+    def PLUGIN_PARAMS_LOAD_PRJ(self) -> str:
+        return _("Load LVS Project (.prj)…")
+
+    @property
+    def PLUGIN_PARAMS_EXPORT_PRJ(self) -> str:
+        return _("Export LVS Project (.prj)…")
+
+    @property
+    def PLUGIN_PARAMS_PRJ_FILTER(self) -> str:
+        return _("LVS project (*.prj)")
+
+    @property
+    def PLUGIN_PARAMS_PRJ_DONE(self) -> str:
+        return _("Imported the display configuration into {count} device(s).")
+
+    @property
+    def PLUGIN_PARAMS_PRJ_FAILED(self) -> str:
+        return _("The LVS project could not be imported: {error}")
+
+    @property
+    def PLUGIN_PARAMS_PRJ_EXPORTED(self) -> str:
+        return _("Exported the display configuration.")
+
+    @property
+    def PLUGIN_PARAMS_PRJ_EXPORT_FAILED(self) -> str:
+        return _("The LVS project could not be exported: {error}")
+
+    @property
     def PLUGIN_PARAMS_ADD_TO(self) -> str:
         return _("Add to {section}:")
 

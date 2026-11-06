@@ -102,8 +102,9 @@ class ConnectionState(Enum):
 
 def scan_addresses(adapters: Iterable[Any] | None = None) -> list[str]:
     """The local IPv4 addresses a gateway search goes out from: those of every network adapter
-    (``ifaddr`` adapters), but loopback and link-local (169.254.x.x) ones, behind which no
-    KNXnet/IP interface answers."""
+    (``ifaddr`` adapters), but loopback ones. Link-local (169.254.x.x) ones stay: a gateway
+    connected directly to the computer, without a DHCP server, uses AutoIP as the computer
+    does."""
     if adapters is None:
         import ifaddr
 
@@ -114,7 +115,7 @@ def scan_addresses(adapters: Iterable[Any] | None = None) -> list[str]:
             address = ip.ip
             if (
                 isinstance(address, str)
-                and not address.startswith(("127.", "169.254."))
+                and not address.startswith("127.")
                 and address not in found
             ):
                 found.append(address)

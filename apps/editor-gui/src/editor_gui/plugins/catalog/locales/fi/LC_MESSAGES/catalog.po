@@ -210,3 +210,66 @@ msgstr "Automaattinen: laite menee valitun huoneen nykyiselle linjalle, muuten e
 
 msgid "Download to Local Catalog"
 msgstr "Lataa paikalliseen luetteloon"
+
+msgid "Filename"
+msgstr "Tiedostonimi"
+
+msgid "Mask Version"
+msgstr "Maskiversio"
+
+msgid "Size"
+msgstr "Koko"
+
+msgid "Updated"
+msgstr "Päivitetty"
+
+msgid "Alternative"
+msgstr "Vaihtoehtoinen"
+
+msgid "Server URL"
+msgstr "Palvelimen URL"
+
+msgid "Username"
+msgstr "Käyttäjätunnus"
+
+msgid "Email"
+msgstr "Sähköposti"
+
+msgid "Save"
+msgstr "Tallenna"
+
+msgid "Register"
+msgstr "Rekisteröidy"
+
+msgid "Continue Registration"
+msgstr "Jatka rekisteröintiä"
+
+msgid "Verification Code"
+msgstr "Vahvistuskoodi"
+
+msgid "Verify Email"
+msgstr "Vahvista sähköposti"
+
+msgid "Resend Code"
+msgstr "Lähetä koodi uudelleen"
+
+msgid "Open Website"
+msgstr "Avaa verkkosivusto"
+
+msgid "Imported {count} product versions. Find them in the Local tab."
+msgstr "Tuotiin {count} tuoteversiota. Ne löytyvät Paikallinen-välilehdeltä."
+
+msgid "Login is saved on this computer. Leave the password empty to keep it for the same server and user."
+msgstr "Kirjautumistiedot tallennetaan tälle tietokoneelle. Jätä salasana tyhjäksi säilyttääksesi sen samalle palvelimelle ja käyttäjälle."
+
+msgid "Registration sends an email code. Password: at least 10 characters, uppercase, lowercase, digit and special character; at most 72 UTF-8 bytes."
+msgstr "Rekisteröinti lähettää koodin sähköpostitse. Salasana: vähintään 10 merkkiä, iso ja pieni kirjain, numero ja erikoismerkki; enintään 72 UTF-8-tavua."
+
+msgid "Enter the six-digit code from your email to complete registration."
+msgstr "Viimeistele rekisteröinti antamalla sähköpostin kuusinumeroinen koodi."
+
+msgid "Email verified. Downloads become available after administrator approval."
+msgstr "Sähköposti vahvistettu. Lataukset ovat käytettävissä ylläpitäjän hyväksynnän jälkeen."
+
+msgid "Version"
+msgstr "Versio"

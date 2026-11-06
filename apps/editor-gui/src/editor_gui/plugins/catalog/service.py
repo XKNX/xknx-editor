@@ -157,6 +157,19 @@ class CatalogService:
         _forget_stored_language()
         # The market and product language the online catalog shows products for.
         self.online_filters = OnlineFilters(self._online_client)
+        from editor_gui.plugins.catalog.alternative import AlternativeCatalogClient
+
+        self.alternative = AlternativeCatalogClient(catalog_path.parent)
+
+    def import_alternative_product(self, data: bytes) -> list[ProductSummary]:
+        """Import verified download bytes on the UI thread; returns new product versions.
+        Refuse while a background project open/import is using the shared session."""
+        if not self._io_lock.acquire(blocking=False):
+            raise ValueError("catalog busy; an import or project open is in progress")
+        try:
+            return self.import_knxprod_data(data)
+        finally:
+            self._io_lock.release()
 
     @property
     def online_languages(self) -> list[str]:

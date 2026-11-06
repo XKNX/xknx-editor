@@ -25,7 +25,12 @@ def test_every_usable_local_address_is_searched_from() -> None:
         _adapter("127.0.0.1"),
         _adapter("192.168.16.172"),
     ]
-    assert scan_addresses(adapters) == ["172.17.64.1", "192.168.16.172"]
+    # Link-local stays: a gateway plugged into the computer without DHCP uses AutoIP.
+    assert scan_addresses(adapters) == [
+        "172.17.64.1",
+        "169.254.41.236",
+        "192.168.16.172",
+    ]
     # The adapters of this machine, whatever they are, give IPv4 addresses.
     assert all(a.count(".") == 3 for a in scan_addresses())
 

@@ -19,5 +19,8 @@ def to_ir(xml_bytes: bytes, version: str) -> Knx:
     """Read `xml_bytes` via the per-version model and convert to IR."""
     from xknxeditor.namespaces.intermediate.knx import Knx as _Knx
 
-    model = load_xml(xml_bytes, version)
+    from .heal import heal_application_xml
+
+    # Non-conformant legacy products can omit attributes the binding requires; heal before binding.
+    model = load_xml(heal_application_xml(xml_bytes), version)
     return convert(Context(version=version), model, _Knx)

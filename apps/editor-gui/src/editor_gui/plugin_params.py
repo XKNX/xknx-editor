@@ -432,27 +432,34 @@ def collect_from_device(
         ref = getattr(pir, "ref_id", None)
         if ref is not None and value is not None:
             stored[str(ref)] = str(value)
-    sections_result = build_sections(
-        parameters_by_ref_id=by_id,
-        parameter_refs=refs,
-        stored_values=stored,
-        mapping=mapping,
-        pt_by_id=pt_by_id,
-    )
-    # Module instances: the application's parameter_refs only list templates (one per module
-    # definition), while the project stores instance refs like "..._MD-N_M-x_MI-y_P-M_R-z". Those
-    # never resolve via the template refs, so add synthetic rows for them, resolving the template
-    # parameter by stripping the "_M-x_MI-y" fragment.
-    text_args_by_iid = _module_text_args(device, program)
-    _add_module_instance_rows(
-        sections_result,
-        device,
-        by_id,
-        ref_param_ids,
-        mapping,
-        pt_by_id,
-        text_args_by_iid,
-    )
+    # A blob-only mapping (no section patterns, e.g. the triton LCD display) does NOT group the
+    # device's KNX parameters here — those belong in the normal Parameters tab, which renders them
+    # with proper ETS visibility. This tab then shows ONLY the vendor blob (the display config),
+    # not a flat dump of every raw parameter ref.
+    if mapping.patterns:
+        sections_result = build_sections(
+            parameters_by_ref_id=by_id,
+            parameter_refs=refs,
+            stored_values=stored,
+            mapping=mapping,
+            pt_by_id=pt_by_id,
+        )
+        # Module instances: the application's parameter_refs only list templates (one per module
+        # definition), while the project stores instance refs like "..._MD-N_M-x_MI-y_P-M_R-z".
+        # Those never resolve via the template refs, so add synthetic rows for them, resolving the
+        # template parameter by stripping the "_M-x_MI-y" fragment.
+        text_args_by_iid = _module_text_args(device, program)
+        _add_module_instance_rows(
+            sections_result,
+            device,
+            by_id,
+            ref_param_ids,
+            mapping,
+            pt_by_id,
+            text_args_by_iid,
+        )
+    else:
+        sections_result = []
     # Vendor BLOB readers (e.g. Siemens N141/03's BLOB_PARA): append the plug-in's own
     # binary-stored sensor / commissioning state as additional read-only sections.
     if mapping.blob_reader:

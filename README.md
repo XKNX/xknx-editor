@@ -91,6 +91,11 @@ project whose group-address tree mirrors the export.
 applications, independent of any project, and drag entries in as new devices. You can also browse the
 online catalog, cached locally for offline use.
 
+The **Alternative** tab searches [KNX Product Search Database](https://reko.x3muha.de)
+with full product metadata and imports `.knxprod` files into the local catalog. The index is
+cached for offline search and checked hourly for updates. Login and registration are available
+directly in the editor.
+
 <img src="docs/images/catalog.png" alt="Product catalog" width="598">
 
 **Programming real devices** — commission a device end-to-end over a live connection (tunneling or
@@ -99,6 +104,15 @@ and **Test Programming** read the device back and show the exact changes before 
 written. Vendor-independent by design.
 
 <img src="docs/images/programming.png" alt="Programming and preflight" width="384">
+
+**DALI** — for DALI gateways (MDT, and the shared MDT/Theben/IPAS platform), read and edit the
+gateway's DALI configuration — control gear, groups, scenes, time control and effects — in a table
+view, and, over the bus, scan, address and commission the connected control gear from a **DALI
+(Bus)** tab. Still maturing — verify against your own installation.
+
+**Displays without parameters** — some devices, such as the Busch-Jaeger Triton, keep their
+configuration in a blob instead of classic parameters. Configure them in the **Plugin Parameters**
+panel, choose the display type, and load or export the display's LVS project (`.prj`).
 
 **Cockpit and health checks** — a site-wide device table with live status, plus a panel that flags
 issues (missing or duplicate addresses, applications missing from the catalog, unlinked objects,
@@ -216,14 +230,10 @@ The [XKNX Editor integration](https://github.com/XKNX/xknx-editor-ha-integration
 on your Home Assistant server and shows it in the sidebar, signed in with Home Assistant. It works
 with Home Assistant OS and Home Assistant Container.
 
-Until it is listed in the Marketplace, add it from its GitHub link:
-
-1. **Home Assistant 2026.11 and later:** open **Settings** > **Marketplace**, choose **Custom
-   repositories** in the menu at the top right, and add
-   `https://github.com/XKNX/xknx-editor-ha-integration` with the type **Integration** (this asks
-   you to connect GitHub first). **Home Assistant 2026.10:** the same in
-   [HACS](https://hacs.xyz), also with **Custom repositories** in its menu at the top right.
-2. Search for **XKNX Editor** there, install it and restart Home Assistant.
+1. Open **Settings** > **Marketplace** in Home Assistant, search for **XKNX Editor** and install
+   it. With Home Assistant 2026.10, which has no Marketplace yet, install it from
+   [HACS](https://hacs.xyz) instead.
+2. Restart Home Assistant.
 3. Add it under **Settings** > **Devices & services** > **Add integration** > **XKNX Editor**.
 
 On its first start it installs the editor, which takes a few minutes; the panel shows the progress.

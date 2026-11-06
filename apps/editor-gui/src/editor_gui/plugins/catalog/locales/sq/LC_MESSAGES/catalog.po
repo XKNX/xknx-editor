@@ -210,3 +210,66 @@ msgstr "Automatike: pajisja vendoset në linjën aktuale të dhomës së zgjedhu
 
 msgid "Download to Local Catalog"
 msgstr "Shkarko në katalogun lokal"
+
+msgid "Filename"
+msgstr "Emri i skedarit"
+
+msgid "Mask Version"
+msgstr "Versioni i maskës"
+
+msgid "Size"
+msgstr "Madhësia"
+
+msgid "Updated"
+msgstr "Përditësuar më"
+
+msgid "Alternative"
+msgstr "Alternativ"
+
+msgid "Server URL"
+msgstr "URL-ja e serverit"
+
+msgid "Username"
+msgstr "Emri i përdoruesit"
+
+msgid "Email"
+msgstr "Email"
+
+msgid "Save"
+msgstr "Ruaj"
+
+msgid "Register"
+msgstr "Regjistrohu"
+
+msgid "Continue Registration"
+msgstr "Vazhdo regjistrimin"
+
+msgid "Verification Code"
+msgstr "Kodi i verifikimit"
+
+msgid "Verify Email"
+msgstr "Verifiko emailin"
+
+msgid "Resend Code"
+msgstr "Ridërgo kodin"
+
+msgid "Open Website"
+msgstr "Hap faqen e internetit"
+
+msgid "Imported {count} product versions. Find them in the Local tab."
+msgstr "U importuan {count} versione produktesh. I gjeni në skedën “Lokal”."
+
+msgid "Login is saved on this computer. Leave the password empty to keep it for the same server and user."
+msgstr "Të dhënat e hyrjes ruhen në këtë kompjuter. Nëse e lini bosh fushën e fjalëkalimit, fjalëkalimi i ruajtur më parë mbahet vetëm kur serveri dhe përdoruesi mbeten të njëjtë."
+
+msgid "Registration sends an email code. Password: at least 10 characters, uppercase, lowercase, digit and special character; at most 72 UTF-8 bytes."
+msgstr "Gjatë regjistrimit ju dërgohet një kod me email. Fjalëkalimi duhet të ketë të paktën 10 karaktere, një shkronjë të madhe, një shkronjë të vogël, një shifër dhe një karakter të veçantë; nuk duhet të kalojë 72 bajte në kodimin UTF-8."
+
+msgid "Enter the six-digit code from your email to complete registration."
+msgstr "Vendosni kodin gjashtëshifror që morët me email për të përfunduar regjistrimin."
+
+msgid "Email verified. Downloads become available after administrator approval."
+msgstr "Emaili u verifikua. Shkarkimet bëhen të disponueshme pas miratimit nga administratori."
+
+msgid "Version"
+msgstr "Versioni"
