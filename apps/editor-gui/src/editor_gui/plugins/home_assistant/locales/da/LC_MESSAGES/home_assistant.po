@@ -93,3 +93,45 @@ msgstr "Ikke nu"
 
 msgid "date unknown"
 msgstr "ukendt dato"
+
+msgid "Load Telegrams from Home Assistant"
+msgstr "Indlæs telegrammer fra Home Assistant"
+
+msgid "The telegrams Home Assistant recorded in the last {hours} hours, in the Group Monitor in place of its entries."
+msgstr "De telegrammer, som Home Assistant har registreret i de seneste {hours} timer, i Gruppeovervågning i stedet for dens poster."
+
+msgid "{count} telegrams from Home Assistant in the Group Monitor"
+msgstr "{count} telegrammer fra Home Assistant i Gruppeovervågning"
+
+msgid "The telegrams could not be loaded: {error}"
+msgstr "Telegrammerne kunne ikke indlæses: {error}"
+
+msgid "Shown once the XKNX Editor integration is connected."
+msgstr "Vises, så snart XKNX Editor-integrationen er forbundet."
+
+msgid "Not used in Home Assistant."
+msgstr "Bruges ikke i Home Assistant."
+
+msgid "Home Assistant sends to this group address."
+msgstr "Home Assistant sender til denne gruppeadresse."
+
+msgid "Name"
+msgstr "Navn"
+
+msgid "Used By"
+msgstr "Bruges af"
+
+msgid "State"
+msgstr "Tilstand"
+
+msgid "Expose"
+msgstr "Expose"
+
+msgid "Time server"
+msgstr "Tidsserver"
+
+msgid "{entity} (YAML)"
+msgstr "{entity} (YAML)"
+
+msgid "Disabled"
+msgstr "Deaktiveret"

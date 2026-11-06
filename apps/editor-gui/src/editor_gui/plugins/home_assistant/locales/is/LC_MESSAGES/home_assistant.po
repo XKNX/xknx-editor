@@ -93,3 +93,45 @@ msgstr "Ekki núna"
 
 msgid "date unknown"
 msgstr "dagsetning óþekkt"
+
+msgid "Load Telegrams from Home Assistant"
+msgstr "Hlaða skeytum úr Home Assistant"
+
+msgid "The telegrams Home Assistant recorded in the last {hours} hours, in the Group Monitor in place of its entries."
+msgstr "Skeytin sem Home Assistant skráði síðustu {hours} klst., í Hópvöktun í stað færslna hennar."
+
+msgid "{count} telegrams from Home Assistant in the Group Monitor"
+msgstr "Skeyti úr Home Assistant í Hópvöktun: {count}"
+
+msgid "The telegrams could not be loaded: {error}"
+msgstr "Ekki tókst að hlaða skeytunum: {error}"
+
+msgid "Shown once the XKNX Editor integration is connected."
+msgstr "Birtist þegar XKNX Editor-samþættingin er tengd."
+
+msgid "Not used in Home Assistant."
+msgstr "Ekki notað í Home Assistant."
+
+msgid "Home Assistant sends to this group address."
+msgstr "Home Assistant sendir á þetta hópvistfang."
+
+msgid "Name"
+msgstr "Heiti"
+
+msgid "Used By"
+msgstr "Notað af"
+
+msgid "State"
+msgstr "Staða"
+
+msgid "Expose"
+msgstr "Expose"
+
+msgid "Time server"
+msgstr "Tímaþjónn"
+
+msgid "{entity} (YAML)"
+msgstr "{entity} (YAML)"
+
+msgid "Disabled"
+msgstr "Óvirkt"

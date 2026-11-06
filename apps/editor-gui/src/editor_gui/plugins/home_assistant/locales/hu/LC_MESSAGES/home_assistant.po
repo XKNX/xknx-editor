@@ -93,3 +93,45 @@ msgstr "Most nem"
 
 msgid "date unknown"
 msgstr "ismeretlen dátum"
+
+msgid "Load Telegrams from Home Assistant"
+msgstr "Táviratok betöltése a Home Assistantból"
+
+msgid "The telegrams Home Assistant recorded in the last {hours} hours, in the Group Monitor in place of its entries."
+msgstr "A Home Assistant által az elmúlt {hours} órában rögzített táviratok a Csoportmonitorban, annak bejegyzései helyett."
+
+msgid "{count} telegrams from Home Assistant in the Group Monitor"
+msgstr "Táviratok a Home Assistantból a Csoportmonitorban: {count}"
+
+msgid "The telegrams could not be loaded: {error}"
+msgstr "A táviratokat nem sikerült betölteni: {error}"
+
+msgid "Shown once the XKNX Editor integration is connected."
+msgstr "Akkor jelenik meg, amikor az XKNX Editor-integráció csatlakozik."
+
+msgid "Not used in Home Assistant."
+msgstr "A Home Assistant nem használja."
+
+msgid "Home Assistant sends to this group address."
+msgstr "A Home Assistant erre a csoportcímre küld."
+
+msgid "Name"
+msgstr "Név"
+
+msgid "Used By"
+msgstr "Használja"
+
+msgid "State"
+msgstr "Állapot"
+
+msgid "Expose"
+msgstr "Expose"
+
+msgid "Time server"
+msgstr "Időszerver"
+
+msgid "{entity} (YAML)"
+msgstr "{entity} (YAML)"
+
+msgid "Disabled"
+msgstr "Letiltva"

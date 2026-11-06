@@ -93,3 +93,45 @@ msgstr "暂不"
 
 msgid "date unknown"
 msgstr "日期未知"
+
+msgid "Load Telegrams from Home Assistant"
+msgstr "从 Home Assistant 加载电报"
+
+msgid "The telegrams Home Assistant recorded in the last {hours} hours, in the Group Monitor in place of its entries."
+msgstr "Home Assistant 在过去 {hours} 小时内记录的电报，显示在组监视器中，替换其现有条目。"
+
+msgid "{count} telegrams from Home Assistant in the Group Monitor"
+msgstr "组监视器中有 {count} 条来自 Home Assistant 的电报"
+
+msgid "The telegrams could not be loaded: {error}"
+msgstr "无法加载电报：{error}"
+
+msgid "Shown once the XKNX Editor integration is connected."
+msgstr "XKNX Editor 集成连接后显示。"
+
+msgid "Not used in Home Assistant."
+msgstr "未在 Home Assistant 中使用。"
+
+msgid "Home Assistant sends to this group address."
+msgstr "Home Assistant 向此组地址发送。"
+
+msgid "Name"
+msgstr "名称"
+
+msgid "Used By"
+msgstr "使用者"
+
+msgid "State"
+msgstr "状态"
+
+msgid "Expose"
+msgstr "Expose"
+
+msgid "Time server"
+msgstr "时间服务器"
+
+msgid "{entity} (YAML)"
+msgstr "{entity} (YAML)"
+
+msgid "Disabled"
+msgstr "已禁用"

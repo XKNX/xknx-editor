@@ -93,3 +93,45 @@ msgstr "Όχι τώρα"
 
 msgid "date unknown"
 msgstr "άγνωστη ημερομηνία"
+
+msgid "Load Telegrams from Home Assistant"
+msgstr "Φόρτωση τηλεγραφημάτων από το Home Assistant"
+
+msgid "The telegrams Home Assistant recorded in the last {hours} hours, in the Group Monitor in place of its entries."
+msgstr "Τα τηλεγραφήματα που κατέγραψε το Home Assistant τις τελευταίες {hours} ώρες, στην Παρακολούθηση Ομάδων στη θέση των καταχωρίσεών της."
+
+msgid "{count} telegrams from Home Assistant in the Group Monitor"
+msgstr "{count} τηλεγραφήματα από το Home Assistant στην Παρακολούθηση Ομάδων"
+
+msgid "The telegrams could not be loaded: {error}"
+msgstr "Δεν ήταν δυνατή η φόρτωση των τηλεγραφημάτων: {error}"
+
+msgid "Shown once the XKNX Editor integration is connected."
+msgstr "Εμφανίζεται μόλις συνδεθεί η ενσωμάτωση XKNX Editor."
+
+msgid "Not used in Home Assistant."
+msgstr "Δεν χρησιμοποιείται στο Home Assistant."
+
+msgid "Home Assistant sends to this group address."
+msgstr "Το Home Assistant στέλνει σε αυτή τη διεύθυνση ομάδας."
+
+msgid "Name"
+msgstr "Όνομα"
+
+msgid "Used By"
+msgstr "Χρησιμοποιείται από"
+
+msgid "State"
+msgstr "Κατάσταση"
+
+msgid "Expose"
+msgstr "Expose"
+
+msgid "Time server"
+msgstr "Διακομιστής ώρας"
+
+msgid "{entity} (YAML)"
+msgstr "{entity} (YAML)"
+
+msgid "Disabled"
+msgstr "Απενεργοποιημένο"

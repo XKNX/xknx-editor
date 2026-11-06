@@ -93,3 +93,45 @@ msgstr "Ei nyt"
 
 msgid "date unknown"
 msgstr "päivämäärä tuntematon"
+
+msgid "Load Telegrams from Home Assistant"
+msgstr "Lataa sähkeet Home Assistantista"
+
+msgid "The telegrams Home Assistant recorded in the last {hours} hours, in the Group Monitor in place of its entries."
+msgstr "Sähkeet, jotka Home Assistant on tallentanut viimeisten {hours} tunnin aikana, Ryhmäseurannassa sen merkintöjen tilalla."
+
+msgid "{count} telegrams from Home Assistant in the Group Monitor"
+msgstr "Home Assistantin sähkeitä Ryhmäseurannassa: {count}"
+
+msgid "The telegrams could not be loaded: {error}"
+msgstr "Sähkeitä ei voitu ladata: {error}"
+
+msgid "Shown once the XKNX Editor integration is connected."
+msgstr "Näytetään, kun XKNX Editor -integraatio on yhteydessä."
+
+msgid "Not used in Home Assistant."
+msgstr "Ei käytössä Home Assistantissa."
+
+msgid "Home Assistant sends to this group address."
+msgstr "Home Assistant lähettää tähän ryhmäosoitteeseen."
+
+msgid "Name"
+msgstr "Nimi"
+
+msgid "Used By"
+msgstr "Käyttäjä"
+
+msgid "State"
+msgstr "Tila"
+
+msgid "Expose"
+msgstr "Expose"
+
+msgid "Time server"
+msgstr "Aikapalvelin"
+
+msgid "{entity} (YAML)"
+msgstr "{entity} (YAML)"
+
+msgid "Disabled"
+msgstr "Poistettu käytöstä"
