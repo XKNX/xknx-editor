@@ -210,3 +210,15 @@ msgstr "Connection Type"
 
 msgid "Applies on the next connect, like the Gateway menu's choice."
 msgstr "Applies on the next connect, like the Gateway menu's choice."
+
+msgid "USB Interfaces"
+msgstr "Rozhraní USB"
+
+msgid "No USB interfaces found"
+msgstr "Nenalezena žádná rozhraní USB"
+
+msgid "Not connected to the bus"
+msgstr "Nepřipojeno ke sběrnici"
+
+msgid "Serial Number: {serial}"
+msgstr "Sériové číslo: {serial}"

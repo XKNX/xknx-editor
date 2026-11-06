@@ -250,7 +250,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         if not ctx.api.connection.can_reach_bus():
             raise ToolError(
                 "no KNX connection; connect first with connection_connect (configured gateway) "
-                "or connection_scan + connection_connect_gateway"
+                "or connection_scan + connection_connect_gateway / connection_connect_usb"
             )
 
     def _device(node_id: int | None, device_address: str | None) -> Device:
@@ -329,7 +329,9 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         """Current connection state and target, and, while connected over KNXnet/IP, the gateway
         as the Gateway menu shows it: ``gateway`` {name, individual_address, core_version,
         services, transports} (``transports``: the connection types it offers, see
-        connection_switch_type)."""
+        connection_switch_type). ``connection_type`` is "usb" for a KNX USB interface; then
+        ``usb_interface`` {name, serial_number, vendor_id, product_id} names it, and while
+        connected also has {individual_address, max_apdu_length, bus_connected}."""
         from editor_gui.plugins.connection.plugin import (
             connection_type_name,
             gateway_services,
@@ -356,6 +358,20 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                     for ctype, _ in conn.offered_transports()
                 ],
             }
+        target = conn.usb_target
+        if target is not None:
+            usb: dict[str, Any] = {
+                "name": target.name,
+                "serial_number": target.serial_number,
+                "vendor_id": target.vendor_id,
+                "product_id": target.product_id,
+            }
+            info = conn.usb_info if conn.connected else None
+            if info is not None:
+                usb["individual_address"] = str(info.individual_address)
+                usb["max_apdu_length"] = info.max_apdu_length
+                usb["bus_connected"] = info.bus_connected
+            status["usb_interface"] = usb
         return status
 
     @tool("write")
@@ -384,11 +400,14 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     @tool("read", open_world=True)
     def connection_scan(timeout: float = 6.0) -> dict[str, Any]:
-        """Discover KNX gateways on the network (``timeout`` in seconds).
+        """Discover KNX gateways on the network and the KNX USB interfaces plugged into this
+        computer (``timeout`` in seconds).
 
-        Returns ``{complete, count, gateways}``; ``complete`` is false if the timeout elapsed while a
-        scan was still running (the gateway list may then be incomplete). Connect with
-        connection_connect_gateway(ip)."""
+        Returns ``{complete, count, gateways, usb_interfaces}``; ``complete`` is false if the
+        timeout elapsed while a scan was still running (the gateway list may then be
+        incomplete). ``usb_interfaces``: [{name, serial_number, vendor_id, product_id,
+        manufacturer}]. Connect with connection_connect_gateway(ip) or
+        connection_connect_usb(serial_number)."""
         conn.scan()
         deadline = time.monotonic() + timeout
         while conn.scanning and time.monotonic() < deadline:
@@ -408,10 +427,23 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             }
             for g in conn.gateways
         ]
+        from editor_gui.plugins.connection.usb import usb_device_name
+
+        usb_interfaces = [
+            {
+                "name": usb_device_name(device),
+                "serial_number": device.serial_number,
+                "vendor_id": device.vendor_id,
+                "product_id": device.product_id,
+                "manufacturer": device.manufacturer,
+            }
+            for device in conn.usb_devices
+        ]
         return {
             "complete": not conn.scanning,
             "count": len(gateways),
             "gateways": gateways,
+            "usb_interfaces": usb_interfaces,
         }
 
     def _await_connect(timeout: float) -> dict[str, Any]:
@@ -449,6 +481,21 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         if not conn.connect_to_gateway_by_ip(ip, parsed):
             raise ToolError(
                 f"no scanned gateway with ip {ip!r}; run connection_scan first"
+            )
+        return _await_connect(timeout)
+
+    @tool("write", open_world=True)
+    def connection_connect_usb(
+        serial_number: str = "", timeout: float = 15.0
+    ) -> dict[str, Any]:
+        """Connect through a KNX USB interface plugged into this computer (run connection_scan
+        first): the one with ``serial_number``, the first one found when empty. Waits for the
+        result; the interface is then also the one connected at the next start."""
+        if not conn.connect_to_usb_by_serial(serial_number.strip()):
+            raise ToolError(
+                "no scanned KNX USB interface"
+                + (f" with serial number {serial_number!r}" if serial_number else "")
+                + "; run connection_scan first"
             )
         return _await_connect(timeout)
 

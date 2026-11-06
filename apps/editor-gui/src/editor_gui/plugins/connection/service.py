@@ -55,17 +55,21 @@ class LinkInfo:
     """The connection the bus is reached through, as recordings describe it."""
 
     name: str
+    # The IP address; for a USB interface its USB serial number.
     host: str
     port: int
-    # "IpTunneling" or "IpRouting".
+    # "IpTunneling", "IpRouting" or "Usb".
     connector: str
-    # "Udp" or "Tcp"; empty for routing.
+    # "Udp" or "Tcp"; empty for routing and USB.
     protocol: str = ""
     medium: str = "Tp"
 
     @property
     def options(self) -> str:
         """The connection's option string, e.g. for a recording's start entry."""
+        if self.connector == "Usb":
+            serial = f"SerialNumber={self.host};" if self.host else ""
+            return f'Type=Usb;{serial}Name="{self.name}";AutoReconnect=True'
         if self.connector == "IpRouting":
             return (
                 f"Type=IpRouting;MulticastAddress={self.host};"
@@ -79,6 +83,8 @@ class LinkInfo:
     @property
     def endpoint_name(self) -> str:
         """The name with the endpoint, e.g. ``IP Tunneling (192.168.1.10:3671 Udp)``."""
+        if self.connector == "Usb":
+            return f"{self.name} (USB)"
         suffix = f" {self.protocol}" if self.protocol else ""
         return f"{self.name} ({self.host}:{self.port}{suffix})"
 
