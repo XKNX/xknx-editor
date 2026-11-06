@@ -20,6 +20,7 @@ import socket
 import sqlite3
 import tempfile
 import zipfile
+import zlib
 from collections.abc import Callable, Iterable
 from contextlib import closing
 from dataclasses import asdict, dataclass, replace
@@ -32,6 +33,9 @@ from typing import Any, cast
 FORMAT = 1
 INFO_NAME = "backup.json"
 PIN_SUFFIX = ".pinned"
+# What reading a damaged or cut-off ZIP raises: a bad header or CRC, compressed data that cannot
+# be inflated, data that ends too early.
+_ZIP_ERRORS = (OSError, zipfile.BadZipFile, zlib.error, EOFError)
 
 # Why a backup was made.
 KIND_MANUAL = "manual"
@@ -255,7 +259,7 @@ def write_backup(
         if problem is not None:
             raise BackupError(problem)
         os.replace(tmp, path)
-    except (OSError, zipfile.BadZipFile) as e:
+    except _ZIP_ERRORS as e:
         raise BackupError(str(e)) from e
     finally:
         tmp.unlink(missing_ok=True)
@@ -274,7 +278,7 @@ def _check_zip(path: Path) -> str | None:
                 return "no project file in the backup"
             if BackupInfo.from_json(z.read(INFO_NAME)) is None:
                 return "no backup information in the backup"
-    except (OSError, KeyError, zipfile.BadZipFile) as e:
+    except (*_ZIP_ERRORS, KeyError) as e:
         return str(e)
     return None
 
@@ -301,7 +305,7 @@ def read_backup(path: Path) -> Backup | None:
         try:
             with zipfile.ZipFile(path) as z:
                 info = BackupInfo.from_json(z.read(INFO_NAME))
-        except (OSError, KeyError, zipfile.BadZipFile):
+        except (*_ZIP_ERRORS, KeyError):
             info = None
         _read_cache[path] = (key, info)
     if info is None:
@@ -360,7 +364,7 @@ def extract_project(backup: Path, dest: Path, progress: Progress | None = None) 
                     if progress is not None:
                         progress(done, member.file_size)
         os.replace(tmp, dest)
-    except (OSError, zipfile.BadZipFile) as e:
+    except _ZIP_ERRORS as e:
         raise BackupError(str(e)) from e
     finally:
         tmp.unlink(missing_ok=True)
