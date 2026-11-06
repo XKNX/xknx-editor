@@ -1,0 +1,95 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor home_assistant 1.0\n"
+"Language: sq\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Home Assistant"
+msgstr "Home Assistant"
+
+msgid "Use Project in Home Assistant"
+msgstr "Përdor projektin në Home Assistant"
+
+msgid "Update Home Assistant Now"
+msgstr "Përditëso Home Assistant tani"
+
+msgid "Update Home Assistant Automatically"
+msgstr "Përditëso Home Assistant automatikisht"
+
+msgid "After each change, the project is sent to Home Assistant's KNX integration again."
+msgstr "Pas çdo ndryshimi, projekti dërgohet sërish te integrimi KNX i Home Assistant."
+
+msgid "Home Assistant: up to date"
+msgstr "Home Assistant: i përditësuar"
+
+msgid "Home Assistant: changes not sent"
+msgstr "Home Assistant: ndryshimet nuk janë dërguar"
+
+msgid "Home Assistant: updating…"
+msgstr "Home Assistant: po përditësohet…"
+
+msgid "Home Assistant: other project"
+msgstr "Home Assistant: projekt tjetër"
+
+msgid "Home Assistant: KNX integration not set up"
+msgstr "Home Assistant: integrimi KNX nuk është konfiguruar"
+
+msgid "Home Assistant: update failed"
+msgstr "Home Assistant: përditësimi dështoi"
+
+msgid "Home Assistant: not connected"
+msgstr "Home Assistant: nuk është lidhur"
+
+msgid "Home Assistant's KNX integration uses this project: its group monitor, project view and address pickers know its group addresses, devices and buildings."
+msgstr "Integrimi KNX i Home Assistant përdor këtë projekt: monitori i grupeve, pamja e projektit dhe zgjedhësit e adresave të tij njohin adresat e grupeve, pajisjet dhe ndërtesat e projektit."
+
+msgid "The changes are sent to Home Assistant in a moment."
+msgstr "Ndryshimet do të dërgohen te Home Assistant pas pak."
+
+msgid "Automatic updates are off: Update Home Assistant Now in the Home Assistant menu sends the changes."
+msgstr "Përditësimet automatike janë çaktivizuar: „Përditëso Home Assistant tani“ në menynë Home Assistant dërgon ndryshimet."
+
+msgid "Home Assistant's KNX integration holds no project."
+msgstr "Integrimi KNX i Home Assistant nuk ka asnjë projekt."
+
+msgid "Home Assistant's KNX integration holds the project \"{name}\" ({tool}, {date})."
+msgstr "Integrimi KNX i Home Assistant ka projektin „{name}“ ({tool}, {date})."
+
+msgid "Set up the KNX integration in Home Assistant to use this project there (Settings > Devices & Services)."
+msgstr "Konfiguroni integrimin KNX në Home Assistant për ta përdorur këtë projekt atje (Cilësimet > Pajisjet dhe shërbimet)."
+
+msgid "Home Assistant did not take the project: {error}"
+msgstr "Home Assistant nuk e pranoi projektin: {error}"
+
+msgid "The XKNX Editor integration is not connected. Update the integration in Home Assistant if this stays."
+msgstr "Integrimi XKNX Editor nuk është lidhur. Përditësoni integrimin në Home Assistant nëse kjo vazhdon."
+
+msgid "Home Assistant's KNX integration holds no project yet. Use \"{name}\" as its project?"
+msgstr "Integrimi KNX i Home Assistant nuk ka ende asnjë projekt. Të përdoret „{name}“ si projekti i tij?"
+
+msgid "Home Assistant's KNX integration holds the project \"{other}\" ({tool}, {date}). Replace it with \"{name}\"?"
+msgstr "Integrimi KNX i Home Assistant ka projektin „{other}“ ({tool}, {date}). Të zëvendësohet me „{name}“?"
+
+msgid "Its group monitor, project view, address pickers and entity suggestions then know this project's group addresses, devices and buildings. Entities, automations and the KNX integration's other settings stay as they are."
+msgstr "Monitori i grupeve, pamja e projektit, zgjedhësit e adresave dhe sugjerimet e entiteteve të tij do të njohin më pas adresat e grupeve, pajisjet dhe ndërtesat e këtij projekti. Entitetet, automatizimet dhe cilësimet e tjera të integrimit KNX mbeten siç janë."
+
+msgid "Your changes reach Home Assistant a moment after you make them."
+msgstr "Ndryshimet tuaja arrijnë te Home Assistant pak pasi i bëni."
+
+msgid "Automatic updates are off: Update Home Assistant Now in the Home Assistant menu sends your changes."
+msgstr "Përditësimet automatike janë çaktivizuar: „Përditëso Home Assistant tani“ në menynë Home Assistant dërgon ndryshimet tuaja."
+
+msgid "Use in Home Assistant"
+msgstr "Përdor në Home Assistant"
+
+msgid "Replace"
+msgstr "Zëvendëso"
+
+msgid "Not Now"
+msgstr "Jo tani"
+
+msgid "date unknown"
+msgstr "data e panjohur"

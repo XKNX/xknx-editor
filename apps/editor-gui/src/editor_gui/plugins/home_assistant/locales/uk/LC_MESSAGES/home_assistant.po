@@ -1,0 +1,95 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor home_assistant 1.0\n"
+"Language: uk\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Home Assistant"
+msgstr "Home Assistant"
+
+msgid "Use Project in Home Assistant"
+msgstr "Використовувати проєкт у Home Assistant"
+
+msgid "Update Home Assistant Now"
+msgstr "Оновити Home Assistant зараз"
+
+msgid "Update Home Assistant Automatically"
+msgstr "Оновлювати Home Assistant автоматично"
+
+msgid "After each change, the project is sent to Home Assistant's KNX integration again."
+msgstr "Після кожної зміни проєкт знову надсилається до інтеграції KNX у Home Assistant."
+
+msgid "Home Assistant: up to date"
+msgstr "Home Assistant: актуально"
+
+msgid "Home Assistant: changes not sent"
+msgstr "Home Assistant: зміни не надіслано"
+
+msgid "Home Assistant: updating…"
+msgstr "Home Assistant: оновлення…"
+
+msgid "Home Assistant: other project"
+msgstr "Home Assistant: інший проєкт"
+
+msgid "Home Assistant: KNX integration not set up"
+msgstr "Home Assistant: інтеграцію KNX не налаштовано"
+
+msgid "Home Assistant: update failed"
+msgstr "Home Assistant: не вдалося оновити"
+
+msgid "Home Assistant: not connected"
+msgstr "Home Assistant: немає з'єднання"
+
+msgid "Home Assistant's KNX integration uses this project: its group monitor, project view and address pickers know its group addresses, devices and buildings."
+msgstr "Інтеграція KNX у Home Assistant використовує цей проєкт: її монітор груп, подання проєкту та вибір адрес знають його групові адреси, пристрої та будівлі."
+
+msgid "The changes are sent to Home Assistant in a moment."
+msgstr "Зміни буде надіслано до Home Assistant за мить."
+
+msgid "Automatic updates are off: Update Home Assistant Now in the Home Assistant menu sends the changes."
+msgstr "Автоматичні оновлення вимкнено: зміни надсилає пункт «Оновити Home Assistant зараз» у меню Home Assistant."
+
+msgid "Home Assistant's KNX integration holds no project."
+msgstr "Інтеграція KNX у Home Assistant не містить проєкту."
+
+msgid "Home Assistant's KNX integration holds the project \"{name}\" ({tool}, {date})."
+msgstr "Інтеграція KNX у Home Assistant містить проєкт «{name}» ({tool}, {date})."
+
+msgid "Set up the KNX integration in Home Assistant to use this project there (Settings > Devices & Services)."
+msgstr "Налаштуйте інтеграцію KNX у Home Assistant, щоб використовувати там цей проєкт (Налаштування > Пристрої та служби)."
+
+msgid "Home Assistant did not take the project: {error}"
+msgstr "Home Assistant не прийняв проєкт: {error}"
+
+msgid "The XKNX Editor integration is not connected. Update the integration in Home Assistant if this stays."
+msgstr "Інтеграцію XKNX Editor не підключено. Якщо це не зміниться, оновіть інтеграцію в Home Assistant."
+
+msgid "Home Assistant's KNX integration holds no project yet. Use \"{name}\" as its project?"
+msgstr "Інтеграція KNX у Home Assistant ще не містить проєкту. Використовувати «{name}» як її проєкт?"
+
+msgid "Home Assistant's KNX integration holds the project \"{other}\" ({tool}, {date}). Replace it with \"{name}\"?"
+msgstr "Інтеграція KNX у Home Assistant містить проєкт «{other}» ({tool}, {date}). Замінити його на «{name}»?"
+
+msgid "Its group monitor, project view, address pickers and entity suggestions then know this project's group addresses, devices and buildings. Entities, automations and the KNX integration's other settings stay as they are."
+msgstr "Тоді її монітор груп, подання проєкту, вибір адрес і пропозиції сутностей знатимуть групові адреси, пристрої та будівлі цього проєкту. Сутності, автоматизації та інші налаштування інтеграції KNX залишаться без змін."
+
+msgid "Your changes reach Home Assistant a moment after you make them."
+msgstr "Ваші зміни потрапляють до Home Assistant невдовзі після того, як ви їх внесете."
+
+msgid "Automatic updates are off: Update Home Assistant Now in the Home Assistant menu sends your changes."
+msgstr "Автоматичні оновлення вимкнено: ваші зміни надсилає пункт «Оновити Home Assistant зараз» у меню Home Assistant."
+
+msgid "Use in Home Assistant"
+msgstr "Використовувати в Home Assistant"
+
+msgid "Replace"
+msgstr "Замінити"
+
+msgid "Not Now"
+msgstr "Не зараз"
+
+msgid "date unknown"
+msgstr "дата невідома"

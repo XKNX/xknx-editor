@@ -1,0 +1,95 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor home_assistant 1.0\n"
+"Language: is\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Home Assistant"
+msgstr "Home Assistant"
+
+msgid "Use Project in Home Assistant"
+msgstr "Nota verkefnið í Home Assistant"
+
+msgid "Update Home Assistant Now"
+msgstr "Uppfæra Home Assistant núna"
+
+msgid "Update Home Assistant Automatically"
+msgstr "Uppfæra Home Assistant sjálfvirkt"
+
+msgid "After each change, the project is sent to Home Assistant's KNX integration again."
+msgstr "Eftir hverja breytingu er verkefnið sent aftur í KNX-samþættingu Home Assistant."
+
+msgid "Home Assistant: up to date"
+msgstr "Home Assistant: uppfært"
+
+msgid "Home Assistant: changes not sent"
+msgstr "Home Assistant: breytingar ekki sendar"
+
+msgid "Home Assistant: updating…"
+msgstr "Home Assistant: uppfærir…"
+
+msgid "Home Assistant: other project"
+msgstr "Home Assistant: annað verkefni"
+
+msgid "Home Assistant: KNX integration not set up"
+msgstr "Home Assistant: KNX-samþætting ekki uppsett"
+
+msgid "Home Assistant: update failed"
+msgstr "Home Assistant: uppfærsla mistókst"
+
+msgid "Home Assistant: not connected"
+msgstr "Home Assistant: ekki tengt"
+
+msgid "Home Assistant's KNX integration uses this project: its group monitor, project view and address pickers know its group addresses, devices and buildings."
+msgstr "KNX-samþætting Home Assistant notar þetta verkefni: hópvöktun hennar, verkefnisyfirlit og vistfangaval þekkja hópvistföng, tæki og byggingar verkefnisins."
+
+msgid "The changes are sent to Home Assistant in a moment."
+msgstr "Breytingarnar verða sendar til Home Assistant eftir augnablik."
+
+msgid "Automatic updates are off: Update Home Assistant Now in the Home Assistant menu sends the changes."
+msgstr "Sjálfvirkar uppfærslur eru óvirkar: „Uppfæra Home Assistant núna“ í Home Assistant-valmyndinni sendir breytingarnar."
+
+msgid "Home Assistant's KNX integration holds no project."
+msgstr "KNX-samþætting Home Assistant geymir ekkert verkefni."
+
+msgid "Home Assistant's KNX integration holds the project \"{name}\" ({tool}, {date})."
+msgstr "KNX-samþætting Home Assistant geymir verkefnið „{name}“ ({tool}, {date})."
+
+msgid "Set up the KNX integration in Home Assistant to use this project there (Settings > Devices & Services)."
+msgstr "Settu upp KNX-samþættinguna í Home Assistant til að nota þetta verkefni þar (Stillingar > Tæki og þjónustur)."
+
+msgid "Home Assistant did not take the project: {error}"
+msgstr "Home Assistant tók ekki við verkefninu: {error}"
+
+msgid "The XKNX Editor integration is not connected. Update the integration in Home Assistant if this stays."
+msgstr "XKNX Editor-samþættingin er ekki tengd. Uppfærðu samþættinguna í Home Assistant ef þetta helst svona."
+
+msgid "Home Assistant's KNX integration holds no project yet. Use \"{name}\" as its project?"
+msgstr "KNX-samþætting Home Assistant geymir ekkert verkefni enn. Nota „{name}“ sem verkefni hennar?"
+
+msgid "Home Assistant's KNX integration holds the project \"{other}\" ({tool}, {date}). Replace it with \"{name}\"?"
+msgstr "KNX-samþætting Home Assistant geymir verkefnið „{other}“ ({tool}, {date}). Skipta því út fyrir „{name}“?"
+
+msgid "Its group monitor, project view, address pickers and entity suggestions then know this project's group addresses, devices and buildings. Entities, automations and the KNX integration's other settings stay as they are."
+msgstr "Hópvöktun hennar, verkefnisyfirlit, vistfangaval og tillögur að einingum þekkja þá hópvistföng, tæki og byggingar þessa verkefnis. Einingar, sjálfvirkni og aðrar stillingar KNX-samþættingarinnar haldast óbreyttar."
+
+msgid "Your changes reach Home Assistant a moment after you make them."
+msgstr "Breytingarnar þínar berast Home Assistant augnabliki eftir að þú gerir þær."
+
+msgid "Automatic updates are off: Update Home Assistant Now in the Home Assistant menu sends your changes."
+msgstr "Sjálfvirkar uppfærslur eru óvirkar: „Uppfæra Home Assistant núna“ í Home Assistant-valmyndinni sendir breytingarnar þínar."
+
+msgid "Use in Home Assistant"
+msgstr "Nota í Home Assistant"
+
+msgid "Replace"
+msgstr "Skipta út"
+
+msgid "Not Now"
+msgstr "Ekki núna"
+
+msgid "date unknown"
+msgstr "dagsetning óþekkt"

@@ -1,0 +1,95 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor home_assistant 1.0\n"
+"Language: de\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Home Assistant"
+msgstr "Home Assistant"
+
+msgid "Use Project in Home Assistant"
+msgstr "Projekt in Home Assistant verwenden"
+
+msgid "Update Home Assistant Now"
+msgstr "Home Assistant jetzt aktualisieren"
+
+msgid "Update Home Assistant Automatically"
+msgstr "Home Assistant automatisch aktualisieren"
+
+msgid "After each change, the project is sent to Home Assistant's KNX integration again."
+msgstr "Nach jeder Änderung wird das Projekt erneut an die KNX-Integration von Home Assistant gesendet."
+
+msgid "Home Assistant: up to date"
+msgstr "Home Assistant: aktuell"
+
+msgid "Home Assistant: changes not sent"
+msgstr "Home Assistant: Änderungen nicht gesendet"
+
+msgid "Home Assistant: updating…"
+msgstr "Home Assistant: wird aktualisiert…"
+
+msgid "Home Assistant: other project"
+msgstr "Home Assistant: anderes Projekt"
+
+msgid "Home Assistant: KNX integration not set up"
+msgstr "Home Assistant: KNX-Integration nicht eingerichtet"
+
+msgid "Home Assistant: update failed"
+msgstr "Home Assistant: Aktualisierung fehlgeschlagen"
+
+msgid "Home Assistant: not connected"
+msgstr "Home Assistant: nicht verbunden"
+
+msgid "Home Assistant's KNX integration uses this project: its group monitor, project view and address pickers know its group addresses, devices and buildings."
+msgstr "Die KNX-Integration von Home Assistant verwendet dieses Projekt: Ihr Gruppenmonitor, ihre Projektansicht und ihre Adressauswahl kennen seine Gruppenadressen, Geräte und Gebäude."
+
+msgid "The changes are sent to Home Assistant in a moment."
+msgstr "Die Änderungen werden in Kürze an Home Assistant gesendet."
+
+msgid "Automatic updates are off: Update Home Assistant Now in the Home Assistant menu sends the changes."
+msgstr "Automatische Aktualisierungen sind aus: „Home Assistant jetzt aktualisieren“ im Menü Home Assistant sendet die Änderungen."
+
+msgid "Home Assistant's KNX integration holds no project."
+msgstr "Die KNX-Integration von Home Assistant hat kein Projekt."
+
+msgid "Home Assistant's KNX integration holds the project \"{name}\" ({tool}, {date})."
+msgstr "Die KNX-Integration von Home Assistant hat das Projekt „{name}“ ({tool}, {date})."
+
+msgid "Set up the KNX integration in Home Assistant to use this project there (Settings > Devices & Services)."
+msgstr "Richten Sie die KNX-Integration in Home Assistant ein, um dieses Projekt dort zu verwenden (Einstellungen > Geräte & Dienste)."
+
+msgid "Home Assistant did not take the project: {error}"
+msgstr "Home Assistant hat das Projekt nicht übernommen: {error}"
+
+msgid "The XKNX Editor integration is not connected. Update the integration in Home Assistant if this stays."
+msgstr "Die Integration XKNX Editor ist nicht verbunden. Aktualisieren Sie die Integration in Home Assistant, wenn das so bleibt."
+
+msgid "Home Assistant's KNX integration holds no project yet. Use \"{name}\" as its project?"
+msgstr "Die KNX-Integration von Home Assistant hat noch kein Projekt. „{name}“ als ihr Projekt verwenden?"
+
+msgid "Home Assistant's KNX integration holds the project \"{other}\" ({tool}, {date}). Replace it with \"{name}\"?"
+msgstr "Die KNX-Integration von Home Assistant hat das Projekt „{other}“ ({tool}, {date}). Durch „{name}“ ersetzen?"
+
+msgid "Its group monitor, project view, address pickers and entity suggestions then know this project's group addresses, devices and buildings. Entities, automations and the KNX integration's other settings stay as they are."
+msgstr "Ihr Gruppenmonitor, ihre Projektansicht, ihre Adressauswahl und ihre Entitätsvorschläge kennen dann die Gruppenadressen, Geräte und Gebäude dieses Projekts. Entitäten, Automatisierungen und die übrigen Einstellungen der KNX-Integration bleiben, wie sie sind."
+
+msgid "Your changes reach Home Assistant a moment after you make them."
+msgstr "Ihre Änderungen erreichen Home Assistant kurz nachdem Sie sie vorgenommen haben."
+
+msgid "Automatic updates are off: Update Home Assistant Now in the Home Assistant menu sends your changes."
+msgstr "Automatische Aktualisierungen sind aus: „Home Assistant jetzt aktualisieren“ im Menü Home Assistant sendet Ihre Änderungen."
+
+msgid "Use in Home Assistant"
+msgstr "In Home Assistant verwenden"
+
+msgid "Replace"
+msgstr "Ersetzen"
+
+msgid "Not Now"
+msgstr "Nicht jetzt"
+
+msgid "date unknown"
+msgstr "Datum unbekannt"

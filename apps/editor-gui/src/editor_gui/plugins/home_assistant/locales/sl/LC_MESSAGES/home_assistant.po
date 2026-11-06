@@ -1,0 +1,95 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor home_assistant 1.0\n"
+"Language: sl\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Home Assistant"
+msgstr "Home Assistant"
+
+msgid "Use Project in Home Assistant"
+msgstr "Uporabi projekt v Home Assistantu"
+
+msgid "Update Home Assistant Now"
+msgstr "Posodobi Home Assistant zdaj"
+
+msgid "Update Home Assistant Automatically"
+msgstr "Samodejno posodabljaj Home Assistant"
+
+msgid "After each change, the project is sent to Home Assistant's KNX integration again."
+msgstr "Po vsaki spremembi se projekt znova pošlje integraciji KNX v Home Assistantu."
+
+msgid "Home Assistant: up to date"
+msgstr "Home Assistant: posodobljeno"
+
+msgid "Home Assistant: changes not sent"
+msgstr "Home Assistant: spremembe niso poslane"
+
+msgid "Home Assistant: updating…"
+msgstr "Home Assistant: posodabljanje…"
+
+msgid "Home Assistant: other project"
+msgstr "Home Assistant: drug projekt"
+
+msgid "Home Assistant: KNX integration not set up"
+msgstr "Home Assistant: integracija KNX ni nastavljena"
+
+msgid "Home Assistant: update failed"
+msgstr "Home Assistant: posodobitev ni uspela"
+
+msgid "Home Assistant: not connected"
+msgstr "Home Assistant: ni povezave"
+
+msgid "Home Assistant's KNX integration uses this project: its group monitor, project view and address pickers know its group addresses, devices and buildings."
+msgstr "Integracija KNX v Home Assistantu uporablja ta projekt: njen skupinski monitor, pogled projekta in izbirniki naslovov poznajo njegove skupinske naslove, naprave in stavbe."
+
+msgid "The changes are sent to Home Assistant in a moment."
+msgstr "Spremembe bodo v trenutku poslane v Home Assistant."
+
+msgid "Automatic updates are off: Update Home Assistant Now in the Home Assistant menu sends the changes."
+msgstr "Samodejne posodobitve so izklopljene: »Posodobi Home Assistant zdaj« v meniju Home Assistant pošlje spremembe."
+
+msgid "Home Assistant's KNX integration holds no project."
+msgstr "Integracija KNX v Home Assistantu nima projekta."
+
+msgid "Home Assistant's KNX integration holds the project \"{name}\" ({tool}, {date})."
+msgstr "Integracija KNX v Home Assistantu ima projekt »{name}« ({tool}, {date})."
+
+msgid "Set up the KNX integration in Home Assistant to use this project there (Settings > Devices & Services)."
+msgstr "Nastavite integracijo KNX v Home Assistantu, da boste tam lahko uporabljali ta projekt (Nastavitve > Naprave in storitve)."
+
+msgid "Home Assistant did not take the project: {error}"
+msgstr "Home Assistant ni prevzel projekta: {error}"
+
+msgid "The XKNX Editor integration is not connected. Update the integration in Home Assistant if this stays."
+msgstr "Integracija XKNX Editor ni povezana. Če to ostane tako, posodobite integracijo v Home Assistantu."
+
+msgid "Home Assistant's KNX integration holds no project yet. Use \"{name}\" as its project?"
+msgstr "Integracija KNX v Home Assistantu še nima projekta. Uporabiti »{name}« kot njen projekt?"
+
+msgid "Home Assistant's KNX integration holds the project \"{other}\" ({tool}, {date}). Replace it with \"{name}\"?"
+msgstr "Integracija KNX v Home Assistantu ima projekt »{other}« ({tool}, {date}). Ga zamenjati z »{name}«?"
+
+msgid "Its group monitor, project view, address pickers and entity suggestions then know this project's group addresses, devices and buildings. Entities, automations and the KNX integration's other settings stay as they are."
+msgstr "Njen skupinski monitor, pogled projekta, izbirniki naslovov in predlogi entitet bodo nato poznali skupinske naslove, naprave in stavbe tega projekta. Entitete, avtomatizacije in druge nastavitve integracije KNX ostanejo nespremenjene."
+
+msgid "Your changes reach Home Assistant a moment after you make them."
+msgstr "Vaše spremembe dosežejo Home Assistant kmalu potem, ko jih naredite."
+
+msgid "Automatic updates are off: Update Home Assistant Now in the Home Assistant menu sends your changes."
+msgstr "Samodejne posodobitve so izklopljene: »Posodobi Home Assistant zdaj« v meniju Home Assistant pošlje vaše spremembe."
+
+msgid "Use in Home Assistant"
+msgstr "Uporabi v Home Assistantu"
+
+msgid "Replace"
+msgstr "Zamenjaj"
+
+msgid "Not Now"
+msgstr "Ne zdaj"
+
+msgid "date unknown"
+msgstr "datum ni znan"

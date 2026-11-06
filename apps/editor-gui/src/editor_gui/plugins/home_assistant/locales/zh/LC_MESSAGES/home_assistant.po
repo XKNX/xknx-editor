@@ -1,0 +1,95 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor home_assistant 1.0\n"
+"Language: zh\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Home Assistant"
+msgstr "Home Assistant"
+
+msgid "Use Project in Home Assistant"
+msgstr "在 Home Assistant 中使用项目"
+
+msgid "Update Home Assistant Now"
+msgstr "立即更新 Home Assistant"
+
+msgid "Update Home Assistant Automatically"
+msgstr "自动更新 Home Assistant"
+
+msgid "After each change, the project is sent to Home Assistant's KNX integration again."
+msgstr "每次更改后，项目都会重新发送到 Home Assistant 的 KNX 集成。"
+
+msgid "Home Assistant: up to date"
+msgstr "Home Assistant：已是最新"
+
+msgid "Home Assistant: changes not sent"
+msgstr "Home Assistant：更改未发送"
+
+msgid "Home Assistant: updating…"
+msgstr "Home Assistant：正在更新…"
+
+msgid "Home Assistant: other project"
+msgstr "Home Assistant：其他项目"
+
+msgid "Home Assistant: KNX integration not set up"
+msgstr "Home Assistant：未设置 KNX 集成"
+
+msgid "Home Assistant: update failed"
+msgstr "Home Assistant：更新失败"
+
+msgid "Home Assistant: not connected"
+msgstr "Home Assistant：未连接"
+
+msgid "Home Assistant's KNX integration uses this project: its group monitor, project view and address pickers know its group addresses, devices and buildings."
+msgstr "Home Assistant 的 KNX 集成正在使用此项目：其组监视器、项目视图和地址选择器可识别该项目的组地址、设备和建筑。"
+
+msgid "The changes are sent to Home Assistant in a moment."
+msgstr "更改将很快发送到 Home Assistant。"
+
+msgid "Automatic updates are off: Update Home Assistant Now in the Home Assistant menu sends the changes."
+msgstr "自动更新已关闭：Home Assistant 菜单中的“立即更新 Home Assistant”会发送更改。"
+
+msgid "Home Assistant's KNX integration holds no project."
+msgstr "Home Assistant 的 KNX 集成中没有项目。"
+
+msgid "Home Assistant's KNX integration holds the project \"{name}\" ({tool}, {date})."
+msgstr "Home Assistant 的 KNX 集成中有项目“{name}”（{tool}，{date}）。"
+
+msgid "Set up the KNX integration in Home Assistant to use this project there (Settings > Devices & Services)."
+msgstr "请在 Home Assistant 中设置 KNX 集成，以便在其中使用此项目（设置 > 设备与服务）。"
+
+msgid "Home Assistant did not take the project: {error}"
+msgstr "Home Assistant 未接受该项目：{error}"
+
+msgid "The XKNX Editor integration is not connected. Update the integration in Home Assistant if this stays."
+msgstr "XKNX Editor 集成未连接。如果此状态持续，请在 Home Assistant 中更新该集成。"
+
+msgid "Home Assistant's KNX integration holds no project yet. Use \"{name}\" as its project?"
+msgstr "Home Assistant 的 KNX 集成中还没有项目。是否将“{name}”用作其项目？"
+
+msgid "Home Assistant's KNX integration holds the project \"{other}\" ({tool}, {date}). Replace it with \"{name}\"?"
+msgstr "Home Assistant 的 KNX 集成中有项目“{other}”（{tool}，{date}）。是否将其替换为“{name}”？"
+
+msgid "Its group monitor, project view, address pickers and entity suggestions then know this project's group addresses, devices and buildings. Entities, automations and the KNX integration's other settings stay as they are."
+msgstr "之后，其组监视器、项目视图、地址选择器和实体建议将识别此项目的组地址、设备和建筑。实体、自动化以及 KNX 集成的其他设置保持不变。"
+
+msgid "Your changes reach Home Assistant a moment after you make them."
+msgstr "您的更改会在做出后片刻到达 Home Assistant。"
+
+msgid "Automatic updates are off: Update Home Assistant Now in the Home Assistant menu sends your changes."
+msgstr "自动更新已关闭：Home Assistant 菜单中的“立即更新 Home Assistant”会发送您的更改。"
+
+msgid "Use in Home Assistant"
+msgstr "在 Home Assistant 中使用"
+
+msgid "Replace"
+msgstr "替换"
+
+msgid "Not Now"
+msgstr "暂不"
+
+msgid "date unknown"
+msgstr "日期未知"

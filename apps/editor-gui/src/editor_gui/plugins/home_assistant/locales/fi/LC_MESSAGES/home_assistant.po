@@ -1,0 +1,95 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor home_assistant 1.0\n"
+"Language: fi\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Home Assistant"
+msgstr "Home Assistant"
+
+msgid "Use Project in Home Assistant"
+msgstr "Käytä projektia Home Assistantissa"
+
+msgid "Update Home Assistant Now"
+msgstr "Päivitä Home Assistant nyt"
+
+msgid "Update Home Assistant Automatically"
+msgstr "Päivitä Home Assistant automaattisesti"
+
+msgid "After each change, the project is sent to Home Assistant's KNX integration again."
+msgstr "Jokaisen muutoksen jälkeen projekti lähetetään uudelleen Home Assistantin KNX-integraatioon."
+
+msgid "Home Assistant: up to date"
+msgstr "Home Assistant: ajan tasalla"
+
+msgid "Home Assistant: changes not sent"
+msgstr "Home Assistant: muutoksia ei lähetetty"
+
+msgid "Home Assistant: updating…"
+msgstr "Home Assistant: päivitetään…"
+
+msgid "Home Assistant: other project"
+msgstr "Home Assistant: eri projekti"
+
+msgid "Home Assistant: KNX integration not set up"
+msgstr "Home Assistant: KNX-integraatiota ei ole määritetty"
+
+msgid "Home Assistant: update failed"
+msgstr "Home Assistant: päivitys epäonnistui"
+
+msgid "Home Assistant: not connected"
+msgstr "Home Assistant: ei yhteyttä"
+
+msgid "Home Assistant's KNX integration uses this project: its group monitor, project view and address pickers know its group addresses, devices and buildings."
+msgstr "Home Assistantin KNX-integraatio käyttää tätä projektia: sen ryhmäseuranta, projektinäkymä ja osoitevalitsimet tuntevat projektin ryhmäosoitteet, laitteet ja rakennukset."
+
+msgid "The changes are sent to Home Assistant in a moment."
+msgstr "Muutokset lähetetään Home Assistantiin hetken kuluttua."
+
+msgid "Automatic updates are off: Update Home Assistant Now in the Home Assistant menu sends the changes."
+msgstr "Automaattiset päivitykset ovat pois päältä: ”Päivitä Home Assistant nyt” Home Assistant -valikossa lähettää muutokset."
+
+msgid "Home Assistant's KNX integration holds no project."
+msgstr "Home Assistantin KNX-integraatiossa ei ole projektia."
+
+msgid "Home Assistant's KNX integration holds the project \"{name}\" ({tool}, {date})."
+msgstr "Home Assistantin KNX-integraatiossa on projekti ”{name}” ({tool}, {date})."
+
+msgid "Set up the KNX integration in Home Assistant to use this project there (Settings > Devices & Services)."
+msgstr "Määritä KNX-integraatio Home Assistantissa, jotta voit käyttää tätä projektia siellä (Asetukset > Laitteet ja palvelut)."
+
+msgid "Home Assistant did not take the project: {error}"
+msgstr "Home Assistant ei ottanut projektia vastaan: {error}"
+
+msgid "The XKNX Editor integration is not connected. Update the integration in Home Assistant if this stays."
+msgstr "XKNX Editor -integraatio ei ole yhteydessä. Päivitä integraatio Home Assistantissa, jos tilanne jatkuu."
+
+msgid "Home Assistant's KNX integration holds no project yet. Use \"{name}\" as its project?"
+msgstr "Home Assistantin KNX-integraatiossa ei ole vielä projektia. Käytetäänkö ”{name}” sen projektina?"
+
+msgid "Home Assistant's KNX integration holds the project \"{other}\" ({tool}, {date}). Replace it with \"{name}\"?"
+msgstr "Home Assistantin KNX-integraatiossa on projekti ”{other}” ({tool}, {date}). Korvataanko se projektilla ”{name}”?"
+
+msgid "Its group monitor, project view, address pickers and entity suggestions then know this project's group addresses, devices and buildings. Entities, automations and the KNX integration's other settings stay as they are."
+msgstr "Sen ryhmäseuranta, projektinäkymä, osoitevalitsimet ja kohde-ehdotukset tuntevat sen jälkeen tämän projektin ryhmäosoitteet, laitteet ja rakennukset. Kohteet, automaatiot ja KNX-integraation muut asetukset säilyvät ennallaan."
+
+msgid "Your changes reach Home Assistant a moment after you make them."
+msgstr "Muutoksesi saapuvat Home Assistantiin hetki niiden tekemisen jälkeen."
+
+msgid "Automatic updates are off: Update Home Assistant Now in the Home Assistant menu sends your changes."
+msgstr "Automaattiset päivitykset ovat pois päältä: ”Päivitä Home Assistant nyt” Home Assistant -valikossa lähettää muutoksesi."
+
+msgid "Use in Home Assistant"
+msgstr "Käytä Home Assistantissa"
+
+msgid "Replace"
+msgstr "Korvaa"
+
+msgid "Not Now"
+msgstr "Ei nyt"
+
+msgid "date unknown"
+msgstr "päivämäärä tuntematon"

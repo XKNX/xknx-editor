@@ -1,0 +1,275 @@
+"""The open project as the KNX project of Home Assistant's KNX integration.
+
+Inside Home Assistant the integration talks to the editor over the host link
+(:mod:`editor_gui.web.host_link`). It reports the state of the KNX integration and the project
+that integration holds; the editor sends the open project to it in xknxproject's format, so the
+KNX integration's group monitor, project view, address pickers and entity suggestions know it as
+they know an uploaded project.
+
+A project is *linked* when the KNX integration holds it (same GUID, sent by this editor). A linked
+project is sent again a little after each change when automatic updates are on (the default).
+Linking is the user's choice: an unlinked project is only sent when the user asks.
+"""
+
+from __future__ import annotations
+
+import time
+from collections.abc import Callable
+from enum import StrEnum
+from typing import TYPE_CHECKING, Any, cast
+
+from editor_gui.settings import load_settings, save_settings
+
+if TYPE_CHECKING:
+    from editor_gui.plugins.base import Logger
+    from editor_gui.plugins.project.service import ProjectService
+    from editor_gui.web.host_link import HostLink
+
+# The tool that sent a project, in the project's info (``created_by``).
+CREATED_BY = "XKNX Editor"
+# A change is sent when the project has not changed for this long.
+DEBOUNCE_SECONDS = 2.0
+_SETTINGS = "home_assistant"
+
+
+class LinkState(StrEnum):
+    # Not inside Home Assistant, or the integration is not connected.
+    UNAVAILABLE = "unavailable"
+    # Home Assistant's KNX integration is not set up or not loaded.
+    KNX_MISSING = "knx_missing"
+    NO_PROJECT = "no_project"
+    # The KNX integration holds no project, or another one.
+    NOT_LINKED = "not_linked"
+    UP_TO_DATE = "up_to_date"
+    # Changes not sent yet (waiting, or automatic updates are off).
+    PENDING = "pending"
+    SENDING = "sending"
+    FAILED = "failed"
+
+
+def _default_builder(project: ProjectService) -> dict[str, Any]:
+    from editor_gui import __version__
+    from editor_gui.plugins.home_assistant.project_model import build_project_model
+
+    return cast(
+        "dict[str, Any]",
+        build_project_model(project, tool_version=f"{CREATED_BY} {__version__}"),
+    )
+
+
+class HomeAssistantService:
+    """Keeps the KNX integration's project in step with the open, linked project (GUI thread)."""
+
+    def __init__(
+        self,
+        project: ProjectService,
+        link: Callable[[], HostLink | None],
+        *,
+        build: Callable[[ProjectService], dict[str, Any]] = _default_builder,
+        clock: Callable[[], float] = time.monotonic,
+        persist: bool = True,
+    ) -> None:
+        self._project = project
+        self._link = link
+        self._build = build
+        self._clock = clock
+        self._persist = persist
+        self._log: Logger | None = None
+        settings = load_settings(_SETTINGS) if persist else {}
+        self._auto_update = bool(settings.get("auto_update", True))
+        # What the integration last reported.
+        self._link_generation = -1
+        self.home_assistant_version = ""
+        self.knx_loaded = False
+        # The KNX integration's project info (name, guid, tool_version, created_by,
+        # last_modified), None when it holds none.
+        self.knx_project: dict[str, Any] | None = None
+        self._knx_known = False
+        # (project generation, revision) last sent with success, and the one being sent.
+        self._sent: tuple[int, int] | None = None
+        self._sending: tuple[int, tuple[int, int]] | None = None
+        self._next_id = 0
+        # When the project last changed (a change waits DEBOUNCE_SECONDS), and as which state.
+        self._seen: tuple[int, int] | None = None
+        self._changed_at = 0.0
+        self.error: str | None = None
+        # The projects whose question the user answered with Not Now (this session), by GUID.
+        self._declined: set[str] = set()
+
+    def set_logger(self, log: Logger) -> None:
+        self._log = log
+
+    # --- settings ---
+
+    @property
+    def auto_update(self) -> bool:
+        """Whether a linked project is sent again after each change."""
+        return self._auto_update
+
+    def set_auto_update(self, enabled: bool) -> None:
+        self._auto_update = enabled
+        if self._persist:
+            save_settings(_SETTINGS, {"auto_update": enabled})
+
+    # --- state ---
+
+    @property
+    def connected(self) -> bool:
+        link = self._link()
+        return link is not None and link.connected and self._knx_known
+
+    def project_guid(self) -> str | None:
+        """The identity of the open project in the KNX integration (its GUID, else its id)."""
+        meta = self._project.get_project_metadata()
+        if meta is None:
+            return None
+        return meta.guid or meta.id
+
+    def project_name(self) -> str:
+        meta = self._project.get_project_metadata()
+        return meta.name if meta is not None else ""
+
+    @property
+    def linked(self) -> bool:
+        """Whether the KNX integration holds the open project, sent by this editor."""
+        guid = self.project_guid()
+        held = self.knx_project
+        return (
+            guid is not None
+            and held is not None
+            and held.get("guid") == guid
+            and held.get("created_by") == CREATED_BY
+        )
+
+    def _key(self) -> tuple[int, int]:
+        return (self._project.generation, self._project.revision)
+
+    @property
+    def state(self) -> LinkState:
+        if not self.connected:
+            return LinkState.UNAVAILABLE
+        if not self.knx_loaded:
+            return LinkState.KNX_MISSING
+        if not self._project.is_open:
+            return LinkState.NO_PROJECT
+        if self._sending is not None:
+            return LinkState.SENDING
+        if self.error is not None:
+            return LinkState.FAILED
+        if not self.linked:
+            return LinkState.NOT_LINKED
+        if self._sent != self._key():
+            return LinkState.PENDING
+        return LinkState.UP_TO_DATE
+
+    def wants_question(self) -> bool:
+        """Whether to ask the user to use the open project in Home Assistant: the KNX integration
+        does not hold it, and the user did not decline it in this session."""
+        guid = self.project_guid()
+        return (
+            self.state is LinkState.NOT_LINKED
+            and guid is not None
+            and guid not in self._declined
+        )
+
+    def decline(self) -> None:
+        """Not now: do not ask again for the open project in this session."""
+        if (guid := self.project_guid()) is not None:
+            self._declined.add(guid)
+
+    # --- actions ---
+
+    def send_now(self) -> bool:
+        """Send the open project to the KNX integration (it becomes its project, which links it).
+        False when it cannot be sent now (no connection, no KNX integration, no project, or a send
+        is under way)."""
+        link = self._link()
+        if (
+            link is None
+            or not self.connected
+            or not self.knx_loaded
+            or not self._project.is_open
+            or self._sending is not None
+        ):
+            return False
+        key = self._key()
+        started = self._clock()
+        try:
+            model = self._build(self._project)
+        except Exception as exc:
+            self.error = str(exc) or type(exc).__name__
+            if self._log is not None:
+                self._log.error(
+                    "project for Home Assistant not built", error=self.error
+                )
+            return False
+        self._next_id += 1
+        if not link.send(
+            {"type": "set_project", "id": self._next_id, "project": model}
+        ):
+            return False
+        self._sending = (self._next_id, key)
+        self.error = None
+        if self._log is not None:
+            self._log.info(
+                "project sent to Home Assistant",
+                group_addresses=len(model.get("group_addresses", {})),
+                devices=len(model.get("devices", {})),
+                seconds=round(self._clock() - started, 3),
+            )
+        return True
+
+    def poll(self) -> None:
+        """Handle the integration's messages and send a changed, linked project (each frame)."""
+        link = self._link()
+        if link is None:
+            return
+        if link.generation != self._link_generation:
+            # A new connection (or none): nothing is known until the integration reports.
+            self._link_generation = link.generation
+            self._knx_known = False
+            self._sending = None
+            self._sent = None
+        for message in link.receive():
+            self._handle(message)
+        key = self._key()
+        if key != self._seen:
+            self._seen = key
+            self._changed_at = self._clock()
+            # A failed send is tried again with the next change.
+            self.error = None
+        if (
+            self._auto_update
+            and self.state is LinkState.PENDING
+            and self._clock() - self._changed_at >= DEBOUNCE_SECONDS
+        ):
+            self.send_now()
+
+    def _handle(self, message: dict[str, Any]) -> None:
+        kind = message.get("type")
+        if kind == "hello":
+            self.home_assistant_version = str(message.get("home_assistant", ""))
+        elif kind == "knx":
+            self._knx_known = True
+            self.knx_loaded = bool(message.get("loaded"))
+            project = message.get("project")
+            self.knx_project = (
+                cast("dict[str, Any]", project) if isinstance(project, dict) else None
+            )
+            if not self.linked:
+                # Another project replaced ours (e.g. an upload in the KNX panel).
+                self._sent = None
+        elif kind == "result" and self._sending is not None:
+            request, key = self._sending
+            if message.get("id") != request:
+                return
+            self._sending = None
+            if (error := message.get("error")) is not None:
+                self.error = str(error)
+                if self._log is not None:
+                    self._log.error(
+                        "Home Assistant did not take the project", error=self.error
+                    )
+            else:
+                self._sent = key
+                self.error = None

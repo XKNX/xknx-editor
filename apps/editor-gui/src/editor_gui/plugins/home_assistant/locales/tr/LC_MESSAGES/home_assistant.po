@@ -1,0 +1,95 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor home_assistant 1.0\n"
+"Language: tr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Home Assistant"
+msgstr "Home Assistant"
+
+msgid "Use Project in Home Assistant"
+msgstr "Projeyi Home Assistant'ta kullan"
+
+msgid "Update Home Assistant Now"
+msgstr "Home Assistant'ı şimdi güncelle"
+
+msgid "Update Home Assistant Automatically"
+msgstr "Home Assistant'ı otomatik olarak güncelle"
+
+msgid "After each change, the project is sent to Home Assistant's KNX integration again."
+msgstr "Her değişiklikten sonra proje, Home Assistant'ın KNX entegrasyonuna yeniden gönderilir."
+
+msgid "Home Assistant: up to date"
+msgstr "Home Assistant: güncel"
+
+msgid "Home Assistant: changes not sent"
+msgstr "Home Assistant: değişiklikler gönderilmedi"
+
+msgid "Home Assistant: updating…"
+msgstr "Home Assistant: güncelleniyor…"
+
+msgid "Home Assistant: other project"
+msgstr "Home Assistant: başka proje"
+
+msgid "Home Assistant: KNX integration not set up"
+msgstr "Home Assistant: KNX entegrasyonu kurulmadı"
+
+msgid "Home Assistant: update failed"
+msgstr "Home Assistant: güncelleme başarısız"
+
+msgid "Home Assistant: not connected"
+msgstr "Home Assistant: bağlı değil"
+
+msgid "Home Assistant's KNX integration uses this project: its group monitor, project view and address pickers know its group addresses, devices and buildings."
+msgstr "Home Assistant'ın KNX entegrasyonu bu projeyi kullanıyor: grup izleme, proje görünümü ve adres seçicileri projenin grup adreslerini, cihazlarını ve binalarını tanır."
+
+msgid "The changes are sent to Home Assistant in a moment."
+msgstr "Değişiklikler birazdan Home Assistant'a gönderilecek."
+
+msgid "Automatic updates are off: Update Home Assistant Now in the Home Assistant menu sends the changes."
+msgstr "Otomatik güncellemeler kapalı: Home Assistant menüsündeki “Home Assistant'ı şimdi güncelle” değişiklikleri gönderir."
+
+msgid "Home Assistant's KNX integration holds no project."
+msgstr "Home Assistant'ın KNX entegrasyonunda proje yok."
+
+msgid "Home Assistant's KNX integration holds the project \"{name}\" ({tool}, {date})."
+msgstr "Home Assistant'ın KNX entegrasyonunda “{name}” projesi var ({tool}, {date})."
+
+msgid "Set up the KNX integration in Home Assistant to use this project there (Settings > Devices & Services)."
+msgstr "Bu projeyi orada kullanmak için Home Assistant'ta KNX entegrasyonunu kurun (Ayarlar > Cihazlar ve Hizmetler)."
+
+msgid "Home Assistant did not take the project: {error}"
+msgstr "Home Assistant projeyi kabul etmedi: {error}"
+
+msgid "The XKNX Editor integration is not connected. Update the integration in Home Assistant if this stays."
+msgstr "XKNX Editor entegrasyonu bağlı değil. Bu durum sürerse Home Assistant'ta entegrasyonu güncelleyin."
+
+msgid "Home Assistant's KNX integration holds no project yet. Use \"{name}\" as its project?"
+msgstr "Home Assistant'ın KNX entegrasyonunda henüz proje yok. “{name}” onun projesi olarak kullanılsın mı?"
+
+msgid "Home Assistant's KNX integration holds the project \"{other}\" ({tool}, {date}). Replace it with \"{name}\"?"
+msgstr "Home Assistant'ın KNX entegrasyonunda “{other}” projesi var ({tool}, {date}). “{name}” ile değiştirilsin mi?"
+
+msgid "Its group monitor, project view, address pickers and entity suggestions then know this project's group addresses, devices and buildings. Entities, automations and the KNX integration's other settings stay as they are."
+msgstr "Ardından grup izleme, proje görünümü, adres seçicileri ve varlık önerileri bu projenin grup adreslerini, cihazlarını ve binalarını tanır. Varlıklar, otomasyonlar ve KNX entegrasyonunun diğer ayarları olduğu gibi kalır."
+
+msgid "Your changes reach Home Assistant a moment after you make them."
+msgstr "Değişiklikleriniz, yaptıktan kısa süre sonra Home Assistant'a ulaşır."
+
+msgid "Automatic updates are off: Update Home Assistant Now in the Home Assistant menu sends your changes."
+msgstr "Otomatik güncellemeler kapalı: Home Assistant menüsündeki “Home Assistant'ı şimdi güncelle” değişikliklerinizi gönderir."
+
+msgid "Use in Home Assistant"
+msgstr "Home Assistant'ta kullan"
+
+msgid "Replace"
+msgstr "Değiştir"
+
+msgid "Not Now"
+msgstr "Şimdi değil"
+
+msgid "date unknown"
+msgstr "tarih bilinmiyor"

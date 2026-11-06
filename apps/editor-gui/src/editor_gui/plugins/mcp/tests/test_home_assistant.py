@@ -1,0 +1,129 @@
+"""The Home Assistant menu over MCP: the state, sending the project, automatic updates (the
+integration replaced by a link that answers like it)."""
+
+from __future__ import annotations
+
+from collections.abc import Iterator
+from pathlib import Path
+from typing import Any
+
+import pytest
+from fastmcp import Client
+
+from editor_gui import host
+from editor_gui.host import HostOptions
+from editor_gui.plugins.home_assistant.service import CREATED_BY, HomeAssistantService
+from editor_gui.plugins.mcp.server import build_server
+from editor_gui.plugins.mcp.tools import home_assistant as tools
+
+from .test_server import _build_ctx, _data
+
+
+class _Link:
+    """The integration: it takes every project, or refuses it with ``refuse``."""
+
+    def __init__(self) -> None:
+        self.connected = True
+        self.generation = 1
+        self.inbox: list[dict[str, Any]] = [
+            {"type": "knx", "loaded": True, "project": None}
+        ]
+        self.refuse: str | None = None
+        self.projects: list[dict[str, Any]] = []
+
+    def receive(self) -> list[dict[str, Any]]:
+        messages, self.inbox = self.inbox, []
+        return messages
+
+    def send(self, message: dict[str, Any]) -> bool:
+        if message["type"] == "set_project":
+            if self.refuse is None:
+                self.projects.append(message["project"])
+                held = {
+                    "guid": message["project"]["info"]["guid"],
+                    "created_by": CREATED_BY,
+                }
+                self.inbox.append({"type": "knx", "loaded": True, "project": held})
+            self.inbox.append(
+                {"type": "result", "id": message["id"], "error": self.refuse}
+            )
+        return True
+
+
+@pytest.fixture(autouse=True)
+def inside_home_assistant() -> Iterator[None]:
+    host.set_current(HostOptions(home_assistant=True))
+    yield
+    host.set_current(HostOptions())
+
+
+def _server(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> tuple[Any, HomeAssistantService, _Link]:
+    ctx = _build_ctx(tmp_path)
+    link = _Link()
+
+    def build(project: Any) -> dict[str, Any]:
+        meta = project.get_project_metadata()
+        return {"info": {"guid": meta.guid or meta.id}, "group_addresses": {}}
+
+    service = HomeAssistantService(
+        ctx.api.project, lambda: link, build=build, persist=False
+    )
+    ctx.home_assistant = service
+    # The GUI thread polls the service each frame; here while a tool waits.
+    monkeypatch.setattr(
+        tools.time, "sleep", lambda _seconds: ctx.run_locked(service.poll)
+    )
+    service.poll()
+    return build_server(ctx), service, link
+
+
+async def test_the_state_and_sending_the_project(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    mcp, service, link = _server(tmp_path, monkeypatch)
+    async with Client(mcp) as client:
+        status = await _data(client, "home_assistant_status")
+        assert status["state"] == "no_project"
+        assert status["knx_loaded"] is True
+        with pytest.raises(Exception, match="no project is open"):
+            await client.call_tool("home_assistant_use_project", {})
+
+        await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
+        status = await _data(client, "home_assistant_status")
+        assert status["state"] == "not_linked"
+        assert status["project_in_home_assistant"] is None
+
+        status = await _data(client, "home_assistant_use_project")
+        assert status["state"] == "up_to_date"
+        assert status["linked"] is True
+        assert len(link.projects) == 1
+
+        link.refuse = "disk full"
+        with pytest.raises(Exception, match="disk full"):
+            await client.call_tool("home_assistant_use_project", {})
+        assert (await _data(client, "home_assistant_status"))["state"] == "failed"
+
+
+async def test_nothing_is_sent_without_the_knx_integration(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    mcp, service, link = _server(tmp_path, monkeypatch)
+    link.inbox.append({"type": "knx", "loaded": False, "project": None})
+    service.poll()
+    async with Client(mcp) as client:
+        await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
+        with pytest.raises(Exception, match="knx_missing"):
+            await client.call_tool("home_assistant_use_project", {})
+    assert link.projects == []
+
+
+async def test_outside_home_assistant_the_tools_refuse(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    mcp, _service, _link = _server(tmp_path, monkeypatch)
+    host.set_current(HostOptions())
+    async with Client(mcp) as client:
+        with pytest.raises(Exception, match="does not run inside Home Assistant"):
+            await client.call_tool("home_assistant_status", {})

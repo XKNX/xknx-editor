@@ -25,6 +25,7 @@ if TYPE_CHECKING:
     from editor_gui.plugins.backups.service import BackupService
     from editor_gui.plugins.base import PluginAPI
     from editor_gui.plugins.connection.plugin import ConnectionPlugin
+    from editor_gui.plugins.home_assistant.service import HomeAssistantService
     from editor_gui.plugins.keyring.service import KeyringService
     from editor_gui.plugins.mcp.context import McpContext
     from editor_gui.plugins.monitor.service import MonitorService
@@ -130,6 +131,7 @@ class McpServerPlugin:
         backups: BackupService | None = None,
         settings: SettingsWindow | None = None,
         recover: RecoverService | None = None,
+        home_assistant: HomeAssistantService | None = None,
     ) -> None:
         self._log = Logger(api.log, "mcp")
         self._context_args: dict[str, Any] = {
@@ -143,6 +145,7 @@ class McpServerPlugin:
             "backups": backups,
             "settings": settings,
             "recover": recover,
+            "home_assistant": home_assistant,
         }
         self._ctx: McpContext | None = None
         self._server: uvicorn.Server | None = None

@@ -87,6 +87,11 @@ from editor_gui.plugins.connection.plugin import (
 from editor_gui.plugins.connection.service import ConnectionService
 from editor_gui.plugins.connection.strings import S as _connection_strings
 from editor_gui.plugins.health import HealthPlugin
+from editor_gui.plugins.home_assistant.plugin import (
+    SETTINGS_PAGE as HOME_ASSISTANT_SETTINGS_PAGE,
+)
+from editor_gui.plugins.home_assistant.plugin import HomeAssistantPlugin
+from editor_gui.plugins.home_assistant.strings import S as _home_assistant_strings
 from editor_gui.plugins.keyring import KeyringPlugin
 from editor_gui.plugins.logger import LoggerPlugin, LogService
 from editor_gui.plugins.mcp import McpServerPlugin
@@ -844,6 +849,9 @@ class KnxGuiApp:
         )
         self._signing_plugin = SigningPlugin(self._plugin_api)
         self._recover_plugin = RecoverPlugin(self._plugin_api)
+        self._home_assistant_plugin = HomeAssistantPlugin(
+            self._plugin_api, self._project_service
+        )
         self._health_plugin = HealthPlugin(self._plugin_api)
         self._cockpit_plugin = CockpitPlugin(self._plugin_api)
         self._bus_diagram_plugin = BusDiagramPlugin(self._plugin_api)
@@ -924,6 +932,7 @@ class KnxGuiApp:
         self._language_question: str | None = None
         self._backups_plugin.open_settings = self._settings_window.open
         self._connection_plugin.open_settings = self._settings_window.open
+        self._home_assistant_plugin.open_settings = self._settings_window.open
 
         # Embedded MCP server: drives these same live services (no panels, so not in _plugins).
         self._mcp_plugin = McpServerPlugin(
@@ -936,6 +945,7 @@ class KnxGuiApp:
             self._backups_plugin.service,
             self._settings_window,
             self._recover_plugin.service,
+            home_assistant=self._home_assistant_plugin.service,
         )
 
         self._plugins: list[Any] = [
@@ -3970,6 +3980,7 @@ class KnxGuiApp:
 
         if self._mcp_plugin.is_running:
             self._status_part(S.STATUS_MCP_RUNNING, imgui.ImVec4(0.4, 0.85, 0.45, 1.0))
+        self._home_assistant_plugin.render_status(self._status_part)
 
         # KNX master data (mask-version procedures) version and date.
         if self._master_info is not None:
@@ -4095,6 +4106,7 @@ class KnxGuiApp:
         self._render_menu_separator()
         self._render_menus()
         self._ui_executor.drain()
+        self._home_assistant_plugin.poll()
         self._poll_dialogs()
         self._handle_shortcuts()
 
@@ -5229,6 +5241,7 @@ class KnxGuiApp:
         self._render_knxprod_result_modal()
         self._keyring_plugin.render_window()
         self._backups_plugin.render_window()
+        self._home_assistant_plugin.render_window()
         # The Signing Key dialog asked for from the Signing menu.
         if self._signing_plugin.take_open_request():
             imgui.open_popup(S.SIGNING_KEY_TITLE)
@@ -6416,6 +6429,14 @@ class KnxGuiApp:
                     self._catalog_plugin.settings(),
                 ),
             ]
+            if host.home_assistant():
+                self._settings_page_list.append(
+                    SettingsPage(
+                        HOME_ASSISTANT_SETTINGS_PAGE,
+                        lambda: _home_assistant_strings.MENU,
+                        self._home_assistant_plugin.settings(),
+                    )
+                )
         return self._settings_page_list
 
     def _general_settings(self) -> list[Setting]:
