@@ -58,8 +58,8 @@ msgstr "Cím"
 msgid "Mask"
 msgstr "Maszk"
 
-msgid "Product / Application"
-msgstr "Termék / alkalmazás"
+msgid "Product/Application"
+msgstr "Termék/alkalmazás"
 
 msgid "Status"
 msgstr "Állapot"

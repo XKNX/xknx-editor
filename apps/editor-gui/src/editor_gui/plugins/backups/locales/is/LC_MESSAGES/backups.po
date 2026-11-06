@@ -202,9 +202,6 @@ msgstr "Nýjasta öryggisafrit þess er frá {created}. Endurheimta verkefnið �
 msgid "The damaged file was kept as {name}."
 msgstr "Skemmda skráin var geymd sem {name}."
 
-msgid "Backup Settings"
-msgstr "Stillingar öryggisafrita"
-
 msgid "A backup is one file with the complete project, which can be restored on its own. Each project has a folder of its own in the backup folder. A network drive or a folder synchronized with a cloud service keeps the backups off this computer."
 msgstr "Öryggisafrit er ein skrá með öllu verkefninu sem hægt er að endurheimta eitt og sér. Hvert verkefni hefur sína eigin möppu í möppu öryggisafrita. Netdrif eða mappa sem er samstillt við skýjaþjónustu geymir öryggisafritin utan þessarar tölvu."
 

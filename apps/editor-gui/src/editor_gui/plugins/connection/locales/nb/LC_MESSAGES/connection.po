@@ -22,9 +22,6 @@ msgstr "Bruk serienummer ved nedlasting"
 msgid "Discovered Gateways"
 msgstr "Funne gatewayer"
 
-msgid "Diagnostics"
-msgstr "Diagnostikk"
-
 msgid "Check for Devices in Programming Mode"
 msgstr "Søk etter enheter i programmeringsmodus"
 
@@ -204,3 +201,6 @@ msgstr "TCP tunneling"
 
 msgid "Routing"
 msgstr "Routing"
+
+msgid "A device whose serial number is known gets its individual address without pressing its programming button."
+msgstr "En enhet med kjent serienummer får sin individuelle adresse uten at programmeringsknappen trykkes."

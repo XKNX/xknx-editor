@@ -19,9 +19,6 @@ msgstr "{project} – {file} - {app}"
 msgid "Help"
 msgstr "Ndihmë"
 
-msgid "Feedback"
-msgstr "Dërgo përshtypje"
-
 msgid "About"
 msgstr "Rreth"
 
@@ -187,9 +184,6 @@ msgstr "Nis serverin"
 msgid "Stop Server"
 msgstr "Ndalo serverin"
 
-msgid "AI MCP"
-msgstr "AI MCP"
-
 msgid "This editor is controllable by an AI assistant (Claude, Codex, …) through the built-in MCP server: it exposes the catalog and project as tools over Streamable HTTP. Start the server below, then register its endpoint in your AI tool."
 msgstr "Ky editor mund të drejtohet nga një asistent AI (Claude, Codex, …) përmes serverit MCP të integruar: ai i ofron katalogun dhe projektin si vegla përmes Streamable HTTP. Nisni serverin më poshtë, pastaj regjistroni pikën e tij fundore në veglën tuaj AI."
 
@@ -322,11 +316,11 @@ msgstr "Adresat e grupeve"
 msgid "Group Object Links"
 msgstr "Lidhjet e objekteve të grupit"
 
-msgid "Areas / Lines"
-msgstr "Zonat / Linjat"
+msgid "Areas/Lines"
+msgstr "Zonat/Linjat"
 
-msgid "Floors / Rooms"
-msgstr "Katet / Dhomat"
+msgid "Floors/Rooms"
+msgstr "Katet/Dhomat"
 
 msgid "Functions"
 msgstr "Funksionet"
@@ -1042,15 +1036,6 @@ msgstr "Licenca: GPL-2.0-only"
 msgid "Website:"
 msgstr "Faqja në internet:"
 
-msgid "Open Config Folder"
-msgstr "Hap dosjen e konfigurimit"
-
-msgid "Open Cache Folder"
-msgstr "Hap dosjen e memories së përkohshme"
-
-msgid "Open Log Folder"
-msgstr "Hap dosjen e regjistrave"
-
 msgid "Compact Project…"
 msgstr "Ngjesh projektin…"
 
@@ -1539,3 +1524,66 @@ msgstr "Kjo bazë e të dhënave të produkteve është e mbrojtur me fjalëkali
 
 msgid "These files use a fixed, publicly documented password, for example here:"
 msgstr "Këta skedarë përdorin një fjalëkalim fiks, të dokumentuar publikisht, për shembull këtu:"
+
+msgid "Tools"
+msgstr "Veglat"
+
+msgid "Command Palette"
+msgstr "Paleta e komandave"
+
+msgid "Search settings"
+msgstr "Kërko në cilësime"
+
+msgid "No setting matches the search."
+msgstr "Asnjë cilësim nuk përputhet me kërkimin."
+
+msgid "General"
+msgstr "Të përgjithshme"
+
+msgid "Connection"
+msgstr "Lidhja"
+
+msgid "Backups"
+msgstr "Kopjet rezervë"
+
+msgid "AI/MCP"
+msgstr "AI/MCP"
+
+msgid "Folders"
+msgstr "Dosjet"
+
+msgid "Texts of product data (parameters, group objects) are shown in this language where the product has them."
+msgstr "Tekstet e të dhënave të produktit (parametrat, objektet e grupit) shfaqen në këtë gjuhë, kur produkti i ka."
+
+msgid "Lowers the frame rate while nothing changes on the screen, to save power."
+msgstr "Ul shpejtësinë e kuadrove kur asgjë nuk ndryshon në ekran, për të kursyer energji."
+
+msgid "Cache Folder"
+msgstr "Dosja e memories së përkohshme"
+
+msgid "Config Folder"
+msgstr "Dosja e konfigurimit"
+
+msgid "Log Folder"
+msgstr "Dosja e regjistrave"
+
+msgid "AI Tools"
+msgstr "Veglat AI"
+
+msgid "More Themes…"
+msgstr "Më shumë tema…"
+
+msgid "Panels"
+msgstr "Panelet"
+
+msgid "Search commands, settings, panels, devices and group addresses"
+msgstr "Kërko komanda, cilësime, panele, pajisje dhe adresa grupi"
+
+msgid "Also show the texts of product data (parameters, group objects) in {language}?"
+msgstr "Të shfaqen edhe tekstet e të dhënave të produktit (parametrat, objektet e grupit) në {language}?"
+
+msgid "Yes"
+msgstr "Po"
+
+msgid "No"
+msgstr "Jo"

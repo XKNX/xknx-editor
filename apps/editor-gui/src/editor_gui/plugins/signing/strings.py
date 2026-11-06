@@ -10,10 +10,6 @@ _ = create_translator("signing", _locale_dir)
 
 class SigningStrings:
     @property
-    def MENU(self) -> str:
-        return _("Signing")
-
-    @property
     def MENU_SHOW_WINDOW(self) -> str:
         return _("Signing Key…")
 

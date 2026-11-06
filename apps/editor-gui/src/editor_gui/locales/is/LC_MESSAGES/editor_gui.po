@@ -316,9 +316,6 @@ msgstr "ETS 5 (skema 20)"
 msgid "ETS 6 (schema 23)"
 msgstr "ETS 6 (skema 23)"
 
-msgid "AI MCP"
-msgstr "Gervigreind MCP"
-
 msgid "This editor is controllable by an AI assistant (Claude, Codex, …) through the built-in MCP server: it exposes the catalog and project as tools over Streamable HTTP. Start the server below, then register its endpoint in your AI tool."
 msgstr "Gervigreindaraðstoðarmaður (Claude, Codex, …) getur stjórnað þessum ritli í gegnum innbyggða MCP-þjóninn: hann gerir vörulistann og verkefnið aðgengileg sem verkfæri um Streamable HTTP. Ræstu þjóninn hér fyrir neðan og skráðu svo endapunkt hans í gervigreindarverkfærinu þínu."
 
@@ -448,11 +445,11 @@ msgstr "Hópvistföng"
 msgid "Group Object Links"
 msgstr "Tengingar samskiptahluta"
 
-msgid "Areas / Lines"
-msgstr "Svæði / línur"
+msgid "Areas/Lines"
+msgstr "Svæði/línur"
 
-msgid "Floors / Rooms"
-msgstr "Hæðir / herbergi"
+msgid "Floors/Rooms"
+msgstr "Hæðir/herbergi"
 
 msgid "Functions"
 msgstr "Aðgerðir"
@@ -676,9 +673,6 @@ msgstr "Verkefni (*.xknx, *.knxproj, *.xml, *.csv)"
 msgid "Import Group Addresses…"
 msgstr "Flytja inn hópvistföng…"
 
-msgid "Feedback"
-msgstr "Endurgjöf"
-
 msgid "A desktop editor for building-automation installation projects, built on the open-source xknx library and based on xknxtoolkit by kewde. Not affiliated with or endorsed by the KNX Association."
 msgstr "Ritill fyrir verkefni í hússtjórnarkerfum, byggður á opna xknx-forritasafninu og á xknxtoolkit eftir kewde. Hvorki tengdur KNX Association né studdur af þeim."
 
@@ -843,15 +837,6 @@ msgstr "Leyfi: GPL-2.0-only"
 
 msgid "Website:"
 msgstr "Vefsvæði:"
-
-msgid "Open Config Folder"
-msgstr "Opna möppu stillinga"
-
-msgid "Open Cache Folder"
-msgstr "Opna skyndiminnismöppu"
-
-msgid "Open Log Folder"
-msgstr "Opna annálamöppu"
 
 msgid "This project is protected with a password. Enter it to open the project:"
 msgstr "Þetta verkefni er varið með aðgangsorði. Sláðu það inn til að opna verkefnið:"
@@ -1611,3 +1596,66 @@ msgstr "Þessi vörugagnagrunnur er varinn með lykilorði. Sláðu inn lykilor�
 
 msgid "These files use a fixed, publicly documented password, for example here:"
 msgstr "Þessar skrár nota fast, opinberlega skjalfest lykilorð, til dæmis hér:"
+
+msgid "Tools"
+msgstr "Verkfæri"
+
+msgid "Command Palette"
+msgstr "Skipanaspjald"
+
+msgid "Search settings"
+msgstr "Leita í stillingum"
+
+msgid "No setting matches the search."
+msgstr "Engin stilling passar við leitina."
+
+msgid "General"
+msgstr "Almennt"
+
+msgid "Connection"
+msgstr "Tenging"
+
+msgid "Backups"
+msgstr "Öryggisafrit"
+
+msgid "AI/MCP"
+msgstr "Gervigreind/MCP"
+
+msgid "Folders"
+msgstr "Möppur"
+
+msgid "Texts of product data (parameters, group objects) are shown in this language where the product has them."
+msgstr "Textar vörugagna (færibreytur, hópahlutir) birtast á þessu tungumáli þar sem varan hefur þá."
+
+msgid "Lowers the frame rate while nothing changes on the screen, to save power."
+msgstr "Lækkar rammatíðni meðan ekkert breytist á skjánum, til að spara orku."
+
+msgid "Cache Folder"
+msgstr "Skyndiminnismappa"
+
+msgid "Config Folder"
+msgstr "Mappa stillinga"
+
+msgid "Log Folder"
+msgstr "Annálamappa"
+
+msgid "AI Tools"
+msgstr "Gervigreindartól"
+
+msgid "More Themes…"
+msgstr "Fleiri þemu…"
+
+msgid "Panels"
+msgstr "Spjöld"
+
+msgid "Search commands, settings, panels, devices and group addresses"
+msgstr "Leita í skipunum, stillingum, spjöldum, tækjum og hópvistföngum"
+
+msgid "Also show the texts of product data (parameters, group objects) in {language}?"
+msgstr "Sýna einnig texta vörugagna (færibreytur, hópahluti) á {language}?"
+
+msgid "Yes"
+msgstr "Já"
+
+msgid "No"
+msgstr "Nei"

@@ -1421,8 +1421,8 @@ msgstr "Protokoll filtern"
 msgid "Find this device's manual (via the KNX device database, else a manufacturer search) and open it in your browser. Best effort - opens the KNX device search if no direct document is found."
 msgstr "Das Handbuch dieses Geräts suchen (über die KNX-Gerätedatenbank, sonst per Herstellersuche) und im Browser öffnen. Ohne Gewähr - öffnet die KNX-Gerätesuche, wenn kein direktes Dokument gefunden wird."
 
-msgid "Gap X / Y (mm)"
-msgstr "Abstand X / Y (mm)"
+msgid "Gap X/Y (mm)"
+msgstr "Abstand X/Y (mm)"
 
 
 msgid "Obtain an IP address automatically"
@@ -1479,8 +1479,8 @@ msgstr "Legende (ganze Seite)"
 msgid "MAC Address"
 msgstr "MAC-Adresse"
 
-msgid "Margin Top / Left (mm)"
-msgstr "Rand oben / links (mm)"
+msgid "Margin Top/Left (mm)"
+msgstr "Rand oben/links (mm)"
 
 msgid "No .NET runtime found (install the .NET SDK, or run on Windows with ETS)."
 msgstr "Keine .NET-Laufzeitumgebung gefunden (installieren Sie das .NET SDK oder starten Sie unter Windows mit ETS)."

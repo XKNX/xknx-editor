@@ -22,9 +22,6 @@ msgstr "Использовать серийный номер для загруз
 msgid "Discovered Gateways"
 msgstr "Найденные шлюзы"
 
-msgid "Diagnostics"
-msgstr "Диагностирование"
-
 msgid "Check for Devices in Programming Mode"
 msgstr "Найти устройства в режиме программирования"
 
@@ -204,3 +201,6 @@ msgstr "TCP tunneling"
 
 msgid "Routing"
 msgstr "Routing"
+
+msgid "A device whose serial number is known gets its individual address without pressing its programming button."
+msgstr "Устройство с известным серийным номером получает индивидуальный адрес без нажатия кнопки программирования."

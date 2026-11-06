@@ -19,9 +19,6 @@ msgstr "{project} – {file} - {app}"
 msgid "Help"
 msgstr "Pomoc"
 
-msgid "Feedback"
-msgstr "Opinie"
-
 msgid "About"
 msgstr "O programie"
 
@@ -187,9 +184,6 @@ msgstr "Uruchom serwer"
 msgid "Stop Server"
 msgstr "Zatrzymaj serwer"
 
-msgid "AI MCP"
-msgstr "AI MCP"
-
 msgid "This editor is controllable by an AI assistant (Claude, Codex, …) through the built-in MCP server: it exposes the catalog and project as tools over Streamable HTTP. Start the server below, then register its endpoint in your AI tool."
 msgstr "Tym edytorem może sterować asystent AI (Claude, Codex, …) przez wbudowany serwer MCP: udostępnia on katalog i projekt jako narzędzia przez Streamable HTTP. Należy uruchomić serwer poniżej, a następnie zarejestrować jego punkt końcowy w narzędziu AI."
 
@@ -322,11 +316,11 @@ msgstr "Adresy grupowe"
 msgid "Group Object Links"
 msgstr "Powiązania obiektów grupy"
 
-msgid "Areas / Lines"
-msgstr "Obszary / linie"
+msgid "Areas/Lines"
+msgstr "Obszary/linie"
 
-msgid "Floors / Rooms"
-msgstr "Piętra / pokoje"
+msgid "Floors/Rooms"
+msgstr "Piętra/pokoje"
 
 msgid "Functions"
 msgstr "Funkcje"
@@ -1042,15 +1036,6 @@ msgstr "Licencja: GPL-2.0-only"
 msgid "Website:"
 msgstr "Strona internetowa:"
 
-msgid "Open Config Folder"
-msgstr "Otwórz folder konfiguracji"
-
-msgid "Open Cache Folder"
-msgstr "Otwórz folder pamięci podręcznej"
-
-msgid "Open Log Folder"
-msgstr "Otwórz folder logów"
-
 msgid "Compact Project…"
 msgstr "Kompaktuj projekt…"
 
@@ -1539,3 +1524,66 @@ msgstr "Ta baza danych produktów jest chroniona hasłem. Wprowadź hasło, aby 
 
 msgid "These files use a fixed, publicly documented password, for example here:"
 msgstr "Te pliki używają stałego, publicznie udokumentowanego hasła, na przykład tutaj:"
+
+msgid "Tools"
+msgstr "Narzędzia"
+
+msgid "Command Palette"
+msgstr "Paleta poleceń"
+
+msgid "Search settings"
+msgstr "Szukaj w ustawieniach"
+
+msgid "No setting matches the search."
+msgstr "Żadne ustawienie nie pasuje do wyszukiwania."
+
+msgid "General"
+msgstr "Ogólne"
+
+msgid "Connection"
+msgstr "Połączenie"
+
+msgid "Backups"
+msgstr "Kopie zapasowe"
+
+msgid "AI/MCP"
+msgstr "AI/MCP"
+
+msgid "Folders"
+msgstr "Foldery"
+
+msgid "Texts of product data (parameters, group objects) are shown in this language where the product has them."
+msgstr "Teksty danych produktu (parametry, obiekty grupowe) są wyświetlane w tym języku, jeśli produkt je zawiera."
+
+msgid "Lowers the frame rate while nothing changes on the screen, to save power."
+msgstr "Obniża liczbę klatek na sekundę, gdy nic się nie zmienia na ekranie, aby oszczędzać energię."
+
+msgid "Cache Folder"
+msgstr "Folder pamięci podręcznej"
+
+msgid "Config Folder"
+msgstr "Folder konfiguracji"
+
+msgid "Log Folder"
+msgstr "Folder logów"
+
+msgid "AI Tools"
+msgstr "Narzędzia AI"
+
+msgid "More Themes…"
+msgstr "Więcej motywów…"
+
+msgid "Panels"
+msgstr "Panele"
+
+msgid "Search commands, settings, panels, devices and group addresses"
+msgstr "Szukaj poleceń, ustawień, paneli, urządzeń i adresów grupowych"
+
+msgid "Also show the texts of product data (parameters, group objects) in {language}?"
+msgstr "Czy wyświetlać również teksty danych produktu (parametry, obiekty grupowe) w języku {language}?"
+
+msgid "Yes"
+msgstr "Tak"
+
+msgid "No"
+msgstr "Nie"

@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import time
 from collections.abc import Callable, Iterator
-from dataclasses import dataclass, field, replace
+from dataclasses import dataclass, field
 from pathlib import Path
 
 import pytest
@@ -22,6 +22,7 @@ from editor_gui.plugins.catalog.service import CatalogService
 from editor_gui.plugins.connection.service import ConnectionService
 from editor_gui.plugins.logger import LogService
 from editor_gui.plugins.project.service import ProjectService
+from editor_gui.settings_window import Setting
 from editor_gui.widgets import dialog
 
 
@@ -246,17 +247,40 @@ def test_a_restore_asked_in_the_list_opens_on_top_of_it(env: Env) -> None:
     assert kinds == ["manual", "restore"]
 
 
-def test_the_settings_are_kept_on_ok(env: Env) -> None:
+def _set(setting: Setting, value: object) -> None:
+    assert setting.set is not None
+    setting.set(value)
+
+
+def _get(setting: Setting) -> object:
+    assert setting.get is not None
+    return setting.get()
+
+
+def test_the_settings_are_a_page_of_the_settings_window(env: Env) -> None:
+    # File > Backups > Settings… opens the Backups page of the Settings window.
+    opened: list[str] = []
+    env.plugin.open_settings = opened.append
     env.plugin.ask_settings()
-    env.plugin._draft = replace(env.plugin._draft, on_close=True, expire_days=30)  # pyright: ignore[reportPrivateUsage]
-    env.frames(key=imgui.Key.enter)
+    assert opened == ["backups"]
+
+
+def test_a_setting_changed_on_its_page_is_kept_at_once(env: Env) -> None:
+    settings = {s.key: s for s in env.plugin.settings()}
+    _set(settings["backup_on_close"], True)
+    _set(settings["backup_expire_days"], 30)
     assert env.plugin.service.settings.on_close
     assert env.plugin.service.settings.expire_days == 30
-
-    env.plugin.ask_settings()
-    env.plugin._draft = replace(env.plugin._draft, on_close=False)  # pyright: ignore[reportPrivateUsage]
-    env.frames(key=imgui.Key.escape)
-    assert env.plugin.service.settings.on_close
+    assert _get(settings["backup_on_close"]) is True
+    # A number follows its own setting: off while expiry is off.
+    _set(settings["backup_expire"], False)
+    assert settings["backup_expire_days"].read_only()
+    assert settings["backup_keep_newest"].read_only()
+    # The folder: "" is the default one.
+    _set(settings["backup_folder"], str(env.path.parent / "elsewhere"))
+    assert env.plugin.service.settings.root == env.path.parent / "elsewhere"
+    _set(settings["backup_folder"], "")
+    assert env.plugin.service.settings.folder == ""
 
 
 def test_a_project_that_cannot_be_opened_is_restored(env: Env) -> None:

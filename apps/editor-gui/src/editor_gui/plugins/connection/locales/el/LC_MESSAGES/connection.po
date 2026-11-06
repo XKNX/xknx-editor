@@ -22,9 +22,6 @@ msgstr "Χρήση Σειριακού Αριθμού για Φορτίσεις"
 msgid "Discovered Gateways"
 msgstr "Εντοπισμένα Gateway"
 
-msgid "Diagnostics"
-msgstr "Διαγνωστικά"
-
 msgid "Check for Devices in Programming Mode"
 msgstr "Έλεγχος για Συσκευές σε Κατάσταση Προγραμματισμού"
 
@@ -204,3 +201,6 @@ msgstr "TCP tunneling"
 
 msgid "Routing"
 msgstr "Routing"
+
+msgid "A device whose serial number is known gets its individual address without pressing its programming button."
+msgstr "Μια συσκευή με γνωστό σειριακό αριθμό λαμβάνει την ατομική της διεύθυνση χωρίς να πατηθεί το κουμπί προγραμματισμού της."

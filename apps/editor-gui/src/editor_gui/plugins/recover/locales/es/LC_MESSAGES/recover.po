@@ -52,8 +52,8 @@ msgstr "Dirección"
 msgid "Mask"
 msgstr "Máscara"
 
-msgid "Product / Application"
-msgstr "Producto / Aplicación"
+msgid "Product/Application"
+msgstr "Producto/Aplicación"
 
 msgid "Status"
 msgstr "Estado"

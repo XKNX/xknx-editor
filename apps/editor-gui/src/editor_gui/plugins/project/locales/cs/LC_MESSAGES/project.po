@@ -481,11 +481,11 @@ msgstr "Řádky"
 msgid "Label W x H (mm)"
 msgstr "Štítek Š x V (mm)"
 
-msgid "Margin Top / Left (mm)"
-msgstr "Okraj nahoře / vlevo (mm)"
+msgid "Margin Top/Left (mm)"
+msgstr "Okraj nahoře/vlevo (mm)"
 
-msgid "Gap X / Y (mm)"
-msgstr "Mezera X / Y (mm)"
+msgid "Gap X/Y (mm)"
+msgstr "Mezera X/Y (mm)"
 
 msgid "Export HTML…"
 msgstr "Exportovat HTML…"

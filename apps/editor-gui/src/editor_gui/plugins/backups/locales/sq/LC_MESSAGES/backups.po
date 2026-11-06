@@ -202,9 +202,6 @@ msgstr "Kopja e tij rezervë më e re është e {created}. Të rikthehet projekt
 msgid "The damaged file was kept as {name}."
 msgstr "Skedari i dëmtuar u ruajt si {name}."
 
-msgid "Backup Settings"
-msgstr "Cilësimet e kopjeve rezervë"
-
 msgid "A backup is one file with the complete project, which can be restored on its own. Each project has a folder of its own in the backup folder. A network drive or a folder synchronized with a cloud service keeps the backups off this computer."
 msgstr "Një kopje rezervë është një skedar i vetëm me të gjithë projektin, që mund të rikthehet më vete. Çdo projekt ka dosjen e vet në dosjen e kopjeve rezervë. Një disk rrjeti ose një dosje e sinkronizuar me një shërbim cloud i mban kopjet rezervë jashtë këtij kompjuteri."
 

@@ -16,8 +16,8 @@ msgstr "没有组地址（请打开或导入项目）"
 msgid "Not Connected"
 msgstr "未连接"
 
-msgid "value (e.g. on / 21.5 / 50)"
-msgstr "值（例如 on / 21.5 / 50）"
+msgid "value (e.g. on/21.5/50)"
+msgstr "值（例如 on/21.5/50）"
 
 msgid "Value:"
 msgstr "值："

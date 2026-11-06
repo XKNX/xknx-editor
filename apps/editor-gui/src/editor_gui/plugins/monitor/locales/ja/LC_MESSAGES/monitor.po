@@ -16,8 +16,8 @@ msgstr "グループ・アドレスがありません（プロジェクトを開
 msgid "Not Connected"
 msgstr "未接続"
 
-msgid "value (e.g. on / 21.5 / 50)"
-msgstr "値（例：on / 21.5 / 50）"
+msgid "value (e.g. on/21.5/50)"
+msgstr "値（例：on/21.5/50）"
 
 msgid "Value:"
 msgstr "値："

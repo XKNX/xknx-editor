@@ -22,9 +22,6 @@ msgstr "Käytä sarjanumeroa latauksissa"
 msgid "Discovered Gateways"
 msgstr "Löydetyt yhdyskäytävät"
 
-msgid "Diagnostics"
-msgstr "Diagnostiikka"
-
 msgid "Check for Devices in Programming Mode"
 msgstr "Etsi ohjelmointitilassa olevia laitteita"
 
@@ -204,3 +201,6 @@ msgstr "TCP tunneling"
 
 msgid "Routing"
 msgstr "Routing"
+
+msgid "A device whose serial number is known gets its individual address without pressing its programming button."
+msgstr "Laite, jonka sarjanumero tunnetaan, saa yksilöllisen osoitteensa ilman ohjelmointipainikkeen painamista."

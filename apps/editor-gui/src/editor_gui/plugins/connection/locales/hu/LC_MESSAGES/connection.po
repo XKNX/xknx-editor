@@ -19,9 +19,6 @@ msgstr "Kapcsolat bontása"
 msgid "Discovered Gateways"
 msgstr "Talált átjárók"
 
-msgid "Diagnostics"
-msgstr "Diagnosztika"
-
 msgid "Check for Devices in Programming Mode"
 msgstr "Programozási módban lévő készülékek keresése"
 
@@ -204,3 +201,6 @@ msgstr "TCP tunneling"
 
 msgid "Routing"
 msgstr "Routing"
+
+msgid "A device whose serial number is known gets its individual address without pressing its programming button."
+msgstr "Az ismert sorozatszámú eszköz a programozógombja megnyomása nélkül kapja meg a fizikai címét."

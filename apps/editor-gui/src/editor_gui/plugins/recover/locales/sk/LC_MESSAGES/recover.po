@@ -58,8 +58,8 @@ msgstr "Adresa"
 msgid "Mask"
 msgstr "Maska"
 
-msgid "Product / Application"
-msgstr "Produkt / aplikácia"
+msgid "Product/Application"
+msgstr "Produkt/aplikácia"
 
 msgid "Status"
 msgstr "Stav"

@@ -22,9 +22,6 @@ msgstr "Usa numero seriale per lo scaricamento"
 msgid "Discovered Gateways"
 msgstr "Gateway rilevati"
 
-msgid "Diagnostics"
-msgstr "Verifiche"
-
 msgid "Check for Devices in Programming Mode"
 msgstr "Cerca dispositivi in modalità di programmazione"
 
@@ -204,3 +201,6 @@ msgstr "TCP tunneling"
 
 msgid "Routing"
 msgstr "Routing"
+
+msgid "A device whose serial number is known gets its individual address without pressing its programming button."
+msgstr "Un dispositivo con numero di serie noto riceve il proprio indirizzo individuale senza premere il suo tasto di programmazione."

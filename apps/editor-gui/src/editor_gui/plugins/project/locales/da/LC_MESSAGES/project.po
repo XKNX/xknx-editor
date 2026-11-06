@@ -481,11 +481,11 @@ msgstr "Rækker"
 msgid "Label W x H (mm)"
 msgstr "Etiket B x H (mm)"
 
-msgid "Margin Top / Left (mm)"
-msgstr "Margen top / venstre (mm)"
+msgid "Margin Top/Left (mm)"
+msgstr "Margen top/venstre (mm)"
 
-msgid "Gap X / Y (mm)"
-msgstr "Afstand X / Y (mm)"
+msgid "Gap X/Y (mm)"
+msgstr "Afstand X/Y (mm)"
 
 msgid "Export HTML…"
 msgstr "Eksporter HTML…"

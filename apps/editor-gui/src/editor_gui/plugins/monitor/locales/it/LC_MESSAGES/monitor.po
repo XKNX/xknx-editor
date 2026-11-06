@@ -16,8 +16,8 @@ msgstr "Nessun indirizzo di gruppo (aprire o importare un progetto)"
 msgid "Not Connected"
 msgstr "Non connesso"
 
-msgid "value (e.g. on / 21.5 / 50)"
-msgstr "valore (es. on / 21.5 / 50)"
+msgid "value (e.g. on/21.5/50)"
+msgstr "valore (es. on/21.5/50)"
 
 msgid "Value:"
 msgstr "Valore:"

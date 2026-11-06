@@ -63,7 +63,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     @tool("read")
     def backup_settings() -> dict[str, Any]:
-        """The backup settings (File > Backups > Settings…), for every project:
+        """The backup settings (Settings > Backups), for every project:
         {folder ("" = the default folder), effective_folder, default_folder, on_close (a backup
         when a project is closed), interval and interval_minutes (a backup every that many minutes
         while a project is open and changed), expire, expire_days and keep_newest (automatic

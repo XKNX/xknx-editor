@@ -170,10 +170,12 @@ async def test_devices_read_back_are_added_to_the_project(tmp_path: Path) -> Non
         devices = (await _data(client, "project_list_devices"))["items"]
         assert [d["individual_address"] for d in devices] == ["1.1.3"]
 
-        # Added once: a second add finds it in the project.
+        # Added once: a second add leaves the device that is already added alone.
         again = await _data(client, "recover_add_to_project")
-        assert again["added"] == 0
-        assert again["entries"][0]["status"] == "exists"
+        assert (again["added"], again["failed"]) == (0, 0)
+        assert again["entries"][0]["applied"] is True
+        devices = (await _data(client, "project_list_devices"))["items"]
+        assert [d["individual_address"] for d in devices] == ["1.1.3"]
 
         # A new project gets it again.
         fresh = await _data(

@@ -99,7 +99,7 @@ _HELP_SPLITTER_TOUCH = 16.0
 _HELP_LINE = 3.0
 # The help's height (at 100 % scaling) until the user drags it, and the app setting that keeps
 # the dragged one.
-_HELP_HEIGHT = 160.0
+_HELP_HEIGHT = 166.0
 _HELP_HEIGHT_SETTING = "help_height"
 # The same where the editor puts its pages above the parameters (a phone): there it is apart.
 _HELP_HEIGHT_NARROW = 100.0

@@ -19,9 +19,6 @@ msgstr "Prekini povezavo"
 msgid "Discovered Gateways"
 msgstr "Najdeni prehodi"
 
-msgid "Diagnostics"
-msgstr "Diagnostika"
-
 msgid "Check for Devices in Programming Mode"
 msgstr "Poišči naprave v načinu programiranja"
 
@@ -204,3 +201,6 @@ msgstr "TCP tunneling"
 
 msgid "Routing"
 msgstr "Routing"
+
+msgid "A device whose serial number is known gets its individual address without pressing its programming button."
+msgstr "Naprava z znano serijsko številko dobi fizični naslov brez pritiska na programirni gumb."

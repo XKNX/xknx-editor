@@ -61,9 +61,6 @@ msgstr "Verbinding mislukt"
 msgid "Devices in Programming Mode"
 msgstr "Apparaten in programmeermodus"
 
-msgid "Diagnostics"
-msgstr "Diagnose"
-
 msgid "Discovered Gateways"
 msgstr "Gevonden gateways"
 
@@ -204,3 +201,6 @@ msgstr "TCP-tunneling"
 
 msgid "Routing"
 msgstr "Routing"
+
+msgid "A device whose serial number is known gets its individual address without pressing its programming button."
+msgstr "Een apparaat met bekend serienummer krijgt zijn individueel adres zonder dat de programmeerknop wordt ingedrukt."

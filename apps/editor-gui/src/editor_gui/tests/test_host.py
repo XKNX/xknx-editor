@@ -77,7 +77,7 @@ def _app(**fields: Any) -> SimpleNamespace:
 def test_mcp_url_and_token_standalone() -> None:
     stub = _app()
     assert KnxGuiApp._mcp_url(stub) == "http://127.0.0.1:8765/mcp"  # type: ignore[arg-type]
-    assert KnxGuiApp._ki_command_token(stub) == "own-token"  # type: ignore[arg-type]
+    assert KnxGuiApp._mcp_command_token(stub) == "own-token"  # type: ignore[arg-type]
     assert KnxGuiApp._mcp_managed_text() == S.MCP_MANAGED
     host.set_current(HostOptions(True, "127.0.0.1", 41000))
     assert KnxGuiApp._mcp_managed_text() == S.MCP_HOME_ASSISTANT
@@ -90,13 +90,13 @@ def test_mcp_url_and_token_in_home_assistant() -> None:
     stub = _app()
     # Clients reach the server through Home Assistant, signed in with their own token.
     assert KnxGuiApp._mcp_url(stub) == "https://ha.example/api/xknx_editor/mcp"  # type: ignore[arg-type]
-    assert KnxGuiApp._ki_command_token(stub) == host.HOME_ASSISTANT_TOKEN_PLACEHOLDER  # type: ignore[arg-type]
+    assert KnxGuiApp._mcp_command_token(stub) == host.HOME_ASSISTANT_TOKEN_PLACEHOLDER  # type: ignore[arg-type]
 
 
 def test_mcp_token_of_another_launcher(monkeypatch: pytest.MonkeyPatch) -> None:
     host.set_current(HostOptions(mcp_host="127.0.0.1", mcp_port=41000))
     monkeypatch.setenv("XKNX_MCP_AUTH_TOKEN", "launcher-token")
-    assert KnxGuiApp._ki_command_token(_app()) == "launcher-token"  # type: ignore[arg-type]
+    assert KnxGuiApp._mcp_command_token(_app()) == "launcher-token"  # type: ignore[arg-type]
 
 
 def test_managed_mcp_settings_are_not_stored(monkeypatch: pytest.MonkeyPatch) -> None:

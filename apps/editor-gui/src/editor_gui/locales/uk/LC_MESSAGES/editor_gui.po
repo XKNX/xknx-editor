@@ -19,9 +19,6 @@ msgstr "{project} – {file} - {app}"
 msgid "Help"
 msgstr "Допомога"
 
-msgid "Feedback"
-msgstr "Відгук"
-
 msgid "About"
 msgstr "Про програму"
 
@@ -187,9 +184,6 @@ msgstr "Запустити сервер"
 msgid "Stop Server"
 msgstr "Зупинити сервер"
 
-msgid "AI MCP"
-msgstr "ШІ MCP"
-
 msgid "This editor is controllable by an AI assistant (Claude, Codex, …) through the built-in MCP server: it exposes the catalog and project as tools over Streamable HTTP. Start the server below, then register its endpoint in your AI tool."
 msgstr "Цим редактором може керувати ШІ-асистент (Claude, Codex, …) через вбудований сервер MCP: він надає каталог і проєкт як інструменти через Streamable HTTP. Запустіть сервер нижче, а потім зареєструйте його кінцеву точку у своєму ШІ-інструменті."
 
@@ -322,11 +316,11 @@ msgstr "Групові адреси"
 msgid "Group Object Links"
 msgstr "Зв'язки групових об'єктів"
 
-msgid "Areas / Lines"
-msgstr "Області / лінії"
+msgid "Areas/Lines"
+msgstr "Області/лінії"
 
-msgid "Floors / Rooms"
-msgstr "Поверхи / кімнати"
+msgid "Floors/Rooms"
+msgstr "Поверхи/кімнати"
 
 msgid "Functions"
 msgstr "Функції"
@@ -1042,15 +1036,6 @@ msgstr "Ліцензія: GPL-2.0-only"
 msgid "Website:"
 msgstr "Вебсайт:"
 
-msgid "Open Config Folder"
-msgstr "Відкрити папку конфігурації"
-
-msgid "Open Cache Folder"
-msgstr "Відкрити папку кешу"
-
-msgid "Open Log Folder"
-msgstr "Відкрити папку журналів"
-
 msgid "Compact Project…"
 msgstr "Стиснути проєкт…"
 
@@ -1539,3 +1524,66 @@ msgstr "Ця база даних продуктів захищена парол�
 
 msgid "These files use a fixed, publicly documented password, for example here:"
 msgstr "Ці файли використовують фіксований, загальнодоступно задокументований пароль, наприклад тут:"
+
+msgid "Tools"
+msgstr "Інструменти"
+
+msgid "Command Palette"
+msgstr "Палітра команд"
+
+msgid "Search settings"
+msgstr "Пошук у налаштуваннях"
+
+msgid "No setting matches the search."
+msgstr "Жодне налаштування не відповідає пошуку."
+
+msgid "General"
+msgstr "Загальне"
+
+msgid "Connection"
+msgstr "Підключення"
+
+msgid "Backups"
+msgstr "Резервні копії"
+
+msgid "AI/MCP"
+msgstr "ШІ/MCP"
+
+msgid "Folders"
+msgstr "Папки"
+
+msgid "Texts of product data (parameters, group objects) are shown in this language where the product has them."
+msgstr "Тексти даних продукту (параметри, групові об'єкти) показуються цією мовою, якщо продукт їх містить."
+
+msgid "Lowers the frame rate while nothing changes on the screen, to save power."
+msgstr "Знижує частоту кадрів, поки на екрані нічого не змінюється, щоб заощаджувати енергію."
+
+msgid "Cache Folder"
+msgstr "Папка кешу"
+
+msgid "Config Folder"
+msgstr "Папка конфігурації"
+
+msgid "Log Folder"
+msgstr "Папка журналів"
+
+msgid "AI Tools"
+msgstr "Інструменти ШІ"
+
+msgid "More Themes…"
+msgstr "Інші теми…"
+
+msgid "Panels"
+msgstr "Панелі"
+
+msgid "Search commands, settings, panels, devices and group addresses"
+msgstr "Пошук команд, налаштувань, панелей, пристроїв і групових адрес"
+
+msgid "Also show the texts of product data (parameters, group objects) in {language}?"
+msgstr "Показувати також тексти даних продукту (параметри, групові об'єкти) мовою {language}?"
+
+msgid "Yes"
+msgstr "Так"
+
+msgid "No"
+msgstr "Ні"

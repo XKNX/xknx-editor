@@ -537,7 +537,7 @@ class ThemeWindow:
         if expanded:
             tweaked = hello_imgui.get_runner_params().imgui_window_params.tweaked_theme
             if begin_tab_bar("##theme_tabs"):
-                if imgui.begin_tab_item(S.MENU_THEME)[0]:
+                if imgui.begin_tab_item(S.SETTING_THEME)[0]:
                     self._render_theme(tweaked)
                     imgui.end_tab_item()
                 if imgui.begin_tab_item(S.THEME_TAB_SIZES)[0]:
@@ -553,8 +553,8 @@ class ThemeWindow:
         imgui.end()
 
     def _render_theme(self, tweaked: hello_imgui.ImGuiTweakedTheme) -> None:
-        column = _column(S.MENU_THEME, *(s.label() for s in _ADJUSTMENTS))
-        _label(S.MENU_THEME, column)
+        column = _column(S.SETTING_THEME, *(s.label() for s in _ADJUSTMENTS))
+        _label(S.SETTING_THEME, column)
         if begin_combo("##theme", theme_name(tweaked.theme)):
             for theme in themes():
                 if imgui.selectable(theme_name(theme), theme == tweaked.theme)[0]:

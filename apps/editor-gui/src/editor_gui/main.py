@@ -10,7 +10,7 @@ import tempfile
 import threading
 import time
 import unicodedata
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
@@ -39,6 +39,7 @@ from editor_gui.cache import (
 from editor_gui.certs import ensure_ca_bundle
 from editor_gui.color import warning_red
 from editor_gui.concurrency import MainThreadExecutor
+from editor_gui.device import device_label
 from editor_gui.dock_menus import render_section_menus
 from editor_gui.instances import (
     BROWSER,
@@ -55,7 +56,9 @@ from editor_gui.languages import (
     LANGUAGES,
     PRODUCT_LANGUAGES,
     chosen_product_language,
+    culture,
     product_language,
+    product_text_languages,
     set_product_language,
     supported,
 )
@@ -72,11 +75,15 @@ from editor_gui.myknx_oauth import (
 )
 from editor_gui.os_open import open_url
 from editor_gui.plugins.backups import BackupsPlugin
+from editor_gui.plugins.backups.plugin import SETTINGS_PAGE as BACKUPS_SETTINGS_PAGE
 from editor_gui.plugins.base import API_VERSION, Logger, PanelDefinition, PluginAPI
 from editor_gui.plugins.bus_diagram import BusDiagramPlugin
 from editor_gui.plugins.catalog import CatalogPlugin, CatalogService
 from editor_gui.plugins.cockpit import CockpitPlugin
 from editor_gui.plugins.connection import ConnectionPlugin
+from editor_gui.plugins.connection.plugin import (
+    SETTINGS_PAGE as CONNECTION_SETTINGS_PAGE,
+)
 from editor_gui.plugins.connection.service import ConnectionService
 from editor_gui.plugins.connection.strings import S as _connection_strings
 from editor_gui.plugins.health import HealthPlugin
@@ -96,6 +103,7 @@ from editor_gui.plugins.timeline import TimelinePlugin
 from editor_gui.portal_save import PortalSaveDialog
 from editor_gui.ports import PortInUseError
 from editor_gui.settings import config_dir, load_settings, save_settings
+from editor_gui.settings_window import Setting, SettingsPage, SettingsWindow, matches
 from editor_gui.strings import S, get_locale, set_locale
 from editor_gui.theme import (
     ThemeWindow,
@@ -128,6 +136,7 @@ from editor_gui.widgets.dialog import (
     tab_page,
 )
 from editor_gui.widgets.dpi import px, px_vec2
+from editor_gui.widgets.filter_box import filter_box
 from editor_gui.widgets.fonts import (
     fitted_heading,
     follow_language,
@@ -491,6 +500,17 @@ class _ProductRow:
     registered: str
 
 
+@dataclass(frozen=True, slots=True)
+class PaletteItem:
+    """A row of the command palette: what it does, where it is (a menu, the settings, a device),
+    what it runs, and its shortcut."""
+
+    label: str
+    where: str
+    action: Callable[[], None]
+    shortcut: str = ""
+
+
 class KnxGuiApp:
     def __init__(self, catalog_path: Path) -> None:
         self._catalog_service_path = catalog_path
@@ -761,6 +781,11 @@ class KnxGuiApp:
         self._palette_query = ""
         self._palette_index = 0
         self._palette_focus = False
+        # The open project's devices and group addresses in the palette, by project state.
+        self._palette_project_items: tuple[tuple[int, int], list[PaletteItem]] = (
+            (-1, -1),
+            [],
+        )
 
         self._project_service = ProjectService(self._catalog_service)
         # When the user last moved the mouse, clicked or typed (see note_input).
@@ -859,8 +884,8 @@ class KnxGuiApp:
         # The status bar's parts: whether one no longer fitted, and the room kept at the right.
         self._status_full = False
         self._status_reserved = 0.0
-        # Width the menus take side by side, per language (see gui_menu).
-        self._menus_width: dict[str, float] = {}
+        # Width each menu takes in the menu bar, by its label (see gui_menu).
+        self._menu_widths: dict[str, float] = {}
         # After a layout switch: the order the tabs are moved into (window ids), from the frame
         # the new layout is built until a later one.
         self._tab_order: list[str] = []
@@ -883,6 +908,16 @@ class KnxGuiApp:
             compare=self._project_plugin.open_project_diff,
         )
         self._project_plugin.set_show_backups(self._backups_plugin.show_window)
+        # The Settings window, its pages built once (their settings read the live state).
+        self._settings_page_list: list[SettingsPage] | None = None
+        self._settings_window = SettingsWindow(
+            self._settings_pages, nested=self._render_settings_dialogs
+        )
+        # A new interface language chosen in the settings, while asked whether the product
+        # texts change with it.
+        self._language_question: str | None = None
+        self._backups_plugin.open_settings = self._settings_window.open
+        self._connection_plugin.open_settings = self._settings_window.open
 
         # Embedded MCP server: drives these same live services (no panels, so not in _plugins).
         self._mcp_plugin = McpServerPlugin(
@@ -893,6 +928,7 @@ class KnxGuiApp:
             self._keyring_plugin.service,
             self._project_plugin,
             self._backups_plugin.service,
+            self._settings_window,
             self._recover_plugin.service,
         )
 
@@ -3498,17 +3534,23 @@ class KnxGuiApp:
                     default_suffix=".xknx",
                 )
 
+    def _open_palette(self) -> None:
+        """The command palette (Edit menu, Ctrl+P), with an empty query."""
+        self._palette_open = True
+        self._palette_focus = True
+        self._palette_query = ""
+        self._palette_index = 0
+
     def _handle_shortcuts(self) -> None:
         io = imgui.get_io()
         ctrl = io.key_ctrl or io.key_super
         # Command palette opens even from a focused text field (Ctrl+P is not a printable char).
         if ctrl and imgui.is_key_pressed(imgui.Key.p):
-            self._palette_open = True
-            self._palette_focus = True
-            self._palette_query = ""
-            self._palette_index = 0
+            self._open_palette()
         if imgui.get_io().want_text_input:
             return  # don't steal typing in text fields
+        if ctrl and imgui.is_key_pressed(imgui.Key.comma):
+            self._settings_window.open()
         if ctrl and imgui.is_key_pressed(imgui.Key.z):
             self._redo() if io.key_shift else self._undo()
         elif ctrl and imgui.is_key_pressed(imgui.Key.y):
@@ -3947,7 +3989,7 @@ class KnxGuiApp:
                 imgui.get_text_line_height()
                 + style.frame_padding.y / 2
                 + style.item_inner_spacing.x
-                + imgui.calc_text_size(S.MENU_ENABLE_IDLING).x
+                + imgui.calc_text_size(S.SETTING_IDLING).x
                 + style.item_spacing.x
             )
         return width
@@ -3970,9 +4012,7 @@ class KnxGuiApp:
             # The checkbox, a little higher than the text, centred on the text line so the status
             # bar keeps its height.
             imgui.set_cursor_pos_y(imgui.get_cursor_pos_y() - style.frame_padding.y / 4)
-            _, idling.enable_idling = checkbox(
-                S.MENU_ENABLE_IDLING, idling.enable_idling
-            )
+            _, idling.enable_idling = checkbox(S.SETTING_IDLING, idling.enable_idling)
             imgui.same_line()
         imgui.text_disabled(fps)
 
@@ -4008,160 +4048,161 @@ class KnxGuiApp:
         # an untranslated name).
         imgui.internal.get_current_window().flags |= imgui.WindowFlags_.no_nav_focus
         self._render_menu_separator()
-        # Where the menus do not fit side by side (a phone), they are all in one menu. Their
-        # width is measured while they are side by side, once per language.
-        needed = self._menus_width.get(get_locale())
-        collapse = needed is not None and needed > imgui.get_window_width()
-        if not collapse:
-            self._render_menus()
-            style = imgui.get_style()
-            self._menus_width[get_locale()] = (
-                imgui.get_item_rect_max().x
-                - imgui.get_window_pos().x
-                + style.item_spacing.x
-                + style.window_padding.x
-            )
-        elif imgui.begin_menu(f"{_ICON_MENU}##all_menus"):
-            self._render_menus()
-            imgui.end_menu()
-
+        self._render_menus()
         self._ui_executor.drain()
         self._poll_dialogs()
         self._handle_shortcuts()
 
+    def _menus(self) -> list[tuple[str, Callable[[], None]]]:
+        """The menus of the menu bar, in their order: their labels and contents."""
+        return [
+            (S.MENU_FILE, self._render_file_menu),
+            (S.MENU_EDIT, self._render_edit_menu),
+            (S.MENU_VIEW, self._render_view_menu),
+            (self._connection_plugin.menu_label, self._connection_plugin.render_menu),
+            (S.MENU_TOOLS, self._render_tools_menu),
+            (S.MENU_HELP, self._render_help_menu),
+        ]
+
     def _render_menus(self) -> None:
-        """The menus: in the menu bar, or as submenus of the one menu (see gui_menu)."""
-        if imgui.begin_menu(S.MENU_FILE):
-            if imgui.menu_item(S.MENU_NEW_PROJECT, S.SHORTCUT_NEW, False)[0]:
-                self._new_project()
-            if imgui.menu_item(S.MENU_OPEN_PROJECT, S.SHORTCUT_OPEN, False)[0]:
-                self._open_project()
-            recent = self._recent_files()
-            if imgui.begin_menu(S.MENU_OPEN_RECENT, bool(recent)):
-                for path in recent:
-                    # Append the full path as a hidden id part: two recents can share a filename
-                    # (e.g. the same project on a share and locally), and a bare label would give
-                    # them the same imgui ID ("conflicting ID" warning, see _render_welcome).
-                    if imgui.menu_item(f"{Path(path).name}##{path}", "", False)[0]:
-                        self._do_open_project(path)
-                    if imgui.is_item_hovered():
-                        imgui.set_tooltip(path)
+        """The menus side by side, and the Settings button at the right end. The menus that do
+        not fit (a narrow window, a phone) are in one menu after the others, from the right."""
+        menus = self._menus()
+        style = imgui.get_style()
+        settings_width = _menu_width(_ICON_SETTINGS)
+        room = imgui.get_window_width() - 2 * style.window_padding.x - settings_width
+        widths = [
+            self._menu_widths.get(label) or _menu_width(label) for label, _ in menus
+        ]
+        shown = menus_shown(widths, room, _menu_width(_ICON_MENU))
+        left = imgui.get_cursor_screen_pos().x
+        for label, render in menus[:shown]:
+            if imgui.begin_menu(label):
+                render()
                 imgui.end_menu()
-            if imgui.menu_item(
-                S.MENU_SAVE_AS, "", False, self._project_service.is_open
-            )[0]:
-                self._save_as()
-            if imgui.menu_item(
-                S.MENU_EXPORT_KNXPROJ,
-                S.SHORTCUT_EXPORT,
-                False,
-                self._project_service.is_open,
-            )[0]:
-                self._export_knxproj()
-            if imgui.menu_item(S.MENU_COMPACT_PROJECT, "", False, self._can_compact())[
-                0
-            ]:
-                self._start_compact_analysis()
-            self._backups_plugin.render_file_menu()
-            imgui.separator()
-            if imgui.menu_item(
-                S.MENU_EXPORT_GA_EXPORT,
-                "",
-                False,
-                self._project_service.is_open,
-            )[0]:
-                self._export_ga_export()
-            if imgui.menu_item(
-                S.MENU_IMPORT_GA,
-                "",
-                False,
-                self._project_service.is_open and self._can_launch_file_dialog(),
-            )[0]:
-                self._project_plugin.import_group_addresses()
-            imgui.separator()
-            if (
-                imgui.menu_item(S.MENU_LOAD_PRODUCT, "", False)[0]
-                and self._can_launch_file_dialog()
-            ):
-                self._open_file_dialog = file_dialogs.open_file(
-                    S.FILE_DIALOG_PRODUCT_TITLE,
-                    "",
-                    [
-                        S.FILE_DIALOG_PRODUCT_FILTER,
-                        "*.knxprod *.vd1 *.vd2 *.vd3 *.vd4 *.vd5",
-                        S.FILE_DIALOG_ALL_FILES,
-                        "*",
-                    ],
-                )
-            load_from_url = (
-                S.MENU_LOAD_FROM_URL_FILES
-                if web.active_hub is not None
-                else S.MENU_LOAD_FROM_URL
-            )
-            if imgui.menu_item(load_from_url, "", False)[0]:
-                self._url_input = ""
-                self._url_prompt_requested = True
-            # On the desktop only: the browser UI is stopped from the tray icon or by the program
-            # that started it (Home Assistant, a service, Ctrl+C), not from a browser.
-            if web.active_hub is None:
-                imgui.separator()
-                if imgui.menu_item(S.MENU_EXIT, "", False)[0]:
-                    self._exit()
+            right = imgui.get_item_rect_max().x + style.item_spacing.x
+            self._menu_widths[label] = right - left
+            left = right
+        if shown < len(menus) and imgui.begin_menu(f"{_ICON_MENU}##all_menus"):
+            for label, render in menus[shown:]:
+                if imgui.begin_menu(label):
+                    render()
+                    imgui.end_menu()
             imgui.end_menu()
+        settings_x = imgui.get_window_width() - style.window_padding.x - settings_width
+        imgui.set_cursor_pos_x(max(settings_x, imgui.get_cursor_pos_x()))
+        if imgui.menu_item(f"{_ICON_SETTINGS}##settings", "", False)[0]:
+            self._settings_window.open()
+        if imgui.is_item_hovered():
+            imgui.set_tooltip(f"{S.SETTINGS_TITLE} ({S.SHORTCUT_SETTINGS})")
 
-        if imgui.begin_menu(S.MENU_EDIT):
-            if imgui.menu_item(S.MENU_UNDO, S.SHORTCUT_UNDO, False, self._can_undo())[
-                0
-            ]:
-                self._undo()
-            if imgui.menu_item(S.MENU_REDO, S.SHORTCUT_REDO, False, self._can_redo())[
-                0
-            ]:
-                self._redo()
+    def _render_file_menu(self) -> None:
+        if imgui.menu_item(S.MENU_NEW_PROJECT, S.SHORTCUT_NEW, False)[0]:
+            self._new_project()
+        if imgui.menu_item(S.MENU_OPEN_PROJECT, S.SHORTCUT_OPEN, False)[0]:
+            self._open_project()
+        recent = self._recent_files()
+        if imgui.begin_menu(S.MENU_OPEN_RECENT, bool(recent)):
+            for path in recent:
+                # Append the full path as a hidden id part: two recents can share a filename
+                # (e.g. the same project on a share and locally), and a bare label would give
+                # them the same imgui ID ("conflicting ID" warning, see _render_welcome).
+                if imgui.menu_item(f"{Path(path).name}##{path}", "", False)[0]:
+                    self._do_open_project(path)
+                if imgui.is_item_hovered():
+                    imgui.set_tooltip(path)
             imgui.end_menu()
+        if imgui.menu_item(S.MENU_SAVE_AS, "", False, self._project_service.is_open)[0]:
+            self._save_as()
+        if imgui.menu_item(
+            S.MENU_EXPORT_KNXPROJ,
+            S.SHORTCUT_EXPORT,
+            False,
+            self._project_service.is_open,
+        )[0]:
+            self._export_knxproj()
+        if imgui.menu_item(S.MENU_COMPACT_PROJECT, "", False, self._can_compact())[0]:
+            self._start_compact_analysis()
+        self._backups_plugin.render_file_menu()
+        imgui.separator()
+        if imgui.menu_item(
+            S.MENU_EXPORT_GA_EXPORT,
+            "",
+            False,
+            self._project_service.is_open,
+        )[0]:
+            self._export_ga_export()
+        if imgui.menu_item(
+            S.MENU_IMPORT_GA,
+            "",
+            False,
+            self._project_service.is_open and self._can_launch_file_dialog(),
+        )[0]:
+            self._project_plugin.import_group_addresses()
+        imgui.separator()
+        if imgui.menu_item(S.MENU_LOAD_PRODUCT, "", False)[0]:
+            self._choose_product_file()
+        load_from_url = (
+            S.MENU_LOAD_FROM_URL_FILES
+            if web.active_hub is not None
+            else S.MENU_LOAD_FROM_URL
+        )
+        if imgui.menu_item(load_from_url, "", False)[0]:
+            self._url_input = ""
+            self._url_prompt_requested = True
+        imgui.separator()
+        if imgui.menu_item(S.MENU_SETTINGS, S.SHORTCUT_SETTINGS, False)[0]:
+            self._settings_window.open()
+        # On the desktop only: the browser UI is stopped from the tray icon or by the program
+        # that started it (Home Assistant, a service, Ctrl+C), not from a browser.
+        if web.active_hub is None:
+            imgui.separator()
+            if imgui.menu_item(S.MENU_EXIT, "", False)[0]:
+                self._exit()
 
-        self._render_view_menu()
+    def _choose_product_file(self) -> None:
+        """Choose a product database to import into the catalog."""
+        if not self._can_launch_file_dialog():
+            return
+        self._open_file_dialog = file_dialogs.open_file(
+            S.FILE_DIALOG_PRODUCT_TITLE,
+            "",
+            [
+                S.FILE_DIALOG_PRODUCT_FILTER,
+                "*.knxprod *.vd1 *.vd2 *.vd3 *.vd4 *.vd5",
+                S.FILE_DIALOG_ALL_FILES,
+                "*",
+            ],
+        )
 
-        self._connection_plugin.render_menu()
+    def _render_edit_menu(self) -> None:
+        if imgui.menu_item(S.MENU_UNDO, S.SHORTCUT_UNDO, False, self._can_undo())[0]:
+            self._undo()
+        if imgui.menu_item(S.MENU_REDO, S.SHORTCUT_REDO, False, self._can_redo())[0]:
+            self._redo()
+        imgui.separator()
+        if imgui.menu_item(S.MENU_COMMAND_PALETTE, S.SHORTCUT_PALETTE, False)[0]:
+            self._open_palette()
+
+    def _render_tools_menu(self) -> None:
         self._render_mcp_menu()
         self._keyring_plugin.render_menu()
-        self._signing_plugin.render_menu()
+        if imgui.menu_item(self._signing_plugin.menu_label, "", False)[0]:
+            self._signing_plugin.open_window()
 
-        self._render_language_menu()
-
-        if imgui.begin_menu(S.MENU_HELP):
-            if imgui.menu_item(S.MENU_OPEN_CACHE_DIR, "", False)[0]:
-                self._open_folder(cache_dir())
-            if imgui.menu_item(S.MENU_CLEAR_CACHE, "", False)[0]:
-                self._clear_cache_size = cache_size()
-                self._clear_cache_requested = True
-            imgui.separator()
-            if imgui.menu_item(S.MENU_OPEN_CONFIG_DIR, "", False)[0]:
-                self._open_folder(config_dir())
-            if imgui.menu_item(S.MENU_OPEN_LOG_DIR, "", False)[0]:
-                self._open_folder(log_dir())
-            imgui.separator()
-            if imgui.menu_item(S.MENU_CHECK_UPDATES, "", False)[0]:
-                self._start_update_check(manual=True)
-            changed, enabled = imgui.menu_item(
-                S.MENU_UPDATE_ON_STARTUP, "", self._update_check_enabled()
-            )
-            if changed:
-                self._set_update_check_enabled(enabled)
-            imgui.separator()
-            if imgui.menu_item(S.MENU_ABOUT, "", False)[0]:
-                self._about_requested = True
-            imgui.end_menu()
-
-        if imgui.begin_menu(S.MENU_FEEDBACK):
-            if imgui.menu_item(S.MENU_REPORT_BUG, "", False)[0]:
-                self._open_feedback(feedback.bug_report_url())
-            if imgui.menu_item(S.MENU_SUGGEST_FEATURE, "", False)[0]:
-                self._open_feedback(feedback.feature_request_url())
-            imgui.separator()
-            if imgui.menu_item(S.MENU_SHOW_ISSUES, "", False)[0]:
-                self._open_feedback(feedback.ISSUES_URL)
-            imgui.end_menu()
+    def _render_help_menu(self) -> None:
+        if imgui.menu_item(S.MENU_CHECK_UPDATES, "", False)[0]:
+            self._start_update_check(manual=True)
+        imgui.separator()
+        if imgui.menu_item(S.MENU_REPORT_BUG, "", False)[0]:
+            self._open_feedback(feedback.bug_report_url())
+        if imgui.menu_item(S.MENU_SUGGEST_FEATURE, "", False)[0]:
+            self._open_feedback(feedback.feature_request_url())
+        if imgui.menu_item(S.MENU_SHOW_ISSUES, "", False)[0]:
+            self._open_feedback(feedback.ISSUES_URL)
+        imgui.separator()
+        if imgui.menu_item(S.MENU_ABOUT, "", False)[0]:
+            self._about_requested = True
 
     def _open_feedback(self, url: str) -> None:
         """Open a page of the project's GitHub issues in the default browser: a new report with
@@ -4566,7 +4607,7 @@ class KnxGuiApp:
         if incompatible:
             labels = [
                 S.EXPORT_INCOMPAT_REMOVE,
-                S.EXPORT_SUMMARY_OPEN_FOLDER,
+                S.BTN_OPEN_FOLDER,
                 S.EXPORT_SUMMARY_CLOSE,
             ]
             clicked = dialog_buttons(*labels)
@@ -4586,9 +4627,7 @@ class KnxGuiApp:
             elif clicked == 2:
                 imgui.close_current_popup()
         else:
-            clicked = dialog_buttons(
-                S.EXPORT_SUMMARY_OPEN_FOLDER, S.EXPORT_SUMMARY_CLOSE
-            )
+            clicked = dialog_buttons(S.BTN_OPEN_FOLDER, S.EXPORT_SUMMARY_CLOSE)
             if clicked == 0:
                 self._open_folder(Path(self._export_summary_path).parent)
             elif clicked == 1:
@@ -5125,7 +5164,10 @@ class KnxGuiApp:
         self._render_overwrite_modal()
         self._render_ga_export_options_modal()
         self._render_ga_export_empty_modal()
-        self._render_clear_cache_modal()
+        self._settings_window.render()
+        # Asked from the Settings window inside it, else (the command palette) here.
+        if not self._settings_window.is_open():
+            self._render_language_question()
         self._render_projectstore_confirm_modal()
         self._render_url_prompt_modal()
         self._render_new_project_modal()
@@ -5586,21 +5628,241 @@ class KnxGuiApp:
         self._myknx_oauth_extract_thread = threading.Thread(target=_work, daemon=True)
         self._myknx_oauth_extract_thread.start()
 
-    def _palette_items(self) -> list[tuple[str, Callable[[], None]]]:
-        """(label, action) pairs the command palette can jump to: global actions + devices."""
-        items: list[tuple[str, Callable[[], None]]] = [
-            (f"{S.MENU_NEW_PROJECT}", self._new_project),
-            (f"{S.MENU_OPEN_PROJECT}", self._open_project),
+    def _palette_items(self) -> list[PaletteItem]:
+        """What the command palette offers: the commands of the menus that can run now, the
+        settings, the panels, and the open project's devices and group addresses."""
+        return [
+            *self._palette_commands(),
+            *self._palette_settings(),
+            *self._palette_languages(),
+            *self._palette_panels(),
+            *self._palette_project(),
         ]
-        if self._project_service.is_open:
-            items.append((S.FILE_DIALOG_KNXPROJ_SAVE_TITLE, self._export_knxproj))
-            for d in self._project_service.devices:
-                ia = d.individual_address or "-"
 
-                def _select(dev: object = d) -> None:
-                    self._project_service.selected_device = dev  # type: ignore[assignment]
+    def _palette_commands(self) -> list[PaletteItem]:
+        is_open = self._project_service.is_open
+        connected = self._connection_plugin.connected
+        running = self._mcp_plugin.is_running
+        managed = host.current().mcp_managed
+        theme = hello_imgui.get_runner_params().imgui_window_params.tweaked_theme.theme
+        file, edit, view = S.MENU_FILE, S.MENU_EDIT, S.MENU_VIEW
+        tools, helps = S.MENU_TOOLS, S.MENU_HELP
+        gateway = self._connection_plugin.menu_label
+        commands: list[tuple[bool, str, str, str, Callable[[], None]]] = [
+            (True, file, S.MENU_NEW_PROJECT, S.SHORTCUT_NEW, self._new_project),
+            (True, file, S.MENU_OPEN_PROJECT, S.SHORTCUT_OPEN, self._open_project),
+            (is_open, file, S.MENU_SAVE_AS, "", self._save_as),
+            (
+                is_open,
+                file,
+                S.MENU_EXPORT_KNXPROJ,
+                S.SHORTCUT_EXPORT,
+                self._export_knxproj,
+            ),
+            (
+                self._can_compact(),
+                file,
+                S.MENU_COMPACT_PROJECT,
+                "",
+                self._start_compact_analysis,
+            ),
+            (
+                is_open,
+                file,
+                self._backups_plugin.create_label,
+                "",
+                self._backups_plugin.ask_create,
+            ),
+            (
+                True,
+                file,
+                self._backups_plugin.show_label,
+                "",
+                self._backups_plugin.show_window,
+            ),
+            (is_open, file, S.MENU_EXPORT_GA_EXPORT, "", self._export_ga_export),
+            (
+                is_open and self._can_launch_file_dialog(),
+                file,
+                S.MENU_IMPORT_GA,
+                "",
+                self._project_plugin.import_group_addresses,
+            ),
+            (
+                self._can_launch_file_dialog(),
+                file,
+                S.MENU_LOAD_PRODUCT,
+                "",
+                self._choose_product_file,
+            ),
+            (
+                True,
+                file,
+                S.MENU_SETTINGS,
+                S.SHORTCUT_SETTINGS,
+                self._settings_window.open,
+            ),
+            (self._can_undo(), edit, S.MENU_UNDO, S.SHORTCUT_UNDO, self._undo),
+            (self._can_redo(), edit, S.MENU_REDO, S.SHORTCUT_REDO, self._redo),
+            (True, view, S.MENU_RESTORE_LAYOUT, "", self._restore_default_layout),
+            (
+                True,
+                view,
+                S.MENU_HIGHLIGHT_CHANGES,
+                "",
+                lambda: self._set_highlight_changes(not self._highlight_changes),
+            ),
+            (
+                True,
+                view,
+                S.MENU_CONTEXT_HELP,
+                "",
+                lambda: self._set_context_help(
+                    not self._project_plugin.show_context_help
+                ),
+            ),
+            *(
+                (t != theme, view, label, "", lambda n=t.name: self._set_theme(n))
+                for label, t in theme_menu_groups()[0]
+            ),
+            (
+                connected,
+                gateway,
+                self._connection_plugin.disconnect_label,
+                "",
+                self._connection_plugin.disconnect,
+            ),
+            (
+                not managed and not running,
+                tools,
+                S.SETTINGS_MCP_START,
+                "",
+                self._start_mcp,
+            ),
+            (not managed and running, tools, S.SETTINGS_MCP_STOP, "", self._stop_mcp),
+            (
+                True,
+                tools,
+                self._signing_plugin.menu_label,
+                "",
+                self._signing_plugin.open_window,
+            ),
+            (
+                True,
+                helps,
+                S.MENU_CHECK_UPDATES,
+                "",
+                lambda: self._start_update_check(manual=True),
+            ),
+            (
+                True,
+                helps,
+                S.MENU_REPORT_BUG,
+                "",
+                lambda: self._open_feedback(feedback.bug_report_url()),
+            ),
+            (
+                True,
+                helps,
+                S.MENU_SUGGEST_FEATURE,
+                "",
+                lambda: self._open_feedback(feedback.feature_request_url()),
+            ),
+            (
+                True,
+                helps,
+                S.MENU_SHOW_ISSUES,
+                "",
+                lambda: self._open_feedback(feedback.ISSUES_URL),
+            ),
+            (
+                True,
+                helps,
+                S.MENU_ABOUT,
+                "",
+                lambda: setattr(self, "_about_requested", True),
+            ),
+        ]
+        return [
+            PaletteItem(label, where, action, shortcut)
+            for shown, where, label, shortcut, action in commands
+            if shown
+        ]
 
-                items.append((f"{ia}  {d.name}", _select))
+    def _palette_settings(self) -> list[PaletteItem]:
+        """Each setting, opening the Settings window where it is."""
+        return [
+            PaletteItem(
+                setting.label(),
+                f"{S.SETTINGS_TITLE} > {page.title()}",
+                lambda p=page.key: self._settings_window.open(p),
+            )
+            for page in self._settings_window.pages()
+            for setting in page.settings
+        ]
+
+    def _palette_languages(self) -> list[PaletteItem]:
+        """The other interface and product languages, switched to as in the settings."""
+        current, product = get_locale(), product_language()
+        return [
+            *(
+                PaletteItem(
+                    label, S.SETTING_LANGUAGE, lambda c=code: self._choose_language(c)
+                )
+                for code, label in _language_items()
+                if code != current
+            ),
+            *(
+                PaletteItem(
+                    label,
+                    S.SETTING_PRODUCT_LANGUAGE,
+                    lambda c=code: self._switch_product_language(c),
+                )
+                for code, label in _product_language_items()
+                if code != product
+            ),
+        ]
+
+    def _palette_panels(self) -> list[PaletteItem]:
+        """Each panel, shown and brought to the front."""
+
+        def show(window: hello_imgui.DockableWindow) -> None:
+            window.is_visible = True
+            window.focus_window_at_next_frame = True
+
+        return [
+            PaletteItem(w.label.split("###")[0], S.MENU_PANELS, lambda w=w: show(w))
+            for w in _view_menu_windows()
+        ]
+
+    def _palette_project(self) -> list[PaletteItem]:
+        """The open project's devices and group addresses, as their lists name them; built
+        again when the project changes."""
+        service = self._project_service
+        if not service.is_open or service.loading:
+            return []
+        key = (service.generation, service.revision)
+        if self._palette_project_items[0] == key:
+            return self._palette_project_items[1]
+        items: list[PaletteItem] = []
+        for device in service.devices:
+
+            def select(dev: object = device) -> None:
+                service.selected_device = dev  # type: ignore[assignment]
+                service.focus_editor()
+
+            items.append(
+                PaletteItem(device_label(device), PROJECT_S.PANEL_DEVICE, select)
+            )
+        for ga in service.group_addresses:
+
+            def reveal(ga_id: int = ga.id) -> None:
+                service.request_group_address(ga_id)
+                service.focus_group_addresses()
+
+            label = f"{ga.address}  {ga.name}" if ga.name else ga.address
+            items.append(PaletteItem(label, PROJECT_S.PANEL_GROUP_ADDRESS, reveal))
+        self._palette_project_items = (key, items)
         return items
 
     def _render_command_palette(self) -> None:
@@ -5613,7 +5875,8 @@ class KnxGuiApp:
             imgui.Cond_.appearing,
             imgui.ImVec2(0.5, 0.0),
         )
-        imgui.set_next_window_size(px_vec2(520.0, 0.0), imgui.Cond_.appearing)
+        width = min(px(620.0), imgui.get_main_viewport().size.x - px(16.0))
+        imgui.set_next_window_size(imgui.ImVec2(width, 0.0), imgui.Cond_.appearing)
         # Its own arrow keys and Enter move through and pick from the list below its field, so
         # imgui's keyboard navigation stays out of it (it would move away from the field).
         if not imgui.begin_popup("##cmd_palette", imgui.WindowFlags_.no_nav_inputs):
@@ -5621,40 +5884,76 @@ class KnxGuiApp:
         if self._palette_focus:
             imgui.set_keyboard_focus_here()
             self._palette_focus = False
-        imgui.set_next_item_width(-1)
-        _, self._palette_query = imgui.input_text(
-            "##cmd_query", self._palette_query, imgui.InputTextFlags_.auto_select_all
+        # The search field with its clear button, as everywhere; as wide as the list below.
+        self._palette_query = filter_box(
+            "##cmd_query", S.PALETTE_HINT, self._palette_query
         )
-        needle = self._palette_query.lower().strip()
-        matches = [
-            it for it in self._palette_items() if not needle or needle in it[0].lower()
-        ][:40]
-        if matches:
-            self._palette_index = max(0, min(self._palette_index, len(matches) - 1))
+        found = [
+            item
+            for item in self._palette_items()
+            if matches(self._palette_query, (item.label, item.where))
+        ][:_PALETTE_ROWS]
+        if found:
+            self._palette_index = max(0, min(self._palette_index, len(found) - 1))
+            keyed = True
             if imgui.is_key_pressed(imgui.Key.down_arrow):
-                self._palette_index = (self._palette_index + 1) % len(matches)
+                self._palette_index = (self._palette_index + 1) % len(found)
             elif imgui.is_key_pressed(imgui.Key.up_arrow):
-                self._palette_index = (self._palette_index - 1) % len(matches)
+                self._palette_index = (self._palette_index - 1) % len(found)
+            else:
+                keyed = False
             chosen = -1
             if imgui.is_key_pressed(imgui.Key.enter) or imgui.is_key_pressed(
                 imgui.Key.keypad_enter
             ):
                 chosen = self._palette_index
-            if imgui.begin_child("##cmd_list", px_vec2(0.0, 320.0)):
-                for i, (label, _action) in enumerate(matches):
-                    if imgui.selectable(f"{label}##cmd{i}", i == self._palette_index)[
-                        0
-                    ]:
+            # A framed list as wide as the field above it, as high as its rows (up to 16).
+            rows = min(len(found), 16) * imgui.get_text_line_height_with_spacing()
+            padding = imgui.get_style().window_padding.y
+            if imgui.begin_child(
+                "##cmd_list",
+                imgui.ImVec2(0.0, rows + 2 * padding),
+                imgui.ChildFlags_.borders,
+            ):
+                for i, item in enumerate(found):
+                    current = i == self._palette_index
+                    if self._render_palette_row(item, i, current):
                         chosen = i
+                    # The row moved to with the arrow keys stays in sight.
+                    if current and keyed and not imgui.is_item_visible():
+                        imgui.set_scroll_here_y()
                 imgui.end_child()
             if chosen >= 0:
-                matches[chosen][1]()
                 imgui.close_current_popup()
+                found[chosen].action()
         else:
             imgui.text_disabled(S.PALETTE_NO_MATCH)
         if imgui.is_key_pressed(imgui.Key.escape):
             imgui.close_current_popup()
         imgui.end_popup()
+
+    @staticmethod
+    def _render_palette_row(item: PaletteItem, index: int, current: bool) -> bool:
+        """One row: what it does, with its shortcut, and where it is (a menu, the settings, a
+        device) at the right, greyed. Whether it was clicked."""
+        start = imgui.get_cursor_pos_x()
+        # The visible width, without the scrollbar (the row's highlight reaches under it).
+        right = start + imgui.get_content_region_avail().x
+        clicked = imgui.selectable(f"##cmd{index}", current)[0]
+        imgui.same_line(start)
+        imgui.text(item.label)
+        if item.shortcut:
+            imgui.same_line()
+            imgui.text_disabled(item.shortcut)
+        # Where it is, at the right; left out where the row has no room for it (a phone).
+        imgui.same_line()
+        where = imgui.calc_text_size(item.where).x
+        if imgui.get_cursor_pos_x() + where <= right:
+            imgui.same_line(right - where)
+            imgui.text_disabled(item.where)
+        else:
+            imgui.new_line()
+        return clicked
 
     def _window_title(self) -> str:
         """The app name, preceded by the open project's name and file (see ``window_title``)."""
@@ -5696,36 +5995,60 @@ class KnxGuiApp:
                 self._toasts.add(text, rec.level, 6.0)
         self._toasts.render()
 
-    def _render_language_menu(self) -> None:
-        """UI language selector (next to Help). Overrides the auto-detected OS locale; persisted.
-        Below it, the preferred product language for the texts of product data."""
-        current = get_locale()
-        if imgui.begin_menu(S.MENU_LANGUAGE):
-            for code, label in _language_items():
-                if (
-                    imgui.menu_item(f"{label}##{code}", "", code == current)[0]
-                    and code != current
-                ):
-                    self._switch_language(code)
-            imgui.separator()
-            if imgui.begin_menu(S.MENU_PRODUCT_LANGUAGE):
-                preferred = product_language()
-                for code, label in _product_language_items():
-                    if (
-                        imgui.menu_item(
-                            f"{label}##product_{code}", "", code == preferred
-                        )[0]
-                        and code != preferred
-                    ):
-                        self._switch_product_language(code)
-                imgui.end_menu()
-            imgui.end_menu()
+    def _choose_language(self, code: str, *, ask: bool = True) -> None:
+        """A new interface language chosen (in the settings, the command palette): ask whether
+        the product texts are shown in its language too, where that would change them; else, and
+        without ``ask``, switch at once and keep the product language."""
+        if code == get_locale():
+            return
+        known = {language.culture for language in PRODUCT_LANGUAGES}
+        new = culture(code)
+        if new == product_language() or new not in known or not ask:
+            self._switch_language(code, product_language())
+        else:
+            self._language_question = code
 
-    def _switch_language(self, code: str) -> None:
-        """Show the UI in ``code`` from now on and remember it; the preferred product language
-        follows it. Cancelling the device rebuild returns to the languages before."""
+    def _render_settings_dialogs(self) -> None:
+        """The dialogs a setting opens, on top of the Settings window."""
+        self._render_clear_cache_modal()
+        self._render_language_question()
+
+    def _render_language_question(self) -> None:
+        title = f"{S.SETTING_PRODUCT_LANGUAGE}###language_question"
+        code = self._language_question
+        if code is not None and not imgui.is_popup_open(title):
+            imgui.open_popup(title)
+        if not begin_dialog(title, width=460.0):
+            return
+        name = next(
+            (
+                label
+                for c, label in _product_language_items()
+                if c == culture(code or "")
+            ),
+            "",
+        )
+        imgui.text_wrapped(S.LANGUAGE_PRODUCT_TOO.format(language=name))
+        clicked = dialog_buttons(S.BTN_YES, S.BTN_NO, S.BTN_CANCEL)
+        if clicked is not None:
+            imgui.close_current_popup()
+            self._language_question = None
+            if code is not None and clicked == 0:
+                # The product texts follow the interface language.
+                self._switch_language(code, None)
+            elif code is not None and clicked == 1:
+                self._switch_language(code, product_language())
+        end_dialog()
+
+    def _switch_language(self, code: str, product: str | None) -> None:
+        """Show the UI in ``code`` from now on and remember it, with the product texts in
+        ``product`` (None: in the UI's language). The devices are built again only when that
+        changes their texts; cancelling that returns to the languages before."""
         previous, previous_product = get_locale(), chosen_product_language()
-        self._apply_language(code, None)
+        texts = product_text_languages()
+        self._apply_language(code, product)
+        if product_text_languages() == texts:
+            return
 
         def undo() -> None:
             set_locale(previous)
@@ -5803,26 +6126,11 @@ class KnxGuiApp:
         save_settings("app", data)
 
     def _render_view_menu(self) -> None:
-        """View menu: the default layout, which panels are shown, and the status bar."""
-        if not imgui.begin_menu(S.MENU_VIEW):
-            return
+        """View menu: the default layout, which panels are shown, the status bar, and the light
+        and the dark theme."""
         params = hello_imgui.get_runner_params()
         if imgui.menu_item(S.MENU_RESTORE_LAYOUT, "", False)[0]:
-            docks = {panel.name: panel.dock for panel in self.get_all_panels()}
-            if self._form != "wide":
-                # The smaller layout from the start, and the usual one when there is room.
-                self._wide_layout = {"docks": docks, "ratios": {}, "expanded": False}
-                if self.bottom_expanded:
-                    self._toggle_bottom_expanded()
-                self._show_compact_layout(self._form, from_wide=True)
-            else:
-                for w in params.docking_params.dockable_windows:
-                    w.dock_space_name = docks.get(
-                        _dock_window_name(w), w.dock_space_name
-                    )
-                self._rebuild_layout(expanded=False, ratios={})
-            reset_all_tables()
-            self._project_plugin.reset_layout()
+            self._restore_default_layout()
         zoom = web.zoom()
         if zoom is not None:
             imgui.separator()
@@ -5840,69 +6148,70 @@ class KnxGuiApp:
             )[0]:
                 web.zoom_step(0)
         imgui.separator()
-        windows = [
-            w for w in params.docking_params.dockable_windows if w.include_in_view_menu
-        ]
-        if imgui.menu_item(S.MENU_SHOW_ALL, "", False)[0]:
+        windows = _view_menu_windows()
+        # The panels in a submenu of their own: they are many.
+        if imgui.begin_menu(S.MENU_PANELS):
+            if imgui.menu_item(S.MENU_SHOW_ALL, "", False)[0]:
+                for w in windows:
+                    w.is_visible = True
+            if imgui.menu_item(S.MENU_HIDE_ALL, "", False)[0]:
+                for w in windows:
+                    if w.can_be_closed:
+                        w.is_visible = False
+            imgui.separator()
             for w in windows:
-                w.is_visible = True
-        if imgui.menu_item(S.MENU_HIDE_ALL, "", False)[0]:
-            for w in windows:
-                if w.can_be_closed:
-                    w.is_visible = False
-        for w in windows:
-            changed, visible = imgui.menu_item(
-                w.label, "", w.is_visible, w.can_be_closed
-            )
-            if changed:
-                w.is_visible = visible
+                changed, visible = imgui.menu_item(
+                    w.label, "", w.is_visible, w.can_be_closed
+                )
+                if changed:
+                    w.is_visible = visible
+            imgui.end_menu()
         imgui.separator()
-        changed, shown = imgui.menu_item(
-            S.MENU_HIGHLIGHT_CHANGES, "", self._highlight_changes
-        )
-        if changed:
-            self._highlight_changes = shown
-            set_highlight_changes(shown)
-            data = load_settings("app")
-            data["highlight_changes"] = shown
-            save_settings("app", data)
-        changed, shown = imgui.menu_item(
-            S.MENU_CONTEXT_HELP, "", self._project_plugin.show_context_help
-        )
-        if changed:
-            self._project_plugin.show_context_help = shown
-            data = load_settings("app")
-            data[self._context_help_setting()[0]] = shown
-            save_settings("app", data)
-        window_params = params.imgui_window_params
+        if imgui.menu_item(S.MENU_HIGHLIGHT_CHANGES, "", self._highlight_changes)[0]:
+            self._set_highlight_changes(not self._highlight_changes)
+        context_help = self._project_plugin.show_context_help
+        if imgui.menu_item(S.MENU_CONTEXT_HELP, "", context_help)[0]:
+            self._set_context_help(not context_help)
         changed, shown = imgui.menu_item(S.MENU_STATUS_BAR, "", self._show_status_bar)
         if changed:
             self._show_status_bar = shown
-        changed, shown = imgui.menu_item(S.MENU_STATUS_FPS, "", self._show_status_fps)
-        if changed:
-            self._show_status_fps = shown
-        # The web mode paces its frames itself: no idling to toggle there.
-        if web.active_hub is None:
-            changed, enabled = imgui.menu_item(
-                S.MENU_ENABLE_IDLING, "", params.fps_idling.enable_idling
-            )
-            if changed:
-                params.fps_idling.enable_idling = enabled
-        self._render_theme_menu(window_params.tweaked_theme)
-        imgui.end_menu()
+        # The light and the dark theme at hand; the others in the settings.
+        imgui.separator()
+        current = params.imgui_window_params.tweaked_theme.theme
+        for label, theme in theme_menu_groups()[0]:
+            if imgui.menu_item(label, "", theme == current)[0] and theme != current:
+                self._set_theme(theme.name)
+        if imgui.menu_item(S.MENU_MORE_THEMES, "", False)[0]:
+            self._settings_window.open("general")
 
-    def _render_theme_menu(self, tweaked_theme: hello_imgui.ImGuiTweakedTheme) -> None:
-        if not imgui.begin_menu(S.MENU_THEME):
-            return
-        for group in theme_menu_groups():
-            for label, theme in group:
-                if imgui.menu_item(label, "", tweaked_theme.theme == theme)[0]:
-                    tweaked_theme.theme = theme
-                    apply_theme(tweaked_theme)
-            imgui.separator()
-        if imgui.menu_item(S.MENU_THEME_CUSTOMIZE, "", False)[0]:
-            self._theme_window.open = True
-        imgui.end_menu()
+    def _restore_default_layout(self) -> None:
+        params = hello_imgui.get_runner_params()
+        docks = {panel.name: panel.dock for panel in self.get_all_panels()}
+        if self._form != "wide":
+            # The smaller layout from the start, and the usual one when there is room.
+            self._wide_layout = {"docks": docks, "ratios": {}, "expanded": False}
+            if self.bottom_expanded:
+                self._toggle_bottom_expanded()
+            self._show_compact_layout(self._form, from_wide=True)
+        else:
+            for w in params.docking_params.dockable_windows:
+                w.dock_space_name = docks.get(_dock_window_name(w), w.dock_space_name)
+            self._rebuild_layout(expanded=False, ratios={})
+        reset_all_tables()
+        self._project_plugin.reset_layout()
+
+    def _set_highlight_changes(self, shown: bool) -> None:
+        self._highlight_changes = shown
+        set_highlight_changes(shown)
+        data = load_settings("app")
+        data["highlight_changes"] = shown
+        save_settings("app", data)
+
+    def _set_context_help(self, shown: bool) -> None:
+        self._project_plugin.show_context_help = shown
+        data = load_settings("app")
+        data[self._context_help_setting()[0]] = shown
+        save_settings("app", data)
 
     def _refresh_dock_titles(self) -> None:
         """Update docked panel/tab titles to the current language without recreating windows.
@@ -5969,29 +6278,33 @@ class KnxGuiApp:
         self._log.info("MCP server stopped")
 
     def _render_mcp_menu(self) -> None:
-        """MCP menu: shows whether the embedded server runs, toggles it on/off, and its host/port."""
+        """Tools > MCP Server: whether the embedded server runs, Start/Stop, its address, and
+        its settings (the AI/MCP page of the Settings window)."""
         if not imgui.begin_menu(S.PANEL_MCP):
             return
         running = self._mcp_plugin.is_running
-        if host.current().mcp_managed:
-            # Set up by the program that started the editor: its status and address only.
-            self._render_mcp_status(running)
-            self._render_mcp_error()
-            imgui.separator()
+        managed = host.current().mcp_managed
+        self._render_mcp_status_row(running)
+        self._render_mcp_error()
+        if managed:
             imgui.push_text_wrap_pos(imgui.get_cursor_pos_x() + px(360.0))
             imgui.text_disabled(self._mcp_managed_text())
             imgui.pop_text_wrap_pos()
+        if running or managed:
             imgui.text_disabled(self._mcp_url())
-            imgui.end_menu()
+        imgui.separator()
+        if imgui.menu_item(S.MENU_SETTINGS, "", False)[0]:
+            self._settings_window.open(_MCP_SETTINGS_PAGE)
+        imgui.end_menu()
+
+    def _render_mcp_status_row(self, running: bool) -> None:
+        """Whether the server runs, and the button that starts or stops it right-aligned beside
+        it (not where the program that started the editor runs it)."""
+        if host.current().mcp_managed:
+            self._render_mcp_status(running)
             return
-        # The status, and the button that starts or stops the server right-aligned beside it.
         imgui.align_text_to_frame_padding()
-        imgui.text_colored(
-            imgui.ImVec4(0.4, 0.85, 0.45, 1.0)
-            if running
-            else imgui.ImVec4(0.6, 0.6, 0.6, 1.0),
-            S.SETTINGS_MCP_RUNNING if running else S.SETTINGS_MCP_STOPPED,
-        )
+        self._render_mcp_status(running)
         label = S.SETTINGS_MCP_STOP if running else S.SETTINGS_MCP_START
         button_w = imgui.calc_text_size(label).x + 2 * imgui.get_style().frame_padding.x
         imgui.same_line()
@@ -6002,14 +6315,6 @@ class KnxGuiApp:
                 self._stop_mcp()
             else:
                 self._start_mcp()
-        self._render_mcp_error()
-        imgui.separator()
-        self._render_mcp_host_row(width_px=180.0)
-        self._render_mcp_port_token_rows(width_px=180.0)
-        if running:
-            imgui.separator()
-            imgui.text_disabled(self._mcp_url())
-        imgui.end_menu()
 
     def _render_mcp_status(self, running: bool) -> None:
         imgui.text_colored(
@@ -6033,104 +6338,329 @@ class KnxGuiApp:
             return S.MCP_HOME_ASSISTANT
         return S.MCP_MANAGED
 
-    def _render_mcp_host_row(self, width_px: float) -> None:
-        """Host preset FIRST (loopback / all interfaces), then the free host input on the next
-        line. Typing a specific interface IP stays supported; the combo then shows "custom".
-        Any change persists."""
+    # --- the Settings window ---------------------------------------------------------------
+
+    def _settings_pages(self) -> list[SettingsPage]:
+        """The pages of the Settings window (built once; their settings read the live state)."""
+        if self._settings_page_list is None:
+            self._settings_page_list = [
+                SettingsPage(
+                    "general", lambda: S.SETTINGS_PAGE_GENERAL, self._general_settings()
+                ),
+                SettingsPage(
+                    CONNECTION_SETTINGS_PAGE,
+                    lambda: S.SETTINGS_PAGE_CONNECTION,
+                    self._connection_plugin.settings(),
+                ),
+                SettingsPage(
+                    BACKUPS_SETTINGS_PAGE,
+                    lambda: S.SETTINGS_PAGE_BACKUPS,
+                    self._backups_plugin.settings(),
+                ),
+                SettingsPage(
+                    _MCP_SETTINGS_PAGE,
+                    lambda: S.SETTINGS_PAGE_MCP,
+                    self._mcp_settings(),
+                    intro=lambda: (
+                        S.MCP_INFO_MANAGED if host.current().mcp_managed else S.MCP_INFO
+                    ),
+                ),
+                SettingsPage(
+                    "folders", lambda: S.SETTINGS_PAGE_FOLDERS, self._folder_settings()
+                ),
+            ]
+        return self._settings_page_list
+
+    def _general_settings(self) -> list[Setting]:
+        params = hello_imgui.get_runner_params()
+
+        def set_language(code: object) -> None:
+            # Asked only in the Settings window; through MCP the product language stays.
+            self._choose_language(str(code), ask=self._settings_window.is_open())
+
+        def set_product_language(code: object) -> None:
+            if str(code) != product_language():
+                self._switch_product_language(str(code))
+
+        def set_fps(shown: object) -> None:
+            self._show_status_fps = bool(shown)
+
+        def set_idling(enabled: object) -> None:
+            params.fps_idling.enable_idling = bool(enabled)
+
+        return [
+            Setting(
+                "language",
+                lambda: S.SETTING_LANGUAGE,
+                "choice",
+                get=get_locale,
+                set=set_language,
+                choices=_language_items,
+            ),
+            Setting(
+                "product_language",
+                lambda: S.SETTING_PRODUCT_LANGUAGE,
+                "choice",
+                get=product_language,
+                set=set_product_language,
+                choices=_product_language_items,
+                hint=lambda: S.SETTING_PRODUCT_LANGUAGE_HINT,
+            ),
+            Setting(
+                "theme",
+                lambda: S.SETTING_THEME,
+                "custom",
+                get=lambda: params.imgui_window_params.tweaked_theme.theme.name,
+                set=self._set_theme,
+                choices=_theme_choices,
+                render=self._render_theme_setting,
+            ),
+            Setting(
+                "status_fps",
+                lambda: S.SETTING_STATUS_FPS,
+                "bool",
+                get=lambda: self._show_status_fps,
+                set=set_fps,
+            ),
+            # The web mode paces its frames itself: no idling to toggle there.
+            Setting(
+                "idling",
+                lambda: S.SETTING_IDLING,
+                "bool",
+                get=lambda: params.fps_idling.enable_idling,
+                set=set_idling,
+                hint=lambda: S.SETTING_IDLING_HINT,
+                shown=lambda: web.active_hub is None,
+            ),
+            Setting(
+                "update_check",
+                lambda: S.SETTING_UPDATE_CHECK,
+                "bool",
+                get=self._update_check_enabled,
+                set=lambda enabled: self._set_update_check_enabled(bool(enabled)),
+            ),
+        ]
+
+    def _set_theme(self, name: object) -> None:
+        theme = next((t for _, t in _theme_items() if t.name == str(name)), None)
+        if theme is None:
+            raise ValueError(f"unknown theme {name!r}")
+        tweaked = hello_imgui.get_runner_params().imgui_window_params.tweaked_theme
+        tweaked.theme = theme
+        apply_theme(tweaked)
+
+    def _render_theme_setting(self) -> None:
+        """The theme: a drop-down with the light and the dark theme first, and the button that
+        opens the theme's colours (closing the Settings window, which would cover them)."""
+        tweaked = hello_imgui.get_runner_params().imgui_window_params.tweaked_theme
+        current = next(
+            (label for label, theme in _theme_items() if theme == tweaked.theme), ""
+        )
+        customize = S.SETTING_THEME_CUSTOMIZE
+        button = (
+            imgui.calc_text_size(customize).x + 2 * imgui.get_style().frame_padding.x
+        )
+        room = (
+            imgui.get_content_region_avail().x
+            - button
+            - imgui.get_style().item_spacing.x
+        )
+        beside = room >= px(160.0)
+        imgui.set_next_item_width(room if beside else -1)
+        if begin_combo("##theme", current):
+            for index, group in enumerate(theme_menu_groups()):
+                if index:
+                    imgui.separator()
+                for label, theme in group:
+                    if imgui.selectable(label, theme == tweaked.theme)[0]:
+                        self._set_theme(theme.name)
+            imgui.end_combo()
+        if beside:
+            imgui.same_line()
+        if imgui.button(customize):
+            imgui.close_current_popup()
+            self._theme_window.open = True
+
+    def _folder_settings(self) -> list[Setting]:
+        def folder(
+            key: str, label: Callable[[], str], path: Callable[[], Path]
+        ) -> Setting:
+            def render() -> None:
+                imgui.align_text_to_frame_padding()
+                imgui.push_text_wrap_pos(0.0)
+                imgui.text_disabled(str(path()))
+                imgui.pop_text_wrap_pos()
+                if imgui.button(f"{S.BTN_OPEN_FOLDER}##{key}"):
+                    self._open_folder(path())
+                if key == "cache_folder":
+                    imgui.same_line()
+                    if imgui.button(S.BTN_CLEAR_CACHE):
+                        self._clear_cache_size = cache_size()
+                        self._clear_cache_requested = True
+
+            return Setting(key, label, "custom", get=lambda: str(path()), render=render)
+
+        return [
+            folder("cache_folder", lambda: S.SETTING_CACHE_FOLDER, cache_dir),
+            folder("config_folder", lambda: S.SETTING_CONFIG_FOLDER, config_dir),
+            folder("log_folder", lambda: S.SETTING_LOG_FOLDER, log_dir),
+        ]
+
+    def _mcp_settings(self) -> list[Setting]:
+        """The AI/MCP page: the embedded MCP server, its address, and how to register it in
+        an AI tool. Where the program that started the editor runs the server (Home Assistant),
+        only its status, address and how to sign in."""
+
+        def managed() -> bool:
+            return host.current().mcp_managed
+
+        def configurable() -> bool:
+            return not managed()
+
+        def set_host(value: object) -> None:
+            self._mcp_host = str(value).strip()
+            self._persist_mcp_fields()
+
+        def set_port(value: object) -> None:
+            port = str(value).strip()
+            if port and not (port.isdigit() and 0 < int(port) < 65536):
+                raise ValueError(f"not a port: {value!r}")
+            self._mcp_port = port
+            self._persist_mcp_fields()
+
+        def set_token(value: object) -> None:
+            self._mcp_token = str(value)
+            self._persist_mcp_fields()
+
+        return [
+            Setting(
+                "mcp_status",
+                lambda: S.PANEL_MCP,
+                "custom",
+                get=lambda: "running" if self._mcp_plugin.is_running else "stopped",
+                render=self._render_mcp_status_setting,
+            ),
+            Setting(
+                "mcp_host",
+                lambda: S.SETTINGS_MCP_HOST,
+                "custom",
+                get=lambda: self._mcp_host,
+                set=set_host,
+                hint=lambda: S.MCP_HOST_HINT,
+                render=self._render_mcp_host_setting,
+                shown=configurable,
+            ),
+            Setting(
+                "mcp_port",
+                lambda: S.SETTINGS_MCP_PORT,
+                "text",
+                get=lambda: self._mcp_port,
+                set=set_port,
+                shown=configurable,
+            ),
+            Setting(
+                "mcp_token",
+                lambda: S.SETTINGS_MCP_TOKEN,
+                "password",
+                get=lambda: self._mcp_token,
+                set=set_token,
+                shown=configurable,
+                secret=True,
+            ),
+            Setting(
+                "mcp_endpoint",
+                lambda: S.MCP_ENDPOINT,
+                "custom",
+                get=self._mcp_url,
+                hint=lambda: self._mcp_managed_text() if managed() else "",
+                render=lambda: self._copy_row(self._mcp_url(), "endpoint"),
+            ),
+            Setting(
+                "mcp_clients",
+                lambda: S.SETTING_MCP_CLIENTS,
+                "custom",
+                get=lambda: dict(self._mcp_client_commands(placeholder=True)),
+                # Found by the names of the tools too.
+                keywords=lambda: " ".join(n for n, _ in self._mcp_client_commands()),
+                render=self._render_mcp_clients,
+                wide=True,
+            ),
+        ]
+
+    def _render_mcp_status_setting(self) -> None:
+        self._render_mcp_status_row(self._mcp_plugin.is_running)
+        self._render_mcp_error()
+
+    def _render_mcp_host_setting(self) -> None:
+        """Host preset first (this computer only / all networks), then the free host input below
+        it: a specific interface's address shows as neither preset."""
         presets = ("127.0.0.1", "0.0.0.0")
         try:
             selected = presets.index(self._mcp_host.strip())
         except ValueError:
-            selected = -1  # a custom interface IP; keep as-is
-        imgui.set_next_item_width(px(width_px))
-        preset_changed, new_idx = imgui.combo(
-            f"##mcp_host_preset_{id(self)}",
-            selected,
-            [S.KI_HOST_PRESET_LOCAL, S.KI_HOST_PRESET_NETWORK],
-        )
-        imgui.set_next_item_width(px(width_px))
-        changed, self._mcp_host = imgui.input_text(S.SETTINGS_MCP_HOST, self._mcp_host)
-        if preset_changed and 0 <= new_idx < len(presets):
-            self._mcp_host = presets[new_idx]
+            selected = -1
+        labels = [S.MCP_HOST_PRESET_LOCAL, S.MCP_HOST_PRESET_NETWORK]
+        chosen: str | None = None
+        imgui.set_next_item_width(-1)
+        if begin_combo("##mcp_host_preset", labels[selected] if selected >= 0 else ""):
+            for preset, label in zip(presets, labels, strict=True):
+                if imgui.selectable(label, preset == self._mcp_host.strip())[0]:
+                    chosen = preset
+            imgui.end_combo()
+        imgui.set_next_item_width(-1)
+        changed, self._mcp_host = imgui.input_text("##mcp_host", self._mcp_host)
+        if chosen is not None:
+            self._mcp_host = chosen
             changed = True
         if changed:
             self._persist_mcp_fields()
 
-    def _render_mcp_port_token_rows(self, width_px: float) -> None:
-        """Port and token inputs that persist on every change."""
-        imgui.set_next_item_width(px(width_px))
-        changed_port, self._mcp_port = imgui.input_text(
-            S.SETTINGS_MCP_PORT, self._mcp_port
-        )
-        imgui.set_next_item_width(px(width_px))
-        changed_token, self._mcp_token = imgui.input_text(
-            S.SETTINGS_MCP_TOKEN, self._mcp_token, imgui.InputTextFlags_.password
-        )
-        if changed_port or changed_token:
-            self._persist_mcp_fields()
-
-    def _render_ki_panel(self) -> None:
-        """'AI' tab: explains AI control via the MCP server, lets the user start/stop it, and shows
-        example commands to register the server in Claude Code / Codex."""
+    def _render_mcp_clients(self) -> None:
+        imgui.push_text_wrap_pos(0.0)
         managed = host.current().mcp_managed
-        imgui.push_text_wrap_pos(0.0)
-        imgui.text(S.KI_INFO_MANAGED if managed else S.KI_INFO)
-        imgui.pop_text_wrap_pos()
-        imgui.separator()
-
-        running = self._mcp_plugin.is_running
-        self._render_mcp_status(running)
-        self._render_mcp_error()
-        url = self._mcp_url()
-        if managed:
-            # Set up by the program that started the editor: the address, and how to sign in.
-            imgui.text_disabled(f"{S.KI_ENDPOINT}:")
-            imgui.same_line()
-            self._ki_copy_row(url, "endpoint")
-            imgui.push_text_wrap_pos(0.0)
-            imgui.text_disabled(self._mcp_managed_text())
-            imgui.pop_text_wrap_pos()
-        else:
-            self._render_mcp_host_row(width_px=240.0)
-            imgui.push_text_wrap_pos(0.0)
-            imgui.text_disabled(S.KI_HOST_HINT)
-            imgui.pop_text_wrap_pos()
-            self._render_mcp_port_token_rows(width_px=240.0)
-            if running:
-                imgui.text_disabled(f"{S.KI_ENDPOINT}:")
-                imgui.same_line()
-                self._ki_copy_row(url, "endpoint")
-                if imgui.button(S.SETTINGS_MCP_STOP):
-                    self._stop_mcp()
-            elif imgui.button(S.SETTINGS_MCP_START):
-                self._start_mcp()
-
-        imgui.separator()
-        imgui.push_text_wrap_pos(0.0)
         if host.home_assistant() and managed:
-            imgui.text_disabled(S.KI_COMMANDS_HINT_HOME_ASSISTANT)
+            imgui.text_disabled(S.MCP_COMMANDS_HINT_HOME_ASSISTANT)
         else:
             imgui.text_disabled(
-                S.KI_COMMANDS_HINT_MANAGED if managed else S.KI_COMMANDS_HINT
+                S.MCP_COMMANDS_HINT_MANAGED if managed else S.MCP_COMMANDS_HINT
             )
         imgui.pop_text_wrap_pos()
-        # A bearer token, when set, is woven into the copy-ready command (inline header for Claude,
-        # an env var for Codex, which only takes the token by env-var name).
-        token = self._ki_command_token()
+        for label, command in self._mcp_client_commands():
+            imgui.spacing()
+            imgui.align_text_to_frame_padding()
+            imgui.text(label)
+            imgui.same_line()
+            if imgui.small_button(f"{S.BTN_COPY}##mcp_cmd_{label}"):
+                imgui.set_clipboard_text(command)
+                self._flash_toast(S.COPIED)
+            imgui.push_text_wrap_pos(0.0)
+            imgui.text_disabled(command)
+            imgui.pop_text_wrap_pos()
+
+    def _mcp_client_commands(
+        self, *, placeholder: bool = False
+    ) -> list[tuple[str, str]]:
+        """The commands that register the MCP server in the AI tools, with the tools' names. A
+        bearer token, when set, is woven in (an inline header for the first, an env var for the
+        second, which only takes the token by env-var name); ``placeholder`` puts ``<token>`` in
+        its place."""
+        url = self._mcp_url()
+        token = self._mcp_command_token()
+        if token and placeholder:
+            token = "<token>"
         claude_cmd = (
-            S.KI_CLAUDE_CMD_AUTH.format(url=url, token=token)
+            S.MCP_CLAUDE_CMD_AUTH.format(url=url, token=token)
             if token
-            else S.KI_CLAUDE_CMD.format(url=url)
+            else S.MCP_CLAUDE_CMD.format(url=url)
         )
         codex_cmd = (
-            S.KI_CODEX_CMD_AUTH.format(url=url, token=token)
+            S.MCP_CODEX_CMD_AUTH.format(url=url, token=token)
             if token
-            else S.KI_CODEX_CMD.format(url=url)
+            else S.MCP_CODEX_CMD.format(url=url)
         )
-        self._ki_command("Claude Code", claude_cmd)
-        self._ki_command("Codex", codex_cmd)
+        return [("Claude Code", claude_cmd), ("Codex", codex_cmd)]
 
-    def _ki_command_token(self) -> str:
+    def _mcp_command_token(self) -> str:
         """The bearer token in the example commands: the one set here; inside Home Assistant a
         placeholder for the user's Home Assistant token (MCP_HOME_ASSISTANT says so); else the
         one the program that started the editor set."""
@@ -6140,23 +6670,15 @@ class KnxGuiApp:
             return host.HOME_ASSISTANT_TOKEN_PLACEHOLDER
         return os.environ.get("XKNX_MCP_AUTH_TOKEN", "").strip()
 
-    def _ki_copy_row(self, text: str, ident: str) -> None:
-        imgui.text_disabled(text)
-        imgui.same_line()
-        if imgui.small_button(f"{S.KI_COPY}##kicp_{ident}"):
-            imgui.set_clipboard_text(text)
-            self._flash_toast(S.KI_COPIED)
-
-    def _ki_command(self, label: str, command: str) -> None:
-        imgui.spacing()
-        imgui.text_disabled(label)
-        imgui.same_line()
-        if imgui.small_button(f"{S.KI_COPY}##kicmd_{label}"):
-            imgui.set_clipboard_text(command)
-            self._flash_toast(S.KI_COPIED)
+    def _copy_row(self, text: str, ident: str) -> None:
+        """``text`` with a button that copies it."""
+        imgui.align_text_to_frame_padding()
         imgui.push_text_wrap_pos(0.0)
-        imgui.text(command)
+        imgui.text_disabled(text)
         imgui.pop_text_wrap_pos()
+        if imgui.small_button(f"{S.BTN_COPY}##copy_{ident}"):
+            imgui.set_clipboard_text(text)
+            self._flash_toast(S.COPIED)
 
     def _render_welcome(self) -> None:
         """A centered welcome card shown while no project is open: New / Open / Recent."""
@@ -6224,25 +6746,64 @@ class KnxGuiApp:
         panels: list[PanelDefinition] = []
         for plugin in self._plugins:
             panels.extend(plugin.panels)
-        # App-owned "AI" tab (MCP control + how to drive the editor from Claude/Codex).
-        panels.append(
-            PanelDefinition(
-                name="ki",
-                label=S.PANEL_KI,
-                dock="MainDockSpace",
-                render=self._render_ki_panel,
-            )
-        )
         return panels
 
 
 # Bumped whenever the default docking layout changes, so a stored layout is replaced once.
-_LAYOUT_VERSION = 18
+_LAYOUT_VERSION = 19
 
 
 _SECTIONS = ("RightSpace", "DeviceSpace", "LeftSpace", "BottomSpace")
-# The one menu that holds all menus where they do not fit side by side (Font Awesome "bars").
+# The one menu that holds the menus that do not fit side by side (Font Awesome "bars").
 _ICON_MENU = ""
+# The button at the right end of the menu bar that opens the Settings window (Font Awesome "gear").
+_ICON_SETTINGS = ""
+# The page of the Settings window with the MCP server.
+_MCP_SETTINGS_PAGE = "mcp"
+
+
+# Rows the command palette shows at most.
+_PALETTE_ROWS = 60
+
+
+def _view_menu_windows() -> list[hello_imgui.DockableWindow]:
+    """The panels the View menu shows and hides."""
+    docking = hello_imgui.get_runner_params().docking_params
+    return [w for w in docking.dockable_windows if w.include_in_view_menu]
+
+
+def menus_shown(widths: Sequence[float], room: float, overflow: float) -> int:
+    """How many menus ``widths`` wide fit side by side in ``room``: all, or as many as fit
+    beside the one menu ``overflow`` wide that holds the others."""
+    if sum(widths) <= room:
+        return len(widths)
+    used, shown = overflow, 0
+    for width in widths:
+        if used + width > room:
+            break
+        used += width
+        shown += 1
+    return shown
+
+
+def _menu_width(label: str) -> float:
+    """About as wide as a menu ``label`` is in the menu bar, with the spacing after it."""
+    return (
+        imgui.calc_text_size(label, hide_text_after_double_hash=True).x
+        + 2 * imgui.get_style().item_spacing.x
+    )
+
+
+def _theme_items() -> list[tuple[str, hello_imgui.ImGuiTheme_]]:
+    """The themes with their labels, the light and the dark theme first."""
+    return [item for group in theme_menu_groups() for item in group]
+
+
+def _theme_choices() -> list[tuple[str, str]]:
+    """The themes as choices of the theme setting: their names and labels."""
+    return [(theme.name, label) for label, theme in _theme_items()]
+
+
 # The usual sections in the order their tabs are listed where they share one section.
 _SECTION_ORDER = (
     "LeftSpace",
@@ -6504,7 +7065,6 @@ def _dock_label_getters() -> "dict[str, Callable[[], str]]":
         "cockpit": lambda: _cockpit.PANEL_COCKPIT,
         "timeline": lambda: _timeline.PANEL_TIMELINE,
         "recover": lambda: _recover.WINDOW_TITLE,
-        "ki": lambda: S.PANEL_KI,
     }
 
 
@@ -6540,7 +7100,6 @@ _DOCK_TAB_ORDER = [
     "health",
     "mass_linker",
     "tools",
-    "ki",
     "bus_diagram",
     "recover",
     # Bottom bus/log group, then the project info and log.
@@ -6587,7 +7146,7 @@ def create_dockable_windows(app: KnxGuiApp) -> list[hello_imgui.DockableWindow]:
 
 
 def _language_items() -> list[tuple[str, str]]:
-    """The Language menu's ``(code, label)`` entries, alphabetical as they read: by the name in the
+    """The interface languages' ``(code, label)`` choices, alphabetical as they read: by the name in the
     current language, ignoring case and accents."""
     items: list[tuple[str, str]] = []
     for language in LANGUAGES:
@@ -6605,7 +7164,7 @@ def _alphabetical(text: str) -> str:
 
 
 def _product_language_items() -> list[tuple[str, str]]:
-    """The Preferred Product Language menu's ``(culture, label)`` entries, alphabetical as they
+    """The preferred product languages' ``(culture, label)`` choices, alphabetical as they
     read, like the languages above them."""
     items: list[tuple[str, str]] = []
     for language in PRODUCT_LANGUAGES:
@@ -6714,7 +7273,7 @@ def _main() -> None:
     # Where the editor runs (inside Home Assistant, an MCP server set up by its launcher).
     host.set_current(host.host_options(sys.argv))
     # Applies the OS locale, whose regional formats are used in every UI language. A persisted
-    # choice (Language menu) wins over the auto-detected OS language.
+    # choice (Settings > General) wins over the auto-detected OS language.
     os_language = _detect_locale()
     settings = load_settings("app")
     saved = settings.get("locale")

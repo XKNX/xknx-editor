@@ -202,9 +202,6 @@ msgstr "Jeho nejnovější záloha je z {created}. Obnovit z ní projekt? Soubor
 msgid "The damaged file was kept as {name}."
 msgstr "Poškozený soubor byl uchován jako {name}."
 
-msgid "Backup Settings"
-msgstr "Nastavení záloh"
-
 msgid "A backup is one file with the complete project, which can be restored on its own. Each project has a folder of its own in the backup folder. A network drive or a folder synchronized with a cloud service keeps the backups off this computer."
 msgstr "Záloha je jeden soubor s celým projektem, který lze obnovit samostatně. Každý projekt má ve složce záloh vlastní složku. Síťová jednotka nebo složka synchronizovaná s cloudovou službou uchovává zálohy mimo tento počítač."
 

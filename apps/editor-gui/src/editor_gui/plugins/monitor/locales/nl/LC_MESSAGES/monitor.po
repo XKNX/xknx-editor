@@ -197,8 +197,8 @@ msgstr "{count} telg."
 msgid "Enter a group address of the project to send to it."
 msgstr "Voer een groepsadres van het project in om ernaar te verzenden."
 
-msgid "value (e.g. on / 21.5 / 50)"
-msgstr "waarde (bijv. on / 21.5 / 50)"
+msgid "value (e.g. on/21.5/50)"
+msgstr "waarde (bijv. on/21.5/50)"
 
 msgid "Value:"
 msgstr "Waarde:"

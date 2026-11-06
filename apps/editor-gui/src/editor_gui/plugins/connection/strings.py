@@ -20,16 +20,19 @@ class ConnectionStrings:
         return _("Disconnect")
 
     @property
-    def MENU_USE_SERIAL_NUMBER(self) -> str:
+    def SETTING_USE_SERIAL_NUMBER(self) -> str:
         return _("Use Serial Number for Downloads")
+
+    @property
+    def SETTING_USE_SERIAL_NUMBER_HINT(self) -> str:
+        return _(
+            "A device whose serial number is known gets its individual address without "
+            "pressing its programming button."
+        )
 
     @property
     def SECTION_DISCOVERED(self) -> str:
         return _("Discovered Gateways")
-
-    @property
-    def SECTION_DIAGNOSTICS(self) -> str:
-        return _("Diagnostics")
 
     @property
     def MENU_READ_PROGMODE(self) -> str:
@@ -244,10 +247,6 @@ class ConnectionStrings:
     @property
     def STATUS_CONNECTION_FAILED(self) -> str:
         return _("Connection failed")
-
-    @property
-    def GATEWAY_SECTION(self) -> str:
-        return _("Gateway")
 
     @property
     def GATEWAY_NAME(self) -> str:

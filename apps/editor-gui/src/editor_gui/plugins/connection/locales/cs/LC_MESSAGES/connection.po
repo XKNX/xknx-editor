@@ -22,9 +22,6 @@ msgstr "Použít sériové číslo pro nahrávání"
 msgid "Discovered Gateways"
 msgstr "Nalezené brány"
 
-msgid "Diagnostics"
-msgstr "Diagnostika"
-
 msgid "Check for Devices in Programming Mode"
 msgstr "Vyhledat zařízení v programovacím režimu"
 
@@ -204,3 +201,6 @@ msgstr "TCP tunneling"
 
 msgid "Routing"
 msgstr "Routing"
+
+msgid "A device whose serial number is known gets its individual address without pressing its programming button."
+msgstr "Zařízení se známým sériovým číslem dostane individuální adresu bez stisknutí programovacího tlačítka."

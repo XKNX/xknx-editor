@@ -1273,8 +1273,8 @@ msgstr "Filtrare jurnal"
 msgid "Find this device's manual (via the KNX device database, else a manufacturer search) and open it in your browser. Best effort - opens the KNX device search if no direct document is found."
 msgstr "Caută manualul acestui dispozitiv (prin baza de date de dispozitive KNX, altfel printr-o căutare la producător) și îl deschide în browser. Fără garanție - deschide căutarea de dispozitive KNX dacă nu se găsește niciun document direct."
 
-msgid "Gap X / Y (mm)"
-msgstr "Spațiu X / Y (mm)"
+msgid "Gap X/Y (mm)"
+msgstr "Spațiu X/Y (mm)"
 
 msgid "Obtain an IP address automatically"
 msgstr "Se obține automat o adresă IP"
@@ -1330,8 +1330,8 @@ msgstr "Legendă (pagină întreagă)"
 msgid "MAC Address"
 msgstr "Adresă MAC"
 
-msgid "Margin Top / Left (mm)"
-msgstr "Margine sus / stânga (mm)"
+msgid "Margin Top/Left (mm)"
+msgstr "Margine sus/stânga (mm)"
 
 msgid "No .NET runtime found (install the .NET SDK, or run on Windows with ETS)."
 msgstr "Nu s-a găsit niciun runtime .NET (instalați .NET SDK sau rulați pe Windows cu ETS)."

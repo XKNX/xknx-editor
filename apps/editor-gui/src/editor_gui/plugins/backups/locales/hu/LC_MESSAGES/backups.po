@@ -202,9 +202,6 @@ msgstr "A legújabb biztonsági mentése ekkor készült: {created}. Visszaáll�
 msgid "The damaged file was kept as {name}."
 msgstr "A sérült fájl megmaradt ezen a néven: {name}"
 
-msgid "Backup Settings"
-msgstr "Biztonsági mentés beállításai"
-
 msgid "A backup is one file with the complete project, which can be restored on its own. Each project has a folder of its own in the backup folder. A network drive or a folder synchronized with a cloud service keeps the backups off this computer."
 msgstr "A biztonsági mentés egyetlen fájl a teljes projekttel, amely önmagában is visszaállítható. Minden projektnek saját mappája van a biztonsági mentések mappájában. Hálózati meghajtó vagy felhőszolgáltatással szinkronizált mappa esetén a biztonsági mentések nem ezen a számítógépen tárolódnak."
 

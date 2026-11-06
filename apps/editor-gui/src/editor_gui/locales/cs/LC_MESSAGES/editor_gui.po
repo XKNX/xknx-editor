@@ -19,9 +19,6 @@ msgstr "{project} – {file} - {app}"
 msgid "Help"
 msgstr "Nápověda"
 
-msgid "Feedback"
-msgstr "Zpětná vazba"
-
 msgid "About"
 msgstr "O aplikaci"
 
@@ -187,9 +184,6 @@ msgstr "Spustit server"
 msgid "Stop Server"
 msgstr "Zastavit server"
 
-msgid "AI MCP"
-msgstr "AI MCP"
-
 msgid "This editor is controllable by an AI assistant (Claude, Codex, …) through the built-in MCP server: it exposes the catalog and project as tools over Streamable HTTP. Start the server below, then register its endpoint in your AI tool."
 msgstr "Tento editor lze ovládat asistentem AI (Claude, Codex, …) přes vestavěný server MCP: zpřístupňuje katalog a projekt jako nástroje přes Streamable HTTP. Níže spusťte server a poté zaregistrujte jeho koncový bod ve svém nástroji AI."
 
@@ -322,11 +316,11 @@ msgstr "Skupinové adresy"
 msgid "Group Object Links"
 msgstr "Propojení skupinových objektů"
 
-msgid "Areas / Lines"
-msgstr "Oblasti / linie"
+msgid "Areas/Lines"
+msgstr "Oblasti/linie"
 
-msgid "Floors / Rooms"
-msgstr "Podlaží / místnosti"
+msgid "Floors/Rooms"
+msgstr "Podlaží/místnosti"
 
 msgid "Functions"
 msgstr "Funkce"
@@ -1042,15 +1036,6 @@ msgstr "Licence: GPL-2.0-only"
 msgid "Website:"
 msgstr "Web:"
 
-msgid "Open Config Folder"
-msgstr "Otevřít složku konfigurace"
-
-msgid "Open Cache Folder"
-msgstr "Otevřít složku mezipaměti"
-
-msgid "Open Log Folder"
-msgstr "Otevřít složku protokolů"
-
 msgid "Compact Project…"
 msgstr "Zkomprimovat projekt…"
 
@@ -1539,3 +1524,66 @@ msgstr "Tato databáze produktů je chráněna heslem. Zadejte heslo pro její i
 
 msgid "These files use a fixed, publicly documented password, for example here:"
 msgstr "Tyto soubory používají pevné, veřejně zdokumentované heslo, například zde:"
+
+msgid "Tools"
+msgstr "Nástroje"
+
+msgid "Command Palette"
+msgstr "Paleta příkazů"
+
+msgid "Search settings"
+msgstr "Hledat v nastavení"
+
+msgid "No setting matches the search."
+msgstr "Hledání neodpovídá žádné nastavení."
+
+msgid "General"
+msgstr "Všeobecně"
+
+msgid "Connection"
+msgstr "Připojení"
+
+msgid "Backups"
+msgstr "Zálohy"
+
+msgid "AI/MCP"
+msgstr "AI/MCP"
+
+msgid "Folders"
+msgstr "Složky"
+
+msgid "Texts of product data (parameters, group objects) are shown in this language where the product has them."
+msgstr "Texty produktových dat (parametry, skupinové objekty) se zobrazují v tomto jazyce, pokud je produkt obsahuje."
+
+msgid "Lowers the frame rate while nothing changes on the screen, to save power."
+msgstr "Snižuje snímkovou frekvenci, když se na obrazovce nic nemění, a šetří tak energii."
+
+msgid "Cache Folder"
+msgstr "Složka mezipaměti"
+
+msgid "Config Folder"
+msgstr "Složka konfigurace"
+
+msgid "Log Folder"
+msgstr "Složka protokolů"
+
+msgid "AI Tools"
+msgstr "Nástroje AI"
+
+msgid "More Themes…"
+msgstr "Další motivy…"
+
+msgid "Panels"
+msgstr "Panely"
+
+msgid "Search commands, settings, panels, devices and group addresses"
+msgstr "Hledat příkazy, nastavení, panely, zařízení a skupinové adresy"
+
+msgid "Also show the texts of product data (parameters, group objects) in {language}?"
+msgstr "Zobrazovat texty produktových dat (parametry, skupinové objekty) také v jazyce {language}?"
+
+msgid "Yes"
+msgstr "Ano"
+
+msgid "No"
+msgstr "Ne"

@@ -316,9 +316,6 @@ msgstr "ETS 5 (20-as séma)"
 msgid "ETS 6 (schema 23)"
 msgstr "ETS 6 (23-as séma)"
 
-msgid "AI MCP"
-msgstr "MI – MCP"
-
 msgid "This editor is controllable by an AI assistant (Claude, Codex, …) through the built-in MCP server: it exposes the catalog and project as tools over Streamable HTTP. Start the server below, then register its endpoint in your AI tool."
 msgstr "Ez a szerkesztő egy MI-asszisztenssel (Claude, Codex, …) vezérelhető a beépített MCP-kiszolgálón keresztül: a katalógust és a projektet eszközökként teszi elérhetővé Streamable HTTP-n keresztül. Indítsa el lent a kiszolgálót, majd regisztrálja a végpontját az MI-eszközében."
 
@@ -448,11 +445,11 @@ msgstr "Csoportcímek"
 msgid "Group Object Links"
 msgstr "Kommunikációsobjektum-összekapcsolások"
 
-msgid "Areas / Lines"
-msgstr "Területek / vonalak"
+msgid "Areas/Lines"
+msgstr "Területek/vonalak"
 
-msgid "Floors / Rooms"
-msgstr "Emeletek / helyiségek"
+msgid "Floors/Rooms"
+msgstr "Emeletek/helyiségek"
 
 msgid "Functions"
 msgstr "Funkciók"
@@ -676,9 +673,6 @@ msgstr "Projektek (*.xknx, *.knxproj, *.xml, *.csv)"
 msgid "Import Group Addresses…"
 msgstr "Csoportcímek importálása…"
 
-msgid "Feedback"
-msgstr "Visszajelzés"
-
 msgid "A desktop editor for building-automation installation projects, built on the open-source xknx library and based on xknxtoolkit by kewde. Not affiliated with or endorsed by the KNX Association."
 msgstr "Asztali szerkesztő épületautomatizálási telepítési projektekhez, a nyílt forráskódú xknx könyvtárra és kewde xknxtoolkit projektjére épül. Nem kapcsolódik a KNX Associationhöz, és az nem is támogatja."
 
@@ -843,15 +837,6 @@ msgstr "Licenc: GPL-2.0-only"
 
 msgid "Website:"
 msgstr "Webhely:"
-
-msgid "Open Config Folder"
-msgstr "Konfigurációs mappa megnyitása"
-
-msgid "Open Cache Folder"
-msgstr "Gyorsítótár-mappa megnyitása"
-
-msgid "Open Log Folder"
-msgstr "Naplómappa megnyitása"
 
 msgid "This project is protected with a password. Enter it to open the project:"
 msgstr "Ez a projekt jelszóval védett. A megnyitáshoz adja meg a jelszót:"
@@ -1611,3 +1596,66 @@ msgstr "Ez a termékadatbázis jelszóval védett. Adja meg a jelszavát az impo
 
 msgid "These files use a fixed, publicly documented password, for example here:"
 msgstr "Ezek a fájlok rögzített, nyilvánosan dokumentált jelszót használnak, például itt:"
+
+msgid "Tools"
+msgstr "Eszközök"
+
+msgid "Command Palette"
+msgstr "Parancspaletta"
+
+msgid "Search settings"
+msgstr "Keresés a beállításokban"
+
+msgid "No setting matches the search."
+msgstr "Egyik beállítás sem felel meg a keresésnek."
+
+msgid "General"
+msgstr "Általános"
+
+msgid "Connection"
+msgstr "Kapcsolat"
+
+msgid "Backups"
+msgstr "Biztonsági mentések"
+
+msgid "AI/MCP"
+msgstr "MI/MCP"
+
+msgid "Folders"
+msgstr "Mappák"
+
+msgid "Texts of product data (parameters, group objects) are shown in this language where the product has them."
+msgstr "A termékadatok szövegei (paraméterek, csoportobjektumok) ezen a nyelven jelennek meg, ahol a termék tartalmazza őket."
+
+msgid "Lowers the frame rate while nothing changes on the screen, to save power."
+msgstr "Csökkenti a képkockasebességet, amíg semmi sem változik a képernyőn, hogy energiát takarítson meg."
+
+msgid "Cache Folder"
+msgstr "Gyorsítótár-mappa"
+
+msgid "Config Folder"
+msgstr "Konfigurációs mappa"
+
+msgid "Log Folder"
+msgstr "Naplómappa"
+
+msgid "AI Tools"
+msgstr "MI-eszközök"
+
+msgid "More Themes…"
+msgstr "További témák…"
+
+msgid "Panels"
+msgstr "Panelek"
+
+msgid "Search commands, settings, panels, devices and group addresses"
+msgstr "Parancsok, beállítások, panelek, eszközök és csoportcímek keresése"
+
+msgid "Also show the texts of product data (parameters, group objects) in {language}?"
+msgstr "A termékadatok szövegei (paraméterek, csoportobjektumok) is ezen a nyelven jelenjenek meg: {language}?"
+
+msgid "Yes"
+msgstr "Igen"
+
+msgid "No"
+msgstr "Nem"

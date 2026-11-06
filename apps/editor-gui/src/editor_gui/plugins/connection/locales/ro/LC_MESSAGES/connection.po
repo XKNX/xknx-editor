@@ -19,9 +19,6 @@ msgstr "Deconectare"
 msgid "Discovered Gateways"
 msgstr "Gateway-uri detectate"
 
-msgid "Diagnostics"
-msgstr "Diagnoză"
-
 msgid "Check for Devices in Programming Mode"
 msgstr "Căutare dispozitive în modul de programare"
 
@@ -204,3 +201,6 @@ msgstr "TCP tunneling"
 
 msgid "Routing"
 msgstr "Routing"
+
+msgid "A device whose serial number is known gets its individual address without pressing its programming button."
+msgstr "Un dispozitiv al cărui număr de serie este cunoscut primește adresa fizică fără apăsarea butonului de programare."

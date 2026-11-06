@@ -481,11 +481,11 @@ msgstr "Rivit"
 msgid "Label W x H (mm)"
 msgstr "Tarra L x K (mm)"
 
-msgid "Margin Top / Left (mm)"
-msgstr "Marginaali ylä / vasen (mm)"
+msgid "Margin Top/Left (mm)"
+msgstr "Marginaali ylä/vasen (mm)"
 
-msgid "Gap X / Y (mm)"
-msgstr "Väli X / Y (mm)"
+msgid "Gap X/Y (mm)"
+msgstr "Väli X/Y (mm)"
 
 msgid "Export HTML…"
 msgstr "Vie HTML…"

@@ -262,16 +262,16 @@ msgid "Open Website"
 msgstr "Website öffnen"
 
 msgid "Imported {count} product versions. Find them in the Local tab."
-msgstr "{count} Produktversionen importiert. Du findest sie im Tab „Lokal“."
+msgstr "{count} Produktversionen importiert. Sie finden sie im Tab „Lokal“."
 
 msgid "Login is saved on this computer. Leave the password empty to keep it for the same server and user."
 msgstr "Die Zugangsdaten werden auf diesem Computer gespeichert. Lass das Passwort leer, um es für denselben Server und Benutzer beizubehalten."
 
 msgid "Registration sends an email code. Password: at least 10 characters, uppercase, lowercase, digit and special character; at most 72 UTF-8 bytes."
-msgstr "Bei der Registrierung erhältst du einen Code per E-Mail. Passwort: mindestens 10 Zeichen mit Groß- und Kleinbuchstaben, Ziffer und Sonderzeichen; höchstens 72 UTF-8-Bytes."
+msgstr "Bei der Registrierung erhalten Sie einen Code per E-Mail. Passwort: mindestens 10 Zeichen mit Groß- und Kleinbuchstaben, Ziffer und Sonderzeichen; höchstens 72 UTF-8-Bytes."
 
 msgid "Enter the six-digit code from your email to complete registration."
-msgstr "Gib den sechsstelligen Code aus deiner E-Mail ein, um die Registrierung abzuschließen."
+msgstr "Geben Sie den sechsstelligen Code aus Ihrer E-Mail ein, um die Registrierung abzuschließen."
 
 msgid "Email verified. Downloads become available after administrator approval."
 msgstr "E-Mail bestätigt. Downloads sind nach Freischaltung durch den Administrator verfügbar."

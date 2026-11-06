@@ -285,10 +285,6 @@ class BackupStrings:
         return _("The damaged file was kept as {name}.")
 
     @property
-    def SETTINGS_TITLE(self) -> str:
-        return _("Backup Settings")
-
-    @property
     def BACKUPS_HINT(self) -> str:
         return _(
             "A backup is one file with the complete project, which can be restored on its "

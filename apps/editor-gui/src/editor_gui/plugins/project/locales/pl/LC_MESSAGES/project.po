@@ -481,11 +481,11 @@ msgstr "Wiersze"
 msgid "Label W x H (mm)"
 msgstr "Etykieta szer. x wys. (mm)"
 
-msgid "Margin Top / Left (mm)"
-msgstr "Margines górny / lewy (mm)"
+msgid "Margin Top/Left (mm)"
+msgstr "Margines górny/lewy (mm)"
 
-msgid "Gap X / Y (mm)"
-msgstr "Odstęp X / Y (mm)"
+msgid "Gap X/Y (mm)"
+msgstr "Odstęp X/Y (mm)"
 
 msgid "Export HTML…"
 msgstr "Eksportuj HTML…"

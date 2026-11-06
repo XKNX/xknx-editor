@@ -316,9 +316,6 @@ msgstr "ETS 5 (schema 20)"
 msgid "ETS 6 (schema 23)"
 msgstr "ETS 6 (schema 23)"
 
-msgid "AI MCP"
-msgstr "AI MCP"
-
 msgid "This editor is controllable by an AI assistant (Claude, Codex, …) through the built-in MCP server: it exposes the catalog and project as tools over Streamable HTTP. Start the server below, then register its endpoint in your AI tool."
 msgstr "Acest editor poate fi controlat de un asistent AI (Claude, Codex, …) prin serverul MCP integrat: acesta pune la dispoziție catalogul și proiectul ca instrumente prin Streamable HTTP. Porniți serverul mai jos, apoi înregistrați endpoint-ul lui în instrumentul AI."
 
@@ -448,11 +445,11 @@ msgstr "Adrese de grup"
 msgid "Group Object Links"
 msgstr "Legături obiecte de comunicare"
 
-msgid "Areas / Lines"
-msgstr "Zone / linii"
+msgid "Areas/Lines"
+msgstr "Zone/linii"
 
-msgid "Floors / Rooms"
-msgstr "Etaje / camere"
+msgid "Floors/Rooms"
+msgstr "Etaje/camere"
 
 msgid "Functions"
 msgstr "Funcții"
@@ -676,9 +673,6 @@ msgstr "Proiecte (*.xknx, *.knxproj, *.xml, *.csv)"
 msgid "Import Group Addresses…"
 msgstr "Import adrese de grup…"
 
-msgid "Feedback"
-msgstr "Feedback"
-
 msgid "A desktop editor for building-automation installation projects, built on the open-source xknx library and based on xknxtoolkit by kewde. Not affiliated with or endorsed by the KNX Association."
 msgstr "Un editor desktop pentru proiecte de instalații de automatizare a clădirilor, construit pe biblioteca open-source xknx și bazat pe xknxtoolkit de kewde. Nu este afiliat KNX Association și nici aprobat de aceasta."
 
@@ -843,15 +837,6 @@ msgstr "Licență: GPL-2.0-only"
 
 msgid "Website:"
 msgstr "Site web:"
-
-msgid "Open Config Folder"
-msgstr "Deschidere folder de configurare"
-
-msgid "Open Cache Folder"
-msgstr "Deschidere folder cache"
-
-msgid "Open Log Folder"
-msgstr "Deschidere folder jurnale"
 
 msgid "This project is protected with a password. Enter it to open the project:"
 msgstr "Acest proiect este protejat cu parolă. Introduceți-o pentru a deschide proiectul:"
@@ -1611,3 +1596,66 @@ msgstr "Această bază de date de produse este protejată cu parolă. Introduce�
 
 msgid "These files use a fixed, publicly documented password, for example here:"
 msgstr "Aceste fișiere folosesc o parolă fixă, documentată public, de exemplu aici:"
+
+msgid "Tools"
+msgstr "Instrumente"
+
+msgid "Command Palette"
+msgstr "Paletă de comenzi"
+
+msgid "Search settings"
+msgstr "Căutare în setări"
+
+msgid "No setting matches the search."
+msgstr "Nicio setare nu corespunde căutării."
+
+msgid "General"
+msgstr "General"
+
+msgid "Connection"
+msgstr "Conexiune"
+
+msgid "Backups"
+msgstr "Copii de rezervă"
+
+msgid "AI/MCP"
+msgstr "AI/MCP"
+
+msgid "Folders"
+msgstr "Foldere"
+
+msgid "Texts of product data (parameters, group objects) are shown in this language where the product has them."
+msgstr "Textele datelor de produs (parametri, obiecte de grup) sunt afișate în această limbă, acolo unde produsul le conține."
+
+msgid "Lowers the frame rate while nothing changes on the screen, to save power."
+msgstr "Reduce rata de cadre cât timp nu se schimbă nimic pe ecran, pentru a economisi energie."
+
+msgid "Cache Folder"
+msgstr "Folder cache"
+
+msgid "Config Folder"
+msgstr "Folder de configurare"
+
+msgid "Log Folder"
+msgstr "Folder jurnale"
+
+msgid "AI Tools"
+msgstr "Instrumente AI"
+
+msgid "More Themes…"
+msgstr "Mai multe teme…"
+
+msgid "Panels"
+msgstr "Panouri"
+
+msgid "Search commands, settings, panels, devices and group addresses"
+msgstr "Căutare comenzi, setări, panouri, dispozitive și adrese de grup"
+
+msgid "Also show the texts of product data (parameters, group objects) in {language}?"
+msgstr "Se afișează și textele datelor de produs (parametri, obiecte de grup) în {language}?"
+
+msgid "Yes"
+msgstr "Da"
+
+msgid "No"
+msgstr "Nu"

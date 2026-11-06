@@ -22,9 +22,6 @@ msgstr "Përdor numrin serial për programim"
 msgid "Discovered Gateways"
 msgstr "Gateway të gjetur"
 
-msgid "Diagnostics"
-msgstr "Diagnostikimi"
-
 msgid "Check for Devices in Programming Mode"
 msgstr "Kërko pajisje në modalitetin e programimit"
 
@@ -204,3 +201,6 @@ msgstr "TCP tunneling"
 
 msgid "Routing"
 msgstr "Routing"
+
+msgid "A device whose serial number is known gets its individual address without pressing its programming button."
+msgstr "Një pajisje me numër serial të njohur merr adresën individuale pa shtypur butonin e programimit."

@@ -234,3 +234,38 @@ def test_of_several_things_in_one_cell_the_last_shows(
     )
     _height(block)
     assert shown == ["button B-1", "label leer"]
+
+
+@pytest.mark.usefixtures("frame")
+def test_wrapped_radio_buttons_make_their_row_higher() -> None:
+    choices = (
+        EnumChoice(0, "Standby wird verlassen", "C-0"),
+        EnumChoice(1, "Standby wird angezeigt", "C-1"),
+    )
+
+    def grid(width: str) -> UiParameterBlock:
+        field = UiParameter(
+            ref_id="P-1",
+            label="",
+            value="0",
+            default_value="0",
+            widget=EnumWidget(choices=choices, base=None, radio=True),  # type: ignore[arg-type]
+            cell="1,3",
+        )
+        return _grid("Aktion", widths=("2%", width), field=field)
+
+    device: Any = SimpleNamespace(node_id="D-1", param_errors={}, param_inputs={})
+
+    def height(block: UiParameterBlock, prefix: str) -> float:
+        top = imgui.get_cursor_pos_y()
+        parameter_widgets._render_grid_block(  # pyright: ignore[reportPrivateUsage]
+            device, block, lambda *_: None, False, prefix
+        )
+        return imgui.get_cursor_pos_y() - top
+
+    # Side by side in a wide column, the row is as high as one with a field.
+    wide = height(grid("90%"), "wide")
+    assert height(grid("90%"), "wide") == pytest.approx(wide)
+    # In a narrow one the second goes on the next line; the row grows by it once drawn.
+    height(grid("30%"), "narrow")
+    assert height(grid("30%"), "narrow") > wide + 10

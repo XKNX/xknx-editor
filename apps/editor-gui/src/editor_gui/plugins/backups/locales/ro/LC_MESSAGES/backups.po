@@ -202,9 +202,6 @@ msgstr "Cea mai nouă copie de rezervă a lui este din {created}. Restaurați pr
 msgid "The damaged file was kept as {name}."
 msgstr "Fișierul deteriorat a fost păstrat ca {name}."
 
-msgid "Backup Settings"
-msgstr "Setări copii de rezervă"
-
 msgid "A backup is one file with the complete project, which can be restored on its own. Each project has a folder of its own in the backup folder. A network drive or a folder synchronized with a cloud service keeps the backups off this computer."
 msgstr "O copie de rezervă este un singur fișier cu întregul proiect, care poate fi restaurat de sine stătător. Fiecare proiect are propriul folder în folderul copiilor de rezervă. O unitate de rețea sau un folder sincronizat cu un serviciu cloud păstrează copiile de rezervă în afara acestui computer."
 

@@ -75,7 +75,7 @@ class RecoverStrings:
 
     @property
     def COL_PRODUCT(self) -> str:
-        return _("Product / Application")
+        return _("Product/Application")
 
     @property
     def COL_STATUS(self) -> str:

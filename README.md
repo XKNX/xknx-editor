@@ -56,9 +56,9 @@ Opening a project another XKNX Editor has open asks first as well.
 
 ## Reporting problems
 
-Report a problem via **Feedback** in the menu bar, which opens the
+Report a problem via **Help → Report a Bug**, which opens the
 [issues page](https://github.com/xknx/xknx-editor/issues), and attach the log of the run in which
-it happened. **Help → Open Log Folder** opens the folder: every run writes its own
+it happened. **Settings → Folders → Log Folder** opens the folder: every run writes its own
 `xknx-editor_<date>_<time>_<process>.log`, and the last 10 runs are kept. The folder is
 `%LOCALAPPDATA%\xknx-editor\xknx-editor\Logs` on Windows, `~/Library/Logs/xknx-editor` on macOS
 and `~/.local/state/xknx-editor/log` on Linux.
@@ -147,7 +147,8 @@ maturing — review a recovered project before relying on it.
 
 **MCP server (LLM control)** — an embedded [Model Context Protocol](https://modelcontextprotocol.io)
 server lets an LLM drive the editor in the same live session as the GUI (shared project, catalog, and
-connection). Start it from the **MCP Server** menu, or with the editor through `--mcp` (see
+connection). Start it from **Tools → MCP Server** (host, port, token and the commands that register
+it in an AI tool are under **Settings → AI/MCP**), or with the editor through `--mcp` (see
 [Started by another program](#started-by-another-program)). It can edit the project and program
 hardware, so only expose it to clients you trust.
 
@@ -205,7 +206,7 @@ and tell it that it runs inside Home Assistant:
 | `--mcp-url=URL` | The address MCP clients use, shown in the editor (when a proxy is in front) |
 | `--home-assistant` | Runs inside Home Assistant, started by its integration: Home Assistant updates the editor, so a new version is announced with its release notes and a hint to update the integration, not installed or downloaded |
 
-Tablets and phones get a narrow layout (menus in **☰**, parameter pages above the fields, button
+Tablets and phones get a narrow layout (menus that do not fit in **☰**, parameter pages above the fields, button
 rows wrap, wide tables scroll sideways); a tap clicks, hold+lift opens the context menu, hold+drag
 drags. Each browser keeps its own zoom (two fingers, Ctrl+Plus/Minus/0, Ctrl+wheel, or
 **View → Zoom**). One browser controls the editor at a time and keeps control across a reload;

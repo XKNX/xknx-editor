@@ -52,7 +52,7 @@ msgstr "地址"
 msgid "Mask"
 msgstr "掩码"
 
-msgid "Product / Application"
+msgid "Product/Application"
 msgstr "产品/应用"
 
 msgid "Status"

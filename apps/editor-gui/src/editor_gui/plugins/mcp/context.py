@@ -31,6 +31,7 @@ if TYPE_CHECKING:
     from editor_gui.plugins.monitor.service import MonitorService
     from editor_gui.plugins.project.plugin import ProjectPlugin
     from editor_gui.plugins.recover.service import RecoverService
+    from editor_gui.settings_window import SettingsWindow
 
 T = TypeVar("T")
 
@@ -63,6 +64,9 @@ _SECRET_ARGS_BY_TOOL: dict[str, frozenset[str]] = {
     "catalog_alternative_verify_registration": frozenset({"verification_code"}),
 }
 
+# Settings whose value settings_set never logs.
+_SECRET_SETTINGS = frozenset({"mcp_token"})
+
 # Large upload arguments: logged as a length summary, never their full content.
 _BULK_ARGS = frozenset({"data_base64"})
 
@@ -75,6 +79,8 @@ def _is_secret_arg(name: str) -> bool:
 def _redact_args(tool: str, kwargs: dict[str, Any]) -> dict[str, Any]:
     """Tool-call arguments with secrets masked and bulk uploads summarized by length."""
     secret_here = _SECRET_ARGS_BY_TOOL.get(tool, frozenset())
+    if tool == "settings_set" and kwargs.get("key") in _SECRET_SETTINGS:
+        secret_here = secret_here | {"value"}
     redacted: dict[str, Any] = {}
     for name, value in kwargs.items():
         if _is_secret_arg(name) or name in secret_here:
@@ -117,6 +123,8 @@ class McpContext:
     project_plugin: ProjectPlugin | None = None
     # The backups of the open project; None where no GUI runs them (tests).
     backups: BackupService | None = None
+    # The program's settings (those of the Settings window); None where no GUI runs (tests).
+    settings: SettingsWindow | None = None
     # The recovery of devices from the bus (the Recover window); None where no GUI runs it.
     recover: RecoverService | None = None
 

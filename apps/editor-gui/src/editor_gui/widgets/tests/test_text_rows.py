@@ -158,3 +158,50 @@ def test_a_row_is_as_high_as_its_control(
     frame_padding = imgui.get_style().frame_padding.y
     assert layout.label_top == layout.value_top + frame_padding - px(offset)
     assert layout.label_top == px(4) + (px(control) - px(16)) // 2
+
+
+_WRAPPING_RADIO = EnumWidget(
+    (
+        EnumChoice(value=0, label="einzeln im Wechsel", id="EN-0"),
+        EnumChoice(value=1, label="in 1 oder 2 Zeilen ohne Wechsel", id="EN-1"),
+    ),
+    ParameterTypeTypeRestrictionBase.VALUE,
+    radio=True,
+)
+
+
+@pytest.mark.usefixtures("frame")
+def test_radio_buttons_wrap_as_words_in_a_line() -> None:
+    lines = parameter_widgets._radio_lines  # pyright: ignore[reportPrivateUsage]
+    # Each takes 10 px after it; one that doesn't fit beside the ones before starts a new line,
+    # one wider than the field gets a line of its own.
+    assert lines(_RADIO, 1000.0) == [0, 0]
+    assert lines(_WRAPPING_RADIO, 1000.0) == [0, 0]
+    assert lines(_WRAPPING_RADIO, 250.0) == [0, 1]
+    assert lines(_WRAPPING_RADIO, 1.0) == [0, 1]
+
+
+@pytest.mark.usefixtures("frame")
+def test_a_row_of_wrapped_radio_buttons_is_higher(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    drawn: list[imgui.ImVec2] = []
+    radio_button = imgui.radio_button
+
+    def record(label: str, active: bool) -> bool:
+        drawn.append(imgui.get_cursor_screen_pos())
+        return radio_button(label, active)
+
+    monkeypatch.setattr(imgui, "radio_button", record)
+    param = _parameter("P-1", _WRAPPING_RADIO)
+    # Two lines 20 px apart, the second starting where the first does; 9 px around them.
+    assert _height([param]) == pytest.approx(px(49))
+    first, second = drawn
+    assert second.x == pytest.approx(first.x)
+    assert second.y - first.y == pytest.approx(px(20))
+    # The label in the middle of the two lines; the first line's text 2 px below the content's
+    # top (the room above a radio button), where a single line's is 4 px below it.
+    layout = parameter_widgets._row_layout(param, False, 300.0, 200.0)  # pyright: ignore[reportPrivateUsage]
+    single = parameter_widgets._row_layout(param, False, 300.0, 1000.0)  # pyright: ignore[reportPrivateUsage]
+    assert layout.label_top == px(4) + (px(40) - px(16)) // 2
+    assert layout.value_top - single.value_top == px(2) - px(4)

@@ -19,9 +19,6 @@ msgstr "Odpojiť"
 msgid "Discovered Gateways"
 msgstr "Nájdené brány"
 
-msgid "Diagnostics"
-msgstr "Diagnostika"
-
 msgid "Check for Devices in Programming Mode"
 msgstr "Vyhľadať zariadenia v programovacom režime"
 
@@ -204,3 +201,6 @@ msgstr "TCP tunneling"
 
 msgid "Routing"
 msgstr "Routing"
+
+msgid "A device whose serial number is known gets its individual address without pressing its programming button."
+msgstr "Zariadenie so známym sériovým číslom dostane individuálnu adresu bez stlačenia programovacieho tlačidla."

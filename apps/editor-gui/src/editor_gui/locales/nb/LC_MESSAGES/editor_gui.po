@@ -19,9 +19,6 @@ msgstr "{project} – {file} - {app}"
 msgid "Help"
 msgstr "Hjelp"
 
-msgid "Feedback"
-msgstr "Tilbakemelding"
-
 msgid "About"
 msgstr "Om"
 
@@ -187,9 +184,6 @@ msgstr "Start server"
 msgid "Stop Server"
 msgstr "Stopp server"
 
-msgid "AI MCP"
-msgstr "KI MCP"
-
 msgid "This editor is controllable by an AI assistant (Claude, Codex, …) through the built-in MCP server: it exposes the catalog and project as tools over Streamable HTTP. Start the server below, then register its endpoint in your AI tool."
 msgstr "Denne editoren kan styres av en KI-assistent (Claude, Codex, …) via den innebygde MCP-serveren: den gjør katalogen og prosjektet tilgjengelig som verktøy via Streamable HTTP. Start serveren nedenfor, og registrer deretter endepunktet i KI-verktøyet ditt."
 
@@ -322,11 +316,11 @@ msgstr "Gruppeadresser"
 msgid "Group Object Links"
 msgstr "Gruppeobjektkoblinger"
 
-msgid "Areas / Lines"
-msgstr "Områder / linjer"
+msgid "Areas/Lines"
+msgstr "Områder/linjer"
 
-msgid "Floors / Rooms"
-msgstr "Etasjer / rom"
+msgid "Floors/Rooms"
+msgstr "Etasjer/rom"
 
 msgid "Functions"
 msgstr "Funksjoner"
@@ -1042,15 +1036,6 @@ msgstr "Lisens: GPL-2.0-only"
 msgid "Website:"
 msgstr "Nettsted:"
 
-msgid "Open Config Folder"
-msgstr "Åpne konfigurasjonsmappe"
-
-msgid "Open Cache Folder"
-msgstr "Åpne hurtigbuffermappe"
-
-msgid "Open Log Folder"
-msgstr "Åpne loggmappe"
-
 msgid "Compact Project…"
 msgstr "Komprimer prosjekt…"
 
@@ -1539,3 +1524,66 @@ msgstr "Denne produktdatabasen er passordbeskyttet. Skriv inn passordet for å i
 
 msgid "These files use a fixed, publicly documented password, for example here:"
 msgstr "Disse filene bruker et fast, offentlig dokumentert passord, for eksempel her:"
+
+msgid "Tools"
+msgstr "Verktøy"
+
+msgid "Command Palette"
+msgstr "Kommandopalett"
+
+msgid "Search settings"
+msgstr "Søk i innstillinger"
+
+msgid "No setting matches the search."
+msgstr "Ingen innstilling samsvarer med søket."
+
+msgid "General"
+msgstr "Generelt"
+
+msgid "Connection"
+msgstr "Tilkobling"
+
+msgid "Backups"
+msgstr "Sikkerhetskopier"
+
+msgid "AI/MCP"
+msgstr "KI/MCP"
+
+msgid "Folders"
+msgstr "Mapper"
+
+msgid "Texts of product data (parameters, group objects) are shown in this language where the product has them."
+msgstr "Tekster i produktdata (parametere, gruppeobjekter) vises på dette språket der produktet har dem."
+
+msgid "Lowers the frame rate while nothing changes on the screen, to save power."
+msgstr "Senker bildefrekvensen mens ingenting endres på skjermen, for å spare strøm."
+
+msgid "Cache Folder"
+msgstr "Hurtigbuffermappe"
+
+msgid "Config Folder"
+msgstr "Konfigurasjonsmappe"
+
+msgid "Log Folder"
+msgstr "Loggmappe"
+
+msgid "AI Tools"
+msgstr "KI-verktøy"
+
+msgid "More Themes…"
+msgstr "Flere temaer…"
+
+msgid "Panels"
+msgstr "Paneler"
+
+msgid "Search commands, settings, panels, devices and group addresses"
+msgstr "Søk i kommandoer, innstillinger, paneler, enheter og gruppeadresser"
+
+msgid "Also show the texts of product data (parameters, group objects) in {language}?"
+msgstr "Vise også tekstene i produktdata (parametere, gruppeobjekter) på {language}?"
+
+msgid "Yes"
+msgstr "Ja"
+
+msgid "No"
+msgstr "Nei"

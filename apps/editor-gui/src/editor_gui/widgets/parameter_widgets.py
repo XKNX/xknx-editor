@@ -22,7 +22,7 @@ from editor_gui.widgets.backgrounds import (
     page_line,
     side_background,
 )
-from editor_gui.widgets.checkbox import checkbox, radio_button
+from editor_gui.widgets.checkbox import checkbox, radio_button, radio_button_width
 from editor_gui.widgets.combo import begin_combo
 from editor_gui.widgets.dpi import px
 from editor_gui.widgets.float_format import format_float, general_float, parse_float
@@ -284,6 +284,10 @@ _LINE_CONTENT = 16.0
 _FIELD_CONTENT = 22.0
 _RADIO_CONTENT = 24.0
 _STEPLESS_CONTENT = 18.0
+# Radio buttons are laid out as words in a line: one that doesn't fit beside the ones before goes
+# on the next line. Each takes 2 px above and below its 16 px line, and 10 px after it.
+_RADIO_PITCH = 20.0
+_RADIO_AFTER = 10.0
 # Where the content starts below the row's top: the reference puts its 9 px as 3 px above the
 # content and 6 px below, and draws its text 2 px lower in a line than the editor does; the
 # grids' rows are placed so, too.
@@ -306,26 +310,57 @@ def _stepless(param: UiParameter) -> bool:
     return isinstance(param.widget, FloatWidget) and not param.widget.increment
 
 
-def _control(param: UiParameter, text_row: bool) -> tuple[float, float]:
-    """The height of ``param``'s control in its row, and how far its text is below its top."""
+def _radio_lines(widget: EnumWidget, width: float) -> list[int]:
+    """The line each of ``widget``'s radio buttons is on in a field ``width`` wide: one that
+    doesn't fit beside the ones before (with the room after it) starts the next line."""
+    lines: list[int] = []
+    line, used = 0, 0.0
+    for choice in widget.choices:
+        size = radio_button_width(choice_text(choice)) + px(_RADIO_AFTER)
+        if used and used + size > width:
+            line, used = line + 1, 0.0
+        lines.append(line)
+        used += size
+    return lines
+
+
+def _control(
+    param: UiParameter, text_row: bool, value_width: float | None = None
+) -> tuple[float, float]:
+    """The height of ``param``'s control in its row, and how far its text is below its top;
+    radio buttons in a field ``value_width`` wide take as many lines as they need."""
     pad = imgui.get_style().frame_padding.y
     if text_row:
         return px(_LINE_CONTENT), 0.0
     if isinstance(param.widget, EnumWidget) and param.widget.radio:
-        return px(_RADIO_CONTENT), pad
+        lines = _radio_lines(param.widget, value_width) if value_width else [0]
+        count = max(lines, default=0) + 1
+        control = max(px(_RADIO_CONTENT), count * px(_RADIO_PITCH))
+        # The first line's text sits as on a single line of radio buttons; the further lines
+        # follow it a pitch apart.
+        text = _round((control - count * px(_RADIO_PITCH)) / 2) + _round(
+            (px(_RADIO_PITCH) - px(_LINE_CONTENT)) / 2
+        )
+        return control, pad - (text - _round((control - px(_LINE_CONTENT)) / 2))
     if _stepless(param):
         return px(_STEPLESS_CONTENT), pad - px(_STEPLESS_SHRINK)
     return px(_FIELD_CONTENT), pad
 
 
-def _row_layout(param: UiParameter, text_row: bool, label_width: float) -> _RowLayout:
-    """The layout of ``param``'s row beside its label ``label_width`` wide. Label and control
-    are centred in the row's content; a one-line label is level with the control's text."""
+def _row_layout(
+    param: UiParameter,
+    text_row: bool,
+    label_width: float,
+    value_width: float | None = None,
+) -> _RowLayout:
+    """The layout of ``param``'s row beside its label ``label_width`` wide and its field
+    ``value_width`` wide. Label and control are centred in the row's content; a one-line label
+    is level with a one-line control's text."""
     if param.value != param.default_value and _highlight_changes:
         label_width -= imgui.calc_text_size("*").x + px(4)
     labels = max(len(wrap_lines(param.label, max(label_width, 1.0))), 1)
     lines = labels * px(_LINE_CONTENT)
-    control, text_offset = _control(param, text_row)
+    control, text_offset = _control(param, text_row, value_width)
     content = max(control, lines)
     top = px(_CONTENT_TOP)
     label_top = top + _round(max(0.0, (content - lines) / 2))
@@ -549,14 +584,20 @@ def render_param_widget(
                 if imgui.button(f"{preview}##{widget_id}", imgui.ImVec2(-1, 0)):
                     return EnumPopupRequest(device=None, param=param)  # type: ignore[arg-type]
             elif w.radio:
+                # Wrapped in the field's width (see _radio_lines).
+                lines = _radio_lines(w, imgui.calc_item_width())
+                start = imgui.get_cursor_pos()
                 for i, choice in enumerate(w.choices):
-                    if i:
-                        imgui.same_line()
+                    first = i == 0 or lines[i] != lines[i - 1]
+                    if not first:
+                        imgui.same_line(0.0, px(_RADIO_AFTER))
+                    elif i:
+                        imgui.set_cursor_pos(
+                            imgui.ImVec2(start.x, start.y + lines[i] * px(_RADIO_PITCH))
+                        )
                     selected = not differs and str(choice.value) == param.value
                     if _small_radio(
-                        f"{choice_text(choice)}##{widget_id}_{i}",
-                        selected,
-                        first=i == 0,
+                        f"{choice_text(choice)}##{widget_id}_{i}", selected, first=first
                     ):
                         on_change(str(choice.value))
             else:
@@ -2486,9 +2527,13 @@ def _render_grid_cells(
             node = cells_by_pos.get((row, col))
             sep = labels_by_pos.get((row, col))
             req = None
-            if row_height > frame_height and isinstance(node, UiParameter | UiButton):
+            cell_key = f"{row_key}:{col}"
+            # A field is a frame high; radio buttons as high as their lines, as last drawn.
+            radio_key = f"{cell_key}:radio"
+            own = _label_heights.get(radio_key, frame_height)
+            if row_height > own and isinstance(node, UiParameter | UiButton):
                 imgui.set_cursor_pos_y(
-                    imgui.get_cursor_pos_y() + (row_height - frame_height) / 2
+                    imgui.get_cursor_pos_y() + (row_height - own) / 2
                 )
             if isinstance(node, UiParameterBlock):
                 imgui.push_id(f"{row},{col}")
@@ -2509,8 +2554,12 @@ def _render_grid_cells(
                 req = _render_grid_param(
                     device, node, on_change, deferred_enum, differing_refs
                 )
+                if isinstance(node.widget, EnumWidget) and node.widget.radio:
+                    # Wrapped radio buttons (their group, drawn last) make their row higher.
+                    drawn = max(imgui.get_item_rect_size().y, frame_height)
+                    _label_heights[radio_key] = drawn
+                    drawn_height = max(drawn_height, drawn)
             elif sep is not None:
-                cell_key = f"{row_key}:{col}"
                 own = _label_heights.get(
                     cell_key, _celltext_height(sep, imgui.get_content_region_avail().x)
                 )
@@ -2688,7 +2737,15 @@ def _render_param_table(
             layout = (
                 None
                 if above or isinstance(param, UiButton)
-                else _row_layout(param, text_row, label_width - indent)
+                else _row_layout(
+                    param,
+                    text_row,
+                    label_width - indent,
+                    reference
+                    - label_width
+                    - px(_LIST_ROW_END)
+                    - _suffix_width(param.suffix),
+                )
             )
             imgui.table_next_row(
                 imgui.TableRowFlags_.none,

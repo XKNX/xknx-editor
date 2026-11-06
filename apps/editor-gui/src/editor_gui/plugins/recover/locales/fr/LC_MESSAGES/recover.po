@@ -52,8 +52,8 @@ msgstr "Adresse"
 msgid "Mask"
 msgstr "Masque"
 
-msgid "Product / Application"
-msgstr "Produit / application"
+msgid "Product/Application"
+msgstr "Produit/application"
 
 msgid "Status"
 msgstr "Statut"

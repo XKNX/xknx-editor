@@ -19,9 +19,6 @@ msgstr "Trennen"
 msgid "Discovered Gateways"
 msgstr "Erkannte Gateways"
 
-msgid "Diagnostics"
-msgstr "Diagnose"
-
 msgid "Check for Devices in Programming Mode"
 msgstr "Geräte im Programmiermodus suchen"
 
@@ -204,3 +201,6 @@ msgstr "TCP-Tunneling"
 
 msgid "Routing"
 msgstr "Routing"
+
+msgid "A device whose serial number is known gets its individual address without pressing its programming button."
+msgstr "Ein Gerät mit bekannter Seriennummer erhält seine physikalische Adresse, ohne dass seine Programmiertaste gedrückt wird."

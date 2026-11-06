@@ -2,9 +2,14 @@
 
 import gettext
 import sys
+import threading
+from collections.abc import Generator
+from contextlib import contextmanager
 from pathlib import Path
 
 _current_locale: str = "en"
+# A language this thread shows its texts in instead of the current one (see in_english).
+_thread = threading.local()
 
 
 def set_locale(locale: str) -> None:
@@ -16,6 +21,18 @@ def get_locale() -> str:
     return _current_locale
 
 
+@contextmanager
+def in_english() -> Generator[None]:
+    """The texts read inside in English (their msgids), in this thread only: e.g. to search
+    settings by their English names as well."""
+    before = getattr(_thread, "locale", None)
+    _thread.locale = "en"
+    try:
+        yield
+    finally:
+        _thread.locale = before
+
+
 def create_translator(domain: str, locale_dir: Path):
     # Cache the translation object per locale. gettext.translation() runs gettext.find(), which stats
     # the filesystem for .mo files on every call; a panel's render() reads dozens of S.* strings each
@@ -24,12 +41,13 @@ def create_translator(domain: str, locale_dir: Path):
     cache: dict[str, gettext.NullTranslations] = {}
 
     def translate(text: str) -> str:
-        trans = cache.get(_current_locale)
+        locale = getattr(_thread, "locale", None) or _current_locale
+        trans = cache.get(locale)
         if trans is None:
             trans = gettext.translation(
-                domain, locale_dir, languages=[_current_locale], fallback=True
+                domain, locale_dir, languages=[locale], fallback=True
             )
-            cache[_current_locale] = trans
+            cache[locale] = trans
         return trans.gettext(text)
 
     return translate
@@ -92,10 +110,6 @@ class BaseStrings:
         return _("Help")
 
     @property
-    def MENU_FEEDBACK(self) -> str:
-        return _("Feedback")
-
-    @property
     def MENU_REPORT_BUG(self) -> str:
         return _("Report a Bug")
 
@@ -112,8 +126,12 @@ class BaseStrings:
         return _("About")
 
     @property
-    def MENU_LANGUAGE(self) -> str:
+    def SETTING_LANGUAGE(self) -> str:
         return _("Language")
+
+    @property
+    def PALETTE_HINT(self) -> str:
+        return _("Search commands, settings, panels, devices and group addresses")
 
     @property
     def PALETTE_NO_MATCH(self) -> str:
@@ -379,6 +397,104 @@ class MenuStrings:
         return _("The MCP server could not start: {error}")
 
     @property
+    def MENU_TOOLS(self) -> str:
+        return _("Tools")
+
+    @property
+    def LANGUAGE_PRODUCT_TOO(self) -> str:
+        # Asked when the interface language changes; {language}: the product language it has.
+        return _(
+            "Also show the texts of product data (parameters, group objects) in {language}?"
+        )
+
+    @property
+    def BTN_YES(self) -> str:
+        return _("Yes")
+
+    @property
+    def BTN_NO(self) -> str:
+        return _("No")
+
+    @property
+    def MENU_PANELS(self) -> str:
+        # The View menu's submenu that shows and hides the docked panels (tabs).
+        return _("Panels")
+
+    @property
+    def MENU_MORE_THEMES(self) -> str:
+        return _("More Themes…")
+
+    @property
+    def MENU_COMMAND_PALETTE(self) -> str:
+        return _("Command Palette")
+
+    @property
+    def SHORTCUT_SETTINGS(self) -> str:
+        return shortcut(",")
+
+    @property
+    def SHORTCUT_PALETTE(self) -> str:
+        return shortcut("P")
+
+    @property
+    def SETTINGS_SEARCH(self) -> str:
+        return _("Search settings")
+
+    @property
+    def SETTINGS_NOTHING_FOUND(self) -> str:
+        return _("No setting matches the search.")
+
+    @property
+    def SETTINGS_PAGE_GENERAL(self) -> str:
+        return _("General")
+
+    @property
+    def SETTINGS_PAGE_CONNECTION(self) -> str:
+        return _("Connection")
+
+    @property
+    def SETTINGS_PAGE_BACKUPS(self) -> str:
+        return _("Backups")
+
+    @property
+    def SETTINGS_PAGE_MCP(self) -> str:
+        # The page with the MCP server that AI tools use.
+        return _("AI/MCP")
+
+    @property
+    def SETTINGS_PAGE_FOLDERS(self) -> str:
+        return _("Folders")
+
+    @property
+    def SETTING_PRODUCT_LANGUAGE_HINT(self) -> str:
+        return _(
+            "Texts of product data (parameters, group objects) are shown in this language "
+            "where the product has them."
+        )
+
+    @property
+    def SETTING_IDLING_HINT(self) -> str:
+        return _(
+            "Lowers the frame rate while nothing changes on the screen, to save power."
+        )
+
+    @property
+    def SETTING_CACHE_FOLDER(self) -> str:
+        return _("Cache Folder")
+
+    @property
+    def SETTING_CONFIG_FOLDER(self) -> str:
+        return _("Config Folder")
+
+    @property
+    def SETTING_LOG_FOLDER(self) -> str:
+        return _("Log Folder")
+
+    @property
+    def SETTING_MCP_CLIENTS(self) -> str:
+        return _("AI Tools")
+
+    @property
     def SETTINGS_MCP_START(self) -> str:
         return _("Start Server")
 
@@ -387,11 +503,7 @@ class MenuStrings:
         return _("Stop Server")
 
     @property
-    def PANEL_KI(self) -> str:
-        return _("AI MCP")
-
-    @property
-    def KI_INFO(self) -> str:
+    def MCP_INFO(self) -> str:
         return _(
             "This editor is controllable by an AI assistant (Claude, Codex, …) through the "
             "built-in MCP server: it exposes the catalog and project as tools over Streamable "
@@ -399,8 +511,8 @@ class MenuStrings:
         )
 
     @property
-    def KI_INFO_MANAGED(self) -> str:
-        # KI_INFO when the program that started the editor runs the MCP server (Home Assistant).
+    def MCP_INFO_MANAGED(self) -> str:
+        # MCP_INFO when the program that started the editor runs the MCP server (Home Assistant).
         return _(
             "This editor is controllable by an AI assistant through the built-in MCP server: it "
             "exposes the catalog and project as tools over Streamable HTTP. Register its "
@@ -408,19 +520,19 @@ class MenuStrings:
         )
 
     @property
-    def KI_ENDPOINT(self) -> str:
+    def MCP_ENDPOINT(self) -> str:
         return _("MCP Endpoint")
 
     @property
-    def KI_COMMANDS_HINT(self) -> str:
+    def MCP_COMMANDS_HINT(self) -> str:
         return _("Example: register the MCP server in your AI tool (adjust host/port):")
 
     @property
-    def KI_COMMANDS_HINT_MANAGED(self) -> str:
+    def MCP_COMMANDS_HINT_MANAGED(self) -> str:
         return _("Example: register the MCP server in your AI tool:")
 
     @property
-    def KI_COMMANDS_HINT_HOME_ASSISTANT(self) -> str:
+    def MCP_COMMANDS_HINT_HOME_ASSISTANT(self) -> str:
         # HOME_ASSISTANT_TOKEN stays as it is: it stands for the token in the commands below.
         return _(
             "Example: register the MCP server in your AI tool, with your token in place of "
@@ -439,50 +551,46 @@ class MenuStrings:
         return _("The program that started XKNX Editor set up its MCP server.")
 
     @property
-    def KI_HOST_HINT(self) -> str:
+    def MCP_HOST_HINT(self) -> str:
         return _(
             "Use host 0.0.0.0 to make the server reachable from other devices on the "
             "network; 127.0.0.1/localhost only allows this machine."
         )
 
     @property
-    def KI_HOST_PRESET_LOCAL(self) -> str:
+    def MCP_HOST_PRESET_LOCAL(self) -> str:
         # Combo entry for host 127.0.0.1 (loopback only).
         return _("This Machine Only")
 
     @property
-    def KI_HOST_PRESET_NETWORK(self) -> str:
+    def MCP_HOST_PRESET_NETWORK(self) -> str:
         # Combo entry for host 0.0.0.0 (all interfaces).
         return _("On the Network")
 
     @property
-    def KI_CLAUDE_CMD(self) -> str:
+    def MCP_CLAUDE_CMD(self) -> str:
         return _("claude mcp add --transport http xknx-editor {url}")
 
     @property
-    def KI_CLAUDE_CMD_AUTH(self) -> str:
+    def MCP_CLAUDE_CMD_AUTH(self) -> str:
         return _(
             "claude mcp add --transport http xknx-editor {url} "
             '--header "Authorization: Bearer {token}"'
         )
 
     @property
-    def KI_CODEX_CMD(self) -> str:
+    def MCP_CODEX_CMD(self) -> str:
         return _("codex mcp add xknx-editor --url {url}")
 
     @property
-    def KI_CODEX_CMD_AUTH(self) -> str:
+    def MCP_CODEX_CMD_AUTH(self) -> str:
         return _(
             "export XKNX_MCP_TOKEN='{token}'\n"
             "codex mcp add xknx-editor --url {url} --bearer-token-env-var XKNX_MCP_TOKEN"
         )
 
     @property
-    def KI_COPY(self) -> str:
-        return _("Copy")
-
-    @property
-    def KI_COPIED(self) -> str:
+    def COPIED(self) -> str:
         return _("Copied")
 
     @property
@@ -633,11 +741,11 @@ class MenuStrings:
 
     @property
     def EXPORT_SUMMARY_TOPOLOGY(self) -> str:
-        return _("Areas / Lines")
+        return _("Areas/Lines")
 
     @property
     def EXPORT_SUMMARY_FLOORS_ROOMS(self) -> str:
-        return _("Floors / Rooms")
+        return _("Floors/Rooms")
 
     @property
     def EXPORT_SUMMARY_FUNCTIONS(self) -> str:
@@ -672,7 +780,7 @@ class MenuStrings:
         return _("no")
 
     @property
-    def EXPORT_SUMMARY_OPEN_FOLDER(self) -> str:
+    def BTN_OPEN_FOLDER(self) -> str:
         return _("Open Folder")
 
     @property
@@ -1289,11 +1397,11 @@ class MenuStrings:
         return _("Status Bar")
 
     @property
-    def MENU_STATUS_FPS(self) -> str:
+    def SETTING_STATUS_FPS(self) -> str:
         return _("FPS in Status Bar")
 
     @property
-    def MENU_ENABLE_IDLING(self) -> str:
+    def SETTING_IDLING(self) -> str:
         return _("Enable Idling")
 
     @property
@@ -1305,7 +1413,7 @@ class MenuStrings:
         return _(" (Idling)")
 
     @property
-    def MENU_THEME(self) -> str:
+    def SETTING_THEME(self) -> str:
         return _("Theme")
 
     @property
@@ -1317,7 +1425,7 @@ class MenuStrings:
         return _("Dark Theme")
 
     @property
-    def MENU_THEME_CUSTOMIZE(self) -> str:
+    def SETTING_THEME_CUSTOMIZE(self) -> str:
         return _("Customize Theme…")
 
     @property
@@ -1769,7 +1877,7 @@ class MenuStrings:
         return _("Check for Updates")
 
     @property
-    def MENU_UPDATE_ON_STARTUP(self) -> str:
+    def SETTING_UPDATE_CHECK(self) -> str:
         return _("Check for Updates on Startup")
 
     @property
@@ -1834,18 +1942,6 @@ class MenuStrings:
     @property
     def ABOUT_WEBSITE(self) -> str:
         return _("Website:")
-
-    @property
-    def MENU_OPEN_CONFIG_DIR(self) -> str:
-        return _("Open Config Folder")
-
-    @property
-    def MENU_OPEN_CACHE_DIR(self) -> str:
-        return _("Open Cache Folder")
-
-    @property
-    def MENU_OPEN_LOG_DIR(self) -> str:
-        return _("Open Log Folder")
 
     # --- compact project ------------------------------------------------
     @property
@@ -2134,7 +2230,7 @@ class _CombinedStrings(BaseStrings, MenuStrings):
         return _("The project has no group addresses to export.")
 
     @property
-    def MENU_CLEAR_CACHE(self) -> str:
+    def BTN_CLEAR_CACHE(self) -> str:
         return _("Clear Cache…")
 
     @property
@@ -2396,7 +2492,7 @@ class _CombinedStrings(BaseStrings, MenuStrings):
         return _("Albanian")
 
     @property
-    def MENU_PRODUCT_LANGUAGE(self) -> str:
+    def SETTING_PRODUCT_LANGUAGE(self) -> str:
         return _("Preferred Product Language")
 
     @property

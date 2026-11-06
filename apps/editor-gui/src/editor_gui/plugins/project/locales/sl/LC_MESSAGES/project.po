@@ -1273,8 +1273,8 @@ msgstr "Filtriraj dnevnik"
 msgid "Find this device's manual (via the KNX device database, else a manufacturer search) and open it in your browser. Best effort - opens the KNX device search if no direct document is found."
 msgstr "Poišče priročnik te naprave (prek zbirke podatkov naprav KNX, sicer z iskanjem pri proizvajalcu) in ga odpre v brskalniku. Brez jamstva – če neposrednega dokumenta ni mogoče najti, odpre iskanje naprav KNX."
 
-msgid "Gap X / Y (mm)"
-msgstr "Razmik X / Y (mm)"
+msgid "Gap X/Y (mm)"
+msgstr "Razmik X/Y (mm)"
 
 msgid "Obtain an IP address automatically"
 msgstr "Samodejno pridobi naslov IP"
@@ -1330,8 +1330,8 @@ msgstr "Legenda (cela stran)"
 msgid "MAC Address"
 msgstr "Naslov MAC"
 
-msgid "Margin Top / Left (mm)"
-msgstr "Rob zgoraj / levo (mm)"
+msgid "Margin Top/Left (mm)"
+msgstr "Rob zgoraj/levo (mm)"
 
 msgid "No .NET runtime found (install the .NET SDK, or run on Windows with ETS)."
 msgstr "Ni najdenega izvajalnega okolja .NET (namestite .NET SDK ali zaženite v sistemu Windows z ETS)."

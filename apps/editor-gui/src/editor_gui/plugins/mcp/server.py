@@ -30,6 +30,7 @@ from editor_gui.plugins.mcp.tools import (
     project,
     project_tools,
     recover,
+    settings,
     status,
     structure,
 )
@@ -200,6 +201,7 @@ def build_server(ctx: McpContext, auth: Any = None) -> FastMCP:
         keys,
         network,
         backups,
+        settings,
         recover,
     ):
         module.register(mcp, ctx)

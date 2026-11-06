@@ -19,9 +19,6 @@ msgstr "Aftengjast"
 msgid "Discovered Gateways"
 msgstr "Gáttir sem fundust"
 
-msgid "Diagnostics"
-msgstr "Greining"
-
 msgid "Check for Devices in Programming Mode"
 msgstr "Leita að tækjum í forritunarham"
 
@@ -204,3 +201,6 @@ msgstr "TCP tunneling"
 
 msgid "Routing"
 msgstr "Routing"
+
+msgid "A device whose serial number is known gets its individual address without pressing its programming button."
+msgstr "Tæki með þekkt raðnúmer fær einstaklingsvistfang sitt án þess að ýtt sé á forritunarhnapp þess."

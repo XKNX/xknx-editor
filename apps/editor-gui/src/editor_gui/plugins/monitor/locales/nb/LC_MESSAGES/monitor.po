@@ -16,8 +16,8 @@ msgstr "Ingen gruppeadresser (åpne eller importer et prosjekt)"
 msgid "Not Connected"
 msgstr "Ikke tilkoblet"
 
-msgid "value (e.g. on / 21.5 / 50)"
-msgstr "verdi (f.eks. on / 21.5 / 50)"
+msgid "value (e.g. on/21.5/50)"
+msgstr "verdi (f.eks. on/21.5/50)"
 
 msgid "Value:"
 msgstr "Verdi:"
