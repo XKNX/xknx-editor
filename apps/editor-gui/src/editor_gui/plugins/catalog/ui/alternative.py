@@ -137,14 +137,13 @@ class AlternativeCatalogPanel:
             imgui.set_next_item_open(not filled, imgui.Cond_.always)
         if imgui.collapsing_header(AppS.SETTINGS_TITLE):
             self._render_settings()
+            # Where the section ends.
+            imgui.separator()
         if imgui.button(S.BTN_ONLINE_CATALOG):
             self._submit("refresh", self._client.refresh)
         same_line_if_fits(button_width(S.ALTERNATIVE_WEBSITE))
         if imgui.button(S.ALTERNATIVE_WEBSITE):
             open_url(self._client.settings.base_url)
-        same_line_if_fits(button_width(S.ALTERNATIVE_REGISTER_OPEN))
-        if imgui.button(S.ALTERNATIVE_REGISTER_OPEN):
-            self._registration_requested = True
         imgui.end_disabled()
         self._render_status(status)
         if self._message or status["error"]:
@@ -308,6 +307,10 @@ class AlternativeCatalogPanel:
                 self._submit("refresh", self._client.refresh)
             except Exception as exc:
                 self._message = str(exc)
+        # No account yet: registering at the server, in a dialog.
+        same_line_if_fits(button_width(S.ALTERNATIVE_REGISTER_OPEN))
+        if imgui.button(S.ALTERNATIVE_REGISTER_OPEN):
+            self._registration_requested = True
 
     def _render_registration(self) -> None:
         imgui.text_wrapped(f"{S.ALTERNATIVE_URL}: {self._client.settings.base_url}")
