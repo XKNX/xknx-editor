@@ -23,7 +23,7 @@ dependencies = [
     "structlog>=26.1.0",
     "uvicorn>=0.54.0",
     "websockets>=17.3",
-    "xknx>=4.0.0",
+    "xknx>=4.1.1,<5",
     "xknxeditor-catalog",
     "xknxeditor-download",
     "xknxeditor-datasecure",
