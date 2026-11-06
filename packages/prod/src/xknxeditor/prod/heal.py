@@ -1,0 +1,68 @@
+"""Heal non-conformant legacy application XML before xsdata binds it.
+
+Products converted from very old databases (ETS2/3-origin) sometimes omit attributes that the
+current KNX project schema, and therefore the generated xsdata binding, treat as required. A
+``<TypeNumber>``/``<TypeFloat>``/``<TypeTime>`` without ``minInclusive``/``maxInclusive`` makes the
+binding's dataclass constructor raise a ``TypeError`` for the missing keyword-only argument.
+
+These helpers add such a missing bound back with a best-effort value so the bytes bind. The values
+are not authoritative ranges - they only let non-conformant legacy data load. The heal is a no-op on
+conformant XML: it inserts an attribute only when it is absent, so a file that already carries both
+bounds comes back as the very same ``bytes`` object, byte for byte.
+"""
+
+from __future__ import annotations
+
+import re
+
+# Elements whose min/max bound the binding requires. Matched by their start tag's local name, so the
+# default-namespace tags (unprefixed in these files) are covered whatever the schema version is.
+_BOUNDED_ELEMENTS = (b"TypeNumber", b"TypeFloat", b"TypeTime")
+
+# A start tag of one of the bounded elements: name, its attribute text, and an optional self-closing
+# slash. Attribute values in this data never contain ">", so stopping at the first ">" is safe.
+_TAG = re.compile(
+    rb"<(?P<name>"
+    + rb"|".join(_BOUNDED_ELEMENTS)
+    + rb")(?P<attrs>\s[^>]*?)?(?P<slash>\s*/)?>"
+)
+_HAS_MIN = re.compile(rb"\bminInclusive\s*=")
+_HAS_MAX = re.compile(rb"\bmaxInclusive\s*=")
+_SIZE = re.compile(rb'\bSizeInBit\s*=\s*"(\d+)"')
+
+# Best-effort upper bound when the element carries no SizeInBit to derive one from.
+_FALLBACK_MAX = 2147483647
+
+
+def _max_for(attrs: bytes) -> int:
+    size = _SIZE.search(attrs)
+    if size is not None:
+        return 2 ** int(size.group(1)) - 1
+    return _FALLBACK_MAX
+
+
+def _heal_tag(match: re.Match[bytes]) -> bytes:
+    attrs = match.group("attrs") or b""
+    injected = b""
+    if _HAS_MIN.search(attrs) is None:
+        injected += b' minInclusive="0"'
+    if _HAS_MAX.search(attrs) is None:
+        injected += b' maxInclusive="%d"' % _max_for(attrs)
+    if not injected:
+        return match.group(0)
+    slash = match.group("slash") or b""
+    return b"<" + match.group("name") + attrs + injected + slash + b">"
+
+
+def heal_application_xml(xml_bytes: bytes) -> bytes:
+    """Return ``xml_bytes`` with any missing numeric-range bound injected into bounded elements.
+
+    Conformant input is returned unchanged (the same object), so caches and conformant parses stay
+    byte-identical. Runs in one linear pass over the bytes."""
+    # Cheap gate: only the presence of a bounded element can need a heal, and most files need none.
+    if not any(
+        tag in xml_bytes for tag in (b"<TypeNumber", b"<TypeFloat", b"<TypeTime")
+    ):
+        return xml_bytes
+    healed = _TAG.sub(_heal_tag, xml_bytes)
+    return healed if healed != xml_bytes else xml_bytes

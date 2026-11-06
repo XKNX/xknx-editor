@@ -31,6 +31,7 @@ dependencies = [
     "xknxeditor-prod",
     "xknxeditor-proj",
     "xknxeditor-recover",
+    "xknxeditor-vendor",
 ]
 
 [project.scripts]
@@ -60,3 +61,4 @@ xknxeditor-namespaces = { workspace = true }
 xknxeditor-prod = { workspace = true }
 xknxeditor-proj = { workspace = true }
 xknxeditor-recover = { workspace = true }
+xknxeditor-vendor = { workspace = true }

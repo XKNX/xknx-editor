@@ -213,3 +213,66 @@ msgstr "Sjálfvirkt: tækið fer á núverandi línu valins herbergis, en ef hú
 
 msgid "Download to Local Catalog"
 msgstr "Sækja í staðbundinn vörulista"
+
+msgid "Filename"
+msgstr "Skráarheiti"
+
+msgid "Mask Version"
+msgstr "Grímuútgáfa"
+
+msgid "Size"
+msgstr "Stærð"
+
+msgid "Updated"
+msgstr "Uppfært"
+
+msgid "Alternative"
+msgstr "Annar vörulisti"
+
+msgid "Server URL"
+msgstr "Slóð þjóns"
+
+msgid "Username"
+msgstr "Notandanafn"
+
+msgid "Email"
+msgstr "Netfang"
+
+msgid "Save"
+msgstr "Vista"
+
+msgid "Register"
+msgstr "Nýskráning"
+
+msgid "Continue Registration"
+msgstr "Halda áfram skráningu"
+
+msgid "Verification Code"
+msgstr "Staðfestingarkóði"
+
+msgid "Verify Email"
+msgstr "Staðfesta netfang"
+
+msgid "Resend Code"
+msgstr "Senda kóða aftur"
+
+msgid "Open Website"
+msgstr "Opna vefsvæði"
+
+msgid "Imported {count} product versions. Find them in the Local tab."
+msgstr "{count} vöruútgáfur fluttar inn. Þær eru á flipanum Staðbundið."
+
+msgid "Login is saved on this computer. Leave the password empty to keep it for the same server and user."
+msgstr "Innskráningarupplýsingar eru vistaðar á þessari tölvu. Skildu lykilorðið eftir autt til að halda því fyrir sama þjón og notanda."
+
+msgid "Registration sends an email code. Password: at least 10 characters, uppercase, lowercase, digit and special character; at most 72 UTF-8 bytes."
+msgstr "Við skráningu er kóði sendur í tölvupósti. Lykilorð: minnst 10 stafir, hástafur, lágstafur, tölustafur og sértákn; mest 72 UTF-8-bæti."
+
+msgid "Enter the six-digit code from your email to complete registration."
+msgstr "Sláðu inn sex stafa tölukóðann úr tölvupóstinum til að ljúka skráningu."
+
+msgid "Email verified. Downloads become available after administrator approval."
+msgstr "Netfang staðfest. Niðurhal verður tiltækt eftir samþykki kerfisstjóra."
+
+msgid "Version"
+msgstr "Útgáfa"

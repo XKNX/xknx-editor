@@ -8,12 +8,16 @@ table.
 from __future__ import annotations
 
 from collections.abc import Iterator
+from types import SimpleNamespace
+from typing import ClassVar
 
+import editor_gui.plugins.project.ui.plugin_params_panel as ppp
 import pytest
 from editor_gui.plugin_params import PluginParameter, PluginSectionView
 from editor_gui.plugins.project.ui.plugin_params_panel import (
     PluginParamsPanel,
     _default_label,
+    _display_type_index,
     _filter_rows,
     _SectionRow,
 )
@@ -160,3 +164,107 @@ def test_grouped_rows_render_without_error(context: None) -> None:
         _row(ref_id="p2", label="P2", value="x"),
     ]
     _render(panel, flat)
+
+
+def test_display_type_index_defaults_to_triton_6325() -> None:
+    assert _display_type_index("6136UP") == 0
+    assert _display_type_index("triton-6323") == 1
+    assert _display_type_index("triton-6325") == 2
+    # Unknown / None fall back to the triton 6325 (index 2).
+    assert _display_type_index(None) == 2
+    assert _display_type_index("something-else") == 2
+
+
+def _render_setup(panel: PluginParamsPanel, device: object) -> None:
+    for _ in range(2):
+        imgui.new_frame()
+        if imgui.begin("w"):
+            panel._render_triton_setup(device)  # type: ignore[arg-type]
+        imgui.end()
+        imgui.end_frame()
+
+
+def test_triton_setup_renders_and_seeds_from_detection(context: None) -> None:
+    # The setup area must render without error and pre-select the detected display type.
+    panel = PluginParamsPanel(
+        _on_edit=lambda *_: None,
+        _on_setup_display=lambda *_: None,
+        _on_import_prj=lambda *_: None,
+        _detect_display_type=lambda _device: "triton-6323",
+    )
+    device = _StubDevice()
+    _render_setup(panel, device)
+    assert panel._setup_type_idx["1.1.5"] == 1
+
+
+def _render_panel(panel: PluginParamsPanel, device: object) -> None:
+    for _ in range(2):
+        imgui.new_frame()
+        if imgui.begin("w"):
+            panel.render(device)  # type: ignore[arg-type]
+        imgui.end()
+        imgui.end_frame()
+
+
+class _TritonStub:
+    individual_address = "1.1.5"
+    app = SimpleNamespace(id="app")
+    parameter_instance_refs: ClassVar[list[object]] = []
+
+
+def test_render_shows_setup_only_without_sections(
+    context: None, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # The setup area replaces the empty-state only for a blob-only triton mapping with no
+    # sections; a device with a normal section list renders those instead.
+    panel = PluginParamsPanel(
+        _on_edit=lambda *_: None, _on_setup_display=lambda *_: None
+    )
+    calls: list[object] = []
+    monkeypatch.setattr(
+        panel, "_render_triton_setup", lambda device: calls.append(device)
+    )
+    mapping = SimpleNamespace(blob_reader="triton_lcd", title="LCD Display")
+    monkeypatch.setattr(ppp, "mapping_for", lambda _app_id: mapping)
+    device = _TritonStub()
+
+    monkeypatch.setattr(panel, "_cached_sections", lambda _d, _m: [])
+    _render_panel(panel, device)
+    assert calls and all(c is device for c in calls)
+
+    calls.clear()
+    section = PluginSectionView(
+        section="Section",
+        parameters=[
+            PluginParameter(
+                ref_id="r",
+                name="r",
+                label="L",
+                value="v",
+                default_value="",
+                section="",
+                display_order=0,
+                writable=True,
+            )
+        ],
+    )
+    monkeypatch.setattr(panel, "_cached_sections", lambda _d, _m: [section])
+    _render_panel(panel, device)
+    assert calls == []
+
+
+def test_triton_actions_row_renders_import_and_export(context: None) -> None:
+    # Above a configured display the import/export ".prj" actions stay reachable (the setup area
+    # is gone once a config exists), and they render without error.
+    panel = PluginParamsPanel(
+        _on_edit=lambda *_: None,
+        _on_import_prj=lambda *_: None,
+        _on_export_prj=lambda *_: None,
+    )
+    device = _StubDevice()
+    for _ in range(2):
+        imgui.new_frame()
+        if imgui.begin("w"):
+            panel._render_triton_actions(device)  # type: ignore[arg-type]
+        imgui.end()
+        imgui.end_frame()

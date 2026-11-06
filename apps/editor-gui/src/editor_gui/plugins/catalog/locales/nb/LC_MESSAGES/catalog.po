@@ -210,3 +210,66 @@ msgstr "Automatisk: enheten havner på den valgte rommets gjeldende linje, eller
 
 msgid "Download to Local Catalog"
 msgstr "Last ned til lokal katalog"
+
+msgid "Filename"
+msgstr "Filnavn"
+
+msgid "Mask Version"
+msgstr "Maskeversjon"
+
+msgid "Size"
+msgstr "Størrelse"
+
+msgid "Updated"
+msgstr "Oppdatert"
+
+msgid "Alternative"
+msgstr "Alternativ"
+
+msgid "Server URL"
+msgstr "Server-URL"
+
+msgid "Username"
+msgstr "Brukernavn"
+
+msgid "Email"
+msgstr "E-post"
+
+msgid "Save"
+msgstr "Lagre"
+
+msgid "Register"
+msgstr "Registrer"
+
+msgid "Continue Registration"
+msgstr "Fortsett registrering"
+
+msgid "Verification Code"
+msgstr "Bekreftelseskode"
+
+msgid "Verify Email"
+msgstr "Bekreft e-post"
+
+msgid "Resend Code"
+msgstr "Send kode på nytt"
+
+msgid "Open Website"
+msgstr "Åpne nettsted"
+
+msgid "Imported {count} product versions. Find them in the Local tab."
+msgstr "{count} produktversjoner importert. Du finner dem på fanen Lokal."
+
+msgid "Login is saved on this computer. Leave the password empty to keep it for the same server and user."
+msgstr "Innloggingsopplysningene lagres på denne datamaskinen. La passordet stå tomt for å beholde det for samme server og bruker."
+
+msgid "Registration sends an email code. Password: at least 10 characters, uppercase, lowercase, digit and special character; at most 72 UTF-8 bytes."
+msgstr "Registreringen sender en kode via e-post. Passord: minst 10 tegn, stor og liten bokstav, siffer og spesialtegn; høyst 72 UTF-8-byte."
+
+msgid "Enter the six-digit code from your email to complete registration."
+msgstr "Skriv inn den sekssifrede koden fra e-posten for å fullføre registreringen."
+
+msgid "Email verified. Downloads become available after administrator approval."
+msgstr "E-post bekreftet. Nedlastinger blir tilgjengelige etter administratorens godkjenning."
+
+msgid "Version"
+msgstr "Versjon"

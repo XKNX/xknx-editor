@@ -1,0 +1,17 @@
+[project]
+name = "xknxeditor-vendor"
+version = "0.1.0"
+description = "Reproductions of manufacturer device-configuration tools (e.g. the Busch-Jaeger triton LCD text software) that configure a device beyond its ETS parameters and write to it over KNX"
+license = "GPL-2.0-only"
+requires-python = ">=3.13"
+dependencies = [
+    "xknxeditor-namespaces",
+    "xknxeditor-download",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/xknxeditor"]

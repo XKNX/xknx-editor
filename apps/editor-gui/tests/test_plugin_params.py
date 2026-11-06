@@ -31,7 +31,11 @@ def test_every_mapping_file_loads() -> None:
         mapping = _load_mapping(str(path))
         assert mapping.app_id_prefixes
         assert mapping.title
-        assert mapping.patterns, f"{path.name} has no patterns"
+        # A mapping either groups the device's parameters (patterns) or only surfaces a vendor
+        # blob (blob_reader); at least one must be present to be useful.
+        assert mapping.patterns or mapping.blob_reader, (
+            f"{path.name} has neither section patterns nor a blob reader"
+        )
         for pattern in mapping.patterns:
             # Ensure the label placeholders stay in sync with the capture groups.
             label = pattern.label
@@ -296,3 +300,43 @@ def test_module_text_args_maps_allocator_name_to_value() -> None:
 def test_module_text_args_empty_when_no_instances() -> None:
     device = _StubDeviceArgs({})
     assert _module_text_args(cast(Any, device), _StubProgramArgs()) == {}
+
+
+@pytest.mark.parametrize(
+    "app_id",
+    [
+        "M-0007_A-6323-01-0001",
+        "M-0007_A-6325-01-0001",
+        "M-0002_A-6322-01-0001",
+        "M-0002_A-6323-01-0001",
+        "M-0002_A-6325-01-0001",
+    ],
+)
+def test_triton_mapping_matches_only_lcd_apps(app_id: str) -> None:
+    from editor_gui.plugin_params import mapping_for
+
+    from xknxeditor.vendor.triton import device_type_from_app_id
+
+    mapping = mapping_for(app_id)
+    assert mapping is not None and mapping.blob_reader == "triton_lcd"
+    assert not mapping.patterns
+    assert device_type_from_app_id(app_id) is not None
+
+
+@pytest.mark.parametrize(
+    "app_id",
+    [
+        "M-0007_A-6322-01-0001",
+        "M-0007_A-63250-01-0001",
+        "M-0007_A-6136-01-0001",
+        "M-FFFF_A-6325-01-0001",
+    ],
+)
+def test_triton_mapping_does_not_claim_other_apps(app_id: str) -> None:
+    from editor_gui.plugin_params import mapping_for
+
+    from xknxeditor.vendor.triton import device_type_from_app_id
+
+    mapping = mapping_for(app_id)
+    assert mapping is None or mapping.blob_reader != "triton_lcd"
+    assert device_type_from_app_id(app_id) is None

@@ -210,3 +210,66 @@ msgstr "自动：设备放在所选房间的当前支线上，没有时放在第
 
 msgid "Download to Local Catalog"
 msgstr "下载到本地目录"
+
+msgid "Filename"
+msgstr "文件名"
+
+msgid "Mask Version"
+msgstr "掩码版本"
+
+msgid "Size"
+msgstr "大小"
+
+msgid "Updated"
+msgstr "更新时间"
+
+msgid "Alternative"
+msgstr "备用目录"
+
+msgid "Server URL"
+msgstr "服务器 URL"
+
+msgid "Username"
+msgstr "用户名"
+
+msgid "Email"
+msgstr "电子邮件"
+
+msgid "Save"
+msgstr "保存"
+
+msgid "Register"
+msgstr "注册"
+
+msgid "Continue Registration"
+msgstr "继续注册"
+
+msgid "Verification Code"
+msgstr "验证码"
+
+msgid "Verify Email"
+msgstr "验证邮箱"
+
+msgid "Resend Code"
+msgstr "重新发送验证码"
+
+msgid "Open Website"
+msgstr "打开网站"
+
+msgid "Imported {count} product versions. Find them in the Local tab."
+msgstr "已导入 {count} 个产品版本。请在“本地”选项卡中查看。"
+
+msgid "Login is saved on this computer. Leave the password empty to keep it for the same server and user."
+msgstr "登录信息保存在此计算机上。如服务器和用户不变，可将密码留空以保留原密码。"
+
+msgid "Registration sends an email code. Password: at least 10 characters, uppercase, lowercase, digit and special character; at most 72 UTF-8 bytes."
+msgstr "注册时会通过电子邮件发送验证码。密码至少包含 10 个字符，须有大写字母、小写字母、数字及特殊字符；最多 72 个 UTF-8 字节。"
+
+msgid "Enter the six-digit code from your email to complete registration."
+msgstr "输入邮件中的六位数字验证码以完成注册。"
+
+msgid "Email verified. Downloads become available after administrator approval."
+msgstr "邮箱已验证。管理员批准后即可下载。"
+
+msgid "Version"
+msgstr "版本"

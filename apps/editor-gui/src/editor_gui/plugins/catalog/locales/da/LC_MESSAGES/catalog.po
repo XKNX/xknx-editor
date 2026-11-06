@@ -210,3 +210,66 @@ msgstr "Automatisk: enheden placeres på den valgte rums aktuelle linje, ellers 
 
 msgid "Download to Local Catalog"
 msgstr "Download til lokalt katalog"
+
+msgid "Filename"
+msgstr "Filnavn"
+
+msgid "Mask Version"
+msgstr "Maskeversion"
+
+msgid "Size"
+msgstr "Størrelse"
+
+msgid "Updated"
+msgstr "Opdateret"
+
+msgid "Alternative"
+msgstr "Alternativ"
+
+msgid "Server URL"
+msgstr "Server-URL"
+
+msgid "Username"
+msgstr "Brugernavn"
+
+msgid "Email"
+msgstr "E-mail"
+
+msgid "Save"
+msgstr "Gem"
+
+msgid "Register"
+msgstr "Registrer"
+
+msgid "Continue Registration"
+msgstr "Fortsæt registrering"
+
+msgid "Verification Code"
+msgstr "Bekræftelseskode"
+
+msgid "Verify Email"
+msgstr "Bekræft e-mail"
+
+msgid "Resend Code"
+msgstr "Send kode igen"
+
+msgid "Open Website"
+msgstr "Åbn websted"
+
+msgid "Imported {count} product versions. Find them in the Local tab."
+msgstr "{count} produktversioner importeret. Find dem på fanen Lokal."
+
+msgid "Login is saved on this computer. Leave the password empty to keep it for the same server and user."
+msgstr "Loginoplysninger gemmes på denne computer. Lad adgangskoden være tom for at beholde den til samme server og bruger."
+
+msgid "Registration sends an email code. Password: at least 10 characters, uppercase, lowercase, digit and special character; at most 72 UTF-8 bytes."
+msgstr "Registrering sender en kode via e-mail. Adgangskode: mindst 10 tegn, stort og lille bogstav, ciffer og specialtegn; højst 72 UTF-8-byte."
+
+msgid "Enter the six-digit code from your email to complete registration."
+msgstr "Indtast den sekscifrede kode fra din e-mail for at afslutte registreringen."
+
+msgid "Email verified. Downloads become available after administrator approval."
+msgstr "E-mail bekræftet. Download bliver tilgængelig efter administratorens godkendelse."
+
+msgid "Version"
+msgstr "Version"
