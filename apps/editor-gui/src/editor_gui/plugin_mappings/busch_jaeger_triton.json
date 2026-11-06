@@ -1,0 +1,13 @@
+{
+  "app_id_prefixes": [
+    "M-0007_A-6323-",
+    "M-0007_A-6325-",
+    "M-0002_A-6322-",
+    "M-0002_A-6323-",
+    "M-0002_A-6325-"
+  ],
+  "title": "Busch-Jaeger / ABB triton LCD display",
+  "note": "The triton 6323 (3-fold) and 6325 (5-fold) push-buttons with LCD keep their full display configuration (device options, text lines, number/scaling/time-date/send formatting) in the TritonLcd-Config BinaryData blob, surfaced by the triton_lcd reader. Blob-only mapping (no parameter-section patterns): the editor authors and stores the display config. The app-id prefixes are the exclusively-LCD application numbers per brand, derived from the online-catalog ApplicationIdentifier: Busch-Jaeger (M-0007) 0x6323/0x6325; ABB Stotz-Kontakt (M-0002) 0x6322/0x6323/0x6325 (ABB numbers a 3-fold LCD as 6322). Non-LCD triton (6320/6321/6324, and M-0007 6322) and the 6136 SmartTouch/Raumpanel use different numbers and are not matched. The legacy 6136UP interface shares app number 0x6136 with SmartTouch, so it is not auto-matched; add its real app id if a project needs it.",
+  "blob_reader": "triton_lcd",
+  "sections": []
+}

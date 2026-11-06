@@ -65,6 +65,38 @@ what the panel needs on top: a `get_products()` cache of `list_products()` (the 
 every frame),
 path-based `import_knxprod`, and reporting which product refs were newly added by an import.
 
+## Alternative Catalog
+
+`plugins/catalog/alternative.py` implements the configurable HTTPS catalog at
+`https://reko.x3muha.de`. Its public `/api/catalog/index.json` is fetched with gzip and
+`If-None-Match`, cached atomically in a compressed file per server URL, and searched offline.
+Only `.knxprod` entries are exposed. Failed updates retain the last valid snapshot.
+
+The alternative tab starts an hourly background refresh. Reads of the published snapshot do
+not wait for network requests. HTTP operations are serialized and spaced by at least 550 ms;
+`Retry-After` blocks further requests without a retry loop. A daily download limit blocks
+downloads until the server's `resetAt` / `Retry-After`, while public index updates remain usable.
+Other 403, 404 and 503 failures are surfaced to the caller.
+
+Downloads obtain a bearer token through `/api/auth/token` using locally saved credentials.
+Expiration is based on `expiresIn`; `401 INVALID_TOKEN` renews and retries exactly once.
+Redirects are refused, and the download path must remain on the configured server. Size and
+SHA-256 must match the index before the existing `.knxprod` import runs under the shared IO lock.
+Network requests run on workers. The verified bytes are imported on the UI thread, where the
+caller also invalidates open-project catalog resolution; MCP marshals this step with `run_locked`.
+Shutting down the editor discards pending results and stops scheduling requests without waiting for a
+stalled HTTP response. Background network workers cannot import into a project during shutdown.
+
+The index's program `version` is a hexadecimal byte. The table displays major.minor through the
+editor's shared formatter (`23` becomes `2.3`, `2A` becomes `2.10`). Metadata keeps the raw value
+and exposes `version_text` alongside it.
+
+Registration follows the site's session/CSRF API: `/api/me`, `/api/auth/register`,
+`/api/auth/register/verify`, `/api/auth/register/resend`, and `/api/auth/login` to resume with
+saved credentials. Verification completes the email step; administrator approval remains separate.
+Settings are saved with the shared private settings writer, tokens and session cookies are only
+held in memory. The GUI and `mcp/tools/alternative_catalog.py` use the same client and service.
+
 ## Product / Application / Hardware IDs
 
 - `application_id` (e.g. `"M-0001_A-0001-00-0001"`) identifies an application program, unique across

@@ -210,3 +210,66 @@ msgstr "自動: デバイスは選択した部屋の現在のラインに、な�
 
 msgid "Download to Local Catalog"
 msgstr "ローカルカタログにダウンロード"
+
+msgid "Filename"
+msgstr "ファイル名"
+
+msgid "Mask Version"
+msgstr "マスクバージョン"
+
+msgid "Size"
+msgstr "サイズ"
+
+msgid "Updated"
+msgstr "更新日時"
+
+msgid "Alternative"
+msgstr "代替カタログ"
+
+msgid "Server URL"
+msgstr "サーバー URL"
+
+msgid "Username"
+msgstr "ユーザー名"
+
+msgid "Email"
+msgstr "メールアドレス"
+
+msgid "Save"
+msgstr "保存"
+
+msgid "Register"
+msgstr "登録"
+
+msgid "Continue Registration"
+msgstr "登録を続ける"
+
+msgid "Verification Code"
+msgstr "確認コード"
+
+msgid "Verify Email"
+msgstr "メールを確認"
+
+msgid "Resend Code"
+msgstr "コードを再送信"
+
+msgid "Open Website"
+msgstr "ウェブサイトを開く"
+
+msgid "Imported {count} product versions. Find them in the Local tab."
+msgstr "{count} 件の製品バージョンをインポートしました。「ローカル」タブで確認できます。"
+
+msgid "Login is saved on this computer. Leave the password empty to keep it for the same server and user."
+msgstr "ログイン情報はこのコンピューターに保存されます。同じサーバーとユーザーのパスワードを維持するには、パスワードを空欄にしてください。"
+
+msgid "Registration sends an email code. Password: at least 10 characters, uppercase, lowercase, digit and special character; at most 72 UTF-8 bytes."
+msgstr "登録時に確認コードがメールで送信されます。パスワードは10文字以上で、大文字、小文字、数字、特殊文字を含み、UTF-8で72バイト以内にしてください。"
+
+msgid "Enter the six-digit code from your email to complete registration."
+msgstr "メールに記載された6桁のコードを入力して登録を完了してください。"
+
+msgid "Email verified. Downloads become available after administrator approval."
+msgstr "メールを確認しました。管理者の承認後にダウンロードできます。"
+
+msgid "Version"
+msgstr "バージョン"

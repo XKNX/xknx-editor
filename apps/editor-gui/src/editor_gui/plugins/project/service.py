@@ -142,6 +142,7 @@ if TYPE_CHECKING:
         GroupAddressInfo as CoreGroupAddressInfo,
     )
     from xknxeditor.proj.models import Device as DeviceRow
+    from xknxeditor.vendor.triton import DeviceType as TritonDeviceType
 
 _INSTALLATION = 0
 # How often the evaluation in the background looks whether the user paused (seconds).
@@ -3647,9 +3648,27 @@ class ProjectService:
         raw UTF-16 XML. Refreshes the device so a later read sees the new blob, then bumps the
         revision.
         """
+        self.persist_device_blob(device, name, data, label=label)
+
+    def persist_device_blob(
+        self,
+        device: Device,
+        name: str,
+        data: bytes,
+        *,
+        label: str | None = None,
+    ) -> None:
+        """Upsert a device ``BinaryData`` entry (by ``name``) as one undo step, then refresh.
+
+        Generic vendor-blob persistence: a DALI DCA backup, a triton LCD display config, etc. A
+        later ``.knxproj`` export carries whatever is stored here.
+        """
         if self._pid is None:
             return
         with self._io_lock:
+            current = self.find_device_by_node_id(device.node_id) or device
+            if self.device_binary_data(current, name) == data:
+                return
             self._svc.upsert_device_binary_data(
                 self._pid, device.node_id, name, data, label=label
             )
@@ -3662,6 +3681,214 @@ class ProjectService:
             if getattr(row, "name", None) == name:
                 return bytes(getattr(row, "data", b"") or b"")
         return None
+
+    def triton_device_type(self, device: Device) -> "TritonDeviceType | None":
+        """Guess the triton LCD display type from the device's app id, else its naming."""
+        from xknxeditor.vendor.triton import (
+            device_type_from_app_id,
+            device_type_from_text,
+        )
+
+        app = getattr(device, "app", None)
+        from_app = device_type_from_app_id(str(getattr(app, "id", "") or ""))
+        if from_app is not None:
+            return from_app
+        for text in (
+            getattr(device, "name", "") or "",
+            getattr(device, "order_number", "") or "",
+            getattr(device, "hardware_name", "") or "",
+            getattr(app, "name", "") or "",
+        ):
+            found = device_type_from_text(text)
+            if found is not None:
+                return found
+        return None
+
+    def triton_default_blob(
+        self, device: Device, device_type: "TritonDeviceType | None" = None
+    ) -> bytes | None:
+        """Build (but do not persist) a default triton LCD config blob for ``device``.
+
+        Returns ``None`` when the device is not a recognised triton LCD display.
+        """
+        from xknxeditor.vendor.triton import (
+            default_device,
+            to_json_bytes,
+            validate_device,
+        )
+
+        resolved = device_type or self.triton_device_type(device)
+        if resolved is None:
+            return None
+        config = default_device(
+            resolved, device.name or "", device.individual_address or ""
+        )
+        issues = validate_device(config)
+        if issues:
+            raise ValueError(f"edit would make the config invalid: {issues[0]}")
+        return to_json_bytes(config)
+
+    def setup_triton_display(
+        self,
+        device: Device,
+        name: str,
+        *,
+        force: bool = False,
+        device_type: "TritonDeviceType | None" = None,
+    ) -> bytes | None:
+        """Seed a default triton LCD display config into ``device`` (undoable); return its bytes.
+
+        Does nothing and returns the existing blob when one is already stored, unless ``force``.
+        The type is taken from ``device_type`` when given, else guessed from the device naming;
+        returns ``None`` when neither yields a recognised triton LCD display.
+        """
+        from xknxeditor.vendor.triton import from_json_bytes, validate_device
+
+        device = self.find_device_by_node_id(device.node_id) or device
+        existing = self.device_binary_data(device, name)
+        if existing is not None and not force:
+            issues = validate_device(from_json_bytes(existing))
+            if issues:
+                raise ValueError(f"edit would make the config invalid: {issues[0]}")
+            return existing
+        blob = self.triton_default_blob(device, device_type)
+        if blob is None:
+            return None
+        self.persist_device_blob(device, name, blob, label="Set up LCD display")
+        return blob
+
+    def export_triton_prj(self, device: Device) -> bytes | None:
+        """Build a Busch-Jaeger LVS 2 ".prj" from this device's stored LCD config.
+
+        Returns the ".prj" bytes, or ``None`` when the device carries no triton LCD config. The
+        file re-reads to the same configuration; every byte the layout analysis left unresolved is
+        zero (see :func:`blank_prj`), so it is not a byte-copy of a file LVS itself saved.
+        """
+        from editor_gui.plugin_blob_readers.triton_lcd import BLOB_NAME
+        from xknxeditor.vendor.triton import blank_prj, from_json_bytes
+
+        device = self.find_device_by_node_id(device.node_id) or device
+        blob = self.device_binary_data(device, BLOB_NAME)
+        if blob is None:
+            return None
+        return blank_prj([from_json_bytes(blob)])
+
+    def apply_triton_prj_to_device(self, device: Device, data: bytes) -> str | None:
+        """Import one display from a Busch-Jaeger LVS 2 ".prj" onto ``device`` (undoable).
+
+        Used by the device's own setup area: picks the display whose physical address equals the
+        device's individual address, failing that the sole display in the file, and stores it as
+        this device's LCD config blob (one undo step, like the GUI). Returns the source address, or
+        ``None`` when the resulting config is byte-identical to the stored one (no undo step).
+        Raises :class:`PrjError` on a structurally invalid file, an invalid configuration, or when
+        the file holds several displays and none matches this device's address.
+        """
+        from editor_gui.plugin_blob_readers.triton_lcd import BLOB_NAME
+        from xknxeditor.vendor.triton import (
+            LineDataType,
+            PrjError,
+            read_prj,
+            to_json_bytes,
+            validate_device,
+        )
+
+        displays = read_prj(data)
+        if not displays:
+            raise PrjError("no display in this file")
+        address = device.individual_address or ""
+        chosen = next((d for d in displays if d.physical_address == address), None)
+        if chosen is None:
+            if len(displays) != 1:
+                raise PrjError(
+                    "several displays in this file; none matches this device's address"
+                )
+            chosen = displays[0]
+        detected = self.triton_device_type(device)
+        if detected is not None and detected != chosen.device_type:
+            raise PrjError(
+                f"this file is for a {chosen.device_type.value} display, "
+                f"but the device is a {detected.value}"
+            )
+        extra = chosen.lines[chosen.device_type.max_lines :]
+        if any(line.data_type is not LineDataType.FREE for line in extra):
+            raise PrjError("no such line: active line beyond the display capacity")
+        chosen.lines = chosen.lines[: chosen.device_type.max_lines]
+        chosen.physical_address = address
+        issues = validate_device(chosen)
+        if issues:
+            raise PrjError(f"edit would make the config invalid: {issues[0]}")
+        blob = to_json_bytes(chosen)
+        if self.device_binary_data(device, BLOB_NAME) == blob:
+            return None
+        self.persist_device_blob(device, BLOB_NAME, blob, label="Import LCD display")
+        return chosen.physical_address
+
+    def import_triton_prj(self, data: bytes) -> dict[str, Any]:
+        """Import a Busch-Jaeger LVS 2 ".prj" file onto the matching project devices.
+
+        Parses ``data`` and, for each decoded display, finds the project device whose individual
+        address equals the display's physical address. A match stores the display's configuration
+        as the device's LCD config blob (one undo step per device, like the GUI). A display with no
+        device at its address is skipped. Returns ``{"imported": [address, ...], "skipped":
+        [{"address": ..., "reason": ...}, ...]}``. Raises :class:`PrjError` on a structurally
+        invalid file or configuration; never on a missing device. Only the device's editable line
+        slots enter the JSON blob. Repeated source addresses use the last record; ambiguous project
+        addresses are skipped. Byte-identical configurations create no undo step and are not reported
+        as imported. All configurations are checked before the first write.
+        """
+        from editor_gui.plugin_blob_readers.triton_lcd import BLOB_NAME
+        from xknxeditor.vendor.triton import (
+            LineDataType,
+            PrjError,
+            read_prj,
+            to_json_bytes,
+            validate_device,
+        )
+
+        displays = read_prj(data)
+        blobs: dict[str, bytes] = {}
+        kinds: dict[str, Any] = {}
+        for display in displays:
+            extra = display.lines[display.device_type.max_lines :]
+            if any(line.data_type is not LineDataType.FREE for line in extra):
+                raise PrjError("no such line: active line beyond the display capacity")
+            display.lines = display.lines[: display.device_type.max_lines]
+            issues = validate_device(display)
+            if issues:
+                raise PrjError(f"edit would make the config invalid: {issues[0]}")
+            blobs[display.physical_address] = to_json_bytes(display)
+            kinds[display.physical_address] = display.device_type
+        imported: list[str] = []
+        skipped: list[dict[str, str]] = []
+        for address, blob in blobs.items():
+            matches = [d for d in self.devices if d.individual_address == address]
+            if len(matches) != 1:
+                skipped.append(
+                    {
+                        "address": address,
+                        "reason": "no device at this address"
+                        if not matches
+                        else "ambiguous device address",
+                    }
+                )
+                continue
+            device = matches[0]
+            detected = self.triton_device_type(device)
+            if detected is not None and detected != kinds[address]:
+                skipped.append(
+                    {
+                        "address": address,
+                        "reason": "display type does not match the device",
+                    }
+                )
+                continue
+            if self.device_binary_data(device, BLOB_NAME) == blob:
+                continue
+            self.persist_device_blob(
+                device, BLOB_NAME, blob, label="Import LCD display"
+            )
+            imported.append(address)
+        return {"imported": imported, "skipped": skipped}
 
     def download_routing_blocking(self, device: Device) -> bool | None:
         """Whether a download blocks point-to-point and broadcast messages on both sides of the

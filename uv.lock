@@ -1,5 +1,5 @@
 version = 1
-revision = 5
+revision = 3
 requires-python = ">=3.13"
 resolution-markers = [
     "python_full_version >= '3.15' and platform_machine == 'ARM64' and sys_platform == 'win32'",
@@ -22,6 +22,7 @@ members = [
     "xknxeditor-prod",
     "xknxeditor-proj",
     "xknxeditor-recover",
+    "xknxeditor-vendor",
 ]
 
 [[package]]
@@ -1448,7 +1449,7 @@ name = "pyobjc-framework-cocoa"
 version = "12.2.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "pyobjc-core" },
+    { name = "pyobjc-core", marker = "platform_machine != 'ARM64' or sys_platform != 'win32'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/75/76/49c6da2c6a831020b4854ba20079d5a1030474bffc776b7b73c2eeff8c15/pyobjc_framework_cocoa-12.2.2.tar.gz", hash = "sha256:c96c0ef69a71afbbb0e6a7d594b455c5fe47d62e0db376ee7a2b4b828c16ace9", size = 3132831, upload-time = "2026-08-11T19:44:02.288Z" }
 wheels = [
@@ -1787,8 +1788,8 @@ name = "secretstorage"
 version = "3.5.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "cryptography" },
-    { name = "jeepney" },
+    { name = "cryptography", marker = "platform_machine != 'ARM64' or sys_platform != 'win32'" },
+    { name = "jeepney", marker = "platform_machine != 'ARM64' or sys_platform != 'win32'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/1c/03/e834bcd866f2f8a49a85eaff47340affa3bfa391ee9912a952a1faa68c7b/secretstorage-3.5.0.tar.gz", hash = "sha256:f04b8e4689cbce351744d5537bf6b1329c6fc68f91fa666f60a380edddcd11be", size = 19884, upload-time = "2025-11-23T19:02:53.191Z" }
 wheels = [
@@ -2234,6 +2235,7 @@ dependencies = [
     { name = "xknxeditor-prod" },
     { name = "xknxeditor-proj" },
     { name = "xknxeditor-recover" },
+    { name = "xknxeditor-vendor" },
 ]
 
 [package.optional-dependencies]
@@ -2274,6 +2276,7 @@ requires-dist = [
     { name = "xknxeditor-prod", editable = "packages/prod" },
     { name = "xknxeditor-proj", editable = "packages/proj" },
     { name = "xknxeditor-recover", editable = "packages/recover" },
+    { name = "xknxeditor-vendor", editable = "packages/vendor" },
 ]
 provides-extras = ["dev"]
 
@@ -2291,6 +2294,7 @@ dependencies = [
     { name = "xknxeditor-prod" },
     { name = "xknxeditor-proj" },
     { name = "xknxeditor-recover" },
+    { name = "xknxeditor-vendor" },
 ]
 
 [package.dev-dependencies]
@@ -2316,6 +2320,7 @@ requires-dist = [
     { name = "xknxeditor-prod", editable = "packages/prod" },
     { name = "xknxeditor-proj", editable = "packages/proj" },
     { name = "xknxeditor-recover", editable = "packages/recover" },
+    { name = "xknxeditor-vendor", editable = "packages/vendor" },
 ]
 
 [package.metadata.requires-dev]
@@ -2420,6 +2425,21 @@ requires-dist = [
     { name = "xknxeditor-namespaces", editable = "packages/namespaces" },
     { name = "xknxeditor-prod", editable = "packages/prod" },
     { name = "xknxeditor-proj", editable = "packages/proj" },
+]
+
+[[package]]
+name = "xknxeditor-vendor"
+version = "0.1.0"
+source = { editable = "packages/vendor" }
+dependencies = [
+    { name = "xknxeditor-download" },
+    { name = "xknxeditor-namespaces" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "xknxeditor-download", editable = "packages/download" },
+    { name = "xknxeditor-namespaces", editable = "packages/namespaces" },
 ]
 
 [[package]]

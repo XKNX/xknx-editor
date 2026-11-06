@@ -62,6 +62,12 @@ Plugins that need to interact (e.g. the Monitor listening to the CEMI frames of 
 - All user-facing strings must be defined in each plugin's `strings.py` (or the `src/editor_gui/strings/` package for app-wide strings, `widgets/strings.py` for shared widgets) for i18n support
 - Panels hold their own internal state; shared state is accessed via dependency-injected callbacks
 - Catalog stores immutable templates; project stores device instances with overrides
+- Catalog search results must distinguish file and application variants directly in the table: show filename, program number/version, mask version, size and update date alongside name, manufacturer and order numbers. Expose all remaining metadata in selectable details.
+- Alternative catalog columns start with a header-width manufacturer column, then name, order number, a header-width "Version" column, filename, followed by the remaining metadata. Give columns explicit initial widths and change the table ID when an incompatible column layout would otherwise restore unusable saved widths.
+- Alternative catalog program versions are hexadecimal bytes. Display them through `application_version_text(int(value, 16))` (23 becomes 2.3, 2A becomes 2.10), keeping the raw value in metadata.
+- Catalog text search ranks manufacturer matches before incidental matches in hexadecimal application IDs; never let normalization match across adjacent metadata fields. Reset the table scroll position when the search changes. Size the manufacturer column to its header, not its longest cell.
+- Local catalog search results must remain fully accessible in the GUI. Render only visible rows instead of imposing an arbitrary result limit; keep clipped table rows a uniform height.
+- ImGui collapsing headers do not create an ID scope. Give their contents a `push_id` scope when a button can have the same translated label as the header; test forms with all sections open.
 - Visibility (visible_com_objects, visible_parameters) computed at runtime, never baked into templates
 
 ## Browser UI (`--web`)

@@ -53,6 +53,7 @@ def begin_data_table(
     outer_size: imgui.ImVec2 | None = None,
     *,
     scroll_when_narrow: bool = False,
+    min_width: float = _NARROW_TABLE,
 ) -> bool:
     """``imgui.begin_table`` for a table of data, with the header menu of
     :func:`data_table_headers` instead of the built-in one.
@@ -64,7 +65,7 @@ def begin_data_table(
         # The first header and cell keep the same distance to the left edge as between columns.
         flags |= imgui.TableFlags_.pad_outer_x
     inner_width = 0.0
-    width = px(_NARROW_TABLE)
+    width = px(min_width)
     scrolls = bool(flags & imgui.TableFlags_.scroll_y) or scroll_when_narrow
     if scrolls and imgui.get_content_region_avail().x < width:
         flags |= imgui.TableFlags_.scroll_x | imgui.TableFlags_.scroll_y

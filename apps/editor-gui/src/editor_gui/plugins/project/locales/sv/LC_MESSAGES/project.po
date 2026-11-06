@@ -3039,3 +3039,33 @@ msgstr "Slå av"
 
 msgid "Show the memory a download writes, segment by segment"
 msgstr "Visar minnet som en programmering skriver, segment för segment"
+
+msgid "This display has no configuration yet. Choose its type and set it up, or load an LVS project."
+msgstr "This display has no configuration yet. Choose its type and set it up, or load an LVS project."
+
+msgid "Display Type"
+msgstr "Display Type"
+
+msgid "Set Up Display"
+msgstr "Set Up Display"
+
+msgid "Load LVS Project (.prj)…"
+msgstr "Load LVS Project (.prj)…"
+
+msgid "LVS project (*.prj)"
+msgstr "LVS project (*.prj)"
+
+msgid "Imported the display configuration into {count} device(s)."
+msgstr "Imported the display configuration into {count} device(s)."
+
+msgid "The LVS project could not be imported: {error}"
+msgstr "The LVS project could not be imported: {error}"
+
+msgid "Export LVS Project (.prj)…"
+msgstr "Export LVS Project (.prj)…"
+
+msgid "Exported the display configuration."
+msgstr "Exported the display configuration."
+
+msgid "The LVS project could not be exported: {error}"
+msgstr "The LVS project could not be exported: {error}"

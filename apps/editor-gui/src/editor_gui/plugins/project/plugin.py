@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING, Any, cast
 
 from xknx.telegram.apci import GroupValueRead, GroupValueWrite
 
+from editor_gui import file_dialogs
 from editor_gui.device_info import (
     same_application,
     serial_from_project,
@@ -121,6 +122,9 @@ if TYPE_CHECKING:
 
 # A_Restart_Master_Reset erase code of a factory reset with the individual address.
 _FACTORY_RESET = 2
+
+# BinaryData entry name of the triton LCD display configuration (mirrors the blob reader).
+_TRITON_LCD_BLOB = "TritonLcd-Config"
 
 # App settings of KNX Secure (whether adding a secure device asks for its certificate).
 _SECURITY_SETTINGS = "security"
@@ -411,7 +415,18 @@ class ProjectPlugin:
             self.add_plugin_collection_item,
             self.remove_plugin_collection_item,
             self._handle_program_dca,
+            _on_setup_display=self._handle_setup_display,
+            _on_import_prj=self._handle_import_prj,
+            _on_export_prj=self._handle_export_prj,
+            _detect_display_type=self._detect_triton_type,
         )
+        # Pending triton LCD ".prj" import: the open dialog and the device it was started for.
+        self._triton_prj_dialog: file_dialogs.OpenFileDialog | None = None
+        self._triton_prj_device: Device | None = None
+        self._triton_prj_generation = 0
+        # Pending triton LCD ".prj" export: the save dialog and the bytes queued for it.
+        self._triton_prj_save: file_dialogs.SaveFileDialog | None = None
+        self._triton_prj_save_data: bytes | None = None
 
         self._group_addresses_panel = GroupAddressesPanel(
             get_range_tree=api.project.get_group_range_tree,
@@ -1256,7 +1271,139 @@ class ProjectPlugin:
 
     def _render_plugin_params_tab(self, device: "Device") -> None:
         """Render the generic sectioned view of the device's raw plugin parameters."""
+        self._poll_triton_prj_dialog()
+        self._poll_triton_prj_save()
         self._plugin_params_panel.render(device)
+
+    def _detect_triton_type(self, device: "Device") -> str | None:
+        """The auto-detected triton LCD display type as its enum value string, or None."""
+        detected = self._api.project.triton_device_type(device)
+        return detected.value if detected is not None else None
+
+    def _handle_setup_display(self, device: "Device", device_type_value: str) -> None:
+        """Seed a default triton LCD display config of the chosen type onto the device, then
+        refresh the panel so its blob-reader tree appears."""
+        from xknxeditor.vendor.triton import DeviceType
+
+        try:
+            self._api.project.setup_triton_display(
+                device, _TRITON_LCD_BLOB, device_type=DeviceType(device_type_value)
+            )
+        except ValueError as exc:
+            # e.g. a device name longer than the display allows, or an invalid stored blob.
+            self._api.log.warning(
+                "triton display setup failed", plugin="project", error=str(exc)
+            )
+            self._api.tell_refused(S.PLUGIN_PARAMS_PRJ_FAILED.format(error=str(exc)))
+            return
+        self._plugin_params_panel.invalidate(device)
+
+    def _handle_import_prj(self, device: "Device") -> None:
+        """Open a file picker for a Busch-Jaeger LVS ".prj"; the result is handled on a later
+        frame by :meth:`_poll_triton_prj_dialog`."""
+        if self._triton_prj_dialog is not None:
+            return  # a pick is already in flight; ignore a second trigger
+        self._triton_prj_device = device
+        self._triton_prj_generation = self._api.project.generation
+        self._triton_prj_dialog = file_dialogs.open_file(
+            S.PLUGIN_PARAMS_LOAD_PRJ,
+            "",
+            [S.PLUGIN_PARAMS_PRJ_FILTER, "*.prj", S.MEMORY_ALL_FILES, "*"],
+        )
+
+    def _poll_triton_prj_dialog(self) -> None:
+        """When the ".prj" file picker has a result, read and import the file."""
+        dialog = self._triton_prj_dialog
+        if dialog is None or not dialog.ready():
+            return
+        result = dialog.result()
+        device = self._triton_prj_device
+        generation = self._triton_prj_generation
+        self._triton_prj_dialog = None
+        self._triton_prj_device = None
+        if not result or device is None:
+            return
+        if generation != self._api.project.generation:
+            # The project was closed or swapped while the picker was open; dropping the stale
+            # import keeps it from writing into a different project's device.
+            return
+        self._import_triton_prj(device, result[0])
+
+    def _import_triton_prj(self, device: "Device", path: str) -> None:
+        """Read the LVS ".prj" at ``path`` and set up this device from its matching display."""
+        from xknxeditor.vendor.triton import PrjError
+
+        try:
+            data = Path(path).read_bytes()
+            applied = self._api.project.apply_triton_prj_to_device(device, data)
+        except (PrjError, OSError) as exc:
+            self._api.log.warning(
+                "triton .prj import failed", plugin="project", error=str(exc)
+            )
+            self._api.tell_refused(S.PLUGIN_PARAMS_PRJ_FAILED.format(error=str(exc)))
+            return
+        self._api.log.info(
+            "triton .prj imported",
+            plugin="project",
+            device=device.individual_address,
+            applied=applied is not None,
+        )
+        if self._api.notify is not None:
+            # "applied is None" means the device already held this exact config: the view already
+            # shows it, so report it as configured either way.
+            self._api.notify(S.PLUGIN_PARAMS_PRJ_DONE.format(count=1))
+        self._plugin_params_panel.invalidate(device)
+
+    def _handle_export_prj(self, device: "Device") -> None:
+        """Build this device's LCD config as an LVS ".prj" and open a save dialog for it."""
+        from xknxeditor.vendor.triton import PrjError
+
+        if self._triton_prj_save is not None:
+            return  # a save is already in flight; ignore a second trigger
+        try:
+            data = self._api.project.export_triton_prj(device)
+        except (PrjError, ValueError) as exc:
+            self._api.log.warning(
+                "triton .prj export failed", plugin="project", error=str(exc)
+            )
+            self._api.tell_refused(
+                S.PLUGIN_PARAMS_PRJ_EXPORT_FAILED.format(error=str(exc))
+            )
+            return
+        if data is None:
+            return
+        stem = (device.individual_address or "display").replace(".", "_")
+        self._triton_prj_save_data = data
+        self._triton_prj_save = file_dialogs.save_file(
+            S.PLUGIN_PARAMS_EXPORT_PRJ,
+            f"{stem}.prj",
+            [S.PLUGIN_PARAMS_PRJ_FILTER, "*.prj", S.MEMORY_ALL_FILES, "*"],
+        )
+
+    def _poll_triton_prj_save(self) -> None:
+        """When the ".prj" save dialog has a result, write the queued bytes to it."""
+        dialog = self._triton_prj_save
+        if dialog is None or not dialog.ready():
+            return
+        dest = dialog.result()
+        data = self._triton_prj_save_data
+        self._triton_prj_save = None
+        self._triton_prj_save_data = None
+        if not dest or data is None:
+            return
+        try:
+            Path(dest).write_bytes(data)
+        except OSError as exc:
+            self._api.log.warning(
+                "triton .prj export failed", plugin="project", error=str(exc)
+            )
+            self._api.tell_refused(
+                S.PLUGIN_PARAMS_PRJ_EXPORT_FAILED.format(error=str(exc))
+            )
+            return
+        self._api.log.info("triton .prj exported", plugin="project", dest=dest)
+        if self._api.notify is not None:
+            self._api.notify(S.PLUGIN_PARAMS_PRJ_EXPORTED)
 
     def add_plugin_collection_item(
         self,
@@ -2056,7 +2203,12 @@ class ProjectPlugin:
         return baggages
 
     def handle_param_change(
-        self, device: "Device", param_id: str, new_value: str
+        self,
+        device: "Device",
+        param_id: str,
+        new_value: str,
+        *,
+        raise_on_error: bool = False,
     ) -> None:
         # BLOB-backed rows (Siemens N141 DCA plug-in state) take a dedicated write path:
         # locate the DeviceBinaryData entry, call the vendor writer, replace the compressed
@@ -2066,6 +2218,20 @@ class ProjectPlugin:
             return
         if param_id.startswith("dali_backup:"):
             self._apply_dali_backup_edit(device, param_id, new_value)
+            return
+        if param_id.startswith("triton_lcd:"):
+            try:
+                self._apply_triton_lcd_edit(device, param_id, new_value)
+            except ValueError as exc:
+                if raise_on_error:
+                    raise
+                self._api.log.warning(
+                    "triton lcd edit rejected",
+                    plugin="project",
+                    device=device.individual_address,
+                    ref=param_id,
+                    error=str(exc),
+                )
             return
         try:
             self._api.project.set_param(device, param_id, new_value)
@@ -2177,6 +2343,33 @@ class ProjectPlugin:
             plugin="project",
             device=device.individual_address,
             ref=ref_id,
+        )
+
+    def _apply_triton_lcd_edit(
+        self, device: "Device", ref_id: str, new_value: str
+    ) -> None:
+        """Write an edited triton LCD display field back into the device's config blob.
+
+        The config is a JSON ``BinaryData`` entry (``TritonLcd-Config``); an edit decodes it,
+        changes the one field addressed by ``ref_id`` and stores it as one undo step. When the
+        device has no config yet (e.g. an MCP edit before any GUI setup), a default is seeded
+        in memory so only a successful change is persisted.
+        """
+        from editor_gui.plugin_blob_readers.triton_lcd import BLOB_NAME, apply_edit
+
+        device = self._api.project.find_device_by_node_id(device.node_id) or device
+        current = self._api.project.device_binary_data(device, BLOB_NAME)
+        if current is None:
+            current = self._api.project.triton_default_blob(device)
+            if current is None:
+                raise ValueError(
+                    "device is not a recognised triton LCD display; pass device_type to force"
+                )
+        new_blob = apply_edit(current, ref_id, new_value)
+        if new_blob == current:
+            return
+        self._api.project.persist_device_blob(
+            device, BLOB_NAME, new_blob, label="Edit LCD display"
         )
 
     def _handle_button(self, device: "Device", button: "UiButton") -> None:

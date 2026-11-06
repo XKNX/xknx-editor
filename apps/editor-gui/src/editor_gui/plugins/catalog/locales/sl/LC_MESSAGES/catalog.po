@@ -213,3 +213,66 @@ msgstr "Samodejno: naprava se doda na trenutno linijo izbranega prostora, če te
 
 msgid "Download to Local Catalog"
 msgstr "Prenesi v lokalni katalog"
+
+msgid "Filename"
+msgstr "Ime datoteke"
+
+msgid "Mask Version"
+msgstr "Različica maske"
+
+msgid "Size"
+msgstr "Velikost"
+
+msgid "Updated"
+msgstr "Posodobljeno"
+
+msgid "Alternative"
+msgstr "Alternativni"
+
+msgid "Server URL"
+msgstr "URL strežnika"
+
+msgid "Username"
+msgstr "Uporabniško ime"
+
+msgid "Email"
+msgstr "E-pošta"
+
+msgid "Save"
+msgstr "Shrani"
+
+msgid "Register"
+msgstr "Registracija"
+
+msgid "Continue Registration"
+msgstr "Nadaljuj registracijo"
+
+msgid "Verification Code"
+msgstr "Potrditvena koda"
+
+msgid "Verify Email"
+msgstr "Potrdi e-pošto"
+
+msgid "Resend Code"
+msgstr "Znova pošlji kodo"
+
+msgid "Open Website"
+msgstr "Odpri spletno mesto"
+
+msgid "Imported {count} product versions. Find them in the Local tab."
+msgstr "Uvoženih {count} različic izdelkov. Najdete jih na zavihku Lokalno."
+
+msgid "Login is saved on this computer. Leave the password empty to keep it for the same server and user."
+msgstr "Prijavni podatki so shranjeni v tem računalniku. Pustite geslo prazno, da ga ohranite za isti strežnik in uporabnika."
+
+msgid "Registration sends an email code. Password: at least 10 characters, uppercase, lowercase, digit and special character; at most 72 UTF-8 bytes."
+msgstr "Registracija pošlje kodo po e-pošti. Geslo: vsaj 10 znakov, velika in mala črka, številka in poseben znak; največ 72 bajtov UTF-8."
+
+msgid "Enter the six-digit code from your email to complete registration."
+msgstr "Za dokončanje registracije vnesite šestmestno kodo iz e-pošte."
+
+msgid "Email verified. Downloads become available after administrator approval."
+msgstr "E-pošta potrjena. Prenosi bodo na voljo po odobritvi skrbnika."
+
+msgid "Version"
+msgstr "Različica"

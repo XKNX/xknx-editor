@@ -210,3 +210,66 @@ msgstr "Automaticky: zařízení přijde na aktuální linii zvolené místnosti
 
 msgid "Download to Local Catalog"
 msgstr "Stáhnout do místního katalogu"
+
+msgid "Filename"
+msgstr "Název souboru"
+
+msgid "Mask Version"
+msgstr "Verze masky"
+
+msgid "Size"
+msgstr "Velikost"
+
+msgid "Updated"
+msgstr "Aktualizováno"
+
+msgid "Alternative"
+msgstr "Alternativní"
+
+msgid "Server URL"
+msgstr "URL serveru"
+
+msgid "Username"
+msgstr "Uživatelské jméno"
+
+msgid "Email"
+msgstr "E-mail"
+
+msgid "Save"
+msgstr "Uložit"
+
+msgid "Register"
+msgstr "Registrovat"
+
+msgid "Continue Registration"
+msgstr "Pokračovat v registraci"
+
+msgid "Verification Code"
+msgstr "Ověřovací kód"
+
+msgid "Verify Email"
+msgstr "Ověřit e-mail"
+
+msgid "Resend Code"
+msgstr "Znovu odeslat kód"
+
+msgid "Open Website"
+msgstr "Otevřít web"
+
+msgid "Imported {count} product versions. Find them in the Local tab."
+msgstr "Importováno {count} verzí produktů. Najdete je na kartě Místní."
+
+msgid "Login is saved on this computer. Leave the password empty to keep it for the same server and user."
+msgstr "Přihlašovací údaje se ukládají v tomto počítači. Nechte heslo prázdné, pokud ho chcete zachovat pro stejný server a uživatele."
+
+msgid "Registration sends an email code. Password: at least 10 characters, uppercase, lowercase, digit and special character; at most 72 UTF-8 bytes."
+msgstr "Registrace odešle kód e-mailem. Heslo: alespoň 10 znaků, velké a malé písmeno, číslice a speciální znak; nejvýše 72 bajtů UTF-8."
+
+msgid "Enter the six-digit code from your email to complete registration."
+msgstr "Dokončete registraci zadáním šestimístného kódu z e-mailu."
+
+msgid "Email verified. Downloads become available after administrator approval."
+msgstr "E-mail ověřen. Stahování bude dostupné po schválení správcem."
+
+msgid "Version"
+msgstr "Verze"
