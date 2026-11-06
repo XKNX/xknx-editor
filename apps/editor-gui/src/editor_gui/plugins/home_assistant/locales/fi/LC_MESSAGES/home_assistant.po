@@ -186,3 +186,42 @@ msgstr "Home Assistantissa luodut, linkitetyt tai uudelleen nimetyt kerrokset ja
 
 msgid "Apply"
 msgstr "Käytä"
+
+msgid "Entities from Functions…"
+msgstr "Kohteet toiminnoista…"
+
+msgid "Entities in Home Assistant"
+msgstr "Kohteet Home Assistantissa"
+
+msgid "The building functions become entities of Home Assistant's KNX integration: a light, a switch or a cover with the group addresses of their roles, named like the function, in the area its room became (see Floors and Areas). Home Assistant checks each one first."
+msgstr "Rakennuksen toiminnoista tulee Home Assistantin KNX-integraation kohteita: valo, kytkin tai kaihdin roolien ryhmäosoitteilla, nimettynä toiminnon mukaan, alueella, joksi sen huone muutettiin (katso Kerrokset ja alueet). Home Assistant tarkistaa jokaisen ensin."
+
+msgid "The project has no lights, switches or sun protection among its functions."
+msgstr "Projektin toiminnoissa ei ole valoja, kytkimiä eikä aurinkosuojia."
+
+msgid "Function"
+msgstr "Toiminto"
+
+msgid "Group Addresses"
+msgstr "Ryhmäosoitteet"
+
+msgid "No area"
+msgstr "Ei aluetta"
+
+msgid "Created: {entity}"
+msgstr "Luotu: {entity}"
+
+msgid "Its address is used by {entities}"
+msgstr "Osoitetta käyttää {entities}"
+
+msgid "Being checked…"
+msgstr "Tarkistetaan…"
+
+msgid "Not taken: {error}"
+msgstr "Ei hyväksytty: {error}"
+
+msgid "Entities created in Home Assistant: {count}"
+msgstr "Home Assistantissa luodut kohteet: {count}"
+
+msgid "Create"
+msgstr "Luo"

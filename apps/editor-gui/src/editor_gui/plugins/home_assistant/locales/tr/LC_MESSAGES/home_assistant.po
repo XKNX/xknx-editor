@@ -186,3 +186,42 @@ msgstr "Home Assistant'ta oluşturulan, bağlanan veya yeniden adlandırılan ka
 
 msgid "Apply"
 msgstr "Uygula"
+
+msgid "Entities from Functions…"
+msgstr "Fonksiyonlardan varlıklar…"
+
+msgid "Entities in Home Assistant"
+msgstr "Home Assistant'taki varlıklar"
+
+msgid "The building functions become entities of Home Assistant's KNX integration: a light, a switch or a cover with the group addresses of their roles, named like the function, in the area its room became (see Floors and Areas). Home Assistant checks each one first."
+msgstr "Bina fonksiyonları, Home Assistant'ın KNX entegrasyonunun varlıklarına dönüşür: rollerinin grup adreslerini kullanan, fonksiyon gibi adlandırılmış bir ışık, anahtar veya panjur olarak, odalarının dönüştüğü alanda (bkz. Katlar ve alanlar). Home Assistant her birini önce kontrol eder."
+
+msgid "The project has no lights, switches or sun protection among its functions."
+msgstr "Projenin fonksiyonları arasında ışık, anahtar veya güneş koruması yok."
+
+msgid "Function"
+msgstr "Fonksiyon"
+
+msgid "Group Addresses"
+msgstr "Grup adresleri"
+
+msgid "No area"
+msgstr "Alan yok"
+
+msgid "Created: {entity}"
+msgstr "Oluşturuldu: {entity}"
+
+msgid "Its address is used by {entities}"
+msgstr "Adresini kullananlar: {entities}"
+
+msgid "Being checked…"
+msgstr "Kontrol ediliyor…"
+
+msgid "Not taken: {error}"
+msgstr "Kabul edilmedi: {error}"
+
+msgid "Entities created in Home Assistant: {count}"
+msgstr "Home Assistant'ta oluşturulan varlıklar: {count}"
+
+msgid "Create"
+msgstr "Oluştur"

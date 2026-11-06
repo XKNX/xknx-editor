@@ -186,3 +186,42 @@ msgstr "Våningar och områden i Home Assistant skapade, kopplade eller omdöpta
 
 msgid "Apply"
 msgstr "Tillämpa"
+
+msgid "Entities from Functions…"
+msgstr "Entiteter från funktioner…"
+
+msgid "Entities in Home Assistant"
+msgstr "Entiteter i Home Assistant"
+
+msgid "The building functions become entities of Home Assistant's KNX integration: a light, a switch or a cover with the group addresses of their roles, named like the function, in the area its room became (see Floors and Areas). Home Assistant checks each one first."
+msgstr "Byggnadsfunktionerna blir entiteter i KNX-integrationen i Home Assistant: en lampa, en brytare eller en rullgardin med gruppadresserna för sina roller, namngiven som funktionen, i det område som rummet blev (se Våningar och områden). Home Assistant kontrollerar var och en först."
+
+msgid "The project has no lights, switches or sun protection among its functions."
+msgstr "Projektet har inga lampor, brytare eller solskydd bland sina funktioner."
+
+msgid "Function"
+msgstr "Funktion"
+
+msgid "Group Addresses"
+msgstr "Gruppadresser"
+
+msgid "No area"
+msgstr "Inget område"
+
+msgid "Created: {entity}"
+msgstr "Skapad: {entity}"
+
+msgid "Its address is used by {entities}"
+msgstr "Adressen används av {entities}"
+
+msgid "Being checked…"
+msgstr "Kontrolleras…"
+
+msgid "Not taken: {error}"
+msgstr "Inte godtagen: {error}"
+
+msgid "Entities created in Home Assistant: {count}"
+msgstr "Entiteter skapade i Home Assistant: {count}"
+
+msgid "Create"
+msgstr "Skapa"

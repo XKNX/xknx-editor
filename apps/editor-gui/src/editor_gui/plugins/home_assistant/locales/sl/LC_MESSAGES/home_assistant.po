@@ -186,3 +186,42 @@ msgstr "Nadstropja in območja, ustvarjena, povezana ali preimenovana v Home Ass
 
 msgid "Apply"
 msgstr "Uporabi"
+
+msgid "Entities from Functions…"
+msgstr "Entitete iz funkcij…"
+
+msgid "Entities in Home Assistant"
+msgstr "Entitete v Home Assistantu"
+
+msgid "The building functions become entities of Home Assistant's KNX integration: a light, a switch or a cover with the group addresses of their roles, named like the function, in the area its room became (see Floors and Areas). Home Assistant checks each one first."
+msgstr "Funkcije stavbe postanejo entitete integracije KNX v Home Assistantu: luč, stikalo ali senčilo s skupinskimi naslovi svojih vlog, poimenovano po funkciji, v območju, v katerega se je spremenil njihov prostor (glejte Nadstropja in območja). Home Assistant vsako najprej preveri."
+
+msgid "The project has no lights, switches or sun protection among its functions."
+msgstr "Med funkcijami projekta ni luči, stikal ali zaščite pred soncem."
+
+msgid "Function"
+msgstr "Funkcija"
+
+msgid "Group Addresses"
+msgstr "Skupinski naslovi"
+
+msgid "No area"
+msgstr "Brez območja"
+
+msgid "Created: {entity}"
+msgstr "Ustvarjeno: {entity}"
+
+msgid "Its address is used by {entities}"
+msgstr "Njen naslov uporablja {entities}"
+
+msgid "Being checked…"
+msgstr "Preverjanje…"
+
+msgid "Not taken: {error}"
+msgstr "Ni sprejeto: {error}"
+
+msgid "Entities created in Home Assistant: {count}"
+msgstr "Entitete, ustvarjene v Home Assistantu: {count}"
+
+msgid "Create"
+msgstr "Ustvari"

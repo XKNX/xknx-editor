@@ -186,3 +186,42 @@ msgstr "Verdiepingen en ruimtes in Home Assistant aangemaakt, gekoppeld of herno
 
 msgid "Apply"
 msgstr "Toepassen"
+
+msgid "Entities from Functions…"
+msgstr "Entiteiten uit functies…"
+
+msgid "Entities in Home Assistant"
+msgstr "Entiteiten in Home Assistant"
+
+msgid "The building functions become entities of Home Assistant's KNX integration: a light, a switch or a cover with the group addresses of their roles, named like the function, in the area its room became (see Floors and Areas). Home Assistant checks each one first."
+msgstr "De gebouwfuncties worden entiteiten van de KNX-integratie van Home Assistant: een lamp, een schakelaar of een raambekleding met de groepsadressen van hun rollen, genoemd naar de functie, in de ruimte waarin hun kamer is omgezet (zie Verdiepingen en ruimtes). Home Assistant controleert elke entiteit eerst."
+
+msgid "The project has no lights, switches or sun protection among its functions."
+msgstr "Het project heeft geen lampen, schakelaars of zonwering onder zijn functies."
+
+msgid "Function"
+msgstr "Functie"
+
+msgid "Group Addresses"
+msgstr "Groepsadressen"
+
+msgid "No area"
+msgstr "Geen ruimte"
+
+msgid "Created: {entity}"
+msgstr "Aangemaakt: {entity}"
+
+msgid "Its address is used by {entities}"
+msgstr "Het adres wordt gebruikt door {entities}"
+
+msgid "Being checked…"
+msgstr "Wordt gecontroleerd…"
+
+msgid "Not taken: {error}"
+msgstr "Niet overgenomen: {error}"
+
+msgid "Entities created in Home Assistant: {count}"
+msgstr "Entiteiten aangemaakt in Home Assistant: {count}"
+
+msgid "Create"
+msgstr "Aanmaken"

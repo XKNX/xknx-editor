@@ -186,3 +186,42 @@ msgstr "A Home Assistantban létrehozott, összekapcsolt vagy átnevezett szinte
 
 msgid "Apply"
 msgstr "Alkalmaz"
+
+msgid "Entities from Functions…"
+msgstr "Entitások funkciókból…"
+
+msgid "Entities in Home Assistant"
+msgstr "Entitások a Home Assistantban"
+
+msgid "The building functions become entities of Home Assistant's KNX integration: a light, a switch or a cover with the group addresses of their roles, named like the function, in the area its room became (see Floors and Areas). Home Assistant checks each one first."
+msgstr "Az épületfunkciókból a Home Assistant KNX-integrációjának entitásai lesznek: világítás, kapcsoló vagy redőny a szerepeik csoportcímeivel, a funkció nevével, abban a területben, amellyé a helyiségük vált (lásd Szintek és területek). A Home Assistant mindegyiket előbb ellenőrzi."
+
+msgid "The project has no lights, switches or sun protection among its functions."
+msgstr "A projekt funkciói között nincs világítás, kapcsoló vagy napvédelem."
+
+msgid "Function"
+msgstr "Funkció"
+
+msgid "Group Addresses"
+msgstr "Csoportcímek"
+
+msgid "No area"
+msgstr "Nincs terület"
+
+msgid "Created: {entity}"
+msgstr "Létrehozva: {entity}"
+
+msgid "Its address is used by {entities}"
+msgstr "A címét használja: {entities}"
+
+msgid "Being checked…"
+msgstr "Ellenőrzés…"
+
+msgid "Not taken: {error}"
+msgstr "Nem fogadta el: {error}"
+
+msgid "Entities created in Home Assistant: {count}"
+msgstr "A Home Assistantban létrehozott entitások: {count}"
+
+msgid "Create"
+msgstr "Létrehozás"

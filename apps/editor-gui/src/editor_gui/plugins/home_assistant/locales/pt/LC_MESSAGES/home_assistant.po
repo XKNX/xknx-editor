@@ -186,3 +186,42 @@ msgstr "Pisos e áreas criados, associados ou renomeados no Home Assistant: {cou
 
 msgid "Apply"
 msgstr "Aplicar"
+
+msgid "Entities from Functions…"
+msgstr "Entidades a partir de funções…"
+
+msgid "Entities in Home Assistant"
+msgstr "Entidades no Home Assistant"
+
+msgid "The building functions become entities of Home Assistant's KNX integration: a light, a switch or a cover with the group addresses of their roles, named like the function, in the area its room became (see Floors and Areas). Home Assistant checks each one first."
+msgstr "As funções do edifício tornam-se entidades da integração KNX do Home Assistant: uma luz, um interruptor ou um estore com os endereços de grupo dos seus papéis, com o nome da função, na área em que o respetivo compartimento se tornou (consulte Pisos e áreas). O Home Assistant verifica primeiro cada uma."
+
+msgid "The project has no lights, switches or sun protection among its functions."
+msgstr "O projeto não tem luzes, interruptores nem proteção solar entre as suas funções."
+
+msgid "Function"
+msgstr "Função"
+
+msgid "Group Addresses"
+msgstr "Endereços de grupo"
+
+msgid "No area"
+msgstr "Sem área"
+
+msgid "Created: {entity}"
+msgstr "Criada: {entity}"
+
+msgid "Its address is used by {entities}"
+msgstr "O seu endereço é usado por {entities}"
+
+msgid "Being checked…"
+msgstr "A verificar…"
+
+msgid "Not taken: {error}"
+msgstr "Não aceite: {error}"
+
+msgid "Entities created in Home Assistant: {count}"
+msgstr "Entidades criadas no Home Assistant: {count}"
+
+msgid "Create"
+msgstr "Criar"

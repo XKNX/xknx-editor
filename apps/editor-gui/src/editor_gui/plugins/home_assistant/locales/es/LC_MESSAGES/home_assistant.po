@@ -186,3 +186,42 @@ msgstr "Plantas y áreas creadas, vinculadas o renombradas en Home Assistant: {c
 
 msgid "Apply"
 msgstr "Aplicar"
+
+msgid "Entities from Functions…"
+msgstr "Entidades a partir de funciones…"
+
+msgid "Entities in Home Assistant"
+msgstr "Entidades en Home Assistant"
+
+msgid "The building functions become entities of Home Assistant's KNX integration: a light, a switch or a cover with the group addresses of their roles, named like the function, in the area its room became (see Floors and Areas). Home Assistant checks each one first."
+msgstr "Las funciones del edificio se convierten en entidades de la integración KNX de Home Assistant: una luz, un interruptor o una persiana con las direcciones de grupo de sus roles, con el nombre de la función, en el área en la que se convirtió su estancia (véase Plantas y áreas). Home Assistant comprueba primero cada una."
+
+msgid "The project has no lights, switches or sun protection among its functions."
+msgstr "Entre las funciones del proyecto no hay luces, interruptores ni protección solar."
+
+msgid "Function"
+msgstr "Función"
+
+msgid "Group Addresses"
+msgstr "Direcciones de grupo"
+
+msgid "No area"
+msgstr "Sin área"
+
+msgid "Created: {entity}"
+msgstr "Creada: {entity}"
+
+msgid "Its address is used by {entities}"
+msgstr "Su dirección la usa {entities}"
+
+msgid "Being checked…"
+msgstr "Comprobando…"
+
+msgid "Not taken: {error}"
+msgstr "No aceptada: {error}"
+
+msgid "Entities created in Home Assistant: {count}"
+msgstr "Entidades creadas en Home Assistant: {count}"
+
+msgid "Create"
+msgstr "Crear"

@@ -186,3 +186,42 @@ msgstr "Etager og områder i Home Assistant oprettet, tilknyttet eller omdøbt: 
 
 msgid "Apply"
 msgstr "Anvend"
+
+msgid "Entities from Functions…"
+msgstr "Entiteter fra funktioner…"
+
+msgid "Entities in Home Assistant"
+msgstr "Entiteter i Home Assistant"
+
+msgid "The building functions become entities of Home Assistant's KNX integration: a light, a switch or a cover with the group addresses of their roles, named like the function, in the area its room became (see Floors and Areas). Home Assistant checks each one first."
+msgstr "Bygningsfunktionerne bliver til entiteter i KNX-integrationen i Home Assistant: et lys, en kontakt eller en afdækning med gruppeadresserne for deres roller, navngivet som funktionen, i det område, som deres rum blev til (se Etager og områder). Home Assistant kontrollerer hver enkelt først."
+
+msgid "The project has no lights, switches or sun protection among its functions."
+msgstr "Projektet har ingen lys, kontakter eller solbeskyttelse blandt sine funktioner."
+
+msgid "Function"
+msgstr "Funktion"
+
+msgid "Group Addresses"
+msgstr "Gruppeadresser"
+
+msgid "No area"
+msgstr "Intet område"
+
+msgid "Created: {entity}"
+msgstr "Oprettet: {entity}"
+
+msgid "Its address is used by {entities}"
+msgstr "Adressen bruges af {entities}"
+
+msgid "Being checked…"
+msgstr "Kontrolleres…"
+
+msgid "Not taken: {error}"
+msgstr "Ikke accepteret: {error}"
+
+msgid "Entities created in Home Assistant: {count}"
+msgstr "Entiteter oprettet i Home Assistant: {count}"
+
+msgid "Create"
+msgstr "Opret"

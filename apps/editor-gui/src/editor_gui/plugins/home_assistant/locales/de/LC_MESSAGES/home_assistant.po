@@ -186,3 +186,42 @@ msgstr "In Home Assistant angelegte, verknüpfte oder umbenannte Etagen und Bere
 
 msgid "Apply"
 msgstr "Übernehmen"
+
+msgid "Entities from Functions…"
+msgstr "Entitäten aus Funktionen…"
+
+msgid "Entities in Home Assistant"
+msgstr "Entitäten in Home Assistant"
+
+msgid "The building functions become entities of Home Assistant's KNX integration: a light, a switch or a cover with the group addresses of their roles, named like the function, in the area its room became (see Floors and Areas). Home Assistant checks each one first."
+msgstr "Die Gebäudefunktionen werden zu Entitäten der KNX-Integration von Home Assistant: einer Leuchte, einem Schalter oder einer Abdeckung mit den Gruppenadressen ihrer Rollen, benannt wie die Funktion, in dem Bereich, zu dem ihr Raum wurde (siehe Etagen und Bereiche). Home Assistant prüft jede zuerst."
+
+msgid "The project has no lights, switches or sun protection among its functions."
+msgstr "Unter den Funktionen des Projekts sind keine Leuchten, Schalter oder Sonnenschutz."
+
+msgid "Function"
+msgstr "Funktion"
+
+msgid "Group Addresses"
+msgstr "Gruppenadressen"
+
+msgid "No area"
+msgstr "Kein Bereich"
+
+msgid "Created: {entity}"
+msgstr "Angelegt: {entity}"
+
+msgid "Its address is used by {entities}"
+msgstr "Ihre Adresse verwendet {entities}"
+
+msgid "Being checked…"
+msgstr "Wird geprüft…"
+
+msgid "Not taken: {error}"
+msgstr "Nicht übernommen: {error}"
+
+msgid "Entities created in Home Assistant: {count}"
+msgstr "In Home Assistant angelegte Entitäten: {count}"
+
+msgid "Create"
+msgstr "Anlegen"

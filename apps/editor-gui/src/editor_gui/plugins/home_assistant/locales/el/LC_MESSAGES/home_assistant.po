@@ -186,3 +186,42 @@ msgstr "Όροφοι και περιοχές που δημιουργήθηκαν
 
 msgid "Apply"
 msgstr "Εφαρμογή"
+
+msgid "Entities from Functions…"
+msgstr "Οντότητες από λειτουργίες…"
+
+msgid "Entities in Home Assistant"
+msgstr "Οντότητες στο Home Assistant"
+
+msgid "The building functions become entities of Home Assistant's KNX integration: a light, a switch or a cover with the group addresses of their roles, named like the function, in the area its room became (see Floors and Areas). Home Assistant checks each one first."
+msgstr "Οι λειτουργίες κτιρίου γίνονται οντότητες της ενσωμάτωσης KNX του Home Assistant: ένα φως, ένας διακόπτης ή ένα κάλυμμα με τις διευθύνσεις ομάδων των ρόλων τους, με το όνομα της λειτουργίας, στην περιοχή που έγινε το δωμάτιό τους (βλ. Όροφοι και περιοχές). Το Home Assistant ελέγχει πρώτα την καθεμία."
+
+msgid "The project has no lights, switches or sun protection among its functions."
+msgstr "Στις λειτουργίες του έργου δεν υπάρχουν φώτα, διακόπτες ή προστασία από τον ήλιο."
+
+msgid "Function"
+msgstr "Λειτουργία"
+
+msgid "Group Addresses"
+msgstr "Διευθύνσεις ομάδων"
+
+msgid "No area"
+msgstr "Χωρίς περιοχή"
+
+msgid "Created: {entity}"
+msgstr "Δημιουργήθηκε: {entity}"
+
+msgid "Its address is used by {entities}"
+msgstr "Η διεύθυνσή της χρησιμοποιείται από {entities}"
+
+msgid "Being checked…"
+msgstr "Ελέγχεται…"
+
+msgid "Not taken: {error}"
+msgstr "Δεν έγινε αποδεκτή: {error}"
+
+msgid "Entities created in Home Assistant: {count}"
+msgstr "Οντότητες που δημιουργήθηκαν στο Home Assistant: {count}"
+
+msgid "Create"
+msgstr "Δημιουργία"

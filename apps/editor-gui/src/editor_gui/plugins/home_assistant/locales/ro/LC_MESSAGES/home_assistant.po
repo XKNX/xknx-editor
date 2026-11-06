@@ -186,3 +186,42 @@ msgstr "Etaje și zone create, asociate sau redenumite în Home Assistant: {coun
 
 msgid "Apply"
 msgstr "Aplicare"
+
+msgid "Entities from Functions…"
+msgstr "Entități din funcții…"
+
+msgid "Entities in Home Assistant"
+msgstr "Entități în Home Assistant"
+
+msgid "The building functions become entities of Home Assistant's KNX integration: a light, a switch or a cover with the group addresses of their roles, named like the function, in the area its room became (see Floors and Areas). Home Assistant checks each one first."
+msgstr "Funcțiile clădirii devin entități ale integrării KNX din Home Assistant: o lumină, un comutator sau o jaluzea cu adresele de grup ale rolurilor lor, denumite ca funcția, în zona în care a fost transformată camera lor (vedeți Etaje și zone). Home Assistant le verifică mai întâi pe fiecare."
+
+msgid "The project has no lights, switches or sun protection among its functions."
+msgstr "Printre funcțiile proiectului nu există lumini, comutatoare sau protecție solară."
+
+msgid "Function"
+msgstr "Funcție"
+
+msgid "Group Addresses"
+msgstr "Adrese de grup"
+
+msgid "No area"
+msgstr "Nicio zonă"
+
+msgid "Created: {entity}"
+msgstr "Creată: {entity}"
+
+msgid "Its address is used by {entities}"
+msgstr "Adresa ei este folosită de {entities}"
+
+msgid "Being checked…"
+msgstr "Se verifică…"
+
+msgid "Not taken: {error}"
+msgstr "Nepreluată: {error}"
+
+msgid "Entities created in Home Assistant: {count}"
+msgstr "Entități create în Home Assistant: {count}"
+
+msgid "Create"
+msgstr "Creare"

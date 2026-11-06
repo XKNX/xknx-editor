@@ -186,3 +186,42 @@ msgstr "Podlažia a oblasti vytvorené, prepojené alebo premenované v Home Ass
 
 msgid "Apply"
 msgstr "Použiť"
+
+msgid "Entities from Functions…"
+msgstr "Entity z funkcií…"
+
+msgid "Entities in Home Assistant"
+msgstr "Entity v Home Assistante"
+
+msgid "The building functions become entities of Home Assistant's KNX integration: a light, a switch or a cover with the group addresses of their roles, named like the function, in the area its room became (see Floors and Areas). Home Assistant checks each one first."
+msgstr "Funkcie budovy sa stanú entitami integrácie KNX v Home Assistante: svetlom, spínačom alebo roletou so skupinovými adresami svojich rolí, pomenovanými podľa funkcie, v oblasti, ktorou sa stala ich miestnosť (pozri Podlažia a oblasti). Home Assistant každú najprv skontroluje."
+
+msgid "The project has no lights, switches or sun protection among its functions."
+msgstr "Medzi funkciami projektu nie sú žiadne svetlá, spínače ani ochrana proti slnku."
+
+msgid "Function"
+msgstr "Funkcia"
+
+msgid "Group Addresses"
+msgstr "Skupinové adresy"
+
+msgid "No area"
+msgstr "Bez oblasti"
+
+msgid "Created: {entity}"
+msgstr "Vytvorené: {entity}"
+
+msgid "Its address is used by {entities}"
+msgstr "Jej adresu používa {entities}"
+
+msgid "Being checked…"
+msgstr "Prebieha kontrola…"
+
+msgid "Not taken: {error}"
+msgstr "Neprevzaté: {error}"
+
+msgid "Entities created in Home Assistant: {count}"
+msgstr "Entity vytvorené v Home Assistante: {count}"
+
+msgid "Create"
+msgstr "Vytvoriť"

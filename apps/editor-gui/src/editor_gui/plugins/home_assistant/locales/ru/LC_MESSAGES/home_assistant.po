@@ -186,3 +186,42 @@ msgstr "Этажи и пространства, созданные, связан
 
 msgid "Apply"
 msgstr "Применить"
+
+msgid "Entities from Functions…"
+msgstr "Объекты из функций…"
+
+msgid "Entities in Home Assistant"
+msgstr "Объекты в Home Assistant"
+
+msgid "The building functions become entities of Home Assistant's KNX integration: a light, a switch or a cover with the group addresses of their roles, named like the function, in the area its room became (see Floors and Areas). Home Assistant checks each one first."
+msgstr "Функции здания становятся объектами интеграции KNX в Home Assistant: освещением, выключателем или шторами с групповыми адресами их ролей, с именем функции, в пространстве, которым стала их комната (см. «Этажи и пространства»). Home Assistant сначала проверяет каждый из них."
+
+msgid "The project has no lights, switches or sun protection among its functions."
+msgstr "Среди функций проекта нет освещения, выключателей или солнцезащиты."
+
+msgid "Function"
+msgstr "Функция"
+
+msgid "Group Addresses"
+msgstr "Групповые адреса"
+
+msgid "No area"
+msgstr "Без пространства"
+
+msgid "Created: {entity}"
+msgstr "Создан: {entity}"
+
+msgid "Its address is used by {entities}"
+msgstr "Её адрес используется: {entities}"
+
+msgid "Being checked…"
+msgstr "Проверяется…"
+
+msgid "Not taken: {error}"
+msgstr "Не принято: {error}"
+
+msgid "Entities created in Home Assistant: {count}"
+msgstr "Объекты, созданные в Home Assistant: {count}"
+
+msgid "Create"
+msgstr "Создать"

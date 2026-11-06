@@ -186,3 +186,42 @@ msgstr "已在 Home Assistant 中创建、关联或重命名的楼层和区域�
 
 msgid "Apply"
 msgstr "应用"
+
+msgid "Entities from Functions…"
+msgstr "从功能创建实体…"
+
+msgid "Entities in Home Assistant"
+msgstr "Home Assistant 中的实体"
+
+msgid "The building functions become entities of Home Assistant's KNX integration: a light, a switch or a cover with the group addresses of their roles, named like the function, in the area its room became (see Floors and Areas). Home Assistant checks each one first."
+msgstr "建筑功能将成为 Home Assistant KNX 集成的实体：灯、开关或卷帘，使用其角色的组地址，以功能命名，位于其房间所对应的区域（参见“楼层和区域”）。Home Assistant 会先检查每个实体。"
+
+msgid "The project has no lights, switches or sun protection among its functions."
+msgstr "项目的功能中没有灯、开关或遮阳。"
+
+msgid "Function"
+msgstr "功能"
+
+msgid "Group Addresses"
+msgstr "组地址"
+
+msgid "No area"
+msgstr "无区域"
+
+msgid "Created: {entity}"
+msgstr "已创建：{entity}"
+
+msgid "Its address is used by {entities}"
+msgstr "其地址已被 {entities} 使用"
+
+msgid "Being checked…"
+msgstr "正在检查…"
+
+msgid "Not taken: {error}"
+msgstr "未被接受：{error}"
+
+msgid "Entities created in Home Assistant: {count}"
+msgstr "已在 Home Assistant 中创建的实体：{count}"
+
+msgid "Create"
+msgstr "创建"

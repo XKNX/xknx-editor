@@ -186,3 +186,42 @@ msgstr "Home Assistant で作成、リンク、または名前変更されたフ
 
 msgid "Apply"
 msgstr "適用"
+
+msgid "Entities from Functions…"
+msgstr "機能からエンティティ…"
+
+msgid "Entities in Home Assistant"
+msgstr "Home Assistant のエンティティ"
+
+msgid "The building functions become entities of Home Assistant's KNX integration: a light, a switch or a cover with the group addresses of their roles, named like the function, in the area its room became (see Floors and Areas). Home Assistant checks each one first."
+msgstr "建物の機能は Home Assistant の KNX 統合のエンティティになります。ライト、スイッチ、またはカバーとして、ロールのグループ・アドレスを持ち、機能と同じ名前で、部屋から作られたエリアに配置されます（「フロアとエリア」を参照）。Home Assistant は各エンティティを事前に確認します。"
+
+msgid "The project has no lights, switches or sun protection among its functions."
+msgstr "プロジェクトの機能にライト、スイッチ、日よけがありません。"
+
+msgid "Function"
+msgstr "機能"
+
+msgid "Group Addresses"
+msgstr "グループ・アドレス"
+
+msgid "No area"
+msgstr "エリアなし"
+
+msgid "Created: {entity}"
+msgstr "作成済み: {entity}"
+
+msgid "Its address is used by {entities}"
+msgstr "このアドレスは {entities} が使用しています"
+
+msgid "Being checked…"
+msgstr "確認中…"
+
+msgid "Not taken: {error}"
+msgstr "受け入れられませんでした: {error}"
+
+msgid "Entities created in Home Assistant: {count}"
+msgstr "Home Assistant で作成されたエンティティ: {count}"
+
+msgid "Create"
+msgstr "作成"
