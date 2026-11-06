@@ -69,7 +69,7 @@ class LinkInfo:
         """The connection's option string, e.g. for a recording's start entry."""
         if self.connector == "Usb":
             path = f"DevicePath={self.host};" if self.host else ""
-            return f'Type=Usb;{path}Name="{self.name}"'
+            return f'Type=Usb;{path}Name="{self.name}";AutoReconnect=True'
         if self.connector == "IpRouting":
             return (
                 f"Type=IpRouting;MulticastAddress={self.host};"

@@ -255,10 +255,10 @@ class TestPlugin:
         assert link == LinkInfo(
             name="KNX-USB Interface", host="", port=0, connector="Usb"
         )
-        assert link.options == 'Type=Usb;Name="KNX-USB Interface"'
+        assert link.options == 'Type=Usb;Name="KNX-USB Interface";AutoReconnect=True'
         assert link.endpoint_name == "KNX-USB Interface (USB)"
         assert LinkInfo("x", r"\\?\hid#vid_16de&pid_008e#6", 0, "Usb").options == (
-            r'Type=Usb;DevicePath=\\?\hid#vid_16de&pid_008e#6;Name="x"'
+            r'Type=Usb;DevicePath=\\?\hid#vid_16de&pid_008e#6;Name="x";AutoReconnect=True'
         )
         assert plugin._busmonitor_target == "KNX-USB Interface (USB)"
 
@@ -292,7 +292,8 @@ class TestConnecting:
             assert connection.interface_name == "KNX-USB Interface"
             assert connection.link_info.connector == "Usb"
             assert connection.link_info.options == (
-                'Type=Usb;DevicePath=usb-path-1;Name="KNX-USB Interface"'
+                'Type=Usb;DevicePath=usb-path-1;Name="KNX-USB Interface";'
+                "AutoReconnect=True"
             )
             assert plugin.test_events == ["connection", "connected"]
             assert plugin._xknx.current_address == IndividualAddress("1.0.2")
@@ -322,7 +323,9 @@ class TestConnecting:
             await plugin._disconnect_async()
         assert plugin._state is ConnectionState.DISCONNECTED
         assert plugin.usb_info is None
-        assert fake_hid.interface.written_cemi()[-1] == b"\xf1"
+        # closed as it is, without a reset
+        assert b"\xf1" not in fake_hid.interface.written_cemi()
+        assert fake_hid.closed == 1
 
     async def test_connect_fails(self, fake_hid: FakeHIDModule) -> None:
         plugin = _plugin()
