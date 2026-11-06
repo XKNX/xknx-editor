@@ -350,8 +350,96 @@ class HomeAssistantStrings:
         return _("Entities created in Home Assistant: {count}")
 
     @property
-    def BTN_CREATE(self) -> str:
-        return _("Create")
+    def ENTITIES_CHANGED(self) -> str:
+        return _("Its group addresses changed: {entity} gets the new ones")
+
+    @property
+    def ENTITIES_CHANGED_WAIT(self) -> str:
+        return _("Its group addresses changed: download its devices first")
+
+    @property
+    def ENTITIES_ORPHANS(self) -> str:
+        return _("Entities of Removed Functions")
+
+    @property
+    def DONE_UPDATED(self) -> str:
+        return _("Entities updated in Home Assistant: {count}")
+
+    @property
+    def DONE_REMOVED(self) -> str:
+        return _("Entities removed from Home Assistant: {count}")
+
+    @property
+    def MENU_TIME_SERVER(self) -> str:
+        return _("Time Server…")
+
+    @property
+    def TIME_TITLE(self) -> str:
+        return _("Time Server in Home Assistant")
+
+    @property
+    def TIME_INTRO(self) -> str:
+        return _(
+            "Home Assistant's KNX integration can send the time and the date to the bus. "
+            "Choose the group addresses for them: those of the project with the data type of "
+            "a time, a date, or a date with time."
+        )
+
+    @property
+    def TIME_TIME(self) -> str:
+        return _("Time")
+
+    @property
+    def TIME_DATE(self) -> str:
+        return _("Date")
+
+    @property
+    def TIME_DATETIME(self) -> str:
+        return _("Date and Time")
+
+    @property
+    def TIME_NONE(self) -> str:
+        return _("None")
+
+    @property
+    def DONE_TIME_SERVER(self) -> str:
+        return _("Home Assistant's time server sends to the chosen group addresses")
+
+    @property
+    def MENU_KEYS(self) -> str:
+        return _("Send Keys to Home Assistant…")
+
+    @property
+    def KEYS_TITLE(self) -> str:
+        return _("Keys in Home Assistant")
+
+    @property
+    def KEYS_INTRO(self) -> str:
+        return _(
+            "The keys of the project's Data Secure group addresses become the keyring of Home "
+            "Assistant's KNX integration, so it reads and sends their telegrams. The KNX "
+            "integration is loaded again for it."
+        )
+
+    @property
+    def KEYS_COUNT(self) -> str:
+        return _("Data Secure group addresses: {count}")
+
+    @property
+    def KEYS_REFUSED(self) -> str:
+        return _(
+            "Home Assistant's KNX integration is not set up, or it connects with KNX Secure: "
+            "then its keyring holds its own connection's keys, and stays as it is (change it "
+            "in the KNX integration's options)."
+        )
+
+    @property
+    def BTN_SEND(self) -> str:
+        return _("Send")
+
+    @property
+    def DONE_KEYS(self) -> str:
+        return _("Home Assistant's KNX integration has the project's keys")
 
 
 S = HomeAssistantStrings()

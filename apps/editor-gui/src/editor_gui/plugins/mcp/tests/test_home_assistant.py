@@ -390,3 +390,136 @@ async def test_the_building_functions_become_entities(
                 "home_assistant_create_entities", {"function_ids": [ceiling]}
             )
     assert service.entity_links
+
+
+async def test_entities_follow_their_functions_time_server_and_keys(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    mcp, service, link = _server(tmp_path, monkeypatch)
+    # Home Assistant's entities (the knx part of their configuration) by entity id.
+    configs: dict[str, dict[str, Any]] = {}
+    links: dict[str, str] = {}
+    asked: list[dict[str, Any]] = []
+    served: dict[str, Any] = {"time": None, "date": None, "datetime": None}
+
+    def state() -> list[dict[str, Any]]:
+        return [
+            {"type": "entity_links", "links": dict(links), "configs": dict(configs)},
+            {
+                "type": "knx",
+                "loaded": True,
+                "project": service.knx_project,
+                "time_server": dict(served),
+                "keyring_refused": None,
+            },
+        ]
+
+    def send(message: dict[str, Any]) -> bool:
+        kind = message["type"]
+        asked.append(message)
+        answer: dict[str, Any] = {
+            "type": "result",
+            "id": message.get("id"),
+            "error": None,
+        }
+        if kind == "check_entities":
+            answer["checks"] = {e["key"]: None for e in message["entities"]}
+        elif kind == "create_entities":
+            for entity in message["entities"]:
+                entity_id = f"{entity['platform']}.{entity['name'].lower()}"
+                links[entity["key"]] = entity_id
+                configs[entity_id] = entity["knx"]
+            answer["created"] = {e["key"]: links[e["key"]] for e in message["entities"]}
+        elif kind == "update_entities":
+            for entity in message["entities"]:
+                configs[links[entity["key"]]] = entity["knx"]
+            answer["updated"] = [e["key"] for e in message["entities"]]
+        elif kind == "delete_entities":
+            for key in message["keys"]:
+                configs.pop(links.pop(key))
+            answer["removed"] = message["keys"]
+        elif kind == "set_time_server":
+            served.update(message["addresses"])
+        elif kind == "set_keyring":
+            assert message["keyring"] and message["password"]
+        else:
+            return _Link.send(link, message)
+        link.inbox += [*state(), answer]
+        return True
+
+    monkeypatch.setattr(link, "send", send)
+    async with Client(mcp) as client:
+        await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
+        (house,) = (await _data(client, "project_spaces"))["items"]
+        room = await _data(
+            client,
+            "project_create_space",
+            space_type="Room",
+            name="Hall",
+            parent_id=house["id"],
+        )
+        ids = {}
+        for address, dpt in (
+            ("1/1/1", "1.001"),
+            ("1/1/2", "1.001"),
+            ("0/0/1", "10.001"),
+        ):
+            ga = await _data(
+                client,
+                "project_create_group_address",
+                address=address,
+                name=address,
+                dpt=dpt,
+            )
+            ids[address] = ga["group_address_id"]
+        function = await _data(
+            client,
+            "project_create_function",
+            space_id=room["space_id"],
+            name="Socket",
+            function_type="FT-10",
+        )
+        added = await _data(
+            client,
+            "project_add_function_group_address",
+            function_id=function["function_id"],
+            group_address_id=ids["1/1/1"],
+            role="SwitchOnOff",
+        )
+        await _data(client, "home_assistant_create_entities")
+
+        # The function gets another switching address: its entity follows.
+        await _data(
+            client, "project_remove_function_group_address", link_id=added["link_id"]
+        )
+        await _data(
+            client,
+            "project_add_function_group_address",
+            function_id=function["function_id"],
+            group_address_id=ids["1/1/2"],
+            role="SwitchOnOff",
+        )
+        rows = (await _data(client, "home_assistant_entities"))["items"]
+        assert [r["state"] for r in rows] == ["changed"]
+        rows = (await _data(client, "home_assistant_update_entities"))["items"]
+        assert [r["state"] for r in rows] == ["created"]
+        assert configs["switch.socket"]["ga_switch"]["write"] == "1/1/2"
+
+        # The function is removed: its entity can go.
+        await _data(
+            client, "project_remove_function", function_id=function["function_id"]
+        )
+        orphans = await _data(client, "home_assistant_orphan_entities")
+        assert orphans["items"] == [{"entity_id": "switch.socket"}]
+        left = await _data(
+            client, "home_assistant_remove_entities", entity_ids=["switch.socket"]
+        )
+        assert left["count"] == 0
+        assert configs == {}
+
+        result = await _data(
+            client, "home_assistant_set_time_server", time_address="0/0/1"
+        )
+        assert result == {"time": "0/0/1", "date": None, "datetime": None}
+        assert await _data(client, "home_assistant_send_keys") == {"sent": True}
+        assert asked[-1]["type"] == "set_keyring"

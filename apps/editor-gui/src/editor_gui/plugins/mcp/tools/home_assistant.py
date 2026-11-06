@@ -256,7 +256,9 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
     def entity_row(row: EntityRow) -> dict[str, Any]:
         candidate = row.candidate
         state = (
-            "created"
+            ("changed" if row.downloaded else "changed_not_downloaded")
+            if row.created is not None and row.changed
+            else "created"
             if row.created is not None
             else "existing"
             if row.existing
@@ -360,6 +362,129 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                 return {"created": done[0], **_items(items)}
             time.sleep(_POLL_SECONDS)
         raise ToolError("Home Assistant did not answer in time")
+
+    def wait_for_requests() -> None:
+        """Until Home Assistant answered the follow-up requests; raises its error."""
+        deadline = time.monotonic() + _SEND_TIMEOUT
+        while time.monotonic() < deadline:
+            if not ctx.run_locked(lambda: service().requesting):
+                if error := ctx.run_locked(lambda: service().request_error):
+                    raise ToolError(f"Home Assistant: {error}")
+                return
+            time.sleep(_POLL_SECONDS)
+        raise ToolError("Home Assistant did not answer in time")
+
+    @tool("write", open_world=True)
+    def home_assistant_update_entities(
+        function_ids: list[int] | None = None,
+    ) -> dict[str, Any]:
+        """Give the entities created for building functions the group addresses their functions
+        have now (Entities from Functions…, Apply, for "changed" rows of
+        home_assistant_entities); only entities whose devices have their links downloaded
+        ("changed_not_downloaded": download those devices first), without function_ids all of
+        them. Their names and the rest stay. Returns the rows as home_assistant_entities."""
+        require_project(ctx)
+
+        def _update() -> bool:
+            rows = [
+                r
+                for r in service().entity_rows()
+                if r.changed
+                and r.downloaded
+                and (function_ids is None or r.candidate.function_id in function_ids)
+            ]
+            if not rows:
+                raise ToolError(
+                    "nothing to update: no changed entity with downloaded devices"
+                )
+            return service().update_entities(rows)
+
+        if not ctx.run_locked(_update):
+            raise ToolError("Home Assistant cannot be asked now (not connected)")
+        wait_for_requests()
+        return _items(
+            [entity_row(r) for r in ctx.run_locked(lambda: service().entity_rows())]
+        )
+
+    @tool("read")
+    def home_assistant_orphan_entities() -> dict[str, Any]:
+        """The entities created for building functions the project no longer has (or that no
+        longer make an entity): {items: [{entity_id}], count}."""
+        require_project(ctx)
+        orphans = ctx.run_locked(lambda: service().orphans())
+        return _items([{"entity_id": entity_id} for _key, entity_id in orphans])
+
+    @tool("destructive", open_world=True)
+    def home_assistant_remove_entities(entity_ids: list[str]) -> dict[str, Any]:
+        """Remove entities of home_assistant_orphan_entities from Home Assistant (Entities from
+        Functions…, Entities of Removed Functions); only those. Returns the orphans left."""
+        require_project(ctx)
+
+        def _remove() -> bool:
+            keys = [key for key, eid in service().orphans() if eid in entity_ids]
+            if not keys:
+                raise ToolError("none of them is an entity of a removed function")
+            return service().remove_entities(keys)
+
+        if not ctx.run_locked(_remove):
+            raise ToolError("Home Assistant cannot be asked now (not connected)")
+        wait_for_requests()
+        orphans = ctx.run_locked(lambda: service().orphans())
+        return _items([{"entity_id": entity_id} for _key, entity_id in orphans])
+
+    def served() -> dict[str, Any]:
+        current = ctx.run_locked(lambda: service().time_server)
+        if current is None:
+            raise ToolError("the KNX integration is not set up or not connected")
+        return dict(current)
+
+    @tool("read")
+    def home_assistant_time_server() -> dict[str, Any]:
+        """Where the KNX integration's time server sends the time, the date and the date with
+        time (Time Server…): {time, date, datetime}, each a printed group address or null."""
+        return served()
+
+    @tool("write", open_world=True)
+    def home_assistant_set_time_server(
+        time_address: str | None = None,
+        date_address: str | None = None,
+        datetime_address: str | None = None,
+    ) -> dict[str, Any]:
+        """Let the KNX integration's time server send the time, the date and the date with time
+        to these printed group addresses (Time Server…, Apply); null for none. The addresses
+        need the data type of a time (10.001), a date (11.001) or a date with time (19.001).
+        Returns the time server as home_assistant_time_server."""
+        addresses = {
+            "time": time_address,
+            "date": date_address,
+            "datetime": datetime_address,
+        }
+        if not ctx.run_locked(lambda: service().set_time_server(addresses)):
+            raise ToolError("Home Assistant cannot be asked now (not connected)")
+        wait_for_requests()
+        return served()
+
+    @tool("destructive", open_world=True)
+    def home_assistant_send_keys() -> dict[str, Any]:
+        """Make the keys of the project's Data Secure group addresses the keyring of Home
+        Assistant's KNX integration (Send Keys to Home Assistant…), replacing its keyring; the
+        KNX integration is loaded again. Refused while it connects with KNX Secure (its keyring
+        holds that connection's keys). Returns {sent: true}."""
+        require_project(ctx)
+
+        def _send() -> bool:
+            ha = service()
+            if ha.keyring_refused is not None:
+                raise ToolError(ha.keyring_refused)
+            return ha.send_keys()
+
+        if not ctx.run_locked(_send):
+            error = ctx.run_locked(lambda: service().request_error)
+            raise ToolError(
+                error or "Home Assistant cannot be asked now (not connected)"
+            )
+        wait_for_requests()
+        return {"sent": True}
 
     @tool("read")
     def home_assistant_project_model(section: str | None = None) -> dict[str, Any]:

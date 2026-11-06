@@ -422,3 +422,29 @@ def test_the_knx_integrations_connection_is_known(env: _Env) -> None:
         "host": "224.0.23.12",
         "port": 3671,
     }
+
+
+def test_an_entity_follows_its_function_only_once_the_devices_are_downloaded() -> None:
+    @dataclass
+    class _Link:
+        device_id: int
+        group_address_id: int
+
+    @dataclass
+    class _Info:
+        communication_part_loaded: bool
+
+    loaded = {1: True, 2: False}
+    project = _Project()
+    project.device_links = lambda: [_Link(1, 10), _Link(2, 20), _Link(3, 30)]  # type: ignore[attr-defined]
+    project.get_device_info = lambda node: (  # type: ignore[attr-defined]
+        _Info(loaded[node]) if node in loaded else None
+    )
+    service = HomeAssistantService(
+        cast("Any", project), lambda: None, prepare=None, persist=False
+    )
+    assert service.downloaded((10,))
+    # A device with its links not downloaded, or one without device data.
+    assert not service.downloaded((10, 20))
+    assert not service.downloaded((30,))
+    assert service.downloaded(())

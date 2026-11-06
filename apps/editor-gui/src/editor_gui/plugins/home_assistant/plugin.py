@@ -26,6 +26,7 @@ from editor_gui.plugins.home_assistant.telegrams import link_info, telegram_fram
 from editor_gui.settings_window import Setting
 from editor_gui.strings import S as app_strings
 from editor_gui.widgets.checkbox import checkbox
+from editor_gui.widgets.combo import combo
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
 from editor_gui.widgets.dpi import px
 from editor_gui.widgets.tables import begin_data_table, data_table_headers
@@ -80,7 +81,14 @@ class HomeAssistantPlugin:
         # chosen by default.
         self._entities_requested = False
         self._entities_toggled: set[str] = set()
+        # The entities of removed functions chosen to be removed (never by default).
+        self._orphans_chosen: set[str] = set()
         self._service.on_entities_created = self._entities_created
+        self._service.on_done = self._tell
+        # The time server dialog: asked for, and the group address chosen for each kind.
+        self._time_requested = False
+        self._time_chosen: dict[str, str | None] = {}
+        self._keys_requested = False
         self._project = project
         # Opens a page of the Settings window (set by the app).
         self.open_settings: Callable[[str], None] | None = None
@@ -91,6 +99,10 @@ class HomeAssistantPlugin:
             raw, when = frame
             link = link_info(self._service.connection)
             self._monitor.on_foreign_cemi(raw, when, link, log=log)
+
+    def _tell(self, text: str) -> None:
+        if self._api.notify is not None:
+            self._api.notify(text)
 
     def _entities_created(self, count: int) -> None:
         if self._api.notify is not None:
@@ -172,6 +184,20 @@ class HomeAssistantPlugin:
             service.connected and self._project.is_open,
         )[0]:
             self._entities_requested = True
+        if imgui.menu_item(
+            S.MENU_TIME_SERVER,
+            "",
+            False,
+            service.connected and service.knx_loaded and self._project.is_open,
+        )[0]:
+            self._time_requested = True
+        if imgui.menu_item(
+            S.MENU_KEYS,
+            "",
+            False,
+            service.connected and service.knx_loaded and self._project.is_open,
+        )[0]:
+            self._keys_requested = True
         if imgui.menu_item(
             S.MENU_LOAD_TELEGRAMS,
             "",
@@ -283,11 +309,93 @@ class HomeAssistantPlugin:
             self._entities_toggled.clear()
             imgui.open_popup(_entities_title())
         self._render_entities()
+        if self._time_requested:
+            self._time_requested = False
+            served = self._service.time_server
+            self._time_chosen = {kind: (served or {}).get(kind) for kind in _TIME_KINDS}
+            imgui.open_popup(_time_title())
+        self._render_time_server()
+        if self._keys_requested:
+            self._keys_requested = False
+            imgui.open_popup(_keys_title())
+        self._render_keys()
+
+    def _render_time_server(self) -> None:
+        if not begin_dialog(_time_title(), width=520.0):
+            return
+        service = self._service
+        imgui.text_wrapped(S.TIME_INTRO)
+        imgui.spacing()
+        labels = {
+            "time": S.TIME_TIME,
+            "date": S.TIME_DATE,
+            "datetime": S.TIME_DATETIME,
+        }
+        width = max(imgui.calc_text_size(text).x for text in labels.values())
+        for kind in _TIME_KINDS:
+            choices = [
+                ga
+                for ga in self._project.group_addresses
+                if ga.datapoint_type in _TIME_TYPES[kind]
+            ]
+            names = [S.TIME_NONE, *(f"{ga.address} {ga.name}" for ga in choices)]
+            addresses: list[str | None] = [None, *(ga.address for ga in choices)]
+            current = self._time_chosen.get(kind)
+            index = addresses.index(current) if current in addresses else 0
+            imgui.align_text_to_frame_padding()
+            imgui.text(labels[kind])
+            imgui.same_line(width + px(16.0))
+            imgui.set_next_item_width(-1)
+            changed, index = combo(f"##time_{kind}", index, names, 16)
+            if changed:
+                self._time_chosen[kind] = addresses[index]
+        if service.request_error:
+            imgui.text_colored(_RED, S.AREAS_FAILED.format(error=service.request_error))
+        clicked = dialog_buttons(
+            S.BTN_APPLY,
+            app_strings.BTN_CLOSE,
+            enabled=[service.connected and not service.requesting, True],
+        )
+        if clicked == 0:
+            service.set_time_server(dict(self._time_chosen))
+        elif clicked == 1:
+            imgui.close_current_popup()
+        end_dialog()
+
+    def _render_keys(self) -> None:
+        if not begin_dialog(_keys_title(), width=480.0):
+            return
+        service = self._service
+        imgui.text_wrapped(S.KEYS_INTRO)
+        imgui.spacing()
+        secured = sum(1 for ga in self._project.group_addresses if ga.data_secure)
+        imgui.text_disabled(S.KEYS_COUNT.format(count=secured))
+        if service.keyring_refused is not None:
+            imgui.push_text_wrap_pos(0.0)
+            imgui.text_colored(_AMBER, S.KEYS_REFUSED)
+            imgui.pop_text_wrap_pos()
+        if service.request_error:
+            imgui.text_colored(_RED, S.AREAS_FAILED.format(error=service.request_error))
+        clicked = dialog_buttons(
+            S.BTN_SEND,
+            app_strings.BTN_CLOSE,
+            enabled=[
+                service.connected
+                and service.keyring_refused is None
+                and not service.requesting,
+                True,
+            ],
+        )
+        if (clicked == 0 and service.send_keys()) or clicked == 1:
+            imgui.close_current_popup()
+        end_dialog()
 
     def _entity_chosen(self, row: EntityRow) -> bool:
-        """Chosen by default: what Home Assistant takes and has no entity of yet; the user's
-        own choice otherwise."""
-        default = row.check == "" and not row.existing and row.created is None
+        """Chosen by default: what Home Assistant takes and has no entity of yet, and created
+        ones whose group addresses changed; the user's own choice otherwise."""
+        if not _actionable(row):
+            return False
+        default = row.changed or (row.check == "" and not row.existing)
         return default != (row.candidate.key in self._entities_toggled)
 
     def _render_entities(self) -> None:
@@ -319,11 +427,8 @@ class HomeAssistantPlugin:
                 imgui.push_id(candidate.key)
                 imgui.table_next_row()
                 imgui.table_next_column()
-                possible = row.check == "" and row.created is None
-                imgui.begin_disabled(not possible)
-                changed, _chosen = checkbox(
-                    "##chosen", possible and self._entity_chosen(row)
-                )
+                imgui.begin_disabled(not _actionable(row))
+                changed, _chosen = checkbox("##chosen", self._entity_chosen(row))
                 imgui.end_disabled()
                 if changed:
                     self._entities_toggled ^= {candidate.key}
@@ -342,25 +447,41 @@ class HomeAssistantPlugin:
                 imgui.text_wrapped(_entity_state_text(row))
                 imgui.pop_id()
             imgui.end_table()
-        if service.entities_creating:
+        orphans = service.orphans()
+        if orphans:
+            imgui.spacing()
+            imgui.separator_text(S.ENTITIES_ORPHANS)
+            for key, entity_id in orphans:
+                changed, _ = checkbox(entity_id, key in self._orphans_chosen)
+                if changed:
+                    self._orphans_chosen ^= {key}
+        busy = service.entities_creating or service.requesting
+        if busy:
             imgui.text_disabled(S.AREAS_APPLYING)
-        for error in service.entity_errors.values():
-            imgui.text_colored(_RED, S.AREAS_FAILED.format(error=error))
-        chosen = [
-            row
-            for row in rows
-            if row.check == "" and row.created is None and self._entity_chosen(row)
-        ]
+        for error in (*service.entity_errors.values(), service.request_error):
+            if error:
+                imgui.text_colored(_RED, S.AREAS_FAILED.format(error=error))
+        chosen = [row for row in rows if self._entity_chosen(row)]
+        new = [row for row in chosen if row.created is None]
+        changed_rows = [row for row in chosen if row.created is not None]
+        removed = [key for key, _entity in orphans if key in self._orphans_chosen]
         clicked = dialog_buttons(
-            S.BTN_CREATE,
+            S.BTN_APPLY,
             app_strings.BTN_CLOSE,
             enabled=[
-                bool(chosen) and service.connected and not service.entities_creating,
+                bool(new or changed_rows or removed) and service.connected and not busy,
                 True,
             ],
         )
-        if clicked == 0 and service.create_entities(chosen):
+        if clicked == 0:
+            if new:
+                service.create_entities(new)
+            if changed_rows:
+                service.update_entities(changed_rows)
+            if removed:
+                service.remove_entities(removed)
             self._entities_toggled.clear()
+            self._orphans_chosen.clear()
         elif clicked == 1:
             imgui.close_current_popup()
         end_dialog()
@@ -516,6 +637,23 @@ def _entities_title() -> str:
     return f"{S.ENTITIES_TITLE}###home_assistant_entities"
 
 
+def _time_title() -> str:
+    return f"{S.TIME_TITLE}###home_assistant_time_server"
+
+
+def _keys_title() -> str:
+    return f"{S.KEYS_TITLE}###home_assistant_keys"
+
+
+# What the time server sends, and the data types of the group addresses for each.
+_TIME_KINDS = ("time", "date", "datetime")
+_TIME_TYPES = {
+    "time": ("DPST-10-1", "DPT-10"),
+    "date": ("DPST-11-1", "DPT-11"),
+    "datetime": ("DPST-19-1", "DPT-19"),
+}
+
+
 def _area_names(state: dict[str, Any] | None) -> dict[str, str]:
     """Home Assistant's areas by id: their names."""
     areas = (state or {}).get("areas")
@@ -529,7 +667,19 @@ def _area_names(state: dict[str, Any] | None) -> dict[str, str]:
     return names
 
 
+def _actionable(row: EntityRow) -> bool:
+    """Whether Apply can do something for ``row``: create it (Home Assistant takes it), or give
+    its entity the new group addresses (its devices are downloaded)."""
+    if row.created is not None:
+        return row.changed and row.downloaded
+    return row.check == ""
+
+
 def _entity_state_text(row: EntityRow) -> str:
+    if row.created is not None and row.changed:
+        if not row.downloaded:
+            return S.ENTITIES_CHANGED_WAIT
+        return S.ENTITIES_CHANGED.format(entity=row.created)
     if row.created is not None:
         return S.ENTITIES_CREATED.format(entity=row.created)
     if row.existing:

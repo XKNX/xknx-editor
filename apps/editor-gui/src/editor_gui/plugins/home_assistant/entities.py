@@ -14,7 +14,7 @@ from __future__ import annotations
 
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, cast
 
 from editor_gui.plugins.home_assistant.areas import space_key
 from xknxeditor.proj.core.function_roles import function_roles
@@ -73,6 +73,8 @@ class EntityCandidate:
     space_key: str
     # The group address it switches with (raw): an entity using it exists already.
     main_raw: int | None = None
+    # The ids of the group addresses it uses (their devices are the ones to download).
+    group_address_ids: tuple[int, ...] = ()
 
 
 def function_key(project_guid: str, function_id: int) -> str:
@@ -127,7 +129,32 @@ def _candidate(
         path=f"{path} / {function.name}",
         space_key=space_key(project_guid, space.id),
         main_raw=by_role[required][1],
+        group_address_ids=tuple(
+            dict.fromkeys(
+                link.group_address_id
+                for role, link in zip(named, links, strict=True)
+                if role and any(role == r for r, _key, _slot in roles)
+            )
+        ),
     )
+
+
+def addresses_differ(
+    wanted: Mapping[str, Any], current: Mapping[str, Any] | None
+) -> bool:
+    """Whether the group addresses of an entity's stored configuration (``current``) are others
+    than its function's now (``wanted``): those it writes to and reads its state from, of each
+    key the function sets (keys added in Home Assistant stay as they are)."""
+    if current is None:
+        return False
+    for key, want in wanted.items():
+        have: object = current.get(key)
+        stored: Mapping[str, Any] = (
+            cast("Mapping[str, Any]", have) if isinstance(have, Mapping) else {}
+        )
+        if any(want.get(slot) != stored.get(slot) for slot in ("write", "state")):
+            return True
+    return False
 
 
 def entity_candidates(

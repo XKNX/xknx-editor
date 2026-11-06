@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from editor_gui.plugins.home_assistant.entities import (
+    addresses_differ,
     entity_candidates,
     entity_request,
     existing_entities,
@@ -141,3 +142,20 @@ def test_what_is_sent_and_what_exists_already() -> None:
     }
     assert existing_entities(light, users) == ["light.old"]
     assert existing_entities(light, {}) == []
+
+
+def test_whether_an_entity_has_other_addresses_than_its_function() -> None:
+    wanted = {"ga_switch": {"write": "1/1/1", "state": "1/1/2", "passive": []}}
+    assert not addresses_differ(wanted, None)
+    # Keys added in Home Assistant (colour, a passive address) do not count.
+    assert not addresses_differ(
+        wanted,
+        {
+            "ga_switch": {"write": "1/1/1", "state": "1/1/2", "passive": ["1/1/9"]},
+            "ga_color": {"write": "1/1/5"},
+            "sync_state": True,
+        },
+    )
+    assert addresses_differ(wanted, {"ga_switch": {"write": "1/1/3", "state": "1/1/2"}})
+    assert addresses_differ(wanted, {"ga_switch": {"write": "1/1/1"}})
+    assert addresses_differ(wanted, {})

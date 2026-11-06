@@ -13,12 +13,16 @@ Linking is the user's choice: an unlinked project is only sent when the user ask
 
 from __future__ import annotations
 
+import base64
+import secrets
+import tempfile
 import threading
 import time
 from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from enum import StrEnum
+from pathlib import Path
 from typing import TYPE_CHECKING, Any, cast
 
 from editor_gui.plugins.home_assistant.areas import (
@@ -29,10 +33,12 @@ from editor_gui.plugins.home_assistant.areas import (
 )
 from editor_gui.plugins.home_assistant.entities import (
     EntityCandidate,
+    addresses_differ,
     entity_candidates,
     entity_request,
     existing_entities,
 )
+from editor_gui.plugins.home_assistant.strings import S
 from editor_gui.settings import load_settings, save_settings
 
 if TYPE_CHECKING:
@@ -98,6 +104,17 @@ def _usage(value: object) -> dict[int, GroupAddressUsage]:
     return result
 
 
+def _time_server(value: object) -> dict[str, str | None] | None:
+    """The time server's group addresses as the integration reports them."""
+    if not isinstance(value, dict):
+        return None
+    served = cast("dict[str, object]", value)
+    return {
+        kind: address if isinstance(address := served.get(kind), str) else None
+        for kind in ("time", "date", "datetime")
+    }
+
+
 def _texts(value: object) -> dict[str, str]:
     """{key: text} of a message; None (no error) becomes ""."""
     if not isinstance(value, dict):
@@ -121,6 +138,11 @@ class EntityRow:
     check: str | None
     # The entity created for it.
     created: str | None
+    # The created entity has other group addresses than the function now.
+    changed: bool = False
+    # Every device on its group addresses has its links downloaded (an entity follows its
+    # function only then: before, the devices still use the old addresses).
+    downloaded: bool = True
 
 
 def _default_builder(project: ProjectService) -> dict[str, Any]:
@@ -218,6 +240,18 @@ class HomeAssistantService:
         self.entity_errors: dict[str, str] = {}
         # Told how many entities a create_entities created.
         self.on_entities_created: Callable[[int], None] | None = None
+        # The ``knx`` part of the stored configuration of each created entity, by entity id.
+        self.entity_configs: dict[str, dict[str, Any] | None] = {}
+        # Where the KNX integration's time server sends to ({time, date, datetime}: a printed
+        # address or None), and why the editor's keys cannot be its (None: they can).
+        self.time_server: dict[str, str | None] | None = None
+        self.keyring_refused: str | None = None
+        # Requests answered by a result, by id: what takes the answer.
+        self._requests: dict[int, Callable[[dict[str, Any]], None]] = {}
+        # The outcome of the last of them: why it failed (None: it did not).
+        self.request_error: str | None = None
+        # Told what a request did (a text for the user) once it is answered.
+        self.on_done: Callable[[str], None] | None = None
 
     def set_logger(self, log: Logger) -> None:
         self._log = log
@@ -433,15 +467,31 @@ class HomeAssistantService:
         )
         users = {raw: usage.users for raw, usage in self.usage.items()}
         return [
-            EntityRow(
-                candidate=c,
-                area_id=area_links.get(c.space_key),
-                existing=tuple(existing_entities(c, users)),
-                check=self.entity_checks.get(c.key),
-                created=self.entity_links.get(c.key),
-            )
-            for c in candidates
+            self._entity_row(c, area_links.get(c.space_key), users) for c in candidates
         ]
+
+    def _entity_row(
+        self,
+        candidate: EntityCandidate,
+        area_id: str | None,
+        users: dict[int, tuple[dict[str, Any], ...]],
+    ) -> EntityRow:
+        created = self.entity_links.get(candidate.key)
+        changed = created is not None and addresses_differ(
+            candidate.knx, self.entity_configs.get(created)
+        )
+        return EntityRow(
+            candidate=candidate,
+            area_id=area_id,
+            # Its own entity uses the address too: not another one.
+            existing=tuple(
+                e for e in existing_entities(candidate, users) if e != created
+            ),
+            check=self.entity_checks.get(candidate.key),
+            created=created,
+            changed=changed,
+            downloaded=not changed or self.downloaded(candidate.group_address_ids),
+        )
 
     def check_entities(self, rows: list[EntityRow]) -> None:
         """Ask Home Assistant whether it takes the candidates of ``rows``, unless they were
@@ -491,6 +541,111 @@ class HomeAssistantService:
         self.entity_errors = {}
         return True
 
+    # --- follow-ups: entities, time server, keys ---
+
+    @property
+    def requesting(self) -> bool:
+        """Whether a request of the follow-ups is waiting for its answer."""
+        return bool(self._requests)
+
+    def _ask(
+        self, message: dict[str, Any], done: Callable[[dict[str, Any]], str]
+    ) -> bool:
+        """Send a request; ``done`` turns its answer into the text the user is told."""
+        link = self._link()
+        if link is None or not self.connected:
+            return False
+        self._next_id += 1
+        if not link.send({**message, "id": self._next_id}):
+            return False
+        self.request_error = None
+
+        def take(answer: dict[str, Any]) -> None:
+            if (error := answer.get("error")) is not None:
+                self.request_error = str(error)
+                return
+            errors = _texts(answer.get("errors"))
+            if errors:
+                self.request_error = "; ".join(errors.values())
+            if self.on_done is not None:
+                self.on_done(done(answer))
+
+        self._requests[self._next_id] = take
+        return True
+
+    def downloaded(self, group_address_ids: tuple[int, ...]) -> bool:
+        """Whether every device linked to these group addresses has its links downloaded."""
+        wanted = set(group_address_ids)
+        devices = {
+            link.device_id
+            for link in self._project.device_links()
+            if link.group_address_id in wanted
+        }
+        for device_id in devices:
+            info = self._project.get_device_info(device_id)
+            if info is None or not info.communication_part_loaded:
+                return False
+        return True
+
+    def orphans(self) -> list[tuple[str, str]]:
+        """The entities created for building functions the open project no longer has (or that
+        no longer make one): (key, entity id)."""
+        guid = self.project_guid()
+        if guid is None:
+            return []
+        current = {row.candidate.key for row in self.entity_rows()}
+        prefix = f"{guid}:function:"
+        return [
+            (key, entity_id)
+            for key, entity_id in sorted(self.entity_links.items())
+            if key.startswith(prefix) and key not in current
+        ]
+
+    def update_entities(self, rows: list[EntityRow]) -> bool:
+        """Give the created entities of ``rows`` their functions' group addresses."""
+        entities = [{"key": r.candidate.key, "knx": r.candidate.knx} for r in rows]
+        return bool(entities) and self._ask(
+            {"type": "update_entities", "entities": entities},
+            lambda answer: S.DONE_UPDATED.format(
+                count=len(answer.get("updated") or [])
+            ),
+        )
+
+    def remove_entities(self, keys: list[str]) -> bool:
+        """Remove the entities of these keys (their functions are gone) from Home Assistant."""
+        return bool(keys) and self._ask(
+            {"type": "delete_entities", "keys": keys},
+            lambda answer: S.DONE_REMOVED.format(
+                count=len(answer.get("removed") or [])
+            ),
+        )
+
+    def set_time_server(self, addresses: dict[str, str | None]) -> bool:
+        """Let the KNX integration's time server send to these group addresses."""
+        return self._ask(
+            {"type": "set_time_server", "addresses": addresses},
+            lambda _answer: S.DONE_TIME_SERVER,
+        )
+
+    def send_keys(self) -> bool:
+        """Make the project's keys (its Data Secure group keys) the KNX integration's keyring,
+        under a new random password."""
+        if self.keyring_refused is not None or not self._project.is_open:
+            return False
+        password = secrets.token_urlsafe(24)
+        with tempfile.TemporaryDirectory() as folder:
+            path = Path(folder) / "project.knxkeys"
+            try:
+                self._project.export_keyring(path, password)
+            except Exception as exc:
+                self.request_error = str(exc) or type(exc).__name__
+                return False
+            keyring = base64.b64encode(path.read_bytes()).decode("ascii")
+        return self._ask(
+            {"type": "set_keyring", "keyring": keyring, "password": password},
+            lambda _answer: S.DONE_KEYS,
+        )
+
     def senders(self) -> frozenset[int]:
         """The group addresses (raw) Home Assistant sends to."""
         return frozenset(raw for raw, usage in self.usage.items() if usage.sends)
@@ -535,6 +690,10 @@ class HomeAssistantService:
             self._check_request = None
             self.entity_links = {}
             self._create_request = None
+            self.entity_configs = {}
+            self.time_server = None
+            self.keyring_refused = None
+            self._requests = {}
         for message in link.receive():
             self._handle(message)
         key = self._key()
@@ -578,6 +737,9 @@ class HomeAssistantService:
                 if isinstance(connection, dict)
                 else None
             )
+            self.time_server = _time_server(message.get("time_server"))
+            refused = message.get("keyring_refused")
+            self.keyring_refused = str(refused) if refused is not None else None
             if not self.linked:
                 # Another project replaced ours (e.g. an upload in the KNX panel).
                 self._sent = None
@@ -594,6 +756,17 @@ class HomeAssistantService:
                 if isinstance(links, dict)
                 else {}
             )
+            configs = message.get("configs")
+            self.entity_configs = (
+                {
+                    str(k): cast("dict[str, Any]", v) if isinstance(v, dict) else None
+                    for k, v in cast("dict[object, object]", configs).items()
+                }
+                if isinstance(configs, dict)
+                else {}
+            )
+        elif kind == "result" and message.get("id") in self._requests:
+            self._requests.pop(cast("int", message.get("id")))(message)
         elif kind == "result" and message.get("id") == self._check_request:
             self._check_request = None
             self.entity_checks = _texts(message.get("checks"))
