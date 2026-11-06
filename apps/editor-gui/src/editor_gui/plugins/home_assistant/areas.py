@@ -12,6 +12,7 @@ or area. A space whose key is not linked yet is matched to a floor or area of th
 
 from __future__ import annotations
 
+import re
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from enum import StrEnum
@@ -69,11 +70,16 @@ def space_key(project_guid: str, space_id: int) -> str:
     return f"{project_guid}:{space_id}"
 
 
-def _level(number: str) -> int | None:
-    try:
-        return int(number.strip())
-    except ValueError:
-        return None
+def _level(number: str, name: str) -> int | None:
+    """A floor's level: its number, else a whole number its name starts with ("0 - UG",
+    "-1 Keller"); None for neither."""
+    for text in (number.strip(), name.strip()):
+        if (match := _LEADING_NUMBER.match(text)) is not None:
+            return int(match.group(1))
+    return None
+
+
+_LEADING_NUMBER = re.compile(r"(-?\d+)(?!\d)(?![.,]\d)")
 
 
 def plan_spaces(tree: Sequence[SpaceInfo], project_guid: str) -> list[PlannedSpace]:
@@ -102,7 +108,7 @@ def plan_spaces(tree: Sequence[SpaceInfo], project_guid: str) -> list[PlannedSpa
                     if several and building
                     else space.name,
                     path=" / ".join(here),
-                    level=_level(space.number),
+                    level=_level(space.number, space.name),
                 )
             )
         elif space.space_type in _AREA_TYPES:

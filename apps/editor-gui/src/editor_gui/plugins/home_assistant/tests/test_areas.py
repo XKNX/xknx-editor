@@ -113,3 +113,17 @@ def test_what_is_sent_for_the_chosen_ones() -> None:
         "floors": [{"key": "g:2", "name": "Ground Floor", "level": 0}],
         "areas": [{"key": "g:3", "name": "Kitchen", "floor_key": "g:2"}],
     }
+
+
+def test_a_floors_level_from_its_number_or_its_name() -> None:
+    floors = [
+        _space(2, "Ground Floor", "Floor", number="0"),
+        _space(3, "1 - EG", "Floor"),
+        _space(4, "-1 Keller", "Floor"),
+        _space(5, "Attic", "Floor"),
+        # A number with a fraction, or a name not starting with one: no level.
+        _space(6, "1.5 Mezzanine", "Floor"),
+        _space(7, "Floor 2", "Floor"),
+    ]
+    planned = plan_spaces([_space(1, "House", "Building", *floors)], "g")
+    assert [p.level for p in planned] == [0, 1, -1, None, None, None]
