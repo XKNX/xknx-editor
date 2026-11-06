@@ -316,9 +316,6 @@ msgstr "ETS 5 (schéma 20)"
 msgid "ETS 6 (schema 23)"
 msgstr "ETS 6 (schéma 23)"
 
-msgid "AI MCP"
-msgstr "AI MCP"
-
 msgid "This editor is controllable by an AI assistant (Claude, Codex, …) through the built-in MCP server: it exposes the catalog and project as tools over Streamable HTTP. Start the server below, then register its endpoint in your AI tool."
 msgstr "Tento editor môže ovládať asistent AI (Claude, Codex, …) cez vstavaný server MCP: sprístupňuje katalóg a projekt ako nástroje cez Streamable HTTP. Nižšie spustite server a potom zaregistrujte jeho koncový bod vo svojom nástroji AI."
 
@@ -676,9 +673,6 @@ msgstr "Projekty (*.xknx, *.knxproj, *.xml, *.csv)"
 msgid "Import Group Addresses…"
 msgstr "Importovať skupinové adresy…"
 
-msgid "Feedback"
-msgstr "Spätná väzba"
-
 msgid "A desktop editor for building-automation installation projects, built on the open-source xknx library and based on xknxtoolkit by kewde. Not affiliated with or endorsed by the KNX Association."
 msgstr "Desktopový editor projektov inštalácií automatizácie budov, postavený na open-source knižnici xknx a založený na xknxtoolkit od kewde. Nie je prepojený s KNX Association ani ňou schválený."
 
@@ -843,15 +837,6 @@ msgstr "Licencia: GPL-2.0-only"
 
 msgid "Website:"
 msgstr "Web:"
-
-msgid "Open Config Folder"
-msgstr "Otvoriť priečinok konfigurácie"
-
-msgid "Open Cache Folder"
-msgstr "Otvoriť priečinok vyrovnávacej pamäte"
-
-msgid "Open Log Folder"
-msgstr "Otvoriť priečinok denníkov"
 
 msgid "This project is protected with a password. Enter it to open the project:"
 msgstr "Tento projekt je chránený heslom. Na otvorenie projektu ho zadajte:"
@@ -1611,3 +1596,51 @@ msgstr "Táto databáza produktov je chránená heslom. Zadajte heslo na jej imp
 
 msgid "These files use a fixed, publicly documented password, for example here:"
 msgstr "Tieto súbory používajú pevné, verejne zdokumentované heslo, napríklad tu:"
+
+msgid "Tools"
+msgstr "Nástroje"
+
+msgid "Command Palette"
+msgstr "Paleta príkazov"
+
+msgid "Search settings"
+msgstr "Hľadať v nastaveniach"
+
+msgid "No setting matches the search."
+msgstr "Vyhľadávaniu nezodpovedá žiadne nastavenie."
+
+msgid "General"
+msgstr "Všeobecné"
+
+msgid "Connection"
+msgstr "Pripojenie"
+
+msgid "Backups"
+msgstr "Zálohy"
+
+msgid "AI / MCP"
+msgstr "AI / MCP"
+
+msgid "Folders"
+msgstr "Priečinky"
+
+msgid "Texts of product data (parameters, group objects) are shown in this language where the product has them."
+msgstr "Texty produktových údajov (parametre, skupinové objekty) sa zobrazujú v tomto jazyku, ak ich produkt obsahuje."
+
+msgid "Lowers the frame rate while nothing changes on the screen, to save power."
+msgstr "Znižuje snímkovú frekvenciu, keď sa na obrazovke nič nemení, a šetrí tak energiu."
+
+msgid "Cache Folder"
+msgstr "Priečinok vyrovnávacej pamäte"
+
+msgid "Config Folder"
+msgstr "Priečinok konfigurácie"
+
+msgid "Log Folder"
+msgstr "Priečinok denníkov"
+
+msgid "AI Tools"
+msgstr "Nástroje AI"
+
+msgid "More Themes…"
+msgstr "Ďalšie motívy…"

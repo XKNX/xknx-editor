@@ -19,9 +19,6 @@ msgstr "{project} – {file} - {app}"
 msgid "Help"
 msgstr "Yardım"
 
-msgid "Feedback"
-msgstr "Geri Bildirim"
-
 msgid "About"
 msgstr "Hakkında"
 
@@ -186,9 +183,6 @@ msgstr "Sunucuyu Başlat"
 
 msgid "Stop Server"
 msgstr "Sunucuyu Durdur"
-
-msgid "AI MCP"
-msgstr "YZ MCP"
 
 msgid "This editor is controllable by an AI assistant (Claude, Codex, …) through the built-in MCP server: it exposes the catalog and project as tools over Streamable HTTP. Start the server below, then register its endpoint in your AI tool."
 msgstr "Bu düzenleyici yerleşik MCP sunucusu aracılığıyla bir yapay zekâ asistanı (Claude, Codex, …) tarafından kontrol edilebilir: sunucu, katalog ve projeyi Streamable HTTP üzerinden araçlar olarak sunar. Aşağıdan sunucuyu başlatın, ardından uç noktasını yapay zekâ aracınıza kaydedin."
@@ -1042,15 +1036,6 @@ msgstr "Lisans: GPL-2.0-only"
 msgid "Website:"
 msgstr "Web sitesi:"
 
-msgid "Open Config Folder"
-msgstr "Yapılandırma Klasörünü Aç"
-
-msgid "Open Cache Folder"
-msgstr "Önbellek Klasörünü Aç"
-
-msgid "Open Log Folder"
-msgstr "Günlük Klasörünü Aç"
-
 msgid "Compact Project…"
 msgstr "Projeyi Sıkıştır…"
 
@@ -1539,3 +1524,51 @@ msgstr "Bu ürün veritabanı parola korumalı. İçe aktarmak için parolasın�
 
 msgid "These files use a fixed, publicly documented password, for example here:"
 msgstr "Bu dosyalar sabit, herkese açık şekilde belgelenmiş bir parola kullanır, örneğin burada:"
+
+msgid "Tools"
+msgstr "Araçlar"
+
+msgid "Command Palette"
+msgstr "Komut Paleti"
+
+msgid "Search settings"
+msgstr "Ayarlarda ara"
+
+msgid "No setting matches the search."
+msgstr "Aramayla eşleşen ayar yok."
+
+msgid "General"
+msgstr "Genel"
+
+msgid "Connection"
+msgstr "Bağlantı"
+
+msgid "Backups"
+msgstr "Yedekler"
+
+msgid "AI / MCP"
+msgstr "YZ / MCP"
+
+msgid "Folders"
+msgstr "Klasörler"
+
+msgid "Texts of product data (parameters, group objects) are shown in this language where the product has them."
+msgstr "Ürün verilerinin metinleri (parametreler, grup nesneleri), ürün içerdiğinde bu dilde gösterilir."
+
+msgid "Lowers the frame rate while nothing changes on the screen, to save power."
+msgstr "Ekranda hiçbir şey değişmezken güç tasarrufu için kare hızını düşürür."
+
+msgid "Cache Folder"
+msgstr "Önbellek Klasörü"
+
+msgid "Config Folder"
+msgstr "Yapılandırma Klasörü"
+
+msgid "Log Folder"
+msgstr "Günlük Klasörü"
+
+msgid "AI Tools"
+msgstr "YZ Araçları"
+
+msgid "More Themes…"
+msgstr "Diğer Temalar…"

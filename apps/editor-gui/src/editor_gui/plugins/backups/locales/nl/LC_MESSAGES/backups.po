@@ -202,9 +202,6 @@ msgstr "De nieuwste back-up is van {created}. Het project daaruit herstellen? Ee
 msgid "The damaged file was kept as {name}."
 msgstr "Het beschadigde bestand is bewaard als {name}."
 
-msgid "Backup Settings"
-msgstr "Back-upinstellingen"
-
 msgid "A backup is one file with the complete project, which can be restored on its own. Each project has a folder of its own in the backup folder. A network drive or a folder synchronized with a cloud service keeps the backups off this computer."
 msgstr "Een back-up is één bestand met het complete project, dat op zichzelf kan worden hersteld. Elk project heeft een eigen map in de back-upmap. Een netwerkschijf of een map die met een clouddienst wordt gesynchroniseerd, bewaart de back-ups buiten deze computer."
 

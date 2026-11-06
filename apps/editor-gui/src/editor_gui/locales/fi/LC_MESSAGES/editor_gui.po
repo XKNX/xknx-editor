@@ -19,9 +19,6 @@ msgstr "{project} – {file} - {app}"
 msgid "Help"
 msgstr "Ohje"
 
-msgid "Feedback"
-msgstr "Palaute"
-
 msgid "About"
 msgstr "Tietoja"
 
@@ -186,9 +183,6 @@ msgstr "Käynnistä palvelin"
 
 msgid "Stop Server"
 msgstr "Pysäytä palvelin"
-
-msgid "AI MCP"
-msgstr "Tekoäly-MCP"
 
 msgid "This editor is controllable by an AI assistant (Claude, Codex, …) through the built-in MCP server: it exposes the catalog and project as tools over Streamable HTTP. Start the server below, then register its endpoint in your AI tool."
 msgstr "Tätä editoria voi ohjata tekoälyavustaja (Claude, Codex, …) sisäänrakennetun MCP-palvelimen kautta: se tarjoaa luettelon ja projektin työkaluina Streamable HTTP:n kautta. Käynnistä palvelin alla ja rekisteröi sen päätepiste tekoälytyökaluusi."
@@ -1042,15 +1036,6 @@ msgstr "Lisenssi: GPL-2.0-only"
 msgid "Website:"
 msgstr "Verkkosivusto:"
 
-msgid "Open Config Folder"
-msgstr "Avaa asetuskansio"
-
-msgid "Open Cache Folder"
-msgstr "Avaa välimuistikansio"
-
-msgid "Open Log Folder"
-msgstr "Avaa lokikansio"
-
 msgid "Compact Project…"
 msgstr "Tiivistä projekti…"
 
@@ -1539,3 +1524,51 @@ msgstr "Tämä tuotetietokanta on suojattu salasanalla. Anna sen salasana tuodak
 
 msgid "These files use a fixed, publicly documented password, for example here:"
 msgstr "Nämä tiedostot käyttävät kiinteää, julkisesti dokumentoitua salasanaa, esimerkiksi tässä:"
+
+msgid "Tools"
+msgstr "Työkalut"
+
+msgid "Command Palette"
+msgstr "Komentopaletti"
+
+msgid "Search settings"
+msgstr "Hae asetuksista"
+
+msgid "No setting matches the search."
+msgstr "Mikään asetus ei vastaa hakua."
+
+msgid "General"
+msgstr "Yleistä"
+
+msgid "Connection"
+msgstr "Yhteys"
+
+msgid "Backups"
+msgstr "Varmuuskopiot"
+
+msgid "AI / MCP"
+msgstr "Tekoäly / MCP"
+
+msgid "Folders"
+msgstr "Kansiot"
+
+msgid "Texts of product data (parameters, group objects) are shown in this language where the product has them."
+msgstr "Tuotetietojen tekstit (parametrit, ryhmäobjektit) näytetään tällä kielellä, jos tuotteessa on ne."
+
+msgid "Lowers the frame rate while nothing changes on the screen, to save power."
+msgstr "Laskee kuvanopeutta, kun näytöllä ei muutu mitään, virran säästämiseksi."
+
+msgid "Cache Folder"
+msgstr "Välimuistikansio"
+
+msgid "Config Folder"
+msgstr "Asetuskansio"
+
+msgid "Log Folder"
+msgstr "Lokikansio"
+
+msgid "AI Tools"
+msgstr "Tekoälytyökalut"
+
+msgid "More Themes…"
+msgstr "Lisää teemoja…"

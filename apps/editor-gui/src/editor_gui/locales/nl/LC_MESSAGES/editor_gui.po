@@ -4,9 +4,6 @@ msgstr ""
 "Language: nl\n"
 
 
-msgid "AI MCP"
-msgstr "AI MCP"
-
 msgid "This editor is controllable by an AI assistant (Claude, Codex, …) through the built-in MCP server: it exposes the catalog and project as tools over Streamable HTTP. Start the server below, then register its endpoint in your AI tool."
 msgstr "Deze editor is bestuurbaar door een AI (Claude, Codex, …) via de ingebouwde MCP-server: hij stelt de catalogus en het project beschikbaar als tools via Streamable HTTP. Start de server hieronder en registreer het eindpunt in je AI-tool."
 
@@ -311,9 +308,6 @@ msgstr "XKNX Editor"
 
 msgid "Help"
 msgstr "Help"
-
-msgid "Feedback"
-msgstr "Feedback"
 
 msgid "About"
 msgstr "Over"
@@ -833,15 +827,6 @@ msgstr "Licentie: GPL-2.0-only"
 
 msgid "Website:"
 msgstr "Website:"
-
-msgid "Open Config Folder"
-msgstr "Configuratiemap openen"
-
-msgid "Open Cache Folder"
-msgstr "Cachemap openen"
-
-msgid "Open Log Folder"
-msgstr "Logboekmap openen"
 
 msgid "This project is protected with a password. Enter it to open the project:"
 msgstr "Dit project is met een wachtwoord beveiligd. Voer het in om het project te openen:"
@@ -1604,3 +1589,51 @@ msgstr "Deze productdatabase is met een wachtwoord beveiligd. Voer het wachtwoor
 
 msgid "These files use a fixed, publicly documented password, for example here:"
 msgstr "Deze bestanden gebruiken een vast, openbaar gedocumenteerd wachtwoord, bijvoorbeeld hier:"
+
+msgid "Tools"
+msgstr "Hulpmiddelen"
+
+msgid "Command Palette"
+msgstr "Opdrachtenpalet"
+
+msgid "Search settings"
+msgstr "Instellingen doorzoeken"
+
+msgid "No setting matches the search."
+msgstr "Geen instelling komt overeen met de zoekopdracht."
+
+msgid "General"
+msgstr "Algemeen"
+
+msgid "Connection"
+msgstr "Verbinding"
+
+msgid "Backups"
+msgstr "Back-ups"
+
+msgid "AI / MCP"
+msgstr "AI / MCP"
+
+msgid "Folders"
+msgstr "Mappen"
+
+msgid "Texts of product data (parameters, group objects) are shown in this language where the product has them."
+msgstr "Teksten van productgegevens (parameters, groepsobjecten) worden in deze taal getoond, waar het product ze bevat."
+
+msgid "Lowers the frame rate while nothing changes on the screen, to save power."
+msgstr "Verlaagt de framesnelheid zolang er niets op het scherm verandert, om energie te besparen."
+
+msgid "Cache Folder"
+msgstr "Cachemap"
+
+msgid "Config Folder"
+msgstr "Configuratiemap"
+
+msgid "Log Folder"
+msgstr "Logboekmap"
+
+msgid "AI Tools"
+msgstr "AI-hulpmiddelen"
+
+msgid "More Themes…"
+msgstr "Meer thema's…"

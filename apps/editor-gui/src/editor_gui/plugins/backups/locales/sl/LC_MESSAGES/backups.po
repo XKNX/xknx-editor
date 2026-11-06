@@ -202,9 +202,6 @@ msgstr "Njegova najnovejša varnostna kopija je z dne {created}. Želite projekt
 msgid "The damaged file was kept as {name}."
 msgstr "Poškodovana datoteka je ohranjena kot {name}."
 
-msgid "Backup Settings"
-msgstr "Nastavitve varnostnih kopij"
-
 msgid "A backup is one file with the complete project, which can be restored on its own. Each project has a folder of its own in the backup folder. A network drive or a folder synchronized with a cloud service keeps the backups off this computer."
 msgstr "Varnostna kopija je ena datoteka s celotnim projektom, ki jo je mogoče obnoviti samostojno. Vsak projekt ima v mapi varnostnih kopij svojo mapo. Omrežni pogon ali mapa, sinhronizirana s storitvijo v oblaku, hrani varnostne kopije zunaj tega računalnika."
 

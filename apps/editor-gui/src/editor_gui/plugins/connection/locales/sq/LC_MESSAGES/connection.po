@@ -204,3 +204,6 @@ msgstr "TCP tunneling"
 
 msgid "Routing"
 msgstr "Routing"
+
+msgid "A device whose serial number is known gets its individual address without pressing its programming button."
+msgstr "Një pajisje me numër serial të njohur merr adresën individuale pa shtypur butonin e programimit."

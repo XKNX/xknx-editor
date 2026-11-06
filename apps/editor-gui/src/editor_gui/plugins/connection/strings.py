@@ -20,8 +20,15 @@ class ConnectionStrings:
         return _("Disconnect")
 
     @property
-    def MENU_USE_SERIAL_NUMBER(self) -> str:
+    def SETTING_USE_SERIAL_NUMBER(self) -> str:
         return _("Use Serial Number for Downloads")
+
+    @property
+    def SETTING_USE_SERIAL_NUMBER_HINT(self) -> str:
+        return _(
+            "A device whose serial number is known gets its individual address without "
+            "pressing its programming button."
+        )
 
     @property
     def SECTION_DISCOVERED(self) -> str:

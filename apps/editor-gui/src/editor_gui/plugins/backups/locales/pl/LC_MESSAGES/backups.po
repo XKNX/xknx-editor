@@ -202,9 +202,6 @@ msgstr "Jego najnowsza kopia zapasowa pochodzi z {created}. Przywrócić z niej 
 msgid "The damaged file was kept as {name}."
 msgstr "Uszkodzony plik zachowano jako {name}."
 
-msgid "Backup Settings"
-msgstr "Ustawienia kopii zapasowych"
-
 msgid "A backup is one file with the complete project, which can be restored on its own. Each project has a folder of its own in the backup folder. A network drive or a folder synchronized with a cloud service keeps the backups off this computer."
 msgstr "Kopia zapasowa to jeden plik z całym projektem, który można przywrócić samodzielnie. Każdy projekt ma własny folder w folderze kopii zapasowych. Dysk sieciowy lub folder synchronizowany z usługą w chmurze przechowuje kopie poza tym komputerem."
 

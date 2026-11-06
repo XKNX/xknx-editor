@@ -8,7 +8,6 @@ from __future__ import annotations
 
 import threading
 from collections.abc import Callable
-from dataclasses import replace
 from datetime import datetime
 from pathlib import Path
 
@@ -25,8 +24,8 @@ from editor_gui.plugins.backups.settings import (
 from editor_gui.plugins.backups.store import Backup, BackupError
 from editor_gui.plugins.backups.strings import S
 from editor_gui.plugins.base import Logger, PanelDefinition, PluginAPI
+from editor_gui.settings_window import Setting
 from editor_gui.strings import S as app_strings
-from editor_gui.widgets.checkbox import checkbox_text_indent, wrapped_checkbox
 from editor_gui.widgets.dialog import (
     begin_dialog,
     dialog_buttons,
@@ -38,11 +37,11 @@ from editor_gui.widgets.flow import button_width, same_line_if_fits
 from editor_gui.widgets.tables import begin_data_table, data_table_headers
 
 _ERR_COLOR = imgui.ImVec4(0.9, 0.4, 0.4, 1.0)
+# The page of the Settings window with the backup settings.
+SETTINGS_PAGE = "backups"
 # A button for the chosen backup: label, tooltip, what it does, and why it does not apply to it
 # ("" where it does).
 _Action = tuple[str, str, Callable[[Backup], None], str]
-# Where a number field starts beside its label in the settings (unscaled pixels).
-_FIELD_X = 210.0
 
 
 def when(moment: datetime) -> str:
@@ -110,8 +109,10 @@ class BackupsPlugin:
         self._target: Backup | None = None
         self._password = ""
         self._password_error = ""
-        # The settings being edited in the settings dialog.
-        self._draft = BackupSettings()
+        # Opens the Settings window on a page (set by the app).
+        self.open_settings: Callable[[str], None] | None = None
+        # The backup folder being typed on the settings page, kept once it is left.
+        self._folder_text: str | None = None
         self._folder_dialog: file_dialogs.SelectFolderDialog | None = None
         self._export_dialog: file_dialogs.SaveFileDialog | None = None
         # A project that could not be opened, why, and its newest backup.
@@ -162,8 +163,9 @@ class BackupsPlugin:
         self._request = "create"
 
     def ask_settings(self) -> None:
-        self._draft = self._service.settings
-        self._request = "settings"
+        """The backup settings: the Backups page of the Settings window."""
+        if self.open_settings is not None:
+            self.open_settings(SETTINGS_PAGE)
 
     def show_window(self) -> None:
         """Show the list of the open project's backups (a dialog)."""
@@ -514,7 +516,7 @@ class BackupsPlugin:
             folder = self._folder_dialog.result()
             self._folder_dialog = None
             if folder:
-                self._draft = replace(self._draft, folder=folder)
+                self._change(folder=folder)
         if self._export_dialog is not None and self._export_dialog.ready():
             dest = self._export_dialog.result()
             self._export_dialog = None
@@ -531,7 +533,6 @@ class BackupsPlugin:
             "restore": f"{S.RESTORE_TITLE}###backup_restore",
             "password": f"{S.RESTORE_TITLE}###backup_password",
             "delete": f"{S.DELETE_TITLE}###backup_delete",
-            "settings": f"{S.SETTINGS_TITLE}###backup_settings",
             "damaged": f"{S.DAMAGED_TITLE}###backup_damaged",
             "message": f"{S.WINDOW_TITLE}###backup_message",
             "creating": f"{S.CREATE_TITLE}###backup_creating",
@@ -548,7 +549,6 @@ class BackupsPlugin:
         self._render_restore(titles["restore"])
         self._render_password(titles["password"])
         self._render_delete(titles["delete"])
-        self._render_settings(titles["settings"])
         self._render_damaged(titles["damaged"])
         self._render_message(titles["message"])
         self._render_creating(titles["creating"])
@@ -694,78 +694,96 @@ class BackupsPlugin:
             imgui.close_current_popup()
         end_dialog()
 
-    def _render_settings(self, title: str) -> None:
-        if not begin_dialog(title, width=520.0):
-            return
-        draft = self._draft.to_dict()
-        imgui.text_wrapped(S.BACKUPS_HINT)
-        imgui.spacing()
-        imgui.text(S.BACKUP_FOLDER)
+    # --- the settings page ------------------------------------------------------------
+
+    def settings(self) -> list[Setting]:
+        """The backup settings, for the Backups page of the Settings window (and MCP)."""
+
+        def flag(name: str) -> tuple[Callable[[], bool], Callable[[bool], None]]:
+            return (
+                lambda: bool(getattr(self._service.settings, name)),
+                lambda value: self._change(**{name: bool(value)}),
+            )
+
+        def number(name: str) -> tuple[Callable[[], int], Callable[[int], None]]:
+            return (
+                lambda: int(getattr(self._service.settings, name)),
+                lambda value: self._change(**{name: int(value)}),
+            )
+
+        on_close, interval, expire = flag("on_close"), flag("interval"), flag("expire")
+        minutes, days, newest = (
+            number("interval_minutes"),
+            number("expire_days"),
+            number("keep_newest"),
+        )
+        return [
+            Setting(
+                "backup_folder",
+                lambda: S.BACKUP_FOLDER,
+                "custom",
+                get=lambda: self._service.settings.folder,
+                set=lambda value: self._change(folder=str(value)),
+                hint=lambda: S.BACKUPS_HINT,
+                render=self._render_folder,
+                wide=True,
+            ),
+            Setting("backup_on_close", lambda: S.ON_CLOSE, "bool", *on_close),
+            Setting("backup_interval", lambda: S.INTERVAL, "bool", *interval),
+            Setting(
+                "backup_interval_minutes",
+                lambda: S.INTERVAL_MINUTES,
+                "int",
+                *minutes,
+                bounds=INTERVAL_MINUTES,
+                read_only=lambda: not self._service.settings.interval,
+            ),
+            Setting("backup_expire", lambda: S.EXPIRE, "bool", *expire),
+            Setting(
+                "backup_expire_days",
+                lambda: S.EXPIRE_DAYS,
+                "int",
+                *days,
+                bounds=EXPIRE_DAYS,
+                read_only=lambda: not self._service.settings.expire,
+            ),
+            Setting(
+                "backup_keep_newest",
+                lambda: S.KEEP_NEWEST,
+                "int",
+                *newest,
+                bounds=KEEP_NEWEST,
+                hint=lambda: S.AUTOMATIC_HINT,
+                read_only=lambda: not self._service.settings.expire,
+            ),
+        ]
+
+    def _change(self, **changes: object) -> None:
+        settings = self._service.settings.to_dict()
+        settings.update(changes)
+        self._service.set_settings(BackupSettings.from_dict(settings))
+
+    def _render_folder(self) -> None:
+        """The backup folder: typed (kept once the field is left), chosen, or the default."""
+        settings = self._service.settings
+        shown = self._folder_text
+        if shown is None:
+            shown = settings.folder or str(settings.root)
         imgui.set_next_item_width(-1)
-        shown = draft["folder"] or str(self._draft.root)
         changed, text = imgui.input_text("##backup_folder", shown)
         if changed:
-            draft["folder"] = text
+            self._folder_text = text
+        if imgui.is_item_deactivated():
+            if self._folder_text is not None:
+                typed = self._folder_text.strip()
+                self._change(folder="" if typed == str(settings.root) else typed)
+            self._folder_text = None
         if imgui.button(S.BTN_CHOOSE_FOLDER) and self._folder_dialog is None:
             self._folder_dialog = file_dialogs.select_folder(
-                S.CHOOSE_FOLDER_TITLE, str(self._draft.root)
+                S.CHOOSE_FOLDER_TITLE, str(settings.root)
             )
         imgui.same_line()
-        imgui.begin_disabled(not draft["folder"])
+        imgui.begin_disabled(not settings.folder)
         if imgui.button(S.BTN_DEFAULT_FOLDER):
-            draft["folder"] = ""
+            self._change(folder="")
         imgui.end_disabled()
-        imgui.spacing()
-        draft["on_close"] = wrapped_checkbox(S.ON_CLOSE, draft["on_close"])[1]
-        draft["interval"] = wrapped_checkbox(S.INTERVAL, draft["interval"])[1]
-        imgui.begin_disabled(not draft["interval"])
-        draft["interval_minutes"] = self._number(
-            S.INTERVAL_MINUTES,
-            "##interval_minutes",
-            draft["interval_minutes"],
-            INTERVAL_MINUTES,
-        )
-        imgui.end_disabled()
-        draft["expire"] = wrapped_checkbox(S.EXPIRE, draft["expire"])[1]
-        imgui.begin_disabled(not draft["expire"])
-        draft["expire_days"] = self._number(
-            S.EXPIRE_DAYS, "##expire_days", draft["expire_days"], EXPIRE_DAYS
-        )
-        draft["keep_newest"] = self._number(
-            S.KEEP_NEWEST, "##keep_newest", draft["keep_newest"], KEEP_NEWEST
-        )
-        imgui.end_disabled()
-        imgui.spacing()
-        imgui.push_text_wrap_pos(0.0)
-        imgui.text_disabled(S.AUTOMATIC_HINT)
-        imgui.pop_text_wrap_pos()
-        self._draft = BackupSettings.from_dict(draft)
-        clicked = dialog_buttons(S.BTN_OK, S.BTN_CANCEL)
-        if clicked == 0:
-            imgui.close_current_popup()
-            self._service.set_settings(self._draft)
-        elif clicked == 1:
-            imgui.close_current_popup()
-        end_dialog()
-
-    @staticmethod
-    def _number(label: str, key: str, value: int, bounds: tuple[int, int]) -> int:
-        """A number field beside its label (below it where the dialog is too narrow), kept
-        within ``bounds``; the label starts where the text of the checkbox above does."""
-        indent = checkbox_text_indent()
-        imgui.indent(indent)
-        imgui.align_text_to_frame_padding()
-        imgui.text(label)
-        style = imgui.get_style()
-        # The field with its - and + buttons.
-        field = px(110.0) + 2 * (imgui.get_frame_height() + style.item_inner_spacing.x)
-        start = imgui.get_cursor_pos_x()
-        beside = max(
-            px(_FIELD_X), start + imgui.get_item_rect_size().x + style.item_spacing.x
-        )
-        if beside - start + field <= imgui.get_content_region_avail().x:
-            imgui.same_line(beside)
-        imgui.set_next_item_width(px(110.0))
-        _, value = imgui.input_int(key, value)
-        imgui.unindent(indent)
-        return min(max(value, bounds[0]), bounds[1])

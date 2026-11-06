@@ -5,8 +5,8 @@
   not installed or downloaded: the editor asks to update the integration instead. Other
   differences check :func:`home_assistant` too.
 - ``--mcp=[host:]port``: the MCP server runs on this address from the start, with the token in
-  ``XKNX_MCP_AUTH_TOKEN``. The program that started the editor set it up, so the MCP menu and the
-  AI tab show it without the fields to change it.
+  ``XKNX_MCP_AUTH_TOKEN``. The program that started the editor set it up, so the MCP Server menu
+  and the AI / MCP settings show it without the fields to change it.
 - ``--mcp-url=URL``: the address MCP clients use, when they reach the server through a proxy (the
   integration's address in Home Assistant).
 """
@@ -15,7 +15,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-# Stands for the user's Home Assistant access token in the example commands of the AI tab.
+# Stands for the user's Home Assistant access token in the example commands of the AI / MCP
+# settings.
 HOME_ASSISTANT_TOKEN_PLACEHOLDER = "HOME_ASSISTANT_TOKEN"
 _MCP_DEFAULT_HOST = "127.0.0.1"
 

@@ -202,9 +202,6 @@ msgstr "Το νεότερο αντίγραφο ασφαλείας του είν�
 msgid "The damaged file was kept as {name}."
 msgstr "Το κατεστραμμένο αρχείο διατηρήθηκε ως {name}."
 
-msgid "Backup Settings"
-msgstr "Ρυθμίσεις αντιγράφων ασφαλείας"
-
 msgid "A backup is one file with the complete project, which can be restored on its own. Each project has a folder of its own in the backup folder. A network drive or a folder synchronized with a cloud service keeps the backups off this computer."
 msgstr "Ένα αντίγραφο ασφαλείας είναι ένα αρχείο με ολόκληρο το έργο, που μπορεί να επαναφερθεί αυτοτελώς. Κάθε έργο έχει δικό του φάκελο μέσα στον φάκελο αντιγράφων ασφαλείας. Μια μονάδα δικτύου ή ένας φάκελος συγχρονισμένος με υπηρεσία cloud κρατά τα αντίγραφα εκτός αυτού του υπολογιστή."
 

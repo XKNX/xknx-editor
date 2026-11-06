@@ -202,9 +202,6 @@ msgstr "Sen uusin varmuuskopio on ajalta {created}. Palautetaanko projekti siit�
 msgid "The damaged file was kept as {name}."
 msgstr "Vioittunut tiedosto s채ilytettiin nimell채 {name}."
 
-msgid "Backup Settings"
-msgstr "Varmuuskopioinnin asetukset"
-
 msgid "A backup is one file with the complete project, which can be restored on its own. Each project has a folder of its own in the backup folder. A network drive or a folder synchronized with a cloud service keeps the backups off this computer."
 msgstr "Varmuuskopio on yksi tiedosto, jossa on koko projekti ja joka voidaan palauttaa sellaisenaan. Jokaisella projektilla on oma kansionsa varmuuskopiokansiossa. Verkkoasema tai pilvipalveluun synkronoitu kansio s채ilytt채채 varmuuskopiot t채m채n tietokoneen ulkopuolella."
 

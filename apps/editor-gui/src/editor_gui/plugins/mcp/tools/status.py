@@ -77,7 +77,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     @tool("read")
     def feedback_links() -> dict[str, Any]:
-        """Links to report a problem with XKNX Editor or to suggest a feature, as its Feedback menu
+        """Links to report a problem with XKNX Editor or to suggest a feature, as its Help menu
         opens them.
 
         Returns {bug_report_url, feature_request_url, issues_url, version, installation,

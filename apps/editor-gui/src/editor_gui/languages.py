@@ -85,7 +85,7 @@ PRODUCT_LANGUAGES: tuple[ProductLanguage, ...] = tuple(
     if lang.culture.split("-")[0] == lang.code
 )
 
-# The preferred product language chosen in the Language menu; None follows the UI language.
+# The preferred product language chosen in the settings; None follows the UI language.
 _product_language: str | None = None
 
 

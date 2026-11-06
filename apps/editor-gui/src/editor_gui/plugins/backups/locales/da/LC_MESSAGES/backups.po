@@ -202,9 +202,6 @@ msgstr "Dets nyeste sikkerhedskopi er fra {created}. Gendan projektet fra den? E
 msgid "The damaged file was kept as {name}."
 msgstr "Den beskadigede fil blev gemt som {name}."
 
-msgid "Backup Settings"
-msgstr "Indstillinger for sikkerhedskopier"
-
 msgid "A backup is one file with the complete project, which can be restored on its own. Each project has a folder of its own in the backup folder. A network drive or a folder synchronized with a cloud service keeps the backups off this computer."
 msgstr "En sikkerhedskopi er én fil med hele projektet, som kan gendannes alene. Hvert projekt har sin egen mappe i mappen til sikkerhedskopier. Et netværksdrev eller en mappe, der synkroniseres med en cloudtjeneste, opbevarer sikkerhedskopierne uden for denne computer."
 

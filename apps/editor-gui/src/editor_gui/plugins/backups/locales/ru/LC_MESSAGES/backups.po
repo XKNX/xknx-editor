@@ -202,9 +202,6 @@ msgstr "Его самая новая резервная копия от {created
 msgid "The damaged file was kept as {name}."
 msgstr "Повреждённый файл сохранён как {name}."
 
-msgid "Backup Settings"
-msgstr "Настройки резервного копирования"
-
 msgid "A backup is one file with the complete project, which can be restored on its own. Each project has a folder of its own in the backup folder. A network drive or a folder synchronized with a cloud service keeps the backups off this computer."
 msgstr "Резервная копия — это один файл со всем проектом, который можно восстановить сам по себе. У каждого проекта есть своя папка в папке резервных копий. Сетевой диск или папка, синхронизируемая с облачным сервисом, хранит резервные копии вне этого компьютера."
 

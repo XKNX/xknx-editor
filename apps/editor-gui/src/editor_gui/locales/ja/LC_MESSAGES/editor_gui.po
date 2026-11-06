@@ -19,9 +19,6 @@ msgstr "{project} – {file} - {app}"
 msgid "Help"
 msgstr "ヘルプ"
 
-msgid "Feedback"
-msgstr "フィードバック"
-
 msgid "About"
 msgstr "詳細"
 
@@ -186,9 +183,6 @@ msgstr "サーバーを起動"
 
 msgid "Stop Server"
 msgstr "サーバーを停止"
-
-msgid "AI MCP"
-msgstr "AI MCP"
 
 msgid "This editor is controllable by an AI assistant (Claude, Codex, …) through the built-in MCP server: it exposes the catalog and project as tools over Streamable HTTP. Start the server below, then register its endpoint in your AI tool."
 msgstr "このエディターは、内蔵のMCPサーバーを通じてAIアシスタント（Claude、Codex、…）から操作できます。サーバーはカタログとプロジェクトをStreamable HTTP経由のツールとして公開します。下でサーバーを起動し、そのエンドポイントをAIツールに登録してください。"
@@ -1042,15 +1036,6 @@ msgstr "ライセンス：GPL-2.0-only"
 msgid "Website:"
 msgstr "ウェブサイト："
 
-msgid "Open Config Folder"
-msgstr "設定フォルダーを開く"
-
-msgid "Open Cache Folder"
-msgstr "キャッシュ・フォルダーを開く"
-
-msgid "Open Log Folder"
-msgstr "ログ・フォルダーを開く"
-
 msgid "Compact Project…"
 msgstr "プロジェクトの最適化…"
 
@@ -1539,3 +1524,51 @@ msgstr "この製品データベースはパスワードで保護されていま
 
 msgid "These files use a fixed, publicly documented password, for example here:"
 msgstr "これらのファイルは固定の、公開されているパスワードを使用します。例えばこちら:"
+
+msgid "Tools"
+msgstr "ツール"
+
+msgid "Command Palette"
+msgstr "コマンド・パレット"
+
+msgid "Search settings"
+msgstr "設定を検索"
+
+msgid "No setting matches the search."
+msgstr "検索に一致する設定はありません。"
+
+msgid "General"
+msgstr "全般"
+
+msgid "Connection"
+msgstr "接続"
+
+msgid "Backups"
+msgstr "バックアップ"
+
+msgid "AI / MCP"
+msgstr "AI / MCP"
+
+msgid "Folders"
+msgstr "フォルダー"
+
+msgid "Texts of product data (parameters, group objects) are shown in this language where the product has them."
+msgstr "製品データのテキスト（パラメーター、グループ・オブジェクト）は、製品に含まれている場合、この言語で表示されます。"
+
+msgid "Lowers the frame rate while nothing changes on the screen, to save power."
+msgstr "画面に変化がない間はフレームレートを下げて、電力を節約します。"
+
+msgid "Cache Folder"
+msgstr "キャッシュ・フォルダー"
+
+msgid "Config Folder"
+msgstr "設定フォルダー"
+
+msgid "Log Folder"
+msgstr "ログ・フォルダー"
+
+msgid "AI Tools"
+msgstr "AIツール"
+
+msgid "More Themes…"
+msgstr "その他のテーマ…"

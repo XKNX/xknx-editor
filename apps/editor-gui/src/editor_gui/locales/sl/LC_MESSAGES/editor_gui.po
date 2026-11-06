@@ -316,9 +316,6 @@ msgstr "ETS 5 (shema 20)"
 msgid "ETS 6 (schema 23)"
 msgstr "ETS 6 (shema 23)"
 
-msgid "AI MCP"
-msgstr "UI MCP"
-
 msgid "This editor is controllable by an AI assistant (Claude, Codex, …) through the built-in MCP server: it exposes the catalog and project as tools over Streamable HTTP. Start the server below, then register its endpoint in your AI tool."
 msgstr "Ta urejevalnik lahko upravlja pomočnik UI (Claude, Codex, …) prek vgrajenega strežnika MCP: ta katalog in projekt ponuja kot orodja prek Streamable HTTP. Spodaj zaženite strežnik, nato njegovo končno točko registrirajte v svojem orodju UI."
 
@@ -676,9 +673,6 @@ msgstr "Projekti (*.xknx, *.knxproj, *.xml, *.csv)"
 msgid "Import Group Addresses…"
 msgstr "Uvozi skupinske naslove…"
 
-msgid "Feedback"
-msgstr "Povratne informacije"
-
 msgid "A desktop editor for building-automation installation projects, built on the open-source xknx library and based on xknxtoolkit by kewde. Not affiliated with or endorsed by the KNX Association."
 msgstr "Namizni urejevalnik za projekte inštalacij avtomatizacije stavb, zgrajen na odprtokodni knjižnici xknx in na osnovi orodja xknxtoolkit avtorja kewde. Ni povezan s KNX Association in ga ta ne podpira."
 
@@ -843,15 +837,6 @@ msgstr "Licenca: GPL-2.0-only"
 
 msgid "Website:"
 msgstr "Spletno mesto:"
-
-msgid "Open Config Folder"
-msgstr "Odpri mapo konfiguracije"
-
-msgid "Open Cache Folder"
-msgstr "Odpri mapo predpomnilnika"
-
-msgid "Open Log Folder"
-msgstr "Odpri mapo dnevnikov"
 
 msgid "This project is protected with a password. Enter it to open the project:"
 msgstr "Ta projekt je zaščiten z geslom. Vnesite ga, da odprete projekt:"
@@ -1611,3 +1596,51 @@ msgstr "Ta zbirka podatkov o izdelkih je zaščitena z geslom. Vnesite geslo za 
 
 msgid "These files use a fixed, publicly documented password, for example here:"
 msgstr "Te datoteke uporabljajo fiksno, javno dokumentirano geslo, na primer tukaj:"
+
+msgid "Tools"
+msgstr "Orodja"
+
+msgid "Command Palette"
+msgstr "Paleta ukazov"
+
+msgid "Search settings"
+msgstr "Iskanje po nastavitvah"
+
+msgid "No setting matches the search."
+msgstr "Iskanju ne ustreza nobena nastavitev."
+
+msgid "General"
+msgstr "Splošno"
+
+msgid "Connection"
+msgstr "Povezava"
+
+msgid "Backups"
+msgstr "Varnostne kopije"
+
+msgid "AI / MCP"
+msgstr "UI / MCP"
+
+msgid "Folders"
+msgstr "Mape"
+
+msgid "Texts of product data (parameters, group objects) are shown in this language where the product has them."
+msgstr "Besedila podatkov izdelka (parametri, skupinski objekti) so prikazana v tem jeziku, kjer jih izdelek vsebuje."
+
+msgid "Lowers the frame rate while nothing changes on the screen, to save power."
+msgstr "Zniža hitrost sličic, dokler se na zaslonu nič ne spremeni, da prihrani energijo."
+
+msgid "Cache Folder"
+msgstr "Mapa predpomnilnika"
+
+msgid "Config Folder"
+msgstr "Mapa konfiguracije"
+
+msgid "Log Folder"
+msgstr "Mapa dnevnikov"
+
+msgid "AI Tools"
+msgstr "Orodja UI"
+
+msgid "More Themes…"
+msgstr "Več tem…"

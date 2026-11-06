@@ -19,9 +19,6 @@ msgstr "{project} – {file} - {app}"
 msgid "Help"
 msgstr "Ajuda"
 
-msgid "Feedback"
-msgstr "Feedback"
-
 msgid "About"
 msgstr "Sobre"
 
@@ -186,9 +183,6 @@ msgstr "Iniciar Servidor"
 
 msgid "Stop Server"
 msgstr "Parar Servidor"
-
-msgid "AI MCP"
-msgstr "IA MCP"
 
 msgid "This editor is controllable by an AI assistant (Claude, Codex, …) through the built-in MCP server: it exposes the catalog and project as tools over Streamable HTTP. Start the server below, then register its endpoint in your AI tool."
 msgstr "Este editor pode ser controlado por um assistente de IA (Claude, Codex, …) através do servidor MCP integrado: este disponibiliza o catálogo e o projeto como ferramentas através de Streamable HTTP. Inicie o servidor abaixo e registe o respetivo endpoint na sua ferramenta de IA."
@@ -1042,15 +1036,6 @@ msgstr "Licença: GPL-2.0-only"
 msgid "Website:"
 msgstr "Website:"
 
-msgid "Open Config Folder"
-msgstr "Abrir Pasta de Configuração"
-
-msgid "Open Cache Folder"
-msgstr "Abrir Pasta de Cache"
-
-msgid "Open Log Folder"
-msgstr "Abrir Pasta de Registos"
-
 msgid "Compact Project…"
 msgstr "Compactar Projeto…"
 
@@ -1539,3 +1524,51 @@ msgstr "Esta base de dados de produtos está protegida por palavra-passe. Introd
 
 msgid "These files use a fixed, publicly documented password, for example here:"
 msgstr "Estes ficheiros usam uma palavra-passe fixa e documentada publicamente, por exemplo aqui:"
+
+msgid "Tools"
+msgstr "Ferramentas"
+
+msgid "Command Palette"
+msgstr "Paleta de Comandos"
+
+msgid "Search settings"
+msgstr "Pesquisar nas configurações"
+
+msgid "No setting matches the search."
+msgstr "Nenhuma configuração corresponde à pesquisa."
+
+msgid "General"
+msgstr "Geral"
+
+msgid "Connection"
+msgstr "Ligação"
+
+msgid "Backups"
+msgstr "Cópias de segurança"
+
+msgid "AI / MCP"
+msgstr "IA / MCP"
+
+msgid "Folders"
+msgstr "Pastas"
+
+msgid "Texts of product data (parameters, group objects) are shown in this language where the product has them."
+msgstr "Os textos dos dados do produto (parâmetros, objetos de grupo) são mostrados neste idioma, quando o produto os inclui."
+
+msgid "Lowers the frame rate while nothing changes on the screen, to save power."
+msgstr "Reduz a taxa de fotogramas enquanto nada muda no ecrã, para poupar energia."
+
+msgid "Cache Folder"
+msgstr "Pasta de Cache"
+
+msgid "Config Folder"
+msgstr "Pasta de Configuração"
+
+msgid "Log Folder"
+msgstr "Pasta de Registos"
+
+msgid "AI Tools"
+msgstr "Ferramentas de IA"
+
+msgid "More Themes…"
+msgstr "Mais Temas…"

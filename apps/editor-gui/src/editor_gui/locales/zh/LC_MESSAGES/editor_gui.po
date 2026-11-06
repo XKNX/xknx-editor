@@ -19,9 +19,6 @@ msgstr "{project} – {file} - {app}"
 msgid "Help"
 msgstr "帮助"
 
-msgid "Feedback"
-msgstr "反馈"
-
 msgid "About"
 msgstr "关于"
 
@@ -186,9 +183,6 @@ msgstr "启动服务器"
 
 msgid "Stop Server"
 msgstr "停止服务器"
-
-msgid "AI MCP"
-msgstr "AI MCP"
 
 msgid "This editor is controllable by an AI assistant (Claude, Codex, …) through the built-in MCP server: it exposes the catalog and project as tools over Streamable HTTP. Start the server below, then register its endpoint in your AI tool."
 msgstr "此编辑器可通过内置 MCP 服务器由 AI 助手（Claude、Codex…）控制：它通过 Streamable HTTP 将产品目录和项目作为工具提供。请在下方启动服务器，然后在您的 AI 工具中注册其端点。"
@@ -1042,15 +1036,6 @@ msgstr "许可证：GPL-2.0-only"
 msgid "Website:"
 msgstr "网站："
 
-msgid "Open Config Folder"
-msgstr "打开配置文件夹"
-
-msgid "Open Cache Folder"
-msgstr "打开缓存文件夹"
-
-msgid "Open Log Folder"
-msgstr "打开日志文件夹"
-
 msgid "Compact Project…"
 msgstr "压缩项目…"
 
@@ -1539,3 +1524,51 @@ msgstr "此产品数据库受密码保护。请输入其密码以导入:"
 
 msgid "These files use a fixed, publicly documented password, for example here:"
 msgstr "这些文件使用固定的、公开记录的密码，例如这里:"
+
+msgid "Tools"
+msgstr "工具"
+
+msgid "Command Palette"
+msgstr "命令面板"
+
+msgid "Search settings"
+msgstr "搜索配置"
+
+msgid "No setting matches the search."
+msgstr "没有与搜索匹配的配置。"
+
+msgid "General"
+msgstr "常规"
+
+msgid "Connection"
+msgstr "连接"
+
+msgid "Backups"
+msgstr "备份"
+
+msgid "AI / MCP"
+msgstr "AI / MCP"
+
+msgid "Folders"
+msgstr "文件夹"
+
+msgid "Texts of product data (parameters, group objects) are shown in this language where the product has them."
+msgstr "产品数据的文本（参数、组对象）在产品包含时以此语言显示。"
+
+msgid "Lowers the frame rate while nothing changes on the screen, to save power."
+msgstr "屏幕没有变化时降低帧率，以节省电量。"
+
+msgid "Cache Folder"
+msgstr "缓存文件夹"
+
+msgid "Config Folder"
+msgstr "配置文件夹"
+
+msgid "Log Folder"
+msgstr "日志文件夹"
+
+msgid "AI Tools"
+msgstr "AI 工具"
+
+msgid "More Themes…"
+msgstr "更多主题…"

@@ -202,9 +202,6 @@ msgstr "Il suo backup più recente è del {created}. Ripristinare il progetto da
 msgid "The damaged file was kept as {name}."
 msgstr "Il file danneggiato è stato conservato come {name}."
 
-msgid "Backup Settings"
-msgstr "Impostazioni dei backup"
-
 msgid "A backup is one file with the complete project, which can be restored on its own. Each project has a folder of its own in the backup folder. A network drive or a folder synchronized with a cloud service keeps the backups off this computer."
 msgstr "Un backup è un unico file con l'intero progetto, ripristinabile da solo. Ogni progetto ha una propria cartella nella cartella dei backup. Un'unità di rete o una cartella sincronizzata con un servizio cloud conserva i backup al di fuori di questo computer."
 

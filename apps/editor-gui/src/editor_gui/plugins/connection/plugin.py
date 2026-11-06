@@ -37,6 +37,7 @@ from editor_gui.programming import (
     ScannedDevice,
 )
 from editor_gui.settings import load_settings, save_settings
+from editor_gui.settings_window import Setting
 from editor_gui.widgets.checkbox import radio_button
 from editor_gui.widgets.dialog import (
     begin_dialog,
@@ -1632,83 +1633,91 @@ class ConnectionPlugin:
             imgui.same_line()
             imgui.text_colored(imgui.ImVec4(0.95, 0.75, 0.35, 1.0), S.PROGMODE_FLAG_ON)
 
+    @property
+    def menu_label(self) -> str:
+        return S.MENU_GATEWAY
+
     def render_menu(self) -> None:
-        if imgui.begin_menu(S.MENU_GATEWAY):
-            if self.busmonitor_active:
-                imgui.text(S.STATUS_BUSMONITOR.format(ip=self._controller_ip))
-                imgui.text_disabled(S.STATUS_BUSMONITOR_HINT)
+        """The Gateway menu's content (the app draws the menu itself, see ``menu_label``)."""
+        if self.busmonitor_active:
+            imgui.text(S.STATUS_BUSMONITOR.format(ip=self._controller_ip))
+            imgui.text_disabled(S.STATUS_BUSMONITOR_HINT)
+            imgui.separator()
+            running = self._api.connection.busmonitor_state is BusmonitorState.RUNNING
+            if imgui.menu_item(S.MENU_STOP_BUSMONITOR, "", False, running)[0]:
+                self.stop_busmonitor()
+        elif self._state == ConnectionState.CONNECTED:
+            imgui.text(S.STATUS_CONNECTED_TO.format(ip=self._connection_target))
+            if self._gateway_info:
                 imgui.separator()
-                running = (
-                    self._api.connection.busmonitor_state is BusmonitorState.RUNNING
-                )
-                if imgui.menu_item(S.MENU_STOP_BUSMONITOR, "", False, running)[0]:
-                    self.stop_busmonitor()
-            elif self._state == ConnectionState.CONNECTED:
-                imgui.text(S.STATUS_CONNECTED_TO.format(ip=self._connection_target))
-                if self._gateway_info:
-                    imgui.separator()
-                    imgui.text_disabled(S.GATEWAY_SECTION)
-                    imgui.text(
-                        "  " + S.GATEWAY_NAME.format(name=self._gateway_info.name)
-                    )
-                    if self._gateway_info.individual_address:
-                        imgui.text(
-                            "  "
-                            + S.GATEWAY_ADDRESS.format(
-                                address=self._gateway_info.individual_address
-                            )
-                        )
+                imgui.text_disabled(S.GATEWAY_SECTION)
+                imgui.text("  " + S.GATEWAY_NAME.format(name=self._gateway_info.name))
+                if self._gateway_info.individual_address:
                     imgui.text(
                         "  "
-                        + S.GATEWAY_CORE_VERSION.format(
-                            version=self._gateway_info.core_version
+                        + S.GATEWAY_ADDRESS.format(
+                            address=self._gateway_info.individual_address
                         )
                     )
-                    services: list[str] = []
-                    if self._gateway_info.supports_tunnelling:
-                        services.append("Tunneling")
-                    if self._gateway_info.supports_tunnelling_tcp:
-                        services.append("TCP Tunneling")
-                    if self._gateway_info.supports_routing:
-                        services.append("Routing")
-                    if self._gateway_info.supports_secure:
-                        services.append("Secure")
-                    if services:
-                        imgui.text(
-                            "  "
-                            + S.GATEWAY_SERVICES.format(services=", ".join(services))
-                        )
-                self._render_connected_transport()
-                imgui.separator()
-                imgui.text_disabled(S.SECTION_DIAGNOSTICS)
-                if imgui.menu_item(S.MENU_READ_PROGMODE, "", self._progmode_open)[0]:
-                    self._open_progmode_window()
-                imgui.separator()
-                if imgui.menu_item(S.MENU_DISCONNECT, "", False)[0]:
-                    self.disconnect()
-            elif self._state == ConnectionState.CONNECTING:
-                imgui.text_disabled(S.STATUS_CONNECTING)
-                imgui.separator()
-                if imgui.menu_item(S.SELECT_CONNECTION_CANCEL, "", False)[0]:
-                    self.disconnect()
-            elif self._state == ConnectionState.ERROR:
-                imgui.text_colored(
-                    imgui.ImVec4(0.8, 0.2, 0.2, 1.0), S.STATUS_CONNECTION_FAILED
+                imgui.text(
+                    "  "
+                    + S.GATEWAY_CORE_VERSION.format(
+                        version=self._gateway_info.core_version
+                    )
                 )
-                if self._error_message:
-                    imgui.text_wrapped(self._error_message)
-                imgui.separator()
-                self._render_gateway_picker(retry_label=S.MENU_RETRY)
-            else:
-                self._render_gateway_picker(retry_label=S.MENU_CONNECT)
+                services: list[str] = []
+                if self._gateway_info.supports_tunnelling:
+                    services.append("Tunneling")
+                if self._gateway_info.supports_tunnelling_tcp:
+                    services.append("TCP Tunneling")
+                if self._gateway_info.supports_routing:
+                    services.append("Routing")
+                if self._gateway_info.supports_secure:
+                    services.append("Secure")
+                if services:
+                    imgui.text(
+                        "  " + S.GATEWAY_SERVICES.format(services=", ".join(services))
+                    )
+            self._render_connected_transport()
             imgui.separator()
-            changed, use_serial = imgui.menu_item(
-                S.MENU_USE_SERIAL_NUMBER, "", self._api.connection.use_serial_number
+            imgui.text_disabled(S.SECTION_DIAGNOSTICS)
+            if imgui.menu_item(S.MENU_READ_PROGMODE, "", self._progmode_open)[0]:
+                self._open_progmode_window()
+            imgui.separator()
+            if imgui.menu_item(S.MENU_DISCONNECT, "", False)[0]:
+                self.disconnect()
+        elif self._state == ConnectionState.CONNECTING:
+            imgui.text_disabled(S.STATUS_CONNECTING)
+            imgui.separator()
+            if imgui.menu_item(S.SELECT_CONNECTION_CANCEL, "", False)[0]:
+                self.disconnect()
+        elif self._state == ConnectionState.ERROR:
+            imgui.text_colored(
+                imgui.ImVec4(0.8, 0.2, 0.2, 1.0), S.STATUS_CONNECTION_FAILED
             )
-            if changed:
-                self._api.connection.use_serial_number = use_serial
-                self._save_current_settings()
-            imgui.end_menu()
+            if self._error_message:
+                imgui.text_wrapped(self._error_message)
+            imgui.separator()
+            self._render_gateway_picker(retry_label=S.MENU_RETRY)
+        else:
+            self._render_gateway_picker(retry_label=S.MENU_CONNECT)
+
+    def settings(self) -> list[Setting]:
+        """The connection settings, for the Connection page of the Settings window (and MCP)."""
+        return [
+            Setting(
+                "use_serial_number",
+                lambda: S.SETTING_USE_SERIAL_NUMBER,
+                "bool",
+                get=lambda: self._api.connection.use_serial_number,
+                set=self._set_use_serial_number,
+                hint=lambda: S.SETTING_USE_SERIAL_NUMBER_HINT,
+            )
+        ]
+
+    def _set_use_serial_number(self, value: object) -> None:
+        self._api.connection.use_serial_number = bool(value)
+        self._save_current_settings()
 
     def _render_gateway_picker(self, retry_label: str) -> None:
         if imgui.is_window_appearing() and not self._scanning:

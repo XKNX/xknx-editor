@@ -3,8 +3,6 @@
 Not a docked tab: the menu-bar entry asks for the Signing Key dialog, which the app shows (the
 export flow shows the same dialog on top of the Sign Export dialog)."""
 
-from imgui_bundle import imgui
-
 from editor_gui.plugins.base import PanelDefinition, PluginAPI
 from editor_gui.plugins.signing.strings import S
 from editor_gui.plugins.signing.ui import SigningPanel
@@ -35,12 +33,10 @@ class SigningPlugin:
         """Render the panel body, the content of the Signing Key dialog."""
         self._panel.render_contents()
 
-    def render_menu(self) -> None:
-        """The 'Signing' menu-bar entry."""
-        if imgui.begin_menu(S.MENU):
-            if imgui.menu_item(S.MENU_SHOW_WINDOW, "", False)[0]:
-                self.open_window()
-            imgui.end_menu()
+    @property
+    def menu_label(self) -> str:
+        """The item of the Tools menu that opens the Signing Key dialog."""
+        return S.MENU_SHOW_WINDOW
 
     def on_load(self) -> None:
         pass

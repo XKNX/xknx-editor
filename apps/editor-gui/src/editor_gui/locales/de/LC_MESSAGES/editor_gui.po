@@ -382,9 +382,6 @@ msgstr "ETS 5 (Schema 20)"
 msgid "ETS 6 (schema 23)"
 msgstr "ETS 6 (Schema 23)"
 
-msgid "AI MCP"
-msgstr "KI MCP"
-
 msgid "This editor is controllable by an AI assistant (Claude, Codex, …) through the built-in MCP server: it exposes the catalog and project as tools over Streamable HTTP. Start the server below, then register its endpoint in your AI tool."
 msgstr "Dieser Editor ist von einer KI (Claude, Codex, …) über den eingebauten MCP-Server steuerbar: er stellt Katalog und Projekt als Tools über Streamable HTTP bereit. Starten Sie unten den Server und tragen Sie seinen Endpunkt in Ihrem KI-Tool ein."
 
@@ -757,9 +754,6 @@ msgstr "Projekte (*.xknx, *.knxproj, *.xml, *.csv)"
 msgid "Import Group Addresses…"
 msgstr "Gruppenadressen importieren…"
 
-msgid "Feedback"
-msgstr "Feedback"
-
 msgid "A desktop editor for building-automation installation projects, built on the open-source xknx library and based on xknxtoolkit by kewde. Not affiliated with or endorsed by the KNX Association."
 msgstr "Ein Desktop-Editor für Gebäudeautomations-Installationsprojekte, basierend auf der Open-Source-Bibliothek xknx und auf xknxtoolkit von kewde. Nicht mit der KNX Association verbunden und nicht von ihr unterstützt."
 
@@ -924,15 +918,6 @@ msgstr "Lizenz: GPL-2.0-only"
 
 msgid "Website:"
 msgstr "Website:"
-
-msgid "Open Config Folder"
-msgstr "Konfigurationsordner öffnen"
-
-msgid "Open Cache Folder"
-msgstr "Cache-Ordner öffnen"
-
-msgid "Open Log Folder"
-msgstr "Log-Ordner öffnen"
 
 msgid "This project is protected with a password. Enter it to open the project:"
 msgstr "Dieses Projekt ist mit einem Passwort geschützt. Geben Sie es ein, um das Projekt zu öffnen:"
@@ -1697,7 +1682,55 @@ msgid "Product Database Password"
 msgstr "Passwort der Produktdatenbank"
 
 msgid "This product database is password-protected. Enter its password to import it:"
-msgstr "Diese Produktdatenbank ist passwortgeschützt. Gib ihr Passwort ein, um sie zu importieren:"
+msgstr "Diese Produktdatenbank ist passwortgeschützt. Geben Sie ihr Passwort ein, um sie zu importieren:"
 
 msgid "These files use a fixed, publicly documented password, for example here:"
 msgstr "Diese Dateien verwenden ein festes, öffentlich dokumentiertes Passwort, zum Beispiel hier:"
+
+msgid "Tools"
+msgstr "Werkzeuge"
+
+msgid "Command Palette"
+msgstr "Befehlspalette"
+
+msgid "Search settings"
+msgstr "Einstellungen durchsuchen"
+
+msgid "No setting matches the search."
+msgstr "Keine Einstellung passt zur Suche."
+
+msgid "General"
+msgstr "Allgemein"
+
+msgid "Connection"
+msgstr "Verbindung"
+
+msgid "Backups"
+msgstr "Sicherungen"
+
+msgid "AI / MCP"
+msgstr "KI / MCP"
+
+msgid "Folders"
+msgstr "Ordner"
+
+msgid "Texts of product data (parameters, group objects) are shown in this language where the product has them."
+msgstr "Texte der Produktdaten (Parameter, Kommunikationsobjekte) werden in dieser Sprache angezeigt, wo das Produkt sie enthält."
+
+msgid "Lowers the frame rate while nothing changes on the screen, to save power."
+msgstr "Senkt die Bildrate, solange sich auf dem Bildschirm nichts ändert, um Energie zu sparen."
+
+msgid "Cache Folder"
+msgstr "Cache-Ordner"
+
+msgid "Config Folder"
+msgstr "Konfigurationsordner"
+
+msgid "Log Folder"
+msgstr "Log-Ordner"
+
+msgid "AI Tools"
+msgstr "KI-Werkzeuge"
+
+msgid "More Themes…"
+msgstr "Weitere Designs…"

@@ -202,9 +202,6 @@ msgstr "Sa sauvegarde la plus récente date du {created}. Restaurer le projet à
 msgid "The damaged file was kept as {name}."
 msgstr "Le fichier endommagé a été conservé sous le nom {name}."
 
-msgid "Backup Settings"
-msgstr "Paramètres de sauvegarde"
-
 msgid "A backup is one file with the complete project, which can be restored on its own. Each project has a folder of its own in the backup folder. A network drive or a folder synchronized with a cloud service keeps the backups off this computer."
 msgstr "Une sauvegarde est un seul fichier contenant tout le projet, qui peut être restauré à lui seul. Chaque projet a son propre dossier dans le dossier de sauvegarde. Un lecteur réseau ou un dossier synchronisé avec un service cloud conserve les sauvegardes hors de cet ordinateur."
 

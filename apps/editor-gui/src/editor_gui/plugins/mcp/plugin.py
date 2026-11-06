@@ -29,6 +29,7 @@ if TYPE_CHECKING:
     from editor_gui.plugins.mcp.context import McpContext
     from editor_gui.plugins.monitor.service import MonitorService
     from editor_gui.plugins.project.plugin import ProjectPlugin
+    from editor_gui.settings_window import SettingsWindow
 
 
 def _primary_lan_address() -> str | None:
@@ -126,6 +127,7 @@ class McpServerPlugin:
         keyring: KeyringService,
         project_plugin: ProjectPlugin | None = None,
         backups: BackupService | None = None,
+        settings: SettingsWindow | None = None,
     ) -> None:
         self._log = Logger(api.log, "mcp")
         self._context_args: dict[str, Any] = {
@@ -137,6 +139,7 @@ class McpServerPlugin:
             "log": self._log,
             "project_plugin": project_plugin,
             "backups": backups,
+            "settings": settings,
         }
         self._ctx: McpContext | None = None
         self._server: uvicorn.Server | None = None
