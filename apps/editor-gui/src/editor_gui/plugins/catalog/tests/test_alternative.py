@@ -6,6 +6,7 @@ import copy
 import gzip
 import hashlib
 import json
+import os
 from pathlib import Path
 
 import httpx
@@ -173,7 +174,9 @@ def test_settings_are_private_and_server_change_drops_secrets_and_cache(
     assert "password" not in repr(c.settings)
     assert "password" not in json.dumps(c.status()).replace("has_password", "")
     settings = tmp_path / "settings" / "alternative_catalog.json"
-    assert settings.stat().st_mode & 0o777 == 0o600
+    # Readable by the user only (POSIX file modes; Windows has none).
+    if os.name != "nt":
+        assert settings.stat().st_mode & 0o777 == 0o600
     c.configure("https://second.example", "user")
     assert c.settings.password == "" and c.search()[1] == 0
     assert not c.status()["cached"]
