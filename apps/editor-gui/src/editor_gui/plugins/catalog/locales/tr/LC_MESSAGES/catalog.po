@@ -273,3 +273,6 @@ msgstr "E-posta doğrulandı. İndirmeler yönetici onayından sonra kullanılab
 
 msgid "Version"
 msgstr "Sürüm"
+
+msgid "Register…"
+msgstr "Kayıt ol…"

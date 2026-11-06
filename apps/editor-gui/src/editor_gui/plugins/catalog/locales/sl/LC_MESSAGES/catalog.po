@@ -276,3 +276,6 @@ msgstr "E-pošta potrjena. Prenosi bodo na voljo po odobritvi skrbnika."
 
 msgid "Version"
 msgstr "Različica"
+
+msgid "Register…"
+msgstr "Registracija…"

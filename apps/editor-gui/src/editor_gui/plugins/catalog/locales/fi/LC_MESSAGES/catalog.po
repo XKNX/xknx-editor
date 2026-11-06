@@ -273,3 +273,6 @@ msgstr "Sähköposti vahvistettu. Lataukset ovat käytettävissä ylläpitäjän
 
 msgid "Version"
 msgstr "Versio"
+
+msgid "Register…"
+msgstr "Rekisteröidy…"

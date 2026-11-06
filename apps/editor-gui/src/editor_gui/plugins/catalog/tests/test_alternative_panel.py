@@ -34,6 +34,7 @@ def test_expanded_forms_and_product_metadata(
     client.refresh()
     panel = AlternativeCatalogPanel(client, lambda _id: 1)
     panel._selected = client.search()[0][0]
+    panel._registration_requested = True
     context = imgui.create_context()
     io = imgui.get_io()
     io.display_size = imgui.ImVec2(width, 1500)
@@ -80,7 +81,9 @@ def test_expanded_forms_and_product_metadata(
             imgui.begin("Catalog")
             panel.render()
             assert AppS.SETTINGS_TITLE in ids.values()
-            assert list(ids.values()).count(S.ALTERNATIVE_REGISTER) == 2
+            # The registration is in its dialog, opened by its button.
+            assert S.ALTERNATIVE_REGISTER_OPEN in ids.values()
+            assert list(ids.values()).count(S.ALTERNATIVE_REGISTER) == 1
             assert all(
                 label in columns
                 for label in (
@@ -211,8 +214,15 @@ def test_all_results_scroll_select_and_filter(
         if move_to_bottom:
             imgui.set_scroll_y(scroll[1])
 
+    original_disabled = imgui.text_disabled
+
+    def disabled(value, *args, **kwargs):
+        texts.append(value)
+        return original_disabled(value, *args, **kwargs)
+
     monkeypatch.setattr(imgui, "selectable", selectable)
     monkeypatch.setattr(imgui, "text_unformatted", text)
+    monkeypatch.setattr(imgui, "text_disabled", disabled)
     monkeypatch.setattr(imgui, "table_headers_row", headers)
 
     def frame() -> None:
@@ -258,6 +268,66 @@ def test_all_results_scroll_select_and_filter(
         for _ in range(3):
             frame()
         assert "Product 0" in rendered and scroll[0] == 0
+    finally:
+        imgui.destroy_context(context)
+        panel.stop()
+
+
+def test_settings_open_until_signed_in_and_the_catalog_status(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr("editor_gui.settings.config_dir", lambda: tmp_path)
+    client = AlternativeCatalogClient(
+        tmp_path,
+        settings=AlternativeSettings("https://catalog.example"),
+        transport=httpx.MockTransport(lambda r: httpx.Response(200, json=index())),
+    )
+    panel = AlternativeCatalogPanel(client, lambda _id: 1)
+    context = imgui.create_context()
+    io = imgui.get_io()
+    io.display_size = imgui.ImVec2(1200, 900)
+    io.backend_flags |= imgui.BackendFlags_.renderer_has_textures
+    opened: list[bool] = []
+    greyed: list[str] = []
+    original_header = imgui.collapsing_header
+    original_disabled = imgui.text_disabled
+
+    def header(label, *args, **kwargs):
+        shown = original_header(label, *args, **kwargs)
+        opened.append(shown)
+        return shown
+
+    def disabled(value, *args, **kwargs):
+        greyed.append(value)
+        return original_disabled(value, *args, **kwargs)
+
+    monkeypatch.setattr(imgui, "collapsing_header", header)
+    monkeypatch.setattr(imgui, "text_disabled", disabled)
+
+    def frame() -> None:
+        opened.clear()
+        greyed.clear()
+        imgui.new_frame()
+        imgui.set_next_window_size(imgui.ImVec2(1200, 900), imgui.Cond_.always)
+        imgui.set_next_window_pos(imgui.ImVec2(0, 0), imgui.Cond_.always)
+        imgui.begin("Catalog")
+        panel.render()
+        imgui.end()
+        imgui.end_frame()
+
+    try:
+        frame()
+        # No sign-in yet: the settings are open, and there is no catalog.
+        assert opened == [True]
+        frame()
+        client.refresh()
+        frame()
+        frame()
+        assert S.ONLINE_MATCH_COUNT.format(count=len(client.search()[0])) in greyed
+        client.configure("https://catalog.example", "user", "secret")
+        frame()
+        # Signed in: closed.
+        assert opened == [False]
     finally:
         imgui.destroy_context(context)
         panel.stop()

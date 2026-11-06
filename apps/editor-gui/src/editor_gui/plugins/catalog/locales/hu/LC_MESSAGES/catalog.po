@@ -276,3 +276,6 @@ msgstr "E-mail megerősítve. A letöltések a rendszergazda jóváhagyása utá
 
 msgid "Version"
 msgstr "Verzió"
+
+msgid "Register…"
+msgstr "Regisztráció…"

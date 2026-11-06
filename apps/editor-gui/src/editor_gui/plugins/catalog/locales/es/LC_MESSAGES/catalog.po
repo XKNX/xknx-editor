@@ -273,3 +273,6 @@ msgstr "Correo verificado. Las descargas estarán disponibles tras la aprobació
 
 msgid "Version"
 msgstr "Versión"
+
+msgid "Register…"
+msgstr "Registrarse…"

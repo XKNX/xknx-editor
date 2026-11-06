@@ -273,3 +273,6 @@ msgstr "E-post bekreftet. Nedlastinger blir tilgjengelige etter administratorens
 
 msgid "Version"
 msgstr "Versjon"
+
+msgid "Register…"
+msgstr "Registrer…"

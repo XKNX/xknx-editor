@@ -273,3 +273,6 @@ msgstr "E-mail bekræftet. Download bliver tilgængelig efter administratorens g
 
 msgid "Version"
 msgstr "Version"
+
+msgid "Register…"
+msgstr "Registrer…"

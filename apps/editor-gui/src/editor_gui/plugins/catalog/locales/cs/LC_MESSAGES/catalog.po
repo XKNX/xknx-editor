@@ -273,3 +273,6 @@ msgstr "E-mail ověřen. Stahování bude dostupné po schválení správcem."
 
 msgid "Version"
 msgstr "Verze"
+
+msgid "Register…"
+msgstr "Registrovat…"

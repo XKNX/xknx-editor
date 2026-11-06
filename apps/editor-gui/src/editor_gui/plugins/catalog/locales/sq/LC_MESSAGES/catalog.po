@@ -273,3 +273,6 @@ msgstr "Emaili u verifikua. Shkarkimet bëhen të disponueshme pas miratimit nga
 
 msgid "Version"
 msgstr "Versioni"
+
+msgid "Register…"
+msgstr "Regjistrohu…"

@@ -273,3 +273,6 @@ msgstr "メールを確認しました。管理者の承認後にダウンロー
 
 msgid "Version"
 msgstr "バージョン"
+
+msgid "Register…"
+msgstr "登録…"

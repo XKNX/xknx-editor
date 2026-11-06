@@ -273,3 +273,6 @@ msgstr "E-mail bevestigd. Downloads zijn beschikbaar na goedkeuring door de behe
 
 msgid "Version"
 msgstr "Versie"
+
+msgid "Register…"
+msgstr "Registreren…"

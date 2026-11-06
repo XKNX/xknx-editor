@@ -276,3 +276,6 @@ msgstr "E-mail overený. Sťahovanie bude dostupné po schválení správcom."
 
 msgid "Version"
 msgstr "Verzia"
+
+msgid "Register…"
+msgstr "Registrovať…"

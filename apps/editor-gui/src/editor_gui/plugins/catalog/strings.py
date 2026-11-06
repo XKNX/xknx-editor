@@ -52,6 +52,10 @@ class CatalogStrings:
         return _("Register")
 
     @property
+    def ALTERNATIVE_REGISTER_OPEN(self) -> str:
+        return _("Register…")
+
+    @property
     def ALTERNATIVE_RESUME(self) -> str:
         return _("Continue Registration")
 

@@ -273,3 +273,6 @@ msgstr "邮箱已验证。管理员批准后即可下载。"
 
 msgid "Version"
 msgstr "版本"
+
+msgid "Register…"
+msgstr "注册…"

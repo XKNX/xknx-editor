@@ -273,3 +273,6 @@ msgstr "E-mail vérifié. Les téléchargements seront disponibles après approb
 
 msgid "Version"
 msgstr "Version"
+
+msgid "Register…"
+msgstr "S’inscrire…"

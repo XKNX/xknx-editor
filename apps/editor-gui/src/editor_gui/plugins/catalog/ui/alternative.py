@@ -18,10 +18,13 @@ from editor_gui.plugins.catalog.alternative import (
     program_version_text,
 )
 from editor_gui.plugins.catalog.strings import S
+from editor_gui.plugins.catalog.ui.panel import fetched_date
 from editor_gui.strings import S as AppS
+from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
 from editor_gui.widgets.dpi import px
 from editor_gui.widgets.filter_box import filter_box
-from editor_gui.widgets.flow import button_width, same_line_if_fits
+from editor_gui.widgets.flow import button_width, fits_beside, same_line_if_fits
+from editor_gui.widgets.spinner import loading
 from editor_gui.widgets.tables import begin_data_table, data_table_headers
 
 
@@ -48,6 +51,11 @@ class AlternativeCatalogPanel:
         self._action = ""
         self._stop = threading.Event()
         self._refresh_thread: threading.Thread | None = None
+        # Whether the sign-in was complete when last drawn (None: not drawn yet).
+        self._settings_filled: bool | None = None
+        self._registration_requested = False
+        # (catalog generation, its number of manufacturers).
+        self._manufacturers: tuple[int, int] = (-1, 0)
 
     def start(self) -> None:
         """Refresh on startup and hourly, keeping the cached catalog usable on failure."""
@@ -120,30 +128,29 @@ class AlternativeCatalogPanel:
             self._base_url, self._user = settings_key
             self._password = ""
             self._settings_key = settings_key
+        status = self._client.status()
         imgui.begin_disabled(self._future is not None)
+        # Open while the sign-in is not complete; once it is, closed unless opened.
+        filled = bool(status["user"]) and bool(status["has_password"])
+        if filled != self._settings_filled:
+            self._settings_filled = filled
+            imgui.set_next_item_open(not filled, imgui.Cond_.always)
         if imgui.collapsing_header(AppS.SETTINGS_TITLE):
             self._render_settings()
-        if imgui.collapsing_header(S.ALTERNATIVE_REGISTER):
-            imgui.push_id("registration_form")
-            self._render_registration()
-            imgui.pop_id()
         if imgui.button(S.BTN_ONLINE_CATALOG):
             self._submit("refresh", self._client.refresh)
         same_line_if_fits(button_width(S.ALTERNATIVE_WEBSITE))
         if imgui.button(S.ALTERNATIVE_WEBSITE):
             open_url(self._client.settings.base_url)
+        same_line_if_fits(button_width(S.ALTERNATIVE_REGISTER_OPEN))
+        if imgui.button(S.ALTERNATIVE_REGISTER_OPEN):
+            self._registration_requested = True
         imgui.end_disabled()
-        if self._future is not None:
-            imgui.text_unformatted(S.ONLINE_LOADING_PRODUCTS)
-        status = self._client.status()
+        self._render_status(status)
         if self._message or status["error"]:
             imgui.text_wrapped(self._message or status["error"])
-        if self._registration == "unverified":
-            imgui.text_wrapped(S.ALTERNATIVE_VERIFY_HINT)
-        elif self._registration == "pending":
-            imgui.text_wrapped(S.ALTERNATIVE_PENDING)
-        if status["generated_at"]:
-            imgui.text_unformatted(status["generated_at"])
+        self._render_registration_dialog()
+        imgui.separator()
         self._query = filter_box(
             "##alternative_search", S.ONLINE_SEARCH_HINT, self._query
         )
@@ -154,7 +161,7 @@ class AlternativeCatalogPanel:
             if self._search_key is not None and self._search_key[1] != key[1]:
                 self._selected = None
             self._search_key = key
-        imgui.text_unformatted(S.ONLINE_MATCH_COUNT.format(count=len(self._entries)))
+        imgui.text_disabled(S.ONLINE_MATCH_COUNT.format(count=len(self._entries)))
         if self._selected is not None:
             self._render_details(self._selected)
         flags = (
@@ -219,6 +226,63 @@ class AlternativeCatalogPanel:
                         imgui.table_next_column()
                         imgui.text_unformatted(" ".join(value.splitlines()))
             imgui.end_table()
+
+    def _render_status(self, status: dict[str, Any]) -> None:
+        """While fetching: the loading note; else the catalog's date and size, greyed, beside the
+        buttons when it fits (as the Online tab shows its product index)."""
+        imgui.same_line()
+        if self._future is not None:
+            loading("##alternative-loading", S.ONLINE_LOADING_PRODUCTS)
+            return
+        if status["count"]:
+            text = S.ONLINE_INDEX_STATUS.format(
+                date=fetched_date(status["generated_at"]),
+                mfrs=self._manufacturer_count(),
+                products=status["count"],
+            )
+        else:
+            text = S.ONLINE_INDEX_NONE
+        if not fits_beside(imgui.calc_text_size(text).x):
+            imgui.new_line()
+        imgui.push_style_color(
+            imgui.Col_.text, imgui.get_style_color_vec4(imgui.Col_.text_disabled)
+        )
+        imgui.text_wrapped(text)
+        imgui.pop_style_color()
+
+    def _manufacturer_count(self) -> int:
+        """How many manufacturers the catalog has products of (counted once per catalog)."""
+        generation = self._client.generation
+        if self._manufacturers[0] != generation:
+            entries, _ = self._client.search()
+            self._manufacturers = (
+                generation,
+                len({entry.manufacturer_id or entry.manufacturer for entry in entries}),
+            )
+        return self._manufacturers[1]
+
+    def _render_registration_dialog(self) -> None:
+        """Registering at the catalog server, in a dialog of its own (Register…)."""
+        title = f"{S.ALTERNATIVE_REGISTER}###alternative_registration"
+        if self._registration_requested:
+            imgui.open_popup(title)
+            self._registration_requested = False
+        if not begin_dialog(title, width=460.0):
+            return
+        imgui.begin_disabled(self._future is not None)
+        self._render_registration()
+        imgui.end_disabled()
+        if self._future is not None:
+            loading("##registration-loading", S.ONLINE_LOADING)
+        elif self._message:
+            imgui.text_wrapped(self._message)
+        if self._registration == "unverified":
+            imgui.text_wrapped(S.ALTERNATIVE_VERIFY_HINT)
+        elif self._registration == "pending":
+            imgui.text_wrapped(S.ALTERNATIVE_PENDING)
+        if dialog_buttons(AppS.BTN_CLOSE) is not None:
+            imgui.close_current_popup()
+        end_dialog()
 
     def _render_settings(self) -> None:
         for label, attr, flags in (
