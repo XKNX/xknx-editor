@@ -243,7 +243,8 @@ def test_all_results_scroll_select_and_filter(
         for _ in range(3):
             frame()
         assert len(panel._entries) == 1205
-        assert S.ONLINE_MATCH_COUNT.format(count=1205) in texts
+        # No search: the status line gives the number of products, no count of matches.
+        assert S.ONLINE_MATCH_COUNT.format(count=1205) not in texts
         assert "Product 0" in rendered and "Product 1204" not in rendered
         move_to_bottom = True
         frame()
@@ -273,7 +274,7 @@ def test_all_results_scroll_select_and_filter(
         panel.stop()
 
 
-def test_settings_open_until_signed_in_and_the_catalog_status(
+def test_settings_closed_and_the_catalog_status(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     monkeypatch.setattr("editor_gui.settings.config_dir", lambda: tmp_path)
@@ -317,17 +318,14 @@ def test_settings_open_until_signed_in_and_the_catalog_status(
 
     try:
         frame()
-        # No sign-in yet: the settings are open, and there is no catalog.
-        assert opened == [True]
-        frame()
-        client.refresh()
-        frame()
-        frame()
-        assert S.ONLINE_MATCH_COUNT.format(count=len(client.search()[0])) in greyed
-        client.configure("https://catalog.example", "user", "secret")
-        frame()
-        # Signed in: closed.
+        # Closed, also before signing in.
         assert opened == [False]
+        client.refresh()
+        panel._query = "MDT"
+        frame()
+        frame()
+        # While searching, the count of matches, greyed, as in the Online tab.
+        assert S.ONLINE_MATCH_COUNT.format(count=len(client.search("MDT")[0])) in greyed
     finally:
         imgui.destroy_context(context)
         panel.stop()

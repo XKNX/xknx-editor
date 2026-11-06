@@ -51,8 +51,6 @@ class AlternativeCatalogPanel:
         self._action = ""
         self._stop = threading.Event()
         self._refresh_thread: threading.Thread | None = None
-        # Whether the sign-in was complete when last drawn (None: not drawn yet).
-        self._settings_filled: bool | None = None
         self._registration_requested = False
         # (catalog generation, its number of manufacturers).
         self._manufacturers: tuple[int, int] = (-1, 0)
@@ -130,11 +128,6 @@ class AlternativeCatalogPanel:
             self._settings_key = settings_key
         status = self._client.status()
         imgui.begin_disabled(self._future is not None)
-        # Open while the sign-in is not complete; once it is, closed unless opened.
-        filled = bool(status["user"]) and bool(status["has_password"])
-        if filled != self._settings_filled:
-            self._settings_filled = filled
-            imgui.set_next_item_open(not filled, imgui.Cond_.always)
         if imgui.collapsing_header(AppS.SETTINGS_TITLE):
             self._render_settings()
             # Where the section ends.
@@ -160,9 +153,11 @@ class AlternativeCatalogPanel:
             if self._search_key is not None and self._search_key[1] != key[1]:
                 self._selected = None
             self._search_key = key
-        imgui.text_disabled(S.ONLINE_MATCH_COUNT.format(count=len(self._entries)))
         if self._selected is not None:
             self._render_details(self._selected)
+        # As in the Online tab: while searching, how many products match, above them.
+        if self._query.strip():
+            imgui.text_disabled(S.ONLINE_MATCH_COUNT.format(count=len(self._entries)))
         flags = (
             imgui.TableFlags_.scroll_y
             | imgui.TableFlags_.row_bg
