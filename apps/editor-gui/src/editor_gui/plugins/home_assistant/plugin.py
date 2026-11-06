@@ -156,9 +156,15 @@ class HomeAssistantPlugin:
 
     # --- UI ---
 
+    @property
+    def menu_label(self) -> str:
+        """The label of the Home Assistant menu, which the app draws in the menu bar while the
+        editor runs inside Home Assistant (``active``)."""
+        return S.MENU
+
     def render_menu(self) -> None:
-        if not self.active or not imgui.begin_menu(S.MENU):
-            return
+        """The Home Assistant menu's content (the app draws the menu itself, see
+        ``menu_label``)."""
         service = self._service
         state = service.state
         text, color = self._status(state)
@@ -246,7 +252,6 @@ class HomeAssistantPlugin:
             imgui.separator()
             if imgui.menu_item(app_strings.MENU_SETTINGS, "", False)[0]:
                 self.open_settings(SETTINGS_PAGE)
-        imgui.end_menu()
 
     def settings(self) -> list[Setting]:
         """The settings of the Home Assistant page of the Settings window (and MCP)."""

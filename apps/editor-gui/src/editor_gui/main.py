@@ -4121,13 +4121,20 @@ class KnxGuiApp:
         self._handle_shortcuts()
 
     def _menus(self) -> list[tuple[str, Callable[[], None]]]:
-        """The menus of the menu bar, in their order: their labels and contents."""
+        """The menus of the menu bar, in their order: their labels and contents (Home Assistant
+        only inside Home Assistant)."""
+        home_assistant = self._home_assistant_plugin
         return [
             (S.MENU_FILE, self._render_file_menu),
             (S.MENU_EDIT, self._render_edit_menu),
             (S.MENU_VIEW, self._render_view_menu),
             (self._connection_plugin.menu_label, self._connection_plugin.render_menu),
             (S.MENU_MCP, self._render_mcp_menu),
+            *(
+                [(home_assistant.menu_label, home_assistant.render_menu)]
+                if home_assistant.active
+                else []
+            ),
             (self._keyring_plugin.menu_label, self._keyring_plugin.render_menu),
             (S.MENU_HELP, self._render_help_menu),
         ]
