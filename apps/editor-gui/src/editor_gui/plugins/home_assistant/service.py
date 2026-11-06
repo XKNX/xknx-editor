@@ -14,11 +14,12 @@ Linking is the user's choice: an unlinked project is only sent when the user ask
 from __future__ import annotations
 
 import base64
+import contextlib
 import secrets
 import tempfile
 import threading
 import time
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from enum import StrEnum
@@ -29,9 +30,11 @@ from xknx.telegram.apci import GroupValueRead, GroupValueWrite
 
 from editor_gui.plugins.home_assistant.areas import (
     AreaRow,
+    by_id,
     compare,
     plan_spaces,
     request,
+    space_key,
 )
 from editor_gui.plugins.home_assistant.entities import (
     EntityCandidate,
@@ -40,13 +43,21 @@ from editor_gui.plugins.home_assistant.entities import (
     entity_request,
     existing_entities,
 )
+from editor_gui.plugins.home_assistant.imports import (
+    HomeAssistantAddress,
+    HomeAssistantSpace,
+    addresses_to_add,
+    spaces_to_add,
+)
 from editor_gui.plugins.home_assistant.strings import S
 from editor_gui.settings import load_settings, save_settings
+from xknxeditor.proj.core.space_rules import BUILDING, FLOOR, ROOM
 
 if TYPE_CHECKING:
     from editor_gui.plugins.base import Logger
     from editor_gui.plugins.project.service import ProjectService
     from editor_gui.web.host_link import HostLink
+    from xknxeditor.proj.core.service import SpaceInfo
 
 # The tool that sent a project, in the project's info (``created_by``).
 CREATED_BY = "XKNX Editor"
@@ -65,6 +76,8 @@ class GroupAddressUsage:
     users: tuple[dict[str, Any], ...] = ()
     # Home Assistant sends to it (an entity's command, an expose, the time server).
     sends: bool = False
+    # The datapoint type Home Assistant's KNX devices use it with ("9.001"; None: unknown).
+    dpt: str | None = None
 
 
 class LinkState(StrEnum):
@@ -83,7 +96,7 @@ class LinkState(StrEnum):
 
 
 def _usage(value: object) -> dict[int, GroupAddressUsage]:
-    """The usage the integration reports: {raw address (as text): {users, sends}}."""
+    """The usage the integration reports: {raw address (as text): {users, sends, dpt}}."""
     if not isinstance(value, dict):
         return {}
     result: dict[int, GroupAddressUsage] = {}
@@ -102,6 +115,7 @@ def _usage(value: object) -> dict[int, GroupAddressUsage]:
                 cast("dict[str, Any]", u) for u in listed if isinstance(u, dict)
             ),
             sends=bool(data.get("sends")),
+            dpt=str(dpt) if isinstance(dpt := data.get("dpt"), str) and dpt else None,
         )
     return result
 
@@ -430,8 +444,11 @@ class HomeAssistantService:
     def areas_applying(self) -> bool:
         return self._areas_request is not None
 
-    def apply_areas(self, rows: list[AreaRow]) -> bool:
-        """Create, link or rename the floors and areas of ``rows`` in Home Assistant; False
+    def apply_areas(
+        self, rows: list[AreaRow], targets: dict[str, str] | None = None
+    ) -> bool:
+        """Create, link or rename the floors and areas of ``rows`` in Home Assistant (those of
+        ``targets``, by key, are linked to the floor or area given there as it is); False
         without a connection, without rows or while an earlier request is open."""
         link = self._link()
         if (
@@ -442,11 +459,112 @@ class HomeAssistantService:
         ):
             return False
         self._next_id += 1
-        if not link.send({"type": "apply_areas", "id": self._next_id, **request(rows)}):
+        message = {"type": "apply_areas", "id": self._next_id, **request(rows, targets)}
+        if not link.send(message):
             return False
         self._areas_request = self._next_id
         self.areas_error = None
         return True
+
+    # --- from Home Assistant: floors and areas, group addresses ---
+
+    def spaces_to_add(self) -> list[HomeAssistantSpace]:
+        """Home Assistant's floors and areas the open project has no space for."""
+        guid = self.project_guid()
+        if guid is None or self.home_assistant_areas is None:
+            return []
+        planned = plan_spaces(self._project.get_space_tree(), guid)
+        return spaces_to_add(planned, self.home_assistant_areas)
+
+    def buildings(self) -> list[SpaceInfo]:
+        """The project's buildings (where floors and rooms from Home Assistant go)."""
+        return [s for s in self._project.get_space_tree() if s.space_type == BUILDING]
+
+    def add_spaces(
+        self, spaces: Sequence[HomeAssistantSpace], building_id: int | None = None
+    ) -> int:
+        """Add Home Assistant's floors (``spaces``) as floors of the building ``building_id``
+        (None: the first one; a new one named like Home Assistant's home when there is none)
+        and its areas as rooms on their floors (on no floor: in the building), one undo step;
+        then link them to the floors and areas they were made from. Returns how many spaces
+        were added."""
+        guid = self.project_guid()
+        if guid is None or not spaces:
+            return 0
+        tree = self._project.get_space_tree()
+        planned = plan_spaces(tree, guid)
+        state = self.home_assistant_areas or {}
+        # The project's floors by Home Assistant's floor: linked, or of the same name.
+        floor_spaces: dict[str, int] = {}
+        links = state.get("links")
+        if isinstance(links, dict):
+            for key, ha_id in cast("dict[object, object]", links).items():
+                prefix, _, space_id = str(key).rpartition(":")
+                if prefix == guid and space_id.isdigit():
+                    floor_spaces.setdefault(str(ha_id), int(space_id))
+        by_name = {p.name.casefold(): p.space_id for p in planned if p.kind == "floor"}
+        for ha_id, floor in by_id(state.get("floors"), "floor_id").items():
+            if (sid := by_name.get(str(floor.get("name", "")).casefold())) is not None:
+                floor_spaces.setdefault(ha_id, sid)
+        targets: dict[str, str] = {}
+        with self._project.one_undo_step(S.UNDO_ADD_SPACES):
+            if building_id is None:
+                buildings = [s.id for s in tree if s.space_type == BUILDING]
+                building_id = buildings[0] if buildings else None
+            if building_id is None:
+                home = state.get("location_name")
+                building_id = self._project.create_space(
+                    None, BUILDING, str(home) if home else S.DEFAULT_BUILDING
+                )
+            if building_id is None:
+                return 0
+            for space in spaces:
+                if space.kind != "floor":
+                    continue
+                sid = self._project.create_space(building_id, FLOOR, space.name)
+                if sid is None:
+                    continue
+                if space.level is not None:
+                    self._project.set_space_number(sid, str(space.level))
+                floor_spaces[space.ha_id] = sid
+                targets[space_key(guid, sid)] = space.ha_id
+            for space in spaces:
+                if space.kind != "area":
+                    continue
+                parent = floor_spaces.get(space.floor_id or "", building_id)
+                sid = self._project.create_space(parent, ROOM, space.name)
+                if sid is not None:
+                    targets[space_key(guid, sid)] = space.ha_id
+        rows = [row for row in self.area_rows() if row.planned.key in targets]
+        self.apply_areas(rows, targets)
+        return len(targets)
+
+    def addresses_to_add(self) -> list[HomeAssistantAddress]:
+        """The group addresses Home Assistant uses that the open project does not have."""
+        if not self._project.is_open:
+            return []
+        known = {ga.raw for ga in self._project.group_addresses}
+        return addresses_to_add(self.usage, known)
+
+    def add_group_addresses(self, addresses: Sequence[HomeAssistantAddress]) -> int:
+        """Add ``addresses`` to the project with their names and datapoint types, one undo step;
+        returns how many were added."""
+        if not self._project.is_open or not addresses:
+            return 0
+        added = 0
+        with self._project.one_undo_step(S.UNDO_ADD_GROUP_ADDRESSES):
+            for address in addresses:
+                ga_id = self._project.create_group_address_value(
+                    address.raw, address.name
+                )
+                if ga_id is None:
+                    continue
+                added += 1
+                # A type the project cannot take: the address is added without one.
+                if address.dpt:
+                    with contextlib.suppress(ValueError):
+                        self._project.set_group_address_dpt(ga_id, address.dpt)
+        return added
 
     def _lookup(self, group_address_id: int) -> tuple[str | None, int] | None:
         ga = self._project.get_group_address(group_address_id)
@@ -781,7 +899,8 @@ class HomeAssistantService:
             self.usage = _usage(message.get("group_addresses"))
         elif kind == "areas":
             self.home_assistant_areas = {
-                key: message.get(key) for key in ("floors", "areas", "links")
+                key: message.get(key)
+                for key in ("floors", "areas", "links", "location_name")
             }
         elif kind == "entity_links":
             links = message.get("links")

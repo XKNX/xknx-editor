@@ -346,8 +346,9 @@ def test_what_home_assistant_does_with_the_group_addresses(env: _Env) -> None:
                 "2563": {
                     "users": [{"kind": "entity", "entity_id": "light.kitchen"}],
                     "sends": True,
+                    "dpt": "1.001",
                 },
-                "2564": {"users": [], "sends": False},
+                "2564": {"users": [], "sends": False, "dpt": None},
                 # Not a raw address, not an object: left out.
                 "x": {"users": []},
                 "2565": "text",
@@ -357,6 +358,9 @@ def test_what_home_assistant_does_with_the_group_addresses(env: _Env) -> None:
     env.service.poll()
     assert set(env.service.usage) == {2563, 2564}
     assert env.service.usage[2563].users[0]["entity_id"] == "light.kitchen"
+    # The datapoint type Home Assistant uses each address with.
+    assert env.service.usage[2563].dpt == "1.001"
+    assert env.service.usage[2564].dpt is None
     assert env.service.senders() == frozenset({2563})
     # A new connection knows nothing yet.
     env.link.generation += 1

@@ -12,8 +12,13 @@ from fastmcp.exceptions import ToolError
 
 from editor_gui import host
 from editor_gui.plugins.home_assistant.areas import AreaRow, AreaState
+from editor_gui.plugins.home_assistant.imports import (
+    HomeAssistantAddress,
+    HomeAssistantSpace,
+)
 from editor_gui.plugins.home_assistant.service import EntityRow
 from editor_gui.plugins.mcp.context import McpContext, make_tool, require_project
+from xknxeditor.proj.core.addressing import format_ga
 
 if TYPE_CHECKING:
     from fastmcp import FastMCP
@@ -260,6 +265,122 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                 raise ToolError(f"Home Assistant did not take them: {error}")
             time.sleep(_POLL_SECONDS)
         raise ToolError("Home Assistant did not answer in time")
+
+    def space_to_add(space: HomeAssistantSpace) -> dict[str, Any]:
+        return {
+            "ha_id": space.ha_id,
+            "kind": space.kind,
+            "name": space.name,
+            "level": space.level,
+            "floor_id": space.floor_id,
+            "floor_name": space.floor_name,
+        }
+
+    def spaces_to_add() -> dict[str, Any]:
+        ha = service()
+        return {
+            **_items([space_to_add(s) for s in ha.spaces_to_add()]),
+            "buildings": [{"space_id": b.id, "name": b.name} for b in ha.buildings()],
+        }
+
+    @tool("read")
+    def home_assistant_spaces_to_add() -> dict[str, Any]:
+        """Home Assistant's floors and areas the project has no floor or room for: none of its
+        spaces is linked to them, and none of the project's floors or areas (as
+        home_assistant_areas names them) has their name (Floors and Areas…, From Home
+        Assistant). Returns {items, count, buildings}; each item has {ha_id (Home Assistant's
+        floor_id or area_id), kind ("floor" or "area"), name, level (a floor's), floor_id and
+        floor_name (an area's floor, null: none)}; buildings are the project's buildings
+        {space_id, name} they can be added to."""
+        require_project(ctx)
+        return ctx.run_locked(spaces_to_add)
+
+    @tool("write", open_world=True)
+    def home_assistant_add_spaces(
+        ha_ids: list[str] | None = None,
+        building_space_id: int | None = None,
+    ) -> dict[str, Any]:
+        """Add Home Assistant's floors and areas ``ha_ids`` (of home_assistant_spaces_to_add;
+        without ha_ids all of them) to the project (Floors and Areas…, Add to Project): floors
+        as floors of the building ``building_space_id`` (default: the first building; a new one
+        named like Home Assistant's home when the project has none), with their level as
+        number, areas as rooms on the floor they are on there (on no floor: in the building).
+        One undo step. Then each space is linked to the floor or area it was made from, which
+        keeps its name in Home Assistant. Returns {added} and what is left to add, as
+        home_assistant_spaces_to_add gives it."""
+        require_project(ctx)
+
+        def _add() -> dict[str, Any]:
+            ha = service()
+            spaces = [
+                s for s in ha.spaces_to_add() if ha_ids is None or s.ha_id in ha_ids
+            ]
+            if not spaces:
+                raise ToolError(
+                    "nothing to add: the project has a space for each of them"
+                )
+            if building_space_id is not None and building_space_id not in {
+                b.id for b in ha.buildings()
+            }:
+                raise ToolError(f"no building with space_id {building_space_id}")
+            added = ha.add_spaces(spaces, building_space_id)
+            return {"added": added, **spaces_to_add()}
+
+        return ctx.run_locked(_add)
+
+    def address_to_add(address: HomeAssistantAddress) -> dict[str, Any]:
+        style = ctx.api.project.group_address_style
+        return {
+            "group_address": format_ga(address.raw, style),
+            "name": address.name,
+            "dpt": address.dpt,
+            "used_by": list(address.users),
+        }
+
+    @tool("read")
+    def home_assistant_group_addresses_to_add() -> dict[str, Any]:
+        """The group addresses Home Assistant's KNX integration uses (its entities, exposes and
+        time server) that the project does not have (Group Addresses from Home Assistant…).
+        Returns {items, count}; each item has {group_address (printed in the project's style),
+        name (of the first entity using it, else of the expose or time server), dpt (the
+        datapoint type Home Assistant uses it with, e.g. "9.001"; null: unknown), used_by
+        (entity ids, or names of exposes and the time server)}."""
+        require_project(ctx)
+        return _items(
+            ctx.run_locked(
+                lambda: [address_to_add(a) for a in service().addresses_to_add()]
+            )
+        )
+
+    @tool("write")
+    def home_assistant_add_group_addresses(
+        group_addresses: list[str] | None = None,
+    ) -> dict[str, Any]:
+        """Add the group addresses ``group_addresses`` (printed, of
+        home_assistant_group_addresses_to_add; without them all of them) to the project with
+        their names and datapoint types (Group Addresses from Home Assistant…, Add to Project),
+        one undo step. Returns {added} and what is left to add, as
+        home_assistant_group_addresses_to_add gives it."""
+        require_project(ctx)
+
+        def _add() -> dict[str, Any]:
+            ha = service()
+            style = ctx.api.project.group_address_style
+            wanted = set(group_addresses) if group_addresses is not None else None
+            addresses = [
+                a
+                for a in ha.addresses_to_add()
+                if wanted is None or format_ga(a.raw, style) in wanted
+            ]
+            if not addresses:
+                raise ToolError("nothing to add: the project has each of them")
+            added = ha.add_group_addresses(addresses)
+            return {
+                "added": added,
+                **_items([address_to_add(a) for a in ha.addresses_to_add()]),
+            }
+
+        return ctx.run_locked(_add)
 
     def entity_row(row: EntityRow) -> dict[str, Any]:
         candidate = row.candidate

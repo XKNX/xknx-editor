@@ -461,5 +461,80 @@ class HomeAssistantStrings:
     def DONE_KEYS(self) -> str:
         return _("Home Assistant's KNX integration has the project's keys")
 
+    @property
+    def FROM_HOME_ASSISTANT(self) -> str:
+        return _("From Home Assistant")
+
+    @property
+    def SPACES_FROM_INTRO(self) -> str:
+        return _(
+            "Floors and areas of Home Assistant that the project has no floor or room for. "
+            "They become floors and rooms of the building, linked to what they were made from."
+        )
+
+    @property
+    def SPACES_BUILDING(self) -> str:
+        return _("Building")
+
+    @property
+    def SPACES_NEW_BUILDING(self) -> str:
+        return _("New building")
+
+    @property
+    def DEFAULT_BUILDING(self) -> str:
+        return _("Home")
+
+    @property
+    def BTN_ADD_TO_PROJECT(self) -> str:
+        return _("Add to Project")
+
+    @property
+    def UNDO_ADD_SPACES(self) -> str:
+        return _("Floors and areas from Home Assistant")
+
+    @property
+    def SPACES_ADDED(self) -> str:
+        return _("Floors and rooms added to the project: {count}")
+
+    @property
+    def MENU_ADDRESSES(self) -> str:
+        return _("Group Addresses from Home Assistant…")
+
+    @property
+    def ADDRESSES_TITLE(self) -> str:
+        return _("Group Addresses from Home Assistant")
+
+    @property
+    def ADDRESSES_INTRO(self) -> str:
+        return _(
+            "The group addresses Home Assistant's KNX integration uses that the project does not "
+            "have. They are added with the name of what uses them and the datapoint type Home "
+            "Assistant uses them with."
+        )
+
+    @property
+    def ADDRESSES_NONE(self) -> str:
+        return _("Home Assistant uses no group addresses the project does not have.")
+
+    @property
+    def COLUMN_ADDRESS(self) -> str:
+        return _("Address")
+
+    @property
+    def COLUMN_DATAPOINT_TYPE(self) -> str:
+        return _("Datapoint Type")
+
+    @property
+    def COLUMN_USED_BY(self) -> str:
+        return _("Used By")
+
+    @property
+    def UNDO_ADD_GROUP_ADDRESSES(self) -> str:
+        return _("Group addresses from Home Assistant")
+
+    @property
+    def ADDRESSES_ADDED(self) -> str:
+        return _("Group addresses added to the project: {count}")
+
 
 S = HomeAssistantStrings()

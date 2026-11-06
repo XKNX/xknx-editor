@@ -30,6 +30,7 @@ from editor_gui.widgets.combo import combo
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
 from editor_gui.widgets.dpi import px
 from editor_gui.widgets.tables import begin_data_table, data_table_headers
+from xknxeditor.proj.core.addressing import format_ga
 
 if TYPE_CHECKING:
     from editor_gui.plugins.monitor.service import MonitorService
@@ -85,6 +86,12 @@ class HomeAssistantPlugin:
         # The floors and areas dialog: asked for, and the keys of the spaces chosen in it.
         self._areas_requested = False
         self._areas_chosen: set[str] = set()
+        # Home Assistant's floors and areas (by id) and group addresses (raw) the user chose not
+        # to add (all are chosen by default), and the building chosen for them.
+        self._spaces_unchosen: set[str] = set()
+        self._building_index = 0
+        self._addresses_requested = False
+        self._addresses_unchosen: set[int] = set()
         self._service.on_areas_applied = self._areas_applied
         # The entities dialog: asked for, and the candidates the user chose otherwise than
         # chosen by default.
@@ -199,6 +206,13 @@ class HomeAssistantPlugin:
             service.connected and self._project.is_open,
         )[0]:
             self._entities_requested = True
+        if imgui.menu_item(
+            S.MENU_ADDRESSES,
+            "",
+            False,
+            service.connected and self._project.is_open,
+        )[0]:
+            self._addresses_requested = True
         if imgui.menu_item(
             S.MENU_TIME_SERVER,
             "",
@@ -338,8 +352,15 @@ class HomeAssistantPlugin:
                 for row in self._service.area_rows()
                 if row.state is not AreaState.LINKED
             }
+            self._spaces_unchosen.clear()
+            self._building_index = 0
             imgui.open_popup(_areas_title())
         self._render_areas()
+        if self._addresses_requested:
+            self._addresses_requested = False
+            self._addresses_unchosen.clear()
+            imgui.open_popup(_addresses_title())
+        self._render_addresses()
         if self._entities_requested:
             self._entities_requested = False
             self._entities_toggled.clear()
@@ -566,6 +587,7 @@ class HomeAssistantPlugin:
                 imgui.text(_area_state_text(row))
                 imgui.pop_id()
             imgui.end_table()
+        self._render_spaces_from_home_assistant()
         if service.areas_applying:
             imgui.text_disabled(S.AREAS_APPLYING)
         elif service.areas_error is not None:
@@ -586,6 +608,123 @@ class HomeAssistantPlugin:
         )
         if clicked == 0:
             service.apply_areas(chosen)
+        elif clicked == 1:
+            imgui.close_current_popup()
+        end_dialog()
+
+    def _render_spaces_from_home_assistant(self) -> None:
+        """In the floors and areas dialog: Home Assistant's floors and areas the project has
+        no space for, to add to a building of the project."""
+        service = self._service
+        spaces = service.spaces_to_add()
+        if not spaces:
+            return
+        imgui.spacing()
+        imgui.separator_text(S.FROM_HOME_ASSISTANT)
+        imgui.push_text_wrap_pos(0.0)
+        imgui.text_disabled(S.SPACES_FROM_INTRO)
+        imgui.pop_text_wrap_pos()
+        if begin_data_table(
+            "##home_assistant_spaces_from",
+            4,
+            imgui.TableFlags_.borders_inner_h | imgui.TableFlags_.scroll_y,
+            imgui.ImVec2(0, px(160.0)),
+        ):
+            imgui.table_setup_column("##chosen", imgui.TableColumnFlags_.width_fixed)
+            imgui.table_setup_column(S.COLUMN_NAME)
+            imgui.table_setup_column(S.AREAS_COLUMN_KIND)
+            imgui.table_setup_column(S.AREAS_FLOOR)
+            data_table_headers()
+            for space in spaces:
+                imgui.push_id(space.ha_id)
+                imgui.table_next_row()
+                imgui.table_next_column()
+                changed, _chosen = checkbox(
+                    "##chosen", space.ha_id not in self._spaces_unchosen
+                )
+                if changed:
+                    self._spaces_unchosen ^= {space.ha_id}
+                imgui.table_next_column()
+                imgui.text(space.name)
+                imgui.table_next_column()
+                imgui.text(S.AREAS_FLOOR if space.kind == "floor" else S.AREAS_AREA)
+                imgui.table_next_column()
+                imgui.text(space.floor_name)
+                imgui.pop_id()
+            imgui.end_table()
+        buildings = service.buildings()
+        imgui.align_text_to_frame_padding()
+        imgui.text(S.SPACES_BUILDING)
+        imgui.same_line()
+        if buildings:
+            self._building_index = min(self._building_index, len(buildings) - 1)
+            imgui.set_next_item_width(px(220.0))
+            changed, index = combo(
+                "##building", self._building_index, [b.name for b in buildings], 12
+            )
+            if changed:
+                self._building_index = index
+        else:
+            imgui.text_disabled(S.SPACES_NEW_BUILDING)
+        imgui.same_line()
+        chosen = [s for s in spaces if s.ha_id not in self._spaces_unchosen]
+        imgui.begin_disabled(not chosen or service.areas_applying)
+        if imgui.button(S.BTN_ADD_TO_PROJECT):
+            building = buildings[self._building_index].id if buildings else None
+            added = service.add_spaces(chosen, building)
+            self._spaces_unchosen.clear()
+            self._tell(S.SPACES_ADDED.format(count=added))
+        imgui.end_disabled()
+
+    def _render_addresses(self) -> None:
+        if not begin_dialog(_addresses_title(), width=720.0):
+            return
+        service = self._service
+        addresses = service.addresses_to_add()
+        imgui.text_wrapped(S.ADDRESSES_INTRO)
+        imgui.spacing()
+        style = self._project.group_address_style
+        if not addresses:
+            imgui.text_disabled(S.ADDRESSES_NONE)
+        elif begin_data_table(
+            "##home_assistant_addresses",
+            5,
+            imgui.TableFlags_.borders_inner_h | imgui.TableFlags_.scroll_y,
+            imgui.ImVec2(0, px(340.0)),
+        ):
+            imgui.table_setup_column("##chosen", imgui.TableColumnFlags_.width_fixed)
+            imgui.table_setup_column(S.COLUMN_ADDRESS)
+            imgui.table_setup_column(S.COLUMN_NAME)
+            imgui.table_setup_column(S.COLUMN_DATAPOINT_TYPE)
+            imgui.table_setup_column(S.COLUMN_USED_BY)
+            data_table_headers()
+            for address in addresses:
+                imgui.push_id(address.raw)
+                imgui.table_next_row()
+                imgui.table_next_column()
+                changed, _chosen = checkbox(
+                    "##chosen", address.raw not in self._addresses_unchosen
+                )
+                if changed:
+                    self._addresses_unchosen ^= {address.raw}
+                imgui.table_next_column()
+                imgui.text(format_ga(address.raw, style))
+                imgui.table_next_column()
+                imgui.text(address.name)
+                imgui.table_next_column()
+                imgui.text(address.dpt or "")
+                imgui.table_next_column()
+                imgui.text_wrapped(", ".join(address.users))
+                imgui.pop_id()
+            imgui.end_table()
+        chosen = [a for a in addresses if a.raw not in self._addresses_unchosen]
+        clicked = dialog_buttons(
+            S.BTN_ADD_TO_PROJECT, app_strings.BTN_CLOSE, enabled=[bool(chosen), True]
+        )
+        if clicked == 0:
+            added = service.add_group_addresses(chosen)
+            self._addresses_unchosen.clear()
+            self._tell(S.ADDRESSES_ADDED.format(count=added))
         elif clicked == 1:
             imgui.close_current_popup()
         end_dialog()
@@ -667,6 +806,10 @@ class HomeAssistantPlugin:
 
 def _areas_title() -> str:
     return f"{S.AREAS_TITLE}###home_assistant_areas"
+
+
+def _addresses_title() -> str:
+    return f"{S.ADDRESSES_TITLE}###home_assistant_addresses"
 
 
 def _entities_title() -> str:

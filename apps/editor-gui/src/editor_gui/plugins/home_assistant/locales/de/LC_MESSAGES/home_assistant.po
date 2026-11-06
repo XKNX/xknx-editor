@@ -292,3 +292,54 @@ msgstr "Der Editor verbindet sich über dieselbe Schnittstelle oder denselben Ro
 
 msgid "Home Assistant's KNX integration connects with KNX Secure or finds its interface itself: connect the editor in the Gateway menu."
 msgstr "Die KNX-Integration von Home Assistant verbindet sich mit KNX Secure oder findet ihre Schnittstelle selbst: Verbinden Sie den Editor im Menü „Gateway“."
+
+msgid "From Home Assistant"
+msgstr "Aus Home Assistant"
+
+msgid "Floors and areas of Home Assistant that the project has no floor or room for. They become floors and rooms of the building, linked to what they were made from."
+msgstr "Etagen und Bereiche von Home Assistant, für die das Projekt keine Etage und keinen Raum hat. Sie werden zu Etagen und Räumen des Gebäudes, verknüpft mit dem, woraus sie entstanden sind."
+
+msgid "Building"
+msgstr "Gebäude"
+
+msgid "New building"
+msgstr "Neues Gebäude"
+
+msgid "Home"
+msgstr "Zuhause"
+
+msgid "Add to Project"
+msgstr "Zum Projekt hinzufügen"
+
+msgid "Floors and areas from Home Assistant"
+msgstr "Etagen und Bereiche aus Home Assistant"
+
+msgid "Floors and rooms added to the project: {count}"
+msgstr "Zum Projekt hinzugefügte Etagen und Räume: {count}"
+
+msgid "Group Addresses from Home Assistant…"
+msgstr "Gruppenadressen aus Home Assistant…"
+
+msgid "Group Addresses from Home Assistant"
+msgstr "Gruppenadressen aus Home Assistant"
+
+msgid "The group addresses Home Assistant's KNX integration uses that the project does not have. They are added with the name of what uses them and the datapoint type Home Assistant uses them with."
+msgstr "Die Gruppenadressen, die die KNX-Integration von Home Assistant verwendet und die das Projekt nicht hat. Sie werden mit dem Namen dessen hinzugefügt, was sie verwendet, und mit dem Datenpunkttyp, mit dem Home Assistant sie verwendet."
+
+msgid "Home Assistant uses no group addresses the project does not have."
+msgstr "Home Assistant verwendet keine Gruppenadressen, die das Projekt nicht hat."
+
+msgid "Address"
+msgstr "Adresse"
+
+msgid "Datapoint Type"
+msgstr "Datenpunkttyp"
+
+msgid "Used By"
+msgstr "Verwendet von"
+
+msgid "Group addresses from Home Assistant"
+msgstr "Gruppenadressen aus Home Assistant"
+
+msgid "Group addresses added to the project: {count}"
+msgstr "Zum Projekt hinzugefügte Gruppenadressen: {count}"

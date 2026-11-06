@@ -132,8 +132,8 @@ def plan_spaces(tree: Sequence[SpaceInfo], project_guid: str) -> list[PlannedSpa
     return [*floors, *areas]
 
 
-def _named(items: object, id_key: str) -> dict[str, dict[str, Any]]:
-    """Home Assistant's floors or areas by id."""
+def by_id(items: object, id_key: str) -> dict[str, dict[str, Any]]:
+    """Home Assistant's floors or areas (as the integration reports them) by id."""
     if not isinstance(items, list):
         return {}
     result: dict[str, dict[str, Any]] = {}
@@ -151,8 +151,8 @@ def compare(
     """What each planned floor and area is in Home Assistant now (``home_assistant``: its
     floors, areas and the links, as the integration reports them)."""
     state = home_assistant or {}
-    floors = _named(state.get("floors"), "floor_id")
-    areas = _named(state.get("areas"), "area_id")
+    floors = by_id(state.get("floors"), "floor_id")
+    areas = by_id(state.get("areas"), "area_id")
     links_value = state.get("links")
     links: dict[str, str] = (
         {str(k): str(v) for k, v in cast("dict[object, object]", links_value).items()}
@@ -189,12 +189,25 @@ def compare(
     return rows
 
 
-def request(rows: Sequence[AreaRow]) -> dict[str, list[dict[str, Any]]]:
+def request(
+    rows: Sequence[AreaRow], targets: Mapping[str, str] | None = None
+) -> dict[str, list[dict[str, Any]]]:
     """The floors and areas to send for ``rows`` (the chosen ones): their keys, names, levels and
-    floors; the integration creates, links or renames them."""
+    floors; the integration creates, links or renames them. ``targets``: the floor or area of
+    Home Assistant a space's key is to be linked to as it is (the space was made from it)."""
+    chosen = targets or {}
+
+    def target(key: str, id_key: str) -> dict[str, str]:
+        return {id_key: chosen[key]} if key in chosen else {}
+
     return {
         "floors": [
-            {"key": r.planned.key, "name": r.planned.name, "level": r.planned.level}
+            {
+                "key": r.planned.key,
+                "name": r.planned.name,
+                "level": r.planned.level,
+                **target(r.planned.key, "floor_id"),
+            }
             for r in rows
             if r.planned.kind == "floor"
         ],
@@ -203,6 +216,7 @@ def request(rows: Sequence[AreaRow]) -> dict[str, list[dict[str, Any]]]:
                 "key": r.planned.key,
                 "name": r.planned.name,
                 "floor_key": r.planned.floor_key,
+                **target(r.planned.key, "area_id"),
             }
             for r in rows
             if r.planned.kind == "area"

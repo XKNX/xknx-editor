@@ -283,6 +283,160 @@ async def test_the_buildings_become_floors_and_areas(
     assert service.home_assistant_areas is not None
 
 
+async def test_home_assistants_floors_and_areas_become_spaces(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    mcp, service, link = _server(tmp_path, monkeypatch)
+    applied: list[dict[str, Any]] = []
+
+    def send(message: dict[str, Any]) -> bool:
+        if message["type"] != "apply_areas":
+            return _Link.send(link, message)
+        applied.append(message)
+        link.inbox.append(
+            {"type": "result", "id": message["id"], "error": None, "changed": 3}
+        )
+        return True
+
+    monkeypatch.setattr(link, "send", send)
+    async with Client(mcp) as client:
+        await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
+        (house,) = (await _data(client, "project_spaces"))["items"]
+        await _data(
+            client,
+            "project_create_space",
+            space_type="Floor",
+            name="EG",
+            parent_id=house["id"],
+        )
+        link.inbox.append(
+            {
+                "type": "areas",
+                "location_name": "Home",
+                "floors": [
+                    {"floor_id": "eg", "name": "EG", "level": 0},
+                    {"floor_id": "og", "name": "OG", "level": 1},
+                ],
+                "areas": [
+                    {"area_id": "kitchen", "name": "Küche", "floor_id": "eg"},
+                    {"area_id": "bath", "name": "Bad", "floor_id": "og"},
+                    {"area_id": "garden", "name": "Garten", "floor_id": None},
+                ],
+                # Linked to a space of another project: not offered.
+                "links": {"other:7": "garden"},
+            }
+        )
+        service.poll()
+        offered = await _data(client, "home_assistant_spaces_to_add")
+        # The project has a floor named EG.
+        assert [(s["kind"], s["name"], s["floor_name"]) for s in offered["items"]] == [
+            ("floor", "OG", ""),
+            ("area", "Küche", "EG"),
+            ("area", "Bad", "OG"),
+        ]
+        assert offered["buildings"] == [
+            {"space_id": house["id"], "name": house["name"]}
+        ]
+        with pytest.raises(Exception, match="no building with space_id 999"):
+            await client.call_tool(
+                "home_assistant_add_spaces", {"building_space_id": 999}
+            )
+
+        result = await _data(client, "home_assistant_add_spaces")
+        assert result["added"] == 3
+        (house,) = (await _data(client, "project_spaces"))["items"]
+        floors = {f["name"]: f for f in house["children"]}
+        assert set(floors) == {"EG", "OG"}
+        # The kitchen on the floor of the same name, the bath on the floor made with it.
+        assert [r["name"] for r in floors["EG"]["children"]] == ["Küche"]
+        assert [r["name"] for r in floors["OG"]["children"]] == ["Bad"]
+        assert floors["OG"].get("number") == "1"
+        # Linked to what they were made from, as they are named there.
+        (message,) = applied
+        assert [(f["name"], f["floor_id"]) for f in message["floors"]] == [("OG", "og")]
+        assert {(a["name"], a["area_id"]) for a in message["areas"]} == {
+            ("Küche", "kitchen"),
+            ("Bad", "bath"),
+        }
+        # One undo step takes them all away.
+        await _data(client, "project_undo")
+        (house,) = (await _data(client, "project_spaces"))["items"]
+        assert [f["name"] for f in house["children"]] == ["EG"]
+
+
+async def test_without_a_building_one_is_made_like_home_assistants_home(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    mcp, service, link = _server(tmp_path, monkeypatch)
+    async with Client(mcp) as client:
+        await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
+        (house,) = (await _data(client, "project_spaces"))["items"]
+        await _data(client, "project_remove_space", space_id=house["id"])
+        link.inbox.append(
+            {
+                "type": "areas",
+                "location_name": "Lake House",
+                "floors": [],
+                "areas": [{"area_id": "garden", "name": "Garten", "floor_id": None}],
+                "links": {},
+            }
+        )
+        service.poll()
+        assert (await _data(client, "home_assistant_spaces_to_add"))["buildings"] == []
+        assert (await _data(client, "home_assistant_add_spaces"))["added"] == 1
+        (building,) = (await _data(client, "project_spaces"))["items"]
+        # An area on no floor goes into the building itself.
+        assert building["name"] == "Lake House"
+        assert [r["name"] for r in building["children"]] == ["Garten"]
+
+
+async def test_group_addresses_home_assistant_uses_become_the_projects(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    mcp, service, _link = _server(tmp_path, monkeypatch)
+    async with Client(mcp) as client:
+        await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
+        await _data(
+            client, "project_create_group_address", name="Known", address="1/2/3"
+        )
+        light = {"kind": "entity", "entity_id": "light.kitchen", "name": "Kitchen"}
+        service.usage = {
+            0x0A03: GroupAddressUsage(users=(light,), dpt="1.001"),
+            0x0A04: GroupAddressUsage(users=(light,), dpt="1.001"),
+            0x0A05: GroupAddressUsage(
+                users=({"kind": "expose", "name": "sensor.outside"},), dpt="9.001"
+            ),
+        }
+        offered = await _data(client, "home_assistant_group_addresses_to_add")
+        assert offered["items"] == [
+            {
+                "group_address": "1/2/4",
+                "name": "Kitchen",
+                "dpt": "1.001",
+                "used_by": ["light.kitchen"],
+            },
+            {
+                "group_address": "1/2/5",
+                "name": "sensor.outside",
+                "dpt": "9.001",
+                "used_by": ["sensor.outside"],
+            },
+        ]
+        result = await _data(
+            client, "home_assistant_add_group_addresses", group_addresses=["1/2/5"]
+        )
+        assert result["added"] == 1
+        assert [a["group_address"] for a in result["items"]] == ["1/2/4"]
+        added = await _data(client, "project_get_group_address", group_address="1/2/5")
+        assert (added["name"], added["datapoint_type"]) == (
+            "sensor.outside",
+            "DPST-9-1",
+        )
+        await _data(client, "home_assistant_add_group_addresses")
+        with pytest.raises(Exception, match="nothing to add"):
+            await client.call_tool("home_assistant_add_group_addresses", {})
+
+
 async def test_the_building_functions_become_entities(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
