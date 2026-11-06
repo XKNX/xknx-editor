@@ -31,11 +31,12 @@ def test_options_from_the_command_line() -> None:
             "--home-assistant",
             "--mcp=127.0.0.1:41000",
             "--mcp-url=https://ha.example/api/xknx_editor/mcp",
+            "--language=pt-BR",
             "project.xknx",
         ]
     )
     assert options == HostOptions(
-        True, "127.0.0.1", 41000, "https://ha.example/api/xknx_editor/mcp"
+        True, "127.0.0.1", 41000, "https://ha.example/api/xknx_editor/mcp", "pt-BR"
     )
     assert options.mcp_managed
 
@@ -50,6 +51,8 @@ def test_options_from_the_command_line() -> None:
         (["editor", "--home-assistant"], HostOptions(home_assistant=True)),
         # Unknown values are ignored: the flag takes none.
         (["editor", "--home-assistant=app", "--mcp=host:port"], HostOptions()),
+        # A language without a code is none.
+        (["editor", "--language="], HostOptions()),
     ],
 )
 def test_defaults_and_unknown_values(argv: list[str], expected: HostOptions) -> None:

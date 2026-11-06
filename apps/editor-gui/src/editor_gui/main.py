@@ -57,6 +57,7 @@ from editor_gui.languages import (
     PRODUCT_LANGUAGES,
     chosen_product_language,
     culture,
+    default_locale,
     product_language,
     product_text_languages,
     set_product_language,
@@ -7412,11 +7413,16 @@ def _main() -> None:
     # Where the editor runs (inside Home Assistant, an MCP server set up by its launcher).
     host.set_current(host.host_options(sys.argv))
     # Applies the OS locale, whose regional formats are used in every UI language. A persisted
-    # choice (Settings > General) wins over the auto-detected OS language.
+    # choice (Settings > General) wins over the language of the program that started the editor
+    # (Home Assistant's), and that one over the auto-detected OS language.
     os_language = _detect_locale()
     settings = load_settings("app")
     saved = settings.get("locale")
-    set_locale(saved if isinstance(saved, str) and saved else os_language)
+    set_locale(
+        saved
+        if isinstance(saved, str) and saved
+        else default_locale(host.current().language, os_language)
+    )
     product = settings.get("product_language")
     set_product_language(product if isinstance(product, str) else None)
 

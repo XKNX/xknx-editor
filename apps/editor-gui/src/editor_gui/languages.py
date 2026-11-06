@@ -59,6 +59,13 @@ def supported(code: str) -> str:
     return wanted if any(language.code == wanted for language in LANGUAGES) else "en"
 
 
+def default_locale(host_language: str | None, system: str) -> str:
+    """The language of the user interface while none is chosen: the one of the program that
+    started the editor (``host_language``, e.g. Home Assistant's "pt-BR"), else English when the
+    editor lacks it; without one the system's (``system``)."""
+    return supported(host_language) if host_language else system
+
+
 def culture(code: str) -> str:
     """The product data language of the user interface language ``code``, e.g. "de-DE"."""
     wanted = supported(code)
