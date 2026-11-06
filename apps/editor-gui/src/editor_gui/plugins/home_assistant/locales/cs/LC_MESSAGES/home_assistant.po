@@ -125,7 +125,7 @@ msgid "State"
 msgstr "Stav"
 
 msgid "Expose"
-msgstr "Expose"
+msgstr "Vystavit"
 
 msgid "Time server"
 msgstr "Časový server"
@@ -137,16 +137,16 @@ msgid "Disabled"
 msgstr "Zakázáno"
 
 msgid "Floors and Areas…"
-msgstr "Podlaží a oblasti…"
+msgstr "Patra a oblasti…"
 
 msgid "Floors and Areas in Home Assistant"
-msgstr "Podlaží a oblasti v Home Assistantu"
+msgstr "Patra a oblasti v Home Assistantu"
 
 msgid "The floors of the buildings become floors of Home Assistant, their rooms, corridors and stairways its areas. Chosen ones are created, linked to one of the same name, or renamed as here; nothing is removed."
-msgstr "Podlaží budov se stanou podlažími Home Assistantu, jejich místnosti, chodby a schodiště jeho oblastmi. Vybrané se vytvoří, propojí se stejnojmennými nebo přejmenují jako zde; nic se neodstraní."
+msgstr "Patra budov se stanou patry Home Assistantu, jejich místnosti, chodby a schodiště jeho oblastmi. Vybrané se vytvoří, propojí se stejnojmennými nebo přejmenují jako zde; nic se neodstraní."
 
 msgid "The project has no floors, rooms, corridors or stairways."
-msgstr "Projekt nemá žádná podlaží, místnosti, chodby ani schodiště."
+msgstr "Projekt nemá žádná patra, místnosti, chodby ani schodiště."
 
 msgid "Building Part"
 msgstr "Část budovy"
@@ -158,7 +158,7 @@ msgid "In Home Assistant"
 msgstr "V Home Assistantu"
 
 msgid "Floor"
-msgstr "Podlaží"
+msgstr "Patro"
 
 msgid "Area"
 msgstr "Oblast"
@@ -182,7 +182,7 @@ msgid "Home Assistant did not take them: {error}"
 msgstr "Home Assistant je nepřevzal: {error}"
 
 msgid "Floors and areas in Home Assistant created, linked or renamed: {count}"
-msgstr "Podlaží a oblasti vytvořené, propojené nebo přejmenované v Home Assistantu: {count}"
+msgstr "Patra a oblasti vytvořené, propojené nebo přejmenované v Home Assistantu: {count}"
 
 msgid "Apply"
 msgstr "Použít"
@@ -193,11 +193,11 @@ msgstr "Entity z funkcí…"
 msgid "Entities in Home Assistant"
 msgstr "Entity v Home Assistantu"
 
-msgid "The building functions become entities of Home Assistant's KNX integration: a light, a switch or a cover with the group addresses of their roles, named like the function, in the area its room became (see Floors and Areas). Home Assistant checks each one first."
-msgstr "Funkce budovy se stanou entitami integrace KNX v Home Assistantu: světlem, spínačem nebo roletou se skupinovými adresami svých rolí, pojmenovanými podle funkce, v oblasti, kterou se stala jejich místnost (viz Podlaží a oblasti). Home Assistant každou nejprve zkontroluje."
+msgid "The building functions become entities of Home Assistant's KNX integration: a light, a switch, a cover or a climate entity with the group addresses of their roles, named like the function, in the area its room became (see Floors and Areas). Home Assistant checks each one first."
+msgstr "Funkce budovy se stanou entitami integrace KNX v Home Assistantu: světlem, spínačem, krytem nebo entitou klimatizačního zařízení se skupinovými adresami svých rolí, pojmenovanými podle funkce, v oblasti, kterou se stala jejich místnost (viz Patra a oblasti). Home Assistant každou nejprve zkontroluje."
 
-msgid "The project has no lights, switches or sun protection among its functions."
-msgstr "Mezi funkcemi projektu nejsou žádná světla, spínače ani sluneční ochrana."
+msgid "The project has no lights, switches, sun protection or heating among its functions."
+msgstr "Mezi funkcemi projektu nejsou žádná světla, spínače, sluneční ochrana ani vytápění."
 
 msgid "Function"
 msgstr "Funkce"
@@ -269,13 +269,13 @@ msgid "Keys in Home Assistant"
 msgstr "Klíče v Home Assistantu"
 
 msgid "The keys of the project's Data Secure group addresses become the keyring of Home Assistant's KNX integration, so it reads and sends their telegrams. The KNX integration is loaded again for it."
-msgstr "Klíče skupinových adres Data Secure projektu se stanou svazkem klíčů integrace KNX v Home Assistantu, aby četla a odesílala jejich telegramy. Integrace KNX se kvůli tomu znovu načte."
+msgstr "Klíče skupinových adres Data Secure projektu se stanou klíčenkou integrace KNX v Home Assistantu, aby četla a odesílala jejich telegramy. Integrace KNX se kvůli tomu znovu načte."
 
 msgid "Data Secure group addresses: {count}"
 msgstr "Skupinové adresy Data Secure: {count}"
 
 msgid "Home Assistant's KNX integration is not set up, or it connects with KNX Secure: then its keyring holds its own connection's keys, and stays as it is (change it in the KNX integration's options)."
-msgstr "Integrace KNX v Home Assistantu není nastavena nebo se připojuje pomocí KNX Secure: pak její svazek klíčů obsahuje klíče jejího vlastního připojení a zůstane beze změny (změňte jej v možnostech integrace KNX)."
+msgstr "Integrace KNX v Home Assistantu není nastavena nebo se připojuje pomocí KNX Secure: pak její klíčenka obsahuje klíče jejího vlastního připojení a zůstane beze změny (změňte ji v možnostech integrace KNX)."
 
 msgid "Send"
 msgstr "Odeslat"

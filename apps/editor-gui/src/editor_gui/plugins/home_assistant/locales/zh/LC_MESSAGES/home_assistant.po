@@ -44,7 +44,7 @@ msgid "Home Assistant: not connected"
 msgstr "Home Assistant：未连接"
 
 msgid "Home Assistant's KNX integration uses this project: its group monitor, project view and address pickers know its group addresses, devices and buildings."
-msgstr "Home Assistant 的 KNX 集成正在使用此项目：其组监视器、项目视图和地址选择器可识别该项目的组地址、设备和建筑。"
+msgstr "Home Assistant 的 KNX 集成正在使用此项目：其群组监控、项目视图和地址选择器可识别该项目的组地址、设备和建筑。"
 
 msgid "The changes are sent to Home Assistant in a moment."
 msgstr "更改将很快发送到 Home Assistant。"
@@ -74,7 +74,7 @@ msgid "Home Assistant's KNX integration holds the project \"{other}\" ({tool}, {
 msgstr "Home Assistant 的 KNX 集成中有项目“{other}”（{tool}，{date}）。是否将其替换为“{name}”？"
 
 msgid "Its group monitor, project view, address pickers and entity suggestions then know this project's group addresses, devices and buildings. Entities, automations and the KNX integration's other settings stay as they are."
-msgstr "之后，其组监视器、项目视图、地址选择器和实体建议将识别此项目的组地址、设备和建筑。实体、自动化以及 KNX 集成的其他设置保持不变。"
+msgstr "之后，其群组监控、项目视图、地址选择器和实体建议将识别此项目的组地址、设备和建筑。实体、自动化以及 KNX 集成的其他设置保持不变。"
 
 msgid "Your changes reach Home Assistant a moment after you make them."
 msgstr "您的更改会在做出后片刻到达 Home Assistant。"
@@ -193,11 +193,11 @@ msgstr "从功能创建实体…"
 msgid "Entities in Home Assistant"
 msgstr "Home Assistant 中的实体"
 
-msgid "The building functions become entities of Home Assistant's KNX integration: a light, a switch or a cover with the group addresses of their roles, named like the function, in the area its room became (see Floors and Areas). Home Assistant checks each one first."
-msgstr "建筑功能将成为 Home Assistant KNX 集成的实体：灯、开关或卷帘，使用其角色的组地址，以功能命名，位于其房间所对应的区域（参见“楼层和区域”）。Home Assistant 会先检查每个实体。"
+msgid "The building functions become entities of Home Assistant's KNX integration: a light, a switch, a cover or a climate entity with the group addresses of their roles, named like the function, in the area its room became (see Floors and Areas). Home Assistant checks each one first."
+msgstr "建筑功能将成为 Home Assistant KNX 集成的实体：灯光、开关、卷帘或空调实体，使用其角色的组地址，以功能命名，位于其房间所对应的区域（参见“楼层和区域”）。Home Assistant 会先检查每个实体。"
 
-msgid "The project has no lights, switches or sun protection among its functions."
-msgstr "项目的功能中没有灯、开关或遮阳。"
+msgid "The project has no lights, switches, sun protection or heating among its functions."
+msgstr "项目的功能中没有灯光、开关、遮阳或供暖。"
 
 msgid "Function"
 msgstr "功能"
@@ -206,7 +206,7 @@ msgid "Group Addresses"
 msgstr "组地址"
 
 msgid "No area"
-msgstr "无区域"
+msgstr "没有区域"
 
 msgid "Created: {entity}"
 msgstr "已创建：{entity}"

@@ -193,11 +193,11 @@ msgstr "Entiteiten uit functies…"
 msgid "Entities in Home Assistant"
 msgstr "Entiteiten in Home Assistant"
 
-msgid "The building functions become entities of Home Assistant's KNX integration: a light, a switch or a cover with the group addresses of their roles, named like the function, in the area its room became (see Floors and Areas). Home Assistant checks each one first."
-msgstr "De gebouwfuncties worden entiteiten van de KNX-integratie van Home Assistant: een lamp, een schakelaar of een raambekleding met de groepsadressen van hun rollen, genoemd naar de functie, in de ruimte waarin hun kamer is omgezet (zie Verdiepingen en ruimtes). Home Assistant controleert elke entiteit eerst."
+msgid "The building functions become entities of Home Assistant's KNX integration: a light, a switch, a cover or a climate entity with the group addresses of their roles, named like the function, in the area its room became (see Floors and Areas). Home Assistant checks each one first."
+msgstr "De gebouwfuncties worden entiteiten van de KNX-integratie van Home Assistant: een licht, een schakelaar, een bedekking of een klimaatentiteit met de groepsadressen van hun rollen, genoemd naar de functie, in de ruimte waarin hun kamer is omgezet (zie Verdiepingen en ruimtes). Home Assistant controleert elke entiteit eerst."
 
-msgid "The project has no lights, switches or sun protection among its functions."
-msgstr "Het project heeft geen lampen, schakelaars of zonwering onder zijn functies."
+msgid "The project has no lights, switches, sun protection or heating among its functions."
+msgstr "Het project heeft geen lichten, schakelaars, zonwering of verwarming onder zijn functies."
 
 msgid "Function"
 msgstr "Functie"

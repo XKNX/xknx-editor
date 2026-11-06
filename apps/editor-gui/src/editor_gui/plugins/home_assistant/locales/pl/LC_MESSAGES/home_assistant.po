@@ -193,11 +193,11 @@ msgstr "Encje z funkcji…"
 msgid "Entities in Home Assistant"
 msgstr "Encje w Home Assistant"
 
-msgid "The building functions become entities of Home Assistant's KNX integration: a light, a switch or a cover with the group addresses of their roles, named like the function, in the area its room became (see Floors and Areas). Home Assistant checks each one first."
-msgstr "Funkcje budynku stają się encjami integracji KNX w Home Assistant: światłem, przełącznikiem lub roletą z adresami grupowymi swoich ról, nazwanymi jak funkcja, w obszarze, którym stało się ich pomieszczenie (zob. Piętra i obszary). Home Assistant najpierw sprawdza każdą z nich."
+msgid "The building functions become entities of Home Assistant's KNX integration: a light, a switch, a cover or a climate entity with the group addresses of their roles, named like the function, in the area its room became (see Floors and Areas). Home Assistant checks each one first."
+msgstr "Funkcje budynku stają się encjami integracji KNX w Home Assistant: światłem, przełącznikiem, osłoną lub encją klimatu z adresami grupowymi swoich ról, nazwanymi jak funkcja, w obszarze, którym stało się ich pomieszczenie (zob. Piętra i obszary). Home Assistant najpierw sprawdza każdą z nich."
 
-msgid "The project has no lights, switches or sun protection among its functions."
-msgstr "Wśród funkcji projektu nie ma świateł, przełączników ani ochrony przed słońcem."
+msgid "The project has no lights, switches, sun protection or heating among its functions."
+msgstr "Wśród funkcji projektu nie ma świateł, przełączników, ochrony przed słońcem ani ogrzewania."
 
 msgid "Function"
 msgstr "Funkcja"
@@ -269,13 +269,13 @@ msgid "Keys in Home Assistant"
 msgstr "Klucze w Home Assistant"
 
 msgid "The keys of the project's Data Secure group addresses become the keyring of Home Assistant's KNX integration, so it reads and sends their telegrams. The KNX integration is loaded again for it."
-msgstr "Klucze adresów grupowych Data Secure projektu stają się plikiem kluczy integracji KNX w Home Assistant, aby mogła odczytywać i wysyłać ich telegramy. W tym celu integracja KNX zostanie ponownie załadowana."
+msgstr "Klucze adresów grupowych Data Secure projektu stają się keyringiem integracji KNX w Home Assistant, aby mogła odczytywać i wysyłać ich telegramy. W tym celu integracja KNX zostanie ponownie załadowana."
 
 msgid "Data Secure group addresses: {count}"
 msgstr "Adresy grupowe Data Secure: {count}"
 
 msgid "Home Assistant's KNX integration is not set up, or it connects with KNX Secure: then its keyring holds its own connection's keys, and stays as it is (change it in the KNX integration's options)."
-msgstr "Integracja KNX w Home Assistant nie jest skonfigurowana lub łączy się przez KNX Secure: wtedy jej plik kluczy zawiera klucze jej własnego połączenia i pozostaje bez zmian (można go zmienić w opcjach integracji KNX)."
+msgstr "Integracja KNX w Home Assistant nie jest skonfigurowana lub łączy się przez KNX Secure: wtedy jej keyring zawiera klucze jej własnego połączenia i pozostaje bez zmian (można go zmienić w opcjach integracji KNX)."
 
 msgid "Send"
 msgstr "Wyślij"

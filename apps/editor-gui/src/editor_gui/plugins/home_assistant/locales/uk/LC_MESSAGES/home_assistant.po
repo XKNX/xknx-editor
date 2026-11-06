@@ -44,7 +44,7 @@ msgid "Home Assistant: not connected"
 msgstr "Home Assistant: немає з'єднання"
 
 msgid "Home Assistant's KNX integration uses this project: its group monitor, project view and address pickers know its group addresses, devices and buildings."
-msgstr "Інтеграція KNX у Home Assistant використовує цей проєкт: її монітор груп, подання проєкту та вибір адрес знають його групові адреси, пристрої та будівлі."
+msgstr "Інтеграція KNX у Home Assistant використовує цей проєкт: її груповий монітор, подання проєкту та вибір адрес знають його групові адреси, пристрої та будівлі."
 
 msgid "The changes are sent to Home Assistant in a moment."
 msgstr "Зміни буде надіслано до Home Assistant за мить."
@@ -74,7 +74,7 @@ msgid "Home Assistant's KNX integration holds the project \"{other}\" ({tool}, {
 msgstr "Інтеграція KNX у Home Assistant містить проєкт «{other}» ({tool}, {date}). Замінити його на «{name}»?"
 
 msgid "Its group monitor, project view, address pickers and entity suggestions then know this project's group addresses, devices and buildings. Entities, automations and the KNX integration's other settings stay as they are."
-msgstr "Тоді її монітор груп, подання проєкту, вибір адрес і пропозиції сутностей знатимуть групові адреси, пристрої та будівлі цього проєкту. Сутності, автоматизації та інші налаштування інтеграції KNX залишаться без змін."
+msgstr "Тоді її груповий монітор, подання проєкту, вибір адрес і пропозиції сутностей знатимуть групові адреси, пристрої та будівлі цього проєкту. Сутності, автоматизації та інші налаштування інтеграції KNX залишаться без змін."
 
 msgid "Your changes reach Home Assistant a moment after you make them."
 msgstr "Ваші зміни потрапляють до Home Assistant невдовзі після того, як ви їх внесете."
@@ -116,7 +116,7 @@ msgid "Home Assistant sends to this group address."
 msgstr "Home Assistant надсилає на цю групову адресу."
 
 msgid "Name"
-msgstr "Ім'я"
+msgstr "Назва"
 
 msgid "Used By"
 msgstr "Використовує"
@@ -125,7 +125,7 @@ msgid "State"
 msgstr "Стан"
 
 msgid "Expose"
-msgstr "Expose"
+msgstr "Викриття"
 
 msgid "Time server"
 msgstr "Сервер часу"
@@ -137,13 +137,13 @@ msgid "Disabled"
 msgstr "Вимкнено"
 
 msgid "Floors and Areas…"
-msgstr "Поверхи й простори…"
+msgstr "Поверхи й приміщення…"
 
 msgid "Floors and Areas in Home Assistant"
-msgstr "Поверхи й простори в Home Assistant"
+msgstr "Поверхи й приміщення в Home Assistant"
 
 msgid "The floors of the buildings become floors of Home Assistant, their rooms, corridors and stairways its areas. Chosen ones are created, linked to one of the same name, or renamed as here; nothing is removed."
-msgstr "Поверхи будівель стають поверхами Home Assistant, а їхні кімнати, коридори та сходи — його просторами. Вибрані створюються, пов'язуються з однойменними або перейменовуються, як тут; нічого не видаляється."
+msgstr "Поверхи будівель стають поверхами Home Assistant, а їхні кімнати, коридори та сходи — його приміщеннями. Вибрані створюються, пов'язуються з однойменними або перейменовуються, як тут; нічого не видаляється."
 
 msgid "The project has no floors, rooms, corridors or stairways."
 msgstr "У проєкті немає поверхів, кімнат, коридорів чи сходів."
@@ -161,7 +161,7 @@ msgid "Floor"
 msgstr "Поверх"
 
 msgid "Area"
-msgstr "Простір"
+msgstr "Приміщення"
 
 msgid "New"
 msgstr "Новий"
@@ -182,7 +182,7 @@ msgid "Home Assistant did not take them: {error}"
 msgstr "Home Assistant їх не прийняв: {error}"
 
 msgid "Floors and areas in Home Assistant created, linked or renamed: {count}"
-msgstr "Поверхи й простори, створені, пов'язані або перейменовані в Home Assistant: {count}"
+msgstr "Поверхи й приміщення, створені, пов'язані або перейменовані в Home Assistant: {count}"
 
 msgid "Apply"
 msgstr "Застосувати"
@@ -193,11 +193,11 @@ msgstr "Сутності з функцій…"
 msgid "Entities in Home Assistant"
 msgstr "Сутності в Home Assistant"
 
-msgid "The building functions become entities of Home Assistant's KNX integration: a light, a switch or a cover with the group addresses of their roles, named like the function, in the area its room became (see Floors and Areas). Home Assistant checks each one first."
-msgstr "Функції будівлі стають сутностями інтеграції KNX у Home Assistant: освітленням, вимикачем або шторами з груповими адресами своїх ролей, з назвою функції, у просторі, яким стала їхня кімната (див. «Поверхи й простори»). Home Assistant спершу перевіряє кожну з них."
+msgid "The building functions become entities of Home Assistant's KNX integration: a light, a switch, a cover or a climate entity with the group addresses of their roles, named like the function, in the area its room became (see Floors and Areas). Home Assistant checks each one first."
+msgstr "Функції будівлі стають сутностями інтеграції KNX у Home Assistant: освітленням, перемикачем, пристроєм типу «Штори, жалюзі, ворота» або сутністю клімату з груповими адресами своїх ролей, з назвою функції, у приміщенні Home Assistant, яким стала їхня кімната (див. «Поверхи й приміщення»). Home Assistant спершу перевіряє кожну з них."
 
-msgid "The project has no lights, switches or sun protection among its functions."
-msgstr "Серед функцій проєкту немає освітлення, вимикачів чи захисту від сонця."
+msgid "The project has no lights, switches, sun protection or heating among its functions."
+msgstr "Серед функцій проєкту немає освітлення, перемикачів, захисту від сонця чи опалення."
 
 msgid "Function"
 msgstr "Функція"
@@ -206,7 +206,7 @@ msgid "Group Addresses"
 msgstr "Групові адреси"
 
 msgid "No area"
-msgstr "Без простору"
+msgstr "Приміщення не вказано"
 
 msgid "Created: {entity}"
 msgstr "Створено: {entity}"
@@ -269,13 +269,13 @@ msgid "Keys in Home Assistant"
 msgstr "Ключі в Home Assistant"
 
 msgid "The keys of the project's Data Secure group addresses become the keyring of Home Assistant's KNX integration, so it reads and sends their telegrams. The KNX integration is loaded again for it."
-msgstr "Ключі групових адрес Data Secure проєкту стають в'язкою ключів інтеграції KNX у Home Assistant, щоб вона читала й надсилала їхні телеграми. Для цього інтеграцію KNX буде перезавантажено."
+msgstr "Ключі групових адрес Data Secure проєкту стають брелоком інтеграції KNX у Home Assistant, щоб вона читала й надсилала їхні телеграми. Для цього інтеграцію KNX буде перезавантажено."
 
 msgid "Data Secure group addresses: {count}"
 msgstr "Групові адреси Data Secure: {count}"
 
 msgid "Home Assistant's KNX integration is not set up, or it connects with KNX Secure: then its keyring holds its own connection's keys, and stays as it is (change it in the KNX integration's options)."
-msgstr "Інтеграцію KNX у Home Assistant не налаштовано, або вона підключається через KNX Secure: тоді її в'язка ключів містить ключі її власного підключення й залишається без змін (змініть її в параметрах інтеграції KNX)."
+msgstr "Інтеграцію KNX у Home Assistant не налаштовано, або вона підключається через KNX Secure: тоді її брелок містить ключі її власного підключення й залишається без змін (змініть його в параметрах інтеграції KNX)."
 
 msgid "Send"
 msgstr "Надіслати"

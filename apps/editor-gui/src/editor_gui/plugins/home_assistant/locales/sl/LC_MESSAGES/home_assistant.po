@@ -116,7 +116,7 @@ msgid "Home Assistant sends to this group address."
 msgstr "Home Assistant pošilja na ta skupinski naslov."
 
 msgid "Name"
-msgstr "Ime"
+msgstr "Naziv"
 
 msgid "Used By"
 msgstr "Uporablja"
@@ -193,11 +193,11 @@ msgstr "Entitete iz funkcij…"
 msgid "Entities in Home Assistant"
 msgstr "Entitete v Home Assistantu"
 
-msgid "The building functions become entities of Home Assistant's KNX integration: a light, a switch or a cover with the group addresses of their roles, named like the function, in the area its room became (see Floors and Areas). Home Assistant checks each one first."
-msgstr "Funkcije stavbe postanejo entitete integracije KNX v Home Assistantu: luč, stikalo ali senčilo s skupinskimi naslovi svojih vlog, poimenovano po funkciji, v območju, v katerega se je spremenil njihov prostor (glejte Nadstropja in območja). Home Assistant vsako najprej preveri."
+msgid "The building functions become entities of Home Assistant's KNX integration: a light, a switch, a cover or a climate entity with the group addresses of their roles, named like the function, in the area its room became (see Floors and Areas). Home Assistant checks each one first."
+msgstr "Funkcije stavbe postanejo entitete integracije KNX v Home Assistantu: luč, stikalo, senčilo ali entiteta klime s skupinskimi naslovi svojih vlog, poimenovano po funkciji, v območju, v katerega se je spremenil njihov prostor (glejte Nadstropja in območja). Home Assistant vsako najprej preveri."
 
-msgid "The project has no lights, switches or sun protection among its functions."
-msgstr "Med funkcijami projekta ni luči, stikal ali zaščite pred soncem."
+msgid "The project has no lights, switches, sun protection or heating among its functions."
+msgstr "Med funkcijami projekta ni luči, stikal, zaščite pred soncem ali ogrevanja."
 
 msgid "Function"
 msgstr "Funkcija"

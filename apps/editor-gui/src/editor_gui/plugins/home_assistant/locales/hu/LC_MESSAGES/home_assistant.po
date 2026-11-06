@@ -44,7 +44,7 @@ msgid "Home Assistant: not connected"
 msgstr "Home Assistant: nincs kapcsolat"
 
 msgid "Home Assistant's KNX integration uses this project: its group monitor, project view and address pickers know its group addresses, devices and buildings."
-msgstr "A Home Assistant KNX-integrációja ezt a projektet használja: a csoportmonitorja, a projektnézete és a címválasztói ismerik a projekt csoportcímeit, készülékeit és épületeit."
+msgstr "A Home Assistant KNX-integrációja ezt a projektet használja: a csoportfigyelője, a projektnézete és a címválasztói ismerik a projekt csoportcímeit, készülékeit és épületeit."
 
 msgid "The changes are sent to Home Assistant in a moment."
 msgstr "A módosítások hamarosan elküldésre kerülnek a Home Assistantnak."
@@ -74,7 +74,7 @@ msgid "Home Assistant's KNX integration holds the project \"{other}\" ({tool}, {
 msgstr "A Home Assistant KNX-integrációjában a(z) „{other}” projekt található ({tool}, {date}). Lecseréli erre: „{name}”?"
 
 msgid "Its group monitor, project view, address pickers and entity suggestions then know this project's group addresses, devices and buildings. Entities, automations and the KNX integration's other settings stay as they are."
-msgstr "A csoportmonitorja, a projektnézete, a címválasztói és az entitásjavaslatai ezután ismerik ennek a projektnek a csoportcímeit, készülékeit és épületeit. Az entitások, az automatizálások és a KNX-integráció egyéb beállításai változatlanok maradnak."
+msgstr "A csoportfigyelője, a projektnézete, a címválasztói és az entitásjavaslatai ezután ismerik ennek a projektnek a csoportcímeit, készülékeit és épületeit. Az entitások, az automatizmusok és a KNX-integráció egyéb beállításai változatlanok maradnak."
 
 msgid "Your changes reach Home Assistant a moment after you make them."
 msgstr "Az Ön módosításai röviddel azután érik el a Home Assistantot, hogy elvégezte őket."
@@ -125,7 +125,7 @@ msgid "State"
 msgstr "Állapot"
 
 msgid "Expose"
-msgstr "Expose"
+msgstr "Kitettség"
 
 msgid "Time server"
 msgstr "Időszerver"
@@ -137,13 +137,13 @@ msgid "Disabled"
 msgstr "Letiltva"
 
 msgid "Floors and Areas…"
-msgstr "Szintek és területek…"
+msgstr "Emeletek és területek…"
 
 msgid "Floors and Areas in Home Assistant"
-msgstr "Szintek és területek a Home Assistantban"
+msgstr "Emeletek és területek a Home Assistantban"
 
 msgid "The floors of the buildings become floors of Home Assistant, their rooms, corridors and stairways its areas. Chosen ones are created, linked to one of the same name, or renamed as here; nothing is removed."
-msgstr "Az épületek emeletei a Home Assistant szintjeivé, helyiségeik, folyosóik és lépcsőházaik pedig a területeivé válnak. A kiválasztottak létrejönnek, összekapcsolódnak egy azonos nevűvel, vagy az itt látható módon átneveződnek; semmi sem törlődik."
+msgstr "Az épületek emeletei a Home Assistant emeleteivé, helyiségeik, folyosóik és lépcsőházaik pedig a területeivé válnak. A kiválasztottak létrejönnek, összekapcsolódnak egy azonos nevűvel, vagy az itt látható módon átneveződnek; semmi sem törlődik."
 
 msgid "The project has no floors, rooms, corridors or stairways."
 msgstr "A projektben nincsenek emeletek, helyiségek, folyosók vagy lépcsőházak."
@@ -158,7 +158,7 @@ msgid "In Home Assistant"
 msgstr "A Home Assistantban"
 
 msgid "Floor"
-msgstr "Szint"
+msgstr "Emelet"
 
 msgid "Area"
 msgstr "Terület"
@@ -182,7 +182,7 @@ msgid "Home Assistant did not take them: {error}"
 msgstr "A Home Assistant nem fogadta el őket: {error}"
 
 msgid "Floors and areas in Home Assistant created, linked or renamed: {count}"
-msgstr "A Home Assistantban létrehozott, összekapcsolt vagy átnevezett szintek és területek: {count}"
+msgstr "A Home Assistantban létrehozott, összekapcsolt vagy átnevezett emeletek és területek: {count}"
 
 msgid "Apply"
 msgstr "Alkalmaz"
@@ -193,11 +193,11 @@ msgstr "Entitások funkciókból…"
 msgid "Entities in Home Assistant"
 msgstr "Entitások a Home Assistantban"
 
-msgid "The building functions become entities of Home Assistant's KNX integration: a light, a switch or a cover with the group addresses of their roles, named like the function, in the area its room became (see Floors and Areas). Home Assistant checks each one first."
-msgstr "Az épületfunkciókból a Home Assistant KNX-integrációjának entitásai lesznek: világítás, kapcsoló vagy redőny a szerepeik csoportcímeivel, a funkció nevével, abban a területben, amellyé a helyiségük vált (lásd Szintek és területek). A Home Assistant mindegyiket előbb ellenőrzi."
+msgid "The building functions become entities of Home Assistant's KNX integration: a light, a switch, a cover or a climate entity with the group addresses of their roles, named like the function, in the area its room became (see Floors and Areas). Home Assistant checks each one first."
+msgstr "Az épületfunkciókból a Home Assistant KNX-integrációjának entitásai lesznek: világítás, kapcsoló, árnyékoló vagy klíma-entitás a szerepeik csoportcímeivel, a funkció nevével, abban a területben, amellyé a helyiségük vált (lásd Emeletek és területek). A Home Assistant mindegyiket előbb ellenőrzi."
 
-msgid "The project has no lights, switches or sun protection among its functions."
-msgstr "A projekt funkciói között nincs világítás, kapcsoló vagy napvédelem."
+msgid "The project has no lights, switches, sun protection or heating among its functions."
+msgstr "A projekt funkciói között nincs világítás, kapcsoló, napvédelem vagy fűtés."
 
 msgid "Function"
 msgstr "Funkció"
@@ -269,13 +269,13 @@ msgid "Keys in Home Assistant"
 msgstr "Kulcsok a Home Assistantban"
 
 msgid "The keys of the project's Data Secure group addresses become the keyring of Home Assistant's KNX integration, so it reads and sends their telegrams. The KNX integration is loaded again for it."
-msgstr "A projekt Data Secure-csoportcímeinek kulcsai a Home Assistant KNX-integrációjának kulcskarikájává válnak, így az olvassa és küldi a táviratukat. A KNX-integráció ehhez újra betöltődik."
+msgstr "A projekt Data Secure-csoportcímeinek kulcsai a Home Assistant KNX-integrációjának kulcstartójává válnak, így az olvassa és küldi a táviratukat. A KNX-integráció ehhez újra betöltődik."
 
 msgid "Data Secure group addresses: {count}"
 msgstr "Data Secure-csoportcímek: {count}"
 
 msgid "Home Assistant's KNX integration is not set up, or it connects with KNX Secure: then its keyring holds its own connection's keys, and stays as it is (change it in the KNX integration's options)."
-msgstr "A Home Assistant KNX-integrációja nincs beállítva, vagy KNX Secure-ral csatlakozik: ekkor a kulcskarikája a saját kapcsolatának kulcsait tartalmazza, és változatlan marad (módosítsa a KNX-integráció beállításaiban)."
+msgstr "A Home Assistant KNX-integrációja nincs beállítva, vagy KNX Secure-ral csatlakozik: ekkor a kulcstartója a saját kapcsolatának kulcsait tartalmazza, és változatlan marad (módosítsa a KNX-integráció beállításaiban)."
 
 msgid "Send"
 msgstr "Küldés"

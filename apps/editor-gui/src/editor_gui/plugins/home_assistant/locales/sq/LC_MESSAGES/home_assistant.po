@@ -193,11 +193,11 @@ msgstr "Entitete nga funksionet…"
 msgid "Entities in Home Assistant"
 msgstr "Entitetet në Home Assistant"
 
-msgid "The building functions become entities of Home Assistant's KNX integration: a light, a switch or a cover with the group addresses of their roles, named like the function, in the area its room became (see Floors and Areas). Home Assistant checks each one first."
-msgstr "Funksionet e ndërtesës bëhen entitete të integrimit KNX të Home Assistant: një dritë, një çelës ose një grilë me adresat e grupeve të roleve të tyre, të emërtuara si funksioni, në zonën në të cilën u kthye dhoma e tyre (shihni Katet dhe zonat). Home Assistant e kontrollon secilën më parë."
+msgid "The building functions become entities of Home Assistant's KNX integration: a light, a switch, a cover or a climate entity with the group addresses of their roles, named like the function, in the area its room became (see Floors and Areas). Home Assistant checks each one first."
+msgstr "Funksionet e ndërtesës bëhen entitete të integrimit KNX të Home Assistant: një dritë, një çelës, një grilë ose një entitet klime me adresat e grupeve të roleve të tyre, të emërtuara si funksioni, në zonën në të cilën u kthye dhoma e tyre (shihni Katet dhe zonat). Home Assistant e kontrollon secilën më parë."
 
-msgid "The project has no lights, switches or sun protection among its functions."
-msgstr "Projekti nuk ka drita, çelësa ose mbrojtje nga dielli midis funksioneve të tij."
+msgid "The project has no lights, switches, sun protection or heating among its functions."
+msgstr "Projekti nuk ka drita, çelësa, mbrojtje nga dielli ose ngrohje midis funksioneve të tij."
 
 msgid "Function"
 msgstr "Funksioni"
@@ -206,7 +206,7 @@ msgid "Group Addresses"
 msgstr "Adresat e grupeve"
 
 msgid "No area"
-msgstr "Pa zonë"
+msgstr "Asnjë zonë"
 
 msgid "Created: {entity}"
 msgstr "U krijua: {entity}"

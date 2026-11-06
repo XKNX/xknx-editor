@@ -74,7 +74,7 @@ msgid "Home Assistant's KNX integration holds the project \"{other}\" ({tool}, {
 msgstr "Home Assistantin KNX-integraatiossa on projekti ”{other}” ({tool}, {date}). Korvataanko se projektilla ”{name}”?"
 
 msgid "Its group monitor, project view, address pickers and entity suggestions then know this project's group addresses, devices and buildings. Entities, automations and the KNX integration's other settings stay as they are."
-msgstr "Sen ryhmäseuranta, projektinäkymä, osoitevalitsimet ja kohde-ehdotukset tuntevat sen jälkeen tämän projektin ryhmäosoitteet, laitteet ja rakennukset. Kohteet, automaatiot ja KNX-integraation muut asetukset säilyvät ennallaan."
+msgstr "Sen ryhmäseuranta, projektinäkymä, osoitevalitsimet ja entiteettiehdotukset tuntevat sen jälkeen tämän projektin ryhmäosoitteet, laitteet ja rakennukset. Entiteetit, automaatiot ja KNX-integraation muut asetukset säilyvät ennallaan."
 
 msgid "Your changes reach Home Assistant a moment after you make them."
 msgstr "Muutoksesi saapuvat Home Assistantiin hetki niiden tekemisen jälkeen."
@@ -137,13 +137,13 @@ msgid "Disabled"
 msgstr "Poistettu käytöstä"
 
 msgid "Floors and Areas…"
-msgstr "Kerrokset ja alueet…"
+msgstr "Kerrokset ja huoneet…"
 
 msgid "Floors and Areas in Home Assistant"
-msgstr "Kerrokset ja alueet Home Assistantissa"
+msgstr "Kerrokset ja huoneet Home Assistantissa"
 
 msgid "The floors of the buildings become floors of Home Assistant, their rooms, corridors and stairways its areas. Chosen ones are created, linked to one of the same name, or renamed as here; nothing is removed."
-msgstr "Rakennusten kerroksista tulee Home Assistantin kerroksia ja niiden huoneista, käytävistä ja portaista sen alueita. Valitut luodaan, linkitetään samannimiseen tai nimetään uudelleen kuten tässä; mitään ei poisteta."
+msgstr "Rakennusten kerroksista tulee Home Assistantin kerroksia ja niiden huoneista, käytävistä ja portaista sen huoneita. Valitut luodaan, linkitetään samannimiseen tai nimetään uudelleen kuten tässä; mitään ei poisteta."
 
 msgid "The project has no floors, rooms, corridors or stairways."
 msgstr "Projektissa ei ole kerroksia, huoneita, käytäviä eikä portaita."
@@ -161,7 +161,7 @@ msgid "Floor"
 msgstr "Kerros"
 
 msgid "Area"
-msgstr "Alue"
+msgstr "Huone"
 
 msgid "New"
 msgstr "Uusi"
@@ -182,22 +182,22 @@ msgid "Home Assistant did not take them: {error}"
 msgstr "Home Assistant ei ottanut niitä vastaan: {error}"
 
 msgid "Floors and areas in Home Assistant created, linked or renamed: {count}"
-msgstr "Home Assistantissa luodut, linkitetyt tai uudelleen nimetyt kerrokset ja alueet: {count}"
+msgstr "Home Assistantissa luodut, linkitetyt tai uudelleen nimetyt kerrokset ja huoneet: {count}"
 
 msgid "Apply"
 msgstr "Käytä"
 
 msgid "Entities from Functions…"
-msgstr "Kohteet toiminnoista…"
+msgstr "Entiteetit toiminnoista…"
 
 msgid "Entities in Home Assistant"
-msgstr "Kohteet Home Assistantissa"
+msgstr "Entiteetit Home Assistantissa"
 
-msgid "The building functions become entities of Home Assistant's KNX integration: a light, a switch or a cover with the group addresses of their roles, named like the function, in the area its room became (see Floors and Areas). Home Assistant checks each one first."
-msgstr "Rakennuksen toiminnoista tulee Home Assistantin KNX-integraation kohteita: valo, kytkin tai kaihdin roolien ryhmäosoitteilla, nimettynä toiminnon mukaan, alueella, joksi sen huone muutettiin (katso Kerrokset ja alueet). Home Assistant tarkistaa jokaisen ensin."
+msgid "The building functions become entities of Home Assistant's KNX integration: a light, a switch, a cover or a climate entity with the group addresses of their roles, named like the function, in the area its room became (see Floors and Areas). Home Assistant checks each one first."
+msgstr "Rakennuksen toiminnoista tulee Home Assistantin KNX-integraation entiteettejä: valo, kytkin, kaihdin tai ilmastoentiteetti roolien ryhmäosoitteilla, nimettynä toiminnon mukaan, siinä Home Assistantin huoneessa, joksi sen huone muutettiin (katso Kerrokset ja huoneet). Home Assistant tarkistaa jokaisen ensin."
 
-msgid "The project has no lights, switches or sun protection among its functions."
-msgstr "Projektin toiminnoissa ei ole valoja, kytkimiä eikä aurinkosuojia."
+msgid "The project has no lights, switches, sun protection or heating among its functions."
+msgstr "Projektin toiminnoissa ei ole valoja, kytkimiä, aurinkosuojia eikä lämmitystä."
 
 msgid "Function"
 msgstr "Toiminto"
@@ -206,7 +206,7 @@ msgid "Group Addresses"
 msgstr "Ryhmäosoitteet"
 
 msgid "No area"
-msgstr "Ei aluetta"
+msgstr "Ei huonetta"
 
 msgid "Created: {entity}"
 msgstr "Luotu: {entity}"
@@ -221,7 +221,7 @@ msgid "Not taken: {error}"
 msgstr "Ei hyväksytty: {error}"
 
 msgid "Entities created in Home Assistant: {count}"
-msgstr "Home Assistantissa luodut kohteet: {count}"
+msgstr "Home Assistantissa luodut entiteetit: {count}"
 
 msgid "Its group addresses changed: {entity} gets the new ones"
 msgstr "Sen ryhmäosoitteet muuttuivat: {entity} saa uudet"
@@ -230,13 +230,13 @@ msgid "Its group addresses changed: download its devices first"
 msgstr "Sen ryhmäosoitteet muuttuivat: lataa ensin sen laitteet"
 
 msgid "Entities of Removed Functions"
-msgstr "Poistettujen toimintojen kohteet"
+msgstr "Poistettujen toimintojen entiteetit"
 
 msgid "Entities updated in Home Assistant: {count}"
-msgstr "Home Assistantissa päivitetyt kohteet: {count}"
+msgstr "Home Assistantissa päivitetyt entiteetit: {count}"
 
 msgid "Entities removed from Home Assistant: {count}"
-msgstr "Home Assistantista poistetut kohteet: {count}"
+msgstr "Home Assistantista poistetut entiteetit: {count}"
 
 msgid "Time Server…"
 msgstr "Aikapalvelin…"
@@ -269,13 +269,13 @@ msgid "Keys in Home Assistant"
 msgstr "Avaimet Home Assistantissa"
 
 msgid "The keys of the project's Data Secure group addresses become the keyring of Home Assistant's KNX integration, so it reads and sends their telegrams. The KNX integration is loaded again for it."
-msgstr "Projektin Data Secure -ryhmäosoitteiden avaimista tulee Home Assistantin KNX-integraation avainnippu, jotta se lukee ja lähettää niiden sähkeitä. KNX-integraatio ladataan sitä varten uudelleen."
+msgstr "Projektin Data Secure -ryhmäosoitteiden avaimista tulee Home Assistantin KNX-integraation avaimenperä, jotta se lukee ja lähettää niiden sähkeitä. KNX-integraatio ladataan sitä varten uudelleen."
 
 msgid "Data Secure group addresses: {count}"
 msgstr "Data Secure -ryhmäosoitteet: {count}"
 
 msgid "Home Assistant's KNX integration is not set up, or it connects with KNX Secure: then its keyring holds its own connection's keys, and stays as it is (change it in the KNX integration's options)."
-msgstr "Home Assistantin KNX-integraatiota ei ole määritetty, tai se muodostaa yhteyden KNX Securella: silloin sen avainnippu sisältää sen oman yhteyden avaimet ja säilyy ennallaan (muuta sitä KNX-integraation asetuksissa)."
+msgstr "Home Assistantin KNX-integraatiota ei ole määritetty, tai se muodostaa yhteyden KNX Securella: silloin sen avaimenperä sisältää sen oman yhteyden avaimet ja säilyy ennallaan (muuta sitä KNX-integraation asetuksissa)."
 
 msgid "Send"
 msgstr "Lähetä"

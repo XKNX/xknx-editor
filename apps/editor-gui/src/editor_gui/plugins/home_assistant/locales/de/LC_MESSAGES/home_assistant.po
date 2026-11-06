@@ -74,7 +74,7 @@ msgid "Home Assistant's KNX integration holds the project \"{other}\" ({tool}, {
 msgstr "Die KNX-Integration von Home Assistant hat das Projekt „{other}“ ({tool}, {date}). Durch „{name}“ ersetzen?"
 
 msgid "Its group monitor, project view, address pickers and entity suggestions then know this project's group addresses, devices and buildings. Entities, automations and the KNX integration's other settings stay as they are."
-msgstr "Ihr Gruppenmonitor, ihre Projektansicht, ihre Adressauswahl und ihre Entitätsvorschläge kennen dann die Gruppenadressen, Geräte und Gebäude dieses Projekts. Entitäten, Automatisierungen und die übrigen Einstellungen der KNX-Integration bleiben, wie sie sind."
+msgstr "Ihr Gruppenmonitor, ihre Projektansicht, ihre Adressauswahl und ihre Entitätsvorschläge kennen dann die Gruppenadressen, Geräte und Gebäude dieses Projekts. Entitäten, Automationen und die übrigen Einstellungen der KNX-Integration bleiben, wie sie sind."
 
 msgid "Your changes reach Home Assistant a moment after you make them."
 msgstr "Ihre Änderungen erreichen Home Assistant kurz nachdem Sie sie vorgenommen haben."
@@ -125,7 +125,7 @@ msgid "State"
 msgstr "Zustand"
 
 msgid "Expose"
-msgstr "Expose"
+msgstr "Weiterleiten"
 
 msgid "Time server"
 msgstr "Zeitserver"
@@ -193,11 +193,11 @@ msgstr "Entitäten aus Funktionen…"
 msgid "Entities in Home Assistant"
 msgstr "Entitäten in Home Assistant"
 
-msgid "The building functions become entities of Home Assistant's KNX integration: a light, a switch or a cover with the group addresses of their roles, named like the function, in the area its room became (see Floors and Areas). Home Assistant checks each one first."
-msgstr "Die Gebäudefunktionen werden zu Entitäten der KNX-Integration von Home Assistant: einer Leuchte, einem Schalter oder einer Abdeckung mit den Gruppenadressen ihrer Rollen, benannt wie die Funktion, in dem Bereich, zu dem ihr Raum wurde (siehe Etagen und Bereiche). Home Assistant prüft jede zuerst."
+msgid "The building functions become entities of Home Assistant's KNX integration: a light, a switch, a cover or a climate entity with the group addresses of their roles, named like the function, in the area its room became (see Floors and Areas). Home Assistant checks each one first."
+msgstr "Die Gebäudefunktionen werden zu Entitäten der KNX-Integration von Home Assistant: einer Leuchte, einem Schalter, einer Abdeckung oder einer Klima-Entität mit den Gruppenadressen ihrer Rollen, benannt wie die Funktion, in dem Bereich, zu dem ihr Raum wurde (siehe Etagen und Bereiche). Home Assistant prüft jede zuerst."
 
-msgid "The project has no lights, switches or sun protection among its functions."
-msgstr "Unter den Funktionen des Projekts sind keine Leuchten, Schalter oder Sonnenschutz."
+msgid "The project has no lights, switches, sun protection or heating among its functions."
+msgstr "Unter den Funktionen des Projekts sind keine Leuchten, Schalter, Sonnenschutz oder Heizungen."
 
 msgid "Function"
 msgstr "Funktion"
@@ -270,13 +270,13 @@ msgid "Keys in Home Assistant"
 msgstr "Schlüssel in Home Assistant"
 
 msgid "The keys of the project's Data Secure group addresses become the keyring of Home Assistant's KNX integration, so it reads and sends their telegrams. The KNX integration is loaded again for it."
-msgstr "Die Schlüssel der Data-Secure-Gruppenadressen des Projekts werden zum Keyring der KNX-Integration von Home Assistant, damit sie deren Telegramme liest und sendet. Die KNX-Integration wird dafür neu geladen."
+msgstr "Die Schlüssel der Data-Secure-Gruppenadressen des Projekts werden zum Schlüsselbund der KNX-Integration von Home Assistant, damit sie deren Telegramme liest und sendet. Die KNX-Integration wird dafür neu geladen."
 
 msgid "Data Secure group addresses: {count}"
 msgstr "Data-Secure-Gruppenadressen: {count}"
 
 msgid "Home Assistant's KNX integration is not set up, or it connects with KNX Secure: then its keyring holds its own connection's keys, and stays as it is (change it in the KNX integration's options)."
-msgstr "Die KNX-Integration von Home Assistant ist nicht eingerichtet, oder sie verbindet sich mit KNX Secure: Dann enthält ihr Keyring die Schlüssel ihrer eigenen Verbindung und bleibt, wie er ist (ändern Sie ihn in den Optionen der KNX-Integration)."
+msgstr "Die KNX-Integration von Home Assistant ist nicht eingerichtet, oder sie verbindet sich mit KNX Secure: Dann enthält ihr Schlüsselbund die Schlüssel ihrer eigenen Verbindung und bleibt, wie er ist (ändern Sie ihn in den Optionen der KNX-Integration)."
 
 msgid "Send"
 msgstr "Senden"

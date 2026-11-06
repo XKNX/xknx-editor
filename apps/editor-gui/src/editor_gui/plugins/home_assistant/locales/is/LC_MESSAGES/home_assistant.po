@@ -193,11 +193,11 @@ msgstr "Einingar úr aðgerðum…"
 msgid "Entities in Home Assistant"
 msgstr "Einingar í Home Assistant"
 
-msgid "The building functions become entities of Home Assistant's KNX integration: a light, a switch or a cover with the group addresses of their roles, named like the function, in the area its room became (see Floors and Areas). Home Assistant checks each one first."
-msgstr "Byggingaraðgerðirnar verða að einingum í KNX-samþættingu Home Assistant: ljós, rofi eða gluggatjald með hópvistföngum hlutverka sinna, nefnd eins og aðgerðin, á svæðinu sem herbergið varð að (sjá Hæðir og svæði). Home Assistant athugar hverja fyrst."
+msgid "The building functions become entities of Home Assistant's KNX integration: a light, a switch, a cover or a climate entity with the group addresses of their roles, named like the function, in the area its room became (see Floors and Areas). Home Assistant checks each one first."
+msgstr "Byggingaraðgerðirnar verða að einingum í KNX-samþættingu Home Assistant: ljós, rofi, gluggatjald eða loftslagseining með hópvistföngum hlutverka sinna, nefnd eins og aðgerðin, á svæðinu sem herbergið varð að (sjá Hæðir og svæði). Home Assistant athugar hverja fyrst."
 
-msgid "The project has no lights, switches or sun protection among its functions."
-msgstr "Verkefnið hefur engin ljós, rofa eða sólarvörn meðal aðgerða sinna."
+msgid "The project has no lights, switches, sun protection or heating among its functions."
+msgstr "Verkefnið hefur engin ljós, rofa, sólarvörn eða hitun meðal aðgerða sinna."
 
 msgid "Function"
 msgstr "Aðgerð"

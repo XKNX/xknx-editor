@@ -74,7 +74,7 @@ msgid "Home Assistant's KNX integration holds the project \"{other}\" ({tool}, {
 msgstr "KNX-integrationen i Home Assistant har projektet ”{other}” ({tool}, {date}). Ersätta det med ”{name}”?"
 
 msgid "Its group monitor, project view, address pickers and entity suggestions then know this project's group addresses, devices and buildings. Entities, automations and the KNX integration's other settings stay as they are."
-msgstr "Dess gruppövervakare, projektvy, adressväljare och entitetsförslag känner sedan till det här projektets gruppadresser, enheter och byggnader. Entiteter, automationer och KNX-integrationens övriga inställningar förblir som de är."
+msgstr "Dess gruppövervakare, projektvy, adressväljare och entitetsförslag känner sedan till det här projektets gruppadresser, enheter och byggnader. Entiteter, automatiseringar och KNX-integrationens övriga inställningar förblir som de är."
 
 msgid "Your changes reach Home Assistant a moment after you make them."
 msgstr "Dina ändringar når Home Assistant en kort stund efter att du har gjort dem."
@@ -125,7 +125,7 @@ msgid "State"
 msgstr "Tillstånd"
 
 msgid "Expose"
-msgstr "Expose"
+msgstr "Exponera"
 
 msgid "Time server"
 msgstr "Tidsserver"
@@ -193,11 +193,11 @@ msgstr "Entiteter från funktioner…"
 msgid "Entities in Home Assistant"
 msgstr "Entiteter i Home Assistant"
 
-msgid "The building functions become entities of Home Assistant's KNX integration: a light, a switch or a cover with the group addresses of their roles, named like the function, in the area its room became (see Floors and Areas). Home Assistant checks each one first."
-msgstr "Byggnadsfunktionerna blir entiteter i KNX-integrationen i Home Assistant: en lampa, en brytare eller en rullgardin med gruppadresserna för sina roller, namngiven som funktionen, i det område som rummet blev (se Våningar och områden). Home Assistant kontrollerar var och en först."
+msgid "The building functions become entities of Home Assistant's KNX integration: a light, a switch, a cover or a climate entity with the group addresses of their roles, named like the function, in the area its room became (see Floors and Areas). Home Assistant checks each one first."
+msgstr "Byggnadsfunktionerna blir entiteter i KNX-integrationen i Home Assistant: en lampa, en brytare, ett skydd eller en klimatentitet med gruppadresserna för sina roller, namngiven som funktionen, i det område som rummet blev (se Våningar och områden). Home Assistant kontrollerar var och en först."
 
-msgid "The project has no lights, switches or sun protection among its functions."
-msgstr "Projektet har inga lampor, brytare eller solskydd bland sina funktioner."
+msgid "The project has no lights, switches, sun protection or heating among its functions."
+msgstr "Projektet har inga lampor, brytare, solskydd eller värme bland sina funktioner."
 
 msgid "Function"
 msgstr "Funktion"
@@ -245,16 +245,16 @@ msgid "Time Server in Home Assistant"
 msgstr "Tidsserver i Home Assistant"
 
 msgid "Home Assistant's KNX integration can send the time and the date to the bus. Choose the group addresses for them: those of the project with the data type of a time, a date, or a date with time."
-msgstr "KNX-integrationen i Home Assistant kan skicka klockslag och datum till bussen. Välj gruppadresserna för dem: projektets gruppadresser med datatypen för ett klockslag, ett datum eller ett datum med klockslag."
+msgstr "KNX-integrationen i Home Assistant kan skicka tid och datum till bussen. Välj gruppadresserna för dem: projektets gruppadresser med datatypen för en tid, ett datum eller ett datum med tid."
 
 msgid "Time"
-msgstr "Klockslag"
+msgstr "Tid"
 
 msgid "Date"
 msgstr "Datum"
 
 msgid "Date and Time"
-msgstr "Datum och klockslag"
+msgstr "Datum och tid"
 
 msgid "None"
 msgstr "Ingen"
