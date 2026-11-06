@@ -129,3 +129,6 @@ msgstr "Færibreytur sem ekki var hægt að endurheimta: %d"
 
 msgid "already in project - skipped"
 msgstr "þegar í verkefni - sleppt"
+
+msgid "%(count)d device(s) could not be added; the reason is in the Recovered column."
+msgstr "Ekki tókst að bæta við tækjum: %(count)d; ástæðan er í dálkinum „Endurheimt“."

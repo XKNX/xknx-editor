@@ -123,3 +123,6 @@ msgstr "fel"
 
 msgid "%d parameters could not be recovered"
 msgstr "%d parametrar kunde inte återskapas"
+
+msgid "%(count)d device(s) could not be added; the reason is in the Recovered column."
+msgstr "%(count)d apparat(er) kunde inte läggas till; orsaken står i kolumnen ”Återskapad”."

@@ -5,15 +5,15 @@
 The application follows a template/instance pattern: immutable application templates come from the
 catalog (`xknxeditor.catalog`, backed by `xknxeditor.prod`), and are instantiated into configurable
 devices inside a project (`xknxeditor.proj`). Both are standalone packages, not part of the GUI —
-`apps/editor-gui` only holds thin adapters (`plugins/catalog/service.py`, `plugins/project/service.py`)
-plus the GUI-only runtime view (`editor_gui.types.Device`).
+`apps/editor-gui` only holds the GUI-facing facades (`plugins/catalog/service.py`,
+`plugins/project/service.py`) plus the GUI-only runtime view (`editor_gui.device.Device`).
 
 ## Data Flow
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                          CATALOG                                  │
-│  xknxeditor.catalog — SQLite (default: config/catalog.xknxcatalog)            │
+│  xknxeditor.catalog — SQLite (<config_dir>/catalog.xknxcatalog)   │
 │                                                                    │
 │  Hardware / HardwareProgram / Application rows, built by          │
 │  importing .knxprod archives (xknxeditor.prod parses the XML).   │
@@ -61,7 +61,7 @@ plus the GUI-only runtime view (`editor_gui.types.Device`).
                               ▼
 ┌─────────────────────────────────────────────────────────────────┐
 │                      DEVICE (runtime)                             │
-│  editor_gui.types.Device                                             │
+│  editor_gui.device.Device                                         │
 │                                                                    │
 │  Device                                                            │
 │    ├── node_id: int (= project Device.id)                          │
@@ -92,10 +92,11 @@ plus the GUI-only runtime view (`editor_gui.types.Device`).
    `.devices`/`.group_addresses`/etc. rebuilds from the live SQLite tables if the version changed.
    There is no separate "reload project" step.
 
-4. **Devices are skipped, not crashed, when their catalog entry is missing**: `_build_device()` in
+4. **Devices are kept, not crashed, when their catalog entry is missing**: `_build_device()` in
    `plugins/project/service.py` resolves `hardware2program_ref_id` back to an `Application` via the
    catalog; if that product/program was never imported (or the catalog file was reset), the device is
-   logged and dropped from `.devices` until the catalog is repopulated. See "Limitations" in
+   left out of `.devices` and listed in `unloaded_devices()` instead (`editor_gui.device.UnloadedDevice`,
+   shown without parameters) until the catalog is repopulated. See "Limitations" in
    `docs/project.md`.
 
 5. **Undo/redo is generic, not per-field**: most edits are small `Event` subclasses
@@ -130,11 +131,13 @@ def load_device(project_service, catalog_service, device_row):
 
 ## Event Sourcing
 
-See `packages/proj/src/xknxeditor/proj/core/events.py` for the full list; the current event
-types are: `AddInstallation`, `CreateArea`, `CreateLine`, `CreateSegment`, `AddDevice`,
-`SetParameter`, `CreateGroupAddress`, `LinkComObject`, `SetComObjectFlag`,
-`SetGroupAddressDatapointType`, `SetComObjectSending`, `RenameArea`, `RenameLine`, `SetDeviceName`,
-`MoveDevice`, and the subtree deletes `RemoveDevice`/`RemoveArea`/`RemoveLine`/`RemoveSegment`/
-`RemoveGroupAddress`/`UnlinkComObject`. `EventStore` (`core/event_store.py`) tracks a cursor over the
-`events` table; `undo`/`redo` flip each event's `reverted` flag and walk the cursor rather than
-deleting rows, so history survives a close/reopen.
+See `packages/proj/src/xknxeditor/proj/core/events.py` for the full list (`EVENT_TYPES`, about 90
+types): topology (`AddInstallation`, `CreateArea`/`Line`/`Segment`, renames, moves, `SetSegment*`),
+devices (`AddDevice`, `SetParameter`, `SetDevice*`, `MoveDevice`, `UpdateDeviceApplication`, ...),
+group addresses and ranges (`CreateGroupAddress`, `ImportGroupAddresses`, `SetGroupAddress*`,
+`*GroupRange`), com-object links and flags (`LinkComObject`, `SetComObject*`), buildings, functions
+and trades (`*Space`, `*Function`, `*Trade`), project metadata, the subtree deletes
+(`RemoveDevice`/`RemoveArea`/`RemoveLine`/`RemoveSegment`/`RemoveGroupAddress`/`UnlinkComObject`, ...)
+and `Composite`, which groups several events into one undo step. `EventStore`
+(`core/event_store.py`) tracks a cursor over the `events` table; `undo`/`redo` flip each event's
+`reverted` flag and walk the cursor rather than deleting rows, so history survives a close/reopen.

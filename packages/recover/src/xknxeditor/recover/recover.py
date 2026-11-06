@@ -3,8 +3,8 @@
 Ties the pieces together for one device whose application is already known
 (identified via :mod:`.identify` and loaded from the catalog): read the group
 communication tables, read the parameter memory, decode both, and return a
-:class:`RecoveredDevice`. Building this into a project is :mod:`.project_build`.
-All bus access is read-only.
+:class:`RecoveredDevice`. Adding it to a project is left to the caller (the editor's
+recover plugin, ``editor_gui.plugins.recover.service``). All bus access is read-only.
 """
 
 from __future__ import annotations

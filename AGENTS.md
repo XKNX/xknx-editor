@@ -17,14 +17,17 @@ All Python commands must use `uv run` — do not activate the venv manually.
 
 ## Architecture
 
-UV monorepo: `packages/` holds five core libraries; `apps/` holds applications.
+UV monorepo: `packages/` holds eight core libraries; `apps/` holds applications.
 
 **Package dependency order** (bottom to top):
-- `xknxeditor-namespaces` — foundation: KNX XML dataclass bindings for versions 10–14 and 20–23, plus `detect_version()`, `load_xml()`, `serialize_xml()`
-- `xknxeditor-prod` — reads `.knxprod` archives (ZIP files), validates structure, parses manufacturer/catalog/hardware/application XMLs via models
-- `xknxeditor-catalog` — SQLite catalog of imported `.knxprod` hardware/applications, depends on product
-- `xknxeditor-proj` — project state management, depends on models
-- `xknxeditor-datasecure` — parses/serializes KNX keyring XML, depends on models
+- `xknxeditor-namespaces` — foundation: KNX XML dataclass bindings for versions 10–14 and 20–23 (`files/`), one version-independent intermediate model (`intermediate/`) with `adapters` converting each version into it, plus `detect_version()`, `load_xml()`, `serialize_xml()`
+- `xknxeditor-prod` — reads `.knxprod` archives (ZIP files), validates structure, parses manufacturer/catalog/hardware/application XMLs into the intermediate model; parameter visibility (`DynamicUI`), the JScript/VBScript runtimes, OpenKNX and `.vd1`–`.vd5` conversion; depends on namespaces
+- `xknxeditor-catalog` — SQLite catalog of imported `.knxprod` hardware/applications, depends on prod
+- `xknxeditor-proj` — project state management (event-sourced SQLite `.xknx`, `.knxproj` import/export and signing, group-address export), depends on namespaces and xknxproject
+- `xknxeditor-datasecure` — parses/serializes KNX keyring XML and decrypts, re-encrypts and signs it, depends on namespaces
+- `xknxeditor-download` — programs applications and individual addresses into real devices (load procedures, memory images, preflight, KNX Secure) over xknx, depends on namespaces and prod
+- `xknxeditor-dali` — commissioning of DALI gateways over KNX (MDT, Theben/IPAS; Siemens read-only scan), depends on namespaces and download
+- `xknxeditor-recover` — reconstructs devices by reading them back from the bus, depends on prod, catalog, proj and download
 - `apps/editor-gui` — project editor GUI app; consumes all packages; see `apps/editor-gui/AGENTS.md` (also for the browser UI, `--web`, which every GUI feature has to support)
 
 **Import paths** use the `xknxeditor` namespace package (src layout):
@@ -33,6 +36,11 @@ UV monorepo: `packages/` holds five core libraries; `apps/` holds applications.
 - `from xknxeditor.catalog import ...`
 - `from xknxeditor.proj import ...`
 - `from xknxeditor.datasecure import ...`
+- `from xknxeditor.download import ...`
+- `from xknxeditor.dali import ...`
+- `from xknxeditor.recover import ...`
+
+**Outside `packages/` and `apps/`:** `scripts/build_ets_helpers.py` builds the .NET export helpers into `proj/core/_prebuilt/` (CI, before PyInstaller); `tools/` holds Windows-only generators whose output is committed (`jscript_oracle`, `vbscript_oracle`: golden results for the script runtimes in `packages/prod/tests/script`; `xknx_sans`: the bundled font and line-break table); `docker/` and `unraid/` the browser-UI container image and its Unraid template.
 
 **Generated code** lives under `**/files/` and `**/intermediate/` (e.g. `xknxeditor.namespaces.files`) — never edit these directly. Both are excluded from linting and type checking.
 

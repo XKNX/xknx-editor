@@ -729,6 +729,9 @@ class WebHub:
             self.app(),
             log_level="warning",
             ws="websockets-sansio",
+            # The client stays the transport peer: the proxy check needs it, and an
+            # X-Forwarded-For a proxy passes on names the browser instead.
+            proxy_headers=False,
             ssl_certfile=certfile,
             ssl_keyfile=keyfile,
         )

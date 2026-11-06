@@ -123,3 +123,6 @@ msgstr "σφάλμα"
 
 msgid "%d parameters could not be recovered"
 msgstr "%d παράμετροι δεν ήταν δυνατό να ανακτηθούν"
+
+msgid "%(count)d device(s) could not be added; the reason is in the Recovered column."
+msgstr "Δεν ήταν δυνατή η προσθήκη %(count)d συσκευής(-ών)· η αιτία αναφέρεται στη στήλη «Ανακτήθηκε»."

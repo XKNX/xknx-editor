@@ -129,3 +129,6 @@ msgstr "hersteld"
 
 msgid "unprogrammed"
 msgstr "niet geprogrammeerd"
+
+msgid "%(count)d device(s) could not be added; the reason is in the Recovered column."
+msgstr "%(count)d apparaat/apparaten kon(den) niet worden toegevoegd; de reden staat in de kolom 'Hersteld'."

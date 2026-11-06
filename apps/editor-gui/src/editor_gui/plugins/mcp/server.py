@@ -29,6 +29,7 @@ from editor_gui.plugins.mcp.tools import (
     operations,
     project,
     project_tools,
+    recover,
     settings,
     status,
     structure,
@@ -201,6 +202,7 @@ def build_server(ctx: McpContext, auth: Any = None) -> FastMCP:
         network,
         backups,
         settings,
+        recover,
     ):
         module.register(mcp, ctx)
     if _SKILLS_DIR.is_dir():

@@ -9,10 +9,14 @@ from xknx.cemi.cemi_frame import CEMIFrame
 from xknx.cemi.cemi_handler import CEMIHandler
 from xknx.exceptions import XKNXException
 from xknx.io.data_connection import SequenceVerdict
+from xknx.io.device_management_connection import (
+    TCPDeviceManagementConnection,
+    UDPDeviceManagementConnection,
+)
 from xknx.io.interface import Interface
 from xknx.io.knxip_interface import KNXIPInterface, KNXIPInterfaceThreaded
 from xknx.io.transport.ip_transport import KNXIPTransport
-from xknx.io.tunnel import TCPTunnel, UDPTunnel
+from xknx.io.tunnel import SecureTunnel, TCPTunnel, UDPTunnel
 from xknx.knxip import (
     HPAI,
     KNXIPFrame,
@@ -21,10 +25,17 @@ from xknx.knxip import (
     TunnellingFeatureResponse,
     TunnellingFeatureType,
 )
+from xknx.profile.const import ResourceDevicePropertyId, ResourceObjectType
 from xknx.telegram.apci import ReturnCode
 
 # Seconds to wait for a tunnelling feature response.
 _FEATURE_TIMEOUT = 2.0
+# Seconds a device management connection may take to answer the read of the maximum APDU
+# length, connecting and disconnecting included.
+_DEVICE_MANAGEMENT_TIMEOUT = 3.0
+# APDU length every KNX medium and interface has to carry (a standard frame). A tunnelling
+# server that does not report its maximum (e.g. knxd) is limited to it.
+STANDARD_FRAME_APDU_LENGTH = 15
 
 if TYPE_CHECKING:
     from xknx import XKNX
@@ -113,8 +124,70 @@ class ObservableKNXIPInterfaceThreaded(KNXIPInterfaceThreaded):
         if self._thread_loop is None:
             return None
         return await self._await_from_connection_thread(
-            read_tunnel_max_apdu_length(self._interface)
+            read_interface_max_apdu_length(self._interface)
         )
+
+
+def interface_apdu_limit(reported: int | None, *, tunnelling: bool) -> int | None:
+    """The maximum APDU length to send through the connected interface.
+
+    ``reported`` is what the tunnelling server reported (see
+    :func:`read_interface_max_apdu_length`), or ``None``. A tunnelling server that does not
+    report it (such as knxd) may sit in front of a TP interface without long frame support:
+    a longer frame is then lost, or (knxd with a TPUART) takes the link down. Such a
+    connection stays at the standard frame length, the only one every interface carries.
+    Routing is left unlimited (``None``).
+    """
+    if reported is not None:
+        return reported
+    return STANDARD_FRAME_APDU_LENGTH if tunnelling else None
+
+
+async def read_interface_max_apdu_length(interface: Interface | None) -> int | None:
+    """The maximum APDU length a tunnelling server reports, or ``None``: a tunnelling v2
+    server answers the feature query; a tunnelling v1 server, which has none, may answer the
+    read of its device object's ``PID_MAX_APDU_LENGTH`` over a device management connection."""
+    length = await read_tunnel_max_apdu_length(interface)
+    if length is None:
+        length = await read_device_management_max_apdu_length(interface)
+    return length
+
+
+async def read_device_management_max_apdu_length(
+    interface: Interface | None,
+) -> int | None:
+    """Read the maximum APDU length of a tunnelling server's device object (object 0,
+    ``PID_MAX_APDU_LENGTH``) over a KNXnet/IP device management connection to it.
+
+    ``None`` when the server has no device management connection, or does not answer. Secure
+    tunnels are left out: they would need a secure session of their own, and their servers
+    answer the feature query (tunnelling v2).
+    """
+    connection: UDPDeviceManagementConnection | TCPDeviceManagementConnection
+    if isinstance(interface, UDPTunnel):
+        connection = UDPDeviceManagementConnection(
+            gateway_ip=interface.gateway_ip,
+            gateway_port=interface.gateway_port,
+            local_ip=interface.local_ip,
+            route_back=interface.route_back,
+        )
+    elif isinstance(interface, TCPTunnel) and not isinstance(interface, SecureTunnel):
+        connection = TCPDeviceManagementConnection(
+            gateway_ip=interface.gateway_ip, gateway_port=interface.gateway_port
+        )
+    else:
+        return None
+    try:
+        async with asyncio.timeout(_DEVICE_MANAGEMENT_TIMEOUT), connection:
+            data = await connection.read_property(
+                ResourceObjectType.OBJECT_DEVICE,
+                ResourceDevicePropertyId.PID_MAX_APDU_LENGTH,
+            )
+    except (TimeoutError, XKNXException, OSError):
+        return None
+    if len(data) < 2:
+        return None
+    return int.from_bytes(data[:2], "big") or None
 
 
 async def read_tunnel_max_apdu_length(interface: Interface | None) -> int | None:

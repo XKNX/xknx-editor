@@ -30,6 +30,7 @@ if TYPE_CHECKING:
     from editor_gui.plugins.keyring.service import KeyringService
     from editor_gui.plugins.monitor.service import MonitorService
     from editor_gui.plugins.project.plugin import ProjectPlugin
+    from editor_gui.plugins.recover.service import RecoverService
     from editor_gui.settings_window import SettingsWindow
 
 T = TypeVar("T")
@@ -124,6 +125,8 @@ class McpContext:
     backups: BackupService | None = None
     # The program's settings (those of the Settings window); None where no GUI runs (tests).
     settings: SettingsWindow | None = None
+    # The recovery of devices from the bus (the Recover window); None where no GUI runs it.
+    recover: RecoverService | None = None
 
     def run_locked(self, fn: Callable[[], T], *, timeout: float = 30.0) -> T:
         """Run ``fn`` on the UI thread while holding the shared project/catalog lock non-blocking.

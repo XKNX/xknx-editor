@@ -123,3 +123,6 @@ msgstr "virhe"
 
 msgid "%d parameters could not be recovered"
 msgstr "Parametreja, joita ei voitu palauttaa: %d"
+
+msgid "%(count)d device(s) could not be added; the reason is in the Recovered column."
+msgstr "Laitteita ei voitu lisätä: %(count)d; syy näkyy sarakkeessa ”Palautettu”."

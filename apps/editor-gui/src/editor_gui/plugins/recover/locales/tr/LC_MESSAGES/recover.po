@@ -123,3 +123,6 @@ msgstr "hata"
 
 msgid "%d parameters could not be recovered"
 msgstr "%d parametre kurtarılamadı"
+
+msgid "%(count)d device(s) could not be added; the reason is in the Recovered column."
+msgstr "%(count)d cihaz eklenemedi; nedeni \"Kurtarıldı\" sütununda."

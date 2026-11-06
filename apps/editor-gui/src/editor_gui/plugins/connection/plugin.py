@@ -28,6 +28,7 @@ from editor_gui.plugins.connection.busmonitor import (
 from editor_gui.plugins.connection.interface import (
     ObservableKNXIPInterfaceThreaded,
     SequentialCEMIHandler,
+    interface_apdu_limit,
 )
 from editor_gui.plugins.connection.service import BusmonitorState, LinkInfo
 from editor_gui.plugins.connection.strings import S
@@ -616,6 +617,15 @@ class ConnectionPlugin:
                 )
             if interface_apdu is not None:
                 self._log.info("interface max APDU length", length=interface_apdu)
+            else:
+                interface_apdu = interface_apdu_limit(
+                    None, tunnelling=self._connection_type in _TUNNEL_TYPES
+                )
+                if interface_apdu is not None:
+                    self._log.info(
+                        "interface max APDU length not reported, using standard frames",
+                        length=interface_apdu,
+                    )
             self._api.connection.interface_max_apdu_length = interface_apdu
             self._api.connection.interface_name = (
                 self._gateway_info.name

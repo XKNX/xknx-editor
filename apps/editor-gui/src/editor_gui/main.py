@@ -929,6 +929,7 @@ class KnxGuiApp:
             self._project_plugin,
             self._backups_plugin.service,
             self._settings_window,
+            self._recover_plugin.service,
         )
 
         self._plugins: list[Any] = [

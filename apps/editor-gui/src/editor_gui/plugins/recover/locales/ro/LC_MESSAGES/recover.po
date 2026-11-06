@@ -129,3 +129,6 @@ msgstr "Parametri care nu au putut fi recuperați: %d"
 
 msgid "already in project - skipped"
 msgstr "există deja în proiect - omis"
+
+msgid "%(count)d device(s) could not be added; the reason is in the Recovered column."
+msgstr "Dispozitive care nu au putut fi adăugate: %(count)d; motivul este în coloana „Recuperat”."

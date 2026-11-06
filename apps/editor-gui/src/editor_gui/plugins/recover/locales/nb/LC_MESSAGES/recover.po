@@ -123,3 +123,6 @@ msgstr "feil"
 
 msgid "%d parameters could not be recovered"
 msgstr "%d parametre kunne ikke gjenopprettes"
+
+msgid "%(count)d device(s) could not be added; the reason is in the Recovered column."
+msgstr "%(count)d enhet(er) kunne ikke legges til; årsaken står i kolonnen «Gjenopprettet»."

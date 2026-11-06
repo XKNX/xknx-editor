@@ -123,3 +123,6 @@ msgstr "fejl"
 
 msgid "%d parameters could not be recovered"
 msgstr "%d parametre kunne ikke gendannes"
+
+msgid "%(count)d device(s) could not be added; the reason is in the Recovered column."
+msgstr "%(count)d enhed(er) kunne ikke tilføjes; årsagen står i kolonnen \"Gendannet\"."

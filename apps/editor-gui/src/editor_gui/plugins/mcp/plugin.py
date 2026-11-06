@@ -29,6 +29,7 @@ if TYPE_CHECKING:
     from editor_gui.plugins.mcp.context import McpContext
     from editor_gui.plugins.monitor.service import MonitorService
     from editor_gui.plugins.project.plugin import ProjectPlugin
+    from editor_gui.plugins.recover.service import RecoverService
     from editor_gui.settings_window import SettingsWindow
 
 
@@ -128,6 +129,7 @@ class McpServerPlugin:
         project_plugin: ProjectPlugin | None = None,
         backups: BackupService | None = None,
         settings: SettingsWindow | None = None,
+        recover: RecoverService | None = None,
     ) -> None:
         self._log = Logger(api.log, "mcp")
         self._context_args: dict[str, Any] = {
@@ -140,6 +142,7 @@ class McpServerPlugin:
             "project_plugin": project_plugin,
             "backups": backups,
             "settings": settings,
+            "recover": recover,
         }
         self._ctx: McpContext | None = None
         self._server: uvicorn.Server | None = None
@@ -201,6 +204,8 @@ class McpServerPlugin:
                     port=port,
                     log_level="warning",
                     timeout_keep_alive=KEEP_ALIVE_SECONDS,
+                    # The client is the transport peer, never an address from a header.
+                    proxy_headers=False,
                 )
                 server = uvicorn.Server(config)
             except Exception as e:

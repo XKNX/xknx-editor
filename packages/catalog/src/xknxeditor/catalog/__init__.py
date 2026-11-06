@@ -1,7 +1,7 @@
 """KNX hardware catalog backed by SQLite.
 
-Two layers: a pure-Python core (``core``) that works on any SQLAlchemy session,
-and an optional FastAPI HTTP layer (``http``) exposing the same data over REST.
+A pure-Python core (``core``) that works on any SQLAlchemy session, plus
+:class:`CatalogService`, which owns the engine and the stored ``.knxprod`` files.
 """
 
 from __future__ import annotations
