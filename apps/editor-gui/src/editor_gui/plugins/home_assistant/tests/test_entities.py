@@ -22,6 +22,10 @@ _ADDRESSES = {
     3: ("1/1/3", "DPST-1-8", 0x0903),
     4: ("1/1/4", "DPST-1-7", 0x0904),
     5: ("1/1/5", "DPST-5-1", 0x0905),
+    6: ("1/2/1", "DPST-9-1", 0x0A01),
+    7: ("1/2/2", "DPST-9-1", 0x0A02),
+    8: ("1/2/3", "DPST-20-102", 0x0A03),
+    9: ("1/2/4", "DPST-1-1", 0x0A04),
 }
 
 
@@ -85,8 +89,9 @@ def test_each_type_and_its_configuration() -> None:
             (4, "StopStepUpDown"),
             (5, "CurrentAbsolutePositionBlindsPercentage"),
         ),
-        # No entity for heating, nor for a light without its switching address.
-        _function(13, "Heating", "FT-9", (2, "ValvePosition")),
+        # No entity for heating without its temperatures, nor for a light without its
+        # switching address.
+        _function(13, "Heating", "FT-9", (2, "ValvePosition"), (7, "TempRoomSetpoint")),
         _function(14, "Lamp", "FT-1", (2, "")),
     )
     found = entity_candidates(tree, "g", _lookup)
@@ -111,6 +116,39 @@ def test_each_type_and_its_configuration() -> None:
         "ga_step": {"write": "1/1/4", "state": None, "passive": []},
         "ga_position_state": {"write": None, "state": "1/1/5", "passive": []},
     }
+
+
+def test_heating_becomes_a_climate_entity() -> None:
+    tree = _room(
+        _function(
+            20,
+            "Radiator",
+            "FT-9",
+            (6, "TempRoom"),
+            (7, "TempRoomSetpoint"),
+            (2, "ValvePosition"),
+            (8, "HVACMode"),
+        ),
+        # Roles from the datapoint types: the first temperature is the room's.
+        _function(21, "Floor", "FT-8", (6, ""), (7, ""), (9, "")),
+    )
+    radiator, floor = entity_candidates(tree, "g", _lookup)
+    assert radiator.platform == "climate"
+    assert radiator.knx == {
+        # The setpoint is written and read back on its address.
+        "target_temperature": {
+            "ga_temperature_target": {"write": "1/2/2", "state": "1/2/2", "passive": []}
+        },
+        "ga_temperature_current": {"write": None, "state": "1/2/1", "passive": []},
+        "ga_operation_mode": {"write": "1/2/3", "state": "1/2/3", "passive": []},
+        "ga_valve": {"write": None, "state": "1/1/2", "passive": []},
+    }
+    # Known by its setpoint: the room temperature has a sensor of its own often.
+    assert radiator.main_raw == 0x0A02
+    assert radiator.group_addresses == ("1/2/2", "1/2/1", "1/2/3", "1/1/2")
+    # A switching valve tells whether the room is being heated.
+    assert floor.knx["ga_active"] == {"write": None, "state": "1/2/4", "passive": []}
+    assert "ga_valve" not in floor.knx
 
 
 def test_roles_not_stored_come_from_the_datapoint_types() -> None:
@@ -159,3 +197,24 @@ def test_whether_an_entity_has_other_addresses_than_its_function() -> None:
     assert addresses_differ(wanted, {"ga_switch": {"write": "1/1/3", "state": "1/1/2"}})
     assert addresses_differ(wanted, {"ga_switch": {"write": "1/1/1"}})
     assert addresses_differ(wanted, {})
+
+
+def test_addresses_in_a_part_of_the_configuration() -> None:
+    target = {
+        "ga_temperature_target": {"write": "1/2/2", "state": "1/2/2", "passive": []}
+    }
+    wanted = {"target_temperature": target}
+    # The limits set in Home Assistant do not count.
+    assert not addresses_differ(
+        wanted,
+        {"target_temperature": {**target, "min_temp": 5.0, "max_temp": 30.0}},
+    )
+    assert addresses_differ(
+        wanted,
+        {
+            "target_temperature": {
+                "ga_temperature_target": {"write": "1/2/9", "state": "1/2/2"}
+            }
+        },
+    )
+    assert addresses_differ(wanted, {"target_temperature": None})

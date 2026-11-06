@@ -306,15 +306,16 @@ class HomeAssistantStrings:
     def ENTITIES_INTRO(self) -> str:
         return _(
             "The building functions become entities of Home Assistant's KNX integration: a "
-            "light, a switch or a cover with the group addresses of their roles, named like the "
-            "function, in the area its room became (see Floors and Areas). Home Assistant "
-            "checks each one first."
+            "light, a switch, a cover or a climate entity with the group addresses of their "
+            "roles, named like the function, in the area its room became (see Floors and "
+            "Areas). Home Assistant checks each one first."
         )
 
     @property
     def ENTITIES_NONE(self) -> str:
         return _(
-            "The project has no lights, switches or sun protection among its functions."
+            "The project has no lights, switches, sun protection or heating among its "
+            "functions."
         )
 
     @property

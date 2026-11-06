@@ -307,7 +307,9 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
     def home_assistant_entities() -> dict[str, Any]:
         """The entities the project's building functions become in Home Assistant's KNX
         integration (Entities from Functions…), each checked by Home Assistant: a switchable or
-        dimmable light, a switch or sun protection becomes a light, switch or cover with the
+        dimmable light, a switch or sun protection becomes a light, switch or cover, heating
+        with its room temperature and setpoint a climate entity (its setpoint written and read
+        back on one address; valve and operating mode where the function has them), with the
         group addresses of its roles, named like the function, in the area its room became
         (home_assistant_areas). Returns {items, count}; each item has {function_id, name, path,
         platform, knx (the configuration), group_addresses, area_id, state, entity_id,

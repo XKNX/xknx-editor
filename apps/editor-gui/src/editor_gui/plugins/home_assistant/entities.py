@@ -3,7 +3,8 @@
 A building function sits in a room and names the role of each of its group addresses (its
 function points, see :mod:`xknxeditor.proj.core.function_roles`). That is what an entity of Home
 Assistant's KNX integration needs: a switchable light becomes a light with its switching
-address, a dimmable one a light with its brightness, sun protection a cover, a switch a switch.
+address, a dimmable one a light with its brightness, sun protection a cover, heating a climate
+entity with its room temperature and setpoint, a switch a switch.
 The entity gets the function's name and the area its room became (see :mod:`.areas`).
 
 Whether Home Assistant takes a configuration is for Home Assistant to say: the integration checks
@@ -20,39 +21,87 @@ from editor_gui.plugins.home_assistant.areas import space_key
 from xknxeditor.proj.core.function_roles import function_roles
 from xknxeditor.proj.core.service import FunctionInfo, SpaceInfo
 
-# Function type -> platform and the configuration of each role: (config key, "write" or
-# "state"). A role not in the map is not used; the first role is required.
+
+@dataclass(frozen=True)
+class _Kind:
+    """The entity of a function type: its platform, and the configuration of each role: (config
+    key, "write" or "state"); a key with dots is one of a part of the configuration
+    ("target_temperature.ga_temperature_target"). A role not in ``roles`` is not used. The
+    roles in ``required`` all have to be there; the first one is the address the entity is known
+    by (an entity using it exists already)."""
+
+    platform: str
+    roles: tuple[tuple[str, str, str], ...]
+    required: tuple[str, ...]
+
+
 _SWITCH = (("SwitchOnOff", "ga_switch", "write"), ("InfoOnOff", "ga_switch", "state"))
-_TYPES: dict[str, tuple[str, tuple[tuple[str, str, str], ...]]] = {
+_LIGHT = _Kind("light", _SWITCH, ("SwitchOnOff",))
+_COVER_ROLES = (
+    ("MoveUpDown", "ga_up_down", "write"),
+    ("StopStepUpDown", "ga_step", "write"),
+)
+# Heating: the room temperature and its setpoint (an absolute temperature, which Home Assistant
+# writes and reads back on the same address), with the valve and the operating mode where the
+# function has them.
+_HEATING_ROLES = (
+    ("TempRoomSetpoint", "target_temperature.ga_temperature_target", "write"),
+    ("TempRoomSetpoint", "target_temperature.ga_temperature_target", "state"),
+    ("TempRoom", "ga_temperature_current", "state"),
+    ("HVACMode", "ga_operation_mode", "write"),
+    ("HVACMode", "ga_operation_mode", "state"),
+)
+_CLIMATE_REQUIRED = ("TempRoomSetpoint", "TempRoom")
+_TYPES: dict[str, _Kind] = {
     # Switchable light.
-    "FT-1": ("light", _SWITCH),
+    "FT-1": _LIGHT,
     # Dimmable light: its dimming (relative) is not Home Assistant's brightness.
-    "FT-2": ("light", _SWITCH),
+    "FT-2": _LIGHT,
     # Dimmable light with an absolute value.
-    "FT-6": (
+    "FT-6": _Kind(
         "light",
         (
             *_SWITCH,
             ("DimmingValue", "ga_brightness", "write"),
             ("InfoDimmingValue", "ga_brightness", "state"),
         ),
+        ("SwitchOnOff",),
     ),
     # Sun protection.
-    "FT-3": (
-        "cover",
-        (("MoveUpDown", "ga_up_down", "write"), ("StopStepUpDown", "ga_step", "write")),
-    ),
-    "FT-7": (
+    "FT-3": _Kind("cover", _COVER_ROLES, ("MoveUpDown",)),
+    "FT-7": _Kind(
         "cover",
         (
-            ("MoveUpDown", "ga_up_down", "write"),
-            ("StopStepUpDown", "ga_step", "write"),
+            *_COVER_ROLES,
             ("CurrentAbsolutePositionBlindsPercentage", "ga_position_state", "state"),
             ("CurrentAbsolutePositionSlatPercentage", "ga_angle", "state"),
         ),
+        ("MoveUpDown",),
+    ),
+    # Heating (radiator, floor, and with a continuous variable): the valve's position. With a
+    # switching variable: the valve's switching, as whether the room is being heated.
+    "FT-4": _Kind(
+        "climate",
+        (*_HEATING_ROLES, ("ValvePosition", "ga_valve", "state")),
+        _CLIMATE_REQUIRED,
+    ),
+    "FT-5": _Kind(
+        "climate",
+        (*_HEATING_ROLES, ("ValvePosition", "ga_valve", "state")),
+        _CLIMATE_REQUIRED,
+    ),
+    "FT-8": _Kind(
+        "climate",
+        (*_HEATING_ROLES, ("ValveSwitch", "ga_active", "state")),
+        _CLIMATE_REQUIRED,
+    ),
+    "FT-9": _Kind(
+        "climate",
+        (*_HEATING_ROLES, ("ValvePosition", "ga_valve", "state")),
+        _CLIMATE_REQUIRED,
     ),
     # Switch.
-    "FT-10": ("switch", _SWITCH),
+    "FT-10": _Kind("switch", _SWITCH, ("SwitchOnOff",)),
 }
 
 
@@ -91,7 +140,7 @@ def _candidate(
     kind = _TYPES.get(function.function_type)
     if kind is None:
         return None
-    platform, roles = kind
+    roles = kind.roles
     links = function.group_addresses
     known = [lookup(link.group_address_id) for link in links]
     named = function_roles(
@@ -106,29 +155,32 @@ def _candidate(
         for role, link, k in zip(named, links, known, strict=True)
         if role
     }
-    required = roles[0][0]
-    if required not in by_role:
+    if any(role not in by_role for role in kind.required):
         return None
     knx: dict[str, Any] = {}
     used: list[str] = []
     for role, key, slot in roles:
         if (found := by_role.get(role)) is not None:
             address = found[0]
-            knx.setdefault(key, {"write": None, "state": None, "passive": []})[slot] = (
-                address
-            )
+            *parts, name = key.split(".")
+            part = knx
+            for step in parts:
+                part = part.setdefault(step, {})
+            part.setdefault(name, {"write": None, "state": None, "passive": []})[
+                slot
+            ] = address
             if address not in used:
                 used.append(address)
     return EntityCandidate(
         key=function_key(project_guid, function.id),
         function_id=function.id,
         name=function.name,
-        platform=platform,
+        platform=kind.platform,
         knx=knx,
         group_addresses=tuple(used),
         path=f"{path} / {function.name}",
         space_key=space_key(project_guid, space.id),
-        main_raw=by_role[required][1],
+        main_raw=by_role[kind.required[0]][1],
         group_address_ids=tuple(
             dict.fromkeys(
                 link.group_address_id
@@ -144,7 +196,8 @@ def addresses_differ(
 ) -> bool:
     """Whether the group addresses of an entity's stored configuration (``current``) are others
     than its function's now (``wanted``): those it writes to and reads its state from, of each
-    key the function sets (keys added in Home Assistant stay as they are)."""
+    key the function sets, also in a part of the configuration (keys added in Home Assistant stay
+    as they are)."""
     if current is None:
         return False
     for key, want in wanted.items():
@@ -152,9 +205,20 @@ def addresses_differ(
         stored: Mapping[str, Any] = (
             cast("Mapping[str, Any]", have) if isinstance(have, Mapping) else {}
         )
-        if any(want.get(slot) != stored.get(slot) for slot in ("write", "state")):
+        if not isinstance(want, Mapping):
+            continue
+        part = cast("Mapping[str, Any]", want)
+        if _is_group_address(part):
+            if any(part.get(slot) != stored.get(slot) for slot in ("write", "state")):
+                return True
+        elif addresses_differ(part, stored):
             return True
     return False
+
+
+def _is_group_address(config: Mapping[str, Any]) -> bool:
+    """Whether ``config`` is the configuration of a group address (not a part with them)."""
+    return "write" in config or "state" in config
 
 
 def entity_candidates(
