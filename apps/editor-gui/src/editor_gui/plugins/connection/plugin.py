@@ -57,6 +57,8 @@ if TYPE_CHECKING:
 _SETTINGS = "connection"
 # The page of the Settings window with the connection settings.
 SETTINGS_PAGE = "connection"
+# How far the connected gateway's details are indented in the Gateway menu (unscaled pixels).
+_DETAILS_INDENT = 10.0
 
 
 def gateway_services(gateway: GatewayDescriptor) -> list[str]:
@@ -1674,10 +1676,10 @@ class ConnectionPlugin:
             # The gateway connected to: its address as the heading, what it is below it, and the
             # connection types it offers to switch between.
             imgui.text(S.STATUS_CONNECTED_TO.format(ip=self._connection_target))
-            imgui.indent()
+            imgui.indent(px(_DETAILS_INDENT))
             self._render_gateway_details()
             self._render_connected_transport()
-            imgui.unindent()
+            imgui.unindent(px(_DETAILS_INDENT))
             imgui.separator()
             if imgui.menu_item(S.MENU_READ_PROGMODE, "", self._progmode_open)[0]:
                 self._open_progmode_window()
@@ -1709,7 +1711,8 @@ class ConnectionPlugin:
         gateway = self._gateway_info
         if gateway is None:
             return
-        imgui.text(S.GATEWAY_NAME.format(name=gateway.name))
+        if gateway.name.strip():
+            imgui.text(S.GATEWAY_NAME.format(name=gateway.name))
         if gateway.individual_address:
             imgui.text(S.GATEWAY_ADDRESS.format(address=gateway.individual_address))
         imgui.text(S.GATEWAY_CORE_VERSION.format(version=gateway.core_version))
