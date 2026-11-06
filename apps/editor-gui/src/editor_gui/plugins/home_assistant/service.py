@@ -21,6 +21,12 @@ from datetime import UTC, datetime
 from enum import StrEnum
 from typing import TYPE_CHECKING, Any, cast
 
+from editor_gui.plugins.home_assistant.areas import (
+    AreaRow,
+    compare,
+    plan_spaces,
+    request,
+)
 from editor_gui.settings import load_settings, save_settings
 
 if TYPE_CHECKING:
@@ -161,6 +167,14 @@ class HomeAssistantService:
         self.on_history: Callable[[list[dict[str, Any]]], None] | None = None
         self._history_request: int | None = None
         self.history_error: str | None = None
+        # Home Assistant's floors and areas and the spaces linked to them ({floors, areas,
+        # links}), None until the integration reports them.
+        self.home_assistant_areas: dict[str, Any] | None = None
+        self._areas_request: int | None = None
+        # The outcome of the last apply_areas: an error, or None.
+        self.areas_error: str | None = None
+        # Told how many floors and areas an apply_areas created, linked or renamed.
+        self.on_areas_applied: Callable[[int], None] | None = None
 
     def set_logger(self, log: Logger) -> None:
         self._log = log
@@ -325,6 +339,36 @@ class HomeAssistantService:
             )
         return True
 
+    def area_rows(self) -> list[AreaRow]:
+        """The open project's floors and areas, and what each is in Home Assistant now."""
+        guid = self.project_guid()
+        if guid is None:
+            return []
+        planned = plan_spaces(self._project.get_space_tree(), guid)
+        return compare(planned, self.home_assistant_areas)
+
+    @property
+    def areas_applying(self) -> bool:
+        return self._areas_request is not None
+
+    def apply_areas(self, rows: list[AreaRow]) -> bool:
+        """Create, link or rename the floors and areas of ``rows`` in Home Assistant; False
+        without a connection, without rows or while an earlier request is open."""
+        link = self._link()
+        if (
+            link is None
+            or not self.connected
+            or not rows
+            or self._areas_request is not None
+        ):
+            return False
+        self._next_id += 1
+        if not link.send({"type": "apply_areas", "id": self._next_id, **request(rows)}):
+            return False
+        self._areas_request = self._next_id
+        self.areas_error = None
+        return True
+
     def senders(self) -> frozenset[int]:
         """The group addresses (raw) Home Assistant sends to."""
         return frozenset(raw for raw, usage in self.usage.items() if usage.sends)
@@ -362,6 +406,8 @@ class HomeAssistantService:
             self.usage = {}
             self.connection = None
             self._history_request = None
+            self.home_assistant_areas = None
+            self._areas_request = None
         for message in link.receive():
             self._handle(message)
         key = self._key()
@@ -410,6 +456,17 @@ class HomeAssistantService:
                 self._sent = None
         elif kind == "usage":
             self.usage = _usage(message.get("group_addresses"))
+        elif kind == "areas":
+            self.home_assistant_areas = {
+                key: message.get(key) for key in ("floors", "areas", "links")
+            }
+        elif kind == "result" and message.get("id") == self._areas_request:
+            self._areas_request = None
+            if (error := message.get("error")) is not None:
+                self.areas_error = str(error)
+            elif self.on_areas_applied is not None:
+                changed = message.get("changed")
+                self.on_areas_applied(changed if isinstance(changed, int) else 0)
         elif kind in ("values", "telegram"):
             telegrams = (
                 message.get("telegrams")

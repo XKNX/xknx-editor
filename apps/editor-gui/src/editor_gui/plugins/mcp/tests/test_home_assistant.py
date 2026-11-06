@@ -189,3 +189,95 @@ async def test_home_assistants_telegrams_are_loaded(
             await client.call_tool("home_assistant_load_telegrams", {})
         with pytest.raises(Exception, match="at least 1"):
             await client.call_tool("home_assistant_load_telegrams", {"hours": 0})
+
+
+async def test_the_buildings_become_floors_and_areas(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    mcp, service, link = _server(tmp_path, monkeypatch)
+    applied: list[dict[str, Any]] = []
+    # Home Assistant's floors and areas by id, and the links, as they grow.
+    floors: dict[str, dict[str, Any]] = {}
+    areas: dict[str, dict[str, Any]] = {}
+    links: dict[str, str] = {}
+
+    def send(message: dict[str, Any]) -> bool:
+        if message["type"] != "apply_areas":
+            return _Link.send(link, message)
+        applied.append(message)
+        for floor in message["floors"]:
+            floor_id = f"f{len(floors)}"
+            floors[floor_id] = {
+                "floor_id": floor_id,
+                "name": floor["name"],
+                "level": None,
+            }
+            links[floor["key"]] = floor_id
+        for area in message["areas"]:
+            area_id = f"a{len(areas)}"
+            floor_id = links.get(area["floor_key"] or "")
+            areas[area_id] = {
+                "area_id": area_id,
+                "name": area["name"],
+                "floor_id": floor_id,
+            }
+            links[area["key"]] = area_id
+        link.inbox += [
+            {
+                "type": "areas",
+                "floors": list(floors.values()),
+                "areas": list(areas.values()),
+                "links": dict(links),
+            },
+            {
+                "type": "result",
+                "id": message["id"],
+                "error": None,
+                "changed": len(message["floors"]) + len(message["areas"]),
+            },
+        ]
+        return True
+
+    monkeypatch.setattr(link, "send", send)
+    async with Client(mcp) as client:
+        await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
+        # A new project has its building.
+        (house,) = (await _data(client, "project_spaces"))["items"]
+        floor = await _data(
+            client,
+            "project_create_space",
+            space_type="Floor",
+            name="Ground Floor",
+            parent_id=house["id"],
+        )
+        kitchen = await _data(
+            client,
+            "project_create_space",
+            space_type="Room",
+            name="Kitchen",
+            parent_id=floor["space_id"],
+        )
+        areas = await _data(client, "home_assistant_areas")
+        assert [(r["kind"], r["name"], r["state"]) for r in areas["items"]] == [
+            ("floor", "Ground Floor", "new"),
+            ("area", "Kitchen", "new"),
+        ]
+        assert areas["items"][1]["floor_space_id"] == floor["space_id"]
+
+        # Only the kitchen: its floor is not sent.
+        result = await _data(
+            client, "home_assistant_apply_areas", space_ids=[kitchen["space_id"]]
+        )
+        assert [a["name"] for a in applied[0]["areas"]] == ["Kitchen"]
+        assert applied[0]["floors"] == []
+        assert result["changed"] == 1
+
+        result = await _data(client, "home_assistant_apply_areas")
+        # The kitchen is linked: only its floor is left.
+        assert result["changed"] == 1
+        assert [f["name"] for f in applied[1]["floors"]] == ["Ground Floor"]
+        assert applied[1]["areas"] == []
+        assert {r["state"] for r in result["items"]} == {"linked"}
+        with pytest.raises(Exception, match="nothing to apply"):
+            await client.call_tool("home_assistant_apply_areas", {})
+    assert service.home_assistant_areas is not None

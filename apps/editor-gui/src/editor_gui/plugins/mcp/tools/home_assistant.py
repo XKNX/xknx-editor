@@ -11,6 +11,7 @@ from typing import TYPE_CHECKING, Any
 from fastmcp.exceptions import ToolError
 
 from editor_gui import host
+from editor_gui.plugins.home_assistant.areas import AreaRow, AreaState
 from editor_gui.plugins.mcp.context import McpContext, make_tool, require_project
 
 if TYPE_CHECKING:
@@ -21,6 +22,11 @@ if TYPE_CHECKING:
 # Home Assistant stores a large project for a while.
 _SEND_TIMEOUT = 120.0
 _POLL_SECONDS = 0.25
+
+
+def _items(rows: list[dict[str, Any]]) -> dict[str, Any]:
+    """The list envelope of the list tools."""
+    return {"items": rows, "count": len(rows)}
 
 
 def register(mcp: FastMCP, ctx: McpContext) -> None:
@@ -160,6 +166,89 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             error = ctx.run_locked(lambda: service().history_error)
             if error is not None:
                 raise ToolError(f"the telegrams could not be loaded: {error}")
+            time.sleep(_POLL_SECONDS)
+        raise ToolError("Home Assistant did not answer in time")
+
+    def area_row(row: AreaRow) -> dict[str, Any]:
+        planned = row.planned
+        return {
+            "space_id": planned.space_id,
+            "kind": planned.kind,
+            "name": planned.name,
+            "path": planned.path,
+            "floor_space_id": (
+                int(planned.floor_key.rsplit(":", 1)[1]) if planned.floor_key else None
+            ),
+            "level": planned.level,
+            "state": row.state.value,
+            "name_in_home_assistant": row.current_name or None,
+        }
+
+    @tool("read")
+    def home_assistant_areas() -> dict[str, Any]:
+        """The project's floors and areas as Home Assistant gets them (Floors and Areas…): a
+        floor of a building becomes a floor, a room, corridor or stairway an area on its floor.
+        Returns {items, count}; each item has {space_id, kind ("floor" or "area"), name (in Home
+        Assistant; with several buildings a floor's starts with its building's), path,
+        floor_space_id (an area's floor), level (a floor's, from its number), state,
+        name_in_home_assistant}. state: "new" (Home Assistant has none of this name), "match"
+        (it has one, not linked yet), "linked", or "renamed" (linked, but named otherwise
+        there)."""
+        require_project(ctx)
+        return _items(
+            ctx.run_locked(lambda: [area_row(r) for r in service().area_rows()])
+        )
+
+    @tool("write", open_world=True)
+    def home_assistant_apply_areas(
+        space_ids: list[int] | None = None,
+    ) -> dict[str, Any]:
+        """Create the floors and areas of the spaces ``space_ids`` in Home Assistant, link them
+        to ones of the same name, or rename linked ones as here (Floors and Areas…, Apply);
+        without space_ids every one not linked as it is here. Nothing in Home Assistant is
+        removed. Waits until Home Assistant took them; returns {changed} and the rows as
+        home_assistant_areas gives them."""
+        require_project(ctx)
+        applied: list[int] = []
+
+        def _apply() -> bool:
+            ha = service()
+            rows = [
+                r
+                for r in ha.area_rows()
+                if r.state is not AreaState.LINKED
+                and (space_ids is None or r.planned.space_id in space_ids)
+            ]
+            if not rows:
+                raise ToolError("nothing to apply: every space is linked as it is here")
+            previous = ha.on_areas_applied
+
+            def take(changed: int) -> None:
+                applied.append(changed)
+                ha.on_areas_applied = previous
+                if previous is not None:
+                    previous(changed)
+
+            ha.on_areas_applied = take
+            if ha.apply_areas(rows):
+                return True
+            ha.on_areas_applied = previous
+            return False
+
+        if not ctx.run_locked(_apply):
+            raise ToolError(
+                "Home Assistant cannot be asked now (not connected, or busy)"
+            )
+        deadline = time.monotonic() + _SEND_TIMEOUT
+        while time.monotonic() < deadline:
+            if applied:
+                rows = ctx.run_locked(
+                    lambda: [area_row(r) for r in service().area_rows()]
+                )
+                return {"changed": applied[0], **_items(rows)}
+            error = ctx.run_locked(lambda: service().areas_error)
+            if error is not None:
+                raise ToolError(f"Home Assistant did not take them: {error}")
             time.sleep(_POLL_SECONDS)
         raise ToolError("Home Assistant did not answer in time")
 

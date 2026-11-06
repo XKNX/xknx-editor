@@ -220,5 +220,79 @@ class HomeAssistantStrings:
     def USER_DISABLED(self) -> str:
         return _("Disabled")
 
+    @property
+    def MENU_AREAS(self) -> str:
+        return _("Floors and Areas…")
+
+    @property
+    def AREAS_TITLE(self) -> str:
+        return _("Floors and Areas in Home Assistant")
+
+    @property
+    def AREAS_INTRO(self) -> str:
+        return _(
+            "The floors of the buildings become floors of Home Assistant, their rooms, "
+            "corridors and stairways its areas. Chosen ones are created, linked to one of the "
+            "same name, or renamed as here; nothing is removed."
+        )
+
+    @property
+    def AREAS_NONE(self) -> str:
+        return _("The project has no floors, rooms, corridors or stairways.")
+
+    @property
+    def AREAS_COLUMN_SPACE(self) -> str:
+        return _("Building Part")
+
+    @property
+    def AREAS_COLUMN_KIND(self) -> str:
+        return _("Becomes")
+
+    @property
+    def AREAS_COLUMN_STATE(self) -> str:
+        return _("In Home Assistant")
+
+    @property
+    def AREAS_FLOOR(self) -> str:
+        return _("Floor")
+
+    @property
+    def AREAS_AREA(self) -> str:
+        return _("Area")
+
+    @property
+    def AREAS_NEW(self) -> str:
+        return _("New")
+
+    @property
+    def AREAS_MATCH(self) -> str:
+        return _('Exists as "{name}"')
+
+    @property
+    def AREAS_RENAMED(self) -> str:
+        return _('Named "{name}"')
+
+    @property
+    def AREAS_LINKED(self) -> str:
+        return _("Linked")
+
+    @property
+    def AREAS_APPLYING(self) -> str:
+        return _("Applying…")
+
+    @property
+    def AREAS_FAILED(self) -> str:
+        return _("Home Assistant did not take them: {error}")
+
+    @property
+    def AREAS_APPLIED(self) -> str:
+        return _(
+            "Floors and areas in Home Assistant created, linked or renamed: {count}"
+        )
+
+    @property
+    def BTN_APPLY(self) -> str:
+        return _("Apply")
+
 
 S = HomeAssistantStrings()
