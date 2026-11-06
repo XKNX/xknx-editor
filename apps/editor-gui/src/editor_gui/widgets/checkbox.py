@@ -54,6 +54,14 @@ def radio_button(label: str, active: bool, *, centred: bool = False) -> bool:
     return pressed
 
 
+def radio_button_width(text: str) -> float:
+    """How wide a :func:`radio_button` with ``text`` (no ``##id``) is: its circle, and its text
+    after the inner spacing."""
+    if not text:
+        return checkbox_text_indent() - imgui.get_style().item_inner_spacing.x
+    return checkbox_text_indent() + imgui.calc_text_size(text).x
+
+
 def radio_beside_field(label: str, active: bool) -> bool:
     """A radio button followed on its row by a full-height field (an input, a drop-down): both
     centred on the row, the field drawn next. Whether it was clicked."""
