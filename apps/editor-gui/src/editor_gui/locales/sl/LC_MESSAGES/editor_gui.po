@@ -1647,3 +1647,15 @@ msgstr "Več tem…"
 
 msgid "Panels"
 msgstr "Plošče"
+
+msgid "Search commands, settings, panels, devices and group addresses"
+msgstr "Iskanje ukazov, nastavitev, plošč, naprav in skupinskih naslovov"
+
+msgid "Also show the texts of product data (parameters, group objects) in {language}?"
+msgstr "Ali naj bodo besedila podatkov izdelka (parametri, skupinski objekti) prikazana tudi v jeziku {language}?"
+
+msgid "Yes"
+msgstr "Da"
+
+msgid "No"
+msgstr "Ne"

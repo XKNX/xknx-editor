@@ -1575,3 +1575,15 @@ msgstr "Další motivy…"
 
 msgid "Panels"
 msgstr "Panely"
+
+msgid "Search commands, settings, panels, devices and group addresses"
+msgstr "Hledat příkazy, nastavení, panely, zařízení a skupinové adresy"
+
+msgid "Also show the texts of product data (parameters, group objects) in {language}?"
+msgstr "Zobrazovat texty produktových dat (parametry, skupinové objekty) také v jazyce {language}?"
+
+msgid "Yes"
+msgstr "Ano"
+
+msgid "No"
+msgstr "Ne"

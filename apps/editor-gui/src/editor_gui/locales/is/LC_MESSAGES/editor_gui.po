@@ -1647,3 +1647,15 @@ msgstr "Fleiri þemu…"
 
 msgid "Panels"
 msgstr "Spjöld"
+
+msgid "Search commands, settings, panels, devices and group addresses"
+msgstr "Leita í skipunum, stillingum, spjöldum, tækjum og hópvistföngum"
+
+msgid "Also show the texts of product data (parameters, group objects) in {language}?"
+msgstr "Sýna einnig texta vörugagna (færibreytur, hópahluti) á {language}?"
+
+msgid "Yes"
+msgstr "Já"
+
+msgid "No"
+msgstr "Nei"

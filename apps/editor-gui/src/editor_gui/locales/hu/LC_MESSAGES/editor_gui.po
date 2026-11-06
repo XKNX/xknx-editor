@@ -1647,3 +1647,15 @@ msgstr "További témák…"
 
 msgid "Panels"
 msgstr "Panelek"
+
+msgid "Search commands, settings, panels, devices and group addresses"
+msgstr "Parancsok, beállítások, panelek, eszközök és csoportcímek keresése"
+
+msgid "Also show the texts of product data (parameters, group objects) in {language}?"
+msgstr "A termékadatok szövegei (paraméterek, csoportobjektumok) is ezen a nyelven jelenjenek meg: {language}?"
+
+msgid "Yes"
+msgstr "Igen"
+
+msgid "No"
+msgstr "Nem"

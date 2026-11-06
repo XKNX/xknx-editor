@@ -1637,6 +1637,10 @@ class ConnectionPlugin:
     def menu_label(self) -> str:
         return S.MENU_GATEWAY
 
+    @property
+    def disconnect_label(self) -> str:
+        return S.MENU_DISCONNECT
+
     def render_menu(self) -> None:
         """The Gateway menu's content (the app draws the menu itself, see ``menu_label``)."""
         if self.busmonitor_active:

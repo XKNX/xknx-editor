@@ -1575,3 +1575,15 @@ msgstr "Другие темы…"
 
 msgid "Panels"
 msgstr "Панели"
+
+msgid "Search commands, settings, panels, devices and group addresses"
+msgstr "Поиск команд, установок, панелей, устройств и групповых адресов"
+
+msgid "Also show the texts of product data (parameters, group objects) in {language}?"
+msgstr "Показывать также тексты данных продукта (параметры, групповые объекты) на языке {language}?"
+
+msgid "Yes"
+msgstr "Да"
+
+msgid "No"
+msgstr "Нет"

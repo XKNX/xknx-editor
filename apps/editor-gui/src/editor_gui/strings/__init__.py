@@ -130,6 +130,10 @@ class BaseStrings:
         return _("Language")
 
     @property
+    def PALETTE_HINT(self) -> str:
+        return _("Search commands, settings, panels, devices and group addresses")
+
+    @property
     def PALETTE_NO_MATCH(self) -> str:
         return _("No matches")
 
@@ -395,6 +399,21 @@ class MenuStrings:
     @property
     def MENU_TOOLS(self) -> str:
         return _("Tools")
+
+    @property
+    def LANGUAGE_PRODUCT_TOO(self) -> str:
+        # Asked when the interface language changes; {language}: the product language it has.
+        return _(
+            "Also show the texts of product data (parameters, group objects) in {language}?"
+        )
+
+    @property
+    def BTN_YES(self) -> str:
+        return _("Yes")
+
+    @property
+    def BTN_NO(self) -> str:
+        return _("No")
 
     @property
     def MENU_PANELS(self) -> str:

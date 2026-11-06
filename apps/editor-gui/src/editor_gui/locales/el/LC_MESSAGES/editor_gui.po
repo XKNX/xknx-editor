@@ -1575,3 +1575,15 @@ msgstr "Περισσότερα Θέματα…"
 
 msgid "Panels"
 msgstr "Πλαίσια"
+
+msgid "Search commands, settings, panels, devices and group addresses"
+msgstr "Αναζήτηση εντολών, ρυθμίσεων, πλαισίων, συσκευών και διευθύνσεων ομάδας"
+
+msgid "Also show the texts of product data (parameters, group objects) in {language}?"
+msgstr "Να εμφανίζονται και τα κείμενα των δεδομένων προϊόντος (παράμετροι, αντικείμενα ομάδας) σε {language};"
+
+msgid "Yes"
+msgstr "Ναι"
+
+msgid "No"
+msgstr "Όχι"

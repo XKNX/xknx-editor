@@ -158,6 +158,16 @@ class BackupsPlugin:
             self.ask_settings()
         imgui.end_menu()
 
+    @property
+    def create_label(self) -> str:
+        """The command that makes a backup (File > Backups)."""
+        return S.MENU_CREATE_BACKUP
+
+    @property
+    def show_label(self) -> str:
+        """The command that shows the backups (File > Backups)."""
+        return S.MENU_SHOW
+
     def ask_create(self) -> None:
         self._comment = ""
         self._request = "create"

@@ -1640,3 +1640,15 @@ msgstr "Meer thema's…"
 
 msgid "Panels"
 msgstr "Panelen"
+
+msgid "Search commands, settings, panels, devices and group addresses"
+msgstr "Opdrachten, instellingen, panelen, apparaten en groepsadressen zoeken"
+
+msgid "Also show the texts of product data (parameters, group objects) in {language}?"
+msgstr "Ook de teksten van productgegevens (parameters, groepsobjecten) in het {language} tonen?"
+
+msgid "Yes"
+msgstr "Ja"
+
+msgid "No"
+msgstr "Nee"

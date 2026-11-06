@@ -1575,3 +1575,15 @@ msgstr "Më shumë tema…"
 
 msgid "Panels"
 msgstr "Panelet"
+
+msgid "Search commands, settings, panels, devices and group addresses"
+msgstr "Kërko komanda, cilësime, panele, pajisje dhe adresa grupi"
+
+msgid "Also show the texts of product data (parameters, group objects) in {language}?"
+msgstr "Të shfaqen edhe tekstet e të dhënave të produktit (parametrat, objektet e grupit) në {language}?"
+
+msgid "Yes"
+msgstr "Po"
+
+msgid "No"
+msgstr "Jo"

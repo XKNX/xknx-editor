@@ -1737,3 +1737,15 @@ msgstr "Weitere Designs…"
 
 msgid "Panels"
 msgstr "Fenster"
+
+msgid "Search commands, settings, panels, devices and group addresses"
+msgstr "Befehle, Einstellungen, Fenster, Geräte und Gruppenadressen suchen"
+
+msgid "Also show the texts of product data (parameters, group objects) in {language}?"
+msgstr "Sollen die Texte der Produktdaten (Parameter, Kommunikationsobjekte) ebenfalls auf {language} angezeigt werden?"
+
+msgid "Yes"
+msgstr "Ja"
+
+msgid "No"
+msgstr "Nein"

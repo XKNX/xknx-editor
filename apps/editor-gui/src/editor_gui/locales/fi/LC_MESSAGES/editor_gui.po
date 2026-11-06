@@ -1575,3 +1575,15 @@ msgstr "Lisää teemoja…"
 
 msgid "Panels"
 msgstr "Paneelit"
+
+msgid "Search commands, settings, panels, devices and group addresses"
+msgstr "Hae komentoja, asetuksia, paneeleja, laitteita ja ryhmäosoitteita"
+
+msgid "Also show the texts of product data (parameters, group objects) in {language}?"
+msgstr "Näytetäänkö myös tuotetietojen tekstit (parametrit, ryhmäobjektit) kielellä {language}?"
+
+msgid "Yes"
+msgstr "Kyllä"
+
+msgid "No"
+msgstr "Ei"

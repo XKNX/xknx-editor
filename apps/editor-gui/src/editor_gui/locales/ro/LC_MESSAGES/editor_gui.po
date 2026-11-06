@@ -1647,3 +1647,15 @@ msgstr "Mai multe teme…"
 
 msgid "Panels"
 msgstr "Panouri"
+
+msgid "Search commands, settings, panels, devices and group addresses"
+msgstr "Căutare comenzi, setări, panouri, dispozitive și adrese de grup"
+
+msgid "Also show the texts of product data (parameters, group objects) in {language}?"
+msgstr "Se afișează și textele datelor de produs (parametri, obiecte de grup) în {language}?"
+
+msgid "Yes"
+msgstr "Da"
+
+msgid "No"
+msgstr "Nu"

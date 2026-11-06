@@ -1575,3 +1575,15 @@ msgstr "Flere temaer…"
 
 msgid "Panels"
 msgstr "Paneler"
+
+msgid "Search commands, settings, panels, devices and group addresses"
+msgstr "Søk i kommandoer, innstillinger, paneler, enheter og gruppeadresser"
+
+msgid "Also show the texts of product data (parameters, group objects) in {language}?"
+msgstr "Vise også tekstene i produktdata (parametere, gruppeobjekter) på {language}?"
+
+msgid "Yes"
+msgstr "Ja"
+
+msgid "No"
+msgstr "Nei"

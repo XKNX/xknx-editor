@@ -1575,3 +1575,15 @@ msgstr "その他のテーマ…"
 
 msgid "Panels"
 msgstr "パネル"
+
+msgid "Search commands, settings, panels, devices and group addresses"
+msgstr "コマンド、設定、パネル、デバイス、グループ・アドレスを検索"
+
+msgid "Also show the texts of product data (parameters, group objects) in {language}?"
+msgstr "製品データのテキスト（パラメーター、グループ・オブジェクト）も{language}で表示しますか？"
+
+msgid "Yes"
+msgstr "はい"
+
+msgid "No"
+msgstr "いいえ"

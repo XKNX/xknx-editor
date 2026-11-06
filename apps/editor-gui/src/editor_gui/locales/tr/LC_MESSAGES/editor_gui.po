@@ -1575,3 +1575,15 @@ msgstr "Diğer Temalar…"
 
 msgid "Panels"
 msgstr "Paneller"
+
+msgid "Search commands, settings, panels, devices and group addresses"
+msgstr "Komut, ayar, panel, cihaz ve grup adresi ara"
+
+msgid "Also show the texts of product data (parameters, group objects) in {language}?"
+msgstr "Ürün verilerinin metinleri (parametreler, grup nesneleri) de {language} dilinde gösterilsin mi?"
+
+msgid "Yes"
+msgstr "Evet"
+
+msgid "No"
+msgstr "Hayır"
