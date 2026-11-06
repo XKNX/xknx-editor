@@ -4,10 +4,9 @@ import base64
 import datetime
 import io
 from collections.abc import Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from xml.etree import ElementTree
 
-from pydantic import BaseModel, Field
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session, selectinload
 
@@ -22,14 +21,15 @@ from xknxeditor.catalog.models import (
 )
 
 
-class HardwareFilters(BaseModel):
-    """Pydantic filter bag for ``list_hardware``. All fields are optional; lists are OR-matched,
-    scalars are AND-matched. Doubles as a FastAPI ``Query()`` model.
+@dataclass(kw_only=True)
+class HardwareFilters:
+    """Filter bag for ``list_hardware``. All fields are optional; lists are OR-matched, scalars
+    are AND-matched.
     """
 
-    manufacturer_id: list[str] = Field(default_factory=list)
+    manufacturer_id: list[str] = field(default_factory=list[str])
     """M-XXXX ids to match (OR)."""
-    medium_type: list[str] = Field(default_factory=list)
+    medium_type: list[str] = field(default_factory=list[str])
     """Medium types to match, e.g. TP, IP, RF (OR)."""
     section_id: str | None = None
     """Section id; includes descendants."""

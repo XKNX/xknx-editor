@@ -1,4 +1,4 @@
-"""Session-level catalog queries and ingestion -- no FastAPI dependency."""
+"""Session-level catalog queries and ingestion."""
 
 from __future__ import annotations
 
