@@ -230,14 +230,10 @@ The [XKNX Editor integration](https://github.com/XKNX/xknx-editor-ha-integration
 on your Home Assistant server and shows it in the sidebar, signed in with Home Assistant. It works
 with Home Assistant OS and Home Assistant Container.
 
-Until it is listed in the Marketplace, add it from its GitHub link:
-
-1. **Home Assistant 2026.11 and later:** open **Settings** > **Marketplace**, choose **Custom
-   repositories** in the menu at the top right, and add
-   `https://github.com/XKNX/xknx-editor-ha-integration` with the type **Integration** (this asks
-   you to connect GitHub first). **Home Assistant 2026.10:** the same in
-   [HACS](https://hacs.xyz), also with **Custom repositories** in its menu at the top right.
-2. Search for **XKNX Editor** there, install it and restart Home Assistant.
+1. Open **Settings** > **Marketplace** in Home Assistant, search for **XKNX Editor** and install
+   it. With Home Assistant 2026.10, which has no Marketplace yet, install it from
+   [HACS](https://hacs.xyz) instead.
+2. Restart Home Assistant.
 3. Add it under **Settings** > **Devices & services** > **Add integration** > **XKNX Editor**.
 
 On its first start it installs the editor, which takes a few minutes; the panel shows the progress.
