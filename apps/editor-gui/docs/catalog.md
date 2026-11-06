@@ -20,8 +20,9 @@ this is what the GUI uses.
 
 ## Database Schema
 
-SQLAlchemy models live in `xknxeditor/catalog/models.py` (engine setup in `db.py`). The schema is created automatically
-(`Base.metadata.create_all(engine)` on connect) — there are no Alembic migrations for this package.
+SQLAlchemy models live in `xknxeditor/catalog/models.py` (engine setup in `db.py`). The schema is
+created automatically (`Base.metadata.create_all(engine)` on connect) — there are no Alembic
+migrations for this package.
 
 | Table | Purpose |
 |-------|---------|
@@ -62,8 +63,8 @@ app = catalog.get_application(application_id)  # parsed, IR-backed Application
 
 `plugins/catalog/service.py`'s `CatalogService` wraps the package's `CatalogService` and adds only
 what the panel needs on top: a `get_products()` cache of `list_products()` (the panel re-reads it
-every frame),
-path-based `import_knxprod`, and reporting which product refs were newly added by an import.
+every frame), path-based `import_knxprod`, and reporting which product refs were newly added by an
+import.
 
 ## Alternative Catalog
 
@@ -113,11 +114,13 @@ A project device stores `product_ref_id` and `hardware2program_ref_id` — refer
 catalog, not a copy of the application data. On every read, the GUI's `ProjectService` resolves
 `hardware2program_ref_id` back to an `Application` via the catalog (see `docs/architecture.md`). If
 the referenced program isn't in the catalog (e.g. a fresh/emptied catalog), the device is listed as
-unloaded (shown without parameters) with a warning log rather than crashing — see "Limitations" in `docs/project.md`.
+unloaded (shown without parameters) with a warning log rather than crashing — see "Limitations" in
+`docs/project.md`.
 
 ## File Location
 
 Default catalog used by the GUI: `catalog.xknxcatalog` in `editor_gui.settings.config_dir()` (the
 per-user data folder from `platformdirs`; a legacy `./config` folder is migrated there once), also
-filled by `uv run generate-catalog` (see `src/editor_gui/scripts/generate_catalog.py`). The `.xknxcatalog` extension is
-just a naming convention — it's a plain SQLite file and can be inspected with any SQLite tool.
+filled by `uv run generate-catalog` (see `src/editor_gui/scripts/generate_catalog.py`). The
+`.xknxcatalog` extension is just a naming convention — it's a plain SQLite file and can be inspected
+with any SQLite tool.

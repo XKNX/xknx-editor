@@ -127,9 +127,8 @@ connection.run_async(coro) -> Future | None        # run on the KNX-Async event 
 connection.xknx -> XKNX | None
 ```
 
-`TelegramSource` (`editor_gui.net`) tags every dispatched frame. Only `CONNECTION` is produced
-today; `PROXY`/`VIRTUAL` and `dispatch_proxy_cemi`/`dispatch_virtual_cemi` are left over from the
-removed proxy and virtual plugins.
+`TelegramSource` (`editor_gui.net`) tags every dispatched frame with where it came from
+(`CONNECTION`, the bus connection).
 
 ### ProjectService / CatalogService
 
