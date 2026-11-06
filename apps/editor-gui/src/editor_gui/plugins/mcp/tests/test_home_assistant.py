@@ -281,3 +281,112 @@ async def test_the_buildings_become_floors_and_areas(
         with pytest.raises(Exception, match="nothing to apply"):
             await client.call_tool("home_assistant_apply_areas", {})
     assert service.home_assistant_areas is not None
+
+
+async def test_the_building_functions_become_entities(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    mcp, service, link = _server(tmp_path, monkeypatch)
+    created: list[dict[str, Any]] = []
+    links: dict[str, str] = {}
+
+    def send(message: dict[str, Any]) -> bool:
+        if message["type"] == "check_entities":
+            # Home Assistant does not take a switch named "Broken".
+            checks = {
+                e["key"]: ("invalid" if e["name"] == "Broken" else None)
+                for e in message["entities"]
+            }
+            link.inbox.append(
+                {"type": "result", "id": message["id"], "error": None, "checks": checks}
+            )
+            return True
+        if message["type"] == "create_entities":
+            created.extend(message["entities"])
+            for entity in message["entities"]:
+                links[entity["key"]] = f"{entity['platform']}.{entity['name'].lower()}"
+            link.inbox += [
+                {"type": "entity_links", "links": dict(links)},
+                {
+                    "type": "result",
+                    "id": message["id"],
+                    "error": None,
+                    "created": {e["key"]: links[e["key"]] for e in message["entities"]},
+                    "errors": {},
+                },
+            ]
+            return True
+        return _Link.send(link, message)
+
+    monkeypatch.setattr(link, "send", send)
+    async with Client(mcp) as client:
+        await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
+        (house,) = (await _data(client, "project_spaces"))["items"]
+        room = await _data(
+            client,
+            "project_create_space",
+            space_type="Room",
+            name="Kitchen",
+            parent_id=house["id"],
+        )
+        addresses = {}
+        for address, dpt in (
+            ("1/1/1", "1.001"),
+            ("1/1/2", "5.001"),
+            ("1/1/3", "1.001"),
+        ):
+            ga = await _data(
+                client,
+                "project_create_group_address",
+                address=address,
+                name=address,
+                dpt=dpt,
+            )
+            addresses[address] = ga["group_address_id"]
+
+        async def function(name: str, kind: str, *links_: tuple[str, str]) -> int:
+            made = await _data(
+                client,
+                "project_create_function",
+                space_id=room["space_id"],
+                name=name,
+                function_type=kind,
+            )
+            for address, role in links_:
+                await _data(
+                    client,
+                    "project_add_function_group_address",
+                    function_id=made["function_id"],
+                    group_address_id=addresses[address],
+                    role=role,
+                )
+            return made["function_id"]
+
+        ceiling = await function(
+            "Ceiling", "FT-6", ("1/1/1", "SwitchOnOff"), ("1/1/2", "DimmingValue")
+        )
+        await function("Broken", "FT-10", ("1/1/3", "SwitchOnOff"))
+        # Sun protection without its up/down address: no entity.
+        await function("Blind", "FT-7")
+
+        entities = (await _data(client, "home_assistant_entities"))["items"]
+        assert [(e["name"], e["platform"], e["state"]) for e in entities] == [
+            ("Ceiling", "light", "new"),
+            ("Broken", "switch", "not_possible"),
+        ]
+        assert entities[0]["knx"] == {
+            "ga_switch": {"write": "1/1/1", "state": None, "passive": []},
+            "ga_brightness": {"write": "1/1/2", "state": None, "passive": []},
+        }
+        assert entities[1]["reason"] == "invalid"
+
+        result = await _data(client, "home_assistant_create_entities")
+        assert result["created"] == 1
+        assert [e["name"] for e in created] == ["Ceiling"]
+        assert result["items"][0]["state"] == "created"
+        assert result["items"][0]["entity_id"] == "light.ceiling"
+        with pytest.raises(Exception, match="nothing to create"):
+            await client.call_tool(
+                "home_assistant_create_entities", {"function_ids": [ceiling]}
+            )
+    assert service.entity_links

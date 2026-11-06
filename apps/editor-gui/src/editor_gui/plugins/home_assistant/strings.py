@@ -294,5 +294,64 @@ class HomeAssistantStrings:
     def BTN_APPLY(self) -> str:
         return _("Apply")
 
+    @property
+    def MENU_ENTITIES(self) -> str:
+        return _("Entities from Functions…")
+
+    @property
+    def ENTITIES_TITLE(self) -> str:
+        return _("Entities in Home Assistant")
+
+    @property
+    def ENTITIES_INTRO(self) -> str:
+        return _(
+            "The building functions become entities of Home Assistant's KNX integration: a "
+            "light, a switch or a cover with the group addresses of their roles, named like the "
+            "function, in the area its room became (see Floors and Areas). Home Assistant "
+            "checks each one first."
+        )
+
+    @property
+    def ENTITIES_NONE(self) -> str:
+        return _(
+            "The project has no lights, switches or sun protection among its functions."
+        )
+
+    @property
+    def ENTITIES_COLUMN_FUNCTION(self) -> str:
+        return _("Function")
+
+    @property
+    def ENTITIES_COLUMN_ADDRESSES(self) -> str:
+        return _("Group Addresses")
+
+    @property
+    def ENTITIES_NO_AREA(self) -> str:
+        return _("No area")
+
+    @property
+    def ENTITIES_CREATED(self) -> str:
+        return _("Created: {entity}")
+
+    @property
+    def ENTITIES_EXISTING(self) -> str:
+        return _("Its address is used by {entities}")
+
+    @property
+    def ENTITIES_CHECKING(self) -> str:
+        return _("Being checked…")
+
+    @property
+    def ENTITIES_NOT_POSSIBLE(self) -> str:
+        return _("Not taken: {error}")
+
+    @property
+    def ENTITIES_DONE(self) -> str:
+        return _("Entities created in Home Assistant: {count}")
+
+    @property
+    def BTN_CREATE(self) -> str:
+        return _("Create")
+
 
 S = HomeAssistantStrings()

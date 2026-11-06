@@ -8,7 +8,7 @@ done by :class:`~editor_gui.plugins.home_assistant.service.HomeAssistantService`
 from __future__ import annotations
 
 from collections.abc import Callable
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 from imgui_bundle import imgui
 
@@ -17,6 +17,7 @@ from editor_gui.plugins.base import Logger, PanelDefinition, PluginAPI
 from editor_gui.plugins.home_assistant.areas import AreaRow, AreaState
 from editor_gui.plugins.home_assistant.service import (
     HISTORY_HOURS,
+    EntityRow,
     HomeAssistantService,
     LinkState,
 )
@@ -75,6 +76,11 @@ class HomeAssistantPlugin:
         self._areas_requested = False
         self._areas_chosen: set[str] = set()
         self._service.on_areas_applied = self._areas_applied
+        # The entities dialog: asked for, and the candidates the user chose otherwise than
+        # chosen by default.
+        self._entities_requested = False
+        self._entities_toggled: set[str] = set()
+        self._service.on_entities_created = self._entities_created
         self._project = project
         # Opens a page of the Settings window (set by the app).
         self.open_settings: Callable[[str], None] | None = None
@@ -85,6 +91,10 @@ class HomeAssistantPlugin:
             raw, when = frame
             link = link_info(self._service.connection)
             self._monitor.on_foreign_cemi(raw, when, link, log=log)
+
+    def _entities_created(self, count: int) -> None:
+        if self._api.notify is not None:
+            self._api.notify(S.ENTITIES_DONE.format(count=count))
 
     def _areas_applied(self, changed: int) -> None:
         self._areas_chosen.clear()
@@ -155,6 +165,13 @@ class HomeAssistantPlugin:
             service.connected and self._project.is_open,
         )[0]:
             self._areas_requested = True
+        if imgui.menu_item(
+            S.MENU_ENTITIES,
+            "",
+            False,
+            service.connected and self._project.is_open,
+        )[0]:
+            self._entities_requested = True
         if imgui.menu_item(
             S.MENU_LOAD_TELEGRAMS,
             "",
@@ -261,6 +278,92 @@ class HomeAssistantPlugin:
             }
             imgui.open_popup(_areas_title())
         self._render_areas()
+        if self._entities_requested:
+            self._entities_requested = False
+            self._entities_toggled.clear()
+            imgui.open_popup(_entities_title())
+        self._render_entities()
+
+    def _entity_chosen(self, row: EntityRow) -> bool:
+        """Chosen by default: what Home Assistant takes and has no entity of yet; the user's
+        own choice otherwise."""
+        default = row.check == "" and not row.existing and row.created is None
+        return default != (row.candidate.key in self._entities_toggled)
+
+    def _render_entities(self) -> None:
+        if not begin_dialog(_entities_title(), width=760.0):
+            return
+        service = self._service
+        rows = service.entity_rows()
+        service.check_entities(rows)
+        imgui.text_wrapped(S.ENTITIES_INTRO)
+        imgui.spacing()
+        area_names = _area_names(service.home_assistant_areas)
+        if not rows:
+            imgui.text_disabled(S.ENTITIES_NONE)
+        elif begin_data_table(
+            "##home_assistant_entities",
+            6,
+            imgui.TableFlags_.borders_inner_h | imgui.TableFlags_.scroll_y,
+            imgui.ImVec2(0, px(340.0)),
+        ):
+            imgui.table_setup_column("##chosen", imgui.TableColumnFlags_.width_fixed)
+            imgui.table_setup_column(S.ENTITIES_COLUMN_FUNCTION)
+            imgui.table_setup_column(S.AREAS_COLUMN_KIND)
+            imgui.table_setup_column(S.ENTITIES_COLUMN_ADDRESSES)
+            imgui.table_setup_column(S.AREAS_AREA)
+            imgui.table_setup_column(S.AREAS_COLUMN_STATE)
+            data_table_headers()
+            for row in rows:
+                candidate = row.candidate
+                imgui.push_id(candidate.key)
+                imgui.table_next_row()
+                imgui.table_next_column()
+                possible = row.check == "" and row.created is None
+                imgui.begin_disabled(not possible)
+                changed, _chosen = checkbox(
+                    "##chosen", possible and self._entity_chosen(row)
+                )
+                imgui.end_disabled()
+                if changed:
+                    self._entities_toggled ^= {candidate.key}
+                imgui.table_next_column()
+                imgui.text(candidate.path)
+                imgui.table_next_column()
+                imgui.text(candidate.platform)
+                imgui.table_next_column()
+                imgui.text(", ".join(candidate.group_addresses))
+                imgui.table_next_column()
+                if row.area_id is not None:
+                    imgui.text(area_names.get(row.area_id, row.area_id))
+                else:
+                    imgui.text_disabled(S.ENTITIES_NO_AREA)
+                imgui.table_next_column()
+                imgui.text_wrapped(_entity_state_text(row))
+                imgui.pop_id()
+            imgui.end_table()
+        if service.entities_creating:
+            imgui.text_disabled(S.AREAS_APPLYING)
+        for error in service.entity_errors.values():
+            imgui.text_colored(_RED, S.AREAS_FAILED.format(error=error))
+        chosen = [
+            row
+            for row in rows
+            if row.check == "" and row.created is None and self._entity_chosen(row)
+        ]
+        clicked = dialog_buttons(
+            S.BTN_CREATE,
+            app_strings.BTN_CLOSE,
+            enabled=[
+                bool(chosen) and service.connected and not service.entities_creating,
+                True,
+            ],
+        )
+        if clicked == 0 and service.create_entities(chosen):
+            self._entities_toggled.clear()
+        elif clicked == 1:
+            imgui.close_current_popup()
+        end_dialog()
 
     def _render_areas(self) -> None:
         if not begin_dialog(_areas_title(), width=640.0):
@@ -407,6 +510,35 @@ class HomeAssistantPlugin:
 
 def _areas_title() -> str:
     return f"{S.AREAS_TITLE}###home_assistant_areas"
+
+
+def _entities_title() -> str:
+    return f"{S.ENTITIES_TITLE}###home_assistant_entities"
+
+
+def _area_names(state: dict[str, Any] | None) -> dict[str, str]:
+    """Home Assistant's areas by id: their names."""
+    areas = (state or {}).get("areas")
+    if not isinstance(areas, list):
+        return {}
+    names: dict[str, str] = {}
+    for area in cast("list[object]", areas):
+        if isinstance(area, dict) and "area_id" in area:
+            entry = cast("dict[str, Any]", area)
+            names[str(entry["area_id"])] = str(entry.get("name", ""))
+    return names
+
+
+def _entity_state_text(row: EntityRow) -> str:
+    if row.created is not None:
+        return S.ENTITIES_CREATED.format(entity=row.created)
+    if row.existing:
+        return S.ENTITIES_EXISTING.format(entities=", ".join(row.existing))
+    if row.check is None:
+        return S.ENTITIES_CHECKING
+    if row.check:
+        return S.ENTITIES_NOT_POSSIBLE.format(error=row.check)
+    return S.AREAS_NEW
 
 
 def _area_state_text(row: AreaRow) -> str:

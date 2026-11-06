@@ -27,6 +27,12 @@ from editor_gui.plugins.home_assistant.areas import (
     plan_spaces,
     request,
 )
+from editor_gui.plugins.home_assistant.entities import (
+    EntityCandidate,
+    entity_candidates,
+    entity_request,
+    existing_entities,
+)
 from editor_gui.settings import load_settings, save_settings
 
 if TYPE_CHECKING:
@@ -90,6 +96,31 @@ def _usage(value: object) -> dict[int, GroupAddressUsage]:
             sends=bool(data.get("sends")),
         )
     return result
+
+
+def _texts(value: object) -> dict[str, str]:
+    """{key: text} of a message; None (no error) becomes ""."""
+    if not isinstance(value, dict):
+        return {}
+    return {
+        str(k): "" if v is None else str(v)
+        for k, v in cast("dict[object, object]", value).items()
+    }
+
+
+@dataclass(frozen=True)
+class EntityRow:
+    """A building function's entity and what Home Assistant has of it."""
+
+    candidate: EntityCandidate
+    # The area its room became (None: not linked).
+    area_id: str | None
+    # The entities of Home Assistant on the address it switches with.
+    existing: tuple[str, ...]
+    # Home Assistant's verdict: None not asked yet, "" it takes it, else why not.
+    check: str | None
+    # The entity created for it.
+    created: str | None
 
 
 def _default_builder(project: ProjectService) -> dict[str, Any]:
@@ -175,6 +206,18 @@ class HomeAssistantService:
         self.areas_error: str | None = None
         # Told how many floors and areas an apply_areas created, linked or renamed.
         self.on_areas_applied: Callable[[int], None] | None = None
+        # Home Assistant's verdict on each entity candidate by key ("": it takes it, else why
+        # not), the candidates last sent to be checked, and the open request.
+        self.entity_checks: dict[str, str] = {}
+        self._checked: list[dict[str, Any]] | None = None
+        self._check_request: int | None = None
+        # The entities created for candidates, by their key (the integration remembers them).
+        self.entity_links: dict[str, str] = {}
+        self._create_request: int | None = None
+        # The outcome of the last create_entities: why some were not created ({key: error}).
+        self.entity_errors: dict[str, str] = {}
+        # Told how many entities a create_entities created.
+        self.on_entities_created: Callable[[int], None] | None = None
 
     def set_logger(self, log: Logger) -> None:
         self._log = log
@@ -369,6 +412,85 @@ class HomeAssistantService:
         self.areas_error = None
         return True
 
+    def _lookup(self, group_address_id: int) -> tuple[str | None, int] | None:
+        ga = self._project.get_group_address(group_address_id)
+        return (ga.datapoint_type, ga.raw) if ga is not None else None
+
+    def entity_rows(self) -> list[EntityRow]:
+        """The entities the open project's building functions become, with their area, the
+        entities of Home Assistant on their address, and Home Assistant's verdict."""
+        guid = self.project_guid()
+        if guid is None:
+            return []
+        candidates = entity_candidates(
+            self._project.get_space_tree(), guid, self._lookup
+        )
+        links = (self.home_assistant_areas or {}).get("links")
+        area_links = (
+            {str(k): str(v) for k, v in cast("dict[object, object]", links).items()}
+            if isinstance(links, dict)
+            else {}
+        )
+        users = {raw: usage.users for raw, usage in self.usage.items()}
+        return [
+            EntityRow(
+                candidate=c,
+                area_id=area_links.get(c.space_key),
+                existing=tuple(existing_entities(c, users)),
+                check=self.entity_checks.get(c.key),
+                created=self.entity_links.get(c.key),
+            )
+            for c in candidates
+        ]
+
+    def check_entities(self, rows: list[EntityRow]) -> None:
+        """Ask Home Assistant whether it takes the candidates of ``rows``, unless they were
+        asked for as they are."""
+        link = self._link()
+        requests = [entity_request(r.candidate, r.area_id) for r in rows]
+        if (
+            link is None
+            or not self.connected
+            or requests == self._checked
+            or self._check_request is not None
+        ):
+            return
+        self._next_id += 1
+        if link.send(
+            {"type": "check_entities", "id": self._next_id, "entities": requests}
+        ):
+            self._check_request = self._next_id
+            self._checked = requests
+
+    @property
+    def entities_checking(self) -> bool:
+        return self._check_request is not None
+
+    @property
+    def entities_creating(self) -> bool:
+        return self._create_request is not None
+
+    def create_entities(self, rows: list[EntityRow]) -> bool:
+        """Create the entities of ``rows`` in Home Assistant; False without a connection,
+        without rows or while an earlier request is open."""
+        link = self._link()
+        if (
+            link is None
+            or not self.connected
+            or not rows
+            or self._create_request is not None
+        ):
+            return False
+        self._next_id += 1
+        entities = [entity_request(r.candidate, r.area_id) for r in rows]
+        if not link.send(
+            {"type": "create_entities", "id": self._next_id, "entities": entities}
+        ):
+            return False
+        self._create_request = self._next_id
+        self.entity_errors = {}
+        return True
+
     def senders(self) -> frozenset[int]:
         """The group addresses (raw) Home Assistant sends to."""
         return frozenset(raw for raw, usage in self.usage.items() if usage.sends)
@@ -408,6 +530,11 @@ class HomeAssistantService:
             self._history_request = None
             self.home_assistant_areas = None
             self._areas_request = None
+            self.entity_checks = {}
+            self._checked = None
+            self._check_request = None
+            self.entity_links = {}
+            self._create_request = None
         for message in link.receive():
             self._handle(message)
         key = self._key()
@@ -460,6 +587,29 @@ class HomeAssistantService:
             self.home_assistant_areas = {
                 key: message.get(key) for key in ("floors", "areas", "links")
             }
+        elif kind == "entity_links":
+            links = message.get("links")
+            self.entity_links = (
+                {str(k): str(v) for k, v in cast("dict[object, object]", links).items()}
+                if isinstance(links, dict)
+                else {}
+            )
+        elif kind == "result" and message.get("id") == self._check_request:
+            self._check_request = None
+            self.entity_checks = _texts(message.get("checks"))
+        elif kind == "result" and message.get("id") == self._create_request:
+            self._create_request = None
+            self.entity_errors = _texts(message.get("errors"))
+            if (error := message.get("error")) is not None:
+                self.entity_errors[""] = str(error)
+            created = message.get("created")
+            count = (
+                len(cast("dict[object, object]", created))
+                if isinstance(created, dict)
+                else 0
+            )
+            if self.on_entities_created is not None:
+                self.on_entities_created(count)
         elif kind == "result" and message.get("id") == self._areas_request:
             self._areas_request = None
             if (error := message.get("error")) is not None:

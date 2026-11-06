@@ -12,6 +12,7 @@ from fastmcp.exceptions import ToolError
 
 from editor_gui import host
 from editor_gui.plugins.home_assistant.areas import AreaRow, AreaState
+from editor_gui.plugins.home_assistant.service import EntityRow
 from editor_gui.plugins.mcp.context import McpContext, make_tool, require_project
 
 if TYPE_CHECKING:
@@ -249,6 +250,114 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             error = ctx.run_locked(lambda: service().areas_error)
             if error is not None:
                 raise ToolError(f"Home Assistant did not take them: {error}")
+            time.sleep(_POLL_SECONDS)
+        raise ToolError("Home Assistant did not answer in time")
+
+    def entity_row(row: EntityRow) -> dict[str, Any]:
+        candidate = row.candidate
+        state = (
+            "created"
+            if row.created is not None
+            else "existing"
+            if row.existing
+            else "unchecked"
+            if row.check is None
+            else "not_possible"
+            if row.check
+            else "new"
+        )
+        return {
+            "function_id": candidate.function_id,
+            "name": candidate.name,
+            "path": candidate.path,
+            "platform": candidate.platform,
+            "knx": candidate.knx,
+            "group_addresses": list(candidate.group_addresses),
+            "area_id": row.area_id,
+            "state": state,
+            "entity_id": row.created,
+            "existing_entity_ids": list(row.existing),
+            "reason": row.check or None,
+        }
+
+    def checked_rows() -> list[EntityRow]:
+        """The rows once Home Assistant has checked them."""
+        ctx.run_locked(lambda: service().check_entities(service().entity_rows()))
+        deadline = time.monotonic() + _SEND_TIMEOUT
+        while time.monotonic() < deadline:
+            rows = ctx.run_locked(lambda: service().entity_rows())
+            if not ctx.run_locked(lambda: service().entities_checking) and all(
+                r.check is not None for r in rows
+            ):
+                return rows
+            time.sleep(_POLL_SECONDS)
+        raise ToolError("Home Assistant did not answer in time")
+
+    @tool("read", open_world=True)
+    def home_assistant_entities() -> dict[str, Any]:
+        """The entities the project's building functions become in Home Assistant's KNX
+        integration (Entities from Functions…), each checked by Home Assistant: a switchable or
+        dimmable light, a switch or sun protection becomes a light, switch or cover with the
+        group addresses of its roles, named like the function, in the area its room became
+        (home_assistant_areas). Returns {items, count}; each item has {function_id, name, path,
+        platform, knx (the configuration), group_addresses, area_id, state, entity_id,
+        existing_entity_ids, reason}. state: "new" (Home Assistant takes it), "existing" (an
+        entity uses its address already), "created" (entity_id), "not_possible" (reason)."""
+        require_project(ctx)
+        return _items([entity_row(r) for r in checked_rows()])
+
+    @tool("write", open_world=True)
+    def home_assistant_create_entities(
+        function_ids: list[int] | None = None,
+    ) -> dict[str, Any]:
+        """Create the entities of the functions ``function_ids`` in Home Assistant (Entities from
+        Functions…, Create); without function_ids every "new" one of home_assistant_entities.
+        Only "new" ones are created. Waits until Home Assistant created them; returns {created}
+        and the rows as home_assistant_entities gives them, with a reason for each one that was
+        not created."""
+        require_project(ctx)
+        rows = [
+            r
+            for r in checked_rows()
+            if r.check == ""
+            and r.created is None
+            and not r.existing
+            and (function_ids is None or r.candidate.function_id in function_ids)
+        ]
+        if not rows:
+            raise ToolError("nothing to create: no new entity among them")
+        done: list[int] = []
+
+        def _create() -> bool:
+            ha = service()
+            previous = ha.on_entities_created
+
+            def take(count: int) -> None:
+                done.append(count)
+                ha.on_entities_created = previous
+                if previous is not None:
+                    previous(count)
+
+            ha.on_entities_created = take
+            if ha.create_entities(rows):
+                return True
+            ha.on_entities_created = previous
+            return False
+
+        if not ctx.run_locked(_create):
+            raise ToolError(
+                "Home Assistant cannot be asked now (not connected, or busy)"
+            )
+        deadline = time.monotonic() + _SEND_TIMEOUT
+        while time.monotonic() < deadline:
+            if done:
+                errors = ctx.run_locked(lambda: dict(service().entity_errors))
+                current = ctx.run_locked(lambda: service().entity_rows())
+                items = [entity_row(r) for r in current]
+                for item, row in zip(items, current, strict=True):
+                    if (error := errors.get(row.candidate.key)) is not None:
+                        item["reason"] = error
+                return {"created": done[0], **_items(items)}
             time.sleep(_POLL_SECONDS)
         raise ToolError("Home Assistant did not answer in time")
 
