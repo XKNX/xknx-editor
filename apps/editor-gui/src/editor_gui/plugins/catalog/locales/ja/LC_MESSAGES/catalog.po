@@ -276,3 +276,5 @@ msgstr "バージョン"
 
 msgid "Register…"
 msgstr "登録…"
+msgid "Alternative Catalog"
+msgstr "Alternative Catalog"

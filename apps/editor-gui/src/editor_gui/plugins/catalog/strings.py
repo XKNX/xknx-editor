@@ -48,6 +48,10 @@ class CatalogStrings:
         return _("Save")
 
     @property
+    def ALTERNATIVE_SETTINGS(self) -> str:
+        return _("Alternative Catalog")
+
+    @property
     def ALTERNATIVE_REGISTER(self) -> str:
         return _("Register")
 

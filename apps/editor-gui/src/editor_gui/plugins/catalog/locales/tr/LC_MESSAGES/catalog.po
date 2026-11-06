@@ -276,3 +276,5 @@ msgstr "Sürüm"
 
 msgid "Register…"
 msgstr "Kayıt ol…"
+msgid "Alternative Catalog"
+msgstr "Alternative Catalog"

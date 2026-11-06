@@ -279,3 +279,5 @@ msgstr "Versiune"
 
 msgid "Register…"
 msgstr "Înregistrare…"
+msgid "Alternative Catalog"
+msgstr "Alternative Catalog"

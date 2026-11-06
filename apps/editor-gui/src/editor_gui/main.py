@@ -92,6 +92,7 @@ from editor_gui.plugins.logger import LoggerPlugin, LogService
 from editor_gui.plugins.mcp import McpServerPlugin
 from editor_gui.plugins.mcp.plugin import advertise_url as _mcp_advertise_url
 from editor_gui.plugins.monitor import MonitorPlugin
+from editor_gui.plugins.monitor.service import MonitorKind
 from editor_gui.plugins.project import ProjectPlugin, ProjectService
 from editor_gui.plugins.project.knxproj_manufacturer import collect_manufacturer_bundle
 from editor_gui.plugins.project.space_text import space_type_name
@@ -776,6 +777,11 @@ class KnxGuiApp:
         # Persisted so a chosen ETS version sticks across sessions.
         _schema = str(load_settings("app").get("export_schema") or "23")
         self._export_schema = _schema if _schema in ("20", "23") else "23"
+        # The export way (sign-dialog tab) to preselect: the last one used, or an explicit General
+        # choice; empty = pick by availability. Applied once when the sign dialog opens.
+        _method = str(load_settings("app").get("export_method") or "")
+        self._export_method = _method if _method in ("ets", "myknx", "dongle") else ""
+        self._export_preselect = False
         # Command palette (Ctrl+P): fuzzy jump to devices / run actions.
         self._palette_open = False
         self._palette_query = ""
@@ -1720,6 +1726,16 @@ class KnxGuiApp:
         data["export_schema"] = code
         save_settings("app", data)
 
+    def _set_export_method(self, method: str) -> None:
+        """Set and persist the preferred export way (sign-dialog tab); empty = by availability."""
+        method = method if method in ("ets", "myknx", "dongle") else ""
+        if method == self._export_method:
+            return
+        self._export_method = method
+        data = load_settings("app")
+        data["export_method"] = method
+        save_settings("app", data)
+
     def _ets_projectstore_dir(self, store_format: project_store.StoreFormat) -> Path:
         """Default project store for ``store_format``: %ProgramData%\\KNX\\ETS{5,6}\\ProjectStore."""
         base = os.environ.get("PROGRAMDATA") or r"C:\ProgramData"
@@ -1996,6 +2012,7 @@ class KnxGuiApp:
             self._myknx_prompt_requested = False
             self._myknx_products = None  # fresh login each export
             self._myknx_login_error = ""
+            self._export_preselect = True  # select the preferred way once, this opening
         # Fixed width so the wrapped text actually wraps and labels aren't pushed off-screen
         # (auto-resize + full-width inputs made this window span the whole screen before).
         if not begin_dialog(S.MYKNX_SIGN_TITLE, width=700.0):
@@ -2091,28 +2108,56 @@ class KnxGuiApp:
         ets_available = ets_found and web.active_hub is None
         ets_unavailable = web.active_hub is None and not ets_found
         ets_local = False
+        active_tab = ""
+
+        def _tab_flags(key: str) -> int:
+            # Select the preferred way once, the frame the dialog opens.
+            if self._export_preselect and self._export_method == key:
+                return int(imgui.TabItemFlags_.set_selected)
+            return 0
+
         with outlined_tabs():
             if begin_tab_bar("##export_license"):
-                if ets_available and imgui.begin_tab_item(S.MYKNX_ETS_TAB)[0]:
+                if (
+                    ets_available
+                    and imgui.begin_tab_item(S.MYKNX_ETS_TAB, None, _tab_flags("ets"))[
+                        0
+                    ]
+                ):
                     ets_local = True
+                    active_tab = "ets"
                     with tab_page("##ets_page", tab_page_h):
                         self._render_ets_local_tab()
                     imgui.end_tab_item()
-                if imgui.begin_tab_item(S.MYKNX_SIGN_TAB)[0]:
+                if imgui.begin_tab_item(S.MYKNX_SIGN_TAB, None, _tab_flags("myknx"))[0]:
+                    active_tab = "myknx"
                     with tab_page("##myknx_page", tab_page_h):
                         selected_pid = self._render_myknx_login_tab(logging_in)
                     imgui.end_tab_item()
-                if imgui.begin_tab_item(S.MYKNX_DONGLE_TAB)[0]:
+                if imgui.begin_tab_item(S.MYKNX_DONGLE_TAB, None, _tab_flags("dongle"))[
+                    0
+                ]:
                     dongle = True
+                    active_tab = "dongle"
                     with tab_page("##dongle_page", tab_page_h):
                         self._render_dongle_tab()
                     imgui.end_tab_item()
-                if ets_unavailable and imgui.begin_tab_item(S.MYKNX_ETS_TAB)[0]:
+                if (
+                    ets_unavailable
+                    and imgui.begin_tab_item(S.MYKNX_ETS_TAB, None, _tab_flags("ets"))[
+                        0
+                    ]
+                ):
                     ets_local = True
+                    active_tab = "ets"
                     with tab_page("##ets_page", tab_page_h):
                         self._render_ets_local_tab()
                     imgui.end_tab_item()
                 imgui.end_tab_bar()
+        self._export_preselect = False
+        # Remember the way the user settled on, so the next export preselects it.
+        if active_tab:
+            self._set_export_method(active_tab)
         imgui.spacing()
         # The folder-signing key signs plain .knxproj exports. The button is shown on every tab;
         # on the ETS tab a note says the primary Export Through ETS needs no key (ETS re-signs the
@@ -4060,7 +4105,8 @@ class KnxGuiApp:
             (S.MENU_EDIT, self._render_edit_menu),
             (S.MENU_VIEW, self._render_view_menu),
             (self._connection_plugin.menu_label, self._connection_plugin.render_menu),
-            (S.MENU_TOOLS, self._render_tools_menu),
+            (S.MENU_MCP, self._render_mcp_menu),
+            (self._keyring_plugin.menu_label, self._keyring_plugin.render_menu),
             (S.MENU_HELP, self._render_help_menu),
         ]
 
@@ -4184,12 +4230,6 @@ class KnxGuiApp:
         if imgui.menu_item(S.MENU_COMMAND_PALETTE, S.SHORTCUT_PALETTE, False)[0]:
             self._open_palette()
 
-    def _render_tools_menu(self) -> None:
-        self._render_mcp_menu()
-        self._keyring_plugin.render_menu()
-        if imgui.menu_item(self._signing_plugin.menu_label, "", False)[0]:
-            self._signing_plugin.open_window()
-
     def _render_help_menu(self) -> None:
         if imgui.menu_item(S.MENU_CHECK_UPDATES, "", False)[0]:
             self._start_update_check(manual=True)
@@ -4200,6 +4240,11 @@ class KnxGuiApp:
             self._open_feedback(feedback.feature_request_url())
         if imgui.menu_item(S.MENU_SHOW_ISSUES, "", False)[0]:
             self._open_feedback(feedback.ISSUES_URL)
+        imgui.separator()
+        if imgui.menu_item(S.SETTING_CONFIG_FOLDER, "", False)[0]:
+            self._open_folder(config_dir())
+        if imgui.menu_item(S.SETTING_CACHE_FOLDER, "", False)[0]:
+            self._open_folder(cache_dir())
         imgui.separator()
         if imgui.menu_item(S.MENU_ABOUT, "", False)[0]:
             self._about_requested = True
@@ -5646,7 +5691,7 @@ class KnxGuiApp:
         managed = host.current().mcp_managed
         theme = hello_imgui.get_runner_params().imgui_window_params.tweaked_theme.theme
         file, edit, view = S.MENU_FILE, S.MENU_EDIT, S.MENU_VIEW
-        tools, helps = S.MENU_TOOLS, S.MENU_HELP
+        mcp, helps = S.MENU_MCP, S.MENU_HELP
         gateway = self._connection_plugin.menu_label
         commands: list[tuple[bool, str, str, str, Callable[[], None]]] = [
             (True, file, S.MENU_NEW_PROJECT, S.SHORTCUT_NEW, self._new_project),
@@ -5734,15 +5779,15 @@ class KnxGuiApp:
             ),
             (
                 not managed and not running,
-                tools,
+                mcp,
                 S.SETTINGS_MCP_START,
                 "",
                 self._start_mcp,
             ),
-            (not managed and running, tools, S.SETTINGS_MCP_STOP, "", self._stop_mcp),
+            (not managed and running, mcp, S.SETTINGS_MCP_STOP, "", self._stop_mcp),
             (
                 True,
-                tools,
+                S.MENU_SETTINGS,
                 self._signing_plugin.menu_label,
                 "",
                 self._signing_plugin.open_window,
@@ -6278,10 +6323,8 @@ class KnxGuiApp:
         self._log.info("MCP server stopped")
 
     def _render_mcp_menu(self) -> None:
-        """Tools > MCP Server: whether the embedded server runs, Start/Stop, its address, and
-        its settings (the AI/MCP page of the Settings window)."""
-        if not imgui.begin_menu(S.PANEL_MCP):
-            return
+        """The MCP menu's content (the app draws the menu itself): whether the embedded server
+        runs, Start/Stop, its address, and its settings (the AI/MCP page of the Settings window)."""
         running = self._mcp_plugin.is_running
         managed = host.current().mcp_managed
         self._render_mcp_status_row(running)
@@ -6295,7 +6338,6 @@ class KnxGuiApp:
         imgui.separator()
         if imgui.menu_item(S.MENU_SETTINGS, "", False)[0]:
             self._settings_window.open(_MCP_SETTINGS_PAGE)
-        imgui.end_menu()
 
     def _render_mcp_status_row(self, running: bool) -> None:
         """Whether the server runs, and the button that starts or stops it right-aligned beside
@@ -6368,6 +6410,11 @@ class KnxGuiApp:
                 SettingsPage(
                     "folders", lambda: S.SETTINGS_PAGE_FOLDERS, self._folder_settings()
                 ),
+                SettingsPage(
+                    "catalog",
+                    lambda: S.SETTINGS_PAGE_CATALOG,
+                    self._catalog_plugin.settings(),
+                ),
             ]
         return self._settings_page_list
 
@@ -6439,7 +6486,57 @@ class KnxGuiApp:
                 get=self._update_check_enabled,
                 set=lambda enabled: self._set_update_check_enabled(bool(enabled)),
             ),
+            Setting(
+                "max_telegrams",
+                lambda: S.SETTING_MAX_TELEGRAMS,
+                "int",
+                get=lambda: self._monitor_plugin.service.max_records(MonitorKind.GROUP),
+                set=lambda value: self._monitor_plugin.service.set_max_records(
+                    MonitorKind.GROUP, max(10, int(value))
+                ),
+                bounds=(10, 1000000),
+                hint=lambda: S.SETTING_MAX_TELEGRAMS_HINT,
+            ),
+            Setting(
+                "export_format",
+                lambda: S.SETTING_EXPORT_FORMAT,
+                "choice",
+                get=lambda: self._export_schema,
+                set=lambda value: self._set_export_schema(str(value)),
+                choices=lambda: [
+                    ("23", S.EXPORT_FORMAT_ETS6),
+                    ("20", S.EXPORT_FORMAT_ETS5),
+                ],
+            ),
+            Setting(
+                "export_method",
+                lambda: S.SETTING_EXPORT_METHOD,
+                "choice",
+                get=lambda: self._export_method or "auto",
+                set=lambda value: self._set_export_method(
+                    "" if str(value) == "auto" else str(value)
+                ),
+                choices=lambda: [
+                    ("auto", S.SETTING_EXPORT_METHOD_AUTO),
+                    ("ets", S.MYKNX_ETS_TAB),
+                    ("myknx", S.MYKNX_SIGN_TAB),
+                    ("dongle", S.MYKNX_DONGLE_TAB),
+                ],
+            ),
+            Setting(
+                "signing_key",
+                lambda: S.SIGNING_KEY_TITLE,
+                "custom",
+                render=self._render_signing_setting,
+            ),
         ]
+
+    def _render_signing_setting(self) -> None:
+        """Open the Signing Key dialog (the key that signs .knxproj exports); like the theme
+        button, close the Settings window first so the dialog is not covered by it."""
+        if imgui.button(S.SIGNING_KEY_BUTTON):
+            imgui.close_current_popup()
+            self._signing_plugin.open_window()
 
     def _set_theme(self, name: object) -> None:
         theme = next((t for _, t in _theme_items() if t.name == str(name)), None)

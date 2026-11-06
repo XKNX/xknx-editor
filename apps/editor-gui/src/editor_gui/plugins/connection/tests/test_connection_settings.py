@@ -33,8 +33,8 @@ def test_the_serial_number_setting_is_changed_and_kept(
 ) -> None:
     monkeypatch.setattr(app_settings, "config_dir", lambda: tmp_path)
     plugin = _plugin()
-    (setting,) = plugin.settings()
-    assert setting.key == "use_serial_number"
+    settings = {s.key: s for s in plugin.settings()}
+    setting = settings["use_serial_number"]
     assert setting.kind == "bool"
     assert setting.get() is True
     setting.set(False)
@@ -42,3 +42,29 @@ def test_the_serial_number_setting_is_changed_and_kept(
     stored = plugin_module.load_settings("connection")
     assert stored["serial_number_downloads"] is False
     assert setting.get() is False
+
+
+def test_connection_type_and_gateway_ip_settings(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(app_settings, "config_dir", lambda: tmp_path)
+    plugin = _plugin()
+    settings = {s.key: s for s in plugin.settings()}
+    ctype = settings["connection_type"]
+    assert ctype.kind == "choice"
+    assert ctype.get() == "tunneling"
+    assert {key for key, _ in ctype.choices()} == {
+        "tunneling",
+        "tunneling_tcp",
+        "routing",
+    }
+    ctype.set("tunneling_tcp")
+    assert plugin._connection_type == ConnectionType.TUNNELING_TCP
+    assert ctype.get() == "tunneling_tcp"
+    gateway_ip = settings["gateway_ip"]
+    assert gateway_ip.kind == "text"
+    gateway_ip.set("192.168.0.5")
+    assert plugin._controller_ip == "192.168.0.5"
+    assert plugin_module.load_settings("connection")["connection_type"] == (
+        ConnectionType.TUNNELING_TCP.value
+    )

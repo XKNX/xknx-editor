@@ -279,3 +279,5 @@ msgstr "Verzia"
 
 msgid "Register…"
 msgstr "Registrovať…"
+msgid "Alternative Catalog"
+msgstr "Alternative Catalog"

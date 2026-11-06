@@ -276,3 +276,5 @@ msgstr "Verze"
 
 msgid "Register…"
 msgstr "Registrovat…"
+msgid "Alternative Catalog"
+msgstr "Alternative Catalog"

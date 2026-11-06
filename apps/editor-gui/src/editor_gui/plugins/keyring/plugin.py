@@ -37,28 +37,30 @@ class KeyringPlugin:
     def panels(self) -> list[PanelDefinition]:
         return []  # not a docked tab — opened from the menu into its own window
 
+    @property
+    def menu_label(self) -> str:
+        return S.MENU_KEYRING
+
     def render_menu(self) -> None:
-        """The 'XKNX Secure' menu-bar entry (placed between MCP and Help)."""
-        if imgui.begin_menu(S.PANEL_KEYRING):
-            if self._panel.has_keyring():
-                if imgui.menu_item(S.MENU_SHOW_WINDOW, "", self._window_open)[0]:
-                    self._window_open = not self._window_open
-                if imgui.menu_item(S.KEYRING_EXPORT, "", False)[0]:
-                    self._panel.begin_export()  # save dialog + password modal
-                if imgui.menu_item(S.KEYRING_CLOSE, "", False)[0]:
-                    self._service.clear()
-                    self._window_open = False
-            elif imgui.menu_item(S.KEYRING_IMPORT, "", False)[0]:
-                self._panel.begin_import()  # file dialog; no window
-            # The open project's own key material, for other tools (e.g. secure tunnels).
-            if self._api.project.is_open and self._api.project.project_needs_password():
-                imgui.separator()
-                if imgui.menu_item(S.KEYRING_EXPORT_PROJECT, "", False)[0]:
-                    info = self._api.project.get_project_metadata()
-                    self._panel.begin_project_export(
-                        (info.name if info is not None else "") or "project"
-                    )
-            imgui.end_menu()
+        """The KNX Secure menu's content (the app draws the menu itself, see ``menu_label``)."""
+        if self._panel.has_keyring():
+            if imgui.menu_item(S.MENU_SHOW_WINDOW, "", self._window_open)[0]:
+                self._window_open = not self._window_open
+            if imgui.menu_item(S.KEYRING_EXPORT, "", False)[0]:
+                self._panel.begin_export()  # save dialog + password modal
+            if imgui.menu_item(S.KEYRING_CLOSE, "", False)[0]:
+                self._service.clear()
+                self._window_open = False
+        elif imgui.menu_item(S.KEYRING_IMPORT, "", False)[0]:
+            self._panel.begin_import()  # file dialog; no window
+        # The open project's own key material, for other tools (e.g. secure tunnels).
+        if self._api.project.is_open and self._api.project.project_needs_password():
+            imgui.separator()
+            if imgui.menu_item(S.KEYRING_EXPORT_PROJECT, "", False)[0]:
+                info = self._api.project.get_project_metadata()
+                self._panel.begin_project_export(
+                    (info.name if info is not None else "") or "project"
+                )
 
     def render_window(self) -> None:
         """Import/export prompts (small modals) + the content window; called from the overlay pass."""

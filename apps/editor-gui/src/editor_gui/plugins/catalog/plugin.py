@@ -12,6 +12,7 @@ from editor_gui.plugins.catalog.ui import CatalogPanel
 from editor_gui.plugins.catalog.ui.alternative import AlternativeCatalogPanel
 from editor_gui.plugins.project.medium_text import medium_error_text
 from editor_gui.plugins.project.service import DeviceProduct
+from editor_gui.settings_window import Setting
 from xknxeditor.proj.core.medium import MediumError
 from xknxeditor.proj.core.space_rules import holds_devices
 
@@ -402,6 +403,19 @@ class CatalogPlugin:
     @property
     def panels(self) -> list[PanelDefinition]:
         return self._panels
+
+    def settings(self) -> list[Setting]:
+        """The Catalog page of the Settings window: the alternative catalog's server and login
+        (the same form and state as the Alternative catalog tab)."""
+        return [
+            Setting(
+                "alternative_catalog",
+                lambda: S.ALTERNATIVE_SETTINGS,
+                "custom",
+                render=self._alternative.render_settings_form,
+                wide=True,
+            )
+        ]
 
     def on_load(self) -> None:
         pass

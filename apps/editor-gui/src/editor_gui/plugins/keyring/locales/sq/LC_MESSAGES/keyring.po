@@ -84,3 +84,6 @@ msgstr "Çelësi i veglës"
 
 msgid "{address}   key {key}"
 msgstr "{address}   çelësi {key}"
+
+msgid "KNX Sec"
+msgstr "KNX Sec"

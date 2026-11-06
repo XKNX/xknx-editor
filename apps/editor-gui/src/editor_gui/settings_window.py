@@ -117,13 +117,19 @@ class SettingsWindow:
     # --- the settings ---------------------------------------------------------------
 
     def pages(self) -> list[SettingsPage]:
-        """The pages with the settings shown in this mode (desktop, browser, Home Assistant)."""
-        out: list[SettingsPage] = []
+        """The pages (categories) shown in this mode (desktop, browser, Home Assistant). The first
+        page (General) stays on top as the one opened by default; the rest follow it alphabetically
+        by title in the interface language. Each page keeps its own setting order."""
+        shown_pages: list[SettingsPage] = []
         for page in self._pages():
             shown = [s for s in page.settings if s.shown()]
             if shown:
-                out.append(SettingsPage(page.key, page.title, shown, page.intro))
-        return out
+                shown_pages.append(SettingsPage(page.key, page.title, shown, page.intro))
+        if not shown_pages:
+            return []
+        first, *rest = shown_pages
+        rest.sort(key=lambda p: _words(p.title()))
+        return [first, *rest]
 
     def setting(self, key: str) -> tuple[SettingsPage, Setting] | None:
         for page in self.pages():
@@ -171,7 +177,7 @@ class SettingsWindow:
         if self._open_requested:
             self._open_requested = False
             imgui.open_popup(self.title)
-        if not begin_dialog(self.title, width=780.0, height=560.0):
+        if not begin_dialog(self.title, width=820.0, height=680.0):
             return
         self._shown_frame = imgui.get_frame_count()
         pages = self.pages()
@@ -209,7 +215,10 @@ class SettingsWindow:
 
     def _render_page_list(self, pages: Sequence[SettingsPage]) -> None:
         found = {page.key for page, _ in self.search(self._query)}
-        for page in pages:
+        for index, page in enumerate(pages):
+            # A divider sets the default General page apart from the alphabetical rest.
+            if index == 1:
+                imgui.separator()
             # While searching, the pages without a match are dimmed.
             imgui.begin_disabled(bool(self._query) and page.key not in found)
             if imgui.selectable(
@@ -224,7 +233,9 @@ class SettingsWindow:
         current = next((p for p in pages if p.key == self._page), None)
         imgui.set_next_item_width(-1)
         if begin_combo("##settings_page", current.title() if current else ""):
-            for page in pages:
+            for index, page in enumerate(pages):
+                if index == 1:
+                    imgui.separator()
                 if imgui.selectable(page.title(), page.key == self._page)[0]:
                     self._page = page.key
             imgui.end_combo()

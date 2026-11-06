@@ -204,3 +204,9 @@ msgstr "Routing"
 
 msgid "A device whose serial number is known gets its individual address without pressing its programming button."
 msgstr "已知序列号的设备无需按下编程按钮即可获得其物理地址。"
+
+msgid "Connection Type"
+msgstr "Connection Type"
+
+msgid "Applies on the next connect, like the Gateway menu's choice."
+msgstr "Applies on the next connect, like the Gateway menu's choice."

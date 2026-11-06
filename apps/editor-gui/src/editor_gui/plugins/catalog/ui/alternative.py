@@ -278,6 +278,10 @@ class AlternativeCatalogPanel:
             imgui.close_current_popup()
         end_dialog()
 
+    def render_settings_form(self) -> None:
+        """The server URL and login form, for the Settings window (same client, same state)."""
+        self._render_settings()
+
     def _render_settings(self) -> None:
         for label, attr, flags in (
             (S.ALTERNATIVE_URL, "_base_url", 0),

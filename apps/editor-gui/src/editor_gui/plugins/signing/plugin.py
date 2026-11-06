@@ -35,7 +35,7 @@ class SigningPlugin:
 
     @property
     def menu_label(self) -> str:
-        """The item of the Tools menu that opens the Signing Key dialog."""
+        """The label of the action that opens the Signing Key dialog (Settings, command palette)."""
         return S.MENU_SHOW_WINDOW
 
     def on_load(self) -> None:

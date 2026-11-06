@@ -276,3 +276,5 @@ msgstr "Έκδοση"
 
 msgid "Register…"
 msgstr "Εγγραφή…"
+msgid "Alternative Catalog"
+msgstr "Alternative Catalog"

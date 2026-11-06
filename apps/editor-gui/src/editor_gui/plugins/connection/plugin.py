@@ -1734,14 +1734,46 @@ class ConnectionPlugin:
         """The connection settings, for the Connection page of the Settings window (and MCP)."""
         return [
             Setting(
+                "connection_type",
+                lambda: S.SETTING_CONNECTION_TYPE,
+                "choice",
+                get=lambda: self.connection_type,
+                set=self._set_connection_type_name,
+                choices=lambda: [
+                    ("tunneling", S.CONN_TYPE_TUNNELING),
+                    ("tunneling_tcp", S.CONN_TYPE_TCP_TUNNELING),
+                    ("routing", S.CONN_TYPE_ROUTING),
+                ],
+                hint=lambda: S.SETTING_CONNECTION_TYPE_HINT,
+            ),
+            Setting(
+                "gateway_ip",
+                lambda: S.SETTING_GATEWAY_IP,
+                "text",
+                get=lambda: self._controller_ip,
+                set=self._set_controller_ip,
+            ),
+            Setting(
                 "use_serial_number",
                 lambda: S.SETTING_USE_SERIAL_NUMBER,
                 "bool",
                 get=lambda: self._api.connection.use_serial_number,
                 set=self._set_use_serial_number,
                 hint=lambda: S.SETTING_USE_SERIAL_NUMBER_HINT,
-            )
+            ),
         ]
+
+    def _set_connection_type_name(self, value: object) -> None:
+        """Set the stored transport from an MCP name ("tunneling"/"tunneling_tcp"/"routing");
+        takes effect on the next connect, like the Gateway menu's radio."""
+        connection_type = parse_connection_type(str(value))
+        if connection_type is not None and connection_type != self._connection_type:
+            self._connection_type = connection_type
+            self._save_current_settings()
+
+    def _set_controller_ip(self, value: object) -> None:
+        self._controller_ip = str(value).strip() or self._controller_ip
+        self._save_current_settings()
 
     def _set_use_serial_number(self, value: object) -> None:
         self._api.connection.use_serial_number = bool(value)

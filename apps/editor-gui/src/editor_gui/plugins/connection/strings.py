@@ -24,6 +24,18 @@ class ConnectionStrings:
         return _("Use Serial Number for Downloads")
 
     @property
+    def SETTING_CONNECTION_TYPE(self) -> str:
+        return _("Connection Type")
+
+    @property
+    def SETTING_CONNECTION_TYPE_HINT(self) -> str:
+        return _("Applies on the next connect, like the Gateway menu's choice.")
+
+    @property
+    def SETTING_GATEWAY_IP(self) -> str:
+        return _("Gateway IP")
+
+    @property
     def SETTING_USE_SERIAL_NUMBER_HINT(self) -> str:
         return _(
             "A device whose serial number is known gets its individual address without "

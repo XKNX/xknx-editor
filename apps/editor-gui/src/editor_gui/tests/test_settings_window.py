@@ -118,6 +118,14 @@ def test_a_setting_not_shown_here_is_left_out() -> None:
     assert found is not None and found[0].key == "folders"
 
 
+def test_general_stays_on_top_and_the_rest_are_alphabetical() -> None:
+    window, _ = _window()
+    pages = window.pages()
+    assert pages[0].key == "general"  # the default page stays on top
+    rest = [p.title() for p in pages[1:]]
+    assert rest == sorted(rest, key=lambda t: t.casefold())
+
+
 @pytest.mark.usefixtures("german")
 def test_the_search_finds_names_in_the_language_and_in_english() -> None:
     window, _ = _window()
@@ -127,7 +135,8 @@ def test_the_search_finds_names_in_the_language_and_in_english() -> None:
         assert [(p.key, [s.key for s in hits]) for p, hits in found] == [
             ("general", ["language"])
         ]
-    # A page's title finds all of its settings; keywords and hints are searched too.
+    # A page's title finds all of its settings (in their own order); keywords and hints are
+    # searched too.
     assert [s.key for s in window.search("ordner")[0][1]] == [
         "text",
         "secret",
@@ -180,8 +189,10 @@ def test_an_unknown_page_shows_the_first() -> None:
     window, drawn = _window()
     window.open("gone")
     _frames(window)
-    assert window._page == "general"  # pyright: ignore[reportPrivateUsage]
-    assert "custom" not in drawn
+    first = window.pages()[0]
+    assert window._page == first.key  # pyright: ignore[reportPrivateUsage]
+    # Only the shown page's controls are drawn (the custom button lives on the folders page).
+    assert ("custom" in drawn) == (first.key == "folders")
 
 
 def test_menus_go_into_one_menu_from_the_right_when_they_do_not_fit() -> None:

@@ -276,3 +276,5 @@ msgstr "Versio"
 
 msgid "Register…"
 msgstr "Rekisteröidy…"
+msgid "Alternative Catalog"
+msgstr "Alternative Catalog"

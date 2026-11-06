@@ -279,3 +279,5 @@ msgstr "Útgáfa"
 
 msgid "Register…"
 msgstr "Nýskráning…"
+msgid "Alternative Catalog"
+msgstr "Alternative Catalog"

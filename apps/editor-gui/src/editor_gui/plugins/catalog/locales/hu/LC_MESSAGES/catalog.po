@@ -279,3 +279,5 @@ msgstr "Verzió"
 
 msgid "Register…"
 msgstr "Regisztráció…"
+msgid "Alternative Catalog"
+msgstr "Alternative Catalog"

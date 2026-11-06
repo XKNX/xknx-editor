@@ -331,6 +331,10 @@ class MenuStrings:
         return _("MCP Server")
 
     @property
+    def MENU_MCP(self) -> str:
+        return _("MCP")
+
+    @property
     def SETTINGS_TITLE(self) -> str:
         return _("Settings")
 
@@ -397,10 +401,6 @@ class MenuStrings:
         return _("The MCP server could not start: {error}")
 
     @property
-    def MENU_TOOLS(self) -> str:
-        return _("Tools")
-
-    @property
     def LANGUAGE_PRODUCT_TOO(self) -> str:
         # Asked when the interface language changes; {language}: the product language it has.
         return _(
@@ -464,6 +464,32 @@ class MenuStrings:
     @property
     def SETTINGS_PAGE_FOLDERS(self) -> str:
         return _("Folders")
+
+    @property
+    def SETTINGS_PAGE_CATALOG(self) -> str:
+        return _("Catalog")
+
+    @property
+    def SETTING_MAX_TELEGRAMS(self) -> str:
+        return _("Maximum Telegrams")
+
+    @property
+    def SETTING_MAX_TELEGRAMS_HINT(self) -> str:
+        return _(
+            "How many telegrams the Group Monitor keeps before dropping the oldest."
+        )
+
+    @property
+    def SETTING_EXPORT_FORMAT(self) -> str:
+        return _("Export Format")
+
+    @property
+    def SETTING_EXPORT_METHOD(self) -> str:
+        return _("Export Method")
+
+    @property
+    def SETTING_EXPORT_METHOD_AUTO(self) -> str:
+        return _("Automatic")
 
     @property
     def SETTING_PRODUCT_LANGUAGE_HINT(self) -> str:
@@ -1151,11 +1177,11 @@ class MenuStrings:
 
     @property
     def SIGNING_KEY_BUTTON(self) -> str:
-        return _("Signing Key…")
+        return _(".knxproj Signing Key…")
 
     @property
     def SIGNING_KEY_TITLE(self) -> str:
-        return _("Signing Key")
+        return _(".knxproj Signing Key")
 
     @property
     def SIGNING_KEY_CLOSE(self) -> str:
@@ -1164,8 +1190,8 @@ class MenuStrings:
     @property
     def SIGNING_KEY_PLACEHOLDER_HINT(self) -> str:
         return _(
-            "Folder signature uses a placeholder key. Enter a valid signature under 'Signing "
-            "Key…' or use the 'License with a Dongle' way."
+            "Folder signature uses a placeholder key. Enter a valid signature under "
+            "'.knxproj Signing Key…' or use the 'License with a Dongle' way."
         )
 
     @property

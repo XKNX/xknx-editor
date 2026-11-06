@@ -1749,3 +1749,27 @@ msgstr "Ja"
 
 msgid "No"
 msgstr "Nein"
+
+msgid ".knxproj Signing Key"
+msgstr ".knxproj Signierschlüssel"
+
+msgid ".knxproj Signing Key…"
+msgstr ".knxproj Signierschlüssel…"
+
+msgid "Folder signature uses a placeholder key. Enter a valid signature under '.knxproj Signing Key…' or use the 'License with a Dongle' way."
+msgstr "Die Ordnersignatur verwendet einen Platzhalterschlüssel. Hinterlege unter '.knxproj Signierschlüssel…' eine gültige Signatur oder nutze den Weg 'Mit Dongle lizenzieren'."
+
+msgid "Maximum Telegrams"
+msgstr "Maximale Telegramme"
+
+msgid "How many telegrams the Group Monitor keeps before dropping the oldest."
+msgstr "Wie viele Telegramme der Gruppenmonitor behält, bevor die ältesten verworfen werden."
+
+msgid "Export Format"
+msgstr "Exportformat"
+
+msgid "Export Method"
+msgstr "Exportweg"
+
+msgid "Automatic"
+msgstr "Automatisch"
