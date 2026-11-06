@@ -1644,3 +1644,6 @@ msgstr "Gervigreindartól"
 
 msgid "More Themes…"
 msgstr "Fleiri þemu…"
+
+msgid "Panels"
+msgstr "Spjöld"

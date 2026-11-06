@@ -1572,3 +1572,6 @@ msgstr "Εργαλεία AI"
 
 msgid "More Themes…"
 msgstr "Περισσότερα Θέματα…"
+
+msgid "Panels"
+msgstr "Πλαίσια"

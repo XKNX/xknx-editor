@@ -1644,3 +1644,6 @@ msgstr "Orodja UI"
 
 msgid "More Themes…"
 msgstr "Več tem…"
+
+msgid "Panels"
+msgstr "Plošče"

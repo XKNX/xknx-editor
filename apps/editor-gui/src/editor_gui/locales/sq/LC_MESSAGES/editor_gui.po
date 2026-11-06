@@ -1572,3 +1572,6 @@ msgstr "Veglat AI"
 
 msgid "More Themes…"
 msgstr "Më shumë tema…"
+
+msgid "Panels"
+msgstr "Panelet"

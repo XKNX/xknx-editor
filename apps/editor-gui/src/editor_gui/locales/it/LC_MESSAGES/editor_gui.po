@@ -1572,3 +1572,6 @@ msgstr "Strumenti AI"
 
 msgid "More Themes…"
 msgstr "Altri temi…"
+
+msgid "Panels"
+msgstr "Pannelli"

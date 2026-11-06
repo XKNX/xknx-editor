@@ -1734,3 +1734,6 @@ msgstr "KI-Werkzeuge"
 
 msgid "More Themes…"
 msgstr "Weitere Designs…"
+
+msgid "Panels"
+msgstr "Fenster"

@@ -1572,3 +1572,6 @@ msgstr "Nástroje AI"
 
 msgid "More Themes…"
 msgstr "Další motivy…"
+
+msgid "Panels"
+msgstr "Panely"

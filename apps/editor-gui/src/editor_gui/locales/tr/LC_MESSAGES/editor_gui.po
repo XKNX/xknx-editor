@@ -1572,3 +1572,6 @@ msgstr "YZ Araçları"
 
 msgid "More Themes…"
 msgstr "Diğer Temalar…"
+
+msgid "Panels"
+msgstr "Paneller"

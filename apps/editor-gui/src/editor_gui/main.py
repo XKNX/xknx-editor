@@ -5825,19 +5825,23 @@ class KnxGuiApp:
         windows = [
             w for w in params.docking_params.dockable_windows if w.include_in_view_menu
         ]
-        if imgui.menu_item(S.MENU_SHOW_ALL, "", False)[0]:
+        # The panels in a submenu of their own: they are many.
+        if imgui.begin_menu(S.MENU_PANELS):
+            if imgui.menu_item(S.MENU_SHOW_ALL, "", False)[0]:
+                for w in windows:
+                    w.is_visible = True
+            if imgui.menu_item(S.MENU_HIDE_ALL, "", False)[0]:
+                for w in windows:
+                    if w.can_be_closed:
+                        w.is_visible = False
+            imgui.separator()
             for w in windows:
-                w.is_visible = True
-        if imgui.menu_item(S.MENU_HIDE_ALL, "", False)[0]:
-            for w in windows:
-                if w.can_be_closed:
-                    w.is_visible = False
-        for w in windows:
-            changed, visible = imgui.menu_item(
-                w.label, "", w.is_visible, w.can_be_closed
-            )
-            if changed:
-                w.is_visible = visible
+                changed, visible = imgui.menu_item(
+                    w.label, "", w.is_visible, w.can_be_closed
+                )
+                if changed:
+                    w.is_visible = visible
+            imgui.end_menu()
         imgui.separator()
         changed, shown = imgui.menu_item(
             S.MENU_HIGHLIGHT_CHANGES, "", self._highlight_changes

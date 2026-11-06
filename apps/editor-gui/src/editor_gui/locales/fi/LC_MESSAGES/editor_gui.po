@@ -1572,3 +1572,6 @@ msgstr "Tekoälytyökalut"
 
 msgid "More Themes…"
 msgstr "Lisää teemoja…"
+
+msgid "Panels"
+msgstr "Paneelit"

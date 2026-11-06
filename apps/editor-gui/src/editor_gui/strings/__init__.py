@@ -397,6 +397,11 @@ class MenuStrings:
         return _("Tools")
 
     @property
+    def MENU_PANELS(self) -> str:
+        # The View menu's submenu that shows and hides the docked panels (tabs).
+        return _("Panels")
+
+    @property
     def MENU_MORE_THEMES(self) -> str:
         return _("More Themes…")
 

@@ -1644,3 +1644,6 @@ msgstr "Instrumente AI"
 
 msgid "More Themes…"
 msgstr "Mai multe teme…"
+
+msgid "Panels"
+msgstr "Panouri"

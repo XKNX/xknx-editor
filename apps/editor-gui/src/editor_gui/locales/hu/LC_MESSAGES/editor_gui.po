@@ -1644,3 +1644,6 @@ msgstr "MI-eszközök"
 
 msgid "More Themes…"
 msgstr "További témák…"
+
+msgid "Panels"
+msgstr "Panelek"
