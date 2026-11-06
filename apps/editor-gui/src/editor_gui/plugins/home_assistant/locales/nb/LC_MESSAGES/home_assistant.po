@@ -135,3 +135,54 @@ msgstr "{entity} (YAML)"
 
 msgid "Disabled"
 msgstr "Deaktivert"
+
+msgid "Floors and Areas…"
+msgstr "Etasjer og områder…"
+
+msgid "Floors and Areas in Home Assistant"
+msgstr "Etasjer og områder i Home Assistant"
+
+msgid "The floors of the buildings become floors of Home Assistant, their rooms, corridors and stairways its areas. Chosen ones are created, linked to one of the same name, or renamed as here; nothing is removed."
+msgstr "Bygningenes etasjer blir etasjer i Home Assistant, og rommene, korridorene og trappene deres blir områdene dens. De valgte opprettes, kobles til et med samme navn eller får nytt navn som her; ingenting fjernes."
+
+msgid "The project has no floors, rooms, corridors or stairways."
+msgstr "Prosjektet har ingen etasjer, rom, korridorer eller trapper."
+
+msgid "Building Part"
+msgstr "Bygningsdel"
+
+msgid "Becomes"
+msgstr "Blir"
+
+msgid "In Home Assistant"
+msgstr "I Home Assistant"
+
+msgid "Floor"
+msgstr "Etasje"
+
+msgid "Area"
+msgstr "Område"
+
+msgid "New"
+msgstr "Ny"
+
+msgid "Exists as \"{name}\""
+msgstr "Finnes som «{name}»"
+
+msgid "Named \"{name}\""
+msgstr "Heter «{name}»"
+
+msgid "Linked"
+msgstr "Koblet"
+
+msgid "Applying…"
+msgstr "Bruker…"
+
+msgid "Home Assistant did not take them: {error}"
+msgstr "Home Assistant tok ikke imot dem: {error}"
+
+msgid "Floors and areas in Home Assistant created, linked or renamed: {count}"
+msgstr "Etasjer og områder i Home Assistant opprettet, koblet eller gitt nytt navn: {count}"
+
+msgid "Apply"
+msgstr "Bruk"

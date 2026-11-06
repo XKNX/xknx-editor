@@ -135,3 +135,54 @@ msgstr "{entity} (YAML)"
 
 msgid "Disabled"
 msgstr "Deaktiviert"
+
+msgid "Floors and Areas…"
+msgstr "Etagen und Bereiche…"
+
+msgid "Floors and Areas in Home Assistant"
+msgstr "Etagen und Bereiche in Home Assistant"
+
+msgid "The floors of the buildings become floors of Home Assistant, their rooms, corridors and stairways its areas. Chosen ones are created, linked to one of the same name, or renamed as here; nothing is removed."
+msgstr "Die Etagen der Gebäude werden zu Etagen von Home Assistant, ihre Räume, Flure und Treppenhäuser zu seinen Bereichen. Ausgewählte werden angelegt, mit einem gleichnamigen verknüpft oder wie hier umbenannt; nichts wird entfernt."
+
+msgid "The project has no floors, rooms, corridors or stairways."
+msgstr "Das Projekt hat keine Etagen, Räume, Flure oder Treppenhäuser."
+
+msgid "Building Part"
+msgstr "Gebäudeteil"
+
+msgid "Becomes"
+msgstr "Wird zu"
+
+msgid "In Home Assistant"
+msgstr "In Home Assistant"
+
+msgid "Floor"
+msgstr "Etage"
+
+msgid "Area"
+msgstr "Bereich"
+
+msgid "New"
+msgstr "Neu"
+
+msgid "Exists as \"{name}\""
+msgstr "Vorhanden als „{name}“"
+
+msgid "Named \"{name}\""
+msgstr "Heißt „{name}“"
+
+msgid "Linked"
+msgstr "Verknüpft"
+
+msgid "Applying…"
+msgstr "Wird übernommen…"
+
+msgid "Home Assistant did not take them: {error}"
+msgstr "Home Assistant hat sie nicht übernommen: {error}"
+
+msgid "Floors and areas in Home Assistant created, linked or renamed: {count}"
+msgstr "In Home Assistant angelegte, verknüpfte oder umbenannte Etagen und Bereiche: {count}"
+
+msgid "Apply"
+msgstr "Übernehmen"

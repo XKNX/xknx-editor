@@ -135,3 +135,54 @@ msgstr "{entity} (YAML)"
 
 msgid "Disabled"
 msgstr "Onemogočeno"
+
+msgid "Floors and Areas…"
+msgstr "Nadstropja in območja…"
+
+msgid "Floors and Areas in Home Assistant"
+msgstr "Nadstropja in območja v Home Assistantu"
+
+msgid "The floors of the buildings become floors of Home Assistant, their rooms, corridors and stairways its areas. Chosen ones are created, linked to one of the same name, or renamed as here; nothing is removed."
+msgstr "Nadstropja stavb postanejo nadstropja Home Assistanta, njihovi prostori, hodniki in stopnišča pa njegova območja. Izbrani se ustvarijo, povežejo z enakoimenskimi ali preimenujejo kot tukaj; nič se ne odstrani."
+
+msgid "The project has no floors, rooms, corridors or stairways."
+msgstr "Projekt nima nadstropij, prostorov, hodnikov ali stopnišč."
+
+msgid "Building Part"
+msgstr "Del stavbe"
+
+msgid "Becomes"
+msgstr "Postane"
+
+msgid "In Home Assistant"
+msgstr "V Home Assistantu"
+
+msgid "Floor"
+msgstr "Nadstropje"
+
+msgid "Area"
+msgstr "Območje"
+
+msgid "New"
+msgstr "Novo"
+
+msgid "Exists as \"{name}\""
+msgstr "Obstaja kot »{name}«"
+
+msgid "Named \"{name}\""
+msgstr "Imenuje se »{name}«"
+
+msgid "Linked"
+msgstr "Povezano"
+
+msgid "Applying…"
+msgstr "Uveljavljanje…"
+
+msgid "Home Assistant did not take them: {error}"
+msgstr "Home Assistant jih ni prevzel: {error}"
+
+msgid "Floors and areas in Home Assistant created, linked or renamed: {count}"
+msgstr "Nadstropja in območja, ustvarjena, povezana ali preimenovana v Home Assistantu: {count}"
+
+msgid "Apply"
+msgstr "Uporabi"

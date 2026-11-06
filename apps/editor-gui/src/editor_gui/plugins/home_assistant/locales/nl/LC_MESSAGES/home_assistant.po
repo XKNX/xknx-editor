@@ -135,3 +135,54 @@ msgstr "{entity} (YAML)"
 
 msgid "Disabled"
 msgstr "Uitgeschakeld"
+
+msgid "Floors and Areas…"
+msgstr "Verdiepingen en ruimtes…"
+
+msgid "Floors and Areas in Home Assistant"
+msgstr "Verdiepingen en ruimtes in Home Assistant"
+
+msgid "The floors of the buildings become floors of Home Assistant, their rooms, corridors and stairways its areas. Chosen ones are created, linked to one of the same name, or renamed as here; nothing is removed."
+msgstr "De verdiepingen van de gebouwen worden verdiepingen van Home Assistant, hun kamers, gangen en trappenhuizen de ruimtes ervan. Gekozen items worden aangemaakt, gekoppeld aan een item met dezelfde naam of hernoemd zoals hier; er wordt niets verwijderd."
+
+msgid "The project has no floors, rooms, corridors or stairways."
+msgstr "Het project heeft geen verdiepingen, kamers, gangen of trappenhuizen."
+
+msgid "Building Part"
+msgstr "Gebouwonderdeel"
+
+msgid "Becomes"
+msgstr "Wordt"
+
+msgid "In Home Assistant"
+msgstr "In Home Assistant"
+
+msgid "Floor"
+msgstr "Verdieping"
+
+msgid "Area"
+msgstr "Ruimte"
+
+msgid "New"
+msgstr "Nieuw"
+
+msgid "Exists as \"{name}\""
+msgstr "Bestaat als “{name}”"
+
+msgid "Named \"{name}\""
+msgstr "Heet “{name}”"
+
+msgid "Linked"
+msgstr "Gekoppeld"
+
+msgid "Applying…"
+msgstr "Bezig met toepassen…"
+
+msgid "Home Assistant did not take them: {error}"
+msgstr "Home Assistant heeft ze niet overgenomen: {error}"
+
+msgid "Floors and areas in Home Assistant created, linked or renamed: {count}"
+msgstr "Verdiepingen en ruimtes in Home Assistant aangemaakt, gekoppeld of hernoemd: {count}"
+
+msgid "Apply"
+msgstr "Toepassen"

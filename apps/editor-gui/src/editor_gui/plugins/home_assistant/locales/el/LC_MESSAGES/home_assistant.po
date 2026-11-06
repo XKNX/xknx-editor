@@ -135,3 +135,54 @@ msgstr "{entity} (YAML)"
 
 msgid "Disabled"
 msgstr "Απενεργοποιημένο"
+
+msgid "Floors and Areas…"
+msgstr "Όροφοι και περιοχές…"
+
+msgid "Floors and Areas in Home Assistant"
+msgstr "Όροφοι και περιοχές στο Home Assistant"
+
+msgid "The floors of the buildings become floors of Home Assistant, their rooms, corridors and stairways its areas. Chosen ones are created, linked to one of the same name, or renamed as here; nothing is removed."
+msgstr "Οι όροφοι των κτιρίων γίνονται όροφοι του Home Assistant, και τα δωμάτια, οι διάδρομοι και οι σκάλες τους γίνονται περιοχές του. Όσα επιλεγούν δημιουργούνται, συνδέονται με ένα ομώνυμο ή μετονομάζονται όπως εδώ. Τίποτα δεν αφαιρείται."
+
+msgid "The project has no floors, rooms, corridors or stairways."
+msgstr "Το έργο δεν έχει ορόφους, δωμάτια, διαδρόμους ή σκάλες."
+
+msgid "Building Part"
+msgstr "Τμήμα κτιρίου"
+
+msgid "Becomes"
+msgstr "Γίνεται"
+
+msgid "In Home Assistant"
+msgstr "Στο Home Assistant"
+
+msgid "Floor"
+msgstr "Όροφος"
+
+msgid "Area"
+msgstr "Περιοχή"
+
+msgid "New"
+msgstr "Νέο"
+
+msgid "Exists as \"{name}\""
+msgstr "Υπάρχει ως «{name}»"
+
+msgid "Named \"{name}\""
+msgstr "Ονομάζεται «{name}»"
+
+msgid "Linked"
+msgstr "Συνδεδεμένο"
+
+msgid "Applying…"
+msgstr "Εφαρμογή…"
+
+msgid "Home Assistant did not take them: {error}"
+msgstr "Το Home Assistant δεν τα αποδέχτηκε: {error}"
+
+msgid "Floors and areas in Home Assistant created, linked or renamed: {count}"
+msgstr "Όροφοι και περιοχές που δημιουργήθηκαν, συνδέθηκαν ή μετονομάστηκαν στο Home Assistant: {count}"
+
+msgid "Apply"
+msgstr "Εφαρμογή"

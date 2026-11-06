@@ -135,3 +135,54 @@ msgstr "{entity} (YAML)"
 
 msgid "Disabled"
 msgstr "Dezactivat"
+
+msgid "Floors and Areas…"
+msgstr "Etaje și zone…"
+
+msgid "Floors and Areas in Home Assistant"
+msgstr "Etaje și zone în Home Assistant"
+
+msgid "The floors of the buildings become floors of Home Assistant, their rooms, corridors and stairways its areas. Chosen ones are created, linked to one of the same name, or renamed as here; nothing is removed."
+msgstr "Etajele clădirilor devin etaje în Home Assistant, iar camerele, coridoarele și casele scărilor lor devin zonele acestuia. Cele alese sunt create, asociate cu unul cu același nume sau redenumite ca aici; nu se elimină nimic."
+
+msgid "The project has no floors, rooms, corridors or stairways."
+msgstr "Proiectul nu are etaje, camere, coridoare sau case ale scărilor."
+
+msgid "Building Part"
+msgstr "Parte de clădire"
+
+msgid "Becomes"
+msgstr "Devine"
+
+msgid "In Home Assistant"
+msgstr "În Home Assistant"
+
+msgid "Floor"
+msgstr "Etaj"
+
+msgid "Area"
+msgstr "Zonă"
+
+msgid "New"
+msgstr "Nou"
+
+msgid "Exists as \"{name}\""
+msgstr "Există ca „{name}”"
+
+msgid "Named \"{name}\""
+msgstr "Se numește „{name}”"
+
+msgid "Linked"
+msgstr "Asociat"
+
+msgid "Applying…"
+msgstr "Se aplică…"
+
+msgid "Home Assistant did not take them: {error}"
+msgstr "Home Assistant nu le-a preluat: {error}"
+
+msgid "Floors and areas in Home Assistant created, linked or renamed: {count}"
+msgstr "Etaje și zone create, asociate sau redenumite în Home Assistant: {count}"
+
+msgid "Apply"
+msgstr "Aplicare"

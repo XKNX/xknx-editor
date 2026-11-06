@@ -135,3 +135,54 @@ msgstr "{entity} (YAML)"
 
 msgid "Disabled"
 msgstr "無効"
+
+msgid "Floors and Areas…"
+msgstr "フロアとエリア…"
+
+msgid "Floors and Areas in Home Assistant"
+msgstr "Home Assistant のフロアとエリア"
+
+msgid "The floors of the buildings become floors of Home Assistant, their rooms, corridors and stairways its areas. Chosen ones are created, linked to one of the same name, or renamed as here; nothing is removed."
+msgstr "建物のフロアは Home Assistant のフロアになり、その部屋、廊下、階段は Home Assistant のエリアになります。選択したものは作成されるか、同じ名前のものにリンクされるか、ここに示す名前に変更されます。削除されるものはありません。"
+
+msgid "The project has no floors, rooms, corridors or stairways."
+msgstr "プロジェクトにはフロア、部屋、廊下、階段がありません。"
+
+msgid "Building Part"
+msgstr "構造の一部"
+
+msgid "Becomes"
+msgstr "変換先"
+
+msgid "In Home Assistant"
+msgstr "Home Assistant 内"
+
+msgid "Floor"
+msgstr "フロア"
+
+msgid "Area"
+msgstr "エリア"
+
+msgid "New"
+msgstr "新規"
+
+msgid "Exists as \"{name}\""
+msgstr "「{name}」として存在"
+
+msgid "Named \"{name}\""
+msgstr "名前は「{name}」"
+
+msgid "Linked"
+msgstr "リンク済み"
+
+msgid "Applying…"
+msgstr "適用中…"
+
+msgid "Home Assistant did not take them: {error}"
+msgstr "Home Assistant に受け入れられませんでした: {error}"
+
+msgid "Floors and areas in Home Assistant created, linked or renamed: {count}"
+msgstr "Home Assistant で作成、リンク、または名前変更されたフロアとエリア: {count}"
+
+msgid "Apply"
+msgstr "適用"

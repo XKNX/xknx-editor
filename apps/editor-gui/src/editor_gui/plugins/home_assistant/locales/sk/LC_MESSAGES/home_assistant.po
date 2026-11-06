@@ -135,3 +135,54 @@ msgstr "{entity} (YAML)"
 
 msgid "Disabled"
 msgstr "Zakázané"
+
+msgid "Floors and Areas…"
+msgstr "Podlažia a oblasti…"
+
+msgid "Floors and Areas in Home Assistant"
+msgstr "Podlažia a oblasti v Home Assistante"
+
+msgid "The floors of the buildings become floors of Home Assistant, their rooms, corridors and stairways its areas. Chosen ones are created, linked to one of the same name, or renamed as here; nothing is removed."
+msgstr "Podlažia budov sa stanú podlažiami Home Assistantu, ich miestnosti, chodby a schodiská jeho oblasťami. Vybrané sa vytvoria, prepoja s rovnomennými alebo premenujú ako tu; nič sa neodstráni."
+
+msgid "The project has no floors, rooms, corridors or stairways."
+msgstr "Projekt nemá žiadne podlažia, miestnosti, chodby ani schodiská."
+
+msgid "Building Part"
+msgstr "Časť budovy"
+
+msgid "Becomes"
+msgstr "Stane sa"
+
+msgid "In Home Assistant"
+msgstr "V Home Assistante"
+
+msgid "Floor"
+msgstr "Podlažie"
+
+msgid "Area"
+msgstr "Oblasť"
+
+msgid "New"
+msgstr "Nové"
+
+msgid "Exists as \"{name}\""
+msgstr "Existuje ako „{name}“"
+
+msgid "Named \"{name}\""
+msgstr "Volá sa „{name}“"
+
+msgid "Linked"
+msgstr "Prepojené"
+
+msgid "Applying…"
+msgstr "Prebieha použitie…"
+
+msgid "Home Assistant did not take them: {error}"
+msgstr "Home Assistant ich neprevzal: {error}"
+
+msgid "Floors and areas in Home Assistant created, linked or renamed: {count}"
+msgstr "Podlažia a oblasti vytvorené, prepojené alebo premenované v Home Assistante: {count}"
+
+msgid "Apply"
+msgstr "Použiť"

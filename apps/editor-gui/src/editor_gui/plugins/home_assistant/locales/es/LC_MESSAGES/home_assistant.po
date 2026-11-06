@@ -135,3 +135,54 @@ msgstr "{entity} (YAML)"
 
 msgid "Disabled"
 msgstr "Deshabilitado"
+
+msgid "Floors and Areas…"
+msgstr "Plantas y áreas…"
+
+msgid "Floors and Areas in Home Assistant"
+msgstr "Plantas y áreas en Home Assistant"
+
+msgid "The floors of the buildings become floors of Home Assistant, their rooms, corridors and stairways its areas. Chosen ones are created, linked to one of the same name, or renamed as here; nothing is removed."
+msgstr "Las plantas de los edificios se convierten en plantas de Home Assistant, y sus estancias, pasillos y escaleras, en sus áreas. Las elegidas se crean, se vinculan a una del mismo nombre o se renombran como aquí; no se elimina nada."
+
+msgid "The project has no floors, rooms, corridors or stairways."
+msgstr "El proyecto no tiene plantas, estancias, pasillos ni escaleras."
+
+msgid "Building Part"
+msgstr "Parte del edificio"
+
+msgid "Becomes"
+msgstr "Se convierte en"
+
+msgid "In Home Assistant"
+msgstr "En Home Assistant"
+
+msgid "Floor"
+msgstr "Planta"
+
+msgid "Area"
+msgstr "Área"
+
+msgid "New"
+msgstr "Nueva"
+
+msgid "Exists as \"{name}\""
+msgstr "Existe como «{name}»"
+
+msgid "Named \"{name}\""
+msgstr "Se llama «{name}»"
+
+msgid "Linked"
+msgstr "Vinculada"
+
+msgid "Applying…"
+msgstr "Aplicando…"
+
+msgid "Home Assistant did not take them: {error}"
+msgstr "Home Assistant no las ha aceptado: {error}"
+
+msgid "Floors and areas in Home Assistant created, linked or renamed: {count}"
+msgstr "Plantas y áreas creadas, vinculadas o renombradas en Home Assistant: {count}"
+
+msgid "Apply"
+msgstr "Aplicar"

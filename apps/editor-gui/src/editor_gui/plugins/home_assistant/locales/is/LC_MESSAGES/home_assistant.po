@@ -135,3 +135,54 @@ msgstr "{entity} (YAML)"
 
 msgid "Disabled"
 msgstr "Óvirkt"
+
+msgid "Floors and Areas…"
+msgstr "Hæðir og svæði…"
+
+msgid "Floors and Areas in Home Assistant"
+msgstr "Hæðir og svæði í Home Assistant"
+
+msgid "The floors of the buildings become floors of Home Assistant, their rooms, corridors and stairways its areas. Chosen ones are created, linked to one of the same name, or renamed as here; nothing is removed."
+msgstr "Hæðir bygginganna verða að hæðum í Home Assistant og herbergi, gangar og stigagangar þeirra að svæðum þess. Það sem er valið er búið til, tengt við eitthvað með sama heiti eða endurnefnt eins og hér; engu er eytt."
+
+msgid "The project has no floors, rooms, corridors or stairways."
+msgstr "Verkefnið hefur engar hæðir, herbergi, ganga eða stigaganga."
+
+msgid "Building Part"
+msgstr "Byggingarhluti"
+
+msgid "Becomes"
+msgstr "Verður"
+
+msgid "In Home Assistant"
+msgstr "Í Home Assistant"
+
+msgid "Floor"
+msgstr "Hæð"
+
+msgid "Area"
+msgstr "Svæði"
+
+msgid "New"
+msgstr "Nýtt"
+
+msgid "Exists as \"{name}\""
+msgstr "Er til sem „{name}“"
+
+msgid "Named \"{name}\""
+msgstr "Heitir „{name}“"
+
+msgid "Linked"
+msgstr "Tengt"
+
+msgid "Applying…"
+msgstr "Beitir…"
+
+msgid "Home Assistant did not take them: {error}"
+msgstr "Home Assistant tók ekki við þeim: {error}"
+
+msgid "Floors and areas in Home Assistant created, linked or renamed: {count}"
+msgstr "Hæðir og svæði í Home Assistant búin til, tengd eða endurnefnd: {count}"
+
+msgid "Apply"
+msgstr "Nota"

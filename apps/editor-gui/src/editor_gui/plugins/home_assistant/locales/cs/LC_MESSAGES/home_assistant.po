@@ -135,3 +135,54 @@ msgstr "{entity} (YAML)"
 
 msgid "Disabled"
 msgstr "Zakázáno"
+
+msgid "Floors and Areas…"
+msgstr "Podlaží a oblasti…"
+
+msgid "Floors and Areas in Home Assistant"
+msgstr "Podlaží a oblasti v Home Assistantu"
+
+msgid "The floors of the buildings become floors of Home Assistant, their rooms, corridors and stairways its areas. Chosen ones are created, linked to one of the same name, or renamed as here; nothing is removed."
+msgstr "Podlaží budov se stanou podlažími Home Assistantu, jejich místnosti, chodby a schodiště jeho oblastmi. Vybrané se vytvoří, propojí se stejnojmennými nebo přejmenují jako zde; nic se neodstraní."
+
+msgid "The project has no floors, rooms, corridors or stairways."
+msgstr "Projekt nemá žádná podlaží, místnosti, chodby ani schodiště."
+
+msgid "Building Part"
+msgstr "Část budovy"
+
+msgid "Becomes"
+msgstr "Stane se"
+
+msgid "In Home Assistant"
+msgstr "V Home Assistantu"
+
+msgid "Floor"
+msgstr "Podlaží"
+
+msgid "Area"
+msgstr "Oblast"
+
+msgid "New"
+msgstr "Nové"
+
+msgid "Exists as \"{name}\""
+msgstr "Existuje jako „{name}“"
+
+msgid "Named \"{name}\""
+msgstr "Jmenuje se „{name}“"
+
+msgid "Linked"
+msgstr "Propojeno"
+
+msgid "Applying…"
+msgstr "Probíhá použití…"
+
+msgid "Home Assistant did not take them: {error}"
+msgstr "Home Assistant je nepřevzal: {error}"
+
+msgid "Floors and areas in Home Assistant created, linked or renamed: {count}"
+msgstr "Podlaží a oblasti vytvořené, propojené nebo přejmenované v Home Assistantu: {count}"
+
+msgid "Apply"
+msgstr "Použít"

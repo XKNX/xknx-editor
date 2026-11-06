@@ -135,3 +135,54 @@ msgstr "{entity} (YAML)"
 
 msgid "Disabled"
 msgstr "Devre dışı"
+
+msgid "Floors and Areas…"
+msgstr "Katlar ve alanlar…"
+
+msgid "Floors and Areas in Home Assistant"
+msgstr "Home Assistant'ta katlar ve alanlar"
+
+msgid "The floors of the buildings become floors of Home Assistant, their rooms, corridors and stairways its areas. Chosen ones are created, linked to one of the same name, or renamed as here; nothing is removed."
+msgstr "Binaların katları Home Assistant'ın katlarına, odaları, koridorları ve merdivenleri ise alanlarına dönüşür. Seçilenler oluşturulur, aynı adlı biriyle bağlanır veya buradaki gibi yeniden adlandırılır; hiçbir şey kaldırılmaz."
+
+msgid "The project has no floors, rooms, corridors or stairways."
+msgstr "Projede kat, oda, koridor veya merdiven yok."
+
+msgid "Building Part"
+msgstr "Bina bölümü"
+
+msgid "Becomes"
+msgstr "Dönüşür"
+
+msgid "In Home Assistant"
+msgstr "Home Assistant'ta"
+
+msgid "Floor"
+msgstr "Kat"
+
+msgid "Area"
+msgstr "Alan"
+
+msgid "New"
+msgstr "Yeni"
+
+msgid "Exists as \"{name}\""
+msgstr "“{name}” olarak mevcut"
+
+msgid "Named \"{name}\""
+msgstr "Adı “{name}”"
+
+msgid "Linked"
+msgstr "Bağlı"
+
+msgid "Applying…"
+msgstr "Uygulanıyor…"
+
+msgid "Home Assistant did not take them: {error}"
+msgstr "Home Assistant bunları kabul etmedi: {error}"
+
+msgid "Floors and areas in Home Assistant created, linked or renamed: {count}"
+msgstr "Home Assistant'ta oluşturulan, bağlanan veya yeniden adlandırılan katlar ve alanlar: {count}"
+
+msgid "Apply"
+msgstr "Uygula"

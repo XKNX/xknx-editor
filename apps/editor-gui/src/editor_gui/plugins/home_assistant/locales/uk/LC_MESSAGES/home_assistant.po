@@ -135,3 +135,54 @@ msgstr "{entity} (YAML)"
 
 msgid "Disabled"
 msgstr "Вимкнено"
+
+msgid "Floors and Areas…"
+msgstr "Поверхи й простори…"
+
+msgid "Floors and Areas in Home Assistant"
+msgstr "Поверхи й простори в Home Assistant"
+
+msgid "The floors of the buildings become floors of Home Assistant, their rooms, corridors and stairways its areas. Chosen ones are created, linked to one of the same name, or renamed as here; nothing is removed."
+msgstr "Поверхи будівель стають поверхами Home Assistant, а їхні кімнати, коридори та сходи — його просторами. Вибрані створюються, пов'язуються з однойменними або перейменовуються, як тут; нічого не видаляється."
+
+msgid "The project has no floors, rooms, corridors or stairways."
+msgstr "У проєкті немає поверхів, кімнат, коридорів чи сходів."
+
+msgid "Building Part"
+msgstr "Частина будівлі"
+
+msgid "Becomes"
+msgstr "Стає"
+
+msgid "In Home Assistant"
+msgstr "У Home Assistant"
+
+msgid "Floor"
+msgstr "Поверх"
+
+msgid "Area"
+msgstr "Простір"
+
+msgid "New"
+msgstr "Новий"
+
+msgid "Exists as \"{name}\""
+msgstr "Існує як «{name}»"
+
+msgid "Named \"{name}\""
+msgstr "Називається «{name}»"
+
+msgid "Linked"
+msgstr "Пов'язано"
+
+msgid "Applying…"
+msgstr "Застосування…"
+
+msgid "Home Assistant did not take them: {error}"
+msgstr "Home Assistant їх не прийняв: {error}"
+
+msgid "Floors and areas in Home Assistant created, linked or renamed: {count}"
+msgstr "Поверхи й простори, створені, пов'язані або перейменовані в Home Assistant: {count}"
+
+msgid "Apply"
+msgstr "Застосувати"

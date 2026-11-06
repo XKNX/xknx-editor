@@ -135,3 +135,54 @@ msgstr "{entity} (YAML)"
 
 msgid "Disabled"
 msgstr "Çaktivizuar"
+
+msgid "Floors and Areas…"
+msgstr "Katet dhe zonat…"
+
+msgid "Floors and Areas in Home Assistant"
+msgstr "Katet dhe zonat në Home Assistant"
+
+msgid "The floors of the buildings become floors of Home Assistant, their rooms, corridors and stairways its areas. Chosen ones are created, linked to one of the same name, or renamed as here; nothing is removed."
+msgstr "Katet e ndërtesave bëhen kate të Home Assistant, ndërsa dhomat, korridoret dhe shkallët e tyre bëhen zonat e tij. Të zgjedhurat krijohen, lidhen me një me të njëjtin emër ose riemërtohen si këtu; asgjë nuk hiqet."
+
+msgid "The project has no floors, rooms, corridors or stairways."
+msgstr "Projekti nuk ka kate, dhoma, korridore ose shkallë."
+
+msgid "Building Part"
+msgstr "Pjesa e ndërtesës"
+
+msgid "Becomes"
+msgstr "Bëhet"
+
+msgid "In Home Assistant"
+msgstr "Në Home Assistant"
+
+msgid "Floor"
+msgstr "Kat"
+
+msgid "Area"
+msgstr "Zonë"
+
+msgid "New"
+msgstr "I ri"
+
+msgid "Exists as \"{name}\""
+msgstr "Ekziston si „{name}“"
+
+msgid "Named \"{name}\""
+msgstr "Quhet „{name}“"
+
+msgid "Linked"
+msgstr "I lidhur"
+
+msgid "Applying…"
+msgstr "Po zbatohet…"
+
+msgid "Home Assistant did not take them: {error}"
+msgstr "Home Assistant nuk i pranoi: {error}"
+
+msgid "Floors and areas in Home Assistant created, linked or renamed: {count}"
+msgstr "Kate dhe zona të krijuara, të lidhura ose të riemërtuara në Home Assistant: {count}"
+
+msgid "Apply"
+msgstr "Zbato"

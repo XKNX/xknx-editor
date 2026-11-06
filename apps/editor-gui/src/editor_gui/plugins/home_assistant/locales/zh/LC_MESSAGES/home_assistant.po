@@ -135,3 +135,54 @@ msgstr "{entity} (YAML)"
 
 msgid "Disabled"
 msgstr "已禁用"
+
+msgid "Floors and Areas…"
+msgstr "楼层和区域…"
+
+msgid "Floors and Areas in Home Assistant"
+msgstr "Home Assistant 中的楼层和区域"
+
+msgid "The floors of the buildings become floors of Home Assistant, their rooms, corridors and stairways its areas. Chosen ones are created, linked to one of the same name, or renamed as here; nothing is removed."
+msgstr "建筑的楼层将成为 Home Assistant 的楼层，其房间、走廊和楼梯将成为 Home Assistant 的区域。所选项目将被创建、关联到同名项目，或按此处所示重命名；不会删除任何内容。"
+
+msgid "The project has no floors, rooms, corridors or stairways."
+msgstr "项目中没有楼层、房间、走廊或楼梯。"
+
+msgid "Building Part"
+msgstr "建筑局部"
+
+msgid "Becomes"
+msgstr "成为"
+
+msgid "In Home Assistant"
+msgstr "在 Home Assistant 中"
+
+msgid "Floor"
+msgstr "楼层"
+
+msgid "Area"
+msgstr "区域"
+
+msgid "New"
+msgstr "新建"
+
+msgid "Exists as \"{name}\""
+msgstr "已存在为“{name}”"
+
+msgid "Named \"{name}\""
+msgstr "名为“{name}”"
+
+msgid "Linked"
+msgstr "已关联"
+
+msgid "Applying…"
+msgstr "正在应用…"
+
+msgid "Home Assistant did not take them: {error}"
+msgstr "Home Assistant 未接受这些内容：{error}"
+
+msgid "Floors and areas in Home Assistant created, linked or renamed: {count}"
+msgstr "已在 Home Assistant 中创建、关联或重命名的楼层和区域：{count}"
+
+msgid "Apply"
+msgstr "应用"

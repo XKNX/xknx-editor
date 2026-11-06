@@ -135,3 +135,54 @@ msgstr "{entity} (YAML)"
 
 msgid "Disabled"
 msgstr "Wyłączone"
+
+msgid "Floors and Areas…"
+msgstr "Piętra i obszary…"
+
+msgid "Floors and Areas in Home Assistant"
+msgstr "Piętra i obszary w Home Assistant"
+
+msgid "The floors of the buildings become floors of Home Assistant, their rooms, corridors and stairways its areas. Chosen ones are created, linked to one of the same name, or renamed as here; nothing is removed."
+msgstr "Piętra budynków stają się piętrami Home Assistant, a ich pokoje, korytarze i schody – jego obszarami. Wybrane zostaną utworzone, powiązane z elementem o tej samej nazwie lub przemianowane jak tutaj; nic nie zostanie usunięte."
+
+msgid "The project has no floors, rooms, corridors or stairways."
+msgstr "Projekt nie ma pięter, pokoi, korytarzy ani schodów."
+
+msgid "Building Part"
+msgstr "Część budynku"
+
+msgid "Becomes"
+msgstr "Staje się"
+
+msgid "In Home Assistant"
+msgstr "W Home Assistant"
+
+msgid "Floor"
+msgstr "Piętro"
+
+msgid "Area"
+msgstr "Obszar"
+
+msgid "New"
+msgstr "Nowe"
+
+msgid "Exists as \"{name}\""
+msgstr "Istnieje jako „{name}”"
+
+msgid "Named \"{name}\""
+msgstr "Nazywa się „{name}”"
+
+msgid "Linked"
+msgstr "Powiązane"
+
+msgid "Applying…"
+msgstr "Stosowanie…"
+
+msgid "Home Assistant did not take them: {error}"
+msgstr "Home Assistant ich nie przyjął: {error}"
+
+msgid "Floors and areas in Home Assistant created, linked or renamed: {count}"
+msgstr "Piętra i obszary utworzone, powiązane lub przemianowane w Home Assistant: {count}"
+
+msgid "Apply"
+msgstr "Zastosuj"

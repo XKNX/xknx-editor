@@ -135,3 +135,54 @@ msgstr "{entity} (YAML)"
 
 msgid "Disabled"
 msgstr "Letiltva"
+
+msgid "Floors and Areas…"
+msgstr "Szintek és területek…"
+
+msgid "Floors and Areas in Home Assistant"
+msgstr "Szintek és területek a Home Assistantban"
+
+msgid "The floors of the buildings become floors of Home Assistant, their rooms, corridors and stairways its areas. Chosen ones are created, linked to one of the same name, or renamed as here; nothing is removed."
+msgstr "Az épületek emeletei a Home Assistant szintjeivé, helyiségeik, folyosóik és lépcsőházaik pedig a területeivé válnak. A kiválasztottak létrejönnek, összekapcsolódnak egy azonos nevűvel, vagy az itt látható módon átneveződnek; semmi sem törlődik."
+
+msgid "The project has no floors, rooms, corridors or stairways."
+msgstr "A projektben nincsenek emeletek, helyiségek, folyosók vagy lépcsőházak."
+
+msgid "Building Part"
+msgstr "Épületrész"
+
+msgid "Becomes"
+msgstr "Ebből lesz"
+
+msgid "In Home Assistant"
+msgstr "A Home Assistantban"
+
+msgid "Floor"
+msgstr "Szint"
+
+msgid "Area"
+msgstr "Terület"
+
+msgid "New"
+msgstr "Új"
+
+msgid "Exists as \"{name}\""
+msgstr "Létezik ezen a néven: „{name}”"
+
+msgid "Named \"{name}\""
+msgstr "Neve: „{name}”"
+
+msgid "Linked"
+msgstr "Összekapcsolva"
+
+msgid "Applying…"
+msgstr "Alkalmazás…"
+
+msgid "Home Assistant did not take them: {error}"
+msgstr "A Home Assistant nem fogadta el őket: {error}"
+
+msgid "Floors and areas in Home Assistant created, linked or renamed: {count}"
+msgstr "A Home Assistantban létrehozott, összekapcsolt vagy átnevezett szintek és területek: {count}"
+
+msgid "Apply"
+msgstr "Alkalmaz"

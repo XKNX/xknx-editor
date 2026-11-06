@@ -135,3 +135,54 @@ msgstr "{entity} (YAML)"
 
 msgid "Disabled"
 msgstr "Poistettu käytöstä"
+
+msgid "Floors and Areas…"
+msgstr "Kerrokset ja alueet…"
+
+msgid "Floors and Areas in Home Assistant"
+msgstr "Kerrokset ja alueet Home Assistantissa"
+
+msgid "The floors of the buildings become floors of Home Assistant, their rooms, corridors and stairways its areas. Chosen ones are created, linked to one of the same name, or renamed as here; nothing is removed."
+msgstr "Rakennusten kerroksista tulee Home Assistantin kerroksia ja niiden huoneista, käytävistä ja portaista sen alueita. Valitut luodaan, linkitetään samannimiseen tai nimetään uudelleen kuten tässä; mitään ei poisteta."
+
+msgid "The project has no floors, rooms, corridors or stairways."
+msgstr "Projektissa ei ole kerroksia, huoneita, käytäviä eikä portaita."
+
+msgid "Building Part"
+msgstr "Rakennuksen osa"
+
+msgid "Becomes"
+msgstr "Muuttuu"
+
+msgid "In Home Assistant"
+msgstr "Home Assistantissa"
+
+msgid "Floor"
+msgstr "Kerros"
+
+msgid "Area"
+msgstr "Alue"
+
+msgid "New"
+msgstr "Uusi"
+
+msgid "Exists as \"{name}\""
+msgstr "On olemassa nimellä ”{name}”"
+
+msgid "Named \"{name}\""
+msgstr "Nimi on ”{name}”"
+
+msgid "Linked"
+msgstr "Linkitetty"
+
+msgid "Applying…"
+msgstr "Otetaan käyttöön…"
+
+msgid "Home Assistant did not take them: {error}"
+msgstr "Home Assistant ei ottanut niitä vastaan: {error}"
+
+msgid "Floors and areas in Home Assistant created, linked or renamed: {count}"
+msgstr "Home Assistantissa luodut, linkitetyt tai uudelleen nimetyt kerrokset ja alueet: {count}"
+
+msgid "Apply"
+msgstr "Käytä"
