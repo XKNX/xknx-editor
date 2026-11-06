@@ -51,6 +51,10 @@ _placements: dict[str, _Placement] = {}
 # The width (pixels, with the window padding) the row of buttons of an open dialog needs, by
 # dialog id: the dialog is at least that wide where the screen has the room.
 _button_rows: dict[str, float] = {}
+# The open dialogs whose row of buttons can be dismissed (its last button enabled), so that their
+# title bar has a close button; and those whose close button was clicked, by dialog id.
+_closable: set[str] = set()
+_closed: set[str] = set()
 
 
 def _screen_size() -> tuple[float, float]:
@@ -201,10 +205,34 @@ def begin_dialog(
         opened = imgui.begin_popup_modal(title, None, flags)[0]
     if opened:
         _track_placement(title)
+        if title in _closable and not flags & imgui.WindowFlags_.no_title_bar:
+            _title_close_button(title)
     else:
         _placements.pop(title, None)
         _button_rows.pop(title, None)
+        _closable.discard(title)
+        _closed.discard(title)
     return opened
+
+
+def _title_close_button(title: str) -> None:
+    """The close button at the right of the current dialog's title bar, placed as on the other
+    windows (see :func:`_title_bar_gaps`). A click dismisses the dialog as Escape does: its
+    :func:`dialog_buttons` returns the last button then."""
+    window = internal.get_current_window()
+    style = imgui.get_style()
+    bar = window.title_bar_rect()
+    pad = max(style.frame_padding.y - style.window_border_size, 0.0)
+    size = imgui.get_font_size()
+    pos = imgui.ImVec2(bar.max.x - pad - size, bar.min.y + style.frame_padding.y)
+    # The title bar is outside the window's content, where items are clipped away.
+    imgui.push_clip_rect(bar.min, bar.max, False)
+    # Not in the Tab order, as imgui's own title bar buttons: Tab moves through the content.
+    imgui.push_item_flag(imgui.ItemFlags_.no_tab_stop | imgui.ItemFlags_.no_nav, True)
+    if internal.close_button(window.get_id("#CLOSE"), pos):
+        _closed.add(title)
+    imgui.pop_item_flag()
+    imgui.pop_clip_rect()
 
 
 # Drawn inside every dialog just before it ends, while it is the current popup: the browser UI
@@ -341,6 +369,14 @@ def dialog_buttons(
         _button_rows[title] = min(sum(widths) + (len(labels) - 1) * gap, fit) + padding
     dismiss = len(labels) - 1
     clicked: int | None = None
+    # The title bar's close button dismisses the dialog too, while its dismiss button can.
+    if enabled is None or enabled[dismiss]:
+        _closable.add(title)
+        if title in _closed:
+            _closed.discard(title)
+            clicked = dismiss
+    else:
+        _closable.discard(title)
     x = row_x
     for index, label in enumerate(labels):
         width = widths[index]

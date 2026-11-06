@@ -107,8 +107,7 @@ def set_product_language(code: str | None) -> None:
 
 
 def product_text_languages() -> str:
-    """The languages product texts are shown in, in order of preference and comma separated: the
-    preferred product language, then the UI language ("sk-SK,cs-CZ"). A product that has neither
-    shows its own default language."""
-    first, second = product_language(), culture(get_locale())
-    return first if first == second else f"{first},{second}"
+    """The language product texts are shown in: the preferred product language ("sk-SK"). A
+    product without it shows its own default language. The UI language is no fallback, so that
+    switching it alone leaves the product texts, and the devices built from them, as they are."""
+    return product_language()

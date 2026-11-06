@@ -11,7 +11,7 @@ import pytest
 
 from editor_gui import languages
 from editor_gui.main import KnxGuiApp
-from editor_gui.strings import get_locale, set_locale
+from editor_gui.strings import S, get_locale, set_locale
 
 
 @pytest.fixture(autouse=True)
@@ -24,13 +24,8 @@ def english() -> Iterator[None]:
     languages.set_product_language(product)
 
 
-def _app(*, settings_open: bool = True) -> Any:
-    app: Any = SimpleNamespace(
-        _language_question=None,
-        _settings_window=SimpleNamespace(is_open=lambda: settings_open),
-        switched=[],
-        rebuilt=[],
-    )
+def _app() -> Any:
+    app: Any = SimpleNamespace(_language_question=None, switched=[], rebuilt=[])
     app._switch_language = lambda code, product: app.switched.append((code, product))
     return app
 
@@ -48,8 +43,8 @@ def test_a_language_with_its_own_product_texts_asks() -> None:
 
 
 def test_through_mcp_the_product_language_stays() -> None:
-    app = _app(settings_open=False)
-    KnxGuiApp._choose_language(app, "de")  # pyright: ignore[reportPrivateUsage]
+    app = _app()
+    KnxGuiApp._choose_language(app, "de", ask=False)  # pyright: ignore[reportPrivateUsage]
     assert app.switched == [("de", "en-US")]
 
 
@@ -83,3 +78,22 @@ def test_the_devices_are_built_again_only_when_their_texts_change() -> None:
     KnxGuiApp._switch_language(app, "fr", None)  # pyright: ignore[reportPrivateUsage]
     assert len(app.rebuilt) == 1
     assert languages.product_language() == "fr-FR"
+
+
+def test_the_palette_offers_the_other_languages() -> None:
+    chosen: list[str] = []
+    products: list[str] = []
+    app: Any = SimpleNamespace(
+        _choose_language=chosen.append, _switch_product_language=products.append
+    )
+    items = KnxGuiApp._palette_languages(app)  # pyright: ignore[reportPrivateUsage]
+    ui = [i for i in items if i.where == S.SETTING_LANGUAGE]
+    product = [i for i in items if i.where == S.SETTING_PRODUCT_LANGUAGE]
+    # Every language but the current one, of both kinds.
+    assert len(ui) == len(languages.LANGUAGES) - 1
+    assert len(product) == len(languages.PRODUCT_LANGUAGES) - 1
+    german = next(i for i in ui if "Deutsch" in i.label)
+    german.action()
+    assert chosen == ["de"]
+    next(i for i in product if "Deutsch" in i.label).action()
+    assert products == ["de-DE"]

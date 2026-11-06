@@ -108,6 +108,8 @@ class SettingsWindow:
         self._page = ""
         self._query = ""
         self._open_requested = False
+        # The frame the window was drawn in last.
+        self._shown_frame = -2
         # The texts each setting is found by, per language: its name, hint and keywords, plus
         # its page's title, in that language and in English.
         self._search_texts: dict[tuple[str, str], tuple[str, ...]] = {}
@@ -161,7 +163,9 @@ class SettingsWindow:
         return f"{S.SETTINGS_TITLE}{self.TITLE_ID}"
 
     def is_open(self) -> bool:
-        return imgui.is_popup_open(self.title)
+        """Whether the window is shown (drawn in this frame or the one before); from anywhere,
+        also from inside it, where imgui's popup ids differ."""
+        return imgui.get_frame_count() - self._shown_frame <= 1
 
     def render(self) -> None:
         if self._open_requested:
@@ -169,6 +173,7 @@ class SettingsWindow:
             imgui.open_popup(self.title)
         if not begin_dialog(self.title, width=780.0, height=560.0):
             return
+        self._shown_frame = imgui.get_frame_count()
         pages = self.pages()
         if pages and self._page not in {p.key for p in pages}:
             self._page = pages[0].key

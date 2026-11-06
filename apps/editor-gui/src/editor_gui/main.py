@@ -133,6 +133,7 @@ from editor_gui.widgets.dialog import (
     tab_page,
 )
 from editor_gui.widgets.dpi import px, px_vec2
+from editor_gui.widgets.filter_box import filter_box
 from editor_gui.widgets.fonts import (
     fitted_heading,
     follow_language,
@@ -5159,6 +5160,9 @@ class KnxGuiApp:
         self._render_ga_export_options_modal()
         self._render_ga_export_empty_modal()
         self._settings_window.render()
+        # Asked from the Settings window inside it, else (the command palette) here.
+        if not self._settings_window.is_open():
+            self._render_language_question()
         self._render_projectstore_confirm_modal()
         self._render_url_prompt_modal()
         self._render_new_project_modal()
@@ -5625,6 +5629,7 @@ class KnxGuiApp:
         return [
             *self._palette_commands(),
             *self._palette_settings(),
+            *self._palette_languages(),
             *self._palette_panels(),
             *self._palette_project(),
         ]
@@ -5791,6 +5796,28 @@ class KnxGuiApp:
             for setting in page.settings
         ]
 
+    def _palette_languages(self) -> list[PaletteItem]:
+        """The other interface and product languages, switched to as in the settings."""
+        current, product = get_locale(), product_language()
+        return [
+            *(
+                PaletteItem(
+                    label, S.SETTING_LANGUAGE, lambda c=code: self._choose_language(c)
+                )
+                for code, label in _language_items()
+                if code != current
+            ),
+            *(
+                PaletteItem(
+                    label,
+                    S.SETTING_PRODUCT_LANGUAGE,
+                    lambda c=code: self._switch_product_language(c),
+                )
+                for code, label in _product_language_items()
+                if code != product
+            ),
+        ]
+
     def _palette_panels(self) -> list[PaletteItem]:
         """Each panel, shown and brought to the front."""
 
@@ -5852,12 +5879,9 @@ class KnxGuiApp:
         if self._palette_focus:
             imgui.set_keyboard_focus_here()
             self._palette_focus = False
-        imgui.set_next_item_width(-1)
-        _, self._palette_query = imgui.input_text_with_hint(
-            "##cmd_query",
-            S.PALETTE_HINT,
-            self._palette_query,
-            imgui.InputTextFlags_.auto_select_all,
+        # The search field with its clear button, as everywhere; as wide as the list below.
+        self._palette_query = filter_box(
+            "##cmd_query", S.PALETTE_HINT, self._palette_query
         )
         found = [
             item
@@ -5966,17 +5990,15 @@ class KnxGuiApp:
                 self._toasts.add(text, rec.level, 6.0)
         self._toasts.render()
 
-    def _choose_language(self, code: str) -> None:
-        """A new interface language chosen in the settings: ask whether the product texts are
-        shown in its language too, where that would change them; else switch at once and keep
-        the product language."""
+    def _choose_language(self, code: str, *, ask: bool = True) -> None:
+        """A new interface language chosen (in the settings, the command palette): ask whether
+        the product texts are shown in its language too, where that would change them; else, and
+        without ``ask``, switch at once and keep the product language."""
         if code == get_locale():
             return
         known = {language.culture for language in PRODUCT_LANGUAGES}
         new = culture(code)
-        # Asked only in the Settings window; through MCP the product language stays.
-        asked = self._settings_window.is_open()
-        if new == product_language() or new not in known or not asked:
+        if new == product_language() or new not in known or not ask:
             self._switch_language(code, product_language())
         else:
             self._language_question = code
@@ -6348,7 +6370,8 @@ class KnxGuiApp:
         params = hello_imgui.get_runner_params()
 
         def set_language(code: object) -> None:
-            self._choose_language(str(code))
+            # Asked only in the Settings window; through MCP the product language stays.
+            self._choose_language(str(code), ask=self._settings_window.is_open())
 
         def set_product_language(code: object) -> None:
             if str(code) != product_language():

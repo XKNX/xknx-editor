@@ -193,3 +193,17 @@ def test_menus_go_into_one_menu_from_the_right_when_they_do_not_fit() -> None:
     assert menus_shown(widths, 279.0, 30.0) == 4
     assert menus_shown(widths, 160.0, 30.0) == 3
     assert menus_shown(widths, 50.0, 30.0) == 0
+
+
+@pytest.mark.usefixtures("context")
+def test_the_window_knows_it_is_shown_from_anywhere() -> None:
+    window, _ = _window()
+    assert not window.is_open()
+    window.open()
+    _frames(window, count=2)
+    assert window.is_open()
+    # Not drawn for two frames (closed): no longer shown.
+    for _ in range(2):
+        imgui.new_frame()
+        imgui.end_frame()
+    assert not window.is_open()

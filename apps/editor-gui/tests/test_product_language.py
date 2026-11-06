@@ -1,5 +1,5 @@
-"""The preferred product language: chosen separately, else the UI language's; product texts fall
-back to the UI language, and products download in the preferred one first."""
+"""The preferred product language: chosen separately, else the UI language's; product texts are
+in it alone (a product without it shows its own default), and products download in it first."""
 
 from __future__ import annotations
 
@@ -31,8 +31,11 @@ def test_the_product_language_follows_the_ui_language_until_one_is_chosen() -> N
     assert product_text_languages() == "cs-CZ"
     set_product_language("sk-SK")
     assert product_language() == "sk-SK"
-    # Products without Slovak show Czech, the UI language, before their own default.
-    assert product_text_languages() == "sk-SK,cs-CZ"
+    # Products without Slovak show their own default language, not the UI language: a new UI
+    # language alone leaves the product texts as they are.
+    assert product_text_languages() == "sk-SK"
+    set_locale("de")
+    assert product_text_languages() == "sk-SK"
 
 
 def test_an_unknown_product_language_follows_the_ui_language() -> None:
@@ -55,9 +58,8 @@ def test_a_ui_language_without_a_knx_language_shows_products_in_english() -> Non
     set_product_language(None)
     assert product_language() == "en-US"
     assert product_text_languages() == "en-US"
-    # A chosen product language comes first, then English.
     set_product_language("sk-SK")
-    assert product_text_languages() == "sk-SK,en-US"
+    assert product_text_languages() == "sk-SK"
 
 
 def test_the_product_language_menu_reads_alphabetically() -> None:
