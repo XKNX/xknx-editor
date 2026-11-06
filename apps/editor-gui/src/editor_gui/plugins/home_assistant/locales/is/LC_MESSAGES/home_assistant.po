@@ -291,3 +291,51 @@ msgstr "Ritillinn tengist KNX-kerfinu um sömu skil eða beini og KNX-samþætti
 
 msgid "Home Assistant's KNX integration connects with KNX Secure or finds its interface itself: connect the editor in the Gateway menu."
 msgstr "KNX-samþætting Home Assistant tengist með KNX Secure eða finnur skil sín sjálf: tengdu ritilinn í Gátt-valmyndinni."
+
+msgid "From Home Assistant"
+msgstr "Úr Home Assistant"
+
+msgid "Floors and areas of Home Assistant that the project has no floor or room for. They become floors and rooms of the building, linked to what they were made from."
+msgstr "Hæðir og svæði í Home Assistant sem verkefnið hefur enga hæð eða ekkert herbergi fyrir. Þau verða að hæðum og herbergjum byggingarinnar, tengd því sem þau voru búin til úr."
+
+msgid "Building"
+msgstr "Bygging"
+
+msgid "New building"
+msgstr "Ný bygging"
+
+msgid "Home"
+msgstr "Heimili"
+
+msgid "Add to Project"
+msgstr "Bæta við verkefni"
+
+msgid "Floors and areas from Home Assistant"
+msgstr "Hæðir og svæði úr Home Assistant"
+
+msgid "Floors and rooms added to the project: {count}"
+msgstr "Hæðir og herbergi bætt við verkefnið: {count}"
+
+msgid "Group Addresses from Home Assistant…"
+msgstr "Hópvistföng úr Home Assistant…"
+
+msgid "Group Addresses from Home Assistant"
+msgstr "Hópvistföng úr Home Assistant"
+
+msgid "The group addresses Home Assistant's KNX integration uses that the project does not have. They are added with the name of what uses them and the datapoint type Home Assistant uses them with."
+msgstr "Hópvistföngin sem KNX-samþætting Home Assistant notar en verkefnið hefur ekki. Þeim er bætt við með heiti þess sem notar þau og með þeirri gagnapunktsgerð sem Home Assistant notar þau með."
+
+msgid "Home Assistant uses no group addresses the project does not have."
+msgstr "Home Assistant notar engin hópvistföng sem verkefnið hefur ekki."
+
+msgid "Address"
+msgstr "Vistfang"
+
+msgid "Datapoint Type"
+msgstr "Gagnapunktsgerð"
+
+msgid "Group addresses from Home Assistant"
+msgstr "Hópvistföng úr Home Assistant"
+
+msgid "Group addresses added to the project: {count}"
+msgstr "Hópvistföng bætt við verkefnið: {count}"

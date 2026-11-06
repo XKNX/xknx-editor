@@ -291,3 +291,51 @@ msgstr "编辑器通过与 Home Assistant KNX 集成相同的接口或路由器�
 
 msgid "Home Assistant's KNX integration connects with KNX Secure or finds its interface itself: connect the editor in the Gateway menu."
 msgstr "Home Assistant 的 KNX 集成通过 KNX Secure 连接，或自行查找其接口：请在“网关”菜单中连接编辑器。"
+
+msgid "From Home Assistant"
+msgstr "来自 Home Assistant"
+
+msgid "Floors and areas of Home Assistant that the project has no floor or room for. They become floors and rooms of the building, linked to what they were made from."
+msgstr "项目中没有对应楼层或房间的 Home Assistant 楼层和区域。它们将成为建筑的楼层和房间，并与其来源相关联。"
+
+msgid "Building"
+msgstr "建筑"
+
+msgid "New building"
+msgstr "新建筑"
+
+msgid "Home"
+msgstr "家"
+
+msgid "Add to Project"
+msgstr "添加到项目"
+
+msgid "Floors and areas from Home Assistant"
+msgstr "来自 Home Assistant 的楼层和区域"
+
+msgid "Floors and rooms added to the project: {count}"
+msgstr "已添加到项目的楼层和房间：{count}"
+
+msgid "Group Addresses from Home Assistant…"
+msgstr "来自 Home Assistant 的组地址…"
+
+msgid "Group Addresses from Home Assistant"
+msgstr "来自 Home Assistant 的组地址"
+
+msgid "The group addresses Home Assistant's KNX integration uses that the project does not have. They are added with the name of what uses them and the datapoint type Home Assistant uses them with."
+msgstr "Home Assistant 的 KNX 集成使用但项目中没有的组地址。添加时使用使用它们的对象的名称，以及 Home Assistant 使用它们时的数据点类型。"
+
+msgid "Home Assistant uses no group addresses the project does not have."
+msgstr "Home Assistant 未使用项目中没有的组地址。"
+
+msgid "Address"
+msgstr "地址"
+
+msgid "Datapoint Type"
+msgstr "数据点类型"
+
+msgid "Group addresses from Home Assistant"
+msgstr "来自 Home Assistant 的组地址"
+
+msgid "Group addresses added to the project: {count}"
+msgstr "已添加到项目的组地址：{count}"

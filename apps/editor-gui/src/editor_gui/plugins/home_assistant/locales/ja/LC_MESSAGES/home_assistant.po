@@ -291,3 +291,51 @@ msgstr "エディターは Home Assistant の KNX 統合と同じインターフ
 
 msgid "Home Assistant's KNX integration connects with KNX Secure or finds its interface itself: connect the editor in the Gateway menu."
 msgstr "Home Assistant の KNX 統合は KNX Secure で接続しているか、インターフェイスを自動で検出しています。「ゲートウェイ」メニューでエディターを接続してください。"
+
+msgid "From Home Assistant"
+msgstr "Home Assistant から"
+
+msgid "Floors and areas of Home Assistant that the project has no floor or room for. They become floors and rooms of the building, linked to what they were made from."
+msgstr "プロジェクトに対応するフロアや部屋がない Home Assistant のフロアとエリアです。これらは構造のフロアと部屋になり、作成元にリンクされます。"
+
+msgid "Building"
+msgstr "構造"
+
+msgid "New building"
+msgstr "新しい構造"
+
+msgid "Home"
+msgstr "ホーム"
+
+msgid "Add to Project"
+msgstr "プロジェクトに追加"
+
+msgid "Floors and areas from Home Assistant"
+msgstr "Home Assistant からのフロアとエリア"
+
+msgid "Floors and rooms added to the project: {count}"
+msgstr "プロジェクトに追加されたフロアと部屋: {count}"
+
+msgid "Group Addresses from Home Assistant…"
+msgstr "Home Assistant からのグループ・アドレス…"
+
+msgid "Group Addresses from Home Assistant"
+msgstr "Home Assistant からのグループ・アドレス"
+
+msgid "The group addresses Home Assistant's KNX integration uses that the project does not have. They are added with the name of what uses them and the datapoint type Home Assistant uses them with."
+msgstr "Home Assistant の KNX 統合が使用していて、プロジェクトにないグループ・アドレスです。使用しているものの名前と、Home Assistant が使用しているデータポイントタイプで追加されます。"
+
+msgid "Home Assistant uses no group addresses the project does not have."
+msgstr "Home Assistant は、プロジェクトにないグループ・アドレスを使用していません。"
+
+msgid "Address"
+msgstr "アドレス"
+
+msgid "Datapoint Type"
+msgstr "データポイントタイプ"
+
+msgid "Group addresses from Home Assistant"
+msgstr "Home Assistant からのグループ・アドレス"
+
+msgid "Group addresses added to the project: {count}"
+msgstr "プロジェクトに追加されたグループ・アドレス: {count}"

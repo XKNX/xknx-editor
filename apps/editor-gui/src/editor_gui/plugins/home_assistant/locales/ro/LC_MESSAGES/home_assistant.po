@@ -291,3 +291,51 @@ msgstr "Editorul se conectează la magistrală prin aceeași interfață sau ace
 
 msgid "Home Assistant's KNX integration connects with KNX Secure or finds its interface itself: connect the editor in the Gateway menu."
 msgstr "Integrarea KNX din Home Assistant se conectează cu KNX Secure sau își găsește singură interfața: conectați editorul din meniul Gateway."
+
+msgid "From Home Assistant"
+msgstr "Din Home Assistant"
+
+msgid "Floors and areas of Home Assistant that the project has no floor or room for. They become floors and rooms of the building, linked to what they were made from."
+msgstr "Etaje și spații din Home Assistant pentru care proiectul nu are niciun etaj sau nicio cameră. Devin etaje și camere ale clădirii, asociate cu ceea ce le-a generat."
+
+msgid "Building"
+msgstr "Clădire"
+
+msgid "New building"
+msgstr "Clădire nouă"
+
+msgid "Home"
+msgstr "Acasă"
+
+msgid "Add to Project"
+msgstr "Adăugare la proiect"
+
+msgid "Floors and areas from Home Assistant"
+msgstr "Etaje și spații din Home Assistant"
+
+msgid "Floors and rooms added to the project: {count}"
+msgstr "Etaje și camere adăugate la proiect: {count}"
+
+msgid "Group Addresses from Home Assistant…"
+msgstr "Adrese de grup din Home Assistant…"
+
+msgid "Group Addresses from Home Assistant"
+msgstr "Adrese de grup din Home Assistant"
+
+msgid "The group addresses Home Assistant's KNX integration uses that the project does not have. They are added with the name of what uses them and the datapoint type Home Assistant uses them with."
+msgstr "Adresele de grup pe care integrarea KNX din Home Assistant le folosește și pe care proiectul nu le are. Sunt adăugate cu numele a ceea ce le folosește și cu tipul de punct de date cu care le folosește Home Assistant."
+
+msgid "Home Assistant uses no group addresses the project does not have."
+msgstr "Home Assistant nu folosește adrese de grup pe care proiectul nu le are."
+
+msgid "Address"
+msgstr "Adresă"
+
+msgid "Datapoint Type"
+msgstr "Tip de punct de date"
+
+msgid "Group addresses from Home Assistant"
+msgstr "Adrese de grup din Home Assistant"
+
+msgid "Group addresses added to the project: {count}"
+msgstr "Adrese de grup adăugate la proiect: {count}"

@@ -291,3 +291,51 @@ msgstr "De editor maakt verbinding met de bus via dezelfde interface of router a
 
 msgid "Home Assistant's KNX integration connects with KNX Secure or finds its interface itself: connect the editor in the Gateway menu."
 msgstr "De KNX-integratie van Home Assistant maakt verbinding met KNX Secure of zoekt zelf haar interface: verbind de editor via het menu Gateway."
+
+msgid "From Home Assistant"
+msgstr "Uit Home Assistant"
+
+msgid "Floors and areas of Home Assistant that the project has no floor or room for. They become floors and rooms of the building, linked to what they were made from."
+msgstr "Verdiepingen en ruimtes van Home Assistant waarvoor het project geen verdieping of kamer heeft. Ze worden verdiepingen en kamers van het gebouw, gekoppeld aan datgene waaruit ze zijn ontstaan."
+
+msgid "Building"
+msgstr "Gebouw"
+
+msgid "New building"
+msgstr "Nieuw gebouw"
+
+msgid "Home"
+msgstr "Thuis"
+
+msgid "Add to Project"
+msgstr "Aan project toevoegen"
+
+msgid "Floors and areas from Home Assistant"
+msgstr "Verdiepingen en ruimtes uit Home Assistant"
+
+msgid "Floors and rooms added to the project: {count}"
+msgstr "Verdiepingen en kamers toegevoegd aan het project: {count}"
+
+msgid "Group Addresses from Home Assistant…"
+msgstr "Groepsadressen uit Home Assistant…"
+
+msgid "Group Addresses from Home Assistant"
+msgstr "Groepsadressen uit Home Assistant"
+
+msgid "The group addresses Home Assistant's KNX integration uses that the project does not have. They are added with the name of what uses them and the datapoint type Home Assistant uses them with."
+msgstr "De groepsadressen die de KNX-integratie van Home Assistant gebruikt en die het project niet heeft. Ze worden toegevoegd met de naam van wat ze gebruikt en met het datapunttype waarmee Home Assistant ze gebruikt."
+
+msgid "Home Assistant uses no group addresses the project does not have."
+msgstr "Home Assistant gebruikt geen groepsadressen die het project niet heeft."
+
+msgid "Address"
+msgstr "Adres"
+
+msgid "Datapoint Type"
+msgstr "Datapunttype"
+
+msgid "Group addresses from Home Assistant"
+msgstr "Groepsadressen uit Home Assistant"
+
+msgid "Group addresses added to the project: {count}"
+msgstr "Groepsadressen toegevoegd aan het project: {count}"

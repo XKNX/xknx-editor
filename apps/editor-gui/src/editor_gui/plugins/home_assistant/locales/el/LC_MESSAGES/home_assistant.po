@@ -291,3 +291,51 @@ msgstr "Ο επεξεργαστής συνδέεται στον δίαυλο μ�
 
 msgid "Home Assistant's KNX integration connects with KNX Secure or finds its interface itself: connect the editor in the Gateway menu."
 msgstr "Η ενσωμάτωση KNX του Home Assistant συνδέεται με KNX Secure ή βρίσκει μόνη της τη θύρα επικοινωνίας της: συνδέστε τον επεξεργαστή από το μενού Gateway."
+
+msgid "From Home Assistant"
+msgstr "Από το Home Assistant"
+
+msgid "Floors and areas of Home Assistant that the project has no floor or room for. They become floors and rooms of the building, linked to what they were made from."
+msgstr "Όροφοι και περιοχές του Home Assistant για τους οποίους το έργο δεν έχει όροφο ή δωμάτιο. Γίνονται όροφοι και δωμάτια του κτιρίου, συνδεδεμένα με αυτό από το οποίο δημιουργήθηκαν."
+
+msgid "Building"
+msgstr "Κτίριο"
+
+msgid "New building"
+msgstr "Νέο κτίριο"
+
+msgid "Home"
+msgstr "Σπίτι"
+
+msgid "Add to Project"
+msgstr "Προσθήκη στο έργο"
+
+msgid "Floors and areas from Home Assistant"
+msgstr "Όροφοι και περιοχές από το Home Assistant"
+
+msgid "Floors and rooms added to the project: {count}"
+msgstr "Όροφοι και δωμάτια που προστέθηκαν στο έργο: {count}"
+
+msgid "Group Addresses from Home Assistant…"
+msgstr "Διευθύνσεις ομάδων από το Home Assistant…"
+
+msgid "Group Addresses from Home Assistant"
+msgstr "Διευθύνσεις ομάδων από το Home Assistant"
+
+msgid "The group addresses Home Assistant's KNX integration uses that the project does not have. They are added with the name of what uses them and the datapoint type Home Assistant uses them with."
+msgstr "Οι διευθύνσεις ομάδων που χρησιμοποιεί η ενσωμάτωση KNX του Home Assistant και που δεν έχει το έργο. Προστίθενται με το όνομα αυτού που τις χρησιμοποιεί και με τον τύπο datapoint με τον οποίο τις χρησιμοποιεί το Home Assistant."
+
+msgid "Home Assistant uses no group addresses the project does not have."
+msgstr "Το Home Assistant δεν χρησιμοποιεί διευθύνσεις ομάδων που δεν έχει το έργο."
+
+msgid "Address"
+msgstr "Διεύθυνση"
+
+msgid "Datapoint Type"
+msgstr "Τύπος datapoint"
+
+msgid "Group addresses from Home Assistant"
+msgstr "Διευθύνσεις ομάδων από το Home Assistant"
+
+msgid "Group addresses added to the project: {count}"
+msgstr "Διευθύνσεις ομάδων που προστέθηκαν στο έργο: {count}"

@@ -291,3 +291,51 @@ msgstr "Düzenleyici, Home Assistant'ın KNX entegrasyonuyla aynı arabirim veya
 
 msgid "Home Assistant's KNX integration connects with KNX Secure or finds its interface itself: connect the editor in the Gateway menu."
 msgstr "Home Assistant'ın KNX entegrasyonu KNX Secure ile bağlanıyor veya arabirimini kendisi buluyor: düzenleyiciyi Ağ Geçidi menüsünden bağlayın."
+
+msgid "From Home Assistant"
+msgstr "Home Assistant'tan"
+
+msgid "Floors and areas of Home Assistant that the project has no floor or room for. They become floors and rooms of the building, linked to what they were made from."
+msgstr "Projede karşılığı olan kat veya oda bulunmayan Home Assistant katları ve alanları. Binanın katları ve odaları olurlar ve oluşturuldukları kaynağa bağlanırlar."
+
+msgid "Building"
+msgstr "Bina"
+
+msgid "New building"
+msgstr "Yeni bina"
+
+msgid "Home"
+msgstr "Ev"
+
+msgid "Add to Project"
+msgstr "Projeye ekle"
+
+msgid "Floors and areas from Home Assistant"
+msgstr "Home Assistant'tan katlar ve alanlar"
+
+msgid "Floors and rooms added to the project: {count}"
+msgstr "Projeye eklenen katlar ve odalar: {count}"
+
+msgid "Group Addresses from Home Assistant…"
+msgstr "Home Assistant'tan grup adresleri…"
+
+msgid "Group Addresses from Home Assistant"
+msgstr "Home Assistant'tan grup adresleri"
+
+msgid "The group addresses Home Assistant's KNX integration uses that the project does not have. They are added with the name of what uses them and the datapoint type Home Assistant uses them with."
+msgstr "Home Assistant'ın KNX entegrasyonunun kullandığı ve projede bulunmayan grup adresleri. Bunları kullanan şeyin adıyla ve Home Assistant'ın bunları kullandığı veri tipiyle eklenirler."
+
+msgid "Home Assistant uses no group addresses the project does not have."
+msgstr "Home Assistant, projede bulunmayan grup adresi kullanmıyor."
+
+msgid "Address"
+msgstr "Adres"
+
+msgid "Datapoint Type"
+msgstr "Veri tipi"
+
+msgid "Group addresses from Home Assistant"
+msgstr "Home Assistant'tan grup adresleri"
+
+msgid "Group addresses added to the project: {count}"
+msgstr "Projeye eklenen grup adresleri: {count}"

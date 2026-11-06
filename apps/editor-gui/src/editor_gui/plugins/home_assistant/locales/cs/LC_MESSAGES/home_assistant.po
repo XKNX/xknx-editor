@@ -291,3 +291,51 @@ msgstr "Editor se připojí ke sběrnici přes stejné rozhraní nebo router jak
 
 msgid "Home Assistant's KNX integration connects with KNX Secure or finds its interface itself: connect the editor in the Gateway menu."
 msgstr "Integrace KNX v Home Assistantu se připojuje pomocí KNX Secure nebo si své rozhraní hledá sama: připojte editor v nabídce Brána."
+
+msgid "From Home Assistant"
+msgstr "Z Home Assistantu"
+
+msgid "Floors and areas of Home Assistant that the project has no floor or room for. They become floors and rooms of the building, linked to what they were made from."
+msgstr "Patra a oblasti Home Assistantu, pro která projekt nemá žádné patro ani místnost. Stanou se patry a místnostmi budovy, propojenými s tím, z čeho vznikly."
+
+msgid "Building"
+msgstr "Budova"
+
+msgid "New building"
+msgstr "Nová budova"
+
+msgid "Home"
+msgstr "Domov"
+
+msgid "Add to Project"
+msgstr "Přidat do projektu"
+
+msgid "Floors and areas from Home Assistant"
+msgstr "Patra a oblasti z Home Assistantu"
+
+msgid "Floors and rooms added to the project: {count}"
+msgstr "Patra a místnosti přidané do projektu: {count}"
+
+msgid "Group Addresses from Home Assistant…"
+msgstr "Skupinové adresy z Home Assistantu…"
+
+msgid "Group Addresses from Home Assistant"
+msgstr "Skupinové adresy z Home Assistantu"
+
+msgid "The group addresses Home Assistant's KNX integration uses that the project does not have. They are added with the name of what uses them and the datapoint type Home Assistant uses them with."
+msgstr "Skupinové adresy, které používá integrace KNX v Home Assistantu a které projekt nemá. Přidají se s názvem toho, co je používá, a s typem datového bodu, se kterým je Home Assistant používá."
+
+msgid "Home Assistant uses no group addresses the project does not have."
+msgstr "Home Assistant nepoužívá žádné skupinové adresy, které projekt nemá."
+
+msgid "Address"
+msgstr "Adresa"
+
+msgid "Datapoint Type"
+msgstr "Typ datového bodu"
+
+msgid "Group addresses from Home Assistant"
+msgstr "Skupinové adresy z Home Assistantu"
+
+msgid "Group addresses added to the project: {count}"
+msgstr "Skupinové adresy přidané do projektu: {count}"

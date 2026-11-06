@@ -291,3 +291,51 @@ msgstr "A szerkesztő ugyanazon az interfészen vagy routeren keresztül csatlak
 
 msgid "Home Assistant's KNX integration connects with KNX Secure or finds its interface itself: connect the editor in the Gateway menu."
 msgstr "A Home Assistant KNX-integrációja KNX Secure-ral csatlakozik, vagy maga keresi meg az interfészét: csatlakoztassa a szerkesztőt az Átjáró menüben."
+
+msgid "From Home Assistant"
+msgstr "A Home Assistantból"
+
+msgid "Floors and areas of Home Assistant that the project has no floor or room for. They become floors and rooms of the building, linked to what they were made from."
+msgstr "A Home Assistant azon emeletei és területei, amelyekhez a projektnek nincs emelete vagy helyisége. Az épület emeleteivé és helyiségeivé válnak, összekapcsolva azzal, amiből létrejöttek."
+
+msgid "Building"
+msgstr "Épület"
+
+msgid "New building"
+msgstr "Új épület"
+
+msgid "Home"
+msgstr "Otthon"
+
+msgid "Add to Project"
+msgstr "Hozzáadás a projekthez"
+
+msgid "Floors and areas from Home Assistant"
+msgstr "Emeletek és területek a Home Assistantból"
+
+msgid "Floors and rooms added to the project: {count}"
+msgstr "A projekthez hozzáadott emeletek és helyiségek: {count}"
+
+msgid "Group Addresses from Home Assistant…"
+msgstr "Csoportcímek a Home Assistantból…"
+
+msgid "Group Addresses from Home Assistant"
+msgstr "Csoportcímek a Home Assistantból"
+
+msgid "The group addresses Home Assistant's KNX integration uses that the project does not have. They are added with the name of what uses them and the datapoint type Home Assistant uses them with."
+msgstr "Azok a csoportcímek, amelyeket a Home Assistant KNX-integrációja használ, de a projektben nincsenek meg. A felhasználójuk nevével és azzal az adatponttípussal kerülnek hozzáadásra, amellyel a Home Assistant használja őket."
+
+msgid "Home Assistant uses no group addresses the project does not have."
+msgstr "A Home Assistant nem használ olyan csoportcímet, amely a projektben nincs meg."
+
+msgid "Address"
+msgstr "Cím"
+
+msgid "Datapoint Type"
+msgstr "Adatponttípus"
+
+msgid "Group addresses from Home Assistant"
+msgstr "Csoportcímek a Home Assistantból"
+
+msgid "Group addresses added to the project: {count}"
+msgstr "A projekthez hozzáadott csoportcímek: {count}"

@@ -291,3 +291,51 @@ msgstr "L’éditeur se connecte au bus via la même interface ou le même route
 
 msgid "Home Assistant's KNX integration connects with KNX Secure or finds its interface itself: connect the editor in the Gateway menu."
 msgstr "L’intégration KNX de Home Assistant se connecte avec KNX Secure ou trouve elle-même son interface : connectez l’éditeur dans le menu Passerelle."
+
+msgid "From Home Assistant"
+msgstr "Depuis Home Assistant"
+
+msgid "Floors and areas of Home Assistant that the project has no floor or room for. They become floors and rooms of the building, linked to what they were made from."
+msgstr "Étages et pièces de Home Assistant pour lesquels le projet n’a ni étage ni pièce. Ils deviennent des étages et des pièces du bâtiment, liés à ce dont ils sont issus."
+
+msgid "Building"
+msgstr "Bâtiment"
+
+msgid "New building"
+msgstr "Nouveau bâtiment"
+
+msgid "Home"
+msgstr "Maison"
+
+msgid "Add to Project"
+msgstr "Ajouter au projet"
+
+msgid "Floors and areas from Home Assistant"
+msgstr "Étages et pièces depuis Home Assistant"
+
+msgid "Floors and rooms added to the project: {count}"
+msgstr "Étages et pièces ajoutés au projet : {count}"
+
+msgid "Group Addresses from Home Assistant…"
+msgstr "Adresses de groupe depuis Home Assistant…"
+
+msgid "Group Addresses from Home Assistant"
+msgstr "Adresses de groupe depuis Home Assistant"
+
+msgid "The group addresses Home Assistant's KNX integration uses that the project does not have. They are added with the name of what uses them and the datapoint type Home Assistant uses them with."
+msgstr "Les adresses de groupe que l’intégration KNX de Home Assistant utilise et que le projet n’a pas. Elles sont ajoutées avec le nom de ce qui les utilise et le type de point de données avec lequel Home Assistant les utilise."
+
+msgid "Home Assistant uses no group addresses the project does not have."
+msgstr "Home Assistant n’utilise aucune adresse de groupe que le projet n’a pas."
+
+msgid "Address"
+msgstr "Adresse"
+
+msgid "Datapoint Type"
+msgstr "Type de point de données"
+
+msgid "Group addresses from Home Assistant"
+msgstr "Adresses de groupe depuis Home Assistant"
+
+msgid "Group addresses added to the project: {count}"
+msgstr "Adresses de groupe ajoutées au projet : {count}"

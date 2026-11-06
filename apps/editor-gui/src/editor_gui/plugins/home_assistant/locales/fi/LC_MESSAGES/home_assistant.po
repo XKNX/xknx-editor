@@ -291,3 +291,51 @@ msgstr "Editori muodostaa yhteyden väylään saman rajapinnan tai reitittimen k
 
 msgid "Home Assistant's KNX integration connects with KNX Secure or finds its interface itself: connect the editor in the Gateway menu."
 msgstr "Home Assistantin KNX-integraatio muodostaa yhteyden KNX Securella tai etsii rajapintansa itse: yhdistä editori Yhdyskäytävä-valikossa."
+
+msgid "From Home Assistant"
+msgstr "Home Assistantista"
+
+msgid "Floors and areas of Home Assistant that the project has no floor or room for. They become floors and rooms of the building, linked to what they were made from."
+msgstr "Home Assistantin kerrokset ja huoneet, joille projektissa ei ole kerrosta tai huonetta. Niistä tulee rakennuksen kerroksia ja huoneita, jotka linkitetään siihen, mistä ne tehtiin."
+
+msgid "Building"
+msgstr "Rakennus"
+
+msgid "New building"
+msgstr "Uusi rakennus"
+
+msgid "Home"
+msgstr "Koti"
+
+msgid "Add to Project"
+msgstr "Lisää projektiin"
+
+msgid "Floors and areas from Home Assistant"
+msgstr "Kerrokset ja huoneet Home Assistantista"
+
+msgid "Floors and rooms added to the project: {count}"
+msgstr "Projektiin lisätyt kerrokset ja huoneet: {count}"
+
+msgid "Group Addresses from Home Assistant…"
+msgstr "Ryhmäosoitteet Home Assistantista…"
+
+msgid "Group Addresses from Home Assistant"
+msgstr "Ryhmäosoitteet Home Assistantista"
+
+msgid "The group addresses Home Assistant's KNX integration uses that the project does not have. They are added with the name of what uses them and the datapoint type Home Assistant uses them with."
+msgstr "Ryhmäosoitteet, joita Home Assistantin KNX-integraatio käyttää ja joita projektissa ei ole. Ne lisätään niitä käyttävän kohteen nimellä ja sillä tietopisteen tyypillä, jolla Home Assistant niitä käyttää."
+
+msgid "Home Assistant uses no group addresses the project does not have."
+msgstr "Home Assistant ei käytä ryhmäosoitteita, joita projektissa ei ole."
+
+msgid "Address"
+msgstr "Osoite"
+
+msgid "Datapoint Type"
+msgstr "Tietopisteen tyyppi"
+
+msgid "Group addresses from Home Assistant"
+msgstr "Ryhmäosoitteet Home Assistantista"
+
+msgid "Group addresses added to the project: {count}"
+msgstr "Projektiin lisätyt ryhmäosoitteet: {count}"

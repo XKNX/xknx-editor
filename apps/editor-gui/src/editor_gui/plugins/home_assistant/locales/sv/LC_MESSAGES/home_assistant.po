@@ -291,3 +291,51 @@ msgstr "Redigeraren ansluter till bussen via samma gränssnitt eller router som 
 
 msgid "Home Assistant's KNX integration connects with KNX Secure or finds its interface itself: connect the editor in the Gateway menu."
 msgstr "KNX-integrationen i Home Assistant ansluter med KNX Secure eller hittar sitt gränssnitt själv: anslut redigeraren i menyn Gateway."
+
+msgid "From Home Assistant"
+msgstr "Från Home Assistant"
+
+msgid "Floors and areas of Home Assistant that the project has no floor or room for. They become floors and rooms of the building, linked to what they were made from."
+msgstr "Våningar och områden i Home Assistant som projektet inte har någon våning eller något rum för. De blir våningar och rum i byggnaden, kopplade till det de skapades från."
+
+msgid "Building"
+msgstr "Byggnad"
+
+msgid "New building"
+msgstr "Ny byggnad"
+
+msgid "Home"
+msgstr "Hem"
+
+msgid "Add to Project"
+msgstr "Lägg till i projektet"
+
+msgid "Floors and areas from Home Assistant"
+msgstr "Våningar och områden från Home Assistant"
+
+msgid "Floors and rooms added to the project: {count}"
+msgstr "Våningar och rum som lagts till i projektet: {count}"
+
+msgid "Group Addresses from Home Assistant…"
+msgstr "Gruppadresser från Home Assistant…"
+
+msgid "Group Addresses from Home Assistant"
+msgstr "Gruppadresser från Home Assistant"
+
+msgid "The group addresses Home Assistant's KNX integration uses that the project does not have. They are added with the name of what uses them and the datapoint type Home Assistant uses them with."
+msgstr "De gruppadresser som KNX-integrationen i Home Assistant använder och som projektet inte har. De läggs till med namnet på det som använder dem och med den datapunkttyp som Home Assistant använder dem med."
+
+msgid "Home Assistant uses no group addresses the project does not have."
+msgstr "Home Assistant använder inga gruppadresser som projektet inte har."
+
+msgid "Address"
+msgstr "Adress"
+
+msgid "Datapoint Type"
+msgstr "Datapunkttyp"
+
+msgid "Group addresses from Home Assistant"
+msgstr "Gruppadresser från Home Assistant"
+
+msgid "Group addresses added to the project: {count}"
+msgstr "Gruppadresser som lagts till i projektet: {count}"

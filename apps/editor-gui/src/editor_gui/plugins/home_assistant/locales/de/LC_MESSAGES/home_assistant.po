@@ -335,9 +335,6 @@ msgstr "Adresse"
 msgid "Datapoint Type"
 msgstr "Datenpunkttyp"
 
-msgid "Used By"
-msgstr "Verwendet von"
-
 msgid "Group addresses from Home Assistant"
 msgstr "Gruppenadressen aus Home Assistant"
 

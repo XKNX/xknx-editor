@@ -291,3 +291,51 @@ msgstr "Редактор підключається до шини через т�
 
 msgid "Home Assistant's KNX integration connects with KNX Secure or finds its interface itself: connect the editor in the Gateway menu."
 msgstr "Інтеграція KNX у Home Assistant підключається через KNX Secure або сама знаходить свій інтерфейс: підключіть редактор у меню «Шлюз»."
+
+msgid "From Home Assistant"
+msgstr "З Home Assistant"
+
+msgid "Floors and areas of Home Assistant that the project has no floor or room for. They become floors and rooms of the building, linked to what they were made from."
+msgstr "Поверхи й приміщення Home Assistant, для яких у проєкті немає поверху чи кімнати. Вони стають поверхами й кімнатами будівлі та пов'язуються з тим, з чого їх створено."
+
+msgid "Building"
+msgstr "Будівля"
+
+msgid "New building"
+msgstr "Нова будівля"
+
+msgid "Home"
+msgstr "Дім"
+
+msgid "Add to Project"
+msgstr "Додати до проєкту"
+
+msgid "Floors and areas from Home Assistant"
+msgstr "Поверхи й приміщення з Home Assistant"
+
+msgid "Floors and rooms added to the project: {count}"
+msgstr "Поверхи й кімнати, додані до проєкту: {count}"
+
+msgid "Group Addresses from Home Assistant…"
+msgstr "Групові адреси з Home Assistant…"
+
+msgid "Group Addresses from Home Assistant"
+msgstr "Групові адреси з Home Assistant"
+
+msgid "The group addresses Home Assistant's KNX integration uses that the project does not have. They are added with the name of what uses them and the datapoint type Home Assistant uses them with."
+msgstr "Групові адреси, які використовує інтеграція KNX у Home Assistant і яких немає в проєкті. Їх додають із назвою того, що їх використовує, і з типом точки даних, з яким їх використовує Home Assistant."
+
+msgid "Home Assistant uses no group addresses the project does not have."
+msgstr "Home Assistant не використовує групових адрес, яких немає в проєкті."
+
+msgid "Address"
+msgstr "Адреса"
+
+msgid "Datapoint Type"
+msgstr "Тип точки даних"
+
+msgid "Group addresses from Home Assistant"
+msgstr "Групові адреси з Home Assistant"
+
+msgid "Group addresses added to the project: {count}"
+msgstr "Групові адреси, додані до проєкту: {count}"
