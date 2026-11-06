@@ -17,16 +17,22 @@ another plugin instance.
 │  ├── project:    ProjectService     (devices, topology, undo)    │
 │  ├── catalog:    CatalogService     (device templates)           │
 │  ├── connection: ConnectionService  (KNX I/O, CEMI dispatch)      │
-│  └── log:        LogService         (structured logging)         │
+│  ├── log:        LogService         (structured logging)         │
+│  └── callbacks:  notify, warn, main_thread, run_background, ...  │
 └─────────────────────────────────────────────────────────────────┘
                               │
       ┌───────────┬──────────┼──────────┬───────────┬─────────────┐
       ▼           ▼          ▼          ▼           ▼             ▼
  ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌────────┐ ┌─────────┐ ┌─────────┐
- │ Catalog │ │ Project │ │  Node   │ │Connect-│ │  Proxy  │ │ Virtual │  ...
- │ Plugin  │ │ Plugin  │ │ Editor  │ │  ion   │ │ Plugin  │ │ Plugin  │
+ │ Catalog │ │ Project │ │ Connect-│ │Monitor │ │ Health  │ │   MCP   │  ...
+ │ Plugin  │ │ Plugin  │ │   ion   │ │ Plugin │ │ Plugin  │ │ Server  │
  └─────────┘ └─────────┘ └─────────┘ └────────┘ └─────────┘ └─────────┘
 ```
+
+Besides the four services, `PluginAPI` (`plugins/base/api.py`) carries UI callbacks set by
+`main.py` (`notify`, `warn`, `main_thread`, `run_background`, `request_project_password`) and some
+set by the project plugin (`ask_device_certificate`, `queue_program`, `queue_action`,
+`cancel_operation`).
 
 `main.py::KnxGuiApp.__init__` instantiates and wires every plugin directly — there is no dynamic
 plugin loading despite `base/registry.PluginRegistry` (entry-point discovery scaffolding) existing;
@@ -63,51 +69,66 @@ class PanelDefinition:
     render: Callable[[], None]  # render function
 ```
 
-**Dock spaces** (defined in `main.py::create_docking_splits`):
-- `MainDockSpace` — central area (project editor)
-- `LeftSpace` (ratio 0.2, left of main) — catalog, topology
-- `RightSpace` (ratio 0.25, right of main) — configure, history, virtual
-- `BottomSpace` (ratio 0.25, below main) — monitor, logs
+**Dock spaces** (defined in `main.py::create_docking_splits`, default ratios in `_DEFAULT_RATIOS`):
+- `MainDockSpace` — central area (editor, Bus Diagram, Cockpit, Mass Linker, Tools, Recover)
+- `LeftSpace` (left of main) — topology, buildings, group addresses, catalog
+- `RightSpace` (right of main) — history, operations, health
+- `DeviceSpace` (split above `RightSpace`) — device, manufacturer, comment
+- `BottomSpace` (below the left column, or the full width when expanded) — monitor, timeline, logs,
+  project info, project log
 
-A plugin with no panels (e.g. `ConnectionPlugin`, `ProxyPlugin`, `CatPlugin`) returns `[]` and
-instead renders into the menu bar or a status area via its own methods, called directly from
-`main.py`.
+Narrow screens (tablets and phones in the browser UI) use `compact_docking_splits`.
+
+A plugin with no panels (e.g. `ConnectionPlugin`, `KeyringPlugin`, `BackupsPlugin`, `SigningPlugin`,
+`McpServerPlugin`) returns `[]` (or has no `panels` at all) and instead renders into the menu bar, a
+window or a status area via its own methods, called directly from `main.py`.
 
 ## Current Plugins
 
 | Plugin | Panels | Purpose |
 |--------|--------|---------|
-| `CatalogPlugin` | `catalog` (LeftSpace) | Browse and add devices from the catalog |
-| `ProjectPlugin` | `topology` (LeftSpace), `configure` (RightSpace), `history` (RightSpace) | Device topology, configuration, undo history |
+| `CatalogPlugin` | `catalog` (LeftSpace) | Browse the local and the online catalog, import products, add devices |
+| `ProjectPlugin` | `topology`, `buildings`, `group_addresses` (LeftSpace); `editor`, `mass_linker`, `tools` (MainDockSpace); `device`, `manufacturer`, `comment` (DeviceSpace); `history`, `operations` (RightSpace); `project_info`, `project_log` (BottomSpace) | Project editing, device configuration, programming queue, undo history |
 | `BusDiagramPlugin` | `bus_diagram` (MainDockSpace) | Bus Diagram: areas, lines and devices, buildings, and which devices talk to which |
+| `CockpitPlugin` | `cockpit` (MainDockSpace) | Site-wide device table with status |
+| `RecoverPlugin` | `recover` (MainDockSpace) | Reconstruct a project by reading devices back from the bus |
+| `HealthPlugin` | `health` (RightSpace) | Commissioning checks; device findings navigate on click |
 | `ConnectionPlugin` | *(none)* | Real KNX connection (tunneling/routing), gateway discovery, status indicator + menu |
-| `ProxyPlugin` | *(none)* | KNXnet/IP tunnelling server for testing without hardware; menu only |
-| `VirtualPlugin` | `virtual` (RightSpace) | Virtual router + virtual devices |
 | `MonitorPlugin` | `monitor` (BottomSpace) | Group Monitor, Bus Monitor, Bus Activity recordings and group object values |
+| `TimelinePlugin` | `timeline` (BottomSpace) | Decoded numeric group values plotted over time |
 | `LoggerPlugin` | `logger` (BottomSpace) | Structured, filterable application log viewer |
-| `CatPlugin` | *(none)* | Cosmetic desktop cat follower; no panels, `on_load` only |
+| `KeyringPlugin` | *(none, own window)* | KNX Secure keyring import, browse and export |
+| `BackupsPlugin` | *(none, own window)* | Project backups (by hand, on close, at an interval) and restore |
+| `SigningPlugin` | *(none, dialog)* | Signing key for `.knxproj` export |
+| `McpServerPlugin` | *(none)* | Embedded MCP server (`plugins/mcp`), not in `_plugins`; started and stopped by `main.py` |
 
 `LoggerPlugin` is constructed with a `LogService` directly rather than a full `PluginAPI` — it
-predates (or simply doesn't need) the shared-service pattern the others use.
+predates (or simply doesn't need) the shared-service pattern the others use. Several plugins also
+take callbacks from `main.py` (e.g. `TimelinePlugin` the Monitor's telegrams, `ProjectPlugin` the
+Monitor's latest values and the connection's interfaces).
 
 ## Services
 
 ### ConnectionService (`plugins/connection/service.py`)
 
-The hub other plugins use to send/receive CEMI frames without depending on `ConnectionPlugin`
-directly — e.g. `ProxyPlugin` relays frames to/from the real connection purely through this service.
+The hub other plugins use to send/receive CEMI frames and run bus operations without depending on
+`ConnectionPlugin` directly — e.g. the Monitor records frames purely through this service.
 
 ```python
 connection.add_raw_cemi_listener(callback: (bytes, TelegramSource) -> None)
-connection.dispatch_raw_cemi(raw_cemi)     # from the real connection
-connection.dispatch_proxy_cemi(raw_cemi)   # from the proxy
-connection.dispatch_virtual_cemi(raw_cemi) # from the virtual router/devices
-connection.send_cemi(raw_cemi) -> Future | None   # send out the real connection
+connection.add_sent_cemi_listener(callback)        # every frame the app sends
+connection.add_connected_listener(callback) / add_disconnected_listener(callback)
+connection.add_busmonitor_listener(callback)       # Bus Monitor tunnel frames
+connection.dispatch_raw_cemi(raw_cemi)             # from the real connection
+connection.send_cemi(raw_cemi) -> Future | None    # send out the real connection
+connection.send_group_value(...) / send_group_telegram(...)
+connection.program_device(...) / evaluate_device(...) -> Future | None
+connection.run_async(coro) -> Future | None        # run on the KNX-Async event loop
 connection.xknx -> XKNX | None
 ```
 
-`TelegramSource` (`editor_gui.types`) tags every dispatched frame as `CONNECTION`, `PROXY`, or `VIRTUAL`
-so listeners can filter by origin (e.g. to avoid echoing proxy traffic back into itself).
+`TelegramSource` (`editor_gui.net`) tags every dispatched frame with where it came from
+(`CONNECTION`, the bus connection).
 
 ### ProjectService / CatalogService
 
@@ -259,15 +280,18 @@ msgid "Do Thing"
 msgstr "Doe Ding"
 ```
 
-2. Compile to `.mo`:
+2. Compile to `.mo` with Babel (no gettext installation needed; see "UI Texts" in the root
+`AGENTS.md`):
 
 ```bash
-msgfmt -o myplugin.mo myplugin.po
+uv run --with babel pybabel compile -d src/editor_gui/plugins/myplugin/locales -D myplugin
 ```
 
-Locales are optional — a plugin with no `locales/` directory (e.g. `virtual`) just falls back to the
-literal string for every language (`create_translator` catches `FileNotFoundError`).
+A missing catalog falls back to the literal string (`create_translator` catches
+`FileNotFoundError`), but `tests/test_translations.py` requires every msgid to be translated in every
+language of `editor_gui.languages`.
 
 ### Language Detection
 
-Language is detected from system locale at startup, falls back to English.
+Language is detected from system locale at startup (falls back to English); a language chosen in
+the Language menu is saved in `app.locale` and wins over the detected one.

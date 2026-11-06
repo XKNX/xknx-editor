@@ -14,8 +14,10 @@ adds the GUI-only concerns (resolving devices against the catalog, caching the r
 ## Database Schema
 
 SQLAlchemy models live in `xknxeditor/proj/models.py`. Tree: `Installation → Area → Line → Segment
-→ Device`; group addresses live in a separate recursive `GroupRange` tree. Schema is
-auto-created (`Base.metadata.create_all`), no migrations.
+→ Device`; group addresses live in a separate recursive `GroupRange` tree, buildings in a
+recursive `Space` tree. Schema is auto-created (`Base.metadata.create_all`); `db.py` migrates older
+files on open (`SCHEMA_VERSION`, stored as `PRAGMA user_version`): missing columns are added, and
+version-keyed data migrations run once.
 
 | Table | Purpose |
 |-------|---------|
@@ -29,22 +31,42 @@ auto-created (`Base.metadata.create_all`), no migrations.
 | `group_ranges` | Recursive group-address range tree (main → middle in ThreeLevel style) |
 | `group_addresses` | Leaf addresses, with an optional `datapoint_type` override |
 | `com_object_links` | Links a com-object to a group address; `is_sending` marks the (at most one) transmit link |
+| `project_traces` | `ProjectInformation/ProjectTraces` of an imported project (the Project Log) |
+| `device_additional_addresses` | Additional individual addresses of couplers and IP interfaces (e.g. tunnel addresses) |
+| `device_binary_data` | A device's `BinaryData` files (e.g. a DALI gateway's backup store) |
+| `spaces` | Recursive buildings tree (building → floor → room, ...); devices reference their space |
+| `functions` / `function_group_addresses` | Building functions and their group addresses |
+| `trades` / `trade_devices` | Trades tree (read from the raw project XML) and the devices in each trade |
+| `device_snapshots` | Cached device builds in the editor's own JSON format, keyed by the code fingerprint; not undoable, not exported |
 | `events` | The undo/redo history: `type`, `data` (JSON payload), `timestamp`, `reverted` |
 
 ## Event Sourcing
 
 ### Event Types
 
-All defined in `xknxeditor/proj/core/events.py`:
+All defined in `xknxeditor/proj/core/events.py` (registry `EVENT_TYPES`, about 90 types); the main
+families:
 
-- **Topology**: `AddInstallation`, `CreateArea`, `CreateLine`, `CreateSegment`
-- **Devices**: `AddDevice`, `SetParameter`, `SetDeviceName`, `MoveDevice` (segment + address)
+- **Topology**: `AddInstallation`, `CreateArea`, `CreateLine`, `CreateSegment`, `MoveLine`,
+  `MoveSegment`, `SetSegmentMedium`/`DomainAddress`/`BusAccess`, `SetInstallationAttribute`,
+  `SetTopologyDescription`/`Address`
+- **Devices**: `AddDevice`, `SetParameter`, `SetDeviceName`/`Description`/`Space`/`Commissioning`/
+  `Certificates`/`IpConfig`/`AdditionalAddresses`/`SecureCommissioning`, `MoveDevice` (segment +
+  address), `UpdateDeviceApplication`, `ChangeDeviceApplication`, `SyncDeviceComObjects`,
+  `SyncDeviceModuleInstances`, `UpsertDeviceBinaryData`
 - **Group addresses / links**: `CreateGroupAddress` (also finds-or-creates its containing range
-  chain as one undoable step), `LinkComObject`, `SetComObjectFlag`, `SetComObjectSending`,
-  `SetGroupAddressDatapointType`
+  chain as one undoable step), `ImportGroupAddresses`, `RenameGroupAddress`, `SetGroupAddress*`,
+  `Create`/`Rename`/`Move`/`RemoveGroupRange`, `SetGroupRange*`, `LinkComObject`,
+  `SetComObjectFlag`/`Sending`/`DatapointType`/`Priority`/`Description`
+- **Buildings, functions, trades**: `Create`/`Rename`/`Move`/`RemoveSpace`, `SetSpace*`,
+  `CreateFunction`, `CreateFunctionWithGroupAddresses`, `Add`/`RemoveFunctionGroupAddress`,
+  `CreateTrade`, `AddTradeDevice`, ...
+- **Project metadata**: `SetProjectName`, `SetProjectCodePage`, `SetComment`,
+  `SetCompletionStatus`, `SetFields`
 - **Reversible deletes** (snapshot-and-restore, see below): `RemoveDevice`, `RemoveArea`,
-  `RemoveLine`, `RemoveSegment`, `RemoveGroupAddress`, `UnlinkComObject`
-- **Renames**: `RenameArea`, `RenameLine`
+  `RemoveLine`, `RemoveSegment`, `RemoveGroupAddress`, `UnlinkComObject`, ...
+- **Renames**: `RenameArea`, `RenameLine`, `RenameSegment`
+- **Grouping**: `Composite` holds several events as one undo step (`EventStore.group_since`)
 
 Every event is a dataclass implementing `apply(session)`, `revert(session)`, `to_dict()`,
 `from_dict()`. Row ids created by `apply()` are captured on the event itself (the `if self.x_id is
@@ -80,14 +102,16 @@ so `history()` (newest first) always reflects the full log, reverted or not.
 The GUI's `ProjectService` wraps `xknxeditor.proj.ProjectService` and adds:
 
 - **Device resolution**: turns a `devices` row + its `parameters`/`com_objects`/`module_instances`
-  into a `editor_gui.types.Device` by resolving `hardware2program_ref_id` to an `Application` through
+  into an `editor_gui.device.Device` by resolving `hardware2program_ref_id` to an `Application` through
   the catalog (`CatalogService.get_application`), with the resolved `Application` cached by program
   ref (`_app_cache`) since parsing is the expensive part.
-- **Lazy rebuild via version counter**: every mutating call bumps `self._version`; property reads
-  like `.devices`/`.group_addresses` rebuild only if `self._cache_version != self._version`. There's
-  no explicit "reload from DB" — undo/redo just bump the version like any other edit.
-- **Pub/sub**: `subscribe(event, handler) -> unsubscribe_fn` for `"device_selected"` and similar UI
-  events, orthogonal to the persistence event log above.
+- **Lazy rebuild via version counter**: every mutating call bumps `self._version` (`_bump()`,
+  exposed as `revision`); `.devices` rebuilds only if `self._devices_cache_version != self._version`,
+  reusing unchanged devices, and other reads are memoised per revision (`revision_cached`).
+  `_bump(structural=False)` (group-address and link edits) keeps the device cache valid. There's no
+  explicit "reload from DB" — undo/redo just bump the version like any other edit.
+- **Pub/sub**: `subscribe(event, handler) -> unsubscribe_fn` for `"device_selected"`, `"closing"` and
+  `"closed"`, orthogonal to the persistence event log above.
 - **History labels**: `_history_label()` renders a human-readable string per event type for the
   History panel — presentation lives in the GUI, not the project package.
 
@@ -105,8 +129,9 @@ sqlite3 project.xknx "SELECT type, data FROM events ORDER BY id;"
 A project device only stores `product_ref_id`/`hardware2program_ref_id` — references into the
 catalog, not the application data itself. If the catalog doesn't have that program (a fresh or
 emptied `catalog.db`, or a product that was never (re-)imported), `ProjectService._build_device()`
-logs a warning and the device is silently dropped from `.devices` until the catalog is repopulated
-with a matching import. It is not deleted from the project database.
+logs a warning and the device is left out of `.devices`; it is listed in `unloaded_devices()` instead
+and shown without parameters until the catalog is repopulated with a matching import. It is not
+deleted from the project database.
 
 ### Catalog changes aren't versioned
 If an application's parameter/com-object definitions change between catalog imports (e.g. a
