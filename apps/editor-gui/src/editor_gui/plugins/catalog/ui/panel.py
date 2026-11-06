@@ -35,6 +35,7 @@ from editor_gui.widgets.tree import (
     begin_tree_area,
     keyboard_moved_here,
     leaf_rows,
+    note_row,
     tree_node,
 )
 from editor_gui.widgets.value_pickers import format_date
@@ -898,16 +899,17 @@ class CatalogPanel:
         local: dict[str, set[int | None]],
     ) -> None:
         label = _online_label(item, local, locale=product_text_languages())
-        if item.id in downloading:
-            imgui.text_disabled(
-                S.ONLINE_DOWNLOADING.format(name=item.name_in(product_text_languages()))
-            )
-            return
-        # Never block a download client-side: a gated product (plugin/market) stays a normal,
-        # clickable row and only shows a hint; the actual download is still attempted and the
-        # server decides.
-        hint = "" if item.downloadable else f"  {S.ONLINE_NOT_DOWNLOADABLE}"
         with leaf_rows(nodes=True):
+            if item.id in downloading:
+                note = S.ONLINE_DOWNLOADING.format(
+                    name=item.name_in(product_text_languages())
+                )
+                note_row(f"{note}##online_item_{item.id}", leaf_flags)
+                return
+            # Never block a download client-side: a gated product (plugin/market) stays a
+            # normal, clickable row and only shows a hint; the actual download is still
+            # attempted and the server decides.
+            hint = "" if item.downloadable else f"  {S.ONLINE_NOT_DOWNLOADABLE}"
             self._render_online_row(
                 f"{label}{hint}##online_item_{item.id}", item, leaf_flags
             )
@@ -1144,9 +1146,8 @@ class CatalogPanel:
         for item in self._flat_results:
             label = _online_label(item, local, with_manufacturer=True, locale=locale)
             if item.id in downloading:
-                imgui.text_disabled(
-                    S.ONLINE_DOWNLOADING.format(name=item.name_in(locale))
-                )
+                note = S.ONLINE_DOWNLOADING.format(name=item.name_in(locale))
+                note_row(f"{note}##flat_{item.id}", leaf_flags)
                 continue
             hint = "" if item.downloadable else f"  {S.ONLINE_NOT_DOWNLOADABLE}"
             self._render_online_row(f"{label}{hint}##flat_{item.id}", item, leaf_flags)

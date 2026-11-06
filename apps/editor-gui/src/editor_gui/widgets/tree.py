@@ -63,6 +63,22 @@ def tree_node(label: str, flags: int = 0) -> bool:
         imgui.pop_style_var(2)
 
 
+def note_row(label: str, flags: int = 0) -> None:
+    """A grey :func:`tree_node` row nothing happens on (no highlight, no click): a note in place
+    of a row, e.g. while its product downloads, its text where the row's label would be."""
+    style = imgui.get_style()
+    imgui.push_style_color(imgui.Col_.text, style.color_(imgui.Col_.text_disabled))
+    # Disabled for the input only; the grey comes from the text colour, not a dimmed alpha.
+    imgui.push_style_var(imgui.StyleVar_.disabled_alpha, 1.0)
+    imgui.begin_disabled()
+    try:
+        tree_node(label, flags)
+    finally:
+        imgui.end_disabled()
+        imgui.pop_style_var()
+        imgui.pop_style_color()
+
+
 def row_selectable(label: str, selected: bool, flags: int = 0) -> tuple[bool, bool]:
     """``imgui.selectable`` for a tree row without an arrow, laid out as a :func:`tree_node` row:
     as high, with its label as far down, and its highlight reaching the next row."""
