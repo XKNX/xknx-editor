@@ -66,6 +66,19 @@ class _FakeProject:
         self.recalculated: tuple[int, list[str], bool] | None = None
         # The edits of each undo step: the number of edits made before it ended.
         self.undo_steps: list[int] = []
+        # The project's history (what the topology lookup changed), and what was undone.
+        self.history: list[str] = []
+        self.undone: list[str] = []
+
+    @property
+    def cursor(self) -> int:
+        return len(self.history)
+
+    def undo(self) -> bool:
+        if not self.history:
+            return False
+        self.undone.append(self.history.pop())
+        return True
 
     @property
     def devices(self) -> list[_FakeDevice]:
@@ -90,6 +103,8 @@ class _FakeProject:
     ) -> int:
         self.segments_for.append(address)
         self.programs_for.append(hardware2program_ref_id)
+        # E.g. the line created, or its medium changed.
+        self.history.append(f"line of {address}")
         return 1
 
     def add_device(
@@ -362,4 +377,46 @@ def test_a_new_project_tries_failed_devices_again(
     assert service.create_project_and_apply(target) == 1
     assert created == [target]
     assert entry.applied is True and entry.error is None
+    assert service.apply_error == ""
+
+
+def test_a_failed_add_takes_back_what_it_changed(application) -> None:  # type: ignore[no-untyped-def]
+    project = _FakeProject(refs=[])
+    project.history = ["earlier edit"]
+    project.add_error = MediumError("device_line_medium", device="JU 1 S RF")
+    service = RecoverService(_FakeAPI(project))  # type: ignore[arg-type]
+    service.entries = [_rf_entry(application)]
+
+    assert service.apply_to_open_project() == 0
+
+    # The line it made or changed for the device is undone; earlier edits stay.
+    assert project.undone == ["line of 1.1.3"]
+    assert project.history == ["earlier edit"]
+
+
+def test_an_added_device_keeps_its_line(application) -> None:  # type: ignore[no-untyped-def]
+    project = _FakeProject(refs=[])
+    service = RecoverService(_FakeAPI(project))  # type: ignore[arg-type]
+    service.entries = [_rf_entry(application)]
+
+    assert service.apply_to_open_project() == 1
+    assert project.undone == []
+    assert project.history == ["line of 1.1.3"]
+
+
+def test_a_failed_device_found_in_the_project_is_no_failure(application) -> None:  # type: ignore[no-untyped-def]
+    project = _FakeProject(refs=[])
+    project.add_error = RuntimeError("refused")
+    service = RecoverService(_FakeAPI(project))  # type: ignore[arg-type]
+    entry = _rf_entry(application)
+    service.entries = [entry]
+    service.apply_to_open_project()
+    assert entry.error == "refused"
+
+    # Then added another way (e.g. by hand): the next add finds it and counts no failure.
+    project.pretend_exists = True
+    service.apply_to_open_project()
+    assert entry.error is None
+    assert entry.applied is True
+    assert entry.state == S.STATE_EXISTS
     assert service.apply_error == ""

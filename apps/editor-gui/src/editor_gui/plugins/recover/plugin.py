@@ -22,6 +22,11 @@ class RecoverPlugin:
         self._focus_requested = False
 
     @property
+    def service(self) -> RecoverService:
+        """The live recover service (shared with the embedded MCP server)."""
+        return self._service
+
+    @property
     def panels(self) -> list[PanelDefinition]:
         # Docked next to the Topology tree, not a floating window.
         return [

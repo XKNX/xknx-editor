@@ -364,10 +364,15 @@ class RecoverService:
     # --- polling (UI thread) ----------------------------------------------
 
     def poll(self) -> None:
-        """Advance the phase when a pending bus operation has finished."""
+        """Add newly read devices to the open project (when ``auto_apply``) and advance the
+        phase when a pending bus operation has finished."""
         # Live: as soon as a device has been read, add it to the open project so it
         # shows under Devices immediately (not only after an explicit apply).
         self._auto_apply()
+        self.advance()
+
+    def advance(self) -> None:
+        """Advance the phase when a pending bus operation has finished (no project edits)."""
         if self._pending is None or not self._pending.done():
             return
         future, self._pending = self._pending, None
@@ -617,7 +622,13 @@ class RecoverService:
         if project.find_device_by_address(entry.address) is not None:
             entry.applied = True
             entry.state = S.STATE_EXISTS
+            # Not a failure any more, even if an earlier attempt failed.
+            entry.error = None
             return False
+        # A failed add takes back what it changed (an area, line or segment it created, a
+        # line's medium), so the project stays as it was.
+        start = project.cursor
+        added = False
         # This runs on the UI thread (live auto-apply in poll); any failure must be
         # contained, never propagate into the render loop.
         try:
@@ -655,16 +666,17 @@ class RecoverService:
                     # could take the numbers of devices recovered later.
                     with_additional_addresses=False,
                 )
-                if device_id is None:
-                    return False
-                # The bus carries no ETS clear name/description, so stamp the individual
-                # address as the description to record where the device came from.
-                project.set_device_description(device_id, "", entry.address)
-                device = next(
-                    (d for d in project.devices if d.node_id == device_id), None
-                )
-                if device is None:
-                    return False
+                device = None
+                if device_id is not None:
+                    # The bus carries no clear name or description, so stamp the
+                    # individual address as the description to record where the device
+                    # came from.
+                    project.set_device_description(device_id, "", entry.address)
+                    device = next(
+                        (d for d in project.devices if d.node_id == device_id), None
+                    )
+                if device_id is None or device is None:
+                    raise RuntimeError(f"{entry.address} was not added")
                 # Prefer the device-matched map computed during recovery (module
                 # instances seeded from the recovered parameters); fall back to default.
                 number_to_ref = recovered.com_object_refs or com_object_ref_by_number(
@@ -691,6 +703,7 @@ class RecoverService:
                 project.recalculate_params(
                     device_id, list(recovered.parameters.values), stored=True
                 )
+                added = True
         except Exception as exc:  # never crash the render loop / batch on one device
             # Not marked applied: an explicit add tries it again (live auto-apply does
             # not, see ``auto_tried``).
@@ -700,6 +713,17 @@ class RecoverService:
                 self._log.warning(
                     "add to project failed", address=entry.address, error=str(exc)
                 )
+        if not added:
+            try:
+                while project.cursor > start and project.undo():
+                    pass
+            except Exception as exc:
+                if self._log is not None:
+                    self._log.warning(
+                        "undoing a failed add failed",
+                        address=entry.address,
+                        error=str(exc),
+                    )
             return False
         entry.applied = True
         entry.error = None

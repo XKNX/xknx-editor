@@ -95,6 +95,7 @@ from xknxeditor.proj.core.medium import (
     format_domain_address,
     medium_name,
     parse_domain_address,
+    sub_segment_media,
 )
 from xknxeditor.proj.core.modified import project_timestamp
 from xknxeditor.proj.core.paste import GroupAddressCopy, PasteOptions
@@ -5086,9 +5087,10 @@ class ProjectService:
         With ``hardware2program_ref_id``, the segment suits the media the device's
         hardware supports: a new line gets such a medium (TP when the device supports
         it), an empty line of another medium is changed to it, and on a line with
-        devices a sub-segment of a suitable medium is used. Otherwise it is the line's
-        main segment, and adding a device it does not fit is refused as before. Raises
-        ``MediumError`` for a medium the rules of the topology refuse."""
+        devices a sub-segment of a suitable medium is used, and added when the line has
+        none and allows one. Otherwise it is the line's main segment, and adding a device
+        it does not fit is refused as before. Raises ``MediumError`` for a medium the
+        rules of the topology refuse."""
         if self._pid is None:
             return None
         try:
@@ -5134,6 +5136,16 @@ class ProjectService:
             )
             if fitting is not None:
                 return fitting.id
+            # A line with devices keeps its medium: a sub-segment of a medium the device
+            # supports, where the line allows one (e.g. RF devices behind a media coupler
+            # on a TP line).
+            allowed = [
+                m for m in sub_segment_media(segments[0].medium_type) if m in media
+            ]
+            if allowed:
+                return self.add_segment(
+                    line.id, medium_type=_preferred_medium(set(allowed))
+                )
         return segments[0].id
 
     def _device_media(self, hardware2program_ref_id: str | None) -> set[str]:

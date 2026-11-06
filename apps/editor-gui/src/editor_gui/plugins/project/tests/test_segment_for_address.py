@@ -45,11 +45,13 @@ def _line(project: ProjectService, area: int, line: int) -> _Line | None:
     )
 
 
-def _add_device(project: ProjectService, segment_id: int, address: int) -> None:
+def _add_device(
+    project: ProjectService, segment_id: int, address: int, program: str = "H-tp"
+) -> None:
     pid = project._pid
     assert pid is not None
     project._svc.add_device(
-        pid, segment_id, "P-1", address=address, hardware2program_ref_id="H-tp"
+        pid, segment_id, "P-1", address=address, hardware2program_ref_id=program
     )
     project._bump()
 
@@ -83,15 +85,36 @@ def test_a_new_line_gets_a_medium_the_device_supports(
 
 
 def test_a_line_with_devices_keeps_its_medium(project: ProjectService) -> None:
+    # E.g. a media coupler at 1.1.0 came first: RF devices behind it get an RF sub-segment.
     line = _line(project, 1, 1)
     assert line is not None and line.main_segment_id is not None
     _add_device(project, line.main_segment_id, 1)
 
-    # No segment fits: the main segment, where adding the device is then refused.
     segment_id = project.find_or_create_segment_for_address("1.1.3", "H-rf")
 
     after = _line(project, 1, 1)
     assert after is not None and after.medium_type == MEDIUM_TP
+    assert segment_id is not None and segment_id != line.main_segment_id
+    segment = project.find_segment(segment_id)
+    assert segment is not None and segment.medium_type == MEDIUM_RF
+    assert segment.line_id == line.id
+    # The next RF device of the line goes on the same sub-segment.
+    assert project.find_or_create_segment_for_address("1.1.4", "H-rf") == segment_id
+
+
+def test_a_line_without_room_for_the_medium_gives_its_main_segment(
+    project: ProjectService,
+) -> None:
+    # An RF line with devices can have no sub-segment: the main segment, where adding a
+    # TP-only device is then refused with the reason.
+    rf_segment = project.find_or_create_segment_for_address("1.1.3", "H-rf")
+    assert rf_segment is not None
+    _add_device(project, rf_segment, 3, "H-rf")
+
+    segment_id = project.find_or_create_segment_for_address("1.1.4", "H-tp")
+
+    line = _line(project, 1, 1)
+    assert line is not None and line.medium_type == MEDIUM_RF
     assert segment_id == line.main_segment_id
 
 
