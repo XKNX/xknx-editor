@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+from types import SimpleNamespace
+from typing import Any
+
 import pytest
 from xknx.exceptions import ManagementConnectionError
 from xknx.telegram import IndividualAddress
@@ -74,7 +77,13 @@ def _device_reports_55(monkeypatch: pytest.MonkeyPatch) -> list[int]:
     used: list[int] = []
 
     async def fake_recover_device(  # type: ignore[no-untyped-def]
-        programmer, application, *, address, progress=None, project_code_page=None
+        programmer,
+        application,
+        *,
+        address,
+        progress=None,
+        project_code_page=None,
+        reads_done=None,
     ):
         used.append(programmer.max_apdu_length)
         if len(used) == 1:
@@ -117,3 +126,52 @@ async def test_interface_limit_caps_the_first_attempt(
         retry_delay=0.0,
     )
     assert _device_reports_55 == [15, 15]
+
+
+async def test_the_connection_is_closed_before_the_decoding(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # Decoding a large application takes seconds; the device would close the idle
+    # connection meanwhile, and closing it afterwards failed (issue #207).
+    events: list[str] = []
+
+    class Management:
+        async def connect(self, address: IndividualAddress) -> object:
+            events.append("connect")
+            return object()
+
+        async def disconnect(self, address: IndividualAddress) -> None:
+            events.append("disconnect")
+
+    class Xknx:
+        management = Management()
+
+    async def read(*_args: Any) -> Any:
+        events.append("read")
+        return SimpleNamespace(
+            device_address=None, group_addresses=[], links=[], group_objects={}
+        )
+
+    async def descriptor(_self: DeviceProgrammer) -> int:
+        return 0x07B0
+
+    def decode(*_args: Any) -> tuple[Any, dict[int, str]]:
+        events.append("decode")
+        return SimpleNamespace(values={}, unknown=[]), {}
+
+    monkeypatch.setattr(DeviceProgrammer, "read_device_descriptor", descriptor)
+    for name in (
+        "read_dossier",
+        "read_group_communication",
+        "read_parameter_memory",
+        "read_property_values",
+    ):
+        monkeypatch.setattr(recover_mod, name, read)
+    monkeypatch.setattr(recover_mod, "_decode_configuration", decode)
+    await recover_device_at(
+        Xknx(),  # type: ignore[arg-type]
+        "1.1.41",
+        SimpleNamespace(id="M-0083_A-008A-28-7B00"),  # type: ignore[arg-type]
+        negotiate_apdu=False,
+    )
+    assert events == ["connect", "read", "read", "read", "read", "disconnect", "decode"]

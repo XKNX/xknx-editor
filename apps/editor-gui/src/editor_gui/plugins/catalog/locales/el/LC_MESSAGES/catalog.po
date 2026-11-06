@@ -210,3 +210,66 @@ msgstr "Αυτόματα: η συσκευή μπαίνει στην Τρέχου
 
 msgid "Download to Local Catalog"
 msgstr "Λήψη στον Τοπικό Κατάλογο"
+
+msgid "Filename"
+msgstr "Όνομα αρχείου"
+
+msgid "Mask Version"
+msgstr "Έκδοση μάσκας"
+
+msgid "Size"
+msgstr "Μέγεθος"
+
+msgid "Updated"
+msgstr "Ενημερώθηκε"
+
+msgid "Alternative"
+msgstr "Εναλλακτικός"
+
+msgid "Server URL"
+msgstr "URL διακομιστή"
+
+msgid "Username"
+msgstr "Όνομα χρήστη"
+
+msgid "Email"
+msgstr "Email"
+
+msgid "Save"
+msgstr "Αποθήκευση"
+
+msgid "Register"
+msgstr "Εγγραφή"
+
+msgid "Continue Registration"
+msgstr "Συνέχεια εγγραφής"
+
+msgid "Verification Code"
+msgstr "Κωδικός επαλήθευσης"
+
+msgid "Verify Email"
+msgstr "Επαλήθευση email"
+
+msgid "Resend Code"
+msgstr "Επαναποστολή κωδικού"
+
+msgid "Open Website"
+msgstr "Άνοιγμα ιστοτόπου"
+
+msgid "Imported {count} product versions. Find them in the Local tab."
+msgstr "Εισήχθησαν {count} εκδόσεις προϊόντων. Θα τις βρείτε στην καρτέλα Τοπικά."
+
+msgid "Login is saved on this computer. Leave the password empty to keep it for the same server and user."
+msgstr "Τα στοιχεία σύνδεσης αποθηκεύονται σε αυτόν τον υπολογιστή. Αφήστε κενό τον κωδικό πρόσβασης για να διατηρηθεί για τον ίδιο διακομιστή και χρήστη."
+
+msgid "Registration sends an email code. Password: at least 10 characters, uppercase, lowercase, digit and special character; at most 72 UTF-8 bytes."
+msgstr "Η εγγραφή στέλνει κωδικό μέσω email. Κωδικός πρόσβασης: τουλάχιστον 10 χαρακτήρες, κεφαλαίο, πεζό, ψηφίο και ειδικός χαρακτήρας· έως 72 byte UTF-8."
+
+msgid "Enter the six-digit code from your email to complete registration."
+msgstr "Εισαγάγετε τον εξαψήφιο κωδικό από το email για να ολοκληρώσετε την εγγραφή."
+
+msgid "Email verified. Downloads become available after administrator approval."
+msgstr "Το email επαληθεύτηκε. Οι λήψεις θα είναι διαθέσιμες μετά την έγκριση του διαχειριστή."
+
+msgid "Version"
+msgstr "Έκδοση"

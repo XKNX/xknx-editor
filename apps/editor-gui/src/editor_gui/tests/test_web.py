@@ -9,6 +9,7 @@ import json
 import socket
 import struct
 import time
+import urllib.error
 import urllib.request
 import zipfile
 import zlib
@@ -699,6 +700,36 @@ def test_proxy_ip_restriction_answers_only_the_proxy(tmp_path: Path) -> None:
         ):
             pass
         assert closed.value.code == 4403
+
+
+def _get(port: int, headers: dict[str, str]) -> int:
+    """The status of ``GET /`` on the server at ``port``, once it listens."""
+    request = urllib.request.Request(f"http://127.0.0.1:{port}/", headers=headers)
+    deadline = time.monotonic() + 10
+    while True:
+        try:
+            with urllib.request.urlopen(request) as reply:
+                return reply.status
+        except urllib.error.HTTPError as error:
+            return error.code
+        except OSError:
+            if time.monotonic() > deadline:
+                raise
+            time.sleep(0.1)
+
+
+@pytest.mark.parametrize(("proxy", "status"), [("127.0.0.1", 200), ("192.0.2.1", 403)])
+def test_the_proxy_check_sees_the_peer_not_a_forwarded_address(
+    tmp_path: Path, proxy: str, status: int
+) -> None:
+    # A reverse proxy in front of Home Assistant adds X-Forwarded-For with the browser's address,
+    # and Home Assistant's proxy passes it on: the peer is still the proxy.
+    hub = WebHub(tmp_path / "files", local_only=False, proxy_ips=frozenset({proxy}))
+    sock = web.server_socket(web.WebOptions(port=0, port_given=True))
+    assert sock is not None
+    port = sock.getsockname()[1]
+    hub.start(sock)
+    assert _get(port, {"X-Forwarded-For": "192.0.2.1"}) == status
 
 
 def test_socket_sends_texts_textures_and_takes_input(hub: WebHub) -> None:

@@ -48,7 +48,7 @@ _TEXT_EXTS = (".md", ".markdown", ".txt")
 # the map values plus the extra hosts catalog_docs_fetch is allowed to download from.
 
 
-def _added(products: list[ProductSummary]) -> dict[str, Any]:
+def added_products(products: list[ProductSummary]) -> dict[str, Any]:
     """The import result: product refs and each new product version."""
     return {
         "added_refs": sorted({p.product_ref_id for p in products}),
@@ -556,7 +556,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         # Converted here, not on the UI thread the import runs on.
         data = catalog.knxprod_bytes(Path(path).read_bytes())
         added = ctx.run_locked(lambda: catalog.import_knxprod_data(data), timeout=_SLOW)
-        return _added(added)
+        return added_products(added)
 
     @tool("write")
     def catalog_import_product_bytes(filename: str, data_base64: str) -> dict[str, Any]:
@@ -588,7 +588,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         # Converted here, not on the UI thread the import runs on.
         data = catalog.knxprod_bytes(raw)
         added = ctx.run_locked(lambda: catalog.import_knxprod_data(data), timeout=_SLOW)
-        return {**_added(added), "filename": safe, "size_bytes": len(raw)}
+        return {**added_products(added), "filename": safe, "size_bytes": len(raw)}
 
     @tool("destructive")
     def catalog_delete_product(product_ref_id: str) -> dict[str, Any]:
@@ -741,4 +741,4 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             lambda: catalog.download_online_products(catalog_item_ids, language_ids),
             timeout=_SLOW,
         )
-        return _added(added)
+        return added_products(added)

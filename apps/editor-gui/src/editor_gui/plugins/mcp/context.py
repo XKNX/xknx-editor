@@ -59,6 +59,7 @@ _SECRET_ARG_MARKERS = (
 # catalog_set_online_language). Keyed by tool name -> set of secret argument names.
 _SECRET_ARGS_BY_TOOL: dict[str, frozenset[str]] = {
     "project_add_device_certificate": frozenset({"code"}),
+    "catalog_alternative_verify_registration": frozenset({"verification_code"}),
 }
 
 # Large upload arguments: logged as a length summary, never their full content.
