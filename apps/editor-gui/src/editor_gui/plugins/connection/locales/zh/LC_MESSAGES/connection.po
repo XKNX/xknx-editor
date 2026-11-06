@@ -204,9 +204,3 @@ msgstr "TCP tunneling"
 
 msgid "Routing"
 msgstr "Routing"
-
-msgid "Standard Frames Only for Downloads"
-msgstr "下载仅使用标准帧"
-
-msgid "This interface does not report the longest frame it carries. Tick this when downloads through it fail (e.g. knxd with a TPUART): they then send standard frames only, which is slower but works with every interface."
-msgstr "此接口未报告其可传输的最长帧。当通过它的下载失败时（例如使用 TPUART 的 knxd）请勾选：下载将只发送标准帧，速度较慢，但适用于所有接口。"

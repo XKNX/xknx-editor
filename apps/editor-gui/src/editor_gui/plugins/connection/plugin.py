@@ -19,7 +19,6 @@ from xknx.io.self_description import request_description
 
 from editor_gui.color import color_u32
 from editor_gui.device_info import application_version_text
-from editor_gui.interface_apdu_cache import learned_interface_apdu
 from editor_gui.plugins.base import Logger, PanelDefinition, PluginAPI
 from editor_gui.plugins.connection.busmonitor import (
     DEFAULT_GATEWAY_PORT,
@@ -29,6 +28,7 @@ from editor_gui.plugins.connection.busmonitor import (
 from editor_gui.plugins.connection.interface import (
     ObservableKNXIPInterfaceThreaded,
     SequentialCEMIHandler,
+    interface_apdu_limit,
 )
 from editor_gui.plugins.connection.service import BusmonitorState, LinkInfo
 from editor_gui.plugins.connection.strings import S
@@ -592,19 +592,18 @@ class ConnectionPlugin:
                     "interface max APDU length unavailable",
                     error=f"{type(feature_err).__name__}: {feature_err}",
                 )
-            reported_apdu = interface_apdu is not None
             if interface_apdu is not None:
                 self._log.info("interface max APDU length", length=interface_apdu)
             else:
-                interface_apdu = learned_interface_apdu(self._connection_target)
+                interface_apdu = interface_apdu_limit(
+                    None, tunnelling=self._connection_type in _TUNNEL_TYPES
+                )
                 if interface_apdu is not None:
                     self._log.info(
-                        "interface max APDU length learned by an earlier download",
+                        "interface max APDU length not reported, using standard frames",
                         length=interface_apdu,
                     )
             self._api.connection.interface_max_apdu_length = interface_apdu
-            self._api.connection.interface_reports_apdu = reported_apdu
-            self._api.connection.interface_target = self._connection_target
             self._api.connection.interface_name = (
                 self._gateway_info.name
                 if self._gateway_info
@@ -1643,20 +1642,6 @@ class ConnectionPlugin:
             imgui.same_line()
             imgui.text_colored(imgui.ImVec4(0.95, 0.75, 0.35, 1.0), S.PROGMODE_FLAG_ON)
 
-    def _render_frame_size_item(self) -> None:
-        """Standard frames only, for an interface that does not report its maximum APDU
-        length (e.g. knxd): a TP interface without long frame support loses long frames."""
-        connection = self._api.connection
-        if not connection.can_set_frame_size:
-            return
-        changed, enabled = imgui.menu_item(
-            S.MENU_STANDARD_FRAMES_ONLY, "", connection.standard_frames_only
-        )
-        if imgui.is_item_hovered():
-            imgui.set_tooltip(S.TOOLTIP_STANDARD_FRAMES_ONLY)
-        if changed:
-            connection.set_standard_frames_only(enabled)
-
     def render_menu(self) -> None:
         if imgui.begin_menu(S.MENU_GATEWAY):
             if self.busmonitor_active:
@@ -1704,7 +1689,6 @@ class ConnectionPlugin:
                             + S.GATEWAY_SERVICES.format(services=", ".join(services))
                         )
                 self._render_connected_transport()
-                self._render_frame_size_item()
                 imgui.separator()
                 imgui.text_disabled(S.SECTION_DIAGNOSTICS)
                 if imgui.menu_item(S.MENU_READ_PROGMODE, "", self._progmode_open)[0]:

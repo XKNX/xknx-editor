@@ -192,15 +192,8 @@ class ConnectionService:
         # Global KNX master data (mask-version default procedures), injected at
         # startup. Required to resolve an UNLOAD scope and default/merged procedures.
         self.master: MasterData | None = None
-        # Maximum APDU length the connected interface reports, if it does (or the one a
-        # download learned for it, see interface_apdu_cache).
+        # Maximum APDU length the connected interface reports, if it does.
         self.interface_max_apdu_length: int | None = None
-        # Whether the connected interface reported its maximum APDU length itself (then
-        # nothing is learned for it, and the frame size cannot be set).
-        self.interface_reports_apdu = False
-        # The connected interface's target (its IP address, or the routing multicast group):
-        # the key a learned maximum APDU length is stored under.
-        self.interface_target: str | None = None
         # Display name of the connected interface.
         self.interface_name: str | None = None
         # The individual address of the interface the connection runs through.
@@ -532,8 +525,6 @@ class ConnectionService:
         self._loop = loop
         if xknx is None:
             self.interface_max_apdu_length = None
-            self.interface_reports_apdu = False
-            self.interface_target = None
             self.interface_name = None
             self.interface_address = None
             self.link_info = None
@@ -1068,7 +1059,6 @@ class ConnectionService:
                 access_key=self._access_key(),
                 in_programming_mode=in_programming_mode,
                 waiting=waiting,
-                interface_limit_found=self._interface_limit_found,
             )
         )
         if future is not None:
@@ -1103,64 +1093,6 @@ class ConnectionService:
             "discovery retry",
             application=application_id,
             cap=cap,
-        )
-
-    @property
-    def standard_frames_only(self) -> bool:
-        """Whether downloads through the connected interface, which does not report its
-        maximum APDU length, are limited to standard frames (learned or set by the user)."""
-        from xknxeditor.download import DEFAULT_MAX_APDU_LENGTH
-
-        return (
-            not self.interface_reports_apdu
-            and self.interface_max_apdu_length is not None
-            and self.interface_max_apdu_length <= DEFAULT_MAX_APDU_LENGTH
-        )
-
-    @property
-    def can_set_frame_size(self) -> bool:
-        """Whether the frame size of the connected interface can be set: it is connected and
-        does not report its maximum APDU length itself."""
-        return bool(self.interface_target) and not self.interface_reports_apdu
-
-    def set_standard_frames_only(self, enabled: bool) -> bool:
-        """Limit downloads through the connected interface to standard frames (``True``),
-        or let them negotiate long frames with the device again (``False``). Kept for the
-        interface across connections. Returns ``False`` when the frame size cannot be set
-        (not connected, or the interface reports its own maximum)."""
-        from editor_gui.interface_apdu_cache import (
-            forget_interface_apdu,
-            remember_interface_apdu,
-        )
-        from xknxeditor.download import DEFAULT_MAX_APDU_LENGTH
-
-        if not self.can_set_frame_size:
-            return False
-        if enabled:
-            self.interface_max_apdu_length = DEFAULT_MAX_APDU_LENGTH
-            remember_interface_apdu(self.interface_target, DEFAULT_MAX_APDU_LENGTH)
-        else:
-            self.interface_max_apdu_length = None
-            forget_interface_apdu(self.interface_target)
-        self._log.info(
-            "Frame size for downloads set",
-            interface=self.interface_target,
-            standard_frames_only=enabled,
-        )
-        return True
-
-    def _interface_limit_found(self, length: int) -> None:
-        """A download found the interface does not carry long frames: keep that at once,
-        so the next download through it starts with standard frames even if this one fails."""
-        from editor_gui.interface_apdu_cache import remember_interface_apdu
-
-        self.interface_max_apdu_length = length
-        remember_interface_apdu(self.interface_target, length)
-        self._log.info(
-            "The interface does not carry long frames; downloads through it use "
-            "standard frames",
-            interface=self.interface_target,
-            length=length,
         )
 
     def _reopen_after_interface_download(self, future: Future[Any]) -> None:

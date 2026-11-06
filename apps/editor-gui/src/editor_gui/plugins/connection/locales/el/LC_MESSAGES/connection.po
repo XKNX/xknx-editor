@@ -204,9 +204,3 @@ msgstr "TCP tunneling"
 
 msgid "Routing"
 msgstr "Routing"
-
-msgid "Standard Frames Only for Downloads"
-msgstr "Μόνο τυπικά πλαίσια για λήψεις"
-
-msgid "This interface does not report the longest frame it carries. Tick this when downloads through it fail (e.g. knxd with a TPUART): they then send standard frames only, which is slower but works with every interface."
-msgstr "Αυτή η διεπαφή δεν αναφέρει το μεγαλύτερο πλαίσιο που μεταφέρει. Επιλέξτε το όταν οι λήψεις μέσω αυτής αποτυγχάνουν (π.χ. knxd με TPUART): τότε στέλνουν μόνο τυπικά πλαίσια, πιο αργά αλλά λειτουργεί με κάθε διεπαφή."

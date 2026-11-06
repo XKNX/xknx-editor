@@ -326,13 +326,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     @tool("read")
     def connection_status() -> dict[str, Any]:
-        """Current connection state and target.
-
-        ``interface_max_apdu_length`` is the longest APDU downloads send through the connected
-        interface (``None``: negotiated with each device); ``interface_reports_apdu`` whether
-        the interface reported it itself; ``standard_frames_only`` whether downloads are
-        limited to standard frames (see connection_set_standard_frames_only)."""
-        service = ctx.api.connection
+        """Current connection state and target."""
         return {
             "state": conn.state.value,
             "connected": conn.connected,
@@ -340,31 +334,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             "multicast_group": conn.multicast_group,
             "routing": conn.is_routing,
             "connection_type": conn.connection_type,
-            "busmonitor": service.busmonitor_state.value,
-            "interface_max_apdu_length": service.interface_max_apdu_length,
-            "interface_reports_apdu": service.interface_reports_apdu,
-            "standard_frames_only": service.standard_frames_only,
-        }
-
-    @tool("write")
-    def connection_set_standard_frames_only(enabled: bool) -> dict[str, Any]:
-        """Limit downloads through the connected interface to standard frames, as Gateway >
-        Standard Frames Only for Downloads does.
-
-        Only for an interface that does not report its maximum APDU length (e.g. knxd): with
-        ``enabled`` true, downloads through it send standard frames only (slower, but every
-        interface carries them); false lets them negotiate long frames with the device again.
-        The setting is kept for the interface across connections. Fails when not connected or
-        when the interface reports its own maximum. Returns ``{standard_frames_only,
-        interface_max_apdu_length}``."""
-        service = ctx.api.connection
-        if not service.set_standard_frames_only(enabled):
-            raise ToolError(
-                "not connected, or the interface reports its own maximum frame size"
-            )
-        return {
-            "standard_frames_only": service.standard_frames_only,
-            "interface_max_apdu_length": service.interface_max_apdu_length,
+            "busmonitor": ctx.api.connection.busmonitor_state.value,
         }
 
     @tool("write")

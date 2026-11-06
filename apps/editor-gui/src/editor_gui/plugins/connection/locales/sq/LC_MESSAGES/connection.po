@@ -204,9 +204,3 @@ msgstr "TCP tunneling"
 
 msgid "Routing"
 msgstr "Routing"
-
-msgid "Standard Frames Only for Downloads"
-msgstr "Vetëm korniza standarde për shkarkimet"
-
-msgid "This interface does not report the longest frame it carries. Tick this when downloads through it fail (e.g. knxd with a TPUART): they then send standard frames only, which is slower but works with every interface."
-msgstr "Kjo ndërfaqe nuk raporton kornizën më të gjatë që bart. Shënojeni kur shkarkimet përmes saj dështojnë (p.sh. knxd me TPUART): atëherë dërgohen vetëm korniza standarde, më ngadalë por funksionon me çdo ndërfaqe."

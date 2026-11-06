@@ -204,9 +204,3 @@ msgstr "TCP tunneling"
 
 msgid "Routing"
 msgstr "Routing"
-
-msgid "Standard Frames Only for Downloads"
-msgstr "Только стандартные кадры для загрузки"
-
-msgid "This interface does not report the longest frame it carries. Tick this when downloads through it fail (e.g. knxd with a TPUART): they then send standard frames only, which is slower but works with every interface."
-msgstr "Этот интерфейс не сообщает, какой самый длинный кадр он передаёт. Включите, если загрузка через него не удаётся (например, knxd с TPUART): тогда отправляются только стандартные кадры — медленнее, но работает с любым интерфейсом."

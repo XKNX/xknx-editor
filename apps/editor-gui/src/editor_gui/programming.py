@@ -525,7 +525,6 @@ async def download_device(
     access_key: int = 0xFFFFFFFF,
     in_programming_mode: bool = False,
     waiting: Callable[[], None] | None = None,
-    interface_limit_found: Callable[[int], None] | None = None,
 ) -> DownloadResult:
     """Program ``device``: build its image and run the load procedure on the bus.
 
@@ -548,8 +547,7 @@ async def download_device(
     gets it written (secure commissioning); see :func:`xknxeditor.download.download`.
     ``disable_security`` switches a device whose secure commissioning was deactivated to plain
     communication. ``interface_max_apdu_length`` (the connected interface's maximum)
-    limits the frames; ``interface_limit_found`` is told the limit a failed download found
-    for an interface that does not report its own. ``factory_image`` is the product's ``LoadedImage`` (see
+    limits the frames. ``factory_image`` is the product's ``LoadedImage`` (see
     ``Device.factory_image``), ``second_application`` its second application program, loaded
     with the application (see ``Device.second_application``). ``access_key`` is the project's
     access key; ``in_programming_mode`` and ``waiting`` belong to an unload of everything, for
@@ -579,5 +577,4 @@ async def download_device(
         access_key=access_key,
         in_programming_mode=in_programming_mode,
         waiting=waiting,
-        interface_limit_found=interface_limit_found,
     )

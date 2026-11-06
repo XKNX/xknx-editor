@@ -49,7 +49,6 @@ class _StubConnectionPlugin:
     controller_ip = "127.0.0.1"
     multicast_group = "224.0.23.12"
     is_routing = False
-    connection_type = "tunneling"
     gateways: tuple[Any, ...] = ()
 
 
