@@ -3407,8 +3407,8 @@ class ProjectPlugin:
                 return False
             self._element_details.render(element)
             if (
-                element.kind == "group_address"
-                and self.group_address_extras is not None
+                self.group_address_extras is not None
+                and element.kind == "group_address"
             ):
                 ga = self._api.project.get_group_address(element.element_id)
                 if ga is not None:
