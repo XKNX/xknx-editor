@@ -137,4 +137,6 @@ def test_busy_wait_keeps_python_threads_running() -> None:
     after = ticks[0]
     stop.set()
     thread.join()
-    assert after - before > 20
+    # A script holding the GIL throughout lets the thread tick about once. Running freely it ticks
+    # at most 25 times on Windows (a sleep lasts a 15.6 ms timer tick there), fewer under load.
+    assert after - before > 5
