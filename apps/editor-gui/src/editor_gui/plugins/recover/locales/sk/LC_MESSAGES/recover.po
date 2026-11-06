@@ -129,3 +129,6 @@ msgstr "Parametre, ktoré sa nepodarilo obnoviť: %d"
 
 msgid "already in project - skipped"
 msgstr "už je v projekte – preskočené"
+
+msgid "%(count)d device(s) could not be added; the reason is in the Recovered column."
+msgstr "Zariadenia, ktoré sa nepodarilo pridať: %(count)d; dôvod je v stĺpci „Obnovené“."

@@ -123,3 +123,6 @@ msgstr "错误"
 
 msgid "%d parameters could not be recovered"
 msgstr "%d 个参数无法恢复"
+
+msgid "%(count)d device(s) could not be added; the reason is in the Recovered column."
+msgstr "有 %(count)d 个设备无法添加；原因见“已恢复”列。"

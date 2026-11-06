@@ -123,3 +123,6 @@ msgstr "помилка"
 
 msgid "%d parameters could not be recovered"
 msgstr "Не вдалося відновити параметрів: %d"
+
+msgid "%(count)d device(s) could not be added; the reason is in the Recovered column."
+msgstr "Не вдалося додати пристроїв: %(count)d; причину наведено в стовпці «Відновлено»."

@@ -121,6 +121,8 @@ class RecoverPanel:
             imgui.text_disabled(S.STATUS_FETCHING % {"what": service.fetch_status})
         if service.apply_status:
             imgui.text_colored(imgui.ImVec4(0.4, 0.8, 0.4, 1.0), service.apply_status)
+        if service.apply_error:
+            imgui.text_colored(imgui.ImVec4(0.9, 0.3, 0.3, 1.0), service.apply_error)
 
     def _render_results(self) -> None:
         service = self._service

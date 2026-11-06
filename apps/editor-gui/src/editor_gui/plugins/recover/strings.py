@@ -133,6 +133,12 @@ class RecoverStrings:
         return _("Created new project %(target)s with %(count)d device(s).")
 
     @property
+    def APPLY_FAILED(self) -> str:
+        return _(
+            "%(count)d device(s) could not be added; the reason is in the Recovered column."
+        )
+
+    @property
     def STATUS_NOT_CONNECTED(self) -> str:
         return _("Not connected to a KNX bus.")
 

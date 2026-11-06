@@ -129,3 +129,6 @@ msgstr "Vissza nem állítható paraméterek: %d"
 
 msgid "already in project - skipped"
 msgstr "már a projektben van – kihagyva"
+
+msgid "%(count)d device(s) could not be added; the reason is in the Recovered column."
+msgstr "Nem sikerült hozzáadni készülékeket: %(count)d; az ok a „Visszaállítva” oszlopban látható."

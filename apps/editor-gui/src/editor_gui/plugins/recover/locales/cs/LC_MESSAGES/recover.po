@@ -123,3 +123,6 @@ msgstr "chyba"
 
 msgid "%d parameters could not be recovered"
 msgstr "Parametry, které nebylo možné obnovit: %d"
+
+msgid "%(count)d device(s) could not be added; the reason is in the Recovered column."
+msgstr "Zařízení, která nebylo možné přidat: %(count)d; důvod je ve sloupci „Obnoveno“."

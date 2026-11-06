@@ -135,3 +135,6 @@ msgstr "%d Parameter konnten nicht wiederhergestellt werden"
 
 msgid "already in project - skipped"
 msgstr "bereits im Projekt - übersprungen"
+
+msgid "%(count)d device(s) could not be added; the reason is in the Recovered column."
+msgstr "%(count)d Gerät(e) konnten nicht hinzugefügt werden; der Grund steht in der Spalte „Wiederhergestellt“."
