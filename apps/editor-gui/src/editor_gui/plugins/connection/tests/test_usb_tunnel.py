@@ -20,6 +20,7 @@ from xknx.telegram.apci import GroupValueWrite
 from editor_gui.plugins.connection.xknx_usb import (
     USBTunnel,
     find_usb_interfaces,
+    hid_device,
     is_knx_usb_interface,
 )
 from editor_gui.plugins.connection.xknx_usb import tunnel as usb_tunnel
@@ -34,7 +35,7 @@ from editor_gui.plugins.connection.xknx_usb.frame import (
     USBTransferFrame,
     device_feature_frame,
 )
-from editor_gui.plugins.connection.xknx_usb.hid_device import HIDDevice
+from editor_gui.plugins.connection.xknx_usb.hid_device import HIDDevice, USBDeviceInfo
 
 from .conftest import SPACELOGIC_ENUMERATION, FakeHIDModule
 
@@ -502,8 +503,40 @@ class TestDiscovery:
         assert is_knx_usb_interface(0x135E, 0x4711)
         assert not is_knx_usb_interface(0x16DE, 0x0001)
 
-    def test_without_hidapi(self, monkeypatch: pytest.MonkeyPatch) -> None:
+    async def test_without_hidapi(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """Test a clear error without hidapi installed."""
         monkeypatch.setitem(sys.modules, "hid", None)
+        monkeypatch.setitem(sys.modules, "hidraw", None)
         with pytest.raises(CommunicationError, match="xknx\\[usb\\]"):
             find_usb_interfaces()
+        device = HIDDevice(
+            USBDeviceInfo(0x16DE, 0x008E, b"p"),
+            report_received=Mock(),
+            connection_lost=Mock(),
+        )
+        with pytest.raises(CommunicationError, match="xknx\\[usb\\]"):
+            await device.open()
+
+    async def test_backends_in_order(
+        self, fake_hid: FakeHIDModule, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Test the first backend that finds an interface is used, also to open it."""
+        monkeypatch.setattr(hid_device, "_BACKENDS", ("hidraw", "hid"))
+        hidraw = FakeHIDModule()
+        monkeypatch.setitem(sys.modules, "hidraw", hidraw)
+        # hidraw finds nothing (a kernel without it): libusb's
+        hidraw.enumeration.clear()
+        devices = find_usb_interfaces()
+        assert [device.backend for device in devices] == ["hid"]
+        # hidraw finds it
+        hidraw.enumeration.append({**SPACELOGIC_ENUMERATION, "path": b"/dev/hidraw3"})
+        hidraw.interfaces[b"/dev/hidraw3"] = hidraw.interface
+        devices = find_usb_interfaces()
+        assert [(device.backend, device.path) for device in devices] == [
+            ("hidraw", b"/dev/hidraw3")
+        ]
+        device = HIDDevice(devices[0], report_received=Mock(), connection_lost=Mock())
+        await device.open()
+        await device.close()
+        assert hidraw.interface.open_count == 1
+        assert fake_hid.interface.open_count == 0
