@@ -84,6 +84,7 @@ from editor_gui.plugins.connection import ConnectionPlugin
 from editor_gui.plugins.connection.plugin import (
     SETTINGS_PAGE as CONNECTION_SETTINGS_PAGE,
 )
+from editor_gui.plugins.connection.plugin import parse_connection_type
 from editor_gui.plugins.connection.service import ConnectionService
 from editor_gui.plugins.connection.strings import S as _connection_strings
 from editor_gui.plugins.health import HealthPlugin
@@ -929,6 +930,7 @@ class KnxGuiApp:
         self._project_plugin.group_address_extras = (
             self._home_assistant_plugin.render_group_address
         )
+        self._home_assistant_plugin.connect_like = self._connect_like_home_assistant
         # The Settings window, its pages built once (their settings read the live state).
         self._settings_page_list: list[SettingsPage] | None = None
         self._settings_window = SettingsWindow(
@@ -6401,6 +6403,18 @@ class KnxGuiApp:
         return S.MCP_MANAGED
 
     # --- the Settings window ---------------------------------------------------------------
+
+    def _connect_like_home_assistant(self, transport: str, address: str) -> None:
+        """Connect the editor over the interface or router Home Assistant's KNX integration
+        uses (``address``: the gateway, or the multicast group for routing)."""
+        routing = transport == "routing"
+        self._connection_plugin.configure(
+            "" if routing else address,
+            address if routing else "",
+            routing,
+            connection_type=parse_connection_type(transport),
+        )
+        self._connection_plugin.connect()
 
     def _settings_pages(self) -> list[SettingsPage]:
         """The pages of the Settings window (built once; their settings read the live state)."""

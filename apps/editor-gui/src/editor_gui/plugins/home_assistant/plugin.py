@@ -70,6 +70,15 @@ class HomeAssistantPlugin:
         self._monitor = monitor
         self._service.on_telegram = self._take_telegram
         self._service.on_history = self._take_history
+        if monitor is not None:
+            # Without a connection of its own the editor sends over Home Assistant's.
+            monitor.send_elsewhere = self._service.send_group
+            monitor.elsewhere_available = lambda: (
+                self.active and self._service.can_send_group
+            )
+        # Connects the editor's own connection like Home Assistant's: (transport, address).
+        # Set by the app.
+        self.connect_like: Callable[[str, str], None] | None = None
         # The project generation the question was shown for (once per opened project).
         self._asked: int | None = None
         self._question_requested = False
@@ -198,6 +207,28 @@ class HomeAssistantPlugin:
             service.connected and service.knx_loaded and self._project.is_open,
         )[0]:
             self._keys_requested = True
+        target = service.connection_target()
+        own = self._api.connection.xknx is not None
+        if (
+            imgui.menu_item(
+                S.MENU_CONNECT_LIKE,
+                "",
+                False,
+                target is not None and not own and self.connect_like is not None,
+            )[0]
+            and target is not None
+            and self.connect_like is not None
+        ):
+            self.connect_like(*target)
+        if target is not None and imgui.is_item_hovered(
+            imgui.HoveredFlags_.for_tooltip
+        ):
+            imgui.set_tooltip(S.CONNECT_LIKE_HINT)
+        elif target is None and imgui.is_item_hovered(
+            imgui.HoveredFlags_.for_tooltip | imgui.HoveredFlags_.allow_when_disabled
+        ):
+            # Why it is not offered.
+            imgui.set_tooltip(S.CONNECT_LIKE_UNAVAILABLE)
         if imgui.menu_item(
             S.MENU_LOAD_TELEGRAMS,
             "",

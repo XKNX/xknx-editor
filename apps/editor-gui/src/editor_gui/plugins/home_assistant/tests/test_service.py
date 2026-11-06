@@ -448,3 +448,52 @@ def test_an_entity_follows_its_function_only_once_the_devices_are_downloaded() -
     assert not service.downloaded((10, 20))
     assert not service.downloaded((30,))
     assert service.downloaded(())
+
+
+def test_group_telegrams_over_home_assistants_connection(env: _Env) -> None:
+    from xknx.dpt.payload import DPTArray, DPTBinary
+    from xknx.telegram.apci import GroupValueRead, GroupValueWrite
+
+    assert env.link is not None
+    assert not env.service.send_group("1/2/3", GroupValueRead())
+    env.report(None)
+    assert env.service.can_send_group
+    assert env.service.send_group("1/2/3", GroupValueRead())
+    assert env.service.send_group("1/2/4", GroupValueWrite(DPTBinary(1)))
+    assert env.service.send_group("1/2/5", GroupValueWrite(DPTArray((12, 34))))
+    assert env.link.sent[-3:] == [
+        {"type": "group_send", "address": "1/2/3", "read": True},
+        {"type": "group_send", "address": "1/2/4", "payload": 1},
+        {"type": "group_send", "address": "1/2/5", "payload": [12, 34]},
+    ]
+    env.report(None, loaded=False)
+    assert not env.service.can_send_group
+
+
+@pytest.mark.parametrize(
+    ("connection", "target"),
+    [
+        (
+            {"transport": "tunneling", "host": "192.168.1.10"},
+            ("tunneling", "192.168.1.10"),
+        ),
+        (
+            {"transport": "tunneling_tcp", "host": "192.168.1.10"},
+            ("tunneling_tcp", "192.168.1.10"),
+        ),
+        ({"transport": "routing", "host": "224.0.23.12"}, ("routing", "224.0.23.12")),
+        # Secure connections need credentials, an automatic one has no gateway.
+        ({"transport": "tunneling_tcp_secure", "host": "192.168.1.10"}, None),
+        ({"transport": "automatic", "host": None}, None),
+        (None, None),
+    ],
+)
+def test_connecting_like_home_assistant(
+    env: _Env, connection: dict[str, Any] | None, target: tuple[str, str] | None
+) -> None:
+    assert env.link is not None
+    env.link.inbox.append(
+        {"type": "knx", "loaded": True, "project": None, "connection": connection}
+    )
+    env.service.poll()
+    assert env.service.connection_target() == target

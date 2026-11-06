@@ -61,7 +61,8 @@ class MonitorPanel:
         self._cmd_focused: MonitorRecord | None = None
 
     def _is_connected(self) -> bool:
-        return self._connection.xknx is not None
+        """Whether the command bars can send (also through Home Assistant's connection)."""
+        return self._service.can_send()
 
     @property
     def monitor_extended(self) -> bool:

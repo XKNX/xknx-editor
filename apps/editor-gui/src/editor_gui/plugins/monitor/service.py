@@ -143,6 +143,20 @@ class MonitorService:
         self.host = socket.gethostname()
         # Set by the host to persist a new max_records value.
         self.on_max_records_changed: Callable[[MonitorKind, int], None] | None = None
+        # Sends a group telegram through another program's connection while this app has none
+        # (Home Assistant's KNX integration); False when it cannot. Set by the host.
+        self.send_elsewhere: (
+            Callable[[str, GroupValueWrite | GroupValueRead], bool] | None
+        ) = None
+        # Whether send_elsewhere can send now. Set by the host.
+        self.elsewhere_available: Callable[[], bool] | None = None
+
+    def can_send(self) -> bool:
+        """Whether group telegrams can be sent: over this app's connection or another
+        program's (see send_elsewhere)."""
+        return self.is_connected() or (
+            self.elsewhere_available is not None and self.elsewhere_available()
+        )
 
     def set_logger(self, log: Logger) -> None:
         self._log = log
@@ -558,6 +572,14 @@ class MonitorService:
         self._send(address, GroupValueRead())
 
     def _send(self, address: str, payload: GroupValueWrite | GroupValueRead) -> None:
+        # Without a connection of its own: through another program's (Home Assistant's), which
+        # shows the telegram as its own (see on_foreign_cemi).
+        if (
+            not self.is_connected()
+            and self.send_elsewhere is not None
+            and self.send_elsewhere(address, payload)
+        ):
+            return
         self._connection.send_group_telegram(address, payload)
 
     def _warn(self, event: str, **kwargs: Any) -> None:

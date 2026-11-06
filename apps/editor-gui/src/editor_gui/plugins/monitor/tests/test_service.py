@@ -408,3 +408,34 @@ def test_home_assistants_history_replaces_the_group_monitor() -> None:
     assert records[1].ticks < records[2].ticks
     assert records[0].connector_type == "IpRouting"
     assert not service.channel(MonitorKind.GROUP).recording
+
+
+def test_without_a_connection_group_telegrams_go_over_another_programs() -> None:
+    connection = FakeConnection()
+    service = MonitorService(connection)  # type: ignore[arg-type]
+    assert not service.can_send()
+    sent: list[tuple[str, object]] = []
+    available = [True]
+
+    def elsewhere(address: str, apci: object) -> bool:
+        sent.append((address, apci))
+        return True
+
+    service.send_elsewhere = elsewhere
+    service.elsewhere_available = lambda: available[0]
+    assert service.can_send()
+    service.send_read("1/2/3")
+    assert service.send_write("1/2/4", "DPST-1-1", "1")
+    assert [address for address, _ in sent] == ["1/2/3", "1/2/4"]
+    assert connection.sent == []
+    available[0] = False
+    assert not service.can_send()
+
+    # With a connection of its own: over that one.
+    connection.xknx = FakeXknx("1.1.250")
+    connection.send_group_telegram = lambda address, payload: connection.sent.append(
+        b"x"
+    )  # type: ignore[attr-defined]
+    service.send_read("1/2/5")
+    assert connection.sent == [b"x"]
+    assert len(sent) == 2

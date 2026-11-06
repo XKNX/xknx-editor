@@ -426,6 +426,25 @@ class HomeAssistantStrings:
         return _("Data Secure group addresses: {count}")
 
     @property
+    def MENU_CONNECT_LIKE(self) -> str:
+        return _("Connect Like Home Assistant")
+
+    @property
+    def CONNECT_LIKE_HINT(self) -> str:
+        return _(
+            "The editor connects to the bus over the same interface or router as Home "
+            "Assistant's KNX integration (with a tunnel of its own). Without a connection of its "
+            "own it reads and sends group telegrams over Home Assistant's."
+        )
+
+    @property
+    def CONNECT_LIKE_UNAVAILABLE(self) -> str:
+        return _(
+            "Home Assistant's KNX integration connects with KNX Secure or finds its interface "
+            "itself: connect the editor in the Gateway menu."
+        )
+
+    @property
     def KEYS_REFUSED(self) -> str:
         return _(
             "Home Assistant's KNX integration is not set up, or it connects with KNX Secure: "

@@ -49,13 +49,15 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             "project_in_home_assistant": ha.knx_project,
             "error": ha.error,
             "home_assistant_version": ha.home_assistant_version or None,
+            # How the KNX integration reaches the bus: {type, transport, host, port}.
+            "knx_connection": ha.connection,
         }
 
     @tool("read")
     def home_assistant_status() -> dict[str, Any]:
         """Whether Home Assistant's KNX integration uses the open project (the Home Assistant
         menu). Returns {state, connected, knx_loaded, linked, auto_update,
-        project_in_home_assistant, error, home_assistant_version}.
+        project_in_home_assistant, error, home_assistant_version, knx_connection}.
         state: "unavailable" (the integration is not connected), "knx_missing" (the KNX
         integration is not set up), "no_project" (none open here), "not_linked" (the KNX
         integration holds no project or another one: project_in_home_assistant names it),
@@ -63,7 +65,13 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         change when auto_update is on), "sending" or "failed" (error says why). auto_update is
         the setting home_assistant_auto_update (settings_get/settings_set, on by default).
         project_in_home_assistant: {name, guid, tool_version, created_by, last_modified} of the
-        project the KNX integration holds, or null. linked: it holds the open project."""
+        project the KNX integration holds, or null. linked: it holds the open project.
+        knx_connection: how the KNX integration reaches the bus, {type ("tunneling" or
+        "routing"), transport ("tunneling", "tunneling_tcp", their "_secure" variants,
+        "routing", "routing_secure" or "automatic"), host (the gateway, or the multicast group),
+        port}, or null; connection_configure + connection_connect with them connect the editor
+        the same way (not a secure or automatic one). While the editor has no connection of its
+        own, monitor_send_read / monitor_send_write go over the KNX integration's."""
         return ctx.run_locked(status)
 
     @tool("destructive", open_world=True)

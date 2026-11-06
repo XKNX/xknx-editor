@@ -25,6 +25,8 @@ from enum import StrEnum
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, cast
 
+from xknx.telegram.apci import GroupValueRead, GroupValueWrite
+
 from editor_gui.plugins.home_assistant.areas import (
     AreaRow,
     compare,
@@ -540,6 +542,38 @@ class HomeAssistantService:
         self._create_request = self._next_id
         self.entity_errors = {}
         return True
+
+    # --- Home Assistant's connection ---
+
+    @property
+    def can_send_group(self) -> bool:
+        """Whether a group telegram can go through the KNX integration's connection."""
+        return self.connected and self.knx_loaded
+
+    def send_group(self, address: str, apci: GroupValueWrite | GroupValueRead) -> bool:
+        """Send a group read or write over the KNX integration's connection (its services
+        knx.send and knx.read); False when it cannot."""
+        link = self._link()
+        if link is None or not self.can_send_group:
+            return False
+        message: dict[str, Any] = {"type": "group_send", "address": address}
+        if isinstance(apci, GroupValueRead):
+            message["read"] = True
+        else:
+            value = apci.value.value
+            message["payload"] = value if isinstance(value, int) else list(value)
+        return link.send(message)
+
+    def connection_target(self) -> tuple[str, str] | None:
+        """How to reach the bus as the KNX integration does, (transport, address: the gateway
+        or the multicast group), for the editor's own connection; None for one the editor
+        cannot take over (a secure one, or one found automatically)."""
+        connection = self.connection or {}
+        transport = connection.get("transport")
+        host = connection.get("host")
+        if transport not in ("tunneling", "tunneling_tcp", "routing") or not host:
+            return None
+        return str(transport), str(host)
 
     # --- follow-ups: entities, time server, keys ---
 

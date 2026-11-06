@@ -21,7 +21,8 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
     monitor = ctx.monitor
 
     def _require_connection() -> None:
-        if ctx.api.connection.xknx is None:
+        # Also through Home Assistant's connection while the editor has none.
+        if not monitor.can_send():
             raise ToolError("no KNX connection")
 
     @tool("read")
