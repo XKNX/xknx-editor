@@ -223,5 +223,71 @@ msgstr "未被接受：{error}"
 msgid "Entities created in Home Assistant: {count}"
 msgstr "已在 Home Assistant 中创建的实体：{count}"
 
-msgid "Create"
-msgstr "创建"
+msgid "Its group addresses changed: {entity} gets the new ones"
+msgstr "其组地址已更改：{entity} 将获得新地址"
+
+msgid "Its group addresses changed: download its devices first"
+msgstr "其组地址已更改：请先下载其设备"
+
+msgid "Entities of Removed Functions"
+msgstr "已删除功能的实体"
+
+msgid "Entities updated in Home Assistant: {count}"
+msgstr "已在 Home Assistant 中更新的实体：{count}"
+
+msgid "Entities removed from Home Assistant: {count}"
+msgstr "已从 Home Assistant 中删除的实体：{count}"
+
+msgid "Time Server…"
+msgstr "时间服务器…"
+
+msgid "Time Server in Home Assistant"
+msgstr "Home Assistant 中的时间服务器"
+
+msgid "Home Assistant's KNX integration can send the time and the date to the bus. Choose the group addresses for them: those of the project with the data type of a time, a date, or a date with time."
+msgstr "Home Assistant 的 KNX 集成可以将时间和日期发送到总线。请为其选择组地址：项目中数据类型为时间、日期或日期时间的组地址。"
+
+msgid "Time"
+msgstr "时间"
+
+msgid "Date"
+msgstr "日期"
+
+msgid "Date and Time"
+msgstr "日期和时间"
+
+msgid "None"
+msgstr "无"
+
+msgid "Home Assistant's time server sends to the chosen group addresses"
+msgstr "Home Assistant 的时间服务器向所选组地址发送"
+
+msgid "Send Keys to Home Assistant…"
+msgstr "将密钥发送到 Home Assistant…"
+
+msgid "Keys in Home Assistant"
+msgstr "Home Assistant 中的密钥"
+
+msgid "The keys of the project's Data Secure group addresses become the keyring of Home Assistant's KNX integration, so it reads and sends their telegrams. The KNX integration is loaded again for it."
+msgstr "项目中 Data Secure 组地址的密钥将成为 Home Assistant KNX 集成的密钥环，使其能够读取和发送这些组地址的电报。为此将重新加载 KNX 集成。"
+
+msgid "Data Secure group addresses: {count}"
+msgstr "Data Secure 组地址：{count}"
+
+msgid "Home Assistant's KNX integration is not set up, or it connects with KNX Secure: then its keyring holds its own connection's keys, and stays as it is (change it in the KNX integration's options)."
+msgstr "Home Assistant 的 KNX 集成未设置，或通过 KNX Secure 连接：此时其密钥环包含其自身连接的密钥，并保持不变（请在 KNX 集成的选项中更改）。"
+
+msgid "Send"
+msgstr "发送"
+
+msgid "Home Assistant's KNX integration has the project's keys"
+msgstr "Home Assistant 的 KNX 集成已拥有项目的密钥"
+
+msgid "Connect Like Home Assistant"
+msgstr "像 Home Assistant 一样连接"
+
+msgid "The editor connects to the bus over the same interface or router as Home Assistant's KNX integration (with a tunnel of its own). Without a connection of its own it reads and sends group telegrams over Home Assistant's."
+msgstr "编辑器通过与 Home Assistant KNX 集成相同的接口或路由器连接到总线（使用自己的隧道）。如果没有自己的连接，它将通过 Home Assistant 的连接读取和发送组电报。"
+
+msgid "Home Assistant's KNX integration connects with KNX Secure or finds its interface itself: connect the editor in the Gateway menu."
+msgstr "Home Assistant 的 KNX 集成通过 KNX Secure 连接，或自行查找其接口：请在“网关”菜单中连接编辑器。"

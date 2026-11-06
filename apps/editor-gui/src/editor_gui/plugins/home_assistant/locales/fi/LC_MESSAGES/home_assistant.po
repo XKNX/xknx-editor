@@ -223,5 +223,71 @@ msgstr "Ei hyväksytty: {error}"
 msgid "Entities created in Home Assistant: {count}"
 msgstr "Home Assistantissa luodut kohteet: {count}"
 
-msgid "Create"
-msgstr "Luo"
+msgid "Its group addresses changed: {entity} gets the new ones"
+msgstr "Sen ryhmäosoitteet muuttuivat: {entity} saa uudet"
+
+msgid "Its group addresses changed: download its devices first"
+msgstr "Sen ryhmäosoitteet muuttuivat: lataa ensin sen laitteet"
+
+msgid "Entities of Removed Functions"
+msgstr "Poistettujen toimintojen kohteet"
+
+msgid "Entities updated in Home Assistant: {count}"
+msgstr "Home Assistantissa päivitetyt kohteet: {count}"
+
+msgid "Entities removed from Home Assistant: {count}"
+msgstr "Home Assistantista poistetut kohteet: {count}"
+
+msgid "Time Server…"
+msgstr "Aikapalvelin…"
+
+msgid "Time Server in Home Assistant"
+msgstr "Aikapalvelin Home Assistantissa"
+
+msgid "Home Assistant's KNX integration can send the time and the date to the bus. Choose the group addresses for them: those of the project with the data type of a time, a date, or a date with time."
+msgstr "Home Assistantin KNX-integraatio voi lähettää kellonajan ja päivämäärän väylään. Valitse niille ryhmäosoitteet: projektin osoitteet, joiden tietotyyppi on kellonaika, päivämäärä tai päivämäärä ja kellonaika."
+
+msgid "Time"
+msgstr "Kellonaika"
+
+msgid "Date"
+msgstr "Päivämäärä"
+
+msgid "Date and Time"
+msgstr "Päivämäärä ja kellonaika"
+
+msgid "None"
+msgstr "Ei mitään"
+
+msgid "Home Assistant's time server sends to the chosen group addresses"
+msgstr "Home Assistantin aikapalvelin lähettää valittuihin ryhmäosoitteisiin"
+
+msgid "Send Keys to Home Assistant…"
+msgstr "Lähetä avaimet Home Assistantiin…"
+
+msgid "Keys in Home Assistant"
+msgstr "Avaimet Home Assistantissa"
+
+msgid "The keys of the project's Data Secure group addresses become the keyring of Home Assistant's KNX integration, so it reads and sends their telegrams. The KNX integration is loaded again for it."
+msgstr "Projektin Data Secure -ryhmäosoitteiden avaimista tulee Home Assistantin KNX-integraation avainnippu, jotta se lukee ja lähettää niiden sähkeitä. KNX-integraatio ladataan sitä varten uudelleen."
+
+msgid "Data Secure group addresses: {count}"
+msgstr "Data Secure -ryhmäosoitteet: {count}"
+
+msgid "Home Assistant's KNX integration is not set up, or it connects with KNX Secure: then its keyring holds its own connection's keys, and stays as it is (change it in the KNX integration's options)."
+msgstr "Home Assistantin KNX-integraatiota ei ole määritetty, tai se muodostaa yhteyden KNX Securella: silloin sen avainnippu sisältää sen oman yhteyden avaimet ja säilyy ennallaan (muuta sitä KNX-integraation asetuksissa)."
+
+msgid "Send"
+msgstr "Lähetä"
+
+msgid "Home Assistant's KNX integration has the project's keys"
+msgstr "Home Assistantin KNX-integraatiolla on projektin avaimet"
+
+msgid "Connect Like Home Assistant"
+msgstr "Yhdistä kuten Home Assistant"
+
+msgid "The editor connects to the bus over the same interface or router as Home Assistant's KNX integration (with a tunnel of its own). Without a connection of its own it reads and sends group telegrams over Home Assistant's."
+msgstr "Editori muodostaa yhteyden väylään saman rajapinnan tai reitittimen kautta kuin Home Assistantin KNX-integraatio (omalla tunnelillaan). Ilman omaa yhteyttä se lukee ja lähettää ryhmäsähkeitä Home Assistantin yhteyden kautta."
+
+msgid "Home Assistant's KNX integration connects with KNX Secure or finds its interface itself: connect the editor in the Gateway menu."
+msgstr "Home Assistantin KNX-integraatio muodostaa yhteyden KNX Securella tai etsii rajapintansa itse: yhdistä editori Yhdyskäytävä-valikossa."

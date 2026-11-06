@@ -223,5 +223,71 @@ msgstr "Nem fogadta el: {error}"
 msgid "Entities created in Home Assistant: {count}"
 msgstr "A Home Assistantban létrehozott entitások: {count}"
 
-msgid "Create"
-msgstr "Létrehozás"
+msgid "Its group addresses changed: {entity} gets the new ones"
+msgstr "A csoportcímei megváltoztak: {entity} megkapja az újakat"
+
+msgid "Its group addresses changed: download its devices first"
+msgstr "A csoportcímei megváltoztak: előbb programozza a készülékeit"
+
+msgid "Entities of Removed Functions"
+msgstr "Eltávolított funkciók entitásai"
+
+msgid "Entities updated in Home Assistant: {count}"
+msgstr "A Home Assistantban frissített entitások: {count}"
+
+msgid "Entities removed from Home Assistant: {count}"
+msgstr "A Home Assistantból eltávolított entitások: {count}"
+
+msgid "Time Server…"
+msgstr "Időszerver…"
+
+msgid "Time Server in Home Assistant"
+msgstr "Időszerver a Home Assistantban"
+
+msgid "Home Assistant's KNX integration can send the time and the date to the bus. Choose the group addresses for them: those of the project with the data type of a time, a date, or a date with time."
+msgstr "A Home Assistant KNX-integrációja el tudja küldeni a buszra az időt és a dátumot. Válassza ki hozzájuk a csoportcímeket: a projekt azon címeit, amelyek adattípusa idő, dátum vagy dátum idővel."
+
+msgid "Time"
+msgstr "Idő"
+
+msgid "Date"
+msgstr "Dátum"
+
+msgid "Date and Time"
+msgstr "Dátum és idő"
+
+msgid "None"
+msgstr "Nincs"
+
+msgid "Home Assistant's time server sends to the chosen group addresses"
+msgstr "A Home Assistant időszervere a kiválasztott csoportcímekre küld"
+
+msgid "Send Keys to Home Assistant…"
+msgstr "Kulcsok küldése a Home Assistantnak…"
+
+msgid "Keys in Home Assistant"
+msgstr "Kulcsok a Home Assistantban"
+
+msgid "The keys of the project's Data Secure group addresses become the keyring of Home Assistant's KNX integration, so it reads and sends their telegrams. The KNX integration is loaded again for it."
+msgstr "A projekt Data Secure-csoportcímeinek kulcsai a Home Assistant KNX-integrációjának kulcskarikájává válnak, így az olvassa és küldi a táviratukat. A KNX-integráció ehhez újra betöltődik."
+
+msgid "Data Secure group addresses: {count}"
+msgstr "Data Secure-csoportcímek: {count}"
+
+msgid "Home Assistant's KNX integration is not set up, or it connects with KNX Secure: then its keyring holds its own connection's keys, and stays as it is (change it in the KNX integration's options)."
+msgstr "A Home Assistant KNX-integrációja nincs beállítva, vagy KNX Secure-ral csatlakozik: ekkor a kulcskarikája a saját kapcsolatának kulcsait tartalmazza, és változatlan marad (módosítsa a KNX-integráció beállításaiban)."
+
+msgid "Send"
+msgstr "Küldés"
+
+msgid "Home Assistant's KNX integration has the project's keys"
+msgstr "A Home Assistant KNX-integrációja megkapta a projekt kulcsait"
+
+msgid "Connect Like Home Assistant"
+msgstr "Csatlakozás a Home Assistanthoz hasonlóan"
+
+msgid "The editor connects to the bus over the same interface or router as Home Assistant's KNX integration (with a tunnel of its own). Without a connection of its own it reads and sends group telegrams over Home Assistant's."
+msgstr "A szerkesztő ugyanazon az interfészen vagy routeren keresztül csatlakozik a buszra, mint a Home Assistant KNX-integrációja (saját alagúttal). Saját kapcsolat nélkül a Home Assistant kapcsolatán keresztül olvassa és küldi a csoporttáviratokat."
+
+msgid "Home Assistant's KNX integration connects with KNX Secure or finds its interface itself: connect the editor in the Gateway menu."
+msgstr "A Home Assistant KNX-integrációja KNX Secure-ral csatlakozik, vagy maga keresi meg az interfészét: csatlakoztassa a szerkesztőt az Átjáró menüben."

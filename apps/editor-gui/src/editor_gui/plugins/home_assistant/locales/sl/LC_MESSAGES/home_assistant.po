@@ -223,5 +223,71 @@ msgstr "Ni sprejeto: {error}"
 msgid "Entities created in Home Assistant: {count}"
 msgstr "Entitete, ustvarjene v Home Assistantu: {count}"
 
-msgid "Create"
-msgstr "Ustvari"
+msgid "Its group addresses changed: {entity} gets the new ones"
+msgstr "Njeni skupinski naslovi so se spremenili: {entity} dobi nove"
+
+msgid "Its group addresses changed: download its devices first"
+msgstr "Njeni skupinski naslovi so se spremenili: najprej programirajte njene naprave"
+
+msgid "Entities of Removed Functions"
+msgstr "Entitete odstranjenih funkcij"
+
+msgid "Entities updated in Home Assistant: {count}"
+msgstr "Entitete, posodobljene v Home Assistantu: {count}"
+
+msgid "Entities removed from Home Assistant: {count}"
+msgstr "Entitete, odstranjene iz Home Assistanta: {count}"
+
+msgid "Time Server…"
+msgstr "Časovni strežnik…"
+
+msgid "Time Server in Home Assistant"
+msgstr "Časovni strežnik v Home Assistantu"
+
+msgid "Home Assistant's KNX integration can send the time and the date to the bus. Choose the group addresses for them: those of the project with the data type of a time, a date, or a date with time."
+msgstr "Integracija KNX v Home Assistantu lahko pošilja čas in datum na vodilo. Izberite skupinske naslove zanju: tiste iz projekta s podatkovnim tipom časa, datuma ali datuma s časom."
+
+msgid "Time"
+msgstr "Čas"
+
+msgid "Date"
+msgstr "Datum"
+
+msgid "Date and Time"
+msgstr "Datum in čas"
+
+msgid "None"
+msgstr "Brez"
+
+msgid "Home Assistant's time server sends to the chosen group addresses"
+msgstr "Časovni strežnik Home Assistanta pošilja na izbrane skupinske naslove"
+
+msgid "Send Keys to Home Assistant…"
+msgstr "Pošlji ključe v Home Assistant…"
+
+msgid "Keys in Home Assistant"
+msgstr "Ključi v Home Assistantu"
+
+msgid "The keys of the project's Data Secure group addresses become the keyring of Home Assistant's KNX integration, so it reads and sends their telegrams. The KNX integration is loaded again for it."
+msgstr "Ključi skupinskih naslovov Data Secure projekta postanejo zbirka ključev integracije KNX v Home Assistantu, da bo brala in pošiljala njihove telegrame. Integracija KNX se zato znova naloži."
+
+msgid "Data Secure group addresses: {count}"
+msgstr "Skupinski naslovi Data Secure: {count}"
+
+msgid "Home Assistant's KNX integration is not set up, or it connects with KNX Secure: then its keyring holds its own connection's keys, and stays as it is (change it in the KNX integration's options)."
+msgstr "Integracija KNX v Home Assistantu ni nastavljena ali se povezuje s KNX Secure: takrat njena zbirka ključev vsebuje ključe njene lastne povezave in ostane nespremenjena (spremenite jo v možnostih integracije KNX)."
+
+msgid "Send"
+msgstr "Pošlji"
+
+msgid "Home Assistant's KNX integration has the project's keys"
+msgstr "Integracija KNX v Home Assistantu ima ključe projekta"
+
+msgid "Connect Like Home Assistant"
+msgstr "Poveži kot Home Assistant"
+
+msgid "The editor connects to the bus over the same interface or router as Home Assistant's KNX integration (with a tunnel of its own). Without a connection of its own it reads and sends group telegrams over Home Assistant's."
+msgstr "Urejevalnik se poveže z vodilom prek istega vmesnika ali usmerjevalnika kot integracija KNX v Home Assistantu (z lastnim tunelom). Brez lastne povezave bere in pošilja skupinske telegrame prek povezave Home Assistanta."
+
+msgid "Home Assistant's KNX integration connects with KNX Secure or finds its interface itself: connect the editor in the Gateway menu."
+msgstr "Integracija KNX v Home Assistantu se povezuje s KNX Secure ali sama poišče svoj vmesnik: povežite urejevalnik v meniju Prehod."

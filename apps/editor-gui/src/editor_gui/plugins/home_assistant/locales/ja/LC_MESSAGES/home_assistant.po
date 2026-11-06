@@ -223,5 +223,71 @@ msgstr "受け入れられませんでした: {error}"
 msgid "Entities created in Home Assistant: {count}"
 msgstr "Home Assistant で作成されたエンティティ: {count}"
 
-msgid "Create"
-msgstr "作成"
+msgid "Its group addresses changed: {entity} gets the new ones"
+msgstr "グループ・アドレスが変更されました: {entity} は新しいアドレスを受け取ります"
+
+msgid "Its group addresses changed: download its devices first"
+msgstr "グループ・アドレスが変更されました: 先にデバイスをダウンロードしてください"
+
+msgid "Entities of Removed Functions"
+msgstr "削除された機能のエンティティ"
+
+msgid "Entities updated in Home Assistant: {count}"
+msgstr "Home Assistant で更新されたエンティティ: {count}"
+
+msgid "Entities removed from Home Assistant: {count}"
+msgstr "Home Assistant から削除されたエンティティ: {count}"
+
+msgid "Time Server…"
+msgstr "タイムサーバー…"
+
+msgid "Time Server in Home Assistant"
+msgstr "Home Assistant のタイムサーバー"
+
+msgid "Home Assistant's KNX integration can send the time and the date to the bus. Choose the group addresses for them: those of the project with the data type of a time, a date, or a date with time."
+msgstr "Home Assistant の KNX 統合は時刻と日付をバスに送信できます。そのためのグループ・アドレスを選択してください。対象は、データ型が時刻、日付、または日付と時刻のプロジェクトのグループ・アドレスです。"
+
+msgid "Time"
+msgstr "時刻"
+
+msgid "Date"
+msgstr "日付"
+
+msgid "Date and Time"
+msgstr "日付と時刻"
+
+msgid "None"
+msgstr "なし"
+
+msgid "Home Assistant's time server sends to the chosen group addresses"
+msgstr "Home Assistant のタイムサーバーは選択したグループ・アドレスに送信します"
+
+msgid "Send Keys to Home Assistant…"
+msgstr "Home Assistant にキーを送信…"
+
+msgid "Keys in Home Assistant"
+msgstr "Home Assistant のキー"
+
+msgid "The keys of the project's Data Secure group addresses become the keyring of Home Assistant's KNX integration, so it reads and sends their telegrams. The KNX integration is loaded again for it."
+msgstr "プロジェクトの Data Secure グループ・アドレスのキーが Home Assistant の KNX 統合のキーリングになり、統合がそのテレグラムを読み取り、送信できるようになります。そのために KNX 統合が再読み込みされます。"
+
+msgid "Data Secure group addresses: {count}"
+msgstr "Data Secure グループ・アドレス: {count}"
+
+msgid "Home Assistant's KNX integration is not set up, or it connects with KNX Secure: then its keyring holds its own connection's keys, and stays as it is (change it in the KNX integration's options)."
+msgstr "Home Assistant の KNX 統合が設定されていないか、KNX Secure で接続しています。その場合、キーリングには統合自身の接続のキーが含まれ、そのまま残ります（KNX 統合のオプションで変更してください）。"
+
+msgid "Send"
+msgstr "送信"
+
+msgid "Home Assistant's KNX integration has the project's keys"
+msgstr "Home Assistant の KNX 統合にプロジェクトのキーがあります"
+
+msgid "Connect Like Home Assistant"
+msgstr "Home Assistant と同じ方法で接続"
+
+msgid "The editor connects to the bus over the same interface or router as Home Assistant's KNX integration (with a tunnel of its own). Without a connection of its own it reads and sends group telegrams over Home Assistant's."
+msgstr "エディターは Home Assistant の KNX 統合と同じインターフェイスまたはルーターを介してバスに接続します（独自のトンネルを使用）。独自の接続がない場合は、Home Assistant の接続を介してグループ・テレグラムを読み取り、送信します。"
+
+msgid "Home Assistant's KNX integration connects with KNX Secure or finds its interface itself: connect the editor in the Gateway menu."
+msgstr "Home Assistant の KNX 統合は KNX Secure で接続しているか、インターフェイスを自動で検出しています。「ゲートウェイ」メニューでエディターを接続してください。"

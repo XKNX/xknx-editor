@@ -223,5 +223,71 @@ msgstr "Δεν έγινε αποδεκτή: {error}"
 msgid "Entities created in Home Assistant: {count}"
 msgstr "Οντότητες που δημιουργήθηκαν στο Home Assistant: {count}"
 
-msgid "Create"
-msgstr "Δημιουργία"
+msgid "Its group addresses changed: {entity} gets the new ones"
+msgstr "Οι διευθύνσεις ομάδων της άλλαξαν: το {entity} λαμβάνει τις νέες"
+
+msgid "Its group addresses changed: download its devices first"
+msgstr "Οι διευθύνσεις ομάδων της άλλαξαν: φορτώστε πρώτα τις συσκευές της"
+
+msgid "Entities of Removed Functions"
+msgstr "Οντότητες αφαιρεμένων λειτουργιών"
+
+msgid "Entities updated in Home Assistant: {count}"
+msgstr "Οντότητες που ενημερώθηκαν στο Home Assistant: {count}"
+
+msgid "Entities removed from Home Assistant: {count}"
+msgstr "Οντότητες που αφαιρέθηκαν από το Home Assistant: {count}"
+
+msgid "Time Server…"
+msgstr "Διακομιστής ώρας…"
+
+msgid "Time Server in Home Assistant"
+msgstr "Διακομιστής ώρας στο Home Assistant"
+
+msgid "Home Assistant's KNX integration can send the time and the date to the bus. Choose the group addresses for them: those of the project with the data type of a time, a date, or a date with time."
+msgstr "Η ενσωμάτωση KNX του Home Assistant μπορεί να στέλνει την ώρα και την ημερομηνία στον δίαυλο. Επιλέξτε τις διευθύνσεις ομάδων για αυτές: εκείνες του έργου με τύπο δεδομένων ώρας, ημερομηνίας ή ημερομηνίας με ώρα."
+
+msgid "Time"
+msgstr "Ώρα"
+
+msgid "Date"
+msgstr "Ημερομηνία"
+
+msgid "Date and Time"
+msgstr "Ημερομηνία και ώρα"
+
+msgid "None"
+msgstr "Καμία"
+
+msgid "Home Assistant's time server sends to the chosen group addresses"
+msgstr "Ο διακομιστής ώρας του Home Assistant στέλνει στις επιλεγμένες διευθύνσεις ομάδων"
+
+msgid "Send Keys to Home Assistant…"
+msgstr "Αποστολή κλειδιών στο Home Assistant…"
+
+msgid "Keys in Home Assistant"
+msgstr "Κλειδιά στο Home Assistant"
+
+msgid "The keys of the project's Data Secure group addresses become the keyring of Home Assistant's KNX integration, so it reads and sends their telegrams. The KNX integration is loaded again for it."
+msgstr "Τα κλειδιά των διευθύνσεων ομάδων Data Secure του έργου γίνονται το keyring της ενσωμάτωσης KNX του Home Assistant, ώστε να διαβάζει και να στέλνει τα τηλεγραφήματά τους. Για αυτό η ενσωμάτωση KNX φορτώνεται ξανά."
+
+msgid "Data Secure group addresses: {count}"
+msgstr "Διευθύνσεις ομάδων Data Secure: {count}"
+
+msgid "Home Assistant's KNX integration is not set up, or it connects with KNX Secure: then its keyring holds its own connection's keys, and stays as it is (change it in the KNX integration's options)."
+msgstr "Η ενσωμάτωση KNX του Home Assistant δεν έχει ρυθμιστεί ή συνδέεται με KNX Secure: τότε το keyring της περιέχει τα κλειδιά της δικής της σύνδεσης και παραμένει ως έχει (αλλάξτε το στις επιλογές της ενσωμάτωσης KNX)."
+
+msgid "Send"
+msgstr "Αποστολή"
+
+msgid "Home Assistant's KNX integration has the project's keys"
+msgstr "Η ενσωμάτωση KNX του Home Assistant έχει τα κλειδιά του έργου"
+
+msgid "Connect Like Home Assistant"
+msgstr "Σύνδεση όπως το Home Assistant"
+
+msgid "The editor connects to the bus over the same interface or router as Home Assistant's KNX integration (with a tunnel of its own). Without a connection of its own it reads and sends group telegrams over Home Assistant's."
+msgstr "Ο επεξεργαστής συνδέεται στον δίαυλο μέσω της ίδιας θύρας επικοινωνίας ή του ίδιου δρομολογητή με την ενσωμάτωση KNX του Home Assistant (με δικό του τούνελ). Χωρίς δική του σύνδεση διαβάζει και στέλνει τηλεγραφήματα ομάδας μέσω της σύνδεσης του Home Assistant."
+
+msgid "Home Assistant's KNX integration connects with KNX Secure or finds its interface itself: connect the editor in the Gateway menu."
+msgstr "Η ενσωμάτωση KNX του Home Assistant συνδέεται με KNX Secure ή βρίσκει μόνη της τη θύρα επικοινωνίας της: συνδέστε τον επεξεργαστή από το μενού Gateway."

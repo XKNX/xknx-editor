@@ -223,5 +223,71 @@ msgstr "Nepreluată: {error}"
 msgid "Entities created in Home Assistant: {count}"
 msgstr "Entități create în Home Assistant: {count}"
 
-msgid "Create"
-msgstr "Creare"
+msgid "Its group addresses changed: {entity} gets the new ones"
+msgstr "Adresele ei de grup s-au schimbat: {entity} le primește pe cele noi"
+
+msgid "Its group addresses changed: download its devices first"
+msgstr "Adresele ei de grup s-au schimbat: programați mai întâi dispozitivele ei"
+
+msgid "Entities of Removed Functions"
+msgstr "Entități ale funcțiilor eliminate"
+
+msgid "Entities updated in Home Assistant: {count}"
+msgstr "Entități actualizate în Home Assistant: {count}"
+
+msgid "Entities removed from Home Assistant: {count}"
+msgstr "Entități eliminate din Home Assistant: {count}"
+
+msgid "Time Server…"
+msgstr "Server de timp…"
+
+msgid "Time Server in Home Assistant"
+msgstr "Server de timp în Home Assistant"
+
+msgid "Home Assistant's KNX integration can send the time and the date to the bus. Choose the group addresses for them: those of the project with the data type of a time, a date, or a date with time."
+msgstr "Integrarea KNX din Home Assistant poate trimite ora și data pe magistrală. Alegeți adresele de grup pentru acestea: cele ale proiectului cu tipul de date al unei ore, al unei date sau al unei date cu oră."
+
+msgid "Time"
+msgstr "Oră"
+
+msgid "Date"
+msgstr "Dată"
+
+msgid "Date and Time"
+msgstr "Dată și oră"
+
+msgid "None"
+msgstr "Niciuna"
+
+msgid "Home Assistant's time server sends to the chosen group addresses"
+msgstr "Serverul de timp al Home Assistant trimite către adresele de grup alese"
+
+msgid "Send Keys to Home Assistant…"
+msgstr "Trimitere chei către Home Assistant…"
+
+msgid "Keys in Home Assistant"
+msgstr "Chei în Home Assistant"
+
+msgid "The keys of the project's Data Secure group addresses become the keyring of Home Assistant's KNX integration, so it reads and sends their telegrams. The KNX integration is loaded again for it."
+msgstr "Cheile adreselor de grup Data Secure ale proiectului devin keyring-ul integrării KNX din Home Assistant, pentru ca aceasta să citească și să trimită telegramele lor. Pentru aceasta, integrarea KNX este reîncărcată."
+
+msgid "Data Secure group addresses: {count}"
+msgstr "Adrese de grup Data Secure: {count}"
+
+msgid "Home Assistant's KNX integration is not set up, or it connects with KNX Secure: then its keyring holds its own connection's keys, and stays as it is (change it in the KNX integration's options)."
+msgstr "Integrarea KNX din Home Assistant nu este configurată sau se conectează cu KNX Secure: atunci keyring-ul ei conține cheile propriei conexiuni și rămâne neschimbat (modificați-l în opțiunile integrării KNX)."
+
+msgid "Send"
+msgstr "Trimitere"
+
+msgid "Home Assistant's KNX integration has the project's keys"
+msgstr "Integrarea KNX din Home Assistant are cheile proiectului"
+
+msgid "Connect Like Home Assistant"
+msgstr "Conectare ca Home Assistant"
+
+msgid "The editor connects to the bus over the same interface or router as Home Assistant's KNX integration (with a tunnel of its own). Without a connection of its own it reads and sends group telegrams over Home Assistant's."
+msgstr "Editorul se conectează la magistrală prin aceeași interfață sau același router ca integrarea KNX din Home Assistant (cu un tunel propriu). Fără o conexiune proprie, citește și trimite telegrame de grup prin conexiunea Home Assistant."
+
+msgid "Home Assistant's KNX integration connects with KNX Secure or finds its interface itself: connect the editor in the Gateway menu."
+msgstr "Integrarea KNX din Home Assistant se conectează cu KNX Secure sau își găsește singură interfața: conectați editorul din meniul Gateway."

@@ -223,5 +223,71 @@ msgstr "No aceptada: {error}"
 msgid "Entities created in Home Assistant: {count}"
 msgstr "Entidades creadas en Home Assistant: {count}"
 
-msgid "Create"
-msgstr "Crear"
+msgid "Its group addresses changed: {entity} gets the new ones"
+msgstr "Sus direcciones de grupo han cambiado: {entity} recibe las nuevas"
+
+msgid "Its group addresses changed: download its devices first"
+msgstr "Sus direcciones de grupo han cambiado: programe primero sus dispositivos"
+
+msgid "Entities of Removed Functions"
+msgstr "Entidades de funciones eliminadas"
+
+msgid "Entities updated in Home Assistant: {count}"
+msgstr "Entidades actualizadas en Home Assistant: {count}"
+
+msgid "Entities removed from Home Assistant: {count}"
+msgstr "Entidades eliminadas de Home Assistant: {count}"
+
+msgid "Time Server…"
+msgstr "Servidor de hora…"
+
+msgid "Time Server in Home Assistant"
+msgstr "Servidor de hora en Home Assistant"
+
+msgid "Home Assistant's KNX integration can send the time and the date to the bus. Choose the group addresses for them: those of the project with the data type of a time, a date, or a date with time."
+msgstr "La integración KNX de Home Assistant puede enviar la hora y la fecha al bus. Elija las direcciones de grupo para ello: las del proyecto con el tipo de datos de una hora, una fecha o una fecha con hora."
+
+msgid "Time"
+msgstr "Hora"
+
+msgid "Date"
+msgstr "Fecha"
+
+msgid "Date and Time"
+msgstr "Fecha y hora"
+
+msgid "None"
+msgstr "Ninguna"
+
+msgid "Home Assistant's time server sends to the chosen group addresses"
+msgstr "El servidor de hora de Home Assistant envía a las direcciones de grupo elegidas"
+
+msgid "Send Keys to Home Assistant…"
+msgstr "Enviar claves a Home Assistant…"
+
+msgid "Keys in Home Assistant"
+msgstr "Claves en Home Assistant"
+
+msgid "The keys of the project's Data Secure group addresses become the keyring of Home Assistant's KNX integration, so it reads and sends their telegrams. The KNX integration is loaded again for it."
+msgstr "Las claves de las direcciones de grupo Data Secure del proyecto se convierten en el keyring de la integración KNX de Home Assistant, para que esta lea y envíe sus telegramas. Para ello, la integración KNX se vuelve a cargar."
+
+msgid "Data Secure group addresses: {count}"
+msgstr "Direcciones de grupo Data Secure: {count}"
+
+msgid "Home Assistant's KNX integration is not set up, or it connects with KNX Secure: then its keyring holds its own connection's keys, and stays as it is (change it in the KNX integration's options)."
+msgstr "La integración KNX de Home Assistant no está configurada o se conecta con KNX Secure: en ese caso, su keyring contiene las claves de su propia conexión y se mantiene como está (cámbielo en las opciones de la integración KNX)."
+
+msgid "Send"
+msgstr "Enviar"
+
+msgid "Home Assistant's KNX integration has the project's keys"
+msgstr "La integración KNX de Home Assistant tiene las claves del proyecto"
+
+msgid "Connect Like Home Assistant"
+msgstr "Conectar como Home Assistant"
+
+msgid "The editor connects to the bus over the same interface or router as Home Assistant's KNX integration (with a tunnel of its own). Without a connection of its own it reads and sends group telegrams over Home Assistant's."
+msgstr "El editor se conecta al bus a través de la misma interfaz o router que la integración KNX de Home Assistant (con un túnel propio). Sin conexión propia, lee y envía telegramas de grupo a través de la de Home Assistant."
+
+msgid "Home Assistant's KNX integration connects with KNX Secure or finds its interface itself: connect the editor in the Gateway menu."
+msgstr "La integración KNX de Home Assistant se conecta con KNX Secure o busca su interfaz por sí misma: conecte el editor en el menú Pasarela."
