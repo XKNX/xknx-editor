@@ -206,7 +206,7 @@ msgid "A device whose serial number is known gets its individual address without
 msgstr "Një pajisje me numër serial të njohur merr adresën individuale pa shtypur butonin e programimit."
 
 msgid "Connection Type"
-msgstr "Connection Type"
+msgstr "Lloji i lidhjes"
 
 msgid "Applies on the next connect, like the Gateway menu's choice."
-msgstr "Applies on the next connect, like the Gateway menu's choice."
+msgstr "Zbatohet në lidhjen e radhës, njësoj si zgjedhja në menynë Gateway."
