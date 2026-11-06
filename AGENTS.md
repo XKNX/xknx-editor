@@ -80,6 +80,10 @@ Every new UI feature gets MCP access in the same change:
 - **Kind declared:** register each tool with `@tool("read")`, `@tool("write")` or `@tool("destructive")`, plus `open_world=True` when it reaches the bus, the network or the internet; the kinds are defined at `ToolKind` in `plugins/mcp/context.py` and reach the client as MCP tool annotations.
 - **Addressing:** a tool on a device takes `node_id` OR `device_address`, a tool on a group address `group_address_id` OR `group_address` (its printed address); a list takes the ids and/or the addresses (`node_ids` / `device_addresses`), a second device a prefixed pair (`template_node_id` / `template_device_address`). `test_addressing.py` checks every tool.
 
+## Command-Line Options
+
+Every new command-line option of the editor is documented in the same change: in `editor_gui.cli` (the `--help` text) and in the options tables of `README.md` (the browser UI's, or "Started by Another Program" for options a launcher such as the Home Assistant integration passes); options of `editor_gui.host` also in `apps/editor-gui/AGENTS.md` ("Inside Home Assistant").
+
 ## Adding a New Package
 
 1. Create `packages/<name>/` with `pyproject.toml` (`name = "xknx-<name>"`), `src/xknxeditor/<name>/__init__.py`, `src/xknxeditor/<name>/py.typed`, and `tests/`
