@@ -1,5 +1,5 @@
-"""A page in the page tree is bold while the mouse is over it, and while it is selected; its icon
-is 16 px."""
+"""A page in the page tree is bold while the mouse is over it, and while it is selected, and
+highlighted as high as its row; its icon is 16 px."""
 
 from __future__ import annotations
 
@@ -124,3 +124,43 @@ def test_page_rows_are_higher_than_fields(monkeypatch: pytest.MonkeyPatch) -> No
     # ... and the band behind a row reaches half the spacing past it on both sides.
     half = style.item_spacing.y / 2
     assert (top, bottom) == pytest.approx((rows[0][0] - half, rows[0][1] + half))
+
+
+class _DrawList:
+    """Records the filled rectangles drawn (top and bottom, color)."""
+
+    def __init__(self) -> None:
+        self.rects: list[tuple[float, float, int]] = []
+
+    def add_rect_filled(
+        self, top_left: imgui.ImVec2, bottom_right: imgui.ImVec2, color: int
+    ) -> None:
+        self.rects.append((top_left.y, bottom_right.y, color))
+
+
+@pytest.mark.usefixtures("frame")
+def test_hovered_row_is_highlighted_as_high_as_its_band(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    channel = UiParameterBlock(
+        id="PB-1",
+        text="Netzwerk",
+        children=(_page("PB-2", "Allgemein"),),
+    )
+    pages = build_pages([channel, _page("PB-3", "IP-Router")], "1")
+    keys = {page.label: page.key for page in pages}
+    draw_list = _DrawList()
+    monkeypatch.setattr(
+        parameter_widgets.imgui, "get_window_draw_list", lambda: draw_list
+    )
+    monkeypatch.setattr(parameter_widgets, "_hovered_page", [keys["Netzwerk"], None])
+    hovered = imgui.get_color_u32(imgui.Col_.header_hovered)
+    band = parameter_widgets._row_band  # pyright: ignore[reportPrivateUsage]
+    top, bottom = band()
+    tree = parameter_widgets._render_page_tree  # pyright: ignore[reportPrivateUsage]
+    tree(pages, None, frozenset(), False, None)
+    # The channel's highlight covers its whole band, as its group background does, not only the
+    # tree node's frame (which ImGui itself would highlight).
+    assert [(t, b) for t, b, color in draw_list.rects if color == hovered] == [
+        pytest.approx((top, bottom))
+    ]

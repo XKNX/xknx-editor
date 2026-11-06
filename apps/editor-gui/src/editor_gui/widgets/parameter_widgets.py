@@ -1874,8 +1874,9 @@ def _render_page_tree(
         elif page.key in opened:
             imgui.set_next_item_open(True, imgui.Cond_.once)
         is_selected = page.key == selected
+        is_hovered = page.key == _hovered_page[0]
         # The selected page and the one under the mouse (in the frame before) are bold.
-        emphasis = is_selected or page.key == _hovered_page[0]
+        emphasis = is_selected or is_hovered
         if emphasis:
             imgui.push_font(bold_font(), imgui.get_style().font_size_base)
         space = imgui.calc_text_size(" ").x
@@ -1893,8 +1894,23 @@ def _render_page_tree(
             # joins; hovering or pressing it draws nothing over it.
             _draw_band(row_top, row_bottom, content_background(), px(_SELECTED_INSET))
             _selected_row[:] = [(row_top, row_bottom)]
-            imgui.push_style_color(imgui.Col_.header_hovered, imgui.ImVec4(0, 0, 0, 0))
-            imgui.push_style_color(imgui.Col_.header_active, imgui.ImVec4(0, 0, 0, 0))
+        elif is_hovered:
+            # The row under the mouse is highlighted as high as its band, between a group's lines.
+            pressed = imgui.is_mouse_down(imgui.MouseButton_.left)
+            inner = internal.get_current_window().inner_rect
+            imgui.get_window_draw_list().add_rect_filled(
+                imgui.ImVec2(inner.min.x, row_top),
+                imgui.ImVec2(inner.max.x, row_bottom),
+                imgui.get_color_u32(
+                    imgui.Col_.header_active if pressed else imgui.Col_.header_hovered
+                ),
+            )
+            if is_group:
+                _draw_box_line(row_top)
+                _draw_box_line(row_bottom)
+        # The tree node's own highlight is only as high as its frame: the band above replaces it.
+        imgui.push_style_color(imgui.Col_.header_hovered, imgui.ImVec4(0, 0, 0, 0))
+        imgui.push_style_color(imgui.Col_.header_active, imgui.ImVec4(0, 0, 0, 0))
         # Where the row's own content starts: its rect spans the tree's full width.
         row_x = imgui.get_cursor_screen_pos().x
         frame = imgui.get_style().frame_padding
@@ -1906,10 +1922,9 @@ def _render_page_tree(
         imgui.pop_style_var()
         if emphasis:
             imgui.pop_font()
+        imgui.pop_style_color(2)
         if imgui.is_item_hovered():
             _hovered_page[1] = page.key
-        if is_selected:
-            imgui.pop_style_color(2)
         if icon is not None:
             top = imgui.get_item_rect_min()
             x = row_x + imgui.get_tree_node_to_label_spacing()
