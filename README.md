@@ -148,7 +148,7 @@ maturing — review a recovered project before relying on it.
 **MCP server (LLM control)** — an embedded [Model Context Protocol](https://modelcontextprotocol.io)
 server lets an LLM drive the editor in the same live session as the GUI (shared project, catalog, and
 connection). Start it from **Tools → MCP Server** (host, port, token and the commands that register
-it in an AI tool are under **Settings → AI / MCP**), or with the editor through `--mcp` (see
+it in an AI tool are under **Settings → AI/MCP**), or with the editor through `--mcp` (see
 [Started by another program](#started-by-another-program)). It can edit the project and program
 hardware, so only expose it to clients you trust.
 

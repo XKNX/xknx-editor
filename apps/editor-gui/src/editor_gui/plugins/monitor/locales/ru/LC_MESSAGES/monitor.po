@@ -16,8 +16,8 @@ msgstr "Нет групповых адресов (откройте или имп
 msgid "Not Connected"
 msgstr "Не подключено"
 
-msgid "value (e.g. on / 21.5 / 50)"
-msgstr "значение (напр. on / 21.5 / 50)"
+msgid "value (e.g. on/21.5/50)"
+msgstr "значение (напр. on/21.5/50)"
 
 msgid "Value:"
 msgstr "Значение:"

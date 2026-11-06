@@ -16,8 +16,8 @@ msgstr "Δεν υπάρχουν διευθύνσεις ομάδων (ανοίξ�
 msgid "Not Connected"
 msgstr "Μη Συνδεδεμένο"
 
-msgid "value (e.g. on / 21.5 / 50)"
-msgstr "τιμή (π.χ. on / 21.5 / 50)"
+msgid "value (e.g. on/21.5/50)"
+msgstr "τιμή (π.χ. on/21.5/50)"
 
 msgid "Value:"
 msgstr "Τιμή:"

@@ -316,11 +316,11 @@ msgstr "Διευθύνσεις Ομάδων"
 msgid "Group Object Links"
 msgstr "Συνδέσεις Αντικειμένων Επικοινωνίας"
 
-msgid "Areas / Lines"
-msgstr "Περιοχές / Γραμμές"
+msgid "Areas/Lines"
+msgstr "Περιοχές/Γραμμές"
 
-msgid "Floors / Rooms"
-msgstr "Όροφοι / Δωμάτια"
+msgid "Floors/Rooms"
+msgstr "Όροφοι/Δωμάτια"
 
 msgid "Functions"
 msgstr "Λειτουργίες"
@@ -1546,8 +1546,8 @@ msgstr "Σύνδεση"
 msgid "Backups"
 msgstr "Αντίγραφα ασφαλείας"
 
-msgid "AI / MCP"
-msgstr "AI / MCP"
+msgid "AI/MCP"
+msgstr "AI/MCP"
 
 msgid "Folders"
 msgstr "Φάκελοι"

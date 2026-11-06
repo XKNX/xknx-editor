@@ -19,9 +19,6 @@ msgstr "Trennen"
 msgid "Discovered Gateways"
 msgstr "Erkannte Gateways"
 
-msgid "Diagnostics"
-msgstr "Diagnose"
-
 msgid "Check for Devices in Programming Mode"
 msgstr "Geräte im Programmiermodus suchen"
 

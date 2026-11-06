@@ -104,11 +104,11 @@ msgstr "Groepsadressen"
 msgid "Group Object Links"
 msgstr "Groepsobject-koppelingen"
 
-msgid "Areas / Lines"
-msgstr "Bereiken / lijnen"
+msgid "Areas/Lines"
+msgstr "Bereiken/lijnen"
 
-msgid "Floors / Rooms"
-msgstr "Verdiepingen / ruimtes"
+msgid "Floors/Rooms"
+msgstr "Verdiepingen/ruimtes"
 
 msgid "Functions"
 msgstr "Functies"
@@ -1611,8 +1611,8 @@ msgstr "Verbinding"
 msgid "Backups"
 msgstr "Back-ups"
 
-msgid "AI / MCP"
-msgstr "AI / MCP"
+msgid "AI/MCP"
+msgstr "AI/MCP"
 
 msgid "Folders"
 msgstr "Mappen"

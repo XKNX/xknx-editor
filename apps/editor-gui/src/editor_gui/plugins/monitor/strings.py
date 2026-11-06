@@ -23,7 +23,7 @@ class MonitorStrings:
 
     @property
     def MONITOR_VALUE_HINT(self) -> str:
-        return _("value (e.g. on / 21.5 / 50)")
+        return _("value (e.g. on/21.5/50)")
 
     @property
     def MONITOR_VALUE_LABEL(self) -> str:

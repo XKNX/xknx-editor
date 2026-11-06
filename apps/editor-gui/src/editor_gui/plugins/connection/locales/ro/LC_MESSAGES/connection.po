@@ -19,9 +19,6 @@ msgstr "Deconectare"
 msgid "Discovered Gateways"
 msgstr "Gateway-uri detectate"
 
-msgid "Diagnostics"
-msgstr "Diagnoză"
-
 msgid "Check for Devices in Programming Mode"
 msgstr "Căutare dispozitive în modul de programare"
 

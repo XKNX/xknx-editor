@@ -52,8 +52,8 @@ msgstr "Адреса"
 msgid "Mask"
 msgstr "Маска"
 
-msgid "Product / Application"
-msgstr "Продукт / прикладна програма"
+msgid "Product/Application"
+msgstr "Продукт/прикладна програма"
 
 msgid "Status"
 msgstr "Статус"

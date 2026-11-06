@@ -481,11 +481,11 @@ msgstr "Γραμμές"
 msgid "Label W x H (mm)"
 msgstr "Ετικέτα Π x Υ (mm)"
 
-msgid "Margin Top / Left (mm)"
-msgstr "Περιθώριο Πάνω / Αριστερά (mm)"
+msgid "Margin Top/Left (mm)"
+msgstr "Περιθώριο Πάνω/Αριστερά (mm)"
 
-msgid "Gap X / Y (mm)"
-msgstr "Διάκενο X / Y (mm)"
+msgid "Gap X/Y (mm)"
+msgstr "Διάκενο X/Y (mm)"
 
 msgid "Export HTML…"
 msgstr "Εξαγωγή HTML…"

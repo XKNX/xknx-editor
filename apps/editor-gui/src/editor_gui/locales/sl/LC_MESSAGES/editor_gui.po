@@ -445,11 +445,11 @@ msgstr "Skupinski naslovi"
 msgid "Group Object Links"
 msgstr "Povezave komunikacijskih objektov"
 
-msgid "Areas / Lines"
-msgstr "Področja / linije"
+msgid "Areas/Lines"
+msgstr "Področja/linije"
 
-msgid "Floors / Rooms"
-msgstr "Nadstropja / prostori"
+msgid "Floors/Rooms"
+msgstr "Nadstropja/prostori"
 
 msgid "Functions"
 msgstr "Funkcije"
@@ -1618,8 +1618,8 @@ msgstr "Povezava"
 msgid "Backups"
 msgstr "Varnostne kopije"
 
-msgid "AI / MCP"
-msgstr "UI / MCP"
+msgid "AI/MCP"
+msgstr "UI/MCP"
 
 msgid "Folders"
 msgstr "Mape"

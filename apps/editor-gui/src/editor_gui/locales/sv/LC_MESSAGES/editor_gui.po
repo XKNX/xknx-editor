@@ -316,11 +316,11 @@ msgstr "Gruppadresser"
 msgid "Group Object Links"
 msgstr "Gruppobjektkopplingar"
 
-msgid "Areas / Lines"
-msgstr "Områden / linjer"
+msgid "Areas/Lines"
+msgstr "Områden/linjer"
 
-msgid "Floors / Rooms"
-msgstr "Våningar / rum"
+msgid "Floors/Rooms"
+msgstr "Våningar/rum"
 
 msgid "Functions"
 msgstr "Funktioner"
@@ -1546,8 +1546,8 @@ msgstr "Anslutning"
 msgid "Backups"
 msgstr "Säkerhetskopior"
 
-msgid "AI / MCP"
-msgstr "AI / MCP"
+msgid "AI/MCP"
+msgstr "AI/MCP"
 
 msgid "Folders"
 msgstr "Mappar"

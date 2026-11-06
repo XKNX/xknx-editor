@@ -35,10 +35,6 @@ class ConnectionStrings:
         return _("Discovered Gateways")
 
     @property
-    def SECTION_DIAGNOSTICS(self) -> str:
-        return _("Diagnostics")
-
-    @property
     def MENU_READ_PROGMODE(self) -> str:
         return _("Check for Devices in Programming Mode")
 
@@ -251,10 +247,6 @@ class ConnectionStrings:
     @property
     def STATUS_CONNECTION_FAILED(self) -> str:
         return _("Connection failed")
-
-    @property
-    def GATEWAY_SECTION(self) -> str:
-        return _("Gateway")
 
     @property
     def GATEWAY_NAME(self) -> str:

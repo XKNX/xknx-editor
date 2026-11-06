@@ -49,8 +49,8 @@ msgstr "Niet verbonden met een KNX-bus."
 msgid "Open or create a project to add recovered devices."
 msgstr "Open of maak een project om herstelde apparaten toe te voegen."
 
-msgid "Product / Application"
-msgstr "Product / applicatie"
+msgid "Product/Application"
+msgstr "Product/applicatie"
 
 msgid "Reading %(address)s  (%(done)d/%(total)d)  -  %(stage)s"
 msgstr "%(address)s lezen  (%(done)d/%(total)d)  -  %(stage)s"

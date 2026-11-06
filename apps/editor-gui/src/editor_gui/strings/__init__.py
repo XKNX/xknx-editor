@@ -459,7 +459,7 @@ class MenuStrings:
     @property
     def SETTINGS_PAGE_MCP(self) -> str:
         # The page with the MCP server that AI tools use.
-        return _("AI / MCP")
+        return _("AI/MCP")
 
     @property
     def SETTINGS_PAGE_FOLDERS(self) -> str:
@@ -741,11 +741,11 @@ class MenuStrings:
 
     @property
     def EXPORT_SUMMARY_TOPOLOGY(self) -> str:
-        return _("Areas / Lines")
+        return _("Areas/Lines")
 
     @property
     def EXPORT_SUMMARY_FLOORS_ROOMS(self) -> str:
-        return _("Floors / Rooms")
+        return _("Floors/Rooms")
 
     @property
     def EXPORT_SUMMARY_FUNCTIONS(self) -> str:

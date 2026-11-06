@@ -52,8 +52,8 @@ msgstr "Osoite"
 msgid "Mask"
 msgstr "Maski"
 
-msgid "Product / Application"
-msgstr "Tuote / sovellus"
+msgid "Product/Application"
+msgstr "Tuote/sovellus"
 
 msgid "Status"
 msgstr "Tila"

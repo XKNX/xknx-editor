@@ -481,11 +481,11 @@ msgstr "Rreshtat"
 msgid "Label W x H (mm)"
 msgstr "Etiketa Gj x L (mm)"
 
-msgid "Margin Top / Left (mm)"
-msgstr "Mënjanat e sipërme / të majta (mm)"
+msgid "Margin Top/Left (mm)"
+msgstr "Mënjanat e sipërme/të majta (mm)"
 
-msgid "Gap X / Y (mm)"
-msgstr "Hapësira X / Y (mm)"
+msgid "Gap X/Y (mm)"
+msgstr "Hapësira X/Y (mm)"
 
 msgid "Export HTML…"
 msgstr "Eksporto HTML…"

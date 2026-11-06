@@ -1436,11 +1436,11 @@ class ProjectStrings:
 
     @property
     def TOOLS_LABELS_GRID_MARGIN_MM(self) -> str:
-        return _("Margin Top / Left (mm)")
+        return _("Margin Top/Left (mm)")
 
     @property
     def TOOLS_LABELS_GRID_GAP_MM(self) -> str:
-        return _("Gap X / Y (mm)")
+        return _("Gap X/Y (mm)")
 
     @property
     def TOOLS_LABELS_EXPORT_HTML(self) -> str:

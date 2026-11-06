@@ -19,9 +19,6 @@ msgstr "Prekini povezavo"
 msgid "Discovered Gateways"
 msgstr "Najdeni prehodi"
 
-msgid "Diagnostics"
-msgstr "Diagnostika"
-
 msgid "Check for Devices in Programming Mode"
 msgstr "Poišči naprave v načinu programiranja"
 

@@ -22,9 +22,6 @@ msgstr "Utilizar o Número de Série para Downloads"
 msgid "Discovered Gateways"
 msgstr "Gateways Detetados"
 
-msgid "Diagnostics"
-msgstr "Diagnósticos"
-
 msgid "Check for Devices in Programming Mode"
 msgstr "Procurar Dispositivos em Modo de Programação"
 

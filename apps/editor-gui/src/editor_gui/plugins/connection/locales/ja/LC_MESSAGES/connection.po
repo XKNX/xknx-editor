@@ -22,9 +22,6 @@ msgstr "ダウンロードにシリアル番号を使用"
 msgid "Discovered Gateways"
 msgstr "検出されたゲートウェイ"
 
-msgid "Diagnostics"
-msgstr "診断"
-
 msgid "Check for Devices in Programming Mode"
 msgstr "プログラミング・モードのデバイスを確認"
 

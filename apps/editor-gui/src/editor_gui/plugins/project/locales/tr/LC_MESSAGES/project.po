@@ -481,11 +481,11 @@ msgstr "Satırlar"
 msgid "Label W x H (mm)"
 msgstr "Etiket G x Y (mm)"
 
-msgid "Margin Top / Left (mm)"
-msgstr "Kenar Boşluğu Üst / Sol (mm)"
+msgid "Margin Top/Left (mm)"
+msgstr "Kenar Boşluğu Üst/Sol (mm)"
 
-msgid "Gap X / Y (mm)"
-msgstr "Aralık X / Y (mm)"
+msgid "Gap X/Y (mm)"
+msgstr "Aralık X/Y (mm)"
 
 msgid "Export HTML…"
 msgstr "HTML Dışa Aktar…"

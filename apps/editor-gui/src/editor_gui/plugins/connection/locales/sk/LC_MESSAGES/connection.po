@@ -19,9 +19,6 @@ msgstr "Odpojiť"
 msgid "Discovered Gateways"
 msgstr "Nájdené brány"
 
-msgid "Diagnostics"
-msgstr "Diagnostika"
-
 msgid "Check for Devices in Programming Mode"
 msgstr "Vyhľadať zariadenia v programovacom režime"
 

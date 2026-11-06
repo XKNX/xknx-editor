@@ -326,8 +326,16 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     @tool("read")
     def connection_status() -> dict[str, Any]:
-        """Current connection state and target."""
-        return {
+        """Current connection state and target, and, while connected over KNXnet/IP, the gateway
+        as the Gateway menu shows it: ``gateway`` {name, individual_address, core_version,
+        services, transports} (``transports``: the connection types it offers, see
+        connection_switch_type)."""
+        from editor_gui.plugins.connection.plugin import (
+            connection_type_name,
+            gateway_services,
+        )
+
+        status: dict[str, Any] = {
             "state": conn.state.value,
             "connected": conn.connected,
             "controller_ip": conn.controller_ip,
@@ -336,6 +344,19 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             "connection_type": conn.connection_type,
             "busmonitor": ctx.api.connection.busmonitor_state.value,
         }
+        gateway = conn.gateway_info if conn.connected else None
+        if gateway is not None:
+            status["gateway"] = {
+                "name": gateway.name,
+                "individual_address": str(gateway.individual_address or ""),
+                "core_version": gateway.core_version,
+                "services": gateway_services(gateway),
+                "transports": [
+                    connection_type_name(ctype)
+                    for ctype, _ in conn.offered_transports()
+                ],
+            }
+        return status
 
     @tool("write")
     def connection_configure(
@@ -429,6 +450,36 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             raise ToolError(
                 f"no scanned gateway with ip {ip!r}; run connection_scan first"
             )
+        return _await_connect(timeout)
+
+    @tool("write", open_world=True)
+    def connection_switch_type(
+        connection_type: str, timeout: float = 15.0
+    ) -> dict[str, Any]:
+        """Reconnect the open connection to the same gateway over another connection type, as
+        the Gateway menu's radio buttons do: "tunneling" (UDP), "tunneling_tcp" (TCP) or
+        "routing", one of the gateway's ``transports`` in connection_status. Waits for the
+        result; switching to the type in use changes nothing."""
+        from editor_gui.plugins.connection.plugin import (
+            connection_type_name,
+            parse_connection_type,
+        )
+
+        parsed = parse_connection_type(connection_type)
+        if parsed is None:
+            raise ToolError(
+                f"unknown connection_type {connection_type!r}; use tunneling, "
+                "tunneling_tcp or routing"
+            )
+        if not conn.connected:
+            raise ToolError("not connected; connect first")
+        offered = [ctype for ctype, _ in conn.offered_transports()]
+        if parsed not in offered:
+            names = ", ".join(connection_type_name(c) for c in offered) or "none"
+            raise ToolError(f"the gateway offers only: {names}")
+        if connection_type_name(parsed) == conn.connection_type:
+            return {"state": conn.state.value, "connected": True}
+        ctx.run_on_ui(lambda: conn.switch_connection_type(parsed))
         return _await_connect(timeout)
 
     @tool("write", open_world=True)

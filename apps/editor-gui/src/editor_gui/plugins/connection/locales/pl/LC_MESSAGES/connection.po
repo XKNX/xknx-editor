@@ -22,9 +22,6 @@ msgstr "Programuj z użyciem numeru seryjnego"
 msgid "Discovered Gateways"
 msgstr "Wykryte bramki"
 
-msgid "Diagnostics"
-msgstr "Diagnostyka"
-
 msgid "Check for Devices in Programming Mode"
 msgstr "Szukaj urządzeń w trybie programowania"
 

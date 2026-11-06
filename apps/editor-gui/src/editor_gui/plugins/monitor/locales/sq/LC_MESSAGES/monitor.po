@@ -16,8 +16,8 @@ msgstr "Nuk ka adresa grupi (hapni ose importoni një projekt)"
 msgid "Not Connected"
 msgstr "Pa lidhje"
 
-msgid "value (e.g. on / 21.5 / 50)"
-msgstr "vlera (p.sh. on / 21.5 / 50)"
+msgid "value (e.g. on/21.5/50)"
+msgstr "vlera (p.sh. on/21.5/50)"
 
 msgid "Value:"
 msgstr "Vlera:"

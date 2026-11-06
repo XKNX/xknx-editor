@@ -22,9 +22,6 @@ msgstr "Använd serienummer vid programmering"
 msgid "Discovered Gateways"
 msgstr "Hittade gateways"
 
-msgid "Diagnostics"
-msgstr "Diagnostik"
-
 msgid "Check for Devices in Programming Mode"
 msgstr "Sök efter apparater i programmeringsläge"
 

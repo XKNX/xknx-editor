@@ -22,9 +22,6 @@ msgstr "Käytä sarjanumeroa latauksissa"
 msgid "Discovered Gateways"
 msgstr "Löydetyt yhdyskäytävät"
 
-msgid "Diagnostics"
-msgstr "Diagnostiikka"
-
 msgid "Check for Devices in Programming Mode"
 msgstr "Etsi ohjelmointitilassa olevia laitteita"
 

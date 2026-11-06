@@ -61,9 +61,6 @@ msgstr "Verbinding mislukt"
 msgid "Devices in Programming Mode"
 msgstr "Apparaten in programmeermodus"
 
-msgid "Diagnostics"
-msgstr "Diagnose"
-
 msgid "Discovered Gateways"
 msgstr "Gevonden gateways"
 

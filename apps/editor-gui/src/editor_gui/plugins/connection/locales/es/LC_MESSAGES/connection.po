@@ -22,9 +22,6 @@ msgstr "Usar Número de Serie para Programar"
 msgid "Discovered Gateways"
 msgstr "Pasarelas Detectadas"
 
-msgid "Diagnostics"
-msgstr "Diagnósticos"
-
 msgid "Check for Devices in Programming Mode"
 msgstr "Buscar Dispositivos en Modo Programación"
 

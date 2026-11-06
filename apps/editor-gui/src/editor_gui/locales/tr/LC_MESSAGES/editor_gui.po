@@ -316,11 +316,11 @@ msgstr "Grup Adresleri"
 msgid "Group Object Links"
 msgstr "Grup Nesnesi Bağlantıları"
 
-msgid "Areas / Lines"
-msgstr "Alanlar / Linyeler"
+msgid "Areas/Lines"
+msgstr "Alanlar/Linyeler"
 
-msgid "Floors / Rooms"
-msgstr "Katlar / Odalar"
+msgid "Floors/Rooms"
+msgstr "Katlar/Odalar"
 
 msgid "Functions"
 msgstr "Fonksiyonlar"
@@ -1546,8 +1546,8 @@ msgstr "Bağlantı"
 msgid "Backups"
 msgstr "Yedekler"
 
-msgid "AI / MCP"
-msgstr "YZ / MCP"
+msgid "AI/MCP"
+msgstr "YZ/MCP"
 
 msgid "Folders"
 msgstr "Klasörler"

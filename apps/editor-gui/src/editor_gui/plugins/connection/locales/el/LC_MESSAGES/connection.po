@@ -22,9 +22,6 @@ msgstr "Χρήση Σειριακού Αριθμού για Φορτίσεις"
 msgid "Discovered Gateways"
 msgstr "Εντοπισμένα Gateway"
 
-msgid "Diagnostics"
-msgstr "Διαγνωστικά"
-
 msgid "Check for Devices in Programming Mode"
 msgstr "Έλεγχος για Συσκευές σε Κατάσταση Προγραμματισμού"
 

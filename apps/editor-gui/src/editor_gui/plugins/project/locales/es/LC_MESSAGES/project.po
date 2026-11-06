@@ -481,11 +481,11 @@ msgstr "Filas"
 msgid "Label W x H (mm)"
 msgstr "Etiqueta An x Al (mm)"
 
-msgid "Margin Top / Left (mm)"
-msgstr "Margen Sup. / Izq. (mm)"
+msgid "Margin Top/Left (mm)"
+msgstr "Margen Sup./Izq. (mm)"
 
-msgid "Gap X / Y (mm)"
-msgstr "Separación X / Y (mm)"
+msgid "Gap X/Y (mm)"
+msgstr "Separación X/Y (mm)"
 
 msgid "Export HTML…"
 msgstr "Exportar HTML…"

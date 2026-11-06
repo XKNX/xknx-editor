@@ -481,11 +481,11 @@ msgstr "Строки"
 msgid "Label W x H (mm)"
 msgstr "Этикетка Ш x В (мм)"
 
-msgid "Margin Top / Left (mm)"
-msgstr "Поле сверху / слева (мм)"
+msgid "Margin Top/Left (mm)"
+msgstr "Поле сверху/слева (мм)"
 
-msgid "Gap X / Y (mm)"
-msgstr "Промежуток X / Y (мм)"
+msgid "Gap X/Y (mm)"
+msgstr "Промежуток X/Y (мм)"
 
 msgid "Export HTML…"
 msgstr "Экспорт HTML…"

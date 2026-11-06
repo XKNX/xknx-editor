@@ -50,6 +50,8 @@ class _StubConnectionPlugin:
     multicast_group = "224.0.23.12"
     is_routing = False
     gateways: tuple[Any, ...] = ()
+    gateway_info = None
+    connection_type = "tunneling"
 
 
 def _build_ctx(tmp_path: Path) -> McpContext:

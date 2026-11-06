@@ -22,9 +22,6 @@ msgstr "Përdor numrin serial për programim"
 msgid "Discovered Gateways"
 msgstr "Gateway të gjetur"
 
-msgid "Diagnostics"
-msgstr "Diagnostikimi"
-
 msgid "Check for Devices in Programming Mode"
 msgstr "Kërko pajisje në modalitetin e programimit"
 

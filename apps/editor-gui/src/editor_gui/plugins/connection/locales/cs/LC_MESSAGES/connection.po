@@ -22,9 +22,6 @@ msgstr "Použít sériové číslo pro nahrávání"
 msgid "Discovered Gateways"
 msgstr "Nalezené brány"
 
-msgid "Diagnostics"
-msgstr "Diagnostika"
-
 msgid "Check for Devices in Programming Mode"
 msgstr "Vyhledat zařízení v programovacím režimu"
 

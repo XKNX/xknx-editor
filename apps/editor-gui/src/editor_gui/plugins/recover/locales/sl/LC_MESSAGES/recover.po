@@ -58,8 +58,8 @@ msgstr "Naslov"
 msgid "Mask"
 msgstr "Maska"
 
-msgid "Product / Application"
-msgstr "Izdelek / aplikacija"
+msgid "Product/Application"
+msgstr "Izdelek/aplikacija"
 
 msgid "Status"
 msgstr "Stanje"

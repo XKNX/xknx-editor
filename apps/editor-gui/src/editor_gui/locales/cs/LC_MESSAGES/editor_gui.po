@@ -316,11 +316,11 @@ msgstr "Skupinové adresy"
 msgid "Group Object Links"
 msgstr "Propojení skupinových objektů"
 
-msgid "Areas / Lines"
-msgstr "Oblasti / linie"
+msgid "Areas/Lines"
+msgstr "Oblasti/linie"
 
-msgid "Floors / Rooms"
-msgstr "Podlaží / místnosti"
+msgid "Floors/Rooms"
+msgstr "Podlaží/místnosti"
 
 msgid "Functions"
 msgstr "Funkce"
@@ -1546,8 +1546,8 @@ msgstr "Připojení"
 msgid "Backups"
 msgstr "Zálohy"
 
-msgid "AI / MCP"
-msgstr "AI / MCP"
+msgid "AI/MCP"
+msgstr "AI/MCP"
 
 msgid "Folders"
 msgstr "Složky"

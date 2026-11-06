@@ -1273,8 +1273,8 @@ msgstr "Sía annál"
 msgid "Find this device's manual (via the KNX device database, else a manufacturer search) and open it in your browser. Best effort - opens the KNX device search if no direct document is found."
 msgstr "Finna handbók þessa tækis (í KNX-tækjagagnagrunninum, annars með leit hjá framleiðanda) og opna hana í vafranum. Eftir bestu getu - opnar KNX-tækjaleitina ef ekkert beint skjal finnst."
 
-msgid "Gap X / Y (mm)"
-msgstr "Bil X / Y (mm)"
+msgid "Gap X/Y (mm)"
+msgstr "Bil X/Y (mm)"
 
 msgid "Obtain an IP address automatically"
 msgstr "Fá IP-tölu sjálfkrafa"
@@ -1330,8 +1330,8 @@ msgstr "Skýringar (heil síða)"
 msgid "MAC Address"
 msgstr "MAC-vistfang"
 
-msgid "Margin Top / Left (mm)"
-msgstr "Spássía efst / vinstri (mm)"
+msgid "Margin Top/Left (mm)"
+msgstr "Spássía efst/vinstri (mm)"
 
 msgid "No .NET runtime found (install the .NET SDK, or run on Windows with ETS)."
 msgstr "Ekkert .NET-keyrsluumhverfi fannst (settu upp .NET SDK, eða keyrðu á Windows með ETS)."

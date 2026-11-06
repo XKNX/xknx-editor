@@ -22,9 +22,6 @@ msgstr "Використовувати серійний номер для зав
 msgid "Discovered Gateways"
 msgstr "Виявлені шлюзи"
 
-msgid "Diagnostics"
-msgstr "Діагностика"
-
 msgid "Check for Devices in Programming Mode"
 msgstr "Шукати пристрої в режимі програмування"
 

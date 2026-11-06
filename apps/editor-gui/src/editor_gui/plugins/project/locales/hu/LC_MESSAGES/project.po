@@ -1273,8 +1273,8 @@ msgstr "Napló szűrése"
 msgid "Find this device's manual (via the KNX device database, else a manufacturer search) and open it in your browser. Best effort - opens the KNX device search if no direct document is found."
 msgstr "A készülék kézikönyvének megkeresése (a KNX készülékadatbázisában, ennek hiányában gyártói kereséssel) és megnyitása a böngészőben. Nem garantált – ha nem talál közvetlen dokumentumot, a KNX készülékkeresőjét nyitja meg."
 
-msgid "Gap X / Y (mm)"
-msgstr "Térköz X / Y (mm)"
+msgid "Gap X/Y (mm)"
+msgstr "Térköz X/Y (mm)"
 
 msgid "Obtain an IP address automatically"
 msgstr "IP-cím automatikus kérése"
@@ -1330,8 +1330,8 @@ msgstr "Jelmagyarázat (teljes oldal)"
 msgid "MAC Address"
 msgstr "MAC-cím"
 
-msgid "Margin Top / Left (mm)"
-msgstr "Margó fent / balra (mm)"
+msgid "Margin Top/Left (mm)"
+msgstr "Margó fent/balra (mm)"
 
 msgid "No .NET runtime found (install the .NET SDK, or run on Windows with ETS)."
 msgstr "Nem található .NET-futtatókörnyezet (telepítse a .NET SDK-t, vagy futtassa Windowson az ETS-sel)."

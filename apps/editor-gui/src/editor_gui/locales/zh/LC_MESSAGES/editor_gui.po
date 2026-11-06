@@ -316,10 +316,10 @@ msgstr "组地址"
 msgid "Group Object Links"
 msgstr "组对象链接"
 
-msgid "Areas / Lines"
+msgid "Areas/Lines"
 msgstr "区域/支线"
 
-msgid "Floors / Rooms"
+msgid "Floors/Rooms"
 msgstr "楼层/房间"
 
 msgid "Functions"
@@ -1546,8 +1546,8 @@ msgstr "连接"
 msgid "Backups"
 msgstr "备份"
 
-msgid "AI / MCP"
-msgstr "AI / MCP"
+msgid "AI/MCP"
+msgstr "AI/MCP"
 
 msgid "Folders"
 msgstr "文件夹"

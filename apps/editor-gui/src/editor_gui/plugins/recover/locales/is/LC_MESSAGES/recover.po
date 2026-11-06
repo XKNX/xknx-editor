@@ -58,8 +58,8 @@ msgstr "Vistfang"
 msgid "Mask"
 msgstr "Maski"
 
-msgid "Product / Application"
-msgstr "Vara / verkforrit"
+msgid "Product/Application"
+msgstr "Vara/verkforrit"
 
 msgid "Status"
 msgstr "Staða"

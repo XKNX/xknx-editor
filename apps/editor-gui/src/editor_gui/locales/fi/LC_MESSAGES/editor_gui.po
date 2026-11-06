@@ -316,11 +316,11 @@ msgstr "Ryhmäosoitteet"
 msgid "Group Object Links"
 msgstr "Ryhmäobjektien linkit"
 
-msgid "Areas / Lines"
-msgstr "Alueet / linjat"
+msgid "Areas/Lines"
+msgstr "Alueet/linjat"
 
-msgid "Floors / Rooms"
-msgstr "Kerrokset / huoneet"
+msgid "Floors/Rooms"
+msgstr "Kerrokset/huoneet"
 
 msgid "Functions"
 msgstr "Toiminnot"
@@ -1546,8 +1546,8 @@ msgstr "Yhteys"
 msgid "Backups"
 msgstr "Varmuuskopiot"
 
-msgid "AI / MCP"
-msgstr "Tekoäly / MCP"
+msgid "AI/MCP"
+msgstr "Tekoäly/MCP"
 
 msgid "Folders"
 msgstr "Kansiot"

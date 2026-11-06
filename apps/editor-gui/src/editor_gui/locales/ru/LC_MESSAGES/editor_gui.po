@@ -316,11 +316,11 @@ msgstr "Групповые адреса"
 msgid "Group Object Links"
 msgstr "Связи групповых объектов"
 
-msgid "Areas / Lines"
-msgstr "Области / линии"
+msgid "Areas/Lines"
+msgstr "Области/линии"
 
-msgid "Floors / Rooms"
-msgstr "Этажи / комнаты"
+msgid "Floors/Rooms"
+msgstr "Этажи/комнаты"
 
 msgid "Functions"
 msgstr "Функции"
@@ -1546,8 +1546,8 @@ msgstr "Подключение"
 msgid "Backups"
 msgstr "Резервные копии"
 
-msgid "AI / MCP"
-msgstr "ИИ / MCP"
+msgid "AI/MCP"
+msgstr "ИИ/MCP"
 
 msgid "Folders"
 msgstr "Папки"

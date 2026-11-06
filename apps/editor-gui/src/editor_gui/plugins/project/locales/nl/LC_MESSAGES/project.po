@@ -1018,8 +1018,8 @@ msgstr "Volledig"
 msgid "GUID"
 msgstr "GUID"
 
-msgid "Gap X / Y (mm)"
-msgstr "Tussenruimte X / Y (mm)"
+msgid "Gap X/Y (mm)"
+msgstr "Tussenruimte X/Y (mm)"
 
 msgid "Group Address"
 msgstr "Groepsadres"
@@ -1163,8 +1163,8 @@ msgstr "Locatie"
 msgid "MAC Address"
 msgstr "MAC-adres"
 
-msgid "Margin Top / Left (mm)"
-msgstr "Marge boven / links (mm)"
+msgid "Margin Top/Left (mm)"
+msgstr "Marge boven/links (mm)"
 
 msgid "Master Data (Signed)"
 msgstr "Masterdata (ondertekend)"

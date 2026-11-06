@@ -445,11 +445,11 @@ msgstr "Csoportcímek"
 msgid "Group Object Links"
 msgstr "Kommunikációsobjektum-összekapcsolások"
 
-msgid "Areas / Lines"
-msgstr "Területek / vonalak"
+msgid "Areas/Lines"
+msgstr "Területek/vonalak"
 
-msgid "Floors / Rooms"
-msgstr "Emeletek / helyiségek"
+msgid "Floors/Rooms"
+msgstr "Emeletek/helyiségek"
 
 msgid "Functions"
 msgstr "Funkciók"
@@ -1618,8 +1618,8 @@ msgstr "Kapcsolat"
 msgid "Backups"
 msgstr "Biztonsági mentések"
 
-msgid "AI / MCP"
-msgstr "MI / MCP"
+msgid "AI/MCP"
+msgstr "MI/MCP"
 
 msgid "Folders"
 msgstr "Mappák"

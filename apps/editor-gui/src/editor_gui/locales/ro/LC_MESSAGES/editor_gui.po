@@ -445,11 +445,11 @@ msgstr "Adrese de grup"
 msgid "Group Object Links"
 msgstr "Legături obiecte de comunicare"
 
-msgid "Areas / Lines"
-msgstr "Zone / linii"
+msgid "Areas/Lines"
+msgstr "Zone/linii"
 
-msgid "Floors / Rooms"
-msgstr "Etaje / camere"
+msgid "Floors/Rooms"
+msgstr "Etaje/camere"
 
 msgid "Functions"
 msgstr "Funcții"
@@ -1618,8 +1618,8 @@ msgstr "Conexiune"
 msgid "Backups"
 msgstr "Copii de rezervă"
 
-msgid "AI / MCP"
-msgstr "AI / MCP"
+msgid "AI/MCP"
+msgstr "AI/MCP"
 
 msgid "Folders"
 msgstr "Foldere"

@@ -316,11 +316,11 @@ msgstr "Indirizzi di Gruppo"
 msgid "Group Object Links"
 msgstr "Collegamenti oggetti di comunicazione"
 
-msgid "Areas / Lines"
-msgstr "Aree / linee"
+msgid "Areas/Lines"
+msgstr "Aree/linee"
 
-msgid "Floors / Rooms"
-msgstr "Piani / stanze"
+msgid "Floors/Rooms"
+msgstr "Piani/stanze"
 
 msgid "Functions"
 msgstr "Funzioni"
@@ -1546,8 +1546,8 @@ msgstr "Connessione"
 msgid "Backups"
 msgstr "Backup"
 
-msgid "AI / MCP"
-msgstr "AI / MCP"
+msgid "AI/MCP"
+msgstr "AI/MCP"
 
 msgid "Folders"
 msgstr "Cartelle"

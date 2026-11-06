@@ -19,9 +19,6 @@ msgstr "Aftengjast"
 msgid "Discovered Gateways"
 msgstr "Gáttir sem fundust"
 
-msgid "Diagnostics"
-msgstr "Greining"
-
 msgid "Check for Devices in Programming Mode"
 msgstr "Leita að tækjum í forritunarham"
 

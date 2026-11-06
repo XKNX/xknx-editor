@@ -22,9 +22,6 @@ msgstr "下载时使用系列号"
 msgid "Discovered Gateways"
 msgstr "已发现的网关"
 
-msgid "Diagnostics"
-msgstr "诊断"
-
 msgid "Check for Devices in Programming Mode"
 msgstr "查找处于编程模式的设备"
 

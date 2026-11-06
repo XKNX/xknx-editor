@@ -196,8 +196,8 @@ msgstr "{count} távirat"
 msgid "Enter a group address of the project to send to it."
 msgstr "Adja meg a projekt egy csoportcímét, hogy küldhessen rá."
 
-msgid "value (e.g. on / 21.5 / 50)"
-msgstr "érték (pl. on / 21.5 / 50)"
+msgid "value (e.g. on/21.5/50)"
+msgstr "érték (pl. on/21.5/50)"
 
 msgid "Value:"
 msgstr "Érték:"

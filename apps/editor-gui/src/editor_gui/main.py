@@ -81,6 +81,9 @@ from editor_gui.plugins.bus_diagram import BusDiagramPlugin
 from editor_gui.plugins.catalog import CatalogPlugin, CatalogService
 from editor_gui.plugins.cockpit import CockpitPlugin
 from editor_gui.plugins.connection import ConnectionPlugin
+from editor_gui.plugins.connection.plugin import (
+    SETTINGS_PAGE as CONNECTION_SETTINGS_PAGE,
+)
 from editor_gui.plugins.connection.service import ConnectionService
 from editor_gui.plugins.connection.strings import S as _connection_strings
 from editor_gui.plugins.health import HealthPlugin
@@ -914,6 +917,7 @@ class KnxGuiApp:
         # texts change with it.
         self._language_question: str | None = None
         self._backups_plugin.open_settings = self._settings_window.open
+        self._connection_plugin.open_settings = self._settings_window.open
 
         # Embedded MCP server: drives these same live services (no panels, so not in _plugins).
         self._mcp_plugin = McpServerPlugin(
@@ -6274,7 +6278,7 @@ class KnxGuiApp:
 
     def _render_mcp_menu(self) -> None:
         """Tools > MCP Server: whether the embedded server runs, Start/Stop, its address, and
-        its settings (the AI / MCP page of the Settings window)."""
+        its settings (the AI/MCP page of the Settings window)."""
         if not imgui.begin_menu(S.PANEL_MCP):
             return
         running = self._mcp_plugin.is_running
@@ -6343,7 +6347,7 @@ class KnxGuiApp:
                     "general", lambda: S.SETTINGS_PAGE_GENERAL, self._general_settings()
                 ),
                 SettingsPage(
-                    "connection",
+                    CONNECTION_SETTINGS_PAGE,
                     lambda: S.SETTINGS_PAGE_CONNECTION,
                     self._connection_plugin.settings(),
                 ),
@@ -6502,7 +6506,7 @@ class KnxGuiApp:
         ]
 
     def _mcp_settings(self) -> list[Setting]:
-        """The AI / MCP page: the embedded MCP server, its address, and how to register it in
+        """The AI/MCP page: the embedded MCP server, its address, and how to register it in
         an AI tool. Where the program that started the editor runs the server (Home Assistant),
         only its status, address and how to sign in."""
 

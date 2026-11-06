@@ -22,9 +22,6 @@ msgstr "Yüklemelerde Seri Numarasını Kullan"
 msgid "Discovered Gateways"
 msgstr "Bulunan Ağ Geçitleri"
 
-msgid "Diagnostics"
-msgstr "Tanılama"
-
 msgid "Check for Devices in Programming Mode"
 msgstr "Programlama Modundaki Cihazları Ara"
 

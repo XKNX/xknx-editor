@@ -52,8 +52,8 @@ msgstr "Διεύθυνση"
 msgid "Mask"
 msgstr "Μάσκα"
 
-msgid "Product / Application"
-msgstr "Προϊόν / Εφαρμογή"
+msgid "Product/Application"
+msgstr "Προϊόν/Εφαρμογή"
 
 msgid "Status"
 msgstr "Κατάσταση"

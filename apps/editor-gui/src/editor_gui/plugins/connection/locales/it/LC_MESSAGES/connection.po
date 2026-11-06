@@ -22,9 +22,6 @@ msgstr "Usa numero seriale per lo scaricamento"
 msgid "Discovered Gateways"
 msgstr "Gateway rilevati"
 
-msgid "Diagnostics"
-msgstr "Verifiche"
-
 msgid "Check for Devices in Programming Mode"
 msgstr "Cerca dispositivi in modalità di programmazione"
 

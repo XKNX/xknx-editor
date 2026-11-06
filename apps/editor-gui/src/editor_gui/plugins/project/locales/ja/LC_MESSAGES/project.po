@@ -481,11 +481,11 @@ msgstr "行"
 msgid "Label W x H (mm)"
 msgstr "ラベル 幅 x 高さ (mm)"
 
-msgid "Margin Top / Left (mm)"
-msgstr "余白 上 / 左 (mm)"
+msgid "Margin Top/Left (mm)"
+msgstr "余白 上/左 (mm)"
 
-msgid "Gap X / Y (mm)"
-msgstr "間隔 X / Y (mm)"
+msgid "Gap X/Y (mm)"
+msgstr "間隔 X/Y (mm)"
 
 msgid "Export HTML…"
 msgstr "HTML をエクスポート…"

@@ -481,11 +481,11 @@ msgstr "Righe"
 msgid "Label W x H (mm)"
 msgstr "Etichetta L x A (mm)"
 
-msgid "Margin Top / Left (mm)"
-msgstr "Margine sup. / sin. (mm)"
+msgid "Margin Top/Left (mm)"
+msgstr "Margine sup./sin. (mm)"
 
-msgid "Gap X / Y (mm)"
-msgstr "Distanza X / Y (mm)"
+msgid "Gap X/Y (mm)"
+msgstr "Distanza X/Y (mm)"
 
 msgid "Export HTML…"
 msgstr "Esporta HTML…"

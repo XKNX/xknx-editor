@@ -22,9 +22,6 @@ msgstr "Bruk serienummer ved nedlasting"
 msgid "Discovered Gateways"
 msgstr "Funne gatewayer"
 
-msgid "Diagnostics"
-msgstr "Diagnostikk"
-
 msgid "Check for Devices in Programming Mode"
 msgstr "Søk etter enheter i programmeringsmodus"
 

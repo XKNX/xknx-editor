@@ -512,11 +512,11 @@ msgstr "Gruppenadressen"
 msgid "Group Object Links"
 msgstr "Kommunikationsobjekt-Verbindungen"
 
-msgid "Areas / Lines"
-msgstr "Bereiche / Linien"
+msgid "Areas/Lines"
+msgstr "Bereiche/Linien"
 
-msgid "Floors / Rooms"
-msgstr "Etagen / Räume"
+msgid "Floors/Rooms"
+msgstr "Etagen/Räume"
 
 msgid "Functions"
 msgstr "Funktionen"
@@ -1708,8 +1708,8 @@ msgstr "Verbindung"
 msgid "Backups"
 msgstr "Sicherungen"
 
-msgid "AI / MCP"
-msgstr "KI / MCP"
+msgid "AI/MCP"
+msgstr "KI/MCP"
 
 msgid "Folders"
 msgstr "Ordner"

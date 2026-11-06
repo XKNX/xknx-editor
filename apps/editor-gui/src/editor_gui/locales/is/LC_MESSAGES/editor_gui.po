@@ -445,11 +445,11 @@ msgstr "Hópvistföng"
 msgid "Group Object Links"
 msgstr "Tengingar samskiptahluta"
 
-msgid "Areas / Lines"
-msgstr "Svæði / línur"
+msgid "Areas/Lines"
+msgstr "Svæði/línur"
 
-msgid "Floors / Rooms"
-msgstr "Hæðir / herbergi"
+msgid "Floors/Rooms"
+msgstr "Hæðir/herbergi"
 
 msgid "Functions"
 msgstr "Aðgerðir"
@@ -1618,8 +1618,8 @@ msgstr "Tenging"
 msgid "Backups"
 msgstr "Öryggisafrit"
 
-msgid "AI / MCP"
-msgstr "Gervigreind / MCP"
+msgid "AI/MCP"
+msgstr "Gervigreind/MCP"
 
 msgid "Folders"
 msgstr "Möppur"

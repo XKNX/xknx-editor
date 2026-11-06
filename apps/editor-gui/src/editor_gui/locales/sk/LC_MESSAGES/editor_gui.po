@@ -445,11 +445,11 @@ msgstr "Skupinové adresy"
 msgid "Group Object Links"
 msgstr "Prepojenia skupinových objektov"
 
-msgid "Areas / Lines"
-msgstr "Oblasti / línie"
+msgid "Areas/Lines"
+msgstr "Oblasti/línie"
 
-msgid "Floors / Rooms"
-msgstr "Podlažia / miestnosti"
+msgid "Floors/Rooms"
+msgstr "Podlažia/miestnosti"
 
 msgid "Functions"
 msgstr "Funkcie"
@@ -1618,8 +1618,8 @@ msgstr "Pripojenie"
 msgid "Backups"
 msgstr "Zálohy"
 
-msgid "AI / MCP"
-msgstr "AI / MCP"
+msgid "AI/MCP"
+msgstr "AI/MCP"
 
 msgid "Folders"
 msgstr "Priečinky"

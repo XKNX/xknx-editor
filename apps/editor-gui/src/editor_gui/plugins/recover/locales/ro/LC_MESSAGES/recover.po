@@ -58,8 +58,8 @@ msgstr "Adresă"
 msgid "Mask"
 msgstr "Mască"
 
-msgid "Product / Application"
-msgstr "Produs / aplicație"
+msgid "Product/Application"
+msgstr "Produs/aplicație"
 
 msgid "Status"
 msgstr "Stare"

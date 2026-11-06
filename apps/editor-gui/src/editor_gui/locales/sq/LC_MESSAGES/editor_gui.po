@@ -316,11 +316,11 @@ msgstr "Adresat e grupeve"
 msgid "Group Object Links"
 msgstr "Lidhjet e objekteve të grupit"
 
-msgid "Areas / Lines"
-msgstr "Zonat / Linjat"
+msgid "Areas/Lines"
+msgstr "Zonat/Linjat"
 
-msgid "Floors / Rooms"
-msgstr "Katet / Dhomat"
+msgid "Floors/Rooms"
+msgstr "Katet/Dhomat"
 
 msgid "Functions"
 msgstr "Funksionet"
@@ -1546,8 +1546,8 @@ msgstr "Lidhja"
 msgid "Backups"
 msgstr "Kopjet rezervë"
 
-msgid "AI / MCP"
-msgstr "AI / MCP"
+msgid "AI/MCP"
+msgstr "AI/MCP"
 
 msgid "Folders"
 msgstr "Dosjet"

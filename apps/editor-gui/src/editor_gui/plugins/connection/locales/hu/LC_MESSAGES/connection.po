@@ -19,9 +19,6 @@ msgstr "Kapcsolat bontása"
 msgid "Discovered Gateways"
 msgstr "Talált átjárók"
 
-msgid "Diagnostics"
-msgstr "Diagnosztika"
-
 msgid "Check for Devices in Programming Mode"
 msgstr "Programozási módban lévő készülékek keresése"
 

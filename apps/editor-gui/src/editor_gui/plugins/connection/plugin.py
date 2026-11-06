@@ -38,6 +38,7 @@ from editor_gui.programming import (
 )
 from editor_gui.settings import load_settings, save_settings
 from editor_gui.settings_window import Setting
+from editor_gui.strings import S as app_strings
 from editor_gui.widgets.checkbox import radio_button
 from editor_gui.widgets.dialog import (
     begin_dialog,
@@ -54,6 +55,23 @@ if TYPE_CHECKING:
     from xknxeditor.catalog import ProductSummary
 
 _SETTINGS = "connection"
+# The page of the Settings window with the connection settings.
+SETTINGS_PAGE = "connection"
+
+
+def gateway_services(gateway: GatewayDescriptor) -> list[str]:
+    """The KNXnet/IP services a gateway offers, as their names."""
+    services: list[str] = []
+    if gateway.supports_tunnelling:
+        services.append("Tunneling")
+    if gateway.supports_tunnelling_tcp:
+        services.append("TCP Tunneling")
+    if gateway.supports_routing:
+        services.append("Routing")
+    if gateway.supports_secure:
+        services.append("Secure")
+    return services
+
 
 # Delay before the one-shot autostart re-scan (macOS Local Network permission grant window).
 _AUTOSTART_RETRY_SECONDS = 30.0
@@ -317,6 +335,8 @@ class ConnectionPlugin:
 
         # "Devices in programming mode" window state (opened from the Diagnostics menu).
         self._progmode_open = False
+        # Opens the Settings window on a page (set by the app).
+        self.open_settings: Callable[[str], None] | None = None
         self._progmode_scanning = False
         self._progmode_scanned = (
             False  # a scan has completed at least once (empty vs. not-yet-run)
@@ -1651,40 +1671,14 @@ class ConnectionPlugin:
             if imgui.menu_item(S.MENU_STOP_BUSMONITOR, "", False, running)[0]:
                 self.stop_busmonitor()
         elif self._state == ConnectionState.CONNECTED:
+            # The gateway connected to: its address as the heading, what it is below it, and the
+            # connection types it offers to switch between.
             imgui.text(S.STATUS_CONNECTED_TO.format(ip=self._connection_target))
-            if self._gateway_info:
-                imgui.separator()
-                imgui.text_disabled(S.GATEWAY_SECTION)
-                imgui.text("  " + S.GATEWAY_NAME.format(name=self._gateway_info.name))
-                if self._gateway_info.individual_address:
-                    imgui.text(
-                        "  "
-                        + S.GATEWAY_ADDRESS.format(
-                            address=self._gateway_info.individual_address
-                        )
-                    )
-                imgui.text(
-                    "  "
-                    + S.GATEWAY_CORE_VERSION.format(
-                        version=self._gateway_info.core_version
-                    )
-                )
-                services: list[str] = []
-                if self._gateway_info.supports_tunnelling:
-                    services.append("Tunneling")
-                if self._gateway_info.supports_tunnelling_tcp:
-                    services.append("TCP Tunneling")
-                if self._gateway_info.supports_routing:
-                    services.append("Routing")
-                if self._gateway_info.supports_secure:
-                    services.append("Secure")
-                if services:
-                    imgui.text(
-                        "  " + S.GATEWAY_SERVICES.format(services=", ".join(services))
-                    )
+            imgui.indent()
+            self._render_gateway_details()
             self._render_connected_transport()
+            imgui.unindent()
             imgui.separator()
-            imgui.text_disabled(S.SECTION_DIAGNOSTICS)
             if imgui.menu_item(S.MENU_READ_PROGMODE, "", self._progmode_open)[0]:
                 self._open_progmode_window()
             imgui.separator()
@@ -1705,6 +1699,23 @@ class ConnectionPlugin:
             self._render_gateway_picker(retry_label=S.MENU_RETRY)
         else:
             self._render_gateway_picker(retry_label=S.MENU_CONNECT)
+        if self.open_settings is not None:
+            imgui.separator()
+            if imgui.menu_item(app_strings.MENU_SETTINGS, "", False)[0]:
+                self.open_settings(SETTINGS_PAGE)
+
+    def _render_gateway_details(self) -> None:
+        """The connected gateway's name, individual address, KNXnet/IP version and services."""
+        gateway = self._gateway_info
+        if gateway is None:
+            return
+        imgui.text(S.GATEWAY_NAME.format(name=gateway.name))
+        if gateway.individual_address:
+            imgui.text(S.GATEWAY_ADDRESS.format(address=gateway.individual_address))
+        imgui.text(S.GATEWAY_CORE_VERSION.format(version=gateway.core_version))
+        services = gateway_services(gateway)
+        if services:
+            imgui.text(S.GATEWAY_SERVICES.format(services=", ".join(services)))
 
     def settings(self) -> list[Setting]:
         """The connection settings, for the Connection page of the Settings window (and MCP)."""
@@ -1809,12 +1820,26 @@ class ConnectionPlugin:
             self._manual_tcp = supported
 
     def _render_connected_transport(self) -> None:
-        """While connected: a radio per connection type the interface offers, so the type in use
-        is visible and switchable. Picking a different one reconnects over it. Shown only when the
-        interface offers more than one."""
+        """While connected: a radio per connection type the interface offers, side by side, so
+        the type in use is visible and switchable. Picking a different one reconnects over it.
+        Shown only when the interface offers more than one."""
+        transports = self.offered_transports()
+        if len(transports) < 2:
+            return
+        for index, (ctype, label) in enumerate(transports):
+            if index:
+                imgui.same_line()
+            if radio_button(
+                f"{label}##connected_{ctype.name}",
+                self._connection_type == ctype,
+            ):
+                self.switch_connection_type(ctype)
+
+    def offered_transports(self) -> list[tuple[ConnectionType, str]]:
+        """The connection types the connected gateway offers, with their labels."""
         gateway = self._gateway_info
         if gateway is None:
-            return
+            return []
         transports: list[tuple[ConnectionType, str]] = []
         if gateway.supports_tunnelling_tcp:
             transports.append((ConnectionType.TUNNELING_TCP, S.CONN_TYPE_TCP_TUNNELING))
@@ -1822,15 +1847,12 @@ class ConnectionPlugin:
             transports.append((ConnectionType.TUNNELING, S.CONN_TYPE_TUNNELING))
         if gateway.supports_routing:
             transports.append((ConnectionType.ROUTING, S.CONN_TYPE_ROUTING))
-        if len(transports) < 2:
-            return
-        imgui.separator()
-        for ctype, label in transports:
-            if radio_button(
-                f"{label}##connected_{ctype.name}",
-                self._connection_type == ctype,
-            ):
-                self.switch_connection_type(ctype)
+        return transports
+
+    @property
+    def gateway_info(self) -> GatewayDescriptor | None:
+        """The description of the gateway connected to, while connected over KNXnet/IP."""
+        return self._gateway_info
 
     def _render_gateway_option(self, gw: GatewayDescriptor) -> None:
         """A discovered gateway: its name, then a radio for each connection type it offers.
