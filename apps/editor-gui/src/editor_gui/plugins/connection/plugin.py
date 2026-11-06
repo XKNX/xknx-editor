@@ -1333,9 +1333,12 @@ class ConnectionPlugin:
     def _link_info(self) -> LinkInfo:
         """How the open connection is described in recordings."""
         if self._usb_target is not None:
+            usb = self.usb_info
             return LinkInfo(
                 name=self._usb_target.name,
-                host=self._usb_target.serial_number,
+                host=usb.device.path.decode(errors="replace")
+                if usb is not None
+                else "",
                 port=0,
                 connector="Usb",
             )

@@ -55,7 +55,7 @@ class LinkInfo:
     """The connection the bus is reached through, as recordings describe it."""
 
     name: str
-    # The IP address; for a USB interface its USB serial number.
+    # The IP address; for a USB interface its device path (empty when unknown).
     host: str
     port: int
     # "IpTunneling", "IpRouting" or "Usb".
@@ -68,8 +68,8 @@ class LinkInfo:
     def options(self) -> str:
         """The connection's option string, e.g. for a recording's start entry."""
         if self.connector == "Usb":
-            serial = f"SerialNumber={self.host};" if self.host else ""
-            return f'Type=Usb;{serial}Name="{self.name}";AutoReconnect=True'
+            path = f"DevicePath={self.host};" if self.host else ""
+            return f'Type=Usb;{path}Name="{self.name}"'
         if self.connector == "IpRouting":
             return (
                 f"Type=IpRouting;MulticastAddress={self.host};"

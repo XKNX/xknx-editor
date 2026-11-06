@@ -250,17 +250,15 @@ class TestPlugin:
     def test_link_info(self) -> None:
         plugin = _plugin()
         plugin._usb_target = UsbTarget.of(_DEVICE)
+        # not connected: the device path is unknown
         link = plugin._link_info()
         assert link == LinkInfo(
-            name="KNX-USB Interface", host="00C501053FB2", port=0, connector="Usb"
+            name="KNX-USB Interface", host="", port=0, connector="Usb"
         )
-        assert link.options == (
-            'Type=Usb;SerialNumber=00C501053FB2;Name="KNX-USB Interface";'
-            "AutoReconnect=True"
-        )
+        assert link.options == 'Type=Usb;Name="KNX-USB Interface"'
         assert link.endpoint_name == "KNX-USB Interface (USB)"
-        assert LinkInfo("x", "", 0, "Usb").options == (
-            'Type=Usb;Name="x";AutoReconnect=True'
+        assert LinkInfo("x", r"\\?\hid#vid_16de&pid_008e#6", 0, "Usb").options == (
+            r'Type=Usb;DevicePath=\\?\hid#vid_16de&pid_008e#6;Name="x"'
         )
         assert plugin._busmonitor_target == "KNX-USB Interface (USB)"
 
@@ -293,6 +291,9 @@ class TestConnecting:
             assert connection.interface_address == "1.0.2"
             assert connection.interface_name == "KNX-USB Interface"
             assert connection.link_info.connector == "Usb"
+            assert connection.link_info.options == (
+                'Type=Usb;DevicePath=usb-path-1;Name="KNX-USB Interface"'
+            )
             assert plugin.test_events == ["connection", "connected"]
             assert plugin._xknx.current_address == IndividualAddress("1.0.2")
             info = plugin.usb_info
