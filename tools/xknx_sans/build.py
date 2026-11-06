@@ -201,12 +201,10 @@ def _take_latin(font: TTFont, selawik: TTFont) -> None:
         font["glyf"][cmap[code]].recalcBounds(font["glyf"])
 
 
-def _segoe_heights(font: TTFont, segoe: TTFont, codes: Iterable[int]) -> None:
-    """The glyphs of ``codes`` as high and as deep as Segoe UI draws them: each outline stretched
+def _match_heights(font: TTFont, segoe: TTFont, codes: Iterable[int]) -> None:
+    """The glyphs of ``codes`` as high and as deep as ``segoe`` draws them: each outline stretched
     vertically, piecewise, so that its x-height (where it reaches above it), its top and its
-    bottom are those of Segoe UI's glyph, the baseline staying. Thinning a face's outlines and
-    stretching them back to its x-height (see _selawik) lifts its capitals and ascenders, which
-    would then reach a pixel higher than Segoe UI's."""
+    bottom are those of the other font's glyph, the baseline staying."""
     scale = font["head"].unitsPerEm / segoe["head"].unitsPerEm
     ours, theirs = font.getGlyphSet(), segoe.getGlyphSet()
     cmap, segoe_cmap = font.getBestCmap(), segoe.getBestCmap()
@@ -529,6 +527,7 @@ def main() -> None:
     parser.add_argument("--segoe-dir", type=Path, default=Path("C:/Windows/Fonts"))
     parser.add_argument("--out", type=Path, default=OUT)
     args = parser.parse_args()
+    regular: TTFont | None = None
     for face in FACES.values():
         segoe_path = args.segoe_dir / str(face["segoe"])
         segoe = TTFont(segoe_path)
@@ -537,8 +536,10 @@ def main() -> None:
         selawik = _selawik(args.selawik / str(face["selawik"]), _stem(segoe))
         _take_latin(font, selawik)
         if face["bold"]:
-            # The face whose outlines are thinned.
-            _segoe_heights(font, segoe, selawik.getBestCmap())
+            # The face whose outlines are thinned: thinning them and stretching them back to its
+            # x-height (see _selawik) lifts its capitals and ascenders, which would then reach a
+            # pixel higher than Segoe UI Semibold's.
+            _match_heights(font, segoe, selawik.getBestCmap())
         advances = _apply_widths(font, segoe, str(face["family"]))
         segoe_codes = segoe.getBestCmap()
         codes = sorted(
@@ -550,6 +551,14 @@ def main() -> None:
         _add_kerning(font, kerning)
         _vertical(font)
         _name(font, str(face["style"]), bool(face["bold"]), segoe["OS/2"].usWeightClass)
+        if face["style"] == "Regular":
+            regular = font
+        elif face["bold"] and regular is not None:
+            # The heights of the regular face, whose x-height is lower than Segoe UI Semibold's:
+            # FreeType's hinting rounds a face's x-height to whole pixels and scales the letters
+            # with it, so with an x-height of its own the bold face's capitals and ascenders
+            # would end a pixel lower than the regular face's (at 100 % and 150 %).
+            _match_heights(font, regular, selawik.getBestCmap())
         # Noto Sans' own date, so a build of the same sources gives the same file.
         font["head"].modified = font["head"].created
         font.recalcTimestamp = False
