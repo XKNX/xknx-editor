@@ -8,6 +8,7 @@ import subprocess
 import sys
 import threading
 import time
+import urllib.request
 from types import SimpleNamespace
 from typing import Any, cast
 
@@ -84,6 +85,37 @@ def test_an_idle_connection_outlives_the_clients_reuse_time(
         assert plugin.KEEP_ALIVE_SECONDS > 5
     finally:
         mcp.stop()
+
+
+def test_the_client_is_the_peer_not_a_forwarded_address(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    clients: list[Any] = []
+
+    async def app(scope: Any, receive: Any, send: Any) -> None:
+        if scope["type"] != "http":
+            await _app(scope, receive, send)
+            return
+        clients.append(scope["client"])
+        await send({"type": "http.response.start", "status": 204, "headers": []})
+        await send({"type": "http.response.body", "body": b""})
+
+    mcp = _plugin(monkeypatch, threading.Event())
+    monkeypatch.setattr(plugin, "build_http_app", lambda _ctx, _auth: app)
+    with socket.socket() as free:
+        free.bind(("127.0.0.1", 0))
+        port = free.getsockname()[1]
+    mcp.start("127.0.0.1", port)
+    try:
+        _wait(lambda: mcp._server is not None and mcp._server.started)
+        request = urllib.request.Request(
+            f"http://127.0.0.1:{port}/", headers={"X-Forwarded-For": "192.0.2.1"}
+        )
+        with urllib.request.urlopen(request) as reply:
+            assert reply.status == 204
+    finally:
+        mcp.stop()
+    assert clients[0][0] == "127.0.0.1"
 
 
 def test_a_stop_before_the_server_is_built_leaves_none_running(
