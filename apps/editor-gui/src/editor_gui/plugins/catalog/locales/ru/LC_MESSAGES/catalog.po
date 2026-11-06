@@ -273,3 +273,6 @@ msgstr "Почта подтверждена. Загрузки станут до�
 
 msgid "Version"
 msgstr "Версия"
+
+msgid "Register…"
+msgstr "Регистрация…"

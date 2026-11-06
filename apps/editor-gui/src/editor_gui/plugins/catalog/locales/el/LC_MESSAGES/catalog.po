@@ -273,3 +273,6 @@ msgstr "Το email επαληθεύτηκε. Οι λήψεις θα είναι �
 
 msgid "Version"
 msgstr "Έκδοση"
+
+msgid "Register…"
+msgstr "Εγγραφή…"

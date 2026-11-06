@@ -34,6 +34,7 @@ def test_expanded_forms_and_product_metadata(
     client.refresh()
     panel = AlternativeCatalogPanel(client, lambda _id: 1)
     panel._selected = client.search()[0][0]
+    panel._registration_requested = True
     context = imgui.create_context()
     io = imgui.get_io()
     io.display_size = imgui.ImVec2(width, 1500)
@@ -80,7 +81,9 @@ def test_expanded_forms_and_product_metadata(
             imgui.begin("Catalog")
             panel.render()
             assert AppS.SETTINGS_TITLE in ids.values()
-            assert list(ids.values()).count(S.ALTERNATIVE_REGISTER) == 2
+            # The registration is in its dialog, opened by its button.
+            assert S.ALTERNATIVE_REGISTER_OPEN in ids.values()
+            assert list(ids.values()).count(S.ALTERNATIVE_REGISTER) == 1
             assert all(
                 label in columns
                 for label in (
@@ -211,8 +214,15 @@ def test_all_results_scroll_select_and_filter(
         if move_to_bottom:
             imgui.set_scroll_y(scroll[1])
 
+    original_disabled = imgui.text_disabled
+
+    def disabled(value, *args, **kwargs):
+        texts.append(value)
+        return original_disabled(value, *args, **kwargs)
+
     monkeypatch.setattr(imgui, "selectable", selectable)
     monkeypatch.setattr(imgui, "text_unformatted", text)
+    monkeypatch.setattr(imgui, "text_disabled", disabled)
     monkeypatch.setattr(imgui, "table_headers_row", headers)
 
     def frame() -> None:
@@ -233,7 +243,8 @@ def test_all_results_scroll_select_and_filter(
         for _ in range(3):
             frame()
         assert len(panel._entries) == 1205
-        assert S.ONLINE_MATCH_COUNT.format(count=1205) in texts
+        # No search: the status line gives the number of products, no count of matches.
+        assert S.ONLINE_MATCH_COUNT.format(count=1205) not in texts
         assert "Product 0" in rendered and "Product 1204" not in rendered
         move_to_bottom = True
         frame()
@@ -258,6 +269,63 @@ def test_all_results_scroll_select_and_filter(
         for _ in range(3):
             frame()
         assert "Product 0" in rendered and scroll[0] == 0
+    finally:
+        imgui.destroy_context(context)
+        panel.stop()
+
+
+def test_settings_closed_and_the_catalog_status(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr("editor_gui.settings.config_dir", lambda: tmp_path)
+    client = AlternativeCatalogClient(
+        tmp_path,
+        settings=AlternativeSettings("https://catalog.example"),
+        transport=httpx.MockTransport(lambda r: httpx.Response(200, json=index())),
+    )
+    panel = AlternativeCatalogPanel(client, lambda _id: 1)
+    context = imgui.create_context()
+    io = imgui.get_io()
+    io.display_size = imgui.ImVec2(1200, 900)
+    io.backend_flags |= imgui.BackendFlags_.renderer_has_textures
+    opened: list[bool] = []
+    greyed: list[str] = []
+    original_header = imgui.collapsing_header
+    original_disabled = imgui.text_disabled
+
+    def header(label, *args, **kwargs):
+        shown = original_header(label, *args, **kwargs)
+        opened.append(shown)
+        return shown
+
+    def disabled(value, *args, **kwargs):
+        greyed.append(value)
+        return original_disabled(value, *args, **kwargs)
+
+    monkeypatch.setattr(imgui, "collapsing_header", header)
+    monkeypatch.setattr(imgui, "text_disabled", disabled)
+
+    def frame() -> None:
+        opened.clear()
+        greyed.clear()
+        imgui.new_frame()
+        imgui.set_next_window_size(imgui.ImVec2(1200, 900), imgui.Cond_.always)
+        imgui.set_next_window_pos(imgui.ImVec2(0, 0), imgui.Cond_.always)
+        imgui.begin("Catalog")
+        panel.render()
+        imgui.end()
+        imgui.end_frame()
+
+    try:
+        frame()
+        # Closed, also before signing in.
+        assert opened == [False]
+        client.refresh()
+        panel._query = "MDT"
+        frame()
+        frame()
+        # While searching, the count of matches, greyed, as in the Online tab.
+        assert S.ONLINE_MATCH_COUNT.format(count=len(client.search("MDT")[0])) in greyed
     finally:
         imgui.destroy_context(context)
         panel.stop()

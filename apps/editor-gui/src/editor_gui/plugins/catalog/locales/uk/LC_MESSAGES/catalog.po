@@ -273,3 +273,6 @@ msgstr "Пошту підтверджено. Завантаження стану
 
 msgid "Version"
 msgstr "Версія"
+
+msgid "Register…"
+msgstr "Реєстрація…"

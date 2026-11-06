@@ -273,3 +273,6 @@ msgstr "E-mail verificado. As transferências ficam disponíveis após aprovaç�
 
 msgid "Version"
 msgstr "Versão"
+
+msgid "Register…"
+msgstr "Registar…"

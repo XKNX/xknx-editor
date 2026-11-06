@@ -276,3 +276,6 @@ msgstr "Netfang staðfest. Niðurhal verður tiltækt eftir samþykki kerfisstj�
 
 msgid "Version"
 msgstr "Útgáfa"
+
+msgid "Register…"
+msgstr "Nýskráning…"

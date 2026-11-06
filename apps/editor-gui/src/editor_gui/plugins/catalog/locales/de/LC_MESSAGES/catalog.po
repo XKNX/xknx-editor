@@ -278,3 +278,6 @@ msgstr "E-Mail bestätigt. Downloads sind nach Freischaltung durch den Administr
 
 msgid "Version"
 msgstr "Version"
+
+msgid "Register…"
+msgstr "Registrieren…"

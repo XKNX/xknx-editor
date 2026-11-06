@@ -276,3 +276,6 @@ msgstr "E-mail verificat. Descărcările devin disponibile după aprobarea admin
 
 msgid "Version"
 msgstr "Versiune"
+
+msgid "Register…"
+msgstr "Înregistrare…"
