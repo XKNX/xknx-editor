@@ -12,7 +12,11 @@ from fastmcp import Client
 
 from editor_gui import host
 from editor_gui.host import HostOptions
-from editor_gui.plugins.home_assistant.service import CREATED_BY, HomeAssistantService
+from editor_gui.plugins.home_assistant.service import (
+    CREATED_BY,
+    GroupAddressUsage,
+    HomeAssistantService,
+)
 from editor_gui.plugins.mcp.server import build_server
 from editor_gui.plugins.mcp.tools import home_assistant as tools
 
@@ -47,6 +51,15 @@ class _Link:
             self.inbox.append(
                 {"type": "result", "id": message["id"], "error": self.refuse}
             )
+        elif message["type"] == "telegram_history":
+            self.inbox.append(
+                {
+                    "type": "result",
+                    "id": message["id"],
+                    "error": self.refuse,
+                    "telegrams": [{"destination": "1/2/3"}, {"destination": "1/2/4"}],
+                }
+            )
         return True
 
 
@@ -68,7 +81,7 @@ def _server(
         return {"info": {"guid": meta.guid or meta.id}, "group_addresses": {}}
 
     service = HomeAssistantService(
-        ctx.api.project, lambda: link, build=build, persist=False
+        ctx.api.project, lambda: link, build=build, prepare=None, persist=False
     )
     ctx.home_assistant = service
     # The GUI thread polls the service each frame; here while a tool waits.
@@ -82,7 +95,7 @@ def _server(
 async def test_the_state_and_sending_the_project(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    mcp, service, link = _server(tmp_path, monkeypatch)
+    mcp, _service, link = _server(tmp_path, monkeypatch)
     async with Client(mcp) as client:
         status = await _data(client, "home_assistant_status")
         assert status["state"] == "no_project"
@@ -127,3 +140,52 @@ async def test_outside_home_assistant_the_tools_refuse(
     async with Client(mcp) as client:
         with pytest.raises(Exception, match="does not run inside Home Assistant"):
             await client.call_tool("home_assistant_status", {})
+
+
+async def test_what_home_assistant_does_with_a_group_address(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    mcp, service, _link = _server(tmp_path, monkeypatch)
+    async with Client(mcp) as client:
+        await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
+        created = await _data(
+            client, "project_create_group_address", name="Kitchen", address="1/2/3"
+        )
+        light = {"kind": "entity", "entity_id": "light.kitchen", "state": "on"}
+        service.usage = {0x0A03: GroupAddressUsage(users=(light,), sends=True)}
+        usage = await _data(
+            client, "home_assistant_group_address_usage", group_address="1/2/3"
+        )
+        assert usage == {
+            "group_address_id": created["group_address_id"],
+            "address": "1/2/3",
+            "known": True,
+            "sends": True,
+            "users": [light],
+        }
+        service.usage = {}
+        usage = await _data(
+            client,
+            "home_assistant_group_address_usage",
+            group_address_id=created["group_address_id"],
+        )
+        assert (usage["sends"], usage["users"]) == (False, [])
+
+
+async def test_home_assistants_telegrams_are_loaded(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    mcp, service, link = _server(tmp_path, monkeypatch)
+    histories: list[int] = []
+    service.on_history = lambda telegrams: histories.append(len(telegrams))
+    async with Client(mcp) as client:
+        assert await _data(client, "home_assistant_load_telegrams", hours=2) == {
+            "loaded": 2
+        }
+        # The Group Monitor's own way of taking them stays.
+        assert histories == [2]
+        link.refuse = "store busy"
+        with pytest.raises(Exception, match="store busy"):
+            await client.call_tool("home_assistant_load_telegrams", {})
+        with pytest.raises(Exception, match="at least 1"):
+            await client.call_tool("home_assistant_load_telegrams", {"hours": 0})

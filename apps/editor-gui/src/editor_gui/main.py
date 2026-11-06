@@ -850,9 +850,13 @@ class KnxGuiApp:
         self._signing_plugin = SigningPlugin(self._plugin_api)
         self._recover_plugin = RecoverPlugin(self._plugin_api)
         self._home_assistant_plugin = HomeAssistantPlugin(
-            self._plugin_api, self._project_service
+            self._plugin_api, self._project_service, self._monitor_plugin.service
         )
         self._health_plugin = HealthPlugin(self._plugin_api)
+        # A group address Home Assistant sends to has a sender.
+        self._health_plugin.service.external_senders = (
+            self._home_assistant_plugin.service.senders
+        )
         self._cockpit_plugin = CockpitPlugin(self._plugin_api)
         self._bus_diagram_plugin = BusDiagramPlugin(self._plugin_api)
         self._timeline_plugin = TimelinePlugin(
@@ -922,6 +926,9 @@ class KnxGuiApp:
             compare=self._project_plugin.open_project_diff,
         )
         self._project_plugin.set_show_backups(self._backups_plugin.show_window)
+        self._project_plugin.group_address_extras = (
+            self._home_assistant_plugin.render_group_address
+        )
         # The Settings window, its pages built once (their settings read the live state).
         self._settings_page_list: list[SettingsPage] | None = None
         self._settings_window = SettingsWindow(

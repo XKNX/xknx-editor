@@ -40,6 +40,7 @@ from editor_gui.plugins.monitor.records import (
     MonitorRecord,
     RecordKind,
     TelegramLog,
+    datetime_to_ticks,
     now_ticks,
 )
 from editor_gui.plugins.monitor.replay import Replayer, ReplayPlan, build_plan
@@ -115,6 +116,8 @@ class Channel:
         # A start entry was written and no stop entry since.
         self.session = False
         self.connection_name = ""
+        # The session records another program's telegrams (see MonitorService.on_foreign_cemi).
+        self.foreign = False
 
 
 class MonitorService:
@@ -212,6 +215,74 @@ class MonitorService:
             self._load_stamps.append(time.monotonic())
         self._append(channel, record)
 
+    def on_foreign_cemi(
+        self, raw_cemi: bytes, when: datetime, link: LinkInfo, *, log: bool = True
+    ) -> bool:
+        """A group telegram another program's connection carried at ``when`` (Home Assistant's
+        KNX integration, ``link``): to the latest values and, with ``log``, the Group Monitor,
+        while this app has no connection of its own (that one carries the same telegrams).
+        True when taken."""
+        if self.is_connected() or not raw_cemi:
+            return False
+        record = MonitorRecord(
+            kind=RecordKind.TELEGRAM, ticks=datetime_to_ticks(when), raw=raw_cemi
+        )
+        frame = record.frame
+        if frame is None or not is_group_monitor_frame(raw_cemi[0], frame):
+            return False
+        payload = frame.value_payload
+        if payload is not None and frame.group_value and frame.destination is not None:
+            key = str(XGroupAddress(frame.destination))
+            known = self._values.get(key)
+            if known is None or known.timestamp <= when:
+                kind = (
+                    "Write" if isinstance(frame.apci, GroupValueWrite) else "Response"
+                )
+                self._values[key] = LiveValue(
+                    payload=payload, timestamp=when, service=kind
+                )
+        channel = self.channels[MonitorKind.GROUP]
+        if not log or not channel.recording:
+            return True
+        with self._lock:
+            if not channel.session or channel.connection_name != link.endpoint_name:
+                self._stop_session(channel)
+                self._start_session(channel, link, Mode.LINK_LAYER)
+                channel.foreign = True
+            record.connection_name = channel.connection_name
+            channel.log.append(record)
+        return True
+
+    def load_foreign(
+        self, frames: Iterable[tuple[bytes, datetime]], link: LinkInfo
+    ) -> int:
+        """Replace the Group Monitor's entries with group telegrams another program's connection
+        recorded (``link``), as a loaded recording is (recording stops). Returns how many."""
+        records: list[MonitorRecord] = []
+        for raw, when in sorted(frames, key=lambda item: item[1]):
+            record = MonitorRecord(
+                kind=RecordKind.TELEGRAM,
+                ticks=datetime_to_ticks(when),
+                raw=raw,
+                connection_name=link.endpoint_name,
+            )
+            if record.frame is not None and is_group_monitor_frame(
+                raw[0], record.frame
+            ):
+                records.append(record)
+        start = MonitorRecord(
+            kind=RecordKind.START,
+            ticks=records[0].ticks if records else self._clock(),
+            connection_name=link.name,
+            mode=Mode.LINK_LAYER,
+            host=link.host,
+            connection_options=link.options,
+            connector_type=link.connector,
+            medium_type=link.medium,
+        )
+        self.load(MonitorKind.GROUP, [start, *records])
+        return len(records)
+
     def _append(self, channel: Channel, record: MonitorRecord) -> None:
         if not channel.session:
             if channel.kind is MonitorKind.BUS or not channel.recording:
@@ -230,6 +301,9 @@ class MonitorService:
         self._values = {}
         for kind in (MonitorKind.GROUP, MonitorKind.ACTIVITY):
             channel = self.channels[kind]
+            if channel.foreign:
+                # Another program's telegrams were recorded until now (see on_foreign_cemi).
+                self._stop_session(channel)
             if channel.recording and not channel.session:
                 self._start_session(channel, self._link_info(), Mode.LINK_LAYER)
 
@@ -271,6 +345,7 @@ class MonitorService:
         with self._lock:
             channel.connection_name = link.endpoint_name if link is not None else ""
             channel.session = True
+            channel.foreign = False
             channel.log.append(
                 MonitorRecord(
                     kind=RecordKind.START,

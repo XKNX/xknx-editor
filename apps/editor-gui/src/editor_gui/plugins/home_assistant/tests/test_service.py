@@ -3,10 +3,13 @@ answers."""
 
 from __future__ import annotations
 
+import threading
+import time
 from dataclasses import dataclass, field
 from typing import Any, cast
 
 import pytest
+
 from editor_gui.plugins.home_assistant.service import (
     CREATED_BY,
     DEBOUNCE_SECONDS,
@@ -88,6 +91,7 @@ class _Env:
             cast("Any", self.project),
             lambda: cast("Any", self.link),
             build=self._build,
+            prepare=None,
             clock=self.clock,
             persist=False,
         )
@@ -238,6 +242,7 @@ def test_a_project_that_cannot_be_built_is_reported(env: _Env) -> None:
         cast("Any", env.project),
         lambda: cast("Any", env.link),
         build=broken,
+        prepare=None,
         clock=env.clock,
         persist=False,
     )
@@ -286,3 +291,134 @@ def test_a_closed_project_is_not_sent(env: _Env) -> None:
 def test_a_project_without_a_guid_is_known_by_its_id(env: _Env) -> None:
     env.project.meta = _Meta(guid="")
     assert env.service.project_guid() == "P-0001"
+
+
+def test_the_programs_are_read_off_the_gui_thread_before_the_first_send(
+    env: _Env,
+) -> None:
+    started = threading.Event()
+    release = threading.Event()
+
+    def prepare(_project: object) -> None:
+        started.set()
+        release.wait(5)
+
+    env.service = HomeAssistantService(
+        cast("Any", env.project),
+        lambda: cast("Any", env.link),
+        build=env._build,
+        prepare=prepare,
+        clock=env.clock,
+        persist=False,
+    )
+    env.report(None)
+    # Read as soon as the KNX integration can take the project.
+    assert started.wait(5)
+    assert env.service.send_now()
+    assert env.service.state is LinkState.SENDING
+    assert env.builds == 0
+    release.set()
+    deadline = time.monotonic() + 5
+    while env.builds == 0 and time.monotonic() < deadline:
+        env.service.poll()
+        time.sleep(0.01)
+    assert env.builds == 1
+    env.answer()
+    assert env.service.state is LinkState.UP_TO_DATE
+
+
+def test_each_sent_project_has_its_time(env: _Env) -> None:
+    env.report(None)
+    env.service.send_now()
+    assert env.link is not None
+    info = env.link.sent[-1]["project"]["info"]
+    assert info["guid"] == "guid-1"
+    assert info["last_modified"].endswith("+00:00")
+
+
+def test_what_home_assistant_does_with_the_group_addresses(env: _Env) -> None:
+    assert env.link is not None
+    env.report(None)
+    env.link.inbox.append(
+        {
+            "type": "usage",
+            "group_addresses": {
+                "2563": {
+                    "users": [{"kind": "entity", "entity_id": "light.kitchen"}],
+                    "sends": True,
+                },
+                "2564": {"users": [], "sends": False},
+                # Not a raw address, not an object: left out.
+                "x": {"users": []},
+                "2565": "text",
+            },
+        }
+    )
+    env.service.poll()
+    assert set(env.service.usage) == {2563, 2564}
+    assert env.service.usage[2563].users[0]["entity_id"] == "light.kitchen"
+    assert env.service.senders() == frozenset({2563})
+    # A new connection knows nothing yet.
+    env.link.generation += 1
+    env.service.poll()
+    assert env.service.usage == {}
+
+
+def test_home_assistants_telegrams_go_to_the_monitor(env: _Env) -> None:
+    assert env.link is not None
+    taken: list[tuple[dict[str, Any], bool]] = []
+    env.service.on_telegram = lambda telegram, log: taken.append((telegram, log))
+    env.link.inbox += [
+        {"type": "values", "telegrams": [{"destination": "1/2/3"}, "bad"]},
+        {"type": "telegram", "telegram": {"destination": "1/2/4"}},
+    ]
+    env.service.poll()
+    assert taken == [
+        ({"destination": "1/2/3"}, False),
+        ({"destination": "1/2/4"}, True),
+    ]
+
+
+def test_the_history_is_asked_for_and_handed_on(env: _Env) -> None:
+    assert env.link is not None
+    loaded: list[list[dict[str, Any]]] = []
+    env.service.on_history = loaded.append
+    assert not env.service.request_history()
+    env.report(None)
+    assert env.service.request_history(hours=6)
+    request = env.link.sent[-1]
+    assert request == {"type": "telegram_history", "id": request["id"], "hours": 6}
+    assert env.service.history_loading
+    # One at a time.
+    assert not env.service.request_history()
+    env.link.inbox.append(
+        {"type": "result", "id": request["id"], "error": None, "telegrams": [{"a": 1}]}
+    )
+    env.service.poll()
+    assert loaded == [[{"a": 1}]]
+    assert not env.service.history_loading
+
+    assert env.service.request_history()
+    env.link.inbox.append(
+        {"type": "result", "id": env.link.sent[-1]["id"], "error": "store busy"}
+    )
+    env.service.poll()
+    assert env.service.history_error == "store busy"
+
+
+def test_the_knx_integrations_connection_is_known(env: _Env) -> None:
+    assert env.link is not None
+    env.link.inbox.append(
+        {
+            "type": "knx",
+            "loaded": True,
+            "project": None,
+            "connection": {"type": "routing", "host": "224.0.23.12", "port": 3671},
+        }
+    )
+    env.service.poll()
+    assert env.service.connection == {
+        "type": "routing",
+        "host": "224.0.23.12",
+        "port": 3671,
+    }

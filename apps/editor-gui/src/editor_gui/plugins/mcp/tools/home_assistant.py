@@ -90,6 +90,80 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         raise ToolError("Home Assistant did not answer in time")
 
     @tool("read")
+    def home_assistant_group_address_usage(
+        group_address_id: int | None = None, group_address: str | None = None
+    ) -> dict[str, Any]:
+        """What Home Assistant does with a group address (its details' Home Assistant section):
+        identify it by ``group_address_id`` OR ``group_address`` (printed, e.g. "1/2/3"). Returns
+        {group_address_id, address, known, sends, users}: known is false while the integration is
+        not connected; sends is true when Home Assistant sends to it (an entity's command, an
+        expose, the time server: then it has a sender without a device of the project); users
+        are {kind ("entity", "expose", "time"), name, entity_id, platform, state, ui (false for an
+        entity from YAML), disabled}."""
+        require_project(ctx)
+        from editor_gui.plugins.mcp.tools.project import require_group_address_id
+
+        def _read() -> dict[str, Any]:
+            ha = service()
+            ga_id = require_group_address_id(
+                ctx.api.project, group_address_id, group_address
+            )
+            ga = ctx.api.project.get_group_address(ga_id)
+            assert ga is not None  # proven by require_group_address_id
+            usage = ha.usage.get(ga.raw)
+            return {
+                "group_address_id": ga_id,
+                "address": ga.address,
+                "known": ha.connected,
+                "sends": usage.sends if usage is not None else False,
+                "users": list(usage.users) if usage is not None else [],
+            }
+
+        return ctx.run_locked(_read)
+
+    @tool("destructive")
+    def home_assistant_load_telegrams(hours: int = 24) -> dict[str, Any]:
+        """Load the group telegrams Home Assistant's KNX integration recorded in the last
+        ``hours`` hours into the Group Monitor, in place of its entries (Load Telegrams from
+        Home Assistant; recording stops, as after loading a recording). Read them with the
+        network_* tools. Waits until they are there and returns {loaded}. Without a bus
+        connection of the editor, the Group Monitor shows Home Assistant's live telegrams
+        anyway."""
+        if hours < 1:
+            raise ToolError("hours must be at least 1")
+        loaded: list[int] = []
+
+        def _ask() -> bool:
+            ha = service()
+            previous = ha.on_history
+
+            def take(telegrams: list[dict[str, Any]]) -> None:
+                if previous is not None:
+                    previous(telegrams)
+                loaded.append(len(telegrams))
+                ha.on_history = previous
+
+            ha.on_history = take
+            if ha.request_history(hours):
+                return True
+            ha.on_history = previous
+            return False
+
+        if not ctx.run_locked(_ask):
+            raise ToolError(
+                "Home Assistant cannot be asked now (not connected, or busy)"
+            )
+        deadline = time.monotonic() + _SEND_TIMEOUT
+        while time.monotonic() < deadline:
+            if loaded:
+                return {"loaded": loaded[0]}
+            error = ctx.run_locked(lambda: service().history_error)
+            if error is not None:
+                raise ToolError(f"the telegrams could not be loaded: {error}")
+            time.sleep(_POLL_SECONDS)
+        raise ToolError("Home Assistant did not answer in time")
+
+    @tool("read")
     def home_assistant_project_model(section: str | None = None) -> dict[str, Any]:
         """The open project as it is sent to Home Assistant's KNX integration (xknxproject's
         project format). Without ``section``: {info, counts} with the number of entries of each

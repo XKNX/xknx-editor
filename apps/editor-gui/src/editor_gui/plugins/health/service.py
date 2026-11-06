@@ -6,6 +6,7 @@ project revision so the panel can call :meth:`findings` every frame cheaply."""
 from __future__ import annotations
 
 from collections import Counter
+from collections.abc import Callable
 from dataclasses import dataclass
 from enum import Enum
 from typing import TYPE_CHECKING
@@ -39,7 +40,10 @@ class HealthService:
     def __init__(self, project: ProjectService) -> None:
         self._project = project
         self._cache: list[Finding] | None = None
-        self._cache_key: tuple[int, int, str] | None = None
+        self._cache_key: tuple[int, int, str, frozenset[int]] | None = None
+        # The group addresses (raw) another program sends to, e.g. Home Assistant: they have a
+        # sender without a device of the project. Set by the app.
+        self.external_senders: Callable[[], frozenset[int]] = frozenset
 
     def findings(self) -> list[Finding]:
         """Current health findings, recomputed only when the project or the language changed.
@@ -48,7 +52,12 @@ class HealthService:
         devices) its reads are empty placeholders, so the last findings stay until it is done."""
         if self._project.loading:
             return self._cache or []
-        key = (self._project.revision, id(self._project.devices), get_locale())
+        key = (
+            self._project.revision,
+            id(self._project.devices),
+            get_locale(),
+            self.external_senders(),
+        )
         if self._cache is None or self._cache_key != key:
             self._cache = self._compute()
             self._cache_key = key
@@ -142,6 +151,7 @@ class HealthService:
         sender."""
         assigned = {link.group_address_id for link in links}
         senders_of = Counter(link.group_address_id for link in links if link.is_sending)
+        external = self.external_senders()
         out: list[Finding] = []
         for ga in self._project.group_addresses:
             if not ga.datapoint_type:
@@ -155,7 +165,7 @@ class HealthService:
                 )
             if ga.id in assigned:
                 senders = senders_of[ga.id]
-                if senders == 0:
+                if senders == 0 and ga.raw not in external:
                     out.append(
                         Finding(
                             Severity.WARNING,

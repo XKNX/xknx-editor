@@ -17,6 +17,7 @@ class _Ga:
     address: str
     name: str
     datapoint_type: str | None = None
+    raw: int = 0
 
 
 @dataclass
@@ -130,3 +131,20 @@ def test_senders_of_each_linked_group_address() -> None:
     ]
     # All links in one read.
     assert project.link_reads == 1
+
+
+def test_a_group_address_another_program_sends_to_has_a_sender() -> None:
+    project = _Project(
+        group_addresses=[
+            _Ga(2, "1/1/2", "Sent by Home Assistant", "1.001", raw=0x0902),
+            _Ga(3, "1/1/3", "No sender", "1.001", raw=0x0903),
+        ],
+        links=[_link(12, 2, sending=False), _link(13, 3, sending=False)],
+    )
+    health = HealthService(cast(Any, project))
+    senders = {0x0902}
+    health.external_senders = lambda: frozenset(senders)
+    assert [f.ga_id for f in health.findings()] == [3]
+    # A change of what the other program sends is taken at once.
+    senders.add(0x0903)
+    assert health.findings() == []

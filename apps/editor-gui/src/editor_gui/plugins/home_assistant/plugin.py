@@ -14,14 +14,21 @@ from imgui_bundle import imgui
 
 from editor_gui import host
 from editor_gui.plugins.base import Logger, PanelDefinition, PluginAPI
-from editor_gui.plugins.home_assistant.service import HomeAssistantService, LinkState
+from editor_gui.plugins.home_assistant.service import (
+    HISTORY_HOURS,
+    HomeAssistantService,
+    LinkState,
+)
 from editor_gui.plugins.home_assistant.strings import S
+from editor_gui.plugins.home_assistant.telegrams import link_info, telegram_frame
 from editor_gui.settings_window import Setting
 from editor_gui.strings import S as app_strings
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
 from editor_gui.widgets.dpi import px
+from editor_gui.widgets.tables import begin_data_table, data_table_headers
 
 if TYPE_CHECKING:
+    from editor_gui.plugins.monitor.service import MonitorService
     from editor_gui.plugins.project.service import ProjectService
     from editor_gui.web.host_link import HostLink
 
@@ -46,15 +53,40 @@ def _host_link() -> HostLink | None:
 class HomeAssistantPlugin:
     name = "home_assistant"
 
-    def __init__(self, api: PluginAPI, project: ProjectService) -> None:
+    def __init__(
+        self,
+        api: PluginAPI,
+        project: ProjectService,
+        monitor: MonitorService | None = None,
+    ) -> None:
+        """``monitor``: the Group Monitor and latest values Home Assistant's telegrams go to."""
+        self._api = api
         self._service = HomeAssistantService(project, _host_link)
         self._service.set_logger(Logger(api.log, "home_assistant"))
+        self._monitor = monitor
+        self._service.on_telegram = self._take_telegram
+        self._service.on_history = self._take_history
         # The project generation the question was shown for (once per opened project).
         self._asked: int | None = None
         self._question_requested = False
         self._project = project
         # Opens a page of the Settings window (set by the app).
         self.open_settings: Callable[[str], None] | None = None
+
+    def _take_telegram(self, telegram: dict[str, Any], log: bool) -> None:
+        frame = telegram_frame(telegram)
+        if frame is not None and self._monitor is not None:
+            raw, when = frame
+            link = link_info(self._service.connection)
+            self._monitor.on_foreign_cemi(raw, when, link, log=log)
+
+    def _take_history(self, telegrams: list[dict[str, Any]]) -> None:
+        if self._monitor is None:
+            return
+        frames = [frame for t in telegrams if (frame := telegram_frame(t)) is not None]
+        count = self._monitor.load_foreign(frames, link_info(self._service.connection))
+        if self._api.notify is not None:
+            self._api.notify(S.HISTORY_LOADED.format(count=count))
 
     @property
     def service(self) -> HomeAssistantService:
@@ -105,6 +137,19 @@ class HomeAssistantPlugin:
                 service.send_now()
             else:
                 self._open_question()
+        if imgui.menu_item(
+            S.MENU_LOAD_TELEGRAMS,
+            "",
+            False,
+            service.connected and not service.history_loading,
+        )[0]:
+            service.request_history()
+        if imgui.is_item_hovered(imgui.HoveredFlags_.for_tooltip):
+            imgui.set_tooltip(S.LOAD_TELEGRAMS_HINT.format(hours=HISTORY_HOURS))
+        if service.history_error is not None:
+            imgui.text_colored(
+                _RED, S.HISTORY_FAILED.format(error=service.history_error)
+            )
         if self.open_settings is not None:
             imgui.separator()
             if imgui.menu_item(app_strings.MENU_SETTINGS, "", False)[0]:
@@ -123,6 +168,46 @@ class HomeAssistantPlugin:
                 hint=lambda: S.AUTO_UPDATE_HINT,
             )
         ]
+
+    def render_group_address(self, raw: int) -> None:
+        """Below a group address's details: what Home Assistant does with it."""
+        if not self.active:
+            return
+        imgui.spacing()
+        imgui.separator_text(S.MENU)
+        service = self._service
+        if not service.connected:
+            imgui.text_disabled(S.USAGE_UNKNOWN)
+            return
+        usage = service.usage.get(raw)
+        if usage is not None and usage.sends:
+            imgui.text_wrapped(S.USAGE_SENDS)
+        if usage is None or not usage.users:
+            imgui.text_disabled(S.USAGE_NONE)
+            return
+        if not begin_data_table(
+            "##home_assistant_usage", 3, imgui.TableFlags_.borders_inner_h
+        ):
+            return
+        imgui.table_setup_column(S.COLUMN_NAME)
+        imgui.table_setup_column(S.COLUMN_USE)
+        imgui.table_setup_column(S.COLUMN_STATE)
+        data_table_headers()
+        for index, user in enumerate(usage.users):
+            imgui.push_id(index)
+            imgui.table_next_row()
+            imgui.table_next_column()
+            imgui.text(str(user.get("name") or user.get("entity_id") or "?"))
+            imgui.table_next_column()
+            imgui.text(_use_text(user))
+            imgui.table_next_column()
+            state = user.get("state")
+            if user.get("disabled"):
+                imgui.text_disabled(S.USER_DISABLED)
+            elif state is not None:
+                imgui.text(str(state))
+            imgui.pop_id()
+        imgui.end_table()
 
     def render_status(self, part: Callable[..., Any]) -> None:
         """The status bar's part: ``part(text, color, tooltip=...)`` of the app's status bar."""
@@ -222,6 +307,18 @@ class HomeAssistantPlugin:
             tool=held.get("tool_version") or "?",
             date=_date(held.get("last_modified")),
         )
+
+
+def _use_text(user: dict[str, Any]) -> str:
+    """How a user of a group address uses it: an entity (its id, from YAML or the UI), an
+    expose or the time server."""
+    kind = user.get("kind")
+    if kind == "expose":
+        return S.USER_EXPOSE
+    if kind == "time":
+        return S.USER_TIME_SERVER
+    entity = str(user.get("entity_id") or user.get("platform") or "")
+    return S.USER_YAML.format(entity=entity) if user.get("ui") is False else entity
 
 
 def _date(value: object) -> str:

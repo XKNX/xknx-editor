@@ -161,5 +161,64 @@ class HomeAssistantStrings:
     def UNKNOWN_DATE(self) -> str:
         return _("date unknown")
 
+    @property
+    def MENU_LOAD_TELEGRAMS(self) -> str:
+        return _("Load Telegrams from Home Assistant")
+
+    @property
+    def LOAD_TELEGRAMS_HINT(self) -> str:
+        return _(
+            "The telegrams Home Assistant recorded in the last {hours} hours, in the Group "
+            "Monitor in place of its entries."
+        )
+
+    @property
+    def HISTORY_LOADED(self) -> str:
+        return _("{count} telegrams from Home Assistant in the Group Monitor")
+
+    @property
+    def HISTORY_FAILED(self) -> str:
+        return _("The telegrams could not be loaded: {error}")
+
+    @property
+    def USAGE_UNKNOWN(self) -> str:
+        return _("Shown once the XKNX Editor integration is connected.")
+
+    @property
+    def USAGE_NONE(self) -> str:
+        return _("Not used in Home Assistant.")
+
+    @property
+    def USAGE_SENDS(self) -> str:
+        return _("Home Assistant sends to this group address.")
+
+    @property
+    def COLUMN_NAME(self) -> str:
+        return _("Name")
+
+    @property
+    def COLUMN_USE(self) -> str:
+        return _("Used By")
+
+    @property
+    def COLUMN_STATE(self) -> str:
+        return _("State")
+
+    @property
+    def USER_EXPOSE(self) -> str:
+        return _("Expose")
+
+    @property
+    def USER_TIME_SERVER(self) -> str:
+        return _("Time server")
+
+    @property
+    def USER_YAML(self) -> str:
+        return _("{entity} (YAML)")
+
+    @property
+    def USER_DISABLED(self) -> str:
+        return _("Disabled")
+
 
 S = HomeAssistantStrings()

@@ -452,6 +452,9 @@ class ProjectPlugin:
             paste_dialog=self._paste_dialog("group_addresses"),
         )
 
+        # Drawn below a group address's details with its raw address (e.g. what uses it in Home
+        # Assistant); set by the app.
+        self.group_address_extras: Callable[[int], None] | None = None
         self._element_details = ElementDetailsPanel(
             on_rename=api.project.rename_element,
             on_set_description=api.project.set_element_description,
@@ -3403,6 +3406,13 @@ class ProjectPlugin:
             if element is None:
                 return False
             self._element_details.render(element)
+            if (
+                element.kind == "group_address"
+                and self.group_address_extras is not None
+            ):
+                ga = self._api.project.get_group_address(element.element_id)
+                if ga is not None:
+                    self.group_address_extras(ga.raw)
             return True
         self._sync_selected_device_from_editor()
         self._configure_panel.render_device()

@@ -13,8 +13,11 @@ Linking is the user's choice: an unlinked project is only sent when the user ask
 
 from __future__ import annotations
 
+import threading
 import time
 from collections.abc import Callable
+from dataclasses import dataclass
+from datetime import UTC, datetime
 from enum import StrEnum
 from typing import TYPE_CHECKING, Any, cast
 
@@ -29,7 +32,19 @@ if TYPE_CHECKING:
 CREATED_BY = "XKNX Editor"
 # A change is sent when the project has not changed for this long.
 DEBOUNCE_SECONDS = 2.0
+# The telegrams Home Assistant recorded that a history asks for.
+HISTORY_HOURS = 24
 _SETTINGS = "home_assistant"
+
+
+@dataclass(frozen=True)
+class GroupAddressUsage:
+    """What Home Assistant does with a group address."""
+
+    # {kind ("entity", "expose", "time"), name, entity_id, platform, state, ui, disabled} each.
+    users: tuple[dict[str, Any], ...] = ()
+    # Home Assistant sends to it (an entity's command, an expose, the time server).
+    sends: bool = False
 
 
 class LinkState(StrEnum):
@@ -47,6 +62,30 @@ class LinkState(StrEnum):
     FAILED = "failed"
 
 
+def _usage(value: object) -> dict[int, GroupAddressUsage]:
+    """The usage the integration reports: {raw address (as text): {users, sends}}."""
+    if not isinstance(value, dict):
+        return {}
+    result: dict[int, GroupAddressUsage] = {}
+    for key, entry in cast("dict[object, object]", value).items():
+        if not isinstance(entry, dict):
+            continue
+        try:
+            raw = int(str(key))
+        except ValueError:
+            continue
+        data = cast("dict[str, Any]", entry)
+        users: object = data.get("users")
+        listed = cast("list[object]", users) if isinstance(users, list) else []
+        result[raw] = GroupAddressUsage(
+            users=tuple(
+                cast("dict[str, Any]", u) for u in listed if isinstance(u, dict)
+            ),
+            sends=bool(data.get("sends")),
+        )
+    return result
+
+
 def _default_builder(project: ProjectService) -> dict[str, Any]:
     from editor_gui import __version__
     from editor_gui.plugins.home_assistant.project_model import build_project_model
@@ -55,6 +94,12 @@ def _default_builder(project: ProjectService) -> dict[str, Any]:
         "dict[str, Any]",
         build_project_model(project, tool_version=f"{CREATED_BY} {__version__}"),
     )
+
+
+def _default_prepare(project: ProjectService) -> None:
+    from editor_gui.plugins.home_assistant.project_model import prepare_project_model
+
+    prepare_project_model(project)
 
 
 class HomeAssistantService:
@@ -66,19 +111,28 @@ class HomeAssistantService:
         link: Callable[[], HostLink | None],
         *,
         build: Callable[[ProjectService], dict[str, Any]] = _default_builder,
+        prepare: Callable[[ProjectService], None] | None = _default_prepare,
         clock: Callable[[], float] = time.monotonic,
         persist: bool = True,
     ) -> None:
+        """``prepare`` reads on a worker thread what ``build`` needs (None: nothing)."""
         self._project = project
         self._link = link
         self._build = build
+        self._prepare = prepare
+        # The project generation whose programs were read, the one being read, and what failed.
+        self._prepared: int | None = None
+        self._preparing: int | None = None
+        self._prepare_error: str | None = None
+        # A send waits for the programs to be read.
+        self._wanted = False
         self._clock = clock
         self._persist = persist
         self._log: Logger | None = None
         settings = load_settings(_SETTINGS) if persist else {}
         self._auto_update = bool(settings.get("auto_update", True))
         # What the integration last reported.
-        self._link_generation = -1
+        self._link_generation: int = -1
         self.home_assistant_version = ""
         self.knx_loaded = False
         # The KNX integration's project info (name, guid, tool_version, created_by,
@@ -95,6 +149,18 @@ class HomeAssistantService:
         self.error: str | None = None
         # The projects whose question the user answered with Not Now (this session), by GUID.
         self._declined: set[str] = set()
+        # The KNX integration's connection to the bus: {type, host, port}, None when unknown.
+        self.connection: dict[str, Any] | None = None
+        # What Home Assistant does with each group address (raw): who uses it ("users": entities,
+        # exposes, the time server) and whether Home Assistant sends to it ("sends").
+        self.usage: dict[int, GroupAddressUsage] = {}
+        # Takes a telegram of Home Assistant's connection, and whether it goes to the Group
+        # Monitor's log (False: only its latest value). Set by the app.
+        self.on_telegram: Callable[[dict[str, Any], bool], None] | None = None
+        # Takes the telegrams of a history asked for with request_history, oldest first.
+        self.on_history: Callable[[list[dict[str, Any]]], None] | None = None
+        self._history_request: int | None = None
+        self.history_error: str | None = None
 
     def set_logger(self, log: Logger) -> None:
         self._log = log
@@ -152,7 +218,7 @@ class HomeAssistantService:
             return LinkState.KNX_MISSING
         if not self._project.is_open:
             return LinkState.NO_PROJECT
-        if self._sending is not None:
+        if self._sending is not None or self._wanted:
             return LinkState.SENDING
         if self.error is not None:
             return LinkState.FAILED
@@ -182,15 +248,49 @@ class HomeAssistantService:
     def send_now(self) -> bool:
         """Send the open project to the KNX integration (it becomes its project, which links it).
         False when it cannot be sent now (no connection, no KNX integration, no project, or a send
-        is under way)."""
-        link = self._link()
+        is under way). Until the project's programs are read (see :meth:`_start_prepare`) it is
+        sent once they are."""
         if (
-            link is None
+            self._link() is None
             or not self.connected
             or not self.knx_loaded
             or not self._project.is_open
             or self._sending is not None
+            or self._wanted
         ):
+            return False
+        if not self._ready():
+            self._wanted = True
+            self._start_prepare()
+            return True
+        return self._send()
+
+    def _ready(self) -> bool:
+        return self._prepare is None or self._prepared == self._project.generation
+
+    def _start_prepare(self) -> None:
+        """Read the programs of the open project's devices on a worker thread: the first build
+        of a large project would otherwise take seconds on the GUI thread."""
+        prepare = self._prepare
+        generation = self._project.generation
+        if prepare is None or self._ready() or self._preparing == generation:
+            return
+        self._preparing = generation
+
+        def run() -> None:
+            try:
+                prepare(self._project)
+            except Exception as exc:
+                self._prepare_error = str(exc) or type(exc).__name__
+            finally:
+                self._prepared = generation
+                self._preparing = None
+
+        threading.Thread(target=run, name="home-assistant-model", daemon=True).start()
+
+    def _send(self) -> bool:
+        link = self._link()
+        if link is None:
             return False
         key = self._key()
         started = self._clock()
@@ -203,6 +303,12 @@ class HomeAssistantService:
                     "project for Home Assistant not built", error=self.error
                 )
             return False
+        # The KNX integration's panel loads the project again when its info changes: the time of
+        # this state of the project.
+        model["info"] = {
+            **model.get("info", {}),
+            "last_modified": datetime.now(UTC).isoformat(timespec="seconds"),
+        }
         self._next_id += 1
         if not link.send(
             {"type": "set_project", "id": self._next_id, "project": model}
@@ -219,6 +325,28 @@ class HomeAssistantService:
             )
         return True
 
+    def senders(self) -> frozenset[int]:
+        """The group addresses (raw) Home Assistant sends to."""
+        return frozenset(raw for raw, usage in self.usage.items() if usage.sends)
+
+    @property
+    def history_loading(self) -> bool:
+        return self._history_request is not None
+
+    def request_history(self, hours: int = HISTORY_HOURS) -> bool:
+        """Ask for the telegrams Home Assistant recorded in the last ``hours`` hours (they come
+        to on_history); False without a connection or while one is asked for."""
+        link = self._link()
+        if link is None or not self.connected or self._history_request is not None:
+            return False
+        self._next_id += 1
+        request = {"type": "telegram_history", "id": self._next_id, "hours": hours}
+        if not link.send(request):
+            return False
+        self._history_request = self._next_id
+        self.history_error = None
+        return True
+
     def poll(self) -> None:
         """Handle the integration's messages and send a changed, linked project (each frame)."""
         link = self._link()
@@ -229,7 +357,11 @@ class HomeAssistantService:
             self._link_generation = link.generation
             self._knx_known = False
             self._sending = None
+            self._wanted = False
             self._sent = None
+            self.usage = {}
+            self.connection = None
+            self._history_request = None
         for message in link.receive():
             self._handle(message)
         key = self._key()
@@ -238,6 +370,17 @@ class HomeAssistantService:
             self._changed_at = self._clock()
             # A failed send is tried again with the next change.
             self.error = None
+        if self.connected and self.knx_loaded and self._project.is_open:
+            self._start_prepare()
+        if self._prepare_error is not None:
+            if self._log is not None:
+                self._log.warning(
+                    "programs for Home Assistant not read", error=self._prepare_error
+                )
+            self._prepare_error = None
+        if self._wanted and self._ready():
+            self._wanted = False
+            self._send()
         if (
             self._auto_update
             and self.state is LinkState.PENDING
@@ -256,9 +399,44 @@ class HomeAssistantService:
             self.knx_project = (
                 cast("dict[str, Any]", project) if isinstance(project, dict) else None
             )
+            connection = message.get("connection")
+            self.connection = (
+                cast("dict[str, Any]", connection)
+                if isinstance(connection, dict)
+                else None
+            )
             if not self.linked:
                 # Another project replaced ours (e.g. an upload in the KNX panel).
                 self._sent = None
+        elif kind == "usage":
+            self.usage = _usage(message.get("group_addresses"))
+        elif kind in ("values", "telegram"):
+            telegrams = (
+                message.get("telegrams")
+                if kind == "values"
+                else [message.get("telegram")]
+            )
+            if self.on_telegram is not None and isinstance(telegrams, list):
+                for telegram in cast("list[object]", telegrams):
+                    if isinstance(telegram, dict):
+                        self.on_telegram(
+                            cast("dict[str, Any]", telegram), kind == "telegram"
+                        )
+        elif kind == "result" and message.get("id") == self._history_request:
+            self._history_request = None
+            telegrams = message.get("telegrams")
+            if (error := message.get("error")) is not None or not isinstance(
+                telegrams, list
+            ):
+                self.history_error = str(error or "no telegrams")
+            elif self.on_history is not None:
+                self.on_history(
+                    [
+                        cast("dict[str, Any]", t)
+                        for t in cast("list[object]", telegrams)
+                        if isinstance(t, dict)
+                    ]
+                )
         elif kind == "result" and self._sending is not None:
             request, key = self._sending
             if message.get("id") != request:
