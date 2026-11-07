@@ -580,3 +580,92 @@ async def test_unsupported_capture_range_is_rejected_before_any_io(count: int) -
             LdCtrlLoadImageProp(obj_idx=4, prop_id=7, count=count),
         ).run()
     assert device.sent == []
+
+
+class HeldMcbDevice(PropertyDevice):
+    """Holds the MCB entries in ``elements``; a read that reaches past them is answered with
+    no elements, as a device that keeps one entry for the whole segment does."""
+
+    def _handle_property_read(
+        self, payload: PropertyValueRead
+    ) -> PropertyValueResponse:
+        last = payload.start_index + payload.count - 1
+        if payload.property_id == 27 and (payload.object_index, 27, last) not in (
+            self.elements
+        ):
+            return PropertyValueResponse(
+                object_index=payload.object_index,
+                property_id=27,
+                count=0,
+                start_index=payload.start_index,
+                data=b"",
+            )
+        return super()._handle_property_read(payload)
+
+
+async def test_an_mcb_holding_fewer_entries_than_captured_is_no_error() -> None:
+    # The procedure captures three entries; the device merged them into one after the load.
+    device = HeldMcbDevice()
+    device.elements = {(4, 27, 1): bytes.fromhex("0000079500337813")}
+    runner = LoadProcedureRunner(
+        _application(LdCtrlLoadImageProp(obj_idx=4, prop_id=27, count=3)),
+        DownloadImage(segments=(), properties=()),
+        DeviceProgrammer(device),
+        object_types=MAPPING,
+    )
+    await runner.run()
+    # One entry per read at the standard APDU: the entry held is captured, the read ends at the
+    # first one the device answers with no elements.
+    reads = [
+        (p.start_index, p.count)
+        for p in device.sent
+        if isinstance(p, PropertyValueRead) and p.property_id == 27
+    ]
+    assert reads == [(1, 1), (2, 1)]
+    assert list(runner._property_captures) == [(4, 27, 1)]  # pyright: ignore[reportPrivateUsage]
+
+
+async def test_an_mcb_holding_none_of_the_entries_captured_is_no_error() -> None:
+    device = HeldMcbDevice()
+    device.elements = {(4, 27, 1): bytes.fromhex("0000079500337813")}
+    runner = LoadProcedureRunner(
+        _application(
+            LdCtrlLoadImageProp(obj_idx=4, prop_id=27, start_element=2, count=2)
+        ),
+        DownloadImage(segments=(), properties=()),
+        DeviceProgrammer(device),
+        object_types=MAPPING,
+    )
+    await runner.run()
+    assert not runner._property_captures  # pyright: ignore[reportPrivateUsage]
+
+
+async def test_an_mcb_capture_keeps_the_entries_the_device_answers_with() -> None:
+    # Split to fit the APDU: the first part comes back, the device holds none of the last.
+    device = HeldMcbDevice()
+    device.elements = {
+        (4, 27, element): bytes([element]) * 8 for element in range(1, 7)
+    }
+    runner = LoadProcedureRunner(
+        _application(LdCtrlLoadImageProp(obj_idx=4, prop_id=27, count=7)),
+        DownloadImage(segments=(), properties=()),
+        DeviceProgrammer(device, max_apdu_length=55),
+        object_types=MAPPING,
+    )
+    await runner.run()
+    assert sorted(runner._property_captures) == [(4, 27, e) for e in range(1, 7)]  # pyright: ignore[reportPrivateUsage]
+
+
+async def test_preview_leaves_the_crcs_of_the_mcb_to_the_device() -> None:
+    # The product data plans the CRC as zero; the device holds the one it computed.
+    device = PropertyDevice()
+    device.elements = {
+        (4, 7, 1): bytes.fromhex("00003804"),
+        (5, 7, 1): bytes(4),
+        (4, 27, 1): bytes.fromhex("0000001000329" + "7a6"),
+    }
+    runner, _ = par_runner(device)
+    report = await runner.preflight()
+    mcb = [p for p in report.properties if p.property_id == 27]
+    assert mcb and all(p.procedure_step for p in mcb)
+    assert any(p.changed for p in mcb)
