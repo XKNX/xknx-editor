@@ -1,0 +1,341 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor home_assistant 1.0\n"
+"Language: tr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Home Assistant"
+msgstr "Home Assistant"
+
+msgid "Use Project in Home Assistant"
+msgstr "Projeyi Home Assistant'ta kullan"
+
+msgid "Update Home Assistant Now"
+msgstr "Home Assistant'ı şimdi güncelle"
+
+msgid "Update Home Assistant Automatically"
+msgstr "Home Assistant'ı otomatik olarak güncelle"
+
+msgid "After each change, the project is sent to Home Assistant's KNX integration again."
+msgstr "Her değişiklikten sonra proje, Home Assistant'ın KNX entegrasyonuna yeniden gönderilir."
+
+msgid "Home Assistant: up to date"
+msgstr "Home Assistant: güncel"
+
+msgid "Home Assistant: changes not sent"
+msgstr "Home Assistant: değişiklikler gönderilmedi"
+
+msgid "Home Assistant: updating…"
+msgstr "Home Assistant: güncelleniyor…"
+
+msgid "Home Assistant: other project"
+msgstr "Home Assistant: başka proje"
+
+msgid "Home Assistant: KNX integration not set up"
+msgstr "Home Assistant: KNX entegrasyonu kurulmadı"
+
+msgid "Home Assistant: update failed"
+msgstr "Home Assistant: güncelleme başarısız"
+
+msgid "Home Assistant: not connected"
+msgstr "Home Assistant: bağlı değil"
+
+msgid "Home Assistant's KNX integration uses this project: its group monitor, project view and address pickers know its group addresses, devices and buildings."
+msgstr "Home Assistant'ın KNX entegrasyonu bu projeyi kullanıyor: grup monitörü, proje görünümü ve adres seçicileri projenin grup adreslerini, cihazlarını ve binalarını tanır."
+
+msgid "The changes are sent to Home Assistant in a moment."
+msgstr "Değişiklikler birazdan Home Assistant'a gönderilecek."
+
+msgid "Automatic updates are off: Update Home Assistant Now in the Home Assistant menu sends the changes."
+msgstr "Otomatik güncellemeler kapalı: Home Assistant menüsündeki “Home Assistant'ı şimdi güncelle” değişiklikleri gönderir."
+
+msgid "Home Assistant's KNX integration holds no project."
+msgstr "Home Assistant'ın KNX entegrasyonunda proje yok."
+
+msgid "Home Assistant's KNX integration holds the project \"{name}\" ({tool}, {date})."
+msgstr "Home Assistant'ın KNX entegrasyonunda “{name}” projesi var ({tool}, {date})."
+
+msgid "Set up the KNX integration in Home Assistant to use this project there (Settings > Devices & Services)."
+msgstr "Bu projeyi orada kullanmak için Home Assistant'ta KNX entegrasyonunu kurun (Ayarlar > Cihazlar ve Hizmetler)."
+
+msgid "Home Assistant did not take the project: {error}"
+msgstr "Home Assistant projeyi kabul etmedi: {error}"
+
+msgid "The XKNX Editor integration is not connected. Update the integration in Home Assistant if this stays."
+msgstr "XKNX Editor entegrasyonu bağlı değil. Bu durum sürerse Home Assistant'ta entegrasyonu güncelleyin."
+
+msgid "Home Assistant's KNX integration holds no project yet. Use \"{name}\" as its project?"
+msgstr "Home Assistant'ın KNX entegrasyonunda henüz proje yok. “{name}” onun projesi olarak kullanılsın mı?"
+
+msgid "Home Assistant's KNX integration holds the project \"{other}\" ({tool}, {date}). Replace it with \"{name}\"?"
+msgstr "Home Assistant'ın KNX entegrasyonunda “{other}” projesi var ({tool}, {date}). “{name}” ile değiştirilsin mi?"
+
+msgid "Its group monitor, project view, address pickers and entity suggestions then know this project's group addresses, devices and buildings. Entities, automations and the KNX integration's other settings stay as they are."
+msgstr "Ardından grup monitörü, proje görünümü, adres seçicileri ve varlık önerileri bu projenin grup adreslerini, cihazlarını ve binalarını tanır. Varlıklar, otomasyonlar ve KNX entegrasyonunun diğer ayarları olduğu gibi kalır."
+
+msgid "Your changes reach Home Assistant a moment after you make them."
+msgstr "Değişiklikleriniz, yaptıktan kısa süre sonra Home Assistant'a ulaşır."
+
+msgid "Automatic updates are off: Update Home Assistant Now in the Home Assistant menu sends your changes."
+msgstr "Otomatik güncellemeler kapalı: Home Assistant menüsündeki “Home Assistant'ı şimdi güncelle” değişikliklerinizi gönderir."
+
+msgid "Use in Home Assistant"
+msgstr "Home Assistant'ta kullan"
+
+msgid "Replace"
+msgstr "Değiştir"
+
+msgid "Not Now"
+msgstr "Şimdi değil"
+
+msgid "date unknown"
+msgstr "tarih bilinmiyor"
+
+msgid "Load Telegrams from Home Assistant"
+msgstr "Telegramları Home Assistant'tan yükle"
+
+msgid "The telegrams Home Assistant recorded in the last {hours} hours, in the Group Monitor in place of its entries."
+msgstr "Home Assistant'ın son {hours} saatte kaydettiği telegramlar, Grup İzleme'de mevcut girdilerin yerine."
+
+msgid "{count} telegrams from Home Assistant in the Group Monitor"
+msgstr "Grup İzleme'de Home Assistant'tan {count} telegram"
+
+msgid "The telegrams could not be loaded: {error}"
+msgstr "Telegramlar yüklenemedi: {error}"
+
+msgid "Shown once the XKNX Editor integration is connected."
+msgstr "XKNX Editor entegrasyonu bağlandığında gösterilir."
+
+msgid "Not used in Home Assistant."
+msgstr "Home Assistant'ta kullanılmıyor."
+
+msgid "Home Assistant sends to this group address."
+msgstr "Home Assistant bu grup adresine gönderir."
+
+msgid "Name"
+msgstr "Ad"
+
+msgid "Used By"
+msgstr "Kullanan"
+
+msgid "State"
+msgstr "Durum"
+
+msgid "Expose"
+msgstr "Ortaya çıkar"
+
+msgid "Time server"
+msgstr "Zaman sunucusu"
+
+msgid "{entity} (YAML)"
+msgstr "{entity} (YAML)"
+
+msgid "Disabled"
+msgstr "Devre dışı"
+
+msgid "Floors and Areas…"
+msgstr "Katlar ve alanlar…"
+
+msgid "Floors and Areas in Home Assistant"
+msgstr "Home Assistant'ta katlar ve alanlar"
+
+msgid "The floors of the buildings become floors of Home Assistant, their rooms, corridors and stairways its areas. Chosen ones are created, linked to one of the same name, or renamed as here; nothing is removed."
+msgstr "Binaların katları Home Assistant'ın katlarına, odaları, koridorları ve merdivenleri ise alanlarına dönüşür. Seçilenler oluşturulur, aynı adlı biriyle bağlanır veya buradaki gibi yeniden adlandırılır; hiçbir şey kaldırılmaz."
+
+msgid "The project has no floors, rooms, corridors or stairways."
+msgstr "Projede kat, oda, koridor veya merdiven yok."
+
+msgid "Building Part"
+msgstr "Bina bölümü"
+
+msgid "Becomes"
+msgstr "Dönüşür"
+
+msgid "In Home Assistant"
+msgstr "Home Assistant'ta"
+
+msgid "Floor"
+msgstr "Kat"
+
+msgid "Area"
+msgstr "Alan"
+
+msgid "New"
+msgstr "Yeni"
+
+msgid "Exists as \"{name}\""
+msgstr "“{name}” olarak mevcut"
+
+msgid "Named \"{name}\""
+msgstr "Adı “{name}”"
+
+msgid "Linked"
+msgstr "Bağlı"
+
+msgid "Applying…"
+msgstr "Uygulanıyor…"
+
+msgid "Home Assistant did not take them: {error}"
+msgstr "Home Assistant bunları kabul etmedi: {error}"
+
+msgid "Floors and areas in Home Assistant created, linked or renamed: {count}"
+msgstr "Home Assistant'ta oluşturulan, bağlanan veya yeniden adlandırılan katlar ve alanlar: {count}"
+
+msgid "Apply"
+msgstr "Uygula"
+
+msgid "Entities from Functions…"
+msgstr "Fonksiyonlardan varlıklar…"
+
+msgid "Entities in Home Assistant"
+msgstr "Home Assistant'taki varlıklar"
+
+msgid "The building functions become entities of Home Assistant's KNX integration: a light, a switch, a cover or a climate entity with the group addresses of their roles, named like the function, in the area its room became (see Floors and Areas). Home Assistant checks each one first."
+msgstr "Bina fonksiyonları, Home Assistant'ın KNX entegrasyonunun varlıklarına dönüşür: rollerinin grup adreslerini kullanan, fonksiyon gibi adlandırılmış bir ışık, anahtar, panjur veya iklimlendirme varlığı olarak, odalarının dönüştüğü alanda (bkz. Katlar ve alanlar). Home Assistant her birini önce kontrol eder."
+
+msgid "The project has no lights, switches, sun protection or heating among its functions."
+msgstr "Projenin fonksiyonları arasında ışık, anahtar, güneş koruması veya ısıtma yok."
+
+msgid "Function"
+msgstr "Fonksiyon"
+
+msgid "Group Addresses"
+msgstr "Grup adresleri"
+
+msgid "No area"
+msgstr "Alan yok"
+
+msgid "Created: {entity}"
+msgstr "Oluşturuldu: {entity}"
+
+msgid "Its address is used by {entities}"
+msgstr "Adresini kullananlar: {entities}"
+
+msgid "Being checked…"
+msgstr "Kontrol ediliyor…"
+
+msgid "Not taken: {error}"
+msgstr "Kabul edilmedi: {error}"
+
+msgid "Entities created in Home Assistant: {count}"
+msgstr "Home Assistant'ta oluşturulan varlıklar: {count}"
+
+msgid "Its group addresses changed: {entity} gets the new ones"
+msgstr "Grup adresleri değişti: {entity} yenilerini alır"
+
+msgid "Its group addresses changed: download its devices first"
+msgstr "Grup adresleri değişti: önce cihazlarını yükleyin"
+
+msgid "Entities of Removed Functions"
+msgstr "Kaldırılan fonksiyonların varlıkları"
+
+msgid "Entities updated in Home Assistant: {count}"
+msgstr "Home Assistant'ta güncellenen varlıklar: {count}"
+
+msgid "Entities removed from Home Assistant: {count}"
+msgstr "Home Assistant'tan kaldırılan varlıklar: {count}"
+
+msgid "Time Server…"
+msgstr "Zaman sunucusu…"
+
+msgid "Time Server in Home Assistant"
+msgstr "Home Assistant'ta zaman sunucusu"
+
+msgid "Home Assistant's KNX integration can send the time and the date to the bus. Choose the group addresses for them: those of the project with the data type of a time, a date, or a date with time."
+msgstr "Home Assistant'ın KNX entegrasyonu saati ve tarihi veri yoluna gönderebilir. Bunlar için grup adreslerini seçin: projenin saat, tarih veya saatli tarih veri türündeki grup adresleri."
+
+msgid "Time"
+msgstr "Zaman"
+
+msgid "Date"
+msgstr "Tarih"
+
+msgid "Date and Time"
+msgstr "Tarih ve saat"
+
+msgid "None"
+msgstr "Yok"
+
+msgid "Home Assistant's time server sends to the chosen group addresses"
+msgstr "Home Assistant'ın zaman sunucusu seçilen grup adreslerine gönderir"
+
+msgid "Send Keys to Home Assistant…"
+msgstr "Anahtarları Home Assistant'a gönder…"
+
+msgid "Keys in Home Assistant"
+msgstr "Home Assistant'taki anahtarlar"
+
+msgid "The keys of the project's Data Secure group addresses become the keyring of Home Assistant's KNX integration, so it reads and sends their telegrams. The KNX integration is loaded again for it."
+msgstr "Projenin Data Secure grup adreslerinin anahtarları, Home Assistant'ın KNX entegrasyonunun anahtarlığı olur; böylece entegrasyon bunların telegramlarını okur ve gönderir. Bunun için KNX entegrasyonu yeniden yüklenir."
+
+msgid "Data Secure group addresses: {count}"
+msgstr "Data Secure grup adresleri: {count}"
+
+msgid "Home Assistant's KNX integration is not set up, or it connects with KNX Secure: then its keyring holds its own connection's keys, and stays as it is (change it in the KNX integration's options)."
+msgstr "Home Assistant'ın KNX entegrasyonu kurulmamış veya KNX Secure ile bağlanıyor: bu durumda anahtarlığı kendi bağlantısının anahtarlarını içerir ve olduğu gibi kalır (KNX entegrasyonunun seçeneklerinden değiştirin)."
+
+msgid "Send"
+msgstr "Gönder"
+
+msgid "Home Assistant's KNX integration has the project's keys"
+msgstr "Home Assistant'ın KNX entegrasyonu projenin anahtarlarına sahip"
+
+msgid "Connect Like Home Assistant"
+msgstr "Home Assistant gibi bağlan"
+
+msgid "The editor connects to the bus over the same interface or router as Home Assistant's KNX integration (with a tunnel of its own). Without a connection of its own it reads and sends group telegrams over Home Assistant's."
+msgstr "Düzenleyici, Home Assistant'ın KNX entegrasyonuyla aynı arabirim veya yönlendirici üzerinden veri yoluna bağlanır (kendi tüneliyle). Kendi bağlantısı olmadan grup telegramlarını Home Assistant'ın bağlantısı üzerinden okur ve gönderir."
+
+msgid "Home Assistant's KNX integration connects with KNX Secure or finds its interface itself: connect the editor in the Gateway menu."
+msgstr "Home Assistant'ın KNX entegrasyonu KNX Secure ile bağlanıyor veya arabirimini kendisi buluyor: düzenleyiciyi Ağ Geçidi menüsünden bağlayın."
+
+msgid "From Home Assistant"
+msgstr "Home Assistant'tan"
+
+msgid "Floors and areas of Home Assistant that the project has no floor or room for. They become floors and rooms of the building, linked to what they were made from."
+msgstr "Projede karşılığı olan kat veya oda bulunmayan Home Assistant katları ve alanları. Binanın katları ve odaları olurlar ve oluşturuldukları kaynağa bağlanırlar."
+
+msgid "Building"
+msgstr "Bina"
+
+msgid "New building"
+msgstr "Yeni bina"
+
+msgid "Home"
+msgstr "Ev"
+
+msgid "Add to Project"
+msgstr "Projeye ekle"
+
+msgid "Floors and areas from Home Assistant"
+msgstr "Home Assistant'tan katlar ve alanlar"
+
+msgid "Floors and rooms added to the project: {count}"
+msgstr "Projeye eklenen katlar ve odalar: {count}"
+
+msgid "Group Addresses from Home Assistant…"
+msgstr "Home Assistant'tan grup adresleri…"
+
+msgid "Group Addresses from Home Assistant"
+msgstr "Home Assistant'tan grup adresleri"
+
+msgid "The group addresses Home Assistant's KNX integration uses that the project does not have. They are added with the name of what uses them and the datapoint type Home Assistant uses them with."
+msgstr "Home Assistant'ın KNX entegrasyonunun kullandığı ve projede bulunmayan grup adresleri. Bunları kullanan şeyin adıyla ve Home Assistant'ın bunları kullandığı veri tipiyle eklenirler."
+
+msgid "Home Assistant uses no group addresses the project does not have."
+msgstr "Home Assistant, projede bulunmayan grup adresi kullanmıyor."
+
+msgid "Address"
+msgstr "Adres"
+
+msgid "Datapoint Type"
+msgstr "Veri tipi"
+
+msgid "Group addresses from Home Assistant"
+msgstr "Home Assistant'tan grup adresleri"
+
+msgid "Group addresses added to the project: {count}"
+msgstr "Projeye eklenen grup adresleri: {count}"

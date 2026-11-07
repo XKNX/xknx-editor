@@ -1,0 +1,341 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor home_assistant 1.0\n"
+"Language: ro\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Home Assistant"
+msgstr "Home Assistant"
+
+msgid "Use Project in Home Assistant"
+msgstr "Utilizare proiect în Home Assistant"
+
+msgid "Update Home Assistant Now"
+msgstr "Actualizare Home Assistant acum"
+
+msgid "Update Home Assistant Automatically"
+msgstr "Actualizare automată Home Assistant"
+
+msgid "After each change, the project is sent to Home Assistant's KNX integration again."
+msgstr "După fiecare modificare, proiectul este trimis din nou către integrarea KNX din Home Assistant."
+
+msgid "Home Assistant: up to date"
+msgstr "Home Assistant: actualizat"
+
+msgid "Home Assistant: changes not sent"
+msgstr "Home Assistant: modificări netrimise"
+
+msgid "Home Assistant: updating…"
+msgstr "Home Assistant: se actualizează…"
+
+msgid "Home Assistant: other project"
+msgstr "Home Assistant: alt proiect"
+
+msgid "Home Assistant: KNX integration not set up"
+msgstr "Home Assistant: integrarea KNX nu este configurată"
+
+msgid "Home Assistant: update failed"
+msgstr "Home Assistant: actualizare eșuată"
+
+msgid "Home Assistant: not connected"
+msgstr "Home Assistant: neconectat"
+
+msgid "Home Assistant's KNX integration uses this project: its group monitor, project view and address pickers know its group addresses, devices and buildings."
+msgstr "Integrarea KNX din Home Assistant folosește acest proiect: monitorul de grup, vizualizarea proiectului și selectoarele de adrese ale acesteia cunosc adresele de grup, dispozitivele și clădirile proiectului."
+
+msgid "The changes are sent to Home Assistant in a moment."
+msgstr "Modificările vor fi trimise către Home Assistant în câteva momente."
+
+msgid "Automatic updates are off: Update Home Assistant Now in the Home Assistant menu sends the changes."
+msgstr "Actualizările automate sunt dezactivate: „Actualizare Home Assistant acum” din meniul Home Assistant trimite modificările."
+
+msgid "Home Assistant's KNX integration holds no project."
+msgstr "Integrarea KNX din Home Assistant nu conține niciun proiect."
+
+msgid "Home Assistant's KNX integration holds the project \"{name}\" ({tool}, {date})."
+msgstr "Integrarea KNX din Home Assistant conține proiectul „{name}” ({tool}, {date})."
+
+msgid "Set up the KNX integration in Home Assistant to use this project there (Settings > Devices & Services)."
+msgstr "Configurați integrarea KNX în Home Assistant pentru a folosi acolo acest proiect (Configurare > Dispozitive și servicii)."
+
+msgid "Home Assistant did not take the project: {error}"
+msgstr "Home Assistant nu a preluat proiectul: {error}"
+
+msgid "The XKNX Editor integration is not connected. Update the integration in Home Assistant if this stays."
+msgstr "Integrarea XKNX Editor nu este conectată. Actualizați integrarea în Home Assistant dacă situația persistă."
+
+msgid "Home Assistant's KNX integration holds no project yet. Use \"{name}\" as its project?"
+msgstr "Integrarea KNX din Home Assistant nu conține încă niciun proiect. Folosiți „{name}” ca proiect al acesteia?"
+
+msgid "Home Assistant's KNX integration holds the project \"{other}\" ({tool}, {date}). Replace it with \"{name}\"?"
+msgstr "Integrarea KNX din Home Assistant conține proiectul „{other}” ({tool}, {date}). Îl înlocuiți cu „{name}”?"
+
+msgid "Its group monitor, project view, address pickers and entity suggestions then know this project's group addresses, devices and buildings. Entities, automations and the KNX integration's other settings stay as they are."
+msgstr "Monitorul de grup, vizualizarea proiectului, selectoarele de adrese și sugestiile de entități ale acesteia vor cunoaște apoi adresele de grup, dispozitivele și clădirile acestui proiect. Entitățile, automatizările și celelalte setări ale integrării KNX rămân neschimbate."
+
+msgid "Your changes reach Home Assistant a moment after you make them."
+msgstr "Modificările dvs. ajung la Home Assistant la scurt timp după ce le faceți."
+
+msgid "Automatic updates are off: Update Home Assistant Now in the Home Assistant menu sends your changes."
+msgstr "Actualizările automate sunt dezactivate: „Actualizare Home Assistant acum” din meniul Home Assistant trimite modificările dvs."
+
+msgid "Use in Home Assistant"
+msgstr "Utilizare în Home Assistant"
+
+msgid "Replace"
+msgstr "Înlocuire"
+
+msgid "Not Now"
+msgstr "Nu acum"
+
+msgid "date unknown"
+msgstr "dată necunoscută"
+
+msgid "Load Telegrams from Home Assistant"
+msgstr "Încărcare telegrame din Home Assistant"
+
+msgid "The telegrams Home Assistant recorded in the last {hours} hours, in the Group Monitor in place of its entries."
+msgstr "Telegramele înregistrate de Home Assistant în ultimele {hours} ore, în Monitor de grup în locul intrărilor acestuia."
+
+msgid "{count} telegrams from Home Assistant in the Group Monitor"
+msgstr "Telegrame din Home Assistant în Monitor de grup: {count}"
+
+msgid "The telegrams could not be loaded: {error}"
+msgstr "Telegramele nu au putut fi încărcate: {error}"
+
+msgid "Shown once the XKNX Editor integration is connected."
+msgstr "Se afișează după ce integrarea XKNX Editor este conectată."
+
+msgid "Not used in Home Assistant."
+msgstr "Neutilizat în Home Assistant."
+
+msgid "Home Assistant sends to this group address."
+msgstr "Home Assistant trimite către această adresă de grup."
+
+msgid "Name"
+msgstr "Nume"
+
+msgid "Used By"
+msgstr "Utilizat de"
+
+msgid "State"
+msgstr "Stare"
+
+msgid "Expose"
+msgstr "Expose"
+
+msgid "Time server"
+msgstr "Server de timp"
+
+msgid "{entity} (YAML)"
+msgstr "{entity} (YAML)"
+
+msgid "Disabled"
+msgstr "Dezactivat"
+
+msgid "Floors and Areas…"
+msgstr "Etaje și spații…"
+
+msgid "Floors and Areas in Home Assistant"
+msgstr "Etaje și spații în Home Assistant"
+
+msgid "The floors of the buildings become floors of Home Assistant, their rooms, corridors and stairways its areas. Chosen ones are created, linked to one of the same name, or renamed as here; nothing is removed."
+msgstr "Etajele clădirilor devin etaje în Home Assistant, iar camerele, coridoarele și casele scărilor lor devin spațiile acestuia. Cele alese sunt create, asociate cu unul cu același nume sau redenumite ca aici; nu se elimină nimic."
+
+msgid "The project has no floors, rooms, corridors or stairways."
+msgstr "Proiectul nu are etaje, camere, coridoare sau case ale scărilor."
+
+msgid "Building Part"
+msgstr "Parte de clădire"
+
+msgid "Becomes"
+msgstr "Devine"
+
+msgid "In Home Assistant"
+msgstr "În Home Assistant"
+
+msgid "Floor"
+msgstr "Etaj"
+
+msgid "Area"
+msgstr "Spațiu"
+
+msgid "New"
+msgstr "Nou"
+
+msgid "Exists as \"{name}\""
+msgstr "Există ca „{name}”"
+
+msgid "Named \"{name}\""
+msgstr "Se numește „{name}”"
+
+msgid "Linked"
+msgstr "Asociat"
+
+msgid "Applying…"
+msgstr "Se aplică…"
+
+msgid "Home Assistant did not take them: {error}"
+msgstr "Home Assistant nu le-a preluat: {error}"
+
+msgid "Floors and areas in Home Assistant created, linked or renamed: {count}"
+msgstr "Etaje și spații create, asociate sau redenumite în Home Assistant: {count}"
+
+msgid "Apply"
+msgstr "Aplicare"
+
+msgid "Entities from Functions…"
+msgstr "Entități din funcții…"
+
+msgid "Entities in Home Assistant"
+msgstr "Entități în Home Assistant"
+
+msgid "The building functions become entities of Home Assistant's KNX integration: a light, a switch, a cover or a climate entity with the group addresses of their roles, named like the function, in the area its room became (see Floors and Areas). Home Assistant checks each one first."
+msgstr "Funcțiile clădirii devin entități ale integrării KNX din Home Assistant: o lumină, un comutator, o acoperitoare sau o entitate de climatizare cu adresele de grup ale rolurilor lor, denumite ca funcția, în spațiul în care a fost transformată camera lor (vedeți Etaje și spații). Home Assistant le verifică mai întâi pe fiecare."
+
+msgid "The project has no lights, switches, sun protection or heating among its functions."
+msgstr "Printre funcțiile proiectului nu există lumini, comutatoare, protecție solară sau încălzire."
+
+msgid "Function"
+msgstr "Funcție"
+
+msgid "Group Addresses"
+msgstr "Adrese de grup"
+
+msgid "No area"
+msgstr "Niciun spațiu"
+
+msgid "Created: {entity}"
+msgstr "Creată: {entity}"
+
+msgid "Its address is used by {entities}"
+msgstr "Adresa ei este folosită de {entities}"
+
+msgid "Being checked…"
+msgstr "Se verifică…"
+
+msgid "Not taken: {error}"
+msgstr "Nepreluată: {error}"
+
+msgid "Entities created in Home Assistant: {count}"
+msgstr "Entități create în Home Assistant: {count}"
+
+msgid "Its group addresses changed: {entity} gets the new ones"
+msgstr "Adresele ei de grup s-au schimbat: {entity} le primește pe cele noi"
+
+msgid "Its group addresses changed: download its devices first"
+msgstr "Adresele ei de grup s-au schimbat: programați mai întâi dispozitivele ei"
+
+msgid "Entities of Removed Functions"
+msgstr "Entități ale funcțiilor eliminate"
+
+msgid "Entities updated in Home Assistant: {count}"
+msgstr "Entități actualizate în Home Assistant: {count}"
+
+msgid "Entities removed from Home Assistant: {count}"
+msgstr "Entități eliminate din Home Assistant: {count}"
+
+msgid "Time Server…"
+msgstr "Server de timp…"
+
+msgid "Time Server in Home Assistant"
+msgstr "Server de timp în Home Assistant"
+
+msgid "Home Assistant's KNX integration can send the time and the date to the bus. Choose the group addresses for them: those of the project with the data type of a time, a date, or a date with time."
+msgstr "Integrarea KNX din Home Assistant poate trimite ora și data pe magistrală. Alegeți adresele de grup pentru acestea: cele ale proiectului cu tipul de date al unei ore, al unei date sau al unei date cu oră."
+
+msgid "Time"
+msgstr "Oră"
+
+msgid "Date"
+msgstr "Dată"
+
+msgid "Date and Time"
+msgstr "Dată și oră"
+
+msgid "None"
+msgstr "Niciuna"
+
+msgid "Home Assistant's time server sends to the chosen group addresses"
+msgstr "Serverul de timp al Home Assistant trimite către adresele de grup alese"
+
+msgid "Send Keys to Home Assistant…"
+msgstr "Trimitere chei către Home Assistant…"
+
+msgid "Keys in Home Assistant"
+msgstr "Chei în Home Assistant"
+
+msgid "The keys of the project's Data Secure group addresses become the keyring of Home Assistant's KNX integration, so it reads and sends their telegrams. The KNX integration is loaded again for it."
+msgstr "Cheile adreselor de grup Data Secure ale proiectului devin keyring-ul integrării KNX din Home Assistant, pentru ca aceasta să citească și să trimită telegramele lor. Pentru aceasta, integrarea KNX este reîncărcată."
+
+msgid "Data Secure group addresses: {count}"
+msgstr "Adrese de grup Data Secure: {count}"
+
+msgid "Home Assistant's KNX integration is not set up, or it connects with KNX Secure: then its keyring holds its own connection's keys, and stays as it is (change it in the KNX integration's options)."
+msgstr "Integrarea KNX din Home Assistant nu este configurată sau se conectează cu KNX Secure: atunci keyring-ul ei conține cheile propriei conexiuni și rămâne neschimbat (modificați-l în opțiunile integrării KNX)."
+
+msgid "Send"
+msgstr "Trimitere"
+
+msgid "Home Assistant's KNX integration has the project's keys"
+msgstr "Integrarea KNX din Home Assistant are cheile proiectului"
+
+msgid "Connect Like Home Assistant"
+msgstr "Conectare ca Home Assistant"
+
+msgid "The editor connects to the bus over the same interface or router as Home Assistant's KNX integration (with a tunnel of its own). Without a connection of its own it reads and sends group telegrams over Home Assistant's."
+msgstr "Editorul se conectează la magistrală prin aceeași interfață sau același router ca integrarea KNX din Home Assistant (cu un tunel propriu). Fără o conexiune proprie, citește și trimite telegrame de grup prin conexiunea Home Assistant."
+
+msgid "Home Assistant's KNX integration connects with KNX Secure or finds its interface itself: connect the editor in the Gateway menu."
+msgstr "Integrarea KNX din Home Assistant se conectează cu KNX Secure sau își găsește singură interfața: conectați editorul din meniul Gateway."
+
+msgid "From Home Assistant"
+msgstr "Din Home Assistant"
+
+msgid "Floors and areas of Home Assistant that the project has no floor or room for. They become floors and rooms of the building, linked to what they were made from."
+msgstr "Etaje și spații din Home Assistant pentru care proiectul nu are niciun etaj sau nicio cameră. Devin etaje și camere ale clădirii, asociate cu ceea ce le-a generat."
+
+msgid "Building"
+msgstr "Clădire"
+
+msgid "New building"
+msgstr "Clădire nouă"
+
+msgid "Home"
+msgstr "Acasă"
+
+msgid "Add to Project"
+msgstr "Adăugare la proiect"
+
+msgid "Floors and areas from Home Assistant"
+msgstr "Etaje și spații din Home Assistant"
+
+msgid "Floors and rooms added to the project: {count}"
+msgstr "Etaje și camere adăugate la proiect: {count}"
+
+msgid "Group Addresses from Home Assistant…"
+msgstr "Adrese de grup din Home Assistant…"
+
+msgid "Group Addresses from Home Assistant"
+msgstr "Adrese de grup din Home Assistant"
+
+msgid "The group addresses Home Assistant's KNX integration uses that the project does not have. They are added with the name of what uses them and the datapoint type Home Assistant uses them with."
+msgstr "Adresele de grup pe care integrarea KNX din Home Assistant le folosește și pe care proiectul nu le are. Sunt adăugate cu numele a ceea ce le folosește și cu tipul de punct de date cu care le folosește Home Assistant."
+
+msgid "Home Assistant uses no group addresses the project does not have."
+msgstr "Home Assistant nu folosește adrese de grup pe care proiectul nu le are."
+
+msgid "Address"
+msgstr "Adresă"
+
+msgid "Datapoint Type"
+msgstr "Tip de punct de date"
+
+msgid "Group addresses from Home Assistant"
+msgstr "Adrese de grup din Home Assistant"
+
+msgid "Group addresses added to the project: {count}"
+msgstr "Adrese de grup adăugate la proiect: {count}"

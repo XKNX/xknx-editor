@@ -1,0 +1,341 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor home_assistant 1.0\n"
+"Language: zh\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Home Assistant"
+msgstr "Home Assistant"
+
+msgid "Use Project in Home Assistant"
+msgstr "在 Home Assistant 中使用项目"
+
+msgid "Update Home Assistant Now"
+msgstr "立即更新 Home Assistant"
+
+msgid "Update Home Assistant Automatically"
+msgstr "自动更新 Home Assistant"
+
+msgid "After each change, the project is sent to Home Assistant's KNX integration again."
+msgstr "每次更改后，项目都会重新发送到 Home Assistant 的 KNX 集成。"
+
+msgid "Home Assistant: up to date"
+msgstr "Home Assistant：已是最新"
+
+msgid "Home Assistant: changes not sent"
+msgstr "Home Assistant：更改未发送"
+
+msgid "Home Assistant: updating…"
+msgstr "Home Assistant：正在更新…"
+
+msgid "Home Assistant: other project"
+msgstr "Home Assistant：其他项目"
+
+msgid "Home Assistant: KNX integration not set up"
+msgstr "Home Assistant：未设置 KNX 集成"
+
+msgid "Home Assistant: update failed"
+msgstr "Home Assistant：更新失败"
+
+msgid "Home Assistant: not connected"
+msgstr "Home Assistant：未连接"
+
+msgid "Home Assistant's KNX integration uses this project: its group monitor, project view and address pickers know its group addresses, devices and buildings."
+msgstr "Home Assistant 的 KNX 集成正在使用此项目：其群组监控、项目视图和地址选择器可识别该项目的组地址、设备和建筑。"
+
+msgid "The changes are sent to Home Assistant in a moment."
+msgstr "更改将很快发送到 Home Assistant。"
+
+msgid "Automatic updates are off: Update Home Assistant Now in the Home Assistant menu sends the changes."
+msgstr "自动更新已关闭：Home Assistant 菜单中的“立即更新 Home Assistant”会发送更改。"
+
+msgid "Home Assistant's KNX integration holds no project."
+msgstr "Home Assistant 的 KNX 集成中没有项目。"
+
+msgid "Home Assistant's KNX integration holds the project \"{name}\" ({tool}, {date})."
+msgstr "Home Assistant 的 KNX 集成中有项目“{name}”（{tool}，{date}）。"
+
+msgid "Set up the KNX integration in Home Assistant to use this project there (Settings > Devices & Services)."
+msgstr "请在 Home Assistant 中设置 KNX 集成，以便在其中使用此项目（设置 > 设备与服务）。"
+
+msgid "Home Assistant did not take the project: {error}"
+msgstr "Home Assistant 未接受该项目：{error}"
+
+msgid "The XKNX Editor integration is not connected. Update the integration in Home Assistant if this stays."
+msgstr "XKNX Editor 集成未连接。如果此状态持续，请在 Home Assistant 中更新该集成。"
+
+msgid "Home Assistant's KNX integration holds no project yet. Use \"{name}\" as its project?"
+msgstr "Home Assistant 的 KNX 集成中还没有项目。是否将“{name}”用作其项目？"
+
+msgid "Home Assistant's KNX integration holds the project \"{other}\" ({tool}, {date}). Replace it with \"{name}\"?"
+msgstr "Home Assistant 的 KNX 集成中有项目“{other}”（{tool}，{date}）。是否将其替换为“{name}”？"
+
+msgid "Its group monitor, project view, address pickers and entity suggestions then know this project's group addresses, devices and buildings. Entities, automations and the KNX integration's other settings stay as they are."
+msgstr "之后，其群组监控、项目视图、地址选择器和实体建议将识别此项目的组地址、设备和建筑。实体、自动化以及 KNX 集成的其他设置保持不变。"
+
+msgid "Your changes reach Home Assistant a moment after you make them."
+msgstr "您的更改会在做出后片刻到达 Home Assistant。"
+
+msgid "Automatic updates are off: Update Home Assistant Now in the Home Assistant menu sends your changes."
+msgstr "自动更新已关闭：Home Assistant 菜单中的“立即更新 Home Assistant”会发送您的更改。"
+
+msgid "Use in Home Assistant"
+msgstr "在 Home Assistant 中使用"
+
+msgid "Replace"
+msgstr "替换"
+
+msgid "Not Now"
+msgstr "暂不"
+
+msgid "date unknown"
+msgstr "日期未知"
+
+msgid "Load Telegrams from Home Assistant"
+msgstr "从 Home Assistant 加载电报"
+
+msgid "The telegrams Home Assistant recorded in the last {hours} hours, in the Group Monitor in place of its entries."
+msgstr "Home Assistant 在过去 {hours} 小时内记录的电报，显示在组监视器中，替换其现有条目。"
+
+msgid "{count} telegrams from Home Assistant in the Group Monitor"
+msgstr "组监视器中有 {count} 条来自 Home Assistant 的电报"
+
+msgid "The telegrams could not be loaded: {error}"
+msgstr "无法加载电报：{error}"
+
+msgid "Shown once the XKNX Editor integration is connected."
+msgstr "XKNX Editor 集成连接后显示。"
+
+msgid "Not used in Home Assistant."
+msgstr "未在 Home Assistant 中使用。"
+
+msgid "Home Assistant sends to this group address."
+msgstr "Home Assistant 向此组地址发送。"
+
+msgid "Name"
+msgstr "名称"
+
+msgid "Used By"
+msgstr "使用者"
+
+msgid "State"
+msgstr "状态"
+
+msgid "Expose"
+msgstr "Expose"
+
+msgid "Time server"
+msgstr "时间服务器"
+
+msgid "{entity} (YAML)"
+msgstr "{entity} (YAML)"
+
+msgid "Disabled"
+msgstr "已禁用"
+
+msgid "Floors and Areas…"
+msgstr "楼层和区域…"
+
+msgid "Floors and Areas in Home Assistant"
+msgstr "Home Assistant 中的楼层和区域"
+
+msgid "The floors of the buildings become floors of Home Assistant, their rooms, corridors and stairways its areas. Chosen ones are created, linked to one of the same name, or renamed as here; nothing is removed."
+msgstr "建筑的楼层将成为 Home Assistant 的楼层，其房间、走廊和楼梯将成为 Home Assistant 的区域。所选项目将被创建、关联到同名项目，或按此处所示重命名；不会删除任何内容。"
+
+msgid "The project has no floors, rooms, corridors or stairways."
+msgstr "项目中没有楼层、房间、走廊或楼梯。"
+
+msgid "Building Part"
+msgstr "建筑局部"
+
+msgid "Becomes"
+msgstr "成为"
+
+msgid "In Home Assistant"
+msgstr "在 Home Assistant 中"
+
+msgid "Floor"
+msgstr "楼层"
+
+msgid "Area"
+msgstr "区域"
+
+msgid "New"
+msgstr "新建"
+
+msgid "Exists as \"{name}\""
+msgstr "已存在为“{name}”"
+
+msgid "Named \"{name}\""
+msgstr "名为“{name}”"
+
+msgid "Linked"
+msgstr "已关联"
+
+msgid "Applying…"
+msgstr "正在应用…"
+
+msgid "Home Assistant did not take them: {error}"
+msgstr "Home Assistant 未接受这些内容：{error}"
+
+msgid "Floors and areas in Home Assistant created, linked or renamed: {count}"
+msgstr "已在 Home Assistant 中创建、关联或重命名的楼层和区域：{count}"
+
+msgid "Apply"
+msgstr "应用"
+
+msgid "Entities from Functions…"
+msgstr "从功能创建实体…"
+
+msgid "Entities in Home Assistant"
+msgstr "Home Assistant 中的实体"
+
+msgid "The building functions become entities of Home Assistant's KNX integration: a light, a switch, a cover or a climate entity with the group addresses of their roles, named like the function, in the area its room became (see Floors and Areas). Home Assistant checks each one first."
+msgstr "建筑功能将成为 Home Assistant KNX 集成的实体：灯光、开关、卷帘或空调实体，使用其角色的组地址，以功能命名，位于其房间所对应的区域（参见“楼层和区域”）。Home Assistant 会先检查每个实体。"
+
+msgid "The project has no lights, switches, sun protection or heating among its functions."
+msgstr "项目的功能中没有灯光、开关、遮阳或供暖。"
+
+msgid "Function"
+msgstr "功能"
+
+msgid "Group Addresses"
+msgstr "组地址"
+
+msgid "No area"
+msgstr "没有区域"
+
+msgid "Created: {entity}"
+msgstr "已创建：{entity}"
+
+msgid "Its address is used by {entities}"
+msgstr "其地址已被 {entities} 使用"
+
+msgid "Being checked…"
+msgstr "正在检查…"
+
+msgid "Not taken: {error}"
+msgstr "未被接受：{error}"
+
+msgid "Entities created in Home Assistant: {count}"
+msgstr "已在 Home Assistant 中创建的实体：{count}"
+
+msgid "Its group addresses changed: {entity} gets the new ones"
+msgstr "其组地址已更改：{entity} 将获得新地址"
+
+msgid "Its group addresses changed: download its devices first"
+msgstr "其组地址已更改：请先下载其设备"
+
+msgid "Entities of Removed Functions"
+msgstr "已删除功能的实体"
+
+msgid "Entities updated in Home Assistant: {count}"
+msgstr "已在 Home Assistant 中更新的实体：{count}"
+
+msgid "Entities removed from Home Assistant: {count}"
+msgstr "已从 Home Assistant 中删除的实体：{count}"
+
+msgid "Time Server…"
+msgstr "时间服务器…"
+
+msgid "Time Server in Home Assistant"
+msgstr "Home Assistant 中的时间服务器"
+
+msgid "Home Assistant's KNX integration can send the time and the date to the bus. Choose the group addresses for them: those of the project with the data type of a time, a date, or a date with time."
+msgstr "Home Assistant 的 KNX 集成可以将时间和日期发送到总线。请为其选择组地址：项目中数据类型为时间、日期或日期时间的组地址。"
+
+msgid "Time"
+msgstr "时间"
+
+msgid "Date"
+msgstr "日期"
+
+msgid "Date and Time"
+msgstr "日期和时间"
+
+msgid "None"
+msgstr "无"
+
+msgid "Home Assistant's time server sends to the chosen group addresses"
+msgstr "Home Assistant 的时间服务器向所选组地址发送"
+
+msgid "Send Keys to Home Assistant…"
+msgstr "将密钥发送到 Home Assistant…"
+
+msgid "Keys in Home Assistant"
+msgstr "Home Assistant 中的密钥"
+
+msgid "The keys of the project's Data Secure group addresses become the keyring of Home Assistant's KNX integration, so it reads and sends their telegrams. The KNX integration is loaded again for it."
+msgstr "项目中 Data Secure 组地址的密钥将成为 Home Assistant KNX 集成的密钥环，使其能够读取和发送这些组地址的电报。为此将重新加载 KNX 集成。"
+
+msgid "Data Secure group addresses: {count}"
+msgstr "Data Secure 组地址：{count}"
+
+msgid "Home Assistant's KNX integration is not set up, or it connects with KNX Secure: then its keyring holds its own connection's keys, and stays as it is (change it in the KNX integration's options)."
+msgstr "Home Assistant 的 KNX 集成未设置，或通过 KNX Secure 连接：此时其密钥环包含其自身连接的密钥，并保持不变（请在 KNX 集成的选项中更改）。"
+
+msgid "Send"
+msgstr "发送"
+
+msgid "Home Assistant's KNX integration has the project's keys"
+msgstr "Home Assistant 的 KNX 集成已拥有项目的密钥"
+
+msgid "Connect Like Home Assistant"
+msgstr "像 Home Assistant 一样连接"
+
+msgid "The editor connects to the bus over the same interface or router as Home Assistant's KNX integration (with a tunnel of its own). Without a connection of its own it reads and sends group telegrams over Home Assistant's."
+msgstr "编辑器通过与 Home Assistant KNX 集成相同的接口或路由器连接到总线（使用自己的隧道）。如果没有自己的连接，它将通过 Home Assistant 的连接读取和发送组电报。"
+
+msgid "Home Assistant's KNX integration connects with KNX Secure or finds its interface itself: connect the editor in the Gateway menu."
+msgstr "Home Assistant 的 KNX 集成通过 KNX Secure 连接，或自行查找其接口：请在“网关”菜单中连接编辑器。"
+
+msgid "From Home Assistant"
+msgstr "来自 Home Assistant"
+
+msgid "Floors and areas of Home Assistant that the project has no floor or room for. They become floors and rooms of the building, linked to what they were made from."
+msgstr "项目中没有对应楼层或房间的 Home Assistant 楼层和区域。它们将成为建筑的楼层和房间，并与其来源相关联。"
+
+msgid "Building"
+msgstr "建筑"
+
+msgid "New building"
+msgstr "新建筑"
+
+msgid "Home"
+msgstr "家"
+
+msgid "Add to Project"
+msgstr "添加到项目"
+
+msgid "Floors and areas from Home Assistant"
+msgstr "来自 Home Assistant 的楼层和区域"
+
+msgid "Floors and rooms added to the project: {count}"
+msgstr "已添加到项目的楼层和房间：{count}"
+
+msgid "Group Addresses from Home Assistant…"
+msgstr "来自 Home Assistant 的组地址…"
+
+msgid "Group Addresses from Home Assistant"
+msgstr "来自 Home Assistant 的组地址"
+
+msgid "The group addresses Home Assistant's KNX integration uses that the project does not have. They are added with the name of what uses them and the datapoint type Home Assistant uses them with."
+msgstr "Home Assistant 的 KNX 集成使用但项目中没有的组地址。添加时使用使用它们的对象的名称，以及 Home Assistant 使用它们时的数据点类型。"
+
+msgid "Home Assistant uses no group addresses the project does not have."
+msgstr "Home Assistant 未使用项目中没有的组地址。"
+
+msgid "Address"
+msgstr "地址"
+
+msgid "Datapoint Type"
+msgstr "数据点类型"
+
+msgid "Group addresses from Home Assistant"
+msgstr "来自 Home Assistant 的组地址"
+
+msgid "Group addresses added to the project: {count}"
+msgstr "已添加到项目的组地址：{count}"

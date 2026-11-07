@@ -135,6 +135,7 @@ if TYPE_CHECKING:
         FunctionInfo,
         GroupRangeInfo,
         IpSecrets,
+        ModelSource,
         SecureCommissioningImpact,
         SpaceDeviceInfo,
         SpaceInfo,
@@ -4001,6 +4002,14 @@ class ProjectService:
         if self._pid is None:
             return []
         return self._svc.space_tree(self._pid, _INSTALLATION)
+
+    @io_guarded(lambda: None)
+    def model_source(self) -> "ModelSource | None":
+        """The rows of the whole project for a full description of it (``ModelSource``); None
+        with no project open or while a background import holds the project."""
+        if self._pid is None:
+            return None
+        return self._svc.model_source(self._pid)
 
     @io_guarded(lambda: None)
     @revision_cached

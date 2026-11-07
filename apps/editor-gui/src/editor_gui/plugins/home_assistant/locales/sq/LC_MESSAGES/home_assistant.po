@@ -1,0 +1,341 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor home_assistant 1.0\n"
+"Language: sq\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Home Assistant"
+msgstr "Home Assistant"
+
+msgid "Use Project in Home Assistant"
+msgstr "Përdor projektin në Home Assistant"
+
+msgid "Update Home Assistant Now"
+msgstr "Përditëso Home Assistant tani"
+
+msgid "Update Home Assistant Automatically"
+msgstr "Përditëso Home Assistant automatikisht"
+
+msgid "After each change, the project is sent to Home Assistant's KNX integration again."
+msgstr "Pas çdo ndryshimi, projekti dërgohet sërish te integrimi KNX i Home Assistant."
+
+msgid "Home Assistant: up to date"
+msgstr "Home Assistant: i përditësuar"
+
+msgid "Home Assistant: changes not sent"
+msgstr "Home Assistant: ndryshimet nuk janë dërguar"
+
+msgid "Home Assistant: updating…"
+msgstr "Home Assistant: po përditësohet…"
+
+msgid "Home Assistant: other project"
+msgstr "Home Assistant: projekt tjetër"
+
+msgid "Home Assistant: KNX integration not set up"
+msgstr "Home Assistant: integrimi KNX nuk është konfiguruar"
+
+msgid "Home Assistant: update failed"
+msgstr "Home Assistant: përditësimi dështoi"
+
+msgid "Home Assistant: not connected"
+msgstr "Home Assistant: nuk është lidhur"
+
+msgid "Home Assistant's KNX integration uses this project: its group monitor, project view and address pickers know its group addresses, devices and buildings."
+msgstr "Integrimi KNX i Home Assistant përdor këtë projekt: monitori i grupeve, pamja e projektit dhe zgjedhësit e adresave të tij njohin adresat e grupeve, pajisjet dhe ndërtesat e projektit."
+
+msgid "The changes are sent to Home Assistant in a moment."
+msgstr "Ndryshimet do të dërgohen te Home Assistant pas pak."
+
+msgid "Automatic updates are off: Update Home Assistant Now in the Home Assistant menu sends the changes."
+msgstr "Përditësimet automatike janë çaktivizuar: „Përditëso Home Assistant tani“ në menynë Home Assistant dërgon ndryshimet."
+
+msgid "Home Assistant's KNX integration holds no project."
+msgstr "Integrimi KNX i Home Assistant nuk ka asnjë projekt."
+
+msgid "Home Assistant's KNX integration holds the project \"{name}\" ({tool}, {date})."
+msgstr "Integrimi KNX i Home Assistant ka projektin „{name}“ ({tool}, {date})."
+
+msgid "Set up the KNX integration in Home Assistant to use this project there (Settings > Devices & Services)."
+msgstr "Konfiguroni integrimin KNX në Home Assistant për ta përdorur këtë projekt atje (Cilësimet > Pajisjet dhe shërbimet)."
+
+msgid "Home Assistant did not take the project: {error}"
+msgstr "Home Assistant nuk e pranoi projektin: {error}"
+
+msgid "The XKNX Editor integration is not connected. Update the integration in Home Assistant if this stays."
+msgstr "Integrimi XKNX Editor nuk është lidhur. Përditësoni integrimin në Home Assistant nëse kjo vazhdon."
+
+msgid "Home Assistant's KNX integration holds no project yet. Use \"{name}\" as its project?"
+msgstr "Integrimi KNX i Home Assistant nuk ka ende asnjë projekt. Të përdoret „{name}“ si projekti i tij?"
+
+msgid "Home Assistant's KNX integration holds the project \"{other}\" ({tool}, {date}). Replace it with \"{name}\"?"
+msgstr "Integrimi KNX i Home Assistant ka projektin „{other}“ ({tool}, {date}). Të zëvendësohet me „{name}“?"
+
+msgid "Its group monitor, project view, address pickers and entity suggestions then know this project's group addresses, devices and buildings. Entities, automations and the KNX integration's other settings stay as they are."
+msgstr "Monitori i grupeve, pamja e projektit, zgjedhësit e adresave dhe sugjerimet e entiteteve të tij do të njohin më pas adresat e grupeve, pajisjet dhe ndërtesat e këtij projekti. Entitetet, automatizimet dhe cilësimet e tjera të integrimit KNX mbeten siç janë."
+
+msgid "Your changes reach Home Assistant a moment after you make them."
+msgstr "Ndryshimet tuaja arrijnë te Home Assistant pak pasi i bëni."
+
+msgid "Automatic updates are off: Update Home Assistant Now in the Home Assistant menu sends your changes."
+msgstr "Përditësimet automatike janë çaktivizuar: „Përditëso Home Assistant tani“ në menynë Home Assistant dërgon ndryshimet tuaja."
+
+msgid "Use in Home Assistant"
+msgstr "Përdor në Home Assistant"
+
+msgid "Replace"
+msgstr "Zëvendëso"
+
+msgid "Not Now"
+msgstr "Jo tani"
+
+msgid "date unknown"
+msgstr "data e panjohur"
+
+msgid "Load Telegrams from Home Assistant"
+msgstr "Ngarko telegramet nga Home Assistant"
+
+msgid "The telegrams Home Assistant recorded in the last {hours} hours, in the Group Monitor in place of its entries."
+msgstr "Telegramet që Home Assistant regjistroi në {hours} orët e fundit, në Monitorin e grupeve në vend të hyrjeve të tij."
+
+msgid "{count} telegrams from Home Assistant in the Group Monitor"
+msgstr "Telegrame nga Home Assistant në Monitorin e grupeve: {count}"
+
+msgid "The telegrams could not be loaded: {error}"
+msgstr "Telegramet nuk u ngarkuan dot: {error}"
+
+msgid "Shown once the XKNX Editor integration is connected."
+msgstr "Shfaqet sapo të lidhet integrimi XKNX Editor."
+
+msgid "Not used in Home Assistant."
+msgstr "Nuk përdoret në Home Assistant."
+
+msgid "Home Assistant sends to this group address."
+msgstr "Home Assistant dërgon te kjo adresë grupi."
+
+msgid "Name"
+msgstr "Emri"
+
+msgid "Used By"
+msgstr "Përdoret nga"
+
+msgid "State"
+msgstr "Gjendja"
+
+msgid "Expose"
+msgstr "Expose"
+
+msgid "Time server"
+msgstr "Serveri i kohës"
+
+msgid "{entity} (YAML)"
+msgstr "{entity} (YAML)"
+
+msgid "Disabled"
+msgstr "Çaktivizuar"
+
+msgid "Floors and Areas…"
+msgstr "Katet dhe zonat…"
+
+msgid "Floors and Areas in Home Assistant"
+msgstr "Katet dhe zonat në Home Assistant"
+
+msgid "The floors of the buildings become floors of Home Assistant, their rooms, corridors and stairways its areas. Chosen ones are created, linked to one of the same name, or renamed as here; nothing is removed."
+msgstr "Katet e ndërtesave bëhen kate të Home Assistant, ndërsa dhomat, korridoret dhe shkallët e tyre bëhen zonat e tij. Të zgjedhurat krijohen, lidhen me një me të njëjtin emër ose riemërtohen si këtu; asgjë nuk hiqet."
+
+msgid "The project has no floors, rooms, corridors or stairways."
+msgstr "Projekti nuk ka kate, dhoma, korridore ose shkallë."
+
+msgid "Building Part"
+msgstr "Pjesa e ndërtesës"
+
+msgid "Becomes"
+msgstr "Bëhet"
+
+msgid "In Home Assistant"
+msgstr "Në Home Assistant"
+
+msgid "Floor"
+msgstr "Kat"
+
+msgid "Area"
+msgstr "Zonë"
+
+msgid "New"
+msgstr "I ri"
+
+msgid "Exists as \"{name}\""
+msgstr "Ekziston si „{name}“"
+
+msgid "Named \"{name}\""
+msgstr "Quhet „{name}“"
+
+msgid "Linked"
+msgstr "I lidhur"
+
+msgid "Applying…"
+msgstr "Po zbatohet…"
+
+msgid "Home Assistant did not take them: {error}"
+msgstr "Home Assistant nuk i pranoi: {error}"
+
+msgid "Floors and areas in Home Assistant created, linked or renamed: {count}"
+msgstr "Kate dhe zona të krijuara, të lidhura ose të riemërtuara në Home Assistant: {count}"
+
+msgid "Apply"
+msgstr "Zbato"
+
+msgid "Entities from Functions…"
+msgstr "Entitete nga funksionet…"
+
+msgid "Entities in Home Assistant"
+msgstr "Entitetet në Home Assistant"
+
+msgid "The building functions become entities of Home Assistant's KNX integration: a light, a switch, a cover or a climate entity with the group addresses of their roles, named like the function, in the area its room became (see Floors and Areas). Home Assistant checks each one first."
+msgstr "Funksionet e ndërtesës bëhen entitete të integrimit KNX të Home Assistant: një dritë, një çelës, një grilë ose një entitet klime me adresat e grupeve të roleve të tyre, të emërtuara si funksioni, në zonën në të cilën u kthye dhoma e tyre (shihni Katet dhe zonat). Home Assistant e kontrollon secilën më parë."
+
+msgid "The project has no lights, switches, sun protection or heating among its functions."
+msgstr "Projekti nuk ka drita, çelësa, mbrojtje nga dielli ose ngrohje midis funksioneve të tij."
+
+msgid "Function"
+msgstr "Funksioni"
+
+msgid "Group Addresses"
+msgstr "Adresat e grupeve"
+
+msgid "No area"
+msgstr "Asnjë zonë"
+
+msgid "Created: {entity}"
+msgstr "U krijua: {entity}"
+
+msgid "Its address is used by {entities}"
+msgstr "Adresën e saj e përdor {entities}"
+
+msgid "Being checked…"
+msgstr "Po kontrollohet…"
+
+msgid "Not taken: {error}"
+msgstr "Nuk u pranua: {error}"
+
+msgid "Entities created in Home Assistant: {count}"
+msgstr "Entitete të krijuara në Home Assistant: {count}"
+
+msgid "Its group addresses changed: {entity} gets the new ones"
+msgstr "Adresat e grupeve të tij ndryshuan: {entity} merr të rejat"
+
+msgid "Its group addresses changed: download its devices first"
+msgstr "Adresat e grupeve të tij ndryshuan: programoni fillimisht pajisjet e tij"
+
+msgid "Entities of Removed Functions"
+msgstr "Entitetet e funksioneve të hequra"
+
+msgid "Entities updated in Home Assistant: {count}"
+msgstr "Entitete të përditësuara në Home Assistant: {count}"
+
+msgid "Entities removed from Home Assistant: {count}"
+msgstr "Entitete të hequra nga Home Assistant: {count}"
+
+msgid "Time Server…"
+msgstr "Serveri i kohës…"
+
+msgid "Time Server in Home Assistant"
+msgstr "Serveri i kohës në Home Assistant"
+
+msgid "Home Assistant's KNX integration can send the time and the date to the bus. Choose the group addresses for them: those of the project with the data type of a time, a date, or a date with time."
+msgstr "Integrimi KNX i Home Assistant mund të dërgojë orën dhe datën në bus. Zgjidhni adresat e grupeve për to: ato të projektit me llojin e të dhënave të një ore, një date ose një date me orë."
+
+msgid "Time"
+msgstr "Ora"
+
+msgid "Date"
+msgstr "Data"
+
+msgid "Date and Time"
+msgstr "Data dhe ora"
+
+msgid "None"
+msgstr "Asnjë"
+
+msgid "Home Assistant's time server sends to the chosen group addresses"
+msgstr "Serveri i kohës i Home Assistant dërgon te adresat e grupeve të zgjedhura"
+
+msgid "Send Keys to Home Assistant…"
+msgstr "Dërgo çelësat te Home Assistant…"
+
+msgid "Keys in Home Assistant"
+msgstr "Çelësat në Home Assistant"
+
+msgid "The keys of the project's Data Secure group addresses become the keyring of Home Assistant's KNX integration, so it reads and sends their telegrams. The KNX integration is loaded again for it."
+msgstr "Çelësat e adresave të grupeve Data Secure të projektit bëhen keyring-u i integrimit KNX të Home Assistant, që ai të lexojë dhe të dërgojë telegramet e tyre. Për këtë, integrimi KNX ringarkohet."
+
+msgid "Data Secure group addresses: {count}"
+msgstr "Adresat e grupeve Data Secure: {count}"
+
+msgid "Home Assistant's KNX integration is not set up, or it connects with KNX Secure: then its keyring holds its own connection's keys, and stays as it is (change it in the KNX integration's options)."
+msgstr "Integrimi KNX i Home Assistant nuk është konfiguruar ose lidhet me KNX Secure: atëherë keyring-u i tij përmban çelësat e lidhjes së vet dhe mbetet siç është (ndryshojeni te opsionet e integrimit KNX)."
+
+msgid "Send"
+msgstr "Dërgo"
+
+msgid "Home Assistant's KNX integration has the project's keys"
+msgstr "Integrimi KNX i Home Assistant ka çelësat e projektit"
+
+msgid "Connect Like Home Assistant"
+msgstr "Lidhu si Home Assistant"
+
+msgid "The editor connects to the bus over the same interface or router as Home Assistant's KNX integration (with a tunnel of its own). Without a connection of its own it reads and sends group telegrams over Home Assistant's."
+msgstr "Editori lidhet me bus-in përmes së njëjtës ndërfaqe ose router-i si integrimi KNX i Home Assistant (me një tunel të vetin). Pa një lidhje të vetën, ai lexon dhe dërgon telegrame grupi përmes lidhjes së Home Assistant."
+
+msgid "Home Assistant's KNX integration connects with KNX Secure or finds its interface itself: connect the editor in the Gateway menu."
+msgstr "Integrimi KNX i Home Assistant lidhet me KNX Secure ose e gjen vetë ndërfaqen e tij: lidhni editorin te menyja Gateway."
+
+msgid "From Home Assistant"
+msgstr "Nga Home Assistant"
+
+msgid "Floors and areas of Home Assistant that the project has no floor or room for. They become floors and rooms of the building, linked to what they were made from."
+msgstr "Katet dhe zonat e Home Assistant për të cilat projekti nuk ka kat ose dhomë. Ato bëhen kate dhe dhoma të ndërtesës, të lidhura me atë nga e cila u krijuan."
+
+msgid "Building"
+msgstr "Ndërtesë"
+
+msgid "New building"
+msgstr "Ndërtesë e re"
+
+msgid "Home"
+msgstr "Shtëpi"
+
+msgid "Add to Project"
+msgstr "Shto në projekt"
+
+msgid "Floors and areas from Home Assistant"
+msgstr "Katet dhe zonat nga Home Assistant"
+
+msgid "Floors and rooms added to the project: {count}"
+msgstr "Kate dhe dhoma të shtuara në projekt: {count}"
+
+msgid "Group Addresses from Home Assistant…"
+msgstr "Adresat e grupeve nga Home Assistant…"
+
+msgid "Group Addresses from Home Assistant"
+msgstr "Adresat e grupeve nga Home Assistant"
+
+msgid "The group addresses Home Assistant's KNX integration uses that the project does not have. They are added with the name of what uses them and the datapoint type Home Assistant uses them with."
+msgstr "Adresat e grupeve që përdor integrimi KNX i Home Assistant dhe që projekti nuk i ka. Ato shtohen me emrin e asaj që i përdor dhe me llojin e pikës së të dhënave me të cilin i përdor Home Assistant."
+
+msgid "Home Assistant uses no group addresses the project does not have."
+msgstr "Home Assistant nuk përdor adresa grupesh që projekti nuk i ka."
+
+msgid "Address"
+msgstr "Adresa"
+
+msgid "Datapoint Type"
+msgstr "Lloji i pikës së të dhënave"
+
+msgid "Group addresses from Home Assistant"
+msgstr "Adresat e grupeve nga Home Assistant"
+
+msgid "Group addresses added to the project: {count}"
+msgstr "Adresa grupesh të shtuara në projekt: {count}"

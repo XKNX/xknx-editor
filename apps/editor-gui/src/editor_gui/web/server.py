@@ -61,6 +61,7 @@ from editor_gui.web.frames import (
     TextureMirror,
     message,
 )
+from editor_gui.web.host_link import PROTOCOL, HostLink
 
 if TYPE_CHECKING:
     from editor_gui.web.dialogs import WebDialog
@@ -198,6 +199,8 @@ class WebHub:
         self.notify: Callable[[str], None] | None = None
         # Reports an error the app went on after (where, what), set by the app.
         self.report_error: Callable[[str, str], None] | None = None
+        # The connection of the program that started the editor (Home Assistant's integration).
+        self.host_link = HostLink(self.wake.set)
         # The app's theme colours for the page's own elements.
         self.theme: dict[str, Any] = {}
 
@@ -658,6 +661,23 @@ class WebHub:
                 await sender
             self._on_disconnect(client)
 
+    async def _host_socket(self, socket: WebSocket) -> None:
+        """The integration that started the editor (see :mod:`editor_gui.web.host_link`). It signs
+        in like its proxy; other programs and browsers are not let in."""
+        from editor_gui import __version__, host
+
+        if (
+            not host.home_assistant()
+            or not self._authorized(socket)
+            or socket.headers.get("origin") is not None
+        ):
+            await socket.close(code=4403)
+            return
+        await socket.accept()
+        await self.host_link.serve(
+            socket, {"type": "hello", "protocol": PROTOCOL, "editor": __version__}
+        )
+
     async def _send(self, client: _Client) -> None:
         while True:
             await client.wake.wait()
@@ -714,6 +734,7 @@ class WebHub:
                 Route("/files/{key}/{name}", self._file),
                 Route("/upload", self._upload, methods=["POST"]),
                 WebSocketRoute("/ws", self._socket),
+                WebSocketRoute("/host", self._host_socket),
             ]
         )
 

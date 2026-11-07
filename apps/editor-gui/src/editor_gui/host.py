@@ -9,6 +9,9 @@
   and the AI/MCP settings show it without the fields to change it.
 - ``--mcp-url=URL``: the address MCP clients use, when they reach the server through a proxy (the
   integration's address in Home Assistant).
+- ``--language=CODE``: the language of the program that started the editor (Home Assistant's):
+  the editor's language, and so its product language, until one is chosen in its settings, in
+  place of the system's (which is none in Home Assistant's container).
 """
 
 from __future__ import annotations
@@ -30,6 +33,8 @@ class HostOptions:
     mcp_port: int | None = None
     # The address MCP clients use (--mcp-url).
     mcp_url: str | None = None
+    # The language of the program that started the editor (--language), e.g. "pt-BR".
+    language: str | None = None
 
     @property
     def mcp_managed(self) -> bool:
@@ -43,6 +48,7 @@ def host_options(argv: list[str]) -> HostOptions:
     mcp_host: str | None = None
     mcp_port: int | None = None
     mcp_url: str | None = None
+    language: str | None = None
     for arg in argv[1:]:
         name, _, value = arg.partition("=")
         if arg == "--home-assistant":
@@ -53,7 +59,9 @@ def host_options(argv: list[str]) -> HostOptions:
                 mcp_host, mcp_port = host or _MCP_DEFAULT_HOST, int(port)
         elif name == "--mcp-url" and value:
             mcp_url = value
-    return HostOptions(home_assistant, mcp_host, mcp_port, mcp_url)
+        elif name == "--language" and value:
+            language = value
+    return HostOptions(home_assistant, mcp_host, mcp_port, mcp_url, language)
 
 
 _current = HostOptions()

@@ -1,0 +1,341 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor home_assistant 1.0\n"
+"Language: cs\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Home Assistant"
+msgstr "Home Assistant"
+
+msgid "Use Project in Home Assistant"
+msgstr "Použít projekt v Home Assistantu"
+
+msgid "Update Home Assistant Now"
+msgstr "Aktualizovat Home Assistant nyní"
+
+msgid "Update Home Assistant Automatically"
+msgstr "Aktualizovat Home Assistant automaticky"
+
+msgid "After each change, the project is sent to Home Assistant's KNX integration again."
+msgstr "Po každé změně se projekt znovu odešle do integrace KNX v Home Assistantu."
+
+msgid "Home Assistant: up to date"
+msgstr "Home Assistant: aktuální"
+
+msgid "Home Assistant: changes not sent"
+msgstr "Home Assistant: změny neodeslány"
+
+msgid "Home Assistant: updating…"
+msgstr "Home Assistant: probíhá aktualizace…"
+
+msgid "Home Assistant: other project"
+msgstr "Home Assistant: jiný projekt"
+
+msgid "Home Assistant: KNX integration not set up"
+msgstr "Home Assistant: integrace KNX není nastavena"
+
+msgid "Home Assistant: update failed"
+msgstr "Home Assistant: aktualizace selhala"
+
+msgid "Home Assistant: not connected"
+msgstr "Home Assistant: nepřipojeno"
+
+msgid "Home Assistant's KNX integration uses this project: its group monitor, project view and address pickers know its group addresses, devices and buildings."
+msgstr "Integrace KNX v Home Assistantu používá tento projekt: její skupinový monitor, zobrazení projektu a výběr adres znají jeho skupinové adresy, zařízení a budovy."
+
+msgid "The changes are sent to Home Assistant in a moment."
+msgstr "Změny budou za okamžik odeslány do Home Assistantu."
+
+msgid "Automatic updates are off: Update Home Assistant Now in the Home Assistant menu sends the changes."
+msgstr "Automatické aktualizace jsou vypnuté: změny odešle „Aktualizovat Home Assistant nyní“ v nabídce Home Assistant."
+
+msgid "Home Assistant's KNX integration holds no project."
+msgstr "Integrace KNX v Home Assistantu nemá žádný projekt."
+
+msgid "Home Assistant's KNX integration holds the project \"{name}\" ({tool}, {date})."
+msgstr "Integrace KNX v Home Assistantu má projekt „{name}“ ({tool}, {date})."
+
+msgid "Set up the KNX integration in Home Assistant to use this project there (Settings > Devices & Services)."
+msgstr "Nastavte integraci KNX v Home Assistantu, abyste tam mohli tento projekt používat (Nastavení > Zařízení a služby)."
+
+msgid "Home Assistant did not take the project: {error}"
+msgstr "Home Assistant projekt nepřevzal: {error}"
+
+msgid "The XKNX Editor integration is not connected. Update the integration in Home Assistant if this stays."
+msgstr "Integrace XKNX Editor není připojena. Pokud tento stav trvá, aktualizujte integraci v Home Assistantu."
+
+msgid "Home Assistant's KNX integration holds no project yet. Use \"{name}\" as its project?"
+msgstr "Integrace KNX v Home Assistantu zatím nemá žádný projekt. Použít „{name}“ jako její projekt?"
+
+msgid "Home Assistant's KNX integration holds the project \"{other}\" ({tool}, {date}). Replace it with \"{name}\"?"
+msgstr "Integrace KNX v Home Assistantu má projekt „{other}“ ({tool}, {date}). Nahradit ho projektem „{name}“?"
+
+msgid "Its group monitor, project view, address pickers and entity suggestions then know this project's group addresses, devices and buildings. Entities, automations and the KNX integration's other settings stay as they are."
+msgstr "Její skupinový monitor, zobrazení projektu, výběr adres a návrhy entit pak znají skupinové adresy, zařízení a budovy tohoto projektu. Entity, automatizace a ostatní nastavení integrace KNX zůstanou beze změny."
+
+msgid "Your changes reach Home Assistant a moment after you make them."
+msgstr "Vaše změny dorazí do Home Assistantu chvíli poté, co je provedete."
+
+msgid "Automatic updates are off: Update Home Assistant Now in the Home Assistant menu sends your changes."
+msgstr "Automatické aktualizace jsou vypnuté: vaše změny odešle „Aktualizovat Home Assistant nyní“ v nabídce Home Assistant."
+
+msgid "Use in Home Assistant"
+msgstr "Použít v Home Assistantu"
+
+msgid "Replace"
+msgstr "Nahradit"
+
+msgid "Not Now"
+msgstr "Teď ne"
+
+msgid "date unknown"
+msgstr "datum neznámé"
+
+msgid "Load Telegrams from Home Assistant"
+msgstr "Načíst telegramy z Home Assistantu"
+
+msgid "The telegrams Home Assistant recorded in the last {hours} hours, in the Group Monitor in place of its entries."
+msgstr "Telegramy, které Home Assistant zaznamenal za posledních {hours} h, ve Skupinovém monitoru místo jeho záznamů."
+
+msgid "{count} telegrams from Home Assistant in the Group Monitor"
+msgstr "Telegramy z Home Assistantu ve Skupinovém monitoru: {count}"
+
+msgid "The telegrams could not be loaded: {error}"
+msgstr "Telegramy se nepodařilo načíst: {error}"
+
+msgid "Shown once the XKNX Editor integration is connected."
+msgstr "Zobrazí se, jakmile bude integrace XKNX Editor připojena."
+
+msgid "Not used in Home Assistant."
+msgstr "V Home Assistantu se nepoužívá."
+
+msgid "Home Assistant sends to this group address."
+msgstr "Home Assistant odesílá na tuto skupinovou adresu."
+
+msgid "Name"
+msgstr "Název"
+
+msgid "Used By"
+msgstr "Používá"
+
+msgid "State"
+msgstr "Stav"
+
+msgid "Expose"
+msgstr "Vystavit"
+
+msgid "Time server"
+msgstr "Časový server"
+
+msgid "{entity} (YAML)"
+msgstr "{entity} (YAML)"
+
+msgid "Disabled"
+msgstr "Zakázáno"
+
+msgid "Floors and Areas…"
+msgstr "Patra a oblasti…"
+
+msgid "Floors and Areas in Home Assistant"
+msgstr "Patra a oblasti v Home Assistantu"
+
+msgid "The floors of the buildings become floors of Home Assistant, their rooms, corridors and stairways its areas. Chosen ones are created, linked to one of the same name, or renamed as here; nothing is removed."
+msgstr "Patra budov se stanou patry Home Assistantu, jejich místnosti, chodby a schodiště jeho oblastmi. Vybrané se vytvoří, propojí se stejnojmennými nebo přejmenují jako zde; nic se neodstraní."
+
+msgid "The project has no floors, rooms, corridors or stairways."
+msgstr "Projekt nemá žádná patra, místnosti, chodby ani schodiště."
+
+msgid "Building Part"
+msgstr "Část budovy"
+
+msgid "Becomes"
+msgstr "Stane se"
+
+msgid "In Home Assistant"
+msgstr "V Home Assistantu"
+
+msgid "Floor"
+msgstr "Patro"
+
+msgid "Area"
+msgstr "Oblast"
+
+msgid "New"
+msgstr "Nové"
+
+msgid "Exists as \"{name}\""
+msgstr "Existuje jako „{name}“"
+
+msgid "Named \"{name}\""
+msgstr "Jmenuje se „{name}“"
+
+msgid "Linked"
+msgstr "Propojeno"
+
+msgid "Applying…"
+msgstr "Probíhá použití…"
+
+msgid "Home Assistant did not take them: {error}"
+msgstr "Home Assistant je nepřevzal: {error}"
+
+msgid "Floors and areas in Home Assistant created, linked or renamed: {count}"
+msgstr "Patra a oblasti vytvořené, propojené nebo přejmenované v Home Assistantu: {count}"
+
+msgid "Apply"
+msgstr "Použít"
+
+msgid "Entities from Functions…"
+msgstr "Entity z funkcí…"
+
+msgid "Entities in Home Assistant"
+msgstr "Entity v Home Assistantu"
+
+msgid "The building functions become entities of Home Assistant's KNX integration: a light, a switch, a cover or a climate entity with the group addresses of their roles, named like the function, in the area its room became (see Floors and Areas). Home Assistant checks each one first."
+msgstr "Funkce budovy se stanou entitami integrace KNX v Home Assistantu: světlem, spínačem, krytem nebo entitou klimatizačního zařízení se skupinovými adresami svých rolí, pojmenovanými podle funkce, v oblasti, kterou se stala jejich místnost (viz Patra a oblasti). Home Assistant každou nejprve zkontroluje."
+
+msgid "The project has no lights, switches, sun protection or heating among its functions."
+msgstr "Mezi funkcemi projektu nejsou žádná světla, spínače, sluneční ochrana ani vytápění."
+
+msgid "Function"
+msgstr "Funkce"
+
+msgid "Group Addresses"
+msgstr "Skupinové adresy"
+
+msgid "No area"
+msgstr "Bez oblasti"
+
+msgid "Created: {entity}"
+msgstr "Vytvořeno: {entity}"
+
+msgid "Its address is used by {entities}"
+msgstr "Její adresu používá {entities}"
+
+msgid "Being checked…"
+msgstr "Probíhá kontrola…"
+
+msgid "Not taken: {error}"
+msgstr "Nepřevzato: {error}"
+
+msgid "Entities created in Home Assistant: {count}"
+msgstr "Entity vytvořené v Home Assistantu: {count}"
+
+msgid "Its group addresses changed: {entity} gets the new ones"
+msgstr "Její skupinové adresy se změnily: {entity} dostane nové"
+
+msgid "Its group addresses changed: download its devices first"
+msgstr "Její skupinové adresy se změnily: nejprve nahrajte její zařízení"
+
+msgid "Entities of Removed Functions"
+msgstr "Entity odstraněných funkcí"
+
+msgid "Entities updated in Home Assistant: {count}"
+msgstr "Entity aktualizované v Home Assistantu: {count}"
+
+msgid "Entities removed from Home Assistant: {count}"
+msgstr "Entity odebrané z Home Assistantu: {count}"
+
+msgid "Time Server…"
+msgstr "Časový server…"
+
+msgid "Time Server in Home Assistant"
+msgstr "Časový server v Home Assistantu"
+
+msgid "Home Assistant's KNX integration can send the time and the date to the bus. Choose the group addresses for them: those of the project with the data type of a time, a date, or a date with time."
+msgstr "Integrace KNX v Home Assistantu může odesílat čas a datum na sběrnici. Vyberte pro ně skupinové adresy: ty z projektu s datovým typem času, data nebo data s časem."
+
+msgid "Time"
+msgstr "Čas"
+
+msgid "Date"
+msgstr "Datum"
+
+msgid "Date and Time"
+msgstr "Datum a čas"
+
+msgid "None"
+msgstr "Žádná"
+
+msgid "Home Assistant's time server sends to the chosen group addresses"
+msgstr "Časový server Home Assistantu odesílá na vybrané skupinové adresy"
+
+msgid "Send Keys to Home Assistant…"
+msgstr "Odeslat klíče do Home Assistantu…"
+
+msgid "Keys in Home Assistant"
+msgstr "Klíče v Home Assistantu"
+
+msgid "The keys of the project's Data Secure group addresses become the keyring of Home Assistant's KNX integration, so it reads and sends their telegrams. The KNX integration is loaded again for it."
+msgstr "Klíče skupinových adres Data Secure projektu se stanou klíčenkou integrace KNX v Home Assistantu, aby četla a odesílala jejich telegramy. Integrace KNX se kvůli tomu znovu načte."
+
+msgid "Data Secure group addresses: {count}"
+msgstr "Skupinové adresy Data Secure: {count}"
+
+msgid "Home Assistant's KNX integration is not set up, or it connects with KNX Secure: then its keyring holds its own connection's keys, and stays as it is (change it in the KNX integration's options)."
+msgstr "Integrace KNX v Home Assistantu není nastavena nebo se připojuje pomocí KNX Secure: pak její klíčenka obsahuje klíče jejího vlastního připojení a zůstane beze změny (změňte ji v možnostech integrace KNX)."
+
+msgid "Send"
+msgstr "Odeslat"
+
+msgid "Home Assistant's KNX integration has the project's keys"
+msgstr "Integrace KNX v Home Assistantu má klíče projektu"
+
+msgid "Connect Like Home Assistant"
+msgstr "Připojit jako Home Assistant"
+
+msgid "The editor connects to the bus over the same interface or router as Home Assistant's KNX integration (with a tunnel of its own). Without a connection of its own it reads and sends group telegrams over Home Assistant's."
+msgstr "Editor se připojí ke sběrnici přes stejné rozhraní nebo router jako integrace KNX v Home Assistantu (s vlastním tunelem). Bez vlastního připojení čte a odesílá skupinové telegramy přes připojení Home Assistantu."
+
+msgid "Home Assistant's KNX integration connects with KNX Secure or finds its interface itself: connect the editor in the Gateway menu."
+msgstr "Integrace KNX v Home Assistantu se připojuje pomocí KNX Secure nebo si své rozhraní hledá sama: připojte editor v nabídce Brána."
+
+msgid "From Home Assistant"
+msgstr "Z Home Assistantu"
+
+msgid "Floors and areas of Home Assistant that the project has no floor or room for. They become floors and rooms of the building, linked to what they were made from."
+msgstr "Patra a oblasti Home Assistantu, pro která projekt nemá žádné patro ani místnost. Stanou se patry a místnostmi budovy, propojenými s tím, z čeho vznikly."
+
+msgid "Building"
+msgstr "Budova"
+
+msgid "New building"
+msgstr "Nová budova"
+
+msgid "Home"
+msgstr "Domov"
+
+msgid "Add to Project"
+msgstr "Přidat do projektu"
+
+msgid "Floors and areas from Home Assistant"
+msgstr "Patra a oblasti z Home Assistantu"
+
+msgid "Floors and rooms added to the project: {count}"
+msgstr "Patra a místnosti přidané do projektu: {count}"
+
+msgid "Group Addresses from Home Assistant…"
+msgstr "Skupinové adresy z Home Assistantu…"
+
+msgid "Group Addresses from Home Assistant"
+msgstr "Skupinové adresy z Home Assistantu"
+
+msgid "The group addresses Home Assistant's KNX integration uses that the project does not have. They are added with the name of what uses them and the datapoint type Home Assistant uses them with."
+msgstr "Skupinové adresy, které používá integrace KNX v Home Assistantu a které projekt nemá. Přidají se s názvem toho, co je používá, a s typem datového bodu, se kterým je Home Assistant používá."
+
+msgid "Home Assistant uses no group addresses the project does not have."
+msgstr "Home Assistant nepoužívá žádné skupinové adresy, které projekt nemá."
+
+msgid "Address"
+msgstr "Adresa"
+
+msgid "Datapoint Type"
+msgstr "Typ datového bodu"
+
+msgid "Group addresses from Home Assistant"
+msgstr "Skupinové adresy z Home Assistantu"
+
+msgid "Group addresses added to the project: {count}"
+msgstr "Skupinové adresy přidané do projektu: {count}"

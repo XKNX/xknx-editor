@@ -34,6 +34,10 @@ class HealthPlugin:
             self._api.project.focus_editor()
 
     @property
+    def service(self) -> HealthService:
+        return self._service
+
+    @property
     def panels(self) -> list[PanelDefinition]:
         return self._panels
 

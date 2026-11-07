@@ -182,6 +182,7 @@ def test_an_edit_in_the_details_stays_with_its_element(
     )
     plugin._get_selected_node_ids = None  # pyright: ignore[reportPrivateUsage]
     plugin._details_shown = None  # pyright: ignore[reportPrivateUsage]
+    plugin.group_address_extras = None
     storing = [False]
     monkeypatch.setattr(plugin_module, "edit_being_stored", lambda: storing[0])
     plugin._render_device()  # pyright: ignore[reportPrivateUsage]
@@ -219,3 +220,29 @@ def test_an_edit_in_the_details_stays_with_its_element(
     storing[0] = True
     plugin._render_device()  # pyright: ignore[reportPrivateUsage]
     assert log[-1] == "device"
+
+
+def test_a_group_address_shows_the_extras_below_its_details(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    log: list[str] = []
+    project = SimpleNamespace(
+        selected_space_id=None,
+        selected_element=("group_address", 7),
+        element_details=lambda kind, ident: SimpleNamespace(
+            id=f"{kind}{ident}", kind=kind, element_id=ident
+        ),
+        get_group_address=lambda ident: SimpleNamespace(raw=ident * 100),
+    )
+    plugin = ProjectPlugin.__new__(ProjectPlugin)
+    plugin._api = cast(Any, SimpleNamespace(project=project))  # pyright: ignore[reportPrivateUsage]
+    plugin._element_details = cast(Any, _Details("element", log))  # pyright: ignore[reportPrivateUsage]
+    plugin._get_selected_node_ids = None  # pyright: ignore[reportPrivateUsage]
+    plugin._details_shown = None  # pyright: ignore[reportPrivateUsage]
+    plugin.group_address_extras = lambda raw: log.append(f"extras:{raw}")
+    monkeypatch.setattr(plugin_module, "edit_being_stored", lambda: False)
+    plugin._render_device()  # pyright: ignore[reportPrivateUsage]
+    # Another element gets no extras.
+    project.selected_element = ("area", 3)
+    plugin._render_device()  # pyright: ignore[reportPrivateUsage]
+    assert log == ["element:group_address7", "extras:700", "element:area3"]

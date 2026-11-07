@@ -57,6 +57,7 @@ from editor_gui.languages import (
     PRODUCT_LANGUAGES,
     chosen_product_language,
     culture,
+    default_locale,
     product_language,
     product_text_languages,
     set_product_language,
@@ -84,9 +85,15 @@ from editor_gui.plugins.connection import ConnectionPlugin
 from editor_gui.plugins.connection.plugin import (
     SETTINGS_PAGE as CONNECTION_SETTINGS_PAGE,
 )
+from editor_gui.plugins.connection.plugin import parse_connection_type
 from editor_gui.plugins.connection.service import ConnectionService
 from editor_gui.plugins.connection.strings import S as _connection_strings
 from editor_gui.plugins.health import HealthPlugin
+from editor_gui.plugins.home_assistant.plugin import (
+    SETTINGS_PAGE as HOME_ASSISTANT_SETTINGS_PAGE,
+)
+from editor_gui.plugins.home_assistant.plugin import HomeAssistantPlugin
+from editor_gui.plugins.home_assistant.strings import S as _home_assistant_strings
 from editor_gui.plugins.keyring import KeyringPlugin
 from editor_gui.plugins.logger import LoggerPlugin, LogService
 from editor_gui.plugins.mcp import McpServerPlugin
@@ -844,7 +851,14 @@ class KnxGuiApp:
         )
         self._signing_plugin = SigningPlugin(self._plugin_api)
         self._recover_plugin = RecoverPlugin(self._plugin_api)
+        self._home_assistant_plugin = HomeAssistantPlugin(
+            self._plugin_api, self._project_service, self._monitor_plugin.service
+        )
         self._health_plugin = HealthPlugin(self._plugin_api)
+        # A group address Home Assistant sends to has a sender.
+        self._health_plugin.service.external_senders = (
+            self._home_assistant_plugin.service.senders
+        )
         self._cockpit_plugin = CockpitPlugin(self._plugin_api)
         self._bus_diagram_plugin = BusDiagramPlugin(self._plugin_api)
         self._timeline_plugin = TimelinePlugin(
@@ -914,6 +928,10 @@ class KnxGuiApp:
             compare=self._project_plugin.open_project_diff,
         )
         self._project_plugin.set_show_backups(self._backups_plugin.show_window)
+        self._project_plugin.group_address_extras = (
+            self._home_assistant_plugin.render_group_address
+        )
+        self._home_assistant_plugin.connect_like = self._connect_like_home_assistant
         # The Settings window, its pages built once (their settings read the live state).
         self._settings_page_list: list[SettingsPage] | None = None
         self._settings_window = SettingsWindow(
@@ -924,6 +942,7 @@ class KnxGuiApp:
         self._language_question: str | None = None
         self._backups_plugin.open_settings = self._settings_window.open
         self._connection_plugin.open_settings = self._settings_window.open
+        self._home_assistant_plugin.open_settings = self._settings_window.open
 
         # Embedded MCP server: drives these same live services (no panels, so not in _plugins).
         self._mcp_plugin = McpServerPlugin(
@@ -936,6 +955,7 @@ class KnxGuiApp:
             self._backups_plugin.service,
             self._settings_window,
             self._recover_plugin.service,
+            home_assistant=self._home_assistant_plugin.service,
         )
 
         self._plugins: list[Any] = [
@@ -3970,6 +3990,7 @@ class KnxGuiApp:
 
         if self._mcp_plugin.is_running:
             self._status_part(S.STATUS_MCP_RUNNING, imgui.ImVec4(0.4, 0.85, 0.45, 1.0))
+        self._home_assistant_plugin.render_status(self._status_part)
 
         # KNX master data (mask-version procedures) version and date.
         if self._master_info is not None:
@@ -4095,17 +4116,25 @@ class KnxGuiApp:
         self._render_menu_separator()
         self._render_menus()
         self._ui_executor.drain()
+        self._home_assistant_plugin.poll()
         self._poll_dialogs()
         self._handle_shortcuts()
 
     def _menus(self) -> list[tuple[str, Callable[[], None]]]:
-        """The menus of the menu bar, in their order: their labels and contents."""
+        """The menus of the menu bar, in their order: their labels and contents (Home Assistant
+        only inside Home Assistant)."""
+        home_assistant = self._home_assistant_plugin
         return [
             (S.MENU_FILE, self._render_file_menu),
             (S.MENU_EDIT, self._render_edit_menu),
             (S.MENU_VIEW, self._render_view_menu),
             (self._connection_plugin.menu_label, self._connection_plugin.render_menu),
             (S.MENU_MCP, self._render_mcp_menu),
+            *(
+                [(home_assistant.menu_label, home_assistant.render_menu)]
+                if home_assistant.active
+                else []
+            ),
             (self._keyring_plugin.menu_label, self._keyring_plugin.render_menu),
             (S.MENU_HELP, self._render_help_menu),
         ]
@@ -5229,6 +5258,7 @@ class KnxGuiApp:
         self._render_knxprod_result_modal()
         self._keyring_plugin.render_window()
         self._backups_plugin.render_window()
+        self._home_assistant_plugin.render_window()
         # The Signing Key dialog asked for from the Signing menu.
         if self._signing_plugin.take_open_request():
             imgui.open_popup(S.SIGNING_KEY_TITLE)
@@ -6382,6 +6412,18 @@ class KnxGuiApp:
 
     # --- the Settings window ---------------------------------------------------------------
 
+    def _connect_like_home_assistant(self, transport: str, address: str) -> None:
+        """Connect the editor over the interface or router Home Assistant's KNX integration
+        uses (``address``: the gateway, or the multicast group for routing)."""
+        routing = transport == "routing"
+        self._connection_plugin.configure(
+            "" if routing else address,
+            address if routing else "",
+            routing,
+            connection_type=parse_connection_type(transport),
+        )
+        self._connection_plugin.connect()
+
     def _settings_pages(self) -> list[SettingsPage]:
         """The pages of the Settings window (built once; their settings read the live state)."""
         if self._settings_page_list is None:
@@ -6416,6 +6458,14 @@ class KnxGuiApp:
                     self._catalog_plugin.settings(),
                 ),
             ]
+            if host.home_assistant():
+                self._settings_page_list.append(
+                    SettingsPage(
+                        HOME_ASSISTANT_SETTINGS_PAGE,
+                        lambda: _home_assistant_strings.MENU,
+                        self._home_assistant_plugin.settings(),
+                    )
+                )
         return self._settings_page_list
 
     def _general_settings(self) -> list[Setting]:
@@ -7370,11 +7420,16 @@ def _main() -> None:
     # Where the editor runs (inside Home Assistant, an MCP server set up by its launcher).
     host.set_current(host.host_options(sys.argv))
     # Applies the OS locale, whose regional formats are used in every UI language. A persisted
-    # choice (Settings > General) wins over the auto-detected OS language.
+    # choice (Settings > General) wins over the language of the program that started the editor
+    # (Home Assistant's), and that one over the auto-detected OS language.
     os_language = _detect_locale()
     settings = load_settings("app")
     saved = settings.get("locale")
-    set_locale(saved if isinstance(saved, str) and saved else os_language)
+    set_locale(
+        saved
+        if isinstance(saved, str) and saved
+        else default_locale(host.current().language, os_language)
+    )
     product = settings.get("product_language")
     set_product_language(product if isinstance(product, str) else None)
 
