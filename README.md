@@ -173,6 +173,14 @@ hardware, so only expose it to clients you trust.
 
 <img src="docs/images/mcp.png" alt="MCP server" width="560">
 
+**Works with Home Assistant's KNX integration** — inside Home Assistant the open project becomes
+the KNX project of its KNX integration. The editor sends the project over, turns the buildings into
+Home Assistant's floors and areas and the building functions into entities (climate entities from
+heating functions), hands over the time server and the project's keys, and takes Home Assistant's
+floors, areas and group addresses back into the project. A group address shows what Home Assistant
+does with it (an entity, an expose, the time server), and Home Assistant's telegrams appear in the
+Group Monitor. A **Home Assistant** menu of its own collects it.
+
 ## Browser UI
 
 The editor can also run without a window and be used in a web browser — on the same computer, or
@@ -260,6 +268,11 @@ with Home Assistant OS and Home Assistant Container.
 On its first start it installs the editor, which takes a few minutes; the panel shows the progress.
 See the [integration's README](https://github.com/XKNX/xknx-editor-ha-integration#readme) for the
 MCP server and the options.
+
+Once it runs, the editor works together with Home Assistant's KNX integration: the open project
+becomes Home Assistant's KNX project, buildings become its floors and areas, functions become
+entities, and a **Home Assistant** menu drives it (see **Works with Home Assistant's KNX
+integration** under [Features](#features)).
 
 ## Running from source
 
