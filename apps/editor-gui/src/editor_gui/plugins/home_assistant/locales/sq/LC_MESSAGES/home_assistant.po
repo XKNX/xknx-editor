@@ -50,13 +50,13 @@ msgid "The changes are sent to Home Assistant in a moment."
 msgstr "Ndryshimet do të dërgohen te Home Assistant pas pak."
 
 msgid "Automatic updates are off: Update Home Assistant Now in the Home Assistant menu sends the changes."
-msgstr "Përditësimet automatike janë çaktivizuar: „Përditëso Home Assistant tani“ në menynë Home Assistant dërgon ndryshimet."
+msgstr "Përditësimet automatike janë çaktivizuar: “Përditëso Home Assistant tani” në menynë Home Assistant dërgon ndryshimet."
 
 msgid "Home Assistant's KNX integration holds no project."
 msgstr "Integrimi KNX i Home Assistant nuk ka asnjë projekt."
 
 msgid "Home Assistant's KNX integration holds the project \"{name}\" ({tool}, {date})."
-msgstr "Integrimi KNX i Home Assistant ka projektin „{name}“ ({tool}, {date})."
+msgstr "Integrimi KNX i Home Assistant ka projektin “{name}” ({tool}, {date})."
 
 msgid "Set up the KNX integration in Home Assistant to use this project there (Settings > Devices & Services)."
 msgstr "Konfiguroni integrimin KNX në Home Assistant për ta përdorur këtë projekt atje (Cilësimet > Pajisjet dhe shërbimet)."
@@ -68,10 +68,10 @@ msgid "The XKNX Editor integration is not connected. Update the integration in H
 msgstr "Integrimi XKNX Editor nuk është lidhur. Përditësoni integrimin në Home Assistant nëse kjo vazhdon."
 
 msgid "Home Assistant's KNX integration holds no project yet. Use \"{name}\" as its project?"
-msgstr "Integrimi KNX i Home Assistant nuk ka ende asnjë projekt. Të përdoret „{name}“ si projekti i tij?"
+msgstr "Integrimi KNX i Home Assistant nuk ka ende asnjë projekt. Të përdoret “{name}” si projekti i tij?"
 
 msgid "Home Assistant's KNX integration holds the project \"{other}\" ({tool}, {date}). Replace it with \"{name}\"?"
-msgstr "Integrimi KNX i Home Assistant ka projektin „{other}“ ({tool}, {date}). Të zëvendësohet me „{name}“?"
+msgstr "Integrimi KNX i Home Assistant ka projektin “{other}” ({tool}, {date}). Të zëvendësohet me “{name}”?"
 
 msgid "Its group monitor, project view, address pickers and entity suggestions then know this project's group addresses, devices and buildings. Entities, automations and the KNX integration's other settings stay as they are."
 msgstr "Monitori i grupeve, pamja e projektit, zgjedhësit e adresave dhe sugjerimet e entiteteve të tij do të njohin më pas adresat e grupeve, pajisjet dhe ndërtesat e këtij projekti. Entitetet, automatizimet dhe cilësimet e tjera të integrimit KNX mbeten siç janë."
@@ -80,7 +80,7 @@ msgid "Your changes reach Home Assistant a moment after you make them."
 msgstr "Ndryshimet tuaja arrijnë te Home Assistant pak pasi i bëni."
 
 msgid "Automatic updates are off: Update Home Assistant Now in the Home Assistant menu sends your changes."
-msgstr "Përditësimet automatike janë çaktivizuar: „Përditëso Home Assistant tani“ në menynë Home Assistant dërgon ndryshimet tuaja."
+msgstr "Përditësimet automatike janë çaktivizuar: “Përditëso Home Assistant tani” në menynë Home Assistant dërgon ndryshimet tuaja."
 
 msgid "Use in Home Assistant"
 msgstr "Përdor në Home Assistant"
@@ -158,16 +158,16 @@ msgid "Area"
 msgstr "Zonë"
 
 msgid "New"
-msgstr "I ri"
+msgstr "Do të krijohet"
 
 msgid "Exists as \"{name}\""
-msgstr "Ekziston si „{name}“"
+msgstr "Ekziston si “{name}”"
 
 msgid "Named \"{name}\""
-msgstr "Quhet „{name}“"
+msgstr "Quhet “{name}”"
 
 msgid "Linked"
-msgstr "I lidhur"
+msgstr "Lidhur"
 
 msgid "Applying…"
 msgstr "Po zbatohet…"
@@ -188,10 +188,10 @@ msgid "Entities in Home Assistant"
 msgstr "Entitetet në Home Assistant"
 
 msgid "The building functions become entities of Home Assistant's KNX integration: a light, a switch, a cover or a climate entity with the group addresses of their roles, named like the function, in the area its room became (see Floors and Areas). Home Assistant checks each one first."
-msgstr "Funksionet e ndërtesës bëhen entitete të integrimit KNX të Home Assistant: një dritë, një çelës, një grilë ose një entitet klime me adresat e grupeve të roleve të tyre, të emërtuara si funksioni, në zonën në të cilën u kthye dhoma e tyre (shihni Katet dhe zonat). Home Assistant e kontrollon secilën më parë."
+msgstr "Funksionet e ndërtesës bëhen entitete të integrimit KNX të Home Assistant: një dritë, një ndërprerës, një grilë ose një entitet klime me adresat e grupeve të roleve të tyre, të emërtuara si funksioni, në zonën në të cilën u kthye dhoma e tyre (shihni Katet dhe zonat). Home Assistant e kontrollon secilën më parë."
 
 msgid "The project has no lights, switches, sun protection or heating among its functions."
-msgstr "Projekti nuk ka drita, çelësa, mbrojtje nga dielli ose ngrohje midis funksioneve të tij."
+msgstr "Projekti nuk ka drita, ndërprerës, mbrojtje nga dielli ose ngrohje midis funksioneve të tij."
 
 msgid "Function"
 msgstr "Funksioni"
@@ -206,7 +206,7 @@ msgid "Created: {entity}"
 msgstr "U krijua: {entity}"
 
 msgid "Its address is used by {entities}"
-msgstr "Adresën e saj e përdor {entities}"
+msgstr "Adresa e tij përdoret nga {entities}"
 
 msgid "Being checked…"
 msgstr "Po kontrollohet…"
@@ -320,7 +320,7 @@ msgid "The group addresses Home Assistant's KNX integration uses that the projec
 msgstr "Adresat e grupeve që përdor integrimi KNX i Home Assistant dhe që projekti nuk i ka. Ato shtohen me emrin e asaj që i përdor dhe me llojin e pikës së të dhënave me të cilin i përdor Home Assistant."
 
 msgid "Home Assistant uses no group addresses the project does not have."
-msgstr "Home Assistant nuk përdor adresa grupesh që projekti nuk i ka."
+msgstr "Home Assistant nuk përdor adresa grupi që projekti nuk i ka."
 
 msgid "Address"
 msgstr "Adresa"
@@ -332,7 +332,7 @@ msgid "Group addresses from Home Assistant"
 msgstr "Adresat e grupeve nga Home Assistant"
 
 msgid "Group addresses added to the project: {count}"
-msgstr "Adresa grupesh të shtuara në projekt: {count}"
+msgstr "Adresa grupi të shtuara në projekt: {count}"
 
 msgid "The telegrams Home Assistant recorded in the last {hours} hour, in the Group Monitor in place of its entries."
 msgid_plural "The telegrams Home Assistant recorded in the last {hours} hours, in the Group Monitor in place of its entries."
