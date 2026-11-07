@@ -157,8 +157,9 @@ _SELECTION_MIN_CONTRAST = 0.08
 # Links: the blue of Windows hyperlinks on light windows, a lighter blue on dark ones.
 _LINK_ON_LIGHT = imgui.ImVec4(0.0, 102 / 255, 204 / 255, 1.0)
 _LINK_ON_DARK = imgui.ImVec4(110 / 255, 168 / 255, 254 / 255, 1.0)
-# Texts that report a warning, an error or a success: (on a light window, on a dark one).
+# Texts that report a warning, an error, a success or a note: (on a light window, on a dark one).
 _STATUS_COLORS = {
+    "info": (_LINK_ON_LIGHT, _LINK_ON_DARK),
     "warning": (_rgb(176, 96, 0), _rgb(240, 170, 70)),
     "error": (_rgb(196, 30, 30), _rgb(240, 100, 100)),
     "success": (_rgb(16, 124, 16), _rgb(110, 200, 110)),
@@ -265,7 +266,7 @@ def _apply_link_color(style: imgui.Style) -> None:
 
 
 def status_color(kind: str) -> imgui.ImVec4:
-    """The color of a text that reports a ``kind`` ("warning", "error" or "success"), dark enough
+    """The color of a text that reports a ``kind`` ("warning", "error", "success" or "info"), dark enough
     on the theme's window when it is light, and light enough when it is dark."""
     on_light, on_dark = _STATUS_COLORS[kind]
     window = imgui.get_style().color_(imgui.Col_.window_bg)

@@ -28,8 +28,8 @@ msgstr "Keresés"
 msgid "Stop"
 msgstr "Leállítás"
 
-msgid "Add to Open Project as Read"
-msgstr "Hozzáadás a megnyitott projekthez beolvasott állapotban"
+msgid "Add to Open Project When Read"
+msgstr "Hozzáadás a megnyitott projekthez beolvasáskor"
 
 msgid "Recover Selected"
 msgstr "Kijelöltek visszaállítása"

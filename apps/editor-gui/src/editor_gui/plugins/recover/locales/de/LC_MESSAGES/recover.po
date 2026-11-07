@@ -28,8 +28,8 @@ msgstr "Suchen"
 msgid "Stop"
 msgstr "Stoppen"
 
-msgid "Add to Open Project as Read"
-msgstr "Zum geöffneten Projekt hinzufügen (gelesen)"
+msgid "Add to Open Project When Read"
+msgstr "Beim Lesen zum geöffneten Projekt hinzufügen"
 
 msgid "Recover Selected"
 msgstr "Ausgewählte wiederherstellen"

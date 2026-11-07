@@ -181,7 +181,7 @@ def test_light_themes_select_in_the_gray_of_table_headers(
 
 
 @pytest.mark.usefixtures("context")
-@pytest.mark.parametrize("kind", ["warning", "error", "success"])
+@pytest.mark.parametrize("kind", ["warning", "error", "success", "info"])
 def test_status_colors_read_on_light_and_dark_windows(kind: str) -> None:
     style = imgui.get_style()
     style.set_color_(imgui.Col_.window_bg, imgui.ImVec4(1.0, 1.0, 1.0, 1.0))

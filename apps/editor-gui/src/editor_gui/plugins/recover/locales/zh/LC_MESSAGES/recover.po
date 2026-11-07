@@ -22,8 +22,8 @@ msgstr "扫描"
 msgid "Stop"
 msgstr "停止"
 
-msgid "Add to Open Project as Read"
-msgstr "添加到打开的项目（已读取）"
+msgid "Add to Open Project When Read"
+msgstr "读取时添加到打开的项目"
 
 msgid "Recover Selected"
 msgstr "恢复所选项"

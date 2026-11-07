@@ -22,8 +22,8 @@ msgstr "Tara"
 msgid "Stop"
 msgstr "Durdur"
 
-msgid "Add to Open Project as Read"
-msgstr "Açık Projeye Okunmuş Olarak Ekle"
+msgid "Add to Open Project When Read"
+msgstr "Okunduğunda Açık Projeye Ekle"
 
 msgid "Recover Selected"
 msgstr "Seçilenleri Kurtar"

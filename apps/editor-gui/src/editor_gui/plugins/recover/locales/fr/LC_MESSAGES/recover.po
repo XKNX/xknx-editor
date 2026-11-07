@@ -22,8 +22,8 @@ msgstr "Scanner"
 msgid "Stop"
 msgstr "Arrêter"
 
-msgid "Add to Open Project as Read"
-msgstr "Ajouter au projet ouvert comme lu"
+msgid "Add to Open Project When Read"
+msgstr "Ajouter au projet ouvert à la lecture"
 
 msgid "Recover Selected"
 msgstr "Récupérer la sélection"

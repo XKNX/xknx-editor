@@ -28,8 +28,8 @@ msgstr "Išči"
 msgid "Stop"
 msgstr "Ustavi"
 
-msgid "Add to Open Project as Read"
-msgstr "Dodaj v odprti projekt, kot je prebrano"
+msgid "Add to Open Project When Read"
+msgstr "Dodaj v odprti projekt ob branju"
 
 msgid "Recover Selected"
 msgstr "Obnovi izbrane"

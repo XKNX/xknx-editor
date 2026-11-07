@@ -28,8 +28,8 @@ msgstr "Scanare"
 msgid "Stop"
 msgstr "Oprire"
 
-msgid "Add to Open Project as Read"
-msgstr "Adăugare la proiectul deschis așa cum au fost citite"
+msgid "Add to Open Project When Read"
+msgstr "Adăugare la proiectul deschis la citire"
 
 msgid "Recover Selected"
 msgstr "Recuperare selecție"

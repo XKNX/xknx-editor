@@ -22,8 +22,8 @@ msgstr "Procurar"
 msgid "Stop"
 msgstr "Parar"
 
-msgid "Add to Open Project as Read"
-msgstr "Adicionar ao Projeto Aberto como Lido"
+msgid "Add to Open Project When Read"
+msgstr "Adicionar ao Projeto Aberto ao Ler"
 
 msgid "Recover Selected"
 msgstr "Recuperar Selecionados"

@@ -22,8 +22,8 @@ msgstr "Avsök"
 msgid "Stop"
 msgstr "Stoppa"
 
-msgid "Add to Open Project as Read"
-msgstr "Lägg till i öppet projekt som läst"
+msgid "Add to Open Project When Read"
+msgstr "Lägg till i öppet projekt vid läsning"
 
 msgid "Recover Selected"
 msgstr "Återskapa markerade"

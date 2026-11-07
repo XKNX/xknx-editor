@@ -22,7 +22,7 @@ msgstr "Kërko"
 msgid "Stop"
 msgstr "Ndalo"
 
-msgid "Add to Open Project as Read"
+msgid "Add to Open Project When Read"
 msgstr "Shto në projektin e hapur sapo të lexohen"
 
 msgid "Recover Selected"

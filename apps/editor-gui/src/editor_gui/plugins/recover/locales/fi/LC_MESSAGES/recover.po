@@ -22,8 +22,8 @@ msgstr "Scannaa"
 msgid "Stop"
 msgstr "Pysäytä"
 
-msgid "Add to Open Project as Read"
-msgstr "Lisää avoimeen projektiin luettuna"
+msgid "Add to Open Project When Read"
+msgstr "Lisää avoimeen projektiin luettaessa"
 
 msgid "Recover Selected"
 msgstr "Palauta valitut"

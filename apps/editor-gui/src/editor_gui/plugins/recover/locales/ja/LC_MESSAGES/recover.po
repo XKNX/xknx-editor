@@ -22,8 +22,8 @@ msgstr "スキャン"
 msgid "Stop"
 msgstr "ストップ"
 
-msgid "Add to Open Project as Read"
-msgstr "読み込み済みとして開いているプロジェクトに追加"
+msgid "Add to Open Project When Read"
+msgstr "読み込み時に開いているプロジェクトに追加"
 
 msgid "Recover Selected"
 msgstr "選択項目を復元"

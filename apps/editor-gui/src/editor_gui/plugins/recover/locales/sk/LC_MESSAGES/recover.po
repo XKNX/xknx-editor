@@ -28,8 +28,8 @@ msgstr "Hľadať"
 msgid "Stop"
 msgstr "Zastaviť"
 
-msgid "Add to Open Project as Read"
-msgstr "Pridať do otvoreného projektu ako načítané"
+msgid "Add to Open Project When Read"
+msgstr "Pridať do otvoreného projektu po načítaní"
 
 msgid "Recover Selected"
 msgstr "Obnoviť vybrané"

@@ -22,8 +22,8 @@ msgstr "Σάρωση"
 msgid "Stop"
 msgstr "Διακοπή"
 
-msgid "Add to Open Project as Read"
-msgstr "Προσθήκη στο Ανοιχτό Έργο ως Αναγνωσμένο"
+msgid "Add to Open Project When Read"
+msgstr "Προσθήκη στο Ανοιχτό Έργο κατά την Ανάγνωση"
 
 msgid "Recover Selected"
 msgstr "Ανάκτηση Επιλεγμένων"

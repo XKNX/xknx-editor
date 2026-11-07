@@ -28,8 +28,8 @@ msgstr "Leita"
 msgid "Stop"
 msgstr "Stöðva"
 
-msgid "Add to Open Project as Read"
-msgstr "Bæta við opna verkefnið eins og lesið"
+msgid "Add to Open Project When Read"
+msgstr "Bæta við opna verkefnið við lestur"
 
 msgid "Recover Selected"
 msgstr "Endurheimta valin"
