@@ -1,11 +1,20 @@
 # XKNX Editor
 
+XKNX Editor is a **multi-platform** desktop app (Windows, Linux, macOS) with native AI support for
+KNX building-automation projects, based on KNX Standard Vol. 3. It builds on the open-source
+[xknx](https://github.com/XKNX/xknx), [XKNXProject](https://github.com/XKNX/xknxproject),
+[OpenKNXProducer](https://github.com/OpenKNX/OpenKNXproducer) and
+[XKNXToolkit](https://github.com/XKNX/xknxtoolkit) libraries.
 
-XKNX Editor is a **multi-platform** desktop app (Windows, Linux, macOS) with native AI support for KNX building-automation projects based on KNX Standard Vol. 3, built on the open-source [xknx](https://github.com/XKNX/xknx)
-library. Import and export `.knxproj` projects natively by [XKNXProject](https://github.com/XKNX/xknxproject) and [OpenKNXProducer](https://github.com/OpenKNX/OpenKNXproducer), browse product catalogs, **program KNX
-devices** over a real bus based on [XKNX Project XKNXToolkit](https://github.com/XKNX/xknxtoolkit), and drive it all through an **integrated MCP server for AI-assisted**
-workflows which can auto-download PDF manuals from the manufacturers.
+**What it does:**
 
+- Import and export `.knxproj` projects, `.knxprod` and OpenKNX product files, and the older `.vd1`-`.vd5` product databases
+- Program devices over a real KNX bus: System B, System 7, System 300 and BCU1, KNX Secure, more than 25 mask versions
+- Recover a project straight from the bus, without a project file
+- Integrated AI MCP server to organize a project, program devices and fetch device manuals
+- DALI DCA support for DALI gateways (read, edit and commission over the bus), and displays that keep their setup in a blob (Busch-Jaeger Triton) with LVS `.prj` load and export
+- Browser UI in Docker, with Unraid and TrueNAS templates
+- Home Assistant integration: run it in the sidebar and work together with its KNX integration
 
 > [!WARNING]
 > **Not affiliated with the KNX Association.** See
