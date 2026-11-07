@@ -20,6 +20,9 @@ from editor_gui.plugins.connection.plugin import (
 
 def _plugin() -> Any:
     plugin = cast(Any, object.__new__(ConnectionPlugin))
+    plugin._usb_target = None
+    plugin._usb_info = None
+    plugin._usb_devices = []
     plugin._controller_ip = _DEFAULT_CONTROLLER_IP
     plugin._multicast_group = "224.0.23.12"
     plugin._connection_type = ConnectionType.TUNNELING

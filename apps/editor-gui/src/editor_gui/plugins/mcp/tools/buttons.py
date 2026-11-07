@@ -205,7 +205,8 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             if button.online is not None and not ctx.api.connection.can_reach_bus():
                 raise ToolError(
                     "no KNX connection; connect first with connection_connect (configured "
-                    "gateway) or connection_scan + connection_connect_gateway"
+                    "gateway) or connection_scan + connection_connect_gateway / "
+                    "connection_connect_usb"
                 )
             pressed = plugin.press_button(device, button, origin=ORIGIN_MCP)
             if pressed is None:

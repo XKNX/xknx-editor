@@ -56,6 +56,12 @@ if sys.platform == "darwin":
 elif sys.platform.startswith("linux"):
     _hiddenimports += collect_submodules("dbus_fast")
 
+# KNX USB interfaces: hidapi's backends are imported by name - libusb/the platform's HID API as
+# `hid`, on Linux the kernel's hidraw driver as `hidraw` (tried first).
+_hiddenimports += ["hid"]
+if sys.platform.startswith("linux"):
+    _hiddenimports += ["hidraw"]
+
 # The frozen app ships no .py sources, so the fingerprint of the code that evaluates applications
 # (the key of the device snapshots stored in projects) is taken here, from the sources being built.
 from editor_gui.device_snapshot import BUNDLED_FINGERPRINT, source_fingerprint

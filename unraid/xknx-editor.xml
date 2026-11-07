@@ -18,7 +18,7 @@
   <TemplateURL>https://raw.githubusercontent.com/XKNX/xknx-editor/main/unraid/xknx-editor.xml</TemplateURL>
   <Icon>https://raw.githubusercontent.com/XKNX/xknx-editor/main/apps/editor-gui/src/editor_gui/assets/app_settings/icon.png</Icon>
   <WebUI>http://[IP]:[PORT:8080]/</WebUI>
-  <Overview>XKNX Editor in your browser: open, edit and export KNX projects (.knxproj), browse the product catalog and program KNX devices over a KNXnet/IP interface. It is the same editor as the desktop app, drawn by the browser itself.
+  <Overview>XKNX Editor in your browser: open, edit and export KNX projects (.knxproj), browse the product catalog and program KNX devices over a KNXnet/IP or KNX USB interface. It is the same editor as the desktop app, drawn by the browser itself.
 
 Open the Web UI and sign in with the password set below. Projects you open and save, exported .knxproj files and other files go to the Projects folder; the app settings and the imported product catalog stay in the App Data folder.
 

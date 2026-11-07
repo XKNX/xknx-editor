@@ -124,6 +124,18 @@ Tunnelling to a gateway's IP works through the container network. Gateway auto-d
 routing use multicast, which a bridged container does not receive — use `--network host` if you need
 those, and keep the password set because the port is then on the host network.
 
+A KNX USB interface plugged into the host is passed in as its device, e.g.
+`--device /dev/hidraw0` (Compose: `devices: ["/dev/hidraw0:/dev/hidraw0"]`; `ls -l /dev/hidraw*`
+before and after plugging it in shows which one it is). The editor runs as `PUID`, so that user needs
+access to it: a udev rule on the host, with the interface's vendor and product id from `lsusb`
+(here those of a SpaceLogic interface), gives it to everyone; or run the container with `PUID=0`.
+
+```bash
+echo 'KERNEL=="hidraw*", ATTRS{idVendor}=="16de", ATTRS{idProduct}=="008e", MODE="0666"' \
+  | sudo tee /etc/udev/rules.d/70-knx-usb.rules
+sudo udevadm control --reload && sudo udevadm trigger
+```
+
 ## TrueNAS SCALE
 
 On TrueNAS SCALE 24.10+ (its apps run on Docker Compose) add it under **Apps → Discover Apps →

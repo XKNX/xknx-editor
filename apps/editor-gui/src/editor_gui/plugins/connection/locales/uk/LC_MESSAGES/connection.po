@@ -210,3 +210,15 @@ msgstr "Connection Type"
 
 msgid "Applies on the next connect, like the Gateway menu's choice."
 msgstr "Applies on the next connect, like the Gateway menu's choice."
+
+msgid "USB Interfaces"
+msgstr "USB-інтерфейси"
+
+msgid "No USB interfaces found"
+msgstr "USB-інтерфейси не знайдено"
+
+msgid "Not connected to the bus"
+msgstr "Немає з'єднання з шиною"
+
+msgid "Serial Number: {serial}"
+msgstr "Серійний номер: {serial}"

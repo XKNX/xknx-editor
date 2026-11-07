@@ -52,6 +52,9 @@ def test_connection_type_name_and_parse_round_trip() -> None:
 
 def _plugin(connection_type: ConnectionType) -> Any:
     plugin = cast(Any, object.__new__(ConnectionPlugin))
+    plugin._usb_target = None
+    plugin._usb_info = None
+    plugin._usb_devices = []
     plugin._connection_type = connection_type
     plugin._controller_ip = "192.168.1.10"
     plugin._multicast_group = "224.0.23.12"

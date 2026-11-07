@@ -138,7 +138,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         if not service.can_reach_bus():
             raise ToolError(
                 "no KNX connection; connect first with connection_connect (configured gateway) "
-                "or connection_scan + connection_connect_gateway"
+                "or connection_scan + connection_connect_gateway / connection_connect_usb"
             )
 
     def _gateway(

@@ -31,6 +31,9 @@ class _Logger:
 
 def _plugin() -> Any:
     plugin = cast(Any, object.__new__(ConnectionPlugin))
+    plugin._usb_target = None
+    plugin._usb_info = None
+    plugin._usb_devices = []
     plugin._log = _Logger()
     plugin._state = ConnectionState.DISCONNECTED
     plugin._gateways = []
