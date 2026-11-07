@@ -1,0 +1,341 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor home_assistant 1.0\n"
+"Language: es\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Home Assistant"
+msgstr "Home Assistant"
+
+msgid "Use Project in Home Assistant"
+msgstr "Usar el proyecto en Home Assistant"
+
+msgid "Update Home Assistant Now"
+msgstr "Actualizar Home Assistant ahora"
+
+msgid "Update Home Assistant Automatically"
+msgstr "Actualizar Home Assistant automáticamente"
+
+msgid "After each change, the project is sent to Home Assistant's KNX integration again."
+msgstr "Tras cada cambio, el proyecto se envía de nuevo a la integración KNX de Home Assistant."
+
+msgid "Home Assistant: up to date"
+msgstr "Home Assistant: actualizado"
+
+msgid "Home Assistant: changes not sent"
+msgstr "Home Assistant: cambios no enviados"
+
+msgid "Home Assistant: updating…"
+msgstr "Home Assistant: actualizando…"
+
+msgid "Home Assistant: other project"
+msgstr "Home Assistant: otro proyecto"
+
+msgid "Home Assistant: KNX integration not set up"
+msgstr "Home Assistant: integración KNX no configurada"
+
+msgid "Home Assistant: update failed"
+msgstr "Home Assistant: error al actualizar"
+
+msgid "Home Assistant: not connected"
+msgstr "Home Assistant: no conectado"
+
+msgid "Home Assistant's KNX integration uses this project: its group monitor, project view and address pickers know its group addresses, devices and buildings."
+msgstr "La integración KNX de Home Assistant usa este proyecto: su monitor de grupo, su vista de proyecto y sus selectores de direcciones conocen sus direcciones de grupo, dispositivos y edificios."
+
+msgid "The changes are sent to Home Assistant in a moment."
+msgstr "Los cambios se enviarán a Home Assistant en un momento."
+
+msgid "Automatic updates are off: Update Home Assistant Now in the Home Assistant menu sends the changes."
+msgstr "Las actualizaciones automáticas están desactivadas: «Actualizar Home Assistant ahora» del menú Home Assistant envía los cambios."
+
+msgid "Home Assistant's KNX integration holds no project."
+msgstr "La integración KNX de Home Assistant no tiene ningún proyecto."
+
+msgid "Home Assistant's KNX integration holds the project \"{name}\" ({tool}, {date})."
+msgstr "La integración KNX de Home Assistant tiene el proyecto «{name}» ({tool}, {date})."
+
+msgid "Set up the KNX integration in Home Assistant to use this project there (Settings > Devices & Services)."
+msgstr "Configure la integración KNX en Home Assistant para usar allí este proyecto (Configuración > Dispositivos y servicios)."
+
+msgid "Home Assistant did not take the project: {error}"
+msgstr "Home Assistant no ha aceptado el proyecto: {error}"
+
+msgid "The XKNX Editor integration is not connected. Update the integration in Home Assistant if this stays."
+msgstr "La integración XKNX Editor no está conectada. Actualice la integración en Home Assistant si esto persiste."
+
+msgid "Home Assistant's KNX integration holds no project yet. Use \"{name}\" as its project?"
+msgstr "La integración KNX de Home Assistant aún no tiene ningún proyecto. ¿Usar «{name}» como su proyecto?"
+
+msgid "Home Assistant's KNX integration holds the project \"{other}\" ({tool}, {date}). Replace it with \"{name}\"?"
+msgstr "La integración KNX de Home Assistant tiene el proyecto «{other}» ({tool}, {date}). ¿Reemplazarlo por «{name}»?"
+
+msgid "Its group monitor, project view, address pickers and entity suggestions then know this project's group addresses, devices and buildings. Entities, automations and the KNX integration's other settings stay as they are."
+msgstr "Su monitor de grupo, su vista de proyecto, sus selectores de direcciones y sus sugerencias de entidades conocerán entonces las direcciones de grupo, dispositivos y edificios de este proyecto. Las entidades, las automatizaciones y los demás ajustes de la integración KNX se mantienen como están."
+
+msgid "Your changes reach Home Assistant a moment after you make them."
+msgstr "Sus cambios llegan a Home Assistant poco después de realizarlos."
+
+msgid "Automatic updates are off: Update Home Assistant Now in the Home Assistant menu sends your changes."
+msgstr "Las actualizaciones automáticas están desactivadas: «Actualizar Home Assistant ahora» del menú Home Assistant envía sus cambios."
+
+msgid "Use in Home Assistant"
+msgstr "Usar en Home Assistant"
+
+msgid "Replace"
+msgstr "Reemplazar"
+
+msgid "Not Now"
+msgstr "Ahora no"
+
+msgid "date unknown"
+msgstr "fecha desconocida"
+
+msgid "Load Telegrams from Home Assistant"
+msgstr "Cargar telegramas desde Home Assistant"
+
+msgid "The telegrams Home Assistant recorded in the last {hours} hours, in the Group Monitor in place of its entries."
+msgstr "Los telegramas que Home Assistant registró en las últimas {hours} horas, en el Monitor de Grupos en lugar de sus entradas."
+
+msgid "{count} telegrams from Home Assistant in the Group Monitor"
+msgstr "{count} telegramas de Home Assistant en el Monitor de Grupos"
+
+msgid "The telegrams could not be loaded: {error}"
+msgstr "No se han podido cargar los telegramas: {error}"
+
+msgid "Shown once the XKNX Editor integration is connected."
+msgstr "Se muestra en cuanto la integración XKNX Editor esté conectada."
+
+msgid "Not used in Home Assistant."
+msgstr "No se usa en Home Assistant."
+
+msgid "Home Assistant sends to this group address."
+msgstr "Home Assistant envía a esta dirección de grupo."
+
+msgid "Name"
+msgstr "Nombre"
+
+msgid "Used By"
+msgstr "Usado por"
+
+msgid "State"
+msgstr "Estado"
+
+msgid "Expose"
+msgstr "Exponer"
+
+msgid "Time server"
+msgstr "Servidor de hora"
+
+msgid "{entity} (YAML)"
+msgstr "{entity} (YAML)"
+
+msgid "Disabled"
+msgstr "Deshabilitado"
+
+msgid "Floors and Areas…"
+msgstr "Plantas y áreas…"
+
+msgid "Floors and Areas in Home Assistant"
+msgstr "Plantas y áreas en Home Assistant"
+
+msgid "The floors of the buildings become floors of Home Assistant, their rooms, corridors and stairways its areas. Chosen ones are created, linked to one of the same name, or renamed as here; nothing is removed."
+msgstr "Las plantas de los edificios se convierten en plantas de Home Assistant, y sus estancias, pasillos y escaleras, en sus áreas. Las elegidas se crean, se vinculan a una del mismo nombre o se renombran como aquí; no se elimina nada."
+
+msgid "The project has no floors, rooms, corridors or stairways."
+msgstr "El proyecto no tiene plantas, estancias, pasillos ni escaleras."
+
+msgid "Building Part"
+msgstr "Parte del edificio"
+
+msgid "Becomes"
+msgstr "Se convierte en"
+
+msgid "In Home Assistant"
+msgstr "En Home Assistant"
+
+msgid "Floor"
+msgstr "Planta"
+
+msgid "Area"
+msgstr "Área"
+
+msgid "New"
+msgstr "Nueva"
+
+msgid "Exists as \"{name}\""
+msgstr "Existe como «{name}»"
+
+msgid "Named \"{name}\""
+msgstr "Se llama «{name}»"
+
+msgid "Linked"
+msgstr "Vinculada"
+
+msgid "Applying…"
+msgstr "Aplicando…"
+
+msgid "Home Assistant did not take them: {error}"
+msgstr "Home Assistant no las ha aceptado: {error}"
+
+msgid "Floors and areas in Home Assistant created, linked or renamed: {count}"
+msgstr "Plantas y áreas creadas, vinculadas o renombradas en Home Assistant: {count}"
+
+msgid "Apply"
+msgstr "Aplicar"
+
+msgid "Entities from Functions…"
+msgstr "Entidades a partir de funciones…"
+
+msgid "Entities in Home Assistant"
+msgstr "Entidades en Home Assistant"
+
+msgid "The building functions become entities of Home Assistant's KNX integration: a light, a switch, a cover or a climate entity with the group addresses of their roles, named like the function, in the area its room became (see Floors and Areas). Home Assistant checks each one first."
+msgstr "Las funciones del edificio se convierten en entidades de la integración KNX de Home Assistant: una luz, un interruptor, una persiana o una entidad de climatización con las direcciones de grupo de sus roles, con el nombre de la función, en el área en la que se convirtió su estancia (véase Plantas y áreas). Home Assistant comprueba primero cada una."
+
+msgid "The project has no lights, switches, sun protection or heating among its functions."
+msgstr "Entre las funciones del proyecto no hay luces, interruptores, protección solar ni calefacción."
+
+msgid "Function"
+msgstr "Función"
+
+msgid "Group Addresses"
+msgstr "Direcciones de grupo"
+
+msgid "No area"
+msgstr "Ningún área"
+
+msgid "Created: {entity}"
+msgstr "Creada: {entity}"
+
+msgid "Its address is used by {entities}"
+msgstr "Su dirección la usa {entities}"
+
+msgid "Being checked…"
+msgstr "Comprobando…"
+
+msgid "Not taken: {error}"
+msgstr "No aceptada: {error}"
+
+msgid "Entities created in Home Assistant: {count}"
+msgstr "Entidades creadas en Home Assistant: {count}"
+
+msgid "Its group addresses changed: {entity} gets the new ones"
+msgstr "Sus direcciones de grupo han cambiado: {entity} recibe las nuevas"
+
+msgid "Its group addresses changed: download its devices first"
+msgstr "Sus direcciones de grupo han cambiado: programe primero sus dispositivos"
+
+msgid "Entities of Removed Functions"
+msgstr "Entidades de funciones eliminadas"
+
+msgid "Entities updated in Home Assistant: {count}"
+msgstr "Entidades actualizadas en Home Assistant: {count}"
+
+msgid "Entities removed from Home Assistant: {count}"
+msgstr "Entidades eliminadas de Home Assistant: {count}"
+
+msgid "Time Server…"
+msgstr "Servidor de hora…"
+
+msgid "Time Server in Home Assistant"
+msgstr "Servidor de hora en Home Assistant"
+
+msgid "Home Assistant's KNX integration can send the time and the date to the bus. Choose the group addresses for them: those of the project with the data type of a time, a date, or a date with time."
+msgstr "La integración KNX de Home Assistant puede enviar la hora y la fecha al bus. Elija las direcciones de grupo para ello: las del proyecto con el tipo de datos de una hora, una fecha o una fecha con hora."
+
+msgid "Time"
+msgstr "Hora"
+
+msgid "Date"
+msgstr "Fecha"
+
+msgid "Date and Time"
+msgstr "Fecha y hora"
+
+msgid "None"
+msgstr "Ninguna"
+
+msgid "Home Assistant's time server sends to the chosen group addresses"
+msgstr "El servidor de hora de Home Assistant envía a las direcciones de grupo elegidas"
+
+msgid "Send Keys to Home Assistant…"
+msgstr "Enviar claves a Home Assistant…"
+
+msgid "Keys in Home Assistant"
+msgstr "Claves en Home Assistant"
+
+msgid "The keys of the project's Data Secure group addresses become the keyring of Home Assistant's KNX integration, so it reads and sends their telegrams. The KNX integration is loaded again for it."
+msgstr "Las claves de las direcciones de grupo Data Secure del proyecto se convierten en el anillo de claves de la integración KNX de Home Assistant, para que esta lea y envíe sus telegramas. Para ello, la integración KNX se vuelve a cargar."
+
+msgid "Data Secure group addresses: {count}"
+msgstr "Direcciones de grupo Data Secure: {count}"
+
+msgid "Home Assistant's KNX integration is not set up, or it connects with KNX Secure: then its keyring holds its own connection's keys, and stays as it is (change it in the KNX integration's options)."
+msgstr "La integración KNX de Home Assistant no está configurada o se conecta con KNX Secure: en ese caso, su anillo de claves contiene las claves de su propia conexión y se mantiene como está (cámbielo en las opciones de la integración KNX)."
+
+msgid "Send"
+msgstr "Enviar"
+
+msgid "Home Assistant's KNX integration has the project's keys"
+msgstr "La integración KNX de Home Assistant tiene las claves del proyecto"
+
+msgid "Connect Like Home Assistant"
+msgstr "Conectar como Home Assistant"
+
+msgid "The editor connects to the bus over the same interface or router as Home Assistant's KNX integration (with a tunnel of its own). Without a connection of its own it reads and sends group telegrams over Home Assistant's."
+msgstr "El editor se conecta al bus a través de la misma interfaz o router que la integración KNX de Home Assistant (con un túnel propio). Sin conexión propia, lee y envía telegramas de grupo a través de la de Home Assistant."
+
+msgid "Home Assistant's KNX integration connects with KNX Secure or finds its interface itself: connect the editor in the Gateway menu."
+msgstr "La integración KNX de Home Assistant se conecta con KNX Secure o busca su interfaz por sí misma: conecte el editor en el menú Pasarela."
+
+msgid "From Home Assistant"
+msgstr "Desde Home Assistant"
+
+msgid "Floors and areas of Home Assistant that the project has no floor or room for. They become floors and rooms of the building, linked to what they were made from."
+msgstr "Plantas y áreas de Home Assistant para las que el proyecto no tiene planta ni estancia. Se convierten en plantas y estancias del edificio, vinculadas a aquello de lo que se crearon."
+
+msgid "Building"
+msgstr "Edificio"
+
+msgid "New building"
+msgstr "Edificio nuevo"
+
+msgid "Home"
+msgstr "Casa"
+
+msgid "Add to Project"
+msgstr "Añadir al proyecto"
+
+msgid "Floors and areas from Home Assistant"
+msgstr "Plantas y áreas desde Home Assistant"
+
+msgid "Floors and rooms added to the project: {count}"
+msgstr "Plantas y estancias añadidas al proyecto: {count}"
+
+msgid "Group Addresses from Home Assistant…"
+msgstr "Direcciones de grupo desde Home Assistant…"
+
+msgid "Group Addresses from Home Assistant"
+msgstr "Direcciones de grupo desde Home Assistant"
+
+msgid "The group addresses Home Assistant's KNX integration uses that the project does not have. They are added with the name of what uses them and the datapoint type Home Assistant uses them with."
+msgstr "Las direcciones de grupo que usa la integración KNX de Home Assistant y que el proyecto no tiene. Se añaden con el nombre de lo que las usa y con el tipo de punto de datos con el que Home Assistant las usa."
+
+msgid "Home Assistant uses no group addresses the project does not have."
+msgstr "Home Assistant no usa ninguna dirección de grupo que el proyecto no tenga."
+
+msgid "Address"
+msgstr "Dirección"
+
+msgid "Datapoint Type"
+msgstr "Tipo de punto de datos"
+
+msgid "Group addresses from Home Assistant"
+msgstr "Direcciones de grupo desde Home Assistant"
+
+msgid "Group addresses added to the project: {count}"
+msgstr "Direcciones de grupo añadidas al proyecto: {count}"

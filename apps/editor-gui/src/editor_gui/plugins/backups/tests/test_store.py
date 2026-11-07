@@ -150,6 +150,30 @@ def test_a_damaged_backup_is_found(tmp_path: Path) -> None:
     assert not (tmp_path / "out.xknx").exists()
 
 
+def test_a_backup_whose_data_cannot_be_inflated_is_found(tmp_path: Path) -> None:
+    source = tmp_path / "home.xknx"
+    guid = _project(source)
+    backup = write_backup(source, tmp_path, _info(guid))
+    data = bytearray(backup.path.read_bytes())
+    with zipfile.ZipFile(backup.path) as z:
+        member = next(i for i in z.infolist() if i.filename.endswith(".xknx"))
+    # The compressed data starts after the local header: 30 bytes, the name and the extra field.
+    header = member.header_offset
+    name_length = int.from_bytes(data[header + 26 : header + 28], "little")
+    extra_length = int.from_bytes(data[header + 28 : header + 30], "little")
+    # A last deflate block of the reserved type: inflating it fails (zlib.error), before any
+    # CRC is compared.
+    data[header + 30 + name_length + extra_length] = 0xFF
+    backup.path.write_bytes(bytes(data))
+
+    assert check_backup(backup.path) is not None
+    with pytest.raises(BackupError):
+        extract_project(backup.path, tmp_path / "out.xknx")
+    assert not (tmp_path / "out.xknx").exists()
+    # Its information, compressed on its own, is still read: it is listed, and found damaged.
+    assert read_backup(backup.path) is not None
+
+
 def test_a_damaged_project_file_is_found(tmp_path: Path) -> None:
     source = tmp_path / "home.xknx"
     _project(source)

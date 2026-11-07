@@ -27,6 +27,7 @@ if TYPE_CHECKING:
     from editor_gui.plugins.backups.service import BackupService
     from editor_gui.plugins.base import Logger, PluginAPI
     from editor_gui.plugins.connection.plugin import ConnectionPlugin
+    from editor_gui.plugins.home_assistant.service import HomeAssistantService
     from editor_gui.plugins.keyring.service import KeyringService
     from editor_gui.plugins.monitor.service import MonitorService
     from editor_gui.plugins.project.plugin import ProjectPlugin
@@ -127,6 +128,8 @@ class McpContext:
     settings: SettingsWindow | None = None
     # The recovery of devices from the bus (the Recover window); None where no GUI runs it.
     recover: RecoverService | None = None
+    # The open project in Home Assistant's KNX integration; None where no GUI runs it.
+    home_assistant: HomeAssistantService | None = None
 
     def run_locked(self, fn: Callable[[], T], *, timeout: float = 30.0) -> T:
         """Run ``fn`` on the UI thread while holding the shared project/catalog lock non-blocking.

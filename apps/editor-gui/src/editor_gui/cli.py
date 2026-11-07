@@ -59,6 +59,11 @@ _HOST = (
         "XKNX_MCP_AUTH_TOKEN; its settings are not shown.",
     ),
     ("--mcp-url=URL", "The address MCP clients use (a proxy in front)."),
+    (
+        "--language=CODE",
+        "The language of the program that starts the editor (e.g. de, pt-BR): the editor's "
+        "language until one is chosen in its settings, in place of the system's.",
+    ),
 )
 
 

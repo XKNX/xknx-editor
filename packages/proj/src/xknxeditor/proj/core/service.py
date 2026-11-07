@@ -164,6 +164,7 @@ from xknxeditor.proj.core.ga_security import (
     FORCED_MODES,
     commissioned_devices,
     effective_mode,
+    exports_key,
     forcing_range,
     is_secured,
     linked_devices,
@@ -236,6 +237,7 @@ from xknxeditor.proj.models import (
     GroupRange,
     Installation,
     Line,
+    Parameter,
     Project,
     ProjectTrace,
     Segment,
@@ -408,6 +410,80 @@ class TradeInfo:
     description: str
     children: list[TradeInfo]
     devices: list[TradeDeviceInfo]
+
+
+@dataclass(frozen=True, slots=True)
+class ModelLink:
+    """A group object's link (see :class:`ModelSource`)."""
+
+    id: int
+    group_address_id: int
+    is_sending: bool
+
+
+@dataclass(frozen=True, slots=True)
+class ModelComObject:
+    """A group object with links: the columns of ``ComObject`` a description of the project
+    takes (see :class:`ModelSource`)."""
+
+    id: int
+    device_id: int
+    ref_id: str
+    instance_ref_id: str
+    channel_id: str | None
+    read_flag: bool | None
+    write_flag: bool | None
+    communication_flag: bool | None
+    transmit_flag: bool | None
+    update_flag: bool | None
+    read_on_init_flag: bool | None
+    text_override: str | None
+    function_text_override: str | None
+    description_override: str | None
+    datapoint_type_override: str | None
+    links: tuple[ModelLink, ...]
+
+
+@dataclass(frozen=True, slots=True)
+class ModelGroupAddress:
+    """The columns of ``GroupAddress`` a description of the project takes (see
+    :class:`ModelSource`)."""
+
+    id: int
+    group_range_id: int
+    address: int
+    name: str
+    datapoint_type: str | None
+    description: str
+    comment: str
+    puid: int | None
+    source_id: str
+
+
+@dataclass(frozen=True)
+class ModelSource:
+    """Every row a full description of the project is built from, read in a few queries with
+    what the rows refer to, so nothing more is read while it is built.
+
+    The devices come with their module instances, the functions with their group addresses.
+    The group objects with links and the group addresses are plain values (a project has
+    thousands of them). ``parameters`` holds each device's parameter values by ref id,
+    ``keyed`` the ids of the group addresses a project file carries a Data Secure key of
+    (those secured now, and unlinked ones in ``Auto`` mode).
+    """
+
+    project: Project
+    areas: list[Area]
+    lines: list[Line]
+    segments: list[Segment]
+    devices: list[Device]
+    com_objects: list[ModelComObject]
+    parameters: dict[int, dict[str, str]]
+    group_ranges: list[GroupRange]
+    group_addresses: list[ModelGroupAddress]
+    spaces: list[Space]
+    functions: list[Function]
+    keyed: set[int]
 
 
 @dataclass(frozen=True)
@@ -4921,6 +4997,92 @@ class ProjectService:
         )
         secured = secured_group_addresses(state.session)
         return [self._ga_info(row, style, secured) for row in rows]
+
+    def model_source(self, project_id: str) -> ModelSource:
+        """The rows of the whole project, each kind in its stored order (see
+        :class:`ModelSource`)."""
+        state = self._state(project_id)
+        session = state.session
+        parameters: dict[int, dict[str, str]] = {}
+        # Plain values: a project has tens of thousands of them.
+        for device_id, ref_id, value in session.query(
+            Parameter.device_id, Parameter.ref_id, Parameter.value
+        ):
+            parameters.setdefault(device_id, {})[ref_id] = value
+        secured = secured_group_addresses(session)
+        keyed = {
+            ga.id
+            for ga in session.query(GroupAddress).filter(
+                GroupAddress.security_key.is_not(None)
+            )
+            if ga.security_key and exports_key(ga, ga.id in secured)
+        }
+        links: dict[int, list[ModelLink]] = {}
+        for com_object_id, link_id, ga_id, is_sending in session.query(
+            ComObjectLink.com_object_id,
+            ComObjectLink.id,
+            ComObjectLink.group_address_id,
+            ComObjectLink.is_sending,
+        ).order_by(ComObjectLink.id):
+            links.setdefault(com_object_id, []).append(
+                ModelLink(id=link_id, group_address_id=ga_id, is_sending=is_sending)
+            )
+        com_objects = [
+            ModelComObject(*row, links=tuple(links[row[0]]))
+            for row in session.query(
+                ComObject.id,
+                ComObject.device_id,
+                ComObject.ref_id,
+                ComObject.instance_ref_id,
+                ComObject.channel_id,
+                ComObject.read_flag,
+                ComObject.write_flag,
+                ComObject.communication_flag,
+                ComObject.transmit_flag,
+                ComObject.update_flag,
+                ComObject.read_on_init_flag,
+                ComObject.text_override,
+                ComObject.function_text_override,
+                ComObject.description_override,
+                ComObject.datapoint_type_override,
+            )
+            .filter(ComObject.links.any())
+            .order_by(ComObject.id)
+        ]
+        group_addresses = [
+            ModelGroupAddress(*row)
+            for row in session.query(
+                GroupAddress.id,
+                GroupAddress.group_range_id,
+                GroupAddress.address,
+                GroupAddress.name,
+                GroupAddress.datapoint_type,
+                GroupAddress.description,
+                GroupAddress.comment,
+                GroupAddress.puid,
+                GroupAddress.source_id,
+            ).order_by(GroupAddress.id)
+        ]
+        return ModelSource(
+            project=self.project(project_id),
+            areas=session.query(Area).order_by(Area.id).all(),
+            lines=session.query(Line).order_by(Line.id).all(),
+            segments=session.query(Segment).order_by(Segment.id).all(),
+            devices=session.query(Device)
+            .options(selectinload(Device.module_instances))
+            .order_by(Device.id)
+            .all(),
+            com_objects=com_objects,
+            parameters=parameters,
+            group_ranges=session.query(GroupRange).order_by(GroupRange.id).all(),
+            group_addresses=group_addresses,
+            spaces=session.query(Space).order_by(Space.id).all(),
+            functions=session.query(Function)
+            .options(selectinload(Function.group_addresses))
+            .order_by(Function.id)
+            .all(),
+            keyed=keyed,
+        )
 
     def group_ranges(self, project_id: str, installation: int) -> list[GroupRangeInfo]:
         """The installation's group-address range tree (roots → children), resolved for display."""

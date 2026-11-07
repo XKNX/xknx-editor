@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from datetime import datetime
 from typing import Any
 
 from xknx.cemi import CEMIFrame, CEMILData, CEMIMessageCode
@@ -347,3 +348,94 @@ def test_replay_skips_secure_telegrams() -> None:
     assert plan.skipped_secure == 1
     assert not plan.items
     assert not service.replaying
+
+
+_HOME_ASSISTANT = LinkInfo("Home Assistant", "224.0.23.12", 3671, "IpRouting")
+
+
+def _ha_frame(address: str, value: int) -> bytes:
+    return _frame(
+        CEMIMessageCode.L_DATA_IND,
+        GroupAddress(address),
+        GroupValueWrite(DPTBinary(value)),
+        "1.1.7",
+    )
+
+
+def test_home_assistants_telegrams_while_not_connected() -> None:
+    connection = FakeConnection()
+    service = MonitorService(connection)  # type: ignore[arg-type]
+    when = datetime(2026, 11, 6, 10, 0, 0)
+    assert service.on_foreign_cemi(_ha_frame("1/2/3", 1), when, _HOME_ASSISTANT)
+    latest = service.latest("1/2/3")
+    assert latest is not None and latest.timestamp == when
+    # An older value (the latest values at the start) does not replace a newer one.
+    service.on_foreign_cemi(
+        _ha_frame("1/2/3", 0), datetime(2026, 11, 6, 9, 0), _HOME_ASSISTANT, log=False
+    )
+    assert service.latest("1/2/3").timestamp == when  # type: ignore[union-attr]
+    assert _kinds(service, MonitorKind.GROUP) == [RecordKind.START, RecordKind.TELEGRAM]
+    group = service.channel(MonitorKind.GROUP)
+    assert group.connection_name == _HOME_ASSISTANT.endpoint_name
+
+    # The app's own connection: its session replaces Home Assistant's, whose telegrams it
+    # carries itself now.
+    connection.xknx = FakeXknx("1.1.250")
+    service.on_connected()
+    assert _kinds(service, MonitorKind.GROUP)[-2:] == [
+        RecordKind.STOP,
+        RecordKind.START,
+    ]
+    assert group.connection_name == connection.link_info.endpoint_name
+    assert not service.on_foreign_cemi(_ha_frame("1/2/4", 1), when, _HOME_ASSISTANT)
+
+
+def test_home_assistants_history_replaces_the_group_monitor() -> None:
+    service = MonitorService(FakeConnection())  # type: ignore[arg-type]
+    frames = [
+        (_ha_frame("1/2/4", 1), datetime(2026, 11, 6, 10, 0, 2)),
+        (_ha_frame("1/2/3", 1), datetime(2026, 11, 6, 10, 0, 1)),
+        # Not a group telegram: left out.
+        (b"\x29\x00", datetime(2026, 11, 6, 10, 0, 3)),
+    ]
+    assert service.load_foreign(frames, _HOME_ASSISTANT) == 2
+    records = service.channel(MonitorKind.GROUP).log.snapshot()
+    assert [r.kind for r in records] == [
+        RecordKind.START,
+        RecordKind.TELEGRAM,
+        RecordKind.TELEGRAM,
+    ]
+    assert records[1].ticks < records[2].ticks
+    assert records[0].connector_type == "IpRouting"
+    assert not service.channel(MonitorKind.GROUP).recording
+
+
+def test_without_a_connection_group_telegrams_go_over_another_programs() -> None:
+    connection = FakeConnection()
+    service = MonitorService(connection)  # type: ignore[arg-type]
+    assert not service.can_send()
+    sent: list[tuple[str, object]] = []
+    available = [True]
+
+    def elsewhere(address: str, apci: object) -> bool:
+        sent.append((address, apci))
+        return True
+
+    service.send_elsewhere = elsewhere
+    service.elsewhere_available = lambda: available[0]
+    assert service.can_send()
+    service.send_read("1/2/3")
+    assert service.send_write("1/2/4", "DPST-1-1", "1")
+    assert [address for address, _ in sent] == ["1/2/3", "1/2/4"]
+    assert connection.sent == []
+    available[0] = False
+    assert not service.can_send()
+
+    # With a connection of its own: over that one.
+    connection.xknx = FakeXknx("1.1.250")
+    connection.send_group_telegram = lambda address, payload: connection.sent.append(
+        b"x"
+    )  # type: ignore[attr-defined]
+    service.send_read("1/2/5")
+    assert connection.sent == [b"x"]
+    assert len(sent) == 2

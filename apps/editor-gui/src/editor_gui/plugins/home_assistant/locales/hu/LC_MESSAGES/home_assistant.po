@@ -1,0 +1,341 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor home_assistant 1.0\n"
+"Language: hu\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Home Assistant"
+msgstr "Home Assistant"
+
+msgid "Use Project in Home Assistant"
+msgstr "Projekt használata a Home Assistantban"
+
+msgid "Update Home Assistant Now"
+msgstr "Home Assistant frissítése most"
+
+msgid "Update Home Assistant Automatically"
+msgstr "Home Assistant automatikus frissítése"
+
+msgid "After each change, the project is sent to Home Assistant's KNX integration again."
+msgstr "Minden módosítás után a projekt ismét elküldésre kerül a Home Assistant KNX-integrációjának."
+
+msgid "Home Assistant: up to date"
+msgstr "Home Assistant: naprakész"
+
+msgid "Home Assistant: changes not sent"
+msgstr "Home Assistant: a módosítások nincsenek elküldve"
+
+msgid "Home Assistant: updating…"
+msgstr "Home Assistant: frissítés…"
+
+msgid "Home Assistant: other project"
+msgstr "Home Assistant: másik projekt"
+
+msgid "Home Assistant: KNX integration not set up"
+msgstr "Home Assistant: a KNX-integráció nincs beállítva"
+
+msgid "Home Assistant: update failed"
+msgstr "Home Assistant: a frissítés sikertelen"
+
+msgid "Home Assistant: not connected"
+msgstr "Home Assistant: nincs kapcsolat"
+
+msgid "Home Assistant's KNX integration uses this project: its group monitor, project view and address pickers know its group addresses, devices and buildings."
+msgstr "A Home Assistant KNX-integrációja ezt a projektet használja: a csoportfigyelője, a projektnézete és a címválasztói ismerik a projekt csoportcímeit, készülékeit és épületeit."
+
+msgid "The changes are sent to Home Assistant in a moment."
+msgstr "A módosítások hamarosan elküldésre kerülnek a Home Assistantnak."
+
+msgid "Automatic updates are off: Update Home Assistant Now in the Home Assistant menu sends the changes."
+msgstr "Az automatikus frissítések ki vannak kapcsolva: a Home Assistant menü „Home Assistant frissítése most” parancsa küldi el a módosításokat."
+
+msgid "Home Assistant's KNX integration holds no project."
+msgstr "A Home Assistant KNX-integrációjában nincs projekt."
+
+msgid "Home Assistant's KNX integration holds the project \"{name}\" ({tool}, {date})."
+msgstr "A Home Assistant KNX-integrációjában a(z) „{name}” projekt található ({tool}, {date})."
+
+msgid "Set up the KNX integration in Home Assistant to use this project there (Settings > Devices & Services)."
+msgstr "Állítsa be a KNX-integrációt a Home Assistantban, hogy ott használhassa ezt a projektet (Beállítások > Eszközök és szolgáltatások)."
+
+msgid "Home Assistant did not take the project: {error}"
+msgstr "A Home Assistant nem fogadta el a projektet: {error}"
+
+msgid "The XKNX Editor integration is not connected. Update the integration in Home Assistant if this stays."
+msgstr "Az XKNX Editor-integráció nincs csatlakoztatva. Ha ez így marad, frissítse az integrációt a Home Assistantban."
+
+msgid "Home Assistant's KNX integration holds no project yet. Use \"{name}\" as its project?"
+msgstr "A Home Assistant KNX-integrációjában még nincs projekt. Legyen a(z) „{name}” a projektje?"
+
+msgid "Home Assistant's KNX integration holds the project \"{other}\" ({tool}, {date}). Replace it with \"{name}\"?"
+msgstr "A Home Assistant KNX-integrációjában a(z) „{other}” projekt található ({tool}, {date}). Lecseréli erre: „{name}”?"
+
+msgid "Its group monitor, project view, address pickers and entity suggestions then know this project's group addresses, devices and buildings. Entities, automations and the KNX integration's other settings stay as they are."
+msgstr "A csoportfigyelője, a projektnézete, a címválasztói és az entitásjavaslatai ezután ismerik ennek a projektnek a csoportcímeit, készülékeit és épületeit. Az entitások, az automatizmusok és a KNX-integráció egyéb beállításai változatlanok maradnak."
+
+msgid "Your changes reach Home Assistant a moment after you make them."
+msgstr "Az Ön módosításai röviddel azután érik el a Home Assistantot, hogy elvégezte őket."
+
+msgid "Automatic updates are off: Update Home Assistant Now in the Home Assistant menu sends your changes."
+msgstr "Az automatikus frissítések ki vannak kapcsolva: a Home Assistant menü „Home Assistant frissítése most” parancsa küldi el az Ön módosításait."
+
+msgid "Use in Home Assistant"
+msgstr "Használat a Home Assistantban"
+
+msgid "Replace"
+msgstr "Csere"
+
+msgid "Not Now"
+msgstr "Most nem"
+
+msgid "date unknown"
+msgstr "ismeretlen dátum"
+
+msgid "Load Telegrams from Home Assistant"
+msgstr "Táviratok betöltése a Home Assistantból"
+
+msgid "The telegrams Home Assistant recorded in the last {hours} hours, in the Group Monitor in place of its entries."
+msgstr "A Home Assistant által az elmúlt {hours} órában rögzített táviratok a Csoportmonitorban, annak bejegyzései helyett."
+
+msgid "{count} telegrams from Home Assistant in the Group Monitor"
+msgstr "Táviratok a Home Assistantból a Csoportmonitorban: {count}"
+
+msgid "The telegrams could not be loaded: {error}"
+msgstr "A táviratokat nem sikerült betölteni: {error}"
+
+msgid "Shown once the XKNX Editor integration is connected."
+msgstr "Akkor jelenik meg, amikor az XKNX Editor-integráció csatlakozik."
+
+msgid "Not used in Home Assistant."
+msgstr "A Home Assistant nem használja."
+
+msgid "Home Assistant sends to this group address."
+msgstr "A Home Assistant erre a csoportcímre küld."
+
+msgid "Name"
+msgstr "Név"
+
+msgid "Used By"
+msgstr "Használja"
+
+msgid "State"
+msgstr "Állapot"
+
+msgid "Expose"
+msgstr "Kitettség"
+
+msgid "Time server"
+msgstr "Időszerver"
+
+msgid "{entity} (YAML)"
+msgstr "{entity} (YAML)"
+
+msgid "Disabled"
+msgstr "Letiltva"
+
+msgid "Floors and Areas…"
+msgstr "Emeletek és területek…"
+
+msgid "Floors and Areas in Home Assistant"
+msgstr "Emeletek és területek a Home Assistantban"
+
+msgid "The floors of the buildings become floors of Home Assistant, their rooms, corridors and stairways its areas. Chosen ones are created, linked to one of the same name, or renamed as here; nothing is removed."
+msgstr "Az épületek emeletei a Home Assistant emeleteivé, helyiségeik, folyosóik és lépcsőházaik pedig a területeivé válnak. A kiválasztottak létrejönnek, összekapcsolódnak egy azonos nevűvel, vagy az itt látható módon átneveződnek; semmi sem törlődik."
+
+msgid "The project has no floors, rooms, corridors or stairways."
+msgstr "A projektben nincsenek emeletek, helyiségek, folyosók vagy lépcsőházak."
+
+msgid "Building Part"
+msgstr "Épületrész"
+
+msgid "Becomes"
+msgstr "Ebből lesz"
+
+msgid "In Home Assistant"
+msgstr "A Home Assistantban"
+
+msgid "Floor"
+msgstr "Emelet"
+
+msgid "Area"
+msgstr "Terület"
+
+msgid "New"
+msgstr "Új"
+
+msgid "Exists as \"{name}\""
+msgstr "Létezik ezen a néven: „{name}”"
+
+msgid "Named \"{name}\""
+msgstr "Neve: „{name}”"
+
+msgid "Linked"
+msgstr "Összekapcsolva"
+
+msgid "Applying…"
+msgstr "Alkalmazás…"
+
+msgid "Home Assistant did not take them: {error}"
+msgstr "A Home Assistant nem fogadta el őket: {error}"
+
+msgid "Floors and areas in Home Assistant created, linked or renamed: {count}"
+msgstr "A Home Assistantban létrehozott, összekapcsolt vagy átnevezett emeletek és területek: {count}"
+
+msgid "Apply"
+msgstr "Alkalmaz"
+
+msgid "Entities from Functions…"
+msgstr "Entitások funkciókból…"
+
+msgid "Entities in Home Assistant"
+msgstr "Entitások a Home Assistantban"
+
+msgid "The building functions become entities of Home Assistant's KNX integration: a light, a switch, a cover or a climate entity with the group addresses of their roles, named like the function, in the area its room became (see Floors and Areas). Home Assistant checks each one first."
+msgstr "Az épületfunkciókból a Home Assistant KNX-integrációjának entitásai lesznek: világítás, kapcsoló, árnyékoló vagy klíma-entitás a szerepeik csoportcímeivel, a funkció nevével, abban a területben, amellyé a helyiségük vált (lásd Emeletek és területek). A Home Assistant mindegyiket előbb ellenőrzi."
+
+msgid "The project has no lights, switches, sun protection or heating among its functions."
+msgstr "A projekt funkciói között nincs világítás, kapcsoló, napvédelem vagy fűtés."
+
+msgid "Function"
+msgstr "Funkció"
+
+msgid "Group Addresses"
+msgstr "Csoportcímek"
+
+msgid "No area"
+msgstr "Nincs terület"
+
+msgid "Created: {entity}"
+msgstr "Létrehozva: {entity}"
+
+msgid "Its address is used by {entities}"
+msgstr "A címét használja: {entities}"
+
+msgid "Being checked…"
+msgstr "Ellenőrzés…"
+
+msgid "Not taken: {error}"
+msgstr "Nem fogadta el: {error}"
+
+msgid "Entities created in Home Assistant: {count}"
+msgstr "A Home Assistantban létrehozott entitások: {count}"
+
+msgid "Its group addresses changed: {entity} gets the new ones"
+msgstr "A csoportcímei megváltoztak: {entity} megkapja az újakat"
+
+msgid "Its group addresses changed: download its devices first"
+msgstr "A csoportcímei megváltoztak: előbb programozza a készülékeit"
+
+msgid "Entities of Removed Functions"
+msgstr "Eltávolított funkciók entitásai"
+
+msgid "Entities updated in Home Assistant: {count}"
+msgstr "A Home Assistantban frissített entitások: {count}"
+
+msgid "Entities removed from Home Assistant: {count}"
+msgstr "A Home Assistantból eltávolított entitások: {count}"
+
+msgid "Time Server…"
+msgstr "Időszerver…"
+
+msgid "Time Server in Home Assistant"
+msgstr "Időszerver a Home Assistantban"
+
+msgid "Home Assistant's KNX integration can send the time and the date to the bus. Choose the group addresses for them: those of the project with the data type of a time, a date, or a date with time."
+msgstr "A Home Assistant KNX-integrációja el tudja küldeni a buszra az időt és a dátumot. Válassza ki hozzájuk a csoportcímeket: a projekt azon címeit, amelyek adattípusa idő, dátum vagy dátum idővel."
+
+msgid "Time"
+msgstr "Idő"
+
+msgid "Date"
+msgstr "Dátum"
+
+msgid "Date and Time"
+msgstr "Dátum és idő"
+
+msgid "None"
+msgstr "Nincs"
+
+msgid "Home Assistant's time server sends to the chosen group addresses"
+msgstr "A Home Assistant időszervere a kiválasztott csoportcímekre küld"
+
+msgid "Send Keys to Home Assistant…"
+msgstr "Kulcsok küldése a Home Assistantnak…"
+
+msgid "Keys in Home Assistant"
+msgstr "Kulcsok a Home Assistantban"
+
+msgid "The keys of the project's Data Secure group addresses become the keyring of Home Assistant's KNX integration, so it reads and sends their telegrams. The KNX integration is loaded again for it."
+msgstr "A projekt Data Secure-csoportcímeinek kulcsai a Home Assistant KNX-integrációjának kulcstartójává válnak, így az olvassa és küldi a táviratukat. A KNX-integráció ehhez újra betöltődik."
+
+msgid "Data Secure group addresses: {count}"
+msgstr "Data Secure-csoportcímek: {count}"
+
+msgid "Home Assistant's KNX integration is not set up, or it connects with KNX Secure: then its keyring holds its own connection's keys, and stays as it is (change it in the KNX integration's options)."
+msgstr "A Home Assistant KNX-integrációja nincs beállítva, vagy KNX Secure-ral csatlakozik: ekkor a kulcstartója a saját kapcsolatának kulcsait tartalmazza, és változatlan marad (módosítsa a KNX-integráció beállításaiban)."
+
+msgid "Send"
+msgstr "Küldés"
+
+msgid "Home Assistant's KNX integration has the project's keys"
+msgstr "A Home Assistant KNX-integrációja megkapta a projekt kulcsait"
+
+msgid "Connect Like Home Assistant"
+msgstr "Csatlakozás a Home Assistanthoz hasonlóan"
+
+msgid "The editor connects to the bus over the same interface or router as Home Assistant's KNX integration (with a tunnel of its own). Without a connection of its own it reads and sends group telegrams over Home Assistant's."
+msgstr "A szerkesztő ugyanazon az interfészen vagy routeren keresztül csatlakozik a buszra, mint a Home Assistant KNX-integrációja (saját alagúttal). Saját kapcsolat nélkül a Home Assistant kapcsolatán keresztül olvassa és küldi a csoporttáviratokat."
+
+msgid "Home Assistant's KNX integration connects with KNX Secure or finds its interface itself: connect the editor in the Gateway menu."
+msgstr "A Home Assistant KNX-integrációja KNX Secure-ral csatlakozik, vagy maga keresi meg az interfészét: csatlakoztassa a szerkesztőt az Átjáró menüben."
+
+msgid "From Home Assistant"
+msgstr "A Home Assistantból"
+
+msgid "Floors and areas of Home Assistant that the project has no floor or room for. They become floors and rooms of the building, linked to what they were made from."
+msgstr "A Home Assistant azon emeletei és területei, amelyekhez a projektnek nincs emelete vagy helyisége. Az épület emeleteivé és helyiségeivé válnak, összekapcsolva azzal, amiből létrejöttek."
+
+msgid "Building"
+msgstr "Épület"
+
+msgid "New building"
+msgstr "Új épület"
+
+msgid "Home"
+msgstr "Otthon"
+
+msgid "Add to Project"
+msgstr "Hozzáadás a projekthez"
+
+msgid "Floors and areas from Home Assistant"
+msgstr "Emeletek és területek a Home Assistantból"
+
+msgid "Floors and rooms added to the project: {count}"
+msgstr "A projekthez hozzáadott emeletek és helyiségek: {count}"
+
+msgid "Group Addresses from Home Assistant…"
+msgstr "Csoportcímek a Home Assistantból…"
+
+msgid "Group Addresses from Home Assistant"
+msgstr "Csoportcímek a Home Assistantból"
+
+msgid "The group addresses Home Assistant's KNX integration uses that the project does not have. They are added with the name of what uses them and the datapoint type Home Assistant uses them with."
+msgstr "Azok a csoportcímek, amelyeket a Home Assistant KNX-integrációja használ, de a projektben nincsenek meg. A felhasználójuk nevével és azzal az adatponttípussal kerülnek hozzáadásra, amellyel a Home Assistant használja őket."
+
+msgid "Home Assistant uses no group addresses the project does not have."
+msgstr "A Home Assistant nem használ olyan csoportcímet, amely a projektben nincs meg."
+
+msgid "Address"
+msgstr "Cím"
+
+msgid "Datapoint Type"
+msgstr "Adatponttípus"
+
+msgid "Group addresses from Home Assistant"
+msgstr "Csoportcímek a Home Assistantból"
+
+msgid "Group addresses added to the project: {count}"
+msgstr "A projekthez hozzáadott csoportcímek: {count}"

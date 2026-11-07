@@ -1,0 +1,341 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor home_assistant 1.0\n"
+"Language: el\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Home Assistant"
+msgstr "Home Assistant"
+
+msgid "Use Project in Home Assistant"
+msgstr "Χρήση του έργου στο Home Assistant"
+
+msgid "Update Home Assistant Now"
+msgstr "Ενημέρωση του Home Assistant τώρα"
+
+msgid "Update Home Assistant Automatically"
+msgstr "Αυτόματη ενημέρωση του Home Assistant"
+
+msgid "After each change, the project is sent to Home Assistant's KNX integration again."
+msgstr "Μετά από κάθε αλλαγή, το έργο αποστέλλεται ξανά στην ενσωμάτωση KNX του Home Assistant."
+
+msgid "Home Assistant: up to date"
+msgstr "Home Assistant: ενημερωμένο"
+
+msgid "Home Assistant: changes not sent"
+msgstr "Home Assistant: οι αλλαγές δεν στάλθηκαν"
+
+msgid "Home Assistant: updating…"
+msgstr "Home Assistant: ενημέρωση…"
+
+msgid "Home Assistant: other project"
+msgstr "Home Assistant: άλλο έργο"
+
+msgid "Home Assistant: KNX integration not set up"
+msgstr "Home Assistant: η ενσωμάτωση KNX δεν έχει ρυθμιστεί"
+
+msgid "Home Assistant: update failed"
+msgstr "Home Assistant: η ενημέρωση απέτυχε"
+
+msgid "Home Assistant: not connected"
+msgstr "Home Assistant: δεν είναι συνδεδεμένο"
+
+msgid "Home Assistant's KNX integration uses this project: its group monitor, project view and address pickers know its group addresses, devices and buildings."
+msgstr "Η ενσωμάτωση KNX του Home Assistant χρησιμοποιεί αυτό το έργο: η παρακολούθηση ομάδων, η προβολή έργου και οι επιλογείς διευθύνσεών της γνωρίζουν τις διευθύνσεις ομάδων, τις συσκευές και τα κτίριά του."
+
+msgid "The changes are sent to Home Assistant in a moment."
+msgstr "Οι αλλαγές θα σταλούν στο Home Assistant σε λίγο."
+
+msgid "Automatic updates are off: Update Home Assistant Now in the Home Assistant menu sends the changes."
+msgstr "Οι αυτόματες ενημερώσεις είναι απενεργοποιημένες: η εντολή «Ενημέρωση του Home Assistant τώρα» στο μενού Home Assistant στέλνει τις αλλαγές."
+
+msgid "Home Assistant's KNX integration holds no project."
+msgstr "Η ενσωμάτωση KNX του Home Assistant δεν έχει έργο."
+
+msgid "Home Assistant's KNX integration holds the project \"{name}\" ({tool}, {date})."
+msgstr "Η ενσωμάτωση KNX του Home Assistant έχει το έργο «{name}» ({tool}, {date})."
+
+msgid "Set up the KNX integration in Home Assistant to use this project there (Settings > Devices & Services)."
+msgstr "Ρυθμίστε την ενσωμάτωση KNX στο Home Assistant για να χρησιμοποιήσετε εκεί αυτό το έργο (Ρυθμίσεις > Συσκευές & υπηρεσίες)."
+
+msgid "Home Assistant did not take the project: {error}"
+msgstr "Το Home Assistant δεν αποδέχτηκε το έργο: {error}"
+
+msgid "The XKNX Editor integration is not connected. Update the integration in Home Assistant if this stays."
+msgstr "Η ενσωμάτωση XKNX Editor δεν είναι συνδεδεμένη. Ενημερώστε την ενσωμάτωση στο Home Assistant, αν αυτό παραμένει."
+
+msgid "Home Assistant's KNX integration holds no project yet. Use \"{name}\" as its project?"
+msgstr "Η ενσωμάτωση KNX του Home Assistant δεν έχει ακόμη έργο. Χρήση του «{name}» ως έργου της;"
+
+msgid "Home Assistant's KNX integration holds the project \"{other}\" ({tool}, {date}). Replace it with \"{name}\"?"
+msgstr "Η ενσωμάτωση KNX του Home Assistant έχει το έργο «{other}» ({tool}, {date}). Αντικατάστασή του με το «{name}»;"
+
+msgid "Its group monitor, project view, address pickers and entity suggestions then know this project's group addresses, devices and buildings. Entities, automations and the KNX integration's other settings stay as they are."
+msgstr "Η παρακολούθηση ομάδων, η προβολή έργου, οι επιλογείς διευθύνσεων και οι προτάσεις οντοτήτων της θα γνωρίζουν τότε τις διευθύνσεις ομάδων, τις συσκευές και τα κτίρια αυτού του έργου. Οι οντότητες, οι αυτοματισμοί και οι υπόλοιπες ρυθμίσεις της ενσωμάτωσης KNX παραμένουν ως έχουν."
+
+msgid "Your changes reach Home Assistant a moment after you make them."
+msgstr "Οι αλλαγές σας φτάνουν στο Home Assistant λίγο αφού τις κάνετε."
+
+msgid "Automatic updates are off: Update Home Assistant Now in the Home Assistant menu sends your changes."
+msgstr "Οι αυτόματες ενημερώσεις είναι απενεργοποιημένες: η εντολή «Ενημέρωση του Home Assistant τώρα» στο μενού Home Assistant στέλνει τις αλλαγές σας."
+
+msgid "Use in Home Assistant"
+msgstr "Χρήση στο Home Assistant"
+
+msgid "Replace"
+msgstr "Αντικατάσταση"
+
+msgid "Not Now"
+msgstr "Όχι τώρα"
+
+msgid "date unknown"
+msgstr "άγνωστη ημερομηνία"
+
+msgid "Load Telegrams from Home Assistant"
+msgstr "Φόρτωση τηλεγραφημάτων από το Home Assistant"
+
+msgid "The telegrams Home Assistant recorded in the last {hours} hours, in the Group Monitor in place of its entries."
+msgstr "Τα τηλεγραφήματα που κατέγραψε το Home Assistant τις τελευταίες {hours} ώρες, στην Παρακολούθηση Ομάδων στη θέση των καταχωρίσεών της."
+
+msgid "{count} telegrams from Home Assistant in the Group Monitor"
+msgstr "{count} τηλεγραφήματα από το Home Assistant στην Παρακολούθηση Ομάδων"
+
+msgid "The telegrams could not be loaded: {error}"
+msgstr "Δεν ήταν δυνατή η φόρτωση των τηλεγραφημάτων: {error}"
+
+msgid "Shown once the XKNX Editor integration is connected."
+msgstr "Εμφανίζεται μόλις συνδεθεί η ενσωμάτωση XKNX Editor."
+
+msgid "Not used in Home Assistant."
+msgstr "Δεν χρησιμοποιείται στο Home Assistant."
+
+msgid "Home Assistant sends to this group address."
+msgstr "Το Home Assistant στέλνει σε αυτή τη διεύθυνση ομάδας."
+
+msgid "Name"
+msgstr "Όνομα"
+
+msgid "Used By"
+msgstr "Χρησιμοποιείται από"
+
+msgid "State"
+msgstr "Κατάσταση"
+
+msgid "Expose"
+msgstr "Expose"
+
+msgid "Time server"
+msgstr "Διακομιστής ώρας"
+
+msgid "{entity} (YAML)"
+msgstr "{entity} (YAML)"
+
+msgid "Disabled"
+msgstr "Απενεργοποιημένο"
+
+msgid "Floors and Areas…"
+msgstr "Όροφοι και περιοχές…"
+
+msgid "Floors and Areas in Home Assistant"
+msgstr "Όροφοι και περιοχές στο Home Assistant"
+
+msgid "The floors of the buildings become floors of Home Assistant, their rooms, corridors and stairways its areas. Chosen ones are created, linked to one of the same name, or renamed as here; nothing is removed."
+msgstr "Οι όροφοι των κτιρίων γίνονται όροφοι του Home Assistant, και τα δωμάτια, οι διάδρομοι και οι σκάλες τους γίνονται περιοχές του. Όσα επιλεγούν δημιουργούνται, συνδέονται με ένα ομώνυμο ή μετονομάζονται όπως εδώ. Τίποτα δεν αφαιρείται."
+
+msgid "The project has no floors, rooms, corridors or stairways."
+msgstr "Το έργο δεν έχει ορόφους, δωμάτια, διαδρόμους ή σκάλες."
+
+msgid "Building Part"
+msgstr "Τμήμα κτιρίου"
+
+msgid "Becomes"
+msgstr "Γίνεται"
+
+msgid "In Home Assistant"
+msgstr "Στο Home Assistant"
+
+msgid "Floor"
+msgstr "Όροφος"
+
+msgid "Area"
+msgstr "Περιοχή"
+
+msgid "New"
+msgstr "Νέο"
+
+msgid "Exists as \"{name}\""
+msgstr "Υπάρχει ως «{name}»"
+
+msgid "Named \"{name}\""
+msgstr "Ονομάζεται «{name}»"
+
+msgid "Linked"
+msgstr "Συνδεδεμένο"
+
+msgid "Applying…"
+msgstr "Εφαρμογή…"
+
+msgid "Home Assistant did not take them: {error}"
+msgstr "Το Home Assistant δεν τα αποδέχτηκε: {error}"
+
+msgid "Floors and areas in Home Assistant created, linked or renamed: {count}"
+msgstr "Όροφοι και περιοχές που δημιουργήθηκαν, συνδέθηκαν ή μετονομάστηκαν στο Home Assistant: {count}"
+
+msgid "Apply"
+msgstr "Εφαρμογή"
+
+msgid "Entities from Functions…"
+msgstr "Οντότητες από λειτουργίες…"
+
+msgid "Entities in Home Assistant"
+msgstr "Οντότητες στο Home Assistant"
+
+msgid "The building functions become entities of Home Assistant's KNX integration: a light, a switch, a cover or a climate entity with the group addresses of their roles, named like the function, in the area its room became (see Floors and Areas). Home Assistant checks each one first."
+msgstr "Οι λειτουργίες κτιρίου γίνονται οντότητες της ενσωμάτωσης KNX του Home Assistant: ένα φως, ένας διακόπτης, ένα ρολό ή μια οντότητα κλίματος με τις διευθύνσεις ομάδων των ρόλων τους, με το όνομα της λειτουργίας, στην περιοχή που έγινε το δωμάτιό τους (βλ. Όροφοι και περιοχές). Το Home Assistant ελέγχει πρώτα την καθεμία."
+
+msgid "The project has no lights, switches, sun protection or heating among its functions."
+msgstr "Στις λειτουργίες του έργου δεν υπάρχουν φώτα, διακόπτες, προστασία από τον ήλιο ή θέρμανση."
+
+msgid "Function"
+msgstr "Λειτουργία"
+
+msgid "Group Addresses"
+msgstr "Διευθύνσεις ομάδων"
+
+msgid "No area"
+msgstr "Καμία περιοχή"
+
+msgid "Created: {entity}"
+msgstr "Δημιουργήθηκε: {entity}"
+
+msgid "Its address is used by {entities}"
+msgstr "Η διεύθυνσή της χρησιμοποιείται από {entities}"
+
+msgid "Being checked…"
+msgstr "Ελέγχεται…"
+
+msgid "Not taken: {error}"
+msgstr "Δεν έγινε αποδεκτή: {error}"
+
+msgid "Entities created in Home Assistant: {count}"
+msgstr "Οντότητες που δημιουργήθηκαν στο Home Assistant: {count}"
+
+msgid "Its group addresses changed: {entity} gets the new ones"
+msgstr "Οι διευθύνσεις ομάδων της άλλαξαν: το {entity} λαμβάνει τις νέες"
+
+msgid "Its group addresses changed: download its devices first"
+msgstr "Οι διευθύνσεις ομάδων της άλλαξαν: φορτώστε πρώτα τις συσκευές της"
+
+msgid "Entities of Removed Functions"
+msgstr "Οντότητες αφαιρεμένων λειτουργιών"
+
+msgid "Entities updated in Home Assistant: {count}"
+msgstr "Οντότητες που ενημερώθηκαν στο Home Assistant: {count}"
+
+msgid "Entities removed from Home Assistant: {count}"
+msgstr "Οντότητες που αφαιρέθηκαν από το Home Assistant: {count}"
+
+msgid "Time Server…"
+msgstr "Διακομιστής ώρας…"
+
+msgid "Time Server in Home Assistant"
+msgstr "Διακομιστής ώρας στο Home Assistant"
+
+msgid "Home Assistant's KNX integration can send the time and the date to the bus. Choose the group addresses for them: those of the project with the data type of a time, a date, or a date with time."
+msgstr "Η ενσωμάτωση KNX του Home Assistant μπορεί να στέλνει την ώρα και την ημερομηνία στον δίαυλο. Επιλέξτε τις διευθύνσεις ομάδων για αυτές: εκείνες του έργου με τύπο δεδομένων ώρας, ημερομηνίας ή ημερομηνίας με ώρα."
+
+msgid "Time"
+msgstr "Ώρα"
+
+msgid "Date"
+msgstr "Ημερομηνία"
+
+msgid "Date and Time"
+msgstr "Ημερομηνία και ώρα"
+
+msgid "None"
+msgstr "Καμία"
+
+msgid "Home Assistant's time server sends to the chosen group addresses"
+msgstr "Ο διακομιστής ώρας του Home Assistant στέλνει στις επιλεγμένες διευθύνσεις ομάδων"
+
+msgid "Send Keys to Home Assistant…"
+msgstr "Αποστολή κλειδιών στο Home Assistant…"
+
+msgid "Keys in Home Assistant"
+msgstr "Κλειδιά στο Home Assistant"
+
+msgid "The keys of the project's Data Secure group addresses become the keyring of Home Assistant's KNX integration, so it reads and sends their telegrams. The KNX integration is loaded again for it."
+msgstr "Τα κλειδιά των διευθύνσεων ομάδων Data Secure του έργου γίνονται η κλειδοθήκη της ενσωμάτωσης KNX του Home Assistant, ώστε να διαβάζει και να στέλνει τα τηλεγραφήματά τους. Για αυτό η ενσωμάτωση KNX φορτώνεται ξανά."
+
+msgid "Data Secure group addresses: {count}"
+msgstr "Διευθύνσεις ομάδων Data Secure: {count}"
+
+msgid "Home Assistant's KNX integration is not set up, or it connects with KNX Secure: then its keyring holds its own connection's keys, and stays as it is (change it in the KNX integration's options)."
+msgstr "Η ενσωμάτωση KNX του Home Assistant δεν έχει ρυθμιστεί ή συνδέεται με KNX Secure: τότε η κλειδοθήκη της περιέχει τα κλειδιά της δικής της σύνδεσης και παραμένει ως έχει (αλλάξτε τη στις επιλογές της ενσωμάτωσης KNX)."
+
+msgid "Send"
+msgstr "Αποστολή"
+
+msgid "Home Assistant's KNX integration has the project's keys"
+msgstr "Η ενσωμάτωση KNX του Home Assistant έχει τα κλειδιά του έργου"
+
+msgid "Connect Like Home Assistant"
+msgstr "Σύνδεση όπως το Home Assistant"
+
+msgid "The editor connects to the bus over the same interface or router as Home Assistant's KNX integration (with a tunnel of its own). Without a connection of its own it reads and sends group telegrams over Home Assistant's."
+msgstr "Ο επεξεργαστής συνδέεται στον δίαυλο μέσω της ίδιας θύρας επικοινωνίας ή του ίδιου δρομολογητή με την ενσωμάτωση KNX του Home Assistant (με δικό του τούνελ). Χωρίς δική του σύνδεση διαβάζει και στέλνει τηλεγραφήματα ομάδας μέσω της σύνδεσης του Home Assistant."
+
+msgid "Home Assistant's KNX integration connects with KNX Secure or finds its interface itself: connect the editor in the Gateway menu."
+msgstr "Η ενσωμάτωση KNX του Home Assistant συνδέεται με KNX Secure ή βρίσκει μόνη της τη θύρα επικοινωνίας της: συνδέστε τον επεξεργαστή από το μενού Gateway."
+
+msgid "From Home Assistant"
+msgstr "Από το Home Assistant"
+
+msgid "Floors and areas of Home Assistant that the project has no floor or room for. They become floors and rooms of the building, linked to what they were made from."
+msgstr "Όροφοι και περιοχές του Home Assistant για τους οποίους το έργο δεν έχει όροφο ή δωμάτιο. Γίνονται όροφοι και δωμάτια του κτιρίου, συνδεδεμένα με αυτό από το οποίο δημιουργήθηκαν."
+
+msgid "Building"
+msgstr "Κτίριο"
+
+msgid "New building"
+msgstr "Νέο κτίριο"
+
+msgid "Home"
+msgstr "Σπίτι"
+
+msgid "Add to Project"
+msgstr "Προσθήκη στο έργο"
+
+msgid "Floors and areas from Home Assistant"
+msgstr "Όροφοι και περιοχές από το Home Assistant"
+
+msgid "Floors and rooms added to the project: {count}"
+msgstr "Όροφοι και δωμάτια που προστέθηκαν στο έργο: {count}"
+
+msgid "Group Addresses from Home Assistant…"
+msgstr "Διευθύνσεις ομάδων από το Home Assistant…"
+
+msgid "Group Addresses from Home Assistant"
+msgstr "Διευθύνσεις ομάδων από το Home Assistant"
+
+msgid "The group addresses Home Assistant's KNX integration uses that the project does not have. They are added with the name of what uses them and the datapoint type Home Assistant uses them with."
+msgstr "Οι διευθύνσεις ομάδων που χρησιμοποιεί η ενσωμάτωση KNX του Home Assistant και που δεν έχει το έργο. Προστίθενται με το όνομα αυτού που τις χρησιμοποιεί και με τον τύπο datapoint με τον οποίο τις χρησιμοποιεί το Home Assistant."
+
+msgid "Home Assistant uses no group addresses the project does not have."
+msgstr "Το Home Assistant δεν χρησιμοποιεί διευθύνσεις ομάδων που δεν έχει το έργο."
+
+msgid "Address"
+msgstr "Διεύθυνση"
+
+msgid "Datapoint Type"
+msgstr "Τύπος datapoint"
+
+msgid "Group addresses from Home Assistant"
+msgstr "Διευθύνσεις ομάδων από το Home Assistant"
+
+msgid "Group addresses added to the project: {count}"
+msgstr "Διευθύνσεις ομάδων που προστέθηκαν στο έργο: {count}"

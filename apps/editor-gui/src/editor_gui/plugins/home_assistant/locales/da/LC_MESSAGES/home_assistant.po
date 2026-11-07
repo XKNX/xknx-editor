@@ -1,0 +1,341 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor home_assistant 1.0\n"
+"Language: da\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Home Assistant"
+msgstr "Home Assistant"
+
+msgid "Use Project in Home Assistant"
+msgstr "Brug projektet i Home Assistant"
+
+msgid "Update Home Assistant Now"
+msgstr "Opdater Home Assistant nu"
+
+msgid "Update Home Assistant Automatically"
+msgstr "Opdater Home Assistant automatisk"
+
+msgid "After each change, the project is sent to Home Assistant's KNX integration again."
+msgstr "Efter hver ændring sendes projektet igen til KNX-integrationen i Home Assistant."
+
+msgid "Home Assistant: up to date"
+msgstr "Home Assistant: opdateret"
+
+msgid "Home Assistant: changes not sent"
+msgstr "Home Assistant: ændringer ikke sendt"
+
+msgid "Home Assistant: updating…"
+msgstr "Home Assistant: opdaterer…"
+
+msgid "Home Assistant: other project"
+msgstr "Home Assistant: andet projekt"
+
+msgid "Home Assistant: KNX integration not set up"
+msgstr "Home Assistant: KNX-integrationen er ikke konfigureret"
+
+msgid "Home Assistant: update failed"
+msgstr "Home Assistant: opdatering mislykkedes"
+
+msgid "Home Assistant: not connected"
+msgstr "Home Assistant: ikke forbundet"
+
+msgid "Home Assistant's KNX integration uses this project: its group monitor, project view and address pickers know its group addresses, devices and buildings."
+msgstr "KNX-integrationen i Home Assistant bruger dette projekt: dens gruppeovervågning, projektvisning og adressevælgere kender projektets gruppeadresser, enheder og bygninger."
+
+msgid "The changes are sent to Home Assistant in a moment."
+msgstr "Ændringerne sendes til Home Assistant om et øjeblik."
+
+msgid "Automatic updates are off: Update Home Assistant Now in the Home Assistant menu sends the changes."
+msgstr "Automatiske opdateringer er slået fra: »Opdater Home Assistant nu« i menuen Home Assistant sender ændringerne."
+
+msgid "Home Assistant's KNX integration holds no project."
+msgstr "KNX-integrationen i Home Assistant har intet projekt."
+
+msgid "Home Assistant's KNX integration holds the project \"{name}\" ({tool}, {date})."
+msgstr "KNX-integrationen i Home Assistant har projektet »{name}« ({tool}, {date})."
+
+msgid "Set up the KNX integration in Home Assistant to use this project there (Settings > Devices & Services)."
+msgstr "Konfigurer KNX-integrationen i Home Assistant for at bruge dette projekt der (Indstillinger > Enheder og tjenester)."
+
+msgid "Home Assistant did not take the project: {error}"
+msgstr "Home Assistant tog ikke imod projektet: {error}"
+
+msgid "The XKNX Editor integration is not connected. Update the integration in Home Assistant if this stays."
+msgstr "XKNX Editor-integrationen er ikke forbundet. Opdater integrationen i Home Assistant, hvis det fortsætter."
+
+msgid "Home Assistant's KNX integration holds no project yet. Use \"{name}\" as its project?"
+msgstr "KNX-integrationen i Home Assistant har endnu intet projekt. Bruge »{name}« som dens projekt?"
+
+msgid "Home Assistant's KNX integration holds the project \"{other}\" ({tool}, {date}). Replace it with \"{name}\"?"
+msgstr "KNX-integrationen i Home Assistant har projektet »{other}« ({tool}, {date}). Erstatte det med »{name}«?"
+
+msgid "Its group monitor, project view, address pickers and entity suggestions then know this project's group addresses, devices and buildings. Entities, automations and the KNX integration's other settings stay as they are."
+msgstr "Dens gruppeovervågning, projektvisning, adressevælgere og forslag til entiteter kender derefter dette projekts gruppeadresser, enheder og bygninger. Entiteter, automatiseringer og KNX-integrationens øvrige indstillinger forbliver, som de er."
+
+msgid "Your changes reach Home Assistant a moment after you make them."
+msgstr "Dine ændringer når frem til Home Assistant et øjeblik efter, at du har foretaget dem."
+
+msgid "Automatic updates are off: Update Home Assistant Now in the Home Assistant menu sends your changes."
+msgstr "Automatiske opdateringer er slået fra: »Opdater Home Assistant nu« i menuen Home Assistant sender dine ændringer."
+
+msgid "Use in Home Assistant"
+msgstr "Brug i Home Assistant"
+
+msgid "Replace"
+msgstr "Erstat"
+
+msgid "Not Now"
+msgstr "Ikke nu"
+
+msgid "date unknown"
+msgstr "ukendt dato"
+
+msgid "Load Telegrams from Home Assistant"
+msgstr "Indlæs telegrammer fra Home Assistant"
+
+msgid "The telegrams Home Assistant recorded in the last {hours} hours, in the Group Monitor in place of its entries."
+msgstr "De telegrammer, som Home Assistant har registreret i de seneste {hours} timer, i Gruppeovervågning i stedet for dens poster."
+
+msgid "{count} telegrams from Home Assistant in the Group Monitor"
+msgstr "{count} telegrammer fra Home Assistant i Gruppeovervågning"
+
+msgid "The telegrams could not be loaded: {error}"
+msgstr "Telegrammerne kunne ikke indlæses: {error}"
+
+msgid "Shown once the XKNX Editor integration is connected."
+msgstr "Vises, så snart XKNX Editor-integrationen er forbundet."
+
+msgid "Not used in Home Assistant."
+msgstr "Bruges ikke i Home Assistant."
+
+msgid "Home Assistant sends to this group address."
+msgstr "Home Assistant sender til denne gruppeadresse."
+
+msgid "Name"
+msgstr "Navn"
+
+msgid "Used By"
+msgstr "Bruges af"
+
+msgid "State"
+msgstr "Tilstand"
+
+msgid "Expose"
+msgstr "Expose"
+
+msgid "Time server"
+msgstr "Tidsserver"
+
+msgid "{entity} (YAML)"
+msgstr "{entity} (YAML)"
+
+msgid "Disabled"
+msgstr "Deaktiveret"
+
+msgid "Floors and Areas…"
+msgstr "Etager og områder…"
+
+msgid "Floors and Areas in Home Assistant"
+msgstr "Etager og områder i Home Assistant"
+
+msgid "The floors of the buildings become floors of Home Assistant, their rooms, corridors and stairways its areas. Chosen ones are created, linked to one of the same name, or renamed as here; nothing is removed."
+msgstr "Bygningernes etager bliver til etager i Home Assistant, deres rum, gange og trapper til dens områder. De valgte oprettes, knyttes til en med samme navn eller omdøbes som her; intet fjernes."
+
+msgid "The project has no floors, rooms, corridors or stairways."
+msgstr "Projektet har ingen etager, rum, gange eller trapper."
+
+msgid "Building Part"
+msgstr "Bygningsafsnit"
+
+msgid "Becomes"
+msgstr "Bliver til"
+
+msgid "In Home Assistant"
+msgstr "I Home Assistant"
+
+msgid "Floor"
+msgstr "Etage"
+
+msgid "Area"
+msgstr "Område"
+
+msgid "New"
+msgstr "Ny"
+
+msgid "Exists as \"{name}\""
+msgstr "Findes som »{name}«"
+
+msgid "Named \"{name}\""
+msgstr "Hedder »{name}«"
+
+msgid "Linked"
+msgstr "Tilknyttet"
+
+msgid "Applying…"
+msgstr "Anvender…"
+
+msgid "Home Assistant did not take them: {error}"
+msgstr "Home Assistant tog ikke imod dem: {error}"
+
+msgid "Floors and areas in Home Assistant created, linked or renamed: {count}"
+msgstr "Etager og områder i Home Assistant oprettet, tilknyttet eller omdøbt: {count}"
+
+msgid "Apply"
+msgstr "Anvend"
+
+msgid "Entities from Functions…"
+msgstr "Entiteter fra funktioner…"
+
+msgid "Entities in Home Assistant"
+msgstr "Entiteter i Home Assistant"
+
+msgid "The building functions become entities of Home Assistant's KNX integration: a light, a switch, a cover or a climate entity with the group addresses of their roles, named like the function, in the area its room became (see Floors and Areas). Home Assistant checks each one first."
+msgstr "Bygningsfunktionerne bliver til entiteter i KNX-integrationen i Home Assistant: et lys, en kontakt, et gardin/port eller en klimaentitet med gruppeadresserne for deres roller, navngivet som funktionen, i det område, som deres rum blev til (se Etager og områder). Home Assistant kontrollerer hver enkelt først."
+
+msgid "The project has no lights, switches, sun protection or heating among its functions."
+msgstr "Projektet har ingen lys, kontakter, solbeskyttelse eller varme blandt sine funktioner."
+
+msgid "Function"
+msgstr "Funktion"
+
+msgid "Group Addresses"
+msgstr "Gruppeadresser"
+
+msgid "No area"
+msgstr "Intet område"
+
+msgid "Created: {entity}"
+msgstr "Oprettet: {entity}"
+
+msgid "Its address is used by {entities}"
+msgstr "Adressen bruges af {entities}"
+
+msgid "Being checked…"
+msgstr "Kontrolleres…"
+
+msgid "Not taken: {error}"
+msgstr "Ikke accepteret: {error}"
+
+msgid "Entities created in Home Assistant: {count}"
+msgstr "Entiteter oprettet i Home Assistant: {count}"
+
+msgid "Its group addresses changed: {entity} gets the new ones"
+msgstr "Dens gruppeadresser er ændret: {entity} får de nye"
+
+msgid "Its group addresses changed: download its devices first"
+msgstr "Dens gruppeadresser er ændret: download først dens enheder"
+
+msgid "Entities of Removed Functions"
+msgstr "Entiteter for fjernede funktioner"
+
+msgid "Entities updated in Home Assistant: {count}"
+msgstr "Entiteter opdateret i Home Assistant: {count}"
+
+msgid "Entities removed from Home Assistant: {count}"
+msgstr "Entiteter fjernet fra Home Assistant: {count}"
+
+msgid "Time Server…"
+msgstr "Tidsserver…"
+
+msgid "Time Server in Home Assistant"
+msgstr "Tidsserver i Home Assistant"
+
+msgid "Home Assistant's KNX integration can send the time and the date to the bus. Choose the group addresses for them: those of the project with the data type of a time, a date, or a date with time."
+msgstr "KNX-integrationen i Home Assistant kan sende klokkeslættet og datoen til bussen. Vælg gruppeadresserne til dem: projektets gruppeadresser med datatypen for et klokkeslæt, en dato eller en dato med klokkeslæt."
+
+msgid "Time"
+msgstr "Klokkeslæt"
+
+msgid "Date"
+msgstr "Dato"
+
+msgid "Date and Time"
+msgstr "Dato og klokkeslæt"
+
+msgid "None"
+msgstr "Ingen"
+
+msgid "Home Assistant's time server sends to the chosen group addresses"
+msgstr "Tidsserveren i Home Assistant sender til de valgte gruppeadresser"
+
+msgid "Send Keys to Home Assistant…"
+msgstr "Send nøgler til Home Assistant…"
+
+msgid "Keys in Home Assistant"
+msgstr "Nøgler i Home Assistant"
+
+msgid "The keys of the project's Data Secure group addresses become the keyring of Home Assistant's KNX integration, so it reads and sends their telegrams. The KNX integration is loaded again for it."
+msgstr "Nøglerne til projektets Data Secure-gruppeadresser bliver til nøgleringen for KNX-integrationen i Home Assistant, så den læser og sender deres telegrammer. KNX-integrationen indlæses igen for at gøre det."
+
+msgid "Data Secure group addresses: {count}"
+msgstr "Data Secure-gruppeadresser: {count}"
+
+msgid "Home Assistant's KNX integration is not set up, or it connects with KNX Secure: then its keyring holds its own connection's keys, and stays as it is (change it in the KNX integration's options)."
+msgstr "KNX-integrationen i Home Assistant er ikke konfigureret, eller den forbinder med KNX Secure: Så indeholder dens nøglering nøglerne til dens egen forbindelse og forbliver, som den er (skift den i KNX-integrationens indstillinger)."
+
+msgid "Send"
+msgstr "Send"
+
+msgid "Home Assistant's KNX integration has the project's keys"
+msgstr "KNX-integrationen i Home Assistant har projektets nøgler"
+
+msgid "Connect Like Home Assistant"
+msgstr "Forbind som Home Assistant"
+
+msgid "The editor connects to the bus over the same interface or router as Home Assistant's KNX integration (with a tunnel of its own). Without a connection of its own it reads and sends group telegrams over Home Assistant's."
+msgstr "Editoren forbinder til bussen via samme interface eller router som KNX-integrationen i Home Assistant (med sin egen tunnel). Uden sin egen forbindelse læser og sender den gruppetelegrammer via Home Assistants forbindelse."
+
+msgid "Home Assistant's KNX integration connects with KNX Secure or finds its interface itself: connect the editor in the Gateway menu."
+msgstr "KNX-integrationen i Home Assistant forbinder med KNX Secure eller finder selv sit interface: forbind editoren i menuen Gateway."
+
+msgid "From Home Assistant"
+msgstr "Fra Home Assistant"
+
+msgid "Floors and areas of Home Assistant that the project has no floor or room for. They become floors and rooms of the building, linked to what they were made from."
+msgstr "Etager og områder i Home Assistant, som projektet ikke har nogen etage eller noget rum til. De bliver til etager og rum i bygningen, knyttet til det, de blev lavet ud fra."
+
+msgid "Building"
+msgstr "Bygning"
+
+msgid "New building"
+msgstr "Ny bygning"
+
+msgid "Home"
+msgstr "Hjem"
+
+msgid "Add to Project"
+msgstr "Føj til projekt"
+
+msgid "Floors and areas from Home Assistant"
+msgstr "Etager og områder fra Home Assistant"
+
+msgid "Floors and rooms added to the project: {count}"
+msgstr "Etager og rum føjet til projektet: {count}"
+
+msgid "Group Addresses from Home Assistant…"
+msgstr "Gruppeadresser fra Home Assistant…"
+
+msgid "Group Addresses from Home Assistant"
+msgstr "Gruppeadresser fra Home Assistant"
+
+msgid "The group addresses Home Assistant's KNX integration uses that the project does not have. They are added with the name of what uses them and the datapoint type Home Assistant uses them with."
+msgstr "De gruppeadresser, som KNX-integrationen i Home Assistant bruger, og som projektet ikke har. De tilføjes med navnet på det, der bruger dem, og med den datapunkttype, som Home Assistant bruger dem med."
+
+msgid "Home Assistant uses no group addresses the project does not have."
+msgstr "Home Assistant bruger ingen gruppeadresser, som projektet ikke har."
+
+msgid "Address"
+msgstr "Adresse"
+
+msgid "Datapoint Type"
+msgstr "Datapunkttype"
+
+msgid "Group addresses from Home Assistant"
+msgstr "Gruppeadresser fra Home Assistant"
+
+msgid "Group addresses added to the project: {count}"
+msgstr "Gruppeadresser føjet til projektet: {count}"

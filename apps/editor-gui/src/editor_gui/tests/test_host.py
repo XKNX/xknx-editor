@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Iterator
 from types import SimpleNamespace
-from typing import Any
+from typing import Any, cast
 
 import pytest
 
@@ -31,11 +31,12 @@ def test_options_from_the_command_line() -> None:
             "--home-assistant",
             "--mcp=127.0.0.1:41000",
             "--mcp-url=https://ha.example/api/xknx_editor/mcp",
+            "--language=pt-BR",
             "project.xknx",
         ]
     )
     assert options == HostOptions(
-        True, "127.0.0.1", 41000, "https://ha.example/api/xknx_editor/mcp"
+        True, "127.0.0.1", 41000, "https://ha.example/api/xknx_editor/mcp", "pt-BR"
     )
     assert options.mcp_managed
 
@@ -50,6 +51,8 @@ def test_options_from_the_command_line() -> None:
         (["editor", "--home-assistant"], HostOptions(home_assistant=True)),
         # Unknown values are ignored: the flag takes none.
         (["editor", "--home-assistant=app", "--mcp=host:port"], HostOptions()),
+        # A language without a code is none.
+        (["editor", "--language="], HostOptions()),
     ],
 )
 def test_defaults_and_unknown_values(argv: list[str], expected: HostOptions) -> None:
@@ -193,3 +196,23 @@ def test_update_found_inside_home_assistant(monkeypatch: pytest.MonkeyPatch) -> 
     # Only informs: one button; closed, the check at start does not show it again.
     assert buttons == [(S.BTN_CLOSE,)]
     assert skipped == ["9.9.0"]
+
+
+def test_the_home_assistant_menu_only_inside_home_assistant() -> None:
+    app = KnxGuiApp.__new__(KnxGuiApp)
+    app._connection_plugin = cast(  # pyright: ignore[reportPrivateUsage]
+        Any, SimpleNamespace(menu_label="Gateway", render_menu=lambda: None)
+    )
+    app._keyring_plugin = cast(  # pyright: ignore[reportPrivateUsage]
+        Any, SimpleNamespace(menu_label="KNX Secure", render_menu=lambda: None)
+    )
+    home_assistant = SimpleNamespace(
+        active=False, menu_label="Home Assistant", render_menu=lambda: None
+    )
+    app._home_assistant_plugin = cast(Any, home_assistant)  # pyright: ignore[reportPrivateUsage]
+    labels = [label for label, _render in app._menus()]  # pyright: ignore[reportPrivateUsage]
+    assert "Home Assistant" not in labels
+    home_assistant.active = True
+    labels = [label for label, _render in app._menus()]  # pyright: ignore[reportPrivateUsage]
+    # A menu of its own, after the MCP menu.
+    assert labels[labels.index(S.MENU_MCP) + 1] == "Home Assistant"

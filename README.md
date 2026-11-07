@@ -222,6 +222,7 @@ and tell it that it runs inside Home Assistant:
 | `--mcp=[host:]port` | Start the MCP server with the editor on this address (a port alone: `127.0.0.1`), with the bearer token from `XKNX_MCP_AUTH_TOKEN`; the editor then shows its status and address, not its settings |
 | `--mcp-url=URL` | The address MCP clients use, shown in the editor (when a proxy is in front) |
 | `--home-assistant` | Runs inside Home Assistant, started by its integration: Home Assistant updates the editor, so a new version is announced with its release notes and a hint to update the integration, not installed or downloaded |
+| `--language=CODE` | The language of the program that starts the editor (e.g. `de`, `pt-BR`; the integration passes Home Assistant's): the editor's language, and with it the preferred product language, until one is chosen in the settings, in place of the system's; English if the editor lacks it |
 
 Tablets and phones get a narrow layout (menus that do not fit in **☰**, parameter pages above the fields, button
 rows wrap, wide tables scroll sideways); a tap clicks, hold+lift opens the context menu, hold+drag

@@ -9,6 +9,7 @@ import pytest
 from editor_gui.languages import (
     PRODUCT_LANGUAGES,
     chosen_product_language,
+    default_locale,
     product_language,
     product_text_languages,
     set_product_language,
@@ -95,3 +96,27 @@ def test_downloads_ask_for_the_preferred_product_language_first() -> None:
     assert languages[0] == "en-US"
     assert "sq-AL" not in languages
     assert len(languages) == len(set(languages))
+
+
+@pytest.mark.parametrize(
+    ("host_language", "expected", "product"),
+    [
+        # Home Assistant's language, with the product language that goes with it.
+        ("de", "de", "de-DE"),
+        ("pt-BR", "pt", "pt-PT"),
+        ("zh-Hans", "zh", "zh-CN"),
+        ("nb", "nb", "nb-NO"),
+        # One the editor lacks: English, not the system's.
+        ("ko", "en", "en-US"),
+        # Started without one: the system's.
+        (None, "cs", "cs-CZ"),
+    ],
+)
+def test_the_language_of_the_program_that_started_the_editor(
+    host_language: str | None, expected: str, product: str
+) -> None:
+    locale = default_locale(host_language, "cs")
+    assert locale == expected
+    set_locale(locale)
+    set_product_language(None)
+    assert product_language() == product
