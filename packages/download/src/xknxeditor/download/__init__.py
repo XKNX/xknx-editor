@@ -74,12 +74,9 @@ from .tables import (
     build_association_table,
     build_group_address_table,
 )
-from .transport_repetitions import install as _install_transport_repetitions
 
-# Every point-to-point connection of the editor repeats a lost telegram as often as the
-# transport layer does and takes only the response that answers a request, also the
-# ones xknx's own procedures open.
-_install_transport_repetitions()
+# Every point-to-point connection of the editor takes only the response that answers a
+# request, also the ones xknx's own procedures open.
 _install_response_matching()
 
 __version__ = "0.1.0"

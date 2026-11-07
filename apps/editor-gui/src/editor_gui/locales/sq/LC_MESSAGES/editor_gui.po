@@ -1556,7 +1556,7 @@ msgid "Texts of product data (parameters, group objects) are shown in this langu
 msgstr "Tekstet e të dhënave të produktit (parametrat, objektet e grupit) shfaqen në këtë gjuhë, kur produkti i ka."
 
 msgid "Lowers the frame rate while nothing changes on the screen, to save power."
-msgstr "Ul shpejtësinë e kuadrove kur asgjë nuk ndryshon në ekran, për të kursyer energji."
+msgstr "Ul numrin e kuadrove për sekondë kur asgjë nuk ndryshon në ekran, për të kursyer energji."
 
 msgid "Cache Folder"
 msgstr "Dosja e memories së përkohshme"
@@ -1589,25 +1589,25 @@ msgid "No"
 msgstr "Jo"
 
 msgid ".knxproj Signing Key"
-msgstr ".knxproj Signing Key"
+msgstr "Çelësi i nënshkrimit për .knxproj"
 
 msgid ".knxproj Signing Key…"
-msgstr ".knxproj Signing Key…"
+msgstr "Çelësi i nënshkrimit për .knxproj…"
 
 msgid "Folder signature uses a placeholder key. Enter a valid signature under '.knxproj Signing Key…' or use the 'License with a Dongle' way."
-msgstr "Folder signature uses a placeholder key. Enter a valid signature under '.knxproj Signing Key…' or use the 'License with a Dongle' way."
+msgstr "Nënshkrimi i dosjes përdor një çelës vendmbajtës. Vendosni një çelës nënshkrimi të vlefshëm te 'Çelësi i nënshkrimit për .knxproj…' ose përdorni mënyrën 'Licenco me dongle'."
 
 msgid "Maximum Telegrams"
-msgstr "Maximum Telegrams"
+msgstr "Numri maksimal i telegrameve"
 
 msgid "How many telegrams the Group Monitor keeps before dropping the oldest."
-msgstr "How many telegrams the Group Monitor keeps before dropping the oldest."
+msgstr "Sa telegrame ruan Monitori i grupeve përpara se të heqë telegramet më të vjetra."
 
 msgid "Export Format"
-msgstr "Export Format"
+msgstr "Formati i eksportit"
 
 msgid "Export Method"
-msgstr "Export Method"
+msgstr "Mënyra e eksportit"
 
 msgid "Automatic"
-msgstr "Automatic"
+msgstr "Automatike"
