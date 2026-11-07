@@ -100,12 +100,17 @@ _REFINE_TRIES = 12
 _REFINE_DEPTH = 3
 _PAIR_TRIES = 64
 _PAIR_ROUNDS = 2
+# Values that fit worse whose own corrections are searched when no value fits better (each the
+# start of a search of its own).
+_DEEP_STARTS = 2
+# The corrections a deeper search makes from its start at most.
+_DEEP_ROUNDS = 1
 # A linked group object a result does not show weighs as many differing bytes.
 _OBJECT_WEIGHT = 3
 # As many group objects a result shows that are not linked weigh one differing byte.
 _UNLINKED_PER_BYTE = 4
-# How many times the corrections and the values tried for one each effort allows (``None``: no
-# limit).
+# How many times the corrections, the values tried for one and the deeper starts each effort
+# allows (``None``: no limit).
 _EFFORT_SCALE: dict[RecoveryEffort, int | None] = {
     RecoveryEffort.FAST: 1,
     RecoveryEffort.MEDIUM: 4,
@@ -138,6 +143,16 @@ _Cell = tuple[str, int]
 # 1 / _UNLINKED_PER_BYTE byte), counted in such fractions; then only what contradicts the
 # device, the bytes and the linked objects.
 _Score = tuple[int, int]
+# A state of the correction step: how far it is from the device (the score, the differing bytes,
+# the group objects shown otherwise), the values, those left unknown, the inferred settings and
+# the UI seeded with them.
+_State = tuple[
+    tuple[_Score, set[_Cell], set[int]],
+    dict[str, str],
+    list[str],
+    "_ValueMap",
+    "DynamicUI",
+]
 
 
 def _parameter_to_refs(application: Application) -> dict[str, list[str]]:
@@ -505,6 +520,10 @@ def _refine(
     those of the most such places first. In each module instance, and in the application's
     own settings, the first that fits better is taken; ``_REFINE_TRIES`` values per round,
     ``_REFINE_ROUNDS`` rounds at most, both ``scale`` times (``None``: until no value fits better).
+    When no value fits better, the corrections behind the values that fit worse are searched,
+    those that fit best first (``_DEEP_STARTS`` of them, ``scale`` times): a channel selector whose
+    right value fits worse until the channel's own selectors are corrected as well. One that ends
+    better than the result is taken, and the search goes on from there.
     The values the inference found to show nothing (``dead``) are not tried again behind them.
     When ``cancel`` returns true the search stops with the result so far."""
     from .recover import seed_dynamic_ui
@@ -519,6 +538,8 @@ def _refine(
     def finish(
         fit: tuple[_Score, set[_Cell], set[int]] | None,
         seeded: DynamicUI,
+        values: dict[str, str],
+        unknown: list[str],
         *,
         limited: bool,
     ) -> RecoveredParameters:
@@ -532,73 +553,119 @@ def _refine(
             fit = (fit[0], fit[1], _contradicting_objects(seeded, linked, sizes))
         return _with_misfit(values, unknown, fit, seeded, limited=limited)
 
-    current = misfit(ui)
-    if current is None or not current[0][1]:
-        return finish(current, ui, limited=False)
-    tried: set[tuple[str, str]] = set()
+    first = misfit(ui)
+    if first is None or not first[0][1]:
+        return finish(first, ui, values, unknown, limited=False)
     tries = None if scale is None else _REFINE_TRIES * scale
-    rounds = count() if scale is None else range(_REFINE_ROUNDS * scale)
-    limited = False
-    for _ in rounds:
-        score, differing, wrong = current
-        trials = [
-            trial
-            for trial in _refinement_trials(ui, differing, wrong)
-            if trial not in tried
-        ]
-        # A module instance's settings are independent of another's: a correction is taken in
-        # each (and one of the application's own), the values of the others are tried behind it.
-        corrected: set[str] = set()
-        evaluated = 0
+    rounds = None if scale is None else _REFINE_ROUNDS * scale
+    starts = None if scale is None else _DEEP_STARTS * scale
+    deep_rounds = None if scale is None else _DEEP_ROUNDS * scale
+
+    def descend(
+        state: _State,
+        worse: list[tuple[_Score, str, _State]] | None,
+        locked: str = "",
+        rounds: int | None = rounds,
+    ) -> tuple[_State, bool, bool]:
+        """The corrections from ``state`` on, each taken when it fits better, until none does:
+        the state reached, whether the effort's limit stopped it and whether ``cancel`` did. The
+        values that fit worse go to ``worse`` (with their selector and the state they lead to),
+        the starts of a deeper search; the selector ``locked`` keeps its value. ``rounds``
+        bounds the rounds of corrections."""
+        current, values, unknown, inferred, ui = state
+        tried: set[tuple[str, str]] = set()
         limited = False
-        for gate, value in trials:
-            scope = _scope_of(gate)
-            if scope in corrected:
-                continue
-            if evaluated == tries:
+        for _ in count() if rounds is None else range(rounds):
+            score, differing, wrong = current
+            trials = [
+                trial
+                for trial in _refinement_trials(ui, differing, wrong)
+                if trial[0] != locked and trial not in tried
+            ]
+            # A module instance's settings are independent of another's: a correction is
+            # taken in each (and one of the application's own), the values of the others are
+            # tried behind it.
+            corrected: set[str] = set()
+            evaluated = 0
+            limited = False
+            for gate, value in trials:
+                scope = _scope_of(gate)
+                if scope in corrected:
+                    continue
+                if evaluated == tries:
+                    limited = True
+                    break
+                try:
+                    _check(cancel)
+                    evaluated += 1
+                    tried.add((gate, value))
+                    trial_values, trial_unknown, trial_inferred = _infer_all(
+                        application,
+                        parameter_segments,
+                        property_values,
+                        project_code_page,
+                        linked,
+                        sizes,
+                        fixed,
+                        {**inferred, gate: value},
+                        set(dead),
+                        cancel,
+                    )
+                except _Cancelled:
+                    return (current, values, unknown, inferred, ui), True, True
+                seeded = seed_dynamic_ui(application, trial_values, project_code_page)
+                if seeded is None:
+                    continue
+                result = misfit(seeded)
+                if result is None:
+                    continue
+                trial = (result, trial_values, trial_unknown, trial_inferred, seeded)
+                if result[0] < score:
+                    current, values, unknown, inferred, ui = trial
+                    score = result[0]
+                    corrected.add(scope)
+                    if not score[1]:
+                        break
+                elif worse is not None:
+                    worse.append((result[0], gate, trial))
+            if not corrected or not current[0][1]:
+                break
+        else:
+            # Every correction was taken, and the result still differs.
+            limited = True
+        return (current, values, unknown, inferred, ui), limited, False
+
+    state: _State = (first, values, unknown, inferred, ui)
+    while True:
+        worse: list[tuple[_Score, str, _State]] = []
+        state, limited, stopped = descend(state, worse)
+        if stopped or not state[0][0][1]:
+            break
+        # A selector whose value alone fits worse, as a channel that only fits once its own
+        # settings are corrected too: the corrections behind the values that fit worse (the
+        # selector keeping its value), those that fit best first, taken when they end better
+        # than the result.
+        worse.sort(key=lambda entry: entry[0])
+        better = None
+        # A selector a calculation computes from the values read is not guessed.
+        worse = [
+            entry for entry in worse if not _calculation_inputs(entry[2][4], entry[1])
+        ]
+        for n, (_score, gate, start) in enumerate(worse):
+            if starts is not None and n == starts:
                 limited = True
                 break
-            if cancel is not None and cancel():
-                return finish(current, ui, limited=True)
-            evaluated += 1
-            tried.add((gate, value))
-            try:
-                trial_values, trial_unknown, trial_inferred = _infer_all(
-                    application,
-                    parameter_segments,
-                    property_values,
-                    project_code_page,
-                    linked,
-                    sizes,
-                    fixed,
-                    {**inferred, gate: value},
-                    set(dead),
-                    cancel,
-                )
-            except _Cancelled:
-                return finish(current, ui, limited=True)
-            seeded = seed_dynamic_ui(application, trial_values, project_code_page)
-            if seeded is None:
-                continue
-            result = misfit(seeded)
-            if result is not None and result[0] < score:
-                current, values, unknown, inferred, ui = (
-                    result,
-                    trial_values,
-                    trial_unknown,
-                    trial_inferred,
-                    seeded,
-                )
-                score = result[0]
-                corrected.add(scope)
-                if not score[1]:
-                    break
-        if not corrected or not current[0][1]:
+            deep, _deep_limited, stopped = descend(start, None, gate, deep_rounds)
+            if deep[0][0] < state[0][0]:
+                better = deep
+            if better is not None or stopped:
+                break
+        if better is not None:
+            state = better
+        if better is None or stopped:
+            limited = limited or stopped
             break
-    else:
-        # Every correction was taken, and the result still differs.
-        limited = True
-    return finish(current, ui, limited=limited)
+    return finish(state[0], state[4], state[1], state[2], limited=limited)
 
 
 def _misfit(

@@ -277,3 +277,107 @@ def test_a_channel_showing_unlinked_objects_takes_more_than_a_byte(
     segments[segment] = segments[segment][:1] + b"\x07" + segments[segment][2:]
     recovered = recover_parameters(application, segments, linked_objects={0})
     assert (recovered.values.get(channel, "0") == "1") is active
+
+
+_PAIR_APP = "M-00FA_A-0008-01-0000"
+
+
+def _pair_application() -> Application:
+    """A channel ``CH`` (no memory): off it shows ``A`` in the first byte; on, the sub-selectors
+    ``S1`` and ``S2`` (no memory), each choosing for its byte a parameter of the values 1 and 2 or
+    one of the values 3 and 4."""
+    app = _PAIR_APP
+
+    def parameter(n: int, type_id: str, offset: int | None) -> str:
+        memory = (
+            ""
+            if offset is None
+            else f'<Memory CodeSegment="{app}_AS-0000" Offset="{offset}" BitOffset="0" />'
+        )
+        return (
+            f'<Parameter Id="{app}_P-{n}" Name="P{n}" ParameterType="{app}_PT-{type_id}"'
+            f' Text="P{n}" Value="{1 if type_id == "Low" else 3 if type_id == "High" else 0}">'
+            f"{memory}</Parameter>"
+        )
+
+    def enumeration(type_id: str, *values: int) -> str:
+        return (
+            f'<ParameterType Id="{app}_PT-{type_id}" Name="{type_id}">'
+            '<TypeRestriction Base="Value" SizeInBit="8">'
+            + "".join(
+                f'<Enumeration Text="v{v}" Value="{v}" Id="{app}_PT-{type_id}_EN-{v}" />'
+                for v in values
+            )
+            + "</TypeRestriction></ParameterType>"
+        )
+
+    # 1 CH, 2 S1, 3 S2 (no memory); 4 A (byte 0); 5/6 the two of byte 1; 7/8 those of byte 2.
+    parameters = (
+        parameter(1, "OnOff", None)
+        + parameter(2, "OnOff", None)
+        + parameter(3, "OnOff", None)
+        + f'<Parameter Id="{app}_P-4" Name="P4" ParameterType="{app}_PT-N" Text="A" Value="0">'
+        f'<Memory CodeSegment="{app}_AS-0000" Offset="0" BitOffset="0" /></Parameter>'
+        + parameter(5, "Low", 1)
+        + parameter(6, "High", 1)
+        + parameter(7, "Low", 2)
+        + parameter(8, "High", 2)
+    )
+    refs = "".join(
+        f'<ParameterRef Id="{app}_P-{n}_R-{n}" RefId="{app}_P-{n}" />'
+        for n in range(1, 9)
+    )
+
+    def ref(n: int) -> str:
+        return f'<ParameterRefRef RefId="{app}_P-{n}_R-{n}" />'
+
+    def choose(n: int, off: str, on: str) -> str:
+        return (
+            f'<choose ParamRefId="{app}_P-{n}_R-{n}"><when test="0">{off}</when>'
+            f'<when test="1">{on}</when></choose>'
+        )
+
+    dynamic = ref(1) + choose(
+        1,
+        ref(4),
+        ref(2) + choose(2, ref(5), ref(6)) + ref(3) + choose(3, ref(7), ref(8)),
+    )
+    xml = f"""<?xml version="1.0" encoding="utf-8"?>
+<KNX xmlns="http://knx.org/xml/project/20" CreatedBy="test" ToolVersion="1">
+  <ManufacturerData><Manufacturer RefId="M-00FA"><ApplicationPrograms>
+    <ApplicationProgram Id="{app}" ApplicationNumber="8" ApplicationVersion="1"
+        ProgramType="ApplicationProgram" MaskVersion="MV-07B0" Name="Channel pairs"
+        LoadProcedureStyle="MergedProcedure" PeiType="0" DefaultLanguage="en-US"
+        DynamicTableManagement="false" Linkable="false" MinEtsVersion="5.0">
+      <Static>
+        <Code><AbsoluteSegment Id="{app}_AS-0000" Address="0" Size="4"><Data>AAAAAA==</Data></AbsoluteSegment></Code>
+        <ParameterTypes>{enumeration("OnOff", 0, 1)}{enumeration("Low", 1, 2)}{enumeration("High", 3, 4)}
+          <ParameterType Id="{app}_PT-N" Name="N"><TypeNumber SizeInBit="8" Type="unsignedInt" minInclusive="0" maxInclusive="255" /></ParameterType>
+        </ParameterTypes>
+        <Parameters>{parameters}</Parameters>
+        <ParameterRefs>{refs}</ParameterRefs>
+      </Static>
+      <Dynamic><ChannelIndependentBlock><ParameterBlock Id="{app}_PB-1" Text="General">{dynamic}</ParameterBlock></ChannelIndependentBlock></Dynamic>
+    </ApplicationProgram>
+  </ApplicationPrograms></Manufacturer></ManufacturerData>
+</KNX>
+"""
+    return parse_application_xml(xml.encode(), "M-00FA")[0]
+
+
+def test_a_channel_that_fits_only_with_its_own_selectors_is_found() -> None:
+    # The channel on alone fits no better than off (its two bytes decode to no value of the
+    # parameters it shows by default); with its sub-selectors on too it fits exactly.
+    application = _pair_application()
+    on = (
+        (f"{_PAIR_APP}_P-1_R-1", "1"),
+        (f"{_PAIR_APP}_P-2_R-2", "1"),
+        (f"{_PAIR_APP}_P-3_R-3", "1"),
+        (f"{_PAIR_APP}_P-6_R-6", "3"),
+        (f"{_PAIR_APP}_P-8_R-8", "4"),
+    )
+    segments = _device(application, *on)
+    recovered = recover_parameters(application, segments)
+    assert recovered.complete
+    for ref_id, value in on:
+        assert recovered.values.get(ref_id) == value

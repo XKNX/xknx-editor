@@ -64,8 +64,9 @@ def test_default_search_finds_pair_across_worse_intermediate_layout(
     application: Application,
 ) -> None:
     segments = {_SEGMENT: b"\x07\x09\x00"}
+    # The fast search finds it behind the selector that fits worse alone (its deeper search).
     fast = recover_parameters(application, segments, effort=RecoveryEffort.FAST)
-    assert fast.differing_bytes == 1
+    assert fast.complete
     medium = recover_parameters(application, segments)
     assert medium.complete
     assert medium.values[_FIRST] == medium.values[_SECOND] == "1"
@@ -78,7 +79,11 @@ def test_an_interrupted_pair_keeps_the_previous_result(
     application: Application, monkeypatch: pytest.MonkeyPatch, stop: str
 ) -> None:
     segments = {_SEGMENT: b"\x07\x09\x00"}
-    original = recover_parameters(application, segments, effort=RecoveryEffort.FAST)
+    # A result the pair search starts from: the fast search without its deeper search.
+    with monkeypatch.context() as patch:
+        patch.setattr(parameters, "_DEEP_STARTS", 0)
+        original = recover_parameters(application, segments, effort=RecoveryEffort.FAST)
+    assert original.differing_bytes == 1
     if stop == "budget":
         monkeypatch.setattr(parameters, "_PAIR_TRIES", 1)
     recovered = parameters._refine_pairs(
