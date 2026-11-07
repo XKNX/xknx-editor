@@ -66,6 +66,18 @@ with open(_fingerprint, "w", encoding="ascii") as _f:
     _f.write(source_fingerprint())
 _datas.append((_fingerprint, "editor_gui"))
 
+# The commit being built, which About shows next to the version (the frozen app has no checkout).
+from pathlib import Path as _Path
+
+from editor_gui.build_info import COMMIT_FILE, git_commit
+
+_commit = git_commit(_Path(SPECPATH))
+if _commit:
+    _commit_file = os.path.join(workpath, COMMIT_FILE)
+    with open(_commit_file, "w", encoding="ascii") as _f:
+        _f.write(_commit)
+    _datas.append((_commit_file, "editor_gui"))
+
 # Trim collected data we never ship: imgui_bundle's demo playground + its assets (the app has its
 # own fonts/icon), and .pyi type stubs (dev-only, not used at runtime). Saves ~6-7 MB. Bytecode
 # caches a local test run leaves in the source tree are not data either (their long names also

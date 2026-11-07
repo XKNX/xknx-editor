@@ -5,7 +5,13 @@ from __future__ import annotations
 
 import xml.etree.ElementTree as ET
 
-from xknxeditor.proj.core.manufacturer_xml import DeviceProduct, combine_product_members
+from xknxeditor.proj.core.manufacturer_xml import (
+    DeviceProduct,
+    add_product_members,
+    combine_product_members,
+    defined_programs,
+    merge_members,
+)
 
 _NS = "http://knx.org/xml/project/23"
 _M = "M-0083"
@@ -150,3 +156,30 @@ def test_a_new_manufacturer_brings_only_what_its_devices_use() -> None:
         "M-00FA/M-00FA_A-20.xml",
     }
     assert {n: d for n, d in result.items() if n.startswith(_M)} == _OWN
+
+
+def test_a_project_without_own_data_stores_only_what_its_devices_use() -> None:
+    """Unlike an export, a project stores of a product file only its devices' data."""
+    devices = [_device("2", "Two", "20", imported=False)]
+    result = add_product_members({}, _SOURCE, devices)
+
+    assert _ids(result[f"{_M}/Hardware.xml"], "Hardware") == {f"{_M}_H-2"}
+    assert _ids(result[f"{_M}/Catalog.xml"], "CatalogItem") == {f"{_M}_CI-2-20"}
+    assert set(result) == {f"{_M}/Hardware.xml", f"{_M}/Catalog.xml", _app("20")[0]}
+    assert defined_programs(result) == {f"{_M}_H-2_HP-20"}
+
+
+def test_a_project_covering_its_devices_stores_nothing_more() -> None:
+    devices = [_device("1", "One", "10", imported=False)]
+    assert add_product_members(_OWN, _SOURCE, devices) == _OWN
+
+
+def test_merged_members_add_what_the_base_lacks() -> None:
+    merged = merge_members(_OWN, _SOURCE)
+    # The manufacturer files get the other's elements, other files stay as in the base.
+    assert defined_programs(merged) == defined_programs(_SOURCE)
+    assert _ids(merged[f"{_M}/Catalog.xml"], "CatalogItem") == _ids(
+        _SOURCE[f"{_M}/Catalog.xml"], "CatalogItem"
+    )
+    assert merged[_app("10")[0]] == _OWN[_app("10")[0]]
+    assert set(merged) == set(_SOURCE)

@@ -1611,3 +1611,12 @@ msgstr "Mënyra e eksportit"
 
 msgid "Automatic"
 msgstr "Automatike"
+
+msgid "Importing the project's product data…"
+msgstr "Po importohen të dhënat e produkteve të projektit…"
+
+msgid "Importing the project's product data: {done} of {total} application programs"
+msgstr "Po importohen të dhënat e produkteve të projektit: {done} nga {total} programe aplikacioni"
+
+msgid "This is done once on this computer, for the products its catalog does not have yet. For a large project it can take a few minutes."
+msgstr "Kjo bëhet vetëm një herë në këtë kompjuter, për produktet që katalogu i tij nuk i ka ende. Për një projekt të madh mund të zgjasë disa minuta."

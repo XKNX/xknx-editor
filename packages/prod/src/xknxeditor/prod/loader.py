@@ -8,6 +8,7 @@ rather than being baked onto objects, so the registry resolves them.
 from __future__ import annotations
 
 import logging
+from collections.abc import Callable
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -32,6 +33,7 @@ def load(
     require_catalog: bool = True,
     cache_dir: Path | None = None,
     cancel: threading.Event | None = None,
+    progress: Callable[[int, int], None] | None = None,
 ) -> Registry:
     """Load a .knxprod (path or bytes) into one queryable `Registry`; ids are globally unique.
 
@@ -41,10 +43,15 @@ def load(
     ``cache_dir`` stores each application's parse in the parse cache (see :mod:`parse_cache`), so
     loading the application later does not parse it again. With it, the applications are parsed in
     parallel worker processes (see :func:`parse_cache.fill_cache`). Setting ``cancel`` stops the
-    load between applications with :class:`~.errors.ImportCancelled`.
+    load between applications with :class:`~.errors.ImportCancelled`. ``progress`` hears how many
+    of the archive's application programs are parsed, out of how many, after each one.
     """
     with Archive(source, require_catalog=require_catalog) as archive:
         registry = Registry(master=parse_master_xml(archive.get_master_xml()))
+        total = sum(
+            len(archive.get_application_xmls(m)) for m in archive.manufacturer_ids
+        )
+        parsed = 0
         if cache_dir is not None:
             fill_cache(
                 (
@@ -54,6 +61,7 @@ def load(
                 ),
                 cache_dir,
                 cancel=cancel,
+                progress=progress,
             )
 
         for manufacturer_id in sorted(archive.manufacturer_ids):
@@ -78,6 +86,9 @@ def load(
                     app_xml, manufacturer_id, cache_dir=cache_dir
                 ):
                     registry.applications[application.id] = application
+                parsed += 1
+                if progress is not None:
+                    progress(parsed, total)
 
             has_catalog = archive.has_catalog(manufacturer_id)
             if has_catalog:

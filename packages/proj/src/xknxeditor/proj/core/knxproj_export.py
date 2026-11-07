@@ -71,7 +71,7 @@ from sqlalchemy.orm import Session, object_session
 
 from xknxeditor.proj.core import import_notes
 from xknxeditor.proj.core._dll_signer import sign_member_map
-from xknxeditor.proj.core.compact import used_product_ids
+from xknxeditor.proj.core.compact import device_products, used_product_ids
 from xknxeditor.proj.core.dpt import normalize_datapoint_type
 from xknxeditor.proj.core.function_roles import function_roles
 from xknxeditor.proj.core.ga_security import exports_key, secured_group_addresses
@@ -85,7 +85,9 @@ from xknxeditor.proj.core.knxproj_signing import (
 from xknxeditor.proj.core.manufacturer_xml import (
     DeviceProduct,
     combine_product_members,
+    merge_members,
 )
+from xknxeditor.proj.core.product_data import stored_members
 from xknxeditor.proj.core.product_prune import (
     ProductPruneReport,
     prune_product_members,
@@ -462,22 +464,7 @@ def _heal_extra_files(
 def _device_products(project: Project) -> list[DeviceProduct]:
     """The product data refs of the project's devices (see :class:`DeviceProduct`)."""
     session = object_session(project)
-    if session is None:
-        return []
-    return [
-        DeviceProduct(
-            product=product or "",
-            hardware2program=program or "",
-            application=application or "",
-            imported=bool(source_id),
-        )
-        for product, program, application, source_id in session.query(
-            Device.product_ref_id,
-            Device.hardware2program_ref_id,
-            Device.application_program_ref_id,
-            Device.source_id,
-        )
-    ]
+    return device_products(session) if session is not None else []
 
 
 def _usable_master(master: bytes | None, schema: str) -> bytes | None:
@@ -611,8 +598,9 @@ def _resolve_export_sources(
 ) -> tuple[str, str, dict[str, bytes], bytes | None]:
     """Resolve the schema, namespace, manufacturer members and master XML the archive is built from.
 
-    Caller-supplied ``extra_files`` (the product files the devices were added from) add to the
-    project's stored import provenance what its devices need beyond it (``combine_product_members``),
+    The project's added product data and caller-supplied ``extra_files`` (the product files the
+    devices were added from) add to the project's stored import provenance what its devices need
+    beyond it (``combine_product_members``),
     and its stored master is kept when it fits the schema; without them the provenance is re-emitted
     (:func:`_stored_provenance_sources`). The project files (project.xml / 0.xml) and
     knx_master.xml share ONE schema, but each ``M-xxxx/`` manufacturer folder keeps its OWN original
@@ -620,10 +608,15 @@ def _resolve_export_sources(
     ``fetch_master`` the current one (:func:`_newest_master`) —, legacy (project/<=14)
     manufacturer members are converted up, and modern members at a different schema pass through
     verbatim (no mismatch error)."""
-    if extra_files:
+    # The product data the project stores for devices added in the editor comes first, the
+    # supplied files add what it lacks (e.g. a device whose product it could not store).
+    session = object_session(project)
+    stored = stored_members(session) if session is not None else {}
+    sources = merge_members(stored, extra_files or {})
+    if sources:
         effective_extra = combine_product_members(
             _unzip_members(project.imported_product_members),
-            extra_files,
+            sources,
             _device_products(project),
         )
         effective_master = _usable_master(project.knx_master_xml, schema) or master_xml

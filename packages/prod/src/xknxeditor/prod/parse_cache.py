@@ -16,7 +16,7 @@ import logging
 import multiprocessing
 import os
 import pickle
-from collections.abc import Iterable, Sequence
+from collections.abc import Callable, Iterable, Sequence
 from concurrent.futures import ProcessPoolExecutor
 from concurrent.futures import TimeoutError as FuturesTimeout
 from pathlib import Path
@@ -103,14 +103,20 @@ def _parse_into_cache(xml_bytes: bytes, cache_dir: Path) -> None:
 
 
 def fill_cache(
-    xmls: Iterable[bytes], cache_dir: Path, *, cancel: threading.Event | None = None
+    xmls: Iterable[bytes],
+    cache_dir: Path,
+    *,
+    cancel: threading.Event | None = None,
+    progress: Callable[[int, int], None] | None = None,
 ) -> None:
     """Parse the application XMLs not cached yet in worker processes, each into the cache, so the
     caller then reads every parse from the cache.
 
     How many workers, if any, :func:`parse_workers` decides. When they cannot run, the caller's own
     :func:`cached_to_ir` parses what is still missing. Setting ``cancel`` drops the parses not
-    started yet and raises :class:`~.errors.ImportCancelled` (the started ones finish)."""
+    started yet and raises :class:`~.errors.ImportCancelled` (the started ones finish).
+    ``progress`` hears how many of the applications are parsed (cached ones count as parsed) after
+    each one."""
     pending = {_cache_path(xml, detect_version(xml), cache_dir): xml for xml in xmls}
     todo = sorted(
         (xml for path, xml in pending.items() if not path.exists()),
@@ -120,15 +126,15 @@ def fill_cache(
     workers = parse_workers([len(xml) for xml in todo])
     if workers < 2:
         return
+    cached = len(pending) - len(todo)
     logger.debug("parsing %d applications in %d processes", len(todo), workers)
     try:
         # "spawn" starts every worker the same way on every operating system.
         with ProcessPoolExecutor(
             max_workers=workers, mp_context=multiprocessing.get_context("spawn")
         ) as pool:
-            for future in [
-                pool.submit(_parse_into_cache, xml, cache_dir) for xml in todo
-            ]:
+            futures = [pool.submit(_parse_into_cache, xml, cache_dir) for xml in todo]
+            for done, future in enumerate(futures, start=1):
                 while True:
                     try:
                         future.result(timeout=_CANCEL_POLL)
@@ -137,6 +143,8 @@ def fill_cache(
                         if cancel is not None and cancel.is_set():
                             pool.shutdown(wait=False, cancel_futures=True)
                             raise ImportCancelled from None
+                if progress is not None:
+                    progress(cached + done, len(pending))
     except ImportCancelled:
         raise
     except Exception as exc:  # e.g. processes cannot be started: parse in this process

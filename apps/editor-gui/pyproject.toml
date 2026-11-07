@@ -53,6 +53,9 @@ path = "src/editor_gui/__init__.py"
 [tool.hatch.build.targets.wheel]
 packages = ["src/editor_gui"]
 
+# Stores the commit being built in the wheel (hatch_build.py), shown in About.
+[tool.hatch.build.targets.wheel.hooks.custom]
+
 [tool.uv.sources]
 xknxeditor-catalog = { workspace = true }
 xknxeditor-download = { workspace = true }

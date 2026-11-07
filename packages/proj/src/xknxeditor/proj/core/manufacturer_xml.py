@@ -3,7 +3,8 @@
 A manufacturer's ``Hardware.xml``/``Catalog.xml``/``Baggages.xml`` exist once per source (the
 project's own product data, each ``.knxprod``); :func:`merge_manufacturer_xml` adds what another
 source's file has to a base file. :func:`combine_product_members` builds an export's product data
-from the project's own (kept exactly) plus what its devices need from other sources.
+from the project's own (kept exactly) plus what its devices need from other sources;
+:func:`add_product_members` the same for what the project stores itself.
 """
 
 from __future__ import annotations
@@ -125,7 +126,22 @@ def _is_manufacturer_file(name: str) -> bool:
     )
 
 
-def _defined_programs(members: Mapping[str, bytes]) -> set[str]:
+def merge_members(
+    base: Mapping[str, bytes], extra: Mapping[str, bytes]
+) -> dict[str, bytes]:
+    """``base`` plus the members of ``extra`` it lacks; a manufacturer file both have gets what
+    ``extra``'s adds (:func:`merge_manufacturer_xml`), other files of the same name are the same data
+    and stay as in ``base``."""
+    result = dict(base)
+    for name, data in extra.items():
+        if name not in result:
+            result[name] = data
+        elif _is_manufacturer_file(name):
+            result[name] = merge_manufacturer_xml(result[name], data)
+    return result
+
+
+def defined_programs(members: Mapping[str, bytes]) -> set[str]:
     """Every ``Hardware2Program`` id the members' ``Hardware.xml`` files declare."""
     programs: set[str] = set()
     for name, data in members.items():
@@ -178,7 +194,18 @@ def combine_product_members(
     writes ``sources`` unchanged."""
     if not own:
         return dict(sources)
-    defined = _defined_programs(own)
+    return add_product_members(own, sources, devices)
+
+
+def add_product_members(
+    own: Mapping[str, bytes],
+    sources: Mapping[str, bytes],
+    devices: Iterable[DeviceProduct],
+) -> dict[str, bytes]:
+    """The project's ``own`` product data plus, from ``sources``, only what each device whose
+    ``Hardware2Program`` the own data does not declare uses (see :func:`combine_product_members`),
+    also when there is no own data yet: what a project stores to carry its devices' product data."""
+    defined = defined_programs(own)
     missing = [
         d for d in devices if d.hardware2program and d.hardware2program not in defined
     ]
