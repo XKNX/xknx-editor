@@ -220,3 +220,58 @@ def test_a_cancel_is_heard_inside_the_inference(application: Application) -> Non
     assert asked == [False, True]
     assert recovered.limited
     assert not recovered.complete
+
+
+def _channel_with_objects(objects: int) -> Application:
+    """A channel the device keeps no copy of: on, it shows a setting in the second byte and
+    ``objects`` group objects (numbers 1 and up); object 0 always shows."""
+    app = "M-00FA_A-0007-01-0000"
+    numbers = range(objects + 1)
+    table = "".join(
+        f'<ComObject Id="{app}_O-{n}" Name="O{n}" Text="Object {n}" Number="{n}"'
+        ' FunctionText="" ObjectSize="1 Bit" ReadFlag="Disabled" WriteFlag="Enabled"'
+        ' CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Disabled"'
+        ' ReadOnInitFlag="Disabled" />'
+        for n in numbers
+    )
+    refs = "".join(
+        f'<ComObjectRef Id="{app}_O-{n}_R-{n}" RefId="{app}_O-{n}" />' for n in numbers
+    )
+    shown = "".join(
+        f'<ComObjectRefRef RefId="{app}_O-{n}_R-{n}" />' for n in numbers[1:]
+    )
+    xml = _XML.replace(_APP, app).replace(
+        "</ParameterRefs>",
+        f"</ParameterRefs><ComObjectTable>{table}</ComObjectTable>"
+        f"<ComObjectRefs>{refs}</ComObjectRefs>",
+    )
+    # The step shows with the channel, with its objects; the mode and the delay never.
+    xml = xml.replace(
+        f'<ParameterRefRef RefId="{app}_P-3_R-3" />\n'
+        f'                    <ParameterRefRef RefId="{app}_P-2_R-2" />\n'
+        f'                    <choose ParamRefId="{app}_P-2_R-2">\n'
+        f'                      <when test="1"><ParameterRefRef RefId="{app}_P-4_R-4" /></when>\n'
+        "                    </choose>",
+        f'<ParameterRefRef RefId="{app}_P-4_R-4" />{shown}',
+    ).replace(
+        "</ParameterBlock>",
+        f'</ParameterBlock><ComObjectRefRef RefId="{app}_O-0_R-0" />',
+    )
+    assert shown in xml
+    return parse_application_xml(xml.encode(), "M-00FA")[0]
+
+
+@pytest.mark.parametrize(("objects", "active"), [(2, True), (8, False)])
+def test_a_channel_showing_unlinked_objects_takes_more_than_a_byte(
+    objects: int, active: bool
+) -> None:
+    # The second byte holds 7, though the channel is off on the device (data the device keeps
+    # there at run time, say). Turning the channel on explains the byte, and shows objects the
+    # device does not link: a few weigh less than the byte, a whole channel of them more.
+    application = _channel_with_objects(objects)
+    channel = f"{application.id}_P-1_R-1"
+    segments = _device(application)
+    segment = next(iter(segments))
+    segments[segment] = segments[segment][:1] + b"\x07" + segments[segment][2:]
+    recovered = recover_parameters(application, segments, linked_objects={0})
+    assert (recovered.values.get(channel, "0") == "1") is active

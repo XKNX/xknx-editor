@@ -102,6 +102,8 @@ _REFINE_TRIES = 12
 _REFINE_DEPTH = 3
 # A linked group object a result does not show weighs as many differing bytes.
 _OBJECT_WEIGHT = 3
+# As many group objects a result shows that are not linked weigh one differing byte.
+_UNLINKED_PER_BYTE = 4
 # How many times the corrections and the values tried for one each effort allows (``None``: no
 # limit).
 _EFFORT_SCALE: dict[RecoveryEffort, int | None] = {
@@ -131,8 +133,10 @@ def _check(cancel: Callable[[], bool] | None) -> None:
 
 # A byte of a code segment: (segment id, offset).
 _Cell = tuple[str, int]
-# How far a result is from the device: the differing bytes and linked objects it does not show
-# (each weighing _OBJECT_WEIGHT bytes), then the objects it shows that are not linked.
+# How far a result is from the device: the differing bytes, linked objects it does not show
+# (each weighing _OBJECT_WEIGHT bytes) and objects it shows that are not linked (each weighing
+# 1 / _UNLINKED_PER_BYTE byte), counted in such fractions; then only what contradicts the
+# device, the bytes and the linked objects.
 _Score = tuple[int, int]
 
 
@@ -445,7 +449,8 @@ def _refine(
     and that value alone fits worse until the channel's own settings are inferred too. So each
     value tried is followed by the whole inference behind it, and taken when the result fits
     better (each linked group object it does not show weighing ``_OBJECT_WEIGHT`` differing
-    bytes; objects it shows that are not linked only tell otherwise equal results apart). The
+    bytes, ``_UNLINKED_PER_BYTE`` it shows that are not linked one; the search ends once no byte
+    differs and every linked object shows). The
     values tried are those of the selectors on the way to the parameters stored at
     the differing bytes (of module instances too) and to the group objects shown otherwise
     (``_REFINE_DEPTH`` selectors up),
@@ -469,10 +474,12 @@ def _refine(
         objects: set[int] = _shown_objects(seeded, sizes) if linked else set()
         wrong: set[int] = (linked ^ objects) if linked else set()
         # A linked object not shown contradicts the device; one shown but not linked does not
-        # (devices show more than they link), it only tells otherwise equal results apart.
+        # (devices show more than they link), it only weighs a fraction of a differing byte: a
+        # result that saves a byte by showing a whole unlinked channel does not fit better.
         missing = len(wrong & linked)
-        score = (_OBJECT_WEIGHT * missing + len(differing), len(wrong) - missing)
-        return score, differing, wrong
+        contradiction = _OBJECT_WEIGHT * missing + len(differing)
+        cost = _UNLINKED_PER_BYTE * contradiction + len(wrong) - missing
+        return (cost, contradiction), differing, wrong
 
     def finish(
         fit: tuple[_Score, set[_Cell], set[int]] | None,
@@ -492,7 +499,7 @@ def _refine(
         return _with_misfit(values, unknown, fit, seeded, limited=limited)
 
     current = misfit(ui)
-    if current is None or not current[0][0]:
+    if current is None or not current[0][1]:
         return finish(current, ui, limited=False)
     tried: set[tuple[str, str]] = set()
     tries = None if scale is None else _REFINE_TRIES * scale
@@ -570,9 +577,9 @@ def _refine(
                 )
                 score = result[0]
                 corrected.add(scope)
-                if not score[0]:
+                if not score[1]:
                     break
-        if not corrected or not current[0][0]:
+        if not corrected or not current[0][1]:
             break
     else:
         # Every correction was taken, and the result still differs.
