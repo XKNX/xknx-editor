@@ -12,7 +12,7 @@ from __future__ import annotations
 import asyncio
 import contextlib
 from collections.abc import Awaitable, Callable, Mapping, Sequence
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from typing import TYPE_CHECKING
 
 from xknx.exceptions import ManagementConnectionError, XKNXException
@@ -28,9 +28,8 @@ from xknxeditor.download.session import connect
 
 from .dossier import DeviceDossier, read_dossier
 from .identify import AppId, read_application_id
-from .parameters import RecoveredParameters, recover_parameters
+from .parameters import RecoveredParameters, RecoveryEffort, recover_parameters
 from .read_config import (
-    RawGroupCommunication,
     read_group_communication,
     read_parameter_memory,
     read_property_values,
@@ -68,6 +67,10 @@ class RecoveredDevice:
     # recovered structural parameters (so module instances match the device).
     # ``None`` falls back to the application's default-state mapping.
     com_object_refs: dict[int, str] | None = None
+    # The property values read off the device, kept with the segments to search again.
+    property_values: dict[tuple[int | None, int, int], bytes] | None = None
+    # The effort the parameters were searched with.
+    effort: RecoveryEffort = RecoveryEffort.FAST
 
 
 def seed_dynamic_ui(
@@ -183,6 +186,7 @@ async def recover_device(
     progress: Callable[[str], None] | None = None,
     project_code_page: str | None = None,
     reads_done: Callable[[], Awaitable[None]] | None = None,
+    effort: RecoveryEffort = RecoveryEffort.FAST,
 ) -> RecoveredDevice:
     """Read and decode one device's configuration over an open connection.
 
@@ -194,7 +198,8 @@ async def recover_device(
     :func:`~xknxeditor.recover.parameters.recover_parameters`. ``reads_done`` is awaited
     once everything is read, before the decoding (which takes seconds for a large
     application): the connection can be closed there, before the device closes it for
-    being idle. Read-only.
+    being idle. ``effort`` as for :func:`~xknxeditor.recover.parameters.recover_parameters`.
+    Read-only.
     """
     mask_version = await programmer.read_device_descriptor()
     dossier = await read_dossier(programmer)
@@ -212,10 +217,12 @@ async def recover_device(
     parameters, com_object_refs = await asyncio.to_thread(
         _decode_configuration,
         application,
-        group_communication,
+        group_communication.links,
+        group_communication.group_objects,
         parameter_segments,
         property_values,
         project_code_page,
+        effort,
     )
     return RecoveredDevice(
         address=address,
@@ -229,18 +236,47 @@ async def recover_device(
         dossier=dossier,
         parameter_segments=parameter_segments,
         com_object_refs=com_object_refs,
+        property_values=dict(property_values),
+        effort=effort,
+    )
+
+
+def search_again(
+    device: RecoveredDevice,
+    application: Application,
+    effort: RecoveryEffort,
+    project_code_page: str | None = None,
+) -> RecoveredDevice:
+    """``device`` with its parameters searched again in what was read off it, with
+    ``effort`` (e.g. more for a device whose result still differs from it, see
+    :attr:`~xknxeditor.recover.parameters.RecoveredParameters.complete`). Needs no bus;
+    takes as long as the effort allows. ``project_code_page`` as for
+    :func:`~xknxeditor.recover.parameters.recover_parameters`."""
+    parameters, com_object_refs = _decode_configuration(
+        application,
+        device.links,
+        device.group_objects,
+        device.parameter_segments or {},
+        device.property_values or {},
+        project_code_page,
+        effort,
+    )
+    return replace(
+        device, parameters=parameters, com_object_refs=com_object_refs, effort=effort
     )
 
 
 def _decode_configuration(
     application: Application,
-    group_communication: RawGroupCommunication,
+    links: Sequence[DecodedLink],
+    group_objects: Mapping[int, DecodedGroupObject],
     parameter_segments: Mapping[str, bytes],
     property_values: Mapping[tuple[int | None, int, int], bytes],
     project_code_page: str | None,
+    effort: RecoveryEffort,
 ) -> tuple[RecoveredParameters, dict[int, str]]:
     """The parameters read off a device, and the reference of each group object number."""
-    linked = {link.group_object_number for link in group_communication.links}
+    linked = {link.group_object_number for link in links}
     parameters = recover_parameters(
         application,
         parameter_segments,
@@ -249,9 +285,10 @@ def _decode_configuration(
         linked_objects=linked,
         object_sizes={
             number: group_object.object_size
-            for number, group_object in group_communication.group_objects.items()
+            for number, group_object in group_objects.items()
             if number in linked and group_object.object_size is not None
         },
+        effort=effort,
     )
     # Resolve com object numbers against a UI seeded with the recovered parameters,
     # so module instances (and their runtime numbers) match the device rather than
@@ -288,6 +325,7 @@ async def recover_device_at(
     attempts: int = 3,
     retry_delay: float = 1.5,
     project_code_page: str | None = None,
+    effort: RecoveryEffort = RecoveryEffort.FAST,
 ) -> RecoveredDevice:
     """Open a connection to ``address``, recover the device, and close it again.
 
@@ -296,8 +334,8 @@ async def recover_device_at(
     ``interface_max_apdu_length`` (the connecting interface's maximum): a device behind
     a tunnelling-v1 interface may advertise longer frames than the interface can carry,
     and those frames are dropped. ``progress`` reports the current read stage.
-    ``project_code_page`` as for :func:`~xknxeditor.recover.parameters.recover_parameters`.
-    Read-only.
+    ``project_code_page`` and ``effort`` as for
+    :func:`~xknxeditor.recover.parameters.recover_parameters`. Read-only.
 
     A transient transport failure (the KNXnet/IP tunnel dropping the point-to-point
     connection under sustained load - a ``DisconnectRequest``, a missing ACK, or a
@@ -344,6 +382,7 @@ async def recover_device_at(
                 # Closed before the decoding: idle meanwhile, the device would close it
                 # itself, and closing it afterwards fails.
                 reads_done=disconnect,
+                effort=effort,
             )
         except (ManagementConnectionError, XKNXException, MemoryReadNotAnswered) as exc:
             # Transport hiccup, or a long read the interface dropped (raised as

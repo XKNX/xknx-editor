@@ -338,7 +338,10 @@ def test_a_setting_that_shows_no_linked_object_more_is_left(
     segments = _device(application)
     plain = recover_parameters(application, segments)
     # Object 99 does not exist: no setting can show it.
-    assert recover_parameters(application, segments, linked_objects={99}) == plain
+    linked = recover_parameters(application, segments, linked_objects={99})
+    assert (linked.values, linked.unknown) == (plain.values, plain.unknown)
+    # The result says it does not show what the device links.
+    assert not linked.complete
 
 
 async def test_recover_device_links_the_channel_objects(

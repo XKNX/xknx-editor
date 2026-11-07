@@ -21,13 +21,24 @@ write, or the group objects it shows, still differ from the device (see :func:`_
 from __future__ import annotations
 
 from collections import Counter
-from collections.abc import Collection, Mapping
+from collections.abc import Callable, Collection, Mapping
 from dataclasses import dataclass
+from enum import Enum
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from xknxeditor.prod import Application
     from xknxeditor.prod.parser_v2.dynamic import DynamicUI
+
+
+class RecoveryEffort(Enum):
+    """How many values the search for the settings a device keeps no copy of tries (see
+    :func:`recover_parameters`): more finds settings deep in channels and module instances of
+    large applications, but takes longer."""
+
+    FAST = "fast"
+    MEDIUM = "medium"
+    MAXIMUM = "maximum"
 
 
 @dataclass(frozen=True, slots=True)
@@ -38,6 +49,19 @@ class RecoveredParameters:
     values: dict[str, str]
     # parameter ids whose value could not be reconstructed from bytes.
     unknown: list[str]
+    # The bytes the recovered values write otherwise than the device holds them, and the group
+    # objects they show otherwise than the device's tables link.
+    differing_bytes: int = 0
+    differing_objects: int = 0
+    # The search stopped at the limit of its effort with values left to try: more effort may
+    # find a result that fits the device.
+    limited: bool = False
+
+    @property
+    def complete(self) -> bool:
+        """Whether the recovered values write the memory the device holds and show the group
+        objects its tables link."""
+        return not (self.differing_bytes or self.differing_objects)
 
 
 # Decoding rounds at most: each one can only change which alternatives own memory.
@@ -56,6 +80,12 @@ _REFINE_TRIES = 12
 _REFINE_DEPTH = 3
 # A group object shown otherwise than the device's tables link weighs as many differing bytes.
 _OBJECT_WEIGHT = 3
+# How many times the corrections and the values tried for one each effort allows.
+_EFFORT_SCALE = {
+    RecoveryEffort.FAST: 1,
+    RecoveryEffort.MEDIUM: 4,
+    RecoveryEffort.MAXIMUM: 16,
+}
 
 _ValueMap = dict[str, str]
 # A byte of a code segment: (segment id, offset).
@@ -80,6 +110,7 @@ def recover_parameters(
     project_code_page: str | None = None,
     linked_objects: Collection[int] = (),
     object_sizes: Mapping[int, str] | None = None,
+    effort: RecoveryEffort = RecoveryEffort.FAST,
 ) -> RecoveredParameters:
     """Recover parameter reference values from a device's memory and properties.
 
@@ -91,9 +122,11 @@ def recover_parameters(
     the numbers of the group objects the device's tables link, ``object_sizes`` their
     object sizes as far as the tables give them: settings the device keeps no copy of
     take the values that show these objects, or that make the memory fit the union
-    members they choose (see :func:`_infer_from_memory`). Returns the recovered value for every
-    parameter reference whose type is reconstructable, and the parameter ids whose
-    value is unknown (lossy types / absent data).
+    members they choose (see :func:`_infer_from_memory`), corrected with as many values as
+    ``effort`` allows (see :func:`_refine`). Returns the recovered value for every
+    parameter reference whose type is reconstructable, the parameter ids whose
+    value is unknown (lossy types / absent data), and how far the result still differs from
+    the device.
     """
     ui = application.dynamic_ui()
     if ui is None:
@@ -114,7 +147,7 @@ def recover_parameters(
         {},
         dead,
     )
-    values, unknown = _refine(
+    return _refine(
         application,
         parameter_segments,
         property_values,
@@ -126,8 +159,8 @@ def recover_parameters(
         unknown,
         inferred,
         dead,
+        _EFFORT_SCALE[effort],
     )
-    return RecoveredParameters(values=values, unknown=unknown)
 
 
 def _infer_all(
@@ -188,26 +221,13 @@ def _infer_all(
     return values, unknown, inferred
 
 
-def _static_cells(application: Application, ui: DynamicUI) -> dict[_Cell, set[str]]:
-    """The parameters of the application (not of module definitions) stored at each byte,
-    union members too, whether active or not."""
-    from xknxeditor.prod.parser_v2.encode import collect_writes, type_size_in_bit
-
-    indexer = ui.indexer
-    # Without a state every parameter is written, and a union member whenever it has a value.
-    writes = collect_writes(
-        application.program, indexer, dict.fromkeys(indexer.parameters, "0"), None
-    )
-    cells: dict[_Cell, set[str]] = {}
-    for write in writes.mem:
-        parameter_type = indexer.parameter_types.get(write.parameter_type)
-        size = type_size_in_bit(parameter_type.choice) if parameter_type else 0
-        if not size:
-            continue
-        start = write.offset * 8 + write.bit_offset
-        for offset in range(start // 8, (start + size - 1) // 8 + 1):
-            cells.setdefault((write.seg_id, offset), set()).add(write.param_id)
-    return cells
+def _written_cells(ui: DynamicUI) -> set[_Cell]:
+    """The bytes the active parameters of ``ui`` write, those of module instances too."""
+    return {
+        (segment_id, offset)
+        for segment_id, cells in ui.memory_param_map().items()
+        for offset in cells
+    }
 
 
 def _differing_cells(
@@ -231,6 +251,68 @@ def _differing_cells(
     }
 
 
+def _gates_of(
+    ui: DynamicUI,
+    ref_id: str,
+    gates_of: Callable[[str], frozenset[str]] | None = None,
+) -> set[str]:
+    """The selectors right on the way to the placements of the param-ref ``ref_id`` (with
+    ``gates_of`` of another reference, e.g. a group object's), qualified like it: those of a
+    module instance's reference with that instance. One shown wherever its instance is has
+    the selectors on the way to the instance's module."""
+    local = ui.local_ref_id(ref_id)
+    gates = (gates_of or ui.parameter_gates)(local)
+    if local == ref_id or "_MD-" not in local:
+        return set(gates)
+    # The module definition part of the local id is swapped for the instance's part.
+    definition = local[: local.index("_", local.rindex("_MD-") + 1)]
+    instance = ref_id[: len(ref_id) - (len(local) - len(definition))]
+    if not gates and "_MI-" in instance:
+        return set(ui.module_gates(instance[: instance.rindex("_MI-")]))
+    return {
+        instance + gate[len(definition) :]
+        if gate.startswith(definition + "_")
+        else gate
+        for gate in gates
+    }
+
+
+def _objects_by_number(ui: DynamicUI) -> dict[int, list[str]]:
+    """The group object references of each number: of the application, and of the module
+    instances ``ui`` makes, qualified with the instance and numbered from its base."""
+    indexer = ui.indexer
+    numbered: list[tuple[str, int, str | None]] = []
+    for ref_id, ref in indexer.com_object_refs.items():
+        com_object = indexer.com_objects.get(ref.ref_id)
+        number = getattr(com_object, "number", None)
+        if isinstance(number, int):
+            numbered.append((ref_id, number, getattr(com_object, "base_number", None)))
+    definitions = tuple(f"{definition}_" for definition in indexer.module_defs)
+    result: dict[int, list[str]] = {}
+    for ref_id, number, _base in numbered:
+        if not ref_id.startswith(definitions):
+            result.setdefault(number, []).append(ref_id)
+    arguments = ui.get_module_instance_arguments()
+    for instance, definition in ui.get_module_instances():
+        # Arguments are stored relative to the application, the base of an object in full.
+        application_id = definition[: definition.rindex("_MD-")]
+        values = {
+            f"{application_id}_{argument}": value
+            for argument, value in arguments.get(instance, [])
+        }
+        for ref_id, number, base in numbered:
+            if not ref_id.startswith(f"{definition}_"):
+                continue
+            try:
+                offset = int(values.get(base, "0")) if base else 0
+            except ValueError:
+                continue
+            result.setdefault(number + offset, []).append(
+                instance + ref_id[len(definition) :]
+            )
+    return result
+
+
 def _count_selectors(
     ui: DynamicUI,
     gates: Collection[str],
@@ -245,7 +327,7 @@ def _count_selectors(
         for gate in frontier:
             weight[gate] += 1
             if gate not in shown:
-                above |= ui.parameter_gates(gate)
+                above |= _gates_of(ui, gate)
         frontier = above
 
 
@@ -261,26 +343,30 @@ def _refine(
     unknown: list[str],
     inferred: _ValueMap,
     dead: set[tuple[str, str]],
-) -> tuple[dict[str, str], list[str]]:
+    scale: int,
+) -> RecoveredParameters:
     """Correct settings the device keeps no copy of where the result still differs from the
     device: in the bytes it would write, or in the group objects it shows (with linked objects).
+    Returns the result with how far it still differs.
 
     A setting deep in a channel only shows once the selector of the channel has the right value,
     and that value alone fits worse until the channel's own settings are inferred too. So each
     value tried is followed by the whole inference behind it, and taken when the result fits
     better (each group object shown otherwise than linked weighing ``_OBJECT_WEIGHT`` differing
     bytes). The values tried are those of the selectors on the way to the parameters stored at
-    the differing bytes and to the group objects shown otherwise (``_REFINE_DEPTH`` selectors up),
-    those of the most such places first, and the first that fits better is taken;
-    ``_REFINE_TRIES`` per correction, ``_REFINE_ROUNDS`` corrections at most. The values the
-    inference found to show nothing (``dead``) are not tried again behind them."""
+    the differing bytes (of module instances too) and to the group objects shown otherwise
+    (``_REFINE_DEPTH`` selectors up),
+    those of the most such places first. In each module instance, and in the application's
+    own settings, the first that fits better is taken; ``_REFINE_TRIES`` values per round,
+    ``_REFINE_ROUNDS`` rounds at most, both ``scale`` times. The values the inference found to show nothing (``dead``) are not tried again behind
+    them."""
     from xknxeditor.prod.parser_v2.activation import shown_parameters, values_to_try
 
     from .recover import seed_dynamic_ui
 
     ui = seed_dynamic_ui(application, values, project_code_page)
     if ui is None:
-        return values, unknown
+        return RecoveredParameters(values=values, unknown=unknown)
 
     def misfit(seeded: DynamicUI) -> tuple[int, set[_Cell], set[int]] | None:
         differing = _differing_cells(seeded, parameter_segments)
@@ -290,33 +376,41 @@ def _refine(
         wrong: set[int] = (linked ^ objects) if linked else set()
         return _OBJECT_WEIGHT * len(wrong) + len(differing), differing, wrong
 
+    def finish(
+        fit: tuple[int, set[_Cell], set[int]] | None,
+        seeded: DynamicUI,
+        *,
+        limited: bool,
+    ) -> RecoveredParameters:
+        """The result, with the bytes it still writes otherwise counted only where a parameter
+        is stored: a device can keep other data in its segments, which changes at run time."""
+        if fit is not None and fit[1]:
+            stored = seeded.stored_parameter_cells().keys() | _written_cells(seeded)
+            fit = (fit[0], fit[1] & stored, fit[2])
+        return _with_misfit(values, unknown, fit, limited=limited)
+
     current = misfit(ui)
     if current is None or not current[0]:
-        return values, unknown
-    indexer = ui.indexer
-    cells = _static_cells(application, ui)
-    refs_of: dict[str, list[str]] = {}
-    for ref_id, ref in indexer.parameter_refs.items():
-        refs_of.setdefault(ref.ref_id, []).append(ref_id)
-    objects_of: dict[int, list[str]] = {}
-    for ref_id, ref in indexer.com_object_refs.items():
-        com_object = indexer.com_objects.get(ref.ref_id)
-        number = getattr(com_object, "number", None)
-        if isinstance(number, int):
-            objects_of.setdefault(number, []).append(ref_id)
+        return finish(current, ui, limited=False)
     tried: set[tuple[str, str]] = set()
-    for _ in range(_REFINE_ROUNDS):
+    tries = _REFINE_TRIES * scale
+    limited = False
+    for _ in range(_REFINE_ROUNDS * scale):
         score, differing, wrong = current
         shown = shown_parameters(ui.ui())
         weight: Counter[str] = Counter()
 
+        # Where each setting lives, of the module instances there are now too.
+        cells = ui.stored_parameter_cells()
         for cell in differing:
-            for parameter_id in cells.get(cell, ()):
-                for ref_id in refs_of.get(parameter_id, ()):
-                    _count_selectors(ui, ui.parameter_gates(ref_id), shown, weight)
+            for ref_id in cells.get(cell, ()):
+                _count_selectors(ui, _gates_of(ui, ref_id), shown, weight)
+        objects_of = _objects_by_number(ui) if wrong else {}
         for number in wrong:
             for ref_id in objects_of.get(number, ()):
-                _count_selectors(ui, ui.object_gates(ref_id), shown, weight)
+                _count_selectors(
+                    ui, _gates_of(ui, ref_id, ui.object_gates), shown, weight
+                )
         trials: list[tuple[str, str]] = []
         for gate, _count in weight.most_common():
             parameter = shown.get(gate)
@@ -328,17 +422,19 @@ def _refine(
                 for value in values_to_try(parameter, now)
                 if (gate, value) not in tried
             ]
-        best: (
-            tuple[
-                tuple[int, set[_Cell], set[int]],
-                dict[str, str],
-                list[str],
-                _ValueMap,
-                DynamicUI,
-            ]
-            | None
-        ) = None
-        for gate, value in trials[:_REFINE_TRIES]:
+        # A module instance's settings are independent of another's: a correction is taken in
+        # each (and one of the application's own), the values of the others are tried behind it.
+        corrected: set[str] = set()
+        evaluated = 0
+        limited = False
+        for gate, value in trials:
+            scope = _scope_of(gate)
+            if scope in corrected:
+                continue
+            if evaluated == tries:
+                limited = True
+                break
+            evaluated += 1
             tried.add((gate, value))
             trial_values, trial_unknown, trial_inferred = _infer_all(
                 application,
@@ -356,14 +452,53 @@ def _refine(
                 continue
             result = misfit(seeded)
             if result is not None and result[0] < score:
-                best = (result, trial_values, trial_unknown, trial_inferred, seeded)
-                break
-        if best is None:
+                current, values, unknown, inferred, ui = (
+                    result,
+                    trial_values,
+                    trial_unknown,
+                    trial_inferred,
+                    seeded,
+                )
+                score = result[0]
+                corrected.add(scope)
+                if not score:
+                    break
+        if not corrected or not current[0]:
             break
-        current, values, unknown, inferred, ui = best
-        if not current[0]:
-            break
-    return values, unknown
+    else:
+        # Every correction was taken, and the result still differs.
+        limited = True
+    return finish(current, ui, limited=limited)
+
+
+def _scope_of(ref_id: str) -> str:
+    """The module instance a (qualified) param-ref belongs to, empty for the application's."""
+    if "_MI-" not in ref_id:
+        return ""
+    end = ref_id.find("_", ref_id.rindex("_MI-") + 1)
+    return ref_id if end < 0 else ref_id[:end]
+
+
+def _with_misfit(
+    values: dict[str, str],
+    unknown: list[str],
+    misfit: tuple[int, set[_Cell], set[int]] | None,
+    *,
+    limited: bool,
+) -> RecoveredParameters:
+    """The result with how far it differs from the device (``misfit``: its score, the bytes it
+    writes otherwise and the group objects it shows otherwise; ``None`` when it cannot be
+    encoded, which tells nothing)."""
+    if misfit is None:
+        return RecoveredParameters(values=values, unknown=unknown)
+    _score, differing, wrong = misfit
+    return RecoveredParameters(
+        values=values,
+        unknown=unknown,
+        differing_bytes=len(differing),
+        differing_objects=len(wrong),
+        limited=limited and bool(differing or wrong),
+    )
 
 
 def _decode(
