@@ -363,3 +363,16 @@ def test_a_result_that_cannot_show_a_linked_object_is_incomplete(
     recovered = recover_parameters(application, segments, linked_objects={51, 99})
     assert not recovered.complete
     assert recovered.differing_objects == 1
+
+
+def test_a_shown_object_the_device_does_not_link_is_no_misfit(
+    application: Application,
+) -> None:
+    # The status value shows object 40 too, but only the pair's object is linked: a device
+    # shows more objects than it links.
+    segments = _device(
+        application, (_STATUS, "4"), (_FUNCTION, "1"), (f"{_PAIR}P-1_R-1", "8")
+    )
+    recovered = recover_parameters(application, segments, linked_objects={51})
+    assert recovered.differing_objects == 0
+    assert recovered.complete

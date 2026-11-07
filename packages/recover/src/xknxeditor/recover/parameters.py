@@ -100,7 +100,7 @@ _LOOK_AHEAD_TRIES = 12
 _REFINE_ROUNDS = 4
 _REFINE_TRIES = 12
 _REFINE_DEPTH = 3
-# A group object shown otherwise than the device's tables link weighs as many differing bytes.
+# A linked group object a result does not show weighs as many differing bytes.
 _OBJECT_WEIGHT = 3
 # How many times the corrections and the values tried for one each effort allows (``None``: no
 # limit).
@@ -131,6 +131,9 @@ def _check(cancel: Callable[[], bool] | None) -> None:
 
 # A byte of a code segment: (segment id, offset).
 _Cell = tuple[str, int]
+# How far a result is from the device: the differing bytes and linked objects it does not show
+# (each weighing _OBJECT_WEIGHT bytes), then the objects it shows that are not linked.
+_Score = tuple[int, int]
 
 
 def _parameter_to_refs(application: Application) -> dict[str, list[str]]:
@@ -321,18 +324,45 @@ def _gates_of(
     the selectors on the way to the instance's module."""
     local = ui.local_ref_id(ref_id)
     gates = (gates_of or ui.parameter_gates)(local)
+    instance = _instance_of(ref_id, local)
+    if instance is not None and not gates and "_MI-" in instance[0]:
+        return set(ui.module_gates(instance[0][: instance[0].rindex("_MI-")]))
+    return _qualified(gates, instance)
+
+
+def _calculation_inputs(ui: DynamicUI, ref_id: str) -> set[str]:
+    """The param-refs a parameter calculation computes ``ref_id`` from, qualified like it: what
+    decides a selector the application calculates."""
+    local = ui.local_ref_id(ref_id)
+    indexer = ui.indexer
+    inputs: set[str] = set()
+    for calculation in indexer.calculations_for_r(local):
+        inputs |= {ref.ref_id for ref in calculation.lparameters.parameter_ref_ref}
+    for calculation in indexer.calculations_for_l(local):
+        inputs |= {ref.ref_id for ref in calculation.rparameters.parameter_ref_ref}
+    inputs.discard(local)
+    return _qualified(inputs, _instance_of(ref_id, local))
+
+
+def _instance_of(ref_id: str, local: str) -> tuple[str, str] | None:
+    """For the param-ref ``ref_id`` of a module instance (``local`` its definition's), the
+    instance's part of the id and the definition's; None for one of the application."""
     if local == ref_id or "_MD-" not in local:
-        return set(gates)
-    # The module definition part of the local id is swapped for the instance's part.
+        return None
     definition = local[: local.index("_", local.rindex("_MD-") + 1)]
-    instance = ref_id[: len(ref_id) - (len(local) - len(definition))]
-    if not gates and "_MI-" in instance:
-        return set(ui.module_gates(instance[: instance.rindex("_MI-")]))
+    return ref_id[: len(ref_id) - (len(local) - len(definition))], definition
+
+
+def _qualified(refs: Collection[str], instance: tuple[str, str] | None) -> set[str]:
+    """``refs`` (local to a module definition or the application) as the references of the
+    module instance ``instance`` (see :func:`_instance_of`): the definition's part of each id
+    swapped for the instance's."""
+    if instance is None:
+        return set(refs)
+    part, definition = instance
     return {
-        instance + gate[len(definition) :]
-        if gate.startswith(definition + "_")
-        else gate
-        for gate in gates
+        part + ref[len(definition) :] if ref.startswith(definition + "_") else ref
+        for ref in refs
     }
 
 
@@ -379,7 +409,8 @@ def _count_selectors(
     weight: Counter[str],
 ) -> None:
     """Count the selectors ``gates`` in ``weight``, and for one not ``shown`` those on its own way,
-    ``_REFINE_DEPTH`` selectors up."""
+    ``_REFINE_DEPTH`` selectors up; for one a parameter calculation sets, the parameters it is
+    calculated from (shown or not: the selector follows them)."""
     frontier = set(gates)
     for _depth in range(_REFINE_DEPTH):
         above: set[str] = set()
@@ -387,6 +418,7 @@ def _count_selectors(
             weight[gate] += 1
             if gate not in shown:
                 above |= _gates_of(ui, gate)
+            above |= _calculation_inputs(ui, gate)
         frontier = above
 
 
@@ -412,8 +444,9 @@ def _refine(
     A setting deep in a channel only shows once the selector of the channel has the right value,
     and that value alone fits worse until the channel's own settings are inferred too. So each
     value tried is followed by the whole inference behind it, and taken when the result fits
-    better (each group object shown otherwise than linked weighing ``_OBJECT_WEIGHT`` differing
-    bytes). The values tried are those of the selectors on the way to the parameters stored at
+    better (each linked group object it does not show weighing ``_OBJECT_WEIGHT`` differing
+    bytes; objects it shows that are not linked only tell otherwise equal results apart). The
+    values tried are those of the selectors on the way to the parameters stored at
     the differing bytes (of module instances too) and to the group objects shown otherwise
     (``_REFINE_DEPTH`` selectors up),
     those of the most such places first. In each module instance, and in the application's
@@ -429,29 +462,37 @@ def _refine(
     if ui is None:
         return RecoveredParameters(values=values, unknown=unknown)
 
-    def misfit(seeded: DynamicUI) -> tuple[int, set[_Cell], set[int]] | None:
+    def misfit(seeded: DynamicUI) -> tuple[_Score, set[_Cell], set[int]] | None:
         differing = _differing_cells(seeded, parameter_segments)
         if differing is None:
             return None
         objects: set[int] = _shown_objects(seeded, sizes) if linked else set()
         wrong: set[int] = (linked ^ objects) if linked else set()
-        return _OBJECT_WEIGHT * len(wrong) + len(differing), differing, wrong
+        # A linked object not shown contradicts the device; one shown but not linked does not
+        # (devices show more than they link), it only tells otherwise equal results apart.
+        missing = len(wrong & linked)
+        score = (_OBJECT_WEIGHT * missing + len(differing), len(wrong) - missing)
+        return score, differing, wrong
 
     def finish(
-        fit: tuple[int, set[_Cell], set[int]] | None,
+        fit: tuple[_Score, set[_Cell], set[int]] | None,
         seeded: DynamicUI,
         *,
         limited: bool,
     ) -> RecoveredParameters:
         """The result, with the bytes it still writes otherwise counted only where a parameter
-        is stored: a device can keep other data in its segments, which changes at run time."""
+        is stored (a device can keep other data in its segments, which changes at run time),
+        and of the group objects only the linked ones it does not show: a device shows more
+        objects than it links, and which of those exist is the project's to say."""
         if fit is not None and fit[1]:
             stored = seeded.stored_parameter_cells().keys() | _written_cells(seeded)
             fit = (fit[0], fit[1] & stored, fit[2])
+        if fit is not None:
+            fit = (fit[0], fit[1], fit[2] & linked)
         return _with_misfit(values, unknown, fit, seeded, limited=limited)
 
     current = misfit(ui)
-    if current is None or not current[0]:
+    if current is None or not current[0][0]:
         return finish(current, ui, limited=False)
     tried: set[tuple[str, str]] = set()
     tries = None if scale is None else _REFINE_TRIES * scale
@@ -529,9 +570,9 @@ def _refine(
                 )
                 score = result[0]
                 corrected.add(scope)
-                if not score:
+                if not score[0]:
                     break
-        if not corrected or not current[0]:
+        if not corrected or not current[0][0]:
             break
     else:
         # Every correction was taken, and the result still differs.
@@ -550,7 +591,7 @@ def _scope_of(ref_id: str) -> str:
 def _with_misfit(
     values: dict[str, str],
     unknown: list[str],
-    misfit: tuple[int, set[_Cell], set[int]] | None,
+    misfit: tuple[_Score, set[_Cell], set[int]] | None,
     seeded: DynamicUI,
     *,
     limited: bool,
@@ -635,8 +676,12 @@ def _decode(
         if read == values:
             break
         values = read
+        # With what the calculations make of them too: a parameter shown behind a calculated
+        # switch is decoded once the switch has its value.
         seeded_ui = seed_dynamic_ui(
-            application, {**inferred, **values}, project_code_page
+            application,
+            _with_calculated(application, {**inferred, **values}, project_code_page),
+            project_code_page,
         )
         if seeded_ui is None:
             break
