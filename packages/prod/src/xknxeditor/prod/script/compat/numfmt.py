@@ -138,12 +138,15 @@ class _BigNum:
                 if (r[2] & 0x7FFFFFFF) or r[1] or r[0]:
                     self.err += 1
                 return
-        elif (r[2] & 0x80000000) and (
-            (r[3] & 1) or (r[2] & 0x7FFFFFFF) or r[1] or r[0]
+        elif (
+            (r[2] & 0x80000000)
+            and ((r[3] & 1) or (r[2] & 0x7FFFFFFF) or r[1] or r[0])
+            and add(3, 1)
+            and add(4, 1)
+            and add(5, 1)
         ):
-            if add(3, 1) and add(4, 1) and add(5, 1):
-                r[5] = 0x80000000
-                self.exp += 1
+            r[5] = 0x80000000
+            self.exp += 1
         self.lu2, self.lu1, self.lu0 = r[5], r[4], r[3]
         if r[2] or r[1] or r[0]:
             self.err += 1
