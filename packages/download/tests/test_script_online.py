@@ -12,6 +12,7 @@ from unittest.mock import AsyncMock
 
 import pytest
 from xknx import XKNX
+from xknx.exceptions import ManagementConnectionTimeout
 from xknx.telegram import IndividualAddress, Telegram
 from xknx.telegram.apci import (
     APCI,
@@ -89,9 +90,10 @@ def test_connectionless_routes_only_the_devices_frames_while_open(
         await manager.close()
         await manager.close()  # closing twice is harmless
         xknx.management.process(_from_device(DeviceDescriptorRead()))
+        queue = connection._connectionless.queue  # pyright: ignore[reportPrivateUsage]
         received: list[Telegram] = []
-        while not connection._received.empty():  # pyright: ignore[reportPrivateUsage]
-            received.append(connection._received.get_nowait())  # pyright: ignore[reportPrivateUsage]
+        while not queue.empty():
+            received.append(queue.get_nowait())
         return received
 
     with caplog.at_level(logging.DEBUG, logger="xknx.management"):
@@ -115,11 +117,32 @@ def test_connectionless_channels_of_two_devices() -> None:
         xknx.management.process(_from_device(DeviceDescriptorRead(), second))
         await second_manager.close()
         return (
-            first._received.qsize(),  # pyright: ignore[reportPrivateUsage]
-            other._received.qsize(),  # pyright: ignore[reportPrivateUsage]
+            first._connectionless.queue.qsize(),  # pyright: ignore[reportPrivateUsage]
+            other._connectionless.queue.qsize(),  # pyright: ignore[reportPrivateUsage]
         )
 
     assert asyncio.run(run()) == (0, 2)
+
+
+def test_connectionless_request_without_answer(monkeypatch: pytest.MonkeyPatch) -> None:
+    from xknxeditor.download import connectionless
+
+    monkeypatch.setattr(connectionless, "RESPONSE_TIMEOUT", 0.05)
+    xknx = XKNX()
+    xknx.cemi_handler = AsyncMock()
+
+    async def run() -> None:
+        manager = ConnectionlessManager(xknx, DEVICE)
+        connection = await manager.open()
+        try:
+            with pytest.raises(ManagementConnectionTimeout, match="No response"):
+                await connection.request(
+                    DeviceDescriptorRead(descriptor=0), DeviceDescriptorResponse
+                )
+        finally:
+            await manager.close()
+
+    asyncio.run(run())
 
 
 class _Manager:

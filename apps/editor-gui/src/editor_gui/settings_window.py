@@ -124,7 +124,9 @@ class SettingsWindow:
         for page in self._pages():
             shown = [s for s in page.settings if s.shown()]
             if shown:
-                shown_pages.append(SettingsPage(page.key, page.title, shown, page.intro))
+                shown_pages.append(
+                    SettingsPage(page.key, page.title, shown, page.intro)
+                )
         if not shown_pages:
             return []
         first, *rest = shown_pages
