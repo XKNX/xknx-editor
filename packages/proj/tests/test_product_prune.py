@@ -314,7 +314,7 @@ def test_prune_real_fixture_keeps_everything(tmp_path: Path) -> None:
     dest = tmp_path / "p.xknx"
     import_knxproj(_REAL, dest)
     with Session(make_engine(url_for(dest))) as session:
-        blob = session.query(Project).one().imported_product_members
+        blob = session.query(Project).one().product_members
         rows = session.query(Device).all()
         products = {d.product_ref_id for d in rows}
         programs = {d.hardware2program_ref_id or "" for d in rows}
@@ -328,8 +328,8 @@ def _inject_unused(path: Path, padding: int = 0) -> dict[str, bytes]:
     """Add unused hardware + application to M-0002 and an unused manufacturer to the stored data."""
     with Session(make_engine(url_for(path))) as session:
         project = session.query(Project).one()
-        assert project.imported_product_members
-        members = _unzip(project.imported_product_members)
+        assert project.product_members
+        members = _unzip(project.product_members)
         hw = members["M-0002/Hardware.xml"]
         sep = b"\r\n" if b"\r\n" in hw else b"\n"
         block = sep.join(
@@ -362,7 +362,7 @@ def _inject_unused(path: Path, padding: int = 0) -> dict[str, bytes]:
         )
         members["M-0003/M-0003_A-0001.xml"] = _app("M-0003_A-0001", [])
         members["M-0003.signature"] = b"c2ln"
-        project.imported_product_members = _zip(members)
+        project.product_members = _zip(members)
         session.commit()
     return members
 
@@ -385,7 +385,7 @@ def test_export_remove_unused_products_round_trip(tmp_path: Path) -> None:
     import_knxproj(_REAL, src)
     _inject_unused(src)
     with Session(make_engine(url_for(src))) as session:
-        stored = session.query(Project).one().imported_product_members
+        stored = session.query(Project).one().product_members
 
     full = tmp_path / "full.knxproj"
     export_knxproj(src, full)
@@ -416,7 +416,7 @@ def test_export_remove_unused_products_round_trip(tmp_path: Path) -> None:
 
     # The project itself is not changed.
     with Session(make_engine(url_for(src))) as session:
-        assert session.query(Project).one().imported_product_members == stored
+        assert session.query(Project).one().product_members == stored
 
     # Re-import with the project's own importer: same devices.
     back = tmp_path / "back.xknx"
@@ -452,7 +452,7 @@ def test_compact_project_shrinks_file(tmp_path: Path) -> None:
     assert steps[-1] == "vacuum" and "store" in steps
     assert path.stat().st_size == result.file_size_after
 
-    blob = svc.project(pid).imported_product_members
+    blob = svc.project(pid).product_members
     assert blob
     stored = _unzip(blob)
     assert not any(n.startswith("M-0003") for n in stored)

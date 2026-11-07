@@ -242,7 +242,7 @@ def test_project_20_has_no_project_type_and_the_bus_access_on_the_line(
     with Session(make_engine(url_for(imported))) as session:
         project = session.query(Project).one()
         project.knx_master_xml = None
-        project.imported_product_members = None
+        project.product_members = None
         session.commit()
     out = tmp_path / "out.knxproj"
     export_knxproj(imported, out, schema="20")

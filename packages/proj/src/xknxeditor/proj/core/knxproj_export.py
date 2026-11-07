@@ -71,7 +71,7 @@ from sqlalchemy.orm import Session, object_session
 
 from xknxeditor.proj.core import import_notes
 from xknxeditor.proj.core._dll_signer import sign_member_map
-from xknxeditor.proj.core.compact import used_product_ids
+from xknxeditor.proj.core.compact import device_products, used_product_ids
 from xknxeditor.proj.core.dpt import normalize_datapoint_type
 from xknxeditor.proj.core.function_roles import function_roles
 from xknxeditor.proj.core.ga_security import exports_key, secured_group_addresses
@@ -462,22 +462,7 @@ def _heal_extra_files(
 def _device_products(project: Project) -> list[DeviceProduct]:
     """The product data refs of the project's devices (see :class:`DeviceProduct`)."""
     session = object_session(project)
-    if session is None:
-        return []
-    return [
-        DeviceProduct(
-            product=product or "",
-            hardware2program=program or "",
-            application=application or "",
-            imported=bool(source_id),
-        )
-        for product, program, application, source_id in session.query(
-            Device.product_ref_id,
-            Device.hardware2program_ref_id,
-            Device.application_program_ref_id,
-            Device.source_id,
-        )
-    ]
+    return device_products(session) if session is not None else []
 
 
 def _usable_master(master: bytes | None, schema: str) -> bytes | None:
@@ -581,7 +566,7 @@ def _stored_provenance_sources(
     then realigns up to it. Otherwise the provenance is dropped and only the supplied master is used.
     The realignment is up-only: an explicit higher request is honoured and lower provenance dropped
     rather than silently downgrading the export's schema."""
-    stored_members = _unzip_members(project.imported_product_members)
+    stored_members = _unzip_members(project.product_members)
     stored_master = project.knx_master_xml
     if not stored_members and stored_master is None:
         return {}, master_xml, schema
@@ -622,7 +607,7 @@ def _resolve_export_sources(
     verbatim (no mismatch error)."""
     if extra_files:
         effective_extra = combine_product_members(
-            _unzip_members(project.imported_product_members),
+            _unzip_members(project.product_members),
             extra_files,
             _device_products(project),
         )

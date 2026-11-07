@@ -1229,7 +1229,7 @@ def test_import_captures_product_provenance(tmp_path: Path) -> None:
     with Session(make_engine(url_for(dest))) as session:
         project = session.query(Project).filter(Project.id == pid).one()
         assert project.knx_master_xml, "signed master not captured"
-        blob = project.imported_product_members
+        blob = project.product_members
         assert blob, "manufacturer members not captured"
 
     source_members = _archive_members(_REAL)
@@ -1303,7 +1303,7 @@ def test_export_without_import_provenance_has_no_members(tmp_path: Path) -> None
 
     with Session(make_engine(url_for(src))) as session:
         project = session.query(Project).filter(Project.id == pid).one()
-        assert project.imported_product_members is None
+        assert project.product_members is None
 
     out = tmp_path / "out.knxproj"
     export_knxproj(src, out)
@@ -1371,7 +1371,7 @@ def test_import_provenance_realigns_modern_schema(tmp_path: Path) -> None:
     with Session(make_engine(url_for(src))) as session:
         project = session.query(Project).filter(Project.id == pid).one()
         project.knx_master_xml = master23
-        project.imported_product_members = blob.getvalue()
+        project.product_members = blob.getvalue()
         session.commit()
 
     out = tmp_path / "out.knxproj"

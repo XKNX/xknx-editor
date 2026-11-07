@@ -1545,7 +1545,7 @@ async def test_project_compact(tmp_path: Path) -> None:
     path = tmp_path / "p.xknx"
     import_knxproj(_KNXPROJ, path)
     with sqlite3.connect(path) as db:
-        (blob,) = db.execute("SELECT imported_product_members FROM projects").fetchone()
+        (blob,) = db.execute("SELECT product_members FROM projects").fetchone()
         buffer = io.BytesIO()
         with (
             zipfile.ZipFile(io.BytesIO(blob)) as src,
@@ -1561,9 +1561,7 @@ async def test_project_compact(tmp_path: Path) -> None:
                 "</Hardware></Hardware></Manufacturer></ManufacturerData></KNX>",
             )
             out.writestr("M-0003/M-0003_A-0001.xml", "<KNX />")
-        db.execute(
-            "UPDATE projects SET imported_product_members = ?", (buffer.getvalue(),)
-        )
+        db.execute("UPDATE projects SET product_members = ?", (buffer.getvalue(),))
     db.close()
 
     mcp, _project = _build(tmp_path)

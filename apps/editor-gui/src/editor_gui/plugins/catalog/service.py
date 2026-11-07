@@ -263,9 +263,15 @@ class CatalogService:
         """Ingest the product data embedded in a ``.knxproj`` (which omits ``Catalog.xml``), so the
         imported project's devices resolve their applications. Returns the newly added product
         versions."""
-        return self._import_knxprod_bytes(
-            path.read_bytes(), require_catalog=False, cancel=cancel
-        )
+        return self.import_project_archive(path.read_bytes(), cancel=cancel)
+
+    def import_project_archive(
+        self, data: bytes, *, cancel: threading.Event | None = None
+    ) -> list[ProductSummary]:
+        """Ingest product data a project carries (a ``.knxproj``, or the archive of an ``.xknx``
+        project's product data): only programs the catalog lacks are added, and ``Catalog.xml`` may
+        be missing. Returns the newly added product versions."""
+        return self._import_knxprod_bytes(data, require_catalog=False, cancel=cancel)
 
     def import_product_source(
         self, data: bytes, master_xml: bytes, *, cancel: threading.Event | None = None

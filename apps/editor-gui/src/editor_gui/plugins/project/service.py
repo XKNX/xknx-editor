@@ -1224,6 +1224,11 @@ class ProjectService:
         self._new_snapshots: dict[int, tuple[str, str]] = {}
         # What each application id is read from (see CatalogService.application_source).
         self._source_cache: dict[str, str | None] = {}
+        # The hardware programs the project's product data declares (None until read), and those no
+        # product file of the catalog has, asked for again once the catalog changed (its generation).
+        self._product_programs: set[str] | None = None
+        self._unavailable_products: set[str] = set()
+        self._unavailable_generation = -1
         # Applications loading in the background, and those that failed to load (their devices
         # are then built without a snapshot, which shows them as not loadable).
         self._loading_lock = threading.Lock()
@@ -1687,6 +1692,8 @@ class ProjectService:
                         home=str(path),
                         working=str(working),
                     )
+                self._import_product_data()
+                self._sync_product_data()
                 self._log.info(
                     "project opened",
                     path=str(path),
@@ -1973,6 +1980,8 @@ class ProjectService:
         self._snapshots = None
         self._new_snapshots.clear()
         self._source_cache.clear()
+        self._product_programs = None
+        self._unavailable_products.clear()
         with self._loading_lock:
             self._loading.clear()
             self._failed_loads.clear()
@@ -2016,6 +2025,9 @@ class ProjectService:
         self._version += 1
         if not structural and current:
             self._devices_cache_version = self._version
+        if structural:
+            # A device may have been added or given another application program.
+            self._sync_product_data()
 
     def _refresh_device(self, node_id: int) -> None:
         """Rebuild a single device's cached view in place (its com-objects changed), instead of
@@ -4852,6 +4864,93 @@ class ProjectService:
         with self._io_lock:
             return self._svc.analyse_compaction(self._pid, progress)
 
+    # --- product data in the project ------------------------------------
+
+    def _import_product_data(self) -> None:
+        """Import the project's product data into the catalog when its devices use hardware programs
+        the catalog does not have and the project carries: the project then opens with them
+        editable, also on a computer it was not made on. Best effort, as a missing product only
+        leaves its devices not editable."""
+        if self._pid is None:
+            return
+        try:
+            programs = set(self._svc.device_programs(self._pid).values())
+            unknown = {
+                p for p in programs if self._catalog.get_program_source(p) is None
+            }
+            if not unknown:
+                return
+            self._product_programs = self._svc.product_data_programs(self._pid)
+            carried = unknown & self._product_programs
+            if not carried:
+                return
+            from editor_gui.master_data import master_xml_bytes
+
+            # The app's master data only when the project has none of its own (it may download).
+            own_master = self._svc.project(self._pid).knx_master_xml is not None
+            archive = self._svc.product_archive(
+                self._pid, None if own_master else master_xml_bytes()
+            )
+            if archive is None:
+                self._log.warning(
+                    "product data of the project not imported: no master data",
+                    programs=len(carried),
+                )
+                return
+            added = self._catalog.import_project_archive(archive)
+            self._log.info(
+                "catalog updated from the project's product data",
+                programs=len(carried),
+                added=len(added),
+            )
+        except Exception as e:
+            self._log.warning(
+                "could not import the project's product data",
+                error=f"{type(e).__name__}: {e}",
+            )
+
+    def _sync_product_data(self) -> None:
+        """Add to the project's product data what its devices use and it does not carry yet (a
+        device added from the catalog, or given another application program), from the product files
+        the catalog has them from, so the project carries the product data of every device. Cheap
+        while nothing is missing; best effort otherwise."""
+        if self._pid is None:
+            return
+        try:
+            if self._product_programs is None:
+                self._product_programs = self._svc.product_data_programs(self._pid)
+            if self._unavailable_generation != self._catalog.generation:
+                self._unavailable_products.clear()
+                self._unavailable_generation = self._catalog.generation
+            missing = (
+                set(self._svc.device_programs(self._pid).values())
+                - self._product_programs
+                - self._unavailable_products
+            )
+            if not missing:
+                return
+            from editor_gui.plugins.project.knxproj_manufacturer import (
+                collect_manufacturer_bundle,
+            )
+
+            bundle = collect_manufacturer_bundle(missing, self._catalog)
+            if bundle.extra_files and self._svc.add_product_data(
+                self._pid, bundle.extra_files
+            ):
+                self._product_programs = self._svc.product_data_programs(self._pid)
+            # What no product file had stays missing until the catalog changes.
+            self._unavailable_products |= missing - self._product_programs
+            self._log.info(
+                "product data added to the project",
+                programs=len(missing & self._product_programs),
+                unavailable=len(missing - self._product_programs),
+            )
+        except Exception as e:
+            self._log.warning(
+                "could not add product data to the project",
+                error=f"{type(e).__name__}: {e}",
+            )
+
     def compact(
         self,
         progress: "ProgressCallback | None" = None,
@@ -4866,6 +4965,7 @@ class ProjectService:
         with self._io_lock:
             result = self._svc.compact(self._pid, progress, cancelled)
             self._revision_cache.clear()
+            self._product_programs = None
             self._bump(structural=False)
         self._log.info(
             "project compacted",

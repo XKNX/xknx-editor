@@ -14,6 +14,7 @@ from sqlalchemy import text
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session
 
+from xknxeditor.proj.core.manufacturer_xml import DeviceProduct
 from xknxeditor.proj.core.product_prune import (
     STEP_DEVICES,
     STEP_STORE,
@@ -51,6 +52,24 @@ class UsedProductIds:
     applications: frozenset[str]
 
 
+def device_products(session: Session) -> list[DeviceProduct]:
+    """The product data refs of each device of the project (see :class:`DeviceProduct`)."""
+    return [
+        DeviceProduct(
+            product=product or "",
+            hardware2program=program or "",
+            application=application or "",
+            imported=bool(source_id),
+        )
+        for product, program, application, source_id in session.query(
+            Device.product_ref_id,
+            Device.hardware2program_ref_id,
+            Device.application_program_ref_id,
+            Device.source_id,
+        )
+    ]
+
+
 def used_product_ids(session: Session) -> UsedProductIds:
     """Collect the product data ids all devices of the project reference."""
     rows = session.query(
@@ -76,7 +95,7 @@ def _pruned(
     used = used_product_ids(session)
     if progress is not None:
         progress(STEP_DEVICES, 1, 1)
-    blob = project.imported_product_members
+    blob = project.product_members
     if not blob:
         return project, None, ProductPruneReport()
     new_blob, report = prune_product_blob(
@@ -100,7 +119,7 @@ def analyse_compaction(
 ) -> CompactResult:
     """Report what :func:`compact_project` would remove, without changing anything."""
     project, _blob, report = _pruned(session, progress)
-    session.expire(project, ["imported_product_members"])
+    session.expire(project, ["product_members"])
     before = path.stat().st_size
     saved = report.size_before - report.size_after + _free_bytes(session)
     return CompactResult(report, before, max(0, before - saved), applied=False)
@@ -133,7 +152,7 @@ def compact_project(
         session.expire_all()
         raise
     if new_blob is not None:
-        project.imported_product_members = new_blob
+        project.product_members = new_blob
     session.commit()
     if progress is not None:
         progress(STEP_STORE, 1, 1)

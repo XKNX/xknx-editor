@@ -8,7 +8,7 @@ from sqlalchemy import inspect
 from xknxeditor.proj import ProjectService
 from xknxeditor.proj.models import ProjectTrace
 
-_BLOBS = ("knx_master_xml", "imported_product_members", "imported_project_files")
+_BLOBS = ("knx_master_xml", "product_members", "imported_project_files")
 
 
 def _project(tmp_path: Path) -> tuple[ProjectService, str]:
@@ -17,7 +17,7 @@ def _project(tmp_path: Path) -> tuple[ProjectService, str]:
     session = svc._state(pid).session
     project = svc.project(pid)
     project.knx_master_xml = b"master"
-    project.imported_product_members = b"members" * 1000
+    project.product_members = b"members" * 1000
     project.imported_project_files = b"files"
     session.add_all(
         ProjectTrace(
@@ -35,7 +35,7 @@ def test_the_blobs_load_only_when_read(tmp_path: Path) -> None:
     project = svc.project(pid)
     assert project.name is not None
     assert set(_BLOBS) <= inspect(project).unloaded
-    assert project.imported_product_members == b"members" * 1000
+    assert project.product_members == b"members" * 1000
 
 
 def test_the_project_log_in_document_order(tmp_path: Path) -> None:

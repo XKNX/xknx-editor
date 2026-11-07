@@ -12,8 +12,10 @@ import base64
 import binascii
 import contextlib
 import datetime
+import io
 import ipaddress
 import secrets
+import zipfile
 from collections.abc import Callable, Collection, Iterable, Mapping, Sequence
 from dataclasses import dataclass, field, replace
 from pathlib import Path
@@ -48,6 +50,7 @@ from xknxeditor.proj.core.compact import (
     CompactResult,
     analyse_compaction,
     compact_project,
+    device_products,
 )
 from xknxeditor.proj.core.coupler_rules import CouplerDevice, check_coupler
 from xknxeditor.proj.core.dpt import normalize_datapoint_type
@@ -174,6 +177,7 @@ from xknxeditor.proj.core.ip_settings import (
     ASSIGNMENTS,
     parse_ipv4,
 )
+from xknxeditor.proj.core.manufacturer_xml import add_product_members, defined_programs
 from xknxeditor.proj.core.medium import (
     MAX_LINES,
     MAX_SEGMENTS,
@@ -202,6 +206,7 @@ from xknxeditor.proj.core.project_secrets import (
     new_salt,
     recrypt,
 )
+from xknxeditor.proj.core.project_store_serialize import unzip_members, zip_members
 from xknxeditor.proj.core.skeleton import seed_new_project
 from xknxeditor.proj.core.space_rules import SpaceRuleError, check_child, holds_devices
 from xknxeditor.proj.db import make_engine, url_for
@@ -4606,6 +4611,50 @@ class ProjectService:
         return compact_project(
             state.session, state.engine, self._path(state), progress, cancelled
         )
+
+    # --- product data -------------------------------------------------------
+
+    def product_data_programs(self, project_id: str) -> set[str]:
+        """The hardware programs the project's product data declares: its devices with one of these
+        load from the project alone, without the product in the catalog."""
+        blob = self.project(project_id).product_members
+        if not blob:
+            return set()
+        # Only the Hardware.xml files declare them: the application programs stay packed.
+        with zipfile.ZipFile(io.BytesIO(blob)) as zf:
+            hardware = {
+                name: zf.read(name)
+                for name in zf.namelist()
+                if name.endswith("/Hardware.xml")
+            }
+        return defined_programs(hardware)
+
+    def add_product_data(self, project_id: str, sources: Mapping[str, bytes]) -> bool:
+        """Add to the project's product data what its devices use from ``sources`` (the members of
+        the product files they were added from) and the project does not carry yet. Not an undoable
+        step: the product data only grows here, and :meth:`compact` removes what no device uses.
+        Returns whether anything was added."""
+        state = self._state(project_id)
+        project = self.project(project_id)
+        own = unzip_members(project.product_members)
+        merged = add_product_members(own, sources, device_products(state.session))
+        if merged == own:
+            return False
+        project.product_members = zip_members(merged)
+        state.session.commit()
+        return True
+
+    def product_archive(
+        self, project_id: str, master_xml: bytes | None
+    ) -> bytes | None:
+        """The project's product data as a product archive the catalog imports, with the project's
+        own ``knx_master.xml`` or else ``master_xml``; ``None`` without product data or a master."""
+        project = self.project(project_id)
+        master = project.knx_master_xml or master_xml
+        members = unzip_members(project.product_members)
+        if not members or master is None:
+            return None
+        return zip_members({"knx_master.xml": master, **members})
 
     # --- reads ------------------------------------------------------------
 

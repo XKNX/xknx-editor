@@ -856,7 +856,7 @@ def _merge_tree(src: Path, dst: Path) -> None:
 
 
 def unzip_members(blob: bytes | None) -> dict[str, bytes]:
-    """Unpack a stored ZIP blob (e.g. ``Project.imported_product_members``) into a member map."""
+    """Unpack a stored ZIP blob (e.g. ``Project.product_members``) into a member map."""
     if not blob:
         return {}
     with zipfile.ZipFile(BytesIO(blob)) as zf:
@@ -865,3 +865,16 @@ def unzip_members(blob: bytes | None) -> dict[str, bytes]:
             for info in zf.infolist()
             if not info.is_dir()
         }
+
+
+def zip_members(members: Mapping[str, bytes]) -> bytes:
+    """Pack a member map into a ZIP blob (the reverse of :func:`unzip_members`). The same members
+    always give the same bytes (sorted, with a fixed date), so a store that tells files apart by
+    their content keeps one copy."""
+    buffer = BytesIO()
+    with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as zf:
+        for name in sorted(members):
+            info = zipfile.ZipInfo(name, date_time=(1980, 1, 1, 0, 0, 0))
+            info.compress_type = zipfile.ZIP_DEFLATED
+            zf.writestr(info, members[name])
+    return buffer.getvalue()
