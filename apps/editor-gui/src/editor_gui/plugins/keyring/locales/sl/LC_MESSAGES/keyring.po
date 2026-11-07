@@ -84,6 +84,3 @@ msgstr "Ključ orodja"
 
 msgid "{address}   key {key}"
 msgstr "{address}   ključ {key}"
-
-msgid "KNX Sec"
-msgstr "KNX Sec"

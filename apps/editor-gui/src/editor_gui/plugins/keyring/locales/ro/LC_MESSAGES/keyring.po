@@ -84,6 +84,3 @@ msgstr "Cheie de instrument"
 
 msgid "{address}   key {key}"
 msgstr "{address}   cheie {key}"
-
-msgid "KNX Sec"
-msgstr "KNX Sec"
