@@ -344,8 +344,9 @@ def preflight_segment_ranges(
 ) -> list[tuple[ByteRange, str]]:
     """The changed ranges of one memory segment with their class, a range split where the
     class of its bytes changes; a step of the procedure (see ``SegmentDiff.procedure_step``)
-    is device-managed, a byte of a group communication table (``SegmentDiff.table_bytes``)
-    configured."""
+    is device-managed, as is an octet the download corrects in the product's data
+    (``SegmentDiff.corrected_bytes``), a byte of a group communication table
+    (``SegmentDiff.table_bytes``) configured."""
     if segment.procedure_step:
         return [(r, PREFLIGHT_RUNTIME) for r in segment.changed_ranges]
     result: list[tuple[ByteRange, str]] = []
@@ -353,7 +354,9 @@ def preflight_segment_ranges(
         for i in range(byte_range.length):
             offset = byte_range.start + i
             category = (
-                PREFLIGHT_CONFIG
+                PREFLIGHT_RUNTIME
+                if offset in segment.corrected_bytes
+                else PREFLIGHT_CONFIG
                 if offset in segment.table_bytes
                 else preflight_byte_category(
                     segment.address + offset,

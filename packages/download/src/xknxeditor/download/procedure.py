@@ -3285,8 +3285,20 @@ class LoadProcedureRunner:
                 planned=bytes(planned),
                 procedure_step=procedure_step,
                 table_bytes=self._table_bytes(address, len(planned)),
+                corrected_bytes=self._corrected_bytes(address, len(planned)),
             )
         )
+
+    def _corrected_bytes(self, address: int, size: int) -> frozenset[int]:
+        """The offsets of ``[address, address + size)`` a full and a partial download write
+        differently (``MemorySegment.partial_octets``): after either one, the other changes
+        them."""
+        corrected = {
+            segment.address + offset
+            for segment in self.image.segments
+            for offset, _value in segment.partial_octets
+        }
+        return frozenset(i for i in range(size) if address + i in corrected)
 
     def _table_bytes(self, address: int, size: int) -> frozenset[int]:
         """The offsets of ``[address, address + size)`` in a group communication table at an
@@ -3341,6 +3353,7 @@ class LoadProcedureRunner:
                     current=current,
                     planned=bytes(planned),
                     table_bytes=self._table_bytes(run_address, len(planned)),
+                    corrected_bytes=self._corrected_bytes(run_address, len(planned)),
                 )
             )
 
