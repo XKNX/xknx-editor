@@ -35,6 +35,20 @@ for identifying products, and `xknxeditor-proj` for writing the result.
   Reliable types (integers, enumerations, text, DPT9/IEEE floats, dates, IPv4,
   RGB/RGBW colour, raw data) are decoded; non-injective encodings (HSV colour, a
   date without a stored year) are reported as unknown.
+- **Search effort**: `medium` is the default. When individual corrections leave
+  differences, it also tries an unstored selector together with a dependent selector,
+  decoding the stored values for each candidate layout. `fast` skips this extra search;
+  `maximum` increases its budget. `unlimited` stops when no candidate improves the fit
+  or the search is cancelled. The result reports remaining differences and whether
+  the correction search exhausted its budget; an exact memory match does not prove
+  a unique configuration.
+- **Fixed-value evidence**: a final validation removes decoded overrides of immutable
+  references and corrects their selectors against the observed bytes. Editable, assigned
+  and calculated values remain recoverable. Unresolved marker conflicts remain differences,
+  even when an earlier candidate reproduced the bytes by overriding its fixed values.
+- **Object-size evidence**: sizes read from the object table also distinguish alternatives
+  for objects without a group-address link. A shown object with a conflicting size counts
+  as a difference. An unlinked table entry alone does not prove that its function is active.
 - **Device dossier**: read the descriptive Device Object properties (serial number,
   manufacturer, order info, hardware type) for display and disambiguation.
 - **Verify** (read-only): re-encode the recovered group communication and diff it

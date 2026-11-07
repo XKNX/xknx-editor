@@ -70,7 +70,7 @@ class RecoveredDevice:
     # The property values read off the device, kept with the segments to search again.
     property_values: dict[tuple[int | None, int, int], bytes] | None = None
     # The effort the parameters were searched with.
-    effort: RecoveryEffort = RecoveryEffort.FAST
+    effort: RecoveryEffort = RecoveryEffort.MEDIUM
 
 
 def seed_dynamic_ui(
@@ -186,7 +186,7 @@ async def recover_device(
     progress: Callable[[str], None] | None = None,
     project_code_page: str | None = None,
     reads_done: Callable[[], Awaitable[None]] | None = None,
-    effort: RecoveryEffort = RecoveryEffort.FAST,
+    effort: RecoveryEffort = RecoveryEffort.MEDIUM,
     cancel: Callable[[], bool] | None = None,
 ) -> RecoveredDevice:
     """Read and decode one device's configuration over an open connection.
@@ -291,7 +291,7 @@ def _decode_configuration(
         object_sizes={
             number: group_object.object_size
             for number, group_object in group_objects.items()
-            if number in linked and group_object.object_size is not None
+            if group_object.object_size is not None
         },
         effort=effort,
         cancel=cancel,
@@ -331,7 +331,7 @@ async def recover_device_at(
     attempts: int = 3,
     retry_delay: float = 1.5,
     project_code_page: str | None = None,
-    effort: RecoveryEffort = RecoveryEffort.FAST,
+    effort: RecoveryEffort = RecoveryEffort.MEDIUM,
     cancel: Callable[[], bool] | None = None,
 ) -> RecoveredDevice:
     """Open a connection to ``address``, recover the device, and close it again.

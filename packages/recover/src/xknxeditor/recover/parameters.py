@@ -52,8 +52,7 @@ class RecoveredParameters:
     values: dict[str, str]
     # parameter ids whose value could not be reconstructed from bytes.
     unknown: list[str]
-    # The bytes the recovered values write otherwise than the device holds them, and the group
-    # objects they show otherwise than the device's tables link.
+    # Bytes that differ, and missing linked objects or shown objects with a different size.
     differing_bytes: int = 0
     differing_objects: int = 0
     # The search stopped at the limit of its effort, or was cancelled, with values left to try:
@@ -65,8 +64,7 @@ class RecoveredParameters:
 
     @property
     def complete(self) -> bool:
-        """Whether the recovered values write the memory the device holds and show the group
-        objects its tables link."""
+        """Whether the values match the memory, linked objects and observed object sizes."""
         return not (self.differing_bytes or self.differing_objects)
 
     @property
@@ -100,6 +98,8 @@ _LOOK_AHEAD_TRIES = 12
 _REFINE_ROUNDS = 4
 _REFINE_TRIES = 12
 _REFINE_DEPTH = 3
+_PAIR_TRIES = 64
+_PAIR_ROUNDS = 2
 # A linked group object a result does not show weighs as many differing bytes.
 _OBJECT_WEIGHT = 3
 # As many group objects a result shows that are not linked weigh one differing byte.
@@ -158,7 +158,7 @@ def recover_parameters(
     project_code_page: str | None = None,
     linked_objects: Collection[int] = (),
     object_sizes: Mapping[int, str] | None = None,
-    effort: RecoveryEffort = RecoveryEffort.FAST,
+    effort: RecoveryEffort = RecoveryEffort.MEDIUM,
     cancel: Callable[[], bool] | None = None,
 ) -> RecoveredParameters:
     """Recover parameter reference values from a device's memory and properties.
@@ -168,8 +168,10 @@ def recover_parameters(
     device (see :mod:`xknxeditor.recover.read_config`). ``project_code_page`` is the
     ``CodePage`` of the project the device goes into (``None``: the system language),
     which some applications encode their text parameters with. ``linked_objects`` are
-    the numbers of the group objects the device's tables link, ``object_sizes`` their
-    object sizes as far as the tables give them: settings the device keeps no copy of
+    the numbers of the group objects the device's tables link. ``object_sizes`` holds sizes
+    read from the table, including unlinked objects. A shown object of another size
+    contradicts the device; an unlinked table entry alone does not require it to be shown.
+    Settings the device keeps no copy of
     take the values that show these objects, or that make the memory fit the union
     members they choose (see :func:`_infer_from_memory`), corrected with as many values as
     ``effort`` allows (see :func:`_refine`), until ``cancel`` returns true. Returns the recovered value for every
@@ -177,13 +179,23 @@ def recover_parameters(
     value is unknown (lossy types / absent data), and how far the result still differs from
     the device.
     """
+    if cancel is not None:
+        requested = cancel
+        stopped = False
+
+        def latched_cancel() -> bool:
+            nonlocal stopped
+            stopped = stopped or requested()
+            return stopped
+
+        cancel = latched_cancel
+
     ui = application.dynamic_ui()
     if ui is None:
         return RecoveredParameters(values={}, unknown=[])
     linked = set(linked_objects)
     sizes = dict(object_sizes or {})
-    # Only the inference from linked objects tells settings apart by them.
-    fixed = _fixed_values(application, ui) if linked else {}
+    fixed = _fixed_values(application, ui)
     dead: set[tuple[str, str]] = set()
     try:
         values, unknown, inferred = _infer_all(
@@ -202,12 +214,17 @@ def recover_parameters(
         # Cancelled before anything was inferred: the values as read, measured against the
         # device by a correction step that stops at once.
         values, unknown = _decode(
-            application, parameter_segments, property_values, project_code_page, {}
+            application,
+            parameter_segments,
+            property_values,
+            project_code_page,
+            {},
+            fixed=fixed,
         )
         inferred = {}
         cancel = _stopped
 
-    return _refine(
+    result = _refine(
         application,
         parameter_segments,
         property_values,
@@ -219,6 +236,31 @@ def recover_parameters(
         unknown,
         inferred,
         dead,
+        _EFFORT_SCALE[effort],
+        cancel,
+    )
+    if effort is not RecoveryEffort.FAST and not result.complete:
+        result = _refine_pairs(
+            application,
+            parameter_segments,
+            property_values,
+            project_code_page,
+            linked,
+            sizes,
+            result,
+            _EFFORT_SCALE[effort],
+            cancel,
+            fixed={},
+        )
+    return _refine_fixed(
+        application,
+        parameter_segments,
+        property_values,
+        project_code_page,
+        linked,
+        sizes,
+        result,
+        fixed,
         _EFFORT_SCALE[effort],
         cancel,
     )
@@ -243,7 +285,12 @@ def _infer_all(
     ``cancel`` says so."""
     inferred: _ValueMap = dict(start)
     values, unknown = _decode(
-        application, parameter_segments, property_values, project_code_page, inferred
+        application,
+        parameter_segments,
+        property_values,
+        project_code_page,
+        inferred,
+        fixed={},
     )
     for _ in range(_INFER_ROUNDS):
         _check(cancel)
@@ -283,6 +330,7 @@ def _infer_all(
             property_values,
             project_code_page,
             inferred,
+            fixed={},
         )
     return values, unknown, inferred
 
@@ -459,8 +507,6 @@ def _refine(
     ``_REFINE_ROUNDS`` rounds at most, both ``scale`` times (``None``: until no value fits better).
     The values the inference found to show nothing (``dead``) are not tried again behind them.
     When ``cancel`` returns true the search stops with the result so far."""
-    from xknxeditor.prod.parser_v2.activation import shown_parameters, values_to_try
-
     from .recover import seed_dynamic_ui
 
     ui = seed_dynamic_ui(application, values, project_code_page)
@@ -468,18 +514,7 @@ def _refine(
         return RecoveredParameters(values=values, unknown=unknown)
 
     def misfit(seeded: DynamicUI) -> tuple[_Score, set[_Cell], set[int]] | None:
-        differing = _differing_cells(seeded, parameter_segments)
-        if differing is None:
-            return None
-        objects: set[int] = _shown_objects(seeded, sizes) if linked else set()
-        wrong: set[int] = (linked ^ objects) if linked else set()
-        # A linked object not shown contradicts the device; one shown but not linked does not
-        # (devices show more than they link), it only weighs a fraction of a differing byte: a
-        # result that saves a byte by showing a whole unlinked channel does not fit better.
-        missing = len(wrong & linked)
-        contradiction = _OBJECT_WEIGHT * missing + len(differing)
-        cost = _UNLINKED_PER_BYTE * contradiction + len(wrong) - missing
-        return (cost, contradiction), differing, wrong
+        return _misfit(seeded, parameter_segments, linked, sizes)
 
     def finish(
         fit: tuple[_Score, set[_Cell], set[int]] | None,
@@ -489,13 +524,12 @@ def _refine(
     ) -> RecoveredParameters:
         """The result, with the bytes it still writes otherwise counted only where a parameter
         is stored (a device can keep other data in its segments, which changes at run time),
-        and of the group objects only the linked ones it does not show: a device shows more
-        objects than it links, and which of those exist is the project's to say."""
+        and objects that contradict the links or sizes read from the device."""
         if fit is not None and fit[1]:
             stored = seeded.stored_parameter_cells().keys() | _written_cells(seeded)
             fit = (fit[0], fit[1] & stored, fit[2])
         if fit is not None:
-            fit = (fit[0], fit[1], fit[2] & linked)
+            fit = (fit[0], fit[1], _contradicting_objects(seeded, linked, sizes))
         return _with_misfit(values, unknown, fit, seeded, limited=limited)
 
     current = misfit(ui)
@@ -507,31 +541,11 @@ def _refine(
     limited = False
     for _ in rounds:
         score, differing, wrong = current
-        shown = shown_parameters(ui.ui())
-        weight: Counter[str] = Counter()
-
-        # Where each setting lives, of the module instances there are now too.
-        cells = ui.stored_parameter_cells()
-        for cell in differing:
-            for ref_id in cells.get(cell, ()):
-                _count_selectors(ui, _gates_of(ui, ref_id), shown, weight)
-        objects_of = _objects_by_number(ui) if wrong else {}
-        for number in wrong:
-            for ref_id in objects_of.get(number, ()):
-                _count_selectors(
-                    ui, _gates_of(ui, ref_id, ui.object_gates), shown, weight
-                )
-        trials: list[tuple[str, str]] = []
-        for gate, _count in weight.most_common():
-            parameter = shown.get(gate)
-            if parameter is None or not _is_unstored(ui, gate):
-                continue
-            now = ui.get_value(gate) or parameter.default_value
-            trials += [
-                (gate, value)
-                for value in values_to_try(parameter, now)
-                if (gate, value) not in tried
-            ]
+        trials = [
+            trial
+            for trial in _refinement_trials(ui, differing, wrong)
+            if trial not in tried
+        ]
         # A module instance's settings are independent of another's: a correction is taken in
         # each (and one of the application's own), the values of the others are tried behind it.
         corrected: set[str] = set()
@@ -585,6 +599,286 @@ def _refine(
         # Every correction was taken, and the result still differs.
         limited = True
     return finish(current, ui, limited=limited)
+
+
+def _misfit(
+    seeded: DynamicUI,
+    parameter_segments: Mapping[str, bytes],
+    linked: set[int],
+    sizes: Mapping[int, str],
+) -> tuple[_Score, set[_Cell], set[int]] | None:
+    differing = _differing_cells(seeded, parameter_segments)
+    if differing is None:
+        return None
+    if differing:
+        differing &= seeded.stored_parameter_cells().keys() | _written_cells(seeded)
+    objects: set[int] = _shown_objects(seeded) if linked or sizes else set()
+    matching = _shown_objects(seeded, sizes) if sizes else objects
+    conflicts = objects - matching
+    wrong = (linked ^ objects) | conflicts if linked else conflicts
+    # Missing linked objects and size conflicts contradict the device. Extra unlinked
+    # objects carry a smaller penalty to avoid enabling channels for a few matching bytes.
+    contradicted = len((linked - objects) | conflicts)
+    contradiction = _OBJECT_WEIGHT * contradicted + len(differing)
+    unlinked = len(objects - linked) if linked else 0
+    cost = _UNLINKED_PER_BYTE * contradiction + unlinked
+    return (cost, contradiction), differing, wrong
+
+
+def _refinement_trials(
+    ui: DynamicUI, differing: set[_Cell], wrong: set[int]
+) -> list[tuple[str, str]]:
+    """Candidate selectors, ordered by how many mismatching cells and objects they gate."""
+    from xknxeditor.prod.parser_v2.activation import shown_parameters, values_to_try
+
+    shown = shown_parameters(ui.ui())
+    weight: Counter[str] = Counter()
+    cells = ui.stored_parameter_cells()
+    for cell in sorted(differing):
+        for ref_id in sorted(cells.get(cell, ())):
+            _count_selectors(ui, _gates_of(ui, ref_id), shown, weight)
+    objects_of = _objects_by_number(ui) if wrong else {}
+    for number in sorted(wrong):
+        for ref_id in objects_of.get(number, ()):
+            _count_selectors(ui, _gates_of(ui, ref_id, ui.object_gates), shown, weight)
+    trials: list[tuple[str, str]] = []
+    for gate, _count in weight.most_common():
+        parameter = shown.get(gate)
+        if parameter is not None and _is_unstored(ui, gate):
+            now = ui.get_value(gate) or parameter.default_value
+            trials.extend((gate, value) for value in values_to_try(parameter, now))
+    return trials
+
+
+def _refine_pairs(
+    application: Application,
+    parameter_segments: Mapping[str, bytes],
+    property_values: Mapping[tuple[int | None, int, int], bytes] | None,
+    project_code_page: str | None,
+    linked: set[int],
+    sizes: Mapping[int, str],
+    recovered: RecoveredParameters,
+    scale: int | None,
+    cancel: Callable[[], bool] | None = None,
+    *,
+    fixed: Mapping[str, str] | None = None,
+) -> RecoveredParameters:
+    """Try selectors alone and with a dependent selector after the ordinary search.
+
+    Only unstored, non-calculated selectors are guessed. Stored values are decoded again
+    for each layout. A pair can improve the result even when its first change alone does
+    not. Each round accepts the first improvement; attempts and rounds scale with the
+    effort, and cancellation keeps the last accepted result.
+    """
+    from xknxeditor.prod.parser_v2.activation import shown_parameters, values_to_try
+
+    from .recover import seed_dynamic_ui
+
+    ui = seed_dynamic_ui(application, recovered.values, project_code_page)
+    if ui is None:
+        return recovered
+    current = _misfit(ui, parameter_segments, linked, sizes)
+    if current is None:
+        return recovered
+    values, unknown = recovered.values, recovered.unknown
+    if fixed is None:
+        fixed = _fixed_values(application, ui)
+    inferred = {key: value for key, value in values.items() if _is_unstored(ui, key)}
+    limited = recovered.limited
+    budget = None if scale is None else _PAIR_TRIES * scale
+
+    def finish() -> RecoveredParameters:
+        assert current is not None
+        assert ui is not None
+        stored = ui.stored_parameter_cells().keys() | _written_cells(ui)
+        fit = (
+            current[0],
+            current[1] & stored,
+            _contradicting_objects(ui, linked, sizes),
+        )
+        return _with_misfit(values, unknown, fit, ui, limited=limited)
+
+    rounds = count() if scale is None else range(_PAIR_ROUNDS * scale)
+    try:
+        for _ in rounds:
+            _check(cancel)
+            evaluated = 0
+            improved = False
+            for gate, value in _refinement_trials(
+                ui, current[1], _contradicting_objects(ui, linked, sizes)
+            ):
+                if _calculation_inputs(ui, gate):
+                    continue
+                _check(cancel)
+                if evaluated == budget:
+                    limited = True
+                    return finish()
+                evaluated += 1
+                chosen = {**inferred, gate: value}
+                first_values, first_unknown = _decode(
+                    application,
+                    parameter_segments,
+                    property_values,
+                    project_code_page,
+                    chosen,
+                    fixed=fixed,
+                )
+                first = seed_dynamic_ui(application, first_values, project_code_page)
+                if first is None:
+                    continue
+                fit = _misfit(first, parameter_segments, linked, sizes)
+                if fit is not None and fit[0] < current[0]:
+                    current, ui, values, unknown, inferred = (
+                        fit,
+                        first,
+                        first_values,
+                        first_unknown,
+                        chosen,
+                    )
+                    improved = True
+                    break
+                for child, parameter in shown_parameters(first.ui()).items():
+                    if (
+                        child == gate
+                        or not _is_unstored(first, child)
+                        or gate not in _gates_of(first, child)
+                        or _calculation_inputs(first, child)
+                    ):
+                        continue
+                    now = first.get_value(child) or parameter.default_value
+                    for child_value in values_to_try(parameter, now):
+                        _check(cancel)
+                        if evaluated == budget:
+                            limited = True
+                            return finish()
+                        evaluated += 1
+                        chosen = {**inferred, gate: value, child: child_value}
+                        trial_values, trial_unknown = _decode(
+                            application,
+                            parameter_segments,
+                            property_values,
+                            project_code_page,
+                            chosen,
+                            fixed=fixed,
+                        )
+                        seeded = seed_dynamic_ui(
+                            application, trial_values, project_code_page
+                        )
+                        if seeded is None:
+                            continue
+                        fit = _misfit(seeded, parameter_segments, linked, sizes)
+                        if fit is not None and fit[0] < current[0]:
+                            current, ui, values, unknown, inferred = (
+                                fit,
+                                seeded,
+                                trial_values,
+                                trial_unknown,
+                                chosen,
+                            )
+                            improved = True
+                            break
+                    if improved:
+                        break
+                if improved:
+                    break
+            if not improved or finish().complete:
+                return finish()
+        limited = True
+    except _Cancelled:
+        limited = True
+    return finish()
+
+
+def _refine_fixed(
+    application: Application,
+    parameter_segments: Mapping[str, bytes],
+    property_values: Mapping[tuple[int | None, int, int], bytes] | None,
+    project_code_page: str | None,
+    linked: set[int],
+    sizes: Mapping[int, str],
+    recovered: RecoveredParameters,
+    fixed: _ValueMap,
+    scale: int | None,
+    cancel: Callable[[], bool] | None,
+) -> RecoveredParameters:
+    """Validate a candidate without overwriting the application's immutable references.
+
+    The initial search can decode shared fields into all their references. Only its
+    unstored choices seed this pass: immutable markers keep their branch values, and
+    their conflicting cells direct local corrections before the result is returned.
+    """
+    from .errors import RecoverError
+    from .recover import seed_dynamic_ui
+
+    if not fixed:
+        return recovered
+    ui = seed_dynamic_ui(application, recovered.values, project_code_page)
+    if ui is None:
+        return recovered
+    inferred = {
+        key: value for key, value in recovered.values.items() if _is_unstored(ui, key)
+    }
+    values, unknown = _decode(
+        application,
+        parameter_segments,
+        property_values,
+        project_code_page,
+        inferred,
+        fixed=fixed,
+    )
+    ui = seed_dynamic_ui(application, values, project_code_page)
+    assert ui is not None
+    current = _misfit(ui, parameter_segments, linked, sizes)
+    if current is None:
+        raise RecoverError("Cannot validate recovered parameters with fixed values")
+    limited = recovered.limited
+    budget = None if scale is None else _PAIR_TRIES * scale
+    rounds = count() if scale is None else range(_PAIR_ROUNDS * scale)
+    try:
+        for _ in rounds:
+            _check(cancel)
+            if not current[0][1]:
+                break
+            differing = current[1] & _fixed_cells(ui, fixed)
+            improved = False
+            evaluated = 0
+            for gate, value in _refinement_trials(ui, differing, set()):
+                if _calculation_inputs(ui, gate):
+                    continue
+                _check(cancel)
+                if evaluated == budget:
+                    limited = True
+                    break
+                evaluated += 1
+                chosen = {**inferred, gate: value}
+                trial_values, trial_unknown = _decode(
+                    application,
+                    parameter_segments,
+                    property_values,
+                    project_code_page,
+                    chosen,
+                    fixed=fixed,
+                )
+                seeded = seed_dynamic_ui(application, trial_values, project_code_page)
+                assert seeded is not None
+                fit = _misfit(seeded, parameter_segments, linked, sizes)
+                if fit is not None and fit[0] < current[0]:
+                    values, unknown, inferred, ui, current = (
+                        trial_values,
+                        trial_unknown,
+                        chosen,
+                        seeded,
+                        fit,
+                    )
+                    improved = True
+            if not improved:
+                break
+        else:
+            limited = True
+    except _Cancelled:
+        limited = True
+    current = (current[0], current[1], _contradicting_objects(ui, linked, sizes))
+    return _with_misfit(values, unknown, current, ui, limited=limited)
 
 
 def _scope_of(ref_id: str) -> str:
@@ -650,6 +944,8 @@ def _decode(
     property_values: Mapping[tuple[int | None, int, int], bytes] | None,
     project_code_page: str | None,
     inferred: Mapping[str, str],
+    *,
+    fixed: Mapping[str, str] | None = None,
 ) -> tuple[_ValueMap, list[str]]:
     """Decode the memory and properties against a UI seeded with ``inferred``, returning the
     values (``inferred`` included) and the parameters left unknown."""
@@ -662,6 +958,18 @@ def _decode(
     )
     assert ui is not None
     ui.project_code_page = project_code_page
+    if fixed is None:
+        fixed = _fixed_values(application, ui)
+    if fixed:
+        clean = {
+            key: value
+            for key, value in inferred.items()
+            if ui.local_ref_id(key) not in fixed
+        }
+        if clean != inferred:
+            inferred = clean
+            ui = seed_dynamic_ui(application, inferred, project_code_page)
+            assert ui is not None
     parameter_to_refs = _parameter_to_refs(application)
     values: _ValueMap = {}
     unknown: list[str] = []
@@ -679,7 +987,8 @@ def _decode(
                 unknown.append(parameter_id)
                 continue
             for ref_id in parameter_to_refs.get(parameter_id, []):
-                read[ref_id] = value
+                if ref_id not in fixed:
+                    read[ref_id] = value
         if read == values:
             break
         values = read
@@ -704,6 +1013,8 @@ def _decode(
         for ref_id, value in seeded.decode_module_parameters(
             parameter_segments, property_values or {}
         ).items():
+            if seeded.local_ref_id(ref_id) in fixed:
+                continue
             if value is None:
                 unknown.append(ref_id)
             else:
@@ -745,6 +1056,17 @@ def _shown_objects(ui: DynamicUI, sizes: Mapping[int, str] | None = None) -> set
         elif isinstance(node, UiTab | UiParameterBlock):
             stack.extend(node.children)
     return numbers
+
+
+def _contradicting_objects(
+    ui: DynamicUI, linked: set[int], sizes: Mapping[int, str]
+) -> set[int]:
+    """Missing linked objects and shown objects whose size contradicts the device."""
+    if not linked and not sizes:
+        return set()
+    shown = _shown_objects(ui)
+    matching = _shown_objects(ui, sizes) if sizes else shown
+    return (linked | shown) - matching
 
 
 def _is_unstored(ui: DynamicUI, ref_id: str) -> bool:

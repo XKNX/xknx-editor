@@ -161,7 +161,7 @@ class RecoverService:
         # Add recovered devices to the open project as soon as they are read.
         self.auto_apply = True
         # How many values the search for the settings a device keeps no copy of tries.
-        self.effort = RecoveryEffort.FAST
+        self.effort = RecoveryEffort.MEDIUM
         # A search again in what was read (no bus), run on a worker thread.
         self._search: Future[list[tuple[RecoverEntry, RecoveredDevice]]] | None = None
 

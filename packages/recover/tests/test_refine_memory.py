@@ -133,7 +133,7 @@ def test_a_search_stopped_at_its_limit_says_more_effort_may_help(
     segments = _device(
         application, (_CHANNEL, "1"), (_MODE, "1"), (_DELAY, "5"), (_STEP, "9")
     )
-    fast = recover_parameters(application, segments)
+    fast = recover_parameters(application, segments, effort=RecoveryEffort.FAST)
     assert not fast.complete
     assert fast.differing_bytes == 1
     assert fast.limited
@@ -189,7 +189,9 @@ def test_a_device_is_searched_again_in_what_was_read(
         group_addresses=[],
         links=[],
         group_objects={},
-        parameters=recover_parameters(application, segments),
+        parameters=recover_parameters(
+            application, segments, effort=RecoveryEffort.FAST
+        ),
         parameter_segments=segments,
     )
     assert not device.parameters.complete

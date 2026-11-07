@@ -128,7 +128,7 @@ async def test_settings_and_stop(tmp_path: Path) -> None:
 async def test_the_search_effort(tmp_path: Path) -> None:
     mcp, service = _server(tmp_path)
     async with Client(mcp) as client:
-        assert (await _data(client, "recover_status"))["search_effort"] == "fast"
+        assert (await _data(client, "recover_status"))["search_effort"] == "medium"
         status = await _data(client, "recover_set_search_effort", effort="maximum")
         assert status["search_effort"] == "maximum"
         assert service.effort is RecoveryEffort.MAXIMUM

@@ -33,28 +33,16 @@ def application():  # type: ignore[no-untyped-def]
     return next(iter(registry.applications.values()))
 
 
-def _ref_ids_for(application, parameter_id: str) -> list[str]:  # type: ignore[no-untyped-def]
-    indexer = ApplicationIndexer(application.program)
-    return [
-        rid for rid, ref in indexer.parameter_refs.items() if ref.ref_id == parameter_id
-    ]
-
-
-def test_recover_integer_and_enum_parameters(application) -> None:  # type: ignore[no-untyped-def]
-    number_id = f"{application.id}_P-3"  # number 0..255, default 0
-    enum_id = f"{application.id}_P-1"  # enum {0, 1}, default 1
-    number_ref = _ref_ids_for(application, number_id)[0]
-    enum_ref = _ref_ids_for(application, enum_id)[0]
+def test_recover_editable_integer_parameter(application) -> None:  # type: ignore[no-untyped-def]
+    seconds_ref = f"{application.id}_P-505_R-107"
 
     ui = application.dynamic_ui()
     assert ui is not None
-    ui.set_parameter_ref(number_ref, "42")
-    ui.set_parameter_ref(enum_ref, "0")
+    ui.set_parameter_ref(seconds_ref, "17")
     segments = ui.encode_to_memory()
 
     recovered = recover_parameters(application, segments)
-    assert recovered.values[number_ref] == "42"
-    assert recovered.values[enum_ref] == "0"
+    assert recovered.values[seconds_ref] == "17"
 
 
 def test_recover_module_parameters_yields_instance_qualified_refs(application) -> None:  # type: ignore[no-untyped-def]
@@ -166,6 +154,7 @@ def test_recovery_decodes_again_with_the_values_read(
         return UI(dict(values))
 
     monkeypatch.setattr(recover, "seed_dynamic_ui", seed)
+    monkeypatch.setattr(parameters, "_fixed_values", lambda _app, _ui: {})
     monkeypatch.setattr(
         parameters,
         "_parameter_to_refs",

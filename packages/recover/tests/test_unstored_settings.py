@@ -15,7 +15,7 @@ import pytest
 import xknxeditor.recover.recover as recover_mod
 from xknxeditor.prod.application import Application, parse_application_xml
 from xknxeditor.recover.dossier import DeviceDossier
-from xknxeditor.recover.parameters import recover_parameters
+from xknxeditor.recover.parameters import RecoveryEffort, recover_parameters
 from xknxeditor.recover.read_config import RawGroupCommunication
 from xknxeditor.recover.tables_decode import DecodedGroupObject, DecodedLink
 
@@ -314,6 +314,67 @@ def test_the_object_size_picks_the_datapoint_type(application: Application) -> N
         application, segments, linked_objects={30}, object_sizes={30: "1 Byte"}
     )
     assert sized.values[_STATUS] == "1"
+
+
+def test_an_unlinked_object_size_picks_the_datapoint_type(
+    application: Application,
+) -> None:
+    segments = _device(application, **{_STATUS: "1"})
+    recovered, _ = recover_mod._decode_configuration(
+        application,
+        [],
+        {
+            30: DecodedGroupObject(
+                number=30,
+                priority="Low",
+                communication=False,
+                read=False,
+                write=True,
+                transmit=True,
+                update=False,
+                read_on_init=False,
+                size_code=7,
+                object_size="1 Byte",
+            )
+        },
+        segments,
+        {},
+        None,
+        RecoveryEffort.MEDIUM,
+    )
+    assert recovered.complete
+    assert recovered.values[_STATUS] == "1"
+    assert recovered.values.get(_CHANNEL_A, "0") == "0"
+
+
+def test_an_unlinked_object_size_conflict_is_reported_after_cancellation(
+    application: Application,
+) -> None:
+    segments = _device(application, **{_STATUS: "1"})
+    recovered = recover_parameters(
+        application, segments, object_sizes={30: "1 Byte"}, cancel=lambda: True
+    )
+    assert recovered.differing_bytes == 0
+    assert recovered.differing_objects == 1
+    assert not recovered.complete
+    assert recovered.limited
+
+
+def test_an_unlinked_table_entry_does_not_require_a_hidden_channel(
+    application: Application,
+) -> None:
+    segments = _device(application)
+    recovered = recover_parameters(application, segments, object_sizes={10: "1 Bit"})
+    assert recovered.complete
+    assert recovered.values.get(_MODE, "0") == "0"
+
+
+def test_a_matching_unlinked_object_does_not_conflict(application: Application) -> None:
+    recovered = recover_parameters(
+        application, _device(application), object_sizes={30: "1 Bit"}
+    )
+    assert recovered.complete
+    assert recovered.values.get(_STATUS, "0") == "0"
 
 
 def test_the_memory_tells_an_inactive_channel(application: Application) -> None:

@@ -12,13 +12,17 @@ from __future__ import annotations
 
 import pytest
 
+import xknxeditor.recover.parameters as parameters
 from xknxeditor.prod.application import Application, parse_application_xml
+from xknxeditor.recover.errors import RecoverError
 from xknxeditor.recover.parameters import (
+    _decode,
     _gates_of,
     _objects_by_number,
     _scope_of,
     recover_parameters,
 )
+from xknxeditor.recover.recover import seed_dynamic_ui
 
 _APP = "M-00FA_A-0005-01-0000"
 _STATUS = f"{_APP}_P-1_R-1"
@@ -240,6 +244,227 @@ def test_the_stored_type_picks_the_status_value(
         application, segments, linked_objects={40}, object_sizes={40: "2 Bytes"}
     )
     assert recovered.values[_STATUS] == datapoint_type
+
+
+@pytest.mark.parametrize("linked", [False, True])
+def test_a_fixed_marker_corrects_an_already_active_wrong_branch(linked: bool) -> None:
+    xml = _XML.replace('Text="Status value" Value="0"', 'Text="Status value" Value="4"')
+    application = parse_application_xml(xml.encode(), "M-00FA")[0]
+    segments = _device(application, (_STATUS, "6"))
+    recovered = recover_parameters(
+        application, segments, linked_objects={40} if linked else ()
+    )
+    assert recovered.complete
+    assert recovered.values[_STATUS] == "6"
+    ui = seed_dynamic_ui(application, recovered.values)
+    assert ui is not None
+    assert ui.get_value(f"{_APP}_P-2_R-21") == "7"
+    assert ui.get_value(f"{_APP}_P-2_R-22") == "9"
+
+
+def test_a_wrong_fixed_marker_is_not_made_to_match_by_decoding(
+    application: Application,
+) -> None:
+    segments = _device(application, (_STATUS, "6"))
+    values, _ = _decode(application, segments, {}, None, {_STATUS: "4"})
+    ui = seed_dynamic_ui(application, values)
+    assert ui is not None
+    assert ui.encode_to_memory()[f"{_APP}_AS-0000"][0] == 7
+
+
+def test_a_module_fixed_marker_keeps_its_branch_value(application: Application) -> None:
+    segments = _device(application, (_FUNCTION, "1"), (f"{_PAIR}P-1_R-1", "8"))
+    values, _ = _decode(
+        application, segments, {}, None, {_FUNCTION: "1", f"{_PAIR}P-1_R-1": "6"}
+    )
+    ui = seed_dynamic_ui(application, values)
+    assert ui is not None
+    assert ui.encode_to_memory()[f"{_APP}_AS-0000"][2] == 19
+    assert ui.get_value(f"{_PAIR}UP-2_R-2") == "19"
+    assert ui.get_value(f"{_PAIR}UP-2_R-3") == "18"
+
+
+@pytest.mark.parametrize("property_backed", [False, True])
+def test_fixed_references_are_not_seeded_from_observed_or_inferred_values(
+    property_backed: bool,
+) -> None:
+    xml = _XML
+    if property_backed:
+        xml = xml.replace(
+            f'<Memory CodeSegment="{_APP}_AS-0000" Offset="0" BitOffset="0" />',
+            '<Property ObjectIndex="4" PropertyId="80" Offset="0" BitOffset="0" />',
+        )
+    application = parse_application_xml(xml.encode(), "M-00FA")[0]
+    marker = f"{_APP}_P-2_R-21"
+    values, _ = _decode(
+        application,
+        {f"{_APP}_AS-0000": b"\x09\x00\x00\x00"},
+        {(4, 80, 0): b"\x09"} if property_backed else {},
+        None,
+        {_STATUS: "4", marker: "9"},
+    )
+    assert marker not in values
+    ui = seed_dynamic_ui(application, values)
+    assert ui is not None
+    assert ui.get_value(marker) == "7"
+
+
+@pytest.mark.parametrize("property_backed", [False, True])
+def test_an_editable_reference_to_a_hidden_parameter_is_decoded(
+    property_backed: bool,
+) -> None:
+    xml = _XML.replace('Value="7" />', 'Value="7" Access="ReadWrite" />')
+    if property_backed:
+        xml = xml.replace(
+            f'<Memory CodeSegment="{_APP}_AS-0000" Offset="0" BitOffset="0" />',
+            '<Property ObjectIndex="4" PropertyId="80" Offset="0" BitOffset="0" />',
+        )
+    application = parse_application_xml(xml.encode(), "M-00FA")[0]
+    values, _ = _decode(
+        application,
+        {f"{_APP}_AS-0000": b"\x2a\x00\x00\x00"},
+        {(4, 80, 0): b"\x2a"} if property_backed else {},
+        None,
+        {_STATUS: "4"},
+    )
+    assert values[f"{_APP}_P-2_R-21"] == "42"
+    ui = seed_dynamic_ui(application, values)
+    assert ui is not None
+    assert ui.get_value(f"{_APP}_P-2_R-22") == "9"
+
+
+def test_custom_value_is_recovered_instead_of_overwriting_a_fixed_preset() -> None:
+    xml = _XML.replace('Value="7" />', 'Value="7" Access="ReadWrite" />').replace(
+        'Text="Status value" Value="0"', 'Text="Status value" Value="6"'
+    )
+    application = parse_application_xml(xml.encode(), "M-00FA")[0]
+    custom = f"{_APP}_P-2_R-21"
+    preset = f"{_APP}_P-2_R-22"
+    segments = _device(application, (_STATUS, "4"), (custom, "42"))
+    recovered = recover_parameters(application, segments, linked_objects={40})
+    ui = seed_dynamic_ui(application, recovered.values)
+    assert ui is not None
+    assert recovered.complete
+    assert ui.get_value(_STATUS) == "4"
+    assert ui.get_value(custom) == "42"
+    assert ui.get_value(preset) == "9"
+
+
+def test_a_hidden_assignment_target_is_decoded() -> None:
+    marker = f"{_APP}_P-2_R-21"
+    xml = _XML.replace(
+        '<when test="4">',
+        f'<when test="4"><Assign TargetParamRefRef="{marker}" Value="11" />',
+    )
+    application = parse_application_xml(xml.encode(), "M-00FA")[0]
+    segments = _device(application, (_STATUS, "4"))
+    assert segments[f"{_APP}_AS-0000"][0] == 11
+    values, _ = _decode(application, segments, {}, None, {_STATUS: "4"})
+    assert values[marker] == "11"
+
+
+def test_a_hidden_calculated_value_recovers_its_editable_input() -> None:
+    marker = f"{_APP}_P-2_R-21"
+    calculation = f"""<ParameterCalculations>
+<ParameterCalculation Id="{_APP}_PC-1" Name="Status" Language="JavaScript">
+<LRTransformation>stored = choice * 2;</LRTransformation>
+<RLTransformation>choice = stored / 2;</RLTransformation>
+<LParameters><ParameterRefRef RefId="{_STATUS}" AliasName="choice" /></LParameters>
+<RParameters><ParameterRefRef RefId="{marker}" AliasName="stored" /></RParameters>
+</ParameterCalculation></ParameterCalculations>"""
+    xml = _XML.replace("</Static>", calculation + "</Static>", 1).replace(
+        'Text="Status value" Value="0"', 'Text="Status value" Value="4"'
+    )
+    application = parse_application_xml(xml.encode(), "M-00FA")[0]
+    values, _ = _decode(
+        application, {f"{_APP}_AS-0000": b"\x0c\x00\x00\x00"}, {}, None, {}
+    )
+    assert values[marker] == "12"
+    assert values[_STATUS] == "6"
+
+
+@pytest.mark.parametrize("stop", ["cancel", "budget"])
+def test_interrupted_fixed_validation_keeps_the_marker_conflict(
+    application: Application, monkeypatch: pytest.MonkeyPatch, stop: str
+) -> None:
+    marker = f"{_APP}_P-2_R-21"
+    candidate = parameters.RecoveredParameters({_STATUS: "4", marker: "9"}, [])
+    ui = application.dynamic_ui()
+    assert ui is not None
+    if stop == "budget":
+        monkeypatch.setattr(parameters, "_PAIR_TRIES", 0)
+    result = parameters._refine_fixed(
+        application,
+        _device(application, (_STATUS, "6")),
+        {},
+        None,
+        {40},
+        {},
+        candidate,
+        parameters._fixed_values(application, ui),
+        1,
+        (lambda: True) if stop == "cancel" else None,
+    )
+    assert marker not in result.values
+    assert result.values[_STATUS] == "4"
+    assert result.differing_bytes == 1
+    assert not result.complete
+    assert result.limited
+
+
+def test_fixed_validation_can_correct_several_independent_markers(
+    application: Application,
+) -> None:
+    candidate = parameters.RecoveredParameters(
+        {
+            _STATUS: "4",
+            f"{_APP}_P-2_R-21": "9",
+            _FUNCTION: "1",
+            f"{_PAIR}P-1_R-1": "6",
+            f"{_PAIR}UP-2_R-2": "18",
+        },
+        [],
+    )
+    ui = application.dynamic_ui()
+    assert ui is not None
+    result = parameters._refine_fixed(
+        application,
+        _device(
+            application, (_STATUS, "6"), (_FUNCTION, "1"), (f"{_PAIR}P-1_R-1", "8")
+        ),
+        {},
+        None,
+        {40, 51},
+        {},
+        candidate,
+        parameters._fixed_values(application, ui),
+        1,
+        None,
+    )
+    assert result.complete
+    assert result.values[_STATUS] == "6"
+    assert result.values[f"{_PAIR}P-1_R-1"] == "8"
+
+
+def test_failed_fixed_validation_cannot_report_a_complete_candidate(
+    application: Application, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    ui = application.dynamic_ui()
+    assert ui is not None
+    monkeypatch.setattr(parameters, "_misfit", lambda *_args: None)
+    with pytest.raises(RecoverError, match="Cannot validate recovered parameters"):
+        parameters._refine_fixed(
+            application,
+            _device(application, (_STATUS, "6")),
+            {},
+            None,
+            {40},
+            {},
+            parameters.RecoveredParameters({_STATUS: "4"}, []),
+            parameters._fixed_values(application, ui),
+            1,
+            None,
+        )
 
 
 @pytest.mark.parametrize("kind", ["6", "8"])

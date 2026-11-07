@@ -17,7 +17,7 @@ import re
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from xknx.exceptions import XKNXException
+from xknx.exceptions import ManagementConnectionError, XKNXException
 from xknx.profile.const import ResourceObjectType
 
 from xknxeditor.download.errors import LoadStateError, VerificationError
@@ -170,6 +170,8 @@ async def read_property_values(
                 cache[key] = await programmer.read_property(
                     write.object_index, write.property_id
                 )
+            except ManagementConnectionError:
+                raise
             except (LoadStateError, VerificationError, XKNXException):
                 cache[key] = b""
         if cache[key]:
@@ -215,6 +217,8 @@ async def read_parameter_memory(
                 continue
             try:
                 result[segment_id] = await programmer.read_memory(base, size)
+            except ManagementConnectionError:
+                raise
             except (LoadStateError, VerificationError, XKNXException):
                 continue
         return result
@@ -235,6 +239,8 @@ async def read_parameter_memory(
             result[segment_id] = await programmer.read_memory(
                 base + offsets.get(segment_id, 0), size
             )
+        except ManagementConnectionError:
+            raise
         except (LoadStateError, VerificationError, XKNXException):
             # Segment not allocated / no table reference / unreadable: skip it.
             continue
@@ -324,6 +330,8 @@ async def _association_table_address(
             if address is None:
                 return None
             data = await programmer.read_memory(address, resources.length(pointer) or 1)
+    except ManagementConnectionError:
+        raise
     except (LoadStateError, VerificationError, XKNXException):
         return None
     value = int.from_bytes(data[:2], "big")
@@ -388,6 +396,8 @@ async def _read_memory_mapped(
             )
             try:
                 co_bytes = await programmer.read_memory(co_address, table_length)
+            except ManagementConnectionError:
+                raise
             except (LoadStateError, VerificationError, XKNXException):
                 co_bytes = b""
             if co_bytes:
