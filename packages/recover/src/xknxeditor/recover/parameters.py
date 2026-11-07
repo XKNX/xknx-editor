@@ -84,8 +84,10 @@ class RecoveredParameters:
         return [key for key in self.unknown if key not in not_found]
 
 
-# Decoding rounds at most: each one can only change which alternatives own memory.
-_DECODE_ROUNDS = 8
+# Decoding rounds at most, a safeguard only: each one can change which alternatives own memory
+# and show the settings behind what it read (a chain of selectors 16 deep in a Siemens push
+# button); the decoding ends when nothing changes, or when it comes back to what it read before.
+_DECODE_ROUNDS = 256
 # Inference rounds at most: each one can only show settings nested one level deeper (a
 # channel first, then the settings inside it), or take one setting from the memory.
 _INFER_ROUNDS = 16
@@ -1040,6 +1042,7 @@ def _decode(
     parameter_to_refs = _parameter_to_refs(application)
     values: _ValueMap = {}
     unknown: list[str] = []
+    seen: set[frozenset[tuple[str, str]]] = set()
     # Which parameters own a memory field depends on the values (the active alternative of
     # a union): decode again with a UI seeded with what was read until nothing changes.
     for _ in range(_DECODE_ROUNDS):
@@ -1049,15 +1052,24 @@ def _decode(
             decoded.update(ui.decode_property_parameters(property_values))
         read: _ValueMap = {}
         unknown = []
+        # The value the memory holds is not that of a ref a hidden ref with a fixed value of
+        # the same parameter is written after (see _shadowed).
         for parameter_id, value in decoded.items():
             if value is None:
                 unknown.append(parameter_id)
                 continue
             for ref_id in parameter_to_refs.get(parameter_id, []):
-                if ref_id not in fixed:
+                if ref_id not in fixed and not _shadowed(ui, ref_id):
                     read[ref_id] = value
         if read == values:
             break
+        state = frozenset(read.items())
+        if state in seen:
+            # Values that keep alternating (two alternatives each showing the other): the
+            # last read, as with a round limit.
+            values = read
+            break
+        seen.add(state)
         values = read
         # With what the calculations make of them too: a parameter shown behind a calculated
         # switch is decoded once the switch has its value.
@@ -1138,11 +1150,51 @@ def _contradicting_objects(
 
 def _is_unstored(ui: DynamicUI, ref_id: str) -> bool:
     """Whether the device keeps no copy of a parameter: no memory, no property, not in a
-    union. One that a calculation computes from the values read is in the values already."""
+    union; or of this ref of it, when another active ref sets its memory (see
+    :func:`_shadowed`). One that a calculation computes from the values read is in the values
+    already."""
     indexer = ui.indexer
     ref = indexer.parameter_refs.get(ui.local_ref_id(ref_id))
     parameter = indexer.parameters.get(ref.ref_id) if ref is not None else None
-    return _keeps_no_copy(parameter)
+    return _keeps_no_copy(parameter) or _shadowed(ui, ref_id)
+
+
+# The active refs of each parameter written after another active ref of it, per UI (the last
+# few: a search asks again and again for the same UI).
+_SHADOWED: list[tuple[DynamicUI, frozenset[str]]] = []
+
+
+def _shadowed(ui: DynamicUI, ref_id: str) -> bool:
+    """Whether an active ParameterRef of the application comes before an active hidden one with a
+    fixed value (see :func:`_fixed_values`) of the same parameter in the order a download writes
+    them (``parameter_ref_order``): that one sets the memory, so the device keeps no copy of this
+    one's value, which can still decide what is shown."""
+    for seen, shadowed in _SHADOWED:
+        if seen is ui:
+            return ref_id in shadowed
+    from xknxeditor.prod.parser_v2.encode import parameter_ref_order
+
+    indexer = ui.indexer
+    by_parameter: dict[str, list[tuple[tuple[int, int], str]]] = {}
+    for active in ui.active_parameter_ref_ids():
+        ref = indexer.parameter_refs.get(active)
+        if ref is not None and ref.ref_id:
+            by_parameter.setdefault(ref.ref_id, []).append(
+                (parameter_ref_order(active, ref.tag), active)
+            )
+    program = getattr(ui, "_app", None)
+    hidden: frozenset[str] = (
+        _hidden_fixed(program, ui) if program is not None else frozenset()
+    )
+    found: set[str] = set()
+    for refs in by_parameter.values():
+        ordered = [active for _order, active in sorted(refs)]
+        for n, active in enumerate(ordered):
+            if any(later in hidden for later in ordered[n + 1 :]):
+                found.add(active)
+    _SHADOWED.insert(0, (ui, frozenset(found)))
+    del _SHADOWED[8:]
+    return ref_id in found
 
 
 def _keeps_no_copy(parameter: object) -> bool:
@@ -1170,13 +1222,18 @@ def _fixed_values(application: Application, ui: DynamicUI) -> _ValueMap:
     which tells the device what a setting it keeps no copy of chose (e.g. the datapoint type
     of a status value, the kind of a button function). References an assign or a calculation
     writes are left out, their value is not the fixed one."""
+    return _program_fixed_values(application.program, ui)
+
+
+def _program_fixed_values(program: object, ui: DynamicUI) -> _ValueMap:
+    """:func:`_fixed_values` of the application program ``program``."""
     from xknxeditor.namespaces.intermediate import Assign
     from xknxeditor.namespaces.intermediate.access_t import Access
 
     indexer = ui.indexer
     assigned: set[str] = set()
     stack: list[object] = [
-        application.program.dynamic,
+        getattr(program, "dynamic", None),
         *(definition.dynamic for definition in indexer.module_defs.values()),
     ]
     while stack:
@@ -1202,6 +1259,22 @@ def _fixed_values(application: Application, ui: DynamicUI) -> _ValueMap:
         if value is not None:
             fixed[ref_id] = value
     return fixed
+
+
+# The hidden settings with a fixed value of the last programs decoded (see _hidden_fixed).
+_HIDDEN: list[tuple[object, frozenset[str]]] = []
+
+
+def _hidden_fixed(program: object, ui: DynamicUI) -> frozenset[str]:
+    """The refs of the application program's hidden settings with a fixed value (see
+    :func:`_fixed_values`): the product's data gives them, not the memory."""
+    for seen, hidden in _HIDDEN:
+        if seen is program:
+            return hidden
+    hidden = frozenset(_program_fixed_values(program, ui))
+    _HIDDEN.insert(0, (program, hidden))
+    del _HIDDEN[4:]
+    return hidden
 
 
 def _fixed_cells(ui: DynamicUI, fixed: _ValueMap) -> set[_Cell]:

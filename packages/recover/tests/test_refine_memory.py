@@ -5,6 +5,8 @@ channels)."""
 
 from __future__ import annotations
 
+import base64
+
 import pytest
 
 import xknxeditor.recover.parameters as parameters
@@ -381,3 +383,130 @@ def test_a_channel_that_fits_only_with_its_own_selectors_is_found() -> None:
     assert recovered.complete
     for ref_id, value in on:
         assert recovered.values.get(ref_id) == value
+
+
+def _chain_application(depth: int) -> Application:
+    """``depth`` settings in a chain, each in a byte of its own, each shown when the one before
+    it is on."""
+    app = "M-00FA_A-0009-01-0000"
+    parameters = "".join(
+        f'<Parameter Id="{app}_P-{n}" Name="P{n}" ParameterType="{app}_PT-OnOff" Text="P{n}"'
+        f' Value="0"><Memory CodeSegment="{app}_AS-0000" Offset="{n - 1}" BitOffset="0" />'
+        "</Parameter>"
+        for n in range(1, depth + 1)
+    )
+    refs = "".join(
+        f'<ParameterRef Id="{app}_P-{n}_R-{n}" RefId="{app}_P-{n}" />'
+        for n in range(1, depth + 1)
+    )
+    dynamic = ""
+    for n in range(depth, 0, -1):
+        inner = (
+            f'<choose ParamRefId="{app}_P-{n}_R-{n}"><when test="1">{dynamic}</when></choose>'
+            if dynamic
+            else ""
+        )
+        dynamic = f'<ParameterRefRef RefId="{app}_P-{n}_R-{n}" />{inner}'
+    xml = f"""<?xml version="1.0" encoding="utf-8"?>
+<KNX xmlns="http://knx.org/xml/project/20" CreatedBy="test" ToolVersion="1">
+  <ManufacturerData><Manufacturer RefId="M-00FA"><ApplicationPrograms>
+    <ApplicationProgram Id="{app}" ApplicationNumber="9" ApplicationVersion="1"
+        ProgramType="ApplicationProgram" MaskVersion="MV-07B0" Name="Chain"
+        LoadProcedureStyle="MergedProcedure" PeiType="0" DefaultLanguage="en-US"
+        DynamicTableManagement="false" Linkable="false" MinEtsVersion="5.0">
+      <Static>
+        <Code><AbsoluteSegment Id="{app}_AS-0000" Address="0" Size="{depth}"><Data>{base64.b64encode(bytes(depth)).decode()}</Data></AbsoluteSegment></Code>
+        <ParameterTypes>
+          <ParameterType Id="{app}_PT-OnOff" Name="OnOff"><TypeRestriction Base="Value" SizeInBit="8">
+            <Enumeration Text="off" Value="0" Id="{app}_PT-OnOff_EN-0" />
+            <Enumeration Text="on" Value="1" Id="{app}_PT-OnOff_EN-1" />
+          </TypeRestriction></ParameterType>
+        </ParameterTypes>
+        <Parameters>{parameters}</Parameters>
+        <ParameterRefs>{refs}</ParameterRefs>
+      </Static>
+      <Dynamic><ChannelIndependentBlock><ParameterBlock Id="{app}_PB-1" Text="General">{dynamic}</ParameterBlock></ChannelIndependentBlock></Dynamic>
+    </ApplicationProgram>
+  </ApplicationPrograms></Manufacturer></ManufacturerData>
+</KNX>
+"""
+    return parse_application_xml(xml.encode(), "M-00FA")[0]
+
+
+def test_a_long_chain_of_stored_selectors_is_read_to_its_end() -> None:
+    # Each decoding round shows one more setting of the chain: the decoding goes on until
+    # nothing changes, not a fixed number of rounds.
+    depth = 12
+    application = _chain_application(depth)
+    on = [(f"{application.id}_P-{n}_R-{n}", "1") for n in range(1, depth + 1)]
+    recovered = recover_parameters(application, _device(application, *on))
+    assert recovered.complete
+    for ref_id, value in on:
+        assert recovered.values.get(ref_id) == value
+
+
+def _hidden_ref_application() -> Application:
+    """``P`` (byte 0) with the shown ref ``R-1`` (tag 1) and the hidden ``R-2`` (tag 2, fixed
+    value 1), which the download writes last; ``R-1`` off shows ``X`` (byte 1), on ``Y`` (byte 2)."""
+    app = "M-00FA_A-000A-01-0000"
+
+    def stored(n: int, offset: int) -> str:
+        return (
+            f'<Parameter Id="{app}_P-{n}" Name="P{n}" ParameterType="{app}_PT-N" Text="P{n}"'
+            f' Value="0"><Memory CodeSegment="{app}_AS-0000" Offset="{offset}" BitOffset="0" />'
+            "</Parameter>"
+        )
+
+    xml = f"""<?xml version="1.0" encoding="utf-8"?>
+<KNX xmlns="http://knx.org/xml/project/20" CreatedBy="test" ToolVersion="1">
+  <ManufacturerData><Manufacturer RefId="M-00FA"><ApplicationPrograms>
+    <ApplicationProgram Id="{app}" ApplicationNumber="10" ApplicationVersion="1"
+        ProgramType="ApplicationProgram" MaskVersion="MV-07B0" Name="Hidden ref"
+        LoadProcedureStyle="MergedProcedure" PeiType="0" DefaultLanguage="en-US"
+        DynamicTableManagement="false" Linkable="false" MinEtsVersion="5.0">
+      <Static>
+        <Code><AbsoluteSegment Id="{app}_AS-0000" Address="0" Size="3"><Data>AAAA</Data></AbsoluteSegment></Code>
+        <ParameterTypes>
+          <ParameterType Id="{app}_PT-OnOff" Name="OnOff"><TypeRestriction Base="Value" SizeInBit="8">
+            <Enumeration Text="off" Value="0" Id="{app}_PT-OnOff_EN-0" />
+            <Enumeration Text="on" Value="1" Id="{app}_PT-OnOff_EN-1" />
+          </TypeRestriction></ParameterType>
+          <ParameterType Id="{app}_PT-N" Name="N"><TypeNumber SizeInBit="8" Type="unsignedInt" minInclusive="0" maxInclusive="255" /></ParameterType>
+        </ParameterTypes>
+        <Parameters>
+          <Parameter Id="{app}_P-1" Name="P" ParameterType="{app}_PT-OnOff" Text="P" Value="0"><Memory CodeSegment="{app}_AS-0000" Offset="0" BitOffset="0" /></Parameter>
+          {stored(2, 1)}{stored(3, 2)}
+        </Parameters>
+        <ParameterRefs>
+          <ParameterRef Id="{app}_P-1_R-1" RefId="{app}_P-1" Tag="1" />
+          <ParameterRef Id="{app}_P-1_R-2" RefId="{app}_P-1" Tag="2" Access="None" Value="1" />
+          <ParameterRef Id="{app}_P-2_R-3" RefId="{app}_P-2" />
+          <ParameterRef Id="{app}_P-3_R-4" RefId="{app}_P-3" />
+        </ParameterRefs>
+      </Static>
+      <Dynamic><ChannelIndependentBlock><ParameterBlock Id="{app}_PB-1" Text="General">
+        <ParameterRefRef RefId="{app}_P-1_R-1" />
+        <ParameterRefRef RefId="{app}_P-1_R-2" />
+        <choose ParamRefId="{app}_P-1_R-1">
+          <when test="0"><ParameterRefRef RefId="{app}_P-2_R-3" /></when>
+          <when test="1"><ParameterRefRef RefId="{app}_P-3_R-4" /></when>
+        </choose>
+      </ParameterBlock></ChannelIndependentBlock></Dynamic>
+    </ApplicationProgram>
+  </ApplicationPrograms></Manufacturer></ManufacturerData>
+</KNX>
+"""
+    return parse_application_xml(xml.encode(), "M-00FA")[0]
+
+
+def test_a_ref_whose_memory_a_later_ref_sets_is_inferred() -> None:
+    # The hidden ref writes 1 into P's byte whatever the shown ref says; the shown ref is off,
+    # which shows X. Taking the byte's 1 for the shown ref showed Y instead.
+    application = _hidden_ref_application()
+    shown, x = f"{application.id}_P-1_R-1", f"{application.id}_P-2_R-3"
+    segments = _device(application, (shown, "0"), (x, "5"))
+    assert next(iter(segments.values()))[:2] == b"\x01\x05"
+    recovered = recover_parameters(application, segments)
+    assert recovered.complete
+    assert recovered.values.get(shown, "0") == "0"
+    assert recovered.values.get(x) == "5"

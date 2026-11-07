@@ -124,9 +124,17 @@ def test_recovery_decodes_again_with_the_values_read(
 
     class UI:
         project_code_page: str | None = None
+        # One ref per parameter, none hidden: none comes after another.
+        indexer = SimpleNamespace(parameter_refs={}, parameters={}, module_defs={})
 
         def __init__(self, seeded: dict[str, str]) -> None:
             self.seeded = seeded
+
+        def active_parameter_ref_ids(self) -> frozenset[str]:
+            # The selector, and the alternative it shows.
+            if self.seeded.get("R-selector") == "1":
+                return frozenset({"R-selector", "R-alternative"})
+            return frozenset({"R-selector", "R-default"})
 
         def decode_memory_parameters(self, _segments: object) -> dict[str, str | None]:
             if self.seeded.get("R-selector") == "1":
@@ -164,7 +172,12 @@ def test_recovery_decodes_again_with_the_values_read(
             "P-default": ["R-default"],
         },
     )
-    application = cast(Any, SimpleNamespace(dynamic_ui=lambda: UI({})))
+    application = cast(
+        Any,
+        SimpleNamespace(
+            dynamic_ui=lambda: UI({}), program=SimpleNamespace(dynamic=None)
+        ),
+    )
     recovered = recover_parameters(application, {})
     assert recovered.values == {"R-selector": "1", "R-alternative": "7"}
     # Defaults first, then the values read, until they no longer change (the calculations seed
