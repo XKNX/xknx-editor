@@ -1821,6 +1821,23 @@ class MenuStrings:
         return _("Opening project…")
 
     @property
+    def PROGRESS_PROJECT_PRODUCTS(self) -> str:
+        return _("Importing the project's product data…")
+
+    @property
+    def PROGRESS_PROJECT_PRODUCTS_COUNT(self) -> str:
+        return _(
+            "Importing the project's product data: {done} of {total} application programs"
+        )
+
+    @property
+    def PROGRESS_PROJECT_PRODUCTS_NOTE(self) -> str:
+        return _(
+            "This is done once on this computer, for the products its catalog does not have yet. "
+            "For a large project it can take a few minutes."
+        )
+
+    @property
     def PROGRESS_IMPORT_GA_EXPORT(self) -> str:
         return _("Importing group addresses…")
 

@@ -1683,3 +1683,12 @@ msgstr "Export Method"
 
 msgid "Automatic"
 msgstr "Automatic"
+
+msgid "Importing the project's product data…"
+msgstr "Flytur inn vörugögn verkefnisins…"
+
+msgid "Importing the project's product data: {done} of {total} application programs"
+msgstr "Flytur inn vörugögn verkefnisins: {done} af {total} forritum"
+
+msgid "This is done once on this computer, for the products its catalog does not have yet. For a large project it can take a few minutes."
+msgstr "Þetta er aðeins gert einu sinni á þessari tölvu, fyrir vörurnar sem vörulisti hennar hefur ekki enn. Í stóru verkefni getur það tekið nokkrar mínútur."

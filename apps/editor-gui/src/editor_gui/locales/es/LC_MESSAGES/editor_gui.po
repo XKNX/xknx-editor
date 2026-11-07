@@ -1611,3 +1611,12 @@ msgstr "Export Method"
 
 msgid "Automatic"
 msgstr "Automatic"
+
+msgid "Importing the project's product data…"
+msgstr "Importando los datos de producto del proyecto…"
+
+msgid "Importing the project's product data: {done} of {total} application programs"
+msgstr "Importando los datos de producto del proyecto: {done} de {total} programas de aplicación"
+
+msgid "This is done once on this computer, for the products its catalog does not have yet. For a large project it can take a few minutes."
+msgstr "Se hace solo una vez en este ordenador, para los productos que su catálogo aún no tiene. En un proyecto grande puede tardar unos minutos."

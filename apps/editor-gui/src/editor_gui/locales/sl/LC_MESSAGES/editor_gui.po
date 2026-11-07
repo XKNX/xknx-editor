@@ -1683,3 +1683,12 @@ msgstr "Export Method"
 
 msgid "Automatic"
 msgstr "Automatic"
+
+msgid "Importing the project's product data…"
+msgstr "Uvažanje podatkov o izdelkih projekta…"
+
+msgid "Importing the project's product data: {done} of {total} application programs"
+msgstr "Uvažanje podatkov o izdelkih projekta: {done} od {total} aplikacijskih programov"
+
+msgid "This is done once on this computer, for the products its catalog does not have yet. For a large project it can take a few minutes."
+msgstr "To se zgodi samo enkrat na tem računalniku, za izdelke, ki jih njegov katalog še nima. Pri velikem projektu lahko traja nekaj minut."

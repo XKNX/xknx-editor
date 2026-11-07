@@ -26,7 +26,15 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 from xknxproject.exceptions import InvalidPasswordException, XknxProjectException
 
-from editor_gui import __version__, feedback, file_dialogs, host, self_update, web
+from editor_gui import (
+    __version__,
+    build_info,
+    feedback,
+    file_dialogs,
+    host,
+    self_update,
+    web,
+)
 from editor_gui import signing_key as signing_key_store
 from editor_gui import trace_key as trace_key_store
 from editor_gui.cache import (
@@ -198,6 +206,7 @@ from xknxeditor.proj.core import import_notes, project_store
 from xknxeditor.proj.core.addressing import GroupAddressStyle
 from xknxeditor.proj.core.ga_export import CSV_LAYOUTS, CSV_SEPARATORS
 from xknxeditor.proj.core.import_notes import ImportLoss
+from xknxeditor.proj.core.product_data import stored_members
 from xknxeditor.proj.core.product_prune import (
     STEP_DEVICES,
     STEP_MANUFACTURER,
@@ -677,6 +686,8 @@ class KnxGuiApp:
         # sub-step label. Assigned from worker threads (float/str assignment is atomic under the GIL).
         self._progress_fraction: float | None = None
         self._progress_stage = ""
+        # Optional explanation of the current step, wrapped under the title.
+        self._progress_note = ""
         # Optional cancel action for the running background task (a Cancel button in the modal).
         self._progress_cancel: Callable[[], None] | None = None
         # Compact Project: the analysis shown for confirmation, the result shown at the end, and the
@@ -1837,7 +1848,9 @@ class KnxGuiApp:
                     # Imported manufacturer data (ETS-reissued ids) wins; catalog members fill gaps
                     # for devices added from the catalog rather than imported.
                     members = unzip_members(project.imported_product_members)
-                    for name, data in catalog_members.items():
+                    # The product data the project stores for added devices before the catalog's.
+                    added = stored_members(session)
+                    for name, data in [*added.items(), *catalog_members.items()]:
                         members.setdefault(name, data)
                     if create_copy:
                         # A separate copy: free id, name tagged so it is distinguishable in ETS.
@@ -2467,6 +2480,7 @@ class KnxGuiApp:
         self._progress_started_at = time.time()
         self._progress_fraction = None
         self._progress_stage = ""
+        self._progress_note = ""
         self._progress_cancel = None
 
     def _prepare_views(self) -> None:
@@ -2475,11 +2489,15 @@ class KnxGuiApp:
         self.set_progress(None, S.PROGRESS_PREPARING_VIEWS)
         self._project_service.prepare_views()
 
-    def set_progress(self, fraction: float | None, stage: str = "") -> None:
+    def set_progress(
+        self, fraction: float | None, stage: str = "", *, note: str = ""
+    ) -> None:
         """Update the progress modal from a worker: ``fraction`` in [0,1] for a determinate bar,
-        or None for the indeterminate animation. ``stage`` is an optional sub-step label."""
+        or None for the indeterminate animation. ``stage`` is an optional sub-step label (one
+        line), ``note`` an optional explanation of the step (wrapped, under the title)."""
         self._progress_fraction = fraction
         self._progress_stage = stage
+        self._progress_note = note
 
     def _offer_cancel(self, cancel: threading.Event) -> None:
         """Show Cancel in the progress modal: it sets ``cancel`` (the worker stops at its next
@@ -2563,6 +2581,12 @@ class KnxGuiApp:
         if not begin_dialog(S.PROGRESS_TITLE, min_width=560.0):
             return
         imgui.text_wrapped(self._progress_text)
+        if self._progress_note:
+            imgui.push_style_color(
+                imgui.Col_.text, imgui.get_style_color_vec4(imgui.Col_.text_disabled)
+            )
+            imgui.text_wrapped(self._progress_note)
+            imgui.pop_style_color()
         elapsed = time.time() - self._progress_started_at
         fraction = self._progress_fraction
         # The window's content width, at least 520 px (or what the screen leaves): a stretch (-1)
@@ -3135,8 +3159,18 @@ class KnxGuiApp:
         """Open the ``.xknx`` at ``path`` behind the progress modal. A protected project asks for
         its password; one with KNX Secure data but no password asks to set one."""
 
+        def products(done: int, total: int) -> None:
+            self.set_progress(
+                done / total if total else None,
+                S.PROGRESS_PROJECT_PRODUCTS_COUNT.format(done=done, total=total)
+                if total
+                else S.PROGRESS_PROJECT_PRODUCTS,
+                note=S.PROGRESS_PROJECT_PRODUCTS_NOTE,
+            )
+
         def worker() -> None:
             self._project_service.build_progress = report
+            self._project_service.product_import_progress = products
             try:
                 self._project_service.open(Path(path), password)
                 self._prepare_views()
@@ -3159,6 +3193,7 @@ class KnxGuiApp:
                 self._backups_plugin.offer_restore(path, str(e))
             finally:
                 self._project_service.build_progress = None
+                self._project_service.product_import_progress = None
 
         # Open on a worker thread behind the spinner: building a large project's device view is slow.
         # A network location asks for consent first (work on a local copy), then runs the worker.
@@ -4371,7 +4406,7 @@ class KnxGuiApp:
         if not begin_dialog(S.ABOUT_TITLE, width=420.0):
             return
         imgui.text(S.APP_TITLE)
-        imgui.text_disabled(S.ABOUT_VERSION.format(version=__version__))
+        imgui.text_disabled(S.ABOUT_VERSION.format(version=build_info.version_text()))
         imgui.spacing()
         imgui.text_wrapped(S.ABOUT_TEXT)
         imgui.spacing()
@@ -5138,6 +5173,7 @@ class KnxGuiApp:
         self._handle_editor_requests()
         self._settle_tab_order()
         self._project_service.take_rechecked_devices()
+        self._project_service.take_product_data()
         self._sync_device_section()
         self._sync_project_log()
         self._keep_selected_tab()

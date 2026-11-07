@@ -79,6 +79,11 @@ The same in the light theme:
 in ETS. Exports bundle the required product data so the project is self-contained, are signed so ETS
 accepts them. Based on [XKNXProject](https://github.com/XKNX/xknxproject) and [OpenKNXproducer](https://github.com/OpenKNX/OpenKNXproducer)
 
+**A project file carries its product data.** An `.xknx` project stores the product data of each of its
+devices, also of those added from the catalog. Opened on another computer, or in the editor inside
+Home Assistant, the project imports the products that catalog lacks, so every device stays editable.
+**Compact Project** removes the product data no device uses any more.
+
 The **Open Project** dialog accepts three formats and routes each automatically: an XKNX project
 (`.xknx`), an ETS project archive (`.knxproj`, imported into a new project), and an ETS group-address
 export (`.xml`, `ga-export/01`). A group-address export carries only the group-address tree (main and

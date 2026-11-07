@@ -84,6 +84,3 @@ msgstr "ツール・キー"
 
 msgid "{address}   key {key}"
 msgstr "{address}   キー {key}"
-
-msgid "KNX Sec"
-msgstr "KNX Sec"

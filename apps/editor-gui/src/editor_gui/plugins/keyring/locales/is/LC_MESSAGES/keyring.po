@@ -84,6 +84,3 @@ msgstr "Verkfæralykill"
 
 msgid "{address}   key {key}"
 msgstr "{address}   lykill {key}"
-
-msgid "KNX Sec"
-msgstr "KNX Sec"

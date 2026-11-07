@@ -1683,3 +1683,12 @@ msgstr "Export Method"
 
 msgid "Automatic"
 msgstr "Automatic"
+
+msgid "Importing the project's product data…"
+msgstr "Se importă datele de produs ale proiectului…"
+
+msgid "Importing the project's product data: {done} of {total} application programs"
+msgstr "Se importă datele de produs ale proiectului: {done} din {total} programe de aplicație"
+
+msgid "This is done once on this computer, for the products its catalog does not have yet. For a large project it can take a few minutes."
+msgstr "Se face o singură dată pe acest computer, pentru produsele pe care catalogul său nu le are încă. La un proiect mare poate dura câteva minute."

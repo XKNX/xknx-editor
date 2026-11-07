@@ -14,6 +14,8 @@ from sqlalchemy import text
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session
 
+from xknxeditor.proj.core.manufacturer_xml import DeviceProduct
+from xknxeditor.proj.core.product_data import prune_rows
 from xknxeditor.proj.core.product_prune import (
     STEP_DEVICES,
     STEP_STORE,
@@ -51,6 +53,24 @@ class UsedProductIds:
     applications: frozenset[str]
 
 
+def device_products(session: Session) -> list[DeviceProduct]:
+    """The product data refs of each device of the project (see :class:`DeviceProduct`)."""
+    return [
+        DeviceProduct(
+            product=product or "",
+            hardware2program=program or "",
+            application=application or "",
+            imported=bool(source_id),
+        )
+        for product, program, application, source_id in session.query(
+            Device.product_ref_id,
+            Device.hardware2program_ref_id,
+            Device.application_program_ref_id,
+            Device.source_id,
+        )
+    ]
+
+
 def used_product_ids(session: Session) -> UsedProductIds:
     """Collect the product data ids all devices of the project reference."""
     rows = session.query(
@@ -65,9 +85,29 @@ def used_product_ids(session: Session) -> UsedProductIds:
     )
 
 
+def _combined(a: ProductPruneReport, b: ProductPruneReport) -> ProductPruneReport:
+    """One report of what two prunes removed."""
+    return ProductPruneReport(
+        application_programs=a.application_programs + b.application_programs,
+        hardware=a.hardware + b.hardware,
+        products=a.products + b.products,
+        catalog_items=a.catalog_items + b.catalog_items,
+        baggages=a.baggages + b.baggages,
+        manufacturers=a.manufacturers + b.manufacturers,
+        removed_members=a.removed_members + b.removed_members,
+        changed_members=a.changed_members + b.changed_members,
+        names={**a.names, **b.names},
+        size_before=a.size_before + b.size_before,
+        size_after=a.size_after + b.size_after,
+    )
+
+
 def _pruned(
-    session: Session, progress: ProgressCallback | None
+    session: Session, progress: ProgressCallback | None, *, apply: bool
 ) -> tuple[Project, bytes | None, ProductPruneReport]:
+    """The project, its new imported product data (``None`` when unchanged) and the report. The
+    product data stored per program that no device uses is deleted with ``apply`` (the caller
+    commits)."""
     if progress is not None:
         progress(STEP_DEVICES, 0, 1)
     project = session.query(Project).first()
@@ -76,9 +116,10 @@ def _pruned(
     used = used_product_ids(session)
     if progress is not None:
         progress(STEP_DEVICES, 1, 1)
+    rows = prune_rows(session, used.hardware2programs, apply=apply)
     blob = project.imported_product_members
     if not blob:
-        return project, None, ProductPruneReport()
+        return project, None, rows
     new_blob, report = prune_product_blob(
         blob,
         used.products,
@@ -86,7 +127,8 @@ def _pruned(
         used.applications,
         progress=progress,
     )
-    return project, (None if report.nothing_removed else new_blob), report
+    new = None if report.nothing_removed else new_blob
+    return project, new, _combined(report, rows)
 
 
 def _free_bytes(session: Session) -> int:
@@ -99,7 +141,7 @@ def analyse_compaction(
     session: Session, path: Path, progress: ProgressCallback | None = None
 ) -> CompactResult:
     """Report what :func:`compact_project` would remove, without changing anything."""
-    project, _blob, report = _pruned(session, progress)
+    project, _blob, report = _pruned(session, progress, apply=False)
     session.expire(project, ["imported_product_members"])
     before = path.stat().st_size
     saved = report.size_before - report.size_after + _free_bytes(session)
@@ -127,9 +169,10 @@ def compact_project(
     session.commit()
     before = path.stat().st_size
     try:
-        project, new_blob, report = _pruned(session, step)
+        project, new_blob, report = _pruned(session, step, apply=True)
         step(STEP_STORE, 0, 1)
     except CompactCancelled:
+        session.rollback()
         session.expire_all()
         raise
     if new_blob is not None:

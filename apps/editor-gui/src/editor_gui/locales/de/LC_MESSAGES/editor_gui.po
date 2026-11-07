@@ -1773,3 +1773,12 @@ msgstr "Exportweg"
 
 msgid "Automatic"
 msgstr "Automatisch"
+
+msgid "Importing the project's product data…"
+msgstr "Produktdaten des Projekts werden importiert…"
+
+msgid "Importing the project's product data: {done} of {total} application programs"
+msgstr "Produktdaten des Projekts werden importiert: {done} von {total} Applikationsprogrammen"
+
+msgid "This is done once on this computer, for the products its catalog does not have yet. For a large project it can take a few minutes."
+msgstr "Das geschieht nur einmal auf diesem Computer, für die Produkte, die sein Katalog noch nicht hat. Bei einem großen Projekt kann es einige Minuten dauern."
