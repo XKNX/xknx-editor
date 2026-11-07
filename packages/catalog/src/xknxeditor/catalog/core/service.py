@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -97,12 +97,14 @@ class CatalogService:
         *,
         require_catalog: bool = True,
         cancel: threading.Event | None = None,
+        progress: Callable[[int, int], None] | None = None,
     ) -> Path:
         """Store and ingest .knxprod bytes (content-hash dedup). Returns the stored path.
 
         ``require_catalog=False`` ingests ``.knxproj``-embedded product data that omits
         ``Catalog.xml`` (hardware/applications still resolve devices). Setting ``cancel`` stops the
-        import before it stores anything (:class:`~xknxeditor.prod.errors.ImportCancelled`)."""
+        import before it stores anything (:class:`~xknxeditor.prod.errors.ImportCancelled`);
+        ``progress`` hears the application programs parsed, out of how many."""
         return upload_knxprod(
             content,
             self._knxprod_dir,
@@ -110,6 +112,7 @@ class CatalogService:
             require_catalog=require_catalog,
             cache_dir=self._parse_cache_dir,
             cancel=cancel,
+            progress=progress,
         )
 
     def delete_product(

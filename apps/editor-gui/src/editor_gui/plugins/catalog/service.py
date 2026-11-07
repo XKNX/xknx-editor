@@ -266,12 +266,19 @@ class CatalogService:
         return self.import_project_archive(path.read_bytes(), cancel=cancel)
 
     def import_project_archive(
-        self, data: bytes, *, cancel: threading.Event | None = None
+        self,
+        data: bytes,
+        *,
+        cancel: threading.Event | None = None,
+        progress: Callable[[int, int], None] | None = None,
     ) -> list[ProductSummary]:
         """Ingest product data a project carries (a ``.knxproj``, or the archive of an ``.xknx``
         project's product data): only programs the catalog lacks are added, and ``Catalog.xml`` may
-        be missing. Returns the newly added product versions."""
-        return self._import_knxprod_bytes(data, require_catalog=False, cancel=cancel)
+        be missing. ``progress`` hears the application programs parsed, out of how many. Returns
+        the newly added product versions."""
+        return self._import_knxprod_bytes(
+            data, require_catalog=False, cancel=cancel, progress=progress
+        )
 
     def import_product_source(
         self, data: bytes, master_xml: bytes, *, cancel: threading.Event | None = None
@@ -330,13 +337,14 @@ class CatalogService:
         *,
         require_catalog: bool = True,
         cancel: threading.Event | None = None,
+        progress: Callable[[int, int], None] | None = None,
     ) -> list[ProductSummary]:
         """Each product version (product and hardware program) new in the catalog."""
         before = {
             (p.product_ref_id, p.hardware2program_ref_id) for p in self.get_products()
         }
         self._service.import_knxprod(
-            data, require_catalog=require_catalog, cancel=cancel
+            data, require_catalog=require_catalog, cancel=cancel, progress=progress
         )
         self._forget_products()
         added: dict[tuple[str, str], ProductSummary] = {}

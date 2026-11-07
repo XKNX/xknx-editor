@@ -1673,3 +1673,12 @@ msgstr "Export Method"
 
 msgid "Automatic"
 msgstr "Automatic"
+
+msgid "Importing the project's product data…"
+msgstr "Productgegevens van het project worden geïmporteerd…"
+
+msgid "Importing the project's product data: {done} of {total} application programs"
+msgstr "Productgegevens van het project worden geïmporteerd: {done} van {total} applicatieprogramma's"
+
+msgid "This is done once on this computer, for the products its catalog does not have yet. For a large project it can take a few minutes."
+msgstr "Dit gebeurt maar één keer op deze computer, voor de producten die de catalogus nog niet heeft. Bij een groot project kan het enkele minuten duren."

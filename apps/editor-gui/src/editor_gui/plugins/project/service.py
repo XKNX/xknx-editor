@@ -1224,6 +1224,9 @@ class ProjectService:
         # Optional (i_done, total) callback invoked while (re)building the device views — lets the
         # GUI show a determinate "opening project" progress bar sized to the project's device count.
         self.build_progress: Callable[[int, int, str], None] | None = None
+        # Hears an open's import of the project's product data into the catalog: the application
+        # programs parsed, out of how many (it can take minutes for a large project, once).
+        self.product_import_progress: Callable[[int, int], None] | None = None
         # Optional check between devices while (re)building them: ``True`` stops the build with
         # BuildCancelled (see refresh_catalog_resolution).
         self.build_cancelled: Callable[[], bool] | None = None
@@ -4916,10 +4919,19 @@ class ProjectService:
                     programs=len(carried),
                 )
                 return
+            self._log.info(
+                "importing the project's product data into the catalog",
+                programs=len(carried),
+            )
+            report = self.product_import_progress
+            if report is not None:
+                report(0, 0)
             added = [
                 product
                 for archive in archives
-                for product in self._catalog.import_project_archive(archive)
+                for product in self._catalog.import_project_archive(
+                    archive, progress=report
+                )
             ]
             self._log.info(
                 "catalog updated from the project's product data",

@@ -115,7 +115,12 @@ def test_project_opens_with_its_product_data_on_another_computer(
     other = CatalogService(tmp_path / "other.xknxcatalog")
     assert other.get_program_source(program) is None
     proj = _service(other)
+    # The open's progress dialog hears the import: started, then each application program.
+    heard: list[tuple[int, int]] = []
+    proj.product_import_progress = lambda done, total: heard.append((done, total))
     proj.open(path)
+    assert heard[0] == (0, 0)
+    assert heard[-1] == (1, 1)
     (device,) = proj.devices
     assert device.node_id == device_id
     assert device.app is not None and device.app.id == _APP_ID

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import logging
+from collections.abc import Callable
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -174,11 +175,12 @@ def upload_knxprod(
     require_catalog: bool = True,
     cache_dir: Path | None = None,
     cancel: threading.Event | None = None,
+    progress: Callable[[int, int], None] | None = None,
 ) -> Path:
     """Ingest .knxprod bytes into the database behind ``engine``. Returns the path where the file was saved.
 
     Setting ``cancel`` stops the ingest with :class:`ImportCancelled` up to the moment it writes;
-    nothing is stored then.
+    nothing is stored then. ``progress`` hears the application programs parsed, out of how many.
 
     ``require_catalog=False`` ingests product data embedded in a ``.knxproj`` (which omits
     ``Catalog.xml``): hardware and applications are stored so devices resolve, only the catalog
@@ -202,6 +204,7 @@ def upload_knxprod(
                 require_catalog=require_catalog,
                 cache_dir=cache_dir,
                 cancel=cancel,
+                progress=progress,
             )
             logger.debug(
                 "catalog import: %d bytes, %d manufacturers, %d hardware",
