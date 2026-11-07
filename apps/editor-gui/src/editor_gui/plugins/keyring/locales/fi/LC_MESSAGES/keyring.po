@@ -84,3 +84,6 @@ msgstr "Työkaluavain"
 
 msgid "{address}   key {key}"
 msgstr "{address}   avain {key}"
+
+msgid "KNX Sec"
+msgstr "KNX Sec"

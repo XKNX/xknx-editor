@@ -84,3 +84,6 @@ msgstr "Verktygsnyckel"
 
 msgid "{address}   key {key}"
 msgstr "{address}   nyckel {key}"
+
+msgid "KNX Sec"
+msgstr "KNX Sec"

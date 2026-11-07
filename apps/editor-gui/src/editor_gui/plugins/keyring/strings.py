@@ -15,7 +15,7 @@ class KeyringStrings:
 
     @property
     def MENU_KEYRING(self) -> str:
-        return _("KNX Secure")
+        return _("KNX Sec")
 
     @property
     def MENU_SHOW_WINDOW(self) -> str:
