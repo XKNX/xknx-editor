@@ -257,3 +257,36 @@ def test_the_stored_kind_tells_single_buttons_from_a_pair(
     recovered = recover_parameters(application, segments, linked_objects={51})
     assert recovered.values[_FUNCTION] == "2"
     assert recovered.values[f"{_SINGLE}P-1_R-1"] == "5"
+
+
+@pytest.fixture(scope="module")
+def singles_first() -> Application:
+    """The application with single buttons tried before a pair, and a single-button function
+    that shows the object without a hidden setting of its own (as the BE-GT2Tx.01's)."""
+    pair = f'<Enumeration Text="pair" Value="1" Id="{_APP}_PT-Function_EN-1" />'
+    single = f'<Enumeration Text="single" Value="2" Id="{_APP}_PT-Function_EN-2" />'
+    plain = f'<Enumeration Text="plain" Value="7" Id="{_APP}_PT-Single_EN-7" />'
+    colour = f'<Enumeration Text="colour" Value="5" Id="{_APP}_PT-Single_EN-5" />'
+    shows = f'<when test="7"><ComObjectRefRef RefId="{_APP}_MD-2_O-2-1_R-1" /></when>'
+    xml = (
+        _XML.replace(pair + single, single + pair)
+        .replace(colour, plain + colour)
+        .replace(
+            "</choose>\n                </ParameterBlock>\n              </Dynamic>\n            </ModuleDef>\n          </ModuleDefs>",
+            f"{shows}</choose>\n                </ParameterBlock>\n              </Dynamic>\n            </ModuleDef>\n          </ModuleDefs>",
+        )
+    )
+    assert xml.count(shows) == 1 and single + pair in xml
+    return parse_application_xml(xml.encode(), "M-00FA")[0]
+
+
+def test_the_hidden_kind_of_a_pair_wins_over_single_buttons_without_one(
+    singles_first: Application,
+) -> None:
+    # Single buttons (tried first) show object 51 too, and write no hidden kind: they leave
+    # the byte where the device holds the pair's kind at its initial value, which counts
+    # against them.
+    segments = _device(singles_first, (_FUNCTION, "1"), (f"{_PAIR}P-1_R-1", "8"))
+    recovered = recover_parameters(singles_first, segments, linked_objects={51})
+    assert recovered.values[_FUNCTION] == "1"
+    assert recovered.values[f"{_PAIR}P-1_R-1"] == "8"
