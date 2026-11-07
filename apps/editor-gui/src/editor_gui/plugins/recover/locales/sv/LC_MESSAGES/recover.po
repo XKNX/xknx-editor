@@ -28,8 +28,8 @@ msgstr "Lägg till i öppet projekt vid läsning"
 msgid "Recover Selected"
 msgstr "Återskapa markerade"
 
-msgid "Create New Project"
-msgstr "Skapa nytt projekt"
+msgid "Create New Project…"
+msgstr "Skapa nytt projekt…"
 
 msgid "Add to Open Project"
 msgstr "Lägg till i öppet projekt"
@@ -37,8 +37,8 @@ msgstr "Lägg till i öppet projekt"
 msgid "Verify (Read-Only)"
 msgstr "Verifiera (skrivskyddat)"
 
-msgid "Export Snapshot"
-msgstr "Exportera ögonblicksbild"
+msgid "Export Snapshot…"
+msgstr "Exportera ögonblicksbild…"
 
 msgid "Verifying (re-reading and comparing)…"
 msgstr "Verifierar (läser om och jämför)…"
@@ -215,3 +215,20 @@ msgid "Verify: %(count)d byte differs"
 msgid_plural "Verify: %(count)d bytes differ"
 msgstr[0] "Kontroll: %(count)d byte skiljer sig"
 msgstr[1] "Kontroll: %(count)d byte skiljer sig"
+
+msgid "Import Snapshot…"
+msgstr "Importera ögonblicksbild…"
+
+msgid "Imported %(count)d device from %(file)s."
+msgid_plural "Imported %(count)d devices from %(file)s."
+msgstr[0] "Importerade %(count)d enhet från %(file)s."
+msgstr[1] "Importerade %(count)d enheter från %(file)s."
+
+msgid "%(file)s is no recovery snapshot: %(error)s"
+msgstr "%(file)s är ingen återställningsögonblicksbild: %(error)s"
+
+msgid "Recovery Snapshot (*.json)"
+msgstr "Återställningsögonblicksbild (*.json)"
+
+msgid "All Files"
+msgstr "Alla filer"

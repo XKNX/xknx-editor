@@ -28,8 +28,8 @@ msgstr "Додавати до відкритого проєкту під час 
 msgid "Recover Selected"
 msgstr "Відновити вибрані"
 
-msgid "Create New Project"
-msgstr "Створити новий проєкт"
+msgid "Create New Project…"
+msgstr "Створити новий проєкт…"
 
 msgid "Add to Open Project"
 msgstr "Додати до відкритого проєкту"
@@ -37,8 +37,8 @@ msgstr "Додати до відкритого проєкту"
 msgid "Verify (Read-Only)"
 msgstr "Перевірити (лише читання)"
 
-msgid "Export Snapshot"
-msgstr "Експортувати знімок"
+msgid "Export Snapshot…"
+msgstr "Експортувати знімок…"
 
 msgid "Verifying (re-reading and comparing)…"
 msgstr "Перевірка (повторне читання та порівняння)…"
@@ -228,3 +228,21 @@ msgid_plural "Verify: %(count)d bytes differ"
 msgstr[0] "Перевірка: відрізняється %(count)d байт"
 msgstr[1] "Перевірка: відрізняються %(count)d байти"
 msgstr[2] "Перевірка: відрізняються %(count)d байтів"
+
+msgid "Import Snapshot…"
+msgstr "Імпортувати знімок…"
+
+msgid "Imported %(count)d device from %(file)s."
+msgid_plural "Imported %(count)d devices from %(file)s."
+msgstr[0] "Імпортовано %(count)d пристрій з %(file)s."
+msgstr[1] "Імпортовано %(count)d пристрої з %(file)s."
+msgstr[2] "Імпортовано %(count)d пристроїв з %(file)s."
+
+msgid "%(file)s is no recovery snapshot: %(error)s"
+msgstr "%(file)s не є знімком відновлення: %(error)s"
+
+msgid "Recovery Snapshot (*.json)"
+msgstr "Знімок відновлення (*.json)"
+
+msgid "All Files"
+msgstr "Всі файли"

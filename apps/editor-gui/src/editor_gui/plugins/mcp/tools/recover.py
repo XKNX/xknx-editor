@@ -282,13 +282,15 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     @tool("read", open_world=True)
     def recover_verify(timeout: float = 1800.0) -> dict[str, Any]:
-        """Check each read-back device against the bus: encode its group communication as read
-        and compare with the device's memory (Verify); only reads. Sets each entry's
+        """Check each selected read-back device against the bus: encode its group communication
+        as read and compare with the device's memory (Verify); only reads. Sets each entry's
         verify_changed_bytes (0 = verified). Waits up to ``timeout`` s; returns the state as
         recover_status does."""
         recover = service()
-        if not any(e.recovered is not None for e in recover.entries):
-            raise ToolError("no device read back yet; recover_read_back first")
+        if not recover.chosen():
+            raise ToolError(
+                "no selected device read back yet; recover_read_back, recover_select"
+            )
         return run_operation("the verification", recover.start_verify, timeout)
 
     @tool("write")
@@ -369,8 +371,8 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     @tool("write")
     def recover_add_to_project() -> dict[str, Any]:
-        """Add every device read back and not yet added to the open project (Add to Open
-        Project), trying again the ones an earlier add could not add; each device is one
+        """Add every selected device read back and not yet added to the open project (Add to
+        Open Project), trying again the ones an earlier add could not add; each device is one
         undoable step, on the line of its address (a line or segment it needs is created). A
         device whose add fails changes nothing; its entry's error says why. Returns {added,
         failed, ...the state as recover_status does}."""
@@ -388,11 +390,13 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
     @tool("destructive")
     def recover_add_to_new_project(path: str) -> dict[str, Any]:
         """Create a new project at ``path`` (a ".xknx" file; the extension is added when
-        missing), replacing the open one, and add every device read back to it (Add to New
-        Project). Returns {added, failed, path, ...the state as recover_status does}."""
+        missing), replacing the open one, and add every selected device read back to it (Create
+        New Project…). Returns {added, failed, path, ...the state as recover_status does}."""
         recover = service()
-        if not any(e.recovered is not None for e in recover.entries):
-            raise ToolError("no device read back yet; recover_read_back first")
+        if not recover.chosen():
+            raise ToolError(
+                "no selected device read back yet; recover_read_back, recover_select"
+            )
         target = Path(path)
         if target.suffix != ".xknx":
             target = target.with_suffix(".xknx")
@@ -407,8 +411,34 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     @tool("read")
     def recover_snapshot() -> dict[str, Any]:
-        """Everything read back from each device, as the window's Export Snapshot writes it:
-        {devices: [...]} with the raw tables, parameters and identification per device."""
+        """Everything read back from each selected device, as the window's Export Snapshot…
+        writes it: {devices: [...]} with the raw tables, memory and property bytes, parameters
+        and identification per device. recover_import_snapshot reads such a file back."""
         recover = service()
         snapshot: dict[str, Any] = json.loads(ctx.run_on_ui(recover.snapshot_text))
         return snapshot
+
+    @tool("write")
+    def recover_import_snapshot(path: str) -> dict[str, Any]:
+        """Take the devices of a snapshot file (as recover_snapshot returns it, or the window's
+        Export Snapshot… writes it) as read back (Import Snapshot…): each is matched against the
+        catalog like a scanned device and replaces an entry of the same address; needs no bus.
+        Then recover_search_again and the adds work on them as on devices read from the bus;
+        with auto_apply on and a project open they are added to it. Returns {imported, ...the
+        state as recover_status does}."""
+        recover = service()
+        source = Path(path)
+        try:
+            text = source.read_text(encoding="utf-8")
+        except (OSError, UnicodeDecodeError) as exc:
+            raise ToolError(f"cannot read {path}: {exc}") from exc
+
+        def _import() -> int:
+            return recover.import_snapshot(text, source.name)
+
+        imported = ctx.run_locked(_import, timeout=_SLOW)
+        if not imported and recover.apply_error:
+            raise ToolError(recover.apply_error)
+        if recover.auto_apply:
+            ctx.run_locked(recover.poll, timeout=_SLOW)
+        return {"imported": imported, **state()}

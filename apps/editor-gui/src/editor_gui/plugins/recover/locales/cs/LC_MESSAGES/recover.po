@@ -28,8 +28,8 @@ msgstr "Přidat do otevřeného projektu po načtení"
 msgid "Recover Selected"
 msgstr "Obnovit vybrané"
 
-msgid "Create New Project"
-msgstr "Vytvořit nový projekt"
+msgid "Create New Project…"
+msgstr "Vytvořit nový projekt…"
 
 msgid "Add to Open Project"
 msgstr "Přidat do otevřeného projektu"
@@ -37,8 +37,8 @@ msgstr "Přidat do otevřeného projektu"
 msgid "Verify (Read-Only)"
 msgstr "Ověřit (jen čtení)"
 
-msgid "Export Snapshot"
-msgstr "Exportovat snímek"
+msgid "Export Snapshot…"
+msgstr "Exportovat snímek…"
 
 msgid "Verifying (re-reading and comparing)…"
 msgstr "Ověřování (opakované čtení a porovnání)…"
@@ -228,3 +228,21 @@ msgid_plural "Verify: %(count)d bytes differ"
 msgstr[0] "Ověření: liší se %(count)d bajt"
 msgstr[1] "Ověření: liší se %(count)d bajty"
 msgstr[2] "Ověření: liší se %(count)d bajtů"
+
+msgid "Import Snapshot…"
+msgstr "Importovat snímek…"
+
+msgid "Imported %(count)d device from %(file)s."
+msgid_plural "Imported %(count)d devices from %(file)s."
+msgstr[0] "Importováno %(count)d zařízení z %(file)s."
+msgstr[1] "Importována %(count)d zařízení z %(file)s."
+msgstr[2] "Importováno %(count)d zařízení z %(file)s."
+
+msgid "%(file)s is no recovery snapshot: %(error)s"
+msgstr "%(file)s není snímek obnovy: %(error)s"
+
+msgid "Recovery Snapshot (*.json)"
+msgstr "Snímek obnovy (*.json)"
+
+msgid "All Files"
+msgstr "Všechny soubory"

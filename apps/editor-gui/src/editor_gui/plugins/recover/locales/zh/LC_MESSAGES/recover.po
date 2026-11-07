@@ -28,8 +28,8 @@ msgstr "读取时添加到打开的项目"
 msgid "Recover Selected"
 msgstr "恢复所选项"
 
-msgid "Create New Project"
-msgstr "创建新项目"
+msgid "Create New Project…"
+msgstr "创建新项目…"
 
 msgid "Add to Open Project"
 msgstr "添加到打开的项目"
@@ -37,8 +37,8 @@ msgstr "添加到打开的项目"
 msgid "Verify (Read-Only)"
 msgstr "验证（只读）"
 
-msgid "Export Snapshot"
-msgstr "导出快照"
+msgid "Export Snapshot…"
+msgstr "导出快照…"
 
 msgid "Verifying (re-reading and comparing)…"
 msgstr "正在验证（重新读取并比较）…"
@@ -202,3 +202,19 @@ msgstr[0] "%(count)d 个组对象"
 msgid "Verify: %(count)d byte differs"
 msgid_plural "Verify: %(count)d bytes differ"
 msgstr[0] "验证：%(count)d 个字节不同"
+
+msgid "Import Snapshot…"
+msgstr "导入快照…"
+
+msgid "Imported %(count)d device from %(file)s."
+msgid_plural "Imported %(count)d devices from %(file)s."
+msgstr[0] "已从 %(file)s 导入 %(count)d 个设备。"
+
+msgid "%(file)s is no recovery snapshot: %(error)s"
+msgstr "%(file)s 不是恢复快照：%(error)s"
+
+msgid "Recovery Snapshot (*.json)"
+msgstr "恢复快照 (*.json)"
+
+msgid "All Files"
+msgstr "所有文件"

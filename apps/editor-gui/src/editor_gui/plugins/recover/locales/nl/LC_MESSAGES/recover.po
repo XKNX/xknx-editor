@@ -16,11 +16,11 @@ msgstr "Bij het lezen aan geopend project toevoegen"
 msgid "Address"
 msgstr "Adres"
 
-msgid "Create New Project"
-msgstr "Nieuw project maken"
+msgid "Create New Project…"
+msgstr "Nieuw project maken…"
 
-msgid "Export Snapshot"
-msgstr "Momentopname exporteren"
+msgid "Export Snapshot…"
+msgstr "Momentopname exporteren…"
 
 msgid "From Address"
 msgstr "Van adres"
@@ -221,3 +221,20 @@ msgid "Verify: %(count)d byte differs"
 msgid_plural "Verify: %(count)d bytes differ"
 msgstr[0] "Controle: %(count)d byte wijkt af"
 msgstr[1] "Controle: %(count)d bytes wijken af"
+
+msgid "Import Snapshot…"
+msgstr "Momentopname importeren…"
+
+msgid "Imported %(count)d device from %(file)s."
+msgid_plural "Imported %(count)d devices from %(file)s."
+msgstr[0] "%(count)d apparaat geïmporteerd uit %(file)s."
+msgstr[1] "%(count)d apparaten geïmporteerd uit %(file)s."
+
+msgid "%(file)s is no recovery snapshot: %(error)s"
+msgstr "%(file)s is geen herstel-momentopname: %(error)s"
+
+msgid "Recovery Snapshot (*.json)"
+msgstr "Herstel-momentopname (*.json)"
+
+msgid "All Files"
+msgstr "Alle bestanden"

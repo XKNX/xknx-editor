@@ -112,7 +112,7 @@ async def test_a_scan_lists_the_devices_found(
         assert deselected["entries"][0]["selected"] is False
         with pytest.raises(Exception, match="no recoverable device selected"):
             await client.call_tool("recover_read_back", {})
-        with pytest.raises(Exception, match="no device read back"):
+        with pytest.raises(Exception, match="no selected device read back"):
             await client.call_tool("recover_verify", {})
 
 
@@ -267,3 +267,42 @@ async def test_an_incomplete_device_is_searched_again(
         # The device added before is replaced, not added a second time.
         devices = (await _data(client, "project_list_devices"))["items"]
         assert [d["individual_address"] for d in devices] == ["1.1.3"]
+
+
+@pytest.mark.skipif(not _FIXTURE.exists(), reason="knxprod fixture missing")
+async def test_a_snapshot_is_imported_without_the_bus(tmp_path: Path) -> None:
+    from xknxeditor.recover import snapshots_json
+
+    mcp, service = _server(tmp_path)
+    async with Client(mcp) as client:
+        await _data(client, "catalog_import_product", path=str(_FIXTURE))
+        product = (await _data(client, "catalog_list_products"))["items"][0]
+        application = service._api.catalog.get_application(product["application_id"])
+        assert application is not None
+        mask = int(str(application.program.mask_version).removeprefix("MV-"), 16)
+        device = RecoveredDevice(
+            address="1.1.3",
+            application_id=application.id,
+            device_address=0x1103,
+            group_addresses=[0x0A03],
+            links=[],
+            group_objects={},
+            parameters=RecoveredParameters(values={}, unknown=[]),
+            mask_version=mask,
+        )
+        path = tmp_path / "site.json"
+        path.write_text(snapshots_json([device]), encoding="utf-8")
+        result = await _data(client, "recover_import_snapshot", path=str(path))
+        assert result["imported"] == 1
+        entry = result["entries"][0]
+        assert (entry["address"], entry["status"]) == ("1.1.3", "recovered")
+        assert entry["recovered"]["group_addresses"] == ["1/2/3"]
+        # Exported again, the same device comes back.
+        snapshot = await _data(client, "recover_snapshot")
+        assert [d["address"] for d in snapshot["devices"]] == ["1.1.3"]
+
+        (tmp_path / "other.json").write_text("{}", encoding="utf-8")
+        with pytest.raises(Exception, match="no recovery snapshot"):
+            await client.call_tool(
+                "recover_import_snapshot", {"path": str(tmp_path / "other.json")}
+            )

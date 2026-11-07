@@ -43,7 +43,7 @@ class RecoverStrings:
 
     @property
     def BTN_ADD_NEW(self) -> str:
-        return _("Create New Project")
+        return _("Create New Project…")
 
     @property
     def BTN_ADD_MERGE(self) -> str:
@@ -55,7 +55,30 @@ class RecoverStrings:
 
     @property
     def BTN_EXPORT_SNAPSHOT(self) -> str:
-        return _("Export Snapshot")
+        return _("Export Snapshot…")
+
+    @property
+    def BTN_IMPORT_SNAPSHOT(self) -> str:
+        return _("Import Snapshot…")
+
+    def SNAPSHOT_IMPORTED(self, count: int) -> str:
+        return _.plural(
+            "Imported %(count)d device from %(file)s.",
+            "Imported %(count)d devices from %(file)s.",
+            count,
+        )
+
+    @property
+    def SNAPSHOT_FILTER(self) -> str:
+        return _("Recovery Snapshot (*.json)")
+
+    @property
+    def ALL_FILES(self) -> str:
+        return _("All Files")
+
+    @property
+    def SNAPSHOT_UNREADABLE(self) -> str:
+        return _("%(file)s is no recovery snapshot: %(error)s")
 
     @property
     def STATUS_VERIFYING(self) -> str:

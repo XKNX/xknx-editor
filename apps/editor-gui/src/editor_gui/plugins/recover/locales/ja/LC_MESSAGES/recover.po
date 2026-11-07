@@ -28,8 +28,8 @@ msgstr "読み込み時に開いているプロジェクトに追加"
 msgid "Recover Selected"
 msgstr "選択項目を復元"
 
-msgid "Create New Project"
-msgstr "新しいプロジェクトを作成する"
+msgid "Create New Project…"
+msgstr "新しいプロジェクトを作成する…"
 
 msgid "Add to Open Project"
 msgstr "開いているプロジェクトに追加"
@@ -37,8 +37,8 @@ msgstr "開いているプロジェクトに追加"
 msgid "Verify (Read-Only)"
 msgstr "検証（読み取り専用）"
 
-msgid "Export Snapshot"
-msgstr "スナップショットをエクスポート"
+msgid "Export Snapshot…"
+msgstr "スナップショットをエクスポート…"
 
 msgid "Verifying (re-reading and comparing)…"
 msgstr "検証中（再読み込みと比較）…"
@@ -202,3 +202,19 @@ msgstr[0] "%(count)d 個のグループ・オブジェクト"
 msgid "Verify: %(count)d byte differs"
 msgid_plural "Verify: %(count)d bytes differ"
 msgstr[0] "確認: %(count)d バイトが異なります"
+
+msgid "Import Snapshot…"
+msgstr "スナップショットをインポート…"
+
+msgid "Imported %(count)d device from %(file)s."
+msgid_plural "Imported %(count)d devices from %(file)s."
+msgstr[0] "%(file)s から %(count)d 台のデバイスをインポートしました。"
+
+msgid "%(file)s is no recovery snapshot: %(error)s"
+msgstr "%(file)s は復元のスナップショットではありません: %(error)s"
+
+msgid "Recovery Snapshot (*.json)"
+msgstr "復元のスナップショット (*.json)"
+
+msgid "All Files"
+msgstr "全てのファイル"

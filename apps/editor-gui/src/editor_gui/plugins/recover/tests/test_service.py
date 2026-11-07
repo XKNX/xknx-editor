@@ -6,6 +6,7 @@ import contextlib
 import dataclasses
 from collections.abc import Iterator
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Any
 
 import pytest
@@ -564,3 +565,54 @@ def test_parameters_without_a_value_are_told_apart(application) -> None:  # type
     # English uses the singular for one and the plural otherwise.
     assert S.LINKS(1) % {"count": 1} == "1 link"
     assert S.LINKS(2) % {"count": 2} == "2 links"
+
+
+def test_the_actions_work_on_the_selected_devices(application) -> None:  # type: ignore[no-untyped-def]
+    project = _FakeProject(refs=[])
+    service = RecoverService(_FakeAPI(project))  # type: ignore[arg-type]
+    chosen = _rf_entry(application)
+    other = _rf_entry(application)
+    other.address = "1.1.4"
+    other.selected = False
+    service.entries = [chosen, other]
+    assert service.chosen() == [chosen]
+    assert service.apply_to_open_project() == 1
+    assert (chosen.applied, other.applied) == (True, False)
+    assert '"1.1.4"' not in service.snapshot_text()
+
+
+def test_a_snapshot_is_imported_as_read(application) -> None:  # type: ignore[no-untyped-def]
+    from xknxeditor.recover import snapshots_json
+
+    product = SimpleNamespace(
+        product_ref_id="P-1",
+        hardware2program_ref_id="HP-1",
+        name="JU 1 S RF",
+        order_number="",
+        application_id=application.id,
+    )
+    catalog = SimpleNamespace(
+        find_products_for_application=lambda **_kwargs: [product],
+        get_application=lambda _id: application,
+    )
+    api = _FakeAPI(_FakeProject(refs=[]))
+    api.catalog = catalog  # type: ignore[attr-defined]
+    service = RecoverService(api)  # type: ignore[arg-type]
+    device = _rf_entry(application).recovered
+    assert device is not None
+    imported = service.import_snapshot(snapshots_json([device]), "site.json")
+    assert imported == 1
+    (entry,) = service.entries
+    assert entry.address == "1.1.3"
+    assert entry.recovered is not None and entry.application is application
+    assert entry.state == S.STATE_RECOVERED
+    assert entry.recovered.com_object_refs is not None
+    assert service.phase == "recovered"
+    assert service.apply_status == S.SNAPSHOT_IMPORTED(1) % {
+        "count": 1,
+        "file": "site.json",
+    }
+    # Text that is no snapshot leaves the list as it is.
+    assert service.import_snapshot("{}", "other.json") == 0
+    assert service.entries == [entry]
+    assert service.apply_error.startswith(S.SNAPSHOT_UNREADABLE.split("%")[0])

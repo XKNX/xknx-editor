@@ -34,8 +34,8 @@ msgstr "Beim Lesen zum geöffneten Projekt hinzufügen"
 msgid "Recover Selected"
 msgstr "Ausgewählte wiederherstellen"
 
-msgid "Create New Project"
-msgstr "Neues Projekt erstellen"
+msgid "Create New Project…"
+msgstr "Neues Projekt erstellen…"
 
 msgid "Add to Open Project"
 msgstr "Zum geöffneten Projekt hinzufügen"
@@ -43,8 +43,8 @@ msgstr "Zum geöffneten Projekt hinzufügen"
 msgid "Verify (Read-Only)"
 msgstr "Verifizieren (nur lesen)"
 
-msgid "Export Snapshot"
-msgstr "Schnappschuss exportieren"
+msgid "Export Snapshot…"
+msgstr "Schnappschuss exportieren…"
 
 msgid "Verifying (re-reading and comparing)…"
 msgstr "Verifizierung (erneutes Lesen und Vergleichen)…"
@@ -223,3 +223,20 @@ msgid "Verify: %(count)d byte differs"
 msgid_plural "Verify: %(count)d bytes differ"
 msgstr[0] "Prüfen: %(count)d Byte weicht ab"
 msgstr[1] "Prüfen: %(count)d Bytes weichen ab"
+
+msgid "Import Snapshot…"
+msgstr "Schnappschuss importieren…"
+
+msgid "Imported %(count)d device from %(file)s."
+msgid_plural "Imported %(count)d devices from %(file)s."
+msgstr[0] "%(count)d Gerät aus %(file)s importiert."
+msgstr[1] "%(count)d Geräte aus %(file)s importiert."
+
+msgid "%(file)s is no recovery snapshot: %(error)s"
+msgstr "%(file)s ist kein Wiederherstellungs-Schnappschuss: %(error)s"
+
+msgid "Recovery Snapshot (*.json)"
+msgstr "Wiederherstellungs-Schnappschuss (*.json)"
+
+msgid "All Files"
+msgstr "Alle Dateien"

@@ -28,8 +28,8 @@ msgstr "Shto në projektin e hapur sapo të lexohen"
 msgid "Recover Selected"
 msgstr "Rikupero të zgjedhurat"
 
-msgid "Create New Project"
-msgstr "Krijo projekt të ri"
+msgid "Create New Project…"
+msgstr "Krijo projekt të ri…"
 
 msgid "Add to Open Project"
 msgstr "Shto në projektin e hapur"
@@ -37,8 +37,8 @@ msgstr "Shto në projektin e hapur"
 msgid "Verify (Read-Only)"
 msgstr "Verifiko (vetëm lexim)"
 
-msgid "Export Snapshot"
-msgstr "Eksporto pamjen e çastit"
+msgid "Export Snapshot…"
+msgstr "Eksporto pamjen e çastit…"
 
 msgid "Verifying (re-reading and comparing)…"
 msgstr "Po verifikohet (rilexim dhe krahasim)…"
@@ -215,3 +215,20 @@ msgid "Verify: %(count)d byte differs"
 msgid_plural "Verify: %(count)d bytes differ"
 msgstr[0] "Verifikimi: ndryshon %(count)d bajt"
 msgstr[1] "Verifikimi: ndryshojnë %(count)d bajt"
+
+msgid "Import Snapshot…"
+msgstr "Importo pamjen e çastit…"
+
+msgid "Imported %(count)d device from %(file)s."
+msgid_plural "Imported %(count)d devices from %(file)s."
+msgstr[0] "U importua %(count)d pajisje nga %(file)s."
+msgstr[1] "U importuan %(count)d pajisje nga %(file)s."
+
+msgid "%(file)s is no recovery snapshot: %(error)s"
+msgstr "%(file)s nuk është pamje e çastit e rikuperimit: %(error)s"
+
+msgid "Recovery Snapshot (*.json)"
+msgstr "Pamje e çastit e rikuperimit (*.json)"
+
+msgid "All Files"
+msgstr "Të gjithë skedarët"

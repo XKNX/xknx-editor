@@ -28,8 +28,8 @@ msgstr "Tilføj til åbent projekt, når læst"
 msgid "Recover Selected"
 msgstr "Gendan valgte"
 
-msgid "Create New Project"
-msgstr "Opret nyt projekt"
+msgid "Create New Project…"
+msgstr "Opret nyt projekt…"
 
 msgid "Add to Open Project"
 msgstr "Tilføj til åbent projekt"
@@ -37,8 +37,8 @@ msgstr "Tilføj til åbent projekt"
 msgid "Verify (Read-Only)"
 msgstr "Verificer (skrivebeskyttet)"
 
-msgid "Export Snapshot"
-msgstr "Eksporter øjebliksbillede"
+msgid "Export Snapshot…"
+msgstr "Eksporter øjebliksbillede…"
 
 msgid "Verifying (re-reading and comparing)…"
 msgstr "Verificerer (læser igen og sammenligner)…"
@@ -215,3 +215,20 @@ msgid "Verify: %(count)d byte differs"
 msgid_plural "Verify: %(count)d bytes differ"
 msgstr[0] "Kontrol: %(count)d byte afviger"
 msgstr[1] "Kontrol: %(count)d byte afviger"
+
+msgid "Import Snapshot…"
+msgstr "Importer øjebliksbillede…"
+
+msgid "Imported %(count)d device from %(file)s."
+msgid_plural "Imported %(count)d devices from %(file)s."
+msgstr[0] "Importerede %(count)d enhed fra %(file)s."
+msgstr[1] "Importerede %(count)d enheder fra %(file)s."
+
+msgid "%(file)s is no recovery snapshot: %(error)s"
+msgstr "%(file)s er ikke et gendannelses-øjebliksbillede: %(error)s"
+
+msgid "Recovery Snapshot (*.json)"
+msgstr "Gendannelses-øjebliksbillede (*.json)"
+
+msgid "All Files"
+msgstr "Alle filer"

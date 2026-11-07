@@ -34,8 +34,8 @@ msgstr "Hozzáadás a megnyitott projekthez beolvasáskor"
 msgid "Recover Selected"
 msgstr "Kijelöltek visszaállítása"
 
-msgid "Create New Project"
-msgstr "Új projekt létrehozása"
+msgid "Create New Project…"
+msgstr "Új projekt létrehozása…"
 
 msgid "Add to Open Project"
 msgstr "Hozzáadás a megnyitott projekthez"
@@ -43,8 +43,8 @@ msgstr "Hozzáadás a megnyitott projekthez"
 msgid "Verify (Read-Only)"
 msgstr "Ellenőrzés (csak olvasás)"
 
-msgid "Export Snapshot"
-msgstr "Pillanatkép exportálása"
+msgid "Export Snapshot…"
+msgstr "Pillanatkép exportálása…"
 
 msgid "Verifying (re-reading and comparing)…"
 msgstr "Ellenőrzés (újraolvasás és összehasonlítás)…"
@@ -208,3 +208,19 @@ msgstr[0] "%(count)d kommunikációs objektum"
 msgid "Verify: %(count)d byte differs"
 msgid_plural "Verify: %(count)d bytes differ"
 msgstr[0] "Ellenőrzés: %(count)d bájt eltér"
+
+msgid "Import Snapshot…"
+msgstr "Pillanatkép importálása…"
+
+msgid "Imported %(count)d device from %(file)s."
+msgid_plural "Imported %(count)d devices from %(file)s."
+msgstr[0] "%(count)d eszköz importálva innen: %(file)s."
+
+msgid "%(file)s is no recovery snapshot: %(error)s"
+msgstr "A(z) %(file)s nem helyreállítási pillanatkép: %(error)s"
+
+msgid "Recovery Snapshot (*.json)"
+msgstr "Helyreállítási pillanatkép (*.json)"
+
+msgid "All Files"
+msgstr "Minden fájl"

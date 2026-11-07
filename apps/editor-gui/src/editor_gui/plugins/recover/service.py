@@ -10,15 +10,17 @@ read-only.
 from __future__ import annotations
 
 import asyncio
+import re
 import threading
 from concurrent.futures import Future
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import TYPE_CHECKING, Any
 
 from xknxeditor.proj.core.medium import MediumError
 from xknxeditor.recover import (
     AppId,
     RecoveryEffort,
+    devices_from_snapshot,
     iter_addresses,
     probe_and_identify,
     recover_device_at,
@@ -27,7 +29,7 @@ from xknxeditor.recover import (
     validate_group_communication,
     verify_recovered,
 )
-from xknxeditor.recover.recover import com_object_ref_by_number
+from xknxeditor.recover.recover import com_object_ref_by_number, seed_dynamic_ui
 
 if TYPE_CHECKING:
     from editor_gui.plugins.base import Logger, PluginAPI
@@ -87,6 +89,18 @@ def _unknown_parts(unrecoverable: int, not_found: int) -> list[str]:
     if not_found:
         parts.append(S.PARAMETERS_NOT_FOUND(not_found) % {"count": not_found})
     return parts
+
+
+def _app_id(application_id: str) -> AppId | None:
+    """The manufacturer, application number and version of an application id, as a device
+    tells them (the rest of the id, a hash or the suffix of a converted product, is the
+    catalog's)."""
+    match = re.match(r"(M-[0-9A-F]{4})_A-([0-9A-F]+)-([0-9A-F]+)", application_id, re.I)
+    if match is None:
+        return None
+    return AppId(
+        match.group(1).upper(), int(match.group(2), 16), int(match.group(3), 16)
+    )
 
 
 def _incomplete(entry: RecoverEntry) -> bool:
@@ -586,11 +600,15 @@ class RecoverService:
 
     # --- read-only round-trip verification --------------------------------
 
+    def chosen(self) -> list[RecoverEntry]:
+        """The selected devices read back: those Verify, Export Snapshot and the adds work on."""
+        return [e for e in self.entries if e.selected and e.recovered is not None]
+
     def start_verify(self) -> None:
-        """Re-encode each recovered device's group comms and diff against the bus."""
+        """Re-encode each selected recovered device's group comms and diff against the bus."""
         if self.busy or not self.connected():
             return
-        targets = [e for e in self.entries if e.recovered is not None]
+        targets = self.chosen()
         if not targets:
             return
         if not self._api.connection.begin_operation("recover", "verify"):
@@ -634,9 +652,51 @@ class RecoverService:
         return validate_group_communication(recovered)
 
     def snapshot_text(self) -> str:
-        """A JSON forensic snapshot of every recovered device."""
-        recovered = [e.recovered for e in self.entries if e.recovered is not None]
+        """A JSON forensic snapshot of every selected recovered device."""
+        recovered = [e.recovered for e in self.chosen() if e.recovered is not None]
         return snapshots_json(recovered)
+
+    def import_snapshot(self, text: str, name: str) -> int:
+        """Take the devices of a snapshot (see ``snapshot_text``) as read: each is matched
+        against the catalog as a scanned one, and replaces a device of the same address in the
+        list. Needs no bus. Returns how many devices it holds; one that is no snapshot leaves
+        the list as it is and says why (``apply_error``)."""
+        from editor_gui.plugins.recover.strings import S
+
+        self.apply_status = ""
+        self.apply_error = ""
+        try:
+            devices = devices_from_snapshot(text)
+        except ValueError as exc:
+            self.apply_error = S.SNAPSHOT_UNREADABLE % {"file": name, "error": exc}
+            return 0
+        entries = {entry.address: entry for entry in self.entries}
+        for device in devices:
+            entry = RecoverEntry(
+                address=device.address,
+                mask_version=device.mask_version,
+                app_id=_app_id(device.application_id),
+            )
+            self._identify_catalog(entry)
+            if entry.application is not None:
+                application = entry.application
+                device = replace(
+                    device,
+                    com_object_refs=com_object_ref_by_number(
+                        application,
+                        seed_dynamic_ui(application, device.parameters.values),
+                    ),
+                )
+                entry.recovered = device
+                entry.state = _recovered_state(device)
+            entries[device.address] = entry
+        self.entries = list(entries.values())
+        self.phase = "recovered"
+        self.apply_status = S.SNAPSHOT_IMPORTED(len(devices)) % {
+            "count": len(devices),
+            "file": name,
+        }
+        return len(devices)
 
     # --- online-catalog auto-fetch ---------------------------------------
 
@@ -744,18 +804,18 @@ class RecoverService:
             self._add_recovered(entry, ga_ids)
 
     def apply_to_project(self) -> int:
-        """Write every not-yet-added recovered device into the open project, retrying the
-        ones an earlier attempt could not add; returns how many were added."""
+        """Write every selected recovered device not yet added into the open project, retrying
+        the ones an earlier attempt could not add; returns how many were added."""
         added, _failed = self._apply_pending()
         return added
 
     def _apply_pending(self) -> tuple[int, int]:
-        """Add every not-yet-added recovered device; returns (added, failed)."""
+        """Add every selected recovered device not yet added; returns (added, failed)."""
         ga_ids: dict[int, int] = {}
         added = 0
         failed = 0
-        for entry in self.entries:
-            if entry.applied or entry.recovered is None or entry.application is None:
+        for entry in self.chosen():
+            if entry.applied or entry.application is None:
                 continue
             if entry.product_ref_id is None:
                 continue
@@ -785,7 +845,7 @@ class RecoverService:
         return added
 
     def create_project_and_apply(self, path: Any) -> int:
-        """Create a fresh project at ``path`` and add every recovered device to it."""
+        """Create a fresh project at ``path`` and add every selected recovered device to it."""
         from editor_gui.plugins.recover.strings import S
 
         # Live auto-apply may have added devices to a previously-open project; the

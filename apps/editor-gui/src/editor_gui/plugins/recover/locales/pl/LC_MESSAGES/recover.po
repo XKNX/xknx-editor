@@ -28,8 +28,8 @@ msgstr "Dodaj do otwartego projektu po odczytaniu"
 msgid "Recover Selected"
 msgstr "Odzyskaj wybrane"
 
-msgid "Create New Project"
-msgstr "Utwórz nowy projekt"
+msgid "Create New Project…"
+msgstr "Utwórz nowy projekt…"
 
 msgid "Add to Open Project"
 msgstr "Dodaj do otwartego projektu"
@@ -37,8 +37,8 @@ msgstr "Dodaj do otwartego projektu"
 msgid "Verify (Read-Only)"
 msgstr "Weryfikuj (tylko odczyt)"
 
-msgid "Export Snapshot"
-msgstr "Eksportuj migawkę"
+msgid "Export Snapshot…"
+msgstr "Eksportuj migawkę…"
 
 msgid "Verifying (re-reading and comparing)…"
 msgstr "Weryfikacja (ponowny odczyt i porównanie)…"
@@ -228,3 +228,21 @@ msgid_plural "Verify: %(count)d bytes differ"
 msgstr[0] "Sprawdzenie: różni się %(count)d bajt"
 msgstr[1] "Sprawdzenie: różnią się %(count)d bajty"
 msgstr[2] "Sprawdzenie: różni się %(count)d bajtów"
+
+msgid "Import Snapshot…"
+msgstr "Importuj migawkę…"
+
+msgid "Imported %(count)d device from %(file)s."
+msgid_plural "Imported %(count)d devices from %(file)s."
+msgstr[0] "Zaimportowano %(count)d urządzenie z %(file)s."
+msgstr[1] "Zaimportowano %(count)d urządzenia z %(file)s."
+msgstr[2] "Zaimportowano %(count)d urządzeń z %(file)s."
+
+msgid "%(file)s is no recovery snapshot: %(error)s"
+msgstr "%(file)s nie jest migawką odzyskiwania: %(error)s"
+
+msgid "Recovery Snapshot (*.json)"
+msgstr "Migawka odzyskiwania (*.json)"
+
+msgid "All Files"
+msgstr "Wszystkie pliki"

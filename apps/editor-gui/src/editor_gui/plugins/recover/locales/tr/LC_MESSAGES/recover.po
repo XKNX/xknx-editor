@@ -28,8 +28,8 @@ msgstr "Okunduğunda Açık Projeye Ekle"
 msgid "Recover Selected"
 msgstr "Seçilenleri Kurtar"
 
-msgid "Create New Project"
-msgstr "Yeni Proje Oluştur"
+msgid "Create New Project…"
+msgstr "Yeni Proje Oluştur…"
 
 msgid "Add to Open Project"
 msgstr "Açık Projeye Ekle"
@@ -37,8 +37,8 @@ msgstr "Açık Projeye Ekle"
 msgid "Verify (Read-Only)"
 msgstr "Doğrula (Salt Okunur)"
 
-msgid "Export Snapshot"
-msgstr "Anlık Görüntüyü Dışa Aktar"
+msgid "Export Snapshot…"
+msgstr "Anlık Görüntüyü Dışa Aktar…"
 
 msgid "Verifying (re-reading and comparing)…"
 msgstr "Doğrulanıyor (yeniden okunuyor ve karşılaştırılıyor)…"
@@ -202,3 +202,19 @@ msgstr[0] "%(count)d grup nesnesi"
 msgid "Verify: %(count)d byte differs"
 msgid_plural "Verify: %(count)d bytes differ"
 msgstr[0] "Doğrulama: %(count)d bayt farklı"
+
+msgid "Import Snapshot…"
+msgstr "Anlık Görüntüyü İçe Aktar…"
+
+msgid "Imported %(count)d device from %(file)s."
+msgid_plural "Imported %(count)d devices from %(file)s."
+msgstr[0] "%(file)s dosyasından %(count)d cihaz içe aktarıldı."
+
+msgid "%(file)s is no recovery snapshot: %(error)s"
+msgstr "%(file)s bir kurtarma anlık görüntüsü değil: %(error)s"
+
+msgid "Recovery Snapshot (*.json)"
+msgstr "Kurtarma Anlık Görüntüsü (*.json)"
+
+msgid "All Files"
+msgstr "Tüm Dosyalar"

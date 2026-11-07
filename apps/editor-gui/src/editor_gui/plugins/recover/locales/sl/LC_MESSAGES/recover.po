@@ -34,8 +34,8 @@ msgstr "Dodaj v odprti projekt ob branju"
 msgid "Recover Selected"
 msgstr "Obnovi izbrane"
 
-msgid "Create New Project"
-msgstr "Ustvari nov projekt"
+msgid "Create New Project…"
+msgstr "Ustvari nov projekt…"
 
 msgid "Add to Open Project"
 msgstr "Dodaj v odprti projekt"
@@ -43,8 +43,8 @@ msgstr "Dodaj v odprti projekt"
 msgid "Verify (Read-Only)"
 msgstr "Preveri (samo branje)"
 
-msgid "Export Snapshot"
-msgstr "Izvozi posnetek stanja"
+msgid "Export Snapshot…"
+msgstr "Izvozi posnetek stanja…"
 
 msgid "Verifying (re-reading and comparing)…"
 msgstr "Preverjanje (ponovno branje in primerjava)…"
@@ -247,3 +247,22 @@ msgstr[0] "Preverjanje: razlikuje se %(count)d bajt"
 msgstr[1] "Preverjanje: razlikujeta se %(count)d bajta"
 msgstr[2] "Preverjanje: razlikujejo se %(count)d bajti"
 msgstr[3] "Preverjanje: razlikuje se %(count)d bajtov"
+
+msgid "Import Snapshot…"
+msgstr "Uvozi posnetek stanja…"
+
+msgid "Imported %(count)d device from %(file)s."
+msgid_plural "Imported %(count)d devices from %(file)s."
+msgstr[0] "Uvožena %(count)d naprava iz %(file)s."
+msgstr[1] "Uvoženi %(count)d napravi iz %(file)s."
+msgstr[2] "Uvožene %(count)d naprave iz %(file)s."
+msgstr[3] "Uvoženih %(count)d naprav iz %(file)s."
+
+msgid "%(file)s is no recovery snapshot: %(error)s"
+msgstr "%(file)s ni posnetek stanja obnovitve: %(error)s"
+
+msgid "Recovery Snapshot (*.json)"
+msgstr "Posnetek stanja obnovitve (*.json)"
+
+msgid "All Files"
+msgstr "Vse datoteke"

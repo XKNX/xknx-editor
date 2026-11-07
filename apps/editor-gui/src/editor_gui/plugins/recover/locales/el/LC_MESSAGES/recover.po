@@ -28,8 +28,8 @@ msgstr "Προσθήκη στο Ανοιχτό Έργο κατά την Ανάγ
 msgid "Recover Selected"
 msgstr "Ανάκτηση Επιλεγμένων"
 
-msgid "Create New Project"
-msgstr "Δημιουργία Νέου Έργου"
+msgid "Create New Project…"
+msgstr "Δημιουργία Νέου Έργου…"
 
 msgid "Add to Open Project"
 msgstr "Προσθήκη στο Ανοιχτό Έργο"
@@ -37,8 +37,8 @@ msgstr "Προσθήκη στο Ανοιχτό Έργο"
 msgid "Verify (Read-Only)"
 msgstr "Επαλήθευση (Μόνο Ανάγνωση)"
 
-msgid "Export Snapshot"
-msgstr "Εξαγωγή Στιγμιότυπου"
+msgid "Export Snapshot…"
+msgstr "Εξαγωγή Στιγμιότυπου…"
 
 msgid "Verifying (re-reading and comparing)…"
 msgstr "Επαλήθευση (εκ νέου ανάγνωση και σύγκριση)…"
@@ -215,3 +215,20 @@ msgid "Verify: %(count)d byte differs"
 msgid_plural "Verify: %(count)d bytes differ"
 msgstr[0] "Επαλήθευση: διαφέρει %(count)d byte"
 msgstr[1] "Επαλήθευση: διαφέρουν %(count)d byte"
+
+msgid "Import Snapshot…"
+msgstr "Εισαγωγή Στιγμιότυπου…"
+
+msgid "Imported %(count)d device from %(file)s."
+msgid_plural "Imported %(count)d devices from %(file)s."
+msgstr[0] "Εισήχθη %(count)d συσκευή από το %(file)s."
+msgstr[1] "Εισήχθησαν %(count)d συσκευές από το %(file)s."
+
+msgid "%(file)s is no recovery snapshot: %(error)s"
+msgstr "Το %(file)s δεν είναι στιγμιότυπο ανάκτησης: %(error)s"
+
+msgid "Recovery Snapshot (*.json)"
+msgstr "Στιγμιότυπο Ανάκτησης (*.json)"
+
+msgid "All Files"
+msgstr "Όλα τα αρχεία"

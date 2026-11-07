@@ -28,8 +28,8 @@ msgstr "Lisää avoimeen projektiin luettaessa"
 msgid "Recover Selected"
 msgstr "Palauta valitut"
 
-msgid "Create New Project"
-msgstr "Luo uusi projekti"
+msgid "Create New Project…"
+msgstr "Luo uusi projekti…"
 
 msgid "Add to Open Project"
 msgstr "Lisää avoimeen projektiin"
@@ -37,8 +37,8 @@ msgstr "Lisää avoimeen projektiin"
 msgid "Verify (Read-Only)"
 msgstr "Varmista (vain luku)"
 
-msgid "Export Snapshot"
-msgstr "Vie tilannevedos"
+msgid "Export Snapshot…"
+msgstr "Vie tilannevedos…"
 
 msgid "Verifying (re-reading and comparing)…"
 msgstr "Varmistetaan (luetaan uudelleen ja verrataan)…"
@@ -215,3 +215,20 @@ msgid "Verify: %(count)d byte differs"
 msgid_plural "Verify: %(count)d bytes differ"
 msgstr[0] "Tarkistus: %(count)d tavu poikkeaa"
 msgstr[1] "Tarkistus: %(count)d tavua poikkeaa"
+
+msgid "Import Snapshot…"
+msgstr "Tuo tilannevedos…"
+
+msgid "Imported %(count)d device from %(file)s."
+msgid_plural "Imported %(count)d devices from %(file)s."
+msgstr[0] "Tuotiin %(count)d laite tiedostosta %(file)s."
+msgstr[1] "Tuotiin %(count)d laitetta tiedostosta %(file)s."
+
+msgid "%(file)s is no recovery snapshot: %(error)s"
+msgstr "%(file)s ei ole palautuksen tilannevedos: %(error)s"
+
+msgid "Recovery Snapshot (*.json)"
+msgstr "Palautuksen tilannevedos (*.json)"
+
+msgid "All Files"
+msgstr "Kaikki tiedostot"

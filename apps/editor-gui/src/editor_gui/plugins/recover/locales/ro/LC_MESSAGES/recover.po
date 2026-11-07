@@ -34,8 +34,8 @@ msgstr "Adăugare la proiectul deschis la citire"
 msgid "Recover Selected"
 msgstr "Recuperare selecție"
 
-msgid "Create New Project"
-msgstr "Creare proiect nou"
+msgid "Create New Project…"
+msgstr "Creare proiect nou…"
 
 msgid "Add to Open Project"
 msgstr "Adăugare la proiectul deschis"
@@ -43,8 +43,8 @@ msgstr "Adăugare la proiectul deschis"
 msgid "Verify (Read-Only)"
 msgstr "Verificare (doar citire)"
 
-msgid "Export Snapshot"
-msgstr "Export instantaneu"
+msgid "Export Snapshot…"
+msgstr "Export instantaneu…"
 
 msgid "Verifying (re-reading and comparing)…"
 msgstr "Se verifică (recitire și comparare)…"
@@ -234,3 +234,21 @@ msgid_plural "Verify: %(count)d bytes differ"
 msgstr[0] "Verificare: %(count)d octet diferă"
 msgstr[1] "Verificare: %(count)d octeți diferă"
 msgstr[2] "Verificare: %(count)d de octeți diferă"
+
+msgid "Import Snapshot…"
+msgstr "Import instantaneu…"
+
+msgid "Imported %(count)d device from %(file)s."
+msgid_plural "Imported %(count)d devices from %(file)s."
+msgstr[0] "S-a importat %(count)d dispozitiv din %(file)s."
+msgstr[1] "S-au importat %(count)d dispozitive din %(file)s."
+msgstr[2] "S-au importat %(count)d de dispozitive din %(file)s."
+
+msgid "%(file)s is no recovery snapshot: %(error)s"
+msgstr "%(file)s nu este un instantaneu de recuperare: %(error)s"
+
+msgid "Recovery Snapshot (*.json)"
+msgstr "Instantaneu de recuperare (*.json)"
+
+msgid "All Files"
+msgstr "Toate fișierele"
