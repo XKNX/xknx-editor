@@ -3165,6 +3165,11 @@ class ProjectPlugin:
     # --- programming queue (UI-thread facade for main.py / the queue panel) ---
     def tick_program_queue(self) -> None:
         self._program_queue.tick()
+        # A bus operation the queue had no entry for (a recovery, a scan …) goes to its history
+        # once it has ended.
+        for ended in self._api.connection.take_ended_operations():
+            if _unqueued((ended.kind, ended.address)) is not None:
+                self._program_queue.record_bus_operation(ended)
 
     def take_operations_focus(self) -> bool:
         """Whether an operation was queued, or a bus operation without a queue entry started (a

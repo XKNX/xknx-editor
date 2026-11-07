@@ -134,7 +134,11 @@ class ProgramQueuePanel:
         if item.state is OperationState.FAILED:
             _warning_icon()
             imgui.same_line()
-        imgui.text(f"{item.address} {item.name}".strip())
+        imgui.text(
+            bus_operation_text(*item.bus_operation)
+            if item.bus_operation is not None
+            else f"{item.address} {item.name}".strip()
+        )
         if item.origin is not None:
             imgui.same_line()
             imgui.text_disabled(item.origin)
@@ -150,8 +154,11 @@ class ProgramQueuePanel:
         failed = item.state is OperationState.FAILED
         if failed:
             imgui.push_style_color(imgui.Col_.text, _RED)
+        state = state_text(item, self._is_connecting(item))
+        # A bus operation is named in the line above already.
         is_open = imgui.tree_node_ex(
-            f"{operation_text(item)}: {state_text(item, self._is_connecting(item))}###status",
+            f"{state if item.bus_operation is not None else f'{operation_text(item)}: {state}'}"
+            "###status",
             imgui.TreeNodeFlags_.span_avail_width,
         )
         if failed:
@@ -306,6 +313,8 @@ def _tab_flags(selected: bool) -> int:
 
 def operation_text(item: QueueItem) -> str:
     """What an operation of the queue does, as its entry names it ("Download (Parameters)")."""
+    if item.bus_operation is not None:
+        return bus_operation_text(*item.bus_operation)
     if item.script is not None:
         return S.SCRIPT_OPERATION
     if item.action is not None:

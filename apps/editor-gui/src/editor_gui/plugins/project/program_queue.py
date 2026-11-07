@@ -25,7 +25,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import TYPE_CHECKING, Any
 
-from editor_gui.plugins.connection.service import OperationNotStarted
+from editor_gui.plugins.connection.service import EndedBusOperation, OperationNotStarted
 from editor_gui.plugins.project.strings import S
 from xknxeditor.download.partial import FullDownloadDeclined
 from xknxeditor.prod.script import AbortToken, ScriptAborted
@@ -135,6 +135,9 @@ class QueueItem:
     # Resolved with the item once it has ended (finished, failed or canceled), for a caller that
     # waits for the outcome (an MCP tool).
     ended: Future[QueueItem] | None = field(default=None, repr=False)
+    # A bus operation the queue had no entry for (a recovery, a scan …), kept in the history as
+    # it ended: its kind and address (see ``ConnectionService.begin_operation``).
+    bus_operation: tuple[str, str] | None = None
 
 
 # The origin of an operation an MCP client started.
@@ -262,6 +265,28 @@ class ProgramQueue:
 
     def clear_history(self) -> None:
         self._history.clear()
+
+    def record_bus_operation(self, ended: EndedBusOperation) -> None:
+        """Keep a bus operation the queue had no entry for (a recovery, a scan …) in the history,
+        as it ended."""
+        state = {
+            "canceled": OperationState.CANCELED,
+            "failed": OperationState.FAILED,
+        }.get(ended.outcome, OperationState.FINISHED)
+        self._history.insert(
+            0,
+            QueueItem(
+                node_id=0,
+                address="",
+                name="",
+                scope=None,
+                state=state,
+                message=ended.message,
+                started_at=ended.started_at,
+                ended_at=ended.ended_at,
+                bus_operation=(ended.kind, ended.address),
+            ),
+        )
 
     def cancel_current(self) -> None:
         """Cancel the running operation. A parameter script is asked to stop and decides itself
