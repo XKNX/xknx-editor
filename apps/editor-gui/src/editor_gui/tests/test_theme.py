@@ -190,4 +190,3 @@ def test_status_colors_read_on_light_and_dark_windows(kind: str) -> None:
     on_dark = theme.status_color(kind)
     # Dark on a white window, light on a dark one.
     assert theme._luminance(on_light) < 0.5 < theme._luminance(on_dark)  # pyright: ignore[reportPrivateUsage]
-
