@@ -26,7 +26,15 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 from xknxproject.exceptions import InvalidPasswordException, XknxProjectException
 
-from editor_gui import __version__, feedback, file_dialogs, host, self_update, web
+from editor_gui import (
+    __version__,
+    build_info,
+    feedback,
+    file_dialogs,
+    host,
+    self_update,
+    web,
+)
 from editor_gui import signing_key as signing_key_store
 from editor_gui import trace_key as trace_key_store
 from editor_gui.cache import (
@@ -4374,7 +4382,7 @@ class KnxGuiApp:
         if not begin_dialog(S.ABOUT_TITLE, width=420.0):
             return
         imgui.text(S.APP_TITLE)
-        imgui.text_disabled(S.ABOUT_VERSION.format(version=__version__))
+        imgui.text_disabled(S.ABOUT_VERSION.format(version=build_info.version_text()))
         imgui.spacing()
         imgui.text_wrapped(S.ABOUT_TEXT)
         imgui.spacing()

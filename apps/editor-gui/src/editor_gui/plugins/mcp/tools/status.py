@@ -29,7 +29,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         version, how it runs and where (the values a bug report asks for, see
         ``feedback_links``). ``capabilities`` lists the download scopes, com-object flags, and (when
         a project is open) the group-address style that other tools accept."""
-        from editor_gui import __version__, feedback
+        from editor_gui import __version__, build_info, feedback
         from xknxeditor.download.scope import DownloadScope
 
         def _project() -> dict[str, Any]:
@@ -46,6 +46,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         return {
             "editor": {
                 "version": __version__,
+                "commit": build_info.commit(),
                 "installation": feedback.installation(),
                 "operating_system": feedback.operating_system(),
             },

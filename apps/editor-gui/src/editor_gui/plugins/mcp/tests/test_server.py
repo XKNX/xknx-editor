@@ -20,7 +20,7 @@ from xknx.dpt import DPTBinary
 from xknx.telegram import GroupAddress, IndividualAddress, Telegram
 from xknx.telegram.apci import DeviceDescriptorRead, GroupValueWrite
 
-from editor_gui import __version__, feedback
+from editor_gui import __version__, build_info, feedback
 from editor_gui.plugins.base import API_VERSION, Logger, PluginAPI
 from editor_gui.plugins.catalog.service import CatalogService
 from editor_gui.plugins.connection.service import ConnectionService
@@ -207,6 +207,7 @@ async def test_full_edit_flow(tmp_path: Path) -> None:
         assert "FULL" in st["capabilities"]["download_scopes"]
         assert st["editor"] == {
             "version": __version__,
+            "commit": build_info.commit(),
             "installation": feedback.installation(),
             "operating_system": feedback.operating_system(),
         }
