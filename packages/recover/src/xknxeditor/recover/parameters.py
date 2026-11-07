@@ -22,7 +22,7 @@ from __future__ import annotations
 
 from collections import Counter
 from collections.abc import Callable, Collection, Mapping
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum
 from itertools import count
 from typing import TYPE_CHECKING
@@ -59,12 +59,31 @@ class RecoveredParameters:
     # The search stopped at the limit of its effort, or was cancelled, with values left to try:
     # more effort may find a result that fits the device.
     limited: bool = False
+    # Of ``unknown``, those whose type cannot give back a value from bytes at all (a lossy
+    # encoding, such as an HSV colour or a date without its year).
+    lossy: list[str] = field(default_factory=list[str])
 
     @property
     def complete(self) -> bool:
         """Whether the recovered values write the memory the device holds and show the group
         objects its tables link."""
         return not (self.differing_bytes or self.differing_objects)
+
+    @property
+    def not_found(self) -> list[str]:
+        """Of ``unknown``, those whose bytes are no value of their type while the result still
+        differs from the device: read with another configuration, they may be (more effort)."""
+        if self.complete:
+            return []
+        lossy = set(self.lossy)
+        return [key for key in self.unknown if key not in lossy]
+
+    @property
+    def unrecoverable(self) -> list[str]:
+        """Of ``unknown``, those the device does not hold a value of: a lossy type, or bytes
+        that are no value of the type although the result fits the device."""
+        not_found = set(self.not_found)
+        return [key for key in self.unknown if key not in not_found]
 
 
 # Decoding rounds at most: each one can only change which alternatives own memory.
@@ -396,7 +415,7 @@ def _refine(
         if fit is not None and fit[1]:
             stored = seeded.stored_parameter_cells().keys() | _written_cells(seeded)
             fit = (fit[0], fit[1] & stored, fit[2])
-        return _with_misfit(values, unknown, fit, limited=limited)
+        return _with_misfit(values, unknown, fit, seeded, limited=limited)
 
     current = misfit(ui)
     if current is None or not current[0]:
@@ -495,22 +514,49 @@ def _with_misfit(
     values: dict[str, str],
     unknown: list[str],
     misfit: tuple[int, set[_Cell], set[int]] | None,
+    seeded: DynamicUI,
     *,
     limited: bool,
 ) -> RecoveredParameters:
     """The result with how far it differs from the device (``misfit``: its score, the bytes it
     writes otherwise and the group objects it shows otherwise; ``None`` when it cannot be
-    encoded, which tells nothing)."""
+    encoded, which tells nothing), and which of the unknown parameters ``seeded`` has a lossy
+    type."""
+    lossy = _lossy(seeded, unknown)
     if misfit is None:
-        return RecoveredParameters(values=values, unknown=unknown)
+        return RecoveredParameters(values=values, unknown=unknown, lossy=lossy)
     _score, differing, wrong = misfit
     return RecoveredParameters(
         values=values,
         unknown=unknown,
+        lossy=lossy,
         differing_bytes=len(differing),
         differing_objects=len(wrong),
         limited=limited and bool(differing or wrong),
     )
+
+
+def _lossy(ui: DynamicUI, unknown: Collection[str]) -> list[str]:
+    """The parameters of ``unknown`` (top-level ones by id, those of module instances by their
+    qualified param-ref) whose type cannot give back a value from bytes at all."""
+    from xknxeditor.prod.parser_v2.encode import decodable_type, type_size_in_bit
+
+    if not unknown:
+        return []
+    indexer = ui.indexer
+    lossy: list[str] = []
+    for key in unknown:
+        parameter = indexer.parameters.get(key)
+        if parameter is None:
+            ref = indexer.parameter_refs.get(ui.local_ref_id(key))
+            parameter = indexer.parameters.get(ref.ref_id) if ref is not None else None
+        type_id = getattr(parameter, "parameter_type", None)
+        parameter_type = indexer.parameter_types.get(type_id) if type_id else None
+        if parameter_type is None or not decodable_type(
+            parameter_type.choice, type_size_in_bit(parameter_type.choice) or 0
+        ):
+            lossy.append(key)
+    return lossy
 
 
 def _decode(

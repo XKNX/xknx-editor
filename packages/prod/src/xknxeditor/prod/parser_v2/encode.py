@@ -1411,6 +1411,37 @@ def _decode_float(raw: int, size_in_bit: int, tc: ParameterTypeTypeFloat) -> str
     return None
 
 
+def decodable_type(tc: object, size_in_bit: int) -> bool:
+    """Whether the bytes of a parameter of this type and size can give back its value at all
+    (see :func:`_decode_value`): not for a lossy encoding (HSV colour, a date without its year),
+    a text, address, colour or raw-data field that does not fill whole octets, or a float of
+    another size than its encoding has. A decodable type can still have bytes that are no
+    value of it."""
+    octets = size_in_bit > 0 and not size_in_bit % 8
+    if isinstance(
+        tc,
+        ParameterTypeTypeRestriction | ParameterTypeTypeNumber | ParameterTypeTypeTime,
+    ):
+        return True
+    if isinstance(tc, ParameterTypeTypeFloat):
+        return (tc.encoding, size_in_bit) in (
+            (ParameterTypeTypeFloatEncoding.DPT_9, 16),
+            (ParameterTypeTypeFloatEncoding.IEEE_754_SINGLE, 32),
+            (ParameterTypeTypeFloatEncoding.IEEE_754_DOUBLE, 64),
+        )
+    if isinstance(tc, ParameterTypeTypeText | ParameterTypeTypeRawData):
+        return octets
+    if isinstance(tc, ParameterTypeTypeIpaddress):
+        return size_in_bit in (32, 128)
+    if isinstance(tc, ParameterTypeTypeDate):
+        return tc.display_the_year is not False
+    if isinstance(tc, ParameterTypeTypeColor):
+        return (
+            octets and size_in_bit >= 24 and tc.space != ParameterTypeTypeColorSpace.HSV
+        )
+    return False
+
+
 def _decode_value(
     raw: int,
     size_in_bit: int,
