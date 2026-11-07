@@ -82,15 +82,22 @@ class Project(Base):
     knx_master_xml: Mapped[bytes | None] = mapped_column(
         LargeBinary, nullable=True, deferred=True
     )
-    # The project's product data (``M-XXXX/*`` and ``M-XXXX.signature`` members) as a ZIP blob, so
-    # the project carries what its devices need and opens with them editable on any computer. An
-    # imported ``.knxproj`` brings its manufacturer members, stored exactly as the archive carried
-    # them: the authoring tool re-issues product ids on import, so resolving them through the catalog
-    # on export misses most folders, and re-emitting these members keeps a re-exported project
-    # importable. The data of each device added in the editor is added from the product file it came
-    # from (:meth:`~xknxeditor.proj.core.service.ProjectService.add_product_data`). ``None`` while
-    # no device has product data here (e.g. a new project).
-    product_members: Mapped[bytes | None] = mapped_column(
+    # The imported archive's manufacturer product data (``M-XXXX/*`` and ``M-XXXX.signature``
+    # members), stored as a ZIP blob exactly as the source carried it. The authoring tool re-issues
+    # product ids on import, so resolving them through the catalog on export misses most folders;
+    # re-emitting these original members keeps a re-exported project importable. ``None`` when the
+    # project was not imported from a ``.knxproj`` (e.g. created from scratch) or carried no
+    # manufacturer data. Written once: it can be large, so what devices need beyond it goes into
+    # ``added_product_members``.
+    imported_product_members: Mapped[bytes | None] = mapped_column(
+        LargeBinary, nullable=True, deferred=True
+    )
+    # The product data of the devices the imported members do not cover (added in the editor, or
+    # given another application program), as a ZIP blob of ``M-XXXX/*`` members taken from the
+    # product files they came from: only what those devices use. With both, the project carries the
+    # product data of every device and opens with them editable on any computer
+    # (:meth:`~xknxeditor.proj.core.service.ProjectService.add_product_data`).
+    added_product_members: Mapped[bytes | None] = mapped_column(
         LargeBinary, nullable=True, deferred=True
     )
     # The other files of the imported archive's project folder (eg. attached user files or data of

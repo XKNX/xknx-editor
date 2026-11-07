@@ -126,6 +126,21 @@ def _is_manufacturer_file(name: str) -> bool:
     )
 
 
+def merge_members(
+    base: Mapping[str, bytes], extra: Mapping[str, bytes]
+) -> dict[str, bytes]:
+    """``base`` plus the members of ``extra`` it lacks; a manufacturer file both have gets what
+    ``extra``'s adds (:func:`merge_manufacturer_xml`), other files of the same name are the same data
+    and stay as in ``base``."""
+    result = dict(base)
+    for name, data in extra.items():
+        if name not in result:
+            result[name] = data
+        elif _is_manufacturer_file(name):
+            result[name] = merge_manufacturer_xml(result[name], data)
+    return result
+
+
 def defined_programs(members: Mapping[str, bytes]) -> set[str]:
     """Every ``Hardware2Program`` id the members' ``Hardware.xml`` files declare."""
     programs: set[str] = set()

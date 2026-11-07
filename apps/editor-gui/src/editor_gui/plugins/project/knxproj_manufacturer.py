@@ -52,18 +52,33 @@ def collect_manufacturer_bundle(
       ``knx_master.xml`` (or ``None`` if nothing resolved), and bookkeeping of what was resolved
       or skipped.
     """
-    bundle = ManufacturerBundle()
+    needed, skipped = program_sources(program_refs, catalog)
+    bundle = read_manufacturer_bundle(needed)
+    bundle.skipped_refs |= skipped
+    return bundle
 
-    # Map each source .knxprod to the manufacturer ids we need from it.
+
+def program_sources(
+    program_refs: Iterable[str], catalog: CatalogService
+) -> tuple[dict[str, set[str]], set[str]]:
+    """Each source ``.knxprod`` the catalog has the given hardware-program refs from, with the
+    manufacturer ids needed from it, and the refs it has no source of."""
     needed: dict[str, set[str]] = {}
+    skipped: set[str] = set()
     for ref in program_refs:
         source = catalog.get_program_source(ref)
         if source is None:
-            bundle.skipped_refs.add(ref)
+            skipped.add(ref)
             continue
         knxprod_path, manufacturer_id = source
         needed.setdefault(knxprod_path, set()).add(manufacturer_id)
+    return needed, skipped
 
+
+def read_manufacturer_bundle(needed: dict[str, set[str]]) -> ManufacturerBundle:
+    """The manufacturer archive members of ``needed`` (see :func:`program_sources`), read from the
+    files alone: it needs no catalog, so it can run without the shared lock."""
+    bundle = ManufacturerBundle()
     masters: list[bytes] = []
     for knxprod_path, manufacturer_ids in needed.items():
         try:

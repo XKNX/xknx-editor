@@ -6,6 +6,8 @@ removed data has to be imported again when such a product is added later.
 
 from __future__ import annotations
 
+import io
+import zipfile
 from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
@@ -84,9 +86,38 @@ def used_product_ids(session: Session) -> UsedProductIds:
     )
 
 
+# The project's stored product data: what an imported archive brought, and what devices added in
+# the editor use beyond it.
+_IMPORTED = "imported_product_members"
+_ADDED = "added_product_members"
+
+
+def _combined(a: ProductPruneReport, b: ProductPruneReport) -> ProductPruneReport:
+    """One report of what two prunes removed."""
+    return ProductPruneReport(
+        application_programs=a.application_programs + b.application_programs,
+        hardware=a.hardware + b.hardware,
+        products=a.products + b.products,
+        catalog_items=a.catalog_items + b.catalog_items,
+        baggages=a.baggages + b.baggages,
+        manufacturers=a.manufacturers + b.manufacturers,
+        removed_members=a.removed_members + b.removed_members,
+        changed_members=a.changed_members + b.changed_members,
+        names={**a.names, **b.names},
+        size_before=a.size_before + b.size_before,
+        size_after=a.size_after + b.size_after,
+    )
+
+
+def _has_members(blob: bytes) -> bool:
+    with zipfile.ZipFile(io.BytesIO(blob)) as zf:
+        return any(not name.endswith("/") for name in zf.namelist())
+
+
 def _pruned(
     session: Session, progress: ProgressCallback | None
-) -> tuple[Project, bytes | None, ProductPruneReport]:
+) -> tuple[Project, dict[str, bytes | None], ProductPruneReport]:
+    """The project, the new value of each stored product data column that changes, and the report."""
     if progress is not None:
         progress(STEP_DEVICES, 0, 1)
     project = session.query(Project).first()
@@ -95,17 +126,27 @@ def _pruned(
     used = used_product_ids(session)
     if progress is not None:
         progress(STEP_DEVICES, 1, 1)
-    blob = project.product_members
-    if not blob:
-        return project, None, ProductPruneReport()
-    new_blob, report = prune_product_blob(
-        blob,
-        used.products,
-        used.hardware2programs,
-        used.applications,
-        progress=progress,
-    )
-    return project, (None if report.nothing_removed else new_blob), report
+    changes: dict[str, bytes | None] = {}
+    report = ProductPruneReport()
+    for column in (_IMPORTED, _ADDED):
+        blob: bytes | None = getattr(project, column)
+        if not blob:
+            continue
+        new_blob, part = prune_product_blob(
+            blob,
+            used.products,
+            used.hardware2programs,
+            used.applications,
+            progress=progress,
+        )
+        report = _combined(report, part)
+        if part.nothing_removed:
+            continue
+        # Added data no device uses any more is gone with them.
+        changes[column] = (
+            None if column == _ADDED and not _has_members(new_blob) else new_blob
+        )
+    return project, changes, report
 
 
 def _free_bytes(session: Session) -> int:
@@ -118,8 +159,8 @@ def analyse_compaction(
     session: Session, path: Path, progress: ProgressCallback | None = None
 ) -> CompactResult:
     """Report what :func:`compact_project` would remove, without changing anything."""
-    project, _blob, report = _pruned(session, progress)
-    session.expire(project, ["product_members"])
+    project, _changes, report = _pruned(session, progress)
+    session.expire(project, [_IMPORTED, _ADDED])
     before = path.stat().st_size
     saved = report.size_before - report.size_after + _free_bytes(session)
     return CompactResult(report, before, max(0, before - saved), applied=False)
@@ -146,13 +187,13 @@ def compact_project(
     session.commit()
     before = path.stat().st_size
     try:
-        project, new_blob, report = _pruned(session, step)
+        project, changes, report = _pruned(session, step)
         step(STEP_STORE, 0, 1)
     except CompactCancelled:
         session.expire_all()
         raise
-    if new_blob is not None:
-        project.product_members = new_blob
+    for column, blob in changes.items():
+        setattr(project, column, blob)
     session.commit()
     if progress is not None:
         progress(STEP_STORE, 1, 1)

@@ -76,7 +76,9 @@ def test_device_without_application_stays_listed(tmp_path: Path) -> None:
     path, device_id, program = _project_with_device(tmp_path)
     # Neither the catalog nor the project (which otherwise carries it) has the product data.
     with sqlite3.connect(path) as db:
-        db.execute("UPDATE projects SET product_members = NULL")
+        db.execute(
+            "UPDATE projects SET imported_product_members = NULL, added_product_members = NULL"
+        )
 
     proj = _open(CatalogService(tmp_path / "empty.xknxcatalog"), path)
     assert proj.devices == []

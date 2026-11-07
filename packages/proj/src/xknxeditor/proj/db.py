@@ -82,24 +82,7 @@ def ensure_sqlite_writable(path: Path) -> None:
 # Bump when adding a non-additive migration below. Additive column adds are handled generically and
 # do not require a bump. Stamped into the file's ``PRAGMA user_version`` so future migrations can
 # branch on the version a file was last written with.
-SCHEMA_VERSION = 6
-
-
-def _rename_product_members(conn: Any) -> bool:
-    """Version 6: ``projects.imported_product_members`` becomes ``product_members``, as it holds the
-    product data of every device of the project now, not only what an imported archive brought.
-    Runs before the additive step, which would otherwise add the new column empty beside the old
-    one. Returns whether the column was renamed."""
-    have = {row[1] for row in conn.execute(text('PRAGMA table_info("projects")')).all()}
-    if "imported_product_members" not in have or "product_members" in have:
-        return False
-    conn.execute(
-        text(
-            'ALTER TABLE "projects" RENAME COLUMN "imported_product_members" '
-            'TO "product_members"'
-        )
-    )
-    return True
+SCHEMA_VERSION = 5
 
 
 def _devices_off_lines(conn: Any) -> bool:
@@ -348,10 +331,6 @@ def _migrate(engine: Engine) -> None:
     tables = set(inspector.get_table_names())
     added: list[str] = []
     with engine.begin() as conn:
-        renamed = "projects" in tables and _rename_product_members(conn)
-        if renamed:
-            added.append("projects.product_members (renamed)")
-            inspector = inspect(conn)
         for table in Base.metadata.sorted_tables:
             if table.name not in tables:
                 continue  # create_all just made it fresh with every column

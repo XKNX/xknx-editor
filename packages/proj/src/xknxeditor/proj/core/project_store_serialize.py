@@ -856,7 +856,7 @@ def _merge_tree(src: Path, dst: Path) -> None:
 
 
 def unzip_members(blob: bytes | None) -> dict[str, bytes]:
-    """Unpack a stored ZIP blob (e.g. ``Project.product_members``) into a member map."""
+    """Unpack a stored ZIP blob (e.g. ``Project.imported_product_members``) into a member map."""
     if not blob:
         return {}
     with zipfile.ZipFile(BytesIO(blob)) as zf:

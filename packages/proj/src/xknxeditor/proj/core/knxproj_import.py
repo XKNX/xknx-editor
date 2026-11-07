@@ -1671,7 +1671,7 @@ def _build(
         info_subtrees=extras.project_info_subtrees or None,
         extra_subtrees=extras.project_subtrees or None,
         knx_master_xml=knx_master_xml,
-        product_members=product_members,
+        imported_product_members=product_members,
         imported_project_files=extras.project_files,
         original_project_id=extras.source_project_id,
         last_used_puid=extras.last_used_puid,

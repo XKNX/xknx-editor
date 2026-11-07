@@ -1836,8 +1836,10 @@ class KnxGuiApp:
                     )
                     # Imported manufacturer data (ETS-reissued ids) wins; catalog members fill gaps
                     # for devices added from the catalog rather than imported.
-                    members = unzip_members(project.product_members)
-                    for name, data in catalog_members.items():
+                    members = unzip_members(project.imported_product_members)
+                    # The product data the project stores for added devices before the catalog's.
+                    added = unzip_members(project.added_product_members)
+                    for name, data in [*added.items(), *catalog_members.items()]:
                         members.setdefault(name, data)
                     if create_copy:
                         # A separate copy: free id, name tagged so it is distinguishable in ETS.
@@ -5138,6 +5140,7 @@ class KnxGuiApp:
         self._handle_editor_requests()
         self._settle_tab_order()
         self._project_service.take_rechecked_devices()
+        self._project_service.take_product_data()
         self._sync_device_section()
         self._sync_project_log()
         self._keep_selected_tab()

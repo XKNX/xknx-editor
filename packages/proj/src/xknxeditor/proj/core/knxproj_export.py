@@ -85,6 +85,7 @@ from xknxeditor.proj.core.knxproj_signing import (
 from xknxeditor.proj.core.manufacturer_xml import (
     DeviceProduct,
     combine_product_members,
+    merge_members,
 )
 from xknxeditor.proj.core.product_prune import (
     ProductPruneReport,
@@ -566,7 +567,7 @@ def _stored_provenance_sources(
     then realigns up to it. Otherwise the provenance is dropped and only the supplied master is used.
     The realignment is up-only: an explicit higher request is honoured and lower provenance dropped
     rather than silently downgrading the export's schema."""
-    stored_members = _unzip_members(project.product_members)
+    stored_members = _unzip_members(project.imported_product_members)
     stored_master = project.knx_master_xml
     if not stored_members and stored_master is None:
         return {}, master_xml, schema
@@ -596,8 +597,9 @@ def _resolve_export_sources(
 ) -> tuple[str, str, dict[str, bytes], bytes | None]:
     """Resolve the schema, namespace, manufacturer members and master XML the archive is built from.
 
-    Caller-supplied ``extra_files`` (the product files the devices were added from) add to the
-    project's stored import provenance what its devices need beyond it (``combine_product_members``),
+    The project's added product data and caller-supplied ``extra_files`` (the product files the
+    devices were added from) add to the project's stored import provenance what its devices need
+    beyond it (``combine_product_members``),
     and its stored master is kept when it fits the schema; without them the provenance is re-emitted
     (:func:`_stored_provenance_sources`). The project files (project.xml / 0.xml) and
     knx_master.xml share ONE schema, but each ``M-xxxx/`` manufacturer folder keeps its OWN original
@@ -605,10 +607,15 @@ def _resolve_export_sources(
     ``fetch_master`` the current one (:func:`_newest_master`) —, legacy (project/<=14)
     manufacturer members are converted up, and modern members at a different schema pass through
     verbatim (no mismatch error)."""
-    if extra_files:
+    # The product data the project stores for devices added in the editor comes first, the
+    # supplied files add what it lacks (e.g. a device whose product it could not store).
+    sources = merge_members(
+        _unzip_members(project.added_product_members), extra_files or {}
+    )
+    if sources:
         effective_extra = combine_product_members(
-            _unzip_members(project.product_members),
-            extra_files,
+            _unzip_members(project.imported_product_members),
+            sources,
             _device_products(project),
         )
         effective_master = _usable_master(project.knx_master_xml, schema) or master_xml

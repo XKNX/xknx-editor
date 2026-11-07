@@ -177,7 +177,11 @@ from xknxeditor.proj.core.ip_settings import (
     ASSIGNMENTS,
     parse_ipv4,
 )
-from xknxeditor.proj.core.manufacturer_xml import add_product_members, defined_programs
+from xknxeditor.proj.core.manufacturer_xml import (
+    DeviceProduct,
+    add_product_members,
+    defined_programs,
+)
 from xknxeditor.proj.core.medium import (
     MAX_LINES,
     MAX_SEGMENTS,
@@ -790,6 +794,49 @@ def _fill_additional_entries(entries: list[dict[str, Any]], used: set[int]) -> N
 class GroupAddressSecurityError(ValueError):
     """A link or Security mode would put a device that is not commissioned securely on a
     secured group address."""
+
+
+def grown_product_data(
+    added: bytes | None,
+    sources: Mapping[str, bytes],
+    devices: Iterable[DeviceProduct],
+    imported_programs: Collection[str],
+) -> bytes | None:
+    """The added product data ZIP ``added`` plus what ``devices`` use from ``sources`` (the members
+    of the product files they were added from), for the devices neither ``imported_programs`` (the
+    programs the imported data declares, which stays as it is) nor ``added`` cover; ``None`` when
+    nothing is added. Reads no project, so it can run without holding one."""
+    missing = [d for d in devices if d.hardware2program not in imported_programs]
+    members = unzip_members(added)
+    grown = add_product_members(members, sources, missing)
+    return None if grown == members else zip_members(grown)
+
+
+def declared_programs_of(blob: bytes | None) -> set[str]:
+    """The hardware programs the ``Hardware.xml`` files of a stored product data ZIP declare (the
+    application programs stay packed)."""
+    if not blob:
+        return set()
+    with zipfile.ZipFile(io.BytesIO(blob)) as zf:
+        return defined_programs(
+            {
+                name: zf.read(name)
+                for name in zf.namelist()
+                if name.endswith("/Hardware.xml")
+            }
+        )
+
+
+def _with_master(blob: bytes, master: bytes) -> bytes:
+    """A stored product data ZIP with ``knx_master.xml`` added, as a product archive. Appended, so the
+    other members are not packed again; with a fixed date, so the same data gives the same bytes."""
+    buffer = io.BytesIO(blob)
+    with zipfile.ZipFile(buffer, "a", zipfile.ZIP_DEFLATED) as zf:
+        if "knx_master.xml" not in zf.namelist():
+            info = zipfile.ZipInfo("knx_master.xml", date_time=(1980, 1, 1, 0, 0, 0))
+            info.compress_type = zipfile.ZIP_DEFLATED
+            zf.writestr(info, master)
+    return buffer.getvalue()
 
 
 class ProjectService:
@@ -4617,44 +4664,63 @@ class ProjectService:
     def product_data_programs(self, project_id: str) -> set[str]:
         """The hardware programs the project's product data declares: its devices with one of these
         load from the project alone, without the product in the catalog."""
-        blob = self.project(project_id).product_members
-        if not blob:
-            return set()
-        # Only the Hardware.xml files declare them: the application programs stay packed.
-        with zipfile.ZipFile(io.BytesIO(blob)) as zf:
-            hardware = {
-                name: zf.read(name)
-                for name in zf.namelist()
-                if name.endswith("/Hardware.xml")
-            }
-        return defined_programs(hardware)
+        return self.imported_product_programs(project_id) | declared_programs_of(
+            self.project(project_id).added_product_members
+        )
+
+    def imported_product_programs(self, project_id: str) -> set[str]:
+        """The hardware programs the imported product data declares."""
+        return declared_programs_of(self.project(project_id).imported_product_members)
+
+    def device_products(self, project_id: str) -> list[DeviceProduct]:
+        """The product data refs of each device of the project."""
+        return device_products(self._state(project_id).session)
+
+    def added_product_data(self, project_id: str) -> bytes | None:
+        """The stored product data of the devices the imported data does not cover (a ZIP)."""
+        return self.project(project_id).added_product_members
+
+    def set_added_product_data(self, project_id: str, blob: bytes | None) -> None:
+        """Store ``blob`` (see :func:`grown_product_data`) as the added product data. Not an
+        undoable step: the product data only grows here, and :meth:`compact` removes what no
+        device uses."""
+        state = self._state(project_id)
+        self.project(project_id).added_product_members = blob
+        state.session.commit()
 
     def add_product_data(self, project_id: str, sources: Mapping[str, bytes]) -> bool:
         """Add to the project's product data what its devices use from ``sources`` (the members of
-        the product files they were added from) and the project does not carry yet. Not an undoable
-        step: the product data only grows here, and :meth:`compact` removes what no device uses.
-        Returns whether anything was added."""
-        state = self._state(project_id)
-        project = self.project(project_id)
-        own = unzip_members(project.product_members)
-        merged = add_product_members(own, sources, device_products(state.session))
-        if merged == own:
+        the product files they were added from) and the project does not carry yet (see
+        :func:`grown_product_data`). Returns whether anything was added."""
+        blob = grown_product_data(
+            self.added_product_data(project_id),
+            sources,
+            self.device_products(project_id),
+            self.imported_product_programs(project_id),
+        )
+        if blob is None:
             return False
-        project.product_members = zip_members(merged)
-        state.session.commit()
+        self.set_added_product_data(project_id, blob)
         return True
 
-    def product_archive(
+    def product_archives(
         self, project_id: str, master_xml: bytes | None
-    ) -> bytes | None:
-        """The project's product data as a product archive the catalog imports, with the project's
-        own ``knx_master.xml`` or else ``master_xml``; ``None`` without product data or a master."""
+    ) -> list[bytes]:
+        """The project's product data as product archives the catalog imports, the imported and the
+        added members each with the project's own ``knx_master.xml`` or else ``master_xml``; empty
+        without product data or a master."""
         project = self.project(project_id)
         master = project.knx_master_xml or master_xml
-        members = unzip_members(project.product_members)
-        if not members or master is None:
-            return None
-        return zip_members({"knx_master.xml": master, **members})
+        if master is None:
+            return []
+        return [
+            _with_master(blob, master)
+            for blob in (
+                project.imported_product_members,
+                project.added_product_members,
+            )
+            if blob
+        ]
 
     # --- reads ------------------------------------------------------------
 

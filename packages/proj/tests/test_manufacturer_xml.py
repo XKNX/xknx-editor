@@ -10,6 +10,7 @@ from xknxeditor.proj.core.manufacturer_xml import (
     add_product_members,
     combine_product_members,
     defined_programs,
+    merge_members,
 )
 
 _NS = "http://knx.org/xml/project/23"
@@ -171,3 +172,14 @@ def test_a_project_without_own_data_stores_only_what_its_devices_use() -> None:
 def test_a_project_covering_its_devices_stores_nothing_more() -> None:
     devices = [_device("1", "One", "10", imported=False)]
     assert add_product_members(_OWN, _SOURCE, devices) == _OWN
+
+
+def test_merged_members_add_what_the_base_lacks() -> None:
+    merged = merge_members(_OWN, _SOURCE)
+    # The manufacturer files get the other's elements, other files stay as in the base.
+    assert defined_programs(merged) == defined_programs(_SOURCE)
+    assert _ids(merged[f"{_M}/Catalog.xml"], "CatalogItem") == _ids(
+        _SOURCE[f"{_M}/Catalog.xml"], "CatalogItem"
+    )
+    assert merged[_app("10")[0]] == _OWN[_app("10")[0]]
+    assert set(merged) == set(_SOURCE)

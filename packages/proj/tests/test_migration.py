@@ -9,7 +9,7 @@ from pathlib import Path
 from sqlalchemy import inspect
 
 from xknxeditor.proj.core.service import ProjectService
-from xknxeditor.proj.db import SCHEMA_VERSION, make_engine, url_for
+from xknxeditor.proj.db import make_engine, url_for
 
 
 def test_reopen_adds_missing_columns(tmp_path: Path) -> None:
@@ -214,32 +214,5 @@ def test_reopen_lets_devices_be_on_no_line(tmp_path: Path) -> None:
     svc2.close(pid2)
     con = sqlite3.connect(path)
     assert con.execute("PRAGMA integrity_check").fetchone() == ("ok",)
-    assert con.execute("PRAGMA user_version").fetchone() == (SCHEMA_VERSION,)
-    con.close()
-
-
-def test_reopen_renames_the_product_members_column(tmp_path: Path) -> None:
-    """Version 6: the product data an older file stores as ``imported_product_members`` is kept
-    under ``product_members``, without an empty column of the old name beside it."""
-    path = tmp_path / "proj.xknx"
-    svc = ProjectService()
-    svc.close(svc.create(path))
-    con = sqlite3.connect(path)
-    con.execute(
-        'ALTER TABLE projects RENAME COLUMN "product_members" TO "imported_product_members"'
-    )
-    con.execute("UPDATE projects SET imported_product_members = ?", (b"zip",))
-    con.execute("PRAGMA user_version = 5")
-    con.commit()
-    con.close()
-
-    svc2 = ProjectService()
-    pid2 = svc2.open(path)
-    assert svc2.project(pid2).product_members == b"zip"
-    svc2.close(pid2)
-    con = sqlite3.connect(path)
-    columns = {row[1] for row in con.execute('PRAGMA table_info("projects")')}
-    assert "product_members" in columns
-    assert "imported_product_members" not in columns
-    assert con.execute("PRAGMA user_version").fetchone() == (SCHEMA_VERSION,)
+    assert con.execute("PRAGMA user_version").fetchone() == (5,)
     con.close()
