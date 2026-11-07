@@ -102,6 +102,7 @@ def recover_parameters(
     sizes = dict(object_sizes or {})
     # Only the inference from linked objects tells settings apart by them.
     fixed = _fixed_values(application, ui) if linked else {}
+    dead: set[tuple[str, str]] = set()
     values, unknown, inferred = _infer_all(
         application,
         parameter_segments,
@@ -111,6 +112,7 @@ def recover_parameters(
         sizes,
         fixed,
         {},
+        dead,
     )
     values, unknown = _refine(
         application,
@@ -123,6 +125,7 @@ def recover_parameters(
         values,
         unknown,
         inferred,
+        dead,
     )
     return RecoveredParameters(values=values, unknown=unknown)
 
@@ -136,12 +139,13 @@ def _infer_all(
     sizes: Mapping[int, str],
     fixed: _ValueMap,
     start: Mapping[str, str],
+    dead: set[tuple[str, str]],
 ) -> tuple[dict[str, str], list[str], _ValueMap]:
     """The values decoded with the settings the device keeps no copy of inferred, starting with
     those of ``start`` (kept as they are): the values, the parameters left unknown and all the
-    inferred settings."""
+    inferred settings. ``dead`` collects the values found to show nothing (see
+    :func:`_infer_unstored`), and those in it are not tried."""
     inferred: _ValueMap = dict(start)
-    dead: set[tuple[str, str]] = set()
     values, unknown = _decode(
         application, parameter_segments, property_values, project_code_page, inferred
     )
@@ -256,6 +260,7 @@ def _refine(
     values: dict[str, str],
     unknown: list[str],
     inferred: _ValueMap,
+    dead: set[tuple[str, str]],
 ) -> tuple[dict[str, str], list[str]]:
     """Correct settings the device keeps no copy of where the result still differs from the
     device: in the bytes it would write, or in the group objects it shows (with linked objects).
@@ -266,8 +271,9 @@ def _refine(
     better (each group object shown otherwise than linked weighing ``_OBJECT_WEIGHT`` differing
     bytes). The values tried are those of the selectors on the way to the parameters stored at
     the differing bytes and to the group objects shown otherwise (``_REFINE_DEPTH`` selectors up),
-    those of the most such places first; ``_REFINE_TRIES`` per correction, ``_REFINE_ROUNDS``
-    corrections at most."""
+    those of the most such places first, and the first that fits better is taken;
+    ``_REFINE_TRIES`` per correction, ``_REFINE_ROUNDS`` corrections at most. The values the
+    inference found to show nothing (``dead``) are not tried again behind them."""
     from xknxeditor.prod.parser_v2.activation import shown_parameters, values_to_try
 
     from .recover import seed_dynamic_ui
@@ -343,13 +349,15 @@ def _refine(
                 sizes,
                 fixed,
                 {**inferred, gate: value},
+                set(dead),
             )
             seeded = seed_dynamic_ui(application, trial_values, project_code_page)
             if seeded is None:
                 continue
             result = misfit(seeded)
-            if result is not None and result[0] < (best[0][0] if best else score):
+            if result is not None and result[0] < score:
                 best = (result, trial_values, trial_unknown, trial_inferred, seeded)
+                break
         if best is None:
             break
         current, values, unknown, inferred, ui = best
