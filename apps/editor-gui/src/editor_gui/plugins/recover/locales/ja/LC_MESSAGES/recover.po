@@ -126,3 +126,36 @@ msgstr "%d個のパラメータを復元できませんでした"
 
 msgid "%(count)d device(s) could not be added; the reason is in the Recovered column."
 msgstr "%(count)d台のデバイスを追加できませんでした。理由は「復元済み」列に表示されます。"
+
+msgid "recovered (incomplete)"
+msgstr "復元済み（不完全）"
+
+msgid "Search Effort"
+msgstr "検索の範囲"
+
+msgid "How many values are tried for the settings a device keeps no copy of. More effort finds settings in devices with many channels, but takes longer."
+msgstr "デバイスがコピーを保持していない設定について試す値の数です。範囲を広げると多チャンネルのデバイスでも設定が見つかりますが、時間がかかります。"
+
+msgid "Fast"
+msgstr "高速"
+
+msgid "Medium"
+msgstr "中"
+
+msgid "Maximum"
+msgstr "最大"
+
+msgid "Search Again"
+msgstr "再検索"
+
+msgid "Searches the settings of the selected incomplete devices again in what was read from them, with the chosen search effort. Needs no bus. A device already added to the project is replaced (one undo step)."
+msgstr "選択した不完全なデバイスの設定を、読み取ったデータの中から選択した検索の範囲で再検索します。バスは不要です。プロジェクトに追加済みのデバイスは置き換えられます（1 回の元に戻す操作）。"
+
+msgid "Searching %(address)s again  (%(done)d/%(total)d)…"
+msgstr "%(address)s を再検索中  (%(done)d/%(total)d)…"
+
+msgid "%(bytes)d byte(s) and %(objects)d group object(s) differ from the device"
+msgstr "%(bytes)d バイトと %(objects)d 個のグループ・オブジェクトがデバイスと異なります"
+
+msgid "more search effort may help"
+msgstr "検索の範囲を広げると改善する可能性があります"

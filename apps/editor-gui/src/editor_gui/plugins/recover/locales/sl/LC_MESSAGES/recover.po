@@ -132,3 +132,36 @@ msgstr "že v projektu – preskočeno"
 
 msgid "%(count)d device(s) could not be added; the reason is in the Recovered column."
 msgstr "Naprav ni bilo mogoče dodati: %(count)d; razlog je v stolpcu »Obnovljeno«."
+
+msgid "recovered (incomplete)"
+msgstr "obnovljeno (nepopolno)"
+
+msgid "Search Effort"
+msgstr "Obseg Iskanja"
+
+msgid "How many values are tried for the settings a device keeps no copy of. More effort finds settings in devices with many channels, but takes longer."
+msgstr "Koliko vrednosti se preizkusi za nastavitve, katerih kopije naprava ne hrani. Večji obseg najde nastavitve v napravah z veliko kanali, vendar traja dlje."
+
+msgid "Fast"
+msgstr "Hitro"
+
+msgid "Medium"
+msgstr "Srednje"
+
+msgid "Maximum"
+msgstr "Največ"
+
+msgid "Search Again"
+msgstr "Išči Znova"
+
+msgid "Searches the settings of the selected incomplete devices again in what was read from them, with the chosen search effort. Needs no bus. A device already added to the project is replaced (one undo step)."
+msgstr "Znova poišče nastavitve izbranih nepopolnih naprav v podatkih, prebranih iz njih, z izbranim obsegom iskanja. Ne potrebuje vodila. Naprava, ki je že dodana v projekt, se zamenja (en korak razveljavitve)."
+
+msgid "Searching %(address)s again  (%(done)d/%(total)d)…"
+msgstr "Ponovno iskanje za %(address)s  (%(done)d/%(total)d)…"
+
+msgid "%(bytes)d byte(s) and %(objects)d group object(s) differ from the device"
+msgstr "%(bytes)d bajtov in %(objects)d komunikacijskih objektov se razlikuje od naprave"
+
+msgid "more search effort may help"
+msgstr "večji obseg iskanja lahko pomaga"

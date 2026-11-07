@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import contextlib
+import dataclasses
 from collections.abc import Iterator
 from pathlib import Path
 from typing import Any
@@ -14,7 +15,7 @@ from editor_gui.plugins.recover.service import RecoverEntry, RecoverService
 from editor_gui.plugins.recover.strings import S
 from xknxeditor.prod import load
 from xknxeditor.proj.core.medium import MediumError
-from xknxeditor.recover import RecoveredDevice, RecoveredParameters
+from xknxeditor.recover import RecoveredDevice, RecoveredParameters, RecoveryEffort
 from xknxeditor.recover.recover import com_object_ref_by_number
 from xknxeditor.recover.tables_decode import DecodedGroupObject, DecodedLink
 
@@ -69,6 +70,7 @@ class _FakeProject:
         # The project's history (what the topology lookup changed), and what was undone.
         self.history: list[str] = []
         self.undone: list[str] = []
+        self.removed: list[int] = []
 
     @property
     def cursor(self) -> int:
@@ -149,6 +151,15 @@ class _FakeProject:
 
     def set_param(self, device: Any, ref_id: str, value: str) -> None:
         self.params.append((ref_id, value))
+
+    def find_device_by_node_id(self, node_id: int) -> _FakeDevice | None:
+        return self._device if node_id == self._device.node_id else None
+
+    def remove_device(self, node_id: int) -> None:
+        self.removed.append(node_id)
+
+    def project_code_page(self) -> str | None:
+        return None
 
 
 class _FakeAPI:
@@ -420,3 +431,71 @@ def test_a_failed_device_found_in_the_project_is_no_failure(application) -> None
     assert entry.applied is True
     assert entry.state == S.STATE_EXISTS
     assert service.apply_error == ""
+
+
+def _incomplete_entry(application: Any) -> RecoverEntry:
+    entry = _rf_entry(application)
+    assert entry.recovered is not None
+    entry.recovered = dataclasses.replace(
+        entry.recovered,
+        parameters=RecoveredParameters(
+            values={}, unknown=[], differing_bytes=3, differing_objects=1, limited=True
+        ),
+    )
+    entry.state = S.STATE_INCOMPLETE
+    return entry
+
+
+def test_an_incomplete_device_says_how_far_it_is_off(application) -> None:  # type: ignore[no-untyped-def]
+    detail = RecoverService.entry_detail(_incomplete_entry(application))
+    assert S.DETAIL_INCOMPLETE % {"bytes": 3, "objects": 1} in detail
+    assert S.DETAIL_MORE_EFFORT in detail
+    complete = RecoverService.entry_detail(_rf_entry(application))
+    assert S.DETAIL_MORE_EFFORT not in complete
+
+
+def test_search_again_replaces_the_device_it_added(
+    application: Any, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    project = _FakeProject(refs=[])
+    service = RecoverService(_FakeAPI(project))  # type: ignore[arg-type]
+    entry = _incomplete_entry(application)
+    complete = _rf_entry(application)
+    complete.address = "1.1.4"
+    service.entries = [entry, complete]
+    assert service.apply_to_open_project() == 2
+    assert entry.device_id == 7
+    assert service.can_search_again()
+
+    searched: list[tuple[str, RecoveryEffort]] = []
+
+    def search(
+        device: RecoveredDevice, _app: Any, effort: RecoveryEffort, _code_page: Any
+    ) -> RecoveredDevice:
+        searched.append((device.address, effort))
+        return dataclasses.replace(
+            device,
+            parameters=RecoveredParameters(values={"R-1": "1"}, unknown=[]),
+            effort=effort,
+        )
+
+    monkeypatch.setattr("editor_gui.plugins.recover.service.search_again", search)
+    service.effort = RecoveryEffort.MAXIMUM
+    service.start_search_again()
+    assert service.phase == "searching"
+    pending = service._search
+    assert pending is not None
+    pending.result(timeout=10)
+    service.poll()
+
+    # Only the incomplete device is searched, with the effort chosen; the device it was added
+    # as is replaced by the new result.
+    assert searched == [("1.1.3", RecoveryEffort.MAXIMUM)]
+    assert service.phase == "recovered"
+    assert not service.busy
+    assert entry.recovered is not None and entry.recovered.parameters.complete
+    assert entry.state == S.STATE_RECOVERED
+    assert project.removed == [7]
+    assert project.add_calls == 3
+    assert ("R-1", "1") in project.params
+    assert not service.can_search_again()

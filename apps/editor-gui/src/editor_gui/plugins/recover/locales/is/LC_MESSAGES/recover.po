@@ -132,3 +132,36 @@ msgstr "þegar í verkefni - sleppt"
 
 msgid "%(count)d device(s) could not be added; the reason is in the Recovered column."
 msgstr "Ekki tókst að bæta við tækjum: %(count)d; ástæðan er í dálkinum „Endurheimt“."
+
+msgid "recovered (incomplete)"
+msgstr "endurheimt (ófullgert)"
+
+msgid "Search Effort"
+msgstr "Leitarumfang"
+
+msgid "How many values are tried for the settings a device keeps no copy of. More effort finds settings in devices with many channels, but takes longer."
+msgstr "Hversu mörg gildi eru prófuð fyrir stillingar sem tækið geymir ekki afrit af. Meira umfang finnur stillingar í tækjum með margar rásir en tekur lengri tíma."
+
+msgid "Fast"
+msgstr "Hratt"
+
+msgid "Medium"
+msgstr "Miðlungs"
+
+msgid "Maximum"
+msgstr "Hámark"
+
+msgid "Search Again"
+msgstr "Leita Aftur"
+
+msgid "Searches the settings of the selected incomplete devices again in what was read from them, with the chosen search effort. Needs no bus. A device already added to the project is replaced (one undo step)."
+msgstr "Leitar aftur að stillingum valinna ófullgerðra tækja í því sem var lesið úr þeim, með völdu leitarumfangi. Þarf ekki bus. Tæki sem þegar hefur verið bætt við verkefnið er skipt út (eitt afturköllunarskref)."
+
+msgid "Searching %(address)s again  (%(done)d/%(total)d)…"
+msgstr "Leitar aftur í %(address)s  (%(done)d/%(total)d)…"
+
+msgid "%(bytes)d byte(s) and %(objects)d group object(s) differ from the device"
+msgstr "%(bytes)d bæti og %(objects)d samskiptahlutir víkja frá tækinu"
+
+msgid "more search effort may help"
+msgstr "meira leitarumfang gæti hjálpað"

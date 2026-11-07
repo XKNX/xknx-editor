@@ -132,3 +132,36 @@ msgstr "már a projektben van – kihagyva"
 
 msgid "%(count)d device(s) could not be added; the reason is in the Recovered column."
 msgstr "Nem sikerült hozzáadni készülékeket: %(count)d; az ok a „Visszaállítva” oszlopban látható."
+
+msgid "recovered (incomplete)"
+msgstr "visszaállítva (hiányos)"
+
+msgid "Search Effort"
+msgstr "Keresési Ráfordítás"
+
+msgid "How many values are tried for the settings a device keeps no copy of. More effort finds settings in devices with many channels, but takes longer."
+msgstr "Hány értéket próbál ki a beállításokhoz, amelyekről az eszköz nem tárol másolatot. Nagyobb ráfordítás sok csatornás eszközökben is megtalálja a beállításokat, de tovább tart."
+
+msgid "Fast"
+msgstr "Gyors"
+
+msgid "Medium"
+msgstr "Közepes"
+
+msgid "Maximum"
+msgstr "Maximális"
+
+msgid "Search Again"
+msgstr "Keresés Újra"
+
+msgid "Searches the settings of the selected incomplete devices again in what was read from them, with the chosen search effort. Needs no bus. A device already added to the project is replaced (one undo step)."
+msgstr "A kiválasztott hiányos eszközök beállításait újra megkeresi a belőlük beolvasott adatokban, a választott keresési ráfordítással. Nem kell hozzá busz. A projekthez már hozzáadott eszköz lecserélődik (egy visszavonási lépés)."
+
+msgid "Searching %(address)s again  (%(done)d/%(total)d)…"
+msgstr "%(address)s újbóli keresése  (%(done)d/%(total)d)…"
+
+msgid "%(bytes)d byte(s) and %(objects)d group object(s) differ from the device"
+msgstr "%(bytes)d bájt és %(objects)d kommunikációs objektum eltér az eszköztől"
+
+msgid "more search effort may help"
+msgstr "nagyobb keresési ráfordítás segíthet"

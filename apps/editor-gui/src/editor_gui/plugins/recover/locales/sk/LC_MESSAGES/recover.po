@@ -132,3 +132,36 @@ msgstr "už je v projekte – preskočené"
 
 msgid "%(count)d device(s) could not be added; the reason is in the Recovered column."
 msgstr "Zariadenia, ktoré sa nepodarilo pridať: %(count)d; dôvod je v stĺpci „Obnovené“."
+
+msgid "recovered (incomplete)"
+msgstr "obnovené (neúplné)"
+
+msgid "Search Effort"
+msgstr "Rozsah Hľadania"
+
+msgid "How many values are tried for the settings a device keeps no copy of. More effort finds settings in devices with many channels, but takes longer."
+msgstr "Koľko hodnôt sa skúša pre nastavenia, ktorých kópiu zariadenie neuchováva. Väčší rozsah nájde nastavenia v zariadeniach s mnohými kanálmi, ale trvá dlhšie."
+
+msgid "Fast"
+msgstr "Rýchly"
+
+msgid "Medium"
+msgstr "Stredný"
+
+msgid "Maximum"
+msgstr "Maximálny"
+
+msgid "Search Again"
+msgstr "Hľadať Znova"
+
+msgid "Searches the settings of the selected incomplete devices again in what was read from them, with the chosen search effort. Needs no bus. A device already added to the project is replaced (one undo step)."
+msgstr "Znova vyhľadá nastavenia vybraných neúplných zariadení v údajoch z nich prečítaných, so zvoleným rozsahom hľadania. Nepotrebuje zbernicu. Zariadenie už pridané do projektu sa nahradí (jeden krok späť)."
+
+msgid "Searching %(address)s again  (%(done)d/%(total)d)…"
+msgstr "Nové hľadanie pre %(address)s  (%(done)d/%(total)d)…"
+
+msgid "%(bytes)d byte(s) and %(objects)d group object(s) differ from the device"
+msgstr "%(bytes)d bajt(ov) a %(objects)d skupinový(ch) objekt(ov) sa líši od zariadenia"
+
+msgid "more search effort may help"
+msgstr "väčší rozsah hľadania môže pomôcť"

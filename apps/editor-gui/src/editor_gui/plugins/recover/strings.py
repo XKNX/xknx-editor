@@ -175,6 +175,59 @@ class RecoverStrings:
         return _("error")
 
     @property
+    def STATE_INCOMPLETE(self) -> str:
+        return _("recovered (incomplete)")
+
+    @property
+    def SEARCH_EFFORT(self) -> str:
+        return _("Search Effort")
+
+    @property
+    def SEARCH_EFFORT_HINT(self) -> str:
+        return _(
+            "How many values are tried for the settings a device keeps no copy of. More "
+            "effort finds settings in devices with many channels, but takes longer."
+        )
+
+    @property
+    def EFFORT_FAST(self) -> str:
+        return _("Fast")
+
+    @property
+    def EFFORT_MEDIUM(self) -> str:
+        return _("Medium")
+
+    @property
+    def EFFORT_MAXIMUM(self) -> str:
+        return _("Maximum")
+
+    @property
+    def BTN_SEARCH_AGAIN(self) -> str:
+        return _("Search Again")
+
+    @property
+    def SEARCH_AGAIN_HINT(self) -> str:
+        return _(
+            "Searches the settings of the selected incomplete devices again in what was read "
+            "from them, with the chosen search effort. Needs no bus. A device already added "
+            "to the project is replaced (one undo step)."
+        )
+
+    @property
+    def STATUS_SEARCH_PROGRESS(self) -> str:
+        return _("Searching %(address)s again  (%(done)d/%(total)d)…")
+
+    @property
+    def DETAIL_INCOMPLETE(self) -> str:
+        return _(
+            "%(bytes)d byte(s) and %(objects)d group object(s) differ from the device"
+        )
+
+    @property
+    def DETAIL_MORE_EFFORT(self) -> str:
+        return _("more search effort may help")
+
+    @property
     def PARAMS_UNKNOWN(self) -> str:
         return _("%d parameters could not be recovered")
 

@@ -126,3 +126,36 @@ msgstr "Parametry, których nie udało się odzyskać: %d"
 
 msgid "%(count)d device(s) could not be added; the reason is in the Recovered column."
 msgstr "Nie udało się dodać urządzeń: %(count)d; przyczyna jest w kolumnie „Odzyskane”."
+
+msgid "recovered (incomplete)"
+msgstr "odzyskane (niekompletne)"
+
+msgid "Search Effort"
+msgstr "Nakład Wyszukiwania"
+
+msgid "How many values are tried for the settings a device keeps no copy of. More effort finds settings in devices with many channels, but takes longer."
+msgstr "Ile wartości jest sprawdzanych dla ustawień, których kopii urządzenie nie przechowuje. Większy nakład znajduje ustawienia w urządzeniach z wieloma kanałami, ale trwa dłużej."
+
+msgid "Fast"
+msgstr "Szybki"
+
+msgid "Medium"
+msgstr "Średni"
+
+msgid "Maximum"
+msgstr "Maksymalny"
+
+msgid "Search Again"
+msgstr "Szukaj Ponownie"
+
+msgid "Searches the settings of the selected incomplete devices again in what was read from them, with the chosen search effort. Needs no bus. A device already added to the project is replaced (one undo step)."
+msgstr "Ponownie wyszukuje ustawienia wybranych niekompletnych urządzeń w danych z nich odczytanych, z wybranym nakładem wyszukiwania. Nie wymaga magistrali. Urządzenie już dodane do projektu zostaje zastąpione (jeden krok cofania)."
+
+msgid "Searching %(address)s again  (%(done)d/%(total)d)…"
+msgstr "Ponowne wyszukiwanie dla %(address)s  (%(done)d/%(total)d)…"
+
+msgid "%(bytes)d byte(s) and %(objects)d group object(s) differ from the device"
+msgstr "%(bytes)d bajt(ów) i %(objects)d obiekt(ów) grupy różni się od urządzenia"
+
+msgid "more search effort may help"
+msgstr "większy nakład wyszukiwania może pomóc"

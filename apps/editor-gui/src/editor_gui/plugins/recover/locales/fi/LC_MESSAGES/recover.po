@@ -126,3 +126,36 @@ msgstr "Parametreja, joita ei voitu palauttaa: %d"
 
 msgid "%(count)d device(s) could not be added; the reason is in the Recovered column."
 msgstr "Laitteita ei voitu lisätä: %(count)d; syy näkyy sarakkeessa ”Palautettu”."
+
+msgid "recovered (incomplete)"
+msgstr "palautettu (keskeneräinen)"
+
+msgid "Search Effort"
+msgstr "Haun Laajuus"
+
+msgid "How many values are tried for the settings a device keeps no copy of. More effort finds settings in devices with many channels, but takes longer."
+msgstr "Kuinka monta arvoa kokeillaan asetuksille, joista laite ei säilytä kopiota. Laajempi haku löytää asetuksia laitteista, joissa on monta kanavaa, mutta kestää pidempään."
+
+msgid "Fast"
+msgstr "Nopea"
+
+msgid "Medium"
+msgstr "Keskitaso"
+
+msgid "Maximum"
+msgstr "Suurin"
+
+msgid "Search Again"
+msgstr "Hae Uudelleen"
+
+msgid "Searches the settings of the selected incomplete devices again in what was read from them, with the chosen search effort. Needs no bus. A device already added to the project is replaced (one undo step)."
+msgstr "Hakee valittujen keskeneräisten laitteiden asetukset uudelleen niistä luetusta, valitulla haun laajuudella. Ei tarvitse väylää. Projektiin jo lisätty laite korvataan (yksi kumoamisvaihe)."
+
+msgid "Searching %(address)s again  (%(done)d/%(total)d)…"
+msgstr "Haetaan uudelleen: %(address)s  (%(done)d/%(total)d)…"
+
+msgid "%(bytes)d byte(s) and %(objects)d group object(s) differ from the device"
+msgstr "%(bytes)d tavua ja %(objects)d ryhmäobjektia poikkeaa laitteesta"
+
+msgid "more search effort may help"
+msgstr "laajempi haku voi auttaa"

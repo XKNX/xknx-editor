@@ -4,8 +4,9 @@
 
 Scan an address range (each device is identified against the catalog; devices whose product is
 missing are fetched from the online catalog), read the selected devices back (parameters, group
-addresses, links, flags), verify them, and add them to the open project or to a new one. Reading
-from the bus changes nothing on the devices.
+addresses, links, flags), verify them, search the parameters of incomplete ones again with more
+effort, and add them to the open project or to a new one. Reading from the bus changes nothing on
+the devices.
 """
 
 from __future__ import annotations
@@ -41,6 +42,7 @@ def _status_code(state: str) -> str:
         S.STATE_NO_APP: "no_application",
         S.STATE_UNPROGRAMMED: "unprogrammed",
         S.STATE_RECOVERED: "recovered",
+        S.STATE_INCOMPLETE: "incomplete",
         S.STATE_EXISTS: "exists",
         S.STATE_ERROR: "error",
     }.get(state, "")
@@ -74,6 +76,11 @@ def _entry(service: RecoverService, entry: RecoverEntry) -> dict[str, Any]:
                 "links": len(recovered.links),
                 "parameters": len(recovered.parameters.values),
                 "unknown_parameters": len(recovered.parameters.unknown),
+                "complete": recovered.parameters.complete,
+                "differing_bytes": recovered.parameters.differing_bytes,
+                "differing_objects": recovered.parameters.differing_objects,
+                "more_effort_may_help": recovered.parameters.limited,
+                "search_effort": recovered.effort.value,
                 "order_info": recovered.dossier.order_info,
             }
             if recovered is not None
@@ -103,6 +110,12 @@ def _state(service: RecoverService, connected: bool) -> dict[str, Any]:
             "address": service.recover_current,
             "stage": service.recover_stage,
         }
+    elif service.phase == "searching":
+        progress = {
+            "done": service.recover_done,
+            "total": service.recover_total,
+            "address": service.recover_current,
+        }
     return {
         "connected": connected,
         "phase": service.phase,
@@ -110,6 +123,7 @@ def _state(service: RecoverService, connected: bool) -> dict[str, Any]:
         "progress": progress,
         "error": service.error,
         "auto_apply": service.auto_apply,
+        "search_effort": service.effort.value,
         "catalog_fetch": service.fetch_status or None,
         "apply_status": service.apply_status or None,
         "apply_error": service.apply_error or None,
@@ -277,7 +291,8 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     @tool("write")
     def recover_stop() -> dict[str, Any]:
-        """Stop the running scan, read-back or verification after the current device (Stop).
+        """Stop the running scan, read-back, verification or search again after the current
+        device (Stop).
         Returns the state as recover_status does."""
         recover = service()
         ctx.run_on_ui(recover.stop)
@@ -293,6 +308,60 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             recover.auto_apply = enabled
 
         ctx.run_on_ui(_set)
+        return state()
+
+    @tool("write")
+    def recover_set_search_effort(effort: str) -> dict[str, Any]:
+        """How many values the search for the settings a device keeps no copy of tries, for the
+        next read-back and search again (the window's Search Effort): "fast" (the default),
+        "medium" or "maximum". More finds settings in devices with many channels, but takes
+        longer. Returns the state as recover_status does."""
+        from xknxeditor.recover import RecoveryEffort
+
+        recover = service()
+        try:
+            chosen = RecoveryEffort(effort)
+        except ValueError:
+            raise ToolError(
+                f"unknown effort {effort!r}; one of fast, medium, maximum"
+            ) from None
+
+        def _set() -> None:
+            recover.effort = chosen
+
+        ctx.run_on_ui(_set)
+        return state()
+
+    @tool("write")
+    def recover_search_again(timeout: float = 3600.0) -> dict[str, Any]:
+        """Search the parameters of the selected devices whose result does not fit what was read
+        off them (an entry's recovered.complete is false) again, in what was read, with the
+        search effort set (Search Again); needs no bus. A device this recovery already added to
+        the open project is replaced by the new result, one undoable step. Waits up to
+        ``timeout`` s; returns the state as recover_status does."""
+        recover = service()
+
+        def _start() -> str | None:
+            if recover.busy:
+                return "busy"
+            if not recover.can_search_again():
+                return "none"
+            recover.start_search_again()
+            return None
+
+        problem = ctx.run_on_ui(_start)
+        if problem == "busy":
+            raise ToolError(
+                "the search could not start: the recovery is still running; recover_stop "
+                "ends it"
+            )
+        if problem == "none":
+            raise ToolError(
+                "no selected device read back is incomplete; recover_read_back, "
+                "recover_select"
+            )
+        wait(timeout)
+        ctx.run_locked(recover.poll, timeout=_SLOW)
         return state()
 
     @tool("write")

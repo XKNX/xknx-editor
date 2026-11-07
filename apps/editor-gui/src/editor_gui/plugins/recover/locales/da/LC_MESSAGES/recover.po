@@ -126,3 +126,36 @@ msgstr "%d parametre kunne ikke gendannes"
 
 msgid "%(count)d device(s) could not be added; the reason is in the Recovered column."
 msgstr "%(count)d enhed(er) kunne ikke tilføjes; årsagen står i kolonnen \"Gendannet\"."
+
+msgid "recovered (incomplete)"
+msgstr "gendannet (ufuldstændig)"
+
+msgid "Search Effort"
+msgstr "Søgeindsats"
+
+msgid "How many values are tried for the settings a device keeps no copy of. More effort finds settings in devices with many channels, but takes longer."
+msgstr "Hvor mange værdier der prøves for de indstillinger, enheden ikke gemmer en kopi af. Mere indsats finder indstillinger i enheder med mange kanaler, men tager længere tid."
+
+msgid "Fast"
+msgstr "Hurtig"
+
+msgid "Medium"
+msgstr "Middel"
+
+msgid "Maximum"
+msgstr "Maksimal"
+
+msgid "Search Again"
+msgstr "Søg Igen"
+
+msgid "Searches the settings of the selected incomplete devices again in what was read from them, with the chosen search effort. Needs no bus. A device already added to the project is replaced (one undo step)."
+msgstr "Søger igen indstillingerne for de valgte ufuldstændige enheder i det, der blev læst fra dem, med den valgte søgeindsats. Kræver ingen bus. En enhed, der allerede er føjet til projektet, erstattes (ét fortrydelsestrin)."
+
+msgid "Searching %(address)s again  (%(done)d/%(total)d)…"
+msgstr "Søger igen i %(address)s  (%(done)d/%(total)d)…"
+
+msgid "%(bytes)d byte(s) and %(objects)d group object(s) differ from the device"
+msgstr "%(bytes)d byte og %(objects)d gruppeobjekt(er) afviger fra enheden"
+
+msgid "more search effort may help"
+msgstr "mere søgeindsats kan hjælpe"

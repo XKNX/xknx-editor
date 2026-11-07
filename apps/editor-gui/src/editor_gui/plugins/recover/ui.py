@@ -10,8 +10,10 @@ from imgui_bundle import imgui
 from editor_gui import file_dialogs
 from editor_gui.plugins.recover.strings import S
 from editor_gui.widgets.checkbox import checkbox
+from editor_gui.widgets.combo import combo
 from editor_gui.widgets.dpi import px
 from editor_gui.widgets.tables import begin_data_table, data_table_headers
+from xknxeditor.recover import RecoveryEffort
 from xknxeditor.recover.recover import STAGE_GROUP_COMMUNICATION, STAGE_PARAMETERS
 
 if TYPE_CHECKING:
@@ -24,6 +26,14 @@ def _stage_label(stage: str) -> str:
         STAGE_GROUP_COMMUNICATION: S.STAGE_GROUP_COMMUNICATION,
         STAGE_PARAMETERS: S.STAGE_PARAMETERS,
     }.get(stage, "…")
+
+
+_EFFORTS = (RecoveryEffort.FAST, RecoveryEffort.MEDIUM, RecoveryEffort.MAXIMUM)
+
+
+def _effort_labels() -> list[str]:
+    """Localized labels of the search efforts, in the order of ``_EFFORTS``."""
+    return [S.EFFORT_FAST, S.EFFORT_MEDIUM, S.EFFORT_MAXIMUM]
 
 
 class RecoverPanel:
@@ -73,6 +83,17 @@ class RecoverPanel:
                 service.stop()
         imgui.same_line()
         _, service.auto_apply = checkbox(S.AUTO_APPLY, service.auto_apply, centred=True)
+        imgui.same_line()
+        imgui.begin_disabled(busy)
+        imgui.set_next_item_width(px(110))
+        changed, index = combo(
+            S.SEARCH_EFFORT, _EFFORTS.index(service.effort), _effort_labels()
+        )
+        if changed:
+            service.effort = _EFFORTS[index]
+        imgui.end_disabled()
+        if imgui.is_item_hovered():
+            imgui.set_tooltip(S.SEARCH_EFFORT_HINT)
 
     def _render_status(self) -> None:
         service = self._service
@@ -104,6 +125,15 @@ class RecoverPanel:
                 imgui.text_disabled(S.STATUS_RECOVERING)
         elif service.phase == "verifying":
             imgui.text_disabled(S.STATUS_VERIFYING)
+        elif service.phase == "searching":
+            imgui.text_disabled(
+                S.STATUS_SEARCH_PROGRESS
+                % {
+                    "address": service.recover_current or "-",
+                    "done": service.recover_done,
+                    "total": service.recover_total,
+                }
+            )
         elif service.phase == "idle":
             imgui.text_disabled(S.STATUS_IDLE)
         if service.phase == "recovered":
@@ -207,6 +237,13 @@ class RecoverPanel:
         if imgui.button(S.BTN_VERIFY):
             service.start_verify()
         imgui.end_disabled()
+        imgui.same_line()
+        imgui.begin_disabled(service.busy or not service.can_search_again())
+        if imgui.button(S.BTN_SEARCH_AGAIN):
+            service.start_search_again()
+        imgui.end_disabled()
+        if imgui.is_item_hovered():
+            imgui.set_tooltip(S.SEARCH_AGAIN_HINT)
         imgui.same_line()
         if imgui.button(S.BTN_EXPORT_SNAPSHOT):
             self._snapshot_dialog = file_dialogs.save_file(

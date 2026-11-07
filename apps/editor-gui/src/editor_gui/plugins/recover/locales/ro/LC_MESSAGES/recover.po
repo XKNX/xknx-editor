@@ -132,3 +132,36 @@ msgstr "există deja în proiect - omis"
 
 msgid "%(count)d device(s) could not be added; the reason is in the Recovered column."
 msgstr "Dispozitive care nu au putut fi adăugate: %(count)d; motivul este în coloana „Recuperat”."
+
+msgid "recovered (incomplete)"
+msgstr "recuperat (incomplet)"
+
+msgid "Search Effort"
+msgstr "Efort de Căutare"
+
+msgid "How many values are tried for the settings a device keeps no copy of. More effort finds settings in devices with many channels, but takes longer."
+msgstr "Câte valori sunt încercate pentru setările din care dispozitivul nu păstrează o copie. Mai mult efort găsește setări în dispozitivele cu multe canale, dar durează mai mult."
+
+msgid "Fast"
+msgstr "Rapid"
+
+msgid "Medium"
+msgstr "Mediu"
+
+msgid "Maximum"
+msgstr "Maxim"
+
+msgid "Search Again"
+msgstr "Caută din Nou"
+
+msgid "Searches the settings of the selected incomplete devices again in what was read from them, with the chosen search effort. Needs no bus. A device already added to the project is replaced (one undo step)."
+msgstr "Caută din nou setările dispozitivelor incomplete selectate în ce s-a citit din ele, cu efortul de căutare ales. Nu are nevoie de magistrală. Un dispozitiv deja adăugat în proiect este înlocuit (un pas de anulare)."
+
+msgid "Searching %(address)s again  (%(done)d/%(total)d)…"
+msgstr "Se caută din nou %(address)s  (%(done)d/%(total)d)…"
+
+msgid "%(bytes)d byte(s) and %(objects)d group object(s) differ from the device"
+msgstr "%(bytes)d octet(i) și %(objects)d obiect(e) de comunicare diferă de dispozitiv"
+
+msgid "more search effort may help"
+msgstr "mai mult efort de căutare poate ajuta"

@@ -3,6 +3,7 @@ to a project, and the snapshot (the bus itself replaced by a finished operation)
 
 from __future__ import annotations
 
+import dataclasses
 from concurrent.futures import Future
 from pathlib import Path
 from typing import Any
@@ -12,7 +13,12 @@ from fastmcp import Client
 
 from editor_gui.plugins.mcp.server import build_server
 from editor_gui.plugins.recover.service import RecoverEntry, RecoverService
-from xknxeditor.recover import AppId, RecoveredDevice, RecoveredParameters
+from xknxeditor.recover import (
+    AppId,
+    RecoveredDevice,
+    RecoveredParameters,
+    RecoveryEffort,
+)
 
 from .test_server import _FIXTURE, _build_ctx, _data
 
@@ -119,6 +125,19 @@ async def test_settings_and_stop(tmp_path: Path) -> None:
     assert service._cancel is True
 
 
+async def test_the_search_effort(tmp_path: Path) -> None:
+    mcp, service = _server(tmp_path)
+    async with Client(mcp) as client:
+        assert (await _data(client, "recover_status"))["search_effort"] == "fast"
+        status = await _data(client, "recover_set_search_effort", effort="maximum")
+        assert status["search_effort"] == "maximum"
+        assert service.effort is RecoveryEffort.MAXIMUM
+        with pytest.raises(Exception, match="unknown effort"):
+            await client.call_tool("recover_set_search_effort", {"effort": "huge"})
+        with pytest.raises(Exception, match="is incomplete"):
+            await client.call_tool("recover_search_again", {})
+
+
 async def test_not_available_without_the_window(tmp_path: Path) -> None:
     mcp = build_server(_build_ctx(tmp_path))
     async with Client(mcp) as client:
@@ -183,3 +202,64 @@ async def test_devices_read_back_are_added_to_the_project(tmp_path: Path) -> Non
         )
         assert fresh["added"] == 1
         assert fresh["path"].endswith("recovered.xknx")
+
+
+@pytest.mark.skipif(not _FIXTURE.exists(), reason="knxprod fixture missing")
+async def test_an_incomplete_device_is_searched_again(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    mcp, service = _server(tmp_path)
+    async with Client(mcp) as client:
+        await _data(client, "catalog_import_product", path=str(_FIXTURE))
+        product = (await _data(client, "catalog_list_products"))["items"][0]
+        application = service._api.catalog.get_application(product["application_id"])
+        assert application is not None
+        recovered = RecoveredDevice(
+            address="1.1.3",
+            application_id=application.id,
+            device_address=0x1103,
+            group_addresses=[],
+            links=[],
+            group_objects={},
+            parameters=RecoveredParameters(
+                values={}, unknown=[], differing_bytes=4, limited=True
+            ),
+        )
+        service.entries = [
+            RecoverEntry(
+                address="1.1.3",
+                mask_version=0x07B0,
+                product_ref_id=product["product_ref_id"],
+                hardware2program_ref_id=product["hardware2program_ref_id"],
+                product_name=product["name"],
+                application=application,
+                recovered=recovered,
+            )
+        ]
+        service.phase = "recovered"
+        await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
+        added = await _data(client, "recover_add_to_project")
+        entry = added["entries"][0]["recovered"]
+        assert (entry["complete"], entry["differing_bytes"]) == (False, 4)
+        assert entry["more_effort_may_help"] is True
+
+        def search(
+            device: RecoveredDevice, _app: object, effort: RecoveryEffort, _cp: object
+        ) -> RecoveredDevice:
+            return dataclasses.replace(
+                device,
+                parameters=RecoveredParameters(values={}, unknown=[]),
+                effort=effort,
+            )
+
+        monkeypatch.setattr("editor_gui.plugins.recover.service.search_again", search)
+        await _data(client, "recover_set_search_effort", effort="medium")
+        result = await _data(client, "recover_search_again", timeout=30.0)
+        assert result["phase"] == "recovered"
+        again = result["entries"][0]
+        assert again["status"] == "recovered"
+        assert again["recovered"]["complete"] is True
+        assert again["recovered"]["search_effort"] == "medium"
+        # The device added before is replaced, not added a second time.
+        devices = (await _data(client, "project_list_devices"))["items"]
+        assert [d["individual_address"] for d in devices] == ["1.1.3"]
