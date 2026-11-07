@@ -278,3 +278,24 @@ msgid "Register…"
 msgstr "Regjistrohu…"
 msgid "Alternative Catalog"
 msgstr "Katalogu alternativ"
+
+msgid "The login was refused: the username or password is wrong, or the account is not approved yet."
+msgstr "Hyrja u refuzua: emri i përdoruesit ose fjalëkalimi është i gabuar, ose llogaria nuk është miratuar ende."
+
+msgid "Enter your username and password, or register, before downloading."
+msgstr "Futni emrin e përdoruesit dhe fjalëkalimin, ose regjistrohuni, para se të shkarkoni."
+
+msgid "The daily download limit is reached. Try again tomorrow."
+msgstr "U arrit kufiri ditor i shkarkimeve. Provoni sërish nesër."
+
+msgid "The catalog server is busy. Try again in a moment."
+msgstr "Serveri i katalogut është i zënë. Provoni sërish pas pak."
+
+msgid "Enter an email address and a username of 3 to 32 letters, digits, dots, underscores or hyphens."
+msgstr "Futni një adresë email-i dhe një emër përdoruesi me 3 deri në 32 shkronja, shifra, pika, nënvizime ose viza."
+
+msgid "The password needs at least 10 characters with upper and lower case letters, a digit and a special character."
+msgstr "Fjalëkalimi duhet të ketë të paktën 10 karaktere me shkronja të mëdha dhe të vogla, një shifër dhe një karakter të veçantë."
+
+msgid "Enter the six-digit code from the email."
+msgstr "Futni kodin gjashtëshifror nga email-i."

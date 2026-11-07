@@ -303,15 +303,13 @@ def _fixed_values(application: Application, ui: DynamicUI) -> _ValueMap:
     return fixed
 
 
-def _fixed_conflicts(
-    ui: DynamicUI, parameter_segments: Mapping[str, bytes], fixed: _ValueMap
-) -> int:
-    """How many bytes of the active hidden settings with a fixed value (see
-    :func:`_fixed_values`) the device holds otherwise than ``ui`` writes them: a configuration
-    with any is not the device's. Compared as written, so that the members of a union in a
-    module instance count too."""
-    from xknxeditor.prod.errors import EncodingError
+# A byte of a code segment: (segment id, offset).
+_Cell = tuple[str, int]
 
+
+def _fixed_cells(ui: DynamicUI, fixed: _ValueMap) -> set[_Cell]:
+    """The bytes the active hidden settings with a fixed value (see :func:`_fixed_values`) take
+    in ``ui``."""
     indexer = ui.indexer
     active = {ui.local_ref_id(ref_id) for ref_id in ui.active_parameter_ref_ids()}
     parameters = {indexer.parameter_refs[ref].ref_id for ref in active & fixed.keys()}
@@ -322,25 +320,89 @@ def _fixed_conflicts(
         if ref in indexer.parameter_refs
     }
     if not parameters:
+        return set()
+    return {
+        (segment_id, offset)
+        for segment_id, cells in ui.memory_param_map().items()
+        for offset, (parameter_id, _value) in cells.items()
+        if parameter_id in parameters
+    }
+
+
+def _mismatches(
+    ui: DynamicUI, parameter_segments: Mapping[str, bytes], cells: set[_Cell]
+) -> int:
+    """How many of the bytes ``cells`` the device holds otherwise than ``ui`` writes them
+    (compared as written, so that the members of a union in a module instance count too)."""
+    from xknxeditor.prod.errors import EncodingError
+
+    if not cells:
         return 0
     try:
         encoded = ui.encode_to_memory()
     except (EncodingError, ValueError):
         return 0
     count = 0
-    for segment_id, cells in ui.memory_param_map().items():
+    for segment_id, offset in cells:
         device = parameter_segments.get(segment_id)
         mine = encoded.get(segment_id)
-        if device is None or mine is None:
-            continue
-        for offset, (parameter_id, _value) in cells.items():
-            if (
-                parameter_id in parameters
-                and offset < min(len(device), len(mine))
-                and device[offset] != mine[offset]
-            ):
-                count += 1
+        if (
+            device is not None
+            and mine is not None
+            and offset < min(len(device), len(mine))
+            and device[offset] != mine[offset]
+        ):
+            count += 1
     return count
+
+
+def _undecodable_cells(
+    ui: DynamicUI, parameter_segments: Mapping[str, bytes], own: set[str]
+) -> int:
+    """How many bytes the parameters ``own`` take in ``ui`` whose memory is no value of their
+    type: the device holds another setting there."""
+    if not own:
+        return 0
+    decoded = ui.decode_memory_parameters(parameter_segments)
+    failed = {
+        parameter_id for parameter_id in own if decoded.get(parameter_id, "") is None
+    }
+    return sum(
+        1
+        for cells in ui.memory_param_map().values()
+        for parameter_id, _value in cells.values()
+        if parameter_id in failed
+    )
+
+
+def _fixed_clashes(
+    uis: Mapping[str, DynamicUI],
+    parameter_segments: Mapping[str, bytes],
+    fixed: _ValueMap,
+) -> dict[str, int]:
+    """For configurations that show the same objects (a pair of buttons or two single ones, the
+    datapoint types of a status value), how many bytes the device holds against each: of the
+    hidden settings with a fixed value, the ones it holds otherwise than each writes them,
+    compared on the bytes such settings take in any of them (a configuration that leaves the
+    other one's bytes at their initial value counts those too, the device holds the other one's
+    values there); and of the settings only some of them have, the ones whose memory is no
+    value of the setting's type (e.g. a function selection the device holds another one's value
+    in)."""
+    cells: set[_Cell] = set()
+    written: dict[str, set[str]] = {}
+    for key, ui in uis.items():
+        cells |= _fixed_cells(ui, fixed)
+        written[key] = {
+            parameter_id
+            for column in ui.memory_param_map().values()
+            for parameter_id, _value in column.values()
+        }
+    common: set[str] = set[str].intersection(*written.values()) if written else set()
+    return {
+        key: _mismatches(ui, parameter_segments, cells)
+        + _undecodable_cells(ui, parameter_segments, written[key] - common)
+        for key, ui in uis.items()
+    }
 
 
 def _infer_unstored(
@@ -405,18 +467,21 @@ def _infer_unstored(
         )
         return objects & linked, len(objects - linked), reveals
 
-    def conflicts(trial: Mapping[str, str]) -> int:
-        """How many hidden settings with a fixed value ``trial`` makes active hold another
-        value on the device."""
+    def clashes(trials: Mapping[str, Mapping[str, str]]) -> dict[str, int]:
+        """For trials that show the same objects, how many bytes of the hidden settings with a
+        fixed value the device holds otherwise (see :func:`_fixed_clashes`)."""
         assert fixed is not None and segments is not None
-        seeded = seed_dynamic_ui(
-            application,
-            {**values, **trial},
-            project_code_page,
-            module_instances=instances,
-        )
-        assert seeded is not None
-        return _fixed_conflicts(seeded, segments, fixed)
+        uis: dict[str, DynamicUI] = {}
+        for key, trial in trials.items():
+            seeded = seed_dynamic_ui(
+                application,
+                {**values, **trial},
+                project_code_page,
+                module_instances=instances,
+            )
+            assert seeded is not None
+            uis[key] = seeded
+        return _fixed_clashes(uis, segments, fixed)
 
     best: list[tuple[tuple[int, int], str, str]] = []
     neutral: list[tuple[str, str]] = []
@@ -447,13 +512,13 @@ def _infer_unstored(
         ties = [entry for entry in gaining if entry[0] == top]
         # Several values show the same objects (datapoint types of the same size, a pair of
         # buttons or two single ones): the hidden settings they come with tell them apart.
-        clashes: dict[str, int] = (
-            {candidate: conflicts({ref_id: candidate}) for _, _, candidate in ties}
+        clash: dict[str, int] = (
+            clashes({candidate: {ref_id: candidate} for _, _, candidate in ties})
             if fixed and segments is not None and len(ties) > 1
             else {}
         )
         gain, fewest, value = max(
-            ties, key=lambda entry: (-clashes.get(entry[2], 0), entry[1])
+            ties, key=lambda entry: (-clash.get(entry[2], 0), entry[1])
         )
         best.append(((gain, fewest), ref_id, value))
     if best:
@@ -475,7 +540,6 @@ def _infer_unstored(
     seen = known | shown_settings.keys()
     found: _ValueMap = {}
     found_count = len(base)
-    found_clash: int | None = None
     for ref_id, candidate in neutral[:_LOOK_AHEAD_TRIES]:
         nested = _infer_unstored(
             application,
@@ -493,15 +557,13 @@ def _infer_unstored(
         trial = {ref_id: candidate, **nested}
         count = len(shown(trial)[0])
         if count > found_count:
-            found, found_count, found_clash = trial, count, None
+            found, found_count = trial, count
         elif count == found_count and found and fixed and segments is not None:
             # As many shown either way (a pair of buttons or two single ones): the hidden
             # settings with a fixed value tell them apart.
-            if found_clash is None:
-                found_clash = conflicts(found)
-            clash = conflicts(trial)
-            if clash < found_clash:
-                found, found_clash = trial, clash
+            clash = clashes({"found": found, "trial": trial})
+            if clash["trial"] < clash["found"]:
+                found = trial
     return found
 
 

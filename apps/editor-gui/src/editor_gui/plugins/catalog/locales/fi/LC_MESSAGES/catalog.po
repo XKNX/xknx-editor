@@ -278,3 +278,24 @@ msgid "Register…"
 msgstr "Rekisteröidy…"
 msgid "Alternative Catalog"
 msgstr "Alternative Catalog"
+
+msgid "The login was refused: the username or password is wrong, or the account is not approved yet."
+msgstr "Kirjautuminen hylättiin: käyttäjätunnus tai salasana on väärä, tai tiliä ei ole vielä hyväksytty."
+
+msgid "Enter your username and password, or register, before downloading."
+msgstr "Anna käyttäjätunnuksesi ja salasanasi tai rekisteröidy ennen lataamista."
+
+msgid "The daily download limit is reached. Try again tomorrow."
+msgstr "Päivittäinen latausraja on täynnä. Yritä huomenna uudelleen."
+
+msgid "The catalog server is busy. Try again in a moment."
+msgstr "Luettelopalvelin on varattu. Yritä hetken päästä uudelleen."
+
+msgid "Enter an email address and a username of 3 to 32 letters, digits, dots, underscores or hyphens."
+msgstr "Anna sähköpostiosoite ja 3–32 merkin käyttäjätunnus, jossa on kirjaimia, numeroita, pisteitä, alaviivoja tai yhdysmerkkejä."
+
+msgid "The password needs at least 10 characters with upper and lower case letters, a digit and a special character."
+msgstr "Salasanassa on oltava vähintään 10 merkkiä, isoja ja pieniä kirjaimia, numero ja erikoismerkki."
+
+msgid "Enter the six-digit code from the email."
+msgstr "Anna sähköpostin kuusinumeroinen koodi."

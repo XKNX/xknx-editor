@@ -51,6 +51,16 @@ class AlternativeCatalogError(OnlineCatalogError):
         super().__init__(message + detail)
 
 
+class AlternativeInputError(ValueError):
+    """Input the catalog server would refuse, found before asking it; ``code`` names the rule
+    (``USERNAME``, ``PASSWORD``, ``VERIFICATION_CODE``, ``NO_ACCOUNT``) so the UI can say it in its
+    own language."""
+
+    def __init__(self, message: str, code: str) -> None:
+        super().__init__(message)
+        self.code = code
+
+
 def server_url(value: str) -> str:
     """An HTTPS origin, optionally followed by a deployment path."""
     value = value.strip().rstrip("/")
@@ -575,7 +585,8 @@ class AlternativeCatalogClient:
     def _login(self) -> None:
         if not self.settings.user or not self.settings.password:
             raise AlternativeCatalogError(
-                "configure a username and password before downloading"
+                "configure a username and password before downloading",
+                code="NO_ACCOUNT",
             )
         response = self._request(
             "POST",
@@ -669,8 +680,9 @@ class AlternativeCatalogClient:
     def register(self, user: str, email: str, password: str) -> dict[str, str]:
         """Create an account and keep its session for the email-code verification."""
         if not re.fullmatch(r"[A-Za-z0-9._-]{3,32}", user) or not email.strip():
-            raise ValueError(
-                "registration needs a username (3..32 letters, digits, . _ -) and email"
+            raise AlternativeInputError(
+                "registration needs a username (3..32 letters, digits, . _ -) and email",
+                "USERNAME",
             )
         if (
             len(password) < 10
@@ -680,8 +692,9 @@ class AlternativeCatalogClient:
             or not any(c.isdecimal() for c in password)
             or not any(not c.isalnum() for c in password)
         ):
-            raise ValueError(
-                "password needs at least 10 characters, upper/lowercase, digit and special character (maximum 72 UTF-8 bytes)"
+            raise AlternativeInputError(
+                "password needs at least 10 characters, upper/lowercase, digit and special character (maximum 72 UTF-8 bytes)",
+                "PASSWORD",
             )
         with self._operation:
             self._http.cookies.clear()
@@ -712,8 +725,9 @@ class AlternativeCatalogClient:
     def resume_registration(self) -> dict[str, str]:
         with self._operation:
             if not self.settings.user or not self.settings.password:
-                raise ValueError(
-                    "configure the registration's username and password first"
+                raise AlternativeInputError(
+                    "configure the registration's username and password first",
+                    "NO_ACCOUNT",
                 )
             self._registration_post(
                 "/api/auth/login",
@@ -729,7 +743,9 @@ class AlternativeCatalogClient:
 
     def verify_registration(self, code: str) -> dict[str, str]:
         if not re.fullmatch(r"[0-9]{6}", code):
-            raise ValueError("enter the six-digit email verification code")
+            raise AlternativeInputError(
+                "enter the six-digit email verification code", "VERIFICATION_CODE"
+            )
         return self._finish_registration(
             "/api/auth/register/verify", {"code": code}, "pending"
         )
