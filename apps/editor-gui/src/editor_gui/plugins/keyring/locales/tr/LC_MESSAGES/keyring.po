@@ -84,6 +84,3 @@ msgstr "Araç Anahtarı"
 
 msgid "{address}   key {key}"
 msgstr "{address}   anahtar {key}"
-
-msgid "KNX Sec"
-msgstr "KNX Sec"
