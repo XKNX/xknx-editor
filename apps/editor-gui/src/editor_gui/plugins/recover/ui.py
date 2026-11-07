@@ -9,11 +9,13 @@ from imgui_bundle import imgui
 
 from editor_gui import file_dialogs
 from editor_gui.plugins.recover.strings import S
+from editor_gui.theme import status_color
 from editor_gui.widgets.checkbox import checkbox
 from editor_gui.widgets.combo import combo
 from editor_gui.widgets.dpi import px
 from editor_gui.widgets.flow import button_width, same_line_if_fits, text_width
 from editor_gui.widgets.tables import begin_data_table, data_table_headers
+from editor_gui.widgets.text_util import text_clipped_tooltip
 from xknxeditor.recover import RecoveryEffort
 from xknxeditor.recover.recover import STAGE_GROUP_COMMUNICATION, STAGE_PARAMETERS
 
@@ -72,12 +74,12 @@ class RecoverPanel:
         self._poll_save_dialog()
 
         if not service.connected():
-            imgui.text_colored(imgui.ImVec4(0.9, 0.6, 0.2, 1.0), S.STATUS_NOT_CONNECTED)
+            imgui.text_colored(status_color("warning"), S.STATUS_NOT_CONNECTED)
             return
 
         self._render_scan_controls()
         if service.error:
-            imgui.text_colored(imgui.ImVec4(0.9, 0.3, 0.3, 1.0), service.error)
+            imgui.text_colored(status_color("error"), service.error)
         imgui.separator()
         self._render_status()
         self._render_results()
@@ -155,22 +157,19 @@ class RecoverPanel:
         elif service.phase == "idle":
             imgui.text_disabled(S.STATUS_IDLE)
         if service.phase == "recovered":
-            imgui.text_colored(
-                imgui.ImVec4(0.6, 0.8, 1.0, 1.0),
-                S.OVERVIEW_RECOVERED % service.recovery_totals(),
-            )
+            imgui.text(S.OVERVIEW_RECOVERED % service.recovery_totals())
             warnings = service.link_warnings()
             if warnings:
                 imgui.text_colored(
-                    imgui.ImVec4(0.9, 0.7, 0.3, 1.0),
+                    status_color("warning"),
                     S.OVERVIEW_WARNINGS % {"count": len(warnings)},
                 )
         if service.fetch_status:
             imgui.text_disabled(S.STATUS_FETCHING % {"what": service.fetch_status})
         if service.apply_status:
-            imgui.text_colored(imgui.ImVec4(0.4, 0.8, 0.4, 1.0), service.apply_status)
+            imgui.text_colored(status_color("success"), service.apply_status)
         if service.apply_error:
-            imgui.text_colored(imgui.ImVec4(0.9, 0.3, 0.3, 1.0), service.apply_error)
+            imgui.text_colored(status_color("error"), service.apply_error)
 
     def _render_results(self) -> None:
         service = self._service
@@ -207,16 +206,17 @@ class RecoverPanel:
             imgui.table_set_column_index(1)
             imgui.text(entry.address)
             imgui.table_set_column_index(2)
-            imgui.text_disabled(f"{entry.mask_version:#06x}")
+            imgui.text(f"{entry.mask_version:#06x}")
+            # Texts cut off by their column show in full in a tooltip.
             imgui.table_set_column_index(3)
-            imgui.text(
+            text_clipped_tooltip(
                 entry.product_name
                 or (entry.app_id.manufacturer_id if entry.app_id else "-")
             )
             imgui.table_set_column_index(4)
-            imgui.text_disabled(entry.state)
+            text_clipped_tooltip(entry.state)
             imgui.table_set_column_index(5)
-            imgui.text_disabled(service.entry_detail(entry))
+            text_clipped_tooltip(service.entry_detail(entry))
         imgui.end_table()
 
     def _actions_height(self) -> float:

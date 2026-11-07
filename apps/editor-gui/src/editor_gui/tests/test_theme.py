@@ -178,3 +178,16 @@ def test_light_themes_select_in_the_gray_of_table_headers(
     else:
         # A blue or dark theme's selection shows clearly already.
         assert (header.x, header.y, header.z, header.w) == before
+
+
+@pytest.mark.usefixtures("context")
+@pytest.mark.parametrize("kind", ["warning", "error", "success"])
+def test_status_colors_read_on_light_and_dark_windows(kind: str) -> None:
+    style = imgui.get_style()
+    style.set_color_(imgui.Col_.window_bg, imgui.ImVec4(1.0, 1.0, 1.0, 1.0))
+    on_light = theme.status_color(kind)
+    style.set_color_(imgui.Col_.window_bg, imgui.ImVec4(0.1, 0.1, 0.1, 1.0))
+    on_dark = theme.status_color(kind)
+    # Dark on a white window, light on a dark one.
+    assert theme._luminance(on_light) < 0.5 < theme._luminance(on_dark)  # pyright: ignore[reportPrivateUsage]
+
