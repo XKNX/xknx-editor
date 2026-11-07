@@ -2,14 +2,14 @@
 
 from __future__ import annotations
 
-from types import SimpleNamespace
+from types import MappingProxyType, SimpleNamespace
 from typing import cast
 
 import pytest
 from xknx.telegram.apci import MemoryRead, MemoryWrite, PropertyValueWrite
 
 from xknxeditor.download.errors import ImageError, VerificationError
-from xknxeditor.download.image import DownloadImage, MemorySegment
+from xknxeditor.download.image import DownloadImage, MemorySegment, seed_mask_bits
 from xknxeditor.download.preflight import (
     ByteRange,
     PreflightReport,
@@ -512,3 +512,30 @@ async def test_preflight_marks_the_octets_only_a_partial_download_writes(
     assert segment.planned[1] == (0x7D if application_loaded else 0xC8)
     assert segment.changed_bytes == 1
     assert segment.corrected_bytes == frozenset({1})
+
+
+def test_a_product_mask_over_part_of_an_octet_splits_whole_from_partial() -> None:
+    whole, partial = seed_mask_bits(bytes([0xFF, 0x0F, 0x00, 0x30]), 5)
+    assert whole == bytes([0xFF, 0xFF, 0x00, 0xFF, 0x00])
+    assert partial == {1: 0x0F, 3: 0x30}
+
+
+async def test_an_octet_the_product_gives_some_bits_of_keeps_the_others() -> None:
+    # The image gives the low nibble of 0x4001 only: the download reads the octet and writes
+    # its own bits into it; the preview compares the same.
+    image = DownloadImage(
+        segments=(MemorySegment(address=0x4000, data=bytes.fromhex("11050033")),),
+        properties=(),
+        bit_masks=MappingProxyType({0x4001: 0x0F}),
+    )
+    application = _application(
+        LdCtrlWriteMem(address=0x4000, size=4, verify=False, inline_data=None)
+    )
+    runner, device = _runner(application, image)
+    device.memory.update(enumerate(bytes.fromhex("00a00000"), start=0x4000))
+
+    (segment,) = (await runner.preflight()).segments
+    assert segment.planned == bytes.fromhex("11a50033")
+
+    await runner.run()
+    assert [device.memory[0x4000 + i] for i in range(4)] == [0x11, 0xA5, 0x00, 0x33]

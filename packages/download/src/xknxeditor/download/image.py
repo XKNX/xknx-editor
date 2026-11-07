@@ -454,6 +454,10 @@ class DownloadImage:
     user_segments: tuple[MemorySegment, ...] = ()
     # The memory (start, end) the group communication tables at absolute addresses write.
     group_table_memory: tuple[tuple[int, int], ...] = ()
+    # Absolute address -> the bits of the octet the product data gives (a Mask of the code
+    # segment that covers part of an octet): the download reads the octet first and writes
+    # these bits only, keeping the others as the device holds them.
+    bit_masks: Mapping[int, int] = MappingProxyType({})
 
     def in_group_tables(self, address: int) -> bool:
         """Whether ``address`` lies in a group communication table at an absolute address."""
@@ -659,6 +663,7 @@ def build_image(
     segments: list[MemorySegment] = []
     user_segments: list[MemorySegment] = []
     application_segments: list[ObjectMemorySegment] = []
+    bit_masks: dict[int, int] = {}
     for segment_id, (data, mask) in encoded.items():
         if not data or segment_id not in base_addresses:
             continue
@@ -670,10 +675,16 @@ def build_image(
             if len(declaration.mask) > len(data):
                 raise ImageError(f"initialized mask length mismatch for {segment_id}")
             # Data (and its mask) may cover only the start of the segment; the rest is not
-            # initialized.
-            seed_mask = declaration.mask.ljust(len(data), b"\x00")
+            # initialized. An octet the mask covers in part is written bit by bit, where no
+            # parameter writes it.
+            seed_mask, partial = seed_mask_bits(declaration.mask, len(data))
             initialized = bytes(
                 a & b for a, b in zip(initialized, seed_mask, strict=True)
+            )
+            bit_masks.update(
+                (base_addresses[segment_id] + offset, bits)
+                for offset, bits in partial.items()
+                if not mask[offset]
             )
         if segment_id in table_ids:
             # Table builders supply initialized table bytes. Retain any parameters
@@ -813,6 +824,7 @@ def build_image(
         moved_tables=moved,
         user_segments=tuple(user_segments),
         group_table_memory=tuple(table_memory),
+        bit_masks=MappingProxyType(bit_masks),
     )
 
 
@@ -826,12 +838,17 @@ def with_second_program(
     if code is None:
         return image
 
+    bit_masks = dict(image.bit_masks)
+
     def memory(address: int, size: int, seed: bytes | None, seed_mask: bytes | None):
         data = (seed or b"")[:size]
         initialized = bytes([0xFF]) * len(data)
         if seed_mask is not None:
-            mask = seed_mask.ljust(len(data), b"\x00")[: len(data)]
+            mask, partial = seed_mask_bits(seed_mask, len(data))
             initialized = bytes(a & b for a, b in zip(initialized, mask, strict=True))
+            bit_masks.update(
+                (address + offset, bits) for offset, bits in partial.items()
+            )
         return MemorySegment(
             address,
             data.ljust(size, b"\x00"),
@@ -867,6 +884,7 @@ def with_second_program(
         user_segments=(*image.user_segments, *user),
         application_segments=(*image.application_segments, *relative),
         object_segments=MappingProxyType(object_segments),
+        bit_masks=MappingProxyType(bit_masks),
     )
 
 
@@ -936,6 +954,31 @@ def _validate_security_capacity(
     ):
         if limit and count > limit:
             raise ImageError(f"{name} has {count} entries; the device holds {limit}")
+
+
+def seed_mask_bits(seed_mask: bytes, size: int) -> tuple[bytes, dict[int, int]]:
+    """A code segment's product ``Mask`` over ``size`` octets as whole octets (0xFF for each
+    octet it covers at all, then 0 past it) and the octets it covers only in part
+    (offset -> bits), which a download writes bit by bit (see ``DownloadImage.bit_masks``)."""
+    mask = seed_mask.ljust(size, b"\x00")[:size]
+    return (
+        bytes(0xFF if bits else 0 for bits in mask),
+        {offset: bits for offset, bits in enumerate(mask) if bits not in (0, 0xFF)},
+    )
+
+
+def merge_device_bits(
+    masks: Mapping[int, int], address: int, data: bytes, held_at: int, held: bytes
+) -> bytes:
+    """``data`` for ``address``, each octet of ``masks`` (address -> the bits the image gives)
+    taking its other bits from ``held``, the device's memory from ``held_at``."""
+    merged = bytearray(data)
+    for offset in range(len(data)):
+        bits = masks.get(address + offset)
+        at = address + offset - held_at
+        if bits is not None and 0 <= at < len(held):
+            merged[offset] = (held[at] & ~bits & 0xFF) | (data[offset] & bits)
+    return bytes(merged)
 
 
 def table_ranges(segments: Sequence[MemorySegment]) -> list[tuple[int, int]]:

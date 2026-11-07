@@ -115,6 +115,7 @@ from .errors import (
 )
 from .factory_image import FactoryLocation, FactorySegment, FactoryStamp, PropertyStamp
 from .group_communication import materialize_group_communication_controls
+from .image import merge_device_bits
 from .ip_config import IP_PARAMETER_OBJECT, IP_PROPERTY_WIDTHS
 from .merge import device_mask_version, resolve_download_controls
 from .preflight import PreflightReport, PropertyDiff, SegmentDiff
@@ -1603,10 +1604,34 @@ class LoadProcedureRunner:
             verify and self._enable_optimistic_write and not self._uses_auto_verify()
         )
         for address, data in runs:
+            data = await self._with_device_bits(programmer, address, data)
             if optimistic:
                 optimistic = await programmer.write_memory_optimistic(address, data)
             else:
                 await programmer.write_memory(address, data, verify=verify)
+
+    async def _with_device_bits(
+        self, programmer: DeviceProgrammer, address: int, data: bytes
+    ) -> bytes:
+        """``data`` for ``address`` with the octets the product data gives only some bits of
+        (``DownloadImage.bit_masks``) merged into what the device holds: read first, its other
+        bits kept."""
+        masks = self.image.bit_masks
+        inside = [a for a in range(address, address + len(data)) if a in masks]
+        if not inside:
+            return data
+        start, end = inside[0], inside[-1] + 1
+        held = await programmer.read_memory(start, end - start)
+        return merge_device_bits(masks, address, data, start, held)
+
+    def _planned_with(self, address: int, planned: bytes, current: bytes) -> bytes:
+        """What the download writes at ``address`` on a device holding ``current`` there (see
+        :meth:`_with_device_bits`)."""
+        if not self.image.bit_masks:
+            return planned
+        return merge_device_bits(
+            self.image.bit_masks, address, planned, address, current
+        )
 
     async def _write_rel_mem(self, control: LdCtrlWriteRelMem) -> None:
         """Write a WriteRelMem control relative to the object's table base.
@@ -3303,6 +3328,7 @@ class LoadProcedureRunner:
         :attr:`SegmentDiff.procedure_step`)."""
         programmer = await self._bus()
         current = await programmer.read_memory(address, len(planned))
+        planned = self._planned_with(address, bytes(planned), current)
         await self._note_device_written(programmer, address, current, bytes(planned))
         segments.append(
             SegmentDiff(
@@ -3370,6 +3396,7 @@ class LoadProcedureRunner:
         programmer = await self._bus()
         for run_address, planned in runs:
             current = await programmer.read_memory(run_address, len(planned))
+            planned = self._planned_with(run_address, bytes(planned), current)
             await self._note_device_written(
                 programmer, run_address, current, bytes(planned)
             )
