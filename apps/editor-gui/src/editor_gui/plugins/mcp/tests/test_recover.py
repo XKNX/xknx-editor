@@ -244,7 +244,11 @@ async def test_an_incomplete_device_is_searched_again(
         assert entry["more_effort_may_help"] is True
 
         def search(
-            device: RecoveredDevice, _app: object, effort: RecoveryEffort, _cp: object
+            device: RecoveredDevice,
+            _app: object,
+            effort: RecoveryEffort,
+            _cp: object,
+            cancel: object = None,
         ) -> RecoveredDevice:
             return dataclasses.replace(
                 device,

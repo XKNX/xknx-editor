@@ -24,6 +24,7 @@ from collections import Counter
 from collections.abc import Callable, Collection, Mapping
 from dataclasses import dataclass
 from enum import Enum
+from itertools import count
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -34,11 +35,13 @@ if TYPE_CHECKING:
 class RecoveryEffort(Enum):
     """How many values the search for the settings a device keeps no copy of tries (see
     :func:`recover_parameters`): more finds settings deep in channels and module instances of
-    large applications, but takes longer."""
+    large applications, but takes longer. ``UNLIMITED`` goes on until no value fits better (or
+    it is cancelled)."""
 
     FAST = "fast"
     MEDIUM = "medium"
     MAXIMUM = "maximum"
+    UNLIMITED = "unlimited"
 
 
 @dataclass(frozen=True, slots=True)
@@ -53,8 +56,8 @@ class RecoveredParameters:
     # objects they show otherwise than the device's tables link.
     differing_bytes: int = 0
     differing_objects: int = 0
-    # The search stopped at the limit of its effort with values left to try: more effort may
-    # find a result that fits the device.
+    # The search stopped at the limit of its effort, or was cancelled, with values left to try:
+    # more effort may find a result that fits the device.
     limited: bool = False
 
     @property
@@ -80,11 +83,13 @@ _REFINE_TRIES = 12
 _REFINE_DEPTH = 3
 # A group object shown otherwise than the device's tables link weighs as many differing bytes.
 _OBJECT_WEIGHT = 3
-# How many times the corrections and the values tried for one each effort allows.
-_EFFORT_SCALE = {
+# How many times the corrections and the values tried for one each effort allows (``None``: no
+# limit).
+_EFFORT_SCALE: dict[RecoveryEffort, int | None] = {
     RecoveryEffort.FAST: 1,
     RecoveryEffort.MEDIUM: 4,
     RecoveryEffort.MAXIMUM: 16,
+    RecoveryEffort.UNLIMITED: None,
 }
 
 _ValueMap = dict[str, str]
@@ -111,6 +116,7 @@ def recover_parameters(
     linked_objects: Collection[int] = (),
     object_sizes: Mapping[int, str] | None = None,
     effort: RecoveryEffort = RecoveryEffort.FAST,
+    cancel: Callable[[], bool] | None = None,
 ) -> RecoveredParameters:
     """Recover parameter reference values from a device's memory and properties.
 
@@ -123,7 +129,7 @@ def recover_parameters(
     object sizes as far as the tables give them: settings the device keeps no copy of
     take the values that show these objects, or that make the memory fit the union
     members they choose (see :func:`_infer_from_memory`), corrected with as many values as
-    ``effort`` allows (see :func:`_refine`). Returns the recovered value for every
+    ``effort`` allows (see :func:`_refine`), until ``cancel`` returns true. Returns the recovered value for every
     parameter reference whose type is reconstructable, the parameter ids whose
     value is unknown (lossy types / absent data), and how far the result still differs from
     the device.
@@ -160,6 +166,7 @@ def recover_parameters(
         inferred,
         dead,
         _EFFORT_SCALE[effort],
+        cancel,
     )
 
 
@@ -343,7 +350,8 @@ def _refine(
     unknown: list[str],
     inferred: _ValueMap,
     dead: set[tuple[str, str]],
-    scale: int,
+    scale: int | None,
+    cancel: Callable[[], bool] | None = None,
 ) -> RecoveredParameters:
     """Correct settings the device keeps no copy of where the result still differs from the
     device: in the bytes it would write, or in the group objects it shows (with linked objects).
@@ -358,8 +366,9 @@ def _refine(
     (``_REFINE_DEPTH`` selectors up),
     those of the most such places first. In each module instance, and in the application's
     own settings, the first that fits better is taken; ``_REFINE_TRIES`` values per round,
-    ``_REFINE_ROUNDS`` rounds at most, both ``scale`` times. The values the inference found to show nothing (``dead``) are not tried again behind
-    them."""
+    ``_REFINE_ROUNDS`` rounds at most, both ``scale`` times (``None``: until no value fits better).
+    The values the inference found to show nothing (``dead``) are not tried again behind them.
+    When ``cancel`` returns true the search stops with the result so far."""
     from xknxeditor.prod.parser_v2.activation import shown_parameters, values_to_try
 
     from .recover import seed_dynamic_ui
@@ -393,9 +402,10 @@ def _refine(
     if current is None or not current[0]:
         return finish(current, ui, limited=False)
     tried: set[tuple[str, str]] = set()
-    tries = _REFINE_TRIES * scale
+    tries = None if scale is None else _REFINE_TRIES * scale
+    rounds = count() if scale is None else range(_REFINE_ROUNDS * scale)
     limited = False
-    for _ in range(_REFINE_ROUNDS * scale):
+    for _ in rounds:
         score, differing, wrong = current
         shown = shown_parameters(ui.ui())
         weight: Counter[str] = Counter()
@@ -434,6 +444,8 @@ def _refine(
             if evaluated == tries:
                 limited = True
                 break
+            if cancel is not None and cancel():
+                return finish(current, ui, limited=True)
             evaluated += 1
             tried.add((gate, value))
             trial_values, trial_unknown, trial_inferred = _infer_all(

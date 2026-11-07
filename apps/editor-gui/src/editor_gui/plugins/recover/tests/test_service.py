@@ -468,11 +468,17 @@ def test_search_again_replaces_the_device_it_added(
     assert service.can_search_again()
 
     searched: list[tuple[str, RecoveryEffort]] = []
+    cancels: list[Any] = []
 
     def search(
-        device: RecoveredDevice, _app: Any, effort: RecoveryEffort, _code_page: Any
+        device: RecoveredDevice,
+        _app: Any,
+        effort: RecoveryEffort,
+        _code_page: Any,
+        cancel: Any = None,
     ) -> RecoveredDevice:
         searched.append((device.address, effort))
+        cancels.append(cancel)
         return dataclasses.replace(
             device,
             parameters=RecoveredParameters(values={"R-1": "1"}, unknown=[]),
@@ -499,3 +505,7 @@ def test_search_again_replaces_the_device_it_added(
     assert project.add_calls == 3
     assert ("R-1", "1") in project.params
     assert not service.can_search_again()
+    # Stop ends a running search: the search asks the service.
+    assert cancels[0] is not None and not cancels[0]()
+    service.stop()
+    assert cancels[0]()

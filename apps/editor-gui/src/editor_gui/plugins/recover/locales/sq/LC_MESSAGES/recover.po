@@ -133,8 +133,8 @@ msgstr "rikuperuar (jo i plotë)"
 msgid "Search Effort"
 msgstr "Përpjekja e Kërkimit"
 
-msgid "How many values are tried for the settings a device keeps no copy of. More effort finds settings in devices with many channels, but takes longer."
-msgstr "Sa vlera provohen për cilësimet për të cilat pajisja nuk ruan kopje. Më shumë përpjekje gjen cilësime në pajisje me shumë kanale, por zgjat më shumë."
+msgid "How many values are tried for the settings a device keeps no copy of. More effort finds settings in devices with many channels, but takes longer. Unlimited goes on until no value fits better; Stop ends the search."
+msgstr "Sa vlera provohen për cilësimet për të cilat pajisja nuk ruan kopje. Më shumë përpjekje gjen cilësime në pajisje me shumë kanale, por zgjat më shumë. Pa kufi vazhdon derisa asnjë vlerë të mos përshtatet më mirë; Ndalo e përfundon kërkimin."
 
 msgid "Fast"
 msgstr "Shpejt"
@@ -159,3 +159,6 @@ msgstr "%(bytes)d bajt dhe %(objects)d objekte të grupit ndryshojnë nga pajisj
 
 msgid "more search effort may help"
 msgstr "më shumë përpjekje kërkimi mund të ndihmojë"
+
+msgid "Unlimited"
+msgstr "Pa kufi"

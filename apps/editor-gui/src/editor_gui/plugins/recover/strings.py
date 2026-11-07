@@ -186,7 +186,8 @@ class RecoverStrings:
     def SEARCH_EFFORT_HINT(self) -> str:
         return _(
             "How many values are tried for the settings a device keeps no copy of. More "
-            "effort finds settings in devices with many channels, but takes longer."
+            "effort finds settings in devices with many channels, but takes longer. Unlimited "
+            "goes on until no value fits better; Stop ends the search."
         )
 
     @property
@@ -200,6 +201,10 @@ class RecoverStrings:
     @property
     def EFFORT_MAXIMUM(self) -> str:
         return _("Maximum")
+
+    @property
+    def EFFORT_UNLIMITED(self) -> str:
+        return _("Unlimited")
 
     @property
     def BTN_SEARCH_AGAIN(self) -> str:

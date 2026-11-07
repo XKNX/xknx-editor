@@ -144,6 +144,37 @@ def test_a_search_stopped_at_its_limit_says_more_effort_may_help(
     assert medium.values[_STEP] == "9"
 
 
+def test_an_unlimited_search_goes_on_until_nothing_fits_better(
+    application: Application, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # No round or value limit: the two corrections are made even with one round per effort.
+    monkeypatch.setattr(parameters, "_REFINE_ROUNDS", 1)
+    monkeypatch.setattr(parameters, "_REFINE_TRIES", 1)
+    segments = _device(
+        application, (_CHANNEL, "1"), (_MODE, "1"), (_DELAY, "5"), (_STEP, "9")
+    )
+    unlimited = recover_parameters(
+        application, segments, effort=RecoveryEffort.UNLIMITED
+    )
+    assert unlimited.complete
+    assert unlimited.values[_STEP] == "9"
+
+
+def test_a_cancelled_search_ends_with_the_result_so_far(
+    application: Application,
+) -> None:
+    segments = _device(
+        application, (_CHANNEL, "1"), (_MODE, "1"), (_DELAY, "5"), (_STEP, "9")
+    )
+    cancelled = recover_parameters(
+        application, segments, effort=RecoveryEffort.UNLIMITED, cancel=lambda: True
+    )
+    # Stopped before the first correction: the channel stays off, and more may be found.
+    assert not cancelled.complete
+    assert cancelled.limited
+    assert cancelled.values.get(_CHANNEL, "0") == "0"
+
+
 def test_a_device_is_searched_again_in_what_was_read(
     application: Application, monkeypatch: pytest.MonkeyPatch
 ) -> None:

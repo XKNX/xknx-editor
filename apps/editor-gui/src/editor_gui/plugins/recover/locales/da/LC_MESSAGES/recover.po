@@ -133,8 +133,8 @@ msgstr "gendannet (ufuldstændig)"
 msgid "Search Effort"
 msgstr "Søgeindsats"
 
-msgid "How many values are tried for the settings a device keeps no copy of. More effort finds settings in devices with many channels, but takes longer."
-msgstr "Hvor mange værdier der prøves for de indstillinger, enheden ikke gemmer en kopi af. Mere indsats finder indstillinger i enheder med mange kanaler, men tager længere tid."
+msgid "How many values are tried for the settings a device keeps no copy of. More effort finds settings in devices with many channels, but takes longer. Unlimited goes on until no value fits better; Stop ends the search."
+msgstr "Hvor mange værdier der prøves for de indstillinger, enheden ikke gemmer en kopi af. Mere indsats finder indstillinger i enheder med mange kanaler, men tager længere tid. Ubegrænset fortsætter, indtil ingen værdi passer bedre; Stop afslutter søgningen."
 
 msgid "Fast"
 msgstr "Hurtig"
@@ -159,3 +159,6 @@ msgstr "%(bytes)d byte og %(objects)d gruppeobjekt(er) afviger fra enheden"
 
 msgid "more search effort may help"
 msgstr "mere søgeindsats kan hjælpe"
+
+msgid "Unlimited"
+msgstr "Ubegrænset"

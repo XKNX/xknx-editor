@@ -187,6 +187,7 @@ async def recover_device(
     project_code_page: str | None = None,
     reads_done: Callable[[], Awaitable[None]] | None = None,
     effort: RecoveryEffort = RecoveryEffort.FAST,
+    cancel: Callable[[], bool] | None = None,
 ) -> RecoveredDevice:
     """Read and decode one device's configuration over an open connection.
 
@@ -198,8 +199,8 @@ async def recover_device(
     :func:`~xknxeditor.recover.parameters.recover_parameters`. ``reads_done`` is awaited
     once everything is read, before the decoding (which takes seconds for a large
     application): the connection can be closed there, before the device closes it for
-    being idle. ``effort`` as for :func:`~xknxeditor.recover.parameters.recover_parameters`.
-    Read-only.
+    being idle. ``effort`` and ``cancel`` as for
+    :func:`~xknxeditor.recover.parameters.recover_parameters`. Read-only.
     """
     mask_version = await programmer.read_device_descriptor()
     dossier = await read_dossier(programmer)
@@ -223,6 +224,7 @@ async def recover_device(
         property_values,
         project_code_page,
         effort,
+        cancel,
     )
     return RecoveredDevice(
         address=address,
@@ -246,11 +248,12 @@ def search_again(
     application: Application,
     effort: RecoveryEffort,
     project_code_page: str | None = None,
+    cancel: Callable[[], bool] | None = None,
 ) -> RecoveredDevice:
     """``device`` with its parameters searched again in what was read off it, with
     ``effort`` (e.g. more for a device whose result still differs from it, see
     :attr:`~xknxeditor.recover.parameters.RecoveredParameters.complete`). Needs no bus;
-    takes as long as the effort allows. ``project_code_page`` as for
+    takes as long as the effort allows. ``project_code_page`` and ``cancel`` as for
     :func:`~xknxeditor.recover.parameters.recover_parameters`."""
     parameters, com_object_refs = _decode_configuration(
         application,
@@ -260,6 +263,7 @@ def search_again(
         device.property_values or {},
         project_code_page,
         effort,
+        cancel,
     )
     return replace(
         device, parameters=parameters, com_object_refs=com_object_refs, effort=effort
@@ -274,6 +278,7 @@ def _decode_configuration(
     property_values: Mapping[tuple[int | None, int, int], bytes],
     project_code_page: str | None,
     effort: RecoveryEffort,
+    cancel: Callable[[], bool] | None = None,
 ) -> tuple[RecoveredParameters, dict[int, str]]:
     """The parameters read off a device, and the reference of each group object number."""
     linked = {link.group_object_number for link in links}
@@ -289,6 +294,7 @@ def _decode_configuration(
             if number in linked and group_object.object_size is not None
         },
         effort=effort,
+        cancel=cancel,
     )
     # Resolve com object numbers against a UI seeded with the recovered parameters,
     # so module instances (and their runtime numbers) match the device rather than
@@ -326,6 +332,7 @@ async def recover_device_at(
     retry_delay: float = 1.5,
     project_code_page: str | None = None,
     effort: RecoveryEffort = RecoveryEffort.FAST,
+    cancel: Callable[[], bool] | None = None,
 ) -> RecoveredDevice:
     """Open a connection to ``address``, recover the device, and close it again.
 
@@ -334,7 +341,7 @@ async def recover_device_at(
     ``interface_max_apdu_length`` (the connecting interface's maximum): a device behind
     a tunnelling-v1 interface may advertise longer frames than the interface can carry,
     and those frames are dropped. ``progress`` reports the current read stage.
-    ``project_code_page`` and ``effort`` as for
+    ``project_code_page``, ``effort`` and ``cancel`` as for
     :func:`~xknxeditor.recover.parameters.recover_parameters`. Read-only.
 
     A transient transport failure (the KNXnet/IP tunnel dropping the point-to-point
@@ -383,6 +390,7 @@ async def recover_device_at(
                 # itself, and closing it afterwards fails.
                 reads_done=disconnect,
                 effort=effort,
+                cancel=cancel,
             )
         except (ManagementConnectionError, XKNXException, MemoryReadNotAnswered) as exc:
             # Transport hiccup, or a long read the interface dropped (raised as

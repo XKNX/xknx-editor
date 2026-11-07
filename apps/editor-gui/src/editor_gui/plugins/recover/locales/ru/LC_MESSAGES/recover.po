@@ -133,8 +133,8 @@ msgstr "восстановлено (не полностью)"
 msgid "Search Effort"
 msgstr "Объём Поиска"
 
-msgid "How many values are tried for the settings a device keeps no copy of. More effort finds settings in devices with many channels, but takes longer."
-msgstr "Сколько значений перебирается для параметров, копию которых устройство не хранит. Больший объём находит параметры в устройствах с множеством каналов, но занимает больше времени."
+msgid "How many values are tried for the settings a device keeps no copy of. More effort finds settings in devices with many channels, but takes longer. Unlimited goes on until no value fits better; Stop ends the search."
+msgstr "Сколько значений перебирается для параметров, копию которых устройство не хранит. Больший объём находит параметры в устройствах с множеством каналов, но занимает больше времени. Без ограничений поиск идёт, пока ни одно значение не подходит лучше; «Стоп» завершает поиск."
 
 msgid "Fast"
 msgstr "Быстрый"
@@ -159,3 +159,6 @@ msgstr "%(bytes)d байт и %(objects)d групповых объектов о
 
 msgid "more search effort may help"
 msgstr "больший объём поиска может помочь"
+
+msgid "Unlimited"
+msgstr "Без ограничений"

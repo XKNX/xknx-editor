@@ -29,12 +29,17 @@ def _stage_label(stage: str) -> str:
     }.get(stage, "…")
 
 
-_EFFORTS = (RecoveryEffort.FAST, RecoveryEffort.MEDIUM, RecoveryEffort.MAXIMUM)
+_EFFORTS = (
+    RecoveryEffort.FAST,
+    RecoveryEffort.MEDIUM,
+    RecoveryEffort.MAXIMUM,
+    RecoveryEffort.UNLIMITED,
+)
 
 
 def _effort_labels() -> list[str]:
     """Localized labels of the search efforts, in the order of ``_EFFORTS``."""
-    return [S.EFFORT_FAST, S.EFFORT_MEDIUM, S.EFFORT_MAXIMUM]
+    return [S.EFFORT_FAST, S.EFFORT_MEDIUM, S.EFFORT_MAXIMUM, S.EFFORT_UNLIMITED]
 
 
 def _label(text: str, field_width: float, *, first: bool = False) -> None:

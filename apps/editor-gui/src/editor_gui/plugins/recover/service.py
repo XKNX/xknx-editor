@@ -157,6 +157,10 @@ class RecoverService:
             or (self._search is not None and not self._search.done())
         )
 
+    def _cancelled(self) -> bool:
+        """Whether Stop was pressed: a running search ends with its result so far."""
+        return self._cancel
+
     def stop(self) -> None:
         """Request the running scan/recover/verify to stop after the current device."""
         self._cancel = True
@@ -325,6 +329,7 @@ class RecoverService:
                     progress=self._on_recover_stage,
                     project_code_page=self._api.project.project_code_page(),
                     effort=self.effort,
+                    cancel=self._cancelled,
                 )
                 entry.state = _recovered_state(entry.recovered)
                 if self._log is not None:
@@ -474,7 +479,11 @@ class RecoverService:
                 self.recover_done = done
                 try:
                     found = search_again(
-                        entry.recovered, entry.application, effort, code_page
+                        entry.recovered,
+                        entry.application,
+                        effort,
+                        code_page,
+                        cancel=self._cancelled,
                     )
                 except Exception as exc:  # one device failing must not stop the others
                     if self._log is not None:

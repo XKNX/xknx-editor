@@ -139,8 +139,8 @@ msgstr "obnovené (neúplné)"
 msgid "Search Effort"
 msgstr "Rozsah Hľadania"
 
-msgid "How many values are tried for the settings a device keeps no copy of. More effort finds settings in devices with many channels, but takes longer."
-msgstr "Koľko hodnôt sa skúša pre nastavenia, ktorých kópiu zariadenie neuchováva. Väčší rozsah nájde nastavenia v zariadeniach s mnohými kanálmi, ale trvá dlhšie."
+msgid "How many values are tried for the settings a device keeps no copy of. More effort finds settings in devices with many channels, but takes longer. Unlimited goes on until no value fits better; Stop ends the search."
+msgstr "Koľko hodnôt sa skúša pre nastavenia, ktorých kópiu zariadenie neuchováva. Väčší rozsah nájde nastavenia v zariadeniach s mnohými kanálmi, ale trvá dlhšie. Neobmedzený hľadá, kým žiadna hodnota nesedí lepšie; Zastaviť hľadanie ukončí."
 
 msgid "Fast"
 msgstr "Rýchly"
@@ -165,3 +165,6 @@ msgstr "%(bytes)d bajt(ov) a %(objects)d skupinový(ch) objekt(ov) sa líši od 
 
 msgid "more search effort may help"
 msgstr "väčší rozsah hľadania môže pomôcť"
+
+msgid "Unlimited"
+msgstr "Neobmedzený"

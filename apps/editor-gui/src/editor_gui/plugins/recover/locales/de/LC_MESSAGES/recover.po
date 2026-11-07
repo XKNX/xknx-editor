@@ -145,8 +145,8 @@ msgstr "wiederhergestellt (unvollständig)"
 msgid "Search Effort"
 msgstr "Suchaufwand"
 
-msgid "How many values are tried for the settings a device keeps no copy of. More effort finds settings in devices with many channels, but takes longer."
-msgstr "Wie viele Werte für die Einstellungen probiert werden, von denen das Gerät keine Kopie speichert. Mehr Aufwand findet Einstellungen in Geräten mit vielen Kanälen, dauert aber länger."
+msgid "How many values are tried for the settings a device keeps no copy of. More effort finds settings in devices with many channels, but takes longer. Unlimited goes on until no value fits better; Stop ends the search."
+msgstr "Wie viele Werte für die Einstellungen probiert werden, von denen das Gerät keine Kopie speichert. Mehr Aufwand findet Einstellungen in Geräten mit vielen Kanälen, dauert aber länger. Unbegrenzt sucht weiter, bis kein Wert mehr besser passt; Stoppen beendet die Suche."
 
 msgid "Fast"
 msgstr "Schnell"
@@ -171,3 +171,6 @@ msgstr "%(bytes)d Byte(s) und %(objects)d Kommunikationsobjekt(e) weichen vom Ge
 
 msgid "more search effort may help"
 msgstr "mehr Suchaufwand kann helfen"
+
+msgid "Unlimited"
+msgstr "Unbegrenzt"

@@ -314,7 +314,8 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
     def recover_set_search_effort(effort: str) -> dict[str, Any]:
         """How many values the search for the settings a device keeps no copy of tries, for the
         next read-back and search again (the window's Search Effort): "fast" (the default),
-        "medium" or "maximum". More finds settings in devices with many channels, but takes
+        "medium", "maximum" or "unlimited" (until no value fits better; recover_stop ends it
+        with the result so far). More finds settings in devices with many channels, but takes
         longer. Returns the state as recover_status does."""
         from xknxeditor.recover import RecoveryEffort
 
@@ -323,7 +324,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             chosen = RecoveryEffort(effort)
         except ValueError:
             raise ToolError(
-                f"unknown effort {effort!r}; one of fast, medium, maximum"
+                f"unknown effort {effort!r}; one of fast, medium, maximum, unlimited"
             ) from None
 
         def _set() -> None:

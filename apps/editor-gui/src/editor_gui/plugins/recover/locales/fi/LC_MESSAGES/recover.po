@@ -133,8 +133,8 @@ msgstr "palautettu (keskeneräinen)"
 msgid "Search Effort"
 msgstr "Haun Laajuus"
 
-msgid "How many values are tried for the settings a device keeps no copy of. More effort finds settings in devices with many channels, but takes longer."
-msgstr "Kuinka monta arvoa kokeillaan asetuksille, joista laite ei säilytä kopiota. Laajempi haku löytää asetuksia laitteista, joissa on monta kanavaa, mutta kestää pidempään."
+msgid "How many values are tried for the settings a device keeps no copy of. More effort finds settings in devices with many channels, but takes longer. Unlimited goes on until no value fits better; Stop ends the search."
+msgstr "Kuinka monta arvoa kokeillaan asetuksille, joista laite ei säilytä kopiota. Laajempi haku löytää asetuksia laitteista, joissa on monta kanavaa, mutta kestää pidempään. Rajoittamaton jatkaa, kunnes mikään arvo ei sovi paremmin; Pysäytä lopettaa haun."
 
 msgid "Fast"
 msgstr "Nopea"
@@ -159,3 +159,6 @@ msgstr "%(bytes)d tavua ja %(objects)d ryhmäobjektia poikkeaa laitteesta"
 
 msgid "more search effort may help"
 msgstr "laajempi haku voi auttaa"
+
+msgid "Unlimited"
+msgstr "Rajoittamaton"

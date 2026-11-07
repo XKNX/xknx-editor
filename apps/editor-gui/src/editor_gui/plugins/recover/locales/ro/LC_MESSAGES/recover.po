@@ -139,8 +139,8 @@ msgstr "recuperat (incomplet)"
 msgid "Search Effort"
 msgstr "Efort de Căutare"
 
-msgid "How many values are tried for the settings a device keeps no copy of. More effort finds settings in devices with many channels, but takes longer."
-msgstr "Câte valori sunt încercate pentru setările din care dispozitivul nu păstrează o copie. Mai mult efort găsește setări în dispozitivele cu multe canale, dar durează mai mult."
+msgid "How many values are tried for the settings a device keeps no copy of. More effort finds settings in devices with many channels, but takes longer. Unlimited goes on until no value fits better; Stop ends the search."
+msgstr "Câte valori sunt încercate pentru setările din care dispozitivul nu păstrează o copie. Mai mult efort găsește setări în dispozitivele cu multe canale, dar durează mai mult. Nelimitat continuă până când nicio valoare nu se potrivește mai bine; Oprire încheie căutarea."
 
 msgid "Fast"
 msgstr "Rapid"
@@ -165,3 +165,6 @@ msgstr "%(bytes)d octet(i) și %(objects)d obiect(e) de comunicare diferă de di
 
 msgid "more search effort may help"
 msgstr "mai mult efort de căutare poate ajuta"
+
+msgid "Unlimited"
+msgstr "Nelimitat"
