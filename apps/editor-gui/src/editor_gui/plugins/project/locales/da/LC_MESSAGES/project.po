@@ -118,12 +118,6 @@ msgstr "Flyt op"
 msgid "Move Down"
 msgstr "Flyt ned"
 
-msgid "{count} items"
-msgstr "{count} elementer"
-
-msgid "{count} pairs"
-msgstr "{count} par"
-
 msgid "{count} unpaired (ignored)"
 msgstr "{count} uden par (ignoreret)"
 
@@ -147,15 +141,6 @@ msgstr "Tilføj gruppeadresser"
 
 msgid "Mass Linker Result"
 msgstr "Resultat af massesammenkædning"
-
-msgid "Linked {count} object(s) to group addresses"
-msgstr "{count} objekt(er) sammenkædet med gruppeadresser"
-
-msgid "Linked {count} object pair(s) via new group addresses"
-msgstr "{count} objektpar sammenkædet via nye gruppeadresser"
-
-msgid "{count} error(s)"
-msgstr "{count} fejl"
 
 msgid "Clear All"
 msgstr "Ryd alt"
@@ -277,12 +262,6 @@ msgstr "Udskift med (skabelon)"
 msgid "Group Object Mapping (by Number)"
 msgstr "Tildeling af gruppeobjekter (efter nummer)"
 
-msgid "{count} object(s) will be re-mapped"
-msgstr "{count} objekt(er) tildeles på ny"
-
-msgid "Replaced; re-mapped {count} group object(s)"
-msgstr "Udskiftet; {count} gruppeobjekt(er) tildelt på ny"
-
 msgid "Shift Addresses"
 msgstr "Forskyd adresser"
 
@@ -312,9 +291,6 @@ msgstr "Sammenlignet med {name}:"
 
 msgid "No differences in devices or group addresses."
 msgstr "Ingen forskelle i enheder eller gruppeadresser."
-
-msgid "{count} difference(s)"
-msgstr "{count} forskel(le)"
 
 msgid "Add Device Certificate"
 msgstr "Tilføj enhedscertifikat"
@@ -397,9 +373,6 @@ msgstr "Kopinavn: {name}"
 msgid "Copy"
 msgstr "Kopier"
 
-msgid "Created {count} copy/copies"
-msgstr "{count} kopi(er) oprettet"
-
 msgid "Shifts the device part of each individual address. Group addresses are not shifted."
 msgstr "Forskyder enhedsdelen af hver individuel adresse. Gruppeadresser forskydes ikke."
 
@@ -421,12 +394,6 @@ msgstr "{sel} af {total} valgt"
 msgid "(out of range)"
 msgstr "(uden for området)"
 
-msgid "{count} address(es) will change"
-msgstr "{count} adresse(r) ændres"
-
-msgid "Shifted {count} address(es)"
-msgstr "{count} adresse(r) forskudt"
-
 msgid "Individual Addresses"
 msgstr "Individuelle adresser"
 
@@ -441,9 +408,6 @@ msgstr "Omnummerer gruppeadresser ved at lægge en forskydning til deres råvær
 
 msgid "The offset is added to the raw 16-bit value, so it may change the main/middle group as addresses cross a boundary."
 msgstr "Forskydningen lægges til den rå 16-bit-værdi, så hoved-/mellemgruppen kan ændre sig, når adresser krydser en grænse."
-
-msgid "Shifted {count} group address(es)"
-msgstr "{count} gruppeadresse(r) forskudt"
 
 msgid "Export CSV…"
 msgstr "Eksporter CSV…"
@@ -496,9 +460,6 @@ msgstr "Vælg mindst ét felt."
 msgid "No topology issues found."
 msgstr "Ingen topologiproblemer fundet."
 
-msgid "{count} issue(s)"
-msgstr "{count} problem(er)"
-
 msgid "Click a finding to jump to the device."
 msgstr "Klik på et fund for at springe til enheden."
 
@@ -516,6 +477,7 @@ msgstr "Læser projekterne…"
 
 msgid "Comparing devices: {done} of {total}"
 msgstr "Sammenligner enheder: {done} af {total}"
+
 msgid "File"
 msgstr "Fil"
 
@@ -630,9 +592,6 @@ msgstr "Projektcertifikat"
 msgid "none"
 msgstr "ingen"
 
-msgid "present ({size} bytes)"
-msgstr "til stede ({size} byte)"
-
 msgid "Password"
 msgstr "Adgangskode"
 
@@ -692,7 +651,6 @@ msgstr "ETS krypterer bemærkningerne i loggen. Udtræk dekrypteringsnøglen fra
 
 msgid "Comments are encrypted"
 msgstr "Bemærkninger er krypteret"
-
 
 msgid "Extracting key…"
 msgstr "Udtrækker nøgle…"
@@ -1003,14 +961,8 @@ msgstr "Klik for at kopiere"
 msgid "Filter parameters…"
 msgstr "Filtrer parametre…"
 
-msgid "Apply Changes to All {count} Identical Devices"
-msgstr "Anvend ændringer på alle {count} identiske enheder"
-
 msgid "Apply Changes to All Channels"
 msgstr "Anvend ændringer på alle kanaler"
-
-msgid "Editing {count} devices — edits apply to all, diverging values show <differs>"
-msgstr "Redigerer {count} enheder — ændringer gælder for alle, afvigende værdier vises som <afviger>"
 
 msgid "Hardware"
 msgstr "Hardware"
@@ -1048,9 +1000,6 @@ msgstr "Ryd sammenligning"
 msgid "Memory Dumps (*.bin)"
 msgstr "Hukommelsesdumps (*.bin)"
 
-msgid "{count} bytes"
-msgstr "{count} byte"
-
 msgid "No memory segments."
 msgstr "Ingen hukommelsessegmenter."
 
@@ -1077,9 +1026,6 @@ msgstr "Kan ikke køres: ingen KNX-forbindelse. Opret forbindelse til en gateway
 
 msgid "Match: the generated image is identical to what is on the device"
 msgstr "Match: det dannede billede er identisk med indholdet i enheden"
-
-msgid "Mismatch: {bytes} byte(s) differ from the device in {locations} location(s)"
-msgstr "Afvigelse: {bytes} byte afviger fra enheden på {locations} placering(er)"
 
 msgid "{matched} matched, {changed} would change"
 msgstr "{matched} matcher, {changed} ville blive ændret"
@@ -1111,9 +1057,6 @@ msgstr "enhedsstyret"
 msgid "System byte the device sets itself at runtime (e.g. a download detection byte reset by the application after a download). A difference here is expected and does not indicate a bad download."
 msgstr "Systembyte, som enheden selv sætter under kørsel (f.eks. en byte til downloadregistrering, som applikationen nulstiller efter en download). En forskel her er forventet og tyder ikke på en fejlagtig download."
 
-msgid "plus {bytes} device-managed runtime byte(s) (expected, benign)"
-msgstr "plus {bytes} enhedsstyret(e) kørselsbyte (forventet, ufarligt)"
-
 msgid "No configured differences: the device already carries this configuration. The differences below are benign (see notes)."
 msgstr "Ingen konfigurerede forskelle: enheden har allerede denne konfiguration. Forskellene nedenfor er ufarlige (se noterne)."
 
@@ -1122,9 +1065,6 @@ msgstr "sætter standardværdi"
 
 msgid "This byte is written for a neighbouring parameter; the differing bit is not driven by any active parameter and is only reset to the application default. The device holds an older value (e.g. from a previous configuration or mode) that programming will normalise. Benign."
 msgstr "Denne byte skrives på grund af en nabo-parameter; den afvigende bit styres ikke af nogen aktiv parameter og nulstilles kun til applikationens standardværdi. Enheden har en ældre værdi (f.eks. fra en tidligere konfiguration eller tilstand), som programmeringen normaliserer. Ufarligt."
-
-msgid "plus {bytes} byte(s) reset to the application default (the device holds an older value; benign, will be normalised on programming)"
-msgstr "plus {bytes} byte, der nulstilles til applikationens standardværdi (enheden har en ældre værdi; ufarligt, normaliseres ved programmering)"
 
 msgid "Export Ist/Soll…"
 msgstr "Eksporter faktisk/ønsket…"
@@ -1180,9 +1120,6 @@ msgstr "Kun forskelle"
 msgid "Filter devices by address, name or description…"
 msgstr "Filtrer enheder efter adresse, navn eller beskrivelse…"
 
-msgid "{count} differences"
-msgstr "{count} forskelle"
-
 msgid "Parameters"
 msgstr "Parametre"
 
@@ -1206,9 +1143,6 @@ msgstr "Indsæt konfiguration"
 
 msgid "Paste configuration onto '{name}':"
 msgstr "Indsæt konfiguration i '{name}':"
-
-msgid "Paste configuration onto {count} selected devices:"
-msgstr "Indsæt konfiguration i {count} valgte enheder:"
 
 msgid "Duplicate '{name}':"
 msgstr "Dubliker '{name}':"
@@ -1603,12 +1537,6 @@ msgstr "Importer gruppeadresser"
 msgid "Group Address Files (XML, CSV)"
 msgstr "Gruppeadressefiler (XML, CSV)"
 
-msgid "{added} group addresses added, {updated} updated."
-msgstr "{added} gruppeadresser tilføjet, {updated} opdateret."
-
-msgid "{count} group addresses could not be placed in a group."
-msgstr "{count} gruppeadresser kunne ikke placeres i en gruppe."
-
 msgid "The file could not be imported: {error}"
 msgstr "Filen kunne ikke importeres: {error}"
 
@@ -1789,9 +1717,6 @@ msgstr "Skriv gruppetildelingen til DALI-bussen. Dette overfører grupperne til\
 msgid "Write the scene values to the DALI bus. Continue?"
 msgstr "Skriv sceneværdierne til DALI-bussen. Vil du fortsætte?"
 
-msgid "{count} ECG(s) present"
-msgstr "{count} forkobling(er) til stede"
-
 msgid "Group"
 msgstr "Gruppe"
 
@@ -1833,9 +1758,6 @@ msgstr "Enkelt"
 
 msgid "Unassigned"
 msgstr "Ikke tildelt"
-
-msgid "Procedure {number}  ({count} steps)"
-msgstr "Procedure {number}  ({count} trin)"
 
 msgid "Kind"
 msgstr "Art"
@@ -2202,9 +2124,6 @@ msgstr "Applikationen har ingen statiske parametre."
 
 msgid "This gateway's commissioning protocol has not been verified against a capture; writes may misbehave. Proceed with care."
 msgstr "Denne gateways ibrugtagningsprotokol er ikke verificeret mod en optagelse; skrivninger kan opføre sig forkert. Fortsæt med forsigtighed."
-
-msgid "{count} ECG(s) present on line {line}"
-msgstr "{count} ECG'er til stede på linje {line}"
 
 msgid "Program DCA State"
 msgstr "Programmér DCA-tilstand"
@@ -2677,9 +2596,6 @@ msgstr "Gruppen har ingen ledig gruppeadresse."
 msgid "The main group has no free middle group."
 msgstr "Hovedgruppen har ingen ledig mellemgruppe."
 
-msgid "{count} devices"
-msgstr "{count} enheder"
-
 msgid "The main segment cannot be moved."
 msgstr "Hovedsegmentet kan ikke flyttes."
 
@@ -2752,33 +2668,6 @@ msgstr "Der er ingen gruppe til de nye gruppeadresser."
 msgid "Copied '{name}' to '{target}'."
 msgstr "'{name}' kopieret til '{target}'."
 
-msgid "Copied {count} devices to '{target}'."
-msgstr "{count} enheder kopieret til '{target}'."
-
-msgid "Copied {count} building parts to '{target}'."
-msgstr "{count} bygningsdele kopieret til '{target}'."
-
-msgid "Copied {count} trades to '{target}'."
-msgstr "{count} trades kopieret til '{target}'."
-
-msgid "Copied {count} functions to '{target}'."
-msgstr "{count} funktioner kopieret til '{target}'."
-
-msgid "Copied {count} group addresses to '{target}'."
-msgstr "{count} gruppeadresser kopieret til '{target}'."
-
-msgid "Copied {count} middle groups to '{target}'."
-msgstr "{count} mellemgrupper kopieret til '{target}'."
-
-msgid "Copied {count} main groups to '{target}'."
-msgstr "{count} hovedgrupper kopieret til '{target}'."
-
-msgid "Copied {count} lines to '{target}'."
-msgstr "{count} linjer kopieret til '{target}'."
-
-msgid "Copied {count} segments to '{target}'."
-msgstr "{count} segmenter kopieret til '{target}'."
-
 msgid "Paste Special…"
 msgstr "Indsæt speciel…"
 
@@ -2821,30 +2710,6 @@ msgstr "Grænsen for tilføjelse er nået."
 msgid "Cannot add any line to the area {area} because of topology constraints. Please check the medium type of the backbone and main lines."
 msgstr "Der kan ikke tilføjes nogen linje til området {area} på grund af topologibegrænsninger. Kontrollér medietypen for backbone- og hovedlinjerne."
 
-msgid "Added {count} areas to '{target}'."
-msgstr "{count} områder tilføjet til '{target}'."
-
-msgid "Added {count} lines to '{target}'."
-msgstr "{count} linjer tilføjet til '{target}'."
-
-msgid "Added {count} segments to '{target}'."
-msgstr "{count} segmenter tilføjet til '{target}'."
-
-msgid "Added {count} building parts to '{target}'."
-msgstr "{count} bygningsdele tilføjet til '{target}'."
-
-msgid "Added {count} trades to '{target}'."
-msgstr "{count} fag tilføjet til '{target}'."
-
-msgid "Added {count} main groups to '{target}'."
-msgstr "{count} hovedgrupper tilføjet til '{target}'."
-
-msgid "Added {count} middle groups to '{target}'."
-msgstr "{count} mellemgrupper tilføjet til '{target}'."
-
-msgid "Added {count} group addresses to '{target}'."
-msgstr "{count} gruppeadresser tilføjet til '{target}'."
-
 msgid "Add Main Groups…"
 msgstr "Tilføj hovedgrupper…"
 
@@ -2884,12 +2749,6 @@ msgstr "Tilføj funktioner"
 msgid "New function"
 msgstr "Ny funktion"
 
-msgid "Added {count} functions to '{target}'."
-msgstr "{count} funktioner tilføjet til '{target}'."
-
-msgid "Added {count} group ranges to '{target}'."
-msgstr "{count} gruppeadresseområder tilføjet til '{target}'."
-
 msgid "Add Group Ranges…"
 msgstr "Tilføj gruppeadresseområder…"
 
@@ -2923,9 +2782,6 @@ msgstr "Et gruppeadresseområde kan ikke flyttes ind i sig selv eller et område
 msgid "A group address of the range is already in use there."
 msgstr "En gruppeadresse i området er allerede i brug der."
 
-msgid "Copied {count} group ranges to '{target}'."
-msgstr "{count} gruppeadresseområder kopieret til '{target}'."
-
 msgid "Add Areas…"
 msgstr "Tilføj områder…"
 
@@ -2940,12 +2796,6 @@ msgstr "Kopier gruppeadresse"
 
 msgid "Existing Devices…"
 msgstr "Eksisterende enheder…"
-
-msgid "Delete the {count} selected devices? Their group objects and group-address links are removed and their individual addresses are freed. This can be undone."
-msgstr "Slet de {count} valgte enheder? Deres gruppeobjekter og gruppeadresseforbindelser fjernes, og deres individuelle adresser frigives. Dette kan fortrydes."
-
-msgid "Remove {count} devices"
-msgstr "Fjern {count} enheder"
 
 msgid "Delete Devices"
 msgstr "Slet enheder"
@@ -3055,9 +2905,6 @@ msgstr "Load LVS Project (.prj)…"
 msgid "LVS project (*.prj)"
 msgstr "LVS project (*.prj)"
 
-msgid "Imported the display configuration into {count} device(s)."
-msgstr "Imported the display configuration into {count} device(s)."
-
 msgid "The LVS project could not be imported: {error}"
 msgstr "The LVS project could not be imported: {error}"
 
@@ -3069,3 +2916,266 @@ msgstr "Exported the display configuration."
 
 msgid "The LVS project could not be exported: {error}"
 msgstr "The LVS project could not be exported: {error}"
+
+msgid "Copied {count} device to '{target}'."
+msgid_plural "Copied {count} devices to '{target}'."
+msgstr[0] "{count} enhed kopieret til '{target}'."
+msgstr[1] "{count} enheder kopieret til '{target}'."
+
+msgid "Copied {count} building part to '{target}'."
+msgid_plural "Copied {count} building parts to '{target}'."
+msgstr[0] "{count} bygningsdel kopieret til '{target}'."
+msgstr[1] "{count} bygningsdele kopieret til '{target}'."
+
+msgid "Copied {count} trade to '{target}'."
+msgid_plural "Copied {count} trades to '{target}'."
+msgstr[0] "{count} fag kopieret til '{target}'."
+msgstr[1] "{count} fag kopieret til '{target}'."
+
+msgid "Copied {count} function to '{target}'."
+msgid_plural "Copied {count} functions to '{target}'."
+msgstr[0] "{count} funktion kopieret til '{target}'."
+msgstr[1] "{count} funktioner kopieret til '{target}'."
+
+msgid "Copied {count} group address to '{target}'."
+msgid_plural "Copied {count} group addresses to '{target}'."
+msgstr[0] "{count} gruppeadresse kopieret til '{target}'."
+msgstr[1] "{count} gruppeadresser kopieret til '{target}'."
+
+msgid "Copied {count} middle group to '{target}'."
+msgid_plural "Copied {count} middle groups to '{target}'."
+msgstr[0] "{count} mellemgruppe kopieret til '{target}'."
+msgstr[1] "{count} mellemgrupper kopieret til '{target}'."
+
+msgid "Copied {count} main group to '{target}'."
+msgid_plural "Copied {count} main groups to '{target}'."
+msgstr[0] "{count} hovedgruppe kopieret til '{target}'."
+msgstr[1] "{count} hovedgrupper kopieret til '{target}'."
+
+msgid "Copied {count} group range to '{target}'."
+msgid_plural "Copied {count} group ranges to '{target}'."
+msgstr[0] "{count} gruppeadresseområde kopieret til '{target}'."
+msgstr[1] "{count} gruppeadresseområder kopieret til '{target}'."
+
+msgid "Copied {count} line to '{target}'."
+msgid_plural "Copied {count} lines to '{target}'."
+msgstr[0] "{count} linje kopieret til '{target}'."
+msgstr[1] "{count} linjer kopieret til '{target}'."
+
+msgid "Copied {count} segment to '{target}'."
+msgid_plural "Copied {count} segments to '{target}'."
+msgstr[0] "{count} segment kopieret til '{target}'."
+msgstr[1] "{count} segmenter kopieret til '{target}'."
+
+msgid "Added {count} area to '{target}'."
+msgid_plural "Added {count} areas to '{target}'."
+msgstr[0] "{count} område tilføjet til '{target}'."
+msgstr[1] "{count} områder tilføjet til '{target}'."
+
+msgid "Added {count} line to '{target}'."
+msgid_plural "Added {count} lines to '{target}'."
+msgstr[0] "{count} linje tilføjet til '{target}'."
+msgstr[1] "{count} linjer tilføjet til '{target}'."
+
+msgid "Added {count} segment to '{target}'."
+msgid_plural "Added {count} segments to '{target}'."
+msgstr[0] "{count} segment tilføjet til '{target}'."
+msgstr[1] "{count} segmenter tilføjet til '{target}'."
+
+msgid "Added {count} building part to '{target}'."
+msgid_plural "Added {count} building parts to '{target}'."
+msgstr[0] "{count} bygningsdel tilføjet til '{target}'."
+msgstr[1] "{count} bygningsdele tilføjet til '{target}'."
+
+msgid "Added {count} trade to '{target}'."
+msgid_plural "Added {count} trades to '{target}'."
+msgstr[0] "{count} fag tilføjet til '{target}'."
+msgstr[1] "{count} fag tilføjet til '{target}'."
+
+msgid "Added {count} function to '{target}'."
+msgid_plural "Added {count} functions to '{target}'."
+msgstr[0] "{count} funktion tilføjet til '{target}'."
+msgstr[1] "{count} funktioner tilføjet til '{target}'."
+
+msgid "Added {count} group range to '{target}'."
+msgid_plural "Added {count} group ranges to '{target}'."
+msgstr[0] "{count} gruppeadresseområde tilføjet til '{target}'."
+msgstr[1] "{count} gruppeadresseområder tilføjet til '{target}'."
+
+msgid "Added {count} main group to '{target}'."
+msgid_plural "Added {count} main groups to '{target}'."
+msgstr[0] "{count} hovedgruppe tilføjet til '{target}'."
+msgstr[1] "{count} hovedgrupper tilføjet til '{target}'."
+
+msgid "Added {count} middle group to '{target}'."
+msgid_plural "Added {count} middle groups to '{target}'."
+msgstr[0] "{count} mellemgruppe tilføjet til '{target}'."
+msgstr[1] "{count} mellemgrupper tilføjet til '{target}'."
+
+msgid "Added {count} group address to '{target}'."
+msgid_plural "Added {count} group addresses to '{target}'."
+msgstr[0] "{count} gruppeadresse tilføjet til '{target}'."
+msgstr[1] "{count} gruppeadresser tilføjet til '{target}'."
+
+msgid "Remove {count} device"
+msgid_plural "Remove {count} devices"
+msgstr[0] "Fjern {count} enhed"
+msgstr[1] "Fjern {count} enheder"
+
+msgid "{count} device"
+msgid_plural "{count} devices"
+msgstr[0] "{count} enhed"
+msgstr[1] "{count} enheder"
+
+msgid "{count} item"
+msgid_plural "{count} items"
+msgstr[0] "{count} element"
+msgstr[1] "{count} elementer"
+
+msgid "{count} pair"
+msgid_plural "{count} pairs"
+msgstr[0] "{count} par"
+msgstr[1] "{count} par"
+
+msgid "Linked {count} object to a group address"
+msgid_plural "Linked {count} objects to group addresses"
+msgstr[0] "{count} objekt sammenkædet med en gruppeadresse"
+msgstr[1] "{count} objekter sammenkædet med gruppeadresser"
+
+msgid "Linked {count} object pair via a new group address"
+msgid_plural "Linked {count} object pairs via new group addresses"
+msgstr[0] "{count} objektpar sammenkædet via en ny gruppeadresse"
+msgstr[1] "{count} objektpar sammenkædet via nye gruppeadresser"
+
+msgid "{count} error"
+msgid_plural "{count} errors"
+msgstr[0] "{count} fejl"
+msgstr[1] "{count} fejl"
+
+msgid "{count} object will be re-mapped"
+msgid_plural "{count} objects will be re-mapped"
+msgstr[0] "{count} objekt tildeles på ny"
+msgstr[1] "{count} objekter tildeles på ny"
+
+msgid "Replaced; re-mapped {count} group object"
+msgid_plural "Replaced; re-mapped {count} group objects"
+msgstr[0] "Udskiftet; {count} gruppeobjekt tildelt på ny"
+msgstr[1] "Udskiftet; {count} gruppeobjekter tildelt på ny"
+
+msgid "{count} difference"
+msgid_plural "{count} differences"
+msgstr[0] "{count} forskel"
+msgstr[1] "{count} forskelle"
+
+msgid "Created {count} copy"
+msgid_plural "Created {count} copies"
+msgstr[0] "{count} kopi oprettet"
+msgstr[1] "{count} kopier oprettet"
+
+msgid "{count} address will change"
+msgid_plural "{count} addresses will change"
+msgstr[0] "{count} adresse ændres"
+msgstr[1] "{count} adresser ændres"
+
+msgid "Shifted {count} address"
+msgid_plural "Shifted {count} addresses"
+msgstr[0] "{count} adresse forskudt"
+msgstr[1] "{count} adresser forskudt"
+
+msgid "Shifted {count} group address"
+msgid_plural "Shifted {count} group addresses"
+msgstr[0] "{count} gruppeadresse forskudt"
+msgstr[1] "{count} gruppeadresser forskudt"
+
+msgid "{count} issue"
+msgid_plural "{count} issues"
+msgstr[0] "{count} problem"
+msgstr[1] "{count} problemer"
+
+msgid "present ({size} byte)"
+msgid_plural "present ({size} bytes)"
+msgstr[0] "til stede ({size} byte)"
+msgstr[1] "til stede ({size} byte)"
+
+msgid "Imported the display configuration into {count} device."
+msgid_plural "Imported the display configuration into {count} devices."
+msgstr[0] "Visningskonfigurationen er importeret i {count} enhed."
+msgstr[1] "Visningskonfigurationen er importeret i {count} enheder."
+
+msgid "{count} ECG present on line {line}"
+msgid_plural "{count} ECGs present on line {line}"
+msgstr[0] "{count} ECG til stede på linje {line}"
+msgstr[1] "{count} ECG'er til stede på linje {line}"
+
+msgid "Apply Changes to {count} Identical Device"
+msgid_plural "Apply Changes to All {count} Identical Devices"
+msgstr[0] "Anvend ændringer på {count} identisk enhed"
+msgstr[1] "Anvend ændringer på alle {count} identiske enheder"
+
+msgid "Editing {count} device — edits apply to all, diverging values show <differs>"
+msgid_plural "Editing {count} devices — edits apply to all, diverging values show <differs>"
+msgstr[0] "Redigerer {count} enhed — ændringer gælder for alle, afvigende værdier vises som <afviger>"
+msgstr[1] "Redigerer {count} enheder — ændringer gælder for alle, afvigende værdier vises som <afviger>"
+
+msgid "{count} byte"
+msgid_plural "{count} bytes"
+msgstr[0] "{count} byte"
+msgstr[1] "{count} byte"
+
+msgid "Mismatch: {bytes} from the device in {locations}"
+msgstr "Afvigelse: {bytes} fra enheden på {locations}"
+
+msgid "{count} byte differs"
+msgid_plural "{count} bytes differ"
+msgstr[0] "{count} byte afviger"
+msgstr[1] "{count} byte afviger"
+
+msgid "{count} location"
+msgid_plural "{count} locations"
+msgstr[0] "{count} placering"
+msgstr[1] "{count} placeringer"
+
+msgid "plus {bytes} device-managed runtime byte (expected, benign)"
+msgid_plural "plus {bytes} device-managed runtime bytes (expected, benign)"
+msgstr[0] "plus {bytes} enhedsstyret kørselsbyte (forventet, ufarligt)"
+msgstr[1] "plus {bytes} enhedsstyrede kørselsbyte (forventet, ufarligt)"
+
+msgid "plus {bytes} byte reset to the application default (the device holds an older value; benign, will be normalised on programming)"
+msgid_plural "plus {bytes} bytes reset to the application default (the device holds an older value; benign, will be normalised on programming)"
+msgstr[0] "plus {bytes} byte, der nulstilles til applikationens standardværdi (enheden har en ældre værdi; ufarligt, normaliseres ved programmering)"
+msgstr[1] "plus {bytes} byte, der nulstilles til applikationens standardværdi (enheden har en ældre værdi; ufarligt, normaliseres ved programmering)"
+
+msgid "Paste configuration onto {count} selected device:"
+msgid_plural "Paste configuration onto {count} selected devices:"
+msgstr[0] "Indsæt konfiguration i {count} valgt enhed:"
+msgstr[1] "Indsæt konfiguration i {count} valgte enheder:"
+
+msgid "Delete the {count} selected device? Its group objects and group-address links are removed and its individual address is freed. This can be undone."
+msgid_plural "Delete the {count} selected devices? Their group objects and group-address links are removed and their individual addresses are freed. This can be undone."
+msgstr[0] "Slet {count} valgt enhed? Dens gruppeobjekter og gruppeadresseforbindelser fjernes, og dens individuelle adresse frigives. Dette kan fortrydes."
+msgstr[1] "Slet de {count} valgte enheder? Deres gruppeobjekter og gruppeadresseforbindelser fjernes, og deres individuelle adresser frigives. Dette kan fortrydes."
+
+msgid "{count} group address added"
+msgid_plural "{count} group addresses added"
+msgstr[0] "{count} gruppeadresse tilføjet"
+msgstr[1] "{count} gruppeadresser tilføjet"
+
+msgid "{count} updated"
+msgid_plural "{count} updated"
+msgstr[0] "{count} opdateret"
+msgstr[1] "{count} opdateret"
+
+msgid "{count} group address could not be placed in a group."
+msgid_plural "{count} group addresses could not be placed in a group."
+msgstr[0] "{count} gruppeadresse kunne ikke placeres i en gruppe."
+msgstr[1] "{count} gruppeadresser kunne ikke placeres i en gruppe."
+
+msgid "{count} ECG present"
+msgid_plural "{count} ECGs present"
+msgstr[0] "{count} forkobling til stede"
+msgstr[1] "{count} forkoblinger til stede"
+
+msgid "Procedure {number}  ({count} step)"
+msgid_plural "Procedure {number}  ({count} steps)"
+msgstr[0] "Procedure {number}  ({count} trin)"
+msgstr[1] "Procedure {number}  ({count} trin)"

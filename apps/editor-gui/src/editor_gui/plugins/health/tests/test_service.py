@@ -127,7 +127,7 @@ def test_senders_of_each_linked_group_address() -> None:
     findings = HealthService(cast(Any, project)).findings()
     assert [(f.ga_id, f.message) for f in findings] == [
         (2, S.HEALTH_NO_SENDER.format(address="1/1/2", name="No sender")),
-        (3, S.HEALTH_SENDERS.format(address="1/1/3", name="Two senders", count=2)),
+        (3, S.HEALTH_SENDERS(2).format(address="1/1/3", name="Two senders", count=2)),
     ]
     # All links in one read.
     assert project.link_reads == 1

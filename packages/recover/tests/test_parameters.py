@@ -178,8 +178,10 @@ def test_recovery_decodes_again_with_the_values_read(
     application = cast(Any, SimpleNamespace(dynamic_ui=lambda: UI({})))
     recovered = recover_parameters(application, {})
     assert recovered.values == {"R-selector": "1", "R-alternative": "7"}
-    # Defaults first, then the values read, until they no longer change.
-    assert seeds[:2] == [
+    # Defaults first, then the values read, until they no longer change (the calculations seed
+    # the same values once more).
+    distinct = [seed for n, seed in enumerate(seeds) if not n or seed != seeds[n - 1]]
+    assert distinct[:2] == [
         {"R-selector": "1", "R-default": "3"},
         {"R-selector": "1", "R-alternative": "7"},
     ]

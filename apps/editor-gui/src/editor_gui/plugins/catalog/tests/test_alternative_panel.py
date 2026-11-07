@@ -249,7 +249,7 @@ def test_all_results_scroll_select_and_filter(
             frame()
         assert len(panel._entries) == 1205
         # No search: the status line gives the number of products, no count of matches.
-        assert S.ONLINE_MATCH_COUNT.format(count=1205) not in texts
+        assert S.ONLINE_MATCH_COUNT(1205).format(count=1205) not in texts
         assert "Product 0" in rendered and "Product 1204" not in rendered
         move_to_bottom = True
         frame()
@@ -269,7 +269,7 @@ def test_all_results_scroll_select_and_filter(
         for _ in range(3):
             frame()
         assert panel._entries == [] and rendered == []
-        assert S.ONLINE_MATCH_COUNT.format(count=0) in texts
+        assert S.ONLINE_MATCH_COUNT(0).format(count=0) in texts
         panel._query = ""
         for _ in range(3):
             frame()
@@ -330,7 +330,12 @@ def test_settings_closed_and_the_catalog_status(
         frame()
         frame()
         # While searching, the count of matches, greyed, as in the Online tab.
-        assert S.ONLINE_MATCH_COUNT.format(count=len(client.search("MDT")[0])) in greyed
+        assert (
+            S.ONLINE_MATCH_COUNT(len(client.search("MDT")[0])).format(
+                count=len(client.search("MDT")[0])
+            )
+            in greyed
+        )
     finally:
         imgui.destroy_context(context)
         panel.stop()

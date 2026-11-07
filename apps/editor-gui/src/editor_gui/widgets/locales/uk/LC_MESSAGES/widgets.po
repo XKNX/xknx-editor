@@ -163,9 +163,6 @@ msgstr "Введіть ціле число."
 msgid "Enter a value from {minimum} to {maximum}."
 msgstr "Введіть значення від {minimum} до {maximum}."
 
-msgid "Enter at most {count} characters."
-msgstr "Введіть не більше ніж {count} символів."
-
 msgid "Enter a value."
 msgstr "Введіть значення."
 
@@ -177,9 +174,6 @@ msgstr "Для цього типу даних неможливо ввести з
 
 msgid "Edit…"
 msgstr "Редагувати…"
-
-msgid "The text may take at most {count} bytes."
-msgstr "Текст може займати не більше ніж {count} байтів."
 
 msgid "Value {number}"
 msgstr "Значення {number}"
@@ -241,9 +235,6 @@ msgstr "Копіювати {count} B"
 msgid "Go To:"
 msgstr "Перейти до:"
 
-msgid "{count} difference(s)"
-msgstr "Відмінностей: {count}"
-
 msgid "no differences"
 msgstr "немає відмінностей"
 
@@ -294,3 +285,21 @@ msgstr "Вирізати"
 
 msgid "Paste"
 msgstr "Вставити"
+
+msgid "Enter at most {count} character."
+msgid_plural "Enter at most {count} characters."
+msgstr[0] "Введіть не більше ніж {count} символ."
+msgstr[1] "Введіть не більше ніж {count} символи."
+msgstr[2] "Введіть не більше ніж {count} символів."
+
+msgid "The text may take at most {count} byte."
+msgid_plural "The text may take at most {count} bytes."
+msgstr[0] "Текст може займати не більше ніж {count} байт."
+msgstr[1] "Текст може займати не більше ніж {count} байти."
+msgstr[2] "Текст може займати не більше ніж {count} байтів."
+
+msgid "{count} difference"
+msgid_plural "{count} differences"
+msgstr[0] "{count} відмінність"
+msgstr[1] "{count} відмінності"
+msgstr[2] "{count} відмінностей"

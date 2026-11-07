@@ -28,14 +28,14 @@ msgstr "Keresés"
 msgid "Stop"
 msgstr "Leállítás"
 
-msgid "Add to Open Project as Read"
-msgstr "Hozzáadás a megnyitott projekthez beolvasott állapotban"
+msgid "Add to Open Project When Read"
+msgstr "Hozzáadás a megnyitott projekthez beolvasáskor"
 
 msgid "Recover Selected"
 msgstr "Kijelöltek visszaállítása"
 
-msgid "Create New Project"
-msgstr "Új projekt létrehozása"
+msgid "Create New Project…"
+msgstr "Új projekt létrehozása…"
 
 msgid "Add to Open Project"
 msgstr "Hozzáadás a megnyitott projekthez"
@@ -43,14 +43,11 @@ msgstr "Hozzáadás a megnyitott projekthez"
 msgid "Verify (Read-Only)"
 msgstr "Ellenőrzés (csak olvasás)"
 
-msgid "Export Snapshot"
-msgstr "Pillanatkép exportálása"
+msgid "Export Snapshot…"
+msgstr "Pillanatkép exportálása…"
 
 msgid "Verifying (re-reading and comparing)…"
 msgstr "Ellenőrzés (újraolvasás és összehasonlítás)…"
-
-msgid "%(count)d group address(es) have no sender or multiple senders."
-msgstr "Küldő nélküli vagy több küldővel rendelkező csoportcímek: %(count)d."
 
 msgid "Address"
 msgstr "Cím"
@@ -88,17 +85,8 @@ msgstr "csoportkommunikációs táblák"
 msgid "parameter memory"
 msgstr "paramétermemória"
 
-msgid "Recovered %(devices)d device(s): %(group_addresses)d group addresses, %(links)d links, %(unknown)d parameter(s) not recoverable."
-msgstr "Visszaállított készülékek: %(devices)d; csoportcímek: %(group_addresses)d, összekapcsolások: %(links)d, vissza nem állítható paraméterek: %(unknown)d."
-
 msgid "Recovered"
 msgstr "Visszaállítva"
-
-msgid "Added %(count)d device(s) to the open project (%(target)s)."
-msgstr "A megnyitott projekthez (%(target)s) hozzáadott készülékek: %(count)d."
-
-msgid "Created new project %(target)s with %(count)d device(s)."
-msgstr "Új projekt létrehozva: %(target)s, készülékek: %(count)d."
 
 msgid "Not connected to a KNX bus."
 msgstr "Nincs kapcsolat KNX-busszal."
@@ -106,29 +94,133 @@ msgstr "Nincs kapcsolat KNX-busszal."
 msgid "Open or create a project to add recovered devices."
 msgstr "A visszaállított készülékek hozzáadásához nyisson meg vagy hozzon létre egy projektet."
 
-msgid "matched"
-msgstr "egyezik"
+msgid "Product found"
+msgstr "Termék megtalálva"
 
-msgid "confirm product/version, then tick"
-msgstr "erősítse meg a terméket/verziót, majd jelölje be"
+msgid "Check the product and version, then select it"
+msgstr "Ellenőrizze a terméket és a verziót, majd jelölje ki"
 
-msgid "not in catalog - import via Catalog"
-msgstr "nincs a katalógusban – importálja a Katalógusból"
+msgid "Not in the catalog: import its product in the Catalog"
+msgstr "Nincs a katalógusban: importálja a termékét a Katalógusban"
 
-msgid "unprogrammed"
-msgstr "programozatlan"
+msgid "Not programmed"
+msgstr "Nincs programozva"
 
-msgid "recovered"
-msgstr "visszaállítva"
+msgid "Error"
+msgstr "Hiba"
 
-msgid "error"
-msgstr "hiba"
+msgid "Already in the project, skipped"
+msgstr "Már a projektben van, kihagyva"
 
-msgid "%d parameters could not be recovered"
-msgstr "Vissza nem állítható paraméterek: %d"
+msgid "Recovered (incomplete)"
+msgstr "Visszaállítva (hiányos)"
 
-msgid "already in project - skipped"
-msgstr "már a projektben van – kihagyva"
+msgid "Search Effort"
+msgstr "Keresési Ráfordítás"
 
-msgid "%(count)d device(s) could not be added; the reason is in the Recovered column."
-msgstr "Nem sikerült hozzáadni készülékeket: %(count)d; az ok a „Visszaállítva” oszlopban látható."
+msgid "How many values are tried for the settings a device keeps no copy of. More effort finds settings in devices with many channels, but takes longer. Unlimited goes on until no value fits better; Stop ends the search."
+msgstr "Hány értéket próbál ki a beállításokhoz, amelyekről az eszköz nem tárol másolatot. Nagyobb ráfordítás sok csatornás eszközökben is megtalálja a beállításokat, de tovább tart. A korlátlan addig keres, amíg egyik érték sem illik jobban; a Leállítás befejezi a keresést."
+
+msgid "Fast"
+msgstr "Gyors"
+
+msgid "Medium"
+msgstr "Közepes"
+
+msgid "Maximum"
+msgstr "Maximális"
+
+msgid "Search Again"
+msgstr "Keresés Újra"
+
+msgid "Searches the settings of the selected incomplete devices again in what was read from them, with the chosen search effort. Needs no bus. A device already added to the project is replaced (one undo step)."
+msgstr "A kiválasztott hiányos eszközök beállításait újra megkeresi a belőlük beolvasott adatokban, a választott keresési ráfordítással. Nem kell hozzá busz. A projekthez már hozzáadott eszköz lecserélődik (egy visszavonási lépés)."
+
+msgid "Searching %(address)s again  (%(done)d/%(total)d)…"
+msgstr "%(address)s újbóli keresése  (%(done)d/%(total)d)…"
+
+msgid "more search effort may help"
+msgstr "nagyobb keresési ráfordítás segíthet"
+
+msgid "Unlimited"
+msgstr "Korlátlan"
+
+msgid "Result"
+msgstr "Eredmény"
+
+msgid "Not read yet"
+msgstr "Még nincs beolvasva"
+
+msgid "Verified"
+msgstr "Ellenőrizve"
+
+msgid "%(count)d group address has no sender or multiple senders."
+msgid_plural "%(count)d group addresses have no sender or multiple senders."
+msgstr[0] "%(count)d csoportcímnek nincs küldője, vagy több küldője van."
+
+msgid "Recovered %(count)d device"
+msgid_plural "Recovered %(count)d devices"
+msgstr[0] "%(count)d készülék visszaállítva"
+
+msgid "%(count)d group address"
+msgid_plural "%(count)d group addresses"
+msgstr[0] "%(count)d csoportcím"
+
+msgid "%(count)d link"
+msgid_plural "%(count)d links"
+msgstr[0] "%(count)d összekapcsolás"
+
+msgid "%(count)d parameter"
+msgid_plural "%(count)d parameters"
+msgstr[0] "%(count)d paraméter"
+
+msgid "%(count)d parameter cannot be recovered"
+msgid_plural "%(count)d parameters cannot be recovered"
+msgstr[0] "%(count)d paraméter nem állítható vissza"
+
+msgid "%(count)d parameter not found yet"
+msgid_plural "%(count)d parameters not found yet"
+msgstr[0] "%(count)d paraméter még nem található"
+
+msgid "Added %(count)d device to the open project (%(target)s)."
+msgid_plural "Added %(count)d devices to the open project (%(target)s)."
+msgstr[0] "%(count)d készülék hozzáadva a megnyitott projekthez (%(target)s)."
+
+msgid "Created new project %(target)s with %(count)d device."
+msgid_plural "Created new project %(target)s with %(count)d devices."
+msgstr[0] "Új projekt létrehozva: %(target)s, %(count)d készülékkel."
+
+msgid "%(count)d device could not be added; the reason is in the Result column."
+msgid_plural "%(count)d devices could not be added; the reason is in the Result column."
+msgstr[0] "%(count)d készüléket nem sikerült hozzáadni; az ok az „Eredmény” oszlopban látható."
+
+msgid "Differs from the device: %(what)s"
+msgstr "Eltér a készüléktől: %(what)s"
+
+msgid "%(count)d byte"
+msgid_plural "%(count)d bytes"
+msgstr[0] "%(count)d bájt"
+
+msgid "%(count)d group object"
+msgid_plural "%(count)d group objects"
+msgstr[0] "%(count)d kommunikációs objektum"
+
+msgid "Verify: %(count)d byte differs"
+msgid_plural "Verify: %(count)d bytes differ"
+msgstr[0] "Ellenőrzés: %(count)d bájt eltér"
+
+msgid "Import Snapshot…"
+msgstr "Pillanatkép importálása…"
+
+msgid "Imported %(count)d device from %(file)s."
+msgid_plural "Imported %(count)d devices from %(file)s."
+msgstr[0] "%(count)d eszköz importálva innen: %(file)s."
+
+msgid "%(file)s is no recovery snapshot: %(error)s"
+msgstr "A(z) %(file)s nem helyreállítási pillanatkép: %(error)s"
+
+msgid "Recovery Snapshot (*.json)"
+msgstr "Helyreállítási pillanatkép (*.json)"
+
+msgid "All Files"
+msgstr "Minden fájl"

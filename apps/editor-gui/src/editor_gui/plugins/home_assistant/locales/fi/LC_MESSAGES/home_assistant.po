@@ -97,12 +97,6 @@ msgstr "päivämäärä tuntematon"
 msgid "Load Telegrams from Home Assistant"
 msgstr "Lataa sähkeet Home Assistantista"
 
-msgid "The telegrams Home Assistant recorded in the last {hours} hours, in the Group Monitor in place of its entries."
-msgstr "Sähkeet, jotka Home Assistant on tallentanut viimeisten {hours} tunnin aikana, Ryhmäseurannassa sen merkintöjen tilalla."
-
-msgid "{count} telegrams from Home Assistant in the Group Monitor"
-msgstr "Home Assistantin sähkeitä Ryhmäseurannassa: {count}"
-
 msgid "The telegrams could not be loaded: {error}"
 msgstr "Sähkeitä ei voitu ladata: {error}"
 
@@ -339,3 +333,13 @@ msgstr "Ryhmäosoitteet Home Assistantista"
 
 msgid "Group addresses added to the project: {count}"
 msgstr "Projektiin lisätyt ryhmäosoitteet: {count}"
+
+msgid "The telegrams Home Assistant recorded in the last {hours} hour, in the Group Monitor in place of its entries."
+msgid_plural "The telegrams Home Assistant recorded in the last {hours} hours, in the Group Monitor in place of its entries."
+msgstr[0] "Sähkeet, jotka Home Assistant on tallentanut viimeisen {hours} tunnin aikana, Ryhmäseurannassa sen merkintöjen tilalla."
+msgstr[1] "Sähkeet, jotka Home Assistant on tallentanut viimeisten {hours} tunnin aikana, Ryhmäseurannassa sen merkintöjen tilalla."
+
+msgid "{count} telegram from Home Assistant in the Group Monitor"
+msgid_plural "{count} telegrams from Home Assistant in the Group Monitor"
+msgstr[0] "{count} Home Assistantin sähke Ryhmäseurannassa"
+msgstr[1] "{count} Home Assistantin sähkettä Ryhmäseurannassa"

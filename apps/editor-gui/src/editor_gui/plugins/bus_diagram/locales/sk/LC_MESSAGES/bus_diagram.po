@@ -157,9 +157,6 @@ msgstr "Prijímajúce"
 msgid "+ {count} more"
 msgstr "+ ďalšie: {count}"
 
-msgid "{count} more devices outside the selection. Click to show them."
-msgstr "Ďalšie zariadenia mimo výberu: {count}. Kliknutím ich zobrazíte."
-
 msgid "{address}\n{senders} sending, {receivers} receiving"
 msgstr "{address}\nvysielajúce: {senders}, prijímajúce: {receivers}"
 
@@ -174,3 +171,9 @@ msgstr "Zariadenia"
 
 msgid "Buildings"
 msgstr "Budovy"
+
+msgid "{count} more device outside the selection. Click to show it."
+msgid_plural "{count} more devices outside the selection. Click to show them."
+msgstr[0] "{count} ďalšie zariadenie mimo výberu. Kliknutím ho zobrazíte."
+msgstr[1] "{count} ďalšie zariadenia mimo výberu. Kliknutím ich zobrazíte."
+msgstr[2] "{count} ďalších zariadení mimo výberu. Kliknutím ich zobrazíte."

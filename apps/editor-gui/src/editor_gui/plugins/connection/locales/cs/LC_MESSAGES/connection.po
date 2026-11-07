@@ -46,9 +46,6 @@ msgstr "Vyhledávání nelze dokončit: {error}"
 msgid "The interface did not confirm the scan request (bus busy or interface overloaded). Please try again."
 msgstr "Rozhraní nepotvrdilo požadavek na vyhledávání (sběrnice obsazená nebo rozhraní přetížené). Zkuste to prosím znovu."
 
-msgid "{count} device(s) in programming mode"
-msgstr "Zařízení v programovacím režimu: {count}"
-
 msgid "Answered the scan, but reading its details failed: {error}"
 msgstr "Na vyhledávání odpovědělo, ale čtení podrobností selhalo: {error}"
 
@@ -222,3 +219,9 @@ msgstr "Nepřipojeno ke sběrnici"
 
 msgid "Serial Number: {serial}"
 msgstr "Sériové číslo: {serial}"
+
+msgid "{count} device in programming mode"
+msgid_plural "{count} devices in programming mode"
+msgstr[0] "{count} zařízení v programovacím režimu"
+msgstr[1] "{count} zařízení v programovacím režimu"
+msgstr[2] "{count} zařízení v programovacím režimu"

@@ -106,9 +106,6 @@ msgstr "Ndërtesat"
 msgid "+ {count} more"
 msgstr "+ {count} të tjera"
 
-msgid "{count} more devices outside the selection. Click to show them."
-msgstr "{count} pajisje të tjera jashtë përzgjedhjes. Klikoni për t'i shfaqur."
-
 msgid "{address}\n{senders} sending, {receivers} receiving"
 msgstr "{address}\n{senders} dërguese, {receivers} marrëse"
 
@@ -129,3 +126,8 @@ msgstr "Adresa: {address}"
 
 msgid "Application: {application}"
 msgstr "Programi aplikativ: {application}"
+
+msgid "{count} more device outside the selection. Click to show it."
+msgid_plural "{count} more devices outside the selection. Click to show them."
+msgstr[0] "{count} pajisje tjetër jashtë përzgjedhjes. Klikoni për ta shfaqur."
+msgstr[1] "{count} pajisje të tjera jashtë përzgjedhjes. Klikoni për t'i shfaqur."

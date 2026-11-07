@@ -145,9 +145,6 @@ msgstr "Iskanja ni bilo mogoče dokončati: {error}"
 msgid "Unprogrammed device (factory default address 15.15.255)"
 msgstr "Neprogramirana naprava (tovarniški naslov 15.15.255)"
 
-msgid "{count} device(s) in programming mode"
-msgstr "Naprave v načinu programiranja: {count}"
-
 msgid "The interface requires KNX IP Secure, but neither the project nor a loaded keyring has its passwords."
 msgstr "Vmesnik zahteva KNX IP Secure, vendar njegovih gesel nima niti projekt niti naložena zbirka ključev."
 
@@ -222,3 +219,10 @@ msgstr "Ni povezave z vodilom"
 
 msgid "Serial Number: {serial}"
 msgstr "Serijska številka: {serial}"
+
+msgid "{count} device in programming mode"
+msgid_plural "{count} devices in programming mode"
+msgstr[0] "{count} naprava v načinu programiranja"
+msgstr[1] "{count} napravi v načinu programiranja"
+msgstr[2] "{count} naprave v načinu programiranja"
+msgstr[3] "{count} naprav v načinu programiranja"

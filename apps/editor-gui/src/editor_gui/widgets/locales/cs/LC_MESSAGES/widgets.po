@@ -163,9 +163,6 @@ msgstr "Zadejte celé číslo."
 msgid "Enter a value from {minimum} to {maximum}."
 msgstr "Zadejte hodnotu od {minimum} do {maximum}."
 
-msgid "Enter at most {count} characters."
-msgstr "Zadejte nejvýše {count} znaků."
-
 msgid "Enter a value."
 msgstr "Zadejte hodnotu."
 
@@ -177,9 +174,6 @@ msgstr "Pro tento datový typ nelze zadat žádnou hodnotu."
 
 msgid "Edit…"
 msgstr "Upravit…"
-
-msgid "The text may take at most {count} bytes."
-msgstr "Text smí mít nejvýše {count} bajtů."
 
 msgid "Value {number}"
 msgstr "Hodnota {number}"
@@ -241,9 +235,6 @@ msgstr "Kopírovat {count} B"
 msgid "Go To:"
 msgstr "Přejít na:"
 
-msgid "{count} difference(s)"
-msgstr "Rozdíly: {count}"
-
 msgid "no differences"
 msgstr "žádné rozdíly"
 
@@ -294,3 +285,21 @@ msgstr "Vyjmout"
 
 msgid "Paste"
 msgstr "Vložit"
+
+msgid "Enter at most {count} character."
+msgid_plural "Enter at most {count} characters."
+msgstr[0] "Zadejte nejvýše {count} znak."
+msgstr[1] "Zadejte nejvýše {count} znaky."
+msgstr[2] "Zadejte nejvýše {count} znaků."
+
+msgid "The text may take at most {count} byte."
+msgid_plural "The text may take at most {count} bytes."
+msgstr[0] "Text smí mít nejvýše {count} bajt."
+msgstr[1] "Text smí mít nejvýše {count} bajty."
+msgstr[2] "Text smí mít nejvýše {count} bajtů."
+
+msgid "{count} difference"
+msgid_plural "{count} differences"
+msgstr[0] "{count} rozdíl"
+msgstr[1] "{count} rozdíly"
+msgstr[2] "{count} rozdílů"

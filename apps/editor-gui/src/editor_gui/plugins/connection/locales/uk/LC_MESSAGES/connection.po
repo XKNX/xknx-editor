@@ -46,9 +46,6 @@ msgstr "Не вдалося завершити пошук: {error}"
 msgid "The interface did not confirm the scan request (bus busy or interface overloaded). Please try again."
 msgstr "Інтерфейс не підтвердив запит на пошук (шина зайнята або інтерфейс перевантажений). Спробуйте ще раз."
 
-msgid "{count} device(s) in programming mode"
-msgstr "Пристроїв у режимі програмування: {count}"
-
 msgid "Answered the scan, but reading its details failed: {error}"
 msgstr "Відповів на пошук, але не вдалося прочитати відомості: {error}"
 
@@ -222,3 +219,9 @@ msgstr "Немає з'єднання з шиною"
 
 msgid "Serial Number: {serial}"
 msgstr "Серійний номер: {serial}"
+
+msgid "{count} device in programming mode"
+msgid_plural "{count} devices in programming mode"
+msgstr[0] "{count} пристрій у режимі програмування"
+msgstr[1] "{count} пристрої у режимі програмування"
+msgstr[2] "{count} пристроїв у режимі програмування"

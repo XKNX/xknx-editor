@@ -19,9 +19,6 @@ msgstr "Geräte filtern…"
 msgid "Needs Attention Only"
 msgstr "Nur Handlungsbedarf"
 
-msgid "{count} device(s) not in catalog"
-msgstr "{count} Gerät(e) nicht im Katalog"
-
 msgid "Address"
 msgstr "Adresse"
 
@@ -72,3 +69,8 @@ msgstr "nicht geladen"
 
 msgid "partial ({done}/{total})"
 msgstr "teilweise ({done}/{total})"
+
+msgid "{count} device not in catalog"
+msgid_plural "{count} devices not in catalog"
+msgstr[0] "{count} Gerät nicht im Katalog"
+msgstr[1] "{count} Geräte nicht im Katalog"

@@ -16,20 +16,11 @@ msgstr "Ingen prosjekt åpent"
 msgid "No issues found"
 msgstr "Ingen problemer funnet"
 
-msgid "{errors} errors, {warnings} warnings"
-msgstr "{errors} feil, {warnings} advarsler"
-
 msgid "{device}: no individual address"
 msgstr "{device}: ingen individuell adresse"
 
 msgid "Duplicate individual address {address} ({device})"
 msgstr "Duplisert individuell adresse {address} ({device})"
-
-msgid "{count} device(s) skipped: application not in catalog"
-msgstr "{count} enhet(er) hoppet over: applikasjonen er ikke i katalogen"
-
-msgid "{device}: {count} unlinked group object(s)"
-msgstr "{device}: {count} ukoblede gruppeobjekt(er)"
 
 msgid "{address} {name}: no datapoint type"
 msgstr "{address} {name}: ingen datapunkttype"
@@ -37,5 +28,27 @@ msgstr "{address} {name}: ingen datapunkttype"
 msgid "{address} {name}: no sending group object"
 msgstr "{address} {name}: ingen sendende gruppeobjekt"
 
-msgid "{address} {name}: {count} sending group objects"
-msgstr "{address} {name}: {count} sendende gruppeobjekter"
+msgid "{count} error"
+msgid_plural "{count} errors"
+msgstr[0] "{count} feil"
+msgstr[1] "{count} feil"
+
+msgid "{count} warning"
+msgid_plural "{count} warnings"
+msgstr[0] "{count} advarsel"
+msgstr[1] "{count} advarsler"
+
+msgid "{count} device skipped: application not in catalog"
+msgid_plural "{count} devices skipped: application not in catalog"
+msgstr[0] "{count} enhet hoppet over: applikasjonen er ikke i katalogen"
+msgstr[1] "{count} enheter hoppet over: applikasjonen er ikke i katalogen"
+
+msgid "{device}: {count} unlinked group object"
+msgid_plural "{device}: {count} unlinked group objects"
+msgstr[0] "{device}: {count} ukoblet gruppeobjekt"
+msgstr[1] "{device}: {count} ukoblede gruppeobjekter"
+
+msgid "{address} {name}: {count} sending group object"
+msgid_plural "{address} {name}: {count} sending group objects"
+msgstr[0] "{address} {name}: {count} sendende gruppeobjekt"
+msgstr[1] "{address} {name}: {count} sendende gruppeobjekter"

@@ -46,7 +46,6 @@ msgstr "Gebäudefunktion"
 msgid "Building Part"
 msgstr "Gebäudeteil"
 
-
 msgid "Destination Address"
 msgstr "Zieladresse"
 
@@ -116,9 +115,6 @@ msgstr "Erweiterte Informationen anzeigen"
 msgid "Hide Extended Information"
 msgstr "Erweiterte Informationen ausblenden"
 
-msgid "{count} telegrams exported to {path}"
-msgstr "{count} Telegramme nach {path} exportiert"
-
 msgid "Export failed: {error}"
 msgstr "Export fehlgeschlagen: {error}"
 
@@ -134,14 +130,8 @@ msgstr "Erweitert"
 msgid "Standard"
 msgstr "Standard"
 
-msgid "{count} entries loaded from {path}"
-msgstr "{count} Einträge aus {path} geladen"
-
 msgid "Loading failed: {error}"
 msgstr "Laden fehlgeschlagen: {error}"
-
-msgid "{count} telegrams in another frame format were skipped"
-msgstr "{count} Telegramme in einem anderen Rahmenformat wurden übersprungen"
 
 msgid "Connection was established"
 msgstr "Verbindung wurde aufgebaut"
@@ -192,7 +182,9 @@ msgid "Group Objects"
 msgstr "Kommunikationsobjekte"
 
 msgid "{count} telg."
-msgstr "{count} Telg."
+msgid_plural "{count} telg."
+msgstr[0] "{count} Telg."
+msgstr[1] "{count} Telg."
 
 msgid "Enter a group address of the project to send to it."
 msgstr "Geben Sie eine Gruppenadresse des Projekts ein, um an sie zu senden."
@@ -239,17 +231,8 @@ msgstr "Die Telegramme wurden nicht exportiert. Das Laden einer Aufzeichnung ers
 msgid "Unsaved Telegrams"
 msgstr "Nicht gespeicherte Telegramme"
 
-msgid "Replay cancelled: {count} telegrams sent"
-msgstr "Wiedergabe abgebrochen: {count} Telegramme gesendet"
-
-msgid "Replay finished: {count} telegrams sent"
-msgstr "Wiedergabe beendet: {count} Telegramme gesendet"
-
 msgid "There are no group telegrams to replay"
 msgstr "Es gibt keine Gruppentelegramme zum Wiedergeben"
-
-msgid "{count} Data Secure telegrams are not replayed"
-msgstr "{count} Data-Secure-Telegramme werden nicht wiedergegeben"
 
 msgid "Comment"
 msgstr "Kommentar"
@@ -394,3 +377,33 @@ msgstr "Max"
 
 msgid "Maximum telegrams this monitor keeps. The oldest tenth is dropped when the cap is exceeded."
 msgstr "Maximale Anzahl Telegramme, die dieser Monitor behält. Das älteste Zehntel wird verworfen, sobald die Grenze überschritten ist."
+
+msgid "{count} telegram exported to {path}"
+msgid_plural "{count} telegrams exported to {path}"
+msgstr[0] "{count} Telegramm nach {path} exportiert"
+msgstr[1] "{count} Telegramme nach {path} exportiert"
+
+msgid "{count} entry loaded from {path}"
+msgid_plural "{count} entries loaded from {path}"
+msgstr[0] "{count} Eintrag aus {path} geladen"
+msgstr[1] "{count} Einträge aus {path} geladen"
+
+msgid "{count} telegram in another frame format was skipped"
+msgid_plural "{count} telegrams in another frame format were skipped"
+msgstr[0] "{count} Telegramm in einem anderen Rahmenformat wurde übersprungen"
+msgstr[1] "{count} Telegramme in einem anderen Rahmenformat wurden übersprungen"
+
+msgid "{count} Data Secure telegram is not replayed"
+msgid_plural "{count} Data Secure telegrams are not replayed"
+msgstr[0] "{count} Data-Secure-Telegramm wird nicht wiedergegeben"
+msgstr[1] "{count} Data-Secure-Telegramme werden nicht wiedergegeben"
+
+msgid "Replay finished: {count} telegram sent"
+msgid_plural "Replay finished: {count} telegrams sent"
+msgstr[0] "Wiedergabe beendet: {count} Telegramm gesendet"
+msgstr[1] "Wiedergabe beendet: {count} Telegramme gesendet"
+
+msgid "Replay cancelled: {count} telegram sent"
+msgid_plural "Replay cancelled: {count} telegrams sent"
+msgstr[0] "Wiedergabe abgebrochen: {count} Telegramm gesendet"
+msgstr[1] "Wiedergabe abgebrochen: {count} Telegramme gesendet"

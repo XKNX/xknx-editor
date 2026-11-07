@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 import contextlib
+import dataclasses
 from collections.abc import Iterator
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Any
 
 import pytest
@@ -14,7 +16,7 @@ from editor_gui.plugins.recover.service import RecoverEntry, RecoverService
 from editor_gui.plugins.recover.strings import S
 from xknxeditor.prod import load
 from xknxeditor.proj.core.medium import MediumError
-from xknxeditor.recover import RecoveredDevice, RecoveredParameters
+from xknxeditor.recover import RecoveredDevice, RecoveredParameters, RecoveryEffort
 from xknxeditor.recover.recover import com_object_ref_by_number
 from xknxeditor.recover.tables_decode import DecodedGroupObject, DecodedLink
 
@@ -69,6 +71,7 @@ class _FakeProject:
         # The project's history (what the topology lookup changed), and what was undone.
         self.history: list[str] = []
         self.undone: list[str] = []
+        self.removed: list[int] = []
 
     @property
     def cursor(self) -> int:
@@ -149,6 +152,15 @@ class _FakeProject:
 
     def set_param(self, device: Any, ref_id: str, value: str) -> None:
         self.params.append((ref_id, value))
+
+    def find_device_by_node_id(self, node_id: int) -> _FakeDevice | None:
+        return self._device if node_id == self._device.node_id else None
+
+    def remove_device(self, node_id: int) -> None:
+        self.removed.append(node_id)
+
+    def project_code_page(self) -> str | None:
+        return None
 
 
 class _FakeAPI:
@@ -329,7 +341,7 @@ def test_a_failed_add_is_shown_and_can_be_retried(application) -> None:  # type:
     assert entry.error == "Device 'JU 1 S RF' is incompatible with line's medium type."
     assert entry.state == S.STATE_ERROR
     assert entry.error in service.entry_detail(entry)
-    assert service.apply_error == S.APPLY_FAILED % {"count": 1}
+    assert service.apply_error == S.APPLY_FAILED(1) % {"count": 1}
     assert entry.applied is False
 
     # Once the project accepts it, the next add tries it again.
@@ -420,3 +432,187 @@ def test_a_failed_device_found_in_the_project_is_no_failure(application) -> None
     assert entry.applied is True
     assert entry.state == S.STATE_EXISTS
     assert service.apply_error == ""
+
+
+def _incomplete_entry(application: Any) -> RecoverEntry:
+    entry = _rf_entry(application)
+    assert entry.recovered is not None
+    entry.recovered = dataclasses.replace(
+        entry.recovered,
+        parameters=RecoveredParameters(
+            values={}, unknown=[], differing_bytes=3, differing_objects=1, limited=True
+        ),
+    )
+    entry.state = S.STATE_INCOMPLETE
+    return entry
+
+
+def test_an_incomplete_device_says_how_far_it_is_off(application) -> None:  # type: ignore[no-untyped-def]
+    detail = RecoverService.entry_detail(_incomplete_entry(application))
+    differs = ", ".join([S.BYTES(3) % {"count": 3}, S.GROUP_OBJECTS(1) % {"count": 1}])
+    assert S.DETAIL_INCOMPLETE % {"what": differs} in detail
+    assert S.DETAIL_MORE_EFFORT in detail
+    complete = RecoverService.entry_detail(_rf_entry(application))
+    assert S.DETAIL_MORE_EFFORT not in complete
+
+
+def test_a_device_not_read_yet_says_so(application) -> None:  # type: ignore[no-untyped-def]
+    entry = _rf_entry(application)
+    entry.recovered = None
+    assert RecoverService.entry_detail(entry) == S.DETAIL_NOT_READ
+    # One without a product cannot be read: nothing to say.
+    entry.application = None
+    assert RecoverService.entry_detail(entry) == ""
+
+
+def test_what_was_read_is_summed_up(application) -> None:  # type: ignore[no-untyped-def]
+    entry = _rf_entry(application)
+    entry.verify_changed = 0
+    detail = RecoverService.entry_detail(entry)
+    assert detail.startswith(
+        ", ".join(
+            [
+                S.GROUP_ADDRESSES(0) % {"count": 0},
+                S.LINKS(0) % {"count": 0},
+                S.PARAMETERS(0) % {"count": 0},
+            ]
+        )
+    )
+    assert S.DETAIL_VERIFIED in detail
+    entry.verify_changed = 4
+    assert S.DETAIL_VERIFY_DIFFERS(4) % {"count": 4} in RecoverService.entry_detail(
+        entry
+    )
+
+
+def test_search_again_replaces_the_device_it_added(
+    application: Any, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    project = _FakeProject(refs=[])
+    service = RecoverService(_FakeAPI(project))  # type: ignore[arg-type]
+    entry = _incomplete_entry(application)
+    complete = _rf_entry(application)
+    complete.address = "1.1.4"
+    service.entries = [entry, complete]
+    assert service.apply_to_open_project() == 2
+    assert entry.device_id == 7
+    assert service.can_search_again()
+
+    searched: list[tuple[str, RecoveryEffort]] = []
+    cancels: list[Any] = []
+
+    def search(
+        device: RecoveredDevice,
+        _app: Any,
+        effort: RecoveryEffort,
+        _code_page: Any,
+        cancel: Any = None,
+    ) -> RecoveredDevice:
+        searched.append((device.address, effort))
+        cancels.append(cancel)
+        return dataclasses.replace(
+            device,
+            parameters=RecoveredParameters(values={"R-1": "1"}, unknown=[]),
+            effort=effort,
+        )
+
+    monkeypatch.setattr("editor_gui.plugins.recover.service.search_again", search)
+    service.effort = RecoveryEffort.MAXIMUM
+    service.start_search_again()
+    assert service.phase == "searching"
+    pending = service._search
+    assert pending is not None
+    pending.result(timeout=10)
+    service.poll()
+
+    # Only the incomplete device is searched, with the effort chosen; the device it was added
+    # as is replaced by the new result.
+    assert searched == [("1.1.3", RecoveryEffort.MAXIMUM)]
+    assert service.phase == "recovered"
+    assert not service.busy
+    assert entry.recovered is not None and entry.recovered.parameters.complete
+    assert entry.state == S.STATE_RECOVERED
+    assert project.removed == [7]
+    assert project.add_calls == 3
+    assert ("R-1", "1") in project.params
+    assert not service.can_search_again()
+    # Stop ends a running search: the search asks the service.
+    assert cancels[0] is not None and not cancels[0]()
+    service.stop()
+    assert cancels[0]()
+
+
+def test_parameters_without_a_value_are_told_apart(application) -> None:  # type: ignore[no-untyped-def]
+    # Incomplete: the lossy one cannot be recovered, the other one is not found yet.
+    entry = _rf_entry(application)
+    assert entry.recovered is not None
+    entry.recovered = dataclasses.replace(
+        entry.recovered,
+        parameters=RecoveredParameters(
+            values={}, unknown=["P-1", "P-2"], lossy=["P-1"], differing_bytes=2
+        ),
+    )
+    detail = RecoverService.entry_detail(entry)
+    assert S.PARAMETERS_UNRECOVERABLE(1) % {"count": 1} in detail
+    assert S.PARAMETERS_NOT_FOUND(1) % {"count": 1} in detail
+    service = RecoverService(_FakeAPI(_FakeProject(refs=[])))  # type: ignore[arg-type]
+    service.entries = [entry]
+    totals = service.recovery_totals()
+    assert (totals["unrecoverable"], totals["not_found"]) == (1, 1)
+    summary = service.summary()
+    assert summary.startswith(S.RECOVERED_DEVICES(1) % {"count": 1})
+    assert S.PARAMETERS_NOT_FOUND(1) % {"count": 1} in summary
+    # English uses the singular for one and the plural otherwise.
+    assert S.LINKS(1) % {"count": 1} == "1 link"
+    assert S.LINKS(2) % {"count": 2} == "2 links"
+
+
+def test_the_actions_work_on_the_selected_devices(application) -> None:  # type: ignore[no-untyped-def]
+    project = _FakeProject(refs=[])
+    service = RecoverService(_FakeAPI(project))  # type: ignore[arg-type]
+    chosen = _rf_entry(application)
+    other = _rf_entry(application)
+    other.address = "1.1.4"
+    other.selected = False
+    service.entries = [chosen, other]
+    assert service.chosen() == [chosen]
+    assert service.apply_to_open_project() == 1
+    assert (chosen.applied, other.applied) == (True, False)
+    assert '"1.1.4"' not in service.snapshot_text()
+
+
+def test_a_snapshot_is_imported_as_read(application) -> None:  # type: ignore[no-untyped-def]
+    from xknxeditor.recover import snapshots_json
+
+    product = SimpleNamespace(
+        product_ref_id="P-1",
+        hardware2program_ref_id="HP-1",
+        name="JU 1 S RF",
+        order_number="",
+        application_id=application.id,
+    )
+    catalog = SimpleNamespace(
+        find_products_for_application=lambda **_kwargs: [product],
+        get_application=lambda _id: application,
+    )
+    api = _FakeAPI(_FakeProject(refs=[]))
+    api.catalog = catalog  # type: ignore[attr-defined]
+    service = RecoverService(api)  # type: ignore[arg-type]
+    device = _rf_entry(application).recovered
+    assert device is not None
+    imported = service.import_snapshot(snapshots_json([device]), "site.json")
+    assert imported == 1
+    (entry,) = service.entries
+    assert entry.address == "1.1.3"
+    assert entry.recovered is not None and entry.application is application
+    assert entry.state == S.STATE_RECOVERED
+    assert entry.recovered.com_object_refs is not None
+    assert service.phase == "recovered"
+    assert service.apply_status == S.SNAPSHOT_IMPORTED(1) % {
+        "count": 1,
+        "file": "site.json",
+    }
+    # Text that is no snapshot leaves the list as it is.
+    assert service.import_snapshot("{}", "other.json") == 0
+    assert service.entries == [entry]
+    assert service.apply_error.startswith(S.SNAPSHOT_UNREADABLE.split("%")[0])

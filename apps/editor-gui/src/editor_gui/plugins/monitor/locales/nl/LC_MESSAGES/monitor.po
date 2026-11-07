@@ -46,7 +46,6 @@ msgstr "Gebouwfunctie"
 msgid "Building Part"
 msgstr "Gebouwonderdeel"
 
-
 msgid "Destination Address"
 msgstr "Doeladres"
 
@@ -116,9 +115,6 @@ msgstr "Uitgebreide informatie tonen"
 msgid "Hide Extended Information"
 msgstr "Uitgebreide informatie verbergen"
 
-msgid "{count} telegrams exported to {path}"
-msgstr "{count} telegrammen geëxporteerd naar {path}"
-
 msgid "Export failed: {error}"
 msgstr "Exporteren mislukt: {error}"
 
@@ -134,14 +130,8 @@ msgstr "Uitgebreid"
 msgid "Standard"
 msgstr "Standaard"
 
-msgid "{count} entries loaded from {path}"
-msgstr "{count} items geladen uit {path}"
-
 msgid "Loading failed: {error}"
 msgstr "Laden mislukt: {error}"
-
-msgid "{count} telegrams in another frame format were skipped"
-msgstr "{count} telegrammen in een ander frameformaat zijn overgeslagen"
 
 msgid "Connection was established"
 msgstr "Verbinding is tot stand gebracht"
@@ -192,7 +182,9 @@ msgid "Group Objects"
 msgstr "Groepsobjecten"
 
 msgid "{count} telg."
-msgstr "{count} telg."
+msgid_plural "{count} telg."
+msgstr[0] "{count} telg."
+msgstr[1] "{count} telg."
 
 msgid "Enter a group address of the project to send to it."
 msgstr "Voer een groepsadres van het project in om ernaar te verzenden."
@@ -239,17 +231,8 @@ msgstr "De telegrammen zijn niet geëxporteerd. Het laden van een opname vervang
 msgid "Unsaved Telegrams"
 msgstr "Niet-opgeslagen telegrammen"
 
-msgid "Replay cancelled: {count} telegrams sent"
-msgstr "Afspelen geannuleerd: {count} telegrammen verzonden"
-
-msgid "Replay finished: {count} telegrams sent"
-msgstr "Afspelen voltooid: {count} telegrammen verzonden"
-
 msgid "There are no group telegrams to replay"
 msgstr "Er zijn geen groepstelegrammen om af te spelen"
-
-msgid "{count} Data Secure telegrams are not replayed"
-msgstr "{count} Data Secure-telegrammen worden niet afgespeeld"
 
 msgid "Comment"
 msgstr "Opmerking"
@@ -394,3 +377,33 @@ msgstr "Max"
 
 msgid "Maximum telegrams this monitor keeps. The oldest tenth is dropped when the cap is exceeded."
 msgstr "Maximum aantal telegrammen dat deze monitor bewaart. Het oudste tiende deel wordt weggegooid zodra de limiet is overschreden."
+
+msgid "{count} telegram exported to {path}"
+msgid_plural "{count} telegrams exported to {path}"
+msgstr[0] "{count} telegram geëxporteerd naar {path}"
+msgstr[1] "{count} telegrammen geëxporteerd naar {path}"
+
+msgid "{count} entry loaded from {path}"
+msgid_plural "{count} entries loaded from {path}"
+msgstr[0] "{count} item geladen uit {path}"
+msgstr[1] "{count} items geladen uit {path}"
+
+msgid "{count} telegram in another frame format was skipped"
+msgid_plural "{count} telegrams in another frame format were skipped"
+msgstr[0] "{count} telegram in een ander frameformaat is overgeslagen"
+msgstr[1] "{count} telegrammen in een ander frameformaat zijn overgeslagen"
+
+msgid "{count} Data Secure telegram is not replayed"
+msgid_plural "{count} Data Secure telegrams are not replayed"
+msgstr[0] "{count} Data Secure-telegram wordt niet afgespeeld"
+msgstr[1] "{count} Data Secure-telegrammen worden niet afgespeeld"
+
+msgid "Replay finished: {count} telegram sent"
+msgid_plural "Replay finished: {count} telegrams sent"
+msgstr[0] "Afspelen voltooid: {count} telegram verzonden"
+msgstr[1] "Afspelen voltooid: {count} telegrammen verzonden"
+
+msgid "Replay cancelled: {count} telegram sent"
+msgid_plural "Replay cancelled: {count} telegrams sent"
+msgstr[0] "Afspelen geannuleerd: {count} telegram verzonden"
+msgstr[1] "Afspelen geannuleerd: {count} telegrammen verzonden"

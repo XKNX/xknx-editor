@@ -48,7 +48,7 @@ connection).
 
 Not covered yet: clearing a line coupler filter table (`LdCtrlClearLCFilterTable`,
 coupler-only and not yet validated against a router), and USB transport. Unsupported
-Load Controls are reported via `UnsupportedProcedureError` rather than guessed (see
+Load Controls are reported via `UnsupportedProcedureError` (see
 [Implementation gaps](#implementation-gaps-and-diagnostics)).
 
 ## KNX Data Secure (Tool Key)

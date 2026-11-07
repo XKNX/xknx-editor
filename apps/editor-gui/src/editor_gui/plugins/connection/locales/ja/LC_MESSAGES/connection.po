@@ -46,9 +46,6 @@ msgstr "スキャンを完了できませんでした：{error}"
 msgid "The interface did not confirm the scan request (bus busy or interface overloaded). Please try again."
 msgstr "インターフェイスがスキャン要求を確認しませんでした（バスがビジー、またはインターフェイスが過負荷）。もう一度お試しください。"
 
-msgid "{count} device(s) in programming mode"
-msgstr "プログラミング・モードのデバイス：{count} 台"
-
 msgid "Answered the scan, but reading its details failed: {error}"
 msgstr "スキャンに応答しましたが、詳細の読み込みに失敗しました：{error}"
 
@@ -222,3 +219,7 @@ msgstr "バスに接続されていません"
 
 msgid "Serial Number: {serial}"
 msgstr "シリアル番号：{serial}"
+
+msgid "{count} device in programming mode"
+msgid_plural "{count} devices in programming mode"
+msgstr[0] "プログラミング・モードのデバイス：{count} 台"

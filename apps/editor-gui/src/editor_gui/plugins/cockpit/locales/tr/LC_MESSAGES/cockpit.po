@@ -19,9 +19,6 @@ msgstr "Cihazları filtrele…"
 msgid "Needs Attention Only"
 msgstr "Yalnızca İşlem Gerekenler"
 
-msgid "{count} device(s) not in catalog"
-msgstr "Katalogda olmayan cihaz: {count}"
-
 msgid "Address"
 msgstr "Adres"
 
@@ -69,3 +66,7 @@ msgstr "Seri numarası: {serial}"
 
 msgid "Last Download: {when}"
 msgstr "Son yükleme: {when}"
+
+msgid "{count} device not in catalog"
+msgid_plural "{count} devices not in catalog"
+msgstr[0] "Katalogda olmayan {count} cihaz"

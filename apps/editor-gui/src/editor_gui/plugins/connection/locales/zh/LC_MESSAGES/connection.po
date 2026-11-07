@@ -46,9 +46,6 @@ msgstr "扫描未能完成：{error}"
 msgid "The interface did not confirm the scan request (bus busy or interface overloaded). Please try again."
 msgstr "接口未确认扫描请求（总线繁忙或接口过载）。请重试。"
 
-msgid "{count} device(s) in programming mode"
-msgstr "{count} 个设备处于编程模式"
-
 msgid "Answered the scan, but reading its details failed: {error}"
 msgstr "已响应扫描，但读取其详细信息失败：{error}"
 
@@ -222,3 +219,7 @@ msgstr "未连接到总线"
 
 msgid "Serial Number: {serial}"
 msgstr "系列号：{serial}"
+
+msgid "{count} device in programming mode"
+msgid_plural "{count} devices in programming mode"
+msgstr[0] "{count} 个设备处于编程模式"

@@ -88,9 +88,6 @@ msgstr "Arrêter"
 msgid "All Files"
 msgstr "Tous les fichiers"
 
-msgid "Project: {name}  ·  {devices} devices  ·  {gas} GAs"
-msgstr "Projet : {name}  ·  {devices} participants  ·  {gas} AG"
-
 msgid "No project open"
 msgstr "Aucun projet ouvert"
 
@@ -241,9 +238,6 @@ msgstr "Exporter les adresses de groupe…"
 msgid "Import Group Addresses…"
 msgstr "Importer des adresses de groupe…"
 
-msgid "Exported {count} group address(es)"
-msgstr "{count} adresse(s) de groupe exportée(s)"
-
 msgid "Export Group Addresses"
 msgstr "Exporter les Adresses de Groupe"
 
@@ -358,26 +352,8 @@ msgstr "Votre projet s'est ouvert correctement et tout ce dont vous avez besoin 
 msgid "This project came from a file with a few extra details this editor does not use. The export leaves these out:"
 msgstr "Ce projet provient d'un fichier contenant quelques détails supplémentaires que cet éditeur n'utilise pas. L'exportation les omet :"
 
-msgid "The original file had {count} installations. They were combined into one."
-msgstr "Le fichier d'origine comportait {count} installations. Elles ont été regroupées en une seule."
-
-msgid "{count} device(s) aren't assigned to a line. They're kept in the project and included on export, but can't be edited here yet."
-msgstr "{count} participant(s) ne sont affectés à aucune ligne. Ils sont conservés dans le projet et inclus lors de l'exportation, mais ne peuvent pas encore être modifiés ici."
-
-msgid "{count} group object(s) had an extra description in the original file. The custom name and function are kept; only that description is not shown here."
-msgstr "{count} objet(s) de groupe avaient une description supplémentaire dans le fichier d'origine. Le nom personnalisé et la fonction sont conservés ; seule cette description n'est pas affichée ici."
-
 msgid "For example: {examples}"
 msgstr "Par exemple : {examples}"
-
-msgid "{count} IP or function setting(s) from the original file are not used here."
-msgstr "{count} réglage(s) IP ou de fonction du fichier d'origine ne sont pas utilisés ici."
-
-msgid "{count} line(s) use several segments. In a schema 14/20 export they are shown at line level only."
-msgstr "{count} ligne(s) utilisent plusieurs segments. Dans une exportation au schéma 14/20, elles ne sont affichées qu'au niveau de la ligne."
-
-msgid "{count} line(s) had the same address in different installations. One of each was kept when combining."
-msgstr "{count} ligne(s) avaient la même adresse dans différentes installations. Une de chaque a été conservée lors du regroupement."
 
 msgid "Exporting {name} — this can take a while for large projects."
 msgstr "Exportation de {name} — cela peut prendre un certain temps pour les grands projets."
@@ -498,15 +474,6 @@ msgstr "Échec de la connexion : {error}"
 
 msgid "Format Version"
 msgstr "Version du format"
-
-msgid "Remove device(s) & re-export"
-msgstr "Enlever le(s) participant(s) et réexporter"
-
-msgid "Removed {count} incompatible device(s); re-exporting"
-msgstr "{count} participant(s) incompatible(s) enlevé(s) ; réexportation"
-
-msgid "This file will NOT import into the chosen ETS version: the product data of these manufacturers only exists for a newer ETS (e.g. an ETS 6 product in an ETS 5 export), so ETS rejects the whole project. Remove the affected device(s) or export for the newer ETS."
-msgstr "Ce fichier ne pourra PAS être importé dans la version d'ETS choisie : les données produit de ces fabricants n'existent que pour un ETS plus récent (p. ex. un produit ETS 6 dans une exportation ETS 5), si bien qu'ETS rejette l'ensemble du projet. Enlevez le(s) participant(s) concerné(s) ou exportez pour l'ETS plus récent."
 
 msgid "ETS 6 (schema 23)"
 msgstr "ETS 6 (schéma 23)"
@@ -903,9 +870,6 @@ msgstr "{done}/{total} programmes d'application"
 
 msgid "Import cancelled, nothing was imported"
 msgstr "Importation annulée, rien n'a été importé"
-
-msgid "Imported {count} product version(s) from {name}:"
-msgstr "{count} version(s) de produit importée(s) depuis {name} :"
 
 msgid "KNX Secure"
 msgstr "KNX Secure"
@@ -1620,3 +1584,74 @@ msgstr "Importation des données produit du projet : {done} sur {total} programm
 
 msgid "This is done once on this computer, for the products its catalog does not have yet. For a large project it can take a few minutes."
 msgstr "Cela ne se fait qu'une fois sur cet ordinateur, pour les produits que son catalogue n'a pas encore. Pour un grand projet, cela peut prendre quelques minutes."
+
+msgid "Project: {name}  ·  {devices}  ·  {gas}"
+msgstr "Projet : {name}  ·  {devices}  ·  {gas}"
+
+msgid "{count} device"
+msgid_plural "{count} devices"
+msgstr[0] "{count} participant"
+msgstr[1] "{count} participants"
+
+msgid "{count} GA"
+msgid_plural "{count} GAs"
+msgstr[0] "{count} AG"
+msgstr[1] "{count} AG"
+
+msgid "Exported {count} group address"
+msgid_plural "Exported {count} group addresses"
+msgstr[0] "{count} adresse de groupe exportée"
+msgstr[1] "{count} adresses de groupe exportées"
+
+msgid "The original file had {count} installation. It was combined into one."
+msgid_plural "The original file had {count} installations. They were combined into one."
+msgstr[0] "Le fichier d'origine comportait {count} installation. Elle a été regroupée en une seule."
+msgstr[1] "Le fichier d'origine comportait {count} installations. Elles ont été regroupées en une seule."
+
+msgid "{count} device isn't assigned to a line. It's kept in the project and included on export, but can't be edited here yet."
+msgid_plural "{count} devices aren't assigned to a line. They're kept in the project and included on export, but can't be edited here yet."
+msgstr[0] "{count} participant n'est affecté à aucune ligne. Il est conservé dans le projet et inclus lors de l'exportation, mais ne peut pas encore être modifié ici."
+msgstr[1] "{count} participants ne sont affectés à aucune ligne. Ils sont conservés dans le projet et inclus lors de l'exportation, mais ne peuvent pas encore être modifiés ici."
+
+msgid "{count} group object had an extra description in the original file. The custom name and function are kept; only that description is not shown here."
+msgid_plural "{count} group objects had an extra description in the original file. The custom name and function are kept; only that description is not shown here."
+msgstr[0] "{count} objet de groupe avait une description supplémentaire dans le fichier d'origine. Le nom personnalisé et la fonction sont conservés ; seule cette description n'est pas affichée ici."
+msgstr[1] "{count} objets de groupe avaient une description supplémentaire dans le fichier d'origine. Le nom personnalisé et la fonction sont conservés ; seule cette description n'est pas affichée ici."
+
+msgid "{count} IP or function setting from the original file is not used here."
+msgid_plural "{count} IP or function settings from the original file are not used here."
+msgstr[0] "{count} réglage IP ou de fonction du fichier d'origine n'est pas utilisé ici."
+msgstr[1] "{count} réglages IP ou de fonction du fichier d'origine ne sont pas utilisés ici."
+
+msgid "{count} line uses several segments. In a schema 14/20 export it is shown at line level only."
+msgid_plural "{count} lines use several segments. In a schema 14/20 export they are shown at line level only."
+msgstr[0] "{count} ligne utilise plusieurs segments. Dans une exportation au schéma 14/20, elle n'est affichée qu'au niveau de la ligne."
+msgstr[1] "{count} lignes utilisent plusieurs segments. Dans une exportation au schéma 14/20, elles ne sont affichées qu'au niveau de la ligne."
+
+msgid "{count} line had the same address in different installations. One of each was kept when combining."
+msgid_plural "{count} lines had the same address in different installations. One of each was kept when combining."
+msgstr[0] "{count} ligne avait la même adresse dans différentes installations. Une de chaque a été conservée lors du regroupement."
+msgstr[1] "{count} lignes avaient la même adresse dans différentes installations. Une de chaque a été conservée lors du regroupement."
+
+msgid "Remove Device & Re-Export"
+msgid_plural "Remove Devices & Re-Export"
+msgstr[0] "Enlever le participant et réexporter"
+msgstr[1] "Enlever les participants et réexporter"
+
+msgid "Removed {count} incompatible device; re-exporting"
+msgid_plural "Removed {count} incompatible devices; re-exporting"
+msgstr[0] "{count} participant incompatible enlevé ; réexportation"
+msgstr[1] "{count} participants incompatibles enlevés ; réexportation"
+
+msgid "This file will NOT import into the chosen ETS version: the product data of these manufacturers only exists for a newer ETS (e.g. an ETS 6 product in an ETS 5 export), so the whole project is rejected."
+msgstr "Ce fichier ne pourra PAS être importé dans la version d'ETS choisie : les données produit de ces fabricants n'existent que pour un ETS plus récent (p. ex. un produit ETS 6 dans une exportation ETS 5), si bien qu'ETS rejette l'ensemble du projet."
+
+msgid "Remove the affected device or export for the newer ETS."
+msgid_plural "Remove the affected devices or export for the newer ETS."
+msgstr[0] "Enlevez le participant concerné ou exportez pour l'ETS plus récent."
+msgstr[1] "Enlevez les participants concernés ou exportez pour l'ETS plus récent."
+
+msgid "Imported {count} product version from {name}:"
+msgid_plural "Imported {count} product versions from {name}:"
+msgstr[0] "{count} version de produit importée depuis {name} :"
+msgstr[1] "{count} versions de produit importées depuis {name} :"

@@ -22,6 +22,7 @@ from editor_gui.plugins.project.ui.status_field import (
     choice_combo,
     status_combo,
 )
+from editor_gui.theme import status_color
 from editor_gui.widgets.checkbox import checkbox
 from editor_gui.widgets.dpi import label_column_width
 from editor_gui.widgets.dpt_select import dpt_combo
@@ -29,8 +30,6 @@ from xknxeditor.proj.core.medium import has_domain_address
 
 if TYPE_CHECKING:
     from editor_gui.plugins.project.service import ElementDetails
-
-_ERROR_COLOR = imgui.ImVec4(0.9, 0.4, 0.4, 1.0)
 
 
 def latency_options() -> list[tuple[int, str]]:
@@ -245,7 +244,7 @@ class ElementDetailsPanel:
             )
         if self._domain_error:
             imgui.push_text_wrap_pos(0.0)
-            imgui.text_colored(_ERROR_COLOR, self._domain_error)
+            imgui.text_colored(status_color("error"), self._domain_error)
             imgui.pop_text_wrap_pos()
 
     def _dpt_field(self, details: ElementDetails, token: str) -> None:
@@ -269,7 +268,7 @@ class ElementDetailsPanel:
                 self._dpt = token
         if self._dpt_error:
             imgui.push_text_wrap_pos(0.0)
-            imgui.text_colored(_ERROR_COLOR, self._dpt_error)
+            imgui.text_colored(status_color("error"), self._dpt_error)
             imgui.pop_text_wrap_pos()
 
     def _backbone_rows(self, details: ElementDetails, latency: int) -> None:
@@ -307,7 +306,7 @@ class ElementDetailsPanel:
             self._multicast = details.multicast_address
         if self._routing_error:
             imgui.push_text_wrap_pos(0.0)
-            imgui.text_colored(_ERROR_COLOR, self._routing_error)
+            imgui.text_colored(status_color("error"), self._routing_error)
             imgui.pop_text_wrap_pos()
         self._row(S.GA_SECURITY)
         chosen = choice_combo(
@@ -319,7 +318,7 @@ class ElementDetailsPanel:
             self._security_error = self._on_set_backbone_security(chosen) or ""
         if self._security_error:
             imgui.push_text_wrap_pos(0.0)
-            imgui.text_colored(_ERROR_COLOR, self._security_error)
+            imgui.text_colored(status_color("error"), self._security_error)
             imgui.pop_text_wrap_pos()
         self._row(S.BUS_CONNECTION)
         stored = [("", S.BUS_CONNECTION_AUTOMATIC)]
@@ -360,7 +359,7 @@ class ElementDetailsPanel:
             imgui.pop_text_wrap_pos()
         if self._security_error:
             imgui.push_text_wrap_pos(0.0)
-            imgui.text_colored(_ERROR_COLOR, self._security_error)
+            imgui.text_colored(status_color("error"), self._security_error)
             imgui.pop_text_wrap_pos()
 
     @staticmethod
@@ -403,7 +402,7 @@ class ElementDetailsPanel:
             self._address = details.address
         if self._error:
             imgui.push_text_wrap_pos(0.0)
-            imgui.text_colored(_ERROR_COLOR, self._error)
+            imgui.text_colored(status_color("error"), self._error)
             imgui.pop_text_wrap_pos()
 
     def _medium_field(self, details: ElementDetails, medium: str) -> None:
@@ -426,7 +425,7 @@ class ElementDetailsPanel:
             )
         if self._medium_error:
             imgui.push_text_wrap_pos(0.0)
-            imgui.text_colored(_ERROR_COLOR, self._medium_error)
+            imgui.text_colored(status_color("error"), self._medium_error)
             imgui.pop_text_wrap_pos()
 
     def _description_field(self, details: ElementDetails) -> None:

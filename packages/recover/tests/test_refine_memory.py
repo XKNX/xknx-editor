@@ -7,8 +7,10 @@ from __future__ import annotations
 
 import pytest
 
+import xknxeditor.recover.parameters as parameters
 from xknxeditor.prod.application import Application, parse_application_xml
-from xknxeditor.recover.parameters import recover_parameters
+from xknxeditor.recover import RecoveredDevice, search_again
+from xknxeditor.recover.parameters import RecoveryEffort, recover_parameters
 
 _APP = "M-00FA_A-0006-01-0000"
 _CHANNEL = f"{_APP}_P-1_R-1"
@@ -121,3 +123,100 @@ def test_a_channel_holding_only_initial_values_stays_inactive(
     segments = _device(application, (_CHANNEL, "1"))
     recovered = recover_parameters(application, segments)
     assert recovered.values.get(_CHANNEL, "0") == "0"
+
+
+def test_a_search_stopped_at_its_limit_says_more_effort_may_help(
+    application: Application, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # The step takes two corrections, the channel and then the mode: one round is not enough.
+    monkeypatch.setattr(parameters, "_REFINE_ROUNDS", 1)
+    segments = _device(
+        application, (_CHANNEL, "1"), (_MODE, "1"), (_DELAY, "5"), (_STEP, "9")
+    )
+    fast = recover_parameters(application, segments)
+    assert not fast.complete
+    assert fast.differing_bytes == 1
+    assert fast.limited
+    # More effort allows more rounds.
+    medium = recover_parameters(application, segments, effort=RecoveryEffort.MEDIUM)
+    assert medium.complete
+    assert not medium.limited
+    assert medium.values[_STEP] == "9"
+
+
+def test_an_unlimited_search_goes_on_until_nothing_fits_better(
+    application: Application, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # No round or value limit: the two corrections are made even with one round per effort.
+    monkeypatch.setattr(parameters, "_REFINE_ROUNDS", 1)
+    monkeypatch.setattr(parameters, "_REFINE_TRIES", 1)
+    segments = _device(
+        application, (_CHANNEL, "1"), (_MODE, "1"), (_DELAY, "5"), (_STEP, "9")
+    )
+    unlimited = recover_parameters(
+        application, segments, effort=RecoveryEffort.UNLIMITED
+    )
+    assert unlimited.complete
+    assert unlimited.values[_STEP] == "9"
+
+
+def test_a_cancelled_search_ends_with_the_result_so_far(
+    application: Application,
+) -> None:
+    segments = _device(
+        application, (_CHANNEL, "1"), (_MODE, "1"), (_DELAY, "5"), (_STEP, "9")
+    )
+    cancelled = recover_parameters(
+        application, segments, effort=RecoveryEffort.UNLIMITED, cancel=lambda: True
+    )
+    # Stopped before the first correction: the channel stays off, and more may be found.
+    assert not cancelled.complete
+    assert cancelled.limited
+    assert cancelled.values.get(_CHANNEL, "0") == "0"
+
+
+def test_a_device_is_searched_again_in_what_was_read(
+    application: Application, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(parameters, "_REFINE_ROUNDS", 1)
+    segments = _device(
+        application, (_CHANNEL, "1"), (_MODE, "1"), (_DELAY, "5"), (_STEP, "9")
+    )
+    device = RecoveredDevice(
+        address="1.1.7",
+        application_id=application.id,
+        device_address=None,
+        group_addresses=[],
+        links=[],
+        group_objects={},
+        parameters=recover_parameters(application, segments),
+        parameter_segments=segments,
+    )
+    assert not device.parameters.complete
+    again = search_again(device, application, RecoveryEffort.MEDIUM)
+    assert again.parameters.complete
+    assert again.parameters.values[_STEP] == "9"
+    assert again.effort is RecoveryEffort.MEDIUM
+    # The rest of what was read stays.
+    assert again.address == "1.1.7"
+    assert again.parameter_segments == segments
+
+
+def test_a_cancel_is_heard_inside_the_inference(application: Application) -> None:
+    # Asked between the values the inference tries too, not only between corrections: the
+    # search ends at the first "yes" and asks no more.
+    segments = _device(
+        application, (_CHANNEL, "1"), (_MODE, "1"), (_DELAY, "5"), (_STEP, "9")
+    )
+    asked: list[bool] = []
+
+    def cancel() -> bool:
+        asked.append(len(asked) >= 1)
+        return asked[-1]
+
+    recovered = recover_parameters(
+        application, segments, effort=RecoveryEffort.UNLIMITED, cancel=cancel
+    )
+    assert asked == [False, True]
+    assert recovered.limited
+    assert not recovered.complete

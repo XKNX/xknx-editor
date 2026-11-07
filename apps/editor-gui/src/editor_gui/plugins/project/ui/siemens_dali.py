@@ -22,6 +22,7 @@ from imgui_bundle import imgui
 
 from editor_gui.device import Device
 from editor_gui.plugins.project.strings import S
+from editor_gui.theme import status_color
 from editor_gui.widgets.dpi import px
 from editor_gui.widgets.tables import begin_data_table, data_table_headers
 from xknxeditor.dali.connection import Programmer
@@ -159,7 +160,7 @@ class SiemensDaliPanel:
                 S.SIEMENS_DALI_SCANNING.format(object_index=object_index_for_line(0))
             )
         if error:
-            imgui.text_colored(imgui.ImVec4(0.9, 0.4, 0.4, 1.0), error)
+            imgui.text_colored(status_color("error"), error)
 
         if scan is None:
             imgui.text_disabled(S.SIEMENS_DALI_NO_SCAN)
@@ -171,7 +172,9 @@ class SiemensDaliPanel:
     def _render_ecg_table(self, scan: SiemensN141BusState) -> None:
         present = scan.present_ecgs
         imgui.text_disabled(
-            S.SIEMENS_DALI_PRESENT_COUNT.format(count=len(present), line=scan.line + 1)
+            S.SIEMENS_DALI_PRESENT_COUNT(len(present)).format(
+                count=len(present), line=scan.line + 1
+            )
         )
         flags = (
             imgui.TableFlags_.borders

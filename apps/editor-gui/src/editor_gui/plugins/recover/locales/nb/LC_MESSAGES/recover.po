@@ -22,14 +22,14 @@ msgstr "Skann"
 msgid "Stop"
 msgstr "Stopp"
 
-msgid "Add to Open Project as Read"
-msgstr "Legg til i åpent prosjekt som lest"
+msgid "Add to Open Project When Read"
+msgstr "Legg til i åpent prosjekt når lest"
 
 msgid "Recover Selected"
 msgstr "Gjenopprett valgte"
 
-msgid "Create New Project"
-msgstr "Opprett nytt prosjekt"
+msgid "Create New Project…"
+msgstr "Opprett nytt prosjekt…"
 
 msgid "Add to Open Project"
 msgstr "Legg til i åpent prosjekt"
@@ -37,14 +37,11 @@ msgstr "Legg til i åpent prosjekt"
 msgid "Verify (Read-Only)"
 msgstr "Verifiser (skrivebeskyttet)"
 
-msgid "Export Snapshot"
-msgstr "Eksporter øyeblikksbilde"
+msgid "Export Snapshot…"
+msgstr "Eksporter øyeblikksbilde…"
 
 msgid "Verifying (re-reading and comparing)…"
 msgstr "Verifiserer (leser på nytt og sammenligner)…"
-
-msgid "%(count)d group address(es) have no sender or multiple senders."
-msgstr "%(count)d gruppeadresse(r) har ingen eller flere avsendere."
 
 msgid "Address"
 msgstr "Adresse"
@@ -82,17 +79,8 @@ msgstr "gruppekommunikasjonstabeller"
 msgid "parameter memory"
 msgstr "parameterminne"
 
-msgid "Recovered %(devices)d device(s): %(group_addresses)d group addresses, %(links)d links, %(unknown)d parameter(s) not recoverable."
-msgstr "Gjenopprettet %(devices)d enhet(er): %(group_addresses)d gruppeadresser, %(links)d koblinger, %(unknown)d parameter(e) kunne ikke gjenopprettes."
-
 msgid "Recovered"
 msgstr "Gjenopprettet"
-
-msgid "Added %(count)d device(s) to the open project (%(target)s)."
-msgstr "La til %(count)d enhet(er) i det åpne prosjektet (%(target)s)."
-
-msgid "Created new project %(target)s with %(count)d device(s)."
-msgstr "Opprettet nytt prosjekt %(target)s med %(count)d enhet(er)."
 
 msgid "Not connected to a KNX bus."
 msgstr "Ikke koblet til en KNX-buss."
@@ -100,29 +88,147 @@ msgstr "Ikke koblet til en KNX-buss."
 msgid "Open or create a project to add recovered devices."
 msgstr "Åpne eller opprett et prosjekt for å legge til gjenopprettede enheter."
 
-msgid "matched"
-msgstr "samsvarer"
+msgid "Product found"
+msgstr "Produkt funnet"
 
-msgid "confirm product/version, then tick"
-msgstr "bekreft produkt/versjon, og kryss deretter av"
+msgid "Check the product and version, then select it"
+msgstr "Kontroller produkt og versjon, og velg det deretter"
 
-msgid "not in catalog - import via Catalog"
-msgstr "ikke i katalogen - importer via Katalog"
+msgid "Not in the catalog: import its product in the Catalog"
+msgstr "Ikke i katalogen: importer produktet i Katalog"
 
-msgid "unprogrammed"
-msgstr "uprogrammert"
+msgid "Not programmed"
+msgstr "Ikke programmert"
 
-msgid "recovered"
-msgstr "gjenopprettet"
+msgid "Already in the project, skipped"
+msgstr "Allerede i prosjektet, hoppet over"
 
-msgid "already in project - skipped"
-msgstr "allerede i prosjektet - hoppet over"
+msgid "Error"
+msgstr "Feil"
 
-msgid "error"
-msgstr "feil"
+msgid "Recovered (incomplete)"
+msgstr "Gjenopprettet (ufullstendig)"
 
-msgid "%d parameters could not be recovered"
-msgstr "%d parametre kunne ikke gjenopprettes"
+msgid "Search Effort"
+msgstr "Søkeinnsats"
 
-msgid "%(count)d device(s) could not be added; the reason is in the Recovered column."
-msgstr "%(count)d enhet(er) kunne ikke legges til; årsaken står i kolonnen «Gjenopprettet»."
+msgid "How many values are tried for the settings a device keeps no copy of. More effort finds settings in devices with many channels, but takes longer. Unlimited goes on until no value fits better; Stop ends the search."
+msgstr "Hvor mange verdier som prøves for innstillingene enheten ikke lagrer en kopi av. Mer innsats finner innstillinger i enheter med mange kanaler, men tar lengre tid. Ubegrenset fortsetter til ingen verdi passer bedre; Stopp avslutter søket."
+
+msgid "Fast"
+msgstr "Rask"
+
+msgid "Medium"
+msgstr "Middels"
+
+msgid "Maximum"
+msgstr "Maksimal"
+
+msgid "Search Again"
+msgstr "Søk Igjen"
+
+msgid "Searches the settings of the selected incomplete devices again in what was read from them, with the chosen search effort. Needs no bus. A device already added to the project is replaced (one undo step)."
+msgstr "Søker på nytt etter innstillingene til de valgte ufullstendige enhetene i det som ble lest fra dem, med valgt søkeinnsats. Trenger ingen buss. En enhet som allerede er lagt til i prosjektet, erstattes (ett angretrinn)."
+
+msgid "Searching %(address)s again  (%(done)d/%(total)d)…"
+msgstr "Søker på nytt i %(address)s  (%(done)d/%(total)d)…"
+
+msgid "more search effort may help"
+msgstr "mer søkeinnsats kan hjelpe"
+
+msgid "Unlimited"
+msgstr "Ubegrenset"
+
+msgid "Result"
+msgstr "Resultat"
+
+msgid "Not read yet"
+msgstr "Ikke lest ennå"
+
+msgid "Verified"
+msgstr "Kontrollert"
+
+msgid "%(count)d group address has no sender or multiple senders."
+msgid_plural "%(count)d group addresses have no sender or multiple senders."
+msgstr[0] "%(count)d gruppeadresse har ingen eller flere avsendere."
+msgstr[1] "%(count)d gruppeadresser har ingen eller flere avsendere."
+
+msgid "Recovered %(count)d device"
+msgid_plural "Recovered %(count)d devices"
+msgstr[0] "Gjenopprettet %(count)d enhet"
+msgstr[1] "Gjenopprettet %(count)d enheter"
+
+msgid "%(count)d group address"
+msgid_plural "%(count)d group addresses"
+msgstr[0] "%(count)d gruppeadresse"
+msgstr[1] "%(count)d gruppeadresser"
+
+msgid "%(count)d link"
+msgid_plural "%(count)d links"
+msgstr[0] "%(count)d kobling"
+msgstr[1] "%(count)d koblinger"
+
+msgid "%(count)d parameter"
+msgid_plural "%(count)d parameters"
+msgstr[0] "%(count)d parameter"
+msgstr[1] "%(count)d parametere"
+
+msgid "%(count)d parameter cannot be recovered"
+msgid_plural "%(count)d parameters cannot be recovered"
+msgstr[0] "%(count)d parameter kan ikke gjenopprettes"
+msgstr[1] "%(count)d parametere kan ikke gjenopprettes"
+
+msgid "%(count)d parameter not found yet"
+msgid_plural "%(count)d parameters not found yet"
+msgstr[0] "%(count)d parameter ikke funnet ennå"
+msgstr[1] "%(count)d parametere ikke funnet ennå"
+
+msgid "Added %(count)d device to the open project (%(target)s)."
+msgid_plural "Added %(count)d devices to the open project (%(target)s)."
+msgstr[0] "La til %(count)d enhet i det åpne prosjektet (%(target)s)."
+msgstr[1] "La til %(count)d enheter i det åpne prosjektet (%(target)s)."
+
+msgid "Created new project %(target)s with %(count)d device."
+msgid_plural "Created new project %(target)s with %(count)d devices."
+msgstr[0] "Opprettet nytt prosjekt %(target)s med %(count)d enhet."
+msgstr[1] "Opprettet nytt prosjekt %(target)s med %(count)d enheter."
+
+msgid "%(count)d device could not be added; the reason is in the Result column."
+msgid_plural "%(count)d devices could not be added; the reason is in the Result column."
+msgstr[0] "%(count)d enhet kunne ikke legges til; årsaken står i kolonnen «Resultat»."
+msgstr[1] "%(count)d enheter kunne ikke legges til; årsaken står i kolonnen «Resultat»."
+
+msgid "Differs from the device: %(what)s"
+msgstr "Avviker fra enheten: %(what)s"
+
+msgid "%(count)d byte"
+msgid_plural "%(count)d bytes"
+msgstr[0] "%(count)d byte"
+msgstr[1] "%(count)d byte"
+
+msgid "%(count)d group object"
+msgid_plural "%(count)d group objects"
+msgstr[0] "%(count)d gruppeobjekt"
+msgstr[1] "%(count)d gruppeobjekter"
+
+msgid "Verify: %(count)d byte differs"
+msgid_plural "Verify: %(count)d bytes differ"
+msgstr[0] "Kontroll: %(count)d byte avviker"
+msgstr[1] "Kontroll: %(count)d byte avviker"
+
+msgid "Import Snapshot…"
+msgstr "Importer øyeblikksbilde…"
+
+msgid "Imported %(count)d device from %(file)s."
+msgid_plural "Imported %(count)d devices from %(file)s."
+msgstr[0] "Importerte %(count)d enhet fra %(file)s."
+msgstr[1] "Importerte %(count)d enheter fra %(file)s."
+
+msgid "%(file)s is no recovery snapshot: %(error)s"
+msgstr "%(file)s er ikke et gjenopprettingsbilde: %(error)s"
+
+msgid "Recovery Snapshot (*.json)"
+msgstr "Gjenopprettingsbilde (*.json)"
+
+msgid "All Files"
+msgstr "Alle filer"

@@ -163,9 +163,6 @@ msgstr "Ange ett heltal."
 msgid "Enter a value from {minimum} to {maximum}."
 msgstr "Ange ett värde från {minimum} till {maximum}."
 
-msgid "Enter at most {count} characters."
-msgstr "Ange högst {count} tecken."
-
 msgid "Enter a value."
 msgstr "Ange ett värde."
 
@@ -177,9 +174,6 @@ msgstr "Inget värde kan anges för den här datatypen."
 
 msgid "Edit…"
 msgstr "Redigera…"
-
-msgid "The text may take at most {count} bytes."
-msgstr "Texten får vara högst {count} byte."
 
 msgid "Value {number}"
 msgstr "Värde {number}"
@@ -241,9 +235,6 @@ msgstr "Kopiera {count} B"
 msgid "Go To:"
 msgstr "Gå till:"
 
-msgid "{count} difference(s)"
-msgstr "{count} skillnad(er)"
-
 msgid "no differences"
 msgstr "inga skillnader"
 
@@ -294,3 +285,18 @@ msgstr "Klipp ut"
 
 msgid "Paste"
 msgstr "Klistra in"
+
+msgid "Enter at most {count} character."
+msgid_plural "Enter at most {count} characters."
+msgstr[0] "Ange högst {count} tecken."
+msgstr[1] "Ange högst {count} tecken."
+
+msgid "The text may take at most {count} byte."
+msgid_plural "The text may take at most {count} bytes."
+msgstr[0] "Texten får vara högst {count} byte."
+msgstr[1] "Texten får vara högst {count} byte."
+
+msgid "{count} difference"
+msgid_plural "{count} differences"
+msgstr[0] "{count} skillnad"
+msgstr[1] "{count} skillnader"

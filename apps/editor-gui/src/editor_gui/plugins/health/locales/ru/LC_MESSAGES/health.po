@@ -16,20 +16,11 @@ msgstr "Проект не открыт"
 msgid "No issues found"
 msgstr "Проблем не найдено"
 
-msgid "{errors} errors, {warnings} warnings"
-msgstr "Ошибок: {errors}, предупреждений: {warnings}"
-
 msgid "{device}: no individual address"
 msgstr "{device}: нет индивидуального адреса"
 
 msgid "Duplicate individual address {address} ({device})"
 msgstr "Повторяющийся индивидуальный адрес {address} ({device})"
-
-msgid "{count} device(s) skipped: application not in catalog"
-msgstr "Пропущено устройств: {count} — прикладной программы нет в каталоге"
-
-msgid "{device}: {count} unlinked group object(s)"
-msgstr "{device}: несвязанных групповых объектов: {count}"
 
 msgid "{address} {name}: no datapoint type"
 msgstr "{address} {name}: нет типа данных"
@@ -37,5 +28,32 @@ msgstr "{address} {name}: нет типа данных"
 msgid "{address} {name}: no sending group object"
 msgstr "{address} {name}: нет передающего группового объекта"
 
-msgid "{address} {name}: {count} sending group objects"
-msgstr "{address} {name}: передающих групповых объектов: {count}"
+msgid "{count} error"
+msgid_plural "{count} errors"
+msgstr[0] "{count} ошибка"
+msgstr[1] "{count} ошибки"
+msgstr[2] "{count} ошибок"
+
+msgid "{count} warning"
+msgid_plural "{count} warnings"
+msgstr[0] "{count} предупреждение"
+msgstr[1] "{count} предупреждения"
+msgstr[2] "{count} предупреждений"
+
+msgid "{count} device skipped: application not in catalog"
+msgid_plural "{count} devices skipped: application not in catalog"
+msgstr[0] "Пропущено {count} устройство — прикладной программы нет в каталоге"
+msgstr[1] "Пропущено {count} устройства — прикладной программы нет в каталоге"
+msgstr[2] "Пропущено {count} устройств — прикладной программы нет в каталоге"
+
+msgid "{device}: {count} unlinked group object"
+msgid_plural "{device}: {count} unlinked group objects"
+msgstr[0] "{device}: {count} несвязанный групповой объект"
+msgstr[1] "{device}: {count} несвязанных групповых объекта"
+msgstr[2] "{device}: {count} несвязанных групповых объектов"
+
+msgid "{address} {name}: {count} sending group object"
+msgid_plural "{address} {name}: {count} sending group objects"
+msgstr[0] "{address} {name}: {count} передающий групповой объект"
+msgstr[1] "{address} {name}: {count} передающих групповых объекта"
+msgstr[2] "{address} {name}: {count} передающих групповых объектов"

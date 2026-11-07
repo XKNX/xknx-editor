@@ -85,9 +85,6 @@ msgstr "Projekttanúsítvány"
 msgid "none"
 msgstr "nincs"
 
-msgid "present ({size} bytes)"
-msgstr "van ({size} bájt)"
-
 msgid "Order Number"
 msgstr "Rendelési szám"
 
@@ -226,9 +223,6 @@ msgstr "Nem futtatható: nincs KNX-kapcsolat. Csatlakozzon egy átjáróhoz ({me
 msgid "Match: the generated image is identical to what is on the device"
 msgstr "Egyezés: az előállított memóriakép megegyezik a készüléken lévővel"
 
-msgid "Mismatch: {bytes} byte(s) differ from the device in {locations} location(s)"
-msgstr "Eltérés: a készüléktől eltérő bájtok: {bytes}, helyek: {locations}"
-
 msgid "{matched} matched, {changed} would change"
 msgstr "Egyező: {matched}, változna: {changed}"
 
@@ -256,9 +250,6 @@ msgstr "készülék kezeli"
 msgid "System byte the device sets itself at runtime (e.g. a download detection byte reset by the application after a download). A difference here is expected and does not indicate a bad download."
 msgstr "Rendszerbájt, amelyet a készülék futás közben maga állít be (pl. programozásérzékelő bájt, amelyet az alkalmazás a programozás után visszaállít). Az itteni eltérés várható, és nem hibás programozásra utal."
 
-msgid "plus {bytes} device-managed runtime byte(s) (expected, benign)"
-msgstr "továbbá a készülék által kezelt futásidejű bájtok: {bytes} (várható, ártalmatlan)"
-
 msgid "No configured differences: the device already carries this configuration. The differences below are benign (see notes)."
 msgstr "Nincsenek konfigurált eltérések: a készülék már ezt a konfigurációt tartalmazza. Az alábbi eltérések ártalmatlanok (lásd a megjegyzéseket)."
 
@@ -267,9 +258,6 @@ msgstr "alapértéket állít be"
 
 msgid "This byte is written for a neighbouring parameter; the differing bit is not driven by any active parameter and is only reset to the application default. The device holds an older value (e.g. from a previous configuration or mode) that programming will normalise. Benign."
 msgstr "Ez a bájt egy szomszédos paraméter miatt íródik; az eltérő bitet egyetlen aktív paraméter sem vezérli, csak visszaáll az alkalmazás alapértékére. A készülékben egy régebbi érték van (pl. egy korábbi konfigurációból vagy üzemmódból), amelyet a programozás rendbe tesz. Ártalmatlan."
-
-msgid "plus {bytes} byte(s) reset to the application default (the device holds an older value; benign, will be normalised on programming)"
-msgstr "továbbá az alkalmazás alapértékére visszaállított bájtok: {bytes} (a készülékben régebbi érték van; ártalmatlan, a programozás rendbe teszi)"
 
 msgid "Export Ist/Soll…"
 msgstr "Ist/Soll exportálása…"
@@ -394,12 +382,6 @@ msgstr "Nem futtatható: a projekt a megnyitása óta megváltozott. A teszt az 
 msgid "Duplicate"
 msgstr "Duplikálás"
 
-msgid "Apply Changes to All {count} Identical Devices"
-msgstr "Módosítások alkalmazása az összes azonos készülékre ({count})"
-
-msgid "Editing {count} devices — edits apply to all, diverging values show <differs>"
-msgstr "Készülékek szerkesztése: {count} – a módosítások mindegyikre vonatkoznak, az eltérő értékek helyén <eltér> látható"
-
 msgid "Mass Linker"
 msgstr "Tömeges összekapcsolás"
 
@@ -451,12 +433,6 @@ msgstr "Feljebb"
 msgid "Move Down"
 msgstr "Lejjebb"
 
-msgid "{count} items"
-msgstr "Elemek: {count}"
-
-msgid "{count} pairs"
-msgstr "Párok: {count}"
-
 msgid "{count} unpaired (ignored)"
 msgstr "Pár nélkül (figyelmen kívül hagyva): {count}"
 
@@ -477,15 +453,6 @@ msgstr "Kommunikációs objektumok hozzáadása"
 
 msgid "Add Group Addresses"
 msgstr "Csoportcímek hozzáadása"
-
-msgid "Linked {count} object(s) to group addresses"
-msgstr "Csoportcímekkel összekapcsolt objektumok: {count}"
-
-msgid "Linked {count} object pair(s) via new group addresses"
-msgstr "Új csoportcímekkel összekapcsolt objektumpárok: {count}"
-
-msgid "{count} error(s)"
-msgstr "Hibák: {count}"
 
 msgid "Clear All"
 msgstr "Az összes törlése"
@@ -538,9 +505,6 @@ msgstr "Másolat neve: {name}"
 msgid "Copy"
 msgstr "Másolás"
 
-msgid "Created {count} copy/copies"
-msgstr "Létrehozott másolatok: {count}"
-
 msgid "Shifts the device part of each individual address. Group addresses are not shifted."
 msgstr "Eltolja minden fizikai cím készülékrészét. A csoportcímek nem tolódnak el."
 
@@ -553,9 +517,6 @@ msgstr "Csak a kijelölt forráskészülék (a Bővített másolásból)"
 msgid "(out of range)"
 msgstr "(tartományon kívül)"
 
-msgid "Shifted {count} address(es)"
-msgstr "Eltolt címek: {count}"
-
 msgid "Export {count} device(s) to a CSV for on-site labelling."
 msgstr "Készülékek exportálása CSV-be a helyszíni címkézéshez ({count} készülék)."
 
@@ -567,12 +528,6 @@ msgstr "Exportálva ide: {path}"
 
 msgid "No topology issues found."
 msgstr "Nem található topológiai probléma."
-
-msgid "{count} issue(s)"
-msgstr "Problémák: {count}"
-
-msgid "{count} address(es) will change"
-msgstr "Megváltozó címek: {count}"
 
 msgid "Click a finding to jump to the device."
 msgstr "Kattintson egy találatra a készülékhez ugráshoz."
@@ -624,12 +579,6 @@ msgstr "Csere erre (minta)"
 
 msgid "Group Object Mapping (by Number)"
 msgstr "Kommunikációs objektumok megfeleltetése (szám szerint)"
-
-msgid "{count} object(s) will be re-mapped"
-msgstr "Újra megfeleltetendő objektumok: {count}"
-
-msgid "Replaced; re-mapped {count} group object(s)"
-msgstr "Lecserélve; újra megfeleltetett kommunikációs objektumok: {count}"
 
 msgid "Device"
 msgstr "Készülék"
@@ -840,9 +789,6 @@ msgstr "Konfiguráció beillesztése"
 
 msgid "Paste configuration onto '{name}':"
 msgstr "Konfiguráció beillesztése ide: „{name}”:"
-
-msgid "Paste configuration onto {count} selected devices:"
-msgstr "Konfiguráció beillesztése a kijelölt készülékekre ({count}):"
 
 msgid "Duplicate '{name}':"
 msgstr "Duplikálás: „{name}”:"
@@ -1174,12 +1120,6 @@ msgstr "Csoportcímfájlok (XML, CSV)"
 msgid "All Files"
 msgstr "Minden fájl"
 
-msgid "{added} group addresses added, {updated} updated."
-msgstr "Hozzáadott csoportcímek: {added}, frissített: {updated}."
-
-msgid "{count} group addresses could not be placed in a group."
-msgstr "Csoporthoz nem rendelhető csoportcímek: {count}."
-
 msgid "The file could not be imported: {error}"
 msgstr "A fájl nem importálható: {error}"
 
@@ -1372,9 +1312,6 @@ msgstr "Ív"
 msgid "Shift Group Addresses"
 msgstr "Csoportcímek eltolása"
 
-msgid "Shifted {count} group address(es)"
-msgstr "Eltolt csoportcímek: {count}"
-
 msgid "Subnet Mask"
 msgstr "Alhálózati maszk"
 
@@ -1399,9 +1336,6 @@ msgstr "Összehasonlítva ezzel: {name}"
 msgid "removed"
 msgstr "eltávolítva"
 
-msgid "{count} difference(s)"
-msgstr "Eltérések: {count}"
-
 msgid "Save…"
 msgstr "Mentés…"
 
@@ -1413,9 +1347,6 @@ msgstr "Összehasonlítás törlése"
 
 msgid "Memory Dumps (*.bin)"
 msgstr "Memóriaképek (*.bin)"
-
-msgid "{count} bytes"
-msgstr "{count} bájt"
 
 msgid "No memory segments."
 msgstr "Nincsenek memóriaszegmensek."
@@ -1639,9 +1570,6 @@ msgstr "Csak az eltérések"
 msgid "Open a project with at least two devices to compare."
 msgstr "Az összehasonlításhoz nyisson meg egy legalább két készüléket tartalmazó projektet."
 
-msgid "{count} differences"
-msgstr "Eltérések: {count}"
-
 msgid "The manufacturer plugin is not available here:"
 msgstr "A gyártói beépülő modul itt nem érhető el:"
 
@@ -1735,9 +1663,6 @@ msgstr "A csoport-hozzárendelés írása a DALI-buszra. Ez alkalmazza a csoport
 msgid "Write the scene values to the DALI bus. Continue?"
 msgstr "A jelenetértékek írása a DALI-buszra. Folytatja?"
 
-msgid "{count} ECG(s) present"
-msgstr "Jelen lévő előtétek: {count}"
-
 msgid "Group"
 msgstr "Csoport"
 
@@ -1779,9 +1704,6 @@ msgstr "Egyedi"
 
 msgid "Unassigned"
 msgstr "Nincs hozzárendelve"
-
-msgid "Procedure {number}  ({count} steps)"
-msgstr "Eljárás {number}  (lépések: {count})"
 
 msgid "Kind"
 msgstr "Fajta"
@@ -2175,9 +2097,6 @@ msgstr "A DALI-busz olvasása ebből az objektumból: {object_index}…"
 
 msgid "Press 'Read DALI Bus' to list the ECGs on the gateway."
 msgstr "Az átjáró előtéteinek listázásához nyomja meg a „DALI-busz olvasása” gombot."
-
-msgid "{count} ECG(s) present on line {line}"
-msgstr "Jelen lévő előtétek: {count}, vonal: {line}"
 
 msgid "Read-only snapshot. Writing group assignments, scenes or firmware is not available yet and remains in the manufacturer's plugin."
 msgstr "Csak olvasható pillanatkép. A csoport-hozzárendelések, jelenetek vagy firmware írása még nem érhető el, ez továbbra is a gyártó beépülő moduljában történik."
@@ -2704,9 +2623,6 @@ msgstr "A csoportban nincs szabad csoportcím."
 msgid "The main group has no free middle group."
 msgstr "A főcsoportban nincs szabad középcsoport."
 
-msgid "{count} devices"
-msgstr "{count} készülék"
-
 msgid "The main segment cannot be moved."
 msgstr "A főszakasz nem helyezhető át."
 
@@ -2779,33 +2695,6 @@ msgstr "Nincs csoport az új csoportcímekhez."
 msgid "Copied '{name}' to '{target}'."
 msgstr "„{name}” átmásolva ide: „{target}”."
 
-msgid "Copied {count} devices to '{target}'."
-msgstr "Készülékek átmásolva ide: „{target}” ({count} db)."
-
-msgid "Copied {count} building parts to '{target}'."
-msgstr "Épületrészek átmásolva ide: „{target}” ({count} db)."
-
-msgid "Copied {count} trades to '{target}'."
-msgstr "Szakágak átmásolva ide: „{target}” ({count} db)."
-
-msgid "Copied {count} functions to '{target}'."
-msgstr "Funkciók átmásolva ide: „{target}” ({count} db)."
-
-msgid "Copied {count} group addresses to '{target}'."
-msgstr "Csoportcímek átmásolva ide: „{target}” ({count} db)."
-
-msgid "Copied {count} middle groups to '{target}'."
-msgstr "Középcsoportok átmásolva ide: „{target}” ({count} db)."
-
-msgid "Copied {count} main groups to '{target}'."
-msgstr "Főcsoportok átmásolva ide: „{target}” ({count} db)."
-
-msgid "Copied {count} lines to '{target}'."
-msgstr "Vonalak átmásolva ide: „{target}” ({count} db)."
-
-msgid "Copied {count} segments to '{target}'."
-msgstr "Szakaszok átmásolva ide: „{target}” ({count} db)."
-
 msgid "Paste Special…"
 msgstr "Irányított beillesztés…"
 
@@ -2848,30 +2737,6 @@ msgstr "Elérte a hozzáadható elemek korlátját."
 msgid "Cannot add any line to the area {area} because of topology constraints. Please check the medium type of the backbone and main lines."
 msgstr "Topológiai korlátozások miatt nem adható vonal ehhez a területhez: {area}. Ellenőrizze a gerincvonal és a fővonalak közegtípusát."
 
-msgid "Added {count} areas to '{target}'."
-msgstr "Területek hozzáadva ide: „{target}” ({count} db)."
-
-msgid "Added {count} lines to '{target}'."
-msgstr "Vonalak hozzáadva ide: „{target}” ({count} db)."
-
-msgid "Added {count} segments to '{target}'."
-msgstr "Szakaszok hozzáadva ide: „{target}” ({count} db)."
-
-msgid "Added {count} building parts to '{target}'."
-msgstr "Épületrészek hozzáadva ide: „{target}” ({count} db)."
-
-msgid "Added {count} trades to '{target}'."
-msgstr "Szakágak hozzáadva ide: „{target}” ({count} db)."
-
-msgid "Added {count} main groups to '{target}'."
-msgstr "Főcsoportok hozzáadva ide: „{target}” ({count} db)."
-
-msgid "Added {count} middle groups to '{target}'."
-msgstr "Középcsoportok hozzáadva ide: „{target}” ({count} db)."
-
-msgid "Added {count} group addresses to '{target}'."
-msgstr "Csoportcímek hozzáadva ide: „{target}” ({count} db)."
-
 msgid "Add Main Groups…"
 msgstr "Főcsoportok hozzáadása…"
 
@@ -2911,12 +2776,6 @@ msgstr "Funkciók hozzáadása"
 msgid "New function"
 msgstr "Új funkció"
 
-msgid "Added {count} functions to '{target}'."
-msgstr "Funkciók hozzáadva ide: „{target}” ({count} db)."
-
-msgid "Added {count} group ranges to '{target}'."
-msgstr "Csoporttartományok hozzáadva ide: „{target}” ({count} db)."
-
 msgid "Add Group Ranges…"
 msgstr "Csoporttartományok hozzáadása…"
 
@@ -2950,9 +2809,6 @@ msgstr "Csoporttartomány nem helyezhető önmagába vagy egy benne lévő tarto
 msgid "A group address of the range is already in use there."
 msgstr "A tartomány egyik csoportcíme ott már foglalt."
 
-msgid "Copied {count} group ranges to '{target}'."
-msgstr "Csoporttartományok átmásolva ide: „{target}” ({count} db)."
-
 msgid "Add Areas…"
 msgstr "Területek hozzáadása…"
 
@@ -2967,12 +2823,6 @@ msgstr "Csoportcím másolása"
 
 msgid "Existing Devices…"
 msgstr "Meglévő készülékek…"
-
-msgid "Delete the {count} selected devices? Their group objects and group-address links are removed and their individual addresses are freed. This can be undone."
-msgstr "Törli a kijelölt készülékeket ({count} db)? A kommunikációs objektumaik és csoportcím-összekapcsolásaik eltávolításra kerülnek, a fizikai címeik pedig felszabadulnak. Ez visszavonható."
-
-msgid "Remove {count} devices"
-msgstr "Készülékek eltávolítása ({count} db)"
 
 msgid "Delete Devices"
 msgstr "Készülékek törlése"
@@ -3082,9 +2932,6 @@ msgstr "Load LVS Project (.prj)…"
 msgid "LVS project (*.prj)"
 msgstr "LVS project (*.prj)"
 
-msgid "Imported the display configuration into {count} device(s)."
-msgstr "Imported the display configuration into {count} device(s)."
-
 msgid "The LVS project could not be imported: {error}"
 msgstr "The LVS project could not be imported: {error}"
 
@@ -3096,3 +2943,214 @@ msgstr "Exported the display configuration."
 
 msgid "The LVS project could not be exported: {error}"
 msgstr "The LVS project could not be exported: {error}"
+
+msgid "Copied {count} device to '{target}'."
+msgid_plural "Copied {count} devices to '{target}'."
+msgstr[0] "{count} készülék átmásolva ide: „{target}”."
+
+msgid "Copied {count} building part to '{target}'."
+msgid_plural "Copied {count} building parts to '{target}'."
+msgstr[0] "{count} épületrész átmásolva ide: „{target}”."
+
+msgid "Copied {count} trade to '{target}'."
+msgid_plural "Copied {count} trades to '{target}'."
+msgstr[0] "{count} szakág átmásolva ide: „{target}”."
+
+msgid "Copied {count} function to '{target}'."
+msgid_plural "Copied {count} functions to '{target}'."
+msgstr[0] "{count} funkció átmásolva ide: „{target}”."
+
+msgid "Copied {count} group address to '{target}'."
+msgid_plural "Copied {count} group addresses to '{target}'."
+msgstr[0] "{count} csoportcím átmásolva ide: „{target}”."
+
+msgid "Copied {count} middle group to '{target}'."
+msgid_plural "Copied {count} middle groups to '{target}'."
+msgstr[0] "{count} középcsoport átmásolva ide: „{target}”."
+
+msgid "Copied {count} main group to '{target}'."
+msgid_plural "Copied {count} main groups to '{target}'."
+msgstr[0] "{count} főcsoport átmásolva ide: „{target}”."
+
+msgid "Copied {count} group range to '{target}'."
+msgid_plural "Copied {count} group ranges to '{target}'."
+msgstr[0] "{count} csoporttartomány átmásolva ide: „{target}”."
+
+msgid "Copied {count} line to '{target}'."
+msgid_plural "Copied {count} lines to '{target}'."
+msgstr[0] "{count} vonal átmásolva ide: „{target}”."
+
+msgid "Copied {count} segment to '{target}'."
+msgid_plural "Copied {count} segments to '{target}'."
+msgstr[0] "{count} szakasz átmásolva ide: „{target}”."
+
+msgid "Added {count} area to '{target}'."
+msgid_plural "Added {count} areas to '{target}'."
+msgstr[0] "{count} terület hozzáadva ide: „{target}”."
+
+msgid "Added {count} line to '{target}'."
+msgid_plural "Added {count} lines to '{target}'."
+msgstr[0] "{count} vonal hozzáadva ide: „{target}”."
+
+msgid "Added {count} segment to '{target}'."
+msgid_plural "Added {count} segments to '{target}'."
+msgstr[0] "{count} szakasz hozzáadva ide: „{target}”."
+
+msgid "Added {count} building part to '{target}'."
+msgid_plural "Added {count} building parts to '{target}'."
+msgstr[0] "{count} épületrész hozzáadva ide: „{target}”."
+
+msgid "Added {count} trade to '{target}'."
+msgid_plural "Added {count} trades to '{target}'."
+msgstr[0] "{count} szakág hozzáadva ide: „{target}”."
+
+msgid "Added {count} function to '{target}'."
+msgid_plural "Added {count} functions to '{target}'."
+msgstr[0] "{count} funkció hozzáadva ide: „{target}”."
+
+msgid "Added {count} group range to '{target}'."
+msgid_plural "Added {count} group ranges to '{target}'."
+msgstr[0] "{count} csoporttartomány hozzáadva ide: „{target}”."
+
+msgid "Added {count} main group to '{target}'."
+msgid_plural "Added {count} main groups to '{target}'."
+msgstr[0] "{count} főcsoport hozzáadva ide: „{target}”."
+
+msgid "Added {count} middle group to '{target}'."
+msgid_plural "Added {count} middle groups to '{target}'."
+msgstr[0] "{count} középcsoport hozzáadva ide: „{target}”."
+
+msgid "Added {count} group address to '{target}'."
+msgid_plural "Added {count} group addresses to '{target}'."
+msgstr[0] "{count} csoportcím hozzáadva ide: „{target}”."
+
+msgid "Remove {count} device"
+msgid_plural "Remove {count} devices"
+msgstr[0] "{count} készülék eltávolítása"
+
+msgid "{count} device"
+msgid_plural "{count} devices"
+msgstr[0] "{count} készülék"
+
+msgid "{count} item"
+msgid_plural "{count} items"
+msgstr[0] "{count} elem"
+
+msgid "{count} pair"
+msgid_plural "{count} pairs"
+msgstr[0] "{count} pár"
+
+msgid "Linked {count} object to a group address"
+msgid_plural "Linked {count} objects to group addresses"
+msgstr[0] "{count} objektum csoportcímhez kapcsolva"
+
+msgid "Linked {count} object pair via a new group address"
+msgid_plural "Linked {count} object pairs via new group addresses"
+msgstr[0] "{count} objektumpár új csoportcímmel összekapcsolva"
+
+msgid "{count} error"
+msgid_plural "{count} errors"
+msgstr[0] "{count} hiba"
+
+msgid "{count} object will be re-mapped"
+msgid_plural "{count} objects will be re-mapped"
+msgstr[0] "{count} objektum lesz újra megfeleltetve"
+
+msgid "Replaced; re-mapped {count} group object"
+msgid_plural "Replaced; re-mapped {count} group objects"
+msgstr[0] "Lecserélve; {count} kommunikációs objektum újra megfeleltetve"
+
+msgid "{count} difference"
+msgid_plural "{count} differences"
+msgstr[0] "{count} eltérés"
+
+msgid "Created {count} copy"
+msgid_plural "Created {count} copies"
+msgstr[0] "{count} másolat létrehozva"
+
+msgid "{count} address will change"
+msgid_plural "{count} addresses will change"
+msgstr[0] "{count} cím megváltozik"
+
+msgid "Shifted {count} address"
+msgid_plural "Shifted {count} addresses"
+msgstr[0] "{count} cím eltolva"
+
+msgid "Shifted {count} group address"
+msgid_plural "Shifted {count} group addresses"
+msgstr[0] "{count} csoportcím eltolva"
+
+msgid "{count} issue"
+msgid_plural "{count} issues"
+msgstr[0] "{count} probléma"
+
+msgid "present ({size} byte)"
+msgid_plural "present ({size} bytes)"
+msgstr[0] "van ({size} bájt)"
+
+msgid "Imported the display configuration into {count} device."
+msgid_plural "Imported the display configuration into {count} devices."
+msgstr[0] "A kijelzőkonfiguráció importálva {count} készülékbe."
+
+msgid "{count} ECG present on line {line}"
+msgid_plural "{count} ECGs present on line {line}"
+msgstr[0] "Jelen lévő előtétek: {count}, vonal: {line}"
+
+msgid "Apply Changes to {count} Identical Device"
+msgid_plural "Apply Changes to All {count} Identical Devices"
+msgstr[0] "Módosítások alkalmazása az összes azonos készülékre ({count})"
+
+msgid "Editing {count} device — edits apply to all, diverging values show <differs>"
+msgid_plural "Editing {count} devices — edits apply to all, diverging values show <differs>"
+msgstr[0] "{count} készülék szerkesztése – a módosítások mindegyikre vonatkoznak, az eltérő értékek helyén <eltér> látható"
+
+msgid "{count} byte"
+msgid_plural "{count} bytes"
+msgstr[0] "{count} bájt"
+
+msgid "Mismatch: {bytes} from the device in {locations}"
+msgstr "Eltérés: {bytes} a készüléktől {locations}"
+
+msgid "{count} byte differs"
+msgid_plural "{count} bytes differ"
+msgstr[0] "{count} bájt eltér"
+
+msgid "{count} location"
+msgid_plural "{count} locations"
+msgstr[0] "{count} helyen"
+
+msgid "plus {bytes} device-managed runtime byte (expected, benign)"
+msgid_plural "plus {bytes} device-managed runtime bytes (expected, benign)"
+msgstr[0] "továbbá {bytes} a készülék által kezelt futásidejű bájt (várható, ártalmatlan)"
+
+msgid "plus {bytes} byte reset to the application default (the device holds an older value; benign, will be normalised on programming)"
+msgid_plural "plus {bytes} bytes reset to the application default (the device holds an older value; benign, will be normalised on programming)"
+msgstr[0] "továbbá {bytes} bájt visszaáll az alkalmazás alapértékére (a készülékben régebbi érték van; ártalmatlan, a programozás rendbe teszi)"
+
+msgid "Paste configuration onto {count} selected device:"
+msgid_plural "Paste configuration onto {count} selected devices:"
+msgstr[0] "Konfiguráció beillesztése {count} kijelölt készülékre:"
+
+msgid "Delete the {count} selected device? Its group objects and group-address links are removed and its individual address is freed. This can be undone."
+msgid_plural "Delete the {count} selected devices? Their group objects and group-address links are removed and their individual addresses are freed. This can be undone."
+msgstr[0] "Törli a kijelölt készülékeket ({count} db)? A kommunikációs objektumaik és csoportcím-összekapcsolásaik eltávolításra kerülnek, a fizikai címeik pedig felszabadulnak. Ez visszavonható."
+
+msgid "{count} group address added"
+msgid_plural "{count} group addresses added"
+msgstr[0] "{count} csoportcím hozzáadva"
+
+msgid "{count} updated"
+msgid_plural "{count} updated"
+msgstr[0] "{count} frissítve"
+
+msgid "{count} group address could not be placed in a group."
+msgid_plural "{count} group addresses could not be placed in a group."
+msgstr[0] "{count} csoportcímet nem lehetett csoporthoz rendelni."
+
+msgid "{count} ECG present"
+msgid_plural "{count} ECGs present"
+msgstr[0] "{count} előtét van jelen"
+
+msgid "Procedure {number}  ({count} step)"
+msgid_plural "Procedure {number}  ({count} steps)"
+msgstr[0] "Eljárás {number}  ({count} lépés)"

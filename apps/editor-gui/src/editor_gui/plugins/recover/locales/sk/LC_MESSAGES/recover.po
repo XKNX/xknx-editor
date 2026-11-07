@@ -28,14 +28,14 @@ msgstr "Hľadať"
 msgid "Stop"
 msgstr "Zastaviť"
 
-msgid "Add to Open Project as Read"
-msgstr "Pridať do otvoreného projektu ako načítané"
+msgid "Add to Open Project When Read"
+msgstr "Pridať do otvoreného projektu po načítaní"
 
 msgid "Recover Selected"
 msgstr "Obnoviť vybrané"
 
-msgid "Create New Project"
-msgstr "Vytvoriť nový projekt"
+msgid "Create New Project…"
+msgstr "Vytvoriť nový projekt…"
 
 msgid "Add to Open Project"
 msgstr "Pridať do otvoreného projektu"
@@ -43,14 +43,11 @@ msgstr "Pridať do otvoreného projektu"
 msgid "Verify (Read-Only)"
 msgstr "Overiť (len čítanie)"
 
-msgid "Export Snapshot"
-msgstr "Exportovať snímku"
+msgid "Export Snapshot…"
+msgstr "Exportovať snímku…"
 
 msgid "Verifying (re-reading and comparing)…"
 msgstr "Overuje sa (opakované čítanie a porovnanie)…"
-
-msgid "%(count)d group address(es) have no sender or multiple senders."
-msgstr "Skupinové adresy bez vysielača alebo s viacerými vysielačmi: %(count)d."
 
 msgid "Address"
 msgstr "Adresa"
@@ -88,17 +85,8 @@ msgstr "tabuľky skupinovej komunikácie"
 msgid "parameter memory"
 msgstr "pamäť parametrov"
 
-msgid "Recovered %(devices)d device(s): %(group_addresses)d group addresses, %(links)d links, %(unknown)d parameter(s) not recoverable."
-msgstr "Obnovené zariadenia: %(devices)d – skupinové adresy: %(group_addresses)d, prepojenia: %(links)d, neobnoviteľné parametre: %(unknown)d."
-
 msgid "Recovered"
 msgstr "Obnovené"
-
-msgid "Added %(count)d device(s) to the open project (%(target)s)."
-msgstr "Zariadenia pridané do otvoreného projektu (%(target)s): %(count)d."
-
-msgid "Created new project %(target)s with %(count)d device(s)."
-msgstr "Vytvorený nový projekt %(target)s, počet zariadení: %(count)d."
 
 msgid "Not connected to a KNX bus."
 msgstr "Nepripojené k zbernici KNX."
@@ -106,29 +94,161 @@ msgstr "Nepripojené k zbernici KNX."
 msgid "Open or create a project to add recovered devices."
 msgstr "Na pridanie obnovených zariadení otvorte alebo vytvorte projekt."
 
-msgid "matched"
-msgstr "zhoda"
+msgid "Product found"
+msgstr "Produkt nájdený"
 
-msgid "confirm product/version, then tick"
-msgstr "potvrďte produkt/verziu a potom označte"
+msgid "Check the product and version, then select it"
+msgstr "Skontrolujte produkt a verziu a potom ho vyberte"
 
-msgid "not in catalog - import via Catalog"
-msgstr "nie je v katalógu – importujte cez Katalóg"
+msgid "Not in the catalog: import its product in the Catalog"
+msgstr "Nie je v katalógu: importujte jeho produkt v Katalógu"
 
-msgid "unprogrammed"
-msgstr "nenaprogramované"
+msgid "Not programmed"
+msgstr "Nenaprogramované"
 
-msgid "recovered"
-msgstr "obnovené"
+msgid "Error"
+msgstr "Chyba"
 
-msgid "error"
-msgstr "chyba"
+msgid "Already in the project, skipped"
+msgstr "Už v projekte, preskočené"
 
-msgid "%d parameters could not be recovered"
-msgstr "Parametre, ktoré sa nepodarilo obnoviť: %d"
+msgid "Recovered (incomplete)"
+msgstr "Obnovené (neúplné)"
 
-msgid "already in project - skipped"
-msgstr "už je v projekte – preskočené"
+msgid "Search Effort"
+msgstr "Rozsah Hľadania"
 
-msgid "%(count)d device(s) could not be added; the reason is in the Recovered column."
-msgstr "Zariadenia, ktoré sa nepodarilo pridať: %(count)d; dôvod je v stĺpci „Obnovené“."
+msgid "How many values are tried for the settings a device keeps no copy of. More effort finds settings in devices with many channels, but takes longer. Unlimited goes on until no value fits better; Stop ends the search."
+msgstr "Koľko hodnôt sa skúša pre nastavenia, ktorých kópiu zariadenie neuchováva. Väčší rozsah nájde nastavenia v zariadeniach s mnohými kanálmi, ale trvá dlhšie. Neobmedzený hľadá, kým žiadna hodnota nesedí lepšie; Zastaviť hľadanie ukončí."
+
+msgid "Fast"
+msgstr "Rýchly"
+
+msgid "Medium"
+msgstr "Stredný"
+
+msgid "Maximum"
+msgstr "Maximálny"
+
+msgid "Search Again"
+msgstr "Hľadať Znova"
+
+msgid "Searches the settings of the selected incomplete devices again in what was read from them, with the chosen search effort. Needs no bus. A device already added to the project is replaced (one undo step)."
+msgstr "Znova vyhľadá nastavenia vybraných neúplných zariadení v údajoch z nich prečítaných, so zvoleným rozsahom hľadania. Nepotrebuje zbernicu. Zariadenie už pridané do projektu sa nahradí (jeden krok späť)."
+
+msgid "Searching %(address)s again  (%(done)d/%(total)d)…"
+msgstr "Nové hľadanie pre %(address)s  (%(done)d/%(total)d)…"
+
+msgid "more search effort may help"
+msgstr "väčší rozsah hľadania môže pomôcť"
+
+msgid "Unlimited"
+msgstr "Neobmedzený"
+
+msgid "Result"
+msgstr "Výsledok"
+
+msgid "Not read yet"
+msgstr "Zatiaľ neprečítané"
+
+msgid "Verified"
+msgstr "Overené"
+
+msgid "%(count)d group address has no sender or multiple senders."
+msgid_plural "%(count)d group addresses have no sender or multiple senders."
+msgstr[0] "%(count)d skupinová adresa nemá vysielač alebo má viac vysielačov."
+msgstr[1] "%(count)d skupinové adresy nemajú vysielač alebo majú viac vysielačov."
+msgstr[2] "%(count)d skupinových adries nemá vysielač alebo má viac vysielačov."
+
+msgid "Recovered %(count)d device"
+msgid_plural "Recovered %(count)d devices"
+msgstr[0] "Obnovené %(count)d zariadenie"
+msgstr[1] "Obnovené %(count)d zariadenia"
+msgstr[2] "Obnovených %(count)d zariadení"
+
+msgid "%(count)d group address"
+msgid_plural "%(count)d group addresses"
+msgstr[0] "%(count)d skupinová adresa"
+msgstr[1] "%(count)d skupinové adresy"
+msgstr[2] "%(count)d skupinových adries"
+
+msgid "%(count)d link"
+msgid_plural "%(count)d links"
+msgstr[0] "%(count)d prepojenie"
+msgstr[1] "%(count)d prepojenia"
+msgstr[2] "%(count)d prepojení"
+
+msgid "%(count)d parameter"
+msgid_plural "%(count)d parameters"
+msgstr[0] "%(count)d parameter"
+msgstr[1] "%(count)d parametre"
+msgstr[2] "%(count)d parametrov"
+
+msgid "%(count)d parameter cannot be recovered"
+msgid_plural "%(count)d parameters cannot be recovered"
+msgstr[0] "%(count)d parameter nemožno obnoviť"
+msgstr[1] "%(count)d parametre nemožno obnoviť"
+msgstr[2] "%(count)d parametrov nemožno obnoviť"
+
+msgid "%(count)d parameter not found yet"
+msgid_plural "%(count)d parameters not found yet"
+msgstr[0] "%(count)d parameter zatiaľ nenájdený"
+msgstr[1] "%(count)d parametre zatiaľ nenájdené"
+msgstr[2] "%(count)d parametrov zatiaľ nenájdených"
+
+msgid "Added %(count)d device to the open project (%(target)s)."
+msgid_plural "Added %(count)d devices to the open project (%(target)s)."
+msgstr[0] "Do otvoreného projektu (%(target)s) bolo pridané %(count)d zariadenie."
+msgstr[1] "Do otvoreného projektu (%(target)s) boli pridané %(count)d zariadenia."
+msgstr[2] "Do otvoreného projektu (%(target)s) bolo pridaných %(count)d zariadení."
+
+msgid "Created new project %(target)s with %(count)d device."
+msgid_plural "Created new project %(target)s with %(count)d devices."
+msgstr[0] "Vytvorený nový projekt %(target)s s %(count)d zariadením."
+msgstr[1] "Vytvorený nový projekt %(target)s s %(count)d zariadeniami."
+msgstr[2] "Vytvorený nový projekt %(target)s s %(count)d zariadeniami."
+
+msgid "%(count)d device could not be added; the reason is in the Result column."
+msgid_plural "%(count)d devices could not be added; the reason is in the Result column."
+msgstr[0] "Nepodarilo sa pridať %(count)d zariadenie; dôvod je v stĺpci „Výsledok“."
+msgstr[1] "Nepodarilo sa pridať %(count)d zariadenia; dôvod je v stĺpci „Výsledok“."
+msgstr[2] "Nepodarilo sa pridať %(count)d zariadení; dôvod je v stĺpci „Výsledok“."
+
+msgid "Differs from the device: %(what)s"
+msgstr "Líši sa od zariadenia: %(what)s"
+
+msgid "%(count)d byte"
+msgid_plural "%(count)d bytes"
+msgstr[0] "%(count)d bajt"
+msgstr[1] "%(count)d bajty"
+msgstr[2] "%(count)d bajtov"
+
+msgid "%(count)d group object"
+msgid_plural "%(count)d group objects"
+msgstr[0] "%(count)d skupinový objekt"
+msgstr[1] "%(count)d skupinové objekty"
+msgstr[2] "%(count)d skupinových objektov"
+
+msgid "Verify: %(count)d byte differs"
+msgid_plural "Verify: %(count)d bytes differ"
+msgstr[0] "Overenie: líši sa %(count)d bajt"
+msgstr[1] "Overenie: líšia sa %(count)d bajty"
+msgstr[2] "Overenie: líši sa %(count)d bajtov"
+
+msgid "Import Snapshot…"
+msgstr "Importovať snímku…"
+
+msgid "Imported %(count)d device from %(file)s."
+msgid_plural "Imported %(count)d devices from %(file)s."
+msgstr[0] "Importované %(count)d zariadenie z %(file)s."
+msgstr[1] "Importované %(count)d zariadenia z %(file)s."
+msgstr[2] "Importovaných %(count)d zariadení z %(file)s."
+
+msgid "%(file)s is no recovery snapshot: %(error)s"
+msgstr "%(file)s nie je snímka obnovy: %(error)s"
+
+msgid "Recovery Snapshot (*.json)"
+msgstr "Snímka obnovy (*.json)"
+
+msgid "All Files"
+msgstr "Všetky súbory"

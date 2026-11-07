@@ -19,9 +19,6 @@ msgstr "过滤设备…"
 msgid "Needs Attention Only"
 msgstr "仅显示需处理项"
 
-msgid "{count} device(s) not in catalog"
-msgstr "{count} 个设备不在产品目录中"
-
 msgid "Address"
 msgstr "地址"
 
@@ -69,3 +66,7 @@ msgstr "系列号：{serial}"
 
 msgid "Last Download: {when}"
 msgstr "上次下载：{when}"
+
+msgid "{count} device not in catalog"
+msgid_plural "{count} devices not in catalog"
+msgstr[0] "{count} 个设备不在产品目录中"

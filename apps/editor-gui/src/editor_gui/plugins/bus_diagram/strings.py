@@ -157,9 +157,12 @@ class BusDiagramStrings:
     def BUS_DIAGRAM_MORE(self) -> str:
         return _("+ {count} more")
 
-    @property
-    def BUS_DIAGRAM_MORE_TIP(self) -> str:
-        return _("{count} more devices outside the selection. Click to show them.")
+    def BUS_DIAGRAM_MORE_TIP(self, count: int) -> str:
+        return _.plural(
+            "{count} more device outside the selection. Click to show it.",
+            "{count} more devices outside the selection. Click to show them.",
+            count,
+        )
 
     @property
     def BUS_DIAGRAM_GA_TIP(self) -> str:

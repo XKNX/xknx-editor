@@ -10,22 +10,26 @@ read-only.
 from __future__ import annotations
 
 import asyncio
+import re
 import threading
 from concurrent.futures import Future
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import TYPE_CHECKING, Any
 
 from xknxeditor.proj.core.medium import MediumError
 from xknxeditor.recover import (
     AppId,
+    RecoveryEffort,
+    devices_from_snapshot,
     iter_addresses,
     probe_and_identify,
     recover_device_at,
+    search_again,
     snapshots_json,
     validate_group_communication,
     verify_recovered,
 )
-from xknxeditor.recover.recover import com_object_ref_by_number
+from xknxeditor.recover.recover import com_object_ref_by_number, seed_dynamic_ui
 
 if TYPE_CHECKING:
     from editor_gui.plugins.base import Logger, PluginAPI
@@ -64,10 +68,58 @@ class RecoverEntry:
     auto_tried: bool = False
     # Why the last attempt to add it to a project failed, shown in its details.
     error: str | None = None
+    # The device this recovery added to the project, which a search again replaces.
+    device_id: int | None = None
 
     @property
     def recoverable(self) -> bool:
         return self.application is not None
+
+
+def _unknown_parts(unrecoverable: int, not_found: int) -> list[str]:
+    """The parameters read without a value, as parts of a list of counts: those that cannot
+    be recovered and those not found yet, each only when there are some."""
+    from editor_gui.plugins.recover.strings import S
+
+    parts: list[str] = []
+    if unrecoverable:
+        parts.append(
+            S.PARAMETERS_UNRECOVERABLE(unrecoverable) % {"count": unrecoverable}
+        )
+    if not_found:
+        parts.append(S.PARAMETERS_NOT_FOUND(not_found) % {"count": not_found})
+    return parts
+
+
+def _app_id(application_id: str) -> AppId | None:
+    """The manufacturer, application number and version of an application id, as a device
+    tells them (the rest of the id, a hash or the suffix of a converted product, is the
+    catalog's)."""
+    match = re.match(r"(M-[0-9A-F]{4})_A-([0-9A-F]+)-([0-9A-F]+)", application_id, re.I)
+    if match is None:
+        return None
+    return AppId(
+        match.group(1).upper(), int(match.group(2), 16), int(match.group(3), 16)
+    )
+
+
+def _incomplete(entry: RecoverEntry) -> bool:
+    """Whether a selected entry was read back and its parameters do not fit what was read."""
+    return (
+        entry.selected
+        and entry.application is not None
+        and entry.recovered is not None
+        and not entry.recovered.parameters.complete
+    )
+
+
+def _recovered_state(recovered: RecoveredDevice) -> str:
+    """The state of a device read back: whether its parameters fit what was read off it."""
+    from editor_gui.plugins.recover.strings import S
+
+    if recovered.parameters.complete:
+        return S.STATE_RECOVERED
+    return S.STATE_INCOMPLETE
 
 
 def _error_text(error: Exception) -> str:
@@ -108,6 +160,10 @@ class RecoverService:
         self._cancel = False
         # Add recovered devices to the open project as soon as they are read.
         self.auto_apply = True
+        # How many values the search for the settings a device keeps no copy of tries.
+        self.effort = RecoveryEffort.FAST
+        # A search again in what was read (no bus), run on a worker thread.
+        self._search: Future[list[tuple[RecoverEntry, RecoveredDevice]]] | None = None
 
     def set_logger(self, log: Logger) -> None:
         self._log = log
@@ -124,7 +180,15 @@ class RecoverService:
     def busy(self) -> bool:
         # A bus operation OR the online-catalog fetch: both must block a new scan,
         # otherwise a fetch could re-identify a list a new scan has replaced.
-        return self._pending is not None or self._fetch_thread is not None
+        return (
+            self._pending is not None
+            or self._fetch_thread is not None
+            or (self._search is not None and not self._search.done())
+        )
+
+    def _cancelled(self) -> bool:
+        """Whether Stop was pressed: a running search ends with its result so far."""
+        return self._cancel
 
     def stop(self) -> None:
         """Request the running scan/recover/verify to stop after the current device."""
@@ -293,8 +357,10 @@ class RecoverService:
                     interface_max_apdu_length=self._api.connection.interface_max_apdu_length,
                     progress=self._on_recover_stage,
                     project_code_page=self._api.project.project_code_page(),
+                    effort=self.effort,
+                    cancel=self._cancelled,
                 )
-                entry.state = S.STATE_RECOVERED
+                entry.state = _recovered_state(entry.recovered)
                 if self._log is not None:
                     self._log.info(
                         "device recovered",
@@ -322,8 +388,16 @@ class RecoverService:
         self.recover_stage = stage
 
     def recovery_totals(self) -> dict[str, int]:
-        """Aggregate counts over all recovered devices, for the overview line."""
-        totals = {"devices": 0, "group_addresses": 0, "links": 0, "unknown": 0}
+        """Aggregate counts over all recovered devices, for the overview line: the parameters
+        read without a value split into those that cannot be recovered and those not found yet
+        (see ``RecoveredParameters``)."""
+        totals = {
+            "devices": 0,
+            "group_addresses": 0,
+            "links": 0,
+            "unrecoverable": 0,
+            "not_found": 0,
+        }
         for entry in self.entries:
             recovered = entry.recovered
             if recovered is None:
@@ -331,31 +405,68 @@ class RecoverService:
             totals["devices"] += 1
             totals["group_addresses"] += len(recovered.group_addresses)
             totals["links"] += len(recovered.links)
-            totals["unknown"] += len(recovered.parameters.unknown)
+            totals["unrecoverable"] += len(recovered.parameters.unrecoverable)
+            totals["not_found"] += len(recovered.parameters.not_found)
         return totals
+
+    def summary(self) -> str:
+        """The overview line of every device read: how many, and what was read of them."""
+        from editor_gui.plugins.recover.strings import S
+
+        totals = self.recovery_totals()
+        parts = [
+            S.GROUP_ADDRESSES(totals["group_addresses"])
+            % {"count": totals["group_addresses"]},
+            S.LINKS(totals["links"]) % {"count": totals["links"]},
+            *_unknown_parts(totals["unrecoverable"], totals["not_found"]),
+        ]
+        head = S.RECOVERED_DEVICES(totals["devices"]) % {"count": totals["devices"]}
+        return f"{head}: {', '.join(parts)}."
 
     @staticmethod
     def entry_detail(entry: RecoverEntry) -> str:
-        """A short per-device summary of what was recovered (empty until recovered)."""
+        """A short per-device summary of what was read (a device that can be read and is not
+        read yet says so)."""
+        from editor_gui.plugins.recover.strings import S
+
         recovered = entry.recovered
         if recovered is None:
-            return ""
-        unknown = len(recovered.parameters.unknown)
-        detail = (
-            f"{len(recovered.group_addresses)} GA, "
-            f"{len(recovered.links)} links, "
-            f"{len(recovered.parameters.values)} params"
+            return S.DETAIL_NOT_READ if entry.recoverable else ""
+        parameters = recovered.parameters
+        counts = (
+            (S.GROUP_ADDRESSES, len(recovered.group_addresses)),
+            (S.LINKS, len(recovered.links)),
+            (S.PARAMETERS, len(parameters.values)),
         )
-        if unknown:
-            detail += f" ({unknown} unknown)"
+        detail = ", ".join(
+            [
+                *(text(count) % {"count": count} for text, count in counts),
+                *_unknown_parts(
+                    len(parameters.unrecoverable), len(parameters.not_found)
+                ),
+            ]
+        )
+        if not parameters.complete:
+            differs = (
+                (S.BYTES, parameters.differing_bytes),
+                (S.GROUP_OBJECTS, parameters.differing_objects),
+            )
+            detail += " | " + S.DETAIL_INCOMPLETE % {
+                "what": ", ".join(
+                    text(count) % {"count": count} for text, count in differs if count
+                )
+            }
+            if parameters.limited:
+                detail += f", {S.DETAIL_MORE_EFFORT}"
         order = recovered.dossier.order_info
         if order:
             detail += f" | {order}"
         if entry.verify_changed is not None:
-            detail += (
-                " | verified"
+            detail += " | " + (
+                S.DETAIL_VERIFIED
                 if entry.verify_changed == 0
-                else f" | verify: {entry.verify_changed} B differ"
+                else S.DETAIL_VERIFY_DIFFERS(entry.verify_changed)
+                % {"count": entry.verify_changed}
             )
         if entry.error:
             detail += f" | {entry.error}"
@@ -370,19 +481,26 @@ class RecoverService:
         # shows under Devices immediately (not only after an explicit apply).
         self._auto_apply()
         self.advance()
+        self._finish_search()
 
     def advance(self) -> None:
         """Advance the phase when a pending bus operation has finished (no project edits)."""
         if self._pending is None or not self._pending.done():
             return
         future, self._pending = self._pending, None
+        exc = None if future.cancelled() else future.exception()
         # The bus operation is over (success, failure or cancel): release the slot
-        # so programming/testing (or another scan) can use the tunnel again.
-        self._api.connection.end_operation()
+        # so programming/testing (or another scan) can use the tunnel again. The Operations
+        # panel keeps it in its history with how it ended.
+        if exc is not None:
+            self._api.connection.end_operation("failed", str(exc))
+        elif future.cancelled() or self._cancel:
+            self._api.connection.end_operation("canceled")
+        else:
+            self._api.connection.end_operation()
         if future.cancelled():
             self.phase = "idle" if self.phase == "scanning" else "scanned"
             return
-        exc = future.exception()
         if exc is not None:
             self.error = str(exc)
             self.phase = "idle" if self.phase == "scanning" else "scanned"
@@ -395,13 +513,102 @@ class RecoverService:
         elif self.phase == "recovering" or self.phase == "verifying":
             self.phase = "recovered"
 
+    # --- search again in what was read (no bus) ----------------------------
+
+    def can_search_again(self) -> bool:
+        """Whether a selected device read back does not fit what was read off it."""
+        return any(_incomplete(entry) for entry in self.entries)
+
+    def start_search_again(self) -> None:
+        """Search the parameters of the selected devices whose result does not fit what was read
+        off them again, with ``effort``, in what was read: no bus. A device already added to
+        the project is replaced when the search ends (see :meth:`_finish_search`)."""
+        if self.busy or self._search is not None:
+            return
+        targets = [entry for entry in self.entries if _incomplete(entry)]
+        if not targets:
+            return
+        self._cancel = False
+        self.apply_status = ""
+        self.apply_error = ""
+        self.recover_done = 0
+        self.recover_total = len(targets)
+        self.recover_current = ""
+        self.phase = "searching"
+        effort = self.effort
+        code_page = self._api.project.project_code_page()
+        future: Future[list[tuple[RecoverEntry, RecoveredDevice]]] = Future()
+        self._search = future
+
+        def run() -> None:
+            results: list[tuple[RecoverEntry, RecoveredDevice]] = []
+            for done, entry in enumerate(targets, start=1):
+                if self._cancel:
+                    break
+                assert entry.recovered is not None and entry.application is not None
+                self.recover_current = entry.address
+                self.recover_done = done
+                try:
+                    found = search_again(
+                        entry.recovered,
+                        entry.application,
+                        effort,
+                        code_page,
+                        cancel=self._cancelled,
+                    )
+                except Exception as exc:  # one device failing must not stop the others
+                    if self._log is not None:
+                        self._log.warning(
+                            "search again failed", address=entry.address, error=str(exc)
+                        )
+                    continue
+                results.append((entry, found))
+            future.set_result(results)
+
+        threading.Thread(target=run, name="recover-search", daemon=True).start()
+
+    def _finish_search(self) -> None:
+        """Take the results of a finished search again: each device gets its new result, and
+        one this recovery added to the project is replaced by it (one undo step)."""
+        search = self._search
+        if search is None or not search.done():
+            return
+        self._search = None
+        self.recover_current = ""
+        self.phase = "recovered"
+        ga_ids: dict[int, int] = {}
+        for entry, recovered in search.result():
+            entry.recovered = recovered
+            entry.state = _recovered_state(recovered)
+            entry.verify_changed = None
+            if self._log is not None:
+                self._log.info(
+                    "device searched again",
+                    address=entry.address,
+                    effort=recovered.effort.value,
+                    complete=recovered.parameters.complete,
+                    differing_bytes=recovered.parameters.differing_bytes,
+                    differing_objects=recovered.parameters.differing_objects,
+                )
+            replaced = entry.device_id
+            if (
+                entry.applied
+                and replaced is not None
+                and self._api.project.find_device_by_node_id(replaced) is not None
+            ):
+                self._add_recovered(entry, ga_ids, replace=replaced)
+
     # --- read-only round-trip verification --------------------------------
 
+    def chosen(self) -> list[RecoverEntry]:
+        """The selected devices read back: those Verify, Export Snapshot and the adds work on."""
+        return [e for e in self.entries if e.selected and e.recovered is not None]
+
     def start_verify(self) -> None:
-        """Re-encode each recovered device's group comms and diff against the bus."""
+        """Re-encode each selected recovered device's group comms and diff against the bus."""
         if self.busy or not self.connected():
             return
-        targets = [e for e in self.entries if e.recovered is not None]
+        targets = self.chosen()
         if not targets:
             return
         if not self._api.connection.begin_operation("recover", "verify"):
@@ -445,9 +652,51 @@ class RecoverService:
         return validate_group_communication(recovered)
 
     def snapshot_text(self) -> str:
-        """A JSON forensic snapshot of every recovered device."""
-        recovered = [e.recovered for e in self.entries if e.recovered is not None]
+        """A JSON forensic snapshot of every selected recovered device."""
+        recovered = [e.recovered for e in self.chosen() if e.recovered is not None]
         return snapshots_json(recovered)
+
+    def import_snapshot(self, text: str, name: str) -> int:
+        """Take the devices of a snapshot (see ``snapshot_text``) as read: each is matched
+        against the catalog as a scanned one, and replaces a device of the same address in the
+        list. Needs no bus. Returns how many devices it holds; one that is no snapshot leaves
+        the list as it is and says why (``apply_error``)."""
+        from editor_gui.plugins.recover.strings import S
+
+        self.apply_status = ""
+        self.apply_error = ""
+        try:
+            devices = devices_from_snapshot(text)
+        except ValueError as exc:
+            self.apply_error = S.SNAPSHOT_UNREADABLE % {"file": name, "error": exc}
+            return 0
+        entries = {entry.address: entry for entry in self.entries}
+        for device in devices:
+            entry = RecoverEntry(
+                address=device.address,
+                mask_version=device.mask_version,
+                app_id=_app_id(device.application_id),
+            )
+            self._identify_catalog(entry)
+            if entry.application is not None:
+                application = entry.application
+                device = replace(
+                    device,
+                    com_object_refs=com_object_ref_by_number(
+                        application,
+                        seed_dynamic_ui(application, device.parameters.values),
+                    ),
+                )
+                entry.recovered = device
+                entry.state = _recovered_state(device)
+            entries[device.address] = entry
+        self.entries = list(entries.values())
+        self.phase = "recovered"
+        self.apply_status = S.SNAPSHOT_IMPORTED(len(devices)) % {
+            "count": len(devices),
+            "file": name,
+        }
+        return len(devices)
 
     # --- online-catalog auto-fetch ---------------------------------------
 
@@ -555,18 +804,18 @@ class RecoverService:
             self._add_recovered(entry, ga_ids)
 
     def apply_to_project(self) -> int:
-        """Write every not-yet-added recovered device into the open project, retrying the
-        ones an earlier attempt could not add; returns how many were added."""
+        """Write every selected recovered device not yet added into the open project, retrying
+        the ones an earlier attempt could not add; returns how many were added."""
         added, _failed = self._apply_pending()
         return added
 
     def _apply_pending(self) -> tuple[int, int]:
-        """Add every not-yet-added recovered device; returns (added, failed)."""
+        """Add every selected recovered device not yet added; returns (added, failed)."""
         ga_ids: dict[int, int] = {}
         added = 0
         failed = 0
-        for entry in self.entries:
-            if entry.applied or entry.recovered is None or entry.application is None:
+        for entry in self.chosen():
+            if entry.applied or entry.application is None:
                 continue
             if entry.product_ref_id is None:
                 continue
@@ -581,7 +830,7 @@ class RecoverService:
         from editor_gui.plugins.recover.strings import S
 
         self.apply_status = status
-        self.apply_error = S.APPLY_FAILED % {"count": failed} if failed else ""
+        self.apply_error = S.APPLY_FAILED(failed) % {"count": failed} if failed else ""
 
     def apply_to_open_project(self) -> int:
         """Add recovered devices to the currently open project, with a status message."""
@@ -590,11 +839,13 @@ class RecoverService:
         added, failed = self._apply_pending()
         path = self._api.project.path
         target = path.name if path is not None else "?"
-        self._report_apply(S.APPLY_MERGED % {"count": added, "target": target}, failed)
+        self._report_apply(
+            S.APPLY_MERGED(added) % {"count": added, "target": target}, failed
+        )
         return added
 
     def create_project_and_apply(self, path: Any) -> int:
-        """Create a fresh project at ``path`` and add every recovered device to it."""
+        """Create a fresh project at ``path`` and add every selected recovered device to it."""
         from editor_gui.plugins.recover.strings import S
 
         # Live auto-apply may have added devices to a previously-open project; the
@@ -605,10 +856,16 @@ class RecoverService:
             entry.auto_tried = False
             entry.error = None
         added, failed = self._apply_pending()
-        self._report_apply(S.APPLY_NEW % {"count": added, "target": path.name}, failed)
+        self._report_apply(
+            S.APPLY_NEW(added) % {"count": added, "target": path.name}, failed
+        )
         return added
 
-    def _add_recovered(self, entry: RecoverEntry, ga_ids: dict[int, int]) -> bool:
+    def _add_recovered(
+        self, entry: RecoverEntry, ga_ids: dict[int, int], *, replace: int | None = None
+    ) -> bool:
+        """Add a recovered device to the project; with ``replace`` instead of the device of
+        that node id (in the same undo step). Returns whether it was added."""
         from editor_gui.plugins.recover.strings import S
 
         project = self._api.project
@@ -619,7 +876,10 @@ class RecoverService:
         # A device already sits at this address (project already had it, or a
         # previous apply): skip rather than crash on the unique-address check. Mark
         # it applied so live auto-apply does not retry it every frame.
-        if project.find_device_by_address(entry.address) is not None:
+        if (
+            replace is None
+            and project.find_device_by_address(entry.address) is not None
+        ):
             entry.applied = True
             entry.state = S.STATE_EXISTS
             # Not a failure any more, even if an earlier attempt failed.
@@ -634,6 +894,8 @@ class RecoverService:
         try:
             # The device with its settings, flags, group addresses and links: one undo step.
             with project.one_undo_step():
+                if replace is not None:
+                    project.remove_device(replace)
                 # Place the device on the segment for its own area/line (creating them
                 # if needed) and set the address at creation, so no fragile post-hoc
                 # "move".
@@ -703,6 +965,7 @@ class RecoverService:
                 project.recalculate_params(
                     device_id, list(recovered.parameters.values), stored=True
                 )
+                entry.device_id = device_id
                 added = True
         except Exception as exc:  # never crash the render loop / batch on one device
             # Not marked applied: an explicit add tries it again (live auto-apply does

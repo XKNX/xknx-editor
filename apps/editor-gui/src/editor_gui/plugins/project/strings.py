@@ -547,9 +547,12 @@ class ProjectStrings:
     def PANEL_TOPOLOGY(self) -> str:
         return _("Topology")
 
-    @property
-    def DRAG_DEVICES(self) -> str:
-        return _("{count} devices")
+    def DRAG_DEVICES(self, count: int) -> str:
+        return _.plural(
+            "{count} device",
+            "{count} devices",
+            count,
+        )
 
     @property
     def PASTE_TITLE(self) -> str:
@@ -643,45 +646,75 @@ class ProjectStrings:
     def HISTORY_EV_COPIED(self) -> str:
         return _("Copied '{name}' to '{target}'.")
 
-    @property
-    def HISTORY_EV_COPIED_DEVICES(self) -> str:
-        return _("Copied {count} devices to '{target}'.")
+    def HISTORY_EV_COPIED_DEVICES(self, count: int) -> str:
+        return _.plural(
+            "Copied {count} device to '{target}'.",
+            "Copied {count} devices to '{target}'.",
+            count,
+        )
 
-    @property
-    def HISTORY_EV_COPIED_SPACES(self) -> str:
-        return _("Copied {count} building parts to '{target}'.")
+    def HISTORY_EV_COPIED_SPACES(self, count: int) -> str:
+        return _.plural(
+            "Copied {count} building part to '{target}'.",
+            "Copied {count} building parts to '{target}'.",
+            count,
+        )
 
-    @property
-    def HISTORY_EV_COPIED_TRADES(self) -> str:
-        return _("Copied {count} trades to '{target}'.")
+    def HISTORY_EV_COPIED_TRADES(self, count: int) -> str:
+        return _.plural(
+            "Copied {count} trade to '{target}'.",
+            "Copied {count} trades to '{target}'.",
+            count,
+        )
 
-    @property
-    def HISTORY_EV_COPIED_FUNCTIONS(self) -> str:
-        return _("Copied {count} functions to '{target}'.")
+    def HISTORY_EV_COPIED_FUNCTIONS(self, count: int) -> str:
+        return _.plural(
+            "Copied {count} function to '{target}'.",
+            "Copied {count} functions to '{target}'.",
+            count,
+        )
 
-    @property
-    def HISTORY_EV_COPIED_GROUP_ADDRESSES(self) -> str:
-        return _("Copied {count} group addresses to '{target}'.")
+    def HISTORY_EV_COPIED_GROUP_ADDRESSES(self, count: int) -> str:
+        return _.plural(
+            "Copied {count} group address to '{target}'.",
+            "Copied {count} group addresses to '{target}'.",
+            count,
+        )
 
-    @property
-    def HISTORY_EV_COPIED_MIDDLE_GROUPS(self) -> str:
-        return _("Copied {count} middle groups to '{target}'.")
+    def HISTORY_EV_COPIED_MIDDLE_GROUPS(self, count: int) -> str:
+        return _.plural(
+            "Copied {count} middle group to '{target}'.",
+            "Copied {count} middle groups to '{target}'.",
+            count,
+        )
 
-    @property
-    def HISTORY_EV_COPIED_MAIN_GROUPS(self) -> str:
-        return _("Copied {count} main groups to '{target}'.")
+    def HISTORY_EV_COPIED_MAIN_GROUPS(self, count: int) -> str:
+        return _.plural(
+            "Copied {count} main group to '{target}'.",
+            "Copied {count} main groups to '{target}'.",
+            count,
+        )
 
-    @property
-    def HISTORY_EV_COPIED_GROUP_RANGES(self) -> str:
-        return _("Copied {count} group ranges to '{target}'.")
+    def HISTORY_EV_COPIED_GROUP_RANGES(self, count: int) -> str:
+        return _.plural(
+            "Copied {count} group range to '{target}'.",
+            "Copied {count} group ranges to '{target}'.",
+            count,
+        )
 
-    @property
-    def HISTORY_EV_COPIED_LINES(self) -> str:
-        return _("Copied {count} lines to '{target}'.")
+    def HISTORY_EV_COPIED_LINES(self, count: int) -> str:
+        return _.plural(
+            "Copied {count} line to '{target}'.",
+            "Copied {count} lines to '{target}'.",
+            count,
+        )
 
-    @property
-    def HISTORY_EV_COPIED_SEGMENTS(self) -> str:
-        return _("Copied {count} segments to '{target}'.")
+    def HISTORY_EV_COPIED_SEGMENTS(self, count: int) -> str:
+        return _.plural(
+            "Copied {count} segment to '{target}'.",
+            "Copied {count} segments to '{target}'.",
+            count,
+        )
 
     @property
     def PANEL_CONFIGURE(self) -> str:
@@ -829,13 +862,19 @@ class ProjectStrings:
     def ML_MOVE_DOWN(self) -> str:
         return _("Move Down")
 
-    @property
-    def ML_COUNT(self) -> str:
-        return _("{count} items")
+    def ML_COUNT(self, count: int) -> str:
+        return _.plural(
+            "{count} item",
+            "{count} items",
+            count,
+        )
 
-    @property
-    def ML_PAIR_COUNT(self) -> str:
-        return _("{count} pairs")
+    def ML_PAIR_COUNT(self, count: int) -> str:
+        return _.plural(
+            "{count} pair",
+            "{count} pairs",
+            count,
+        )
 
     @property
     def ML_UNPAIRED(self) -> str:
@@ -869,17 +908,26 @@ class ProjectStrings:
     def ML_RESULT_TITLE(self) -> str:
         return _("Mass Linker Result")
 
-    @property
-    def ML_LINK_GA_CO_DONE(self) -> str:
-        return _("Linked {count} object(s) to group addresses")
+    def ML_LINK_GA_CO_DONE(self, count: int) -> str:
+        return _.plural(
+            "Linked {count} object to a group address",
+            "Linked {count} objects to group addresses",
+            count,
+        )
 
-    @property
-    def ML_LINK_CO_CO_DONE(self) -> str:
-        return _("Linked {count} object pair(s) via new group addresses")
+    def ML_LINK_CO_CO_DONE(self, count: int) -> str:
+        return _.plural(
+            "Linked {count} object pair via a new group address",
+            "Linked {count} object pairs via new group addresses",
+            count,
+        )
 
-    @property
-    def ML_ERRORS(self) -> str:
-        return _("{count} error(s)")
+    def ML_ERRORS(self, count: int) -> str:
+        return _.plural(
+            "{count} error",
+            "{count} errors",
+            count,
+        )
 
     @property
     def ML_LOG_CLEAR(self) -> str:
@@ -1058,17 +1106,23 @@ class ProjectStrings:
     def TOOLS_REPLACE_PREVIEW(self) -> str:
         return _("Group Object Mapping (by Number)")
 
-    @property
-    def TOOLS_REPLACE_COUNT(self) -> str:
-        return _("{count} object(s) will be re-mapped")
+    def TOOLS_REPLACE_COUNT(self, count: int) -> str:
+        return _.plural(
+            "{count} object will be re-mapped",
+            "{count} objects will be re-mapped",
+            count,
+        )
 
     @property
     def TOOLS_REPLACE_RUN(self) -> str:
         return _("Replace Device")
 
-    @property
-    def TOOLS_REPLACE_DONE(self) -> str:
-        return _("Replaced; re-mapped {count} group object(s)")
+    def TOOLS_REPLACE_DONE(self, count: int) -> str:
+        return _.plural(
+            "Replaced; re-mapped {count} group object",
+            "Replaced; re-mapped {count} group objects",
+            count,
+        )
 
     @property
     def TOOLS_TAB_SHIFT(self) -> str:
@@ -1122,9 +1176,12 @@ class ProjectStrings:
     def TOOLS_DIFF_IDENTICAL(self) -> str:
         return _("No differences in devices or group addresses.")
 
-    @property
-    def TOOLS_DIFF_COUNT(self) -> str:
-        return _("{count} difference(s)")
+    def TOOLS_DIFF_COUNT(self, count: int) -> str:
+        return _.plural(
+            "{count} difference",
+            "{count} differences",
+            count,
+        )
 
     @property
     def DEVICE_CERTIFICATE_TITLE(self) -> str:
@@ -1283,9 +1340,12 @@ class ProjectStrings:
     def TOOLS_COPY_RUN(self) -> str:
         return _("Copy")
 
-    @property
-    def TOOLS_COPY_DONE(self) -> str:
-        return _("Created {count} copy/copies")
+    def TOOLS_COPY_DONE(self, count: int) -> str:
+        return _.plural(
+            "Created {count} copy",
+            "Created {count} copies",
+            count,
+        )
 
     @property
     def TOOLS_SHIFT_HINT(self) -> str:
@@ -1318,17 +1378,23 @@ class ProjectStrings:
     def TOOLS_SHIFT_INVALID(self) -> str:
         return _("(out of range)")
 
-    @property
-    def TOOLS_SHIFT_COUNT(self) -> str:
-        return _("{count} address(es) will change")
+    def TOOLS_SHIFT_COUNT(self, count: int) -> str:
+        return _.plural(
+            "{count} address will change",
+            "{count} addresses will change",
+            count,
+        )
 
     @property
     def TOOLS_SHIFT_RUN(self) -> str:
         return _("Shift Addresses")
 
-    @property
-    def TOOLS_SHIFT_DONE(self) -> str:
-        return _("Shifted {count} address(es)")
+    def TOOLS_SHIFT_DONE(self, count: int) -> str:
+        return _.plural(
+            "Shifted {count} address",
+            "Shifted {count} addresses",
+            count,
+        )
 
     @property
     def TOOLS_SHIFT_MODE_IA(self) -> str:
@@ -1365,9 +1431,12 @@ class ProjectStrings:
     def TOOLS_SHIFT_GA_RUN(self) -> str:
         return _("Shift Group Addresses")
 
-    @property
-    def TOOLS_SHIFT_GA_DONE(self) -> str:
-        return _("Shifted {count} group address(es)")
+    def TOOLS_SHIFT_GA_DONE(self, count: int) -> str:
+        return _.plural(
+            "Shifted {count} group address",
+            "Shifted {count} group addresses",
+            count,
+        )
 
     @property
     def TOOLS_LABELS_EXPORT(self) -> str:
@@ -1454,17 +1523,23 @@ class ProjectStrings:
     def TOOLS_TOPOLOGY_OK(self) -> str:
         return _("No topology issues found.")
 
-    @property
-    def TOOLS_TOPOLOGY_COUNT(self) -> str:
-        return _("{count} issue(s)")
+    def TOOLS_TOPOLOGY_COUNT(self, count: int) -> str:
+        return _.plural(
+            "{count} issue",
+            "{count} issues",
+            count,
+        )
 
     @property
     def TOOLS_TOPOLOGY_NAV(self) -> str:
         return _("Click a finding to jump to the device.")
 
-    @property
-    def TOOLS_ERRORS(self) -> str:
-        return _("{count} error(s)")
+    def TOOLS_ERRORS(self, count: int) -> str:
+        return _.plural(
+            "{count} error",
+            "{count} errors",
+            count,
+        )
 
     @property
     def SPACES_EMPTY(self) -> str:
@@ -1913,9 +1988,12 @@ class ProjectStrings:
     def PROJECT_INFO_ARTIFACT_NONE(self) -> str:
         return _("none")
 
-    @property
-    def PROJECT_INFO_ARTIFACT_PRESENT(self) -> str:
-        return _("present ({size} bytes)")
+    def PROJECT_INFO_ARTIFACT_PRESENT(self, size: int) -> str:
+        return _.plural(
+            "present ({size} byte)",
+            "present ({size} bytes)",
+            size,
+        )
 
     @property
     def PROJECT_INFO_PASSWORD(self) -> str:
@@ -2167,9 +2245,12 @@ class ProjectStrings:
     def PLUGIN_PARAMS_PRJ_FILTER(self) -> str:
         return _("LVS project (*.prj)")
 
-    @property
-    def PLUGIN_PARAMS_PRJ_DONE(self) -> str:
-        return _("Imported the display configuration into {count} device(s).")
+    def PLUGIN_PARAMS_PRJ_DONE(self, count: int) -> str:
+        return _.plural(
+            "Imported the display configuration into {count} device.",
+            "Imported the display configuration into {count} devices.",
+            count,
+        )
 
     @property
     def PLUGIN_PARAMS_PRJ_FAILED(self) -> str:
@@ -2231,9 +2312,12 @@ class ProjectStrings:
     def SIEMENS_DALI_NO_SCAN(self) -> str:
         return _("Press 'Read DALI Bus' to list the ECGs on the gateway.")
 
-    @property
-    def SIEMENS_DALI_PRESENT_COUNT(self) -> str:
-        return _("{count} ECG(s) present on line {line}")
+    def SIEMENS_DALI_PRESENT_COUNT(self, count: int) -> str:
+        return _.plural(
+            "{count} ECG present on line {line}",
+            "{count} ECGs present on line {line}",
+            count,
+        )
 
     @property
     def SIEMENS_DALI_READ_ONLY_NOTE(self) -> str:
@@ -2690,18 +2774,24 @@ class ProjectStrings:
     def CONFIGURE_PARAM_FILTER_HINT(self) -> str:
         return _("Filter parameters…")
 
-    @property
-    def CONFIGURE_APPLY_ALL(self) -> str:
-        return _("Apply Changes to All {count} Identical Devices")
+    def CONFIGURE_APPLY_ALL(self, count: int) -> str:
+        return _.plural(
+            "Apply Changes to {count} Identical Device",
+            "Apply Changes to All {count} Identical Devices",
+            count,
+        )
 
     @property
     def CONFIGURE_APPLY_ALL_CHANNELS(self) -> str:
         return _("Apply Changes to All Channels")
 
-    @property
-    def CONFIGURE_MULTI_EDIT(self) -> str:
-        return _(
-            "Editing {count} devices — edits apply to all, diverging values show <differs>"
+    def CONFIGURE_MULTI_EDIT(self, count: int) -> str:
+        return _.plural(
+            "Editing {count} device — edits apply to all, diverging values show "
+            "<differs>",
+            "Editing {count} devices — edits apply to all, diverging values show "
+            "<differs>",
+            count,
         )
 
     @property
@@ -2764,9 +2854,12 @@ class ProjectStrings:
     def MEMORY_ALL_FILES(self) -> str:
         return _("All Files")
 
-    @property
-    def MEMORY_BYTES(self) -> str:
-        return _("{count} bytes")
+    def MEMORY_BYTES(self, count: int) -> str:
+        return _.plural(
+            "{count} byte",
+            "{count} bytes",
+            count,
+        )
 
     @property
     def MEMORY_NO_SEGMENTS(self) -> str:
@@ -2817,9 +2910,14 @@ class ProjectStrings:
 
     @property
     def PREFLIGHT_WOULD_CHANGE(self) -> str:
-        return _(
-            "Mismatch: {bytes} byte(s) differ from the device in {locations} location(s)"
-        )
+        # {bytes}: PREFLIGHT_BYTES_DIFFER, {locations}: PREFLIGHT_LOCATIONS.
+        return _("Mismatch: {bytes} from the device in {locations}")
+
+    def PREFLIGHT_BYTES_DIFFER(self, count: int) -> str:
+        return _.plural("{count} byte differs", "{count} bytes differ", count)
+
+    def PREFLIGHT_LOCATIONS(self, count: int) -> str:
+        return _.plural("{count} location", "{count} locations", count)
 
     @property
     def PREFLIGHT_SUMMARY_COUNTS(self) -> str:
@@ -2878,9 +2976,12 @@ class ProjectStrings:
             "difference here is expected and does not indicate a bad download."
         )
 
-    @property
-    def PREFLIGHT_RUNTIME_NOTE(self) -> str:
-        return _("plus {bytes} device-managed runtime byte(s) (expected, benign)")
+    def PREFLIGHT_RUNTIME_NOTE(self, bytes: int) -> str:
+        return _.plural(
+            "plus {bytes} device-managed runtime byte (expected, benign)",
+            "plus {bytes} device-managed runtime bytes (expected, benign)",
+            bytes,
+        )
 
     @property
     def PREFLIGHT_ONLY_BENIGN(self) -> str:
@@ -2902,11 +3003,13 @@ class ProjectStrings:
             "configuration or mode) that programming will normalise. Benign."
         )
 
-    @property
-    def PREFLIGHT_DEFAULT_NOTE(self) -> str:
-        return _(
-            "plus {bytes} byte(s) reset to the application default (the device holds "
-            "an older value; benign, will be normalised on programming)"
+    def PREFLIGHT_DEFAULT_NOTE(self, bytes: int) -> str:
+        return _.plural(
+            "plus {bytes} byte reset to the application default (the device holds an "
+            "older value; benign, will be normalised on programming)",
+            "plus {bytes} bytes reset to the application default (the device holds an "
+            "older value; benign, will be normalised on programming)",
+            bytes,
         )
 
     @property
@@ -3009,45 +3112,75 @@ class ProjectStrings:
             "Please check the medium type of the backbone and main lines."
         )
 
-    @property
-    def HISTORY_EV_ADDED_AREAS(self) -> str:
-        return _("Added {count} areas to '{target}'.")
+    def HISTORY_EV_ADDED_AREAS(self, count: int) -> str:
+        return _.plural(
+            "Added {count} area to '{target}'.",
+            "Added {count} areas to '{target}'.",
+            count,
+        )
 
-    @property
-    def HISTORY_EV_ADDED_LINES(self) -> str:
-        return _("Added {count} lines to '{target}'.")
+    def HISTORY_EV_ADDED_LINES(self, count: int) -> str:
+        return _.plural(
+            "Added {count} line to '{target}'.",
+            "Added {count} lines to '{target}'.",
+            count,
+        )
 
-    @property
-    def HISTORY_EV_ADDED_SEGMENTS(self) -> str:
-        return _("Added {count} segments to '{target}'.")
+    def HISTORY_EV_ADDED_SEGMENTS(self, count: int) -> str:
+        return _.plural(
+            "Added {count} segment to '{target}'.",
+            "Added {count} segments to '{target}'.",
+            count,
+        )
 
-    @property
-    def HISTORY_EV_ADDED_BUILDING_PARTS(self) -> str:
-        return _("Added {count} building parts to '{target}'.")
+    def HISTORY_EV_ADDED_BUILDING_PARTS(self, count: int) -> str:
+        return _.plural(
+            "Added {count} building part to '{target}'.",
+            "Added {count} building parts to '{target}'.",
+            count,
+        )
 
-    @property
-    def HISTORY_EV_ADDED_TRADES(self) -> str:
-        return _("Added {count} trades to '{target}'.")
+    def HISTORY_EV_ADDED_TRADES(self, count: int) -> str:
+        return _.plural(
+            "Added {count} trade to '{target}'.",
+            "Added {count} trades to '{target}'.",
+            count,
+        )
 
-    @property
-    def HISTORY_EV_ADDED_FUNCTIONS(self) -> str:
-        return _("Added {count} functions to '{target}'.")
+    def HISTORY_EV_ADDED_FUNCTIONS(self, count: int) -> str:
+        return _.plural(
+            "Added {count} function to '{target}'.",
+            "Added {count} functions to '{target}'.",
+            count,
+        )
 
-    @property
-    def HISTORY_EV_ADDED_GROUP_RANGES(self) -> str:
-        return _("Added {count} group ranges to '{target}'.")
+    def HISTORY_EV_ADDED_GROUP_RANGES(self, count: int) -> str:
+        return _.plural(
+            "Added {count} group range to '{target}'.",
+            "Added {count} group ranges to '{target}'.",
+            count,
+        )
 
-    @property
-    def HISTORY_EV_ADDED_MAIN_GROUPS(self) -> str:
-        return _("Added {count} main groups to '{target}'.")
+    def HISTORY_EV_ADDED_MAIN_GROUPS(self, count: int) -> str:
+        return _.plural(
+            "Added {count} main group to '{target}'.",
+            "Added {count} main groups to '{target}'.",
+            count,
+        )
 
-    @property
-    def HISTORY_EV_ADDED_MIDDLE_GROUPS(self) -> str:
-        return _("Added {count} middle groups to '{target}'.")
+    def HISTORY_EV_ADDED_MIDDLE_GROUPS(self, count: int) -> str:
+        return _.plural(
+            "Added {count} middle group to '{target}'.",
+            "Added {count} middle groups to '{target}'.",
+            count,
+        )
 
-    @property
-    def HISTORY_EV_ADDED_GROUP_ADDRESSES(self) -> str:
-        return _("Added {count} group addresses to '{target}'.")
+    def HISTORY_EV_ADDED_GROUP_ADDRESSES(self, count: int) -> str:
+        return _.plural(
+            "Added {count} group address to '{target}'.",
+            "Added {count} group addresses to '{target}'.",
+            count,
+        )
 
     @property
     def CONTEXT_DELETE(self) -> str:
@@ -3099,9 +3232,12 @@ class ProjectStrings:
     def COMPARE_FILTER_HINT(self) -> str:
         return _("Filter devices by address, name or description…")
 
-    @property
-    def COMPARE_SUMMARY(self) -> str:
-        return _("{count} differences")
+    def COMPARE_SUMMARY(self, count: int) -> str:
+        return _.plural(
+            "{count} difference",
+            "{count} differences",
+            count,
+        )
 
     @property
     def COMPARE_SECTION_HEADER(self) -> str:
@@ -3143,9 +3279,12 @@ class ProjectStrings:
     def CONFIG_PASTE_INTO(self) -> str:
         return _("Paste configuration onto '{name}':")
 
-    @property
-    def CONFIG_PASTE_INTO_MULTI(self) -> str:
-        return _("Paste configuration onto {count} selected devices:")
+    def CONFIG_PASTE_INTO_MULTI(self, count: int) -> str:
+        return _.plural(
+            "Paste configuration onto {count} selected device:",
+            "Paste configuration onto {count} selected devices:",
+            count,
+        )
 
     @property
     def CONFIG_DUPLICATE_OF(self) -> str:
@@ -3182,16 +3321,22 @@ class ProjectStrings:
             "individual address is freed. This can be undone."
         )
 
-    @property
-    def DEVICE_DELETE_CONFIRM_SEVERAL(self) -> str:
-        return _(
-            "Delete the {count} selected devices? Their group objects and group-address links "
-            "are removed and their individual addresses are freed. This can be undone."
+    def DEVICE_DELETE_CONFIRM_SEVERAL(self, count: int) -> str:
+        return _.plural(
+            "Delete the {count} selected device? Its group objects and group-address "
+            "links are removed and its individual address is freed. This can be undone.",
+            "Delete the {count} selected devices? Their group objects and "
+            "group-address links are removed and their individual addresses are freed. "
+            "This can be undone.",
+            count,
         )
 
-    @property
-    def HISTORY_EV_REMOVE_DEVICES(self) -> str:
-        return _("Remove {count} devices")
+    def HISTORY_EV_REMOVE_DEVICES(self, count: int) -> str:
+        return _.plural(
+            "Remove {count} device",
+            "Remove {count} devices",
+            count,
+        )
 
     @property
     def BTN_ADD(self) -> str:
@@ -3924,13 +4069,20 @@ class ProjectStrings:
     def GA_IMPORT_ALL_FILES(self) -> str:
         return _("All Files")
 
-    @property
-    def GA_IMPORT_DONE(self) -> str:
-        return _("{added} group addresses added, {updated} updated.")
+    def GA_IMPORT_ADDED(self, count: int) -> str:
+        return _.plural(
+            "{count} group address added", "{count} group addresses added", count
+        )
 
-    @property
-    def GA_IMPORT_SKIPPED(self) -> str:
-        return _("{count} group addresses could not be placed in a group.")
+    def GA_IMPORT_UPDATED(self, count: int) -> str:
+        return _.plural("{count} updated", "{count} updated", count)
+
+    def GA_IMPORT_SKIPPED(self, count: int) -> str:
+        return _.plural(
+            "{count} group address could not be placed in a group.",
+            "{count} group addresses could not be placed in a group.",
+            count,
+        )
 
     @property
     def GA_IMPORT_FAILED(self) -> str:
@@ -4259,9 +4411,12 @@ class ProjectStrings:
     def DALI_CONFIRM_SCENES(self) -> str:
         return _("Write the scene values to the DALI bus. Continue?")
 
-    @property
-    def DALI_ECGS_PRESENT(self) -> str:
-        return _("{count} ECG(s) present")
+    def DALI_ECGS_PRESENT(self, count: int) -> str:
+        return _.plural(
+            "{count} ECG present",
+            "{count} ECGs present",
+            count,
+        )
 
     @property
     def DALI_COL_GROUP(self) -> str:
@@ -4323,9 +4478,12 @@ class ProjectStrings:
     def DALI_GROUP_UNASSIGNED(self) -> str:
         return _("Unassigned")
 
-    @property
-    def LOAD_PROCEDURE(self) -> str:
-        return _("Procedure {number}  ({count} steps)")
+    def LOAD_PROCEDURE(self, count: int) -> str:
+        return _.plural(
+            "Procedure {number}  ({count} step)",
+            "Procedure {number}  ({count} steps)",
+            count,
+        )
 
     @property
     def LOAD_COL_KIND(self) -> str:

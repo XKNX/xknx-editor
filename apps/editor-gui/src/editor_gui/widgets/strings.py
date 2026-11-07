@@ -254,9 +254,12 @@ class WidgetStrings(BaseStrings):
     def DPT_VALUE_RANGE(self) -> str:
         return _("Enter a value from {minimum} to {maximum}.")
 
-    @property
-    def DPT_VALUE_TOO_LONG(self) -> str:
-        return _("Enter at most {count} characters.")
+    def DPT_VALUE_TOO_LONG(self, count: int) -> str:
+        return _.plural(
+            "Enter at most {count} character.",
+            "Enter at most {count} characters.",
+            count,
+        )
 
     @property
     def DPT_VALUE_REQUIRED(self) -> str:
@@ -274,9 +277,12 @@ class WidgetStrings(BaseStrings):
     def DPT_VALUE_EDIT(self) -> str:
         return _("Edit…")
 
-    @property
-    def DPT_VALUE_TOO_LONG_BYTES(self) -> str:
-        return _("The text may take at most {count} bytes.")
+    def DPT_VALUE_TOO_LONG_BYTES(self, count: int) -> str:
+        return _.plural(
+            "The text may take at most {count} byte.",
+            "The text may take at most {count} bytes.",
+            count,
+        )
 
     @property
     def DPT_VALUE_NUMBERED(self) -> str:
@@ -362,9 +368,12 @@ class WidgetStrings(BaseStrings):
     def HEX_GO_TO(self) -> str:
         return _("Go To:")
 
-    @property
-    def HEX_DIFFS(self) -> str:
-        return _("{count} difference(s)")
+    def HEX_DIFFS(self, count: int) -> str:
+        return _.plural(
+            "{count} difference",
+            "{count} differences",
+            count,
+        )
 
     @property
     def HEX_NO_DIFFS(self) -> str:

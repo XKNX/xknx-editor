@@ -19,9 +19,6 @@ msgstr "Фильтр устройств…"
 msgid "Needs Attention Only"
 msgstr "Только требующие внимания"
 
-msgid "{count} device(s) not in catalog"
-msgstr "Устройств не в каталоге: {count}"
-
 msgid "Address"
 msgstr "Адрес"
 
@@ -69,3 +66,9 @@ msgstr "Серийный номер: {serial}"
 
 msgid "Last Download: {when}"
 msgstr "Последняя загрузка: {when}"
+
+msgid "{count} device not in catalog"
+msgid_plural "{count} devices not in catalog"
+msgstr[0] "{count} устройство не в каталоге"
+msgstr[1] "{count} устройства не в каталоге"
+msgstr[2] "{count} устройств не в каталоге"

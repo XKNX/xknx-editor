@@ -45,7 +45,6 @@ from editor_gui.cache import (
     product_cache_dir,
 )
 from editor_gui.certs import ensure_ca_bundle
-from editor_gui.color import warning_red
 from editor_gui.concurrency import MainThreadExecutor
 from editor_gui.device import device_label
 from editor_gui.dock_menus import render_section_menus
@@ -125,6 +124,7 @@ from editor_gui.theme import (
     ThemeWindow,
     apply_style,
     apply_theme,
+    status_color,
     system_theme,
     theme_menu_groups,
 )
@@ -1505,7 +1505,7 @@ class KnxGuiApp:
             self._log.error("ga export failed", dest=dest, error=str(e))
             return
         self._last_export_path = dest
-        self._flash_toast(S.GA_EXPORT_OK.format(count=count))
+        self._flash_toast(S.GA_EXPORT_OK(count).format(count=count))
 
     def _begin_export_sign_prompt(self, dest: str) -> None:
         """Ask about MyKnx certificate signing before running the export to ``dest``."""
@@ -2203,7 +2203,7 @@ class KnxGuiApp:
                 )
             )
         if signing_key_is_placeholder():
-            imgui.push_style_color(imgui.Col_.text, imgui.ImVec4(0.85, 0.7, 0.3, 1.0))
+            imgui.push_style_color(imgui.Col_.text, status_color("warning"))
             imgui.text_wrapped(S.SIGNING_KEY_PLACEHOLDER_HINT)
             imgui.pop_style_color()
         if imgui.button(S.SIGNING_KEY_BUTTON, imgui.ImVec2(-1, 0)):
@@ -2292,7 +2292,7 @@ class KnxGuiApp:
     def _render_myknx_login_tab(self, logging_in: bool) -> str:
         """Credentials, login and license choice. Returns the selected product id ("" if none)."""
         # An ETS running with the same account claims the license for its own session.
-        imgui.push_style_color(imgui.Col_.text, warning_red())
+        imgui.push_style_color(imgui.Col_.text, status_color("error"))
         imgui.text_wrapped(S.MYKNX_SIGN_ETS_RUNNING)
         imgui.pop_style_color()
         imgui.spacing()
@@ -2342,7 +2342,7 @@ class KnxGuiApp:
             return ""
         if self._myknx_2fa_prompt:
             # 401 is ambiguous (wrong password vs. 2FA account); let the user decide.
-            imgui.text_colored(imgui.ImVec4(0.85, 0.7, 0.3, 1.0), S.MYKNX_2FA_PROMPT)
+            imgui.text_colored(status_color("warning"), S.MYKNX_2FA_PROMPT)
             if imgui.button(S.MYKNX_2FA_REENTER, px_vec2(240, 0)):
                 self._myknx_2fa_prompt = False
                 self._myknx_products = None  # back to the credential fields
@@ -2371,7 +2371,7 @@ class KnxGuiApp:
             return ""
         if self._myknx_login_error:
             imgui.text_colored(
-                warning_red(),
+                status_color("error"),
                 S.MYKNX_SIGN_LOGIN_FAILED.format(error=self._myknx_login_error),
             )
             return ""
@@ -2400,7 +2400,7 @@ class KnxGuiApp:
                     self._myknx_selected_pid = pid
             imgui.end_combo()
         if not any(enabled for _pid, _lbl, enabled in self._myknx_products):
-            imgui.push_style_color(imgui.Col_.text, imgui.ImVec4(0.85, 0.7, 0.3, 1.0))
+            imgui.push_style_color(imgui.Col_.text, status_color("warning"))
             imgui.text_wrapped(S.MYKNX_SIGN_NO_CLOUD_HINT)
             imgui.pop_style_color()
         return self._myknx_selected_pid
@@ -2719,9 +2719,7 @@ class KnxGuiApp:
             imgui.InputTextFlags_.password | imgui.InputTextFlags_.enter_returns_true,
         )
         if self._import_password_error:
-            imgui.text_colored(
-                imgui.ImVec4(0.9, 0.4, 0.4, 1.0), self._import_password_error
-            )
+            imgui.text_colored(status_color("error"), self._import_password_error)
         clicked = dialog_buttons(S.BTN_OK, S.BTN_CANCEL)
         confirm = clicked == 0 or submitted
         cancel = clicked == 1
@@ -2955,7 +2953,9 @@ class KnxGuiApp:
             self._log.info("loaded from url", url=url, added=len(added))
             if added:
                 self._import_rows_result = (
-                    S.KNXPROD_IMPORT_SUMMARY.format(count=len(added), name=url),
+                    S.KNXPROD_IMPORT_SUMMARY(len(added)).format(
+                        count=len(added), name=url
+                    ),
                     self._product_import_rows(added),
                 )
             else:
@@ -3060,7 +3060,9 @@ class KnxGuiApp:
             self._log.info("imported products", source=source, added=len(added_all))
             if added_all:
                 self._import_rows_result = (
-                    S.KNXPROD_IMPORT_SUMMARY.format(count=len(added_all), name=source),
+                    S.KNXPROD_IMPORT_SUMMARY(len(added_all)).format(
+                        count=len(added_all), name=source
+                    ),
                     self._product_import_rows(added_all),
                 )
             else:
@@ -3248,9 +3250,7 @@ class KnxGuiApp:
             imgui.InputTextFlags_.password | imgui.InputTextFlags_.enter_returns_true,
         )
         if self._open_password_error:
-            imgui.text_colored(
-                imgui.ImVec4(0.9, 0.4, 0.4, 1.0), self._open_password_error
-            )
+            imgui.text_colored(status_color("error"), self._open_password_error)
         clicked = dialog_buttons(S.BTN_OK, S.BTN_CANCEL)
         path = self._open_password_path
         if (clicked == 0 or submitted) and path is not None and self._open_password:
@@ -3758,7 +3758,9 @@ class KnxGuiApp:
                 if added:
                     self._log.info("added applications to catalog", count=len(added))
                     self._import_rows_result = (
-                        S.KNXPROD_IMPORT_SUMMARY.format(count=len(added), name=name),
+                        S.KNXPROD_IMPORT_SUMMARY(len(added)).format(
+                            count=len(added), name=name
+                        ),
                         self._product_import_rows(added),
                     )
                 else:
@@ -3981,7 +3983,7 @@ class KnxGuiApp:
                 text = S.STATUS_READING.format(address=address)
             else:
                 text = bus_operation_text(kind, address)
-            self._status_part(text, imgui.ImVec4(0.95, 0.75, 0.2, 1.0))
+            self._status_part(text, status_color("warning"))
         elif self._connection_service.not_connected_notice():
             # A connection-requiring feature (program/test/send) was just refused:
             # flash the reason so the user sees *why* nothing happened.
@@ -3989,18 +3991,14 @@ class KnxGuiApp:
                 _connection_strings.STATUS_BUSMONITOR_BLOCKED
                 if self._connection_service.busmonitor_active
                 else S.STATUS_NO_CONNECTION,
-                imgui.ImVec4(0.9, 0.35, 0.35, 1.0),
+                status_color("error"),
             )
         else:
             # Briefly show the last programming outcome after the busy indicator clears.
             notice = self._connection_service.program_notice()
             if notice is not None:
                 ok = notice
-                color = (
-                    imgui.ImVec4(0.4, 0.85, 0.45, 1.0)
-                    if ok
-                    else imgui.ImVec4(0.9, 0.35, 0.35, 1.0)
-                )
+                color = status_color("success" if ok else "error")
                 self._status_part(
                     S.STATUS_PROGRAM_DONE if ok else S.STATUS_PROGRAM_FAILED, color
                 )
@@ -4012,11 +4010,13 @@ class KnxGuiApp:
             path = self._project_service.path
             if not name and path is not None:
                 name = path.name
+            devices = len(self._project_service.devices)
+            gas = len(self._project_service.group_addresses)
             self._status_part(
                 S.STATUS_PROJECT.format(
                     name=name or "?",
-                    devices=len(self._project_service.devices),
-                    gas=len(self._project_service.group_addresses),
+                    devices=S.STATUS_DEVICES(devices).format(count=devices),
+                    gas=S.STATUS_GROUP_ADDRESSES(gas).format(count=gas),
                 ),
                 tooltip=str(path) if path is not None else None,
             )
@@ -4024,7 +4024,7 @@ class KnxGuiApp:
             self._status_part(S.STATUS_NO_PROJECT)
 
         if self._mcp_plugin.is_running:
-            self._status_part(S.STATUS_MCP_RUNNING, imgui.ImVec4(0.4, 0.85, 0.45, 1.0))
+            self._status_part(S.STATUS_MCP_RUNNING, status_color("success"))
         self._home_assistant_plugin.render_status(self._status_part)
 
         # KNX master data (mask-version procedures) version and date.
@@ -4609,7 +4609,7 @@ class KnxGuiApp:
         if template is None:
             # Unknown code (forward-compat): fall back to the raw code + count so nothing is hidden.
             return f"{note.code} ({note.count})"
-        text = template.format(count=note.count)
+        text = template(note.count).format(count=note.count)
         if note.detail:
             return f"{text} {S.IMPORT_NOTE_EXAMPLES.format(examples=note.detail)}"
         return text
@@ -4694,8 +4694,11 @@ class KnxGuiApp:
             # import. Flag it in red and list the affected devices, with a remove-and-re-export
             # action below.
             imgui.spacing()
-            imgui.push_style_color(imgui.Col_.text, imgui.ImVec4(0.92, 0.33, 0.33, 1.0))
-            imgui.text_wrapped(S.EXPORT_SUMMARY_INCOMPAT)
+            imgui.push_style_color(imgui.Col_.text, status_color("error"))
+            count = len(self._export_summary_incompat_rows)
+            imgui.text_wrapped(
+                f"{S.EXPORT_SUMMARY_INCOMPAT} {S.EXPORT_SUMMARY_INCOMPAT_REMOVE(count)}"
+            )
             imgui.pop_style_color()
             # Only the list scrolls when it is long: the dialog with its buttons stays on screen.
             listed = self._export_summary_incompat_rows
@@ -4715,7 +4718,7 @@ class KnxGuiApp:
             imgui.pop_style_color()
         if incompatible:
             labels = [
-                S.EXPORT_INCOMPAT_REMOVE,
+                S.EXPORT_INCOMPAT_REMOVE(len(self._export_summary_incompat_rows)),
                 S.BTN_OPEN_FOLDER,
                 S.EXPORT_SUMMARY_CLOSE,
             ]
@@ -4728,7 +4731,9 @@ class KnxGuiApp:
                     for nid, _label in removed:
                         self._project_service.remove_device(nid)
                     self._flash_toast(
-                        S.EXPORT_INCOMPAT_REMOVED.format(count=len(removed))
+                        S.EXPORT_INCOMPAT_REMOVED(len(removed)).format(
+                            count=len(removed)
+                        )
                     )
                     self._do_export_knxproj(dest, signer)
             elif clicked == 1:
@@ -4940,7 +4945,7 @@ class KnxGuiApp:
             imgui.end_table()
         if not report.nothing_removed:
             imgui.spacing()
-            imgui.push_style_color(imgui.Col_.text, imgui.ImVec4(0.85, 0.7, 0.3, 1.0))
+            imgui.push_style_color(imgui.Col_.text, status_color("warning"))
             imgui.text_wrapped(S.COMPACT_WARNING)
             imgui.pop_style_color()
         clicked = dialog_buttons(S.COMPACT_CONFIRM, S.BTN_CANCEL)
@@ -5459,8 +5464,8 @@ class KnxGuiApp:
 
     def _render_ets_local_tab(self) -> None:
         """'License through the installed ETS' tab: show the detected install and run the re-export."""
-        amber = imgui.ImVec4(0.85, 0.7, 0.3, 1.0)
-        green = imgui.ImVec4(0.4, 0.8, 0.4, 1.0)
+        amber = status_color("warning")
+        green = status_color("success")
         det = self._ets_detection
         install = self._ets_install
         if install is None:
@@ -5698,9 +5703,7 @@ class KnxGuiApp:
             )
         self._poll_myknx_oauth_dialog()
         if self._myknx_oauth_extract_error:
-            imgui.text_colored(
-                imgui.ImVec4(1.0, 0.4, 0.4, 1.0), self._myknx_oauth_extract_error
-            )
+            imgui.text_colored(status_color("error"), self._myknx_oauth_extract_error)
         clicked = dialog_buttons(S.MYKNX_OAUTH_SAVE, S.SIGNING_KEY_CLOSE)
         if clicked == 0:
             client_id = self._myknx_client_id.strip()
@@ -6380,7 +6383,7 @@ class KnxGuiApp:
         if self._mcp_error is None or self._mcp_plugin.is_running:
             return
         imgui.push_text_wrap_pos(imgui.get_cursor_pos_x() + px(360.0))
-        imgui.text_colored(imgui.ImVec4(0.95, 0.45, 0.4, 1.0), self._mcp_error)
+        imgui.text_colored(status_color("error"), self._mcp_error)
         imgui.pop_text_wrap_pos()
 
     def _stop_mcp(self) -> None:
@@ -6425,12 +6428,10 @@ class KnxGuiApp:
                 self._start_mcp()
 
     def _render_mcp_status(self, running: bool) -> None:
-        imgui.text_colored(
-            imgui.ImVec4(0.4, 0.85, 0.45, 1.0)
-            if running
-            else imgui.ImVec4(0.6, 0.6, 0.6, 1.0),
-            S.SETTINGS_MCP_RUNNING if running else S.SETTINGS_MCP_STOPPED,
-        )
+        if running:
+            imgui.text_colored(status_color("success"), S.SETTINGS_MCP_RUNNING)
+        else:
+            imgui.text_disabled(S.SETTINGS_MCP_STOPPED)
 
     def _mcp_url(self) -> str:
         """The address MCP clients use: the one the program that started the editor gave

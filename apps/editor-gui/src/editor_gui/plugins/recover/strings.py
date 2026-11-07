@@ -35,7 +35,7 @@ class RecoverStrings:
 
     @property
     def AUTO_APPLY(self) -> str:
-        return _("Add to Open Project as Read")
+        return _("Add to Open Project When Read")
 
     @property
     def BTN_RECOVER_SELECTED(self) -> str:
@@ -43,7 +43,7 @@ class RecoverStrings:
 
     @property
     def BTN_ADD_NEW(self) -> str:
-        return _("Create New Project")
+        return _("Create New Project…")
 
     @property
     def BTN_ADD_MERGE(self) -> str:
@@ -55,15 +55,41 @@ class RecoverStrings:
 
     @property
     def BTN_EXPORT_SNAPSHOT(self) -> str:
-        return _("Export Snapshot")
+        return _("Export Snapshot…")
+
+    @property
+    def BTN_IMPORT_SNAPSHOT(self) -> str:
+        return _("Import Snapshot…")
+
+    def SNAPSHOT_IMPORTED(self, count: int) -> str:
+        return _.plural(
+            "Imported %(count)d device from %(file)s.",
+            "Imported %(count)d devices from %(file)s.",
+            count,
+        )
+
+    @property
+    def SNAPSHOT_FILTER(self) -> str:
+        return _("Recovery Snapshot (*.json)")
+
+    @property
+    def ALL_FILES(self) -> str:
+        return _("All Files")
+
+    @property
+    def SNAPSHOT_UNREADABLE(self) -> str:
+        return _("%(file)s is no recovery snapshot: %(error)s")
 
     @property
     def STATUS_VERIFYING(self) -> str:
         return _("Verifying (re-reading and comparing)…")
 
-    @property
-    def OVERVIEW_WARNINGS(self) -> str:
-        return _("%(count)d group address(es) have no sender or multiple senders.")
+    def OVERVIEW_WARNINGS(self, count: int) -> str:
+        return _.plural(
+            "%(count)d group address has no sender or multiple senders.",
+            "%(count)d group addresses have no sender or multiple senders.",
+            count,
+        )
 
     @property
     def COL_ADDRESS(self) -> str:
@@ -113,29 +139,57 @@ class RecoverStrings:
     def STAGE_PARAMETERS(self) -> str:
         return _("parameter memory")
 
-    @property
-    def OVERVIEW_RECOVERED(self) -> str:
-        return _(
-            "Recovered %(devices)d device(s): %(group_addresses)d group addresses, "
-            "%(links)d links, %(unknown)d parameter(s) not recoverable."
+    def RECOVERED_DEVICES(self, count: int) -> str:
+        return _.plural(
+            "Recovered %(count)d device", "Recovered %(count)d devices", count
+        )
+
+    def GROUP_ADDRESSES(self, count: int) -> str:
+        return _.plural("%(count)d group address", "%(count)d group addresses", count)
+
+    def LINKS(self, count: int) -> str:
+        return _.plural("%(count)d link", "%(count)d links", count)
+
+    def PARAMETERS(self, count: int) -> str:
+        return _.plural("%(count)d parameter", "%(count)d parameters", count)
+
+    def PARAMETERS_UNRECOVERABLE(self, count: int) -> str:
+        return _.plural(
+            "%(count)d parameter cannot be recovered",
+            "%(count)d parameters cannot be recovered",
+            count,
+        )
+
+    def PARAMETERS_NOT_FOUND(self, count: int) -> str:
+        return _.plural(
+            "%(count)d parameter not found yet",
+            "%(count)d parameters not found yet",
+            count,
         )
 
     @property
     def COL_DETAILS(self) -> str:
-        return _("Recovered")
+        return _("Result")
 
-    @property
-    def APPLY_MERGED(self) -> str:
-        return _("Added %(count)d device(s) to the open project (%(target)s).")
+    def APPLY_MERGED(self, count: int) -> str:
+        return _.plural(
+            "Added %(count)d device to the open project (%(target)s).",
+            "Added %(count)d devices to the open project (%(target)s).",
+            count,
+        )
 
-    @property
-    def APPLY_NEW(self) -> str:
-        return _("Created new project %(target)s with %(count)d device(s).")
+    def APPLY_NEW(self, count: int) -> str:
+        return _.plural(
+            "Created new project %(target)s with %(count)d device.",
+            "Created new project %(target)s with %(count)d devices.",
+            count,
+        )
 
-    @property
-    def APPLY_FAILED(self) -> str:
-        return _(
-            "%(count)d device(s) could not be added; the reason is in the Recovered column."
+    def APPLY_FAILED(self, count: int) -> str:
+        return _.plural(
+            "%(count)d device could not be added; the reason is in the Result column.",
+            "%(count)d devices could not be added; the reason is in the Result column.",
+            count,
         )
 
     @property
@@ -148,35 +202,106 @@ class RecoverStrings:
 
     @property
     def STATE_FOUND(self) -> str:
-        return _("matched")
+        return _("Product found")
 
     @property
     def STATE_AMBIGUOUS(self) -> str:
-        return _("confirm product/version, then tick")
+        return _("Check the product and version, then select it")
 
     @property
     def STATE_NO_APP(self) -> str:
-        return _("not in catalog - import via Catalog")
+        return _("Not in the catalog: import its product in the Catalog")
 
     @property
     def STATE_UNPROGRAMMED(self) -> str:
-        return _("unprogrammed")
+        return _("Not programmed")
 
     @property
     def STATE_RECOVERED(self) -> str:
-        return _("recovered")
+        return _("Recovered")
 
     @property
     def STATE_EXISTS(self) -> str:
-        return _("already in project - skipped")
+        return _("Already in the project, skipped")
 
     @property
     def STATE_ERROR(self) -> str:
-        return _("error")
+        return _("Error")
 
     @property
-    def PARAMS_UNKNOWN(self) -> str:
-        return _("%d parameters could not be recovered")
+    def STATE_INCOMPLETE(self) -> str:
+        return _("Recovered (incomplete)")
+
+    @property
+    def SEARCH_EFFORT(self) -> str:
+        return _("Search Effort")
+
+    @property
+    def SEARCH_EFFORT_HINT(self) -> str:
+        return _(
+            "How many values are tried for the settings a device keeps no copy of. More "
+            "effort finds settings in devices with many channels, but takes longer. Unlimited "
+            "goes on until no value fits better; Stop ends the search."
+        )
+
+    @property
+    def EFFORT_FAST(self) -> str:
+        return _("Fast")
+
+    @property
+    def EFFORT_MEDIUM(self) -> str:
+        return _("Medium")
+
+    @property
+    def EFFORT_MAXIMUM(self) -> str:
+        return _("Maximum")
+
+    @property
+    def EFFORT_UNLIMITED(self) -> str:
+        return _("Unlimited")
+
+    @property
+    def BTN_SEARCH_AGAIN(self) -> str:
+        return _("Search Again")
+
+    @property
+    def SEARCH_AGAIN_HINT(self) -> str:
+        return _(
+            "Searches the settings of the selected incomplete devices again in what was read "
+            "from them, with the chosen search effort. Needs no bus. A device already added "
+            "to the project is replaced (one undo step)."
+        )
+
+    @property
+    def STATUS_SEARCH_PROGRESS(self) -> str:
+        return _("Searching %(address)s again  (%(done)d/%(total)d)…")
+
+    @property
+    def DETAIL_INCOMPLETE(self) -> str:
+        return _("Differs from the device: %(what)s")
+
+    def BYTES(self, count: int) -> str:
+        return _.plural("%(count)d byte", "%(count)d bytes", count)
+
+    def GROUP_OBJECTS(self, count: int) -> str:
+        return _.plural("%(count)d group object", "%(count)d group objects", count)
+
+    @property
+    def DETAIL_NOT_READ(self) -> str:
+        return _("Not read yet")
+
+    @property
+    def DETAIL_VERIFIED(self) -> str:
+        return _("Verified")
+
+    def DETAIL_VERIFY_DIFFERS(self, count: int) -> str:
+        return _.plural(
+            "Verify: %(count)d byte differs", "Verify: %(count)d bytes differ", count
+        )
+
+    @property
+    def DETAIL_MORE_EFFORT(self) -> str:
+        return _("more search effort may help")
 
 
 S = RecoverStrings()

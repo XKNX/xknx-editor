@@ -163,9 +163,6 @@ msgstr "Vendosni një numër të plotë."
 msgid "Enter a value from {minimum} to {maximum}."
 msgstr "Vendosni një vlerë nga {minimum} deri në {maximum}."
 
-msgid "Enter at most {count} characters."
-msgstr "Vendosni më së shumti {count} karaktere."
-
 msgid "Enter a value."
 msgstr "Vendosni një vlerë."
 
@@ -177,9 +174,6 @@ msgstr "Ky lloj të dhënash nuk lejon vendosjen e vlerës."
 
 msgid "Edit…"
 msgstr "Ndrysho…"
-
-msgid "The text may take at most {count} bytes."
-msgstr "Teksti mund të ketë më së shumti {count} bajte."
 
 msgid "Value {number}"
 msgstr "Vlera {number}"
@@ -241,9 +235,6 @@ msgstr "Kopjo {count} B"
 msgid "Go To:"
 msgstr "Shko te:"
 
-msgid "{count} difference(s)"
-msgstr "{count} ndryshim(e)"
-
 msgid "no differences"
 msgstr "asnjë ndryshim"
 
@@ -294,3 +285,18 @@ msgstr "Prit"
 
 msgid "Paste"
 msgstr "Ngjit"
+
+msgid "Enter at most {count} character."
+msgid_plural "Enter at most {count} characters."
+msgstr[0] "Vendosni më së shumti {count} karakter."
+msgstr[1] "Vendosni më së shumti {count} karaktere."
+
+msgid "The text may take at most {count} byte."
+msgid_plural "The text may take at most {count} bytes."
+msgstr[0] "Teksti mund të ketë më së shumti {count} bajt."
+msgstr[1] "Teksti mund të ketë më së shumti {count} bajte."
+
+msgid "{count} difference"
+msgid_plural "{count} differences"
+msgstr[0] "{count} ndryshim"
+msgstr[1] "{count} ndryshime"

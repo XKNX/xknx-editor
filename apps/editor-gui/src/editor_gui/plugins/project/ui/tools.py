@@ -35,6 +35,7 @@ from editor_gui.plugins.project.ui.project_diff import (
     DiffOutcome,
     DiffResult,
 )
+from editor_gui.theme import status_color
 from editor_gui.widgets.checkbox import checkbox, radio_button
 from editor_gui.widgets.combo import begin_combo
 from editor_gui.widgets.dpi import px, px_vec2
@@ -61,9 +62,8 @@ class GroupAddressRow(Protocol):
 
 # Labels output modes (index into the radio group).
 _MODE_CSV, _MODE_SHEET, _MODE_LEGEND = 0, 1, 2
-
-_ERR_COLOR = imgui.ImVec4(0.90, 0.45, 0.45, 1.0)
-_WARN_COLOR = imgui.ImVec4(0.90, 0.75, 0.35, 1.0)
+# The status color (see ``status_color``) of each kind of difference between two projects.
+_DIFF_KIND_STATUS = {"added": "success", "removed": "error", "changed": "warning"}
 
 
 def _help_marker(text: str) -> None:
@@ -383,7 +383,9 @@ class ToolsPanel:
                 self._copy_replace,
                 self._copy_create_gas,
             )
-            self._status = self._summary(S.TOOLS_COPY_DONE.format(count=count), errors)
+            self._status = self._summary(
+                S.TOOLS_COPY_DONE(count).format(count=count), errors
+            )
         self._render_status()
 
     # -- Replace Device ----------------------------------------------------
@@ -452,17 +454,19 @@ class ToolsPanel:
         if imgui.begin_child("##repl_prev", px_vec2(0.0, 220.0), True):
             for old_co, new_co in pairs:
                 if new_co is None:
-                    imgui.text_colored(_ERR_COLOR, f"{_co_label(old_co)}  ->  —")
+                    imgui.text_colored(
+                        status_color("error"), f"{_co_label(old_co)}  ->  —"
+                    )
                 else:
                     mapped += 1
                     imgui.text_wrapped(f"{_co_label(old_co)}  ->  {_co_label(new_co)}")
         imgui.end_child()
-        imgui.text_disabled(S.TOOLS_REPLACE_COUNT.format(count=mapped))
+        imgui.text_disabled(S.TOOLS_REPLACE_COUNT(mapped).format(count=mapped))
         imgui.begin_disabled(mapped == 0)
         if imgui.button(S.TOOLS_REPLACE_RUN, imgui.ImVec2(-1, 0)):
             count, errors = self._on_replace_device(target.node_id, template.node_id)
             self._status = self._summary(
-                S.TOOLS_REPLACE_DONE.format(count=count), errors
+                S.TOOLS_REPLACE_DONE(count).format(count=count), errors
             )
         imgui.end_disabled()
         self._render_status()
@@ -508,20 +512,24 @@ class ToolsPanel:
                 new = shifted_ia(d.individual_address, self._shift_offset)
                 if selected and new is None:
                     imgui.same_line()
-                    imgui.text_colored(_ERR_COLOR, f"  ->  {S.TOOLS_SHIFT_INVALID}")
+                    imgui.text_colored(
+                        status_color("error"), f"  ->  {S.TOOLS_SHIFT_INVALID}"
+                    )
                 elif selected:
                     valid += 1
                     imgui.same_line()
                     imgui.text(f"  ->  {new}")
         imgui.end_child()
-        imgui.text_disabled(S.TOOLS_SHIFT_COUNT.format(count=valid))
+        imgui.text_disabled(S.TOOLS_SHIFT_COUNT(valid).format(count=valid))
         selected = self._selected_devices(devices)
         imgui.begin_disabled(valid == 0 or self._shift_offset == 0)
         if imgui.button(S.TOOLS_SHIFT_RUN, imgui.ImVec2(-1, 0)):
             count, errors = self._on_shift_addresses(
                 [d.node_id for d in selected], self._shift_offset
             )
-            self._status = self._summary(S.TOOLS_SHIFT_DONE.format(count=count), errors)
+            self._status = self._summary(
+                S.TOOLS_SHIFT_DONE(count).format(count=count), errors
+            )
         imgui.end_disabled()
         self._render_status()
 
@@ -568,13 +576,15 @@ class ToolsPanel:
                 new = shifted_ga(g.raw, self._shift_offset, style)
                 if selected and new is None:
                     imgui.same_line()
-                    imgui.text_colored(_ERR_COLOR, f"  ->  {S.TOOLS_SHIFT_INVALID}")
+                    imgui.text_colored(
+                        status_color("error"), f"  ->  {S.TOOLS_SHIFT_INVALID}"
+                    )
                 elif selected:
                     valid += 1
                     imgui.same_line()
                     imgui.text(f"  ->  {new}")
         imgui.end_child()
-        imgui.text_disabled(S.TOOLS_SHIFT_COUNT.format(count=valid))
+        imgui.text_disabled(S.TOOLS_SHIFT_COUNT(valid).format(count=valid))
         selected_ids = [g.id for g in gas if g.id in self._selected_gas]
         imgui.begin_disabled(valid == 0 or self._shift_offset == 0)
         if imgui.button(S.TOOLS_SHIFT_GA_RUN, imgui.ImVec2(-1, 0)):
@@ -582,7 +592,7 @@ class ToolsPanel:
                 selected_ids, self._shift_offset
             )
             self._status = self._summary(
-                S.TOOLS_SHIFT_GA_DONE.format(count=count), errors
+                S.TOOLS_SHIFT_GA_DONE(count).format(count=count), errors
             )
         imgui.end_disabled()
         self._render_status()
@@ -674,7 +684,7 @@ class ToolsPanel:
         chosen = self._selected_devices(devices)
         can_export = bool(chosen) and bool(self._label_fields)
         if not self._label_fields:
-            imgui.text_colored(_WARN_COLOR, S.TOOLS_LABELS_NO_FIELDS)
+            imgui.text_colored(status_color("warning"), S.TOOLS_LABELS_NO_FIELDS)
         imgui.begin_disabled(not can_export or self._label_dialog is not None)
         button = (
             S.TOOLS_LABELS_EXPORT
@@ -863,17 +873,17 @@ class ToolsPanel:
             self._render_diff_password(self._diff_password_path)
             compared = False
         if self._diff_error:
-            imgui.text_colored(_ERR_COLOR, outcome(self._diff_error))
+            imgui.text_colored(status_color("error"), outcome(self._diff_error))
             return
         result = self._diff_result
         if result is None:
             return
         if result.total == 0:
-            imgui.text_colored(
-                imgui.ImVec4(0.5, 0.8, 0.5, 1.0), outcome(S.TOOLS_DIFF_IDENTICAL)
-            )
+            imgui.text_colored(status_color("success"), outcome(S.TOOLS_DIFF_IDENTICAL))
             return
-        imgui.text_disabled(outcome(S.TOOLS_DIFF_COUNT.format(count=result.total)))
+        imgui.text_disabled(
+            outcome(S.TOOLS_DIFF_COUNT(result.total).format(count=result.total))
+        )
         if imgui.begin_child("##diff_result"):
             self._render_diff_section(S.TOOLS_DIFF_DEVICES, result.devices)
             self._render_diff_section(S.TOOLS_DIFF_GAS, result.group_addresses)
@@ -907,11 +917,7 @@ class ToolsPanel:
             return
         imgui.separator_text(f"{title} ({len(entries)})")
         for e in entries:
-            color = {
-                "added": imgui.ImVec4(0.5, 0.8, 0.5, 1.0),
-                "removed": _ERR_COLOR,
-                "changed": _WARN_COLOR,
-            }[e.kind]
+            color = status_color(_DIFF_KIND_STATUS[e.kind])
             tag = S.TOOLS_DIFF_KIND[e.kind]
             imgui.text_colored(color, f"[{tag}]")
             imgui.same_line()
@@ -922,7 +928,7 @@ class ToolsPanel:
     def _render_diff_rows(self, entry: DiffEntry) -> None:
         """The parameters and group objects of a changed device, collapsed: what each is in the
         open project and in the other one."""
-        label = S.TOOLS_DIFF_COUNT.format(count=len(entry.rows))
+        label = S.TOOLS_DIFF_COUNT(len(entry.rows)).format(count=len(entry.rows))
         if not imgui.tree_node(f"{label}###diff_rows_{entry.key}"):
             return
         for section, title in (
@@ -1012,14 +1018,16 @@ class ToolsPanel:
         _desc(S.TOOLS_TOPOLOGY_DESC)
         imgui.separator_text(S.TOOLS_TAB_TOPOLOGY)
         if not findings:
-            imgui.text_colored(imgui.ImVec4(0.5, 0.8, 0.5, 1.0), S.TOOLS_TOPOLOGY_OK)
+            imgui.text_colored(status_color("success"), S.TOOLS_TOPOLOGY_OK)
             return
-        imgui.text_disabled(S.TOOLS_TOPOLOGY_COUNT.format(count=len(findings)))
+        imgui.text_disabled(
+            S.TOOLS_TOPOLOGY_COUNT(len(findings)).format(count=len(findings))
+        )
         _help_marker(S.TOOLS_TOPOLOGY_NAV)
         if imgui.begin_child("##topo_findings"):
             for node_id, severity, message in findings:
-                color = _ERR_COLOR if severity == "error" else _WARN_COLOR
-                imgui.push_style_color(imgui.Col_.text, color)
+                kind = "error" if severity == "error" else "warning"
+                imgui.push_style_color(imgui.Col_.text, status_color(kind))
                 clicked = imgui.selectable(f"{message}##tf{node_id}", False)[0]
                 imgui.pop_style_color()
                 if clicked:
@@ -1031,7 +1039,9 @@ class ToolsPanel:
     @staticmethod
     def _summary(done: str, errors: list[str]) -> str:
         return done + (
-            "  " + S.TOOLS_ERRORS.format(count=len(errors)) if errors else ""
+            "  " + S.TOOLS_ERRORS(len(errors)).format(count=len(errors))
+            if errors
+            else ""
         )
 
     def _render_status(self) -> None:

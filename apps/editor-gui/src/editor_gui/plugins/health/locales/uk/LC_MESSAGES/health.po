@@ -16,20 +16,11 @@ msgstr "Немає відкритого проєкту"
 msgid "No issues found"
 msgstr "Проблем не знайдено"
 
-msgid "{errors} errors, {warnings} warnings"
-msgstr "Помилок: {errors}, попереджень: {warnings}"
-
 msgid "{device}: no individual address"
 msgstr "{device}: немає індивідуальної адреси"
 
 msgid "Duplicate individual address {address} ({device})"
 msgstr "Повторювана індивідуальна адреса {address} ({device})"
-
-msgid "{count} device(s) skipped: application not in catalog"
-msgstr "Пропущено пристроїв: {count} (прикладна програма відсутня в каталозі)"
-
-msgid "{device}: {count} unlinked group object(s)"
-msgstr "{device}: незв'язаних групових об'єктів: {count}"
 
 msgid "{address} {name}: no datapoint type"
 msgstr "{address} {name}: немає типу точки даних"
@@ -37,5 +28,32 @@ msgstr "{address} {name}: немає типу точки даних"
 msgid "{address} {name}: no sending group object"
 msgstr "{address} {name}: немає передавального групового об'єкта"
 
-msgid "{address} {name}: {count} sending group objects"
-msgstr "{address} {name}: передавальних групових об'єктів: {count}"
+msgid "{count} error"
+msgid_plural "{count} errors"
+msgstr[0] "{count} помилка"
+msgstr[1] "{count} помилки"
+msgstr[2] "{count} помилок"
+
+msgid "{count} warning"
+msgid_plural "{count} warnings"
+msgstr[0] "{count} попередження"
+msgstr[1] "{count} попередження"
+msgstr[2] "{count} попереджень"
+
+msgid "{count} device skipped: application not in catalog"
+msgid_plural "{count} devices skipped: application not in catalog"
+msgstr[0] "Пропущено {count} пристрій (прикладна програма відсутня в каталозі)"
+msgstr[1] "Пропущено {count} пристрої (прикладна програма відсутня в каталозі)"
+msgstr[2] "Пропущено {count} пристроїв (прикладна програма відсутня в каталозі)"
+
+msgid "{device}: {count} unlinked group object"
+msgid_plural "{device}: {count} unlinked group objects"
+msgstr[0] "{device}: {count} незв'язаний груповий об'єкт"
+msgstr[1] "{device}: {count} незв'язані групові об'єкти"
+msgstr[2] "{device}: {count} незв'язаних групових об'єктів"
+
+msgid "{address} {name}: {count} sending group object"
+msgid_plural "{address} {name}: {count} sending group objects"
+msgstr[0] "{address} {name}: {count} передавальний груповий об'єкт"
+msgstr[1] "{address} {name}: {count} передавальні групові об'єкти"
+msgstr[2] "{address} {name}: {count} передавальних групових об'єктів"

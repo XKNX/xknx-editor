@@ -149,7 +149,7 @@ def test_the_add_dialog_adds_building_parts(
         "Garage",
     ]
     assert project.history()[1].display_text == (
-        S.HISTORY_EV_ADDED_BUILDING_PARTS.format(
+        S.HISTORY_EV_ADDED_BUILDING_PARTS(2).format(
             count=2, target=S.SPACES_ROOT_BUILDINGS
         )
     )
@@ -298,7 +298,7 @@ def test_functions_are_added_in_a_space(
         (S.SPACES_FN_TYPE_DIM, "FT-6"),
         (S.SPACES_DEFAULT_FUNCTION, "FT-0"),
     ]
-    assert project.history()[1].display_text == S.HISTORY_EV_ADDED_FUNCTIONS.format(
+    assert project.history()[1].display_text == S.HISTORY_EV_ADDED_FUNCTIONS(2).format(
         count=2, target="p"
     )
 

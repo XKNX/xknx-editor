@@ -382,3 +382,36 @@ def test_a_partial_download_queues_what_the_device_needs() -> None:
         (DownloadScope.GROUP_COMMUNICATION, True),
         (DownloadScope.GROUP_COMMUNICATION, True),
     ]
+
+
+def test_an_ended_bus_operation_goes_to_the_history() -> None:
+    from editor_gui.plugins.connection.service import ConnectionService
+    from editor_gui.plugins.project.program_queue import OperationState, ProgramQueue
+    from editor_gui.plugins.project.ui.program_queue import operation_text, state_text
+
+    connection = ConnectionService()
+    plugin = ProjectPlugin.__new__(ProjectPlugin)
+    plugin._api = SimpleNamespace(connection=connection)  # pyright: ignore[reportPrivateUsage, reportAttributeAccessIssue]
+    queue = ProgramQueue(is_busy=lambda: False, start=lambda _item: None)
+    plugin._program_queue = queue  # pyright: ignore[reportPrivateUsage]
+
+    assert connection.begin_operation("recover", "1.1.1..1.1.9")
+    connection.end_operation()
+    assert connection.begin_operation("scan_progmode", "broadcast")
+    connection.end_operation("failed", "no answer")
+    # The queue's own operations have their own history entries.
+    assert connection.begin_operation("restart", "1.1.5")
+    connection.end_operation()
+    plugin.tick_program_queue()
+
+    failed, recovered = queue.history
+    assert operation_text(recovered) == f"{S.OPERATION_RECOVER} 1.1.1..1.1.9"
+    assert recovered.state is OperationState.FINISHED
+    assert state_text(recovered) == S.OPERATION_FINISHED
+    assert recovered.started_at is not None and recovered.ended_at is not None
+    assert operation_text(failed) == S.OPERATION_PROGRAMMING_MODE
+    assert (failed.state, failed.message) == (OperationState.FAILED, "no answer")
+    # Taken once.
+    plugin.tick_program_queue()
+    assert len(queue.history) == 2
+    assert connection.take_ended_operations() == []

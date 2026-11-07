@@ -163,9 +163,6 @@ msgstr "Εισαγάγετε έναν ακέραιο αριθμό."
 msgid "Enter a value from {minimum} to {maximum}."
 msgstr "Εισαγάγετε μια τιμή από {minimum} έως {maximum}."
 
-msgid "Enter at most {count} characters."
-msgstr "Εισαγάγετε έως {count} χαρακτήρες."
-
 msgid "Enter a value."
 msgstr "Εισαγάγετε μια τιμή."
 
@@ -177,9 +174,6 @@ msgstr "Δεν μπορεί να εισαχθεί τιμή για αυτόν τ�
 
 msgid "Edit…"
 msgstr "Επεξεργασία…"
-
-msgid "The text may take at most {count} bytes."
-msgstr "Το κείμενο μπορεί να έχει έως {count} byte."
 
 msgid "Value {number}"
 msgstr "Τιμή {number}"
@@ -241,9 +235,6 @@ msgstr "Αντιγραφή {count} B"
 msgid "Go To:"
 msgstr "Μετάβαση σε:"
 
-msgid "{count} difference(s)"
-msgstr "{count} διαφορά(-ές)"
-
 msgid "no differences"
 msgstr "καμία διαφορά"
 
@@ -294,3 +285,18 @@ msgstr "Αποκοπή"
 
 msgid "Paste"
 msgstr "Επικόλληση"
+
+msgid "Enter at most {count} character."
+msgid_plural "Enter at most {count} characters."
+msgstr[0] "Εισαγάγετε έως {count} χαρακτήρα."
+msgstr[1] "Εισαγάγετε έως {count} χαρακτήρες."
+
+msgid "The text may take at most {count} byte."
+msgid_plural "The text may take at most {count} bytes."
+msgstr[0] "Το κείμενο μπορεί να έχει έως {count} byte."
+msgstr[1] "Το κείμενο μπορεί να έχει έως {count} byte."
+
+msgid "{count} difference"
+msgid_plural "{count} differences"
+msgstr[0] "{count} διαφορά"
+msgstr[1] "{count} διαφορές"

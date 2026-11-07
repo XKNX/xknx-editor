@@ -84,6 +84,8 @@ def _device_reports_55(monkeypatch: pytest.MonkeyPatch) -> list[int]:
         progress=None,
         project_code_page=None,
         reads_done=None,
+        effort=None,
+        cancel=None,
     ):
         used.append(programmer.max_apdu_length)
         if len(used) == 1:
@@ -152,6 +154,10 @@ async def test_the_connection_is_closed_before_the_decoding(
             device_address=None, group_addresses=[], links=[], group_objects={}
         )
 
+    async def read_properties(*_args: Any) -> dict[Any, bytes]:
+        events.append("read")
+        return {}
+
     async def descriptor(_self: DeviceProgrammer) -> int:
         return 0x07B0
 
@@ -164,9 +170,9 @@ async def test_the_connection_is_closed_before_the_decoding(
         "read_dossier",
         "read_group_communication",
         "read_parameter_memory",
-        "read_property_values",
     ):
         monkeypatch.setattr(recover_mod, name, read)
+    monkeypatch.setattr(recover_mod, "read_property_values", read_properties)
     monkeypatch.setattr(recover_mod, "_decode_configuration", decode)
     await recover_device_at(
         Xknx(),  # type: ignore[arg-type]

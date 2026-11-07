@@ -16,20 +16,11 @@ msgstr "Nenhum projeto aberto"
 msgid "No issues found"
 msgstr "Nenhum problema encontrado"
 
-msgid "{errors} errors, {warnings} warnings"
-msgstr "{errors} erros, {warnings} avisos"
-
 msgid "{device}: no individual address"
 msgstr "{device}: sem endereço individual"
 
 msgid "Duplicate individual address {address} ({device})"
 msgstr "Endereço individual duplicado {address} ({device})"
-
-msgid "{count} device(s) skipped: application not in catalog"
-msgstr "{count} dispositivo(s) ignorado(s): aplicação fora do catálogo"
-
-msgid "{device}: {count} unlinked group object(s)"
-msgstr "{device}: {count} objeto(s) de grupo não vinculado(s)"
 
 msgid "{address} {name}: no datapoint type"
 msgstr "{address} {name}: sem tipo de datapoint"
@@ -37,5 +28,27 @@ msgstr "{address} {name}: sem tipo de datapoint"
 msgid "{address} {name}: no sending group object"
 msgstr "{address} {name}: nenhum objeto de grupo emissor"
 
-msgid "{address} {name}: {count} sending group objects"
-msgstr "{address} {name}: {count} objetos de grupo emissores"
+msgid "{count} error"
+msgid_plural "{count} errors"
+msgstr[0] "{count} erro"
+msgstr[1] "{count} erros"
+
+msgid "{count} warning"
+msgid_plural "{count} warnings"
+msgstr[0] "{count} aviso"
+msgstr[1] "{count} avisos"
+
+msgid "{count} device skipped: application not in catalog"
+msgid_plural "{count} devices skipped: application not in catalog"
+msgstr[0] "{count} dispositivo ignorado: aplicação fora do catálogo"
+msgstr[1] "{count} dispositivos ignorados: aplicação fora do catálogo"
+
+msgid "{device}: {count} unlinked group object"
+msgid_plural "{device}: {count} unlinked group objects"
+msgstr[0] "{device}: {count} objeto de grupo não vinculado"
+msgstr[1] "{device}: {count} objetos de grupo não vinculados"
+
+msgid "{address} {name}: {count} sending group object"
+msgid_plural "{address} {name}: {count} sending group objects"
+msgstr[0] "{address} {name}: {count} objeto de grupo emissor"
+msgstr[1] "{address} {name}: {count} objetos de grupo emissores"

@@ -332,7 +332,7 @@ class Paster:
                 "line": S.HISTORY_EV_COPIED_LINES,
                 "segment": S.HISTORY_EV_COPIED_SEGMENTS,
             }[kind]
-        return text.format(count=len(ids), target=where)
+        return text(len(ids)).format(count=len(ids), target=where)
 
     def names(self, kind: PasteKind, ids: Sequence[int]) -> list[str]:
         """The names of the elements ``ids`` of ``kind``."""

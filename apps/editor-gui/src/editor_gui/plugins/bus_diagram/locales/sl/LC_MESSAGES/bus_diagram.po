@@ -157,9 +157,6 @@ msgstr "Prejemniki"
 msgid "+ {count} more"
 msgstr "+ še {count}"
 
-msgid "{count} more devices outside the selection. Click to show them."
-msgstr "Število dodatnih naprav zunaj izbora: {count}. Kliknite, da jih prikažete."
-
 msgid "{address}\n{senders} sending, {receivers} receiving"
 msgstr "{address}\nPošiljatelji: {senders}, prejemniki: {receivers}"
 
@@ -174,3 +171,10 @@ msgstr "Naprave"
 
 msgid "Buildings"
 msgstr "Stavbe"
+
+msgid "{count} more device outside the selection. Click to show it."
+msgid_plural "{count} more devices outside the selection. Click to show them."
+msgstr[0] "Še {count} naprava zunaj izbora. Kliknite, da jo prikažete."
+msgstr[1] "Še {count} napravi zunaj izbora. Kliknite, da ju prikažete."
+msgstr[2] "Še {count} naprave zunaj izbora. Kliknite, da jih prikažete."
+msgstr[3] "Še {count} naprav zunaj izbora. Kliknite, da jih prikažete."

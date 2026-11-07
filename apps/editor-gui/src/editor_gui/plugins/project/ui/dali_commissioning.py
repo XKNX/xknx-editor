@@ -18,6 +18,7 @@ from imgui_bundle import imgui
 
 from editor_gui.device import Device
 from editor_gui.plugins.project.strings import S
+from editor_gui.theme import status_color
 from editor_gui.widgets.combo import combo
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
 from editor_gui.widgets.dpi import px
@@ -297,9 +298,7 @@ class DaliCommissioningPanel:
             return
 
         if profile is not None and profile.unverified:
-            imgui.text_colored(
-                imgui.ImVec4(1.0, 0.75, 0.2, 1.0), S.DALI_UNVERIFIED_WARNING
-            )
+            imgui.text_colored(status_color("warning"), S.DALI_UNVERIFIED_WARNING)
         if not can_persist:
             imgui.text_disabled(S.DALI_PROJECT_NOT_UPDATED)
 
@@ -341,7 +340,7 @@ class DaliCommissioningPanel:
             running = S.DALI_RUNNING.format(task=_task_text(busy))
             imgui.text_disabled(f"{running}  ({progress})" if progress else running)
         if error:
-            imgui.text_colored(imgui.ImVec4(0.9, 0.4, 0.4, 1.0), error)
+            imgui.text_colored(status_color("error"), error)
 
         self._render_confirm(device, ia)
 
@@ -438,7 +437,9 @@ class DaliCommissioningPanel:
         self, device: Device, scan: DaliBusState, state: _DeviceUi, *, busy: bool
     ) -> None:
         present = scan.present_ecgs
-        imgui.text_disabled(S.DALI_ECGS_PRESENT.format(count=len(present)))
+        imgui.text_disabled(
+            S.DALI_ECGS_PRESENT(len(present)).format(count=len(present))
+        )
         flags = (
             imgui.TableFlags_.borders
             | imgui.TableFlags_.row_bg

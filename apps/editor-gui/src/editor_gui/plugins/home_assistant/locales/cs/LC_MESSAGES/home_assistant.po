@@ -97,12 +97,6 @@ msgstr "datum neznámé"
 msgid "Load Telegrams from Home Assistant"
 msgstr "Načíst telegramy z Home Assistantu"
 
-msgid "The telegrams Home Assistant recorded in the last {hours} hours, in the Group Monitor in place of its entries."
-msgstr "Telegramy, které Home Assistant zaznamenal za posledních {hours} h, ve Skupinovém monitoru místo jeho záznamů."
-
-msgid "{count} telegrams from Home Assistant in the Group Monitor"
-msgstr "Telegramy z Home Assistantu ve Skupinovém monitoru: {count}"
-
 msgid "The telegrams could not be loaded: {error}"
 msgstr "Telegramy se nepodařilo načíst: {error}"
 
@@ -339,3 +333,15 @@ msgstr "Skupinové adresy z Home Assistantu"
 
 msgid "Group addresses added to the project: {count}"
 msgstr "Skupinové adresy přidané do projektu: {count}"
+
+msgid "The telegrams Home Assistant recorded in the last {hours} hour, in the Group Monitor in place of its entries."
+msgid_plural "The telegrams Home Assistant recorded in the last {hours} hours, in the Group Monitor in place of its entries."
+msgstr[0] "Telegramy, které Home Assistant zaznamenal za poslední {hours} hodinu, ve Skupinovém monitoru místo jeho záznamů."
+msgstr[1] "Telegramy, které Home Assistant zaznamenal za poslední {hours} hodiny, ve Skupinovém monitoru místo jeho záznamů."
+msgstr[2] "Telegramy, které Home Assistant zaznamenal za posledních {hours} hodin, ve Skupinovém monitoru místo jeho záznamů."
+
+msgid "{count} telegram from Home Assistant in the Group Monitor"
+msgid_plural "{count} telegrams from Home Assistant in the Group Monitor"
+msgstr[0] "{count} telegram z Home Assistantu ve Skupinovém monitoru"
+msgstr[1] "{count} telegramy z Home Assistantu ve Skupinovém monitoru"
+msgstr[2] "{count} telegramů z Home Assistantu ve Skupinovém monitoru"

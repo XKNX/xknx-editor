@@ -7,13 +7,12 @@ from imgui_bundle import imgui
 from editor_gui import file_dialogs
 from editor_gui.device import Device, device_label
 from editor_gui.plugins.project.strings import S
+from editor_gui.theme import status_color
 from editor_gui.widgets import HexView
 from editor_gui.widgets.combo import combo
 from editor_gui.widgets.dialog import begin_tool_window
 from editor_gui.widgets.tabs import begin_tab_bar
 from xknxeditor.prod.errors import EncodingError
-
-_ERROR_COLOR = imgui.ImVec4(1.0, 0.42, 0.42, 1.0)
 
 
 class MemoryPreviewWindow:
@@ -70,7 +69,7 @@ class MemoryPreviewWindow:
             self._render_device_selector(devices)
             imgui.separator()
             if self._file_error is not None:
-                imgui.text_colored(_ERROR_COLOR, self._file_error)
+                imgui.text_colored(status_color("error"), self._file_error)
             segments = list(self._segments.items())
             if self._encode_error is not None:
                 imgui.text_disabled(
@@ -111,7 +110,7 @@ class MemoryPreviewWindow:
             self._ref_data = {}
 
     def _render_seg_toolbar(self, seg_id: str, data: bytes, idx: int) -> None:
-        imgui.text_disabled(S.MEMORY_BYTES.format(count=len(data)))
+        imgui.text_disabled(S.MEMORY_BYTES(len(data)).format(count=len(data)))
         imgui.same_line()
         idle = self._save_dialog is None and self._ref_dialog is None
         imgui.begin_disabled(not idle)

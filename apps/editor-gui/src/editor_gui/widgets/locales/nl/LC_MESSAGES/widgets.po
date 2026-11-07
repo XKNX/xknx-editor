@@ -197,14 +197,8 @@ msgstr "Voer een waarde in."
 msgid "Enter a whole number."
 msgstr "Voer een geheel getal in."
 
-msgid "Enter at most {count} characters."
-msgstr "Voer maximaal {count} tekens in."
-
 msgid "No value can be entered for this data type."
 msgstr "Voor dit datatype kan geen waarde worden ingevoerd."
-
-msgid "The text may take at most {count} bytes."
-msgstr "De tekst mag maximaal {count} bytes beslaan."
 
 msgid "This value cannot be sent with this data type."
 msgstr "Deze waarde kan niet met dit datatype worden verzonden."
@@ -278,9 +272,6 @@ msgstr "{count} B kopiëren"
 msgid "Go To:"
 msgstr "Ga naar:"
 
-msgid "{count} difference(s)"
-msgstr "{count} verschil(len)"
-
 msgid "no differences"
 msgstr "geen verschillen"
 
@@ -316,3 +307,18 @@ msgstr "Knippen"
 
 msgid "Paste"
 msgstr "Plakken"
+
+msgid "Enter at most {count} character."
+msgid_plural "Enter at most {count} characters."
+msgstr[0] "Voer maximaal {count} teken in."
+msgstr[1] "Voer maximaal {count} tekens in."
+
+msgid "The text may take at most {count} byte."
+msgid_plural "The text may take at most {count} bytes."
+msgstr[0] "De tekst mag maximaal {count} byte beslaan."
+msgstr[1] "De tekst mag maximaal {count} bytes beslaan."
+
+msgid "{count} difference"
+msgid_plural "{count} differences"
+msgstr[0] "{count} verschil"
+msgstr[1] "{count} verschillen"

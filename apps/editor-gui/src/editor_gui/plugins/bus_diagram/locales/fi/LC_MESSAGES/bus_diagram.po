@@ -106,9 +106,6 @@ msgstr "Rakennukset"
 msgid "+ {count} more"
 msgstr "+ {count} lisää"
 
-msgid "{count} more devices outside the selection. Click to show them."
-msgstr "Valinnan ulkopuolella on {count} laitetta lisää. Näytä ne napsauttamalla."
-
 msgid "{address}\n{senders} sending, {receivers} receiving"
 msgstr "{address}\nlähettäviä {senders}, vastaanottavia {receivers}"
 
@@ -129,3 +126,8 @@ msgstr "Osoite: {address}"
 
 msgid "Application: {application}"
 msgstr "Sovellus: {application}"
+
+msgid "{count} more device outside the selection. Click to show it."
+msgid_plural "{count} more devices outside the selection. Click to show them."
+msgstr[0] "Valinnan ulkopuolella on {count} laite lisää. Näytä se napsauttamalla."
+msgstr[1] "Valinnan ulkopuolella on {count} laitetta lisää. Näytä ne napsauttamalla."

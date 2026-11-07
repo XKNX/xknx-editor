@@ -16,20 +16,11 @@ msgstr "開いているプロジェクトがありません"
 msgid "No issues found"
 msgstr "問題は見つかりませんでした"
 
-msgid "{errors} errors, {warnings} warnings"
-msgstr "エラー {errors} 件、警告 {warnings} 件"
-
 msgid "{device}: no individual address"
 msgstr "{device}：個別アドレスがありません"
 
 msgid "Duplicate individual address {address} ({device})"
 msgstr "個別アドレス {address} が重複しています（{device}）"
-
-msgid "{count} device(s) skipped: application not in catalog"
-msgstr "{count} 台のデバイスをスキップしました：アプリケーションがカタログにありません"
-
-msgid "{device}: {count} unlinked group object(s)"
-msgstr "{device}：リンクされていないグループ・オブジェクトが {count} 個あります"
 
 msgid "{address} {name}: no datapoint type"
 msgstr "{address} {name}：データポイントタイプがありません"
@@ -37,5 +28,22 @@ msgstr "{address} {name}：データポイントタイプがありません"
 msgid "{address} {name}: no sending group object"
 msgstr "{address} {name}：送信するグループ・オブジェクトがありません"
 
-msgid "{address} {name}: {count} sending group objects"
-msgstr "{address} {name}：送信するグループ・オブジェクトが {count} 個あります"
+msgid "{count} error"
+msgid_plural "{count} errors"
+msgstr[0] "エラー {count} 件"
+
+msgid "{count} warning"
+msgid_plural "{count} warnings"
+msgstr[0] "警告 {count} 件"
+
+msgid "{count} device skipped: application not in catalog"
+msgid_plural "{count} devices skipped: application not in catalog"
+msgstr[0] "{count} 台のデバイスをスキップしました：アプリケーションがカタログにありません"
+
+msgid "{device}: {count} unlinked group object"
+msgid_plural "{device}: {count} unlinked group objects"
+msgstr[0] "{device}：リンクされていないグループ・オブジェクトが {count} 個あります"
+
+msgid "{address} {name}: {count} sending group object"
+msgid_plural "{address} {name}: {count} sending group objects"
+msgstr[0] "{address} {name}：送信するグループ・オブジェクトが {count} 個あります"

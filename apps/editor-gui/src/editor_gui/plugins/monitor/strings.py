@@ -69,13 +69,9 @@ class MonitorStrings:
     def MONITOR_HIDE_EXTENDED(self) -> str:
         return _("Hide Extended Information")
 
-    @property
-    def MONITOR_TELEGRAM_COUNT(self) -> str:
-        return _("{count} telg.")
-
-    @property
-    def MONITOR_TELEGRAM_COUNT_ONE(self) -> str:
-        return _("{count} telg.")
+    def MONITOR_TELEGRAM_COUNT(self, count: int) -> str:
+        # "telg." is short for "telegram" (singular) and "telegrams" (plural).
+        return _.plural("{count} telg.", "{count} telg.", count)
 
     @property
     def MONITOR_BUS_LOAD(self) -> str:
@@ -335,25 +331,34 @@ class MonitorStrings:
     def FILE_ALL(self) -> str:
         return _("All files")
 
-    @property
-    def EXPORTED(self) -> str:
-        return _("{count} telegrams exported to {path}")
+    def EXPORTED(self, count: int) -> str:
+        return _.plural(
+            "{count} telegram exported to {path}",
+            "{count} telegrams exported to {path}",
+            count,
+        )
 
     @property
     def EXPORT_FAILED(self) -> str:
         return _("Export failed: {error}")
 
-    @property
-    def IMPORTED(self) -> str:
-        return _("{count} entries loaded from {path}")
+    def IMPORTED(self, count: int) -> str:
+        return _.plural(
+            "{count} entry loaded from {path}",
+            "{count} entries loaded from {path}",
+            count,
+        )
 
     @property
     def IMPORT_FAILED(self) -> str:
         return _("Loading failed: {error}")
 
-    @property
-    def IMPORT_SKIPPED(self) -> str:
-        return _("{count} telegrams in another frame format were skipped")
+    def IMPORT_SKIPPED(self, count: int) -> str:
+        return _.plural(
+            "{count} telegram in another frame format was skipped",
+            "{count} telegrams in another frame format were skipped",
+            count,
+        )
 
     @property
     def PRINT_FAILED(self) -> str:
@@ -363,21 +368,30 @@ class MonitorStrings:
     def PRINT_PAGE(self) -> str:
         return _("Page {page}")
 
-    @property
-    def REPLAY_SECURE_SKIPPED(self) -> str:
-        return _("{count} Data Secure telegrams are not replayed")
+    def REPLAY_SECURE_SKIPPED(self, count: int) -> str:
+        return _.plural(
+            "{count} Data Secure telegram is not replayed",
+            "{count} Data Secure telegrams are not replayed",
+            count,
+        )
 
     @property
     def REPLAY_NOTHING(self) -> str:
         return _("There are no group telegrams to replay")
 
-    @property
-    def REPLAY_FINISHED(self) -> str:
-        return _("Replay finished: {count} telegrams sent")
+    def REPLAY_FINISHED(self, count: int) -> str:
+        return _.plural(
+            "Replay finished: {count} telegram sent",
+            "Replay finished: {count} telegrams sent",
+            count,
+        )
 
-    @property
-    def REPLAY_CANCELLED(self) -> str:
-        return _("Replay cancelled: {count} telegrams sent")
+    def REPLAY_CANCELLED(self, count: int) -> str:
+        return _.plural(
+            "Replay cancelled: {count} telegram sent",
+            "Replay cancelled: {count} telegrams sent",
+            count,
+        )
 
     # --- rows ----------------------------------------------------------------
 

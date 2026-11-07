@@ -118,12 +118,6 @@ msgstr "Yukarı Taşı"
 msgid "Move Down"
 msgstr "Aşağı Taşı"
 
-msgid "{count} items"
-msgstr "{count} öğe"
-
-msgid "{count} pairs"
-msgstr "{count} çift"
-
 msgid "{count} unpaired (ignored)"
 msgstr "{count} eşleşmemiş (yok sayıldı)"
 
@@ -147,15 +141,6 @@ msgstr "Grup Adreslerini Ekle"
 
 msgid "Mass Linker Result"
 msgstr "Toplu Bağlama Sonucu"
-
-msgid "Linked {count} object(s) to group addresses"
-msgstr "{count} nesne grup adreslerine bağlandı"
-
-msgid "Linked {count} object pair(s) via new group addresses"
-msgstr "{count} nesne çifti yeni grup adresleri üzerinden bağlandı"
-
-msgid "{count} error(s)"
-msgstr "{count} hata"
 
 msgid "Clear All"
 msgstr "Tümünü Temizle"
@@ -277,12 +262,6 @@ msgstr "Yerine Gelecek Cihaz (Şablon)"
 msgid "Group Object Mapping (by Number)"
 msgstr "Grup Nesnesi Eşlemesi (Numaraya Göre)"
 
-msgid "{count} object(s) will be re-mapped"
-msgstr "Yeniden eşlenecek nesne: {count}"
-
-msgid "Replaced; re-mapped {count} group object(s)"
-msgstr "Değiştirildi; yeniden eşlenen grup nesnesi: {count}"
-
 msgid "Shift Addresses"
 msgstr "Adresleri Kaydır"
 
@@ -312,9 +291,6 @@ msgstr "{name} ile karşılaştırma:"
 
 msgid "No differences in devices or group addresses."
 msgstr "Cihazlarda veya grup adreslerinde fark yok."
-
-msgid "{count} difference(s)"
-msgstr "{count} fark"
 
 msgid "Add Device Certificate"
 msgstr "Cihaz Sertifikası Ekle"
@@ -397,9 +373,6 @@ msgstr "Kopya adı: {name}"
 msgid "Copy"
 msgstr "Kopyala"
 
-msgid "Created {count} copy/copies"
-msgstr "Oluşturulan kopya: {count}"
-
 msgid "Shifts the device part of each individual address. Group addresses are not shifted."
 msgstr "Her bireysel adresin cihaz bölümünü kaydırır. Grup adresleri kaydırılmaz."
 
@@ -421,12 +394,6 @@ msgstr "{sel} / {total} seçili"
 msgid "(out of range)"
 msgstr "(aralık dışında)"
 
-msgid "{count} address(es) will change"
-msgstr "Değişecek adres: {count}"
-
-msgid "Shifted {count} address(es)"
-msgstr "Kaydırılan adres: {count}"
-
 msgid "Individual Addresses"
 msgstr "Bireysel Adresler"
 
@@ -441,9 +408,6 @@ msgstr "Ham değerlerine bir ofset ekleyerek grup adreslerini yeniden numaraland
 
 msgid "The offset is added to the raw 16-bit value, so it may change the main/middle group as addresses cross a boundary."
 msgstr "Ofset 16 bit ham değere eklenir; bu nedenle adresler bir sınırı geçtiğinde ana/orta grup değişebilir."
-
-msgid "Shifted {count} group address(es)"
-msgstr "Kaydırılan grup adresi: {count}"
 
 msgid "Export CSV…"
 msgstr "CSV Dışa Aktar…"
@@ -496,9 +460,6 @@ msgstr "En az bir alan seçin."
 msgid "No topology issues found."
 msgstr "Topoloji sorunu bulunamadı."
 
-msgid "{count} issue(s)"
-msgstr "{count} sorun"
-
 msgid "Click a finding to jump to the device."
 msgstr "Cihaza gitmek için bir bulguya tıklayın."
 
@@ -516,6 +477,7 @@ msgstr "Projeler okunuyor…"
 
 msgid "Comparing devices: {done} of {total}"
 msgstr "Cihazlar karşılaştırılıyor: {done} / {total}"
+
 msgid "File"
 msgstr "Dosya"
 
@@ -630,9 +592,6 @@ msgstr "Proje Sertifikası"
 msgid "none"
 msgstr "yok"
 
-msgid "present ({size} bytes)"
-msgstr "mevcut ({size} bayt)"
-
 msgid "Password"
 msgstr "Parola"
 
@@ -692,7 +651,6 @@ msgstr "ETS, geçmişteki yorumları şifreler. Okumak için şifre çözme anah
 
 msgid "Comments are encrypted"
 msgstr "Yorumlar şifreli"
-
 
 msgid "Extracting key…"
 msgstr "Anahtar çıkarılıyor…"
@@ -1003,14 +961,8 @@ msgstr "Kopyalamak için tıklayın"
 msgid "Filter parameters…"
 msgstr "Parametreleri filtrele…"
 
-msgid "Apply Changes to All {count} Identical Devices"
-msgstr "Değişiklikleri Tüm {count} Özdeş Cihaza Uygula"
-
 msgid "Apply Changes to All Channels"
 msgstr "Değişiklikleri Tüm Kanallara Uygula"
-
-msgid "Editing {count} devices — edits apply to all, diverging values show <differs>"
-msgstr "{count} cihaz düzenleniyor — değişiklikler tümüne uygulanır, farklı değerler <farklı> olarak gösterilir"
 
 msgid "Hardware"
 msgstr "Donanım"
@@ -1048,9 +1000,6 @@ msgstr "Karşılaştırmayı Kaldır"
 msgid "Memory Dumps (*.bin)"
 msgstr "Bellek Dökümleri (*.bin)"
 
-msgid "{count} bytes"
-msgstr "{count} bayt"
-
 msgid "No memory segments."
 msgstr "Bellek segmenti yok."
 
@@ -1077,9 +1026,6 @@ msgstr "Çalıştırılamıyor: KNX bağlantısı yok. Bir ağ geçidine bağlan
 
 msgid "Match: the generated image is identical to what is on the device"
 msgstr "Eşleşme: oluşturulan görüntü cihazdakiyle aynı"
-
-msgid "Mismatch: {bytes} byte(s) differ from the device in {locations} location(s)"
-msgstr "Uyuşmazlık: {locations} konumda {bytes} bayt cihazdan farklı"
 
 msgid "{matched} matched, {changed} would change"
 msgstr "{matched} eşleşti, {changed} değişecek"
@@ -1111,9 +1057,6 @@ msgstr "cihaz yönetimli"
 msgid "System byte the device sets itself at runtime (e.g. a download detection byte reset by the application after a download). A difference here is expected and does not indicate a bad download."
 msgstr "Cihazın çalışma zamanında kendisinin ayarladığı sistem baytı (ör. uygulamanın bir yüklemeden sonra sıfırladığı yükleme algılama baytı). Buradaki bir fark beklenir ve hatalı bir yüklemeye işaret etmez."
 
-msgid "plus {bytes} device-managed runtime byte(s) (expected, benign)"
-msgstr "artı {bytes} cihaz yönetimli çalışma zamanı baytı (beklenen, zararsız)"
-
 msgid "No configured differences: the device already carries this configuration. The differences below are benign (see notes)."
 msgstr "Yapılandırılmış fark yok: cihaz bu yapılandırmayı zaten taşıyor. Aşağıdaki farklar zararsızdır (notlara bakın)."
 
@@ -1122,9 +1065,6 @@ msgstr "varsayılanı ayarlar"
 
 msgid "This byte is written for a neighbouring parameter; the differing bit is not driven by any active parameter and is only reset to the application default. The device holds an older value (e.g. from a previous configuration or mode) that programming will normalise. Benign."
 msgstr "Bu bayt komşu bir parametre için yazılır; farklı olan bit hiçbir etkin parametre tarafından kontrol edilmez ve yalnızca uygulama varsayılanına sıfırlanır. Cihaz, programlamanın normalleştireceği eski bir değer taşıyor (ör. önceki bir yapılandırmadan veya moddan). Zararsız."
-
-msgid "plus {bytes} byte(s) reset to the application default (the device holds an older value; benign, will be normalised on programming)"
-msgstr "artı uygulama varsayılanına sıfırlanan {bytes} bayt (cihaz eski bir değer taşıyor; zararsız, programlamada normalleştirilir)"
 
 msgid "Export Ist/Soll…"
 msgstr "Mevcut/Hedef Dışa Aktar…"
@@ -1180,9 +1120,6 @@ msgstr "Yalnızca Farklar"
 msgid "Filter devices by address, name or description…"
 msgstr "Cihazları adrese, ada veya tanıma göre filtrele…"
 
-msgid "{count} differences"
-msgstr "{count} fark"
-
 msgid "Parameters"
 msgstr "Parametreler"
 
@@ -1206,9 +1143,6 @@ msgstr "Yapılandırmayı Yapıştır"
 
 msgid "Paste configuration onto '{name}':"
 msgstr "Yapılandırmayı '{name}' cihazına yapıştır:"
-
-msgid "Paste configuration onto {count} selected devices:"
-msgstr "Yapılandırmayı seçili {count} cihaza yapıştır:"
 
 msgid "Duplicate '{name}':"
 msgstr "'{name}' kopyasını oluştur:"
@@ -1603,12 +1537,6 @@ msgstr "Grup Adreslerini İçe Aktar"
 msgid "Group Address Files (XML, CSV)"
 msgstr "Grup Adresi Dosyaları (XML, CSV)"
 
-msgid "{added} group addresses added, {updated} updated."
-msgstr "{added} grup adresi eklendi, {updated} güncellendi."
-
-msgid "{count} group addresses could not be placed in a group."
-msgstr "{count} grup adresi bir gruba yerleştirilemedi."
-
 msgid "The file could not be imported: {error}"
 msgstr "Dosya içe aktarılamadı: {error}"
 
@@ -1789,9 +1717,6 @@ msgstr "Grup atamasını DALI bus'ına yaz. Bu işlem grupları ağ geçidine\nv
 msgid "Write the scene values to the DALI bus. Continue?"
 msgstr "Sahne değerlerini DALI bus'ına yaz. Devam edilsin mi?"
 
-msgid "{count} ECG(s) present"
-msgstr "Mevcut balast: {count}"
-
 msgid "Group"
 msgstr "Grup"
 
@@ -1833,9 +1758,6 @@ msgstr "Tekil"
 
 msgid "Unassigned"
 msgstr "Atanmamış"
-
-msgid "Procedure {number}  ({count} steps)"
-msgstr "Prosedür {number}  ({count} adım)"
 
 msgid "Kind"
 msgstr "Tür"
@@ -2202,9 +2124,6 @@ msgstr "Uygulamanın statik parametresi yok."
 
 msgid "This gateway's commissioning protocol has not been verified against a capture; writes may misbehave. Proceed with care."
 msgstr "Bu ağ geçidinin devreye alma protokolü bir yakalamaya karşı doğrulanmadı; yazmalar hatalı davranabilir. Dikkatli ilerleyin."
-
-msgid "{count} ECG(s) present on line {line}"
-msgstr "{line} hattında {count} ECG mevcut"
 
 msgid "Program DCA State"
 msgstr "DCA durumunu programla"
@@ -2677,9 +2596,6 @@ msgstr "Grupta boş grup adresi yok."
 msgid "The main group has no free middle group."
 msgstr "Ana grupta boş orta grup yok."
 
-msgid "{count} devices"
-msgstr "{count} cihaz"
-
 msgid "The main segment cannot be moved."
 msgstr "Ana segment taşınamaz."
 
@@ -2752,33 +2668,6 @@ msgstr "Yeni grup adresleri için grup yok."
 msgid "Copied '{name}' to '{target}'."
 msgstr "'{name}', '{target}' konumuna kopyalandı."
 
-msgid "Copied {count} devices to '{target}'."
-msgstr "{count} cihaz '{target}' konumuna kopyalandı."
-
-msgid "Copied {count} building parts to '{target}'."
-msgstr "{count} bina bölümü '{target}' konumuna kopyalandı."
-
-msgid "Copied {count} trades to '{target}'."
-msgstr "{count} ticaret '{target}' konumuna kopyalandı."
-
-msgid "Copied {count} functions to '{target}'."
-msgstr "{count} işlev '{target}' konumuna kopyalandı."
-
-msgid "Copied {count} group addresses to '{target}'."
-msgstr "{count} grup adresi '{target}' konumuna kopyalandı."
-
-msgid "Copied {count} middle groups to '{target}'."
-msgstr "{count} orta grup '{target}' konumuna kopyalandı."
-
-msgid "Copied {count} main groups to '{target}'."
-msgstr "{count} ana grup '{target}' konumuna kopyalandı."
-
-msgid "Copied {count} lines to '{target}'."
-msgstr "{count} hat '{target}' konumuna kopyalandı."
-
-msgid "Copied {count} segments to '{target}'."
-msgstr "{count} segment '{target}' konumuna kopyalandı."
-
 msgid "Paste Special…"
 msgstr "Özel Yapıştır…"
 
@@ -2821,30 +2710,6 @@ msgstr "Ekleme sınırına ulaşıldı."
 msgid "Cannot add any line to the area {area} because of topology constraints. Please check the medium type of the backbone and main lines."
 msgstr "Topoloji kısıtlamaları nedeniyle {area} alanına hat eklenemiyor. Lütfen omurga ve ana hatların ortam türünü kontrol edin."
 
-msgid "Added {count} areas to '{target}'."
-msgstr "{count} alan '{target}' konumuna eklendi."
-
-msgid "Added {count} lines to '{target}'."
-msgstr "{count} hat '{target}' konumuna eklendi."
-
-msgid "Added {count} segments to '{target}'."
-msgstr "{count} segment '{target}' konumuna eklendi."
-
-msgid "Added {count} building parts to '{target}'."
-msgstr "{count} bina bölümü '{target}' konumuna eklendi."
-
-msgid "Added {count} trades to '{target}'."
-msgstr "{count} iş kolu '{target}' konumuna eklendi."
-
-msgid "Added {count} main groups to '{target}'."
-msgstr "{count} ana grup '{target}' konumuna eklendi."
-
-msgid "Added {count} middle groups to '{target}'."
-msgstr "{count} orta grup '{target}' konumuna eklendi."
-
-msgid "Added {count} group addresses to '{target}'."
-msgstr "{count} grup adresi '{target}' konumuna eklendi."
-
 msgid "Add Main Groups…"
 msgstr "Ana Grup Ekle…"
 
@@ -2884,12 +2749,6 @@ msgstr "Fonksiyon Ekle"
 msgid "New function"
 msgstr "Yeni fonksiyon"
 
-msgid "Added {count} functions to '{target}'."
-msgstr "{count} fonksiyon '{target}' konumuna eklendi."
-
-msgid "Added {count} group ranges to '{target}'."
-msgstr "{count} grup adresi aralığı '{target}' konumuna eklendi."
-
 msgid "Add Group Ranges…"
 msgstr "Grup Adresi Aralığı Ekle…"
 
@@ -2923,9 +2782,6 @@ msgstr "Bir grup adresi aralığı kendisine veya içindeki bir aralığa taşı
 msgid "A group address of the range is already in use there."
 msgstr "Aralığın bir grup adresi orada zaten kullanılıyor."
 
-msgid "Copied {count} group ranges to '{target}'."
-msgstr "{count} grup adresi aralığı '{target}' konumuna kopyalandı."
-
 msgid "Add Areas…"
 msgstr "Alan Ekle…"
 
@@ -2940,12 +2796,6 @@ msgstr "Grup Adresini Kopyala"
 
 msgid "Existing Devices…"
 msgstr "Mevcut Cihazlar…"
-
-msgid "Delete the {count} selected devices? Their group objects and group-address links are removed and their individual addresses are freed. This can be undone."
-msgstr "Seçili {count} cihaz silinsin mi? Grup nesneleri ve grup adresi bağlantıları kaldırılır, bireysel adresleri serbest bırakılır. Bu işlem geri alınabilir."
-
-msgid "Remove {count} devices"
-msgstr "{count} cihazı kaldır"
 
 msgid "Delete Devices"
 msgstr "Cihazları Sil"
@@ -3055,9 +2905,6 @@ msgstr "Load LVS Project (.prj)…"
 msgid "LVS project (*.prj)"
 msgstr "LVS project (*.prj)"
 
-msgid "Imported the display configuration into {count} device(s)."
-msgstr "Imported the display configuration into {count} device(s)."
-
 msgid "The LVS project could not be imported: {error}"
 msgstr "The LVS project could not be imported: {error}"
 
@@ -3069,3 +2916,214 @@ msgstr "Exported the display configuration."
 
 msgid "The LVS project could not be exported: {error}"
 msgstr "The LVS project could not be exported: {error}"
+
+msgid "Copied {count} device to '{target}'."
+msgid_plural "Copied {count} devices to '{target}'."
+msgstr[0] "{count} cihaz '{target}' konumuna kopyalandı."
+
+msgid "Copied {count} building part to '{target}'."
+msgid_plural "Copied {count} building parts to '{target}'."
+msgstr[0] "{count} bina bölümü '{target}' konumuna kopyalandı."
+
+msgid "Copied {count} trade to '{target}'."
+msgid_plural "Copied {count} trades to '{target}'."
+msgstr[0] "{count} iş kolu '{target}' konumuna kopyalandı."
+
+msgid "Copied {count} function to '{target}'."
+msgid_plural "Copied {count} functions to '{target}'."
+msgstr[0] "{count} işlev '{target}' konumuna kopyalandı."
+
+msgid "Copied {count} group address to '{target}'."
+msgid_plural "Copied {count} group addresses to '{target}'."
+msgstr[0] "{count} grup adresi '{target}' konumuna kopyalandı."
+
+msgid "Copied {count} middle group to '{target}'."
+msgid_plural "Copied {count} middle groups to '{target}'."
+msgstr[0] "{count} orta grup '{target}' konumuna kopyalandı."
+
+msgid "Copied {count} main group to '{target}'."
+msgid_plural "Copied {count} main groups to '{target}'."
+msgstr[0] "{count} ana grup '{target}' konumuna kopyalandı."
+
+msgid "Copied {count} group range to '{target}'."
+msgid_plural "Copied {count} group ranges to '{target}'."
+msgstr[0] "{count} grup adresi aralığı '{target}' konumuna kopyalandı."
+
+msgid "Copied {count} line to '{target}'."
+msgid_plural "Copied {count} lines to '{target}'."
+msgstr[0] "{count} hat '{target}' konumuna kopyalandı."
+
+msgid "Copied {count} segment to '{target}'."
+msgid_plural "Copied {count} segments to '{target}'."
+msgstr[0] "{count} segment '{target}' konumuna kopyalandı."
+
+msgid "Added {count} area to '{target}'."
+msgid_plural "Added {count} areas to '{target}'."
+msgstr[0] "{count} alan '{target}' konumuna eklendi."
+
+msgid "Added {count} line to '{target}'."
+msgid_plural "Added {count} lines to '{target}'."
+msgstr[0] "{count} hat '{target}' konumuna eklendi."
+
+msgid "Added {count} segment to '{target}'."
+msgid_plural "Added {count} segments to '{target}'."
+msgstr[0] "{count} segment '{target}' konumuna eklendi."
+
+msgid "Added {count} building part to '{target}'."
+msgid_plural "Added {count} building parts to '{target}'."
+msgstr[0] "{count} bina bölümü '{target}' konumuna eklendi."
+
+msgid "Added {count} trade to '{target}'."
+msgid_plural "Added {count} trades to '{target}'."
+msgstr[0] "{count} iş kolu '{target}' konumuna eklendi."
+
+msgid "Added {count} function to '{target}'."
+msgid_plural "Added {count} functions to '{target}'."
+msgstr[0] "{count} fonksiyon '{target}' konumuna eklendi."
+
+msgid "Added {count} group range to '{target}'."
+msgid_plural "Added {count} group ranges to '{target}'."
+msgstr[0] "{count} grup adresi aralığı '{target}' konumuna eklendi."
+
+msgid "Added {count} main group to '{target}'."
+msgid_plural "Added {count} main groups to '{target}'."
+msgstr[0] "{count} ana grup '{target}' konumuna eklendi."
+
+msgid "Added {count} middle group to '{target}'."
+msgid_plural "Added {count} middle groups to '{target}'."
+msgstr[0] "{count} orta grup '{target}' konumuna eklendi."
+
+msgid "Added {count} group address to '{target}'."
+msgid_plural "Added {count} group addresses to '{target}'."
+msgstr[0] "{count} grup adresi '{target}' konumuna eklendi."
+
+msgid "Remove {count} device"
+msgid_plural "Remove {count} devices"
+msgstr[0] "{count} cihazı kaldır"
+
+msgid "{count} device"
+msgid_plural "{count} devices"
+msgstr[0] "{count} cihaz"
+
+msgid "{count} item"
+msgid_plural "{count} items"
+msgstr[0] "{count} öğe"
+
+msgid "{count} pair"
+msgid_plural "{count} pairs"
+msgstr[0] "{count} çift"
+
+msgid "Linked {count} object to a group address"
+msgid_plural "Linked {count} objects to group addresses"
+msgstr[0] "{count} nesne grup adreslerine bağlandı"
+
+msgid "Linked {count} object pair via a new group address"
+msgid_plural "Linked {count} object pairs via new group addresses"
+msgstr[0] "{count} nesne çifti yeni grup adresleri üzerinden bağlandı"
+
+msgid "{count} error"
+msgid_plural "{count} errors"
+msgstr[0] "{count} hata"
+
+msgid "{count} object will be re-mapped"
+msgid_plural "{count} objects will be re-mapped"
+msgstr[0] "{count} nesne yeniden eşlenecek"
+
+msgid "Replaced; re-mapped {count} group object"
+msgid_plural "Replaced; re-mapped {count} group objects"
+msgstr[0] "Değiştirildi; {count} grup nesnesi yeniden eşlendi"
+
+msgid "{count} difference"
+msgid_plural "{count} differences"
+msgstr[0] "{count} fark"
+
+msgid "Created {count} copy"
+msgid_plural "Created {count} copies"
+msgstr[0] "{count} kopya oluşturuldu"
+
+msgid "{count} address will change"
+msgid_plural "{count} addresses will change"
+msgstr[0] "{count} adres değişecek"
+
+msgid "Shifted {count} address"
+msgid_plural "Shifted {count} addresses"
+msgstr[0] "{count} adres kaydırıldı"
+
+msgid "Shifted {count} group address"
+msgid_plural "Shifted {count} group addresses"
+msgstr[0] "{count} grup adresi kaydırıldı"
+
+msgid "{count} issue"
+msgid_plural "{count} issues"
+msgstr[0] "{count} sorun"
+
+msgid "present ({size} byte)"
+msgid_plural "present ({size} bytes)"
+msgstr[0] "mevcut ({size} bayt)"
+
+msgid "Imported the display configuration into {count} device."
+msgid_plural "Imported the display configuration into {count} devices."
+msgstr[0] "Görüntü yapılandırması {count} cihaza içe aktarıldı."
+
+msgid "{count} ECG present on line {line}"
+msgid_plural "{count} ECGs present on line {line}"
+msgstr[0] "{line} hattında {count} ECG mevcut"
+
+msgid "Apply Changes to {count} Identical Device"
+msgid_plural "Apply Changes to All {count} Identical Devices"
+msgstr[0] "Değişiklikleri Tüm {count} Özdeş Cihaza Uygula"
+
+msgid "Editing {count} device — edits apply to all, diverging values show <differs>"
+msgid_plural "Editing {count} devices — edits apply to all, diverging values show <differs>"
+msgstr[0] "{count} cihaz düzenleniyor — değişiklikler tümüne uygulanır, farklı değerler <farklı> olarak gösterilir"
+
+msgid "{count} byte"
+msgid_plural "{count} bytes"
+msgstr[0] "{count} bayt"
+
+msgid "Mismatch: {bytes} from the device in {locations}"
+msgstr "Uyuşmazlık: {locations} {bytes}"
+
+msgid "{count} byte differs"
+msgid_plural "{count} bytes differ"
+msgstr[0] "{count} bayt cihazdan farklı"
+
+msgid "{count} location"
+msgid_plural "{count} locations"
+msgstr[0] "{count} konumda"
+
+msgid "plus {bytes} device-managed runtime byte (expected, benign)"
+msgid_plural "plus {bytes} device-managed runtime bytes (expected, benign)"
+msgstr[0] "artı {bytes} cihaz yönetimli çalışma zamanı baytı (beklenen, zararsız)"
+
+msgid "plus {bytes} byte reset to the application default (the device holds an older value; benign, will be normalised on programming)"
+msgid_plural "plus {bytes} bytes reset to the application default (the device holds an older value; benign, will be normalised on programming)"
+msgstr[0] "artı uygulama varsayılanına sıfırlanan {bytes} bayt (cihaz eski bir değer taşıyor; zararsız, programlamada normalleştirilir)"
+
+msgid "Paste configuration onto {count} selected device:"
+msgid_plural "Paste configuration onto {count} selected devices:"
+msgstr[0] "Yapılandırmayı seçili {count} cihaza yapıştır:"
+
+msgid "Delete the {count} selected device? Its group objects and group-address links are removed and its individual address is freed. This can be undone."
+msgid_plural "Delete the {count} selected devices? Their group objects and group-address links are removed and their individual addresses are freed. This can be undone."
+msgstr[0] "Seçili {count} cihaz silinsin mi? Grup nesneleri ve grup adresi bağlantıları kaldırılır, bireysel adresleri serbest bırakılır. Bu işlem geri alınabilir."
+
+msgid "{count} group address added"
+msgid_plural "{count} group addresses added"
+msgstr[0] "{count} grup adresi eklendi"
+
+msgid "{count} updated"
+msgid_plural "{count} updated"
+msgstr[0] "{count} güncellendi"
+
+msgid "{count} group address could not be placed in a group."
+msgid_plural "{count} group addresses could not be placed in a group."
+msgstr[0] "{count} grup adresi bir gruba yerleştirilemedi."
+
+msgid "{count} ECG present"
+msgid_plural "{count} ECGs present"
+msgstr[0] "{count} balast mevcut"
+
+msgid "Procedure {number}  ({count} step)"
+msgid_plural "Procedure {number}  ({count} steps)"
+msgstr[0] "Prosedür {number}  ({count} adım)"

@@ -12,6 +12,7 @@ from xknx.telegram.address import GroupAddress
 from editor_gui import file_dialogs
 from editor_gui.device import address_order
 from editor_gui.plugins.keyring.strings import S
+from editor_gui.theme import status_color
 from editor_gui.widgets.dialog import (
     begin_dialog,
     dialog_buttons,
@@ -106,7 +107,7 @@ class KeyringPanel:
             imgui.InputTextFlags_.password | imgui.InputTextFlags_.enter_returns_true,
         )
         if self._error:
-            imgui.text_colored(imgui.ImVec4(0.9, 0.4, 0.4, 1.0), self._error)
+            imgui.text_colored(status_color("error"), self._error)
         clicked = dialog_buttons(S.KEYRING_LOAD, S.BTN_CANCEL)
         if (clicked == 0 or submitted) and self._pending_path:
             try:
@@ -179,7 +180,7 @@ class KeyringPanel:
             imgui.InputTextFlags_.password | imgui.InputTextFlags_.enter_returns_true,
         )
         if self._export_error:
-            imgui.text_colored(imgui.ImVec4(0.9, 0.4, 0.4, 1.0), self._export_error)
+            imgui.text_colored(status_color("error"), self._export_error)
         can_export = bool(self._export_password)
         clicked = dialog_buttons(S.KEYRING_EXPORT_SAVE, S.BTN_CANCEL)
         if (clicked == 0 or submitted) and can_export:

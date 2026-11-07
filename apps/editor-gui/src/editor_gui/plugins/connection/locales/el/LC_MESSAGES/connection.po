@@ -46,9 +46,6 @@ msgstr "Η σάρωση δεν ολοκληρώθηκε: {error}"
 msgid "The interface did not confirm the scan request (bus busy or interface overloaded). Please try again."
 msgstr "Η θύρα επικοινωνίας δεν επιβεβαίωσε το αίτημα σάρωσης (bus απασχολημένο ή θύρα υπερφορτωμένη). Δοκιμάστε ξανά."
 
-msgid "{count} device(s) in programming mode"
-msgstr "{count} συσκευή(-ές) σε κατάσταση προγραμματισμού"
-
 msgid "Answered the scan, but reading its details failed: {error}"
 msgstr "Απάντησε στη σάρωση, αλλά η ανάγνωση των λεπτομερειών απέτυχε: {error}"
 
@@ -222,3 +219,8 @@ msgstr "Δεν υπάρχει σύνδεση με το bus"
 
 msgid "Serial Number: {serial}"
 msgstr "Σειριακός Αριθμός: {serial}"
+
+msgid "{count} device in programming mode"
+msgid_plural "{count} devices in programming mode"
+msgstr[0] "{count} συσκευή σε κατάσταση προγραμματισμού"
+msgstr[1] "{count} συσκευές σε κατάσταση προγραμματισμού"

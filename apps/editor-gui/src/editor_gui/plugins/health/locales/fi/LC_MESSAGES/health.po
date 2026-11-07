@@ -16,20 +16,11 @@ msgstr "Ei avointa projektia"
 msgid "No issues found"
 msgstr "Ongelmia ei löytynyt"
 
-msgid "{errors} errors, {warnings} warnings"
-msgstr "Virheet: {errors}, varoitukset: {warnings}"
-
 msgid "{device}: no individual address"
 msgstr "{device}: ei yksilöllistä osoitetta"
 
 msgid "Duplicate individual address {address} ({device})"
 msgstr "Päällekkäinen yksilöllinen osoite {address} ({device})"
-
-msgid "{count} device(s) skipped: application not in catalog"
-msgstr "Ohitettuja laitteita: {count} – sovellus ei ole luettelossa"
-
-msgid "{device}: {count} unlinked group object(s)"
-msgstr "{device}: linkittämättömiä ryhmäobjekteja {count}"
 
 msgid "{address} {name}: no datapoint type"
 msgstr "{address} {name}: ei tietopisteen tyyppiä"
@@ -37,5 +28,27 @@ msgstr "{address} {name}: ei tietopisteen tyyppiä"
 msgid "{address} {name}: no sending group object"
 msgstr "{address} {name}: ei lähettävää ryhmäobjektia"
 
-msgid "{address} {name}: {count} sending group objects"
-msgstr "{address} {name}: lähettäviä ryhmäobjekteja {count}"
+msgid "{count} error"
+msgid_plural "{count} errors"
+msgstr[0] "{count} virhe"
+msgstr[1] "{count} virhettä"
+
+msgid "{count} warning"
+msgid_plural "{count} warnings"
+msgstr[0] "{count} varoitus"
+msgstr[1] "{count} varoitusta"
+
+msgid "{count} device skipped: application not in catalog"
+msgid_plural "{count} devices skipped: application not in catalog"
+msgstr[0] "{count} laite ohitettiin – sovellus ei ole luettelossa"
+msgstr[1] "{count} laitetta ohitettiin – sovellus ei ole luettelossa"
+
+msgid "{device}: {count} unlinked group object"
+msgid_plural "{device}: {count} unlinked group objects"
+msgstr[0] "{device}: {count} linkittämätön ryhmäobjekti"
+msgstr[1] "{device}: {count} linkittämätöntä ryhmäobjektia"
+
+msgid "{address} {name}: {count} sending group object"
+msgid_plural "{address} {name}: {count} sending group objects"
+msgstr[0] "{address} {name}: {count} lähettävä ryhmäobjekti"
+msgstr[1] "{address} {name}: {count} lähettävää ryhmäobjektia"

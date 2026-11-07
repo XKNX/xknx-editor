@@ -19,9 +19,6 @@ msgstr "Filtrar dispositivos…"
 msgid "Needs Attention Only"
 msgstr "Só os que Requerem Atenção"
 
-msgid "{count} device(s) not in catalog"
-msgstr "{count} dispositivo(s) fora do catálogo"
-
 msgid "Address"
 msgstr "Endereço"
 
@@ -69,3 +66,8 @@ msgstr "Número de série: {serial}"
 
 msgid "Last Download: {when}"
 msgstr "Último Download: {when}"
+
+msgid "{count} device not in catalog"
+msgid_plural "{count} devices not in catalog"
+msgstr[0] "{count} dispositivo fora do catálogo"
+msgstr[1] "{count} dispositivos fora do catálogo"

@@ -80,6 +80,7 @@ from .encode import (
     encode_to_typed_properties_masked,
     resolve_param_values,
     segment_seed,
+    stored_parameter_cells,
     type_size_in_bit,
     validate_parameter_value,
     written_bit_mask,
@@ -287,11 +288,13 @@ class DynamicTreeBuilder:
         self.object_param_refs: frozenset[str]
         self.parameter_gates: dict[str, frozenset[str]]
         self.object_gates: dict[str, frozenset[str]]
+        self.module_gates: dict[str, frozenset[str]]
         (
             self.allocation_param_refs,
             self.object_param_refs,
             self.parameter_gates,
             self.object_gates,
+            self.module_gates,
         ) = self._build_selector_refs(app)
 
     def _build_selector_refs(
@@ -301,6 +304,7 @@ class DynamicTreeBuilder:
         frozenset[str],
         dict[str, frozenset[str]],
         dict[str, frozenset[str]],
+        dict[str, frozenset[str]],
     ]:
         """The selectors (choose parameters, repeat counts) on the way to a module that
         allocates (an argument with an Allocator, or such a module inside it), and those on the
@@ -308,8 +312,9 @@ class DynamicTreeBuilder:
         choose renders only while its parameter is active, so the selectors on the way to the
         parameter's placements and assigns count too, as do the sources of its assigns and its
         union siblings (a choose on an inactive union member renders nothing). Third, per
-        param-ref the selectors on the way to its placements and assigns, and fourth, per group
-        object reference those on the way to its placements."""
+        param-ref the selectors on the way to its placements and assigns, fourth, per group
+        object reference those on the way to its placements, and fifth, per module those on the
+        way to it."""
         defs = self.idx.module_defs
         allocates: dict[str, bool] = {}
 
@@ -332,6 +337,7 @@ class DynamicTreeBuilder:
         object_seeds: set[str] = set()
         placements: dict[str, set[str]] = {}
         object_placements: dict[str, set[str]] = {}
+        module_placements: dict[str, set[str]] = {}
         sources: dict[str, set[str]] = {}
 
         def walk(elem: object, gates: tuple[str, ...]) -> None:
@@ -352,6 +358,7 @@ class DynamicTreeBuilder:
                 return
             if isinstance(elem, Module):
                 object_seeds.update(gates)
+                module_placements.setdefault(elem.id, set()).update(gates)
                 if module_allocates(elem):
                     seeds.update(gates)
                 return
@@ -396,7 +403,16 @@ class DynamicTreeBuilder:
         gates_by_object = {
             ref: frozenset(gates) for ref, gates in object_placements.items()
         }
-        return closed(seeds), closed(object_seeds), gates_by_ref, gates_by_object
+        gates_by_module = {
+            ref: frozenset(gates) for ref, gates in module_placements.items()
+        }
+        return (
+            closed(seeds),
+            closed(object_seeds),
+            gates_by_ref,
+            gates_by_object,
+            gates_by_module,
+        )
 
     def _build_page_maps(
         self, app: ApplicationProgram
@@ -914,6 +930,7 @@ class DynamicUI:
         "_allocation_param_refs",
         "_app",
         "_idx",
+        "_module_gates",
         "_object_gates",
         "_object_param_refs",
         "_page_for",
@@ -949,6 +966,7 @@ class DynamicUI:
         self._object_param_refs = builder.object_param_refs
         self._parameter_gates = builder.parameter_gates
         self._object_gates = builder.object_gates
+        self._module_gates = builder.module_gates
         self._page_for = builder.page_param_for
         self._state = GlobalState.from_project(
             parameter_instance_refs=parameter_instance_refs,
@@ -1302,6 +1320,12 @@ class DynamicUI:
             download_param_values(self._app, self._idx, self._state),
             self._state,
         )
+
+    def stored_parameter_cells(self) -> dict[tuple[str, int], set[str]]:
+        """The param-refs stored at each byte, active or not (module instances' qualified); see
+        :func:`~xknxeditor.prod.parser_v2.encode.stored_parameter_cells`."""
+        self.ui()
+        return stored_parameter_cells(self._app, self._idx, self._state)
 
     def written_bit_mask(self) -> dict[str, bytes]:
         """Return {seg_id: bit_mask} marking the bits an active parameter writes.
@@ -1784,6 +1808,11 @@ class DynamicUI:
         """The selectors (local param-refs) right on the way to the placements of a group object
         reference (local to its application or module definition)."""
         return self._object_gates.get(com_object_ref_id, frozenset())
+
+    def module_gates(self, module_id: str) -> frozenset[str]:
+        """The selectors (local param-refs) right on the way to a module (its id, local to its
+        application or module definition)."""
+        return self._module_gates.get(module_id, frozenset())
 
     @property
     def application_name(self) -> str:

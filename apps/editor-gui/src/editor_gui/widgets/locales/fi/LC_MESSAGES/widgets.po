@@ -163,9 +163,6 @@ msgstr "Anna kokonaisluku."
 msgid "Enter a value from {minimum} to {maximum}."
 msgstr "Anna arvo väliltä {minimum}–{maximum}."
 
-msgid "Enter at most {count} characters."
-msgstr "Anna enintään {count} merkkiä."
-
 msgid "Enter a value."
 msgstr "Anna arvo."
 
@@ -177,9 +174,6 @@ msgstr "Tälle tietotyypille ei voi antaa arvoa."
 
 msgid "Edit…"
 msgstr "Muokkaa…"
-
-msgid "The text may take at most {count} bytes."
-msgstr "Tekstin enimmäispituus on {count} tavua."
 
 msgid "Value {number}"
 msgstr "Arvo {number}"
@@ -241,9 +235,6 @@ msgstr "Kopioi {count} B"
 msgid "Go To:"
 msgstr "Siirry:"
 
-msgid "{count} difference(s)"
-msgstr "Eroja: {count}"
-
 msgid "no differences"
 msgstr "ei eroja"
 
@@ -294,3 +285,18 @@ msgstr "Leikkaa"
 
 msgid "Paste"
 msgstr "Liitä"
+
+msgid "Enter at most {count} character."
+msgid_plural "Enter at most {count} characters."
+msgstr[0] "Anna enintään {count} merkki."
+msgstr[1] "Anna enintään {count} merkkiä."
+
+msgid "The text may take at most {count} byte."
+msgid_plural "The text may take at most {count} bytes."
+msgstr[0] "Tekstin enimmäispituus on {count} tavu."
+msgstr[1] "Tekstin enimmäispituus on {count} tavua."
+
+msgid "{count} difference"
+msgid_plural "{count} differences"
+msgstr[0] "{count} ero"
+msgstr[1] "{count} eroa"

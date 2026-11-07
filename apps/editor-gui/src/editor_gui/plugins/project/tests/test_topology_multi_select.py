@@ -170,11 +170,11 @@ def test_several_selected_devices_are_deleted_together(
         lambda text, *a: (texts.append(text), real_text_wrapped(text, *a)),
     )
     tree.frames()
-    assert S.DEVICE_DELETE_CONFIRM_SEVERAL.format(count=2) in texts
+    assert S.DEVICE_DELETE_CONFIRM_SEVERAL(2).format(count=2) in texts
     clicks.button = S.CONTEXT_DELETE
     tree.frames()
     assert tree.deleted == [8, 9]
-    assert tree.undo_steps[-1] == S.HISTORY_EV_REMOVE_DEVICES.format(count=2)
+    assert tree.undo_steps[-1] == S.HISTORY_EV_REMOVE_DEVICES(2).format(count=2)
     # The Delete key does the same with the selected devices.
     tree.deleted.clear()
     asked: list[list[int]] = []

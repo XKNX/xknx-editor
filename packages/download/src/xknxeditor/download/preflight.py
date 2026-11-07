@@ -63,6 +63,9 @@ class SegmentDiff:
     # Offsets (from ``address``) of the bytes that belong to a group communication table (the
     # group address, association or group object table): configuration, as a parameter's.
     table_bytes: frozenset[int] = frozenset()
+    # Offsets of octets a full download writes from the product data and a partial download
+    # from the application (a group object table's object count): no setting changes them.
+    corrected_bytes: frozenset[int] = frozenset()
 
     @property
     def changed_ranges(self) -> tuple[ByteRange, ...]:

@@ -22,14 +22,14 @@ msgstr "Σάρωση"
 msgid "Stop"
 msgstr "Διακοπή"
 
-msgid "Add to Open Project as Read"
-msgstr "Προσθήκη στο Ανοιχτό Έργο ως Αναγνωσμένο"
+msgid "Add to Open Project When Read"
+msgstr "Προσθήκη στο Ανοιχτό Έργο κατά την Ανάγνωση"
 
 msgid "Recover Selected"
 msgstr "Ανάκτηση Επιλεγμένων"
 
-msgid "Create New Project"
-msgstr "Δημιουργία Νέου Έργου"
+msgid "Create New Project…"
+msgstr "Δημιουργία Νέου Έργου…"
 
 msgid "Add to Open Project"
 msgstr "Προσθήκη στο Ανοιχτό Έργο"
@@ -37,14 +37,11 @@ msgstr "Προσθήκη στο Ανοιχτό Έργο"
 msgid "Verify (Read-Only)"
 msgstr "Επαλήθευση (Μόνο Ανάγνωση)"
 
-msgid "Export Snapshot"
-msgstr "Εξαγωγή Στιγμιότυπου"
+msgid "Export Snapshot…"
+msgstr "Εξαγωγή Στιγμιότυπου…"
 
 msgid "Verifying (re-reading and comparing)…"
 msgstr "Επαλήθευση (εκ νέου ανάγνωση και σύγκριση)…"
-
-msgid "%(count)d group address(es) have no sender or multiple senders."
-msgstr "%(count)d διεύθυνση(-εις) ομάδας δεν έχουν αποστολέα ή έχουν πολλούς αποστολείς."
 
 msgid "Address"
 msgstr "Διεύθυνση"
@@ -82,17 +79,8 @@ msgstr "πίνακες επικοινωνίας ομάδων"
 msgid "parameter memory"
 msgstr "μνήμη παραμέτρων"
 
-msgid "Recovered %(devices)d device(s): %(group_addresses)d group addresses, %(links)d links, %(unknown)d parameter(s) not recoverable."
-msgstr "Ανακτήθηκαν %(devices)d συσκευή(-ές): %(group_addresses)d διευθύνσεις ομάδων, %(links)d συνδέσεις, %(unknown)d παράμετρος(-οι) δεν ήταν δυνατό να ανακτηθούν."
-
 msgid "Recovered"
 msgstr "Ανακτήθηκε"
-
-msgid "Added %(count)d device(s) to the open project (%(target)s)."
-msgstr "Προστέθηκαν %(count)d συσκευή(-ές) στο ανοιχτό έργο (%(target)s)."
-
-msgid "Created new project %(target)s with %(count)d device(s)."
-msgstr "Δημιουργήθηκε νέο έργο %(target)s με %(count)d συσκευή(-ές)."
 
 msgid "Not connected to a KNX bus."
 msgstr "Δεν υπάρχει σύνδεση με bus KNX."
@@ -100,29 +88,147 @@ msgstr "Δεν υπάρχει σύνδεση με bus KNX."
 msgid "Open or create a project to add recovered devices."
 msgstr "Ανοίξτε ή δημιουργήστε ένα έργο για να προσθέσετε ανακτημένες συσκευές."
 
-msgid "matched"
-msgstr "αντιστοιχεί"
+msgid "Product found"
+msgstr "Βρέθηκε προϊόν"
 
-msgid "confirm product/version, then tick"
-msgstr "επιβεβαιώστε προϊόν/έκδοση και, στη συνέχεια, επιλέξτε"
+msgid "Check the product and version, then select it"
+msgstr "Ελέγξτε το προϊόν και την έκδοση και μετά επιλέξτε το"
 
-msgid "not in catalog - import via Catalog"
-msgstr "δεν υπάρχει στον κατάλογο - εισαγωγή μέσω Καταλόγου"
+msgid "Not in the catalog: import its product in the Catalog"
+msgstr "Δεν υπάρχει στον κατάλογο: εισαγάγετε το προϊόν του στον Κατάλογο"
 
-msgid "unprogrammed"
-msgstr "μη προγραμματισμένη"
+msgid "Not programmed"
+msgstr "Μη προγραμματισμένη"
 
-msgid "recovered"
-msgstr "ανακτήθηκε"
+msgid "Already in the project, skipped"
+msgstr "Ήδη στο έργο, παραλείφθηκε"
 
-msgid "already in project - skipped"
-msgstr "ήδη στο έργο - παραλείφθηκε"
+msgid "Error"
+msgstr "Σφάλμα"
 
-msgid "error"
-msgstr "σφάλμα"
+msgid "Recovered (incomplete)"
+msgstr "Ανακτήθηκε (ελλιπές)"
 
-msgid "%d parameters could not be recovered"
-msgstr "%d παράμετροι δεν ήταν δυνατό να ανακτηθούν"
+msgid "Search Effort"
+msgstr "Έκταση Αναζήτησης"
 
-msgid "%(count)d device(s) could not be added; the reason is in the Recovered column."
-msgstr "Δεν ήταν δυνατή η προσθήκη %(count)d συσκευής(-ών)· η αιτία αναφέρεται στη στήλη «Ανακτήθηκε»."
+msgid "How many values are tried for the settings a device keeps no copy of. More effort finds settings in devices with many channels, but takes longer. Unlimited goes on until no value fits better; Stop ends the search."
+msgstr "Πόσες τιμές δοκιμάζονται για τις ρυθμίσεις των οποίων η συσκευή δεν κρατά αντίγραφο. Μεγαλύτερη έκταση βρίσκει ρυθμίσεις σε συσκευές με πολλά κανάλια, αλλά διαρκεί περισσότερο. Η απεριόριστη συνεχίζει μέχρι καμία τιμή να μην ταιριάζει καλύτερα· η Διακοπή τερματίζει την αναζήτηση."
+
+msgid "Fast"
+msgstr "Γρήγορη"
+
+msgid "Medium"
+msgstr "Μέτρια"
+
+msgid "Maximum"
+msgstr "Μέγιστη"
+
+msgid "Search Again"
+msgstr "Νέα Αναζήτηση"
+
+msgid "Searches the settings of the selected incomplete devices again in what was read from them, with the chosen search effort. Needs no bus. A device already added to the project is replaced (one undo step)."
+msgstr "Αναζητά ξανά τις ρυθμίσεις των επιλεγμένων ελλιπών συσκευών σε όσα διαβάστηκαν από αυτές, με την επιλεγμένη έκταση αναζήτησης. Δεν χρειάζεται δίαυλο. Μια συσκευή που έχει ήδη προστεθεί στο έργο αντικαθίσταται (ένα βήμα αναίρεσης)."
+
+msgid "Searching %(address)s again  (%(done)d/%(total)d)…"
+msgstr "Νέα αναζήτηση για %(address)s  (%(done)d/%(total)d)…"
+
+msgid "more search effort may help"
+msgstr "μεγαλύτερη έκταση αναζήτησης μπορεί να βοηθήσει"
+
+msgid "Unlimited"
+msgstr "Απεριόριστη"
+
+msgid "Result"
+msgstr "Αποτέλεσμα"
+
+msgid "Not read yet"
+msgstr "Δεν έχει διαβαστεί ακόμη"
+
+msgid "Verified"
+msgstr "Επαληθεύτηκε"
+
+msgid "%(count)d group address has no sender or multiple senders."
+msgid_plural "%(count)d group addresses have no sender or multiple senders."
+msgstr[0] "%(count)d διεύθυνση ομάδας δεν έχει αποστολέα ή έχει πολλούς αποστολείς."
+msgstr[1] "%(count)d διευθύνσεις ομάδας δεν έχουν αποστολέα ή έχουν πολλούς αποστολείς."
+
+msgid "Recovered %(count)d device"
+msgid_plural "Recovered %(count)d devices"
+msgstr[0] "Ανακτήθηκε %(count)d συσκευή"
+msgstr[1] "Ανακτήθηκαν %(count)d συσκευές"
+
+msgid "%(count)d group address"
+msgid_plural "%(count)d group addresses"
+msgstr[0] "%(count)d διεύθυνση ομάδας"
+msgstr[1] "%(count)d διευθύνσεις ομάδων"
+
+msgid "%(count)d link"
+msgid_plural "%(count)d links"
+msgstr[0] "%(count)d σύνδεση"
+msgstr[1] "%(count)d συνδέσεις"
+
+msgid "%(count)d parameter"
+msgid_plural "%(count)d parameters"
+msgstr[0] "%(count)d παράμετρος"
+msgstr[1] "%(count)d παράμετροι"
+
+msgid "%(count)d parameter cannot be recovered"
+msgid_plural "%(count)d parameters cannot be recovered"
+msgstr[0] "%(count)d παράμετρος δεν μπορεί να ανακτηθεί"
+msgstr[1] "%(count)d παράμετροι δεν μπορούν να ανακτηθούν"
+
+msgid "%(count)d parameter not found yet"
+msgid_plural "%(count)d parameters not found yet"
+msgstr[0] "%(count)d παράμετρος δεν βρέθηκε ακόμη"
+msgstr[1] "%(count)d παράμετροι δεν βρέθηκαν ακόμη"
+
+msgid "Added %(count)d device to the open project (%(target)s)."
+msgid_plural "Added %(count)d devices to the open project (%(target)s)."
+msgstr[0] "Προστέθηκε %(count)d συσκευή στο ανοιχτό έργο (%(target)s)."
+msgstr[1] "Προστέθηκαν %(count)d συσκευές στο ανοιχτό έργο (%(target)s)."
+
+msgid "Created new project %(target)s with %(count)d device."
+msgid_plural "Created new project %(target)s with %(count)d devices."
+msgstr[0] "Δημιουργήθηκε νέο έργο %(target)s με %(count)d συσκευή."
+msgstr[1] "Δημιουργήθηκε νέο έργο %(target)s με %(count)d συσκευές."
+
+msgid "%(count)d device could not be added; the reason is in the Result column."
+msgid_plural "%(count)d devices could not be added; the reason is in the Result column."
+msgstr[0] "Δεν ήταν δυνατή η προσθήκη %(count)d συσκευής· η αιτία αναφέρεται στη στήλη «Αποτέλεσμα»."
+msgstr[1] "Δεν ήταν δυνατή η προσθήκη %(count)d συσκευών· η αιτία αναφέρεται στη στήλη «Αποτέλεσμα»."
+
+msgid "Differs from the device: %(what)s"
+msgstr "Διαφέρει από τη συσκευή: %(what)s"
+
+msgid "%(count)d byte"
+msgid_plural "%(count)d bytes"
+msgstr[0] "%(count)d byte"
+msgstr[1] "%(count)d byte"
+
+msgid "%(count)d group object"
+msgid_plural "%(count)d group objects"
+msgstr[0] "%(count)d αντικείμενο επικοινωνίας"
+msgstr[1] "%(count)d αντικείμενα επικοινωνίας"
+
+msgid "Verify: %(count)d byte differs"
+msgid_plural "Verify: %(count)d bytes differ"
+msgstr[0] "Επαλήθευση: διαφέρει %(count)d byte"
+msgstr[1] "Επαλήθευση: διαφέρουν %(count)d byte"
+
+msgid "Import Snapshot…"
+msgstr "Εισαγωγή Στιγμιότυπου…"
+
+msgid "Imported %(count)d device from %(file)s."
+msgid_plural "Imported %(count)d devices from %(file)s."
+msgstr[0] "Εισήχθη %(count)d συσκευή από το %(file)s."
+msgstr[1] "Εισήχθησαν %(count)d συσκευές από το %(file)s."
+
+msgid "%(file)s is no recovery snapshot: %(error)s"
+msgstr "Το %(file)s δεν είναι στιγμιότυπο ανάκτησης: %(error)s"
+
+msgid "Recovery Snapshot (*.json)"
+msgstr "Στιγμιότυπο Ανάκτησης (*.json)"
+
+msgid "All Files"
+msgstr "Όλα τα αρχεία"

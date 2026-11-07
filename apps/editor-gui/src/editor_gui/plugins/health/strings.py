@@ -21,9 +21,11 @@ class HealthStrings:
     def HEALTH_ALL_GOOD(self) -> str:
         return _("No issues found")
 
-    @property
-    def HEALTH_SUMMARY(self) -> str:
-        return _("{errors} errors, {warnings} warnings")
+    def HEALTH_ERRORS(self, count: int) -> str:
+        return _.plural("{count} error", "{count} errors", count)
+
+    def HEALTH_WARNINGS(self, count: int) -> str:
+        return _.plural("{count} warning", "{count} warnings", count)
 
     @property
     def HEALTH_NO_ADDRESS(self) -> str:
@@ -33,13 +35,19 @@ class HealthStrings:
     def HEALTH_DUPLICATE_ADDRESS(self) -> str:
         return _("Duplicate individual address {address} ({device})")
 
-    @property
-    def HEALTH_SKIPPED(self) -> str:
-        return _("{count} device(s) skipped: application not in catalog")
+    def HEALTH_SKIPPED(self, count: int) -> str:
+        return _.plural(
+            "{count} device skipped: application not in catalog",
+            "{count} devices skipped: application not in catalog",
+            count,
+        )
 
-    @property
-    def HEALTH_UNLINKED(self) -> str:
-        return _("{device}: {count} unlinked group object(s)")
+    def HEALTH_UNLINKED(self, count: int) -> str:
+        return _.plural(
+            "{device}: {count} unlinked group object",
+            "{device}: {count} unlinked group objects",
+            count,
+        )
 
     @property
     def HEALTH_NO_DPT(self) -> str:
@@ -49,9 +57,12 @@ class HealthStrings:
     def HEALTH_NO_SENDER(self) -> str:
         return _("{address} {name}: no sending group object")
 
-    @property
-    def HEALTH_SENDERS(self) -> str:
-        return _("{address} {name}: {count} sending group objects")
+    def HEALTH_SENDERS(self, count: int) -> str:
+        return _.plural(
+            "{address} {name}: {count} sending group object",
+            "{address} {name}: {count} sending group objects",
+            count,
+        )
 
 
 S = HealthStrings()

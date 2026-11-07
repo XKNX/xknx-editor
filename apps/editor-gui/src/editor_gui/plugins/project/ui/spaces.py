@@ -480,7 +480,7 @@ class SpacesPanel:
                 name = usage_label(row.choice)
             name = name or fallback
             label = (
-                several.format(count=row.count, target=parent_name)
+                several(row.count).format(count=row.count, target=parent_name)
                 if row.count > 1
                 else None
             )
@@ -610,7 +610,9 @@ class SpacesPanel:
         for row in request.rows:
             name = row.name.strip() or default_function_name(row.choice)
             label = (
-                S.HISTORY_EV_ADDED_FUNCTIONS.format(count=row.count, target=target)
+                S.HISTORY_EV_ADDED_FUNCTIONS(row.count).format(
+                    count=row.count, target=target
+                )
                 if row.count > 1
                 else None
             )

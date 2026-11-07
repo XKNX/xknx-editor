@@ -116,7 +116,7 @@ class HealthService:
             Finding(
                 Severity.WARNING,
                 "catalog",
-                S.HEALTH_SKIPPED.format(count=len(refs)),
+                S.HEALTH_SKIPPED(len(refs)).format(count=len(refs)),
             )
         ]
 
@@ -138,7 +138,7 @@ class HealthService:
                     Finding(
                         Severity.INFO,
                         "com-object",
-                        S.HEALTH_UNLINKED.format(
+                        S.HEALTH_UNLINKED(unlinked).format(
                             device=device_label(d), count=unlinked
                         ),
                         d.node_id,
@@ -179,7 +179,7 @@ class HealthService:
                         Finding(
                             Severity.WARNING,
                             "group-address",
-                            S.HEALTH_SENDERS.format(
+                            S.HEALTH_SENDERS(senders).format(
                                 address=ga.address, name=ga.name, count=senders
                             ),
                             ga_id=ga.id,

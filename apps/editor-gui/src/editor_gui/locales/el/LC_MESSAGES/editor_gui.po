@@ -88,9 +88,6 @@ msgstr "Διακοπή"
 msgid "All Files"
 msgstr "Όλα τα αρχεία"
 
-msgid "Project: {name}  ·  {devices} devices  ·  {gas} GAs"
-msgstr "Έργο: {name}  ·  {devices} συσκευές  ·  {gas} διευθ. ομάδων"
-
 msgid "No project open"
 msgstr "Δεν υπάρχει ανοιχτό έργο"
 
@@ -241,9 +238,6 @@ msgstr "Εξαγωγή Διευθύνσεων Ομάδων…"
 msgid "Import Group Addresses…"
 msgstr "Εισαγωγή Διευθύνσεων Ομάδων…"
 
-msgid "Exported {count} group address(es)"
-msgstr "Εξήχθησαν {count} διεύθυνση(-εις) ομάδας"
-
 msgid "Export Group Addresses"
 msgstr "Εξαγωγή Διευθύνσεων Ομάδων"
 
@@ -358,26 +352,8 @@ msgstr "Το έργο σας άνοιξε κανονικά και ό,τι χρε
 msgid "This project came from a file with a few extra details this editor does not use. The export leaves these out:"
 msgstr "Αυτό το έργο προέρχεται από ένα αρχείο με μερικές επιπλέον λεπτομέρειες που αυτός ο επεξεργαστής δεν χρησιμοποιεί. Η εξαγωγή τις παραλείπει:"
 
-msgid "The original file had {count} installations. They were combined into one."
-msgstr "Το αρχικό αρχείο είχε {count} εγκαταστάσεις. Συνδυάστηκαν σε μία."
-
-msgid "{count} device(s) aren't assigned to a line. They're kept in the project and included on export, but can't be edited here yet."
-msgstr "{count} συσκευή(-ές) δεν είναι αντιστοιχισμένες σε γραμμή. Διατηρούνται στο έργο και περιλαμβάνονται στην εξαγωγή, αλλά δεν μπορούν ακόμη να επεξεργαστούν εδώ."
-
-msgid "{count} group object(s) had an extra description in the original file. The custom name and function are kept; only that description is not shown here."
-msgstr "{count} αντικείμενο(-α) επικοινωνίας είχαν μια επιπλέον περιγραφή στο αρχικό αρχείο. Το προσαρμοσμένο όνομα και η λειτουργία διατηρούνται· μόνο αυτή η περιγραφή δεν εμφανίζεται εδώ."
-
 msgid "For example: {examples}"
 msgstr "Για παράδειγμα: {examples}"
-
-msgid "{count} IP or function setting(s) from the original file are not used here."
-msgstr "{count} ρύθμιση(-εις) IP ή λειτουργίας από το αρχικό αρχείο δεν χρησιμοποιούνται εδώ."
-
-msgid "{count} line(s) use several segments. In a schema 14/20 export they are shown at line level only."
-msgstr "{count} γραμμή(-ές) χρησιμοποιούν πολλά τμήματα. Σε εξαγωγή με σχήμα 14/20 εμφανίζονται μόνο σε επίπεδο γραμμής."
-
-msgid "{count} line(s) had the same address in different installations. One of each was kept when combining."
-msgstr "{count} γραμμή(-ές) είχαν την ίδια διεύθυνση σε διαφορετικές εγκαταστάσεις. Κατά τον συνδυασμό διατηρήθηκε μία από την καθεμία."
 
 msgid "Exporting {name} — this can take a while for large projects."
 msgstr "Εξαγωγή του {name} — αυτό μπορεί να διαρκέσει λίγο σε μεγάλα έργα."
@@ -498,15 +474,6 @@ msgstr "Η σύνδεση απέτυχε: {error}"
 
 msgid "Format Version"
 msgstr "Έκδοση Μορφής"
-
-msgid "Remove device(s) & re-export"
-msgstr "Αφαίρεση συσκευής(-ών) & νέα εξαγωγή"
-
-msgid "Removed {count} incompatible device(s); re-exporting"
-msgstr "Αφαιρέθηκαν {count} μη συμβατή(-ές) συσκευή(-ές)· νέα εξαγωγή"
-
-msgid "This file will NOT import into the chosen ETS version: the product data of these manufacturers only exists for a newer ETS (e.g. an ETS 6 product in an ETS 5 export), so ETS rejects the whole project. Remove the affected device(s) or export for the newer ETS."
-msgstr "Αυτό το αρχείο ΔΕΝ θα εισαχθεί στην επιλεγμένη έκδοση ETS: τα δεδομένα προϊόντων αυτών των κατασκευαστών υπάρχουν μόνο για νεότερο ETS (π.χ. ένα προϊόν ETS 6 σε εξαγωγή ETS 5), οπότε το ETS απορρίπτει ολόκληρο το έργο. Αφαιρέστε τις επηρεαζόμενες συσκευές ή κάντε εξαγωγή για το νεότερο ETS."
 
 msgid "ETS 6 (schema 23)"
 msgstr "ETS 6 (σχήμα 23)"
@@ -903,9 +870,6 @@ msgstr "{done}/{total} προγράμματα εφαρμογής"
 
 msgid "Import cancelled, nothing was imported"
 msgstr "Η εισαγωγή ακυρώθηκε, δεν εισήχθη τίποτα"
-
-msgid "Imported {count} product version(s) from {name}:"
-msgstr "Εισήχθησαν {count} έκδοση(-εις) προϊόντος από το {name}:"
 
 msgid "KNX Secure"
 msgstr "KNX Secure"
@@ -1620,3 +1584,74 @@ msgstr "Εισαγωγή των δεδομένων προϊόντων του έ�
 
 msgid "This is done once on this computer, for the products its catalog does not have yet. For a large project it can take a few minutes."
 msgstr "Γίνεται μόνο μία φορά σε αυτόν τον υπολογιστή, για τα προϊόντα που δεν έχει ακόμη ο κατάλογός του. Σε ένα μεγάλο έργο μπορεί να διαρκέσει μερικά λεπτά."
+
+msgid "Project: {name}  ·  {devices}  ·  {gas}"
+msgstr "Έργο: {name}  ·  {devices}  ·  {gas}"
+
+msgid "{count} device"
+msgid_plural "{count} devices"
+msgstr[0] "{count} συσκευή"
+msgstr[1] "{count} συσκευές"
+
+msgid "{count} GA"
+msgid_plural "{count} GAs"
+msgstr[0] "{count} διευθ. ομάδας"
+msgstr[1] "{count} διευθ. ομάδων"
+
+msgid "Exported {count} group address"
+msgid_plural "Exported {count} group addresses"
+msgstr[0] "Εξήχθη {count} διεύθυνση ομάδας"
+msgstr[1] "Εξήχθησαν {count} διευθύνσεις ομάδας"
+
+msgid "The original file had {count} installation. It was combined into one."
+msgid_plural "The original file had {count} installations. They were combined into one."
+msgstr[0] "Το αρχικό αρχείο είχε {count} εγκατάσταση. Συνδυάστηκε σε μία."
+msgstr[1] "Το αρχικό αρχείο είχε {count} εγκαταστάσεις. Συνδυάστηκαν σε μία."
+
+msgid "{count} device isn't assigned to a line. It's kept in the project and included on export, but can't be edited here yet."
+msgid_plural "{count} devices aren't assigned to a line. They're kept in the project and included on export, but can't be edited here yet."
+msgstr[0] "{count} συσκευή δεν είναι αντιστοιχισμένη σε γραμμή. Διατηρείται στο έργο και περιλαμβάνεται στην εξαγωγή, αλλά δεν μπορεί ακόμη να επεξεργαστεί εδώ."
+msgstr[1] "{count} συσκευές δεν είναι αντιστοιχισμένες σε γραμμή. Διατηρούνται στο έργο και περιλαμβάνονται στην εξαγωγή, αλλά δεν μπορούν ακόμη να επεξεργαστούν εδώ."
+
+msgid "{count} group object had an extra description in the original file. The custom name and function are kept; only that description is not shown here."
+msgid_plural "{count} group objects had an extra description in the original file. The custom name and function are kept; only that description is not shown here."
+msgstr[0] "{count} αντικείμενο επικοινωνίας είχε μια επιπλέον περιγραφή στο αρχικό αρχείο. Το προσαρμοσμένο όνομα και η λειτουργία διατηρούνται· μόνο αυτή η περιγραφή δεν εμφανίζεται εδώ."
+msgstr[1] "{count} αντικείμενα επικοινωνίας είχαν μια επιπλέον περιγραφή στο αρχικό αρχείο. Το προσαρμοσμένο όνομα και η λειτουργία διατηρούνται· μόνο αυτή η περιγραφή δεν εμφανίζεται εδώ."
+
+msgid "{count} IP or function setting from the original file is not used here."
+msgid_plural "{count} IP or function settings from the original file are not used here."
+msgstr[0] "{count} ρύθμιση IP ή λειτουργίας από το αρχικό αρχείο δεν χρησιμοποιείται εδώ."
+msgstr[1] "{count} ρυθμίσεις IP ή λειτουργίας από το αρχικό αρχείο δεν χρησιμοποιούνται εδώ."
+
+msgid "{count} line uses several segments. In a schema 14/20 export it is shown at line level only."
+msgid_plural "{count} lines use several segments. In a schema 14/20 export they are shown at line level only."
+msgstr[0] "{count} γραμμή χρησιμοποιεί πολλά τμήματα. Σε εξαγωγή με σχήμα 14/20 εμφανίζεται μόνο σε επίπεδο γραμμής."
+msgstr[1] "{count} γραμμές χρησιμοποιούν πολλά τμήματα. Σε εξαγωγή με σχήμα 14/20 εμφανίζονται μόνο σε επίπεδο γραμμής."
+
+msgid "{count} line had the same address in different installations. One of each was kept when combining."
+msgid_plural "{count} lines had the same address in different installations. One of each was kept when combining."
+msgstr[0] "{count} γραμμή είχε την ίδια διεύθυνση σε διαφορετικές εγκαταστάσεις. Κατά τον συνδυασμό διατηρήθηκε μία από την καθεμία."
+msgstr[1] "{count} γραμμές είχαν την ίδια διεύθυνση σε διαφορετικές εγκαταστάσεις. Κατά τον συνδυασμό διατηρήθηκε μία από την καθεμία."
+
+msgid "Remove Device & Re-Export"
+msgid_plural "Remove Devices & Re-Export"
+msgstr[0] "Αφαίρεση συσκευής & νέα εξαγωγή"
+msgstr[1] "Αφαίρεση συσκευών & νέα εξαγωγή"
+
+msgid "Removed {count} incompatible device; re-exporting"
+msgid_plural "Removed {count} incompatible devices; re-exporting"
+msgstr[0] "Αφαιρέθηκε {count} μη συμβατή συσκευή· νέα εξαγωγή"
+msgstr[1] "Αφαιρέθηκαν {count} μη συμβατές συσκευές· νέα εξαγωγή"
+
+msgid "This file will NOT import into the chosen ETS version: the product data of these manufacturers only exists for a newer ETS (e.g. an ETS 6 product in an ETS 5 export), so the whole project is rejected."
+msgstr "Αυτό το αρχείο ΔΕΝ θα εισαχθεί στην επιλεγμένη έκδοση ETS: τα δεδομένα προϊόντων αυτών των κατασκευαστών υπάρχουν μόνο για νεότερο ETS (π.χ. ένα προϊόν ETS 6 σε εξαγωγή ETS 5), οπότε το ETS απορρίπτει ολόκληρο το έργο."
+
+msgid "Remove the affected device or export for the newer ETS."
+msgid_plural "Remove the affected devices or export for the newer ETS."
+msgstr[0] "Αφαιρέστε την επηρεαζόμενη συσκευή ή κάντε εξαγωγή για το νεότερο ETS."
+msgstr[1] "Αφαιρέστε τις επηρεαζόμενες συσκευές ή κάντε εξαγωγή για το νεότερο ETS."
+
+msgid "Imported {count} product version from {name}:"
+msgid_plural "Imported {count} product versions from {name}:"
+msgstr[0] "Εισήχθη {count} έκδοση προϊόντος από το {name}:"
+msgstr[1] "Εισήχθησαν {count} εκδόσεις προϊόντος από το {name}:"

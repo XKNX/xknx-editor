@@ -9,6 +9,7 @@ import ast
 import re
 import struct
 from pathlib import Path
+from typing import cast
 
 import pytest
 from editor_gui.languages import TRANSLATED
@@ -81,3 +82,53 @@ def test_texts_are_translated(
 def test_all_strings_modules_found() -> None:
     domains = {domain for _module, domain, _dir in _modules()}
     assert {"project", "editor_gui", "widgets", "monitor"} <= domains
+
+
+def _plurals(module: Path) -> set[tuple[str, str]]:
+    """The ``(singular, plural)`` texts passed to ``_.plural`` in a strings module."""
+    texts: set[tuple[str, str]] = set()
+    for node in ast.walk(ast.parse(module.read_text("utf-8"))):
+        if (
+            isinstance(node, ast.Call)
+            and isinstance(node.func, ast.Attribute)
+            and node.func.attr == "plural"
+            and isinstance(node.func.value, ast.Name)
+            and node.func.value.id == "_"
+            and len(node.args) >= 2
+            and all(
+                isinstance(arg, ast.Constant) and isinstance(arg.value, str)
+                for arg in node.args[:2]
+            )
+        ):
+            singular, plural = (cast(ast.Constant, arg).value for arg in node.args[:2])
+            texts.add((singular, plural))
+    return texts
+
+
+def _placeholders(text: str) -> set[str]:
+    return set(re.findall(r"%\(\w+\)[sd]|\{\w+[^}]*\}", text))
+
+
+@pytest.mark.parametrize("language", _LANGUAGES)
+@pytest.mark.parametrize(
+    ("module", "domain", "locale_dir"),
+    [pytest.param(*entry, id=entry[1]) for entry in _modules()],
+)
+def test_counts_have_every_plural_form(
+    module: Path, domain: str, locale_dir: Path, language: str
+) -> None:
+    # A text with a count has as many forms as the language's plural rule, each with the
+    # placeholders of the English text.
+    catalog = locale_dir / language / "LC_MESSAGES" / f"{domain}.mo"
+    translations = _read_mo(catalog.read_bytes())
+    rule = re.search(r"nplurals=(\d+)", translations.get("", ""))
+    forms = int(rule.group(1)) if rule else 2
+    for singular, plural in sorted(_plurals(module)):
+        translated = translations.get(f"{singular}\x00{plural}", "").split("\x00")
+        assert len(translated) == forms and all(translated), (
+            f"{language} {domain}: {singular!r} needs {forms} forms, has {translated}"
+        )
+        for form in translated:
+            assert _placeholders(form) == _placeholders(plural), (
+                f"{language} {domain}: {form!r} lacks placeholders of {plural!r}"
+            )

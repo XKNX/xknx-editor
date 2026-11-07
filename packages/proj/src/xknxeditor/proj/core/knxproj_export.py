@@ -332,6 +332,14 @@ def _check_master(master: bytes, source: str, ns: str) -> bytes:
     return master
 
 
+def _in_schema(master: bytes, schema: str) -> bool:
+    """Whether ``master`` is a master of ``schema`` (its namespace)."""
+    try:
+        return ET.fromstring(master).tag == f"{{{_ns_for(schema)}}}KNX"
+    except ET.ParseError:
+        return False
+
+
 def _unzip_members(blob: bytes | None) -> dict[str, bytes]:
     """Unpack the stored manufacturer-provenance ZIP blob into ``{path: bytes}`` (empty if none)."""
     if not blob:
@@ -645,6 +653,14 @@ def _resolve_export_sources(
             )
     elif effective_master is None and master_source is not None:
         effective_master = _source_master(master_source, schema)
+    if effective_master is not None and not _in_schema(effective_master, schema):
+        # A master of another schema (a product's own project/12 one, without a download)
+        # is read with that schema's layout: an import of the archive found no links in it.
+        logger.warning(
+            "the master data available is not of project/%s; using a generated one",
+            schema,
+        )
+        effective_master = None
     if effective_master is None:
         logger.info("no signed master data available; using generated unsigned master")
 

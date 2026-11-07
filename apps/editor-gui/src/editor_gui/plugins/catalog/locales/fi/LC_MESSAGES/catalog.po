@@ -16,12 +16,6 @@ msgstr "Arkiston lataaminen epäonnistui"
 msgid "Loaded: {path}"
 msgstr "Ladattu: {path}"
 
-msgid "Found {count} application(s)"
-msgstr "Sovelluksia löytyi: {count}"
-
-msgid "({count} group objects)"
-msgstr "({count} ryhmäobjektia)"
-
 msgid "Fetch Online Catalog"
 msgstr "Hae verkkoluettelo"
 
@@ -30,9 +24,6 @@ msgstr "Ladataan valmistajaluetteloa…"
 
 msgid "Online catalog not reachable"
 msgstr "Verkkoluetteloon ei saada yhteyttä"
-
-msgid "{count} matches"
-msgstr "Osumia: {count}"
 
 msgid "Loading products…"
 msgstr "Ladataan tuotteita…"
@@ -52,9 +43,6 @@ msgstr "(paikallisessa luettelossa)"
 msgid "Search products, order number…"
 msgstr "Etsi tuotteita, tilausnumeroa…"
 
-msgid "Product Index ({date}): {mfrs} manufacturers, {products} products"
-msgstr "Tuotehakemisto ({date}): {mfrs} valmistajaa, {products} tuotetta"
-
 msgid "No Product Index yet - fetch the online catalog to build it"
 msgstr "Tuotehakemistoa ei vielä ole – hae verkkoluettelo sen luomiseksi"
 
@@ -66,9 +54,6 @@ msgstr "Peruuta"
 
 msgid "Fetch the online catalog to search across all manufacturers."
 msgstr "Hae verkkoluettelo, jotta voit etsiä kaikkien valmistajien tuotteista."
-
-msgid "Showing {shown} of {total} matches - refine the search"
-msgstr "Näytetään {shown}/{total} osumaa – tarkenna hakua"
 
 msgid "Product Details"
 msgstr "Tuotteen tiedot"
@@ -133,9 +118,6 @@ msgstr "Verkossa"
 msgid "No products imported yet — import a .knxprod or use the Online tab."
 msgstr "Tuotteita ei ole vielä tuotu — tuo .knxprod-tiedosto tai käytä Verkossa-välilehteä."
 
-msgid "Fetch {count} Missing Application(s) Online"
-msgstr "Hae puuttuvat sovellukset verkosta ({count})"
-
 msgid "Fetching missing applications…"
 msgstr "Haetaan puuttuvia sovelluksia…"
 
@@ -147,9 +129,6 @@ msgstr "Poista paikallisesta luettelosta"
 
 msgid "Are you sure you want to delete the selected device? This cannot be undone."
 msgstr "Haluatko varmasti poistaa valitun laitteen? Tätä ei voi kumota."
-
-msgid "{count} device(s) in the open project use this product. They can't be loaded until the product is imported again."
-msgstr "Avoimessa projektissa tätä tuotetta käyttäviä laitteita: {count}. Niitä ei voi ladata ennen kuin tuote tuodaan uudelleen."
 
 msgid "Deleting {name}…"
 msgstr "Poistetaan: {name}…"
@@ -256,9 +235,6 @@ msgstr "Lähetä koodi uudelleen"
 msgid "Open Website"
 msgstr "Avaa verkkosivusto"
 
-msgid "Imported {count} product versions. Find them in the Local tab."
-msgstr "Tuotiin {count} tuoteversiota. Ne löytyvät Paikallinen-välilehdeltä."
-
 msgid "Login is saved on this computer. Leave the password empty to keep it for the same server and user."
 msgstr "Kirjautumistiedot tallennetaan tälle tietokoneelle. Jätä salasana tyhjäksi säilyttääksesi sen samalle palvelimelle ja käyttäjälle."
 
@@ -276,6 +252,7 @@ msgstr "Versio"
 
 msgid "Register…"
 msgstr "Rekisteröidy…"
+
 msgid "Alternative Catalog"
 msgstr "Alternative Catalog"
 
@@ -299,3 +276,51 @@ msgstr "Salasanassa on oltava vähintään 10 merkkiä, isoja ja pieniä kirjaim
 
 msgid "Enter the six-digit code from the email."
 msgstr "Anna sähköpostin kuusinumeroinen koodi."
+
+msgid "Imported {count} product version. Find it in the Local tab."
+msgid_plural "Imported {count} product versions. Find them in the Local tab."
+msgstr[0] "Tuotiin {count} tuoteversio. Se löytyy Paikallinen-välilehdeltä."
+msgstr[1] "Tuotiin {count} tuoteversiota. Ne löytyvät Paikallinen-välilehdeltä."
+
+msgid "Found {count} application"
+msgid_plural "Found {count} applications"
+msgstr[0] "Löytyi {count} sovellus"
+msgstr[1] "Löytyi {count} sovellusta"
+
+msgid "({count} group object)"
+msgid_plural "({count} group objects)"
+msgstr[0] "({count} ryhmäobjekti)"
+msgstr[1] "({count} ryhmäobjektia)"
+
+msgid "{count} match"
+msgid_plural "{count} matches"
+msgstr[0] "{count} osuma"
+msgstr[1] "{count} osumaa"
+
+msgid "Product Index ({date}): {manufacturers}, {products}"
+msgstr "Tuotehakemisto ({date}): {manufacturers}, {products}"
+
+msgid "{count} manufacturer"
+msgid_plural "{count} manufacturers"
+msgstr[0] "{count} valmistaja"
+msgstr[1] "{count} valmistajaa"
+
+msgid "{count} product"
+msgid_plural "{count} products"
+msgstr[0] "{count} tuote"
+msgstr[1] "{count} tuotetta"
+
+msgid "Showing {shown} of {total} match - refine the search"
+msgid_plural "Showing {shown} of {total} matches - refine the search"
+msgstr[0] "Näytetään {shown}/{total} osuma – tarkenna hakua"
+msgstr[1] "Näytetään {shown}/{total} osumaa – tarkenna hakua"
+
+msgid "Fetch {count} Missing Application Online"
+msgid_plural "Fetch {count} Missing Applications Online"
+msgstr[0] "Hae {count} puuttuva sovellus verkosta"
+msgstr[1] "Hae {count} puuttuvaa sovellusta verkosta"
+
+msgid "{count} device in the open project uses this product. It can't be loaded until the product is imported again."
+msgid_plural "{count} devices in the open project use this product. They can't be loaded until the product is imported again."
+msgstr[0] "Avoimessa projektissa {count} laite käyttää tätä tuotetta. Sitä ei voi ladata ennen kuin tuote tuodaan uudelleen."
+msgstr[1] "Avoimessa projektissa {count} laitetta käyttää tätä tuotetta. Niitä ei voi ladata ennen kuin tuote tuodaan uudelleen."

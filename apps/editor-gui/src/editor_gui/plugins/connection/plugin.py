@@ -47,6 +47,7 @@ from editor_gui.programming import (
 from editor_gui.settings import load_settings, save_settings
 from editor_gui.settings_window import Setting
 from editor_gui.strings import S as app_strings
+from editor_gui.theme import status_color
 from editor_gui.widgets.checkbox import radio_button
 from editor_gui.widgets.dialog import (
     begin_dialog,
@@ -1156,7 +1157,7 @@ class ConnectionPlugin:
             else S.SELECT_CONNECTION_AUTOMATIC
         )
         for name, error in failures:
-            imgui.push_style_color(imgui.Col_.text, imgui.ImVec4(0.9, 0.4, 0.4, 1.0))
+            imgui.push_style_color(imgui.Col_.text, status_color("error"))
             imgui.text_wrapped(
                 S.SELECT_CONNECTION_FAILED.format(name=name, error=error)
             )
@@ -1628,7 +1629,7 @@ class ConnectionPlugin:
             imgui.dummy(px_vec2(12, 0))
             imgui.same_line()
             imgui.text_colored(
-                imgui.ImVec4(0.95, 0.6, 0.15, 1.0),
+                status_color("warning"),
                 S.STATUS_BUSMONITOR.format(ip=self._busmonitor_target),
             )
             if imgui.is_item_hovered():
@@ -1668,7 +1669,7 @@ class ConnectionPlugin:
                 else S.STATUS_UNKNOWN_ERROR
             )
             imgui.text_colored(
-                imgui.ImVec4(0.8, 0.2, 0.2, 1.0),
+                status_color("error"),
                 S.STATUS_ERROR.format(error=error_short),
             )
             if self._error_message and imgui.is_item_hovered():
@@ -1744,14 +1745,13 @@ class ConnectionPlugin:
         if not self._progmode_results:
             if self._progmode_error is not None:
                 imgui.push_text_wrap_pos(0.0)
-                imgui.text_colored(
-                    imgui.ImVec4(0.95, 0.55, 0.35, 1.0), self._progmode_error
-                )
+                imgui.text_colored(status_color("error"), self._progmode_error)
                 imgui.pop_text_wrap_pos()
             elif self._progmode_scanned and not self._progmode_scanning:
                 imgui.text_disabled(S.PROGMODE_NONE)
             return
-        imgui.text_disabled(S.PROGMODE_COUNT.format(count=len(self._progmode_results)))
+        count = len(self._progmode_results)
+        imgui.text_disabled(S.PROGMODE_COUNT(count).format(count=count))
         imgui.spacing()
         for index, found in enumerate(self._progmode_results):
             self._render_progmode_device(index, found)
@@ -1773,9 +1773,7 @@ class ConnectionPlugin:
             return
         imgui.indent()
         if unprogrammed:
-            imgui.text_colored(
-                imgui.ImVec4(0.95, 0.75, 0.35, 1.0), S.PROGMODE_UNPROGRAMMED
-            )
+            imgui.text_colored(status_color("warning"), S.PROGMODE_UNPROGRAMMED)
         elif device is not None:
             imgui.text_disabled(S.PROGMODE_IN_PROJECT.format(name=device.name))
             imgui.same_line()
@@ -1789,7 +1787,7 @@ class ConnectionPlugin:
         if overview is None:
             imgui.push_text_wrap_pos(0.0)
             imgui.text_colored(
-                imgui.ImVec4(0.95, 0.55, 0.35, 1.0),
+                status_color("error"),
                 S.PROGMODE_READ_FAILED.format(error=found.error or ""),
             )
             imgui.pop_text_wrap_pos()
@@ -1872,14 +1870,12 @@ class ConnectionPlugin:
         imgui.text_disabled(S.PROGMODE_STATUS)
         imgui.same_line(_progmode_label_width())
         if overview.error_code is None or overview.error_code == 0:
-            imgui.text_colored(imgui.ImVec4(0.45, 0.8, 0.45, 1.0), S.PROGMODE_STATUS_OK)
+            imgui.text_colored(status_color("success"), S.PROGMODE_STATUS_OK)
         else:
-            imgui.text_colored(
-                imgui.ImVec4(0.95, 0.55, 0.35, 1.0), overview.error_text or ""
-            )
+            imgui.text_colored(status_color("error"), overview.error_text or "")
         if overview.programming_mode:
             imgui.same_line()
-            imgui.text_colored(imgui.ImVec4(0.95, 0.75, 0.35, 1.0), S.PROGMODE_FLAG_ON)
+            imgui.text_colored(status_color("warning"), S.PROGMODE_FLAG_ON)
 
     @property
     def menu_label(self) -> str:
@@ -1918,9 +1914,7 @@ class ConnectionPlugin:
             if imgui.menu_item(S.SELECT_CONNECTION_CANCEL, "", False)[0]:
                 self.disconnect()
         elif self._state == ConnectionState.ERROR:
-            imgui.text_colored(
-                imgui.ImVec4(0.8, 0.2, 0.2, 1.0), S.STATUS_CONNECTION_FAILED
-            )
+            imgui.text_colored(status_color("error"), S.STATUS_CONNECTION_FAILED)
             if self._error_message:
                 imgui.text_wrapped(self._error_message)
             imgui.separator()
@@ -1942,9 +1936,7 @@ class ConnectionPlugin:
             if usb.device.serial_number:
                 imgui.text(S.USB_SERIAL_NUMBER.format(serial=usb.device.serial_number))
             if not usb.bus_connected:
-                imgui.text_colored(
-                    imgui.ImVec4(0.95, 0.55, 0.35, 1.0), S.USB_NOT_ON_BUS
-                )
+                imgui.text_colored(status_color("warning"), S.USB_NOT_ON_BUS)
             return
         gateway = self._gateway_info
         if gateway is None:

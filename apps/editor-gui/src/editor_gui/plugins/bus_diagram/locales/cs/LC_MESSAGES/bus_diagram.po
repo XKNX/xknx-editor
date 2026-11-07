@@ -106,9 +106,6 @@ msgstr "Budovy"
 msgid "+ {count} more"
 msgstr "+ další: {count}"
 
-msgid "{count} more devices outside the selection. Click to show them."
-msgstr "Další zařízení mimo výběr: {count}. Kliknutím je zobrazíte."
-
 msgid "{address}\n{senders} sending, {receivers} receiving"
 msgstr "{address}\nvysílající: {senders}, přijímající: {receivers}"
 
@@ -129,3 +126,9 @@ msgstr "Adresa: {address}"
 
 msgid "Application: {application}"
 msgstr "Aplikace: {application}"
+
+msgid "{count} more device outside the selection. Click to show it."
+msgid_plural "{count} more devices outside the selection. Click to show them."
+msgstr[0] "{count} další zařízení mimo výběr. Kliknutím ho zobrazíte."
+msgstr[1] "{count} další zařízení mimo výběr. Kliknutím je zobrazíte."
+msgstr[2] "{count} dalších zařízení mimo výběr. Kliknutím je zobrazíte."

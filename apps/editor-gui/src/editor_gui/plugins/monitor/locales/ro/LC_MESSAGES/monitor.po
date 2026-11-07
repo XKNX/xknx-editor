@@ -115,9 +115,6 @@ msgstr "Afișare informații extinse"
 msgid "Hide Extended Information"
 msgstr "Ascundere informații extinse"
 
-msgid "{count} telegrams exported to {path}"
-msgstr "Telegrame exportate în {path}: {count}"
-
 msgid "Export failed: {error}"
 msgstr "Exportul a eșuat: {error}"
 
@@ -133,14 +130,8 @@ msgstr "Extins"
 msgid "Standard"
 msgstr "Standard"
 
-msgid "{count} entries loaded from {path}"
-msgstr "Intrări încărcate din {path}: {count}"
-
 msgid "Loading failed: {error}"
 msgstr "Încărcarea a eșuat: {error}"
-
-msgid "{count} telegrams in another frame format were skipped"
-msgstr "Telegrame în alt format de cadru omise: {count}"
 
 msgid "Connection was established"
 msgstr "Conexiunea a fost stabilită"
@@ -191,7 +182,10 @@ msgid "Group Objects"
 msgstr "Obiecte de comunicare"
 
 msgid "{count} telg."
-msgstr "Telegrame: {count}"
+msgid_plural "{count} telg."
+msgstr[0] "Telegrame: {count}"
+msgstr[1] "Telegrame: {count}"
+msgstr[2] "Telegrame: {count}"
 
 msgid "Enter a group address of the project to send to it."
 msgstr "Introduceți o adresă de grup din proiect pentru a transmite către ea."
@@ -238,17 +232,8 @@ msgstr "Telegramele nu au fost exportate. Încărcarea unei înregistrări le î
 msgid "Unsaved Telegrams"
 msgstr "Telegrame nesalvate"
 
-msgid "Replay cancelled: {count} telegrams sent"
-msgstr "Redare întreruptă: telegrame transmise: {count}"
-
-msgid "Replay finished: {count} telegrams sent"
-msgstr "Redare finalizată: telegrame transmise: {count}"
-
 msgid "There are no group telegrams to replay"
 msgstr "Nu există telegrame de grup de redat"
-
-msgid "{count} Data Secure telegrams are not replayed"
-msgstr "Telegrame Data Secure care nu sunt redate: {count}"
 
 msgid "Comment"
 msgstr "Comentariu"
@@ -393,3 +378,39 @@ msgstr "Max."
 
 msgid "Maximum telegrams this monitor keeps. The oldest tenth is dropped when the cap is exceeded."
 msgstr "Numărul maxim de telegrame păstrate de acest monitor. Cea mai veche zecime este eliminată când limita este depășită."
+
+msgid "{count} telegram exported to {path}"
+msgid_plural "{count} telegrams exported to {path}"
+msgstr[0] "{count} telegramă exportată în {path}"
+msgstr[1] "{count} telegrame exportate în {path}"
+msgstr[2] "{count} de telegrame exportate în {path}"
+
+msgid "{count} entry loaded from {path}"
+msgid_plural "{count} entries loaded from {path}"
+msgstr[0] "{count} intrare încărcată din {path}"
+msgstr[1] "{count} intrări încărcate din {path}"
+msgstr[2] "{count} de intrări încărcate din {path}"
+
+msgid "{count} telegram in another frame format was skipped"
+msgid_plural "{count} telegrams in another frame format were skipped"
+msgstr[0] "{count} telegramă în alt format de cadru a fost omisă"
+msgstr[1] "{count} telegrame în alt format de cadru au fost omise"
+msgstr[2] "{count} de telegrame în alt format de cadru au fost omise"
+
+msgid "{count} Data Secure telegram is not replayed"
+msgid_plural "{count} Data Secure telegrams are not replayed"
+msgstr[0] "{count} telegramă Data Secure nu este redată"
+msgstr[1] "{count} telegrame Data Secure nu sunt redate"
+msgstr[2] "{count} de telegrame Data Secure nu sunt redate"
+
+msgid "Replay finished: {count} telegram sent"
+msgid_plural "Replay finished: {count} telegrams sent"
+msgstr[0] "Redare finalizată: {count} telegramă transmisă"
+msgstr[1] "Redare finalizată: {count} telegrame transmise"
+msgstr[2] "Redare finalizată: {count} de telegrame transmise"
+
+msgid "Replay cancelled: {count} telegram sent"
+msgid_plural "Replay cancelled: {count} telegrams sent"
+msgstr[0] "Redare întreruptă: {count} telegramă transmisă"
+msgstr[1] "Redare întreruptă: {count} telegrame transmise"
+msgstr[2] "Redare întreruptă: {count} de telegrame transmise"

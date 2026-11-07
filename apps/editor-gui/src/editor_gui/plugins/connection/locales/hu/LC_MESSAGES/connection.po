@@ -145,9 +145,6 @@ msgstr "A keresés nem fejeződhetett be: {error}"
 msgid "Unprogrammed device (factory default address 15.15.255)"
 msgstr "Programozatlan készülék (gyári alapértelmezett cím: 15.15.255)"
 
-msgid "{count} device(s) in programming mode"
-msgstr "Programozási módban lévő készülékek: {count}"
-
 msgid "The interface requires KNX IP Secure, but neither the project nor a loaded keyring has its passwords."
 msgstr "Az interfész KNX IP Secure-t igényel, de sem a projekt, sem egy betöltött kulcskarika nem tartalmazza a jelszavait."
 
@@ -222,3 +219,7 @@ msgstr "Nincs csatlakoztatva a buszhoz"
 
 msgid "Serial Number: {serial}"
 msgstr "Sorozatszám: {serial}"
+
+msgid "{count} device in programming mode"
+msgid_plural "{count} devices in programming mode"
+msgstr[0] "{count} készülék programozási módban"

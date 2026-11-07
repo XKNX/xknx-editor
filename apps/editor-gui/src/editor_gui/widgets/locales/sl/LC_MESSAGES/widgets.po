@@ -175,9 +175,6 @@ msgstr "Vnesite celo število."
 msgid "Enter a value from {minimum} to {maximum}."
 msgstr "Vnesite vrednost od {minimum} do {maximum}."
 
-msgid "Enter at most {count} characters."
-msgstr "Največje dovoljeno število znakov: {count}."
-
 msgid "Enter a value."
 msgstr "Vnesite vrednost."
 
@@ -189,9 +186,6 @@ msgstr "Za ta podatkovni tip ni mogoče vnesti vrednosti."
 
 msgid "Edit…"
 msgstr "Uredi…"
-
-msgid "The text may take at most {count} bytes."
-msgstr "Največja dovoljena dolžina besedila v bajtih: {count}."
 
 msgid "Value {number}"
 msgstr "Vrednost {number}"
@@ -265,9 +259,6 @@ msgstr "Kopiraj {count} B"
 msgid "Go To:"
 msgstr "Pojdi na:"
 
-msgid "{count} difference(s)"
-msgstr "Razlike: {count}"
-
 msgid "no differences"
 msgstr "ni razlik"
 
@@ -303,3 +294,24 @@ msgstr "Izreži"
 
 msgid "Paste"
 msgstr "Prilepi"
+
+msgid "Enter at most {count} character."
+msgid_plural "Enter at most {count} characters."
+msgstr[0] "Vnesite največ {count} znak."
+msgstr[1] "Vnesite največ {count} znaka."
+msgstr[2] "Vnesite največ {count} znake."
+msgstr[3] "Vnesite največ {count} znakov."
+
+msgid "The text may take at most {count} byte."
+msgid_plural "The text may take at most {count} bytes."
+msgstr[0] "Besedilo lahko obsega največ {count} bajt."
+msgstr[1] "Besedilo lahko obsega največ {count} bajta."
+msgstr[2] "Besedilo lahko obsega največ {count} bajte."
+msgstr[3] "Besedilo lahko obsega največ {count} bajtov."
+
+msgid "{count} difference"
+msgid_plural "{count} differences"
+msgstr[0] "{count} razlika"
+msgstr[1] "{count} razliki"
+msgstr[2] "{count} razlike"
+msgstr[3] "{count} razlik"

@@ -28,14 +28,14 @@ msgstr "Scanare"
 msgid "Stop"
 msgstr "Oprire"
 
-msgid "Add to Open Project as Read"
-msgstr "Adăugare la proiectul deschis așa cum au fost citite"
+msgid "Add to Open Project When Read"
+msgstr "Adăugare la proiectul deschis la citire"
 
 msgid "Recover Selected"
 msgstr "Recuperare selecție"
 
-msgid "Create New Project"
-msgstr "Creare proiect nou"
+msgid "Create New Project…"
+msgstr "Creare proiect nou…"
 
 msgid "Add to Open Project"
 msgstr "Adăugare la proiectul deschis"
@@ -43,14 +43,11 @@ msgstr "Adăugare la proiectul deschis"
 msgid "Verify (Read-Only)"
 msgstr "Verificare (doar citire)"
 
-msgid "Export Snapshot"
-msgstr "Export instantaneu"
+msgid "Export Snapshot…"
+msgstr "Export instantaneu…"
 
 msgid "Verifying (re-reading and comparing)…"
 msgstr "Se verifică (recitire și comparare)…"
-
-msgid "%(count)d group address(es) have no sender or multiple senders."
-msgstr "Adrese de grup fără emițător sau cu mai mulți emițători: %(count)d."
 
 msgid "Address"
 msgstr "Adresă"
@@ -88,17 +85,8 @@ msgstr "tabelele de comunicare de grup"
 msgid "parameter memory"
 msgstr "memoria de parametri"
 
-msgid "Recovered %(devices)d device(s): %(group_addresses)d group addresses, %(links)d links, %(unknown)d parameter(s) not recoverable."
-msgstr "Dispozitive recuperate: %(devices)d; adrese de grup: %(group_addresses)d, legături: %(links)d, parametri nerecuperabili: %(unknown)d."
-
 msgid "Recovered"
 msgstr "Recuperat"
-
-msgid "Added %(count)d device(s) to the open project (%(target)s)."
-msgstr "Dispozitive adăugate la proiectul deschis (%(target)s): %(count)d."
-
-msgid "Created new project %(target)s with %(count)d device(s)."
-msgstr "Proiect nou creat: %(target)s (dispozitive: %(count)d)."
 
 msgid "Not connected to a KNX bus."
 msgstr "Neconectat la o magistrală KNX."
@@ -106,29 +94,161 @@ msgstr "Neconectat la o magistrală KNX."
 msgid "Open or create a project to add recovered devices."
 msgstr "Deschideți sau creați un proiect pentru a adăuga dispozitivele recuperate."
 
-msgid "matched"
-msgstr "potrivit"
+msgid "Product found"
+msgstr "Produs găsit"
 
-msgid "confirm product/version, then tick"
-msgstr "confirmați produsul/versiunea, apoi bifați"
+msgid "Check the product and version, then select it"
+msgstr "Verificați produsul și versiunea, apoi selectați-l"
 
-msgid "not in catalog - import via Catalog"
-msgstr "nu este în catalog - importați prin Catalog"
+msgid "Not in the catalog: import its product in the Catalog"
+msgstr "Nu este în catalog: importați produsul său în Catalog"
 
-msgid "unprogrammed"
-msgstr "neprogramat"
+msgid "Not programmed"
+msgstr "Neprogramat"
 
-msgid "recovered"
-msgstr "recuperat"
+msgid "Error"
+msgstr "Eroare"
 
-msgid "error"
-msgstr "eroare"
+msgid "Already in the project, skipped"
+msgstr "Deja în proiect, omis"
 
-msgid "%d parameters could not be recovered"
-msgstr "Parametri care nu au putut fi recuperați: %d"
+msgid "Recovered (incomplete)"
+msgstr "Recuperat (incomplet)"
 
-msgid "already in project - skipped"
-msgstr "există deja în proiect - omis"
+msgid "Search Effort"
+msgstr "Efort de Căutare"
 
-msgid "%(count)d device(s) could not be added; the reason is in the Recovered column."
-msgstr "Dispozitive care nu au putut fi adăugate: %(count)d; motivul este în coloana „Recuperat”."
+msgid "How many values are tried for the settings a device keeps no copy of. More effort finds settings in devices with many channels, but takes longer. Unlimited goes on until no value fits better; Stop ends the search."
+msgstr "Câte valori sunt încercate pentru setările din care dispozitivul nu păstrează o copie. Mai mult efort găsește setări în dispozitivele cu multe canale, dar durează mai mult. Nelimitat continuă până când nicio valoare nu se potrivește mai bine; Oprire încheie căutarea."
+
+msgid "Fast"
+msgstr "Rapid"
+
+msgid "Medium"
+msgstr "Mediu"
+
+msgid "Maximum"
+msgstr "Maxim"
+
+msgid "Search Again"
+msgstr "Caută din Nou"
+
+msgid "Searches the settings of the selected incomplete devices again in what was read from them, with the chosen search effort. Needs no bus. A device already added to the project is replaced (one undo step)."
+msgstr "Caută din nou setările dispozitivelor incomplete selectate în ce s-a citit din ele, cu efortul de căutare ales. Nu are nevoie de magistrală. Un dispozitiv deja adăugat în proiect este înlocuit (un pas de anulare)."
+
+msgid "Searching %(address)s again  (%(done)d/%(total)d)…"
+msgstr "Se caută din nou %(address)s  (%(done)d/%(total)d)…"
+
+msgid "more search effort may help"
+msgstr "mai mult efort de căutare poate ajuta"
+
+msgid "Unlimited"
+msgstr "Nelimitat"
+
+msgid "Result"
+msgstr "Rezultat"
+
+msgid "Not read yet"
+msgstr "Încă necitit"
+
+msgid "Verified"
+msgstr "Verificat"
+
+msgid "%(count)d group address has no sender or multiple senders."
+msgid_plural "%(count)d group addresses have no sender or multiple senders."
+msgstr[0] "%(count)d adresă de grup nu are emițător sau are mai mulți emițători."
+msgstr[1] "%(count)d adrese de grup nu au emițător sau au mai mulți emițători."
+msgstr[2] "%(count)d de adrese de grup nu au emițător sau au mai mulți emițători."
+
+msgid "Recovered %(count)d device"
+msgid_plural "Recovered %(count)d devices"
+msgstr[0] "S-a recuperat %(count)d dispozitiv"
+msgstr[1] "S-au recuperat %(count)d dispozitive"
+msgstr[2] "S-au recuperat %(count)d de dispozitive"
+
+msgid "%(count)d group address"
+msgid_plural "%(count)d group addresses"
+msgstr[0] "%(count)d adresă de grup"
+msgstr[1] "%(count)d adrese de grup"
+msgstr[2] "%(count)d de adrese de grup"
+
+msgid "%(count)d link"
+msgid_plural "%(count)d links"
+msgstr[0] "%(count)d legătură"
+msgstr[1] "%(count)d legături"
+msgstr[2] "%(count)d de legături"
+
+msgid "%(count)d parameter"
+msgid_plural "%(count)d parameters"
+msgstr[0] "%(count)d parametru"
+msgstr[1] "%(count)d parametri"
+msgstr[2] "%(count)d de parametri"
+
+msgid "%(count)d parameter cannot be recovered"
+msgid_plural "%(count)d parameters cannot be recovered"
+msgstr[0] "%(count)d parametru nu poate fi recuperat"
+msgstr[1] "%(count)d parametri nu pot fi recuperați"
+msgstr[2] "%(count)d de parametri nu pot fi recuperați"
+
+msgid "%(count)d parameter not found yet"
+msgid_plural "%(count)d parameters not found yet"
+msgstr[0] "%(count)d parametru încă negăsit"
+msgstr[1] "%(count)d parametri încă negăsiți"
+msgstr[2] "%(count)d de parametri încă negăsiți"
+
+msgid "Added %(count)d device to the open project (%(target)s)."
+msgid_plural "Added %(count)d devices to the open project (%(target)s)."
+msgstr[0] "S-a adăugat %(count)d dispozitiv la proiectul deschis (%(target)s)."
+msgstr[1] "S-au adăugat %(count)d dispozitive la proiectul deschis (%(target)s)."
+msgstr[2] "S-au adăugat %(count)d de dispozitive la proiectul deschis (%(target)s)."
+
+msgid "Created new project %(target)s with %(count)d device."
+msgid_plural "Created new project %(target)s with %(count)d devices."
+msgstr[0] "S-a creat proiectul nou %(target)s cu %(count)d dispozitiv."
+msgstr[1] "S-a creat proiectul nou %(target)s cu %(count)d dispozitive."
+msgstr[2] "S-a creat proiectul nou %(target)s cu %(count)d de dispozitive."
+
+msgid "%(count)d device could not be added; the reason is in the Result column."
+msgid_plural "%(count)d devices could not be added; the reason is in the Result column."
+msgstr[0] "%(count)d dispozitiv nu a putut fi adăugat; motivul este în coloana „Rezultat”."
+msgstr[1] "%(count)d dispozitive nu au putut fi adăugate; motivul este în coloana „Rezultat”."
+msgstr[2] "%(count)d de dispozitive nu au putut fi adăugate; motivul este în coloana „Rezultat”."
+
+msgid "Differs from the device: %(what)s"
+msgstr "Diferă de dispozitiv: %(what)s"
+
+msgid "%(count)d byte"
+msgid_plural "%(count)d bytes"
+msgstr[0] "%(count)d octet"
+msgstr[1] "%(count)d octeți"
+msgstr[2] "%(count)d de octeți"
+
+msgid "%(count)d group object"
+msgid_plural "%(count)d group objects"
+msgstr[0] "%(count)d obiect de comunicare"
+msgstr[1] "%(count)d obiecte de comunicare"
+msgstr[2] "%(count)d de obiecte de comunicare"
+
+msgid "Verify: %(count)d byte differs"
+msgid_plural "Verify: %(count)d bytes differ"
+msgstr[0] "Verificare: %(count)d octet diferă"
+msgstr[1] "Verificare: %(count)d octeți diferă"
+msgstr[2] "Verificare: %(count)d de octeți diferă"
+
+msgid "Import Snapshot…"
+msgstr "Import instantaneu…"
+
+msgid "Imported %(count)d device from %(file)s."
+msgid_plural "Imported %(count)d devices from %(file)s."
+msgstr[0] "S-a importat %(count)d dispozitiv din %(file)s."
+msgstr[1] "S-au importat %(count)d dispozitive din %(file)s."
+msgstr[2] "S-au importat %(count)d de dispozitive din %(file)s."
+
+msgid "%(file)s is no recovery snapshot: %(error)s"
+msgstr "%(file)s nu este un instantaneu de recuperare: %(error)s"
+
+msgid "Recovery Snapshot (*.json)"
+msgstr "Instantaneu de recuperare (*.json)"
+
+msgid "All Files"
+msgstr "Toate fișierele"

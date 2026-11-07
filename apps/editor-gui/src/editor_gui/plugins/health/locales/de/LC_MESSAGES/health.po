@@ -16,20 +16,11 @@ msgstr "Kein Projekt geöffnet"
 msgid "No issues found"
 msgstr "Keine Probleme gefunden"
 
-msgid "{errors} errors, {warnings} warnings"
-msgstr "{errors} Fehler, {warnings} Warnungen"
-
 msgid "{device}: no individual address"
 msgstr "{device}: keine physikalische Adresse"
 
 msgid "Duplicate individual address {address} ({device})"
 msgstr "Doppelte physikalische Adresse {address} ({device})"
-
-msgid "{count} device(s) skipped: application not in catalog"
-msgstr "{count} Gerät(e) übersprungen: Applikation nicht im Katalog"
-
-msgid "{device}: {count} unlinked group object(s)"
-msgstr "{device}: {count} nicht verbundene(s) Kommunikationsobjekt(e)"
 
 msgid "{address} {name}: no datapoint type"
 msgstr "{address} {name}: kein Datenpunkttyp"
@@ -37,5 +28,27 @@ msgstr "{address} {name}: kein Datenpunkttyp"
 msgid "{address} {name}: no sending group object"
 msgstr "{address} {name}: kein sendendes Kommunikationsobjekt"
 
-msgid "{address} {name}: {count} sending group objects"
-msgstr "{address} {name}: {count} sendende Kommunikationsobjekte"
+msgid "{count} error"
+msgid_plural "{count} errors"
+msgstr[0] "{count} Fehler"
+msgstr[1] "{count} Fehler"
+
+msgid "{count} warning"
+msgid_plural "{count} warnings"
+msgstr[0] "{count} Warnung"
+msgstr[1] "{count} Warnungen"
+
+msgid "{count} device skipped: application not in catalog"
+msgid_plural "{count} devices skipped: application not in catalog"
+msgstr[0] "{count} Gerät übersprungen: Applikation nicht im Katalog"
+msgstr[1] "{count} Geräte übersprungen: Applikation nicht im Katalog"
+
+msgid "{device}: {count} unlinked group object"
+msgid_plural "{device}: {count} unlinked group objects"
+msgstr[0] "{device}: {count} nicht verbundenes Kommunikationsobjekt"
+msgstr[1] "{device}: {count} nicht verbundene Kommunikationsobjekte"
+
+msgid "{address} {name}: {count} sending group object"
+msgid_plural "{address} {name}: {count} sending group objects"
+msgstr[0] "{address} {name}: {count} sendendes Kommunikationsobjekt"
+msgstr[1] "{address} {name}: {count} sendende Kommunikationsobjekte"

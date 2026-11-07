@@ -1274,6 +1274,52 @@ def build_memory_param_map(
     return maps
 
 
+def stored_parameter_cells(
+    app: ApplicationProgram, idx: ApplicationIndexer, state: GlobalState
+) -> dict[tuple[str, int], set[str]]:
+    """The param-refs stored at each byte ``(segment id, offset)``: of every parameter and union
+    member of the application and of the module instances ``state`` makes, active or not, those of
+    a module instance qualified with it. A layout of where settings live in memory, whatever is
+    shown now (what a device's memory can be compared against setting by setting)."""
+    refs_of: dict[str, list[str]] = {}
+    for ref_id, ref in idx.parameter_refs.items():
+        refs_of.setdefault(ref.ref_id, []).append(ref_id)
+    cells: dict[tuple[str, int], set[str]] = {}
+
+    def add(writes: Writes, qualify: Callable[[str], str] | None) -> None:
+        for w in writes.mem:
+            pt = idx.parameter_types.get(w.parameter_type)
+            size = type_size_in_bit(pt.choice) if pt is not None else 0
+            if not size:
+                continue
+            refs = [qualify(r) if qualify else r for r in refs_of.get(w.param_id, [])]
+            start = w.offset * 8 + w.bit_offset
+            for offset in range(start // 8, (start + size - 1) // 8 + 1):
+                cells.setdefault((w.seg_id, offset), set()).update(refs)
+
+    # Without a state every parameter is written, and a union member whenever it has a value.
+    add(collect_writes(app, idx, dict.fromkeys(idx.parameters, "0"), None), None)
+
+    def walk(ms: ModuleState) -> None:
+        md = idx.module_defs.get(ms.ref_id) if ms.ref_id is not None else None
+        if md is not None and md.static.parameters is not None:
+            writes = Writes()
+            for item in md.static.parameters.choice:
+                if isinstance(item, ModuleDefStaticParametersParameter):
+                    _collect_param(item, {}, ms, writes)
+                else:
+                    _collect_union(
+                        item, {up.id: up.value for up in item.parameter}, ms, writes
+                    )
+            add(writes, ms.qualify)
+        for child in ms.module_children():
+            walk(child)
+
+    for ms in state.module_children():
+        walk(ms)
+    return cells
+
+
 def written_bit_mask(
     app: ApplicationProgram,
     idx: ApplicationIndexer,
@@ -1363,6 +1409,37 @@ def _decode_float(raw: int, size_in_bit: int, tc: ParameterTypeTypeFloat) -> str
         value = struct.unpack(">d", data)[0]
         return str(value) if math.isfinite(value) else None
     return None
+
+
+def decodable_type(tc: object, size_in_bit: int) -> bool:
+    """Whether the bytes of a parameter of this type and size can give back its value at all
+    (see :func:`_decode_value`): not for a lossy encoding (HSV colour, a date without its year),
+    a text, address, colour or raw-data field that does not fill whole octets, or a float of
+    another size than its encoding has. A decodable type can still have bytes that are no
+    value of it."""
+    octets = size_in_bit > 0 and not size_in_bit % 8
+    if isinstance(
+        tc,
+        ParameterTypeTypeRestriction | ParameterTypeTypeNumber | ParameterTypeTypeTime,
+    ):
+        return True
+    if isinstance(tc, ParameterTypeTypeFloat):
+        return (tc.encoding, size_in_bit) in (
+            (ParameterTypeTypeFloatEncoding.DPT_9, 16),
+            (ParameterTypeTypeFloatEncoding.IEEE_754_SINGLE, 32),
+            (ParameterTypeTypeFloatEncoding.IEEE_754_DOUBLE, 64),
+        )
+    if isinstance(tc, ParameterTypeTypeText | ParameterTypeTypeRawData):
+        return octets
+    if isinstance(tc, ParameterTypeTypeIpaddress):
+        return size_in_bit in (32, 128)
+    if isinstance(tc, ParameterTypeTypeDate):
+        return tc.display_the_year is not False
+    if isinstance(tc, ParameterTypeTypeColor):
+        return (
+            octets and size_in_bit >= 24 and tc.space != ParameterTypeTypeColorSpace.HSV
+        )
+    return False
 
 
 def _decode_value(

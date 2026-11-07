@@ -115,9 +115,6 @@ msgstr "Pokaži razširjene informacije"
 msgid "Hide Extended Information"
 msgstr "Skrij razširjene informacije"
 
-msgid "{count} telegrams exported to {path}"
-msgstr "Telegrami, izvoženi v {path}: {count}"
-
 msgid "Export failed: {error}"
 msgstr "Izvoz ni uspel: {error}"
 
@@ -133,14 +130,8 @@ msgstr "Razširjen"
 msgid "Standard"
 msgstr "Standarden"
 
-msgid "{count} entries loaded from {path}"
-msgstr "Vnosi, naloženi iz {path}: {count}"
-
 msgid "Loading failed: {error}"
 msgstr "Nalaganje ni uspelo: {error}"
-
-msgid "{count} telegrams in another frame format were skipped"
-msgstr "Preskočeni telegrami v drugi obliki okvirja: {count}"
 
 msgid "Connection was established"
 msgstr "Povezava je bila vzpostavljena"
@@ -191,7 +182,11 @@ msgid "Group Objects"
 msgstr "Komunikacijski objekti"
 
 msgid "{count} telg."
-msgstr "tel.: {count}"
+msgid_plural "{count} telg."
+msgstr[0] "tel.: {count}"
+msgstr[1] "tel.: {count}"
+msgstr[2] "tel.: {count}"
+msgstr[3] "tel.: {count}"
 
 msgid "Enter a group address of the project to send to it."
 msgstr "Vnesite skupinski naslov projekta, da pošljete nanj."
@@ -238,17 +233,8 @@ msgstr "Telegrami niso bili izvoženi. Nalaganje posnetka jih nadomesti in ustav
 msgid "Unsaved Telegrams"
 msgstr "Neshranjeni telegrami"
 
-msgid "Replay cancelled: {count} telegrams sent"
-msgstr "Predvajanje je preklicano, poslani telegrami: {count}"
-
-msgid "Replay finished: {count} telegrams sent"
-msgstr "Predvajanje je končano, poslani telegrami: {count}"
-
 msgid "There are no group telegrams to replay"
 msgstr "Ni skupinskih telegramov za predvajanje"
-
-msgid "{count} Data Secure telegrams are not replayed"
-msgstr "Telegrami Data Secure, ki se ne predvajajo: {count}"
 
 msgid "Comment"
 msgstr "Komentar"
@@ -393,3 +379,45 @@ msgstr "Največ"
 
 msgid "Maximum telegrams this monitor keeps. The oldest tenth is dropped when the cap is exceeded."
 msgstr "Največje število telegramov, ki jih ta monitor hrani. Ko je meja presežena, se zavrže najstarejša desetina."
+
+msgid "{count} telegram exported to {path}"
+msgid_plural "{count} telegrams exported to {path}"
+msgstr[0] "{count} telegram izvožen v {path}"
+msgstr[1] "{count} telegrama izvožena v {path}"
+msgstr[2] "{count} telegrami izvoženi v {path}"
+msgstr[3] "{count} telegramov izvoženih v {path}"
+
+msgid "{count} entry loaded from {path}"
+msgid_plural "{count} entries loaded from {path}"
+msgstr[0] "{count} vnos naložen iz {path}"
+msgstr[1] "{count} vnosa naložena iz {path}"
+msgstr[2] "{count} vnosi naloženi iz {path}"
+msgstr[3] "{count} vnosov naloženih iz {path}"
+
+msgid "{count} telegram in another frame format was skipped"
+msgid_plural "{count} telegrams in another frame format were skipped"
+msgstr[0] "{count} telegram v drugi obliki okvirja je bil preskočen"
+msgstr[1] "{count} telegrama v drugi obliki okvirja sta bila preskočena"
+msgstr[2] "{count} telegrami v drugi obliki okvirja so bili preskočeni"
+msgstr[3] "{count} telegramov v drugi obliki okvirja je bilo preskočenih"
+
+msgid "{count} Data Secure telegram is not replayed"
+msgid_plural "{count} Data Secure telegrams are not replayed"
+msgstr[0] "{count} telegram Data Secure se ne predvaja"
+msgstr[1] "{count} telegrama Data Secure se ne predvajata"
+msgstr[2] "{count} telegrami Data Secure se ne predvajajo"
+msgstr[3] "{count} telegramov Data Secure se ne predvaja"
+
+msgid "Replay finished: {count} telegram sent"
+msgid_plural "Replay finished: {count} telegrams sent"
+msgstr[0] "Predvajanje je končano, poslan je {count} telegram"
+msgstr[1] "Predvajanje je končano, poslana sta {count} telegrama"
+msgstr[2] "Predvajanje je končano, poslani so {count} telegrami"
+msgstr[3] "Predvajanje je končano, poslanih je {count} telegramov"
+
+msgid "Replay cancelled: {count} telegram sent"
+msgid_plural "Replay cancelled: {count} telegrams sent"
+msgstr[0] "Predvajanje je preklicano, poslan je {count} telegram"
+msgstr[1] "Predvajanje je preklicano, poslana sta {count} telegrama"
+msgstr[2] "Predvajanje je preklicano, poslani so {count} telegrami"
+msgstr[3] "Predvajanje je preklicano, poslanih je {count} telegramov"

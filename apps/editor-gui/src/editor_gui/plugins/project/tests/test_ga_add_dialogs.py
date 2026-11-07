@@ -89,7 +89,9 @@ def test_main_groups_middle_groups_and_addresses_are_added(
     added = {k: v for k, v in _main(project).items() if k not in before}
     assert added == {"5": S.GA_DEFAULT_MAIN_GROUP, "6": S.GA_DEFAULT_MAIN_GROUP}
     assert project.history()[0].display_text == (
-        S.HISTORY_EV_ADDED_MAIN_GROUPS.format(count=2, target=S.PANEL_GROUP_ADDRESSES)
+        S.HISTORY_EV_ADDED_MAIN_GROUPS(2).format(
+            count=2, target=S.PANEL_GROUP_ADDRESSES
+        )
     )
     main = next(n for n in project.get_group_range_tree() if n.address == "5")
     # Middle groups below it: the free numbers from 0.
@@ -221,7 +223,7 @@ def test_group_addresses_are_added_from_the_panel_into_the_chosen_group(
     _frames(panel)
     assert len(_group(project, "1/3").group_addresses) == 3
     assert project.history()[0].display_text == (
-        S.HISTORY_EV_ADDED_GROUP_ADDRESSES.format(
+        S.HISTORY_EV_ADDED_GROUP_ADDRESSES(2).format(
             count=2, target=S.PANEL_GROUP_ADDRESSES
         )
     )

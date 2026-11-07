@@ -106,9 +106,6 @@ msgstr "建筑"
 msgid "+ {count} more"
 msgstr "+ 另外 {count} 个"
 
-msgid "{count} more devices outside the selection. Click to show them."
-msgstr "选择范围外还有 {count} 个设备。单击以显示。"
-
 msgid "{address}\n{senders} sending, {receivers} receiving"
 msgstr "{address}\n{senders} 个发送，{receivers} 个接收"
 
@@ -129,3 +126,7 @@ msgstr "地址：{address}"
 
 msgid "Application: {application}"
 msgstr "应用：{application}"
+
+msgid "{count} more device outside the selection. Click to show it."
+msgid_plural "{count} more devices outside the selection. Click to show them."
+msgstr[0] "选择范围外还有 {count} 个设备。单击以显示。"

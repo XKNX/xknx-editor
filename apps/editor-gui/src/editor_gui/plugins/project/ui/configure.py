@@ -51,6 +51,7 @@ if TYPE_CHECKING:
 from editor_gui.plugin_params import mapping_for
 from editor_gui.programming_dali import is_dali_dca_app, is_siemens_n141_03
 from editor_gui.settings import load_settings, save_settings
+from editor_gui.theme import status_color
 from editor_gui.widgets import (
     ButtonActions,
     GroupObjectsTable,
@@ -83,8 +84,6 @@ from editor_gui.widgets.module_table import (
 from editor_gui.widgets.tabs import begin_tab_bar
 
 _log = structlog.get_logger("configure")
-_PLUGIN_NOTICE_COLOR = imgui.ImVec4(0.95, 0.75, 0.35, 1.0)
-_ERROR_COLOR = imgui.ImVec4(1.0, 0.42, 0.42, 1.0)
 
 
 def _move_cursor_up(distance: float) -> None:
@@ -761,7 +760,7 @@ class ConfigurePanel:
             notices.append(template.format(name=plugins.configuration_app))
         if not notices and len(plugin_points) < 2:
             return
-        imgui.push_style_color(imgui.Col_.text, _PLUGIN_NOTICE_COLOR)
+        imgui.push_style_color(imgui.Col_.text, status_color("warning"))
         if len(plugin_points) > 1:
             imgui.text_wrapped(S.PLUGIN_NOTICES_HEADING)
             for _sentence, point in plugin_points:
@@ -1199,7 +1198,7 @@ class ConfigurePanel:
                         self._multi_targets = [d.node_id for d in joint]
                         differing = self._differing_refs(joint)
                         imgui.text_disabled(
-                            S.CONFIGURE_MULTI_EDIT.format(count=len(joint))
+                            S.CONFIGURE_MULTI_EDIT(len(joint)).format(count=len(joint))
                         )
                     else:
                         self._multi_targets = []
@@ -1387,7 +1386,7 @@ class ConfigurePanel:
         if not begin_dialog(S.RESET_POPUP_TITLE):
             return
         imgui.push_text_wrap_pos(px(360.0))
-        imgui.text_colored(imgui.ImVec4(0.95, 0.55, 0.35, 1.0), S.RESET_WARNING)
+        imgui.text_colored(status_color("warning"), S.RESET_WARNING)
         imgui.pop_text_wrap_pos()
         presets = reset_presets()
         # The label left of the drop-down, which ends where the warning wraps.
@@ -1430,7 +1429,7 @@ class ConfigurePanel:
             self._apply_all = False
             return False  # nothing to fill into
         _, self._apply_all = checkbox(
-            S.CONFIGURE_APPLY_ALL.format(count=count), self._apply_all
+            S.CONFIGURE_APPLY_ALL(count).format(count=count), self._apply_all
         )
         return True
 
@@ -1633,7 +1632,9 @@ class ConfigurePanel:
             return
         imgui.text_disabled(getattr(lp, "style", ""))
         for i, proc in enumerate(procedures):
-            procedure = S.LOAD_PROCEDURE.format(number=i + 1, count=len(proc.steps))
+            procedure = S.LOAD_PROCEDURE(len(proc.steps)).format(
+                number=i + 1, count=len(proc.steps)
+            )
             label = f"{procedure}##lp{i}"
             if imgui.tree_node(label):
                 _table_flags = (
@@ -1731,7 +1732,7 @@ class ConfigurePanel:
         if not imgui.is_item_active() and buffer != value and not rejected:
             self._ip_buffers[field] = value
         if rejected and self._ip_error is not None:
-            imgui.push_style_color(imgui.Col_.text, _ERROR_COLOR)
+            imgui.push_style_color(imgui.Col_.text, status_color("error"))
             imgui.text_wrapped(self._ip_error[1])
             imgui.pop_style_color()
 
@@ -1784,7 +1785,7 @@ class ConfigurePanel:
                 )
             imgui.end_disabled()
         if self._additional_error:
-            imgui.push_style_color(imgui.Col_.text, _ERROR_COLOR)
+            imgui.push_style_color(imgui.Col_.text, status_color("error"))
             imgui.text_wrapped(self._additional_error)
             imgui.pop_style_color()
         flags = (
@@ -2090,7 +2091,7 @@ class ConfigurePanel:
             )
             if owner is not None:
                 imgui.text_colored(
-                    _PLUGIN_NOTICE_COLOR,
+                    status_color("warning"),
                     S.SERIAL_NUMBER_ALREADY_USED.format(device=owner),
                 )
             imgui.spacing()
@@ -2110,11 +2111,11 @@ class ConfigurePanel:
                 self._overwrite_current_address, device.individual_address
             )
             if address_error is not None and self._overwrite_current_address.strip():
-                imgui.text_colored(_PLUGIN_NOTICE_COLOR, address_error)
+                imgui.text_colored(status_color("error"), address_error)
             imgui.spacing()
         if plugin_required:
             imgui.push_text_wrap_pos(px(420.0))
-            imgui.text_colored(_PLUGIN_NOTICE_COLOR, S.PLUGIN_DOWNLOAD_WARNING)
+            imgui.text_colored(status_color("warning"), S.PLUGIN_DOWNLOAD_WARNING)
             imgui.pop_text_wrap_pos()
             _, self._program_without_plugin = checkbox(
                 S.PLUGIN_DOWNLOAD_CONFIRM, self._program_without_plugin

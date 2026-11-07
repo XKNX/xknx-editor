@@ -165,16 +165,21 @@ class HomeAssistantStrings:
     def MENU_LOAD_TELEGRAMS(self) -> str:
         return _("Load Telegrams from Home Assistant")
 
-    @property
-    def LOAD_TELEGRAMS_HINT(self) -> str:
-        return _(
+    def LOAD_TELEGRAMS_HINT(self, hours: int) -> str:
+        return _.plural(
+            "The telegrams Home Assistant recorded in the last {hours} hour, in the Group "
+            "Monitor in place of its entries.",
             "The telegrams Home Assistant recorded in the last {hours} hours, in the Group "
-            "Monitor in place of its entries."
+            "Monitor in place of its entries.",
+            hours,
         )
 
-    @property
-    def HISTORY_LOADED(self) -> str:
-        return _("{count} telegrams from Home Assistant in the Group Monitor")
+    def HISTORY_LOADED(self, count: int) -> str:
+        return _.plural(
+            "{count} telegram from Home Assistant in the Group Monitor",
+            "{count} telegrams from Home Assistant in the Group Monitor",
+            count,
+        )
 
     @property
     def HISTORY_FAILED(self) -> str:

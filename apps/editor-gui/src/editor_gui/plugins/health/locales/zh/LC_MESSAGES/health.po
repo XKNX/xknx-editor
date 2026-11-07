@@ -16,20 +16,11 @@ msgstr "未打开项目"
 msgid "No issues found"
 msgstr "未发现问题"
 
-msgid "{errors} errors, {warnings} warnings"
-msgstr "{errors} 个错误，{warnings} 个警告"
-
 msgid "{device}: no individual address"
 msgstr "{device}：没有物理地址"
 
 msgid "Duplicate individual address {address} ({device})"
 msgstr "物理地址 {address} 重复（{device}）"
-
-msgid "{count} device(s) skipped: application not in catalog"
-msgstr "已跳过 {count} 个设备：应用不在产品目录中"
-
-msgid "{device}: {count} unlinked group object(s)"
-msgstr "{device}：{count} 个未链接的组对象"
 
 msgid "{address} {name}: no datapoint type"
 msgstr "{address} {name}：没有数据点类型"
@@ -37,5 +28,22 @@ msgstr "{address} {name}：没有数据点类型"
 msgid "{address} {name}: no sending group object"
 msgstr "{address} {name}：没有发送的组对象"
 
-msgid "{address} {name}: {count} sending group objects"
-msgstr "{address} {name}：{count} 个发送的组对象"
+msgid "{count} error"
+msgid_plural "{count} errors"
+msgstr[0] "{count} 个错误"
+
+msgid "{count} warning"
+msgid_plural "{count} warnings"
+msgstr[0] "{count} 个警告"
+
+msgid "{count} device skipped: application not in catalog"
+msgid_plural "{count} devices skipped: application not in catalog"
+msgstr[0] "已跳过 {count} 个设备：应用不在产品目录中"
+
+msgid "{device}: {count} unlinked group object"
+msgid_plural "{device}: {count} unlinked group objects"
+msgstr[0] "{device}：{count} 个未链接的组对象"
+
+msgid "{address} {name}: {count} sending group object"
+msgid_plural "{address} {name}: {count} sending group objects"
+msgstr[0] "{address} {name}：{count} 个发送的组对象"

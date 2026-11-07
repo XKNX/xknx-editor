@@ -16,12 +16,6 @@ msgstr "Az archívum nem tölthető be"
 msgid "Loaded: {path}"
 msgstr "Betöltve: {path}"
 
-msgid "Found {count} application(s)"
-msgstr "Talált alkalmazások: {count}"
-
-msgid "({count} group objects)"
-msgstr "(Kommunikációs objektumok: {count})"
-
 msgid "Fetch Online Catalog"
 msgstr "Online katalógus lekérése"
 
@@ -73,9 +67,6 @@ msgstr "Helyiség"
 msgid "(no room)"
 msgstr "(nincs helyiség)"
 
-msgid "Fetch {count} Missing Application(s) Online"
-msgstr "Hiányzó alkalmazások lekérése online ({count})"
-
 msgid "Fetching missing applications…"
 msgstr "Hiányzó alkalmazások lekérése…"
 
@@ -94,9 +85,6 @@ msgstr "Programverzió"
 msgid "Search products, order number…"
 msgstr "Termékek, rendelési szám keresése…"
 
-msgid "Product Index ({date}): {mfrs} manufacturers, {products} products"
-msgstr "Termékindex ({date}): gyártók: {mfrs}, termékek: {products}"
-
 msgid "No Product Index yet - fetch the online catalog to build it"
 msgstr "Még nincs termékindex – a létrehozásához kérje le az online katalógust"
 
@@ -109,14 +97,8 @@ msgstr "Mégse"
 msgid "Fetch the online catalog to search across all manufacturers."
 msgstr "Kérje le az online katalógust, hogy minden gyártó termékei között kereshessen."
 
-msgid "Showing {shown} of {total} matches - refine the search"
-msgstr "{shown}/{total} találat látható – pontosítsa a keresést"
-
 msgid "(in local catalog)"
 msgstr "(a helyi katalógusban)"
-
-msgid "{count} matches"
-msgstr "Találatok: {count}"
 
 msgid "Open or create a project first to add a device."
 msgstr "Készülék hozzáadásához előbb nyisson meg vagy hozzon létre egy projektet."
@@ -135,9 +117,6 @@ msgstr "Törlés a helyi katalógusból"
 
 msgid "Are you sure you want to delete the selected device? This cannot be undone."
 msgstr "Biztosan törli a kijelölt készüléket? Ez nem vonható vissza."
-
-msgid "{count} device(s) in the open project use this product. They can't be loaded until the product is imported again."
-msgstr "A megnyitott projektben ennyi készülék használja ezt a terméket: {count}. Ezek csak a termék újbóli importálása után tölthetők be."
 
 msgid "Deleting {name}…"
 msgstr "Törlés: {name}…"
@@ -259,9 +238,6 @@ msgstr "Kód újraküldése"
 msgid "Open Website"
 msgstr "Webhely megnyitása"
 
-msgid "Imported {count} product versions. Find them in the Local tab."
-msgstr "{count} termékverzió importálva. A Helyi lapon találhatók."
-
 msgid "Login is saved on this computer. Leave the password empty to keep it for the same server and user."
 msgstr "A bejelentkezési adatok ezen a számítógépen tárolódnak. Hagyja üresen a jelszót, hogy megmaradjon ugyanahhoz a kiszolgálóhoz és felhasználóhoz."
 
@@ -279,6 +255,7 @@ msgstr "Verzió"
 
 msgid "Register…"
 msgstr "Regisztráció…"
+
 msgid "Alternative Catalog"
 msgstr "Alternative Catalog"
 
@@ -302,3 +279,42 @@ msgstr "A jelszónak legalább 10 karakterből kell állnia, kis- és nagybetűv
 
 msgid "Enter the six-digit code from the email."
 msgstr "Adja meg az e-mailben kapott hatjegyű kódot."
+
+msgid "Imported {count} product version. Find it in the Local tab."
+msgid_plural "Imported {count} product versions. Find them in the Local tab."
+msgstr[0] "{count} termékverzió importálva. A Helyi lapon találhatók."
+
+msgid "Found {count} application"
+msgid_plural "Found {count} applications"
+msgstr[0] "{count} alkalmazás található"
+
+msgid "({count} group object)"
+msgid_plural "({count} group objects)"
+msgstr[0] "({count} kommunikációs objektum)"
+
+msgid "{count} match"
+msgid_plural "{count} matches"
+msgstr[0] "{count} találat"
+
+msgid "Product Index ({date}): {manufacturers}, {products}"
+msgstr "Termékindex ({date}): {manufacturers}, {products}"
+
+msgid "{count} manufacturer"
+msgid_plural "{count} manufacturers"
+msgstr[0] "{count} gyártó"
+
+msgid "{count} product"
+msgid_plural "{count} products"
+msgstr[0] "{count} termék"
+
+msgid "Showing {shown} of {total} match - refine the search"
+msgid_plural "Showing {shown} of {total} matches - refine the search"
+msgstr[0] "{shown}/{total} találat látható – pontosítsa a keresést"
+
+msgid "Fetch {count} Missing Application Online"
+msgid_plural "Fetch {count} Missing Applications Online"
+msgstr[0] "{count} hiányzó alkalmazás lekérése online"
+
+msgid "{count} device in the open project uses this product. It can't be loaded until the product is imported again."
+msgid_plural "{count} devices in the open project use this product. They can't be loaded until the product is imported again."
+msgstr[0] "A megnyitott projektben {count} készülék használja ezt a terméket. Ezek csak a termék újbóli importálása után tölthetők be."

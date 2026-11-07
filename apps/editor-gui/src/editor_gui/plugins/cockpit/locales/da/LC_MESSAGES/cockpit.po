@@ -19,9 +19,6 @@ msgstr "Filtrer enheder…"
 msgid "Needs Attention Only"
 msgstr "Kun dem, der kræver handling"
 
-msgid "{count} device(s) not in catalog"
-msgstr "{count} enhed(er) ikke i kataloget"
-
 msgid "Address"
 msgstr "Adresse"
 
@@ -69,3 +66,8 @@ msgstr "Serienummer: {serial}"
 
 msgid "Last Download: {when}"
 msgstr "Seneste download: {when}"
+
+msgid "{count} device not in catalog"
+msgid_plural "{count} devices not in catalog"
+msgstr[0] "{count} enhed ikke i kataloget"
+msgstr[1] "{count} enheder ikke i kataloget"

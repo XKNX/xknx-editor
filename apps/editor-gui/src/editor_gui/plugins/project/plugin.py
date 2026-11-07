@@ -1354,7 +1354,7 @@ class ProjectPlugin:
         if self._api.notify is not None:
             # "applied is None" means the device already held this exact config: the view already
             # shows it, so report it as configured either way.
-            self._api.notify(S.PLUGIN_PARAMS_PRJ_DONE.format(count=1))
+            self._api.notify(S.PLUGIN_PARAMS_PRJ_DONE(1).format(count=1))
         self._plugin_params_panel.invalidate(device)
 
     def _handle_export_prj(self, device: "Device") -> None:
@@ -3165,6 +3165,11 @@ class ProjectPlugin:
     # --- programming queue (UI-thread facade for main.py / the queue panel) ---
     def tick_program_queue(self) -> None:
         self._program_queue.tick()
+        # A bus operation the queue had no entry for (a recovery, a scan …) goes to its history
+        # once it has ended.
+        for ended in self._api.connection.take_ended_operations():
+            if _unqueued((ended.kind, ended.address)) is not None:
+                self._program_queue.record_bus_operation(ended)
 
     def take_operations_focus(self) -> bool:
         """Whether an operation was queued, or a bus operation without a queue entry started (a

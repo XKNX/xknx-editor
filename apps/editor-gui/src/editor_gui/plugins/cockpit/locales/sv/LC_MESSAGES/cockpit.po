@@ -19,9 +19,6 @@ msgstr "Filtrera apparater…"
 msgid "Needs Attention Only"
 msgstr "Endast åtgärd krävs"
 
-msgid "{count} device(s) not in catalog"
-msgstr "{count} apparat(er) saknas i katalogen"
-
 msgid "Address"
 msgstr "Adress"
 
@@ -69,3 +66,8 @@ msgstr "Serienummer: {serial}"
 
 msgid "Last Download: {when}"
 msgstr "Senaste programmering: {when}"
+
+msgid "{count} device not in catalog"
+msgid_plural "{count} devices not in catalog"
+msgstr[0] "{count} apparat saknas i katalogen"
+msgstr[1] "{count} apparater saknas i katalogen"

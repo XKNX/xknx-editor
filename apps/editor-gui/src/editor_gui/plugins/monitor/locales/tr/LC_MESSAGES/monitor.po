@@ -53,7 +53,8 @@ msgid "Hide Extended Information"
 msgstr "Genişletilmiş Bilgileri Gizle"
 
 msgid "{count} telg."
-msgstr "{count} telg."
+msgid_plural "{count} telg."
+msgstr[0] "{count} telg."
 
 msgid "{rate} t/s"
 msgstr "{rate} t/s"
@@ -214,20 +215,11 @@ msgstr "Telegram kayıtları"
 msgid "All files"
 msgstr "Tüm Dosyalar"
 
-msgid "{count} telegrams exported to {path}"
-msgstr "{count} telegram dışa aktarıldı: {path}"
-
 msgid "Export failed: {error}"
 msgstr "Dışa aktarma başarısız: {error}"
 
-msgid "{count} entries loaded from {path}"
-msgstr "{count} kayıt yüklendi: {path}"
-
 msgid "Loading failed: {error}"
 msgstr "Yükleme başarısız: {error}"
-
-msgid "{count} telegrams in another frame format were skipped"
-msgstr "Başka bir çerçeve formatındaki {count} telegram atlandı"
 
 msgid "Printing failed: {error}"
 msgstr "Yazdırma başarısız: {error}"
@@ -235,17 +227,8 @@ msgstr "Yazdırma başarısız: {error}"
 msgid "Page {page}"
 msgstr "Sayfa {page}"
 
-msgid "{count} Data Secure telegrams are not replayed"
-msgstr "{count} Data Secure telegramı tekrar oynatılmaz"
-
 msgid "There are no group telegrams to replay"
 msgstr "Tekrar oynatılacak grup telegramı yok"
-
-msgid "Replay finished: {count} telegrams sent"
-msgstr "Tekrar oynatma bitti: {count} telegram gönderildi"
-
-msgid "Replay cancelled: {count} telegrams sent"
-msgstr "Tekrar oynatma iptal edildi: {count} telegram gönderildi"
 
 msgid "from bus"
 msgstr "bustan"
@@ -390,3 +373,27 @@ msgstr "Max"
 
 msgid "Maximum telegrams this monitor keeps. The oldest tenth is dropped when the cap is exceeded."
 msgstr "Maximum telegrams this monitor keeps. The oldest tenth is dropped when the cap is exceeded."
+
+msgid "{count} telegram exported to {path}"
+msgid_plural "{count} telegrams exported to {path}"
+msgstr[0] "{count} telegram dışa aktarıldı: {path}"
+
+msgid "{count} entry loaded from {path}"
+msgid_plural "{count} entries loaded from {path}"
+msgstr[0] "{count} kayıt yüklendi: {path}"
+
+msgid "{count} telegram in another frame format was skipped"
+msgid_plural "{count} telegrams in another frame format were skipped"
+msgstr[0] "Başka bir çerçeve formatındaki {count} telegram atlandı"
+
+msgid "{count} Data Secure telegram is not replayed"
+msgid_plural "{count} Data Secure telegrams are not replayed"
+msgstr[0] "{count} Data Secure telegramı tekrar oynatılmaz"
+
+msgid "Replay finished: {count} telegram sent"
+msgid_plural "Replay finished: {count} telegrams sent"
+msgstr[0] "Tekrar oynatma bitti: {count} telegram gönderildi"
+
+msgid "Replay cancelled: {count} telegram sent"
+msgid_plural "Replay cancelled: {count} telegrams sent"
+msgstr[0] "Tekrar oynatma iptal edildi: {count} telegram gönderildi"

@@ -4,6 +4,8 @@ import struct
 
 from imgui_bundle import imgui
 
+# The module, not status_color: the theme module imports the widgets package itself.
+from editor_gui import theme
 from editor_gui.widgets.checkbox import checkbox
 from editor_gui.widgets.combo import begin_combo, combo
 from editor_gui.widgets.dpi import px
@@ -293,8 +295,8 @@ class HexView:
             imgui.same_line()
             if n_diffs:
                 imgui.text_colored(
-                    imgui.ImVec4(0.9, 0.4, 0.2, 1.0),
-                    "  " + S.HEX_DIFFS.format(count=n_diffs),
+                    theme.status_color("warning"),
+                    "  " + S.HEX_DIFFS(n_diffs).format(count=n_diffs),
                 )
             else:
                 imgui.text_disabled("  " + S.HEX_NO_DIFFS)

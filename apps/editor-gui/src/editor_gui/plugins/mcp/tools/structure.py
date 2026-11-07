@@ -327,7 +327,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             if space is None:
                 raise ToolError(f"no space with id {space_id}")
             label = (
-                PROJECT_S.HISTORY_EV_ADDED_FUNCTIONS.format(
+                PROJECT_S.HISTORY_EV_ADDED_FUNCTIONS(count).format(
                     count=count,
                     target=project.paste_target_name(PasteTarget("space", space_id)),
                 )
@@ -527,7 +527,9 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             )
             title = name.strip() or default
             ids: list[int] = []
-            label = several.format(count=count, target=target) if count > 1 else None
+            label = (
+                several(count).format(count=count, target=target) if count > 1 else None
+            )
             with project.one_undo_step(label):
                 for _ in range(count):
                     wanted = number if number is not None else pool.take()
@@ -578,7 +580,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             title = name.strip() or PROJECT_S.GA_DEFAULT_GROUP_RANGE
             target = PROJECT_S.PANEL_GROUP_ADDRESSES if parent is None else parent.name
             label = (
-                PROJECT_S.HISTORY_EV_ADDED_GROUP_RANGES.format(
+                PROJECT_S.HISTORY_EV_ADDED_GROUP_RANGES(count).format(
                     count=count, target=target
                 )
                 if count > 1
@@ -666,7 +668,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             title = name.strip() or PROJECT_S.GA_DEFAULT_GROUP_ADDRESS
             target = f"{node.address} {node.name}".strip()
             label = (
-                PROJECT_S.HISTORY_EV_ADDED_GROUP_ADDRESSES.format(
+                PROJECT_S.HISTORY_EV_ADDED_GROUP_ADDRESSES(count).format(
                     count=count, target=target
                 )
                 if count > 1

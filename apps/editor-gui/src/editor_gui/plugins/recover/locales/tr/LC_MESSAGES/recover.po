@@ -22,14 +22,14 @@ msgstr "Tara"
 msgid "Stop"
 msgstr "Durdur"
 
-msgid "Add to Open Project as Read"
-msgstr "Açık Projeye Okunmuş Olarak Ekle"
+msgid "Add to Open Project When Read"
+msgstr "Okunduğunda Açık Projeye Ekle"
 
 msgid "Recover Selected"
 msgstr "Seçilenleri Kurtar"
 
-msgid "Create New Project"
-msgstr "Yeni Proje Oluştur"
+msgid "Create New Project…"
+msgstr "Yeni Proje Oluştur…"
 
 msgid "Add to Open Project"
 msgstr "Açık Projeye Ekle"
@@ -37,14 +37,11 @@ msgstr "Açık Projeye Ekle"
 msgid "Verify (Read-Only)"
 msgstr "Doğrula (Salt Okunur)"
 
-msgid "Export Snapshot"
-msgstr "Anlık Görüntüyü Dışa Aktar"
+msgid "Export Snapshot…"
+msgstr "Anlık Görüntüyü Dışa Aktar…"
 
 msgid "Verifying (re-reading and comparing)…"
 msgstr "Doğrulanıyor (yeniden okunuyor ve karşılaştırılıyor)…"
-
-msgid "%(count)d group address(es) have no sender or multiple senders."
-msgstr "%(count)d grup adresinin göndericisi yok veya birden fazla göndericisi var."
 
 msgid "Address"
 msgstr "Adres"
@@ -82,17 +79,8 @@ msgstr "grup iletişimi tabloları"
 msgid "parameter memory"
 msgstr "parametre belleği"
 
-msgid "Recovered %(devices)d device(s): %(group_addresses)d group addresses, %(links)d links, %(unknown)d parameter(s) not recoverable."
-msgstr "%(devices)d cihaz kurtarıldı: %(group_addresses)d grup adresi, %(links)d bağlantı, kurtarılamayan %(unknown)d parametre."
-
 msgid "Recovered"
 msgstr "Kurtarıldı"
-
-msgid "Added %(count)d device(s) to the open project (%(target)s)."
-msgstr "Açık projeye %(count)d cihaz eklendi (%(target)s)."
-
-msgid "Created new project %(target)s with %(count)d device(s)."
-msgstr "%(count)d cihazla yeni proje oluşturuldu: %(target)s."
 
 msgid "Not connected to a KNX bus."
 msgstr "Bir KNX bus'ına bağlı değil."
@@ -100,29 +88,133 @@ msgstr "Bir KNX bus'ına bağlı değil."
 msgid "Open or create a project to add recovered devices."
 msgstr "Kurtarılan cihazları eklemek için bir proje açın veya oluşturun."
 
-msgid "matched"
-msgstr "eşleşti"
+msgid "Product found"
+msgstr "Ürün bulundu"
 
-msgid "confirm product/version, then tick"
-msgstr "ürünü/sürümü onaylayın, ardından işaretleyin"
+msgid "Check the product and version, then select it"
+msgstr "Ürünü ve sürümü kontrol edin, ardından seçin"
 
-msgid "not in catalog - import via Catalog"
-msgstr "katalogda değil - Katalog üzerinden içe aktarın"
+msgid "Not in the catalog: import its product in the Catalog"
+msgstr "Katalogda değil: ürününü Katalog'da içe aktarın"
 
-msgid "unprogrammed"
-msgstr "programlanmamış"
+msgid "Not programmed"
+msgstr "Programlanmamış"
 
-msgid "recovered"
-msgstr "kurtarıldı"
+msgid "Already in the project, skipped"
+msgstr "Zaten projede, atlandı"
 
-msgid "already in project - skipped"
-msgstr "zaten projede - atlandı"
+msgid "Error"
+msgstr "Hata"
 
-msgid "error"
-msgstr "hata"
+msgid "Recovered (incomplete)"
+msgstr "Kurtarıldı (eksik)"
 
-msgid "%d parameters could not be recovered"
-msgstr "%d parametre kurtarılamadı"
+msgid "Search Effort"
+msgstr "Arama Kapsamı"
 
-msgid "%(count)d device(s) could not be added; the reason is in the Recovered column."
-msgstr "%(count)d cihaz eklenemedi; nedeni \"Kurtarıldı\" sütununda."
+msgid "How many values are tried for the settings a device keeps no copy of. More effort finds settings in devices with many channels, but takes longer. Unlimited goes on until no value fits better; Stop ends the search."
+msgstr "Cihazın kopyasını tutmadığı ayarlar için kaç değerin deneneceği. Daha geniş kapsam çok kanallı cihazlardaki ayarları bulur, ancak daha uzun sürer. Sınırsız, hiçbir değer daha iyi uymayana kadar devam eder; Durdur aramayı bitirir."
+
+msgid "Fast"
+msgstr "Hızlı"
+
+msgid "Medium"
+msgstr "Orta"
+
+msgid "Maximum"
+msgstr "En Yüksek"
+
+msgid "Search Again"
+msgstr "Yeniden Ara"
+
+msgid "Searches the settings of the selected incomplete devices again in what was read from them, with the chosen search effort. Needs no bus. A device already added to the project is replaced (one undo step)."
+msgstr "Seçili eksik cihazların ayarlarını, onlardan okunan veride seçilen arama kapsamıyla yeniden arar. Hat bağlantısı gerekmez. Projeye zaten eklenmiş bir cihaz değiştirilir (tek geri alma adımı)."
+
+msgid "Searching %(address)s again  (%(done)d/%(total)d)…"
+msgstr "%(address)s yeniden aranıyor  (%(done)d/%(total)d)…"
+
+msgid "more search effort may help"
+msgstr "daha geniş arama kapsamı yardımcı olabilir"
+
+msgid "Unlimited"
+msgstr "Sınırsız"
+
+msgid "Result"
+msgstr "Sonuç"
+
+msgid "Not read yet"
+msgstr "Henüz okunmadı"
+
+msgid "Verified"
+msgstr "Doğrulandı"
+
+msgid "%(count)d group address has no sender or multiple senders."
+msgid_plural "%(count)d group addresses have no sender or multiple senders."
+msgstr[0] "%(count)d grup adresinin göndericisi yok veya birden fazla göndericisi var."
+
+msgid "Recovered %(count)d device"
+msgid_plural "Recovered %(count)d devices"
+msgstr[0] "%(count)d cihaz kurtarıldı"
+
+msgid "%(count)d group address"
+msgid_plural "%(count)d group addresses"
+msgstr[0] "%(count)d grup adresi"
+
+msgid "%(count)d link"
+msgid_plural "%(count)d links"
+msgstr[0] "%(count)d bağlantı"
+
+msgid "%(count)d parameter"
+msgid_plural "%(count)d parameters"
+msgstr[0] "%(count)d parametre"
+
+msgid "%(count)d parameter cannot be recovered"
+msgid_plural "%(count)d parameters cannot be recovered"
+msgstr[0] "%(count)d parametre kurtarılamıyor"
+
+msgid "%(count)d parameter not found yet"
+msgid_plural "%(count)d parameters not found yet"
+msgstr[0] "%(count)d parametre henüz bulunamadı"
+
+msgid "Added %(count)d device to the open project (%(target)s)."
+msgid_plural "Added %(count)d devices to the open project (%(target)s)."
+msgstr[0] "Açık projeye %(count)d cihaz eklendi (%(target)s)."
+
+msgid "Created new project %(target)s with %(count)d device."
+msgid_plural "Created new project %(target)s with %(count)d devices."
+msgstr[0] "%(count)d cihazla yeni proje oluşturuldu: %(target)s."
+
+msgid "%(count)d device could not be added; the reason is in the Result column."
+msgid_plural "%(count)d devices could not be added; the reason is in the Result column."
+msgstr[0] "%(count)d cihaz eklenemedi; nedeni \"Sonuç\" sütununda."
+
+msgid "Differs from the device: %(what)s"
+msgstr "Cihazdan farklı: %(what)s"
+
+msgid "%(count)d byte"
+msgid_plural "%(count)d bytes"
+msgstr[0] "%(count)d bayt"
+
+msgid "%(count)d group object"
+msgid_plural "%(count)d group objects"
+msgstr[0] "%(count)d grup nesnesi"
+
+msgid "Verify: %(count)d byte differs"
+msgid_plural "Verify: %(count)d bytes differ"
+msgstr[0] "Doğrulama: %(count)d bayt farklı"
+
+msgid "Import Snapshot…"
+msgstr "Anlık Görüntüyü İçe Aktar…"
+
+msgid "Imported %(count)d device from %(file)s."
+msgid_plural "Imported %(count)d devices from %(file)s."
+msgstr[0] "%(file)s dosyasından %(count)d cihaz içe aktarıldı."
+
+msgid "%(file)s is no recovery snapshot: %(error)s"
+msgstr "%(file)s bir kurtarma anlık görüntüsü değil: %(error)s"
+
+msgid "Recovery Snapshot (*.json)"
+msgstr "Kurtarma Anlık Görüntüsü (*.json)"
+
+msgid "All Files"
+msgstr "Tüm Dosyalar"

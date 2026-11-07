@@ -22,14 +22,14 @@ msgstr "Kërko"
 msgid "Stop"
 msgstr "Ndalo"
 
-msgid "Add to Open Project as Read"
+msgid "Add to Open Project When Read"
 msgstr "Shto në projektin e hapur sapo të lexohen"
 
 msgid "Recover Selected"
 msgstr "Rikupero të zgjedhurat"
 
-msgid "Create New Project"
-msgstr "Krijo projekt të ri"
+msgid "Create New Project…"
+msgstr "Krijo projekt të ri…"
 
 msgid "Add to Open Project"
 msgstr "Shto në projektin e hapur"
@@ -37,14 +37,11 @@ msgstr "Shto në projektin e hapur"
 msgid "Verify (Read-Only)"
 msgstr "Verifiko (vetëm lexim)"
 
-msgid "Export Snapshot"
-msgstr "Eksporto pamjen e çastit"
+msgid "Export Snapshot…"
+msgstr "Eksporto pamjen e çastit…"
 
 msgid "Verifying (re-reading and comparing)…"
 msgstr "Po verifikohet (rilexim dhe krahasim)…"
-
-msgid "%(count)d group address(es) have no sender or multiple senders."
-msgstr "%(count)d adresë(a) grupi nuk kanë dërgues ose kanë disa dërgues."
 
 msgid "Address"
 msgstr "Adresa"
@@ -82,17 +79,8 @@ msgstr "tabelat e komunikimit në grup"
 msgid "parameter memory"
 msgstr "memoria e parametrave"
 
-msgid "Recovered %(devices)d device(s): %(group_addresses)d group addresses, %(links)d links, %(unknown)d parameter(s) not recoverable."
-msgstr "U rikuperuan %(devices)d pajisje: %(group_addresses)d adresa grupi, %(links)d lidhje, %(unknown)d parametër(a) të parikuperueshëm."
-
 msgid "Recovered"
 msgstr "Rikuperuar"
-
-msgid "Added %(count)d device(s) to the open project (%(target)s)."
-msgstr "U shtuan %(count)d pajisje në projektin e hapur (%(target)s)."
-
-msgid "Created new project %(target)s with %(count)d device(s)."
-msgstr "U krijua projekti i ri %(target)s me %(count)d pajisje."
 
 msgid "Not connected to a KNX bus."
 msgstr "Nuk ka lidhje me një bus KNX."
@@ -100,29 +88,147 @@ msgstr "Nuk ka lidhje me një bus KNX."
 msgid "Open or create a project to add recovered devices."
 msgstr "Hapni ose krijoni një projekt për të shtuar pajisjet e rikuperuara."
 
-msgid "matched"
-msgstr "përputhet"
+msgid "Product found"
+msgstr "Produkti u gjet"
 
-msgid "confirm product/version, then tick"
-msgstr "konfirmoni produktin/versionin, pastaj shënojeni"
+msgid "Check the product and version, then select it"
+msgstr "Kontrolloni produktin dhe versionin, pastaj zgjidheni"
 
-msgid "not in catalog - import via Catalog"
-msgstr "nuk është në katalog - importojeni përmes Katalogut"
+msgid "Not in the catalog: import its product in the Catalog"
+msgstr "Nuk është në katalog: importojeni produktin e tij në Katalog"
 
-msgid "unprogrammed"
-msgstr "e paprogramuar"
+msgid "Not programmed"
+msgstr "I paprogramuar"
 
-msgid "recovered"
-msgstr "rikuperuar"
+msgid "Already in the project, skipped"
+msgstr "Tashmë në projekt, u anashkalua"
 
-msgid "already in project - skipped"
-msgstr "tashmë në projekt - u anashkalua"
+msgid "Error"
+msgstr "Gabim"
 
-msgid "error"
-msgstr "gabim"
+msgid "Recovered (incomplete)"
+msgstr "Rikuperuar (jo i plotë)"
 
-msgid "%d parameters could not be recovered"
-msgstr "%d parametra nuk u rikuperuan"
+msgid "Search Effort"
+msgstr "Përpjekja e Kërkimit"
 
-msgid "%(count)d device(s) could not be added; the reason is in the Recovered column."
-msgstr "%(count)d pajisje nuk mund të shtoheshin; arsyeja është në kolonën “Rikuperuar”."
+msgid "How many values are tried for the settings a device keeps no copy of. More effort finds settings in devices with many channels, but takes longer. Unlimited goes on until no value fits better; Stop ends the search."
+msgstr "Sa vlera provohen për cilësimet për të cilat pajisja nuk ruan kopje. Më shumë përpjekje gjen cilësime në pajisje me shumë kanale, por zgjat më shumë. Pa kufi vazhdon derisa asnjë vlerë të mos përshtatet më mirë; Ndalo e përfundon kërkimin."
+
+msgid "Fast"
+msgstr "Shpejt"
+
+msgid "Medium"
+msgstr "Mesatare"
+
+msgid "Maximum"
+msgstr "Maksimale"
+
+msgid "Search Again"
+msgstr "Kërko Përsëri"
+
+msgid "Searches the settings of the selected incomplete devices again in what was read from them, with the chosen search effort. Needs no bus. A device already added to the project is replaced (one undo step)."
+msgstr "Kërkon përsëri cilësimet e pajisjeve të paplota të zgjedhura në atë që u lexua prej tyre, me përpjekjen e zgjedhur të kërkimit. Nuk kërkon bus. Një pajisje e shtuar tashmë në projekt zëvendësohet (një hap zhbërjeje)."
+
+msgid "Searching %(address)s again  (%(done)d/%(total)d)…"
+msgstr "Po kërkohet përsëri %(address)s  (%(done)d/%(total)d)…"
+
+msgid "more search effort may help"
+msgstr "më shumë përpjekje kërkimi mund të ndihmojë"
+
+msgid "Unlimited"
+msgstr "Pa kufi"
+
+msgid "Result"
+msgstr "Rezultati"
+
+msgid "Not read yet"
+msgstr "Ende i palexuar"
+
+msgid "Verified"
+msgstr "U verifikua"
+
+msgid "%(count)d group address has no sender or multiple senders."
+msgid_plural "%(count)d group addresses have no sender or multiple senders."
+msgstr[0] "%(count)d adresë grupi nuk ka dërgues ose ka disa dërgues."
+msgstr[1] "%(count)d adresa grupi nuk kanë dërgues ose kanë disa dërgues."
+
+msgid "Recovered %(count)d device"
+msgid_plural "Recovered %(count)d devices"
+msgstr[0] "U rikuperua %(count)d pajisje"
+msgstr[1] "U rikuperuan %(count)d pajisje"
+
+msgid "%(count)d group address"
+msgid_plural "%(count)d group addresses"
+msgstr[0] "%(count)d adresë grupi"
+msgstr[1] "%(count)d adresa grupi"
+
+msgid "%(count)d link"
+msgid_plural "%(count)d links"
+msgstr[0] "%(count)d lidhje"
+msgstr[1] "%(count)d lidhje"
+
+msgid "%(count)d parameter"
+msgid_plural "%(count)d parameters"
+msgstr[0] "%(count)d parametër"
+msgstr[1] "%(count)d parametra"
+
+msgid "%(count)d parameter cannot be recovered"
+msgid_plural "%(count)d parameters cannot be recovered"
+msgstr[0] "%(count)d parametër nuk mund të rikuperohet"
+msgstr[1] "%(count)d parametra nuk mund të rikuperohen"
+
+msgid "%(count)d parameter not found yet"
+msgid_plural "%(count)d parameters not found yet"
+msgstr[0] "%(count)d parametër ende i pagjetur"
+msgstr[1] "%(count)d parametra ende të pagjetur"
+
+msgid "Added %(count)d device to the open project (%(target)s)."
+msgid_plural "Added %(count)d devices to the open project (%(target)s)."
+msgstr[0] "U shtua %(count)d pajisje në projektin e hapur (%(target)s)."
+msgstr[1] "U shtuan %(count)d pajisje në projektin e hapur (%(target)s)."
+
+msgid "Created new project %(target)s with %(count)d device."
+msgid_plural "Created new project %(target)s with %(count)d devices."
+msgstr[0] "U krijua projekti i ri %(target)s me %(count)d pajisje."
+msgstr[1] "U krijua projekti i ri %(target)s me %(count)d pajisje."
+
+msgid "%(count)d device could not be added; the reason is in the Result column."
+msgid_plural "%(count)d devices could not be added; the reason is in the Result column."
+msgstr[0] "%(count)d pajisje nuk mund të shtohej; arsyeja është në kolonën “Rezultati”."
+msgstr[1] "%(count)d pajisje nuk mund të shtoheshin; arsyeja është në kolonën “Rezultati”."
+
+msgid "Differs from the device: %(what)s"
+msgstr "Ndryshon nga pajisja: %(what)s"
+
+msgid "%(count)d byte"
+msgid_plural "%(count)d bytes"
+msgstr[0] "%(count)d bajt"
+msgstr[1] "%(count)d bajt"
+
+msgid "%(count)d group object"
+msgid_plural "%(count)d group objects"
+msgstr[0] "%(count)d objekt grupi"
+msgstr[1] "%(count)d objekte grupi"
+
+msgid "Verify: %(count)d byte differs"
+msgid_plural "Verify: %(count)d bytes differ"
+msgstr[0] "Verifikimi: ndryshon %(count)d bajt"
+msgstr[1] "Verifikimi: ndryshojnë %(count)d bajt"
+
+msgid "Import Snapshot…"
+msgstr "Importo pamjen e çastit…"
+
+msgid "Imported %(count)d device from %(file)s."
+msgid_plural "Imported %(count)d devices from %(file)s."
+msgstr[0] "U importua %(count)d pajisje nga %(file)s."
+msgstr[1] "U importuan %(count)d pajisje nga %(file)s."
+
+msgid "%(file)s is no recovery snapshot: %(error)s"
+msgstr "%(file)s nuk është pamje e çastit e rikuperimit: %(error)s"
+
+msgid "Recovery Snapshot (*.json)"
+msgstr "Pamje e çastit e rikuperimit (*.json)"
+
+msgid "All Files"
+msgstr "Të gjithë skedarët"

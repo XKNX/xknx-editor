@@ -85,9 +85,6 @@ msgstr "Certificat de proiect"
 msgid "none"
 msgstr "niciunul"
 
-msgid "present ({size} bytes)"
-msgstr "prezent ({size} octeți)"
-
 msgid "Order Number"
 msgstr "Cod de comandă"
 
@@ -226,9 +223,6 @@ msgstr "Nu se poate executa: nicio conexiune KNX. Conectați-vă la un gateway (
 msgid "Match: the generated image is identical to what is on the device"
 msgstr "Potrivire: imaginea generată este identică cu cea din dispozitiv"
 
-msgid "Mismatch: {bytes} byte(s) differ from the device in {locations} location(s)"
-msgstr "Nepotrivire: octeți diferiți față de dispozitiv: {bytes}, în locații: {locations}"
-
 msgid "{matched} matched, {changed} would change"
 msgstr "Potrivite: {matched}, s-ar modifica: {changed}"
 
@@ -256,9 +250,6 @@ msgstr "gestionat de dispozitiv"
 msgid "System byte the device sets itself at runtime (e.g. a download detection byte reset by the application after a download). A difference here is expected and does not indicate a bad download."
 msgstr "Octet de sistem pe care dispozitivul îl setează singur în timpul funcționării (de ex. un octet de detectare a programării, resetat de aplicație după o programare). O diferență aici este de așteptat și nu indică o programare greșită."
 
-msgid "plus {bytes} device-managed runtime byte(s) (expected, benign)"
-msgstr "plus octeți de rulare gestionați de dispozitiv: {bytes} (de așteptat, inofensivi)"
-
 msgid "No configured differences: the device already carries this configuration. The differences below are benign (see notes)."
 msgstr "Nicio diferență configurată: dispozitivul are deja această configurație. Diferențele de mai jos sunt inofensive (vedeți notele)."
 
@@ -267,9 +258,6 @@ msgstr "setează valoarea implicită"
 
 msgid "This byte is written for a neighbouring parameter; the differing bit is not driven by any active parameter and is only reset to the application default. The device holds an older value (e.g. from a previous configuration or mode) that programming will normalise. Benign."
 msgstr "Acest octet este scris din cauza unui parametru vecin; bitul diferit nu este controlat de niciun parametru activ și este doar resetat la valoarea implicită a aplicației. Dispozitivul conține o valoare mai veche (de ex. dintr-o configurație sau un mod anterior) pe care programarea o va normaliza. Inofensiv."
-
-msgid "plus {bytes} byte(s) reset to the application default (the device holds an older value; benign, will be normalised on programming)"
-msgstr "plus octeți resetați la valoarea implicită a aplicației: {bytes} (dispozitivul conține o valoare mai veche; inofensiv, se normalizează la programare)"
 
 msgid "Export Ist/Soll…"
 msgstr "Export Ist/Soll…"
@@ -394,12 +382,6 @@ msgstr "Nu se poate executa: proiectul a fost modificat de la deschidere. Acest 
 msgid "Duplicate"
 msgstr "Duplicare"
 
-msgid "Apply Changes to All {count} Identical Devices"
-msgstr "Aplicare modificări la toate dispozitivele identice ({count})"
-
-msgid "Editing {count} devices — edits apply to all, diverging values show <differs>"
-msgstr "Editare dispozitive ({count}) — modificările se aplică tuturor, valorile diferite afișează <diferă>"
-
 msgid "Mass Linker"
 msgstr "Legare în masă"
 
@@ -451,12 +433,6 @@ msgstr "Mutare în sus"
 msgid "Move Down"
 msgstr "Mutare în jos"
 
-msgid "{count} items"
-msgstr "Elemente: {count}"
-
-msgid "{count} pairs"
-msgstr "Perechi: {count}"
-
 msgid "{count} unpaired (ignored)"
 msgstr "Fără pereche (ignorate): {count}"
 
@@ -477,15 +453,6 @@ msgstr "Adăugare obiecte de comunicare"
 
 msgid "Add Group Addresses"
 msgstr "Adăugare adrese de grup"
-
-msgid "Linked {count} object(s) to group addresses"
-msgstr "Obiecte legate de adrese de grup: {count}"
-
-msgid "Linked {count} object pair(s) via new group addresses"
-msgstr "Perechi de obiecte legate prin adrese de grup noi: {count}"
-
-msgid "{count} error(s)"
-msgstr "Erori: {count}"
 
 msgid "Clear All"
 msgstr "Golire totală"
@@ -538,9 +505,6 @@ msgstr "Nume copie: {name}"
 msgid "Copy"
 msgstr "Copiere"
 
-msgid "Created {count} copy/copies"
-msgstr "Copii create: {count}"
-
 msgid "Shifts the device part of each individual address. Group addresses are not shifted."
 msgstr "Deplasează partea de dispozitiv a fiecărei adrese fizice. Adresele de grup nu sunt deplasate."
 
@@ -553,9 +517,6 @@ msgstr "Doar dispozitivul sursă selectat (din Copiere extinsă)"
 msgid "(out of range)"
 msgstr "(în afara intervalului)"
 
-msgid "Shifted {count} address(es)"
-msgstr "Adrese deplasate: {count}"
-
 msgid "Export {count} device(s) to a CSV for on-site labelling."
 msgstr "Export dispozitive ({count}) într-un CSV pentru etichetarea la fața locului."
 
@@ -567,12 +528,6 @@ msgstr "Exportat în {path}"
 
 msgid "No topology issues found."
 msgstr "Nu s-au găsit probleme de topologie."
-
-msgid "{count} issue(s)"
-msgstr "Probleme: {count}"
-
-msgid "{count} address(es) will change"
-msgstr "Adrese care se vor modifica: {count}"
 
 msgid "Click a finding to jump to the device."
 msgstr "Faceți clic pe o constatare pentru a sări la dispozitiv."
@@ -624,12 +579,6 @@ msgstr "Înlocuire cu (șablon)"
 
 msgid "Group Object Mapping (by Number)"
 msgstr "Asociere obiecte de comunicare (după număr)"
-
-msgid "{count} object(s) will be re-mapped"
-msgstr "Obiecte care vor fi reasociate: {count}"
-
-msgid "Replaced; re-mapped {count} group object(s)"
-msgstr "Înlocuit; obiecte de comunicare reasociate: {count}"
 
 msgid "Device"
 msgstr "Dispozitiv"
@@ -840,9 +789,6 @@ msgstr "Lipire configurație"
 
 msgid "Paste configuration onto '{name}':"
 msgstr "Lipire configurație în '{name}':"
-
-msgid "Paste configuration onto {count} selected devices:"
-msgstr "Lipire configurație în dispozitivele selectate ({count}):"
 
 msgid "Duplicate '{name}':"
 msgstr "Duplicare '{name}':"
@@ -1174,12 +1120,6 @@ msgstr "Fișiere de adrese de grup (XML, CSV)"
 msgid "All Files"
 msgstr "Toate fișierele"
 
-msgid "{added} group addresses added, {updated} updated."
-msgstr "Adrese de grup adăugate: {added}, actualizate: {updated}."
-
-msgid "{count} group addresses could not be placed in a group."
-msgstr "Adrese de grup care nu au putut fi plasate într-un grup: {count}."
-
 msgid "The file could not be imported: {error}"
 msgstr "Fișierul nu a putut fi importat: {error}"
 
@@ -1372,9 +1312,6 @@ msgstr "Coală"
 msgid "Shift Group Addresses"
 msgstr "Deplasare adrese de grup"
 
-msgid "Shifted {count} group address(es)"
-msgstr "Adrese de grup deplasate: {count}"
-
 msgid "Subnet Mask"
 msgstr "Mască de subrețea"
 
@@ -1399,9 +1336,6 @@ msgstr "Comparat cu {name}:"
 msgid "removed"
 msgstr "eliminat"
 
-msgid "{count} difference(s)"
-msgstr "Diferențe: {count}"
-
 msgid "Save…"
 msgstr "Salvare…"
 
@@ -1413,9 +1347,6 @@ msgstr "Anulare comparare"
 
 msgid "Memory Dumps (*.bin)"
 msgstr "Imagini de memorie (*.bin)"
-
-msgid "{count} bytes"
-msgstr "{count} octeți"
 
 msgid "No memory segments."
 msgstr "Niciun segment de memorie."
@@ -1639,9 +1570,6 @@ msgstr "Numai diferențe"
 msgid "Open a project with at least two devices to compare."
 msgstr "Deschideți un proiect cu cel puțin două dispozitive pentru comparare."
 
-msgid "{count} differences"
-msgstr "Diferențe: {count}"
-
 msgid "The manufacturer plugin is not available here:"
 msgstr "Plugin-ul producătorului nu este disponibil aici:"
 
@@ -1735,9 +1663,6 @@ msgstr "Se scrie alocarea grupurilor pe magistrala DALI. Aceasta aplică grupuri
 msgid "Write the scene values to the DALI bus. Continue?"
 msgstr "Se scriu valorile scenelor pe magistrala DALI. Continuați?"
 
-msgid "{count} ECG(s) present"
-msgstr "Balasturi prezente: {count}"
-
 msgid "Group"
 msgstr "Grup"
 
@@ -1779,9 +1704,6 @@ msgstr "Individual"
 
 msgid "Unassigned"
 msgstr "Nealocat"
-
-msgid "Procedure {number}  ({count} steps)"
-msgstr "Procedura {number}  (pași: {count})"
 
 msgid "Kind"
 msgstr "Tip"
@@ -2175,9 +2097,6 @@ msgstr "Se citește magistrala DALI din obiectul {object_index}…"
 
 msgid "Press 'Read DALI Bus' to list the ECGs on the gateway."
 msgstr "Apăsați „Citire magistrală DALI” pentru a lista balasturile din gateway."
-
-msgid "{count} ECG(s) present on line {line}"
-msgstr "Balasturi prezente pe linia {line}: {count}"
 
 msgid "Read-only snapshot. Writing group assignments, scenes or firmware is not available yet and remains in the manufacturer's plugin."
 msgstr "Instantaneu doar în citire. Scrierea alocărilor de grupuri, a scenelor sau a firmware-ului nu este încă disponibilă și rămâne în plugin-ul producătorului."
@@ -2704,9 +2623,6 @@ msgstr "Grupul nu are nicio adresă de grup liberă."
 msgid "The main group has no free middle group."
 msgstr "Grupa principală nu are nicio grupă mediană liberă."
 
-msgid "{count} devices"
-msgstr "Dispozitive: {count}"
-
 msgid "The main segment cannot be moved."
 msgstr "Segmentul principal nu poate fi mutat."
 
@@ -2779,33 +2695,6 @@ msgstr "Nu există niciun grup pentru noile adrese de grup."
 msgid "Copied '{name}' to '{target}'."
 msgstr "'{name}' a fost copiat în '{target}'."
 
-msgid "Copied {count} devices to '{target}'."
-msgstr "Dispozitive copiate în '{target}': {count}."
-
-msgid "Copied {count} building parts to '{target}'."
-msgstr "Părți de clădire copiate în '{target}': {count}."
-
-msgid "Copied {count} trades to '{target}'."
-msgstr "Specialități copiate în '{target}': {count}."
-
-msgid "Copied {count} functions to '{target}'."
-msgstr "Funcții copiate în '{target}': {count}."
-
-msgid "Copied {count} group addresses to '{target}'."
-msgstr "Adrese de grup copiate în '{target}': {count}."
-
-msgid "Copied {count} middle groups to '{target}'."
-msgstr "Grupe mediane copiate în '{target}': {count}."
-
-msgid "Copied {count} main groups to '{target}'."
-msgstr "Grupe principale copiate în '{target}': {count}."
-
-msgid "Copied {count} lines to '{target}'."
-msgstr "Linii copiate în '{target}': {count}."
-
-msgid "Copied {count} segments to '{target}'."
-msgstr "Segmente copiate în '{target}': {count}."
-
 msgid "Paste Special…"
 msgstr "Lipire specială…"
 
@@ -2848,30 +2737,6 @@ msgstr "S-a atins limita de adăugare."
 msgid "Cannot add any line to the area {area} because of topology constraints. Please check the medium type of the backbone and main lines."
 msgstr "Nu se poate adăuga nicio linie în zona {area} din cauza restricțiilor de topologie. Verificați tipul de mediu al liniilor backbone și principale."
 
-msgid "Added {count} areas to '{target}'."
-msgstr "Zone adăugate în '{target}': {count}."
-
-msgid "Added {count} lines to '{target}'."
-msgstr "Linii adăugate în '{target}': {count}."
-
-msgid "Added {count} segments to '{target}'."
-msgstr "Segmente adăugate în '{target}': {count}."
-
-msgid "Added {count} building parts to '{target}'."
-msgstr "Părți de clădire adăugate în '{target}': {count}."
-
-msgid "Added {count} trades to '{target}'."
-msgstr "Specialități adăugate în '{target}': {count}."
-
-msgid "Added {count} main groups to '{target}'."
-msgstr "Grupe principale adăugate în '{target}': {count}."
-
-msgid "Added {count} middle groups to '{target}'."
-msgstr "Grupe mediane adăugate în '{target}': {count}."
-
-msgid "Added {count} group addresses to '{target}'."
-msgstr "Adrese de grup adăugate în '{target}': {count}."
-
 msgid "Add Main Groups…"
 msgstr "Adăugare grupe principale…"
 
@@ -2911,12 +2776,6 @@ msgstr "Adăugare funcții"
 msgid "New function"
 msgstr "Funcție nouă"
 
-msgid "Added {count} functions to '{target}'."
-msgstr "Funcții adăugate în '{target}': {count}."
-
-msgid "Added {count} group ranges to '{target}'."
-msgstr "Domenii de grupuri adăugate în '{target}': {count}."
-
 msgid "Add Group Ranges…"
 msgstr "Adăugare domenii de grupuri…"
 
@@ -2950,9 +2809,6 @@ msgstr "Un domeniu de grupuri nu poate fi mutat în el însuși sau într-un dom
 msgid "A group address of the range is already in use there."
 msgstr "O adresă de grup a domeniului este deja folosită acolo."
 
-msgid "Copied {count} group ranges to '{target}'."
-msgstr "Domenii de grupuri copiate în '{target}': {count}."
-
 msgid "Add Areas…"
 msgstr "Adăugare zone…"
 
@@ -2967,12 +2823,6 @@ msgstr "Copiere adresă de grup"
 
 msgid "Existing Devices…"
 msgstr "Dispozitive existente…"
-
-msgid "Delete the {count} selected devices? Their group objects and group-address links are removed and their individual addresses are freed. This can be undone."
-msgstr "Ștergeți dispozitivele selectate ({count})? Obiectele lor de comunicare și legăturile cu adresele de grup sunt eliminate, iar adresele lor fizice sunt eliberate. Operația poate fi anulată."
-
-msgid "Remove {count} devices"
-msgstr "Eliminare dispozitive ({count})"
 
 msgid "Delete Devices"
 msgstr "Ștergere dispozitive"
@@ -3082,9 +2932,6 @@ msgstr "Load LVS Project (.prj)…"
 msgid "LVS project (*.prj)"
 msgstr "LVS project (*.prj)"
 
-msgid "Imported the display configuration into {count} device(s)."
-msgstr "Imported the display configuration into {count} device(s)."
-
 msgid "The LVS project could not be imported: {error}"
 msgstr "The LVS project could not be imported: {error}"
 
@@ -3096,3 +2943,318 @@ msgstr "Exported the display configuration."
 
 msgid "The LVS project could not be exported: {error}"
 msgstr "The LVS project could not be exported: {error}"
+
+msgid "Copied {count} device to '{target}'."
+msgid_plural "Copied {count} devices to '{target}'."
+msgstr[0] "{count} dispozitiv copiat în '{target}'."
+msgstr[1] "{count} dispozitive copiate în '{target}'."
+msgstr[2] "{count} de dispozitive copiate în '{target}'."
+
+msgid "Copied {count} building part to '{target}'."
+msgid_plural "Copied {count} building parts to '{target}'."
+msgstr[0] "{count} parte de clădire copiată în '{target}'."
+msgstr[1] "{count} părți de clădire copiate în '{target}'."
+msgstr[2] "{count} de părți de clădire copiate în '{target}'."
+
+msgid "Copied {count} trade to '{target}'."
+msgid_plural "Copied {count} trades to '{target}'."
+msgstr[0] "{count} specialitate copiată în '{target}'."
+msgstr[1] "{count} specialități copiate în '{target}'."
+msgstr[2] "{count} de specialități copiate în '{target}'."
+
+msgid "Copied {count} function to '{target}'."
+msgid_plural "Copied {count} functions to '{target}'."
+msgstr[0] "{count} funcție copiată în '{target}'."
+msgstr[1] "{count} funcții copiate în '{target}'."
+msgstr[2] "{count} de funcții copiate în '{target}'."
+
+msgid "Copied {count} group address to '{target}'."
+msgid_plural "Copied {count} group addresses to '{target}'."
+msgstr[0] "{count} adresă de grup copiată în '{target}'."
+msgstr[1] "{count} adrese de grup copiate în '{target}'."
+msgstr[2] "{count} de adrese de grup copiate în '{target}'."
+
+msgid "Copied {count} middle group to '{target}'."
+msgid_plural "Copied {count} middle groups to '{target}'."
+msgstr[0] "{count} grupă mediană copiată în '{target}'."
+msgstr[1] "{count} grupe mediane copiate în '{target}'."
+msgstr[2] "{count} de grupe mediane copiate în '{target}'."
+
+msgid "Copied {count} main group to '{target}'."
+msgid_plural "Copied {count} main groups to '{target}'."
+msgstr[0] "{count} grupă principală copiată în '{target}'."
+msgstr[1] "{count} grupe principale copiate în '{target}'."
+msgstr[2] "{count} de grupe principale copiate în '{target}'."
+
+msgid "Copied {count} group range to '{target}'."
+msgid_plural "Copied {count} group ranges to '{target}'."
+msgstr[0] "{count} domeniu de grupuri copiat în '{target}'."
+msgstr[1] "{count} domenii de grupuri copiate în '{target}'."
+msgstr[2] "{count} de domenii de grupuri copiate în '{target}'."
+
+msgid "Copied {count} line to '{target}'."
+msgid_plural "Copied {count} lines to '{target}'."
+msgstr[0] "{count} linie copiată în '{target}'."
+msgstr[1] "{count} linii copiate în '{target}'."
+msgstr[2] "{count} de linii copiate în '{target}'."
+
+msgid "Copied {count} segment to '{target}'."
+msgid_plural "Copied {count} segments to '{target}'."
+msgstr[0] "{count} segment copiat în '{target}'."
+msgstr[1] "{count} segmente copiate în '{target}'."
+msgstr[2] "{count} de segmente copiate în '{target}'."
+
+msgid "Added {count} area to '{target}'."
+msgid_plural "Added {count} areas to '{target}'."
+msgstr[0] "{count} zonă adăugată în '{target}'."
+msgstr[1] "{count} zone adăugate în '{target}'."
+msgstr[2] "{count} de zone adăugate în '{target}'."
+
+msgid "Added {count} line to '{target}'."
+msgid_plural "Added {count} lines to '{target}'."
+msgstr[0] "{count} linie adăugată în '{target}'."
+msgstr[1] "{count} linii adăugate în '{target}'."
+msgstr[2] "{count} de linii adăugate în '{target}'."
+
+msgid "Added {count} segment to '{target}'."
+msgid_plural "Added {count} segments to '{target}'."
+msgstr[0] "{count} segment adăugat în '{target}'."
+msgstr[1] "{count} segmente adăugate în '{target}'."
+msgstr[2] "{count} de segmente adăugate în '{target}'."
+
+msgid "Added {count} building part to '{target}'."
+msgid_plural "Added {count} building parts to '{target}'."
+msgstr[0] "{count} parte de clădire adăugată în '{target}'."
+msgstr[1] "{count} părți de clădire adăugate în '{target}'."
+msgstr[2] "{count} de părți de clădire adăugate în '{target}'."
+
+msgid "Added {count} trade to '{target}'."
+msgid_plural "Added {count} trades to '{target}'."
+msgstr[0] "{count} specialitate adăugată în '{target}'."
+msgstr[1] "{count} specialități adăugate în '{target}'."
+msgstr[2] "{count} de specialități adăugate în '{target}'."
+
+msgid "Added {count} function to '{target}'."
+msgid_plural "Added {count} functions to '{target}'."
+msgstr[0] "{count} funcție adăugată în '{target}'."
+msgstr[1] "{count} funcții adăugate în '{target}'."
+msgstr[2] "{count} de funcții adăugate în '{target}'."
+
+msgid "Added {count} group range to '{target}'."
+msgid_plural "Added {count} group ranges to '{target}'."
+msgstr[0] "{count} domeniu de grupuri adăugat în '{target}'."
+msgstr[1] "{count} domenii de grupuri adăugate în '{target}'."
+msgstr[2] "{count} de domenii de grupuri adăugate în '{target}'."
+
+msgid "Added {count} main group to '{target}'."
+msgid_plural "Added {count} main groups to '{target}'."
+msgstr[0] "{count} grupă principală adăugată în '{target}'."
+msgstr[1] "{count} grupe principale adăugate în '{target}'."
+msgstr[2] "{count} de grupe principale adăugate în '{target}'."
+
+msgid "Added {count} middle group to '{target}'."
+msgid_plural "Added {count} middle groups to '{target}'."
+msgstr[0] "{count} grupă mediană adăugată în '{target}'."
+msgstr[1] "{count} grupe mediane adăugate în '{target}'."
+msgstr[2] "{count} de grupe mediane adăugate în '{target}'."
+
+msgid "Added {count} group address to '{target}'."
+msgid_plural "Added {count} group addresses to '{target}'."
+msgstr[0] "{count} adresă de grup adăugată în '{target}'."
+msgstr[1] "{count} adrese de grup adăugate în '{target}'."
+msgstr[2] "{count} de adrese de grup adăugate în '{target}'."
+
+msgid "Remove {count} device"
+msgid_plural "Remove {count} devices"
+msgstr[0] "Eliminare {count} dispozitiv"
+msgstr[1] "Eliminare {count} dispozitive"
+msgstr[2] "Eliminare {count} de dispozitive"
+
+msgid "{count} device"
+msgid_plural "{count} devices"
+msgstr[0] "{count} dispozitiv"
+msgstr[1] "{count} dispozitive"
+msgstr[2] "{count} de dispozitive"
+
+msgid "{count} item"
+msgid_plural "{count} items"
+msgstr[0] "{count} element"
+msgstr[1] "{count} elemente"
+msgstr[2] "{count} de elemente"
+
+msgid "{count} pair"
+msgid_plural "{count} pairs"
+msgstr[0] "{count} pereche"
+msgstr[1] "{count} perechi"
+msgstr[2] "{count} de perechi"
+
+msgid "Linked {count} object to a group address"
+msgid_plural "Linked {count} objects to group addresses"
+msgstr[0] "{count} obiect legat de o adresă de grup"
+msgstr[1] "{count} obiecte legate de adrese de grup"
+msgstr[2] "{count} de obiecte legate de adrese de grup"
+
+msgid "Linked {count} object pair via a new group address"
+msgid_plural "Linked {count} object pairs via new group addresses"
+msgstr[0] "{count} pereche de obiecte legată printr-o adresă de grup nouă"
+msgstr[1] "{count} perechi de obiecte legate prin adrese de grup noi"
+msgstr[2] "{count} de perechi de obiecte legate prin adrese de grup noi"
+
+msgid "{count} error"
+msgid_plural "{count} errors"
+msgstr[0] "{count} eroare"
+msgstr[1] "{count} erori"
+msgstr[2] "{count} de erori"
+
+msgid "{count} object will be re-mapped"
+msgid_plural "{count} objects will be re-mapped"
+msgstr[0] "{count} obiect va fi reasociat"
+msgstr[1] "{count} obiecte vor fi reasociate"
+msgstr[2] "{count} de obiecte vor fi reasociate"
+
+msgid "Replaced; re-mapped {count} group object"
+msgid_plural "Replaced; re-mapped {count} group objects"
+msgstr[0] "Înlocuit; {count} obiect de comunicare reasociat"
+msgstr[1] "Înlocuit; {count} obiecte de comunicare reasociate"
+msgstr[2] "Înlocuit; {count} de obiecte de comunicare reasociate"
+
+msgid "{count} difference"
+msgid_plural "{count} differences"
+msgstr[0] "{count} diferență"
+msgstr[1] "{count} diferențe"
+msgstr[2] "{count} de diferențe"
+
+msgid "Created {count} copy"
+msgid_plural "Created {count} copies"
+msgstr[0] "{count} copie creată"
+msgstr[1] "{count} copii create"
+msgstr[2] "{count} de copii create"
+
+msgid "{count} address will change"
+msgid_plural "{count} addresses will change"
+msgstr[0] "{count} adresă se va modifica"
+msgstr[1] "{count} adrese se vor modifica"
+msgstr[2] "{count} de adrese se vor modifica"
+
+msgid "Shifted {count} address"
+msgid_plural "Shifted {count} addresses"
+msgstr[0] "{count} adresă deplasată"
+msgstr[1] "{count} adrese deplasate"
+msgstr[2] "{count} de adrese deplasate"
+
+msgid "Shifted {count} group address"
+msgid_plural "Shifted {count} group addresses"
+msgstr[0] "{count} adresă de grup deplasată"
+msgstr[1] "{count} adrese de grup deplasate"
+msgstr[2] "{count} de adrese de grup deplasate"
+
+msgid "{count} issue"
+msgid_plural "{count} issues"
+msgstr[0] "{count} problemă"
+msgstr[1] "{count} probleme"
+msgstr[2] "{count} de probleme"
+
+msgid "present ({size} byte)"
+msgid_plural "present ({size} bytes)"
+msgstr[0] "prezent ({size} octet)"
+msgstr[1] "prezent ({size} octeți)"
+msgstr[2] "prezent ({size} de octeți)"
+
+msgid "Imported the display configuration into {count} device."
+msgid_plural "Imported the display configuration into {count} devices."
+msgstr[0] "Configurația de afișare a fost importată în {count} dispozitiv."
+msgstr[1] "Configurația de afișare a fost importată în {count} dispozitive."
+msgstr[2] "Configurația de afișare a fost importată în {count} de dispozitive."
+
+msgid "{count} ECG present on line {line}"
+msgid_plural "{count} ECGs present on line {line}"
+msgstr[0] "{count} balast prezent pe linia {line}"
+msgstr[1] "{count} balasturi prezente pe linia {line}"
+msgstr[2] "{count} de balasturi prezente pe linia {line}"
+
+msgid "Apply Changes to {count} Identical Device"
+msgid_plural "Apply Changes to All {count} Identical Devices"
+msgstr[0] "Aplicare modificări la {count} dispozitiv identic"
+msgstr[1] "Aplicare modificări la toate cele {count} dispozitive identice"
+msgstr[2] "Aplicare modificări la toate cele {count} de dispozitive identice"
+
+msgid "Editing {count} device — edits apply to all, diverging values show <differs>"
+msgid_plural "Editing {count} devices — edits apply to all, diverging values show <differs>"
+msgstr[0] "Editare {count} dispozitiv — modificările se aplică tuturor, valorile diferite afișează <diferă>"
+msgstr[1] "Editare {count} dispozitive — modificările se aplică tuturor, valorile diferite afișează <diferă>"
+msgstr[2] "Editare {count} de dispozitive — modificările se aplică tuturor, valorile diferite afișează <diferă>"
+
+msgid "{count} byte"
+msgid_plural "{count} bytes"
+msgstr[0] "{count} octet"
+msgstr[1] "{count} octeți"
+msgstr[2] "{count} de octeți"
+
+msgid "Mismatch: {bytes} from the device in {locations}"
+msgstr "Nepotrivire: {bytes} față de dispozitiv în {locations}"
+
+msgid "{count} byte differs"
+msgid_plural "{count} bytes differ"
+msgstr[0] "{count} octet diferă"
+msgstr[1] "{count} octeți diferă"
+msgstr[2] "{count} de octeți diferă"
+
+msgid "{count} location"
+msgid_plural "{count} locations"
+msgstr[0] "{count} locație"
+msgstr[1] "{count} locații"
+msgstr[2] "{count} de locații"
+
+msgid "plus {bytes} device-managed runtime byte (expected, benign)"
+msgid_plural "plus {bytes} device-managed runtime bytes (expected, benign)"
+msgstr[0] "plus {bytes} octet de rulare gestionat de dispozitiv (de așteptat, inofensiv)"
+msgstr[1] "plus {bytes} octeți de rulare gestionați de dispozitiv (de așteptat, inofensivi)"
+msgstr[2] "plus {bytes} de octeți de rulare gestionați de dispozitiv (de așteptat, inofensivi)"
+
+msgid "plus {bytes} byte reset to the application default (the device holds an older value; benign, will be normalised on programming)"
+msgid_plural "plus {bytes} bytes reset to the application default (the device holds an older value; benign, will be normalised on programming)"
+msgstr[0] "plus {bytes} octet resetat la valoarea implicită a aplicației (dispozitivul conține o valoare mai veche; inofensiv, se normalizează la programare)"
+msgstr[1] "plus {bytes} octeți resetați la valoarea implicită a aplicației (dispozitivul conține o valoare mai veche; inofensiv, se normalizează la programare)"
+msgstr[2] "plus {bytes} de octeți resetați la valoarea implicită a aplicației (dispozitivul conține o valoare mai veche; inofensiv, se normalizează la programare)"
+
+msgid "Paste configuration onto {count} selected device:"
+msgid_plural "Paste configuration onto {count} selected devices:"
+msgstr[0] "Lipire configurație în {count} dispozitiv selectat:"
+msgstr[1] "Lipire configurație în {count} dispozitive selectate:"
+msgstr[2] "Lipire configurație în {count} de dispozitive selectate:"
+
+msgid "Delete the {count} selected device? Its group objects and group-address links are removed and its individual address is freed. This can be undone."
+msgid_plural "Delete the {count} selected devices? Their group objects and group-address links are removed and their individual addresses are freed. This can be undone."
+msgstr[0] "Ștergeți {count} dispozitiv selectat? Obiectele sale de comunicare și legăturile cu adresele de grup sunt eliminate, iar adresa sa fizică este eliberată. Operația poate fi anulată."
+msgstr[1] "Ștergeți {count} dispozitive selectate? Obiectele lor de comunicare și legăturile cu adresele de grup sunt eliminate, iar adresele lor fizice sunt eliberate. Operația poate fi anulată."
+msgstr[2] "Ștergeți {count} de dispozitive selectate? Obiectele lor de comunicare și legăturile cu adresele de grup sunt eliminate, iar adresele lor fizice sunt eliberate. Operația poate fi anulată."
+
+msgid "{count} group address added"
+msgid_plural "{count} group addresses added"
+msgstr[0] "{count} adresă de grup adăugată"
+msgstr[1] "{count} adrese de grup adăugate"
+msgstr[2] "{count} de adrese de grup adăugate"
+
+msgid "{count} updated"
+msgid_plural "{count} updated"
+msgstr[0] "{count} actualizată"
+msgstr[1] "{count} actualizate"
+msgstr[2] "{count} actualizate"
+
+msgid "{count} group address could not be placed in a group."
+msgid_plural "{count} group addresses could not be placed in a group."
+msgstr[0] "{count} adresă de grup nu a putut fi plasată într-un grup."
+msgstr[1] "{count} adrese de grup nu au putut fi plasate într-un grup."
+msgstr[2] "{count} de adrese de grup nu au putut fi plasate într-un grup."
+
+msgid "{count} ECG present"
+msgid_plural "{count} ECGs present"
+msgstr[0] "{count} balast prezent"
+msgstr[1] "{count} balasturi prezente"
+msgstr[2] "{count} de balasturi prezente"
+
+msgid "Procedure {number}  ({count} step)"
+msgid_plural "Procedure {number}  ({count} steps)"
+msgstr[0] "Procedura {number}  ({count} pas)"
+msgstr[1] "Procedura {number}  ({count} pași)"
+msgstr[2] "Procedura {number}  ({count} de pași)"

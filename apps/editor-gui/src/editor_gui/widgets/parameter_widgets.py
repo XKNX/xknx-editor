@@ -10,6 +10,8 @@ from dataclasses import dataclass, replace
 from imgui_bundle import imgui
 from imgui_bundle.imgui import internal
 
+# The module, not status_color: the theme module imports the widgets package itself.
+from editor_gui import theme
 from editor_gui.device import Device
 from editor_gui.regional import regional_format
 from editor_gui.widgets import text_layout
@@ -82,8 +84,8 @@ from xknxeditor.prod.parser_v2.ui.parameter import (
     TimeWidget,
 )
 
-# Parameters changed from their default are tinted to stand out (View > Highlight Changes).
-_CHANGED_COLOR = imgui.ImVec4(0.36, 0.71, 1.0, 1.0)
+# Parameters changed from their default are tinted in the theme's info color to stand out (View >
+# Highlight Changes).
 _highlight_changes = True
 
 
@@ -93,6 +95,7 @@ def set_highlight_changes(on: bool) -> None:
     _highlight_changes = on
 
 
+# The border of a field whose input was refused.
 _ERROR_COLOR = imgui.ImVec4(1.0, 0.42, 0.42, 1.0)
 
 
@@ -160,7 +163,7 @@ def _render_button(
         buttons.on_click(device, button)
     error = buttons.error(device, button) if buttons is not None else None
     if error:
-        imgui.push_style_color(imgui.Col_.text, _ERROR_COLOR)
+        imgui.push_style_color(imgui.Col_.text, theme.status_color("error"))
         imgui.text_wrapped(error)
         imgui.pop_style_color()
 
@@ -2665,7 +2668,7 @@ def _render_grid_param(
     changed = param.value != param.default_value
     tinted = changed and _highlight_changes
     if tinted:
-        imgui.push_style_color(imgui.Col_.text, _CHANGED_COLOR)
+        imgui.push_style_color(imgui.Col_.text, theme.status_color("info"))
     read_only = param.access == Access.READ
     imgui.begin_group()
     # In a cell a suffix keeps room after it too.
@@ -2787,9 +2790,9 @@ def _render_param_table(
             # Changed parameters stand out. A leading marker plus the colour means the
             # state is not signalled by colour alone.
             if changed and _highlight_changes:
-                imgui.text_colored(_CHANGED_COLOR, "*")
+                imgui.text_colored(theme.status_color("info"), "*")
                 imgui.same_line(0, px(4))
-                imgui.push_style_color(imgui.Col_.text, _CHANGED_COLOR)
+                imgui.push_style_color(imgui.Col_.text, theme.status_color("info"))
                 _wrapped_label(label)
                 imgui.pop_style_color()
                 if imgui.is_item_hovered():

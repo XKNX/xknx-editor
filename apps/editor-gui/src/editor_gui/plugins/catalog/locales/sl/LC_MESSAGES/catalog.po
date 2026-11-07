@@ -16,12 +16,6 @@ msgstr "Arhiva ni bilo mogoče naložiti"
 msgid "Loaded: {path}"
 msgstr "Naloženo: {path}"
 
-msgid "Found {count} application(s)"
-msgstr "Najdene aplikacije: {count}"
-
-msgid "({count} group objects)"
-msgstr "(komunikacijski objekti: {count})"
-
 msgid "Fetch Online Catalog"
 msgstr "Pridobi spletni katalog"
 
@@ -73,9 +67,6 @@ msgstr "Prostor"
 msgid "(no room)"
 msgstr "(brez prostora)"
 
-msgid "Fetch {count} Missing Application(s) Online"
-msgstr "Pridobi manjkajoče aplikacije s spleta ({count})"
-
 msgid "Fetching missing applications…"
 msgstr "Pridobivanje manjkajočih aplikacij…"
 
@@ -94,9 +85,6 @@ msgstr "Različica programa"
 msgid "Search products, order number…"
 msgstr "Iskanje izdelkov, naročilne številke…"
 
-msgid "Product Index ({date}): {mfrs} manufacturers, {products} products"
-msgstr "Kazalo izdelkov ({date}): proizvajalci: {mfrs}, izdelki: {products}"
-
 msgid "No Product Index yet - fetch the online catalog to build it"
 msgstr "Kazala izdelkov še ni – za izdelavo pridobite spletni katalog"
 
@@ -109,14 +97,8 @@ msgstr "Prekliči"
 msgid "Fetch the online catalog to search across all manufacturers."
 msgstr "Pridobite spletni katalog, da boste lahko iskali med vsemi proizvajalci."
 
-msgid "Showing {shown} of {total} matches - refine the search"
-msgstr "Prikazani zadetki: {shown} od {total} – zožite iskanje"
-
 msgid "(in local catalog)"
 msgstr "(v lokalnem katalogu)"
-
-msgid "{count} matches"
-msgstr "Zadetki: {count}"
 
 msgid "Open or create a project first to add a device."
 msgstr "Če želite dodati napravo, najprej odprite ali ustvarite projekt."
@@ -135,9 +117,6 @@ msgstr "Brisanje iz lokalnega kataloga"
 
 msgid "Are you sure you want to delete the selected device? This cannot be undone."
 msgstr "Ali ste prepričani, da želite izbrisati izbrano napravo? Tega ni mogoče razveljaviti."
-
-msgid "{count} device(s) in the open project use this product. They can't be loaded until the product is imported again."
-msgstr "Naprave v odprtem projektu, ki uporabljajo ta izdelek: {count}. Dokler izdelka znova ne uvozite, jih ni mogoče naložiti."
 
 msgid "Deleting {name}…"
 msgstr "Brisanje {name}…"
@@ -259,9 +238,6 @@ msgstr "Znova pošlji kodo"
 msgid "Open Website"
 msgstr "Odpri spletno mesto"
 
-msgid "Imported {count} product versions. Find them in the Local tab."
-msgstr "Uvoženih {count} različic izdelkov. Najdete jih na zavihku Lokalno."
-
 msgid "Login is saved on this computer. Leave the password empty to keep it for the same server and user."
 msgstr "Prijavni podatki so shranjeni v tem računalniku. Pustite geslo prazno, da ga ohranite za isti strežnik in uporabnika."
 
@@ -279,6 +255,7 @@ msgstr "Različica"
 
 msgid "Register…"
 msgstr "Registracija…"
+
 msgid "Alternative Catalog"
 msgstr "Alternative Catalog"
 
@@ -302,3 +279,69 @@ msgstr "Geslo potrebuje vsaj 10 znakov z velikimi in malimi črkami, števko in 
 
 msgid "Enter the six-digit code from the email."
 msgstr "Vnesite šestmestno kodo iz e-pošte."
+
+msgid "Imported {count} product version. Find it in the Local tab."
+msgid_plural "Imported {count} product versions. Find them in the Local tab."
+msgstr[0] "Uvožena {count} različica izdelka. Najdete jo na zavihku Lokalno."
+msgstr[1] "Uvoženi {count} različici izdelkov. Najdete ju na zavihku Lokalno."
+msgstr[2] "Uvožene {count} različice izdelkov. Najdete jih na zavihku Lokalno."
+msgstr[3] "Uvoženih {count} različic izdelkov. Najdete jih na zavihku Lokalno."
+
+msgid "Found {count} application"
+msgid_plural "Found {count} applications"
+msgstr[0] "Najdena {count} aplikacija"
+msgstr[1] "Najdeni {count} aplikaciji"
+msgstr[2] "Najdene {count} aplikacije"
+msgstr[3] "Najdenih {count} aplikacij"
+
+msgid "({count} group object)"
+msgid_plural "({count} group objects)"
+msgstr[0] "({count} komunikacijski objekt)"
+msgstr[1] "({count} komunikacijska objekta)"
+msgstr[2] "({count} komunikacijski objekti)"
+msgstr[3] "({count} komunikacijskih objektov)"
+
+msgid "{count} match"
+msgid_plural "{count} matches"
+msgstr[0] "{count} zadetek"
+msgstr[1] "{count} zadetka"
+msgstr[2] "{count} zadetki"
+msgstr[3] "{count} zadetkov"
+
+msgid "Product Index ({date}): {manufacturers}, {products}"
+msgstr "Kazalo izdelkov ({date}): {manufacturers}, {products}"
+
+msgid "{count} manufacturer"
+msgid_plural "{count} manufacturers"
+msgstr[0] "{count} proizvajalec"
+msgstr[1] "{count} proizvajalca"
+msgstr[2] "{count} proizvajalci"
+msgstr[3] "{count} proizvajalcev"
+
+msgid "{count} product"
+msgid_plural "{count} products"
+msgstr[0] "{count} izdelek"
+msgstr[1] "{count} izdelka"
+msgstr[2] "{count} izdelki"
+msgstr[3] "{count} izdelkov"
+
+msgid "Showing {shown} of {total} match - refine the search"
+msgid_plural "Showing {shown} of {total} matches - refine the search"
+msgstr[0] "Prikazani zadetki: {shown} od {total} – zožite iskanje"
+msgstr[1] "Prikazani zadetki: {shown} od {total} – zožite iskanje"
+msgstr[2] "Prikazani zadetki: {shown} od {total} – zožite iskanje"
+msgstr[3] "Prikazani zadetki: {shown} od {total} – zožite iskanje"
+
+msgid "Fetch {count} Missing Application Online"
+msgid_plural "Fetch {count} Missing Applications Online"
+msgstr[0] "Pridobi {count} manjkajočo aplikacijo s spleta"
+msgstr[1] "Pridobi {count} manjkajoči aplikaciji s spleta"
+msgstr[2] "Pridobi {count} manjkajoče aplikacije s spleta"
+msgstr[3] "Pridobi {count} manjkajočih aplikacij s spleta"
+
+msgid "{count} device in the open project uses this product. It can't be loaded until the product is imported again."
+msgid_plural "{count} devices in the open project use this product. They can't be loaded until the product is imported again."
+msgstr[0] "{count} naprava v odprtem projektu uporablja ta izdelek. Dokler izdelka znova ne uvozite, je ni mogoče naložiti."
+msgstr[1] "{count} napravi v odprtem projektu uporabljata ta izdelek. Dokler izdelka znova ne uvozite, ju ni mogoče naložiti."
+msgstr[2] "{count} naprave v odprtem projektu uporabljajo ta izdelek. Dokler izdelka znova ne uvozite, jih ni mogoče naložiti."
+msgstr[3] "{count} naprav v odprtem projektu uporablja ta izdelek. Dokler izdelka znova ne uvozite, jih ni mogoče naložiti."

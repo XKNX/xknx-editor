@@ -32,6 +32,7 @@ from editor_gui.plugins.monitor.service import MonitorKind
 from editor_gui.plugins.monitor.strings import S
 from editor_gui.plugins.monitor.xmlio import export_xml, import_xml
 from editor_gui.strings import get_locale
+from editor_gui.theme import status_color
 from editor_gui.widgets.checkbox import radio_button
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
 from editor_gui.widgets.dpi import px
@@ -59,9 +60,9 @@ _FILTER_BUDGET = 0.008
 # Narrowest the filter box gets beside the Compact/Extend toggle, at 100 % scaling; else the
 # toggle goes below it.
 _NARROW_FILTER = 160.0
-_ERROR_COLOR = imgui.ImVec4(0.9, 0.35, 0.35, 1.0)
-_WARN_COLOR = imgui.ImVec4(0.95, 0.6, 0.15, 1.0)
+# The rows of records that are no telegram, and of telegrams with flags.
 _EVENT_COLOR = imgui.ImVec4(0.55, 0.7, 0.95, 1.0)
+_FLAGGED_COLOR = imgui.ImVec4(0.95, 0.6, 0.15, 1.0)
 _FILE_NAMES = {
     MonitorKind.GROUP: "GroupMonitor",
     MonitorKind.BUS: "BusMonitor",
@@ -390,11 +391,9 @@ class TelegramView:
         if self._render_state():
             load = S.MONITOR_BUS_LOAD.format(rate=f"{self._service.bus_load():.1f}")
             count = len(self._view)
-            text = (
-                S.MONITOR_TELEGRAM_COUNT_ONE if count == 1 else S.MONITOR_TELEGRAM_COUNT
-            )
+            text = S.MONITOR_TELEGRAM_COUNT(count).format(count=count)
             # One text, so the two stay together and the Max field fits beside them.
-            self._toolbar_text(f"{load}, {text.format(count=count)}")
+            self._toolbar_text(f"{load}, {text}")
         self._render_max_records_input()
         if self.filtering:
             done = self._pos * 100 // max(len(self._source), 1)
@@ -402,14 +401,14 @@ class TelegramView:
 
     def _render_state(self) -> bool:
         """The recording state in the toolbar row; returns whether the monitor records."""
-        color = imgui.ImVec4(0.4, 0.85, 0.45, 1.0)
+        color = status_color("success")
         recording = False
         if self.kind is MonitorKind.BUS:
             state = self._connection.busmonitor_state
             if state is BusmonitorState.STARTING:
-                self._toolbar_text(S.STATUS_BUSMON_STARTING, _WARN_COLOR)
+                self._toolbar_text(S.STATUS_BUSMON_STARTING, status_color("warning"))
             elif state is BusmonitorState.STOPPING:
-                self._toolbar_text(S.STATUS_BUSMON_STOPPING, _WARN_COLOR)
+                self._toolbar_text(S.STATUS_BUSMON_STOPPING, status_color("warning"))
             elif state is BusmonitorState.RUNNING:
                 self._toolbar_text(S.STATUS_RECORDING, color)
                 recording = True
@@ -429,7 +428,7 @@ class TelegramView:
             if progress is not None:
                 self._toolbar_text(
                     S.STATUS_REPLAYING.format(done=progress[0], total=progress[1]),
-                    _WARN_COLOR,
+                    status_color("warning"),
                 )
         return recording
 
@@ -439,11 +438,11 @@ class TelegramView:
             state = self._connection.busmonitor_state
             if state is BusmonitorState.RUNNING:
                 imgui.push_text_wrap_pos(0.0)
-                imgui.text_colored(_WARN_COLOR, S.STATUS_BUSMON_RUNNING)
+                imgui.text_colored(status_color("warning"), S.STATUS_BUSMON_RUNNING)
                 imgui.pop_text_wrap_pos()
             elif state is BusmonitorState.OFF and self._connection.busmonitor_error:
                 imgui.push_text_wrap_pos(0.0)
-                imgui.text_colored(_ERROR_COLOR, self._busmon_error_text())
+                imgui.text_colored(status_color("error"), self._busmon_error_text())
                 imgui.pop_text_wrap_pos()
                 detail = self._connection.busmonitor_error_detail
                 if detail and imgui.is_item_hovered():
@@ -452,7 +451,7 @@ class TelegramView:
             text, error = self._message
             imgui.push_text_wrap_pos(0.0)
             if error:
-                imgui.text_colored(_ERROR_COLOR, text)
+                imgui.text_colored(status_color("error"), text)
             else:
                 imgui.text_disabled(text)
             imgui.pop_text_wrap_pos()
@@ -562,7 +561,7 @@ class TelegramView:
         if not record.is_telegram:
             color = _EVENT_COLOR
         elif cells[COLUMN_INDEX["flags"]]:
-            color = _WARN_COLOR
+            color = _FLAGGED_COLOR
         for column in range(1, len(COLUMNS)):
             if not imgui.table_set_column_index(column):
                 continue
@@ -729,12 +728,20 @@ class TelegramView:
         plan = self._service.start_replay(records)
         messages: list[str] = []
         if plan.skipped_secure:
-            messages.append(S.REPLAY_SECURE_SKIPPED.format(count=plan.skipped_secure))
+            messages.append(
+                S.REPLAY_SECURE_SKIPPED(plan.skipped_secure).format(
+                    count=plan.skipped_secure
+                )
+            )
         if not plan.items:
             messages.append(S.REPLAY_NOTHING)
         self._message = (". ".join(messages), True) if messages else None
         if plan.skipped_secure and self._notify is not None:
-            self._notify(S.REPLAY_SECURE_SKIPPED.format(count=plan.skipped_secure))
+            self._notify(
+                S.REPLAY_SECURE_SKIPPED(plan.skipped_secure).format(
+                    count=plan.skipped_secure
+                )
+            )
         self._replay_reported = self._service.replay_result
 
     def _report_replay(self) -> None:
@@ -743,7 +750,7 @@ class TelegramView:
             return
         self._replay_reported = result
         sent, cancelled = result
-        text = (S.REPLAY_CANCELLED if cancelled else S.REPLAY_FINISHED).format(
+        text = (S.REPLAY_CANCELLED if cancelled else S.REPLAY_FINISHED)(sent).format(
             count=sent
         )
         self._message = (text, False)
@@ -840,7 +847,7 @@ class TelegramView:
         if self._pending_export_all:
             self._channel.log.mark_saved()
         count = sum(1 for record in records if record.kind is RecordKind.TELEGRAM)
-        self._message = (S.EXPORTED.format(count=count, path=path), False)
+        self._message = (S.EXPORTED(count).format(count=count, path=path), False)
         self._pending_export = []
 
     def _read_import(self, path: str) -> None:
@@ -852,7 +859,8 @@ class TelegramView:
         self._service.load(self.kind, result.records)
         self.selected = set()
         self.focused = None
-        text = S.IMPORTED.format(count=len(result.records), path=path)
+        count = len(result.records)
+        text = S.IMPORTED(count).format(count=count, path=path)
         if result.skipped:
-            text += ". " + S.IMPORT_SKIPPED.format(count=result.skipped)
+            text += ". " + S.IMPORT_SKIPPED(result.skipped).format(count=result.skipped)
         self._message = (text, False)

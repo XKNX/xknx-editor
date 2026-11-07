@@ -83,9 +83,12 @@ class ConnectionStrings:
             "overloaded). Please try again."
         )
 
-    @property
-    def PROGMODE_COUNT(self) -> str:
-        return _("{count} device(s) in programming mode")
+    def PROGMODE_COUNT(self, count: int) -> str:
+        return _.plural(
+            "{count} device in programming mode",
+            "{count} devices in programming mode",
+            count,
+        )
 
     @property
     def PROGMODE_READ_FAILED(self) -> str:

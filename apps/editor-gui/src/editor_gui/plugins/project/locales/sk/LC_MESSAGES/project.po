@@ -85,9 +85,6 @@ msgstr "Certifikát projektu"
 msgid "none"
 msgstr "žiadny"
 
-msgid "present ({size} bytes)"
-msgstr "k dispozícii (bajty: {size})"
-
 msgid "Order Number"
 msgstr "Objednávacie číslo"
 
@@ -226,9 +223,6 @@ msgstr "Nedá sa spustiť: žiadne pripojenie KNX. Pripojte sa k bráne (ponuka 
 msgid "Match: the generated image is identical to what is on the device"
 msgstr "Zhoda: vytvorený obraz je totožný s obsahom zariadenia"
 
-msgid "Mismatch: {bytes} byte(s) differ from the device in {locations} location(s)"
-msgstr "Nezhoda: počet bajtov odlišných od zariadenia: {bytes}, počet miest: {locations}"
-
 msgid "{matched} matched, {changed} would change"
 msgstr "Zhodné: {matched}, zmenilo by sa: {changed}"
 
@@ -256,9 +250,6 @@ msgstr "spravované zariadením"
 msgid "System byte the device sets itself at runtime (e.g. a download detection byte reset by the application after a download). A difference here is expected and does not indicate a bad download."
 msgstr "Systémový bajt, ktorý si zariadenie nastavuje samo počas behu (napr. bajt detekcie nahratia, ktorý aplikácia po nahratí vynuluje). Rozdiel tu je očakávaný a neznamená chybné nahratie."
 
-msgid "plus {bytes} device-managed runtime byte(s) (expected, benign)"
-msgstr "plus bajty počas behu spravované zariadením: {bytes} (očakávané, neškodné)"
-
 msgid "No configured differences: the device already carries this configuration. The differences below are benign (see notes)."
 msgstr "Žiadne nakonfigurované rozdiely: zariadenie už túto konfiguráciu obsahuje. Rozdiely nižšie sú neškodné (pozri poznámky)."
 
@@ -267,9 +258,6 @@ msgstr "nastaví predvolené"
 
 msgid "This byte is written for a neighbouring parameter; the differing bit is not driven by any active parameter and is only reset to the application default. The device holds an older value (e.g. from a previous configuration or mode) that programming will normalise. Benign."
 msgstr "Tento bajt sa zapisuje kvôli susednému parametru; odlišný bit neovláda žiadny aktívny parameter a len sa vracia na predvolenú hodnotu aplikácie. Zariadenie obsahuje staršiu hodnotu (napr. z predchádzajúcej konfigurácie alebo režimu), ktorú programovanie zjednotí. Neškodné."
-
-msgid "plus {bytes} byte(s) reset to the application default (the device holds an older value; benign, will be normalised on programming)"
-msgstr "plus bajty vrátené na predvolenú hodnotu aplikácie: {bytes} (zariadenie obsahuje staršiu hodnotu; neškodné, pri programovaní sa zjednotí)"
 
 msgid "Export Ist/Soll…"
 msgstr "Export Ist/Soll…"
@@ -394,12 +382,6 @@ msgstr "Nedá sa spustiť: projekt sa od otvorenia zmenil. Tento test porovnáva
 msgid "Duplicate"
 msgstr "Duplikovať"
 
-msgid "Apply Changes to All {count} Identical Devices"
-msgstr "Použiť zmeny na všetky rovnaké zariadenia ({count})"
-
-msgid "Editing {count} devices — edits apply to all, diverging values show <differs>"
-msgstr "Úprava zariadení ({count}) – zmeny platia pre všetky, odlišné hodnoty sa zobrazia ako <líši sa>"
-
 msgid "Mass Linker"
 msgstr "Hromadné prepojenie"
 
@@ -451,12 +433,6 @@ msgstr "Posunúť nahor"
 msgid "Move Down"
 msgstr "Posunúť nadol"
 
-msgid "{count} items"
-msgstr "Položky: {count}"
-
-msgid "{count} pairs"
-msgstr "Páry: {count}"
-
 msgid "{count} unpaired (ignored)"
 msgstr "Bez páru (ignorované): {count}"
 
@@ -477,15 +453,6 @@ msgstr "Pridať skupinové objekty"
 
 msgid "Add Group Addresses"
 msgstr "Pridať skupinové adresy"
-
-msgid "Linked {count} object(s) to group addresses"
-msgstr "Objekty prepojené so skupinovými adresami: {count}"
-
-msgid "Linked {count} object pair(s) via new group addresses"
-msgstr "Páry objektov prepojené cez nové skupinové adresy: {count}"
-
-msgid "{count} error(s)"
-msgstr "Chyby: {count}"
 
 msgid "Clear All"
 msgstr "Vymazať všetko"
@@ -538,9 +505,6 @@ msgstr "Názov kópie: {name}"
 msgid "Copy"
 msgstr "Kopírovať"
 
-msgid "Created {count} copy/copies"
-msgstr "Vytvorené kópie: {count}"
-
 msgid "Shifts the device part of each individual address. Group addresses are not shifted."
 msgstr "Posunie časť zariadenia každej individuálnej adresy. Skupinové adresy sa neposúvajú."
 
@@ -553,9 +517,6 @@ msgstr "Len vybrané zdrojové zariadenie (z rozšíreného kopírovania)"
 msgid "(out of range)"
 msgstr "(mimo rozsahu)"
 
-msgid "Shifted {count} address(es)"
-msgstr "Posunuté adresy: {count}"
-
 msgid "Export {count} device(s) to a CSV for on-site labelling."
 msgstr "Export zariadení do CSV na označenie na mieste (zariadenia: {count})."
 
@@ -567,12 +528,6 @@ msgstr "Exportované do {path}"
 
 msgid "No topology issues found."
 msgstr "Nenašli sa žiadne problémy topológie."
-
-msgid "{count} issue(s)"
-msgstr "Problémy: {count}"
-
-msgid "{count} address(es) will change"
-msgstr "Adresy, ktoré sa zmenia: {count}"
 
 msgid "Click a finding to jump to the device."
 msgstr "Kliknutím na nález prejdete na zariadenie."
@@ -624,12 +579,6 @@ msgstr "Nahradiť (vzor)"
 
 msgid "Group Object Mapping (by Number)"
 msgstr "Priradenie skupinových objektov (podľa čísla)"
-
-msgid "{count} object(s) will be re-mapped"
-msgstr "Objekty, ktoré sa znova priradia: {count}"
-
-msgid "Replaced; re-mapped {count} group object(s)"
-msgstr "Vymenené; znova priradené skupinové objekty: {count}"
 
 msgid "Device"
 msgstr "Zariadenie"
@@ -840,9 +789,6 @@ msgstr "Prilepiť konfiguráciu"
 
 msgid "Paste configuration onto '{name}':"
 msgstr "Prilepiť konfiguráciu do '{name}':"
-
-msgid "Paste configuration onto {count} selected devices:"
-msgstr "Prilepiť konfiguráciu do vybraných zariadení ({count}):"
 
 msgid "Duplicate '{name}':"
 msgstr "Duplikovať '{name}':"
@@ -1174,12 +1120,6 @@ msgstr "Súbory skupinových adries (XML, CSV)"
 msgid "All Files"
 msgstr "Všetky súbory"
 
-msgid "{added} group addresses added, {updated} updated."
-msgstr "Pridané skupinové adresy: {added}, aktualizované: {updated}."
-
-msgid "{count} group addresses could not be placed in a group."
-msgstr "Skupinové adresy, ktoré sa nepodarilo zaradiť do skupiny: {count}."
-
 msgid "The file could not be imported: {error}"
 msgstr "Súbor sa nepodarilo importovať: {error}"
 
@@ -1372,9 +1312,6 @@ msgstr "Hárok"
 msgid "Shift Group Addresses"
 msgstr "Posunúť skupinové adresy"
 
-msgid "Shifted {count} group address(es)"
-msgstr "Posunuté skupinové adresy: {count}"
-
 msgid "Subnet Mask"
 msgstr "Maska podsiete"
 
@@ -1399,9 +1336,6 @@ msgstr "Porovnané s {name}:"
 msgid "removed"
 msgstr "odstránené"
 
-msgid "{count} difference(s)"
-msgstr "Rozdiely: {count}"
-
 msgid "Save…"
 msgstr "Uložiť…"
 
@@ -1413,9 +1347,6 @@ msgstr "Zrušiť porovnanie"
 
 msgid "Memory Dumps (*.bin)"
 msgstr "Výpisy pamäte (*.bin)"
-
-msgid "{count} bytes"
-msgstr "Bajty: {count}"
 
 msgid "No memory segments."
 msgstr "Žiadne segmenty pamäte."
@@ -1639,9 +1570,6 @@ msgstr "Len rozdiely"
 msgid "Open a project with at least two devices to compare."
 msgstr "Na porovnanie otvorte projekt aspoň s dvoma zariadeniami."
 
-msgid "{count} differences"
-msgstr "Rozdiely: {count}"
-
 msgid "The manufacturer plugin is not available here:"
 msgstr "Plugin výrobcu tu nie je k dispozícii:"
 
@@ -1735,9 +1663,6 @@ msgstr "Zapísať priradenie skupín na zbernicu DALI. Tým sa skupiny prenesú 
 msgid "Write the scene values to the DALI bus. Continue?"
 msgstr "Zapísať hodnoty scén na zbernicu DALI. Pokračovať?"
 
-msgid "{count} ECG(s) present"
-msgstr "Prítomné predradníky: {count}"
-
 msgid "Group"
 msgstr "Skupina"
 
@@ -1779,9 +1704,6 @@ msgstr "Jednotlivo"
 
 msgid "Unassigned"
 msgstr "Nepriradené"
-
-msgid "Procedure {number}  ({count} steps)"
-msgstr "Procedúra {number}  (kroky: {count})"
 
 msgid "Kind"
 msgstr "Druh"
@@ -2175,9 +2097,6 @@ msgstr "Číta sa zbernica DALI z objektu {object_index}…"
 
 msgid "Press 'Read DALI Bus' to list the ECGs on the gateway."
 msgstr "Stlačením „Čítať zbernicu DALI“ zobrazíte predradníky na bráne."
-
-msgid "{count} ECG(s) present on line {line}"
-msgstr "Predradníky na línii {line}: {count}"
 
 msgid "Read-only snapshot. Writing group assignments, scenes or firmware is not available yet and remains in the manufacturer's plugin."
 msgstr "Snímka len na čítanie. Zápis priradení skupín, scén alebo firmvéru tu zatiaľ nie je k dispozícii a zostáva v plugine výrobcu."
@@ -2704,9 +2623,6 @@ msgstr "Skupina nemá voľnú skupinovú adresu."
 msgid "The main group has no free middle group."
 msgstr "Hlavná skupina nemá voľnú strednú skupinu."
 
-msgid "{count} devices"
-msgstr "Zariadenia: {count}"
-
 msgid "The main segment cannot be moved."
 msgstr "Hlavný segment nemožno presunúť."
 
@@ -2779,33 +2695,6 @@ msgstr "Pre nové skupinové adresy neexistuje žiadna skupina."
 msgid "Copied '{name}' to '{target}'."
 msgstr "'{name}' skopírované do '{target}'."
 
-msgid "Copied {count} devices to '{target}'."
-msgstr "Do '{target}' skopírované zariadenia: {count}."
-
-msgid "Copied {count} building parts to '{target}'."
-msgstr "Do '{target}' skopírované časti budovy: {count}."
-
-msgid "Copied {count} trades to '{target}'."
-msgstr "Do '{target}' skopírované profesie: {count}."
-
-msgid "Copied {count} functions to '{target}'."
-msgstr "Do '{target}' skopírované funkcie: {count}."
-
-msgid "Copied {count} group addresses to '{target}'."
-msgstr "Do '{target}' skopírované skupinové adresy: {count}."
-
-msgid "Copied {count} middle groups to '{target}'."
-msgstr "Do '{target}' skopírované stredné skupiny: {count}."
-
-msgid "Copied {count} main groups to '{target}'."
-msgstr "Do '{target}' skopírované hlavné skupiny: {count}."
-
-msgid "Copied {count} lines to '{target}'."
-msgstr "Do '{target}' skopírované línie: {count}."
-
-msgid "Copied {count} segments to '{target}'."
-msgstr "Do '{target}' skopírované segmenty: {count}."
-
 msgid "Paste Special…"
 msgstr "Prilepiť špeciálne…"
 
@@ -2848,30 +2737,6 @@ msgstr "Dosiahol sa limit na pridanie."
 msgid "Cannot add any line to the area {area} because of topology constraints. Please check the medium type of the backbone and main lines."
 msgstr "Pre obmedzenia topológie nemožno do oblasti {area} pridať žiadnu líniu. Skontrolujte typ média chrbticovej a hlavných línií."
 
-msgid "Added {count} areas to '{target}'."
-msgstr "Do '{target}' pridané oblasti: {count}."
-
-msgid "Added {count} lines to '{target}'."
-msgstr "Do '{target}' pridané línie: {count}."
-
-msgid "Added {count} segments to '{target}'."
-msgstr "Do '{target}' pridané segmenty: {count}."
-
-msgid "Added {count} building parts to '{target}'."
-msgstr "Do '{target}' pridané časti budovy: {count}."
-
-msgid "Added {count} trades to '{target}'."
-msgstr "Do '{target}' pridané profesie: {count}."
-
-msgid "Added {count} main groups to '{target}'."
-msgstr "Do '{target}' pridané hlavné skupiny: {count}."
-
-msgid "Added {count} middle groups to '{target}'."
-msgstr "Do '{target}' pridané stredné skupiny: {count}."
-
-msgid "Added {count} group addresses to '{target}'."
-msgstr "Do '{target}' pridané skupinové adresy: {count}."
-
 msgid "Add Main Groups…"
 msgstr "Pridať hlavné skupiny…"
 
@@ -2911,12 +2776,6 @@ msgstr "Pridať funkcie"
 msgid "New function"
 msgstr "Nová funkcia"
 
-msgid "Added {count} functions to '{target}'."
-msgstr "Do '{target}' pridané funkcie: {count}."
-
-msgid "Added {count} group ranges to '{target}'."
-msgstr "Do '{target}' pridané skupinové rozsahy: {count}."
-
 msgid "Add Group Ranges…"
 msgstr "Pridať skupinové rozsahy…"
 
@@ -2950,9 +2809,6 @@ msgstr "Skupinový rozsah nemožno vložiť do seba ani do rozsahu v ňom."
 msgid "A group address of the range is already in use there."
 msgstr "Skupinová adresa rozsahu sa tam už používa."
 
-msgid "Copied {count} group ranges to '{target}'."
-msgstr "Do '{target}' skopírované skupinové rozsahy: {count}."
-
 msgid "Add Areas…"
 msgstr "Pridať oblasti…"
 
@@ -2967,12 +2823,6 @@ msgstr "Kopírovať skupinovú adresu"
 
 msgid "Existing Devices…"
 msgstr "Existujúce zariadenia…"
-
-msgid "Delete the {count} selected devices? Their group objects and group-address links are removed and their individual addresses are freed. This can be undone."
-msgstr "Odstrániť vybrané zariadenia ({count})? Ich skupinové objekty a prepojenia so skupinovými adresami sa odstránia a ich individuálne adresy sa uvoľnia. Túto akciu je možné vrátiť späť."
-
-msgid "Remove {count} devices"
-msgstr "Odstrániť zariadenia ({count})"
 
 msgid "Delete Devices"
 msgstr "Odstrániť zariadenia"
@@ -3082,9 +2932,6 @@ msgstr "Load LVS Project (.prj)…"
 msgid "LVS project (*.prj)"
 msgstr "LVS project (*.prj)"
 
-msgid "Imported the display configuration into {count} device(s)."
-msgstr "Imported the display configuration into {count} device(s)."
-
 msgid "The LVS project could not be imported: {error}"
 msgstr "The LVS project could not be imported: {error}"
 
@@ -3096,3 +2943,318 @@ msgstr "Exported the display configuration."
 
 msgid "The LVS project could not be exported: {error}"
 msgstr "The LVS project could not be exported: {error}"
+
+msgid "Copied {count} device to '{target}'."
+msgid_plural "Copied {count} devices to '{target}'."
+msgstr[0] "{count} zariadenie skopírované do '{target}'."
+msgstr[1] "{count} zariadenia skopírované do '{target}'."
+msgstr[2] "{count} zariadení skopírovaných do '{target}'."
+
+msgid "Copied {count} building part to '{target}'."
+msgid_plural "Copied {count} building parts to '{target}'."
+msgstr[0] "{count} časť budovy skopírovaná do '{target}'."
+msgstr[1] "{count} časti budovy skopírované do '{target}'."
+msgstr[2] "{count} častí budovy skopírovaných do '{target}'."
+
+msgid "Copied {count} trade to '{target}'."
+msgid_plural "Copied {count} trades to '{target}'."
+msgstr[0] "{count} profesia skopírovaná do '{target}'."
+msgstr[1] "{count} profesie skopírované do '{target}'."
+msgstr[2] "{count} profesií skopírovaných do '{target}'."
+
+msgid "Copied {count} function to '{target}'."
+msgid_plural "Copied {count} functions to '{target}'."
+msgstr[0] "{count} funkcia skopírovaná do '{target}'."
+msgstr[1] "{count} funkcie skopírované do '{target}'."
+msgstr[2] "{count} funkcií skopírovaných do '{target}'."
+
+msgid "Copied {count} group address to '{target}'."
+msgid_plural "Copied {count} group addresses to '{target}'."
+msgstr[0] "{count} skupinová adresa skopírovaná do '{target}'."
+msgstr[1] "{count} skupinové adresy skopírované do '{target}'."
+msgstr[2] "{count} skupinových adries skopírovaných do '{target}'."
+
+msgid "Copied {count} middle group to '{target}'."
+msgid_plural "Copied {count} middle groups to '{target}'."
+msgstr[0] "{count} stredná skupina skopírovaná do '{target}'."
+msgstr[1] "{count} stredné skupiny skopírované do '{target}'."
+msgstr[2] "{count} stredných skupín skopírovaných do '{target}'."
+
+msgid "Copied {count} main group to '{target}'."
+msgid_plural "Copied {count} main groups to '{target}'."
+msgstr[0] "{count} hlavná skupina skopírovaná do '{target}'."
+msgstr[1] "{count} hlavné skupiny skopírované do '{target}'."
+msgstr[2] "{count} hlavných skupín skopírovaných do '{target}'."
+
+msgid "Copied {count} group range to '{target}'."
+msgid_plural "Copied {count} group ranges to '{target}'."
+msgstr[0] "{count} skupinový rozsah skopírovaný do '{target}'."
+msgstr[1] "{count} skupinové rozsahy skopírované do '{target}'."
+msgstr[2] "{count} skupinových rozsahov skopírovaných do '{target}'."
+
+msgid "Copied {count} line to '{target}'."
+msgid_plural "Copied {count} lines to '{target}'."
+msgstr[0] "{count} línia skopírovaná do '{target}'."
+msgstr[1] "{count} línie skopírované do '{target}'."
+msgstr[2] "{count} línií skopírovaných do '{target}'."
+
+msgid "Copied {count} segment to '{target}'."
+msgid_plural "Copied {count} segments to '{target}'."
+msgstr[0] "{count} segment skopírovaný do '{target}'."
+msgstr[1] "{count} segmenty skopírované do '{target}'."
+msgstr[2] "{count} segmentov skopírovaných do '{target}'."
+
+msgid "Added {count} area to '{target}'."
+msgid_plural "Added {count} areas to '{target}'."
+msgstr[0] "{count} oblasť pridaná do '{target}'."
+msgstr[1] "{count} oblasti pridané do '{target}'."
+msgstr[2] "{count} oblastí pridaných do '{target}'."
+
+msgid "Added {count} line to '{target}'."
+msgid_plural "Added {count} lines to '{target}'."
+msgstr[0] "{count} línia pridaná do '{target}'."
+msgstr[1] "{count} línie pridané do '{target}'."
+msgstr[2] "{count} línií pridaných do '{target}'."
+
+msgid "Added {count} segment to '{target}'."
+msgid_plural "Added {count} segments to '{target}'."
+msgstr[0] "{count} segment pridaný do '{target}'."
+msgstr[1] "{count} segmenty pridané do '{target}'."
+msgstr[2] "{count} segmentov pridaných do '{target}'."
+
+msgid "Added {count} building part to '{target}'."
+msgid_plural "Added {count} building parts to '{target}'."
+msgstr[0] "{count} časť budovy pridaná do '{target}'."
+msgstr[1] "{count} časti budovy pridané do '{target}'."
+msgstr[2] "{count} častí budovy pridaných do '{target}'."
+
+msgid "Added {count} trade to '{target}'."
+msgid_plural "Added {count} trades to '{target}'."
+msgstr[0] "{count} profesia pridaná do '{target}'."
+msgstr[1] "{count} profesie pridané do '{target}'."
+msgstr[2] "{count} profesií pridaných do '{target}'."
+
+msgid "Added {count} function to '{target}'."
+msgid_plural "Added {count} functions to '{target}'."
+msgstr[0] "{count} funkcia pridaná do '{target}'."
+msgstr[1] "{count} funkcie pridané do '{target}'."
+msgstr[2] "{count} funkcií pridaných do '{target}'."
+
+msgid "Added {count} group range to '{target}'."
+msgid_plural "Added {count} group ranges to '{target}'."
+msgstr[0] "{count} skupinový rozsah pridaný do '{target}'."
+msgstr[1] "{count} skupinové rozsahy pridané do '{target}'."
+msgstr[2] "{count} skupinových rozsahov pridaných do '{target}'."
+
+msgid "Added {count} main group to '{target}'."
+msgid_plural "Added {count} main groups to '{target}'."
+msgstr[0] "{count} hlavná skupina pridaná do '{target}'."
+msgstr[1] "{count} hlavné skupiny pridané do '{target}'."
+msgstr[2] "{count} hlavných skupín pridaných do '{target}'."
+
+msgid "Added {count} middle group to '{target}'."
+msgid_plural "Added {count} middle groups to '{target}'."
+msgstr[0] "{count} stredná skupina pridaná do '{target}'."
+msgstr[1] "{count} stredné skupiny pridané do '{target}'."
+msgstr[2] "{count} stredných skupín pridaných do '{target}'."
+
+msgid "Added {count} group address to '{target}'."
+msgid_plural "Added {count} group addresses to '{target}'."
+msgstr[0] "{count} skupinová adresa pridaná do '{target}'."
+msgstr[1] "{count} skupinové adresy pridané do '{target}'."
+msgstr[2] "{count} skupinových adries pridaných do '{target}'."
+
+msgid "Remove {count} device"
+msgid_plural "Remove {count} devices"
+msgstr[0] "Odstrániť {count} zariadenie"
+msgstr[1] "Odstrániť {count} zariadenia"
+msgstr[2] "Odstrániť {count} zariadení"
+
+msgid "{count} device"
+msgid_plural "{count} devices"
+msgstr[0] "{count} zariadenie"
+msgstr[1] "{count} zariadenia"
+msgstr[2] "{count} zariadení"
+
+msgid "{count} item"
+msgid_plural "{count} items"
+msgstr[0] "{count} položka"
+msgstr[1] "{count} položky"
+msgstr[2] "{count} položiek"
+
+msgid "{count} pair"
+msgid_plural "{count} pairs"
+msgstr[0] "{count} pár"
+msgstr[1] "{count} páry"
+msgstr[2] "{count} párov"
+
+msgid "Linked {count} object to a group address"
+msgid_plural "Linked {count} objects to group addresses"
+msgstr[0] "{count} objekt prepojený so skupinovou adresou"
+msgstr[1] "{count} objekty prepojené so skupinovými adresami"
+msgstr[2] "{count} objektov prepojených so skupinovými adresami"
+
+msgid "Linked {count} object pair via a new group address"
+msgid_plural "Linked {count} object pairs via new group addresses"
+msgstr[0] "{count} pár objektov prepojený cez novú skupinovú adresu"
+msgstr[1] "{count} páry objektov prepojené cez nové skupinové adresy"
+msgstr[2] "{count} párov objektov prepojených cez nové skupinové adresy"
+
+msgid "{count} error"
+msgid_plural "{count} errors"
+msgstr[0] "{count} chyba"
+msgstr[1] "{count} chyby"
+msgstr[2] "{count} chýb"
+
+msgid "{count} object will be re-mapped"
+msgid_plural "{count} objects will be re-mapped"
+msgstr[0] "{count} objekt sa znova priradí"
+msgstr[1] "{count} objekty sa znova priradia"
+msgstr[2] "{count} objektov sa znova priradí"
+
+msgid "Replaced; re-mapped {count} group object"
+msgid_plural "Replaced; re-mapped {count} group objects"
+msgstr[0] "Vymenené; znova priradený {count} skupinový objekt"
+msgstr[1] "Vymenené; znova priradené {count} skupinové objekty"
+msgstr[2] "Vymenené; znova priradených {count} skupinových objektov"
+
+msgid "{count} difference"
+msgid_plural "{count} differences"
+msgstr[0] "{count} rozdiel"
+msgstr[1] "{count} rozdiely"
+msgstr[2] "{count} rozdielov"
+
+msgid "Created {count} copy"
+msgid_plural "Created {count} copies"
+msgstr[0] "Vytvorená {count} kópia"
+msgstr[1] "Vytvorené {count} kópie"
+msgstr[2] "Vytvorených {count} kópií"
+
+msgid "{count} address will change"
+msgid_plural "{count} addresses will change"
+msgstr[0] "{count} adresa sa zmení"
+msgstr[1] "{count} adresy sa zmenia"
+msgstr[2] "{count} adries sa zmení"
+
+msgid "Shifted {count} address"
+msgid_plural "Shifted {count} addresses"
+msgstr[0] "Posunutá {count} adresa"
+msgstr[1] "Posunuté {count} adresy"
+msgstr[2] "Posunutých {count} adries"
+
+msgid "Shifted {count} group address"
+msgid_plural "Shifted {count} group addresses"
+msgstr[0] "Posunutá {count} skupinová adresa"
+msgstr[1] "Posunuté {count} skupinové adresy"
+msgstr[2] "Posunutých {count} skupinových adries"
+
+msgid "{count} issue"
+msgid_plural "{count} issues"
+msgstr[0] "{count} problém"
+msgstr[1] "{count} problémy"
+msgstr[2] "{count} problémov"
+
+msgid "present ({size} byte)"
+msgid_plural "present ({size} bytes)"
+msgstr[0] "k dispozícii ({size} bajt)"
+msgstr[1] "k dispozícii ({size} bajty)"
+msgstr[2] "k dispozícii ({size} bajtov)"
+
+msgid "Imported the display configuration into {count} device."
+msgid_plural "Imported the display configuration into {count} devices."
+msgstr[0] "Konfigurácia zobrazenia bola importovaná do {count} zariadenia."
+msgstr[1] "Konfigurácia zobrazenia bola importovaná do {count} zariadení."
+msgstr[2] "Konfigurácia zobrazenia bola importovaná do {count} zariadení."
+
+msgid "{count} ECG present on line {line}"
+msgid_plural "{count} ECGs present on line {line}"
+msgstr[0] "{count} predradník na línii {line}"
+msgstr[1] "{count} predradníky na línii {line}"
+msgstr[2] "{count} predradníkov na línii {line}"
+
+msgid "Apply Changes to {count} Identical Device"
+msgid_plural "Apply Changes to All {count} Identical Devices"
+msgstr[0] "Použiť zmeny na {count} rovnaké zariadenie"
+msgstr[1] "Použiť zmeny na všetky {count} rovnaké zariadenia"
+msgstr[2] "Použiť zmeny na všetkých {count} rovnakých zariadení"
+
+msgid "Editing {count} device — edits apply to all, diverging values show <differs>"
+msgid_plural "Editing {count} devices — edits apply to all, diverging values show <differs>"
+msgstr[0] "Úprava {count} zariadenia – zmeny platia pre všetky, odlišné hodnoty sa zobrazia ako <líši sa>"
+msgstr[1] "Úprava {count} zariadení – zmeny platia pre všetky, odlišné hodnoty sa zobrazia ako <líši sa>"
+msgstr[2] "Úprava {count} zariadení – zmeny platia pre všetky, odlišné hodnoty sa zobrazia ako <líši sa>"
+
+msgid "{count} byte"
+msgid_plural "{count} bytes"
+msgstr[0] "{count} bajt"
+msgstr[1] "{count} bajty"
+msgstr[2] "{count} bajtov"
+
+msgid "Mismatch: {bytes} from the device in {locations}"
+msgstr "Nezhoda: {bytes} od zariadenia {locations}"
+
+msgid "{count} byte differs"
+msgid_plural "{count} bytes differ"
+msgstr[0] "{count} bajt sa líši"
+msgstr[1] "{count} bajty sa líšia"
+msgstr[2] "{count} bajtov sa líši"
+
+msgid "{count} location"
+msgid_plural "{count} locations"
+msgstr[0] "na {count} mieste"
+msgstr[1] "na {count} miestach"
+msgstr[2] "na {count} miestach"
+
+msgid "plus {bytes} device-managed runtime byte (expected, benign)"
+msgid_plural "plus {bytes} device-managed runtime bytes (expected, benign)"
+msgstr[0] "plus {bytes} bajt počas behu spravovaný zariadením (očakávané, neškodné)"
+msgstr[1] "plus {bytes} bajty počas behu spravované zariadením (očakávané, neškodné)"
+msgstr[2] "plus {bytes} bajtov počas behu spravovaných zariadením (očakávané, neškodné)"
+
+msgid "plus {bytes} byte reset to the application default (the device holds an older value; benign, will be normalised on programming)"
+msgid_plural "plus {bytes} bytes reset to the application default (the device holds an older value; benign, will be normalised on programming)"
+msgstr[0] "plus {bytes} bajt vrátený na predvolenú hodnotu aplikácie (zariadenie obsahuje staršiu hodnotu; neškodné, pri programovaní sa zjednotí)"
+msgstr[1] "plus {bytes} bajty vrátené na predvolenú hodnotu aplikácie (zariadenie obsahuje staršiu hodnotu; neškodné, pri programovaní sa zjednotí)"
+msgstr[2] "plus {bytes} bajtov vrátených na predvolenú hodnotu aplikácie (zariadenie obsahuje staršiu hodnotu; neškodné, pri programovaní sa zjednotí)"
+
+msgid "Paste configuration onto {count} selected device:"
+msgid_plural "Paste configuration onto {count} selected devices:"
+msgstr[0] "Prilepiť konfiguráciu do {count} vybraného zariadenia:"
+msgstr[1] "Prilepiť konfiguráciu do {count} vybraných zariadení:"
+msgstr[2] "Prilepiť konfiguráciu do {count} vybraných zariadení:"
+
+msgid "Delete the {count} selected device? Its group objects and group-address links are removed and its individual address is freed. This can be undone."
+msgid_plural "Delete the {count} selected devices? Their group objects and group-address links are removed and their individual addresses are freed. This can be undone."
+msgstr[0] "Odstrániť {count} vybrané zariadenie? Jeho skupinové objekty a prepojenia so skupinovými adresami sa odstránia a jeho individuálna adresa sa uvoľní. Túto akciu je možné vrátiť späť."
+msgstr[1] "Odstrániť {count} vybrané zariadenia? Ich skupinové objekty a prepojenia so skupinovými adresami sa odstránia a ich individuálne adresy sa uvoľnia. Túto akciu je možné vrátiť späť."
+msgstr[2] "Odstrániť {count} vybraných zariadení? Ich skupinové objekty a prepojenia so skupinovými adresami sa odstránia a ich individuálne adresy sa uvoľnia. Túto akciu je možné vrátiť späť."
+
+msgid "{count} group address added"
+msgid_plural "{count} group addresses added"
+msgstr[0] "{count} skupinová adresa pridaná"
+msgstr[1] "{count} skupinové adresy pridané"
+msgstr[2] "{count} skupinových adries pridaných"
+
+msgid "{count} updated"
+msgid_plural "{count} updated"
+msgstr[0] "{count} aktualizovaná"
+msgstr[1] "{count} aktualizované"
+msgstr[2] "{count} aktualizovaných"
+
+msgid "{count} group address could not be placed in a group."
+msgid_plural "{count} group addresses could not be placed in a group."
+msgstr[0] "{count} skupinovú adresu sa nepodarilo zaradiť do skupiny."
+msgstr[1] "{count} skupinové adresy sa nepodarilo zaradiť do skupiny."
+msgstr[2] "{count} skupinových adries sa nepodarilo zaradiť do skupiny."
+
+msgid "{count} ECG present"
+msgid_plural "{count} ECGs present"
+msgstr[0] "{count} predradník prítomný"
+msgstr[1] "{count} predradníky prítomné"
+msgstr[2] "{count} predradníkov prítomných"
+
+msgid "Procedure {number}  ({count} step)"
+msgid_plural "Procedure {number}  ({count} steps)"
+msgstr[0] "Procedúra {number}  ({count} krok)"
+msgstr[1] "Procedúra {number}  ({count} kroky)"
+msgstr[2] "Procedúra {number}  ({count} krokov)"

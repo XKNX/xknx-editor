@@ -4,6 +4,7 @@ the Write Value dialog, shared by the Group Addresses panel and the device's Gro
 from imgui_bundle import imgui
 
 from editor_gui.plugins.project.strings import S
+from editor_gui.theme import status_color
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
 from editor_gui.widgets.dpi import px
 from editor_gui.widgets.dpt_value import DptValueInput, GroupValueBus, dpt_label
@@ -71,7 +72,7 @@ class GroupValueActions:
                 imgui.text_wrapped(S.GA_WRITE_NO_DPT)
                 imgui.pop_text_wrap_pos()
         if self._value.error:
-            imgui.text_colored(imgui.ImVec4(0.9, 0.3, 0.3, 1.0), self._value.error)
+            imgui.text_colored(status_color("error"), self._value.error)
         connected = bus.connected()
         can_write = connected and self._value.can_write(self._dpt, formats)
         if not connected:

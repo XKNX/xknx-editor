@@ -13,7 +13,12 @@ from __future__ import annotations
 import pytest
 
 from xknxeditor.prod.application import Application, parse_application_xml
-from xknxeditor.recover.parameters import recover_parameters
+from xknxeditor.recover.parameters import (
+    _gates_of,
+    _objects_by_number,
+    _scope_of,
+    recover_parameters,
+)
 
 _APP = "M-00FA_A-0005-01-0000"
 _STATUS = f"{_APP}_P-1_R-1"
@@ -290,3 +295,84 @@ def test_the_hidden_kind_of_a_pair_wins_over_single_buttons_without_one(
     recovered = recover_parameters(singles_first, segments, linked_objects={51})
     assert recovered.values[_FUNCTION] == "1"
     assert recovered.values[f"{_PAIR}P-1_R-1"] == "8"
+
+
+def test_the_layout_names_every_setting_stored_at_a_byte(
+    application: Application,
+) -> None:
+    # Active or not: the status type's references at byte 0, and with a pair of buttons the
+    # members of its union at byte 2 (the instance's offset), qualified with the instance.
+    ui = application.dynamic_ui()
+    assert ui is not None
+    ui.set_parameter_ref(_FUNCTION, "1")
+    cells = ui.stored_parameter_cells()
+    segment = f"{_APP}_AS-0000"
+    assert {f"{_APP}_P-2_R-21", f"{_APP}_P-2_R-22"} <= cells[(segment, 0)]
+    assert {
+        f"{_PAIR}UP-2_R-2",
+        f"{_PAIR}UP-2_R-3",
+        f"{_PAIR}UP-3_R-4",
+    } <= cells[(segment, 2)]
+
+
+def test_a_module_instance_object_is_found_by_its_number(
+    application: Application,
+) -> None:
+    # The pair's object is number 1 of its definition, numbered from the instance's base (50).
+    ui = application.dynamic_ui()
+    assert ui is not None
+    ui.set_parameter_ref(_FUNCTION, "1")
+    objects = _objects_by_number(ui)
+    assert objects[51] == [f"{_PAIR}O-2-1_R-1"]
+    assert set(objects[40]) == {f"{_APP}_O-40_R-41", f"{_APP}_O-40_R-42"}
+    # The definitions' own numbers belong to no object of the application.
+    assert 1 not in objects
+
+
+def test_the_selectors_of_a_module_instance_are_qualified_with_it(
+    application: Application,
+) -> None:
+    ui = application.dynamic_ui()
+    assert ui is not None
+    ui.set_parameter_ref(_FUNCTION, "1")
+    # The pair's object shows behind the instance's own kind.
+    assert _gates_of(ui, f"{_PAIR}O-2-1_R-1", ui.object_gates) == {f"{_PAIR}P-1_R-1"}
+    # The kind shows wherever the instance is: behind the selector of its module.
+    assert ui.module_gates(f"{_APP}_MD-1_M-1") == {_FUNCTION}
+    assert _gates_of(ui, f"{_PAIR}P-1_R-1") == {_FUNCTION}
+    assert _scope_of(f"{_PAIR}P-1_R-1") == f"{_APP}_MD-1_M-1_MI-1"
+    assert _scope_of(_FUNCTION) == ""
+
+
+def test_a_result_that_fits_the_device_is_complete(application: Application) -> None:
+    segments = _device(application, (_FUNCTION, "1"), (f"{_PAIR}P-1_R-1", "8"))
+    # A byte no setting is stored at holds data of the device's own (runtime): not counted.
+    segment = f"{_APP}_AS-0000"
+    segments[segment] = segments[segment][:3] + b"\xff"
+    recovered = recover_parameters(application, segments, linked_objects={51})
+    assert recovered.complete
+    assert (recovered.differing_bytes, recovered.differing_objects) == (0, 0)
+    assert not recovered.limited
+
+
+def test_a_result_that_cannot_show_a_linked_object_is_incomplete(
+    application: Application,
+) -> None:
+    # No configuration shows object 99: the result says how far it is off.
+    segments = _device(application, (_FUNCTION, "1"), (f"{_PAIR}P-1_R-1", "8"))
+    recovered = recover_parameters(application, segments, linked_objects={51, 99})
+    assert not recovered.complete
+    assert recovered.differing_objects == 1
+
+
+def test_a_shown_object_the_device_does_not_link_is_no_misfit(
+    application: Application,
+) -> None:
+    # The status value shows object 40 too, but only the pair's object is linked: a device
+    # shows more objects than it links.
+    segments = _device(
+        application, (_STATUS, "4"), (_FUNCTION, "1"), (f"{_PAIR}P-1_R-1", "8")
+    )
+    recovered = recover_parameters(application, segments, linked_objects={51})
+    assert recovered.differing_objects == 0
+    assert recovered.complete

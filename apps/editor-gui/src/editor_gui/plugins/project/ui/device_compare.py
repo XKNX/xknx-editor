@@ -18,6 +18,7 @@ from editor_gui.plugins.project.ui.device_diff import (
     diff_devices,
     snapshot_device,
 )
+from editor_gui.theme import status_color
 from editor_gui.widgets.checkbox import checkbox
 from editor_gui.widgets.combo import begin_combo
 from editor_gui.widgets.description import (
@@ -32,11 +33,10 @@ from editor_gui.widgets.tables import begin_data_table, data_table_headers
 from editor_gui.widgets.text_util import text_clipped_tooltip
 from editor_gui.widgets.tree import collapsing_header
 
-# Row colours: amber when both devices have the item but it differs; red when it is present on only
-# one side (missing on the other — the empty cell shows which device lacks it).
-_CHANGED = imgui.ImVec4(0.95, 0.75, 0.35, 1.0)
-_MISSING = imgui.ImVec4(0.9, 0.5, 0.5, 1.0)
-_KIND_COLOR = {"changed": _CHANGED, "added": _MISSING, "removed": _MISSING}
+# Row colours (see ``status_color``): a warning when both devices have the item but it differs; an
+# error when it is present on only one side (missing on the other — the empty cell shows which
+# device lacks it).
+_KIND_STATUS = {"changed": "warning", "added": "error", "removed": "error"}
 
 
 class DeviceComparePanel:
@@ -90,7 +90,11 @@ class DeviceComparePanel:
 
         result = self._diff(by_id[self._a_id], by_id[self._b_id])
         imgui.same_line()
-        imgui.text_disabled(S.COMPARE_SUMMARY.format(count=result.difference_count))
+        imgui.text_disabled(
+            S.COMPARE_SUMMARY(result.difference_count).format(
+                count=result.difference_count
+            )
+        )
         imgui.same_line()
         if imgui.button(S.COMPARE_COPY):
             imgui.set_clipboard_text(
@@ -211,11 +215,11 @@ class DeviceComparePanel:
         imgui.end_table()
 
     def _render_row(self, row: DiffRow) -> None:
-        color = _KIND_COLOR.get(row.kind)
+        kind = _KIND_STATUS.get(row.kind)
         imgui.table_next_row()
         imgui.table_set_column_index(0)
-        if color is not None:
-            imgui.text_colored(color, row.label)
+        if kind is not None:
+            imgui.text_colored(status_color(kind), row.label)
         else:
             text_clipped_tooltip(row.label)
         imgui.table_set_column_index(1)

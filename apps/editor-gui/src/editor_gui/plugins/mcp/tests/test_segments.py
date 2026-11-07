@@ -329,7 +329,7 @@ async def test_areas_lines_and_segments_are_added_as_the_add_dialog_does(
         main = await _line(client, "5.0")
         assert main["medium"] == "PL" and main["domain_address"]
         history = project_service.history()
-        assert history[0].display_text == PROJECT_S.HISTORY_EV_ADDED_AREAS.format(
+        assert history[0].display_text == PROJECT_S.HISTORY_EV_ADDED_AREAS(2).format(
             count=2, target=PROJECT_S.PANEL_TOPOLOGY
         )
         # Lines of a PL area are PL; they fill up from 1.

@@ -16,20 +16,11 @@ msgstr "Açık proje yok"
 msgid "No issues found"
 msgstr "Sorun bulunamadı"
 
-msgid "{errors} errors, {warnings} warnings"
-msgstr "{errors} hata, {warnings} uyarı"
-
 msgid "{device}: no individual address"
 msgstr "{device}: bireysel adres yok"
 
 msgid "Duplicate individual address {address} ({device})"
 msgstr "Yinelenen bireysel adres {address} ({device})"
-
-msgid "{count} device(s) skipped: application not in catalog"
-msgstr "Atlanan cihaz: {count} (uygulama katalogda değil)"
-
-msgid "{device}: {count} unlinked group object(s)"
-msgstr "{device}: bağlanmamış grup nesnesi: {count}"
 
 msgid "{address} {name}: no datapoint type"
 msgstr "{address} {name}: veri tipi yok"
@@ -37,5 +28,22 @@ msgstr "{address} {name}: veri tipi yok"
 msgid "{address} {name}: no sending group object"
 msgstr "{address} {name}: gönderen grup nesnesi yok"
 
-msgid "{address} {name}: {count} sending group objects"
-msgstr "{address} {name}: {count} gönderen grup nesnesi"
+msgid "{count} error"
+msgid_plural "{count} errors"
+msgstr[0] "{count} hata"
+
+msgid "{count} warning"
+msgid_plural "{count} warnings"
+msgstr[0] "{count} uyarı"
+
+msgid "{count} device skipped: application not in catalog"
+msgid_plural "{count} devices skipped: application not in catalog"
+msgstr[0] "{count} cihaz atlandı (uygulama katalogda değil)"
+
+msgid "{device}: {count} unlinked group object"
+msgid_plural "{device}: {count} unlinked group objects"
+msgstr[0] "{device}: {count} bağlanmamış grup nesnesi"
+
+msgid "{address} {name}: {count} sending group object"
+msgid_plural "{address} {name}: {count} sending group objects"
+msgstr[0] "{address} {name}: {count} gönderen grup nesnesi"

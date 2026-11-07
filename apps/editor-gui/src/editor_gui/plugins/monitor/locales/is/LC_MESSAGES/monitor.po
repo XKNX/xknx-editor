@@ -115,9 +115,6 @@ msgstr "Sýna ítarlegri upplýsingar"
 msgid "Hide Extended Information"
 msgstr "Fela ítarlegri upplýsingar"
 
-msgid "{count} telegrams exported to {path}"
-msgstr "Skeyti flutt út í {path}: {count}"
-
 msgid "Export failed: {error}"
 msgstr "Útflutningur mistókst: {error}"
 
@@ -133,14 +130,8 @@ msgstr "Útvíkkað"
 msgid "Standard"
 msgstr "Staðlað"
 
-msgid "{count} entries loaded from {path}"
-msgstr "Færslur hlaðnar úr {path}: {count}"
-
 msgid "Loading failed: {error}"
 msgstr "Hleðsla mistókst: {error}"
-
-msgid "{count} telegrams in another frame format were skipped"
-msgstr "Skeytum með öðru rammasniði sleppt: {count}"
 
 msgid "Connection was established"
 msgstr "Tengingu var komið á"
@@ -191,7 +182,9 @@ msgid "Group Objects"
 msgstr "Samskiptahlutir"
 
 msgid "{count} telg."
-msgstr "{count} sk."
+msgid_plural "{count} telg."
+msgstr[0] "{count} sk."
+msgstr[1] "{count} sk."
 
 msgid "Enter a group address of the project to send to it."
 msgstr "Sláðu inn hópvistfang í verkefninu til að senda á það."
@@ -238,17 +231,8 @@ msgstr "Skeytin hafa ekki verið flutt út. Ef upptaka er hlaðin kemur hún í 
 msgid "Unsaved Telegrams"
 msgstr "Óvistuð skeyti"
 
-msgid "Replay cancelled: {count} telegrams sent"
-msgstr "Hætt við endurspilun; send skeyti: {count}"
-
-msgid "Replay finished: {count} telegrams sent"
-msgstr "Endurspilun lokið; send skeyti: {count}"
-
 msgid "There are no group telegrams to replay"
 msgstr "Engin hópskeyti til að endurspila"
-
-msgid "{count} Data Secure telegrams are not replayed"
-msgstr "Data Secure-skeyti eru ekki endurspiluð: {count}"
 
 msgid "Comment"
 msgstr "Athugasemd"
@@ -393,3 +377,33 @@ msgstr "Hám."
 
 msgid "Maximum telegrams this monitor keeps. The oldest tenth is dropped when the cap is exceeded."
 msgstr "Hámarksfjöldi skeyta sem þessi vöktun geymir. Elsta tíunda hlutanum er hent þegar farið er yfir hámarkið."
+
+msgid "{count} telegram exported to {path}"
+msgid_plural "{count} telegrams exported to {path}"
+msgstr[0] "{count} skeyti flutt út í {path}"
+msgstr[1] "{count} skeyti flutt út í {path}"
+
+msgid "{count} entry loaded from {path}"
+msgid_plural "{count} entries loaded from {path}"
+msgstr[0] "{count} færsla hlaðin úr {path}"
+msgstr[1] "{count} færslur hlaðnar úr {path}"
+
+msgid "{count} telegram in another frame format was skipped"
+msgid_plural "{count} telegrams in another frame format were skipped"
+msgstr[0] "{count} skeyti með öðru rammasniði var sleppt"
+msgstr[1] "{count} skeytum með öðru rammasniði var sleppt"
+
+msgid "{count} Data Secure telegram is not replayed"
+msgid_plural "{count} Data Secure telegrams are not replayed"
+msgstr[0] "{count} Data Secure-skeyti er ekki endurspilað"
+msgstr[1] "{count} Data Secure-skeyti eru ekki endurspiluð"
+
+msgid "Replay finished: {count} telegram sent"
+msgid_plural "Replay finished: {count} telegrams sent"
+msgstr[0] "Endurspilun lokið: {count} skeyti sent"
+msgstr[1] "Endurspilun lokið: {count} skeyti send"
+
+msgid "Replay cancelled: {count} telegram sent"
+msgid_plural "Replay cancelled: {count} telegrams sent"
+msgstr[0] "Hætt við endurspilun: {count} skeyti sent"
+msgstr[1] "Hætt við endurspilun: {count} skeyti send"

@@ -10,12 +10,10 @@ from imgui_bundle import imgui
 
 from editor_gui.device_info import serial_text
 from editor_gui.plugins.project.strings import S
+from editor_gui.theme import status_color
 from editor_gui.widgets.checkbox import checkbox
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
 from editor_gui.widgets.dpi import px
-
-_ERROR_COLOR = imgui.ImVec4(1.0, 0.42, 0.42, 1.0)
-_WARNING_COLOR = imgui.ImVec4(0.95, 0.55, 0.35, 1.0)
 
 
 @dataclass(frozen=True, slots=True)
@@ -115,7 +113,7 @@ class DeviceCertificateDialog:
             "##fdsk", self._code, imgui.InputTextFlags_.enter_returns_true
         )
         if self._error:
-            imgui.text_colored(_ERROR_COLOR, self._error)
+            imgui.text_colored(status_color("error"), self._error)
         if self._on_dont_ask is not None:
             imgui.spacing()
             _, self._dont_ask = checkbox(S.DEVICE_CERTIFICATE_DONT_ASK, self._dont_ask)
@@ -170,7 +168,7 @@ class DeviceCertificateDialog:
 
     def _render_confirm_remove(self, serial: bytes | None) -> None:
         imgui.push_text_wrap_pos(imgui.get_cursor_pos_x() + px(500.0))
-        imgui.text_colored(_WARNING_COLOR, S.DEVICE_CERTIFICATE_REMOVE_CONFIRM)
+        imgui.text_colored(status_color("warning"), S.DEVICE_CERTIFICATE_REMOVE_CONFIRM)
         imgui.pop_text_wrap_pos()
         clicked = dialog_buttons(S.PROJECT_CERTIFICATES_REMOVE, S.BTN_CANCEL)
         if clicked == 0:

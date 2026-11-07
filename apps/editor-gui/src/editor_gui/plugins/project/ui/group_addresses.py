@@ -439,9 +439,13 @@ class GroupAddressesPanel:
         except ValueError as exc:
             self._import_message = S.GA_IMPORT_FAILED.format(error=exc)
         else:
-            self._import_message = S.GA_IMPORT_DONE.format(added=added, updated=updated)
+            added_text = S.GA_IMPORT_ADDED(added).format(count=added)
+            updated_text = S.GA_IMPORT_UPDATED(updated).format(count=updated)
+            self._import_message = f"{added_text}, {updated_text}."
             if skipped:
-                self._import_message += "\n" + S.GA_IMPORT_SKIPPED.format(count=skipped)
+                self._import_message += "\n" + S.GA_IMPORT_SKIPPED(skipped).format(
+                    count=skipped
+                )
         self._open_import_result = True
 
     def _render_import_result(self) -> None:

@@ -462,3 +462,53 @@ async def test_preflight_marks_the_bytes_of_a_group_table() -> None:
     assert segment.table_bytes == frozenset({2, 3, 4, 5})
     assert image.in_group_tables(0x4005)
     assert not image.in_group_tables(0x4006)
+
+
+@pytest.mark.parametrize("application_loaded", [False, True])
+@pytest.mark.parametrize("abs_segment", [False, True])
+async def test_preflight_marks_the_octets_only_a_partial_download_writes(
+    application_loaded: bool, abs_segment: bool
+) -> None:
+    # The object count at 0x4001: the product data says 0xC8, the application 0x7D. A full
+    # download writes the product's octet, one on a loaded application the count. After either
+    # one, the other changes the octet, and it is marked for both.
+    image = DownloadImage(
+        segments=(
+            MemorySegment(
+                address=0x4000,
+                data=bytes.fromhex("00c80102"),
+                partial_octets=((1, 0x7D),),
+            ),
+        ),
+        properties=(),
+    )
+    application = _application(
+        LdCtrlAbsSegment(
+            obj_type=_ADDRESS_TABLE_TYPE,
+            occurrence=0,
+            seg_type=0,
+            address=0x4000,
+            size=4,
+            access=0xFF,
+            mem_type=3,
+            seg_flags=0x80,
+        )
+        if abs_segment
+        else LdCtrlWriteMem(address=0x4000, size=4, verify=False, inline_data=None)
+    )
+    device = FakeDevice(object_types={0: 0x0000, 1: _ADDRESS_TABLE_TYPE})
+    runner = LoadProcedureRunner(
+        application,
+        image,
+        DeviceProgrammer(device),
+        application_loaded=application_loaded,
+    )
+    # The device holds what the other kind of download wrote.
+    held = "00c80102" if application_loaded else "007d0102"
+    device.memory.update(enumerate(bytes.fromhex(held), start=0x4000))
+
+    (segment,) = (await runner.preflight()).segments
+
+    assert segment.planned[1] == (0x7D if application_loaded else 0xC8)
+    assert segment.changed_bytes == 1
+    assert segment.corrected_bytes == frozenset({1})

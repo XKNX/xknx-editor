@@ -37,6 +37,7 @@ from editor_gui.plugins.project.ui.paste_special import (
 )
 from editor_gui.plugins.project.ui.tree_drag import Dragged, drag_source, drop_target
 from editor_gui.strings import S as APP_S
+from editor_gui.theme import status_color
 from editor_gui.widgets.description import render_description, render_device_marks
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
 from editor_gui.widgets.tree import (
@@ -63,8 +64,6 @@ TreeDevice = Device | UnloadedDevice
 
 # The most areas a project has (numbers 0 to 15).
 _MAX_AREAS = 16
-
-_UNLOADED_COLOR = imgui.ImVec4(0.95, 0.6, 0.25, 1.0)
 
 
 def _address_order(device: TreeDevice) -> tuple[tuple[int, int, int], int]:
@@ -567,7 +566,7 @@ class TopologyPanel:
     ) -> None:
         if isinstance(device, UnloadedDevice):
             # Shown like any device, but without an application there is nothing to configure.
-            imgui.push_style_color(imgui.Col_.text, _UNLOADED_COLOR)
+            imgui.push_style_color(imgui.Col_.text, status_color("warning"))
             tree_node(self._device_label(device), leaf(device))
             imgui.pop_style_color()
             hovered = imgui.is_item_hovered()
@@ -832,13 +831,15 @@ class TopologyPanel:
                     name=self._device_display_name(devices[0])
                 )
             else:
-                text = S.DEVICE_DELETE_CONFIRM_SEVERAL.format(count=len(devices))
+                text = S.DEVICE_DELETE_CONFIRM_SEVERAL(len(devices)).format(
+                    count=len(devices)
+                )
             imgui.text_wrapped(text)
             clicked = dialog_buttons(S.CONTEXT_DELETE, S.BTN_CANCEL)
             if clicked == 0:
                 # Several in one undo step.
                 label = (
-                    S.HISTORY_EV_REMOVE_DEVICES.format(count=len(devices))
+                    S.HISTORY_EV_REMOVE_DEVICES(len(devices)).format(count=len(devices))
                     if len(devices) > 1
                     else None
                 )
@@ -1138,7 +1139,7 @@ class TopologyPanel:
     def _add_rows(
         self,
         request: AddRequest,
-        several: str,
+        several: Callable[[int], str],
         target: str,
         add: Callable[[AddRow], str | None],
     ) -> None:
@@ -1185,7 +1186,7 @@ class TopologyPanel:
         dragged = self._dragged_devices(device)
         text = device.display_name
         if len(dragged.ids) > 1:
-            text = S.DRAG_DEVICES.format(count=len(dragged.ids))
+            text = S.DRAG_DEVICES(len(dragged.ids)).format(count=len(dragged.ids))
         drag_source(dragged, text)
 
     def _dragged_devices(self, device: Device) -> Dragged:

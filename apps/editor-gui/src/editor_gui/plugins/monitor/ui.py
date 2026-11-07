@@ -13,6 +13,7 @@ from editor_gui.plugins.monitor.formatting import ProjectIndex, dpt_text
 from editor_gui.plugins.monitor.service import MonitorKind, decode_group_value
 from editor_gui.plugins.monitor.strings import S
 from editor_gui.plugins.monitor.table import TelegramView
+from editor_gui.theme import status_color
 from editor_gui.widgets.dpi import px
 from editor_gui.widgets.dpt_value import DptValueInput
 from editor_gui.widgets.filter_box import filter_box
@@ -28,7 +29,6 @@ if TYPE_CHECKING:
     from editor_gui.plugins.project.service import GroupAddressInfo
 
 
-_ERROR_COLOR = imgui.ImVec4(0.95, 0.45, 0.4, 1.0)
 # Room kept for a value field beside its label before both go to the next line, at 100 % scaling.
 _VALUE_ROOM = 90.0
 
@@ -155,7 +155,7 @@ class MonitorPanel:
             same_line_if_fits(text_width(S.MONITOR_DISCONNECTED))
             imgui.text_disabled(S.MONITOR_DISCONNECTED)
         if self._cmd_value.error:
-            imgui.text_colored(_ERROR_COLOR, self._cmd_value.error)
+            imgui.text_colored(status_color("error"), self._cmd_value.error)
         if raw is None or not connected:
             return
         address = entry.address if entry is not None else self._cmd_address.strip()
@@ -229,7 +229,7 @@ class MonitorPanel:
             same_line_if_fits(text_width(S.MONITOR_DISCONNECTED))
             imgui.text_disabled(S.MONITOR_DISCONNECTED)
         if self._write_value.error:
-            imgui.text_colored(_ERROR_COLOR, self._write_value.error)
+            imgui.text_colored(status_color("error"), self._write_value.error)
 
         if self._selected is None or not connected:
             return

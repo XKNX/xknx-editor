@@ -16,12 +16,6 @@ msgstr "Impossibile caricare l'archivio"
 msgid "Loaded: {path}"
 msgstr "Caricato: {path}"
 
-msgid "Found {count} application(s)"
-msgstr "Applicazioni trovate: {count}"
-
-msgid "({count} group objects)"
-msgstr "({count} oggetti di comunicazione)"
-
 msgid "Fetch Online Catalog"
 msgstr "Recupera catalogo online"
 
@@ -30,9 +24,6 @@ msgstr "Caricamento elenco costruttori…"
 
 msgid "Online catalog not reachable"
 msgstr "Catalogo online non raggiungibile"
-
-msgid "{count} matches"
-msgstr "{count} risultati"
 
 msgid "Loading products…"
 msgstr "Caricamento prodotti…"
@@ -52,9 +43,6 @@ msgstr "(nel catalogo locale)"
 msgid "Search products, order number…"
 msgstr "Cerca prodotti, numero ordine…"
 
-msgid "Product Index ({date}): {mfrs} manufacturers, {products} products"
-msgstr "Indice prodotti ({date}): {mfrs} costruttori, {products} prodotti"
-
 msgid "No Product Index yet - fetch the online catalog to build it"
 msgstr "Nessun indice prodotti - recuperare il catalogo online per crearlo"
 
@@ -66,9 +54,6 @@ msgstr "Annulla"
 
 msgid "Fetch the online catalog to search across all manufacturers."
 msgstr "Recuperare il catalogo online per cercare tra tutti i costruttori."
-
-msgid "Showing {shown} of {total} matches - refine the search"
-msgstr "Visualizzati {shown} di {total} risultati - affinare la ricerca"
 
 msgid "Product Details"
 msgstr "Dettagli prodotto"
@@ -133,9 +118,6 @@ msgstr "Online"
 msgid "No products imported yet — import a .knxprod or use the Online tab."
 msgstr "Nessun prodotto ancora importato — importare un file .knxprod o usare la scheda Online."
 
-msgid "Fetch {count} Missing Application(s) Online"
-msgstr "Recupera online applicazioni mancanti ({count})"
-
 msgid "Fetching missing applications…"
 msgstr "Recupero applicazioni mancanti…"
 
@@ -147,9 +129,6 @@ msgstr "Elimina dal catalogo locale"
 
 msgid "Are you sure you want to delete the selected device? This cannot be undone."
 msgstr "Eliminare davvero il dispositivo selezionato? L'operazione non può essere annullata."
-
-msgid "{count} device(s) in the open project use this product. They can't be loaded until the product is imported again."
-msgstr "Dispositivi del progetto aperto che usano questo prodotto: {count}. Non potranno essere caricati finché il prodotto non verrà importato di nuovo."
 
 msgid "Deleting {name}…"
 msgstr "Eliminazione di {name}…"
@@ -256,9 +235,6 @@ msgstr "Invia di nuovo il codice"
 msgid "Open Website"
 msgstr "Apri sito web"
 
-msgid "Imported {count} product versions. Find them in the Local tab."
-msgstr "Importate {count} versioni di prodotto. Sono nella scheda Locale."
-
 msgid "Login is saved on this computer. Leave the password empty to keep it for the same server and user."
 msgstr "Le credenziali sono salvate su questo computer. Lascia vuota la password per mantenerla per lo stesso server e utente."
 
@@ -276,6 +252,7 @@ msgstr "Versione"
 
 msgid "Register…"
 msgstr "Registrati…"
+
 msgid "Alternative Catalog"
 msgstr "Alternative Catalog"
 
@@ -299,3 +276,51 @@ msgstr "La password richiede almeno 10 caratteri con lettere maiuscole e minusco
 
 msgid "Enter the six-digit code from the email."
 msgstr "Inserisca il codice di sei cifre ricevuto via e-mail."
+
+msgid "Imported {count} product version. Find it in the Local tab."
+msgid_plural "Imported {count} product versions. Find them in the Local tab."
+msgstr[0] "Importata {count} versione di prodotto. È nella scheda Locale."
+msgstr[1] "Importate {count} versioni di prodotto. Sono nella scheda Locale."
+
+msgid "Found {count} application"
+msgid_plural "Found {count} applications"
+msgstr[0] "Trovata {count} applicazione"
+msgstr[1] "Trovate {count} applicazioni"
+
+msgid "({count} group object)"
+msgid_plural "({count} group objects)"
+msgstr[0] "({count} oggetto di comunicazione)"
+msgstr[1] "({count} oggetti di comunicazione)"
+
+msgid "{count} match"
+msgid_plural "{count} matches"
+msgstr[0] "{count} risultato"
+msgstr[1] "{count} risultati"
+
+msgid "Product Index ({date}): {manufacturers}, {products}"
+msgstr "Indice prodotti ({date}): {manufacturers}, {products}"
+
+msgid "{count} manufacturer"
+msgid_plural "{count} manufacturers"
+msgstr[0] "{count} costruttore"
+msgstr[1] "{count} costruttori"
+
+msgid "{count} product"
+msgid_plural "{count} products"
+msgstr[0] "{count} prodotto"
+msgstr[1] "{count} prodotti"
+
+msgid "Showing {shown} of {total} match - refine the search"
+msgid_plural "Showing {shown} of {total} matches - refine the search"
+msgstr[0] "Visualizzati {shown} di {total} risultato - affinare la ricerca"
+msgstr[1] "Visualizzati {shown} di {total} risultati - affinare la ricerca"
+
+msgid "Fetch {count} Missing Application Online"
+msgid_plural "Fetch {count} Missing Applications Online"
+msgstr[0] "Recupera online {count} applicazione mancante"
+msgstr[1] "Recupera online {count} applicazioni mancanti"
+
+msgid "{count} device in the open project uses this product. It can't be loaded until the product is imported again."
+msgid_plural "{count} devices in the open project use this product. They can't be loaded until the product is imported again."
+msgstr[0] "{count} dispositivo del progetto aperto usa questo prodotto. Non potrà essere caricato finché il prodotto non verrà importato di nuovo."
+msgstr[1] "{count} dispositivi del progetto aperto usano questo prodotto. Non potranno essere caricati finché il prodotto non verrà importato di nuovo."

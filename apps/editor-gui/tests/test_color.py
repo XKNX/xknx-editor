@@ -3,10 +3,10 @@ stay readable on white."""
 
 from __future__ import annotations
 
-from collections.abc import Callable, Iterator
+from collections.abc import Iterator
 
 import pytest
-from editor_gui.color import sending_green, themed, warning_red
+from editor_gui.color import sending_green, themed
 from editor_gui.plugins.project.ui import group_addresses
 from editor_gui.widgets import group_objects_widgets
 from imgui_bundle import imgui
@@ -24,14 +24,11 @@ def _luminance(color: imgui.ImVec4) -> float:
 
 
 @pytest.mark.usefixtures("context")
-@pytest.mark.parametrize("accent", [sending_green, warning_red])
-def test_accents_are_darker_on_light_themes(
-    accent: Callable[[], imgui.ImVec4],
-) -> None:
+def test_sending_green_is_darker_on_light_themes() -> None:
     imgui.style_colors_dark()
-    on_dark = accent()
+    on_dark = sending_green()
     imgui.style_colors_light()
-    on_light = accent()
+    on_light = sending_green()
     assert _luminance(on_light) < 0.4 < _luminance(on_dark)
 
 

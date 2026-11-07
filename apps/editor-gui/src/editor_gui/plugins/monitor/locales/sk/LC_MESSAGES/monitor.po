@@ -115,9 +115,6 @@ msgstr "Zobraziť rozšírené informácie"
 msgid "Hide Extended Information"
 msgstr "Skryť rozšírené informácie"
 
-msgid "{count} telegrams exported to {path}"
-msgstr "Telegramy exportované do {path}: {count}"
-
 msgid "Export failed: {error}"
 msgstr "Export zlyhal: {error}"
 
@@ -133,14 +130,8 @@ msgstr "Rozšírený"
 msgid "Standard"
 msgstr "Štandardný"
 
-msgid "{count} entries loaded from {path}"
-msgstr "Položky načítané z {path}: {count}"
-
 msgid "Loading failed: {error}"
 msgstr "Načítanie zlyhalo: {error}"
-
-msgid "{count} telegrams in another frame format were skipped"
-msgstr "Preskočené telegramy v inom formáte rámca: {count}"
 
 msgid "Connection was established"
 msgstr "Spojenie bolo nadviazané"
@@ -191,7 +182,10 @@ msgid "Group Objects"
 msgstr "Skupinové objekty"
 
 msgid "{count} telg."
-msgstr "{count} telg."
+msgid_plural "{count} telg."
+msgstr[0] "{count} telg."
+msgstr[1] "{count} telg."
+msgstr[2] "{count} telg."
 
 msgid "Enter a group address of the project to send to it."
 msgstr "Zadajte skupinovú adresu projektu, na ktorú sa má odoslať."
@@ -238,17 +232,8 @@ msgstr "Telegramy neboli exportované. Načítanie záznamu ich nahradí a zasta
 msgid "Unsaved Telegrams"
 msgstr "Neuložené telegramy"
 
-msgid "Replay cancelled: {count} telegrams sent"
-msgstr "Prehrávanie zrušené: odoslané telegramy: {count}"
-
-msgid "Replay finished: {count} telegrams sent"
-msgstr "Prehrávanie dokončené: odoslané telegramy: {count}"
-
 msgid "There are no group telegrams to replay"
 msgstr "Nie sú k dispozícii žiadne skupinové telegramy na prehranie"
-
-msgid "{count} Data Secure telegrams are not replayed"
-msgstr "Telegramy Data Secure, ktoré sa neprehrajú: {count}"
 
 msgid "Comment"
 msgstr "Komentár"
@@ -393,3 +378,39 @@ msgstr "Max."
 
 msgid "Maximum telegrams this monitor keeps. The oldest tenth is dropped when the cap is exceeded."
 msgstr "Maximálny počet telegramov, ktoré tento monitor uchováva. Po prekročení limitu sa odstráni najstaršia desatina."
+
+msgid "{count} telegram exported to {path}"
+msgid_plural "{count} telegrams exported to {path}"
+msgstr[0] "{count} telegram exportovaný do {path}"
+msgstr[1] "{count} telegramy exportované do {path}"
+msgstr[2] "{count} telegramov exportovaných do {path}"
+
+msgid "{count} entry loaded from {path}"
+msgid_plural "{count} entries loaded from {path}"
+msgstr[0] "{count} položka načítaná z {path}"
+msgstr[1] "{count} položky načítané z {path}"
+msgstr[2] "{count} položiek načítaných z {path}"
+
+msgid "{count} telegram in another frame format was skipped"
+msgid_plural "{count} telegrams in another frame format were skipped"
+msgstr[0] "{count} telegram v inom formáte rámca bol preskočený"
+msgstr[1] "{count} telegramy v inom formáte rámca boli preskočené"
+msgstr[2] "{count} telegramov v inom formáte rámca bolo preskočených"
+
+msgid "{count} Data Secure telegram is not replayed"
+msgid_plural "{count} Data Secure telegrams are not replayed"
+msgstr[0] "{count} telegram Data Secure sa neprehrá"
+msgstr[1] "{count} telegramy Data Secure sa neprehrajú"
+msgstr[2] "{count} telegramov Data Secure sa neprehrá"
+
+msgid "Replay finished: {count} telegram sent"
+msgid_plural "Replay finished: {count} telegrams sent"
+msgstr[0] "Prehrávanie dokončené: odoslaný {count} telegram"
+msgstr[1] "Prehrávanie dokončené: odoslané {count} telegramy"
+msgstr[2] "Prehrávanie dokončené: odoslaných {count} telegramov"
+
+msgid "Replay cancelled: {count} telegram sent"
+msgid_plural "Replay cancelled: {count} telegrams sent"
+msgstr[0] "Prehrávanie zrušené: odoslaný {count} telegram"
+msgstr[1] "Prehrávanie zrušené: odoslané {count} telegramy"
+msgstr[2] "Prehrávanie zrušené: odoslaných {count} telegramov"

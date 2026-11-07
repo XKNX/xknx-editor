@@ -19,9 +19,6 @@ msgstr "Filtrer les participants…"
 msgid "Needs Attention Only"
 msgstr "Uniquement à traiter"
 
-msgid "{count} device(s) not in catalog"
-msgstr "{count} participant(s) absent(s) du catalogue"
-
 msgid "Address"
 msgstr "Adresse"
 
@@ -69,3 +66,8 @@ msgstr "Numéro de série : {serial}"
 
 msgid "Last Download: {when}"
 msgstr "Dernier téléchargement : {when}"
+
+msgid "{count} device not in catalog"
+msgid_plural "{count} devices not in catalog"
+msgstr[0] "{count} participant absent du catalogue"
+msgstr[1] "{count} participants absents du catalogue"

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import datetime
 import functools
 import threading
 import time
@@ -158,6 +159,19 @@ def _connects[F: Callable[..., Any]](op: str) -> Callable[[F], F]:
     return decorate
 
 
+@dataclass(frozen=True, slots=True)
+class EndedBusOperation:
+    """A bus operation that held the operation slot (see ``begin_operation``) and has ended: what
+    it did and where, when, and how it ended ("finished", "canceled" or "failed", with why)."""
+
+    kind: str
+    address: str
+    started_at: datetime.datetime
+    ended_at: datetime.datetime
+    outcome: str = "finished"
+    message: str | None = None
+
+
 @dataclass(frozen=True)
 class SecureTunnel:
     """The credentials of a KNX IP Secure tunnel: its user id, tunnelling address, password and
@@ -230,6 +244,10 @@ class ConnectionService:
         self._busy_lock = threading.Lock()
         self._busy: tuple[str, str] | None = None
         self._busy_progress: tuple[int, int] | None = None
+        # When the operation in the slot started, and the ones ended with ``end_operation`` since
+        # the last ``take_ended_operations``.
+        self._busy_since = datetime.datetime.now()
+        self._ended_operations: list[EndedBusOperation] = []
         self._program_notice: tuple[bool, float] | None = None
         # Timestamp of the last connection-requiring call made while disconnected,
         # so the status bar can show a brief "no connection" notice.
@@ -268,11 +286,33 @@ class ConnectionService:
                 return False
             self._busy = (kind, address)
             self._busy_progress = None
+            self._busy_since = datetime.datetime.now()
             return True
 
-    def end_operation(self) -> None:
-        """Release the operation slot acquired by :meth:`begin_operation`."""
+    def end_operation(
+        self, outcome: str = "finished", message: str | None = None
+    ) -> None:
+        """Release the operation slot acquired by :meth:`begin_operation`; the operation is kept
+        with its ``outcome`` ("finished", "canceled" or "failed") and ``message`` for
+        :meth:`take_ended_operations`."""
+        with self._busy_lock:
+            if self._busy is not None:
+                self._ended_operations.append(
+                    EndedBusOperation(
+                        *self._busy,
+                        started_at=self._busy_since,
+                        ended_at=datetime.datetime.now(),
+                        outcome=outcome,
+                        message=message,
+                    )
+                )
         self._clear_busy()
+
+    def take_ended_operations(self) -> list[EndedBusOperation]:
+        """The operations ended with :meth:`end_operation` since the last call, oldest first."""
+        with self._busy_lock:
+            ended, self._ended_operations = self._ended_operations, []
+        return ended
 
     def _clear_busy(self) -> None:
         with self._busy_lock:
@@ -637,13 +677,15 @@ class ConnectionService:
         return future
 
     def _log_progmode_scan_result(self, future: Future[Any]) -> None:
-        self._clear_busy()
         if future.cancelled():
+            self.end_operation("canceled")
             return
         exc = future.exception()
         if exc is not None:
+            self.end_operation("failed", str(exc))
             self._log.error("Programming-mode scan failed", error=str(exc))
             return
+        self.end_operation()
         results = future.result()
         self._log.info(
             "Devices in programming mode",

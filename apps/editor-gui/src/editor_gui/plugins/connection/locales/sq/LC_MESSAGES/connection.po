@@ -46,9 +46,6 @@ msgstr "Kërkimi nuk u përfundua: {error}"
 msgid "The interface did not confirm the scan request (bus busy or interface overloaded). Please try again."
 msgstr "Ndërfaqja nuk e konfirmoi kërkesën për kërkim (bus i zënë ose ndërfaqe e mbingarkuar). Ju lutemi provoni përsëri."
 
-msgid "{count} device(s) in programming mode"
-msgstr "{count} pajisje në modalitetin e programimit"
-
 msgid "Answered the scan, but reading its details failed: {error}"
 msgstr "U përgjigj në kërkim, por leximi i detajeve dështoi: {error}"
 
@@ -222,3 +219,8 @@ msgstr "Nuk ka lidhje me bus-in"
 
 msgid "Serial Number: {serial}"
 msgstr "Numri serial: {serial}"
+
+msgid "{count} device in programming mode"
+msgid_plural "{count} devices in programming mode"
+msgstr[0] "{count} pajisje në modalitetin e programimit"
+msgstr[1] "{count} pajisje në modalitetin e programimit"

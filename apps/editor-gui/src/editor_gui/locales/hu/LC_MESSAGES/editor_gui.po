@@ -43,9 +43,6 @@ msgstr "Leállítás"
 msgid "All Files"
 msgstr "Minden fájl"
 
-msgid "Project: {name}  ·  {devices} devices  ·  {gas} GAs"
-msgstr "Projekt: {name}  ·  {devices} készülék  ·  {gas} csoportcím"
-
 msgid "No project open"
 msgstr "Nincs megnyitott projekt"
 
@@ -385,32 +382,14 @@ msgstr "A projekt rendben megnyílt, és minden megvan, ami a munkához kell. Az
 msgid "This project came from a file with a few extra details this editor does not use. The export leaves these out:"
 msgstr "Ez a projekt olyan fájlból származik, amely néhány olyan további adatot tartalmaz, amelyet ez a szerkesztő nem használ. Az exportálás ezeket kihagyja:"
 
-msgid "The original file had {count} installations. They were combined into one."
-msgstr "Az eredeti fájl több telepítést tartalmazott ({count}). Ezek egybe lettek vonva."
-
 msgid "{count} device(s) had no place in the original file, so they were left out."
 msgstr "Az eredeti fájlban ennyi készüléknek nem volt helye, ezért kimaradtak: {count}"
-
-msgid "{count} group object(s) had an extra description in the original file. The custom name and function are kept; only that description is not shown here."
-msgstr "Kommunikációs objektumok további leírással az eredeti fájlban: {count}. Az egyedi név és funkció megmarad; csak ez a leírás nem jelenik meg itt."
-
-msgid "{count} IP or function setting(s) from the original file are not used here."
-msgstr "Az eredeti fájl IP- vagy funkcióbeállításai közül ennyit itt nem használ a program: {count}"
-
-msgid "{count} line(s) use several segments. In a schema 14/20 export they are shown at line level only."
-msgstr "Több szakaszt használó vonalak: {count}. A 14/20-as sémájú exportban ezek csak vonalszinten jelennek meg."
-
-msgid "{count} line(s) had the same address in different installations. One of each was kept when combining."
-msgstr "Különböző telepítésekben azonos címmel rendelkező vonalak: {count}. Az egyesítéskor mindegyikből egy maradt meg."
 
 msgid "For example: {examples}"
 msgstr "Például: {examples}"
 
 msgid "Product catalog imported: {count} new product version(s) from {name}"
 msgstr "Termékkatalógus importálva: új termékverziók: {count}, forrás: {name}"
-
-msgid "Imported {count} product version(s) from {name}:"
-msgstr "Importált termékverziók: {count}, forrás: {name}:"
 
 msgid "{name} was already in the catalog, nothing new imported"
 msgstr "Már a katalógusban volt, semmi új nem lett importálva: {name}"
@@ -763,14 +742,8 @@ msgstr "Exportálás"
 msgid "Group Address Export (*.csv)"
 msgstr "Csoportcím-export (*.csv)"
 
-msgid "Exported {count} group address(es)"
-msgstr "Exportált csoportcímek: {count}"
-
 msgid "Exported to {path} ({size}) as {schema}"
 msgstr "Exportálva ide: {path} ({size}), formátum: {schema}"
-
-msgid "{count} device(s) aren't assigned to a line. They're kept in the project and included on export, but can't be edited here yet."
-msgstr "Vonalhoz nem rendelt készülékek: {count}. Ezek a projektben maradnak, és az exportba is bekerülnek, de itt még nem szerkeszthetők."
 
 msgid "no online certificate"
 msgstr "nincs online tanúsítvány"
@@ -1017,15 +990,6 @@ msgstr "A készülék nem kompatibilis ezzel az ETS-verzióval"
 
 msgid "This project cannot be imported into the chosen ETS version. The product data of the device(s) below exists only for a newer ETS (e.g. an ETS 6 product in an ETS 5 export), so ETS rejects the whole project with 'created with a newer version'.\n\nRemove these device(s) and export again, or cancel and export for the newer ETS instead."
 msgstr "Ez a projekt nem importálható a kiválasztott ETS-verzióba. Az alább felsorolt készülékek termékadatai csak újabb ETS-hez léteznek (pl. ETS 6-termék ETS 5-exportban), ezért az ETS a teljes projektet elutasítja a „created with a newer version” üzenettel.\n\nTávolítsa el ezeket a készülékeket, és exportáljon újra, vagy szakítsa meg, és exportáljon inkább az újabb ETS-hez."
-
-msgid "Remove device(s) & re-export"
-msgstr "Készülékek eltávolítása és újraexportálás"
-
-msgid "Removed {count} incompatible device(s); re-exporting"
-msgstr "Eltávolított inkompatibilis készülékek: {count}; újraexportálás"
-
-msgid "This file will NOT import into the chosen ETS version: the product data of these manufacturers only exists for a newer ETS (e.g. an ETS 6 product in an ETS 5 export), so ETS rejects the whole project. Remove the affected device(s) or export for the newer ETS."
-msgstr "Ez a fájl NEM importálható a kiválasztott ETS-verzióba: ezeknek a gyártóknak a termékadatai csak újabb ETS-hez léteznek (pl. ETS 6-termék ETS 5-exportban), ezért az ETS a teljes projektet elutasítja. Távolítsa el az érintett készülékeket, vagy exportáljon az újabb ETS-hez."
 
 msgid "Hide Tab Bar"
 msgstr "Lapsáv elrejtése"
@@ -1692,3 +1656,61 @@ msgstr "A projekt termékadatainak importálása: {done}/{total} alkalmazásprog
 
 msgid "This is done once on this computer, for the products its catalog does not have yet. For a large project it can take a few minutes."
 msgstr "Ez csak egyszer történik meg ezen a számítógépen, azokhoz a termékekhez, amelyek még nincsenek a katalógusában. Nagy projektnél néhány percig is eltarthat."
+
+msgid "Project: {name}  ·  {devices}  ·  {gas}"
+msgstr "Projekt: {name}  ·  {devices}  ·  {gas}"
+
+msgid "{count} device"
+msgid_plural "{count} devices"
+msgstr[0] "{count} készülék"
+
+msgid "{count} GA"
+msgid_plural "{count} GAs"
+msgstr[0] "{count} csoportcím"
+
+msgid "Exported {count} group address"
+msgid_plural "Exported {count} group addresses"
+msgstr[0] "{count} csoportcím exportálva"
+
+msgid "The original file had {count} installation. It was combined into one."
+msgid_plural "The original file had {count} installations. They were combined into one."
+msgstr[0] "Az eredeti fájl {count} telepítést tartalmazott. Ezek egybe lettek vonva."
+
+msgid "{count} device isn't assigned to a line. It's kept in the project and included on export, but can't be edited here yet."
+msgid_plural "{count} devices aren't assigned to a line. They're kept in the project and included on export, but can't be edited here yet."
+msgstr[0] "{count} készülék nincs vonalhoz rendelve. Ezek a projektben maradnak, és az exportba is bekerülnek, de itt még nem szerkeszthetők."
+
+msgid "{count} group object had an extra description in the original file. The custom name and function are kept; only that description is not shown here."
+msgid_plural "{count} group objects had an extra description in the original file. The custom name and function are kept; only that description is not shown here."
+msgstr[0] "{count} kommunikációs objektumnak volt további leírása az eredeti fájlban. Az egyedi név és funkció megmarad; csak ez a leírás nem jelenik meg itt."
+
+msgid "{count} IP or function setting from the original file is not used here."
+msgid_plural "{count} IP or function settings from the original file are not used here."
+msgstr[0] "Az eredeti fájl {count} IP- vagy funkcióbeállítását itt nem használja a program."
+
+msgid "{count} line uses several segments. In a schema 14/20 export it is shown at line level only."
+msgid_plural "{count} lines use several segments. In a schema 14/20 export they are shown at line level only."
+msgstr[0] "{count} vonal több szakaszt használ. A 14/20-as sémájú exportban ezek csak vonalszinten jelennek meg."
+
+msgid "{count} line had the same address in different installations. One of each was kept when combining."
+msgid_plural "{count} lines had the same address in different installations. One of each was kept when combining."
+msgstr[0] "{count} vonalnak azonos címe volt különböző telepítésekben. Az egyesítéskor mindegyikből egy maradt meg."
+
+msgid "Remove Device & Re-Export"
+msgid_plural "Remove Devices & Re-Export"
+msgstr[0] "Készülékek eltávolítása és újraexportálás"
+
+msgid "Removed {count} incompatible device; re-exporting"
+msgid_plural "Removed {count} incompatible devices; re-exporting"
+msgstr[0] "{count} inkompatibilis készülék eltávolítva; újraexportálás"
+
+msgid "This file will NOT import into the chosen ETS version: the product data of these manufacturers only exists for a newer ETS (e.g. an ETS 6 product in an ETS 5 export), so the whole project is rejected."
+msgstr "Ez a fájl NEM importálható a kiválasztott ETS-verzióba: ezeknek a gyártóknak a termékadatai csak újabb ETS-hez léteznek (pl. ETS 6-termék ETS 5-exportban), ezért az ETS a teljes projektet elutasítja."
+
+msgid "Remove the affected device or export for the newer ETS."
+msgid_plural "Remove the affected devices or export for the newer ETS."
+msgstr[0] "Távolítsa el az érintett készülékeket, vagy exportáljon az újabb ETS-hez."
+
+msgid "Imported {count} product version from {name}:"
+msgid_plural "Imported {count} product versions from {name}:"
+msgstr[0] "{count} termékverzió importálva innen: {name}:"

@@ -115,9 +115,6 @@ msgstr "Bővített információk megjelenítése"
 msgid "Hide Extended Information"
 msgstr "Bővített információk elrejtése"
 
-msgid "{count} telegrams exported to {path}"
-msgstr "Exportált táviratok: {count}, cél: {path}"
-
 msgid "Export failed: {error}"
 msgstr "Az exportálás nem sikerült: {error}"
 
@@ -133,14 +130,8 @@ msgstr "Bővített"
 msgid "Standard"
 msgstr "Normál"
 
-msgid "{count} entries loaded from {path}"
-msgstr "Betöltött bejegyzések: {count}, forrás: {path}"
-
 msgid "Loading failed: {error}"
 msgstr "A betöltés nem sikerült: {error}"
-
-msgid "{count} telegrams in another frame format were skipped"
-msgstr "Más keretformátumú, kihagyott táviratok: {count}"
 
 msgid "Connection was established"
 msgstr "A kapcsolat létrejött"
@@ -191,7 +182,8 @@ msgid "Group Objects"
 msgstr "Kommunikációs objektumok"
 
 msgid "{count} telg."
-msgstr "{count} távirat"
+msgid_plural "{count} telg."
+msgstr[0] "{count} távirat"
 
 msgid "Enter a group address of the project to send to it."
 msgstr "Adja meg a projekt egy csoportcímét, hogy küldhessen rá."
@@ -238,17 +230,8 @@ msgstr "A táviratok nincsenek exportálva. Felvétel betöltésekor lecserélő
 msgid "Unsaved Telegrams"
 msgstr "Nem mentett táviratok"
 
-msgid "Replay cancelled: {count} telegrams sent"
-msgstr "Visszajátszás megszakítva, elküldött táviratok: {count}"
-
-msgid "Replay finished: {count} telegrams sent"
-msgstr "Visszajátszás befejezve, elküldött táviratok: {count}"
-
 msgid "There are no group telegrams to replay"
 msgstr "Nincsenek visszajátszható csoporttáviratok"
-
-msgid "{count} Data Secure telegrams are not replayed"
-msgstr "Data Secure táviratok, amelyek nem kerülnek visszajátszásra: {count}"
 
 msgid "Comment"
 msgstr "Megjegyzés"
@@ -393,3 +376,27 @@ msgstr "Max."
 
 msgid "Maximum telegrams this monitor keeps. The oldest tenth is dropped when the cap is exceeded."
 msgstr "A monitor által megőrzött táviratok legnagyobb száma. A korlát túllépésekor a legrégebbi tizedük törlődik."
+
+msgid "{count} telegram exported to {path}"
+msgid_plural "{count} telegrams exported to {path}"
+msgstr[0] "{count} távirat exportálva ide: {path}"
+
+msgid "{count} entry loaded from {path}"
+msgid_plural "{count} entries loaded from {path}"
+msgstr[0] "{count} bejegyzés betöltve innen: {path}"
+
+msgid "{count} telegram in another frame format was skipped"
+msgid_plural "{count} telegrams in another frame format were skipped"
+msgstr[0] "{count} más keretformátumú távirat kihagyva"
+
+msgid "{count} Data Secure telegram is not replayed"
+msgid_plural "{count} Data Secure telegrams are not replayed"
+msgstr[0] "{count} Data Secure távirat nem kerül visszajátszásra"
+
+msgid "Replay finished: {count} telegram sent"
+msgid_plural "Replay finished: {count} telegrams sent"
+msgstr[0] "Visszajátszás befejezve: {count} távirat elküldve"
+
+msgid "Replay cancelled: {count} telegram sent"
+msgid_plural "Replay cancelled: {count} telegrams sent"
+msgstr[0] "Visszajátszás megszakítva: {count} távirat elküldve"

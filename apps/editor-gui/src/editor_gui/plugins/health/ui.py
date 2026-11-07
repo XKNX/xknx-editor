@@ -8,11 +8,13 @@ from imgui_bundle import imgui
 
 from editor_gui.plugins.health.service import Finding, HealthService, Severity
 from editor_gui.plugins.health.strings import S
+from editor_gui.theme import status_color
 
-_SEVERITY_COLOR: dict[Severity, imgui.ImVec4] = {
-    Severity.ERROR: imgui.ImVec4(1.0, 0.4, 0.4, 1.0),
-    Severity.WARNING: imgui.ImVec4(1.0, 0.75, 0.3, 1.0),
-    Severity.INFO: imgui.ImVec4(0.6, 0.7, 0.85, 1.0),
+# The status color (see ``status_color``) of each severity.
+SEVERITY_KIND: dict[Severity, str] = {
+    Severity.ERROR: "error",
+    Severity.WARNING: "warning",
+    Severity.INFO: "info",
 }
 _SEVERITY_ICON: dict[Severity, str] = {
     Severity.ERROR: "[!]",
@@ -41,7 +43,14 @@ class HealthPanel:
         findings = self._service.findings()
         errors = sum(1 for f in findings if f.severity is Severity.ERROR)
         warnings = sum(1 for f in findings if f.severity is Severity.WARNING)
-        imgui.text_disabled(S.HEALTH_SUMMARY.format(errors=errors, warnings=warnings))
+        imgui.text_disabled(
+            ", ".join(
+                (
+                    S.HEALTH_ERRORS(errors).format(count=errors),
+                    S.HEALTH_WARNINGS(warnings).format(count=warnings),
+                )
+            )
+        )
         imgui.separator()
         if not findings:
             imgui.text_disabled(S.HEALTH_ALL_GOOD)
@@ -52,7 +61,7 @@ class HealthPanel:
             self._render_row(i, f)
 
     def _render_row(self, index: int, f: Finding) -> None:
-        color = _SEVERITY_COLOR[f.severity]
+        color = status_color(SEVERITY_KIND[f.severity])
         icon = _SEVERITY_ICON[f.severity]
         imgui.push_style_color(imgui.Col_.text, color)
         imgui.text(icon)

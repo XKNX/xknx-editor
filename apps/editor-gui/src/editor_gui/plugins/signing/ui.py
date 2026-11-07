@@ -14,6 +14,7 @@ from imgui_bundle import imgui
 
 from editor_gui import file_dialogs, signing_key
 from editor_gui.plugins.signing.strings import S
+from editor_gui.theme import status_color
 from editor_gui.widgets.flow import button_width, same_line_if_fits
 from xknxeditor.proj import (
     DLL_NAME,
@@ -25,8 +26,6 @@ from xknxeditor.proj import (
     signing_key_is_placeholder,
 )
 
-_RED = imgui.ImVec4(0.9, 0.4, 0.4, 1.0)
-_GREEN = imgui.ImVec4(0.4, 0.8, 0.4, 1.0)
 # A key field grows with its wrapped text between these numbers of lines, and scrolls beyond.
 _KEY_MIN_LINES = 2
 _KEY_MAX_LINES = 8
@@ -166,9 +165,9 @@ class SigningPanel:
         self._apply_extraction_result()
 
         if signing_key_is_placeholder():
-            imgui.text_colored(_RED, S.STATUS_PLACEHOLDER)
+            imgui.text_colored(status_color("error"), S.STATUS_PLACEHOLDER)
         else:
-            imgui.text_colored(_GREEN, S.STATUS_GENUINE)
+            imgui.text_colored(status_color("success"), S.STATUS_GENUINE)
         imgui.text_wrapped(S.HINT)
         imgui.separator()
 
@@ -185,7 +184,7 @@ class SigningPanel:
         backend = extraction_backend()
         if backend is None:
             # text_colored does not wrap; push the colour so text_wrapped handles the line break.
-            imgui.push_style_color(imgui.Col_.text, _RED)
+            imgui.push_style_color(imgui.Col_.text, status_color("error"))
             imgui.text_wrapped(S.NO_BACKEND)
             imgui.pop_style_color()
         if self._extracting:
@@ -204,9 +203,9 @@ class SigningPanel:
             self._reset()
 
         if self._error:
-            imgui.text_colored(_RED, self._error)
+            imgui.text_colored(status_color("error"), self._error)
         elif self._status:
-            imgui.text_colored(_GREEN, self._status)
+            imgui.text_colored(status_color("success"), self._status)
 
         imgui.separator()
         # Wrapped, so a narrow dialog (a phone) shows it whole.

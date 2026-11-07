@@ -118,12 +118,6 @@ msgstr "Lëviz lart"
 msgid "Move Down"
 msgstr "Lëviz poshtë"
 
-msgid "{count} items"
-msgstr "{count} elemente"
-
-msgid "{count} pairs"
-msgstr "{count} çifte"
-
 msgid "{count} unpaired (ignored)"
 msgstr "{count} pa çift (të shpërfillura)"
 
@@ -147,15 +141,6 @@ msgstr "Shto adresa grupi"
 
 msgid "Mass Linker Result"
 msgstr "Rezultati i lidhjes masive"
-
-msgid "Linked {count} object(s) to group addresses"
-msgstr "U lidhën {count} objekt(e) me adresa grupi"
-
-msgid "Linked {count} object pair(s) via new group addresses"
-msgstr "U lidhën {count} çift(e) objektesh përmes adresave të reja të grupeve"
-
-msgid "{count} error(s)"
-msgstr "{count} gabim(e)"
 
 msgid "Clear All"
 msgstr "Pastro të gjitha"
@@ -277,12 +262,6 @@ msgstr "Zëvendëso me (shabllon)"
 msgid "Group Object Mapping (by Number)"
 msgstr "Përputhja e objekteve të grupit (sipas numrit)"
 
-msgid "{count} object(s) will be re-mapped"
-msgstr "{count} objekt(e) do të ripërputhen"
-
-msgid "Replaced; re-mapped {count} group object(s)"
-msgstr "U zëvendësua; u ripërputhën {count} objekt(e) grupi"
-
 msgid "Shift Addresses"
 msgstr "Zhvendos adresat"
 
@@ -312,9 +291,6 @@ msgstr "Krahasuar me {name}:"
 
 msgid "No differences in devices or group addresses."
 msgstr "Nuk ka ndryshime te pajisjet ose adresat e grupeve."
-
-msgid "{count} difference(s)"
-msgstr "{count} ndryshim(e)"
 
 msgid "Add Device Certificate"
 msgstr "Shto certifikatën e pajisjes"
@@ -397,9 +373,6 @@ msgstr "Emri i kopjes: {name}"
 msgid "Copy"
 msgstr "Kopjo"
 
-msgid "Created {count} copy/copies"
-msgstr "U krijuan {count} kopje"
-
 msgid "Shifts the device part of each individual address. Group addresses are not shifted."
 msgstr "Zhvendos pjesën e pajisjes në çdo adresë individuale. Adresat e grupeve nuk zhvendosen."
 
@@ -421,12 +394,6 @@ msgstr "{sel} nga {total} të zgjedhura"
 msgid "(out of range)"
 msgstr "(jashtë diapazonit)"
 
-msgid "{count} address(es) will change"
-msgstr "{count} adresë(a) do të ndryshojnë"
-
-msgid "Shifted {count} address(es)"
-msgstr "U zhvendosën {count} adresë(a)"
-
 msgid "Individual Addresses"
 msgstr "Adresat individuale"
 
@@ -441,9 +408,6 @@ msgstr "Rinumërtoni adresat e grupeve duke i shtuar një zhvendosje vlerës së
 
 msgid "The offset is added to the raw 16-bit value, so it may change the main/middle group as addresses cross a boundary."
 msgstr "Zhvendosja i shtohet vlerës së papërpunuar 16-bitëshe, prandaj mund të ndryshojë grupin kryesor/të mesëm kur adresat kalojnë një kufi."
-
-msgid "Shifted {count} group address(es)"
-msgstr "U zhvendosën {count} adresë(a) grupi"
 
 msgid "Export CSV…"
 msgstr "Eksporto CSV…"
@@ -495,9 +459,6 @@ msgstr "Zgjidhni të paktën një fushë."
 
 msgid "No topology issues found."
 msgstr "Nuk u gjet asnjë problem topologjie."
-
-msgid "{count} issue(s)"
-msgstr "{count} problem(e)"
 
 msgid "Click a finding to jump to the device."
 msgstr "Klikoni një gjetje për të kaluar te pajisja."
@@ -630,9 +591,6 @@ msgstr "Certifikata e projektit"
 
 msgid "none"
 msgstr "asnjë"
-
-msgid "present ({size} bytes)"
-msgstr "e pranishme ({size} bajte)"
 
 msgid "Password"
 msgstr "Fjalëkalimi"
@@ -1003,14 +961,8 @@ msgstr "Klikoni për ta kopjuar"
 msgid "Filter parameters…"
 msgstr "Filtro parametrat…"
 
-msgid "Apply Changes to All {count} Identical Devices"
-msgstr "Zbato ndryshimet te të gjitha {count} pajisjet identike"
-
 msgid "Apply Changes to All Channels"
 msgstr "Zbato ndryshimet te të gjitha kanalet"
-
-msgid "Editing {count} devices — edits apply to all, diverging values show <differs>"
-msgstr "Po ndryshohen {count} pajisje — ndryshimet vlejnë për të gjitha, vlerat që ndryshojnë shfaqin <ndryshon>"
 
 msgid "Hardware"
 msgstr "Hardueri"
@@ -1048,9 +1000,6 @@ msgstr "Pastro krahasimin"
 msgid "Memory Dumps (*.bin)"
 msgstr "Imazhe memorieje (*.bin)"
 
-msgid "{count} bytes"
-msgstr "{count} bajte"
-
 msgid "No memory segments."
 msgstr "Nuk ka segmente memorieje."
 
@@ -1077,9 +1026,6 @@ msgstr "Nuk mund të ekzekutohet: pa lidhje KNX. Lidhuni me një gateway (menyja
 
 msgid "Match: the generated image is identical to what is on the device"
 msgstr "Përputhje: imazhi i prodhuar është identik me atë në pajisje"
-
-msgid "Mismatch: {bytes} byte(s) differ from the device in {locations} location(s)"
-msgstr "Mospërputhje: {bytes} bajt(e) ndryshojnë nga pajisja në {locations} vend(e)"
 
 msgid "{matched} matched, {changed} would change"
 msgstr "{matched} përputhen, {changed} do të ndryshonin"
@@ -1111,9 +1057,6 @@ msgstr "e menaxhuar nga pajisja"
 msgid "System byte the device sets itself at runtime (e.g. a download detection byte reset by the application after a download). A difference here is expected and does not indicate a bad download."
 msgstr "Bajt sistemi që pajisja e vendos vetë gjatë punës (p.sh. një bajt zbulimi programimi që programi aplikativ e rivendos pas një programimi). Një ndryshim këtu është i pritshëm dhe nuk tregon programim të dështuar."
 
-msgid "plus {bytes} device-managed runtime byte(s) (expected, benign)"
-msgstr "dhe {bytes} bajt(e) që i menaxhon vetë pajisja (të pritshëm, të padëmshëm)"
-
 msgid "No configured differences: the device already carries this configuration. The differences below are benign (see notes)."
 msgstr "Nuk ka ndryshime në konfigurim: pajisja e mban tashmë këtë konfigurim. Ndryshimet më poshtë janë të padëmshme (shihni shënimet)."
 
@@ -1122,9 +1065,6 @@ msgstr "vendos parazgjedhjen"
 
 msgid "This byte is written for a neighbouring parameter; the differing bit is not driven by any active parameter and is only reset to the application default. The device holds an older value (e.g. from a previous configuration or mode) that programming will normalise. Benign."
 msgstr "Ky bajt shkruhet për një parametër fqinj; biti që ndryshon nuk drejtohet nga asnjë parametër aktiv dhe vetëm rivendoset në parazgjedhjen e programit aplikativ. Pajisja mban një vlerë më të vjetër (p.sh. nga një konfigurim ose modalitet i mëparshëm) që programimi do ta normalizojë. I padëmshëm."
-
-msgid "plus {bytes} byte(s) reset to the application default (the device holds an older value; benign, will be normalised on programming)"
-msgstr "dhe {bytes} bajt(e) të rivendosur në parazgjedhjen e programit aplikativ (pajisja mban një vlerë më të vjetër; e padëmshme, do të normalizohet gjatë programimit)"
 
 msgid "Export Ist/Soll…"
 msgstr "Eksporto Ist/Soll…"
@@ -1180,9 +1120,6 @@ msgstr "Vetëm ndryshimet"
 msgid "Filter devices by address, name or description…"
 msgstr "Filtro pajisjet sipas adresës, emrit ose përshkrimit…"
 
-msgid "{count} differences"
-msgstr "{count} ndryshime"
-
 msgid "Parameters"
 msgstr "Parametrat"
 
@@ -1206,9 +1143,6 @@ msgstr "Ngjit konfigurimin"
 
 msgid "Paste configuration onto '{name}':"
 msgstr "Ngjit konfigurimin te '{name}':"
-
-msgid "Paste configuration onto {count} selected devices:"
-msgstr "Ngjit konfigurimin te {count} pajisje të zgjedhura:"
 
 msgid "Duplicate '{name}':"
 msgstr "Dyfisho '{name}':"
@@ -1603,12 +1537,6 @@ msgstr "Importo adresat e grupeve"
 msgid "Group Address Files (XML, CSV)"
 msgstr "Skedarët e adresave të grupeve (XML, CSV)"
 
-msgid "{added} group addresses added, {updated} updated."
-msgstr "U shtuan {added} adresa grupi, u përditësuan {updated}."
-
-msgid "{count} group addresses could not be placed in a group."
-msgstr "{count} adresa grupi nuk u vendosën dot në një grup."
-
 msgid "The file could not be imported: {error}"
 msgstr "Skedari nuk u importua dot: {error}"
 
@@ -1789,9 +1717,6 @@ msgstr "Shkruaj caktimin e grupeve në busin DALI. Kjo i zbaton grupet në\ngate
 msgid "Write the scene values to the DALI bus. Continue?"
 msgstr "Shkruaj vlerat e skenave në busin DALI. Të vazhdohet?"
 
-msgid "{count} ECG(s) present"
-msgstr "{count} ECG të pranishme"
-
 msgid "Group"
 msgstr "Grupi"
 
@@ -1833,9 +1758,6 @@ msgstr "Veçmas"
 
 msgid "Unassigned"
 msgstr "Pa caktuar"
-
-msgid "Procedure {number}  ({count} steps)"
-msgstr "Procedura {number}  ({count} hapa)"
 
 msgid "Kind"
 msgstr "Lloji"
@@ -2202,9 +2124,6 @@ msgstr "Programi aplikativ nuk ka parametra statikë."
 
 msgid "This gateway's commissioning protocol has not been verified against a capture; writes may misbehave. Proceed with care."
 msgstr "Protokolli i vënies në punë i këtij gateway-i nuk është verifikuar me një regjistrim; shkrimet mund të sillen gabim. Vazhdoni me kujdes."
-
-msgid "{count} ECG(s) present on line {line}"
-msgstr "{count} ECG të pranishme në linjën {line}"
 
 msgid "Program DCA State"
 msgstr "Programo gjendjen DCA"
@@ -2677,9 +2596,6 @@ msgstr "Grupi nuk ka asnjë adresë grupi të lirë."
 msgid "The main group has no free middle group."
 msgstr "Grupi kryesor nuk ka asnjë grup të mesëm të lirë."
 
-msgid "{count} devices"
-msgstr "{count} pajisje"
-
 msgid "The main segment cannot be moved."
 msgstr "Segmenti kryesor nuk mund të zhvendoset."
 
@@ -2752,33 +2668,6 @@ msgstr "Nuk ka asnjë grup për adresat e reja të grupeve."
 msgid "Copied '{name}' to '{target}'."
 msgstr "'{name}' u kopjua në '{target}'."
 
-msgid "Copied {count} devices to '{target}'."
-msgstr "U kopjuan {count} pajisje në '{target}'."
-
-msgid "Copied {count} building parts to '{target}'."
-msgstr "U kopjuan {count} pjesë ndërtese në '{target}'."
-
-msgid "Copied {count} trades to '{target}'."
-msgstr "U kopjuan {count} sektorë në '{target}'."
-
-msgid "Copied {count} functions to '{target}'."
-msgstr "U kopjuan {count} funksione në '{target}'."
-
-msgid "Copied {count} group addresses to '{target}'."
-msgstr "U kopjuan {count} adresa grupi në '{target}'."
-
-msgid "Copied {count} middle groups to '{target}'."
-msgstr "U kopjuan {count} grupe të mesme në '{target}'."
-
-msgid "Copied {count} main groups to '{target}'."
-msgstr "U kopjuan {count} grupe kryesore në '{target}'."
-
-msgid "Copied {count} lines to '{target}'."
-msgstr "U kopjuan {count} linja në '{target}'."
-
-msgid "Copied {count} segments to '{target}'."
-msgstr "U kopjuan {count} segmente në '{target}'."
-
 msgid "Paste Special…"
 msgstr "Ngjitje e veçantë…"
 
@@ -2821,30 +2710,6 @@ msgstr "U arrit kufiri i shtimit."
 msgid "Cannot add any line to the area {area} because of topology constraints. Please check the medium type of the backbone and main lines."
 msgstr "Nuk mund të shtohet asnjë linjë në zonën {area} për shkak të kufizimeve të topologjisë. Kontrolloni llojin e mediumit të linjës backbone dhe të linjave kryesore."
 
-msgid "Added {count} areas to '{target}'."
-msgstr "U shtuan {count} zona në '{target}'."
-
-msgid "Added {count} lines to '{target}'."
-msgstr "U shtuan {count} linja në '{target}'."
-
-msgid "Added {count} segments to '{target}'."
-msgstr "U shtuan {count} segmente në '{target}'."
-
-msgid "Added {count} building parts to '{target}'."
-msgstr "U shtuan {count} pjesë ndërtese në '{target}'."
-
-msgid "Added {count} trades to '{target}'."
-msgstr "U shtuan {count} sektorë në '{target}'."
-
-msgid "Added {count} main groups to '{target}'."
-msgstr "U shtuan {count} grupe kryesore në '{target}'."
-
-msgid "Added {count} middle groups to '{target}'."
-msgstr "U shtuan {count} grupe të mesme në '{target}'."
-
-msgid "Added {count} group addresses to '{target}'."
-msgstr "U shtuan {count} adresa grupi në '{target}'."
-
 msgid "Add Main Groups…"
 msgstr "Shto grupe kryesore…"
 
@@ -2884,12 +2749,6 @@ msgstr "Shto funksione"
 msgid "New function"
 msgstr "Funksion i ri"
 
-msgid "Added {count} functions to '{target}'."
-msgstr "U shtuan {count} funksione në '{target}'."
-
-msgid "Added {count} group ranges to '{target}'."
-msgstr "U shtuan {count} diapazone grupesh në '{target}'."
-
 msgid "Add Group Ranges…"
 msgstr "Shto diapazone grupesh…"
 
@@ -2923,9 +2782,6 @@ msgstr "Një diapazon grupesh nuk mund të futet në vetvete ose në një diapaz
 msgid "A group address of the range is already in use there."
 msgstr "Një adresë grupi e diapazonit përdoret tashmë atje."
 
-msgid "Copied {count} group ranges to '{target}'."
-msgstr "U kopjuan {count} diapazone grupesh në '{target}'."
-
 msgid "Add Areas…"
 msgstr "Shto zona…"
 
@@ -2940,12 +2796,6 @@ msgstr "Kopjo adresën e grupit"
 
 msgid "Existing Devices…"
 msgstr "Pajisje ekzistuese…"
-
-msgid "Delete the {count} selected devices? Their group objects and group-address links are removed and their individual addresses are freed. This can be undone."
-msgstr "Të fshihen {count} pajisje të zgjedhura? Objektet e tyre të grupit dhe lidhjet me adresat e grupeve hiqen dhe adresat e tyre individuale lirohen. Ky veprim mund të zhbëhet."
-
-msgid "Remove {count} devices"
-msgstr "Hiq {count} pajisje"
 
 msgid "Delete Devices"
 msgstr "Fshi pajisjet"
@@ -3055,9 +2905,6 @@ msgstr "Ngarko projekt LVS (.prj)…"
 msgid "LVS project (*.prj)"
 msgstr "Projekt LVS (*.prj)"
 
-msgid "Imported the display configuration into {count} device(s)."
-msgstr "Konfigurimi i ekranit u importua në {count} pajisje."
-
 msgid "The LVS project could not be imported: {error}"
 msgstr "Ekrani nuk u konfigurua dot: {error}"
 
@@ -3069,3 +2916,266 @@ msgstr "Konfigurimi i ekranit u eksportua."
 
 msgid "The LVS project could not be exported: {error}"
 msgstr "Projekti LVS nuk u eksportua dot: {error}"
+
+msgid "Copied {count} device to '{target}'."
+msgid_plural "Copied {count} devices to '{target}'."
+msgstr[0] "U kopjua {count} pajisje në '{target}'."
+msgstr[1] "U kopjuan {count} pajisje në '{target}'."
+
+msgid "Copied {count} building part to '{target}'."
+msgid_plural "Copied {count} building parts to '{target}'."
+msgstr[0] "U kopjua {count} pjesë ndërtese në '{target}'."
+msgstr[1] "U kopjuan {count} pjesë ndërtese në '{target}'."
+
+msgid "Copied {count} trade to '{target}'."
+msgid_plural "Copied {count} trades to '{target}'."
+msgstr[0] "U kopjua {count} sektor në '{target}'."
+msgstr[1] "U kopjuan {count} sektorë në '{target}'."
+
+msgid "Copied {count} function to '{target}'."
+msgid_plural "Copied {count} functions to '{target}'."
+msgstr[0] "U kopjua {count} funksion në '{target}'."
+msgstr[1] "U kopjuan {count} funksione në '{target}'."
+
+msgid "Copied {count} group address to '{target}'."
+msgid_plural "Copied {count} group addresses to '{target}'."
+msgstr[0] "U kopjua {count} adresë grupi në '{target}'."
+msgstr[1] "U kopjuan {count} adresa grupi në '{target}'."
+
+msgid "Copied {count} middle group to '{target}'."
+msgid_plural "Copied {count} middle groups to '{target}'."
+msgstr[0] "U kopjua {count} grup i mesëm në '{target}'."
+msgstr[1] "U kopjuan {count} grupe të mesme në '{target}'."
+
+msgid "Copied {count} main group to '{target}'."
+msgid_plural "Copied {count} main groups to '{target}'."
+msgstr[0] "U kopjua {count} grup kryesor në '{target}'."
+msgstr[1] "U kopjuan {count} grupe kryesore në '{target}'."
+
+msgid "Copied {count} group range to '{target}'."
+msgid_plural "Copied {count} group ranges to '{target}'."
+msgstr[0] "U kopjua {count} diapazon grupesh në '{target}'."
+msgstr[1] "U kopjuan {count} diapazone grupesh në '{target}'."
+
+msgid "Copied {count} line to '{target}'."
+msgid_plural "Copied {count} lines to '{target}'."
+msgstr[0] "U kopjua {count} linjë në '{target}'."
+msgstr[1] "U kopjuan {count} linja në '{target}'."
+
+msgid "Copied {count} segment to '{target}'."
+msgid_plural "Copied {count} segments to '{target}'."
+msgstr[0] "U kopjua {count} segment në '{target}'."
+msgstr[1] "U kopjuan {count} segmente në '{target}'."
+
+msgid "Added {count} area to '{target}'."
+msgid_plural "Added {count} areas to '{target}'."
+msgstr[0] "U shtua {count} zonë në '{target}'."
+msgstr[1] "U shtuan {count} zona në '{target}'."
+
+msgid "Added {count} line to '{target}'."
+msgid_plural "Added {count} lines to '{target}'."
+msgstr[0] "U shtua {count} linjë në '{target}'."
+msgstr[1] "U shtuan {count} linja në '{target}'."
+
+msgid "Added {count} segment to '{target}'."
+msgid_plural "Added {count} segments to '{target}'."
+msgstr[0] "U shtua {count} segment në '{target}'."
+msgstr[1] "U shtuan {count} segmente në '{target}'."
+
+msgid "Added {count} building part to '{target}'."
+msgid_plural "Added {count} building parts to '{target}'."
+msgstr[0] "U shtua {count} pjesë ndërtese në '{target}'."
+msgstr[1] "U shtuan {count} pjesë ndërtese në '{target}'."
+
+msgid "Added {count} trade to '{target}'."
+msgid_plural "Added {count} trades to '{target}'."
+msgstr[0] "U shtua {count} sektor në '{target}'."
+msgstr[1] "U shtuan {count} sektorë në '{target}'."
+
+msgid "Added {count} function to '{target}'."
+msgid_plural "Added {count} functions to '{target}'."
+msgstr[0] "U shtua {count} funksion në '{target}'."
+msgstr[1] "U shtuan {count} funksione në '{target}'."
+
+msgid "Added {count} group range to '{target}'."
+msgid_plural "Added {count} group ranges to '{target}'."
+msgstr[0] "U shtua {count} diapazon grupesh në '{target}'."
+msgstr[1] "U shtuan {count} diapazone grupesh në '{target}'."
+
+msgid "Added {count} main group to '{target}'."
+msgid_plural "Added {count} main groups to '{target}'."
+msgstr[0] "U shtua {count} grup kryesor në '{target}'."
+msgstr[1] "U shtuan {count} grupe kryesore në '{target}'."
+
+msgid "Added {count} middle group to '{target}'."
+msgid_plural "Added {count} middle groups to '{target}'."
+msgstr[0] "U shtua {count} grup i mesëm në '{target}'."
+msgstr[1] "U shtuan {count} grupe të mesme në '{target}'."
+
+msgid "Added {count} group address to '{target}'."
+msgid_plural "Added {count} group addresses to '{target}'."
+msgstr[0] "U shtua {count} adresë grupi në '{target}'."
+msgstr[1] "U shtuan {count} adresa grupi në '{target}'."
+
+msgid "Remove {count} device"
+msgid_plural "Remove {count} devices"
+msgstr[0] "Hiq {count} pajisje"
+msgstr[1] "Hiq {count} pajisje"
+
+msgid "{count} device"
+msgid_plural "{count} devices"
+msgstr[0] "{count} pajisje"
+msgstr[1] "{count} pajisje"
+
+msgid "{count} item"
+msgid_plural "{count} items"
+msgstr[0] "{count} element"
+msgstr[1] "{count} elemente"
+
+msgid "{count} pair"
+msgid_plural "{count} pairs"
+msgstr[0] "{count} çift"
+msgstr[1] "{count} çifte"
+
+msgid "Linked {count} object to a group address"
+msgid_plural "Linked {count} objects to group addresses"
+msgstr[0] "U lidh {count} objekt me një adresë grupi"
+msgstr[1] "U lidhën {count} objekte me adresa grupi"
+
+msgid "Linked {count} object pair via a new group address"
+msgid_plural "Linked {count} object pairs via new group addresses"
+msgstr[0] "U lidh {count} çift objektesh përmes një adrese të re grupi"
+msgstr[1] "U lidhën {count} çifte objektesh përmes adresave të reja të grupeve"
+
+msgid "{count} error"
+msgid_plural "{count} errors"
+msgstr[0] "{count} gabim"
+msgstr[1] "{count} gabime"
+
+msgid "{count} object will be re-mapped"
+msgid_plural "{count} objects will be re-mapped"
+msgstr[0] "{count} objekt do të ripërputhet"
+msgstr[1] "{count} objekte do të ripërputhen"
+
+msgid "Replaced; re-mapped {count} group object"
+msgid_plural "Replaced; re-mapped {count} group objects"
+msgstr[0] "U zëvendësua; u ripërputh {count} objekt grupi"
+msgstr[1] "U zëvendësua; u ripërputhën {count} objekte grupi"
+
+msgid "{count} difference"
+msgid_plural "{count} differences"
+msgstr[0] "{count} ndryshim"
+msgstr[1] "{count} ndryshime"
+
+msgid "Created {count} copy"
+msgid_plural "Created {count} copies"
+msgstr[0] "U krijua {count} kopje"
+msgstr[1] "U krijuan {count} kopje"
+
+msgid "{count} address will change"
+msgid_plural "{count} addresses will change"
+msgstr[0] "{count} adresë do të ndryshojë"
+msgstr[1] "{count} adresa do të ndryshojnë"
+
+msgid "Shifted {count} address"
+msgid_plural "Shifted {count} addresses"
+msgstr[0] "U zhvendos {count} adresë"
+msgstr[1] "U zhvendosën {count} adresa"
+
+msgid "Shifted {count} group address"
+msgid_plural "Shifted {count} group addresses"
+msgstr[0] "U zhvendos {count} adresë grupi"
+msgstr[1] "U zhvendosën {count} adresa grupi"
+
+msgid "{count} issue"
+msgid_plural "{count} issues"
+msgstr[0] "{count} problem"
+msgstr[1] "{count} probleme"
+
+msgid "present ({size} byte)"
+msgid_plural "present ({size} bytes)"
+msgstr[0] "e pranishme ({size} bajt)"
+msgstr[1] "e pranishme ({size} bajte)"
+
+msgid "Imported the display configuration into {count} device."
+msgid_plural "Imported the display configuration into {count} devices."
+msgstr[0] "Konfigurimi i ekranit u importua në {count} pajisje."
+msgstr[1] "Konfigurimi i ekranit u importua në {count} pajisje."
+
+msgid "{count} ECG present on line {line}"
+msgid_plural "{count} ECGs present on line {line}"
+msgstr[0] "{count} ECG e pranishme në linjën {line}"
+msgstr[1] "{count} ECG të pranishme në linjën {line}"
+
+msgid "Apply Changes to {count} Identical Device"
+msgid_plural "Apply Changes to All {count} Identical Devices"
+msgstr[0] "Zbato ndryshimet te {count} pajisje identike"
+msgstr[1] "Zbato ndryshimet te të gjitha {count} pajisjet identike"
+
+msgid "Editing {count} device — edits apply to all, diverging values show <differs>"
+msgid_plural "Editing {count} devices — edits apply to all, diverging values show <differs>"
+msgstr[0] "Po ndryshohet {count} pajisje — ndryshimet vlejnë për të gjitha, vlerat që ndryshojnë shfaqin <ndryshon>"
+msgstr[1] "Po ndryshohen {count} pajisje — ndryshimet vlejnë për të gjitha, vlerat që ndryshojnë shfaqin <ndryshon>"
+
+msgid "{count} byte"
+msgid_plural "{count} bytes"
+msgstr[0] "{count} bajt"
+msgstr[1] "{count} bajte"
+
+msgid "Mismatch: {bytes} from the device in {locations}"
+msgstr "Mospërputhje: {bytes} nga pajisja në {locations}"
+
+msgid "{count} byte differs"
+msgid_plural "{count} bytes differ"
+msgstr[0] "{count} bajt ndryshon"
+msgstr[1] "{count} bajte ndryshojnë"
+
+msgid "{count} location"
+msgid_plural "{count} locations"
+msgstr[0] "{count} vend"
+msgstr[1] "{count} vende"
+
+msgid "plus {bytes} device-managed runtime byte (expected, benign)"
+msgid_plural "plus {bytes} device-managed runtime bytes (expected, benign)"
+msgstr[0] "dhe {bytes} bajt që e menaxhon vetë pajisja (i pritshëm, i padëmshëm)"
+msgstr[1] "dhe {bytes} bajte që i menaxhon vetë pajisja (të pritshëm, të padëmshëm)"
+
+msgid "plus {bytes} byte reset to the application default (the device holds an older value; benign, will be normalised on programming)"
+msgid_plural "plus {bytes} bytes reset to the application default (the device holds an older value; benign, will be normalised on programming)"
+msgstr[0] "dhe {bytes} bajt i rivendosur në parazgjedhjen e programit aplikativ (pajisja mban një vlerë më të vjetër; e padëmshme, do të normalizohet gjatë programimit)"
+msgstr[1] "dhe {bytes} bajte të rivendosur në parazgjedhjen e programit aplikativ (pajisja mban një vlerë më të vjetër; e padëmshme, do të normalizohet gjatë programimit)"
+
+msgid "Paste configuration onto {count} selected device:"
+msgid_plural "Paste configuration onto {count} selected devices:"
+msgstr[0] "Ngjit konfigurimin te {count} pajisje e zgjedhur:"
+msgstr[1] "Ngjit konfigurimin te {count} pajisje të zgjedhura:"
+
+msgid "Delete the {count} selected device? Its group objects and group-address links are removed and its individual address is freed. This can be undone."
+msgid_plural "Delete the {count} selected devices? Their group objects and group-address links are removed and their individual addresses are freed. This can be undone."
+msgstr[0] "Të fshihet {count} pajisje e zgjedhur? Objektet e saj të grupit dhe lidhjet me adresat e grupeve hiqen dhe adresa e saj individuale lirohet. Ky veprim mund të zhbëhet."
+msgstr[1] "Të fshihen {count} pajisje të zgjedhura? Objektet e tyre të grupit dhe lidhjet me adresat e grupeve hiqen dhe adresat e tyre individuale lirohen. Ky veprim mund të zhbëhet."
+
+msgid "{count} group address added"
+msgid_plural "{count} group addresses added"
+msgstr[0] "U shtua {count} adresë grupi"
+msgstr[1] "U shtuan {count} adresa grupi"
+
+msgid "{count} updated"
+msgid_plural "{count} updated"
+msgstr[0] "u përditësua {count}"
+msgstr[1] "u përditësuan {count}"
+
+msgid "{count} group address could not be placed in a group."
+msgid_plural "{count} group addresses could not be placed in a group."
+msgstr[0] "{count} adresë grupi nuk u vendos dot në një grup."
+msgstr[1] "{count} adresa grupi nuk u vendosën dot në një grup."
+
+msgid "{count} ECG present"
+msgid_plural "{count} ECGs present"
+msgstr[0] "{count} ECG e pranishme"
+msgstr[1] "{count} ECG të pranishme"
+
+msgid "Procedure {number}  ({count} step)"
+msgid_plural "Procedure {number}  ({count} steps)"
+msgstr[0] "Procedura {number}  ({count} hap)"
+msgstr[1] "Procedura {number}  ({count} hapa)"

@@ -53,7 +53,9 @@ msgid "Hide Extended Information"
 msgstr "Απόκρυψη Εκτεταμένων Πληροφοριών"
 
 msgid "{count} telg."
-msgstr "{count} telg."
+msgid_plural "{count} telg."
+msgstr[0] "{count} telg."
+msgstr[1] "{count} telg."
 
 msgid "{rate} t/s"
 msgstr "{rate} t/s"
@@ -214,20 +216,11 @@ msgstr "Καταγραφές τηλεγραφημάτων"
 msgid "All files"
 msgstr "Όλα τα αρχεία"
 
-msgid "{count} telegrams exported to {path}"
-msgstr "{count} τηλεγραφήματα εξήχθησαν στο {path}"
-
 msgid "Export failed: {error}"
 msgstr "Η εξαγωγή απέτυχε: {error}"
 
-msgid "{count} entries loaded from {path}"
-msgstr "{count} εγγραφές φορτώθηκαν από το {path}"
-
 msgid "Loading failed: {error}"
 msgstr "Η φόρτωση απέτυχε: {error}"
-
-msgid "{count} telegrams in another frame format were skipped"
-msgstr "Παραλείφθηκαν {count} τηλεγραφήματα σε άλλη μορφή πλαισίου"
 
 msgid "Printing failed: {error}"
 msgstr "Η εκτύπωση απέτυχε: {error}"
@@ -235,17 +228,8 @@ msgstr "Η εκτύπωση απέτυχε: {error}"
 msgid "Page {page}"
 msgstr "Σελίδα {page}"
 
-msgid "{count} Data Secure telegrams are not replayed"
-msgstr "{count} τηλεγραφήματα Data Secure δεν αναπαράγονται"
-
 msgid "There are no group telegrams to replay"
 msgstr "Δεν υπάρχουν τηλεγραφήματα ομάδας για αναπαραγωγή"
-
-msgid "Replay finished: {count} telegrams sent"
-msgstr "Η αναπαραγωγή ολοκληρώθηκε: στάλθηκαν {count} τηλεγραφήματα"
-
-msgid "Replay cancelled: {count} telegrams sent"
-msgstr "Η αναπαραγωγή ακυρώθηκε: στάλθηκαν {count} τηλεγραφήματα"
 
 msgid "from bus"
 msgstr "από το bus"
@@ -390,3 +374,33 @@ msgstr "Max"
 
 msgid "Maximum telegrams this monitor keeps. The oldest tenth is dropped when the cap is exceeded."
 msgstr "Maximum telegrams this monitor keeps. The oldest tenth is dropped when the cap is exceeded."
+
+msgid "{count} telegram exported to {path}"
+msgid_plural "{count} telegrams exported to {path}"
+msgstr[0] "{count} τηλεγράφημα εξήχθη στο {path}"
+msgstr[1] "{count} τηλεγραφήματα εξήχθησαν στο {path}"
+
+msgid "{count} entry loaded from {path}"
+msgid_plural "{count} entries loaded from {path}"
+msgstr[0] "{count} εγγραφή φορτώθηκε από το {path}"
+msgstr[1] "{count} εγγραφές φορτώθηκαν από το {path}"
+
+msgid "{count} telegram in another frame format was skipped"
+msgid_plural "{count} telegrams in another frame format were skipped"
+msgstr[0] "Παραλείφθηκε {count} τηλεγράφημα σε άλλη μορφή πλαισίου"
+msgstr[1] "Παραλείφθηκαν {count} τηλεγραφήματα σε άλλη μορφή πλαισίου"
+
+msgid "{count} Data Secure telegram is not replayed"
+msgid_plural "{count} Data Secure telegrams are not replayed"
+msgstr[0] "{count} τηλεγράφημα Data Secure δεν αναπαράγεται"
+msgstr[1] "{count} τηλεγραφήματα Data Secure δεν αναπαράγονται"
+
+msgid "Replay finished: {count} telegram sent"
+msgid_plural "Replay finished: {count} telegrams sent"
+msgstr[0] "Η αναπαραγωγή ολοκληρώθηκε: στάλθηκε {count} τηλεγράφημα"
+msgstr[1] "Η αναπαραγωγή ολοκληρώθηκε: στάλθηκαν {count} τηλεγραφήματα"
+
+msgid "Replay cancelled: {count} telegram sent"
+msgid_plural "Replay cancelled: {count} telegrams sent"
+msgstr[0] "Η αναπαραγωγή ακυρώθηκε: στάλθηκε {count} τηλεγράφημα"
+msgstr[1] "Η αναπαραγωγή ακυρώθηκε: στάλθηκαν {count} τηλεγραφήματα"

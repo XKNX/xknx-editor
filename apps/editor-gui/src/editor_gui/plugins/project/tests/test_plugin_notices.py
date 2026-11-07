@@ -31,8 +31,12 @@ def _notices(monkeypatch: pytest.MonkeyPatch, **plugins: Any) -> list[str]:
     monkeypatch.setattr(configure.imgui, "same_line", lambda *_a: None)
     monkeypatch.setattr(configure.imgui, "push_style_color", lambda *_a: None)
     monkeypatch.setattr(configure.imgui, "pop_style_color", lambda *_a: None)
+    # The notes are a warning; its color comes from the theme, which needs no context here.
+    kinds: list[str] = []
+    monkeypatch.setattr(configure, "status_color", kinds.append)
     panel = cast(Any, ConfigurePanel.__new__(ConfigurePanel))
     panel._render_plugin_notices(SimpleNamespace(app=None))
+    assert kinds == (["warning"] if shown else [])
     return shown
 
 

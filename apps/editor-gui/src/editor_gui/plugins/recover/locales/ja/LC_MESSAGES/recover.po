@@ -22,14 +22,14 @@ msgstr "スキャン"
 msgid "Stop"
 msgstr "ストップ"
 
-msgid "Add to Open Project as Read"
-msgstr "読み込み済みとして開いているプロジェクトに追加"
+msgid "Add to Open Project When Read"
+msgstr "読み込み時に開いているプロジェクトに追加"
 
 msgid "Recover Selected"
 msgstr "選択項目を復元"
 
-msgid "Create New Project"
-msgstr "新しいプロジェクトを作成する"
+msgid "Create New Project…"
+msgstr "新しいプロジェクトを作成する…"
 
 msgid "Add to Open Project"
 msgstr "開いているプロジェクトに追加"
@@ -37,14 +37,11 @@ msgstr "開いているプロジェクトに追加"
 msgid "Verify (Read-Only)"
 msgstr "検証（読み取り専用）"
 
-msgid "Export Snapshot"
-msgstr "スナップショットをエクスポート"
+msgid "Export Snapshot…"
+msgstr "スナップショットをエクスポート…"
 
 msgid "Verifying (re-reading and comparing)…"
 msgstr "検証中（再読み込みと比較）…"
-
-msgid "%(count)d group address(es) have no sender or multiple senders."
-msgstr "%(count)d件のグループ・アドレスに送信元がないか、複数の送信元があります。"
 
 msgid "Address"
 msgstr "アドレス"
@@ -82,17 +79,8 @@ msgstr "グループ通信テーブル"
 msgid "parameter memory"
 msgstr "パラメータ・メモリ"
 
-msgid "Recovered %(devices)d device(s): %(group_addresses)d group addresses, %(links)d links, %(unknown)d parameter(s) not recoverable."
-msgstr "%(devices)d台のデバイスを復元しました：グループ・アドレス%(group_addresses)d件、リンク%(links)d件、復元できないパラメータ%(unknown)d件。"
-
 msgid "Recovered"
 msgstr "復元済み"
-
-msgid "Added %(count)d device(s) to the open project (%(target)s)."
-msgstr "開いているプロジェクト（%(target)s）に%(count)d台のデバイスを追加しました。"
-
-msgid "Created new project %(target)s with %(count)d device(s)."
-msgstr "%(count)d台のデバイスで新しいプロジェクト%(target)sを作成しました。"
 
 msgid "Not connected to a KNX bus."
 msgstr "KNXバスに接続されていません。"
@@ -100,29 +88,133 @@ msgstr "KNXバスに接続されていません。"
 msgid "Open or create a project to add recovered devices."
 msgstr "復元したデバイスを追加するには、プロジェクトを開くか作成してください。"
 
-msgid "matched"
-msgstr "一致"
+msgid "Product found"
+msgstr "製品が見つかりました"
 
-msgid "confirm product/version, then tick"
-msgstr "製品／バージョンを確認してからチェック"
+msgid "Check the product and version, then select it"
+msgstr "製品とバージョンを確認してから選択してください"
 
-msgid "not in catalog - import via Catalog"
-msgstr "カタログにありません - カタログからインポート"
+msgid "Not in the catalog: import its product in the Catalog"
+msgstr "カタログにありません: カタログでその製品をインポートしてください"
 
-msgid "unprogrammed"
+msgid "Not programmed"
 msgstr "未プログラム"
 
-msgid "recovered"
-msgstr "復元済み"
+msgid "Already in the project, skipped"
+msgstr "プロジェクトに既にあるためスキップしました"
 
-msgid "already in project - skipped"
-msgstr "プロジェクトに既存 - スキップ"
-
-msgid "error"
+msgid "Error"
 msgstr "エラー"
 
-msgid "%d parameters could not be recovered"
-msgstr "%d個のパラメータを復元できませんでした"
+msgid "Recovered (incomplete)"
+msgstr "復元済み（不完全）"
 
-msgid "%(count)d device(s) could not be added; the reason is in the Recovered column."
-msgstr "%(count)d台のデバイスを追加できませんでした。理由は「復元済み」列に表示されます。"
+msgid "Search Effort"
+msgstr "検索の範囲"
+
+msgid "How many values are tried for the settings a device keeps no copy of. More effort finds settings in devices with many channels, but takes longer. Unlimited goes on until no value fits better; Stop ends the search."
+msgstr "デバイスがコピーを保持していない設定について試す値の数です。範囲を広げると多チャンネルのデバイスでも設定が見つかりますが、時間がかかります。無制限は、より適合する値がなくなるまで続けます。ストップで検索を終了します。"
+
+msgid "Fast"
+msgstr "高速"
+
+msgid "Medium"
+msgstr "中"
+
+msgid "Maximum"
+msgstr "最大"
+
+msgid "Search Again"
+msgstr "再検索"
+
+msgid "Searches the settings of the selected incomplete devices again in what was read from them, with the chosen search effort. Needs no bus. A device already added to the project is replaced (one undo step)."
+msgstr "選択した不完全なデバイスの設定を、読み取ったデータの中から選択した検索の範囲で再検索します。バスは不要です。プロジェクトに追加済みのデバイスは置き換えられます（1 回の元に戻す操作）。"
+
+msgid "Searching %(address)s again  (%(done)d/%(total)d)…"
+msgstr "%(address)s を再検索中  (%(done)d/%(total)d)…"
+
+msgid "more search effort may help"
+msgstr "検索の範囲を広げると改善する可能性があります"
+
+msgid "Unlimited"
+msgstr "無制限"
+
+msgid "Result"
+msgstr "結果"
+
+msgid "Not read yet"
+msgstr "未読み取り"
+
+msgid "Verified"
+msgstr "確認済み"
+
+msgid "%(count)d group address has no sender or multiple senders."
+msgid_plural "%(count)d group addresses have no sender or multiple senders."
+msgstr[0] "%(count)d件のグループ・アドレスに送信元がないか、複数の送信元があります。"
+
+msgid "Recovered %(count)d device"
+msgid_plural "Recovered %(count)d devices"
+msgstr[0] "%(count)d台のデバイスを復元しました"
+
+msgid "%(count)d group address"
+msgid_plural "%(count)d group addresses"
+msgstr[0] "グループ・アドレス%(count)d件"
+
+msgid "%(count)d link"
+msgid_plural "%(count)d links"
+msgstr[0] "リンク%(count)d件"
+
+msgid "%(count)d parameter"
+msgid_plural "%(count)d parameters"
+msgstr[0] "パラメータ%(count)d件"
+
+msgid "%(count)d parameter cannot be recovered"
+msgid_plural "%(count)d parameters cannot be recovered"
+msgstr[0] "復元できないパラメータ%(count)d件"
+
+msgid "%(count)d parameter not found yet"
+msgid_plural "%(count)d parameters not found yet"
+msgstr[0] "未検出のパラメータ%(count)d件"
+
+msgid "Added %(count)d device to the open project (%(target)s)."
+msgid_plural "Added %(count)d devices to the open project (%(target)s)."
+msgstr[0] "開いているプロジェクト（%(target)s）に%(count)d台のデバイスを追加しました。"
+
+msgid "Created new project %(target)s with %(count)d device."
+msgid_plural "Created new project %(target)s with %(count)d devices."
+msgstr[0] "%(count)d台のデバイスで新しいプロジェクト%(target)sを作成しました。"
+
+msgid "%(count)d device could not be added; the reason is in the Result column."
+msgid_plural "%(count)d devices could not be added; the reason is in the Result column."
+msgstr[0] "%(count)d台のデバイスを追加できませんでした。理由は「結果」列に表示されます。"
+
+msgid "Differs from the device: %(what)s"
+msgstr "デバイスと異なります: %(what)s"
+
+msgid "%(count)d byte"
+msgid_plural "%(count)d bytes"
+msgstr[0] "%(count)d バイト"
+
+msgid "%(count)d group object"
+msgid_plural "%(count)d group objects"
+msgstr[0] "%(count)d 個のグループ・オブジェクト"
+
+msgid "Verify: %(count)d byte differs"
+msgid_plural "Verify: %(count)d bytes differ"
+msgstr[0] "確認: %(count)d バイトが異なります"
+
+msgid "Import Snapshot…"
+msgstr "スナップショットをインポート…"
+
+msgid "Imported %(count)d device from %(file)s."
+msgid_plural "Imported %(count)d devices from %(file)s."
+msgstr[0] "%(file)s から %(count)d 台のデバイスをインポートしました。"
+
+msgid "%(file)s is no recovery snapshot: %(error)s"
+msgstr "%(file)s は復元のスナップショットではありません: %(error)s"
+
+msgid "Recovery Snapshot (*.json)"
+msgstr "復元のスナップショット (*.json)"
+
+msgid "All Files"
+msgstr "全てのファイル"

@@ -18,7 +18,7 @@ from .identify import (
     parse_application_id,
     read_application_id,
 )
-from .parameters import RecoveredParameters, recover_parameters
+from .parameters import RecoveredParameters, RecoveryEffort, recover_parameters
 from .read_config import (
     RawConfiguration,
     RawGroupCommunication,
@@ -31,6 +31,7 @@ from .recover import (
     identify_device_at,
     recover_device,
     recover_device_at,
+    search_again,
     seed_dynamic_ui,
 )
 from .scan import (
@@ -40,7 +41,7 @@ from .scan import (
     probe_device,
     scan_bus,
 )
-from .snapshot import device_snapshot, snapshots_json
+from .snapshot import device_snapshot, devices_from_snapshot, snapshots_json
 from .tables_decode import (
     DecodedGroupObject,
     DecodedLink,
@@ -70,6 +71,7 @@ __all__ = [
     "RecoverError",
     "RecoveredDevice",
     "RecoveredParameters",
+    "RecoveryEffort",
     "TableDecodeError",
     "build_group_communication",
     "com_object_ref_by_number",
@@ -80,6 +82,7 @@ __all__ = [
     "decode_group_address_table_b",
     "decode_group_object_table_b",
     "device_snapshot",
+    "devices_from_snapshot",
     "identify_device_at",
     "iter_addresses",
     "match_application",
@@ -94,6 +97,7 @@ __all__ = [
     "recover_device_at",
     "recover_parameters",
     "scan_bus",
+    "search_again",
     "seed_dynamic_ui",
     "snapshots_json",
     "validate_group_communication",

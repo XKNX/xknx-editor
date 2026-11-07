@@ -16,20 +16,11 @@ msgstr "Brak otwartego projektu"
 msgid "No issues found"
 msgstr "Nie znaleziono problemów"
 
-msgid "{errors} errors, {warnings} warnings"
-msgstr "Błędy: {errors}, ostrzeżenia: {warnings}"
-
 msgid "{device}: no individual address"
 msgstr "{device}: brak adresu indywidualnego"
 
 msgid "Duplicate individual address {address} ({device})"
 msgstr "Zduplikowany adres indywidualny {address} ({device})"
-
-msgid "{count} device(s) skipped: application not in catalog"
-msgstr "Pominięte urządzenia ({count}): brak aplikacji w katalogu"
-
-msgid "{device}: {count} unlinked group object(s)"
-msgstr "{device}: niepołączone obiekty grupy: {count}"
 
 msgid "{address} {name}: no datapoint type"
 msgstr "{address} {name}: brak typu punktu danych"
@@ -37,5 +28,32 @@ msgstr "{address} {name}: brak typu punktu danych"
 msgid "{address} {name}: no sending group object"
 msgstr "{address} {name}: brak nadającego obiektu grupy"
 
-msgid "{address} {name}: {count} sending group objects"
-msgstr "{address} {name}: nadające obiekty grupy: {count}"
+msgid "{count} error"
+msgid_plural "{count} errors"
+msgstr[0] "{count} błąd"
+msgstr[1] "{count} błędy"
+msgstr[2] "{count} błędów"
+
+msgid "{count} warning"
+msgid_plural "{count} warnings"
+msgstr[0] "{count} ostrzeżenie"
+msgstr[1] "{count} ostrzeżenia"
+msgstr[2] "{count} ostrzeżeń"
+
+msgid "{count} device skipped: application not in catalog"
+msgid_plural "{count} devices skipped: application not in catalog"
+msgstr[0] "Pominięto {count} urządzenie: brak aplikacji w katalogu"
+msgstr[1] "Pominięto {count} urządzenia: brak aplikacji w katalogu"
+msgstr[2] "Pominięto {count} urządzeń: brak aplikacji w katalogu"
+
+msgid "{device}: {count} unlinked group object"
+msgid_plural "{device}: {count} unlinked group objects"
+msgstr[0] "{device}: {count} niepołączony obiekt grupy"
+msgstr[1] "{device}: {count} niepołączone obiekty grupy"
+msgstr[2] "{device}: {count} niepołączonych obiektów grupy"
+
+msgid "{address} {name}: {count} sending group object"
+msgid_plural "{address} {name}: {count} sending group objects"
+msgstr[0] "{address} {name}: {count} nadający obiekt grupy"
+msgstr[1] "{address} {name}: {count} nadające obiekty grupy"
+msgstr[2] "{address} {name}: {count} nadających obiektów grupy"

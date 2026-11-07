@@ -15,13 +15,6 @@ def _dark_text() -> bool:
     return 0.299 * text.x + 0.587 * text.y + 0.114 * text.z < 0.5
 
 
-def warning_red() -> imgui.ImVec4:
-    """Red for warning text: light on dark themes, darker where the text is dark (light themes)."""
-    if _dark_text():
-        return imgui.ImVec4(0.78, 0.1, 0.1, 1.0)
-    return imgui.ImVec4(1.0, 0.4, 0.4, 1.0)
-
-
 def themed(on_dark: imgui.ImVec4, on_light: imgui.ImVec4) -> imgui.ImVec4:
     """``on_light`` where the theme draws dark text (light themes), else ``on_dark``."""
     return on_light if _dark_text() else on_dark

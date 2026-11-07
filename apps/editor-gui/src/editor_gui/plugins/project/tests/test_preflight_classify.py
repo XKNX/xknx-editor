@@ -173,3 +173,18 @@ def test_group_table_bytes_are_config() -> None:
     classes = classify_preflight(report, w._runtime, w._driven)
     assert (classes.config_bytes, classes.default_bytes) == (seg.changed_bytes, 0)
     assert classes.config_locations == 1
+
+
+def test_an_octet_the_download_corrects_is_device_managed() -> None:
+    # A group object table whose product data counts 200 objects where the application has
+    # 125: after a full download the device holds 200, a partial download writes 125. The
+    # count is in the table, and still no setting changes it.
+    w = _window()
+    seg = SegmentDiff(
+        address=0x43FF,
+        current=bytes.fromhex("c80102"),
+        planned=bytes.fromhex("7d0105"),
+        table_bytes=frozenset(range(3)),
+        corrected_bytes=frozenset({0}),
+    )
+    assert preflight_segment_counts(seg, w._runtime, w._driven) == (1, 0, 1)

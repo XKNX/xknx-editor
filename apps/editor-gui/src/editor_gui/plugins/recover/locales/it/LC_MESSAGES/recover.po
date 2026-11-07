@@ -22,14 +22,14 @@ msgstr "Scansiona"
 msgid "Stop"
 msgstr "Stop"
 
-msgid "Add to Open Project as Read"
-msgstr "Aggiungi al progetto aperto come letto"
+msgid "Add to Open Project When Read"
+msgstr "Aggiungi al progetto aperto alla lettura"
 
 msgid "Recover Selected"
 msgstr "Recupera selezionati"
 
-msgid "Create New Project"
-msgstr "Crea nuovo progetto"
+msgid "Create New Project…"
+msgstr "Crea nuovo progetto…"
 
 msgid "Add to Open Project"
 msgstr "Aggiungi al progetto aperto"
@@ -37,14 +37,11 @@ msgstr "Aggiungi al progetto aperto"
 msgid "Verify (Read-Only)"
 msgstr "Verifica (sola lettura)"
 
-msgid "Export Snapshot"
-msgstr "Esporta snapshot"
+msgid "Export Snapshot…"
+msgstr "Esporta snapshot…"
 
 msgid "Verifying (re-reading and comparing)…"
 msgstr "Verifica (rilettura e confronto)…"
-
-msgid "%(count)d group address(es) have no sender or multiple senders."
-msgstr "%(count)d indirizzi di gruppo non hanno alcun trasmettitore o ne hanno più di uno."
 
 msgid "Address"
 msgstr "Indirizzo"
@@ -82,17 +79,8 @@ msgstr "tabelle di comunicazione di gruppo"
 msgid "parameter memory"
 msgstr "memoria parametri"
 
-msgid "Recovered %(devices)d device(s): %(group_addresses)d group addresses, %(links)d links, %(unknown)d parameter(s) not recoverable."
-msgstr "Dispositivi recuperati: %(devices)d (%(group_addresses)d indirizzi di gruppo, %(links)d collegamenti, %(unknown)d parametri non recuperabili)."
-
 msgid "Recovered"
 msgstr "Recuperato"
-
-msgid "Added %(count)d device(s) to the open project (%(target)s)."
-msgstr "Dispositivi aggiunti al progetto aperto (%(target)s): %(count)d."
-
-msgid "Created new project %(target)s with %(count)d device(s)."
-msgstr "Creato il nuovo progetto %(target)s con dispositivi: %(count)d."
 
 msgid "Not connected to a KNX bus."
 msgstr "Non connesso a un bus KNX."
@@ -100,29 +88,147 @@ msgstr "Non connesso a un bus KNX."
 msgid "Open or create a project to add recovered devices."
 msgstr "Aprire o creare un progetto per aggiungere i dispositivi recuperati."
 
-msgid "matched"
-msgstr "corrispondente"
+msgid "Product found"
+msgstr "Prodotto trovato"
 
-msgid "confirm product/version, then tick"
-msgstr "confermare prodotto/versione, quindi spuntare"
+msgid "Check the product and version, then select it"
+msgstr "Verificare prodotto e versione, quindi selezionarlo"
 
-msgid "not in catalog - import via Catalog"
-msgstr "non nel catalogo - importare tramite Catalogo"
+msgid "Not in the catalog: import its product in the Catalog"
+msgstr "Non nel catalogo: importare il suo prodotto nel Catalogo"
 
-msgid "unprogrammed"
-msgstr "non programmato"
+msgid "Not programmed"
+msgstr "Non programmato"
 
-msgid "recovered"
-msgstr "recuperato"
+msgid "Already in the project, skipped"
+msgstr "Già nel progetto, saltato"
 
-msgid "already in project - skipped"
-msgstr "già nel progetto - ignorato"
+msgid "Error"
+msgstr "Errore"
 
-msgid "error"
-msgstr "errore"
+msgid "Recovered (incomplete)"
+msgstr "Recuperato (incompleto)"
 
-msgid "%d parameters could not be recovered"
-msgstr "%d parametri non hanno potuto essere recuperati"
+msgid "Search Effort"
+msgstr "Impegno di Ricerca"
 
-msgid "%(count)d device(s) could not be added; the reason is in the Recovered column."
-msgstr "Dispositivi che non è stato possibile aggiungere: %(count)d; il motivo è nella colonna «Recuperato»."
+msgid "How many values are tried for the settings a device keeps no copy of. More effort finds settings in devices with many channels, but takes longer. Unlimited goes on until no value fits better; Stop ends the search."
+msgstr "Quanti valori vengono provati per le impostazioni di cui il dispositivo non conserva una copia. Un impegno maggiore trova le impostazioni nei dispositivi con molti canali, ma richiede più tempo. Illimitato prosegue finché nessun valore si adatta meglio; Stop termina la ricerca."
+
+msgid "Fast"
+msgstr "Veloce"
+
+msgid "Medium"
+msgstr "Medio"
+
+msgid "Maximum"
+msgstr "Massimo"
+
+msgid "Search Again"
+msgstr "Cerca di Nuovo"
+
+msgid "Searches the settings of the selected incomplete devices again in what was read from them, with the chosen search effort. Needs no bus. A device already added to the project is replaced (one undo step)."
+msgstr "Cerca di nuovo le impostazioni dei dispositivi incompleti selezionati in ciò che è stato letto da essi, con l'impegno di ricerca scelto. Non serve il bus. Un dispositivo già aggiunto al progetto viene sostituito (un passo di annullamento)."
+
+msgid "Searching %(address)s again  (%(done)d/%(total)d)…"
+msgstr "Nuova ricerca per %(address)s  (%(done)d/%(total)d)…"
+
+msgid "more search effort may help"
+msgstr "un impegno di ricerca maggiore può aiutare"
+
+msgid "Unlimited"
+msgstr "Illimitato"
+
+msgid "Result"
+msgstr "Risultato"
+
+msgid "Not read yet"
+msgstr "Non ancora letto"
+
+msgid "Verified"
+msgstr "Verificato"
+
+msgid "%(count)d group address has no sender or multiple senders."
+msgid_plural "%(count)d group addresses have no sender or multiple senders."
+msgstr[0] "%(count)d indirizzo di gruppo non ha alcun trasmettitore o ne ha più di uno."
+msgstr[1] "%(count)d indirizzi di gruppo non hanno alcun trasmettitore o ne hanno più di uno."
+
+msgid "Recovered %(count)d device"
+msgid_plural "Recovered %(count)d devices"
+msgstr[0] "%(count)d dispositivo recuperato"
+msgstr[1] "%(count)d dispositivi recuperati"
+
+msgid "%(count)d group address"
+msgid_plural "%(count)d group addresses"
+msgstr[0] "%(count)d indirizzo di gruppo"
+msgstr[1] "%(count)d indirizzi di gruppo"
+
+msgid "%(count)d link"
+msgid_plural "%(count)d links"
+msgstr[0] "%(count)d collegamento"
+msgstr[1] "%(count)d collegamenti"
+
+msgid "%(count)d parameter"
+msgid_plural "%(count)d parameters"
+msgstr[0] "%(count)d parametro"
+msgstr[1] "%(count)d parametri"
+
+msgid "%(count)d parameter cannot be recovered"
+msgid_plural "%(count)d parameters cannot be recovered"
+msgstr[0] "%(count)d parametro non recuperabile"
+msgstr[1] "%(count)d parametri non recuperabili"
+
+msgid "%(count)d parameter not found yet"
+msgid_plural "%(count)d parameters not found yet"
+msgstr[0] "%(count)d parametro non ancora trovato"
+msgstr[1] "%(count)d parametri non ancora trovati"
+
+msgid "Added %(count)d device to the open project (%(target)s)."
+msgid_plural "Added %(count)d devices to the open project (%(target)s)."
+msgstr[0] "%(count)d dispositivo aggiunto al progetto aperto (%(target)s)."
+msgstr[1] "%(count)d dispositivi aggiunti al progetto aperto (%(target)s)."
+
+msgid "Created new project %(target)s with %(count)d device."
+msgid_plural "Created new project %(target)s with %(count)d devices."
+msgstr[0] "Creato il nuovo progetto %(target)s con %(count)d dispositivo."
+msgstr[1] "Creato il nuovo progetto %(target)s con %(count)d dispositivi."
+
+msgid "%(count)d device could not be added; the reason is in the Result column."
+msgid_plural "%(count)d devices could not be added; the reason is in the Result column."
+msgstr[0] "Non è stato possibile aggiungere %(count)d dispositivo; il motivo è nella colonna «Risultato»."
+msgstr[1] "Non è stato possibile aggiungere %(count)d dispositivi; il motivo è nella colonna «Risultato»."
+
+msgid "Differs from the device: %(what)s"
+msgstr "Differisce dal dispositivo: %(what)s"
+
+msgid "%(count)d byte"
+msgid_plural "%(count)d bytes"
+msgstr[0] "%(count)d byte"
+msgstr[1] "%(count)d byte"
+
+msgid "%(count)d group object"
+msgid_plural "%(count)d group objects"
+msgstr[0] "%(count)d oggetto di comunicazione"
+msgstr[1] "%(count)d oggetti di comunicazione"
+
+msgid "Verify: %(count)d byte differs"
+msgid_plural "Verify: %(count)d bytes differ"
+msgstr[0] "Verifica: %(count)d byte diverso"
+msgstr[1] "Verifica: %(count)d byte diversi"
+
+msgid "Import Snapshot…"
+msgstr "Importa snapshot…"
+
+msgid "Imported %(count)d device from %(file)s."
+msgid_plural "Imported %(count)d devices from %(file)s."
+msgstr[0] "Importato %(count)d dispositivo da %(file)s."
+msgstr[1] "Importati %(count)d dispositivi da %(file)s."
+
+msgid "%(file)s is no recovery snapshot: %(error)s"
+msgstr "%(file)s non è uno snapshot di recupero: %(error)s"
+
+msgid "Recovery Snapshot (*.json)"
+msgstr "Snapshot di recupero (*.json)"
+
+msgid "All Files"
+msgstr "Tutti i file"

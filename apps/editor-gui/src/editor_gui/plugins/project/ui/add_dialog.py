@@ -20,6 +20,7 @@ from typing import Protocol
 from imgui_bundle import imgui
 
 from editor_gui.plugins.project.strings import S
+from editor_gui.theme import status_color
 from editor_gui.widgets.checkbox import radio_beside_field, radio_button
 from editor_gui.widgets.combo import combo
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
@@ -131,19 +132,21 @@ def add_button(label: str, why_not: str = "") -> bool:
 
 def add_rows(
     request: AddRequest,
-    several: str,
+    several: Callable[[int], str],
     target: str,
     add: Callable[[AddRow], str | None],
     undo_step: UndoStep,
     notify: Callable[[str], None],
 ) -> None:
     """Add the rows of ``request`` top to bottom (``add`` adds one element of a row and gives
-    the reason it cannot), one undo step each, ``several`` (with ``{count}`` and
-    ``{target}``) naming one of several elements. A row stops at its first element that cannot
+    the reason it cannot), one undo step each, ``several`` (the text for a count, with ``{count}``
+    and ``{target}``) naming one of several elements. A row stops at its first element that cannot
     be added, telling why, and the next row goes on."""
     for row in request.rows:
         label = (
-            several.format(count=row.count, target=target) if row.count > 1 else None
+            several(row.count).format(count=row.count, target=target)
+            if row.count > 1
+            else None
         )
         with undo_step(label):
             for _ in range(row.count):
@@ -234,7 +237,7 @@ class AddDialog:
         if self._numbered:
             self._render_generate()
         if self._error:
-            imgui.text_colored(imgui.ImVec4(1.0, 0.42, 0.42, 1.0), self._error)
+            imgui.text_colored(status_color("error"), self._error)
         clicked = dialog_buttons(S.BTN_OK, S.BTN_CANCEL)
         if clicked == 0:
             imgui.close_current_popup()

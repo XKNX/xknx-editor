@@ -9,9 +9,14 @@ from imgui_bundle import imgui
 
 from editor_gui import file_dialogs
 from editor_gui.plugins.recover.strings import S
+from editor_gui.theme import status_color
 from editor_gui.widgets.checkbox import checkbox
+from editor_gui.widgets.combo import combo
 from editor_gui.widgets.dpi import px
-from editor_gui.widgets.tables import begin_data_table, data_table_headers
+from editor_gui.widgets.flow import button_width, same_line_if_fits, text_width
+from editor_gui.widgets.tables import begin_data_table, freeze_header, table_header_menu
+from editor_gui.widgets.text_util import text_clipped_tooltip
+from xknxeditor.recover import RecoveryEffort
 from xknxeditor.recover.recover import STAGE_GROUP_COMMUNICATION, STAGE_PARAMETERS
 
 if TYPE_CHECKING:
@@ -26,6 +31,33 @@ def _stage_label(stage: str) -> str:
     }.get(stage, "…")
 
 
+_EFFORTS = (
+    RecoveryEffort.FAST,
+    RecoveryEffort.MEDIUM,
+    RecoveryEffort.MAXIMUM,
+    RecoveryEffort.UNLIMITED,
+)
+
+
+def _effort_labels() -> list[str]:
+    """Localized labels of the search efforts, in the order of ``_EFFORTS``."""
+    return [S.EFFORT_FAST, S.EFFORT_MEDIUM, S.EFFORT_MAXIMUM, S.EFFORT_UNLIMITED]
+
+
+def _label(text: str, field_width: float, *, first: bool = False) -> None:
+    """``text`` before the field that follows, ``field_width`` wide, as fields are labelled in a
+    row: beside the previous item, or in the next line together with the field where the window
+    is too narrow for both."""
+    if not first:
+        same_line_if_fits(
+            text_width(text) + imgui.get_style().item_spacing.x + field_width
+        )
+    imgui.align_text_to_frame_padding()
+    imgui.text_disabled(text)
+    imgui.same_line()
+    imgui.set_next_item_width(field_width)
+
+
 class RecoverPanel:
     """Renders the recover window contents against a :class:`RecoverService`."""
 
@@ -35,19 +67,22 @@ class RecoverPanel:
         self._end = "1.1.20"
         self._save_dialog: file_dialogs.SaveFileDialog | None = None
         self._snapshot_dialog: file_dialogs.SaveFileDialog | None = None
+        self._import_dialog: file_dialogs.OpenFileDialog | None = None
+        # The height the action row took in the last frame: it goes on in a second row where the
+        # window is narrow.
+        self._actions_h = 0.0
 
     def render(self) -> None:
         service = self._service
         service.poll()
         self._poll_save_dialog()
 
+        # Without a bus a snapshot can still be imported, searched again and added.
         if not service.connected():
-            imgui.text_colored(imgui.ImVec4(0.9, 0.6, 0.2, 1.0), S.STATUS_NOT_CONNECTED)
-            return
-
+            imgui.text_colored(status_color("warning"), S.STATUS_NOT_CONNECTED)
         self._render_scan_controls()
         if service.error:
-            imgui.text_colored(imgui.ImVec4(0.9, 0.3, 0.3, 1.0), service.error)
+            imgui.text_colored(status_color("error"), service.error)
         imgui.separator()
         self._render_status()
         self._render_results()
@@ -56,13 +91,12 @@ class RecoverPanel:
     def _render_scan_controls(self) -> None:
         service = self._service
         busy = service.busy
-        imgui.set_next_item_width(px(120))
-        _, self._start = imgui.input_text(S.RANGE_START, self._start)
-        imgui.same_line()
-        imgui.set_next_item_width(px(120))
-        _, self._end = imgui.input_text(S.RANGE_END, self._end)
-        imgui.same_line()
-        imgui.begin_disabled(busy)
+        _label(S.RANGE_START, px(120), first=True)
+        _, self._start = imgui.input_text("##recover_start", self._start)
+        _label(S.RANGE_END, px(120))
+        _, self._end = imgui.input_text("##recover_end", self._end)
+        same_line_if_fits(button_width(S.BTN_SCAN))
+        imgui.begin_disabled(busy or not service.connected())
         if imgui.button(S.BTN_SCAN):
             service.start_scan(self._start, self._end)
         imgui.end_disabled()
@@ -71,8 +105,18 @@ class RecoverPanel:
             imgui.same_line()
             if imgui.button(S.BTN_STOP):
                 service.stop()
-        imgui.same_line()
+        same_line_if_fits(imgui.get_frame_height() + text_width(S.AUTO_APPLY) + px(8))
         _, service.auto_apply = checkbox(S.AUTO_APPLY, service.auto_apply, centred=True)
+        _label(S.SEARCH_EFFORT, px(110))
+        imgui.begin_disabled(busy)
+        changed, index = combo(
+            "##recover_effort", _EFFORTS.index(service.effort), _effort_labels()
+        )
+        if changed:
+            service.effort = _EFFORTS[index]
+        imgui.end_disabled()
+        if imgui.is_item_hovered():
+            imgui.set_tooltip(S.SEARCH_EFFORT_HINT)
 
     def _render_status(self) -> None:
         service = self._service
@@ -104,25 +148,31 @@ class RecoverPanel:
                 imgui.text_disabled(S.STATUS_RECOVERING)
         elif service.phase == "verifying":
             imgui.text_disabled(S.STATUS_VERIFYING)
+        elif service.phase == "searching":
+            imgui.text_disabled(
+                S.STATUS_SEARCH_PROGRESS
+                % {
+                    "address": service.recover_current or "-",
+                    "done": service.recover_done,
+                    "total": service.recover_total,
+                }
+            )
         elif service.phase == "idle":
             imgui.text_disabled(S.STATUS_IDLE)
         if service.phase == "recovered":
-            imgui.text_colored(
-                imgui.ImVec4(0.6, 0.8, 1.0, 1.0),
-                S.OVERVIEW_RECOVERED % service.recovery_totals(),
-            )
+            imgui.text(service.summary())
             warnings = service.link_warnings()
             if warnings:
                 imgui.text_colored(
-                    imgui.ImVec4(0.9, 0.7, 0.3, 1.0),
-                    S.OVERVIEW_WARNINGS % {"count": len(warnings)},
+                    status_color("warning"),
+                    S.OVERVIEW_WARNINGS(len(warnings)) % {"count": len(warnings)},
                 )
         if service.fetch_status:
             imgui.text_disabled(S.STATUS_FETCHING % {"what": service.fetch_status})
         if service.apply_status:
-            imgui.text_colored(imgui.ImVec4(0.4, 0.8, 0.4, 1.0), service.apply_status)
+            imgui.text_colored(status_color("success"), service.apply_status)
         if service.apply_error:
-            imgui.text_colored(imgui.ImVec4(0.9, 0.3, 0.3, 1.0), service.apply_error)
+            imgui.text_colored(status_color("error"), service.apply_error)
 
     def _render_results(self) -> None:
         service = self._service
@@ -149,7 +199,7 @@ class RecoverPanel:
             S.COL_DETAILS,
         ):
             imgui.table_setup_column(header)
-        data_table_headers()
+        self._render_headers()
         for index, entry in enumerate(service.entries):
             imgui.table_next_row()
             imgui.table_set_column_index(0)
@@ -159,69 +209,101 @@ class RecoverPanel:
             imgui.table_set_column_index(1)
             imgui.text(entry.address)
             imgui.table_set_column_index(2)
-            imgui.text_disabled(f"{entry.mask_version:#06x}")
+            imgui.text(f"{entry.mask_version:#06x}")
+            # Texts cut off by their column show in full in a tooltip.
             imgui.table_set_column_index(3)
-            imgui.text(
+            text_clipped_tooltip(
                 entry.product_name
                 or (entry.app_id.manufacturer_id if entry.app_id else "-")
             )
             imgui.table_set_column_index(4)
-            imgui.text_disabled(entry.state)
+            text_clipped_tooltip(entry.state)
             imgui.table_set_column_index(5)
-            imgui.text_disabled(service.entry_detail(entry))
+            text_clipped_tooltip(service.entry_detail(entry))
         imgui.end_table()
 
-    def _actions_height(self) -> float:
-        """The height :meth:`_render_actions` takes: a button row, a second one once devices
-        are recovered, and a line of text when no project is open then."""
+    def _render_headers(self) -> None:
+        """The header row: a checkbox that selects every device that can be read (or none),
+        then the column titles."""
         service = self._service
-        if service.phase not in ("scanned", "recovered"):
-            return 0.0
-        rows = 1
-        lines = 0
-        if any(e.recovered is not None for e in service.entries):
-            rows += 1
-            lines = 0 if service.has_project() else 1
-        style = imgui.get_style()
-        return (
-            rows * imgui.get_frame_height_with_spacing()
-            + lines * imgui.get_text_line_height_with_spacing()
-            + style.item_spacing.y
-        )
+        freeze_header()
+        imgui.table_next_row(imgui.TableRowFlags_.headers)
+        for column in range(imgui.table_get_column_count()):
+            imgui.table_set_column_index(column)
+            if column:
+                imgui.table_header(imgui.table_get_column_name(column))
+                continue
+            readable = [entry for entry in service.entries if entry.recoverable]
+            every = bool(readable) and all(entry.selected for entry in readable)
+            imgui.begin_disabled(not readable or service.busy)
+            changed, every = checkbox("##recover_all", every)
+            imgui.end_disabled()
+            if changed:
+                for entry in readable:
+                    entry.selected = every
+        table_header_menu()
+
+    def _actions_height(self) -> float:
+        """The height :meth:`_render_actions` took in the last frame (one row, more where the
+        window is narrow, and a line of text when no project is open)."""
+        return self._actions_h
 
     def _render_actions(self) -> None:
+        """The actions in one row (going on in the next where the window is narrow): each works
+        on the selected devices."""
         service = self._service
-        if service.phase not in ("scanned", "recovered"):
-            return
-        recoverable = any(e.selected and e.recoverable for e in service.entries)
-        imgui.begin_disabled(service.busy or not recoverable)
-        if imgui.button(S.BTN_RECOVER_SELECTED):
-            service.start_recover()
-        imgui.end_disabled()
+        top = imgui.get_cursor_pos_y()
+        busy = service.busy
+        connected = service.connected()
+        chosen = bool(service.chosen())
+        readable = any(e.selected and e.recoverable for e in service.entries)
+        actions = (
+            (S.BTN_RECOVER_SELECTED, busy or not connected or not readable),
+            (S.BTN_VERIFY, busy or not connected or not chosen),
+            (S.BTN_SEARCH_AGAIN, busy or not service.can_search_again()),
+            (S.BTN_IMPORT_SNAPSHOT, busy),
+            (S.BTN_EXPORT_SNAPSHOT, not chosen),
+            (S.BTN_ADD_NEW, busy or not chosen),
+            (S.BTN_ADD_MERGE, busy or not chosen or not service.has_project()),
+        )
+        for index, (label, disabled) in enumerate(actions):
+            if index:
+                same_line_if_fits(button_width(label))
+            imgui.begin_disabled(disabled)
+            clicked = imgui.button(label)
+            imgui.end_disabled()
+            if label == S.BTN_SEARCH_AGAIN and imgui.is_item_hovered():
+                imgui.set_tooltip(S.SEARCH_AGAIN_HINT)
+            if clicked:
+                self._act(label)
+        if not service.has_project() and chosen:
+            imgui.text_disabled(S.STATUS_NO_PROJECT)
+        self._actions_h = (
+            imgui.get_cursor_pos_y() - top + imgui.get_style().item_spacing.y
+        )
 
-        has_recovered = any(e.recovered is not None for e in service.entries)
-        if not has_recovered:
-            return
-        recovered_count = sum(1 for e in service.entries if e.recovered is not None)
-        imgui.begin_disabled(service.busy)
-        if imgui.button(S.BTN_VERIFY):
+    def _act(self, label: str) -> None:
+        service = self._service
+        if label == S.BTN_RECOVER_SELECTED:
+            service.start_recover()
+        elif label == S.BTN_VERIFY:
             service.start_verify()
-        imgui.end_disabled()
-        imgui.same_line()
-        if imgui.button(S.BTN_EXPORT_SNAPSHOT):
+        elif label == S.BTN_SEARCH_AGAIN:
+            service.start_search_again()
+        elif label == S.BTN_IMPORT_SNAPSHOT:
+            self._import_dialog = file_dialogs.open_file(
+                S.BTN_IMPORT_SNAPSHOT,
+                "",
+                [S.SNAPSHOT_FILTER, "*.json", S.ALL_FILES, "*"],
+            )
+        elif label == S.BTN_EXPORT_SNAPSHOT:
             self._snapshot_dialog = file_dialogs.save_file(
                 S.BTN_EXPORT_SNAPSHOT, "recover-snapshot.json"
             )
-        imgui.same_line()
-        if imgui.button(f"{S.BTN_ADD_NEW} ({recovered_count})"):
+        elif label == S.BTN_ADD_NEW:
             self._save_dialog = file_dialogs.save_file(S.BTN_ADD_NEW, "recovered.xknx")
-        imgui.same_line()
-        imgui.begin_disabled(not service.has_project())
-        if imgui.button(f"{S.BTN_ADD_MERGE} ({recovered_count})"):
+        elif label == S.BTN_ADD_MERGE:
             service.apply_to_open_project()
-        imgui.end_disabled()
-        if not service.has_project():
-            imgui.text_disabled(S.STATUS_NO_PROJECT)
 
     def _poll_save_dialog(self) -> None:
         if self._save_dialog is not None and self._save_dialog.ready():
@@ -240,6 +322,16 @@ class RecoverPanel:
                 if target.suffix != ".json":
                     target = target.with_suffix(".json")
                 target.write_text(self._service.snapshot_text(), encoding="utf-8")
+        if self._import_dialog is not None and self._import_dialog.ready():
+            paths = self._import_dialog.result()
+            self._import_dialog = None
+            if paths:
+                source = Path(paths[0])
+                try:
+                    text = source.read_text(encoding="utf-8")
+                except (OSError, UnicodeDecodeError) as exc:
+                    text = str(exc)
+                self._service.import_snapshot(text, source.name)
 
     def has_results(self) -> bool:
         return bool(self._service.entries)

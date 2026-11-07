@@ -43,9 +43,6 @@ msgstr "Ustavi"
 msgid "All Files"
 msgstr "Vse datoteke"
 
-msgid "Project: {name}  ·  {devices} devices  ·  {gas} GAs"
-msgstr "Projekt: {name}  ·  naprave: {devices}  ·  skupinski naslovi: {gas}"
-
 msgid "No project open"
 msgstr "Noben projekt ni odprt"
 
@@ -385,32 +382,14 @@ msgstr "Projekt se je uspešno odprl in vse, kar potrebujete za delo, je tukaj. 
 msgid "This project came from a file with a few extra details this editor does not use. The export leaves these out:"
 msgstr "Ta projekt izvira iz datoteke z nekaj dodatnimi podrobnostmi, ki jih ta urejevalnik ne uporablja. Izvoz jih izpusti:"
 
-msgid "The original file had {count} installations. They were combined into one."
-msgstr "Izvirna datoteka je vsebovala več inštalacij (število: {count}). Združene so bile v eno."
-
 msgid "{count} device(s) had no place in the original file, so they were left out."
 msgstr "Naprave, ki v izvirni datoteki niso imele mesta in so bile zato izpuščene: {count}."
-
-msgid "{count} group object(s) had an extra description in the original file. The custom name and function are kept; only that description is not shown here."
-msgstr "Komunikacijski objekti z dodatnim opisom v izvirni datoteki: {count}. Lastno ime in funkcija sta ohranjena; tukaj ni prikazan le ta opis."
-
-msgid "{count} IP or function setting(s) from the original file are not used here."
-msgstr "Nastavitve IP ali funkcij iz izvirne datoteke, ki se tukaj ne uporabljajo: {count}."
-
-msgid "{count} line(s) use several segments. In a schema 14/20 export they are shown at line level only."
-msgstr "Linije z več segmenti: {count}. Pri izvozu s shemo 14/20 so prikazane samo na ravni linije."
-
-msgid "{count} line(s) had the same address in different installations. One of each was kept when combining."
-msgstr "Linije z enakim naslovom v različnih inštalacijah: {count}. Pri združevanju je bila ohranjena po ena."
 
 msgid "For example: {examples}"
 msgstr "Na primer: {examples}"
 
 msgid "Product catalog imported: {count} new product version(s) from {name}"
 msgstr "Katalog izdelkov uvožen iz {name} – nove različice izdelkov: {count}"
-
-msgid "Imported {count} product version(s) from {name}:"
-msgstr "Različice izdelkov, uvožene iz {name} ({count}):"
 
 msgid "{name} was already in the catalog, nothing new imported"
 msgstr "{name} je bil že v katalogu, nič novega ni bilo uvoženo"
@@ -763,14 +742,8 @@ msgstr "Izvozi"
 msgid "Group Address Export (*.csv)"
 msgstr "Izvoz skupinskih naslovov (*.csv)"
 
-msgid "Exported {count} group address(es)"
-msgstr "Izvoženi skupinski naslovi: {count}"
-
 msgid "Exported to {path} ({size}) as {schema}"
 msgstr "Izvoženo v {path} ({size}) kot {schema}"
-
-msgid "{count} device(s) aren't assigned to a line. They're kept in the project and included on export, but can't be edited here yet."
-msgstr "Naprave, ki niso dodeljene nobeni liniji: {count}. Ostanejo v projektu in so vključene v izvoz, vendar jih tukaj še ni mogoče urejati."
 
 msgid "no online certificate"
 msgstr "ni spletnega potrdila"
@@ -1017,15 +990,6 @@ msgstr "Naprava ni združljiva s to različico ETS"
 
 msgid "This project cannot be imported into the chosen ETS version. The product data of the device(s) below exists only for a newer ETS (e.g. an ETS 6 product in an ETS 5 export), so ETS rejects the whole project with 'created with a newer version'.\n\nRemove these device(s) and export again, or cancel and export for the newer ETS instead."
 msgstr "Tega projekta ni mogoče uvoziti v izbrano različico ETS. Podatki izdelkov spodnjih naprav obstajajo le za novejši ETS (npr. izdelek ETS 6 v izvozu za ETS 5), zato ETS zavrne celoten projekt s sporočilom 'created with a newer version'.\n\nOdstranite te naprave in znova izvozite ali prekličite in namesto tega izvozite za novejši ETS."
-
-msgid "Remove device(s) & re-export"
-msgstr "Odstrani naprave in znova izvozi"
-
-msgid "Removed {count} incompatible device(s); re-exporting"
-msgstr "Odstranjene nezdružljive naprave: {count}; ponovni izvoz"
-
-msgid "This file will NOT import into the chosen ETS version: the product data of these manufacturers only exists for a newer ETS (e.g. an ETS 6 product in an ETS 5 export), so ETS rejects the whole project. Remove the affected device(s) or export for the newer ETS."
-msgstr "Te datoteke NI mogoče uvoziti v izbrano različico ETS: podatki izdelkov teh proizvajalcev obstajajo le za novejši ETS (npr. izdelek ETS 6 v izvozu za ETS 5), zato ETS zavrne celoten projekt. Odstranite prizadete naprave ali izvozite za novejši ETS."
 
 msgid "Hide Tab Bar"
 msgstr "Skrij vrstico zavihkov"
@@ -1692,3 +1656,100 @@ msgstr "Uvažanje podatkov o izdelkih projekta: {done} od {total} aplikacijskih 
 
 msgid "This is done once on this computer, for the products its catalog does not have yet. For a large project it can take a few minutes."
 msgstr "To se zgodi samo enkrat na tem računalniku, za izdelke, ki jih njegov katalog še nima. Pri velikem projektu lahko traja nekaj minut."
+
+msgid "Project: {name}  ·  {devices}  ·  {gas}"
+msgstr "Projekt: {name}  ·  {devices}  ·  {gas}"
+
+msgid "{count} device"
+msgid_plural "{count} devices"
+msgstr[0] "{count} naprava"
+msgstr[1] "{count} napravi"
+msgstr[2] "{count} naprave"
+msgstr[3] "{count} naprav"
+
+msgid "{count} GA"
+msgid_plural "{count} GAs"
+msgstr[0] "{count} skupinski naslov"
+msgstr[1] "{count} skupinska naslova"
+msgstr[2] "{count} skupinski naslovi"
+msgstr[3] "{count} skupinskih naslovov"
+
+msgid "Exported {count} group address"
+msgid_plural "Exported {count} group addresses"
+msgstr[0] "Izvožen {count} skupinski naslov"
+msgstr[1] "Izvožena {count} skupinska naslova"
+msgstr[2] "Izvoženi {count} skupinski naslovi"
+msgstr[3] "Izvoženih {count} skupinskih naslovov"
+
+msgid "The original file had {count} installation. It was combined into one."
+msgid_plural "The original file had {count} installations. They were combined into one."
+msgstr[0] "Izvirna datoteka je vsebovala {count} inštalacijo. Združena je bila v eno."
+msgstr[1] "Izvirna datoteka je vsebovala {count} inštalaciji. Združeni sta bili v eno."
+msgstr[2] "Izvirna datoteka je vsebovala {count} inštalacije. Združene so bile v eno."
+msgstr[3] "Izvirna datoteka je vsebovala {count} inštalacij. Združene so bile v eno."
+
+msgid "{count} device isn't assigned to a line. It's kept in the project and included on export, but can't be edited here yet."
+msgid_plural "{count} devices aren't assigned to a line. They're kept in the project and included on export, but can't be edited here yet."
+msgstr[0] "{count} naprava ni dodeljena nobeni liniji. Ostane v projektu in je vključena v izvoz, vendar je tukaj še ni mogoče urejati."
+msgstr[1] "{count} napravi nista dodeljeni nobeni liniji. Ostaneta v projektu in sta vključeni v izvoz, vendar ju tukaj še ni mogoče urejati."
+msgstr[2] "{count} naprave niso dodeljene nobeni liniji. Ostanejo v projektu in so vključene v izvoz, vendar jih tukaj še ni mogoče urejati."
+msgstr[3] "{count} naprav ni dodeljenih nobeni liniji. Ostanejo v projektu in so vključene v izvoz, vendar jih tukaj še ni mogoče urejati."
+
+msgid "{count} group object had an extra description in the original file. The custom name and function are kept; only that description is not shown here."
+msgid_plural "{count} group objects had an extra description in the original file. The custom name and function are kept; only that description is not shown here."
+msgstr[0] "{count} komunikacijski objekt je imel v izvirni datoteki dodaten opis. Lastno ime in funkcija sta ohranjena; tukaj ni prikazan le ta opis."
+msgstr[1] "{count} komunikacijska objekta sta imela v izvirni datoteki dodaten opis. Lastno ime in funkcija sta ohranjena; tukaj ni prikazan le ta opis."
+msgstr[2] "{count} komunikacijski objekti so imeli v izvirni datoteki dodaten opis. Lastno ime in funkcija sta ohranjena; tukaj ni prikazan le ta opis."
+msgstr[3] "{count} komunikacijskih objektov je imelo v izvirni datoteki dodaten opis. Lastno ime in funkcija sta ohranjena; tukaj ni prikazan le ta opis."
+
+msgid "{count} IP or function setting from the original file is not used here."
+msgid_plural "{count} IP or function settings from the original file are not used here."
+msgstr[0] "{count} nastavitev IP ali funkcij iz izvirne datoteke se tukaj ne uporablja."
+msgstr[1] "{count} nastavitvi IP ali funkcij iz izvirne datoteke se tukaj ne uporabljata."
+msgstr[2] "{count} nastavitve IP ali funkcij iz izvirne datoteke se tukaj ne uporabljajo."
+msgstr[3] "{count} nastavitev IP ali funkcij iz izvirne datoteke se tukaj ne uporablja."
+
+msgid "{count} line uses several segments. In a schema 14/20 export it is shown at line level only."
+msgid_plural "{count} lines use several segments. In a schema 14/20 export they are shown at line level only."
+msgstr[0] "{count} linija uporablja več segmentov. Pri izvozu s shemo 14/20 je prikazana samo na ravni linije."
+msgstr[1] "{count} liniji uporabljata več segmentov. Pri izvozu s shemo 14/20 sta prikazani samo na ravni linije."
+msgstr[2] "{count} linije uporabljajo več segmentov. Pri izvozu s shemo 14/20 so prikazane samo na ravni linije."
+msgstr[3] "{count} linij uporablja več segmentov. Pri izvozu s shemo 14/20 so prikazane samo na ravni linije."
+
+msgid "{count} line had the same address in different installations. One of each was kept when combining."
+msgid_plural "{count} lines had the same address in different installations. One of each was kept when combining."
+msgstr[0] "{count} linija je imela enak naslov v različnih inštalacijah. Pri združevanju je bila ohranjena po ena."
+msgstr[1] "{count} liniji sta imeli enak naslov v različnih inštalacijah. Pri združevanju je bila ohranjena po ena."
+msgstr[2] "{count} linije so imele enak naslov v različnih inštalacijah. Pri združevanju je bila ohranjena po ena."
+msgstr[3] "{count} linij je imelo enak naslov v različnih inštalacijah. Pri združevanju je bila ohranjena po ena."
+
+msgid "Remove Device & Re-Export"
+msgid_plural "Remove Devices & Re-Export"
+msgstr[0] "Odstrani napravo in znova izvozi"
+msgstr[1] "Odstrani napravi in znova izvozi"
+msgstr[2] "Odstrani naprave in znova izvozi"
+msgstr[3] "Odstrani naprave in znova izvozi"
+
+msgid "Removed {count} incompatible device; re-exporting"
+msgid_plural "Removed {count} incompatible devices; re-exporting"
+msgstr[0] "Odstranjena {count} nezdružljiva naprava; ponovni izvoz"
+msgstr[1] "Odstranjeni {count} nezdružljivi napravi; ponovni izvoz"
+msgstr[2] "Odstranjene {count} nezdružljive naprave; ponovni izvoz"
+msgstr[3] "Odstranjenih {count} nezdružljivih naprav; ponovni izvoz"
+
+msgid "This file will NOT import into the chosen ETS version: the product data of these manufacturers only exists for a newer ETS (e.g. an ETS 6 product in an ETS 5 export), so the whole project is rejected."
+msgstr "Te datoteke NI mogoče uvoziti v izbrano različico ETS: podatki izdelkov teh proizvajalcev obstajajo le za novejši ETS (npr. izdelek ETS 6 v izvozu za ETS 5), zato ETS zavrne celoten projekt."
+
+msgid "Remove the affected device or export for the newer ETS."
+msgid_plural "Remove the affected devices or export for the newer ETS."
+msgstr[0] "Odstranite prizadeto napravo ali izvozite za novejši ETS."
+msgstr[1] "Odstranite prizadeti napravi ali izvozite za novejši ETS."
+msgstr[2] "Odstranite prizadete naprave ali izvozite za novejši ETS."
+msgstr[3] "Odstranite prizadete naprave ali izvozite za novejši ETS."
+
+msgid "Imported {count} product version from {name}:"
+msgid_plural "Imported {count} product versions from {name}:"
+msgstr[0] "Iz {name} uvožena {count} različica izdelka:"
+msgstr[1] "Iz {name} uvoženi {count} različici izdelkov:"
+msgstr[2] "Iz {name} uvožene {count} različice izdelkov:"
+msgstr[3] "Iz {name} uvoženih {count} različic izdelkov:"

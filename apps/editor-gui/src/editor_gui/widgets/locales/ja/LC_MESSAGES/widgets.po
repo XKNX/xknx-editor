@@ -163,9 +163,6 @@ msgstr "整数を入力してください。"
 msgid "Enter a value from {minimum} to {maximum}."
 msgstr "{minimum}～{maximum}の値を入力してください。"
 
-msgid "Enter at most {count} characters."
-msgstr "{count}文字以内で入力してください。"
-
 msgid "Enter a value."
 msgstr "値を入力してください。"
 
@@ -177,9 +174,6 @@ msgstr "このデータ・タイプには値を入力できません。"
 
 msgid "Edit…"
 msgstr "編集…"
-
-msgid "The text may take at most {count} bytes."
-msgstr "テキストは最大{count}バイトまでです。"
 
 msgid "Value {number}"
 msgstr "値 {number}"
@@ -241,9 +235,6 @@ msgstr "{count} Bをコピー"
 msgid "Go To:"
 msgstr "移動先："
 
-msgid "{count} difference(s)"
-msgstr "{count} 件の差異"
-
 msgid "no differences"
 msgstr "差異なし"
 
@@ -294,3 +285,15 @@ msgstr "切り取る"
 
 msgid "Paste"
 msgstr "貼り付ける"
+
+msgid "Enter at most {count} character."
+msgid_plural "Enter at most {count} characters."
+msgstr[0] "{count}文字以内で入力してください。"
+
+msgid "The text may take at most {count} byte."
+msgid_plural "The text may take at most {count} bytes."
+msgstr[0] "テキストは最大{count}バイトまでです。"
+
+msgid "{count} difference"
+msgid_plural "{count} differences"
+msgstr[0] "{count} 件の差異"

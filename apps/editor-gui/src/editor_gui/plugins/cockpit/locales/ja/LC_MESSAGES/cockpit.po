@@ -19,9 +19,6 @@ msgstr "デバイスをフィルター…"
 msgid "Needs Attention Only"
 msgstr "要対応のみ"
 
-msgid "{count} device(s) not in catalog"
-msgstr "カタログにないデバイス：{count} 台"
-
 msgid "Address"
 msgstr "アドレス"
 
@@ -69,3 +66,7 @@ msgstr "シリアル番号：{serial}"
 
 msgid "Last Download: {when}"
 msgstr "最終ダウンロード：{when}"
+
+msgid "{count} device not in catalog"
+msgid_plural "{count} devices not in catalog"
+msgstr[0] "カタログにないデバイス：{count} 台"

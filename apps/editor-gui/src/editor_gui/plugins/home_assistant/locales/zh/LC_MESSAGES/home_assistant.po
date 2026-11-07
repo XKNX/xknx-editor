@@ -97,12 +97,6 @@ msgstr "日期未知"
 msgid "Load Telegrams from Home Assistant"
 msgstr "从 Home Assistant 加载电报"
 
-msgid "The telegrams Home Assistant recorded in the last {hours} hours, in the Group Monitor in place of its entries."
-msgstr "Home Assistant 在过去 {hours} 小时内记录的电报，显示在组监视器中，替换其现有条目。"
-
-msgid "{count} telegrams from Home Assistant in the Group Monitor"
-msgstr "组监视器中有 {count} 条来自 Home Assistant 的电报"
-
 msgid "The telegrams could not be loaded: {error}"
 msgstr "无法加载电报：{error}"
 
@@ -339,3 +333,11 @@ msgstr "来自 Home Assistant 的组地址"
 
 msgid "Group addresses added to the project: {count}"
 msgstr "已添加到项目的组地址：{count}"
+
+msgid "The telegrams Home Assistant recorded in the last {hours} hour, in the Group Monitor in place of its entries."
+msgid_plural "The telegrams Home Assistant recorded in the last {hours} hours, in the Group Monitor in place of its entries."
+msgstr[0] "Home Assistant 在过去 {hours} 小时内记录的电报，显示在组监视器中，替换其现有条目。"
+
+msgid "{count} telegram from Home Assistant in the Group Monitor"
+msgid_plural "{count} telegrams from Home Assistant in the Group Monitor"
+msgstr[0] "组监视器中有 {count} 条来自 Home Assistant 的电报"

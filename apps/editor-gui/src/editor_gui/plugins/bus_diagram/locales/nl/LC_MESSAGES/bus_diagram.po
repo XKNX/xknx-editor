@@ -157,9 +157,6 @@ msgstr "Ontvangend"
 msgid "+ {count} more"
 msgstr "+ {count} meer"
 
-msgid "{count} more devices outside the selection. Click to show them."
-msgstr "{count} andere apparaten buiten de selectie. Klik om ze te tonen."
-
 msgid "{address}\n{senders} sending, {receivers} receiving"
 msgstr "{address}\n{senders} zendend, {receivers} ontvangend"
 
@@ -174,3 +171,8 @@ msgstr "Apparaten"
 
 msgid "Buildings"
 msgstr "Gebouwen"
+
+msgid "{count} more device outside the selection. Click to show it."
+msgid_plural "{count} more devices outside the selection. Click to show them."
+msgstr[0] "{count} ander apparaat buiten de selectie. Klik om het te tonen."
+msgstr[1] "{count} andere apparaten buiten de selectie. Klik om ze te tonen."

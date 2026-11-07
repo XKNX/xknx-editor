@@ -53,7 +53,9 @@ msgid "Hide Extended Information"
 msgstr "Dölj utökad information"
 
 msgid "{count} telg."
-msgstr "{count} telg."
+msgid_plural "{count} telg."
+msgstr[0] "{count} telg."
+msgstr[1] "{count} telg."
 
 msgid "{rate} t/s"
 msgstr "{rate} t/s"
@@ -214,20 +216,11 @@ msgstr "Telegraminspelningar"
 msgid "All files"
 msgstr "Alla filer"
 
-msgid "{count} telegrams exported to {path}"
-msgstr "{count} telegram exporterade till {path}"
-
 msgid "Export failed: {error}"
 msgstr "Exporten misslyckades: {error}"
 
-msgid "{count} entries loaded from {path}"
-msgstr "{count} poster inlästa från {path}"
-
 msgid "Loading failed: {error}"
 msgstr "Inläsningen misslyckades: {error}"
-
-msgid "{count} telegrams in another frame format were skipped"
-msgstr "{count} telegram i ett annat telegramformat hoppades över"
 
 msgid "Printing failed: {error}"
 msgstr "Utskriften misslyckades: {error}"
@@ -235,17 +228,8 @@ msgstr "Utskriften misslyckades: {error}"
 msgid "Page {page}"
 msgstr "Sida {page}"
 
-msgid "{count} Data Secure telegrams are not replayed"
-msgstr "{count} Data Secure-telegram spelas inte upp"
-
 msgid "There are no group telegrams to replay"
 msgstr "Det finns inga grupptelegram att spela upp"
-
-msgid "Replay finished: {count} telegrams sent"
-msgstr "Uppspelningen klar: {count} telegram skickade"
-
-msgid "Replay cancelled: {count} telegrams sent"
-msgstr "Uppspelningen avbruten: {count} telegram skickade"
 
 msgid "from bus"
 msgstr "från buss"
@@ -390,3 +374,33 @@ msgstr "Max"
 
 msgid "Maximum telegrams this monitor keeps. The oldest tenth is dropped when the cap is exceeded."
 msgstr "Maximum telegrams this monitor keeps. The oldest tenth is dropped when the cap is exceeded."
+
+msgid "{count} telegram exported to {path}"
+msgid_plural "{count} telegrams exported to {path}"
+msgstr[0] "{count} telegram exporterat till {path}"
+msgstr[1] "{count} telegram exporterade till {path}"
+
+msgid "{count} entry loaded from {path}"
+msgid_plural "{count} entries loaded from {path}"
+msgstr[0] "{count} post inläst från {path}"
+msgstr[1] "{count} poster inlästa från {path}"
+
+msgid "{count} telegram in another frame format was skipped"
+msgid_plural "{count} telegrams in another frame format were skipped"
+msgstr[0] "{count} telegram i ett annat telegramformat hoppades över"
+msgstr[1] "{count} telegram i ett annat telegramformat hoppades över"
+
+msgid "{count} Data Secure telegram is not replayed"
+msgid_plural "{count} Data Secure telegrams are not replayed"
+msgstr[0] "{count} Data Secure-telegram spelas inte upp"
+msgstr[1] "{count} Data Secure-telegram spelas inte upp"
+
+msgid "Replay finished: {count} telegram sent"
+msgid_plural "Replay finished: {count} telegrams sent"
+msgstr[0] "Uppspelningen klar: {count} telegram skickat"
+msgstr[1] "Uppspelningen klar: {count} telegram skickade"
+
+msgid "Replay cancelled: {count} telegram sent"
+msgid_plural "Replay cancelled: {count} telegrams sent"
+msgstr[0] "Uppspelningen avbruten: {count} telegram skickat"
+msgstr[1] "Uppspelningen avbruten: {count} telegram skickade"

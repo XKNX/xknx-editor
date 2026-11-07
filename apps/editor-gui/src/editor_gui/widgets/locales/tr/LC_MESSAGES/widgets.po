@@ -163,9 +163,6 @@ msgstr "Bir tam sayı girin."
 msgid "Enter a value from {minimum} to {maximum}."
 msgstr "{minimum} ile {maximum} arasında bir değer girin."
 
-msgid "Enter at most {count} characters."
-msgstr "En fazla {count} karakter girin."
-
 msgid "Enter a value."
 msgstr "Bir değer girin."
 
@@ -177,9 +174,6 @@ msgstr "Bu veri tipi için değer girilemez."
 
 msgid "Edit…"
 msgstr "Düzenle…"
-
-msgid "The text may take at most {count} bytes."
-msgstr "Metin en fazla {count} bayt olabilir."
 
 msgid "Value {number}"
 msgstr "Değer {number}"
@@ -241,9 +235,6 @@ msgstr "{count} B Kopyala"
 msgid "Go To:"
 msgstr "Git:"
 
-msgid "{count} difference(s)"
-msgstr "{count} fark"
-
 msgid "no differences"
 msgstr "fark yok"
 
@@ -294,3 +285,15 @@ msgstr "Kes"
 
 msgid "Paste"
 msgstr "Yapıştır"
+
+msgid "Enter at most {count} character."
+msgid_plural "Enter at most {count} characters."
+msgstr[0] "En fazla {count} karakter girin."
+
+msgid "The text may take at most {count} byte."
+msgid_plural "The text may take at most {count} bytes."
+msgstr[0] "Metin en fazla {count} bayt olabilir."
+
+msgid "{count} difference"
+msgid_plural "{count} differences"
+msgstr[0] "{count} fark"

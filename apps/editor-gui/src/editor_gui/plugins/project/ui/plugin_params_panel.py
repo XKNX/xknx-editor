@@ -26,13 +26,13 @@ from editor_gui.plugin_params import (
     mapping_for,
 )
 from editor_gui.plugins.project.strings import S
+from editor_gui.theme import status_color
 from editor_gui.widgets.dpi import px
 from xknxeditor.vendor.triton import DeviceType
 
 if TYPE_CHECKING:
     from editor_gui.device import Device
 
-_HEADING_COLOR = imgui.ImVec4(0.75, 0.85, 0.95, 1.0)
 
 # The triton LCD display types the setup dropdown offers, as (enum value, product label). The
 # labels are product names and stay untranslated.
@@ -122,7 +122,7 @@ class PluginParamsPanel:
                 return
             imgui.text_disabled(S.PLUGIN_PARAMS_EMPTY)
             return
-        imgui.text_colored(_HEADING_COLOR, mapping.title)
+        imgui.text_colored(status_color("info"), mapping.title)
         imgui.text_wrapped(S.PLUGIN_PARAMS_EDIT_NOTE)
         if mapping.blob_reader == "triton_lcd":
             self._render_triton_actions(device)
