@@ -23,7 +23,7 @@ for identifying products, and `xknxeditor-proj` for writing the result.
 - **Identify**: read PID_PROGRAM_VERSION (manufacturer, application number,
   version) and match it against the catalog by manufacturer + number + version +
   mask version. A device whose exact version is not in the catalog, or that matches
-  more than one product, is flagged for confirmation rather than guessed. The read
+  more than one product, is flagged for confirmation. The read
   is confirmed by a second read so a transient wrong reply cannot mis-identify it.
 - **Read group communication**: locate and read the address, association and group
   object tables (memory-mapped BCU/System 7 and System B realisations) and decode

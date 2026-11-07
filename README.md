@@ -157,8 +157,10 @@ arrow of a device lists its group objects under their channels.
 
 **Recover from the bus** — reconstruct an installation without a project file by scanning an address
 range and reading each device back read-only, then adding it to the project. Uncertain values are
-marked rather than guessed, and a read-only verify diffs the result against the device. Still
-maturing — review a recovered project before relying on it.
+marked, and a read-only verify diffs the result against the device. Settings
+a device keeps no copy of are searched for; a device whose result still differs from what was read
+is marked incomplete and can be searched again with more effort, without the bus. Still maturing —
+review a recovered project before relying on it.
 
 <img src="docs/images/recover.png" alt="Recover from the bus" width="696">
 
