@@ -28,15 +28,20 @@ class MainThreadExecutor:
     background access with the GUI's own per-frame reads and writes on a single thread.
 
     ``drain`` must be called from the main thread each frame; ``submit`` is safe from any thread.
+    ``wake`` is called after each ``submit``: it starts the next frame at once where frames are
+    drawn only now and then (the browser view while no browser is connected).
     """
 
-    def __init__(self) -> None:
+    def __init__(self, wake: Callable[[], None] | None = None) -> None:
         self._queue: queue.Queue[tuple[Callable[[], Any], Future[Any]]] = queue.Queue()
+        self._wake = wake
 
     def submit[T](self, fn: Callable[[], T]) -> Future[T]:
         """Queue ``fn`` for execution on the main thread; return a future for its result."""
         future: Future[T] = Future()
         self._queue.put((fn, future))
+        if self._wake is not None:
+            self._wake()
         return future
 
     def run[T](self, fn: Callable[[], T], *, timeout: float = 30.0) -> T:

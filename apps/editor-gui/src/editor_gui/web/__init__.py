@@ -65,6 +65,9 @@ _MORE_PORTS = 19
 _ACTIVE_SECONDS = 1.5
 # The full rate: the Null backend has no frame cap of its own (no vsync), so the web mode paces it.
 _ACTIVE_FPS = 60.0
+# Without a browser connected nobody sees the frames: one now and then for the work done per
+# frame; input, a browser connecting and work handed to the main thread draw one at once.
+_UNSEEN_SECONDS = 2.0
 _TRACE = os.environ.get("XKNX_WEB_TRACE") == "1"
 # An error that keeps coming back in the same place is reported again after this many seconds.
 _ERROR_REPORT_SECONDS = 10.0
@@ -247,6 +250,28 @@ def windowless(runner_params: hello_imgui.RunnerParams) -> None:
     runner_params.touch_pinch_mode = hello_imgui.TouchPinchMode.disabled
 
 
+def frame_period(
+    *, active: bool, connected: bool, fps: float, idle_fps: float
+) -> float:
+    """Seconds from one frame to the next in the browser view at most: at the full rate while
+    the user acts, at ``fps`` (the app's idle rate, raised above ``idle_fps`` while a task shows
+    its progress) while a browser is connected or a task runs, and ``_UNSEEN_SECONDS`` while
+    nobody sees them. Input and work for the main thread start a frame earlier."""
+    if active:
+        return 1.0 / _ACTIVE_FPS
+    if not connected and fps <= idle_fps:
+        return _UNSEEN_SECONDS
+    return 1.0 / fps
+
+
+def wake_frame() -> None:
+    """Start the next frame of the browser view now, e.g. for work handed to the main thread from
+    another thread; nothing outside the browser view (its frames run at their own rate)."""
+    hub = active_hub
+    if hub is not None:
+        hub.wake.set()
+
+
 def enable_web_mode(
     runner_params: hello_imgui.RunnerParams, options: WebOptions
 ) -> WebHub:
@@ -335,7 +360,7 @@ def enable_web_mode(
 
     # The web mode paces the frames itself: hello_imgui's idling sleeps a fixed time, while browser
     # input has to wake the app at once. Active: up to _ACTIVE_FPS; idle: the app's idle rate, or
-    # earlier when input arrives.
+    # earlier when input arrives (see frame_period).
     idle_fps = runner_params.fps_idling.fps_idle or 6.0
     runner_params.fps_idling.enable_idling = False
 
@@ -345,7 +370,12 @@ def enable_web_mode(
         active = now - hub.last_input <= _ACTIVE_SECONDS or (
             bool(gestures) and gestures[0].active
         )
-        wait = (1.0 / (_ACTIVE_FPS if active else idle_fps)) - (now - frame_start[0])
+        # Read each frame: the app raises its idle rate while a task shows its progress.
+        fps = hello_imgui.get_runner_params().fps_idling.fps_idle or idle_fps
+        period = frame_period(
+            active=active, connected=hub.connected, fps=fps, idle_fps=idle_fps
+        )
+        wait = period - (now - frame_start[0])
         tray = trays[0] if trays else None
         if tray is not None:
             tray.pump()
