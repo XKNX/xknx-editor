@@ -17,6 +17,7 @@ from imgui_bundle import portable_file_dialogs as pfd
 
 from editor_gui import file_dialogs, trace_key, web
 from editor_gui.plugins.project.strings import S
+from editor_gui.theme import status_color
 from editor_gui.widgets.dpi import px
 from editor_gui.widgets.filter_box import filter_box
 from editor_gui.widgets.flow import same_line_if_fits
@@ -33,7 +34,6 @@ from xknxeditor.proj import (
 if TYPE_CHECKING:
     from editor_gui.plugins.project.service import ProjectTrace
 
-_RED = imgui.ImVec4(0.9, 0.4, 0.4, 1.0)
 _UNKNOWN = "?"
 # The library Knx.Ets.Common.dll loads from its own folder.
 _LOG4NET = "log4net"
@@ -136,7 +136,7 @@ class ProjectLogPanel:
         """What it takes to read the comments; nothing once they can be read."""
         if trace_key_available():
             return
-        imgui.text_colored(_RED, S.PROJECT_LOG_ENCRYPTED)
+        imgui.text_colored(status_color("error"), S.PROJECT_LOG_ENCRYPTED)
         imgui.text_wrapped(S.PROJECT_LOG_DECRYPT_HINT)
         if web.active_hub is not None:
             # Uploaded, the assembly is alone on the server: its dependency has to come along.
@@ -146,7 +146,7 @@ class ProjectLogPanel:
             self._backend = extraction_backend()
         backend = self._backend
         if backend is None:
-            imgui.text_colored(_RED, S.PROJECT_LOG_NO_BACKEND)
+            imgui.text_colored(status_color("error"), S.PROJECT_LOG_NO_BACKEND)
         if self._extracting:
             imgui.align_text_to_frame_padding()
             imgui.text_disabled(S.PROJECT_LOG_EXTRACTING)
@@ -160,7 +160,7 @@ class ProjectLogPanel:
         imgui.align_text_to_frame_padding()
         imgui.text_disabled(S.PROJECT_LOG_CREDIT)
         if self._error:
-            imgui.text_colored(_RED, self._error)
+            imgui.text_colored(status_color("error"), self._error)
         imgui.separator()
 
     def _begin_extract(self) -> None:

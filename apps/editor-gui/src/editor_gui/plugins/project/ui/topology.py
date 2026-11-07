@@ -37,6 +37,7 @@ from editor_gui.plugins.project.ui.paste_special import (
 )
 from editor_gui.plugins.project.ui.tree_drag import Dragged, drag_source, drop_target
 from editor_gui.strings import S as APP_S
+from editor_gui.theme import status_color
 from editor_gui.widgets.description import render_description, render_device_marks
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
 from editor_gui.widgets.tree import (
@@ -63,8 +64,6 @@ TreeDevice = Device | UnloadedDevice
 
 # The most areas a project has (numbers 0 to 15).
 _MAX_AREAS = 16
-
-_UNLOADED_COLOR = imgui.ImVec4(0.95, 0.6, 0.25, 1.0)
 
 
 def _address_order(device: TreeDevice) -> tuple[tuple[int, int, int], int]:
@@ -567,7 +566,7 @@ class TopologyPanel:
     ) -> None:
         if isinstance(device, UnloadedDevice):
             # Shown like any device, but without an application there is nothing to configure.
-            imgui.push_style_color(imgui.Col_.text, _UNLOADED_COLOR)
+            imgui.push_style_color(imgui.Col_.text, status_color("warning"))
             tree_node(self._device_label(device), leaf(device))
             imgui.pop_style_color()
             hovered = imgui.is_item_hovered()

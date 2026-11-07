@@ -2,9 +2,9 @@
 
 from imgui_bundle import imgui
 
+# The module, not status_color: the theme module imports the widgets package itself.
+from editor_gui import theme
 from editor_gui.widgets.dialog import focus_when_appearing
-
-_ERROR_COLOR = imgui.ImVec4(1.0, 0.42, 0.42, 1.0)
 
 
 class NewPasswordForm:
@@ -34,5 +34,5 @@ class NewPasswordForm:
             flags | imgui.InputTextFlags_.enter_returns_true,
         )
         if self.repeat and self.password != self.repeat:
-            imgui.text_colored(_ERROR_COLOR, mismatch)
+            imgui.text_colored(theme.status_color("error"), mismatch)
         return submitted

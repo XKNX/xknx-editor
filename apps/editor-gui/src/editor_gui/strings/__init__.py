@@ -33,24 +33,41 @@ def in_english() -> Generator[None]:
         _thread.locale = before
 
 
-def create_translator(domain: str, locale_dir: Path):
-    # Cache the translation object per locale. gettext.translation() runs gettext.find(), which stats
-    # the filesystem for .mo files on every call; a panel's render() reads dozens of S.* strings each
-    # frame, so without this cache the UI spends most of its time stat-ing locale dirs. gettext itself
-    # caches the parsed catalog, but only after find() has already walked the filesystem.
-    cache: dict[str, gettext.NullTranslations] = {}
+class Translator:
+    """The texts of a domain in the current language: ``_(text)``, and
+    ``_.plural(singular, plural, count)`` for a text with a count, in the form the language uses
+    for ``count`` (gettext plural forms: some languages have one form, some three or four)."""
 
-    def translate(text: str) -> str:
+    def __init__(self, domain: str, locale_dir: Path) -> None:
+        self._domain = domain
+        self._locale_dir = locale_dir
+        # Cache the translation object per locale. gettext.translation() runs gettext.find(), which
+        # stats the filesystem for .mo files on every call; a panel's render() reads dozens of S.*
+        # strings each frame, so without this cache the UI spends most of its time stat-ing locale
+        # dirs. gettext itself caches the parsed catalog, but only after find() has already walked
+        # the filesystem.
+        self._cache: dict[str, gettext.NullTranslations] = {}
+
+    def _translation(self) -> gettext.NullTranslations:
         locale = getattr(_thread, "locale", None) or _current_locale
-        trans = cache.get(locale)
+        trans = self._cache.get(locale)
         if trans is None:
             trans = gettext.translation(
-                domain, locale_dir, languages=[locale], fallback=True
+                self._domain, self._locale_dir, languages=[locale], fallback=True
             )
-            cache[locale] = trans
-        return trans.gettext(text)
+            self._cache[locale] = trans
+        return trans
 
-    return translate
+    def __call__(self, text: str) -> str:
+        return self._translation().gettext(text)
+
+    def plural(self, singular: str, plural: str, count: int) -> str:
+        """``singular`` or ``plural`` (in English), or the language's form for ``count``."""
+        return self._translation().ngettext(singular, plural, count)
+
+
+def create_translator(domain: str, locale_dir: Path) -> Translator:
+    return Translator(domain, locale_dir)
 
 
 _base_locale_dir = Path(__file__).parent.parent / "locales"

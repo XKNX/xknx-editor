@@ -17,6 +17,7 @@ from editor_gui.plugins.project.ui.move_menu import render_move_menu
 from editor_gui.plugins.project.ui.paste_special import MenuGroups
 from editor_gui.regional import regional_format
 from editor_gui.strings import get_locale
+from editor_gui.theme import status_color
 from editor_gui.widgets.checkbox import checkbox
 from editor_gui.widgets.combo import combo
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
@@ -607,7 +608,7 @@ class CatalogPanel:
                 imgui.text_wrapped(value)
         if self._delete_affected > 0:
             imgui.spacing()
-            imgui.push_style_color(imgui.Col_.text, imgui.ImVec4(0.95, 0.6, 0.25, 1.0))
+            imgui.push_style_color(imgui.Col_.text, status_color("warning"))
             imgui.text_wrapped(S.DELETE_AFFECTED.format(count=self._delete_affected))
             imgui.pop_style_color()
         clicked = dialog_buttons(S.CONTEXT_DELETE, S.BTN_CANCEL)
@@ -746,7 +747,7 @@ class CatalogPanel:
             loading("##online-loading", S.ONLINE_LOADING)
         elif self._online_error:
             imgui.same_line()
-            imgui.text_colored(imgui.ImVec4(1.0, 0.4, 0.4, 1.0), S.ONLINE_FAILED)
+            imgui.text_colored(status_color("error"), S.ONLINE_FAILED)
         self._render_index_controls()
         self._render_online_filters()
 

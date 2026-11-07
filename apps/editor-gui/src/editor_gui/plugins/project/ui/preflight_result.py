@@ -25,6 +25,7 @@ from editor_gui.programming import (
     preflight_property_category,
     preflight_segment_category,
 )
+from editor_gui.theme import status_color
 from editor_gui.widgets.dialog import (
     begin_dialog,
     begin_tool_window,
@@ -36,12 +37,6 @@ from editor_gui.widgets.tables import begin_data_table, data_table_headers
 
 if TYPE_CHECKING:
     from xknxeditor.download.preflight import PreflightReport, PropertyDiff, SegmentDiff
-
-_GREEN = imgui.ImVec4(0.4, 0.85, 0.45, 1.0)
-_ORANGE = imgui.ImVec4(0.95, 0.75, 0.2, 1.0)
-_RED = imgui.ImVec4(0.9, 0.35, 0.35, 1.0)
-_BLUE = imgui.ImVec4(0.45, 0.7, 0.95, 1.0)
-_TEAL = imgui.ImVec4(0.4, 0.8, 0.75, 1.0)
 
 # Classification of a changed location. The config/default/runtime categories come from
 # editor_gui.programming (shared with the MCP evaluate tool); _CAT_MATCH is view-only.
@@ -149,13 +144,13 @@ class PreflightResultWindow:
         imgui.pop_style_color()
         # The schema-23 precondition is easy to miss but decisive: a schema-20 device shows huge
         # false diffs. Render it as a coloured callout, not dim text, so it stands out.
-        imgui.push_style_color(imgui.Col_.text, _BLUE)
+        imgui.push_style_color(imgui.Col_.text, status_color("info"))
         imgui.text_wrapped(S.PREFLIGHT_ETS6_NOTE)
         imgui.pop_style_color()
         imgui.spacing()
 
         if self._error is not None:
-            imgui.push_style_color(imgui.Col_.text, _RED)
+            imgui.push_style_color(imgui.Col_.text, status_color("error"))
             imgui.text_wrapped(f"{S.PREFLIGHT_FAILED}: {self._error}")
             imgui.pop_style_color()
             return
@@ -175,7 +170,7 @@ class PreflightResultWindow:
         config_locations = classes.config_locations
 
         if config_locations:
-            imgui.push_style_color(imgui.Col_.text, _ORANGE)
+            imgui.push_style_color(imgui.Col_.text, status_color("warning"))
             imgui.text(
                 S.PREFLIGHT_WOULD_CHANGE.format(
                     bytes=config_bytes, locations=config_locations
@@ -191,15 +186,15 @@ class PreflightResultWindow:
             # No configured differences: the device carries the configuration. The
             # remaining diffs are the benign buckets explained below, so say so
             # plainly instead of claiming a byte-identical match.
-            imgui.push_style_color(imgui.Col_.text, _GREEN)
+            imgui.push_style_color(imgui.Col_.text, status_color("success"))
             imgui.text_wrapped(S.PREFLIGHT_ONLY_BENIGN)
             imgui.pop_style_color()
         else:
-            imgui.push_style_color(imgui.Col_.text, _GREEN)
+            imgui.push_style_color(imgui.Col_.text, status_color("success"))
             imgui.text(S.PREFLIGHT_MATCH)
             imgui.pop_style_color()
         if default_bytes:
-            imgui.push_style_color(imgui.Col_.text, _TEAL)
+            imgui.push_style_color(imgui.Col_.text, status_color("info"))
             imgui.text_wrapped(S.PREFLIGHT_DEFAULT_NOTE.format(bytes=default_bytes))
             imgui.pop_style_color()
         if runtime_bytes:
@@ -292,16 +287,20 @@ class PreflightResultWindow:
         imgui.table_set_column_index(2)
         if category == _CAT_RUNTIME:
             self._status_cell(
-                _BLUE, S.PREFLIGHT_STATUS_RUNTIME, S.PREFLIGHT_RUNTIME_TOOLTIP
+                status_color("info"),
+                S.PREFLIGHT_STATUS_RUNTIME,
+                S.PREFLIGHT_RUNTIME_TOOLTIP,
             )
         elif category == _CAT_DEFAULT:
             self._status_cell(
-                _TEAL, S.PREFLIGHT_STATUS_DEFAULT, S.PREFLIGHT_DEFAULT_TOOLTIP
+                status_color("info"),
+                S.PREFLIGHT_STATUS_DEFAULT,
+                S.PREFLIGHT_DEFAULT_TOOLTIP,
             )
         elif category == _CAT_CONFIG:
-            self._status_cell(_ORANGE, S.PREFLIGHT_STATUS_CHANGE, None)
+            self._status_cell(status_color("warning"), S.PREFLIGHT_STATUS_CHANGE, None)
         else:
-            self._status_cell(_GREEN, S.PREFLIGHT_STATUS_MATCH, None)
+            self._status_cell(status_color("success"), S.PREFLIGHT_STATUS_MATCH, None)
         imgui.table_set_column_index(3)
         imgui.text_disabled(str(changed_bytes) if changed else "-")
 

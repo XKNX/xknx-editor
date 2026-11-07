@@ -25,6 +25,7 @@ from editor_gui.plugins.home_assistant.strings import S
 from editor_gui.plugins.home_assistant.telegrams import link_info, telegram_frame
 from editor_gui.settings_window import Setting
 from editor_gui.strings import S as app_strings
+from editor_gui.theme import status_color
 from editor_gui.widgets.checkbox import checkbox
 from editor_gui.widgets.combo import combo
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
@@ -37,9 +38,6 @@ if TYPE_CHECKING:
     from editor_gui.plugins.project.service import ProjectService
     from editor_gui.web.host_link import HostLink
 
-_GREEN = imgui.ImVec4(0.4, 0.85, 0.45, 1.0)
-_AMBER = imgui.ImVec4(0.95, 0.75, 0.2, 1.0)
-_RED = imgui.ImVec4(0.9, 0.35, 0.35, 1.0)
 # The Home Assistant page of the Settings window.
 SETTINGS_PAGE = "home_assistant"
 
@@ -260,7 +258,8 @@ class HomeAssistantPlugin:
             imgui.set_tooltip(S.LOAD_TELEGRAMS_HINT.format(hours=HISTORY_HOURS))
         if service.history_error is not None:
             imgui.text_colored(
-                _RED, S.HISTORY_FAILED.format(error=service.history_error)
+                status_color("error"),
+                S.HISTORY_FAILED.format(error=service.history_error),
             )
         if self.open_settings is not None:
             imgui.separator()
@@ -407,7 +406,10 @@ class HomeAssistantPlugin:
             if changed:
                 self._time_chosen[kind] = addresses[index]
         if service.request_error:
-            imgui.text_colored(_RED, S.AREAS_FAILED.format(error=service.request_error))
+            imgui.text_colored(
+                status_color("error"),
+                S.AREAS_FAILED.format(error=service.request_error),
+            )
         clicked = dialog_buttons(
             S.BTN_APPLY,
             app_strings.BTN_CLOSE,
@@ -429,10 +431,13 @@ class HomeAssistantPlugin:
         imgui.text_disabled(S.KEYS_COUNT.format(count=secured))
         if service.keyring_refused is not None:
             imgui.push_text_wrap_pos(0.0)
-            imgui.text_colored(_AMBER, S.KEYS_REFUSED)
+            imgui.text_colored(status_color("warning"), S.KEYS_REFUSED)
             imgui.pop_text_wrap_pos()
         if service.request_error:
-            imgui.text_colored(_RED, S.AREAS_FAILED.format(error=service.request_error))
+            imgui.text_colored(
+                status_color("error"),
+                S.AREAS_FAILED.format(error=service.request_error),
+            )
         clicked = dialog_buttons(
             S.BTN_SEND,
             app_strings.BTN_CLOSE,
@@ -517,7 +522,9 @@ class HomeAssistantPlugin:
             imgui.text_disabled(S.AREAS_APPLYING)
         for error in (*service.entity_errors.values(), service.request_error):
             if error:
-                imgui.text_colored(_RED, S.AREAS_FAILED.format(error=error))
+                imgui.text_colored(
+                    status_color("error"), S.AREAS_FAILED.format(error=error)
+                )
         chosen = [row for row in rows if self._entity_chosen(row)]
         new = [row for row in chosen if row.created is None]
         changed_rows = [row for row in chosen if row.created is not None]
@@ -591,7 +598,9 @@ class HomeAssistantPlugin:
         if service.areas_applying:
             imgui.text_disabled(S.AREAS_APPLYING)
         elif service.areas_error is not None:
-            imgui.text_colored(_RED, S.AREAS_FAILED.format(error=service.areas_error))
+            imgui.text_colored(
+                status_color("error"), S.AREAS_FAILED.format(error=service.areas_error)
+            )
         chosen = [
             row
             for row in rows
@@ -767,16 +776,17 @@ class HomeAssistantPlugin:
         end_dialog()
 
     def _status(self, state: LinkState) -> tuple[str, imgui.ImVec4]:
-        return {
-            LinkState.UNAVAILABLE: (S.STATUS_UNAVAILABLE, _RED),
-            LinkState.KNX_MISSING: (S.STATUS_KNX_MISSING, _AMBER),
-            LinkState.NO_PROJECT: (S.STATUS_NOT_LINKED, _AMBER),
-            LinkState.NOT_LINKED: (S.STATUS_NOT_LINKED, _AMBER),
-            LinkState.UP_TO_DATE: (S.STATUS_UP_TO_DATE, _GREEN),
-            LinkState.PENDING: (S.STATUS_PENDING, _AMBER),
-            LinkState.SENDING: (S.STATUS_SENDING, _AMBER),
-            LinkState.FAILED: (S.STATUS_FAILED, _RED),
+        text, kind = {
+            LinkState.UNAVAILABLE: (S.STATUS_UNAVAILABLE, "error"),
+            LinkState.KNX_MISSING: (S.STATUS_KNX_MISSING, "warning"),
+            LinkState.NO_PROJECT: (S.STATUS_NOT_LINKED, "warning"),
+            LinkState.NOT_LINKED: (S.STATUS_NOT_LINKED, "warning"),
+            LinkState.UP_TO_DATE: (S.STATUS_UP_TO_DATE, "success"),
+            LinkState.PENDING: (S.STATUS_PENDING, "warning"),
+            LinkState.SENDING: (S.STATUS_SENDING, "warning"),
+            LinkState.FAILED: (S.STATUS_FAILED, "error"),
         }[state]
+        return text, status_color(kind)
 
     def _detail(self, state: LinkState) -> str:
         service = self._service

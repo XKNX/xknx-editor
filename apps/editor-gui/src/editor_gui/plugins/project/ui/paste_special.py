@@ -22,6 +22,7 @@ from editor_gui.plugins.project.strings import S
 from editor_gui.plugins.project.ui import name_focus
 from editor_gui.plugins.project.ui.tree_drag import Dragged
 from editor_gui.strings import delete_key, mac_keys, shortcut
+from editor_gui.theme import status_color
 from editor_gui.widgets.checkbox import radio_beside_field, radio_button
 from editor_gui.widgets.combo import combo
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
@@ -39,7 +40,6 @@ if TYPE_CHECKING:
 
 # Copies of these need no choice about group addresses: they are group addresses or hold them.
 _GROUP_KINDS = ("group_address", "group_range")
-_ERROR_COLOR = imgui.ImVec4(1.0, 0.42, 0.42, 1.0)
 # The most copies one paste makes.
 _MAX_COUNT = 65535
 # How many names of what is pasted show at once; more scroll.
@@ -411,7 +411,7 @@ class PasteSpecialDialog:
         imgui.end_disabled()
         if style is not GroupAddressStyle.FREE and not self._range_valid():
             imgui.text_colored(
-                _ERROR_COLOR,
+                status_color("error"),
                 S.PASTE_NOT_MIDDLE
                 if style is GroupAddressStyle.THREE_LEVEL
                 else S.PASTE_NOT_MAIN,

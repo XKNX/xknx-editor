@@ -6,19 +6,27 @@ from imgui_bundle import imgui
 
 from editor_gui.plugins.logger.service import LogRecord
 from editor_gui.plugins.logger.strings import S
+from editor_gui.theme import status_color
 from editor_gui.widgets.combo import combo
 from editor_gui.widgets.dpi import px
 from editor_gui.widgets.flow import button_width, same_line_if_fits
 from editor_gui.widgets.tables import begin_data_table, data_table_headers
 
-LEVEL_COLORS: dict[str, tuple[float, float, float]] = {
-    "debug": (0.5, 0.5, 0.55),
-    "info": (0.85, 0.85, 0.85),
-    "warning": (0.95, 0.75, 0.2),
-    "error": (0.9, 0.35, 0.35),
-    "critical": (1.0, 0.2, 0.2),
-}
-_DEFAULT_COLOR = (0.85, 0.85, 0.85)
+# The status color (see ``status_color``) of the levels that report a problem.
+_LEVEL_STATUS = {"warning": "warning", "error": "error", "critical": "error"}
+
+
+def level_color(level: str) -> imgui.ImVec4:
+    """The text color of a record of ``level``: a warning or error in its status color, a debug
+    record dimmed, any other in the normal text color."""
+    kind = _LEVEL_STATUS.get(level)
+    if kind is not None:
+        return status_color(kind)
+    style = imgui.get_style()
+    return style.color_(
+        imgui.Col_.text_disabled if level == "debug" else imgui.Col_.text
+    )
+
 
 _LEVEL_RANK = {"debug": 0, "info": 1, "warning": 2, "error": 3, "critical": 4}
 # (label, minimum rank) options for the level filter dropdown. "Debug" (rank 0) is the lowest, so it
@@ -169,19 +177,19 @@ class LogPanel:
         imgui.end_table()
 
     def _render_row(self, record: LogRecord) -> None:
-        r, g, b = LEVEL_COLORS.get(record.level, _DEFAULT_COLOR)
+        color = level_color(record.level)
         imgui.table_next_row()
 
         imgui.table_set_column_index(0)
         imgui.text_disabled(record.timestamp_str)
 
         imgui.table_set_column_index(1)
-        imgui.push_style_color(imgui.Col_.text, imgui.ImVec4(r, g, b, 1.0))
+        imgui.push_style_color(imgui.Col_.text, color)
         imgui.text(record.level.upper())
         imgui.pop_style_color()
 
         imgui.table_set_column_index(2)
-        imgui.push_style_color(imgui.Col_.text, imgui.ImVec4(r, g, b, 1.0))
+        imgui.push_style_color(imgui.Col_.text, color)
         imgui.text(record.event)
         imgui.pop_style_color()
         if record.payload:

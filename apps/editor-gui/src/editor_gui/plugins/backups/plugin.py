@@ -26,6 +26,7 @@ from editor_gui.plugins.backups.strings import S
 from editor_gui.plugins.base import Logger, PanelDefinition, PluginAPI
 from editor_gui.settings_window import Setting
 from editor_gui.strings import S as app_strings
+from editor_gui.theme import status_color
 from editor_gui.widgets.dialog import (
     begin_dialog,
     dialog_buttons,
@@ -36,7 +37,6 @@ from editor_gui.widgets.dpi import px
 from editor_gui.widgets.flow import button_width, same_line_if_fits
 from editor_gui.widgets.tables import begin_data_table, data_table_headers
 
-_ERR_COLOR = imgui.ImVec4(0.9, 0.4, 0.4, 1.0)
 # The page of the Settings window with the backup settings.
 SETTINGS_PAGE = "backups"
 # A button for the chosen backup: label, tooltip, what it does, and why it does not apply to it
@@ -615,7 +615,7 @@ class BackupsPlugin:
             imgui.InputTextFlags_.password | imgui.InputTextFlags_.enter_returns_true,
         )
         if self._password_error:
-            imgui.text_colored(_ERR_COLOR, self._password_error)
+            imgui.text_colored(status_color("error"), self._password_error)
         clicked = dialog_buttons(
             S.BTN_RESTORE_OK, S.BTN_CANCEL, enabled=[bool(self._password), True]
         )
@@ -680,7 +680,7 @@ class BackupsPlugin:
         if job is not None and not done:
             self._render_progress(job)
         elif job is not None and job.future.exception() is not None:
-            imgui.push_style_color(imgui.Col_.text, _ERR_COLOR)
+            imgui.push_style_color(imgui.Col_.text, status_color("error"))
             imgui.text_wrapped(S.FAILED.format(error=job.future.exception()))
             imgui.pop_style_color()
         elif job is not None:

@@ -11,7 +11,7 @@ from itertools import count
 
 from imgui_bundle import imgui
 
-from editor_gui.color import themed
+from editor_gui.theme import status_color
 from editor_gui.widgets.dpi import px
 
 # How many show at once (the newest), and how wide a line of one gets before it wraps.
@@ -117,13 +117,7 @@ class Toasts:
                 imgui.get_color_u32(colors[0]),
                 imgui.get_style().frame_rounding,
             )
-        text_color = (
-            colors[1]
-            if colors is not None
-            else themed(
-                imgui.ImVec4(0.45, 0.8, 0.5, 1.0), imgui.ImVec4(0.1, 0.5, 0.2, 1.0)
-            )
-        )
+        text_color = colors[1] if colors is not None else status_color("success")
         imgui.set_cursor_screen_pos(imgui.ImVec2(start.x + pad.x, start.y + pad.y))
         imgui.push_text_wrap_pos(imgui.get_cursor_pos_x() + wrap)
         imgui.text_colored(text_color, toast.text)

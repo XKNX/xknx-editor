@@ -20,6 +20,7 @@ from typing import Protocol
 from imgui_bundle import imgui
 
 from editor_gui.plugins.project.strings import S
+from editor_gui.theme import status_color
 from editor_gui.widgets.checkbox import radio_beside_field, radio_button
 from editor_gui.widgets.combo import combo
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
@@ -234,7 +235,7 @@ class AddDialog:
         if self._numbered:
             self._render_generate()
         if self._error:
-            imgui.text_colored(imgui.ImVec4(1.0, 0.42, 0.42, 1.0), self._error)
+            imgui.text_colored(status_color("error"), self._error)
         clicked = dialog_buttons(S.BTN_OK, S.BTN_CANCEL)
         if clicked == 0:
             imgui.close_current_popup()

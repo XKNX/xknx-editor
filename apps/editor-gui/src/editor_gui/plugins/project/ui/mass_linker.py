@@ -27,6 +27,7 @@ from imgui_bundle import imgui
 from editor_gui.device import address_order, device_label
 from editor_gui.plugins.project.strings import S
 from editor_gui.plugins.project.ui._filter import filter_box
+from editor_gui.theme import status_color
 from editor_gui.widgets.checkbox import checkbox
 from editor_gui.widgets.combo import begin_combo
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
@@ -77,12 +78,22 @@ def _co_text(co: ComObject) -> str:
     return "  ".join(parts)
 
 
-_STATUS_STYLE: dict[str, tuple[imgui.ImVec4, str]] = {
-    "ready": (imgui.ImVec4(0.45, 0.80, 0.50, 1.0), "OK"),
-    "ambiguous": (imgui.ImVec4(0.90, 0.75, 0.35, 1.0), "!"),
-    "incompatible": (imgui.ImVec4(0.90, 0.45, 0.45, 1.0), "x"),
-    "unmatched": (imgui.ImVec4(0.55, 0.55, 0.55, 1.0), "-"),
+# The status color (see ``status_color``, None: dimmed) and glyph of each row status.
+_STATUS_STYLE: dict[str, tuple[str | None, str]] = {
+    "ready": ("success", "OK"),
+    "ambiguous": ("warning", "!"),
+    "incompatible": ("error", "x"),
+    "unmatched": (None, "-"),
 }
+
+
+def _status_glyph(status: str) -> None:
+    """The glyph of a row's ``status`` in its color."""
+    kind, glyph = _STATUS_STYLE.get(status, _STATUS_STYLE["unmatched"])
+    if kind is None:
+        imgui.text_disabled(glyph)
+    else:
+        imgui.text_colored(status_color(kind), glyph)
 
 
 def _status_of(
@@ -449,8 +460,7 @@ class MassLinkerPanel:
                 continue
             imgui.table_next_row()
             imgui.table_set_column_index(0)
-            color, glyph = _STATUS_STYLE.get(row.status, _STATUS_STYLE["unmatched"])
-            imgui.text_colored(color, glyph)
+            _status_glyph(row.status)
             if imgui.is_item_hovered():
                 imgui.set_tooltip(_status_tip(row.status))
             imgui.table_set_column_index(1)
@@ -806,7 +816,7 @@ class MassLinkerPanel:
             text, until = self._notice
             if time.monotonic() < until:
                 # On its own line under the buttons, where it is seen after the click.
-                imgui.text_colored(_STATUS_STYLE["ambiguous"][0], text)
+                imgui.text_colored(status_color("warning"), text)
             else:
                 self._notice = None
 

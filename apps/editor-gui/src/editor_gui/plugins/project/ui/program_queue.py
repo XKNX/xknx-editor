@@ -14,17 +14,15 @@ from imgui_bundle import hello_imgui, imgui
 from editor_gui.plugins.project.device_info_view import Toned
 from editor_gui.plugins.project.program_queue import OperationState, QueueItem
 from editor_gui.plugins.project.strings import S
+from editor_gui.theme import status_color
 from editor_gui.widgets.tabs import begin_tab_bar
 from xknxeditor.download.scope import DownloadScope
 
 # Seconds a script may ignore Cancel before Force stop is offered.
 FORCE_STOP_AFTER = 10.0
 
-_RED = imgui.ImVec4(0.9, 0.4, 0.4, 1.0)
+# The fill of the warning triangle.
 _WARNING = imgui.ImVec4(0.95, 0.75, 0.2, 1.0)
-# Result values that match the project, and ones that differ from it.
-_OK = imgui.ImVec4(0.45, 0.8, 0.45, 1.0)
-_DIFFERS = imgui.ImVec4(0.95, 0.55, 0.35, 1.0)
 
 
 class ProgramQueuePanel:
@@ -153,7 +151,7 @@ class ProgramQueuePanel:
             imgui.text_wrapped(item.script.text)
         failed = item.state is OperationState.FAILED
         if failed:
-            imgui.push_style_color(imgui.Col_.text, _RED)
+            imgui.push_style_color(imgui.Col_.text, status_color("error"))
         state = state_text(item, self._is_connecting(item))
         # A bus operation is named in the line above already.
         is_open = imgui.tree_node_ex(
@@ -222,7 +220,7 @@ def _render_full_download_question(item: QueueItem) -> None:
 
 def _render_details(item: QueueItem) -> None:
     if item.message:
-        imgui.push_style_color(imgui.Col_.text, _RED)
+        imgui.push_style_color(imgui.Col_.text, status_color("error"))
         imgui.text_wrapped(item.message)
         imgui.pop_style_color()
     elif item.details:
@@ -257,7 +255,9 @@ def _render_result(sections: list[tuple[str, list[tuple[str, str]]]]) -> None:
             if tone is None:
                 imgui.text(value)
             else:
-                imgui.text_colored(_OK if tone == "ok" else _DIFFERS, value)
+                # A value that matches the project, or one that differs from it.
+                kind = "success" if tone == "ok" else "warning"
+                imgui.text_colored(status_color(kind), value)
     imgui.end_table()
     imgui.spacing()
 
