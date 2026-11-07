@@ -1162,3 +1162,34 @@ def test_an_error_in_a_panel_does_not_end_the_frame(hub: WebHub) -> None:
     finally:
         imgui.destroy_context(context)
     assert reports == [("panel", "ValueError: boom")]
+
+
+def test_frames_nobody_sees_come_now_and_then() -> None:
+    period = web.frame_period
+    # The user acts: the full rate; a browser looks on: the idle rate.
+    assert period(active=True, connected=True, fps=6.0, idle_fps=6.0) == 1 / 60
+    assert period(active=False, connected=True, fps=6.0, idle_fps=6.0) == 1 / 6
+    # No browser: a frame now and then only, unless a task shows its progress.
+    assert period(active=False, connected=False, fps=6.0, idle_fps=6.0) == 2.0
+    assert period(active=False, connected=False, fps=30.0, idle_fps=6.0) == 1 / 30
+
+
+def test_work_for_the_main_thread_starts_a_frame(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import threading
+    from types import SimpleNamespace
+
+    from editor_gui.concurrency import MainThreadExecutor
+
+    wake = threading.Event()
+    monkeypatch.setattr(web, "active_hub", SimpleNamespace(wake=wake))
+    executor = MainThreadExecutor(wake=web.wake_frame)
+    future = executor.submit(lambda: 42)
+    # The frame loop waiting for the next frame wakes at once, and runs the work.
+    assert wake.is_set()
+    executor.drain()
+    assert future.result(timeout=1) == 42
+    # Outside the browser view there is nothing to wake.
+    monkeypatch.setattr(web, "active_hub", None)
+    web.wake_frame()

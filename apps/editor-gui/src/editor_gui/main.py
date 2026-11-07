@@ -134,7 +134,7 @@ from editor_gui.update_check import (
     UpdateInfo,
     fetch_update,
 )
-from editor_gui.web import enable_web_mode, web_options
+from editor_gui.web import enable_web_mode, wake_frame, web_options
 from editor_gui.widgets.checkbox import checkbox, radio_button
 from editor_gui.widgets.combo import begin_combo
 from editor_gui.widgets.description import set_secure_devices
@@ -725,7 +725,7 @@ class KnxGuiApp:
         # start.
         self._mcp_error: str | None = None
         # Runs MCP tool bodies on this (imgui) thread; drained each frame in gui_menu.
-        self._ui_executor = MainThreadExecutor()
+        self._ui_executor = MainThreadExecutor(wake=wake_frame)
         # Transient toasts, auto-raised from warning/error log records (visible failure feedback).
         self._toasts = Toasts()
         self._toast_seen_ts = time.time()
