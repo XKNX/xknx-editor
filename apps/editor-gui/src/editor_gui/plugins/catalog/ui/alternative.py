@@ -14,6 +14,7 @@ from imgui_bundle import imgui
 from editor_gui.os_open import open_url
 from editor_gui.plugins.catalog.alternative import (
     AlternativeCatalogClient,
+    AlternativeCatalogError,
     AlternativeEntry,
     program_version_text,
 )
@@ -26,6 +27,26 @@ from editor_gui.widgets.filter_box import filter_box
 from editor_gui.widgets.flow import button_width, fits_beside, same_line_if_fits
 from editor_gui.widgets.spinner import loading
 from editor_gui.widgets.tables import begin_data_table, data_table_headers
+
+
+def error_text(exc: Exception) -> str:
+    """What the user reads for a failure: a text of ours, in the UI's language, for the ones we
+    know (the server words its errors in its own language), else the error itself."""
+    texts = {
+        "INVALID_CREDENTIALS": S.ALTERNATIVE_ERROR_LOGIN,
+        "NO_ACCOUNT": S.ALTERNATIVE_ERROR_NO_ACCOUNT,
+        "DOWNLOAD_DAILY_LIMIT": S.ALTERNATIVE_ERROR_DAILY_LIMIT,
+        "RATE_LIMIT": S.ALTERNATIVE_ERROR_BUSY,
+        "USERNAME": S.ALTERNATIVE_ERROR_USERNAME,
+        "PASSWORD": S.ALTERNATIVE_ERROR_PASSWORD,
+        "VERIFICATION_CODE": S.ALTERNATIVE_ERROR_CODE,
+    }
+    code = getattr(exc, "code", "")
+    if isinstance(code, str) and code in texts:
+        return texts[code]
+    if isinstance(exc, AlternativeCatalogError) and exc.status in (429, 503):
+        return S.ALTERNATIVE_ERROR_BUSY
+    return str(exc)
 
 
 class AlternativeCatalogPanel:
@@ -109,13 +130,16 @@ class AlternativeCatalogPanel:
                 )
             elif self._action == "registration":
                 self._registration = result["status"]
-                self._message = result["message"]
+                # The server's message is in its own language; a known state has a text of
+                # ours below (in the UI's language), which says the same.
+                known = result["status"] in ("unverified", "pending")
+                self._message = "" if known else result["message"]
                 self._user = self._client.settings.user
                 self._password = self._repeat = self._code = ""
             else:
                 self._message = ""
         except Exception as exc:
-            self._message = str(exc)
+            self._message = error_text(exc)
         finally:
             self._future = None
 
@@ -305,7 +329,7 @@ class AlternativeCatalogPanel:
                 self._selected = None
                 self._submit("refresh", self._client.refresh)
             except Exception as exc:
-                self._message = str(exc)
+                self._message = error_text(exc)
         # No account yet: registering at the server, in a dialog.
         same_line_if_fits(button_width(S.ALTERNATIVE_REGISTER_OPEN))
         if imgui.button(S.ALTERNATIVE_REGISTER_OPEN):
@@ -343,7 +367,7 @@ class AlternativeCatalogPanel:
                 self._password = self._repeat = ""
                 self._submit("registration", self._client.resume_registration)
             except Exception as exc:
-                self._message = str(exc)
+                self._message = error_text(exc)
         imgui.text_unformatted(S.ALTERNATIVE_CODE)
         imgui.set_next_item_width(-1)
         _, self._code = imgui.input_text("##registration_code", self._code)

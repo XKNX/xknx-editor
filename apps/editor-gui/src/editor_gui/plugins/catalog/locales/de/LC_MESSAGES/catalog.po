@@ -283,3 +283,24 @@ msgid "Register…"
 msgstr "Registrieren…"
 msgid "Alternative Catalog"
 msgstr "Alternativer Katalog"
+
+msgid "The login was refused: the username or password is wrong, or the account is not approved yet."
+msgstr "Die Anmeldung wurde abgelehnt: Benutzername oder Passwort sind falsch, oder das Konto ist noch nicht freigeschaltet."
+
+msgid "Enter your username and password, or register, before downloading."
+msgstr "Geben Sie vor dem Herunterladen Ihren Benutzernamen und Ihr Passwort ein, oder registrieren Sie sich."
+
+msgid "The daily download limit is reached. Try again tomorrow."
+msgstr "Das tägliche Download-Limit ist erreicht. Versuchen Sie es morgen wieder."
+
+msgid "The catalog server is busy. Try again in a moment."
+msgstr "Der Katalogserver ist ausgelastet. Versuchen Sie es gleich noch einmal."
+
+msgid "Enter an email address and a username of 3 to 32 letters, digits, dots, underscores or hyphens."
+msgstr "Geben Sie eine E-Mail-Adresse und einen Benutzernamen aus 3 bis 32 Buchstaben, Ziffern, Punkten, Unterstrichen oder Bindestrichen ein."
+
+msgid "The password needs at least 10 characters with upper and lower case letters, a digit and a special character."
+msgstr "Das Passwort braucht mindestens 10 Zeichen mit Groß- und Kleinbuchstaben, einer Ziffer und einem Sonderzeichen."
+
+msgid "Enter the six-digit code from the email."
+msgstr "Geben Sie den sechsstelligen Code aus der E-Mail ein."

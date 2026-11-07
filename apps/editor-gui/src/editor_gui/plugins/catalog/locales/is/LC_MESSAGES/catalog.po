@@ -281,3 +281,24 @@ msgid "Register…"
 msgstr "Nýskráning…"
 msgid "Alternative Catalog"
 msgstr "Alternative Catalog"
+
+msgid "The login was refused: the username or password is wrong, or the account is not approved yet."
+msgstr "Innskráningu var hafnað: notandanafn eða lykilorð er rangt, eða aðgangurinn hefur ekki enn verið samþykktur."
+
+msgid "Enter your username and password, or register, before downloading."
+msgstr "Sláðu inn notandanafn og lykilorð, eða skráðu þig, áður en þú sækir."
+
+msgid "The daily download limit is reached. Try again tomorrow."
+msgstr "Daglegu niðurhalshámarki er náð. Reyndu aftur á morgun."
+
+msgid "The catalog server is busy. Try again in a moment."
+msgstr "Vörulistaþjónninn er upptekinn. Reyndu aftur eftir smástund."
+
+msgid "Enter an email address and a username of 3 to 32 letters, digits, dots, underscores or hyphens."
+msgstr "Sláðu inn netfang og notandanafn með 3 til 32 bókstöfum, tölustöfum, punktum, undirstrikum eða bandstrikum."
+
+msgid "The password needs at least 10 characters with upper and lower case letters, a digit and a special character."
+msgstr "Lykilorðið þarf að minnsta kosti 10 stafi með há- og lágstöfum, tölustaf og sérstaf."
+
+msgid "Enter the six-digit code from the email."
+msgstr "Sláðu inn sex stafa kóðann úr tölvupóstinum."

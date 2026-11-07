@@ -278,3 +278,24 @@ msgid "Register…"
 msgstr "Kayıt ol…"
 msgid "Alternative Catalog"
 msgstr "Alternative Catalog"
+
+msgid "The login was refused: the username or password is wrong, or the account is not approved yet."
+msgstr "Oturum açma reddedildi: kullanıcı adı veya parola yanlış ya da hesap henüz onaylanmadı."
+
+msgid "Enter your username and password, or register, before downloading."
+msgstr "İndirmeden önce kullanıcı adınızı ve parolanızı girin veya kaydolun."
+
+msgid "The daily download limit is reached. Try again tomorrow."
+msgstr "Günlük indirme sınırına ulaşıldı. Yarın yeniden deneyin."
+
+msgid "The catalog server is busy. Try again in a moment."
+msgstr "Katalog sunucusu meşgul. Biraz sonra yeniden deneyin."
+
+msgid "Enter an email address and a username of 3 to 32 letters, digits, dots, underscores or hyphens."
+msgstr "Bir e-posta adresi ve harf, rakam, nokta, alt çizgi veya kısa çizgiden oluşan 3 ila 32 karakterlik bir kullanıcı adı girin."
+
+msgid "The password needs at least 10 characters with upper and lower case letters, a digit and a special character."
+msgstr "Parola, büyük ve küçük harf, bir rakam ve bir özel karakter içeren en az 10 karakterden oluşmalıdır."
+
+msgid "Enter the six-digit code from the email."
+msgstr "E-postadaki altı haneli kodu girin."
