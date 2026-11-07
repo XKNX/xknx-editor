@@ -1167,8 +1167,9 @@ _SHADOWED: list[tuple[DynamicUI, frozenset[str]]] = []
 def _shadowed(ui: DynamicUI, ref_id: str) -> bool:
     """Whether an active ParameterRef of the application comes before an active hidden one with a
     fixed value (see :func:`_fixed_values`) of the same parameter in the order a download writes
-    them (``parameter_ref_order``): that one sets the memory, so the device keeps no copy of this
-    one's value, which can still decide what is shown."""
+    them (``parameter_ref_order``), or its union member before an active one of the union over
+    the same bits: that one sets the memory, so the device keeps no copy of this one's value,
+    which can still decide what is shown."""
     for seen, shadowed in _SHADOWED:
         if seen is ui:
             return ref_id in shadowed
@@ -1191,6 +1192,11 @@ def _shadowed(ui: DynamicUI, ref_id: str) -> bool:
         ordered = [active for _order, active in sorted(refs)]
         for n, active in enumerate(ordered):
             if any(later in hidden for later in ordered[n + 1 :]):
+                found.add(active)
+    actives = ui.active_parameter_ref_ids()
+    for refs in by_parameter.values():
+        for _order, active in refs:
+            if ui.later_union_members(active) & actives:
                 found.add(active)
     _SHADOWED.insert(0, (ui, frozenset(found)))
     del _SHADOWED[8:]

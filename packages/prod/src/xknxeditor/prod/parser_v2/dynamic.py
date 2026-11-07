@@ -223,6 +223,22 @@ class _UnionCompetitors:
             self._cache[mid] = competitors or None
         return self._cache[mid]
 
+    def later(self, ref_id: str) -> set[str]:
+        """The parameter-refs of the members of ``ref_id``'s union after its own member (in the
+        order a download writes them) whose bits overlap its own: one of them active, its value
+        is what the memory holds."""
+        mid = self._member_of.get(ref_id)
+        if mid is None:
+            return set()
+        order = self._by_union[self._members[mid][0]]
+        after = order[order.index(mid) + 1 :]
+        return {
+            r
+            for m2 in after
+            if m2 in self._member_refs and self._overlap(mid, m2)
+            for r in self._member_refs[m2]
+        }
+
 
 def _modules(elems: Iterable[object]) -> Iterator[Module]:
     """Every Module element in ``elems`` and below them (choose branches, repeats, blocks), not
@@ -261,6 +277,8 @@ class DynamicTreeBuilder:
         # render every union member's Choose branch, duplicating content (issue: MDT Glas push
         # button "Display mode" — two ViewMode union members both rendered).
         self._union_sibling_refs = self._build_union_sibling_refs(app)
+        # The same, for DynamicUI.later_union_members.
+        self.union_competitors = self._union_sibling_refs
         # Some applications (e.g. simple power supplies / couplers) carry no <Dynamic> section, or
         # one that produces no tree. Such a device has no parameters/objects to show — build an
         # empty tree so it still appears in the project instead of failing to load.
@@ -938,6 +956,7 @@ class DynamicUI:
         "_state",
         "_tree",
         "_ui",
+        "_union_competitors",
         "project_code_page",
         "script_abort",
         "script_env",
@@ -967,6 +986,7 @@ class DynamicUI:
         self._parameter_gates = builder.parameter_gates
         self._object_gates = builder.object_gates
         self._module_gates = builder.module_gates
+        self._union_competitors = builder.union_competitors
         self._page_for = builder.page_param_for
         self._state = GlobalState.from_project(
             parameter_instance_refs=parameter_instance_refs,
@@ -1750,6 +1770,12 @@ class DynamicUI:
     def active_parameter_ref_ids(self) -> frozenset[str]:
         self.ui()
         return frozenset(self._state.active_param_refs())
+
+    def later_union_members(self, ref_id: str) -> set[str]:
+        """The param-refs of the members of ``ref_id``'s union written after its own member over
+        the same bits (an application's union; empty for any other ref): when one is active,
+        the memory holds its value, not ``ref_id``'s."""
+        return self._union_competitors.later(ref_id)
 
     def explore_parameters(self) -> list[Placement]:
         """Every place of every parameter in the tree, whatever the current values select, with
