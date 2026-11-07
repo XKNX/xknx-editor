@@ -161,7 +161,10 @@ async def _request_answered_after(
     device.replies = [first]
 
     async def answer_later() -> None:
-        await asyncio.sleep(0.01)
+        # A few turns of the event loop, not wall-clock time: on a busy machine a sleep
+        # of its own could outlast the shortened connection timeout.
+        for _ in range(5):
+            await asyncio.sleep(0)
         device.answer(_PROPERTY_ANSWER)
 
     task = asyncio.create_task(answer_later())
