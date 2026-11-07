@@ -100,35 +100,33 @@ msgstr "Ikke koblet til en KNX-buss."
 msgid "Open or create a project to add recovered devices."
 msgstr "Åpne eller opprett et prosjekt for å legge til gjenopprettede enheter."
 
-msgid "matched"
-msgstr "samsvarer"
+msgid "Product found"
+msgstr "Produkt funnet"
 
-msgid "confirm product/version, then tick"
-msgstr "bekreft produkt/versjon, og kryss deretter av"
+msgid "Check the product and version, then select it"
+msgstr "Kontroller produkt og versjon, og velg det deretter"
 
-msgid "not in catalog - import via Catalog"
-msgstr "ikke i katalogen - importer via Katalog"
+msgid "Not in the catalog: import its product in the Catalog"
+msgstr "Ikke i katalogen: importer produktet i Katalog"
 
-msgid "unprogrammed"
-msgstr "uprogrammert"
+msgid "Not programmed"
+msgstr "Ikke programmert"
 
-msgid "recovered"
-msgstr "gjenopprettet"
 
-msgid "already in project - skipped"
-msgstr "allerede i prosjektet - hoppet over"
+msgid "Already in the project, skipped"
+msgstr "Allerede i prosjektet, hoppet over"
 
-msgid "error"
-msgstr "feil"
+msgid "Error"
+msgstr "Feil"
 
 msgid "%d parameters could not be recovered"
 msgstr "%d parametre kunne ikke gjenopprettes"
 
-msgid "%(count)d device(s) could not be added; the reason is in the Recovered column."
-msgstr "%(count)d enhet(er) kunne ikke legges til; årsaken står i kolonnen «Gjenopprettet»."
+msgid "%(count)d device(s) could not be added; the reason is in the Result column."
+msgstr "%(count)d enhet(er) kunne ikke legges til; årsaken står i kolonnen «Resultat»."
 
-msgid "recovered (incomplete)"
-msgstr "gjenopprettet (ufullstendig)"
+msgid "Recovered (incomplete)"
+msgstr "Gjenopprettet (ufullstendig)"
 
 msgid "Search Effort"
 msgstr "Søkeinnsats"
@@ -162,3 +160,21 @@ msgstr "mer søkeinnsats kan hjelpe"
 
 msgid "Unlimited"
 msgstr "Ubegrenset"
+
+msgid "Result"
+msgstr "Resultat"
+
+msgid "Not read yet"
+msgstr "Ikke lest ennå"
+
+msgid "%(group_addresses)d group addresses, %(links)d links, %(parameters)d parameters"
+msgstr "%(group_addresses)d gruppeadresser, %(links)d koblinger, %(parameters)d parametere"
+
+msgid "%(count)d unknown"
+msgstr "%(count)d ukjente"
+
+msgid "Verified"
+msgstr "Kontrollert"
+
+msgid "Verify: %(bytes)d byte(s) differ"
+msgstr "Kontroll: %(bytes)d byte avviker"

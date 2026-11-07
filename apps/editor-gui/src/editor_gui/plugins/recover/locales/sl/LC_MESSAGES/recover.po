@@ -106,35 +106,33 @@ msgstr "Ni povezave z vodilom KNX."
 msgid "Open or create a project to add recovered devices."
 msgstr "Odprite ali ustvarite projekt, da dodate obnovljene naprave."
 
-msgid "matched"
-msgstr "ujemanje"
+msgid "Product found"
+msgstr "Izdelek najden"
 
-msgid "confirm product/version, then tick"
-msgstr "potrdite izdelek/različico, nato označite"
+msgid "Check the product and version, then select it"
+msgstr "Preverite izdelek in različico, nato ga izberite"
 
-msgid "not in catalog - import via Catalog"
-msgstr "ni v katalogu – uvozite prek kataloga"
+msgid "Not in the catalog: import its product in the Catalog"
+msgstr "Ni v katalogu: uvozite njegov izdelek v Katalogu"
 
-msgid "unprogrammed"
-msgstr "neprogramirano"
+msgid "Not programmed"
+msgstr "Ni programirano"
 
-msgid "recovered"
-msgstr "obnovljeno"
 
-msgid "error"
-msgstr "napaka"
+msgid "Error"
+msgstr "Napaka"
 
 msgid "%d parameters could not be recovered"
 msgstr "Parametri, ki jih ni bilo mogoče obnoviti: %d"
 
-msgid "already in project - skipped"
-msgstr "že v projektu – preskočeno"
+msgid "Already in the project, skipped"
+msgstr "Že v projektu, preskočeno"
 
-msgid "%(count)d device(s) could not be added; the reason is in the Recovered column."
-msgstr "Naprav ni bilo mogoče dodati: %(count)d; razlog je v stolpcu »Obnovljeno«."
+msgid "%(count)d device(s) could not be added; the reason is in the Result column."
+msgstr "Naprav ni bilo mogoče dodati: %(count)d; razlog je v stolpcu »Rezultat«."
 
-msgid "recovered (incomplete)"
-msgstr "obnovljeno (nepopolno)"
+msgid "Recovered (incomplete)"
+msgstr "Obnovljeno (nepopolno)"
 
 msgid "Search Effort"
 msgstr "Obseg Iskanja"
@@ -168,3 +166,21 @@ msgstr "večji obseg iskanja lahko pomaga"
 
 msgid "Unlimited"
 msgstr "Neomejeno"
+
+msgid "Result"
+msgstr "Rezultat"
+
+msgid "Not read yet"
+msgstr "Še ni prebrano"
+
+msgid "%(group_addresses)d group addresses, %(links)d links, %(parameters)d parameters"
+msgstr "Skupinski naslovi: %(group_addresses)d, povezave: %(links)d, parametri: %(parameters)d"
+
+msgid "%(count)d unknown"
+msgstr "Neznano: %(count)d"
+
+msgid "Verified"
+msgstr "Preverjeno"
+
+msgid "Verify: %(bytes)d byte(s) differ"
+msgstr "Preverjanje: razlikuje se bajtov: %(bytes)d"

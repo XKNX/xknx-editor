@@ -100,35 +100,33 @@ msgstr "Δεν υπάρχει σύνδεση με bus KNX."
 msgid "Open or create a project to add recovered devices."
 msgstr "Ανοίξτε ή δημιουργήστε ένα έργο για να προσθέσετε ανακτημένες συσκευές."
 
-msgid "matched"
-msgstr "αντιστοιχεί"
+msgid "Product found"
+msgstr "Βρέθηκε προϊόν"
 
-msgid "confirm product/version, then tick"
-msgstr "επιβεβαιώστε προϊόν/έκδοση και, στη συνέχεια, επιλέξτε"
+msgid "Check the product and version, then select it"
+msgstr "Ελέγξτε το προϊόν και την έκδοση και μετά επιλέξτε το"
 
-msgid "not in catalog - import via Catalog"
-msgstr "δεν υπάρχει στον κατάλογο - εισαγωγή μέσω Καταλόγου"
+msgid "Not in the catalog: import its product in the Catalog"
+msgstr "Δεν υπάρχει στον κατάλογο: εισαγάγετε το προϊόν του στον Κατάλογο"
 
-msgid "unprogrammed"
-msgstr "μη προγραμματισμένη"
+msgid "Not programmed"
+msgstr "Μη προγραμματισμένη"
 
-msgid "recovered"
-msgstr "ανακτήθηκε"
 
-msgid "already in project - skipped"
-msgstr "ήδη στο έργο - παραλείφθηκε"
+msgid "Already in the project, skipped"
+msgstr "Ήδη στο έργο, παραλείφθηκε"
 
-msgid "error"
-msgstr "σφάλμα"
+msgid "Error"
+msgstr "Σφάλμα"
 
 msgid "%d parameters could not be recovered"
 msgstr "%d παράμετροι δεν ήταν δυνατό να ανακτηθούν"
 
-msgid "%(count)d device(s) could not be added; the reason is in the Recovered column."
-msgstr "Δεν ήταν δυνατή η προσθήκη %(count)d συσκευής(-ών)· η αιτία αναφέρεται στη στήλη «Ανακτήθηκε»."
+msgid "%(count)d device(s) could not be added; the reason is in the Result column."
+msgstr "Δεν ήταν δυνατή η προσθήκη %(count)d συσκευής(-ών)· η αιτία αναφέρεται στη στήλη «Αποτέλεσμα»."
 
-msgid "recovered (incomplete)"
-msgstr "ανακτήθηκε (ελλιπές)"
+msgid "Recovered (incomplete)"
+msgstr "Ανακτήθηκε (ελλιπές)"
 
 msgid "Search Effort"
 msgstr "Έκταση Αναζήτησης"
@@ -162,3 +160,21 @@ msgstr "μεγαλύτερη έκταση αναζήτησης μπορεί να
 
 msgid "Unlimited"
 msgstr "Απεριόριστη"
+
+msgid "Result"
+msgstr "Αποτέλεσμα"
+
+msgid "Not read yet"
+msgstr "Δεν έχει διαβαστεί ακόμη"
+
+msgid "%(group_addresses)d group addresses, %(links)d links, %(parameters)d parameters"
+msgstr "%(group_addresses)d διευθύνσεις ομάδας, %(links)d συνδέσεις, %(parameters)d παράμετροι"
+
+msgid "%(count)d unknown"
+msgstr "%(count)d άγνωστες"
+
+msgid "Verified"
+msgstr "Επαληθεύτηκε"
+
+msgid "Verify: %(bytes)d byte(s) differ"
+msgstr "Επαλήθευση: διαφέρουν %(bytes)d byte"

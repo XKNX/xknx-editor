@@ -50,7 +50,7 @@ def _fake_bus(
     # No download of missing products from the online catalog.
     monkeypatch.setattr(service, "_start_autofetch", lambda: None)
     monkeypatch.setattr(connection, "begin_operation", begin)
-    monkeypatch.setattr(connection, "end_operation", lambda: None)
+    monkeypatch.setattr(connection, "end_operation", lambda *_args: None)
     monkeypatch.setattr(connection, "run_async", run_async)
     return begun
 

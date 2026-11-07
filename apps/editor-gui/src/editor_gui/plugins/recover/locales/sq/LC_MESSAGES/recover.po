@@ -100,35 +100,33 @@ msgstr "Nuk ka lidhje me një bus KNX."
 msgid "Open or create a project to add recovered devices."
 msgstr "Hapni ose krijoni një projekt për të shtuar pajisjet e rikuperuara."
 
-msgid "matched"
-msgstr "përputhet"
+msgid "Product found"
+msgstr "Produkti u gjet"
 
-msgid "confirm product/version, then tick"
-msgstr "konfirmoni produktin/versionin, pastaj shënojeni"
+msgid "Check the product and version, then select it"
+msgstr "Kontrolloni produktin dhe versionin, pastaj zgjidheni"
 
-msgid "not in catalog - import via Catalog"
-msgstr "nuk është në katalog - importojeni përmes Katalogut"
+msgid "Not in the catalog: import its product in the Catalog"
+msgstr "Nuk është në katalog: importojeni produktin e tij në Katalog"
 
-msgid "unprogrammed"
-msgstr "e paprogramuar"
+msgid "Not programmed"
+msgstr "I paprogramuar"
 
-msgid "recovered"
-msgstr "rikuperuar"
 
-msgid "already in project - skipped"
-msgstr "tashmë në projekt - u anashkalua"
+msgid "Already in the project, skipped"
+msgstr "Tashmë në projekt, u anashkalua"
 
-msgid "error"
-msgstr "gabim"
+msgid "Error"
+msgstr "Gabim"
 
 msgid "%d parameters could not be recovered"
 msgstr "%d parametra nuk u rikuperuan"
 
-msgid "%(count)d device(s) could not be added; the reason is in the Recovered column."
-msgstr "%(count)d pajisje nuk mund të shtoheshin; arsyeja është në kolonën “Rikuperuar”."
+msgid "%(count)d device(s) could not be added; the reason is in the Result column."
+msgstr "%(count)d pajisje nuk mund të shtoheshin; arsyeja është në kolonën “Rezultati”."
 
-msgid "recovered (incomplete)"
-msgstr "rikuperuar (jo i plotë)"
+msgid "Recovered (incomplete)"
+msgstr "Rikuperuar (jo i plotë)"
 
 msgid "Search Effort"
 msgstr "Përpjekja e Kërkimit"
@@ -162,3 +160,21 @@ msgstr "më shumë përpjekje kërkimi mund të ndihmojë"
 
 msgid "Unlimited"
 msgstr "Pa kufi"
+
+msgid "Result"
+msgstr "Rezultati"
+
+msgid "Not read yet"
+msgstr "Ende i palexuar"
+
+msgid "%(group_addresses)d group addresses, %(links)d links, %(parameters)d parameters"
+msgstr "%(group_addresses)d adresa grupi, %(links)d lidhje, %(parameters)d parametra"
+
+msgid "%(count)d unknown"
+msgstr "%(count)d të panjohura"
+
+msgid "Verified"
+msgstr "U verifikua"
+
+msgid "Verify: %(bytes)d byte(s) differ"
+msgstr "Verifikimi: ndryshojnë %(bytes)d bajt"

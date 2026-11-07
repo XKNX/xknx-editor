@@ -100,35 +100,33 @@ msgstr "Não conectado a um bus KNX."
 msgid "Open or create a project to add recovered devices."
 msgstr "Abra ou crie um projeto para adicionar dispositivos recuperados."
 
-msgid "matched"
-msgstr "correspondente"
+msgid "Product found"
+msgstr "Produto encontrado"
 
-msgid "confirm product/version, then tick"
-msgstr "confirmar produto/versão e depois marcar"
+msgid "Check the product and version, then select it"
+msgstr "Verifique o produto e a versão e depois selecione-o"
 
-msgid "not in catalog - import via Catalog"
-msgstr "fora do catálogo - importar através do Catálogo"
+msgid "Not in the catalog: import its product in the Catalog"
+msgstr "Fora do catálogo: importe o seu produto no Catálogo"
 
-msgid "unprogrammed"
-msgstr "não programado"
+msgid "Not programmed"
+msgstr "Não programado"
 
-msgid "recovered"
-msgstr "recuperado"
 
-msgid "already in project - skipped"
-msgstr "já no projeto - ignorado"
+msgid "Already in the project, skipped"
+msgstr "Já está no projeto, ignorado"
 
-msgid "error"
-msgstr "erro"
+msgid "Error"
+msgstr "Erro"
 
 msgid "%d parameters could not be recovered"
 msgstr "Não foi possível recuperar %d parâmetros"
 
-msgid "%(count)d device(s) could not be added; the reason is in the Recovered column."
-msgstr "Não foi possível adicionar %(count)d dispositivo(s); o motivo está na coluna \"Recuperado\"."
+msgid "%(count)d device(s) could not be added; the reason is in the Result column."
+msgstr "Não foi possível adicionar %(count)d dispositivo(s); o motivo está na coluna \"Resultado\"."
 
-msgid "recovered (incomplete)"
-msgstr "recuperado (incompleto)"
+msgid "Recovered (incomplete)"
+msgstr "Recuperado (incompleto)"
 
 msgid "Search Effort"
 msgstr "Esforço de Pesquisa"
@@ -162,3 +160,21 @@ msgstr "mais esforço de pesquisa pode ajudar"
 
 msgid "Unlimited"
 msgstr "Ilimitado"
+
+msgid "Result"
+msgstr "Resultado"
+
+msgid "Not read yet"
+msgstr "Ainda não lido"
+
+msgid "%(group_addresses)d group addresses, %(links)d links, %(parameters)d parameters"
+msgstr "%(group_addresses)d endereços de grupo, %(links)d ligações, %(parameters)d parâmetros"
+
+msgid "%(count)d unknown"
+msgstr "%(count)d desconhecido(s)"
+
+msgid "Verified"
+msgstr "Verificado"
+
+msgid "Verify: %(bytes)d byte(s) differ"
+msgstr "Verificação: %(bytes)d byte(s) diferem"

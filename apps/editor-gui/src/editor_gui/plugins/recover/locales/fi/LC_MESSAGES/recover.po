@@ -100,35 +100,33 @@ msgstr "Ei yhteyttä KNX-väylään."
 msgid "Open or create a project to add recovered devices."
 msgstr "Avaa tai luo projekti, jotta voit lisätä palautetut laitteet."
 
-msgid "matched"
-msgstr "vastaa"
+msgid "Product found"
+msgstr "Tuote löytyi"
 
-msgid "confirm product/version, then tick"
-msgstr "vahvista tuote/versio ja merkitse sitten"
+msgid "Check the product and version, then select it"
+msgstr "Tarkista tuote ja versio ja valitse se sitten"
 
-msgid "not in catalog - import via Catalog"
-msgstr "ei luettelossa — tuo Luettelo-toiminnolla"
+msgid "Not in the catalog: import its product in the Catalog"
+msgstr "Ei luettelossa: tuo sen tuote Luettelossa"
 
-msgid "unprogrammed"
-msgstr "ohjelmoimaton"
+msgid "Not programmed"
+msgstr "Ei ohjelmoitu"
 
-msgid "recovered"
-msgstr "palautettu"
 
-msgid "already in project - skipped"
-msgstr "jo projektissa - ohitettu"
+msgid "Already in the project, skipped"
+msgstr "Jo projektissa, ohitettu"
 
-msgid "error"
-msgstr "virhe"
+msgid "Error"
+msgstr "Virhe"
 
 msgid "%d parameters could not be recovered"
 msgstr "Parametreja, joita ei voitu palauttaa: %d"
 
-msgid "%(count)d device(s) could not be added; the reason is in the Recovered column."
-msgstr "Laitteita ei voitu lisätä: %(count)d; syy näkyy sarakkeessa ”Palautettu”."
+msgid "%(count)d device(s) could not be added; the reason is in the Result column."
+msgstr "Laitteita ei voitu lisätä: %(count)d; syy näkyy sarakkeessa ”Tulos”."
 
-msgid "recovered (incomplete)"
-msgstr "palautettu (keskeneräinen)"
+msgid "Recovered (incomplete)"
+msgstr "Palautettu (keskeneräinen)"
 
 msgid "Search Effort"
 msgstr "Haun Laajuus"
@@ -162,3 +160,21 @@ msgstr "laajempi haku voi auttaa"
 
 msgid "Unlimited"
 msgstr "Rajoittamaton"
+
+msgid "Result"
+msgstr "Tulos"
+
+msgid "Not read yet"
+msgstr "Ei vielä luettu"
+
+msgid "%(group_addresses)d group addresses, %(links)d links, %(parameters)d parameters"
+msgstr "%(group_addresses)d ryhmäosoitetta, %(links)d linkkiä, %(parameters)d parametria"
+
+msgid "%(count)d unknown"
+msgstr "%(count)d tuntematonta"
+
+msgid "Verified"
+msgstr "Tarkistettu"
+
+msgid "Verify: %(bytes)d byte(s) differ"
+msgstr "Tarkistus: %(bytes)d tavua poikkeaa"

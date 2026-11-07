@@ -100,35 +100,33 @@ msgstr "Нет подключения к шине KNX."
 msgid "Open or create a project to add recovered devices."
 msgstr "Откройте или создайте проект, чтобы добавить восстановленные устройства."
 
-msgid "matched"
-msgstr "совпадает"
+msgid "Product found"
+msgstr "Продукт найден"
 
-msgid "confirm product/version, then tick"
-msgstr "подтвердите продукт/версию, затем отметьте"
+msgid "Check the product and version, then select it"
+msgstr "Проверьте продукт и версию, затем выберите его"
 
-msgid "not in catalog - import via Catalog"
-msgstr "нет в каталоге — импортируйте через «Каталог»"
+msgid "Not in the catalog: import its product in the Catalog"
+msgstr "Нет в каталоге: импортируйте его продукт в «Каталоге»"
 
-msgid "unprogrammed"
-msgstr "не запрограммировано"
+msgid "Not programmed"
+msgstr "Не запрограммировано"
 
-msgid "recovered"
-msgstr "восстановлено"
 
-msgid "already in project - skipped"
-msgstr "уже в проекте — пропущено"
+msgid "Already in the project, skipped"
+msgstr "Уже в проекте, пропущено"
 
-msgid "error"
-msgstr "ошибка"
+msgid "Error"
+msgstr "Ошибка"
 
 msgid "%d parameters could not be recovered"
 msgstr "Не удалось восстановить параметры: %d"
 
-msgid "%(count)d device(s) could not be added; the reason is in the Recovered column."
-msgstr "Не удалось добавить устройств: %(count)d; причина указана в столбце «Восстановлено»."
+msgid "%(count)d device(s) could not be added; the reason is in the Result column."
+msgstr "Не удалось добавить устройств: %(count)d; причина указана в столбце «Результат»."
 
-msgid "recovered (incomplete)"
-msgstr "восстановлено (не полностью)"
+msgid "Recovered (incomplete)"
+msgstr "Восстановлено (не полностью)"
 
 msgid "Search Effort"
 msgstr "Объём Поиска"
@@ -162,3 +160,21 @@ msgstr "больший объём поиска может помочь"
 
 msgid "Unlimited"
 msgstr "Без ограничений"
+
+msgid "Result"
+msgstr "Результат"
+
+msgid "Not read yet"
+msgstr "Ещё не считано"
+
+msgid "%(group_addresses)d group addresses, %(links)d links, %(parameters)d parameters"
+msgstr "Групповых адресов: %(group_addresses)d, связей: %(links)d, параметров: %(parameters)d"
+
+msgid "%(count)d unknown"
+msgstr "Неизвестно: %(count)d"
+
+msgid "Verified"
+msgstr "Проверено"
+
+msgid "Verify: %(bytes)d byte(s) differ"
+msgstr "Проверка: отличается байт: %(bytes)d"

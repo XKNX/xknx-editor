@@ -106,35 +106,33 @@ msgstr "Neconectat la o magistrală KNX."
 msgid "Open or create a project to add recovered devices."
 msgstr "Deschideți sau creați un proiect pentru a adăuga dispozitivele recuperate."
 
-msgid "matched"
-msgstr "potrivit"
+msgid "Product found"
+msgstr "Produs găsit"
 
-msgid "confirm product/version, then tick"
-msgstr "confirmați produsul/versiunea, apoi bifați"
+msgid "Check the product and version, then select it"
+msgstr "Verificați produsul și versiunea, apoi selectați-l"
 
-msgid "not in catalog - import via Catalog"
-msgstr "nu este în catalog - importați prin Catalog"
+msgid "Not in the catalog: import its product in the Catalog"
+msgstr "Nu este în catalog: importați produsul său în Catalog"
 
-msgid "unprogrammed"
-msgstr "neprogramat"
+msgid "Not programmed"
+msgstr "Neprogramat"
 
-msgid "recovered"
-msgstr "recuperat"
 
-msgid "error"
-msgstr "eroare"
+msgid "Error"
+msgstr "Eroare"
 
 msgid "%d parameters could not be recovered"
 msgstr "Parametri care nu au putut fi recuperați: %d"
 
-msgid "already in project - skipped"
-msgstr "există deja în proiect - omis"
+msgid "Already in the project, skipped"
+msgstr "Deja în proiect, omis"
 
-msgid "%(count)d device(s) could not be added; the reason is in the Recovered column."
-msgstr "Dispozitive care nu au putut fi adăugate: %(count)d; motivul este în coloana „Recuperat”."
+msgid "%(count)d device(s) could not be added; the reason is in the Result column."
+msgstr "Dispozitive care nu au putut fi adăugate: %(count)d; motivul este în coloana „Rezultat”."
 
-msgid "recovered (incomplete)"
-msgstr "recuperat (incomplet)"
+msgid "Recovered (incomplete)"
+msgstr "Recuperat (incomplet)"
 
 msgid "Search Effort"
 msgstr "Efort de Căutare"
@@ -168,3 +166,21 @@ msgstr "mai mult efort de căutare poate ajuta"
 
 msgid "Unlimited"
 msgstr "Nelimitat"
+
+msgid "Result"
+msgstr "Rezultat"
+
+msgid "Not read yet"
+msgstr "Încă necitit"
+
+msgid "%(group_addresses)d group addresses, %(links)d links, %(parameters)d parameters"
+msgstr "%(group_addresses)d adrese de grup, %(links)d legături, %(parameters)d parametri"
+
+msgid "%(count)d unknown"
+msgstr "%(count)d necunoscute"
+
+msgid "Verified"
+msgstr "Verificat"
+
+msgid "Verify: %(bytes)d byte(s) differ"
+msgstr "Verificare: %(bytes)d octet(i) diferă"

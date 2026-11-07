@@ -103,38 +103,36 @@ msgstr "Verifiëren (alleen lezen)"
 msgid "Verifying (re-reading and comparing)…"
 msgstr "Verifiëren (opnieuw lezen en vergelijken)…"
 
-msgid "already in project - skipped"
-msgstr "al in project - overgeslagen"
+msgid "Already in the project, skipped"
+msgstr "Al in het project, overgeslagen"
 
-msgid "confirm product/version, then tick"
-msgstr "product/versie bevestigen, dan aanvinken"
+msgid "Check the product and version, then select it"
+msgstr "Controleer product en versie en selecteer het dan"
 
-msgid "error"
-msgstr "fout"
+msgid "Error"
+msgstr "Fout"
 
 msgid "group communication tables"
 msgstr "groepscommunicatietabellen"
 
-msgid "matched"
-msgstr "overeenkomend"
+msgid "Product found"
+msgstr "Product gevonden"
 
-msgid "not in catalog - import via Catalog"
-msgstr "niet in catalogus - importeren via Catalogus"
+msgid "Not in the catalog: import its product in the Catalog"
+msgstr "Niet in de catalogus: importeer het product in de Catalogus"
 
 msgid "parameter memory"
 msgstr "parametergeheugen"
 
-msgid "recovered"
-msgstr "hersteld"
 
-msgid "unprogrammed"
-msgstr "niet geprogrammeerd"
+msgid "Not programmed"
+msgstr "Niet geprogrammeerd"
 
-msgid "%(count)d device(s) could not be added; the reason is in the Recovered column."
-msgstr "%(count)d apparaat/apparaten kon(den) niet worden toegevoegd; de reden staat in de kolom 'Hersteld'."
+msgid "%(count)d device(s) could not be added; the reason is in the Result column."
+msgstr "%(count)d apparaat/apparaten kon(den) niet worden toegevoegd; de reden staat in de kolom 'Resultaat'."
 
-msgid "recovered (incomplete)"
-msgstr "hersteld (onvolledig)"
+msgid "Recovered (incomplete)"
+msgstr "Hersteld (onvolledig)"
 
 msgid "Search Effort"
 msgstr "Zoekinspanning"
@@ -168,3 +166,21 @@ msgstr "meer zoekinspanning kan helpen"
 
 msgid "Unlimited"
 msgstr "Onbeperkt"
+
+msgid "Result"
+msgstr "Resultaat"
+
+msgid "Not read yet"
+msgstr "Nog niet gelezen"
+
+msgid "%(group_addresses)d group addresses, %(links)d links, %(parameters)d parameters"
+msgstr "%(group_addresses)d groepsadressen, %(links)d koppelingen, %(parameters)d parameters"
+
+msgid "%(count)d unknown"
+msgstr "%(count)d onbekend"
+
+msgid "Verified"
+msgstr "Gecontroleerd"
+
+msgid "Verify: %(bytes)d byte(s) differ"
+msgstr "Controle: %(bytes)d byte(s) wijken af"

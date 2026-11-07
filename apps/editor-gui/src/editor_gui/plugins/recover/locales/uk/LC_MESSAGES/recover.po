@@ -100,35 +100,33 @@ msgstr "Немає з'єднання з шиною KNX."
 msgid "Open or create a project to add recovered devices."
 msgstr "Відкрийте або створіть проєкт, щоб додати відновлені пристрої."
 
-msgid "matched"
-msgstr "збігається"
+msgid "Product found"
+msgstr "Продукт знайдено"
 
-msgid "confirm product/version, then tick"
-msgstr "підтвердьте продукт/версію, потім позначте"
+msgid "Check the product and version, then select it"
+msgstr "Перевірте продукт і версію, потім виберіть його"
 
-msgid "not in catalog - import via Catalog"
-msgstr "немає в каталозі - імпортуйте через «Каталог»"
+msgid "Not in the catalog: import its product in the Catalog"
+msgstr "Немає в каталозі: імпортуйте його продукт у «Каталозі»"
 
-msgid "unprogrammed"
-msgstr "не запрограмовано"
+msgid "Not programmed"
+msgstr "Не запрограмовано"
 
-msgid "recovered"
-msgstr "відновлено"
 
-msgid "already in project - skipped"
-msgstr "уже в проєкті - пропущено"
+msgid "Already in the project, skipped"
+msgstr "Уже в проєкті, пропущено"
 
-msgid "error"
-msgstr "помилка"
+msgid "Error"
+msgstr "Помилка"
 
 msgid "%d parameters could not be recovered"
 msgstr "Не вдалося відновити параметрів: %d"
 
-msgid "%(count)d device(s) could not be added; the reason is in the Recovered column."
-msgstr "Не вдалося додати пристроїв: %(count)d; причину наведено в стовпці «Відновлено»."
+msgid "%(count)d device(s) could not be added; the reason is in the Result column."
+msgstr "Не вдалося додати пристроїв: %(count)d; причину наведено в стовпці «Результат»."
 
-msgid "recovered (incomplete)"
-msgstr "відновлено (не повністю)"
+msgid "Recovered (incomplete)"
+msgstr "Відновлено (не повністю)"
 
 msgid "Search Effort"
 msgstr "Обсяг Пошуку"
@@ -162,3 +160,21 @@ msgstr "більший обсяг пошуку може допомогти"
 
 msgid "Unlimited"
 msgstr "Без обмежень"
+
+msgid "Result"
+msgstr "Результат"
+
+msgid "Not read yet"
+msgstr "Ще не зчитано"
+
+msgid "%(group_addresses)d group addresses, %(links)d links, %(parameters)d parameters"
+msgstr "Групових адрес: %(group_addresses)d, зв'язків: %(links)d, параметрів: %(parameters)d"
+
+msgid "%(count)d unknown"
+msgstr "Невідомо: %(count)d"
+
+msgid "Verified"
+msgstr "Перевірено"
+
+msgid "Verify: %(bytes)d byte(s) differ"
+msgstr "Перевірка: відрізняється байтів: %(bytes)d"

@@ -100,34 +100,32 @@ msgstr "未连接到 KNX 总线。"
 msgid "Open or create a project to add recovered devices."
 msgstr "请打开或创建项目以添加恢复的设备。"
 
-msgid "matched"
-msgstr "已匹配"
+msgid "Product found"
+msgstr "已找到产品"
 
-msgid "confirm product/version, then tick"
-msgstr "请确认产品/版本，然后勾选"
+msgid "Check the product and version, then select it"
+msgstr "请检查产品和版本，然后选中它"
 
-msgid "not in catalog - import via Catalog"
-msgstr "不在产品目录中，请通过产品目录导入"
+msgid "Not in the catalog: import its product in the Catalog"
+msgstr "不在产品目录中：请在产品目录中导入其产品"
 
-msgid "unprogrammed"
+msgid "Not programmed"
 msgstr "未编程"
 
-msgid "recovered"
-msgstr "已恢复"
 
-msgid "already in project - skipped"
+msgid "Already in the project, skipped"
 msgstr "已在项目中，已跳过"
 
-msgid "error"
+msgid "Error"
 msgstr "错误"
 
 msgid "%d parameters could not be recovered"
 msgstr "%d 个参数无法恢复"
 
-msgid "%(count)d device(s) could not be added; the reason is in the Recovered column."
-msgstr "有 %(count)d 个设备无法添加；原因见“已恢复”列。"
+msgid "%(count)d device(s) could not be added; the reason is in the Result column."
+msgstr "有 %(count)d 个设备无法添加；原因见“结果”列。"
 
-msgid "recovered (incomplete)"
+msgid "Recovered (incomplete)"
 msgstr "已恢复（不完整）"
 
 msgid "Search Effort"
@@ -162,3 +160,21 @@ msgstr "提高搜索强度可能有帮助"
 
 msgid "Unlimited"
 msgstr "无限制"
+
+msgid "Result"
+msgstr "结果"
+
+msgid "Not read yet"
+msgstr "尚未读取"
+
+msgid "%(group_addresses)d group addresses, %(links)d links, %(parameters)d parameters"
+msgstr "%(group_addresses)d 个组地址，%(links)d 个链接，%(parameters)d 个参数"
+
+msgid "%(count)d unknown"
+msgstr "%(count)d 个未知"
+
+msgid "Verified"
+msgstr "已验证"
+
+msgid "Verify: %(bytes)d byte(s) differ"
+msgstr "验证：%(bytes)d 个字节不同"

@@ -454,6 +454,27 @@ def test_an_incomplete_device_says_how_far_it_is_off(application) -> None:  # ty
     assert S.DETAIL_MORE_EFFORT not in complete
 
 
+def test_a_device_not_read_yet_says_so(application) -> None:  # type: ignore[no-untyped-def]
+    entry = _rf_entry(application)
+    entry.recovered = None
+    assert RecoverService.entry_detail(entry) == S.DETAIL_NOT_READ
+    # One without a product cannot be read: nothing to say.
+    entry.application = None
+    assert RecoverService.entry_detail(entry) == ""
+
+
+def test_what_was_read_is_summed_up(application) -> None:  # type: ignore[no-untyped-def]
+    entry = _rf_entry(application)
+    entry.verify_changed = 0
+    detail = RecoverService.entry_detail(entry)
+    assert detail.startswith(
+        S.DETAIL_READ % {"group_addresses": 0, "links": 0, "parameters": 0}
+    )
+    assert S.DETAIL_VERIFIED in detail
+    entry.verify_changed = 4
+    assert S.DETAIL_VERIFY_DIFFERS % {"bytes": 4} in RecoverService.entry_detail(entry)
+
+
 def test_search_again_replaces_the_device_it_added(
     application: Any, monkeypatch: pytest.MonkeyPatch
 ) -> None:

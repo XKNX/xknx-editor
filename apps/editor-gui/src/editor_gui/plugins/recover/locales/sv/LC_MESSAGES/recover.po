@@ -100,35 +100,33 @@ msgstr "Inte ansluten till en KNX-buss."
 msgid "Open or create a project to add recovered devices."
 msgstr "Öppna eller skapa ett projekt för att lägga till återskapade apparater."
 
-msgid "matched"
-msgstr "matchad"
+msgid "Product found"
+msgstr "Produkt hittad"
 
-msgid "confirm product/version, then tick"
-msgstr "bekräfta produkt/version och kryssa sedan i"
+msgid "Check the product and version, then select it"
+msgstr "Kontrollera produkt och version och välj den sedan"
 
-msgid "not in catalog - import via Catalog"
-msgstr "finns inte i katalogen - importera via Katalog"
+msgid "Not in the catalog: import its product in the Catalog"
+msgstr "Finns inte i katalogen: importera dess produkt i Katalog"
 
-msgid "unprogrammed"
-msgstr "oprogrammerad"
+msgid "Not programmed"
+msgstr "Inte programmerad"
 
-msgid "recovered"
-msgstr "återskapad"
 
-msgid "already in project - skipped"
-msgstr "finns redan i projektet - överhoppad"
+msgid "Already in the project, skipped"
+msgstr "Redan i projektet, hoppades över"
 
-msgid "error"
-msgstr "fel"
+msgid "Error"
+msgstr "Fel"
 
 msgid "%d parameters could not be recovered"
 msgstr "%d parametrar kunde inte återskapas"
 
-msgid "%(count)d device(s) could not be added; the reason is in the Recovered column."
-msgstr "%(count)d apparat(er) kunde inte läggas till; orsaken står i kolumnen ”Återskapad”."
+msgid "%(count)d device(s) could not be added; the reason is in the Result column."
+msgstr "%(count)d apparat(er) kunde inte läggas till; orsaken står i kolumnen ”Resultat”."
 
-msgid "recovered (incomplete)"
-msgstr "återskapad (ofullständig)"
+msgid "Recovered (incomplete)"
+msgstr "Återskapad (ofullständig)"
 
 msgid "Search Effort"
 msgstr "Sökinsats"
@@ -162,3 +160,21 @@ msgstr "mer sökinsats kan hjälpa"
 
 msgid "Unlimited"
 msgstr "Obegränsad"
+
+msgid "Result"
+msgstr "Resultat"
+
+msgid "Not read yet"
+msgstr "Inte läst än"
+
+msgid "%(group_addresses)d group addresses, %(links)d links, %(parameters)d parameters"
+msgstr "%(group_addresses)d gruppadresser, %(links)d kopplingar, %(parameters)d parametrar"
+
+msgid "%(count)d unknown"
+msgstr "%(count)d okända"
+
+msgid "Verified"
+msgstr "Kontrollerad"
+
+msgid "Verify: %(bytes)d byte(s) differ"
+msgstr "Kontroll: %(bytes)d byte skiljer sig"

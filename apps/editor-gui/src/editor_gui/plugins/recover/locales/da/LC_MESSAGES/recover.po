@@ -100,35 +100,33 @@ msgstr "Ikke forbundet til en KNX-bus."
 msgid "Open or create a project to add recovered devices."
 msgstr "Åbn eller opret et projekt for at tilføje gendannede enheder."
 
-msgid "matched"
-msgstr "matchet"
+msgid "Product found"
+msgstr "Produkt fundet"
 
-msgid "confirm product/version, then tick"
-msgstr "bekræft produkt/version, og sæt derefter flueben"
+msgid "Check the product and version, then select it"
+msgstr "Kontrollér produkt og version, og vælg det derefter"
 
-msgid "not in catalog - import via Catalog"
-msgstr "ikke i kataloget - importer via Kataloger"
+msgid "Not in the catalog: import its product in the Catalog"
+msgstr "Ikke i kataloget: importér dets produkt i Kataloger"
 
-msgid "unprogrammed"
-msgstr "uprogrammeret"
+msgid "Not programmed"
+msgstr "Ikke programmeret"
 
-msgid "recovered"
-msgstr "gendannet"
 
-msgid "already in project - skipped"
-msgstr "allerede i projektet - sprunget over"
+msgid "Already in the project, skipped"
+msgstr "Allerede i projektet, sprunget over"
 
-msgid "error"
-msgstr "fejl"
+msgid "Error"
+msgstr "Fejl"
 
 msgid "%d parameters could not be recovered"
 msgstr "%d parametre kunne ikke gendannes"
 
-msgid "%(count)d device(s) could not be added; the reason is in the Recovered column."
-msgstr "%(count)d enhed(er) kunne ikke tilføjes; årsagen står i kolonnen \"Gendannet\"."
+msgid "%(count)d device(s) could not be added; the reason is in the Result column."
+msgstr "%(count)d enhed(er) kunne ikke tilføjes; årsagen står i kolonnen \"Resultat\"."
 
-msgid "recovered (incomplete)"
-msgstr "gendannet (ufuldstændig)"
+msgid "Recovered (incomplete)"
+msgstr "Gendannet (ufuldstændig)"
 
 msgid "Search Effort"
 msgstr "Søgeindsats"
@@ -162,3 +160,21 @@ msgstr "mere søgeindsats kan hjælpe"
 
 msgid "Unlimited"
 msgstr "Ubegrænset"
+
+msgid "Result"
+msgstr "Resultat"
+
+msgid "Not read yet"
+msgstr "Ikke læst endnu"
+
+msgid "%(group_addresses)d group addresses, %(links)d links, %(parameters)d parameters"
+msgstr "%(group_addresses)d gruppeadresser, %(links)d forbindelser, %(parameters)d parametre"
+
+msgid "%(count)d unknown"
+msgstr "%(count)d ukendte"
+
+msgid "Verified"
+msgstr "Kontrolleret"
+
+msgid "Verify: %(bytes)d byte(s) differ"
+msgstr "Kontrol: %(bytes)d byte afviger"

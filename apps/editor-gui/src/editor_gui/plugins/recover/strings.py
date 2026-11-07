@@ -122,7 +122,7 @@ class RecoverStrings:
 
     @property
     def COL_DETAILS(self) -> str:
-        return _("Recovered")
+        return _("Result")
 
     @property
     def APPLY_MERGED(self) -> str:
@@ -135,7 +135,7 @@ class RecoverStrings:
     @property
     def APPLY_FAILED(self) -> str:
         return _(
-            "%(count)d device(s) could not be added; the reason is in the Recovered column."
+            "%(count)d device(s) could not be added; the reason is in the Result column."
         )
 
     @property
@@ -148,35 +148,35 @@ class RecoverStrings:
 
     @property
     def STATE_FOUND(self) -> str:
-        return _("matched")
+        return _("Product found")
 
     @property
     def STATE_AMBIGUOUS(self) -> str:
-        return _("confirm product/version, then tick")
+        return _("Check the product and version, then select it")
 
     @property
     def STATE_NO_APP(self) -> str:
-        return _("not in catalog - import via Catalog")
+        return _("Not in the catalog: import its product in the Catalog")
 
     @property
     def STATE_UNPROGRAMMED(self) -> str:
-        return _("unprogrammed")
+        return _("Not programmed")
 
     @property
     def STATE_RECOVERED(self) -> str:
-        return _("recovered")
+        return _("Recovered")
 
     @property
     def STATE_EXISTS(self) -> str:
-        return _("already in project - skipped")
+        return _("Already in the project, skipped")
 
     @property
     def STATE_ERROR(self) -> str:
-        return _("error")
+        return _("Error")
 
     @property
     def STATE_INCOMPLETE(self) -> str:
-        return _("recovered (incomplete)")
+        return _("Recovered (incomplete)")
 
     @property
     def SEARCH_EFFORT(self) -> str:
@@ -227,6 +227,28 @@ class RecoverStrings:
         return _(
             "%(bytes)d byte(s) and %(objects)d group object(s) differ from the device"
         )
+
+    @property
+    def DETAIL_NOT_READ(self) -> str:
+        return _("Not read yet")
+
+    @property
+    def DETAIL_READ(self) -> str:
+        return _(
+            "%(group_addresses)d group addresses, %(links)d links, %(parameters)d parameters"
+        )
+
+    @property
+    def DETAIL_UNKNOWN(self) -> str:
+        return _("%(count)d unknown")
+
+    @property
+    def DETAIL_VERIFIED(self) -> str:
+        return _("Verified")
+
+    @property
+    def DETAIL_VERIFY_DIFFERS(self) -> str:
+        return _("Verify: %(bytes)d byte(s) differ")
 
     @property
     def DETAIL_MORE_EFFORT(self) -> str:

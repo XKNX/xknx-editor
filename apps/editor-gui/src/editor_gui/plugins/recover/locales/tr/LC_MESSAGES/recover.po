@@ -100,35 +100,33 @@ msgstr "Bir KNX bus'ına bağlı değil."
 msgid "Open or create a project to add recovered devices."
 msgstr "Kurtarılan cihazları eklemek için bir proje açın veya oluşturun."
 
-msgid "matched"
-msgstr "eşleşti"
+msgid "Product found"
+msgstr "Ürün bulundu"
 
-msgid "confirm product/version, then tick"
-msgstr "ürünü/sürümü onaylayın, ardından işaretleyin"
+msgid "Check the product and version, then select it"
+msgstr "Ürünü ve sürümü kontrol edin, ardından seçin"
 
-msgid "not in catalog - import via Catalog"
-msgstr "katalogda değil - Katalog üzerinden içe aktarın"
+msgid "Not in the catalog: import its product in the Catalog"
+msgstr "Katalogda değil: ürününü Katalog'da içe aktarın"
 
-msgid "unprogrammed"
-msgstr "programlanmamış"
+msgid "Not programmed"
+msgstr "Programlanmamış"
 
-msgid "recovered"
-msgstr "kurtarıldı"
 
-msgid "already in project - skipped"
-msgstr "zaten projede - atlandı"
+msgid "Already in the project, skipped"
+msgstr "Zaten projede, atlandı"
 
-msgid "error"
-msgstr "hata"
+msgid "Error"
+msgstr "Hata"
 
 msgid "%d parameters could not be recovered"
 msgstr "%d parametre kurtarılamadı"
 
-msgid "%(count)d device(s) could not be added; the reason is in the Recovered column."
-msgstr "%(count)d cihaz eklenemedi; nedeni \"Kurtarıldı\" sütununda."
+msgid "%(count)d device(s) could not be added; the reason is in the Result column."
+msgstr "%(count)d cihaz eklenemedi; nedeni \"Sonuç\" sütununda."
 
-msgid "recovered (incomplete)"
-msgstr "kurtarıldı (eksik)"
+msgid "Recovered (incomplete)"
+msgstr "Kurtarıldı (eksik)"
 
 msgid "Search Effort"
 msgstr "Arama Kapsamı"
@@ -162,3 +160,21 @@ msgstr "daha geniş arama kapsamı yardımcı olabilir"
 
 msgid "Unlimited"
 msgstr "Sınırsız"
+
+msgid "Result"
+msgstr "Sonuç"
+
+msgid "Not read yet"
+msgstr "Henüz okunmadı"
+
+msgid "%(group_addresses)d group addresses, %(links)d links, %(parameters)d parameters"
+msgstr "%(group_addresses)d grup adresi, %(links)d bağlantı, %(parameters)d parametre"
+
+msgid "%(count)d unknown"
+msgstr "%(count)d bilinmeyen"
+
+msgid "Verified"
+msgstr "Doğrulandı"
+
+msgid "Verify: %(bytes)d byte(s) differ"
+msgstr "Doğrulama: %(bytes)d bayt farklı"

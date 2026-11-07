@@ -106,35 +106,33 @@ msgstr "Nincs kapcsolat KNX-busszal."
 msgid "Open or create a project to add recovered devices."
 msgstr "A visszaállított készülékek hozzáadásához nyisson meg vagy hozzon létre egy projektet."
 
-msgid "matched"
-msgstr "egyezik"
+msgid "Product found"
+msgstr "Termék megtalálva"
 
-msgid "confirm product/version, then tick"
-msgstr "erősítse meg a terméket/verziót, majd jelölje be"
+msgid "Check the product and version, then select it"
+msgstr "Ellenőrizze a terméket és a verziót, majd jelölje ki"
 
-msgid "not in catalog - import via Catalog"
-msgstr "nincs a katalógusban – importálja a Katalógusból"
+msgid "Not in the catalog: import its product in the Catalog"
+msgstr "Nincs a katalógusban: importálja a termékét a Katalógusban"
 
-msgid "unprogrammed"
-msgstr "programozatlan"
+msgid "Not programmed"
+msgstr "Nincs programozva"
 
-msgid "recovered"
-msgstr "visszaállítva"
 
-msgid "error"
-msgstr "hiba"
+msgid "Error"
+msgstr "Hiba"
 
 msgid "%d parameters could not be recovered"
 msgstr "Vissza nem állítható paraméterek: %d"
 
-msgid "already in project - skipped"
-msgstr "már a projektben van – kihagyva"
+msgid "Already in the project, skipped"
+msgstr "Már a projektben van, kihagyva"
 
-msgid "%(count)d device(s) could not be added; the reason is in the Recovered column."
-msgstr "Nem sikerült hozzáadni készülékeket: %(count)d; az ok a „Visszaállítva” oszlopban látható."
+msgid "%(count)d device(s) could not be added; the reason is in the Result column."
+msgstr "Nem sikerült hozzáadni készülékeket: %(count)d; az ok az „Eredmény” oszlopban látható."
 
-msgid "recovered (incomplete)"
-msgstr "visszaállítva (hiányos)"
+msgid "Recovered (incomplete)"
+msgstr "Visszaállítva (hiányos)"
 
 msgid "Search Effort"
 msgstr "Keresési Ráfordítás"
@@ -168,3 +166,21 @@ msgstr "nagyobb keresési ráfordítás segíthet"
 
 msgid "Unlimited"
 msgstr "Korlátlan"
+
+msgid "Result"
+msgstr "Eredmény"
+
+msgid "Not read yet"
+msgstr "Még nincs beolvasva"
+
+msgid "%(group_addresses)d group addresses, %(links)d links, %(parameters)d parameters"
+msgstr "%(group_addresses)d csoportcím, %(links)d kapcsolat, %(parameters)d paraméter"
+
+msgid "%(count)d unknown"
+msgstr "%(count)d ismeretlen"
+
+msgid "Verified"
+msgstr "Ellenőrizve"
+
+msgid "Verify: %(bytes)d byte(s) differ"
+msgstr "Ellenőrzés: %(bytes)d bájt eltér"

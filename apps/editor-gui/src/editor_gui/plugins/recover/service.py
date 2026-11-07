@@ -373,21 +373,22 @@ class RecoverService:
 
     @staticmethod
     def entry_detail(entry: RecoverEntry) -> str:
-        """A short per-device summary of what was recovered (empty until recovered)."""
+        """A short per-device summary of what was read (a device that can be read and is not
+        read yet says so)."""
+        from editor_gui.plugins.recover.strings import S
+
         recovered = entry.recovered
         if recovered is None:
-            return ""
+            return S.DETAIL_NOT_READ if entry.recoverable else ""
         unknown = len(recovered.parameters.unknown)
-        detail = (
-            f"{len(recovered.group_addresses)} GA, "
-            f"{len(recovered.links)} links, "
-            f"{len(recovered.parameters.values)} params"
-        )
+        detail = S.DETAIL_READ % {
+            "group_addresses": len(recovered.group_addresses),
+            "links": len(recovered.links),
+            "parameters": len(recovered.parameters.values),
+        }
         if unknown:
-            detail += f" ({unknown} unknown)"
+            detail += f" ({S.DETAIL_UNKNOWN % {'count': unknown}})"
         if not recovered.parameters.complete:
-            from editor_gui.plugins.recover.strings import S
-
             detail += " | " + S.DETAIL_INCOMPLETE % {
                 "bytes": recovered.parameters.differing_bytes,
                 "objects": recovered.parameters.differing_objects,
@@ -398,10 +399,10 @@ class RecoverService:
         if order:
             detail += f" | {order}"
         if entry.verify_changed is not None:
-            detail += (
-                " | verified"
+            detail += " | " + (
+                S.DETAIL_VERIFIED
                 if entry.verify_changed == 0
-                else f" | verify: {entry.verify_changed} B differ"
+                else S.DETAIL_VERIFY_DIFFERS % {"bytes": entry.verify_changed}
             )
         if entry.error:
             detail += f" | {entry.error}"
@@ -423,13 +424,19 @@ class RecoverService:
         if self._pending is None or not self._pending.done():
             return
         future, self._pending = self._pending, None
+        exc = None if future.cancelled() else future.exception()
         # The bus operation is over (success, failure or cancel): release the slot
-        # so programming/testing (or another scan) can use the tunnel again.
-        self._api.connection.end_operation()
+        # so programming/testing (or another scan) can use the tunnel again. The Operations
+        # panel keeps it in its history with how it ended.
+        if exc is not None:
+            self._api.connection.end_operation("failed", str(exc))
+        elif future.cancelled() or self._cancel:
+            self._api.connection.end_operation("canceled")
+        else:
+            self._api.connection.end_operation()
         if future.cancelled():
             self.phase = "idle" if self.phase == "scanning" else "scanned"
             return
-        exc = future.exception()
         if exc is not None:
             self.error = str(exc)
             self.phase = "idle" if self.phase == "scanning" else "scanned"

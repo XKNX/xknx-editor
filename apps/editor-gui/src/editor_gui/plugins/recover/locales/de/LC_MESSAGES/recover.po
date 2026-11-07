@@ -112,35 +112,33 @@ msgstr ""
 "Öffnen oder erstellen Sie ein Projekt, um wiederhergestellte Geräte "
 "hinzuzufügen."
 
-msgid "matched"
-msgstr "übereinstimmend"
+msgid "Product found"
+msgstr "Produkt gefunden"
 
-msgid "confirm product/version, then tick"
-msgstr "Produkt/Version bestätigen, dann ankreuzen"
+msgid "Check the product and version, then select it"
+msgstr "Prüfen Sie Produkt und Version und wählen Sie es dann aus"
 
-msgid "not in catalog - import via Catalog"
-msgstr "Nicht im Katalog — über Katalog importieren"
+msgid "Not in the catalog: import its product in the Catalog"
+msgstr "Nicht im Katalog: Importieren Sie sein Produkt im Katalog"
 
-msgid "unprogrammed"
-msgstr "nicht programmiert"
+msgid "Not programmed"
+msgstr "Nicht programmiert"
 
-msgid "recovered"
-msgstr "wiederhergestellt"
 
-msgid "error"
+msgid "Error"
 msgstr "Fehler"
 
 msgid "%d parameters could not be recovered"
 msgstr "%d Parameter konnten nicht wiederhergestellt werden"
 
-msgid "already in project - skipped"
-msgstr "bereits im Projekt - übersprungen"
+msgid "Already in the project, skipped"
+msgstr "Bereits im Projekt, übersprungen"
 
-msgid "%(count)d device(s) could not be added; the reason is in the Recovered column."
-msgstr "%(count)d Gerät(e) konnten nicht hinzugefügt werden; der Grund steht in der Spalte „Wiederhergestellt“."
+msgid "%(count)d device(s) could not be added; the reason is in the Result column."
+msgstr "%(count)d Gerät(e) konnten nicht hinzugefügt werden; der Grund steht in der Spalte „Ergebnis“."
 
-msgid "recovered (incomplete)"
-msgstr "wiederhergestellt (unvollständig)"
+msgid "Recovered (incomplete)"
+msgstr "Wiederhergestellt (unvollständig)"
 
 msgid "Search Effort"
 msgstr "Suchaufwand"
@@ -174,3 +172,21 @@ msgstr "mehr Suchaufwand kann helfen"
 
 msgid "Unlimited"
 msgstr "Unbegrenzt"
+
+msgid "Result"
+msgstr "Ergebnis"
+
+msgid "Not read yet"
+msgstr "Noch nicht gelesen"
+
+msgid "%(group_addresses)d group addresses, %(links)d links, %(parameters)d parameters"
+msgstr "%(group_addresses)d Gruppenadressen, %(links)d Verknüpfungen, %(parameters)d Parameter"
+
+msgid "%(count)d unknown"
+msgstr "%(count)d unbekannt"
+
+msgid "Verified"
+msgstr "Geprüft"
+
+msgid "Verify: %(bytes)d byte(s) differ"
+msgstr "Prüfen: %(bytes)d Byte(s) weichen ab"

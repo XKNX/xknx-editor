@@ -100,35 +100,33 @@ msgstr "Nepřipojeno ke sběrnici KNX."
 msgid "Open or create a project to add recovered devices."
 msgstr "Pro přidání obnovených zařízení otevřete nebo vytvořte projekt."
 
-msgid "matched"
-msgstr "shoda"
+msgid "Product found"
+msgstr "Produkt nalezen"
 
-msgid "confirm product/version, then tick"
-msgstr "potvrďte produkt/verzi a pak zaškrtněte"
+msgid "Check the product and version, then select it"
+msgstr "Zkontrolujte produkt a verzi a pak jej vyberte"
 
-msgid "not in catalog - import via Catalog"
-msgstr "není v katalogu – importujte přes Katalog"
+msgid "Not in the catalog: import its product in the Catalog"
+msgstr "Není v katalogu: importujte jeho produkt v Katalogu"
 
-msgid "unprogrammed"
-msgstr "nenaprogramováno"
+msgid "Not programmed"
+msgstr "Nenaprogramováno"
 
-msgid "recovered"
-msgstr "obnoveno"
 
-msgid "already in project - skipped"
-msgstr "už je v projektu – přeskočeno"
+msgid "Already in the project, skipped"
+msgstr "Již v projektu, přeskočeno"
 
-msgid "error"
-msgstr "chyba"
+msgid "Error"
+msgstr "Chyba"
 
 msgid "%d parameters could not be recovered"
 msgstr "Parametry, které nebylo možné obnovit: %d"
 
-msgid "%(count)d device(s) could not be added; the reason is in the Recovered column."
-msgstr "Zařízení, která nebylo možné přidat: %(count)d; důvod je ve sloupci „Obnoveno“."
+msgid "%(count)d device(s) could not be added; the reason is in the Result column."
+msgstr "Zařízení, která nebylo možné přidat: %(count)d; důvod je ve sloupci „Výsledek“."
 
-msgid "recovered (incomplete)"
-msgstr "obnoveno (neúplné)"
+msgid "Recovered (incomplete)"
+msgstr "Obnoveno (neúplné)"
 
 msgid "Search Effort"
 msgstr "Rozsah Hledání"
@@ -162,3 +160,21 @@ msgstr "větší rozsah hledání může pomoci"
 
 msgid "Unlimited"
 msgstr "Neomezený"
+
+msgid "Result"
+msgstr "Výsledek"
+
+msgid "Not read yet"
+msgstr "Zatím nepřečteno"
+
+msgid "%(group_addresses)d group addresses, %(links)d links, %(parameters)d parameters"
+msgstr "Skupinové adresy: %(group_addresses)d, propojení: %(links)d, parametry: %(parameters)d"
+
+msgid "%(count)d unknown"
+msgstr "Neznámé: %(count)d"
+
+msgid "Verified"
+msgstr "Ověřeno"
+
+msgid "Verify: %(bytes)d byte(s) differ"
+msgstr "Ověření: liší se bajtů: %(bytes)d"

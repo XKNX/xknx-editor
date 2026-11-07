@@ -106,35 +106,33 @@ msgstr "Ekki tengt við KNX-tengibraut."
 msgid "Open or create a project to add recovered devices."
 msgstr "Opnaðu eða búðu til verkefni til að bæta við endurheimtum tækjum."
 
-msgid "matched"
-msgstr "samsvarar"
+msgid "Product found"
+msgstr "Vara fannst"
 
-msgid "confirm product/version, then tick"
-msgstr "staðfestu vöru/útgáfu og hakaðu svo við"
+msgid "Check the product and version, then select it"
+msgstr "Athugaðu vöru og útgáfu og veldu hana svo"
 
-msgid "not in catalog - import via Catalog"
-msgstr "ekki í vörulista - fluttu inn í gegnum Vörulista"
+msgid "Not in the catalog: import its product in the Catalog"
+msgstr "Ekki í vörulista: fluttu vöruna inn í Vörulista"
 
-msgid "unprogrammed"
-msgstr "óforritað"
+msgid "Not programmed"
+msgstr "Ekki forritað"
 
-msgid "recovered"
-msgstr "endurheimt"
 
-msgid "error"
-msgstr "villa"
+msgid "Error"
+msgstr "Villa"
 
 msgid "%d parameters could not be recovered"
 msgstr "Færibreytur sem ekki var hægt að endurheimta: %d"
 
-msgid "already in project - skipped"
-msgstr "þegar í verkefni - sleppt"
+msgid "Already in the project, skipped"
+msgstr "Þegar í verkefninu, sleppt"
 
-msgid "%(count)d device(s) could not be added; the reason is in the Recovered column."
-msgstr "Ekki tókst að bæta við tækjum: %(count)d; ástæðan er í dálkinum „Endurheimt“."
+msgid "%(count)d device(s) could not be added; the reason is in the Result column."
+msgstr "Ekki tókst að bæta við tækjum: %(count)d; ástæðan er í dálkinum „Niðurstaða“."
 
-msgid "recovered (incomplete)"
-msgstr "endurheimt (ófullgert)"
+msgid "Recovered (incomplete)"
+msgstr "Endurheimt (ófullgert)"
 
 msgid "Search Effort"
 msgstr "Leitarumfang"
@@ -168,3 +166,21 @@ msgstr "meira leitarumfang gæti hjálpað"
 
 msgid "Unlimited"
 msgstr "Ótakmarkað"
+
+msgid "Result"
+msgstr "Niðurstaða"
+
+msgid "Not read yet"
+msgstr "Ekki lesið enn"
+
+msgid "%(group_addresses)d group addresses, %(links)d links, %(parameters)d parameters"
+msgstr "%(group_addresses)d hópvistföng, %(links)d tengingar, %(parameters)d færibreytur"
+
+msgid "%(count)d unknown"
+msgstr "%(count)d óþekkt"
+
+msgid "Verified"
+msgstr "Staðfest"
+
+msgid "Verify: %(bytes)d byte(s) differ"
+msgstr "Staðfesting: %(bytes)d bæti víkja frá"

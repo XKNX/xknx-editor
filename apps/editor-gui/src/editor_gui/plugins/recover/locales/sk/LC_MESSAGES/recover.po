@@ -106,35 +106,33 @@ msgstr "Nepripojené k zbernici KNX."
 msgid "Open or create a project to add recovered devices."
 msgstr "Na pridanie obnovených zariadení otvorte alebo vytvorte projekt."
 
-msgid "matched"
-msgstr "zhoda"
+msgid "Product found"
+msgstr "Produkt nájdený"
 
-msgid "confirm product/version, then tick"
-msgstr "potvrďte produkt/verziu a potom označte"
+msgid "Check the product and version, then select it"
+msgstr "Skontrolujte produkt a verziu a potom ho vyberte"
 
-msgid "not in catalog - import via Catalog"
-msgstr "nie je v katalógu – importujte cez Katalóg"
+msgid "Not in the catalog: import its product in the Catalog"
+msgstr "Nie je v katalógu: importujte jeho produkt v Katalógu"
 
-msgid "unprogrammed"
-msgstr "nenaprogramované"
+msgid "Not programmed"
+msgstr "Nenaprogramované"
 
-msgid "recovered"
-msgstr "obnovené"
 
-msgid "error"
-msgstr "chyba"
+msgid "Error"
+msgstr "Chyba"
 
 msgid "%d parameters could not be recovered"
 msgstr "Parametre, ktoré sa nepodarilo obnoviť: %d"
 
-msgid "already in project - skipped"
-msgstr "už je v projekte – preskočené"
+msgid "Already in the project, skipped"
+msgstr "Už v projekte, preskočené"
 
-msgid "%(count)d device(s) could not be added; the reason is in the Recovered column."
-msgstr "Zariadenia, ktoré sa nepodarilo pridať: %(count)d; dôvod je v stĺpci „Obnovené“."
+msgid "%(count)d device(s) could not be added; the reason is in the Result column."
+msgstr "Zariadenia, ktoré sa nepodarilo pridať: %(count)d; dôvod je v stĺpci „Výsledok“."
 
-msgid "recovered (incomplete)"
-msgstr "obnovené (neúplné)"
+msgid "Recovered (incomplete)"
+msgstr "Obnovené (neúplné)"
 
 msgid "Search Effort"
 msgstr "Rozsah Hľadania"
@@ -168,3 +166,21 @@ msgstr "väčší rozsah hľadania môže pomôcť"
 
 msgid "Unlimited"
 msgstr "Neobmedzený"
+
+msgid "Result"
+msgstr "Výsledok"
+
+msgid "Not read yet"
+msgstr "Zatiaľ neprečítané"
+
+msgid "%(group_addresses)d group addresses, %(links)d links, %(parameters)d parameters"
+msgstr "Skupinové adresy: %(group_addresses)d, prepojenia: %(links)d, parametre: %(parameters)d"
+
+msgid "%(count)d unknown"
+msgstr "Neznáme: %(count)d"
+
+msgid "Verified"
+msgstr "Overené"
+
+msgid "Verify: %(bytes)d byte(s) differ"
+msgstr "Overenie: líši sa bajtov: %(bytes)d"
