@@ -31,6 +31,14 @@ from editor_gui.plugins.connection.interface import (
 )
 from editor_gui.plugins.connection.service import BusmonitorState, LinkInfo
 from editor_gui.plugins.connection.strings import S
+from editor_gui.plugins.connection.usb import (
+    ObservableUSBInterfaceThreaded,
+    UsbBusmonitorConnection,
+    UsbTarget,
+    search_usb_interfaces,
+    usb_device_name,
+)
+from editor_gui.plugins.connection.xknx_usb import USBDeviceInfo, USBInterfaceInfo
 from editor_gui.programming import (
     DEFAULT_INDIVIDUAL_ADDRESS,
     DeviceOverview,
@@ -284,11 +292,17 @@ class ConnectionPlugin:
         self._selected_gateway: GatewayDescriptor | None = None
         # The gateway the user last connected to; preferred on startup auto-connect.
         self._preferred_gateway_ip: str | None = None
+        # The KNX USB interface connected through instead of a gateway (None: a gateway).
+        self._usb_target: UsbTarget | None = None
         self._panels: list[PanelDefinition] = []
         self._load_saved_settings()
 
         self._xknx: XKNX | None = None
         self._interface: ObservableKNXIPInterfaceThreaded | None = None
+        # What the connected USB interface reported about itself.
+        self._usb_info: USBInterfaceInfo | None = None
+        # The KNX USB interfaces plugged in, as the last scan found them.
+        self._usb_devices: list[USBDeviceInfo] = []
         self._gateway_info: GatewayDescriptor | None = None
         self._async_loop: asyncio.AbstractEventLoop | None = None
         self._async_thread: threading.Thread | None = None
@@ -309,7 +323,7 @@ class ConnectionPlugin:
         # Counts the connects and disconnects the user asked for; a reopen of an older one stops.
         self._session = 0
         # The bus monitor connection while it runs (the normal connection is closed then).
-        self._busmonitor: BusmonitorConnection | None = None
+        self._busmonitor: BusmonitorConnection | UsbBusmonitorConnection | None = None
         api.connection.set_busmonitor_controller(
             start=self.start_busmonitor,
             stop=self.stop_busmonitor,
@@ -357,7 +371,8 @@ class ConnectionPlugin:
         self._operation_open = False
         self._operation_pending: Future[None] | None = None
         self._operation_restore: (
-            tuple[str, ConnectionType, GatewayDescriptor | None, str] | None
+            tuple[str, ConnectionType, GatewayDescriptor | None, str, UsbTarget | None]
+            | None
         ) = None
         self._operation_name = ""
         self._select_open = False
@@ -384,11 +399,39 @@ class ConnectionPlugin:
 
     @property
     def is_routing(self) -> bool:
-        return self._connection_type == ConnectionType.ROUTING
+        return (
+            self._usb_target is None and self._connection_type == ConnectionType.ROUTING
+        )
+
+    @property
+    def is_usb(self) -> bool:
+        """Whether the connection goes through a KNX USB interface instead of a gateway."""
+        return self._usb_target is not None
+
+    @property
+    def usb_target(self) -> UsbTarget | None:
+        """The KNX USB interface connected (or to connect) through, None for a gateway."""
+        return self._usb_target
+
+    @property
+    def usb_devices(self) -> list[USBDeviceInfo]:
+        """The KNX USB interfaces found by the most recent scan."""
+        return list(self._usb_devices)
+
+    @property
+    def usb_info(self) -> USBInterfaceInfo | None:
+        """What the connected KNX USB interface reported about itself, its bus connection as it
+        is now."""
+        if isinstance(self._interface, ObservableUSBInterfaceThreaded):
+            return self._interface.usb_info() or self._usb_info
+        return self._usb_info
 
     @property
     def connection_type(self) -> str:
-        """The configured transport as an MCP name: "tunneling", "tunneling_tcp" or "routing"."""
+        """The configured transport as an MCP name: "tunneling", "tunneling_tcp", "routing" or
+        "usb"."""
+        if self._usb_target is not None:
+            return "usb"
         return connection_type_name(self._connection_type)
 
     @property
@@ -472,6 +515,7 @@ class ConnectionPlugin:
         pref = data.get("preferred_gateway_ip")
         if isinstance(pref, str) and pref:
             self._preferred_gateway_ip = pref
+        self._usb_target = UsbTarget.from_settings(data.get("usb_interface"))
         self._api.connection.use_serial_number = bool(
             data.get("serial_number_downloads", True)
         )
@@ -484,6 +528,11 @@ class ConnectionPlugin:
                 "multicast_group": self._multicast_group,
                 "connection_type": self._connection_type.value,
                 "preferred_gateway_ip": self._preferred_gateway_ip,
+                "usb_interface": (
+                    self._usb_target.to_settings()
+                    if self._usb_target is not None
+                    else None
+                ),
                 "serial_number_downloads": self._api.connection.use_serial_number,
             },
         )
@@ -505,6 +554,7 @@ class ConnectionPlugin:
         elif self._connection_type not in _TUNNEL_TYPES:
             self._connection_type = ConnectionType.TUNNELING
         self._selected_gateway = None
+        self._usb_target = None
         self._session += 1
         self._retry_on_credentials = False
         self._startup_connect = startup
@@ -535,6 +585,7 @@ class ConnectionPlugin:
             self._controller_ip = join_endpoint(gateway.ip_addr, gateway.port)
         self._selected_gateway = gateway
         self._preferred_gateway_ip = gateway.ip_addr
+        self._usb_target = None
         self._session += 1
         self._retry_on_credentials = False
         self._startup_connect = startup
@@ -544,12 +595,50 @@ class ConnectionPlugin:
         self._save_current_settings()
         self._run_async(self._connect_async())
 
+    def connect_to_usb(
+        self, device: USBDeviceInfo | UsbTarget, *, startup: bool = False
+    ) -> None:
+        """Connect through a KNX USB interface. ``startup``: the connection made at startup."""
+        if self._state in (ConnectionState.CONNECTING, ConnectionState.CONNECTED):
+            return
+        if self._busmonitor_blocks("connect"):
+            return
+        self._usb_target = (
+            device if isinstance(device, UsbTarget) else UsbTarget.of(device)
+        )
+        self._selected_gateway = None
+        self._session += 1
+        self._retry_on_credentials = False
+        self._startup_connect = startup
+        self._credentials_error = None
+        self._state = ConnectionState.CONNECTING
+        self._error_message = None
+        self._save_current_settings()
+        self._run_async(self._connect_async())
+
+    def connect_to_usb_by_serial(self, serial_number: str) -> bool:
+        """Connect through the plugged-in KNX USB interface with ``serial_number`` (the first one
+        found when empty). ``False`` if the last scan found none that matches."""
+        device = next(
+            (
+                d
+                for d in self._usb_devices
+                if not serial_number or d.serial_number == serial_number
+            ),
+            None,
+        )
+        if device is None:
+            return False
+        self.connect_to_usb(device)
+        return True
+
     def switch_connection_type(self, connection_type: ConnectionType) -> None:
         """Reconnect the live connection over a different type (same gateway/IP). No-op when not
         connected or already on it."""
         if (
             self._state != ConnectionState.CONNECTED
             or connection_type == self._connection_type
+            or self.is_usb
         ):
             return
         if self._busmonitor_blocks("switch connection type"):
@@ -563,6 +652,8 @@ class ConnectionPlugin:
 
     @property
     def _connection_target(self) -> str:
+        if self._usb_target is not None:
+            return self._usb_target.label
         if self._connection_type == ConnectionType.ROUTING:
             return f"{self._multicast_group} (routing)"
         return self._controller_ip
@@ -570,31 +661,48 @@ class ConnectionPlugin:
     async def _connect_async(self, reopen: bool = False) -> None:
         """Open the connection; ``reopen`` replaces a lost or outdated one, so the open
         recordings go on."""
+        usb = self._usb_target
         self._log.info(
             "connecting",
             target=self._connection_target,
-            mode=self._connection_type.name.lower(),
+            mode=self._mode_name,
         )
         try:
             self._xknx = XKNX()
-            description = (
-                await self._gateway_description()
-                if self._connection_type in _TUNNEL_TYPES
-                else None
-            )
-            gateway = description or self._selected_gateway
-            config = await self._on_main_thread(
-                lambda: self._connection_config(gateway)
-            )
-            self._interface = ObservableKNXIPInterfaceThreaded(
-                xknx=self._xknx,
-                connection_config=config,
-                raw_cemi_callback=self._api.connection.dispatch_raw_cemi,
-                sent_cemi_callback=self._api.connection.dispatch_sent_cemi,
-            )
+            gateway: GatewayDescriptor | None = None
+            if usb is not None:
+                usb_interface = ObservableUSBInterfaceThreaded(
+                    self._xknx,
+                    usb,
+                    raw_cemi_callback=self._api.connection.dispatch_raw_cemi,
+                    sent_cemi_callback=self._api.connection.dispatch_sent_cemi,
+                )
+                self._interface = usb_interface
+                config = usb_interface.connection_config
+            else:
+                description = (
+                    await self._gateway_description()
+                    if self._connection_type in _TUNNEL_TYPES
+                    else None
+                )
+                gateway = description or self._selected_gateway
+                config = await self._on_main_thread(
+                    lambda: self._connection_config(gateway)
+                )
+                self._interface = ObservableKNXIPInterfaceThreaded(
+                    xknx=self._xknx,
+                    connection_config=config,
+                    raw_cemi_callback=self._api.connection.dispatch_raw_cemi,
+                    sent_cemi_callback=self._api.connection.dispatch_sent_cemi,
+                )
             # Replace the inert default interface so all internal send paths use ours.
             self._xknx.knxip_interface = self._interface
             await self._interface.start()
+            self._usb_info = (
+                self._interface.usb_info()
+                if isinstance(self._interface, ObservableUSBInterfaceThreaded)
+                else None
+            )
             # Secured group communication with the project's (or the keyring's) keys.
             self._xknx.cemi_handler.data_secure = await self._on_main_thread(
                 self._api.connection.data_secure
@@ -616,7 +724,9 @@ class ConnectionPlugin:
                 self._log.info("interface max APDU length", length=interface_apdu)
             else:
                 interface_apdu = interface_apdu_limit(
-                    None, tunnelling=self._connection_type in _TUNNEL_TYPES
+                    None,
+                    tunnelling=usb is not None
+                    or self._connection_type in _TUNNEL_TYPES,
                 )
                 if interface_apdu is not None:
                     self._log.info(
@@ -627,14 +737,21 @@ class ConnectionPlugin:
             self._api.connection.interface_name = (
                 self._gateway_info.name
                 if self._gateway_info
+                else usb.name
+                if usb is not None
                 else self._connection_target
             )
             self._api.connection.set_connection(self._xknx, asyncio.get_running_loop())
             self._api.connection.link_info = self._link_info()
-            self._api.connection.interface_address = (
-                str(gateway.individual_address)
-                if gateway is not None and gateway.individual_address is not None
+            interface_address = (
+                self._usb_info.individual_address
+                if self._usb_info is not None and self._usb_info.individual_address.raw
+                else gateway.individual_address
+                if gateway is not None
                 else None
+            )
+            self._api.connection.interface_address = (
+                str(interface_address) if interface_address is not None else None
             )
             # Lost/re-established events of the open connection (xknx reconnects by itself).
             self._unregister_link_state = (
@@ -650,8 +767,16 @@ class ConnectionPlugin:
             self._log.info(
                 "connected",
                 target=self._connection_target,
-                mode=config.connection_type.name.lower(),
+                mode="usb" if usb is not None else config.connection_type.name.lower(),
             )
+            if self._usb_info is not None:
+                self._log.info(
+                    "USB interface info",
+                    knx_address=str(self._usb_info.individual_address),
+                    max_apdu_length=self._usb_info.max_apdu_length,
+                    bus_connected=self._usb_info.bus_connected,
+                    serial_number=self._usb_info.device.serial_number,
+                )
             if self._gateway_info:
                 services = [
                     s
@@ -679,6 +804,7 @@ class ConnectionPlugin:
             self._error_message = str(e)
             self._interface = None
             self._gateway_info = None
+            self._usb_info = None
             self._xknx = None
             self._report_failure(e, startup=startup)
 
@@ -703,9 +829,16 @@ class ConnectionPlugin:
         self._log.error(
             "connection failed",
             target=self._connection_target,
-            mode=self._connection_type.name.lower(),
+            mode=self._mode_name,
             error=error,
         )
+
+    @property
+    def _mode_name(self) -> str:
+        """The kind of connection, as logged."""
+        if self._usb_target is not None:
+            return "usb"
+        return self._connection_type.name.lower()
 
     def _no_project_yet(self) -> bool:
         """Whether no project has opened yet, or one is still opening."""
@@ -906,13 +1039,8 @@ class ConnectionPlugin:
     ) -> None:
         """Connect to ``host`` (or the discovered ``gateway``) for the waiting operations, without
         making it the connection the user chose (its settings return when it closes)."""
-        if self._operation_restore is None:
-            self._operation_restore = (
-                self._controller_ip,
-                self._connection_type,
-                self._selected_gateway,
-                self._multicast_group,
-            )
+        self._keep_settings_for_operation()
+        self._usb_target = None
         if gateway is not None and not gateway.supports_tunnelling:
             self._connection_type = ConnectionType.ROUTING
             self._multicast_group = gateway.multicast_address or DEFAULT_MCAST_GRP
@@ -927,6 +1055,32 @@ class ConnectionPlugin:
         self._error_message = None
         self._log.info("connecting for an operation", connection=name)
         self._run_async(self._connect_for_operation_async())
+
+    def _connect_usb_for_operation(self, name: str, device: USBDeviceInfo) -> None:
+        """Connect through the KNX USB interface ``device`` for the waiting operations, without
+        making it the connection the user chose."""
+        self._keep_settings_for_operation()
+        self._usb_target = UsbTarget.of(device)
+        self._selected_gateway = None
+        self._operation_name = name
+        self._session += 1
+        self._retry_on_credentials = False
+        self._state = ConnectionState.CONNECTING
+        self._error_message = None
+        self._log.info("connecting for an operation", connection=name)
+        self._run_async(self._connect_for_operation_async())
+
+    def _keep_settings_for_operation(self) -> None:
+        """Keep the connection settings a connection for operations replaces, to restore them
+        when it closes."""
+        if self._operation_restore is None:
+            self._operation_restore = (
+                self._controller_ip,
+                self._connection_type,
+                self._selected_gateway,
+                self._multicast_group,
+                self._usb_target,
+            )
 
     async def _connect_for_operation_async(self) -> None:
         await self._connect_async()
@@ -963,6 +1117,7 @@ class ConnectionPlugin:
                 self._connection_type,
                 self._selected_gateway,
                 self._multicast_group,
+                self._usb_target,
             ) = restore
 
     def _open_select_connection(self) -> None:
@@ -1022,6 +1177,13 @@ class ConnectionPlugin:
                 )
         if not self._gateways and not self._scanning:
             imgui.text_disabled(S.NO_GATEWAYS_FOUND)
+        imgui.text_disabled(S.SECTION_USB)
+        for device in self._usb_devices:
+            label = self._usb_option_label(device)
+            if imgui.selectable(label, False)[0]:
+                self._connect_usb_for_operation(label.split("##")[0], device)
+        if not self._usb_devices and not self._scanning:
+            imgui.text_disabled(S.NO_USB_INTERFACES)
         imgui.text_disabled(S.SECTION_MANUAL)
         imgui.set_next_item_width(px(180))
         _, self._select_ip = imgui.input_text("IP##select_ip", self._select_ip)
@@ -1067,6 +1229,7 @@ class ConnectionPlugin:
         finally:
             self._interface = None
             self._gateway_info = None
+            self._usb_info = None
             self._xknx = None
             self._config = None
             self._link_up = False
@@ -1103,6 +1266,9 @@ class ConnectionPlugin:
         (secure or plain, other credentials). Without the credentials it requires, the connection
         is tried once and shows why it fails. ``False`` when the interface did not answer."""
         if self._open_config(session) is None:
+            return True
+        if self._usb_target is not None:
+            # A USB interface takes no other connection; it is reopened when plugged in again.
             return True
         gateway = self._selected_gateway
         if self._connection_type == ConnectionType.TUNNELING:
@@ -1166,6 +1332,16 @@ class ConnectionPlugin:
 
     def _link_info(self) -> LinkInfo:
         """How the open connection is described in recordings."""
+        if self._usb_target is not None:
+            usb = self.usb_info
+            return LinkInfo(
+                name=self._usb_target.name,
+                host=usb.device.path.decode(errors="replace")
+                if usb is not None
+                else "",
+                port=0,
+                connector="Usb",
+            )
         name = ""
         if self._gateway_info is not None and self._gateway_info.name:
             name = "".join(
@@ -1224,15 +1400,24 @@ class ConnectionPlugin:
         service = self._api.connection
         gateway_ip, port = self._endpoint()
         link = self._link_info()
-        self._log.info("starting bus monitor", target=gateway_ip, port=port)
+        target = self._busmonitor_target
+        self._log.info("starting bus monitor", target=target, port=port)
         if self._interface is not None or self._xknx is not None:
             await self._disconnect_async()
-        monitor = BusmonitorConnection(
-            gateway_ip,
-            port,
-            on_frame=service.dispatch_busmonitor_cemi,
-            on_state=service.dispatch_link_state,
-        )
+        monitor: BusmonitorConnection | UsbBusmonitorConnection
+        if self._usb_target is not None:
+            monitor = UsbBusmonitorConnection(
+                self._usb_target,
+                on_frame=service.dispatch_busmonitor_cemi,
+                on_state=service.dispatch_link_state,
+            )
+        else:
+            monitor = BusmonitorConnection(
+                gateway_ip,
+                port,
+                on_frame=service.dispatch_busmonitor_cemi,
+                on_state=service.dispatch_link_state,
+            )
         try:
             await monitor.connect()
         except Exception as err:
@@ -1241,7 +1426,7 @@ class ConnectionPlugin:
             service.busmonitor_error_detail = str(err)
             self._log.error(
                 "bus monitor connection rejected",
-                target=gateway_ip,
+                target=target,
                 error=f"{type(err).__name__}: {err}",
             )
             service.set_busmonitor_state(BusmonitorState.OFF, error=reason)
@@ -1250,7 +1435,14 @@ class ConnectionPlugin:
         self._busmonitor = monitor
         service.busmonitor_link = link
         service.set_busmonitor_state(BusmonitorState.RUNNING)
-        self._log.info("bus monitor running", target=gateway_ip)
+        self._log.info("bus monitor running", target=target)
+
+    @property
+    def _busmonitor_target(self) -> str:
+        """The interface the bus monitor connects to, as shown."""
+        if self._usb_target is not None:
+            return self._usb_target.label
+        return self._controller_ip
 
     def stop_busmonitor(self, restore: bool = True) -> None:
         """Close the bus monitor connection; ``restore`` reconnects the normal connection."""
@@ -1297,6 +1489,22 @@ class ConnectionPlugin:
 
     async def _scan_async(self, auto_connect: bool = False) -> None:
         try:
+            self._usb_devices = await search_usb_interfaces(
+                lambda error: self._log.debug(
+                    "USB interface search failed", error=str(error)
+                )
+            )
+            for device in self._usb_devices:
+                self._log.debug(
+                    "USB interface found",
+                    name=usb_device_name(device),
+                    serial_number=device.serial_number,
+                )
+            if auto_connect and self._usb_target is not None:
+                # The last connection went through a USB interface: only that one is
+                # connected at startup, a gateway is not chosen in its place.
+                auto_connect = False
+                self._autostart_usb(self._usb_target)
             addresses = scan_addresses()
             self._gateways = await search_gateways(
                 3.0,
@@ -1374,6 +1582,17 @@ class ConnectionPlugin:
         finally:
             self._scanning = False
 
+    def _autostart_usb(self, target: UsbTarget) -> None:
+        """Connect the USB interface last used at startup, when it is plugged in."""
+        device = next((d for d in self._usb_devices if target.matches(d)), None)
+        if device is None:
+            self._log.warning("USB interface not plugged in", interface=target.label)
+            return
+        if self._state != ConnectionState.DISCONNECTED or self.busmonitor_active:
+            return
+        self._log.info("auto-connecting USB interface", interface=target.label)
+        self.connect_to_usb(device, startup=True)
+
     async def _delayed_rescan(self, delay: float) -> None:
         """Re-run autostart discovery once after ``delay`` seconds. Skips if the user connected or a
         scan is already running in the meantime. Runs on the async loop, so the wait never blocks the
@@ -1410,7 +1629,7 @@ class ConnectionPlugin:
             imgui.same_line()
             imgui.text_colored(
                 imgui.ImVec4(0.95, 0.6, 0.15, 1.0),
-                S.STATUS_BUSMONITOR.format(ip=self._controller_ip),
+                S.STATUS_BUSMONITOR.format(ip=self._busmonitor_target),
             )
             if imgui.is_item_hovered():
                 imgui.set_tooltip(S.STATUS_BUSMONITOR_HINT)
@@ -1673,7 +1892,7 @@ class ConnectionPlugin:
     def render_menu(self) -> None:
         """The Gateway menu's content (the app draws the menu itself, see ``menu_label``)."""
         if self.busmonitor_active:
-            imgui.text(S.STATUS_BUSMONITOR.format(ip=self._controller_ip))
+            imgui.text(S.STATUS_BUSMONITOR.format(ip=self._busmonitor_target))
             imgui.text_disabled(S.STATUS_BUSMONITOR_HINT)
             imgui.separator()
             running = self._api.connection.busmonitor_state is BusmonitorState.RUNNING
@@ -1714,7 +1933,19 @@ class ConnectionPlugin:
                 self.open_settings(SETTINGS_PAGE)
 
     def _render_gateway_details(self) -> None:
-        """The connected gateway's name, individual address, KNXnet/IP version and services."""
+        """The connected gateway's name, individual address, KNXnet/IP version and services; for
+        a USB interface its individual address, serial number and bus connection."""
+        usb = self.usb_info
+        if usb is not None:
+            if usb.individual_address.raw:
+                imgui.text(S.GATEWAY_ADDRESS.format(address=usb.individual_address))
+            if usb.device.serial_number:
+                imgui.text(S.USB_SERIAL_NUMBER.format(serial=usb.device.serial_number))
+            if not usb.bus_connected:
+                imgui.text_colored(
+                    imgui.ImVec4(0.95, 0.55, 0.35, 1.0), S.USB_NOT_ON_BUS
+                )
+            return
         gateway = self._gateway_info
         if gateway is None:
             return
@@ -1791,6 +2022,14 @@ class ConnectionPlugin:
             imgui.text_disabled(S.NO_GATEWAYS_FOUND)
 
         imgui.separator()
+        imgui.text_disabled(S.SECTION_USB)
+        for device in self._usb_devices:
+            if imgui.menu_item(self._usb_option_label(device), "", False)[0]:
+                self.connect_to_usb(device)
+        if not self._usb_devices and not self._scanning:
+            imgui.text_disabled(S.NO_USB_INTERFACES)
+
+        imgui.separator()
         imgui.text_disabled(S.SECTION_MANUAL)
         imgui.set_next_item_width(px(180))
         _, self._controller_ip = imgui.input_text("IP##manual", self._controller_ip)
@@ -1818,6 +2057,13 @@ class ConnectionPlugin:
                 self._connection_type = ConnectionType.TUNNELING_TCP
         if imgui.menu_item(retry_label, "", False)[0]:
             self.connect(connection_type=manual_type)
+
+    def _usb_option_label(self, device: USBDeviceInfo) -> str:
+        """A plugged-in USB interface as offered: its name, and its serial number to tell
+        several apart."""
+        name = usb_device_name(device)
+        serial = f"  ({device.serial_number})" if device.serial_number else ""
+        return f"{name}{serial}##usb_{device.path.hex()}"
 
     def _manual_tcp_support(self) -> bool | None:
         """Whether the manually entered interface supports TCP tunnelling: True/False from a

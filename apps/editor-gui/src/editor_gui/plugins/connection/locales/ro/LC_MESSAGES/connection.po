@@ -210,3 +210,15 @@ msgstr "Connection Type"
 
 msgid "Applies on the next connect, like the Gateway menu's choice."
 msgstr "Applies on the next connect, like the Gateway menu's choice."
+
+msgid "USB Interfaces"
+msgstr "Interfețe USB"
+
+msgid "No USB interfaces found"
+msgstr "Nu s-a găsit nicio interfață USB"
+
+msgid "Not connected to the bus"
+msgstr "Neconectată la magistrală"
+
+msgid "Serial Number: {serial}"
+msgstr "Număr de serie: {serial}"

@@ -210,3 +210,15 @@ msgstr "Verbindungsart"
 
 msgid "Applies on the next connect, like the Gateway menu's choice."
 msgstr "Wird beim nächsten Verbinden angewendet, wie die Auswahl im Gateway-Menü."
+
+msgid "USB Interfaces"
+msgstr "USB-Schnittstellen"
+
+msgid "No USB interfaces found"
+msgstr "Keine USB-Schnittstellen gefunden"
+
+msgid "Not connected to the bus"
+msgstr "Nicht mit dem Bus verbunden"
+
+msgid "Serial Number: {serial}"
+msgstr "Seriennummer: {serial}"

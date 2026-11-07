@@ -49,6 +49,18 @@ disk-image tool instead of launching):
 chmod +x XKNX-Editor-x86_64.AppImage && ./XKNX-Editor-x86_64.AppImage
 ```
 
+On Linux, a KNX USB interface is used through its `/dev/hidraw*` device, which only root may open
+by default. A udev rule gives the logged-in user access to it; `lsusb` shows its vendor and product
+id (here those of a SpaceLogic interface):
+
+```bash
+echo 'KERNEL=="hidraw*", ATTRS{idVendor}=="16de", ATTRS{idProduct}=="008e", TAG+="uaccess"' \
+  | sudo tee /etc/udev/rules.d/70-knx-usb.rules
+sudo udevadm control --reload && sudo udevadm trigger
+```
+
+On Windows and macOS KNX USB interfaces need no driver or setting.
+
 Started while XKNX Editor already runs (as a window or as the browser UI), it asks whether to
 switch to the running one, which then opens a project given at the start, or to start another, e.g.
 for a second project or another bus connection. `--new-instance` starts another without asking.
@@ -103,8 +115,8 @@ directly in the editor.
 
 <img src="docs/images/catalog.png" alt="Product catalog" width="598">
 
-**Programming real devices** — commission a device end-to-end over a live connection (tunneling or
-routing, with gateway discovery), including setting a new device's address. A read-only **preflight**
+**Programming real devices** — commission a device end-to-end over a live connection (a KNX USB
+interface, or tunneling or routing with gateway discovery), including setting a new device's address. A read-only **preflight**
 and **Test Programming** read the device back and show the exact changes before anything is
 written. Vendor-independent by design.
 

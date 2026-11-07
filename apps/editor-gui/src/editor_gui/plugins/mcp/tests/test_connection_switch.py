@@ -28,6 +28,9 @@ class _Connected:
         self.is_routing = False
         self.connection_type = "tunneling_tcp"
         self.gateways: tuple[Any, ...] = ()
+        self.usb_target = None
+        self.usb_info = None
+        self.usb_devices: tuple[Any, ...] = ()
         self.gateway_info = SimpleNamespace(
             name="IP Interface",
             individual_address="1.1.250",

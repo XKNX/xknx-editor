@@ -156,6 +156,22 @@ class ConnectionStrings:
         return _("No gateways found")
 
     @property
+    def SECTION_USB(self) -> str:
+        return _("USB Interfaces")
+
+    @property
+    def NO_USB_INTERFACES(self) -> str:
+        return _("No USB interfaces found")
+
+    @property
+    def USB_NOT_ON_BUS(self) -> str:
+        return _("Not connected to the bus")
+
+    @property
+    def USB_SERIAL_NUMBER(self) -> str:
+        return _("Serial Number: {serial}")
+
+    @property
     def SECTION_MANUAL(self) -> str:
         return _("Manual Connection")
 

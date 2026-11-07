@@ -210,3 +210,15 @@ msgstr "Connection Type"
 
 msgid "Applies on the next connect, like the Gateway menu's choice."
 msgstr "Applies on the next connect, like the Gateway menu's choice."
+
+msgid "USB Interfaces"
+msgstr "Θύρες επικοινωνίας USB"
+
+msgid "No USB interfaces found"
+msgstr "Δεν βρέθηκαν θύρες επικοινωνίας USB"
+
+msgid "Not connected to the bus"
+msgstr "Δεν υπάρχει σύνδεση με το bus"
+
+msgid "Serial Number: {serial}"
+msgstr "Σειριακός Αριθμός: {serial}"

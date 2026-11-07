@@ -52,6 +52,9 @@ class _StubConnectionPlugin:
     gateways: tuple[Any, ...] = ()
     gateway_info = None
     connection_type = "tunneling"
+    usb_target = None
+    usb_info = None
+    usb_devices: tuple[Any, ...] = ()
 
 
 def _build_ctx(tmp_path: Path) -> McpContext:

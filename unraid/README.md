@@ -44,6 +44,11 @@ auto-discovery and KNX routing use multicast, which a bridged container does not
 **Network Type** to **Host** if you need those. The web UI then uses port 8080 of the server
 directly.
 
+A KNX USB interface plugged into the server is added with **Add another Path, Port, Variable,
+Label or Device** > **Device**, e.g. `/dev/hidraw0` (`ls -l /dev/hidraw*` before and after plugging
+it in shows which one it is). The editor runs as **PUID**, which needs access to it: set **PUID** to
+0, or allow it on the server with a udev rule.
+
 Offline project editing, import and export need no bus access at all.
 
 ## Signing-key extraction (optional)

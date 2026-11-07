@@ -62,6 +62,9 @@ def test_the_gateways_found_from_all_addresses_are_merged(
         plugin_module, "scan_addresses", lambda: [a for a in answers if a is not None]
     )
     plugin = cast(Any, object.__new__(ConnectionPlugin))
+    plugin._usb_target = None
+    plugin._usb_info = None
+    plugin._usb_devices = []
     log = SimpleNamespace(
         info=lambda *_a, **_k: None,
         debug=lambda *_a, **_k: None,

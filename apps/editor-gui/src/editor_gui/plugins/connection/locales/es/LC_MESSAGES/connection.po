@@ -210,3 +210,15 @@ msgstr "Connection Type"
 
 msgid "Applies on the next connect, like the Gateway menu's choice."
 msgstr "Applies on the next connect, like the Gateway menu's choice."
+
+msgid "USB Interfaces"
+msgstr "Interfaces USB"
+
+msgid "No USB interfaces found"
+msgstr "No se encontraron interfaces USB"
+
+msgid "Not connected to the bus"
+msgstr "No conectada al bus"
+
+msgid "Serial Number: {serial}"
+msgstr "Número de Serie: {serial}"
