@@ -91,8 +91,9 @@ class PropertyDiff:
     # Set for a property addressed by object type over the extended property services.
     object_type: int | None = None
     # A step of the procedure, not a setting: the procedure writes this property more than once
-    # with different values (e.g. a download handshake the device resets afterwards), so the
-    # device can never hold what one of the writes plans.
+    # with different values (e.g. a download handshake the device resets afterwards), or it is
+    # the device's own record of the segments loaded (the MCB, whose CRCs the device computes),
+    # so the device can never hold what one of the writes plans.
     procedure_step: bool = False
 
     @property

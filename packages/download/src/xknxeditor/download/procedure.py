@@ -2381,8 +2381,11 @@ class LoadProcedureRunner:
         self,
         index: int,
         control: LdCtrlCompareProp | LdCtrlLoadImageProp,
+        *,
+        required: bool = True,
     ) -> bytes:
-        """Read every element, splitting a range that would not fit one APDU.
+        """Read every element, splitting a range that would not fit one APDU; without
+        ``required`` a part the device answers with no elements ends the read with what came.
 
         A device answers an oversized property read with zero elements. The
         Weinzierl application captures seven 8-octet MCB entries in one control;
@@ -2407,16 +2410,18 @@ class LoadProcedureRunner:
         start = control.start_element
         while remaining:
             frame = min(per_frame, remaining)
-            parts.append(
-                await self._read_property_frame(
-                    programmer,
-                    index,
-                    control,
-                    count=frame,
-                    start_index=start,
-                    extended=extended,
-                )
+            part = await self._read_property_frame(
+                programmer,
+                index,
+                control,
+                count=frame,
+                start_index=start,
+                extended=extended,
+                required=required,
             )
+            if not part:
+                break
+            parts.append(part)
             remaining -= frame
             start += frame
         return b"".join(parts)
@@ -2430,6 +2435,7 @@ class LoadProcedureRunner:
         count: int,
         start_index: int,
         extended: bool,
+        required: bool = True,
     ) -> bytes:
         if extended:
             object_type, instance = self._extended_targets[index]
@@ -2439,14 +2445,14 @@ class LoadProcedureRunner:
                 control.prop_id,
                 count=count,
                 start_index=start_index,
-                require_nonzero=True,
+                require_nonzero=required,
             )
         return await programmer.read_property(
             await self._object_index(index),
             control.prop_id,
             count=count,
             start_index=start_index,
-            require_nonzero=True,
+            require_nonzero=required,
         )
 
     async def _ensure_property_width(
@@ -2610,7 +2616,24 @@ class LoadProcedureRunner:
         baseline: the par procedure uses it to detect a moved table reference.
         """
         index = await self._resolve_index(control, extended=True)
-        data = await self._read_property(index, control)
+        mcb = control.prop_id == _PID_MCB_TABLE
+        data = await self._read_property(index, control, required=not mcb)
+        if mcb and len(data) < control.count * _MCB_ENTRY_SIZE:
+            # The device keeps the MCB itself: after a download it can hold fewer entries than
+            # the procedure wrote (one for the whole segment), and answers entries it does not
+            # hold with no elements. Only the entries it answers with are captured.
+            logger.info(
+                "property capture: %s object=%s pid=%d: %d of %d element(s) held",
+                self._diagnostic_context(),
+                self._object_label(index),
+                control.prop_id,
+                len(data) // _MCB_ENTRY_SIZE,
+                control.count,
+            )
+            if len(data) < _MCB_ENTRY_SIZE:
+                return
+            control = replace(control, count=len(data) // _MCB_ENTRY_SIZE)
+            data = data[: control.count * _MCB_ENTRY_SIZE]
         logger.debug(
             "property capture: %s object=%s pid=%d count=%d start-index=%d "
             "octets=%d data=%s",
@@ -3174,7 +3197,10 @@ class LoadProcedureRunner:
                 planned,
                 properties,
                 covered=covered,
-                procedure_step=_property_key(control) in self._procedure_steps,
+                # The MCB is the device's own record of the segments loaded: it computes their
+                # CRCs and may merge their entries, so it never holds what the writes plan.
+                procedure_step=_property_key(control) in self._procedure_steps
+                or control.prop_id == _PID_MCB_TABLE,
             )
             self._preview_properties.add((index, control.prop_id))
             return
