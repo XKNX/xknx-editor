@@ -32,6 +32,7 @@ from xknxeditor.download.image import (
     MovedTables,
     _communication_by_link,
     _group_communication_relative_segments,
+    table_ranges,
 )
 from xknxeditor.download.image import (
     _group_communication_segments as _group_tables,
@@ -384,6 +385,25 @@ def test_m112_count_is_the_number_of_records() -> None:
     assert address == _BASE + _TABLE
     assert data[0] == 5
     assert data[1:3] == seed[_TABLE + 1 : _TABLE + 3]
+
+
+def test_the_table_memory_is_what_the_table_writes() -> None:
+    # The group object table's segment is the whole code segment: the parameters before and
+    # behind the table are no table bytes, so the preview does not count them as one.
+    application = _application("MV-0705")
+    application.program.static.com_object_table.com_object.append(_static_object(4))
+    seed = bytearray(_seed())
+    seed[_TABLE] = 0xFE
+    eeprom = _m112_segments(application, seed, _NODES)
+    end = _BASE + _TABLE + 3 + 5 * 4
+    ranges = table_ranges([eeprom])
+
+    def in_table(address: int) -> bool:
+        return any(start <= address < stop for start, stop in ranges)
+
+    assert in_table(_BASE + _TABLE) and in_table(end - 1)
+    assert not in_table(_BASE + _TABLE - 1) and not in_table(end)
+    assert not in_table(_BASE + 200)
 
 
 def test_m112_count_that_matches_the_product_is_kept_everywhere() -> None:

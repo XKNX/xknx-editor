@@ -452,7 +452,7 @@ class DownloadImage:
     # own, which the standard memory writes (``segments``) never reach, even at the same
     # address.
     user_segments: tuple[MemorySegment, ...] = ()
-    # The memory (start, end) of the group communication tables at absolute addresses.
+    # The memory (start, end) the group communication tables at absolute addresses write.
     group_table_memory: tuple[tuple[int, int], ...] = ()
 
     def in_group_tables(self, address: int) -> bool:
@@ -738,9 +738,7 @@ def build_image(
                 factory_image,
             )
             segments.extend(group_tables.segments)
-            table_memory.extend(
-                (s.address, s.address + len(s.data)) for s in group_tables.segments
-            )
+            table_memory.extend(table_ranges(group_tables.segments))
             moved = group_tables.moved
         else:
             relative_segments.extend(
@@ -938,6 +936,23 @@ def _validate_security_capacity(
     ):
         if limit and count > limit:
             raise ImageError(f"{name} has {count} entries; the device holds {limit}")
+
+
+def table_ranges(segments: Sequence[MemorySegment]) -> list[tuple[int, int]]:
+    """The memory (start, end) the group table ``segments`` write: their masked runs and the
+    octets only a partial download writes, not their whole data. A group object table's
+    segment can be the whole code segment, with parameters behind the table."""
+    ranges = [
+        (address, address + len(data))
+        for segment in segments
+        for address, data in segment.masked_runs()
+    ]
+    ranges += [
+        (segment.address + offset, segment.address + offset + 1)
+        for segment in segments
+        for offset, _value in segment.partial_octets
+    ]
+    return ranges
 
 
 def _group_communication_segments(
