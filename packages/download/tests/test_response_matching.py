@@ -11,10 +11,10 @@ import pytest
 from xknx import XKNX
 from xknx.exceptions import ManagementConnectionRefused, ManagementConnectionTimeout
 from xknx.management import management
-from xknx.management.management import P2PConnection
+from xknx.management.management import P2PConnection, P2PConnectionless
 from xknx.telegram import IndividualAddress, Telegram, TelegramDirection, apci, tpci
 
-from xknxeditor.download import response_matching, transport_repetitions
+from xknxeditor.download import response_matching
 from xknxeditor.download.connectionless import ConnectionlessConnection
 from xknxeditor.download.response_matching import answer_type, answers
 
@@ -34,7 +34,7 @@ _LATE_MEMORY_ANSWER = apci.MemoryResponse(
 
 @pytest.fixture(autouse=True)
 def _short_timeouts(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr(transport_repetitions, "MANAGEMENT_ACK_TIMEOUT", 0.01)
+    monkeypatch.setattr(management, "MANAGEMENT_ACK_TIMEOUT", 0.01)
     monkeypatch.setattr(management, "MANAGEMENT_CONNECTION_TIMEOUT", 0.05)
 
 
@@ -261,10 +261,11 @@ async def test_the_rate_limit_spaces_requests(monkeypatch: pytest.MonkeyPatch) -
 
 async def test_connectionless_ignores_a_response_to_another_request() -> None:
     xknx = XKNX()
-    connection = ConnectionlessConnection(xknx, _DEVICE)
+    connectionless = P2PConnectionless(xknx, _DEVICE)
+    connection = ConnectionlessConnection(connectionless)
 
     def reply(payload: apci.APCI) -> None:
-        connection.process(
+        connectionless.process(
             Telegram(
                 source_address=_DEVICE,
                 destination_address=xknx.current_address,

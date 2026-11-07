@@ -1,6 +1,6 @@
 """Take only the response that answers a point-to-point request.
 
-xknx 4.0 hands a request whatever the device sends next on the connection: also a response
+xknx (4.1.1 too) hands a request whatever the device sends next on the connection: also a response
 that arrived while no request waited for one, and a second response to an earlier request
 that was sent again after its acknowledgement got lost. A download then took the memory
 response of a repeated read as the answer to the next property write and stopped. It also

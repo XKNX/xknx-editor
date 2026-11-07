@@ -10,7 +10,7 @@ dependencies = [
     "xknxeditor-catalog",
     "xknxeditor-proj",
     "xknxeditor-download",
-    "xknx>=4.0,<5",
+    "xknx>=4.1.1,<5",
 ]
 
 [build-system]

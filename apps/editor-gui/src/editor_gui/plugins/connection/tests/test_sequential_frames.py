@@ -1,6 +1,6 @@
 """One frame at a time: the next is sent only after the confirmation (L_Data.con) of the one
-before arrived, or the wait for it timed out. A T_Ack sent in the background therefore no longer
-overlaps the following request."""
+before arrived, or the wait for it timed out. A T_Ack sent in the background therefore doesn't
+overlap the following request. xknx's handler does it from 4.1.0 on; the editor relies on it."""
 
 from __future__ import annotations
 
@@ -10,12 +10,11 @@ from typing import Any, cast
 import pytest
 from xknx import XKNX
 from xknx.cemi import CEMIFrame, CEMIMessageCode
+from xknx.cemi.cemi_handler import CEMIHandler
 from xknx.exceptions import ConfirmationError
 from xknx.telegram import IndividualAddress, Telegram
 from xknx.telegram.apci import MemoryRead
 from xknx.telegram.tpci import TAck, TDataConnected
-
-from editor_gui.plugins.connection.interface import SequentialCEMIHandler
 
 
 class _Interface:
@@ -28,16 +27,14 @@ class _Interface:
         self.sent.append(cemi)
 
 
-def _handler() -> tuple[SequentialCEMIHandler, _Interface]:
+def _handler() -> tuple[CEMIHandler, _Interface]:
     xknx = XKNX()
-    handler = SequentialCEMIHandler(xknx)
-    xknx.cemi_handler = handler
     interface = _Interface()
     xknx.knxip_interface = cast(Any, interface)
-    return handler, interface
+    return xknx.cemi_handler, interface
 
 
-def _confirm(handler: SequentialCEMIHandler, cemi: CEMIFrame) -> None:
+def _confirm(handler: CEMIHandler, cemi: CEMIFrame) -> None:
     handler.handle_cemi_frame(
         CEMIFrame(code=CEMIMessageCode.L_DATA_CON, data=cemi.data)
     )

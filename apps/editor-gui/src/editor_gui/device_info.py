@@ -14,6 +14,8 @@ import re
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
+from xknx.dpt.dpt_217 import DPTVersion
+from xknx.dpt.payload import DPTArray
 from xknx.exceptions import XKNXException
 from xknx.profile.const import (
     ResourceDevicePropertyId,
@@ -135,10 +137,14 @@ def application_program_label(name: str, version: int) -> str:
 
 
 def firmware_text(version: int | None) -> str | None:
-    """A PID_VERSION value as ``[magic] version.revision``."""
+    """A PID_VERSION value (DPT 217.001) as ``[magic] version.revision``."""
     if version is None:
         return None
-    return f"[{version >> 11}] {(version >> 6) & 0x1F}.{version & 0x3F}"
+    knx_version = DPTVersion.from_knx(DPTArray((version & 0xFFFF).to_bytes(2, "big")))
+    return (
+        f"[{knx_version.magic_number}] "
+        f"{knx_version.version_number}.{knx_version.revision_number}"
+    )
 
 
 def size_text(object_size: str | None) -> str | None:
