@@ -35,6 +35,7 @@ from editor_gui.plugins.connection.usb import (
     ObservableUSBInterfaceThreaded,
     UsbBusmonitorConnection,
     UsbTarget,
+    cancel_hidapi_atexit,
     search_usb_interfaces,
     usb_device_name,
 )
@@ -1612,6 +1613,8 @@ class ConnectionPlugin:
             self._run_async(self._disconnect_async())
         if self._async_loop is not None:
             self._async_loop.call_soon_threadsafe(self._async_loop.stop)
+        # hidapi crashes on quit if its exit-time teardown runs after the GUI run loop is gone.
+        cancel_hidapi_atexit()
 
     def render_status_indicator(self) -> None:
         self._refresh_data_secure()

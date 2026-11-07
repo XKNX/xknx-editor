@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 import asyncio
+import sys
+import weakref
 from collections.abc import Callable
 from dataclasses import dataclass
-from typing import cast
+from typing import Any, cast
 
 from xknx import XKNX
 from xknx.core.connection_state import XknxConnectionState
@@ -28,6 +30,32 @@ _RECONNECT_SECONDS = 3
 def usb_device_name(device: USBDeviceInfo) -> str:
     """The name an interface is shown with: its USB product name."""
     return device.product.strip() or "KNX USB Interface"
+
+
+def cancel_hidapi_atexit() -> None:
+    """Cancel hidapi's exit-time teardown on macOS, if hidapi was loaded.
+
+    hidapi schedules ``hid_exit`` through a ``weakref.finalize`` on its module, run at interpreter
+    shutdown. On macOS it binds the IOHIDManager to the run loop of the thread that imported it
+    (here a background USB scan thread); by interpreter shutdown that run loop is gone, so
+    ``IOHIDManagerClose`` unschedules from a freed run loop and the process dies with a trace trap
+    on quit. Detaching the finalizer leaves the manager for the exiting process to reclaim instead.
+    Called right after a scan imports hidapi and again on app shutdown, so it runs whenever hidapi
+    is loaded. The crash is specific to macOS (IOKit/CoreFoundation); Linux (hidraw / libusb) and
+    Windows keep hidapi's normal teardown.
+    """
+    if sys.platform != "darwin":
+        return
+    hid = sys.modules.get("hid")
+    if hid is None:
+        return
+    # weakref.finalize._registry maps each live finalizer to its info; untyped, so go through
+    # getattr to keep it out of the strict type check.
+    registry: Any = getattr(weakref.finalize, "_registry", {})
+    for finalizer in list(registry):
+        peeked = finalizer.peek()
+        if peeked is not None and peeked[0] is hid:
+            finalizer.detach()
 
 
 @dataclass(frozen=True, slots=True)
@@ -94,13 +122,17 @@ async def search_usb_interfaces(
 ) -> list[USBDeviceInfo]:
     """The KNX USB interfaces plugged into this computer; none when they cannot be listed."""
     try:
-        return await asyncio.get_running_loop().run_in_executor(
+        devices = await asyncio.get_running_loop().run_in_executor(
             None, find_usb_interfaces
         )
     except (CommunicationError, OSError) as err:
         if on_error is not None:
             on_error(err)
         return []
+    # The scan imported hidapi (in the executor thread); cancel its exit-time teardown right away,
+    # so quitting is safe however the scan and the shutdown interleave (see cancel_hidapi_atexit).
+    cancel_hidapi_atexit()
+    return devices
 
 
 class ObservableUSBInterfaceThreaded(ObservableKNXIPInterfaceThreaded):
