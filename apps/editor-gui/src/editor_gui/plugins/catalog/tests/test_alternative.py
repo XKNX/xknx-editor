@@ -8,6 +8,7 @@ import hashlib
 import json
 import os
 from pathlib import Path
+from typing import Any
 
 import httpx
 import pytest
@@ -494,5 +495,29 @@ def test_invalid_search_page(tmp_path: Path, limit: int | None, offset: int) -> 
     try:
         with pytest.raises(ValueError):
             c.search(limit=limit, offset=offset)
+    finally:
+        c.close()
+
+
+@pytest.mark.parametrize(
+    ("call", "code"),
+    [
+        (lambda c: c.register("x", "user@example.com", "NewPassword1!"), "USERNAME"),
+        (lambda c: c.register("newuser", "user@example.com", "short"), "PASSWORD"),
+        (lambda c: c.verify_registration("12ab"), "VERIFICATION_CODE"),
+        (lambda c: c.resume_registration(), "NO_ACCOUNT"),
+    ],
+)
+def test_refused_input_names_its_rule(tmp_path: Path, call: Any, code: str) -> None:
+    """Input the server would refuse is caught first, with a code the UI words itself."""
+    c = client(
+        tmp_path,
+        lambda r: pytest.fail("touched the network"),
+        credentials=code != "NO_ACCOUNT",
+    )
+    try:
+        with pytest.raises(alt.AlternativeInputError) as raised:
+            call(c)
+        assert raised.value.code == code
     finally:
         c.close()

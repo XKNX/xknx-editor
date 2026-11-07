@@ -278,3 +278,24 @@ msgid "Register…"
 msgstr "Εγγραφή…"
 msgid "Alternative Catalog"
 msgstr "Alternative Catalog"
+
+msgid "The login was refused: the username or password is wrong, or the account is not approved yet."
+msgstr "Η σύνδεση απορρίφθηκε: το όνομα χρήστη ή ο κωδικός είναι λάθος, ή ο λογαριασμός δεν έχει εγκριθεί ακόμη."
+
+msgid "Enter your username and password, or register, before downloading."
+msgstr "Εισαγάγετε το όνομα χρήστη και τον κωδικό σας ή κάντε εγγραφή πριν από τη λήψη."
+
+msgid "The daily download limit is reached. Try again tomorrow."
+msgstr "Το ημερήσιο όριο λήψεων συμπληρώθηκε. Δοκιμάστε ξανά αύριο."
+
+msgid "The catalog server is busy. Try again in a moment."
+msgstr "Ο διακομιστής καταλόγου είναι απασχολημένος. Δοκιμάστε ξανά σε λίγο."
+
+msgid "Enter an email address and a username of 3 to 32 letters, digits, dots, underscores or hyphens."
+msgstr "Εισαγάγετε μια διεύθυνση email και ένα όνομα χρήστη από 3 έως 32 γράμματα, ψηφία, τελείες, κάτω παύλες ή παύλες."
+
+msgid "The password needs at least 10 characters with upper and lower case letters, a digit and a special character."
+msgstr "Ο κωδικός χρειάζεται τουλάχιστον 10 χαρακτήρες με κεφαλαία και πεζά γράμματα, ένα ψηφίο και έναν ειδικό χαρακτήρα."
+
+msgid "Enter the six-digit code from the email."
+msgstr "Εισαγάγετε τον εξαψήφιο κωδικό από το email."

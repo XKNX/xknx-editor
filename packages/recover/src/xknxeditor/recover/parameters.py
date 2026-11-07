@@ -14,7 +14,8 @@ recovered value is assigned to each of that parameter's references.
 Some settings are not on the device at all: a parameter without memory or property
 (e.g. "Channel A: active") only decides which channels, parameters and group objects
 the application shows. Their values are inferred from the group objects the device's
-tables link (see :func:`_infer_unstored`).
+tables link (see :func:`_infer_unstored`), and then corrected where the memory the result would
+write, or the group objects it shows, still differ from the device (see :func:`_refine`).
 """
 
 from __future__ import annotations
@@ -48,8 +49,17 @@ _INFER_ROUNDS = 16
 # settings they show.
 _MEMORY_TRIES = 24
 _LOOK_AHEAD_TRIES = 12
+# Corrections of the result at most, the values tried for one (each with the whole inference
+# behind it), and how far up the selectors are followed from a byte or group object that differs.
+_REFINE_ROUNDS = 4
+_REFINE_TRIES = 12
+_REFINE_DEPTH = 3
+# A group object shown otherwise than the device's tables link weighs as many differing bytes.
+_OBJECT_WEIGHT = 3
 
 _ValueMap = dict[str, str]
+# A byte of a code segment: (segment id, offset).
+_Cell = tuple[str, int]
 
 
 def _parameter_to_refs(application: Application) -> dict[str, list[str]]:
@@ -92,8 +102,50 @@ def recover_parameters(
     sizes = dict(object_sizes or {})
     # Only the inference from linked objects tells settings apart by them.
     fixed = _fixed_values(application, ui) if linked else {}
-    inferred: _ValueMap = {}
     dead: set[tuple[str, str]] = set()
+    values, unknown, inferred = _infer_all(
+        application,
+        parameter_segments,
+        property_values,
+        project_code_page,
+        linked,
+        sizes,
+        fixed,
+        {},
+        dead,
+    )
+    values, unknown = _refine(
+        application,
+        parameter_segments,
+        property_values,
+        project_code_page,
+        linked,
+        sizes,
+        fixed,
+        values,
+        unknown,
+        inferred,
+        dead,
+    )
+    return RecoveredParameters(values=values, unknown=unknown)
+
+
+def _infer_all(
+    application: Application,
+    parameter_segments: Mapping[str, bytes],
+    property_values: Mapping[tuple[int | None, int, int], bytes] | None,
+    project_code_page: str | None,
+    linked: set[int],
+    sizes: Mapping[int, str],
+    fixed: _ValueMap,
+    start: Mapping[str, str],
+    dead: set[tuple[str, str]],
+) -> tuple[dict[str, str], list[str], _ValueMap]:
+    """The values decoded with the settings the device keeps no copy of inferred, starting with
+    those of ``start`` (kept as they are): the values, the parameters left unknown and all the
+    inferred settings. ``dead`` collects the values found to show nothing (see
+    :func:`_infer_unstored`), and those in it are not tried."""
+    inferred: _ValueMap = dict(start)
     values, unknown = _decode(
         application, parameter_segments, property_values, project_code_page, inferred
     )
@@ -133,7 +185,185 @@ def recover_parameters(
             project_code_page,
             inferred,
         )
-    return RecoveredParameters(values=values, unknown=unknown)
+    return values, unknown, inferred
+
+
+def _static_cells(application: Application, ui: DynamicUI) -> dict[_Cell, set[str]]:
+    """The parameters of the application (not of module definitions) stored at each byte,
+    union members too, whether active or not."""
+    from xknxeditor.prod.parser_v2.encode import collect_writes, type_size_in_bit
+
+    indexer = ui.indexer
+    # Without a state every parameter is written, and a union member whenever it has a value.
+    writes = collect_writes(
+        application.program, indexer, dict.fromkeys(indexer.parameters, "0"), None
+    )
+    cells: dict[_Cell, set[str]] = {}
+    for write in writes.mem:
+        parameter_type = indexer.parameter_types.get(write.parameter_type)
+        size = type_size_in_bit(parameter_type.choice) if parameter_type else 0
+        if not size:
+            continue
+        start = write.offset * 8 + write.bit_offset
+        for offset in range(start // 8, (start + size - 1) // 8 + 1):
+            cells.setdefault((write.seg_id, offset), set()).add(write.param_id)
+    return cells
+
+
+def _differing_cells(
+    ui: DynamicUI, parameter_segments: Mapping[str, bytes]
+) -> set[_Cell] | None:
+    """The bytes ``ui`` writes otherwise than the device holds them; ``None`` when it cannot be
+    encoded."""
+    from xknxeditor.prod.errors import EncodingError
+
+    try:
+        encoded = ui.encode_to_memory()
+    except (EncodingError, ValueError):
+        return None
+    return {
+        (segment_id, offset)
+        for segment_id, device in parameter_segments.items()
+        for offset, (mine, theirs) in enumerate(
+            zip(encoded.get(segment_id, b""), device, strict=False)
+        )
+        if mine != theirs
+    }
+
+
+def _count_selectors(
+    ui: DynamicUI,
+    gates: Collection[str],
+    shown: Collection[str],
+    weight: Counter[str],
+) -> None:
+    """Count the selectors ``gates`` in ``weight``, and for one not ``shown`` those on its own way,
+    ``_REFINE_DEPTH`` selectors up."""
+    frontier = set(gates)
+    for _depth in range(_REFINE_DEPTH):
+        above: set[str] = set()
+        for gate in frontier:
+            weight[gate] += 1
+            if gate not in shown:
+                above |= ui.parameter_gates(gate)
+        frontier = above
+
+
+def _refine(
+    application: Application,
+    parameter_segments: Mapping[str, bytes],
+    property_values: Mapping[tuple[int | None, int, int], bytes] | None,
+    project_code_page: str | None,
+    linked: set[int],
+    sizes: Mapping[int, str],
+    fixed: _ValueMap,
+    values: dict[str, str],
+    unknown: list[str],
+    inferred: _ValueMap,
+    dead: set[tuple[str, str]],
+) -> tuple[dict[str, str], list[str]]:
+    """Correct settings the device keeps no copy of where the result still differs from the
+    device: in the bytes it would write, or in the group objects it shows (with linked objects).
+
+    A setting deep in a channel only shows once the selector of the channel has the right value,
+    and that value alone fits worse until the channel's own settings are inferred too. So each
+    value tried is followed by the whole inference behind it, and taken when the result fits
+    better (each group object shown otherwise than linked weighing ``_OBJECT_WEIGHT`` differing
+    bytes). The values tried are those of the selectors on the way to the parameters stored at
+    the differing bytes and to the group objects shown otherwise (``_REFINE_DEPTH`` selectors up),
+    those of the most such places first, and the first that fits better is taken;
+    ``_REFINE_TRIES`` per correction, ``_REFINE_ROUNDS`` corrections at most. The values the
+    inference found to show nothing (``dead``) are not tried again behind them."""
+    from xknxeditor.prod.parser_v2.activation import shown_parameters, values_to_try
+
+    from .recover import seed_dynamic_ui
+
+    ui = seed_dynamic_ui(application, values, project_code_page)
+    if ui is None:
+        return values, unknown
+
+    def misfit(seeded: DynamicUI) -> tuple[int, set[_Cell], set[int]] | None:
+        differing = _differing_cells(seeded, parameter_segments)
+        if differing is None:
+            return None
+        objects: set[int] = _shown_objects(seeded, sizes) if linked else set()
+        wrong: set[int] = (linked ^ objects) if linked else set()
+        return _OBJECT_WEIGHT * len(wrong) + len(differing), differing, wrong
+
+    current = misfit(ui)
+    if current is None or not current[0]:
+        return values, unknown
+    indexer = ui.indexer
+    cells = _static_cells(application, ui)
+    refs_of: dict[str, list[str]] = {}
+    for ref_id, ref in indexer.parameter_refs.items():
+        refs_of.setdefault(ref.ref_id, []).append(ref_id)
+    objects_of: dict[int, list[str]] = {}
+    for ref_id, ref in indexer.com_object_refs.items():
+        com_object = indexer.com_objects.get(ref.ref_id)
+        number = getattr(com_object, "number", None)
+        if isinstance(number, int):
+            objects_of.setdefault(number, []).append(ref_id)
+    tried: set[tuple[str, str]] = set()
+    for _ in range(_REFINE_ROUNDS):
+        score, differing, wrong = current
+        shown = shown_parameters(ui.ui())
+        weight: Counter[str] = Counter()
+
+        for cell in differing:
+            for parameter_id in cells.get(cell, ()):
+                for ref_id in refs_of.get(parameter_id, ()):
+                    _count_selectors(ui, ui.parameter_gates(ref_id), shown, weight)
+        for number in wrong:
+            for ref_id in objects_of.get(number, ()):
+                _count_selectors(ui, ui.object_gates(ref_id), shown, weight)
+        trials: list[tuple[str, str]] = []
+        for gate, _count in weight.most_common():
+            parameter = shown.get(gate)
+            if parameter is None or not _is_unstored(ui, gate):
+                continue
+            now = ui.get_value(gate) or parameter.default_value
+            trials += [
+                (gate, value)
+                for value in values_to_try(parameter, now)
+                if (gate, value) not in tried
+            ]
+        best: (
+            tuple[
+                tuple[int, set[_Cell], set[int]],
+                dict[str, str],
+                list[str],
+                _ValueMap,
+                DynamicUI,
+            ]
+            | None
+        ) = None
+        for gate, value in trials[:_REFINE_TRIES]:
+            tried.add((gate, value))
+            trial_values, trial_unknown, trial_inferred = _infer_all(
+                application,
+                parameter_segments,
+                property_values,
+                project_code_page,
+                linked,
+                sizes,
+                fixed,
+                {**inferred, gate: value},
+                set(dead),
+            )
+            seeded = seed_dynamic_ui(application, trial_values, project_code_page)
+            if seeded is None:
+                continue
+            result = misfit(seeded)
+            if result is not None and result[0] < score:
+                best = (result, trial_values, trial_unknown, trial_inferred, seeded)
+                break
+        if best is None:
+            break
+        current, values, unknown, inferred, ui = best
+        if not current[0]:
+            break
+    return values, unknown
 
 
 def _decode(
@@ -303,15 +533,9 @@ def _fixed_values(application: Application, ui: DynamicUI) -> _ValueMap:
     return fixed
 
 
-def _fixed_conflicts(
-    ui: DynamicUI, parameter_segments: Mapping[str, bytes], fixed: _ValueMap
-) -> int:
-    """How many bytes of the active hidden settings with a fixed value (see
-    :func:`_fixed_values`) the device holds otherwise than ``ui`` writes them: a configuration
-    with any is not the device's. Compared as written, so that the members of a union in a
-    module instance count too."""
-    from xknxeditor.prod.errors import EncodingError
-
+def _fixed_cells(ui: DynamicUI, fixed: _ValueMap) -> set[_Cell]:
+    """The bytes the active hidden settings with a fixed value (see :func:`_fixed_values`) take
+    in ``ui``."""
     indexer = ui.indexer
     active = {ui.local_ref_id(ref_id) for ref_id in ui.active_parameter_ref_ids()}
     parameters = {indexer.parameter_refs[ref].ref_id for ref in active & fixed.keys()}
@@ -322,25 +546,89 @@ def _fixed_conflicts(
         if ref in indexer.parameter_refs
     }
     if not parameters:
+        return set()
+    return {
+        (segment_id, offset)
+        for segment_id, cells in ui.memory_param_map().items()
+        for offset, (parameter_id, _value) in cells.items()
+        if parameter_id in parameters
+    }
+
+
+def _mismatches(
+    ui: DynamicUI, parameter_segments: Mapping[str, bytes], cells: set[_Cell]
+) -> int:
+    """How many of the bytes ``cells`` the device holds otherwise than ``ui`` writes them
+    (compared as written, so that the members of a union in a module instance count too)."""
+    from xknxeditor.prod.errors import EncodingError
+
+    if not cells:
         return 0
     try:
         encoded = ui.encode_to_memory()
     except (EncodingError, ValueError):
         return 0
     count = 0
-    for segment_id, cells in ui.memory_param_map().items():
+    for segment_id, offset in cells:
         device = parameter_segments.get(segment_id)
         mine = encoded.get(segment_id)
-        if device is None or mine is None:
-            continue
-        for offset, (parameter_id, _value) in cells.items():
-            if (
-                parameter_id in parameters
-                and offset < min(len(device), len(mine))
-                and device[offset] != mine[offset]
-            ):
-                count += 1
+        if (
+            device is not None
+            and mine is not None
+            and offset < min(len(device), len(mine))
+            and device[offset] != mine[offset]
+        ):
+            count += 1
     return count
+
+
+def _undecodable_cells(
+    ui: DynamicUI, parameter_segments: Mapping[str, bytes], own: set[str]
+) -> int:
+    """How many bytes the parameters ``own`` take in ``ui`` whose memory is no value of their
+    type: the device holds another setting there."""
+    if not own:
+        return 0
+    decoded = ui.decode_memory_parameters(parameter_segments)
+    failed = {
+        parameter_id for parameter_id in own if decoded.get(parameter_id, "") is None
+    }
+    return sum(
+        1
+        for cells in ui.memory_param_map().values()
+        for parameter_id, _value in cells.values()
+        if parameter_id in failed
+    )
+
+
+def _fixed_clashes(
+    uis: Mapping[str, DynamicUI],
+    parameter_segments: Mapping[str, bytes],
+    fixed: _ValueMap,
+) -> dict[str, int]:
+    """For configurations that show the same objects (a pair of buttons or two single ones, the
+    datapoint types of a status value), how many bytes the device holds against each: of the
+    hidden settings with a fixed value, the ones it holds otherwise than each writes them,
+    compared on the bytes such settings take in any of them (a configuration that leaves the
+    other one's bytes at their initial value counts those too, the device holds the other one's
+    values there); and of the settings only some of them have, the ones whose memory is no
+    value of the setting's type (e.g. a function selection the device holds another one's value
+    in)."""
+    cells: set[_Cell] = set()
+    written: dict[str, set[str]] = {}
+    for key, ui in uis.items():
+        cells |= _fixed_cells(ui, fixed)
+        written[key] = {
+            parameter_id
+            for column in ui.memory_param_map().values()
+            for parameter_id, _value in column.values()
+        }
+    common: set[str] = set[str].intersection(*written.values()) if written else set()
+    return {
+        key: _mismatches(ui, parameter_segments, cells)
+        + _undecodable_cells(ui, parameter_segments, written[key] - common)
+        for key, ui in uis.items()
+    }
 
 
 def _infer_unstored(
@@ -405,18 +693,21 @@ def _infer_unstored(
         )
         return objects & linked, len(objects - linked), reveals
 
-    def conflicts(trial: Mapping[str, str]) -> int:
-        """How many hidden settings with a fixed value ``trial`` makes active hold another
-        value on the device."""
+    def clashes(trials: Mapping[str, Mapping[str, str]]) -> dict[str, int]:
+        """For trials that show the same objects, how many bytes of the hidden settings with a
+        fixed value the device holds otherwise (see :func:`_fixed_clashes`)."""
         assert fixed is not None and segments is not None
-        seeded = seed_dynamic_ui(
-            application,
-            {**values, **trial},
-            project_code_page,
-            module_instances=instances,
-        )
-        assert seeded is not None
-        return _fixed_conflicts(seeded, segments, fixed)
+        uis: dict[str, DynamicUI] = {}
+        for key, trial in trials.items():
+            seeded = seed_dynamic_ui(
+                application,
+                {**values, **trial},
+                project_code_page,
+                module_instances=instances,
+            )
+            assert seeded is not None
+            uis[key] = seeded
+        return _fixed_clashes(uis, segments, fixed)
 
     best: list[tuple[tuple[int, int], str, str]] = []
     neutral: list[tuple[str, str]] = []
@@ -447,13 +738,13 @@ def _infer_unstored(
         ties = [entry for entry in gaining if entry[0] == top]
         # Several values show the same objects (datapoint types of the same size, a pair of
         # buttons or two single ones): the hidden settings they come with tell them apart.
-        clashes: dict[str, int] = (
-            {candidate: conflicts({ref_id: candidate}) for _, _, candidate in ties}
+        clash: dict[str, int] = (
+            clashes({candidate: {ref_id: candidate} for _, _, candidate in ties})
             if fixed and segments is not None and len(ties) > 1
             else {}
         )
         gain, fewest, value = max(
-            ties, key=lambda entry: (-clashes.get(entry[2], 0), entry[1])
+            ties, key=lambda entry: (-clash.get(entry[2], 0), entry[1])
         )
         best.append(((gain, fewest), ref_id, value))
     if best:
@@ -475,7 +766,6 @@ def _infer_unstored(
     seen = known | shown_settings.keys()
     found: _ValueMap = {}
     found_count = len(base)
-    found_clash: int | None = None
     for ref_id, candidate in neutral[:_LOOK_AHEAD_TRIES]:
         nested = _infer_unstored(
             application,
@@ -493,15 +783,13 @@ def _infer_unstored(
         trial = {ref_id: candidate, **nested}
         count = len(shown(trial)[0])
         if count > found_count:
-            found, found_count, found_clash = trial, count, None
+            found, found_count = trial, count
         elif count == found_count and found and fixed and segments is not None:
             # As many shown either way (a pair of buttons or two single ones): the hidden
             # settings with a fixed value tell them apart.
-            if found_clash is None:
-                found_clash = conflicts(found)
-            clash = conflicts(trial)
-            if clash < found_clash:
-                found, found_clash = trial, clash
+            clash = clashes({"found": found, "trial": trial})
+            if clash["trial"] < clash["found"]:
+                found = trial
     return found
 
 

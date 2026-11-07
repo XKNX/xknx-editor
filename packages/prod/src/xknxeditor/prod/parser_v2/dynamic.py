@@ -281,26 +281,35 @@ class DynamicTreeBuilder:
         # Param-refs (local to their application or module definition) whose value can change
         # which allocating module instances the tree makes; no other value can make an allocator
         # overflow. Those whose value can change which group objects and module instances the
-        # tree makes. And per param-ref, the selectors right on the way to its placements.
+        # tree makes. And per param-ref, the selectors right on the way to its placements, and
+        # per group object reference those on the way to where it is placed.
         self.allocation_param_refs: frozenset[str]
         self.object_param_refs: frozenset[str]
         self.parameter_gates: dict[str, frozenset[str]]
+        self.object_gates: dict[str, frozenset[str]]
         (
             self.allocation_param_refs,
             self.object_param_refs,
             self.parameter_gates,
+            self.object_gates,
         ) = self._build_selector_refs(app)
 
     def _build_selector_refs(
         self, app: ApplicationProgram
-    ) -> tuple[frozenset[str], frozenset[str], dict[str, frozenset[str]]]:
+    ) -> tuple[
+        frozenset[str],
+        frozenset[str],
+        dict[str, frozenset[str]],
+        dict[str, frozenset[str]],
+    ]:
         """The selectors (choose parameters, repeat counts) on the way to a module that
         allocates (an argument with an Allocator, or such a module inside it), and those on the
         way to a group object or any module. Both closed over what makes a selector count: a
         choose renders only while its parameter is active, so the selectors on the way to the
         parameter's placements and assigns count too, as do the sources of its assigns and its
         union siblings (a choose on an inactive union member renders nothing). Third, per
-        param-ref the selectors on the way to its placements and assigns."""
+        param-ref the selectors on the way to its placements and assigns, and fourth, per group
+        object reference those on the way to its placements."""
         defs = self.idx.module_defs
         allocates: dict[str, bool] = {}
 
@@ -322,6 +331,7 @@ class DynamicTreeBuilder:
         seeds: set[str] = set()
         object_seeds: set[str] = set()
         placements: dict[str, set[str]] = {}
+        object_placements: dict[str, set[str]] = {}
         sources: dict[str, set[str]] = {}
 
         def walk(elem: object, gates: tuple[str, ...]) -> None:
@@ -347,6 +357,7 @@ class DynamicTreeBuilder:
                 return
             if isinstance(elem, ComObjectRefRef):
                 object_seeds.update(gates)
+                object_placements.setdefault(elem.ref_id, set()).update(gates)
                 return
             if isinstance(elem, ParameterRefRef):
                 placements.setdefault(elem.ref_id, set()).update(gates)
@@ -382,7 +393,10 @@ class DynamicTreeBuilder:
             return frozenset(relevant)
 
         gates_by_ref = {ref: frozenset(gates) for ref, gates in placements.items()}
-        return closed(seeds), closed(object_seeds), gates_by_ref
+        gates_by_object = {
+            ref: frozenset(gates) for ref, gates in object_placements.items()
+        }
+        return closed(seeds), closed(object_seeds), gates_by_ref, gates_by_object
 
     def _build_page_maps(
         self, app: ApplicationProgram
@@ -900,6 +914,7 @@ class DynamicUI:
         "_allocation_param_refs",
         "_app",
         "_idx",
+        "_object_gates",
         "_object_param_refs",
         "_page_for",
         "_parameter_gates",
@@ -933,6 +948,7 @@ class DynamicUI:
         self._allocation_param_refs = builder.allocation_param_refs
         self._object_param_refs = builder.object_param_refs
         self._parameter_gates = builder.parameter_gates
+        self._object_gates = builder.object_gates
         self._page_for = builder.page_param_for
         self._state = GlobalState.from_project(
             parameter_instance_refs=parameter_instance_refs,
@@ -1763,6 +1779,11 @@ class DynamicUI:
         """The selectors (local param-refs) right on the way to the placements of a param-ref
         (local to its application or module definition)."""
         return self._parameter_gates.get(local_ref_id, frozenset())
+
+    def object_gates(self, com_object_ref_id: str) -> frozenset[str]:
+        """The selectors (local param-refs) right on the way to the placements of a group object
+        reference (local to its application or module definition)."""
+        return self._object_gates.get(com_object_ref_id, frozenset())
 
     @property
     def application_name(self) -> str:

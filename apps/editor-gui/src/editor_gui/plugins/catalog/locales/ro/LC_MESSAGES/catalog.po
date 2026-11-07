@@ -281,3 +281,24 @@ msgid "Register…"
 msgstr "Înregistrare…"
 msgid "Alternative Catalog"
 msgstr "Alternative Catalog"
+
+msgid "The login was refused: the username or password is wrong, or the account is not approved yet."
+msgstr "Autentificarea a fost refuzată: numele de utilizator sau parola sunt greșite, ori contul nu este încă aprobat."
+
+msgid "Enter your username and password, or register, before downloading."
+msgstr "Introduceți numele de utilizator și parola sau înregistrați-vă înainte de descărcare."
+
+msgid "The daily download limit is reached. Try again tomorrow."
+msgstr "Limita zilnică de descărcări a fost atinsă. Încercați din nou mâine."
+
+msgid "The catalog server is busy. Try again in a moment."
+msgstr "Serverul catalogului este ocupat. Încercați din nou peste puțin timp."
+
+msgid "Enter an email address and a username of 3 to 32 letters, digits, dots, underscores or hyphens."
+msgstr "Introduceți o adresă de e-mail și un nume de utilizator de 3–32 litere, cifre, puncte, liniuțe de subliniere sau cratime."
+
+msgid "The password needs at least 10 characters with upper and lower case letters, a digit and a special character."
+msgstr "Parola are nevoie de cel puțin 10 caractere cu litere mari și mici, o cifră și un caracter special."
+
+msgid "Enter the six-digit code from the email."
+msgstr "Introduceți codul din șase cifre din e-mail."

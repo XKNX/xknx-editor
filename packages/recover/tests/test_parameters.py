@@ -148,6 +148,10 @@ def test_recovery_decodes_again_with_the_values_read(
         def decode_module_parameters(self, *_args: object) -> dict[str, str | None]:
             return {}
 
+        def encode_to_memory(self) -> dict[str, bytes]:
+            # As the (empty) memory read: nothing left to correct.
+            return {}
+
         def recalculate(
             self, _refs: object, *, stored: bool = False
         ) -> dict[str, tuple[str | None, str | None]]:

@@ -278,3 +278,24 @@ msgid "Register…"
 msgstr "Registrovat…"
 msgid "Alternative Catalog"
 msgstr "Alternative Catalog"
+
+msgid "The login was refused: the username or password is wrong, or the account is not approved yet."
+msgstr "Přihlášení bylo odmítnuto: uživatelské jméno nebo heslo je chybné, nebo účet ještě není schválen."
+
+msgid "Enter your username and password, or register, before downloading."
+msgstr "Před stahováním zadejte uživatelské jméno a heslo, nebo se zaregistrujte."
+
+msgid "The daily download limit is reached. Try again tomorrow."
+msgstr "Denní limit stahování je vyčerpán. Zkuste to znovu zítra."
+
+msgid "The catalog server is busy. Try again in a moment."
+msgstr "Server katalogu je zaneprázdněn. Zkuste to za chvíli znovu."
+
+msgid "Enter an email address and a username of 3 to 32 letters, digits, dots, underscores or hyphens."
+msgstr "Zadejte e-mailovou adresu a uživatelské jméno o 3 až 32 písmenech, číslicích, tečkách, podtržítkách nebo pomlčkách."
+
+msgid "The password needs at least 10 characters with upper and lower case letters, a digit and a special character."
+msgstr "Heslo musí mít alespoň 10 znaků, velká i malá písmena, číslici a speciální znak."
+
+msgid "Enter the six-digit code from the email."
+msgstr "Zadejte šestimístný kód z e-mailu."

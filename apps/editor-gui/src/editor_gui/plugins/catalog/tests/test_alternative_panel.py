@@ -5,17 +5,22 @@ from __future__ import annotations
 import threading
 from concurrent.futures import Future
 from pathlib import Path
+from typing import Any
 
 import httpx
 import pytest
 from imgui_bundle import imgui
 
+from editor_gui.plugins.catalog import alternative as alt
 from editor_gui.plugins.catalog.alternative import (
     AlternativeCatalogClient,
     AlternativeSettings,
 )
 from editor_gui.plugins.catalog.strings import S
-from editor_gui.plugins.catalog.ui.alternative import AlternativeCatalogPanel
+from editor_gui.plugins.catalog.ui.alternative import (
+    AlternativeCatalogPanel,
+    error_text,
+)
 from editor_gui.strings import S as AppS
 
 from .test_alternative import index, large_index
@@ -329,3 +334,69 @@ def test_settings_closed_and_the_catalog_status(
     finally:
         imgui.destroy_context(context)
         panel.stop()
+
+
+@pytest.mark.parametrize(
+    ("error", "text"),
+    [
+        (
+            alt.AlternativeCatalogError(
+                "Ungültiger Login.", status=401, code="INVALID_CREDENTIALS"
+            ),
+            "ALTERNATIVE_ERROR_LOGIN",
+        ),
+        (
+            alt.AlternativeCatalogError("limit", code="DOWNLOAD_DAILY_LIMIT"),
+            "ALTERNATIVE_ERROR_DAILY_LIMIT",
+        ),
+        (
+            alt.AlternativeCatalogError("Zu viele Anfragen", status=429),
+            "ALTERNATIVE_ERROR_BUSY",
+        ),
+        (
+            alt.AlternativeInputError("bad name", "USERNAME"),
+            "ALTERNATIVE_ERROR_USERNAME",
+        ),
+        (alt.AlternativeInputError("weak", "PASSWORD"), "ALTERNATIVE_ERROR_PASSWORD"),
+        (
+            alt.AlternativeInputError("code", "VERIFICATION_CODE"),
+            "ALTERNATIVE_ERROR_CODE",
+        ),
+        (
+            alt.AlternativeInputError("no account", "NO_ACCOUNT"),
+            "ALTERNATIVE_ERROR_NO_ACCOUNT",
+        ),
+    ],
+)
+def test_known_errors_are_said_in_the_ui_language(error: Exception, text: str) -> None:
+    """The server words its errors in its own language; the known ones get a text of ours."""
+    assert error_text(error) == getattr(S, text)
+
+
+def test_unknown_errors_are_shown_as_they_are() -> None:
+    assert (
+        error_text(alt.AlternativeCatalogError("Etwas anderes", status=500))
+        == "Etwas anderes"
+    )
+
+
+@pytest.mark.parametrize("status", ["unverified", "pending"])
+def test_registration_shows_only_its_own_text(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, status: str
+) -> None:
+    """A registration step's server message (in the server's language) is not shown beside the
+    text the dialog has for that state."""
+    monkeypatch.setattr("editor_gui.settings.config_dir", lambda: tmp_path)
+    client = AlternativeCatalogClient(
+        tmp_path,
+        settings=AlternativeSettings("https://catalog.example"),
+        transport=httpx.MockTransport(lambda r: httpx.Response(200, json=index())),
+    )
+    panel = AlternativeCatalogPanel(client, lambda _id: 1)
+    done: Future[Any] = Future()
+    done.set_result({"status": status, "message": "E-Mail bestätigt."})
+    panel._future, panel._action = done, "registration"
+    panel.poll()
+    assert panel._registration == status
+    assert panel._message == ""
+    client.close()

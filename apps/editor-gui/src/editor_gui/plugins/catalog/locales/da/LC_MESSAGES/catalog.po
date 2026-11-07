@@ -278,3 +278,24 @@ msgid "Register…"
 msgstr "Registrer…"
 msgid "Alternative Catalog"
 msgstr "Alternative Catalog"
+
+msgid "The login was refused: the username or password is wrong, or the account is not approved yet."
+msgstr "Login blev afvist: brugernavn eller adgangskode er forkert, eller kontoen er endnu ikke godkendt."
+
+msgid "Enter your username and password, or register, before downloading."
+msgstr "Indtast dit brugernavn og din adgangskode, eller registrer dig, før du downloader."
+
+msgid "The daily download limit is reached. Try again tomorrow."
+msgstr "Den daglige downloadgrænse er nået. Prøv igen i morgen."
+
+msgid "The catalog server is busy. Try again in a moment."
+msgstr "Katalogserveren er optaget. Prøv igen om lidt."
+
+msgid "Enter an email address and a username of 3 to 32 letters, digits, dots, underscores or hyphens."
+msgstr "Indtast en e-mailadresse og et brugernavn på 3 til 32 bogstaver, cifre, punktummer, understregninger eller bindestreger."
+
+msgid "The password needs at least 10 characters with upper and lower case letters, a digit and a special character."
+msgstr "Adgangskoden skal have mindst 10 tegn med store og små bogstaver, et ciffer og et specialtegn."
+
+msgid "Enter the six-digit code from the email."
+msgstr "Indtast den sekscifrede kode fra e-mailen."

@@ -281,3 +281,24 @@ msgid "Register…"
 msgstr "Regisztráció…"
 msgid "Alternative Catalog"
 msgstr "Alternative Catalog"
+
+msgid "The login was refused: the username or password is wrong, or the account is not approved yet."
+msgstr "A bejelentkezés elutasítva: a felhasználónév vagy a jelszó hibás, vagy a fiók még nincs jóváhagyva."
+
+msgid "Enter your username and password, or register, before downloading."
+msgstr "Letöltés előtt adja meg a felhasználónevét és a jelszavát, vagy regisztráljon."
+
+msgid "The daily download limit is reached. Try again tomorrow."
+msgstr "Elérte a napi letöltési korlátot. Próbálja újra holnap."
+
+msgid "The catalog server is busy. Try again in a moment."
+msgstr "A katalógusszerver foglalt. Próbálja újra egy kis idő múlva."
+
+msgid "Enter an email address and a username of 3 to 32 letters, digits, dots, underscores or hyphens."
+msgstr "Adjon meg egy e-mail-címet és egy 3–32 karakteres felhasználónevet betűkből, számjegyekből, pontokból, aláhúzásokból vagy kötőjelekből."
+
+msgid "The password needs at least 10 characters with upper and lower case letters, a digit and a special character."
+msgstr "A jelszónak legalább 10 karakterből kell állnia, kis- és nagybetűvel, számjeggyel és különleges karakterrel."
+
+msgid "Enter the six-digit code from the email."
+msgstr "Adja meg az e-mailben kapott hatjegyű kódot."

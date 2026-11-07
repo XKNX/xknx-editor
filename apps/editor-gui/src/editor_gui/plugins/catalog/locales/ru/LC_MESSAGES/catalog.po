@@ -278,3 +278,24 @@ msgid "Register…"
 msgstr "Регистрация…"
 msgid "Alternative Catalog"
 msgstr "Alternative Catalog"
+
+msgid "The login was refused: the username or password is wrong, or the account is not approved yet."
+msgstr "Вход отклонён: неверное имя пользователя или пароль, либо учётная запись ещё не одобрена."
+
+msgid "Enter your username and password, or register, before downloading."
+msgstr "Перед загрузкой введите имя пользователя и пароль или зарегистрируйтесь."
+
+msgid "The daily download limit is reached. Try again tomorrow."
+msgstr "Достигнут дневной лимит загрузок. Повторите попытку завтра."
+
+msgid "The catalog server is busy. Try again in a moment."
+msgstr "Сервер каталога занят. Повторите попытку через минуту."
+
+msgid "Enter an email address and a username of 3 to 32 letters, digits, dots, underscores or hyphens."
+msgstr "Введите адрес электронной почты и имя пользователя из 3–32 букв, цифр, точек, подчёркиваний или дефисов."
+
+msgid "The password needs at least 10 characters with upper and lower case letters, a digit and a special character."
+msgstr "Пароль должен содержать не менее 10 символов, заглавные и строчные буквы, цифру и специальный символ."
+
+msgid "Enter the six-digit code from the email."
+msgstr "Введите шестизначный код из письма."

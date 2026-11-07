@@ -100,6 +100,43 @@ class CatalogStrings:
         return _("Enter the six-digit code from your email to complete registration.")
 
     @property
+    def ALTERNATIVE_ERROR_LOGIN(self) -> str:
+        return _(
+            "The login was refused: the username or password is wrong, or the account is not "
+            "approved yet."
+        )
+
+    @property
+    def ALTERNATIVE_ERROR_NO_ACCOUNT(self) -> str:
+        return _("Enter your username and password, or register, before downloading.")
+
+    @property
+    def ALTERNATIVE_ERROR_DAILY_LIMIT(self) -> str:
+        return _("The daily download limit is reached. Try again tomorrow.")
+
+    @property
+    def ALTERNATIVE_ERROR_BUSY(self) -> str:
+        return _("The catalog server is busy. Try again in a moment.")
+
+    @property
+    def ALTERNATIVE_ERROR_USERNAME(self) -> str:
+        return _(
+            "Enter an email address and a username of 3 to 32 letters, digits, dots, underscores "
+            "or hyphens."
+        )
+
+    @property
+    def ALTERNATIVE_ERROR_PASSWORD(self) -> str:
+        return _(
+            "The password needs at least 10 characters with upper and lower case letters, a digit "
+            "and a special character."
+        )
+
+    @property
+    def ALTERNATIVE_ERROR_CODE(self) -> str:
+        return _("Enter the six-digit code from the email.")
+
+    @property
     def ALTERNATIVE_PENDING(self) -> str:
         return _(
             "Email verified. Downloads become available after administrator approval."
