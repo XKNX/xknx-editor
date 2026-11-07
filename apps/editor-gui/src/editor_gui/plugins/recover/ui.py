@@ -12,6 +12,7 @@ from editor_gui.plugins.recover.strings import S
 from editor_gui.widgets.checkbox import checkbox
 from editor_gui.widgets.combo import combo
 from editor_gui.widgets.dpi import px
+from editor_gui.widgets.flow import button_width, same_line_if_fits, text_width
 from editor_gui.widgets.tables import begin_data_table, data_table_headers
 from xknxeditor.recover import RecoveryEffort
 from xknxeditor.recover.recover import STAGE_GROUP_COMMUNICATION, STAGE_PARAMETERS
@@ -34,6 +35,20 @@ _EFFORTS = (RecoveryEffort.FAST, RecoveryEffort.MEDIUM, RecoveryEffort.MAXIMUM)
 def _effort_labels() -> list[str]:
     """Localized labels of the search efforts, in the order of ``_EFFORTS``."""
     return [S.EFFORT_FAST, S.EFFORT_MEDIUM, S.EFFORT_MAXIMUM]
+
+
+def _label(text: str, field_width: float, *, first: bool = False) -> None:
+    """``text`` before the field that follows, ``field_width`` wide, as fields are labelled in a
+    row: beside the previous item, or in the next line together with the field where the window
+    is too narrow for both."""
+    if not first:
+        same_line_if_fits(
+            text_width(text) + imgui.get_style().item_spacing.x + field_width
+        )
+    imgui.align_text_to_frame_padding()
+    imgui.text_disabled(text)
+    imgui.same_line()
+    imgui.set_next_item_width(field_width)
 
 
 class RecoverPanel:
@@ -66,12 +81,11 @@ class RecoverPanel:
     def _render_scan_controls(self) -> None:
         service = self._service
         busy = service.busy
-        imgui.set_next_item_width(px(120))
-        _, self._start = imgui.input_text(S.RANGE_START, self._start)
-        imgui.same_line()
-        imgui.set_next_item_width(px(120))
-        _, self._end = imgui.input_text(S.RANGE_END, self._end)
-        imgui.same_line()
+        _label(S.RANGE_START, px(120), first=True)
+        _, self._start = imgui.input_text("##recover_start", self._start)
+        _label(S.RANGE_END, px(120))
+        _, self._end = imgui.input_text("##recover_end", self._end)
+        same_line_if_fits(button_width(S.BTN_SCAN))
         imgui.begin_disabled(busy)
         if imgui.button(S.BTN_SCAN):
             service.start_scan(self._start, self._end)
@@ -81,13 +95,12 @@ class RecoverPanel:
             imgui.same_line()
             if imgui.button(S.BTN_STOP):
                 service.stop()
-        imgui.same_line()
+        same_line_if_fits(imgui.get_frame_height() + text_width(S.AUTO_APPLY) + px(8))
         _, service.auto_apply = checkbox(S.AUTO_APPLY, service.auto_apply, centred=True)
-        imgui.same_line()
+        _label(S.SEARCH_EFFORT, px(110))
         imgui.begin_disabled(busy)
-        imgui.set_next_item_width(px(110))
         changed, index = combo(
-            S.SEARCH_EFFORT, _EFFORTS.index(service.effort), _effort_labels()
+            "##recover_effort", _EFFORTS.index(service.effort), _effort_labels()
         )
         if changed:
             service.effort = _EFFORTS[index]
