@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from enum import Enum
+
 from xknxeditor.namespaces.intermediate import ComObjectRefRef
 from xknxeditor.namespaces.intermediate.com_object_ref_t import (
     ComObjectRef as IrComObjectRef,
@@ -10,6 +12,7 @@ from xknxeditor.namespaces.intermediate.module_def_static_t_com_objects_com_obje
     ModuleDefStaticComObjectsComObject,
 )
 
+from ...errors import ParseError
 from .._name import apply_text_args, fill_name
 from ..context import EvalContext
 from ..ui import UiNode
@@ -20,6 +23,17 @@ from .base import DynamicNode
 def _flag(ref_val: Enable | None, base_val: Enable | None) -> bool:
     v = ref_val if ref_val is not None else base_val
     return v is Enable.ENABLED
+
+
+def _known(value: Enum | str | None, what: str, ref_id: str) -> str:
+    """The text of a value of the schema's enumeration, "" without one. Product data with a
+    value the schema does not have (an object size "Variable") cannot be used: building the
+    group object stops with what is wrong, not somewhere later."""
+    if value is None:
+        return ""
+    if isinstance(value, Enum):
+        return str(value.value)
+    raise ParseError(f"{what} {value!r} of {ref_id} is not one of the KNX schema")
 
 
 def dpt_codes(ref_dpts: list[str], base_dpts: list[str]) -> tuple[str, ...]:
@@ -100,9 +114,9 @@ class ComObjectRefRefNode(DynamicNode):
         )
         # Size and priority: the ref overrides the base, else the base value.
         size = (cor.object_size if cor else None) or (co.object_size if co else None)
-        self._object_size: str = size.value if size is not None else ""
+        self._object_size: str = _known(size, "object size", elem.ref_id)
         priority = (cor.priority if cor else None) or (co.priority if co else None)
-        self._priority: str = priority.value if priority is not None else ""
+        self._priority: str = _known(priority, "priority", elem.ref_id)
         self._communication = _flag(
             cor.communication_flag if cor else None,
             co.communication_flag if co else None,
