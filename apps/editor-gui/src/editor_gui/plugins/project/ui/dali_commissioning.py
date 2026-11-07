@@ -437,7 +437,9 @@ class DaliCommissioningPanel:
         self, device: Device, scan: DaliBusState, state: _DeviceUi, *, busy: bool
     ) -> None:
         present = scan.present_ecgs
-        imgui.text_disabled(S.DALI_ECGS_PRESENT.format(count=len(present)))
+        imgui.text_disabled(
+            S.DALI_ECGS_PRESENT(len(present)).format(count=len(present))
+        )
         flags = (
             imgui.TableFlags_.borders
             | imgui.TableFlags_.row_bg

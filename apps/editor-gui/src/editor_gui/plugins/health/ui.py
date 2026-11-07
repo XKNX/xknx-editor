@@ -43,7 +43,14 @@ class HealthPanel:
         findings = self._service.findings()
         errors = sum(1 for f in findings if f.severity is Severity.ERROR)
         warnings = sum(1 for f in findings if f.severity is Severity.WARNING)
-        imgui.text_disabled(S.HEALTH_SUMMARY.format(errors=errors, warnings=warnings))
+        imgui.text_disabled(
+            ", ".join(
+                (
+                    S.HEALTH_ERRORS(errors).format(count=errors),
+                    S.HEALTH_WARNINGS(warnings).format(count=warnings),
+                )
+            )
+        )
         imgui.separator()
         if not findings:
             imgui.text_disabled(S.HEALTH_ALL_GOOD)

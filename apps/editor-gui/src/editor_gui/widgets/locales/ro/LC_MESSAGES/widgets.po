@@ -175,9 +175,6 @@ msgstr "Introduceți un număr întreg."
 msgid "Enter a value from {minimum} to {maximum}."
 msgstr "Introduceți o valoare de la {minimum} la {maximum}."
 
-msgid "Enter at most {count} characters."
-msgstr "Numărul maxim de caractere: {count}."
-
 msgid "Enter a value."
 msgstr "Introduceți o valoare."
 
@@ -189,9 +186,6 @@ msgstr "Pentru acest tip de date nu se poate introduce nicio valoare."
 
 msgid "Edit…"
 msgstr "Editare…"
-
-msgid "The text may take at most {count} bytes."
-msgstr "Textul poate avea cel mult {count} B."
 
 msgid "Value {number}"
 msgstr "Valoarea {number}"
@@ -265,9 +259,6 @@ msgstr "Copiere {count} B"
 msgid "Go To:"
 msgstr "Salt la:"
 
-msgid "{count} difference(s)"
-msgstr "Diferențe: {count}"
-
 msgid "no differences"
 msgstr "nicio diferență"
 
@@ -303,3 +294,21 @@ msgstr "Decupare"
 
 msgid "Paste"
 msgstr "Lipire"
+
+msgid "Enter at most {count} character."
+msgid_plural "Enter at most {count} characters."
+msgstr[0] "Introduceți cel mult {count} caracter."
+msgstr[1] "Introduceți cel mult {count} caractere."
+msgstr[2] "Introduceți cel mult {count} de caractere."
+
+msgid "The text may take at most {count} byte."
+msgid_plural "The text may take at most {count} bytes."
+msgstr[0] "Textul poate avea cel mult {count} octet."
+msgstr[1] "Textul poate avea cel mult {count} octeți."
+msgstr[2] "Textul poate avea cel mult {count} de octeți."
+
+msgid "{count} difference"
+msgid_plural "{count} differences"
+msgstr[0] "{count} diferență"
+msgstr[1] "{count} diferențe"
+msgstr[2] "{count} de diferențe"

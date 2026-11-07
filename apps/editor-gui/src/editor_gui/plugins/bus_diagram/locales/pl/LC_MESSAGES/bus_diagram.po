@@ -106,9 +106,6 @@ msgstr "Budynki"
 msgid "+ {count} more"
 msgstr "+ {count} więcej"
 
-msgid "{count} more devices outside the selection. Click to show them."
-msgstr "Urządzenia poza wyborem: {count}. Kliknij, aby je wyświetlić."
-
 msgid "{address}\n{senders} sending, {receivers} receiving"
 msgstr "{address}\nnadające: {senders}, odbierające: {receivers}"
 
@@ -129,3 +126,9 @@ msgstr "Adres: {address}"
 
 msgid "Application: {application}"
 msgstr "Aplikacja: {application}"
+
+msgid "{count} more device outside the selection. Click to show it."
+msgid_plural "{count} more devices outside the selection. Click to show them."
+msgstr[0] "Jeszcze {count} urządzenie poza wyborem. Kliknij, aby je wyświetlić."
+msgstr[1] "Jeszcze {count} urządzenia poza wyborem. Kliknij, aby je wyświetlić."
+msgstr[2] "Jeszcze {count} urządzeń poza wyborem. Kliknij, aby je wyświetlić."

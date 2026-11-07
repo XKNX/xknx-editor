@@ -13,12 +13,6 @@ msgstr "Archief laden mislukt"
 msgid "Loaded: {path}"
 msgstr "Geladen: {path}"
 
-msgid "Found {count} application(s)"
-msgstr "{count} applicatie(s) gevonden"
-
-msgid "({count} group objects)"
-msgstr "({count} groepsobjecten)"
-
 msgid "Online Catalog"
 msgstr "Onlinecatalogus"
 
@@ -34,9 +28,6 @@ msgstr "Programmaversie"
 msgid "Search products, order number…"
 msgstr "Producten, bestelnummer zoeken…"
 
-msgid "Product Index ({date}): {mfrs} manufacturers, {products} products"
-msgstr "Productindex ({date}): {mfrs} fabrikanten, {products} producten"
-
 msgid "No Product Index yet - fetch the online catalog to build it"
 msgstr "Nog geen productindex - haal de online catalogus op om te bouwen"
 
@@ -49,14 +40,8 @@ msgstr "Annuleren"
 msgid "Fetch the online catalog to search across all manufacturers."
 msgstr "Haal de online catalogus op om over alle fabrikanten te zoeken."
 
-msgid "Showing {shown} of {total} matches - refine the search"
-msgstr "{shown} van {total} resultaten - verfijn de zoekopdracht"
-
 msgid "(in local catalog)"
 msgstr "(in lokale catalogus)"
-
-msgid "{count} matches"
-msgstr "{count} resultaten"
 
 msgid "Open or create a project first to add a device."
 msgstr "Open of maak eerst een project om een apparaat toe te voegen."
@@ -75,9 +60,6 @@ msgstr "Uit lokale catalogus verwijderen"
 
 msgid "Are you sure you want to delete the selected device? This cannot be undone."
 msgstr "Weet u zeker dat u het geselecteerde apparaat wilt verwijderen? Dit kan niet ongedaan worden gemaakt."
-
-msgid "{count} device(s) in the open project use this product. They can't be loaded until the product is imported again."
-msgstr "{count} apparaat/apparaten in het geopende project gebruiken dit product. Ze kunnen pas weer worden geladen als het product opnieuw is geïmporteerd."
 
 msgid "Deleting {name}…"
 msgstr "{name} wordt verwijderd…"
@@ -117,9 +99,6 @@ msgstr "{name} wordt gedownload…"
 
 msgid "Fetch Online Catalog"
 msgstr "Onlinecatalogus ophalen"
-
-msgid "Fetch {count} Missing Application(s) Online"
-msgstr "{count} ontbrekende applicatie(s) online ophalen"
 
 msgid "Fetching missing applications…"
 msgstr "Ontbrekende applicaties worden opgehaald…"
@@ -256,9 +235,6 @@ msgstr "Code opnieuw verzenden"
 msgid "Open Website"
 msgstr "Website openen"
 
-msgid "Imported {count} product versions. Find them in the Local tab."
-msgstr "{count} productversies geïmporteerd. Je vindt ze op het tabblad Lokaal."
-
 msgid "Login is saved on this computer. Leave the password empty to keep it for the same server and user."
 msgstr "De inloggegevens worden op deze computer opgeslagen. Laat het wachtwoord leeg om het voor dezelfde server en gebruiker te behouden."
 
@@ -276,6 +252,7 @@ msgstr "Versie"
 
 msgid "Register…"
 msgstr "Registreren…"
+
 msgid "Alternative Catalog"
 msgstr "Alternative Catalog"
 
@@ -299,3 +276,51 @@ msgstr "Het wachtwoord heeft minstens 10 tekens nodig met hoofdletters en kleine
 
 msgid "Enter the six-digit code from the email."
 msgstr "Voer de zescijferige code uit de e-mail in."
+
+msgid "Imported {count} product version. Find it in the Local tab."
+msgid_plural "Imported {count} product versions. Find them in the Local tab."
+msgstr[0] "{count} productversie geïmporteerd. Je vindt die op het tabblad Lokaal."
+msgstr[1] "{count} productversies geïmporteerd. Je vindt ze op het tabblad Lokaal."
+
+msgid "Found {count} application"
+msgid_plural "Found {count} applications"
+msgstr[0] "{count} applicatie gevonden"
+msgstr[1] "{count} applicaties gevonden"
+
+msgid "({count} group object)"
+msgid_plural "({count} group objects)"
+msgstr[0] "({count} groepsobject)"
+msgstr[1] "({count} groepsobjecten)"
+
+msgid "{count} match"
+msgid_plural "{count} matches"
+msgstr[0] "{count} resultaat"
+msgstr[1] "{count} resultaten"
+
+msgid "Product Index ({date}): {manufacturers}, {products}"
+msgstr "Productindex ({date}): {manufacturers}, {products}"
+
+msgid "{count} manufacturer"
+msgid_plural "{count} manufacturers"
+msgstr[0] "{count} fabrikant"
+msgstr[1] "{count} fabrikanten"
+
+msgid "{count} product"
+msgid_plural "{count} products"
+msgstr[0] "{count} product"
+msgstr[1] "{count} producten"
+
+msgid "Showing {shown} of {total} match - refine the search"
+msgid_plural "Showing {shown} of {total} matches - refine the search"
+msgstr[0] "{shown} van {total} resultaat - verfijn de zoekopdracht"
+msgstr[1] "{shown} van {total} resultaten - verfijn de zoekopdracht"
+
+msgid "Fetch {count} Missing Application Online"
+msgid_plural "Fetch {count} Missing Applications Online"
+msgstr[0] "{count} ontbrekende applicatie online ophalen"
+msgstr[1] "{count} ontbrekende applicaties online ophalen"
+
+msgid "{count} device in the open project uses this product. It can't be loaded until the product is imported again."
+msgid_plural "{count} devices in the open project use this product. They can't be loaded until the product is imported again."
+msgstr[0] "{count} apparaat in het geopende project gebruikt dit product. Het kan pas weer worden geladen als het product opnieuw is geïmporteerd."
+msgstr[1] "{count} apparaten in het geopende project gebruiken dit product. Ze kunnen pas weer worden geladen als het product opnieuw is geïmporteerd."

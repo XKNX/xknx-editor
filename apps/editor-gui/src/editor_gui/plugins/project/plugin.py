@@ -1354,7 +1354,7 @@ class ProjectPlugin:
         if self._api.notify is not None:
             # "applied is None" means the device already held this exact config: the view already
             # shows it, so report it as configured either way.
-            self._api.notify(S.PLUGIN_PARAMS_PRJ_DONE.format(count=1))
+            self._api.notify(S.PLUGIN_PARAMS_PRJ_DONE(1).format(count=1))
         self._plugin_params_panel.invalidate(device)
 
     def _handle_export_prj(self, device: "Device") -> None:

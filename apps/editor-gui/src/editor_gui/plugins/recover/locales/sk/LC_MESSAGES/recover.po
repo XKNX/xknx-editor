@@ -49,9 +49,6 @@ msgstr "Exportovať snímku"
 msgid "Verifying (re-reading and comparing)…"
 msgstr "Overuje sa (opakované čítanie a porovnanie)…"
 
-msgid "%(count)d group address(es) have no sender or multiple senders."
-msgstr "Skupinové adresy bez vysielača alebo s viacerými vysielačmi: %(count)d."
-
 msgid "Address"
 msgstr "Adresa"
 
@@ -88,17 +85,8 @@ msgstr "tabuľky skupinovej komunikácie"
 msgid "parameter memory"
 msgstr "pamäť parametrov"
 
-msgid "Recovered %(devices)d device(s): %(group_addresses)d group addresses, %(links)d links, %(unknown)d parameter(s) not recoverable."
-msgstr "Obnovené zariadenia: %(devices)d – skupinové adresy: %(group_addresses)d, prepojenia: %(links)d, neobnoviteľné parametre: %(unknown)d."
-
 msgid "Recovered"
 msgstr "Obnovené"
-
-msgid "Added %(count)d device(s) to the open project (%(target)s)."
-msgstr "Zariadenia pridané do otvoreného projektu (%(target)s): %(count)d."
-
-msgid "Created new project %(target)s with %(count)d device(s)."
-msgstr "Vytvorený nový projekt %(target)s, počet zariadení: %(count)d."
 
 msgid "Not connected to a KNX bus."
 msgstr "Nepripojené k zbernici KNX."
@@ -118,18 +106,11 @@ msgstr "Nie je v katalógu: importujte jeho produkt v Katalógu"
 msgid "Not programmed"
 msgstr "Nenaprogramované"
 
-
 msgid "Error"
 msgstr "Chyba"
 
-msgid "%d parameters could not be recovered"
-msgstr "Parametre, ktoré sa nepodarilo obnoviť: %d"
-
 msgid "Already in the project, skipped"
 msgstr "Už v projekte, preskočené"
-
-msgid "%(count)d device(s) could not be added; the reason is in the Result column."
-msgstr "Zariadenia, ktoré sa nepodarilo pridať: %(count)d; dôvod je v stĺpci „Výsledok“."
 
 msgid "Recovered (incomplete)"
 msgstr "Obnovené (neúplné)"
@@ -158,9 +139,6 @@ msgstr "Znova vyhľadá nastavenia vybraných neúplných zariadení v údajoch 
 msgid "Searching %(address)s again  (%(done)d/%(total)d)…"
 msgstr "Nové hľadanie pre %(address)s  (%(done)d/%(total)d)…"
 
-msgid "%(bytes)d byte(s) and %(objects)d group object(s) differ from the device"
-msgstr "%(bytes)d bajt(ov) a %(objects)d skupinový(ch) objekt(ov) sa líši od zariadenia"
-
 msgid "more search effort may help"
 msgstr "väčší rozsah hľadania môže pomôcť"
 
@@ -173,14 +151,86 @@ msgstr "Výsledok"
 msgid "Not read yet"
 msgstr "Zatiaľ neprečítané"
 
-msgid "%(group_addresses)d group addresses, %(links)d links, %(parameters)d parameters"
-msgstr "Skupinové adresy: %(group_addresses)d, prepojenia: %(links)d, parametre: %(parameters)d"
-
-msgid "%(count)d unknown"
-msgstr "Neznáme: %(count)d"
-
 msgid "Verified"
 msgstr "Overené"
 
-msgid "Verify: %(bytes)d byte(s) differ"
-msgstr "Overenie: líši sa bajtov: %(bytes)d"
+msgid "%(count)d group address has no sender or multiple senders."
+msgid_plural "%(count)d group addresses have no sender or multiple senders."
+msgstr[0] "%(count)d skupinová adresa nemá vysielač alebo má viac vysielačov."
+msgstr[1] "%(count)d skupinové adresy nemajú vysielač alebo majú viac vysielačov."
+msgstr[2] "%(count)d skupinových adries nemá vysielač alebo má viac vysielačov."
+
+msgid "Recovered %(count)d device"
+msgid_plural "Recovered %(count)d devices"
+msgstr[0] "Obnovené %(count)d zariadenie"
+msgstr[1] "Obnovené %(count)d zariadenia"
+msgstr[2] "Obnovených %(count)d zariadení"
+
+msgid "%(count)d group address"
+msgid_plural "%(count)d group addresses"
+msgstr[0] "%(count)d skupinová adresa"
+msgstr[1] "%(count)d skupinové adresy"
+msgstr[2] "%(count)d skupinových adries"
+
+msgid "%(count)d link"
+msgid_plural "%(count)d links"
+msgstr[0] "%(count)d prepojenie"
+msgstr[1] "%(count)d prepojenia"
+msgstr[2] "%(count)d prepojení"
+
+msgid "%(count)d parameter"
+msgid_plural "%(count)d parameters"
+msgstr[0] "%(count)d parameter"
+msgstr[1] "%(count)d parametre"
+msgstr[2] "%(count)d parametrov"
+
+msgid "%(count)d parameter cannot be recovered"
+msgid_plural "%(count)d parameters cannot be recovered"
+msgstr[0] "%(count)d parameter nemožno obnoviť"
+msgstr[1] "%(count)d parametre nemožno obnoviť"
+msgstr[2] "%(count)d parametrov nemožno obnoviť"
+
+msgid "%(count)d parameter not found yet"
+msgid_plural "%(count)d parameters not found yet"
+msgstr[0] "%(count)d parameter zatiaľ nenájdený"
+msgstr[1] "%(count)d parametre zatiaľ nenájdené"
+msgstr[2] "%(count)d parametrov zatiaľ nenájdených"
+
+msgid "Added %(count)d device to the open project (%(target)s)."
+msgid_plural "Added %(count)d devices to the open project (%(target)s)."
+msgstr[0] "Do otvoreného projektu (%(target)s) bolo pridané %(count)d zariadenie."
+msgstr[1] "Do otvoreného projektu (%(target)s) boli pridané %(count)d zariadenia."
+msgstr[2] "Do otvoreného projektu (%(target)s) bolo pridaných %(count)d zariadení."
+
+msgid "Created new project %(target)s with %(count)d device."
+msgid_plural "Created new project %(target)s with %(count)d devices."
+msgstr[0] "Vytvorený nový projekt %(target)s s %(count)d zariadením."
+msgstr[1] "Vytvorený nový projekt %(target)s s %(count)d zariadeniami."
+msgstr[2] "Vytvorený nový projekt %(target)s s %(count)d zariadeniami."
+
+msgid "%(count)d device could not be added; the reason is in the Result column."
+msgid_plural "%(count)d devices could not be added; the reason is in the Result column."
+msgstr[0] "Nepodarilo sa pridať %(count)d zariadenie; dôvod je v stĺpci „Výsledok“."
+msgstr[1] "Nepodarilo sa pridať %(count)d zariadenia; dôvod je v stĺpci „Výsledok“."
+msgstr[2] "Nepodarilo sa pridať %(count)d zariadení; dôvod je v stĺpci „Výsledok“."
+
+msgid "Differs from the device: %(what)s"
+msgstr "Líši sa od zariadenia: %(what)s"
+
+msgid "%(count)d byte"
+msgid_plural "%(count)d bytes"
+msgstr[0] "%(count)d bajt"
+msgstr[1] "%(count)d bajty"
+msgstr[2] "%(count)d bajtov"
+
+msgid "%(count)d group object"
+msgid_plural "%(count)d group objects"
+msgstr[0] "%(count)d skupinový objekt"
+msgstr[1] "%(count)d skupinové objekty"
+msgstr[2] "%(count)d skupinových objektov"
+
+msgid "Verify: %(count)d byte differs"
+msgid_plural "Verify: %(count)d bytes differ"
+msgstr[0] "Overenie: líši sa %(count)d bajt"
+msgstr[1] "Overenie: líšia sa %(count)d bajty"
+msgstr[2] "Overenie: líši sa %(count)d bajtov"

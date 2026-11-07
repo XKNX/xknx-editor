@@ -118,12 +118,6 @@ msgstr "上移"
 msgid "Move Down"
 msgstr "下移"
 
-msgid "{count} items"
-msgstr "{count} 个条目"
-
-msgid "{count} pairs"
-msgstr "{count} 对"
-
 msgid "{count} unpaired (ignored)"
 msgstr "{count} 个未配对（已忽略）"
 
@@ -147,15 +141,6 @@ msgstr "添加组地址"
 
 msgid "Mass Linker Result"
 msgstr "批量链接结果"
-
-msgid "Linked {count} object(s) to group addresses"
-msgstr "已将 {count} 个对象链接到组地址"
-
-msgid "Linked {count} object pair(s) via new group addresses"
-msgstr "已通过新的组地址链接 {count} 对对象"
-
-msgid "{count} error(s)"
-msgstr "{count} 个错误"
 
 msgid "Clear All"
 msgstr "全部清除"
@@ -277,12 +262,6 @@ msgstr "更换为（模板）"
 msgid "Group Object Mapping (by Number)"
 msgstr "组对象映射（按编号）"
 
-msgid "{count} object(s) will be re-mapped"
-msgstr "将重新映射 {count} 个对象"
-
-msgid "Replaced; re-mapped {count} group object(s)"
-msgstr "已更换；已重新映射 {count} 个组对象"
-
 msgid "Shift Addresses"
 msgstr "移动地址"
 
@@ -312,9 +291,6 @@ msgstr "与 {name} 比较："
 
 msgid "No differences in devices or group addresses."
 msgstr "设备或组地址没有差异。"
-
-msgid "{count} difference(s)"
-msgstr "{count} 处差异"
 
 msgid "Add Device Certificate"
 msgstr "添加设备证书"
@@ -397,9 +373,6 @@ msgstr "副本名称：{name}"
 msgid "Copy"
 msgstr "复制"
 
-msgid "Created {count} copy/copies"
-msgstr "已创建 {count} 个副本"
-
 msgid "Shifts the device part of each individual address. Group addresses are not shifted."
 msgstr "移动每个物理地址的设备部分。组地址不会移动。"
 
@@ -421,12 +394,6 @@ msgstr "已选择 {sel}/{total}"
 msgid "(out of range)"
 msgstr "（超出范围）"
 
-msgid "{count} address(es) will change"
-msgstr "将更改 {count} 个地址"
-
-msgid "Shifted {count} address(es)"
-msgstr "已移动 {count} 个地址"
-
 msgid "Individual Addresses"
 msgstr "物理地址"
 
@@ -441,9 +408,6 @@ msgstr "通过给组地址的原始值加上偏移量来重新编号，例如留
 
 msgid "The offset is added to the raw 16-bit value, so it may change the main/middle group as addresses cross a boundary."
 msgstr "偏移量加到 16 位原始值上，因此当地址越过边界时，主组/中间组可能会改变。"
-
-msgid "Shifted {count} group address(es)"
-msgstr "已移动 {count} 个组地址"
 
 msgid "Export CSV…"
 msgstr "导出 CSV…"
@@ -496,9 +460,6 @@ msgstr "请至少选择一个字段。"
 msgid "No topology issues found."
 msgstr "未发现拓扑问题。"
 
-msgid "{count} issue(s)"
-msgstr "{count} 个问题"
-
 msgid "Click a finding to jump to the device."
 msgstr "点击某项结果可跳转到该设备。"
 
@@ -516,6 +477,7 @@ msgstr "正在读取项目…"
 
 msgid "Comparing devices: {done} of {total}"
 msgstr "正在比较设备：{done} / {total}"
+
 msgid "File"
 msgstr "文件"
 
@@ -630,9 +592,6 @@ msgstr "项目证书"
 msgid "none"
 msgstr "无"
 
-msgid "present ({size} bytes)"
-msgstr "存在（{size} 字节）"
-
 msgid "Password"
 msgstr "密码"
 
@@ -692,7 +651,6 @@ msgstr "ETS 会加密日志备注。请从您自己的 ETS 安装中的 Knx.Ets.
 
 msgid "Comments are encrypted"
 msgstr "备注已加密"
-
 
 msgid "Extracting key…"
 msgstr "正在提取密钥…"
@@ -1003,14 +961,8 @@ msgstr "点击复制"
 msgid "Filter parameters…"
 msgstr "过滤参数…"
 
-msgid "Apply Changes to All {count} Identical Devices"
-msgstr "将更改应用到全部 {count} 个相同设备"
-
 msgid "Apply Changes to All Channels"
 msgstr "将更改应用到所有通道"
-
-msgid "Editing {count} devices — edits apply to all, diverging values show <differs>"
-msgstr "正在编辑 {count} 个设备——更改适用于所有设备，不同的值显示为 <不同>"
 
 msgid "Hardware"
 msgstr "硬件"
@@ -1048,9 +1000,6 @@ msgstr "清除比较"
 msgid "Memory Dumps (*.bin)"
 msgstr "存储器转储 (*.bin)"
 
-msgid "{count} bytes"
-msgstr "{count} 字节"
-
 msgid "No memory segments."
 msgstr "没有存储器段。"
 
@@ -1077,9 +1026,6 @@ msgstr "无法运行：没有 KNX 连接。请连接到网关（“{menu}”菜�
 
 msgid "Match: the generated image is identical to what is on the device"
 msgstr "匹配：生成的映像与设备上的内容完全相同"
-
-msgid "Mismatch: {bytes} byte(s) differ from the device in {locations} location(s)"
-msgstr "不匹配：有 {bytes} 个字节在 {locations} 个位置与设备不同"
 
 msgid "{matched} matched, {changed} would change"
 msgstr "{matched} 个匹配，{changed} 个将更改"
@@ -1111,9 +1057,6 @@ msgstr "由设备管理"
 msgid "System byte the device sets itself at runtime (e.g. a download detection byte reset by the application after a download). A difference here is expected and does not indicate a bad download."
 msgstr "由设备在运行时自行设置的系统字节（例如应用在下载后复位的下载检测字节）。此处的差异属于预期情况，并不表示下载有误。"
 
-msgid "plus {bytes} device-managed runtime byte(s) (expected, benign)"
-msgstr "另有 {bytes} 个设备管理的运行时字节（预期，无害）"
-
 msgid "No configured differences: the device already carries this configuration. The differences below are benign (see notes)."
 msgstr "没有配置差异：设备已具有此配置。下面的差异无害（见说明）。"
 
@@ -1122,9 +1065,6 @@ msgstr "设为默认值"
 
 msgid "This byte is written for a neighbouring parameter; the differing bit is not driven by any active parameter and is only reset to the application default. The device holds an older value (e.g. from a previous configuration or mode) that programming will normalise. Benign."
 msgstr "此字节因相邻参数而被写入；不同的位不受任何有效参数控制，仅被复位为应用默认值。设备保存的是较旧的值（例如来自先前的配置或模式），编程时将予以规范化。无害。"
-
-msgid "plus {bytes} byte(s) reset to the application default (the device holds an older value; benign, will be normalised on programming)"
-msgstr "另有 {bytes} 个字节复位为应用默认值（设备保存的是较旧的值；无害，编程时将予以规范化）"
 
 msgid "Export Ist/Soll…"
 msgstr "导出实际/目标…"
@@ -1180,9 +1120,6 @@ msgstr "仅显示差异"
 msgid "Filter devices by address, name or description…"
 msgstr "按地址、名称或说明过滤设备…"
 
-msgid "{count} differences"
-msgstr "{count} 处差异"
-
 msgid "Parameters"
 msgstr "参数"
 
@@ -1206,9 +1143,6 @@ msgstr "粘贴配置"
 
 msgid "Paste configuration onto '{name}':"
 msgstr "将配置粘贴到“{name}”："
-
-msgid "Paste configuration onto {count} selected devices:"
-msgstr "将配置粘贴到 {count} 个所选设备："
 
 msgid "Duplicate '{name}':"
 msgstr "创建“{name}”的副本："
@@ -1603,12 +1537,6 @@ msgstr "导入组地址"
 msgid "Group Address Files (XML, CSV)"
 msgstr "组地址文件（XML、CSV）"
 
-msgid "{added} group addresses added, {updated} updated."
-msgstr "已添加 {added} 个组地址，已更新 {updated} 个。"
-
-msgid "{count} group addresses could not be placed in a group."
-msgstr "有 {count} 个组地址无法放入组中。"
-
 msgid "The file could not be imported: {error}"
 msgstr "无法导入该文件：{error}"
 
@@ -1789,9 +1717,6 @@ msgstr "将群组分配写入 DALI 总线。这会将群组应用到\n网关及�
 msgid "Write the scene values to the DALI bus. Continue?"
 msgstr "将场景值写入 DALI 总线。是否继续？"
 
-msgid "{count} ECG(s) present"
-msgstr "存在 {count} 个镇流器"
-
 msgid "Group"
 msgstr "群组"
 
@@ -1833,9 +1758,6 @@ msgstr "单个"
 
 msgid "Unassigned"
 msgstr "未分配"
-
-msgid "Procedure {number}  ({count} steps)"
-msgstr "流程 {number}  （{count} 个步骤）"
 
 msgid "Kind"
 msgstr "种类"
@@ -2202,9 +2124,6 @@ msgstr "应用程序没有静态参数。"
 
 msgid "This gateway's commissioning protocol has not been verified against a capture; writes may misbehave. Proceed with care."
 msgstr "此网关的调试协议尚未与捕获记录对比验证;写入可能表现异常。请谨慎操作。"
-
-msgid "{count} ECG(s) present on line {line}"
-msgstr "线路 {line} 上存在 {count} 个 ECG"
 
 msgid "Program DCA State"
 msgstr "编程 DCA 状态"
@@ -2677,9 +2596,6 @@ msgstr "该组没有空闲的组地址。"
 msgid "The main group has no free middle group."
 msgstr "该主组没有空闲的中间组。"
 
-msgid "{count} devices"
-msgstr "{count} 个设备"
-
 msgid "The main segment cannot be moved."
 msgstr "主网段无法移动。"
 
@@ -2752,33 +2668,6 @@ msgstr "没有用于新组地址的组。"
 msgid "Copied '{name}' to '{target}'."
 msgstr "已将“{name}”复制到“{target}”。"
 
-msgid "Copied {count} devices to '{target}'."
-msgstr "已将 {count} 个设备复制到“{target}”。"
-
-msgid "Copied {count} building parts to '{target}'."
-msgstr "已将 {count} 个建筑部分复制到“{target}”。"
-
-msgid "Copied {count} trades to '{target}'."
-msgstr "已将 {count} 个工程作业复制到“{target}”。"
-
-msgid "Copied {count} functions to '{target}'."
-msgstr "已将 {count} 个功能复制到“{target}”。"
-
-msgid "Copied {count} group addresses to '{target}'."
-msgstr "已将 {count} 个组地址复制到“{target}”。"
-
-msgid "Copied {count} middle groups to '{target}'."
-msgstr "已将 {count} 个中间组复制到“{target}”。"
-
-msgid "Copied {count} main groups to '{target}'."
-msgstr "已将 {count} 个主组复制到“{target}”。"
-
-msgid "Copied {count} lines to '{target}'."
-msgstr "已将 {count} 条线路复制到“{target}”。"
-
-msgid "Copied {count} segments to '{target}'."
-msgstr "已将 {count} 个网段复制到“{target}”。"
-
 msgid "Paste Special…"
 msgstr "选择性粘贴…"
 
@@ -2821,30 +2710,6 @@ msgstr "已达到添加上限。"
 msgid "Cannot add any line to the area {area} because of topology constraints. Please check the medium type of the backbone and main lines."
 msgstr "由于拓扑限制，无法向区域 {area} 添加任何线路。请检查主干线和主线的介质类型。"
 
-msgid "Added {count} areas to '{target}'."
-msgstr "已向“{target}”添加 {count} 个区域。"
-
-msgid "Added {count} lines to '{target}'."
-msgstr "已向“{target}”添加 {count} 条线路。"
-
-msgid "Added {count} segments to '{target}'."
-msgstr "已向“{target}”添加 {count} 个段。"
-
-msgid "Added {count} building parts to '{target}'."
-msgstr "已向“{target}”添加 {count} 个建筑部分。"
-
-msgid "Added {count} trades to '{target}'."
-msgstr "已向“{target}”添加 {count} 个专业。"
-
-msgid "Added {count} main groups to '{target}'."
-msgstr "已向“{target}”添加 {count} 个主组。"
-
-msgid "Added {count} middle groups to '{target}'."
-msgstr "已向“{target}”添加 {count} 个中间组。"
-
-msgid "Added {count} group addresses to '{target}'."
-msgstr "已向“{target}”添加 {count} 个组地址。"
-
 msgid "Add Main Groups…"
 msgstr "添加主组…"
 
@@ -2884,12 +2749,6 @@ msgstr "添加功能"
 msgid "New function"
 msgstr "新功能"
 
-msgid "Added {count} functions to '{target}'."
-msgstr "已向“{target}”添加 {count} 个功能。"
-
-msgid "Added {count} group ranges to '{target}'."
-msgstr "已向“{target}”添加 {count} 个组地址范围。"
-
 msgid "Add Group Ranges…"
 msgstr "添加组地址范围…"
 
@@ -2923,9 +2782,6 @@ msgstr "组地址范围不能放入自身或其内部的范围。"
 msgid "A group address of the range is already in use there."
 msgstr "该范围的某个组地址在那里已被使用。"
 
-msgid "Copied {count} group ranges to '{target}'."
-msgstr "已将 {count} 个组地址范围复制到“{target}”。"
-
 msgid "Add Areas…"
 msgstr "添加区域…"
 
@@ -2940,12 +2796,6 @@ msgstr "复制组地址"
 
 msgid "Existing Devices…"
 msgstr "现有设备…"
-
-msgid "Delete the {count} selected devices? Their group objects and group-address links are removed and their individual addresses are freed. This can be undone."
-msgstr "删除所选的 {count} 个设备？其组对象和组地址关联将被删除，其物理地址将被释放。此操作可以撤销。"
-
-msgid "Remove {count} devices"
-msgstr "删除 {count} 个设备"
 
 msgid "Delete Devices"
 msgstr "删除设备"
@@ -3055,9 +2905,6 @@ msgstr "Load LVS Project (.prj)…"
 msgid "LVS project (*.prj)"
 msgstr "LVS project (*.prj)"
 
-msgid "Imported the display configuration into {count} device(s)."
-msgstr "Imported the display configuration into {count} device(s)."
-
 msgid "The LVS project could not be imported: {error}"
 msgstr "The LVS project could not be imported: {error}"
 
@@ -3069,3 +2916,214 @@ msgstr "Exported the display configuration."
 
 msgid "The LVS project could not be exported: {error}"
 msgstr "The LVS project could not be exported: {error}"
+
+msgid "Copied {count} device to '{target}'."
+msgid_plural "Copied {count} devices to '{target}'."
+msgstr[0] "已将 {count} 个设备复制到“{target}”。"
+
+msgid "Copied {count} building part to '{target}'."
+msgid_plural "Copied {count} building parts to '{target}'."
+msgstr[0] "已将 {count} 个建筑部分复制到“{target}”。"
+
+msgid "Copied {count} trade to '{target}'."
+msgid_plural "Copied {count} trades to '{target}'."
+msgstr[0] "已将 {count} 个专业复制到“{target}”。"
+
+msgid "Copied {count} function to '{target}'."
+msgid_plural "Copied {count} functions to '{target}'."
+msgstr[0] "已将 {count} 个功能复制到“{target}”。"
+
+msgid "Copied {count} group address to '{target}'."
+msgid_plural "Copied {count} group addresses to '{target}'."
+msgstr[0] "已将 {count} 个组地址复制到“{target}”。"
+
+msgid "Copied {count} middle group to '{target}'."
+msgid_plural "Copied {count} middle groups to '{target}'."
+msgstr[0] "已将 {count} 个中间组复制到“{target}”。"
+
+msgid "Copied {count} main group to '{target}'."
+msgid_plural "Copied {count} main groups to '{target}'."
+msgstr[0] "已将 {count} 个主组复制到“{target}”。"
+
+msgid "Copied {count} group range to '{target}'."
+msgid_plural "Copied {count} group ranges to '{target}'."
+msgstr[0] "已将 {count} 个组地址范围复制到“{target}”。"
+
+msgid "Copied {count} line to '{target}'."
+msgid_plural "Copied {count} lines to '{target}'."
+msgstr[0] "已将 {count} 条线路复制到“{target}”。"
+
+msgid "Copied {count} segment to '{target}'."
+msgid_plural "Copied {count} segments to '{target}'."
+msgstr[0] "已将 {count} 个网段复制到“{target}”。"
+
+msgid "Added {count} area to '{target}'."
+msgid_plural "Added {count} areas to '{target}'."
+msgstr[0] "已向“{target}”添加 {count} 个区域。"
+
+msgid "Added {count} line to '{target}'."
+msgid_plural "Added {count} lines to '{target}'."
+msgstr[0] "已向“{target}”添加 {count} 条线路。"
+
+msgid "Added {count} segment to '{target}'."
+msgid_plural "Added {count} segments to '{target}'."
+msgstr[0] "已向“{target}”添加 {count} 个段。"
+
+msgid "Added {count} building part to '{target}'."
+msgid_plural "Added {count} building parts to '{target}'."
+msgstr[0] "已向“{target}”添加 {count} 个建筑部分。"
+
+msgid "Added {count} trade to '{target}'."
+msgid_plural "Added {count} trades to '{target}'."
+msgstr[0] "已向“{target}”添加 {count} 个专业。"
+
+msgid "Added {count} function to '{target}'."
+msgid_plural "Added {count} functions to '{target}'."
+msgstr[0] "已向“{target}”添加 {count} 个功能。"
+
+msgid "Added {count} group range to '{target}'."
+msgid_plural "Added {count} group ranges to '{target}'."
+msgstr[0] "已向“{target}”添加 {count} 个组地址范围。"
+
+msgid "Added {count} main group to '{target}'."
+msgid_plural "Added {count} main groups to '{target}'."
+msgstr[0] "已向“{target}”添加 {count} 个主组。"
+
+msgid "Added {count} middle group to '{target}'."
+msgid_plural "Added {count} middle groups to '{target}'."
+msgstr[0] "已向“{target}”添加 {count} 个中间组。"
+
+msgid "Added {count} group address to '{target}'."
+msgid_plural "Added {count} group addresses to '{target}'."
+msgstr[0] "已向“{target}”添加 {count} 个组地址。"
+
+msgid "Remove {count} device"
+msgid_plural "Remove {count} devices"
+msgstr[0] "删除 {count} 个设备"
+
+msgid "{count} device"
+msgid_plural "{count} devices"
+msgstr[0] "{count} 个设备"
+
+msgid "{count} item"
+msgid_plural "{count} items"
+msgstr[0] "{count} 个条目"
+
+msgid "{count} pair"
+msgid_plural "{count} pairs"
+msgstr[0] "{count} 对"
+
+msgid "Linked {count} object to a group address"
+msgid_plural "Linked {count} objects to group addresses"
+msgstr[0] "已将 {count} 个对象链接到组地址"
+
+msgid "Linked {count} object pair via a new group address"
+msgid_plural "Linked {count} object pairs via new group addresses"
+msgstr[0] "已通过新的组地址链接 {count} 对对象"
+
+msgid "{count} error"
+msgid_plural "{count} errors"
+msgstr[0] "{count} 个错误"
+
+msgid "{count} object will be re-mapped"
+msgid_plural "{count} objects will be re-mapped"
+msgstr[0] "将重新映射 {count} 个对象"
+
+msgid "Replaced; re-mapped {count} group object"
+msgid_plural "Replaced; re-mapped {count} group objects"
+msgstr[0] "已更换；已重新映射 {count} 个组对象"
+
+msgid "{count} difference"
+msgid_plural "{count} differences"
+msgstr[0] "{count} 处差异"
+
+msgid "Created {count} copy"
+msgid_plural "Created {count} copies"
+msgstr[0] "已创建 {count} 个副本"
+
+msgid "{count} address will change"
+msgid_plural "{count} addresses will change"
+msgstr[0] "将更改 {count} 个地址"
+
+msgid "Shifted {count} address"
+msgid_plural "Shifted {count} addresses"
+msgstr[0] "已移动 {count} 个地址"
+
+msgid "Shifted {count} group address"
+msgid_plural "Shifted {count} group addresses"
+msgstr[0] "已移动 {count} 个组地址"
+
+msgid "{count} issue"
+msgid_plural "{count} issues"
+msgstr[0] "{count} 个问题"
+
+msgid "present ({size} byte)"
+msgid_plural "present ({size} bytes)"
+msgstr[0] "存在（{size} 字节）"
+
+msgid "Imported the display configuration into {count} device."
+msgid_plural "Imported the display configuration into {count} devices."
+msgstr[0] "已将显示配置导入 {count} 个设备。"
+
+msgid "{count} ECG present on line {line}"
+msgid_plural "{count} ECGs present on line {line}"
+msgstr[0] "线路 {line} 上存在 {count} 个 ECG"
+
+msgid "Apply Changes to {count} Identical Device"
+msgid_plural "Apply Changes to All {count} Identical Devices"
+msgstr[0] "将更改应用到全部 {count} 个相同设备"
+
+msgid "Editing {count} device — edits apply to all, diverging values show <differs>"
+msgid_plural "Editing {count} devices — edits apply to all, diverging values show <differs>"
+msgstr[0] "正在编辑 {count} 个设备——更改适用于所有设备，不同的值显示为 <不同>"
+
+msgid "{count} byte"
+msgid_plural "{count} bytes"
+msgstr[0] "{count} 字节"
+
+msgid "Mismatch: {bytes} from the device in {locations}"
+msgstr "不匹配：有 {bytes}在 {locations}与设备不同"
+
+msgid "{count} byte differs"
+msgid_plural "{count} bytes differ"
+msgstr[0] "{count} 个字节"
+
+msgid "{count} location"
+msgid_plural "{count} locations"
+msgstr[0] "{count} 个位置"
+
+msgid "plus {bytes} device-managed runtime byte (expected, benign)"
+msgid_plural "plus {bytes} device-managed runtime bytes (expected, benign)"
+msgstr[0] "另有 {bytes} 个设备管理的运行时字节（预期，无害）"
+
+msgid "plus {bytes} byte reset to the application default (the device holds an older value; benign, will be normalised on programming)"
+msgid_plural "plus {bytes} bytes reset to the application default (the device holds an older value; benign, will be normalised on programming)"
+msgstr[0] "另有 {bytes} 个字节复位为应用默认值（设备保存的是较旧的值；无害，编程时将予以规范化）"
+
+msgid "Paste configuration onto {count} selected device:"
+msgid_plural "Paste configuration onto {count} selected devices:"
+msgstr[0] "将配置粘贴到 {count} 个所选设备："
+
+msgid "Delete the {count} selected device? Its group objects and group-address links are removed and its individual address is freed. This can be undone."
+msgid_plural "Delete the {count} selected devices? Their group objects and group-address links are removed and their individual addresses are freed. This can be undone."
+msgstr[0] "删除所选的 {count} 个设备？其组对象和组地址关联将被删除，其物理地址将被释放。此操作可以撤销。"
+
+msgid "{count} group address added"
+msgid_plural "{count} group addresses added"
+msgstr[0] "已添加 {count} 个组地址"
+
+msgid "{count} updated"
+msgid_plural "{count} updated"
+msgstr[0] "已更新 {count} 个"
+
+msgid "{count} group address could not be placed in a group."
+msgid_plural "{count} group addresses could not be placed in a group."
+msgstr[0] "有 {count} 个组地址无法放入组中。"
+
+msgid "{count} ECG present"
+msgid_plural "{count} ECGs present"
+msgstr[0] "存在 {count} 个镇流器"
+
+msgid "Procedure {number}  ({count} step)"
+msgid_plural "Procedure {number}  ({count} steps)"
+msgstr[0] "流程 {number}  （{count} 个步骤）"

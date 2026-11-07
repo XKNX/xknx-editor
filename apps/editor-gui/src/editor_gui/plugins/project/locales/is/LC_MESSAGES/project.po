@@ -85,9 +85,6 @@ msgstr "Vottorð verkefnis"
 msgid "none"
 msgstr "ekkert"
 
-msgid "present ({size} bytes)"
-msgstr "til staðar ({size} bæti)"
-
 msgid "Order Number"
 msgstr "Pöntunarnúmer"
 
@@ -226,9 +223,6 @@ msgstr "Ekki hægt að keyra: engin KNX-tenging. Tengstu við gátt (valmyndin {
 msgid "Match: the generated image is identical to what is on the device"
 msgstr "Samsvörun: myndin sem búin var til er eins og sú sem er í tækinu"
 
-msgid "Mismatch: {bytes} byte(s) differ from the device in {locations} location(s)"
-msgstr "Misræmi: bæti sem eru frábrugðin tækinu: {bytes}, á stöðum: {locations}"
-
 msgid "{matched} matched, {changed} would change"
 msgstr "Samsvarandi: {matched}, myndu breytast: {changed}"
 
@@ -256,9 +250,6 @@ msgstr "stýrt af tæki"
 msgid "System byte the device sets itself at runtime (e.g. a download detection byte reset by the application after a download). A difference here is expected and does not indicate a bad download."
 msgstr "Kerfisbæti sem tækið setur sjálft við keyrslu (t.d. bæti sem greinir niðurhleðslu og verkforritið endurstillir eftir niðurhleðslu). Mismunur hér er eðlilegur og bendir ekki til misheppnaðrar niðurhleðslu."
 
-msgid "plus {bytes} device-managed runtime byte(s) (expected, benign)"
-msgstr "auk keyrslubæta sem tækið stýrir: {bytes} (eðlilegt, skaðlaust)"
-
 msgid "No configured differences: the device already carries this configuration. The differences below are benign (see notes)."
 msgstr "Enginn stilltur mismunur: tækið er þegar með þessar stillingar. Mismunurinn hér fyrir neðan er skaðlaus (sjá athugasemdir)."
 
@@ -267,9 +258,6 @@ msgstr "setur sjálfgefið gildi"
 
 msgid "This byte is written for a neighbouring parameter; the differing bit is not driven by any active parameter and is only reset to the application default. The device holds an older value (e.g. from a previous configuration or mode) that programming will normalise. Benign."
 msgstr "Þetta bæti er skrifað vegna aðliggjandi færibreytu; bitinn sem er frábrugðinn er ekki stýrður af neinni virkri færibreytu og er aðeins endurstilltur á sjálfgefið gildi verkforritsins. Tækið geymir eldra gildi (t.d. úr fyrri stillingu eða ham) sem forritunin færir í eðlilegt horf. Skaðlaust."
-
-msgid "plus {bytes} byte(s) reset to the application default (the device holds an older value; benign, will be normalised on programming)"
-msgstr "auk bæta sem eru endurstillt á sjálfgefið gildi verkforritsins: {bytes} (tækið geymir eldra gildi; skaðlaust, fært í eðlilegt horf við forritun)"
 
 msgid "Export Ist/Soll…"
 msgstr "Flytja út Ist/Soll…"
@@ -394,12 +382,6 @@ msgstr "Ekki hægt að keyra: verkefninu hefur verið breytt síðan það var o
 msgid "Duplicate"
 msgstr "Tvöfalda"
 
-msgid "Apply Changes to All {count} Identical Devices"
-msgstr "Nota breytingar á öll eins tæki ({count})"
-
-msgid "Editing {count} devices — edits apply to all, diverging values show <differs>"
-msgstr "Breytir tækjum: {count} — breytingar gilda um öll, ólík gildi sýna <differs>"
-
 msgid "Mass Linker"
 msgstr "Fjöldatenging"
 
@@ -451,12 +433,6 @@ msgstr "Færa upp"
 msgid "Move Down"
 msgstr "Færa niður"
 
-msgid "{count} items"
-msgstr "Atriði: {count}"
-
-msgid "{count} pairs"
-msgstr "Pör: {count}"
-
 msgid "{count} unpaired (ignored)"
 msgstr "Án pars: {count} (hunsað)"
 
@@ -477,15 +453,6 @@ msgstr "Bæta við samskiptahlutum"
 
 msgid "Add Group Addresses"
 msgstr "Bæta við hópvistföngum"
-
-msgid "Linked {count} object(s) to group addresses"
-msgstr "Hlutir tengdir við hópvistföng: {count}"
-
-msgid "Linked {count} object pair(s) via new group addresses"
-msgstr "Hlutapör tengd með nýjum hópvistföngum: {count}"
-
-msgid "{count} error(s)"
-msgstr "Villur: {count}"
 
 msgid "Clear All"
 msgstr "Hreinsa allt"
@@ -538,9 +505,6 @@ msgstr "Heiti afrits: {name}"
 msgid "Copy"
 msgstr "Afrita"
 
-msgid "Created {count} copy/copies"
-msgstr "Afrit búin til: {count}"
-
 msgid "Shifts the device part of each individual address. Group addresses are not shifted."
 msgstr "Hliðrar tækjahluta hvers einstaklingsvistfangs. Hópvistföngum er ekki hliðrað."
 
@@ -553,9 +517,6 @@ msgstr "Aðeins valið upprunatæki (úr ítarlegri afritun)"
 msgid "(out of range)"
 msgstr "(utan sviðs)"
 
-msgid "Shifted {count} address(es)"
-msgstr "Vistföngum hliðrað: {count}"
-
 msgid "Export {count} device(s) to a CSV for on-site labelling."
 msgstr "Flytja tæki út í CSV-skrá fyrir merkingar á staðnum (fjöldi: {count})."
 
@@ -567,12 +528,6 @@ msgstr "Flutt út í {path}"
 
 msgid "No topology issues found."
 msgstr "Engin vandamál í grannfræði fundust."
-
-msgid "{count} issue(s)"
-msgstr "Vandamál: {count}"
-
-msgid "{count} address(es) will change"
-msgstr "Vistföng sem breytast: {count}"
 
 msgid "Click a finding to jump to the device."
 msgstr "Smelltu á niðurstöðu til að fara í tækið."
@@ -624,12 +579,6 @@ msgstr "Skipta út fyrir (sniðmát)"
 
 msgid "Group Object Mapping (by Number)"
 msgstr "Vörpun samskiptahluta (eftir númeri)"
-
-msgid "{count} object(s) will be re-mapped"
-msgstr "Hlutir sem verða endurvarpaðir: {count}"
-
-msgid "Replaced; re-mapped {count} group object(s)"
-msgstr "Skipt út; samskiptahlutir endurvarpaðir: {count}"
 
 msgid "Device"
 msgstr "Tæki"
@@ -840,9 +789,6 @@ msgstr "Líma stillingar"
 
 msgid "Paste configuration onto '{name}':"
 msgstr "Líma stillingar á '{name}':"
-
-msgid "Paste configuration onto {count} selected devices:"
-msgstr "Líma stillingar á valin tæki ({count}):"
 
 msgid "Duplicate '{name}':"
 msgstr "Tvöfalda '{name}':"
@@ -1174,12 +1120,6 @@ msgstr "Skrár með hópvistföngum (XML, CSV)"
 msgid "All Files"
 msgstr "Allar skrár"
 
-msgid "{added} group addresses added, {updated} updated."
-msgstr "Hópvistföngum bætt við: {added}, uppfærð: {updated}."
-
-msgid "{count} group addresses could not be placed in a group."
-msgstr "Hópvistföng sem ekki var hægt að setja í hóp: {count}"
-
 msgid "The file could not be imported: {error}"
 msgstr "Ekki tókst að flytja skrána inn: {error}"
 
@@ -1372,9 +1312,6 @@ msgstr "Örk"
 msgid "Shift Group Addresses"
 msgstr "Hliðra hópvistföngum"
 
-msgid "Shifted {count} group address(es)"
-msgstr "Hópvistföngum hliðrað: {count}"
-
 msgid "Subnet Mask"
 msgstr "Netmaski"
 
@@ -1399,9 +1336,6 @@ msgstr "Borið saman við {name}:"
 msgid "removed"
 msgstr "fjarlægt"
 
-msgid "{count} difference(s)"
-msgstr "Mismunur: {count}"
-
 msgid "Save…"
 msgstr "Vista…"
 
@@ -1413,9 +1347,6 @@ msgstr "Hreinsa samanburð"
 
 msgid "Memory Dumps (*.bin)"
 msgstr "Minnisafrit (*.bin)"
-
-msgid "{count} bytes"
-msgstr "{count} bæti"
 
 msgid "No memory segments."
 msgstr "Engir minnishlutar."
@@ -1639,9 +1570,6 @@ msgstr "Aðeins mismunur"
 msgid "Open a project with at least two devices to compare."
 msgstr "Opnaðu verkefni með að minnsta kosti tveimur tækjum til að bera saman."
 
-msgid "{count} differences"
-msgstr "Mismunur: {count}"
-
 msgid "The manufacturer plugin is not available here:"
 msgstr "Viðbót framleiðandans er ekki tiltæk hér:"
 
@@ -1735,9 +1663,6 @@ msgstr "Skrifa hópaúthlutunina á DALI-brautina. Þetta setur hópana í\ngát
 msgid "Write the scene values to the DALI bus. Continue?"
 msgstr "Skrifa gildi sena á DALI-brautina. Halda áfram?"
 
-msgid "{count} ECG(s) present"
-msgstr "Straumfestar til staðar: {count}"
-
 msgid "Group"
 msgstr "Hópur"
 
@@ -1779,9 +1704,6 @@ msgstr "Stakur"
 
 msgid "Unassigned"
 msgstr "Óúthlutað"
-
-msgid "Procedure {number}  ({count} steps)"
-msgstr "Ferli {number}  (skref: {count})"
 
 msgid "Kind"
 msgstr "Tegund"
@@ -2175,9 +2097,6 @@ msgstr "Les DALI-brautina frá hlut {object_index}…"
 
 msgid "Press 'Read DALI Bus' to list the ECGs on the gateway."
 msgstr "Ýttu á 'Lesa DALI-braut' til að birta straumfestana á gáttinni."
-
-msgid "{count} ECG(s) present on line {line}"
-msgstr "Straumfestar til staðar á línu {line}: {count}"
 
 msgid "Read-only snapshot. Writing group assignments, scenes or firmware is not available yet and remains in the manufacturer's plugin."
 msgstr "Skyndimynd sem aðeins er lesin. Ekki er enn hægt að skrifa hópaúthlutanir, senur eða fastbúnað; það er áfram gert í viðbót framleiðandans."
@@ -2704,9 +2623,6 @@ msgstr "Hópurinn hefur ekkert laust hópvistfang."
 msgid "The main group has no free middle group."
 msgstr "Aðalhópurinn hefur engan lausan miðhóp."
 
-msgid "{count} devices"
-msgstr "{count} tæki"
-
 msgid "The main segment cannot be moved."
 msgstr "Ekki er hægt að færa aðalbútinn."
 
@@ -2779,33 +2695,6 @@ msgstr "Enginn hópur er til fyrir nýju hópvistföngin."
 msgid "Copied '{name}' to '{target}'."
 msgstr "'{name}' afritað í '{target}'."
 
-msgid "Copied {count} devices to '{target}'."
-msgstr "Tæki afrituð í '{target}': {count}."
-
-msgid "Copied {count} building parts to '{target}'."
-msgstr "Byggingarhlutar afritaðir í '{target}': {count}."
-
-msgid "Copied {count} trades to '{target}'."
-msgstr "Iðngreinar afritaðar í '{target}': {count}."
-
-msgid "Copied {count} functions to '{target}'."
-msgstr "Aðgerðir afritaðar í '{target}': {count}."
-
-msgid "Copied {count} group addresses to '{target}'."
-msgstr "Hópvistföng afrituð í '{target}': {count}."
-
-msgid "Copied {count} middle groups to '{target}'."
-msgstr "Miðhópar afritaðir í '{target}': {count}."
-
-msgid "Copied {count} main groups to '{target}'."
-msgstr "Aðalhópar afritaðir í '{target}': {count}."
-
-msgid "Copied {count} lines to '{target}'."
-msgstr "Línur afritaðar í '{target}': {count}."
-
-msgid "Copied {count} segments to '{target}'."
-msgstr "Bútar afritaðir í '{target}': {count}."
-
 msgid "Paste Special…"
 msgstr "Sérstök líming…"
 
@@ -2848,30 +2737,6 @@ msgstr "Hámarkinu var náð."
 msgid "Cannot add any line to the area {area} because of topology constraints. Please check the medium type of the backbone and main lines."
 msgstr "Ekki er hægt að bæta neinni línu við svæðið {area} vegna takmarkana grannfræðinnar. Athugaðu miðilsgerð grunnlínunnar og aðallínanna."
 
-msgid "Added {count} areas to '{target}'."
-msgstr "Svæðum bætt við '{target}': {count}."
-
-msgid "Added {count} lines to '{target}'."
-msgstr "Línum bætt við '{target}': {count}."
-
-msgid "Added {count} segments to '{target}'."
-msgstr "Bútum bætt við '{target}': {count}."
-
-msgid "Added {count} building parts to '{target}'."
-msgstr "Byggingarhlutum bætt við '{target}': {count}."
-
-msgid "Added {count} trades to '{target}'."
-msgstr "Iðngreinum bætt við '{target}': {count}."
-
-msgid "Added {count} main groups to '{target}'."
-msgstr "Aðalhópum bætt við '{target}': {count}."
-
-msgid "Added {count} middle groups to '{target}'."
-msgstr "Miðhópum bætt við '{target}': {count}."
-
-msgid "Added {count} group addresses to '{target}'."
-msgstr "Hópvistföngum bætt við '{target}': {count}."
-
 msgid "Add Main Groups…"
 msgstr "Bæta við aðalhópum…"
 
@@ -2911,12 +2776,6 @@ msgstr "Bæta við aðgerðum"
 msgid "New function"
 msgstr "Ný aðgerð"
 
-msgid "Added {count} functions to '{target}'."
-msgstr "Aðgerðum bætt við '{target}': {count}."
-
-msgid "Added {count} group ranges to '{target}'."
-msgstr "Hópasviðum bætt við '{target}': {count}."
-
 msgid "Add Group Ranges…"
 msgstr "Bæta við hópasviðum…"
 
@@ -2950,9 +2809,6 @@ msgstr "Hópasvið getur ekki farið inn í sjálft sig eða svið innan þess."
 msgid "A group address of the range is already in use there."
 msgstr "Hópvistfang sviðsins er þegar í notkun þar."
 
-msgid "Copied {count} group ranges to '{target}'."
-msgstr "Hópasvið afrituð í '{target}': {count}."
-
 msgid "Add Areas…"
 msgstr "Bæta við svæðum…"
 
@@ -2967,12 +2823,6 @@ msgstr "Afrita hópvistfang"
 
 msgid "Existing Devices…"
 msgstr "Fyrirliggjandi tæki…"
-
-msgid "Delete the {count} selected devices? Their group objects and group-address links are removed and their individual addresses are freed. This can be undone."
-msgstr "Eyða völdum tækjum ({count})? Samskiptahlutir þeirra og tengingar við hópvistföng eru fjarlægð og einstaklingsvistföng þeirra losuð. Hægt er að afturkalla þetta."
-
-msgid "Remove {count} devices"
-msgstr "Fjarlægja tæki ({count})"
 
 msgid "Delete Devices"
 msgstr "Eyða tækjum"
@@ -3082,9 +2932,6 @@ msgstr "Load LVS Project (.prj)…"
 msgid "LVS project (*.prj)"
 msgstr "LVS project (*.prj)"
 
-msgid "Imported the display configuration into {count} device(s)."
-msgstr "Imported the display configuration into {count} device(s)."
-
 msgid "The LVS project could not be imported: {error}"
 msgstr "The LVS project could not be imported: {error}"
 
@@ -3096,3 +2943,266 @@ msgstr "Exported the display configuration."
 
 msgid "The LVS project could not be exported: {error}"
 msgstr "The LVS project could not be exported: {error}"
+
+msgid "Copied {count} device to '{target}'."
+msgid_plural "Copied {count} devices to '{target}'."
+msgstr[0] "{count} tæki afritað í '{target}'."
+msgstr[1] "{count} tæki afrituð í '{target}'."
+
+msgid "Copied {count} building part to '{target}'."
+msgid_plural "Copied {count} building parts to '{target}'."
+msgstr[0] "{count} byggingarhluti afritaður í '{target}'."
+msgstr[1] "{count} byggingarhlutar afritaðir í '{target}'."
+
+msgid "Copied {count} trade to '{target}'."
+msgid_plural "Copied {count} trades to '{target}'."
+msgstr[0] "{count} iðngrein afrituð í '{target}'."
+msgstr[1] "{count} iðngreinar afritaðar í '{target}'."
+
+msgid "Copied {count} function to '{target}'."
+msgid_plural "Copied {count} functions to '{target}'."
+msgstr[0] "{count} aðgerð afrituð í '{target}'."
+msgstr[1] "{count} aðgerðir afritaðar í '{target}'."
+
+msgid "Copied {count} group address to '{target}'."
+msgid_plural "Copied {count} group addresses to '{target}'."
+msgstr[0] "{count} hópvistfang afritað í '{target}'."
+msgstr[1] "{count} hópvistföng afrituð í '{target}'."
+
+msgid "Copied {count} middle group to '{target}'."
+msgid_plural "Copied {count} middle groups to '{target}'."
+msgstr[0] "{count} miðhópur afritaður í '{target}'."
+msgstr[1] "{count} miðhópar afritaðir í '{target}'."
+
+msgid "Copied {count} main group to '{target}'."
+msgid_plural "Copied {count} main groups to '{target}'."
+msgstr[0] "{count} aðalhópur afritaður í '{target}'."
+msgstr[1] "{count} aðalhópar afritaðir í '{target}'."
+
+msgid "Copied {count} group range to '{target}'."
+msgid_plural "Copied {count} group ranges to '{target}'."
+msgstr[0] "{count} hópasvið afritað í '{target}'."
+msgstr[1] "{count} hópasvið afrituð í '{target}'."
+
+msgid "Copied {count} line to '{target}'."
+msgid_plural "Copied {count} lines to '{target}'."
+msgstr[0] "{count} lína afrituð í '{target}'."
+msgstr[1] "{count} línur afritaðar í '{target}'."
+
+msgid "Copied {count} segment to '{target}'."
+msgid_plural "Copied {count} segments to '{target}'."
+msgstr[0] "{count} bútur afritaður í '{target}'."
+msgstr[1] "{count} bútar afritaðir í '{target}'."
+
+msgid "Added {count} area to '{target}'."
+msgid_plural "Added {count} areas to '{target}'."
+msgstr[0] "{count} svæði bætt við '{target}'."
+msgstr[1] "{count} svæðum bætt við '{target}'."
+
+msgid "Added {count} line to '{target}'."
+msgid_plural "Added {count} lines to '{target}'."
+msgstr[0] "{count} línu bætt við '{target}'."
+msgstr[1] "{count} línum bætt við '{target}'."
+
+msgid "Added {count} segment to '{target}'."
+msgid_plural "Added {count} segments to '{target}'."
+msgstr[0] "{count} búti bætt við '{target}'."
+msgstr[1] "{count} bútum bætt við '{target}'."
+
+msgid "Added {count} building part to '{target}'."
+msgid_plural "Added {count} building parts to '{target}'."
+msgstr[0] "{count} byggingarhluta bætt við '{target}'."
+msgstr[1] "{count} byggingarhlutum bætt við '{target}'."
+
+msgid "Added {count} trade to '{target}'."
+msgid_plural "Added {count} trades to '{target}'."
+msgstr[0] "{count} iðngrein bætt við '{target}'."
+msgstr[1] "{count} iðngreinum bætt við '{target}'."
+
+msgid "Added {count} function to '{target}'."
+msgid_plural "Added {count} functions to '{target}'."
+msgstr[0] "{count} aðgerð bætt við '{target}'."
+msgstr[1] "{count} aðgerðum bætt við '{target}'."
+
+msgid "Added {count} group range to '{target}'."
+msgid_plural "Added {count} group ranges to '{target}'."
+msgstr[0] "{count} hópasviði bætt við '{target}'."
+msgstr[1] "{count} hópasviðum bætt við '{target}'."
+
+msgid "Added {count} main group to '{target}'."
+msgid_plural "Added {count} main groups to '{target}'."
+msgstr[0] "{count} aðalhópi bætt við '{target}'."
+msgstr[1] "{count} aðalhópum bætt við '{target}'."
+
+msgid "Added {count} middle group to '{target}'."
+msgid_plural "Added {count} middle groups to '{target}'."
+msgstr[0] "{count} miðhópi bætt við '{target}'."
+msgstr[1] "{count} miðhópum bætt við '{target}'."
+
+msgid "Added {count} group address to '{target}'."
+msgid_plural "Added {count} group addresses to '{target}'."
+msgstr[0] "{count} hópvistfangi bætt við '{target}'."
+msgstr[1] "{count} hópvistföngum bætt við '{target}'."
+
+msgid "Remove {count} device"
+msgid_plural "Remove {count} devices"
+msgstr[0] "Fjarlægja {count} tæki"
+msgstr[1] "Fjarlægja {count} tæki"
+
+msgid "{count} device"
+msgid_plural "{count} devices"
+msgstr[0] "{count} tæki"
+msgstr[1] "{count} tæki"
+
+msgid "{count} item"
+msgid_plural "{count} items"
+msgstr[0] "{count} atriði"
+msgstr[1] "{count} atriði"
+
+msgid "{count} pair"
+msgid_plural "{count} pairs"
+msgstr[0] "{count} par"
+msgstr[1] "{count} pör"
+
+msgid "Linked {count} object to a group address"
+msgid_plural "Linked {count} objects to group addresses"
+msgstr[0] "{count} hlutur tengdur við hópvistfang"
+msgstr[1] "{count} hlutir tengdir við hópvistföng"
+
+msgid "Linked {count} object pair via a new group address"
+msgid_plural "Linked {count} object pairs via new group addresses"
+msgstr[0] "{count} hlutapar tengt með nýju hópvistfangi"
+msgstr[1] "{count} hlutapör tengd með nýjum hópvistföngum"
+
+msgid "{count} error"
+msgid_plural "{count} errors"
+msgstr[0] "{count} villa"
+msgstr[1] "{count} villur"
+
+msgid "{count} object will be re-mapped"
+msgid_plural "{count} objects will be re-mapped"
+msgstr[0] "{count} hlutur verður endurvarpaður"
+msgstr[1] "{count} hlutir verða endurvarpaðir"
+
+msgid "Replaced; re-mapped {count} group object"
+msgid_plural "Replaced; re-mapped {count} group objects"
+msgstr[0] "Skipt út; {count} samskiptahlutur endurvarpaður"
+msgstr[1] "Skipt út; {count} samskiptahlutir endurvarpaðir"
+
+msgid "{count} difference"
+msgid_plural "{count} differences"
+msgstr[0] "{count} frávik"
+msgstr[1] "{count} frávik"
+
+msgid "Created {count} copy"
+msgid_plural "Created {count} copies"
+msgstr[0] "{count} afrit búið til"
+msgstr[1] "{count} afrit búin til"
+
+msgid "{count} address will change"
+msgid_plural "{count} addresses will change"
+msgstr[0] "{count} vistfang breytist"
+msgstr[1] "{count} vistföng breytast"
+
+msgid "Shifted {count} address"
+msgid_plural "Shifted {count} addresses"
+msgstr[0] "{count} vistfangi hliðrað"
+msgstr[1] "{count} vistföngum hliðrað"
+
+msgid "Shifted {count} group address"
+msgid_plural "Shifted {count} group addresses"
+msgstr[0] "{count} hópvistfangi hliðrað"
+msgstr[1] "{count} hópvistföngum hliðrað"
+
+msgid "{count} issue"
+msgid_plural "{count} issues"
+msgstr[0] "{count} vandamál"
+msgstr[1] "{count} vandamál"
+
+msgid "present ({size} byte)"
+msgid_plural "present ({size} bytes)"
+msgstr[0] "til staðar ({size} bæti)"
+msgstr[1] "til staðar ({size} bæti)"
+
+msgid "Imported the display configuration into {count} device."
+msgid_plural "Imported the display configuration into {count} devices."
+msgstr[0] "Skjástillingar fluttar inn í {count} tæki."
+msgstr[1] "Skjástillingar fluttar inn í {count} tæki."
+
+msgid "{count} ECG present on line {line}"
+msgid_plural "{count} ECGs present on line {line}"
+msgstr[0] "{count} straumfestir til staðar á línu {line}"
+msgstr[1] "{count} straumfestar til staðar á línu {line}"
+
+msgid "Apply Changes to {count} Identical Device"
+msgid_plural "Apply Changes to All {count} Identical Devices"
+msgstr[0] "Nota breytingar á {count} eins tæki"
+msgstr[1] "Nota breytingar á öll {count} eins tæki"
+
+msgid "Editing {count} device — edits apply to all, diverging values show <differs>"
+msgid_plural "Editing {count} devices — edits apply to all, diverging values show <differs>"
+msgstr[0] "Breytir {count} tæki — breytingar gilda um öll, ólík gildi sýna <differs>"
+msgstr[1] "Breytir {count} tækjum — breytingar gilda um öll, ólík gildi sýna <differs>"
+
+msgid "{count} byte"
+msgid_plural "{count} bytes"
+msgstr[0] "{count} bæti"
+msgstr[1] "{count} bæti"
+
+msgid "Mismatch: {bytes} from the device in {locations}"
+msgstr "Misræmi: {bytes} frá tækinu á {locations}"
+
+msgid "{count} byte differs"
+msgid_plural "{count} bytes differ"
+msgstr[0] "{count} bæti er frábrugðið"
+msgstr[1] "{count} bæti eru frábrugðin"
+
+msgid "{count} location"
+msgid_plural "{count} locations"
+msgstr[0] "{count} stað"
+msgstr[1] "{count} stöðum"
+
+msgid "plus {bytes} device-managed runtime byte (expected, benign)"
+msgid_plural "plus {bytes} device-managed runtime bytes (expected, benign)"
+msgstr[0] "auk {bytes} keyrslubætis sem tækið stýrir (eðlilegt, skaðlaust)"
+msgstr[1] "auk {bytes} keyrslubæta sem tækið stýrir (eðlilegt, skaðlaust)"
+
+msgid "plus {bytes} byte reset to the application default (the device holds an older value; benign, will be normalised on programming)"
+msgid_plural "plus {bytes} bytes reset to the application default (the device holds an older value; benign, will be normalised on programming)"
+msgstr[0] "auk {bytes} bætis sem er endurstillt á sjálfgefið gildi verkforritsins (tækið geymir eldra gildi; skaðlaust, fært í eðlilegt horf við forritun)"
+msgstr[1] "auk {bytes} bæta sem eru endurstillt á sjálfgefið gildi verkforritsins (tækið geymir eldra gildi; skaðlaust, fært í eðlilegt horf við forritun)"
+
+msgid "Paste configuration onto {count} selected device:"
+msgid_plural "Paste configuration onto {count} selected devices:"
+msgstr[0] "Líma stillingar á {count} valið tæki:"
+msgstr[1] "Líma stillingar á {count} valin tæki:"
+
+msgid "Delete the {count} selected device? Its group objects and group-address links are removed and its individual address is freed. This can be undone."
+msgid_plural "Delete the {count} selected devices? Their group objects and group-address links are removed and their individual addresses are freed. This can be undone."
+msgstr[0] "Eyða {count} völdu tæki? Samskiptahlutir þess og tengingar við hópvistföng eru fjarlægð og einstaklingsvistfang þess losað. Hægt er að afturkalla þetta."
+msgstr[1] "Eyða {count} völdum tækjum? Samskiptahlutir þeirra og tengingar við hópvistföng eru fjarlægð og einstaklingsvistföng þeirra losuð. Hægt er að afturkalla þetta."
+
+msgid "{count} group address added"
+msgid_plural "{count} group addresses added"
+msgstr[0] "{count} hópvistfangi bætt við"
+msgstr[1] "{count} hópvistföngum bætt við"
+
+msgid "{count} updated"
+msgid_plural "{count} updated"
+msgstr[0] "{count} uppfært"
+msgstr[1] "{count} uppfærð"
+
+msgid "{count} group address could not be placed in a group."
+msgid_plural "{count} group addresses could not be placed in a group."
+msgstr[0] "Ekki var hægt að setja {count} hópvistfang í hóp."
+msgstr[1] "Ekki var hægt að setja {count} hópvistföng í hóp."
+
+msgid "{count} ECG present"
+msgid_plural "{count} ECGs present"
+msgstr[0] "{count} straumfestir til staðar"
+msgstr[1] "{count} straumfestar til staðar"
+
+msgid "Procedure {number}  ({count} step)"
+msgid_plural "Procedure {number}  ({count} steps)"
+msgstr[0] "Ferli {number}  ({count} skref)"
+msgstr[1] "Ferli {number}  ({count} skref)"

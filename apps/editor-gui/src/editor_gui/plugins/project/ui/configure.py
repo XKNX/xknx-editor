@@ -1198,7 +1198,7 @@ class ConfigurePanel:
                         self._multi_targets = [d.node_id for d in joint]
                         differing = self._differing_refs(joint)
                         imgui.text_disabled(
-                            S.CONFIGURE_MULTI_EDIT.format(count=len(joint))
+                            S.CONFIGURE_MULTI_EDIT(len(joint)).format(count=len(joint))
                         )
                     else:
                         self._multi_targets = []
@@ -1429,7 +1429,7 @@ class ConfigurePanel:
             self._apply_all = False
             return False  # nothing to fill into
         _, self._apply_all = checkbox(
-            S.CONFIGURE_APPLY_ALL.format(count=count), self._apply_all
+            S.CONFIGURE_APPLY_ALL(count).format(count=count), self._apply_all
         )
         return True
 
@@ -1632,7 +1632,9 @@ class ConfigurePanel:
             return
         imgui.text_disabled(getattr(lp, "style", ""))
         for i, proc in enumerate(procedures):
-            procedure = S.LOAD_PROCEDURE.format(number=i + 1, count=len(proc.steps))
+            procedure = S.LOAD_PROCEDURE(len(proc.steps)).format(
+                number=i + 1, count=len(proc.steps)
+            )
             label = f"{procedure}##lp{i}"
             if imgui.tree_node(label):
                 _table_flags = (

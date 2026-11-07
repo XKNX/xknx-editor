@@ -43,9 +43,6 @@ msgstr "Exportera ögonblicksbild"
 msgid "Verifying (re-reading and comparing)…"
 msgstr "Verifierar (läser om och jämför)…"
 
-msgid "%(count)d group address(es) have no sender or multiple senders."
-msgstr "%(count)d gruppadress(er) har ingen eller flera sändare."
-
 msgid "Address"
 msgstr "Adress"
 
@@ -82,17 +79,8 @@ msgstr "gruppkommunikationstabeller"
 msgid "parameter memory"
 msgstr "parameterminne"
 
-msgid "Recovered %(devices)d device(s): %(group_addresses)d group addresses, %(links)d links, %(unknown)d parameter(s) not recoverable."
-msgstr "%(devices)d apparat(er) återskapade: %(group_addresses)d gruppadresser, %(links)d kopplingar, %(unknown)d parameter/parametrar kunde inte återskapas."
-
 msgid "Recovered"
 msgstr "Återskapad"
-
-msgid "Added %(count)d device(s) to the open project (%(target)s)."
-msgstr "%(count)d apparat(er) tillagda i det öppna projektet (%(target)s)."
-
-msgid "Created new project %(target)s with %(count)d device(s)."
-msgstr "Nytt projekt %(target)s skapat med %(count)d apparat(er)."
 
 msgid "Not connected to a KNX bus."
 msgstr "Inte ansluten till en KNX-buss."
@@ -112,18 +100,11 @@ msgstr "Finns inte i katalogen: importera dess produkt i Katalog"
 msgid "Not programmed"
 msgstr "Inte programmerad"
 
-
 msgid "Already in the project, skipped"
 msgstr "Redan i projektet, hoppades över"
 
 msgid "Error"
 msgstr "Fel"
-
-msgid "%d parameters could not be recovered"
-msgstr "%d parametrar kunde inte återskapas"
-
-msgid "%(count)d device(s) could not be added; the reason is in the Result column."
-msgstr "%(count)d apparat(er) kunde inte läggas till; orsaken står i kolumnen ”Resultat”."
 
 msgid "Recovered (incomplete)"
 msgstr "Återskapad (ofullständig)"
@@ -152,9 +133,6 @@ msgstr "Söker igen efter inställningarna för de valda ofullständiga enhetern
 msgid "Searching %(address)s again  (%(done)d/%(total)d)…"
 msgstr "Söker igen i %(address)s  (%(done)d/%(total)d)…"
 
-msgid "%(bytes)d byte(s) and %(objects)d group object(s) differ from the device"
-msgstr "%(bytes)d byte och %(objects)d gruppobjekt skiljer sig från enheten"
-
 msgid "more search effort may help"
 msgstr "mer sökinsats kan hjälpa"
 
@@ -167,14 +145,73 @@ msgstr "Resultat"
 msgid "Not read yet"
 msgstr "Inte läst än"
 
-msgid "%(group_addresses)d group addresses, %(links)d links, %(parameters)d parameters"
-msgstr "%(group_addresses)d gruppadresser, %(links)d kopplingar, %(parameters)d parametrar"
-
-msgid "%(count)d unknown"
-msgstr "%(count)d okända"
-
 msgid "Verified"
 msgstr "Kontrollerad"
 
-msgid "Verify: %(bytes)d byte(s) differ"
-msgstr "Kontroll: %(bytes)d byte skiljer sig"
+msgid "%(count)d group address has no sender or multiple senders."
+msgid_plural "%(count)d group addresses have no sender or multiple senders."
+msgstr[0] "%(count)d gruppadress har ingen eller flera sändare."
+msgstr[1] "%(count)d gruppadresser har ingen eller flera sändare."
+
+msgid "Recovered %(count)d device"
+msgid_plural "Recovered %(count)d devices"
+msgstr[0] "%(count)d apparat återskapad"
+msgstr[1] "%(count)d apparater återskapade"
+
+msgid "%(count)d group address"
+msgid_plural "%(count)d group addresses"
+msgstr[0] "%(count)d gruppadress"
+msgstr[1] "%(count)d gruppadresser"
+
+msgid "%(count)d link"
+msgid_plural "%(count)d links"
+msgstr[0] "%(count)d koppling"
+msgstr[1] "%(count)d kopplingar"
+
+msgid "%(count)d parameter"
+msgid_plural "%(count)d parameters"
+msgstr[0] "%(count)d parameter"
+msgstr[1] "%(count)d parametrar"
+
+msgid "%(count)d parameter cannot be recovered"
+msgid_plural "%(count)d parameters cannot be recovered"
+msgstr[0] "%(count)d parameter kan inte återskapas"
+msgstr[1] "%(count)d parametrar kan inte återskapas"
+
+msgid "%(count)d parameter not found yet"
+msgid_plural "%(count)d parameters not found yet"
+msgstr[0] "%(count)d parameter ännu inte hittad"
+msgstr[1] "%(count)d parametrar ännu inte hittade"
+
+msgid "Added %(count)d device to the open project (%(target)s)."
+msgid_plural "Added %(count)d devices to the open project (%(target)s)."
+msgstr[0] "%(count)d apparat tillagd i det öppna projektet (%(target)s)."
+msgstr[1] "%(count)d apparater tillagda i det öppna projektet (%(target)s)."
+
+msgid "Created new project %(target)s with %(count)d device."
+msgid_plural "Created new project %(target)s with %(count)d devices."
+msgstr[0] "Nytt projekt %(target)s skapat med %(count)d apparat."
+msgstr[1] "Nytt projekt %(target)s skapat med %(count)d apparater."
+
+msgid "%(count)d device could not be added; the reason is in the Result column."
+msgid_plural "%(count)d devices could not be added; the reason is in the Result column."
+msgstr[0] "%(count)d apparat kunde inte läggas till; orsaken står i kolumnen ”Resultat”."
+msgstr[1] "%(count)d apparater kunde inte läggas till; orsaken står i kolumnen ”Resultat”."
+
+msgid "Differs from the device: %(what)s"
+msgstr "Skiljer sig från apparaten: %(what)s"
+
+msgid "%(count)d byte"
+msgid_plural "%(count)d bytes"
+msgstr[0] "%(count)d byte"
+msgstr[1] "%(count)d byte"
+
+msgid "%(count)d group object"
+msgid_plural "%(count)d group objects"
+msgstr[0] "%(count)d gruppobjekt"
+msgstr[1] "%(count)d gruppobjekt"
+
+msgid "Verify: %(count)d byte differs"
+msgid_plural "Verify: %(count)d bytes differ"
+msgstr[0] "Kontroll: %(count)d byte skiljer sig"
+msgstr[1] "Kontroll: %(count)d byte skiljer sig"

@@ -2813,7 +2813,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                 raise ToolError(f"no space with id {parent_id}")
             target = project.paste_target_name(PasteTarget("space", parent_id))
             label = (
-                PROJECT_S.HISTORY_EV_ADDED_BUILDING_PARTS.format(
+                PROJECT_S.HISTORY_EV_ADDED_BUILDING_PARTS(count).format(
                     count=count, target=target
                 )
                 if count > 1
@@ -3007,7 +3007,9 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                 _require_trade(parent_id)
             target = project.paste_target_name(PasteTarget("trade", parent_id))
             label = (
-                PROJECT_S.HISTORY_EV_ADDED_TRADES.format(count=count, target=target)
+                PROJECT_S.HISTORY_EV_ADDED_TRADES(count).format(
+                    count=count, target=target
+                )
                 if count > 1
                 else None
             )
@@ -3499,7 +3501,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             used = {area.area_number for area in project.get_areas()}
             numbers = _numbers(used, area_number, count, allocation, start_with)
             label = (
-                PROJECT_S.HISTORY_EV_ADDED_AREAS.format(
+                PROJECT_S.HISTORY_EV_ADDED_AREAS(count).format(
                     count=count, target=PROJECT_S.PANEL_TOPOLOGY
                 )
                 if count > 1
@@ -3566,7 +3568,9 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             numbers = _numbers(used, line_number, count, allocation, start_with)
             target = project.paste_target_name(PasteTarget("area", area_id))
             label = (
-                PROJECT_S.HISTORY_EV_ADDED_LINES.format(count=count, target=target)
+                PROJECT_S.HISTORY_EV_ADDED_LINES(count).format(
+                    count=count, target=target
+                )
                 if count > 1
                 else None
             )
@@ -3641,7 +3645,9 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                 raise ToolError(f"no line with id {line_id}")
             target = project.paste_target_name(PasteTarget("line", line_id))
             label = (
-                PROJECT_S.HISTORY_EV_ADDED_SEGMENTS.format(count=count, target=target)
+                PROJECT_S.HISTORY_EV_ADDED_SEGMENTS(count).format(
+                    count=count, target=target
+                )
                 if count > 1
                 else None
             )

@@ -145,9 +145,6 @@ msgstr "Vyhľadávanie sa nepodarilo dokončiť: {error}"
 msgid "Unprogrammed device (factory default address 15.15.255)"
 msgstr "Nenaprogramované zariadenie (výrobná adresa 15.15.255)"
 
-msgid "{count} device(s) in programming mode"
-msgstr "Zariadenia v programovacom režime: {count}"
-
 msgid "The interface requires KNX IP Secure, but neither the project nor a loaded keyring has its passwords."
 msgstr "Rozhranie vyžaduje KNX IP Secure, ale jeho heslá neobsahuje projekt ani načítaný zväzok kľúčov."
 
@@ -222,3 +219,9 @@ msgstr "Nepripojené k zbernici"
 
 msgid "Serial Number: {serial}"
 msgstr "Sériové číslo: {serial}"
+
+msgid "{count} device in programming mode"
+msgid_plural "{count} devices in programming mode"
+msgstr[0] "{count} zariadenie v programovacom režime"
+msgstr[1] "{count} zariadenia v programovacom režime"
+msgstr[2] "{count} zariadení v programovacom režime"

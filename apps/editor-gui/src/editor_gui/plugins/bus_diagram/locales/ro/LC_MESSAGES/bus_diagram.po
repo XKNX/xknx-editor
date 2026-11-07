@@ -157,9 +157,6 @@ msgstr "Receptoare"
 msgid "+ {count} more"
 msgstr "+ încă {count}"
 
-msgid "{count} more devices outside the selection. Click to show them."
-msgstr "Dispozitive în afara selecției: {count}. Faceți clic pentru a le afișa."
-
 msgid "{address}\n{senders} sending, {receivers} receiving"
 msgstr "{address}\nEmițătoare: {senders}, receptoare: {receivers}"
 
@@ -174,3 +171,9 @@ msgstr "Dispozitive"
 
 msgid "Buildings"
 msgstr "Clădiri"
+
+msgid "{count} more device outside the selection. Click to show it."
+msgid_plural "{count} more devices outside the selection. Click to show them."
+msgstr[0] "Încă {count} dispozitiv în afara selecției. Faceți clic pentru a-l afișa."
+msgstr[1] "Încă {count} dispozitive în afara selecției. Faceți clic pentru a le afișa."
+msgstr[2] "Încă {count} de dispozitive în afara selecției. Faceți clic pentru a le afișa."

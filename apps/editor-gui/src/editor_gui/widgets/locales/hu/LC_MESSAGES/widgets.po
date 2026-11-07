@@ -175,9 +175,6 @@ msgstr "Adjon meg egy egész számot."
 msgid "Enter a value from {minimum} to {maximum}."
 msgstr "Adjon meg egy értéket a következő tartományban: {minimum}–{maximum}."
 
-msgid "Enter at most {count} characters."
-msgstr "Legfeljebb ennyi karaktert adjon meg: {count}"
-
 msgid "Enter a value."
 msgstr "Adjon meg egy értéket."
 
@@ -189,9 +186,6 @@ msgstr "Ehhez az adattípushoz nem adható meg érték."
 
 msgid "Edit…"
 msgstr "Szerkesztés…"
-
-msgid "The text may take at most {count} bytes."
-msgstr "A szöveg legfeljebb ennyi bájt lehet: {count}"
 
 msgid "Value {number}"
 msgstr "Érték {number}"
@@ -265,9 +259,6 @@ msgstr "{count} B másolása"
 msgid "Go To:"
 msgstr "Ugrás:"
 
-msgid "{count} difference(s)"
-msgstr "Eltérések: {count}"
-
 msgid "no differences"
 msgstr "nincs eltérés"
 
@@ -303,3 +294,15 @@ msgstr "Kivágás"
 
 msgid "Paste"
 msgstr "Beillesztés"
+
+msgid "Enter at most {count} character."
+msgid_plural "Enter at most {count} characters."
+msgstr[0] "Legfeljebb {count} karaktert adjon meg."
+
+msgid "The text may take at most {count} byte."
+msgid_plural "The text may take at most {count} bytes."
+msgstr[0] "A szöveg legfeljebb {count} bájt lehet."
+
+msgid "{count} difference"
+msgid_plural "{count} differences"
+msgstr[0] "{count} eltérés"

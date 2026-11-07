@@ -383,7 +383,9 @@ class ToolsPanel:
                 self._copy_replace,
                 self._copy_create_gas,
             )
-            self._status = self._summary(S.TOOLS_COPY_DONE.format(count=count), errors)
+            self._status = self._summary(
+                S.TOOLS_COPY_DONE(count).format(count=count), errors
+            )
         self._render_status()
 
     # -- Replace Device ----------------------------------------------------
@@ -459,12 +461,12 @@ class ToolsPanel:
                     mapped += 1
                     imgui.text_wrapped(f"{_co_label(old_co)}  ->  {_co_label(new_co)}")
         imgui.end_child()
-        imgui.text_disabled(S.TOOLS_REPLACE_COUNT.format(count=mapped))
+        imgui.text_disabled(S.TOOLS_REPLACE_COUNT(mapped).format(count=mapped))
         imgui.begin_disabled(mapped == 0)
         if imgui.button(S.TOOLS_REPLACE_RUN, imgui.ImVec2(-1, 0)):
             count, errors = self._on_replace_device(target.node_id, template.node_id)
             self._status = self._summary(
-                S.TOOLS_REPLACE_DONE.format(count=count), errors
+                S.TOOLS_REPLACE_DONE(count).format(count=count), errors
             )
         imgui.end_disabled()
         self._render_status()
@@ -518,14 +520,16 @@ class ToolsPanel:
                     imgui.same_line()
                     imgui.text(f"  ->  {new}")
         imgui.end_child()
-        imgui.text_disabled(S.TOOLS_SHIFT_COUNT.format(count=valid))
+        imgui.text_disabled(S.TOOLS_SHIFT_COUNT(valid).format(count=valid))
         selected = self._selected_devices(devices)
         imgui.begin_disabled(valid == 0 or self._shift_offset == 0)
         if imgui.button(S.TOOLS_SHIFT_RUN, imgui.ImVec2(-1, 0)):
             count, errors = self._on_shift_addresses(
                 [d.node_id for d in selected], self._shift_offset
             )
-            self._status = self._summary(S.TOOLS_SHIFT_DONE.format(count=count), errors)
+            self._status = self._summary(
+                S.TOOLS_SHIFT_DONE(count).format(count=count), errors
+            )
         imgui.end_disabled()
         self._render_status()
 
@@ -580,7 +584,7 @@ class ToolsPanel:
                     imgui.same_line()
                     imgui.text(f"  ->  {new}")
         imgui.end_child()
-        imgui.text_disabled(S.TOOLS_SHIFT_COUNT.format(count=valid))
+        imgui.text_disabled(S.TOOLS_SHIFT_COUNT(valid).format(count=valid))
         selected_ids = [g.id for g in gas if g.id in self._selected_gas]
         imgui.begin_disabled(valid == 0 or self._shift_offset == 0)
         if imgui.button(S.TOOLS_SHIFT_GA_RUN, imgui.ImVec2(-1, 0)):
@@ -588,7 +592,7 @@ class ToolsPanel:
                 selected_ids, self._shift_offset
             )
             self._status = self._summary(
-                S.TOOLS_SHIFT_GA_DONE.format(count=count), errors
+                S.TOOLS_SHIFT_GA_DONE(count).format(count=count), errors
             )
         imgui.end_disabled()
         self._render_status()
@@ -877,7 +881,9 @@ class ToolsPanel:
         if result.total == 0:
             imgui.text_colored(status_color("success"), outcome(S.TOOLS_DIFF_IDENTICAL))
             return
-        imgui.text_disabled(outcome(S.TOOLS_DIFF_COUNT.format(count=result.total)))
+        imgui.text_disabled(
+            outcome(S.TOOLS_DIFF_COUNT(result.total).format(count=result.total))
+        )
         if imgui.begin_child("##diff_result"):
             self._render_diff_section(S.TOOLS_DIFF_DEVICES, result.devices)
             self._render_diff_section(S.TOOLS_DIFF_GAS, result.group_addresses)
@@ -922,7 +928,7 @@ class ToolsPanel:
     def _render_diff_rows(self, entry: DiffEntry) -> None:
         """The parameters and group objects of a changed device, collapsed: what each is in the
         open project and in the other one."""
-        label = S.TOOLS_DIFF_COUNT.format(count=len(entry.rows))
+        label = S.TOOLS_DIFF_COUNT(len(entry.rows)).format(count=len(entry.rows))
         if not imgui.tree_node(f"{label}###diff_rows_{entry.key}"):
             return
         for section, title in (
@@ -1014,7 +1020,9 @@ class ToolsPanel:
         if not findings:
             imgui.text_colored(status_color("success"), S.TOOLS_TOPOLOGY_OK)
             return
-        imgui.text_disabled(S.TOOLS_TOPOLOGY_COUNT.format(count=len(findings)))
+        imgui.text_disabled(
+            S.TOOLS_TOPOLOGY_COUNT(len(findings)).format(count=len(findings))
+        )
         _help_marker(S.TOOLS_TOPOLOGY_NAV)
         if imgui.begin_child("##topo_findings"):
             for node_id, severity, message in findings:
@@ -1031,7 +1039,9 @@ class ToolsPanel:
     @staticmethod
     def _summary(done: str, errors: list[str]) -> str:
         return done + (
-            "  " + S.TOOLS_ERRORS.format(count=len(errors)) if errors else ""
+            "  " + S.TOOLS_ERRORS(len(errors)).format(count=len(errors))
+            if errors
+            else ""
         )
 
     def _render_status(self) -> None:

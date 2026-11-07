@@ -43,9 +43,6 @@ msgstr "Eksporter øyeblikksbilde"
 msgid "Verifying (re-reading and comparing)…"
 msgstr "Verifiserer (leser på nytt og sammenligner)…"
 
-msgid "%(count)d group address(es) have no sender or multiple senders."
-msgstr "%(count)d gruppeadresse(r) har ingen eller flere avsendere."
-
 msgid "Address"
 msgstr "Adresse"
 
@@ -82,17 +79,8 @@ msgstr "gruppekommunikasjonstabeller"
 msgid "parameter memory"
 msgstr "parameterminne"
 
-msgid "Recovered %(devices)d device(s): %(group_addresses)d group addresses, %(links)d links, %(unknown)d parameter(s) not recoverable."
-msgstr "Gjenopprettet %(devices)d enhet(er): %(group_addresses)d gruppeadresser, %(links)d koblinger, %(unknown)d parameter(e) kunne ikke gjenopprettes."
-
 msgid "Recovered"
 msgstr "Gjenopprettet"
-
-msgid "Added %(count)d device(s) to the open project (%(target)s)."
-msgstr "La til %(count)d enhet(er) i det åpne prosjektet (%(target)s)."
-
-msgid "Created new project %(target)s with %(count)d device(s)."
-msgstr "Opprettet nytt prosjekt %(target)s med %(count)d enhet(er)."
 
 msgid "Not connected to a KNX bus."
 msgstr "Ikke koblet til en KNX-buss."
@@ -112,18 +100,11 @@ msgstr "Ikke i katalogen: importer produktet i Katalog"
 msgid "Not programmed"
 msgstr "Ikke programmert"
 
-
 msgid "Already in the project, skipped"
 msgstr "Allerede i prosjektet, hoppet over"
 
 msgid "Error"
 msgstr "Feil"
-
-msgid "%d parameters could not be recovered"
-msgstr "%d parametre kunne ikke gjenopprettes"
-
-msgid "%(count)d device(s) could not be added; the reason is in the Result column."
-msgstr "%(count)d enhet(er) kunne ikke legges til; årsaken står i kolonnen «Resultat»."
 
 msgid "Recovered (incomplete)"
 msgstr "Gjenopprettet (ufullstendig)"
@@ -152,9 +133,6 @@ msgstr "Søker på nytt etter innstillingene til de valgte ufullstendige enheten
 msgid "Searching %(address)s again  (%(done)d/%(total)d)…"
 msgstr "Søker på nytt i %(address)s  (%(done)d/%(total)d)…"
 
-msgid "%(bytes)d byte(s) and %(objects)d group object(s) differ from the device"
-msgstr "%(bytes)d byte og %(objects)d gruppeobjekt(er) avviker fra enheten"
-
 msgid "more search effort may help"
 msgstr "mer søkeinnsats kan hjelpe"
 
@@ -167,14 +145,73 @@ msgstr "Resultat"
 msgid "Not read yet"
 msgstr "Ikke lest ennå"
 
-msgid "%(group_addresses)d group addresses, %(links)d links, %(parameters)d parameters"
-msgstr "%(group_addresses)d gruppeadresser, %(links)d koblinger, %(parameters)d parametere"
-
-msgid "%(count)d unknown"
-msgstr "%(count)d ukjente"
-
 msgid "Verified"
 msgstr "Kontrollert"
 
-msgid "Verify: %(bytes)d byte(s) differ"
-msgstr "Kontroll: %(bytes)d byte avviker"
+msgid "%(count)d group address has no sender or multiple senders."
+msgid_plural "%(count)d group addresses have no sender or multiple senders."
+msgstr[0] "%(count)d gruppeadresse har ingen eller flere avsendere."
+msgstr[1] "%(count)d gruppeadresser har ingen eller flere avsendere."
+
+msgid "Recovered %(count)d device"
+msgid_plural "Recovered %(count)d devices"
+msgstr[0] "Gjenopprettet %(count)d enhet"
+msgstr[1] "Gjenopprettet %(count)d enheter"
+
+msgid "%(count)d group address"
+msgid_plural "%(count)d group addresses"
+msgstr[0] "%(count)d gruppeadresse"
+msgstr[1] "%(count)d gruppeadresser"
+
+msgid "%(count)d link"
+msgid_plural "%(count)d links"
+msgstr[0] "%(count)d kobling"
+msgstr[1] "%(count)d koblinger"
+
+msgid "%(count)d parameter"
+msgid_plural "%(count)d parameters"
+msgstr[0] "%(count)d parameter"
+msgstr[1] "%(count)d parametere"
+
+msgid "%(count)d parameter cannot be recovered"
+msgid_plural "%(count)d parameters cannot be recovered"
+msgstr[0] "%(count)d parameter kan ikke gjenopprettes"
+msgstr[1] "%(count)d parametere kan ikke gjenopprettes"
+
+msgid "%(count)d parameter not found yet"
+msgid_plural "%(count)d parameters not found yet"
+msgstr[0] "%(count)d parameter ikke funnet ennå"
+msgstr[1] "%(count)d parametere ikke funnet ennå"
+
+msgid "Added %(count)d device to the open project (%(target)s)."
+msgid_plural "Added %(count)d devices to the open project (%(target)s)."
+msgstr[0] "La til %(count)d enhet i det åpne prosjektet (%(target)s)."
+msgstr[1] "La til %(count)d enheter i det åpne prosjektet (%(target)s)."
+
+msgid "Created new project %(target)s with %(count)d device."
+msgid_plural "Created new project %(target)s with %(count)d devices."
+msgstr[0] "Opprettet nytt prosjekt %(target)s med %(count)d enhet."
+msgstr[1] "Opprettet nytt prosjekt %(target)s med %(count)d enheter."
+
+msgid "%(count)d device could not be added; the reason is in the Result column."
+msgid_plural "%(count)d devices could not be added; the reason is in the Result column."
+msgstr[0] "%(count)d enhet kunne ikke legges til; årsaken står i kolonnen «Resultat»."
+msgstr[1] "%(count)d enheter kunne ikke legges til; årsaken står i kolonnen «Resultat»."
+
+msgid "Differs from the device: %(what)s"
+msgstr "Avviker fra enheten: %(what)s"
+
+msgid "%(count)d byte"
+msgid_plural "%(count)d bytes"
+msgstr[0] "%(count)d byte"
+msgstr[1] "%(count)d byte"
+
+msgid "%(count)d group object"
+msgid_plural "%(count)d group objects"
+msgstr[0] "%(count)d gruppeobjekt"
+msgstr[1] "%(count)d gruppeobjekter"
+
+msgid "Verify: %(count)d byte differs"
+msgid_plural "Verify: %(count)d bytes differ"
+msgstr[0] "Kontroll: %(count)d byte avviker"
+msgstr[1] "Kontroll: %(count)d byte avviker"

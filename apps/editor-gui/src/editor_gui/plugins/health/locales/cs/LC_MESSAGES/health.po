@@ -16,20 +16,11 @@ msgstr "Není otevřen žádný projekt"
 msgid "No issues found"
 msgstr "Nenalezeny žádné problémy"
 
-msgid "{errors} errors, {warnings} warnings"
-msgstr "Chyby: {errors}, varování: {warnings}"
-
 msgid "{device}: no individual address"
 msgstr "{device}: bez individuální adresy"
 
 msgid "Duplicate individual address {address} ({device})"
 msgstr "Duplicitní individuální adresa {address} ({device})"
-
-msgid "{count} device(s) skipped: application not in catalog"
-msgstr "Přeskočená zařízení: {count} – aplikace není v katalogu"
-
-msgid "{device}: {count} unlinked group object(s)"
-msgstr "{device}: nepropojené skupinové objekty: {count}"
 
 msgid "{address} {name}: no datapoint type"
 msgstr "{address} {name}: bez typu datového bodu"
@@ -37,5 +28,32 @@ msgstr "{address} {name}: bez typu datového bodu"
 msgid "{address} {name}: no sending group object"
 msgstr "{address} {name}: žádný vysílající skupinový objekt"
 
-msgid "{address} {name}: {count} sending group objects"
-msgstr "{address} {name}: vysílající skupinové objekty: {count}"
+msgid "{count} error"
+msgid_plural "{count} errors"
+msgstr[0] "{count} chyba"
+msgstr[1] "{count} chyby"
+msgstr[2] "{count} chyb"
+
+msgid "{count} warning"
+msgid_plural "{count} warnings"
+msgstr[0] "{count} varování"
+msgstr[1] "{count} varování"
+msgstr[2] "{count} varování"
+
+msgid "{count} device skipped: application not in catalog"
+msgid_plural "{count} devices skipped: application not in catalog"
+msgstr[0] "{count} zařízení přeskočeno – aplikace není v katalogu"
+msgstr[1] "{count} zařízení přeskočena – aplikace není v katalogu"
+msgstr[2] "{count} zařízení přeskočeno – aplikace není v katalogu"
+
+msgid "{device}: {count} unlinked group object"
+msgid_plural "{device}: {count} unlinked group objects"
+msgstr[0] "{device}: {count} nepropojený skupinový objekt"
+msgstr[1] "{device}: {count} nepropojené skupinové objekty"
+msgstr[2] "{device}: {count} nepropojených skupinových objektů"
+
+msgid "{address} {name}: {count} sending group object"
+msgid_plural "{address} {name}: {count} sending group objects"
+msgstr[0] "{address} {name}: {count} vysílající skupinový objekt"
+msgstr[1] "{address} {name}: {count} vysílající skupinové objekty"
+msgstr[2] "{address} {name}: {count} vysílajících skupinových objektů"

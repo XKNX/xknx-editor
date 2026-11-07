@@ -48,7 +48,8 @@ class CockpitPanel:
         skipped = self._service.skipped_count()
         if skipped:
             imgui.text_colored(
-                status_color("warning"), S.COCKPIT_SKIPPED.format(count=skipped)
+                status_color("warning"),
+                S.COCKPIT_SKIPPED(skipped).format(count=skipped),
             )
         _, self._attention_only = checkbox(
             S.COCKPIT_ATTENTION_ONLY, self._attention_only

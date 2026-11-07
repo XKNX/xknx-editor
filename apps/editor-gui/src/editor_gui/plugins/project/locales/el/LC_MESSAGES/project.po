@@ -118,12 +118,6 @@ msgstr "Μετακίνηση Πάνω"
 msgid "Move Down"
 msgstr "Μετακίνηση Κάτω"
 
-msgid "{count} items"
-msgstr "{count} στοιχεία"
-
-msgid "{count} pairs"
-msgstr "{count} ζεύγη"
-
 msgid "{count} unpaired (ignored)"
 msgstr "{count} χωρίς ζεύγος (αγνοούνται)"
 
@@ -147,15 +141,6 @@ msgstr "Προσθήκη Διευθύνσεων Ομάδων"
 
 msgid "Mass Linker Result"
 msgstr "Αποτέλεσμα Μαζικής Σύνδεσης"
-
-msgid "Linked {count} object(s) to group addresses"
-msgstr "Συνδέθηκαν {count} αντικείμενο(-α) με διευθύνσεις ομάδων"
-
-msgid "Linked {count} object pair(s) via new group addresses"
-msgstr "Συνδέθηκαν {count} ζεύγος(-η) αντικειμένων μέσω νέων διευθύνσεων ομάδων"
-
-msgid "{count} error(s)"
-msgstr "{count} σφάλμα(-τα)"
 
 msgid "Clear All"
 msgstr "Εκκαθάριση Όλων"
@@ -277,12 +262,6 @@ msgstr "Αντικατάσταση με (Πρότυπο)"
 msgid "Group Object Mapping (by Number)"
 msgstr "Αντιστοίχιση Αντικειμένων Επικοινωνίας (κατά Αριθμό)"
 
-msgid "{count} object(s) will be re-mapped"
-msgstr "{count} αντικείμενο(-α) θα αντιστοιχιστούν εκ νέου"
-
-msgid "Replaced; re-mapped {count} group object(s)"
-msgstr "Αντικαταστάθηκε· αντιστοιχίστηκαν εκ νέου {count} αντικείμενο(-α) επικοινωνίας"
-
 msgid "Shift Addresses"
 msgstr "Μετατόπιση Διευθύνσεων"
 
@@ -312,9 +291,6 @@ msgstr "Σε σύγκριση με {name}:"
 
 msgid "No differences in devices or group addresses."
 msgstr "Δεν υπάρχουν διαφορές σε συσκευές ή διευθύνσεις ομάδων."
-
-msgid "{count} difference(s)"
-msgstr "{count} διαφορά(-ές)"
 
 msgid "Add Device Certificate"
 msgstr "Προσθήκη Πιστοποιητικού Συσκευής"
@@ -397,9 +373,6 @@ msgstr "Όνομα Αντιγράφου: {name}"
 msgid "Copy"
 msgstr "Αντιγραφή"
 
-msgid "Created {count} copy/copies"
-msgstr "Δημιουργήθηκαν {count} αντίγραφο(-α)"
-
 msgid "Shifts the device part of each individual address. Group addresses are not shifted."
 msgstr "Μετατοπίζει το τμήμα συσκευής κάθε ατομικής διεύθυνσης. Οι διευθύνσεις ομάδων δεν μετατοπίζονται."
 
@@ -421,12 +394,6 @@ msgstr "{sel} από {total} επιλεγμένα"
 msgid "(out of range)"
 msgstr "(εκτός εύρους)"
 
-msgid "{count} address(es) will change"
-msgstr "{count} διεύθυνση(-εις) θα αλλάξουν"
-
-msgid "Shifted {count} address(es)"
-msgstr "Μετατοπίστηκαν {count} διεύθυνση(-εις)"
-
 msgid "Individual Addresses"
 msgstr "Ατομικές Διευθύνσεις"
 
@@ -441,9 +408,6 @@ msgstr "Επαναρίθμηση διευθύνσεων ομάδων με πρό
 
 msgid "The offset is added to the raw 16-bit value, so it may change the main/middle group as addresses cross a boundary."
 msgstr "Η μετατόπιση προστίθεται στην ανεπεξέργαστη τιμή 16 bit, επομένως μπορεί να αλλάξει η κύρια/μεσαία ομάδα όταν οι διευθύνσεις περνούν ένα όριο."
-
-msgid "Shifted {count} group address(es)"
-msgstr "Μετατοπίστηκαν {count} διεύθυνση(-εις) ομάδας"
 
 msgid "Export CSV…"
 msgstr "Εξαγωγή CSV…"
@@ -496,9 +460,6 @@ msgstr "Επιλέξτε τουλάχιστον ένα πεδίο."
 msgid "No topology issues found."
 msgstr "Δεν βρέθηκαν προβλήματα τοπολογίας."
 
-msgid "{count} issue(s)"
-msgstr "{count} πρόβλημα(-τα)"
-
 msgid "Click a finding to jump to the device."
 msgstr "Κάντε κλικ σε ένα εύρημα για μετάβαση στη συσκευή."
 
@@ -516,6 +477,7 @@ msgstr "Ανάγνωση των έργων…"
 
 msgid "Comparing devices: {done} of {total}"
 msgstr "Σύγκριση συσκευών: {done} από {total}"
+
 msgid "File"
 msgstr "Αρχείο"
 
@@ -630,9 +592,6 @@ msgstr "Πιστοποιητικό Έργου"
 msgid "none"
 msgstr "δεν υπάρχει"
 
-msgid "present ({size} bytes)"
-msgstr "υπάρχει ({size} bytes)"
-
 msgid "Password"
 msgstr "Κωδικός"
 
@@ -692,7 +651,6 @@ msgstr "Το ETS κρυπτογραφεί τα σχόλια του ημερολ�
 
 msgid "Comments are encrypted"
 msgstr "Τα σχόλια είναι κρυπτογραφημένα"
-
 
 msgid "Extracting key…"
 msgstr "Εξαγωγή κλειδιού…"
@@ -1003,14 +961,8 @@ msgstr "Κάντε κλικ για αντιγραφή"
 msgid "Filter parameters…"
 msgstr "Φιλτράρισμα παραμέτρων…"
 
-msgid "Apply Changes to All {count} Identical Devices"
-msgstr "Εφαρμογή Αλλαγών σε Όλες τις {count} Ίδιες Συσκευές"
-
 msgid "Apply Changes to All Channels"
 msgstr "Εφαρμογή Αλλαγών σε Όλα τα Κανάλια"
-
-msgid "Editing {count} devices — edits apply to all, diverging values show <differs>"
-msgstr "Επεξεργασία {count} συσκευών — οι αλλαγές ισχύουν για όλες, οι διαφορετικές τιμές εμφανίζουν <διαφέρει>"
 
 msgid "Hardware"
 msgstr "Υλικό"
@@ -1048,9 +1000,6 @@ msgstr "Κατάργηση Σύγκρισης"
 msgid "Memory Dumps (*.bin)"
 msgstr "Αντίγραφα Μνήμης (*.bin)"
 
-msgid "{count} bytes"
-msgstr "{count} bytes"
-
 msgid "No memory segments."
 msgstr "Δεν υπάρχουν τμήματα μνήμης."
 
@@ -1077,9 +1026,6 @@ msgstr "Δεν είναι δυνατή η εκτέλεση: δεν υπάρχε�
 
 msgid "Match: the generated image is identical to what is on the device"
 msgstr "Ταύτιση: η παραγόμενη εικόνα είναι ίδια με αυτή στη συσκευή"
-
-msgid "Mismatch: {bytes} byte(s) differ from the device in {locations} location(s)"
-msgstr "Απόκλιση: {bytes} byte διαφέρουν από τη συσκευή σε {locations} θέση(-εις)"
 
 msgid "{matched} matched, {changed} would change"
 msgstr "{matched} ταυτίζονται, {changed} θα άλλαζαν"
@@ -1111,9 +1057,6 @@ msgstr "διαχείριση από τη συσκευή"
 msgid "System byte the device sets itself at runtime (e.g. a download detection byte reset by the application after a download). A difference here is expected and does not indicate a bad download."
 msgstr "Byte συστήματος που ορίζει η ίδια η συσκευή κατά τη λειτουργία (π.χ. ένα byte ανίχνευσης φόρτισης που επαναφέρει η εφαρμογή μετά από μια φόρτιση). Μια διαφορά εδώ είναι αναμενόμενη και δεν υποδηλώνει εσφαλμένη φόρτιση."
 
-msgid "plus {bytes} device-managed runtime byte(s) (expected, benign)"
-msgstr "συν {bytes} byte λειτουργίας υπό διαχείριση της συσκευής (αναμενόμενο, ακίνδυνο)"
-
 msgid "No configured differences: the device already carries this configuration. The differences below are benign (see notes)."
 msgstr "Δεν υπάρχουν διαφορές διαμόρφωσης: η συσκευή έχει ήδη αυτήν τη διαμόρφωση. Οι παρακάτω διαφορές είναι ακίνδυνες (δείτε τις σημειώσεις)."
 
@@ -1122,9 +1065,6 @@ msgstr "ορίζει προεπιλογή"
 
 msgid "This byte is written for a neighbouring parameter; the differing bit is not driven by any active parameter and is only reset to the application default. The device holds an older value (e.g. from a previous configuration or mode) that programming will normalise. Benign."
 msgstr "Αυτό το byte γράφεται λόγω μιας γειτονικής παραμέτρου· το διαφορετικό bit δεν ελέγχεται από καμία ενεργή παράμετρο και απλώς επαναφέρεται στην προεπιλογή της εφαρμογής. Η συσκευή έχει μια παλαιότερη τιμή (π.χ. από προηγούμενη διαμόρφωση ή λειτουργία), την οποία ο προγραμματισμός θα κανονικοποιήσει. Ακίνδυνο."
-
-msgid "plus {bytes} byte(s) reset to the application default (the device holds an older value; benign, will be normalised on programming)"
-msgstr "συν {bytes} byte που επαναφέρονται στην προεπιλογή της εφαρμογής (η συσκευή έχει παλαιότερη τιμή· ακίνδυνο, θα κανονικοποιηθεί κατά τον προγραμματισμό)"
 
 msgid "Export Ist/Soll…"
 msgstr "Εξαγωγή Ist/Soll…"
@@ -1180,9 +1120,6 @@ msgstr "Μόνο Διαφορές"
 msgid "Filter devices by address, name or description…"
 msgstr "Φιλτράρισμα συσκευών κατά διεύθυνση, όνομα ή περιγραφή…"
 
-msgid "{count} differences"
-msgstr "{count} διαφορές"
-
 msgid "Parameters"
 msgstr "Παράμετροι"
 
@@ -1206,9 +1143,6 @@ msgstr "Επικόλληση Διαμόρφωσης"
 
 msgid "Paste configuration onto '{name}':"
 msgstr "Επικόλληση διαμόρφωσης στο '{name}':"
-
-msgid "Paste configuration onto {count} selected devices:"
-msgstr "Επικόλληση διαμόρφωσης σε {count} επιλεγμένες συσκευές:"
 
 msgid "Duplicate '{name}':"
 msgstr "Αντιγραφή του '{name}':"
@@ -1603,12 +1537,6 @@ msgstr "Εισαγωγή Διευθύνσεων Ομάδων"
 msgid "Group Address Files (XML, CSV)"
 msgstr "Αρχεία Διευθύνσεων Ομάδων (XML, CSV)"
 
-msgid "{added} group addresses added, {updated} updated."
-msgstr "Προστέθηκαν {added} διευθύνσεις ομάδων, ενημερώθηκαν {updated}."
-
-msgid "{count} group addresses could not be placed in a group."
-msgstr "{count} διευθύνσεις ομάδων δεν ήταν δυνατό να τοποθετηθούν σε ομάδα."
-
 msgid "The file could not be imported: {error}"
 msgstr "Δεν ήταν δυνατή η εισαγωγή του αρχείου: {error}"
 
@@ -1789,9 +1717,6 @@ msgstr "Εγγραφή της αντιστοίχισης ομάδων στο bus
 msgid "Write the scene values to the DALI bus. Continue?"
 msgstr "Εγγραφή των τιμών σκηνών στο bus DALI. Συνέχεια;"
 
-msgid "{count} ECG(s) present"
-msgstr "Υπάρχουν {count} ECG"
-
 msgid "Group"
 msgstr "Ομάδα"
 
@@ -1833,9 +1758,6 @@ msgstr "Μεμονωμένο"
 
 msgid "Unassigned"
 msgstr "Χωρίς Αντιστοίχιση"
-
-msgid "Procedure {number}  ({count} steps)"
-msgstr "Διαδικασία {number}  ({count} βήματα)"
 
 msgid "Kind"
 msgstr "Είδος"
@@ -2202,9 +2124,6 @@ msgstr "Η εφαρμογή δεν διαθέτει στατικές παραμ�
 
 msgid "This gateway's commissioning protocol has not been verified against a capture; writes may misbehave. Proceed with care."
 msgstr "Το πρωτόκολλο έναρξης λειτουργίας αυτού του gateway δεν έχει επαληθευτεί έναντι καταγραφής· οι εγγραφές ενδέχεται να έχουν ακατάλληλη συμπεριφορά. Προχωρήστε με προσοχή."
-
-msgid "{count} ECG(s) present on line {line}"
-msgstr "{count} ECG παρόντα στη γραμμή {line}"
 
 msgid "Program DCA State"
 msgstr "Προγραμματισμός κατάστασης DCA"
@@ -2677,9 +2596,6 @@ msgstr "Η ομάδα δεν έχει ελεύθερη διεύθυνση ομά
 msgid "The main group has no free middle group."
 msgstr "Η κύρια ομάδα δεν έχει ελεύθερη μεσαία ομάδα."
 
-msgid "{count} devices"
-msgstr "{count} συσκευές"
-
 msgid "The main segment cannot be moved."
 msgstr "Το κύριο τμήμα δεν μπορεί να μετακινηθεί."
 
@@ -2752,33 +2668,6 @@ msgstr "Δεν υπάρχει ομάδα για τις νέες διευθύνσ
 msgid "Copied '{name}' to '{target}'."
 msgstr "Το '{name}' αντιγράφηκε στο '{target}'."
 
-msgid "Copied {count} devices to '{target}'."
-msgstr "{count} συσκευές αντιγράφηκαν στο '{target}'."
-
-msgid "Copied {count} building parts to '{target}'."
-msgstr "{count} τμήματα κτιρίου αντιγράφηκαν στο '{target}'."
-
-msgid "Copied {count} trades to '{target}'."
-msgstr "{count} κλάδοι αντιγράφηκαν στο '{target}'."
-
-msgid "Copied {count} functions to '{target}'."
-msgstr "{count} λειτουργίες αντιγράφηκαν στο '{target}'."
-
-msgid "Copied {count} group addresses to '{target}'."
-msgstr "{count} διευθύνσεις ομάδας αντιγράφηκαν στο '{target}'."
-
-msgid "Copied {count} middle groups to '{target}'."
-msgstr "{count} μεσαίες ομάδες αντιγράφηκαν στο '{target}'."
-
-msgid "Copied {count} main groups to '{target}'."
-msgstr "{count} κύριες ομάδες αντιγράφηκαν στο '{target}'."
-
-msgid "Copied {count} lines to '{target}'."
-msgstr "{count} γραμμές αντιγράφηκαν στο '{target}'."
-
-msgid "Copied {count} segments to '{target}'."
-msgstr "{count} τμήματα αντιγράφηκαν στο '{target}'."
-
 msgid "Paste Special…"
 msgstr "Ειδική επικόλληση…"
 
@@ -2821,30 +2710,6 @@ msgstr "Επιτεύχθηκε το όριο προσθήκης."
 msgid "Cannot add any line to the area {area} because of topology constraints. Please check the medium type of the backbone and main lines."
 msgstr "Δεν είναι δυνατή η προσθήκη γραμμής στην περιοχή {area} λόγω περιορισμών τοπολογίας. Ελέγξτε τον τύπο μέσου της κεντρικής γραμμής κορμού και των κύριων γραμμών."
 
-msgid "Added {count} areas to '{target}'."
-msgstr "Προστέθηκαν {count} περιοχές στο '{target}'."
-
-msgid "Added {count} lines to '{target}'."
-msgstr "Προστέθηκαν {count} γραμμές στο '{target}'."
-
-msgid "Added {count} segments to '{target}'."
-msgstr "Προστέθηκαν {count} τμήματα στο '{target}'."
-
-msgid "Added {count} building parts to '{target}'."
-msgstr "Προστέθηκαν {count} τμήματα κτιρίου στο '{target}'."
-
-msgid "Added {count} trades to '{target}'."
-msgstr "Προστέθηκαν {count} ειδικότητες στο '{target}'."
-
-msgid "Added {count} main groups to '{target}'."
-msgstr "Προστέθηκαν {count} κύριες ομάδες στο '{target}'."
-
-msgid "Added {count} middle groups to '{target}'."
-msgstr "Προστέθηκαν {count} μεσαίες ομάδες στο '{target}'."
-
-msgid "Added {count} group addresses to '{target}'."
-msgstr "Προστέθηκαν {count} διευθύνσεις ομάδας στο '{target}'."
-
 msgid "Add Main Groups…"
 msgstr "Προσθήκη Κύριων Ομάδων…"
 
@@ -2884,12 +2749,6 @@ msgstr "Προσθήκη Λειτουργιών"
 msgid "New function"
 msgstr "Νέα λειτουργία"
 
-msgid "Added {count} functions to '{target}'."
-msgstr "Προστέθηκαν {count} λειτουργίες στο '{target}'."
-
-msgid "Added {count} group ranges to '{target}'."
-msgstr "Προστέθηκαν {count} περιοχές διευθύνσεων ομάδας στο '{target}'."
-
 msgid "Add Group Ranges…"
 msgstr "Προσθήκη Περιοχών Διευθύνσεων Ομάδας…"
 
@@ -2923,9 +2782,6 @@ msgstr "Μια περιοχή διευθύνσεων ομάδας δεν μπο�
 msgid "A group address of the range is already in use there."
 msgstr "Μια διεύθυνση ομάδας της περιοχής χρησιμοποιείται ήδη εκεί."
 
-msgid "Copied {count} group ranges to '{target}'."
-msgstr "Αντιγράφηκαν {count} περιοχές διευθύνσεων ομάδας στο '{target}'."
-
 msgid "Add Areas…"
 msgstr "Προσθήκη Περιοχών…"
 
@@ -2940,12 +2796,6 @@ msgstr "Αντιγραφή Διεύθυνσης Ομάδας"
 
 msgid "Existing Devices…"
 msgstr "Υπάρχουσες συσκευές…"
-
-msgid "Delete the {count} selected devices? Their group objects and group-address links are removed and their individual addresses are freed. This can be undone."
-msgstr "Διαγραφή των {count} επιλεγμένων συσκευών; Τα αντικείμενα ομάδας και οι συνδέσεις διευθύνσεων ομάδας τους αφαιρούνται και οι ατομικές διευθύνσεις τους ελευθερώνονται. Αυτό μπορεί να αναιρεθεί."
-
-msgid "Remove {count} devices"
-msgstr "Αφαίρεση {count} συσκευών"
 
 msgid "Delete Devices"
 msgstr "Διαγραφή Συσκευών"
@@ -3055,9 +2905,6 @@ msgstr "Load LVS Project (.prj)…"
 msgid "LVS project (*.prj)"
 msgstr "LVS project (*.prj)"
 
-msgid "Imported the display configuration into {count} device(s)."
-msgstr "Imported the display configuration into {count} device(s)."
-
 msgid "The LVS project could not be imported: {error}"
 msgstr "The LVS project could not be imported: {error}"
 
@@ -3069,3 +2916,266 @@ msgstr "Exported the display configuration."
 
 msgid "The LVS project could not be exported: {error}"
 msgstr "The LVS project could not be exported: {error}"
+
+msgid "Copied {count} device to '{target}'."
+msgid_plural "Copied {count} devices to '{target}'."
+msgstr[0] "Αντιγράφηκε {count} συσκευή στο '{target}'."
+msgstr[1] "Αντιγράφηκαν {count} συσκευές στο '{target}'."
+
+msgid "Copied {count} building part to '{target}'."
+msgid_plural "Copied {count} building parts to '{target}'."
+msgstr[0] "Αντιγράφηκε {count} τμήμα κτιρίου στο '{target}'."
+msgstr[1] "Αντιγράφηκαν {count} τμήματα κτιρίου στο '{target}'."
+
+msgid "Copied {count} trade to '{target}'."
+msgid_plural "Copied {count} trades to '{target}'."
+msgstr[0] "Αντιγράφηκε {count} κλάδος στο '{target}'."
+msgstr[1] "Αντιγράφηκαν {count} κλάδοι στο '{target}'."
+
+msgid "Copied {count} function to '{target}'."
+msgid_plural "Copied {count} functions to '{target}'."
+msgstr[0] "Αντιγράφηκε {count} λειτουργία στο '{target}'."
+msgstr[1] "Αντιγράφηκαν {count} λειτουργίες στο '{target}'."
+
+msgid "Copied {count} group address to '{target}'."
+msgid_plural "Copied {count} group addresses to '{target}'."
+msgstr[0] "Αντιγράφηκε {count} διεύθυνση ομάδας στο '{target}'."
+msgstr[1] "Αντιγράφηκαν {count} διευθύνσεις ομάδας στο '{target}'."
+
+msgid "Copied {count} middle group to '{target}'."
+msgid_plural "Copied {count} middle groups to '{target}'."
+msgstr[0] "Αντιγράφηκε {count} μεσαία ομάδα στο '{target}'."
+msgstr[1] "Αντιγράφηκαν {count} μεσαίες ομάδες στο '{target}'."
+
+msgid "Copied {count} main group to '{target}'."
+msgid_plural "Copied {count} main groups to '{target}'."
+msgstr[0] "Αντιγράφηκε {count} κύρια ομάδα στο '{target}'."
+msgstr[1] "Αντιγράφηκαν {count} κύριες ομάδες στο '{target}'."
+
+msgid "Copied {count} group range to '{target}'."
+msgid_plural "Copied {count} group ranges to '{target}'."
+msgstr[0] "Αντιγράφηκε {count} περιοχή διευθύνσεων ομάδας στο '{target}'."
+msgstr[1] "Αντιγράφηκαν {count} περιοχές διευθύνσεων ομάδας στο '{target}'."
+
+msgid "Copied {count} line to '{target}'."
+msgid_plural "Copied {count} lines to '{target}'."
+msgstr[0] "Αντιγράφηκε {count} γραμμή στο '{target}'."
+msgstr[1] "Αντιγράφηκαν {count} γραμμές στο '{target}'."
+
+msgid "Copied {count} segment to '{target}'."
+msgid_plural "Copied {count} segments to '{target}'."
+msgstr[0] "Αντιγράφηκε {count} τμήμα στο '{target}'."
+msgstr[1] "Αντιγράφηκαν {count} τμήματα στο '{target}'."
+
+msgid "Added {count} area to '{target}'."
+msgid_plural "Added {count} areas to '{target}'."
+msgstr[0] "Προστέθηκε {count} περιοχή στο '{target}'."
+msgstr[1] "Προστέθηκαν {count} περιοχές στο '{target}'."
+
+msgid "Added {count} line to '{target}'."
+msgid_plural "Added {count} lines to '{target}'."
+msgstr[0] "Προστέθηκε {count} γραμμή στο '{target}'."
+msgstr[1] "Προστέθηκαν {count} γραμμές στο '{target}'."
+
+msgid "Added {count} segment to '{target}'."
+msgid_plural "Added {count} segments to '{target}'."
+msgstr[0] "Προστέθηκε {count} τμήμα στο '{target}'."
+msgstr[1] "Προστέθηκαν {count} τμήματα στο '{target}'."
+
+msgid "Added {count} building part to '{target}'."
+msgid_plural "Added {count} building parts to '{target}'."
+msgstr[0] "Προστέθηκε {count} τμήμα κτιρίου στο '{target}'."
+msgstr[1] "Προστέθηκαν {count} τμήματα κτιρίου στο '{target}'."
+
+msgid "Added {count} trade to '{target}'."
+msgid_plural "Added {count} trades to '{target}'."
+msgstr[0] "Προστέθηκε {count} ειδικότητα στο '{target}'."
+msgstr[1] "Προστέθηκαν {count} ειδικότητες στο '{target}'."
+
+msgid "Added {count} function to '{target}'."
+msgid_plural "Added {count} functions to '{target}'."
+msgstr[0] "Προστέθηκε {count} λειτουργία στο '{target}'."
+msgstr[1] "Προστέθηκαν {count} λειτουργίες στο '{target}'."
+
+msgid "Added {count} group range to '{target}'."
+msgid_plural "Added {count} group ranges to '{target}'."
+msgstr[0] "Προστέθηκε {count} περιοχή διευθύνσεων ομάδας στο '{target}'."
+msgstr[1] "Προστέθηκαν {count} περιοχές διευθύνσεων ομάδας στο '{target}'."
+
+msgid "Added {count} main group to '{target}'."
+msgid_plural "Added {count} main groups to '{target}'."
+msgstr[0] "Προστέθηκε {count} κύρια ομάδα στο '{target}'."
+msgstr[1] "Προστέθηκαν {count} κύριες ομάδες στο '{target}'."
+
+msgid "Added {count} middle group to '{target}'."
+msgid_plural "Added {count} middle groups to '{target}'."
+msgstr[0] "Προστέθηκε {count} μεσαία ομάδα στο '{target}'."
+msgstr[1] "Προστέθηκαν {count} μεσαίες ομάδες στο '{target}'."
+
+msgid "Added {count} group address to '{target}'."
+msgid_plural "Added {count} group addresses to '{target}'."
+msgstr[0] "Προστέθηκε {count} διεύθυνση ομάδας στο '{target}'."
+msgstr[1] "Προστέθηκαν {count} διευθύνσεις ομάδας στο '{target}'."
+
+msgid "Remove {count} device"
+msgid_plural "Remove {count} devices"
+msgstr[0] "Αφαίρεση {count} συσκευής"
+msgstr[1] "Αφαίρεση {count} συσκευών"
+
+msgid "{count} device"
+msgid_plural "{count} devices"
+msgstr[0] "{count} συσκευή"
+msgstr[1] "{count} συσκευές"
+
+msgid "{count} item"
+msgid_plural "{count} items"
+msgstr[0] "{count} στοιχείο"
+msgstr[1] "{count} στοιχεία"
+
+msgid "{count} pair"
+msgid_plural "{count} pairs"
+msgstr[0] "{count} ζεύγος"
+msgstr[1] "{count} ζεύγη"
+
+msgid "Linked {count} object to a group address"
+msgid_plural "Linked {count} objects to group addresses"
+msgstr[0] "Συνδέθηκε {count} αντικείμενο με διεύθυνση ομάδας"
+msgstr[1] "Συνδέθηκαν {count} αντικείμενα με διευθύνσεις ομάδων"
+
+msgid "Linked {count} object pair via a new group address"
+msgid_plural "Linked {count} object pairs via new group addresses"
+msgstr[0] "Συνδέθηκε {count} ζεύγος αντικειμένων μέσω νέας διεύθυνσης ομάδας"
+msgstr[1] "Συνδέθηκαν {count} ζεύγη αντικειμένων μέσω νέων διευθύνσεων ομάδων"
+
+msgid "{count} error"
+msgid_plural "{count} errors"
+msgstr[0] "{count} σφάλμα"
+msgstr[1] "{count} σφάλματα"
+
+msgid "{count} object will be re-mapped"
+msgid_plural "{count} objects will be re-mapped"
+msgstr[0] "{count} αντικείμενο θα αντιστοιχιστεί εκ νέου"
+msgstr[1] "{count} αντικείμενα θα αντιστοιχιστούν εκ νέου"
+
+msgid "Replaced; re-mapped {count} group object"
+msgid_plural "Replaced; re-mapped {count} group objects"
+msgstr[0] "Αντικαταστάθηκε· αντιστοιχίστηκε εκ νέου {count} αντικείμενο επικοινωνίας"
+msgstr[1] "Αντικαταστάθηκε· αντιστοιχίστηκαν εκ νέου {count} αντικείμενα επικοινωνίας"
+
+msgid "{count} difference"
+msgid_plural "{count} differences"
+msgstr[0] "{count} διαφορά"
+msgstr[1] "{count} διαφορές"
+
+msgid "Created {count} copy"
+msgid_plural "Created {count} copies"
+msgstr[0] "Δημιουργήθηκε {count} αντίγραφο"
+msgstr[1] "Δημιουργήθηκαν {count} αντίγραφα"
+
+msgid "{count} address will change"
+msgid_plural "{count} addresses will change"
+msgstr[0] "{count} διεύθυνση θα αλλάξει"
+msgstr[1] "{count} διευθύνσεις θα αλλάξουν"
+
+msgid "Shifted {count} address"
+msgid_plural "Shifted {count} addresses"
+msgstr[0] "Μετατοπίστηκε {count} διεύθυνση"
+msgstr[1] "Μετατοπίστηκαν {count} διευθύνσεις"
+
+msgid "Shifted {count} group address"
+msgid_plural "Shifted {count} group addresses"
+msgstr[0] "Μετατοπίστηκε {count} διεύθυνση ομάδας"
+msgstr[1] "Μετατοπίστηκαν {count} διευθύνσεις ομάδας"
+
+msgid "{count} issue"
+msgid_plural "{count} issues"
+msgstr[0] "{count} πρόβλημα"
+msgstr[1] "{count} προβλήματα"
+
+msgid "present ({size} byte)"
+msgid_plural "present ({size} bytes)"
+msgstr[0] "υπάρχει ({size} byte)"
+msgstr[1] "υπάρχει ({size} bytes)"
+
+msgid "Imported the display configuration into {count} device."
+msgid_plural "Imported the display configuration into {count} devices."
+msgstr[0] "Η διαμόρφωση οθόνης εισήχθη σε {count} συσκευή."
+msgstr[1] "Η διαμόρφωση οθόνης εισήχθη σε {count} συσκευές."
+
+msgid "{count} ECG present on line {line}"
+msgid_plural "{count} ECGs present on line {line}"
+msgstr[0] "{count} ECG παρόν στη γραμμή {line}"
+msgstr[1] "{count} ECG παρόντα στη γραμμή {line}"
+
+msgid "Apply Changes to {count} Identical Device"
+msgid_plural "Apply Changes to All {count} Identical Devices"
+msgstr[0] "Εφαρμογή Αλλαγών σε {count} Ίδια Συσκευή"
+msgstr[1] "Εφαρμογή Αλλαγών σε Όλες τις {count} Ίδιες Συσκευές"
+
+msgid "Editing {count} device — edits apply to all, diverging values show <differs>"
+msgid_plural "Editing {count} devices — edits apply to all, diverging values show <differs>"
+msgstr[0] "Επεξεργασία {count} συσκευής — οι αλλαγές ισχύουν για όλες, οι διαφορετικές τιμές εμφανίζουν <διαφέρει>"
+msgstr[1] "Επεξεργασία {count} συσκευών — οι αλλαγές ισχύουν για όλες, οι διαφορετικές τιμές εμφανίζουν <διαφέρει>"
+
+msgid "{count} byte"
+msgid_plural "{count} bytes"
+msgstr[0] "{count} byte"
+msgstr[1] "{count} bytes"
+
+msgid "Mismatch: {bytes} from the device in {locations}"
+msgstr "Απόκλιση: {bytes} από τη συσκευή σε {locations}"
+
+msgid "{count} byte differs"
+msgid_plural "{count} bytes differ"
+msgstr[0] "{count} byte διαφέρει"
+msgstr[1] "{count} byte διαφέρουν"
+
+msgid "{count} location"
+msgid_plural "{count} locations"
+msgstr[0] "{count} θέση"
+msgstr[1] "{count} θέσεις"
+
+msgid "plus {bytes} device-managed runtime byte (expected, benign)"
+msgid_plural "plus {bytes} device-managed runtime bytes (expected, benign)"
+msgstr[0] "συν {bytes} byte λειτουργίας υπό διαχείριση της συσκευής (αναμενόμενο, ακίνδυνο)"
+msgstr[1] "συν {bytes} byte λειτουργίας υπό διαχείριση της συσκευής (αναμενόμενο, ακίνδυνο)"
+
+msgid "plus {bytes} byte reset to the application default (the device holds an older value; benign, will be normalised on programming)"
+msgid_plural "plus {bytes} bytes reset to the application default (the device holds an older value; benign, will be normalised on programming)"
+msgstr[0] "συν {bytes} byte που επαναφέρεται στην προεπιλογή της εφαρμογής (η συσκευή έχει παλαιότερη τιμή· ακίνδυνο, θα κανονικοποιηθεί κατά τον προγραμματισμό)"
+msgstr[1] "συν {bytes} byte που επαναφέρονται στην προεπιλογή της εφαρμογής (η συσκευή έχει παλαιότερη τιμή· ακίνδυνο, θα κανονικοποιηθεί κατά τον προγραμματισμό)"
+
+msgid "Paste configuration onto {count} selected device:"
+msgid_plural "Paste configuration onto {count} selected devices:"
+msgstr[0] "Επικόλληση διαμόρφωσης σε {count} επιλεγμένη συσκευή:"
+msgstr[1] "Επικόλληση διαμόρφωσης σε {count} επιλεγμένες συσκευές:"
+
+msgid "Delete the {count} selected device? Its group objects and group-address links are removed and its individual address is freed. This can be undone."
+msgid_plural "Delete the {count} selected devices? Their group objects and group-address links are removed and their individual addresses are freed. This can be undone."
+msgstr[0] "Διαγραφή {count} επιλεγμένης συσκευής; Τα αντικείμενα ομάδας και οι συνδέσεις διευθύνσεων ομάδας της αφαιρούνται και η ατομική διεύθυνσή της ελευθερώνεται. Αυτό μπορεί να αναιρεθεί."
+msgstr[1] "Διαγραφή των {count} επιλεγμένων συσκευών; Τα αντικείμενα ομάδας και οι συνδέσεις διευθύνσεων ομάδας τους αφαιρούνται και οι ατομικές διευθύνσεις τους ελευθερώνονται. Αυτό μπορεί να αναιρεθεί."
+
+msgid "{count} group address added"
+msgid_plural "{count} group addresses added"
+msgstr[0] "Προστέθηκε {count} διεύθυνση ομάδας"
+msgstr[1] "Προστέθηκαν {count} διευθύνσεις ομάδων"
+
+msgid "{count} updated"
+msgid_plural "{count} updated"
+msgstr[0] "ενημερώθηκε {count}"
+msgstr[1] "ενημερώθηκαν {count}"
+
+msgid "{count} group address could not be placed in a group."
+msgid_plural "{count} group addresses could not be placed in a group."
+msgstr[0] "{count} διεύθυνση ομάδας δεν ήταν δυνατό να τοποθετηθεί σε ομάδα."
+msgstr[1] "{count} διευθύνσεις ομάδων δεν ήταν δυνατό να τοποθετηθούν σε ομάδα."
+
+msgid "{count} ECG present"
+msgid_plural "{count} ECGs present"
+msgstr[0] "Υπάρχει {count} ECG"
+msgstr[1] "Υπάρχουν {count} ECG"
+
+msgid "Procedure {number}  ({count} step)"
+msgid_plural "Procedure {number}  ({count} steps)"
+msgstr[0] "Διαδικασία {number}  ({count} βήμα)"
+msgstr[1] "Διαδικασία {number}  ({count} βήματα)"

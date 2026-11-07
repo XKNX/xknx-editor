@@ -831,13 +831,15 @@ class TopologyPanel:
                     name=self._device_display_name(devices[0])
                 )
             else:
-                text = S.DEVICE_DELETE_CONFIRM_SEVERAL.format(count=len(devices))
+                text = S.DEVICE_DELETE_CONFIRM_SEVERAL(len(devices)).format(
+                    count=len(devices)
+                )
             imgui.text_wrapped(text)
             clicked = dialog_buttons(S.CONTEXT_DELETE, S.BTN_CANCEL)
             if clicked == 0:
                 # Several in one undo step.
                 label = (
-                    S.HISTORY_EV_REMOVE_DEVICES.format(count=len(devices))
+                    S.HISTORY_EV_REMOVE_DEVICES(len(devices)).format(count=len(devices))
                     if len(devices) > 1
                     else None
                 )
@@ -1137,7 +1139,7 @@ class TopologyPanel:
     def _add_rows(
         self,
         request: AddRequest,
-        several: str,
+        several: Callable[[int], str],
         target: str,
         add: Callable[[AddRow], str | None],
     ) -> None:
@@ -1184,7 +1186,7 @@ class TopologyPanel:
         dragged = self._dragged_devices(device)
         text = device.display_name
         if len(dragged.ids) > 1:
-            text = S.DRAG_DEVICES.format(count=len(dragged.ids))
+            text = S.DRAG_DEVICES(len(dragged.ids)).format(count=len(dragged.ids))
         drag_source(dragged, text)
 
     def _dragged_devices(self, device: Device) -> Dragged:

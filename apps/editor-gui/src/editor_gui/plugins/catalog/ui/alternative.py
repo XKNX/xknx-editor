@@ -125,9 +125,8 @@ class AlternativeCatalogPanel:
         try:
             result = self._future.result()
             if self._action == "download":
-                self._message = S.ALTERNATIVE_IMPORTED.format(
-                    count=self._import_product(result)
-                )
+                count = self._import_product(result)
+                self._message = S.ALTERNATIVE_IMPORTED(count).format(count=count)
             elif self._action == "registration":
                 self._registration = result["status"]
                 # The server's message is in its own language; a known state has a text of
@@ -181,7 +180,11 @@ class AlternativeCatalogPanel:
             self._render_details(self._selected)
         # As in the Online tab: while searching, how many products match, above them.
         if self._query.strip():
-            imgui.text_disabled(S.ONLINE_MATCH_COUNT.format(count=len(self._entries)))
+            imgui.text_disabled(
+                S.ONLINE_MATCH_COUNT(len(self._entries)).format(
+                    count=len(self._entries)
+                )
+            )
         flags = (
             imgui.TableFlags_.scroll_y
             | imgui.TableFlags_.row_bg
@@ -253,10 +256,14 @@ class AlternativeCatalogPanel:
             loading("##alternative-loading", S.ONLINE_LOADING_PRODUCTS)
             return
         if status["count"]:
+            manufacturers = self._manufacturer_count()
+            products = status["count"]
             text = S.ONLINE_INDEX_STATUS.format(
                 date=fetched_date(status["generated_at"]),
-                mfrs=self._manufacturer_count(),
-                products=status["count"],
+                manufacturers=S.ONLINE_INDEX_MANUFACTURERS(manufacturers).format(
+                    count=manufacturers
+                ),
+                products=S.ONLINE_INDEX_PRODUCTS(products).format(count=products),
             )
         else:
             text = S.ONLINE_INDEX_NONE

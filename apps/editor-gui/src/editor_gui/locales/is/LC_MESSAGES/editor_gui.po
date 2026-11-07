@@ -43,9 +43,6 @@ msgstr "Stöðva"
 msgid "All Files"
 msgstr "Allar skrár"
 
-msgid "Project: {name}  ·  {devices} devices  ·  {gas} GAs"
-msgstr "Verkefni: {name}  ·  Tæki: {devices}  ·  Hópvistföng: {gas}"
-
 msgid "No project open"
 msgstr "Ekkert verkefni opið"
 
@@ -385,32 +382,14 @@ msgstr "Verkefnið opnaðist án vandræða og allt sem þú þarft til að vinn
 msgid "This project came from a file with a few extra details this editor does not use. The export leaves these out:"
 msgstr "Þetta verkefni kom úr skrá með nokkrum viðbótaratriðum sem þessi ritill notar ekki. Útflutningurinn sleppir þeim:"
 
-msgid "The original file had {count} installations. They were combined into one."
-msgstr "Upprunalega skráin hafði fleiri en eina uppsetningu (fjöldi: {count}). Þær voru sameinaðar í eina."
-
 msgid "{count} device(s) had no place in the original file, so they were left out."
 msgstr "Tæki sem höfðu engan stað í upprunalegu skránni og var því sleppt: {count}"
-
-msgid "{count} group object(s) had an extra description in the original file. The custom name and function are kept; only that description is not shown here."
-msgstr "Samskiptahlutir með viðbótarlýsingu í upprunalegu skránni: {count}. Sérsniðnu heiti og aðgerð er haldið; aðeins sú lýsing er ekki sýnd hér."
-
-msgid "{count} IP or function setting(s) from the original file are not used here."
-msgstr "IP- eða aðgerðastillingar úr upprunalegu skránni sem eru ekki notaðar hér: {count}"
-
-msgid "{count} line(s) use several segments. In a schema 14/20 export they are shown at line level only."
-msgstr "Línur sem nota fleiri en einn bút: {count}. Í útflutningi með skema 14/20 eru þær aðeins sýndar á línustigi."
-
-msgid "{count} line(s) had the same address in different installations. One of each was kept when combining."
-msgstr "Línur með sama vistfang í mismunandi uppsetningum: {count}. Einni af hverri var haldið við sameininguna."
 
 msgid "For example: {examples}"
 msgstr "Til dæmis: {examples}"
 
 msgid "Product catalog imported: {count} new product version(s) from {name}"
 msgstr "Vörulisti fluttur inn: nýjar vöruútgáfur úr {name}: {count}"
-
-msgid "Imported {count} product version(s) from {name}:"
-msgstr "Vöruútgáfur fluttar inn úr {name} ({count}):"
 
 msgid "{name} was already in the catalog, nothing new imported"
 msgstr "{name} var þegar í vörulistanum, ekkert nýtt flutt inn"
@@ -763,14 +742,8 @@ msgstr "Flytja út"
 msgid "Group Address Export (*.csv)"
 msgstr "Útflutningur hópvistfanga (*.csv)"
 
-msgid "Exported {count} group address(es)"
-msgstr "Hópvistföng flutt út: {count}"
-
 msgid "Exported to {path} ({size}) as {schema}"
 msgstr "Flutt út í {path} ({size}) sem {schema}"
-
-msgid "{count} device(s) aren't assigned to a line. They're kept in the project and included on export, but can't be edited here yet."
-msgstr "Tæki sem eru ekki tengd línu: {count}. Þau eru geymd í verkefninu og tekin með við útflutning, en ekki er enn hægt að breyta þeim hér."
 
 msgid "no online certificate"
 msgstr "ekkert netvottorð"
@@ -1017,15 +990,6 @@ msgstr "Tæki er ekki samhæft þessari ETS-útgáfu"
 
 msgid "This project cannot be imported into the chosen ETS version. The product data of the device(s) below exists only for a newer ETS (e.g. an ETS 6 product in an ETS 5 export), so ETS rejects the whole project with 'created with a newer version'.\n\nRemove these device(s) and export again, or cancel and export for the newer ETS instead."
 msgstr "Ekki er hægt að flytja þetta verkefni inn í valda ETS-útgáfu. Vörugögn tækjanna hér fyrir neðan eru aðeins til fyrir nýrri ETS (t.d. ETS 6-vara í ETS 5-útflutningi), svo ETS hafnar öllu verkefninu með 'created with a newer version'.\n\nFjarlægðu þessi tæki og flyttu út aftur, eða hættu við og flyttu í staðinn út fyrir nýrri ETS."
-
-msgid "Remove device(s) & re-export"
-msgstr "Fjarlægja tæki og flytja út aftur"
-
-msgid "Removed {count} incompatible device(s); re-exporting"
-msgstr "Ósamhæf tæki fjarlægð: {count}; flytur út aftur"
-
-msgid "This file will NOT import into the chosen ETS version: the product data of these manufacturers only exists for a newer ETS (e.g. an ETS 6 product in an ETS 5 export), so ETS rejects the whole project. Remove the affected device(s) or export for the newer ETS."
-msgstr "Þessi skrá verður EKKI flutt inn í valda ETS-útgáfu: vörugögn þessara framleiðenda eru aðeins til fyrir nýrri ETS (t.d. ETS 6-vara í ETS 5-útflutningi), svo ETS hafnar öllu verkefninu. Fjarlægðu tækin sem um ræðir eða flyttu út fyrir nýrri ETS."
 
 msgid "Hide Tab Bar"
 msgstr "Fela flipastiku"
@@ -1692,3 +1656,74 @@ msgstr "Flytur inn vörugögn verkefnisins: {done} af {total} forritum"
 
 msgid "This is done once on this computer, for the products its catalog does not have yet. For a large project it can take a few minutes."
 msgstr "Þetta er aðeins gert einu sinni á þessari tölvu, fyrir vörurnar sem vörulisti hennar hefur ekki enn. Í stóru verkefni getur það tekið nokkrar mínútur."
+
+msgid "Project: {name}  ·  {devices}  ·  {gas}"
+msgstr "Verkefni: {name}  ·  {devices}  ·  {gas}"
+
+msgid "{count} device"
+msgid_plural "{count} devices"
+msgstr[0] "{count} tæki"
+msgstr[1] "{count} tæki"
+
+msgid "{count} GA"
+msgid_plural "{count} GAs"
+msgstr[0] "{count} hópvistfang"
+msgstr[1] "{count} hópvistföng"
+
+msgid "Exported {count} group address"
+msgid_plural "Exported {count} group addresses"
+msgstr[0] "{count} hópvistfang flutt út"
+msgstr[1] "{count} hópvistföng flutt út"
+
+msgid "The original file had {count} installation. It was combined into one."
+msgid_plural "The original file had {count} installations. They were combined into one."
+msgstr[0] "Upprunalega skráin hafði {count} uppsetningu. Hún var sameinuð í eina."
+msgstr[1] "Upprunalega skráin hafði {count} uppsetningar. Þær voru sameinaðar í eina."
+
+msgid "{count} device isn't assigned to a line. It's kept in the project and included on export, but can't be edited here yet."
+msgid_plural "{count} devices aren't assigned to a line. They're kept in the project and included on export, but can't be edited here yet."
+msgstr[0] "{count} tæki er ekki tengt línu. Það er geymt í verkefninu og tekið með við útflutning, en ekki er enn hægt að breyta því hér."
+msgstr[1] "{count} tæki eru ekki tengd línu. Þau eru geymd í verkefninu og tekin með við útflutning, en ekki er enn hægt að breyta þeim hér."
+
+msgid "{count} group object had an extra description in the original file. The custom name and function are kept; only that description is not shown here."
+msgid_plural "{count} group objects had an extra description in the original file. The custom name and function are kept; only that description is not shown here."
+msgstr[0] "{count} samskiptahlutur hafði viðbótarlýsingu í upprunalegu skránni. Sérsniðnu heiti og aðgerð er haldið; aðeins sú lýsing er ekki sýnd hér."
+msgstr[1] "{count} samskiptahlutir höfðu viðbótarlýsingu í upprunalegu skránni. Sérsniðnu heiti og aðgerð er haldið; aðeins sú lýsing er ekki sýnd hér."
+
+msgid "{count} IP or function setting from the original file is not used here."
+msgid_plural "{count} IP or function settings from the original file are not used here."
+msgstr[0] "{count} IP- eða aðgerðastilling úr upprunalegu skránni er ekki notuð hér."
+msgstr[1] "{count} IP- eða aðgerðastillingar úr upprunalegu skránni eru ekki notaðar hér."
+
+msgid "{count} line uses several segments. In a schema 14/20 export it is shown at line level only."
+msgid_plural "{count} lines use several segments. In a schema 14/20 export they are shown at line level only."
+msgstr[0] "{count} lína notar fleiri en einn bút. Í útflutningi með skema 14/20 er hún aðeins sýnd á línustigi."
+msgstr[1] "{count} línur nota fleiri en einn bút. Í útflutningi með skema 14/20 eru þær aðeins sýndar á línustigi."
+
+msgid "{count} line had the same address in different installations. One of each was kept when combining."
+msgid_plural "{count} lines had the same address in different installations. One of each was kept when combining."
+msgstr[0] "{count} lína hafði sama vistfang í mismunandi uppsetningum. Einni af hverri var haldið við sameininguna."
+msgstr[1] "{count} línur höfðu sama vistfang í mismunandi uppsetningum. Einni af hverri var haldið við sameininguna."
+
+msgid "Remove Device & Re-Export"
+msgid_plural "Remove Devices & Re-Export"
+msgstr[0] "Fjarlægja tæki og flytja út aftur"
+msgstr[1] "Fjarlægja tæki og flytja út aftur"
+
+msgid "Removed {count} incompatible device; re-exporting"
+msgid_plural "Removed {count} incompatible devices; re-exporting"
+msgstr[0] "{count} ósamhæft tæki fjarlægt; flytur út aftur"
+msgstr[1] "{count} ósamhæf tæki fjarlægð; flytur út aftur"
+
+msgid "This file will NOT import into the chosen ETS version: the product data of these manufacturers only exists for a newer ETS (e.g. an ETS 6 product in an ETS 5 export), so the whole project is rejected."
+msgstr "Þessi skrá verður EKKI flutt inn í valda ETS-útgáfu: vörugögn þessara framleiðenda eru aðeins til fyrir nýrri ETS (t.d. ETS 6-vara í ETS 5-útflutningi), svo ETS hafnar öllu verkefninu."
+
+msgid "Remove the affected device or export for the newer ETS."
+msgid_plural "Remove the affected devices or export for the newer ETS."
+msgstr[0] "Fjarlægðu tækið sem um ræðir eða flyttu út fyrir nýrri ETS."
+msgstr[1] "Fjarlægðu tækin sem um ræðir eða flyttu út fyrir nýrri ETS."
+
+msgid "Imported {count} product version from {name}:"
+msgid_plural "Imported {count} product versions from {name}:"
+msgstr[0] "{count} vöruútgáfa flutt inn úr {name}:"
+msgstr[1] "{count} vöruútgáfur fluttar inn úr {name}:"

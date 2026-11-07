@@ -97,12 +97,6 @@ msgstr "tarih bilinmiyor"
 msgid "Load Telegrams from Home Assistant"
 msgstr "Telegramları Home Assistant'tan yükle"
 
-msgid "The telegrams Home Assistant recorded in the last {hours} hours, in the Group Monitor in place of its entries."
-msgstr "Home Assistant'ın son {hours} saatte kaydettiği telegramlar, Grup İzleme'de mevcut girdilerin yerine."
-
-msgid "{count} telegrams from Home Assistant in the Group Monitor"
-msgstr "Grup İzleme'de Home Assistant'tan {count} telegram"
-
 msgid "The telegrams could not be loaded: {error}"
 msgstr "Telegramlar yüklenemedi: {error}"
 
@@ -339,3 +333,11 @@ msgstr "Home Assistant'tan grup adresleri"
 
 msgid "Group addresses added to the project: {count}"
 msgstr "Projeye eklenen grup adresleri: {count}"
+
+msgid "The telegrams Home Assistant recorded in the last {hours} hour, in the Group Monitor in place of its entries."
+msgid_plural "The telegrams Home Assistant recorded in the last {hours} hours, in the Group Monitor in place of its entries."
+msgstr[0] "Home Assistant'ın son {hours} saatte kaydettiği telegramlar, Grup İzleme'de mevcut girdilerin yerine."
+
+msgid "{count} telegram from Home Assistant in the Group Monitor"
+msgid_plural "{count} telegrams from Home Assistant in the Group Monitor"
+msgstr[0] "Grup İzleme'de Home Assistant'tan {count} telegram"

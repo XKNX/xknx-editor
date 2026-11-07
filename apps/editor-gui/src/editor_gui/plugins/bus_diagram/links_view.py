@@ -600,7 +600,9 @@ class LinkView:
         double = imgui.is_mouse_double_clicked(0)
         if hovered_more is not None:
             more = layout.more[hovered_more]
-            imgui.set_tooltip(S.BUS_DIAGRAM_MORE_TIP.format(count=more.count))
+            imgui.set_tooltip(
+                S.BUS_DIAGRAM_MORE_TIP(more.count).format(count=more.count)
+            )
             if clicked:
                 self._expanded.add(more.ga_id)
         elif hovered_channel is not None:

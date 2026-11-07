@@ -133,7 +133,7 @@ class HomeAssistantPlugin:
         frames = [frame for t in telegrams if (frame := telegram_frame(t)) is not None]
         count = self._monitor.load_foreign(frames, link_info(self._service.connection))
         if self._api.notify is not None:
-            self._api.notify(S.HISTORY_LOADED.format(count=count))
+            self._api.notify(S.HISTORY_LOADED(count).format(count=count))
 
     @property
     def service(self) -> HomeAssistantService:
@@ -255,7 +255,9 @@ class HomeAssistantPlugin:
         )[0]:
             service.request_history()
         if imgui.is_item_hovered(imgui.HoveredFlags_.for_tooltip):
-            imgui.set_tooltip(S.LOAD_TELEGRAMS_HINT.format(hours=HISTORY_HOURS))
+            imgui.set_tooltip(
+                S.LOAD_TELEGRAMS_HINT(HISTORY_HOURS).format(hours=HISTORY_HOURS)
+            )
         if service.history_error is not None:
             imgui.text_colored(
                 status_color("error"),

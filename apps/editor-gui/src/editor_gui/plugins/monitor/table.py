@@ -391,11 +391,9 @@ class TelegramView:
         if self._render_state():
             load = S.MONITOR_BUS_LOAD.format(rate=f"{self._service.bus_load():.1f}")
             count = len(self._view)
-            text = (
-                S.MONITOR_TELEGRAM_COUNT_ONE if count == 1 else S.MONITOR_TELEGRAM_COUNT
-            )
+            text = S.MONITOR_TELEGRAM_COUNT(count).format(count=count)
             # One text, so the two stay together and the Max field fits beside them.
-            self._toolbar_text(f"{load}, {text.format(count=count)}")
+            self._toolbar_text(f"{load}, {text}")
         self._render_max_records_input()
         if self.filtering:
             done = self._pos * 100 // max(len(self._source), 1)
@@ -730,12 +728,20 @@ class TelegramView:
         plan = self._service.start_replay(records)
         messages: list[str] = []
         if plan.skipped_secure:
-            messages.append(S.REPLAY_SECURE_SKIPPED.format(count=plan.skipped_secure))
+            messages.append(
+                S.REPLAY_SECURE_SKIPPED(plan.skipped_secure).format(
+                    count=plan.skipped_secure
+                )
+            )
         if not plan.items:
             messages.append(S.REPLAY_NOTHING)
         self._message = (". ".join(messages), True) if messages else None
         if plan.skipped_secure and self._notify is not None:
-            self._notify(S.REPLAY_SECURE_SKIPPED.format(count=plan.skipped_secure))
+            self._notify(
+                S.REPLAY_SECURE_SKIPPED(plan.skipped_secure).format(
+                    count=plan.skipped_secure
+                )
+            )
         self._replay_reported = self._service.replay_result
 
     def _report_replay(self) -> None:
@@ -744,7 +750,7 @@ class TelegramView:
             return
         self._replay_reported = result
         sent, cancelled = result
-        text = (S.REPLAY_CANCELLED if cancelled else S.REPLAY_FINISHED).format(
+        text = (S.REPLAY_CANCELLED if cancelled else S.REPLAY_FINISHED)(sent).format(
             count=sent
         )
         self._message = (text, False)
@@ -841,7 +847,7 @@ class TelegramView:
         if self._pending_export_all:
             self._channel.log.mark_saved()
         count = sum(1 for record in records if record.kind is RecordKind.TELEGRAM)
-        self._message = (S.EXPORTED.format(count=count, path=path), False)
+        self._message = (S.EXPORTED(count).format(count=count, path=path), False)
         self._pending_export = []
 
     def _read_import(self, path: str) -> None:
@@ -853,7 +859,8 @@ class TelegramView:
         self._service.load(self.kind, result.records)
         self.selected = set()
         self.focused = None
-        text = S.IMPORTED.format(count=len(result.records), path=path)
+        count = len(result.records)
+        text = S.IMPORTED(count).format(count=count, path=path)
         if result.skipped:
-            text += ". " + S.IMPORT_SKIPPED.format(count=result.skipped)
+            text += ". " + S.IMPORT_SKIPPED(result.skipped).format(count=result.skipped)
         self._message = (text, False)

@@ -1505,7 +1505,7 @@ class KnxGuiApp:
             self._log.error("ga export failed", dest=dest, error=str(e))
             return
         self._last_export_path = dest
-        self._flash_toast(S.GA_EXPORT_OK.format(count=count))
+        self._flash_toast(S.GA_EXPORT_OK(count).format(count=count))
 
     def _begin_export_sign_prompt(self, dest: str) -> None:
         """Ask about MyKnx certificate signing before running the export to ``dest``."""
@@ -2953,7 +2953,9 @@ class KnxGuiApp:
             self._log.info("loaded from url", url=url, added=len(added))
             if added:
                 self._import_rows_result = (
-                    S.KNXPROD_IMPORT_SUMMARY.format(count=len(added), name=url),
+                    S.KNXPROD_IMPORT_SUMMARY(len(added)).format(
+                        count=len(added), name=url
+                    ),
                     self._product_import_rows(added),
                 )
             else:
@@ -3058,7 +3060,9 @@ class KnxGuiApp:
             self._log.info("imported products", source=source, added=len(added_all))
             if added_all:
                 self._import_rows_result = (
-                    S.KNXPROD_IMPORT_SUMMARY.format(count=len(added_all), name=source),
+                    S.KNXPROD_IMPORT_SUMMARY(len(added_all)).format(
+                        count=len(added_all), name=source
+                    ),
                     self._product_import_rows(added_all),
                 )
             else:
@@ -3754,7 +3758,9 @@ class KnxGuiApp:
                 if added:
                     self._log.info("added applications to catalog", count=len(added))
                     self._import_rows_result = (
-                        S.KNXPROD_IMPORT_SUMMARY.format(count=len(added), name=name),
+                        S.KNXPROD_IMPORT_SUMMARY(len(added)).format(
+                            count=len(added), name=name
+                        ),
                         self._product_import_rows(added),
                     )
                 else:
@@ -4004,11 +4010,13 @@ class KnxGuiApp:
             path = self._project_service.path
             if not name and path is not None:
                 name = path.name
+            devices = len(self._project_service.devices)
+            gas = len(self._project_service.group_addresses)
             self._status_part(
                 S.STATUS_PROJECT.format(
                     name=name or "?",
-                    devices=len(self._project_service.devices),
-                    gas=len(self._project_service.group_addresses),
+                    devices=S.STATUS_DEVICES(devices).format(count=devices),
+                    gas=S.STATUS_GROUP_ADDRESSES(gas).format(count=gas),
                 ),
                 tooltip=str(path) if path is not None else None,
             )
@@ -4601,7 +4609,7 @@ class KnxGuiApp:
         if template is None:
             # Unknown code (forward-compat): fall back to the raw code + count so nothing is hidden.
             return f"{note.code} ({note.count})"
-        text = template.format(count=note.count)
+        text = template(note.count).format(count=note.count)
         if note.detail:
             return f"{text} {S.IMPORT_NOTE_EXAMPLES.format(examples=note.detail)}"
         return text
@@ -4687,7 +4695,10 @@ class KnxGuiApp:
             # action below.
             imgui.spacing()
             imgui.push_style_color(imgui.Col_.text, status_color("error"))
-            imgui.text_wrapped(S.EXPORT_SUMMARY_INCOMPAT)
+            count = len(self._export_summary_incompat_rows)
+            imgui.text_wrapped(
+                f"{S.EXPORT_SUMMARY_INCOMPAT} {S.EXPORT_SUMMARY_INCOMPAT_REMOVE(count)}"
+            )
             imgui.pop_style_color()
             # Only the list scrolls when it is long: the dialog with its buttons stays on screen.
             listed = self._export_summary_incompat_rows
@@ -4707,7 +4718,7 @@ class KnxGuiApp:
             imgui.pop_style_color()
         if incompatible:
             labels = [
-                S.EXPORT_INCOMPAT_REMOVE,
+                S.EXPORT_INCOMPAT_REMOVE(len(self._export_summary_incompat_rows)),
                 S.BTN_OPEN_FOLDER,
                 S.EXPORT_SUMMARY_CLOSE,
             ]
@@ -4720,7 +4731,9 @@ class KnxGuiApp:
                     for nid, _label in removed:
                         self._project_service.remove_device(nid)
                     self._flash_toast(
-                        S.EXPORT_INCOMPAT_REMOVED.format(count=len(removed))
+                        S.EXPORT_INCOMPAT_REMOVED(len(removed)).format(
+                            count=len(removed)
+                        )
                     )
                     self._do_export_knxproj(dest, signer)
             elif clicked == 1:

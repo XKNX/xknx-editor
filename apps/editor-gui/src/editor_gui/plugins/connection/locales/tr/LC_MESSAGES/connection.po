@@ -46,9 +46,6 @@ msgstr "Tarama tamamlanamadı: {error}"
 msgid "The interface did not confirm the scan request (bus busy or interface overloaded). Please try again."
 msgstr "Arabirim tarama isteğini onaylamadı (bus meşgul veya arabirim aşırı yüklü). Lütfen tekrar deneyin."
 
-msgid "{count} device(s) in programming mode"
-msgstr "Programlama modundaki cihaz sayısı: {count}"
-
 msgid "Answered the scan, but reading its details failed: {error}"
 msgstr "Taramaya yanıt verdi, ancak ayrıntılar okunamadı: {error}"
 
@@ -222,3 +219,7 @@ msgstr "Bus'a bağlı değil"
 
 msgid "Serial Number: {serial}"
 msgstr "Seri Numarası: {serial}"
+
+msgid "{count} device in programming mode"
+msgid_plural "{count} devices in programming mode"
+msgstr[0] "Programlama modunda {count} cihaz"

@@ -296,7 +296,7 @@ class HexView:
             if n_diffs:
                 imgui.text_colored(
                     theme.status_color("warning"),
-                    "  " + S.HEX_DIFFS.format(count=n_diffs),
+                    "  " + S.HEX_DIFFS(n_diffs).format(count=n_diffs),
                 )
             else:
                 imgui.text_disabled("  " + S.HEX_NO_DIFFS)

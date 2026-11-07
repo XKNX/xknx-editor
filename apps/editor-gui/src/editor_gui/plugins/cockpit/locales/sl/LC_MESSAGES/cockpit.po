@@ -19,9 +19,6 @@ msgstr "Filtriraj naprave…"
 msgid "Needs Attention Only"
 msgstr "Samo potrebni ukrepi"
 
-msgid "{count} device(s) not in catalog"
-msgstr "Naprave, ki jih ni v katalogu: {count}"
-
 msgid "Address"
 msgstr "Naslov"
 
@@ -72,3 +69,10 @@ msgstr "ni naloženo"
 
 msgid "partial ({done}/{total})"
 msgstr "delno ({done}/{total})"
+
+msgid "{count} device not in catalog"
+msgid_plural "{count} devices not in catalog"
+msgstr[0] "{count} naprava ni v katalogu"
+msgstr[1] "{count} napravi nista v katalogu"
+msgstr[2] "{count} naprave niso v katalogu"
+msgstr[3] "{count} naprav ni v katalogu"

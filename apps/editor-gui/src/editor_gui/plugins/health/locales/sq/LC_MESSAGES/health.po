@@ -16,20 +16,11 @@ msgstr "Asnjë projekt i hapur"
 msgid "No issues found"
 msgstr "Nuk u gjet asnjë problem"
 
-msgid "{errors} errors, {warnings} warnings"
-msgstr "{errors} gabime, {warnings} paralajmërime"
-
 msgid "{device}: no individual address"
 msgstr "{device}: pa adresë individuale"
 
 msgid "Duplicate individual address {address} ({device})"
 msgstr "Adresë individuale e dyfishtë {address} ({device})"
-
-msgid "{count} device(s) skipped: application not in catalog"
-msgstr "{count} pajisje u anashkaluan: programi aplikativ nuk është në katalog"
-
-msgid "{device}: {count} unlinked group object(s)"
-msgstr "{device}: {count} objekt(e) grupi pa lidhje"
 
 msgid "{address} {name}: no datapoint type"
 msgstr "{address} {name}: pa lloj pike të dhënash"
@@ -37,5 +28,27 @@ msgstr "{address} {name}: pa lloj pike të dhënash"
 msgid "{address} {name}: no sending group object"
 msgstr "{address} {name}: pa objekt grupi dërgues"
 
-msgid "{address} {name}: {count} sending group objects"
-msgstr "{address} {name}: {count} objekte grupi dërguese"
+msgid "{count} error"
+msgid_plural "{count} errors"
+msgstr[0] "{count} gabim"
+msgstr[1] "{count} gabime"
+
+msgid "{count} warning"
+msgid_plural "{count} warnings"
+msgstr[0] "{count} paralajmërim"
+msgstr[1] "{count} paralajmërime"
+
+msgid "{count} device skipped: application not in catalog"
+msgid_plural "{count} devices skipped: application not in catalog"
+msgstr[0] "{count} pajisje u anashkalua: programi aplikativ nuk është në katalog"
+msgstr[1] "{count} pajisje u anashkaluan: programi aplikativ nuk është në katalog"
+
+msgid "{device}: {count} unlinked group object"
+msgid_plural "{device}: {count} unlinked group objects"
+msgstr[0] "{device}: {count} objekt grupi pa lidhje"
+msgstr[1] "{device}: {count} objekte grupi pa lidhje"
+
+msgid "{address} {name}: {count} sending group object"
+msgid_plural "{address} {name}: {count} sending group objects"
+msgstr[0] "{address} {name}: {count} objekt grupi dërgues"
+msgstr[1] "{address} {name}: {count} objekte grupi dërguese"

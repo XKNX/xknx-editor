@@ -49,9 +49,6 @@ msgstr "Schnappschuss exportieren"
 msgid "Verifying (re-reading and comparing)…"
 msgstr "Verifizierung (erneutes Lesen und Vergleichen)…"
 
-msgid "%(count)d group address(es) have no sender or multiple senders."
-msgstr "%(count)d Gruppenadresse(n) haben keinen oder mehrere Sender."
-
 msgid "Address"
 msgstr "Adresse"
 
@@ -88,21 +85,8 @@ msgstr "Gruppenkommunikationstabellen"
 msgid "parameter memory"
 msgstr "Parameterspeicher"
 
-msgid ""
-"Recovered %(devices)d device(s): %(group_addresses)d group addresses, "
-"%(links)d links, %(unknown)d parameter(s) not recoverable."
-msgstr ""
-"%(devices)d Gerät(e) wiederhergestellt: %(group_addresses)d Gruppenadressen,"
-" %(links)d Verbindungen, %(unknown)d Parameter nicht wiederherstellbar."
-
 msgid "Recovered"
 msgstr "Wiederhergestellt"
-
-msgid "Added %(count)d device(s) to the open project (%(target)s)."
-msgstr "%(count)d Gerät(e) zum geöffneten Projekt hinzugefügt (%(target)s)."
-
-msgid "Created new project %(target)s with %(count)d device(s)."
-msgstr "Neues Projekt %(target)s mit %(count)d Gerät(e) erstellt."
 
 msgid "Not connected to a KNX bus."
 msgstr "Nicht mit einem KNX-Bus verbunden."
@@ -124,18 +108,11 @@ msgstr "Nicht im Katalog: Importieren Sie sein Produkt im Katalog"
 msgid "Not programmed"
 msgstr "Nicht programmiert"
 
-
 msgid "Error"
 msgstr "Fehler"
 
-msgid "%d parameters could not be recovered"
-msgstr "%d Parameter konnten nicht wiederhergestellt werden"
-
 msgid "Already in the project, skipped"
 msgstr "Bereits im Projekt, übersprungen"
-
-msgid "%(count)d device(s) could not be added; the reason is in the Result column."
-msgstr "%(count)d Gerät(e) konnten nicht hinzugefügt werden; der Grund steht in der Spalte „Ergebnis“."
 
 msgid "Recovered (incomplete)"
 msgstr "Wiederhergestellt (unvollständig)"
@@ -164,9 +141,6 @@ msgstr "Sucht die Einstellungen der ausgewählten unvollständigen Geräte erneu
 msgid "Searching %(address)s again  (%(done)d/%(total)d)…"
 msgstr "Erneute Suche für %(address)s  (%(done)d/%(total)d)…"
 
-msgid "%(bytes)d byte(s) and %(objects)d group object(s) differ from the device"
-msgstr "%(bytes)d Byte(s) und %(objects)d Kommunikationsobjekt(e) weichen vom Gerät ab"
-
 msgid "more search effort may help"
 msgstr "mehr Suchaufwand kann helfen"
 
@@ -179,14 +153,73 @@ msgstr "Ergebnis"
 msgid "Not read yet"
 msgstr "Noch nicht gelesen"
 
-msgid "%(group_addresses)d group addresses, %(links)d links, %(parameters)d parameters"
-msgstr "%(group_addresses)d Gruppenadressen, %(links)d Verknüpfungen, %(parameters)d Parameter"
-
-msgid "%(count)d unknown"
-msgstr "%(count)d unbekannt"
-
 msgid "Verified"
 msgstr "Geprüft"
 
-msgid "Verify: %(bytes)d byte(s) differ"
-msgstr "Prüfen: %(bytes)d Byte(s) weichen ab"
+msgid "%(count)d group address has no sender or multiple senders."
+msgid_plural "%(count)d group addresses have no sender or multiple senders."
+msgstr[0] "%(count)d Gruppenadresse hat keinen oder mehrere Sender."
+msgstr[1] "%(count)d Gruppenadressen haben keinen oder mehrere Sender."
+
+msgid "Recovered %(count)d device"
+msgid_plural "Recovered %(count)d devices"
+msgstr[0] "%(count)d Gerät wiederhergestellt"
+msgstr[1] "%(count)d Geräte wiederhergestellt"
+
+msgid "%(count)d group address"
+msgid_plural "%(count)d group addresses"
+msgstr[0] "%(count)d Gruppenadresse"
+msgstr[1] "%(count)d Gruppenadressen"
+
+msgid "%(count)d link"
+msgid_plural "%(count)d links"
+msgstr[0] "%(count)d Verbindung"
+msgstr[1] "%(count)d Verbindungen"
+
+msgid "%(count)d parameter"
+msgid_plural "%(count)d parameters"
+msgstr[0] "%(count)d Parameter"
+msgstr[1] "%(count)d Parameter"
+
+msgid "%(count)d parameter cannot be recovered"
+msgid_plural "%(count)d parameters cannot be recovered"
+msgstr[0] "%(count)d Parameter nicht wiederherstellbar"
+msgstr[1] "%(count)d Parameter nicht wiederherstellbar"
+
+msgid "%(count)d parameter not found yet"
+msgid_plural "%(count)d parameters not found yet"
+msgstr[0] "%(count)d Parameter noch nicht gefunden"
+msgstr[1] "%(count)d Parameter noch nicht gefunden"
+
+msgid "Added %(count)d device to the open project (%(target)s)."
+msgid_plural "Added %(count)d devices to the open project (%(target)s)."
+msgstr[0] "%(count)d Gerät zum geöffneten Projekt hinzugefügt (%(target)s)."
+msgstr[1] "%(count)d Geräte zum geöffneten Projekt hinzugefügt (%(target)s)."
+
+msgid "Created new project %(target)s with %(count)d device."
+msgid_plural "Created new project %(target)s with %(count)d devices."
+msgstr[0] "Neues Projekt %(target)s mit %(count)d Gerät erstellt."
+msgstr[1] "Neues Projekt %(target)s mit %(count)d Geräten erstellt."
+
+msgid "%(count)d device could not be added; the reason is in the Result column."
+msgid_plural "%(count)d devices could not be added; the reason is in the Result column."
+msgstr[0] "%(count)d Gerät konnte nicht hinzugefügt werden; der Grund steht in der Spalte „Ergebnis“."
+msgstr[1] "%(count)d Geräte konnten nicht hinzugefügt werden; der Grund steht in der Spalte „Ergebnis“."
+
+msgid "Differs from the device: %(what)s"
+msgstr "Weicht vom Gerät ab: %(what)s"
+
+msgid "%(count)d byte"
+msgid_plural "%(count)d bytes"
+msgstr[0] "%(count)d Byte"
+msgstr[1] "%(count)d Bytes"
+
+msgid "%(count)d group object"
+msgid_plural "%(count)d group objects"
+msgstr[0] "%(count)d Kommunikationsobjekt"
+msgstr[1] "%(count)d Kommunikationsobjekte"
+
+msgid "Verify: %(count)d byte differs"
+msgid_plural "Verify: %(count)d bytes differ"
+msgstr[0] "Prüfen: %(count)d Byte weicht ab"
+msgstr[1] "Prüfen: %(count)d Bytes weichen ab"

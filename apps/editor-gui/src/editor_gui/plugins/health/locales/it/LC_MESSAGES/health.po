@@ -16,20 +16,11 @@ msgstr "Nessun progetto aperto"
 msgid "No issues found"
 msgstr "Nessun problema rilevato"
 
-msgid "{errors} errors, {warnings} warnings"
-msgstr "{errors} errori, {warnings} avvisi"
-
 msgid "{device}: no individual address"
 msgstr "{device}: nessun indirizzo individuale"
 
 msgid "Duplicate individual address {address} ({device})"
 msgstr "Indirizzo individuale duplicato {address} ({device})"
-
-msgid "{count} device(s) skipped: application not in catalog"
-msgstr "Dispositivi ignorati ({count}): applicazione non nel catalogo"
-
-msgid "{device}: {count} unlinked group object(s)"
-msgstr "{device}: oggetti di comunicazione non collegati: {count}"
 
 msgid "{address} {name}: no datapoint type"
 msgstr "{address} {name}: nessun tipo Datapoint"
@@ -37,5 +28,27 @@ msgstr "{address} {name}: nessun tipo Datapoint"
 msgid "{address} {name}: no sending group object"
 msgstr "{address} {name}: nessun oggetto di comunicazione trasmittente"
 
-msgid "{address} {name}: {count} sending group objects"
-msgstr "{address} {name}: {count} oggetti di comunicazione trasmittenti"
+msgid "{count} error"
+msgid_plural "{count} errors"
+msgstr[0] "{count} errore"
+msgstr[1] "{count} errori"
+
+msgid "{count} warning"
+msgid_plural "{count} warnings"
+msgstr[0] "{count} avviso"
+msgstr[1] "{count} avvisi"
+
+msgid "{count} device skipped: application not in catalog"
+msgid_plural "{count} devices skipped: application not in catalog"
+msgstr[0] "{count} dispositivo ignorato: applicazione non nel catalogo"
+msgstr[1] "{count} dispositivi ignorati: applicazione non nel catalogo"
+
+msgid "{device}: {count} unlinked group object"
+msgid_plural "{device}: {count} unlinked group objects"
+msgstr[0] "{device}: {count} oggetto di comunicazione non collegato"
+msgstr[1] "{device}: {count} oggetti di comunicazione non collegati"
+
+msgid "{address} {name}: {count} sending group object"
+msgid_plural "{address} {name}: {count} sending group objects"
+msgstr[0] "{address} {name}: {count} oggetto di comunicazione trasmittente"
+msgstr[1] "{address} {name}: {count} oggetti di comunicazione trasmittenti"

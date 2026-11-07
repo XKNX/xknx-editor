@@ -97,12 +97,6 @@ msgstr "άγνωστη ημερομηνία"
 msgid "Load Telegrams from Home Assistant"
 msgstr "Φόρτωση τηλεγραφημάτων από το Home Assistant"
 
-msgid "The telegrams Home Assistant recorded in the last {hours} hours, in the Group Monitor in place of its entries."
-msgstr "Τα τηλεγραφήματα που κατέγραψε το Home Assistant τις τελευταίες {hours} ώρες, στην Παρακολούθηση Ομάδων στη θέση των καταχωρίσεών της."
-
-msgid "{count} telegrams from Home Assistant in the Group Monitor"
-msgstr "{count} τηλεγραφήματα από το Home Assistant στην Παρακολούθηση Ομάδων"
-
 msgid "The telegrams could not be loaded: {error}"
 msgstr "Δεν ήταν δυνατή η φόρτωση των τηλεγραφημάτων: {error}"
 
@@ -339,3 +333,13 @@ msgstr "Διευθύνσεις ομάδων από το Home Assistant"
 
 msgid "Group addresses added to the project: {count}"
 msgstr "Διευθύνσεις ομάδων που προστέθηκαν στο έργο: {count}"
+
+msgid "The telegrams Home Assistant recorded in the last {hours} hour, in the Group Monitor in place of its entries."
+msgid_plural "The telegrams Home Assistant recorded in the last {hours} hours, in the Group Monitor in place of its entries."
+msgstr[0] "Τα τηλεγραφήματα που κατέγραψε το Home Assistant την τελευταία {hours} ώρα, στην Παρακολούθηση Ομάδων στη θέση των καταχωρίσεών της."
+msgstr[1] "Τα τηλεγραφήματα που κατέγραψε το Home Assistant τις τελευταίες {hours} ώρες, στην Παρακολούθηση Ομάδων στη θέση των καταχωρίσεών της."
+
+msgid "{count} telegram from Home Assistant in the Group Monitor"
+msgid_plural "{count} telegrams from Home Assistant in the Group Monitor"
+msgstr[0] "{count} τηλεγράφημα από το Home Assistant στην Παρακολούθηση Ομάδων"
+msgstr[1] "{count} τηλεγραφήματα από το Home Assistant στην Παρακολούθηση Ομάδων"

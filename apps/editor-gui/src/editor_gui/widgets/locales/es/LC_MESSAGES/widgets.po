@@ -163,9 +163,6 @@ msgstr "Introduzca un número entero."
 msgid "Enter a value from {minimum} to {maximum}."
 msgstr "Introduzca un valor de {minimum} a {maximum}."
 
-msgid "Enter at most {count} characters."
-msgstr "Introduzca como máximo {count} caracteres."
-
 msgid "Enter a value."
 msgstr "Introduzca un valor."
 
@@ -177,9 +174,6 @@ msgstr "No se puede introducir ningún valor para este tipo de datos."
 
 msgid "Edit…"
 msgstr "Editar…"
-
-msgid "The text may take at most {count} bytes."
-msgstr "El texto puede ocupar como máximo {count} bytes."
 
 msgid "Value {number}"
 msgstr "Valor {number}"
@@ -241,9 +235,6 @@ msgstr "Copiar {count} B"
 msgid "Go To:"
 msgstr "Ir a:"
 
-msgid "{count} difference(s)"
-msgstr "{count} diferencia(s)"
-
 msgid "no differences"
 msgstr "sin diferencias"
 
@@ -294,3 +285,18 @@ msgstr "Cortar"
 
 msgid "Paste"
 msgstr "Pegar"
+
+msgid "Enter at most {count} character."
+msgid_plural "Enter at most {count} characters."
+msgstr[0] "Introduzca como máximo {count} carácter."
+msgstr[1] "Introduzca como máximo {count} caracteres."
+
+msgid "The text may take at most {count} byte."
+msgid_plural "The text may take at most {count} bytes."
+msgstr[0] "El texto puede ocupar como máximo {count} byte."
+msgstr[1] "El texto puede ocupar como máximo {count} bytes."
+
+msgid "{count} difference"
+msgid_plural "{count} differences"
+msgstr[0] "{count} diferencia"
+msgstr[1] "{count} diferencias"

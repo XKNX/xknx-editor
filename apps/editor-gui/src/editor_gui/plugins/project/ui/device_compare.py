@@ -90,7 +90,11 @@ class DeviceComparePanel:
 
         result = self._diff(by_id[self._a_id], by_id[self._b_id])
         imgui.same_line()
-        imgui.text_disabled(S.COMPARE_SUMMARY.format(count=result.difference_count))
+        imgui.text_disabled(
+            S.COMPARE_SUMMARY(result.difference_count).format(
+                count=result.difference_count
+            )
+        )
         imgui.same_line()
         if imgui.button(S.COMPARE_COPY):
             imgui.set_clipboard_text(

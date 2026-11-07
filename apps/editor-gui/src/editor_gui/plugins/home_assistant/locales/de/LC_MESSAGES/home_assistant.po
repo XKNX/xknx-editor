@@ -97,12 +97,6 @@ msgstr "Datum unbekannt"
 msgid "Load Telegrams from Home Assistant"
 msgstr "Telegramme aus Home Assistant laden"
 
-msgid "The telegrams Home Assistant recorded in the last {hours} hours, in the Group Monitor in place of its entries."
-msgstr "Die Telegramme, die Home Assistant in den letzten {hours} Stunden aufgezeichnet hat, im Gruppenmonitor anstelle seiner Einträge."
-
-msgid "{count} telegrams from Home Assistant in the Group Monitor"
-msgstr "{count} Telegramme aus Home Assistant im Gruppenmonitor"
-
 msgid "The telegrams could not be loaded: {error}"
 msgstr "Die Telegramme konnten nicht geladen werden: {error}"
 
@@ -223,7 +217,6 @@ msgstr "Nicht übernommen: {error}"
 msgid "Entities created in Home Assistant: {count}"
 msgstr "In Home Assistant angelegte Entitäten: {count}"
 
-
 msgid "Its group addresses changed: {entity} gets the new ones"
 msgstr "Ihre Gruppenadressen haben sich geändert: {entity} erhält die neuen"
 
@@ -340,3 +333,13 @@ msgstr "Gruppenadressen aus Home Assistant"
 
 msgid "Group addresses added to the project: {count}"
 msgstr "Zum Projekt hinzugefügte Gruppenadressen: {count}"
+
+msgid "The telegrams Home Assistant recorded in the last {hours} hour, in the Group Monitor in place of its entries."
+msgid_plural "The telegrams Home Assistant recorded in the last {hours} hours, in the Group Monitor in place of its entries."
+msgstr[0] "Die Telegramme, die Home Assistant in der letzten {hours} Stunde aufgezeichnet hat, im Gruppenmonitor anstelle seiner Einträge."
+msgstr[1] "Die Telegramme, die Home Assistant in den letzten {hours} Stunden aufgezeichnet hat, im Gruppenmonitor anstelle seiner Einträge."
+
+msgid "{count} telegram from Home Assistant in the Group Monitor"
+msgid_plural "{count} telegrams from Home Assistant in the Group Monitor"
+msgstr[0] "{count} Telegramm aus Home Assistant im Gruppenmonitor"
+msgstr[1] "{count} Telegramme aus Home Assistant im Gruppenmonitor"

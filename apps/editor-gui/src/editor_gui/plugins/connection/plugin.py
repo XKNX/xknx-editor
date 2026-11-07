@@ -1750,7 +1750,8 @@ class ConnectionPlugin:
             elif self._progmode_scanned and not self._progmode_scanning:
                 imgui.text_disabled(S.PROGMODE_NONE)
             return
-        imgui.text_disabled(S.PROGMODE_COUNT.format(count=len(self._progmode_results)))
+        count = len(self._progmode_results)
+        imgui.text_disabled(S.PROGMODE_COUNT(count).format(count=count))
         imgui.spacing()
         for index, found in enumerate(self._progmode_results):
             self._render_progmode_device(index, found)

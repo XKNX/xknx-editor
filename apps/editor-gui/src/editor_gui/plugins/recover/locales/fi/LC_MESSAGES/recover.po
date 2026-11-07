@@ -43,9 +43,6 @@ msgstr "Vie tilannevedos"
 msgid "Verifying (re-reading and comparing)…"
 msgstr "Varmistetaan (luetaan uudelleen ja verrataan)…"
 
-msgid "%(count)d group address(es) have no sender or multiple senders."
-msgstr "Ryhmäosoitteita, joilla ei ole lähettäjää tai on useita lähettäjiä: %(count)d."
-
 msgid "Address"
 msgstr "Osoite"
 
@@ -82,17 +79,8 @@ msgstr "ryhmäkommunikoinnin taulukot"
 msgid "parameter memory"
 msgstr "parametrimuisti"
 
-msgid "Recovered %(devices)d device(s): %(group_addresses)d group addresses, %(links)d links, %(unknown)d parameter(s) not recoverable."
-msgstr "Palautettuja laitteita %(devices)d: ryhmäosoitteita %(group_addresses)d, linkkejä %(links)d, palautuskelvottomia parametreja %(unknown)d."
-
 msgid "Recovered"
 msgstr "Palautettu"
-
-msgid "Added %(count)d device(s) to the open project (%(target)s)."
-msgstr "Avoimeen projektiin (%(target)s) lisättiin laitteita: %(count)d."
-
-msgid "Created new project %(target)s with %(count)d device(s)."
-msgstr "Luotiin uusi projekti %(target)s, laitteita: %(count)d."
 
 msgid "Not connected to a KNX bus."
 msgstr "Ei yhteyttä KNX-väylään."
@@ -112,18 +100,11 @@ msgstr "Ei luettelossa: tuo sen tuote Luettelossa"
 msgid "Not programmed"
 msgstr "Ei ohjelmoitu"
 
-
 msgid "Already in the project, skipped"
 msgstr "Jo projektissa, ohitettu"
 
 msgid "Error"
 msgstr "Virhe"
-
-msgid "%d parameters could not be recovered"
-msgstr "Parametreja, joita ei voitu palauttaa: %d"
-
-msgid "%(count)d device(s) could not be added; the reason is in the Result column."
-msgstr "Laitteita ei voitu lisätä: %(count)d; syy näkyy sarakkeessa ”Tulos”."
 
 msgid "Recovered (incomplete)"
 msgstr "Palautettu (keskeneräinen)"
@@ -152,9 +133,6 @@ msgstr "Hakee valittujen keskeneräisten laitteiden asetukset uudelleen niistä 
 msgid "Searching %(address)s again  (%(done)d/%(total)d)…"
 msgstr "Haetaan uudelleen: %(address)s  (%(done)d/%(total)d)…"
 
-msgid "%(bytes)d byte(s) and %(objects)d group object(s) differ from the device"
-msgstr "%(bytes)d tavua ja %(objects)d ryhmäobjektia poikkeaa laitteesta"
-
 msgid "more search effort may help"
 msgstr "laajempi haku voi auttaa"
 
@@ -167,14 +145,73 @@ msgstr "Tulos"
 msgid "Not read yet"
 msgstr "Ei vielä luettu"
 
-msgid "%(group_addresses)d group addresses, %(links)d links, %(parameters)d parameters"
-msgstr "%(group_addresses)d ryhmäosoitetta, %(links)d linkkiä, %(parameters)d parametria"
-
-msgid "%(count)d unknown"
-msgstr "%(count)d tuntematonta"
-
 msgid "Verified"
 msgstr "Tarkistettu"
 
-msgid "Verify: %(bytes)d byte(s) differ"
-msgstr "Tarkistus: %(bytes)d tavua poikkeaa"
+msgid "%(count)d group address has no sender or multiple senders."
+msgid_plural "%(count)d group addresses have no sender or multiple senders."
+msgstr[0] "%(count)d ryhmäosoitteella ei ole lähettäjää tai sillä on useita lähettäjiä."
+msgstr[1] "%(count)d ryhmäosoitteella ei ole lähettäjää tai niillä on useita lähettäjiä."
+
+msgid "Recovered %(count)d device"
+msgid_plural "Recovered %(count)d devices"
+msgstr[0] "Palautettiin %(count)d laite"
+msgstr[1] "Palautettiin %(count)d laitetta"
+
+msgid "%(count)d group address"
+msgid_plural "%(count)d group addresses"
+msgstr[0] "%(count)d ryhmäosoite"
+msgstr[1] "%(count)d ryhmäosoitetta"
+
+msgid "%(count)d link"
+msgid_plural "%(count)d links"
+msgstr[0] "%(count)d linkki"
+msgstr[1] "%(count)d linkkiä"
+
+msgid "%(count)d parameter"
+msgid_plural "%(count)d parameters"
+msgstr[0] "%(count)d parametri"
+msgstr[1] "%(count)d parametria"
+
+msgid "%(count)d parameter cannot be recovered"
+msgid_plural "%(count)d parameters cannot be recovered"
+msgstr[0] "%(count)d parametria ei voi palauttaa"
+msgstr[1] "%(count)d parametria ei voi palauttaa"
+
+msgid "%(count)d parameter not found yet"
+msgid_plural "%(count)d parameters not found yet"
+msgstr[0] "%(count)d parametria ei ole vielä löytynyt"
+msgstr[1] "%(count)d parametria ei ole vielä löytynyt"
+
+msgid "Added %(count)d device to the open project (%(target)s)."
+msgid_plural "Added %(count)d devices to the open project (%(target)s)."
+msgstr[0] "Avoimeen projektiin (%(target)s) lisättiin %(count)d laite."
+msgstr[1] "Avoimeen projektiin (%(target)s) lisättiin %(count)d laitetta."
+
+msgid "Created new project %(target)s with %(count)d device."
+msgid_plural "Created new project %(target)s with %(count)d devices."
+msgstr[0] "Luotiin uusi projekti %(target)s, jossa on %(count)d laite."
+msgstr[1] "Luotiin uusi projekti %(target)s, jossa on %(count)d laitetta."
+
+msgid "%(count)d device could not be added; the reason is in the Result column."
+msgid_plural "%(count)d devices could not be added; the reason is in the Result column."
+msgstr[0] "%(count)d laitetta ei voitu lisätä; syy näkyy sarakkeessa ”Tulos”."
+msgstr[1] "%(count)d laitetta ei voitu lisätä; syy näkyy sarakkeessa ”Tulos”."
+
+msgid "Differs from the device: %(what)s"
+msgstr "Poikkeaa laitteesta: %(what)s"
+
+msgid "%(count)d byte"
+msgid_plural "%(count)d bytes"
+msgstr[0] "%(count)d tavu"
+msgstr[1] "%(count)d tavua"
+
+msgid "%(count)d group object"
+msgid_plural "%(count)d group objects"
+msgstr[0] "%(count)d ryhmäobjekti"
+msgstr[1] "%(count)d ryhmäobjektia"
+
+msgid "Verify: %(count)d byte differs"
+msgid_plural "Verify: %(count)d bytes differ"
+msgstr[0] "Tarkistus: %(count)d tavu poikkeaa"
+msgstr[1] "Tarkistus: %(count)d tavua poikkeaa"

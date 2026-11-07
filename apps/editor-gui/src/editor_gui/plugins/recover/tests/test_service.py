@@ -340,7 +340,7 @@ def test_a_failed_add_is_shown_and_can_be_retried(application) -> None:  # type:
     assert entry.error == "Device 'JU 1 S RF' is incompatible with line's medium type."
     assert entry.state == S.STATE_ERROR
     assert entry.error in service.entry_detail(entry)
-    assert service.apply_error == S.APPLY_FAILED % {"count": 1}
+    assert service.apply_error == S.APPLY_FAILED(1) % {"count": 1}
     assert entry.applied is False
 
     # Once the project accepts it, the next add tries it again.
@@ -448,7 +448,8 @@ def _incomplete_entry(application: Any) -> RecoverEntry:
 
 def test_an_incomplete_device_says_how_far_it_is_off(application) -> None:  # type: ignore[no-untyped-def]
     detail = RecoverService.entry_detail(_incomplete_entry(application))
-    assert S.DETAIL_INCOMPLETE % {"bytes": 3, "objects": 1} in detail
+    differs = ", ".join([S.BYTES(3) % {"count": 3}, S.GROUP_OBJECTS(1) % {"count": 1}])
+    assert S.DETAIL_INCOMPLETE % {"what": differs} in detail
     assert S.DETAIL_MORE_EFFORT in detail
     complete = RecoverService.entry_detail(_rf_entry(application))
     assert S.DETAIL_MORE_EFFORT not in complete
@@ -468,11 +469,19 @@ def test_what_was_read_is_summed_up(application) -> None:  # type: ignore[no-unt
     entry.verify_changed = 0
     detail = RecoverService.entry_detail(entry)
     assert detail.startswith(
-        S.DETAIL_READ % {"group_addresses": 0, "links": 0, "parameters": 0}
+        ", ".join(
+            [
+                S.GROUP_ADDRESSES(0) % {"count": 0},
+                S.LINKS(0) % {"count": 0},
+                S.PARAMETERS(0) % {"count": 0},
+            ]
+        )
     )
     assert S.DETAIL_VERIFIED in detail
     entry.verify_changed = 4
-    assert S.DETAIL_VERIFY_DIFFERS % {"bytes": 4} in RecoverService.entry_detail(entry)
+    assert S.DETAIL_VERIFY_DIFFERS(4) % {"count": 4} in RecoverService.entry_detail(
+        entry
+    )
 
 
 def test_search_again_replaces_the_device_it_added(
@@ -530,3 +539,28 @@ def test_search_again_replaces_the_device_it_added(
     assert cancels[0] is not None and not cancels[0]()
     service.stop()
     assert cancels[0]()
+
+
+def test_parameters_without_a_value_are_told_apart(application) -> None:  # type: ignore[no-untyped-def]
+    # Incomplete: the lossy one cannot be recovered, the other one is not found yet.
+    entry = _rf_entry(application)
+    assert entry.recovered is not None
+    entry.recovered = dataclasses.replace(
+        entry.recovered,
+        parameters=RecoveredParameters(
+            values={}, unknown=["P-1", "P-2"], lossy=["P-1"], differing_bytes=2
+        ),
+    )
+    detail = RecoverService.entry_detail(entry)
+    assert S.PARAMETERS_UNRECOVERABLE(1) % {"count": 1} in detail
+    assert S.PARAMETERS_NOT_FOUND(1) % {"count": 1} in detail
+    service = RecoverService(_FakeAPI(_FakeProject(refs=[])))  # type: ignore[arg-type]
+    service.entries = [entry]
+    totals = service.recovery_totals()
+    assert (totals["unrecoverable"], totals["not_found"]) == (1, 1)
+    summary = service.summary()
+    assert summary.startswith(S.RECOVERED_DEVICES(1) % {"count": 1})
+    assert S.PARAMETERS_NOT_FOUND(1) % {"count": 1} in summary
+    # English uses the singular for one and the plural otherwise.
+    assert S.LINKS(1) % {"count": 1} == "1 link"
+    assert S.LINKS(2) % {"count": 2} == "2 links"

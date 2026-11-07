@@ -106,9 +106,6 @@ msgstr "Binalar"
 msgid "+ {count} more"
 msgstr "+ {count} tane daha"
 
-msgid "{count} more devices outside the selection. Click to show them."
-msgstr "Seçimin dışında {count} cihaz daha var. Göstermek için tıklayın."
-
 msgid "{address}\n{senders} sending, {receivers} receiving"
 msgstr "{address}\n{senders} gönderen, {receivers} alıcı"
 
@@ -129,3 +126,7 @@ msgstr "Adres: {address}"
 
 msgid "Application: {application}"
 msgstr "Uygulama: {application}"
+
+msgid "{count} more device outside the selection. Click to show it."
+msgid_plural "{count} more devices outside the selection. Click to show them."
+msgstr[0] "Seçimin dışında {count} cihaz daha var. Göstermek için tıklayın."

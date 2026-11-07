@@ -157,9 +157,6 @@ msgstr "Fogadók"
 msgid "+ {count} more"
 msgstr "+ további {count}"
 
-msgid "{count} more devices outside the selection. Click to show them."
-msgstr "További készülékek a kijelölésen kívül: {count}. Kattintson a megjelenítésükhöz."
-
 msgid "{address}\n{senders} sending, {receivers} receiving"
 msgstr "{address}\nKüldők: {senders}, fogadók: {receivers}"
 
@@ -174,3 +171,7 @@ msgstr "Készülékek"
 
 msgid "Buildings"
 msgstr "Épületek"
+
+msgid "{count} more device outside the selection. Click to show it."
+msgid_plural "{count} more devices outside the selection. Click to show them."
+msgstr[0] "Még {count} készülék a kijelölésen kívül. Kattintson a megjelenítéshez."

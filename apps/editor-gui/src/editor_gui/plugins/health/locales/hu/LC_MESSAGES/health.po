@@ -16,20 +16,11 @@ msgstr "Nincs megnyitott projekt"
 msgid "No issues found"
 msgstr "Nem található probléma"
 
-msgid "{errors} errors, {warnings} warnings"
-msgstr "Hibák: {errors}, figyelmeztetések: {warnings}"
-
 msgid "{device}: no individual address"
 msgstr "{device}: nincs fizikai cím"
 
 msgid "Duplicate individual address {address} ({device})"
 msgstr "Ismétlődő fizikai cím: {address} ({device})"
-
-msgid "{count} device(s) skipped: application not in catalog"
-msgstr "Kihagyott készülékek: {count} (az alkalmazás nincs a katalógusban)"
-
-msgid "{device}: {count} unlinked group object(s)"
-msgstr "{device}: nem összekapcsolt kommunikációs objektumok: {count}"
 
 msgid "{address} {name}: no datapoint type"
 msgstr "{address} {name}: nincs adatponttípus"
@@ -37,5 +28,22 @@ msgstr "{address} {name}: nincs adatponttípus"
 msgid "{address} {name}: no sending group object"
 msgstr "{address} {name}: nincs küldő kommunikációs objektum"
 
-msgid "{address} {name}: {count} sending group objects"
-msgstr "{address} {name}: küldő kommunikációs objektumok: {count}"
+msgid "{count} error"
+msgid_plural "{count} errors"
+msgstr[0] "{count} hiba"
+
+msgid "{count} warning"
+msgid_plural "{count} warnings"
+msgstr[0] "{count} figyelmeztetés"
+
+msgid "{count} device skipped: application not in catalog"
+msgid_plural "{count} devices skipped: application not in catalog"
+msgstr[0] "{count} készülék kihagyva (az alkalmazás nincs a katalógusban)"
+
+msgid "{device}: {count} unlinked group object"
+msgid_plural "{device}: {count} unlinked group objects"
+msgstr[0] "{device}: {count} nem összekapcsolt kommunikációs objektum"
+
+msgid "{address} {name}: {count} sending group object"
+msgid_plural "{address} {name}: {count} sending group objects"
+msgstr[0] "{address} {name}: {count} küldő kommunikációs objektum"

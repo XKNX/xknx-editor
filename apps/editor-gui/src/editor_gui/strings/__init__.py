@@ -251,7 +251,14 @@ class BaseStrings:
 
     @property
     def STATUS_PROJECT(self) -> str:
-        return _("Project: {name}  ·  {devices} devices  ·  {gas} GAs")
+        # {devices}: STATUS_DEVICES, {gas}: STATUS_GROUP_ADDRESSES.
+        return _("Project: {name}  ·  {devices}  ·  {gas}")
+
+    def STATUS_DEVICES(self, count: int) -> str:
+        return _.plural("{count} device", "{count} devices", count)
+
+    def STATUS_GROUP_ADDRESSES(self, count: int) -> str:
+        return _.plural("{count} GA", "{count} GAs", count)
 
     @property
     def STATUS_NO_PROJECT(self) -> str:
@@ -680,9 +687,12 @@ class MenuStrings:
     def MENU_IMPORT_GA(self) -> str:
         return _("Import Group Addresses…")
 
-    @property
-    def GA_EXPORT_OK(self) -> str:
-        return _("Exported {count} group address(es)")
+    def GA_EXPORT_OK(self, count: int) -> str:
+        return _.plural(
+            "Exported {count} group address",
+            "Exported {count} group addresses",
+            count,
+        )
 
     @property
     def GA_EXPORT_OPTIONS_TITLE(self) -> str:
@@ -852,48 +862,60 @@ class MenuStrings:
     def IMPORT_NOTES_CLOSE(self) -> str:
         return _("Close")
 
-    @property
-    def IMPORT_NOTE_MULTIPLE_INSTALLATIONS(self) -> str:
-        return _(
-            "The original file had {count} installations. They were combined into one."
+    def IMPORT_NOTE_MULTIPLE_INSTALLATIONS(self, count: int) -> str:
+        return _.plural(
+            "The original file had {count} installation. It was combined into one.",
+            "The original file had {count} installations. They were combined into one.",
+            count,
         )
 
-    @property
-    def IMPORT_NOTE_UNASSIGNED_DEVICES(self) -> str:
-        return _(
-            "{count} device(s) aren't assigned to a line. They're kept in the project and "
-            "included on export, but can't be edited here yet."
+    def IMPORT_NOTE_UNASSIGNED_DEVICES(self, count: int) -> str:
+        return _.plural(
+            "{count} device isn't assigned to a line. It's kept in the project and "
+            "included on export, but can't be edited here yet.",
+            "{count} devices aren't assigned to a line. They're kept in the project "
+            "and included on export, but can't be edited here yet.",
+            count,
         )
 
-    @property
-    def IMPORT_NOTE_COM_OBJECT_TEXT_OVERRIDES(self) -> str:
-        return _(
-            "{count} group object(s) had an extra description in the original file. "
-            "The custom name and function are kept; only that description is not shown here."
+    def IMPORT_NOTE_COM_OBJECT_TEXT_OVERRIDES(self, count: int) -> str:
+        return _.plural(
+            "{count} group object had an extra description in the original file. The "
+            "custom name and function are kept; only that description is not shown "
+            "here.",
+            "{count} group objects had an extra description in the original file. The "
+            "custom name and function are kept; only that description is not shown "
+            "here.",
+            count,
         )
 
     @property
     def IMPORT_NOTE_EXAMPLES(self) -> str:
         return _("For example: {examples}")
 
-    @property
-    def IMPORT_NOTE_IP_CONFIG(self) -> str:
-        return _(
-            "{count} IP or function setting(s) from the original file are not used here."
+    def IMPORT_NOTE_IP_CONFIG(self, count: int) -> str:
+        return _.plural(
+            "{count} IP or function setting from the original file is not used here.",
+            "{count} IP or function settings from the original file are not used here.",
+            count,
         )
 
-    @property
-    def IMPORT_NOTE_MULTI_SEGMENT(self) -> str:
-        return _(
-            "{count} line(s) use several segments. In a schema 14/20 export they are "
-            "shown at line level only."
+    def IMPORT_NOTE_MULTI_SEGMENT(self, count: int) -> str:
+        return _.plural(
+            "{count} line uses several segments. In a schema 14/20 export it is shown "
+            "at line level only.",
+            "{count} lines use several segments. In a schema 14/20 export they are "
+            "shown at line level only.",
+            count,
         )
 
-    @property
-    def IMPORT_NOTE_DROPPED_DUPLICATE_LINES(self) -> str:
-        return _(
-            "{count} line(s) had the same address in different installations. "
-            "One of each was kept when combining."
+    def IMPORT_NOTE_DROPPED_DUPLICATE_LINES(self, count: int) -> str:
+        return _.plural(
+            "{count} line had the same address in different installations. One of each "
+            "was kept when combining.",
+            "{count} lines had the same address in different installations. One of "
+            "each was kept when combining.",
+            count,
         )
 
     @property
@@ -1167,21 +1189,33 @@ class MenuStrings:
     def EXPORT_FORMAT(self) -> str:
         return _("Format Version")
 
-    @property
-    def EXPORT_INCOMPAT_REMOVE(self) -> str:
-        return _("Remove device(s) & re-export")
+    def EXPORT_INCOMPAT_REMOVE(self, count: int) -> str:
+        return _.plural(
+            "Remove Device & Re-Export",
+            "Remove Devices & Re-Export",
+            count,
+        )
 
-    @property
-    def EXPORT_INCOMPAT_REMOVED(self) -> str:
-        return _("Removed {count} incompatible device(s); re-exporting")
+    def EXPORT_INCOMPAT_REMOVED(self, count: int) -> str:
+        return _.plural(
+            "Removed {count} incompatible device; re-exporting",
+            "Removed {count} incompatible devices; re-exporting",
+            count,
+        )
 
     @property
     def EXPORT_SUMMARY_INCOMPAT(self) -> str:
         return _(
             "This file will NOT import into the chosen ETS version: the product data of these "
             "manufacturers only exists for a newer ETS (e.g. an ETS 6 product in an ETS 5 "
-            "export), so ETS rejects the whole project. Remove the affected device(s) or export "
-            "for the newer ETS."
+            "export), so the whole project is rejected."
+        )
+
+    def EXPORT_SUMMARY_INCOMPAT_REMOVE(self, count: int) -> str:
+        return _.plural(
+            "Remove the affected device or export for the newer ETS.",
+            "Remove the affected devices or export for the newer ETS.",
+            count,
         )
 
     @property
@@ -1773,9 +1807,12 @@ class MenuStrings:
     def IMPORT_CANCELLED(self) -> str:
         return _("Import cancelled, nothing was imported")
 
-    @property
-    def KNXPROD_IMPORT_SUMMARY(self) -> str:
-        return _("Imported {count} product version(s) from {name}:")
+    def KNXPROD_IMPORT_SUMMARY(self, count: int) -> str:
+        return _.plural(
+            "Imported {count} product version from {name}:",
+            "Imported {count} product versions from {name}:",
+            count,
+        )
 
     @property
     def KNXPROD_DETAIL_SECURE(self) -> str:

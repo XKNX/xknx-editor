@@ -19,9 +19,6 @@ msgstr "Filtrovat zařízení…"
 msgid "Needs Attention Only"
 msgstr "Jen vyžadující pozornost"
 
-msgid "{count} device(s) not in catalog"
-msgstr "Zařízení mimo katalog: {count}"
-
 msgid "Address"
 msgstr "Adresa"
 
@@ -69,3 +66,9 @@ msgstr "Sériové číslo: {serial}"
 
 msgid "Last Download: {when}"
 msgstr "Poslední nahrání: {when}"
+
+msgid "{count} device not in catalog"
+msgid_plural "{count} devices not in catalog"
+msgstr[0] "{count} zařízení není v katalogu"
+msgstr[1] "{count} zařízení nejsou v katalogu"
+msgstr[2] "{count} zařízení není v katalogu"

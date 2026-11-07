@@ -49,9 +49,6 @@ msgstr "Izvozi posnetek stanja"
 msgid "Verifying (re-reading and comparing)…"
 msgstr "Preverjanje (ponovno branje in primerjava)…"
 
-msgid "%(count)d group address(es) have no sender or multiple senders."
-msgstr "Skupinski naslovi brez pošiljatelja ali z več pošiljatelji: %(count)d."
-
 msgid "Address"
 msgstr "Naslov"
 
@@ -88,17 +85,8 @@ msgstr "tabele skupinske komunikacije"
 msgid "parameter memory"
 msgstr "pomnilnik parametrov"
 
-msgid "Recovered %(devices)d device(s): %(group_addresses)d group addresses, %(links)d links, %(unknown)d parameter(s) not recoverable."
-msgstr "Obnovljene naprave: %(devices)d – skupinski naslovi: %(group_addresses)d, povezave: %(links)d, parametri, ki jih ni mogoče obnoviti: %(unknown)d."
-
 msgid "Recovered"
 msgstr "Obnovljeno"
-
-msgid "Added %(count)d device(s) to the open project (%(target)s)."
-msgstr "Naprave, dodane v odprti projekt (%(target)s): %(count)d."
-
-msgid "Created new project %(target)s with %(count)d device(s)."
-msgstr "Ustvarjen je nov projekt %(target)s (naprave: %(count)d)."
 
 msgid "Not connected to a KNX bus."
 msgstr "Ni povezave z vodilom KNX."
@@ -118,18 +106,11 @@ msgstr "Ni v katalogu: uvozite njegov izdelek v Katalogu"
 msgid "Not programmed"
 msgstr "Ni programirano"
 
-
 msgid "Error"
 msgstr "Napaka"
 
-msgid "%d parameters could not be recovered"
-msgstr "Parametri, ki jih ni bilo mogoče obnoviti: %d"
-
 msgid "Already in the project, skipped"
 msgstr "Že v projektu, preskočeno"
-
-msgid "%(count)d device(s) could not be added; the reason is in the Result column."
-msgstr "Naprav ni bilo mogoče dodati: %(count)d; razlog je v stolpcu »Rezultat«."
 
 msgid "Recovered (incomplete)"
 msgstr "Obnovljeno (nepopolno)"
@@ -158,9 +139,6 @@ msgstr "Znova poišče nastavitve izbranih nepopolnih naprav v podatkih, prebran
 msgid "Searching %(address)s again  (%(done)d/%(total)d)…"
 msgstr "Ponovno iskanje za %(address)s  (%(done)d/%(total)d)…"
 
-msgid "%(bytes)d byte(s) and %(objects)d group object(s) differ from the device"
-msgstr "%(bytes)d bajtov in %(objects)d komunikacijskih objektov se razlikuje od naprave"
-
 msgid "more search effort may help"
 msgstr "večji obseg iskanja lahko pomaga"
 
@@ -173,14 +151,99 @@ msgstr "Rezultat"
 msgid "Not read yet"
 msgstr "Še ni prebrano"
 
-msgid "%(group_addresses)d group addresses, %(links)d links, %(parameters)d parameters"
-msgstr "Skupinski naslovi: %(group_addresses)d, povezave: %(links)d, parametri: %(parameters)d"
-
-msgid "%(count)d unknown"
-msgstr "Neznano: %(count)d"
-
 msgid "Verified"
 msgstr "Preverjeno"
 
-msgid "Verify: %(bytes)d byte(s) differ"
-msgstr "Preverjanje: razlikuje se bajtov: %(bytes)d"
+msgid "%(count)d group address has no sender or multiple senders."
+msgid_plural "%(count)d group addresses have no sender or multiple senders."
+msgstr[0] "%(count)d skupinski naslov nima pošiljatelja ali ima več pošiljateljev."
+msgstr[1] "%(count)d skupinska naslova nimata pošiljatelja ali imata več pošiljateljev."
+msgstr[2] "%(count)d skupinski naslovi nimajo pošiljatelja ali imajo več pošiljateljev."
+msgstr[3] "%(count)d skupinskih naslovov nima pošiljatelja ali ima več pošiljateljev."
+
+msgid "Recovered %(count)d device"
+msgid_plural "Recovered %(count)d devices"
+msgstr[0] "Obnovljena je %(count)d naprava"
+msgstr[1] "Obnovljeni sta %(count)d napravi"
+msgstr[2] "Obnovljene so %(count)d naprave"
+msgstr[3] "Obnovljenih je %(count)d naprav"
+
+msgid "%(count)d group address"
+msgid_plural "%(count)d group addresses"
+msgstr[0] "%(count)d skupinski naslov"
+msgstr[1] "%(count)d skupinska naslova"
+msgstr[2] "%(count)d skupinski naslovi"
+msgstr[3] "%(count)d skupinskih naslovov"
+
+msgid "%(count)d link"
+msgid_plural "%(count)d links"
+msgstr[0] "%(count)d povezava"
+msgstr[1] "%(count)d povezavi"
+msgstr[2] "%(count)d povezave"
+msgstr[3] "%(count)d povezav"
+
+msgid "%(count)d parameter"
+msgid_plural "%(count)d parameters"
+msgstr[0] "%(count)d parameter"
+msgstr[1] "%(count)d parametra"
+msgstr[2] "%(count)d parametri"
+msgstr[3] "%(count)d parametrov"
+
+msgid "%(count)d parameter cannot be recovered"
+msgid_plural "%(count)d parameters cannot be recovered"
+msgstr[0] "%(count)d parametra ni mogoče obnoviti"
+msgstr[1] "%(count)d parametrov ni mogoče obnoviti"
+msgstr[2] "%(count)d parametrov ni mogoče obnoviti"
+msgstr[3] "%(count)d parametrov ni mogoče obnoviti"
+
+msgid "%(count)d parameter not found yet"
+msgid_plural "%(count)d parameters not found yet"
+msgstr[0] "%(count)d parameter še ni najden"
+msgstr[1] "%(count)d parametra še nista najdena"
+msgstr[2] "%(count)d parametri še niso najdeni"
+msgstr[3] "%(count)d parametrov še ni najdenih"
+
+msgid "Added %(count)d device to the open project (%(target)s)."
+msgid_plural "Added %(count)d devices to the open project (%(target)s)."
+msgstr[0] "V odprti projekt (%(target)s) je dodana %(count)d naprava."
+msgstr[1] "V odprti projekt (%(target)s) sta dodani %(count)d napravi."
+msgstr[2] "V odprti projekt (%(target)s) so dodane %(count)d naprave."
+msgstr[3] "V odprti projekt (%(target)s) je dodanih %(count)d naprav."
+
+msgid "Created new project %(target)s with %(count)d device."
+msgid_plural "Created new project %(target)s with %(count)d devices."
+msgstr[0] "Ustvarjen je nov projekt %(target)s, ki vsebuje %(count)d napravo."
+msgstr[1] "Ustvarjen je nov projekt %(target)s, ki vsebuje %(count)d napravi."
+msgstr[2] "Ustvarjen je nov projekt %(target)s, ki vsebuje %(count)d naprave."
+msgstr[3] "Ustvarjen je nov projekt %(target)s, ki vsebuje %(count)d naprav."
+
+msgid "%(count)d device could not be added; the reason is in the Result column."
+msgid_plural "%(count)d devices could not be added; the reason is in the Result column."
+msgstr[0] "%(count)d naprave ni bilo mogoče dodati; razlog je v stolpcu »Rezultat«."
+msgstr[1] "%(count)d naprav ni bilo mogoče dodati; razlog je v stolpcu »Rezultat«."
+msgstr[2] "%(count)d naprav ni bilo mogoče dodati; razlog je v stolpcu »Rezultat«."
+msgstr[3] "%(count)d naprav ni bilo mogoče dodati; razlog je v stolpcu »Rezultat«."
+
+msgid "Differs from the device: %(what)s"
+msgstr "Razlikuje se od naprave: %(what)s"
+
+msgid "%(count)d byte"
+msgid_plural "%(count)d bytes"
+msgstr[0] "%(count)d bajt"
+msgstr[1] "%(count)d bajta"
+msgstr[2] "%(count)d bajti"
+msgstr[3] "%(count)d bajtov"
+
+msgid "%(count)d group object"
+msgid_plural "%(count)d group objects"
+msgstr[0] "%(count)d komunikacijski objekt"
+msgstr[1] "%(count)d komunikacijska objekta"
+msgstr[2] "%(count)d komunikacijski objekti"
+msgstr[3] "%(count)d komunikacijskih objektov"
+
+msgid "Verify: %(count)d byte differs"
+msgid_plural "Verify: %(count)d bytes differ"
+msgstr[0] "Preverjanje: razlikuje se %(count)d bajt"
+msgstr[1] "Preverjanje: razlikujeta se %(count)d bajta"
+msgstr[2] "Preverjanje: razlikujejo se %(count)d bajti"
+msgstr[3] "Preverjanje: razlikuje se %(count)d bajtov"

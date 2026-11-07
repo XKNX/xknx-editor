@@ -16,20 +16,11 @@ msgstr "Ningún proyecto abierto"
 msgid "No issues found"
 msgstr "No se encontraron problemas"
 
-msgid "{errors} errors, {warnings} warnings"
-msgstr "{errors} errores, {warnings} advertencias"
-
 msgid "{device}: no individual address"
 msgstr "{device}: sin dirección individual"
 
 msgid "Duplicate individual address {address} ({device})"
 msgstr "Dirección individual duplicada {address} ({device})"
-
-msgid "{count} device(s) skipped: application not in catalog"
-msgstr "{count} dispositivo(s) omitido(s): aplicación no incluida en el catálogo"
-
-msgid "{device}: {count} unlinked group object(s)"
-msgstr "{device}: {count} objeto(s) de grupo sin enlazar"
 
 msgid "{address} {name}: no datapoint type"
 msgstr "{address} {name}: sin tipo de punto de datos"
@@ -37,5 +28,27 @@ msgstr "{address} {name}: sin tipo de punto de datos"
 msgid "{address} {name}: no sending group object"
 msgstr "{address} {name}: ningún objeto de grupo emisor"
 
-msgid "{address} {name}: {count} sending group objects"
-msgstr "{address} {name}: {count} objetos de grupo emisores"
+msgid "{count} error"
+msgid_plural "{count} errors"
+msgstr[0] "{count} error"
+msgstr[1] "{count} errores"
+
+msgid "{count} warning"
+msgid_plural "{count} warnings"
+msgstr[0] "{count} advertencia"
+msgstr[1] "{count} advertencias"
+
+msgid "{count} device skipped: application not in catalog"
+msgid_plural "{count} devices skipped: application not in catalog"
+msgstr[0] "{count} dispositivo omitido: aplicación no incluida en el catálogo"
+msgstr[1] "{count} dispositivos omitidos: aplicación no incluida en el catálogo"
+
+msgid "{device}: {count} unlinked group object"
+msgid_plural "{device}: {count} unlinked group objects"
+msgstr[0] "{device}: {count} objeto de grupo sin enlazar"
+msgstr[1] "{device}: {count} objetos de grupo sin enlazar"
+
+msgid "{address} {name}: {count} sending group object"
+msgid_plural "{address} {name}: {count} sending group objects"
+msgstr[0] "{address} {name}: {count} objeto de grupo emisor"
+msgstr[1] "{address} {name}: {count} objetos de grupo emisores"

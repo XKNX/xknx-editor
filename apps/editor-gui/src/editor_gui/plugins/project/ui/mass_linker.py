@@ -809,7 +809,7 @@ class MassLinkerPanel:
         if imgui.button(S.ML_CLEAR_ALL):
             rows.clear()
         imgui.end_disabled()
-        count = S.ML_COUNT.format(count=len(rows))
+        count = S.ML_COUNT(len(rows)).format(count=len(rows))
         _continue_row(imgui.calc_text_size(count).x)
         imgui.text_disabled(count)
         if self._notice is not None:
@@ -991,7 +991,7 @@ class MassLinkerPanel:
     def _do_link_ga_co(self, rows: list[_Row]) -> None:
         request = [(r.co, r.target_ga) for r in rows if r.target_ga is not None]
         count, errors = self._on_link_ga_co(request)
-        self._record(S.ML_LINK_GA_CO_DONE.format(count=count), errors)
+        self._record(S.ML_LINK_GA_CO_DONE(count).format(count=count), errors)
 
     def _do_link_co_co(self, suggestions: dict[int, tuple[str, str]]) -> None:
         request: list[tuple[ComObject, ComObject, str, str]] = []
@@ -1003,12 +1003,12 @@ class MassLinkerPanel:
             name = r.ga_name.strip() or sugg_name
             request.append((r.co, r.target_co, addr, name))
         count, errors = self._on_link_co_co(request)
-        self._record(S.ML_LINK_CO_CO_DONE.format(count=count), errors)
+        self._record(S.ML_LINK_CO_CO_DONE(count).format(count=count), errors)
 
     def _record(self, summary: str, errors: list[str]) -> None:
         text = summary
         if errors:
-            text += "  " + S.ML_ERRORS.format(count=len(errors))
+            text += "  " + S.ML_ERRORS(len(errors)).format(count=len(errors))
         self._log_entries.append(_LogEntry(datetime.now().strftime("%H:%M:%S"), text))
         self._result = self._log_entries[-1]
         self._result_errors = errors

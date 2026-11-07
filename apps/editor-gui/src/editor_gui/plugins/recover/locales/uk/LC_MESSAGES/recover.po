@@ -43,9 +43,6 @@ msgstr "Експортувати знімок"
 msgid "Verifying (re-reading and comparing)…"
 msgstr "Перевірка (повторне читання та порівняння)…"
 
-msgid "%(count)d group address(es) have no sender or multiple senders."
-msgstr "Групових адрес без відправника або з кількома відправниками: %(count)d."
-
 msgid "Address"
 msgstr "Адреса"
 
@@ -82,17 +79,8 @@ msgstr "таблиці групових зв'язків"
 msgid "parameter memory"
 msgstr "пам'ять параметрів"
 
-msgid "Recovered %(devices)d device(s): %(group_addresses)d group addresses, %(links)d links, %(unknown)d parameter(s) not recoverable."
-msgstr "Відновлено пристроїв: %(devices)d; групових адрес: %(group_addresses)d, зв'язків: %(links)d, невідновлюваних параметрів: %(unknown)d."
-
 msgid "Recovered"
 msgstr "Відновлено"
-
-msgid "Added %(count)d device(s) to the open project (%(target)s)."
-msgstr "Додано пристроїв до відкритого проєкту (%(target)s): %(count)d."
-
-msgid "Created new project %(target)s with %(count)d device(s)."
-msgstr "Створено новий проєкт %(target)s; пристроїв: %(count)d."
 
 msgid "Not connected to a KNX bus."
 msgstr "Немає з'єднання з шиною KNX."
@@ -112,18 +100,11 @@ msgstr "Немає в каталозі: імпортуйте його проду
 msgid "Not programmed"
 msgstr "Не запрограмовано"
 
-
 msgid "Already in the project, skipped"
 msgstr "Уже в проєкті, пропущено"
 
 msgid "Error"
 msgstr "Помилка"
-
-msgid "%d parameters could not be recovered"
-msgstr "Не вдалося відновити параметрів: %d"
-
-msgid "%(count)d device(s) could not be added; the reason is in the Result column."
-msgstr "Не вдалося додати пристроїв: %(count)d; причину наведено в стовпці «Результат»."
 
 msgid "Recovered (incomplete)"
 msgstr "Відновлено (не повністю)"
@@ -152,9 +133,6 @@ msgstr "Повторно шукає параметри вибраних непо
 msgid "Searching %(address)s again  (%(done)d/%(total)d)…"
 msgstr "Повторний пошук для %(address)s  (%(done)d/%(total)d)…"
 
-msgid "%(bytes)d byte(s) and %(objects)d group object(s) differ from the device"
-msgstr "%(bytes)d байт і %(objects)d групових об'єктів відрізняються від пристрою"
-
 msgid "more search effort may help"
 msgstr "більший обсяг пошуку може допомогти"
 
@@ -167,14 +145,86 @@ msgstr "Результат"
 msgid "Not read yet"
 msgstr "Ще не зчитано"
 
-msgid "%(group_addresses)d group addresses, %(links)d links, %(parameters)d parameters"
-msgstr "Групових адрес: %(group_addresses)d, зв'язків: %(links)d, параметрів: %(parameters)d"
-
-msgid "%(count)d unknown"
-msgstr "Невідомо: %(count)d"
-
 msgid "Verified"
 msgstr "Перевірено"
 
-msgid "Verify: %(bytes)d byte(s) differ"
-msgstr "Перевірка: відрізняється байтів: %(bytes)d"
+msgid "%(count)d group address has no sender or multiple senders."
+msgid_plural "%(count)d group addresses have no sender or multiple senders."
+msgstr[0] "%(count)d групова адреса не має відправника або має кілька відправників."
+msgstr[1] "%(count)d групові адреси не мають відправника або мають кілька відправників."
+msgstr[2] "%(count)d групових адрес не мають відправника або мають кілька відправників."
+
+msgid "Recovered %(count)d device"
+msgid_plural "Recovered %(count)d devices"
+msgstr[0] "Відновлено %(count)d пристрій"
+msgstr[1] "Відновлено %(count)d пристрої"
+msgstr[2] "Відновлено %(count)d пристроїв"
+
+msgid "%(count)d group address"
+msgid_plural "%(count)d group addresses"
+msgstr[0] "%(count)d групова адреса"
+msgstr[1] "%(count)d групові адреси"
+msgstr[2] "%(count)d групових адрес"
+
+msgid "%(count)d link"
+msgid_plural "%(count)d links"
+msgstr[0] "%(count)d зв'язок"
+msgstr[1] "%(count)d зв'язки"
+msgstr[2] "%(count)d зв'язків"
+
+msgid "%(count)d parameter"
+msgid_plural "%(count)d parameters"
+msgstr[0] "%(count)d параметр"
+msgstr[1] "%(count)d параметри"
+msgstr[2] "%(count)d параметрів"
+
+msgid "%(count)d parameter cannot be recovered"
+msgid_plural "%(count)d parameters cannot be recovered"
+msgstr[0] "%(count)d параметр неможливо відновити"
+msgstr[1] "%(count)d параметри неможливо відновити"
+msgstr[2] "%(count)d параметрів неможливо відновити"
+
+msgid "%(count)d parameter not found yet"
+msgid_plural "%(count)d parameters not found yet"
+msgstr[0] "%(count)d параметр ще не знайдено"
+msgstr[1] "%(count)d параметри ще не знайдено"
+msgstr[2] "%(count)d параметрів ще не знайдено"
+
+msgid "Added %(count)d device to the open project (%(target)s)."
+msgid_plural "Added %(count)d devices to the open project (%(target)s)."
+msgstr[0] "До відкритого проєкту (%(target)s) додано %(count)d пристрій."
+msgstr[1] "До відкритого проєкту (%(target)s) додано %(count)d пристрої."
+msgstr[2] "До відкритого проєкту (%(target)s) додано %(count)d пристроїв."
+
+msgid "Created new project %(target)s with %(count)d device."
+msgid_plural "Created new project %(target)s with %(count)d devices."
+msgstr[0] "Створено новий проєкт %(target)s з %(count)d пристроєм."
+msgstr[1] "Створено новий проєкт %(target)s з %(count)d пристроями."
+msgstr[2] "Створено новий проєкт %(target)s з %(count)d пристроями."
+
+msgid "%(count)d device could not be added; the reason is in the Result column."
+msgid_plural "%(count)d devices could not be added; the reason is in the Result column."
+msgstr[0] "Не вдалося додати %(count)d пристрій; причину наведено в стовпці «Результат»."
+msgstr[1] "Не вдалося додати %(count)d пристрої; причину наведено в стовпці «Результат»."
+msgstr[2] "Не вдалося додати %(count)d пристроїв; причину наведено в стовпці «Результат»."
+
+msgid "Differs from the device: %(what)s"
+msgstr "Відрізняється від пристрою: %(what)s"
+
+msgid "%(count)d byte"
+msgid_plural "%(count)d bytes"
+msgstr[0] "%(count)d байт"
+msgstr[1] "%(count)d байти"
+msgstr[2] "%(count)d байтів"
+
+msgid "%(count)d group object"
+msgid_plural "%(count)d group objects"
+msgstr[0] "%(count)d груповий об'єкт"
+msgstr[1] "%(count)d групові об'єкти"
+msgstr[2] "%(count)d групових об'єктів"
+
+msgid "Verify: %(count)d byte differs"
+msgid_plural "Verify: %(count)d bytes differ"
+msgstr[0] "Перевірка: відрізняється %(count)d байт"
+msgstr[1] "Перевірка: відрізняються %(count)d байти"
+msgstr[2] "Перевірка: відрізняються %(count)d байтів"

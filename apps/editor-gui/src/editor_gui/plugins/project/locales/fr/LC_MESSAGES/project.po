@@ -118,12 +118,6 @@ msgstr "Déplacer vers le haut"
 msgid "Move Down"
 msgstr "Déplacer vers le bas"
 
-msgid "{count} items"
-msgstr "{count} éléments"
-
-msgid "{count} pairs"
-msgstr "{count} paires"
-
 msgid "{count} unpaired (ignored)"
 msgstr "{count} sans paire (ignorés)"
 
@@ -147,15 +141,6 @@ msgstr "Ajouter adresses de groupe"
 
 msgid "Mass Linker Result"
 msgstr "Résultat de la liaison en masse"
-
-msgid "Linked {count} object(s) to group addresses"
-msgstr "{count} objet(s) lié(s) à des adresses de groupe"
-
-msgid "Linked {count} object pair(s) via new group addresses"
-msgstr "{count} paire(s) d'objets liée(s) via de nouvelles adresses de groupe"
-
-msgid "{count} error(s)"
-msgstr "{count} erreur(s)"
 
 msgid "Clear All"
 msgstr "Tout effacer"
@@ -277,12 +262,6 @@ msgstr "Remplacer par (modèle)"
 msgid "Group Object Mapping (by Number)"
 msgstr "Correspondance des objets de groupe (par numéro)"
 
-msgid "{count} object(s) will be re-mapped"
-msgstr "{count} objet(s) seront réassocié(s)"
-
-msgid "Replaced; re-mapped {count} group object(s)"
-msgstr "Remplacé ; {count} objet(s) de groupe réassocié(s)"
-
 msgid "Shift Addresses"
 msgstr "Décaler les adresses"
 
@@ -312,9 +291,6 @@ msgstr "Comparé avec {name} :"
 
 msgid "No differences in devices or group addresses."
 msgstr "Aucune différence dans les participants ou les adresses de groupe."
-
-msgid "{count} difference(s)"
-msgstr "{count} différence(s)"
 
 msgid "Add Device Certificate"
 msgstr "Ajouter le certificat du participant"
@@ -397,9 +373,6 @@ msgstr "Nom de la copie : {name}"
 msgid "Copy"
 msgstr "Copier"
 
-msgid "Created {count} copy/copies"
-msgstr "{count} copie(s) créée(s)"
-
 msgid "Shifts the device part of each individual address. Group addresses are not shifted."
 msgstr "Décale la partie participant de chaque adresse individuelle. Les adresses de groupe ne sont pas décalées."
 
@@ -421,12 +394,6 @@ msgstr "{sel} sur {total} sélectionnés"
 msgid "(out of range)"
 msgstr "(hors plage)"
 
-msgid "{count} address(es) will change"
-msgstr "{count} adresse(s) vont changer"
-
-msgid "Shifted {count} address(es)"
-msgstr "{count} adresse(s) décalée(s)"
-
 msgid "Individual Addresses"
 msgstr "Adresses individuelles"
 
@@ -441,9 +408,6 @@ msgstr "Renumérote les adresses de groupe en ajoutant un décalage à leur vale
 
 msgid "The offset is added to the raw 16-bit value, so it may change the main/middle group as addresses cross a boundary."
 msgstr "Le décalage est ajouté à la valeur brute de 16 bits ; le groupe principal/médian peut donc changer lorsque des adresses franchissent une limite."
-
-msgid "Shifted {count} group address(es)"
-msgstr "{count} adresse(s) de groupe décalée(s)"
 
 msgid "Export CSV…"
 msgstr "Exporter en CSV…"
@@ -496,9 +460,6 @@ msgstr "Sélectionnez au moins un champ."
 msgid "No topology issues found."
 msgstr "Aucun problème de topologie trouvé."
 
-msgid "{count} issue(s)"
-msgstr "{count} problème(s)"
-
 msgid "Click a finding to jump to the device."
 msgstr "Cliquez sur un résultat pour accéder au participant."
 
@@ -516,6 +477,7 @@ msgstr "Lecture des projets…"
 
 msgid "Comparing devices: {done} of {total}"
 msgstr "Comparaison des appareils : {done} sur {total}"
+
 msgid "File"
 msgstr "Fichier"
 
@@ -630,9 +592,6 @@ msgstr "Certificat du projet"
 msgid "none"
 msgstr "aucun"
 
-msgid "present ({size} bytes)"
-msgstr "présent ({size} octets)"
-
 msgid "Password"
 msgstr "Mot de passe"
 
@@ -692,7 +651,6 @@ msgstr "ETS chiffre les commentaires du journal. Extrayez la clé de déchiffrem
 
 msgid "Comments are encrypted"
 msgstr "Les commentaires sont chiffrés"
-
 
 msgid "Extracting key…"
 msgstr "Extraction de la clé…"
@@ -1003,14 +961,8 @@ msgstr "Cliquez pour copier"
 msgid "Filter parameters…"
 msgstr "Filtrer les paramètres…"
 
-msgid "Apply Changes to All {count} Identical Devices"
-msgstr "Appliquer les modifications aux {count} participants identiques"
-
 msgid "Apply Changes to All Channels"
 msgstr "Appliquer les modifications à tous les canaux"
-
-msgid "Editing {count} devices — edits apply to all, diverging values show <differs>"
-msgstr "Édition de {count} participants — les modifications s'appliquent à tous, les valeurs divergentes affichent <différent>"
 
 msgid "Hardware"
 msgstr "Matériel"
@@ -1048,9 +1000,6 @@ msgstr "Effacer la comparaison"
 msgid "Memory Dumps (*.bin)"
 msgstr "Vidages mémoire (*.bin)"
 
-msgid "{count} bytes"
-msgstr "{count} octets"
-
 msgid "No memory segments."
 msgstr "Aucun segment de mémoire."
 
@@ -1077,9 +1026,6 @@ msgstr "Exécution impossible : aucune connexion KNX. Connectez-vous à une pas
 
 msgid "Match: the generated image is identical to what is on the device"
 msgstr "Concordance : l'image générée est identique au contenu du participant"
-
-msgid "Mismatch: {bytes} byte(s) differ from the device in {locations} location(s)"
-msgstr "Divergence : {bytes} octet(s) diffèrent du participant à {locations} emplacement(s)"
 
 msgid "{matched} matched, {changed} would change"
 msgstr "{matched} concordants, {changed} seraient modifiés"
@@ -1111,9 +1057,6 @@ msgstr "géré par le participant"
 msgid "System byte the device sets itself at runtime (e.g. a download detection byte reset by the application after a download). A difference here is expected and does not indicate a bad download."
 msgstr "Octet système que le participant définit lui-même à l'exécution (p. ex. un octet de détection de téléchargement réinitialisé par l'application après un téléchargement). Une différence ici est attendue et n'indique pas un téléchargement défectueux."
 
-msgid "plus {bytes} device-managed runtime byte(s) (expected, benign)"
-msgstr "plus {bytes} octet(s) d'exécution géré(s) par le participant (attendu, sans incidence)"
-
 msgid "No configured differences: the device already carries this configuration. The differences below are benign (see notes)."
 msgstr "Aucune différence configurée : le participant possède déjà cette configuration. Les différences ci-dessous sont sans incidence (voir les remarques)."
 
@@ -1122,9 +1065,6 @@ msgstr "définit la valeur par défaut"
 
 msgid "This byte is written for a neighbouring parameter; the differing bit is not driven by any active parameter and is only reset to the application default. The device holds an older value (e.g. from a previous configuration or mode) that programming will normalise. Benign."
 msgstr "Cet octet est écrit pour un paramètre voisin ; le bit divergent n'est piloté par aucun paramètre actif et est seulement réinitialisé à la valeur par défaut de l'application. Le participant contient une valeur plus ancienne (p. ex. d'une configuration ou d'un mode précédent) que la programmation normalisera. Sans incidence."
-
-msgid "plus {bytes} byte(s) reset to the application default (the device holds an older value; benign, will be normalised on programming)"
-msgstr "plus {bytes} octet(s) réinitialisé(s) à la valeur par défaut de l'application (le participant contient une valeur plus ancienne ; sans incidence, sera normalisé lors de la programmation)"
 
 msgid "Export Ist/Soll…"
 msgstr "Exporter réel/attendu…"
@@ -1180,9 +1120,6 @@ msgstr "Différences uniquement"
 msgid "Filter devices by address, name or description…"
 msgstr "Filtrer les participants par adresse, nom ou description…"
 
-msgid "{count} differences"
-msgstr "{count} différences"
-
 msgid "Parameters"
 msgstr "Paramètres"
 
@@ -1206,9 +1143,6 @@ msgstr "Coller la configuration"
 
 msgid "Paste configuration onto '{name}':"
 msgstr "Coller la configuration dans « {name} » :"
-
-msgid "Paste configuration onto {count} selected devices:"
-msgstr "Coller la configuration dans les {count} participants sélectionnés :"
 
 msgid "Duplicate '{name}':"
 msgstr "Dupliquer « {name} » :"
@@ -1603,12 +1537,6 @@ msgstr "Importer Adresses de Groupe"
 msgid "Group Address Files (XML, CSV)"
 msgstr "Fichiers d'adresses de groupe (XML, CSV)"
 
-msgid "{added} group addresses added, {updated} updated."
-msgstr "{added} adresses de groupe ajoutées, {updated} mises à jour."
-
-msgid "{count} group addresses could not be placed in a group."
-msgstr "{count} adresses de groupe n'ont pu être placées dans aucun groupe."
-
 msgid "The file could not be imported: {error}"
 msgstr "Le fichier n'a pas pu être importé : {error}"
 
@@ -1763,7 +1691,7 @@ msgid "programming the scenes"
 msgstr "programmation des scènes"
 
 msgid "{count} found"
-msgstr "{count} trouvé(s)"
+msgstr "Trouvés : {count}"
 
 msgid "Use 'Scan Bus' to read the DALI bus."
 msgstr "Utilisez « Scanner le bus » pour lire le bus DALI."
@@ -1788,9 +1716,6 @@ msgstr "Écrire l'affectation des groupes sur le bus DALI. Cela applique les gro
 
 msgid "Write the scene values to the DALI bus. Continue?"
 msgstr "Écrire les valeurs de scène sur le bus DALI. Continuer ?"
-
-msgid "{count} ECG(s) present"
-msgstr "{count} ballast(s) présent(s)"
 
 msgid "Group"
 msgstr "Groupe"
@@ -1833,9 +1758,6 @@ msgstr "Individuel"
 
 msgid "Unassigned"
 msgstr "Non affecté"
-
-msgid "Procedure {number}  ({count} steps)"
-msgstr "Procédure {number}  ({count} étapes)"
 
 msgid "Kind"
 msgstr "Type"
@@ -2202,9 +2124,6 @@ msgstr "L'application n'a pas de paramètres statiques."
 
 msgid "This gateway's commissioning protocol has not been verified against a capture; writes may misbehave. Proceed with care."
 msgstr "Le protocole de mise en service de cette passerelle n'a pas été vérifié par rapport à une capture ; les écritures peuvent mal se comporter. Procédez avec précaution."
-
-msgid "{count} ECG(s) present on line {line}"
-msgstr "{count} ECG présents sur la ligne {line}"
 
 msgid "Program DCA State"
 msgstr "Programmer l'état DCA"
@@ -2677,9 +2596,6 @@ msgstr "Le groupe n'a pas d'adresse de groupe libre."
 msgid "The main group has no free middle group."
 msgstr "Le groupe principal n'a pas de groupe intermédiaire libre."
 
-msgid "{count} devices"
-msgstr "{count} participants"
-
 msgid "The main segment cannot be moved."
 msgstr "Le segment principal ne peut pas être déplacé."
 
@@ -2752,33 +2668,6 @@ msgstr "Il n'y a pas de groupe pour les nouvelles adresses de groupe."
 msgid "Copied '{name}' to '{target}'."
 msgstr "'{name}' copié vers '{target}'."
 
-msgid "Copied {count} devices to '{target}'."
-msgstr "{count} participants copiés vers '{target}'."
-
-msgid "Copied {count} building parts to '{target}'."
-msgstr "{count} parties de bâtiment copiées vers '{target}'."
-
-msgid "Copied {count} trades to '{target}'."
-msgstr "{count} métiers copiés vers '{target}'."
-
-msgid "Copied {count} functions to '{target}'."
-msgstr "{count} fonctions copiées vers '{target}'."
-
-msgid "Copied {count} group addresses to '{target}'."
-msgstr "{count} adresses de groupe copiées vers '{target}'."
-
-msgid "Copied {count} middle groups to '{target}'."
-msgstr "{count} groupes intermédiaires copiés vers '{target}'."
-
-msgid "Copied {count} main groups to '{target}'."
-msgstr "{count} groupes principaux copiés vers '{target}'."
-
-msgid "Copied {count} lines to '{target}'."
-msgstr "{count} lignes copiées vers '{target}'."
-
-msgid "Copied {count} segments to '{target}'."
-msgstr "{count} segments copiés vers '{target}'."
-
 msgid "Paste Special…"
 msgstr "Collage spécial…"
 
@@ -2821,30 +2710,6 @@ msgstr "La limite d'ajout a été atteinte."
 msgid "Cannot add any line to the area {area} because of topology constraints. Please check the medium type of the backbone and main lines."
 msgstr "Impossible d'ajouter une ligne à la zone {area} en raison des contraintes de topologie. Vérifiez le type de média de la ligne principale et de la ligne de zone."
 
-msgid "Added {count} areas to '{target}'."
-msgstr "{count} zones ajoutées à '{target}'."
-
-msgid "Added {count} lines to '{target}'."
-msgstr "{count} lignes ajoutées à '{target}'."
-
-msgid "Added {count} segments to '{target}'."
-msgstr "{count} segments ajoutés à '{target}'."
-
-msgid "Added {count} building parts to '{target}'."
-msgstr "{count} parties de bâtiment ajoutées à '{target}'."
-
-msgid "Added {count} trades to '{target}'."
-msgstr "{count} corps de métier ajoutés à '{target}'."
-
-msgid "Added {count} main groups to '{target}'."
-msgstr "{count} groupes principaux ajoutés à '{target}'."
-
-msgid "Added {count} middle groups to '{target}'."
-msgstr "{count} groupes intermédiaires ajoutés à '{target}'."
-
-msgid "Added {count} group addresses to '{target}'."
-msgstr "{count} adresses de groupe ajoutées à '{target}'."
-
 msgid "Add Main Groups…"
 msgstr "Ajouter des groupes principaux…"
 
@@ -2884,12 +2749,6 @@ msgstr "Ajouter des fonctions"
 msgid "New function"
 msgstr "Nouvelle fonction"
 
-msgid "Added {count} functions to '{target}'."
-msgstr "{count} fonctions ajoutées à '{target}'."
-
-msgid "Added {count} group ranges to '{target}'."
-msgstr "{count} plages d'adresses de groupe ajoutées à '{target}'."
-
 msgid "Add Group Ranges…"
 msgstr "Ajouter des plages d'adresses de groupe…"
 
@@ -2923,9 +2782,6 @@ msgstr "Une plage d'adresses de groupe ne peut pas aller dans elle-même ni dans
 msgid "A group address of the range is already in use there."
 msgstr "Une adresse de groupe de la plage y est déjà utilisée."
 
-msgid "Copied {count} group ranges to '{target}'."
-msgstr "{count} plages d'adresses de groupe copiées vers '{target}'."
-
 msgid "Add Areas…"
 msgstr "Ajouter des zones…"
 
@@ -2940,12 +2796,6 @@ msgstr "Copier l'adresse de groupe"
 
 msgid "Existing Devices…"
 msgstr "Participants existants…"
-
-msgid "Delete the {count} selected devices? Their group objects and group-address links are removed and their individual addresses are freed. This can be undone."
-msgstr "Supprimer les {count} participants sélectionnés ? Leurs objets de groupe et leurs liaisons aux adresses de groupe sont supprimés et leurs adresses individuelles sont libérées. Cette action peut être annulée."
-
-msgid "Remove {count} devices"
-msgstr "Enlever {count} participants"
 
 msgid "Delete Devices"
 msgstr "Supprimer les participants"
@@ -3055,9 +2905,6 @@ msgstr "Load LVS Project (.prj)…"
 msgid "LVS project (*.prj)"
 msgstr "LVS project (*.prj)"
 
-msgid "Imported the display configuration into {count} device(s)."
-msgstr "Imported the display configuration into {count} device(s)."
-
 msgid "The LVS project could not be imported: {error}"
 msgstr "The LVS project could not be imported: {error}"
 
@@ -3069,3 +2916,266 @@ msgstr "Exported the display configuration."
 
 msgid "The LVS project could not be exported: {error}"
 msgstr "The LVS project could not be exported: {error}"
+
+msgid "Copied {count} device to '{target}'."
+msgid_plural "Copied {count} devices to '{target}'."
+msgstr[0] "{count} participant copié vers '{target}'."
+msgstr[1] "{count} participants copiés vers '{target}'."
+
+msgid "Copied {count} building part to '{target}'."
+msgid_plural "Copied {count} building parts to '{target}'."
+msgstr[0] "{count} partie de bâtiment copiée vers '{target}'."
+msgstr[1] "{count} parties de bâtiment copiées vers '{target}'."
+
+msgid "Copied {count} trade to '{target}'."
+msgid_plural "Copied {count} trades to '{target}'."
+msgstr[0] "{count} métier copié vers '{target}'."
+msgstr[1] "{count} métiers copiés vers '{target}'."
+
+msgid "Copied {count} function to '{target}'."
+msgid_plural "Copied {count} functions to '{target}'."
+msgstr[0] "{count} fonction copiée vers '{target}'."
+msgstr[1] "{count} fonctions copiées vers '{target}'."
+
+msgid "Copied {count} group address to '{target}'."
+msgid_plural "Copied {count} group addresses to '{target}'."
+msgstr[0] "{count} adresse de groupe copiée vers '{target}'."
+msgstr[1] "{count} adresses de groupe copiées vers '{target}'."
+
+msgid "Copied {count} middle group to '{target}'."
+msgid_plural "Copied {count} middle groups to '{target}'."
+msgstr[0] "{count} groupe intermédiaire copié vers '{target}'."
+msgstr[1] "{count} groupes intermédiaires copiés vers '{target}'."
+
+msgid "Copied {count} main group to '{target}'."
+msgid_plural "Copied {count} main groups to '{target}'."
+msgstr[0] "{count} groupe principal copié vers '{target}'."
+msgstr[1] "{count} groupes principaux copiés vers '{target}'."
+
+msgid "Copied {count} group range to '{target}'."
+msgid_plural "Copied {count} group ranges to '{target}'."
+msgstr[0] "{count} plage d'adresses de groupe copiée vers '{target}'."
+msgstr[1] "{count} plages d'adresses de groupe copiées vers '{target}'."
+
+msgid "Copied {count} line to '{target}'."
+msgid_plural "Copied {count} lines to '{target}'."
+msgstr[0] "{count} ligne copiée vers '{target}'."
+msgstr[1] "{count} lignes copiées vers '{target}'."
+
+msgid "Copied {count} segment to '{target}'."
+msgid_plural "Copied {count} segments to '{target}'."
+msgstr[0] "{count} segment copié vers '{target}'."
+msgstr[1] "{count} segments copiés vers '{target}'."
+
+msgid "Added {count} area to '{target}'."
+msgid_plural "Added {count} areas to '{target}'."
+msgstr[0] "{count} zone ajoutée à '{target}'."
+msgstr[1] "{count} zones ajoutées à '{target}'."
+
+msgid "Added {count} line to '{target}'."
+msgid_plural "Added {count} lines to '{target}'."
+msgstr[0] "{count} ligne ajoutée à '{target}'."
+msgstr[1] "{count} lignes ajoutées à '{target}'."
+
+msgid "Added {count} segment to '{target}'."
+msgid_plural "Added {count} segments to '{target}'."
+msgstr[0] "{count} segment ajouté à '{target}'."
+msgstr[1] "{count} segments ajoutés à '{target}'."
+
+msgid "Added {count} building part to '{target}'."
+msgid_plural "Added {count} building parts to '{target}'."
+msgstr[0] "{count} partie de bâtiment ajoutée à '{target}'."
+msgstr[1] "{count} parties de bâtiment ajoutées à '{target}'."
+
+msgid "Added {count} trade to '{target}'."
+msgid_plural "Added {count} trades to '{target}'."
+msgstr[0] "{count} corps de métier ajouté à '{target}'."
+msgstr[1] "{count} corps de métier ajoutés à '{target}'."
+
+msgid "Added {count} function to '{target}'."
+msgid_plural "Added {count} functions to '{target}'."
+msgstr[0] "{count} fonction ajoutée à '{target}'."
+msgstr[1] "{count} fonctions ajoutées à '{target}'."
+
+msgid "Added {count} group range to '{target}'."
+msgid_plural "Added {count} group ranges to '{target}'."
+msgstr[0] "{count} plage d'adresses de groupe ajoutée à '{target}'."
+msgstr[1] "{count} plages d'adresses de groupe ajoutées à '{target}'."
+
+msgid "Added {count} main group to '{target}'."
+msgid_plural "Added {count} main groups to '{target}'."
+msgstr[0] "{count} groupe principal ajouté à '{target}'."
+msgstr[1] "{count} groupes principaux ajoutés à '{target}'."
+
+msgid "Added {count} middle group to '{target}'."
+msgid_plural "Added {count} middle groups to '{target}'."
+msgstr[0] "{count} groupe intermédiaire ajouté à '{target}'."
+msgstr[1] "{count} groupes intermédiaires ajoutés à '{target}'."
+
+msgid "Added {count} group address to '{target}'."
+msgid_plural "Added {count} group addresses to '{target}'."
+msgstr[0] "{count} adresse de groupe ajoutée à '{target}'."
+msgstr[1] "{count} adresses de groupe ajoutées à '{target}'."
+
+msgid "Remove {count} device"
+msgid_plural "Remove {count} devices"
+msgstr[0] "Enlever {count} participant"
+msgstr[1] "Enlever {count} participants"
+
+msgid "{count} device"
+msgid_plural "{count} devices"
+msgstr[0] "{count} participant"
+msgstr[1] "{count} participants"
+
+msgid "{count} item"
+msgid_plural "{count} items"
+msgstr[0] "{count} élément"
+msgstr[1] "{count} éléments"
+
+msgid "{count} pair"
+msgid_plural "{count} pairs"
+msgstr[0] "{count} paire"
+msgstr[1] "{count} paires"
+
+msgid "Linked {count} object to a group address"
+msgid_plural "Linked {count} objects to group addresses"
+msgstr[0] "{count} objet lié à une adresse de groupe"
+msgstr[1] "{count} objets liés à des adresses de groupe"
+
+msgid "Linked {count} object pair via a new group address"
+msgid_plural "Linked {count} object pairs via new group addresses"
+msgstr[0] "{count} paire d'objets liée via une nouvelle adresse de groupe"
+msgstr[1] "{count} paires d'objets liées via de nouvelles adresses de groupe"
+
+msgid "{count} error"
+msgid_plural "{count} errors"
+msgstr[0] "{count} erreur"
+msgstr[1] "{count} erreurs"
+
+msgid "{count} object will be re-mapped"
+msgid_plural "{count} objects will be re-mapped"
+msgstr[0] "{count} objet sera réassocié"
+msgstr[1] "{count} objets seront réassociés"
+
+msgid "Replaced; re-mapped {count} group object"
+msgid_plural "Replaced; re-mapped {count} group objects"
+msgstr[0] "Remplacé ; {count} objet de groupe réassocié"
+msgstr[1] "Remplacé ; {count} objets de groupe réassociés"
+
+msgid "{count} difference"
+msgid_plural "{count} differences"
+msgstr[0] "{count} différence"
+msgstr[1] "{count} différences"
+
+msgid "Created {count} copy"
+msgid_plural "Created {count} copies"
+msgstr[0] "{count} copie créée"
+msgstr[1] "{count} copies créées"
+
+msgid "{count} address will change"
+msgid_plural "{count} addresses will change"
+msgstr[0] "{count} adresse va changer"
+msgstr[1] "{count} adresses vont changer"
+
+msgid "Shifted {count} address"
+msgid_plural "Shifted {count} addresses"
+msgstr[0] "{count} adresse décalée"
+msgstr[1] "{count} adresses décalées"
+
+msgid "Shifted {count} group address"
+msgid_plural "Shifted {count} group addresses"
+msgstr[0] "{count} adresse de groupe décalée"
+msgstr[1] "{count} adresses de groupe décalées"
+
+msgid "{count} issue"
+msgid_plural "{count} issues"
+msgstr[0] "{count} problème"
+msgstr[1] "{count} problèmes"
+
+msgid "present ({size} byte)"
+msgid_plural "present ({size} bytes)"
+msgstr[0] "présent ({size} octet)"
+msgstr[1] "présent ({size} octets)"
+
+msgid "Imported the display configuration into {count} device."
+msgid_plural "Imported the display configuration into {count} devices."
+msgstr[0] "Configuration d'affichage importée dans {count} participant."
+msgstr[1] "Configuration d'affichage importée dans {count} participants."
+
+msgid "{count} ECG present on line {line}"
+msgid_plural "{count} ECGs present on line {line}"
+msgstr[0] "{count} ECG présent sur la ligne {line}"
+msgstr[1] "{count} ECG présents sur la ligne {line}"
+
+msgid "Apply Changes to {count} Identical Device"
+msgid_plural "Apply Changes to All {count} Identical Devices"
+msgstr[0] "Appliquer les modifications à {count} participant identique"
+msgstr[1] "Appliquer les modifications aux {count} participants identiques"
+
+msgid "Editing {count} device — edits apply to all, diverging values show <differs>"
+msgid_plural "Editing {count} devices — edits apply to all, diverging values show <differs>"
+msgstr[0] "Édition de {count} participant — les modifications s'appliquent à tous, les valeurs divergentes affichent <différent>"
+msgstr[1] "Édition de {count} participants — les modifications s'appliquent à tous, les valeurs divergentes affichent <différent>"
+
+msgid "{count} byte"
+msgid_plural "{count} bytes"
+msgstr[0] "{count} octet"
+msgstr[1] "{count} octets"
+
+msgid "Mismatch: {bytes} from the device in {locations}"
+msgstr "Divergence : {bytes} du participant à {locations}"
+
+msgid "{count} byte differs"
+msgid_plural "{count} bytes differ"
+msgstr[0] "{count} octet diffère"
+msgstr[1] "{count} octets diffèrent"
+
+msgid "{count} location"
+msgid_plural "{count} locations"
+msgstr[0] "{count} emplacement"
+msgstr[1] "{count} emplacements"
+
+msgid "plus {bytes} device-managed runtime byte (expected, benign)"
+msgid_plural "plus {bytes} device-managed runtime bytes (expected, benign)"
+msgstr[0] "plus {bytes} octet d'exécution géré par le participant (attendu, sans incidence)"
+msgstr[1] "plus {bytes} octets d'exécution gérés par le participant (attendu, sans incidence)"
+
+msgid "plus {bytes} byte reset to the application default (the device holds an older value; benign, will be normalised on programming)"
+msgid_plural "plus {bytes} bytes reset to the application default (the device holds an older value; benign, will be normalised on programming)"
+msgstr[0] "plus {bytes} octet réinitialisé à la valeur par défaut de l'application (le participant contient une valeur plus ancienne ; sans incidence, sera normalisé lors de la programmation)"
+msgstr[1] "plus {bytes} octets réinitialisés à la valeur par défaut de l'application (le participant contient une valeur plus ancienne ; sans incidence, sera normalisé lors de la programmation)"
+
+msgid "Paste configuration onto {count} selected device:"
+msgid_plural "Paste configuration onto {count} selected devices:"
+msgstr[0] "Coller la configuration dans {count} participant sélectionné :"
+msgstr[1] "Coller la configuration dans les {count} participants sélectionnés :"
+
+msgid "Delete the {count} selected device? Its group objects and group-address links are removed and its individual address is freed. This can be undone."
+msgid_plural "Delete the {count} selected devices? Their group objects and group-address links are removed and their individual addresses are freed. This can be undone."
+msgstr[0] "Supprimer {count} participant sélectionné ? Ses objets de groupe et ses liaisons aux adresses de groupe sont supprimés et son adresse individuelle est libérée. Cette action peut être annulée."
+msgstr[1] "Supprimer les {count} participants sélectionnés ? Leurs objets de groupe et leurs liaisons aux adresses de groupe sont supprimés et leurs adresses individuelles sont libérées. Cette action peut être annulée."
+
+msgid "{count} group address added"
+msgid_plural "{count} group addresses added"
+msgstr[0] "{count} adresse de groupe ajoutée"
+msgstr[1] "{count} adresses de groupe ajoutées"
+
+msgid "{count} updated"
+msgid_plural "{count} updated"
+msgstr[0] "{count} mise à jour"
+msgstr[1] "{count} mises à jour"
+
+msgid "{count} group address could not be placed in a group."
+msgid_plural "{count} group addresses could not be placed in a group."
+msgstr[0] "{count} adresse de groupe n'a pu être placée dans aucun groupe."
+msgstr[1] "{count} adresses de groupe n'ont pu être placées dans aucun groupe."
+
+msgid "{count} ECG present"
+msgid_plural "{count} ECGs present"
+msgstr[0] "{count} ballast présent"
+msgstr[1] "{count} ballasts présents"
+
+msgid "Procedure {number}  ({count} step)"
+msgid_plural "Procedure {number}  ({count} steps)"
+msgstr[0] "Procédure {number}  ({count} étape)"
+msgstr[1] "Procédure {number}  ({count} étapes)"

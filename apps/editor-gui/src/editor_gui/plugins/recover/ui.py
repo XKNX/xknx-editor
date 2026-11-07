@@ -157,12 +157,12 @@ class RecoverPanel:
         elif service.phase == "idle":
             imgui.text_disabled(S.STATUS_IDLE)
         if service.phase == "recovered":
-            imgui.text(S.OVERVIEW_RECOVERED % service.recovery_totals())
+            imgui.text(service.summary())
             warnings = service.link_warnings()
             if warnings:
                 imgui.text_colored(
                     status_color("warning"),
-                    S.OVERVIEW_WARNINGS % {"count": len(warnings)},
+                    S.OVERVIEW_WARNINGS(len(warnings)) % {"count": len(warnings)},
                 )
         if service.fetch_status:
             imgui.text_disabled(S.STATUS_FETCHING % {"what": service.fetch_status})

@@ -19,9 +19,6 @@ msgstr "Sía tæki…"
 msgid "Needs Attention Only"
 msgstr "Aðeins það sem þarfnast athygli"
 
-msgid "{count} device(s) not in catalog"
-msgstr "Tæki sem eru ekki í vörulista: {count}"
-
 msgid "Address"
 msgstr "Vistfang"
 
@@ -72,3 +69,8 @@ msgstr "ekki hlaðið"
 
 msgid "partial ({done}/{total})"
 msgstr "að hluta ({done}/{total})"
+
+msgid "{count} device not in catalog"
+msgid_plural "{count} devices not in catalog"
+msgstr[0] "{count} tæki er ekki í vörulista"
+msgstr[1] "{count} tæki eru ekki í vörulista"

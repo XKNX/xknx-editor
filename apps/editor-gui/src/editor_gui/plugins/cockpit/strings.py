@@ -25,9 +25,10 @@ class CockpitStrings:
     def COCKPIT_ATTENTION_ONLY(self) -> str:
         return _("Needs Attention Only")
 
-    @property
-    def COCKPIT_SKIPPED(self) -> str:
-        return _("{count} device(s) not in catalog")
+    def COCKPIT_SKIPPED(self, count: int) -> str:
+        return _.plural(
+            "{count} device not in catalog", "{count} devices not in catalog", count
+        )
 
     @property
     def COCKPIT_COL_ADDRESS(self) -> str:

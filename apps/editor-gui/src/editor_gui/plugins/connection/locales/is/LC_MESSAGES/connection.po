@@ -145,9 +145,6 @@ msgstr "Ekki tókst að ljúka leitinni: {error}"
 msgid "Unprogrammed device (factory default address 15.15.255)"
 msgstr "Óforritað tæki (sjálfgefið vistfang frá framleiðanda 15.15.255)"
 
-msgid "{count} device(s) in programming mode"
-msgstr "Tæki í forritunarham: {count}"
-
 msgid "The interface requires KNX IP Secure, but neither the project nor a loaded keyring has its passwords."
 msgstr "Skilin krefjast KNX IP Secure, en hvorki verkefnið né hlaðin lyklakippa hafa aðgangsorð þeirra."
 
@@ -222,3 +219,8 @@ msgstr "Ekki tengt við tengibrautina"
 
 msgid "Serial Number: {serial}"
 msgstr "Raðnúmer: {serial}"
+
+msgid "{count} device in programming mode"
+msgid_plural "{count} devices in programming mode"
+msgstr[0] "{count} tæki í forritunarham"
+msgstr[1] "{count} tæki í forritunarham"

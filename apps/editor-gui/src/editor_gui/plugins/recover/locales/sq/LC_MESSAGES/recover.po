@@ -43,9 +43,6 @@ msgstr "Eksporto pamjen e çastit"
 msgid "Verifying (re-reading and comparing)…"
 msgstr "Po verifikohet (rilexim dhe krahasim)…"
 
-msgid "%(count)d group address(es) have no sender or multiple senders."
-msgstr "%(count)d adresë(a) grupi nuk kanë dërgues ose kanë disa dërgues."
-
 msgid "Address"
 msgstr "Adresa"
 
@@ -82,17 +79,8 @@ msgstr "tabelat e komunikimit në grup"
 msgid "parameter memory"
 msgstr "memoria e parametrave"
 
-msgid "Recovered %(devices)d device(s): %(group_addresses)d group addresses, %(links)d links, %(unknown)d parameter(s) not recoverable."
-msgstr "U rikuperuan %(devices)d pajisje: %(group_addresses)d adresa grupi, %(links)d lidhje, %(unknown)d parametër(a) të parikuperueshëm."
-
 msgid "Recovered"
 msgstr "Rikuperuar"
-
-msgid "Added %(count)d device(s) to the open project (%(target)s)."
-msgstr "U shtuan %(count)d pajisje në projektin e hapur (%(target)s)."
-
-msgid "Created new project %(target)s with %(count)d device(s)."
-msgstr "U krijua projekti i ri %(target)s me %(count)d pajisje."
 
 msgid "Not connected to a KNX bus."
 msgstr "Nuk ka lidhje me një bus KNX."
@@ -112,18 +100,11 @@ msgstr "Nuk është në katalog: importojeni produktin e tij në Katalog"
 msgid "Not programmed"
 msgstr "I paprogramuar"
 
-
 msgid "Already in the project, skipped"
 msgstr "Tashmë në projekt, u anashkalua"
 
 msgid "Error"
 msgstr "Gabim"
-
-msgid "%d parameters could not be recovered"
-msgstr "%d parametra nuk u rikuperuan"
-
-msgid "%(count)d device(s) could not be added; the reason is in the Result column."
-msgstr "%(count)d pajisje nuk mund të shtoheshin; arsyeja është në kolonën “Rezultati”."
 
 msgid "Recovered (incomplete)"
 msgstr "Rikuperuar (jo i plotë)"
@@ -152,9 +133,6 @@ msgstr "Kërkon përsëri cilësimet e pajisjeve të paplota të zgjedhura në a
 msgid "Searching %(address)s again  (%(done)d/%(total)d)…"
 msgstr "Po kërkohet përsëri %(address)s  (%(done)d/%(total)d)…"
 
-msgid "%(bytes)d byte(s) and %(objects)d group object(s) differ from the device"
-msgstr "%(bytes)d bajt dhe %(objects)d objekte të grupit ndryshojnë nga pajisja"
-
 msgid "more search effort may help"
 msgstr "më shumë përpjekje kërkimi mund të ndihmojë"
 
@@ -167,14 +145,73 @@ msgstr "Rezultati"
 msgid "Not read yet"
 msgstr "Ende i palexuar"
 
-msgid "%(group_addresses)d group addresses, %(links)d links, %(parameters)d parameters"
-msgstr "%(group_addresses)d adresa grupi, %(links)d lidhje, %(parameters)d parametra"
-
-msgid "%(count)d unknown"
-msgstr "%(count)d të panjohura"
-
 msgid "Verified"
 msgstr "U verifikua"
 
-msgid "Verify: %(bytes)d byte(s) differ"
-msgstr "Verifikimi: ndryshojnë %(bytes)d bajt"
+msgid "%(count)d group address has no sender or multiple senders."
+msgid_plural "%(count)d group addresses have no sender or multiple senders."
+msgstr[0] "%(count)d adresë grupi nuk ka dërgues ose ka disa dërgues."
+msgstr[1] "%(count)d adresa grupi nuk kanë dërgues ose kanë disa dërgues."
+
+msgid "Recovered %(count)d device"
+msgid_plural "Recovered %(count)d devices"
+msgstr[0] "U rikuperua %(count)d pajisje"
+msgstr[1] "U rikuperuan %(count)d pajisje"
+
+msgid "%(count)d group address"
+msgid_plural "%(count)d group addresses"
+msgstr[0] "%(count)d adresë grupi"
+msgstr[1] "%(count)d adresa grupi"
+
+msgid "%(count)d link"
+msgid_plural "%(count)d links"
+msgstr[0] "%(count)d lidhje"
+msgstr[1] "%(count)d lidhje"
+
+msgid "%(count)d parameter"
+msgid_plural "%(count)d parameters"
+msgstr[0] "%(count)d parametër"
+msgstr[1] "%(count)d parametra"
+
+msgid "%(count)d parameter cannot be recovered"
+msgid_plural "%(count)d parameters cannot be recovered"
+msgstr[0] "%(count)d parametër nuk mund të rikuperohet"
+msgstr[1] "%(count)d parametra nuk mund të rikuperohen"
+
+msgid "%(count)d parameter not found yet"
+msgid_plural "%(count)d parameters not found yet"
+msgstr[0] "%(count)d parametër ende i pagjetur"
+msgstr[1] "%(count)d parametra ende të pagjetur"
+
+msgid "Added %(count)d device to the open project (%(target)s)."
+msgid_plural "Added %(count)d devices to the open project (%(target)s)."
+msgstr[0] "U shtua %(count)d pajisje në projektin e hapur (%(target)s)."
+msgstr[1] "U shtuan %(count)d pajisje në projektin e hapur (%(target)s)."
+
+msgid "Created new project %(target)s with %(count)d device."
+msgid_plural "Created new project %(target)s with %(count)d devices."
+msgstr[0] "U krijua projekti i ri %(target)s me %(count)d pajisje."
+msgstr[1] "U krijua projekti i ri %(target)s me %(count)d pajisje."
+
+msgid "%(count)d device could not be added; the reason is in the Result column."
+msgid_plural "%(count)d devices could not be added; the reason is in the Result column."
+msgstr[0] "%(count)d pajisje nuk mund të shtohej; arsyeja është në kolonën “Rezultati”."
+msgstr[1] "%(count)d pajisje nuk mund të shtoheshin; arsyeja është në kolonën “Rezultati”."
+
+msgid "Differs from the device: %(what)s"
+msgstr "Ndryshon nga pajisja: %(what)s"
+
+msgid "%(count)d byte"
+msgid_plural "%(count)d bytes"
+msgstr[0] "%(count)d bajt"
+msgstr[1] "%(count)d bajt"
+
+msgid "%(count)d group object"
+msgid_plural "%(count)d group objects"
+msgstr[0] "%(count)d objekt grupi"
+msgstr[1] "%(count)d objekte grupi"
+
+msgid "Verify: %(count)d byte differs"
+msgid_plural "Verify: %(count)d bytes differ"
+msgstr[0] "Verifikimi: ndryshon %(count)d bajt"
+msgstr[1] "Verifikimi: ndryshojnë %(count)d bajt"

@@ -97,12 +97,6 @@ msgstr "ismeretlen dátum"
 msgid "Load Telegrams from Home Assistant"
 msgstr "Táviratok betöltése a Home Assistantból"
 
-msgid "The telegrams Home Assistant recorded in the last {hours} hours, in the Group Monitor in place of its entries."
-msgstr "A Home Assistant által az elmúlt {hours} órában rögzített táviratok a Csoportmonitorban, annak bejegyzései helyett."
-
-msgid "{count} telegrams from Home Assistant in the Group Monitor"
-msgstr "Táviratok a Home Assistantból a Csoportmonitorban: {count}"
-
 msgid "The telegrams could not be loaded: {error}"
 msgstr "A táviratokat nem sikerült betölteni: {error}"
 
@@ -339,3 +333,11 @@ msgstr "Csoportcímek a Home Assistantból"
 
 msgid "Group addresses added to the project: {count}"
 msgstr "A projekthez hozzáadott csoportcímek: {count}"
+
+msgid "The telegrams Home Assistant recorded in the last {hours} hour, in the Group Monitor in place of its entries."
+msgid_plural "The telegrams Home Assistant recorded in the last {hours} hours, in the Group Monitor in place of its entries."
+msgstr[0] "A Home Assistant által az elmúlt {hours} órában rögzített táviratok a Csoportmonitorban, annak bejegyzései helyett."
+
+msgid "{count} telegram from Home Assistant in the Group Monitor"
+msgid_plural "{count} telegrams from Home Assistant in the Group Monitor"
+msgstr[0] "{count} távirat a Home Assistantból a Csoportmonitorban"

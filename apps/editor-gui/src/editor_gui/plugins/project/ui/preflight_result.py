@@ -173,7 +173,12 @@ class PreflightResultWindow:
             imgui.push_style_color(imgui.Col_.text, status_color("warning"))
             imgui.text(
                 S.PREFLIGHT_WOULD_CHANGE.format(
-                    bytes=config_bytes, locations=config_locations
+                    bytes=S.PREFLIGHT_BYTES_DIFFER(config_bytes).format(
+                        count=config_bytes
+                    ),
+                    locations=S.PREFLIGHT_LOCATIONS(config_locations).format(
+                        count=config_locations
+                    ),
                 )
             )
             imgui.pop_style_color()
@@ -195,10 +200,14 @@ class PreflightResultWindow:
             imgui.pop_style_color()
         if default_bytes:
             imgui.push_style_color(imgui.Col_.text, status_color("info"))
-            imgui.text_wrapped(S.PREFLIGHT_DEFAULT_NOTE.format(bytes=default_bytes))
+            imgui.text_wrapped(
+                S.PREFLIGHT_DEFAULT_NOTE(default_bytes).format(bytes=default_bytes)
+            )
             imgui.pop_style_color()
         if runtime_bytes:
-            imgui.text_disabled(S.PREFLIGHT_RUNTIME_NOTE.format(bytes=runtime_bytes))
+            imgui.text_disabled(
+                S.PREFLIGHT_RUNTIME_NOTE(runtime_bytes).format(bytes=runtime_bytes)
+            )
 
         matched = sum(1 for s in report.segments if not s.changed) + sum(
             1 for p in report.properties if not p.changed

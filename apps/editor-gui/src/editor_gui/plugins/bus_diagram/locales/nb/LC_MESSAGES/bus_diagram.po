@@ -106,9 +106,6 @@ msgstr "Bygninger"
 msgid "+ {count} more"
 msgstr "+ {count} til"
 
-msgid "{count} more devices outside the selection. Click to show them."
-msgstr "{count} flere enheter utenfor utvalget. Klikk for å vise dem."
-
 msgid "{address}\n{senders} sending, {receivers} receiving"
 msgstr "{address}\n{senders} sendende, {receivers} mottakende"
 
@@ -129,3 +126,8 @@ msgstr "Adresse: {address}"
 
 msgid "Application: {application}"
 msgstr "Applikasjon: {application}"
+
+msgid "{count} more device outside the selection. Click to show it."
+msgid_plural "{count} more devices outside the selection. Click to show them."
+msgstr[0] "{count} enhet til utenfor utvalget. Klikk for å vise den."
+msgstr[1] "{count} flere enheter utenfor utvalget. Klikk for å vise dem."

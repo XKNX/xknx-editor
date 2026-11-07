@@ -97,12 +97,6 @@ msgstr "dată necunoscută"
 msgid "Load Telegrams from Home Assistant"
 msgstr "Încărcare telegrame din Home Assistant"
 
-msgid "The telegrams Home Assistant recorded in the last {hours} hours, in the Group Monitor in place of its entries."
-msgstr "Telegramele înregistrate de Home Assistant în ultimele {hours} ore, în Monitor de grup în locul intrărilor acestuia."
-
-msgid "{count} telegrams from Home Assistant in the Group Monitor"
-msgstr "Telegrame din Home Assistant în Monitor de grup: {count}"
-
 msgid "The telegrams could not be loaded: {error}"
 msgstr "Telegramele nu au putut fi încărcate: {error}"
 
@@ -339,3 +333,15 @@ msgstr "Adrese de grup din Home Assistant"
 
 msgid "Group addresses added to the project: {count}"
 msgstr "Adrese de grup adăugate la proiect: {count}"
+
+msgid "The telegrams Home Assistant recorded in the last {hours} hour, in the Group Monitor in place of its entries."
+msgid_plural "The telegrams Home Assistant recorded in the last {hours} hours, in the Group Monitor in place of its entries."
+msgstr[0] "Telegramele înregistrate de Home Assistant în ultima {hours} oră, în Monitor de grup în locul intrărilor acestuia."
+msgstr[1] "Telegramele înregistrate de Home Assistant în ultimele {hours} ore, în Monitor de grup în locul intrărilor acestuia."
+msgstr[2] "Telegramele înregistrate de Home Assistant în ultimele {hours} de ore, în Monitor de grup în locul intrărilor acestuia."
+
+msgid "{count} telegram from Home Assistant in the Group Monitor"
+msgid_plural "{count} telegrams from Home Assistant in the Group Monitor"
+msgstr[0] "{count} telegramă din Home Assistant în Monitor de grup"
+msgstr[1] "{count} telegrame din Home Assistant în Monitor de grup"
+msgstr[2] "{count} de telegrame din Home Assistant în Monitor de grup"

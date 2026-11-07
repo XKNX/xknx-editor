@@ -19,9 +19,6 @@ msgstr "Filtrare dispozitive…"
 msgid "Needs Attention Only"
 msgstr "Numai cele care necesită atenție"
 
-msgid "{count} device(s) not in catalog"
-msgstr "Dispozitive care nu sunt în catalog: {count}"
-
 msgid "Address"
 msgstr "Adresă"
 
@@ -72,3 +69,9 @@ msgstr "neîncărcat"
 
 msgid "partial ({done}/{total})"
 msgstr "parțial ({done}/{total})"
+
+msgid "{count} device not in catalog"
+msgid_plural "{count} devices not in catalog"
+msgstr[0] "{count} dispozitiv care nu este în catalog"
+msgstr[1] "{count} dispozitive care nu sunt în catalog"
+msgstr[2] "{count} de dispozitive care nu sunt în catalog"

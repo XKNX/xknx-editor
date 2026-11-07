@@ -53,7 +53,10 @@ msgid "Hide Extended Information"
 msgstr "Ukryj informacje rozszerzone"
 
 msgid "{count} telg."
-msgstr "{count} telg."
+msgid_plural "{count} telg."
+msgstr[0] "{count} telg."
+msgstr[1] "{count} telg."
+msgstr[2] "{count} telg."
 
 msgid "{rate} t/s"
 msgstr "{rate} t/s"
@@ -214,20 +217,11 @@ msgstr "Zapisy telegramów"
 msgid "All files"
 msgstr "Wszystkie pliki"
 
-msgid "{count} telegrams exported to {path}"
-msgstr "Wyeksportowano telegramy ({count}) do {path}"
-
 msgid "Export failed: {error}"
 msgstr "Eksport nie powiódł się: {error}"
 
-msgid "{count} entries loaded from {path}"
-msgstr "Załadowano wpisy ({count}) z {path}"
-
 msgid "Loading failed: {error}"
 msgstr "Ładowanie nie powiodło się: {error}"
-
-msgid "{count} telegrams in another frame format were skipped"
-msgstr "Pominięto telegramy w innym formacie ramki: {count}"
 
 msgid "Printing failed: {error}"
 msgstr "Drukowanie nie powiodło się: {error}"
@@ -235,17 +229,8 @@ msgstr "Drukowanie nie powiodło się: {error}"
 msgid "Page {page}"
 msgstr "Strona {page}"
 
-msgid "{count} Data Secure telegrams are not replayed"
-msgstr "Telegramy Data Secure nie są odtwarzane: {count}"
-
 msgid "There are no group telegrams to replay"
 msgstr "Brak telegramów grupowych do odtworzenia"
-
-msgid "Replay finished: {count} telegrams sent"
-msgstr "Odtwarzanie zakończone: wysłane telegramy: {count}"
-
-msgid "Replay cancelled: {count} telegrams sent"
-msgstr "Odtwarzanie anulowane: wysłane telegramy: {count}"
 
 msgid "from bus"
 msgstr "z magistrali"
@@ -390,3 +375,39 @@ msgstr "Max"
 
 msgid "Maximum telegrams this monitor keeps. The oldest tenth is dropped when the cap is exceeded."
 msgstr "Maximum telegrams this monitor keeps. The oldest tenth is dropped when the cap is exceeded."
+
+msgid "{count} telegram exported to {path}"
+msgid_plural "{count} telegrams exported to {path}"
+msgstr[0] "Wyeksportowano {count} telegram do {path}"
+msgstr[1] "Wyeksportowano {count} telegramy do {path}"
+msgstr[2] "Wyeksportowano {count} telegramów do {path}"
+
+msgid "{count} entry loaded from {path}"
+msgid_plural "{count} entries loaded from {path}"
+msgstr[0] "Załadowano {count} wpis z {path}"
+msgstr[1] "Załadowano {count} wpisy z {path}"
+msgstr[2] "Załadowano {count} wpisów z {path}"
+
+msgid "{count} telegram in another frame format was skipped"
+msgid_plural "{count} telegrams in another frame format were skipped"
+msgstr[0] "Pominięto {count} telegram w innym formacie ramki"
+msgstr[1] "Pominięto {count} telegramy w innym formacie ramki"
+msgstr[2] "Pominięto {count} telegramów w innym formacie ramki"
+
+msgid "{count} Data Secure telegram is not replayed"
+msgid_plural "{count} Data Secure telegrams are not replayed"
+msgstr[0] "{count} telegram Data Secure nie jest odtwarzany"
+msgstr[1] "{count} telegramy Data Secure nie są odtwarzane"
+msgstr[2] "{count} telegramów Data Secure nie jest odtwarzanych"
+
+msgid "Replay finished: {count} telegram sent"
+msgid_plural "Replay finished: {count} telegrams sent"
+msgstr[0] "Odtwarzanie zakończone: wysłano {count} telegram"
+msgstr[1] "Odtwarzanie zakończone: wysłano {count} telegramy"
+msgstr[2] "Odtwarzanie zakończone: wysłano {count} telegramów"
+
+msgid "Replay cancelled: {count} telegram sent"
+msgid_plural "Replay cancelled: {count} telegrams sent"
+msgstr[0] "Odtwarzanie anulowane: wysłano {count} telegram"
+msgstr[1] "Odtwarzanie anulowane: wysłano {count} telegramy"
+msgstr[2] "Odtwarzanie anulowane: wysłano {count} telegramów"

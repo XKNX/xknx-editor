@@ -19,9 +19,6 @@ msgstr "Фільтрувати пристрої…"
 msgid "Needs Attention Only"
 msgstr "Лише потребують уваги"
 
-msgid "{count} device(s) not in catalog"
-msgstr "Пристроїв не в каталозі: {count}"
-
 msgid "Address"
 msgstr "Адреса"
 
@@ -69,3 +66,9 @@ msgstr "Серійний номер: {serial}"
 
 msgid "Last Download: {when}"
 msgstr "Останнє завантаження: {when}"
+
+msgid "{count} device not in catalog"
+msgid_plural "{count} devices not in catalog"
+msgstr[0] "{count} пристрій не в каталозі"
+msgstr[1] "{count} пристрої не в каталозі"
+msgstr[2] "{count} пристроїв не в каталозі"

@@ -301,9 +301,9 @@ def test_a_function_adds_group_addresses_it_is_linked_with(
     texts = sorted(ref.text for ref in _function(project, function_id).group_addresses)
     assert texts == ["1/2/0", "1/2/1", "1/2/5"]
     # One undo step for the row: the addresses and their links.
-    assert project.history()[
-        0
-    ].display_text == S.HISTORY_EV_ADDED_GROUP_ADDRESSES.format(count=2, target="Light")
+    assert project.history()[0].display_text == S.HISTORY_EV_ADDED_GROUP_ADDRESSES(
+        2
+    ).format(count=2, target="Light")
     assert project.undo()
     assert [r.text for r in _function(project, function_id).group_addresses] == [
         "1/2/5"

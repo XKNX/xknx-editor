@@ -298,4 +298,4 @@ class ProjectInfoPanel:
         """Presence + size for an embedded protection artifact (certificate/validation/master)."""
         if size <= 0:
             return S.PROJECT_INFO_ARTIFACT_NONE
-        return S.PROJECT_INFO_ARTIFACT_PRESENT.format(size=size)
+        return S.PROJECT_INFO_ARTIFACT_PRESENT(size).format(size=size)

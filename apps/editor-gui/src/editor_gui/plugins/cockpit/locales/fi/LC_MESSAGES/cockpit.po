@@ -19,9 +19,6 @@ msgstr "Suodata laitteita…"
 msgid "Needs Attention Only"
 msgstr "Vain toimenpiteitä vaativat"
 
-msgid "{count} device(s) not in catalog"
-msgstr "Laitteita, jotka eivät ole luettelossa: {count}"
-
 msgid "Address"
 msgstr "Osoite"
 
@@ -69,3 +66,8 @@ msgstr "Sarjanumero: {serial}"
 
 msgid "Last Download: {when}"
 msgstr "Viimeisin lataus: {when}"
+
+msgid "{count} device not in catalog"
+msgid_plural "{count} devices not in catalog"
+msgstr[0] "{count} laite ei ole luettelossa"
+msgstr[1] "{count} laitetta ei ole luettelossa"

@@ -79,9 +79,12 @@ class CatalogStrings:
     def ALTERNATIVE_WEBSITE(self) -> str:
         return _("Open Website")
 
-    @property
-    def ALTERNATIVE_IMPORTED(self) -> str:
-        return _("Imported {count} product versions. Find them in the Local tab.")
+    def ALTERNATIVE_IMPORTED(self, count: int) -> str:
+        return _.plural(
+            "Imported {count} product version. Find it in the Local tab.",
+            "Imported {count} product versions. Find them in the Local tab.",
+            count,
+        )
 
     @property
     def ALTERNATIVE_PASSWORD_HINT(self) -> str:
@@ -154,13 +157,13 @@ class CatalogStrings:
     def ARCHIVE_LOADED(self) -> str:
         return _("Loaded: {path}")
 
-    @property
-    def ARCHIVE_FOUND_APPS(self) -> str:
-        return _("Found {count} application(s)")
+    def ARCHIVE_FOUND_APPS(self, count: int) -> str:
+        return _.plural(
+            "Found {count} application", "Found {count} applications", count
+        )
 
-    @property
-    def ARCHIVE_COM_OBJECTS(self) -> str:
-        return _("({count} group objects)")
+    def ARCHIVE_COM_OBJECTS(self, count: int) -> str:
+        return _.plural("({count} group object)", "({count} group objects)", count)
 
     @property
     def BTN_ONLINE_CATALOG(self) -> str:
@@ -174,9 +177,8 @@ class CatalogStrings:
     def ONLINE_FAILED(self) -> str:
         return _("Online catalog not reachable")
 
-    @property
-    def ONLINE_MATCH_COUNT(self) -> str:
-        return _("{count} matches")
+    def ONLINE_MATCH_COUNT(self, count: int) -> str:
+        return _.plural("{count} match", "{count} matches", count)
 
     @property
     def ONLINE_LOADING_PRODUCTS(self) -> str:
@@ -204,7 +206,14 @@ class CatalogStrings:
 
     @property
     def ONLINE_INDEX_STATUS(self) -> str:
-        return _("Product Index ({date}): {mfrs} manufacturers, {products} products")
+        # {manufacturers}: ONLINE_INDEX_MANUFACTURERS, {products}: ONLINE_INDEX_PRODUCTS.
+        return _("Product Index ({date}): {manufacturers}, {products}")
+
+    def ONLINE_INDEX_MANUFACTURERS(self, count: int) -> str:
+        return _.plural("{count} manufacturer", "{count} manufacturers", count)
+
+    def ONLINE_INDEX_PRODUCTS(self, count: int) -> str:
+        return _.plural("{count} product", "{count} products", count)
 
     @property
     def ONLINE_INDEX_NONE(self) -> str:
@@ -222,9 +231,12 @@ class CatalogStrings:
     def ONLINE_SEARCH_BUILD_HINT(self) -> str:
         return _("Fetch the online catalog to search across all manufacturers.")
 
-    @property
-    def ONLINE_FLAT_CAPPED(self) -> str:
-        return _("Showing {shown} of {total} matches - refine the search")
+    def ONLINE_FLAT_CAPPED(self, total: int) -> str:
+        return _.plural(
+            "Showing {shown} of {total} match - refine the search",
+            "Showing {shown} of {total} matches - refine the search",
+            total,
+        )
 
     @property
     def CATALOG_DETAIL_TITLE(self) -> str:
@@ -342,9 +354,12 @@ class CatalogStrings:
     def LOCAL_EMPTY(self) -> str:
         return _("No products imported yet — import a .knxprod or use the Online tab.")
 
-    @property
-    def MISSING_APPS_FETCH(self) -> str:
-        return _("Fetch {count} Missing Application(s) Online")
+    def MISSING_APPS_FETCH(self, count: int) -> str:
+        return _.plural(
+            "Fetch {count} Missing Application Online",
+            "Fetch {count} Missing Applications Online",
+            count,
+        )
 
     @property
     def MISSING_APPS_FETCHING(self) -> str:
@@ -364,11 +379,13 @@ class CatalogStrings:
             "Are you sure you want to delete the selected device? This cannot be undone."
         )
 
-    @property
-    def DELETE_AFFECTED(self) -> str:
-        return _(
-            "{count} device(s) in the open project use this product. They can't be "
-            "loaded until the product is imported again."
+    def DELETE_AFFECTED(self, count: int) -> str:
+        return _.plural(
+            "{count} device in the open project uses this product. It can't be loaded "
+            "until the product is imported again.",
+            "{count} devices in the open project use this product. They can't be loaded "
+            "until the product is imported again.",
+            count,
         )
 
     @property

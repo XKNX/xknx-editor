@@ -97,12 +97,6 @@ msgstr "дата неизвестна"
 msgid "Load Telegrams from Home Assistant"
 msgstr "Загрузить телеграммы из Home Assistant"
 
-msgid "The telegrams Home Assistant recorded in the last {hours} hours, in the Group Monitor in place of its entries."
-msgstr "Телеграммы, записанные Home Assistant за последние {hours} ч, в окне «Групповой мониторинг» вместо его записей."
-
-msgid "{count} telegrams from Home Assistant in the Group Monitor"
-msgstr "Телеграммы из Home Assistant в окне «Групповой мониторинг»: {count}"
-
 msgid "The telegrams could not be loaded: {error}"
 msgstr "Не удалось загрузить телеграммы: {error}"
 
@@ -339,3 +333,15 @@ msgstr "Групповые адреса из Home Assistant"
 
 msgid "Group addresses added to the project: {count}"
 msgstr "Групповые адреса, добавленные в проект: {count}"
+
+msgid "The telegrams Home Assistant recorded in the last {hours} hour, in the Group Monitor in place of its entries."
+msgid_plural "The telegrams Home Assistant recorded in the last {hours} hours, in the Group Monitor in place of its entries."
+msgstr[0] "Телеграммы, записанные Home Assistant за последний {hours} час, в окне «Групповой мониторинг» вместо его записей."
+msgstr[1] "Телеграммы, записанные Home Assistant за последние {hours} часа, в окне «Групповой мониторинг» вместо его записей."
+msgstr[2] "Телеграммы, записанные Home Assistant за последние {hours} часов, в окне «Групповой мониторинг» вместо его записей."
+
+msgid "{count} telegram from Home Assistant in the Group Monitor"
+msgid_plural "{count} telegrams from Home Assistant in the Group Monitor"
+msgstr[0] "{count} телеграмма из Home Assistant в окне «Групповой мониторинг»"
+msgstr[1] "{count} телеграммы из Home Assistant в окне «Групповой мониторинг»"
+msgstr[2] "{count} телеграмм из Home Assistant в окне «Групповой мониторинг»"

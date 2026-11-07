@@ -53,7 +53,10 @@ msgid "Hide Extended Information"
 msgstr "Скрыть расширенные сведения"
 
 msgid "{count} telg."
-msgstr "{count} telg."
+msgid_plural "{count} telg."
+msgstr[0] "{count} telg."
+msgstr[1] "{count} telg."
+msgstr[2] "{count} telg."
 
 msgid "{rate} t/s"
 msgstr "{rate} т/с"
@@ -214,20 +217,11 @@ msgstr "Записи телеграмм"
 msgid "All files"
 msgstr "Все файлы"
 
-msgid "{count} telegrams exported to {path}"
-msgstr "Экспортировано телеграмм: {count} в {path}"
-
 msgid "Export failed: {error}"
 msgstr "Ошибка экспорта: {error}"
 
-msgid "{count} entries loaded from {path}"
-msgstr "Загружено записей: {count} из {path}"
-
 msgid "Loading failed: {error}"
 msgstr "Ошибка загрузки: {error}"
-
-msgid "{count} telegrams in another frame format were skipped"
-msgstr "Пропущено телеграмм в другом формате кадра: {count}"
 
 msgid "Printing failed: {error}"
 msgstr "Ошибка печати: {error}"
@@ -235,17 +229,8 @@ msgstr "Ошибка печати: {error}"
 msgid "Page {page}"
 msgstr "Страница {page}"
 
-msgid "{count} Data Secure telegrams are not replayed"
-msgstr "Телеграммы Data Secure не воспроизводятся: {count}"
-
 msgid "There are no group telegrams to replay"
 msgstr "Нет групповых телеграмм для воспроизведения"
-
-msgid "Replay finished: {count} telegrams sent"
-msgstr "Воспроизведение завершено: отправлено телеграмм: {count}"
-
-msgid "Replay cancelled: {count} telegrams sent"
-msgstr "Воспроизведение отменено: отправлено телеграмм: {count}"
 
 msgid "from bus"
 msgstr "из шины"
@@ -390,3 +375,39 @@ msgstr "Max"
 
 msgid "Maximum telegrams this monitor keeps. The oldest tenth is dropped when the cap is exceeded."
 msgstr "Maximum telegrams this monitor keeps. The oldest tenth is dropped when the cap is exceeded."
+
+msgid "{count} telegram exported to {path}"
+msgid_plural "{count} telegrams exported to {path}"
+msgstr[0] "Экспортирована {count} телеграмма в {path}"
+msgstr[1] "Экспортировано {count} телеграммы в {path}"
+msgstr[2] "Экспортировано {count} телеграмм в {path}"
+
+msgid "{count} entry loaded from {path}"
+msgid_plural "{count} entries loaded from {path}"
+msgstr[0] "Загружена {count} запись из {path}"
+msgstr[1] "Загружено {count} записи из {path}"
+msgstr[2] "Загружено {count} записей из {path}"
+
+msgid "{count} telegram in another frame format was skipped"
+msgid_plural "{count} telegrams in another frame format were skipped"
+msgstr[0] "Пропущена {count} телеграмма в другом формате кадра"
+msgstr[1] "Пропущено {count} телеграммы в другом формате кадра"
+msgstr[2] "Пропущено {count} телеграмм в другом формате кадра"
+
+msgid "{count} Data Secure telegram is not replayed"
+msgid_plural "{count} Data Secure telegrams are not replayed"
+msgstr[0] "{count} телеграмма Data Secure не воспроизводится"
+msgstr[1] "{count} телеграммы Data Secure не воспроизводятся"
+msgstr[2] "{count} телеграмм Data Secure не воспроизводятся"
+
+msgid "Replay finished: {count} telegram sent"
+msgid_plural "Replay finished: {count} telegrams sent"
+msgstr[0] "Воспроизведение завершено: отправлена {count} телеграмма"
+msgstr[1] "Воспроизведение завершено: отправлено {count} телеграммы"
+msgstr[2] "Воспроизведение завершено: отправлено {count} телеграмм"
+
+msgid "Replay cancelled: {count} telegram sent"
+msgid_plural "Replay cancelled: {count} telegrams sent"
+msgstr[0] "Воспроизведение отменено: отправлена {count} телеграмма"
+msgstr[1] "Воспроизведение отменено: отправлено {count} телеграммы"
+msgstr[2] "Воспроизведение отменено: отправлено {count} телеграмм"

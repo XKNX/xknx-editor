@@ -163,9 +163,6 @@ msgstr "Skriv inn et heltall."
 msgid "Enter a value from {minimum} to {maximum}."
 msgstr "Skriv inn en verdi fra {minimum} til {maximum}."
 
-msgid "Enter at most {count} characters."
-msgstr "Skriv inn maks {count} tegn."
-
 msgid "Enter a value."
 msgstr "Skriv inn en verdi."
 
@@ -177,9 +174,6 @@ msgstr "Ingen verdi kan angis for denne datatypen."
 
 msgid "Edit…"
 msgstr "Rediger…"
-
-msgid "The text may take at most {count} bytes."
-msgstr "Teksten kan være på maks {count} byte."
 
 msgid "Value {number}"
 msgstr "Verdi {number}"
@@ -241,9 +235,6 @@ msgstr "Kopier {count} B"
 msgid "Go To:"
 msgstr "Gå til:"
 
-msgid "{count} difference(s)"
-msgstr "{count} forskjell(er)"
-
 msgid "no differences"
 msgstr "ingen forskjeller"
 
@@ -294,3 +285,18 @@ msgstr "Klipp ut"
 
 msgid "Paste"
 msgstr "Lim inn"
+
+msgid "Enter at most {count} character."
+msgid_plural "Enter at most {count} characters."
+msgstr[0] "Skriv inn maks {count} tegn."
+msgstr[1] "Skriv inn maks {count} tegn."
+
+msgid "The text may take at most {count} byte."
+msgid_plural "The text may take at most {count} bytes."
+msgstr[0] "Teksten kan være på maks {count} byte."
+msgstr[1] "Teksten kan være på maks {count} byte."
+
+msgid "{count} difference"
+msgid_plural "{count} differences"
+msgstr[0] "{count} forskjell"
+msgstr[1] "{count} forskjeller"

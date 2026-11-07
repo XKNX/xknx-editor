@@ -145,9 +145,6 @@ msgstr "Scanarea nu a putut fi finalizată: {error}"
 msgid "Unprogrammed device (factory default address 15.15.255)"
 msgstr "Dispozitiv neprogramat (adresa implicită din fabrică 15.15.255)"
 
-msgid "{count} device(s) in programming mode"
-msgstr "Dispozitive în modul de programare: {count}"
-
 msgid "The interface requires KNX IP Secure, but neither the project nor a loaded keyring has its passwords."
 msgstr "Interfața necesită KNX IP Secure, dar nici proiectul, nici un keyring încărcat nu conține parolele ei."
 
@@ -222,3 +219,9 @@ msgstr "Neconectată la magistrală"
 
 msgid "Serial Number: {serial}"
 msgstr "Număr de serie: {serial}"
+
+msgid "{count} device in programming mode"
+msgid_plural "{count} devices in programming mode"
+msgstr[0] "{count} dispozitiv în modul de programare"
+msgstr[1] "{count} dispozitive în modul de programare"
+msgstr[2] "{count} de dispozitive în modul de programare"

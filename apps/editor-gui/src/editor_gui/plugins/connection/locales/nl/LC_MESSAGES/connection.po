@@ -145,9 +145,6 @@ msgstr "Niet-geprogrammeerd apparaat (fabrieksadres 15.15.255)"
 msgid "Use multicast routing (instead of tunneling)"
 msgstr "Multicast-routing gebruiken (in plaats van tunneling)"
 
-msgid "{count} device(s) in programming mode"
-msgstr "{count} apparaat/apparaten in programmeermodus"
-
 msgid "The interface requires KNX IP Secure, but neither the project nor a loaded keyring has its passwords."
 msgstr "De interface vereist KNX IP Secure, maar noch het project noch een geladen keyring bevat de wachtwoorden."
 
@@ -222,3 +219,8 @@ msgstr "Niet met de bus verbonden"
 
 msgid "Serial Number: {serial}"
 msgstr "Serienummer: {serial}"
+
+msgid "{count} device in programming mode"
+msgid_plural "{count} devices in programming mode"
+msgstr[0] "{count} apparaat in programmeermodus"
+msgstr[1] "{count} apparaten in programmeermodus"

@@ -118,12 +118,6 @@ msgstr "上へ移動"
 msgid "Move Down"
 msgstr "下へ移動"
 
-msgid "{count} items"
-msgstr "{count} 項目"
-
-msgid "{count} pairs"
-msgstr "{count} ペア"
-
 msgid "{count} unpaired (ignored)"
 msgstr "ペアなし {count} 件（無視）"
 
@@ -147,15 +141,6 @@ msgstr "グループ・アドレスを追加"
 
 msgid "Mass Linker Result"
 msgstr "一括リンクの結果"
-
-msgid "Linked {count} object(s) to group addresses"
-msgstr "{count} 個のオブジェクトをグループ・アドレスにリンクしました"
-
-msgid "Linked {count} object pair(s) via new group addresses"
-msgstr "{count} 組のオブジェクト・ペアを新しいグループ・アドレスでリンクしました"
-
-msgid "{count} error(s)"
-msgstr "エラー {count} 件"
 
 msgid "Clear All"
 msgstr "すべて削除"
@@ -277,12 +262,6 @@ msgstr "置換先（テンプレート）"
 msgid "Group Object Mapping (by Number)"
 msgstr "グループ・オブジェクトの対応付け（番号順）"
 
-msgid "{count} object(s) will be re-mapped"
-msgstr "{count} 個のオブジェクトが再対応付けされます"
-
-msgid "Replaced; re-mapped {count} group object(s)"
-msgstr "置換しました。{count} 個のグループ・オブジェクトを再対応付けしました"
-
 msgid "Shift Addresses"
 msgstr "アドレスをシフト"
 
@@ -312,9 +291,6 @@ msgstr "{name} と比較："
 
 msgid "No differences in devices or group addresses."
 msgstr "デバイスやグループ・アドレスに差異はありません。"
-
-msgid "{count} difference(s)"
-msgstr "{count} 件の差異"
 
 msgid "Add Device Certificate"
 msgstr "デバイス証明書を追加"
@@ -397,9 +373,6 @@ msgstr "コピー名：{name}"
 msgid "Copy"
 msgstr "コピー"
 
-msgid "Created {count} copy/copies"
-msgstr "{count} 個のコピーを作成しました"
-
 msgid "Shifts the device part of each individual address. Group addresses are not shifted."
 msgstr "各個別アドレスのデバイス部をシフトします。グループ・アドレスはシフトされません。"
 
@@ -421,12 +394,6 @@ msgstr "{total} 件中 {sel} 件を選択"
 msgid "(out of range)"
 msgstr "（範囲外）"
 
-msgid "{count} address(es) will change"
-msgstr "{count} 件のアドレスが変更されます"
-
-msgid "Shifted {count} address(es)"
-msgstr "{count} 件のアドレスをシフトしました"
-
 msgid "Individual Addresses"
 msgstr "個別アドレス"
 
@@ -441,9 +408,6 @@ msgstr "生の値にオフセットを加算してグループ・アドレスの
 
 msgid "The offset is added to the raw 16-bit value, so it may change the main/middle group as addresses cross a boundary."
 msgstr "オフセットは 16 ビットの生の値に加算されるため、アドレスが境界をまたぐとメイン／ミドル・グループが変わることがあります。"
-
-msgid "Shifted {count} group address(es)"
-msgstr "{count} 件のグループ・アドレスをシフトしました"
 
 msgid "Export CSV…"
 msgstr "CSV をエクスポート…"
@@ -496,9 +460,6 @@ msgstr "少なくとも 1 つのフィールドを選択してください。"
 msgid "No topology issues found."
 msgstr "トポロジーの問題は見つかりませんでした。"
 
-msgid "{count} issue(s)"
-msgstr "{count} 件の問題"
-
 msgid "Click a finding to jump to the device."
 msgstr "項目をクリックするとデバイスに移動します。"
 
@@ -516,6 +477,7 @@ msgstr "プロジェクトを読み込んでいます…"
 
 msgid "Comparing devices: {done} of {total}"
 msgstr "デバイスを比較中: {done} / {total}"
+
 msgid "File"
 msgstr "ファイル"
 
@@ -630,9 +592,6 @@ msgstr "プロジェクト証明書"
 msgid "none"
 msgstr "なし"
 
-msgid "present ({size} bytes)"
-msgstr "あり（{size} バイト）"
-
 msgid "Password"
 msgstr "パスワード"
 
@@ -692,7 +651,6 @@ msgstr "ETS はログのコメントを暗号化しています。コメント�
 
 msgid "Comments are encrypted"
 msgstr "コメントは暗号化されています"
-
 
 msgid "Extracting key…"
 msgstr "キーを抽出中…"
@@ -1003,14 +961,8 @@ msgstr "クリックしてコピー"
 msgid "Filter parameters…"
 msgstr "パラメータをフィルター…"
 
-msgid "Apply Changes to All {count} Identical Devices"
-msgstr "同一の全 {count} 台のデバイスに変更を適用"
-
 msgid "Apply Changes to All Channels"
 msgstr "すべてのチャンネルに変更を適用"
-
-msgid "Editing {count} devices — edits apply to all, diverging values show <differs>"
-msgstr "{count} 台のデバイスを編集中 — 変更はすべてに適用され、異なる値は <異なる値> と表示されます"
 
 msgid "Hardware"
 msgstr "ハードウェア"
@@ -1048,9 +1000,6 @@ msgstr "比較をクリア"
 msgid "Memory Dumps (*.bin)"
 msgstr "メモリ・ダンプ (*.bin)"
 
-msgid "{count} bytes"
-msgstr "{count} バイト"
-
 msgid "No memory segments."
 msgstr "メモリ・セグメントがありません。"
 
@@ -1077,9 +1026,6 @@ msgstr "実行できません：KNX 接続がありません。ゲートウェ�
 
 msgid "Match: the generated image is identical to what is on the device"
 msgstr "一致：生成されたイメージはデバイス上のものと同一です"
-
-msgid "Mismatch: {bytes} byte(s) differ from the device in {locations} location(s)"
-msgstr "不一致：{locations} か所で {bytes} バイトがデバイスと異なります"
 
 msgid "{matched} matched, {changed} would change"
 msgstr "一致 {matched}、変更予定 {changed}"
@@ -1111,9 +1057,6 @@ msgstr "デバイスが管理"
 msgid "System byte the device sets itself at runtime (e.g. a download detection byte reset by the application after a download). A difference here is expected and does not indicate a bad download."
 msgstr "デバイスが実行時に自ら設定するシステム・バイトです（例：ダウンロード後にアプリケーションがリセットするダウンロード検出バイト）。ここでの差異は想定どおりであり、ダウンロードの不良を示すものではありません。"
 
-msgid "plus {bytes} device-managed runtime byte(s) (expected, benign)"
-msgstr "さらに、デバイス管理の実行時バイト {bytes} 個（想定どおり、問題なし）"
-
 msgid "No configured differences: the device already carries this configuration. The differences below are benign (see notes)."
 msgstr "構成上の差異はありません：デバイスはすでにこの構成を保持しています。以下の差異は問題ありません（注記を参照）。"
 
@@ -1122,9 +1065,6 @@ msgstr "デフォルトを設定"
 
 msgid "This byte is written for a neighbouring parameter; the differing bit is not driven by any active parameter and is only reset to the application default. The device holds an older value (e.g. from a previous configuration or mode) that programming will normalise. Benign."
 msgstr "このバイトは隣接するパラメータのために書き込まれます。異なるビットはどの有効なパラメータにも制御されておらず、アプリケーションのデフォルトにリセットされるだけです。デバイスは古い値（例：以前の構成やモードのもの）を保持しており、プログラミングによって正規化されます。問題ありません。"
-
-msgid "plus {bytes} byte(s) reset to the application default (the device holds an older value; benign, will be normalised on programming)"
-msgstr "さらに、アプリケーションのデフォルトにリセットされるバイト {bytes} 個（デバイスは古い値を保持しています。問題なし、プログラミング時に正規化されます）"
 
 msgid "Export Ist/Soll…"
 msgstr "現状／目標をエクスポート…"
@@ -1180,9 +1120,6 @@ msgstr "差異のみ"
 msgid "Filter devices by address, name or description…"
 msgstr "アドレス、名前、説明でデバイスをフィルター…"
 
-msgid "{count} differences"
-msgstr "{count} 件の差異"
-
 msgid "Parameters"
 msgstr "パラメータ"
 
@@ -1206,9 +1143,6 @@ msgstr "構成を貼り付け"
 
 msgid "Paste configuration onto '{name}':"
 msgstr "構成を「{name}」に貼り付け："
-
-msgid "Paste configuration onto {count} selected devices:"
-msgstr "選択した {count} 台のデバイスに構成を貼り付け："
 
 msgid "Duplicate '{name}':"
 msgstr "「{name}」を複製："
@@ -1603,12 +1537,6 @@ msgstr "グループ・アドレスをインポート"
 msgid "Group Address Files (XML, CSV)"
 msgstr "グループ・アドレス・ファイル（XML、CSV）"
 
-msgid "{added} group addresses added, {updated} updated."
-msgstr "{added}件のグループ・アドレスを追加、{updated}件を更新しました。"
-
-msgid "{count} group addresses could not be placed in a group."
-msgstr "{count}件のグループ・アドレスをグループに配置できませんでした。"
-
 msgid "The file could not be imported: {error}"
 msgstr "ファイルをインポートできませんでした：{error}"
 
@@ -1789,9 +1717,6 @@ msgstr "グループ割り当てをDALIバスに書き込みます。グルー�
 msgid "Write the scene values to the DALI bus. Continue?"
 msgstr "シーン値をDALIバスに書き込みます。続けますか？"
 
-msgid "{count} ECG(s) present"
-msgstr "{count}台のECGが存在"
-
 msgid "Group"
 msgstr "グループ"
 
@@ -1833,9 +1758,6 @@ msgstr "単独"
 
 msgid "Unassigned"
 msgstr "未割り当て"
-
-msgid "Procedure {number}  ({count} steps)"
-msgstr "手順 {number}（{count}ステップ）"
 
 msgid "Kind"
 msgstr "種類"
@@ -2202,9 +2124,6 @@ msgstr "このアプリケーションには静的パラメーターがありま
 
 msgid "This gateway's commissioning protocol has not been verified against a capture; writes may misbehave. Proceed with care."
 msgstr "このゲートウェイのコミッショニング・プロトコルはキャプチャに対して検証されていません。書き込みが誤動作する場合があります。慎重に進めてください。"
-
-msgid "{count} ECG(s) present on line {line}"
-msgstr "ライン {line} に ECG が {count} 台あります"
 
 msgid "Program DCA State"
 msgstr "DCA状態をプログラム"
@@ -2677,9 +2596,6 @@ msgstr "このグループには空いているグループアドレスがあり
 msgid "The main group has no free middle group."
 msgstr "このメイングループには空いている中間グループがありません。"
 
-msgid "{count} devices"
-msgstr "{count} 台のデバイス"
-
 msgid "The main segment cannot be moved."
 msgstr "メインセグメントは移動できません。"
 
@@ -2752,33 +2668,6 @@ msgstr "新しいグループ・アドレス用のグループがありません
 msgid "Copied '{name}' to '{target}'."
 msgstr "'{name}' を '{target}' にコピーしました。"
 
-msgid "Copied {count} devices to '{target}'."
-msgstr "{count} 台のデバイスを '{target}' にコピーしました。"
-
-msgid "Copied {count} building parts to '{target}'."
-msgstr "{count} 個の建物部分を '{target}' にコピーしました。"
-
-msgid "Copied {count} trades to '{target}'."
-msgstr "{count} 個のトレードを '{target}' にコピーしました。"
-
-msgid "Copied {count} functions to '{target}'."
-msgstr "{count} 個の機能を '{target}' にコピーしました。"
-
-msgid "Copied {count} group addresses to '{target}'."
-msgstr "{count} 個のグループ・アドレスを '{target}' にコピーしました。"
-
-msgid "Copied {count} middle groups to '{target}'."
-msgstr "{count} 個の中間グループを '{target}' にコピーしました。"
-
-msgid "Copied {count} main groups to '{target}'."
-msgstr "{count} 個のメイン・グループを '{target}' にコピーしました。"
-
-msgid "Copied {count} lines to '{target}'."
-msgstr "{count} 本のラインを '{target}' にコピーしました。"
-
-msgid "Copied {count} segments to '{target}'."
-msgstr "{count} 個のセグメントを '{target}' にコピーしました。"
-
 msgid "Paste Special…"
 msgstr "形式を選択して貼り付け…"
 
@@ -2821,30 +2710,6 @@ msgstr "追加の上限に達しました。"
 msgid "Cannot add any line to the area {area} because of topology constraints. Please check the medium type of the backbone and main lines."
 msgstr "トポロジの制約により、エリア {area} にラインを追加できません。バックボーンとメインラインのメディアタイプを確認してください。"
 
-msgid "Added {count} areas to '{target}'."
-msgstr "{count} 個のエリアを '{target}' に追加しました。"
-
-msgid "Added {count} lines to '{target}'."
-msgstr "{count} 本のラインを '{target}' に追加しました。"
-
-msgid "Added {count} segments to '{target}'."
-msgstr "{count} 個のセグメントを '{target}' に追加しました。"
-
-msgid "Added {count} building parts to '{target}'."
-msgstr "{count} 個の建物部分を '{target}' に追加しました。"
-
-msgid "Added {count} trades to '{target}'."
-msgstr "{count} 個の業種を '{target}' に追加しました。"
-
-msgid "Added {count} main groups to '{target}'."
-msgstr "{count} 個のメイングループを '{target}' に追加しました。"
-
-msgid "Added {count} middle groups to '{target}'."
-msgstr "{count} 個のミドルグループを '{target}' に追加しました。"
-
-msgid "Added {count} group addresses to '{target}'."
-msgstr "{count} 個のグループアドレスを '{target}' に追加しました。"
-
 msgid "Add Main Groups…"
 msgstr "メイングループを追加…"
 
@@ -2884,12 +2749,6 @@ msgstr "機能を追加"
 msgid "New function"
 msgstr "新しい機能"
 
-msgid "Added {count} functions to '{target}'."
-msgstr "{count} 個の機能を '{target}' に追加しました。"
-
-msgid "Added {count} group ranges to '{target}'."
-msgstr "{count} 個のグループアドレス範囲を '{target}' に追加しました。"
-
 msgid "Add Group Ranges…"
 msgstr "グループアドレス範囲を追加…"
 
@@ -2923,9 +2782,6 @@ msgstr "グループアドレス範囲は、それ自身やその中の範囲に
 msgid "A group address of the range is already in use there."
 msgstr "範囲のグループアドレスがそこで既に使われています。"
 
-msgid "Copied {count} group ranges to '{target}'."
-msgstr "{count} 個のグループアドレス範囲を '{target}' にコピーしました。"
-
 msgid "Add Areas…"
 msgstr "エリアを追加…"
 
@@ -2940,12 +2796,6 @@ msgstr "グループ・アドレスをコピー"
 
 msgid "Existing Devices…"
 msgstr "既存のデバイス…"
-
-msgid "Delete the {count} selected devices? Their group objects and group-address links are removed and their individual addresses are freed. This can be undone."
-msgstr "選択した {count} 台のデバイスを削除しますか? グループオブジェクトとグループアドレスのリンクは削除され、個別アドレスは解放されます。元に戻すことができます。"
-
-msgid "Remove {count} devices"
-msgstr "{count} 台のデバイスを削除"
 
 msgid "Delete Devices"
 msgstr "デバイスを削除"
@@ -3055,9 +2905,6 @@ msgstr "Load LVS Project (.prj)…"
 msgid "LVS project (*.prj)"
 msgstr "LVS project (*.prj)"
 
-msgid "Imported the display configuration into {count} device(s)."
-msgstr "Imported the display configuration into {count} device(s)."
-
 msgid "The LVS project could not be imported: {error}"
 msgstr "The LVS project could not be imported: {error}"
 
@@ -3069,3 +2916,214 @@ msgstr "Exported the display configuration."
 
 msgid "The LVS project could not be exported: {error}"
 msgstr "The LVS project could not be exported: {error}"
+
+msgid "Copied {count} device to '{target}'."
+msgid_plural "Copied {count} devices to '{target}'."
+msgstr[0] "{count} 台のデバイスを '{target}' にコピーしました。"
+
+msgid "Copied {count} building part to '{target}'."
+msgid_plural "Copied {count} building parts to '{target}'."
+msgstr[0] "{count} 個の建物部分を '{target}' にコピーしました。"
+
+msgid "Copied {count} trade to '{target}'."
+msgid_plural "Copied {count} trades to '{target}'."
+msgstr[0] "{count} 個の業種を '{target}' にコピーしました。"
+
+msgid "Copied {count} function to '{target}'."
+msgid_plural "Copied {count} functions to '{target}'."
+msgstr[0] "{count} 個の機能を '{target}' にコピーしました。"
+
+msgid "Copied {count} group address to '{target}'."
+msgid_plural "Copied {count} group addresses to '{target}'."
+msgstr[0] "{count} 個のグループ・アドレスを '{target}' にコピーしました。"
+
+msgid "Copied {count} middle group to '{target}'."
+msgid_plural "Copied {count} middle groups to '{target}'."
+msgstr[0] "{count} 個の中間グループを '{target}' にコピーしました。"
+
+msgid "Copied {count} main group to '{target}'."
+msgid_plural "Copied {count} main groups to '{target}'."
+msgstr[0] "{count} 個のメイン・グループを '{target}' にコピーしました。"
+
+msgid "Copied {count} group range to '{target}'."
+msgid_plural "Copied {count} group ranges to '{target}'."
+msgstr[0] "{count} 個のグループアドレス範囲を '{target}' にコピーしました。"
+
+msgid "Copied {count} line to '{target}'."
+msgid_plural "Copied {count} lines to '{target}'."
+msgstr[0] "{count} 本のラインを '{target}' にコピーしました。"
+
+msgid "Copied {count} segment to '{target}'."
+msgid_plural "Copied {count} segments to '{target}'."
+msgstr[0] "{count} 個のセグメントを '{target}' にコピーしました。"
+
+msgid "Added {count} area to '{target}'."
+msgid_plural "Added {count} areas to '{target}'."
+msgstr[0] "{count} 個のエリアを '{target}' に追加しました。"
+
+msgid "Added {count} line to '{target}'."
+msgid_plural "Added {count} lines to '{target}'."
+msgstr[0] "{count} 本のラインを '{target}' に追加しました。"
+
+msgid "Added {count} segment to '{target}'."
+msgid_plural "Added {count} segments to '{target}'."
+msgstr[0] "{count} 個のセグメントを '{target}' に追加しました。"
+
+msgid "Added {count} building part to '{target}'."
+msgid_plural "Added {count} building parts to '{target}'."
+msgstr[0] "{count} 個の建物部分を '{target}' に追加しました。"
+
+msgid "Added {count} trade to '{target}'."
+msgid_plural "Added {count} trades to '{target}'."
+msgstr[0] "{count} 個の業種を '{target}' に追加しました。"
+
+msgid "Added {count} function to '{target}'."
+msgid_plural "Added {count} functions to '{target}'."
+msgstr[0] "{count} 個の機能を '{target}' に追加しました。"
+
+msgid "Added {count} group range to '{target}'."
+msgid_plural "Added {count} group ranges to '{target}'."
+msgstr[0] "{count} 個のグループアドレス範囲を '{target}' に追加しました。"
+
+msgid "Added {count} main group to '{target}'."
+msgid_plural "Added {count} main groups to '{target}'."
+msgstr[0] "{count} 個のメイングループを '{target}' に追加しました。"
+
+msgid "Added {count} middle group to '{target}'."
+msgid_plural "Added {count} middle groups to '{target}'."
+msgstr[0] "{count} 個のミドルグループを '{target}' に追加しました。"
+
+msgid "Added {count} group address to '{target}'."
+msgid_plural "Added {count} group addresses to '{target}'."
+msgstr[0] "{count} 個のグループアドレスを '{target}' に追加しました。"
+
+msgid "Remove {count} device"
+msgid_plural "Remove {count} devices"
+msgstr[0] "{count} 台のデバイスを削除"
+
+msgid "{count} device"
+msgid_plural "{count} devices"
+msgstr[0] "{count} 台のデバイス"
+
+msgid "{count} item"
+msgid_plural "{count} items"
+msgstr[0] "{count} 項目"
+
+msgid "{count} pair"
+msgid_plural "{count} pairs"
+msgstr[0] "{count} ペア"
+
+msgid "Linked {count} object to a group address"
+msgid_plural "Linked {count} objects to group addresses"
+msgstr[0] "{count} 個のオブジェクトをグループ・アドレスにリンクしました"
+
+msgid "Linked {count} object pair via a new group address"
+msgid_plural "Linked {count} object pairs via new group addresses"
+msgstr[0] "{count} 組のオブジェクト・ペアを新しいグループ・アドレスでリンクしました"
+
+msgid "{count} error"
+msgid_plural "{count} errors"
+msgstr[0] "エラー {count} 件"
+
+msgid "{count} object will be re-mapped"
+msgid_plural "{count} objects will be re-mapped"
+msgstr[0] "{count} 個のオブジェクトが再対応付けされます"
+
+msgid "Replaced; re-mapped {count} group object"
+msgid_plural "Replaced; re-mapped {count} group objects"
+msgstr[0] "置換しました。{count} 個のグループ・オブジェクトを再対応付けしました"
+
+msgid "{count} difference"
+msgid_plural "{count} differences"
+msgstr[0] "{count} 件の差異"
+
+msgid "Created {count} copy"
+msgid_plural "Created {count} copies"
+msgstr[0] "{count} 個のコピーを作成しました"
+
+msgid "{count} address will change"
+msgid_plural "{count} addresses will change"
+msgstr[0] "{count} 件のアドレスが変更されます"
+
+msgid "Shifted {count} address"
+msgid_plural "Shifted {count} addresses"
+msgstr[0] "{count} 件のアドレスをシフトしました"
+
+msgid "Shifted {count} group address"
+msgid_plural "Shifted {count} group addresses"
+msgstr[0] "{count} 件のグループ・アドレスをシフトしました"
+
+msgid "{count} issue"
+msgid_plural "{count} issues"
+msgstr[0] "{count} 件の問題"
+
+msgid "present ({size} byte)"
+msgid_plural "present ({size} bytes)"
+msgstr[0] "あり（{size} バイト）"
+
+msgid "Imported the display configuration into {count} device."
+msgid_plural "Imported the display configuration into {count} devices."
+msgstr[0] "表示構成を {count} 台のデバイスにインポートしました。"
+
+msgid "{count} ECG present on line {line}"
+msgid_plural "{count} ECGs present on line {line}"
+msgstr[0] "ライン {line} に ECG が {count} 台あります"
+
+msgid "Apply Changes to {count} Identical Device"
+msgid_plural "Apply Changes to All {count} Identical Devices"
+msgstr[0] "同一の全 {count} 台のデバイスに変更を適用"
+
+msgid "Editing {count} device — edits apply to all, diverging values show <differs>"
+msgid_plural "Editing {count} devices — edits apply to all, diverging values show <differs>"
+msgstr[0] "{count} 台のデバイスを編集中 — 変更はすべてに適用され、異なる値は <異なる値> と表示されます"
+
+msgid "{count} byte"
+msgid_plural "{count} bytes"
+msgstr[0] "{count} バイト"
+
+msgid "Mismatch: {bytes} from the device in {locations}"
+msgstr "不一致：{locations}で {bytes}"
+
+msgid "{count} byte differs"
+msgid_plural "{count} bytes differ"
+msgstr[0] "{count} バイトがデバイスと異なります"
+
+msgid "{count} location"
+msgid_plural "{count} locations"
+msgstr[0] "{count} か所"
+
+msgid "plus {bytes} device-managed runtime byte (expected, benign)"
+msgid_plural "plus {bytes} device-managed runtime bytes (expected, benign)"
+msgstr[0] "さらに、デバイス管理の実行時バイト {bytes} 個（想定どおり、問題なし）"
+
+msgid "plus {bytes} byte reset to the application default (the device holds an older value; benign, will be normalised on programming)"
+msgid_plural "plus {bytes} bytes reset to the application default (the device holds an older value; benign, will be normalised on programming)"
+msgstr[0] "さらに、アプリケーションのデフォルトにリセットされるバイト {bytes} 個（デバイスは古い値を保持しています。問題なし、プログラミング時に正規化されます）"
+
+msgid "Paste configuration onto {count} selected device:"
+msgid_plural "Paste configuration onto {count} selected devices:"
+msgstr[0] "選択した {count} 台のデバイスに構成を貼り付け："
+
+msgid "Delete the {count} selected device? Its group objects and group-address links are removed and its individual address is freed. This can be undone."
+msgid_plural "Delete the {count} selected devices? Their group objects and group-address links are removed and their individual addresses are freed. This can be undone."
+msgstr[0] "選択した {count} 台のデバイスを削除しますか? グループオブジェクトとグループアドレスのリンクは削除され、個別アドレスは解放されます。元に戻すことができます。"
+
+msgid "{count} group address added"
+msgid_plural "{count} group addresses added"
+msgstr[0] "{count}件のグループ・アドレスを追加"
+
+msgid "{count} updated"
+msgid_plural "{count} updated"
+msgstr[0] "{count}件を更新しました"
+
+msgid "{count} group address could not be placed in a group."
+msgid_plural "{count} group addresses could not be placed in a group."
+msgstr[0] "{count}件のグループ・アドレスをグループに配置できませんでした。"
+
+msgid "{count} ECG present"
+msgid_plural "{count} ECGs present"
+msgstr[0] "{count}台のECGが存在"
+
+msgid "Procedure {number}  ({count} step)"
+msgid_plural "Procedure {number}  ({count} steps)"
+msgstr[0] "手順 {number}（{count}ステップ）"

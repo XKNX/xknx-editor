@@ -172,7 +172,9 @@ class SiemensDaliPanel:
     def _render_ecg_table(self, scan: SiemensN141BusState) -> None:
         present = scan.present_ecgs
         imgui.text_disabled(
-            S.SIEMENS_DALI_PRESENT_COUNT.format(count=len(present), line=scan.line + 1)
+            S.SIEMENS_DALI_PRESENT_COUNT(len(present)).format(
+                count=len(present), line=scan.line + 1
+            )
         )
         flags = (
             imgui.TableFlags_.borders

@@ -46,9 +46,6 @@ msgstr "Nie można ukończyć wyszukiwania: {error}"
 msgid "The interface did not confirm the scan request (bus busy or interface overloaded). Please try again."
 msgstr "Interfejs nie potwierdził żądania wyszukiwania (magistrala zajęta lub interfejs przeciążony). Należy spróbować ponownie."
 
-msgid "{count} device(s) in programming mode"
-msgstr "Urządzenia w trybie programowania: {count}"
-
 msgid "Answered the scan, but reading its details failed: {error}"
 msgstr "Odpowiedziało na wyszukiwanie, ale odczyt szczegółów nie powiódł się: {error}"
 
@@ -222,3 +219,9 @@ msgstr "Brak połączenia z magistralą"
 
 msgid "Serial Number: {serial}"
 msgstr "Numer seryjny: {serial}"
+
+msgid "{count} device in programming mode"
+msgid_plural "{count} devices in programming mode"
+msgstr[0] "{count} urządzenie w trybie programowania"
+msgstr[1] "{count} urządzenia w trybie programowania"
+msgstr[2] "{count} urządzeń w trybie programowania"

@@ -170,7 +170,7 @@ def test_files_import_stops_at_cancel(monkeypatch: pytest.MonkeyPatch) -> None:
     worker()
     assert imported == [b"first", b"second"]
     assert stub._import_rows_result == (
-        S.KNXPROD_IMPORT_SUMMARY.format(count=1, name="folder"),
+        S.KNXPROD_IMPORT_SUMMARY(1).format(count=1, name="folder"),
         ["row P-1"],
     )
     assert stub._knxprod_result is None

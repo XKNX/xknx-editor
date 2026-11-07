@@ -46,9 +46,6 @@ msgstr "La recherche n'a pas pu aboutir : {error}"
 msgid "The interface did not confirm the scan request (bus busy or interface overloaded). Please try again."
 msgstr "L'interface n'a pas confirmé la demande de recherche (bus occupé ou interface surchargée). Veuillez réessayer."
 
-msgid "{count} device(s) in programming mode"
-msgstr "{count} participant(s) en mode programmation"
-
 msgid "Answered the scan, but reading its details failed: {error}"
 msgstr "A répondu à la recherche, mais la lecture de ses détails a échoué : {error}"
 
@@ -222,3 +219,8 @@ msgstr "Non connectée au bus"
 
 msgid "Serial Number: {serial}"
 msgstr "Numéro de Série : {serial}"
+
+msgid "{count} device in programming mode"
+msgid_plural "{count} devices in programming mode"
+msgstr[0] "{count} participant en mode programmation"
+msgstr[1] "{count} participants en mode programmation"

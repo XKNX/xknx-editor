@@ -43,9 +43,6 @@ msgstr "Anlık Görüntüyü Dışa Aktar"
 msgid "Verifying (re-reading and comparing)…"
 msgstr "Doğrulanıyor (yeniden okunuyor ve karşılaştırılıyor)…"
 
-msgid "%(count)d group address(es) have no sender or multiple senders."
-msgstr "%(count)d grup adresinin göndericisi yok veya birden fazla göndericisi var."
-
 msgid "Address"
 msgstr "Adres"
 
@@ -82,17 +79,8 @@ msgstr "grup iletişimi tabloları"
 msgid "parameter memory"
 msgstr "parametre belleği"
 
-msgid "Recovered %(devices)d device(s): %(group_addresses)d group addresses, %(links)d links, %(unknown)d parameter(s) not recoverable."
-msgstr "%(devices)d cihaz kurtarıldı: %(group_addresses)d grup adresi, %(links)d bağlantı, kurtarılamayan %(unknown)d parametre."
-
 msgid "Recovered"
 msgstr "Kurtarıldı"
-
-msgid "Added %(count)d device(s) to the open project (%(target)s)."
-msgstr "Açık projeye %(count)d cihaz eklendi (%(target)s)."
-
-msgid "Created new project %(target)s with %(count)d device(s)."
-msgstr "%(count)d cihazla yeni proje oluşturuldu: %(target)s."
 
 msgid "Not connected to a KNX bus."
 msgstr "Bir KNX bus'ına bağlı değil."
@@ -112,18 +100,11 @@ msgstr "Katalogda değil: ürününü Katalog'da içe aktarın"
 msgid "Not programmed"
 msgstr "Programlanmamış"
 
-
 msgid "Already in the project, skipped"
 msgstr "Zaten projede, atlandı"
 
 msgid "Error"
 msgstr "Hata"
-
-msgid "%d parameters could not be recovered"
-msgstr "%d parametre kurtarılamadı"
-
-msgid "%(count)d device(s) could not be added; the reason is in the Result column."
-msgstr "%(count)d cihaz eklenemedi; nedeni \"Sonuç\" sütununda."
 
 msgid "Recovered (incomplete)"
 msgstr "Kurtarıldı (eksik)"
@@ -152,9 +133,6 @@ msgstr "Seçili eksik cihazların ayarlarını, onlardan okunan veride seçilen 
 msgid "Searching %(address)s again  (%(done)d/%(total)d)…"
 msgstr "%(address)s yeniden aranıyor  (%(done)d/%(total)d)…"
 
-msgid "%(bytes)d byte(s) and %(objects)d group object(s) differ from the device"
-msgstr "%(bytes)d bayt ve %(objects)d grup nesnesi cihazdan farklı"
-
 msgid "more search effort may help"
 msgstr "daha geniş arama kapsamı yardımcı olabilir"
 
@@ -167,14 +145,60 @@ msgstr "Sonuç"
 msgid "Not read yet"
 msgstr "Henüz okunmadı"
 
-msgid "%(group_addresses)d group addresses, %(links)d links, %(parameters)d parameters"
-msgstr "%(group_addresses)d grup adresi, %(links)d bağlantı, %(parameters)d parametre"
-
-msgid "%(count)d unknown"
-msgstr "%(count)d bilinmeyen"
-
 msgid "Verified"
 msgstr "Doğrulandı"
 
-msgid "Verify: %(bytes)d byte(s) differ"
-msgstr "Doğrulama: %(bytes)d bayt farklı"
+msgid "%(count)d group address has no sender or multiple senders."
+msgid_plural "%(count)d group addresses have no sender or multiple senders."
+msgstr[0] "%(count)d grup adresinin göndericisi yok veya birden fazla göndericisi var."
+
+msgid "Recovered %(count)d device"
+msgid_plural "Recovered %(count)d devices"
+msgstr[0] "%(count)d cihaz kurtarıldı"
+
+msgid "%(count)d group address"
+msgid_plural "%(count)d group addresses"
+msgstr[0] "%(count)d grup adresi"
+
+msgid "%(count)d link"
+msgid_plural "%(count)d links"
+msgstr[0] "%(count)d bağlantı"
+
+msgid "%(count)d parameter"
+msgid_plural "%(count)d parameters"
+msgstr[0] "%(count)d parametre"
+
+msgid "%(count)d parameter cannot be recovered"
+msgid_plural "%(count)d parameters cannot be recovered"
+msgstr[0] "%(count)d parametre kurtarılamıyor"
+
+msgid "%(count)d parameter not found yet"
+msgid_plural "%(count)d parameters not found yet"
+msgstr[0] "%(count)d parametre henüz bulunamadı"
+
+msgid "Added %(count)d device to the open project (%(target)s)."
+msgid_plural "Added %(count)d devices to the open project (%(target)s)."
+msgstr[0] "Açık projeye %(count)d cihaz eklendi (%(target)s)."
+
+msgid "Created new project %(target)s with %(count)d device."
+msgid_plural "Created new project %(target)s with %(count)d devices."
+msgstr[0] "%(count)d cihazla yeni proje oluşturuldu: %(target)s."
+
+msgid "%(count)d device could not be added; the reason is in the Result column."
+msgid_plural "%(count)d devices could not be added; the reason is in the Result column."
+msgstr[0] "%(count)d cihaz eklenemedi; nedeni \"Sonuç\" sütununda."
+
+msgid "Differs from the device: %(what)s"
+msgstr "Cihazdan farklı: %(what)s"
+
+msgid "%(count)d byte"
+msgid_plural "%(count)d bytes"
+msgstr[0] "%(count)d bayt"
+
+msgid "%(count)d group object"
+msgid_plural "%(count)d group objects"
+msgstr[0] "%(count)d grup nesnesi"
+
+msgid "Verify: %(count)d byte differs"
+msgid_plural "Verify: %(count)d bytes differ"
+msgstr[0] "Doğrulama: %(count)d bayt farklı"

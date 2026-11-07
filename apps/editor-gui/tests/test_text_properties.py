@@ -43,7 +43,7 @@ def _texts() -> Iterator[tuple[str, object, str]]:
     """``(id, strings object, property name)`` of every text property."""
     for module in _modules():
         for _name, cls in inspect.getmembers(module, inspect.isclass):
-            if cls.__module__ != module.__name__:
+            if cls.__module__ != module.__name__ or cls is strings.Translator:
                 continue
             instance = cls()
             for name, member in vars(cls).items():

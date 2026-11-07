@@ -106,9 +106,6 @@ msgstr "構造"
 msgid "+ {count} more"
 msgstr "+ 他{count}件"
 
-msgid "{count} more devices outside the selection. Click to show them."
-msgstr "選択範囲外のデバイスがあと{count}台あります。クリックすると表示します。"
-
 msgid "{address}\n{senders} sending, {receivers} receiving"
 msgstr "{address}\n送信{senders}、受信{receivers}"
 
@@ -129,3 +126,7 @@ msgstr "アドレス：{address}"
 
 msgid "Application: {application}"
 msgstr "アプリケーション：{application}"
+
+msgid "{count} more device outside the selection. Click to show it."
+msgid_plural "{count} more devices outside the selection. Click to show them."
+msgstr[0] "選択範囲外のデバイスがあと{count}台あります。クリックすると表示します。"

@@ -43,9 +43,6 @@ msgstr "Экспорт снимка"
 msgid "Verifying (re-reading and comparing)…"
 msgstr "Проверка (повторное чтение и сравнение)…"
 
-msgid "%(count)d group address(es) have no sender or multiple senders."
-msgstr "Групповые адреса без отправителя или с несколькими отправителями: %(count)d."
-
 msgid "Address"
 msgstr "Адрес"
 
@@ -82,17 +79,8 @@ msgstr "таблицы групповой коммуникации"
 msgid "parameter memory"
 msgstr "память параметров"
 
-msgid "Recovered %(devices)d device(s): %(group_addresses)d group addresses, %(links)d links, %(unknown)d parameter(s) not recoverable."
-msgstr "Восстановлено устройств: %(devices)d; групповых адресов: %(group_addresses)d, связей: %(links)d, невосстановимых параметров: %(unknown)d."
-
 msgid "Recovered"
 msgstr "Восстановлено"
-
-msgid "Added %(count)d device(s) to the open project (%(target)s)."
-msgstr "Добавлено устройств в открытый проект: %(count)d (%(target)s)."
-
-msgid "Created new project %(target)s with %(count)d device(s)."
-msgstr "Создан новый проект %(target)s, устройств: %(count)d."
 
 msgid "Not connected to a KNX bus."
 msgstr "Нет подключения к шине KNX."
@@ -112,18 +100,11 @@ msgstr "Нет в каталоге: импортируйте его продук
 msgid "Not programmed"
 msgstr "Не запрограммировано"
 
-
 msgid "Already in the project, skipped"
 msgstr "Уже в проекте, пропущено"
 
 msgid "Error"
 msgstr "Ошибка"
-
-msgid "%d parameters could not be recovered"
-msgstr "Не удалось восстановить параметры: %d"
-
-msgid "%(count)d device(s) could not be added; the reason is in the Result column."
-msgstr "Не удалось добавить устройств: %(count)d; причина указана в столбце «Результат»."
 
 msgid "Recovered (incomplete)"
 msgstr "Восстановлено (не полностью)"
@@ -152,9 +133,6 @@ msgstr "Повторно ищет параметры выбранных непо
 msgid "Searching %(address)s again  (%(done)d/%(total)d)…"
 msgstr "Повторный поиск для %(address)s  (%(done)d/%(total)d)…"
 
-msgid "%(bytes)d byte(s) and %(objects)d group object(s) differ from the device"
-msgstr "%(bytes)d байт и %(objects)d групповых объектов отличаются от устройства"
-
 msgid "more search effort may help"
 msgstr "больший объём поиска может помочь"
 
@@ -167,14 +145,86 @@ msgstr "Результат"
 msgid "Not read yet"
 msgstr "Ещё не считано"
 
-msgid "%(group_addresses)d group addresses, %(links)d links, %(parameters)d parameters"
-msgstr "Групповых адресов: %(group_addresses)d, связей: %(links)d, параметров: %(parameters)d"
-
-msgid "%(count)d unknown"
-msgstr "Неизвестно: %(count)d"
-
 msgid "Verified"
 msgstr "Проверено"
 
-msgid "Verify: %(bytes)d byte(s) differ"
-msgstr "Проверка: отличается байт: %(bytes)d"
+msgid "%(count)d group address has no sender or multiple senders."
+msgid_plural "%(count)d group addresses have no sender or multiple senders."
+msgstr[0] "У %(count)d группового адреса нет отправителя или несколько отправителей."
+msgstr[1] "У %(count)d групповых адресов нет отправителя или несколько отправителей."
+msgstr[2] "У %(count)d групповых адресов нет отправителя или несколько отправителей."
+
+msgid "Recovered %(count)d device"
+msgid_plural "Recovered %(count)d devices"
+msgstr[0] "Восстановлено %(count)d устройство"
+msgstr[1] "Восстановлено %(count)d устройства"
+msgstr[2] "Восстановлено %(count)d устройств"
+
+msgid "%(count)d group address"
+msgid_plural "%(count)d group addresses"
+msgstr[0] "%(count)d групповой адрес"
+msgstr[1] "%(count)d групповых адреса"
+msgstr[2] "%(count)d групповых адресов"
+
+msgid "%(count)d link"
+msgid_plural "%(count)d links"
+msgstr[0] "%(count)d связь"
+msgstr[1] "%(count)d связи"
+msgstr[2] "%(count)d связей"
+
+msgid "%(count)d parameter"
+msgid_plural "%(count)d parameters"
+msgstr[0] "%(count)d параметр"
+msgstr[1] "%(count)d параметра"
+msgstr[2] "%(count)d параметров"
+
+msgid "%(count)d parameter cannot be recovered"
+msgid_plural "%(count)d parameters cannot be recovered"
+msgstr[0] "%(count)d параметр невозможно восстановить"
+msgstr[1] "%(count)d параметра невозможно восстановить"
+msgstr[2] "%(count)d параметров невозможно восстановить"
+
+msgid "%(count)d parameter not found yet"
+msgid_plural "%(count)d parameters not found yet"
+msgstr[0] "%(count)d параметр пока не найден"
+msgstr[1] "%(count)d параметра пока не найдены"
+msgstr[2] "%(count)d параметров пока не найдены"
+
+msgid "Added %(count)d device to the open project (%(target)s)."
+msgid_plural "Added %(count)d devices to the open project (%(target)s)."
+msgstr[0] "В открытый проект (%(target)s) добавлено %(count)d устройство."
+msgstr[1] "В открытый проект (%(target)s) добавлено %(count)d устройства."
+msgstr[2] "В открытый проект (%(target)s) добавлено %(count)d устройств."
+
+msgid "Created new project %(target)s with %(count)d device."
+msgid_plural "Created new project %(target)s with %(count)d devices."
+msgstr[0] "Создан новый проект %(target)s с %(count)d устройством."
+msgstr[1] "Создан новый проект %(target)s с %(count)d устройствами."
+msgstr[2] "Создан новый проект %(target)s с %(count)d устройствами."
+
+msgid "%(count)d device could not be added; the reason is in the Result column."
+msgid_plural "%(count)d devices could not be added; the reason is in the Result column."
+msgstr[0] "Не удалось добавить %(count)d устройство; причина указана в столбце «Результат»."
+msgstr[1] "Не удалось добавить %(count)d устройства; причина указана в столбце «Результат»."
+msgstr[2] "Не удалось добавить %(count)d устройств; причина указана в столбце «Результат»."
+
+msgid "Differs from the device: %(what)s"
+msgstr "Отличается от устройства: %(what)s"
+
+msgid "%(count)d byte"
+msgid_plural "%(count)d bytes"
+msgstr[0] "%(count)d байт"
+msgstr[1] "%(count)d байта"
+msgstr[2] "%(count)d байт"
+
+msgid "%(count)d group object"
+msgid_plural "%(count)d group objects"
+msgstr[0] "%(count)d групповой объект"
+msgstr[1] "%(count)d групповых объекта"
+msgstr[2] "%(count)d групповых объектов"
+
+msgid "Verify: %(count)d byte differs"
+msgid_plural "Verify: %(count)d bytes differ"
+msgstr[0] "Проверка: отличается %(count)d байт"
+msgstr[1] "Проверка: отличаются %(count)d байта"
+msgstr[2] "Проверка: отличаются %(count)d байт"

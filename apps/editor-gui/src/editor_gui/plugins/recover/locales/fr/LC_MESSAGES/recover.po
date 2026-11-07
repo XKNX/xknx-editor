@@ -43,9 +43,6 @@ msgstr "Exporter l'instantané"
 msgid "Verifying (re-reading and comparing)…"
 msgstr "Vérification (relecture et comparaison)…"
 
-msgid "%(count)d group address(es) have no sender or multiple senders."
-msgstr "%(count)d adresse(s) de groupe n'ont aucun émetteur ou en ont plusieurs."
-
 msgid "Address"
 msgstr "Adresse"
 
@@ -82,17 +79,8 @@ msgstr "tables de communication de groupe"
 msgid "parameter memory"
 msgstr "mémoire des paramètres"
 
-msgid "Recovered %(devices)d device(s): %(group_addresses)d group addresses, %(links)d links, %(unknown)d parameter(s) not recoverable."
-msgstr "%(devices)d participant(s) récupéré(s) : %(group_addresses)d adresses de groupe, %(links)d liaisons, %(unknown)d paramètre(s) non récupérable(s)."
-
 msgid "Recovered"
 msgstr "Récupéré"
-
-msgid "Added %(count)d device(s) to the open project (%(target)s)."
-msgstr "%(count)d participant(s) ajouté(s) au projet ouvert (%(target)s)."
-
-msgid "Created new project %(target)s with %(count)d device(s)."
-msgstr "Nouveau projet %(target)s créé avec %(count)d participant(s)."
 
 msgid "Not connected to a KNX bus."
 msgstr "Non connecté à un bus KNX."
@@ -112,18 +100,11 @@ msgstr "Absent du catalogue : importez son produit dans le Catalogue"
 msgid "Not programmed"
 msgstr "Non programmé"
 
-
 msgid "Already in the project, skipped"
 msgstr "Déjà dans le projet, ignoré"
 
 msgid "Error"
 msgstr "Erreur"
-
-msgid "%d parameters could not be recovered"
-msgstr "%d paramètres n'ont pas pu être récupérés"
-
-msgid "%(count)d device(s) could not be added; the reason is in the Result column."
-msgstr "Impossible d’ajouter %(count)d participant(s) ; la raison figure dans la colonne « Résultat »."
 
 msgid "Recovered (incomplete)"
 msgstr "Récupéré (incomplet)"
@@ -152,9 +133,6 @@ msgstr "Recherche à nouveau les réglages des appareils incomplets sélectionn�
 msgid "Searching %(address)s again  (%(done)d/%(total)d)…"
 msgstr "Nouvelle recherche pour %(address)s  (%(done)d/%(total)d)…"
 
-msgid "%(bytes)d byte(s) and %(objects)d group object(s) differ from the device"
-msgstr "%(bytes)d octet(s) et %(objects)d objet(s) de groupe diffèrent de l'appareil"
-
 msgid "more search effort may help"
 msgstr "plus d'effort de recherche peut aider"
 
@@ -167,14 +145,73 @@ msgstr "Résultat"
 msgid "Not read yet"
 msgstr "Pas encore lu"
 
-msgid "%(group_addresses)d group addresses, %(links)d links, %(parameters)d parameters"
-msgstr "%(group_addresses)d adresses de groupe, %(links)d liaisons, %(parameters)d paramètres"
-
-msgid "%(count)d unknown"
-msgstr "%(count)d inconnu(s)"
-
 msgid "Verified"
 msgstr "Vérifié"
 
-msgid "Verify: %(bytes)d byte(s) differ"
-msgstr "Vérification : %(bytes)d octet(s) diffèrent"
+msgid "%(count)d group address has no sender or multiple senders."
+msgid_plural "%(count)d group addresses have no sender or multiple senders."
+msgstr[0] "%(count)d adresse de groupe n'a aucun émetteur ou en a plusieurs."
+msgstr[1] "%(count)d adresses de groupe n'ont aucun émetteur ou en ont plusieurs."
+
+msgid "Recovered %(count)d device"
+msgid_plural "Recovered %(count)d devices"
+msgstr[0] "%(count)d participant récupéré"
+msgstr[1] "%(count)d participants récupérés"
+
+msgid "%(count)d group address"
+msgid_plural "%(count)d group addresses"
+msgstr[0] "%(count)d adresse de groupe"
+msgstr[1] "%(count)d adresses de groupe"
+
+msgid "%(count)d link"
+msgid_plural "%(count)d links"
+msgstr[0] "%(count)d liaison"
+msgstr[1] "%(count)d liaisons"
+
+msgid "%(count)d parameter"
+msgid_plural "%(count)d parameters"
+msgstr[0] "%(count)d paramètre"
+msgstr[1] "%(count)d paramètres"
+
+msgid "%(count)d parameter cannot be recovered"
+msgid_plural "%(count)d parameters cannot be recovered"
+msgstr[0] "%(count)d paramètre non récupérable"
+msgstr[1] "%(count)d paramètres non récupérables"
+
+msgid "%(count)d parameter not found yet"
+msgid_plural "%(count)d parameters not found yet"
+msgstr[0] "%(count)d paramètre pas encore trouvé"
+msgstr[1] "%(count)d paramètres pas encore trouvés"
+
+msgid "Added %(count)d device to the open project (%(target)s)."
+msgid_plural "Added %(count)d devices to the open project (%(target)s)."
+msgstr[0] "%(count)d participant ajouté au projet ouvert (%(target)s)."
+msgstr[1] "%(count)d participants ajoutés au projet ouvert (%(target)s)."
+
+msgid "Created new project %(target)s with %(count)d device."
+msgid_plural "Created new project %(target)s with %(count)d devices."
+msgstr[0] "Nouveau projet %(target)s créé avec %(count)d participant."
+msgstr[1] "Nouveau projet %(target)s créé avec %(count)d participants."
+
+msgid "%(count)d device could not be added; the reason is in the Result column."
+msgid_plural "%(count)d devices could not be added; the reason is in the Result column."
+msgstr[0] "Impossible d’ajouter %(count)d participant ; la raison figure dans la colonne « Résultat »."
+msgstr[1] "Impossible d’ajouter %(count)d participants ; la raison figure dans la colonne « Résultat »."
+
+msgid "Differs from the device: %(what)s"
+msgstr "Diffère de l'appareil : %(what)s"
+
+msgid "%(count)d byte"
+msgid_plural "%(count)d bytes"
+msgstr[0] "%(count)d octet"
+msgstr[1] "%(count)d octets"
+
+msgid "%(count)d group object"
+msgid_plural "%(count)d group objects"
+msgstr[0] "%(count)d objet de groupe"
+msgstr[1] "%(count)d objets de groupe"
+
+msgid "Verify: %(count)d byte differs"
+msgid_plural "Verify: %(count)d bytes differ"
+msgstr[0] "Vérification : %(count)d octet diffère"
+msgstr[1] "Vérification : %(count)d octets diffèrent"

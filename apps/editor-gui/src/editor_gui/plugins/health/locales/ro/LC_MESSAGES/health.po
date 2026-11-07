@@ -16,20 +16,11 @@ msgstr "Niciun proiect deschis"
 msgid "No issues found"
 msgstr "Nu s-au găsit probleme"
 
-msgid "{errors} errors, {warnings} warnings"
-msgstr "Erori: {errors}, avertismente: {warnings}"
-
 msgid "{device}: no individual address"
 msgstr "{device}: nicio adresă fizică"
 
 msgid "Duplicate individual address {address} ({device})"
 msgstr "Adresă fizică duplicată {address} ({device})"
-
-msgid "{count} device(s) skipped: application not in catalog"
-msgstr "Dispozitive omise: {count} (aplicația nu este în catalog)"
-
-msgid "{device}: {count} unlinked group object(s)"
-msgstr "{device}: obiecte de comunicare nelegate: {count}"
 
 msgid "{address} {name}: no datapoint type"
 msgstr "{address} {name}: niciun tip de punct de date"
@@ -37,5 +28,32 @@ msgstr "{address} {name}: niciun tip de punct de date"
 msgid "{address} {name}: no sending group object"
 msgstr "{address} {name}: niciun obiect de comunicare care transmite"
 
-msgid "{address} {name}: {count} sending group objects"
-msgstr "{address} {name}: obiecte de comunicare care transmit: {count}"
+msgid "{count} error"
+msgid_plural "{count} errors"
+msgstr[0] "{count} eroare"
+msgstr[1] "{count} erori"
+msgstr[2] "{count} de erori"
+
+msgid "{count} warning"
+msgid_plural "{count} warnings"
+msgstr[0] "{count} avertisment"
+msgstr[1] "{count} avertismente"
+msgstr[2] "{count} de avertismente"
+
+msgid "{count} device skipped: application not in catalog"
+msgid_plural "{count} devices skipped: application not in catalog"
+msgstr[0] "{count} dispozitiv omis (aplicația nu este în catalog)"
+msgstr[1] "{count} dispozitive omise (aplicația nu este în catalog)"
+msgstr[2] "{count} de dispozitive omise (aplicația nu este în catalog)"
+
+msgid "{device}: {count} unlinked group object"
+msgid_plural "{device}: {count} unlinked group objects"
+msgstr[0] "{device}: {count} obiect de comunicare nelegat"
+msgstr[1] "{device}: {count} obiecte de comunicare nelegate"
+msgstr[2] "{device}: {count} de obiecte de comunicare nelegate"
+
+msgid "{address} {name}: {count} sending group object"
+msgid_plural "{address} {name}: {count} sending group objects"
+msgstr[0] "{address} {name}: {count} obiect de comunicare care transmite"
+msgstr[1] "{address} {name}: {count} obiecte de comunicare care transmit"
+msgstr[2] "{address} {name}: {count} de obiecte de comunicare care transmit"

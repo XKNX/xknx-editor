@@ -53,7 +53,8 @@ msgid "Hide Extended Information"
 msgstr "拡張情報を非表示"
 
 msgid "{count} telg."
-msgstr "{count} telg."
+msgid_plural "{count} telg."
+msgstr[0] "{count} telg."
 
 msgid "{rate} t/s"
 msgstr "{rate} t/s"
@@ -214,20 +215,11 @@ msgstr "テレグラム記録"
 msgid "All files"
 msgstr "全てのファイル"
 
-msgid "{count} telegrams exported to {path}"
-msgstr "{count} 件のテレグラムを {path} にエクスポートしました"
-
 msgid "Export failed: {error}"
 msgstr "エクスポートに失敗しました：{error}"
 
-msgid "{count} entries loaded from {path}"
-msgstr "{path} から {count} 件のエントリを読み込みました"
-
 msgid "Loading failed: {error}"
 msgstr "読み込みに失敗しました：{error}"
-
-msgid "{count} telegrams in another frame format were skipped"
-msgstr "別のフレーム・フォーマットのテレグラム {count} 件をスキップしました"
 
 msgid "Printing failed: {error}"
 msgstr "印刷に失敗しました：{error}"
@@ -235,17 +227,8 @@ msgstr "印刷に失敗しました：{error}"
 msgid "Page {page}"
 msgstr "ページ {page}"
 
-msgid "{count} Data Secure telegrams are not replayed"
-msgstr "Data Secure テレグラム {count} 件はリプレイされません"
-
 msgid "There are no group telegrams to replay"
 msgstr "リプレイするグループ・テレグラムがありません"
-
-msgid "Replay finished: {count} telegrams sent"
-msgstr "リプレイ完了：{count} 件のテレグラムを送信しました"
-
-msgid "Replay cancelled: {count} telegrams sent"
-msgstr "リプレイをキャンセルしました：{count} 件のテレグラムを送信しました"
 
 msgid "from bus"
 msgstr "バスから"
@@ -390,3 +373,27 @@ msgstr "Max"
 
 msgid "Maximum telegrams this monitor keeps. The oldest tenth is dropped when the cap is exceeded."
 msgstr "Maximum telegrams this monitor keeps. The oldest tenth is dropped when the cap is exceeded."
+
+msgid "{count} telegram exported to {path}"
+msgid_plural "{count} telegrams exported to {path}"
+msgstr[0] "{count} 件のテレグラムを {path} にエクスポートしました"
+
+msgid "{count} entry loaded from {path}"
+msgid_plural "{count} entries loaded from {path}"
+msgstr[0] "{path} から {count} 件のエントリを読み込みました"
+
+msgid "{count} telegram in another frame format was skipped"
+msgid_plural "{count} telegrams in another frame format were skipped"
+msgstr[0] "別のフレーム・フォーマットのテレグラム {count} 件をスキップしました"
+
+msgid "{count} Data Secure telegram is not replayed"
+msgid_plural "{count} Data Secure telegrams are not replayed"
+msgstr[0] "Data Secure テレグラム {count} 件はリプレイされません"
+
+msgid "Replay finished: {count} telegram sent"
+msgid_plural "Replay finished: {count} telegrams sent"
+msgstr[0] "リプレイ完了：{count} 件のテレグラムを送信しました"
+
+msgid "Replay cancelled: {count} telegram sent"
+msgid_plural "Replay cancelled: {count} telegrams sent"
+msgstr[0] "リプレイをキャンセルしました：{count} 件のテレグラムを送信しました"

@@ -145,9 +145,6 @@ msgstr "Die Suche konnte nicht abgeschlossen werden: {error}"
 msgid "Unprogrammed device (factory default address 15.15.255)"
 msgstr "Unprogrammiertes Gerät (Werkseinstellungsadresse 15.15.255)"
 
-msgid "{count} device(s) in programming mode"
-msgstr "{count} Gerät(e) im Programmiermodus"
-
 msgid "The interface requires KNX IP Secure, but neither the project nor a loaded keyring has its passwords."
 msgstr "Die Schnittstelle erfordert KNX IP Secure, aber weder das Projekt noch ein geladener Keyring enthält ihre Passwörter."
 
@@ -222,3 +219,8 @@ msgstr "Nicht mit dem Bus verbunden"
 
 msgid "Serial Number: {serial}"
 msgstr "Seriennummer: {serial}"
+
+msgid "{count} device in programming mode"
+msgid_plural "{count} devices in programming mode"
+msgstr[0] "{count} Gerät im Programmiermodus"
+msgstr[1] "{count} Geräte im Programmiermodus"

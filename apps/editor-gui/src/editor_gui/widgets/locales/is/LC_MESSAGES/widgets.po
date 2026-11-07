@@ -175,9 +175,6 @@ msgstr "Sláðu inn heiltölu."
 msgid "Enter a value from {minimum} to {maximum}."
 msgstr "Sláðu inn gildi frá {minimum} til {maximum}."
 
-msgid "Enter at most {count} characters."
-msgstr "Hámarksfjöldi stafa: {count}."
-
 msgid "Enter a value."
 msgstr "Sláðu inn gildi."
 
@@ -189,9 +186,6 @@ msgstr "Ekki er hægt að slá inn gildi fyrir þessa gagnagerð."
 
 msgid "Edit…"
 msgstr "Breyta…"
-
-msgid "The text may take at most {count} bytes."
-msgstr "Textinn má mest vera {count} bæti."
 
 msgid "Value {number}"
 msgstr "Gildi {number}"
@@ -265,9 +259,6 @@ msgstr "Afrita {count} B"
 msgid "Go To:"
 msgstr "Fara á:"
 
-msgid "{count} difference(s)"
-msgstr "Mismunur: {count}"
-
 msgid "no differences"
 msgstr "enginn munur"
 
@@ -303,3 +294,18 @@ msgstr "Klippa"
 
 msgid "Paste"
 msgstr "Líma"
+
+msgid "Enter at most {count} character."
+msgid_plural "Enter at most {count} characters."
+msgstr[0] "Sláðu inn í mesta lagi {count} staf."
+msgstr[1] "Sláðu inn í mesta lagi {count} stafi."
+
+msgid "The text may take at most {count} byte."
+msgid_plural "The text may take at most {count} bytes."
+msgstr[0] "Textinn má mest vera {count} bæti."
+msgstr[1] "Textinn má mest vera {count} bæti."
+
+msgid "{count} difference"
+msgid_plural "{count} differences"
+msgstr[0] "{count} frávik"
+msgstr[1] "{count} frávik"

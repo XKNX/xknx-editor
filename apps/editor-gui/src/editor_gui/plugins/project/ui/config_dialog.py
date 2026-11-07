@@ -60,7 +60,7 @@ class DeviceConfigDialog:
             else 1
         )
         if is_paste and count > 1:
-            imgui.text_wrapped(S.CONFIG_PASTE_INTO_MULTI.format(count=count))
+            imgui.text_wrapped(S.CONFIG_PASTE_INTO_MULTI(count).format(count=count))
         else:
             header = S.CONFIG_PASTE_INTO if is_paste else S.CONFIG_DUPLICATE_OF
             imgui.text_wrapped(header.format(name=self._label))

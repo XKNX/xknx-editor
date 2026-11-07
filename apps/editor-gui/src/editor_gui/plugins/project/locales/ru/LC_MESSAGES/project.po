@@ -118,12 +118,6 @@ msgstr "Переместить вверх"
 msgid "Move Down"
 msgstr "Переместить вниз"
 
-msgid "{count} items"
-msgstr "Элементов: {count}"
-
-msgid "{count} pairs"
-msgstr "Пар: {count}"
-
 msgid "{count} unpaired (ignored)"
 msgstr "Без пары (игнорируются): {count}"
 
@@ -147,15 +141,6 @@ msgstr "Добавить групповые адреса"
 
 msgid "Mass Linker Result"
 msgstr "Результат массового связывания"
-
-msgid "Linked {count} object(s) to group addresses"
-msgstr "Связано объектов с групповыми адресами: {count}"
-
-msgid "Linked {count} object pair(s) via new group addresses"
-msgstr "Связано пар объектов через новые групповые адреса: {count}"
-
-msgid "{count} error(s)"
-msgstr "Ошибок: {count}"
 
 msgid "Clear All"
 msgstr "Очистить всё"
@@ -277,12 +262,6 @@ msgstr "Заменить на (шаблон)"
 msgid "Group Object Mapping (by Number)"
 msgstr "Сопоставление групповых объектов (по номеру)"
 
-msgid "{count} object(s) will be re-mapped"
-msgstr "Будет переназначено объектов: {count}"
-
-msgid "Replaced; re-mapped {count} group object(s)"
-msgstr "Заменено; переназначено групповых объектов: {count}"
-
 msgid "Shift Addresses"
 msgstr "Сдвинуть адреса"
 
@@ -312,9 +291,6 @@ msgstr "В сравнении с {name}:"
 
 msgid "No differences in devices or group addresses."
 msgstr "Нет различий в устройствах и групповых адресах."
-
-msgid "{count} difference(s)"
-msgstr "Различий: {count}"
 
 msgid "Add Device Certificate"
 msgstr "Добавить сертификат устройства"
@@ -397,9 +373,6 @@ msgstr "Имя копии: {name}"
 msgid "Copy"
 msgstr "Копировать"
 
-msgid "Created {count} copy/copies"
-msgstr "Создано копий: {count}"
-
 msgid "Shifts the device part of each individual address. Group addresses are not shifted."
 msgstr "Сдвигает часть устройства каждого индивидуального адреса. Групповые адреса не сдвигаются."
 
@@ -421,12 +394,6 @@ msgstr "Выбрано {sel} из {total}"
 msgid "(out of range)"
 msgstr "(вне диапазона)"
 
-msgid "{count} address(es) will change"
-msgstr "Будет изменено адресов: {count}"
-
-msgid "Shifted {count} address(es)"
-msgstr "Сдвинуто адресов: {count}"
-
 msgid "Individual Addresses"
 msgstr "Индивидуальные адреса"
 
@@ -441,9 +408,6 @@ msgstr "Перенумеровать групповые адреса, добав
 
 msgid "The offset is added to the raw 16-bit value, so it may change the main/middle group as addresses cross a boundary."
 msgstr "Смещение добавляется к необработанному 16-битному значению, поэтому главная/средняя группа может измениться, когда адреса переходят границу."
-
-msgid "Shifted {count} group address(es)"
-msgstr "Сдвинуто групповых адресов: {count}"
 
 msgid "Export CSV…"
 msgstr "Экспорт CSV…"
@@ -496,9 +460,6 @@ msgstr "Выберите хотя бы одно поле."
 msgid "No topology issues found."
 msgstr "Проблем топологии не найдено."
 
-msgid "{count} issue(s)"
-msgstr "Проблем: {count}"
-
 msgid "Click a finding to jump to the device."
 msgstr "Щёлкните по результату, чтобы перейти к устройству."
 
@@ -516,6 +477,7 @@ msgstr "Чтение проектов…"
 
 msgid "Comparing devices: {done} of {total}"
 msgstr "Сравнение устройств: {done} из {total}"
+
 msgid "File"
 msgstr "Файл"
 
@@ -630,9 +592,6 @@ msgstr "Сертификат проекта"
 msgid "none"
 msgstr "нет"
 
-msgid "present ({size} bytes)"
-msgstr "есть ({size} байт)"
-
 msgid "Password"
 msgstr "Пароль"
 
@@ -692,7 +651,6 @@ msgstr "ETS шифрует комментарии журнала. Чтобы п�
 
 msgid "Comments are encrypted"
 msgstr "Комментарии зашифрованы"
-
 
 msgid "Extracting key…"
 msgstr "Извлечение ключа…"
@@ -1003,14 +961,8 @@ msgstr "Щёлкните, чтобы скопировать"
 msgid "Filter parameters…"
 msgstr "Фильтр параметров…"
 
-msgid "Apply Changes to All {count} Identical Devices"
-msgstr "Применить изменения ко всем идентичным устройствам ({count})"
-
 msgid "Apply Changes to All Channels"
 msgstr "Применить изменения ко всем каналам"
-
-msgid "Editing {count} devices — edits apply to all, diverging values show <differs>"
-msgstr "Редактирование устройств: {count} — изменения применяются ко всем, расходящиеся значения показаны как <различается>"
 
 msgid "Hardware"
 msgstr "Аппаратные средства"
@@ -1048,9 +1000,6 @@ msgstr "Сбросить сравнение"
 msgid "Memory Dumps (*.bin)"
 msgstr "Дампы памяти (*.bin)"
 
-msgid "{count} bytes"
-msgstr "{count} байт"
-
 msgid "No memory segments."
 msgstr "Нет сегментов памяти."
 
@@ -1077,9 +1026,6 @@ msgstr "Невозможно выполнить: нет подключения K
 
 msgid "Match: the generated image is identical to what is on the device"
 msgstr "Совпадение: сформированный образ идентичен содержимому устройства"
-
-msgid "Mismatch: {bytes} byte(s) differ from the device in {locations} location(s)"
-msgstr "Несовпадение: различающихся байтов: {bytes}, мест: {locations}"
 
 msgid "{matched} matched, {changed} would change"
 msgstr "Совпадает: {matched}, будет изменено: {changed}"
@@ -1111,9 +1057,6 @@ msgstr "управляется устройством"
 msgid "System byte the device sets itself at runtime (e.g. a download detection byte reset by the application after a download). A difference here is expected and does not indicate a bad download."
 msgstr "Системный байт, который устройство само устанавливает во время работы (напр. байт распознавания загрузки, сбрасываемый приложением после загрузки). Различие здесь ожидаемо и не указывает на неудачную загрузку."
 
-msgid "plus {bytes} device-managed runtime byte(s) (expected, benign)"
-msgstr "плюс байты времени выполнения, управляемые устройством: {bytes} (ожидаемо, безопасно)"
-
 msgid "No configured differences: the device already carries this configuration. The differences below are benign (see notes)."
 msgstr "Нет различий в конфигурации: устройство уже содержит эту конфигурацию. Различия ниже безопасны (см. примечания)."
 
@@ -1122,9 +1065,6 @@ msgstr "задаёт значение по умолчанию"
 
 msgid "This byte is written for a neighbouring parameter; the differing bit is not driven by any active parameter and is only reset to the application default. The device holds an older value (e.g. from a previous configuration or mode) that programming will normalise. Benign."
 msgstr "Этот байт записывается из-за соседнего параметра; отличающийся бит не управляется ни одним активным параметром и лишь сбрасывается на значение по умолчанию прикладной программы. Устройство содержит более старое значение (напр. от прежней конфигурации или режима), которое будет приведено в норму при программировании. Безопасно."
-
-msgid "plus {bytes} byte(s) reset to the application default (the device holds an older value; benign, will be normalised on programming)"
-msgstr "плюс байты, сбрасываемые на значение по умолчанию прикладной программы: {bytes} (устройство содержит более старое значение; безопасно, будет приведено в норму при программировании)"
 
 msgid "Export Ist/Soll…"
 msgstr "Экспорт факт/план…"
@@ -1180,9 +1120,6 @@ msgstr "Только различия"
 msgid "Filter devices by address, name or description…"
 msgstr "Фильтр устройств по адресу, имени или описанию…"
 
-msgid "{count} differences"
-msgstr "Различий: {count}"
-
 msgid "Parameters"
 msgstr "Параметры"
 
@@ -1206,9 +1143,6 @@ msgstr "Вставить конфигурацию"
 
 msgid "Paste configuration onto '{name}':"
 msgstr "Вставить конфигурацию в «{name}»:"
-
-msgid "Paste configuration onto {count} selected devices:"
-msgstr "Вставить конфигурацию в выбранные устройства ({count}):"
 
 msgid "Duplicate '{name}':"
 msgstr "Дублировать «{name}»:"
@@ -1603,12 +1537,6 @@ msgstr "Импорт групповых адресов"
 msgid "Group Address Files (XML, CSV)"
 msgstr "Файлы групповых адресов (XML, CSV)"
 
-msgid "{added} group addresses added, {updated} updated."
-msgstr "Групповых адресов добавлено: {added}, обновлено: {updated}."
-
-msgid "{count} group addresses could not be placed in a group."
-msgstr "Групповые адреса, которые не удалось поместить в группу: {count}."
-
 msgid "The file could not be imported: {error}"
 msgstr "Не удалось импортировать файл: {error}"
 
@@ -1789,9 +1717,6 @@ msgstr "Записать распределение по группам на ш�
 msgid "Write the scene values to the DALI bus. Continue?"
 msgstr "Записать значения сцен на шину DALI. Продолжить?"
 
-msgid "{count} ECG(s) present"
-msgstr "ЭПРА в наличии: {count}"
-
 msgid "Group"
 msgstr "Группа"
 
@@ -1833,9 +1758,6 @@ msgstr "Отдельно"
 
 msgid "Unassigned"
 msgstr "Не назначено"
-
-msgid "Procedure {number}  ({count} steps)"
-msgstr "Процедура {number}  (шагов: {count})"
 
 msgid "Kind"
 msgstr "Вид"
@@ -2202,9 +2124,6 @@ msgstr "У приложения нет статических параметро
 
 msgid "This gateway's commissioning protocol has not been verified against a capture; writes may misbehave. Proceed with care."
 msgstr "Протокол ввода этого шлюза в эксплуатацию не проверен по трассе; записи могут вести себя некорректно. Действуйте осторожно."
-
-msgid "{count} ECG(s) present on line {line}"
-msgstr "{count} ECG на линии {line}"
 
 msgid "Program DCA State"
 msgstr "Запрограммировать состояние DCA"
@@ -2677,9 +2596,6 @@ msgstr "В группе нет свободного группового адр�
 msgid "The main group has no free middle group."
 msgstr "В главной группе нет свободной средней группы."
 
-msgid "{count} devices"
-msgstr "Устройств: {count}"
-
 msgid "The main segment cannot be moved."
 msgstr "Главный сегмент нельзя переместить."
 
@@ -2752,33 +2668,6 @@ msgstr "Нет группы для новых групповых адресов.
 msgid "Copied '{name}' to '{target}'."
 msgstr "'{name}' скопировано в '{target}'."
 
-msgid "Copied {count} devices to '{target}'."
-msgstr "Скопировано устройств: {count} в '{target}'."
-
-msgid "Copied {count} building parts to '{target}'."
-msgstr "Скопировано частей здания: {count} в '{target}'."
-
-msgid "Copied {count} trades to '{target}'."
-msgstr "Скопировано систем: {count} в '{target}'."
-
-msgid "Copied {count} functions to '{target}'."
-msgstr "Скопировано функций: {count} в '{target}'."
-
-msgid "Copied {count} group addresses to '{target}'."
-msgstr "Скопировано групповых адресов: {count} в '{target}'."
-
-msgid "Copied {count} middle groups to '{target}'."
-msgstr "Скопировано средних групп: {count} в '{target}'."
-
-msgid "Copied {count} main groups to '{target}'."
-msgstr "Скопировано главных групп: {count} в '{target}'."
-
-msgid "Copied {count} lines to '{target}'."
-msgstr "Скопировано линий: {count} в '{target}'."
-
-msgid "Copied {count} segments to '{target}'."
-msgstr "Скопировано сегментов: {count} в '{target}'."
-
 msgid "Paste Special…"
 msgstr "Специальная вставка…"
 
@@ -2821,30 +2710,6 @@ msgstr "Достигнут предел добавления."
 msgid "Cannot add any line to the area {area} because of topology constraints. Please check the medium type of the backbone and main lines."
 msgstr "Из-за ограничений топологии нельзя добавить линию в область {area}. Проверьте тип среды магистральной и главных линий."
 
-msgid "Added {count} areas to '{target}'."
-msgstr "Добавлено областей: {count} в '{target}'."
-
-msgid "Added {count} lines to '{target}'."
-msgstr "Добавлено линий: {count} в '{target}'."
-
-msgid "Added {count} segments to '{target}'."
-msgstr "Добавлено сегментов: {count} в '{target}'."
-
-msgid "Added {count} building parts to '{target}'."
-msgstr "Добавлено частей здания: {count} в '{target}'."
-
-msgid "Added {count} trades to '{target}'."
-msgstr "Добавлено разделов: {count} в '{target}'."
-
-msgid "Added {count} main groups to '{target}'."
-msgstr "Добавлено главных групп: {count} в '{target}'."
-
-msgid "Added {count} middle groups to '{target}'."
-msgstr "Добавлено средних групп: {count} в '{target}'."
-
-msgid "Added {count} group addresses to '{target}'."
-msgstr "Добавлено групповых адресов: {count} в '{target}'."
-
 msgid "Add Main Groups…"
 msgstr "Добавить главные группы…"
 
@@ -2884,12 +2749,6 @@ msgstr "Добавить функции"
 msgid "New function"
 msgstr "Новая функция"
 
-msgid "Added {count} functions to '{target}'."
-msgstr "Добавлено функций: {count} в '{target}'."
-
-msgid "Added {count} group ranges to '{target}'."
-msgstr "Добавлено диапазонов групповых адресов: {count} в '{target}'."
-
 msgid "Add Group Ranges…"
 msgstr "Добавить диапазоны групповых адресов…"
 
@@ -2923,9 +2782,6 @@ msgstr "Диапазон групповых адресов нельзя поме
 msgid "A group address of the range is already in use there."
 msgstr "Групповой адрес диапазона там уже используется."
 
-msgid "Copied {count} group ranges to '{target}'."
-msgstr "Скопировано диапазонов групповых адресов: {count} в '{target}'."
-
 msgid "Add Areas…"
 msgstr "Добавить области…"
 
@@ -2940,12 +2796,6 @@ msgstr "Копировать групповой адрес"
 
 msgid "Existing Devices…"
 msgstr "Существующие устройства…"
-
-msgid "Delete the {count} selected devices? Their group objects and group-address links are removed and their individual addresses are freed. This can be undone."
-msgstr "Удалить {count} выбранных устройств? Их групповые объекты и связи с групповыми адресами будут удалены, а индивидуальные адреса освобождены. Это можно отменить."
-
-msgid "Remove {count} devices"
-msgstr "Удалить {count} устройств"
 
 msgid "Delete Devices"
 msgstr "Удалить устройства"
@@ -3055,9 +2905,6 @@ msgstr "Load LVS Project (.prj)…"
 msgid "LVS project (*.prj)"
 msgstr "LVS project (*.prj)"
 
-msgid "Imported the display configuration into {count} device(s)."
-msgstr "Imported the display configuration into {count} device(s)."
-
 msgid "The LVS project could not be imported: {error}"
 msgstr "The LVS project could not be imported: {error}"
 
@@ -3069,3 +2916,318 @@ msgstr "Exported the display configuration."
 
 msgid "The LVS project could not be exported: {error}"
 msgstr "The LVS project could not be exported: {error}"
+
+msgid "Copied {count} device to '{target}'."
+msgid_plural "Copied {count} devices to '{target}'."
+msgstr[0] "Скопировано {count} устройство в '{target}'."
+msgstr[1] "Скопировано {count} устройства в '{target}'."
+msgstr[2] "Скопировано {count} устройств в '{target}'."
+
+msgid "Copied {count} building part to '{target}'."
+msgid_plural "Copied {count} building parts to '{target}'."
+msgstr[0] "Скопирована {count} часть здания в '{target}'."
+msgstr[1] "Скопировано {count} части здания в '{target}'."
+msgstr[2] "Скопировано {count} частей здания в '{target}'."
+
+msgid "Copied {count} trade to '{target}'."
+msgid_plural "Copied {count} trades to '{target}'."
+msgstr[0] "Скопирована {count} система в '{target}'."
+msgstr[1] "Скопировано {count} системы в '{target}'."
+msgstr[2] "Скопировано {count} систем в '{target}'."
+
+msgid "Copied {count} function to '{target}'."
+msgid_plural "Copied {count} functions to '{target}'."
+msgstr[0] "Скопирована {count} функция в '{target}'."
+msgstr[1] "Скопировано {count} функции в '{target}'."
+msgstr[2] "Скопировано {count} функций в '{target}'."
+
+msgid "Copied {count} group address to '{target}'."
+msgid_plural "Copied {count} group addresses to '{target}'."
+msgstr[0] "Скопирован {count} групповой адрес в '{target}'."
+msgstr[1] "Скопировано {count} групповых адреса в '{target}'."
+msgstr[2] "Скопировано {count} групповых адресов в '{target}'."
+
+msgid "Copied {count} middle group to '{target}'."
+msgid_plural "Copied {count} middle groups to '{target}'."
+msgstr[0] "Скопирована {count} средняя группа в '{target}'."
+msgstr[1] "Скопировано {count} средние группы в '{target}'."
+msgstr[2] "Скопировано {count} средних групп в '{target}'."
+
+msgid "Copied {count} main group to '{target}'."
+msgid_plural "Copied {count} main groups to '{target}'."
+msgstr[0] "Скопирована {count} главная группа в '{target}'."
+msgstr[1] "Скопировано {count} главные группы в '{target}'."
+msgstr[2] "Скопировано {count} главных групп в '{target}'."
+
+msgid "Copied {count} group range to '{target}'."
+msgid_plural "Copied {count} group ranges to '{target}'."
+msgstr[0] "Скопирован {count} диапазон групповых адресов в '{target}'."
+msgstr[1] "Скопировано {count} диапазона групповых адресов в '{target}'."
+msgstr[2] "Скопировано {count} диапазонов групповых адресов в '{target}'."
+
+msgid "Copied {count} line to '{target}'."
+msgid_plural "Copied {count} lines to '{target}'."
+msgstr[0] "Скопирована {count} линия в '{target}'."
+msgstr[1] "Скопировано {count} линии в '{target}'."
+msgstr[2] "Скопировано {count} линий в '{target}'."
+
+msgid "Copied {count} segment to '{target}'."
+msgid_plural "Copied {count} segments to '{target}'."
+msgstr[0] "Скопирован {count} сегмент в '{target}'."
+msgstr[1] "Скопировано {count} сегмента в '{target}'."
+msgstr[2] "Скопировано {count} сегментов в '{target}'."
+
+msgid "Added {count} area to '{target}'."
+msgid_plural "Added {count} areas to '{target}'."
+msgstr[0] "Добавлена {count} область в '{target}'."
+msgstr[1] "Добавлено {count} области в '{target}'."
+msgstr[2] "Добавлено {count} областей в '{target}'."
+
+msgid "Added {count} line to '{target}'."
+msgid_plural "Added {count} lines to '{target}'."
+msgstr[0] "Добавлена {count} линия в '{target}'."
+msgstr[1] "Добавлено {count} линии в '{target}'."
+msgstr[2] "Добавлено {count} линий в '{target}'."
+
+msgid "Added {count} segment to '{target}'."
+msgid_plural "Added {count} segments to '{target}'."
+msgstr[0] "Добавлен {count} сегмент в '{target}'."
+msgstr[1] "Добавлено {count} сегмента в '{target}'."
+msgstr[2] "Добавлено {count} сегментов в '{target}'."
+
+msgid "Added {count} building part to '{target}'."
+msgid_plural "Added {count} building parts to '{target}'."
+msgstr[0] "Добавлена {count} часть здания в '{target}'."
+msgstr[1] "Добавлено {count} части здания в '{target}'."
+msgstr[2] "Добавлено {count} частей здания в '{target}'."
+
+msgid "Added {count} trade to '{target}'."
+msgid_plural "Added {count} trades to '{target}'."
+msgstr[0] "Добавлен {count} раздел в '{target}'."
+msgstr[1] "Добавлено {count} раздела в '{target}'."
+msgstr[2] "Добавлено {count} разделов в '{target}'."
+
+msgid "Added {count} function to '{target}'."
+msgid_plural "Added {count} functions to '{target}'."
+msgstr[0] "Добавлена {count} функция в '{target}'."
+msgstr[1] "Добавлено {count} функции в '{target}'."
+msgstr[2] "Добавлено {count} функций в '{target}'."
+
+msgid "Added {count} group range to '{target}'."
+msgid_plural "Added {count} group ranges to '{target}'."
+msgstr[0] "Добавлен {count} диапазон групповых адресов в '{target}'."
+msgstr[1] "Добавлено {count} диапазона групповых адресов в '{target}'."
+msgstr[2] "Добавлено {count} диапазонов групповых адресов в '{target}'."
+
+msgid "Added {count} main group to '{target}'."
+msgid_plural "Added {count} main groups to '{target}'."
+msgstr[0] "Добавлена {count} главная группа в '{target}'."
+msgstr[1] "Добавлено {count} главные группы в '{target}'."
+msgstr[2] "Добавлено {count} главных групп в '{target}'."
+
+msgid "Added {count} middle group to '{target}'."
+msgid_plural "Added {count} middle groups to '{target}'."
+msgstr[0] "Добавлена {count} средняя группа в '{target}'."
+msgstr[1] "Добавлено {count} средние группы в '{target}'."
+msgstr[2] "Добавлено {count} средних групп в '{target}'."
+
+msgid "Added {count} group address to '{target}'."
+msgid_plural "Added {count} group addresses to '{target}'."
+msgstr[0] "Добавлен {count} групповой адрес в '{target}'."
+msgstr[1] "Добавлено {count} групповых адреса в '{target}'."
+msgstr[2] "Добавлено {count} групповых адресов в '{target}'."
+
+msgid "Remove {count} device"
+msgid_plural "Remove {count} devices"
+msgstr[0] "Удалить {count} устройство"
+msgstr[1] "Удалить {count} устройства"
+msgstr[2] "Удалить {count} устройств"
+
+msgid "{count} device"
+msgid_plural "{count} devices"
+msgstr[0] "{count} устройство"
+msgstr[1] "{count} устройства"
+msgstr[2] "{count} устройств"
+
+msgid "{count} item"
+msgid_plural "{count} items"
+msgstr[0] "{count} элемент"
+msgstr[1] "{count} элемента"
+msgstr[2] "{count} элементов"
+
+msgid "{count} pair"
+msgid_plural "{count} pairs"
+msgstr[0] "{count} пара"
+msgstr[1] "{count} пары"
+msgstr[2] "{count} пар"
+
+msgid "Linked {count} object to a group address"
+msgid_plural "Linked {count} objects to group addresses"
+msgstr[0] "Связан {count} объект с групповым адресом"
+msgstr[1] "Связано {count} объекта с групповыми адресами"
+msgstr[2] "Связано {count} объектов с групповыми адресами"
+
+msgid "Linked {count} object pair via a new group address"
+msgid_plural "Linked {count} object pairs via new group addresses"
+msgstr[0] "Связана {count} пара объектов через новый групповой адрес"
+msgstr[1] "Связано {count} пары объектов через новые групповые адреса"
+msgstr[2] "Связано {count} пар объектов через новые групповые адреса"
+
+msgid "{count} error"
+msgid_plural "{count} errors"
+msgstr[0] "{count} ошибка"
+msgstr[1] "{count} ошибки"
+msgstr[2] "{count} ошибок"
+
+msgid "{count} object will be re-mapped"
+msgid_plural "{count} objects will be re-mapped"
+msgstr[0] "Будет переназначен {count} объект"
+msgstr[1] "Будут переназначены {count} объекта"
+msgstr[2] "Будет переназначено {count} объектов"
+
+msgid "Replaced; re-mapped {count} group object"
+msgid_plural "Replaced; re-mapped {count} group objects"
+msgstr[0] "Заменено; переназначен {count} групповой объект"
+msgstr[1] "Заменено; переназначены {count} групповых объекта"
+msgstr[2] "Заменено; переназначено {count} групповых объектов"
+
+msgid "{count} difference"
+msgid_plural "{count} differences"
+msgstr[0] "{count} различие"
+msgstr[1] "{count} различия"
+msgstr[2] "{count} различий"
+
+msgid "Created {count} copy"
+msgid_plural "Created {count} copies"
+msgstr[0] "Создана {count} копия"
+msgstr[1] "Созданы {count} копии"
+msgstr[2] "Создано {count} копий"
+
+msgid "{count} address will change"
+msgid_plural "{count} addresses will change"
+msgstr[0] "Будет изменён {count} адрес"
+msgstr[1] "Будут изменены {count} адреса"
+msgstr[2] "Будет изменено {count} адресов"
+
+msgid "Shifted {count} address"
+msgid_plural "Shifted {count} addresses"
+msgstr[0] "Сдвинут {count} адрес"
+msgstr[1] "Сдвинуты {count} адреса"
+msgstr[2] "Сдвинуто {count} адресов"
+
+msgid "Shifted {count} group address"
+msgid_plural "Shifted {count} group addresses"
+msgstr[0] "Сдвинут {count} групповой адрес"
+msgstr[1] "Сдвинуты {count} групповых адреса"
+msgstr[2] "Сдвинуто {count} групповых адресов"
+
+msgid "{count} issue"
+msgid_plural "{count} issues"
+msgstr[0] "{count} проблема"
+msgstr[1] "{count} проблемы"
+msgstr[2] "{count} проблем"
+
+msgid "present ({size} byte)"
+msgid_plural "present ({size} bytes)"
+msgstr[0] "есть ({size} байт)"
+msgstr[1] "есть ({size} байта)"
+msgstr[2] "есть ({size} байт)"
+
+msgid "Imported the display configuration into {count} device."
+msgid_plural "Imported the display configuration into {count} devices."
+msgstr[0] "Конфигурация отображения импортирована в {count} устройство."
+msgstr[1] "Конфигурация отображения импортирована в {count} устройства."
+msgstr[2] "Конфигурация отображения импортирована в {count} устройств."
+
+msgid "{count} ECG present on line {line}"
+msgid_plural "{count} ECGs present on line {line}"
+msgstr[0] "{count} ECG на линии {line}"
+msgstr[1] "{count} ECG на линии {line}"
+msgstr[2] "{count} ECG на линии {line}"
+
+msgid "Apply Changes to {count} Identical Device"
+msgid_plural "Apply Changes to All {count} Identical Devices"
+msgstr[0] "Применить изменения к {count} идентичному устройству"
+msgstr[1] "Применить изменения ко всем {count} идентичным устройствам"
+msgstr[2] "Применить изменения ко всем {count} идентичным устройствам"
+
+msgid "Editing {count} device — edits apply to all, diverging values show <differs>"
+msgid_plural "Editing {count} devices — edits apply to all, diverging values show <differs>"
+msgstr[0] "Редактирование {count} устройства — изменения применяются ко всем, расходящиеся значения показаны как <различается>"
+msgstr[1] "Редактирование {count} устройств — изменения применяются ко всем, расходящиеся значения показаны как <различается>"
+msgstr[2] "Редактирование {count} устройств — изменения применяются ко всем, расходящиеся значения показаны как <различается>"
+
+msgid "{count} byte"
+msgid_plural "{count} bytes"
+msgstr[0] "{count} байт"
+msgstr[1] "{count} байта"
+msgstr[2] "{count} байт"
+
+msgid "Mismatch: {bytes} from the device in {locations}"
+msgstr "Несовпадение: {bytes} от устройства {locations}"
+
+msgid "{count} byte differs"
+msgid_plural "{count} bytes differ"
+msgstr[0] "{count} байт отличается"
+msgstr[1] "{count} байта отличаются"
+msgstr[2] "{count} байт отличаются"
+
+msgid "{count} location"
+msgid_plural "{count} locations"
+msgstr[0] "в {count} месте"
+msgstr[1] "в {count} местах"
+msgstr[2] "в {count} местах"
+
+msgid "plus {bytes} device-managed runtime byte (expected, benign)"
+msgid_plural "plus {bytes} device-managed runtime bytes (expected, benign)"
+msgstr[0] "плюс {bytes} байт времени выполнения, управляемый устройством (ожидаемо, безопасно)"
+msgstr[1] "плюс {bytes} байта времени выполнения, управляемых устройством (ожидаемо, безопасно)"
+msgstr[2] "плюс {bytes} байт времени выполнения, управляемых устройством (ожидаемо, безопасно)"
+
+msgid "plus {bytes} byte reset to the application default (the device holds an older value; benign, will be normalised on programming)"
+msgid_plural "plus {bytes} bytes reset to the application default (the device holds an older value; benign, will be normalised on programming)"
+msgstr[0] "плюс {bytes} байт, сбрасываемый на значение по умолчанию прикладной программы (устройство содержит более старое значение; безопасно, будет приведено в норму при программировании)"
+msgstr[1] "плюс {bytes} байта, сбрасываемых на значение по умолчанию прикладной программы (устройство содержит более старое значение; безопасно, будет приведено в норму при программировании)"
+msgstr[2] "плюс {bytes} байт, сбрасываемых на значение по умолчанию прикладной программы (устройство содержит более старое значение; безопасно, будет приведено в норму при программировании)"
+
+msgid "Paste configuration onto {count} selected device:"
+msgid_plural "Paste configuration onto {count} selected devices:"
+msgstr[0] "Вставить конфигурацию в {count} выбранное устройство:"
+msgstr[1] "Вставить конфигурацию в {count} выбранных устройства:"
+msgstr[2] "Вставить конфигурацию в {count} выбранных устройств:"
+
+msgid "Delete the {count} selected device? Its group objects and group-address links are removed and its individual address is freed. This can be undone."
+msgid_plural "Delete the {count} selected devices? Their group objects and group-address links are removed and their individual addresses are freed. This can be undone."
+msgstr[0] "Удалить {count} выбранное устройство? Его групповые объекты и связи с групповыми адресами будут удалены, а индивидуальный адрес освобождён. Это можно отменить."
+msgstr[1] "Удалить {count} выбранных устройства? Их групповые объекты и связи с групповыми адресами будут удалены, а индивидуальные адреса освобождены. Это можно отменить."
+msgstr[2] "Удалить {count} выбранных устройств? Их групповые объекты и связи с групповыми адресами будут удалены, а индивидуальные адреса освобождены. Это можно отменить."
+
+msgid "{count} group address added"
+msgid_plural "{count} group addresses added"
+msgstr[0] "Добавлен {count} групповой адрес"
+msgstr[1] "Добавлено {count} групповых адреса"
+msgstr[2] "Добавлено {count} групповых адресов"
+
+msgid "{count} updated"
+msgid_plural "{count} updated"
+msgstr[0] "обновлён {count}"
+msgstr[1] "обновлено {count}"
+msgstr[2] "обновлено {count}"
+
+msgid "{count} group address could not be placed in a group."
+msgid_plural "{count} group addresses could not be placed in a group."
+msgstr[0] "Не удалось поместить в группу {count} групповой адрес."
+msgstr[1] "Не удалось поместить в группу {count} групповых адреса."
+msgstr[2] "Не удалось поместить в группу {count} групповых адресов."
+
+msgid "{count} ECG present"
+msgid_plural "{count} ECGs present"
+msgstr[0] "ЭПРА в наличии: {count}"
+msgstr[1] "ЭПРА в наличии: {count}"
+msgstr[2] "ЭПРА в наличии: {count}"
+
+msgid "Procedure {number}  ({count} step)"
+msgid_plural "Procedure {number}  ({count} steps)"
+msgstr[0] "Процедура {number}  ({count} шаг)"
+msgstr[1] "Процедура {number}  ({count} шага)"
+msgstr[2] "Процедура {number}  ({count} шагов)"

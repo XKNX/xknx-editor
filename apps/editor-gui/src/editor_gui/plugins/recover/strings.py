@@ -61,9 +61,12 @@ class RecoverStrings:
     def STATUS_VERIFYING(self) -> str:
         return _("Verifying (re-reading and comparing)…")
 
-    @property
-    def OVERVIEW_WARNINGS(self) -> str:
-        return _("%(count)d group address(es) have no sender or multiple senders.")
+    def OVERVIEW_WARNINGS(self, count: int) -> str:
+        return _.plural(
+            "%(count)d group address has no sender or multiple senders.",
+            "%(count)d group addresses have no sender or multiple senders.",
+            count,
+        )
 
     @property
     def COL_ADDRESS(self) -> str:
@@ -113,29 +116,57 @@ class RecoverStrings:
     def STAGE_PARAMETERS(self) -> str:
         return _("parameter memory")
 
-    @property
-    def OVERVIEW_RECOVERED(self) -> str:
-        return _(
-            "Recovered %(devices)d device(s): %(group_addresses)d group addresses, "
-            "%(links)d links, %(unknown)d parameter(s) not recoverable."
+    def RECOVERED_DEVICES(self, count: int) -> str:
+        return _.plural(
+            "Recovered %(count)d device", "Recovered %(count)d devices", count
+        )
+
+    def GROUP_ADDRESSES(self, count: int) -> str:
+        return _.plural("%(count)d group address", "%(count)d group addresses", count)
+
+    def LINKS(self, count: int) -> str:
+        return _.plural("%(count)d link", "%(count)d links", count)
+
+    def PARAMETERS(self, count: int) -> str:
+        return _.plural("%(count)d parameter", "%(count)d parameters", count)
+
+    def PARAMETERS_UNRECOVERABLE(self, count: int) -> str:
+        return _.plural(
+            "%(count)d parameter cannot be recovered",
+            "%(count)d parameters cannot be recovered",
+            count,
+        )
+
+    def PARAMETERS_NOT_FOUND(self, count: int) -> str:
+        return _.plural(
+            "%(count)d parameter not found yet",
+            "%(count)d parameters not found yet",
+            count,
         )
 
     @property
     def COL_DETAILS(self) -> str:
         return _("Result")
 
-    @property
-    def APPLY_MERGED(self) -> str:
-        return _("Added %(count)d device(s) to the open project (%(target)s).")
+    def APPLY_MERGED(self, count: int) -> str:
+        return _.plural(
+            "Added %(count)d device to the open project (%(target)s).",
+            "Added %(count)d devices to the open project (%(target)s).",
+            count,
+        )
 
-    @property
-    def APPLY_NEW(self) -> str:
-        return _("Created new project %(target)s with %(count)d device(s).")
+    def APPLY_NEW(self, count: int) -> str:
+        return _.plural(
+            "Created new project %(target)s with %(count)d device.",
+            "Created new project %(target)s with %(count)d devices.",
+            count,
+        )
 
-    @property
-    def APPLY_FAILED(self) -> str:
-        return _(
-            "%(count)d device(s) could not be added; the reason is in the Result column."
+    def APPLY_FAILED(self, count: int) -> str:
+        return _.plural(
+            "%(count)d device could not be added; the reason is in the Result column.",
+            "%(count)d devices could not be added; the reason is in the Result column.",
+            count,
         )
 
     @property
@@ -224,39 +255,30 @@ class RecoverStrings:
 
     @property
     def DETAIL_INCOMPLETE(self) -> str:
-        return _(
-            "%(bytes)d byte(s) and %(objects)d group object(s) differ from the device"
-        )
+        return _("Differs from the device: %(what)s")
+
+    def BYTES(self, count: int) -> str:
+        return _.plural("%(count)d byte", "%(count)d bytes", count)
+
+    def GROUP_OBJECTS(self, count: int) -> str:
+        return _.plural("%(count)d group object", "%(count)d group objects", count)
 
     @property
     def DETAIL_NOT_READ(self) -> str:
         return _("Not read yet")
 
     @property
-    def DETAIL_READ(self) -> str:
-        return _(
-            "%(group_addresses)d group addresses, %(links)d links, %(parameters)d parameters"
-        )
-
-    @property
-    def DETAIL_UNKNOWN(self) -> str:
-        return _("%(count)d unknown")
-
-    @property
     def DETAIL_VERIFIED(self) -> str:
         return _("Verified")
 
-    @property
-    def DETAIL_VERIFY_DIFFERS(self) -> str:
-        return _("Verify: %(bytes)d byte(s) differ")
+    def DETAIL_VERIFY_DIFFERS(self, count: int) -> str:
+        return _.plural(
+            "Verify: %(count)d byte differs", "Verify: %(count)d bytes differ", count
+        )
 
     @property
     def DETAIL_MORE_EFFORT(self) -> str:
         return _("more search effort may help")
-
-    @property
-    def PARAMS_UNKNOWN(self) -> str:
-        return _("%d parameters could not be recovered")
 
 
 S = RecoverStrings()

@@ -43,9 +43,6 @@ msgstr "スナップショットをエクスポート"
 msgid "Verifying (re-reading and comparing)…"
 msgstr "検証中（再読み込みと比較）…"
 
-msgid "%(count)d group address(es) have no sender or multiple senders."
-msgstr "%(count)d件のグループ・アドレスに送信元がないか、複数の送信元があります。"
-
 msgid "Address"
 msgstr "アドレス"
 
@@ -82,17 +79,8 @@ msgstr "グループ通信テーブル"
 msgid "parameter memory"
 msgstr "パラメータ・メモリ"
 
-msgid "Recovered %(devices)d device(s): %(group_addresses)d group addresses, %(links)d links, %(unknown)d parameter(s) not recoverable."
-msgstr "%(devices)d台のデバイスを復元しました：グループ・アドレス%(group_addresses)d件、リンク%(links)d件、復元できないパラメータ%(unknown)d件。"
-
 msgid "Recovered"
 msgstr "復元済み"
-
-msgid "Added %(count)d device(s) to the open project (%(target)s)."
-msgstr "開いているプロジェクト（%(target)s）に%(count)d台のデバイスを追加しました。"
-
-msgid "Created new project %(target)s with %(count)d device(s)."
-msgstr "%(count)d台のデバイスで新しいプロジェクト%(target)sを作成しました。"
 
 msgid "Not connected to a KNX bus."
 msgstr "KNXバスに接続されていません。"
@@ -112,18 +100,11 @@ msgstr "カタログにありません: カタログでその製品をインポ�
 msgid "Not programmed"
 msgstr "未プログラム"
 
-
 msgid "Already in the project, skipped"
 msgstr "プロジェクトに既にあるためスキップしました"
 
 msgid "Error"
 msgstr "エラー"
-
-msgid "%d parameters could not be recovered"
-msgstr "%d個のパラメータを復元できませんでした"
-
-msgid "%(count)d device(s) could not be added; the reason is in the Result column."
-msgstr "%(count)d台のデバイスを追加できませんでした。理由は「結果」列に表示されます。"
 
 msgid "Recovered (incomplete)"
 msgstr "復元済み（不完全）"
@@ -152,9 +133,6 @@ msgstr "選択した不完全なデバイスの設定を、読み取ったデー
 msgid "Searching %(address)s again  (%(done)d/%(total)d)…"
 msgstr "%(address)s を再検索中  (%(done)d/%(total)d)…"
 
-msgid "%(bytes)d byte(s) and %(objects)d group object(s) differ from the device"
-msgstr "%(bytes)d バイトと %(objects)d 個のグループ・オブジェクトがデバイスと異なります"
-
 msgid "more search effort may help"
 msgstr "検索の範囲を広げると改善する可能性があります"
 
@@ -167,14 +145,60 @@ msgstr "結果"
 msgid "Not read yet"
 msgstr "未読み取り"
 
-msgid "%(group_addresses)d group addresses, %(links)d links, %(parameters)d parameters"
-msgstr "グループ・アドレス %(group_addresses)d、リンク %(links)d、パラメーター %(parameters)d"
-
-msgid "%(count)d unknown"
-msgstr "不明 %(count)d"
-
 msgid "Verified"
 msgstr "確認済み"
 
-msgid "Verify: %(bytes)d byte(s) differ"
-msgstr "確認: %(bytes)d バイトが異なります"
+msgid "%(count)d group address has no sender or multiple senders."
+msgid_plural "%(count)d group addresses have no sender or multiple senders."
+msgstr[0] "%(count)d件のグループ・アドレスに送信元がないか、複数の送信元があります。"
+
+msgid "Recovered %(count)d device"
+msgid_plural "Recovered %(count)d devices"
+msgstr[0] "%(count)d台のデバイスを復元しました"
+
+msgid "%(count)d group address"
+msgid_plural "%(count)d group addresses"
+msgstr[0] "グループ・アドレス%(count)d件"
+
+msgid "%(count)d link"
+msgid_plural "%(count)d links"
+msgstr[0] "リンク%(count)d件"
+
+msgid "%(count)d parameter"
+msgid_plural "%(count)d parameters"
+msgstr[0] "パラメータ%(count)d件"
+
+msgid "%(count)d parameter cannot be recovered"
+msgid_plural "%(count)d parameters cannot be recovered"
+msgstr[0] "復元できないパラメータ%(count)d件"
+
+msgid "%(count)d parameter not found yet"
+msgid_plural "%(count)d parameters not found yet"
+msgstr[0] "未検出のパラメータ%(count)d件"
+
+msgid "Added %(count)d device to the open project (%(target)s)."
+msgid_plural "Added %(count)d devices to the open project (%(target)s)."
+msgstr[0] "開いているプロジェクト（%(target)s）に%(count)d台のデバイスを追加しました。"
+
+msgid "Created new project %(target)s with %(count)d device."
+msgid_plural "Created new project %(target)s with %(count)d devices."
+msgstr[0] "%(count)d台のデバイスで新しいプロジェクト%(target)sを作成しました。"
+
+msgid "%(count)d device could not be added; the reason is in the Result column."
+msgid_plural "%(count)d devices could not be added; the reason is in the Result column."
+msgstr[0] "%(count)d台のデバイスを追加できませんでした。理由は「結果」列に表示されます。"
+
+msgid "Differs from the device: %(what)s"
+msgstr "デバイスと異なります: %(what)s"
+
+msgid "%(count)d byte"
+msgid_plural "%(count)d bytes"
+msgstr[0] "%(count)d バイト"
+
+msgid "%(count)d group object"
+msgid_plural "%(count)d group objects"
+msgstr[0] "%(count)d 個のグループ・オブジェクト"
+
+msgid "Verify: %(count)d byte differs"
+msgid_plural "Verify: %(count)d bytes differ"
+msgstr[0] "確認: %(count)d バイトが異なります"

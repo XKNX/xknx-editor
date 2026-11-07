@@ -270,7 +270,9 @@ class _Text(_Editor):
 
     def payload(self) -> Payload:
         if len(self.text) > self.length:
-            raise ValueError(S.DPT_VALUE_TOO_LONG.format(count=self.length))
+            raise ValueError(
+                S.DPT_VALUE_TOO_LONG(self.length).format(count=self.length)
+            )
         return self.transcoder.to_knx(self.text)
 
     def set_payload(self, payload: Payload) -> None:
@@ -595,7 +597,7 @@ class _MasterField:
         if self.fmt.null_terminated:
             data += b"\x00"
         if len(data) > size:
-            raise ValueError(S.DPT_VALUE_TOO_LONG_BYTES.format(count=size))
+            raise ValueError(S.DPT_VALUE_TOO_LONG_BYTES(size).format(count=size))
         return data if self.fmt.variable_length else data.ljust(size, b"\x00")
 
     def show_bits(self, value: int) -> None:

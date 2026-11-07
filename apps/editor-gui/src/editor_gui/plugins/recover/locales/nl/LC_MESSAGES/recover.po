@@ -7,29 +7,17 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-msgid "%(count)d group address(es) have no sender or multiple senders."
-msgstr "%(count)d groepsadres(sen) hebben geen of meerdere zenders."
-
-msgid "%d parameters could not be recovered"
-msgstr "%d parameters konden niet worden hersteld"
-
 msgid "Add to Open Project"
 msgstr "Aan geopend project toevoegen"
 
 msgid "Add to Open Project When Read"
 msgstr "Bij het lezen aan geopend project toevoegen"
 
-msgid "Added %(count)d device(s) to the open project (%(target)s)."
-msgstr "%(count)d apparaat/apparaten aan het geopende project toegevoegd (%(target)s)."
-
 msgid "Address"
 msgstr "Adres"
 
 msgid "Create New Project"
 msgstr "Nieuw project maken"
-
-msgid "Created new project %(target)s with %(count)d device(s)."
-msgstr "Nieuw project %(target)s gemaakt met %(count)d apparaat/apparaten."
 
 msgid "Export Snapshot"
 msgstr "Momentopname exporteren"
@@ -72,9 +60,6 @@ msgstr "Van de bus herstellen…"
 
 msgid "Recovered"
 msgstr "Hersteld"
-
-msgid "Recovered %(devices)d device(s): %(group_addresses)d group addresses, %(links)d links, %(unknown)d parameter(s) not recoverable."
-msgstr "%(devices)d apparaat/apparaten hersteld: %(group_addresses)d groepsadressen, %(links)d koppelingen, %(unknown)d parameter(s) niet herstelbaar."
 
 msgid "Scan"
 msgstr "Zoeken"
@@ -124,12 +109,8 @@ msgstr "Niet in de catalogus: importeer het product in de Catalogus"
 msgid "parameter memory"
 msgstr "parametergeheugen"
 
-
 msgid "Not programmed"
 msgstr "Niet geprogrammeerd"
-
-msgid "%(count)d device(s) could not be added; the reason is in the Result column."
-msgstr "%(count)d apparaat/apparaten kon(den) niet worden toegevoegd; de reden staat in de kolom 'Resultaat'."
 
 msgid "Recovered (incomplete)"
 msgstr "Hersteld (onvolledig)"
@@ -158,9 +139,6 @@ msgstr "Zoekt de instellingen van de geselecteerde onvolledige apparaten opnieuw
 msgid "Searching %(address)s again  (%(done)d/%(total)d)…"
 msgstr "%(address)s opnieuw zoeken  (%(done)d/%(total)d)…"
 
-msgid "%(bytes)d byte(s) and %(objects)d group object(s) differ from the device"
-msgstr "%(bytes)d byte(s) en %(objects)d groepsobject(en) wijken af van het apparaat"
-
 msgid "more search effort may help"
 msgstr "meer zoekinspanning kan helpen"
 
@@ -173,14 +151,73 @@ msgstr "Resultaat"
 msgid "Not read yet"
 msgstr "Nog niet gelezen"
 
-msgid "%(group_addresses)d group addresses, %(links)d links, %(parameters)d parameters"
-msgstr "%(group_addresses)d groepsadressen, %(links)d koppelingen, %(parameters)d parameters"
-
-msgid "%(count)d unknown"
-msgstr "%(count)d onbekend"
-
 msgid "Verified"
 msgstr "Gecontroleerd"
 
-msgid "Verify: %(bytes)d byte(s) differ"
-msgstr "Controle: %(bytes)d byte(s) wijken af"
+msgid "%(count)d group address has no sender or multiple senders."
+msgid_plural "%(count)d group addresses have no sender or multiple senders."
+msgstr[0] "%(count)d groepsadres heeft geen of meerdere zenders."
+msgstr[1] "%(count)d groepsadressen hebben geen of meerdere zenders."
+
+msgid "Recovered %(count)d device"
+msgid_plural "Recovered %(count)d devices"
+msgstr[0] "%(count)d apparaat hersteld"
+msgstr[1] "%(count)d apparaten hersteld"
+
+msgid "%(count)d group address"
+msgid_plural "%(count)d group addresses"
+msgstr[0] "%(count)d groepsadres"
+msgstr[1] "%(count)d groepsadressen"
+
+msgid "%(count)d link"
+msgid_plural "%(count)d links"
+msgstr[0] "%(count)d koppeling"
+msgstr[1] "%(count)d koppelingen"
+
+msgid "%(count)d parameter"
+msgid_plural "%(count)d parameters"
+msgstr[0] "%(count)d parameter"
+msgstr[1] "%(count)d parameters"
+
+msgid "%(count)d parameter cannot be recovered"
+msgid_plural "%(count)d parameters cannot be recovered"
+msgstr[0] "%(count)d parameter niet herstelbaar"
+msgstr[1] "%(count)d parameters niet herstelbaar"
+
+msgid "%(count)d parameter not found yet"
+msgid_plural "%(count)d parameters not found yet"
+msgstr[0] "%(count)d parameter nog niet gevonden"
+msgstr[1] "%(count)d parameters nog niet gevonden"
+
+msgid "Added %(count)d device to the open project (%(target)s)."
+msgid_plural "Added %(count)d devices to the open project (%(target)s)."
+msgstr[0] "%(count)d apparaat aan het geopende project toegevoegd (%(target)s)."
+msgstr[1] "%(count)d apparaten aan het geopende project toegevoegd (%(target)s)."
+
+msgid "Created new project %(target)s with %(count)d device."
+msgid_plural "Created new project %(target)s with %(count)d devices."
+msgstr[0] "Nieuw project %(target)s gemaakt met %(count)d apparaat."
+msgstr[1] "Nieuw project %(target)s gemaakt met %(count)d apparaten."
+
+msgid "%(count)d device could not be added; the reason is in the Result column."
+msgid_plural "%(count)d devices could not be added; the reason is in the Result column."
+msgstr[0] "%(count)d apparaat kon niet worden toegevoegd; de reden staat in de kolom 'Resultaat'."
+msgstr[1] "%(count)d apparaten konden niet worden toegevoegd; de reden staat in de kolom 'Resultaat'."
+
+msgid "Differs from the device: %(what)s"
+msgstr "Wijkt af van het apparaat: %(what)s"
+
+msgid "%(count)d byte"
+msgid_plural "%(count)d bytes"
+msgstr[0] "%(count)d byte"
+msgstr[1] "%(count)d bytes"
+
+msgid "%(count)d group object"
+msgid_plural "%(count)d group objects"
+msgstr[0] "%(count)d groepsobject"
+msgstr[1] "%(count)d groepsobjecten"
+
+msgid "Verify: %(count)d byte differs"
+msgid_plural "Verify: %(count)d bytes differ"
+msgstr[0] "Controle: %(count)d byte wijkt af"
+msgstr[1] "Controle: %(count)d bytes wijken af"

@@ -19,9 +19,6 @@ msgstr "Készülékek szűrése…"
 msgid "Needs Attention Only"
 msgstr "Csak a teendőt igénylők"
 
-msgid "{count} device(s) not in catalog"
-msgstr "Nincs a katalógusban: {count} készülék"
-
 msgid "Address"
 msgstr "Cím"
 
@@ -72,3 +69,7 @@ msgstr "nincs betöltve"
 
 msgid "partial ({done}/{total})"
 msgstr "részleges ({done}/{total})"
+
+msgid "{count} device not in catalog"
+msgid_plural "{count} devices not in catalog"
+msgstr[0] "{count} készülék nincs a katalógusban"

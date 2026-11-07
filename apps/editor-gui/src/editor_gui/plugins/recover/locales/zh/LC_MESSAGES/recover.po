@@ -43,9 +43,6 @@ msgstr "导出快照"
 msgid "Verifying (re-reading and comparing)…"
 msgstr "正在验证（重新读取并比较）…"
 
-msgid "%(count)d group address(es) have no sender or multiple senders."
-msgstr "%(count)d 个组地址没有发送者或有多个发送者。"
-
 msgid "Address"
 msgstr "地址"
 
@@ -82,17 +79,8 @@ msgstr "组通讯表"
 msgid "parameter memory"
 msgstr "参数存储器"
 
-msgid "Recovered %(devices)d device(s): %(group_addresses)d group addresses, %(links)d links, %(unknown)d parameter(s) not recoverable."
-msgstr "已恢复 %(devices)d 个设备：%(group_addresses)d 个组地址，%(links)d 个链接，%(unknown)d 个参数无法恢复。"
-
 msgid "Recovered"
 msgstr "已恢复"
-
-msgid "Added %(count)d device(s) to the open project (%(target)s)."
-msgstr "已将 %(count)d 个设备添加到打开的项目（%(target)s）。"
-
-msgid "Created new project %(target)s with %(count)d device(s)."
-msgstr "已创建新项目 %(target)s，包含 %(count)d 个设备。"
 
 msgid "Not connected to a KNX bus."
 msgstr "未连接到 KNX 总线。"
@@ -112,18 +100,11 @@ msgstr "不在产品目录中：请在产品目录中导入其产品"
 msgid "Not programmed"
 msgstr "未编程"
 
-
 msgid "Already in the project, skipped"
 msgstr "已在项目中，已跳过"
 
 msgid "Error"
 msgstr "错误"
-
-msgid "%d parameters could not be recovered"
-msgstr "%d 个参数无法恢复"
-
-msgid "%(count)d device(s) could not be added; the reason is in the Result column."
-msgstr "有 %(count)d 个设备无法添加；原因见“结果”列。"
 
 msgid "Recovered (incomplete)"
 msgstr "已恢复（不完整）"
@@ -152,9 +133,6 @@ msgstr "以所选搜索强度，在从所选不完整设备读取的数据中重
 msgid "Searching %(address)s again  (%(done)d/%(total)d)…"
 msgstr "正在重新搜索 %(address)s  (%(done)d/%(total)d)…"
 
-msgid "%(bytes)d byte(s) and %(objects)d group object(s) differ from the device"
-msgstr "%(bytes)d 个字节和 %(objects)d 个组对象与设备不同"
-
 msgid "more search effort may help"
 msgstr "提高搜索强度可能有帮助"
 
@@ -167,14 +145,60 @@ msgstr "结果"
 msgid "Not read yet"
 msgstr "尚未读取"
 
-msgid "%(group_addresses)d group addresses, %(links)d links, %(parameters)d parameters"
-msgstr "%(group_addresses)d 个组地址，%(links)d 个链接，%(parameters)d 个参数"
-
-msgid "%(count)d unknown"
-msgstr "%(count)d 个未知"
-
 msgid "Verified"
 msgstr "已验证"
 
-msgid "Verify: %(bytes)d byte(s) differ"
-msgstr "验证：%(bytes)d 个字节不同"
+msgid "%(count)d group address has no sender or multiple senders."
+msgid_plural "%(count)d group addresses have no sender or multiple senders."
+msgstr[0] "%(count)d 个组地址没有发送者或有多个发送者。"
+
+msgid "Recovered %(count)d device"
+msgid_plural "Recovered %(count)d devices"
+msgstr[0] "已恢复 %(count)d 个设备"
+
+msgid "%(count)d group address"
+msgid_plural "%(count)d group addresses"
+msgstr[0] "%(count)d 个组地址"
+
+msgid "%(count)d link"
+msgid_plural "%(count)d links"
+msgstr[0] "%(count)d 个链接"
+
+msgid "%(count)d parameter"
+msgid_plural "%(count)d parameters"
+msgstr[0] "%(count)d 个参数"
+
+msgid "%(count)d parameter cannot be recovered"
+msgid_plural "%(count)d parameters cannot be recovered"
+msgstr[0] "%(count)d 个参数无法恢复"
+
+msgid "%(count)d parameter not found yet"
+msgid_plural "%(count)d parameters not found yet"
+msgstr[0] "%(count)d 个参数尚未找到"
+
+msgid "Added %(count)d device to the open project (%(target)s)."
+msgid_plural "Added %(count)d devices to the open project (%(target)s)."
+msgstr[0] "已将 %(count)d 个设备添加到打开的项目（%(target)s）。"
+
+msgid "Created new project %(target)s with %(count)d device."
+msgid_plural "Created new project %(target)s with %(count)d devices."
+msgstr[0] "已创建新项目 %(target)s，包含 %(count)d 个设备。"
+
+msgid "%(count)d device could not be added; the reason is in the Result column."
+msgid_plural "%(count)d devices could not be added; the reason is in the Result column."
+msgstr[0] "有 %(count)d 个设备无法添加；原因见“结果”列。"
+
+msgid "Differs from the device: %(what)s"
+msgstr "与设备不同：%(what)s"
+
+msgid "%(count)d byte"
+msgid_plural "%(count)d bytes"
+msgstr[0] "%(count)d 个字节"
+
+msgid "%(count)d group object"
+msgid_plural "%(count)d group objects"
+msgstr[0] "%(count)d 个组对象"
+
+msgid "Verify: %(count)d byte differs"
+msgid_plural "Verify: %(count)d bytes differ"
+msgstr[0] "验证：%(count)d 个字节不同"

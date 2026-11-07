@@ -76,6 +76,8 @@ def _entry(service: RecoverService, entry: RecoverEntry) -> dict[str, Any]:
                 "links": len(recovered.links),
                 "parameters": len(recovered.parameters.values),
                 "unknown_parameters": len(recovered.parameters.unknown),
+                "unrecoverable_parameters": len(recovered.parameters.unrecoverable),
+                "parameters_not_found": len(recovered.parameters.not_found),
                 "complete": recovered.parameters.complete,
                 "differing_bytes": recovered.parameters.differing_bytes,
                 "differing_objects": recovered.parameters.differing_objects,

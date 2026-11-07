@@ -88,9 +88,6 @@ msgstr "Stoppa"
 msgid "All Files"
 msgstr "Alla filer"
 
-msgid "Project: {name}  ·  {devices} devices  ·  {gas} GAs"
-msgstr "Projekt: {name}  ·  {devices} apparater  ·  {gas} GA"
-
 msgid "No project open"
 msgstr "Inget projekt öppet"
 
@@ -241,9 +238,6 @@ msgstr "Exportera gruppadresser…"
 msgid "Import Group Addresses…"
 msgstr "Importera gruppadresser…"
 
-msgid "Exported {count} group address(es)"
-msgstr "{count} gruppadress(er) exporterade"
-
 msgid "Export Group Addresses"
 msgstr "Exportera gruppadresser"
 
@@ -358,26 +352,8 @@ msgstr "Ditt projekt öppnades utan problem och allt du behöver för att arbeta
 msgid "This project came from a file with a few extra details this editor does not use. The export leaves these out:"
 msgstr "Det här projektet kommer från en fil med några extra detaljer som den här redigeraren inte använder. Exporten utelämnar dessa:"
 
-msgid "The original file had {count} installations. They were combined into one."
-msgstr "Originalfilen hade {count} installationer. De slogs ihop till en."
-
-msgid "{count} device(s) aren't assigned to a line. They're kept in the project and included on export, but can't be edited here yet."
-msgstr "{count} apparat(er) är inte tilldelade till en linje. De behålls i projektet och tas med vid export, men kan inte redigeras här ännu."
-
-msgid "{count} group object(s) had an extra description in the original file. The custom name and function are kept; only that description is not shown here."
-msgstr "{count} gruppobjekt hade en extra beskrivning i originalfilen. Det egna namnet och funktionen behålls; bara den beskrivningen visas inte här."
-
 msgid "For example: {examples}"
 msgstr "Till exempel: {examples}"
-
-msgid "{count} IP or function setting(s) from the original file are not used here."
-msgstr "{count} IP- eller funktionsinställning(ar) från originalfilen används inte här."
-
-msgid "{count} line(s) use several segments. In a schema 14/20 export they are shown at line level only."
-msgstr "{count} linje(r) använder flera segment. I en export med schema 14/20 visas de bara på linjenivå."
-
-msgid "{count} line(s) had the same address in different installations. One of each was kept when combining."
-msgstr "{count} linje(r) hade samma adress i olika installationer. En av varje behölls vid sammanslagningen."
 
 msgid "Exporting {name} — this can take a while for large projects."
 msgstr "Exporterar {name} — det kan ta en stund för stora projekt."
@@ -498,15 +474,6 @@ msgstr "Inloggningen misslyckades: {error}"
 
 msgid "Format Version"
 msgstr "Formatversion"
-
-msgid "Remove device(s) & re-export"
-msgstr "Ta bort apparat(er) och exportera igen"
-
-msgid "Removed {count} incompatible device(s); re-exporting"
-msgstr "{count} inkompatibla apparat(er) borttagna; exporterar igen"
-
-msgid "This file will NOT import into the chosen ETS version: the product data of these manufacturers only exists for a newer ETS (e.g. an ETS 6 product in an ETS 5 export), so ETS rejects the whole project. Remove the affected device(s) or export for the newer ETS."
-msgstr "Den här filen kan INTE importeras i den valda ETS-versionen: produktdata för dessa tillverkare finns bara för en nyare ETS (t.ex. en ETS 6-produkt i en ETS 5-export), så ETS avvisar hela projektet. Ta bort de berörda apparaterna eller exportera för den nyare ETS-versionen."
 
 msgid "ETS 6 (schema 23)"
 msgstr "ETS 6 (schema 23)"
@@ -903,9 +870,6 @@ msgstr "{done}/{total} applikationsprogram"
 
 msgid "Import cancelled, nothing was imported"
 msgstr "Importen avbröts, inget importerades"
-
-msgid "Imported {count} product version(s) from {name}:"
-msgstr "{count} produktversion(er) importerade från {name}:"
 
 msgid "KNX Secure"
 msgstr "KNX Secure"
@@ -1620,3 +1584,74 @@ msgstr "Projektets produktdata importeras: {done} av {total} applikationsprogram
 
 msgid "This is done once on this computer, for the products its catalog does not have yet. For a large project it can take a few minutes."
 msgstr "Det görs bara en gång på den här datorn, för de produkter som dess katalog ännu inte har. För ett stort projekt kan det ta några minuter."
+
+msgid "Project: {name}  ·  {devices}  ·  {gas}"
+msgstr "Projekt: {name}  ·  {devices}  ·  {gas}"
+
+msgid "{count} device"
+msgid_plural "{count} devices"
+msgstr[0] "{count} apparat"
+msgstr[1] "{count} apparater"
+
+msgid "{count} GA"
+msgid_plural "{count} GAs"
+msgstr[0] "{count} GA"
+msgstr[1] "{count} GA"
+
+msgid "Exported {count} group address"
+msgid_plural "Exported {count} group addresses"
+msgstr[0] "{count} gruppadress exporterad"
+msgstr[1] "{count} gruppadresser exporterade"
+
+msgid "The original file had {count} installation. It was combined into one."
+msgid_plural "The original file had {count} installations. They were combined into one."
+msgstr[0] "Originalfilen hade {count} installation. Den slogs ihop till en."
+msgstr[1] "Originalfilen hade {count} installationer. De slogs ihop till en."
+
+msgid "{count} device isn't assigned to a line. It's kept in the project and included on export, but can't be edited here yet."
+msgid_plural "{count} devices aren't assigned to a line. They're kept in the project and included on export, but can't be edited here yet."
+msgstr[0] "{count} apparat är inte tilldelad till en linje. Den behålls i projektet och tas med vid export, men kan inte redigeras här ännu."
+msgstr[1] "{count} apparater är inte tilldelade till en linje. De behålls i projektet och tas med vid export, men kan inte redigeras här ännu."
+
+msgid "{count} group object had an extra description in the original file. The custom name and function are kept; only that description is not shown here."
+msgid_plural "{count} group objects had an extra description in the original file. The custom name and function are kept; only that description is not shown here."
+msgstr[0] "{count} gruppobjekt hade en extra beskrivning i originalfilen. Det egna namnet och funktionen behålls; bara den beskrivningen visas inte här."
+msgstr[1] "{count} gruppobjekt hade en extra beskrivning i originalfilen. Det egna namnet och funktionen behålls; bara den beskrivningen visas inte här."
+
+msgid "{count} IP or function setting from the original file is not used here."
+msgid_plural "{count} IP or function settings from the original file are not used here."
+msgstr[0] "{count} IP- eller funktionsinställning från originalfilen används inte här."
+msgstr[1] "{count} IP- eller funktionsinställningar från originalfilen används inte här."
+
+msgid "{count} line uses several segments. In a schema 14/20 export it is shown at line level only."
+msgid_plural "{count} lines use several segments. In a schema 14/20 export they are shown at line level only."
+msgstr[0] "{count} linje använder flera segment. I en export med schema 14/20 visas den bara på linjenivå."
+msgstr[1] "{count} linjer använder flera segment. I en export med schema 14/20 visas de bara på linjenivå."
+
+msgid "{count} line had the same address in different installations. One of each was kept when combining."
+msgid_plural "{count} lines had the same address in different installations. One of each was kept when combining."
+msgstr[0] "{count} linje hade samma adress i olika installationer. En av varje behölls vid sammanslagningen."
+msgstr[1] "{count} linjer hade samma adress i olika installationer. En av varje behölls vid sammanslagningen."
+
+msgid "Remove Device & Re-Export"
+msgid_plural "Remove Devices & Re-Export"
+msgstr[0] "Ta bort apparat och exportera igen"
+msgstr[1] "Ta bort apparater och exportera igen"
+
+msgid "Removed {count} incompatible device; re-exporting"
+msgid_plural "Removed {count} incompatible devices; re-exporting"
+msgstr[0] "{count} inkompatibel apparat borttagen; exporterar igen"
+msgstr[1] "{count} inkompatibla apparater borttagna; exporterar igen"
+
+msgid "This file will NOT import into the chosen ETS version: the product data of these manufacturers only exists for a newer ETS (e.g. an ETS 6 product in an ETS 5 export), so the whole project is rejected."
+msgstr "Den här filen kan INTE importeras i den valda ETS-versionen: produktdata för dessa tillverkare finns bara för en nyare ETS (t.ex. en ETS 6-produkt i en ETS 5-export), så ETS avvisar hela projektet."
+
+msgid "Remove the affected device or export for the newer ETS."
+msgid_plural "Remove the affected devices or export for the newer ETS."
+msgstr[0] "Ta bort den berörda apparaten eller exportera för den nyare ETS-versionen."
+msgstr[1] "Ta bort de berörda apparaterna eller exportera för den nyare ETS-versionen."
+
+msgid "Imported {count} product version from {name}:"
+msgid_plural "Imported {count} product versions from {name}:"
+msgstr[0] "{count} produktversion importerad från {name}:"
+msgstr[1] "{count} produktversioner importerade från {name}:"

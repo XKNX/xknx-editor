@@ -16,20 +16,11 @@ msgstr "Aucun projet ouvert"
 msgid "No issues found"
 msgstr "Aucun problème trouvé"
 
-msgid "{errors} errors, {warnings} warnings"
-msgstr "{errors} erreurs, {warnings} avertissements"
-
 msgid "{device}: no individual address"
 msgstr "{device} : pas d'adresse individuelle"
 
 msgid "Duplicate individual address {address} ({device})"
 msgstr "Adresse individuelle {address} en double ({device})"
-
-msgid "{count} device(s) skipped: application not in catalog"
-msgstr "{count} participant(s) ignoré(s) : application absente du catalogue"
-
-msgid "{device}: {count} unlinked group object(s)"
-msgstr "{device} : {count} objet(s) de groupe non lié(s)"
 
 msgid "{address} {name}: no datapoint type"
 msgstr "{address} {name} : aucun type de point de données"
@@ -37,5 +28,27 @@ msgstr "{address} {name} : aucun type de point de données"
 msgid "{address} {name}: no sending group object"
 msgstr "{address} {name} : aucun objet de groupe émetteur"
 
-msgid "{address} {name}: {count} sending group objects"
-msgstr "{address} {name} : {count} objets de groupe émetteurs"
+msgid "{count} error"
+msgid_plural "{count} errors"
+msgstr[0] "{count} erreur"
+msgstr[1] "{count} erreurs"
+
+msgid "{count} warning"
+msgid_plural "{count} warnings"
+msgstr[0] "{count} avertissement"
+msgstr[1] "{count} avertissements"
+
+msgid "{count} device skipped: application not in catalog"
+msgid_plural "{count} devices skipped: application not in catalog"
+msgstr[0] "{count} participant ignoré : application absente du catalogue"
+msgstr[1] "{count} participants ignorés : application absente du catalogue"
+
+msgid "{device}: {count} unlinked group object"
+msgid_plural "{device}: {count} unlinked group objects"
+msgstr[0] "{device} : {count} objet de groupe non lié"
+msgstr[1] "{device} : {count} objets de groupe non liés"
+
+msgid "{address} {name}: {count} sending group object"
+msgid_plural "{address} {name}: {count} sending group objects"
+msgstr[0] "{address} {name} : {count} objet de groupe émetteur"
+msgstr[1] "{address} {name} : {count} objets de groupe émetteurs"

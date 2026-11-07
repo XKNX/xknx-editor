@@ -46,9 +46,6 @@ msgstr "Hakua ei voitu suorittaa loppuun: {error}"
 msgid "The interface did not confirm the scan request (bus busy or interface overloaded). Please try again."
 msgstr "Rajapinta ei kuitannut hakupyyntöä (väylä varattu tai rajapinta ylikuormittunut). Yritä uudelleen."
 
-msgid "{count} device(s) in programming mode"
-msgstr "Laitteita ohjelmointitilassa: {count}"
-
 msgid "Answered the scan, but reading its details failed: {error}"
 msgstr "Vastasi hakuun, mutta sen tietojen lukeminen epäonnistui: {error}"
 
@@ -222,3 +219,8 @@ msgstr "Ei yhteyttä väylään"
 
 msgid "Serial Number: {serial}"
 msgstr "Sarjanumero: {serial}"
+
+msgid "{count} device in programming mode"
+msgid_plural "{count} devices in programming mode"
+msgstr[0] "{count} laite ohjelmointitilassa"
+msgstr[1] "{count} laitetta ohjelmointitilassa"

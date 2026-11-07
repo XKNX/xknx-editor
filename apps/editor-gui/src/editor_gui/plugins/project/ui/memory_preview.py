@@ -110,7 +110,7 @@ class MemoryPreviewWindow:
             self._ref_data = {}
 
     def _render_seg_toolbar(self, seg_id: str, data: bytes, idx: int) -> None:
-        imgui.text_disabled(S.MEMORY_BYTES.format(count=len(data)))
+        imgui.text_disabled(S.MEMORY_BYTES(len(data)).format(count=len(data)))
         imgui.same_line()
         idle = self._save_dialog is None and self._ref_dialog is None
         imgui.begin_disabled(not idle)

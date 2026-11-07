@@ -118,12 +118,6 @@ msgstr "Siirrä ylös"
 msgid "Move Down"
 msgstr "Siirrä alas"
 
-msgid "{count} items"
-msgstr "Kohteita: {count}"
-
-msgid "{count} pairs"
-msgstr "Pareja: {count}"
-
 msgid "{count} unpaired (ignored)"
 msgstr "Ilman paria (ohitetaan): {count}"
 
@@ -147,15 +141,6 @@ msgstr "Lisää Ryhmäosoitteet"
 
 msgid "Mass Linker Result"
 msgstr "Massalinkityksen tulos"
-
-msgid "Linked {count} object(s) to group addresses"
-msgstr "Ryhmäosoitteisiin linkitettyjä objekteja: {count}"
-
-msgid "Linked {count} object pair(s) via new group addresses"
-msgstr "Uusien ryhmäosoitteiden kautta linkitettyjä objektipareja: {count}"
-
-msgid "{count} error(s)"
-msgstr "Virheitä: {count}"
 
 msgid "Clear All"
 msgstr "Tyhjennä kaikki"
@@ -277,12 +262,6 @@ msgstr "Vaihda tilalle (malli)"
 msgid "Group Object Mapping (by Number)"
 msgstr "Ryhmäobjektien vastaavuus (numeron mukaan)"
 
-msgid "{count} object(s) will be re-mapped"
-msgstr "Uudelleen kohdistettavia objekteja: {count}"
-
-msgid "Replaced; re-mapped {count} group object(s)"
-msgstr "Vaihdettu; uudelleen kohdistettuja ryhmäobjekteja: {count}"
-
 msgid "Shift Addresses"
 msgstr "Siirrä osoitteita"
 
@@ -312,9 +291,6 @@ msgstr "Vertailu kohteeseen {name}:"
 
 msgid "No differences in devices or group addresses."
 msgstr "Laitteissa tai ryhmäosoitteissa ei ole eroja."
-
-msgid "{count} difference(s)"
-msgstr "Eroja: {count}"
 
 msgid "Add Device Certificate"
 msgstr "Lisää Laitesertifikaatti"
@@ -397,9 +373,6 @@ msgstr "Kopion nimi: {name}"
 msgid "Copy"
 msgstr "Kopioi"
 
-msgid "Created {count} copy/copies"
-msgstr "Luotuja kopioita: {count}"
-
 msgid "Shifts the device part of each individual address. Group addresses are not shifted."
 msgstr "Siirtää jokaisen yksilöllisen osoitteen laiteosaa. Ryhmäosoitteita ei siirretä."
 
@@ -421,12 +394,6 @@ msgstr "{sel}/{total} valittu"
 msgid "(out of range)"
 msgstr "(alueen ulkopuolella)"
 
-msgid "{count} address(es) will change"
-msgstr "Muuttuvia osoitteita: {count}"
-
-msgid "Shifted {count} address(es)"
-msgstr "Siirrettyjä osoitteita: {count}"
-
 msgid "Individual Addresses"
 msgstr "Yksilölliset Osoitteet"
 
@@ -441,9 +408,6 @@ msgstr "Numeroi ryhmäosoitteet uudelleen lisäämällä siirtymä niiden raaka-
 
 msgid "The offset is added to the raw 16-bit value, so it may change the main/middle group as addresses cross a boundary."
 msgstr "Siirtymä lisätään 16-bittiseen raaka-arvoon, joten pää- tai keskiryhmä voi muuttua, kun osoitteet ylittävät rajan."
-
-msgid "Shifted {count} group address(es)"
-msgstr "Siirrettyjä ryhmäosoitteita: {count}"
 
 msgid "Export CSV…"
 msgstr "Vie CSV…"
@@ -496,9 +460,6 @@ msgstr "Valitse vähintään yksi kenttä."
 msgid "No topology issues found."
 msgstr "Topologiaongelmia ei löytynyt."
 
-msgid "{count} issue(s)"
-msgstr "Ongelmia: {count}"
-
 msgid "Click a finding to jump to the device."
 msgstr "Siirry laitteeseen napsauttamalla havaintoa."
 
@@ -516,6 +477,7 @@ msgstr "Luetaan projekteja…"
 
 msgid "Comparing devices: {done} of {total}"
 msgstr "Verrataan laitteita: {done}/{total}"
+
 msgid "File"
 msgstr "Tiedosto"
 
@@ -630,9 +592,6 @@ msgstr "Projektisertifikaatti"
 msgid "none"
 msgstr "ei mitään"
 
-msgid "present ({size} bytes)"
-msgstr "olemassa ({size} tavua)"
-
 msgid "Password"
 msgstr "Salasana"
 
@@ -692,7 +651,6 @@ msgstr "ETS salaa lokin kommentit. Pura salauksen purkuavain oman ETS-asennukses
 
 msgid "Comments are encrypted"
 msgstr "Kommentit on salattu"
-
 
 msgid "Extracting key…"
 msgstr "Puretaan avainta…"
@@ -1003,14 +961,8 @@ msgstr "Kopioi napsauttamalla"
 msgid "Filter parameters…"
 msgstr "Suodata parametreja…"
 
-msgid "Apply Changes to All {count} Identical Devices"
-msgstr "Käytä muutoksia kaikkiin samanlaisiin laitteisiin ({count})"
-
 msgid "Apply Changes to All Channels"
 msgstr "Käytä muutoksia kaikkiin kanaviin"
-
-msgid "Editing {count} devices — edits apply to all, diverging values show <differs>"
-msgstr "Muokataan laitteita: {count} — muutokset koskevat kaikkia, poikkeavat arvot näkyvät muodossa <poikkeaa>"
 
 msgid "Hardware"
 msgstr "Laitteisto"
@@ -1048,9 +1000,6 @@ msgstr "Poista vertailu"
 msgid "Memory Dumps (*.bin)"
 msgstr "Muistivedokset (*.bin)"
 
-msgid "{count} bytes"
-msgstr "{count} tavua"
-
 msgid "No memory segments."
 msgstr "Ei muistisegmenttejä."
 
@@ -1077,9 +1026,6 @@ msgstr "Ei voi suorittaa: ei KNX-yhteyttä. Yhdistä yhdyskäytävään ({menu}-
 
 msgid "Match: the generated image is identical to what is on the device"
 msgstr "Vastaa: muodostettu kuva on identtinen laitteessa olevan kanssa"
-
-msgid "Mismatch: {bytes} byte(s) differ from the device in {locations} location(s)"
-msgstr "Poikkeama: {bytes} tavua eroaa laitteesta {locations} kohdassa"
 
 msgid "{matched} matched, {changed} would change"
 msgstr "{matched} vastaa, {changed} muuttuisi"
@@ -1111,9 +1057,6 @@ msgstr "laitteen hallitsema"
 msgid "System byte the device sets itself at runtime (e.g. a download detection byte reset by the application after a download). A difference here is expected and does not indicate a bad download."
 msgstr "Järjestelmätavu, jonka laite asettaa itse ajon aikana (esim. lataustunnistustavu, jonka sovellus nollaa latauksen jälkeen). Ero tässä on odotettu eikä viittaa epäonnistuneeseen lataukseen."
 
-msgid "plus {bytes} device-managed runtime byte(s) (expected, benign)"
-msgstr "lisäksi {bytes} laitteen hallitsemaa ajonaikaista tavua (odotettu, vaaraton)"
-
 msgid "No configured differences: the device already carries this configuration. The differences below are benign (see notes)."
 msgstr "Ei määritettyjä eroja: laitteessa on jo tämä konfiguraatio. Alla olevat erot ovat vaarattomia (katso huomautukset)."
 
@@ -1122,9 +1065,6 @@ msgstr "asettaa oletusarvon"
 
 msgid "This byte is written for a neighbouring parameter; the differing bit is not driven by any active parameter and is only reset to the application default. The device holds an older value (e.g. from a previous configuration or mode) that programming will normalise. Benign."
 msgstr "Tämä tavu kirjoitetaan viereisen parametrin vuoksi; poikkeavaa bittiä ei ohjaa mikään aktiivinen parametri, ja se vain palautetaan sovelluksen oletusarvoon. Laitteessa on vanhempi arvo (esim. aiemmasta konfiguraatiosta tai tilasta), jonka ohjelmointi normalisoi. Vaaraton."
-
-msgid "plus {bytes} byte(s) reset to the application default (the device holds an older value; benign, will be normalised on programming)"
-msgstr "lisäksi {bytes} tavua palautetaan sovelluksen oletusarvoon (laitteessa on vanhempi arvo; vaaraton, normalisoidaan ohjelmoitaessa)"
 
 msgid "Export Ist/Soll…"
 msgstr "Vie tosi/tavoite…"
@@ -1180,9 +1120,6 @@ msgstr "Vain erot"
 msgid "Filter devices by address, name or description…"
 msgstr "Suodata laitteita osoitteen, nimen tai kuvauksen mukaan…"
 
-msgid "{count} differences"
-msgstr "Eroja: {count}"
-
 msgid "Parameters"
 msgstr "Parametrit"
 
@@ -1206,9 +1143,6 @@ msgstr "Liitä konfiguraatio"
 
 msgid "Paste configuration onto '{name}':"
 msgstr "Liitä konfiguraatio kohteeseen '{name}':"
-
-msgid "Paste configuration onto {count} selected devices:"
-msgstr "Liitä konfiguraatio valittuihin laitteisiin ({count}):"
 
 msgid "Duplicate '{name}':"
 msgstr "Luo kopio kohteesta '{name}':"
@@ -1603,12 +1537,6 @@ msgstr "Tuo Ryhmäosoitteet"
 msgid "Group Address Files (XML, CSV)"
 msgstr "Ryhmäosoitetiedostot (XML, CSV)"
 
-msgid "{added} group addresses added, {updated} updated."
-msgstr "Ryhmäosoitteita lisätty: {added}, päivitetty: {updated}."
-
-msgid "{count} group addresses could not be placed in a group."
-msgstr "Ryhmäosoitteita, joita ei voitu sijoittaa ryhmään: {count}."
-
 msgid "The file could not be imported: {error}"
 msgstr "Tiedostoa ei voitu tuoda: {error}"
 
@@ -1789,9 +1717,6 @@ msgstr "Kirjoita ryhmäjako DALI-väylään. Tämä siirtää ryhmät\nyhdyskäy
 msgid "Write the scene values to the DALI bus. Continue?"
 msgstr "Kirjoita tilannearvot DALI-väylään. Jatketaanko?"
 
-msgid "{count} ECG(s) present"
-msgstr "Liitäntälaitteita: {count}"
-
 msgid "Group"
 msgstr "Ryhmä"
 
@@ -1833,9 +1758,6 @@ msgstr "Yksittäinen"
 
 msgid "Unassigned"
 msgstr "Kohdistamaton"
-
-msgid "Procedure {number}  ({count} steps)"
-msgstr "Menettely {number}  ({count} vaihetta)"
 
 msgid "Kind"
 msgstr "Laji"
@@ -2202,9 +2124,6 @@ msgstr "Sovelluksella ei ole staattisia parametreja."
 
 msgid "This gateway's commissioning protocol has not been verified against a capture; writes may misbehave. Proceed with care."
 msgstr "Tämän yhdyskäytävän käyttöönottoprotokollaa ei ole varmistettu kaappaukseen; kirjoitukset saattavat toimia väärin. Etene varoen."
-
-msgid "{count} ECG(s) present on line {line}"
-msgstr "{count} ECG(:tä) linjalla {line}"
 
 msgid "Program DCA State"
 msgstr "Ohjelmoi DCA-tila"
@@ -2677,9 +2596,6 @@ msgstr "Ryhmässä ei ole vapaata ryhmäosoitetta."
 msgid "The main group has no free middle group."
 msgstr "Pääryhmässä ei ole vapaata keskiryhmää."
 
-msgid "{count} devices"
-msgstr "{count} laitetta"
-
 msgid "The main segment cannot be moved."
 msgstr "Pääsegmenttiä ei voi siirtää."
 
@@ -2752,33 +2668,6 @@ msgstr "Uusille ryhmäosoitteille ei ole ryhmää."
 msgid "Copied '{name}' to '{target}'."
 msgstr "'{name}' kopioitu kohteeseen '{target}'."
 
-msgid "Copied {count} devices to '{target}'."
-msgstr "{count} laitetta kopioitu kohteeseen '{target}'."
-
-msgid "Copied {count} building parts to '{target}'."
-msgstr "{count} rakennuksen osaa kopioitu kohteeseen '{target}'."
-
-msgid "Copied {count} trades to '{target}'."
-msgstr "{count} toimialaa kopioitu kohteeseen '{target}'."
-
-msgid "Copied {count} functions to '{target}'."
-msgstr "{count} toimintoa kopioitu kohteeseen '{target}'."
-
-msgid "Copied {count} group addresses to '{target}'."
-msgstr "{count} ryhmäosoitetta kopioitu kohteeseen '{target}'."
-
-msgid "Copied {count} middle groups to '{target}'."
-msgstr "{count} keskiryhmää kopioitu kohteeseen '{target}'."
-
-msgid "Copied {count} main groups to '{target}'."
-msgstr "{count} pääryhmää kopioitu kohteeseen '{target}'."
-
-msgid "Copied {count} lines to '{target}'."
-msgstr "{count} linjaa kopioitu kohteeseen '{target}'."
-
-msgid "Copied {count} segments to '{target}'."
-msgstr "{count} segmenttiä kopioitu kohteeseen '{target}'."
-
 msgid "Paste Special…"
 msgstr "Liitä määräten…"
 
@@ -2821,30 +2710,6 @@ msgstr "Lisäämisen raja saavutettiin."
 msgid "Cannot add any line to the area {area} because of topology constraints. Please check the medium type of the backbone and main lines."
 msgstr "Alueelle {area} ei voi lisätä linjaa topologian rajoitusten vuoksi. Tarkista runkolinjan ja päälinjojen mediatyyppi."
 
-msgid "Added {count} areas to '{target}'."
-msgstr "{count} aluetta lisätty kohteeseen '{target}'."
-
-msgid "Added {count} lines to '{target}'."
-msgstr "{count} linjaa lisätty kohteeseen '{target}'."
-
-msgid "Added {count} segments to '{target}'."
-msgstr "{count} segmenttiä lisätty kohteeseen '{target}'."
-
-msgid "Added {count} building parts to '{target}'."
-msgstr "{count} rakennuksen osaa lisätty kohteeseen '{target}'."
-
-msgid "Added {count} trades to '{target}'."
-msgstr "{count} ammattialaa lisätty kohteeseen '{target}'."
-
-msgid "Added {count} main groups to '{target}'."
-msgstr "{count} pääryhmää lisätty kohteeseen '{target}'."
-
-msgid "Added {count} middle groups to '{target}'."
-msgstr "{count} väliryhmää lisätty kohteeseen '{target}'."
-
-msgid "Added {count} group addresses to '{target}'."
-msgstr "{count} ryhmäosoitetta lisätty kohteeseen '{target}'."
-
 msgid "Add Main Groups…"
 msgstr "Lisää Pääryhmiä…"
 
@@ -2884,12 +2749,6 @@ msgstr "Lisää Toimintoja"
 msgid "New function"
 msgstr "Uusi toiminto"
 
-msgid "Added {count} functions to '{target}'."
-msgstr "{count} toimintoa lisätty kohteeseen '{target}'."
-
-msgid "Added {count} group ranges to '{target}'."
-msgstr "{count} ryhmäosoitealuetta lisätty kohteeseen '{target}'."
-
 msgid "Add Group Ranges…"
 msgstr "Lisää Ryhmäosoitealueita…"
 
@@ -2923,9 +2782,6 @@ msgstr "Ryhmäosoitealuetta ei voi siirtää itseensä tai sen sisällä olevaan
 msgid "A group address of the range is already in use there."
 msgstr "Jokin alueen ryhmäosoite on siellä jo käytössä."
 
-msgid "Copied {count} group ranges to '{target}'."
-msgstr "{count} ryhmäosoitealuetta kopioitu kohteeseen '{target}'."
-
 msgid "Add Areas…"
 msgstr "Lisää Alueita…"
 
@@ -2940,12 +2796,6 @@ msgstr "Kopioi ryhmäosoite"
 
 msgid "Existing Devices…"
 msgstr "Olemassa olevat laitteet…"
-
-msgid "Delete the {count} selected devices? Their group objects and group-address links are removed and their individual addresses are freed. This can be undone."
-msgstr "Poistetaanko {count} valittua laitetta? Niiden ryhmäobjektit ja ryhmäosoitelinkit poistetaan ja niiden yksilölliset osoitteet vapautetaan. Tämän voi kumota."
-
-msgid "Remove {count} devices"
-msgstr "Poista {count} laitetta"
 
 msgid "Delete Devices"
 msgstr "Poista laitteet"
@@ -3055,9 +2905,6 @@ msgstr "Load LVS Project (.prj)…"
 msgid "LVS project (*.prj)"
 msgstr "LVS project (*.prj)"
 
-msgid "Imported the display configuration into {count} device(s)."
-msgstr "Imported the display configuration into {count} device(s)."
-
 msgid "The LVS project could not be imported: {error}"
 msgstr "The LVS project could not be imported: {error}"
 
@@ -3069,3 +2916,266 @@ msgstr "Exported the display configuration."
 
 msgid "The LVS project could not be exported: {error}"
 msgstr "The LVS project could not be exported: {error}"
+
+msgid "Copied {count} device to '{target}'."
+msgid_plural "Copied {count} devices to '{target}'."
+msgstr[0] "{count} laite kopioitu kohteeseen '{target}'."
+msgstr[1] "{count} laitetta kopioitu kohteeseen '{target}'."
+
+msgid "Copied {count} building part to '{target}'."
+msgid_plural "Copied {count} building parts to '{target}'."
+msgstr[0] "{count} rakennuksen osa kopioitu kohteeseen '{target}'."
+msgstr[1] "{count} rakennuksen osaa kopioitu kohteeseen '{target}'."
+
+msgid "Copied {count} trade to '{target}'."
+msgid_plural "Copied {count} trades to '{target}'."
+msgstr[0] "{count} toimiala kopioitu kohteeseen '{target}'."
+msgstr[1] "{count} toimialaa kopioitu kohteeseen '{target}'."
+
+msgid "Copied {count} function to '{target}'."
+msgid_plural "Copied {count} functions to '{target}'."
+msgstr[0] "{count} toiminto kopioitu kohteeseen '{target}'."
+msgstr[1] "{count} toimintoa kopioitu kohteeseen '{target}'."
+
+msgid "Copied {count} group address to '{target}'."
+msgid_plural "Copied {count} group addresses to '{target}'."
+msgstr[0] "{count} ryhmäosoite kopioitu kohteeseen '{target}'."
+msgstr[1] "{count} ryhmäosoitetta kopioitu kohteeseen '{target}'."
+
+msgid "Copied {count} middle group to '{target}'."
+msgid_plural "Copied {count} middle groups to '{target}'."
+msgstr[0] "{count} keskiryhmä kopioitu kohteeseen '{target}'."
+msgstr[1] "{count} keskiryhmää kopioitu kohteeseen '{target}'."
+
+msgid "Copied {count} main group to '{target}'."
+msgid_plural "Copied {count} main groups to '{target}'."
+msgstr[0] "{count} pääryhmä kopioitu kohteeseen '{target}'."
+msgstr[1] "{count} pääryhmää kopioitu kohteeseen '{target}'."
+
+msgid "Copied {count} group range to '{target}'."
+msgid_plural "Copied {count} group ranges to '{target}'."
+msgstr[0] "{count} ryhmäosoitealue kopioitu kohteeseen '{target}'."
+msgstr[1] "{count} ryhmäosoitealuetta kopioitu kohteeseen '{target}'."
+
+msgid "Copied {count} line to '{target}'."
+msgid_plural "Copied {count} lines to '{target}'."
+msgstr[0] "{count} linja kopioitu kohteeseen '{target}'."
+msgstr[1] "{count} linjaa kopioitu kohteeseen '{target}'."
+
+msgid "Copied {count} segment to '{target}'."
+msgid_plural "Copied {count} segments to '{target}'."
+msgstr[0] "{count} segmentti kopioitu kohteeseen '{target}'."
+msgstr[1] "{count} segmenttiä kopioitu kohteeseen '{target}'."
+
+msgid "Added {count} area to '{target}'."
+msgid_plural "Added {count} areas to '{target}'."
+msgstr[0] "{count} alue lisätty kohteeseen '{target}'."
+msgstr[1] "{count} aluetta lisätty kohteeseen '{target}'."
+
+msgid "Added {count} line to '{target}'."
+msgid_plural "Added {count} lines to '{target}'."
+msgstr[0] "{count} linja lisätty kohteeseen '{target}'."
+msgstr[1] "{count} linjaa lisätty kohteeseen '{target}'."
+
+msgid "Added {count} segment to '{target}'."
+msgid_plural "Added {count} segments to '{target}'."
+msgstr[0] "{count} segmentti lisätty kohteeseen '{target}'."
+msgstr[1] "{count} segmenttiä lisätty kohteeseen '{target}'."
+
+msgid "Added {count} building part to '{target}'."
+msgid_plural "Added {count} building parts to '{target}'."
+msgstr[0] "{count} rakennuksen osa lisätty kohteeseen '{target}'."
+msgstr[1] "{count} rakennuksen osaa lisätty kohteeseen '{target}'."
+
+msgid "Added {count} trade to '{target}'."
+msgid_plural "Added {count} trades to '{target}'."
+msgstr[0] "{count} ammattiala lisätty kohteeseen '{target}'."
+msgstr[1] "{count} ammattialaa lisätty kohteeseen '{target}'."
+
+msgid "Added {count} function to '{target}'."
+msgid_plural "Added {count} functions to '{target}'."
+msgstr[0] "{count} toiminto lisätty kohteeseen '{target}'."
+msgstr[1] "{count} toimintoa lisätty kohteeseen '{target}'."
+
+msgid "Added {count} group range to '{target}'."
+msgid_plural "Added {count} group ranges to '{target}'."
+msgstr[0] "{count} ryhmäosoitealue lisätty kohteeseen '{target}'."
+msgstr[1] "{count} ryhmäosoitealuetta lisätty kohteeseen '{target}'."
+
+msgid "Added {count} main group to '{target}'."
+msgid_plural "Added {count} main groups to '{target}'."
+msgstr[0] "{count} pääryhmä lisätty kohteeseen '{target}'."
+msgstr[1] "{count} pääryhmää lisätty kohteeseen '{target}'."
+
+msgid "Added {count} middle group to '{target}'."
+msgid_plural "Added {count} middle groups to '{target}'."
+msgstr[0] "{count} keskiryhmä lisätty kohteeseen '{target}'."
+msgstr[1] "{count} keskiryhmää lisätty kohteeseen '{target}'."
+
+msgid "Added {count} group address to '{target}'."
+msgid_plural "Added {count} group addresses to '{target}'."
+msgstr[0] "{count} ryhmäosoite lisätty kohteeseen '{target}'."
+msgstr[1] "{count} ryhmäosoitetta lisätty kohteeseen '{target}'."
+
+msgid "Remove {count} device"
+msgid_plural "Remove {count} devices"
+msgstr[0] "Poista {count} laite"
+msgstr[1] "Poista {count} laitetta"
+
+msgid "{count} device"
+msgid_plural "{count} devices"
+msgstr[0] "{count} laite"
+msgstr[1] "{count} laitetta"
+
+msgid "{count} item"
+msgid_plural "{count} items"
+msgstr[0] "{count} kohde"
+msgstr[1] "{count} kohdetta"
+
+msgid "{count} pair"
+msgid_plural "{count} pairs"
+msgstr[0] "{count} pari"
+msgstr[1] "{count} paria"
+
+msgid "Linked {count} object to a group address"
+msgid_plural "Linked {count} objects to group addresses"
+msgstr[0] "{count} objekti linkitetty ryhmäosoitteeseen"
+msgstr[1] "{count} objektia linkitetty ryhmäosoitteisiin"
+
+msgid "Linked {count} object pair via a new group address"
+msgid_plural "Linked {count} object pairs via new group addresses"
+msgstr[0] "{count} objektipari linkitetty uuden ryhmäosoitteen kautta"
+msgstr[1] "{count} objektiparia linkitetty uusien ryhmäosoitteiden kautta"
+
+msgid "{count} error"
+msgid_plural "{count} errors"
+msgstr[0] "{count} virhe"
+msgstr[1] "{count} virhettä"
+
+msgid "{count} object will be re-mapped"
+msgid_plural "{count} objects will be re-mapped"
+msgstr[0] "{count} objekti kohdistetaan uudelleen"
+msgstr[1] "{count} objektia kohdistetaan uudelleen"
+
+msgid "Replaced; re-mapped {count} group object"
+msgid_plural "Replaced; re-mapped {count} group objects"
+msgstr[0] "Vaihdettu; {count} ryhmäobjekti kohdistettu uudelleen"
+msgstr[1] "Vaihdettu; {count} ryhmäobjektia kohdistettu uudelleen"
+
+msgid "{count} difference"
+msgid_plural "{count} differences"
+msgstr[0] "{count} ero"
+msgstr[1] "{count} eroa"
+
+msgid "Created {count} copy"
+msgid_plural "Created {count} copies"
+msgstr[0] "Luotiin {count} kopio"
+msgstr[1] "Luotiin {count} kopiota"
+
+msgid "{count} address will change"
+msgid_plural "{count} addresses will change"
+msgstr[0] "{count} osoite muuttuu"
+msgstr[1] "{count} osoitetta muuttuu"
+
+msgid "Shifted {count} address"
+msgid_plural "Shifted {count} addresses"
+msgstr[0] "Siirrettiin {count} osoite"
+msgstr[1] "Siirrettiin {count} osoitetta"
+
+msgid "Shifted {count} group address"
+msgid_plural "Shifted {count} group addresses"
+msgstr[0] "Siirrettiin {count} ryhmäosoite"
+msgstr[1] "Siirrettiin {count} ryhmäosoitetta"
+
+msgid "{count} issue"
+msgid_plural "{count} issues"
+msgstr[0] "{count} ongelma"
+msgstr[1] "{count} ongelmaa"
+
+msgid "present ({size} byte)"
+msgid_plural "present ({size} bytes)"
+msgstr[0] "olemassa ({size} tavu)"
+msgstr[1] "olemassa ({size} tavua)"
+
+msgid "Imported the display configuration into {count} device."
+msgid_plural "Imported the display configuration into {count} devices."
+msgstr[0] "Näyttökonfiguraatio tuotiin {count} laitteeseen."
+msgstr[1] "Näyttökonfiguraatio tuotiin {count} laitteeseen."
+
+msgid "{count} ECG present on line {line}"
+msgid_plural "{count} ECGs present on line {line}"
+msgstr[0] "Linjalla {line} on {count} liitäntälaite"
+msgstr[1] "Linjalla {line} on {count} liitäntälaitetta"
+
+msgid "Apply Changes to {count} Identical Device"
+msgid_plural "Apply Changes to All {count} Identical Devices"
+msgstr[0] "Käytä muutoksia {count} samanlaiseen laitteeseen"
+msgstr[1] "Käytä muutoksia kaikkiin {count} samanlaiseen laitteeseen"
+
+msgid "Editing {count} device — edits apply to all, diverging values show <differs>"
+msgid_plural "Editing {count} devices — edits apply to all, diverging values show <differs>"
+msgstr[0] "Muokataan {count} laitetta — muutokset koskevat kaikkia, poikkeavat arvot näkyvät muodossa <poikkeaa>"
+msgstr[1] "Muokataan {count} laitetta — muutokset koskevat kaikkia, poikkeavat arvot näkyvät muodossa <poikkeaa>"
+
+msgid "{count} byte"
+msgid_plural "{count} bytes"
+msgstr[0] "{count} tavu"
+msgstr[1] "{count} tavua"
+
+msgid "Mismatch: {bytes} from the device in {locations}"
+msgstr "Poikkeama: {bytes} laitteesta {locations}"
+
+msgid "{count} byte differs"
+msgid_plural "{count} bytes differ"
+msgstr[0] "{count} tavu eroaa"
+msgstr[1] "{count} tavua eroaa"
+
+msgid "{count} location"
+msgid_plural "{count} locations"
+msgstr[0] "{count} kohdassa"
+msgstr[1] "{count} kohdassa"
+
+msgid "plus {bytes} device-managed runtime byte (expected, benign)"
+msgid_plural "plus {bytes} device-managed runtime bytes (expected, benign)"
+msgstr[0] "lisäksi {bytes} laitteen hallitsema ajonaikainen tavu (odotettu, vaaraton)"
+msgstr[1] "lisäksi {bytes} laitteen hallitsemaa ajonaikaista tavua (odotettu, vaaraton)"
+
+msgid "plus {bytes} byte reset to the application default (the device holds an older value; benign, will be normalised on programming)"
+msgid_plural "plus {bytes} bytes reset to the application default (the device holds an older value; benign, will be normalised on programming)"
+msgstr[0] "lisäksi {bytes} tavu palautetaan sovelluksen oletusarvoon (laitteessa on vanhempi arvo; vaaraton, normalisoidaan ohjelmoitaessa)"
+msgstr[1] "lisäksi {bytes} tavua palautetaan sovelluksen oletusarvoon (laitteessa on vanhempi arvo; vaaraton, normalisoidaan ohjelmoitaessa)"
+
+msgid "Paste configuration onto {count} selected device:"
+msgid_plural "Paste configuration onto {count} selected devices:"
+msgstr[0] "Liitä konfiguraatio {count} valittuun laitteeseen:"
+msgstr[1] "Liitä konfiguraatio {count} valittuun laitteeseen:"
+
+msgid "Delete the {count} selected device? Its group objects and group-address links are removed and its individual address is freed. This can be undone."
+msgid_plural "Delete the {count} selected devices? Their group objects and group-address links are removed and their individual addresses are freed. This can be undone."
+msgstr[0] "Poistetaanko {count} valittu laite? Sen ryhmäobjektit ja ryhmäosoitelinkit poistetaan ja sen yksilöllinen osoite vapautetaan. Tämän voi kumota."
+msgstr[1] "Poistetaanko {count} valittua laitetta? Niiden ryhmäobjektit ja ryhmäosoitelinkit poistetaan ja niiden yksilölliset osoitteet vapautetaan. Tämän voi kumota."
+
+msgid "{count} group address added"
+msgid_plural "{count} group addresses added"
+msgstr[0] "{count} ryhmäosoite lisätty"
+msgstr[1] "{count} ryhmäosoitetta lisätty"
+
+msgid "{count} updated"
+msgid_plural "{count} updated"
+msgstr[0] "{count} päivitetty"
+msgstr[1] "{count} päivitetty"
+
+msgid "{count} group address could not be placed in a group."
+msgid_plural "{count} group addresses could not be placed in a group."
+msgstr[0] "{count} ryhmäosoitetta ei voitu sijoittaa ryhmään."
+msgstr[1] "{count} ryhmäosoitetta ei voitu sijoittaa ryhmään."
+
+msgid "{count} ECG present"
+msgid_plural "{count} ECGs present"
+msgstr[0] "{count} liitäntälaite"
+msgstr[1] "{count} liitäntälaitetta"
+
+msgid "Procedure {number}  ({count} step)"
+msgid_plural "Procedure {number}  ({count} steps)"
+msgstr[0] "Menettely {number}  ({count} vaihe)"
+msgstr[1] "Menettely {number}  ({count} vaihetta)"

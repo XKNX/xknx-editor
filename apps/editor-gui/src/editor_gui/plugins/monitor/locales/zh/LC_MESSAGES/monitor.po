@@ -53,7 +53,8 @@ msgid "Hide Extended Information"
 msgstr "隐藏扩展信息"
 
 msgid "{count} telg."
-msgstr "{count} telg."
+msgid_plural "{count} telg."
+msgstr[0] "{count} telg."
 
 msgid "{rate} t/s"
 msgstr "{rate} t/s"
@@ -214,20 +215,11 @@ msgstr "电报记录"
 msgid "All files"
 msgstr "所有文件"
 
-msgid "{count} telegrams exported to {path}"
-msgstr "已将 {count} 条电报导出到 {path}"
-
 msgid "Export failed: {error}"
 msgstr "导出失败：{error}"
 
-msgid "{count} entries loaded from {path}"
-msgstr "已从 {path} 加载 {count} 个条目"
-
 msgid "Loading failed: {error}"
 msgstr "加载失败：{error}"
-
-msgid "{count} telegrams in another frame format were skipped"
-msgstr "已跳过 {count} 条其他帧格式的电报"
 
 msgid "Printing failed: {error}"
 msgstr "打印失败：{error}"
@@ -235,17 +227,8 @@ msgstr "打印失败：{error}"
 msgid "Page {page}"
 msgstr "第 {page} 页"
 
-msgid "{count} Data Secure telegrams are not replayed"
-msgstr "{count} 条 Data Secure 电报不会回放"
-
 msgid "There are no group telegrams to replay"
 msgstr "没有可回放的组电报"
-
-msgid "Replay finished: {count} telegrams sent"
-msgstr "回放完成：已发送 {count} 条电报"
-
-msgid "Replay cancelled: {count} telegrams sent"
-msgstr "回放已取消：已发送 {count} 条电报"
 
 msgid "from bus"
 msgstr "来自总线"
@@ -390,3 +373,27 @@ msgstr "Max"
 
 msgid "Maximum telegrams this monitor keeps. The oldest tenth is dropped when the cap is exceeded."
 msgstr "Maximum telegrams this monitor keeps. The oldest tenth is dropped when the cap is exceeded."
+
+msgid "{count} telegram exported to {path}"
+msgid_plural "{count} telegrams exported to {path}"
+msgstr[0] "已将 {count} 条电报导出到 {path}"
+
+msgid "{count} entry loaded from {path}"
+msgid_plural "{count} entries loaded from {path}"
+msgstr[0] "已从 {path} 加载 {count} 个条目"
+
+msgid "{count} telegram in another frame format was skipped"
+msgid_plural "{count} telegrams in another frame format were skipped"
+msgstr[0] "已跳过 {count} 条其他帧格式的电报"
+
+msgid "{count} Data Secure telegram is not replayed"
+msgid_plural "{count} Data Secure telegrams are not replayed"
+msgstr[0] "{count} 条 Data Secure 电报不会回放"
+
+msgid "Replay finished: {count} telegram sent"
+msgid_plural "Replay finished: {count} telegrams sent"
+msgstr[0] "回放完成：已发送 {count} 条电报"
+
+msgid "Replay cancelled: {count} telegram sent"
+msgid_plural "Replay cancelled: {count} telegrams sent"
+msgstr[0] "回放已取消：已发送 {count} 条电报"

@@ -85,9 +85,6 @@ msgstr "Potrdilo projekta"
 msgid "none"
 msgstr "brez"
 
-msgid "present ({size} bytes)"
-msgstr "prisotno (bajti: {size})"
-
 msgid "Order Number"
 msgstr "Naročilna številka"
 
@@ -226,9 +223,6 @@ msgstr "Ni mogoče zagnati: ni povezave KNX. Povežite se s prehodom (meni {menu
 msgid "Match: the generated image is identical to what is on the device"
 msgstr "Ujemanje: ustvarjena slika je enaka tisti v napravi"
 
-msgid "Mismatch: {bytes} byte(s) differ from the device in {locations} location(s)"
-msgstr "Neujemanje: razlikujoči se bajti: {bytes}, mesta: {locations}"
-
 msgid "{matched} matched, {changed} would change"
 msgstr "Ujemajoči se: {matched}, bi se spremenili: {changed}"
 
@@ -256,9 +250,6 @@ msgstr "upravlja naprava"
 msgid "System byte the device sets itself at runtime (e.g. a download detection byte reset by the application after a download). A difference here is expected and does not indicate a bad download."
 msgstr "Sistemski bajt, ki ga naprava med delovanjem nastavi sama (npr. bajt za zaznavanje programiranja, ki ga aplikacija po programiranju ponastavi). Razlika tukaj je pričakovana in ne pomeni napačnega programiranja."
 
-msgid "plus {bytes} device-managed runtime byte(s) (expected, benign)"
-msgstr "in še bajti, ki jih med delovanjem upravlja naprava: {bytes} (pričakovano, neškodljivo)"
-
 msgid "No configured differences: the device already carries this configuration. The differences below are benign (see notes)."
 msgstr "Ni konfiguriranih razlik: naprava že ima to konfiguracijo. Spodnje razlike so neškodljive (glejte opombe)."
 
@@ -267,9 +258,6 @@ msgstr "nastavi privzeto"
 
 msgid "This byte is written for a neighbouring parameter; the differing bit is not driven by any active parameter and is only reset to the application default. The device holds an older value (e.g. from a previous configuration or mode) that programming will normalise. Benign."
 msgstr "Ta bajt se zapiše zaradi sosednjega parametra; različnega bita ne krmili noben aktiven parameter in se samo ponastavi na privzeto vrednost aplikacije. Naprava hrani starejšo vrednost (npr. iz prejšnje konfiguracije ali načina), ki jo bo programiranje poenotilo. Neškodljivo."
-
-msgid "plus {bytes} byte(s) reset to the application default (the device holds an older value; benign, will be normalised on programming)"
-msgstr "in še bajti, ponastavljeni na privzeto vrednost aplikacije: {bytes} (naprava hrani starejšo vrednost; neškodljivo, pri programiranju se poenoti)"
 
 msgid "Export Ist/Soll…"
 msgstr "Izvozi dejansko/želeno…"
@@ -394,12 +382,6 @@ msgstr "Ni mogoče zagnati: projekt je bil od odprtja spremenjen. Ta preizkus pr
 msgid "Duplicate"
 msgstr "Podvoji"
 
-msgid "Apply Changes to All {count} Identical Devices"
-msgstr "Uporabi spremembe za vse enake naprave ({count})"
-
-msgid "Editing {count} devices — edits apply to all, diverging values show <differs>"
-msgstr "Urejanje več naprav ({count}) – spremembe veljajo za vse, različne vrednosti so prikazane kot <različno>"
-
 msgid "Mass Linker"
 msgstr "Množično povezovanje"
 
@@ -451,12 +433,6 @@ msgstr "Premakni gor"
 msgid "Move Down"
 msgstr "Premakni dol"
 
-msgid "{count} items"
-msgstr "Elementi: {count}"
-
-msgid "{count} pairs"
-msgstr "Pari: {count}"
-
 msgid "{count} unpaired (ignored)"
 msgstr "Brez para (prezrto): {count}"
 
@@ -477,15 +453,6 @@ msgstr "Dodajanje komunikacijskih objektov"
 
 msgid "Add Group Addresses"
 msgstr "Dodajanje skupinskih naslovov"
-
-msgid "Linked {count} object(s) to group addresses"
-msgstr "Objekti, povezani s skupinskimi naslovi: {count}"
-
-msgid "Linked {count} object pair(s) via new group addresses"
-msgstr "Pari objektov, povezani prek novih skupinskih naslovov: {count}"
-
-msgid "{count} error(s)"
-msgstr "Napake: {count}"
 
 msgid "Clear All"
 msgstr "Počisti vse"
@@ -538,9 +505,6 @@ msgstr "Ime kopije: {name}"
 msgid "Copy"
 msgstr "Kopiraj"
 
-msgid "Created {count} copy/copies"
-msgstr "Ustvarjene kopije: {count}"
-
 msgid "Shifts the device part of each individual address. Group addresses are not shifted."
 msgstr "Premakne del naprave v vsakem fizičnem naslovu. Skupinski naslovi se ne premaknejo."
 
@@ -553,9 +517,6 @@ msgstr "Samo izbrana izvorna naprava (iz razširjenega kopiranja)"
 msgid "(out of range)"
 msgstr "(zunaj obsega)"
 
-msgid "Shifted {count} address(es)"
-msgstr "Premaknjeni naslovi: {count}"
-
 msgid "Export {count} device(s) to a CSV for on-site labelling."
 msgstr "Izvoz naprav v CSV za označevanje na mestu (število: {count})."
 
@@ -567,12 +528,6 @@ msgstr "Izvoženo v {path}"
 
 msgid "No topology issues found."
 msgstr "Ni najdenih težav s topologijo."
-
-msgid "{count} issue(s)"
-msgstr "Težave: {count}"
-
-msgid "{count} address(es) will change"
-msgstr "Naslovi, ki se bodo spremenili: {count}"
 
 msgid "Click a finding to jump to the device."
 msgstr "Kliknite ugotovitev, da skočite na napravo."
@@ -624,12 +579,6 @@ msgstr "Zamenjaj z (predloga)"
 
 msgid "Group Object Mapping (by Number)"
 msgstr "Preslikava komunikacijskih objektov (po številki)"
-
-msgid "{count} object(s) will be re-mapped"
-msgstr "Objekti, ki bodo znova preslikani: {count}"
-
-msgid "Replaced; re-mapped {count} group object(s)"
-msgstr "Zamenjano; znova preslikani komunikacijski objekti: {count}"
 
 msgid "Device"
 msgstr "Naprava"
@@ -840,9 +789,6 @@ msgstr "Prilepi konfiguracijo"
 
 msgid "Paste configuration onto '{name}':"
 msgstr "Prilepi konfiguracijo v »{name}«:"
-
-msgid "Paste configuration onto {count} selected devices:"
-msgstr "Prilepi konfiguracijo v izbrane naprave ({count}):"
 
 msgid "Duplicate '{name}':"
 msgstr "Podvoji »{name}«:"
@@ -1174,12 +1120,6 @@ msgstr "Datoteke skupinskih naslovov (XML, CSV)"
 msgid "All Files"
 msgstr "Vse datoteke"
 
-msgid "{added} group addresses added, {updated} updated."
-msgstr "Dodani skupinski naslovi: {added}, posodobljeni: {updated}."
-
-msgid "{count} group addresses could not be placed in a group."
-msgstr "Skupinski naslovi, ki jih ni bilo mogoče uvrstiti v skupino: {count}."
-
 msgid "The file could not be imported: {error}"
 msgstr "Datoteke ni bilo mogoče uvoziti: {error}"
 
@@ -1372,9 +1312,6 @@ msgstr "Pola"
 msgid "Shift Group Addresses"
 msgstr "Premik skupinskih naslovov"
 
-msgid "Shifted {count} group address(es)"
-msgstr "Premaknjeni skupinski naslovi: {count}"
-
 msgid "Subnet Mask"
 msgstr "Maska podomrežja"
 
@@ -1399,9 +1336,6 @@ msgstr "V primerjavi z {name}:"
 msgid "removed"
 msgstr "odstranjeno"
 
-msgid "{count} difference(s)"
-msgstr "Razlike: {count}"
-
 msgid "Save…"
 msgstr "Shrani…"
 
@@ -1413,9 +1347,6 @@ msgstr "Počisti primerjavo"
 
 msgid "Memory Dumps (*.bin)"
 msgstr "Izpisi pomnilnika (*.bin)"
-
-msgid "{count} bytes"
-msgstr "Bajti: {count}"
 
 msgid "No memory segments."
 msgstr "Ni segmentov pomnilnika."
@@ -1639,9 +1570,6 @@ msgstr "Samo razlike"
 msgid "Open a project with at least two devices to compare."
 msgstr "Za primerjavo odprite projekt z vsaj dvema napravama."
 
-msgid "{count} differences"
-msgstr "Razlike: {count}"
-
 msgid "The manufacturer plugin is not available here:"
 msgstr "Vtičnik proizvajalca tukaj ni na voljo:"
 
@@ -1735,9 +1663,6 @@ msgstr "Zapišite dodelitev skupin na vodilo DALI. S tem se skupine prenesejo v\
 msgid "Write the scene values to the DALI bus. Continue?"
 msgstr "Zapišite vrednosti scen na vodilo DALI. Želite nadaljevati?"
 
-msgid "{count} ECG(s) present"
-msgstr "Prisotne predstikalne naprave: {count}"
-
 msgid "Group"
 msgstr "Skupina"
 
@@ -1779,9 +1704,6 @@ msgstr "Posamezno"
 
 msgid "Unassigned"
 msgstr "Nedodeljeno"
-
-msgid "Procedure {number}  ({count} steps)"
-msgstr "Postopek {number}  (koraki: {count})"
 
 msgid "Kind"
 msgstr "Vrsta"
@@ -2175,9 +2097,6 @@ msgstr "Branje vodila DALI iz objekta {object_index}…"
 
 msgid "Press 'Read DALI Bus' to list the ECGs on the gateway."
 msgstr "Pritisnite »Preberi vodilo DALI«, da prikažete predstikalne naprave prehoda."
-
-msgid "{count} ECG(s) present on line {line}"
-msgstr "Predstikalne naprave na liniji {line}: {count}"
 
 msgid "Read-only snapshot. Writing group assignments, scenes or firmware is not available yet and remains in the manufacturer's plugin."
 msgstr "Posnetek samo za branje. Zapisovanje dodelitev skupin, scen ali vdelane programske opreme še ni na voljo in ostaja v vtičniku proizvajalca."
@@ -2704,9 +2623,6 @@ msgstr "Skupina nima prostega skupinskega naslova."
 msgid "The main group has no free middle group."
 msgstr "Glavna skupina nima proste srednje skupine."
 
-msgid "{count} devices"
-msgstr "Naprave: {count}"
-
 msgid "The main segment cannot be moved."
 msgstr "Glavnega segmenta ni mogoče premakniti."
 
@@ -2779,33 +2695,6 @@ msgstr "Za nove skupinske naslove ni nobene skupine."
 msgid "Copied '{name}' to '{target}'."
 msgstr "»{name}« je kopirano v »{target}«."
 
-msgid "Copied {count} devices to '{target}'."
-msgstr "Naprave, kopirane v »{target}«: {count}."
-
-msgid "Copied {count} building parts to '{target}'."
-msgstr "Deli stavbe, kopirani v »{target}«: {count}."
-
-msgid "Copied {count} trades to '{target}'."
-msgstr "Stroke, kopirane v »{target}«: {count}."
-
-msgid "Copied {count} functions to '{target}'."
-msgstr "Funkcije, kopirane v »{target}«: {count}."
-
-msgid "Copied {count} group addresses to '{target}'."
-msgstr "Skupinski naslovi, kopirani v »{target}«: {count}."
-
-msgid "Copied {count} middle groups to '{target}'."
-msgstr "Srednje skupine, kopirane v »{target}«: {count}."
-
-msgid "Copied {count} main groups to '{target}'."
-msgstr "Glavne skupine, kopirane v »{target}«: {count}."
-
-msgid "Copied {count} lines to '{target}'."
-msgstr "Linije, kopirane v »{target}«: {count}."
-
-msgid "Copied {count} segments to '{target}'."
-msgstr "Segmenti, kopirani v »{target}«: {count}."
-
 msgid "Paste Special…"
 msgstr "Posebno lepljenje…"
 
@@ -2848,30 +2737,6 @@ msgstr "Dosežena je omejitev dodajanja."
 msgid "Cannot add any line to the area {area} because of topology constraints. Please check the medium type of the backbone and main lines."
 msgstr "Zaradi omejitev topologije v področje {area} ni mogoče dodati nobene linije. Preverite vrsto medija hrbtenice in glavnih linij."
 
-msgid "Added {count} areas to '{target}'."
-msgstr "Področja, dodana v »{target}«: {count}."
-
-msgid "Added {count} lines to '{target}'."
-msgstr "Linije, dodane v »{target}«: {count}."
-
-msgid "Added {count} segments to '{target}'."
-msgstr "Segmenti, dodani v »{target}«: {count}."
-
-msgid "Added {count} building parts to '{target}'."
-msgstr "Deli stavbe, dodani v »{target}«: {count}."
-
-msgid "Added {count} trades to '{target}'."
-msgstr "Stroke, dodane v »{target}«: {count}."
-
-msgid "Added {count} main groups to '{target}'."
-msgstr "Glavne skupine, dodane v »{target}«: {count}."
-
-msgid "Added {count} middle groups to '{target}'."
-msgstr "Srednje skupine, dodane v »{target}«: {count}."
-
-msgid "Added {count} group addresses to '{target}'."
-msgstr "Skupinski naslovi, dodani v »{target}«: {count}."
-
 msgid "Add Main Groups…"
 msgstr "Dodaj glavne skupine…"
 
@@ -2911,12 +2776,6 @@ msgstr "Dodajanje funkcij"
 msgid "New function"
 msgstr "Nova funkcija"
 
-msgid "Added {count} functions to '{target}'."
-msgstr "Funkcije, dodane v »{target}«: {count}."
-
-msgid "Added {count} group ranges to '{target}'."
-msgstr "Obsegi skupin, dodani v »{target}«: {count}."
-
 msgid "Add Group Ranges…"
 msgstr "Dodaj obsege skupin…"
 
@@ -2950,9 +2809,6 @@ msgstr "Obsega skupin ni mogoče premakniti vase ali v obseg v njem."
 msgid "A group address of the range is already in use there."
 msgstr "Skupinski naslov iz obsega je tam že v uporabi."
 
-msgid "Copied {count} group ranges to '{target}'."
-msgstr "Obsegi skupin, kopirani v »{target}«: {count}."
-
 msgid "Add Areas…"
 msgstr "Dodaj področja…"
 
@@ -2967,12 +2823,6 @@ msgstr "Kopiraj skupinski naslov"
 
 msgid "Existing Devices…"
 msgstr "Obstoječe naprave…"
-
-msgid "Delete the {count} selected devices? Their group objects and group-address links are removed and their individual addresses are freed. This can be undone."
-msgstr "Želite izbrisati izbrane naprave ({count})? Njihovi komunikacijski objekti in povezave s skupinskimi naslovi se odstranijo, njihovi fizični naslovi pa se sprostijo. To je mogoče razveljaviti."
-
-msgid "Remove {count} devices"
-msgstr "Odstranitev naprav ({count})"
 
 msgid "Delete Devices"
 msgstr "Brisanje naprav"
@@ -3082,9 +2932,6 @@ msgstr "Load LVS Project (.prj)…"
 msgid "LVS project (*.prj)"
 msgstr "LVS project (*.prj)"
 
-msgid "Imported the display configuration into {count} device(s)."
-msgstr "Imported the display configuration into {count} device(s)."
-
 msgid "The LVS project could not be imported: {error}"
 msgstr "The LVS project could not be imported: {error}"
 
@@ -3096,3 +2943,370 @@ msgstr "Exported the display configuration."
 
 msgid "The LVS project could not be exported: {error}"
 msgstr "The LVS project could not be exported: {error}"
+
+msgid "Copied {count} device to '{target}'."
+msgid_plural "Copied {count} devices to '{target}'."
+msgstr[0] "{count} naprava kopirana v »{target}«."
+msgstr[1] "{count} napravi kopirani v »{target}«."
+msgstr[2] "{count} naprave kopirane v »{target}«."
+msgstr[3] "{count} naprav kopiranih v »{target}«."
+
+msgid "Copied {count} building part to '{target}'."
+msgid_plural "Copied {count} building parts to '{target}'."
+msgstr[0] "{count} del stavbe kopiran v »{target}«."
+msgstr[1] "{count} dela stavbe kopirana v »{target}«."
+msgstr[2] "{count} deli stavbe kopirani v »{target}«."
+msgstr[3] "{count} delov stavbe kopiranih v »{target}«."
+
+msgid "Copied {count} trade to '{target}'."
+msgid_plural "Copied {count} trades to '{target}'."
+msgstr[0] "{count} stroka kopirana v »{target}«."
+msgstr[1] "{count} stroki kopirani v »{target}«."
+msgstr[2] "{count} stroke kopirane v »{target}«."
+msgstr[3] "{count} strok kopiranih v »{target}«."
+
+msgid "Copied {count} function to '{target}'."
+msgid_plural "Copied {count} functions to '{target}'."
+msgstr[0] "{count} funkcija kopirana v »{target}«."
+msgstr[1] "{count} funkciji kopirani v »{target}«."
+msgstr[2] "{count} funkcije kopirane v »{target}«."
+msgstr[3] "{count} funkcij kopiranih v »{target}«."
+
+msgid "Copied {count} group address to '{target}'."
+msgid_plural "Copied {count} group addresses to '{target}'."
+msgstr[0] "{count} skupinski naslov kopiran v »{target}«."
+msgstr[1] "{count} skupinska naslova kopirana v »{target}«."
+msgstr[2] "{count} skupinski naslovi kopirani v »{target}«."
+msgstr[3] "{count} skupinskih naslovov kopiranih v »{target}«."
+
+msgid "Copied {count} middle group to '{target}'."
+msgid_plural "Copied {count} middle groups to '{target}'."
+msgstr[0] "{count} srednja skupina kopirana v »{target}«."
+msgstr[1] "{count} srednji skupini kopirani v »{target}«."
+msgstr[2] "{count} srednje skupine kopirane v »{target}«."
+msgstr[3] "{count} srednjih skupin kopiranih v »{target}«."
+
+msgid "Copied {count} main group to '{target}'."
+msgid_plural "Copied {count} main groups to '{target}'."
+msgstr[0] "{count} glavna skupina kopirana v »{target}«."
+msgstr[1] "{count} glavni skupini kopirani v »{target}«."
+msgstr[2] "{count} glavne skupine kopirane v »{target}«."
+msgstr[3] "{count} glavnih skupin kopiranih v »{target}«."
+
+msgid "Copied {count} group range to '{target}'."
+msgid_plural "Copied {count} group ranges to '{target}'."
+msgstr[0] "{count} obseg skupin kopiran v »{target}«."
+msgstr[1] "{count} obsega skupin kopirana v »{target}«."
+msgstr[2] "{count} obsegi skupin kopirani v »{target}«."
+msgstr[3] "{count} obsegov skupin kopiranih v »{target}«."
+
+msgid "Copied {count} line to '{target}'."
+msgid_plural "Copied {count} lines to '{target}'."
+msgstr[0] "{count} linija kopirana v »{target}«."
+msgstr[1] "{count} liniji kopirani v »{target}«."
+msgstr[2] "{count} linije kopirane v »{target}«."
+msgstr[3] "{count} linij kopiranih v »{target}«."
+
+msgid "Copied {count} segment to '{target}'."
+msgid_plural "Copied {count} segments to '{target}'."
+msgstr[0] "{count} segment kopiran v »{target}«."
+msgstr[1] "{count} segmenta kopirana v »{target}«."
+msgstr[2] "{count} segmenti kopirani v »{target}«."
+msgstr[3] "{count} segmentov kopiranih v »{target}«."
+
+msgid "Added {count} area to '{target}'."
+msgid_plural "Added {count} areas to '{target}'."
+msgstr[0] "{count} področje dodano v »{target}«."
+msgstr[1] "{count} področji dodani v »{target}«."
+msgstr[2] "{count} področja dodana v »{target}«."
+msgstr[3] "{count} področij dodanih v »{target}«."
+
+msgid "Added {count} line to '{target}'."
+msgid_plural "Added {count} lines to '{target}'."
+msgstr[0] "{count} linija dodana v »{target}«."
+msgstr[1] "{count} liniji dodani v »{target}«."
+msgstr[2] "{count} linije dodane v »{target}«."
+msgstr[3] "{count} linij dodanih v »{target}«."
+
+msgid "Added {count} segment to '{target}'."
+msgid_plural "Added {count} segments to '{target}'."
+msgstr[0] "{count} segment dodan v »{target}«."
+msgstr[1] "{count} segmenta dodana v »{target}«."
+msgstr[2] "{count} segmenti dodani v »{target}«."
+msgstr[3] "{count} segmentov dodanih v »{target}«."
+
+msgid "Added {count} building part to '{target}'."
+msgid_plural "Added {count} building parts to '{target}'."
+msgstr[0] "{count} del stavbe dodan v »{target}«."
+msgstr[1] "{count} dela stavbe dodana v »{target}«."
+msgstr[2] "{count} deli stavbe dodani v »{target}«."
+msgstr[3] "{count} delov stavbe dodanih v »{target}«."
+
+msgid "Added {count} trade to '{target}'."
+msgid_plural "Added {count} trades to '{target}'."
+msgstr[0] "{count} stroka dodana v »{target}«."
+msgstr[1] "{count} stroki dodani v »{target}«."
+msgstr[2] "{count} stroke dodane v »{target}«."
+msgstr[3] "{count} strok dodanih v »{target}«."
+
+msgid "Added {count} function to '{target}'."
+msgid_plural "Added {count} functions to '{target}'."
+msgstr[0] "{count} funkcija dodana v »{target}«."
+msgstr[1] "{count} funkciji dodani v »{target}«."
+msgstr[2] "{count} funkcije dodane v »{target}«."
+msgstr[3] "{count} funkcij dodanih v »{target}«."
+
+msgid "Added {count} group range to '{target}'."
+msgid_plural "Added {count} group ranges to '{target}'."
+msgstr[0] "{count} obseg skupin dodan v »{target}«."
+msgstr[1] "{count} obsega skupin dodana v »{target}«."
+msgstr[2] "{count} obsegi skupin dodani v »{target}«."
+msgstr[3] "{count} obsegov skupin dodanih v »{target}«."
+
+msgid "Added {count} main group to '{target}'."
+msgid_plural "Added {count} main groups to '{target}'."
+msgstr[0] "{count} glavna skupina dodana v »{target}«."
+msgstr[1] "{count} glavni skupini dodani v »{target}«."
+msgstr[2] "{count} glavne skupine dodane v »{target}«."
+msgstr[3] "{count} glavnih skupin dodanih v »{target}«."
+
+msgid "Added {count} middle group to '{target}'."
+msgid_plural "Added {count} middle groups to '{target}'."
+msgstr[0] "{count} srednja skupina dodana v »{target}«."
+msgstr[1] "{count} srednji skupini dodani v »{target}«."
+msgstr[2] "{count} srednje skupine dodane v »{target}«."
+msgstr[3] "{count} srednjih skupin dodanih v »{target}«."
+
+msgid "Added {count} group address to '{target}'."
+msgid_plural "Added {count} group addresses to '{target}'."
+msgstr[0] "{count} skupinski naslov dodan v »{target}«."
+msgstr[1] "{count} skupinska naslova dodana v »{target}«."
+msgstr[2] "{count} skupinski naslovi dodani v »{target}«."
+msgstr[3] "{count} skupinskih naslovov dodanih v »{target}«."
+
+msgid "Remove {count} device"
+msgid_plural "Remove {count} devices"
+msgstr[0] "Odstranitev {count} naprave"
+msgstr[1] "Odstranitev {count} naprav"
+msgstr[2] "Odstranitev {count} naprav"
+msgstr[3] "Odstranitev {count} naprav"
+
+msgid "{count} device"
+msgid_plural "{count} devices"
+msgstr[0] "{count} naprava"
+msgstr[1] "{count} napravi"
+msgstr[2] "{count} naprave"
+msgstr[3] "{count} naprav"
+
+msgid "{count} item"
+msgid_plural "{count} items"
+msgstr[0] "{count} element"
+msgstr[1] "{count} elementa"
+msgstr[2] "{count} elementi"
+msgstr[3] "{count} elementov"
+
+msgid "{count} pair"
+msgid_plural "{count} pairs"
+msgstr[0] "{count} par"
+msgstr[1] "{count} para"
+msgstr[2] "{count} pari"
+msgstr[3] "{count} parov"
+
+msgid "Linked {count} object to a group address"
+msgid_plural "Linked {count} objects to group addresses"
+msgstr[0] "{count} objekt povezan s skupinskim naslovom"
+msgstr[1] "{count} objekta povezana s skupinskimi naslovi"
+msgstr[2] "{count} objekti povezani s skupinskimi naslovi"
+msgstr[3] "{count} objektov povezanih s skupinskimi naslovi"
+
+msgid "Linked {count} object pair via a new group address"
+msgid_plural "Linked {count} object pairs via new group addresses"
+msgstr[0] "{count} par objektov povezan prek novega skupinskega naslova"
+msgstr[1] "{count} para objektov povezana prek novih skupinskih naslovov"
+msgstr[2] "{count} pari objektov povezani prek novih skupinskih naslovov"
+msgstr[3] "{count} parov objektov povezanih prek novih skupinskih naslovov"
+
+msgid "{count} error"
+msgid_plural "{count} errors"
+msgstr[0] "{count} napaka"
+msgstr[1] "{count} napaki"
+msgstr[2] "{count} napake"
+msgstr[3] "{count} napak"
+
+msgid "{count} object will be re-mapped"
+msgid_plural "{count} objects will be re-mapped"
+msgstr[0] "{count} objekt bo znova preslikan"
+msgstr[1] "{count} objekta bosta znova preslikana"
+msgstr[2] "{count} objekti bodo znova preslikani"
+msgstr[3] "{count} objektov bo znova preslikanih"
+
+msgid "Replaced; re-mapped {count} group object"
+msgid_plural "Replaced; re-mapped {count} group objects"
+msgstr[0] "Zamenjano; znova preslikan {count} komunikacijski objekt"
+msgstr[1] "Zamenjano; znova preslikana {count} komunikacijska objekta"
+msgstr[2] "Zamenjano; znova preslikani {count} komunikacijski objekti"
+msgstr[3] "Zamenjano; znova preslikanih {count} komunikacijskih objektov"
+
+msgid "{count} difference"
+msgid_plural "{count} differences"
+msgstr[0] "{count} razlika"
+msgstr[1] "{count} razliki"
+msgstr[2] "{count} razlike"
+msgstr[3] "{count} razlik"
+
+msgid "Created {count} copy"
+msgid_plural "Created {count} copies"
+msgstr[0] "Ustvarjena {count} kopija"
+msgstr[1] "Ustvarjeni {count} kopiji"
+msgstr[2] "Ustvarjene {count} kopije"
+msgstr[3] "Ustvarjenih {count} kopij"
+
+msgid "{count} address will change"
+msgid_plural "{count} addresses will change"
+msgstr[0] "{count} naslov se bo spremenil"
+msgstr[1] "{count} naslova se bosta spremenila"
+msgstr[2] "{count} naslovi se bodo spremenili"
+msgstr[3] "{count} naslovov se bo spremenilo"
+
+msgid "Shifted {count} address"
+msgid_plural "Shifted {count} addresses"
+msgstr[0] "Premaknjen {count} naslov"
+msgstr[1] "Premaknjena {count} naslova"
+msgstr[2] "Premaknjeni {count} naslovi"
+msgstr[3] "Premaknjenih {count} naslovov"
+
+msgid "Shifted {count} group address"
+msgid_plural "Shifted {count} group addresses"
+msgstr[0] "Premaknjen {count} skupinski naslov"
+msgstr[1] "Premaknjena {count} skupinska naslova"
+msgstr[2] "Premaknjeni {count} skupinski naslovi"
+msgstr[3] "Premaknjenih {count} skupinskih naslovov"
+
+msgid "{count} issue"
+msgid_plural "{count} issues"
+msgstr[0] "{count} težava"
+msgstr[1] "{count} težavi"
+msgstr[2] "{count} težave"
+msgstr[3] "{count} težav"
+
+msgid "present ({size} byte)"
+msgid_plural "present ({size} bytes)"
+msgstr[0] "prisotno ({size} bajt)"
+msgstr[1] "prisotno ({size} bajta)"
+msgstr[2] "prisotno ({size} bajti)"
+msgstr[3] "prisotno ({size} bajtov)"
+
+msgid "Imported the display configuration into {count} device."
+msgid_plural "Imported the display configuration into {count} devices."
+msgstr[0] "Konfiguracija prikaza je bila uvožena v {count} napravo."
+msgstr[1] "Konfiguracija prikaza je bila uvožena v {count} napravi."
+msgstr[2] "Konfiguracija prikaza je bila uvožena v {count} naprave."
+msgstr[3] "Konfiguracija prikaza je bila uvožena v {count} naprav."
+
+msgid "{count} ECG present on line {line}"
+msgid_plural "{count} ECGs present on line {line}"
+msgstr[0] "{count} predstikalna naprava na liniji {line}"
+msgstr[1] "{count} predstikalni napravi na liniji {line}"
+msgstr[2] "{count} predstikalne naprave na liniji {line}"
+msgstr[3] "{count} predstikalnih naprav na liniji {line}"
+
+msgid "Apply Changes to {count} Identical Device"
+msgid_plural "Apply Changes to All {count} Identical Devices"
+msgstr[0] "Uporabi spremembe za {count} enako napravo"
+msgstr[1] "Uporabi spremembe za obe {count} enaki napravi"
+msgstr[2] "Uporabi spremembe za vse {count} enake naprave"
+msgstr[3] "Uporabi spremembe za vseh {count} enakih naprav"
+
+msgid "Editing {count} device — edits apply to all, diverging values show <differs>"
+msgid_plural "Editing {count} devices — edits apply to all, diverging values show <differs>"
+msgstr[0] "Urejanje {count} naprave – spremembe veljajo za vse, različne vrednosti so prikazane kot <različno>"
+msgstr[1] "Urejanje {count} naprav – spremembe veljajo za vse, različne vrednosti so prikazane kot <različno>"
+msgstr[2] "Urejanje {count} naprav – spremembe veljajo za vse, različne vrednosti so prikazane kot <različno>"
+msgstr[3] "Urejanje {count} naprav – spremembe veljajo za vse, različne vrednosti so prikazane kot <različno>"
+
+msgid "{count} byte"
+msgid_plural "{count} bytes"
+msgstr[0] "{count} bajt"
+msgstr[1] "{count} bajta"
+msgstr[2] "{count} bajti"
+msgstr[3] "{count} bajtov"
+
+msgid "Mismatch: {bytes} from the device in {locations}"
+msgstr "Neujemanje: {bytes} od naprave {locations}"
+
+msgid "{count} byte differs"
+msgid_plural "{count} bytes differ"
+msgstr[0] "{count} bajt se razlikuje"
+msgstr[1] "{count} bajta se razlikujeta"
+msgstr[2] "{count} bajti se razlikujejo"
+msgstr[3] "{count} bajtov se razlikuje"
+
+msgid "{count} location"
+msgid_plural "{count} locations"
+msgstr[0] "na {count} mestu"
+msgstr[1] "na {count} mestih"
+msgstr[2] "na {count} mestih"
+msgstr[3] "na {count} mestih"
+
+msgid "plus {bytes} device-managed runtime byte (expected, benign)"
+msgid_plural "plus {bytes} device-managed runtime bytes (expected, benign)"
+msgstr[0] "in še {bytes} bajt, ki ga med delovanjem upravlja naprava (pričakovano, neškodljivo)"
+msgstr[1] "in še {bytes} bajta, ki ju med delovanjem upravlja naprava (pričakovano, neškodljivo)"
+msgstr[2] "in še {bytes} bajti, ki jih med delovanjem upravlja naprava (pričakovano, neškodljivo)"
+msgstr[3] "in še {bytes} bajtov, ki jih med delovanjem upravlja naprava (pričakovano, neškodljivo)"
+
+msgid "plus {bytes} byte reset to the application default (the device holds an older value; benign, will be normalised on programming)"
+msgid_plural "plus {bytes} bytes reset to the application default (the device holds an older value; benign, will be normalised on programming)"
+msgstr[0] "in še {bytes} bajt, ponastavljen na privzeto vrednost aplikacije (naprava hrani starejšo vrednost; neškodljivo, pri programiranju se poenoti)"
+msgstr[1] "in še {bytes} bajta, ponastavljena na privzeto vrednost aplikacije (naprava hrani starejšo vrednost; neškodljivo, pri programiranju se poenoti)"
+msgstr[2] "in še {bytes} bajti, ponastavljeni na privzeto vrednost aplikacije (naprava hrani starejšo vrednost; neškodljivo, pri programiranju se poenoti)"
+msgstr[3] "in še {bytes} bajtov, ponastavljenih na privzeto vrednost aplikacije (naprava hrani starejšo vrednost; neškodljivo, pri programiranju se poenoti)"
+
+msgid "Paste configuration onto {count} selected device:"
+msgid_plural "Paste configuration onto {count} selected devices:"
+msgstr[0] "Prilepi konfiguracijo v {count} izbrano napravo:"
+msgstr[1] "Prilepi konfiguracijo v {count} izbrani napravi:"
+msgstr[2] "Prilepi konfiguracijo v {count} izbrane naprave:"
+msgstr[3] "Prilepi konfiguracijo v {count} izbranih naprav:"
+
+msgid "Delete the {count} selected device? Its group objects and group-address links are removed and its individual address is freed. This can be undone."
+msgid_plural "Delete the {count} selected devices? Their group objects and group-address links are removed and their individual addresses are freed. This can be undone."
+msgstr[0] "Želite izbrisati {count} izbrano napravo? Njeni komunikacijski objekti in povezave s skupinskimi naslovi se odstranijo, njen fizični naslov pa se sprosti. To je mogoče razveljaviti."
+msgstr[1] "Želite izbrisati {count} izbrani napravi? Njuni komunikacijski objekti in povezave s skupinskimi naslovi se odstranijo, njuna fizična naslova pa se sprostita. To je mogoče razveljaviti."
+msgstr[2] "Želite izbrisati {count} izbrane naprave? Njihovi komunikacijski objekti in povezave s skupinskimi naslovi se odstranijo, njihovi fizični naslovi pa se sprostijo. To je mogoče razveljaviti."
+msgstr[3] "Želite izbrisati {count} izbranih naprav? Njihovi komunikacijski objekti in povezave s skupinskimi naslovi se odstranijo, njihovi fizični naslovi pa se sprostijo. To je mogoče razveljaviti."
+
+msgid "{count} group address added"
+msgid_plural "{count} group addresses added"
+msgstr[0] "Dodan {count} skupinski naslov"
+msgstr[1] "Dodana {count} skupinska naslova"
+msgstr[2] "Dodani {count} skupinski naslovi"
+msgstr[3] "Dodanih {count} skupinskih naslovov"
+
+msgid "{count} updated"
+msgid_plural "{count} updated"
+msgstr[0] "posodobljen {count}"
+msgstr[1] "posodobljena {count}"
+msgstr[2] "posodobljeni {count}"
+msgstr[3] "posodobljenih {count}"
+
+msgid "{count} group address could not be placed in a group."
+msgid_plural "{count} group addresses could not be placed in a group."
+msgstr[0] "{count} skupinskega naslova ni bilo mogoče uvrstiti v skupino."
+msgstr[1] "{count} skupinskih naslovov ni bilo mogoče uvrstiti v skupino."
+msgstr[2] "{count} skupinskih naslovov ni bilo mogoče uvrstiti v skupino."
+msgstr[3] "{count} skupinskih naslovov ni bilo mogoče uvrstiti v skupino."
+
+msgid "{count} ECG present"
+msgid_plural "{count} ECGs present"
+msgstr[0] "{count} prisotna predstikalna naprava"
+msgstr[1] "{count} prisotni predstikalni napravi"
+msgstr[2] "{count} prisotne predstikalne naprave"
+msgstr[3] "{count} prisotnih predstikalnih naprav"
+
+msgid "Procedure {number}  ({count} step)"
+msgid_plural "Procedure {number}  ({count} steps)"
+msgstr[0] "Postopek {number}  ({count} korak)"
+msgstr[1] "Postopek {number}  ({count} koraka)"
+msgstr[2] "Postopek {number}  ({count} koraki)"
+msgstr[3] "Postopek {number}  ({count} korakov)"

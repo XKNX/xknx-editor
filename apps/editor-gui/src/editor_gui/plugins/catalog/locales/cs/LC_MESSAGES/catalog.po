@@ -16,12 +16,6 @@ msgstr "Archiv se nepodařilo načíst"
 msgid "Loaded: {path}"
 msgstr "Načteno: {path}"
 
-msgid "Found {count} application(s)"
-msgstr "Nalezené aplikace: {count}"
-
-msgid "({count} group objects)"
-msgstr "(skupinové objekty: {count})"
-
 msgid "Fetch Online Catalog"
 msgstr "Načíst online katalog"
 
@@ -30,9 +24,6 @@ msgstr "Načítání seznamu výrobců…"
 
 msgid "Online catalog not reachable"
 msgstr "Online katalog není dostupný"
-
-msgid "{count} matches"
-msgstr "Shody: {count}"
 
 msgid "Loading products…"
 msgstr "Načítání produktů…"
@@ -52,9 +43,6 @@ msgstr "(v místním katalogu)"
 msgid "Search products, order number…"
 msgstr "Hledat produkty, objednací číslo…"
 
-msgid "Product Index ({date}): {mfrs} manufacturers, {products} products"
-msgstr "Index produktů ({date}): výrobci {mfrs}, produkty {products}"
-
 msgid "No Product Index yet - fetch the online catalog to build it"
 msgstr "Index produktů zatím neexistuje – pro jeho vytvoření načtěte online katalog"
 
@@ -66,9 +54,6 @@ msgstr "Zrušit"
 
 msgid "Fetch the online catalog to search across all manufacturers."
 msgstr "Načtěte online katalog, abyste mohli hledat u všech výrobců."
-
-msgid "Showing {shown} of {total} matches - refine the search"
-msgstr "Zobrazeno {shown} z {total} shod – upřesněte hledání"
 
 msgid "Product Details"
 msgstr "Podrobnosti produktu"
@@ -133,9 +118,6 @@ msgstr "Online"
 msgid "No products imported yet — import a .knxprod or use the Online tab."
 msgstr "Zatím nebyly importovány žádné produkty – importujte soubor .knxprod nebo použijte kartu Online."
 
-msgid "Fetch {count} Missing Application(s) Online"
-msgstr "Načíst online chybějící aplikace ({count})"
-
 msgid "Fetching missing applications…"
 msgstr "Načítání chybějících aplikací…"
 
@@ -147,9 +129,6 @@ msgstr "Odstranit z místního katalogu"
 
 msgid "Are you sure you want to delete the selected device? This cannot be undone."
 msgstr "Opravdu chcete vybrané zařízení odstranit? Tuto akci nelze vrátit zpět."
-
-msgid "{count} device(s) in the open project use this product. They can't be loaded until the product is imported again."
-msgstr "Zařízení v otevřeném projektu, která používají tento produkt: {count}. Nelze je načíst, dokud nebude produkt znovu importován."
 
 msgid "Deleting {name}…"
 msgstr "Odstraňování {name}…"
@@ -256,9 +235,6 @@ msgstr "Znovu odeslat kód"
 msgid "Open Website"
 msgstr "Otevřít web"
 
-msgid "Imported {count} product versions. Find them in the Local tab."
-msgstr "Importováno {count} verzí produktů. Najdete je na kartě Místní."
-
 msgid "Login is saved on this computer. Leave the password empty to keep it for the same server and user."
 msgstr "Přihlašovací údaje se ukládají v tomto počítači. Nechte heslo prázdné, pokud ho chcete zachovat pro stejný server a uživatele."
 
@@ -276,6 +252,7 @@ msgstr "Verze"
 
 msgid "Register…"
 msgstr "Registrovat…"
+
 msgid "Alternative Catalog"
 msgstr "Alternative Catalog"
 
@@ -299,3 +276,60 @@ msgstr "Heslo musí mít alespoň 10 znaků, velká i malá písmena, číslici 
 
 msgid "Enter the six-digit code from the email."
 msgstr "Zadejte šestimístný kód z e-mailu."
+
+msgid "Imported {count} product version. Find it in the Local tab."
+msgid_plural "Imported {count} product versions. Find them in the Local tab."
+msgstr[0] "Importována {count} verze produktu. Najdete ji na kartě Místní."
+msgstr[1] "Importovány {count} verze produktů. Najdete je na kartě Místní."
+msgstr[2] "Importováno {count} verzí produktů. Najdete je na kartě Místní."
+
+msgid "Found {count} application"
+msgid_plural "Found {count} applications"
+msgstr[0] "Nalezena {count} aplikace"
+msgstr[1] "Nalezeny {count} aplikace"
+msgstr[2] "Nalezeno {count} aplikací"
+
+msgid "({count} group object)"
+msgid_plural "({count} group objects)"
+msgstr[0] "({count} skupinový objekt)"
+msgstr[1] "({count} skupinové objekty)"
+msgstr[2] "({count} skupinových objektů)"
+
+msgid "{count} match"
+msgid_plural "{count} matches"
+msgstr[0] "{count} shoda"
+msgstr[1] "{count} shody"
+msgstr[2] "{count} shod"
+
+msgid "Product Index ({date}): {manufacturers}, {products}"
+msgstr "Index produktů ({date}): {manufacturers}, {products}"
+
+msgid "{count} manufacturer"
+msgid_plural "{count} manufacturers"
+msgstr[0] "{count} výrobce"
+msgstr[1] "{count} výrobci"
+msgstr[2] "{count} výrobců"
+
+msgid "{count} product"
+msgid_plural "{count} products"
+msgstr[0] "{count} produkt"
+msgstr[1] "{count} produkty"
+msgstr[2] "{count} produktů"
+
+msgid "Showing {shown} of {total} match - refine the search"
+msgid_plural "Showing {shown} of {total} matches - refine the search"
+msgstr[0] "Zobrazeno {shown} z {total} shody – upřesněte hledání"
+msgstr[1] "Zobrazeno {shown} z {total} shod – upřesněte hledání"
+msgstr[2] "Zobrazeno {shown} z {total} shod – upřesněte hledání"
+
+msgid "Fetch {count} Missing Application Online"
+msgid_plural "Fetch {count} Missing Applications Online"
+msgstr[0] "Načíst online {count} chybějící aplikaci"
+msgstr[1] "Načíst online {count} chybějící aplikace"
+msgstr[2] "Načíst online {count} chybějících aplikací"
+
+msgid "{count} device in the open project uses this product. It can't be loaded until the product is imported again."
+msgid_plural "{count} devices in the open project use this product. They can't be loaded until the product is imported again."
+msgstr[0] "{count} zařízení v otevřeném projektu používá tento produkt. Nelze ho načíst, dokud nebude produkt znovu importován."
+msgstr[1] "{count} zařízení v otevřeném projektu používají tento produkt. Nelze je načíst, dokud nebude produkt znovu importován."
+msgstr[2] "{count} zařízení v otevřeném projektu používá tento produkt. Nelze je načíst, dokud nebude produkt znovu importován."

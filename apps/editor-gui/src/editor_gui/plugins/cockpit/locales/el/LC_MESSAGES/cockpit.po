@@ -19,9 +19,6 @@ msgstr "Φιλτράρισμα συσκευών…"
 msgid "Needs Attention Only"
 msgstr "Μόνο Όσα Χρειάζονται Ενέργεια"
 
-msgid "{count} device(s) not in catalog"
-msgstr "{count} συσκευή(-ές) εκτός καταλόγου"
-
 msgid "Address"
 msgstr "Διεύθυνση"
 
@@ -69,3 +66,8 @@ msgstr "Σειριακός Αριθμός: {serial}"
 
 msgid "Last Download: {when}"
 msgstr "Τελευταία Φόρτιση: {when}"
+
+msgid "{count} device not in catalog"
+msgid_plural "{count} devices not in catalog"
+msgstr[0] "{count} συσκευή εκτός καταλόγου"
+msgstr[1] "{count} συσκευές εκτός καταλόγου"

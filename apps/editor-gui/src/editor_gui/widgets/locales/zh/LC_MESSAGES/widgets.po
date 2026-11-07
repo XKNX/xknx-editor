@@ -163,9 +163,6 @@ msgstr "请输入整数。"
 msgid "Enter a value from {minimum} to {maximum}."
 msgstr "请输入 {minimum} 到 {maximum} 之间的值。"
 
-msgid "Enter at most {count} characters."
-msgstr "最多输入 {count} 个字符。"
-
 msgid "Enter a value."
 msgstr "请输入值。"
 
@@ -177,9 +174,6 @@ msgstr "此数据类型无法输入值。"
 
 msgid "Edit…"
 msgstr "编辑…"
-
-msgid "The text may take at most {count} bytes."
-msgstr "文本最多可占 {count} 个字节。"
 
 msgid "Value {number}"
 msgstr "值 {number}"
@@ -241,9 +235,6 @@ msgstr "复制 {count} B"
 msgid "Go To:"
 msgstr "转到："
 
-msgid "{count} difference(s)"
-msgstr "{count} 处差异"
-
 msgid "no differences"
 msgstr "无差异"
 
@@ -294,3 +285,15 @@ msgstr "剪切"
 
 msgid "Paste"
 msgstr "粘贴"
+
+msgid "Enter at most {count} character."
+msgid_plural "Enter at most {count} characters."
+msgstr[0] "最多输入 {count} 个字符。"
+
+msgid "The text may take at most {count} byte."
+msgid_plural "The text may take at most {count} bytes."
+msgstr[0] "文本最多可占 {count} 个字节。"
+
+msgid "{count} difference"
+msgid_plural "{count} differences"
+msgstr[0] "{count} 处差异"

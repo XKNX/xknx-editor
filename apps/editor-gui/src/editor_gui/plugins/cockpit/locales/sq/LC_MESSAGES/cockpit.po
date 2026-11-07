@@ -19,9 +19,6 @@ msgstr "Filtro pajisjet…"
 msgid "Needs Attention Only"
 msgstr "Vetëm ato që kërkojnë vëmendje"
 
-msgid "{count} device(s) not in catalog"
-msgstr "{count} pajisje nuk janë në katalog"
-
 msgid "Address"
 msgstr "Adresa"
 
@@ -69,3 +66,8 @@ msgstr "Nr. serial: {serial}"
 
 msgid "Last Download: {when}"
 msgstr "Programuar së fundi: {when}"
+
+msgid "{count} device not in catalog"
+msgid_plural "{count} devices not in catalog"
+msgstr[0] "{count} pajisje nuk është në katalog"
+msgstr[1] "{count} pajisje nuk janë në katalog"

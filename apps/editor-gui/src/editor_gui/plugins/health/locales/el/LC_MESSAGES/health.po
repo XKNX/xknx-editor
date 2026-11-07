@@ -16,20 +16,11 @@ msgstr "Δεν υπάρχει ανοιχτό έργο"
 msgid "No issues found"
 msgstr "Δεν βρέθηκαν προβλήματα"
 
-msgid "{errors} errors, {warnings} warnings"
-msgstr "{errors} σφάλματα, {warnings} προειδοποιήσεις"
-
 msgid "{device}: no individual address"
 msgstr "{device}: χωρίς ατομική διεύθυνση"
 
 msgid "Duplicate individual address {address} ({device})"
 msgstr "Διπλότυπη ατομική διεύθυνση {address} ({device})"
-
-msgid "{count} device(s) skipped: application not in catalog"
-msgstr "{count} συσκευή(-ές) παραλείφθηκαν: η εφαρμογή δεν υπάρχει στον κατάλογο"
-
-msgid "{device}: {count} unlinked group object(s)"
-msgstr "{device}: {count} μη συνδεδεμένο(-α) αντικείμενο(-α) επικοινωνίας"
 
 msgid "{address} {name}: no datapoint type"
 msgstr "{address} {name}: χωρίς τύπο datapoint"
@@ -37,5 +28,27 @@ msgstr "{address} {name}: χωρίς τύπο datapoint"
 msgid "{address} {name}: no sending group object"
 msgstr "{address} {name}: κανένα αντικείμενο επικοινωνίας αποστολής"
 
-msgid "{address} {name}: {count} sending group objects"
-msgstr "{address} {name}: {count} αντικείμενα επικοινωνίας αποστολής"
+msgid "{count} error"
+msgid_plural "{count} errors"
+msgstr[0] "{count} σφάλμα"
+msgstr[1] "{count} σφάλματα"
+
+msgid "{count} warning"
+msgid_plural "{count} warnings"
+msgstr[0] "{count} προειδοποίηση"
+msgstr[1] "{count} προειδοποιήσεις"
+
+msgid "{count} device skipped: application not in catalog"
+msgid_plural "{count} devices skipped: application not in catalog"
+msgstr[0] "{count} συσκευή παραλείφθηκε: η εφαρμογή δεν υπάρχει στον κατάλογο"
+msgstr[1] "{count} συσκευές παραλείφθηκαν: η εφαρμογή δεν υπάρχει στον κατάλογο"
+
+msgid "{device}: {count} unlinked group object"
+msgid_plural "{device}: {count} unlinked group objects"
+msgstr[0] "{device}: {count} μη συνδεδεμένο αντικείμενο επικοινωνίας"
+msgstr[1] "{device}: {count} μη συνδεδεμένα αντικείμενα επικοινωνίας"
+
+msgid "{address} {name}: {count} sending group object"
+msgid_plural "{address} {name}: {count} sending group objects"
+msgstr[0] "{address} {name}: {count} αντικείμενο επικοινωνίας αποστολής"
+msgstr[1] "{address} {name}: {count} αντικείμενα επικοινωνίας αποστολής"

@@ -132,19 +132,21 @@ def add_button(label: str, why_not: str = "") -> bool:
 
 def add_rows(
     request: AddRequest,
-    several: str,
+    several: Callable[[int], str],
     target: str,
     add: Callable[[AddRow], str | None],
     undo_step: UndoStep,
     notify: Callable[[str], None],
 ) -> None:
     """Add the rows of ``request`` top to bottom (``add`` adds one element of a row and gives
-    the reason it cannot), one undo step each, ``several`` (with ``{count}`` and
-    ``{target}``) naming one of several elements. A row stops at its first element that cannot
+    the reason it cannot), one undo step each, ``several`` (the text for a count, with ``{count}``
+    and ``{target}``) naming one of several elements. A row stops at its first element that cannot
     be added, telling why, and the next row goes on."""
     for row in request.rows:
         label = (
-            several.format(count=row.count, target=target) if row.count > 1 else None
+            several(row.count).format(count=row.count, target=target)
+            if row.count > 1
+            else None
         )
         with undo_step(label):
             for _ in range(row.count):

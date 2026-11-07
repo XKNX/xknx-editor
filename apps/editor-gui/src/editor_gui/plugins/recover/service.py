@@ -74,6 +74,21 @@ class RecoverEntry:
         return self.application is not None
 
 
+def _unknown_parts(unrecoverable: int, not_found: int) -> list[str]:
+    """The parameters read without a value, as parts of a list of counts: those that cannot
+    be recovered and those not found yet, each only when there are some."""
+    from editor_gui.plugins.recover.strings import S
+
+    parts: list[str] = []
+    if unrecoverable:
+        parts.append(
+            S.PARAMETERS_UNRECOVERABLE(unrecoverable) % {"count": unrecoverable}
+        )
+    if not_found:
+        parts.append(S.PARAMETERS_NOT_FOUND(not_found) % {"count": not_found})
+    return parts
+
+
 def _incomplete(entry: RecoverEntry) -> bool:
     """Whether a selected entry was read back and its parameters do not fit what was read."""
     return (
@@ -359,8 +374,16 @@ class RecoverService:
         self.recover_stage = stage
 
     def recovery_totals(self) -> dict[str, int]:
-        """Aggregate counts over all recovered devices, for the overview line."""
-        totals = {"devices": 0, "group_addresses": 0, "links": 0, "unknown": 0}
+        """Aggregate counts over all recovered devices, for the overview line: the parameters
+        read without a value split into those that cannot be recovered and those not found yet
+        (see ``RecoveredParameters``)."""
+        totals = {
+            "devices": 0,
+            "group_addresses": 0,
+            "links": 0,
+            "unrecoverable": 0,
+            "not_found": 0,
+        }
         for entry in self.entries:
             recovered = entry.recovered
             if recovered is None:
@@ -368,8 +391,23 @@ class RecoverService:
             totals["devices"] += 1
             totals["group_addresses"] += len(recovered.group_addresses)
             totals["links"] += len(recovered.links)
-            totals["unknown"] += len(recovered.parameters.unknown)
+            totals["unrecoverable"] += len(recovered.parameters.unrecoverable)
+            totals["not_found"] += len(recovered.parameters.not_found)
         return totals
+
+    def summary(self) -> str:
+        """The overview line of every device read: how many, and what was read of them."""
+        from editor_gui.plugins.recover.strings import S
+
+        totals = self.recovery_totals()
+        parts = [
+            S.GROUP_ADDRESSES(totals["group_addresses"])
+            % {"count": totals["group_addresses"]},
+            S.LINKS(totals["links"]) % {"count": totals["links"]},
+            *_unknown_parts(totals["unrecoverable"], totals["not_found"]),
+        ]
+        head = S.RECOVERED_DEVICES(totals["devices"]) % {"count": totals["devices"]}
+        return f"{head}: {', '.join(parts)}."
 
     @staticmethod
     def entry_detail(entry: RecoverEntry) -> str:
@@ -380,20 +418,31 @@ class RecoverService:
         recovered = entry.recovered
         if recovered is None:
             return S.DETAIL_NOT_READ if entry.recoverable else ""
-        unknown = len(recovered.parameters.unknown)
-        detail = S.DETAIL_READ % {
-            "group_addresses": len(recovered.group_addresses),
-            "links": len(recovered.links),
-            "parameters": len(recovered.parameters.values),
-        }
-        if unknown:
-            detail += f" ({S.DETAIL_UNKNOWN % {'count': unknown}})"
-        if not recovered.parameters.complete:
+        parameters = recovered.parameters
+        counts = (
+            (S.GROUP_ADDRESSES, len(recovered.group_addresses)),
+            (S.LINKS, len(recovered.links)),
+            (S.PARAMETERS, len(parameters.values)),
+        )
+        detail = ", ".join(
+            [
+                *(text(count) % {"count": count} for text, count in counts),
+                *_unknown_parts(
+                    len(parameters.unrecoverable), len(parameters.not_found)
+                ),
+            ]
+        )
+        if not parameters.complete:
+            differs = (
+                (S.BYTES, parameters.differing_bytes),
+                (S.GROUP_OBJECTS, parameters.differing_objects),
+            )
             detail += " | " + S.DETAIL_INCOMPLETE % {
-                "bytes": recovered.parameters.differing_bytes,
-                "objects": recovered.parameters.differing_objects,
+                "what": ", ".join(
+                    text(count) % {"count": count} for text, count in differs if count
+                )
             }
-            if recovered.parameters.limited:
+            if parameters.limited:
                 detail += f", {S.DETAIL_MORE_EFFORT}"
         order = recovered.dossier.order_info
         if order:
@@ -402,7 +451,8 @@ class RecoverService:
             detail += " | " + (
                 S.DETAIL_VERIFIED
                 if entry.verify_changed == 0
-                else S.DETAIL_VERIFY_DIFFERS % {"bytes": entry.verify_changed}
+                else S.DETAIL_VERIFY_DIFFERS(entry.verify_changed)
+                % {"count": entry.verify_changed}
             )
         if entry.error:
             detail += f" | {entry.error}"
@@ -720,7 +770,7 @@ class RecoverService:
         from editor_gui.plugins.recover.strings import S
 
         self.apply_status = status
-        self.apply_error = S.APPLY_FAILED % {"count": failed} if failed else ""
+        self.apply_error = S.APPLY_FAILED(failed) % {"count": failed} if failed else ""
 
     def apply_to_open_project(self) -> int:
         """Add recovered devices to the currently open project, with a status message."""
@@ -729,7 +779,9 @@ class RecoverService:
         added, failed = self._apply_pending()
         path = self._api.project.path
         target = path.name if path is not None else "?"
-        self._report_apply(S.APPLY_MERGED % {"count": added, "target": target}, failed)
+        self._report_apply(
+            S.APPLY_MERGED(added) % {"count": added, "target": target}, failed
+        )
         return added
 
     def create_project_and_apply(self, path: Any) -> int:
@@ -744,7 +796,9 @@ class RecoverService:
             entry.auto_tried = False
             entry.error = None
         added, failed = self._apply_pending()
-        self._report_apply(S.APPLY_NEW % {"count": added, "target": path.name}, failed)
+        self._report_apply(
+            S.APPLY_NEW(added) % {"count": added, "target": path.name}, failed
+        )
         return added
 
     def _add_recovered(

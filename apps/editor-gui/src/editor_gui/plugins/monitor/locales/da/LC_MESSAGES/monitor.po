@@ -53,7 +53,9 @@ msgid "Hide Extended Information"
 msgstr "Skjul udvidede oplysninger"
 
 msgid "{count} telg."
-msgstr "{count} telg."
+msgid_plural "{count} telg."
+msgstr[0] "{count} telg."
+msgstr[1] "{count} telg."
 
 msgid "{rate} t/s"
 msgstr "{rate} t/s"
@@ -214,20 +216,11 @@ msgstr "Telegramoptagelser"
 msgid "All files"
 msgstr "Alle filer"
 
-msgid "{count} telegrams exported to {path}"
-msgstr "{count} telegrammer eksporteret til {path}"
-
 msgid "Export failed: {error}"
 msgstr "Eksport mislykkedes: {error}"
 
-msgid "{count} entries loaded from {path}"
-msgstr "{count} poster indlæst fra {path}"
-
 msgid "Loading failed: {error}"
 msgstr "Indlæsning mislykkedes: {error}"
-
-msgid "{count} telegrams in another frame format were skipped"
-msgstr "{count} telegrammer i et andet rammeformat blev sprunget over"
 
 msgid "Printing failed: {error}"
 msgstr "Udskrivning mislykkedes: {error}"
@@ -235,17 +228,8 @@ msgstr "Udskrivning mislykkedes: {error}"
 msgid "Page {page}"
 msgstr "Side {page}"
 
-msgid "{count} Data Secure telegrams are not replayed"
-msgstr "{count} Data Secure-telegrammer afspilles ikke igen"
-
 msgid "There are no group telegrams to replay"
 msgstr "Der er ingen gruppetelegrammer at afspille igen"
-
-msgid "Replay finished: {count} telegrams sent"
-msgstr "Genafspilning færdig: {count} telegrammer sendt"
-
-msgid "Replay cancelled: {count} telegrams sent"
-msgstr "Genafspilning annulleret: {count} telegrammer sendt"
 
 msgid "from bus"
 msgstr "fra bus"
@@ -390,3 +374,33 @@ msgstr "Max"
 
 msgid "Maximum telegrams this monitor keeps. The oldest tenth is dropped when the cap is exceeded."
 msgstr "Maximum telegrams this monitor keeps. The oldest tenth is dropped when the cap is exceeded."
+
+msgid "{count} telegram exported to {path}"
+msgid_plural "{count} telegrams exported to {path}"
+msgstr[0] "{count} telegram eksporteret til {path}"
+msgstr[1] "{count} telegrammer eksporteret til {path}"
+
+msgid "{count} entry loaded from {path}"
+msgid_plural "{count} entries loaded from {path}"
+msgstr[0] "{count} post indlæst fra {path}"
+msgstr[1] "{count} poster indlæst fra {path}"
+
+msgid "{count} telegram in another frame format was skipped"
+msgid_plural "{count} telegrams in another frame format were skipped"
+msgstr[0] "{count} telegram i et andet rammeformat blev sprunget over"
+msgstr[1] "{count} telegrammer i et andet rammeformat blev sprunget over"
+
+msgid "{count} Data Secure telegram is not replayed"
+msgid_plural "{count} Data Secure telegrams are not replayed"
+msgstr[0] "{count} Data Secure-telegram afspilles ikke igen"
+msgstr[1] "{count} Data Secure-telegrammer afspilles ikke igen"
+
+msgid "Replay finished: {count} telegram sent"
+msgid_plural "Replay finished: {count} telegrams sent"
+msgstr[0] "Genafspilning færdig: {count} telegram sendt"
+msgstr[1] "Genafspilning færdig: {count} telegrammer sendt"
+
+msgid "Replay cancelled: {count} telegram sent"
+msgid_plural "Replay cancelled: {count} telegrams sent"
+msgstr[0] "Genafspilning annulleret: {count} telegram sendt"
+msgstr[1] "Genafspilning annulleret: {count} telegrammer sendt"
