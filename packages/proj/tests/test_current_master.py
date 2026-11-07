@@ -205,3 +205,21 @@ def test_without_fetch_master_nothing_is_downloaded(
 def test_master_cache_path(tmp_path: Path) -> None:
     assert master_cache_path(tmp_path, "23") == tmp_path / "knx_master.xml"
     assert master_cache_path(tmp_path, "14") == tmp_path / "knx_master-14.xml"
+
+
+@pytest.mark.parametrize("fetch_master", [True, False])
+def test_a_master_of_another_schema_is_not_written(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, fetch_master: bool
+) -> None:
+    # Offline and without a cache, the only master is a product's own project/12 one: written
+    # into a project/23 archive, an import read no links from it. A generated master of the
+    # archive's schema is written instead.
+    src = _project(tmp_path, None)
+    monkeypatch.setattr(exp, "fetch_master_xml", _offline)
+    old = (
+        b'<KNX xmlns="http://knx.org/xml/project/12">'
+        b'<MasterData Version="1" Signature="QUJD"/></KNX>'
+    )
+    written = _written(src, tmp_path, fetch_master=fetch_master, master_xml=old)
+    assert written != old
+    assert b"http://knx.org/xml/project/23" in written
