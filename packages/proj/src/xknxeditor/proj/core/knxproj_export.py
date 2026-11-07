@@ -87,6 +87,7 @@ from xknxeditor.proj.core.manufacturer_xml import (
     combine_product_members,
     merge_members,
 )
+from xknxeditor.proj.core.product_data import stored_members
 from xknxeditor.proj.core.product_prune import (
     ProductPruneReport,
     prune_product_members,
@@ -609,9 +610,9 @@ def _resolve_export_sources(
     verbatim (no mismatch error)."""
     # The product data the project stores for devices added in the editor comes first, the
     # supplied files add what it lacks (e.g. a device whose product it could not store).
-    sources = merge_members(
-        _unzip_members(project.added_product_members), extra_files or {}
-    )
+    session = object_session(project)
+    stored = stored_members(session) if session is not None else {}
+    sources = merge_members(stored, extra_files or {})
     if sources:
         effective_extra = combine_product_members(
             _unzip_members(project.imported_product_members),

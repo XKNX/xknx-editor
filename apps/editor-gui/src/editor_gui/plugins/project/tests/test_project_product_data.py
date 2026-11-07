@@ -46,12 +46,14 @@ def _service(catalog: CatalogService) -> ProjectService:
 
 
 def _members(path: Path) -> dict[str, bytes]:
+    """The members of the product data the project stores per hardware program."""
     with sqlite3.connect(path) as db:
-        (blob,) = db.execute("SELECT added_product_members FROM projects").fetchone()
-    if blob is None:
-        return {}
-    with zipfile.ZipFile(io.BytesIO(blob)) as zf:
-        return {name: zf.read(name) for name in zf.namelist()}
+        blobs = [blob for (blob,) in db.execute("SELECT data FROM product_data")]
+    members: dict[str, bytes] = {}
+    for blob in blobs:
+        with zipfile.ZipFile(io.BytesIO(blob)) as zf:
+            members |= {name: zf.read(name) for name in zf.namelist()}
+    return members
 
 
 def _project_with_device(tmp_path: Path) -> tuple[Path, int, str]:
@@ -142,9 +144,8 @@ def test_older_project_gets_the_product_data_when_opened(tmp_path: Path) -> None
     """A project saved before it carried product data gets it from the catalog it is opened with."""
     path, _device_id, _program = _project_with_device(tmp_path)
     with sqlite3.connect(path) as db:
-        db.execute(
-            "UPDATE projects SET imported_product_members = NULL, added_product_members = NULL"
-        )
+        db.execute("UPDATE projects SET imported_product_members = NULL")
+        db.execute("DELETE FROM product_data")
 
     proj = _service(CatalogService(tmp_path / "c.xknxcatalog"))
     proj.open(path)
@@ -157,9 +158,8 @@ def test_device_without_product_file_leaves_the_project_as_it_is(
 ) -> None:
     path, _device_id, _program = _project_with_device(tmp_path)
     with sqlite3.connect(path) as db:
-        db.execute(
-            "UPDATE projects SET imported_product_members = NULL, added_product_members = NULL"
-        )
+        db.execute("UPDATE projects SET imported_product_members = NULL")
+        db.execute("DELETE FROM product_data")
 
     # Neither the catalog nor the project has the product: nothing to add, nothing fails.
     proj = _service(CatalogService(tmp_path / "other.xknxcatalog"))

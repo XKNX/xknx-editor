@@ -87,17 +87,9 @@ class Project(Base):
     # product ids on import, so resolving them through the catalog on export misses most folders;
     # re-emitting these original members keeps a re-exported project importable. ``None`` when the
     # project was not imported from a ``.knxproj`` (e.g. created from scratch) or carried no
-    # manufacturer data. Written once: it can be large, so what devices need beyond it goes into
-    # ``added_product_members``.
+    # manufacturer data. Written once: it can be large, so what devices need beyond it is stored
+    # per hardware program (:class:`ProductData`).
     imported_product_members: Mapped[bytes | None] = mapped_column(
-        LargeBinary, nullable=True, deferred=True
-    )
-    # The product data of the devices the imported members do not cover (added in the editor, or
-    # given another application program), as a ZIP blob of ``M-XXXX/*`` members taken from the
-    # product files they came from: only what those devices use. With both, the project carries the
-    # product data of every device and opens with them editable on any computer
-    # (:meth:`~xknxeditor.proj.core.service.ProjectService.add_product_data`).
-    added_product_members: Mapped[bytes | None] = mapped_column(
         LargeBinary, nullable=True, deferred=True
     )
     # The other files of the imported archive's project folder (eg. attached user files or data of
@@ -854,6 +846,26 @@ class TradeDevice(Base):
 
     trade: Mapped["Trade"] = relationship(back_populates="devices")
     device: Mapped["Device"] = relationship(back_populates="trade_links")
+
+
+class ProductData(Base):
+    """The product data of one hardware program the imported product data does not cover (a device
+    added in the editor, or given another application program), taken from the product file it came
+    from: only its part, as a ZIP of ``M-XXXX/*`` members (a ``Hardware.xml`` with just its hardware
+    and the products used with it, its catalog entries, application program and baggages). With the
+    imported data, the project carries the product data of every device and opens with them
+    editable on any computer. One row per program, so adding one never repacks the others. Not part
+    of the undo history."""
+
+    __tablename__ = "product_data"
+
+    hardware2program_ref_id: Mapped[str] = mapped_column(String, primary_key=True)
+    # The products of the program's hardware the data has (JSON list): a device with another one
+    # needs the row made again.
+    product_ref_ids: Mapped[list[str]] = mapped_column(
+        JSON, nullable=False, default=list
+    )
+    data: Mapped[bytes] = mapped_column(LargeBinary, nullable=False, deferred=True)
 
 
 class DeviceSnapshot(Base):

@@ -198,6 +198,7 @@ from xknxeditor.proj.core import import_notes, project_store
 from xknxeditor.proj.core.addressing import GroupAddressStyle
 from xknxeditor.proj.core.ga_export import CSV_LAYOUTS, CSV_SEPARATORS
 from xknxeditor.proj.core.import_notes import ImportLoss
+from xknxeditor.proj.core.product_data import stored_members
 from xknxeditor.proj.core.product_prune import (
     STEP_DEVICES,
     STEP_MANUFACTURER,
@@ -1838,7 +1839,7 @@ class KnxGuiApp:
                     # for devices added from the catalog rather than imported.
                     members = unzip_members(project.imported_product_members)
                     # The product data the project stores for added devices before the catalog's.
-                    added = unzip_members(project.added_product_members)
+                    added = stored_members(session)
                     for name, data in [*added.items(), *catalog_members.items()]:
                         members.setdefault(name, data)
                     if create_copy:

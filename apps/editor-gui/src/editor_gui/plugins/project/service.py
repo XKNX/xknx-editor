@@ -100,13 +100,10 @@ from xknxeditor.proj.core.medium import (
 )
 from xknxeditor.proj.core.modified import project_timestamp
 from xknxeditor.proj.core.paste import GroupAddressCopy, PasteOptions
+from xknxeditor.proj.core.product_data import Row, missing_programs, product_rows
 from xknxeditor.proj.core.project_secrets import check_project_password
 from xknxeditor.proj.core.rich_text import parse_rich_text, plain_text
-from xknxeditor.proj.core.service import (
-    DEFAULT_MULTICAST_ADDRESS,
-    declared_programs_of,
-    grown_product_data,
-)
+from xknxeditor.proj.core.service import DEFAULT_MULTICAST_ADDRESS
 from xknxeditor.proj.core.space_rules import SpaceRuleError, holds_devices
 
 if TYPE_CHECKING:
@@ -448,15 +445,12 @@ def _compute_device(inputs: _DeviceInputs, app: Application) -> Device:
 @dataclass(frozen=True)
 class _ProductJob:
     """What the project's product data lacks, read under the shared lock for the background sync:
-    the product files with the manufacturers needed from them, the stored added data, the devices'
-    product refs and the programs the imported data declares."""
+    the hardware programs that need product data with the devices using them, and the product files
+    with the manufacturers needed from them."""
 
     generation: int
-    programs: frozenset[str]
+    missing: dict[str, list[ProductRefs]]
     needed: dict[str, set[str]]
-    added: bytes | None
-    devices: list[ProductRefs]
-    imported: frozenset[str]
 
 
 @dataclass
@@ -1243,18 +1237,17 @@ class ProjectService:
         self._new_snapshots: dict[int, tuple[str, str]] = {}
         # What each application id is read from (see CatalogService.application_source).
         self._source_cache: dict[str, str | None] = {}
-        # The hardware programs the project's product data declares and those of its imported part
-        # (None until read), and those no product file of the catalog has, asked for again once the
-        # catalog changed (its generation). One background sync at a time; another round is due when
-        # the project changed while it ran (see _sync_product_data).
-        self._product_programs: set[str] | None = None
+        # The hardware programs the imported product data declares (None until read), and those no
+        # product file of the catalog has, asked for again once the catalog changed (its
+        # generation). One background sync at a time; another round is due when the project changed
+        # while it ran (see _sync_product_data).
         self._imported_programs: frozenset[str] | None = None
         self._unavailable_products: set[str] = set()
         self._unavailable_generation = -1
         self._product_lock = threading.Lock()
         self._product_running = False
         self._product_again = False
-        self._product_results: list[tuple[_ProductJob, bytes | None]] = []
+        self._product_results: list[tuple[_ProductJob, dict[str, Row]]] = []
         # Applications loading in the background, and those that failed to load (their devices
         # are then built without a snapshot, which shows them as not loadable).
         self._loading_lock = threading.Lock()
@@ -2007,7 +2000,6 @@ class ProjectService:
         self._snapshots = None
         self._new_snapshots.clear()
         self._source_cache.clear()
-        self._product_programs = None
         self._imported_programs = None
         self._unavailable_products.clear()
         with self._loading_lock:
@@ -4908,8 +4900,7 @@ class ProjectService:
             }
             if not unknown:
                 return
-            self._product_programs = self._svc.product_data_programs(self._pid)
-            carried = unknown & self._product_programs
+            carried = unknown & self._svc.product_data_programs(self._pid)
             if not carried:
                 return
             from editor_gui.master_data import master_xml_bytes
@@ -4972,18 +4963,18 @@ class ProjectService:
                 self._imported_programs = frozenset(
                     self._svc.imported_product_programs(self._pid)
                 )
-            if self._product_programs is None:
-                self._product_programs = set(
-                    self._imported_programs
-                ) | declared_programs_of(self._svc.added_product_data(self._pid))
             if self._unavailable_generation != self._catalog.generation:
                 self._unavailable_products.clear()
                 self._unavailable_generation = self._catalog.generation
-            missing = (
-                set(self._svc.device_programs(self._pid).values())
-                - self._product_programs
-                - self._unavailable_products
-            )
+            missing = {
+                program: users
+                for program, users in missing_programs(
+                    self._svc.device_products(self._pid),
+                    self._imported_programs,
+                    self._svc.stored_products(self._pid),
+                ).items()
+                if program not in self._unavailable_products
+            }
             if not missing:
                 return None
             from editor_gui.plugins.project.knxproj_manufacturer import program_sources
@@ -4995,11 +4986,8 @@ class ProjectService:
                 return None
             return _ProductJob(
                 generation=self._load_generation,
-                programs=frozenset(missing - skipped),
+                missing={p: u for p, u in missing.items() if p not in skipped},
                 needed=needed,
-                added=self._svc.added_product_data(self._pid),
-                devices=self._svc.device_products(self._pid),
-                imported=self._imported_programs,
             )
         except Exception as e:
             self._log.warning(
@@ -5008,28 +4996,27 @@ class ProjectService:
             )
             return None
 
-    def _grown_product_data(self, job: _ProductJob) -> bytes | None:
-        """The added product data with what ``job`` lacks (no lock needed), ``None`` for none."""
+    def _product_rows(self, job: _ProductJob) -> dict[str, Row]:
+        """The product data of each program ``job`` lacks (no lock needed)."""
         from editor_gui.plugins.project.knxproj_manufacturer import (
             read_manufacturer_bundle,
         )
 
         try:
-            bundle = read_manufacturer_bundle(job.needed)
-            return grown_product_data(
-                job.added, bundle.extra_files, job.devices, job.imported
+            return product_rows(
+                read_manufacturer_bundle(job.needed).extra_files, job.missing
             )
         except Exception as e:
             self._log.warning(
                 "could not add product data to the project",
                 error=f"{type(e).__name__}: {e}",
             )
-            return None
+            return {}
 
     def _run_product_sync(self, job: _ProductJob) -> None:
-        blob = self._grown_product_data(job)
+        rows = self._product_rows(job)
         with self._product_lock:
-            self._product_results.append((job, blob))
+            self._product_results.append((job, rows))
             self._product_running = False
 
     @io_guarded(lambda: None)
@@ -5042,8 +5029,8 @@ class ProjectService:
             ):
                 return
             results, self._product_results = self._product_results, []
-        for job, blob in results:
-            self._store_product_data(job, blob)
+        for job, rows in results:
+            self._store_product_data(job, rows)
         with self._product_lock:
             again = self._product_again and not self._product_running
             if again:
@@ -5051,25 +5038,19 @@ class ProjectService:
         if again:
             self._sync_product_data()
 
-    def _store_product_data(self, job: _ProductJob, blob: bytes | None) -> None:
-        """Store what the sync of ``job`` grew (under the shared lock), unless the project changed
-        meanwhile (then the next sync looks again)."""
+    def _store_product_data(self, job: _ProductJob, rows: dict[str, Row]) -> None:
+        """Store what the sync of ``job`` read (under the shared lock), unless another project is
+        open by now."""
         if self._pid is None or job.generation != self._load_generation:
             return
-        if blob is not None:
-            if self._svc.added_product_data(self._pid) != job.added:
-                with self._product_lock:
-                    self._product_again = True
-                return
-            self._svc.set_added_product_data(self._pid, blob)
-        self._product_programs = set(job.imported) | declared_programs_of(
-            blob if blob is not None else job.added
-        )
-        self._unavailable_products |= job.programs - self._product_programs
+        if rows:
+            self._svc.store_product_rows(self._pid, rows)
+        unavailable = set(job.missing) - set(rows)
+        self._unavailable_products |= unavailable
         self._log.info(
             "product data added to the project",
-            programs=len(job.programs & self._product_programs),
-            unavailable=len(job.programs - self._product_programs),
+            programs=len(rows),
+            unavailable=len(unavailable),
         )
 
     def _finish_product_data(self) -> None:
@@ -5079,13 +5060,13 @@ class ProjectService:
             results, self._product_results = self._product_results, []
             due = self._product_running or self._product_again
             self._product_again = False
-        for job, blob in results:
-            self._store_product_data(job, blob)
+        for job, rows in results:
+            self._store_product_data(job, rows)
         if not due:
             return
         job = self._product_job()
         if job is not None:
-            self._store_product_data(job, self._grown_product_data(job))
+            self._store_product_data(job, self._product_rows(job))
 
     def compact(
         self,
@@ -5101,7 +5082,6 @@ class ProjectService:
         with self._io_lock:
             result = self._svc.compact(self._pid, progress, cancelled)
             self._revision_cache.clear()
-            self._product_programs = None
             self._imported_programs = None
             self._bump(structural=False)
         self._log.info(

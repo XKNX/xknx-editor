@@ -6,8 +6,6 @@ removed data has to be imported again when such a product is added later.
 
 from __future__ import annotations
 
-import io
-import zipfile
 from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
@@ -17,6 +15,7 @@ from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session
 
 from xknxeditor.proj.core.manufacturer_xml import DeviceProduct
+from xknxeditor.proj.core.product_data import prune_rows
 from xknxeditor.proj.core.product_prune import (
     STEP_DEVICES,
     STEP_STORE,
@@ -86,12 +85,6 @@ def used_product_ids(session: Session) -> UsedProductIds:
     )
 
 
-# The project's stored product data: what an imported archive brought, and what devices added in
-# the editor use beyond it.
-_IMPORTED = "imported_product_members"
-_ADDED = "added_product_members"
-
-
 def _combined(a: ProductPruneReport, b: ProductPruneReport) -> ProductPruneReport:
     """One report of what two prunes removed."""
     return ProductPruneReport(
@@ -109,15 +102,12 @@ def _combined(a: ProductPruneReport, b: ProductPruneReport) -> ProductPruneRepor
     )
 
 
-def _has_members(blob: bytes) -> bool:
-    with zipfile.ZipFile(io.BytesIO(blob)) as zf:
-        return any(not name.endswith("/") for name in zf.namelist())
-
-
 def _pruned(
-    session: Session, progress: ProgressCallback | None
-) -> tuple[Project, dict[str, bytes | None], ProductPruneReport]:
-    """The project, the new value of each stored product data column that changes, and the report."""
+    session: Session, progress: ProgressCallback | None, *, apply: bool
+) -> tuple[Project, bytes | None, ProductPruneReport]:
+    """The project, its new imported product data (``None`` when unchanged) and the report. The
+    product data stored per program that no device uses is deleted with ``apply`` (the caller
+    commits)."""
     if progress is not None:
         progress(STEP_DEVICES, 0, 1)
     project = session.query(Project).first()
@@ -126,27 +116,19 @@ def _pruned(
     used = used_product_ids(session)
     if progress is not None:
         progress(STEP_DEVICES, 1, 1)
-    changes: dict[str, bytes | None] = {}
-    report = ProductPruneReport()
-    for column in (_IMPORTED, _ADDED):
-        blob: bytes | None = getattr(project, column)
-        if not blob:
-            continue
-        new_blob, part = prune_product_blob(
-            blob,
-            used.products,
-            used.hardware2programs,
-            used.applications,
-            progress=progress,
-        )
-        report = _combined(report, part)
-        if part.nothing_removed:
-            continue
-        # Added data no device uses any more is gone with them.
-        changes[column] = (
-            None if column == _ADDED and not _has_members(new_blob) else new_blob
-        )
-    return project, changes, report
+    rows = prune_rows(session, used.hardware2programs, apply=apply)
+    blob = project.imported_product_members
+    if not blob:
+        return project, None, rows
+    new_blob, report = prune_product_blob(
+        blob,
+        used.products,
+        used.hardware2programs,
+        used.applications,
+        progress=progress,
+    )
+    new = None if report.nothing_removed else new_blob
+    return project, new, _combined(report, rows)
 
 
 def _free_bytes(session: Session) -> int:
@@ -159,8 +141,8 @@ def analyse_compaction(
     session: Session, path: Path, progress: ProgressCallback | None = None
 ) -> CompactResult:
     """Report what :func:`compact_project` would remove, without changing anything."""
-    project, _changes, report = _pruned(session, progress)
-    session.expire(project, [_IMPORTED, _ADDED])
+    project, _blob, report = _pruned(session, progress, apply=False)
+    session.expire(project, ["imported_product_members"])
     before = path.stat().st_size
     saved = report.size_before - report.size_after + _free_bytes(session)
     return CompactResult(report, before, max(0, before - saved), applied=False)
@@ -187,13 +169,14 @@ def compact_project(
     session.commit()
     before = path.stat().st_size
     try:
-        project, changes, report = _pruned(session, step)
+        project, new_blob, report = _pruned(session, step, apply=True)
         step(STEP_STORE, 0, 1)
     except CompactCancelled:
+        session.rollback()
         session.expire_all()
         raise
-    for column, blob in changes.items():
-        setattr(project, column, blob)
+    if new_blob is not None:
+        project.imported_product_members = new_blob
     session.commit()
     if progress is not None:
         progress(STEP_STORE, 1, 1)

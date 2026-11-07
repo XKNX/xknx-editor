@@ -179,7 +179,6 @@ from xknxeditor.proj.core.ip_settings import (
 )
 from xknxeditor.proj.core.manufacturer_xml import (
     DeviceProduct,
-    add_product_members,
     defined_programs,
 )
 from xknxeditor.proj.core.medium import (
@@ -201,6 +200,15 @@ from xknxeditor.proj.core.medium import (
     sub_segment_media,
 )
 from xknxeditor.proj.core.paste import Allocation, place_range
+from xknxeditor.proj.core.product_data import (
+    Row,
+    missing_programs,
+    product_rows,
+    store_rows,
+    stored_members,
+    stored_products,
+    zip_members,
+)
 from xknxeditor.proj.core.product_prune import ProgressCallback
 from xknxeditor.proj.core.project_secrets import (
     InvalidProjectPassword,
@@ -210,7 +218,6 @@ from xknxeditor.proj.core.project_secrets import (
     new_salt,
     recrypt,
 )
-from xknxeditor.proj.core.project_store_serialize import unzip_members, zip_members
 from xknxeditor.proj.core.skeleton import seed_new_project
 from xknxeditor.proj.core.space_rules import SpaceRuleError, check_child, holds_devices
 from xknxeditor.proj.db import make_engine, url_for
@@ -794,22 +801,6 @@ def _fill_additional_entries(entries: list[dict[str, Any]], used: set[int]) -> N
 class GroupAddressSecurityError(ValueError):
     """A link or Security mode would put a device that is not commissioned securely on a
     secured group address."""
-
-
-def grown_product_data(
-    added: bytes | None,
-    sources: Mapping[str, bytes],
-    devices: Iterable[DeviceProduct],
-    imported_programs: Collection[str],
-) -> bytes | None:
-    """The added product data ZIP ``added`` plus what ``devices`` use from ``sources`` (the members
-    of the product files they were added from), for the devices neither ``imported_programs`` (the
-    programs the imported data declares, which stays as it is) nor ``added`` cover; ``None`` when
-    nothing is added. Reads no project, so it can run without holding one."""
-    missing = [d for d in devices if d.hardware2program not in imported_programs]
-    members = unzip_members(added)
-    grown = add_product_members(members, sources, missing)
-    return None if grown == members else zip_members(grown)
 
 
 def declared_programs_of(blob: bytes | None) -> set[str]:
@@ -4664,8 +4655,8 @@ class ProjectService:
     def product_data_programs(self, project_id: str) -> set[str]:
         """The hardware programs the project's product data declares: its devices with one of these
         load from the project alone, without the product in the catalog."""
-        return self.imported_product_programs(project_id) | declared_programs_of(
-            self.project(project_id).added_product_members
+        return self.imported_product_programs(project_id) | set(
+            self.stored_products(project_id)
         )
 
     def imported_product_programs(self, project_id: str) -> set[str]:
@@ -4676,51 +4667,48 @@ class ProjectService:
         """The product data refs of each device of the project."""
         return device_products(self._state(project_id).session)
 
-    def added_product_data(self, project_id: str) -> bytes | None:
-        """The stored product data of the devices the imported data does not cover (a ZIP)."""
-        return self.project(project_id).added_product_members
+    def stored_products(self, project_id: str) -> dict[str, frozenset[str]]:
+        """Each hardware program with product data of its own, with the products it has."""
+        return stored_products(self._state(project_id).session)
 
-    def set_added_product_data(self, project_id: str, blob: bytes | None) -> None:
-        """Store ``blob`` (see :func:`grown_product_data`) as the added product data. Not an
-        undoable step: the product data only grows here, and :meth:`compact` removes what no
-        device uses."""
+    def store_product_rows(self, project_id: str, rows: Mapping[str, Row]) -> None:
+        """Store the product data of hardware programs (see :func:`product_rows`). Not an undoable
+        step: the product data only grows here, and :meth:`compact` removes what no device uses."""
         state = self._state(project_id)
-        self.project(project_id).added_product_members = blob
+        store_rows(state.session, rows)
         state.session.commit()
 
     def add_product_data(self, project_id: str, sources: Mapping[str, bytes]) -> bool:
-        """Add to the project's product data what its devices use from ``sources`` (the members of
-        the product files they were added from) and the project does not carry yet (see
-        :func:`grown_product_data`). Returns whether anything was added."""
-        blob = grown_product_data(
-            self.added_product_data(project_id),
-            sources,
+        """Store what the project's devices use from ``sources`` (the members of the product files
+        they were added from) and the project does not carry yet. Returns whether anything was
+        added."""
+        missing = missing_programs(
             self.device_products(project_id),
             self.imported_product_programs(project_id),
+            self.stored_products(project_id),
         )
-        if blob is None:
-            return False
-        self.set_added_product_data(project_id, blob)
-        return True
+        rows = product_rows(sources, missing)
+        if rows:
+            self.store_product_rows(project_id, rows)
+        return bool(rows)
 
     def product_archives(
         self, project_id: str, master_xml: bytes | None
     ) -> list[bytes]:
-        """The project's product data as product archives the catalog imports, the imported and the
-        added members each with the project's own ``knx_master.xml`` or else ``master_xml``; empty
-        without product data or a master."""
+        """The project's product data as product archives the catalog imports (the imported data,
+        and the data stored per program), each with the project's own ``knx_master.xml`` or else
+        ``master_xml``; empty without product data or a master."""
         project = self.project(project_id)
         master = project.knx_master_xml or master_xml
         if master is None:
             return []
-        return [
-            _with_master(blob, master)
-            for blob in (
-                project.imported_product_members,
-                project.added_product_members,
-            )
-            if blob
-        ]
+        archives: list[bytes] = []
+        if project.imported_product_members:
+            archives.append(_with_master(project.imported_product_members, master))
+        stored = stored_members(self._state(project_id).session)
+        if stored:
+            archives.append(zip_members({"knx_master.xml": master, **stored}))
+        return archives
 
     # --- reads ------------------------------------------------------------
 
