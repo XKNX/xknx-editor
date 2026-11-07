@@ -233,14 +233,36 @@ def _resolve_controls(
             has_application_program2,
         )
 
-    default = _default_procedure(
-        master_data,
-        device_mask_version(application),
-        procedure_type,
-        scope=scope,
-        access=access,
-        has_application_program2=has_application_program2,
-    )
+    try:
+        default = _default_procedure(
+            master_data,
+            device_mask_version(application),
+            procedure_type,
+            scope=scope,
+            access=access,
+            has_application_program2=has_application_program2,
+        )
+    except UnsupportedProcedureError:
+        if procedure_type is ProcedureType.UNLOAD:
+            # A mask with Load procedures only (the TP couplers of MV-0911): an unload sends
+            # nothing for the application, and goes on as after its procedure.
+            logger.info(
+                "no unload procedure for mask %s: nothing to unload",
+                device_mask_version(application),
+            )
+            return []
+        raise
+    if (
+        default is None
+        and procedure_type is ProcedureType.UNLOAD
+        and master_data is not None
+    ):
+        # The master data has no procedures for the mask at all: likewise.
+        logger.info(
+            "no procedures for mask %s: nothing to unload",
+            device_mask_version(application),
+        )
+        return []
     if default is None:
         mask = application.program.mask_version
         if master_data is not None:
