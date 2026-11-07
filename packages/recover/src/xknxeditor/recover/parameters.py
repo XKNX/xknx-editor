@@ -112,6 +112,23 @@ _EFFORT_SCALE: dict[RecoveryEffort, int | None] = {
 }
 
 _ValueMap = dict[str, str]
+
+
+class _Cancelled(Exception):
+    """The search was cancelled (see ``recover_parameters``): it ends with what it has."""
+
+
+def _stopped() -> bool:
+    """A cancel that has been given already."""
+    return True
+
+
+def _check(cancel: Callable[[], bool] | None) -> None:
+    """Raise :class:`_Cancelled` when ``cancel`` says so."""
+    if cancel is not None and cancel():
+        raise _Cancelled
+
+
 # A byte of a code segment: (segment id, offset).
 _Cell = tuple[str, int]
 
@@ -161,17 +178,28 @@ def recover_parameters(
     # Only the inference from linked objects tells settings apart by them.
     fixed = _fixed_values(application, ui) if linked else {}
     dead: set[tuple[str, str]] = set()
-    values, unknown, inferred = _infer_all(
-        application,
-        parameter_segments,
-        property_values,
-        project_code_page,
-        linked,
-        sizes,
-        fixed,
-        {},
-        dead,
-    )
+    try:
+        values, unknown, inferred = _infer_all(
+            application,
+            parameter_segments,
+            property_values,
+            project_code_page,
+            linked,
+            sizes,
+            fixed,
+            {},
+            dead,
+            cancel,
+        )
+    except _Cancelled:
+        # Cancelled before anything was inferred: the values as read, measured against the
+        # device by a correction step that stops at once.
+        values, unknown = _decode(
+            application, parameter_segments, property_values, project_code_page, {}
+        )
+        inferred = {}
+        cancel = _stopped
+
     return _refine(
         application,
         parameter_segments,
@@ -199,16 +227,19 @@ def _infer_all(
     fixed: _ValueMap,
     start: Mapping[str, str],
     dead: set[tuple[str, str]],
+    cancel: Callable[[], bool] | None = None,
 ) -> tuple[dict[str, str], list[str], _ValueMap]:
     """The values decoded with the settings the device keeps no copy of inferred, starting with
     those of ``start`` (kept as they are): the values, the parameters left unknown and all the
     inferred settings. ``dead`` collects the values found to show nothing (see
-    :func:`_infer_unstored`), and those in it are not tried."""
+    :func:`_infer_unstored`), and those in it are not tried. Raises :class:`_Cancelled` once
+    ``cancel`` says so."""
     inferred: _ValueMap = dict(start)
     values, unknown = _decode(
         application, parameter_segments, property_values, project_code_page, inferred
     )
     for _ in range(_INFER_ROUNDS):
+        _check(cancel)
         chosen = (
             _infer_unstored(
                 application,
@@ -219,6 +250,7 @@ def _infer_all(
                 dead=dead,
                 fixed=fixed,
                 segments=parameter_segments,
+                cancel=cancel,
             )
             if linked
             else {}
@@ -231,6 +263,7 @@ def _infer_all(
             unknown,
             linked,
             sizes,
+            cancel,
         )
         if not chosen:
             break
@@ -467,17 +500,21 @@ def _refine(
                 return finish(current, ui, limited=True)
             evaluated += 1
             tried.add((gate, value))
-            trial_values, trial_unknown, trial_inferred = _infer_all(
-                application,
-                parameter_segments,
-                property_values,
-                project_code_page,
-                linked,
-                sizes,
-                fixed,
-                {**inferred, gate: value},
-                set(dead),
-            )
+            try:
+                trial_values, trial_unknown, trial_inferred = _infer_all(
+                    application,
+                    parameter_segments,
+                    property_values,
+                    project_code_page,
+                    linked,
+                    sizes,
+                    fixed,
+                    {**inferred, gate: value},
+                    set(dead),
+                    cancel,
+                )
+            except _Cancelled:
+                return finish(current, ui, limited=True)
             seeded = seed_dynamic_ui(application, trial_values, project_code_page)
             if seeded is None:
                 continue
@@ -836,6 +873,7 @@ def _infer_unstored(
     dead: set[tuple[str, str]] | None = None,
     fixed: _ValueMap | None = None,
     segments: Mapping[str, bytes] | None = None,
+    cancel: Callable[[], bool] | None = None,
 ) -> _ValueMap:
     """Values for shown settings the device keeps no copy of, chosen to show more of the
     ``linked`` group objects (in their ``sizes``) than ``values`` alone.
@@ -915,6 +953,7 @@ def _infer_unstored(
         current = ui.get_value(ref_id) or parameter.default_value
         gaining: list[tuple[int, int, str]] = []
         for candidate in values_to_try(parameter, current):
+            _check(cancel)
             if dead is not None and (ref_id, candidate) in dead:
                 continue
             objects, unlinked, reveals = shown({ref_id: candidate})
@@ -970,6 +1009,7 @@ def _infer_unstored(
             look_ahead=False,
             fixed=fixed,
             segments=segments,
+            cancel=cancel,
         )
         if not nested:
             continue
@@ -1041,6 +1081,7 @@ def _infer_from_memory(
     unknown: Collection[str],
     linked: set[int],
     sizes: Mapping[int, str],
+    cancel: Callable[[], bool] | None = None,
 ) -> _ValueMap:
     """A value for a shown setting the device keeps no copy of that leads to a member of a
     union whose bytes are no value of its type, chosen so fewer union members do so (and no
@@ -1079,6 +1120,7 @@ def _infer_from_memory(
     fewest = len(misfits)
     share = fitting / (fitting + fewest)
     for _, ref_id, candidate in candidates[:_MEMORY_TRIES]:
+        _check(cancel)
         seeded = seed_dynamic_ui(
             application, {**values, ref_id: candidate}, project_code_page
         )

@@ -200,3 +200,23 @@ def test_a_device_is_searched_again_in_what_was_read(
     # The rest of what was read stays.
     assert again.address == "1.1.7"
     assert again.parameter_segments == segments
+
+
+def test_a_cancel_is_heard_inside_the_inference(application: Application) -> None:
+    # Asked between the values the inference tries too, not only between corrections: the
+    # search ends at the first "yes" and asks no more.
+    segments = _device(
+        application, (_CHANNEL, "1"), (_MODE, "1"), (_DELAY, "5"), (_STEP, "9")
+    )
+    asked: list[bool] = []
+
+    def cancel() -> bool:
+        asked.append(len(asked) >= 1)
+        return asked[-1]
+
+    recovered = recover_parameters(
+        application, segments, effort=RecoveryEffort.UNLIMITED, cancel=cancel
+    )
+    assert asked == [False, True]
+    assert recovered.limited
+    assert not recovered.complete
