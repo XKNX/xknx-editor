@@ -1098,12 +1098,12 @@ def test_export_summary_reports_counts_and_signing(tmp_path: Path) -> None:
     device_id = svc.add_device(
         pid,
         segment,
-        "M-1_H-1_P-1",
+        "M-0001_H-1_P-1",
         address=1,
         name="D1",
-        com_objects=[("M-1_A-1_O-1_R-1", None)],
+        com_objects=[("M-0001_A-1_O-1_R-1", None)],
     )
-    svc.add_device(pid, segment, "M-1_H-1_P-1", address=2, name="D2")
+    svc.add_device(pid, segment, "M-0002_H-1_P-1", address=2, name="D2")
     ga_id = svc.create_group_address(pid, 0, 0x0801, "GA1")
     svc.create_group_address(pid, 0, 0x0802, "GA2")
     svc.create_group_address(pid, 0, 0x0803, "GA3")
