@@ -409,7 +409,8 @@ def _match_stored(
     given back (seen by trying two other values of it) is tried with every value of its domain,
     when that is small; the value that gives the most R values back is taken when it gives more
     than before. An R value no L value gives back (one the product cannot download) is left as
-    it is; those are returned."""
+    it is; those are returned. The R values not ``stored`` take what the LR transformation
+    computes from the L values, as an edit of them would set them."""
     if not (calc.lrtransformation_func or calc.lrtransformation):
         return []
     targets: dict[str, str] = {}
@@ -450,6 +451,17 @@ def _match_stored(
             if isinstance(value := got.get(ref), str) and _same_value(value, want)
         }
 
+    def write_unstored(got: Mapping[str, str | CalculationError]) -> None:
+        # The R values not read follow the L values, as an edit of them sets them (a switch
+        # computed from them that shows or hides other settings).
+        for ref, value in got.items():
+            if (
+                ref not in stored
+                and isinstance(value, str)
+                and not _same_value(value, scope.get(ref) or "")
+            ):
+                journal.set(scope.qualify(ref), value)
+
     current: dict[str, str] = {}
     for pr in calc.lparameters.parameter_ref_ref:
         value = scope.get(pr.ref_id)
@@ -458,6 +470,7 @@ def _match_stored(
     base = evaluate(current)
     matched = given_back(base)
     if matched == set(targets):
+        write_unstored(base)
         return []
     chosen = dict(current)
     for ref in current:
@@ -485,6 +498,7 @@ def _match_stored(
     for ref, value in chosen.items():
         if value != current[ref]:
             journal.set(scope.qualify(ref), value)
+    write_unstored(base)
     return [ref for ref in targets if ref not in matched]
 
 

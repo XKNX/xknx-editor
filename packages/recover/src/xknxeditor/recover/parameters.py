@@ -1382,24 +1382,54 @@ def _with_calculated(
     cancel: Callable[[], bool] | None = None,
 ) -> _ValueMap:
     """``values`` plus what the application's calculations compute from them (a shown setting
-    the device keeps no copy of, computed from a stored one). A read value is kept. Raises
-    :class:`_Cancelled` once ``cancel`` says so."""
+    the device keeps no copy of, computed from a stored one). A read value is kept. A computed
+    value can show a read one (a channel switch computed from another setting): the settings
+    that read value is computed from are then computed too. Raises :class:`_Cancelled` once
+    ``cancel`` says so."""
     from .recover import seed_dynamic_ui
 
     result = dict(values)
-    ui = seed_dynamic_ui(application, values, project_code_page)
-    if ui is None:
-        return result
-    if cancel is not None:
-        ui.script_abort = _CancelToken(cancel)
-    try:
-        changes = ui.recalculate(list(values), stored=True)
-    except ScriptAborted:
-        raise _Cancelled from None
-    for ref_id, (_old, new) in changes.items():
-        if new is not None:
-            result.setdefault(ref_id, new)
-    return result
+    # Only an active read value is a stored input of the calculations it is an output of: run
+    # those again while the values computed show more of them (each round shows more, so this
+    # ends).
+    stored: set[str] = set()
+    refs: list[str] | None = None
+    while True:
+        ui = seed_dynamic_ui(application, result, project_code_page)
+        if ui is None:
+            return result
+        if cancel is not None:
+            ui.script_abort = _CancelToken(cancel)
+        before = len(stored)
+        stored |= ui.active_parameter_ref_ids() & values.keys()
+        if refs is not None and len(stored) == before:
+            return result
+        try:
+            changes = ui.recalculate(
+                list(values) if refs is None else refs, stored=True
+            )
+        except ScriptAborted:
+            raise _Cancelled from None
+        for ref_id, (_old, new) in changes.items():
+            if new is not None and ref_id not in values:
+                result[ref_id] = new
+        indexer = ui.indexer
+        shown = (ui.active_parameter_ref_ids() & values.keys()) - stored
+        again = {
+            id(calculation)
+            for ref_id in shown
+            for calculation in indexer.calculations_for_r(ui.local_ref_id(ref_id))
+        }
+        if not again:
+            return result
+        refs = [
+            ref_id
+            for ref_id in values
+            if any(
+                id(calculation) in again
+                for calculation in indexer.calculations_for_r(ui.local_ref_id(ref_id))
+            )
+        ]
 
 
 def _shown_objects(ui: DynamicUI, sizes: Mapping[int, str] | None = None) -> set[int]:
@@ -1681,9 +1711,10 @@ def _hidden_fixed_values(program: object, ui: DynamicUI) -> Mapping[str, str]:
 
 def _fixed_cells(ui: DynamicUI, fixed: _ValueMap) -> set[_Cell]:
     """The bytes the active hidden settings with a fixed value (see :func:`_fixed_values`) take
-    in ``ui``."""
+    in ``ui``, also the ones they share with other settings (a few bits of a byte each)."""
     indexer = ui.indexer
-    active = {ui.local_ref_id(ref_id) for ref_id in ui.active_parameter_ref_ids()}
+    active_refs = ui.active_parameter_ref_ids()
+    active = {ui.local_ref_id(ref_id) for ref_id in active_refs}
     parameters = {indexer.parameter_refs[ref].ref_id for ref in active & fixed.keys()}
     # A parameter another active reference of writes (an assign, a calculation) is left out.
     parameters -= {
@@ -1693,11 +1724,14 @@ def _fixed_cells(ui: DynamicUI, fixed: _ValueMap) -> set[_Cell]:
     }
     if not parameters:
         return set()
+    refs = {
+        ref_id
+        for ref_id in active_refs
+        if (local := ui.local_ref_id(ref_id)) in fixed
+        and indexer.parameter_refs[local].ref_id in parameters
+    }
     return {
-        (segment_id, offset)
-        for segment_id, cells in ui.memory_param_map().items()
-        for offset, (parameter_id, _value) in cells.items()
-        if parameter_id in parameters
+        cell for cell, owners in ui.stored_parameter_cells().items() if owners & refs
     }
 
 

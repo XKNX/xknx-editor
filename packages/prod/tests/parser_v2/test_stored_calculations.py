@@ -17,6 +17,7 @@ SHIFT, SHIFT_VALUE = f"{APP}_P-1_R-1", f"{APP}_P-2_R-2"
 FROST, FROST_VALUE = f"{APP}_P-3_R-3", f"{APP}_P-4_R-4"
 PROTECTION = f"{APP}_P-5_R-5"
 LEVEL, LEVEL_VALUE = f"{APP}_P-6_R-6", f"{APP}_P-7_R-7"
+LEVEL_HIGH = f"{APP}_P-8_R-8"
 
 XML = (
     Path(__file__).parents[1] / "fixtures" / "stored_calculations_application.xml"
@@ -82,6 +83,22 @@ def test_an_rl_result_that_does_not_give_the_value_back_is_replaced(
 
 def test_a_calculation_without_rl_transformation_is_inverted(ui: DynamicUI) -> None:
     assert _read(ui, {LEVEL_VALUE: "12"})[LEVEL] == "4"
+
+
+def test_the_values_not_read_follow_the_settings_found(ui: DynamicUI) -> None:
+    # The level found from its stored value is above 2: the switch the same calculation
+    # computes from it follows, as an edit of the level sets it.
+    assert _read(ui, {LEVEL_VALUE: "12"})[LEVEL] == "4"
+    assert ui.get_value(LEVEL_HIGH) == "1"
+
+
+def test_the_values_not_read_follow_settings_that_give_the_values_back(
+    ui: DynamicUI,
+) -> None:
+    # The level the device was given already gives its stored value back.
+    ui.apply_parameter_values({LEVEL_HIGH: "1"})
+    assert _read(ui, {LEVEL_VALUE: "3"})[LEVEL] == "1"
+    assert ui.get_value(LEVEL_HIGH) == "0"
 
 
 def test_a_stored_value_no_setting_gives_back_is_reported(

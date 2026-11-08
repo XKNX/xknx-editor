@@ -36,9 +36,10 @@
               <Parameter Id="M-00FA_A-0002-01-0000_P-5" Name="Protection" ParameterType="M-00FA_A-0002-01-0000_PT-Mode" Text="Protection" Value="0" />
               <Parameter Id="M-00FA_A-0002-01-0000_P-6" Name="Level" ParameterType="M-00FA_A-0002-01-0000_PT-Level" Text="Level" Value="1" />
               <Parameter Id="M-00FA_A-0002-01-0000_P-7" Name="LevelValue" ParameterType="M-00FA_A-0002-01-0000_PT-Byte" Text="" Access="None" Value="3" />
+              <Parameter Id="M-00FA_A-0002-01-0000_P-8" Name="LevelHigh" ParameterType="M-00FA_A-0002-01-0000_PT-Mode" Text="" Access="None" Value="0" />
             </Parameters>
             <ParameterRefs>
-              <ParameterRef Id="M-00FA_A-0002-01-0000_P-1_R-1" RefId="M-00FA_A-0002-01-0000_P-1" /><ParameterRef Id="M-00FA_A-0002-01-0000_P-2_R-2" RefId="M-00FA_A-0002-01-0000_P-2" /><ParameterRef Id="M-00FA_A-0002-01-0000_P-3_R-3" RefId="M-00FA_A-0002-01-0000_P-3" /><ParameterRef Id="M-00FA_A-0002-01-0000_P-4_R-4" RefId="M-00FA_A-0002-01-0000_P-4" /><ParameterRef Id="M-00FA_A-0002-01-0000_P-5_R-5" RefId="M-00FA_A-0002-01-0000_P-5" /><ParameterRef Id="M-00FA_A-0002-01-0000_P-6_R-6" RefId="M-00FA_A-0002-01-0000_P-6" /><ParameterRef Id="M-00FA_A-0002-01-0000_P-7_R-7" RefId="M-00FA_A-0002-01-0000_P-7" />
+              <ParameterRef Id="M-00FA_A-0002-01-0000_P-1_R-1" RefId="M-00FA_A-0002-01-0000_P-1" /><ParameterRef Id="M-00FA_A-0002-01-0000_P-2_R-2" RefId="M-00FA_A-0002-01-0000_P-2" /><ParameterRef Id="M-00FA_A-0002-01-0000_P-3_R-3" RefId="M-00FA_A-0002-01-0000_P-3" /><ParameterRef Id="M-00FA_A-0002-01-0000_P-4_R-4" RefId="M-00FA_A-0002-01-0000_P-4" /><ParameterRef Id="M-00FA_A-0002-01-0000_P-5_R-5" RefId="M-00FA_A-0002-01-0000_P-5" /><ParameterRef Id="M-00FA_A-0002-01-0000_P-6_R-6" RefId="M-00FA_A-0002-01-0000_P-6" /><ParameterRef Id="M-00FA_A-0002-01-0000_P-7_R-7" RefId="M-00FA_A-0002-01-0000_P-7" /><ParameterRef Id="M-00FA_A-0002-01-0000_P-8_R-8" RefId="M-00FA_A-0002-01-0000_P-8" />
             </ParameterRefs>
             <ParameterCalculations>
               <!-- The RL transformation is not the inverse of the LR one for the shift. -->
@@ -57,11 +58,11 @@
               <!-- No RL transformation. -->
               <ParameterCalculation Id="M-00FA_A-0002-01-0000_PC-2" Name="Level" Language="JavaScript" LRTransformationFunc="triple">
                 <LParameters><ParameterRefRef RefId="M-00FA_A-0002-01-0000_P-6_R-6" AliasName="l" /></LParameters>
-                <RParameters><ParameterRefRef RefId="M-00FA_A-0002-01-0000_P-7_R-7" AliasName="lv" /></RParameters>
+                <RParameters><ParameterRefRef RefId="M-00FA_A-0002-01-0000_P-7_R-7" AliasName="lv" /><ParameterRefRef RefId="M-00FA_A-0002-01-0000_P-8_R-8" AliasName="high" /></RParameters>
               </ParameterCalculation>
             </ParameterCalculations>
             <Script>
-function triple(input, output) { output.lv = input.l * 3; }
+function triple(input, output) { output.lv = input.l * 3; output.high = input.l > 2 ? 1 : 0; }
 </Script>
           </Static>
           <Dynamic>
