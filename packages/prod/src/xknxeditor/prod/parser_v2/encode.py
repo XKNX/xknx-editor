@@ -7,7 +7,7 @@ import logging
 import math
 import re
 import struct
-from collections.abc import Callable, Mapping
+from collections.abc import Callable, Container, Iterable, Mapping
 from typing import NamedTuple
 
 from xknxeditor.namespaces.intermediate import ApplicationProgram
@@ -39,6 +39,7 @@ from xknxeditor.namespaces.intermediate.module_def_static_t_parameters_union_pro
     ModuleDefStaticParametersUnionProperty,
 )
 from xknxeditor.namespaces.intermediate.module_t_numeric_arg import ModuleNumericArg
+from xknxeditor.namespaces.intermediate.parameter_ref_t import ParameterRef
 from xknxeditor.namespaces.intermediate.parameter_type_t_type_color import (
     ParameterTypeTypeColor,
 )
@@ -603,6 +604,21 @@ def parameter_ref_order(ref_id: str, tag: str | None) -> tuple[int, int]:
     return 0, int(number.group(1)) if number else 0
 
 
+def last_active_ref_ranks(
+    refs: Iterable[ParameterRef], active: Container[str]
+) -> dict[str, tuple[int, int]]:
+    """``{parameter id: place of its last active ParameterRef}`` in :func:`parameter_ref_order`:
+    where a download writes the parameter's value. Union members active together over the
+    same bits are written in this order, so the last one holds the bits."""
+    ranks: dict[str, tuple[int, int]] = {}
+    for ref in refs:
+        if ref.id in active:
+            rank = parameter_ref_order(ref.id, ref.tag)
+            if ref.ref_id not in ranks or rank >= ranks[ref.ref_id]:
+                ranks[ref.ref_id] = rank
+    return ranks
+
+
 def resolve_param_values(idx: ApplicationIndexer, state: GlobalState) -> dict[str, str]:
     """Build {referenced_id: effective_value} for the ACTIVE ParameterRefs.
 
@@ -723,16 +739,23 @@ def _union_params_to_write(
     parameters: list[UnionParameter],
     overrides: dict[str, str],
     gated: bool = False,
+    ranks: Mapping[str, tuple[int, int]] | None = None,
 ) -> list[tuple[UnionParameter, str]]:
-    """Return the union alternatives to write, each with its value.
+    """Return the union alternatives to write, each with its value, in the order they are
+    written.
 
     Union alternatives can sit at different bit offsets within the shared cell, so
     more than one may be active at once; each active alternative is written (their
-    bits accumulate), as the KNX standard requires. When nothing is active: in a
-    resolved UI (gated) the cell keeps its seed; a bare caller falls back to the
-    union's default alternative so ``collect_writes`` still yields a value.
+    bits accumulate), as the KNX standard requires. With ``ranks`` (see
+    :func:`last_active_ref_ranks`) they are written in ParameterRef order, so where
+    active alternatives share bits, the one with the last active ref holds them. When
+    nothing is active: in a resolved UI (gated) the cell keeps its seed; a bare caller
+    falls back to the union's default alternative so ``collect_writes`` still yields a
+    value.
     """
     active = [up for up in parameters if up.id in overrides]
+    if ranks is not None:
+        active.sort(key=lambda up: ranks.get(up.id, (-1, -1)))
     if active:
         return [(up, overrides[up.id]) for up in active]
     if gated:
@@ -836,11 +859,12 @@ def _collect_union(
     ms: ModuleState | None,
     out: Writes,
     gated: bool = False,
+    ranks: Mapping[str, tuple[int, int]] | None = None,
 ) -> None:
     choice = item.choice
     if choice is None:
         return
-    selected = _union_params_to_write(item.parameter, overrides, gated)
+    selected = _union_params_to_write(item.parameter, overrides, gated, ranks)
     # Test subclasses first: module types derive from the top-level ones
     if isinstance(choice, ModuleDefStaticParametersUnionMemory):
         assert ms is not None
@@ -931,10 +955,12 @@ def _collect_scope_writes(
     md = idx.module_defs.get(ms.ref_id)
     if md is None or md.static.parameters is None:
         return
+    refs = md.static.parameter_refs.parameter_ref if md.static.parameter_refs else []
+    active = ms.local_active_param_refs()
+    ranks = last_active_ref_ranks(refs, active)
     if behavior is None:
         instance_overrides = _build_instance_overrides(ms, idx)
         if active_unions and md.static.parameter_refs is not None:
-            active = ms.local_active_param_refs()
             for ref in md.static.parameter_refs.parameter_ref:
                 if (
                     ref.id in active
@@ -949,14 +975,16 @@ def _collect_scope_writes(
                 _collect_param(item, instance_overrides, ms, out)
             else:
                 assert isinstance(item, ModuleDefStaticParametersUnion)
-                _collect_union(item, instance_overrides, ms, out)
+                _collect_union(item, instance_overrides, ms, out, ranks=ranks)
         return
-    refs = md.static.parameter_refs.parameter_ref if md.static.parameter_refs else []
     referenced = {ref.ref_id for ref in refs}
-    active = ms.local_active_param_refs()
+    # A parameter with several active refs: the download writes each in turn, the last in
+    # parameter_ref_order sets the value (as for the application's own parameters).
     values: dict[str, str] = {}
     for ref in refs:
-        if ref.id in active and ref.ref_id not in values:
+        if ref.id in active and parameter_ref_order(ref.id, ref.tag) == ranks.get(
+            ref.ref_id
+        ):
             value = ms.get(ref.id)
             if value is not None:
                 values[ref.ref_id] = value
@@ -978,7 +1006,7 @@ def _collect_scope_writes(
         assert isinstance(item, ModuleDefStaticParametersUnion)
         members = [up for up in item.parameter if up.id in referenced]
         if any(up.id in values for up in item.parameter):
-            _collect_union(item, values, ms, out, gated=True)
+            _collect_union(item, values, ms, out, gated=True, ranks=ranks)
         elif members and defaults:
             _collect_union(item, {}, ms, out)
         elif members and keep:
@@ -1039,6 +1067,12 @@ def collect_writes(
     behavior = download_behavior(app)
     keep = inactive_ranges and behavior is DownloadBehavior.BACKGROUND
     referenced = {ref.ref_id for ref in idx.parameter_refs.values()}
+    # Active union members over the same bits are written in ParameterRef order.
+    ranks = (
+        last_active_ref_ranks(idx.parameter_refs.values(), state.active_param_refs())
+        if state is not None
+        else None
+    )
     # With a resolved state, gate top-level parameters to the active set (regular
     # parameters present in overrides); inactive cells stay at the segment seed.
     # Without a state (direct callers), no gating: every static parameter encodes
@@ -1077,7 +1111,9 @@ def collect_writes(
             ):
                 _collect_kept(item, None, out, members)
                 continue
-            _collect_union(item, overrides, None, out, gated=active_ids is not None)
+            _collect_union(
+                item, overrides, None, out, gated=active_ids is not None, ranks=ranks
+            )
     if state is not None:
         for ms in state.module_children():
             _collect_module_writes(ms, idx, out, behavior, keep)

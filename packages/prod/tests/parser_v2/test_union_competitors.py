@@ -20,7 +20,10 @@ def _competitors() -> _UnionCompetitors:
         "U1-E": {"R-E"},
         "U2-A": {"R-U2"},
     }
-    return _UnionCompetitors(members, member_refs)
+    order = ["R-A1", "R-A2", "R-B", "R-C", "R-D", "R-E", "R-U2"]
+    return _UnionCompetitors(
+        members, member_refs, {r: (0, i) for i, r in enumerate(order)}
+    )
 
 
 def test_overlapping_members_compete() -> None:
@@ -54,6 +57,16 @@ def test_later_members_are_those_after_it_that_overlap() -> None:
     assert c.later("R-B") == {"R-C"}
     assert c.later("R-C") == set()
     assert c.later("R-unknown") == set()
+
+
+def test_later_follows_the_parameter_ref_order_not_the_union_order() -> None:
+    # The union lists X before Y, but Y's ref comes first: a download writes Y, then X.
+    members: dict[str, tuple[int, int, int | None]] = {"X": (1, 0, 8), "Y": (1, 0, 8)}
+    c = _UnionCompetitors(
+        members, {"X": {"R-X"}, "Y": {"R-Y"}}, {"R-X": (0, 2), "R-Y": (0, 1)}
+    )
+    assert c.later("R-X") == set()
+    assert c.later("R-Y") == {"R-X"}
 
 
 def test_members_cover_a_member_only_with_all_of_its_bits() -> None:

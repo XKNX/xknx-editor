@@ -78,6 +78,7 @@ from .encode import (
     encode_to_properties,
     encode_to_typed_properties,
     encode_to_typed_properties_masked,
+    parameter_ref_order,
     resolve_param_values,
     segment_seed,
     stored_parameter_cells,
@@ -181,15 +182,25 @@ class _UnionCompetitors:
     members - so the competitor sets are not built for every member up front.
     """
 
-    __slots__ = ("_by_union", "_cache", "_member_of", "_member_refs", "_members")
+    __slots__ = (
+        "_by_union",
+        "_cache",
+        "_member_of",
+        "_member_refs",
+        "_members",
+        "_ref_ranks",
+    )
 
     def __init__(
         self,
         members: dict[str, tuple[int, int, int | None]],
         member_refs: dict[str, set[str]],
+        ref_ranks: dict[str, tuple[int, int]],
     ) -> None:
         self._members = members
         self._member_refs = member_refs
+        # Each param-ref's place in the order a download writes the refs (parameter_ref_order).
+        self._ref_ranks = ref_ranks
         self._member_of = {r: mid for mid, refs in member_refs.items() for r in refs}
         self._by_union: dict[int, list[str]] = {}
         for mid, (key, _s, _z) in members.items():
@@ -224,19 +235,19 @@ class _UnionCompetitors:
         return self._cache[mid]
 
     def later(self, ref_id: str) -> set[str]:
-        """The parameter-refs of the members of ``ref_id``'s union after its own member (in the
-        order a download writes them) whose bits overlap its own: one of them active, its value
-        is what the memory holds."""
+        """The parameter-refs of the other members of ``ref_id``'s union whose bits overlap its
+        own and that a download writes after ``ref_id`` (ParameterRef order, see
+        :func:`parameter_ref_order`): one of them active, its value is what the memory holds."""
         mid = self._member_of.get(ref_id)
         if mid is None:
             return set()
-        order = self._by_union[self._members[mid][0]]
-        after = order[order.index(mid) + 1 :]
+        own = self._ref_ranks.get(ref_id, (-1, -1))
         return {
             r
-            for m2 in after
-            if m2 in self._member_refs and self._overlap(mid, m2)
+            for m2 in self._by_union[self._members[mid][0]]
+            if m2 != mid and m2 in self._member_refs and self._overlap(mid, m2)
             for r in self._member_refs[m2]
+            if self._ref_ranks.get(r, (-1, -1)) > own
         }
 
     def covered(self, ref_id: str, by: Iterable[str]) -> bool:
@@ -580,10 +591,12 @@ class DynamicTreeBuilder:
                         _add_union(p, id(p))
         # member id -> its parameter-ref ids
         member_refs: dict[str, set[str]] = {}
+        ref_ranks: dict[str, tuple[int, int]] = {}
         for pr in self.idx.parameter_refs.values():
             if pr.ref_id in members:  # pr.ref_id is the underlying member id
                 member_refs.setdefault(pr.ref_id, set()).add(pr.id)
-        return _UnionCompetitors(members, member_refs)
+                ref_ranks[pr.id] = parameter_ref_order(pr.id, pr.tag)
+        return _UnionCompetitors(members, member_refs, ref_ranks)
 
     def _build(self, elem: object) -> DynamicNode | None:
         if isinstance(elem, ApplicationProgramDynamic):
