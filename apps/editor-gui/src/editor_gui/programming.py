@@ -18,16 +18,18 @@ from editor_gui.device import address_order
 
 # Import from the concrete modules: the package also has a ``preflight`` submodule,
 # so ``from xknxeditor.download import preflight`` is ambiguous to type checkers.
+from xknxeditor.download import route
 from xknxeditor.download.download import download, preflight
 from xknxeditor.download.image import build_image
 from xknxeditor.download.preflight import ByteRange
 from xknxeditor.download.scope import DownloadScope
 
 if TYPE_CHECKING:
-    from collections.abc import Awaitable, Callable, Mapping
+    from collections.abc import Awaitable, Callable, Mapping, Sequence
     from collections.abc import Set as AbstractSet
 
     from xknx import XKNX
+    from xknx.telegram import IndividualAddress
 
     from editor_gui.device import Device
     from xknxeditor.catalog.core.hardware import FactoryData
@@ -467,6 +469,23 @@ def classify_preflight(
     return PreflightClassification(config, default, runtime, config_locations)
 
 
+async def _route_limited(
+    xknx: XKNX,
+    couplers: Sequence[IndividualAddress],
+    interface_max_apdu_length: int | None,
+) -> int | None:
+    """The interface's maximum APDU length, lowered to what the couplers pass (#245)."""
+    if not couplers:
+        return interface_max_apdu_length
+    from xknxeditor.download.session import management_session
+
+    limit = await route.route_max_apdu_length(
+        couplers, lambda address: management_session(xknx, address, None)
+    )
+    known = [value for value in (interface_max_apdu_length, limit) if value is not None]
+    return min(known, default=None)
+
+
 async def eval_device(
     xknx: XKNX,
     device: Device,
@@ -479,6 +498,7 @@ async def eval_device(
     factory_image: FactoryData | None = None,
     second_application: Application | None = None,
     access_key: int = 0xFFFFFFFF,
+    route_couplers: Sequence[IndividualAddress] = (),
 ) -> PreflightReport:
     """Dry run: report what programming ``device`` would change, writing nothing.
 
@@ -489,8 +509,12 @@ async def eval_device(
     ``interface_max_apdu_length`` (the connected interface's maximum) limits the frames.
     ``factory_image`` is the product's ``LoadedImage`` (see ``Device.factory_image``),
     ``second_application`` its second application program (``Device.second_application``),
-    ``access_key`` the project's access key.
+    ``access_key`` the project's access key. ``route_couplers`` are the couplers between
+    the interface and the device; the frames stay within what they pass.
     """
+    interface_max_apdu_length = await _route_limited(
+        xknx, route_couplers, interface_max_apdu_length
+    )
     return await preflight(
         xknx,
         _address(device),
@@ -528,6 +552,7 @@ async def download_device(
     access_key: int = 0xFFFFFFFF,
     in_programming_mode: bool = False,
     waiting: Callable[[], None] | None = None,
+    route_couplers: Sequence[IndividualAddress] = (),
 ) -> DownloadResult:
     """Program ``device``: build its image and run the load procedure on the bus.
 
@@ -555,8 +580,12 @@ async def download_device(
     with the application (see ``Device.second_application``). ``access_key`` is the project's
     access key; ``in_programming_mode`` and ``waiting`` belong to an unload of everything, for
     which the user puts the device into programming mode (see
-    :func:`xknxeditor.download.download`).
+    :func:`xknxeditor.download.download`). ``route_couplers`` are the couplers between the
+    interface and the device; the frames stay within what they pass.
     """
+    interface_max_apdu_length = await _route_limited(
+        xknx, route_couplers, interface_max_apdu_length
+    )
     return await download(
         xknx,
         _address(device),
