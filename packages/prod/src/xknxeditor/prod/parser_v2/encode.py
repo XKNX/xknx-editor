@@ -914,14 +914,17 @@ def _collect_scope_writes(
     out: Writes,
     behavior: DownloadBehavior | None = None,
     keep: bool = False,
+    active_unions: bool = False,
 ) -> None:
     """Collect one module instance scope's writes (not its children), resolved to
     that instance's offsets.
 
-    Without ``behavior`` every parameter is collected with its instance value or default.
-    With it, the instance's active ParameterRefs give the values, and inactive parameters
-    are handled as the application's ``DownloadInvisibleParameters`` asks; ``keep`` adds
-    the ranges of inactive parameters under ``Background``.
+    Without ``behavior`` every parameter is collected with its instance value or default;
+    with ``active_unions`` a union also takes the members whose ParameterRef is active,
+    with their value (as :func:`resolve_param_values` does for the application's own).
+    With ``behavior``, the instance's active ParameterRefs give the values, and inactive
+    parameters are handled as the application's ``DownloadInvisibleParameters`` asks;
+    ``keep`` adds the ranges of inactive parameters under ``Background``.
     """
     if ms.ref_id is None:
         return
@@ -930,6 +933,17 @@ def _collect_scope_writes(
         return
     if behavior is None:
         instance_overrides = _build_instance_overrides(ms, idx)
+        if active_unions and md.static.parameter_refs is not None:
+            active = ms.local_active_param_refs()
+            for ref in md.static.parameter_refs.parameter_ref:
+                if (
+                    ref.id in active
+                    and ref.ref_id not in instance_overrides
+                    and isinstance(idx.parameters.get(ref.ref_id), UnionParameter)
+                ):
+                    value = ms.get(ref.id)
+                    if value is not None:
+                        instance_overrides[ref.ref_id] = value
         for item in md.static.parameters.choice:
             if isinstance(item, ModuleDefStaticParametersParameter):
                 _collect_param(item, instance_overrides, ms, out)
@@ -1701,7 +1715,7 @@ def decode_module_parameters(
 
     def visit(scope: ModuleState) -> None:
         writes = Writes()
-        _collect_scope_writes(scope, idx, writes)
+        _collect_scope_writes(scope, idx, writes, active_unions=True)
         for w in writes.mem:
             data = segments.get(w.seg_id)
             if data is not None:
