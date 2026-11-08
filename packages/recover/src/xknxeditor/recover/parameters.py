@@ -1589,8 +1589,8 @@ def _infer_unstored(
     other such settings is taken together with theirs if those show more (``look_ahead``: a
     channel whose own objects are not linked, but one behind a setting inside it; the first
     ``_LOOK_AHEAD_TRIES`` such values). Values
-    that show no more linked objects and no other setting are added to ``dead`` and not
-    tried again. Empty when nothing shows more.
+    that show no more linked objects and no other setting, or none that shows more, are added
+    to ``dead`` and not tried again. Empty when nothing shows more.
     """
     from xknxeditor.prod.parser_v2.activation import shown_parameters, values_to_try
 
@@ -1720,6 +1720,9 @@ def _infer_unstored(
             cancel=cancel,
         )
         if not nested:
+            # Nothing it shows shows more either.
+            if dead is not None:
+                dead.add((ref_id, candidate))
             continue
         trial = {ref_id: candidate, **nested}
         count = len(shown(trial)[0])

@@ -729,3 +729,68 @@ def test_a_union_member_written_over_in_part_is_read_from_its_own_bits() -> None
     assert recovered.complete
     assert recovered.values.get(ua) == "65535"
     assert recovered.values.get(ub) == "8"
+
+
+def _look_ahead_application() -> Application:
+    """Two settings the device keeps no copy of: ``A`` on shows ``B``, and ``B`` on shows group
+    object 2. Object 1 is never shown."""
+    app = "M-00FA_A-000E-01-0000"
+    xml = f"""<?xml version="1.0" encoding="utf-8"?>
+<KNX xmlns="http://knx.org/xml/project/20" CreatedBy="test" ToolVersion="1">
+  <ManufacturerData><Manufacturer RefId="M-00FA"><ApplicationPrograms>
+    <ApplicationProgram Id="{app}" ApplicationNumber="14" ApplicationVersion="1"
+        ProgramType="ApplicationProgram" MaskVersion="MV-07B0" Name="Look ahead"
+        LoadProcedureStyle="MergedProcedure" PeiType="0" DefaultLanguage="en-US"
+        DynamicTableManagement="false" Linkable="false" MinEtsVersion="5.0">
+      <Static>
+        <Code><AbsoluteSegment Id="{app}_AS-0000" Address="0" Size="1"><Data>AA==</Data></AbsoluteSegment></Code>
+        <ParameterTypes>
+          <ParameterType Id="{app}_PT-OnOff" Name="OnOff"><TypeRestriction Base="Value" SizeInBit="8">
+            <Enumeration Text="off" Value="0" Id="{app}_PT-OnOff_EN-0" />
+            <Enumeration Text="on" Value="1" Id="{app}_PT-OnOff_EN-1" />
+          </TypeRestriction></ParameterType>
+        </ParameterTypes>
+        <Parameters>
+          <Parameter Id="{app}_P-1" Name="A" ParameterType="{app}_PT-OnOff" Text="A" Value="0" />
+          <Parameter Id="{app}_P-2" Name="B" ParameterType="{app}_PT-OnOff" Text="B" Value="0" />
+        </Parameters>
+        <ParameterRefs>
+          <ParameterRef Id="{app}_P-1_R-1" RefId="{app}_P-1" />
+          <ParameterRef Id="{app}_P-2_R-2" RefId="{app}_P-2" />
+        </ParameterRefs>
+        <ComObjectTable>
+          <ComObject Id="{app}_O-1" Name="O1" Text="Object 1" Number="1" FunctionText="" ObjectSize="1 Bit" ReadFlag="Disabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" />
+          <ComObject Id="{app}_O-2" Name="O2" Text="Object 2" Number="2" FunctionText="" ObjectSize="1 Bit" ReadFlag="Disabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" />
+        </ComObjectTable>
+        <ComObjectRefs>
+          <ComObjectRef Id="{app}_O-1_R-1" RefId="{app}_O-1" />
+          <ComObjectRef Id="{app}_O-2_R-2" RefId="{app}_O-2" />
+        </ComObjectRefs>
+      </Static>
+      <Dynamic><ChannelIndependentBlock><ParameterBlock Id="{app}_PB-1" Text="General">
+        <ParameterRefRef RefId="{app}_P-1_R-1" />
+        <choose ParamRefId="{app}_P-1_R-1"><when test="1">
+          <ParameterRefRef RefId="{app}_P-2_R-2" />
+          <choose ParamRefId="{app}_P-2_R-2"><when test="1">
+            <ComObjectRefRef RefId="{app}_O-2_R-2" />
+          </when></choose>
+        </when></choose>
+      </ParameterBlock></ChannelIndependentBlock></Dynamic>
+    </ApplicationProgram>
+  </ApplicationPrograms></Manufacturer></ManufacturerData>
+</KNX>
+"""
+    return parse_application_xml(xml.encode(), "M-00FA")[0]
+
+
+def test_a_value_whose_look_ahead_shows_nothing_more_is_not_tried_again() -> None:
+    # A on shows only B, and B on only an object that is not linked: nothing behind A shows
+    # the linked object 1, so A on is not tried again (each try seeds the whole UI).
+    application = _look_ahead_application()
+    a = f"{application.id}_P-1_R-1"
+    dead: set[tuple[str, str]] = set()
+    chosen = parameters._infer_unstored(  # pyright: ignore[reportPrivateUsage]
+        application, {}, {1}, {}, None, dead=dead
+    )
+    assert chosen == {}
+    assert (a, "1") in dead
