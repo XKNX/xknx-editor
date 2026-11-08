@@ -2068,6 +2068,12 @@ class DynamicUI:
         application or module definition)."""
         return self._module_gates.get(module_id, frozenset())
 
+    def gated_modules(self) -> dict[str, frozenset[str]]:
+        """Every module (its id, local to its application or module definition) with the
+        selectors (local param-refs) right on the way to it, also the modules the evaluated
+        tree does not make."""
+        return dict(self._module_gates)
+
     @property
     def application_name(self) -> str:
         return self._app.name

@@ -662,6 +662,30 @@ def _objects_by_number(ui: DynamicUI) -> dict[int, list[str]]:
     return result
 
 
+def _absent_module_gates(ui: DynamicUI) -> set[str]:
+    """The selectors on the way to the application's modules that ``ui`` makes no instance of
+    and whose definition has group objects (in a submodule too)."""
+    made = {
+        instance[: instance.rindex("_MI-")] for instance, _ in ui.get_module_instances()
+    }
+    with_objects = {
+        ref_id[: ref_id.index("_", ref_id.index("_MD-") + 1)]
+        for ref_id in ui.indexer.com_object_refs
+        if "_MD-" in ref_id
+    }
+    gates: set[str] = set()
+    for module_id, module_gates in ui.gated_modules().items():
+        if (
+            "_SM-" in module_id
+            or module_id in made
+            or "_M-" not in module_id
+            or module_id[: module_id.rindex("_M-")] not in with_objects
+        ):
+            continue
+        gates |= module_gates
+    return gates
+
+
 def _count_selectors(
     ui: DynamicUI,
     gates: Collection[str],
@@ -946,10 +970,14 @@ def _refinement_trials(
     if any(number not in objects_of for number in wrong):
         # A linked object no reference of the instances there are now has (its number is one
         # of a further repetition): the selectors on the way to the modules of those
-        # instances, the repeat counts among them, make more of them.
+        # instances, the repeat counts among them, make more of them. Or one of a module
+        # instance the tree does not make at all (a function switched off), whose numbers are
+        # not known before it is there: the selectors on the way to such modules with group
+        # objects.
         for instance in ui.get_module_instances():
             _check(cancel)
             _count_selectors(ui, _module_gates_of(ui, instance), shown, outer)
+        _count_selectors(ui, _absent_module_gates(ui), shown, outer)
     trials: list[tuple[str, str]] = []
     actives: frozenset[str] | None = None
     ranked = [
@@ -964,6 +992,10 @@ def _refinement_trials(
             value = hidden.get(ui.local_ref_id(gate)) if hidden else None
             if value is not None and ui.get_value(gate) != value:
                 trials.append((gate, value))
+            elif value is None:
+                trials.extend(
+                    (gate, kept) for kept in _kept_values_to_try(ui, gate, shown)
+                )
             continue
         if actives is None:
             actives = ui.active_parameter_ref_ids()
@@ -975,6 +1007,56 @@ def _refinement_trials(
             now = ui.get_value(gate) or parameter.default_value
             trials.extend((gate, value) for value in values_to_try(parameter, now))
     return trials
+
+
+def _kept_values_to_try(
+    ui: DynamicUI, ref_id: str, shown: Collection[str]
+) -> list[str]:
+    """The other values of a hidden setting the device keeps no copy of that a parameter
+    calculation computes from settings of which not all are read: one of them hidden (the
+    device keeps no copy of it, or another setting of its union is the one written), the
+    setting keeps the value computed before (a "show the lead objects" switch computed from
+    functions a configuration no longer shows), which only the objects it shows tell. Empty for
+    any other setting: the values read decide it, or a shown input the device keeps no copy of,
+    whose values are tried instead."""
+    from xknxeditor.prod.parser_v2.activation import values_to_try
+    from xknxeditor.prod.parser_v2.ui.parameter import UiParameter, resolve_widget
+
+    local = ui.local_ref_id(ref_id)
+    indexer = ui.indexer
+    calculations = indexer.calculations_for_r(local)
+    if not calculations or not _is_unstored(ui, ref_id):
+        return []
+    instance = _instance_of(ref_id, local)
+    inputs = _qualified(
+        {
+            ref.ref_id
+            for calculation in calculations
+            for ref in calculation.lparameters.parameter_ref_ref
+        },
+        instance,
+    )
+    actives = ui.active_parameter_ref_ids()
+    if any(ref in shown and _is_unstored(ui, ref) for ref in inputs) or all(
+        ref in actives and not _is_unstored(ui, ref) for ref in inputs
+    ):
+        return []
+    ref = indexer.parameter_refs.get(local)
+    base = indexer.parameters.get(ref.ref_id) if ref is not None else None
+    parameter_type = (
+        indexer.parameter_types.get(base.parameter_type) if base is not None else None
+    )
+    if parameter_type is None:
+        return []
+    default = indexer.default_value(local) or ""
+    parameter = UiParameter(
+        ref_id=ref_id,
+        label="",
+        value=ui.get_value(ref_id) or default,
+        widget=resolve_widget(parameter_type),
+        default_value=default,
+    )
+    return values_to_try(parameter, parameter.value)
 
 
 def _guessed(ui: DynamicUI, values: Mapping[str, str]) -> _ValueMap:
