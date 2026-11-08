@@ -7,7 +7,7 @@ import logging
 import math
 import re
 import struct
-from collections.abc import Callable, Container, Iterable, Mapping
+from collections.abc import Callable, Container, Iterable, Iterator, Mapping
 from typing import NamedTuple
 
 from xknxeditor.namespaces.intermediate import ApplicationProgram
@@ -322,6 +322,8 @@ def _encode_restriction(
     size_in_bit: int,
     tc: ParameterTypeTypeRestriction,
     little_endian: bool,
+    *,
+    binary: Mapping[str, bytes | None] | None = None,
 ) -> int | None:
     """Encode an enumeration value of a restricted parameter type.
 
@@ -329,15 +331,33 @@ def _encode_restriction(
     store, e.g. a priority ordering); that is written verbatim, big-endian, and is
     not subject to the program byte order. Entries without a binary value fall back
     to encoding the enumeration value as an integer (honouring the byte order).
+    ``binary`` is :func:`_first_binary_values` of ``tc``, when the caller has it already.
     """
-    for enumeration in tc.enumeration:
-        if str(enumeration.value) == str_value:
-            if enumeration.binary_value:
-                return int.from_bytes(enumeration.binary_value, "big")
-            break
+    if binary is not None:
+        binary_value = binary.get(str_value)
+    else:
+        binary_value = next(
+            (
+                enumeration.binary_value
+                for enumeration in tc.enumeration
+                if str(enumeration.value) == str_value
+            ),
+            None,
+        )
+    if binary_value:
+        return int.from_bytes(binary_value, "big")
     return _apply_byte_order(
         _encode_number(str_value, size_in_bit), size_in_bit, little_endian
     )
+
+
+def _first_binary_values(tc: ParameterTypeTypeRestriction) -> dict[str, bytes | None]:
+    """The ``BinaryValue`` of the first enumeration entry of each value (``None`` or empty:
+    the value is encoded as an integer)."""
+    binary: dict[str, bytes | None] = {}
+    for enumeration in tc.enumeration:
+        binary.setdefault(str(enumeration.value), enumeration.binary_value)
+    return binary
 
 
 def _fits_in_bits(str_value: str, size_in_bit: int) -> bool:
@@ -1324,6 +1344,24 @@ def build_memory_param_map(
     return maps
 
 
+def _stored_writes(
+    idx: ApplicationIndexer, writes: Writes, refs_of: Mapping[str, list[str]]
+) -> Iterator[tuple[MemWrite, list[str], range]]:
+    """Each memory write of ``writes`` with the param-refs of its parameter and the bytes it
+    stores to (none for a type without a size)."""
+    for w in writes.mem:
+        pt = idx.parameter_types.get(w.parameter_type)
+        size = type_size_in_bit(pt.choice) if pt is not None else 0
+        if not size:
+            continue
+        start = w.offset * 8 + w.bit_offset
+        yield (
+            w,
+            refs_of.get(w.param_id, []),
+            range(start // 8, (start + size - 1) // 8 + 1),
+        )
+
+
 def stored_parameter_cells(
     app: ApplicationProgram, idx: ApplicationIndexer, state: GlobalState
 ) -> dict[tuple[str, int], set[str]]:
@@ -1331,24 +1369,37 @@ def stored_parameter_cells(
     member of the application and of the module instances ``state`` makes, active or not, those of
     a module instance qualified with it. A layout of where settings live in memory, whatever is
     shown now (what a device's memory can be compared against setting by setting)."""
-    refs_of: dict[str, list[str]] = {}
-    for ref_id, ref in idx.parameter_refs.items():
-        refs_of.setdefault(ref.ref_id, []).append(ref_id)
-    cells: dict[tuple[str, int], set[str]] = {}
+    cached = idx.stored_cells
+    if cached is None:
+        refs_of: dict[str, list[str]] = {}
+        for ref_id, ref in idx.parameter_refs.items():
+            refs_of.setdefault(ref.ref_id, []).append(ref_id)
+        own: dict[tuple[str, int], set[str]] = {}
+        # Without a state every parameter is written, and a union member whenever it has a
+        # value.
+        for w, refs, cell_range in _stored_writes(
+            idx,
+            collect_writes(app, idx, dict.fromkeys(idx.parameters, "0"), None),
+            refs_of,
+        ):
+            for offset in cell_range:
+                own.setdefault((w.seg_id, offset), set()).update(refs)
+        cached = idx.stored_cells = (refs_of, own)
+    refs_of, own = cached
+    # The application's own cells are the same for every state (and large: a picture of a
+    # touch panel is a megabit), so they are shared; a cell a module instance adds to is copied.
+    cells = dict(own)
 
-    def add(writes: Writes, qualify: Callable[[str], str] | None) -> None:
-        for w in writes.mem:
-            pt = idx.parameter_types.get(w.parameter_type)
-            size = type_size_in_bit(pt.choice) if pt is not None else 0
-            if not size:
-                continue
-            refs = [qualify(r) if qualify else r for r in refs_of.get(w.param_id, [])]
-            start = w.offset * 8 + w.bit_offset
-            for offset in range(start // 8, (start + size - 1) // 8 + 1):
-                cells.setdefault((w.seg_id, offset), set()).update(refs)
-
-    # Without a state every parameter is written, and a union member whenever it has a value.
-    add(collect_writes(app, idx, dict.fromkeys(idx.parameters, "0"), None), None)
+    def add(writes: Writes, qualify: Callable[[str], str]) -> None:
+        for w, refs, cell_range in _stored_writes(idx, writes, refs_of):
+            qualified = {qualify(r) for r in refs}
+            for offset in cell_range:
+                key = (w.seg_id, offset)
+                current = cells.get(key)
+                if current is None or current is own.get(key):
+                    cells[key] = qualified | current if current else set(qualified)
+                else:
+                    current.update(qualified)
 
     def walk(ms: ModuleState) -> None:
         md = idx.module_defs.get(ms.ref_id) if ms.ref_id is not None else None
@@ -1413,14 +1464,16 @@ def written_bit_mask(
 
 def _read_bits(data: bytes, offset: int, bit_offset: int, size_in_bit: int) -> int:
     """Read ``size_in_bit`` bits MSB-first from ``data`` - the inverse of ``_write_bits``."""
+    if size_in_bit <= 0:
+        return 0
     start = offset * 8 + bit_offset
-    value = 0
-    for i in range(size_in_bit):
-        pos = start + i
-        byte_index = pos // 8
-        bit = (data[byte_index] >> (7 - pos % 8)) & 1 if byte_index < len(data) else 0
-        value = (value << 1) | bit
-    return value
+    end = start + size_in_bit
+    first, last = start // 8, (end + 7) // 8
+    # The octets the field touches (bits past the end of ``data`` read as 0), in one go: a
+    # field can be large (a picture of a touch panel, a megabit).
+    chunk = bytes(data[first:last])
+    chunk += bytes(last - first - len(chunk))
+    return (int.from_bytes(chunk, "big") >> (last * 8 - end)) & ((1 << size_in_bit) - 1)
 
 
 def _is_signed_number(tc: ParameterTypeTypeNumber) -> bool:
@@ -1516,13 +1569,17 @@ def _decode_value(
     is the codec of ``Text`` parameters.
     """
     if isinstance(tc, ParameterTypeTypeRestriction):
+        # Each entry encoded as _encode_value does, with the BinaryValue of the first entry
+        # of each value looked up once (not searched again per entry: an enumeration of a
+        # few hundred icons is decoded for every module instance).
+        binary = _first_binary_values(tc)
         for enumeration in tc.enumeration:
-            encoded = _encode_value(
-                str(enumeration.value),
-                size_in_bit,
-                tc,
-                little_endian=little_endian,
-                for_property=for_property,
+            try:
+                str_value = validate_parameter_value(str(enumeration.value), tc)
+            except ValueError:
+                continue
+            encoded = _encode_restriction(
+                str_value, size_in_bit, tc, little_endian, binary=binary
             )
             if encoded is not None and encoded == raw:
                 return str(enumeration.value)

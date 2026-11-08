@@ -20,6 +20,7 @@ write, or the group objects it shows, still differ from the device (see :func:`_
 
 from __future__ import annotations
 
+import contextlib
 from collections import Counter
 from collections.abc import Callable, Collection, Mapping
 from dataclasses import dataclass, field
@@ -705,6 +706,9 @@ def _refine(
                         set(dead),
                         cancel,
                     )
+                    # Cancelled during the last inference round: not measured (an encode
+                    # of a large application takes seconds).
+                    _check(cancel)
                 except _Cancelled:
                     return (current, values, unknown, inferred, ui), True, True
                 except AllocatorOverflow:
@@ -884,6 +888,9 @@ def _refine_pairs(
 
     from .recover import seed_dynamic_ui
 
+    if cancel is not None and cancel():
+        # Cancelled: the result so far, measured already.
+        return recovered
     ui = seed_dynamic_ui(application, recovered.values, project_code_page)
     if ui is None:
         return recovered
@@ -1026,14 +1033,31 @@ def _refine_fixed(
     if ui is None:
         return recovered
     inferred = _guessed(ui, recovered.values)
-    values, unknown = _decode(
-        application,
-        parameter_segments,
-        property_values,
-        project_code_page,
-        inferred,
-        fixed=fixed,
-    )
+    decoded: tuple[_ValueMap, list[str]] | None = None
+    if cancel is None or not cancel():
+        with contextlib.suppress(_Cancelled):
+            decoded = _decode(
+                application,
+                parameter_segments,
+                property_values,
+                project_code_page,
+                inferred,
+                cancel,
+                fixed=fixed,
+            )
+    if decoded is None:
+        # Cancelled before or during the decode that validates the result (with the
+        # calculations of a large application it takes as long as a step of the search):
+        # the result so far with the immutable references at their own values, measured.
+        decoded = (
+            {
+                key: value
+                for key, value in recovered.values.items()
+                if ui.local_ref_id(key) not in fixed
+            },
+            list(recovered.unknown),
+        )
+    values, unknown = decoded
     ui = seed_dynamic_ui(application, values, project_code_page)
     assert ui is not None
     current = _misfit(ui, parameter_segments, linked, sizes)

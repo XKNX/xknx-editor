@@ -53,6 +53,7 @@ class ApplicationIndexer:
         "refs_by_name",
         "refs_by_number",
         "script",
+        "stored_cells",
     )
 
     def __init__(self, app: ApplicationProgram) -> None:
@@ -72,6 +73,11 @@ class ApplicationIndexer:
         # What calculations computed from given values, for searches that try many values (a
         # calculation is a function of its values: each run starts in a fresh script context).
         self.calculation_results: dict[tuple[object, ...], object] = {}
+        # The param-refs of each parameter and the bytes the application's own parameters are
+        # stored at (see encode.stored_parameter_cells): the same for every state.
+        self.stored_cells: (
+            tuple[dict[str, list[str]], dict[tuple[str, int], set[str]]] | None
+        ) = None
         self.ref_owner: dict[str, str | None] = {}
         self.refs_by_name: dict[str | None, dict[str, str]] = {}
         self.refs_by_number: dict[str | None, dict[int, str]] = {}

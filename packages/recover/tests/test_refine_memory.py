@@ -229,6 +229,42 @@ def test_a_cancel_is_heard_inside_the_inference(application: Application) -> Non
     assert not recovered.complete
 
 
+def test_a_trial_cancelled_while_inferring_is_not_measured(
+    application: Application, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # Cancelled during the inference behind a value tried: the search ends without encoding
+    # that trial (which takes seconds for a large application).
+    segments = _device(
+        application, (_CHANNEL, "1"), (_MODE, "1"), (_DELAY, "5"), (_STEP, "9")
+    )
+    infer_all = parameters._infer_all  # pyright: ignore[reportPrivateUsage]
+    misfit = parameters._misfit  # pyright: ignore[reportPrivateUsage]
+    inferences: list[int] = []
+    measured: list[int] = []
+
+    def inferred(*args: Any, **kwargs: Any) -> Any:
+        result = infer_all(*args, **kwargs)
+        inferences.append(len(inferences))
+        return result
+
+    def measuring(*args: Any, **kwargs: Any) -> Any:
+        measured.append(len(inferences))
+        return misfit(*args, **kwargs)
+
+    monkeypatch.setattr(parameters, "_infer_all", inferred)
+    monkeypatch.setattr(parameters, "_misfit", measuring)
+    # The first inference is the search's start, the second the first value tried.
+    recovered = recover_parameters(
+        application,
+        segments,
+        effort=RecoveryEffort.UNLIMITED,
+        cancel=lambda: len(inferences) >= 2,
+    )
+    assert len(inferences) == 2
+    assert all(n < 2 for n in measured)
+    assert recovered.limited
+
+
 def test_a_cancel_while_inferring_keeps_what_was_decoded(
     application: Application, monkeypatch: pytest.MonkeyPatch
 ) -> None:

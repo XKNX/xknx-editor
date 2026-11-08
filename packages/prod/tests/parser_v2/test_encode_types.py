@@ -493,3 +493,61 @@ def test_ipaddress_v6_round_trip() -> None:
 def test_ipaddress_v6_literal_in_v4_field_returns_none() -> None:
     tc = _ipaddress(ParameterTypeTypeIpaddressVersion.IPV4)
     assert _encode_value("2001:db8::1", 32, tc) is None
+
+
+def test_restriction_decodes_by_the_first_entry_of_a_value() -> None:
+    # An entry repeating a value is encoded as the first entry of that value (its binary
+    # value), as the encoder looks it up; one that is no valid value decodes nothing.
+    tc = ParameterTypeTypeRestriction(
+        base="BinaryValue",
+        size_in_bit=16,
+        enumeration=[
+            ParameterTypeTypeRestrictionEnumeration(
+                id="EN-1", value=1, binary_value=b"\x12\x34"
+            ),
+            ParameterTypeTypeRestrictionEnumeration(
+                id="EN-1b", value=1, binary_value=b"\x00\x09"
+            ),
+            ParameterTypeTypeRestrictionEnumeration(id="EN-2", value=2),
+        ],
+    )
+    for value in ("1", "2"):
+        raw = _encode_value(value, 16, tc, little_endian=True)
+        assert raw is not None
+        assert _decode_value(raw, 16, tc, little_endian=True) == value
+    assert _decode_value(0x0009, 16, tc, little_endian=True) is None
+    assert _decode_value(0x0200, 16, tc, little_endian=True) == "2"
+    assert _decode_value(0x0002, 16, tc, little_endian=True) is None
+
+
+# --- bit fields ---------------------------------------------------------------
+
+from xknxeditor.prod.parser_v2.encode import _read_bits, _write_bits  # noqa: E402
+
+
+def test_read_bits_inverts_write_bits() -> None:
+    # Sub-octet fields, fields across octets and whole octets, MSB first.
+    for offset, bit_offset, size in [
+        (0, 0, 1),
+        (1, 3, 4),
+        (0, 6, 5),
+        (2, 0, 16),
+        (1, 1, 30),
+    ]:
+        value = (0b1011 << max(0, size - 4)) % (1 << size) | 1
+        buf = bytearray(b"\xa5" * 8)
+        _write_bits(buf, offset, bit_offset, size, value)
+        assert _read_bits(bytes(buf), offset, bit_offset, size) == value
+
+
+def test_read_bits_past_the_end_reads_zero_bits() -> None:
+    assert _read_bits(b"\xff", 0, 4, 8) == 0xF0
+    assert _read_bits(b"\xff", 3, 0, 8) == 0
+    assert _read_bits(b"", 0, 0, 0) == 0
+
+
+def test_read_bits_of_a_large_field() -> None:
+    # A field of a megabit (a picture of a touch panel) is read in one go.
+    data = bytes(range(256)) * 512
+    assert _read_bits(data, 0, 0, len(data) * 8) == int.from_bytes(data, "big")
+    assert _read_bits(data, 1, 4, 12) == 0x102

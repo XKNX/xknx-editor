@@ -10,6 +10,8 @@ single-button ones).
 
 from __future__ import annotations
 
+from typing import Any
+
 import pytest
 
 import xknxeditor.recover.parameters as parameters
@@ -410,6 +412,72 @@ def test_interrupted_fixed_validation_keeps_the_marker_conflict(
     assert result.differing_bytes == 1
     assert not result.complete
     assert result.limited
+
+
+def test_a_cancelled_fixed_validation_decodes_nothing(
+    application: Application, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # Once cancelled the validation does not decode the memory again (with the calculations
+    # of a large application that takes as long as a step of the search): the result so far
+    # with the marker at its own value, measured.
+    marker = f"{_APP}_P-2_R-21"
+    ui = application.dynamic_ui()
+    assert ui is not None
+
+    def no_decode(*_args: object, **_kwargs: object) -> None:
+        raise AssertionError("decoded after the cancel")
+
+    monkeypatch.setattr(parameters, "_decode", no_decode)
+    result = parameters._refine_fixed(
+        application,
+        _device(application, (_STATUS, "4")),
+        {},
+        None,
+        {40},
+        {},
+        parameters.RecoveredParameters({_STATUS: "4", marker: "9"}, []),
+        parameters._fixed_values(application, ui),
+        1,
+        lambda: True,
+    )
+    assert result.values == {_STATUS: "4"}
+    assert result.complete
+
+
+def test_a_fixed_validation_cancelled_while_decoding_ends_with_the_result_so_far(
+    application: Application, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # A cancel given while the validation decodes is heard there too.
+    marker = f"{_APP}_P-2_R-21"
+    ui = application.dynamic_ui()
+    assert ui is not None
+    decode = parameters._decode  # pyright: ignore[reportPrivateUsage]
+    cancelled: list[bool] = []
+    finished: list[bool] = []
+
+    def cancelling(*args: Any, **kwargs: Any) -> Any:
+        cancelled.append(True)
+        result = decode(*args, **kwargs)
+        finished.append(True)
+        return result
+
+    monkeypatch.setattr(parameters, "_decode", cancelling)
+    result = parameters._refine_fixed(
+        application,
+        _device(application, (_STATUS, "4")),
+        {},
+        None,
+        {40},
+        {},
+        parameters.RecoveredParameters({_STATUS: "4", marker: "9"}, []),
+        parameters._fixed_values(application, ui),
+        1,
+        lambda: bool(cancelled),
+    )
+    assert cancelled == [True]
+    assert not finished
+    assert result.values == {_STATUS: "4"}
+    assert result.complete
 
 
 def test_fixed_validation_can_correct_several_independent_markers(
