@@ -72,7 +72,9 @@ async def test_property_disconnect_propagates(monkeypatch: pytest.MonkeyPatch) -
     import xknxeditor.prod.parser_v2.encode as encoding
 
     monkeypatch.setattr(
-        indexing, "ApplicationIndexer", lambda _: SimpleNamespace(parameter_types={})
+        indexing,
+        "ApplicationIndexer",
+        lambda _: SimpleNamespace(parameter_types={}, module_defs={}),
     )
     monkeypatch.setattr(
         encoding,
@@ -80,7 +82,11 @@ async def test_property_disconnect_propagates(monkeypatch: pytest.MonkeyPatch) -
         lambda *args: SimpleNamespace(
             prop=[
                 SimpleNamespace(
-                    object_index=4, property_id=80, occurrence=0, parameter_type="PT"
+                    object_index=4,
+                    object_type=None,
+                    property_id=80,
+                    occurrence=0,
+                    parameter_type="PT",
                 )
             ]
         ),

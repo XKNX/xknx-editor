@@ -1365,12 +1365,13 @@ class DynamicUI:
         )
 
     def decode_property_parameters(
-        self, properties: Mapping[PropertyKey, bytes]
+        self, properties: Mapping[TypedPropertyKey, bytes]
     ) -> dict[str, str | None]:
-        """Best-effort inverse of :meth:`encode_to_properties` for recovering values.
+        """Best-effort inverse of :meth:`encode_to_typed_properties` for recovering values.
 
         Decodes each top-level static property-backed parameter's value from the
-        given property bytes (read off a device). ``None`` marks an unreconstructable
+        given property bytes (read off a device, keyed as by
+        :meth:`encode_to_typed_properties`). ``None`` marks an unreconstructable
         value; module-instanced parameters are skipped (see
         :func:`decode_property_parameters`).
         """
@@ -1382,9 +1383,10 @@ class DynamicUI:
     def decode_module_parameters(
         self,
         segments: Mapping[str, bytes],
-        properties: Mapping[PropertyKey, bytes],
+        properties: Mapping[TypedPropertyKey, bytes],
     ) -> dict[str, str | None]:
-        """Decode module-instance parameter values from device memory/properties.
+        """Decode module-instance parameter values from device memory/properties (keyed as
+        by :meth:`encode_to_typed_properties`).
 
         Uses this UI's evaluated module instances (seed it from the recovered
         top-level parameters first, so the instances match the device). Returns

@@ -49,7 +49,10 @@ def _device() -> RecoveredDevice:
         mask_version=0x07B0,
         dossier=DeviceDossier(serial_number="0083:12345678", order_info="BE-GT2Tx.01"),
         parameter_segments={"M-0083_A-008A-28-7B00_RS-04-00000": bytes([1, 2, 255])},
-        property_values={(4, 54, 0): bytes([0x10, 0x20]), (None, 51, 1): b"\x01"},
+        property_values={
+            (4, None, 54, 0): bytes([0x10, 0x20]),
+            (None, 50001, 51, 1): b"\x01",
+        },
         effort=RecoveryEffort.MAXIMUM,
     )
 
@@ -68,6 +71,21 @@ def test_a_snapshot_without_property_values_still_reads() -> None:
     assert device.property_values == {}
     assert device.effort is RecoveryEffort.FAST
     assert device.parameters.values == {"R-1": "8"}
+
+
+def test_a_snapshot_without_object_types_still_reads() -> None:
+    # Written before the object types were kept: only objects addressed by index were read.
+    document = json.loads(snapshots_json([_device()]))
+    for record in document["devices"]:
+        record["raw_properties"] = [
+            entry
+            for entry in record["raw_properties"]
+            if entry["object_index"] is not None
+        ]
+        for entry in record["raw_properties"]:
+            del entry["object_type"]
+    (device,) = devices_from_snapshot(json.dumps(document))
+    assert device.property_values == {(4, None, 54, 0): bytes([0x10, 0x20])}
 
 
 @pytest.mark.parametrize(

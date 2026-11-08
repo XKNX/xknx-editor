@@ -43,6 +43,7 @@ if TYPE_CHECKING:
 
     from xknxeditor.prod import Application
     from xknxeditor.prod.parser_v2.dynamic import DynamicUI
+    from xknxeditor.prod.parser_v2.encode import TypedPropertyKey
 
 # Recovery stages reported through the progress callback (see recover_device).
 STAGE_GROUP_COMMUNICATION = "group_communication"
@@ -69,7 +70,7 @@ class RecoveredDevice:
     # ``None`` falls back to the application's default-state mapping.
     com_object_refs: dict[int, str] | None = None
     # The property values read off the device, kept with the segments to search again.
-    property_values: dict[tuple[int | None, int, int], bytes] | None = None
+    property_values: dict[TypedPropertyKey, bytes] | None = None
     # The effort the parameters were searched with.
     effort: RecoveryEffort = RecoveryEffort.MEDIUM
 
@@ -276,7 +277,7 @@ def _decode_configuration(
     links: Sequence[DecodedLink],
     group_objects: Mapping[int, DecodedGroupObject],
     parameter_segments: Mapping[str, bytes],
-    property_values: Mapping[tuple[int | None, int, int], bytes],
+    property_values: Mapping[TypedPropertyKey, bytes],
     project_code_page: str | None,
     effort: RecoveryEffort,
     cancel: Callable[[], bool] | None = None,

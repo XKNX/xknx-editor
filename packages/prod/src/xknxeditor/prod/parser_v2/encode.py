@@ -1700,37 +1700,52 @@ def decode_memory_parameters(
     return result
 
 
+def property_data(
+    properties: Mapping[TypedPropertyKey, bytes], write: PropWrite
+) -> bytes | None:
+    """The bytes of ``properties`` (keyed as by :func:`encode_to_typed_properties`) the
+    property parameter ``write`` is stored in, ``None`` if they are absent. An object
+    addressed by index is one object whatever the occurrence, so the bytes of its property
+    under another occurrence serve too; an object addressed by type is a separate object
+    per type and occurrence."""
+    data = properties.get(
+        (write.object_index, write.object_type, write.property_id, write.occurrence)
+    )
+    if data is not None or write.object_index is None:
+        return data
+    return next(
+        (
+            value
+            for (index, object_type, pid, _occurrence), value in properties.items()
+            if index == write.object_index
+            and object_type == write.object_type
+            and pid == write.property_id
+        ),
+        None,
+    )
+
+
 def decode_property_parameters(
     app: ApplicationProgram,
     idx: ApplicationIndexer,
-    properties: Mapping[PropertyKey, bytes],
+    properties: Mapping[TypedPropertyKey, bytes],
     state: GlobalState | None = None,
     text_encoding: str | None = None,
 ) -> dict[str, str | None]:
-    """Best-effort inverse of :func:`encode_to_properties` for property parameters.
+    """Best-effort inverse of :func:`encode_to_typed_properties` for property parameters.
 
-    ``properties`` maps ``(object_index, property_id, occurrence)`` to the property
-    value bytes read off the device. Decodes each top-level static property-backed
-    parameter's field from those bytes. Falls back to any occurrence of the same
-    ``(object_index, property_id)`` when the exact occurrence is absent. Fields that
-    do not fit the read bytes are skipped. Module-instanced parameters are omitted
-    for the same reason as :func:`decode_memory_parameters`.
+    ``properties`` maps ``(object_index, object_type, property_id, occurrence)`` to the
+    property value bytes read off the device (see :func:`property_data`). Decodes each
+    top-level static property-backed parameter's field from those bytes. Fields that do
+    not fit the read bytes are skipped. Module-instanced parameters are omitted for the
+    same reason as :func:`decode_memory_parameters`.
     """
     little_endian = _program_little_endian(app)
     text_encoding = text_encoding or text_parameter_encoding(app)
     result: dict[str, str | None] = {}
     overrides = resolve_param_values(idx, state) if state is not None else {}
     for w in collect_writes(app, idx, overrides, state).prop:
-        data = properties.get((w.object_index, w.property_id, w.occurrence))
-        if data is None:
-            data = next(
-                (
-                    value
-                    for (obj, pid, _occ), value in properties.items()
-                    if obj == w.object_index and pid == w.property_id
-                ),
-                None,
-            )
+        data = property_data(properties, w)
         if data is None:
             continue
         pt = idx.parameter_types.get(w.parameter_type)
@@ -1787,7 +1802,7 @@ def decode_module_parameters(
     idx: ApplicationIndexer,
     state: GlobalState,
     segments: Mapping[str, bytes],
-    properties: Mapping[PropertyKey, bytes],
+    properties: Mapping[TypedPropertyKey, bytes],
     text_encoding: str | None = None,
 ) -> dict[str, str | None]:
     """Decode module-instance parameter values from device memory and properties.
@@ -1823,16 +1838,7 @@ def decode_module_parameters(
                 for ref_id in param_to_refs.get(w.param_id, []):
                     result[scope.qualify(ref_id)] = value
         for w in writes.prop:
-            data = properties.get((w.object_index, w.property_id, w.occurrence))
-            if data is None:
-                data = next(
-                    (
-                        value
-                        for (obj, pid, _occ), value in properties.items()
-                        if obj == w.object_index and pid == w.property_id
-                    ),
-                    None,
-                )
+            data = property_data(properties, w)
             if data is not None:
                 value = _decode_field(
                     w,

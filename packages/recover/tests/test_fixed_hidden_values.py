@@ -302,7 +302,7 @@ def test_fixed_references_are_not_seeded_from_observed_or_inferred_values(
     values, _ = _decode(
         application,
         {f"{_APP}_AS-0000": b"\x09\x00\x00\x00"},
-        {(4, 80, 0): b"\x09"} if property_backed else {},
+        {(4, None, 80, 0): b"\x09"} if property_backed else {},
         None,
         {_STATUS: "4", marker: "9"},
     )
@@ -326,7 +326,7 @@ def test_an_editable_reference_to_a_hidden_parameter_is_decoded(
     values, _ = _decode(
         application,
         {f"{_APP}_AS-0000": b"\x2a\x00\x00\x00"},
-        {(4, 80, 0): b"\x2a"} if property_backed else {},
+        {(4, None, 80, 0): b"\x2a"} if property_backed else {},
         None,
         {_STATUS: "4"},
     )

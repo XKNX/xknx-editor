@@ -100,7 +100,7 @@ async def test_every_element_the_parameters_take_is_read() -> None:
     application = _application()
     programmer = _Programmer(_device(application))
     properties = await read_property_values(cast(Any, programmer), application)
-    assert properties == {(6, 23, 0): bytes([7, 0, 0, 0, 42])}
+    assert properties == {(6, None, 23, 0): bytes([7, 0, 0, 0, 42])}
     # The first element, how many the device holds, then the rest in frames of two.
     assert programmer.reads == [(1, 1), (0, 1), (2, 2), (4, 2)]
     recovered = recover_parameters(application, {}, properties)
@@ -114,7 +114,7 @@ async def test_no_element_is_read_past_those_the_device_holds() -> None:
     application = _application()
     programmer = _Programmer(_device(application)[:3])
     properties = await read_property_values(cast(Any, programmer), application)
-    assert properties == {(6, 23, 0): bytes([7, 0, 0])}
+    assert properties == {(6, None, 23, 0): bytes([7, 0, 0])}
     assert programmer.reads == [(1, 1), (0, 1), (2, 2)]
     recovered = recover_parameters(application, {}, properties)
     assert recovered.values[_FIRST] == "7"
@@ -127,7 +127,7 @@ async def test_elements_that_cannot_be_read_are_left_out() -> None:
         _device(application), failing=VerificationError("no such element")
     )
     properties = await read_property_values(cast(Any, programmer), application)
-    assert properties == {(6, 23, 0): bytes([7])}
+    assert properties == {(6, None, 23, 0): bytes([7])}
 
 
 async def test_a_disconnect_while_reading_more_elements_propagates() -> None:

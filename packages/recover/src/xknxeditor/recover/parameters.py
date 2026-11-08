@@ -35,6 +35,7 @@ from xknxeditor.prod.script.sandbox import AbortToken
 if TYPE_CHECKING:
     from xknxeditor.prod import Application
     from xknxeditor.prod.parser_v2.dynamic import DynamicUI
+    from xknxeditor.prod.parser_v2.encode import TypedPropertyKey
     from xknxeditor.prod.parser_v2.ui import UiParameter
 
 
@@ -182,7 +183,7 @@ def _parameter_to_refs(application: Application) -> dict[str, list[str]]:
 def recover_parameters(
     application: Application,
     parameter_segments: Mapping[str, bytes],
-    property_values: Mapping[tuple[int | None, int, int], bytes] | None = None,
+    property_values: Mapping[TypedPropertyKey, bytes] | None = None,
     project_code_page: str | None = None,
     linked_objects: Collection[int] = (),
     object_sizes: Mapping[int, str] | None = None,
@@ -192,7 +193,7 @@ def recover_parameters(
     """Recover parameter reference values from a device's memory and properties.
 
     ``parameter_segments`` is ``{segment_id: bytes}`` and ``property_values`` is
-    ``{(object_index, property_id, occurrence): bytes}``, both as read off the
+    ``{(object_index, object_type, property_id, occurrence): bytes}``, both as read off the
     device (see :mod:`xknxeditor.recover.read_config`). ``project_code_page`` is the
     ``CodePage`` of the project the device goes into (``None``: the system language),
     which some applications encode their text parameters with. ``linked_objects`` are
@@ -354,7 +355,7 @@ def _pairs_to_try(
 def _infer_all(
     application: Application,
     parameter_segments: Mapping[str, bytes],
-    property_values: Mapping[tuple[int | None, int, int], bytes] | None,
+    property_values: Mapping[TypedPropertyKey, bytes] | None,
     project_code_page: str | None,
     linked: set[int],
     sizes: Mapping[int, str],
@@ -402,7 +403,7 @@ def _infer_all(
 def _infer_rounds(
     application: Application,
     parameter_segments: Mapping[str, bytes],
-    property_values: Mapping[tuple[int | None, int, int], bytes] | None,
+    property_values: Mapping[TypedPropertyKey, bytes] | None,
     project_code_page: str | None,
     linked: set[int],
     sizes: Mapping[int, str],
@@ -548,8 +549,20 @@ def _instance_of(ref_id: str, local: str) -> tuple[str, str] | None:
     instance's part of the id and the definition's; None for one of the application."""
     if local == ref_id or "_MD-" not in local:
         return None
-    definition = local[: local.index("_", local.rindex("_MD-") + 1)]
+    definition = _definition_of(local)
     return ref_id[: len(ref_id) - (len(local) - len(definition))], definition
+
+
+def _definition_of(local: str) -> str:
+    """The module definition the id ``local`` (of an element of a module definition) belongs
+    to: ``..._MD-7`` for ``..._MD-7_P-1_R-1``, the submodule definition ``..._MD-7_SM-1`` for
+    ``..._MD-7_SM-1_P-10_R-10``."""
+    start = local.rindex("_MD-")
+    parts = local[start + 1 :].split("_")
+    taken = 1
+    while taken < len(parts) and parts[taken].startswith("SM-"):
+        taken += 1
+    return local[:start] + "_" + "_".join(parts[:taken])
 
 
 def _qualified(refs: Collection[str], instance: tuple[str, str] | None) -> set[str]:
@@ -589,7 +602,8 @@ def _objects_by_number(ui: DynamicUI) -> dict[int, list[str]]:
             for argument, value in arguments.get(instance, [])
         }
         for ref_id, number, base in numbered:
-            if not ref_id.startswith(f"{definition}_"):
+            # Not one of a submodule definition inside it (``..._MD-7_SM-1_O-...``).
+            if "_MD-" not in ref_id or _definition_of(ref_id) != definition:
                 continue
             try:
                 offset = int(values.get(base, "0")) if base else 0
@@ -624,7 +638,7 @@ def _count_selectors(
 def _refine(
     application: Application,
     parameter_segments: Mapping[str, bytes],
-    property_values: Mapping[tuple[int | None, int, int], bytes] | None,
+    property_values: Mapping[TypedPropertyKey, bytes] | None,
     project_code_page: str | None,
     linked: set[int],
     sizes: Mapping[int, str],
@@ -915,7 +929,7 @@ def _written_over_in_part(ui: DynamicUI, ref_id: str, actives: Collection[str]) 
 def _refine_pairs(
     application: Application,
     parameter_segments: Mapping[str, bytes],
-    property_values: Mapping[tuple[int | None, int, int], bytes] | None,
+    property_values: Mapping[TypedPropertyKey, bytes] | None,
     project_code_page: str | None,
     linked: set[int],
     sizes: Mapping[int, str],
@@ -1057,7 +1071,7 @@ def _refine_pairs(
 def _refine_fixed(
     application: Application,
     parameter_segments: Mapping[str, bytes],
-    property_values: Mapping[tuple[int | None, int, int], bytes] | None,
+    property_values: Mapping[TypedPropertyKey, bytes] | None,
     project_code_page: str | None,
     linked: set[int],
     sizes: Mapping[int, str],
@@ -1302,7 +1316,7 @@ def _lossy(ui: DynamicUI, unknown: Collection[str]) -> list[str]:
 def _decode(
     application: Application,
     parameter_segments: Mapping[str, bytes],
-    property_values: Mapping[tuple[int | None, int, int], bytes] | None,
+    property_values: Mapping[TypedPropertyKey, bytes] | None,
     project_code_page: str | None,
     inferred: Mapping[str, str],
     cancel: Callable[[], bool] | None = None,
@@ -2124,7 +2138,7 @@ def _infer_unstored(
 def _decode_once(
     ui: DynamicUI,
     parameter_segments: Mapping[str, bytes],
-    property_values: Mapping[tuple[int | None, int, int], bytes] | None,
+    property_values: Mapping[TypedPropertyKey, bytes] | None,
 ) -> dict[str, str | None]:
     """One decode pass over the memory and properties against ``ui``: top-level parameters
     by id, module parameters by their instance's ref, ``None`` where the bytes are no value
@@ -2170,7 +2184,7 @@ def _union_fit(
 def _infer_from_memory(
     application: Application,
     parameter_segments: Mapping[str, bytes],
-    property_values: Mapping[tuple[int | None, int, int], bytes] | None,
+    property_values: Mapping[TypedPropertyKey, bytes] | None,
     project_code_page: str | None,
     values: Mapping[str, str],
     unknown: Collection[str],

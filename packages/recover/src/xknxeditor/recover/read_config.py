@@ -55,7 +55,7 @@ if TYPE_CHECKING:
     from xknxeditor.download import DeviceProgrammer
     from xknxeditor.prod import Application
     from xknxeditor.prod.parser_v2.application_indexer import ApplicationIndexer
-    from xknxeditor.prod.parser_v2.encode import PropWrite
+    from xknxeditor.prod.parser_v2.encode import PropWrite, TypedPropertyKey
 
 # Memory-mapped com object table record layout (see download.image): M112 records are
 # 4 octets with the flag byte at 5 + number*4; BCU1/BCU2 records are 3 octets after a
@@ -157,13 +157,18 @@ async def read_group_communication(
 
 async def read_property_values(
     programmer: DeviceProgrammer, application: Application
-) -> dict[tuple[int | None, int, int], bytes]:
+) -> dict[TypedPropertyKey, bytes]:
     """Read the interface-object properties that back the application's parameters.
 
-    Returns ``{(object_index, property_id, occurrence): bytes}`` for every distinct
-    property a top-level static parameter writes to, read once per object/property: as many
-    elements from the first on as the parameters take (an array property of one octet per
-    element holds a parameter at offset 4 in its fifth element). Absent or unreadable
+    Returns ``{(object_index, object_type, property_id, occurrence): bytes}`` (keyed as
+    :func:`~xknxeditor.prod.parser_v2.encode.encode_to_typed_properties` keys them) for
+    every distinct property a top-level static parameter writes to, read once per
+    object/property: as many elements from the first on as the parameters take (an array
+    property of one octet per element holds a parameter at offset 4 in its fifth element).
+    An object addressed by type is the device's object of that type and occurrence. The
+    properties module instances keep their parameters in, in objects addressed by type (one
+    object per instance), are read from every object of that type the device has, as the
+    instances are only known once the parameters are decoded. Absent or unreadable
     properties are skipped, and elements after the first that cannot be read are left out.
     This is the raw material property parameter recovery decodes.
     """
@@ -173,50 +178,138 @@ async def read_property_values(
     indexer = ApplicationIndexer(application.program)
     writes = collect_writes(application.program, indexer, {}, None)
     needed = _property_sizes(indexer, writes.prop)
-    cache: dict[tuple[int, int], bytes] = {}
-    result: dict[tuple[int | None, int, int], bytes] = {}
+    cache: dict[_PropertyTarget, bytes] = {}
+    result: dict[TypedPropertyKey, bytes] = {}
     for write in writes.prop:
-        if write.object_index is None:
+        target = _property_target(write)
+        if target is None:
             continue
-        key = (write.object_index, write.property_id)
-        if key not in cache:
+        if target not in cache:
+            cache[target] = await _read_target(
+                programmer, target, needed.get(target, 0)
+            )
+        if cache[target]:
+            key = (write.object_index, write.object_type, write.property_id)
+            result[(*key, write.occurrence)] = cache[target]
+    for (object_type, property_id), size in _module_properties(indexer).items():
+        for occurrence in range(_MAX_OCCURRENCES):
             try:
-                cache[key] = await programmer.read_property(
-                    write.object_index, write.property_id
-                )
+                await programmer.locate_object(object_type, occurrence)
             except ManagementConnectionError:
                 raise
             except (LoadStateError, VerificationError, XKNXException):
-                cache[key] = b""
-            if cache[key] and len(cache[key]) < needed.get(key, 0):
-                cache[key] += await _read_more_elements(
-                    programmer, key, len(cache[key]), needed[key]
-                )
-        if cache[key]:
-            result[(write.object_index, write.property_id, write.occurrence)] = cache[
-                key
-            ]
+                break  # no more objects of the type
+            target = (None, object_type, occurrence, property_id)
+            if target not in cache:
+                cache[target] = await _read_target(programmer, target, size)
+            if cache[target]:
+                result[(None, object_type, property_id, occurrence)] = cache[target]
     return result
+
+
+# The objects of one type read for the module instances that keep their parameters in them.
+_MAX_OCCURRENCES = 1024
+# The octets read of a property a module instance keeps a parameter in at an offset of its
+# own (a BaseOffset): every element the device holds, up to this many octets.
+_WHOLE_PROPERTY = 1 << 16
+
+
+def _module_properties(indexer: ApplicationIndexer) -> dict[tuple[int, int], int]:
+    """The properties of objects addressed by type the module definitions keep their
+    parameters in, ``{(object type, property id): octets}``: as many as the parameters take
+    from the first element on, all the device holds where an instance has an offset of its
+    own."""
+    from xknxeditor.namespaces.intermediate.module_def_static_t_parameters_union import (
+        ModuleDefStaticParametersUnion,
+    )
+    from xknxeditor.namespaces.intermediate.property_parameter_t import (
+        PropertyParameter,
+    )
+    from xknxeditor.namespaces.intermediate.property_union_t import PropertyUnion
+    from xknxeditor.prod.parser_v2.encode import type_size_in_bit
+
+    sizes: dict[tuple[int, int], int] = {}
+    for module_def in indexer.module_defs.values():
+        parameters = module_def.static.parameters
+        for item in parameters.choice if parameters is not None else []:
+            storage = item.choice
+            if not isinstance(storage, PropertyParameter | PropertyUnion):
+                continue
+            if storage.object_type is None or storage.object_index is not None:
+                continue
+            if getattr(storage, "base_offset", None) is not None:
+                end = _WHOLE_PROPERTY
+            else:
+                if isinstance(item, ModuleDefStaticParametersUnion):
+                    bits = item.size_in_bit
+                else:
+                    parameter_type = indexer.parameter_types.get(item.parameter_type)
+                    bits = (
+                        type_size_in_bit(parameter_type.choice, for_property=True) or 0
+                        if parameter_type is not None
+                        else 0
+                    )
+                end = (storage.offset * 8 + storage.bit_offset + bits + 7) // 8
+            key = (storage.object_type, storage.property_id)
+            sizes[key] = max(sizes.get(key, 0), end)
+    return sizes
+
+
+# The property a parameter is stored in: (object index, object type, occurrence of an object
+# addressed by type, property id); an object addressed by index has no type and occurrence.
+_PropertyTarget = tuple[int | None, int | None, int, int]
+
+
+def _property_target(write: PropWrite) -> _PropertyTarget | None:
+    """The property ``write`` is stored in, ``None`` for one of an object addressed neither
+    by index nor by type."""
+    if write.object_index is not None:
+        return (write.object_index, None, 0, write.property_id)
+    if write.object_type is not None:
+        return (None, write.object_type, write.occurrence, write.property_id)
+    return None
+
+
+async def _read_target(
+    programmer: DeviceProgrammer, target: _PropertyTarget, size: int
+) -> bytes:
+    """The property ``target`` as far as the device holds it, up to ``size`` octets (at
+    least its first element); empty when the device has no such object or property."""
+    object_index, object_type, occurrence, property_id = target
+    try:
+        if object_index is None:
+            assert object_type is not None
+            object_index = await programmer.locate_object(object_type, occurrence)
+        data = await programmer.read_property(object_index, property_id)
+    except ManagementConnectionError:
+        raise
+    except (LoadStateError, VerificationError, XKNXException):
+        return b""
+    if data and len(data) < size:
+        data += await _read_more_elements(
+            programmer, (object_index, property_id), len(data), size
+        )
+    return data
 
 
 def _property_sizes(
     indexer: ApplicationIndexer, writes: Iterable[PropWrite]
-) -> dict[tuple[int, int], int]:
-    """The octets the property parameters ``writes`` take of each (object index, property
-    id), from the first element on."""
+) -> dict[_PropertyTarget, int]:
+    """The octets the property parameters ``writes`` take of each property (see
+    :func:`_property_target`), from the first element on."""
     from xknxeditor.prod.parser_v2.encode import type_size_in_bit
 
-    sizes: dict[tuple[int, int], int] = {}
+    sizes: dict[_PropertyTarget, int] = {}
     for write in writes:
         parameter_type = indexer.parameter_types.get(write.parameter_type)
-        if write.object_index is None or parameter_type is None:
+        target = _property_target(write)
+        if target is None or parameter_type is None:
             continue
         bits = type_size_in_bit(parameter_type.choice, for_property=True)
         if not bits:
             continue
         end = (write.offset * 8 + write.bit_offset + bits + 7) // 8
-        key = (write.object_index, write.property_id)
-        sizes[key] = max(sizes.get(key, 0), end)
+        sizes[target] = max(sizes.get(target, 0), end)
     return sizes
 
 

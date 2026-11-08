@@ -505,6 +505,10 @@ class ParameterState:
         key = f"{module_id}_MI-{repeat_idx}"
         self._active_module_keys.add(key)
         if key not in self._children:
+            stored = self._stored_at_root(key)
+            if stored is not None:
+                self._children[key] = stored
+        if key not in self._children:
             child = ModuleState(
                 key,
                 arguments,
@@ -529,6 +533,17 @@ class ParameterState:
             if param_ref_bases is not None:
                 child.param_ref_bases = param_ref_bases
         return self._children[key]
+
+    def _stored_at_root(self, key: str) -> ModuleState | None:
+        """The state of the submodule instance ``key`` of this module instance that a project
+        or seeding stored at the root (instances are stored side by side, see
+        :meth:`GlobalState.from_project`), taken from there; ``None`` if there is none."""
+        root: ParameterState = self
+        while root._parent is not None:
+            root = root._parent
+        if root is self or key in root._active_module_keys:
+            return None
+        return root._children.pop(key, None)
 
     def parameter_instance_refs(self) -> dict[str, str]:
         result = dict(self.param_ref_id_to_value)
@@ -709,13 +724,16 @@ class ModuleState(ParameterState):
     def find_scope_for_qualified(
         self, ref_id: str
     ) -> tuple[ParameterState, str] | None:
-        mid = self.module_instance_id
-        if not ref_id.startswith(mid + "_"):
-            return None
+        # A submodule instance's ids do not start with its parent instance's
+        # (``..._MD-7_SM-1_M-1_MI-1_P-1_R-1`` inside ``..._MD-7_M-30_MI-1``): its scope is
+        # looked for whatever the parent's id.
         for child in self._children.values():
             result = child.find_scope_for_qualified(ref_id)
             if result is not None:
                 return result
+        mid = self.module_instance_id
+        if not ref_id.startswith(mid + "_"):
+            return None
         suffix = ref_id[len(mid) :]
         if self.ref_id is None:
             return None
