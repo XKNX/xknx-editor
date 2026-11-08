@@ -355,16 +355,18 @@ class GroupObjectsTable:
             | imgui.TableFlags_.scroll_y
         )
         n_cols = 6 + len(FLAG_LABELS)
-        if not begin_data_table(f"##group_objects_{device.node_id}", n_cols, flags):
+        # One shared layout for every device (not per node id), so a column width the user sets is
+        # the default for the whole window, not just the device it was set on.
+        if not begin_data_table("##group_objects", n_cols, flags):
             return
 
-        imgui.table_setup_column("#", imgui.TableColumnFlags_.width_fixed, px(64.0))
+        imgui.table_setup_column("#", imgui.TableColumnFlags_.width_fixed, px(59.0))
         stretch = imgui.TableColumnFlags_.width_stretch
-        imgui.table_setup_column(S.GROUP_OBJECTS_COL_NAME, stretch, 0.278)
-        imgui.table_setup_column(S.GROUP_OBJECTS_COL_DPT, stretch, 0.131)
-        imgui.table_setup_column(S.GROUP_OBJECTS_COL_LENGTH, stretch, 0.067)
-        imgui.table_setup_column(S.GROUP_OBJECTS_COL_PRIO, stretch, 0.096)
-        imgui.table_setup_column(S.GROUP_OBJECTS_COL_GROUP_ADDRESSES, stretch, 0.428)
+        imgui.table_setup_column(S.GROUP_OBJECTS_COL_NAME, stretch, 0.279)
+        imgui.table_setup_column(S.GROUP_OBJECTS_COL_DPT, stretch, 0.159)
+        imgui.table_setup_column(S.GROUP_OBJECTS_COL_LENGTH, stretch, 0.040)
+        imgui.table_setup_column(S.GROUP_OBJECTS_COL_PRIO, stretch, 0.080)
+        imgui.table_setup_column(S.GROUP_OBJECTS_COL_GROUP_ADDRESSES, stretch, 0.441)
         # One letter per flag in most languages; some use a short abbreviation, which the column
         # widens for.
         padding = 2 * imgui.get_style().cell_padding.x
