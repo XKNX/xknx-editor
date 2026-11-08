@@ -50,8 +50,12 @@ from .tables_decode import (
 )
 
 if TYPE_CHECKING:
+    from collections.abc import Iterable
+
     from xknxeditor.download import DeviceProgrammer
     from xknxeditor.prod import Application
+    from xknxeditor.prod.parser_v2.application_indexer import ApplicationIndexer
+    from xknxeditor.prod.parser_v2.encode import PropWrite
 
 # Memory-mapped com object table record layout (see download.image): M112 records are
 # 4 octets with the flag byte at 5 + number*4; BCU1/BCU2 records are 3 octets after a
@@ -157,15 +161,18 @@ async def read_property_values(
     """Read the interface-object properties that back the application's parameters.
 
     Returns ``{(object_index, property_id, occurrence): bytes}`` for every distinct
-    property a top-level static parameter writes to, read once per object/property.
-    Absent or unreadable properties are skipped. This is the raw material property
-    parameter recovery decodes.
+    property a top-level static parameter writes to, read once per object/property: as many
+    elements from the first on as the parameters take (an array property of one octet per
+    element holds a parameter at offset 4 in its fifth element). Absent or unreadable
+    properties are skipped, and elements after the first that cannot be read are left out.
+    This is the raw material property parameter recovery decodes.
     """
     from xknxeditor.prod.parser_v2.application_indexer import ApplicationIndexer
     from xknxeditor.prod.parser_v2.encode import collect_writes
 
     indexer = ApplicationIndexer(application.program)
     writes = collect_writes(application.program, indexer, {}, None)
+    needed = _property_sizes(indexer, writes.prop)
     cache: dict[tuple[int, int], bytes] = {}
     result: dict[tuple[int | None, int, int], bytes] = {}
     for write in writes.prop:
@@ -181,11 +188,72 @@ async def read_property_values(
                 raise
             except (LoadStateError, VerificationError, XKNXException):
                 cache[key] = b""
+            if cache[key] and len(cache[key]) < needed.get(key, 0):
+                cache[key] += await _read_more_elements(
+                    programmer, key, len(cache[key]), needed[key]
+                )
         if cache[key]:
             result[(write.object_index, write.property_id, write.occurrence)] = cache[
                 key
             ]
     return result
+
+
+def _property_sizes(
+    indexer: ApplicationIndexer, writes: Iterable[PropWrite]
+) -> dict[tuple[int, int], int]:
+    """The octets the property parameters ``writes`` take of each (object index, property
+    id), from the first element on."""
+    from xknxeditor.prod.parser_v2.encode import type_size_in_bit
+
+    sizes: dict[tuple[int, int], int] = {}
+    for write in writes:
+        parameter_type = indexer.parameter_types.get(write.parameter_type)
+        if write.object_index is None or parameter_type is None:
+            continue
+        bits = type_size_in_bit(parameter_type.choice, for_property=True)
+        if not bits:
+            continue
+        end = (write.offset * 8 + write.bit_offset + bits + 7) // 8
+        key = (write.object_index, write.property_id)
+        sizes[key] = max(sizes.get(key, 0), end)
+    return sizes
+
+
+async def _read_more_elements(
+    programmer: DeviceProgrammer, key: tuple[int, int], width: int, size: int
+) -> bytes:
+    """The elements after the first of the property ``key`` (``width`` octets each, as the
+    first read gave it) up to ``size`` octets, as far as the device holds them (its current
+    number of elements, element 0), in frames that fit the APDU; those before an element that
+    cannot be read. A property of a single element holds a parameter of more octets than the
+    element has nowhere else: nothing more is read."""
+    object_index, property_id = key
+    try:
+        held = int.from_bytes(
+            await programmer.read_property(object_index, property_id, start_index=0),
+            "big",
+        )
+        per_frame = max(programmer.property_chunk_size(width), 1)
+    except ManagementConnectionError:
+        raise
+    except (LoadStateError, VerificationError, XKNXException):
+        return b""
+    count = min(-(-size // width), held)
+    data = b""
+    start = 2
+    while start <= count:
+        frame = min(per_frame, count - start + 1)
+        try:
+            data += await programmer.read_property(
+                object_index, property_id, count=frame, start_index=start
+            )
+        except ManagementConnectionError:
+            raise
+        except (LoadStateError, VerificationError, XKNXException):
+            break
+        start += frame
+    return data
 
 
 # Relative-segment ids embed the interface object index as "..._RS-<objidx>-...".

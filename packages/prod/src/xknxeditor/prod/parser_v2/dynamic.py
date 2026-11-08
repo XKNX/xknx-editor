@@ -1644,11 +1644,15 @@ class DynamicUI:
         user set: the values the Assigns wrote go into the change. A target no Assign writes any
         more, though one did before the edit, gets its default (the value of its ParameterRef,
         else of its Parameter), however it is shown, unless the edit sets it; and the tree is
-        settled again, until no further Assign stops applying. A UI seeded from the stored values
-        (a device opened, an undo) runs the Assigns without these resets and keeps the stored
-        values."""
+        settled again, until no further Assign stops applying. A value an Assign writes or a reset
+        gives runs the calculations of its target, as an edit of it does (a hidden setting an
+        Assign copies that a calculation shows a channel's settings with). A UI seeded from the
+        stored values (a device opened, an undo) runs the Assigns without these resets and keeps
+        the stored values."""
         keep = set(edited)
         was = before.assign_targets() - keep
+        # The value of each target its calculations last ran with.
+        calculated: dict[str, str | None] = {}
         for _ in range(_MAX_GATE_PASSES):
             self._note_assigned(journal, before)
             now = self._state.assign_targets()
@@ -1664,12 +1668,57 @@ class DynamicUI:
                 ):
                     journal.set(ref_id, default)
                     reset = True
-            if not reset:
+            recalculated = self._calculate_assigned(
+                journal, (was | now) - keep, calculated, before
+            )
+            if not reset and not recalculated:
                 return
             was = now - keep
             self._invalidate()
             self._build_ui(capture_active=True)
         self._note_assigned(journal, before)
+
+    def _calculate_assigned(
+        self,
+        journal: Journal,
+        targets: Iterable[str],
+        calculated: dict[str, str | None],
+        before: ParameterState,
+    ) -> bool:
+        """Run the calculations of the Assign ``targets`` whose value changed since ``before``
+        and since their calculations last ran (``calculated``, updated), in ``journal``: whether
+        any ran."""
+        changed: list[str] = []
+        for ref_id in sorted(targets):
+            local = self.local_ref_id(ref_id)
+            if local not in self._idx.parameter_refs or not (
+                self._idx.calculations_for_l(local)
+                or self._idx.calculations_for_r(local)
+            ):
+                continue
+            value = self.get_value(ref_id)
+            found = before.find_scope_for_qualified(ref_id)
+            scope, old_local = found if found is not None else (before, local)
+            old = scope.get(old_local)
+            if old is None:
+                old = self._idx.default_value(old_local)
+            if calculated.get(ref_id, old) == value:
+                continue
+            calculated[ref_id] = value
+            changed.append(ref_id)
+        for scope, locals_ in self._group_by_scope(changed):
+            run_calculations_many(
+                self._idx,
+                locals_,
+                self._calc_scope(scope),
+                journal,
+                self.script_env,
+                raise_errors=False,
+                abort=self.script_abort,
+            )
+        if changed:
+            self._invalidate()
+        return bool(changed)
 
     def _note_assigned(self, journal: Journal, before: ParameterState) -> None:
         """Journal the values the evaluations since ``before`` wrote (the Assigns), with what they

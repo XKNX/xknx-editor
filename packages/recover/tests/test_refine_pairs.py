@@ -13,6 +13,8 @@ _APP = "M-00FA_A-0008-01-0000"
 _FIRST = f"{_APP}_P-1_R-1"
 _SECOND = f"{_APP}_P-2_R-2"
 _SEGMENT = f"{_APP}_AS-0000"
+# The device: 7 and 9 for the first and second value, the function (when stored) 0.
+_DEVICE = bytes([7, 9, 0])
 _XML = f"""<KNX xmlns="http://knx.org/xml/project/20" CreatedBy="test" ToolVersion="1">
 <ManufacturerData><Manufacturer RefId="M-00FA"><ApplicationPrograms>
 <ApplicationProgram Id="{_APP}" ApplicationNumber="8" ApplicationVersion="1"
@@ -100,6 +102,35 @@ def test_an_interrupted_pair_keeps_the_previous_result(
     assert recovered.values == original.values
     assert recovered.differing_bytes == 1
     assert recovered.limited
+
+
+def test_a_fast_search_that_leaves_out_the_pairs_says_more_effort_may_help(
+    application: Application, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    segments = {_SEGMENT: _DEVICE}
+    # The deeper search makes no correction: it ends without reaching its limit.
+    monkeypatch.setattr(parameters, "_DEEP_ROUNDS", 0)
+    fast = recover_parameters(application, segments, effort=RecoveryEffort.FAST)
+    assert not fast.complete
+    assert fast.limited
+    medium = recover_parameters(application, segments, effort=RecoveryEffort.MEDIUM)
+    assert medium.complete
+
+
+@pytest.mark.parametrize("effort", [RecoveryEffort.FAST, RecoveryEffort.MEDIUM])
+def test_a_result_no_selector_can_correct_is_not_limited(
+    effort: RecoveryEffort,
+) -> None:
+    xml = _XML.replace(
+        'Text="Function" Value="0" />',
+        f'Text="Function" Value="0"><Memory CodeSegment="{_SEGMENT}" Offset="2" BitOffset="0" /></Parameter>',
+    )
+    application = parse_application_xml(xml.encode(), "M-00FA")[0]
+    # The stored function (0) hides the second value the device holds 9 for: no setting the
+    # search may change shows it, nothing is left to try.
+    recovered = recover_parameters(application, {_SEGMENT: _DEVICE}, effort=effort)
+    assert recovered.differing_bytes == 1
+    assert not recovered.limited
 
 
 def test_a_stored_selector_is_not_overridden() -> None:

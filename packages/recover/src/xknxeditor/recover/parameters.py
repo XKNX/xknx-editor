@@ -23,7 +23,7 @@ from __future__ import annotations
 import contextlib
 from collections import Counter
 from collections.abc import Callable, Collection, Mapping
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from enum import Enum
 from itertools import count
 from typing import TYPE_CHECKING
@@ -311,7 +311,44 @@ def recover_parameters(
             cancel,
             fixed=fixed,
         )
+    if (
+        effort is RecoveryEffort.FAST
+        and not result.complete
+        and not result.limited
+        and _pairs_to_try(
+            application, parameter_segments, project_code_page, linked, sizes, result
+        )
+    ):
+        # The fast search leaves out the search of pairs the other efforts make: with
+        # selectors left to try, more effort may find a result that fits.
+        result = replace(result, limited=True)
     return result
+
+
+def _pairs_to_try(
+    application: Application,
+    parameter_segments: Mapping[str, bytes],
+    project_code_page: str | None,
+    linked: set[int],
+    sizes: Mapping[int, str],
+    recovered: RecoveredParameters,
+) -> bool:
+    """Whether the search of pairs (see :func:`_refine_pairs`) has selectors to try where
+    ``recovered`` differs from the device."""
+    from .recover import seed_dynamic_ui
+
+    ui = seed_dynamic_ui(application, recovered.values, project_code_page)
+    if ui is None:
+        return False
+    current = _misfit(ui, parameter_segments, linked, sizes)
+    if current is None:
+        return False
+    return any(
+        not _calculated_from_reads(ui, gate)
+        for gate, _value in _refinement_trials(
+            ui, current[1], _contradicting_objects(ui, linked, sizes)
+        )
+    )
 
 
 def _infer_all(
@@ -495,6 +532,15 @@ def _calculation_inputs(ui: DynamicUI, ref_id: str) -> set[str]:
 # The calculation inputs of each local param-ref, per indexer (an application's, shared by its
 # UIs) of the last few applications searched.
 _CALCULATION_INPUTS: list[tuple[object, dict[str, set[str]]]] = []
+
+
+def _calculated_from_reads(ui: DynamicUI, ref_id: str) -> bool:
+    """Whether a parameter calculation computes ``ref_id`` from a value read from the device
+    (one of its inputs has a copy there): the decode gives the selector already, it is not
+    guessed. Computed only from settings the device keeps no copy of either (a hidden "show
+    the disabling function" switch computed from the settings that show it), it is guessed
+    like any of them."""
+    return any(not _is_unstored(ui, ref) for ref in _calculation_inputs(ui, ref_id))
 
 
 def _instance_of(ref_id: str, local: str) -> tuple[str, str] | None:
@@ -754,7 +800,9 @@ def _refine(
         better = None
         # A selector a calculation computes from the values read is not guessed.
         worse = [
-            entry for entry in worse if not _calculation_inputs(entry[2][4], entry[1])
+            entry
+            for entry in worse
+            if not _calculated_from_reads(entry[2][4], entry[1])
         ]
         for n, (_score, gate, start) in enumerate(worse):
             if starts is not None and n == starts:
@@ -924,7 +972,7 @@ def _refine_pairs(
             for gate, value in _refinement_trials(
                 ui, current[1], _contradicting_objects(ui, linked, sizes)
             ):
-                if _calculation_inputs(ui, gate):
+                if _calculated_from_reads(ui, gate):
                     continue
                 _check(cancel)
                 if evaluated == budget:
@@ -959,7 +1007,7 @@ def _refine_pairs(
                         child == gate
                         or not _inferable(first, child, parameter)
                         or gate not in _gates_of(first, child)
-                        or _calculation_inputs(first, child)
+                        or _calculated_from_reads(first, child)
                     ):
                         continue
                     now = first.get_value(child) or parameter.default_value
@@ -1071,6 +1119,72 @@ def _refine_fixed(
     # the other is corrected too. Of two results that differ in as many bytes, the one that
     # differs in fewer bits fits better.
     bits: int | None = None
+
+    def better(
+        chosen: _ValueMap,
+        now: DynamicUI,
+        fit_now: tuple[_Score, set[_Cell], set[int]],
+    ) -> (
+        tuple[
+            dict[str, str],
+            list[str],
+            DynamicUI,
+            tuple[_Score, set[_Cell], set[int]],
+            int | None,
+        ]
+        | None
+    ):
+        """The values decoded with ``chosen`` and the fixed values kept, when they fit better
+        than the result so far (``now``, as far from the device as ``fit_now``): the values,
+        those left unknown, the UI seeded with them, how far it is from the device and the
+        bits it differs in (when as far as the result)."""
+        nonlocal bits
+        trial_values, trial_unknown = _decode(
+            application,
+            parameter_segments,
+            property_values,
+            project_code_page,
+            chosen,
+            fixed=fixed,
+        )
+        seeded = seed_dynamic_ui(application, trial_values, project_code_page)
+        assert seeded is not None
+        fit = _misfit(seeded, parameter_segments, linked, sizes)
+        if fit is None or fit[0] > fit_now[0]:
+            return None
+        trial_bits: int | None = None
+        if fit[0] == fit_now[0]:
+            if bits is None:
+                bits = _differing_bits(now, parameter_segments, fit_now[1])
+            trial_bits = _differing_bits(seeded, parameter_segments, fit[1])
+            if trial_bits >= bits:
+                return None
+        return trial_values, trial_unknown, seeded, fit, trial_bits
+
+    def behind(chosen: _ValueMap) -> _ValueMap | None:
+        """``chosen`` with the settings the device keeps no copy of that the inference finds
+        behind it (as the search before measures a value): a channel's function shows the
+        settings the channel's linked objects need only once they are inferred too."""
+        try:
+            inferred_values, _unknown, _inferred = _infer_all(
+                application,
+                parameter_segments,
+                property_values,
+                project_code_page,
+                linked,
+                sizes,
+                fixed,
+                chosen,
+                set(),
+                cancel,
+            )
+            seeded = seed_dynamic_ui(application, inferred_values, project_code_page)
+        except AllocatorOverflow:
+            return None
+        if seeded is None:
+            return None
+        return {**_guessed(seeded, inferred_values), **chosen}
+
     try:
         for _ in rounds:
             _check(cancel)
@@ -1078,45 +1192,46 @@ def _refine_fixed(
                 break
             differing = current[1] & _fixed_cells(ui, fixed)
             improved = False
+            exhausted = False
             evaluated = 0
-            for gate, value in _refinement_trials(ui, differing, set()):
-                if _calculation_inputs(ui, gate):
-                    continue
-                _check(cancel)
-                if evaluated == budget:
-                    limited = True
-                    break
-                evaluated += 1
-                chosen = {**inferred, gate: value}
-                trial_values, trial_unknown = _decode(
-                    application,
-                    parameter_segments,
-                    property_values,
-                    project_code_page,
-                    chosen,
-                    fixed=fixed,
-                )
-                seeded = seed_dynamic_ui(application, trial_values, project_code_page)
-                assert seeded is not None
-                fit = _misfit(seeded, parameter_segments, linked, sizes)
-                if fit is None or fit[0] > current[0]:
-                    continue
-                trial_bits: int | None = None
-                if fit[0] == current[0]:
-                    if bits is None:
-                        bits = _differing_bits(ui, parameter_segments, current[1])
-                    trial_bits = _differing_bits(seeded, parameter_segments, fit[1])
-                    if trial_bits >= bits:
+            trials = _refinement_trials(ui, differing, set())
+            # The values alone first. When none fits better, each with the settings it shows
+            # inferred behind it, taken when it fits better: a value that fits worse alone (a
+            # channel's function without the settings that show its linked objects) can fit
+            # with them.
+            for wide in (False, True):
+                for gate, value in trials:
+                    if _calculated_from_reads(ui, gate):
                         continue
-                values, unknown, inferred, ui, current = (
-                    trial_values,
-                    trial_unknown,
-                    chosen,
-                    seeded,
-                    fit,
-                )
-                bits = trial_bits
-                improved = True
+                    _check(cancel)
+                    if evaluated == budget:
+                        exhausted = True
+                        break
+                    evaluated += 1
+                    chosen = {**inferred, gate: value}
+                    if wide:
+                        wider = behind(chosen)
+                        if wider is None or wider == chosen:
+                            continue
+                        chosen = wider
+                        _check(cancel)
+                    found = better(chosen, ui, current)
+                    if found is None:
+                        continue
+                    trial_values, trial_unknown, seeded, fit, trial_bits = found
+                    values, unknown, inferred, ui, current = (
+                        trial_values,
+                        trial_unknown,
+                        chosen,
+                        seeded,
+                        fit,
+                    )
+                    bits = trial_bits
+                    improved = True
+                if improved or exhausted:
+                    break
+            if exhausted:
+                limited = True
             if not improved:
                 break
         else:
