@@ -18,7 +18,11 @@ from dataclasses import dataclass
 
 # The flag/size bit layout lives in the encoder module; use its public inverse
 # helpers so the decode never drifts from the forward direction.
-from xknxeditor.download.tables import object_size_name, priority_from_bits
+from xknxeditor.download.tables import (
+    memory_object_size_name,
+    object_size_name,
+    priority_from_bits,
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -72,12 +76,17 @@ def decode_flag_byte(value: int) -> tuple[str, bool, bool, bool, bool, bool, boo
 
 
 def _group_object(
-    number: int, flags: int, size: int, *, system_b: bool
+    number: int, flags: int, size: int, *, system_b: bool, memory_type: bool = False
 ) -> DecodedGroupObject:
     priority, communication, read, write, transmit, update, read_on_init = (
         decode_flag_byte(flags)
     )
     size_code = size & 0x3F
+    size_name = (
+        memory_object_size_name(size_code)
+        if memory_type
+        else object_size_name(size_code)
+    )
     return DecodedGroupObject(
         number=number,
         priority=priority,
@@ -88,7 +97,7 @@ def _group_object(
         update=update,
         read_on_init=read_on_init if system_b else None,
         size_code=size_code,
-        object_size=object_size_name(size_code),
+        object_size=size_name,
     )
 
 
@@ -175,6 +184,30 @@ def decode_com_object_table(
         offset = header_size + number * record_size
         result[number] = _group_object(
             number, data[offset], data[offset + 1], system_b=False
+        )
+        number += 1
+    return result
+
+
+def decode_short_com_object_table(data: bytes) -> dict[int, DecodedGroupObject]:
+    """Decode a BCU1/BCU2 group object table into ``{number: group object}``.
+
+    Layout ``[count:1][RAM flags table pointer:1]``, then ``[value pointer:1][flags:1]
+    [type:1]`` per object number (``GroupObjectTable_Bcu1x`` / ``_Bcu2``, written by
+    :mod:`xknxeditor.download.image`). The low six bits of the type are the size
+    (:func:`xknxeditor.download.tables.memory_size_code`). Every record present in
+    ``data`` is decoded.
+    """
+    result: dict[int, DecodedGroupObject] = {}
+    number = 0
+    while 2 + number * 3 + 3 <= len(data):
+        offset = 2 + number * 3
+        result[number] = _group_object(
+            number,
+            data[offset + 1],
+            data[offset + 2],
+            system_b=False,
+            memory_type=True,
         )
         number += 1
     return result

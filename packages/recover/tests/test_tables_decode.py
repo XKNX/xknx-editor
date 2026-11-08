@@ -9,6 +9,8 @@ from xknxeditor.download.tables import (
     build_association_table,
     build_group_address_table,
     com_object_flag_byte,
+    memory_object_size_name,
+    memory_size_code,
 )
 from xknxeditor.download.tables_systemb import (
     build_association_table_b,
@@ -26,6 +28,7 @@ from xknxeditor.recover.tables_decode import (
     decode_group_address_table_b,
     decode_group_object_records_b,
     decode_group_object_table_b,
+    decode_short_com_object_table,
 )
 
 
@@ -218,3 +221,34 @@ def test_record_ranges_merge_nearby_numbers() -> None:
         (290, 10),
         (310, 1),
     ]
+
+
+def test_short_com_object_table_reads_3_octet_records() -> None:
+    """BCU1/BCU2: count and RAM flags pointer, then value pointer, flags and type per
+    object; the type's top two bits are not the size."""
+    data = bytes.fromhex("03d1" + "0b6300" + "0cf700" + "11eb48")
+    decoded = decode_short_com_object_table(data)
+    assert sorted(decoded) == [0, 1, 2]
+    assert decoded[0].transmit is True
+    assert decoded[0].write is False
+    assert decoded[0].object_size == "1 Bit"
+    assert decoded[1].write is True
+    assert decoded[1].update is True
+    assert decoded[1].read_on_init is None
+    assert decoded[2].size_code == 8
+    assert decoded[2].object_size == "2 Bytes"
+    # A record cut short is not decoded.
+    assert sorted(decode_short_com_object_table(data[:-1])) == [0, 1]
+
+
+@pytest.mark.parametrize(
+    "size", ["1 Bit", "7 Bit", "1 Byte", "2 Bytes", "14 Bytes", "15 Bytes", "50 Bytes"]
+)
+def test_memory_object_size_name_inverts_the_record_type(size: str) -> None:
+    assert memory_object_size_name(memory_size_code(size)) == size
+
+
+def test_memory_object_size_name_of_an_ambiguous_or_unknown_type() -> None:
+    # 15 is both LegacyVarData and 5 Bytes; 57 and above are no size.
+    assert memory_object_size_name(15) is None
+    assert memory_object_size_name(57) is None

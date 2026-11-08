@@ -23,6 +23,8 @@ from xknx.profile.const import ResourceObjectType
 from xknxeditor.download.errors import LoadStateError, VerificationError
 from xknxeditor.download.merge import device_mask_version
 from xknxeditor.download.resources import (
+    bcu1_group_object_table,
+    bcu2_group_object_table,
     bundled_mask_resources,
     property_group_tables,
 )
@@ -44,15 +46,20 @@ from .tables_decode import (
     decode_group_address_table_b,
     decode_group_object_records_b,
     decode_group_object_table_b,
+    decode_short_com_object_table,
 )
 
 if TYPE_CHECKING:
     from xknxeditor.download import DeviceProgrammer
     from xknxeditor.prod import Application
 
-# Memory-mapped com object table record layout (see download.image).
+# Memory-mapped com object table record layout (see download.image): M112 records are
+# 4 octets with the flag byte at 5 + number*4; BCU1/BCU2 records are 3 octets after a
+# 2-octet header.
 _COM_OBJECT_HEADER = 5
 _COM_OBJECT_RECORD = 4
+_SHORT_HEADER = 2
+_SHORT_RECORD = 3
 
 
 @dataclass(frozen=True, slots=True)
@@ -380,20 +387,28 @@ async def _read_memory_mapped(
         and com_object_table.code_segment is not None
         and com_object_table.code_segment in base_addresses
     ):
-        seg_size = sizes.get(com_object_table.code_segment)
-        if seg_size:
-            # The writer overlays records at the segment base (offset 0), so read
-            # from the base - not base+offset. Read the declared segment length,
-            # bounded by the highest defined object number so a realisation whose
-            # table does not span the whole segment is not over-read into unmapped
-            # memory (which would time out). The com object table only carries the
-            # per-object flags/size, so if this read fails the device still recovers
-            # its group addresses and links - just without flag overrides.
-            co_address = base_addresses[com_object_table.code_segment]
+        table_offset = com_object_table.offset or 0
+        seg_size = sizes.get(com_object_table.code_segment, 0) - table_offset
+        mask_version = device_mask_version(application)
+        short = bcu1_group_object_table(mask_version) or bcu2_group_object_table(
+            mask_version
+        )
+        header, record = (
+            (_SHORT_HEADER, _SHORT_RECORD)
+            if short
+            else (_COM_OBJECT_HEADER, _COM_OBJECT_RECORD)
+        )
+        if seg_size > 0:
+            # The table starts at its offset in the segment, as the download writes it.
+            # Read up to the end of the segment, bounded by the highest defined object
+            # number so a realisation whose table does not span the whole segment is
+            # not over-read into unmapped memory (which would time out). The com object
+            # table only carries the per-object flags/size, so if this read fails the
+            # device still recovers its group addresses and links - just without flag
+            # overrides.
+            co_address = base_addresses[com_object_table.code_segment] + table_offset
             highest = _highest_com_object_number(application)
-            table_length = min(
-                seg_size, _COM_OBJECT_HEADER + (highest + 1) * _COM_OBJECT_RECORD
-            )
+            table_length = min(seg_size, header + (highest + 1) * record)
             try:
                 co_bytes = await programmer.read_memory(co_address, table_length)
             except ManagementConnectionError:
@@ -401,10 +416,14 @@ async def _read_memory_mapped(
             except (LoadStateError, VerificationError, XKNXException):
                 co_bytes = b""
             if co_bytes:
-                group_objects = decode_com_object_table(
-                    co_bytes,
-                    header_size=_COM_OBJECT_HEADER,
-                    record_size=_COM_OBJECT_RECORD,
+                group_objects = (
+                    decode_short_com_object_table(co_bytes)
+                    if short
+                    else decode_com_object_table(
+                        co_bytes,
+                        header_size=_COM_OBJECT_HEADER,
+                        record_size=_COM_OBJECT_RECORD,
+                    )
                 )
 
     return RawGroupCommunication(

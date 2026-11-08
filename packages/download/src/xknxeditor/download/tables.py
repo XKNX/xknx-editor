@@ -267,6 +267,19 @@ def object_size_name(size_code_value: int) -> str | None:
     return _SIZE_NAME.get(size_code_value)
 
 
+def memory_object_size_name(type_value: int) -> str | None:
+    """Return the ``ComObjectSize`` string for the type of a BCU1/BCU2 group object record.
+
+    Inverse of :func:`memory_size_code`. ``None`` for a type no size gives, and for 15,
+    which both ``LegacyVarData`` and ``5 Bytes`` give.
+    """
+    if 21 <= type_value <= 56:
+        return f"{type_value - 6} Bytes"
+    if type_value == 15:
+        return None
+    return _SIZE_NAME.get(type_value)
+
+
 @dataclass(frozen=True, slots=True)
 class ComObjectDescriptor:
     """One com object's table entry: its number, flag byte and size code."""
