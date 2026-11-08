@@ -2,6 +2,12 @@
 
 from __future__ import annotations
 
+from xknx.exceptions import ManagementConnectionTimeout
+
+
+class ManagementAckTimeout(ManagementConnectionTimeout):
+    """Transport ACK retries were exhausted and the connection was closed."""
+
 
 class DownloadError(Exception):
     """Base class for all download errors."""

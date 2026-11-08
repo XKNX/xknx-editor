@@ -21,6 +21,7 @@ from xknxeditor.download.data_secure import (
     ToolKeyCemiSecure,
 )
 from xknxeditor.download.download import _connection_manager
+from xknxeditor.download.errors import ManagementAckTimeout
 from xknxeditor.download.secure_session import SecureConnectionManager
 
 from .test_data_secure import DEVICE, TOOL, TOOL_KEY, _cemi, _device_sync_response
@@ -126,6 +127,36 @@ def test_connection_manager_rejects_mismatched_security_address() -> None:
     security = DeviceSecurity(IndividualAddress("1.2.3"), TOOL_KEY)
     with pytest.raises(SecureProgrammingError, match="not the download target"):
         _connection_manager(xknx, DEVICE, security)  # type: ignore[arg-type]
+
+
+async def test_sync_does_not_retry_on_a_closed_transport(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(secure_session, "_SYNC_INTERVAL", 0.0)
+    xknx = _FakeXKNX()
+    sentinel = object()
+    xknx.cemi_handler.data_secure = sentinel
+    requests = 0
+
+    class FailedConnection(_FakeConnection):
+        async def request(
+            self, payload: APCI, expected: type[APCI] | None = None
+        ) -> Telegram:
+            nonlocal requests
+            requests += 1
+            raise ManagementAckTimeout("no ACK after transport retries")
+
+    async def connect(address: IndividualAddress) -> FailedConnection:
+        return FailedConnection(xknx.cemi_handler)
+
+    xknx.management.connect = connect  # type: ignore[assignment]
+    manager = SecureConnectionManager(xknx, DEVICE, DeviceSecurity(DEVICE, TOOL_KEY))  # type: ignore[arg-type]
+    with pytest.raises(ManagementAckTimeout, match="no ACK after transport retries"):
+        await manager.open()
+    assert requests == 1
+    assert xknx.cemi_handler.data_secure is sentinel
+    await manager.close()
+    assert xknx.management.disconnected == [DEVICE]
 
 
 async def test_a_new_session_waits_for_the_sync_interval(

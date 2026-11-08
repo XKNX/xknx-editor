@@ -1580,7 +1580,7 @@ msgid "Importing the project's product data…"
 msgstr "Po importohen të dhënat e produkteve të projektit…"
 
 msgid "Importing the project's product data: {done} of {total} application programs"
-msgstr "Po importohen të dhënat e produkteve të projektit: {done} nga {total} programe aplikacioni"
+msgstr "Po importohen të dhënat e produkteve të projektit: {done} nga {total} programe aplikative"
 
 msgid "This is done once on this computer, for the products its catalog does not have yet. For a large project it can take a few minutes."
 msgstr "Kjo bëhet vetëm një herë në këtë kompjuter, për produktet që katalogu i tij nuk i ka ende. Për një projekt të madh mund të zgjasë disa minuta."
@@ -1644,14 +1644,14 @@ msgstr[0] "U hoq {count} pajisje e papërputhshme; po rieksportohet"
 msgstr[1] "U hoqën {count} pajisje të papërputhshme; po rieksportohet"
 
 msgid "This file will NOT import into the chosen ETS version: the product data of these manufacturers only exists for a newer ETS (e.g. an ETS 6 product in an ETS 5 export), so the whole project is rejected."
-msgstr "Ky skedar NUK do të importohet në versionin e zgjedhur të ETS: të dhënat e produkteve të këtyre prodhuesve ekzistojnë vetëm për një ETS më të ri (p.sh. një produkt ETS 6 në një eksport ETS 5), prandaj ETS e refuzon të gjithë projektin."
+msgstr "Ky skedar NUK do të importohet në versionin e zgjedhur të ETS-së: të dhënat e produkteve të këtyre prodhuesve ekzistojnë vetëm për një ETS më të re (p.sh. një produkt ETS 6 në një eksport ETS 5), prandaj ETS-ja e refuzon të gjithë projektin."
 
 msgid "Remove the affected device or export for the newer ETS."
 msgid_plural "Remove the affected devices or export for the newer ETS."
-msgstr[0] "Hiqni pajisjen e prekur ose eksportoni për ETS-in më të ri."
-msgstr[1] "Hiqni pajisjet e prekura ose eksportoni për ETS-in më të ri."
+msgstr[0] "Hiqni pajisjen e prekur ose eksportoni për ETS-në më të re."
+msgstr[1] "Hiqni pajisjet e prekura ose eksportoni për ETS-në më të re."
 
 msgid "Imported {count} product version from {name}:"
 msgid_plural "Imported {count} product versions from {name}:"
 msgstr[0] "U importua {count} version produkti nga {name}:"
-msgstr[1] "U importuan {count} versione produkti nga {name}:"
+msgstr[1] "U importuan {count} versione produktesh nga {name}:"

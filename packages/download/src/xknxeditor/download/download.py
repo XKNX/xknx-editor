@@ -878,7 +878,7 @@ async def download(
             )
             if next_cap is not None:
                 logger.warning(
-                    "download: %s left a long memory service unanswered; retrying with a "
+                    "download: %s memory service failed; retrying on a fresh connection with a "
                     "%d-octet memory-service cap. Cause: %s",
                     address,
                     next_cap,

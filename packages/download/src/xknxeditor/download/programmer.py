@@ -22,7 +22,7 @@ from collections.abc import Awaitable, Callable
 from enum import StrEnum
 from typing import TYPE_CHECKING, Protocol, TypeVar
 
-from xknx.exceptions import ManagementConnectionError
+from xknx.exceptions import ManagementConnectionError, ManagementConnectionTimeout
 from xknx.profile.const import (
     ResourceDevicePropertyId,
     ResourceGenericPropertyId,
@@ -75,6 +75,7 @@ from .errors import (
     DownloadError,
     InsufficientApduLength,
     LoadStateError,
+    ManagementAckTimeout,
     MemoryReadNotAnswered,
     MemoryWriteNotAcknowledged,
     PropertyAccessRejected,
@@ -98,10 +99,7 @@ _MAX_MEMORY_CHUNK = 0x3F
 # acknowledged. 15 octets still need a long frame (an 18-octet APDU with the 3-octet
 # memory header); 12 is the most a standard frame carries.
 MEMORY_SERVICE_FALLBACKS = (15, 12)
-# A lost acknowledgement or response on a still-open connection can be transient; the
-# operation is resent a few times before it is treated as failed. Memory reads and
-# writes are idempotent by address, and so are property writes (see _resend_is_safe), so
-# a resend cannot corrupt the device.
+# Only response timeouts are retried here; transport ACK retries belong to the connection.
 _TRANSIENT_RETRIES = 2
 _TRANSIENT_RETRY_DELAY = 0.2
 
@@ -940,26 +938,22 @@ class DeviceProgrammer:
         )
 
     async def _retry_transient(self, send: Callable[[], Awaitable[_T]]) -> _T:
-        """Run a management request, retrying a transient timeout a bounded number of
-        times before letting it propagate.
-
-        A lost ACK or response on a still-open connection is resent; memory reads and
-        writes are idempotent by address, and so are the property writes it is used for
-        (see :func:`_resend_is_safe`), so a resend cannot corrupt the device. A
-        persistent failure (e.g. the device dropped the connection) still propagates
-        after the retries, so a genuine no-acknowledge reaches the caller unchanged.
-        """
+        """Retry a missing response for operations whose repetition is safe."""
         for attempt in range(_TRANSIENT_RETRIES + 1):
             try:
                 return await send()
-            except ManagementConnectionError:
-                if attempt >= _TRANSIENT_RETRIES:
+            except ManagementConnectionTimeout as exc:
+                if (
+                    isinstance(exc, ManagementAckTimeout)
+                    or attempt >= _TRANSIENT_RETRIES
+                ):
                     raise
                 logger.debug(
-                    "transient management timeout [%s]; retry %d/%d",
+                    "management response timeout [%s]; retry %d/%d. Cause: %s",
                     self.diagnostic_context,
                     attempt + 1,
                     _TRANSIENT_RETRIES,
+                    exc,
                 )
                 await asyncio.sleep(_TRANSIENT_RETRY_DELAY)
         raise AssertionError("unreachable")

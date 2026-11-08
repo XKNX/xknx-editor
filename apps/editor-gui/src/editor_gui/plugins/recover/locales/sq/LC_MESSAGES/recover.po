@@ -98,7 +98,7 @@ msgid "Not in the catalog: import its product in the Catalog"
 msgstr "Nuk është në katalog: importojeni produktin e tij në Katalog"
 
 msgid "Not programmed"
-msgstr "I paprogramuar"
+msgstr "E paprogramuar"
 
 msgid "Already in the project, skipped"
 msgstr "Tashmë në projekt, u anashkalua"
@@ -107,16 +107,16 @@ msgid "Error"
 msgstr "Gabim"
 
 msgid "Recovered (incomplete)"
-msgstr "Rikuperuar (jo i plotë)"
+msgstr "Rikuperuar (e paplotë)"
 
 msgid "Search Effort"
-msgstr "Përpjekja e Kërkimit"
+msgstr "Përpjekja e kërkimit"
 
 msgid "How many values are tried for the settings a device keeps no copy of. More effort finds settings in devices with many channels, but takes longer. Unlimited goes on until no value fits better; Stop ends the search."
-msgstr "Sa vlera provohen për cilësimet për të cilat pajisja nuk ruan kopje. Më shumë përpjekje gjen cilësime në pajisje me shumë kanale, por zgjat më shumë. Pa kufi vazhdon derisa asnjë vlerë të mos përshtatet më mirë; Ndalo e përfundon kërkimin."
+msgstr "Sa vlera provohen për cilësimet për të cilat pajisja nuk ruan kopje. Më shumë përpjekje gjen cilësime në pajisje me shumë kanale, por zgjat më shumë. “Pa kufi” vazhdon derisa asnjë vlerë të mos përshtatet më mirë; “Ndalo” e përfundon kërkimin."
 
 msgid "Fast"
-msgstr "Shpejt"
+msgstr "E shpejtë"
 
 msgid "Medium"
 msgstr "Mesatare"
@@ -125,10 +125,10 @@ msgid "Maximum"
 msgstr "Maksimale"
 
 msgid "Search Again"
-msgstr "Kërko Përsëri"
+msgstr "Kërko përsëri"
 
 msgid "Searches the settings of the selected incomplete devices again in what was read from them, with the chosen search effort. Needs no bus. A device already added to the project is replaced (one undo step)."
-msgstr "Kërkon përsëri cilësimet e pajisjeve të paplota të zgjedhura në atë që u lexua prej tyre, me përpjekjen e zgjedhur të kërkimit. Nuk kërkon bus. Një pajisje e shtuar tashmë në projekt zëvendësohet (një hap zhbërjeje)."
+msgstr "Kërkon përsëri cilësimet e pajisjeve të paplota të zgjedhura në atë që u lexua prej tyre, me përpjekjen e zgjedhur të kërkimit. Nuk ka nevojë për bus. Një pajisje e shtuar tashmë në projekt zëvendësohet (një hap zhbërjeje)."
 
 msgid "Searching %(address)s again  (%(done)d/%(total)d)…"
 msgstr "Po kërkohet përsëri %(address)s  (%(done)d/%(total)d)…"
@@ -143,7 +143,7 @@ msgid "Result"
 msgstr "Rezultati"
 
 msgid "Not read yet"
-msgstr "Ende i palexuar"
+msgstr "Ende e palexuar"
 
 msgid "Verified"
 msgstr "U verifikua"
@@ -204,7 +204,7 @@ msgstr "Ndryshon nga pajisja: %(what)s"
 msgid "%(count)d byte"
 msgid_plural "%(count)d bytes"
 msgstr[0] "%(count)d bajt"
-msgstr[1] "%(count)d bajt"
+msgstr[1] "%(count)d bajte"
 
 msgid "%(count)d group object"
 msgid_plural "%(count)d group objects"
@@ -214,7 +214,7 @@ msgstr[1] "%(count)d objekte grupi"
 msgid "Verify: %(count)d byte differs"
 msgid_plural "Verify: %(count)d bytes differ"
 msgstr[0] "Verifikimi: ndryshon %(count)d bajt"
-msgstr[1] "Verifikimi: ndryshojnë %(count)d bajt"
+msgstr[1] "Verifikimi: ndryshojnë %(count)d bajte"
 
 msgid "Import Snapshot…"
 msgstr "Importo pamjen e çastit…"
