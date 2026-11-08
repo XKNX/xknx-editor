@@ -401,9 +401,10 @@ def _flatten(
     return controls
 
 
-# On a BIM M112 the second program has load state machine 4, the application 1 to 3; the
-# controls of these applications are taken as they are.
-_SECOND_PROGRAM_LSM = 4
+# On a BIM M112, and in product data converted from older data, the second program has load
+# state machine 4, the application 1 to 3. On a BIM M112 the controls of these applications
+# are taken as they are.
+SECOND_PROGRAM_LSM = 4
 _DO_NOT_FILTER_LOAD_CONTROLS = (
     "M-0001_A-8018-04",
     "M-0001_A-8018-06",
@@ -445,9 +446,9 @@ def _program_controls(
         if lsm is None:
             keep = True
         elif second:
-            keep = lsm >= _SECOND_PROGRAM_LSM
+            keep = lsm >= SECOND_PROGRAM_LSM
         else:
-            keep = lsm != _SECOND_PROGRAM_LSM or (
+            keep = lsm != SECOND_PROGRAM_LSM or (
                 isinstance(control, LdCtrlUnload) and not has_second
             )
         if keep:

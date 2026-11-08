@@ -1970,3 +1970,80 @@ async def test_an_mcb_write_takes_the_capture_as_it_is() -> None:
     await runner.run()
     # The CRC is written back as captured.
     assert _mcb_writes(device) == ["0000070c0033abcd"]
+
+
+def _system_b_device() -> FakeDevice:
+    """An MV-17B0 device: group object table object 3, application 4, PEI program 5."""
+    device = FakeDevice(
+        object_types={0: 0, 1: 1, 2: 2, 3: 9, 4: 3, 5: 4}, descriptor=0x17B0
+    )
+    for index in (3, 4, 5):
+        device.load_states[index] = LoadState.LOADING
+    return device
+
+
+def _task_events(device: FakeDevice) -> dict[int, bytes]:
+    return {
+        payload.object_index: payload.data
+        for payload in device.sent
+        if isinstance(payload, PropertyValueWrite)
+        and payload.property_id == PID_LOAD_STATE_CONTROL
+        and payload.data[:2] == b"\x03\x02"
+    }
+
+
+def _pei(*controls: object) -> Application:
+    pei = _application(*controls)
+    pei.manufacturer_id = "M-0007"  # type: ignore[misc]
+    pei.program.application_number = 0x6136  # type: ignore[misc]
+    pei.program.application_version = 0x31  # type: ignore[misc]
+    pei.program.pei_type = 2  # type: ignore[misc]
+    return pei
+
+
+async def test_converted_product_data_loads_the_pei_program_with_its_own_id() -> None:
+    # Product data converted from older data loads the application on LSM 1 to 3 and the PEI
+    # program on LSM 4: each task segment carries its own program's id and PEI type.
+    controls = (
+        LdCtrlTaskSegment(lsm_idx=4, address=0x1000),
+        LdCtrlTaskSegment(lsm_idx=3, address=0x9000),
+    )
+    application = _application(*controls)
+    application.program.mask_version = "MV-17B0"
+    device = _system_b_device()
+    runner = LoadProcedureRunner(
+        application,
+        _empty_image(),
+        DeviceProgrammer(device),
+        application2=_pei(),
+    )
+
+    await runner.run()
+
+    events = _task_events(device)
+    assert events[4] == bytes.fromhex("0302100002") + bytes.fromhex("0007613631")
+    assert events[3] == bytes.fromhex("0302900001") + bytes.fromhex("0072000101")
+
+
+async def test_the_pei_program_task_segment_of_its_own_object_takes_its_id() -> None:
+    # With a task segment on the PEI program's object (5), the one on LSM 4 is the
+    # application's.
+    controls = (
+        LdCtrlTaskSegment(lsm_idx=5, address=0x1000),
+        LdCtrlTaskSegment(lsm_idx=4, address=0x9000),
+    )
+    application = _application(*controls)
+    application.program.mask_version = "MV-17B0"
+    device = _system_b_device()
+    runner = LoadProcedureRunner(
+        application,
+        _empty_image(),
+        DeviceProgrammer(device),
+        application2=_pei(),
+    )
+
+    await runner.run()
+
+    events = _task_events(device)
+    assert events[5] == bytes.fromhex("0302100002") + bytes.fromhex("0007613631")
+    assert events[4] == bytes.fromhex("0302900001") + bytes.fromhex("0072000101")

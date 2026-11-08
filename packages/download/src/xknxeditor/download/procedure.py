@@ -117,7 +117,7 @@ from .factory_image import FactoryLocation, FactorySegment, FactoryStamp, Proper
 from .group_communication import materialize_group_communication_controls
 from .image import merge_device_bits
 from .ip_config import IP_PARAMETER_OBJECT, IP_PROPERTY_WIDTHS
-from .merge import device_mask_version, resolve_download_controls
+from .merge import SECOND_PROGRAM_LSM, device_mask_version, resolve_download_controls
 from .preflight import PreflightReport, PropertyDiff, SegmentDiff
 from .programmer import (
     DEFAULT_MAX_APDU_LENGTH,
@@ -3104,6 +3104,34 @@ class LoadProcedureRunner:
             and (control.mem_type or 0) & _EEPROM_MEMORY == _EEPROM_MEMORY
         )
 
+    def _task_program(self, control: LdCtrlTaskSegment) -> Application:
+        """The program whose id and PEI type a task segment carries: with a second program,
+        that one for the task segment on the object of its id, or, when the procedure has
+        none there, on LSM 4 (where product data converted from older data loads it); the
+        application otherwise."""
+        second = self.application2
+        lsm = control.lsm_idx
+        if second is None or lsm is None:
+            return self.application
+        resources = bundled_mask_resources(device_mask_version(self.application))
+        location = resources.location(ResourceName.PEIPROG_ID) if resources else None
+        own = (
+            location.interface_object_ref
+            if location is not None
+            and location.address_space is ResourceAddrSpace.SYSTEM_PROPERTY
+            else None
+        )
+        if own is not None and lsm == own:
+            return second
+        controls = (
+            self._full_controls if self._full_controls is not None else self._controls
+        )
+        on_own = own is not None and any(
+            isinstance(other, LdCtrlTaskSegment) and other.lsm_idx == own
+            for other in controls
+        )
+        return second if lsm == SECOND_PROGRAM_LSM and not on_own else self.application
+
     async def _task_segment(self, control: LdCtrlTaskSegment) -> None:
         """Allocate the task segment via a load event."""
         index = await self._resolve_index(control)
@@ -3112,7 +3140,8 @@ class LoadProcedureRunner:
         # would otherwise remap the group-object table at 0x4400).
         if mapped is not None and mapped[1] is None:
             return
-        application_id = _application_id(self.application)
+        program = self._task_program(control)
+        application_id = _application_id(program)
         static = getattr(self.application.program, "static", None)
         options = getattr(static, "options", None) if static is not None else None
         # Only applications that ask for it (LegacyPatchManufacturerIdInTaskSegment)
@@ -3125,7 +3154,7 @@ class LoadProcedureRunner:
             application_id = (0x0002).to_bytes(2, "big") + application_id[2:]
         event = load_state.alloc_task_segment(
             self._task_address(control),
-            self.application.program.pei_type,
+            program.program.pei_type,
             application_id,
         )
         await self._emit_load_event(
