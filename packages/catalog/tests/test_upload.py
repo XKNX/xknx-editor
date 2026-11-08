@@ -7,6 +7,7 @@ project device was skipped). Dedup is now DB-driven.
 
 from __future__ import annotations
 
+import datetime
 from pathlib import Path
 
 import pytest
@@ -130,3 +131,48 @@ def test_project_mode_does_not_downgrade_existing_full_product(tmp_path: Path) -
     assert (
         svc.get_program_application_id(program_id) == full_app
     )  # application NOT nulled
+
+
+def _with_registration_date(content: bytes, date: str) -> bytes:
+    """The .knxprod with every registration date of its Hardware.xml written as ``date``."""
+    import io
+    import zipfile
+
+    buffer = io.BytesIO()
+    with (
+        zipfile.ZipFile(io.BytesIO(content)) as src,
+        zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as out,
+    ):
+        for name in src.namelist():
+            data = src.read(name)
+            if name.endswith("/Hardware.xml"):
+                data = data.replace(
+                    b'RegistrationDate="2023-10-19"',
+                    f'RegistrationDate="{date}"'.encode(),
+                )
+            out.writestr(name, data)
+    return buffer.getvalue()
+
+
+@pytest.mark.parametrize(
+    ("date", "expected"),
+    [
+        ("2023-10-19", datetime.date(2023, 10, 19)),
+        # Older products write a time to the date: the import keeps the day.
+        ("2023-10-19T00:00:00", datetime.date(2023, 10, 19)),
+        ("no date", None),
+    ],
+)
+# The parser warns that a date with a time is no xs:date, and leaves it a string.
+@pytest.mark.filterwarnings("ignore::xsdata.exceptions.ConverterWarning")
+def test_the_registration_date_is_imported(
+    tmp_path: Path, date: str, expected: datetime.date | None
+) -> None:
+    svc = CatalogService(tmp_path / "cat.xknxcatalog")
+    svc.import_knxprod(_with_registration_date(_FIXTURE.read_bytes(), date))
+    program_ids = {p.hardware2program_ref_id for p in svc.list_products()}
+    assert program_ids
+    for program_id in program_ids:
+        facts = svc.product_facts(program_id)
+        assert facts is not None
+        assert facts.registration_date == expected

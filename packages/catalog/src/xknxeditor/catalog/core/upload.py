@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import datetime
 import hashlib
 import logging
 from collections.abc import Callable
@@ -88,6 +89,22 @@ def _ingest_hardware(
                 )
 
 
+def _registration_date(value: object) -> datetime.date | None:
+    """The day of a registration date: an ``xs:date``, or, as older products write it, a date
+    with a time (``2005-03-10T00:00:00``), which stays a plain string. ``None`` when there is
+    none or it is no date."""
+    if value is None or value == "":
+        return None
+    to_date = getattr(value, "to_date", None)
+    if callable(to_date):
+        day = to_date()
+        return day if isinstance(day, datetime.date) else None
+    try:
+        return datetime.date.fromisoformat(str(value).strip()[:10])
+    except ValueError:
+        return None
+
+
 def _ingest_program(
     session: Session,
     hardware_id: str,
@@ -113,7 +130,7 @@ def _ingest_program(
     if info is not None:
         reg_status = info.registration_status.value
         reg_number = info.registration_number
-        reg_date = info.registration_date.to_date() if info.registration_date else None
+        reg_date = _registration_date(info.registration_date)
 
     session.merge(
         HardwareProgram(
