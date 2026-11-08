@@ -1066,6 +1066,11 @@ def _refine_fixed(
     limited = recovered.limited
     budget = None if scale is None else _PAIR_TRIES * scale
     rounds = count() if scale is None else range(_PAIR_ROUNDS * scale)
+    # Settings of several selectors can share a byte (the bits of two hidden settings with a
+    # fixed value each): a value that corrects the bits of one leaves the byte differing until
+    # the other is corrected too. Of two results that differ in as many bytes, the one that
+    # differs in fewer bits fits better.
+    bits: int | None = None
     try:
         for _ in rounds:
             _check(cancel)
@@ -1094,15 +1099,24 @@ def _refine_fixed(
                 seeded = seed_dynamic_ui(application, trial_values, project_code_page)
                 assert seeded is not None
                 fit = _misfit(seeded, parameter_segments, linked, sizes)
-                if fit is not None and fit[0] < current[0]:
-                    values, unknown, inferred, ui, current = (
-                        trial_values,
-                        trial_unknown,
-                        chosen,
-                        seeded,
-                        fit,
-                    )
-                    improved = True
+                if fit is None or fit[0] > current[0]:
+                    continue
+                trial_bits: int | None = None
+                if fit[0] == current[0]:
+                    if bits is None:
+                        bits = _differing_bits(ui, parameter_segments, current[1])
+                    trial_bits = _differing_bits(seeded, parameter_segments, fit[1])
+                    if trial_bits >= bits:
+                        continue
+                values, unknown, inferred, ui, current = (
+                    trial_values,
+                    trial_unknown,
+                    chosen,
+                    seeded,
+                    fit,
+                )
+                bits = trial_bits
+                improved = True
             if not improved:
                 break
         else:
@@ -1711,6 +1725,27 @@ def _mismatches(
             and device[offset] != mine[offset]
         ):
             count += 1
+    return count
+
+
+def _differing_bits(
+    ui: DynamicUI, parameter_segments: Mapping[str, bytes], cells: Collection[_Cell]
+) -> int:
+    """How many bits of the bytes ``cells`` the device holds otherwise than ``ui`` writes them."""
+    from xknxeditor.prod.errors import EncodingError
+
+    if not cells:
+        return 0
+    try:
+        encoded = ui.encode_to_memory()
+    except (EncodingError, ValueError):
+        return 8 * len(cells)
+    count = 0
+    for segment_id, offset in cells:
+        device = parameter_segments.get(segment_id, b"")
+        mine = encoded.get(segment_id, b"")
+        if offset < min(len(device), len(mine)):
+            count += (device[offset] ^ mine[offset]).bit_count()
     return count
 
 
