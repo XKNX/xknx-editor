@@ -102,6 +102,17 @@ def test_association_table_orders_by_group_object_number() -> None:
     assert table == bytes.fromhex("030307 090c 0514".replace(" ", ""))
 
 
+def test_a_bim_m112_table_writes_the_low_octet_of_a_large_object_number() -> None:
+    # The table has one octet for the object: 715 is written as 203, ordered by the full
+    # number (after object 12, not before it).
+    associations = [Association(1, 715), Association(2, 12)]
+    table = build_association_table(associations, low_object_octet=True)
+    assert table == bytes.fromhex("02020c01cb")
+    # Elsewhere such a number is refused.
+    with pytest.raises(ImageError, match="group object number 715"):
+        build_association_table(associations)
+
+
 def test_group_address_table_rejects_overflow() -> None:
     with pytest.raises(ImageError):
         build_group_address_table(0x1101, list(range(300)))

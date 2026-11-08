@@ -1201,7 +1201,7 @@ def _group_communication_segments(
                 )
                 for link in links
             ]
-            data = build_association_table(associations)
+            data = build_association_table(associations, low_object_octet=True)
             if packed is None:
                 _validate_table_capacity(application, group_addresses, associations)
                 address = base + (association_table.offset or 0)

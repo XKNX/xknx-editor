@@ -62,13 +62,16 @@ def group_address_index(group_addresses: Sequence[int]) -> dict[int, int]:
     return {address: i + 1 for i, address in enumerate(sorted(set(group_addresses)))}
 
 
-def build_association_table(associations: Sequence[Association]) -> bytes:
+def build_association_table(
+    associations: Sequence[Association], *, low_object_octet: bool = False
+) -> bytes:
     """Return the association table bytes.
 
     Layout: ``[count:1]`` then one ``[group address index:1][group object
     number:1]`` entry per association. Ordering (per the Group Object Association Table):
     sending associations first, then by group object number, then by group
-    address index.
+    address index. With ``low_object_octet`` a group object number above 255 is written
+    as its low octet (see :func:`build_association_list`).
     """
     return build_association_list(
         sorted(
@@ -78,22 +81,30 @@ def build_association_table(associations: Sequence[Association]) -> bytes:
                 a.group_object_number,
                 a.group_address_index,
             ),
-        )
+        ),
+        low_object_octet=low_object_octet,
     )
 
 
-def build_association_list(associations: Sequence[Association]) -> bytes:
+def build_association_list(
+    associations: Sequence[Association], *, low_object_octet: bool = False
+) -> bytes:
     """Return ``[count:1]`` and a ``[group address index:1][group object number:1]``
-    entry per association, in the given order."""
+    entry per association, in the given order. With ``low_object_octet`` a group object
+    number above 255 is written as its low octet, as a BIM M112 download writes it (the
+    table has one octet for it; 715 links object 203); else it is refused."""
     if len(associations) > 0xFF:
         raise ImageError(f"association table has too many entries: {len(associations)}")
     out = bytearray()
     out.append(len(associations))
     for association in associations:
         _require_octet(association.group_address_index, "group address index")
-        _require_octet(association.group_object_number, "group object number")
+        number = association.group_object_number
+        if low_object_octet:
+            number &= 0xFF
+        _require_octet(number, "group object number")
         out.append(association.group_address_index)
-        out.append(association.group_object_number)
+        out.append(number)
     return bytes(out)
 
 
