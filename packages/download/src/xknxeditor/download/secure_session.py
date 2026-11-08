@@ -35,6 +35,7 @@ from .data_secure import (
     SecureProgrammingError,
     ToolKeyCemiSecure,
 )
+from .errors import ManagementAckTimeout
 from .session import connect
 
 if TYPE_CHECKING:
@@ -189,6 +190,8 @@ class SecureConnectionManager:
             self._management.arm_sync()
             try:
                 await connection.request(_SYNC_TRIGGER, SecureAPDU)
+            except ManagementAckTimeout:
+                raise
             except ManagementConnectionTimeout:
                 logger.warning(
                     "S-A_Sync response not received (attempt %d/%d)",

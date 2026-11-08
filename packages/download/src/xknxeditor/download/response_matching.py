@@ -12,7 +12,8 @@ function property services the same object and property (and start index). The n
 octets or elements is left to the caller, which takes a shorter memory response from a
 device that caps it. :func:`install` makes ``P2PConnection`` wait for such an answer, ignore
 the rest and keep telegrams that arrive back to back, until xknx does it itself
-(XKNX/xknx#2006, which adds ``APCIRequest.is_response``); with such an xknx it does nothing.
+(XKNX/xknx#2006, which adds ``APCIRequest.is_response``). Transport failure guards are
+installed independently of response matching.
 """
 
 from __future__ import annotations
@@ -61,6 +62,8 @@ from xknx.telegram.apci import (
     UserMemoryWrite,
 )
 from xknx.telegram.tpci import TDataConnected
+
+from .management_transport import install as _install_transport
 
 # The messages read like xknx's own, under its logger.
 logger = logging.getLogger("xknx.management")
@@ -227,7 +230,11 @@ class _MatchingP2PConnection(P2PConnection):
                 payload,
             )
         self._response_waiter = loop.create_future()
-        await self.send_data(payload)
+        try:
+            await self.send_data(payload)
+        except BaseException:
+            _QUEUED.pop(id(self), None)
+            raise
 
         deadline = loop.time() + management.MANAGEMENT_CONNECTION_TIMEOUT
         while True:
@@ -254,11 +261,13 @@ class _MatchingP2PConnection(P2PConnection):
 def install() -> bool:
     """Make ``P2PConnection`` take only the response that answers a request.
 
-    Returns whether it did: not with an xknx that does it itself.
+    Returns whether response matching was installed; transport guards are always installed.
     """
+    _install_transport()
     if hasattr(APCIRequest, "is_response"):
         return False
     if P2PConnection.request is not _MatchingP2PConnection.answered_request:
+        _MatchingP2PConnection.xknx_process = P2PConnection.process
         P2PConnection.process = _MatchingP2PConnection.queueing_process  # type: ignore[method-assign]
         P2PConnection.request = _MatchingP2PConnection.answered_request  # type: ignore[method-assign]
     return True

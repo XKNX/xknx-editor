@@ -8,7 +8,7 @@ import importlib
 from typing import Any, ClassVar, cast
 
 import pytest
-from xknx.exceptions import ManagementConnectionError
+from xknx.exceptions import ManagementConnectionError, ManagementConnectionTimeout
 from xknx.telegram import IndividualAddress, Telegram
 from xknx.telegram.apci import MemoryRead, MemoryResponse
 
@@ -59,7 +59,7 @@ class _DroppingConnection:
         assert isinstance(payload, MemoryRead)
         self.counts.append(payload.count)
         if payload.count > self.longest:
-            raise ManagementConnectionError(
+            raise ManagementConnectionTimeout(
                 "Timeout while waiting for <class 'xknx.telegram.apci.MemoryResponse'>"
             )
         return Telegram(

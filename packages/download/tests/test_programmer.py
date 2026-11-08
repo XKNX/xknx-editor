@@ -175,14 +175,15 @@ async def test_write_memory_verify_detects_mismatch() -> None:
 async def test_memory_write_no_ack_names_operation_and_context() -> None:
     # A lost acknowledgement must surface as the typed MemoryWriteNotAcknowledged and
     # name the exact write (address and length) plus the active diagnostic context.
-    from xknx.exceptions import ManagementConnectionError
-
-    from xknxeditor.download.errors import MemoryWriteNotAcknowledged
+    from xknxeditor.download.errors import (
+        ManagementAckTimeout,
+        MemoryWriteNotAcknowledged,
+    )
 
     class NoAckDevice(FakeDevice):
         async def send_data(self, payload: object, wait_for_ack: bool = True) -> None:
             if isinstance(payload, MemoryWrite):
-                raise ManagementConnectionError("No ACK received for repeated telegram")
+                raise ManagementAckTimeout("No ACK received for repeated telegram")
             await super().send_data(payload, wait_for_ack)  # type: ignore[arg-type]
 
     programmer = DeviceProgrammer(NoAckDevice())
@@ -556,7 +557,7 @@ async def test_locate_object_reads_each_object_type_once() -> None:
 async def test_transient_read_timeout_is_retried() -> None:
     # A lost response on a live connection (the reported "Timeout while waiting for
     # MemoryResponse" during a verify read) is retried instead of aborting the download.
-    from xknx.exceptions import ManagementConnectionError
+    from xknx.exceptions import ManagementConnectionTimeout
 
     class FlakyRead(FakeDevice):
         def __init__(self) -> None:
@@ -566,7 +567,7 @@ async def test_transient_read_timeout_is_retried() -> None:
         async def request(self, payload: object, expected: object) -> object:
             if isinstance(payload, MemoryRead) and self.read_failures == 0:
                 self.read_failures = 1
-                raise ManagementConnectionError(
+                raise ManagementConnectionTimeout(
                     "Timeout while waiting for MemoryResponse"
                 )
             return await super().request(payload, expected)  # type: ignore[arg-type]
@@ -587,13 +588,13 @@ class _FlakyPropertyWrite(FakeDevice):
         self.writes: list[PropertyValueWrite] = []
 
     async def request(self, payload: object, expected: object) -> object:
-        from xknx.exceptions import ManagementConnectionError
+        from xknx.exceptions import ManagementConnectionTimeout
 
         if isinstance(payload, PropertyValueWrite):
             self.writes.append(payload)
             if self.failures:
                 self.failures -= 1
-                raise ManagementConnectionError(
+                raise ManagementConnectionTimeout(
                     "Timeout while waiting for PropertyValueResponse"
                 )
         return await super().request(payload, expected)  # type: ignore[arg-type]
