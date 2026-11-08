@@ -45,6 +45,21 @@ class VerificationError(DownloadError):
     """Data read back from the device does not match the data written."""
 
 
+class InsufficientApduLength(VerificationError):
+    """A service needs a longer APDU than the connection allows, e.g. a property whose single
+    element does not fit a standard frame. Nothing is sent: the operation needs the interface,
+    the device and every coupler between them to take long frames."""
+
+    def __init__(self, usable: int, restricted_by: str, required: int) -> None:
+        super().__init__(
+            f"insufficient APDU length (restricted to {usable} by {restricted_by}, "
+            f"required: {required})"
+        )
+        self.usable = usable
+        self.restricted_by = restricted_by
+        self.required = required
+
+
 class CompareMismatch(VerificationError):
     """Valid response data differs from the comparison or verification image.
 

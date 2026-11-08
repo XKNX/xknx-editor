@@ -21,6 +21,7 @@ from xknx.telegram import IndividualAddress
 from xknxeditor.download import (
     DEFAULT_MAX_APDU_LENGTH,
     DeviceProgrammer,
+    apdu_restriction,
     negotiated_apdu_length,
 )
 from xknxeditor.download.errors import MemoryReadNotAnswered
@@ -374,6 +375,9 @@ async def recover_device_at(
                     with contextlib.suppress(XKNXException):
                         device_max = await programmer.read_max_apdu_length()
                         programmer.max_apdu_length = negotiated_apdu_length(
+                            device_max, interface_max_apdu_length
+                        )
+                        programmer.apdu_restricted_by = apdu_restriction(
                             device_max, interface_max_apdu_length
                         )
                 else:

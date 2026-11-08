@@ -19,6 +19,7 @@ from .errors import (
     AddressInUseError,
     DownloadError,
     ImageError,
+    InsufficientApduLength,
     LoadStateError,
     ProgrammingModeError,
     SerialNumberNotFoundError,
@@ -53,8 +54,10 @@ from .preflight import (
 from .procedure import LoadProcedureRunner
 from .programmer import (
     DEFAULT_MAX_APDU_LENGTH,
+    ApduRestriction,
     ConnectionManager,
     DeviceProgrammer,
+    apdu_restriction,
     negotiated_apdu_length,
 )
 from .project_data import (
@@ -85,6 +88,7 @@ __all__ = [
     "DEFAULT_MAX_APDU_LENGTH",
     "FILTER_TABLE_SIZE",
     "AddressInUseError",
+    "ApduRestriction",
     "Association",
     "ByteRange",
     "ConnectionManager",
@@ -97,6 +101,7 @@ __all__ = [
     "GroupCommunication",
     "GroupObjectLink",
     "ImageError",
+    "InsufficientApduLength",
     "IpDeviceConfig",
     "IpSecureConfig",
     "LoadEvent",
@@ -115,6 +120,7 @@ __all__ = [
     "UnsupportedProcedureError",
     "VerificationError",
     "addresses_in_filter_table",
+    "apdu_restriction",
     "build_association_table",
     "build_filter_table",
     "build_group_address_table",

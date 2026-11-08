@@ -19,6 +19,7 @@ import asyncio
 import contextlib
 import logging
 from collections.abc import Awaitable, Callable
+from enum import StrEnum
 from typing import TYPE_CHECKING, Protocol, TypeVar
 
 from xknx.exceptions import ManagementConnectionError
@@ -72,6 +73,7 @@ from .errors import (
     RESOURCE_WRITE_PROTECTED_ERROR,
     CompareMismatch,
     DownloadError,
+    InsufficientApduLength,
     LoadStateError,
     MemoryReadNotAnswered,
     MemoryWriteNotAcknowledged,
@@ -173,6 +175,30 @@ def negotiated_apdu_length(
     return max(DEFAULT_MAX_APDU_LENGTH, min(device_max_apdu_length, ceiling))
 
 
+class ApduRestriction(StrEnum):
+    """What restricts the APDU length of a connection, as a message names it."""
+
+    DEVICE = "capabilities of the device"
+    INTERFACE = "capabilities of the bus interface"
+    SETTINGS = "communication settings"
+
+
+def apdu_restriction(
+    device_max_apdu_length: int, interface_max_apdu_length: int | None = None
+) -> ApduRestriction:
+    """What restricts :func:`negotiated_apdu_length` for the same arguments: the device when
+    it reports less than the interface carries, otherwise the interface, or the communication
+    ceiling when the interface takes more."""
+    ceiling = MAX_COMMUNICATION_APDU_LENGTH
+    if interface_max_apdu_length is not None:
+        ceiling = min(ceiling, interface_max_apdu_length)
+    if device_max_apdu_length < ceiling:
+        return ApduRestriction.DEVICE
+    if ceiling < MAX_COMMUNICATION_APDU_LENGTH:
+        return ApduRestriction.INTERFACE
+    return ApduRestriction.SETTINGS
+
+
 class BusConnection(Protocol):
     """Subset of ``xknx.management.P2PConnection`` used for programming."""
 
@@ -222,6 +248,8 @@ class DeviceProgrammer:
         self.connection = connection
         self.diagnostic_context = "control=direct"
         self.max_apdu_length = max_apdu_length
+        # Named when a service does not fit: a length given as it is comes from the settings.
+        self.apdu_restricted_by = ApduRestriction.SETTINGS
         self.apdu_overhead = apdu_overhead
         self._object_index_cache: dict[tuple[int, int], int] = {}
         # Object type per interface object index as read so far; None past the last object.
@@ -273,14 +301,25 @@ class DeviceProgrammer:
             raise VerificationError("insufficient APDU budget for service payload")
         return size
 
+    def _check_property_element(
+        self, element_size: int, overhead: int, max_bytes: int
+    ) -> None:
+        """Refuse an element that does not fit one frame: a value is split between elements
+        only, so it needs an APDU of the element plus the frame's header (and a secured
+        session's overhead)."""
+        if element_size < 0:
+            raise VerificationError(f"invalid property element size {element_size}")
+        if element_size > max_bytes:
+            raise InsufficientApduLength(
+                self.max_apdu_length,
+                self.apdu_restricted_by,
+                element_size + overhead + self.apdu_overhead,
+            )
+
     def property_chunk_size(self, element_size: int) -> int:
         """Elements that fit a property value frame, including its response."""
         max_bytes = self._payload_budget(_PROPERTY_OVERHEAD, 250)
-        if element_size < 0 or element_size > max_bytes:
-            raise VerificationError(
-                f"a single property element ({element_size} octets) does not fit "
-                f"the APDU ({max_bytes} octets); element fragmentation is not implemented"
-            )
+        self._check_property_element(element_size, _PROPERTY_OVERHEAD, max_bytes)
         return (
             min(_MAX_PROPERTY_ELEMENTS, max_bytes // element_size)
             if element_size
@@ -290,11 +329,7 @@ class DeviceProgrammer:
     def extended_property_chunk_size(self, element_size: int) -> int:
         """Elements that fit an extended property value frame."""
         max_bytes = self._payload_budget(_EXT_PROPERTY_OVERHEAD, 250)
-        if element_size < 0 or element_size > max_bytes:
-            raise VerificationError(
-                f"a single property element ({element_size} octets) does not fit "
-                f"the APDU ({max_bytes} octets)"
-            )
+        self._check_property_element(element_size, _EXT_PROPERTY_OVERHEAD, max_bytes)
         return (
             min(_MAX_EXT_PROPERTY_ELEMENTS, max_bytes // element_size)
             if element_size

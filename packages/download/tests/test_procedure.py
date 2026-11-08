@@ -19,6 +19,7 @@ from xknx.telegram.apci import (
 from xknxeditor.download.errors import (
     DownloadError,
     ImageError,
+    InsufficientApduLength,
     PropertyAccessRejected,
 )
 from xknxeditor.download.image import (
@@ -37,7 +38,7 @@ from xknxeditor.download.procedure import (
     UNCONFIRMED_MASTER_RESET_COOLDOWN,
     LoadProcedureRunner,
 )
-from xknxeditor.download.programmer import DeviceProgrammer
+from xknxeditor.download.programmer import ApduRestriction, DeviceProgrammer
 from xknxeditor.download.scope import DownloadScope
 from xknxeditor.namespaces.intermediate.ld_ctrl_abs_segment_t import LdCtrlAbsSegment
 from xknxeditor.namespaces.intermediate.ld_ctrl_clear_lcfilter_table_t import (
@@ -1383,6 +1384,48 @@ async def test_negotiate_apdu_uses_device_maximum() -> None:
         and getattr(p, "property_id", None) == 56
         for p in manager.device.sent
     )
+    assert runner._programmer is not None
+    assert runner._programmer.max_apdu_length == 40
+    assert runner._programmer.apdu_restricted_by is ApduRestriction.DEVICE
+
+
+async def test_bcu1_apdu_is_restricted_by_the_device() -> None:
+    runner, _ = _managed_runner(
+        LdCtrlConnect(),
+        max_apdu_length=239,
+        negotiate_apdu=True,
+        property_services=False,
+    )
+    await runner.run()
+    assert runner._programmer is not None
+    assert runner._programmer.apdu_restricted_by is ApduRestriction.DEVICE
+
+
+async def test_property_element_longer_than_the_interface_frame_is_refused() -> None:
+    """A 20-octet element (PDT_GENERIC_20, a Gira unit text) needs an APDU of 25 octets; behind
+    an interface of standard frames nothing of it is sent, and the message names the limit."""
+    write = LdCtrlWriteProp(
+        obj_idx=0,
+        prop_id=210,
+        start_element=1,
+        count=1,
+        verify=True,
+        inline_data=b"\xc2\xb0C".ljust(20, b"\x00"),
+    )
+    runner, manager = _managed_runner(
+        LdCtrlConnect(), write, max_apdu_length=15, negotiate_apdu=True
+    )
+    manager.device.properties[(0, 56)] = (254).to_bytes(2, "big")
+    manager.device.property_element_sizes[(0, 210)] = 20
+
+    with pytest.raises(InsufficientApduLength) as raised:
+        await runner.run()
+
+    assert str(raised.value) == (
+        "insufficient APDU length (restricted to 15 by capabilities of the bus interface, "
+        "required: 25)"
+    )
+    assert not [p for p in manager.device.sent if isinstance(p, PropertyValueWrite)]
 
 
 async def test_compare_prop_rejects_a_truncated_response() -> None:

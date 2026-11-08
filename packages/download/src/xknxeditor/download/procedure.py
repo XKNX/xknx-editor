@@ -123,7 +123,9 @@ from .programmer import (
     DEFAULT_MAX_APDU_LENGTH,
     FREE_ACCESS_KEY,
     PID_TABLE_REFERENCE,
+    ApduRestriction,
     DeviceProgrammer,
+    apdu_restriction,
     negotiated_apdu_length,
 )
 from .property_layout import STANDARD_WRITE_WIDTHS, property_width
@@ -570,6 +572,7 @@ class LoadProcedureRunner:
         self._negotiate_apdu = negotiate_apdu
         self._descriptor_checked = False
         self._negotiated_apdu: int | None = None
+        self._apdu_restricted_by = ApduRestriction.SETTINGS
         self._authorize_levels = authorize_levels
         # BCU1 has no interface-object properties. Leave this on for every other mask.
         self._property_services = property_services
@@ -1064,6 +1067,9 @@ class LoadProcedureRunner:
                     self._negotiated_apdu = negotiated_apdu_length(
                         device_max, self._max_apdu_length
                     )
+                    self._apdu_restricted_by = apdu_restriction(
+                        device_max, self._max_apdu_length
+                    )
                     logger.info(
                         "negotiated APDU length: %d (device reports %d)",
                         self._negotiated_apdu,
@@ -1073,7 +1079,9 @@ class LoadProcedureRunner:
                     # BCU1 APDU length is the classic 15 octets. Property 56
                     # does not exist there; reading it times out.
                     self._negotiated_apdu = DEFAULT_MAX_APDU_LENGTH
+                    self._apdu_restricted_by = ApduRestriction.DEVICE
             programmer.max_apdu_length = self._negotiated_apdu
+            programmer.apdu_restricted_by = self._apdu_restricted_by
         if self._authorize_levels > 0:
             # Access protection is per connection, so authorize on every open (a
             # Restart drops the connection and the next control reconnects), with the
