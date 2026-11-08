@@ -1866,6 +1866,12 @@ class DynamicUI:
         (local to its application or module definition)."""
         return self._parameter_gates.get(local_ref_id, frozenset())
 
+    def assigned_from(self) -> dict[str, str]:
+        """The application's param-refs the Assigns of the evaluated tree write from another
+        one: target -> source (its module instances' are left out)."""
+        self.ui()
+        return self._state.assigned_from()
+
     def object_gates(self, com_object_ref_id: str) -> frozenset[str]:
         """The selectors (local param-refs) right on the way to the placements of a group object
         reference (local to its application or module definition)."""

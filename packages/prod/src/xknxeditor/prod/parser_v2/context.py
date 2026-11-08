@@ -288,6 +288,9 @@ class EvalContext:
     def mark_active_com_object(self, ref_id: str) -> None:
         self._scope.mark_active_com_object(ref_id)
 
+    def mark_assigned_from(self, target: str, source: str) -> None:
+        self._scope.mark_assigned_from(target, source)
+
     def get_com_obj_instance_ref(self, ref_id: str) -> ComObjectInstanceRef | None:
         return self._scope.get_com_obj_instance_ref(ref_id)
 

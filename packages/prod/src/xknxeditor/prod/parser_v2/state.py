@@ -99,6 +99,7 @@ class ParameterState:
         "_active_module_keys",
         "_active_param_refs",
         "_alloc_positions",
+        "_assigned_from",
         "_children",
         "_com_obj_instance_refs",
         "_discovered_active_param_refs",
@@ -165,6 +166,9 @@ class ParameterState:
         # was before the pass's first write to it: a pass that leaves one different has to be
         # followed by another, as a node read before the write saw the old value.
         self._pass_values: dict[str, str | None] = {}
+        # The param-refs the Assigns of the current pass wrote from another one: target ->
+        # source (local ids of this scope).
+        self._assigned_from: dict[str, str] = {}
         self._pass_texts: dict[str, str | None] = {}
 
     def get(self, ref_id: str) -> str | None:
@@ -241,6 +245,15 @@ class ParameterState:
     def mark_active_com_object(self, ref_id: str) -> None:
         self._active_com_object_refs.add(ref_id)
 
+    def mark_assigned_from(self, target: str, source: str) -> None:
+        """An Assign of the current pass wrote ``target`` from ``source``."""
+        self._assigned_from[target] = source
+
+    def assigned_from(self) -> dict[str, str]:
+        """The param-refs the Assigns of the last pass wrote from another one, in this scope:
+        target -> source."""
+        return dict(self._assigned_from)
+
     def set_com_obj_instance_ref(self, ref_id: str, coir: ComObjectInstanceRef) -> None:
         self._com_obj_instance_refs[ref_id] = coir
 
@@ -294,6 +307,7 @@ class ParameterState:
         self._alloc_positions.clear()
         self._pass_values.clear()
         self._pass_texts.clear()
+        self._assigned_from.clear()
         for child in self._children.values():
             child.reset_active()
 

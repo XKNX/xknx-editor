@@ -1194,6 +1194,7 @@ def _decode(
             read.update(written_over)
             resolved = {ui.indexer.parameter_refs[ref].ref_id for ref in written_over}
             unknown = [parameter for parameter in unknown if parameter not in resolved]
+        read.update(_assigned_from(ui, read, inferred))
         if read == values:
             break
         state = frozenset(read.items())
@@ -1358,6 +1359,37 @@ def _shadowed(ui: DynamicUI, ref_id: str) -> bool:
     _SHADOWED.insert(0, (ui, frozenset(found)))
     del _SHADOWED[8:]
     return ref_id in found
+
+
+def _assigned_from(
+    ui: DynamicUI, read: Mapping[str, str], inferred: Mapping[str, str]
+) -> _ValueMap:
+    """The values of the settings the device keeps no copy of that an Assign of ``ui`` copies
+    into stored settings read (a "virtual" setting shown in their place): the value read, for
+    a source of the same type. Where the targets of a source were read with different values
+    (one of them assigned in another branch on the device), the value most of them hold."""
+    indexer = ui.indexer
+    votes: dict[str, Counter[str]] = {}
+    for target, source in ui.assigned_from().items():
+        value = read.get(target)
+        if value is None or source in read or source in inferred:
+            continue
+        target_ref = indexer.parameter_refs.get(target)
+        source_ref = indexer.parameter_refs.get(source)
+        if target_ref is None or source_ref is None:
+            continue
+        target_parameter = indexer.parameters.get(target_ref.ref_id)
+        source_parameter = indexer.parameters.get(source_ref.ref_id)
+        if _keeps_no_copy(source_parameter) and getattr(
+            source_parameter, "parameter_type", None
+        ) == getattr(target_parameter, "parameter_type", None):
+            votes.setdefault(source, Counter())[value] += 1
+    found: _ValueMap = {}
+    for source, counted in votes.items():
+        ranked = counted.most_common(2)
+        if len(ranked) == 1 or ranked[0][1] > ranked[1][1]:
+            found[source] = ranked[0][0]
+    return found
 
 
 def _written_over_values(

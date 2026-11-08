@@ -133,6 +133,9 @@ def test_recovery_decodes_again_with_the_values_read(
         def later_union_members(self, _ref_id: str) -> set[str]:
             return set()
 
+        def assigned_from(self) -> dict[str, str]:
+            return {}
+
         def active_parameter_ref_ids(self) -> frozenset[str]:
             # The selector, and the alternative it shows.
             if self.seeded.get("R-selector") == "1":
