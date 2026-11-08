@@ -27,6 +27,8 @@ from enum import Enum
 from itertools import count
 from typing import TYPE_CHECKING
 
+from xknxeditor.prod.parser_v2.allocator import AllocatorOverflow
+
 if TYPE_CHECKING:
     from xknxeditor.prod import Application
     from xknxeditor.prod.parser_v2.dynamic import DynamicUI
@@ -124,7 +126,12 @@ _ValueMap = dict[str, str]
 
 
 class _Cancelled(Exception):
-    """The search was cancelled (see ``recover_parameters``): it ends with what it has."""
+    """The search was cancelled (see ``recover_parameters``): it ends with what it has.
+    ``partial`` carries the values decoded so far (the values, those left unknown and the
+    inferred settings), when there are any: decoding again after a cancel can take as long as
+    the search did."""
+
+    partial: tuple[dict[str, str], list[str], dict[str, str]] | None = None
 
 
 def _stopped() -> bool:
@@ -227,18 +234,21 @@ def recover_parameters(
             dead,
             cancel,
         )
-    except _Cancelled:
-        # Cancelled before anything was inferred: the values as read, measured against the
-        # device by a correction step that stops at once.
-        values, unknown = _decode(
-            application,
-            parameter_segments,
-            property_values,
-            project_code_page,
-            {},
-            fixed=fixed,
-        )
-        inferred = {}
+    except _Cancelled as cancelled:
+        # Cancelled while inferring: the values so far (else, cancelled at once, the values
+        # as read), measured against the device by a correction step that stops at once.
+        if cancelled.partial is not None:
+            values, unknown, inferred = cancelled.partial
+        else:
+            values, unknown = _decode(
+                application,
+                parameter_segments,
+                property_values,
+                project_code_page,
+                {},
+                fixed=fixed,
+            )
+            inferred = {}
         cancel = _stopped
 
     result = _refine(
@@ -307,8 +317,45 @@ def _infer_all(
         property_values,
         project_code_page,
         inferred,
+        cancel,
         fixed={},
     )
+    try:
+        return _infer_rounds(
+            application,
+            parameter_segments,
+            property_values,
+            project_code_page,
+            linked,
+            sizes,
+            fixed,
+            dead,
+            cancel,
+            values,
+            unknown,
+            inferred,
+        )
+    except _Cancelled as cancelled:
+        if cancelled.partial is None:
+            cancelled.partial = (values, unknown, dict(inferred))
+        raise
+
+
+def _infer_rounds(
+    application: Application,
+    parameter_segments: Mapping[str, bytes],
+    property_values: Mapping[tuple[int | None, int, int], bytes] | None,
+    project_code_page: str | None,
+    linked: set[int],
+    sizes: Mapping[int, str],
+    fixed: _ValueMap,
+    dead: set[tuple[str, str]],
+    cancel: Callable[[], bool] | None,
+    values: dict[str, str],
+    unknown: list[str],
+    inferred: _ValueMap,
+) -> tuple[dict[str, str], list[str], _ValueMap]:
+    """The inference rounds of :func:`_infer_all` from the values decoded first."""
     for _ in range(_INFER_ROUNDS):
         _check(cancel)
         chosen = (
@@ -347,6 +394,7 @@ def _infer_all(
             property_values,
             project_code_page,
             inferred,
+            cancel,
             fixed={},
         )
     return values, unknown, inferred
@@ -404,13 +452,28 @@ def _calculation_inputs(ui: DynamicUI, ref_id: str) -> set[str]:
     decides a selector the application calculates."""
     local = ui.local_ref_id(ref_id)
     indexer = ui.indexer
-    inputs: set[str] = set()
-    for calculation in indexer.calculations_for_r(local):
-        inputs |= {ref.ref_id for ref in calculation.lparameters.parameter_ref_ref}
-    for calculation in indexer.calculations_for_l(local):
-        inputs |= {ref.ref_id for ref in calculation.rparameters.parameter_ref_ref}
-    inputs.discard(local)
+    known: dict[str, set[str]] | None = next(
+        (cache for seen, cache in _CALCULATION_INPUTS if seen is indexer), None
+    )
+    if known is None:
+        known = {}
+        _CALCULATION_INPUTS.insert(0, (indexer, known))
+        del _CALCULATION_INPUTS[4:]
+    inputs = known.get(local)
+    if inputs is None:
+        inputs = set[str]()
+        for calculation in indexer.calculations_for_r(local):
+            inputs |= {ref.ref_id for ref in calculation.lparameters.parameter_ref_ref}
+        for calculation in indexer.calculations_for_l(local):
+            inputs |= {ref.ref_id for ref in calculation.rparameters.parameter_ref_ref}
+        inputs.discard(local)
+        known[local] = inputs
     return _qualified(inputs, _instance_of(ref_id, local))
+
+
+# The calculation inputs of each local param-ref, per indexer (an application's, shared by its
+# UIs) of the last few applications searched.
+_CALCULATION_INPUTS: list[tuple[object, dict[str, set[str]]]] = []
 
 
 def _instance_of(ref_id: str, local: str) -> tuple[str, str] | None:
@@ -579,11 +642,14 @@ def _refine(
         limited = False
         for _ in count() if rounds is None else range(rounds):
             score, differing, wrong = current
-            trials = [
-                trial
-                for trial in _refinement_trials(ui, differing, wrong)
-                if trial[0] != locked and trial not in tried
-            ]
+            try:
+                trials = [
+                    trial
+                    for trial in _refinement_trials(ui, differing, wrong, cancel)
+                    if trial[0] != locked and trial not in tried
+                ]
+            except _Cancelled:
+                return (current, values, unknown, inferred, ui), True, True
             # A module instance's settings are independent of another's: a correction is
             # taken in each (and one of the application's own), the values of the others are
             # tried behind it.
@@ -615,10 +681,17 @@ def _refine(
                     )
                 except _Cancelled:
                     return (current, values, unknown, inferred, ui), True, True
+                except AllocatorOverflow:
+                    # A value that lays out more than the product has room for (more module
+                    # instances than an allocator holds): no configuration of the device.
+                    continue
                 seeded = seed_dynamic_ui(application, trial_values, project_code_page)
                 if seeded is None:
                     continue
-                result = misfit(seeded)
+                try:
+                    result = misfit(seeded)
+                except AllocatorOverflow:
+                    continue
                 if result is None:
                     continue
                 trial = (result, trial_values, trial_unknown, trial_inferred, seeded)
@@ -695,19 +768,25 @@ def _misfit(
 
 
 def _refinement_trials(
-    ui: DynamicUI, differing: set[_Cell], wrong: set[int]
+    ui: DynamicUI,
+    differing: set[_Cell],
+    wrong: set[int],
+    cancel: Callable[[], bool] | None = None,
 ) -> list[tuple[str, str]]:
-    """Candidate selectors, ordered by how many mismatching cells and objects they gate."""
+    """Candidate selectors, ordered by how many mismatching cells and objects they gate.
+    Raises :class:`_Cancelled` once ``cancel`` says so."""
     from xknxeditor.prod.parser_v2.activation import shown_parameters, values_to_try
 
     shown = shown_parameters(ui.ui())
     weight: Counter[str] = Counter()
     cells = ui.stored_parameter_cells()
     for cell in sorted(differing):
+        _check(cancel)
         for ref_id in sorted(cells.get(cell, ())):
             _count_selectors(ui, _gates_of(ui, ref_id), shown, weight)
     objects_of = _objects_by_number(ui) if wrong else {}
     for number in sorted(wrong):
+        _check(cancel)
         for ref_id in objects_of.get(number, ()):
             _count_selectors(ui, _gates_of(ui, ref_id, ui.object_gates), shown, weight)
     trials: list[tuple[str, str]] = []
@@ -1013,11 +1092,13 @@ def _decode(
     property_values: Mapping[tuple[int | None, int, int], bytes] | None,
     project_code_page: str | None,
     inferred: Mapping[str, str],
+    cancel: Callable[[], bool] | None = None,
     *,
     fixed: Mapping[str, str] | None = None,
 ) -> tuple[_ValueMap, list[str]]:
     """Decode the memory and properties against a UI seeded with ``inferred``, returning the
-    values (``inferred`` included) and the parameters left unknown."""
+    values (``inferred`` included) and the parameters left unknown. Raises :class:`_Cancelled`
+    between rounds once ``cancel`` says so."""
     from .recover import seed_dynamic_ui
 
     ui = (
@@ -1045,7 +1126,13 @@ def _decode(
     seen: set[frozenset[tuple[str, str]]] = set()
     # Which parameters own a memory field depends on the values (the active alternative of
     # a union): decode again with a UI seeded with what was read until nothing changes.
-    for _ in range(_DECODE_ROUNDS):
+    for n in range(_DECODE_ROUNDS):
+        try:
+            _check(cancel)
+        except _Cancelled as cancelled:
+            if n:
+                cancelled.partial = ({**inferred, **values}, unknown, dict(inferred))
+            raise
         decoded = dict(ui.decode_memory_parameters(parameter_segments))
         if property_values:
             # Memory and property parameters are disjoint, so a plain merge is safe.
@@ -1476,7 +1563,13 @@ def _infer_unstored(
             _check(cancel)
             if dead is not None and (ref_id, candidate) in dead:
                 continue
-            objects, unlinked, reveals = shown({ref_id: candidate})
+            try:
+                objects, unlinked, reveals = shown({ref_id: candidate})
+            except AllocatorOverflow:
+                # More than the product has room for: no configuration of the device.
+                if dead is not None:
+                    dead.add((ref_id, candidate))
+                continue
             gain = len(objects - base) - len(base - objects)
             if gain > 0:
                 gaining.append((gain, -unlinked, candidate))
@@ -1645,11 +1738,15 @@ def _infer_from_memory(
             application, {**values, ref_id: candidate}, project_code_page
         )
         assert seeded is not None
-        if not base <= _shown_objects(seeded, sizes):
+        try:
+            if not base <= _shown_objects(seeded, sizes):
+                continue
+            trial_fitting, trial_misfits = _union_fit(
+                seeded, _decode_once(seeded, parameter_segments, property_values)
+            )
+        except AllocatorOverflow:
+            # More than the product has room for: no configuration of the device.
             continue
-        trial_fitting, trial_misfits = _union_fit(
-            seeded, _decode_once(seeded, parameter_segments, property_values)
-        )
         total = trial_fitting + len(trial_misfits)
         if len(trial_misfits) < fewest and (
             not total or trial_fitting / total >= share

@@ -6,6 +6,8 @@ channels)."""
 from __future__ import annotations
 
 import base64
+from collections.abc import Mapping
+from typing import Any
 
 import pytest
 
@@ -222,6 +224,38 @@ def test_a_cancel_is_heard_inside_the_inference(application: Application) -> Non
         application, segments, effort=RecoveryEffort.UNLIMITED, cancel=cancel
     )
     assert asked == [False, True]
+    assert recovered.limited
+    assert not recovered.complete
+
+
+def test_a_cancel_while_inferring_keeps_what_was_decoded(
+    application: Application, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # Cancelled after the first decode: its values are the result, not decoded once more
+    # (which can take as long as the search did).
+    segments = _device(
+        application, (_CHANNEL, "1"), (_MODE, "1"), (_DELAY, "5"), (_STEP, "9")
+    )
+    decodes: list[Mapping[str, str]] = []
+    decode = parameters._decode  # pyright: ignore[reportPrivateUsage]
+
+    def counted(*args: Any, **kwargs: Any) -> Any:
+        decodes.append(args[4])
+        return decode(*args, **kwargs)
+
+    monkeypatch.setattr(parameters, "_decode", counted)
+    asked: list[bool] = []
+
+    def cancel() -> bool:
+        asked.append(len(asked) >= 1)
+        return asked[-1]
+
+    recovered = recover_parameters(
+        application, segments, effort=RecoveryEffort.UNLIMITED, cancel=cancel
+    )
+    assert decodes == [{}]
+    assert asked == [False, True]
+    assert recovered.values.get(_CHANNEL, "0") == "0"
     assert recovered.limited
     assert not recovered.complete
 
