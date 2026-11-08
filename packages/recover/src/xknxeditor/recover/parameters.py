@@ -802,6 +802,7 @@ def _refinement_trials(
         for ref_id in objects_of.get(number, ()):
             _count_selectors(ui, _gates_of(ui, ref_id, ui.object_gates), shown, weight)
     trials: list[tuple[str, str]] = []
+    actives: frozenset[str] | None = None
     for gate, _count in weight.most_common():
         parameter = shown.get(gate)
         if parameter is None:
@@ -811,10 +812,33 @@ def _refinement_trials(
             if value is not None and ui.get_value(gate) != value:
                 trials.append((gate, value))
             continue
-        if _is_unstored(ui, gate):
+        if actives is None:
+            actives = ui.active_parameter_ref_ids()
+        # A union member a later active member writes over in part keeps only some of its
+        # bits: the memory holds several of its values alike.
+        if _is_unstored(ui, gate) or _written_over_in_part(ui, gate, actives):
             now = ui.get_value(gate) or parameter.default_value
             trials.extend((gate, value) for value in values_to_try(parameter, now))
     return trials
+
+
+def _guessed(ui: DynamicUI, values: Mapping[str, str]) -> _ValueMap:
+    """The values of ``values`` the memory does not decide alone: those of settings the device
+    keeps no copy of (see :func:`_is_unstored`) and of union members a later active member
+    writes over in part (see :func:`_written_over_in_part`)."""
+    actives = ui.active_parameter_ref_ids()
+    return {
+        key: value
+        for key, value in values.items()
+        if _is_unstored(ui, key) or _written_over_in_part(ui, key, actives)
+    }
+
+
+def _written_over_in_part(ui: DynamicUI, ref_id: str, actives: Collection[str]) -> bool:
+    """Whether later active members of ``ref_id``'s union write over some of its bits, but not
+    all (see :meth:`DynamicUI.later_union_members`)."""
+    later = ui.later_union_members(ref_id) & set(actives)
+    return bool(later) and not ui.union_member_covered(ref_id, later)
 
 
 def _refine_pairs(
@@ -850,7 +874,7 @@ def _refine_pairs(
     values, unknown = recovered.values, recovered.unknown
     if fixed is None:
         fixed = _fixed_values(application, ui)
-    inferred = {key: value for key, value in values.items() if _is_unstored(ui, key)}
+    inferred = _guessed(ui, values)
     limited = recovered.limited
     budget = None if scale is None else _PAIR_TRIES * scale
 
@@ -982,9 +1006,7 @@ def _refine_fixed(
     ui = seed_dynamic_ui(application, recovered.values, project_code_page)
     if ui is None:
         return recovered
-    inferred = {
-        key: value for key, value in recovered.values.items() if _is_unstored(ui, key)
-    }
+    inferred = _guessed(ui, recovered.values)
     values, unknown = _decode(
         application,
         parameter_segments,
@@ -1418,8 +1440,7 @@ def _written_over_values(
         ref = ui.indexer.parameter_refs.get(ref_id)
         if ref is None or ref.ref_id not in lost:
             continue
-        later = ui.later_union_members(ref_id) & actives
-        if not later or ui.union_member_covered(ref_id, later):
+        if not _written_over_in_part(ui, ref_id, actives):
             continue
         if shown is None:
             shown = shown_parameters(ui.ui())
@@ -1428,7 +1449,13 @@ def _written_over_values(
         if parameter is None:
             continue
         own = [cell for cell, refs in cells.items() if ref_id in refs]
-        for value in values_to_try(parameter, ""):
+        # Several values may fit the bits left; the one already given (a search's trial)
+        # stays when it fits.
+        given = values.get(ref_id)
+        candidates = values_to_try(parameter, "")
+        if given is not None:
+            candidates = [given, *(value for value in candidates if value != given)]
+        for value in candidates:
             seeded = seed_dynamic_ui(
                 application, {**values, ref_id: value}, project_code_page
             )
