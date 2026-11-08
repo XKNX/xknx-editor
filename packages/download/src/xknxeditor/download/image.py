@@ -1563,7 +1563,15 @@ def _group_communication_relative_segments(
             for number, communication in _product_communication(application).items():
                 if communication and number not in descriptors:
                     descriptors[number] = (_COMMUNICATION_BIT, 0)
-    highest_number = max((c.number for c in indexer.com_objects.values()), default=0)
+    # The objects of module instances are numbered after the application's own.
+    highest_number = max(
+        {
+            *(c.number for c in indexer.com_objects.values()),
+            *descriptors,
+            *linked_numbers,
+        },
+        default=0,
+    )
 
     address_data = build_group_address_table_b(group_addresses)
     association_data = build_association_table_b(
