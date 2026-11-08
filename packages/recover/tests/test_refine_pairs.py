@@ -201,3 +201,41 @@ def test_dependent_pair_resolves_unlinked_object_sizes() -> None:
     )
     assert recovered.complete
     assert recovered.values[_FIRST] == recovered.values[_SECOND] == "1"
+
+
+@pytest.mark.parametrize(
+    ("effort", "complete", "fixed", "after_fixed"),
+    [
+        (RecoveryEffort.MEDIUM, False, {"R-hidden": "1"}, True),
+        (RecoveryEffort.FAST, False, {"R-hidden": "1"}, False),
+        (RecoveryEffort.MEDIUM, True, {"R-hidden": "1"}, False),
+        (RecoveryEffort.MEDIUM, False, {}, False),
+    ],
+)
+def test_pairs_are_searched_again_with_the_fixed_values(
+    application: Application,
+    monkeypatch: pytest.MonkeyPatch,
+    effort: RecoveryEffort,
+    complete: bool,
+    fixed: dict[str, str],
+    after_fixed: bool,
+) -> None:
+    # The searches before the fixed values are restored can fit only by decoding the memory
+    # into hidden settings the product fixes; with those kept, the selector of the device's
+    # branch may need a setting it shows changed too, so the pairs are searched once more.
+    end = parameters.RecoveredParameters(
+        values={}, unknown=[], differing_bytes=0 if complete else 1
+    )
+    calls: list[object] = []
+
+    def pairs(*args: object, fixed: object = None) -> parameters.RecoveredParameters:
+        calls.append(fixed)
+        return end
+
+    monkeypatch.setattr(parameters, "_fixed_values", lambda _app, _ui: dict(fixed))
+    monkeypatch.setattr(parameters, "_refine", lambda *args: end)
+    monkeypatch.setattr(parameters, "_refine_fixed", lambda *args: end)
+    monkeypatch.setattr(parameters, "_refine_pairs", pairs)
+    recover_parameters(application, {_SEGMENT: bytes(3)}, effort=effort)
+    # The first search of pairs decodes without the fixed values (fixed={}).
+    assert (len(calls) == 2 and calls[1] == fixed) is after_fixed

@@ -282,7 +282,7 @@ def recover_parameters(
             cancel,
             fixed={},
         )
-    return _refine_fixed(
+    result = _refine_fixed(
         application,
         parameter_segments,
         property_values,
@@ -294,6 +294,23 @@ def recover_parameters(
         _EFFORT_SCALE[effort],
         cancel,
     )
+    if fixed and effort is not RecoveryEffort.FAST and not result.complete:
+        # The searches before decode the memory into hidden settings the product fixes, so a
+        # result can fit only that way; with their fixed values kept, the selector that picks
+        # another branch can need a setting it shows changed too.
+        result = _refine_pairs(
+            application,
+            parameter_segments,
+            property_values,
+            project_code_page,
+            linked,
+            sizes,
+            result,
+            _EFFORT_SCALE[effort],
+            cancel,
+            fixed=fixed,
+        )
+    return result
 
 
 def _infer_all(
