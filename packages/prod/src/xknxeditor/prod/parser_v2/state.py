@@ -99,6 +99,7 @@ class ParameterState:
         "_active_module_keys",
         "_active_param_refs",
         "_alloc_positions",
+        "_assign_targets",
         "_assigned_from",
         "_children",
         "_com_obj_instance_refs",
@@ -169,6 +170,9 @@ class ParameterState:
         # The param-refs the Assigns of the current pass wrote from another one: target ->
         # source (local ids of this scope).
         self._assigned_from: dict[str, str] = {}
+        # The param-refs an Assign of the current pass wrote (local ids of this scope): the
+        # targets of the Assigns that apply.
+        self._assign_targets: set[str] = set()
         self._pass_texts: dict[str, str | None] = {}
 
     def get(self, ref_id: str) -> str | None:
@@ -213,6 +217,38 @@ class ParameterState:
             self._pass_values[ref_id] = self._known_param_ref_values.get(ref_id)
         self.param_ref_id_to_value[ref_id] = value
         self._known_param_ref_values[ref_id] = value
+
+    def assign(self, ref_id: str, value: str) -> None:
+        """An Assign of the current pass writes ``value`` into ``ref_id``: it is stored like
+        any other value and stays when the Assign no longer applies."""
+        self.set(ref_id, value)
+        self._assign_targets.add(ref_id)
+
+    def assign_targets(self) -> set[str]:
+        """The (instance-qualified) param-refs the Assigns of the last pass wrote, in this
+        scope and the module scopes below."""
+        result = {self.qualify(ref) for ref in self._assign_targets}
+        for child in self._children.values():
+            result |= child.assign_targets()
+        return result
+
+    def changed_explicit_values(self, before: ParameterState | None) -> dict[str, str]:
+        """The explicit values of this scope and the module scopes below that are not in
+        ``before`` (a copy of this scope taken earlier; ``None``: none), by instance-qualified
+        id."""
+        old = before._known_param_ref_values if before is not None else {}
+        result = {
+            self.qualify(ref): value
+            for ref, value in self._known_param_ref_values.items()
+            if old.get(ref) != value
+        }
+        for key, child in self._children.items():
+            result.update(
+                child.changed_explicit_values(
+                    before._children.get(key) if before is not None else None
+                )
+            )
+        return result
 
     def set_text(self, ref_id: str, text: str) -> None:
         if ref_id not in self._pass_texts:
@@ -308,6 +344,7 @@ class ParameterState:
         self._pass_values.clear()
         self._pass_texts.clear()
         self._assigned_from.clear()
+        self._assign_targets.clear()
         for child in self._children.values():
             child.reset_active()
 

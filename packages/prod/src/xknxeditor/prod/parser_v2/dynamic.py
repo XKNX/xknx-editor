@@ -1618,6 +1618,8 @@ class DynamicUI:
                 # holds) is rejected with the allocator's message, as a failed validation. The
                 # settle is the one the next read needs anyway.
                 self._build_ui(capture_active=True)
+                if before is not None and require_active:
+                    self._store_assigns(journal, before, (ref_id,))
         except AllocatorOverflow as exc:
             journal.rollback()
             if before is not None:
@@ -1629,6 +1631,59 @@ class DynamicUI:
             self._invalidate()
             raise
         return journal.changes()
+
+    def _store_assigns(
+        self, journal: Journal, before: ParameterState, edited: Iterable[str]
+    ) -> None:
+        """Make what the Assigns did part of an edit, in ``journal``: the tree is settled for the
+        edited values, ``before`` is a copy of the state settled before the edit, ``edited`` the
+        parameters the edit sets.
+
+        An Assign that applies writes its value into its target, which is stored like a value the
+        user set: the values the Assigns wrote go into the change. A target no Assign writes any
+        more, though one did before the edit, gets its default (the value of its ParameterRef,
+        else of its Parameter), however it is shown, unless the edit sets it; and the tree is
+        settled again, until no further Assign stops applying. A UI seeded from the stored values
+        (a device opened, an undo) runs the Assigns without these resets and keeps the stored
+        values."""
+        keep = set(edited)
+        was = before.assign_targets() - keep
+        for _ in range(_MAX_GATE_PASSES):
+            self._note_assigned(journal, before)
+            now = self._state.assign_targets()
+            reset = False
+            for ref_id in sorted(was - now):
+                local = self.local_ref_id(ref_id)
+                default = self._idx.default_value(local)
+                # A target of a module instance that ended has nothing to reset.
+                if (
+                    local in self._idx.parameter_refs
+                    and default is not None
+                    and self.get_value(ref_id) != default
+                ):
+                    journal.set(ref_id, default)
+                    reset = True
+            if not reset:
+                return
+            was = now - keep
+            self._invalidate()
+            self._build_ui(capture_active=True)
+        self._note_assigned(journal, before)
+
+    def _note_assigned(self, journal: Journal, before: ParameterState) -> None:
+        """Journal the values the evaluations since ``before`` wrote (the Assigns), with what they
+        were in ``before``."""
+        for ref_id in self._state.changed_explicit_values(before):
+            if ref_id in journal.before:
+                continue
+            found = before.find_scope_for_qualified(ref_id)
+            scope, local = found if found is not None else (before, ref_id)
+            old = scope.get(local)
+            journal.note(
+                ref_id,
+                old if old is not None else self._idx.default_value(local),
+                scope.explicit_value(local),
+            )
 
     def _overflow_rejection(
         self, exc: AllocatorOverflow, ref_id: str
@@ -1736,10 +1791,13 @@ class DynamicUI:
         so one rejected edit does not discard the rest); otherwise the batch is all-or-nothing."""
         if skip_invalid:
             return self._edit_best_effort(edits, validate=validate)
-        before = copy.deepcopy(self._state)  # see _change
         journal = self._journal()
         groups: dict[int, tuple[ParameterState, list[str]]] = {}
+        before: ParameterState | None = None
         try:
+            # The state settled before the edit (see _change and _store_assigns).
+            self.ui()
+            before = copy.deepcopy(self._state)
             for ref_id, value in edits:
                 scope, local = self._apply_direct_edit(
                     journal, ref_id, value, validate=validate
@@ -1758,9 +1816,11 @@ class DynamicUI:
             # Evaluated inside the batch, so an allocator overflow rejects it (see _change).
             self._invalidate()
             self._build_ui(capture_active=True)
+            self._store_assigns(journal, before, (ref for ref, _ in edits))
         except AllocatorOverflow as exc:
             journal.rollback()
-            self._state = before
+            if before is not None:
+                self._state = before
             self._invalidate()
             raise self._overflow_rejection(exc, edits[-1][0]) from exc
         except BaseException:

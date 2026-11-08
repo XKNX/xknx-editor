@@ -8,7 +8,8 @@ from .base import DynamicNode
 
 
 class AssignNode(DynamicNode):
-    """Writes a value into a parameter; state-only, renders nothing."""
+    """Writes a value into a parameter (stored like any other value); state-only, renders
+    nothing."""
 
     def __init__(self, elem: Assign):
         self._elem = elem
@@ -19,12 +20,12 @@ class AssignNode(DynamicNode):
         if self._elem.source_param_ref_ref is not None:
             ctx.mark_active_param(self._elem.source_param_ref_ref)
         if self._elem.value is not None:
-            ctx.set(self._elem.target_param_ref_ref, self._elem.value)
+            ctx.assign(self._elem.target_param_ref_ref, self._elem.value)
         elif self._elem.source_param_ref_ref is not None:
             ctx.mark_assigned_from(
                 self._elem.target_param_ref_ref, self._elem.source_param_ref_ref
             )
             value = ctx.get(self._elem.source_param_ref_ref)
             if value is not None:
-                ctx.set(self._elem.target_param_ref_ref, value)
+                ctx.assign(self._elem.target_param_ref_ref, value)
         return []

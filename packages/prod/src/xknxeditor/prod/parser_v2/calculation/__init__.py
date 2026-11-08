@@ -79,6 +79,12 @@ class Journal:
             self.before[ref_id] = (self.read(ref_id), self.explicit(ref_id))
         self.write(ref_id, value)
 
+    def note(self, ref_id: str, old: str | None, explicit: str | None) -> None:
+        """Record a value the change wrote without the journal (an Assign), with its value
+        (``old``) and explicit value before the change; a value journaled already keeps
+        what it had before."""
+        self.before.setdefault(ref_id, (old, explicit))
+
     def rollback(self) -> None:
         for ref_id, (_, explicit) in reversed(self.before.items()):
             self.write(ref_id, explicit)

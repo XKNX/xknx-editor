@@ -276,6 +276,10 @@ class EvalContext:
     def set(self, ref_id: str, value: str) -> None:
         self._scope.set(ref_id, value)
 
+    def assign(self, ref_id: str, value: str) -> None:
+        """An Assign writes ``value`` into ``ref_id`` (see :meth:`ParameterState.assign`)."""
+        self._scope.assign(ref_id, value)
+
     def set_text(self, ref_id: str, text: str) -> None:
         self._scope.set_text(ref_id, text)
 
