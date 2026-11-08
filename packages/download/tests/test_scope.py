@@ -97,11 +97,17 @@ def test_memory_cap_ladder_seeds_and_falls_back() -> None:
     from xknxeditor.download.download import _memory_cap_ladder
 
     # No learned limit: start at the APDU-derived default, then fall back.
-    assert _memory_cap_ladder(None) == (None, 15, 12)
+    # 52 octets fill APDU 55, the long-frame limit of many TP couplers (#245).
+    assert _memory_cap_ladder(None) == (None, 52, 15, 12)
     # A learned limit starts there and only drops to still-smaller caps.
+    assert _memory_cap_ladder(52) == (52, 15, 12)
     assert _memory_cap_ladder(15) == (15, 12)
     assert _memory_cap_ladder(12) == (12,)
-    assert _memory_cap_ladder(52) == (52, 15, 12)
+    assert _memory_cap_ladder(60) == (60, 52, 15, 12)
+    # A cap the APDU ceiling already enforces is no fallback: APDU 55 carries 52 octets.
+    assert _memory_cap_ladder(None, 210) == (None, 52, 15, 12)
+    assert _memory_cap_ladder(None, 55) == (None, 15, 12)
+    assert _memory_cap_ladder(None, 15) == (None,)
 
 
 def test_app_object_control_classifies_without_mask_type() -> None:
