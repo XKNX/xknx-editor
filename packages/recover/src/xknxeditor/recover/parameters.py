@@ -816,7 +816,9 @@ def _refinement_trials(
             actives = ui.active_parameter_ref_ids()
         # A union member a later active member writes over in part keeps only some of its
         # bits: the memory holds several of its values alike.
-        if _is_unstored(ui, gate) or _written_over_in_part(ui, gate, actives):
+        if _inferable(ui, gate, parameter) or (
+            _editable(parameter) and _written_over_in_part(ui, gate, actives)
+        ):
             now = ui.get_value(gate) or parameter.default_value
             trials.extend((gate, value) for value in values_to_try(parameter, now))
     return trials
@@ -931,7 +933,7 @@ def _refine_pairs(
                 for child, parameter in shown_parameters(first.ui()).items():
                     if (
                         child == gate
-                        or not _is_unstored(first, child)
+                        or not _inferable(first, child, parameter)
                         or gate not in _gates_of(first, child)
                         or _calculation_inputs(first, child)
                     ):
@@ -1239,10 +1241,34 @@ def _decode(
     # Module-instance parameters: decode against a UI seeded with the just-recovered
     # top-level values so the module instances match the device. The module decoder
     # already returns instance-qualified reference ids, which is what a project
-    # stores, so they merge straight into values.
+    # stores, so they merge straight into values. Which member of a module union owns a
+    # field depends on the instance's own values too (a member shown behind another setting
+    # of the instance): decode again with a UI seeded with what was read until nothing
+    # changes, as above.
     values = calculated({**inferred, **values})
-    seeded = seed_dynamic_ui(application, values, project_code_page)
-    if seeded is not None:
+    top_unknown = unknown
+    module_values: _ValueMap = {}
+    seen_modules: set[frozenset[tuple[str, str]]] = set()
+    for n in range(_DECODE_ROUNDS):
+        if n:
+            try:
+                _check(cancel)
+            except _Cancelled as cancelled:
+                cancelled.partial = (
+                    {**values, **module_values},
+                    unknown,
+                    dict(inferred),
+                )
+                raise
+        seeded = seed_dynamic_ui(
+            application,
+            calculated({**values, **module_values}) if module_values else values,
+            project_code_page,
+        )
+        if seeded is None:
+            break
+        module_read: _ValueMap = {}
+        unknown = list(top_unknown)
         for ref_id, value in seeded.decode_module_parameters(
             parameter_segments, property_values or {}
         ).items():
@@ -1251,8 +1277,33 @@ def _decode(
             if value is None:
                 unknown.append(ref_id)
             else:
-                values[ref_id] = value
+                module_read[ref_id] = value
+        # Seeding again changes nothing unless a value the UI was seeded with otherwise
+        # decides what it shows.
+        if module_read == module_values or not any(
+            _steers(seeded, ref_id, value) for ref_id, value in module_read.items()
+        ):
+            module_values = module_read
+            break
+        state = frozenset(module_read.items())
+        module_values = module_read
+        if state in seen_modules:
+            break
+        seen_modules.add(state)
+    values.update(module_values)
     return calculated(values), unknown
+
+
+def _steers(ui: DynamicUI, ref_id: str, value: str) -> bool:
+    """Whether ``value`` of ``ref_id`` would change what ``ui`` shows: it is not the value
+    ``ui`` has, and the ref is a selector or an input of a calculation."""
+    local = ui.local_ref_id(ref_id)
+    indexer = ui.indexer
+    return ui.get_value(ref_id) != value and (
+        local in ui.selector_param_refs
+        or bool(indexer.calculations_for_r(local))
+        or bool(indexer.calculations_for_l(local))
+    )
 
 
 class _CancelToken(AbortToken):
@@ -1335,6 +1386,20 @@ def _is_unstored(ui: DynamicUI, ref_id: str) -> bool:
     ref = indexer.parameter_refs.get(ui.local_ref_id(ref_id))
     parameter = indexer.parameters.get(ref.ref_id) if ref is not None else None
     return _keeps_no_copy(parameter) or _shadowed(ui, ref_id)
+
+
+def _inferable(ui: DynamicUI, ref_id: str, parameter: UiParameter) -> bool:
+    """Whether the search may try other values of a shown setting: the device keeps no copy
+    of it (see :func:`_is_unstored`) and the user can change it. A read-only one keeps the
+    value the product gives it."""
+    return _editable(parameter) and _is_unstored(ui, ref_id)
+
+
+def _editable(parameter: UiParameter) -> bool:
+    """Whether the user can change a shown setting (a read-only one keeps its value)."""
+    from xknxeditor.namespaces.intermediate.access_t import Access
+
+    return parameter.access is Access.READ_WRITE
 
 
 # The active refs of each parameter written after another active ref of it, per UI (the last
@@ -1715,8 +1780,8 @@ def _infer_unstored(
             ref_id not in shown_settings
             and ref_id not in known
             and seeded.local_ref_id(ref_id) in seeded.object_param_refs
-            and _is_unstored(seeded, ref_id)
-            for ref_id in shown_parameters(seeded.ui())
+            and _inferable(seeded, ref_id, parameter)
+            for ref_id, parameter in shown_parameters(seeded.ui()).items()
         )
         return objects & linked, len(objects - linked), reveals
 
@@ -1743,7 +1808,7 @@ def _infer_unstored(
             ref_id in values
             or ref_id in known
             or ui.local_ref_id(ref_id) not in ui.object_param_refs
-            or not _is_unstored(ui, ref_id)
+            or not _inferable(ui, ref_id, parameter)
         ):
             continue
         current = ui.get_value(ref_id) or parameter.default_value
@@ -1912,7 +1977,11 @@ def _infer_from_memory(
     candidates: list[tuple[int, str, str]] = []
     for ref_id, parameter in shown_parameters(ui.ui()).items():
         local = ui.local_ref_id(ref_id)
-        if ref_id in values or local not in weight or not _is_unstored(ui, ref_id):
+        if (
+            ref_id in values
+            or local not in weight
+            or not _inferable(ui, ref_id, parameter)
+        ):
             continue
         current = ui.get_value(ref_id) or parameter.default_value
         candidates += [

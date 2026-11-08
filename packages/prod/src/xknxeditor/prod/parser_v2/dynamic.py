@@ -348,6 +348,7 @@ class DynamicTreeBuilder:
         self.parameter_gates: dict[str, frozenset[str]]
         self.object_gates: dict[str, frozenset[str]]
         self.module_gates: dict[str, frozenset[str]]
+        self.selector_param_refs: frozenset[str] = frozenset()
         (
             self.allocation_param_refs,
             self.object_param_refs,
@@ -465,6 +466,20 @@ class DynamicTreeBuilder:
         gates_by_module = {
             ref: frozenset(gates) for ref, gates in module_placements.items()
         }
+        # Every selector, and the sources its Assigns copy into it: no other value can change
+        # what the tree shows.
+        selectors = set[str]().union(
+            *placements.values(),
+            *object_placements.values(),
+            *module_placements.values(),
+        )
+        pending = list(selectors)
+        while pending:
+            for source in sources.get(pending.pop(), ()):
+                if source not in selectors:
+                    selectors.add(source)
+                    pending.append(source)
+        self.selector_param_refs = frozenset(selectors)
         return (
             closed(seeds),
             closed(object_seeds),
@@ -666,11 +681,15 @@ class DynamicTreeBuilder:
         elif isinstance(elem, Module):
             ref_id = elem.ref_id
             mod_def = self.idx.module_defs.get(ref_id)
-            if mod_def is None or mod_def.dynamic is None:
+            if mod_def is None:
                 return None
             children = self._module_subtrees.get(ref_id)
             if children is None:
-                children = [self._build(child) for child in mod_def.dynamic.choice]
+                # A definition without a Dynamic section (a placeholder that only reserves
+                # its arguments' Allocates) still takes its allocator ranges, so the modules
+                # after it keep their addresses.
+                choice = mod_def.dynamic.choice if mod_def.dynamic is not None else []
+                children = [self._build(child) for child in choice]
                 self._module_subtrees[ref_id] = children
             arguments: dict[str, ModuleArg] = {arg.ref_id: arg for arg in elem.choice}
             param_ref_defaults = compute_param_ref_defaults(
@@ -996,6 +1015,7 @@ class DynamicUI:
         "_object_param_refs",
         "_page_for",
         "_parameter_gates",
+        "_selector_param_refs",
         "_state",
         "_tree",
         "_ui",
@@ -1029,6 +1049,7 @@ class DynamicUI:
         self._parameter_gates = builder.parameter_gates
         self._object_gates = builder.object_gates
         self._module_gates = builder.module_gates
+        self._selector_param_refs = builder.selector_param_refs
         self._union_competitors = builder.union_competitors
         self._page_for = builder.page_param_for
         self._state = GlobalState.from_project(
@@ -1873,6 +1894,13 @@ class DynamicUI:
         """Param-refs (local to their application or module definition) whose value can change
         which group objects and module instances the tree makes."""
         return self._object_param_refs
+
+    @property
+    def selector_param_refs(self) -> frozenset[str]:
+        """Param-refs (local to their application or module definition) whose value can change
+        what the tree shows: the selectors on the way to any parameter, group object or module,
+        and the sources their Assigns copy from."""
+        return self._selector_param_refs
 
     def parameter_gates(self, local_ref_id: str) -> frozenset[str]:
         """The selectors (local param-refs) right on the way to the placements of a param-ref
