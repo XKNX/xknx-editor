@@ -239,6 +239,36 @@ class _UnionCompetitors:
             for r in self._member_refs[m2]
         }
 
+    def covered(self, ref_id: str, by: Iterable[str]) -> bool:
+        """Whether the members of the param-refs ``by`` together cover every bit of
+        ``ref_id``'s member (one of unknown width: when one starts at the same bit, as
+        :meth:`_overlap` counts it)."""
+        mid = self._member_of.get(ref_id)
+        if mid is None:
+            return False
+        key, start, size = self._members[mid]
+        spans: list[tuple[int, int]] = []
+        for other in by:
+            m2 = self._member_of.get(other)
+            if m2 is None or m2 == mid:
+                continue
+            k2, s2, z2 = self._members[m2]
+            if k2 != key:
+                continue
+            if size is None or z2 is None:
+                if s2 == start:
+                    return True
+                continue
+            spans.append((s2, s2 + z2))
+        if size is None:
+            return False
+        reached = start
+        for begin, end in sorted(spans):
+            if begin > reached:
+                break
+            reached = max(reached, end)
+        return reached >= start + size
+
 
 def _modules(elems: Iterable[object]) -> Iterator[Module]:
     """Every Module element in ``elems`` and below them (choose branches, repeats, blocks), not
@@ -1776,6 +1806,12 @@ class DynamicUI:
         the same bits (an application's union; empty for any other ref): when one is active,
         the memory holds its value, not ``ref_id``'s."""
         return self._union_competitors.later(ref_id)
+
+    def union_member_covered(self, ref_id: str, by: Iterable[str]) -> bool:
+        """Whether the union members of the param-refs ``by`` together write every bit of
+        ``ref_id``'s member (see :meth:`later_union_members`): the memory then holds nothing
+        of ``ref_id``'s value."""
+        return self._union_competitors.covered(ref_id, by)
 
     def explore_parameters(self) -> list[Placement]:
         """Every place of every parameter in the tree, whatever the current values select, with

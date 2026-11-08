@@ -599,3 +599,133 @@ def test_a_union_member_written_over_by_a_later_one_keeps_its_value() -> None:
     assert recovered.complete
     assert recovered.values.get(ub) == "7"
     assert recovered.values.get(x) == "5"
+
+
+def _hidden_union_application() -> Application:
+    """A union over byte 0 with the hidden members ``UA`` (fixed 45) and ``UB`` (fixed 0): the
+    stored switch ``S`` (byte 1) off shows ``UA`` by its ref ``R-5``, on by ``R-1``, and that
+    one 45 shows ``UB`` and ``X`` (byte 2)."""
+    app = "M-00FA_A-000C-01-0000"
+    xml = f"""<?xml version="1.0" encoding="utf-8"?>
+<KNX xmlns="http://knx.org/xml/project/20" CreatedBy="test" ToolVersion="1">
+  <ManufacturerData><Manufacturer RefId="M-00FA"><ApplicationPrograms>
+    <ApplicationProgram Id="{app}" ApplicationNumber="12" ApplicationVersion="1"
+        ProgramType="ApplicationProgram" MaskVersion="MV-07B0" Name="Hidden union"
+        LoadProcedureStyle="MergedProcedure" PeiType="0" DefaultLanguage="en-US"
+        DynamicTableManagement="false" Linkable="false" MinEtsVersion="5.0">
+      <Static>
+        <Code><AbsoluteSegment Id="{app}_AS-0000" Address="0" Size="3"><Data>AAAA</Data></AbsoluteSegment></Code>
+        <ParameterTypes>
+          <ParameterType Id="{app}_PT-OnOff" Name="OnOff"><TypeRestriction Base="Value" SizeInBit="8">
+            <Enumeration Text="off" Value="0" Id="{app}_PT-OnOff_EN-0" />
+            <Enumeration Text="on" Value="1" Id="{app}_PT-OnOff_EN-1" />
+          </TypeRestriction></ParameterType>
+          <ParameterType Id="{app}_PT-N" Name="N"><TypeNumber SizeInBit="8" Type="unsignedInt" minInclusive="0" maxInclusive="255" /></ParameterType>
+        </ParameterTypes>
+        <Parameters>
+          <Union SizeInBit="8">
+            <Memory CodeSegment="{app}_AS-0000" Offset="0" BitOffset="0" />
+            <Parameter Id="{app}_UP-1" Name="UA" ParameterType="{app}_PT-N" Offset="0" BitOffset="0" Text="UA" Access="None" Value="45" DefaultUnionParameter="true" />
+            <Parameter Id="{app}_UP-2" Name="UB" ParameterType="{app}_PT-N" Offset="0" BitOffset="0" Text="UB" Access="None" Value="0" />
+          </Union>
+          <Parameter Id="{app}_P-3" Name="S" ParameterType="{app}_PT-OnOff" Text="S" Value="0"><Memory CodeSegment="{app}_AS-0000" Offset="1" BitOffset="0" /></Parameter>
+          <Parameter Id="{app}_P-4" Name="X" ParameterType="{app}_PT-N" Text="X" Value="0"><Memory CodeSegment="{app}_AS-0000" Offset="2" BitOffset="0" /></Parameter>
+        </Parameters>
+        <ParameterRefs>
+          <ParameterRef Id="{app}_UP-1_R-1" RefId="{app}_UP-1" />
+          <ParameterRef Id="{app}_UP-1_R-5" RefId="{app}_UP-1" />
+          <ParameterRef Id="{app}_UP-2_R-2" RefId="{app}_UP-2" />
+          <ParameterRef Id="{app}_P-3_R-3" RefId="{app}_P-3" />
+          <ParameterRef Id="{app}_P-4_R-4" RefId="{app}_P-4" />
+        </ParameterRefs>
+      </Static>
+      <Dynamic><ChannelIndependentBlock><ParameterBlock Id="{app}_PB-1" Text="General">
+        <ParameterRefRef RefId="{app}_P-3_R-3" />
+        <choose ParamRefId="{app}_P-3_R-3"><when test="0">
+          <ParameterRefRef RefId="{app}_UP-1_R-5" />
+        </when><when test="1">
+          <ParameterRefRef RefId="{app}_UP-1_R-1" />
+          <choose ParamRefId="{app}_UP-1_R-1"><when test="45">
+            <ParameterRefRef RefId="{app}_UP-2_R-2" />
+            <ParameterRefRef RefId="{app}_P-4_R-4" />
+          </when></choose>
+        </when></choose>
+      </ParameterBlock></ChannelIndependentBlock></Dynamic>
+    </ApplicationProgram>
+  </ApplicationPrograms></Manufacturer></ManufacturerData>
+</KNX>
+"""
+    return parse_application_xml(xml.encode(), "M-00FA")[0]
+
+
+def test_a_hidden_union_member_keeps_its_fixed_value_where_another_wrote_the_memory() -> (
+    None
+):
+    # UA keeps 45, which shows UB; UB is written last and leaves its 0 in the byte. Taking the
+    # 0 for UA (read for its ref R-5, which S off shows) hid UB and X, and nothing the user
+    # edits brings them back.
+    application = _hidden_union_application()
+    s, x = f"{application.id}_P-3_R-3", f"{application.id}_P-4_R-4"
+    segments = _device(application, (s, "1"), (x, "5"))
+    assert next(iter(segments.values())) == b"\x00\x01\x05"
+    recovered = recover_parameters(application, segments)
+    assert recovered.complete
+    assert recovered.values.get(s) == "1"
+    assert recovered.values.get(x) == "5"
+    assert recovered.values.get(f"{application.id}_UP-1_R-1", "45") == "45"
+
+
+def _written_over_application() -> Application:
+    """A union over bytes 0 and 1 with ``UA`` (16 bits, "no" 65535 or "K" 61679) and, after
+    it, ``UB`` (5 bits from bit 3 of byte 0), both always shown."""
+    app = "M-00FA_A-000D-01-0000"
+    xml = f"""<?xml version="1.0" encoding="utf-8"?>
+<KNX xmlns="http://knx.org/xml/project/20" CreatedBy="test" ToolVersion="1">
+  <ManufacturerData><Manufacturer RefId="M-00FA"><ApplicationPrograms>
+    <ApplicationProgram Id="{app}" ApplicationNumber="13" ApplicationVersion="1"
+        ProgramType="ApplicationProgram" MaskVersion="MV-07B0" Name="Written over"
+        LoadProcedureStyle="MergedProcedure" PeiType="0" DefaultLanguage="en-US"
+        DynamicTableManagement="false" Linkable="false" MinEtsVersion="5.0">
+      <Static>
+        <Code><AbsoluteSegment Id="{app}_AS-0000" Address="0" Size="2"><Data>AAA=</Data></AbsoluteSegment></Code>
+        <ParameterTypes>
+          <ParameterType Id="{app}_PT-A" Name="A"><TypeRestriction Base="Value" SizeInBit="16">
+            <Enumeration Text="no" Value="65535" Id="{app}_PT-A_EN-65535" />
+            <Enumeration Text="K" Value="61679" Id="{app}_PT-A_EN-61679" />
+          </TypeRestriction></ParameterType>
+          <ParameterType Id="{app}_PT-B" Name="B"><TypeNumber SizeInBit="5" Type="unsignedInt" minInclusive="0" maxInclusive="31" /></ParameterType>
+        </ParameterTypes>
+        <Parameters>
+          <Union SizeInBit="16">
+            <Memory CodeSegment="{app}_AS-0000" Offset="0" BitOffset="0" />
+            <Parameter Id="{app}_UP-1" Name="UA" ParameterType="{app}_PT-A" Offset="0" BitOffset="0" Text="UA" Value="61679" DefaultUnionParameter="true" />
+            <Parameter Id="{app}_UP-2" Name="UB" ParameterType="{app}_PT-B" Offset="0" BitOffset="3" Text="UB" Value="0" />
+          </Union>
+        </Parameters>
+        <ParameterRefs>
+          <ParameterRef Id="{app}_UP-1_R-1" RefId="{app}_UP-1" />
+          <ParameterRef Id="{app}_UP-2_R-2" RefId="{app}_UP-2" />
+        </ParameterRefs>
+      </Static>
+      <Dynamic><ChannelIndependentBlock><ParameterBlock Id="{app}_PB-1" Text="General">
+        <ParameterRefRef RefId="{app}_UP-1_R-1" />
+        <ParameterRefRef RefId="{app}_UP-2_R-2" />
+      </ParameterBlock></ChannelIndependentBlock></Dynamic>
+    </ApplicationProgram>
+  </ApplicationPrograms></Manufacturer></ManufacturerData>
+</KNX>
+"""
+    return parse_application_xml(xml.encode(), "M-00FA")[0]
+
+
+def test_a_union_member_written_over_in_part_is_read_from_its_own_bits() -> None:
+    # UB writes its 8 over bits 3 to 7 of byte 0: the 16 bits read, E8FFh, are no value of UA,
+    # but its own bits (the top 3 of byte 0 and byte 1) are those of "no" alone.
+    application = _written_over_application()
+    ua, ub = f"{application.id}_UP-1_R-1", f"{application.id}_UP-2_R-2"
+    segments = _device(application, (ua, "65535"), (ub, "8"))
+    assert next(iter(segments.values())) == b"\xe8\xff"
+    recovered = recover_parameters(application, segments)
+    assert recovered.complete
+    assert recovered.values.get(ua) == "65535"
+    assert recovered.values.get(ub) == "8"

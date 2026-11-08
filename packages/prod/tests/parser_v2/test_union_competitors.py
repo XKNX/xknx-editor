@@ -46,3 +46,26 @@ def test_no_competitors() -> None:
 def test_aliases_share_one_cached_set() -> None:
     c = _competitors()
     assert c.get("R-A1") is c.get("R-A2")
+
+
+def test_later_members_are_those_after_it_that_overlap() -> None:
+    c = _competitors()
+    assert c.later("R-A1") == {"R-B"}
+    assert c.later("R-B") == {"R-C"}
+    assert c.later("R-C") == set()
+    assert c.later("R-unknown") == set()
+
+
+def test_members_cover_a_member_only_with_all_of_its_bits() -> None:
+    c = _competitors()
+    # B writes bits 4-7 of A's 0-7; A and C together all of B's 4-11.
+    assert not c.covered("R-A1", {"R-B"})
+    assert not c.covered("R-B", {"R-C"})
+    assert c.covered("R-B", {"R-A1", "R-C"})
+    # Unknown widths: covered when one starts at the same bit.
+    assert c.covered("R-D", {"R-E"})
+    assert c.covered("R-E", {"R-D"})
+    # Another union's member, the member itself and refs of no union cover nothing.
+    assert not c.covered("R-A1", {"R-U2"})
+    assert not c.covered("R-A1", {"R-A2"})
+    assert not c.covered("R-unknown", {"R-B"})
