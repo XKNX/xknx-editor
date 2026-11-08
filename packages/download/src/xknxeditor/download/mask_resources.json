@@ -323,7 +323,11 @@
     13,
     0,
     null,
-    5
+    5,
+    "StandardMemory",
+    null,
+    null,
+    259
    ],
    "ApplicationLoadControl": [
     "SystemProperty",
@@ -363,7 +367,11 @@
     null,
     null,
     "AddressTable_Bcu1",
-    1
+    1,
+    "StandardMemory",
+    null,
+    null,
+    278
    ],
    "GroupAddressTableLoadControl": [
     "SystemProperty",
@@ -471,7 +479,11 @@
     13,
     0,
     null,
-    5
+    5,
+    "StandardMemory",
+    null,
+    null,
+    259
    ],
    "ApplicationLoadControl": [
     "SystemProperty",
@@ -511,7 +523,11 @@
     null,
     null,
     "AddressTable_Bcu1",
-    1
+    1,
+    "StandardMemory",
+    null,
+    null,
+    278
    ],
    "GroupAddressTableLoadControl": [
     "SystemProperty",
@@ -619,7 +635,11 @@
     13,
     0,
     null,
-    5
+    5,
+    "StandardMemory",
+    null,
+    null,
+    259
    ],
    "ApplicationLoadControl": [
     "SystemProperty",
@@ -643,7 +663,11 @@
     null,
     null,
     "PeiType_Prop",
-    1
+    1,
+    "StandardMemory",
+    null,
+    null,
+    265
    ],
    "ApplicationRunControl": [
     "SystemProperty",
@@ -659,7 +683,11 @@
     null,
     null,
     "AddressTable_Bcu1",
-    1
+    1,
+    "StandardMemory",
+    null,
+    null,
+    278
    ],
    "GroupAddressTableLoadControl": [
     "SystemProperty",
@@ -715,7 +743,11 @@
     7,
     0,
     "Ptr_StandardMemory",
-    2
+    2,
+    "StandardMemory",
+    null,
+    null,
+    273
    ],
    "GroupObjectTable": [
     "Pointer",
@@ -773,7 +805,11 @@
     5,
     0,
     "LoadControl_Bcu2",
-    10
+    10,
+    "SystemProperty",
+    3,
+    5,
+    0
    ],
    "ApplicationLoadStatus": [
     "SystemProperty",
@@ -797,7 +833,11 @@
     23,
     0,
     "AddressTable_Bcu1",
-    1
+    1,
+    "StandardMemory",
+    null,
+    null,
+    278
    ],
    "GroupAddressTableLoadControl": [
     "SystemProperty",
@@ -829,7 +869,11 @@
     5,
     0,
     "LoadControl_Bcu2",
-    10
+    10,
+    "SystemProperty",
+    2,
+    5,
+    0
    ],
    "GroupAssociationTableLoadStatus": [
     "SystemProperty",

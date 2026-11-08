@@ -159,7 +159,9 @@ if TYPE_CHECKING:
     from xknxeditor.prod import MasterData
 
 # Bundled per-mask resource table (see mask_resources.json / packages/download/tools/gen_mask_resources.py).
-# A resource row is [addressSpace, interfaceObjectRef, propertyId, startAddress, flavour, length].
+# A resource row is [addressSpace, interfaceObjectRef, propertyId, startAddress, flavour, length],
+# followed by [addressSpace, interfaceObjectRef, propertyId, startAddress] of its ImgLocation
+# when the master data gives it one.
 _BUNDLED_TABLE = "mask_resources.json"
 _ROW_SPACE = 0
 _ROW_OBJECT = 1
@@ -167,6 +169,14 @@ _ROW_PROPERTY = 2
 _ROW_START = 3
 _ROW_FLAVOUR = 4
 _ROW_LENGTH = 5
+_ROW_IMAGE_SPACE = 6
+_ROW_IMAGE_OBJECT = 7
+_ROW_IMAGE_PROPERTY = 8
+_ROW_IMAGE_START = 9
+# Address spaces of a resource in memory.
+_MEMORY_SPACES = frozenset(
+    {ResourceAddrSpace.STANDARD_MEMORY, ResourceAddrSpace.USER_MEMORY}
+)
 
 # BIM M112 loadable-part index to the named LoadStatus resource. Missing names
 # mean that LSM has no status byte to poll.
@@ -217,6 +227,9 @@ class MaskResources:
     _lengths: Mapping[ResourceName, int] = MappingProxyType({})
     _flavours: Mapping[ResourceName, ResourceFlavour] = MappingProxyType({})
     _features: Mapping[MaskFeature, int] = MappingProxyType({})
+    # Where the download image keeps a resource the device reports elsewhere (its
+    # ImgLocation in the master data).
+    _images: Mapping[ResourceName, ResourceLocation] = MappingProxyType({})
 
     def location(self, name: ResourceName) -> ResourceLocation | None:
         """The raw location of a named resource, or ``None`` if the mask lacks it."""
@@ -249,10 +262,17 @@ class MaskResources:
     def memory_address(self, name: ResourceName) -> int | None:
         """Return the start address for a memory-located resource, else ``None``."""
         location = self._by_name.get(name)
-        if location is None or location.address_space not in (
-            ResourceAddrSpace.STANDARD_MEMORY,
-            ResourceAddrSpace.USER_MEMORY,
-        ):
+        if location is None or location.address_space not in _MEMORY_SPACES:
+            return None
+        return location.start_address
+
+    def image_address(self, name: ResourceName) -> int | None:
+        """Where the download image keeps a resource in memory: its image location when
+        the mask gives one, else its location. A BCU 2 reports its application id as
+        property 13 of object 3 and keeps it at 0103h, so a segment over 0103h carries
+        it. ``None`` when the resource is not in memory."""
+        location = self._images.get(name) or self._by_name.get(name)
+        if location is None or location.address_space not in _MEMORY_SPACES:
             return None
         return location.start_address
 
@@ -396,6 +416,7 @@ def _from_master(
         if mask_version.id != mask_version_id:
             continue
         by_name: dict[ResourceName, ResourceLocation] = {}
+        images: dict[ResourceName, ResourceLocation] = {}
         lengths: dict[ResourceName, int] = {}
         flavours: dict[ResourceName, ResourceFlavour] = {}
         features: dict[MaskFeature, int] = {}
@@ -420,6 +441,8 @@ def _from_master(
             location = resource.location
             if location is not None:
                 by_name.setdefault(name, location)
+            if resource.img_location is not None:
+                images.setdefault(name, resource.img_location)
             lengths.setdefault(name, resource.resource_type.length)
             flavour = resource.resource_type.flavour
             if flavour is not None:
@@ -430,6 +453,7 @@ def _from_master(
                 _lengths=lengths,
                 _flavours=flavours,
                 _features=features,
+                _images=images,
             )
     return None
 
@@ -587,6 +611,7 @@ def bundled_mask_resources(mask_version_id: str) -> MaskResources | None:
     if resources is None:
         return None
     by_name: dict[ResourceName, ResourceLocation] = {}
+    images: dict[ResourceName, ResourceLocation] = {}
     lengths: dict[ResourceName, int] = {}
     flavours: dict[ResourceName, ResourceFlavour] = {}
     for name, values in resources.items():
@@ -597,19 +622,22 @@ def bundled_mask_resources(mask_version_id: str) -> MaskResources | None:
             resource_name = ResourceName(name)
         except ValueError:
             continue
-        space = _at(row, _ROW_SPACE)
-        if isinstance(space, str):
-            try:
-                address_space = ResourceAddrSpace(space)
-            except ValueError:
-                address_space = None
-            if address_space is not None:
-                by_name[resource_name] = ResourceLocation(
-                    address_space=address_space,
-                    interface_object_ref=_as_int(_at(row, _ROW_OBJECT)),
-                    property_id=_as_int(_at(row, _ROW_PROPERTY)),
-                    start_address=_as_int(_at(row, _ROW_START)),
-                )
+        address_space = _address_space(_at(row, _ROW_SPACE))
+        if address_space is not None:
+            by_name[resource_name] = ResourceLocation(
+                address_space=address_space,
+                interface_object_ref=_as_int(_at(row, _ROW_OBJECT)),
+                property_id=_as_int(_at(row, _ROW_PROPERTY)),
+                start_address=_as_int(_at(row, _ROW_START)),
+            )
+        image_space = _address_space(_at(row, _ROW_IMAGE_SPACE))
+        if image_space is not None:
+            images[resource_name] = ResourceLocation(
+                address_space=image_space,
+                interface_object_ref=_as_int(_at(row, _ROW_IMAGE_OBJECT)),
+                property_id=_as_int(_at(row, _ROW_IMAGE_PROPERTY)),
+                start_address=_as_int(_at(row, _ROW_IMAGE_START)),
+            )
         flavour = _flavour(_at(row, _ROW_FLAVOUR))
         if flavour is not None:
             flavours[resource_name] = flavour
@@ -623,7 +651,18 @@ def bundled_mask_resources(mask_version_id: str) -> MaskResources | None:
         _lengths=lengths,
         _flavours=flavours,
         _features=features,
+        _images=images,
     )
+
+
+def _address_space(value: object) -> ResourceAddrSpace | None:
+    """The address space a bundled-table field names, else ``None``."""
+    if not isinstance(value, str):
+        return None
+    try:
+        return ResourceAddrSpace(value)
+    except ValueError:
+        return None
 
 
 def _object_dict(value: object) -> dict[str, object] | None:

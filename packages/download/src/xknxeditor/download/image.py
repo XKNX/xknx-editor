@@ -1452,19 +1452,20 @@ def _identity_octets(
     application: Application, mask_version: str
 ) -> list[tuple[int, bytes]]:
     """``(address, octets)`` of the application's identity where the mask keeps it in
-    memory: the application id (4 octets with a one-octet manufacturer, or 5) and the
-    PEI type (e.g. BCU1 at 0x0104 and 0x0109)."""
+    memory, also when the device reports it as a property: the application id (4 octets
+    with a one-octet manufacturer, or 5) and the PEI type (e.g. BCU1 at 0x0104 and 0x0109,
+    BCU2 at 0x0103 and 0x0109)."""
     from .partial import application_id
 
     resources = bundled_mask_resources(mask_version)
     if resources is None:
         return []
     octets: list[tuple[int, bytes]] = []
-    address = resources.memory_address(ResourceName.APPLICATION_ID)
+    address = resources.image_address(ResourceName.APPLICATION_ID)
     length = resources.length(ResourceName.APPLICATION_ID)
     if address is not None and length in (4, 5):
         octets.append((address, application_id(application, length)))
-    address = resources.memory_address(ResourceName.APPLICATION_PEI_TYPE)
+    address = resources.image_address(ResourceName.APPLICATION_PEI_TYPE)
     if address is not None:
         octets.append((address, bytes([application.program.pei_type & 0xFF])))
     return octets

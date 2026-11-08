@@ -85,12 +85,37 @@ def test_bcu1_header_carries_the_application_id_and_pei_type(mask_version: str) 
     assert not any(segment.mask)
 
 
-def test_bcu2_keeps_only_the_pei_type_in_memory() -> None:
-    # MV-0021 has the application id as a property: only the PEI type is in the header.
-    image, _ = _image("MV-0021", [(0x0100, 0x20, False)])
+@pytest.mark.parametrize("mask_version", ["MV-0020", "MV-0021", "MV-0025"])
+def test_bcu2_header_carries_the_application_id_it_reports_as_a_property(
+    mask_version: str,
+) -> None:
+    # A BCU2 reports its application id as property 13 of object 3 and keeps it at
+    # 0x0103 (the image location of the resource): manufacturer (2 octets), application
+    # number, version; the PEI type at 0x0109.
+    image, _ = _image(mask_version, [(0x0100, 0x20, False)])
     (segment,) = image.segments
-    assert segment.data[4:8] == bytes(4)
+    assert segment.data[3:8] == bytes([0x00, 0xFA, 0xA0, 0x0E, 0x01])
     assert segment.data[9] == 0x14
+    assert segment.initialized_mask is not None and segment.mask is not None
+    assert segment.initialized_mask[3:8] == b"\xff" * 5
+    assert not any(segment.mask)
+
+
+def test_bcu2_parameter_over_the_application_id_makes_a_partial_download_write_it() -> (
+    None
+):
+    image, _ = _image("MV-0021", [(0x0100, 0x20, False)], parameter=(0, 4))
+    (segment,) = image.segments
+    assert segment.mask is not None
+    assert segment.mask[3:8] == b"\xff" * 5
+    assert segment.data[3:8] == bytes([0x00, 0xFA, 0xA0, 0x0E, 0x01])
+
+
+def test_bcu2_without_a_segment_at_0103h_has_no_identity_in_memory() -> None:
+    # A product procedure that writes parameters only (an IP interface on MV-0021): the
+    # device keeps the application id it has.
+    image, _ = _image("MV-0021", [(0x0114, 2, False), (0x0124, 0x2F, False)])
+    assert [s.data for s in image.segments] == [bytes(2), bytes(0x2F)]
 
 
 def test_every_segment_covering_the_header_gets_the_identity() -> None:

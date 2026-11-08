@@ -611,6 +611,11 @@ class LoadProcedureRunner:
         # to the write, which a preview cannot see.
         self._preview_properties: set[tuple[int, int]] = set()
         self._preview_memory: list[tuple[int, int]] = []
+        # What the preview's first compare of each property element range expected (see
+        # _expects_a_change).
+        self._preview_compares: dict[
+            tuple[int, int, int, int], tuple[bytes | None, bytes | None, str | None]
+        ] = {}
 
     async def run(self, progress: Callable[[int, int], None] | None = None) -> None:
         """Execute the Load Procedure, honouring the selected download scope.
@@ -740,7 +745,9 @@ class LoadProcedureRunner:
         would write. Compare controls (the application fingerprint gate) still run
         - they only read - except a compare of what the preview left unwritten before:
         it checks the device's reaction to that write (e.g. the load state after an
-        unload), not its configuration. The connection is opened read-only and closed again.
+        unload), not its configuration; likewise a compare that expects other data of a
+        property than an earlier one (the device changes it in between). The connection is
+        opened read-only and closed again.
         """
         segments: list[SegmentDiff] = []
         properties: list[PropertyDiff] = []
@@ -763,6 +770,7 @@ class LoadProcedureRunner:
             self._memory_steps |= _memory_procedure_steps(self._full_controls)
         self._preview_properties = set()
         self._preview_memory = []
+        self._preview_compares = {}
         self._enable_segment_write = True
         self._enable_verify_on_write_direct = True
         self._enable_optimistic_write = True
@@ -2388,6 +2396,19 @@ class LoadProcedureRunner:
         )
         return True
 
+    def _expects_a_change(self, index: int, control: LdCtrlCompareProp) -> bool:
+        """Whether a compare expects other data of a property than an earlier compare of the
+        preview did: the device cannot hold both at once, so the procedure changes it in
+        between (a Hager TR131N reports another hardware type after a write to object 9),
+        which a preview cannot see. Inverted compares (data the device must not hold) are
+        never in conflict."""
+        if control.invert:
+            return False
+        key = (index, control.prop_id, control.start_element, control.count)
+        expected = (control.inline_data, control.mask, control.range)
+        first = self._preview_compares.setdefault(key, expected)
+        return first != expected
+
     def _object_label(self, index: int) -> str:
         """``index`` as messages show it: object type and instance for a key of the extended
         property services (see :meth:`_resolve_index`), otherwise the object index."""
@@ -3300,6 +3321,15 @@ class LoadProcedureRunner:
                 logger.info(
                     "preflight: %s compares object %s property %d after a write the "
                     "preview left out; not checked",
+                    self._target(),
+                    self._object_label(index),
+                    control.prop_id,
+                )
+                return
+            if self._expects_a_change(index, control):
+                logger.info(
+                    "preflight: %s compares object %s property %d with other data than "
+                    "before, a change the procedure causes; not checked",
                     self._target(),
                     self._object_label(index),
                     control.prop_id,

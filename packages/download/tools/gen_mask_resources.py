@@ -85,7 +85,7 @@ def _row(resource: object) -> list[object]:
         pid = location.property_id
         start = location.start_address
     flavour = resource.resource_type.flavour
-    return [
+    row: list[object] = [
         space,
         obj,
         pid,
@@ -93,6 +93,17 @@ def _row(resource: object) -> list[object]:
         None if flavour is None else flavour.value,
         resource.resource_type.length,
     ]
+    # Where the download image keeps the resource when that differs from where the
+    # device reports it (BCU 2: the application id of property 13 of object 3 at 0103h).
+    image = getattr(resource, "img_location", None)
+    if image is not None:
+        row += [
+            image.address_space.value,
+            image.interface_object_ref,
+            image.property_id,
+            image.start_address,
+        ]
+    return row
 
 
 def main(master_path: str, out_path: str) -> None:

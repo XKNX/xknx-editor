@@ -54,6 +54,75 @@ def test_missing_resource_returns_none() -> None:
     assert not resources.is_relative(ResourceName.APPLICATION_RUN_CONTROL)
 
 
+def test_image_address_prefers_the_image_location() -> None:
+    application_id = _prop(3, 13)
+    image = ResourceLocation(
+        address_space=ResourceAddrSpace.STANDARD_MEMORY, start_address=0x0103
+    )
+    resources = MaskResources(
+        {
+            ResourceName.APPLICATION_ID: application_id,
+            ResourceName.APPLICATION_PEI_TYPE: ResourceLocation(
+                address_space=ResourceAddrSpace.STANDARD_MEMORY, start_address=0x0109
+            ),
+            ResourceName.APPLICATION_LOAD_CONTROL: _prop(3, 5),
+        },
+        _images={
+            ResourceName.APPLICATION_ID: image,
+            ResourceName.APPLICATION_LOAD_CONTROL: _prop(3, 5),
+        },
+    )
+    # The device reports the id as a property; the image keeps it in memory.
+    assert resources.memory_address(ResourceName.APPLICATION_ID) is None
+    assert resources.image_address(ResourceName.APPLICATION_ID) == 0x0103
+    # Without an image location the location counts; a property is not in memory.
+    assert resources.image_address(ResourceName.APPLICATION_PEI_TYPE) == 0x0109
+    assert resources.image_address(ResourceName.APPLICATION_LOAD_CONTROL) is None
+    assert resources.image_address(ResourceName.APPLICATION_RUN_CONTROL) is None
+
+
+def test_bundled_table_has_the_bcu2_image_locations() -> None:
+    from xknxeditor.download.resources import bundled_mask_resources
+
+    for mask in ("MV-0020", "MV-0021", "MV-0025"):
+        resources = bundled_mask_resources(mask)
+        assert resources is not None
+        assert resources.property_ref(ResourceName.APPLICATION_ID) == (3, 13)
+        assert resources.image_address(ResourceName.APPLICATION_ID) == 0x0103
+        assert resources.image_address(ResourceName.APPLICATION_PEI_TYPE) == 0x0109
+    m0025 = bundled_mask_resources("MV-0025")
+    assert m0025 is not None
+    # MV-0025 reports its PEI type nowhere a download reads, but the image keeps it.
+    assert m0025.memory_address(ResourceName.APPLICATION_PEI_TYPE) is None
+    m0701 = bundled_mask_resources("MV-0701")
+    assert m0701 is not None
+    assert m0701.image_address(ResourceName.APPLICATION_ID) is None
+
+
+def test_master_data_image_location() -> None:
+    from xknxeditor.prod.master import parse_master_xml
+
+    master = parse_master_xml(
+        b'<?xml version="1.0" encoding="utf-8"?>'
+        b'<KNX xmlns="http://knx.org/xml/project/20">'
+        b'<MasterData Id="M" Version="1" Signature="AA=="><MaskVersions>'
+        b'<MaskVersion Id="MV-0021" MaskVersion="33" Name="2.1" ManagementModel="Bcu2"'
+        b' MediumTypeRefId="MT-0"><HawkConfigurationData><Resources>'
+        b'<Resource Name="ApplicationId" Access="remote local2">'
+        b'<Location AddressSpace="SystemProperty" InterfaceObjectRef="3" PropertyID="13"'
+        b' StartAddress="0" />'
+        b'<ImgLocation AddressSpace="StandardMemory" StartAddress="259" />'
+        b'<ResourceType Length="5" /><AccessRights Read="Runtime" Write="Configuration" />'
+        b"</Resource></Resources></HawkConfigurationData></MaskVersion>"
+        b"</MaskVersions></MasterData></KNX>"
+    )
+    resources = mask_resources(master, "MV-0021")
+    assert resources is not None
+    assert resources.property_ref(ResourceName.APPLICATION_ID) == (3, 13)
+    assert resources.image_address(ResourceName.APPLICATION_ID) == 259
+    assert resources.length(ResourceName.APPLICATION_ID) == 5
+
+
 def test_mask_resources_unknown_mask_is_none() -> None:
     assert mask_resources(None, "MV-FFFF-unknown") is None
 
