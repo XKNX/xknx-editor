@@ -43,6 +43,7 @@ def _memory(mask_version: str, address: int, size: int) -> MemorySegment:
                 "segment": (bytes(range(size)), parameter_mask)
             },
             encode_to_typed_properties_masked=lambda: {},
+            module_load_controls=lambda: {},
         ),
     )
     (memory,) = build_image(app, ui=ui).segments

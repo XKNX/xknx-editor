@@ -441,6 +441,10 @@ class DownloadImage:
     # The values of the active parameters a ``choose`` in the load procedure tests, by
     # parameter ref id: they select the controls the procedure runs.
     procedure_parameters: Mapping[str, str] = MappingProxyType({})
+    # The load controls of the device's module instances, by the merge id of their module's
+    # load procedure: an ``LdCtrlMerge`` of that id runs them, each instance's in the order of
+    # the instances, with its arguments applied.
+    module_load_controls: Mapping[int, tuple[object, ...]] = MappingProxyType({})
     # The group communication tables of a device that holds them as properties (System 300).
     property_tables: PropertyTables | None = None
     # The memory segments of the mask (start, length), from its master data: part of the
@@ -820,6 +824,12 @@ def build_image(
         security_tables=security,
         factory_image=factory_image,
         procedure_parameters=MappingProxyType(_procedure_parameters(application, ui)),
+        module_load_controls=MappingProxyType(
+            {
+                merge_id: tuple(controls)
+                for merge_id, controls in ui.module_load_controls().items()
+            }
+        ),
         property_tables=tables,
         moved_tables=moved,
         user_segments=tuple(user_segments),

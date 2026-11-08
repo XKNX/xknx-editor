@@ -66,6 +66,7 @@ def _image(
             },
             encode_to_memory_masked=encoded,
             encode_to_typed_properties_masked=lambda: {},
+            module_load_controls=lambda: {},
         ),
     )
     return build_image(app, ui=ui), app

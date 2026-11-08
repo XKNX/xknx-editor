@@ -208,6 +208,7 @@ class EvalContext:
         "_capture",
         "_explore",
         "_idx",
+        "_in_repeat",
         "_object_tree",
         "_repeat_idx",
         "_scope",
@@ -223,9 +224,12 @@ class EvalContext:
         union_suppress: bool = True,
         explore: Explorer | None = None,
         object_tree: ObjectTreeCapture | None = None,
+        in_repeat: bool = False,
     ) -> None:
         self._scope = scope
         self._repeat_idx = repeat_idx
+        # Whether ``repeat_idx`` is the iteration of a Repeat in this scope (it is 1 outside one).
+        self._in_repeat = in_repeat
         self._idx = idx
         self._capture = capture
         # False during the union-discovery pass (render both overlapping members so the reached one
@@ -304,12 +308,19 @@ class EvalContext:
         """Take the next address from the pool, bump the scope position, and return it."""
         if self._idx is None:
             raise RuntimeError("allocate() requires an ApplicationIndexer")
-        # A module argument's Allocator may be defined on the module definition OR on the
-        # application (both are valid); look in the module def first, then fall back to the
-        # application-level allocators.
-        alloc = (self._idx.allocators.get(def_ref_id) or {}).get(
-            alloc_id
-        ) or self._idx.app_allocators.get(alloc_id)
+        # A module argument's Allocator may be defined on the module definition, on the
+        # definition a submodule is in (``..._MD-4_L-1`` for ``..._MD-4_SM-1``) OR on the
+        # application (all are valid); look in the module def first, then in the enclosing
+        # ones, then fall back to the application-level allocators.
+        alloc = None
+        owner = def_ref_id
+        while alloc is None:
+            alloc = (self._idx.allocators.get(owner) or {}).get(alloc_id)
+            at = owner.rfind("_SM-")
+            if at == -1:
+                break
+            owner = owner[:at]
+        alloc = alloc or self._idx.app_allocators.get(alloc_id)
         arg_allocs = self._idx.arg_alloc.get(def_ref_id)
         if alloc is None or arg_allocs is None or arg_ref_id not in arg_allocs:
             # Truly unresolved (e.g. partial module data) — don't crash the device load; fall back
@@ -340,6 +351,7 @@ class EvalContext:
             self._union_suppress,
             self._explore,
             self._object_tree,
+            in_repeat=True,
         )
 
     def get_arg_value(self, ref_id: str) -> int:
@@ -393,6 +405,7 @@ class EvalContext:
             arg_defaults=arg_defaults,
             ref_id=ref_id,
             param_ref_bases=param_ref_bases,
+            in_repeat=self._in_repeat,
         )
         return EvalContext(
             ms,

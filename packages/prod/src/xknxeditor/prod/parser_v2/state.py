@@ -77,8 +77,35 @@ def compute_param_ref_bases(
     return result
 
 
-# The top-level module instance in an instance-qualified ref, e.g. "MD-34_M-15_MI-1" (and "MD-34").
-_INSTANCE_IN_REF = re.compile(r"(?:^|_)((MD-[^_]+)_M-[^_]+_MI-[^_]+)_")
+# The innermost module instance in an instance-qualified ref, e.g. "MD-34_M-15_MI-1" (and
+# "MD-34"), or the submodule instance "MD-34_M-15_MI-1_SM-1_M-1_MI-1-1-2" (and "MD-34").
+_INSTANCE_IN_REF = re.compile(
+    r"(?:^|_)((MD-[^_]+)_M-[^_]+_MI-[^_]+(?:_SM-[^_]+_M-[^_]+_MI-[^_]+)*)_"
+)
+# A submodule instance in a ref under the id without its enclosing instance, e.g.
+# "MD-1_SM-1_M-1_MI-1" (and "MD-1_SM-1").
+_LEGACY_SUBMODULE_IN_REF = re.compile(r"(?:^|_)((MD-[^_]+_SM-[^_]+)_M-[^_]+_MI-[^_]+)_")
+# A submodule instance id: the enclosing instances' path, then "SM-<n>_M-<m>_MI-<counters>".
+_SUBMODULE_INSTANCE = re.compile(
+    r"(.*?MD-[^_]+)_M-[^_]+_MI-[^_]+(?:_SM-[^_]+_M-[^_]+_MI-[^_]+)*"
+    r"_(SM-[^_]+)_M-[^_]+_MI-[^_]+"
+)
+
+
+def _submodule_definition(instance_id: str) -> tuple[str, str] | None:
+    """``(submodule definition, top-level module definition)`` of a submodule instance id,
+    e.g. ``("MD-4_SM-1", "MD-4")`` for ``MD-4_M-15_MI-1_SM-1_M-1_MI-1-1-2``; ``None`` for
+    the id of a module instance (or a submodule instance id that does not name its
+    enclosing instance)."""
+    match = _SUBMODULE_INSTANCE.fullmatch(instance_id)
+    if match is None:
+        return None
+    return f"{match.group(1)}_{match.group(2)}", match.group(1)
+
+
+def _instance_length(scope: ParameterState) -> int:
+    """The length of the id of the module instance ``scope`` is (0 for the application)."""
+    return len(scope.module_instance_id) if isinstance(scope, ModuleState) else 0
 
 
 def _qualified(element_id: str, app_id: str | None) -> str:
@@ -160,7 +187,8 @@ class ParameterState:
         # Params that were active in the previous pass; a Choose on any other param renders
         # nothing. None while no pass has run (the first pass is not gated).
         self._gate_param_refs: set[str] | None = None
-        self._active_module_keys: set[str] = set()
+        # The module instances the current pass reached, in the order it reached them.
+        self._active_module_keys: dict[str, None] = {}
         self._active_com_object_refs: set[str] = set()
         self._alloc_positions: dict[str, int] = {}
         self._param_ref_defaults: dict[str, str] = param_ref_defaults or {}
@@ -416,7 +444,7 @@ class ParameterState:
         for key in inactive:
             del self.param_ref_id_to_value[key]
         self._text.clear()
-        inactive_modules = self._children.keys() - self._active_module_keys
+        inactive_modules = self._children.keys() - self._active_module_keys.keys()
         for key in inactive_modules:
             del self._children[key]
         for child in self._children.values():
@@ -463,11 +491,17 @@ class ParameterState:
     def find_scope_for_qualified(
         self, ref_id: str
     ) -> tuple[ParameterState, str] | None:
+        # A project stores the instances side by side, a submodule instance beside the one it
+        # is in, whose id starts its own: the innermost instance the id names is its scope.
+        found: tuple[ParameterState, str] | None = None
         for child in self._children.values():
             result = child.find_scope_for_qualified(ref_id)
-            if result is not None:
-                return result
-        return None
+            if result is not None and (
+                found is None
+                or _instance_length(result[0]) > _instance_length(found[0])
+            ):
+                found = result
+        return found
 
     def explicit_value(self, ref_id: str) -> str | None:
         """The value explicitly set in this scope, ignoring parents and defaults."""
@@ -500,12 +534,25 @@ class ParameterState:
         arg_defaults: dict[str, str] | None = None,
         ref_id: str | None = None,
         param_ref_bases: dict[str, str] | None = None,
+        in_repeat: bool = False,
     ) -> ModuleState:
-        """Fetch or create the module instance state, linked into the tree."""
-        key = f"{module_id}_MI-{repeat_idx}"
-        self._active_module_keys.add(key)
+        """Fetch or create the module instance state, linked into the tree.
+
+        ``repeat_idx`` is the iteration of the ``Repeat`` the ``Module`` is reached in
+        (``in_repeat``), 1 outside one."""
+        key, path = self._instance_key(module_id, repeat_idx, in_repeat)
+        self._active_module_keys[key] = None
         if key not in self._children:
             stored = self._stored_at_root(key)
+            legacy = self._stored_legacy(module_id, repeat_idx)
+            if legacy is not None:
+                if stored is None:
+                    # A copy for each enclosing instance; the stored one is dropped with the
+                    # root's instances that no pass reaches.
+                    stored = copy.deepcopy(legacy, {id(legacy._parent): legacy._parent})
+                    stored.module_instance_id = key
+                else:
+                    stored.take_missing_values(legacy)
             if stored is not None:
                 self._children[key] = stored
         if key not in self._children:
@@ -518,10 +565,12 @@ class ParameterState:
                 param_ref_bases=param_ref_bases,
             )
             child._parent = self
+            child.repeat_path = path
             self._children[key] = child
         else:
             child = self._children[key]
             child._parent = self
+            child.repeat_path = path
             if ref_id is not None:
                 child.ref_id = ref_id
             if arguments is not None:
@@ -533,6 +582,37 @@ class ParameterState:
             if param_ref_bases is not None:
                 child.param_ref_bases = param_ref_bases
         return self._children[key]
+
+    def _instance_key(
+        self, module_id: str, repeat_idx: int, in_repeat: bool
+    ) -> tuple[str, tuple[int, ...]]:
+        """The id of the instance of ``module_id`` reached here, and its repeat path (the
+        counters of the ``Repeat`` and ``Module`` elements it is nested in, outermost
+        first). A module instance of the application is ``<Module>_MI-<iteration>``."""
+        return f"{module_id}_MI-{repeat_idx}", (repeat_idx,) if in_repeat else ()
+
+    def _stored_legacy(self, module_id: str, repeat_idx: int) -> ModuleState | None:
+        """The state a project stored at the root for an instance of the submodule
+        ``module_id`` under the id without its enclosing instance
+        (``..._MD-1_SM-1_M-1_MI-1``), left there: that id stood for the submodule instance of
+        every instance of the enclosing module, so each of them reads it. ``None`` for a
+        module of the application, or when there is none."""
+        if self._parent is None or "_SM-" not in module_id:
+            return None
+        root: ParameterState = self
+        while root._parent is not None:
+            root = root._parent
+        legacy = f"{module_id}_MI-{repeat_idx}"
+        if legacy in root._active_module_keys:
+            return None
+        return root._children.get(legacy)
+
+    def take_missing_values(self, other: ParameterState) -> None:
+        """Take the explicit values of ``other`` for the param-refs this scope has none for."""
+        for ref_id, value in other._known_param_ref_values.items():
+            if ref_id not in self._known_param_ref_values:
+                self._known_param_ref_values[ref_id] = value
+                self.param_ref_id_to_value.setdefault(ref_id, value)
 
     def _stored_at_root(self, key: str) -> ModuleState | None:
         """The state of the submodule instance ``key`` of this module instance that a project
@@ -553,6 +633,26 @@ class ParameterState:
 
     def module_children(self) -> list[ModuleState]:
         return list(self._children.values())
+
+    def reached_module_children(self) -> list[ModuleState]:
+        """The module instances of this scope the last pass reached, in the order it reached
+        them: the order of the ``Dynamic`` and of the iterations of a ``Repeat``."""
+        return [
+            self._children[key]
+            for key in self._active_module_keys
+            if key in self._children
+        ]
+
+    def is_active_in_scope(self, ref_id: str) -> bool:
+        """Whether ``ref_id`` (a local id) was active in the last pass, in this scope or a
+        parent."""
+        if ref_id in self._active_param_refs:
+            return True
+        return (
+            self._parent.is_active_in_scope(ref_id)
+            if self._parent is not None
+            else False
+        )
 
     def relative_param_values(self) -> list[tuple[str, str]]:
         """(def-relative ref_id, value) pairs across every scope.
@@ -609,41 +709,54 @@ class GlobalState(ParameterState):
                     exact.add((id(scope), ref_id))
             scope.set(ref_id, value)
 
+        # Instance id -> (its state, the definition its parameters' local ids start with). A
+        # submodule instance's parameters keep their ids below the top-level module definition
+        # (``MD-4_SM-1_P-1_R-1``, qualified ``MD-4_M-15_MI-1_SM-1_M-1_MI-1-1-1_SM-1_P-1_R-1``).
         stored: dict[str, tuple[ModuleState, str]] = {}
+
+        def add(instance_id: str, definition: str) -> None:
+            key = _qualified(instance_id, app_id)
+            submodule = _submodule_definition(instance_id)
+            if submodule is not None:
+                definition, base = submodule
+            else:
+                base = definition
+            ms = ModuleState(key, ref_id=_qualified(definition, app_id))
+            ms._parent = root
+            root._children[key] = ms
+            stored[instance_id] = (ms, base)
+
         for mi in module_instances or []:
             if mi.id is None or mi.ref_id is None:
                 continue
-            key = _qualified(mi.id, app_id)
-            ms = ModuleState(key, ref_id=_qualified(mi.ref_id, app_id))
-            ms._parent = root
-            root._children[key] = ms
-            stored[mi.id] = (ms, mi.ref_id)
+            add(mi.id, mi.ref_id)
         # A value of a module instance the saved list lacks (created by a later edit) still belongs
         # to that instance, not to the application.
         known = {_qualified(mid, app_id) for mid in stored}
         for pir in parameter_instance_refs or []:
-            match = (
-                _INSTANCE_IN_REF.search(pir.ref_id) if pir.value is not None else None
-            )
+            if pir.value is None:
+                continue
+            match = _INSTANCE_IN_REF.search(
+                pir.ref_id
+            ) or _LEGACY_SUBMODULE_IN_REF.search(pir.ref_id)
             if match is None or _qualified(match.group(1), app_id) in known:
                 continue
-            key = _qualified(match.group(1), app_id)
-            known.add(key)
-            ms = ModuleState(key, ref_id=_qualified(match.group(2), app_id))
-            ms._parent = root
-            root._children[key] = ms
-            stored[match.group(1)] = (ms, match.group(2))
+            known.add(_qualified(match.group(1), app_id))
+            add(match.group(1), match.group(2))
+        # The innermost instance a value is of: a submodule instance's id starts with that of
+        # its enclosing instance.
+        by_length = sorted(stored.items(), key=lambda item: len(item[0]), reverse=True)
         for pir in parameter_instance_refs or []:
             if pir.value is None:
                 continue
             ref_id, value = pir.ref_id, pir.value
-            for mid, (ms, mdid) in stored.items():
+            for mid, (ms, base) in by_length:
                 p = f"_{ref_id}_".find(f"_{mid}_")
                 if p != -1:
                     app_prefix = ref_id[:p]
                     suffix = ref_id[p + len(mid) :]
                     ms.module_instance_id = app_prefix + mid
-                    put(ms, app_prefix + mdid + suffix, value)
+                    put(ms, app_prefix + base + suffix, value)
                     break
             else:
                 put(root, ref_id, value)
@@ -667,6 +780,7 @@ class ModuleState(ParameterState):
         "module_instance_id",
         "param_ref_bases",
         "ref_id",
+        "repeat_path",
     )
 
     _SHARED_FIELDS: ClassVar[frozenset[str]] = ParameterState._SHARED_FIELDS | {
@@ -692,6 +806,35 @@ class ModuleState(ParameterState):
         # BaseValue). While the argument has a value, the parameter's own value, stored or
         # default, does not count.
         self.param_ref_bases: dict[str, str] = param_ref_bases or {}
+        # The counters of the Repeat and Module elements the instance is nested in, outermost
+        # first (see ``RepeatIndex`` of a project's ModuleInstance): set when it is evaluated.
+        self.repeat_path: tuple[int, ...] = ()
+
+    def _instance_key(
+        self, module_id: str, repeat_idx: int, in_repeat: bool
+    ) -> tuple[str, tuple[int, ...]]:
+        """A submodule instance is named after its enclosing instance, as a project stores it:
+        ``MD-4_M-15_MI-1`` + ``_SM-1_M-1_MI-<counters>``, the counters being those of every
+        Repeat and Module it is nested in (``1-1-2``: the first iteration of the enclosing
+        instance, its Module, the second iteration of the submodule's Repeat)."""
+        at = module_id.rfind("_SM-")
+        if at == -1:
+            return super()._instance_key(module_id, repeat_idx, in_repeat)
+        path = (*self.repeat_path, 1, *((repeat_idx,) if in_repeat else ()))
+        counters = "-".join(str(n) for n in path)
+        return f"{self.module_instance_id}_{module_id[at + 1 :]}_MI-{counters}", path
+
+    def _local_base(self) -> str | None:
+        """The id the local ids of this instance's parameters and objects start with: its
+        definition, or for a submodule instance named after its enclosing instance, the
+        top-level module definition (``MD-4`` for ``MD-4_SM-1_P-1_R-1``)."""
+        ref_id = self.ref_id
+        if ref_id is None:
+            return None
+        at = ref_id.find("_SM-")
+        if at != -1 and "_SM-" in self.module_instance_id.partition("_MI-")[2]:
+            return ref_id[:at]
+        return ref_id
 
     def get(self, ref_id: str) -> str | None:
         base = self.param_ref_bases.get(ref_id)
@@ -724,9 +867,9 @@ class ModuleState(ParameterState):
     def find_scope_for_qualified(
         self, ref_id: str
     ) -> tuple[ParameterState, str] | None:
-        # A submodule instance's ids do not start with its parent instance's
-        # (``..._MD-7_SM-1_M-1_MI-1_P-1_R-1`` inside ``..._MD-7_M-30_MI-1``): its scope is
-        # looked for whatever the parent's id.
+        # A submodule instance's ids start with its parent instance's
+        # (``..._MD-7_M-30_MI-1_SM-1_M-1_MI-1-1_SM-1_P-1_R-1`` inside ``..._MD-7_M-30_MI-1``):
+        # the innermost scope is looked for first.
         for child in self._children.values():
             result = child.find_scope_for_qualified(ref_id)
             if result is not None:
@@ -735,11 +878,15 @@ class ModuleState(ParameterState):
         if not ref_id.startswith(mid + "_"):
             return None
         suffix = ref_id[len(mid) :]
-        if self.ref_id is None:
+        base = self._local_base()
+        if base is None:
             return None
-        return (self, self.ref_id + suffix)
+        return (self, base + suffix)
 
     def _qualify(self, ref_id: str) -> str:
+        base = self._local_base()
+        if base is not None and ref_id.startswith(base + "_"):
+            return self.module_instance_id + ref_id[len(base) :]
         i, n = 0, min(len(self.module_instance_id), len(ref_id))
         while i < n and self.module_instance_id[i] == ref_id[i]:
             i += 1

@@ -474,6 +474,17 @@ def test_an_object_takes_the_semantics_of_its_reference() -> None:
     assert model["communication_objects"]["1.1.7/O-2_R-2"]["dpas"] is None
 
 
+def test_an_object_of_a_submodule_instance_is_of_the_submodule_definition() -> None:
+    # A submodule instance is named after the instance it is in: the object belongs to the
+    # innermost instance its id names, whatever their order.
+    room, display = "MD-1_M-1_MI-2", "MD-1_M-1_MI-2_SM-1_M-1_MI-2-1"
+    for order in ([room, display], [display, room]):
+        context = SimpleNamespace(module_arguments=[(i, []) for i in order])
+        definition = _Builder._module_definition  # pyright: ignore[reportPrivateUsage]
+        assert definition(context, f"{display}_SM-1_O-3-0_R-1") == "MD-1_SM-1"  # type: ignore[arg-type]
+        assert definition(context, f"{room}_O-3-0_R-3") == "MD-1"  # type: ignore[arg-type]
+
+
 def test_a_group_address_with_a_key_is_data_secure() -> None:
     model = _build(_source())
     assert model["group_addresses"]["1/0/1"]["data_secure"] is True

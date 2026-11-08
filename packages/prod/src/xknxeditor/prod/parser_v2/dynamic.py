@@ -1261,6 +1261,16 @@ class DynamicUI:
             result[iid] = values
         return result
 
+    def module_load_controls(self) -> dict[int, list[object]]:
+        """After eval, the load controls of the module instances by the merge id of their
+        definition's load procedure: each instance's in the order of the instances, with its
+        arguments applied and its parameters' ``choose`` resolved (see
+        :mod:`.module_procedures`)."""
+        from .module_procedures import module_load_controls
+
+        self.ui()
+        return module_load_controls(self._state, self._idx)
+
     def set_com_obj_instance_ref(self, ref_id: str, coir: ComObjectInstanceRef) -> None:
         self._state.set_com_obj_instance_ref(ref_id, coir)
         self._invalidate()

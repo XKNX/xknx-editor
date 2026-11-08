@@ -1,8 +1,8 @@
 """A setting the device keeps no copy of that decides which reference of a submodule's
 parameter is active: the value the memory holds tells it.
 
-The submodule instance's ids do not start with its enclosing instance's
-(``..._MD-1_SM-1_M-1_MI-1`` inside ``..._MD-1_M-1_MI-1``). The application's "on/off function"
+The submodule instance is named after its enclosing instance
+(``..._MD-1_M-1_MI-1_SM-1_M-1_MI-1`` inside ``..._MD-1_M-1_MI-1``). The application's "on/off function"
 switch and the submodule's own "show the setting" switch (neither kept on the device) pick the
 shown reference of the submodule's "when switching off" parameter, or a hidden one fixed at 0: a
 1 in the memory is only the shown one's.
@@ -22,8 +22,9 @@ from xknxeditor.recover.recover import seed_dynamic_ui
 
 _APP = "M-00FA_A-0005-01-0000"
 _SWITCH = f"{_APP}_P-1_R-1"
-_OFF = f"{_APP}_MD-1_SM-1_M-1_MI-1_P-1_R-2"
-_SHOW = f"{_APP}_MD-1_SM-1_M-1_MI-1_P-2_R-4"
+_DISPLAY = f"{_APP}_MD-1_M-1_MI-1_SM-1_M-1_MI-1"
+_OFF = f"{_DISPLAY}_SM-1_P-1_R-2"
+_SHOW = f"{_DISPLAY}_SM-1_P-2_R-4"
 _XML = f"""<?xml version="1.0" encoding="utf-8"?>
 <KNX xmlns="http://knx.org/xml/project/20" CreatedBy="test" ToolVersion="1">
   <ManufacturerData>
@@ -161,7 +162,4 @@ def test_a_submodule_reference_belongs_to_the_submodule_definition() -> None:
     local = f"{_APP}_MD-1_SM-1_P-1_R-2"
     assert _definition_of(local) == f"{_APP}_MD-1_SM-1"
     assert _definition_of(f"{_APP}_MD-1_P-4_R-4") == f"{_APP}_MD-1"
-    assert _instance_of(_OFF, local) == (
-        f"{_APP}_MD-1_SM-1_M-1_MI-1",
-        f"{_APP}_MD-1_SM-1",
-    )
+    assert _instance_of(_OFF, local) == (f"{_DISPLAY}_SM-1", f"{_APP}_MD-1_SM-1")

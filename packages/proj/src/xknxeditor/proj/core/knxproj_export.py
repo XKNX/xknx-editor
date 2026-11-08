@@ -1012,48 +1012,107 @@ def module_repeat_indexes(app_xml: bytes) -> dict[str, str]:
     the ``<Dynamic>`` itself (0). An instance's index is the place of its ``<Module>`` with
     ``x1``, after ``{place}x{iteration}`` of each ``<Repeat>`` it is in (outermost first,
     separated by spaces); ``MI-n`` is the n-th iteration: ``529x1``, or ``2x3 3x1`` for the third
-    instance of a module in a repeat."""
+    instance of a module in a repeat.
+
+    A submodule instance (``MD-1_M-2_MI-3_SM-1_M-1_MI-3-1-2``, see the module state) follows
+    the index of the instance it is in with the places in its module definition's
+    ``<Dynamic>``, counted the same way."""
     root = ET.fromstring(app_xml)
     program = next(
-        (el for el in root.iter() if el.tag.rsplit("}", 1)[-1] == "ApplicationProgram"),
+        (el for el in root.iter() if _tag(el) == "ApplicationProgram"),
         None,
     )
     dynamic = (
-        next((el for el in program if el.tag.rsplit("}", 1)[-1] == "Dynamic"), None)
+        next((el for el in program if _tag(el) == "Dynamic"), None)
         if program is not None
         else None
     )
     indexes: dict[str, str] = {}
-    if dynamic is None:
+    if program is None or dynamic is None:
         return indexes
-    place = 0
+    definitions = {
+        el.get("Id", ""): el for el in program.iter() if _tag(el) == "ModuleDef"
+    }
 
-    def walk(element: ET.Element, repeats: list[tuple[int, int]]) -> None:
-        nonlocal place
-        here = place
-        place += 1
-        tag = element.tag.rsplit("}", 1)[-1]
-        if tag == "Module" and element.get("Id"):
-            module = _relidref(element.get("Id", ""))
-            iterations: list[list[int]] = [[]]
-            for _place, count in repeats:
-                iterations = [
-                    [*done, n] for done in iterations for n in range(1, count + 1)
-                ]
-            for number, iteration in enumerate(iterations, start=1):
-                parts = [
-                    f"{at}x{n}"
-                    for (at, _count), n in zip(repeats, iteration, strict=True)
-                ]
-                indexes[f"{module}_MI-{number}"] = " ".join([*parts, f"{here}x1"])
-        if tag == "Repeat":
-            count = int(element.get("Count") or "1")
-            repeats = [*repeats, (here, max(count, 1))]
-        for child in element:
-            walk(child, repeats)
+    def iterations(repeats: list[tuple[int, int]]) -> list[list[int]]:
+        result: list[list[int]] = [[]]
+        for _place, count in repeats:
+            result = [[*done, n] for done in result for n in range(1, count + 1)]
+        return result
 
-    walk(dynamic, [])
+    def places(repeats: list[tuple[int, int]], iteration: list[int]) -> list[str]:
+        return [f"{at}x{n}" for (at, _count), n in zip(repeats, iteration, strict=True)]
+
+    def walk(
+        section: ET.Element,
+        on_module: Callable[[ET.Element, int, list[tuple[int, int]]], None],
+    ) -> None:
+        place = 0
+
+        def visit(element: ET.Element, repeats: list[tuple[int, int]]) -> None:
+            nonlocal place
+            here = place
+            place += 1
+            tag = _tag(element)
+            if tag == "Module" and element.get("Id"):
+                on_module(element, here, repeats)
+            if tag == "Repeat":
+                count = int(element.get("Count") or "1")
+                repeats = [*repeats, (here, max(count, 1))]
+            for child in element:
+                visit(child, repeats)
+
+        visit(section, [])
+
+    def submodules(
+        module: ET.Element, instance: str, index: str, counters: list[int]
+    ) -> None:
+        module_id = module.get("Id", "")
+        definition = definitions.get(
+            module.get("RefId") or module_id.rsplit("_M-", 1)[0]
+        )
+        inner = (
+            next((el for el in definition if _tag(el) == "Dynamic"), None)
+            if definition is not None
+            else None
+        )
+        if inner is None or len(counters) > 16:
+            return
+
+        def on_submodule(
+            element: ET.Element, here: int, repeats: list[tuple[int, int]]
+        ) -> None:
+            element_id = element.get("Id", "")
+            at = element_id.rfind("_SM-")
+            if at == -1:
+                return
+            for iteration in iterations(repeats):
+                path = [*counters, 1, *iteration]
+                number = "-".join(str(n) for n in path)
+                sub = f"{instance}_{element_id[at + 1 :]}_MI-{number}"
+                sub_index = " ".join([index, *places(repeats, iteration), f"{here}x1"])
+                indexes[sub] = sub_index
+                submodules(element, sub, sub_index, path)
+
+        walk(inner, on_submodule)
+
+    def on_module(
+        element: ET.Element, here: int, repeats: list[tuple[int, int]]
+    ) -> None:
+        module = _relidref(element.get("Id", ""))
+        for number, iteration in enumerate(iterations(repeats), start=1):
+            index = " ".join([*places(repeats, iteration), f"{here}x1"])
+            instance = f"{module}_MI-{number}"
+            indexes[instance] = index
+            submodules(element, instance, index, iteration)
+
+    walk(dynamic, on_module)
     return indexes
+
+
+def _tag(element: ET.Element) -> str:
+    """The name of ``element`` without its namespace."""
+    return element.tag.rsplit("}", 1)[-1]
 
 
 def _has_override(co: ComObject) -> bool:
@@ -2408,7 +2467,10 @@ class _Writer:
                 # Relative, like the group object refs that name the instance; a device added in
                 # the editor stores the full id.
                 Id=_relidref(mi.instance_id),
-                RefId=_relidref(re.sub(r"_MI-\d+$", "", mi.instance_id)),
+                # The Module the instance is of; for a submodule instance, as genuine exports
+                # write it, the Module of the instance it is in (``MD-4_M-15`` for
+                # ``MD-4_M-15_MI-1_SM-1_M-1_MI-1-1-1``).
+                RefId=_relidref(re.sub(r"_MI-.*$", "", mi.instance_id)),
                 # A device added in the editor has none stored: the importer needs one.
                 RepeatIndex=mi.repeat_index
                 or self._repeat_index(device, mi.instance_id)

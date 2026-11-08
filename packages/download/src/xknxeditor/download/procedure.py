@@ -587,7 +587,10 @@ class LoadProcedureRunner:
             list(controls)
             if controls is not None
             else resolve_download_controls(
-                application, scope=scope, parameter_values=image.procedure_parameters
+                application,
+                scope=scope,
+                parameter_values=image.procedure_parameters,
+                module_controls=image.module_load_controls,
             )
         )
         # Position of the control currently being executed, for diagnostics.
@@ -1550,8 +1553,9 @@ class LoadProcedureRunner:
             # WriteRelMem/WriteMem fails with "no image data".
             return
         if isinstance(control, LdCtrlMerge):
-            # A merge point inside a merged fragment: fragments are merged one level deep
-            # (a fragment may name its own merge id), the point left over does nothing.
+            # A merge point inside a merged fragment that no module instance fills: fragments
+            # are merged one level deep (a fragment may name its own merge id), the point left
+            # over does nothing.
             return
         if isinstance(control, LdCtrlMapError):
             # Arm or reset tolerance of a specific error. The mapped value carries

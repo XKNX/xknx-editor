@@ -126,35 +126,39 @@ def test_a_base_value_outside_a_module_counts_zero() -> None:
 
 
 def test_a_submodule_parameter_is_found_inside_its_enclosing_instance() -> None:
-    # The submodule instance's ids do not start with the enclosing instance's
-    # (``..._MD-1_SM-1_M-1_MI-1`` inside ``..._MD-1_M-1_MI-1``): its parameters are read and
-    # set all the same once the tree is evaluated.
+    # The submodule instance is named after the enclosing instance
+    # (``..._MD-1_M-1_MI-1_SM-1_M-1_MI-1``): its parameters are read and set once the tree is
+    # evaluated.
     app = parse_application_xml(_xml().encode(), "M-00FA")[0]
     ui = DynamicUI(app.program, tree_builder=DynamicTreeBuilder(app.program))
     ui.ui()
-    brightness = f"{_APP}_MD-1_SM-1_M-1_MI-1_P-1_R-1"
+    brightness = f"{_APP}_MD-1_M-1_MI-1_SM-1_M-1_MI-1_SM-1_P-1_R-1"
     assert ui.local_ref_id(brightness) == f"{_APP}_MD-1_SM-1_P-1_R-1"
     assert ui.get_value(brightness) == "9"
     ui.set_parameter_ref(brightness, "5")
     ui.ui()
     assert ui.get_value(brightness) == "5"
+    # The second room's display is another instance.
+    assert ui.get_value(f"{_APP}_MD-1_M-2_MI-1_SM-1_M-1_MI-1_SM-1_P-1_R-1") == "9"
 
 
 def test_a_stored_submodule_value_is_kept_when_the_tree_is_evaluated() -> None:
     # A project stores the module instances side by side; the submodule instance's state
     # moves into its enclosing instance with the values stored for it.
     app = parse_application_xml(_xml().encode(), "M-00FA")[0]
-    brightness = f"{_APP}_MD-1_SM-1_M-1_MI-1_P-1_R-1"
+    brightness = f"{_APP}_MD-1_M-1_MI-1_SM-1_M-1_MI-1_SM-1_P-1_R-1"
     ui = DynamicUI(
         app.program,
         parameter_instance_refs=[ParameterInstanceRef(ref_id=brightness, value="5")],
         module_instances=[
             ModuleInstance(id=f"{_APP}_MD-1_M-1_MI-1", ref_id=f"{_APP}_MD-1"),
-            ModuleInstance(id=f"{_APP}_MD-1_SM-1_M-1_MI-1", ref_id=f"{_APP}_MD-1_SM-1"),
+            ModuleInstance(
+                id=f"{_APP}_MD-1_M-1_MI-1_SM-1_M-1_MI-1", ref_id=f"{_APP}_MD-1_SM-1"
+            ),
         ],
         tree_builder=DynamicTreeBuilder(app.program),
     )
     ui.ui()
     assert ui.get_value(brightness) == "5"
     ((data, _mask),) = ui.encode_to_memory_masked().values()
-    assert data[4] == 5
+    assert (data[4], data[12]) == (5, 9)

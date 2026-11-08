@@ -19,7 +19,10 @@ if TYPE_CHECKING:
 
 _PARAMETER = re.compile(r"(?:(.+)_)?U?P-\d+_R-(\d+)")
 _OBJECT = re.compile(r"(?:(.+)_)?O-[\d-]+_R-(\d+)")
-_INSTANCE = re.compile(r"_M-\d+_MI-\d+")
+# The instance part of a module-scoped ref, a submodule instance's with the instance it is in
+# (``_M-1_MI-2`` of ``MD-1_M-1_MI-2``, ``_M-1_MI-2_SM-1_M-1_MI-2-1`` of
+# ``MD-1_M-1_MI-2_SM-1_M-1_MI-2-1_SM-1``).
+_INSTANCE = re.compile(r"_M-\d+_MI-[\d-]+(?:_SM-[^_]+_M-\d+_MI-[\d-]+)*")
 
 _CARRIED_FIELDS = (
     "read_flag",

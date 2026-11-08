@@ -508,8 +508,10 @@ def _gates_of(
 
 def _module_gates_of(ui: DynamicUI, instance: tuple[str, str]) -> set[str]:
     """The selectors on the way to the module of the module instance ``instance`` (see
-    :func:`_instance_of`)."""
-    return set(ui.module_gates(instance[0][: instance[0].rindex("_MI-")]))
+    :func:`_instance_of`): of its Module, its definition's id with the module's number
+    (``..._MD-7_SM-1_M-1`` for ``..._MD-7_M-30_MI-1_SM-1_M-1_MI-1-1``)."""
+    module = instance[0][: instance[0].rindex("_MI-")]
+    return set(ui.module_gates(instance[1] + module[module.rindex("_M-") :]))
 
 
 def _outer_gates(
@@ -638,6 +640,10 @@ def _objects_by_number(ui: DynamicUI) -> dict[int, list[str]]:
     for instance, definition in ui.get_module_instances():
         # Arguments are stored relative to the application, the base of an object in full.
         application_id = definition[: definition.rindex("_MD-")]
+        # The objects of a submodule instance (named after the instance it is in) keep their
+        # ids below the top-level definition: ``..._MI-1-1`` + ``_SM-1_O-3-0_R-1``.
+        submodule = definition.find("_SM-")
+        local_base = definition[:submodule] if submodule != -1 else definition
         values = {
             f"{application_id}_{argument}": value
             for argument, value in arguments.get(instance, [])
@@ -651,7 +657,7 @@ def _objects_by_number(ui: DynamicUI) -> dict[int, list[str]]:
             except ValueError:
                 continue
             result.setdefault(number + offset, []).append(
-                instance + ref_id[len(definition) :]
+                instance + ref_id[len(local_base) :]
             )
     return result
 

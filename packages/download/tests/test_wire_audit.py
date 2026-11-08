@@ -97,6 +97,7 @@ def seeded_application(
                 s.id: (s.data, b"\x00" * s.size) for s in declarations
             },
             encode_to_typed_properties_masked=lambda: {},
+            module_load_controls=lambda: {},
         ),
     )
     return app, ui
@@ -129,6 +130,7 @@ def test_segment_data_and_mask_shorter_than_the_segment() -> None:
                 declaration.id: (b"AB\x00\x00", b"\x00\x00\xff\x00")
             },
             encode_to_typed_properties_masked=lambda: {},
+            module_load_controls=lambda: {},
         ),
     )
     image = build_image(app, ui=padded)
