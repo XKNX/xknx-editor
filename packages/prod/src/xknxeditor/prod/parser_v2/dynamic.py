@@ -2048,6 +2048,16 @@ class DynamicUI:
         self.ui()
         return self._state.assigned_from()
 
+    def assigned_source(self, ref_id: str) -> str | None:
+        """The param-ref an Assign of the evaluated tree writes the (possibly module-qualified)
+        ``ref_id`` from, qualified in the scope that owns it: a module instance's own one with
+        the instance, one of the application (an Assign in a module copying an application
+        setting) as it is. None when no Assign copies another param-ref into it."""
+        self.ui()
+        scope, local = self._locate(ref_id)
+        source = scope.assigned_from().get(local)
+        return scope.qualify_local(source) if source is not None else None
+
     def object_gates(self, com_object_ref_id: str) -> frozenset[str]:
         """The selectors (local param-refs) right on the way to the placements of a group object
         reference (local to its application or module definition)."""

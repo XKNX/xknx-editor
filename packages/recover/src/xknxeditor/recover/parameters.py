@@ -670,7 +670,9 @@ def _count_selectors(
 ) -> None:
     """Count the selectors ``gates`` in ``weight``, and for one not ``shown`` those on its own way,
     ``_REFINE_DEPTH`` selectors up; for one a parameter calculation sets, the parameters it is
-    calculated from (shown or not: the selector follows them)."""
+    calculated from, and for one an Assign copies from another param-ref, that one (shown or
+    not: the selector follows them; a module's hidden copy of an application setting is decided
+    by that setting)."""
     frontier = set(gates)
     for _depth in range(_REFINE_DEPTH):
         above: set[str] = set()
@@ -680,6 +682,9 @@ def _count_selectors(
             if gate not in shown:
                 above |= _gates_of(ui, gate)
             above |= _calculation_inputs(ui, gate)
+            source = ui.assigned_source(gate)
+            if source is not None:
+                above.add(source)
         frontier = above
 
 
@@ -938,6 +943,13 @@ def _refinement_trials(
             _count_selectors(
                 ui, _outer_gates(ui, ref_id, ui.object_gates), shown, outer
             )
+    if any(number not in objects_of for number in wrong):
+        # A linked object no reference of the instances there are now has (its number is one
+        # of a further repetition): the selectors on the way to the modules of those
+        # instances, the repeat counts among them, make more of them.
+        for instance in ui.get_module_instances():
+            _check(cancel)
+            _count_selectors(ui, _module_gates_of(ui, instance), shown, outer)
     trials: list[tuple[str, str]] = []
     actives: frozenset[str] | None = None
     ranked = [
