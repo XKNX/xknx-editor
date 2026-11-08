@@ -115,6 +115,9 @@ def _coupler_bytes(
 
 
 if TYPE_CHECKING:
+    from xknxeditor.namespaces.intermediate.application_program_static_t_code_absolute_segment import (
+        ApplicationProgramStaticCodeAbsoluteSegment,
+    )
     from xknxeditor.prod.parser_v2.dynamic import DynamicUI
 
 
@@ -764,7 +767,19 @@ def build_image(
     for address, octets in _identity_octets(
         application, device_mask_version(application)
     ):
-        _patch_identity(segments, address, octets)
+        if not _patch_identity(segments, address, octets) and _declared_over(
+            declarations, base_addresses, address, len(octets)
+        ):
+            # The declared segment over the identity left the image (a table segment
+            # without data, the tables built on their own): the octets go out alone.
+            segments.append(
+                MemorySegment(
+                    address,
+                    octets,
+                    mask=bytes(len(octets)),
+                    initialized_mask=b"\xff" * len(octets),
+                )
+            )
     # A coupler's filter table is a distinct interface object (the Router object), not one of the
     # three group-communication tables; it is carried as its own image field and written by the
     # coupler's own load procedure (System B relative memory or BCU1 LcFilter absolute memory).
@@ -1481,15 +1496,41 @@ def _identity_octets(
     return octets
 
 
-def _patch_identity(segments: list[MemorySegment], address: int, octets: bytes) -> None:
+def _declared_over(
+    declarations: Mapping[
+        str,
+        ApplicationProgramStaticCodeAbsoluteSegment
+        | ApplicationProgramStaticCodeRelativeSegment,
+    ],
+    base_addresses: Mapping[str, int],
+    address: int,
+    length: int,
+) -> bool:
+    """Whether a declared code segment in standard memory covers ``length`` octets at
+    ``address``."""
+    for segment_id, declaration in declarations.items():
+        if (
+            isinstance(declaration, ApplicationProgramStaticCodeRelativeSegment)
+            or declaration.user_memory
+        ):
+            continue
+        base = base_addresses.get(segment_id)
+        if base is not None and base <= address <= base + declaration.size - length:
+            return True
+    return False
+
+
+def _patch_identity(segments: list[MemorySegment], address: int, octets: bytes) -> bool:
     """Put ``octets`` at ``address`` into the segments that cover it (a code segment and a
     table segment can share the memory): a full download writes them; a download that
     writes any of these octets writes them all. Without such a segment nothing is
-    patched."""
+    patched. Whether a segment took them."""
+    took = False
     for i, segment in enumerate(segments):
         offset = address - segment.address
         if offset < 0 or offset + len(octets) > len(segment.data):
             continue
+        took = True
         span = slice(offset, offset + len(octets))
         data = bytearray(segment.data)
         data[span] = octets
@@ -1504,6 +1545,7 @@ def _patch_identity(segments: list[MemorySegment], address: int, octets: bytes) 
         segments[i] = replace(
             segment, data=bytes(data), mask=mask, initialized_mask=bytes(initialized)
         )
+    return took
 
 
 def _set_octet(segments: list[MemorySegment], address: int, value: int) -> None:
