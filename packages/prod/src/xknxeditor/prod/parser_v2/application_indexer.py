@@ -4,6 +4,7 @@ import re
 import warnings
 from collections.abc import Iterable
 
+from xknxeditor.namespaces.ids import unpadded_id
 from xknxeditor.namespaces.intermediate import (
     ApplicationProgram,
     ApplicationProgramStaticParametersUnion,
@@ -46,6 +47,7 @@ class ApplicationIndexer:
         "com_objects",
         "messages",
         "module_defs",
+        "padded_ref_ids",
         "parameter_refs",
         "parameter_types",
         "parameters",
@@ -92,6 +94,13 @@ class ApplicationIndexer:
         if app.module_defs is not None:
             for md in app.module_defs.module_def:
                 self._index_module_def(md)
+        # The parameter refs whose id the application writes with leading zeros, by their
+        # unpadded id: the spelling a project stores their values under (see unpadded_id).
+        self.padded_ref_ids: dict[str, str] = {
+            unpadded: ref_id
+            for ref_id in self.parameter_refs
+            if (unpadded := unpadded_id(ref_id)) != ref_id
+        }
 
     def _index_app(self, app: ApplicationProgram) -> None:
         s = app.static

@@ -2,8 +2,10 @@ from __future__ import annotations
 
 import copy
 import re
+from collections.abc import Mapping
 from typing import Any, ClassVar, Self
 
+from xknxeditor.namespaces.ids import unpadded_id
 from xknxeditor.namespaces.intermediate import (
     ComObjectInstanceRef,
     ModuleArg,
@@ -565,13 +567,33 @@ class GlobalState(ParameterState):
         module_instances: list[ModuleInstance] | None = None,
         com_object_instance_refs: list[ComObjectInstanceRef] | None = None,
         app_id: str | None = None,
+        padded_ref_ids: Mapping[str, str] | None = None,
     ) -> GlobalState:
         """Rebuild a GlobalState tree from saved project data.
 
         A module instance id is either qualified with the application id ``app_id`` or relative to
         it (``MD-1_M-1_MI-1``, as a ``.knxproj`` stores it); its state is keyed by the qualified id,
-        the key the evaluated Module looks it up by (see :meth:`module_child`)."""
+        the key the evaluated Module looks it up by (see :meth:`module_child`).
+
+        ``padded_ref_ids`` maps the unpadded id of each parameter ref the application writes
+        with leading zeros to the application's spelling (see
+        :attr:`ApplicationIndexer.padded_ref_ids`): a value stored under another spelling of such
+        an id is the value of that parameter ref. When both spellings are stored, the value under
+        the application's spelling counts."""
         root = cls()
+        exact: set[tuple[int, str]] = set()
+
+        def put(scope: ParameterState, ref_id: str, value: str) -> None:
+            if padded_ref_ids:
+                own = padded_ref_ids.get(unpadded_id(ref_id))
+                if own is not None and own != ref_id:
+                    if (id(scope), own) in exact:
+                        return
+                    ref_id = own
+                else:
+                    exact.add((id(scope), ref_id))
+            scope.set(ref_id, value)
+
         stored: dict[str, tuple[ModuleState, str]] = {}
         for mi in module_instances or []:
             if mi.id is None or mi.ref_id is None:
@@ -606,10 +628,10 @@ class GlobalState(ParameterState):
                     app_prefix = ref_id[:p]
                     suffix = ref_id[p + len(mid) :]
                     ms.module_instance_id = app_prefix + mid
-                    ms.set(app_prefix + mdid + suffix, value)
+                    put(ms, app_prefix + mdid + suffix, value)
                     break
             else:
-                root.set(ref_id, value)
+                put(root, ref_id, value)
 
         for coir in com_object_instance_refs or []:
             root._com_obj_instance_refs[coir.ref_id] = coir

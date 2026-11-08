@@ -17,6 +17,7 @@ from typing import Any, ClassVar, cast
 from sqlalchemy import inspect as sa_inspect
 from sqlalchemy.orm import Session
 
+from xknxeditor.namespaces.ids import unpadded_id
 from xknxeditor.proj.core.ga_security import effective_mode, secure_commissioned
 from xknxeditor.proj.core.identity import qualified_com_object_ref
 from xknxeditor.proj.core.skeleton import MEDIUM_IP
@@ -631,12 +632,18 @@ class UpdateDeviceApplication(Event):
         "description",
     )
 
-    def _remap(self, ref: str, valid: set[str]) -> str | None:
-        """New ref if the row should be kept, ``None`` if it should be dropped."""
+    def _remap(
+        self, ref: str, valid: set[str], valid_unpadded: dict[str, str]
+    ) -> str | None:
+        """New ref if the row should be kept, ``None`` if it should be dropped. A ref the new
+        application spells with other leading zeros (``valid_unpadded``: the valid refs by their
+        unpadded id) gets the new application's spelling."""
         if not ref.startswith(self.old_app_id):
             return ref  # not application-prefixed -> carry unchanged
         candidate = self.new_app_id + ref[len(self.old_app_id) :]
-        return candidate if candidate in valid else None
+        if candidate in valid:
+            return candidate
+        return valid_unpadded.get(unpadded_id(candidate))
 
     def _snapshot_co(self, co: ComObject) -> dict[str, Any]:
         snap: dict[str, Any] = {
@@ -686,17 +693,29 @@ class UpdateDeviceApplication(Event):
         self.deleted_params = []
         self.deleted_com_objects = []
 
-        for param in list(device.parameters):
-            new_ref = self._remap(param.ref_id, valid)
+        valid_unpadded = {unpadded_id(ref): ref for ref in valid}
+        # The rows of refs the new application spells the same way first: when a parameter ref
+        # is stored under two spellings, that row is kept and the other one dropped.
+        params = sorted(
+            device.parameters,
+            key=lambda p: self._remap(p.ref_id, valid, {}) is None,
+        )
+        kept: set[str] = set()
+        for param in params:
+            new_ref = self._remap(param.ref_id, valid, valid_unpadded)
+            if new_ref in kept:
+                new_ref = None
             if new_ref is None:
                 self.deleted_params.append([param.id, param.ref_id, param.value])
                 session.delete(param)
-            elif new_ref != param.ref_id:
+                continue
+            kept.add(new_ref)
+            if new_ref != param.ref_id:
                 self.renamed.append(["P", str(param.id), param.ref_id, new_ref])
                 param.ref_id = new_ref
 
         for co in list(device.com_objects):
-            new_ref = self._remap(co.ref_id, valid)
+            new_ref = self._remap(co.ref_id, valid, {})
             if new_ref is None:
                 self.deleted_com_objects.append(self._snapshot_co(co))
                 session.delete(co)
@@ -1251,11 +1270,14 @@ class SetParameter(Event):
     parameters_were_loaded: bool = False
 
     def _find(self, session: Session) -> Parameter | None:
-        return (
-            session.query(Parameter)
-            .filter_by(device_id=self.device_id, ref_id=self.ref_id)
-            .first()
-        )
+        """The device's row of the parameter ref: under ``ref_id``, else under its unpadded
+        spelling (an application may pad the numbers of its ids with zeros, a project stores
+        them without; see ``unpadded_id``), which then keeps its spelling."""
+        query = session.query(Parameter).filter_by(device_id=self.device_id)
+        param = query.filter_by(ref_id=self.ref_id).first()
+        if param is None and (unpadded := unpadded_id(self.ref_id)) != self.ref_id:
+            param = query.filter_by(ref_id=unpadded).first()
+        return param
 
     def apply(self, session: Session) -> None:
         param = self._find(session)

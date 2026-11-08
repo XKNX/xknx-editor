@@ -359,6 +359,28 @@ def test_set_parameter_undo_restores_old_value(tmp_path: Path):
     assert svc.devices(pid)[0].parameters == []
 
 
+def test_set_parameter_changes_the_row_stored_under_the_unpadded_id(tmp_path: Path):
+    # The application writes the id with leading zeros, the imported project without them.
+    app = "M-00FA_A-A012-56-5470"
+    stored, padded = f"{app}_UP-99823_R-9982301", f"{app}_UP-0099823_R-009982301"
+    svc, pid = _new(tmp_path)
+    seg = _backbone_segment(svc, pid)
+    dev = svc.add_device(
+        pid, seg, PRODUCT, address=1, name="D", parameters=[(stored, "0")]
+    )
+
+    def rows() -> list[tuple[str, str]]:
+        return [(p.ref_id, p.value) for p in svc.devices(pid)[0].parameters]
+
+    svc.set_parameter(pid, dev, padded, "1")
+    assert rows() == [(stored, "1")]  # one row, which keeps its spelling
+    svc.undo(pid)
+    assert rows() == [(stored, "0")]
+    # An id without zeros to drop stays a separate parameter ref.
+    svc.set_parameter(pid, dev, f"{app}_UP-1000005_R-100000501", "7")
+    assert rows() == [(stored, "0"), (f"{app}_UP-1000005_R-100000501", "7")]
+
+
 def test_link_com_object(tmp_path: Path):
     svc, pid = _new(tmp_path)
     seg = _backbone_segment(svc, pid)

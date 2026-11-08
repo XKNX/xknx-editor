@@ -1057,6 +1057,7 @@ class DynamicUI:
             module_instances=module_instances,
             com_object_instance_refs=com_object_instance_refs,
             app_id=app.id,
+            padded_ref_ids=self._idx.padded_ref_ids,
         )
         self._ui: list[UiNode] | None = None
         # The parameter-driven active com-object set, snapshotted from the same settle that builds

@@ -94,6 +94,52 @@ def test_update_keeps_params_links_and_drops_incompatible(tmp_path: Path):
     assert [(ln.group_address_id, ln.is_sending) for ln in kept_links] == [(ga, True)]
 
 
+def test_update_keeps_a_value_stored_under_another_spelling_of_its_id(tmp_path: Path):
+    # The project stores the ids without leading zeros, the new application writes them with;
+    # a ref stored under both spellings keeps the row the new application spells the same way.
+    svc, pid = _new(tmp_path)
+    device_id = svc.add_device(
+        pid,
+        _seg(svc, pid),
+        OLD_PRODUCT,
+        address=1,
+        name="D",
+        hardware2program_ref_id=OLD_H2P,
+        application_program_ref_id=OLD,
+        parameters=[
+            (f"{OLD}_UP-99811_R-9981101", "0"),
+            (f"{OLD}_UP-99823_R-9982301", "0"),
+            (f"{OLD}_UP-0099823_R-009982301", "1"),
+        ],
+    )
+    assert device_id is not None
+    kept, dropped = svc.update_device_application(
+        pid,
+        device_id,
+        product_ref_id=NEW_PRODUCT,
+        hardware2program_ref_id=NEW_H2P,
+        old_app_id=OLD,
+        new_app_id=NEW,
+        valid_ref_ids=[
+            f"{NEW}_UP-0099811_R-009981101",
+            f"{NEW}_UP-0099823_R-009982301",
+        ],
+    )
+    assert (kept, dropped) == (2, 1)
+    params = {p.ref_id: p.value for p in svc.devices(pid)[0].parameters}
+    assert params == {
+        f"{NEW}_UP-0099811_R-009981101": "0",
+        f"{NEW}_UP-0099823_R-009982301": "1",
+    }
+    assert svc.undo(pid)
+    params = {p.ref_id: p.value for p in svc.devices(pid)[0].parameters}
+    assert params == {
+        f"{OLD}_UP-99811_R-9981101": "0",
+        f"{OLD}_UP-99823_R-9982301": "0",
+        f"{OLD}_UP-0099823_R-009982301": "1",
+    }
+
+
 def test_update_undo_restores_everything(tmp_path: Path):
     svc, pid = _new(tmp_path)
     device_id = _device_with_config(svc, pid)
