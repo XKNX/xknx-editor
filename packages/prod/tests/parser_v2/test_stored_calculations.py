@@ -18,6 +18,8 @@ FROST, FROST_VALUE = f"{APP}_P-3_R-3", f"{APP}_P-4_R-4"
 PROTECTION = f"{APP}_P-5_R-5"
 LEVEL, LEVEL_VALUE = f"{APP}_P-6_R-6", f"{APP}_P-7_R-7"
 LEVEL_HIGH = f"{APP}_P-8_R-8"
+TIMER, NIGHT = f"{APP}_P-9_R-9", f"{APP}_P-10_R-10"
+HOUR, HOUR_VALUE = f"{APP}_P-11_R-11", f"{APP}_P-12_R-12"
 
 XML = (
     Path(__file__).parents[1] / "fixtures" / "stored_calculations_application.xml"
@@ -123,6 +125,29 @@ def test_the_value_of_an_inactive_parameter_is_not_matched(
     assert settings[FROST] == "7"
     assert settings[SHIFT] == "4"
     assert caplog.records == []
+
+
+@pytest.mark.parametrize(("hour", "on"), [("7", "1"), ("255", "0")])
+def test_two_switches_that_only_together_give_a_value_back_are_found(
+    ui: DynamicUI, caplog: pytest.LogCaptureFixture, hour: str, on: str
+) -> None:
+    # The hour is downloaded only with the timer and the night switch on: neither switch
+    # alone gives the stored hour back.
+    with caplog.at_level("WARNING", logger=calculation.__name__):
+        ui.apply_parameter_values({HOUR_VALUE: hour})
+        ui.recalculate([HOUR_VALUE], stored=True)
+    assert (ui.get_value(TIMER), ui.get_value(NIGHT)) == (on, on)
+    assert ui.get_value(HOUR) == ("7" if on == "1" else "0")
+    assert caplog.records == []
+
+
+def test_pairs_are_tried_only_up_to_their_limit(
+    ui: DynamicUI, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(calculation, "_PAIR_TRIALS", 0)
+    ui.apply_parameter_values({HOUR_VALUE: "7"})
+    ui.recalculate([HOUR_VALUE], stored=True)
+    assert (ui.get_value(TIMER), ui.get_value(NIGHT)) == ("0", "0")
 
 
 def test_trial_results_are_reused(ui: DynamicUI) -> None:

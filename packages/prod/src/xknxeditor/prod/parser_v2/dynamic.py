@@ -85,6 +85,7 @@ from .encode import (
     type_size_in_bit,
     validate_parameter_value,
     written_bit_mask,
+    written_parameter_cells,
 )
 from .nodes import (
     AssignNode,
@@ -155,6 +156,7 @@ __all__ = [
     "encode_to_typed_properties_masked",
     "resolve_param_values",
     "written_bit_mask",
+    "written_parameter_cells",
 ]
 
 
@@ -1402,6 +1404,17 @@ class DynamicUI:
         """Map {seg_id: {byte_offset: (param_id, value)}} for hex-viewer hovers."""
         self.ui()
         return build_memory_param_map(
+            self._app,
+            self._idx,
+            download_param_values(self._app, self._idx, self._state),
+            self._state,
+        )
+
+    def written_parameter_cells(self) -> dict[tuple[str, int], set[str]]:
+        """The parameter ids each byte the active parameters write is written by, all of them
+        (see :func:`~xknxeditor.prod.parser_v2.encode.written_parameter_cells`)."""
+        self.ui()
+        return written_parameter_cells(
             self._app,
             self._idx,
             download_param_values(self._app, self._idx, self._state),

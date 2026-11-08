@@ -763,3 +763,34 @@ def test_the_bytes_of_a_fixed_marker_include_those_it_shares() -> None:
     assert cells == {(f"{_SHARED_APP}_AS-0000", 0)}
     # Nothing fixed is active: no bytes.
     assert not parameters._fixed_cells(ui, {})  # pyright: ignore[reportPrivateUsage]
+
+
+def test_the_selector_of_a_module_is_tried_after_the_selectors_inside_it(
+    application: Application,
+) -> None:
+    # The single-button function's stored type sits behind the function's own choice; whether
+    # the module is there at all (the pair in its place) the buttons' function decides.
+    ui = seed_dynamic_ui(application, {_FUNCTION: "2", f"{_SINGLE}P-1_R-1": "5"})
+    assert ui is not None
+    # At the module's offset (its first argument).
+    cell = (f"{_APP}_AS-0000", 2)
+    assert f"{_SINGLE}P-2_R-2" in ui.stored_parameter_cells()[cell]
+    gates = [
+        gate
+        for gate, _value in parameters._refinement_trials(ui, {cell}, set())  # pyright: ignore[reportPrivateUsage]
+    ]
+    assert f"{_SINGLE}P-1_R-1" in gates
+    assert _FUNCTION in gates
+    assert gates.index(_FUNCTION) > gates.index(f"{_SINGLE}P-1_R-1")
+
+
+def test_selectors_counted_as_often_are_tried_in_a_fixed_order(
+    application: Application,
+) -> None:
+    # Whatever order a set gives them in (it changes with the hash seed of the process).
+    ui = application.dynamic_ui()
+    assert ui is not None
+    gates = {f"{_APP}_P-{n}_R-{n}" for n in range(100, 140)}
+    weight: parameters.Counter[str] = parameters.Counter()
+    parameters._count_selectors(ui, gates, gates, weight)  # pyright: ignore[reportPrivateUsage]
+    assert list(weight) == sorted(gates)

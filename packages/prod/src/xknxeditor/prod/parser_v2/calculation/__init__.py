@@ -7,6 +7,7 @@ import logging
 import re
 from collections.abc import Callable, Collection, Iterable, Mapping
 from dataclasses import dataclass, field
+from itertools import islice
 from typing import TYPE_CHECKING, Any, cast
 
 from xknxeditor.namespaces.intermediate.parameter_calculation_t import (
@@ -396,6 +397,11 @@ def _write_outputs(
 # keeps for the next search.
 _MAX_CANDIDATES = 256
 _MAX_RESULTS = 100_000
+# Fewer other values than this make a parameter one the search of _match_stored also tries
+# together with another such one (switches, choices).
+_PAIR_CANDIDATES = 8
+# Most pairs of values that search tries for one calculation at a time.
+_PAIR_TRIALS = 64
 
 
 def _match_stored(
@@ -414,9 +420,11 @@ def _match_stored(
     download writes the R values with. Each L parameter that changes one of the R values not
     given back (seen by trying two other values of it) is tried with every value of its domain,
     when that is small; the value that gives the most R values back is taken when it gives more
-    than before. An R value no L value gives back (one the product cannot download) is left as
-    it is; those are returned. The R values not ``stored`` take what the LR transformation
-    computes from the L values, as an edit of them would set them."""
+    than before. Where that leaves R values not given back, two L parameters with few values
+    each are tried together (two switches that both have to be on for a time to be downloaded),
+    and the single ones again after them. An R value no L value gives back (one the product
+    cannot download) is left as it is; those are returned. The R values not ``stored`` take
+    what the LR transformation computes from the L values, as an edit of them would set them."""
     if not (calc.lrtransformation_func or calc.lrtransformation):
         return []
     targets: dict[str, str] = {}
@@ -479,28 +487,68 @@ def _match_stored(
         write_unstored(base)
         return []
     chosen = dict(current)
-    for ref in current:
-        candidates = _candidates(idx.type_of(ref), current[ref])
-        if not candidates:
-            continue
-        missing = set(targets) - matched
-        affects = set[str]()
-        for probe in {candidates[0], candidates[-1]}:
-            got = evaluate({**chosen, ref: probe})
-            affects |= {r for r in targets if str(got.get(r)) != str(base.get(r))}
-        if not affects & missing:
-            continue
-        best, best_matched = chosen[ref], matched
-        for candidate in candidates:
-            same = given_back(evaluate({**chosen, ref: candidate}))
+
+    def search_singles() -> None:
+        nonlocal matched, base
+        for ref in current:
+            candidates = _candidates(idx.type_of(ref), chosen[ref])
+            if not candidates:
+                continue
+            missing = set(targets) - matched
+            affects = set[str]()
+            for probe in dict.fromkeys((candidates[0], candidates[-1])):
+                got = evaluate({**chosen, ref: probe})
+                affects |= {r for r in targets if str(got.get(r)) != str(base.get(r))}
+            if not affects & missing:
+                continue
+            best, best_matched = chosen[ref], matched
+            for candidate in candidates:
+                same = given_back(evaluate({**chosen, ref: candidate}))
+                if len(same) > len(best_matched):
+                    best, best_matched = candidate, same
+            if best != chosen[ref]:
+                chosen[ref] = best
+                matched = best_matched
+                base = evaluate(chosen)
+                if matched == set(targets):
+                    return
+
+    def search_pairs() -> bool:
+        """Two settings with few values each that change the R values only together (two
+        switches that both have to be on), tried together: whether a pair gives more back."""
+        nonlocal matched, base
+        few = [
+            (ref, candidates)
+            for ref in current
+            if (candidates := _candidates(idx.type_of(ref), chosen[ref]))
+            and len(candidates) < _PAIR_CANDIDATES
+        ]
+        best: tuple[tuple[str, str], tuple[str, str]] | None = None
+        best_matched = matched
+        pairs = (
+            ((first, a), (second, b))
+            for n, (first, first_values) in enumerate(few)
+            for second, second_values in few[n + 1 :]
+            for a in first_values
+            for b in second_values
+        )
+        # A calculation over many such settings (a channel's worth of switches) is not
+        # searched pair by pair: each trial runs its script.
+        for pair in islice(pairs, _PAIR_TRIALS):
+            same = given_back(evaluate({**chosen, **dict(pair)}))
             if len(same) > len(best_matched):
-                best, best_matched = candidate, same
-        if best != chosen[ref]:
-            chosen[ref] = best
-            matched = best_matched
-            base = evaluate(chosen)
-            if matched == set(targets):
-                break
+                best, best_matched = pair, same
+        if best is None:
+            return False
+        for ref, value in best:
+            chosen[ref] = value
+        matched = best_matched
+        base = evaluate(chosen)
+        return True
+
+    search_singles()
+    while matched != set(targets) and search_pairs():
+        search_singles()
     for ref, value in chosen.items():
         if value != current[ref]:
             journal.set(scope.qualify(ref), value)

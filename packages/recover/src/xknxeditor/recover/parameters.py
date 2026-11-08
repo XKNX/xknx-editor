@@ -502,8 +502,32 @@ def _gates_of(
     gates = (gates_of or ui.parameter_gates)(local)
     instance = _instance_of(ref_id, local)
     if instance is not None and not gates and "_MI-" in instance[0]:
-        return set(ui.module_gates(instance[0][: instance[0].rindex("_MI-")]))
+        return _module_gates_of(ui, instance)
     return _qualified(gates, instance)
+
+
+def _module_gates_of(ui: DynamicUI, instance: tuple[str, str]) -> set[str]:
+    """The selectors on the way to the module of the module instance ``instance`` (see
+    :func:`_instance_of`)."""
+    return set(ui.module_gates(instance[0][: instance[0].rindex("_MI-")]))
+
+
+def _outer_gates(
+    ui: DynamicUI,
+    ref_id: str,
+    gates_of: Callable[[str], frozenset[str]] | None = None,
+) -> set[str]:
+    """For the param-ref ``ref_id`` of a module instance that has selectors of its own on the
+    way to it, the selectors on the way to the instance's module (:func:`_gates_of` gives
+    them only for one without): whether the instance is there at all (another module in
+    its place)."""
+    local = ui.local_ref_id(ref_id)
+    instance = _instance_of(ref_id, local)
+    if instance is None or "_MI-" not in instance[0]:
+        return set()
+    if not (gates_of or ui.parameter_gates)(local):
+        return set()
+    return _module_gates_of(ui, instance)
 
 
 def _calculation_inputs(ui: DynamicUI, ref_id: str) -> set[str]:
@@ -540,8 +564,25 @@ def _calculated_from_reads(ui: DynamicUI, ref_id: str) -> bool:
     (one of its inputs has a copy there): the decode gives the selector already, it is not
     guessed. Computed only from settings the device keeps no copy of either (a hidden "show
     the disabling function" switch computed from the settings that show it), it is guessed
-    like any of them."""
-    return any(not _is_unstored(ui, ref) for ref in _calculation_inputs(ui, ref_id))
+    like any of them; so is one on the left side of a calculation whose stored values on the
+    right ``ui`` does not give the device (a switch that shows the times the calculation
+    downloads: they are read once it has the right value)."""
+    local = ui.local_ref_id(ref_id)
+    instance = _instance_of(ref_id, local)
+    indexer = ui.indexer
+    right = _qualified(
+        {
+            ref.ref_id
+            for calculation in indexer.calculations_for_l(local)
+            for ref in calculation.rparameters.parameter_ref_ref
+        },
+        instance,
+    )
+    actives = ui.active_parameter_ref_ids() if right else frozenset[str]()
+    return any(
+        not _is_unstored(ui, ref) and (ref not in right or ref in actives)
+        for ref in _calculation_inputs(ui, ref_id)
+    )
 
 
 def _instance_of(ref_id: str, local: str) -> tuple[str, str] | None:
@@ -627,7 +668,8 @@ def _count_selectors(
     frontier = set(gates)
     for _depth in range(_REFINE_DEPTH):
         above: set[str] = set()
-        for gate in frontier:
+        # In a fixed order: selectors counted as often are tried in the order counted first.
+        for gate in sorted(frontier):
             weight[gate] += 1
             if gate not in shown:
                 above |= _gates_of(ui, gate)
@@ -874,19 +916,29 @@ def _refinement_trials(
 
     shown = shown_parameters(ui.ui())
     weight: Counter[str] = Counter()
+    # The selectors that decide whether a module instance is there, tried after the others.
+    outer: Counter[str] = Counter()
     cells = ui.stored_parameter_cells()
     for cell in sorted(differing):
         _check(cancel)
         for ref_id in sorted(cells.get(cell, ())):
             _count_selectors(ui, _gates_of(ui, ref_id), shown, weight)
+            _count_selectors(ui, _outer_gates(ui, ref_id), shown, outer)
     objects_of = _objects_by_number(ui) if wrong else {}
     for number in sorted(wrong):
         _check(cancel)
         for ref_id in objects_of.get(number, ()):
             _count_selectors(ui, _gates_of(ui, ref_id, ui.object_gates), shown, weight)
+            _count_selectors(
+                ui, _outer_gates(ui, ref_id, ui.object_gates), shown, outer
+            )
     trials: list[tuple[str, str]] = []
     actives: frozenset[str] | None = None
-    for gate, _count in weight.most_common():
+    ranked = [
+        *weight.most_common(),
+        *((gate, n) for gate, n in outer.most_common() if gate not in weight),
+    ]
+    for gate, _count in ranked:
         parameter = shown.get(gate)
         if parameter is None:
             # A hidden setting nobody edits keeps the value the product gives it, even where
@@ -1535,7 +1587,8 @@ def _with_calculated(
             return result
         try:
             changes = ui.recalculate(
-                list(values) if refs is None else refs, stored=True
+                _copies_first(ui, list(values) if refs is None else refs),
+                stored=True,
             )
         except ScriptAborted:
             raise _Cancelled from None
@@ -1559,6 +1612,20 @@ def _with_calculated(
                 for calculation in indexer.calculations_for_r(ui.local_ref_id(ref_id))
             )
         ]
+
+
+def _copies_first(ui: DynamicUI, refs: list[str]) -> list[str]:
+    """``refs`` with those of parameters the device keeps a copy of first. A calculation runs
+    from the side of the first of the refs it takes: one with a value read on its right side
+    computes its left side from that value, also where a setting it computes the value from
+    (an inferred switch) is among the refs too."""
+    indexer = ui.indexer
+
+    def no_copy(ref_id: str) -> bool:
+        ref = indexer.parameter_refs.get(ui.local_ref_id(ref_id))
+        return ref is not None and _keeps_no_copy(indexer.parameters.get(ref.ref_id))
+
+    return sorted(refs, key=no_copy)
 
 
 def _shown_objects(ui: DynamicUI, sizes: Mapping[int, str] | None = None) -> set[int]:
@@ -1916,19 +1983,17 @@ def _undecodable_cells(
     ui: DynamicUI, parameter_segments: Mapping[str, bytes], own: set[str]
 ) -> int:
     """How many bytes the parameters ``own`` take in ``ui`` whose memory is no value of their
-    type: the device holds another setting there."""
+    type: the device holds another setting there. A byte one of them shares with another
+    setting (a few bits each) counts too."""
     if not own:
         return 0
     decoded = ui.decode_memory_parameters(parameter_segments)
     failed = {
         parameter_id for parameter_id in own if decoded.get(parameter_id, "") is None
     }
-    return sum(
-        1
-        for cells in ui.memory_param_map().values()
-        for parameter_id, _value in cells.values()
-        if parameter_id in failed
-    )
+    if not failed:
+        return 0
+    return sum(1 for owners in ui.written_parameter_cells().values() if owners & failed)
 
 
 def _fixed_clashes(
@@ -1948,11 +2013,8 @@ def _fixed_clashes(
     written: dict[str, set[str]] = {}
     for key, ui in uis.items():
         cells |= _fixed_cells(ui, fixed)
-        written[key] = {
-            parameter_id
-            for column in ui.memory_param_map().values()
-            for parameter_id, _value in column.values()
-        }
+        # Every parameter written, also one that shares all of its bytes with others.
+        written[key] = set[str]().union(*ui.written_parameter_cells().values())
     common: set[str] = set[str].intersection(*written.values()) if written else set()
     return {
         key: _mismatches(ui, parameter_segments, cells)

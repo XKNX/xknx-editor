@@ -1344,6 +1344,26 @@ def build_memory_param_map(
     return maps
 
 
+def written_parameter_cells(
+    app: ApplicationProgram,
+    idx: ApplicationIndexer,
+    overrides: dict[str, str],
+    state: GlobalState | None = None,
+) -> dict[tuple[str, int], set[str]]:
+    """The parameter ids each byte ``(segment id, offset)`` is written by, every one of them
+    (settings of a few bits each share a byte), unlike :func:`build_memory_param_map`, which
+    keeps the last one."""
+    cells: dict[tuple[str, int], set[str]] = {}
+    for w, _refs, cell_range in _stored_writes(
+        idx, collect_writes(app, idx, overrides, state), {}
+    ):
+        if w.seg_id not in idx.code_segments:
+            continue
+        for offset in cell_range:
+            cells.setdefault((w.seg_id, offset), set()).add(w.param_id)
+    return cells
+
+
 def _stored_writes(
     idx: ApplicationIndexer, writes: Writes, refs_of: Mapping[str, list[str]]
 ) -> Iterator[tuple[MemWrite, list[str], range]]:

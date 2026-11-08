@@ -133,6 +133,9 @@ def test_recovery_decodes_again_with_the_values_read(
         def later_union_members(self, _ref_id: str) -> set[str]:
             return set()
 
+        def local_ref_id(self, ref_id: str) -> str:
+            return ref_id
+
         def assigned_from(self) -> dict[str, str]:
             return {}
 
