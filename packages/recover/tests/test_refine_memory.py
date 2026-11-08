@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import base64
 from collections.abc import Mapping
+from pathlib import Path
 from typing import Any
 
 import pytest
@@ -794,3 +795,27 @@ def test_a_value_whose_look_ahead_shows_nothing_more_is_not_tried_again() -> Non
     )
     assert chosen == {}
     assert (a, "1") in dead
+
+
+_CALCULATIONS = (
+    Path(__file__).parents[2]
+    / "prod"
+    / "tests"
+    / "fixtures"
+    / "calculations_application.xml"
+)
+
+
+def test_a_cancel_stops_the_calculations_of_a_decode() -> None:
+    # The calculations of a large application can take longer than the rest of a search:
+    # they stop at the cancel too.
+    application = parse_application_xml(_CALCULATIONS.read_bytes(), "M-00FA")[0]
+    values = {f"{application.id}_P-1_R-1": "3"}
+    calculated = parameters._with_calculated(  # pyright: ignore[reportPrivateUsage]
+        application, values, None
+    )
+    assert calculated != values
+    with pytest.raises(parameters._Cancelled):  # pyright: ignore[reportPrivateUsage]
+        parameters._with_calculated(  # pyright: ignore[reportPrivateUsage]
+            application, values, None, lambda: True
+        )

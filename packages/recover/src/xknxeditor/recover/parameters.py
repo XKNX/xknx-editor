@@ -28,6 +28,8 @@ from itertools import count
 from typing import TYPE_CHECKING
 
 from xknxeditor.prod.parser_v2.allocator import AllocatorOverflow
+from xknxeditor.prod.script.errors import ScriptAborted
+from xknxeditor.prod.script.sandbox import AbortToken
 
 if TYPE_CHECKING:
     from xknxeditor.prod import Application
@@ -1141,6 +1143,17 @@ def _decode(
     values: _ValueMap = {}
     unknown: list[str] = []
     seen: set[frozenset[tuple[str, str]]] = set()
+
+    def calculated(decoded: Mapping[str, str]) -> _ValueMap:
+        """``decoded`` with what the calculations compute from it; cancelled, with the
+        values decoded so far."""
+        try:
+            return _with_calculated(application, decoded, project_code_page, cancel)
+        except _Cancelled as cancelled:
+            if cancelled.partial is None:
+                cancelled.partial = ({**inferred, **values}, unknown, dict(inferred))
+            raise
+
     # Which parameters own a memory field depends on the values (the active alternative of
     # a union): decode again with a UI seeded with what was read until nothing changes.
     for n in range(_DECODE_ROUNDS):
@@ -1194,9 +1207,7 @@ def _decode(
         # With what the calculations make of them too: a parameter shown behind a calculated
         # switch is decoded once the switch has its value.
         seeded_ui = seed_dynamic_ui(
-            application,
-            _with_calculated(application, {**inferred, **values}, project_code_page),
-            project_code_page,
+            application, calculated({**inferred, **values}), project_code_page
         )
         if seeded_ui is None:
             break
@@ -1206,7 +1217,7 @@ def _decode(
     # top-level values so the module instances match the device. The module decoder
     # already returns instance-qualified reference ids, which is what a project
     # stores, so they merge straight into values.
-    values = _with_calculated(application, {**inferred, **values}, project_code_page)
+    values = calculated({**inferred, **values})
     seeded = seed_dynamic_ui(application, values, project_code_page)
     if seeded is not None:
         for ref_id, value in seeded.decode_module_parameters(
@@ -1218,21 +1229,45 @@ def _decode(
                 unknown.append(ref_id)
             else:
                 values[ref_id] = value
-    return _with_calculated(application, values, project_code_page), unknown
+    return calculated(values), unknown
+
+
+class _CancelToken(AbortToken):
+    """The abort of the calculations the search runs, given once ``cancel`` says so: a
+    calculation stops at its next script call (the calculations of a large application
+    can take longer than the rest of a search)."""
+
+    def __init__(self, cancel: Callable[[], bool]) -> None:
+        super().__init__()
+        self._cancel = cancel
+
+    @property
+    def requested(self) -> bool:
+        return super().requested or self._cancel()
 
 
 def _with_calculated(
-    application: Application, values: Mapping[str, str], project_code_page: str | None
+    application: Application,
+    values: Mapping[str, str],
+    project_code_page: str | None,
+    cancel: Callable[[], bool] | None = None,
 ) -> _ValueMap:
     """``values`` plus what the application's calculations compute from them (a shown setting
-    the device keeps no copy of, computed from a stored one). A read value is kept."""
+    the device keeps no copy of, computed from a stored one). A read value is kept. Raises
+    :class:`_Cancelled` once ``cancel`` says so."""
     from .recover import seed_dynamic_ui
 
     result = dict(values)
     ui = seed_dynamic_ui(application, values, project_code_page)
     if ui is None:
         return result
-    for ref_id, (_old, new) in ui.recalculate(list(values), stored=True).items():
+    if cancel is not None:
+        ui.script_abort = _CancelToken(cancel)
+    try:
+        changes = ui.recalculate(list(values), stored=True)
+    except ScriptAborted:
+        raise _Cancelled from None
+    for ref_id, (_old, new) in changes.items():
         if new is not None:
             result.setdefault(ref_id, new)
     return result

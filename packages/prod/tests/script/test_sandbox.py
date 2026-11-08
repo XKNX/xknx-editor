@@ -222,6 +222,15 @@ def test_abort_unwinds_loops() -> None:
     assert time.monotonic() - started < 5
 
 
+def test_an_abort_while_loading_is_the_abort_not_a_script_error() -> None:
+    # A host call answers an abort, which fails the script that made it: that failure is
+    # the abort.
+    token = AbortToken()
+    token.request()
+    with pytest.raises(ScriptAborted):
+        ScriptContext(abort=token, host={"h": lambda: 1}, script="h();")
+
+
 def test_deadline_stops_runaway_loop() -> None:
     ctx = ScriptContext(deadline=0.2, script="function h() { while (true) {} }")
     started = time.monotonic()

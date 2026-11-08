@@ -181,7 +181,14 @@ class ScriptContext:
         return call
 
     def _eval(self, code: str, **kwargs: Any) -> Any:
-        return self._interp.evaljs(code, **kwargs)
+        try:
+            return self._interp.evaljs(code, **kwargs)
+        except Exception:
+            # Stopped while it ran (a host call answers an abort, which fails the code
+            # that called it): the abort, not a script error.
+            if self._abort.requested:
+                raise ScriptAborted() from None
+            raise
 
     def load(self, script: str) -> None:
         """Evaluate script text in the global scope."""
@@ -194,6 +201,8 @@ class ScriptContext:
             script = result.code
         try:
             self._eval(script + "\n;void 0;")
+        except ScriptAborted:
+            raise
         except Exception as exc:
             message = str(exc)
             if message.startswith("SyntaxError"):
@@ -215,6 +224,8 @@ class ScriptContext:
                 a=_encode(list(args)),
                 b=list(readback),
             )
+        except ScriptAborted:
+            raise
         except Exception as exc:
             raise ScriptError(_first_line(str(exc))) from exc
         result = cast(dict[str, Any], out)
