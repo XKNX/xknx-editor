@@ -886,21 +886,39 @@ def _differing_cells(
     ui: DynamicUI, parameter_segments: Mapping[str, bytes]
 ) -> set[_Cell] | None:
     """The bytes ``ui`` writes otherwise than the device holds them; ``None`` when it cannot be
-    encoded."""
+    encoded. A byte a parameter of the application is stored at differs only in the bits a
+    setting is stored at: its other bits are no setting's (the flags of a group object table
+    record the product places a parameter in, which the download writes from the links), and
+    no result writes them otherwise. One a module instance's setting is stored at as well
+    counts as a whole."""
     from xknxeditor.prod.errors import EncodingError
 
     try:
         encoded = ui.encode_to_memory()
     except (EncodingError, ValueError):
         return None
-    return {
-        (segment_id, offset)
-        for segment_id, device in parameter_segments.items()
+    bits: dict[str, bytes] | None = None
+    cells: dict[_Cell, frozenset[str]] | None = None
+    differing: set[_Cell] = set()
+    for segment_id, device in parameter_segments.items():
         for offset, (mine, theirs) in enumerate(
             zip(encoded.get(segment_id, b""), device, strict=False)
-        )
-        if mine != theirs
-    }
+        ):
+            if mine == theirs:
+                continue
+            if bits is None:
+                bits = ui.stored_bit_mask()
+            stored = bits.get(segment_id, b"")
+            own = stored[offset] if offset < len(stored) else 0
+            if own and not (mine ^ theirs) & own:
+                if cells is None:
+                    cells = ui.stored_parameter_cells()
+                if not any(
+                    "_MI-" in ref for ref in cells.get((segment_id, offset), ())
+                ):
+                    continue
+            differing.add((segment_id, offset))
+    return differing
 
 
 def _gates_of(

@@ -67,6 +67,7 @@ class ApplicationIndexer:
         "scope_decoded",
         "scope_writes",
         "script",
+        "stored_bits",
         "stored_cells",
     )
 
@@ -97,6 +98,8 @@ class ApplicationIndexer:
         # writes of module scopes by what they depend on; and what module instances decoded,
         # by the identity of their writes and of the bytes they read (all held).
         self.stored_cells: dict[tuple[str, int], frozenset[str]] | None = None
+        # The bits of the bytes in ``stored_cells`` the parameters are stored at (stored_bit_mask).
+        self.stored_bits: dict[str, bytes] | None = None
         self.own_properties: (
             tuple[dict[tuple[TypedPropertyKey, int], frozenset[str]], list[PropWrite]]
             | None

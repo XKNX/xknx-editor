@@ -1576,6 +1576,33 @@ def stored_parameter_cells(
     return cells
 
 
+def stored_bit_mask(
+    app: ApplicationProgram, idx: ApplicationIndexer
+) -> dict[str, bytes]:
+    """``{seg_id: bit_mask}`` of the bits the application's own parameters and union members
+    are stored at, active or not (the bit-granular part of :func:`stored_parameter_cells`
+    without module instances), MSB first as in :func:`written_bit_mask`. The same for every
+    state, so it is worked out once per application; the dict and its masks are shared."""
+    own = idx.stored_bits
+    if own is None:
+        masks: dict[str, bytearray] = {}
+        # Without a state every parameter is written, and a union member whenever it has a
+        # value (as stored_parameter_cells gathers them).
+        writes = collect_writes(app, idx, dict.fromkeys(idx.parameters, "0"), None)
+        for w in writes.mem:
+            pt = idx.parameter_types.get(w.parameter_type)
+            size = (type_size_in_bit(pt.choice) if pt is not None else None) or 0
+            start = w.offset * 8 + w.bit_offset
+            mask = masks.setdefault(w.seg_id, bytearray())
+            end = (start + size + 7) // 8
+            if len(mask) < end:
+                mask.extend(bytes(end - len(mask)))
+            for pos in range(start, start + size):
+                mask[pos // 8] |= 1 << (7 - pos % 8)
+        own = idx.stored_bits = {seg_id: bytes(mask) for seg_id, mask in masks.items()}
+    return own
+
+
 class PropertyLayout(NamedTuple):
     """Where settings live in properties, whatever is shown now (see
     :func:`stored_property_layout`)."""

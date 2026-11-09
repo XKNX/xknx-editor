@@ -92,6 +92,7 @@ from .encode import (
     parameter_ref_order,
     resolve_param_values,
     segment_seed,
+    stored_bit_mask,
     stored_parameter_cells,
     stored_property_layout,
     type_size_in_bit,
@@ -1613,6 +1614,12 @@ class DynamicUI:
         :func:`~xknxeditor.prod.parser_v2.encode.stored_parameter_cells`."""
         self.ui()
         return stored_parameter_cells(self._app, self._idx, self._state)
+
+    def stored_bit_mask(self) -> dict[str, bytes]:
+        """The bits the application's own parameters are stored at, active or not, per code
+        segment (without module instances); see
+        :func:`~xknxeditor.prod.parser_v2.encode.stored_bit_mask`."""
+        return stored_bit_mask(self._app, self._idx)
 
     def stored_property_layout(self) -> PropertyLayout:
         """The param-refs stored at each byte of each property, active or not, and what the
