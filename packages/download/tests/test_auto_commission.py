@@ -31,6 +31,7 @@ async def _run(
     scope: DownloadScope,
     commission: bool,
     secure: bool = False,
+    memory_progress: Any = None,
 ) -> list[str]:
     """Run ``download`` with the network stack faked out, returning the event trace."""
     trace: list[str] = []
@@ -55,8 +56,10 @@ async def _run(
 
         restarted = False
 
-        async def run(self, progress: Any = None) -> None:
+        async def run(self, progress: Any = None, memory_progress: Any = None) -> None:
             trace.append("run")
+            if memory_progress is not None:
+                memory_progress(12, 40)
 
         def captured_property(self, object_type: int, property_id: int) -> None:
             return None
@@ -92,6 +95,7 @@ async def _run(
         image=cast("Any", object()),
         scope=scope,
         commission=commission,
+        memory_progress=memory_progress,
     )
     return trace
 
@@ -182,3 +186,17 @@ def test_a_secure_device_is_unloaded_by_a_factory_reset() -> None:
         assert (control.erase_code, control.channel_number) == (erase_code, 0)
     assert dl.unloads_by_master_reset(application("MV-FFFF", False))
     assert not dl.unloads_by_master_reset(application("MV-07B0", False))
+
+
+async def test_the_memory_progress_reaches_the_procedure(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    reported: list[tuple[int, int]] = []
+    await _run(
+        monkeypatch,
+        present=True,
+        scope=DownloadScope.PARAMETERS,
+        commission=False,
+        memory_progress=lambda done, total: reported.append((done, total)),
+    )
+    assert reported == [(12, 40)]
