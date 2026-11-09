@@ -12,7 +12,7 @@ from collections.abc import (
     Mapping,
     Sequence,
 )
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 from xknxeditor.namespaces.intermediate import (
     ApplicationProgram,
@@ -62,6 +62,7 @@ from .context import (
     EvalCapture,
     EvalContext,
     Explorer,
+    GateChecks,
     ObjectTreeCapture,
     ObjectTreeNode,
     Placement,
@@ -122,6 +123,7 @@ from .state import (
     compute_arg_defaults,
     compute_param_ref_bases,
     compute_param_ref_defaults,
+    layouts_alike,
 )
 from .text_encoding import text_parameter_encoding
 from .ui import UiNode
@@ -199,6 +201,7 @@ class _UnionCompetitors:
     __slots__ = (
         "_by_union",
         "_cache",
+        "_later",
         "_member_of",
         "_member_refs",
         "_members",
@@ -220,6 +223,8 @@ class _UnionCompetitors:
         for mid, (key, _s, _z) in members.items():
             self._by_union.setdefault(key, []).append(mid)
         self._cache: dict[str, set[str] | None] = {}
+        # later() of each param-ref asked for: a search asks for the same refs in every UI.
+        self._later: dict[str, frozenset[str]] = {}
 
     def _overlap(self, a: str, b: str) -> bool:
         _k1, s1, z1 = self._members[a]
@@ -248,21 +253,27 @@ class _UnionCompetitors:
             self._cache[mid] = competitors or None
         return self._cache[mid]
 
-    def later(self, ref_id: str) -> set[str]:
+    def later(self, ref_id: str) -> frozenset[str]:
         """The parameter-refs of the other members of ``ref_id``'s union whose bits overlap its
         own and that a download writes after ``ref_id`` (ParameterRef order, see
         :func:`parameter_ref_order`): one of them active, its value is what the memory holds."""
+        found = self._later.get(ref_id)
+        if found is not None:
+            return found
         mid = self._member_of.get(ref_id)
         if mid is None:
-            return set()
-        own = self._ref_ranks.get(ref_id, (-1, -1))
-        return {
-            r
-            for m2 in self._by_union[self._members[mid][0]]
-            if m2 != mid and m2 in self._member_refs and self._overlap(mid, m2)
-            for r in self._member_refs[m2]
-            if self._ref_ranks.get(r, (-1, -1)) > own
-        }
+            found = frozenset[str]()
+        else:
+            own = self._ref_ranks.get(ref_id, (-1, -1))
+            found = frozenset(
+                r
+                for m2 in self._by_union[self._members[mid][0]]
+                if m2 != mid and m2 in self._member_refs and self._overlap(mid, m2)
+                for r in self._member_refs[m2]
+                if self._ref_ranks.get(r, (-1, -1)) > own
+            )
+        self._later[ref_id] = found
+        return found
 
     def covered(self, ref_id: str, by: Iterable[str]) -> bool:
         """Whether the members of the param-refs ``by`` together cover every bit of
@@ -1180,13 +1191,27 @@ class DynamicUI:
         the last pass, and whether it settled before the limit. Each pass gates Chooses by the
         parameters active in the pass before, so a Choose renders nothing when its parameter is
         not active, wherever in the tree it is shown or assigned; and a node read before a write
-        saw the old value, so the pass after it sees the new one."""
+        saw the old value, so the pass after it sees the new one.
+
+        A pass that changed no value or text, after which each Choose it reached would select
+        what it selected (its parameter as active, or as inactive, as before), is what the next
+        pass would do again: that pass would settle, and is left out."""
         tree: list[UiNode] = []
-        for _ in range(_MAX_GATE_PASSES):
+        for n in range(_MAX_GATE_PASSES):
             self._state.reset_active()
-            tree = self._tree.eval(make_ctx())
+            ctx = make_ctx()
+            checks: GateChecks = []
+            ctx.record_gate_checks(checks)
+            tree = self._tree.eval(ctx)
             gate_changed = self._state.update_gate_active()
-            if not gate_changed and not self._state.pass_changed_state():
+            if self._state.pass_changed_state():
+                continue
+            if not gate_changed:
+                return tree, True
+            if n + 1 < _MAX_GATE_PASSES and all(
+                scope.is_gate_active(ref_id) is active
+                for scope, ref_id, active in checks
+            ):
                 return tree, True
         return tree, False
 
@@ -1246,6 +1271,11 @@ class DynamicUI:
         self._ui = place_hidden_parameters(
             self._ui, self._display_order, pinned=rehomed
         )
+
+    @property
+    def evaluated(self) -> bool:
+        """Whether the UI is evaluated for its state (see :meth:`ui`)."""
+        return self._ui is not None
 
     def ui(self) -> list[UiNode]:
         if self._ui is None:
@@ -1483,6 +1513,15 @@ class DynamicUI:
         """What the parameter state holds (see :meth:`ParameterState.layout`), with the code page:
         two UIs of one program, neither evaluated yet, with the same layout evaluate alike."""
         return (self.project_code_page, self._state.layout())
+
+    @staticmethod
+    def layouts_alike(first: tuple[object, ...], second: tuple[object, ...]) -> bool:
+        """Whether two UIs of one program with the state layouts ``first`` and ``second`` (see
+        :meth:`state_layout`), neither evaluated yet, evaluate alike: the same code page, and
+        states alike (see :func:`~xknxeditor.prod.parser_v2.state.layouts_alike`)."""
+        return first[0] == second[0] and layouts_alike(
+            cast("tuple[object, ...]", first[1]), cast("tuple[object, ...]", second[1])
+        )
 
     def decode_stored_parameters(
         self,
@@ -1925,14 +1964,21 @@ class DynamicUI:
             text_encoding=self.text_encoding,
         )
 
-    def recalculate(self, ref_ids: Iterable[str], *, stored: bool = False) -> ChangeSet:
+    def recalculate(
+        self,
+        ref_ids: Iterable[str],
+        *,
+        stored: bool = False,
+        written: set[str] | None = None,
+    ) -> ChangeSet:
         """Run the calculation plans of ``ref_ids`` without changing them; errors are logged.
 
         One union plan per scope, so a calculation shared by several of ``ref_ids`` runs once over
         their combined state instead of once per ref (which would feed intermediates back in).
         ``stored``: the values of ``ref_ids`` were read from a device, and the settings a
         calculation computes them from are set to values it gives them back from (see
-        ``run_calculations_many``)."""
+        ``run_calculations_many``). ``written`` collects every ref a calculation wrote, also
+        with the value it had."""
         ref_ids = list(ref_ids)
         # A value the device holds for a parameter it is not given (an inactive one) says
         # nothing about the settings it is computed from.
@@ -1954,6 +2000,8 @@ class DynamicUI:
                 else None,
             )
         self._invalidate()
+        if written is not None:
+            written.update(journal.before)
         return journal.changes()
 
     def _group_by_scope(
@@ -2114,7 +2162,7 @@ class DynamicUI:
             self._active_refs = frozenset(self._state.active_param_refs())
         return self._active_refs
 
-    def later_union_members(self, ref_id: str) -> set[str]:
+    def later_union_members(self, ref_id: str) -> frozenset[str]:
         """The param-refs of the members of ``ref_id``'s union written after its own member over
         the same bits (an application's union; empty for any other ref): when one is active,
         the memory holds its value, not ``ref_id``'s."""

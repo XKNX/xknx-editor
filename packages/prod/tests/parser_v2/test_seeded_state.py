@@ -12,6 +12,7 @@ from xknxeditor.namespaces.intermediate import ModuleInstance, ParameterInstance
 from xknxeditor.prod.parser_v2.state import (
     GlobalState,
     _InstanceIds,  # pyright: ignore[reportPrivateUsage]
+    layouts_alike,
 )
 
 APP = "M-00FA_A-0001-01-0000"
@@ -118,3 +119,50 @@ def test_the_layout_tells_seedings_apart() -> None:
             parameter_values={f"{_instance(1)}_P-1_R-1": "1"},
         ).layout()
     )
+
+
+def _listed(*numbers: int, values: dict[str, str] | None = None) -> GlobalState:
+    """A state seeded with ``values`` and the instances ``numbers`` listed in that order."""
+    return GlobalState.from_project(
+        None,
+        [ModuleInstance(id=_instance(n), ref_id=f"{APP}_MD-1") for n in numbers],
+        app_id=APP,
+        parameter_values=values or {},
+    )
+
+
+def test_listed_instances_that_hold_nothing_leave_states_alike() -> None:
+    values = {f"{_instance(1)}_P-1_R-1": "1", f"{APP}_P-2_R-2": "2"}
+    alone = _listed(values=values)
+    # Instance 2 listed without a value, and instance 1 listed after it: an evaluation reads
+    # neither the order nor an instance before it reaches it.
+    with_empty = _listed(2, 1, values=values)
+    assert alone.layout() != with_empty.layout()
+    assert layouts_alike(alone.layout(), with_empty.layout())
+    assert layouts_alike(with_empty.layout(), alone.layout())
+
+
+def test_states_holding_other_things_are_not_alike() -> None:
+    values = {f"{_instance(1)}_P-1_R-1": "1", f"{APP}_P-2_R-2": "2"}
+    alone = _listed(values=values)
+    # Another value, in the application or in an instance.
+    assert not layouts_alike(
+        alone.layout(), _listed(values={**values, f"{APP}_P-2_R-2": "3"}).layout()
+    )
+    assert not layouts_alike(
+        alone.layout(),
+        _listed(values={**values, f"{_instance(1)}_P-1_R-1": "2"}).layout(),
+    )
+    # An instance only one of them has that holds a value.
+    assert not layouts_alike(
+        alone.layout(),
+        _listed(values={**values, f"{_instance(3)}_P-1_R-1": "1"}).layout(),
+    )
+    # The same instance holding nothing but under another definition.
+    other = GlobalState.from_project(
+        None,
+        [ModuleInstance(id=_instance(1), ref_id=f"{APP}_MD-2")],
+        app_id=APP,
+        parameter_values=values,
+    )
+    assert not layouts_alike(alone.layout(), other.layout())

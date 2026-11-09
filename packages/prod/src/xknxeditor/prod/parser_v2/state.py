@@ -4,7 +4,7 @@ import copy
 import re
 from collections.abc import Iterable, Mapping
 from functools import lru_cache
-from typing import Any, ClassVar, Self
+from typing import Any, ClassVar, Self, cast
 
 from xknxeditor.namespaces.ids import unpadded_id
 from xknxeditor.namespaces.intermediate import (
@@ -824,6 +824,52 @@ class ParameterState:
     def _own_layout(self) -> tuple[object, ...]:
         """The part of :meth:`layout` of a kind of scope."""
         return ()
+
+
+def layouts_alike(first: tuple[object, ...], second: tuple[object, ...]) -> bool:
+    """Whether two root states of one program with the layouts ``first`` and ``second`` (see
+    :meth:`ParameterState.layout`), neither evaluated yet, evaluate alike: the same layouts but
+    for the order of the module instances at the root, and for instances only one of them has
+    that hold nothing but their ids. An evaluation reads no instance it does not reach, and one
+    it reaches it makes so when it is not there (an evaluation that reaches it in the other
+    state too); the root's instances are looked up by their ids, never in their order."""
+    if first[:-1] != second[:-1]:
+        return False
+
+    def children(layout: tuple[object, ...]) -> dict[object, object]:
+        return dict(cast("tuple[tuple[object, object], ...]", layout[-1]))
+
+    ours, theirs = children(first), children(second)
+    for key in ours.keys() | theirs.keys():
+        mine, other = ours.get(key), theirs.get(key)
+        if mine == other:
+            continue
+        if mine is not None and other is not None:
+            return False
+        held = mine if mine is not None else other
+        if not _holds_nothing(held):
+            return False
+    return True
+
+
+def _holds_nothing(layout: object) -> bool:
+    """Whether a module instance's layout (see :meth:`ParameterState.layout`) is that of an
+    instance made with its ids alone (as :meth:`GlobalState.from_project` makes one for a
+    listed instance without values)."""
+    if not isinstance(layout, tuple):
+        return False
+    parts = cast("tuple[object, ...]", layout)
+    if len(parts) < 2 or parts[0] != "ModuleState" or not isinstance(parts[1], tuple):
+        return False
+    own = cast("tuple[object, ...]", parts[1])
+    if len(own) < 2:
+        return False
+    instance_id, ref_id = own[0], own[1]
+    if not isinstance(instance_id, str) or not (
+        ref_id is None or isinstance(ref_id, str)
+    ):
+        return False
+    return parts == ModuleState(instance_id, ref_id=ref_id).layout()
 
 
 class GlobalState(ParameterState):

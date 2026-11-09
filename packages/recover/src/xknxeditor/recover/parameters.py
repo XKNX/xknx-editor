@@ -261,6 +261,36 @@ def _seeded(
     return ui
 
 
+def _seeded_for_lookups(
+    application: Application, values: Mapping[str, str], project_code_page: str | None
+) -> tuple[DynamicUI | None, DynamicUI | None]:
+    """:func:`~xknxeditor.recover.recover.seed_dynamic_ui` of ``values`` as it comes back
+    without ``evaluated`` (to look settings up in before it is evaluated), and a UI evaluated
+    alike when the seeding comes back evaluated with it (see :func:`_seeded`, which hands it
+    out within a search)."""
+    from .recover import seed_dynamic_ui
+
+    first = seed_dynamic_ui(application, values, project_code_page, evaluated=True)
+    if first is None or not first.evaluated:
+        return first, None
+    instances = first.get_module_instances()
+    cache = _search_cache(application)
+    if cache is not None:
+        cache.put(
+            cache.uis,
+            (frozenset(values.items()), project_code_page, None),
+            first,
+            cache.UIS,
+        )
+    if not instances:
+        # Without module instances the seeding is the first build itself.
+        return first, first
+    plain = seed_dynamic_ui(
+        application, values, project_code_page, module_instances=instances
+    )
+    return plain, first
+
+
 def _parameter_to_refs(application: Application) -> Mapping[str, list[str]]:
     """Map each parameter id to the reference ids that point at it (of the last few programs:
     every decode asks for it)."""
@@ -1480,7 +1510,13 @@ def _guessed(ui: DynamicUI, values: Mapping[str, str]) -> _ValueMap:
 def _written_over_in_part(ui: DynamicUI, ref_id: str, actives: Collection[str]) -> bool:
     """Whether later active members of ``ref_id``'s union write over some of its bits, but not
     all (see :meth:`DynamicUI.later_union_members`)."""
-    later = ui.later_union_members(ref_id) & set(actives)
+    later = ui.later_union_members(ref_id)
+    if not later:
+        # No member of a union (most settings): nothing to compare the active ones with.
+        return False
+    later = later & (
+        actives if isinstance(actives, set | frozenset) else frozenset(actives)
+    )
     return bool(later) and not ui.union_member_covered(ref_id, later)
 
 
@@ -1962,16 +1998,16 @@ def _decode(
     """Decode the memory and properties against a UI seeded with ``inferred``, returning the
     values (``inferred`` included) and the parameters left unknown. Raises :class:`_Cancelled`
     between rounds once ``cancel`` says so."""
-    from .recover import seed_dynamic_ui
-
     # The settings with a fixed value are looked up in the UI as it is seeded, before it is
-    # evaluated (which drops the module instances it does not show): a UI of its own then.
-    seed = seed_dynamic_ui if fixed is None or fixed else _seeded
-    ui = (
-        seed(application, inferred, project_code_page)
-        if inferred
-        else application.dynamic_ui()
-    )
+    # evaluated (which drops the module instances it does not show): a UI of its own then,
+    # and one evaluated alike, if there is one, to decode with.
+    alike: DynamicUI | None = None
+    if not inferred:
+        ui = application.dynamic_ui()
+    elif fixed is None or fixed:
+        ui, alike = _seeded_for_lookups(application, inferred, project_code_page)
+    else:
+        ui = _seeded(application, inferred, project_code_page)
     assert ui is not None
     ui.project_code_page = project_code_page
     if fixed is None:
@@ -1986,6 +2022,10 @@ def _decode(
             inferred = clean
             ui = _seeded(application, inferred, project_code_page)
             assert ui is not None
+        elif alike is not None:
+            ui = alike
+    elif alike is not None:
+        ui = alike
     parameter_to_refs = _parameter_to_refs(application)
     values: _ValueMap = {}
     unknown: list[str] = []
@@ -2223,10 +2263,12 @@ def _calculate(
         stored |= ui.active_parameter_ref_ids() & values.keys()
         if refs is not None and len(stored) == before:
             return result
+        written: set[str] = set()
         try:
             changes = ui.recalculate(
                 _copies_first(ui, list(values) if refs is None else refs),
                 stored=True,
+                written=written,
             )
         except ScriptAborted:
             raise _Cancelled from None
@@ -2234,6 +2276,8 @@ def _calculate(
             if new is not None and ref_id not in values:
                 result[ref_id] = new
         indexer = ui.indexer
+        if _shows_no_more(ui, written, values.keys() - stored):
+            return result
         shown = (ui.active_parameter_ref_ids() & values.keys()) - stored
         again = {
             id(calculation)
@@ -2252,6 +2296,103 @@ def _calculate(
         ]
 
 
+def _shows_no_more(
+    ui: DynamicUI, written: Collection[str], others: Collection[str]
+) -> bool:
+    """Whether the calculations that wrote ``written`` in ``ui`` cannot show a setting of
+    ``others`` (the values not active before) that a calculation computes from: they wrote no
+    selector (the same parameters are active), or none of ``others`` is such a setting. The
+    evaluation that would tell is then left out."""
+    kinds = _ref_kinds(ui)
+    return not any(kinds.selector(ref_id) for ref_id in written) or not any(
+        kinds.computed_from(ref_id) for ref_id in others
+    )
+
+
+def _ref_tail(ref_id: str) -> str:
+    """The part of a param-ref id that a module instance's qualified id of it keeps: from its
+    parameter (``_P-5_R-5`` of ``..._MD-1_M-2_MI-3_P-5_R-5`` and of ``..._MD-1_P-5_R-5``)."""
+    start = max(ref_id.rfind("_P-"), ref_id.rfind("_UP-"))
+    return ref_id if start < 0 else ref_id[start:]
+
+
+@dataclass(frozen=True, slots=True)
+class _RefKinds:
+    """Which param-refs of an application can decide which parameters are active (a selector:
+    the parameter of a choose or the count of a repeat, the source or the target of an assign),
+    and which can be on the right side of a parameter calculation (what it computes from) or on
+    its left side, told by :func:`_ref_tail`: of a module instance, the tail of its definition's
+    ref, whatever the instances there are."""
+
+    selectors: frozenset[str]
+    computed: frozenset[str]
+    # Those on the left side of a calculation (what it computes).
+    left: frozenset[str] = frozenset()
+
+    def selector(self, ref_id: str) -> bool:
+        return _ref_tail(ref_id) in self.selectors
+
+    def computed_from(self, ref_id: str) -> bool:
+        return _ref_tail(ref_id) in self.computed
+
+    def computing(self, ref_id: str) -> bool:
+        return _ref_tail(ref_id) in self.left
+
+
+def _ref_kinds(ui: DynamicUI) -> _RefKinds:
+    """The :class:`_RefKinds` of the application of ``ui`` (of the last few)."""
+    from xknxeditor.namespaces.intermediate import Assign, Repeat
+
+    indexer = ui.indexer
+    for seen, kinds in _REF_KINDS:
+        if seen is indexer:
+            return kinds
+    selectors = set(ui.selector_param_refs)
+    stack: list[object] = [
+        getattr(getattr(ui, "_app", None), "dynamic", None),
+        *(definition.dynamic for definition in indexer.module_defs.values()),
+    ]
+    while stack:
+        element = stack.pop()
+        if element is None:
+            continue
+        if isinstance(element, Assign):
+            selectors.add(element.target_param_ref_ref)
+            if element.source_param_ref_ref is not None:
+                selectors.add(element.source_param_ref_ref)
+            continue
+        if isinstance(element, Repeat) and element.parameter_ref_id:
+            selectors.add(element.parameter_ref_id)
+        when = getattr(element, "when", None)
+        if when:
+            # A choose: its parameter, and the content of each branch.
+            choose = getattr(element, "param_ref_id", None)
+            if choose:
+                selectors.add(choose)
+            stack.extend(when)
+        stack.extend(getattr(element, "choice", None) or [])
+    kinds = _RefKinds(
+        frozenset(_ref_tail(ref) for ref in selectors),
+        frozenset(
+            _ref_tail(ref)
+            for ref in indexer.parameter_refs
+            if indexer.calculations_for_r(ref)
+        ),
+        frozenset(
+            _ref_tail(ref)
+            for ref in indexer.parameter_refs
+            if indexer.calculations_for_l(ref)
+        ),
+    )
+    _REF_KINDS.insert(0, (indexer, kinds))
+    del _REF_KINDS[4:]
+    return kinds
+
+
+# The kinds of param-refs of the last few applications (see _ref_kinds).
+_REF_KINDS: list[tuple[object, _RefKinds]] = []
+
+
 def _guessed_sources(
     ui: DynamicUI, values: Mapping[str, str]
 ) -> tuple[list[str], set[str]]:
@@ -2259,9 +2400,13 @@ def _guessed_sources(
     calculation with settings on its right side the device keeps no copy of either and that
     ``values`` does not give, and those settings: what they are computed from."""
     indexer = ui.indexer
+    kinds = _ref_kinds(ui)
     sources: list[str] = []
     targets: set[str] = set()
     for ref_id in values:
+        if not kinds.computing(ref_id):
+            # On the left side of no calculation (most settings).
+            continue
         local = ui.local_ref_id(ref_id)
         calculations = indexer.calculations_for_l(local)
         if not calculations or not _is_unstored(ui, ref_id):
@@ -2368,24 +2513,26 @@ def _shadowed(ui: DynamicUI, ref_id: str) -> bool:
     from xknxeditor.prod.parser_v2.encode import parameter_ref_order
 
     indexer = ui.indexer
+    program = getattr(ui, "_app", None)
+    hidden: frozenset[str] = (
+        _hidden_fixed(program, ui) if program is not None else frozenset()
+    )
+    actives = ui.active_parameter_ref_ids()
     by_parameter: dict[str, list[tuple[tuple[int, int], str]]] = {}
-    for active in ui.active_parameter_ref_ids():
+    # Only the refs that can be shadowed at all (a parameter with a hidden ref with a fixed
+    # value among others, a union member with later ones): of thousands of active refs, few.
+    for active in actives & _shadow_candidates(ui, hidden):
         ref = indexer.parameter_refs.get(active)
         if ref is not None and ref.ref_id:
             by_parameter.setdefault(ref.ref_id, []).append(
                 (parameter_ref_order(active, ref.tag), active)
             )
-    program = getattr(ui, "_app", None)
-    hidden: frozenset[str] = (
-        _hidden_fixed(program, ui) if program is not None else frozenset()
-    )
     found: set[str] = set()
     for refs in by_parameter.values():
         ordered = [active for _order, active in sorted(refs)]
         for n, active in enumerate(ordered):
             if any(later in hidden for later in ordered[n + 1 :]):
                 found.add(active)
-    actives = ui.active_parameter_ref_ids()
     for refs in by_parameter.values():
         for _order, active in refs:
             # Bits no later member writes still hold this one's.
@@ -2395,6 +2542,35 @@ def _shadowed(ui: DynamicUI, ref_id: str) -> bool:
     _SHADOWED.insert(0, (ui, frozenset(found)))
     del _SHADOWED[8:]
     return ref_id in found
+
+
+def _shadow_candidates(ui: DynamicUI, hidden: frozenset[str]) -> frozenset[str]:
+    """The param-refs of the application of ``ui`` that :func:`_shadowed` can find: of a
+    parameter with several refs, one of them in ``hidden``, and union members with later
+    members (of the last few applications)."""
+    indexer = ui.indexer
+    for seen, seen_hidden, candidates in _SHADOW_CANDIDATES:
+        if seen is indexer and seen_hidden is hidden:
+            return candidates
+    refs_of: dict[str, list[str]] = {}
+    for ref_id, ref in indexer.parameter_refs.items():
+        if ref.ref_id:
+            refs_of.setdefault(ref.ref_id, []).append(ref_id)
+    found: set[str] = set()
+    for refs in refs_of.values():
+        if len(refs) > 1 and any(ref_id in hidden for ref_id in refs):
+            found.update(refs)
+    found.update(
+        ref_id for ref_id in indexer.parameter_refs if ui.later_union_members(ref_id)
+    )
+    candidates = frozenset(found)
+    _SHADOW_CANDIDATES.insert(0, (indexer, hidden, candidates))
+    del _SHADOW_CANDIDATES[4:]
+    return candidates
+
+
+# The refs _shadowed can find, of the last few applications (see _shadow_candidates).
+_SHADOW_CANDIDATES: list[tuple[object, frozenset[str], frozenset[str]]] = []
 
 
 def _assigned_from(
@@ -2537,21 +2713,32 @@ def _later_members_read(
 
 def _keeps_no_copy(parameter: object) -> bool:
     """Whether a parameter has no memory, no property and is no member of a union."""
-    from xknxeditor.namespaces.intermediate.application_program_static_t_parameters_parameter import (
-        ApplicationProgramStaticParametersParameter,
-    )
-    from xknxeditor.namespaces.intermediate.module_def_static_t_parameters_parameter import (
-        ModuleDefStaticParametersParameter,
+    return isinstance(parameter, _plain_parameter_types()) and (
+        getattr(parameter, "choice", None) is None
     )
 
-    return (
-        isinstance(
-            parameter,
-            ApplicationProgramStaticParametersParameter
-            | ModuleDefStaticParametersParameter,
+
+def _plain_parameter_types() -> tuple[type, ...]:
+    """The types of a parameter that is no member of a union (asked for again and again: the
+    imports looked up once)."""
+    if not _PLAIN_PARAMETER_TYPES:
+        from xknxeditor.namespaces.intermediate.application_program_static_t_parameters_parameter import (
+            ApplicationProgramStaticParametersParameter,
         )
-        and parameter.choice is None
-    )
+        from xknxeditor.namespaces.intermediate.module_def_static_t_parameters_parameter import (
+            ModuleDefStaticParametersParameter,
+        )
+
+        _PLAIN_PARAMETER_TYPES.extend(
+            (
+                ApplicationProgramStaticParametersParameter,
+                ModuleDefStaticParametersParameter,
+            )
+        )
+    return tuple(_PLAIN_PARAMETER_TYPES)
+
+
+_PLAIN_PARAMETER_TYPES: list[type] = []
 
 
 def _fixed_values(application: Application, ui: DynamicUI) -> _ValueMap:
@@ -3023,6 +3210,9 @@ def _infer_from_memory(
             not total or trial_fitting / total >= share
         ):
             best, fewest = {ref_id: candidate}, len(trial_misfits)
+            if not fewest:
+                # Every union member fits: no value after it can do better.
+                break
     return best
 
 
@@ -3113,7 +3303,8 @@ def _infer_from_fixed(
         return {}
     held = _held_values(application, ui, parameter_segments, property_values)
     cells_of: dict[str, set[_Cell]] = {}
-    for cell, owners in ui.stored_parameter_cells().items():
+    stored = ui.stored_parameter_cells()
+    for cell, owners in stored.items():
         for owner in owners:
             cells_of.setdefault(owner, set()).add(cell)
 
@@ -3123,6 +3314,13 @@ def _infer_from_fixed(
         offset = cell[1]
         return offset < min(len(device), len(mine)) and device[offset] != mine[offset]
 
+    if not any(
+        differs(cell) and any(ui.local_ref_id(owner) in fixed for owner in owners)
+        for cell, owners in stored.items()
+    ):
+        # No byte of a hidden setting with a fixed value differs: no selector has a branch
+        # to correct (the placements below are not looked for).
+        return {}
     _check(cancel)
     active = ui.active_parameter_ref_ids()
     # Per selector and value, how many of the hidden settings its branch holds have the value

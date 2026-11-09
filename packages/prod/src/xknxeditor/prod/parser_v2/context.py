@@ -200,6 +200,11 @@ class _TextArgs(Mapping[str, str]):
         return len(self._args)
 
 
+# The gate decisions a pass made (see :meth:`EvalContext.is_gate_active`): for each Choose
+# evaluated, its scope, its parameter and whether it could select a branch.
+GateChecks = list[tuple["ParameterState", str, bool]]
+
+
 class EvalContext:
     """Scope handle wrapping the active state node and the repeat index for the next module_child.
 
@@ -209,6 +214,7 @@ class EvalContext:
     __slots__ = (
         "_capture",
         "_explore",
+        "_gate_checks",
         "_handed",
         "_idx",
         "_in_repeat",
@@ -231,6 +237,7 @@ class EvalContext:
         in_repeat: bool = False,
         union_chooses: list[tuple[ParameterState, str, Collection[str]]] | None = None,
         handed: set[int] | None = None,
+        gate_checks: GateChecks | None = None,
     ) -> None:
         self._scope = scope
         self._repeat_idx = repeat_idx
@@ -250,6 +257,8 @@ class EvalContext:
         # Set when the nodes may hand out what they made in an earlier pass again: the ids of
         # what this pass has handed out (none twice in one tree, see :attr:`handed`).
         self._handed = handed
+        # Set to record the gate decisions of the pass (see :meth:`record_gate_checks`).
+        self._gate_checks = gate_checks
 
     @property
     def capture(self) -> EvalCapture | None:
@@ -283,8 +292,18 @@ class EvalContext:
         if self._union_chooses is not None:
             self._union_chooses.append((self._scope, param_ref_id, siblings))
 
+    def record_gate_checks(self, checks: GateChecks) -> None:
+        """Record in ``checks`` each gate decision this pass makes (see :data:`GateChecks`), in
+        this context and those made from it."""
+        self._gate_checks = checks
+
     def is_gate_active(self, ref_id: str) -> bool:
-        return self._scope.is_gate_active(ref_id)
+        scope = self._scope
+        active = scope.is_gate_active(ref_id)
+        checks = self._gate_checks
+        if checks is not None:
+            checks.append((scope, ref_id, active))
+        return active
 
     def get(self, ref_id: str) -> str | None:
         return self._scope.get(ref_id)
@@ -381,6 +400,7 @@ class EvalContext:
             in_repeat=True,
             union_chooses=self._union_chooses,
             handed=self._handed,
+            gate_checks=self._gate_checks,
         )
 
     def get_arg_value(self, ref_id: str) -> int:
@@ -445,4 +465,5 @@ class EvalContext:
             object_tree=self._object_tree,
             union_chooses=self._union_chooses,
             handed=self._handed,
+            gate_checks=self._gate_checks,
         )

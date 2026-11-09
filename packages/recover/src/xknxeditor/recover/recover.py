@@ -104,8 +104,9 @@ def seed_dynamic_ui(
 
     With ``evaluated`` the UI may come back evaluated already: when seeding with the module
     instances the first build found gives the state the first build started from (each value
-    in the scope it was in), the second build would evaluate it alike, and the first one is
-    returned instead.
+    in the scope it was in; an instance it lists that holds no value is made by the evaluation
+    that reaches it, and the root's instances are found by their ids, not their order), the
+    second build would evaluate it alike, and the first one is returned instead.
     """
     from xknxeditor.namespaces.intermediate.module_instance_t import ModuleInstance
     from xknxeditor.prod.parser_v2.dynamic import DynamicUI
@@ -135,7 +136,9 @@ def seed_dynamic_ui(
             ],
             project_code_page=project_code_page,
         )
-        if layout is not None and layout == seeded.state_layout():
+        if layout is not None and DynamicUI.layouts_alike(
+            layout, seeded.state_layout()
+        ):
             return probe
         return seeded
     return DynamicUI(

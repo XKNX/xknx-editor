@@ -130,7 +130,9 @@ def test_recovery_decodes_again_with_the_values_read(
             parameters={},
             module_defs={},
             calculations_for_l=lambda _ref_id: (),
+            calculations_for_r=lambda _ref_id: (),
         )
+        selector_param_refs: frozenset[str] = frozenset({"R-selector"})
 
         def __init__(self, seeded: dict[str, str]) -> None:
             self.seeded = seeded
@@ -163,7 +165,11 @@ def test_recovery_decodes_again_with_the_values_read(
             return {}
 
         def recalculate(
-            self, _refs: object, *, stored: bool = False
+            self,
+            _refs: object,
+            *,
+            stored: bool = False,
+            written: set[str] | None = None,
         ) -> dict[str, tuple[str | None, str | None]]:
             # The values were read from the device.
             assert stored

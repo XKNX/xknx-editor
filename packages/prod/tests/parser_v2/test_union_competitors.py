@@ -82,3 +82,11 @@ def test_members_cover_a_member_only_with_all_of_its_bits() -> None:
     assert not c.covered("R-A1", {"R-U2"})
     assert not c.covered("R-A1", {"R-A2"})
     assert not c.covered("R-unknown", {"R-B"})
+
+
+def test_later_members_are_looked_up_once_per_ref() -> None:
+    # A search asks for the later members of the same refs in every UI it seeds.
+    c = _competitors()
+    first = c.later("R-A1")
+    assert c.later("R-A1") is first
+    assert c.later("R-unknown") is c.later("R-unknown")

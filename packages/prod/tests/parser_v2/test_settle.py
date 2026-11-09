@@ -9,11 +9,14 @@ from pathlib import Path
 import pytest
 
 from xknxeditor.prod.application import parse_application_xml
-from xknxeditor.prod.parser_v2.activation import shown_parameters
-from xknxeditor.prod.parser_v2.context import EvalContext
-from xknxeditor.prod.parser_v2.dynamic import DynamicUI
+from xknxeditor.prod.parser_v2.activation import shown_parameters, values_to_try
+from xknxeditor.prod.parser_v2.context import EvalContext, GateChecks
+from xknxeditor.prod.parser_v2.dynamic import (
+    _MAX_GATE_PASSES,  # pyright: ignore[reportPrivateUsage]
+    DynamicUI,
+)
 from xknxeditor.prod.parser_v2.state import GlobalState
-from xknxeditor.prod.parser_v2.ui import UiParameter
+from xknxeditor.prod.parser_v2.ui import UiNode, UiParameter
 
 APP = "M-00FA_A-0006-01-0000"
 FIXTURES = Path(__file__).parents[1] / "fixtures"
@@ -179,3 +182,86 @@ def test_with_a_capture_the_render_pass_is_evaluated(
     passes[0] = 0
     DynamicUI(program).active_parameter_driven_com_object_ref_ids()
     assert passes[0] == reused + 1
+
+
+def _plain_settle(
+    self: DynamicUI, make_ctx: Callable[[], EvalContext]
+) -> tuple[list[UiNode], bool]:
+    """A settle that evaluates the next pass also when it would repeat the last one."""
+    state = self._state  # pyright: ignore[reportPrivateUsage]
+    tree: list[UiNode] = []
+    for _ in range(_MAX_GATE_PASSES):
+        state.reset_active()
+        tree = self._tree.eval(make_ctx())  # pyright: ignore[reportPrivateUsage]
+        gate_changed = state.update_gate_active()
+        if not gate_changed and not state.pass_changed_state():
+            return tree, True
+    return tree, False
+
+
+def _evaluations(program: object) -> list[tuple[object, ...]]:
+    """What a UI of ``program`` evaluates to, before and after each shown parameter is set to
+    another value it can take (one after the other)."""
+    ui = DynamicUI(program)  # pyright: ignore[reportArgumentType]
+
+    def snapshot() -> tuple[object, ...]:
+        return (
+            ui.ui(),
+            ui.active_parameter_ref_ids(),
+            ui.get_module_instances(),
+            ui.active_parameter_driven_com_object_ref_ids(),
+            ui.state_layout(),
+        )
+
+    found = [snapshot()]
+    for ref_id, parameter in shown_parameters(ui.ui()).items():
+        tried = values_to_try(parameter, parameter.value)
+        if tried and ref_id in shown_parameters(ui.ui()):
+            ui.set_parameter_ref(ref_id, tried[0])
+            found.append(snapshot())
+    return found
+
+
+@pytest.mark.parametrize("name", APPLICATIONS)
+def test_a_pass_the_next_one_would_repeat_ends_the_settle(
+    name: str, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # A pass that changes no value and after which each Choose it reached selects what it
+    # selected is what the next pass would do again: leaving that pass out changes nothing.
+    program = parse_application_xml((FIXTURES / name).read_bytes(), "M-00FA")[0].program
+    passes = _counted_passes(monkeypatch)
+    skipping = _evaluations(program)
+    skipped = passes[0]
+    monkeypatch.setattr(DynamicUI, "_settle", _plain_settle)
+    passes = _counted_passes(monkeypatch)
+    assert _evaluations(program) == skipping
+    assert skipped <= passes[0]
+
+
+def test_the_pass_that_would_repeat_the_last_is_left_out(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # Every Choose of the first pass has its parameter shown: the discovery settles with it.
+    program = parse_application_xml(
+        (FIXTURES / "calculations_application.xml").read_bytes(), "M-00FA"
+    )[0].program
+    passes = _counted_passes(monkeypatch)
+    DynamicUI(program).ui()
+    assert passes[0] == 1
+    monkeypatch.setattr(DynamicUI, "_settle", _plain_settle)
+    passes = _counted_passes(monkeypatch)
+    DynamicUI(program).ui()
+    assert passes[0] == 2
+
+
+def test_a_choose_whose_parameter_turns_inactive_takes_another_pass() -> None:
+    # The first pass, ungated, renders the Choose of a parameter no pass shows; the next pass
+    # renders nothing under it, so the first is not taken as settled.
+    state = GlobalState()
+    ctx = EvalContext(state)
+    checks: GateChecks = []
+    ctx.record_gate_checks(checks)
+    assert ctx.is_gate_active("selector")
+    state.update_gate_active()
+    assert [(ref, active) for _scope, ref, active in checks] == [("selector", True)]
+    assert not state.is_gate_active("selector")
