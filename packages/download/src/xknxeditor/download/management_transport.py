@@ -80,14 +80,17 @@ class _TransportP2PConnection(P2PConnection):
             return
         if not self._connected:
             return
+        # Like ETS, ignore an ACK/NAK of another frame: a device acknowledges a repeated
+        # frame again, and that late duplicate arrives while the next frame waits (#242).
         if (
-            isinstance(telegram.tpci, TNak)
+            isinstance(telegram.tpci, TAck | TNak)
             and (sequence := _PENDING_SEQUENCE.get(id(self))) is not None
             and telegram.tpci.sequence_number != sequence
         ):
             logger.debug(
-                "%s: ignored NAK sequence %d, expected %d",
+                "%s: ignored %s sequence %d, expected %d",
                 self.address,
+                "ACK" if isinstance(telegram.tpci, TAck) else "NAK",
                 telegram.tpci.sequence_number,
                 sequence,
             )

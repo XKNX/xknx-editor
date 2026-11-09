@@ -127,17 +127,50 @@ async def test_exhausted_ack_retries_close_without_advancing(use_request: bool) 
     await _assert_closed(peer, connection)
 
 
-async def test_wrong_ack_sequence_closes_with_expected_and_received_sequence() -> None:
+async def test_wrong_ack_sequence_alone_is_no_acknowledgement() -> None:
     peer = _Peer()
     connection = await peer.connect()
     peer.on_data = lambda _: peer.receive(tpci.TAck(7))
-    with pytest.raises(
-        ManagementConnectionError, match="sequence 7, expected ACK sequence 0"
-    ):
+    with pytest.raises(ManagementAckTimeout, match="sequence 0 after 4 transmissions"):
         await connection.request(_WRITE)
-    assert peer.sequences == [0]
+    assert peer.sequences == [0, 0, 0, 0]
     assert isinstance(peer.sent[-1].tpci, tpci.TDisconnect)
     await _assert_closed(peer, connection)
+
+
+async def test_repeated_ack_of_the_previous_frame_is_ignored() -> None:
+    # Issue #242: the interface repeats a frame whose layer-2 acknowledgement it missed,
+    # and the device acknowledges it again while the next frame waits for its own ACK.
+    peer = _Peer()
+    connection = await peer.connect()
+
+    def respond(telegram: Telegram) -> None:
+        sequence = telegram.tpci.sequence_number
+        if sequence:
+            peer.receive(tpci.TAck(sequence - 1))
+        peer.ack(telegram)
+
+    peer.on_data = respond
+    await connection.send_data(_WRITE)
+    await connection.send_data(_WRITE)
+    await connection.send_data(_WRITE)
+    assert peer.sequences == [0, 1, 2]
+    assert not any(isinstance(t.tpci, tpci.TDisconnect) for t in peer.sent)
+    await connection.disconnect()
+
+
+async def test_ack_left_from_a_previous_connection_is_ignored() -> None:
+    peer = _Peer()
+    connection = await peer.connect()
+
+    def respond(telegram: Telegram) -> None:
+        peer.receive(tpci.TAck(11))
+        peer.ack(telegram)
+
+    peer.on_data = respond
+    await connection.send_data(_WRITE)
+    assert peer.sequences == [0]
+    await connection.disconnect()
 
 
 async def test_wrong_nak_sequence_is_ignored_while_waiting_for_ack() -> None:
@@ -318,7 +351,7 @@ async def test_memory_failure_allows_smaller_blocks_on_a_fresh_connection(
     programmer = DeviceProgrammer(connection, max_apdu_length=55)
     with pytest.raises(MemoryWriteNotAcknowledged):
         await programmer.write_memory(_WRITE.address, _WRITE.data)
-    repetitions = 4 if failure in ("timeout", "nak") else 1
+    repetitions = 1 if failure == "disconnect" else 4
     assert counts == [13] * repetitions
     await manager.close()
     connection = await manager.open()
