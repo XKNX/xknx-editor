@@ -1678,6 +1678,18 @@ def _decode(
                     and not _shadowed(ui, ref_id)
                 ):
                     read[ref_id] = value
+        # A setting read before that the layout its value chose now writes over (a switch
+        # that shows a member of its union written after it over all of its bits) keeps the
+        # value read: the memory holds nothing of it any more, and its default would choose
+        # the layout back where the memory gives that value again.
+        for ref_id, value in values.items():
+            if (
+                ref_id not in read
+                and ref_id not in fixed
+                and ref_id not in inferred
+                and _shadowed(ui, ref_id)
+            ):
+                read[ref_id] = value
         written_over = _written_over_values(
             application,
             ui,
